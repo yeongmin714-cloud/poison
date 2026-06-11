@@ -1,0 +1,40 @@
+name: Unity CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Unity Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Unity Test Runner
+        uses: game-ci/unity-test-runner@v4
+        with:
+          unityVersion: 6000.3.17f1
+          projectPath: ./
+          testMode: EditMode
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        continue-on-error: false
+
+  shell-check:
+    name: Shell Tests (WSL)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check run_tests.sh syntax
+        run: |
+          chmod +x run_tests.sh
+          bash -n run_tests.sh
