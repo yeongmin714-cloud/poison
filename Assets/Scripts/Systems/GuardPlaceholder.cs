@@ -30,7 +30,10 @@ namespace ProjectName.Systems
         [SerializeField] private float _addiction = 0f;
 
         [Header("포섭 (C9-15)")]
-        [SerializeField] private bool _isRecruited = false; // 플레이어에게 포섭되었는가
+        [SerializeField] private bool _isRecruited = false;
+
+        [Header("역할 (C9-16)")]
+        [SerializeField] private GuardRole _role = GuardRole.Soldier; // 플레이어에게 포섭되었는가
 
         private enum SelectionMode { None, SelectingFood, SelectingDrug }
         private SelectionMode _selectionMode = SelectionMode.None;
@@ -116,8 +119,9 @@ namespace ProjectName.Systems
 
             GUI.Box(new Rect(x, y, panelW, panelH), "");
 
-            float cy = y + 10f;
-            GUI.Label(new Rect(x + 10, cy, panelW - 20, 24), $"⚔️ [{nation}] {jobTitle} Lv.{level}", _styleTitle);
+            // 타이틀
+                        string roleStr = GuardStatusSystem.GetRoleName(_role);
+                        GUI.Label(new Rect(x + 10, cy, panelW - 20, 24), $"⚔️ [{nation}] {roleStr} Lv.{level}", _styleTitle);
             cy += 30f;
 
             GUI.Label(new Rect(x + 10, cy, LABEL_WIDTH, 20), "❤️ 체력:", _styleLabel);
@@ -380,5 +384,7 @@ namespace ProjectName.Systems
         public bool IsShowingInfo => _showInfo;
         public bool IsSelectingItem => _selectionMode != SelectionMode.None;
         public bool IsRecruited => _isRecruited;
+        public GuardRole Role { get => _role; set => _role = value; }
+        public string StatusSummary => GuardStatusSystem.GetStatusSummary(this);
     }
 }
