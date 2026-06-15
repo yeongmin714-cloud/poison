@@ -1,0 +1,261 @@
+using System.Collections.Generic;
+using ProjectName.Core;
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+namespace ProjectName.Systems
+{
+    /// <summary>
+    /// C9-20: RTS 기본 명령 — 드래그 선택, 우클릭 공격/이동, H키 중단
+    /// 
+    /// 사용법:
+    ///   GuardSelectionManager.Instance.SelectAllInRect(rect) // 드래그 선택
+    ///   GuardSelectionManager.Instance.IssueCommand(targetPos, targetEnemy) // 우클릭 명령
+    /// </summary>
+    public class GuardSelectionManager : MonoBehaviour
+    {
+        public static GuardSelectionManager Instance { get; private set; }
+
+        [Header("선택 설정")]
+        [SerializeField] private Color _selectionBoxColor = new Color(0.3f, 0.8f, 0.3f, 0.2f);
+        [SerializeField] private Color _selectionBorderColor = new Color(0.3f, 0.8f, 0.3f, 0.8f);
+        [SerializeField] private float _clickThreshold = 10f; // 드래그 vs 클릭 판정 거리
+
+        [Header("선택 표시")]
+        [SerializeField] private Material _selectedIndicatorMaterial;
+
+        // 현재 선택된 병사 목록
+        private readonly List<GuardPlaceholder> _selectedGuards = new List<GuardPlaceholder>();
+
+        // 드래그 상태
+        private bool _isDragging = false;
+        private Vector2 _dragStartMouse;
+        private Rect _selectionRect;
+
+        // 카메라 참조
+        private Camera _mainCamera;
+
+        private void Awake()
+        {
+            if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+            Instance = this;
+            _mainCamera = Camera.main;
+        }
+
+        private void Update()
+        {
+            if (Mouse.current == null) return;
+
+            // 좌클릭 드래그 시작
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                _dragStartMouse = Mouse.current.position.ReadValue();
+                _isDragging = true;
+            }
+
+            // 드래그 중
+            if (_isDragging && Mouse.current.leftButton.isPressed)
+            {
+                Vector2 currentMouse = Mouse.current.position.ReadValue();
+                float dragDist = Vector2.Distance(_dragStartMouse, currentMouse);
+
+                if (dragDist > _clickThreshold)
+                {
+                    UpdateSelectionRect(_dragStartMouse, currentMouse);
+                    DrawSelectionBox();
+                }
+            }
+
+            // 좌클릭 드래그 종료
+            if (_isDragging && Mouse.current.leftButton.wasReleasedThisFrame)
+            {
+                _isDragging = false;
+
+                Vector2 releasePos = Mouse.current.position.ReadValue();
+                float dragDist = Vector2.Distance(_dragStartMouse, releasePos);
+
+                if (dragDist > _clickThreshold)
+                {
+                    // 드래그 선택
+                    SelectGuardsInRect(_selectionRect);
+                }
+                // 단순 클릭은 무시 (좌클릭은 공격용)
+            }
+
+            // 우클릭 명령
+            if (Mouse.current.rightButton.wasPressedThisFrame && _selectedGuards.Count > 0)
+            {
+                HandleRightClickCommand();
+            }
+
+            // H키 공격 중단
+            if (Keyboard.current != null && Keyboard.current.hKey.wasPressedThisFrame)
+            {
+                StopAllGuards();
+            }
+        }
+
+        private void OnGUI()
+        {
+            if (_isDragging)
+                DrawSelectionBoxGUI();
+        }
+
+        // ===== 선택 박스 (IMGUI) =====
+        private void DrawSelectionBoxGUI()
+        {
+            var color = GUI.color;
+            GUI.color = _selectionBoxColor;
+            GUI.DrawTexture(_selectionRect, MakeTex(1, 1, Color.white));
+            GUI.color = _selectionBorderColor;
+            // 테두리 (4면)
+            GUI.DrawTexture(new Rect(_selectionRect.x, _selectionRect.y, _selectionRect.width, 2), MakeTex(1, 1, Color.white));
+            GUI.DrawTexture(new Rect(_selectionRect.x, _selectionRect.yMax - 2, _selectionRect.width, 2), MakeTex(1, 1, Color.white));
+            GUI.DrawTexture(new Rect(_selectionRect.x, _selectionRect.y, 2, _selectionRect.height), MakeTex(1, 1, Color.white));
+            GUI.DrawTexture(new Rect(_selectionRect.xMax - 2, _selectionRect.y, 2, _selectionRect.height), MakeTex(1, 1, Color.white));
+            GUI.color = color;
+        }
+
+        private Texture2D MakeTex(int w, int h, Color c)
+        {
+            var tex = new Texture2D(w, h);
+            for (int x = 0; x < w; x++)
+                for (int y = 0; y < h; y++)
+                    tex.SetPixel(x, y, c);
+            tex.Apply();
+            return tex;
+        }
+
+        // ===== 드래그 Rect 계산 =====
+        private void UpdateSelectionRect(Vector2 start, Vector2 end)
+        {
+            float x = Mathf.Min(start.x, end.x);
+            float y = Mathf.Min(start.y, end.y);
+            float w = Mathf.Abs(start.x - end.x);
+            float h = Mathf.Abs(start.y - end.y);
+            _selectionRect = new Rect(x, y, w, h);
+        }
+
+        // ===== 화면 좌표의 선택 Rect로 드래그 선택 =====
+        private void DrawSelectionBox()
+        {
+            // OnGUI에서 실제로 그림
+        }
+
+        /// <summary>
+        /// 화면 Rect 내의 모든 GuardPlaceholder 선택
+        /// </summary>
+        public void SelectGuardsInRect(Rect screenRect)
+        {
+            if (_mainCamera == null) return;
+
+            ClearSelection();
+
+            var guards = FindObjectsOfType<GuardPlaceholder>();
+            foreach (var guard in guards)
+            {
+                if (!guard.IsAlive || guard.IsRecruited == false) continue;
+
+                Vector3 worldPos = guard.transform.position;
+                Vector3 screenPos = _mainCamera.WorldToScreenPoint(worldPos);
+
+                // Unity Screen 좌표계 변환 (y 반전)
+                screenPos.y = Screen.height - screenPos.y;
+
+                if (screenRect.Contains(screenPos))
+                {
+                    AddToSelection(guard);
+                }
+            }
+
+            Debug.Log($"[RTS] {_selectedGuards.Count}명 선택됨");
+        }
+
+        /// <summary>
+        /// 선택에 병사 추가
+        /// </summary>
+        public void AddToSelection(GuardPlaceholder guard)
+        {
+            if (guard == null || _selectedGuards.Contains(guard)) return;
+            _selectedGuards.Add(guard);
+            guard.SetSelected(true);
+        }
+
+        /// <summary>
+        /// 선택 해제
+        /// </summary>
+        public void ClearSelection()
+        {
+            foreach (var guard in _selectedGuards)
+            {
+                if (guard != null)
+                    guard.SetSelected(false);
+            }
+            _selectedGuards.Clear();
+        }
+
+        /// <summary>
+        /// 우클릭 명령 처리
+        /// </summary>
+        private void HandleRightClickCommand()
+        {
+            if (_mainCamera == null) return;
+
+            Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            if (Physics.Raycast(ray, out RaycastHit hit, 100f))
+            {
+                // 적 대상 확인 (IDamageable)
+                IDamageable target = hit.collider.GetComponent<IDamageable>();
+                if (target != null && target.IsAlive)
+                {
+                    // 공격 명령
+                    IssueAttackCommand(target);
+                }
+                else
+                {
+                    // 이동 명령
+                    IssueMoveCommand(hit.point);
+                }
+            }
+        }
+
+        private void IssueAttackCommand(IDamageable target)
+        {
+            foreach (var guard in _selectedGuards)
+            {
+                if (guard != null && guard.IsAlive)
+                    guard.SetCommandTarget(target as MonoBehaviour?.transform.position ?? guard.transform.position, true);
+            }
+            Debug.Log($"[RTS] {_selectedGuards.Count}명 공격 명령");
+        }
+
+        private void IssueMoveCommand(Vector3 position)
+        {
+            foreach (var guard in _selectedGuards)
+            {
+                if (guard != null && guard.IsAlive)
+                    guard.SetCommandTarget(position, false);
+            }
+            Debug.Log($"[RTS] {_selectedGuards.Count}명 이동 명령 → {position}");
+        }
+
+        /// <summary>
+        /// 모든 병사 정지
+        /// </summary>
+        public void StopAllGuards()
+        {
+            foreach (var guard in _selectedGuards)
+            {
+                if (guard != null)
+                    guard.ClearCommand();
+            }
+            Debug.Log("[RTS] 모든 병사 정지 (H키)");
+        }
+
+        /// <summary>
+        /// 현재 선택된 병사 목록
+        /// </summary>
+        public IReadOnlyList<GuardPlaceholder> SelectedGuards => _selectedGuards.AsReadOnly();
+        public int SelectedCount => _selectedGuards.Count;
+    }
+}

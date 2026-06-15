@@ -383,6 +383,21 @@ namespace ProjectName.Systems
         public bool IsPlayerNearby => _playerNearby;
         public bool IsShowingInfo => _showInfo;
         public bool IsSelectingItem => _selectionMode != SelectionMode.None;
+
+        // ===== C9-20: RTS =====
+        private bool _isSelected = false;
+        private Vector3 _commandTargetPos;
+        private bool _hasCommand = false;
+        private bool _isAttackCommand = false;
+
+        public void SetSelected(bool selected) { _isSelected = selected; }
+        public bool IsSelected => _isSelected;
+        public void SetCommandTarget(Vector3 t, bool a) { _commandTargetPos = t; _isAttackCommand = a; _hasCommand = true; }
+        public void ClearCommand() { _hasCommand = false; _isAttackCommand = false; }
+        public bool HasCommand => _hasCommand;
+        public Vector3 CommandTarget => _commandTargetPos;
+        public bool IsAttackCommand => _isAttackCommand;
+
         public bool IsRecruited => _isRecruited;
         public GuardRole Role { get => _role; set => _role = value; }
         public string StatusSummary => GuardStatusSystem.GetStatusSummary(this);
