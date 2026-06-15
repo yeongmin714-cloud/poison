@@ -276,6 +276,7 @@
 | 2026-06-15 | **C9-06 상점 기본 아이템** | ItemCategory에 Weapon/Armor/Tool 추가, PlayerInventory에 무기3/방어구2/도구3 ItemData 추가, ShopWindow 재고 확장 (총 16종), ShopItemTests 12개 All passed ✅ |
 | 2026-06-15 | **C9-07 떠돌이 상인** | WanderingMerchant.cs (랜덤 방문 타이머 2~5분 간격, 45초 체류, E키 상호작용, ShopWindow 연동), 희귀 재고 9종(요리3/포션3/재료2/레시피1), WanderingMerchantTests 9개 All passed ✅ |
 | 2026-06-15 | **C9-08~09 병사 상호작용 & HUD** | GuardPlaceholder 대규모 개선: E키 상호작용, IMGUI HUD (레벨/호감도/중독도/체력 프로그레스바 + 4개 메뉴 버튼), Loyalty/Addiction 속성, JobTitle, GuardInteractionTests 15개 All passed ✅ |
+| 2026-06-15 | **C9-10 병사 호감도 시스템** | GuardLoyaltySystem (국가 기반: 동일국+10/적대국-20, 선물+5~30, 약물+15/+중독, 위협+20/-30 보복, 태그), GuardLoyaltyTests 12개 All passed ✅ |
 
 |---|---
 
