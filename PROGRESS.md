@@ -289,6 +289,7 @@
 | 2026-06-15 | **C9-20 RTS 기본 명령** | GuardSelectionManager (드래그 선택박스/우클릭 명령/H키중단), GuardPlaceholder RTS 메서드(SetSelected/SetCommandTarget/ClearCommand), RTSTests 10개 All passed ✅ |
 | 2026-06-15 | **C9-21 전투 AI** | GuardCombatAI (NotifyPlayerAttack/UpdateGuardBehavior/RecallAll, 전투타이머/귀환/합세), GuardPlaceholder 전투상태(IsInCombat/CombatTimer), CombatAITests 12개 All passed ✅ |
 | 2026-06-15 | **C9-22 Shift 선택** | GuardSelectionManager.SelectGuardsInRect(additive 파라미터), Shift키 감지 로직, RTSTests SelectGuardsInRect_WithAdditive 추가 ✅ |
+| 2026-06-15 | **C9-24 특사 파견 시스템** | EnvoySystem (Gift/Friendship/Alliance/Assassinate 4종, 레벨제한, 발각확률 계산, 특사 사망 처리), EnvoyTests 14개 All passed ✅ |
 | 2026-06-15 | **📋 추가사항 설계 반영** | 가스 분사기(4.11/C8-31~34), 아이템 아이콘(4.12/C8-35~37), 병사 레벨별 아바타(5.3.12/C9-31~32) — ROADMAP.md + CYCLE.md 반영 완료 |
 
 |---|---
