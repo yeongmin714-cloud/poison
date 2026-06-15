@@ -15,6 +15,7 @@ namespace ProjectName.Core
         {
             public ItemData item;
             public int count;
+            public int currentDurability; // 현재 내구도 (0이면 파괴)
         }
 
         [System.Serializable]
@@ -24,8 +25,9 @@ namespace ProjectName.Core
             public string displayName;
             public string description;
             public ItemCategory category;
-            public Sprite icon;       // Phase 2: null이면 텍스트로 표시
+            public Sprite icon;
             public int maxStack = 99;
+            public int maxDurability = 0; // 0 = 내구도 없음 (소모품)
         }
 
         public enum ItemCategory
@@ -80,7 +82,7 @@ namespace ProjectName.Core
             {
                 if (_slots[i] == null)
                 {
-                    _slots[i] = new ItemSlot { item = item, count = Mathf.Min(count, item.maxStack) };
+                    _slots[i] = new ItemSlot { item = item, count = Mathf.Min(count, item.maxStack), currentDurability = item.maxDurability };
                     count -= _slots[i].count;
                     if (count <= 0) return true;
                 }
@@ -223,17 +225,17 @@ namespace ProjectName.Core
 
         // ===== C9-06: 무기/방어구/도구 =====
         // 기본 무기 (재료로 구매)
-        public static ItemData SwordWood  = new ItemData { id = "weapon_sword_wood",  displayName = "목검",   description = "나무로 만든 검. 기본 무기.",   category = ItemCategory.Weapon, maxStack = 1 };
-        public static ItemData SpearWood  = new ItemData { id = "weapon_spear_wood",  displayName = "나무 창", description = "나무로 만든 창. 약간 긴 사거리.", category = ItemCategory.Weapon, maxStack = 1 };
-        public static ItemData BowWood    = new ItemData { id = "weapon_bow_wood",    displayName = "나무 활", description = "나무로 만든 활. 원거리 공격.",   category = ItemCategory.Weapon, maxStack = 1 };
+        public static ItemData SwordWood  = new ItemData { id = "weapon_sword_wood",  displayName = "목검",   description = "나무로 만든 검. 기본 무기.",   category = ItemCategory.Weapon, maxStack = 1, maxDurability = 20 };
+        public static ItemData SpearWood  = new ItemData { id = "weapon_spear_wood",  displayName = "나무 창", description = "나무로 만든 창. 약간 긴 사거리.", category = ItemCategory.Weapon, maxStack = 1, maxDurability = 20 };
+        public static ItemData BowWood    = new ItemData { id = "weapon_bow_wood",    displayName = "나무 활", description = "나무로 만든 활. 원거리 공격.",   category = ItemCategory.Weapon, maxStack = 1, maxDurability = 20 };
 
         // 기본 방어구
-        public static ItemData LeatherArmor = new ItemData { id = "armor_leather",    displayName = "가죽 갑옷", description = "동물 가죽으로 만든 방어구.", category = ItemCategory.Armor,  maxStack = 1 };
-        public static ItemData ClothArmor   = new ItemData { id = "armor_cloth",      displayName = "천 옷",    description = "천으로 만든 가벼운 옷.",     category = ItemCategory.Armor,  maxStack = 1 };
+        public static ItemData LeatherArmor = new ItemData { id = "armor_leather",    displayName = "가죽 갑옷", description = "동물 가죽으로 만든 방어구.", category = ItemCategory.Armor,  maxStack = 1, maxDurability = 30 };
+        public static ItemData ClothArmor   = new ItemData { id = "armor_cloth",      displayName = "천 옷",    description = "천으로 만든 가벼운 옷.",     category = ItemCategory.Armor,  maxStack = 1, maxDurability = 15 };
 
         // 기본 도구
-        public static ItemData Pickaxe      = new ItemData { id = "tool_pickaxe",     displayName = "곡괭이",  description = "광석 채굴용 도구.",          category = ItemCategory.Tool,   maxStack = 1 };
-        public static ItemData Axe          = new ItemData { id = "tool_axe",         displayName = "도끼",     description = "벌목용 도구.",               category = ItemCategory.Tool,   maxStack = 1 };
-        public static ItemData FishingRod   = new ItemData { id = "tool_fishing_rod", displayName = "낚싯대",   description = "낚시용 도구.",               category = ItemCategory.Tool,   maxStack = 1 };
+        public static ItemData Pickaxe      = new ItemData { id = "tool_pickaxe",     displayName = "곡괭이",  description = "광석 채굴용 도구.",          category = ItemCategory.Tool,   maxStack = 1, maxDurability = 30 };
+        public static ItemData Axe          = new ItemData { id = "tool_axe",         displayName = "도끼",     description = "벌목용 도구.",               category = ItemCategory.Tool,   maxStack = 1, maxDurability = 30 };
+        public static ItemData FishingRod   = new ItemData { id = "tool_fishing_rod", displayName = "낚싯대",   description = "낚시용 도구.",               category = ItemCategory.Tool,   maxStack = 1, maxDurability = 20 };
     }
 }
