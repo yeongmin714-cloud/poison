@@ -29,6 +29,9 @@ namespace ProjectName.Systems
         [SerializeField] private float _loyalty = 50f;
         [SerializeField] private float _addiction = 0f;
 
+        [Header("포섭 (C9-15)")]
+        [SerializeField] private bool _isRecruited = false; // 플레이어에게 포섭되었는가
+
         private enum SelectionMode { None, SelectingFood, SelectingDrug }
         private SelectionMode _selectionMode = SelectionMode.None;
 
@@ -138,22 +141,26 @@ namespace ProjectName.Systems
                 GUI.Label(new Rect(x + 10, cy, panelW - 20, 20), _statusMessage, _styleMsg);
                 cy += 24f;
             }
+            // 메뉴 버튼들
+                        float btnW = (panelW - 50f) / 5f;
+                        float btnY = y + panelH - 40f;
 
-            float btnW = (panelW - 40f) / 4f;
-            float btnY = y + panelH - 40f;
-
-            if (GUI.Button(new Rect(x + 8, btnY, btnW, 30), "🗣️ 말걸기")) OnTalk();
-            if (GUI.Button(new Rect(x + 8 + btnW + 4, btnY, btnW, 30), "🥩 음식주기"))
-            {
-                _selectionMode = SelectionMode.SelectingFood;
-                _invScrollPos = Vector2.zero;
-            }
-            if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 2, btnY, btnW, 30), "💊 약주기"))
-            {
-                _selectionMode = SelectionMode.SelectingDrug;
-                _invScrollPos = Vector2.zero;
-            }
-            if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 3, btnY, btnW, 30), "🔙 닫기")) _showInfo = false;
+                        if (GUI.Button(new Rect(x + 8, btnY, btnW, 30), "🗣️ 말걸기")) OnTalk();
+                        if (GUI.Button(new Rect(x + 8 + btnW + 4, btnY, btnW, 30), "🥩 음식주기"))
+                        {
+                            _selectionMode = SelectionMode.SelectingFood;
+                            _invScrollPos = Vector2.zero;
+                        }
+                        if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 2, btnY, btnW, 30), "💊 약주기"))
+                        {
+                            _selectionMode = SelectionMode.SelectingDrug;
+                            _invScrollPos = Vector2.zero;
+                        }
+                        if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 3, btnY, btnW, 30), "🤝 포섭"))
+                        {
+                            OnRecruit();
+                        }
+                        if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 4, btnY, btnW, 30), "🔙 닫기")) _showInfo = false;
         }
 
         // ===== C9-11: 아이템 선택 팝업 =====
@@ -289,6 +296,27 @@ namespace ProjectName.Systems
             _statusMessage = guardName + ": \"무슨 일이냐?\"";
         }
 
+        // ===== C9-15: 포섭 =====
+        private void OnRecruit()
+        {
+            if (_isRecruited)
+            {
+                _statusMessage = $"{guardName}: \"이미 영지에 소속되어 있네.\"";
+                return;
+            }
+
+            var result = GuardRecruitSystem.AttemptRecruit(this);
+            if (result.success)
+            {
+                _isRecruited = true;
+                _statusMessage = result.message;
+            }
+            else
+            {
+                _statusMessage = result.message;
+            }
+        }
+
         private GUIStyle _styleTitle;
         private GUIStyle _styleLabel;
         private GUIStyle _styleValue;
@@ -351,5 +379,6 @@ namespace ProjectName.Systems
         public bool IsPlayerNearby => _playerNearby;
         public bool IsShowingInfo => _showInfo;
         public bool IsSelectingItem => _selectionMode != SelectionMode.None;
+        public bool IsRecruited => _isRecruited;
     }
 }
