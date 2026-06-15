@@ -84,6 +84,14 @@ namespace ProjectName.Systems
                 _showInfo = false;
                 _selectionMode = SelectionMode.None;
             }
+
+            // C9-12: 중독도 처리 (생존 중일 때만)
+            if (!_isDead && _addiction > 0)
+            {
+                GuardAddictionSystem.ProcessDecay(this, Time.deltaTime);
+                GuardAddictionSystem.ProcessPoisonDamage(this, Time.deltaTime);
+                GuardAddictionSystem.CheckOverdose(this);
+            }
         }
 
         private void OnGUI()
