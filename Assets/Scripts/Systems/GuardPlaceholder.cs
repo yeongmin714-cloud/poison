@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
@@ -8,6 +9,7 @@ namespace ProjectName.Systems
     /// <summary>
     /// 병사Placeholder - 사장님이 GLB를 제공하기 전까지 사용할 임시 병사 모델.
     /// C9-08: E키 상호작용 → 병사 정보 HUD 표시 + 메뉴 (말걸기/음식주기/약주기)
+    /// C9-11: 음식/약주기 — 인벤토리 선택 → 아이템 지급 → 호감도/중독도 변화
     /// </summary>
     public class GuardPlaceholder : MonoBehaviour, IDamageable
     {
@@ -15,7 +17,7 @@ namespace ProjectName.Systems
         [SerializeField] private string guardName = "경비병";
         [SerializeField] private int level = 1;
         [SerializeField] private string nation = "동";
-        [SerializeField] private string jobTitle = "병사"; // 직업 (창병/검병/궁병)
+        [SerializeField] private string jobTitle = "병사";
 
         [Header("상호작용")]
         [SerializeField] private float _interactRange = 3f;
@@ -23,22 +25,22 @@ namespace ProjectName.Systems
         private float _currentHP;
         private bool _isDead = false;
 
-        [Header("호감도/중독 (C9-08)")]
-        [SerializeField] private float _loyalty = 50f;   // 0~100
-        [SerializeField] private float _addiction = 0f;  // 0~100
+        [Header("호감도/중독")]
+        [SerializeField] private float _loyalty = 50f;
+        [SerializeField] private float _addiction = 0f;
 
-        // 상호작용 상태
+        private enum SelectionMode { None, SelectingFood, SelectingDrug }
+        private SelectionMode _selectionMode = SelectionMode.None;
+
         private bool _playerNearby = false;
         private bool _showInfo = false;
         private Vector2 _scrollPos;
         private string _statusMessage = "";
+        private Vector2 _invScrollPos;
 
         private const float HP_BAR_WIDTH = 150f;
         private const float LABEL_WIDTH = 80f;
 
-        /// <summary>
-        /// 병사 정보 설정 (TerritoryBuilder에서 호출)
-        /// </summary>
         public void SetGuardInfo(string name, int lvl, NationType nationType)
         {
             guardName = name;
@@ -62,7 +64,6 @@ namespace ProjectName.Systems
         private void Start()
         {
             _currentHP = _maxHP;
-            Debug.Log($"[GuardPlaceholder] {guardName} Lv.{level} ({nation}) 생성됨");
         }
 
         private void Update()
@@ -73,104 +74,196 @@ namespace ProjectName.Systems
             float dist = Vector3.Distance(transform.position, player.transform.position);
             _playerNearby = dist <= _interactRange;
 
-            // E키로 정보 토글
-            if (_playerNearby && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+            if (_playerNearby && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame && _selectionMode == SelectionMode.None)
             {
                 _showInfo = !_showInfo;
-                if (_showInfo)
-                {
-                    _statusMessage = $"{guardName} Lv.{level} ({nation})";
-                    Debug.Log($"[GuardInteraction] {_statusMessage} — 말 걸기");
-                }
             }
 
-            // 멀어지면 자동 닫기
             if (_showInfo && dist > _interactRange * 1.5f)
             {
                 _showInfo = false;
+                _selectionMode = SelectionMode.None;
             }
         }
 
-        // ===== IMGUI 병사 정보 HUD =====
         private void OnGUI()
         {
             if (!_showInfo || _isDead) return;
 
-            // 화면 중앙에 정보 패널 표시
+            if (_selectionMode != SelectionMode.None)
+            {
+                DrawItemSelectionPopup();
+                return;
+            }
+
+            EnsureStyles();
+
             float panelW = 320f;
             float panelH = 250f;
             float x = (Screen.width - panelW) / 2f;
-            float y = Screen.height - panelH - 20f; // 하단에 표시
+            float y = Screen.height - panelH - 20f;
 
-            // 배경 박스
             GUI.Box(new Rect(x, y, panelW, panelH), "");
 
             float cy = y + 10f;
-
-            // 타이틀
             GUI.Label(new Rect(x + 10, cy, panelW - 20, 24), $"⚔️ [{nation}] {jobTitle} Lv.{level}", _styleTitle);
             cy += 30f;
 
-            // 체력 바
             GUI.Label(new Rect(x + 10, cy, LABEL_WIDTH, 20), "❤️ 체력:", _styleLabel);
             float hpRatio = _currentHP / _maxHP;
             DrawBar(x + 10 + LABEL_WIDTH, cy, HP_BAR_WIDTH, 18, hpRatio, Color.green, Color.red);
-            GUI.Label(new Rect(x + 10 + LABEL_WIDTH + HP_BAR_WIDTH + 5, cy, 60, 20),
-                $"{(int)(hpRatio * 100)}%", _styleValue);
+            GUI.Label(new Rect(x + 10 + LABEL_WIDTH + HP_BAR_WIDTH + 5, cy, 60, 20), $"{(int)(hpRatio * 100)}%", _styleValue);
             cy += 24f;
 
-            // 호감도 바
             GUI.Label(new Rect(x + 10, cy, LABEL_WIDTH, 20), "🤝 호감도:", _styleLabel);
             DrawBar(x + 10 + LABEL_WIDTH, cy, HP_BAR_WIDTH, 18, _loyalty / 100f, Color.blue, Color.gray);
-            GUI.Label(new Rect(x + 10 + LABEL_WIDTH + HP_BAR_WIDTH + 5, cy, 60, 20),
-                $"{(int)_loyalty}%", _styleValue);
+            GUI.Label(new Rect(x + 10 + LABEL_WIDTH + HP_BAR_WIDTH + 5, cy, 60, 20), $"{(int)_loyalty}%", _styleValue);
             cy += 24f;
 
-            // 중독도 바
             GUI.Label(new Rect(x + 10, cy, LABEL_WIDTH, 20), "💊 중독도:", _styleLabel);
             DrawBar(x + 10 + LABEL_WIDTH, cy, HP_BAR_WIDTH, 18, _addiction / 100f, Color.magenta, Color.gray);
-            GUI.Label(new Rect(x + 10 + LABEL_WIDTH + HP_BAR_WIDTH + 5, cy, 60, 20),
-                $"{(int)_addiction}%", _styleValue);
+            GUI.Label(new Rect(x + 10 + LABEL_WIDTH + HP_BAR_WIDTH + 5, cy, 60, 20), $"{(int)_addiction}%", _styleValue);
             cy += 30f;
 
-            // 상태 메시지
             if (!string.IsNullOrEmpty(_statusMessage))
             {
                 GUI.Label(new Rect(x + 10, cy, panelW - 20, 20), _statusMessage, _styleMsg);
                 cy += 24f;
             }
 
-            // 메뉴 버튼들
             float btnW = (panelW - 40f) / 4f;
             float btnY = y + panelH - 40f;
 
-            if (GUI.Button(new Rect(x + 8, btnY, btnW, 30), "🗣️ 말걸기"))
-            {
-                OnTalk();
-            }
+            if (GUI.Button(new Rect(x + 8, btnY, btnW, 30), "🗣️ 말걸기")) OnTalk();
             if (GUI.Button(new Rect(x + 8 + btnW + 4, btnY, btnW, 30), "🥩 음식주기"))
             {
-                OnGiveFood();
+                _selectionMode = SelectionMode.SelectingFood;
+                _invScrollPos = Vector2.zero;
             }
             if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 2, btnY, btnW, 30), "💊 약주기"))
             {
-                OnGiveDrug();
+                _selectionMode = SelectionMode.SelectingDrug;
+                _invScrollPos = Vector2.zero;
             }
-            if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 3, btnY, btnW, 30), "🔙 닫기"))
+            if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 3, btnY, btnW, 30), "🔙 닫기")) _showInfo = false;
+        }
+
+        // ===== C9-11: 아이템 선택 팝업 =====
+        private void DrawItemSelectionPopup()
+        {
+            EnsureStyles();
+
+            float popupW = 400f;
+            float popupH = 350f;
+            float x = (Screen.width - popupW) / 2f;
+            float y = (Screen.height - popupH) / 2f;
+
+            GUI.Box(new Rect(x, y, popupW, popupH), "");
+
+            string title = _selectionMode == SelectionMode.SelectingFood ? "🥩 음식 선택" : "💊 약 선택";
+            GUI.Label(new Rect(x + 10, y + 10, popupW - 20, 24), title, _styleTitle);
+
+            var items = GetInventoryItemsByMode();
+            float listY = y + 40f;
+            float listH = popupH - 90f;
+
+            GUI.BeginGroup(new Rect(x + 10, listY, popupW - 20, listH));
+
+            if (items.Count == 0)
             {
-                _showInfo = false;
+                GUI.Label(new Rect(0, 0, popupW - 20, 24), "보유한 아이템이 없습니다.", _styleMsg);
+            }
+            else
+            {
+                float itemH = 40f;
+                float viewH = items.Count * itemH;
+
+                _invScrollPos = GUI.BeginScrollView(
+                    new Rect(0, 0, popupW - 20, listH),
+                    _invScrollPos,
+                    new Rect(0, 0, popupW - 40, viewH)
+                );
+
+                for (int i = 0; i < items.Count; i++)
+                {
+                    var pair = items[i];
+                    float iy = i * itemH;
+                    GUI.Box(new Rect(0, iy, popupW - 40, itemH - 2), "");
+                    GUI.Label(new Rect(10, iy + 2, 180, 20), pair.item.displayName, _styleLabel);
+                    GUI.Label(new Rect(10, iy + 20, 80, 16), $"x{pair.count}", _styleValue);
+
+                    if (GUI.Button(new Rect(popupW - 160, iy + 5, 100, 28), "주기"))
+                    {
+                        GiveItemToGuard(pair.item);
+                        _selectionMode = SelectionMode.None;
+                        return;
+                    }
+                }
+                GUI.EndScrollView();
+            }
+            GUI.EndGroup();
+
+            if (GUI.Button(new Rect(x + popupW / 2 - 50, y + popupH - 40, 100, 30), "취소"))
+            {
+                _selectionMode = SelectionMode.None;
+            }
+        }
+
+        private List<KeyValuePair<PlayerInventory.ItemData, int>> GetInventoryItemsByMode()
+        {
+            var result = new List<KeyValuePair<PlayerInventory.ItemData, int>>();
+            if (PlayerInventory.Instance == null) return result;
+
+            var slots = PlayerInventory.Instance.GetAllSlots();
+            foreach (var slot in slots)
+            {
+                if (slot == null || slot.item == null || slot.count <= 0) continue;
+                bool matches = _selectionMode == SelectionMode.SelectingFood
+                    ? slot.item.category == PlayerInventory.ItemCategory.Food
+                    : slot.item.category == PlayerInventory.ItemCategory.Potion
+                      || slot.item.category == PlayerInventory.ItemCategory.Drug;
+                if (matches) result.Add(new KeyValuePair<PlayerInventory.ItemData, int>(slot.item, slot.count));
+            }
+            return result;
+        }
+
+        // ===== C9-11: 아이템 지급 처리 =====
+        private void GiveItemToGuard(PlayerInventory.ItemData item)
+        {
+            if (PlayerInventory.Instance == null || !PlayerInventory.Instance.HasItem(item.id))
+            {
+                _statusMessage = "아이템이 부족합니다.";
+                return;
+            }
+
+            PlayerInventory.Instance.RemoveItem(item.id);
+
+            switch (item.category)
+            {
+                case PlayerInventory.ItemCategory.Food:
+                    float heal = 5f + item.displayName.Length * 0.5f;
+                    _currentHP = Mathf.Min(_maxHP, _currentHP + heal);
+                    GuardLoyaltySystem.GiveGift(this, 30);
+                    _statusMessage = $"{guardName}: \"음식 고맙다!\" ❤️ 호감도 UP";
+                    break;
+
+                case PlayerInventory.ItemCategory.Potion:
+                    _currentHP = Mathf.Min(_maxHP, _currentHP + 10f);
+                    GuardLoyaltySystem.GiveGift(this, 50);
+                    _statusMessage = $"{guardName}: \"약을 주다니 고맙군!\" ❤️ 호감도 UP";
+                    break;
+
+                case PlayerInventory.ItemCategory.Drug:
+                    GuardLoyaltySystem.GiveDrug(this, 2);
+                    _statusMessage = $"{guardName}: \"어.. 뭔가 이상한 기분이...\" 💊 중독+10";
+                    break;
             }
         }
 
         private void DrawBar(float x, float y, float width, float height, float ratio, Color fillColor, Color bgColor)
         {
-            // 배경
-            var bgTex = MakeTex(1, 1, bgColor);
-            GUI.DrawTexture(new Rect(x, y, width, height), bgTex);
-
-            // 채움
-            var fillTex = MakeTex(1, 1, fillColor);
-            GUI.DrawTexture(new Rect(x, y, width * Mathf.Clamp01(ratio), height), fillTex);
+            GUI.DrawTexture(new Rect(x, y, width, height), MakeTex(1, 1, bgColor));
+            GUI.DrawTexture(new Rect(x, y, width * Mathf.Clamp01(ratio), height), MakeTex(1, 1, fillColor));
         }
 
         private Texture2D MakeTex(int w, int h, Color c)
@@ -183,28 +276,11 @@ namespace ProjectName.Systems
             return tex;
         }
 
-        // ===== 메뉴 액션 =====
         private void OnTalk()
         {
-            _statusMessage = $"{guardName}: \"무슨 일이냐?\"";
-            Debug.Log($"[GuardInteraction] {guardName} 말걸기");
+            _statusMessage = guardName + ": \"무슨 일이냐?\"";
         }
 
-        private void OnGiveFood()
-        {
-            // TODO: C9-11 구현 — 인벤토리에서 음식 선택 후 병사에게 지급
-            _statusMessage = $"{guardName}: \"음식을 주겠다고?\" (미구현)";
-            Debug.Log($"[GuardInteraction] {guardName} 음식주기 (TODO: C9-11)");
-        }
-
-        private void OnGiveDrug()
-        {
-            // TODO: C9-11 구현 — 인벤토리에서 약 선택 후 병사에게 지급
-            _statusMessage = $"{guardName}: \"약을 주겠다고?\" (미구현)";
-            Debug.Log($"[GuardInteraction] {guardName} 약주기 (TODO: C9-11)");
-        }
-
-        // ===== GUIStyle 캐시 =====
         private GUIStyle _styleTitle;
         private GUIStyle _styleLabel;
         private GUIStyle _styleValue;
@@ -213,43 +289,18 @@ namespace ProjectName.Systems
         private void EnsureStyles()
         {
             if (_styleTitle != null) return;
-            _styleTitle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 16,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = Color.white }
-            };
-            _styleLabel = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 13,
-                alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = Color.white }
-            };
-            _styleValue = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 13,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = Color.yellow }
-            };
-            _styleMsg = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 12,
-                fontStyle = FontStyle.Italic,
-                alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = Color.cyan }
-            };
+            _styleTitle = new GUIStyle(GUI.skin.label) { fontSize = 16, fontStyle = FontStyle.Bold, normal = { textColor = Color.white } };
+            _styleLabel = new GUIStyle(GUI.skin.label) { fontSize = 13, normal = { textColor = Color.white } };
+            _styleValue = new GUIStyle(GUI.skin.label) { fontSize = 13, fontStyle = FontStyle.Bold, normal = { textColor = Color.yellow } };
+            _styleMsg = new GUIStyle(GUI.skin.label) { fontSize = 12, fontStyle = FontStyle.Italic, normal = { textColor = Color.cyan } };
         }
 
         // ===== IDamageable =====
         public bool IsAlive => !_isDead;
-
         public void TakeDamage(float amount, Vector3 hitDirection, string weaponType = "melee")
         {
             if (_isDead) return;
             _currentHP -= amount;
-            Debug.Log($"[GuardPlaceholder] {guardName}가(이) {amount} 데미지! HP={_currentHP}/{_maxHP}");
             if (_currentHP <= 0) Die();
         }
 
@@ -257,30 +308,20 @@ namespace ProjectName.Systems
         {
             if (_isDead) return;
             _isDead = true;
-            Debug.Log($"[GuardPlaceholder] {guardName} 사망!");
-
             LootBasket basket = LootBasket.Create(transform.position);
             DropTable dropTable = DropTableManager.Instance.GetSoldierTable();
             if (dropTable != null)
-            {
                 dropTable.ApplyToBasket(basket);
-            }
             else
             {
-                int goldAmount = level * 10;
                 PlayerInventory.ItemData goldItem = new PlayerInventory.ItemData
                 {
-                    id = "gold",
-                    displayName = "금",
-                    description = "통화",
-                    category = PlayerInventory.ItemCategory.Material,
-                    maxStack = 99
+                    id = "gold", displayName = "금", description = "통화",
+                    category = PlayerInventory.ItemCategory.Material, maxStack = 99
                 };
-                basket.AddItem(goldItem, goldAmount);
-                if (Random.value < 0.5f)
-                    basket.AddItem(PlayerInventory.RabbitFur, 1);
+                basket.AddItem(goldItem, level * 10);
+                if (Random.value < 0.5f) basket.AddItem(PlayerInventory.RabbitFur, 1);
             }
-
             Destroy(gameObject);
         }
 
@@ -290,7 +331,7 @@ namespace ProjectName.Systems
             Gizmos.DrawWireSphere(transform.position, _interactRange);
         }
 
-        // ===== 퍼블릭 API (테스트/외부 연동) =====
+        // ===== 퍼블릭 API =====
         public string GuardName => guardName;
         public int Level => level;
         public string Nation => nation;
@@ -301,5 +342,6 @@ namespace ProjectName.Systems
         public float Addiction { get => _addiction; set => _addiction = Mathf.Clamp(value, 0, 100); }
         public bool IsPlayerNearby => _playerNearby;
         public bool IsShowingInfo => _showInfo;
+        public bool IsSelectingItem => _selectionMode != SelectionMode.None;
     }
 }
