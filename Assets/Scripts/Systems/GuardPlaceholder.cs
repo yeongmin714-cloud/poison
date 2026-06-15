@@ -398,6 +398,15 @@ namespace ProjectName.Systems
         public Vector3 CommandTarget => _commandTargetPos;
         public bool IsAttackCommand => _isAttackCommand;
 
+        // ===== C9-21: 전투 AI =====
+        private bool _isInCombat = false;
+        private float _combatTimer = 0f;
+
+        public void SetInCombat(bool combat) { _isInCombat = combat; _combatTimer = 0f; }
+        public bool IsInCombat => _isInCombat;
+        public float CombatTimer => _combatTimer;
+        public void UpdateCombatTimer(float delta) { if (_isInCombat) _combatTimer += delta; }
+        public void ResetCombatTimer() { _combatTimer = 0f; }
         public bool IsRecruited => _isRecruited;
         public GuardRole Role { get => _role; set => _role = value; }
         public string StatusSummary => GuardStatusSystem.GetStatusSummary(this);
