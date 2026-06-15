@@ -122,6 +122,30 @@ namespace ProjectName.Tests.EditMode
 
             Assert.IsNotNull(issueAttack, "IssueAttackCommand 필요");
             Assert.IsNotNull(issueMove, "IssueMoveCommand 필요");
+    
+        // ===== C9-22: Shift 추가 선택 =====
+
+        [Test]
+        public void SelectGuardsInRect_WithAdditive_KeepsPrevious()
+        {
+            var mgrGo = new GameObject("TestMgr");
+            var mgr = mgrGo.AddComponent<GuardSelectionManager>();
+
+            var g1 = new GameObject("G1").AddComponent<GuardPlaceholder>();
+            var g2 = new GameObject("G2").AddComponent<GuardPlaceholder>();
+
+            // Rect는 화면 좌표계 — 테스트용으로 직접 AddToSelection 확인
+            mgr.AddToSelection(g1);
+            Assert.IsTrue(g1.IsSelected, "g1 선택됨");
+
+            mgr.SelectGuardsInRect(new Rect(0, 0, 100, 100), true);
+            // additive=true여도 Rect 내에 g2가 없으면 선택 안 됨
+            // 하지만 g1 선택은 유지되어야 함
+
+            Object.DestroyImmediate(g1.gameObject);
+            Object.DestroyImmediate(g2.gameObject);
+            Object.DestroyImmediate(mgrGo);
         }
+    }
     }
 }

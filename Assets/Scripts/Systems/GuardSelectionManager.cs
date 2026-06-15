@@ -76,8 +76,9 @@ namespace ProjectName.Systems
 
                 if (dragDist > _clickThreshold)
                 {
-                    // 드래그 선택
-                    SelectGuardsInRect(_selectionRect);
+                    // C9-22: Shift 누르면 추가 선택, 아니면 새 선택
+                    bool additive = Keyboard.current != null && Keyboard.current.shiftKey.isPressed;
+                    SelectGuardsInRect(_selectionRect, additive);
                 }
                 // 단순 클릭은 무시 (좌클릭은 공격용)
             }
@@ -145,11 +146,11 @@ namespace ProjectName.Systems
         /// <summary>
         /// 화면 Rect 내의 모든 GuardPlaceholder 선택
         /// </summary>
-        public void SelectGuardsInRect(Rect screenRect)
+        public void SelectGuardsInRect(Rect screenRect, bool additive = false)
         {
             if (_mainCamera == null) return;
 
-            ClearSelection();
+            if (!additive) ClearSelection();
 
             var guards = FindObjectsOfType<GuardPlaceholder>();
             foreach (var guard in guards)
