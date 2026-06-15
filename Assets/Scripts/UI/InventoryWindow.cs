@@ -462,13 +462,32 @@ namespace ProjectName.UI
                 {
                     var selSlot = _currentSlots[_selectedSlotIndex];
                     string durStr = EquipmentDurabilitySystem.GetDurabilityString(selSlot);
-                    Color durColor = EquipmentDurabilitySystem.GetDurabilityRatio(selSlot) >= 0.6f ? Color.green :
-                                     EquipmentDurabilitySystem.GetDurabilityRatio(selSlot) >= 0.3f ? Color.yellow : Color.red;
+                    float ratio = EquipmentDurabilitySystem.GetDurabilityRatio(selSlot);
+                    Color durColor = ratio >= 0.6f ? Color.green :
+                                     ratio >= 0.3f ? Color.yellow : Color.red;
                     var oldColor = GUI.color;
                     GUI.color = durColor;
                     GUI.Label(new Rect(innerX + 120, innerY + 62, innerWidth - 120, 20),
                         $"내구도: {durStr}", _styleInfoLabel);
                     GUI.color = oldColor;
+
+                    // C9-19: 수리 버튼 (내구도가 가득 차지 않았을 때만)
+                    if (ratio < 1f)
+                    {
+                        if (GUI.Button(new Rect(innerX + innerWidth - 100, innerY + 62, 90, 22), "🔧 수리"))
+                        {
+                            var result = EquipmentRepairSystem.TryRepair(selSlot);
+                            Debug.Log($"[Repair] {result.message}");
+                            _selectedItemDesc = result.message;
+                            if (result.success)
+                            {
+                                // 인벤토리 갱신
+                                RefreshInventory();
+                                // 선택된 슬롯 다시 찾기 (갱신 후)
+                                FindAndSelectSlot(selSlot.item.id);
+                            }
+                        }
+                    }
                 }
                     // 사용 버튼 (소비 가능한 아이템만)
                     if (IsConsumable(_selectedCategory))
@@ -581,6 +600,24 @@ namespace ProjectName.UI
                     tex.SetPixel(x, y, color);
             tex.Apply();
             return tex;
+        }
+
+        /// <summary>아이템 ID로 슬롯 찾아 선택</summary>
+        private void FindAndSelectSlot(string itemId)
+        {
+            if (_currentSlots == null) return;
+            for (int i = 0; i < _currentSlots.Length; i++)
+            {
+                if (_currentSlots[i] != null && _currentSlots[i].item.id == itemId)
+                {
+                    _selectedSlotIndex = i;
+                    _selectedItemName = _currentSlots[i].item.displayName;
+                    _selectedItemDesc = _currentSlots[i].item.description;
+                    _selectedItemCount = _currentSlots[i].count;
+                    return;
+                }
+            }
+            _selectedSlotIndex = -1;
         }
 
         // 캐시된 원형 텍스처
