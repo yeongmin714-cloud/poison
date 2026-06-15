@@ -284,6 +284,7 @@
 | 2026-06-15 | **C9-15 병사 포섭 시스템** | GuardRecruitSystem (4단계: 자동100%/일반70+/선물50+50%/위협0+20%, 실패시 호감도감소), GuardPlaceholder 포섭 버튼+IsRecruited 속성, GuardRecruitTests 15개 All passed ✅ |
 | 2026-06-15 | **C9-16 병사 상태 체계** | GuardStatusSystem (GuardRole 5종, 일일사망률/활동보너스/전투가능여부, 상태요약 문자열), GuardPlaceholder Role 속성+StatusSummary, GuardStatusTests 18개 All passed ✅ |
 | 2026-06-15 | **C9-17 장비 내구도 시스템** | ItemData.maxDurability + ItemSlot.currentDurability, 무기20/방어구30/도구30 내구도, ReduceDurability/Repair/색상태그(🟢🟡🔴)/수리비용/파괴감지, DurabilityTests 22개 All passed ✅ |
+| 2026-06-15 | **C9-18 장비 내구도 UI** | InventoryWindow 무기/방어구/도구 탭 추가, 슬롯당 내구도 바(🟢🟡🔴), 툴팁 내구도 정보, 정보패널 내구도 표시, GetCategoryColor 신규 카테고리, DurabilityUITests 8개 All passed ✅ |
 | 2026-06-15 | **📋 추가사항 설계 반영** | 가스 분사기(4.11/C8-31~34), 아이템 아이콘(4.12/C8-35~37), 병사 레벨별 아바타(5.3.12/C9-31~32) — ROADMAP.md + CYCLE.md 반영 완료 |
 
 |---|---
