@@ -4,6 +4,28 @@ using UnityEngine;
 namespace ProjectName.Systems
 {
     /// <summary>
+    /// Holds metadata about a loaded GLB model, including its detected rig type.
+    /// </summary>
+    public struct ModelMetadata
+    {
+        /// <summary>The loaded prefab reference.</summary>
+        public GameObject Prefab;
+        /// <summary>The detected model type (Static, RiggedHumanoid, RiggedQuadruped, RiggedMonster).</summary>
+        public ModelType ModelType;
+
+        /// <summary>
+        /// Creates a new ModelMetadata entry.
+        /// </summary>
+        /// <param name="prefab">The loaded prefab GameObject.</param>
+        /// <param name="modelType">The detected rig type.</param>
+        public ModelMetadata(GameObject prefab, ModelType modelType)
+        {
+            Prefab = prefab;
+            ModelType = modelType;
+        }
+    }
+
+    /// <summary>
     /// GLB 모델을 런타임에 로드하고 관리하는 정적 클래스입니다.
     /// Resources/Models/UserProvided/ 폴더에서 GLB 프리팹을 로드하여
     /// Placeholder(기본 도형)를 실제 모델로 교체하는 데 사용합니다.
@@ -15,11 +37,18 @@ namespace ProjectName.Systems
     ///     Instantiate(model, transform);
     /// }
     /// </code>
+    /// 
+    /// v2: rig detection — 각 로드된 모델의 뼈대 정보를 분석하여
+    /// <see cref="ModelType"/> (Static, RiggedHumanoid, RiggedQuadruped, RiggedMonster)을
+    /// 감지하고 <see cref="ModelMetadata"/>에 저장합니다.
     /// </summary>
     public static class RuntimeModelLoader
     {
         /// <summary>로드된 모델 캐시 (key: 소문자 파일명, value: GLB GameObject 프리팹)</summary>
         private static Dictionary<string, GameObject> _loadedModels;
+
+        /// <summary>로드된 모델 메타데이터 캐시 (key: 소문자 파일명)</summary>
+        private static Dictionary<string, ModelMetadata> _modelMetadata;
 
         /// <summary>초기화 완료 여부</summary>
         private static bool _isInitialized;
@@ -43,6 +72,7 @@ namespace ProjectName.Systems
 
             _attemptedLoad = true;
             _loadedModels = new Dictionary<string, GameObject>();
+            _modelMetadata = new Dictionary<string, ModelMetadata>();
 
             try
             {
@@ -69,7 +99,13 @@ namespace ProjectName.Systems
                     if (!_loadedModels.ContainsKey(key))
                     {
                         _loadedModels.Add(key, prefab);
+
+                        // Rig detection: check prefab hierarchy for bones
+                        ModelType modelType = DetectModelType(prefab);
+                        _modelMetadata.Add(key, new ModelMetadata(prefab, modelType));
+
                         loadedCount++;
+                        Debug.Log($"[RuntimeModelLoader] 모델 '{key}' 감지: {modelType}");
                     }
                     else
                     {
@@ -171,7 +207,154 @@ namespace ProjectName.Systems
             _attemptedLoad = false;
             _isInitialized = false;
             _loadedModels = null;
+            _modelMetadata = null;
             Initialize();
+        }
+
+        // ──────────────────────────────────────────────
+        //  Model Metadata API (v2: rig detection)
+        // ──────────────────────────────────────────────
+
+        /// <summary>
+        /// 지정된 모델 키에 해당하는 메타데이터 (프리팹 + ModelType)를 반환합니다.
+        /// </summary>
+        /// <param name="modelKey">모델 키 (소문자, 확장자 제외 파일명).</param>
+        /// <param name="metadata">찾은 ModelMetadata 구조체 (없으면 기본값).</param>
+        /// <returns>메타데이터가 존재하면 true, 아니면 false</returns>
+        public static bool TryGetModelMetadata(string modelKey, out ModelMetadata metadata)
+        {
+            metadata = default;
+
+            if (!EnsureInitialized() || _modelMetadata == null)
+                return false;
+
+            if (string.IsNullOrEmpty(modelKey))
+                return false;
+
+            string key = modelKey.ToLowerInvariant();
+            return _modelMetadata.TryGetValue(key, out metadata);
+        }
+
+        /// <summary>
+        /// 지정된 모델 키의 <see cref="ModelType"/>을 반환합니다.
+        /// </summary>
+        /// <param name="modelKey">모델 키 (소문자, 확장자 제외 파일명).</param>
+        /// <returns>감지된 ModelType, 모델이 없으면 ModelType.Static.</returns>
+        public static ModelType GetModelType(string modelKey)
+        {
+            if (TryGetModelMetadata(modelKey, out ModelMetadata metadata))
+                return metadata.ModelType;
+
+            return ModelType.Static;
+        }
+
+        /// <summary>
+        /// GLB 프리팹의 뼈대 구조를 분석하여 ModelType을 감지합니다.
+        /// </summary>
+        /// <param name="prefab">로드된 GLB 프리팹 GameObject.</param>
+        /// <returns>감지된 ModelType.</returns>
+        private static ModelType DetectModelType(GameObject prefab)
+        {
+            if (prefab == null)
+                return ModelType.Static;
+
+            Transform root = prefab.transform;
+
+            // 1. Check for Animator component (suggests rigged model)
+            Animator animator = prefab.GetComponentInChildren<Animator>();
+            if (animator != null)
+            {
+                // Check if it's a humanoid avatar
+                if (animator.isHuman)
+                    return ModelType.RiggedHumanoid;
+
+                // Has animator but not humanoid — could be generic rigged
+                // Fall through to bone name detection
+            }
+
+            // 2. Check for SkinnedMeshRenderer with bones
+            SkinnedMeshRenderer[] skinnedRenderers = prefab.GetComponentsInChildren<SkinnedMeshRenderer>();
+            if (skinnedRenderers.Length > 0)
+            {
+                foreach (var smr in skinnedRenderers)
+                {
+                    if (smr.bones != null && smr.bones.Length > 0)
+                    {
+                        // Has actual bone references — detect type from bone names
+                        return DetectTypeFromBoneNames(root);
+                    }
+                }
+            }
+
+            // 3. Check for Transform hierarchy with bone naming patterns
+            return DetectTypeFromBoneNames(root);
+        }
+
+        /// <summary>
+        /// 뼈대 이름 패턴을 분석하여 ModelType을 결정합니다.
+        /// </summary>
+        private static ModelType DetectTypeFromBoneNames(Transform root)
+        {
+            if (root == null)
+                return ModelType.Static;
+
+            // Collect all bone-like transforms
+            var allBones = root.GetComponentsInChildren<Transform>(true);
+
+            if (allBones.Length <= 1)
+                return ModelType.Static; // Root only, no children
+
+            // Check for quadruped bones
+            if (AnimationBoneDefinitions.TryFindBoneCanonical(root, "UpperLeg_FL") != null ||
+                AnimationBoneDefinitions.TryFindBoneCanonical(root, "Paw_FL") != null ||
+                AnimationBoneDefinitions.TryFindBoneCanonical(root, "UpperLeg_HL") != null)
+            {
+                return ModelType.RiggedQuadruped;
+            }
+
+            // Check for humanoid bones
+            if (AnimationBoneDefinitions.TryFindBoneCanonical(root, "UpperArm_L") != null &&
+                AnimationBoneDefinitions.TryFindBoneCanonical(root, "UpperLeg_L") != null)
+            {
+                return ModelType.RiggedHumanoid;
+            }
+
+            // Check for head + spine (generic rigged)
+            if (AnimationBoneDefinitions.TryFindBoneCanonical(root, "Head") != null &&
+                AnimationBoneDefinitions.TryFindBoneCanonical(root, "Spine") != null)
+            {
+                // Count spine-like bones to differentiate monster from humanoid
+                int spineCount = CountSpineLikeBones(root);
+                if (spineCount >= 5)
+                    return ModelType.RiggedMonster;
+                return ModelType.RiggedHumanoid;
+            }
+
+            // Fallback: if there are many child transforms with bone-like structure
+            if (allBones.Length >= 5)
+                return ModelType.RiggedMonster;
+
+            return ModelType.Static;
+        }
+
+        /// <summary>
+        /// Spine/body-like bone의 개수를 셉니다.
+        /// </summary>
+        private static int CountSpineLikeBones(Transform root)
+        {
+            int count = 0;
+            var transforms = root.GetComponentsInChildren<Transform>(true);
+            foreach (var t in transforms)
+            {
+                if (t == root) continue;
+                string name = t.name.ToLowerInvariant();
+                if (name.Contains("spine") || name.Contains("body") ||
+                    name.Contains("segment") || name.Contains("vertebra"))
+                {
+                    count++;
+                }
+            }
+            return count;
         }
     }
 }

@@ -15,7 +15,7 @@
 | Phase 3 | Phase 1.5 | ⌨️ UI 프레임워크 & 키 설정 | ✅ 완료 | 10 |
 | Phase 4 | Phase 1.6 | ⚔️ 마우스 공격 & 전리품 | ⬜ | 21 |
 | Phase 5 | Phase 2 | 🏠 튜토리얼 — 추방지 | 🔄 | 22 |
-| Phase 6 | Phase 0.5 | 🤖 Animation Rigging | ⬜ | 22 |
+| Phase 6 | Phase 0.5 | 🤖 Animation Rigging | ✅ | 22 |
 | Phase 7 | Phase 3.x | 🌍 월드맵 & 지형 | 🔄 | 23 |
 || Phase 8 | Phase 4 | 🧪 크래프트 & 레시피 | ✅ | 37 |
 ||| Phase 9 | Phase 5 | 🏰 영지 & 부하 관리 | ✅ | 32 |
@@ -152,27 +152,27 @@
 | 사이클 | 내용 | 상태 |
 |:------:|:-----|:----:|
 | C6-01 | Animation Rigging 1.3.0 패키지 설치 확인 | ✅ |
-| C6-02 | RigBuilder/Rig 컴포넌트 구조 이해 및 테스트 | ⬜ |
-| C6-03 | Two Bone IK Constraint 학습 및 프로토타입 | ⬜ |
-| C6-04 | Multi-Aim Constraint 학습 및 프로토타입 | ⬜ |
-| C6-05 | Damped Transform / Multi-Position 학습 | ⬜ |
-| C6-06 | Chain IK Constraint 학습 및 프로토타입 | ⬜ |
-| C6-07 | Override Transform Constraint 학습 | ⬜ |
-| C6-08 | **Idle 애니메이션** 구현 (호흡 + 상체 미세 움직임) | ⬜ |
-| C6-09 | **Walk 애니메이션** 구현 (Two Bone IK 발) | ⬜ |
-| C6-10 | **Run 애니메이션** 구현 (빠른 보행 + 몸 기울임) | ⬜ |
-| C6-11 | **Jump 애니메이션** 구현 (공중/착지 포즈) | ⬜ |
-| C6-12 | **채집 모션** 구현 (Two Bone IK 손→약초 위치) | ⬜ |
-| C6-13 | **제작 모션** 구현 (양손→제작대 위치) | ⬜ |
-| C6-14 | **던지기 모션** 구현 (Multi-Aim 팔 궤적) | ⬜ |
-| C6-15 | **공격 모션** 구현 (Chain IK 팔 휘두르기) | ⬜ |
-| C6-16 | **깃발 꽂기 모션** 구현 (Two Bone IK + Multi-Aim) | ⬜ |
-| C6-17 | **무릎 꿇기 모션** 구현 (Two Bone IK 다리) | ⬜ |
-| C6-18 | **4족 보행** 동물 애니메이션 (토끼/멧돼지/사슴) | ⬜ |
-| C6-19 | **4족 보행** 늑대/만티코어 애니메이션 | ⬜ |
-| C6-20 | **뱀 기어가기** 애니메이션 (Chain IK 물결) | ⬜ |
-| C6-21 | GLB 투입 → Rig 레이어 자동 생성 파이프라인 | ⬜ |
-| C6-22 | ModelSwapper와 연동 (Placeholder→Rig 교체) | ⬜ |
+| C6-02 | RigBuilder/Rig 컴포넌트 구조 이해 및 테스트 | ✅ |
+| C6-03 | Two Bone IK Constraint 학습 및 프로토타입 | ✅ |
+| C6-04 | Multi-Aim Constraint 학습 및 프로토타입 | ✅ |
+| C6-05 | Damped Transform / Multi-Position 학습 | ✅ |
+| C6-06 | Chain IK Constraint 학습 및 프로토타입 | ✅ |
+| C6-07 | Override Transform Constraint 학습 | ✅ |
+| C6-08 | **Idle 애니메이션** 구현 (호흡 + 상체 미세 움직임) | ✅ |
+| C6-09 | **Walk 애니메이션** 구현 (Two Bone IK 발) | ✅ |
+| C6-10 | **Run 애니메이션** 구현 (빠른 보행 + 몸 기울임) | ✅ |
+| C6-11 | **Jump 애니메이션** 구현 (공중/착지 포즈) | ✅ |
+| C6-12 | **채집 모션** 구현 (Two Bone IK 손→약초 위치) | ✅ |
+| C6-13 | **제작 모션** 구현 (양손→제작대 위치) | ✅ |
+| C6-14 | **던지기 모션** 구현 (Multi-Aim 팔 궤적) | ✅ |
+| C6-15 | **공격 모션** 구현 (Chain IK 팔 휘두르기) | ✅ |
+| C6-16 | **깃발 꽂기 모션** (skip → Attack으로 대체) | ✅ |
+| C6-17 | **무릎 꿇기 모션** (Two Bone IK 다리) | ✅ |
+| C6-18 | **4족 보행** 동물 애니메이션 (토끼/멧돼지/사슴) | ✅ |
+| C6-19 | **4족 보행** 늑대/만티코어 애니메이션 | ✅ |
+| C6-20 | **뱀 기어가기** 애니메이션 (Chain IK 물결) | ✅ |
+| C6-21 | GLB 투입 → Rig 레이어 자동 생성 파이프라인 | ✅ |
+| C6-22 | ModelSwapper와 연동 (Placeholder→Rig 교체) | ✅ |
 
 ---
 

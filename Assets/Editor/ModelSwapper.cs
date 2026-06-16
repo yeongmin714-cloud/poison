@@ -90,6 +90,10 @@ public static class ModelSwapper
             }
 
             // 교체 실행
+            bool isRigged = IsRiggedModel(loadedModel);
+            if (isRigged)
+                Debug.Log($"[ModelSwapper] ⚙️ {fileName}.glb 감지: Rigged 모델");
+
             if (mode == "child" && targetName == "Player")
             {
                 // PlayerPlaceholder 제거 + GLB 모델을 자식으로 추가
@@ -101,8 +105,15 @@ public static class ModelSwapper
                 SwapGameObject(target, loadedModel, targetName);
             }
 
+            // 교체된 GameObject 찾기
+            GameObject swappedObj = GameObject.Find(targetName);
+            if (swappedObj != null && isRigged)
+            {
+                SetupRiggingOnSwap(swappedObj);
+            }
+
             swapCount++;
-            Debug.Log($"[ModelSwapper] ✅ {fileName}.glb → {targetName} 교체 완료");
+            Debug.Log($"[ModelSwapper] ✅ {fileName}.glb → {targetName} 교체 완료{(isRigged ? " (Rigged)" : " (Static)")}");
         }
 
         // 티어드 모델 교체 실행 (기존 교체 후 추가)
@@ -280,6 +291,83 @@ public static class ModelSwapper
         }
 
         Debug.Log($"[ModelSwapper] Tiered Swap: 완료 — {tieredMap.Count}개 기본 이름에 대한 티어드 매핑 구축");
+    }
+
+    #endregion
+
+    #region Rig-Aware Swap Support
+
+    /// <summary>
+    /// GLB 프리팹이 Rigged 모델(뼈대 있음)인지 Static 모델(뼈대 없음)인지 확인합니다.
+    /// </summary>
+    /// <param name="glbPrefab">확인할 GLB 프리팹.</param>
+    /// <returns>Rigged 모델이면 true, Static이면 false.</returns>
+    static bool IsRiggedModel(GameObject glbPrefab)
+    {
+        if (glbPrefab == null)
+            return false;
+
+        // 1. Animator 컴포넌트 확인
+        Animator animator = glbPrefab.GetComponentInChildren<Animator>();
+        if (animator != null)
+            return true;
+
+        // 2. SkinnedMeshRenderer의 bones 배열 확인
+        SkinnedMeshRenderer[] skinnedRenderers = glbPrefab.GetComponentsInChildren<SkinnedMeshRenderer>();
+        foreach (var smr in skinnedRenderers)
+        {
+            if (smr.bones != null && smr.bones.Length > 0)
+                return true;
+        }
+
+        // 3. Transform 계층에서 본 패턴 확인 (예: "Bone", "Armature" 키워드)
+        Transform[] allTransforms = glbPrefab.GetComponentsInChildren<Transform>(true);
+        int boneLikeCount = 0;
+        foreach (var t in allTransforms)
+        {
+            if (t == glbPrefab.transform) continue;
+            string name = t.name.ToLowerInvariant();
+            if (name.Contains("bone") || name.Contains("armature") ||
+                name.Contains("spine") || name.Contains("head") ||
+                name.Contains("leg") || name.Contains("arm") ||
+                name.Contains("paw") || name.Contains("tail"))
+            {
+                boneLikeCount++;
+            }
+        }
+
+        return boneLikeCount >= 3;
+    }
+
+    /// <summary>
+    /// 교체된 Rigged 모델에 AnimationRiggingSetup을 추가하고 설정합니다.
+    /// 또한 MotionDetector를 추가하여 자동 모션 설정을 활성화합니다.
+    /// </summary>
+    /// <param name="swappedObject">씬에 교체된 GameObject.</param>
+    static void SetupRiggingOnSwap(GameObject swappedObject)
+    {
+        if (swappedObject == null) return;
+
+        // AnimationRiggingSetup 추가
+        var riggingSetup = swappedObject.GetComponent<AnimationRiggingSetup>();
+        if (riggingSetup == null)
+        {
+            riggingSetup = swappedObject.AddComponent<AnimationRiggingSetup>();
+        }
+
+        riggingSetup.FindBones();
+        riggingSetup.SetupRigging();
+
+        // MotionDetector 추가 (자동 모션 설정)
+        var motionDetector = swappedObject.GetComponent<MotionDetector>();
+        if (motionDetector == null)
+        {
+            motionDetector = swappedObject.AddComponent<MotionDetector>();
+        }
+
+        motionDetector.DetectAndSetup();
+
+        Debug.Log($"[ModelSwapper] Rigging setup completed on '{swappedObject.name}'");
     }
 
     #endregion

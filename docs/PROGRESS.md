@@ -28,6 +28,11 @@
 - Part C: 연출 & 퀄리티 (오프닝/BGM/효과음/UI사운드/모델교체)
 - Part D: 통합 테스트/빌드 검증/Windows 빌드
 - Git 태그 v1.0
+
+### GLB 런타임 교체 (2026-06-16)
+- C-GLB-01: RuntimeModelLoader — Resources로 61개 GLB 로드
+- C-GLB-02~03: PlayerPlaceholder/TerritoryBuilder GLB 우선 로드
+- C-GLB-04: 18개 EditMode 테스트
 - C9-30: NPC 퀘스트 시스템 — 말풍선 UI, QuestManager (60개 EditMode 테스트)
 - C9-31: 아바타 레벨 그룹 데이터 — 5단계 레벨 범위 (Novice→Legendary), Placeholder 색상
 - C9-32: ModelSwapper 확장 — 레벨별 GLB 매핑 (_tier1~5), LevelModelSwapper Editor 도구
