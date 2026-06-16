@@ -233,19 +233,27 @@
 
 ---
 
-## 🤖 백그라운드 에이전트 (cronjob)
+## 🤖 백그라운드 에이전트 & 텔레그램 (cronjob)
 
-|| 이름 | 주기 | 역할 |
-|:----|:----|:------|
-| code-agent | 10분 | C# 코딩 자동화 |
-| qa-agent | 10분 | 테스트 자동화 |
-| design-agent | 30분 | 문서 관리 |
-| **glb-watcher** | **5분** | **GLB 파일 감시 → 자동 교체** |
+| 이름 | 주기 | 역할 | 모델 |
+|:----|:----|:------|:----:|
+| code-agent | 10분 | C# 코딩 자동화 | 🔒 nemotron 고정 |
+| qa-agent | 10분 | 테스트 자동화 | 🔒 nemotron 고정 |
+| design-agent | 30분 | 문서 관리 | 🔒 nemotron 고정 |
+| glb-watcher | 5분 | GLB 파일 감시 → 자동 교체 | 🔒 nemotron 고정 |
+| **디렉터 (세션)** | — | 설계/명령/승인 | 🔷 **deepseek v4-flash** |
+
+### 📱 텔레그램 연동
+- **봇:** @dudals0714_bot
+- **게이트웨이:** ✅ systemd 실행 중 (hermes-gateway.service)
+- **수신:** 텔레그램 메시지 → Hermes 직접 명령 처리
+- **발신:** 사이클 완료 시 자동 알림 + 다음 사이클 추천 + 변경사항 요약
+- **사용법:** 봇 채팅에 명령 입력 (예: "C9-30 진행", "상황 알려줘")
 
 ---
 
 > **현재 상태:** Phase 0~2 완료 ✅, Phase 3.5~3.10 ✅, **Phase 4 완료 ✅ (21/21)**, **Phase 5: C9-01~04 완료 ✅**
-> **Phase 8 크래프트 진행:** ✅ 30/30 완료 — C8-01~28 + C8-29~30 폭탄 시스템
+|> **Phase 8 크래프트 진행:** ✅ 31/37 완료 — C8-01~28 + C8-29~30 폭탄 시스템 + C8-31 가스 분사기 데이터
 > **Phase 3.5 완료:** Top-Down 카메라 + 커서 시선 회전 + URP 할당
 > **Phase 3.6 완료 항목:** ✓ Procedural 잔디 텍스처 ✓ URP Lit 재질 ✓ Directional Light 튜닝 ✓ 안개(Fog) ✓ Global Volume
 > **Phase 3.9 완료:** ✅ Poly Haven 3D 모델 8종 (나무3/바위3/식물2) → 총 245개 배치
@@ -290,7 +298,15 @@
 | 2026-06-15 | **C9-21 전투 AI** | GuardCombatAI (NotifyPlayerAttack/UpdateGuardBehavior/RecallAll, 전투타이머/귀환/합세), GuardPlaceholder 전투상태(IsInCombat/CombatTimer), CombatAITests 12개 All passed ✅ |
 | 2026-06-15 | **C9-22 Shift 선택** | GuardSelectionManager.SelectGuardsInRect(additive 파라미터), Shift키 감지 로직, RTSTests SelectGuardsInRect_WithAdditive 추가 ✅ |
 | 2026-06-15 | **C9-24 특사 파견 시스템** | EnvoySystem (Gift/Friendship/Alliance/Assassinate 4종, 레벨제한, 발각확률 계산, 특사 사망 처리), EnvoyTests 14개 All passed ✅ |
-| 2026-06-15 | **📋 추가사항 설계 반영** | 가스 분사기(4.11/C8-31~34), 아이템 아이콘(4.12/C8-35~37), 병사 레벨별 아바타(5.3.12/C9-31~32) — ROADMAP.md + CYCLE.md 반영 완료 |
+| 2026-06-15 | **C9-25 정보원 파견 시스템** | SpySystem: 정찰/잠입/측량 3종 임무, 발각 확률, 정보 플래그, SpySystemTests 15개 All passed ✅ |
+| 2026-06-15 | **C9-26 약초꾼 임무** | HerbGatheringMission (Herbalist 자동 채집, 1.5배 보너스, 거리/범위 제한), HerbPickup.TryAutoGather 추가, HerbGatheringTests 14개 All passed ✅ |
+| 2026-06-15 | **C9-27 사냥꾼 임무** | HuntingMission (Hunter 자동 사냥, 1.5배 보너스, 거리/범위 제한), AnimalAI.TryAutoHunt 추가, HuntingTests 12개 All passed ✅ |
+| 2026-06-15 | **C9-28 광부 임무** | ResourceNode 3종(Wood/Stone/IronOre), MiningMission 자동 채광 + 제련(2:1), MINER_MINE_BONUS 1.5배, MiningTests 15개 All passed ✅ |
+|| 2026-06-15 | **C9-26~29 약초꾼/사냥꾼/광부/무기파츠** | HerbGatheringMission + HuntingMission + MiningMission + WeaponPartsSystem, All tests passed ✅ |
+||
+| 2026-06-15 | **🔧 시스템 설정** | Telegram @dudals0714_bot 연동 완료. 배경 에이전트 모델 nemotron 고정. 디렉터만 deepseek v4-flash. Unity Recorder 5.1.1 설치 + RecordGameplay.cs 생성. |
+|| 2026-06-15 | **📐 설계 추가** | ROADMAP + CYCLE에 Phase 11(실내벽타일 14사이클), Phase 12(로딩 5사이클), Phase 13(주야 5사이클) 추가 |
+|| 2026-06-16 | **C8-31 가스 분사기 데이터 시스템** | GasSprayerSystem.cs (5등급 enum+데이터+매니저), GasSprayerSystemTests.cs 20개 작성, RecordGameplay.cs 컴파일 오류 수정, 컴파일 ✅ |
 
 |---|---
 
@@ -303,4 +319,6 @@
 > 1. **서브에이전트 우선** — 3개 이상 파일 수정/새 기능/리팩토링은 delegate_task로 위임
 > 2. **TDD 강제** — 모든 코드 변경 후 Unity batchmode 컴파일 검증 필수
 > 3. **오류 0** — "Scripts have compiler errors" 없을 때까지 수정 반복
-> 4. **문서 자동화** — PROGRESS.md/ROADMAP.md 작업 완료 시 즉시 업데이트
+> 4. **3중 문서 저장** — 사이클 완료 시 PROGRESS.md + CYCLE.md + 메모리(Hermes memory) 3곳에 반드시 기록
+> 5. **텔레그램 알림** — 사이클 완료 시 send_message로 텔레그램 알림 전송 (변경사항 요약 + 다음 사이클 추천)
+> 6. **텔레그램 명령 수신** — 텔레그램 메시지로 명령/질문 도착 시 즉시 응답 및 작업 수행
