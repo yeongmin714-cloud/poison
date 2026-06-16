@@ -387,6 +387,90 @@ namespace ProjectName.Core
         }
 
         // ===================================================================
+        // C11-13: 국가별 성 바닥/벽 프리셋
+        // ===================================================================
+
+        /// <summary>동부국가 성 바닥 — 붉은 벽돌 + 황금 장식</summary>
+        public static Texture2D GenerateCastleFloorEastern(int width = DEFAULT_SIZE, int height = DEFAULT_SIZE)
+        {
+            Color primary = new Color(0.65f, 0.20f, 0.15f); // 붉은 벽돌
+            Color secondary = new Color(0.85f, 0.70f, 0.15f); // 황금 장식
+            return GenerateFloorTile(width, height, primary, secondary, 0.15f);
+        }
+
+        /// <summary>서부국가 성 바닥 — 회색 석재 + 파란 장식</summary>
+        public static Texture2D GenerateCastleFloorWestern(int width = DEFAULT_SIZE, int height = DEFAULT_SIZE)
+        {
+            Color primary = new Color(0.50f, 0.50f, 0.52f); // 회색 석재
+            Color secondary = new Color(0.20f, 0.30f, 0.70f); // 파란 장식
+            return GenerateFloorTile(width, height, primary, secondary, 0.15f);
+        }
+
+        /// <summary>남부국가 성 바닥 — 사암 + 녹색 장식</summary>
+        public static Texture2D GenerateCastleFloorSouthern(int width = DEFAULT_SIZE, int height = DEFAULT_SIZE)
+        {
+            Color primary = new Color(0.76f, 0.65f, 0.42f); // 사암
+            Color secondary = new Color(0.20f, 0.55f, 0.15f); // 녹색 식물
+            return GenerateFloorTile(width, height, primary, secondary, 0.15f);
+        }
+
+        /// <summary>북부국가 성 바닥 — 어두운 돌 + 모피 장식</summary>
+        public static Texture2D GenerateCastleFloorNorthern(int width = DEFAULT_SIZE, int height = DEFAULT_SIZE)
+        {
+            Color primary = new Color(0.25f, 0.22f, 0.20f); // 어두운 돌
+            Color secondary = new Color(0.55f, 0.40f, 0.25f); // 모피 갈색
+            return GenerateFloorTile(width, height, primary, secondary, 0.15f);
+        }
+
+        /// <summary>황제국 성 바닥 — 대리석 + 자주색 장식</summary>
+        public static Texture2D GenerateCastleFloorEmpire(int width = DEFAULT_SIZE, int height = DEFAULT_SIZE)
+        {
+            Color primary = new Color(0.85f, 0.82f, 0.78f); // 대리석
+            Color secondary = new Color(0.55f, 0.20f, 0.55f); // 자주색
+            return GenerateFloorTile(width, height, primary, secondary, 0.125f);
+        }
+
+        /// <summary>동부국가 성 벽 — 붉은 벽돌 + 황금 장식</summary>
+        public static Texture2D GenerateCastleWallEastern(int width = DEFAULT_SIZE, int height = DEFAULT_SIZE)
+        {
+            Color stone = new Color(0.60f, 0.22f, 0.18f);
+            Color mortar = new Color(0.80f, 0.65f, 0.10f);
+            return GenerateStoneWall(width, height, stone, mortar, 0.18f, 0.10f);
+        }
+
+        /// <summary>서부국가 성 벽 — 회색 석재 + 파란 태피스트리</summary>
+        public static Texture2D GenerateCastleWallWestern(int width = DEFAULT_SIZE, int height = DEFAULT_SIZE)
+        {
+            Color primary = new Color(0.45f, 0.45f, 0.48f);
+            Color secondary = new Color(0.20f, 0.25f, 0.55f);
+            return GenerateWallPattern(width, height, primary, secondary, true);
+        }
+
+        /// <summary>남부국가 성 벽 — 사암 + 녹색 식물</summary>
+        public static Texture2D GenerateCastleWallSouthern(int width = DEFAULT_SIZE, int height = DEFAULT_SIZE)
+        {
+            Color stone = new Color(0.72f, 0.62f, 0.40f);
+            Color mortar = new Color(0.25f, 0.50f, 0.20f);
+            return GenerateStoneWall(width, height, stone, mortar, 0.18f, 0.10f);
+        }
+
+        /// <summary>북부국가 성 벽 — 어두운 돌 + 모피</summary>
+        public static Texture2D GenerateCastleWallNorthern(int width = DEFAULT_SIZE, int height = DEFAULT_SIZE)
+        {
+            Color stone = new Color(0.28f, 0.25f, 0.22f);
+            Color mortar = new Color(0.50f, 0.35f, 0.20f);
+            return GenerateStoneWall(width, height, stone, mortar, 0.20f, 0.12f);
+        }
+
+        /// <summary>황제국 성 벽 — 대리석 + 자주색</summary>
+        public static Texture2D GenerateCastleWallEmpire(int width = DEFAULT_SIZE, int height = DEFAULT_SIZE)
+        {
+            Color primary = new Color(0.80f, 0.78f, 0.75f);
+            Color secondary = new Color(0.50f, 0.18f, 0.50f);
+            return GenerateWallPattern(width, height, primary, secondary, false);
+        }
+
+        // ===================================================================
         // 유틸
         // ===================================================================
 
