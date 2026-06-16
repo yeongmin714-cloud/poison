@@ -56,8 +56,12 @@ namespace ProjectName.Systems
         public string LoadedPotionId { get; set; }  // 빈 문자열 = 없음
         public int LoadedPotionCount { get; set; }
 
+        // ===== C8-33: 물약 장전 설정 =====
+        [SerializeField] private float _potionConsumptionMultiplier = 2.0f;  // 물약 장전 시 추가 소모율
+
         // Unity Events
         public event Action OnEquipChanged;  // 장착/해제 시 알림
+        public event Action OnPotionChanged; // 물약 장전/해제 시 알림
 
         private void Awake()
         {
@@ -77,7 +81,15 @@ namespace ProjectName.Systems
                 var data = GasSprayerManager.GetGradeData(CurrentGrade);
                 if (!data.isUnlimited)
                 {
-                    CurrentSprayTimeRemaining -= Time.deltaTime;
+                    float consumption = Time.deltaTime;
+
+                    // C8-33: 물약 장전 시 가스 소모율 증가
+                    if (!string.IsNullOrEmpty(LoadedPotionId) && LoadedPotionCount > 0)
+                    {
+                        consumption *= _potionConsumptionMultiplier;
+                    }
+
+                    CurrentSprayTimeRemaining -= consumption;
                     if (CurrentSprayTimeRemaining <= 0f)
                     {
                         CurrentSprayTimeRemaining = 0f;
@@ -146,6 +158,87 @@ namespace ProjectName.Systems
             Debug.Log("[GasSprayerController] 분사기 해제 완료! (Unequip)");
 
             OnEquipChanged?.Invoke();
+        }
+
+        // ===== C8-33: 물약 장전/해제 =====
+
+        /// <summary>
+        /// 물약을 분사기에 직접 장전합니다. (필드만 설정, 인벤토리 처리 없음)
+        /// 인벤토리 연동은 GasPotionLoader.LoadPotion() 사용.
+        /// </summary>
+        /// <param name="potionItemId">장전할 물약 ID</param>
+        /// <param name="count">장전할 개수</param>
+        public void LoadPotion(string potionItemId, int count)
+        {
+            if (string.IsNullOrEmpty(potionItemId))
+            {
+                Debug.LogWarning("[GasSprayerController] 유효하지 않은 물약 ID입니다.");
+                return;
+            }
+
+            if (count <= 0)
+            {
+                Debug.LogWarning("[GasSprayerController] 장전 개수는 0보다 커야 합니다.");
+                return;
+            }
+
+            if (!IsEquipped)
+            {
+                Debug.LogWarning("[GasSprayerController] 분사기가 장착되지 않았습니다.");
+                return;
+            }
+
+            // 이미 다른 물약이 장전되어 있으면 무시
+            if (!string.IsNullOrEmpty(LoadedPotionId) && LoadedPotionId != potionItemId)
+            {
+                Debug.LogWarning($"[GasSprayerController] 이미 {LoadedPotionId}이(가) 장전되어 있습니다. UnloadPotion() 후 다시 시도하세요.");
+                return;
+            }
+
+            LoadedPotionId = potionItemId;
+            LoadedPotionCount += count;
+
+            Debug.Log($"[GasSprayerController] 물약 장전 완료: {potionItemId} x{count} (총 {LoadedPotionCount})");
+
+            NotifyPotionChanged();
+        }
+
+        /// <summary>
+        /// 분사기에 장전된 물약을 모두 해제합니다. (필드만 초기화, 인벤토리 처리 없음)
+        /// 인벤토리 연동은 GasPotionLoader.UnloadPotion() 사용.
+        /// </summary>
+        public void UnloadPotion()
+        {
+            if (string.IsNullOrEmpty(LoadedPotionId) || LoadedPotionCount <= 0)
+            {
+                Debug.LogWarning("[GasSprayerController] 장전된 물약이 없습니다.");
+                return;
+            }
+
+            Debug.Log($"[GasSprayerController] 물약 해제: {LoadedPotionId} x{LoadedPotionCount}");
+
+            if (_isSpraying)
+            {
+                StopSpray();
+            }
+
+            LoadedPotionId = "";
+            LoadedPotionCount = 0;
+
+            NotifyPotionChanged();
+        }
+
+        /// <summary>
+        /// 현재 장전된 물약 개수 반환
+        /// </summary>
+        public int GetLoadedPotionCount() => LoadedPotionCount;
+
+        /// <summary>
+        /// 물약 변경 이벤트를 외부에서 트리거 (GasPotionLoader용)
+        /// </summary>
+        public void NotifyPotionChanged()
+        {
+            OnPotionChanged?.Invoke();
         }
 
         // ===== C8-32: 분사 (Spray) 제어 =====
