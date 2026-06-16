@@ -353,11 +353,20 @@ namespace ProjectName.UI
                     var slotStyle = isSelected ? _styleSlotSelected : _styleSlot;
                     GUI.Box(slotRect, "", slotStyle);
 
-                    // 아이콘 (색상 원)
-                    Color iconColor = GetCategoryColor(slot.item.category);
-                    GUI.color = iconColor;
-                    GUI.DrawTexture(new Rect(sx + 8, sy + 6, 28, 28), MakeCircleTexture(iconColor));
-                    GUI.color = Color.white;
+                    // 아이콘 (ProceduralIconGenerator)
+                    Texture2D iconTex = slot.item.icon != null ? slot.item.icon.texture : null;
+                    if (iconTex != null)
+                    {
+                        GUI.DrawTexture(new Rect(sx + 8, sy + 6, 28, 28), iconTex);
+                    }
+                    else
+                    {
+                        // 폴백: 색상 원
+                        Color iconColor = GetCategoryColor(slot.item.category);
+                        GUI.color = iconColor;
+                        GUI.DrawTexture(new Rect(sx + 8, sy + 6, 28, 28), _texWhite);
+                        GUI.color = Color.white;
+                    }
 
                     // 아이템 이름
                     float nameY = sy + 38;
@@ -440,11 +449,29 @@ namespace ProjectName.UI
 
             if (!string.IsNullOrEmpty(_selectedItemName))
             {
-                // 아이콘 (작은 원)
-                Color iconColor = GetCategoryColorForSelected();
-                GUI.color = iconColor;
-                GUI.DrawTexture(new Rect(innerX, innerY + 2, 24, 24), MakeCircleTexture(iconColor));
-                GUI.color = Color.white;
+                // 아이콘 (ProceduralIconGenerator)
+                if (_selectedSlotIndex >= 0 && _currentSlots != null && _selectedSlotIndex < _currentSlots.Length)
+                {
+                    var selSlot = _currentSlots[_selectedSlotIndex];
+                    if (selSlot != null && selSlot.item != null && selSlot.item.icon != null)
+                    {
+                        GUI.DrawTexture(new Rect(innerX, innerY + 2, 24, 24), selSlot.item.icon.texture);
+                    }
+                    else
+                    {
+                        Color iconColor = GetCategoryColorForSelected();
+                        GUI.color = iconColor;
+                        GUI.DrawTexture(new Rect(innerX, innerY + 2, 24, 24), _texWhite);
+                        GUI.color = Color.white;
+                    }
+                }
+                else
+                {
+                    Color iconColor = GetCategoryColorForSelected();
+                    GUI.color = iconColor;
+                    GUI.DrawTexture(new Rect(innerX, innerY + 2, 24, 24), _texWhite);
+                    GUI.color = Color.white;
+                }
 
                 // 이름
                 GUI.Label(new Rect(innerX + 32, innerY, innerWidth - 32, 22), _selectedItemName, _styleInfoName);

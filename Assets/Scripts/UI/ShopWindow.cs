@@ -285,26 +285,42 @@ namespace ProjectName.UI
                 
                 ShopItem item = _currentItems[i];
                 
+                // 아이콘 (ProceduralIconGenerator)
+                Texture2D iconTex = item.item.icon != null ? item.item.icon.texture : null;
+                if (iconTex != null)
+                {
+                    GUI.DrawTexture(new Rect(sx + 5, sy + 5, 32, 32), iconTex);
+                }
+                else
+                {
+                    // 폴백: 카테고리 색상 사각형
+                    Color fallbackColor = GetCategoryColor(item.item.category);
+                    var oldColor = GUI.color;
+                    GUI.color = fallbackColor;
+                    GUI.DrawTexture(new Rect(sx + 5, sy + 5, 32, 32), _texWhite);
+                    GUI.color = oldColor;
+                }
+                
                 // 아이템 이름
                 float nameY = sy + 5f;
-                GUI.Label(new Rect(sx + 5, nameY, slotWidth - 10, 20), 
+                GUI.Label(new Rect(sx + 42, nameY, slotWidth - 47, 20), 
                     item.item.displayName, _styleItemName);
                 
                 // 희귀 태그
                 if (item.isRare)
                 {
-                    GUI.Label(new Rect(sx + 5, nameY + 18f, slotWidth - 10, 16), 
+                    GUI.Label(new Rect(sx + 42, nameY + 18f, slotWidth - 47, 16), 
                         "[희귀]", _styleRareTag);
                 }
                 
                 // 아이템 설명 (간단히)
                 float descY = sy + 35f;
-                GUI.Label(new Rect(sx + 5, descY, slotWidth - 10, 16), 
+                GUI.Label(new Rect(sx + 42, descY, slotWidth - 47, 16), 
                     item.item.description, _styleSlotLabel);
                 
                 // 가격
                 float priceY = sy + 52f;
-                GUI.Label(new Rect(sx + 5, priceY, slotWidth/2 - 5, 18), 
+                GUI.Label(new Rect(sx + 42, priceY, slotWidth/2 - 10, 18), 
                     $"가격: {item.price}G", _styleItemPrice);
                 
                 // 재고
@@ -548,6 +564,24 @@ namespace ProjectName.UI
         }
         
         // 헬퍼 메서드들
+        private Color GetCategoryColor(PlayerInventory.ItemCategory category)
+        {
+            return category switch
+            {
+                PlayerInventory.ItemCategory.Herb => new Color(0.3f, 0.8f, 0.3f),
+                PlayerInventory.ItemCategory.Meat => new Color(0.8f, 0.4f, 0.2f),
+                PlayerInventory.ItemCategory.Food => new Color(0.9f, 0.8f, 0.2f),
+                PlayerInventory.ItemCategory.Potion => new Color(0.7f, 0.3f, 0.8f),
+                PlayerInventory.ItemCategory.Drug => new Color(0.6f, 0.2f, 0.6f),
+                PlayerInventory.ItemCategory.Material => new Color(0.5f, 0.5f, 0.5f),
+                PlayerInventory.ItemCategory.Weapon => new Color(0.8f, 0.3f, 0.3f),
+                PlayerInventory.ItemCategory.Armor => new Color(0.3f, 0.3f, 0.8f),
+                PlayerInventory.ItemCategory.Tool => new Color(0.6f, 0.4f, 0.2f),
+                PlayerInventory.ItemCategory.Quest => new Color(0.2f, 0.7f, 0.8f),
+                _ => Color.gray,
+            };
+        }
+
         private Texture2D MakeTexture(int width, int height, Color color)
         {
             Texture2D texture = new Texture2D(width, height);
