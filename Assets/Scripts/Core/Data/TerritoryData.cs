@@ -116,6 +116,10 @@ namespace ProjectName.Core.Data
         public float loyaltyToPlayer = 0f;       // 0~100, 점령 후 주민/병사의 플레이어 충성도
         public bool isUnderAttack = false;       // 전쟁 중 플래그
         public bool flagRaised = false;          // 국기 게양 여부
+        public bool lordSurrendered = false;     // 영주 항복 여부 (C10-10)
+        public bool lordDefeated = false;        // 영주 처치 여부 (C10-10)
+        public bool lordExecuted = false;        // 영주 처형 여부 (C10-11)
+        public bool lordSpared = false;          // 영주 살려주기 여부 (C10-11)
 
         public TerritoryState(TerritoryId id)
         {
