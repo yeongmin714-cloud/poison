@@ -9,6 +9,8 @@ namespace ProjectName.Systems
     /// <summary>
     /// C12-01: 로딩 화면 싱글톤 매니저.
     /// 씬 전환 시 로딩 상태를 관리하고 AsyncOperation 진행률을 추적합니다.
+    /// C10-06: FadeManager와 통합되어 페이드 인/아웃 연출을 지원합니다.
+    /// C10-02: Additive 모드 씬 로딩을 지원합니다.
     /// </summary>
     public class LoadingManager : MonoBehaviour
     {
@@ -82,16 +84,45 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 씬을 비동기로 로드하며 로딩 화면을 표시합니다.
+        /// Single 모드 (기본) 또는 Additive 모드로 로드할 수 있습니다.
         /// </summary>
-        public void LoadSceneAsync(string sceneName, float fadeInDuration = 0.3f, float fadeOutDuration = 0.3f)
+        /// <param name="sceneName">로드할 씬 이름</param>
+        /// <param name="fadeInDuration">페이드 인 시간 (초)</param>
+        /// <param name="fadeOutDuration">페이드 아웃 시간 (초)</param>
+        /// <param name="mode">로드 모드 (Single 또는 Additive)</param>
+        public void LoadSceneAsync(string sceneName, float fadeInDuration = 0.3f, float fadeOutDuration = 0.3f, LoadSceneMode mode = LoadSceneMode.Single)
         {
             if (IsLoading) return;
 
             StartLoading(fadeInDuration);
-            StartCoroutine(LoadSceneCoroutine(sceneName, fadeOutDuration));
+
+            // FadeManager를 통한 페이드 아웃 후 로드
+            if (FadeManager.Instance != null)
+            {
+                StartCoroutine(LoadWithFade(sceneName, fadeOutDuration, mode));
+            }
+            else
+            {
+                StartCoroutine(LoadSceneCoroutine(sceneName, fadeOutDuration, mode));
+            }
         }
 
-        private IEnumerator LoadSceneCoroutine(string sceneName, float fadeOutDuration)
+        /// <summary>
+        /// FadeManager 페이드 아웃 → 씬 로드 → 페이드 인 시퀀스.
+        /// </summary>
+        private IEnumerator LoadWithFade(string sceneName, float fadeOutDuration, LoadSceneMode mode)
+        {
+            // 페이드 아웃
+            yield return FadeManager.Instance.FadeOut(fadeOutDuration);
+
+            // 씬 로드 (페이드 아웃 중 로딩 UI는 표시)
+            yield return LoadSceneCoroutine(sceneName, fadeOutDuration, mode);
+
+            // 페이드 인
+            yield return FadeManager.Instance.FadeIn(_fadeInDuration);
+        }
+
+        private IEnumerator LoadSceneCoroutine(string sceneName, float fadeOutDuration, LoadSceneMode mode = LoadSceneMode.Single)
         {
             // 씬이 존재하는지 확인
             bool sceneExists = false;
@@ -113,7 +144,7 @@ namespace ProjectName.Systems
                 yield break;
             }
 
-            AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
+            AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName, mode);
             operation.allowSceneActivation = false;
 
             // 0 ~ 0.9까지 진행률 반영

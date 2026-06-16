@@ -7,6 +7,8 @@ namespace ProjectName.Core
     /// 바닥 타일, 벽 패턴, 나무 판자, 벽돌, 돌 타일 등
     /// 절차적 텍스처를 256x256 RGBA32로 생성.
     /// ProceduralIconGenerator와 유사한 패턴 사용.
+    ///
+    /// C10-07: 실내 텍스처 차별화 — 외부 지형 텍스처와 동일한 경우 색상을 조정합니다.
     /// </summary>
     public static class IndoorTextureGenerator
     {
@@ -468,6 +470,117 @@ namespace ProjectName.Core
             Color primary = new Color(0.80f, 0.78f, 0.75f);
             Color secondary = new Color(0.50f, 0.18f, 0.50f);
             return GenerateWallPattern(width, height, primary, secondary, false);
+        }
+
+        // ===================================================================
+        // C10-07: 외부 지형 텍스처 차별화
+        // ===================================================================
+
+        /// <summary>
+        /// 외부 지형 텍스처와 색상이 동일한지 확인합니다.
+        /// 실내 텍스처가 외부 지형과 유사한 경우(색상 차이가 0.05 미만), 색상을 변주하여
+        /// 실내/외 구분이 명확하도록 합니다.
+        /// </summary>
+        /// <param name="indoorColor">실내 텍스처 기본 색상</param>
+        /// <param name="exteriorColor">외부 지형 색상 (기본값: 녹색 계열 잔디)</param>
+        /// <param name="minDifference">최소 색상 차이 임계값 (기본값: 0.05)</param>
+        /// <returns>조정된 실내 색상 (차이가 충분하면 원본 유지)</returns>
+        public static Color EnsureDifferentFromExterior(Color indoorColor, Color exteriorColor, float minDifference = 0.05f)
+        {
+            float diff = Mathf.Abs(indoorColor.r - exteriorColor.r)
+                       + Mathf.Abs(indoorColor.g - exteriorColor.g)
+                       + Mathf.Abs(indoorColor.b - exteriorColor.b);
+
+            if (diff < minDifference * 3f)
+            {
+                // 외부 지형과 유사하면 색상을 변주
+                return new Color(
+                    Mathf.Clamp01(indoorColor.r + (indoorColor.r > 0.5f ? -0.15f : 0.15f)),
+                    Mathf.Clamp01(indoorColor.g + (indoorColor.g > 0.5f ? -0.15f : 0.15f)),
+                    Mathf.Clamp01(indoorColor.b + (indoorColor.b > 0.5f ? -0.10f : 0.10f)),
+                    indoorColor.a
+                );
+            }
+
+            return indoorColor;
+        }
+
+        /// <summary>
+        /// 외부 지형 텍스처 기준 색상과 실내 텍스처가 동일한지 확인하고,
+        /// 필요한 경우 텍스처를 자동 조정합니다.
+        /// </summary>
+        /// <param name="texture">확인할 실내 텍스처</param>
+        /// <param name="exteriorGroundColor">외부 지형 색상 (기본값: 잔디색 (0.3, 0.6, 0.2))</param>
+        /// <returns>조정된 텍스처 (변경 불필요 시 원본 반환)</returns>
+        public static Texture2D DifferentiateFromExterior(Texture2D texture, Color? exteriorGroundColor = null)
+        {
+            if (texture == null) return null;
+
+            Color extColor = exteriorGroundColor ?? new Color(0.3f, 0.6f, 0.2f); // 기본 잔디색
+
+            // 텍스처 중앙 픽셀 샘플링
+            Color sample = texture.GetPixel(texture.width / 2, texture.height / 2);
+
+            // 이미 차이가 있으면 원본 반환
+            float diff = Mathf.Abs(sample.r - extColor.r)
+                       + Mathf.Abs(sample.g - extColor.g)
+                       + Mathf.Abs(sample.b - extColor.b);
+
+            if (diff > 0.15f)
+                return texture;
+
+            // 색상 변주가 필요하면 텍스처 전체 톤 시프트
+            Color shift = new Color(
+                sample.r > 0.5f ? -0.1f : 0.1f,
+                sample.g > 0.5f ? -0.12f : 0.12f,
+                sample.b > 0.5f ? -0.08f : 0.08f,
+                0f
+            );
+
+            for (int y = 0; y < texture.height; y++)
+            {
+                for (int x = 0; x < texture.width; x++)
+                {
+                    Color pixel = texture.GetPixel(x, y);
+                    texture.SetPixel(x, y, new Color(
+                        Mathf.Clamp01(pixel.r + shift.r),
+                        Mathf.Clamp01(pixel.g + shift.g),
+                        Mathf.Clamp01(pixel.b + shift.b),
+                        pixel.a
+                    ));
+                }
+            }
+
+            texture.Apply();
+            Debug.Log($"[IndoorTextureGenerator] 텍스처 차별화 적용 — 외부 지형색과 유사하여 톤 시프트 수행");
+            return texture;
+        }
+
+        /// <summary>
+        /// 빌더에서 생성된 텍스처가 외부 지형과 충분히 다른지 검증합니다.
+        /// 각 건물 유형별 바닥 텍스처가 외부 잔디/지형과 구분되는지 확인하고
+        /// 필요한 경우 자동 조정합니다.
+        /// </summary>
+        /// <param name="buildingType">건물 유형 (\"Shop\", \"House\", \"CraftHouse\", \"Church\", \"Castle\")</param>
+        /// <param name="exteriorColor">외부 지형 기준 색상 (기본 잔디색)</param>
+        public static void ValidateAndFixFloorTexture(string buildingType, Color? exteriorColor = null)
+        {
+            Color extColor = exteriorColor ?? new Color(0.3f, 0.6f, 0.2f);
+
+            Texture2D floorTex = buildingType.ToLower() switch
+            {
+                "shop" => GenerateShopFloor(),
+                "house" => GenerateHouseFloor(),
+                "crafthouse" => GenerateCraftHouseFloor(),
+                "church" => GenerateChurchFloor(),
+                "castle" => GenerateCastleFloor(),
+                _ => null
+            };
+
+            if (floorTex != null)
+            {
+                DifferentiateFromExterior(floorTex, extColor);
+            }
         }
 
         // ===================================================================
