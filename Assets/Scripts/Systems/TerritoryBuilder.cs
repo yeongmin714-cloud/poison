@@ -82,20 +82,73 @@ namespace ProjectName.Systems
             CreateGuard("Guard_Entrance3", _territoryCenter + new Vector3(0, 0, 3), "리카드 병사", 2, NationType.East);
         }
 
-        private void CreateBuilding(string name, BuildingPlaceholder.BuildingType type, Vector3 position, Vector3 scale, Color color)
+        /// <summary>
+        /// 건물 타입에 대응하는 GLB 모델 키를 반환합니다.
+        /// </summary>
+        private static string GetModelKeyForBuilding(BuildingPlaceholder.BuildingType type)
         {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            switch (type)
+            {
+                case BuildingPlaceholder.BuildingType.Shop:
+                    return "hut";
+                case BuildingPlaceholder.BuildingType.CraftHouse:
+                    return "craft_blend";
+                case BuildingPlaceholder.BuildingType.NPCHouse:
+                    return "hut";
+                case BuildingPlaceholder.BuildingType.Church:
+                default:
+                    return null; // 해당 GLB 모델 없음 → Placeholder 유지
+            }
+        }
+
+        /// <summary>
+        /// GLB 모델이 있으면 Instantiate하고, 없으면 Primitive Placeholder를 생성합니다.
+        /// </summary>
+        /// <param name="modelKey">GLB 모델 키 (null이면 Placeholder만 생성)</param>
+        /// <param name="name">생성할 GameObject 이름</param>
+        /// <param name="position">월드 위치</param>
+        /// <param name="scale">크기 (Placeholder용)</param>
+        /// <param name="fallbackColor">Placeholder 색상</param>
+        /// <param name="fallbackType">Placeholder Primitive 타입</param>
+        /// <returns>생성된 GameObject (GLB 모델 또는 Placeholder)</returns>
+        private static GameObject TrySpawnModelOrPlaceholder(string modelKey, string name,
+            Vector3 position, Vector3 scale, Color fallbackColor, PrimitiveType fallbackType)
+        {
+            // GLB 모델이 있는지 확인
+            if (!string.IsNullOrEmpty(modelKey) && RuntimeModelLoader.TryGetModel(modelKey, out var modelPrefab))
+            {
+                GameObject modelGo = Object.Instantiate(modelPrefab);
+                modelGo.name = name;
+                modelGo.transform.position = position;
+                modelGo.transform.localScale = scale;
+
+                Debug.Log($"[TerritoryBuilder] GLB 모델 '{modelKey}'로 '{name}' 생성");
+                return modelGo;
+            }
+
+            // GLB가 없으면 Primitive Placeholder 생성
+            var go = GameObject.CreatePrimitive(fallbackType);
             go.name = name;
             go.transform.position = position;
             go.transform.localScale = scale;
             go.tag = "Untagged";
 
-            // 색상 적용 (URP Lit)
             var renderer = go.GetComponent<MeshRenderer>();
             if (renderer != null)
             {
-                renderer.material = MaterialHelper.CreateLitMaterial(color, $"{name}_Mat");
+                renderer.material = MaterialHelper.CreateLitMaterial(fallbackColor, $"{name}_Mat");
             }
+
+            return go;
+        }
+
+        /// <summary>
+        /// 건물 Placeholder 생성 (GLB 우선, 없으면 Primitive Cube)
+        /// </summary>
+        private void CreateBuilding(string name, BuildingPlaceholder.BuildingType type, Vector3 position, Vector3 scale, Color color)
+        {
+            string modelKey = GetModelKeyForBuilding(type);
+            var go = TrySpawnModelOrPlaceholder(modelKey, name, position, scale, color, PrimitiveType.Cube);
 
             var placeholder = go.AddComponent<BuildingPlaceholder>();
             placeholder.buildingType = type;
@@ -117,19 +170,13 @@ namespace ProjectName.Systems
             textMesh.fontSize = 24;
         }
 
+        /// <summary>
+        /// 병사 Placeholder 생성 (GLB "soldier" 우선, 없으면 Primitive Capsule)
+        /// </summary>
         private void CreateGuard(string name, Vector3 position, string guardName, int level, NationType nation)
         {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            go.name = name;
-            go.transform.position = position;
-            go.transform.localScale = new Vector3(1.5f, 2f, 1.5f);
-
-            // 색상 적용 (파란색 = 동쪽 국가)
-            var renderer = go.GetComponent<MeshRenderer>();
-            if (renderer != null)
-            {
-                renderer.material = MaterialHelper.CreateLitMaterial(new Color(0.2f, 0.4f, 0.8f), $"{name}_Mat");
-            }
+            var go = TrySpawnModelOrPlaceholder("soldier", name, position,
+                new Vector3(1.5f, 2f, 1.5f), new Color(0.2f, 0.4f, 0.8f), PrimitiveType.Capsule);
 
             var placeholder = go.AddComponent<GuardPlaceholder>();
             placeholder.SetGuardInfo(guardName, level, nation);

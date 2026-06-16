@@ -395,7 +395,16 @@
 | C13-02 | **DayNightCycle.cs** — Directional Light 회전/색상/강도 시간대별 Lerp | ✅ |
 | C13-03 | **Ambient + Fog 변화** — 시간대별 Ambient Light/Fog 색상 밀도 업데이트 | ✅ |
 | C13-04 | **TimeDisplayUI** — HUD 시간 텍스트 + 주야 프로그레스 바 | ✅ |
-| C13-05 | **별 효과 (StarField)** — 밤에 Particle System 별 표시, 밤에만 활성화 | ✅ |
+|| C13-05 | **별 효과 (StarField)** — 밤에 Particle System 별 표시, 밤에만 활성화 | ✅ |
+
+## GLB 모델 런타임 교체
+
+| 사이클 | 내용 | 상태 |
+|:------:|:-----|:----:|
+| C-GLB-01 | **RuntimeModelLoader** — Resources.LoadAll로 GLB 프리팹 로드, TryGetModel | ✅ |
+| C-GLB-02 | **PlayerPlaceholder 교체** — GLB 있으면 Avatar로 Instantiate, 없으면 도형 | ✅ |
+| C-GLB-03 | **TerritoryBuilder 교체** — 건물/병사 GLB 우선 로드, 없으면 Cube/Capsule | ✅ |
+| C-GLB-04 | **EditMode 테스트** — RuntimeModelLoaderTests (18개 테스트) | ✅ |
 
 ## 📋 사이클 진행 규칙
 
