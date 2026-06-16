@@ -6,6 +6,7 @@ namespace ProjectName.Systems
 {
     /// <summary>
     /// C8-32: 가스 분사기 장착/해제 관리
+    /// C8-34: 재장전 상태 추가
     /// Player에 부착하여 가스 분사기 장착 상태를 관리합니다.
     /// 분사(Spray) 로직 포함: 장착 후 StartSpray/StopSpray로 가스 소모.
     /// </summary>
@@ -52,12 +53,26 @@ namespace ProjectName.Systems
             set => _isSpraying = value;
         }
 
+        // ===== C8-34: 재장전 상태 =====
+        [SerializeField] private bool _isReloading;
+        /// <summary>재장전 중인지 여부</summary>
+        public bool IsReloading => _isReloading;
+
+        /// <summary>재장전 남은 시간 (초)</summary>
+        public float ReloadTimeRemaining { get; private set; }
+
         // 삽입된 물약 정보
         public string LoadedPotionId { get; set; }  // 빈 문자열 = 없음
         public int LoadedPotionCount { get; set; }
 
         // ===== C8-33: 물약 장전 설정 =====
         [SerializeField] private float _potionConsumptionMultiplier = 2.0f;  // 물약 장전 시 추가 소모율
+
+        // ===== C8-34: 재장전 이벤트 =====
+        /// <summary>재장전 상태 변경 시 알림</summary>
+        public event Action OnReloadChanged;
+        /// <summary>재장전 완료 시 알림</summary>
+        public event Action OnReloadCompleted;
 
         // Unity Events
         public event Action OnEquipChanged;  // 장착/해제 시 알림
@@ -75,6 +90,16 @@ namespace ProjectName.Systems
 
         private void Update()
         {
+            // ===== C8-34: 재장전 카운트다운 =====
+            if (_isReloading)
+            {
+                ReloadTimeRemaining -= Time.deltaTime;
+                if (ReloadTimeRemaining <= 0f)
+                {
+                    CompleteReload();
+                }
+            }
+
             // 분사 중일 때 가스 소모
             if (_isSpraying && IsEquipped && CurrentSprayTimeRemaining > 0f)
             {
@@ -94,6 +119,8 @@ namespace ProjectName.Systems
                     {
                         CurrentSprayTimeRemaining = 0f;
                         _isSpraying = false;
+                        // C8-34: 가스 소진 시 자동 재장전
+                        StartReload();
                     }
                 }
                 // Unlimited (SpecialAlloy) — 소모 없음
@@ -112,6 +139,9 @@ namespace ProjectName.Systems
                 Debug.LogWarning("[GasSprayerController] 이미 분사기가 장착되어 있습니다. 먼저 해제하세요.");
                 return;
             }
+
+            // C8-34: 재장전 중이면 취소
+            CancelReload();
 
             var data = GasSprayerManager.GetGradeData(grade);
 
@@ -145,6 +175,9 @@ namespace ProjectName.Systems
                 Debug.LogWarning("[GasSprayerController] 장착된 분사기가 없습니다.");
                 return;
             }
+
+            // C8-34: 재장전 중이면 취소
+            CancelReload();
 
             // 상태 초기화
             IsEquipped = false;
@@ -254,6 +287,13 @@ namespace ProjectName.Systems
                 return;
             }
 
+            // C8-34: 재장전 중에는 분사 불가
+            if (_isReloading)
+            {
+                Debug.LogWarning("[GasSprayerController] 재장전 중에는 분사할 수 없습니다.");
+                return;
+            }
+
             if (CurrentSprayTimeRemaining <= 0f)
             {
                 Debug.LogWarning("[GasSprayerController] 가스가 모두 소진되었습니다.");
@@ -356,6 +396,9 @@ namespace ProjectName.Systems
                 return false;
             }
 
+            // C8-34: 재장전 중이면 취소
+            CancelReload();
+
             // 아이템 데이터 생성
             string itemId = GetSprayerItemId(CurrentGrade);
             var data = GasSprayerManager.GetGradeData(CurrentGrade);
@@ -419,6 +462,95 @@ namespace ProjectName.Systems
         public static string GetSprayerItemId(GasSprayerGrade grade)
         {
             return $"GasSprayer_{grade}";
+        }
+
+        // ===== C8-34: 재장전 (Reload) =====
+
+        /// <summary>
+        /// 재장전 시작. 가스가 완전히 소진된 상태여야 함.
+        /// SpecialAlloy 등급은 재장전 불필요 (0초, 즉시 완료).
+        /// </summary>
+        public void StartReload()
+        {
+            if (!IsEquipped)
+            {
+                Debug.LogWarning("[GasSprayerController] 분사기가 장착되지 않았습니다.");
+                return;
+            }
+
+            if (_isReloading)
+            {
+                Debug.LogWarning("[GasSprayerController] 이미 재장전 중입니다.");
+                return;
+            }
+
+            var data = GasSprayerManager.GetGradeData(CurrentGrade);
+            if (data.isUnlimited)
+            {
+                Debug.Log("[GasSprayerController] SpecialAlloy는 재장전이 필요 없습니다.");
+                return;
+            }
+
+            if (CurrentSprayTimeRemaining > 0f)
+            {
+                Debug.Log("[GasSprayerController] 가스가 아직 남아 있습니다. 재장전이 필요하지 않습니다.");
+                return;
+            }
+
+            float reloadTime = GasSprayerManager.GetReloadTime(CurrentGrade);
+            if (reloadTime <= 0f)
+            {
+                // 즉시 재장전 (SpecialAlloy는 위에서 걸러졌지만, 다른 즉시 완료 등급 대비)
+                CurrentSprayTimeRemaining = data.maxSprayTime;
+                OnReloadChanged?.Invoke();
+                OnReloadCompleted?.Invoke();
+                Debug.Log("[GasSprayerController] 즉시 재장전 완료!");
+                return;
+            }
+
+            _isReloading = true;
+            ReloadTimeRemaining = reloadTime;
+
+            // 분사 중이면 중단
+            if (_isSpraying)
+            {
+                _isSpraying = false;
+            }
+
+            OnReloadChanged?.Invoke();
+            Debug.Log($"[GasSprayerController] 재장전 시작! {reloadTime}초");
+        }
+
+        /// <summary>
+        /// 재장전 취소. 상태 초기화.
+        /// </summary>
+        public void CancelReload()
+        {
+            if (!_isReloading)
+                return;
+
+            _isReloading = false;
+            ReloadTimeRemaining = 0f;
+            CurrentSprayTimeRemaining = 0f;
+
+            OnReloadChanged?.Invoke();
+            Debug.Log("[GasSprayerController] 재장전 취소!");
+        }
+
+        /// <summary>
+        /// 재장전 완료 처리. 가스 리필 후 이벤트 발생.
+        /// </summary>
+        private void CompleteReload()
+        {
+            _isReloading = false;
+            ReloadTimeRemaining = 0f;
+
+            var data = GasSprayerManager.GetGradeData(CurrentGrade);
+            CurrentSprayTimeRemaining = data.isUnlimited ? float.PositiveInfinity : data.maxSprayTime;
+
+            OnReloadChanged?.Invoke();
+            OnReloadCompleted?.Invoke();
+            Debug.Log("[GasSprayerController] 재장전 완료!");
         }
 
         /// <summary>

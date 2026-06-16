@@ -38,6 +38,15 @@ namespace ProjectName.Systems
                 return;
             }
 
+            // C8-34: 재장전 중에는 입력 무시
+            if (_controller.IsReloading)
+            {
+                // 분사 중이었다면 강제 중단
+                if (_controller.IsSpraying)
+                    _controller.StopSpray();
+                return;
+            }
+
             // 분사 입력 처리 (우클릭 홀드)
             bool sprayHeld = Input.GetKey(_sprayKey);
 

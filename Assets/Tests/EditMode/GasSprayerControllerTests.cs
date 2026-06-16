@@ -421,5 +421,128 @@ namespace ProjectName.Tests.EditMode
             if (field != null)
                 field.SetValue(null, instance);
         }
+
+        // ================================================================
+        // C8-34: 재장전 관련 테스트
+        // ================================================================
+
+        // ================================================================
+        // 테스트 15: Reload_GasExhausted_StartsReload
+        // ================================================================
+
+        [Test]
+        public void Reload_GasExhausted_StartsReload()
+        {
+            // Arrange
+            var controller = GasSprayerController.Instance;
+            controller.Equip(GasSprayerGrade.Wood);
+
+            // 가스를 거의 소진시킴
+            controller.CurrentSprayTimeRemaining = 0f;
+
+            // Act - StartReload 호출
+            controller.StartReload();
+
+            // Assert
+            Assert.IsTrue(controller.IsReloading, "재장전 상태여야 함");
+            Assert.Greater(controller.ReloadTimeRemaining, 0f, "재장전 남은 시간이 0보다 커야 함");
+        }
+
+        // ================================================================
+        // 테스트 16: Reload_StartSprayDuringReload_Fails
+        // ================================================================
+
+        [Test]
+        public void Reload_StartSprayDuringReload_Fails()
+        {
+            // Arrange
+            var controller = GasSprayerController.Instance;
+            controller.Equip(GasSprayerGrade.Wood);
+            controller.CurrentSprayTimeRemaining = 0f;
+            controller.StartReload();
+            Assert.IsTrue(controller.IsReloading, "재장전 중이어야 함");
+
+            // Act
+            controller.StartSpray();
+
+            // Assert
+            Assert.IsFalse(controller.IsSpraying, "재장전 중에는 분사가 불가능해야 함");
+        }
+
+        // ================================================================
+        // 테스트 17: Reload_CompleteReload_RefillsGas
+        // ================================================================
+
+        [Test]
+        public void Reload_CompleteReload_RefillsGas()
+        {
+            // Arrange
+            var controller = GasSprayerController.Instance;
+            controller.Equip(GasSprayerGrade.Wood);
+            controller.CurrentSprayTimeRemaining = 0f;
+            controller.StartReload();
+            Assert.IsTrue(controller.IsReloading, "재장전 중이어야 함");
+
+            var data = GasSprayerManager.GetGradeData(GasSprayerGrade.Wood);
+
+            // Act - reflection으로 private CompleteReload() 호출
+            var completeMethod = typeof(GasSprayerController).GetMethod("CompleteReload",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Assert.IsNotNull(completeMethod, "CompleteReload 메서드를 찾을 수 없음");
+            completeMethod.Invoke(controller, null);
+
+            // Assert
+            Assert.IsFalse(controller.IsReloading, "재장전 완료 후 IsReloading은 false");
+            Assert.AreEqual(data.maxSprayTime, controller.CurrentSprayTimeRemaining, 0.001f,
+                "재장전 완료 후 가스가 maxSprayTime으로 리필되어야 함");
+        }
+
+        // ================================================================
+        // 테스트 18: Reload_CancelReload_ResetsState
+        // ================================================================
+
+        [Test]
+        public void Reload_CancelReload_ResetsState()
+        {
+            // Arrange
+            var controller = GasSprayerController.Instance;
+            controller.Equip(GasSprayerGrade.Wood);
+            controller.CurrentSprayTimeRemaining = 0f;
+            controller.StartReload();
+            Assert.IsTrue(controller.IsReloading, "재장전 중이어야 함");
+            Assert.Greater(controller.ReloadTimeRemaining, 0f, "재장전 시간이 설정되어야 함");
+
+            // Act
+            controller.CancelReload();
+
+            // Assert
+            Assert.IsFalse(controller.IsReloading, "취소 후 IsReloading은 false");
+            Assert.AreEqual(0f, controller.ReloadTimeRemaining, "취소 후 ReloadTimeRemaining은 0");
+            Assert.AreEqual(0f, controller.CurrentSprayTimeRemaining, "취소 후 CurrentSprayTimeRemaining은 0");
+        }
+
+        // ================================================================
+        // 테스트 19: Reload_SpecialAlloy_NotRequired
+        // ================================================================
+
+        [Test]
+        public void Reload_SpecialAlloy_NotRequired()
+        {
+            // Arrange
+            var controller = GasSprayerController.Instance;
+            controller.Equip(GasSprayerGrade.SpecialAlloy);
+            Assert.IsTrue(float.IsPositiveInfinity(controller.CurrentSprayTimeRemaining),
+                "SpecialAlloy는 무제한 가스");
+
+            // Act - StartReload는 호출되어도 isUnlimited면 return
+            controller.StartReload();
+
+            // Assert
+            Assert.IsFalse(controller.IsReloading, "SpecialAlloy는 재장전 상태가 되면 안 됨");
+            Assert.IsTrue(float.IsPositiveInfinity(controller.CurrentSprayTimeRemaining),
+                "SpecialAlloy 가스는 계속 무제한이어야 함");
+            Assert.AreEqual(0f, GasSprayerManager.GetReloadTime(GasSprayerGrade.SpecialAlloy),
+                "SpecialAlloy 재장전 시간은 0초");
+        }
     }
 }
