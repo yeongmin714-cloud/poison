@@ -26,16 +26,17 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 영지 난이도 보정치 계산 (ROADMAP 5.3.5)
+        /// Ring1=+0, Ring2=+2, Ring3=+5, Ring4=+8, Empire=+15
         /// </summary>
         public static int GetDifficultyBonus(TerritoryDifficulty difficulty)
         {
             switch (difficulty)
             {
-                case TerritoryDifficulty.Ring1: return 0;   // ⭐ = 레벨 유지
-                case TerritoryDifficulty.Ring2: return 2;   // ⭐⭐ = +2
-                case TerritoryDifficulty.Ring3: return 3;   // ⭐⭐⭐ = +3
-                case TerritoryDifficulty.Ring4: return 6;   // ⭐⭐⭐⭐ = +6
-                case TerritoryDifficulty.Empire: return 10; // ⭐⭐⭐⭐⭐ = +10
+                case TerritoryDifficulty.Ring1: return 0;   // 최외각 — 보정 없음
+                case TerritoryDifficulty.Ring2: return 2;   // +2
+                case TerritoryDifficulty.Ring3: return 5;   // +5
+                case TerritoryDifficulty.Ring4: return 8;   // +8
+                case TerritoryDifficulty.Empire: return 15; // +15
                 default: return 0;
             }
         }
@@ -89,14 +90,13 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 레벨 색상 태그 반환 (머리 위 표시용)
+        /// 🟢 Lv.1~10, 🟡 Lv.11~20, 🔴 Lv.21~30+
         /// </summary>
         public static string GetLevelColorTag(int level)
         {
-            if (level <= 5) return "🟢";    // 초급
-            if (level <= 15) return "🟡";   // 중급
-            if (level <= 25) return "🟠";   // 고급
-            if (level <= 40) return "🔴";   // 최고급
-            return "👑";                     // 전설
+            if (level <= 10) return "🟢";    // 초급
+            if (level <= 20) return "🟡";   // 중급
+            return "🔴";                     // 고급
         }
 
         /// <summary>

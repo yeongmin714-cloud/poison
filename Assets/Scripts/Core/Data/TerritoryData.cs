@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ProjectName.Core.Data
@@ -13,7 +14,8 @@ namespace ProjectName.Core.Data
         West,     // 🏁 서 (West) — 초록
         South,    // 🏁 남 (South) — 빨강
         North,    // 🏁 북 (North) — 보라
-        Empire    // 👑 황제국 — 황금
+        Empire,   // 🏁 황제국 (Empire) — 보라+금
+        Dracula   // 🧛 드라큘라 (Night Dracula) — 검정+빨강
     }
 
     /// <summary>
@@ -102,6 +104,19 @@ namespace ProjectName.Core.Data
         public int guardCount;                   // 병사 수
         public LordInfo lord;                    // 영주 정보
         public string description;               // 영지 설명
+        public bool isNightOnly;                 // 야간에만 활성화되는 영지 (ND-01)
+    }
+
+    /// <summary>
+    /// 영지 전투 상태 열거형 (TerritoryBattleManager 연동)
+    /// </summary>
+    public enum TerritoryBattleState
+    {
+        Peaceful,
+        UnderAttack,
+        Retreated,
+        Reinforcing,
+        Conquered
     }
 
     /// <summary>
@@ -120,6 +135,23 @@ namespace ProjectName.Core.Data
         public bool lordDefeated = false;        // 영주 처치 여부 (C10-10)
         public bool lordExecuted = false;        // 영주 처형 여부 (C10-11)
         public bool lordSpared = false;          // 영주 살려주기 여부 (C10-11)
+
+        // ===== 정보원 수집 플래그 (SpySystem 연동) =====
+        public bool spyReportRecon = false;       // 정찰 정보 수집 완료
+        public bool spyReportInfiltrate = false;  // 잠입 정보 수집 완료
+        public bool spyReportSurvey = false;      // 측량 정보 수집 완료
+        public float lastSpyTime = 0f;            // 마지막 정보 수집 시간
+
+        // ===== 전투 상태 (TerritoryBattleManager 연동) =====
+        public TerritoryBattleState battleState = TerritoryBattleState.Peaceful;
+        public float retreatTimer = 0f;
+        public float reinforceTimer = 0f;
+        public int reinforcedCount = 0;
+        public int deadGuardCount = 0;
+        public int totalGuardCount = 0;
+
+        // ===== 야간 전용 영지 (ND-01) =====
+        public bool isActive = true;               // 낮에 비활성화되는 영지용 (ND-01)
 
         public TerritoryState(TerritoryId id)
         {

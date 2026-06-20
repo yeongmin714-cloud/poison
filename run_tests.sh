@@ -4,8 +4,8 @@
 
 set -e
 
-UNITY="/mnt/c/Program Files/Unity/Hub/Editor/6000.3.17f1/Editor/Unity.exe"
-PROJECT="/mnt/c/Unity/code"
+UNITY="/mnt/c/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Unity.exe"
+PROJECT="C:/Unity/code"
 LOG_FILE="/tmp/unity-test-log.txt"
 
 MODE="${1:-all}"

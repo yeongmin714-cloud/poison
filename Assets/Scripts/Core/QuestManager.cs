@@ -84,6 +84,14 @@ namespace ProjectName.Core
             return result;
         }
 
+        /// <summary>
+        /// Returns all quest definitions registered in the system.
+        /// </summary>
+        public static List<QuestData> GetAllDefinitions()
+        {
+            return new List<QuestData>(_allQuests.Values);
+        }
+
         public static List<QuestData> GetAvailableQuests(int playerLevel)
         {
             var result = new List<QuestData>();
@@ -319,6 +327,23 @@ namespace ProjectName.Core
             _allQuests[quest.questId] = quest;
             _questStates[quest.questId] = quest.prerequisiteQuestIds != null && quest.prerequisiteQuestIds.Length > 0
                 ? QuestState.Locked : QuestState.Available;
+        }
+
+        /// <summary>
+        /// 외부에서 새 퀘스트를 등록합니다 (예: 튜토리얼 퀘스트).
+        /// 동일한 questId가 이미 존재하면 덮어씁니다.
+        /// </summary>
+        public static void RegisterQuest(QuestData quest)
+        {
+            if (string.IsNullOrEmpty(quest.questId))
+            {
+                Debug.LogWarning("[QuestManager] RegisterQuest: questId가 null/비어있음");
+                return;
+            }
+            _allQuests[quest.questId] = quest;
+            _questStates[quest.questId] = quest.prerequisiteQuestIds != null && quest.prerequisiteQuestIds.Length > 0
+                ? QuestState.Locked : QuestState.Available;
+            Debug.Log($"[QuestManager] 퀘스트 등록됨: '{quest.questId}' — {quest.questName}");
         }
     }
 }

@@ -83,16 +83,22 @@ namespace ProjectName.Systems
                 // 단순 클릭은 무시 (좌클릭은 공격용)
             }
 
-            // 우클릭 명령
+            // 우클릭 명령 (RTSCommandSystem에 위임)
             if (Mouse.current.rightButton.wasPressedThisFrame && _selectedGuards.Count > 0)
             {
-                HandleRightClickCommand();
+                bool ctrlHeld = Keyboard.current != null &&
+                    (Keyboard.current.ctrlKey.isPressed || Keyboard.current.leftCtrlKey.isPressed || Keyboard.current.rightCtrlKey.isPressed);
+                Vector2 mousePos = Mouse.current.position.ReadValue();
+
+                if (RTSCommandSystem.Instance != null)
+                    RTSCommandSystem.Instance.IssueRightClickCommand(mousePos, ctrlHeld);
             }
 
-            // H키 공격 중단
+            // H키 공격 중단 (RTSCommandSystem에 위임)
             if (Keyboard.current != null && Keyboard.current.hKey.wasPressedThisFrame)
             {
-                StopAllGuards();
+                if (RTSCommandSystem.Instance != null)
+                    RTSCommandSystem.Instance.StopAllSelectedGuards();
             }
         }
 
@@ -196,61 +202,41 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 우클릭 명령 처리
+        /// 우클릭 명령 처리 — RTSCommandSystem에 위임 (레거시 호환)
         /// </summary>
         private void HandleRightClickCommand()
         {
-            if (_mainCamera == null) return;
-
-            Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-            if (Physics.Raycast(ray, out RaycastHit hit, 100f))
-            {
-                // 적 대상 확인 (IDamageable)
-                IDamageable target = hit.collider.GetComponent<IDamageable>();
-                if (target != null && target.IsAlive)
-                {
-                    // 공격 명령
-                    IssueAttackCommand(target);
-                }
-                else
-                {
-                    // 이동 명령
-                    IssueMoveCommand(hit.point);
-                }
-            }
-        }
-
-        private void IssueAttackCommand(IDamageable target)
-        {
-            foreach (var guard in _selectedGuards)
-            {
-                if (guard != null && guard.IsAlive)
-                    guard.SetCommandTarget(target as MonoBehaviour?.transform.position ?? guard.transform.position, true);
-            }
-            Debug.Log($"[RTS] {_selectedGuards.Count}명 공격 명령");
-        }
-
-        private void IssueMoveCommand(Vector3 position)
-        {
-            foreach (var guard in _selectedGuards)
-            {
-                if (guard != null && guard.IsAlive)
-                    guard.SetCommandTarget(position, false);
-            }
-            Debug.Log($"[RTS] {_selectedGuards.Count}명 이동 명령 → {position}");
+            if (RTSCommandSystem.Instance != null)
+                RTSCommandSystem.Instance.IssueRightClickCommand(Mouse.current.position.ReadValue());
         }
 
         /// <summary>
-        /// 모든 병사 정지
+        /// 공격 명령 — RTSCommandSystem에 위임 (레거시 호환)
+        /// </summary>
+        private void IssueAttackCommand(IDamageable target)
+        {
+            // RTSCommandSystem을 통해 처리
+            if (RTSCommandSystem.Instance != null)
+                RTSCommandSystem.Instance.IssueRightClickCommand(Mouse.current.position.ReadValue());
+        }
+
+        /// <summary>
+        /// 이동 명령 — RTSCommandSystem에 위임 (레거시 호환)
+        /// </summary>
+        private void IssueMoveCommand(Vector3 position)
+        {
+            // RTSCommandSystem을 통해 처리
+            if (RTSCommandSystem.Instance != null)
+                RTSCommandSystem.Instance.IssueRightClickCommand(Mouse.current.position.ReadValue());
+        }
+
+        /// <summary>
+        /// 모든 병사 정지 — RTSCommandSystem에 위임 (레거시 호환)
         /// </summary>
         public void StopAllGuards()
         {
-            foreach (var guard in _selectedGuards)
-            {
-                if (guard != null)
-                    guard.ClearCommand();
-            }
-            Debug.Log("[RTS] 모든 병사 정지 (H키)");
+            if (RTSCommandSystem.Instance != null)
+                RTSCommandSystem.Instance.StopAllSelectedGuards();
         }
 
         /// <summary>

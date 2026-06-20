@@ -5,8 +5,11 @@ namespace ProjectName.Core
     /// <summary>
     /// Base game manager — entry point for game initialization.
     /// </summary>
-    public class GameManager : MonoBehaviour
+    public class GameManager_Obsolete : MonoBehaviour
     {
+        /// <summary>C20-01: Current game difficulty level (0=Easy, 1=Normal, 2=Hard).</summary>
+        public static int CurrentDifficulty { get; set; } = 0;
+
         [SerializeField] private bool _debugMode = false;
 
         private void Awake()

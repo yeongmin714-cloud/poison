@@ -285,11 +285,11 @@ namespace ProjectName.UI
                 
                 ShopItem item = _currentItems[i];
                 
-                // 아이콘 (ProceduralIconGenerator)
-                Texture2D iconTex = item.item.icon != null ? item.item.icon.texture : null;
+                // 아이콘 (ItemIconDatabase 사용)
+                Texture2D iconTex = ItemIconDatabase.GetIconFromSlot(null);
                 if (iconTex != null)
                 {
-                    GUI.DrawTexture(new Rect(sx + 5, sy + 5, 32, 32), iconTex);
+                    GUI.DrawTexture(new Rect(sx + 5, sy + 5, 40, 40), iconTex);
                 }
                 else
                 {
@@ -297,7 +297,7 @@ namespace ProjectName.UI
                     Color fallbackColor = GetCategoryColor(item.item.category);
                     var oldColor = GUI.color;
                     GUI.color = fallbackColor;
-                    GUI.DrawTexture(new Rect(sx + 5, sy + 5, 32, 32), _texWhite);
+                    GUI.DrawTexture(new Rect(sx + 5, sy + 5, 40, 40), _texWhite);
                     GUI.color = oldColor;
                 }
                 
@@ -406,8 +406,8 @@ namespace ProjectName.UI
             if (PlayerInventory.Instance == null) return;
 
             // TODO: UI에서 판매할 아이템을 선택하는 기능. 현재는 임시로 첫 번째 아이템 판매
-            var allItems = PlayerInventory.Instance.GetAllItems();
-            if (allItems.Count == 0)
+            var allItems = PlayerInventory.Instance.GetAllSlots();
+            if (allItems.Length == 0)
             {
                 Debug.Log("[ShopWindow] 판매할 아이템이 없습니다.");
                 return;
@@ -416,7 +416,7 @@ namespace ProjectName.UI
             // 첫 번째 아이템 판매 (가격은 아이템 등급에 따라 1~100G)
             var firstItem = allItems[0];
             int sellPrice = CalculateSellPrice(firstItem.item);
-            PlayerInventory.Instance.RemoveItem(firstItem.item, 1);
+            PlayerInventory.Instance.RemoveItem(firstItem.item?.id ?? "", 1);
             PlayerStats.Instance.AddGold(sellPrice);
             Debug.Log($"[ShopWindow] 판매 성공: {firstItem.item.displayName} → {sellPrice}G");
             RefreshShopItems();

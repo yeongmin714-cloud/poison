@@ -45,15 +45,15 @@ namespace ProjectName.Tests.EditMode
         }
 
         [Test]
-        public void GetDifficultyBonus_Ring3_Plus3()
+        public void GetDifficultyBonus_Ring3_Plus5()
         {
-            Assert.AreEqual(3, MonsterLevelSystem.GetDifficultyBonus(TerritoryDifficulty.Ring3));
+            Assert.AreEqual(5, MonsterLevelSystem.GetDifficultyBonus(TerritoryDifficulty.Ring3));
         }
 
         [Test]
-        public void GetDifficultyBonus_Empire_Plus10()
+        public void GetDifficultyBonus_Empire_Plus15()
         {
-            Assert.AreEqual(10, MonsterLevelSystem.GetDifficultyBonus(TerritoryDifficulty.Empire));
+            Assert.AreEqual(15, MonsterLevelSystem.GetDifficultyBonus(TerritoryDifficulty.Empire));
         }
 
         // ===================== 레벨 생성 =====================
@@ -75,7 +75,7 @@ namespace ProjectName.Tests.EditMode
             for (int i = 0; i < 50; i++)
             {
                 int withBonus = MonsterLevelSystem.GenerateMonsterLevel(MonsterTier.Beginner, TerritoryDifficulty.Empire);
-                Assert.GreaterOrEqual(withBonus, 11, "초반 몬스터도 황제국에서는 최소 Lv.11");
+                Assert.GreaterOrEqual(withBonus, 16, "초반 몬스터도 황제국에서는 최소 Lv.16");
             }
         }
 
@@ -129,13 +129,14 @@ namespace ProjectName.Tests.EditMode
         public void GetLevelColorTag_LowLevel_Green()
         {
             Assert.AreEqual("🟢", MonsterLevelSystem.GetLevelColorTag(1));
-            Assert.AreEqual("🟢", MonsterLevelSystem.GetLevelColorTag(5));
+            Assert.AreEqual("🟢", MonsterLevelSystem.GetLevelColorTag(10));
         }
 
         [Test]
-        public void GetLevelColorTag_HighLevel_Gold()
+        public void GetLevelColorTag_HighLevel_Red()
         {
-            Assert.AreEqual("👑", MonsterLevelSystem.GetLevelColorTag(50));
+            Assert.AreEqual("🔴", MonsterLevelSystem.GetLevelColorTag(30));
+            Assert.AreEqual("🔴", MonsterLevelSystem.GetLevelColorTag(50));
         }
 
         [Test]

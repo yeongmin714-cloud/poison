@@ -1,169 +1,108 @@
+using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
-using UnityEngine;
 
 namespace ProjectName.Systems
 {
     /// <summary>
-    /// C9-30: NPC 퀘스트 제공자 — 말풍선 UI로 퀘스트 제공
+    /// Phase 5.4: NPC 퀘스트 제공자.
+    /// 플레이어가 근처에서 E 키를 누르면 퀘스트를 수락/제출.
+    /// 예: 고기 3개 가져오기 → 보상 지급.
     /// </summary>
-    public class NpcQuestGiver : MonoBehaviour
+    public class NPCQuestGiver : MonoBehaviour
     {
-        [Header("NPC 설정")]
-        [SerializeField] private string npcId = "npc_001";
-        [SerializeField] private string npcName = "수상한 여행자";
+        [System.Serializable]
+        public class QuestDef
+        {
+            public string questId = "quest_meat_01";
+            public string questName = "고기 수집";
+            public string description = "신선한 고기 3개를 가져와 주세요.";
+            public string requiredItemId = "meat_rabbit";
+            public int requiredCount = 3;
+            public int rewardGold = 100;
+            public int rewardExp = 50;
+        }
+
+        [Header("퀘스트 설정")]
+        [SerializeField] private QuestDef _quest;
         [SerializeField] private float _interactRange = 3f;
+        [SerializeField] private string _npcName = "마을 주민";
 
-        [Header("퀘스트")]
-        [SerializeField] private string[] _questIds;
+        [Header("상태")]
+        [SerializeField] private bool _questAccepted;
+        [SerializeField] private bool _questCompleted;
 
-        // 상태
-        private bool _playerNearby = false;
-        private bool _showQuestUI = false;
         private Transform _player;
-        private Vector2 _scrollPos;
-
-        private GUIStyle _styleTitle;
-        private GUIStyle _styleLabel;
-        private GUIStyle _styleButton;
-        private GUIStyle _styleMsg;
+        private bool _isPlayerNearby;
 
         private void Start()
         {
             _player = GameObject.FindGameObjectWithTag("Player")?.transform;
-            if (_player == null)
-                Debug.LogWarning($"[NpcQuestGiver] {npcName}: Player 태그 오브젝트 없음");
         }
 
         private void Update()
         {
-            if (_player == null) return;
+            if (_player == null || _questCompleted) return;
 
             float dist = Vector3.Distance(transform.position, _player.position);
-            _playerNearby = dist <= _interactRange;
+            _isPlayerNearby = dist <= _interactRange;
 
-            if (_playerNearby && Input.GetKeyDown(KeyCode.E))
+            if (_isPlayerNearby && Input.GetKeyDown(KeyCode.E))
             {
-                _showQuestUI = !_showQuestUI;
+                Interact();
             }
+        }
 
-            if (_showQuestUI && dist > _interactRange * 1.5f)
+        private void Interact()
+        {
+            if (!_questAccepted)
             {
-                _showQuestUI = false;
+                AcceptQuest();
+            }
+            else
+            {
+                TryCompleteQuest();
+            }
+        }
+
+        private void AcceptQuest()
+        {
+            _questAccepted = true;
+            Debug.Log($"[NPCQuestGiver] {_npcName}: \"{_quest.description}\"");
+        }
+
+        private void TryCompleteQuest()
+        {
+            if (PlayerInventory.Instance == null) return;
+
+            int count = PlayerInventory.Instance.GetItemCount(_quest.requiredItemId);
+            if (count >= _quest.requiredCount)
+            {
+                PlayerInventory.Instance.RemoveItem(_quest.requiredItemId, _quest.requiredCount);
+
+                if (PlayerStats.Instance != null)
+                {
+                    PlayerStats.Instance.AddGold(_quest.rewardGold);
+                    PlayerStats.Instance.AddEXP(_quest.rewardExp);
+                }
+
+                _questCompleted = true;
+                Debug.Log($"[NPCQuestGiver] ✅ 퀘스트 완료! {_quest.questName} — 골드+{_quest.rewardGold}, 경험치+{_quest.rewardExp}");
+            }
+            else
+            {
+                Debug.Log($"[NPCQuestGiver] {_npcName}: 아직 아이템이 부족합니다 ({count}/{_quest.requiredCount})");
             }
         }
 
         private void OnGUI()
         {
-            if (!_playerNearby) return;
+            if (!_isPlayerNearby || _questCompleted) return;
 
-            // 말풍선: NPC 머리 위 표시
-            Vector3 screenPos = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
-            if (screenPos.z < 0) return;
-            screenPos.y = Screen.height - screenPos.y;
-
-            // "E 키" 말풍선
-            float bubbleW = 60f;
-            float bubbleH = 24f;
-            GUI.Box(new Rect(screenPos.x - bubbleW / 2f, screenPos.y - bubbleH - 5, bubbleW, bubbleH), "💬 E");
-            GUI.Label(new Rect(screenPos.x - bubbleW / 2f, screenPos.y - bubbleH - 5, bubbleW, bubbleH), "💬 E", new GUIStyle(GUI.skin.label) { fontSize = 14, alignment = TextAnchor.MiddleCenter });
-
-            if (!_showQuestUI) return;
-
-            // 퀘스트 UI 패널
-            float panelW = 350f;
-            float panelH = 300f;
-            float x = (Screen.width - panelW) / 2f;
-            float y = (Screen.height - panelH) / 2f;
-
-            EnsureStyles();
-
-            GUI.Box(new Rect(x, y, panelW, panelH), "");
-            GUI.Label(new Rect(x + 10, y + 5, panelW - 20, 24), $"🗣️ {npcName} — 퀘스트", _styleTitle);
-
-            if (_questIds == null || _questIds.Length == 0)
-            {
-                GUI.Label(new Rect(x + 10, y + 40, panelW - 20, 20), "제공할 퀘스트가 없습니다.", _styleLabel);
-                if (GUI.Button(new Rect(x + panelW / 2f - 40, y + panelH - 35, 80, 28), "닫기"))
-                    _showQuestUI = false;
-                return;
-            }
-
-            // 퀘스트 목록 스크롤
-            float contentY = y + 35;
-            float contentH = panelH - 80;
-            float itemH = 70f;
-            float totalH = _questIds.Length * itemH;
-
-            _scrollPos = GUI.BeginScrollView(new Rect(x + 5, contentY, panelW - 10, contentH), _scrollPos,
-                new Rect(0, 0, panelW - 30, totalH));
-
-            for (int i = 0; i < _questIds.Length; i++)
-            {
-                string qid = _questIds[i];
-                QuestData quest = QuestManager.GetQuest(qid);
-                QuestState state = QuestManager.GetQuestState(qid);
-                float iy = i * itemH;
-
-                GUI.Box(new Rect(5, iy + 2, panelW - 40, itemH - 4), "");
-
-                string stateStr = state switch
-                {
-                    QuestState.Locked => "🔒 잠김",
-                    QuestState.Available => "📋 수락 가능",
-                    QuestState.Active => "🔄 진행 중",
-                    QuestState.Completed => "✅ 완료",
-                    QuestState.Failed => "❌ 실패",
-                    _ => "?"
-                };
-
-                GUI.Label(new Rect(10, iy + 4, panelW - 60, 20), $"{quest.questName} {stateStr}", _styleLabel);
-
-                if (quest.objectives != null && quest.objectives.Count > 0)
-                {
-                    var obj = quest.objectives[0];
-                    string prog = obj.requiredCount > 0 ? $"({obj.currentCount}/{obj.requiredCount})" : "";
-                    GUI.Label(new Rect(10, iy + 26, panelW - 60, 16), $"{obj.description} {prog}", new GUIStyle(GUI.skin.label) { fontSize = 11, normal = { textColor = Color.gray } });
-                }
-
-                // 버튼
-                float btnX = panelW - 100;
-                if (state == QuestState.Available)
-                {
-                    if (GUI.Button(new Rect(btnX, iy + 20, 75, 24), "수락"))
-                    {
-                        QuestManager.AcceptQuest(qid);
-                    }
-                }
-                else if (state == QuestState.Active)
-                {
-                    if (GUI.Button(new Rect(btnX, iy + 20, 75, 24), "확인"))
-                    {
-                        if (QuestManager.TryCompleteQuest(qid))
-                            Debug.Log($"[NpcQuestGiver] ✅ {quest.questName} 완료!");
-                    }
-                }
-            }
-
-            GUI.EndScrollView();
-
-            if (GUI.Button(new Rect(x + panelW - 90, y + panelH - 35, 80, 28), "닫기"))
-                _showQuestUI = false;
-        }
-
-        private void EnsureStyles()
-        {
-            if (_styleTitle != null) return;
-            _styleTitle = new GUIStyle(GUI.skin.label) { fontSize = 16, fontStyle = FontStyle.Bold, normal = { textColor = Color.white } };
-            _styleLabel = new GUIStyle(GUI.skin.label) { fontSize = 14, normal = { textColor = Color.white } };
-            _styleButton = new GUIStyle(GUI.skin.button) { fontSize = 12 };
-            _styleMsg = new GUIStyle(GUI.skin.label) { fontSize = 12, fontStyle = FontStyle.Italic, normal = { textColor = Color.yellow } };
-        }
-
-        private void OnDrawGizmosSelected()
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, _interactRange);
+            string msg = _questAccepted
+                ? $"[E] {_npcName} — 퀘스트 제출"
+                : $"[E] {_npcName} — \"{_quest.description}\"";
+            GUI.Label(new Rect(Screen.width / 2 - 150, Screen.height / 2 + 50, 300, 30), msg);
         }
     }
 }

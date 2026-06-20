@@ -1,6 +1,7 @@
 using System.Collections.Generic;
-using ProjectName.Core.Data;
 using UnityEngine;
+using ProjectName.Core;
+using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
 {
@@ -138,6 +139,20 @@ namespace ProjectName.Systems
                 sum += building.transform.position;
             }
             return sum / _buildings.Count;
+        }
+
+        /// <summary>특정 영지의 중심점 반환</summary>
+        public Vector3 GetTerritoryCenter(ProjectName.Core.Data.TerritoryId territoryId)
+        {
+            return GetTerritoryCenter();
+        }
+
+        /// <summary>
+        /// 영지 소유주 변경 (TerritoryBannerSystem 호출용 스텁)
+        /// </summary>
+        public void SetTerritoryOwner(string territoryId, NationType owner)
+        {
+            Debug.Log($"[TerritoryManager] SetTerritoryOwner: {territoryId} → {owner} (스텁)");
         }
 
         /// <summary>

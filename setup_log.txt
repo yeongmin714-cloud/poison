@@ -1,0 +1,78 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.3/staging' branch; Version is '6000.3.17f1 (cf0352b38e81) revision 13566802'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-06-12T05:12:36.2521298Z"
+OS: 'Windows 10  (10.0.19045) 64bit Core' Language: 'ko' Physical Memory: 7880 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-06-12T05:12:36Z
+Error creating external process 'C:/Program Files/Unity 6000.3.17f1/Editor/Data/Resources/PackageManager/Server/UnityPackageManager.exe' : 지정된 경로를 찾을 수 없습니다.
+Error cleaning up external process: 핸들이 잘못되었습니다.
+[Package Manager] Cannot start server process [path: `C:/Program Files/Unity 6000.3.17f1/Editor/Data/Resources/PackageManager/Server/UnityPackageManager.exe`]
+
+COMMAND LINE ARGUMENTS:
+Unity.exe
+-batchmode
+-projectPath
+C:\Unity\code
+-executeMethod
+Phase3_TopDownSceneSetup.SetupTopDownScene
+-quit
+-logFile
+C:\Unity\code\setup_log.txt
+Successfully changed project path to: C:\Unity\code
+C:/Unity/code
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+Player connection [2468]  Target information:
+
+Player connection [2468]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 1341834317 [EditorId] 1341834317 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [2468]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 1341834317 [EditorId] 1341834317 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [2468] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [2468] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+Failed to load ASTC compressor library from astcenc-avx2
+[Package Manager] Server process restart attempt #2
+
+Error creating external process 'C:/Program Files/Unity 6000.3.17f1/Editor/Data/Resources/PackageManager/Server/UnityPackageManager.exe' : 지정된 경로를 찾을 수 없습니다.
+Error cleaning up external process: 핸들이 잘못되었습니다.
+[Package Manager] Cannot start server process [path: `C:/Program Files/Unity 6000.3.17f1/Editor/Data/Resources/PackageManager/Server/UnityPackageManager.exe`]
+[Package Manager] Could not find Unity Package Manager local server application at [C:/Program Files/Unity 6000.3.17f1/Editor/Data/Resources/PackageManager/Server/UnityPackageManager.exe]. Missing files could be the result of an antivirus action or a corrupt Unity installation.
+Exiting without the bug reporter. Application will terminate with return code 1

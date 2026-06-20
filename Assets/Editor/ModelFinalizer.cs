@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
+using ProjectName.Systems;
 
 /// <summary>
 /// C10-21: 모델 교체 현황 보고 에디터 도구.

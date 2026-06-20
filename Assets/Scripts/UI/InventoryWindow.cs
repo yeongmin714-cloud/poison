@@ -1,6 +1,7 @@
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems;
+using ProjectName.Core.Data;
 
 namespace ProjectName.UI
 {
@@ -226,6 +227,19 @@ namespace ProjectName.UI
         {
             if (!IsOpen) return;
 
+            // G3-05: 통일 스타일 — 딤드 오버레이 + 배경 + 타이틀 + 닫기 버튼
+            UIStyleManager.DrawDimOverlay();
+            float _winX = (Screen.width - WINDOW_WIDTH) / 2;
+            float _winY = (Screen.height - WINDOW_HEIGHT) / 2;
+            Rect _winRect = new Rect(_winX, _winY, WINDOW_WIDTH, WINDOW_HEIGHT);
+            UIStyleManager.DrawWindowBackground(_winRect);
+            UIStyleManager.DrawTitle(_winRect, "  📦 인벤토리");
+            if (UIStyleManager.DrawCloseButton(_winRect))
+            {
+                Hide();
+                return;
+            }
+
             InitStyles();
 
             float x = (Screen.width - WINDOW_WIDTH) / 2;
@@ -353,18 +367,18 @@ namespace ProjectName.UI
                     var slotStyle = isSelected ? _styleSlotSelected : _styleSlot;
                     GUI.Box(slotRect, "", slotStyle);
 
-                    // 아이콘 (ProceduralIconGenerator)
-                    Texture2D iconTex = slot.item.icon != null ? slot.item.icon.texture : null;
+                    // 아이콘 (ItemIconDatabase 사용 — 64×64 생성, 슬롯에 맞게 40×40 표시)
+                    Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(slot.item);
                     if (iconTex != null)
                     {
-                        GUI.DrawTexture(new Rect(sx + 8, sy + 6, 28, 28), iconTex);
+                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 40, 40), iconTex);
                     }
                     else
                     {
-                        // 폴백: 색상 원
+                        // 폴백: 카테고리 색상 사각형
                         Color iconColor = GetCategoryColor(slot.item.category);
                         GUI.color = iconColor;
-                        GUI.DrawTexture(new Rect(sx + 8, sy + 6, 28, 28), _texWhite);
+                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 40, 40), _texWhite);
                         GUI.color = Color.white;
                     }
 
@@ -383,7 +397,7 @@ namespace ProjectName.UI
                     // C9-18: 내구도 표시 (장비 아이템만)
                     if (slot.item.maxDurability > 0)
                     {
-                        float durability = EquipmentDurabilitySystem.GetDurabilityRatio(slot);
+                        float durability = ProjectName.Systems.EquipmentDurabilitySystem.GetDurabilityRatio(slot);
                         Color durColor = durability >= 0.6f ? Color.green :
                                          durability >= 0.3f ? Color.yellow : Color.red;
                         float barWidth = slotWidth - 12;
@@ -429,7 +443,7 @@ namespace ProjectName.UI
             GUI.Label(new Rect(tooltipRect.x + 5, tooltipRect.y + 45, tooltipWidth - 10, 20), $"x{slot.count}", _styleItemCount);
             if (slot.item.maxDurability > 0)
             {
-                string durStr = EquipmentDurabilitySystem.GetDurabilityString(slot);
+                string durStr = ProjectName.Systems.EquipmentDurabilitySystem.GetDurabilityString(slot);
                 GUI.Label(new Rect(tooltipRect.x + 5, tooltipRect.y + 62, tooltipWidth - 10, 16), $"내구도: {durStr}", _styleItemCount);
             }
         }
@@ -449,19 +463,28 @@ namespace ProjectName.UI
 
             if (!string.IsNullOrEmpty(_selectedItemName))
             {
-                // 아이콘 (ProceduralIconGenerator)
+                // 아이콘 (ItemIconDatabase 사용)
                 if (_selectedSlotIndex >= 0 && _currentSlots != null && _selectedSlotIndex < _currentSlots.Length)
                 {
                     var selSlot = _currentSlots[_selectedSlotIndex];
-                    if (selSlot != null && selSlot.item != null && selSlot.item.icon != null)
+                    if (selSlot != null && selSlot.item != null)
                     {
-                        GUI.DrawTexture(new Rect(innerX, innerY + 2, 24, 24), selSlot.item.icon.texture);
+                        Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(selSlot.item);
+                        if (iconTex != null)
+                            GUI.DrawTexture(new Rect(innerX, innerY + 2, 32, 32), iconTex);
+                        else
+                        {
+                            Color iconColor = GetCategoryColorForSelected();
+                            GUI.color = iconColor;
+                            GUI.DrawTexture(new Rect(innerX, innerY + 2, 32, 32), _texWhite);
+                            GUI.color = Color.white;
+                        }
                     }
                     else
                     {
                         Color iconColor = GetCategoryColorForSelected();
                         GUI.color = iconColor;
-                        GUI.DrawTexture(new Rect(innerX, innerY + 2, 24, 24), _texWhite);
+                        GUI.DrawTexture(new Rect(innerX, innerY + 2, 32, 32), _texWhite);
                         GUI.color = Color.white;
                     }
                 }
@@ -488,8 +511,8 @@ namespace ProjectName.UI
                     _selectedSlotIndex < _currentSlots.Length && _currentSlots[_selectedSlotIndex].item.maxDurability > 0)
                 {
                     var selSlot = _currentSlots[_selectedSlotIndex];
-                    string durStr = EquipmentDurabilitySystem.GetDurabilityString(selSlot);
-                    float ratio = EquipmentDurabilitySystem.GetDurabilityRatio(selSlot);
+                    string durStr = ProjectName.Systems.EquipmentDurabilitySystem.GetDurabilityString(selSlot);
+                    float ratio = ProjectName.Systems.EquipmentDurabilitySystem.GetDurabilityRatio(selSlot);
                     Color durColor = ratio >= 0.6f ? Color.green :
                                      ratio >= 0.3f ? Color.yellow : Color.red;
                     var oldColor = GUI.color;
@@ -503,7 +526,7 @@ namespace ProjectName.UI
                     {
                         if (GUI.Button(new Rect(innerX + innerWidth - 100, innerY + 62, 90, 22), "🔧 수리"))
                         {
-                            var result = EquipmentRepairSystem.TryRepair(selSlot);
+                            var result = ProjectName.Systems.EquipmentRepairSystem.RepairInventorySlot(_selectedSlotIndex);
                             Debug.Log($"[Repair] {result.message}");
                             _selectedItemDesc = result.message;
                             if (result.success)

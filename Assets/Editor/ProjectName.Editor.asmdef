@@ -1,0 +1,26 @@
+{
+  "name": "ProjectName.Editor",
+  "rootNamespace": "",
+  "references": [
+    "Unity.Cinemachine",
+    "Unity.UGUI",
+    "Unity.RenderPipelines.Core.Runtime",
+    "ProjectName.Core",
+    "Unity.InputSystem",
+    "Unity.RenderPipelines.Universal.Runtime",
+    "ProjectName.Systems"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_EDITOR"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -1,0 +1,379 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using ProjectName.Core;
+using ProjectName.UI;
+using ProjectName.Core.Data;
+
+namespace ProjectName.Systems
+{
+    /// <summary>
+    /// Loot Basket — 몬스터 사냥 또는 약초 채집 시 생성되는 전리품 바구니.
+    /// 플레이어가 접근하여 E 키를 누르면 LootWindow를 열어 개별 획득 가능.
+    /// 30초 후 자동 소멸합니다.
+    /// 
+    /// [동작 방식]
+    /// 1. 몬스터 사망/약초 채집 시 LootBasket.Create()로 바구니 생성
+    /// 2. 바구니는 지면 위에 Sack/Bag 형상(구+실린더)으로 표시
+    /// 3. 플레이어가 근접하면 "E 키로 획득" 프롬프트 표시
+    /// 4. E 키 입력 → LootWindow 열기 → 개별 아이템 선택 또는 전부 획득
+    /// 5. 30초 동안 획득하지 않으면 자동 소멸
+    /// </summary>
+    public class LootBasket : MonoBehaviour, ILootBasket
+    {
+        [Header("설정")]
+        [SerializeField] private float _interactRange = 2.5f;
+        [SerializeField] private float _lifetime = 30f;
+
+        [Header("아이템 목록")]
+        [SerializeField] private List<LootEntry> _items = new List<LootEntry>();
+
+        // 상태
+        private bool _isLooted = false;
+        private bool _playerNearby = false;
+        private Transform _player;
+        private Keyboard _keyboard;
+
+        // ================================================================
+        // ILootBasket Implementation
+        // ================================================================
+
+        /// <summary>읽기 전용 아이템 목록 (디버그/UI용)</summary>
+        public IReadOnlyList<LootEntry> Items => _items;
+
+        /// <summary>아직 획득 가능한 상태인가?</summary>
+        public bool IsAvailable => !_isLooted;
+
+        /// <summary>바구니가 비었거나 모든 아이템이 소진되었는가?</summary>
+        public bool IsEmpty
+        {
+            get
+            {
+                if (_isLooted) return true;
+                foreach (var entry in _items)
+                {
+                    if (entry != null && entry.item != null && entry.count > 0)
+                        return false;
+                }
+                return true;
+            }
+        }
+
+        /// <summary>유효한(비어있지 않은) 아이템 종류 개수</summary>
+        public int ItemCount
+        {
+            get
+            {
+                if (_isLooted) return 0;
+                int count = 0;
+                foreach (var entry in _items)
+                {
+                    if (entry != null && entry.item != null && entry.count > 0)
+                        count++;
+                }
+                return count;
+            }
+        }
+
+        /// <summary>내용물 기반 자동 생성된 바구니 이름 (LootWindow 타이틀용)</summary>
+        public string BasketName
+        {
+            get
+            {
+                if (_items == null || ItemCount == 0)
+                    return "전리품";
+
+                // 첫 번째 유효한 아이템 이름 기반
+                string firstName = null;
+                int totalCount = 0;
+                foreach (var entry in _items)
+                {
+                    if (entry != null && entry.item != null && entry.count > 0)
+                    {
+                        if (firstName == null)
+                            firstName = entry.item.displayName;
+                        totalCount++;
+                    }
+                }
+
+                if (totalCount <= 1 && firstName != null)
+                    return $"{firstName}";
+
+                if (firstName != null)
+                    return $"{firstName} 외 {totalCount - 1}종";
+
+                return "전리품";
+            }
+        }
+
+        // ================================================================
+        // Public Methods
+        // ================================================================
+
+        /// <summary>
+        /// 바구니에 아이템을 추가합니다. 같은 ID의 아이템은 자동 스택 처리됩니다.
+        /// </summary>
+        public void AddItem(PlayerInventory.ItemData item, int count = 1)
+        {
+            if (item == null || count <= 0) return;
+
+            // 같은 아이템이 있으면 스택
+            for (int i = 0; i < _items.Count; i++)
+            {
+                if (_items[i].item != null && _items[i].item.id == item.id)
+                {
+                    _items[i].count += count;
+                    return;
+                }
+            }
+
+            // 새 슬롯 추가
+            _items.Add(new LootEntry { item = item, count = count });
+        }
+
+        /// <summary>
+        /// 지정된 인덱스의 아이템 하나를 플레이어 인벤토리로 이동합니다.
+        /// 성공 시 바구니에서 제거되며, 바구니가 비었으면 자동 소멸합니다.
+        /// </summary>
+        /// <param name="index">아이템 인덱스</param>
+        /// <returns>획득 성공 여부</returns>
+        public bool TakeItem(int index)
+        {
+            if (_isLooted) return false;
+            if (index < 0 || index >= _items.Count) return false;
+
+            var entry = _items[index];
+            if (entry == null || entry.item == null || entry.count <= 0) return false;
+
+            if (PlayerInventory.Instance == null)
+            {
+                Debug.LogError("[LootBasket] PlayerInventory.Instance가 없습니다!");
+                return false;
+            }
+
+            bool success = PlayerInventory.Instance.AddItem(entry.item, entry.count);
+            if (success)
+            {
+                Debug.Log($"[LootBasket] {entry.item.displayName} x{entry.count} 획득!");
+                _items.RemoveAt(index);
+
+                // 바구니가 비었으면 자동 소멸
+                if (ItemCount == 0)
+                {
+                    _isLooted = true;
+                    HidePrompt();
+                    Destroy(gameObject);
+                }
+                return true;
+            }
+            else
+            {
+                Debug.LogWarning($"[LootBasket] {entry.item.displayName} x{entry.count} — 인벤토리 가득 참!");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 모든 아이템을 플레이어 인벤토리로 이동 후 바구니를 소멸시킵니다.
+        /// </summary>
+        /// <returns>하나라도 성공적으로 이동한 경우 true</returns>
+        public bool TakeAll()
+        {
+            if (_isLooted) return false;
+            _isLooted = true;
+            HidePrompt();
+
+            if (PlayerInventory.Instance == null)
+            {
+                Debug.LogError("[LootBasket] PlayerInventory.Instance가 없습니다!");
+                Destroy(gameObject);
+                return false;
+            }
+
+            bool anySuccess = false;
+            foreach (var entry in _items)
+            {
+                if (entry == null || entry.item == null || entry.count <= 0) continue;
+
+                bool success = PlayerInventory.Instance.AddItem(entry.item, entry.count);
+                if (success)
+                {
+                    Debug.Log($"[LootBasket] {entry.item.displayName} x{entry.count} 획득!");
+                    anySuccess = true;
+                }
+                else
+                {
+                    Debug.LogWarning($"[LootBasket] {entry.item.displayName} x{entry.count} — 인벤토리 가득 참, 일부 손실!");
+                }
+            }
+
+            _items.Clear();
+            Destroy(gameObject);
+            return anySuccess;
+        }
+
+        // ================================================================
+        // MonoBehaviour Lifecycle
+        // ================================================================
+
+        private void Start()
+        {
+            _player = GameObject.FindGameObjectWithTag("Player")?.transform;
+            _keyboard = Keyboard.current;
+
+            if (_player == null)
+                Debug.LogWarning("[LootBasket] Player 태그 오브젝트를 찾을 수 없음");
+
+            // 자동 소멸 타이머
+            Destroy(gameObject, _lifetime);
+        }
+
+        private void Update()
+        {
+            if (_isLooted || _player == null) return;
+
+            float dist = Vector3.Distance(transform.position, _player.position);
+            bool wasNearby = _playerNearby;
+            _playerNearby = dist <= _interactRange;
+
+            // 프롬프트 표시/숨김 (상태 변경 시에만)
+            if (_playerNearby && !wasNearby)
+                ShowPrompt();
+            else if (!_playerNearby && wasNearby)
+                HidePrompt();
+
+            // E 키 입력 (Input System) — LootWindow 열기
+            if (_playerNearby && _keyboard != null && _keyboard.eKey.wasPressedThisFrame)
+                OpenForLoot();
+        }
+
+        // ================================================================
+        // LootWindow 통합 — 바구니 열기
+        // ================================================================
+
+        /// <summary>
+        /// LootWindow를 열어 플레이어가 개별 아이템을 선택/획득할 수 있게 합니다.
+        /// E 키 입력 시 호출됩니다. UIManager가 없으면 직접 TakeAll() 수행합니다.
+        /// </summary>
+        private void OpenForLoot()
+        {
+            if (_isLooted) return;
+
+            if (IsEmpty)
+            {
+                Debug.Log("[LootBasket] 바구니가 비어 있습니다.");
+                Destroy(gameObject);
+                return;
+            }
+
+            HidePrompt();
+
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.OpenLootWindow(this);
+            }
+            else
+            {
+                // UIManager가 없으면 직접 루팅 (fallback)
+                Debug.LogWarning("[LootBasket] UIManager가 없어 직접 루팅합니다.");
+                TakeAll();
+            }
+        }
+
+        // ================================================================
+        // Prompt 표시 (단순 로그 기반 — 추후 World Space Canvas로 대체)
+        // ================================================================
+
+        private void ShowPrompt()
+        {
+            Debug.Log("[LootBasket] 🧺 E 키를 눌러 전리품 획득!");
+        }
+
+        private void HidePrompt()
+        {
+            // 프롬프트 숨김 (프리팹이 없으므로 별도 처리 없음)
+        }
+
+        // ================================================================
+        // Static Factory — 바구니 생성
+        // ================================================================
+
+        /// <summary>
+        /// 지정된 위치에 LootBasket 오브젝트를 생성합니다.
+        /// 자동으로 지면 위에 배치되며, Sack/Bag 형상(구+실린더)으로 시각화됩니다.
+        /// </summary>
+        /// <param name="position">생성 위치 (월드 좌표)</param>
+        /// <param name="lifetime">자동 소멸 시간 (초)</param>
+        /// <returns>생성된 LootBasket 컴포넌트</returns>
+        public static LootBasket Create(Vector3 position, float lifetime = 30f)
+        {
+            // 지면 위치 찾기 (Raycast)
+            Vector3 spawnPos = position;
+            if (Physics.Raycast(position + Vector3.up * 10f, Vector3.down, out RaycastHit hit, 20f))
+            {
+                spawnPos = hit.point;
+            }
+
+            // 바구니 게임오브젝트 생성
+            GameObject basketGO = new GameObject("LootBasket");
+            basketGO.transform.position = spawnPos;
+
+            // === 바구니 시각화 (Sack/Bag 형상: 구+실린더) ===
+
+            // 1) 메인 몸통 (구 -> 약간 납작한 형태)
+            GameObject body = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            body.name = "Bag_Body";
+            body.transform.SetParent(basketGO.transform);
+            body.transform.localPosition = new Vector3(0, 0.2f, 0);
+            body.transform.localScale = new Vector3(0.8f, 0.6f, 0.8f);
+
+            Renderer bodyRenderer = body.GetComponent<Renderer>();
+            if (bodyRenderer != null)
+            {
+                bodyRenderer.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                bodyRenderer.material.color = new Color(0.6f, 0.4f, 0.2f);
+            }
+
+            Collider bodyCol = body.GetComponent<Collider>();
+            if (bodyCol != null) Destroy(bodyCol);
+
+            // 2) 개구부 (실린더 -> bag opening)
+            GameObject opening = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            opening.name = "Bag_Opening";
+            opening.transform.SetParent(basketGO.transform);
+            opening.transform.localPosition = new Vector3(0, 0.55f, 0);
+            opening.transform.localScale = new Vector3(0.85f, 0.1f, 0.85f);
+
+            Renderer openingRenderer = opening.GetComponent<Renderer>();
+            if (openingRenderer != null)
+            {
+                openingRenderer.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                openingRenderer.material.color = new Color(0.5f, 0.3f, 0.15f);
+            }
+
+            Collider openingCol = opening.GetComponent<Collider>();
+            if (openingCol != null) Destroy(openingCol);
+
+            // 3) 트리거 Collider (상호작용 영역)
+            SphereCollider trigger = basketGO.AddComponent<SphereCollider>();
+            trigger.isTrigger = true;
+            trigger.radius = 0.5f;
+
+            // LootBasket 컴포넌트 추가
+            LootBasket basket = basketGO.AddComponent<LootBasket>();
+            basket._lifetime = lifetime;
+
+            return basket;
+        }
+
+        // ================================================================
+        // Editor Gizmo
+        // ================================================================
+
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.color = new Color(0.8f, 0.6f, 0.2f, 0.3f);
+            Gizmos.DrawWireSphere(transform.position, _interactRange);
+        }
+    }
+}

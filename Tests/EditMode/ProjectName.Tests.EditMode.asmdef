@@ -1,0 +1,23 @@
+{
+    "name": "ProjectName.Tests.EditMode",
+    "rootNamespace": "ProjectName.Tests.EditMode",
+    "references": [
+        "ProjectName.Core",
+        "ProjectName.Systems",
+        "Assembly-CSharp-Editor",
+        "ProjectName.Editor"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

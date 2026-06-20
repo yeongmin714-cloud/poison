@@ -64,10 +64,10 @@
 |||||| 적 사망 시 LootBasket 생성 | ✅ |
 ||||| 자동 조준 (C4-08) | 마우스 커서 Raycast → SphereCast fallback, 사망/이탈 자동 해제 | ✅ |
 ||||| LootBasket 시각 모델 (자루/가방 placeholder) | ✅ |
-||| 전리품 주머니 | 사망 시 LootBasket 드랍 | ⬜ |
-||| LootWindow 활용 | 주머니 클릭/ E키 → LootWindow (개별 or 전부 획득, ILootBasket 연동) | ✅ |
-|||| 몬스터 드랍표 | 티어별 고기/재료 드랍 | ⬜ |
-||| 병사 드랍표 | 등급별 금화/장비 + 희귀 5% | ⬜ |
+|||| 전리품 주머니 | 사망 시 LootBasket 드랍 | ✅ |
+|||| LootWindow 활용 | 주머니 클릭/E키 → LootWindow (개별 or 전부 획득, ILootBasket 연동) | ✅ |
+||||| 몬스터 드랍표 | 티어별 고기/재료 드랍 (Early/Mid/Late 3종) | ✅ |
+|||| 병사 드랍표 | 등급별 금화/장비 + 희귀 5% (SoldierDropTable) | ✅ |
 
 ---
 
@@ -115,15 +115,17 @@
 | 플레이스홀더 GLB | 16종 GLB placeholder 생성 (집/제작대/약초/몬스터/NPC/포션/북) | ✅ |
 | **Phase 2** | 🏠 튜토리얼 — 추방지 허름한 집 | 🔄 |
 
-||| Phase 3 | 🌍 세계관 & 월드맵 (4방위×20영지 + 황제국 👑 = 81영지, 방사형 난이도) | ⬜ |
-||| **Phase 3.5** | 🎥 Top-Down 카메라 & 컨트롤 시스템 + ⚔️ 국가간 영지전쟁 설계 | ✅ |
-| Phase 3.6 | 🎨 지형 그래픽 개선 & 환경 조형물 | 🔄 → ✅ |
+|||| Phase 3 | 🌍 세계관 & 월드맵 (4방위×20영지 + 황제국 👑 = 81영지, 방사형 난이도) | 🔄 |
+|||| **Phase 3.3** | 📋 81개 영지 데이터 정의 + 황제국 접근 규칙 | ✅ |
+|||| **Phase 3.4** | 🏁 국기 & 영지 소유 표시 시스템 — NationFlagDatabase+FlagManager+FlagPoleDisplay+PlayerFlagRegistrationWindow, 57개 테스트 | ✅ |
+|||| **Phase 3.5** | 🗺️ 월드맵 UI & 국기 표시 — MapWindow(IMGUI,2단계줌,5지역×20영지,국기,안개), FlagPoleDisplay.FadeTransition, 20개 테스트 | ✅ |
+|||| **Phase 3.6** | 🎨 지형 그래픽 개선 & 환경 조형물 — Skybox+NationTerrainController+WaterBody+Phase36_EditorSetup, 40개 테스트 | ✅ |
 | Phase 3.8 | 📊 캐릭터 스테이터스 & 레벨업 시스템 | ✅ (구현 완료) |
 | Phase 3.9 | 🏔️ Poly Haven 3D 모델 8종 배치 (245개) | ✅ |
 | Phase 3.10 | 🟤 Poly Haven 지형 텍스처 3종 적용 (3링) | ✅ |
 |    └ 3.6.1 지형 텍스처 | Procedural 잔디 텍스처 + URP Lit 머티리얼 적용 | ✅~40% |
 |    └ 3.6.2 환경 조형물 | 나무30+바위20+풀50+덤불20+꽃15 랜덤 배치 | ✅~70% |
-|    └ 3.6.3 조명 & 분위기 | Directional Light 튜닝 + 안개 + Global Volume | ✅~60% |
+|    └ 3.6.3 조명 & 분위기 | Directional Light 튜닝 + 안개 + Global Volume + Post-processing 7종 | ✅✅ Phase 3C 완료 |
 |    └ 3.6.4 경계 오브젝트 | 맵 4면 경계 표시 (반투명 물) | ✅~50% |
 |    └ **Phase 3.9 — Poly Haven 3D 모델** | **✅ 245개 배치 완료** |
 |        └ 🌲 전나무 25그루 | fir_tree_01_1k.gltf | ✅ |
@@ -140,16 +142,22 @@
 |        └ 🏖️ 외곽 700~1000m | coast_sand_rocks | ✅ |
 |    || Phase 3.7 | 🧱 장애물 & 벽 충돌 시스템 | ✅ |
 |    || **Phase 0.5** | 🤖 Animation Rigging 기반 애니메이션 시스템 | ⬜ |
-|    || Phase 4 | 🧪 크래프트 & 레시피 시스템 (80종조합+방독면+색안개) | ⬜ |
-|    || Phase 5 | 🏰 첫 번째 영지 & 부하 관리 (영지활동/창고/장비/방문/상점/밀매/영주대면) | ⬜ |
-|    || Phase 6 | 🚪 실내외 맵 전환 시스템 | ⬜ |
-|    || Phase 7 | ⚔️ 전쟁 & 영지 점령 | ⬜ |
-|    || Phase 8 | 🎬 연출 & 퀄리티 | ⬜ |
-|    || Phase 9 | 🧪 테스트 & 배포 | ⬜ |
+||    || Phase 4 | 🧪 크래프트 & 레시피 시스템 (80종조합+방독면+색안개+폭탄+가스분사기) | ✅ Phase 4 완료 |
+||    || Phase 5 | 🏰 첫 번째 영지 & 부하 관리 (영지활동/창고/장비/방문/상점/성당/밀매/영주대면) | ✅ Phase 5 완료 |
+||    || Phase 6 | 🚪 실내외 맵 전환 시스템 (IndoorSceneTransition + BuildingTrigger + FadeManager + 6종 InteriorBuilder) | ✅ Phase 6 완료 |
+||    || Phase 7 | ⚔️ 전쟁 & 영지 점령 (AIWarSystem+AlarmSystem+LordSurrender+TerritoryCapture+WarNotificationUI) | ✅ Phase 7 완료 |
+|| Phase 25 | 🍺 선술집 & 용병 시스템 | ✅ |
+|| Phase 26 | 📊 병사/용병 스탯창 & 장비 지급 | ✅ |
+|| Phase 27 | 💀 병사 사망 & 부활 개선 | ✅ |
+|| Phase 28 | 🧛 드라큘라 영지 & 야간 컨텐츠 | ✅ |
+|| Phase 29 | 💎 동굴 보석 상자 & 광석 | ✅ |
+|| Phase 30 | 👑 영주/용병 이름 & 국가명 | ✅ |
+|| Phase 31 | 🏴 영지 점령 상징 교체 | ✅ |
+|| Phase 9 | 🧪 테스트 & 배포 | ⬜ |
 
 ---
 
-## 📌 사장님 추가사항 14건 → 자동 반영 완료 (+10건 추가 반영)
+| ## 📌 사장님 추가사항 31건 → 자동 반영 완료
 
 1. **4방위(동서남북) × 각 20영지 + 중앙 황제국 👑 = 81영지** → Phase 3
 2. **독약 사용 시 색안개 VFX + 방독면 시스템** → Phase 4.7~4.8
@@ -179,6 +187,9 @@
 26. **🎥 공격 시 카메라 무빙** (전진/흔들림/슬로우) → Phase 1.6 (신규)
 27. **💥 공격 이펙트** (타격 Sparks/잔상/히트플래시/데미지폰트) → Phase 1.6 (신규)
 28. **💢 타격당하는 애니메이션** (경직/넉백/에어본/스턴/다운) → Phase 1.6 + Phase 0.5 Rig (신규)
+29. **🧛 드라큘라 영지 야간 전용** — 밤에만 출현, 스켈레톤 병사, 드라큘라 영주 보스, 점령 시 희귀 아이템 (신규)
+30. **🏹 활 화살 발사 + 소모** — 활 선택 시 화살 발사 모션, 화살 인벤토리 소모, 발사체 궤적 (신규)
+31. **🎉 조합 성공 시 환호 + 결과창** — 음식/장비/약물 조합 성공 시 환호 애니메이션 + 아이템 결과창 + 등급 표시 (신규)
 
 ---
 
@@ -253,7 +264,7 @@
 ---
 
 > **현재 상태:** Phase 0~2 완료 ✅, Phase 3.5~3.10 ✅, **Phase 4 완료 ✅ (21/21)**, **Phase 5: C9-01~04 완료 ✅**
-|> **Phase 8 크래프트 진행:** ✅ 31/37 완료 — C8-01~28 + C8-29~30 폭탄 시스템 + C8-31 가스 분사기 데이터
+|> **Phase 11 실내 맵 진행:** ✅ **14/14 완료 (Phase 11 끝!) 🎉**
 > **Phase 3.5 완료:** Top-Down 카메라 + 커서 시선 회전 + URP 할당
 > **Phase 3.6 완료 항목:** ✓ Procedural 잔디 텍스처 ✓ URP Lit 재질 ✓ Directional Light 튜닝 ✓ 안개(Fog) ✓ Global Volume
 > **Phase 3.9 완료:** ✅ Poly Haven 3D 모델 8종 (나무3/바위3/식물2) → 총 245개 배치
@@ -263,6 +274,18 @@
 > **GLB 자산 (2026-06-13):** 사장님 GLB 36종 UserProvided/ 준비 완료 (Player_Rigged/몬스터20종Rigged/건물6종/도구2종/NPC/병사/약초4종) — Placeholder 생성 시 ModelSwapper 자동 교체
 
 ---
+
+|||> **Phase 14 완료:** ✅ **10/10 사이클 완료 (복수명부 시스템)** 🎉
+|||> **Phase 15 완료:** ✅ **3/3 사이클 완료 (병사 3단계 모델)** 🎉
+|||> **v2.2:** ✅ **Phase 5, 7 완료 + 제작/요리/경험치 시스템** 🚀
+|||> **Phase 25~31 완료:** ✅ **Phase 25(선술집/용병) + Phase 26(스탯창/장비) + Phase 27(사망/부활) + Phase 28(드라큘라) + Phase 29(보석상자/광석) + Phase 30(이름/국가명) + Phase 31(영지점령상징) = v3.0 🚀🎉** 🚀
+||> **C10-01~04 완료:** 💡 아이템 툴팁 + 🐾 몬스터 어그로 + 🌿 약초 게이지 + 🌱 풀/나무 흔들림 (4사이클 완료 🚀)
+||> **Phase 23 완료:** 🔄 몬스터 리스폰 — 기존 AnimalAI로 이미 구현 (Die() 버그 수정)
+||> **Phase 24 완료:** 🏴 영지 병사 복원 — TerritoryBattleManager + GuardPlaceholder.Die 개선 (5사이클)
+||> **🎬 Phase 3C — Post-processing 완료:** 🎨 Tools/Phase 3C - Setup Post Processing 메뉴 스크립트 생성 (197줄) + 15개 EditMode 테스트. ACES Tonemapping, Bloom(intensity=1.5), Color Adjustments(contrast=8, saturation=15), Vignette(0.35), WhiteBalance(-5), ShadowsMidtonesHighlights, DepthOfField(Gaussian) — Color Grading HDR 모드 전환 (URP Asset) ✅
+|||> **🔊 Phase 8.3 — 사운드 시스템 완료:** 🎵 SoundManager 싱글톤 (DontDestroyOnLoad/3채널), AudioConfig + 8종 SoundClipData 절차적 사운드. 발소리/채집/제작/UI/전투 연동. 카테고리별 볼륨. 16개 EditMode 테스트 ✅
+||| 2026-06-19 | **Phase 22-05~10 — 고급 지형 시스템 완료 🌍** | LakeGenerator(Perlin noise 호수), BiomeEffectController(늪/사막 이동저하+안개), CaveEntrance(동굴입구+E키), CaveInteriorBuilder(동굴내부+TorchFlicker), NationTerrainController.SmoothNationTransition(2초 lerp), PlayerMovement.SpeedModifier 추가, IndoorSceneTransition 동굴타입. 신규 파일 5개, 수정 3개, 24개 테스트 ✅
+|
 
 ## 📋 세션 로그
 
@@ -307,6 +330,25 @@
 | 2026-06-15 | **🔧 시스템 설정** | Telegram @dudals0714_bot 연동 완료. 배경 에이전트 모델 nemotron 고정. 디렉터만 deepseek v4-flash. Unity Recorder 5.1.1 설치 + RecordGameplay.cs 생성. |
 || 2026-06-15 | **📐 설계 추가** | ROADMAP + CYCLE에 Phase 11(실내벽타일 14사이클), Phase 12(로딩 5사이클), Phase 13(주야 5사이클) 추가 |
 || 2026-06-16 | **C8-31 가스 분사기 데이터 시스템** | GasSprayerSystem.cs (5등급 enum+데이터+매니저), GasSprayerSystemTests.cs 20개 작성, RecordGameplay.cs 컴파일 오류 수정, 컴파일 ✅ |
+|| 2026-06-16 | **C8-32 가스 분사기 장착/해제** | GasSprayerController.cs (장착/해제/분사 제어, Singleton, 인벤토리 연동), BackSlotUI.cs (HUD 오버레이), GasSprayerControllerTests.cs 14개, git b8c0490 ✅ |
+|| 2026-06-16 | **C8-33 물약 삽입 & 분사** | GasPotionLoader (장전/해제, Potion/Herb/Drug), SprayInputHandler (우클릭 홀드), SprayVFX (속성별 안개 5종+VFX), GasSprayerController LoadPotion 추가, 테스트 26개, git 9589f6f ✅ |
+|| 2026-06-16 | **C8-34 분사 타이머 UI & 재장전** | GasSprayerController (IsReloading/StartReload/CancelReload/CompleteReload/가스소진 자동재장전), BackSlotUI (재장전바/가스게이지8px/깜빡임/키안내), SprayInputHandler (재장전중입력무시), ControllerTests 재장전6개 추가, git a7f676e ✅ |
+|| 2026-06-16 | **C8-35~37 절차적 아이콘 + UI 적용 (Phase 8 완료 🎉)** | ProceduralIconGenerator(Core, 카테고리별 형태/색상/캐싱/희귀도테두리), InventoryWindow/ShopWindow/LootWindow/RecipeWindow 아이콘 표시, ProceduralIconGeneratorTests 316줄, git 10f70bf ✅ |
+|| 2026-06-16 | **Phase 12: ⏳ 로딩 화면 시스템 (5사이클 완료 ✅)** | LoadingManager(싱글톤/AsyncOperation), LoadingScreenUI(IMGUI/스피너/진행바), TipDatabase(26개팁), LoadingManagerTests 264줄, git a268a72 ✅ |
+|| 2026-06-16 | **Phase 13: ⏰ 시간 & 주야 시스템 (5사이클 완료 ✅)** | TimeManager(GameTime/TimeScale/Hour/Minute/IsDay), DayNightCycle(태양회전/색상/강도/Ambient/Fog), TimeDisplayUI(HUD), StarField(별200개), TimeManagerTests 425줄 16개, git 4e30b20 ✅ |
+||| 2026-06-16 | **Phase 11: 🚪 실내 맵 (14사이클 완료 ✅)** | IndoorBuilder (방Mesh), IndoorTextureGenerator (타일/벽돌/석재/벽 15종+국가별5종), IndoorLighting (Ambient+PointLight+깜빡임), IndoorFurniturePlacer (6종가구), Shop/CraftHouse/Church/House/CastleInteriorBuilder, IndoorSceneTransition, IntegrationTests, git 3283107+4****10 ✅ |
+|| 2026-06-17 | **Phase 14: 🗡️ 복수명부 시스템 (10/10 완료 🎉)** | RevengeListManager(81영주\10독살공모자), RevengeListWindow(K키), RevealReason(처형시표시\3초페이드), Interrogation(MercyUI추궁\Level×3%확률), 능력치보상(공격+5\연금+10%\골드+1000), GameClearFlag, GameManager/LordSurrender/PoisonTakeover 연동, 17개 EditMode 테스트, run_tests.sh 수정 |
+|| 2026-06-17 | **Phase 15: 🪖 병사 3단계 모델 (3/3 완료 🎉)** | LevelGroupId 5→3단계 축소(Recruit/Veteran/Elite), LevelGroupManager/LevelGroupData 업데이트, LevelGroupTests/ModelMappingTierTests 3단계 대응, Placeholder 색상 3색(연두/파랑/빨강) |
+|| 2026-06-17 | **🎬 Phase 3C — Post-processing 완료** | Phase3C_PostProcessingSetup.cs 197줄 + Phase3C_PostProcessingTests.cs 364줄 15개. ACES Tonemapping, Bloom 1.5, ColorAdj contrast=8/saturation=15, Vignette 0.35, WhiteBalance -5, ShadowsMidtonesHighlights -0.02, DepthOfField Gaussian, Color Grading HDR 전환, URP Asset 프로파일 연결 ✅
+||| 2026-06-17 | **🤖 EditorAutoSetup.cs 생성** | `[InitializeOnLoad]` 기반 자동 설정 스크립트. Editor 첫 실행 시 URP Pipeline/Skybox/Post-processing(7종)/SwayController 자동 적용. Tools/Re-run Auto Setup 및 Reset Auto Setup Flag 메뉴 제공 ✅
+||| 2026-06-17 | **⭐ Phase 25~31 v3.0 완료 ⭐** | 선술집/용병(25) + 스탯창/장비(26) + 사망/부활(27) + 드라큘라(28) + 보석상자(29) + 이름/국가명(30) + 영지점령상징(31) — 총 7개 Phase, 62사이클, 신규 파일 15개, 테스트 70개+ 🚀
+||| 2026-06-17 | **⚔️ Phase 1.6 완료 — 전리품 시스템 마무리** | DropTable ScriptableObject 에셋 4종 생성 (Early/Mid/Late Monster + Soldier). Tools/Phase 1.6 - Create Drop Tables 메뉴. EditorAutoSetup 통합. 몬스터/병사 사망 시 티어별 고기/재료/금화/장비 드랍 완료 ✅
+||| 2026-06-17 | **🏰 Phase 5 — 영지 & 부하 관리 완료** | WarehouseSystem(영지 창고 20슬롯, SaveData 연동) + WarehouseUI(4×5 IMGUI 그리드) + ChurchSystem(기부/친밀도 0~100, 영주대면 조건) + ChurchUI(IMGUI 성당 UI, 프로그레스바, 기부 버튼 3종) + 19개 EditMode 테스트. EditorAutoSetup 통합 ✅
+||| 2026-06-17 | **🧪 Phase 4 — 크래프트 & 레시피 시스템 완료** | Phase4_GenerateRecipeAssets.cs (314줄) — GAME_DATA.md 기반 80개 Recipe ScriptableObject + 4개 RecipeDatabase 에셋 자동 생성 (공격성/정신성/회복성/물리성 각 20종). Tools/Phase 4 - Generate Recipe Assets 메뉴. EditorAutoSetup 통합 ✅
+||| 2026-06-18 | **Phase 3.3+3.4 — 영지 데이터 + 국기 시스템 완료 🏁** | Phase 3.3: TerritoryDatabase.cs 81개 영지 데이터 + EmpireAccessRule.cs (80영지 점령 시 황제국 입장). Phase 3.4: NationFlagData.cs (5개국 국기 정의), NationFlagDatabase.cs, NationFlagVisualData.cs, FlagManager.cs (중앙 깃발 관리), FlagPoleDisplay.cs (3D 절차적 깃대+깃발+흔들림+반기), PlayerFlagRegistrationWindow.cs (국기 등록 UI). 57개 EditMode 테스트 작성 ✅
+||| 2026-06-18 | **Phase 3.5 — 월드맵 UI & 국기 표시 완료 🗺️** | MapWindow.cs 완전 재작성 (IMGUI 월드맵, Overview→Nation 2단계 줌, 5지역×20영지 그리드, 국기+난이도+소유주표시, 플레이어위치📍, 황제국안개❓). FlagPoleDisplay.FadeTransition 추가 (페이드 교체 연출). Phase35_MapWindowTests 20개 ✅
+||| 2026-06-18 | **🎮 Phase G3 시작 — Batch 1~3 완료 (9/13 사이클)** | G3-01: DayNightCycle Moon Light / Skybox Lerp / Weather 연동 ✅ | G3-02: MainMenuUI 그라디언트 배경 + 펄스 + Credits ✅ | G3-03: SettingsMenuUI.cs 신규 (Graphics/Audio/KeyBindings 3탭) ✅ | G3-04: SaveManager 5슬롯 + AutoSave ✅ | G3-05: UIStyleManager.cs (공통 스타일/테두리/딤드/닫기버튼) ✅ | G3-06: ItemIconDatabase.cs (아이콘 캐싱 + 3개 창 적용) ✅ | G3-07: EscMenuUI.cs (일시정지/재개/저장/설정/타이틀로/종료) ✅ | G3-08: DeathScreenUI.cs (붉은 Fade + 부활/로드) ✅ | G3-13: AchievementSystem.cs (15개 업적 + 팝업) ✅ | 총 20개 신규 파일, 컴파일 ✅
+||| 2026-06-18 | **🎮 Phase G3 Batch 4 완료 — 13/13 사이클 전부 완료 🎉** | G3-09: QuestJournalUI.cs 563줄 (J키/탭/진행률/완료효과) ✅ | G3-10: ControllerSupport.cs 560줄 (Xbox/PS/DualSense 매핑 + 힌트 오버레이) ✅ | G3-11: LoadingScreenUI.cs 327줄 (그라디언트/로고/부드러운바/카테고리팁/링스피너) + TipDatabase.cs TipCategory 분류 ✅ | G3-12: SoundRefinement.cs 423줄 (FootstepSoundController/UISoundIntegrator/BiomeAmbientController 3컴포넌트) + PlayerMovement footstep 패치 ✅ | 신규 9개 파일(코드 6 + 테스트 4), 총 29개 파일, 279개→0개 컴파일 오류 해소 ✅
 
 |---|---
 

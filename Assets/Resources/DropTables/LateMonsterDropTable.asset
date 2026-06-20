@@ -1,0 +1,112 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4dd581b8872937e46978796fc5822516, type: 3}
+  m_Name: LateMonsterDropTable
+  m_EditorClassIdentifier: ProjectName.Core::ProjectName.Core.DropTable
+  _tableName: Drop Table
+  _tier: 0
+  entries:
+  - item:
+      id: meat_wolf
+      displayName: "\uB291\uB300\uACE0\uAE30"
+      description: "\uB2F4\uBC31\uD55C \uB291\uB300 \uACE0\uAE30."
+      category: 1
+      icon: {fileID: 0}
+      maxStack: 20
+      maxDurability: 0
+      rarity: 0
+      effects: 
+    minCount: 3
+    maxCount: 5
+    dropChance: 0.9
+    isRare: 0
+    description: 
+  - item:
+      id: mat_wolf_fur
+      displayName: "\uB291\uB300 \uBAA8\uD53C"
+      description: "\uACE0\uAE09 \uB291\uB300 \uBAA8\uD53C. \uACE0\uAE09 \uBC29\uC5B4\uAD6C
+        \uC7AC\uB8CC."
+      category: 4
+      icon: {fileID: 0}
+      maxStack: 10
+      maxDurability: 0
+      rarity: 0
+      effects: 
+    minCount: 1
+    maxCount: 2
+    dropChance: 0.5
+    isRare: 0
+    description: 
+  - item:
+      id: mat_wolf_tooth
+      displayName: "\uB291\uB300 \uC774\uBE68"
+      description: "\uB0A0\uCE74\uB85C\uC6B4 \uB291\uB300 \uC774\uBE68. \uB0A0\uCE74\uB85C\uC6B4
+        \uBB34\uAE30 \uC7AC\uB8CC."
+      category: 4
+      icon: {fileID: 0}
+      maxStack: 10
+      maxDurability: 0
+      rarity: 0
+      effects: 
+    minCount: 1
+    maxCount: 2
+    dropChance: 0.3
+    isRare: 0
+    description: 
+  - item:
+      id: gold
+      displayName: "\uAE08"
+      description: "\uD1B5\uD654"
+      category: 4
+      icon: {fileID: 0}
+      maxStack: 99
+      maxDurability: 0
+      rarity: 0
+      effects: 
+    minCount: 5
+    maxCount: 10
+    dropChance: 0.6
+    isRare: 0
+    description: 
+  - item:
+      id: weapon_sword_wood
+      displayName: "\uBAA9\uAC80"
+      description: "\uB098\uBB34\uB85C \uB9CC\uB4E0 \uAC80. \uAE30\uBCF8 \uBB34\uAE30."
+      category: 7
+      icon: {fileID: 0}
+      maxStack: 1
+      maxDurability: 20
+      rarity: 0
+      effects: 
+    minCount: 1
+    maxCount: 1
+    dropChance: 0.1
+    isRare: 0
+    description: 
+  - item:
+      id: armor_cloth
+      displayName: "\uCC9C \uC637"
+      description: "\uCC9C\uC73C\uB85C \uB9CC\uB4E0 \uAC00\uBCBC\uC6B4 \uC637."
+      category: 8
+      icon: {fileID: 0}
+      maxStack: 1
+      maxDurability: 15
+      rarity: 0
+      effects: 
+    minCount: 1
+    maxCount: 1
+    dropChance: 0.1
+    isRare: 0
+    description: 
+  _baseRareChance: 0.2
+  _rareChanceBonusPerTier: 0.1
+  _rareDropBonusPer10Levels: 0.05

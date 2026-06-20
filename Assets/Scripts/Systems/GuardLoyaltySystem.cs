@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ProjectName.Core;
 using ProjectName.Core.Data;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ namespace ProjectName.Systems
     public static class GuardLoyaltySystem
     {
         // 호감도 최소/최대
-        public const float MIN_LOYALTY = 0f;
+        public const float MIN_LOYALTY = -100f;
         public const float MAX_LOYALTY = 100f;
 
         // ===== 국가 기반 호감도 변화 =====

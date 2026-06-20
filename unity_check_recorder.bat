@@ -1,0 +1,1 @@
+@"C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Unity.exe" -quit -batchmode -nographics -projectPath "C:\Unity\code" -logFile "C:\Unity\code\install_recorder.log"

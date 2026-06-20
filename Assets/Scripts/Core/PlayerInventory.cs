@@ -28,6 +28,8 @@ namespace ProjectName.Core
             public Sprite icon;
             public int maxStack = 99;
             public int maxDurability = 0; // 0 = 내구도 없음 (소모품)
+            public ItemRarity rarity = ItemRarity.Common;
+            public string effects = "";
         }
 
         public enum ItemCategory
@@ -41,7 +43,8 @@ namespace ProjectName.Core
             Quest,      // 퀘스트 아이템
             Weapon,     // 무기
             Armor,      // 방어구
-            Tool        // 도구
+            Tool,       // 도구
+            Arrow       // 화살 (AB-01)
         }
 
         [SerializeField] private int _maxSlots = 40;

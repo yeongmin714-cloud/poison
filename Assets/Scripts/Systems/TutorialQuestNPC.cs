@@ -1,0 +1,198 @@
+using UnityEngine;
+using ProjectName.Core;
+using ProjectName.UI;
+using ProjectName.Core.Data;
+
+namespace ProjectName.Systems
+{
+    /// <summary>
+    /// 길 잃은 영주 NPC — 튜토리얼 퀘스트.
+    /// 배고프다 → 음식 만들기 → 설사약 선택지 → 음식 건네기 → 10초 행동불능 → 처형 → 영지 증서
+    /// </summary>
+    public class TutorialQuestNPC : MonoBehaviour
+    {
+        public enum QuestState
+        {
+            NotStarted,     // 아직 말 안 건넴
+            AskingFood,     // "배고프다, 음식을 만들어줘"
+            HasPoison,      // 독든 음식을 건네받음
+            Poisoned,       // 독에 걸림 (10초 행동불능)
+            Dead,           // 처형됨
+            Complete        // 퀘스트 완료
+        }
+
+        [Header("설정")]
+        [SerializeField] private float _interactRange = 3f;
+        [SerializeField] private float _poisonDuration = 10f;
+
+        [Header("대사 — 수정은 docs/NPC_DIALOGUES.md 참고")]
+        [SerializeField] private string[] _dialogueInit = new[] {
+            "어이, 젊은이! 나는 이 지역의 영주다.",
+            "길을 잃었는데... 배가 몹시 고프구나.",
+            "무언가 먹을 것을 구해다 주겠나?",
+            "이 근처에 토끼와 멧돼지가 있으니 사냥을 해보게.",
+            "고기로 요리를 만들어 오게. 난 크래프트 테이블에서 기다리겠다."
+        };
+        [SerializeField] private string[] _dialogueHasFood = new[] {
+            "오! 그 냄새! 정말 맛있어 보이는구나!",
+            "...잠깐, 이 음식에 뭔가 들어있지 않나?",
+            "(당신은 설사약을 넣은 것을 떠올린다)",
+            "뭐... 아무것도 아니야. 자, 어서 먹게나."
+        };
+        [SerializeField] private string[] _dialoguePoisoned = new[] {
+            "윽... 배가...!!!",
+            "이... 이 음식에 무슨 짓을 한 거냐!",
+            "(10초 동안 행동 불능)",
+        };
+        [SerializeField] private string[] _dialogueAfterDeath = new[] {
+            "(영주가 쓰러져 있다)",
+            "영지 증서를 가져가자..."
+        };
+
+        private Transform _player;
+        private QuestState _state = QuestState.NotStarted;
+        private int _dialogueIndex = 0;
+        private bool _inDialogue = false;
+        private float _poisonTimer = 0f;
+        private bool _dialogueDismissed = false;
+
+        private void Start()
+        {
+            _player = GameObject.FindGameObjectWithTag("Player")?.transform;
+        }
+
+        private void Update()
+        {
+            if (_player == null) return;
+
+            float dist = Vector3.Distance(transform.position, _player.position);
+            bool nearby = dist <= _interactRange;
+
+            if (_state == QuestState.Poisoned)
+            {
+                _poisonTimer -= Time.deltaTime;
+                if (_poisonTimer <= 0)
+                {
+                    // 독 효과 끝 → 플레이어가 처형 가능
+                    _state = QuestState.Dead;
+                    Debug.Log("[TutorialQuestNPC] 영주가 쓰러졌다! E 키로 영지 증서 획득");
+                }
+                return;
+            }
+
+            if (nearby && !_inDialogue && Input.GetKeyDown(KeyCode.E))
+            {
+                if (_state == QuestState.Dead || _state == QuestState.Complete)
+                {
+                    // 영지 증서 획득
+                    if (PlayerInventory.Instance != null)
+                    {
+                        PlayerInventory.Instance.AddItem(PlayerInventory.EstateDeed, 1);
+                        Debug.Log("[TutorialQuestNPC] 영지 증서 획득! 퀘스트 완료!");
+                    }
+                    _state = QuestState.Complete;
+                    return;
+                }
+
+                StartDialogue();
+            }
+
+            if (_inDialogue && Input.GetKeyDown(KeyCode.E))
+                AdvanceDialogue();
+        }
+
+        private void StartDialogue()
+        {
+            _inDialogue = true;
+            _dialogueIndex = 0;
+            _dialogueDismissed = false;
+            ShowDialogueLine();
+        }
+
+        private void AdvanceDialogue()
+        {
+            string[] currentDialogue = GetCurrentDialogue();
+
+            if (_dialogueIndex < currentDialogue.Length - 1)
+            {
+                _dialogueIndex++;
+                ShowDialogueLine();
+            }
+            else
+            {
+                // 대화 종료
+                _inDialogue = false;
+                _dialogueDismissed = true;
+                HideDialogueUI();
+                OnDialogueEnd();
+            }
+        }
+
+        private string[] GetCurrentDialogue()
+        {
+            return _state switch
+            {
+                QuestState.NotStarted => _dialogueInit,
+                QuestState.AskingFood => _dialogueHasFood,
+                QuestState.HasPoison => _dialoguePoisoned,
+                QuestState.Poisoned => _dialoguePoisoned,
+                QuestState.Dead => _dialogueAfterDeath,
+                QuestState.Complete => _dialogueAfterDeath,
+                _ => _dialogueInit,
+            };
+        }
+
+        private void ShowDialogueLine()
+        {
+            string[] dialogue = GetCurrentDialogue();
+            if (_dialogueIndex < dialogue.Length)
+            {
+                Debug.Log($"[NPC 영주] {dialogue[_dialogueIndex]}");
+                // TODO: Phase 2 — 실제 Dialogue UI (TMP 텍스트) 표시
+                if (UIManager.Instance != null)
+                {
+                    // UIManager를 통해 대화 UI 표시
+                }
+            }
+        }
+
+        private void HideDialogueUI()
+        {
+            // TODO: 대화 UI 숨김
+        }
+
+        private void OnDialogueEnd()
+        {
+            switch (_state)
+            {
+                case QuestState.NotStarted:
+                    // 첫 대화 완료 → 음식 요구 단계
+                    _state = QuestState.AskingFood;
+                    Debug.Log("[TutorialQuestNPC] 퀘스트 업데이트: 음식을 만들어 영주에게 가져가라");
+                    break;
+
+                case QuestState.AskingFood:
+                    // 플레이어가 음식을 가져왔다고 가정
+                    // TODO: Phase 4에서 실제 크래프트 후 독든 음식 판정
+                    // 지금은 임시로 바로 독 효과
+                    _state = QuestState.HasPoison;
+                    // 강제로 독 효과 진행
+                    _state = QuestState.Poisoned;
+                    _poisonTimer = _poisonDuration;
+                    Debug.Log($"[TutorialQuestNPC] 영주가 독에 걸렸다! {_poisonDuration}초 행동불능");
+                    break;
+
+                case QuestState.HasPoison:
+                    _state = QuestState.Poisoned;
+                    _poisonTimer = _poisonDuration;
+                    break;
+            }
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(transform.position, _interactRange);
+        }
+    }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "ProjectName.Core",
+  "rootNamespace": "ProjectName.Core",
+  "references": [
+    "Unity.UGUI",
+    "Unity.InputSystem",
+    "Unity.ugui"
+  ],
+  "autoReferenced": true,
+  "overrideReferences": false,
+  "allowUnsafeCode": false,
+  "precompiledReferences": [],
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

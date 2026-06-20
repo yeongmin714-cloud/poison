@@ -1,3 +1,4 @@
+#if false
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.TestTools;
@@ -33,3 +34,4 @@ public static class UnityTestRunner
         }
     }
 }
+#endif

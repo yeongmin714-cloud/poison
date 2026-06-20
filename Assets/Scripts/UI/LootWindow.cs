@@ -1,5 +1,6 @@
 using UnityEngine;
 using ProjectName.Core;
+using ProjectName.Core.Data;
 
 namespace ProjectName.UI
 {
@@ -294,18 +295,18 @@ namespace ProjectName.UI
                     var slotStyle = isSelected ? _styleSlotSelected : _styleSlot;
                     GUI.Box(slotRect, "", slotStyle);
 
-                    // 아이콘 (ProceduralIconGenerator)
-                    Texture2D iconTex = entry.item.icon != null ? entry.item.icon.texture : null;
+                    // 아이콘 (ItemIconDatabase 사용)
+                    Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(entry.item);
                     if (iconTex != null)
                     {
-                        GUI.DrawTexture(new Rect(sx + 8, sy + 6, 28, 28), iconTex);
+                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 40, 40), iconTex);
                     }
                     else
                     {
-                        // 폴백: 색상 사각형
+                        // 폴백: 카테고리 색상 사각형
                         Color iconColor = GetItemColor(entry.item.category);
                         GUI.color = iconColor;
-                        GUI.DrawTexture(new Rect(sx + 8, sy + 6, 28, 28), _texWhite);
+                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 40, 40), _texWhite);
                         GUI.color = Color.white;
                     }
 

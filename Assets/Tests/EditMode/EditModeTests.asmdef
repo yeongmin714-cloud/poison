@@ -1,0 +1,24 @@
+{
+  "name": "EditModeTests",
+  "rootNamespace": "",
+  "references": [
+    "ProjectName.Core",
+    "ProjectName.Systems",
+    "Assembly-CSharp-Editor",
+    "ProjectName.Editor",
+    "Unity.RenderPipelines.Universal.Runtime",
+    "Unity.InputSystem",
+    "Unity.ugui"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

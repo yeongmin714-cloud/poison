@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4dd581b8872937e46978796fc5822516, type: 3}
+  m_Name: EarlyMonsterDropTable
+  m_EditorClassIdentifier: ProjectName.Core::ProjectName.Core.DropTable
+  _tableName: Drop Table
+  _tier: 0
+  entries:
+  - item:
+      id: meat_rabbit
+      displayName: "\uD1A0\uB07C\uACE0\uAE30"
+      description: "\uC791\uACE0 \uBD80\uB4DC\uB7EC\uC6B4 \uACE0\uAE30."
+      category: 1
+      icon: {fileID: 0}
+      maxStack: 20
+      maxDurability: 0
+      rarity: 0
+      effects: 
+    minCount: 1
+    maxCount: 2
+    dropChance: 0.8
+    isRare: 0
+    description: 
+  - item:
+      id: mat_rabbit_fur
+      displayName: "\uD1A0\uB07C\uD138"
+      description: "\uBD80\uB4DC\uB7EC\uC6B4 \uD1A0\uB07C \uD138. \uAE30\uBCF8 \uBC29\uC5B4\uAD6C
+        \uC7AC\uB8CC."
+      category: 4
+      icon: {fileID: 0}
+      maxStack: 20
+      maxDurability: 0
+      rarity: 0
+      effects: 
+    minCount: 1
+    maxCount: 1
+    dropChance: 0.5
+    isRare: 0
+    description: 
+  - item:
+      id: gold
+      displayName: "\uAE08"
+      description: "\uD1B5\uD654"
+      category: 4
+      icon: {fileID: 0}
+      maxStack: 99
+      maxDurability: 0
+      rarity: 0
+      effects: 
+    minCount: 1
+    maxCount: 3
+    dropChance: 0.3
+    isRare: 0
+    description: 
+  _baseRareChance: 0.2
+  _rareChanceBonusPerTier: 0.1
+  _rareDropBonusPer10Levels: 0.05

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.UI;
 using UnityEngine.InputSystem;
 
 namespace ProjectName.Systems
@@ -11,7 +12,7 @@ namespace ProjectName.Systems
     /// C9-08: E키 상호작용 → 병사 정보 HUD 표시 + 메뉴 (말걸기/음식주기/약주기)
     /// C9-11: 음식/약주기 — 인벤토리 선택 → 아이템 지급 → 호감도/중독도 변화
     /// </summary>
-    public class GuardPlaceholder : MonoBehaviour, IDamageable
+    public class GuardPlaceholder : MonoBehaviour, IDamageable, IWorldSpaceHUD
     {
         [Header("설정")]
         [SerializeField] private string guardName = "경비병";
@@ -34,6 +35,9 @@ namespace ProjectName.Systems
 
         [Header("역할 (C9-16)")]
         [SerializeField] private GuardRole _role = GuardRole.Soldier; // 플레이어에게 포섭되었는가
+
+        // ===== 사망 이벤트 (GuardResurrectionSystem 연동) =====
+        public static event System.Action<GuardPlaceholder> OnAnyGuardDied;
 
         private enum SelectionMode { None, SelectingFood, SelectingDrug }
         private SelectionMode _selectionMode = SelectionMode.None;
@@ -70,6 +74,9 @@ namespace ProjectName.Systems
         private void Start()
         {
             _currentHP = _maxHP;
+
+            // C32-04~06: 병사 장비 자동 생성 및 장착
+            GuardEquipmentSpawner.SpawnEquipment(gameObject, level);
         }
 
         private void Update()
@@ -116,6 +123,7 @@ namespace ProjectName.Systems
             float panelH = 250f;
             float x = (Screen.width - panelW) / 2f;
             float y = Screen.height - panelH - 20f;
+            float cy = y + 10f;
 
             GUI.Box(new Rect(x, y, panelW, panelH), "");
 
@@ -208,12 +216,12 @@ namespace ProjectName.Systems
                     var pair = items[i];
                     float iy = i * itemH;
                     GUI.Box(new Rect(0, iy, popupW - 40, itemH - 2), "");
-                    GUI.Label(new Rect(10, iy + 2, 180, 20), pair.item.displayName, _styleLabel);
-                    GUI.Label(new Rect(10, iy + 20, 80, 16), $"x{pair.count}", _styleValue);
+                    GUI.Label(new Rect(10, iy + 2, 180, 20), pair.Key.displayName, _styleLabel);
+            GUI.Label(new Rect(10, iy + 20, 80, 16), $"x{pair.Value}", _styleValue);
 
                     if (GUI.Button(new Rect(popupW - 160, iy + 5, 100, 28), "주기"))
                     {
-                        GiveItemToGuard(pair.item);
+                        GiveItemToGuard(pair.Key);
                         _selectionMode = SelectionMode.None;
                         return;
                     }
@@ -348,10 +356,20 @@ namespace ProjectName.Systems
         {
             if (_isDead) return;
             _isDead = true;
+
+            // 사망 이벤트 발생 (GuardResurrectionSystem 등에서 구독)
+            OnAnyGuardDied?.Invoke(this);
+
+            // GuardManager에서 제거
+            if (GuardManager.Instance != null)
+            {
+                GuardManager.Instance.OnGuardDiedInGame(this);
+            }
+
             LootBasket basket = LootBasket.Create(transform.position);
             DropTable dropTable = DropTableManager.Instance.GetSoldierTable();
             if (dropTable != null)
-                dropTable.ApplyToBasket(basket);
+                dropTable.ApplyToBasket(basket, MonsterLevelManager.Instance?.GetDropRateBonus(level) ?? 0f);
             else
             {
                 PlayerInventory.ItemData goldItem = new PlayerInventory.ItemData
@@ -362,7 +380,9 @@ namespace ProjectName.Systems
                 basket.AddItem(goldItem, level * 10);
                 if (Random.value < 0.5f) basket.AddItem(PlayerInventory.RabbitFur, 1);
             }
-            Destroy(gameObject);
+
+            // 비활성화 (Destroy 대신 — GuardResurrectionSystem에서 부활 가능)
+            gameObject.SetActive(false);
         }
 
         private void OnDrawGizmosSelected()
@@ -378,11 +398,19 @@ namespace ProjectName.Systems
         public string JobTitle { get => jobTitle; set => jobTitle = value; }
         public float HP => _currentHP;
         public float MaxHP => _maxHP;
-        public float Loyalty { get => _loyalty; set => _loyalty = Mathf.Clamp(value, 0, 100); }
+        public float Loyalty { get => _loyalty; set => _loyalty = Mathf.Clamp(value, -100, 100); }
         public float Addiction { get => _addiction; set => _addiction = Mathf.Clamp(value, 0, 100); }
         public bool IsPlayerNearby => _playerNearby;
         public bool IsShowingInfo => _showInfo;
         public bool IsSelectingItem => _selectionMode != SelectionMode.None;
+
+        // ===== IWorldSpaceHUD 구현 =====
+        public Vector3 WorldPosition => transform.position + Vector3.up * 2.5f; // 머리 위
+        public bool ShouldShowHUD => !_isDead && gameObject.activeInHierarchy;
+        public int HUDLevel => level;
+        public float HUDLoyalty => _loyalty;
+        public float HUDAddiction => _addiction;
+        public string HUDName => guardName;
 
         // ===== C9-20: RTS =====
         private bool _isSelected = false;
@@ -410,5 +438,33 @@ namespace ProjectName.Systems
         public bool IsRecruited => _isRecruited;
         public GuardRole Role { get => _role; set => _role = value; }
         public string StatusSummary => GuardStatusSystem.GetStatusSummary(this);
+
+        /// <summary>포섭 상태 설정 (GuardManager 등에서 호출)</summary>
+        public void SetRecruited(bool recruited) { _isRecruited = recruited; }
+
+        /// <summary>체력 직접 설정 (GuardManager 부활/회복)</summary>
+        public void SetHP(float hp) { _currentHP = Mathf.Clamp(hp, 0, _maxHP); }
+
+        /// <summary>부활 처리 (GuardResurrectionSystem에서 호출)</summary>
+        public void Resurrect(float hpPercent = 0.1f)
+        {
+            _isDead = false;
+            _currentHP = _maxHP * Mathf.Clamp01(hpPercent);
+            gameObject.SetActive(true);
+            _showInfo = false;
+            _selectionMode = SelectionMode.None;
+        }
+
+        // ===== 장비 슬롯 (WeaponPartsSystem 연동) =====
+        public PlayerInventory.ItemData WeaponItem { get; set; }
+        public PlayerInventory.ItemData ShieldItem { get; set; }
+        public PlayerInventory.ItemData HelmetItem { get; set; }
+        public PlayerInventory.ItemData ArmorItem { get; set; }
+
+        /// <summary>장비 외형 업데이트 (WeaponPartsSystem 연동)</summary>
+        public void UpdateVisual() { }
+
+        /// <summary>리스폰 처리 (TerritoryBattleManager 연동)</summary>
+        public void Respawn() { Resurrect(0.1f); }
     }
 }

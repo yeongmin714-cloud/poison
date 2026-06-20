@@ -62,4 +62,7 @@ Thumbs.db
 
 # Hermes
 .hermes_watcher_state
-*_snapshot.json
+*_snapshot.jsonLibrary.backup/
+Editor.log
+*.log
+Library.backup

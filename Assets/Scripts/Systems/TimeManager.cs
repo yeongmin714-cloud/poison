@@ -44,13 +44,41 @@ namespace ProjectName.Systems
         public bool IsNight => !IsDay;
 
         /// <summary>
+        /// Current in-game day number. Incremented each full day cycle.
+        /// </summary>
+        public int CurrentDay => Mathf.FloorToInt(_gameTime / 86400f);
+
+        /// <summary>
         /// 하루 진행률 (0.0 ~ 1.0). 0 = 자정, 0.5 = 정오
         /// </summary>
         public float DayProgress => (_gameTime % 86400f) / 86400f;
 
+        // ===== 수면 상태 =====
+        public bool IsSleeping { get; set; }
+
+        /// <summary>지정된 시간(게임 시간)만큼 수면하고 완료 시 콜백 호출</summary>
+        public void SleepFor(float hours, Action onComplete)
+        {
+            if (IsSleeping) return;
+            IsSleeping = true;
+            _gameTime += hours * 3600f;
+            if (_gameTime >= 86400f)
+                _gameTime -= 86400f;
+            IsSleeping = false;
+            onComplete?.Invoke();
+        }
+
+        /// <summary>수면 취소/기상</summary>
+        public void WakeUp()
+        {
+            IsSleeping = false;
+        }
+
         // ===== 이벤트 =====
         public event Action<int, int> OnTimeChanged;
         public event Action<bool> OnDayNightChanged;
+        public event Action OnNightStart;
+        public event Action OnDayStart;
 
         // ===== 싱글톤 =====
 
@@ -96,6 +124,10 @@ namespace ProjectName.Systems
             if (currentIsDay != _lastIsDay)
             {
                 OnDayNightChanged?.Invoke(currentIsDay);
+                if (currentIsDay)
+                    OnDayStart?.Invoke();
+                else
+                    OnNightStart?.Invoke();
                 _lastIsDay = currentIsDay;
             }
         }

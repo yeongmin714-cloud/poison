@@ -107,8 +107,14 @@ namespace ProjectName.Systems
                     string nation = _pendingNationStyle ?? "Empire";
                     CastleInteriorBuilder.BuildCastleInterior(nation);
                     break;
+                case "barn":
+                    BarnInteriorBuilder.BuildBarnInterior();
+                    break;
                 case "shop":
                     ShopInteriorBuilder.BuildShopInterior();
+                    break;
+                case "cave":
+                    CaveInteriorBuilder.BuildCaveInterior(_pendingNationStyle ?? "default", 1);
                     break;
                 default:
                     Debug.LogWarning($"[IndoorSceneTransition] 알 수 없는 buildingType: '{buildingType}'. 기본 주택 생성.");

@@ -1,4 +1,5 @@
 using ProjectName.Core.Data;
+using ProjectName.Core;
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -37,6 +38,9 @@ namespace ProjectName.Systems
         private GUIStyle _styleButton;
         private GUIStyle _styleReward;
         private bool _stylesInitialized = false;
+
+        /// <summary>튜토리얼 등에서 작업 완료 여부를 확인하는 플래그</summary>
+        public bool IsComplete { get; set; }
 
         /// <summary>MercyUI 패널이 현재 표시 중인지 여부</summary>
         public static bool IsVisible => _isVisible;
@@ -77,6 +81,23 @@ namespace ProjectName.Systems
             _rewardMessage = "";
 
             Debug.Log($"[MercyUI] 영주 항복 패널 표시: {lordName} (영지: {territoryId})");
+        }
+
+        /// <summary>
+        /// 간편 호출용 오버로드 — 영주 이름만 지정하여 UI를 표시합니다.
+        /// </summary>
+        public static void Show(string lordName = "")
+        {
+            _currentLordName = lordName;
+            _isVisible = true;
+            _isRewardVisible = false;
+            _rewardMessage = "";
+
+            var instance = _instance;
+            if (instance != null)
+                instance.IsComplete = false;
+
+            Debug.Log($"[MercyUI] 영주 항복 패널 표시 (단순 모드): {lordName}");
         }
 
         /// <summary>

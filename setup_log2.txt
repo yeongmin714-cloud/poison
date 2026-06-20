@@ -1,0 +1,760 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.3/staging' branch; Version is '6000.3.17f1 (cf0352b38e81) revision 13566802'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-06-12T05:14:35.9719068Z"
+OS: 'Windows 10  (10.0.19045) 64bit Core' Language: 'ko' Physical Memory: 7880 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-06-12T05:14:35Z
+
+COMMAND LINE ARGUMENTS:
+Unity.exe
+-batchmode
+-noUpm
+-projectPath
+C:\Unity\code
+-executeMethod
+Phase3_TopDownSceneSetup.SetupTopDownScene
+-quit
+-logFile
+C:\Unity\code\setup_log2.txt
+Successfully changed project path to: C:\Unity\code
+C:/Unity/code
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+Player connection [10188]  Target information:
+
+Player connection [10188]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 2831696864 [EditorId] 2831696864 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [10188]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 2831696864 [EditorId] 2831696864 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [10188] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [10188] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+Failed to load ASTC compressor library from astcenc-avx2
+Library Redirect Path: Library/
+Cannot upgrade database Library/ArtifactDB. Will delete the database and recreate content in the new format instead.[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Refreshing native plugins compatible for Editor in 1.06 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 6000.3.17f1 (cf0352b38e81)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity 6000.3.17f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path C:/Unity/code/Assets
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+d3d12: failed to query info queue interface (0x80004002).
+Direct3D:
+    Version:         Direct3D 12 [level 12.1]
+    Renderer:        Intel(R) HD Graphics 530 (ID=0x1912)
+    Vendor:          Intel
+    VRAM:            3940 MB
+    App VRAM Budget: 3546 MB
+    Driver:          25.20.100.6577
+    Unified Memory Architecture
+    Cache Coherent UMA
+[Licensing::Client] Error: HandshakeResponse reported an error:
+	ResponseCode: 505
+	ResponseStatus: Unsupported protocol version '1.18.1'.
+[Licensing::Module] Error: Failed to handshake to channel: "LicenseClient-korea"
+[Licensing::IpcConnector] LicenseClient-korea channel disconnected successfully.
+[Licensing::IpcConnector] Channel LicenseClient-korea-6000.3.17 doesn't exist
+Error creating external process 'C:/Program Files/Unity 6000.3.17f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe' : 지정된 경로를 찾을 수 없습니다.
+Error cleaning up external process: 핸들이 잘못되었습니다.
+[Licensing::Module] Error: Failed to launch LicensingClient: C:/Program Files/Unity 6000.3.17f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe
+[Licensing::Module] Error: Licensing initialization failed after 3.30s
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+The resource Internal-ErrorShader.shader could not be loaded from the resource file!
+Assertion failed on expression: 's_ErrorShader'
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+The resource Internal-Loading.shader could not be loaded from the resource file!
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+The resource Internal-ErrorShader.shader could not be loaded from the resource file!
+Assertion failed on expression: 's_ErrorShader'
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+The resource Sprites-Mask.mat could not be loaded from the resource file!
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+The resource LightmapParameters/Default-Medium.giparams could not be loaded from the resource file!
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+The resource Soft.psd could not be loaded from the resource file!
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Built-in Resource Error: dereference potentially before BuiltinResourceManager::InitializeAllResources(). May cause unexpected or untested fall-back logic.
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity 6000.3.17f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity 6000.3.17f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity 6000.3.17f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56784
+The assembly mscorlib.dll was not found or could not be loaded.
+It should have been installed in the `C:\Program Files\Unity 6000.3.17f1\Editor\Data\Managed\mono\4.5\mscorlib.dll' directory.
+Checking for leaked weakptr:
+  Found no leaked weakptrs.
+Crash!!!
+SymInit: Symbol-SearchPath: 'C:/Program Files/Unity 6000.3.17f1/Editor/Data/Mono;.;C:\Unity\code;C:\Unity\code\Library\BurstCache\JIT;C:\Program Files\Unity 6000.3.17f1\Editor;C:\Windows;C:\Windows\system32;', symOptions: 534, UserName: 'korea'
+OS-Version: 10.0.0
+C:\Program Files\Unity 6000.3.17f1\Editor\Unity.exe:Unity.exe (00007FF70AE20000), size: 290816 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 6000.3.17.850
+C:\Windows\SYSTEM32\ntdll.dll:ntdll.dll (00007FFFF9D90000), size: 2064384 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6456
+C:\Windows\System32\KERNEL32.DLL:KERNEL32.DLL (00007FFFF8D30000), size: 794624 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5915
+C:\Windows\System32\KERNELBASE.dll:KERNELBASE.dll (00007FFFF75E0000), size: 3104768 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6280
+C:\Windows\System32\USER32.dll:USER32.dll (00007FFFF8A80000), size: 1708032 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6456
+C:\Windows\System32\win32u.dll:win32u.dll (00007FFFF7A40000), size: 139264 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6456
+C:\Windows\System32\GDI32.dll:GDI32.dll (00007FFFF9BF0000), size: 176128 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6157
+C:\Windows\System32\gdi32full.dll:gdi32full.dll (00007FFFF7420000), size: 1150976 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6157
+C:\Windows\System32\msvcp_win.dll:msvcp_win.dll (00007FFFF7540000), size: 643072 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\System32\ucrtbase.dll:ucrtbase.dll (00007FFFF7B00000), size: 1048576 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\System32\IMM32.DLL:IMM32.DLL (00007FFFF8F10000), size: 192512 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6157
+C:\Program Files\Unity 6000.3.17f1\Editor\Unity.dll:Unity.dll (00007FFF6E9D0000), size: 92164096 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 6000.3.17.850
+C:\Windows\System32\CRYPT32.dll:CRYPT32.dll (00007FFFF78E0000), size: 1429504 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6157
+C:\Windows\System32\ADVAPI32.dll:ADVAPI32.dll (00007FFFF7EF0000), size: 724992 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6328
+C:\Windows\System32\msvcrt.dll:msvcrt.dll (00007FFFF8E60000), size: 647168 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 7.0.19041.3636
+C:\Windows\System32\sechost.dll:sechost.dll (00007FFFF8C90000), size: 651264 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6328
+C:\Windows\System32\RPCRT4.dll:RPCRT4.dll (00007FFFF8F60000), size: 1179648 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6280
+C:\Windows\System32\bcrypt.dll:bcrypt.dll (00007FFFF7CB0000), size: 159744 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5369
+C:\Program Files\Unity 6000.3.17f1\Editor\libfbxsdk.dll:libfbxsdk.dll (00007FFF6E220000), size: 8019968 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 2020.3.7.0
+C:\Windows\System32\ole32.dll:ole32.dll (00007FFFF9420000), size: 1224704 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5915
+C:\Windows\System32\combase.dll:combase.dll (00007FFFF7FB0000), size: 3489792 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6456
+C:\Program Files\Unity 6000.3.17f1\Editor\s3tcompress.dll:s3tcompress.dll (00007FFFD8300000), size: 180224 (result: 0), SymType: '-deferred-', PDB: ''
+C:\Windows\System32\SETUPAPI.dll:SETUPAPI.dll (00007FFFF9700000), size: 4653056 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\System32\cfgmgr32.dll:cfgmgr32.dll (00007FFFF7CE0000), size: 319488 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3996
+C:\Windows\System32\SHELL32.dll:SHELL32.dll (00007FFFF8310000), size: 7798784 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6456
+C:\Windows\System32\SHLWAPI.dll:SHLWAPI.dll (00007FFFF8E00000), size: 372736 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6392
+C:\Windows\System32\WS2_32.dll:WS2_32.dll (00007FFFF9160000), size: 438272 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\System32\OLEAUT32.dll:OLEAUT32.dll (00007FFFF7DC0000), size: 839680 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\System32\WINTRUST.dll:WINTRUST.dll (00007FFFF7D30000), size: 471040 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6456
+C:\Program Files\Unity 6000.3.17f1\Editor\etccompress.dll:etccompress.dll (00007FFF6DD40000), size: 5070848 (result: 0), SymType: '-deferred-', PDB: ''
+C:\Program Files\Unity 6000.3.17f1\Editor\ispc_texcomp.dll:ispc_texcomp.dll (00007FFFB7980000), size: 1826816 (result: 0), SymType: '-deferred-', PDB: ''
+C:\Program Files\Unity 6000.3.17f1\Editor\compress_bc7e.dll:compress_bc7e.dll (00007FFFD2580000), size: 1433600 (result: 0), SymType: '-deferred-', PDB: ''
+C:\Program Files\Unity 6000.3.17f1\Editor\FreeImage.dll:FreeImage.dll (0000000180000000), size: 5332992 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 3.18.0.0
+C:\Program Files\Unity 6000.3.17f1\Editor\WinPixEventRuntime.dll:WinPixEventRuntime.dll (00007FFFF4650000), size: 57344 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 1.0.2403.8001
+C:\Program Files\Unity 6000.3.17f1\Editor\umbraoptimizer64.dll:umbraoptimizer64.dll (00007FFFD2B00000), size: 1187840 (result: 0), SymType: '-deferred-', PDB: ''
+C:\Windows\SYSTEM32\MSVCP140.dll:MSVCP140.dll (00007FFFD23E0000), size: 577536 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 14.42.34433.0
+C:\Windows\SYSTEM32\VCRUNTIME140.dll:VCRUNTIME140.dll (00007FFF9A850000), size: 122880 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 14.42.34433.0
+C:\Windows\WinSxS\amd64_microsoft.windows.common-controls_6595b64144ccf1df_6.0.19041.6456_none_60b8a6cb71f64256\COMCTL32.dll:COMCTL32.dll (00007FFFE5B90000), size: 2732032 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 6.10.19041.6456
+C:\Windows\SYSTEM32\VCRUNTIME140_1.dll:VCRUNTIME140_1.dll (00007FFFF1390000), size: 49152 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 14.42.34433.0
+C:\Windows\SYSTEM32\d3d11.dll:d3d11.dll (00007FFFF2D00000), size: 2506752 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\SYSTEM32\d3d12.dll:d3d12.dll (00007FFFD81E0000), size: 151552 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\SYSTEM32\dwmapi.dll:dwmapi.dll (00007FFFF5160000), size: 188416 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6157
+C:\Windows\SYSTEM32\dxgi.dll:dxgi.dll (00007FFFF5C60000), size: 1007616 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\SYSTEM32\HID.DLL:HID.DLL (00007FFFF5C20000), size: 53248 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\SYSTEM32\IPHLPAPI.DLL:IPHLPAPI.DLL (00007FFFF6770000), size: 241664 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\SYSTEM32\OPENGL32.dll:OPENGL32.dll (00007FFFCD700000), size: 1212416 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\SYSTEM32\WINHTTP.dll:WINHTTP.dll (00007FFFF1260000), size: 1089536 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\SYSTEM32\GLU32.dll:GLU32.dll (00007FFFCFF70000), size: 180224 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\SYSTEM32\WINMM.dll:WINMM.dll (00007FFFE6B90000), size: 159744 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Program Files\Unity 6000.3.17f1\Editor\NativeProxyHelper.dll:NativeProxyHelper.dll (00007FFFB6D60000), size: 1789952 (result: 0), SymType: '-deferred-', PDB: ''
+C:\Program Files\Unity 6000.3.17f1\Editor\SketchUpAPI.dll:SketchUpAPI.dll (00007FFF6D4A0000), size: 8990720 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 23.0.0.0
+C:\Windows\SYSTEM32\VERSION.dll:VERSION.dll (00007FFFF2CF0000), size: 40960 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\SYSTEM32\WSOCK32.dll:WSOCK32.dll (00007FFFD82F0000), size: 36864 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.1
+C:\Windows\SYSTEM32\kernel.appcore.dll:kernel.appcore.dll (00007FFFF5270000), size: 73728 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3758
+C:\Program Files\Unity 6000.3.17f1\Editor\SketchUpCommonPreferences.dll:SketchUpCommonPreferences.dll (00007FFFD2360000), size: 499712 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 23.0.0.0
+C:\Windows\SYSTEM32\Secur32.dll:Secur32.dll (00007FFFE60F0000), size: 49152 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\SYSTEM32\SSPICLI.DLL:SSPICLI.DLL (00007FFFF72D0000), size: 204800 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6328
+C:\Program Files\Unity 6000.3.17f1\Editor\OpenRL.dll:OpenRL.dll (00000156B6DE0000), size: 12779520 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 1.5.0.2907
+C:\Windows\SYSTEM32\MSVCR100.dll:MSVCR100.dll (000000005E050000), size: 860160 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.40219.325
+C:\Windows\SYSTEM32\MSVCP100.dll:MSVCP100.dll (000000005DFB0000), size: 622592 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.40219.325
+C:\Program Files\Unity 6000.3.17f1\Editor\embree.dll:embree.dll (00007FFF6C4B0000), size: 16711680 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 2.14.0.0
+C:\Windows\SYSTEM32\MSWSOCK.DLL:MSWSOCK.DLL (00007FFFF6A70000), size: 434176 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5915
+C:\Program Files\Unity 6000.3.17f1\Editor\tbb.dll:tbb.dll (00007FFFD3360000), size: 303104 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 2020.3.2022.1111
+C:\Program Files\Unity 6000.3.17f1\Editor\OpenRL_pthread.dll:OpenRL_pthread.dll (00000156B7A30000), size: 61440 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 2.9.0.0
+C:\Windows\SYSTEM32\MSASN1.dll:MSASN1.dll (00007FFFF70A0000), size: 73728 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\System32\bcryptprimitives.dll:bcryptprimitives.dll (00007FFFF7A70000), size: 532480 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5007
+C:\Windows\system32\uxtheme.dll:uxtheme.dll (00007FFFF4D80000), size: 647168 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\SYSTEM32\windows.storage.dll:windows.storage.dll (00007FFFF5470000), size: 8015872 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6456
+C:\Windows\SYSTEM32\Wldp.dll:Wldp.dll (00007FFFF6C90000), size: 176128 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\System32\SHCORE.dll:SHCORE.dll (00007FFFF9230000), size: 708608 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\SYSTEM32\profapi.dll:profapi.dll (00007FFFF7350000), size: 147456 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6033
+C:\Windows\System32\clbcatq.dll:clbcatq.dll (00007FFFF9370000), size: 692224 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 2001.12.10941.16384
+C:\Windows\SYSTEM32\CRYPTSP.dll:CRYPTSP.dll (00007FFFF6FE0000), size: 98304 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5856
+C:\Windows\system32\IconCodecService.dll:IconCodecService.dll (00007FFFCD620000), size: 36864 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.1
+C:\Windows\system32\rsaenh.dll:rsaenh.dll (00007FFFF63B0000), size: 229376 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6093
+C:\Windows\SYSTEM32\WindowsCodecs.dll:WindowsCodecs.dll (00007FFFF4B80000), size: 1794048 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6456
+C:\Windows\system32\wbem\wbemprox.dll:wbemprox.dll (00007FFFE34F0000), size: 69632 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.4474
+C:\Windows\SYSTEM32\wbemcomn.dll:wbemcomn.dll (00007FFFE74C0000), size: 589824 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\SYSTEM32\CRYPTBASE.dll:CRYPTBASE.dll (00007FFFF6C00000), size: 49152 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\System32\netprofm.dll:netprofm.dll (00007FFFF4850000), size: 258048 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.4355
+C:\Windows\System32\imagehlp.dll:imagehlp.dll (00007FFFF8F40000), size: 118784 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\system32\wbem\wbemsvc.dll:wbemsvc.dll (00007FFFE7B20000), size: 81920 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.4474
+C:\Windows\System32\npmproxy.dll:npmproxy.dll (00007FFFF0F00000), size: 65536 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.4239
+C:\Windows\system32\wbem\fastprox.dll:fastprox.dll (00007FFFE2FC0000), size: 1097728 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\SYSTEM32\amsi.dll:amsi.dll (00007FFFE3D80000), size: 126976 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.4355
+C:\Windows\SYSTEM32\USERENV.dll:USERENV.dll (00007FFFF7310000), size: 188416 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\ProgramData\Microsoft\Windows Defender\Platform\4.18.26050.15-0\MpOav.dll:MpOav.dll (00007FFFE3B30000), size: 675840 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 4.18.26050.15
+C:\Windows\SYSTEM32\gpapi.dll:gpapi.dll (00007FFFF5C30000), size: 143360 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.4355
+C:\Windows\System32\cryptnet.dll:cryptnet.dll (00007FFFD93D0000), size: 200704 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\System32\NSI.dll:NSI.dll (00007FFFF9C20000), size: 32768 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\SYSTEM32\dhcpcsvc6.DLL:dhcpcsvc6.DLL (00007FFFF1C90000), size: 94208 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\SYSTEM32\dhcpcsvc.DLL:dhcpcsvc.DLL (00007FFFF1C70000), size: 118784 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\SYSTEM32\DNSAPI.dll:DNSAPI.dll (00007FFFF67B0000), size: 827392 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5369
+C:\Windows\SYSTEM32\WINNSI.DLL:WINNSI.DLL (00007FFFF1D10000), size: 45056 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\system32\napinsp.dll:napinsp.dll (00007FFFB3220000), size: 94208 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\system32\pnrpnsp.dll:pnrpnsp.dll (00007FFFB3200000), size: 110592 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\system32\wshbth.dll:wshbth.dll (00007FFFD0110000), size: 118784 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5848
+C:\Windows\system32\NLAapi.dll:NLAapi.dll (00007FFFF45C0000), size: 118784 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6456
+C:\Windows\System32\winrnr.dll:winrnr.dll (00007FFFB31E0000), size: 73728 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\System32\fwpuclnt.dll:fwpuclnt.dll (00007FFFF02B0000), size: 524288 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6328
+C:\Windows\System32\rasadhlp.dll:rasadhlp.dll (00007FFFF0260000), size: 40960 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6328
+C:\Program Files\Unity 6000.3.17f1\Editor\AMDUnityPlugin.DLL:AMDUnityPlugin.DLL (00007FFF6BC40000), size: 8843264 (result: 0), SymType: '-deferred-', PDB: ''
+C:\Program Files\Unity 6000.3.17f1\Editor\NVUnityPlugin.DLL:NVUnityPlugin.DLL (00007FFF76C20000), size: 1646592 (result: 0), SymType: '-deferred-', PDB: ''
+C:\Windows\SYSTEM32\mfplat.dll:mfplat.dll (00007FFFC4810000), size: 1818624 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6280
+C:\Windows\SYSTEM32\RTWorkQ.DLL:RTWorkQ.DLL (00007FFFC47D0000), size: 212992 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.4842
+C:\Windows\SYSTEM32\mfreadwrite.dll:mfreadwrite.dll (00007FFFB5D00000), size: 1085440 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6033
+C:\Windows\SYSTEM32\Mf.dll:Mf.dll (00007FFFB5EB0000), size: 544768 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6033
+C:\Windows\SYSTEM32\MFCORE.DLL:MFCORE.DLL (00007FFFB57B0000), size: 4775936 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6456
+C:\Windows\SYSTEM32\powrprof.dll:powrprof.dll (00007FFFF7270000), size: 307200 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.3636
+C:\Windows\SYSTEM32\ksuser.dll:ksuser.dll (00007FFFE6F60000), size: 36864 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.1
+C:\Windows\SYSTEM32\UMPDC.dll:UMPDC.dll (00007FFFF7240000), size: 73728 (result: 0), SymType: '-deferred-', PDB: ''
+C:\Windows\SYSTEM32\CompPkgSup.DLL:CompPkgSup.DLL (00007FFFEE3C0000), size: 225280 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.4355
+C:\Windows\System32\Windows.Media.dll:Windows.Media.dll (00007FFF9E240000), size: 7495680 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\System32\Windows.StateRepositoryPS.dll:Windows.StateRepositoryPS.dll (00007FFFD84C0000), size: 1335296 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6456
+C:\Windows\System32\Windows.ApplicationModel.dll:Windows.ApplicationModel.dll (00007FFFE2960000), size: 954368 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6216
+C:\Windows\System32\twinapi.appcore.dll:twinapi.appcore.dll (00007FFFF0760000), size: 2109440 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5848
+C:\Windows\System32\AppXDeploymentClient.dll:AppXDeploymentClient.dll (00007FFFF18D0000), size: 1073152 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6456
+C:\Windows\System32\WinTypes.dll:WinTypes.dll (00007FFFF3430000), size: 1404928 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.6456
+C:\Windows\System32\MMDevApi.dll:MMDevApi.dll (00007FFFF1B50000), size: 544768 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5915
+C:\Windows\System32\DEVOBJ.dll:DEVOBJ.dll (00007FFFF70C0000), size: 208896 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\SYSTEM32\AUDIOSES.DLL:AUDIOSES.DLL (00007FFFD1D40000), size: 1576960 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\SYSTEM32\resourcepolicyclient.dll:resourcepolicyclient.dll (00007FFFF4E20000), size: 81920 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.4355
+C:\Program Files\Unity 6000.3.17f1\Editor\D3D12\D3D12Core.dll:D3D12Core.dll (00007FFF6B7B0000), size: 4780032 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 1.618.1.0
+C:\Windows\SYSTEM32\dxcore.dll:dxcore.dll (00007FFFEC270000), size: 241664 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\System32\DriverStore\FileRepository\iigd_dch.inf_amd64_eba10667ec898b67\igd12umd64.dll:igd12umd64.dll (00007FFF6A460000), size: 20205568 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 25.20.100.6577
+C:\Windows\System32\DriverStore\FileRepository\iigd_dch.inf_amd64_eba10667ec898b67\igc64.dll:igc64.dll (00007FFFE85F0000), size: 33312768 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 25.20.100.6577
+C:\Windows\System32\DriverStore\FileRepository\iigd_dch.inf_amd64_eba10667ec898b67\igdgmm64.dll:igdgmm64.dll (00007FFFEA7E0000), size: 1155072 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 25.20.100.6577
+C:\Windows\SYSTEM32\D3DSCache.dll:D3DSCache.dll (00007FFFD81B0000), size: 176128 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Program Files\Unity 6000.3.17f1\Editor\DirectML.dll:DirectML.dll (00007FFF68F80000), size: 14061568 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 1.13.1.0
+C:\Windows\SYSTEM32\d3d11on12.dll:d3d11on12.dll (00007FFFC9F70000), size: 618496 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5794
+C:\Windows\SYSTEM32\dxilconv.dll:dxilconv.dll (00007FFF6A320000), size: 1282048 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.1
+C:\Windows\SYSTEM32\opencl.dll:opencl.dll (00007FFFC9EF0000), size: 512000 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 2.2.8.0
+C:\Program Files\Unity 6000.3.17f1\Editor\radeonrays.dll:radeonrays.dll (00007FFFD0AB0000), size: 344064 (result: 0), SymType: '-deferred-', PDB: ''
+C:\Program Files\Unity 6000.3.17f1\Editor\Data\MonoBleedingEdge\EmbedRuntime\mono-2.0-bdwgc.dll:mono-2.0-bdwgc.dll (00007FFF68530000), size: 10756096 (result: 0), SymType: '-deferred-', PDB: ''
+C:\Windows\SYSTEM32\dbghelp.dll:dbghelp.dll (00007FFFE6110000), size: 2101248 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.19041.5848
+
+========== OUTPUTTING STACK TRACE ==================
+
+0x00007FFF68684E5B (mono-2.0-bdwgc) [C:\build\output\Unity-Technologies\mono\mono\metadata\loader.c:1785] mono_method_get_last_managed 
+0x00007FFF6F8D41EB (Unity) ExtractMonoStacktrace
+0x00007FFF6F135AB2 (Unity) DebugStringToFile
+0x00007FFF6F135439 (Unity) AssertImplementation
+0x00007FFF6F324524 (Unity) BaseObjectManager::StaticDestroy
+0x00007FFF709B5CA0 (Unity) RegisterRuntimeInitializeAndCleanup::ExecuteCleanup
+0x00007FFF6F8906F8 (Unity) RuntimeCleanup
+0x00007FFF72792339 (Unity) <lambda_f03950bc5685219e0bcd2087efbe011e>::operator()
+0x00007FFF727920DD (Unity) __crt_seh_guarded_call<int>::operator()<<lambda_7777bce6b2f8c936911f934f8298dc43>,<lambda_f03950bc5685219e0bcd2087efbe011e> &,<lambda_3883c3dff614d5e0c5f61bb1ac94921c> >
+0x00007FFF72792411 (Unity) execute_onexit_table
+0x00007FFF72778251 (Unity) <lambda_6e4b09c48022b2350581041d5f6b0c4c>::operator()
+0x00007FFF727781C5 (Unity) __crt_seh_guarded_call<void>::operator()<<lambda_d80eeec6fff315bfe5c115232f3240e3>,<lambda_6e4b09c48022b2350581041d5f6b0c4c> &,<lambda_2358e3775559c9db80273638284d5e45> >
+0x00007FFF7277834F (Unity) common_exit
+0x00007FFF727523BB (Unity) _scrt_dllmain_uninitialize_c
+0x00007FFF72752EC1 (Unity) dllmain_crt_process_detach
+0x00007FFF72752FDD (Unity) dllmain_dispatch
+0x00007FFFF9DA9A1D (ntdll) RtlActivateActivationContextUnsafeFast
+0x00007FFFF9DEF1CA (ntdll) LdrShutdownProcess
+0x00007FFFF9DEEF7D (ntdll) RtlExitUserProcess
+0x00007FFFF8D4E3EB (KERNEL32) FatalExit
+0x00007FFF68A439BD (mono-2.0-bdwgc) [minkernel\crts\ucrt\src\appcrt\startup\exit.cpp:143] exit_or_terminate_process 
+0x00007FFF68A43973 (mono-2.0-bdwgc) [minkernel\crts\ucrt\src\appcrt\startup\exit.cpp:280] common_exit 
+0x00007FFF685D5EA8 (mono-2.0-bdwgc) [C:\build\output\Unity-Technologies\mono\mono\metadata\domain.c:657] mono_init_internal 
+0x00007FFF687B98EA (mono-2.0-bdwgc) [C:\build\output\Unity-Technologies\mono\mono\mini\mini-runtime.c:4581] mini_init 
+0x00007FFF6F8AABA5 (Unity) InitializeMonoFromMain
+0x00007FFF6F9E56FF (Unity) LoadAndInitializeMono
+0x00007FFF70618AF3 (Unity) LoadMonoForEditor
+0x00007FFF6FFD985B (Unity) LoadMonoCallback
+0x00007FFF701EC95F (Unity) Application::InitializeProject
+0x00007FFF6FFE14D3 (Unity) UnityMain
+0x00007FF70AE22F2A (Unity) __scrt_common_main_seh
+0x00007FFFF8D47374 (KERNEL32) BaseThreadInitThunk
+0x00007FFFF9DDCC91 (ntdll) RtlUserThreadStart
+
+========== END OF STACKTRACE ===========
+
+A crash has been intercepted by the crash handler. For call stack and other details, see the latest crash report generated in:
+ * C:/Users/korea/AppData/Local/Temp/Unity/Editor/Crashes
+Received signal SIGABRT
+Obtained 8 stack frames
+0x00007fff72758e9c (Unity) _vcrt_getptd
+0x00007fff72757bce (Unity) _CxxFrameHandler4
+0x00007ffff9e329ef (ntdll) _chkstk
+0x00007ffff9dc0939 (ntdll) RtlUnwindEx
+0x00007ffff9e1ce89 (ntdll) _C_specific_handler
+0x00007ffff9e3296f (ntdll) _chkstk
+0x00007ffff9de2554 (ntdll) RtlRaiseException
+0x00007ffff9e3147e (ntdll) KiUserExceptionDispatcher
+

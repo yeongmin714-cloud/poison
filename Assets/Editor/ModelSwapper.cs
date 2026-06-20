@@ -20,8 +20,6 @@ public static class ModelSwapper
     {
         SwapAndSave(true);
     }
-    // 감시 대상 폴더 (WSL 경로)
-    private static readonly string _watchFolder = "Assets/Resources/Models/UserProvided";
     private static readonly string _scenePath = "Assets/Scenes/MainScene.unity";
 
     [MenuItem("Tools/Swap Models from UserProvided")]
