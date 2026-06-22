@@ -317,8 +317,24 @@ namespace ProjectName.Systems
             }
             else
             {
-                // 프리팹 없으면 Primitive로 생성
-                go = CreatePrimitiveMonster(def, position);
+                // Resources/Models/UserProvided/ 에서 GLB 모델 로드 시도
+                string modelPath = GetMonsterModelPath(def.id);
+                if (!string.IsNullOrEmpty(modelPath))
+                {
+                    GameObject modelPrefab = Resources.Load<GameObject>($"Models/UserProvided/{modelPath}");
+                    if (modelPrefab != null)
+                    {
+                        go = Instantiate(modelPrefab, position, Quaternion.identity, transform);
+                    }
+                    else
+                    {
+                        go = CreatePrimitiveMonster(def, position);
+                    }
+                }
+                else
+                {
+                    go = CreatePrimitiveMonster(def, position);
+                }
             }
 
             go.name = $"Monster_{def.id}_{Random.Range(1000, 9999)}";
@@ -391,6 +407,39 @@ namespace ProjectName.Systems
                 return TerritoryDifficulty.Ring3;
 
             return TerritoryDifficulty.Ring4;
+        }
+
+        /// <summary>
+        /// [몬스터 GLB] MonsterDef.id → Resources/Models/UserProvided/ 의 GLB 파일명 (확장자 제외) 매핑
+        /// </summary>
+        private string GetMonsterModelPath(string monsterId)
+        {
+            return monsterId switch
+            {
+                "rabbit"           => "Rabbit_Rigged",
+                "wolf"             => "Wolf_Rigged",
+                "boar"             => "Boar_Rigged",
+                "deer"             => "Deer_Rigged",
+                "poison_snake"     => "Snake_Rigged",
+                "bat"              => "Bat_Rigged",
+                "giant_rat"        => "Big_Mouse_Rigged",
+                "crow"             => "Crow_Rigged",
+                "slime"            => "Slime_Rigged",
+                "stone_golem"      => "Golem_Rigged",
+                "fire_lizard"      => "Fire_Lizard_Rigged",
+                "electric_porcupine" => "Electric_Spine_Hedgehog_Rigged",
+                "swamp_croc"       => "Swamp_Alligator_Rigged",
+                "forest_spirit"    => "Wooden Forest Spirit",
+                "wild_troll"       => "Wild_Troll_Rigged",
+                "ogre"             => "Swamp_Ogre_Rigged",
+                "banshee"          => "Banshee_Rigged",
+                "griffin"          => "Griffon_Rigged",
+                "minotaur"         => "Minotaur_Rigged",
+                "manticore"        => "Manticore_Rigged",
+                "salamander"       => "Salamander_Rigged",
+                "shadow_assassin"  => "Shadow_Assassin_Rigged",
+                _                  => ""
+            };
         }
 
         /// <summary>

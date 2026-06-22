@@ -3,6 +3,7 @@ using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Systems;
 using UnityEngine;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -49,9 +50,11 @@ namespace ProjectName.UI
         private GUIStyle _styleWarning;
         private GUIStyle _styleButton;
 
-        private const float PANEL_WIDTH = 400f;
-        private const float PANEL_HEIGHT = 440f;
+        private const float PANEL_WIDTH = 520f;
+        private const float PANEL_HEIGHT = 540f;
         private const float LIST_ITEM_HEIGHT = 36f;
+
+        private UIDesignTheme _theme;
 
         private void Awake()
         {
@@ -61,6 +64,7 @@ namespace ProjectName.UI
                 return;
             }
             Instance = this;
+            _theme = Phase33_Themes.EnvoyTheme();
         }
 
         private void Update()
@@ -112,8 +116,14 @@ namespace ProjectName.UI
             float y = (Screen.height - PANEL_HEIGHT) / 2f;
 
             // 배경
+            Color bgColor = _theme != null ? _theme.BgColor : new Color(0.05f, 0.05f, 0.15f, 0.92f);
+            Color borderColor = _theme != null ? _theme.BorderColor : new Color(0.5f, 0.5f, 0.6f, 0.85f);
+            var oldGuiColor = GUI.color;
+            GUI.color = bgColor;
             GUI.Box(new Rect(x, y, PANEL_WIDTH, PANEL_HEIGHT), "");
+            GUI.color = borderColor;
             GUI.Box(new Rect(x, y, PANEL_WIDTH, PANEL_HEIGHT), "");
+            GUI.color = oldGuiColor;
 
             // 닫기 버튼
             if (GUI.Button(new Rect(x + PANEL_WIDTH - 30, y + 5, 24, 24), "X"))

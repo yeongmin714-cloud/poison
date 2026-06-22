@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 2fb4f1ae33b8cb44e9ba4428030c60d7
+guid: 2c33deda9de9d6a43a0444e7200eca55
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -14,6 +14,7 @@ ScriptedImporter:
     nodeNameMethod: 1
     animationMethod: 2
     generateMipMaps: 1
+    texturesReadable: 0
     defaultMinFilterMode: 9729
     defaultMagFilterMode: 9729
     anisotropicFilterLevel: 1

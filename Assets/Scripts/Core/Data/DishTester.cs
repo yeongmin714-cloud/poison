@@ -47,7 +47,7 @@ namespace ProjectName.Core
                 {
                     if (PlayerInventory.Instance == null)
                     {
-                        Debug.LogWarning($"[DishTester] PlayerInventory.Instance is null, skipping AddItem for {dishName}");
+                        Debug.Log($"[DishTester] PlayerInventory.Instance is null, skipping AddItem for {dishName}");
                         continue;
                     }
                     bool added = PlayerInventory.Instance.AddItem(item, 1);
@@ -63,7 +63,7 @@ namespace ProjectName.Core
             Debug.Log("[DishTester] Current inventory slots:");
             if (PlayerInventory.Instance == null)
             {
-                Debug.LogWarning("[DishTester] PlayerInventory.Instance is null, skipping slot display.");
+                Debug.Log("[DishTester] PlayerInventory.Instance is null, skipping slot display.");
                 return;
             }
             var slots = PlayerInventory.Instance.GetAllSlots();

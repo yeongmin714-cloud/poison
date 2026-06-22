@@ -34,8 +34,8 @@ public static class ModelSwapper
     /// </summary>
     static void SwapAndSave(bool batchMode)
     {
-        // UserProvided 폴더의 .glb 파일 찾기
-        string folderPath = Path.Combine(Application.dataPath, "Resources/Models/UserProvided");
+        // UserProvided 폴더의 .glb 파일 찾기 (Archive 폴더)
+        string folderPath = Path.Combine(Application.dataPath, "Models/UserProvided_Archive");
         if (!Directory.Exists(folderPath))
         {
             Debug.LogWarning($"[ModelSwapper] 폴더 없음: {folderPath}");
@@ -43,7 +43,9 @@ public static class ModelSwapper
             return;
         }
 
-        var glbFiles = Directory.GetFiles(folderPath, "*.glb");
+        var glbFiles = Directory.GetFiles(folderPath, "*.glb", SearchOption.AllDirectories);
+        // processed/ 폴더는 제외 (이전 교체 백업)
+        glbFiles = Array.FindAll(glbFiles, f => !f.Replace("\\", "/").Contains("/processed/"));
         if (glbFiles.Length == 0)
         {
             Debug.Log("[ModelSwapper] 교체할 GLB 파일 없음");
@@ -51,7 +53,7 @@ public static class ModelSwapper
             return;
         }
 
-        Debug.Log($"[ModelSwapper] 찾은 GLB 파일: {glbFiles.Length}개");
+        Debug.Log($"[ModelSwapper] 찾은 GLB 파일: {glbFiles.Length}개 (재귀 검색)");
 
         // 현재 씬 열기
         EditorSceneManager.OpenScene(_scenePath);
@@ -60,6 +62,8 @@ public static class ModelSwapper
         foreach (var glbPath in glbFiles)
         {
             string fileName = Path.GetFileNameWithoutExtension(glbPath);
+            // 공백 → 언더스코어 변환 (예: "Shadow Assassin_Rigged" → "shadow_assassin_rigged")
+            fileName = fileName.Replace(" ", "_");
             var (targetName, mode) = ModelMapping.GetMapping(fileName);
 
             if (targetName == null)
@@ -223,14 +227,16 @@ public static class ModelSwapper
             return;
         }
 
-        var glbFiles = Directory.GetFiles(folderPath, "*.glb");
+        var glbFiles = Directory.GetFiles(folderPath, "*.glb", SearchOption.AllDirectories);
+        // processed/ 폴더는 제외 (이전 교체 백업)
+        glbFiles = Array.FindAll(glbFiles, f => !f.Replace("\\", "/").Contains("/processed/"));
         if (glbFiles.Length == 0)
         {
             Debug.Log("[ModelSwapper] Tiered Swap: 교체할 GLB 파일 없음");
             return;
         }
 
-        Debug.Log($"[ModelSwapper] Tiered Swap: {glbFiles.Length}개 GLB 파일 스캔 중...");
+        Debug.Log($"[ModelSwapper] Tiered Swap: {glbFiles.Length}개 GLB 파일 스캔 중 (재귀 검색)...");
 
         // 1단계: 티어드 GLB 파일 찾기 (baseName → List<(suffix, assetPath)>)
         var tieredMap = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<(string suffix, string assetPath)>>();
@@ -238,6 +244,8 @@ public static class ModelSwapper
         foreach (var glbPath in glbFiles)
         {
             string fileName = Path.GetFileNameWithoutExtension(glbPath);
+            // 공백 → 언더스코어 변환
+            fileName = fileName.Replace(" ", "_");
 
             // 티어 접미사 파싱
             if (!ModelMapping.TryParseTierSuffix(fileName, out string baseName, out string suffix))

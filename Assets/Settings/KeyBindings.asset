@@ -11,9 +11,14 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 33d42f971bf4f9e40832efdbbcde0870, type: 3}
   m_Name: KeyBindings
-  m_EditorClassIdentifier: ProjectName.UI::ProjectName.UI.KeyBindings
+  m_EditorClassIdentifier: ProjectName.Systems::ProjectName.UI.KeyBindings
   _questKey: 113
   _recipeKey: 114
   _inventoryKey: 105
   _mapKey: 109
   _closeKey: 27
+  _statusKey: 99
+  _revengeListKey: 107
+  _craftingKey: 99
+  _equipmentKey: 101
+  _warehouseKey: 119

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Systems;
+using ProjectName.UI.Themes;
 using UnityEngine;
 
 namespace ProjectName.UI
@@ -102,6 +103,9 @@ namespace ProjectName.UI
         private void Start()
         {
             _currentZoom = _defaultZoom;
+
+            // Phase 33 UI-02: 미니맵 테마 적용
+            ApplyTheme(Phase33_Themes.CreateMinimapTheme());
 
             // Find runtime references
             _mainCamera = Camera.main;

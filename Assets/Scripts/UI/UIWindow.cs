@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -12,11 +13,12 @@ namespace ProjectName.UI
     /// 이 클래스를 상속받으면 Show()/Hide()/Toggle() 기능이 자동으로 제공됩니다.
     /// 각 윈도우(퀘스트, 레시피, 인벤토리, 지도)는 이 클래스를 상속받아 만듭니다.
     /// 
-    /// - Show(): 창을 화면에 표시 (Fade + Slide 애니메이션)
-    /// - Hide(): 창을 화면에서 숨김 (Fade 애니메이션)
+    /// - Show(): 창을 화면에 표시 (테마 애니메이션)
+    /// - Hide(): 창을 화면에서 숨김 (테마 애니메이션)
     /// - Toggle(): 열려있으면 닫고, 닫혀있으면 염
     /// 
     /// G2-03: CanvasGroup을 통한 Fade(0→1, 0.2s / 1→0, 0.15s) + Slide Up (y 20→0) 애니메이션.
+    /// Phase 33 UI-01: UIDesignTheme을 통한 8종 애니메이션 지원.
     /// 배경 딤드(반투명 검은색, alpha 0.5)가 자동 생성됩니다.
     /// </summary>
     public abstract class UIWindow : MonoBehaviour
@@ -31,6 +33,9 @@ namespace ProjectName.UI
         [SerializeField] protected float _closeFadeDuration = 0.15f;  // 닫힐 때 Fade 시간
         [SerializeField] protected float _slideOffset = 20f;          // Slide 오프셋 (픽셀)
         [SerializeField] protected float _dimAlpha = 0.5f;            // 딤드 알파 값
+
+        [Header("Theme (Phase 33)")]
+        [SerializeField] protected UIDesignTheme _theme;              // UI 테마 (null 허용)
 
         [Header("Events")]
         public UnityEvent OnWindowOpen;
@@ -57,6 +62,9 @@ namespace ProjectName.UI
         /// <summary>딤드 배경 GameObject (테스트에서 접근)</summary>
         public GameObject DimBackground => _dimBackground;
 
+        /// <summary>현재 테마 (Phase 33)</summary>
+        public UIDesignTheme Theme => _theme;
+
         protected virtual void Awake()
         {
             // _windowRoot가 설정되지 않았으면 자기 자신으로 지정
@@ -76,15 +84,20 @@ namespace ProjectName.UI
                 _dimBackground = CreateDimBackground();
 
             // 시작할 때는 항상 닫힌 상태
-            if (_windowRoot != null)
+            // 중요: _windowRoot를 비활성화하면 Coroutine이 동작하지 않음.
+            // CanvasGroup으로만 숨기고 게임오브젝트는 활성 상태 유지.
+            if (_canvasGroup != null)
             {
-                _windowRoot.SetActive(false);
-                if (_canvasGroup != null)
-                    _canvasGroup.alpha = 0f;
+                _canvasGroup.alpha = 0f;
+                _canvasGroup.interactable = false;
+                _canvasGroup.blocksRaycasts = false;
             }
             if (_dimBackground != null)
                 _dimBackground.SetActive(false);
             _isOpen = false;
+
+            // 게임오브젝트가 비활성화되어 있으면 Awake()가 나중에 다시 불릴 수 있으므로
+            // 이미 Show() 요청이 있었다면 비활성화하지 않음. 여기서는 항상 활성화 유지.
         }
 
         /// <summary>
@@ -131,6 +144,10 @@ namespace ProjectName.UI
             if (_animCoroutine != null)
                 StopCoroutine(_animCoroutine);
 
+            // Show()가 호출되면 게임오브젝트가 활성 상태여야 Coroutine 실행 가능.
+            // CloseAnimation 종료 시 _windowRoot가 비활성화될 수 있으므로 여기서 재활성화.
+            gameObject.SetActive(true);
+
             _isOpen = true;
             _animCoroutine = StartCoroutine(OpenAnimation());
         }
@@ -143,6 +160,9 @@ namespace ProjectName.UI
             // 이전 애니메이션 정리
             if (_animCoroutine != null)
                 StopCoroutine(_animCoroutine);
+
+            // CloseAnimation 실행을 위해 게임오브젝트 활성화 보장
+            gameObject.SetActive(true);
 
             _isOpen = false;
             _animCoroutine = StartCoroutine(CloseAnimation());
@@ -190,6 +210,23 @@ namespace ProjectName.UI
                 OnShow();
                 yield break;
             }
+
+            // 테마 애니메이션 사용
+            if (_theme != null)
+            {
+                var dimCG = _dimBackground != null ? _dimBackground.GetComponent<CanvasGroup>() : null;
+                yield return WindowAnimationProfile.GetOpenAnimation(
+                    _theme.CurrentAnimation,
+                    _canvasGroup, _rectTransform,
+                    dimCG, _dimAlpha,
+                    _openFadeDuration, _slideOffset);
+                _animCoroutine = null;
+                OnWindowOpen?.Invoke();
+                OnShow();
+                yield break;
+            }
+
+            // 기본 FadeSlide
 
             // 시작 위치 저장
             Vector2 startPos = _rectTransform != null ? _rectTransform.anchoredPosition : Vector2.zero;
@@ -269,6 +306,25 @@ namespace ProjectName.UI
                 yield break;
             }
 
+            // 테마 애니메이션 사용
+            if (_theme != null)
+            {
+                var dimCG = _dimBackground != null ? _dimBackground.GetComponent<CanvasGroup>() : null;
+                yield return WindowAnimationProfile.GetCloseAnimation(
+                    _theme.CurrentAnimation,
+                    _canvasGroup, _rectTransform,
+                    dimCG, _dimAlpha,
+                    _closeFadeDuration, _slideOffset);
+                if (_windowRoot != null)
+                    _windowRoot.SetActive(false);
+                if (_dimBackground != null)
+                    _dimBackground.SetActive(false);
+                _animCoroutine = null;
+                OnWindowClose?.Invoke();
+                OnHide();
+                yield break;
+            }
+
             // 애니메이션 루프
             float elapsed = 0f;
             while (elapsed < _closeFadeDuration)
@@ -317,9 +373,37 @@ namespace ProjectName.UI
         }
 
         // --- 상속받은 클래스가 필요하면 재정의하는 메서드 ---
-        protected virtual void OnShow() { }  // 열릴 때 추가 동작
+        protected virtual void OnShow()
+        {
+            // Phase 33: 테마가 설정되어 있으면 절차적 배경 텍스처 렌더링
+            if (_theme != null)
+            {
+                var bgTex = ProceduralTextureGenerator.GetPatternTexture(_theme.CurrentPattern);
+                if (bgTex != null && _windowRoot != null)
+                {
+                    var rect = _windowRoot.GetComponent<RectTransform>();
+                    if (rect != null)
+                    {
+                        var rectRect = rect.rect;
+                        var worldRect = new Rect(
+                            rect.position.x + rectRect.x,
+                            rect.position.y + rectRect.y,
+                            rectRect.width, rectRect.height);
+                        GUI.DrawTexture(worldRect, bgTex, ScaleMode.StretchToFill);
+                    }
+                }
+            }
+        }
         protected virtual void OnHide() { }  // 닫힐 때 추가 동작
         protected virtual void OnRefresh() { } // 내용 갱신 (외부에서 호출)
         protected virtual void DrawWindowContent() { }  // IMGUI 창 내용 그리기 (ChurchUI/WarehouseUI 등에서 사용)
+
+        /// <summary>
+        /// Phase 33: UI 테마를 적용합니다. 애니메이션 타입과 배경 패턴을 변경합니다.
+        /// </summary>
+        public void ApplyTheme(UIDesignTheme theme)
+        {
+            _theme = theme;
+        }
     }
 }

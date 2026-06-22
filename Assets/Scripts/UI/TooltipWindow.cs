@@ -3,6 +3,7 @@ using ProjectName.Systems;
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -23,6 +24,9 @@ namespace ProjectName.UI
         [SerializeField] private float _tooltipWidth = 240f;
         [SerializeField] private float _padding = 6f;
         [SerializeField] private Vector2 _mouseOffset = new Vector2(18f, 18f); // 마우스로부터 오프셋
+
+        [Header("Phase 33 Theme")]
+        [SerializeField] private UIDesignTheme _theme;
 
         // 싱글톤
         private static TooltipWindow _instance;
@@ -57,6 +61,10 @@ namespace ProjectName.UI
                 return;
             }
             _instance = this;
+
+            // Phase 33: create tooltip theme if none assigned
+            if (_theme == null)
+                _theme = Phase33_Themes.CreateTooltipTheme();
         }
 
         /// <summary>툴팁 표시 요청 (슬롯 호버 시 매 프레임 호출)</summary>
@@ -153,8 +161,28 @@ namespace ProjectName.UI
             DrawColoredRect(new Rect(tooltipRect.x - 2, tooltipRect.y - 2,
                 tooltipRect.width + 4, tooltipRect.height + 4), rarityColor);
 
-            // === 내부 배경 ===
-            DrawColoredRect(tooltipRect, new Color(0.12f, 0.10f, 0.14f, 0.95f));
+            // === Phase 33: 테마 배경 패턴 ===
+            if (_theme != null)
+            {
+                Texture2D patternTex = ProceduralTextureGenerator.GetPatternTexture(_theme.CurrentPattern);
+                if (patternTex != null)
+                {
+                    GUI.DrawTexture(tooltipRect, patternTex, ScaleMode.StretchToFill);
+                }
+                else
+                {
+                    // Fallback: theme background color
+                    DrawColoredRect(tooltipRect, _theme.BgColor);
+                }
+
+                // === 테마 테두리 장식 (simple) ===
+                DecorativeBorderRenderer.DrawBorder(tooltipRect, _theme.CurrentBorder, _theme.BorderColor, 1.5f);
+            }
+            else
+            {
+                // === 내부 배경 (fallback) ===
+                DrawColoredRect(tooltipRect, new Color(0.12f, 0.10f, 0.14f, 0.95f));
+            }
 
             // === 내용 그리기 ===
             float cy = tooltipRect.y + _padding;

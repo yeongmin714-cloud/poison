@@ -53,7 +53,7 @@ namespace ProjectName.Systems
                 _data = Resources.Load<MonsterLevelData>("Data/MonsterLevelData");
                 if (_data == null)
                 {
-                    Debug.LogWarning("[MonsterLevelManager] MonsterLevelData를 찾을 수 없습니다. 기본값으로 ScriptableObject 생성합니다.");
+                    Debug.Log("[MonsterLevelManager] MonsterLevelData를 찾을 수 없습니다. 기본값으로 ScriptableObject 생성합니다.");
                     _data = ScriptableObject.CreateInstance<MonsterLevelData>();
                 }
             }

@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -11,6 +12,11 @@ namespace ProjectName.UI
     /// </summary>
     public class RecipeWindow : UIWindow
     {
+        protected virtual void Start()
+        {
+            ApplyTheme(Phase33_Themes.CreateRecipeTheme());
+        }
+
         [Header("Recipe Window")]
         [SerializeField] private Transform _recipeGridContainer;
         [SerializeField] private GameObject _recipeEntryPrefab; // Optional: assign in editor

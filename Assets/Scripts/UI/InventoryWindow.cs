@@ -2,6 +2,7 @@ using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -31,8 +32,8 @@ namespace ProjectName.UI
         private int _selectedSlotIndex = -1;
 
         // ===== 레퍼런스 스타일 상수 =====
-        private const float WINDOW_WIDTH = 560f;
-        private const float WINDOW_HEIGHT = 620f;
+        private const float WINDOW_WIDTH = 680f;
+        private const float WINDOW_HEIGHT = 700f;
         private const float TITLE_BAR_HEIGHT = 40f;
         private const float TAB_BAR_HEIGHT = 36f;
         private const float INFO_PANEL_HEIGHT = 100f;
@@ -70,6 +71,12 @@ namespace ProjectName.UI
         private GUIStyle _stylePanelBox;
         private bool _stylesInitialized;
         private Texture2D _texWhite;
+
+        protected override void Awake()
+        {
+            base.Awake();
+            ApplyTheme(Phase33_Themes.CreateInventoryTheme());
+        }
 
         protected override void OnShow()
         {

@@ -2,6 +2,7 @@ using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Systems;
 using UnityEngine;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -12,6 +13,8 @@ namespace ProjectName.UI
     /// </summary>
     public class RevengeListWindow : UIWindow
     {
+        private UIDesignTheme _revengeTheme;
+
         // ======================================================================
         // 스타일
         // ======================================================================
@@ -41,6 +44,10 @@ namespace ProjectName.UI
             Debug.Log("[RevengeListWindow] 열림");
             _selectedIndex = -1;
 
+            if (_revengeTheme == null)
+                _revengeTheme = Phase33_Themes.RevengeTheme();
+            ApplyTheme(_revengeTheme);
+
             // RevengeListManager가 초기화되지 않았으면 초기화
             if (!RevengeListManager.Instance.IsInitialized)
             {
@@ -66,9 +73,9 @@ namespace ProjectName.UI
             var mgr = RevengeListManager.Instance;
             if (!mgr.IsInitialized) return;
 
-            // C14-12: 창 크기 — 최소 400x300, 최대 800x600
-            float panelW = Mathf.Clamp(Screen.width * 0.55f, 400f, 800f);
-            float panelH = Mathf.Clamp(Screen.height * 0.65f, 300f, 600f);
+            // C14-12: 창 크기 — 최소 500x400, 최대 900x700
+            float panelW = Mathf.Clamp(Screen.width * 0.55f, 500f, 900f);
+            float panelH = Mathf.Clamp(Screen.height * 0.65f, 400f, 700f);
 
             float x = (Screen.width - panelW) / 2f;
             float y = (Screen.height - panelH) / 2f;

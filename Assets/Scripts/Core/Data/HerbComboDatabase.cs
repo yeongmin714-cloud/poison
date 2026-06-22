@@ -62,6 +62,9 @@ namespace ProjectName.Core
             {
                 string line = lineRaw.Trim();
 
+                // Stop before the drug (마약 시스템) section — its table format is incompatible
+                if (line.Contains("마약 시스템")) break;
+
                 // Stop at next major section
                 if (line.StartsWith("## "))
                 {

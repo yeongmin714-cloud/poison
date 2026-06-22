@@ -307,3 +307,126 @@
 - Status: ✅
 - Details: 희귀도 분포 통계(1000회 샘플링), 부위 확률 검증, Lucky Roll 확률 검증, 스탯 변동 범위, 연동 검증
 - Tests: Phase32_FullTests 15개
+
+# Cycle: C6-23 — 몬스터 리깅 GLB 애니메이션 연동
+- Status: ✅
+- Details: 21종 리깅된 몬스터 GLB → Resources/Models/UserProvided/ 복사, AnimalAI ↔ RigAnimationController 연동 (AnimalAI.SetRigAnimator), 파일명 정규화 (Big Mouse → Big_Mouse 등 7개), Bat_RIgged → Bat_Rigged 오타 수정
+- Date: 2026-06-20
+
+# Cycle: C6-24 — NPC/병사/플레이어 리깅 GLB 17종 복사
+- Status: ✅
+- Details: NPC 12종 + 병사 3종 + 용병 2종 + 플레이어 1종 리깅 GLB → Resources/Models/UserProvided/ 복사 (총 17종)
+- Date: 2026-06-20
+
+# Cycle: C6-25 — TutorialQuestNPC ↔ RigAnimationController 연동
+- Status: ✅
+- Details: TutorialQuestNPC에 RigAnimationController 컴포넌트 부착, GLB 리깅 모델 애니메이션 자동 적용
+- Date: 2026-06-20
+
+# Cycle: C6-26 — GuardPlaceholder ↔ RigAnimationController 연동
+- Status: ✅
+- Details: GuardPlaceholder에 RigAnimationController 컴포넌트 부착, GLB 리깅 모델 애니메이션 자동 적용
+- Date: 2026-06-20
+
+# Cycle: C6-27 — PlayerPlaceholder ↔ RigAnimationController 연동
+- Status: ✅
+- Details: PlayerPlaceholder에 RigAnimationController 컴포넌트 부착, GLB 리깅 모델 애니메이션 자동 적용
+- Date: 2026-06-20
+
+# Cycle: C6-28 — HerbPickup ↔ RigAnimationController 연동
+- Status: ✅
+- Details: HerbPickup에 RigAnimationController 컴포넌트 부착, 채집 모션 애니메이션 자동 적용
+- Date: 2026-06-20
+
+# Cycle: C6-29 — SkeletonGuardPlaceholder ↔ RigAnimationController 연동
+- Status: ✅
+- Details: SkeletonGuardPlaceholder에 RigAnimationController 컴포넌트 부착, GLB 리깅 모델 애니메이션 자동 적용
+- Date: 2026-06-20
+
+# Cycle: C6-30 — 버그 수정 & 컴파일 검증
+- Status: ✅
+- Details: GLBTextureSizeLimiter.cs CS0165 오류 3곳 수정, GameManager.cs 디버그 컴포넌트 #if UNITY_EDITOR 래핑, EditorAutoSetup.cs Play 모드 가드 추가, RigAnimationController.cs runtimeAnimatorController null 체크 추가
+- Result: 컴파일 오류 0
+- Date: 2026-06-20
+
+---
+
+## Phase 33: 🎨 UI 완전 개선 — 창별 개성화 & 고급화
+
+> 38개 UI 창이 전부 동일한 UIStyleManager 다크 테마 사용. 각 창에 고유한 절차적(Procedural) 테마를 부여.
+> 모든 패턴/테두리/장식은 C# Texture2D로 코드 생성. 추가 이미지 에셋 불필요.
+
+# Cycle: UI-01 — UIDesignTheme SO + ProceduralTextureGenerator
+- Status: ✅✅
+- Details: UIDesignTheme SO (색상6종/패턴타입/테두리타입/장식타입/애니메이션타입). ProceduralTextureGenerator — Perlin noise 기반 7종 패턴(양피지/가죽/대리석/나무/돌/금속/유리). GradientBackgroundRenderer (2색/4색/방사형). DecorativeBorderRenderer (필그리/룬/가시/별/방패 모서리). WindowAnimationProfile (FadeSlide/Scale/Flip/Shatter/Spin 8종). UIWindow.ApplyTheme() 연동. Phase33_CreateThemeAssets.cs Editor 스크립트 (7개 테마 SO 생성).
+- Tests: 12개 (ThemeDataTests 9개 + IntegrationTests 9개)
+
+# Cycle: UI-02 — MapWindow 🗺️ + MinimapUI 🧭 (지도 테마)
+- Status: ✅
+- Details: MapWindow — 세피아 양피지 배경(Parchment 패턴), 나뭇결 테두리(Filigree), 코너 나침반 장식(CornerScroll), FadeSlide 애니메이션. MinimapUI — 황동 원형 느낌(Glass 패턴), 방패 테두리(Shield), 왕관 장식, Scale 애니메이션. Phase33_Themes.CreateMapTheme()/CreateMinimapTheme() 적용. MapWindow.OnShow()에 배경 텍스처 오버레이 추가.
+- Tests: 8개 (UIWindow.ApplyTheme 검증 포함)
+
+# Cycle: UI-03 — InventoryWindow 📦 + EquipmentWindow 🛡️ (가죽/대장간 테마)
+- Status: ✅
+- Details: InventoryWindow — 암갈색 가죽 결 배경(Leather 패턴), 구리 못 리벳 테두리(Star+Rivet), FadeSlide. EquipmentWindow — 철청 금속 브러시드 배경(Metal 패턴), 철제 방패 테두리(Shield+Rivet), Reveal 애니메이션. Phase33_Themes.CreateInventoryTheme()/CreateEquipmentTheme() 적용.
+- Tests: 8개
+
+# Cycle: UI-04 — WarehouseUI 📦 (목재 테마)
+- Status: ✅
+- Details: WarehouseUI — 나무 판자 결 배경(Wood 패턴), 못 박힌 판자 테두리(Thorn+Rivet), Bounce 애니메이션. Phase33_Themes.CreateWarehouseTheme() 적용.
+- Tests: 6개
+
+# Cycle: UI-05 — PlayerStatusWindow 📊 + QuestWindow 📜 (양피지 스크롤 테마)
+- Status: ✅
+- Details: PlayerStatusWindow — 아이보리 양피지 배경(Parchment), 장식적 모서리 롤(Filigree+Crown), 금박 테두리. QuestWindow — 줄 그어진 양피지(Parchment), 끈/리본 장식(Filigree+CornerScroll). Phase33_Themes.CreateStatusTheme()/CreateQuestTheme() 적용.
+- Tests: 8개
+
+# Cycle: UI-06 — RecipeWindow 📖 + TooltipWindow ℹ️ (연금술/쪽지 테마)
+- Status: ✅
+- Details: RecipeWindow — 보라 마법진 패턴(Stone+Rune), 보석 박힌 테두리(Seal), Flip 애니메이션. TooltipWindow — 밝은 양피지 배경(Parchment), 절차적 패턴+테두리 OnGUI 연동. Phase33_Themes.CreateRecipeTheme()/CreateTooltipTheme() 적용.
+- Tests: 6개
+
+# Cycle: UI-07 — CraftingUI 🔨 + CookingUI 🍲 (대장간/주방 테마)
+- Status: ✅
+- Details: CraftingUI — 나무 결+숯 얼룩 배경(Wood+Thorn), 구리 리벳(Rivet). CookingUI — 타일 패턴 배경(Glass+Star), 벽돌 테두리(CornerScroll). Phase33_Themes.CreateCraftingTheme()/CreateCookingTheme() 적용.
+- Tests: 8개
+
+# Cycle: UI-08 — AlchemyUI 🧪 + RepairStationUI 🔧 (실험실/모루 테마)
+- Status: ✅
+- Details: AlchemyUI — 어두운 보라+네온초록 물방울(Glass+Rune+Skull, Spin 애니메이션), 버튼 색상 AccentColor 연동. RepairStationUI — 금속 긁힘 패턴(Metal+Shield+Rivet). Phase33_Themes.CreateAlchemyTheme()/CreateRepairTheme() 적용.
+- Tests: 6개
+
+# Cycle: UI-09 — ShopWindow 🏪 + LootWindow 🎁 + MercenaryHireUI 🍺 (상점/거래 테마)
+- Status: ✅
+- Details: ShopWindow — 녹색 펠트 천 배경(Parchment+Filigree), 금실 장식. LootWindow — 나무 판자+쇠테 테두리(Wood+Thorn+Rivet). MercenaryHireUI — 기름때 묻은 양피지(Leather+Seal, Bounce). Phase33_Themes.ShopTheme()/LootTheme()/MercenaryTheme() 적용.
+- Tests: 10개
+
+# Cycle: UI-10 — ChurchUI ⛪ + EnvoyMissionUI 🕊️ + SpyMissionUI 🕵️ (시설/첩보 테마)
+- Status: ✅
+- Details: ChurchUI — 대리석 패턴(Marble+Filigree), 고딕 아치 테두리(Crown), Scale. EnvoyMissionUI — 다크블루 공식 문서(Stone+Shield+Seal). SpyMissionUI — 암호 격자(Metal+Rune+Skull). Phase33_Themes.ChurchTheme()/EnvoyTheme()/SpyTheme() 적용.
+- Tests: 10개
+
+# Cycle: UI-11 — RevengeListWindow 🗡️ + DeathScreenUI 💀 + LordAudienceUI 👑 (전투/죽음 테마)
+- Status: ✅
+- Details: RevengeListWindow — 피 얼룩 배경(Stone+Thorn+Skull), Shatter 애니메이션. DeathScreenUI — 잿빛 그라디언트(Stone+Thorn+Skull). LordAudienceUI — 대리석 패턴(Marble+Filigree+Crown), Scale. Phase33_Themes.RevengeTheme()/DeathTheme()/LordAudienceTheme() 적용.
+- Tests: 8개
+
+# Cycle: UI-12 — EscMenuUI ⏸️ + SettingsMenuUI ⚙️ (시스템 메뉴 테마)
+- Status: ✅
+- Details: EscMenuUI — Glassmorphism 반투명+별 테두리(Glass+Star+Crown), Reveal. SettingsMenuUI — 모던블랙 마이크로 도트(Metal+Shield+Crown). Phase33_Themes.EscMenuTheme()/SettingsTheme() 적용.
+- Tests: 10개
+
+# Cycle: UI-13 — AchievementSystem 🏆 + GuardWorldSpaceHUD 👤 + NPCDialogueWindow 💬 (HUD/게임플레이 테마)
+- Status: ✅
+- Details: Achievement — 골드 메달(Marble+Star+Crown), Bounce. GuardHUD — 전술 격자(Metal+Shield). NPCDialogue — 양피지 말풍선(Parchment+Filigree). Phase33_Themes.AchievementTheme()/GuardHUDTheme()/NPCDialogueTheme() 적용.
+- Tests: 12개
+
+# Cycle: UI-14 — FlagRegistrationWindow 🏁 + GuardInfoWindow 🪖 (기타 테마)
+- Status: ✅
+- Details: FlagRegistration — 방패 문양(Stone+Shield+Crown). GuardInfo — 카키 군복(Leather+Shield). Phase33_Themes.FlagRegTheme()/GuardInfoTheme() 적용.
+- Tests: 8개
+
+# Cycle: UI-15 — 🌿 월드스페이스 HUD 개선 (HerbRespawnUI + MonsterLevelLabel)
+- Status: ✅
+- Details: HerbRespawnUI — 녹색 자연 테마(Glass+Filigree). MonsterLevelLabel — 기본 테마(Stone). GuardWorldSpaceHUD — 이미 UI-13에서 완료. Phase33_Themes.HerbRespawnTheme()/MonsterLevelTheme() 적용.
+- Tests: 6개

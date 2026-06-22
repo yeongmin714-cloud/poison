@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using ProjectName.Systems;
 using UnityEngine;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -29,6 +30,7 @@ namespace ProjectName.UI
         private HerbPickup[] _herbCache;
         private List<HerbPickup> _activeHerbs = new List<HerbPickup>(64);
 
+        private UIDesignTheme _theme;
         // GUI 스타일
         private GUIStyle _labelStyle;
         private GUIStyle _timerStyle;
@@ -48,6 +50,7 @@ namespace ProjectName.UI
                 return;
             }
             _instance = this;
+            _theme = Phase33_Themes.HerbRespawnTheme();
         }
 
         private void Start()

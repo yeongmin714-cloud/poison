@@ -82,11 +82,23 @@ namespace ProjectName.Systems
         private float _cameraShakeDuration = 0f;
         private float _cameraShakeIntensity = 0f;
 
+        // Rig animation
+        private RigAnimationController _rigAnim;
+
         private void Awake()
         {
             _controller = GetComponent<CharacterController>();
             if (_controller == null)
                 Debug.LogError("[PlayerMovement] CharacterController가 필요합니다!");
+
+            // RigAnimationController 찾기 (PlayerPlaceholder에서 Awake로 이미 추가됨)
+            _rigAnim = GetComponent<RigAnimationController>();
+            if (_rigAnim == null)
+            {
+                Animator anim = GetComponent<Animator>();
+                if (anim != null && anim.runtimeAnimatorController != null)
+                    _rigAnim = gameObject.AddComponent<RigAnimationController>();
+            }
 
             // 메인 카메라 찾기
             if (Camera.main != null)
@@ -224,6 +236,31 @@ namespace ProjectName.Systems
                 _currentSpeed = _walkSpeed;
                 _isDashing = false;
             }
+
+            // 애니메이션 상태 업데이트
+            if (_rigAnim != null)
+            {
+                if (!isMoving)
+                {
+                    if (_rigAnim.CurrentState != AnimationState.Idle)
+                        _rigAnim.SetState(AnimationState.Idle);
+                }
+                else if (_isDashing)
+                {
+                    _rigAnim.CurrentSpeed = _dashSpeed;
+                    _rigAnim.SetState(AnimationState.Run);
+                }
+                else if (sprintKey)
+                {
+                    _rigAnim.CurrentSpeed = _runSpeed;
+                    _rigAnim.SetState(AnimationState.Run);
+                }
+                else
+                {
+                    _rigAnim.CurrentSpeed = _walkSpeed;
+                    _rigAnim.SetState(AnimationState.Walk);
+                }
+            }
         }
 
         /// <summary>
@@ -360,6 +397,7 @@ namespace ProjectName.Systems
             if (_keyboard.spaceKey.wasPressedThisFrame && _isGrounded)
             {
                 _verticalVelocity = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
+                if (_rigAnim != null) _rigAnim.SetState(AnimationState.Jump);
             }
         }
 

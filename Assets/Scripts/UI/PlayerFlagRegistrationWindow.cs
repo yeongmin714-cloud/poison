@@ -2,6 +2,7 @@ using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -11,9 +12,11 @@ namespace ProjectName.UI
     /// </summary>
     public class PlayerFlagRegistrationWindow : UIWindow
     {
+        private UIDesignTheme _flagTheme;
+
         [Header("Flag Registration Settings")]
-        [SerializeField] private int _windowWidth = 520;
-        [SerializeField] private int _windowHeight = 460;
+        [SerializeField] private int _windowWidth = 620;
+        [SerializeField] private int _windowHeight = 550;
         [SerializeField] private int _previewSize = 160;
 
         // ── 편집 중인 문장 데이터 (임시) ──
@@ -72,6 +75,9 @@ namespace ProjectName.UI
         protected override void OnShow()
         {
             base.OnShow();
+            if (_flagTheme == null)
+                _flagTheme = Phase33_Themes.FlagRegTheme();
+            ApplyTheme(_flagTheme);
             _stylesInitialized = false;
 
             // 현재 문장 데이터를 편집 기본값으로 로드

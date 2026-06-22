@@ -41,6 +41,11 @@ namespace ProjectName.Systems
         private Renderer _renderer;   // C5-17: 반투명 효과용
         private Material _materialCopy; // 렌더러 재질 복사본
 
+        // Rig animation (플레이어의 RigAnimationController)
+        private RigAnimationController _playerRigAnim;
+        // 자체 Rig animation (약초 자체에 Animator가 있는 경우)
+        private RigAnimationController _rigAnim;
+
         // Public API
         public bool IsAvailable => !_isHarvested;
         public HerbPickup.HerbType HerbPickupType => _herbType;
@@ -76,6 +81,28 @@ namespace ProjectName.Systems
             _player = GameObject.FindGameObjectWithTag("Player")?.transform;
             if (_player == null)
                 Debug.LogWarning("[HerbPickup] Player 태그 오브젝트를 찾을 수 없음");
+
+            // 플레이어의 RigAnimationController 찾기
+            if (_player != null)
+            {
+                _playerRigAnim = _player.GetComponent<RigAnimationController>();
+                if (_playerRigAnim == null)
+                {
+                    Animator playerAnim = _player.GetComponent<Animator>();
+                    if (playerAnim != null && playerAnim.runtimeAnimatorController != null)
+                        _playerRigAnim = _player.gameObject.AddComponent<RigAnimationController>();
+                }
+            }
+
+            // 자체 RigAnimationController (약초에 Animator가 있는 경우)
+            _rigAnim = GetComponent<RigAnimationController>();
+            if (_rigAnim == null)
+            {
+                Animator anim = GetComponent<Animator>();
+                if (anim != null && anim.runtimeAnimatorController != null)
+                    _rigAnim = gameObject.AddComponent<RigAnimationController>();
+            }
+
             _renderer = GetComponent<Renderer>();
             if (_renderer != null)
                 _materialCopy = new Material(_renderer.material);
@@ -112,6 +139,9 @@ namespace ProjectName.Systems
             _harvestTime = Time.time;
             HidePrompt();
 
+            // 플레이어 채집 애니메이션 (Gather)
+            if (_playerRigAnim != null) _playerRigAnim.SetState(AnimationState.Gather);
+
             int yield = UnityEngine.Random.Range(_minYield, _maxYield + 1);
             var item = GetItemData();
 
@@ -144,6 +174,9 @@ namespace ProjectName.Systems
             var renderer = GetComponent<Renderer>();
             if (renderer != null) renderer.enabled = true;
 
+            // 약초 자체 Idle 애니메이션
+            if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
+
             // Fire respawn event
             OnRespawnCompleted?.Invoke();
         }
@@ -160,6 +193,10 @@ namespace ProjectName.Systems
 
             _isHarvested = true;
             _harvestTime = Time.time;
+
+            // 플레이어 채집 애니메이션 (Gather)
+            if (_playerRigAnim != null) _playerRigAnim.SetState(AnimationState.Gather);
+
             item = GetItemData();
             yield = UnityEngine.Random.Range(_minYield, _maxYield + 1);
 

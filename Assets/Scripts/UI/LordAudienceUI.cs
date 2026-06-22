@@ -1,6 +1,7 @@
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -12,6 +13,8 @@ namespace ProjectName.UI
     /// </summary>
     public class LordAudienceUI : UIWindow
     {
+        private UIDesignTheme _lordTheme;
+
         [System.Serializable]
         public class AudienceOption
         {
@@ -36,8 +39,8 @@ namespace ProjectName.UI
         [SerializeField] private int _selectedOption = -1;
 
         // === IMGUI ===
-        private const float WINDOW_WIDTH = 500f;
-        private const float WINDOW_HEIGHT = 380f;
+        private const float WINDOW_WIDTH = 600f;
+        private const float WINDOW_HEIGHT = 500f;
         private const float OPTION_HEIGHT = 40f;
 
         private static readonly Color ColorBg = new Color(0.15f, 0.10f, 0.12f, 0.92f);
@@ -53,6 +56,9 @@ namespace ProjectName.UI
         protected override void OnShow()
         {
             base.OnShow();
+            if (_lordTheme == null)
+                _lordTheme = Phase33_Themes.LordAudienceTheme();
+            ApplyTheme(_lordTheme);
             _showOptions = true;
             _selectedOption = -1;
             _dialogueText = $"{_lordName}: \"무슨 일로 왔느냐?\"";

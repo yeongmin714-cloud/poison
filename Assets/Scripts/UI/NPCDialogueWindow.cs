@@ -3,6 +3,7 @@ using ProjectName.Core.Data;
 using ProjectName.Systems;
 using System.Collections.Generic;
 using UnityEngine;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -34,6 +35,7 @@ namespace ProjectName.UI
         // 대화 라인 (NPCInstance.dialogues + 퀘스트 제안)
         private List<string> _dialogueLines = new List<string>();
 
+        private UIDesignTheme _npcTheme;
         private Vector2 _scrollPosition = Vector2.zero;
 
         // IMGUI 스타일 캐싱
@@ -48,6 +50,10 @@ namespace ProjectName.UI
         protected override void Awake()
         {
             base.Awake();
+
+            if (_npcTheme == null)
+                _npcTheme = Phase33_Themes.NPCDialogueTheme();
+            ApplyTheme(_npcTheme);
 
             if (Instance != null && Instance != this)
             {

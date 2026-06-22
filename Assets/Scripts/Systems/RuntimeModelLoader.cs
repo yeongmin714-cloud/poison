@@ -81,7 +81,7 @@ namespace ProjectName.Systems
 
                 if (allPrefabs == null || allPrefabs.Length == 0)
                 {
-                    Debug.Log("[RuntimeModelLoader] UserProvided 폴더에 로드할 모델이 없습니다. (GLB 파일은 Unity Resources로 직접 로드 불가 — com.unity.cloud.gltfast 패키지 필요)");
+                    Debug.Log("[RuntimeModelLoader] UserProvided 폴더에 로드할 모델이 없습니다. (GLB 파일이 아직 임포트되지 않았거나 glb/ 서브폴더에만 있습니다 — Resources.LoadAll은 임포트된 프리팹/GameObject만 찾습니다)");
                     _isInitialized = true;
                     return;
                 }

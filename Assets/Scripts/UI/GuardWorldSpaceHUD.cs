@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using ProjectName.Systems;
 using UnityEngine;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -26,6 +27,7 @@ namespace ProjectName.UI
         private GUIStyle _styleLevel;
         private GUIStyle _styleLabel;
         private GUIStyle _styleValue;
+        private UIDesignTheme _theme;
 
         // HUD 표시 온/오프
         private bool _hudEnabled = true;
@@ -41,6 +43,7 @@ namespace ProjectName.UI
                 return;
             }
             Instance = this;
+            _theme = Phase33_Themes.GuardHUDTheme();
         }
 
         private void Update()

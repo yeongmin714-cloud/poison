@@ -1,6 +1,7 @@
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -21,8 +22,8 @@ namespace ProjectName.UI
         private int _selectedIndex = -1;
 
         // ===== 레퍼런스 스타일 상수 =====
-        private const float WINDOW_WIDTH = 500f;
-        private const float WINDOW_HEIGHT = 540f;
+        private const float WINDOW_WIDTH = 600f;
+        private const float WINDOW_HEIGHT = 620f;
         private const float TITLE_BAR_HEIGHT = 40f;
         private const float BOTTOM_BAR_HEIGHT = 50f;
         private const int GRID_COLUMNS = 3;
@@ -85,6 +86,8 @@ namespace ProjectName.UI
         /// </summary>
         public void OpenForBasket(ILootBasket basket)
         {
+            if (_theme == null)
+                ApplyTheme(Phase33_Themes.LootTheme());
             _currentBasket = basket;
             _selectedIndex = -1;
             RefreshLoot();

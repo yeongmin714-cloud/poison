@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -57,6 +58,7 @@ namespace ProjectName.UI
         private string _currentPopupIcon;
         private float _popupTimer;
 
+        private UIDesignTheme _theme;
         private GUIStyle _popupBgStyle;
         private GUIStyle _popupTitleStyle;
         private GUIStyle _popupDescStyle;
@@ -69,6 +71,7 @@ namespace ProjectName.UI
             if (Instance != null) { Destroy(gameObject); return; }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            _theme = Phase33_Themes.AchievementTheme();
             LoadAll();
         }
 

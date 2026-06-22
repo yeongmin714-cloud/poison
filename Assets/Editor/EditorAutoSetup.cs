@@ -31,13 +31,22 @@ public static class EditorAutoSetup
     {
         if (!EditorPrefs.GetBool(FlagKey, false))
         {
-            EditorApplication.delayCall += RunFullAutoSetup;
+            EditorApplication.delayCall += () =>
+            {
+                if (!EditorApplication.isPlayingOrWillChangePlaymode)
+                    RunFullAutoSetup();
+            };
         }
     }
 
     [MenuItem("Tools/Re-run Auto Setup")]
     public static void ReRunAutoSetup()
     {
+        if (EditorApplication.isPlaying)
+        {
+            Debug.LogWarning("[AutoSetup] Cannot run during Play mode. Stop playing first.");
+            return;
+        }
         EditorPrefs.DeleteKey(FlagKey);
         RunFullAutoSetup();
     }

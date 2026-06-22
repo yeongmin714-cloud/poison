@@ -56,9 +56,26 @@ namespace ProjectName.Systems
         private float _poisonTimer = 0f;
         private bool _dialogueDismissed = false;
 
+        // Rig animation
+        private RigAnimationController _rigAnim;
+
+        private void Awake()
+        {
+            _rigAnim = GetComponent<RigAnimationController>();
+            if (_rigAnim == null)
+            {
+                Animator anim = GetComponent<Animator>();
+                if (anim != null && anim.runtimeAnimatorController != null)
+                    _rigAnim = gameObject.AddComponent<RigAnimationController>();
+            }
+        }
+
         private void Start()
         {
             _player = GameObject.FindGameObjectWithTag("Player")?.transform;
+
+            // 기본 Idle 애니메이션
+            if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
         }
 
         private void Update()
@@ -75,6 +92,7 @@ namespace ProjectName.Systems
                 {
                     // 독 효과 끝 → 플레이어가 처형 가능
                     _state = QuestState.Dead;
+                    if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
                     Debug.Log("[TutorialQuestNPC] 영주가 쓰러졌다! E 키로 영지 증서 획득");
                 }
                 return;
@@ -176,15 +194,20 @@ namespace ProjectName.Systems
                     // TODO: Phase 4에서 실제 크래프트 후 독든 음식 판정
                     // 지금은 임시로 바로 독 효과
                     _state = QuestState.HasPoison;
+                    // 음식 먹는 애니메이션 (Gather 재사용)
+                    if (_rigAnim != null) _rigAnim.SetState(AnimationState.Gather);
                     // 강제로 독 효과 진행
                     _state = QuestState.Poisoned;
                     _poisonTimer = _poisonDuration;
+                    // 중독 애니메이션 (비틀거림 = Kneel)
+                    if (_rigAnim != null) _rigAnim.SetState(AnimationState.Kneel);
                     Debug.Log($"[TutorialQuestNPC] 영주가 독에 걸렸다! {_poisonDuration}초 행동불능");
                     break;
 
                 case QuestState.HasPoison:
                     _state = QuestState.Poisoned;
                     _poisonTimer = _poisonDuration;
+                    if (_rigAnim != null) _rigAnim.SetState(AnimationState.Kneel);
                     break;
             }
         }

@@ -24,6 +24,22 @@ namespace ProjectName.Systems
         [Header("Colors")]
         [SerializeField] private Color _bodyColor = new Color(0.2f, 0.4f, 0.8f);    // 파란색 옷
         [SerializeField] private Color _skinColor = new Color(1.0f, 0.8f, 0.6f);    // 살색
+
+        // Rig animation
+        private RigAnimationController _rigAnim;
+        public RigAnimationController RigAnim => _rigAnim;
+
+        private void Awake()
+        {
+            _rigAnim = GetComponent<RigAnimationController>();
+            if (_rigAnim == null)
+            {
+                Animator anim = GetComponent<Animator>();
+                if (anim != null && anim.runtimeAnimatorController != null)
+                    _rigAnim = gameObject.AddComponent<RigAnimationController>();
+            }
+        }
+
         private void Start()
         {
             // GLB 모델이 있으면 우선 로드, 없으면 기본 도형으로 생성

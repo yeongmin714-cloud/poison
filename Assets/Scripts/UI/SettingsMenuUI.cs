@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ProjectName.Core;
 using UnityEngine;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -16,8 +17,8 @@ namespace ProjectName.UI
         public static SettingsMenuUI Instance { get; private set; }
 
         [Header("Layout")]
-        [SerializeField] private int _windowWidth = 500;
-        [SerializeField] private int _windowHeight = 550;
+        [SerializeField] private int _windowWidth = 600;
+        [SerializeField] private int _windowHeight = 650;
         [SerializeField] private int _tabButtonHeight = 40;
         [SerializeField] private int _sliderHeight = 30;
         [SerializeField] private int _buttonHeight = 30;
@@ -39,6 +40,7 @@ namespace ProjectName.UI
 
         // ===== 상태 =====
         private bool _isVisible;
+        private UIDesignTheme _theme;
         private int _selectedQualityLevel;
         private int _selectedResolutionIndex;
         private Resolution[] _availableResolutions;
@@ -71,6 +73,7 @@ namespace ProjectName.UI
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
+            _theme = Phase33_Themes.SettingsTheme();
             LoadSettings();
         }
 

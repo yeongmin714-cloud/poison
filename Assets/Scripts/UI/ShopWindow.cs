@@ -2,6 +2,7 @@ using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.UI;
+using ProjectName.UI.Themes;
 using System.Collections.Generic;
 
 namespace ProjectName.UI
@@ -56,6 +57,7 @@ namespace ProjectName.UI
         protected override void Awake()
         {
             base.Awake();
+            ApplyTheme(Phase33_Themes.ShopTheme());
             InitializeShopInventory(); // 상점 초기 재고 설정
         }
         
@@ -186,10 +188,10 @@ namespace ProjectName.UI
             
             InitStyles();
             
-            float x = (Screen.width - 600) / 2;
-            float y = (Screen.height - 500) / 2;
-            float width = 600f;
-            float height = 500f;
+            float x = (Screen.width - 680) / 2;
+            float y = (Screen.height - 580) / 2;
+            float width = 680f;
+            float height = 580f;
             
             // === 배경 + 외곽 박스 ==
             GUI.Box(new Rect(x, y, width, height), "", _stylePanelBox);

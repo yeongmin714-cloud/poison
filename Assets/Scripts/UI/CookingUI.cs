@@ -3,6 +3,7 @@ using ProjectName.Core;
 using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -13,9 +14,14 @@ namespace ProjectName.UI
     /// </summary>
     public class CookingUI : UIWindow
     {
+        protected virtual void Start()
+        {
+            ApplyTheme(Phase33_Themes.CreateCookingTheme());
+        }
+
         [Header("Cooking UI Settings")]
-        [SerializeField] private int _windowWidth = 600;
-        [SerializeField] private int _windowHeight = 480;
+        [SerializeField] private int _windowWidth = 750;
+        [SerializeField] private int _windowHeight = 580;
 
         // ── 상태 ──
         private PlayerInventory.ItemData _selectedMeat;

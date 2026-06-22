@@ -2,6 +2,7 @@ using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -17,6 +18,12 @@ namespace ProjectName.UI
         private const int MaxSlots = 20;
         private const float SlotSize = 60f;
         private const float Padding = 5f;
+
+        protected override void Awake()
+        {
+            base.Awake();
+            ApplyTheme(Phase33_Themes.CreateWarehouseTheme());
+        }
 
         public void SetTerritory(string territoryId)
         {

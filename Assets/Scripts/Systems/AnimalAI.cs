@@ -61,6 +61,10 @@ namespace ProjectName.Systems
         private float _bodyScale;
         private static readonly float _packCallRange = 8f;
 
+        // Rig animation
+        private RigAnimationController _rigAnim;
+        private AnimationRiggingSetup _rigSetup;
+
         // === IAggroable (어그로 합세 시스템) ===
         private AggroState _aggroState = AggroState.Idle;
         private GameObject _aggroTarget;
@@ -128,6 +132,20 @@ namespace ProjectName.Systems
         {
             _renderer = GetComponent<Renderer>();
             _collider = GetComponent<Collider>();
+
+            // Rig animation setup — only for rigged GLB models with actual Animator controller
+            _rigAnim = GetComponent<RigAnimationController>();
+            _rigSetup = GetComponent<AnimationRiggingSetup>();
+
+            // Animator가 있고 실제 controller가 있는 경우에만 RigAnimationController 추가
+            if (_rigAnim == null)
+            {
+                Animator anim = GetComponent<Animator>();
+                if (anim != null && anim.runtimeAnimatorController != null)
+                {
+                    _rigAnim = gameObject.AddComponent<RigAnimationController>();
+                }
+            }
         }
 
         private void Start()
@@ -298,7 +316,13 @@ namespace ProjectName.Systems
 
         private void Update()
         {
-            if (_isDead || _player == null) return;
+            if (_isDead || _player == null)
+            {
+                // 사망 또는 플레이어 없음 → Idle
+                if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
+                    _rigAnim.SetStateImmediate(AnimationState.Idle);
+                return;
+            }
 
             // === 어그로 상태 처리 ===
             if (_aggroState != AggroState.Idle)
@@ -328,7 +352,13 @@ namespace ProjectName.Systems
         /// </summary>
         private void UpdateBeginner(float dist)
         {
-            if (dist > _detectRange) return;
+            if (dist > _detectRange)
+            {
+                // 감지 범위 밖 → Idle
+                if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
+                    _rigAnim.SetState(AnimationState.Idle);
+                return;
+            }
 
             switch (_monsterId)
             {
@@ -344,6 +374,9 @@ namespace ProjectName.Systems
                     Vector3 desiredPos = transform.position + awayDir * _speed * Time.deltaTime;
                     HandleObstacleAvoidance(ref desiredPos);
                     transform.position = desiredPos;
+
+                    // 애니메이션: Walk (도망)
+                    if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed; _rigAnim.SetState(AnimationState.Walk); }
                     break;
                 }
             case "boar":
@@ -357,8 +390,11 @@ namespace ProjectName.Systems
                         Vector3 desiredPos = transform.position + dir * (_speed * 1.5f) * Time.deltaTime;
                         HandleObstacleAvoidance(ref desiredPos);
                         transform.position = desiredPos;
+
+                        // 애니메이션: Walk (돌진)
+                        if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * 1.5f; _rigAnim.SetState(AnimationState.Walk); }
                     }
-                    else { TryAttack(); }
+                    else { if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack); TryAttack(); }
                     break;
                 }
             case "wolf":
@@ -376,8 +412,11 @@ namespace ProjectName.Systems
                         HandleObstacleAvoidance(ref desiredPos);
                         transform.position = desiredPos;
                         if (_monsterId == "wolf") CallNearbyMonsters();
+
+                        // 애니메이션: Walk (추격)
+                        if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed; _rigAnim.SetState(AnimationState.Walk); }
                     }
-                    else { TryAttack(); }
+                    else { if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack); TryAttack(); }
                     break;
                 }
             }
@@ -388,7 +427,13 @@ namespace ProjectName.Systems
         /// </summary>
         private void UpdateIntermediate(float dist)
         {
-            if (dist > _detectRange) return;
+            if (dist > _detectRange)
+            {
+                // 감지 범위 밖 → Idle
+                if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
+                    _rigAnim.SetState(AnimationState.Idle);
+                return;
+            }
 
             if (dist > _attackRange)
             {
@@ -408,6 +453,9 @@ namespace ProjectName.Systems
                 HandleObstacleAvoidance(ref desiredPos);
                 transform.position = desiredPos;
 
+                // 애니메이션: Walk
+                if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * speedMult; _rigAnim.SetState(AnimationState.Walk); }
+
                 // 늪지악어: 접근 시 은신 효과
                 if (_monsterId == "swamp_croc" && dist < _detectRange * 0.5f)
                 {
@@ -415,10 +463,14 @@ namespace ProjectName.Systems
                     desiredPos = transform.position + dir * _speed * 1.5f * Time.deltaTime;
                     HandleObstacleAvoidance(ref desiredPos);
                     transform.position = desiredPos;
+
+                    // 애니메이션: Run (돌진)
+                    if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * 1.5f; _rigAnim.SetState(AnimationState.Run); }
                 }
             }
             else
             {
+                if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack);
                 TryAttack();
             }
         }
@@ -428,7 +480,13 @@ namespace ProjectName.Systems
         /// </summary>
         private void UpdateAdvanced(float dist)
         {
-            if (dist > _detectRange) return;
+            if (dist > _detectRange)
+            {
+                // 감지 범위 밖 → Idle
+                if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
+                    _rigAnim.SetState(AnimationState.Idle);
+                return;
+            }
 
             if (dist > _attackRange)
             {
@@ -441,9 +499,13 @@ namespace ProjectName.Systems
                 Vector3 desiredPos = transform.position + dir * _speed * speedMult * Time.deltaTime;
                 HandleObstacleAvoidance(ref desiredPos);
                 transform.position = desiredPos;
+
+                // 애니메이션: Walk (또는 Run)
+                if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * speedMult; _rigAnim.SetState(speedMult > 1.0f ? AnimationState.Run : AnimationState.Walk); }
             }
             else
             {
+                if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack);
                 TryAttack();
             }
         }
@@ -469,6 +531,9 @@ namespace ProjectName.Systems
         {
             if (Time.time - _lastAttackTime < _attackCooldown) return;
             _lastAttackTime = Time.time;
+
+            // 애니메이션: Attack
+            if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack);
 
             // 플레이어에게 실제 데미지
             if (PlayerHealth.Instance != null)
@@ -584,6 +649,9 @@ namespace ProjectName.Systems
 
             _isDead = true;
 
+            // 애니메이션: Idle (즉시)
+            if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
+
             // Generate drops (same logic as Die() but without LootBasket)
             int meatCount = _minMeat == _maxMeat ? _minMeat : Random.Range(_minMeat, _maxMeat + 1);
             if (_meatDrop != null && meatCount > 0)
@@ -608,6 +676,9 @@ namespace ProjectName.Systems
         {
             if (_isDead) return;
             _isDead = true;
+
+            // 애니메이션: Idle (즉시)
+            if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
 
             // 어그로 해제
             ClearAggro();
@@ -697,6 +768,9 @@ namespace ProjectName.Systems
             if (_collider != null) _collider.enabled = true;
             if (_renderer != null) _renderer.enabled = true;
             ApplyColor();
+
+            // 애니메이션: Idle
+            if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
         }
 
         private void OnDrawGizmosSelected()
@@ -810,6 +884,9 @@ namespace ProjectName.Systems
             if (_aggroTarget == null || _isDead)
             {
                 ClearAggro();
+                // Idle 애니메이션
+                if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
+                    _rigAnim.SetStateImmediate(AnimationState.Idle);
                 return;
             }
 
@@ -817,6 +894,9 @@ namespace ProjectName.Systems
             if (IsTargetDead())
             {
                 ClearAggro();
+                // Idle 애니메이션
+                if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
+                    _rigAnim.SetStateImmediate(AnimationState.Idle);
                 return;
             }
 
@@ -829,6 +909,10 @@ namespace ProjectName.Systems
                 dir.y = 0;
                 if (dir != Vector3.zero)
                     transform.rotation = Quaternion.LookRotation(dir);
+
+                // 애니메이션: Idle (경계)
+                if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
+                    _rigAnim.SetState(AnimationState.Idle);
                 return;
             }
 
@@ -850,6 +934,9 @@ namespace ProjectName.Systems
                         Vector3 desiredPos = transform.position + awayDir * _speed * AGGRO_SPEED_MULT * Time.deltaTime;
                         HandleObstacleAvoidance(ref desiredPos);
                         transform.position = desiredPos;
+
+                        // 애니메이션: Walk (도망)
+                        if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * AGGRO_SPEED_MULT; _rigAnim.SetState(AnimationState.Walk); }
                         break;
                     }
                     case "boar":
@@ -865,8 +952,11 @@ namespace ProjectName.Systems
                             Vector3 desiredPos = transform.position + dir * (_speed * 1.5f * AGGRO_SPEED_MULT) * Time.deltaTime;
                             HandleObstacleAvoidance(ref desiredPos);
                             transform.position = desiredPos;
+
+                            // 애니메이션: Walk (돌진)
+                            if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * 1.5f * AGGRO_SPEED_MULT; _rigAnim.SetState(AnimationState.Walk); }
                         }
-                        else { TryAttackAggroTarget(); }
+                        else { if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack); TryAttackAggroTarget(); }
                         break;
                     }
                     default:
@@ -882,8 +972,11 @@ namespace ProjectName.Systems
                             Vector3 desiredPos = transform.position + dir * _speed * AGGRO_SPEED_MULT * Time.deltaTime;
                             HandleObstacleAvoidance(ref desiredPos);
                             transform.position = desiredPos;
+
+                            // 애니메이션: Walk (추격)
+                            if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * AGGRO_SPEED_MULT; _rigAnim.SetState(AnimationState.Walk); }
                         }
-                        else { TryAttackAggroTarget(); }
+                        else { if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack); TryAttackAggroTarget(); }
                         break;
                     }
                 }
@@ -895,6 +988,9 @@ namespace ProjectName.Systems
         {
             if (Time.time - _lastAttackTime < _attackCooldown) return;
             _lastAttackTime = Time.time;
+
+            // 애니메이션: Attack
+            if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack);
 
             // IDamageable이면 데미지
             if (_aggroTarget != null)

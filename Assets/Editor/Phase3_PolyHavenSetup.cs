@@ -16,7 +16,7 @@ using System.IO;
 /// </summary>
 public static class Phase3_PolyHavenSetup
 {
-    private const string POLYHAVEN_PATH = "Assets/Resources/Models/PolyHeven";
+    private const string POLYHAVEN_PATH = "Assets/Models/PolyHeven";
 
     [MenuItem("Tools/Phase 3.9 - Poly Haven 모델 배치")]
     public static void SetupPolyHavenModels()

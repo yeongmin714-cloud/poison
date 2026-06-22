@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.Core.UI
 {
@@ -24,6 +25,9 @@ namespace ProjectName.Core.UI
         [Tooltip("Additional success rate bonus per player level (as percentage)")]
         [SerializeField] private float levelSuccessBonus = 0.01f; // 1% per level
 
+        [Header("Phase 33 Theme")]
+        [SerializeField] private UIDesignTheme _theme;
+
         private Dropdown herbDropdown1;
         private Dropdown herbDropdown2;
         private Button craftButton;
@@ -35,6 +39,10 @@ namespace ProjectName.Core.UI
 
         private void Awake()
         {
+            // Phase 33: create alchemy theme
+            if (_theme == null)
+                _theme = Phase33_Themes.CreateAlchemyTheme();
+
             CreateUI();
             PopulateDropdowns();
             SetupDropdownListeners();
@@ -68,9 +76,9 @@ namespace ProjectName.Core.UI
             panelRect.sizeDelta = new Vector2(400, 350);
             panelRect.anchoredPosition = Vector2.zero;
 
-            // Add background image (optional)
+            // Add background image with theme colors
             Image bg = panel.AddComponent<Image>();
-            bg.color = new Color(0f, 0f, 0f, 0.7f); // semi-transparent dark
+            bg.color = _theme != null ? _theme.BgColor : new Color(0f, 0f, 0f, 0.7f);
 
             // Create layout
             VerticalLayoutGroup layout = panel.AddComponent<VerticalLayoutGroup>();
@@ -95,7 +103,7 @@ namespace ProjectName.Core.UI
             GameObject resultGo = CreateLabel(panel, "", out resultText);
             resultText.alignment = TextAnchor.MiddleCenter;
             resultText.fontSize = 16;
-            resultText.color = Color.yellow;
+            resultText.color = _theme != null ? _theme.AccentColor : Color.yellow;
         }
 
         private void PopulateDropdowns()
@@ -199,7 +207,7 @@ namespace ProjectName.Core.UI
             GameObject go = new GameObject("Button");
             go.transform.SetParent(parent.transform, false);
             Image bg = go.AddComponent<Image>();
-            bg.color = new Color(0.2f, 0.6f, 0.2f, 0.9f);
+            bg.color = _theme != null ? _theme.AccentColor : new Color(0.2f, 0.6f, 0.2f, 0.9f);
             buttonOut = go.AddComponent<Button>();
             Text txt = go.AddComponent<Text>();
             txt.text = text;

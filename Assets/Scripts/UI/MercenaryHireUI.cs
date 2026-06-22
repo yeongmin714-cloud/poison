@@ -4,6 +4,7 @@ using ProjectName.Core;
 using ProjectName.Systems;
 using UnityEngine;
 using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -34,6 +35,8 @@ namespace ProjectName.UI
         private GUIStyle _msgStyle;
         private bool _stylesInitialized = false;
 
+        private UIDesignTheme _theme;
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -42,6 +45,7 @@ namespace ProjectName.UI
                 return;
             }
             Instance = this;
+            _theme = Phase33_Themes.MercenaryTheme();
         }
 
         private void Update()
@@ -84,14 +88,19 @@ namespace ProjectName.UI
 
             EnsureStyles();
 
-            float panelW = 520f;
-            float panelH = 420f;
+            float panelW = 620f;
+            float panelH = 520f;
             float x = (Screen.width - panelW) / 2f;
             float y = (Screen.height - panelH) / 2f;
 
             // 배경
+            Color bgColor = _theme != null ? _theme.BgColor : new Color(0.1f, 0.1f, 0.15f, 0.6f);
+            Color borderColor = _theme != null ? _theme.BorderColor : new Color(0.6f, 0.4f, 0.2f, 0.85f);
             GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "");
+            var oldColor = GUI.color;
+            GUI.color = bgColor;
             GUI.Box(new Rect(x, y, panelW, panelH), "");
+            GUI.color = oldColor;
 
             // 타이틀
             GUI.Label(new Rect(x + 10, y + 10, panelW - 20, 30), "🍺 용병 고용소", _titleStyle);

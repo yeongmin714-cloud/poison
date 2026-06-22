@@ -1,6 +1,7 @@
 using ProjectName.Core;
 using ProjectName.Systems;
 using UnityEngine;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -12,12 +13,13 @@ namespace ProjectName.UI
     {
         public static EscMenuUI Instance { get; private set; }
 
-        [SerializeField] private int _windowWidth = 350;
-        [SerializeField] private int _windowHeight = 400;
+        [SerializeField] private int _windowWidth = 450;
+        [SerializeField] private int _windowHeight = 500;
         [SerializeField] private int _buttonHeight = 50;
         [SerializeField] private int _buttonSpacing = 12;
 
         private bool _isOpen;
+        private UIDesignTheme _theme;
         private GUIStyle _titleStyle;
         private GUIStyle _buttonStyle;
         private bool _stylesInit;
@@ -27,6 +29,7 @@ namespace ProjectName.UI
             if (Instance != null) { Destroy(gameObject); return; }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            _theme = Phase33_Themes.EscMenuTheme();
         }
 
         private void Update()

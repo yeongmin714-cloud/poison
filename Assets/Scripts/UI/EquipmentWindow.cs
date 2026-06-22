@@ -1,5 +1,6 @@
 using ProjectName.Core;
 using ProjectName.Systems;
+using ProjectName.UI.Themes;
 using UnityEngine;
 using ProjectName.Core.Data;
 
@@ -15,8 +16,8 @@ namespace ProjectName.UI
         [SerializeField] private EquipmentManager _equipmentManager;
 
         // ===== 레이아웃 상수 =====
-        private const float WINDOW_WIDTH = 400f;
-        private const float WINDOW_HEIGHT = 450f;
+        private const float WINDOW_WIDTH = 520f;
+        private const float WINDOW_HEIGHT = 560f;
         private const float TITLE_BAR_HEIGHT = 40f;
         private const float SLOT_HEIGHT = 50f;
         private const float SLOT_GAP = 4f;
@@ -71,6 +72,8 @@ namespace ProjectName.UI
         protected override void Awake()
         {
             base.Awake();
+            // Phase 33 UI-03: 장비창 테마 적용
+            ApplyTheme(Phase33_Themes.CreateEquipmentTheme());
             if (_equipmentManager == null)
                 _equipmentManager = FindObjectOfType<EquipmentManager>();
         }

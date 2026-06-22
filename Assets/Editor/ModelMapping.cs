@@ -19,7 +19,7 @@ public static class ModelMapping
         return glbFileName.ToLowerInvariant() switch
         {
             // ===== 플레이어 =====
-            "player"             => ("Player", "child"),
+            // player_rigged 우선, 기본 player.glb는 미사용 (Static 모델로 덮어쓰기 방지)
             "player_rigged"      => ("Player", "child"),
 
             // ===== 건물 =====
@@ -30,17 +30,71 @@ public static class ModelMapping
             "red_castle"         => ("Placeholder_Castle_Red", "replace"),
             "kingdom"            => ("Placeholder_Kingdom", "replace"),
 
-            // ===== 도구 =====
+            // ===== 건물 (from glb/건물/) =====
+            "bar"                => ("Placeholder_Bar", "replace"),
+            "castle"             => ("Placeholder_Castle", "replace"),
+            "shop"               => ("Placeholder_Shop", "replace"),
+            "east_flag"          => ("Placeholder_EastFlag", "replace"),
+            "west_flag"          => ("Placeholder_WestFlag", "replace"),
+            "south_flag"         => ("Placeholder_SouthFlag", "replace"),
+            "north_flag"         => ("Placeholder_NorthFlag", "replace"),
+            "kingdom_flag"       => ("Placeholder_KingdomFlag", "replace"),
+            "player_flag_1"      => ("Placeholder_PlayerFlag1", "replace"),
+            "player_flag_2"      => ("Placeholder_PlayerFlag2", "replace"),
+            "player_flag_3"      => ("Placeholder_PlayerFlag3", "replace"),
+            "player_flag_4"      => ("Placeholder_PlayerFlag4", "replace"),
+
+            // ===== 도구/제작대 =====
             "craft_blend"        => ("Placeholder_CraftingTable", "replace"),
             "craft_cook"         => ("Placeholder_CookingStation", "replace"),
+            "craftingtable"      => ("Placeholder_CraftingTable", "replace"),
+            "craft_equipment"    => ("Placeholder_CraftEquipment", "replace"),
+            "hut_interior"       => ("Placeholder_HutInterior", "replace"),
 
             // ===== NPC =====
             "lord_npc"           => ("Placeholder_Lord", "replace"),
             "npc_lord_rigged"    => ("Placeholder_Lord", "replace"),
 
+            // ===== NPC 기본 버전 =====
+            "npc_girl1"           => ("NPC_Girl1", "replace"),
+            "npc_girl2"           => ("NPC_Girl2", "replace"),
+            "npc_girl3"           => ("NPC_Girl3", "replace"),
+            "npc_man1"            => ("NPC_Man1", "replace"),
+            "npc_man2"            => ("NPC_Man2", "replace"),
+            "npc_oldman1"         => ("NPC_Oldman1", "replace"),
+            "npc_oldman2"         => ("NPC_Oldman2", "replace"),
+            "npc_shop"            => ("NPC_Shop", "replace"),
+            "npc_king"            => ("NPC_King", "replace"),
+            "npc_dracula"         => ("NPC_Dracula", "replace"),
+
+            // ===== NPC (Rigged — from glb/Npc/Rigged/) =====
+            "npc_shop_rigged"     => ("NPC_Shop", "replace"),
+            "npc_girl1_rigged"    => ("NPC_Girl1", "replace"),
+            "npc_girl2_rigged"    => ("NPC_Girl2", "replace"),
+            "npc_girl3_rigged"    => ("NPC_Girl3", "replace"),
+            "npc_man1_rigged"     => ("NPC_Man1", "replace"),
+            "npc_man2_rigged"     => ("NPC_Man2", "replace"),
+            "npc_oldman1_rigged"  => ("NPC_Oldman1", "replace"),
+            "npc_oldman2_rigged"  => ("NPC_Oldman2", "replace"),
+            "npc_dracula_rigged"  => ("NPC_Dracula", "replace"),
+            "npc_king_rigged"     => ("NPC_King", "replace"),
+
             // ===== 병사 =====
             "soldier"            => ("Placeholder_Soldier", "replace"),
             "soldier_rigged"     => ("Placeholder_Soldier", "replace"),
+
+            // ===== 병사 (티어드 — from glb/병사/Rigged/) =====
+            "soldier_lv1-20_rigged"   => ("Placeholder_Soldier", "replace"),
+            "soldier_lv20-40_rigged"  => ("Placeholder_Soldier", "replace"),
+            "soldier_lv40-50_rigged"  => ("Placeholder_Soldier", "replace"),
+
+            // ===== 용병 기본 =====
+            "bard"                    => ("Placeholder_Bard", "replace"),
+            "mercenary"               => ("Placeholder_Mercenary", "replace"),
+
+            // ===== 용병 (from glb/용병/Rigged/) =====
+            "bard_rigged"              => ("Placeholder_Bard", "replace"),
+            "mercenary_rigged"         => ("Placeholder_Mercenary", "replace"),
 
             // ===== 약초 =====
             "herb_red"           => ("Placeholder_Herb_Red", "replace"),
@@ -49,6 +103,7 @@ public static class ModelMapping
             "herb_purple"        => ("Placeholder_Herb_Purple", "replace"),
             "herb_yellow"        => ("Placeholder_Herb_Yellow", "replace"),
             "herb_silver"        => ("Placeholder_Herb_Silver", "replace"),
+            "herb_gold"          => ("Placeholder_Herb_Gold", "replace"),
 
             // ===== 몬스터 (초반) =====
             "rabbit"             => ("Placeholder_Rabbit", "replace"),
@@ -59,6 +114,8 @@ public static class ModelMapping
             "bat"                => ("Placeholder_Bat", "replace"),
             "snake"              => ("Placeholder_Snake", "replace"),
             "giant_rat"          => ("Placeholder_GiantRat", "replace"),
+            "big_mouse"          => ("Placeholder_BigMouse", "replace"),
+            "ice_spider"         => ("Placeholder_IceSpider", "replace"),
 
             // ===== 몬스터 (중반) =====
             "slime"              => ("Placeholder_Slime", "replace"),
@@ -78,12 +135,53 @@ public static class ModelMapping
             "salamander"         => ("Placeholder_Salamander", "replace"),
             "shadow_assassin"    => ("Placeholder_ShadowAssassin", "replace"),
 
+            // ===== 몬스터 (rigged — from glb/몬스터/rigged/) =====
+            "rabbit_rigged"               => ("Placeholder_Rabbit", "replace"),
+            "wolf_rigged"                 => ("Placeholder_Wolf", "replace"),
+            "boar_rigged"                 => ("Placeholder_Boar", "replace"),
+            "deer_rigged"                 => ("Placeholder_Deer", "replace"),
+            "crow_rigged"                 => ("Placeholder_Crow", "replace"),
+            "bat_rigged"                  => ("Placeholder_Bat", "replace"),
+            "snake_rigged"                => ("Placeholder_Snake", "replace"),
+            "big_mouse_rigged"            => ("Placeholder_GiantRat", "replace"),
+            "slime_rigged"                => ("Placeholder_Slime", "replace"),
+            "golem_rigged"                => ("Placeholder_Golem", "replace"),
+            "fire_lizard_rigged"          => ("Placeholder_FireLizard", "replace"),
+            "electric_spine_hedgehog_rigged" => ("Placeholder_ElectricPorcupine", "replace"),
+            "swamp_alligator_rigged"      => ("Placeholder_SwampCroc", "replace"),
+            "wild_troll_rigged"           => ("Placeholder_WildTroll", "replace"),
+            "wooden_forest_spirit_rigged" => ("Placeholder_ForestSpirit", "replace"),
+            "swamp_ogre_rigged"           => ("Placeholder_Ogre", "replace"),
+            "banshee_rigged"              => ("Placeholder_Banshee", "replace"),
+            "griffon_rigged"              => ("Placeholder_Griffin", "replace"),
+            "minotaur_rigged"             => ("Placeholder_Minotaur", "replace"),
+            "manticore_rigged"            => ("Placeholder_Manticore", "replace"),
+            "salamander_rigged"           => ("Placeholder_Salamander", "replace"),
+            "shadow_assassin_rigged"      => ("Placeholder_ShadowAssassin", "replace"),
+
+            // ===== 요리 (씬에 있는 경우 대비) =====
+            "grilled_skin"         => ("Placeholder_Food", "replace"),
+            "roasted_chicken"      => ("Placeholder_Food", "replace"),
+            "soup"                 => ("Placeholder_Food", "replace"),
+            "stake"                => ("Placeholder_Food", "replace"),
+            "tempura"              => ("Placeholder_Food", "replace"),
+            "yakitori_skewer"      => ("Placeholder_Food", "replace"),
+            "puding"               => ("Placeholder_Food", "replace"),
+
             // ===== 포션/아이템 =====
             "potion_heal"        => ("Placeholder_Potion_Heal", "replace"),
             "potion_poison"      => ("Placeholder_Potion_Poison", "replace"),
             "potion_drug"        => ("Placeholder_Potion_Drug", "replace"),
             "potion_antidote"    => ("Placeholder_Potion_Antidote", "replace"),
             "recipebook"         => ("Placeholder_RecipeBook", "replace"),
+
+            // ===== 화살/폭탄/소모품 =====
+            "arrow"              => ("Placeholder_Arrow", "replace"),
+            "arrow2"             => ("Placeholder_Arrow", "replace"),
+            "arrow3"             => ("Placeholder_Arrow", "replace"),
+            "bomb"               => ("Placeholder_Bomb", "replace"),
+            "scroll"             => ("Placeholder_Scroll", "replace"),
+            "gas_mask"           => ("Placeholder_GasMask", "replace"),
 
             _                    => (null, null),
         };

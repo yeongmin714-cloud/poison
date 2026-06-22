@@ -1,6 +1,7 @@
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -9,6 +10,11 @@ namespace ProjectName.UI
     /// </summary>
     public class QuestWindow : UIWindow
     {
+        protected virtual void Start()
+        {
+            ApplyTheme(Phase33_Themes.CreateQuestTheme());
+        }
+
         [Header("Quest Window")]
         [SerializeField] private Transform _questListContainer;
 
@@ -43,8 +49,8 @@ namespace ProjectName.UI
 
             EnsureStyles();
 
-            float panelW = 500f;
-            float panelH = 400f;
+            float panelW = 600f;
+            float panelH = 500f;
             float x = (Screen.width - panelW) / 2f;
             float y = (Screen.height - panelH) / 2f;
 

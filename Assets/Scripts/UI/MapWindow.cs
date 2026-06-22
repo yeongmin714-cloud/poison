@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Systems;
+using ProjectName.UI.Themes;
 using UnityEngine;
 
 namespace ProjectName.UI
@@ -50,14 +51,38 @@ namespace ProjectName.UI
         protected override void Awake()
         {
             base.Awake();
+            ApplyTheme(Phase33_Themes.CreateMapTheme());
             CacheTerritories();
             _empireDiscovered = PlayerPrefs.GetInt(EMPIRE_DISCOVERED_KEY, 0) == 1;
         }
 
         protected override void OnShow()
         {
+            // Phase 33: 배경 패턴 텍스처 (base.OnShow가 처리)
+            base.OnShow();
+
             Debug.Log("[MapWindow] 열림 — 지도 갱신");
             RefreshMap();
+
+            // Phase 33 UI-02: 추가 장식 요소 렌더링
+            if (_theme != null && _windowRoot != null)
+            {
+                var bgTex = ProceduralTextureGenerator.GetPatternTexture(_theme.CurrentPattern);
+                if (bgTex != null)
+                {
+                    var rect = _windowRoot.GetComponent<RectTransform>();
+                    if (rect != null)
+                    {
+                        var rectRect = rect.rect;
+                        var worldRect = new Rect(
+                            rect.position.x + rectRect.x,
+                            rect.position.y + rectRect.y,
+                            rectRect.width, rectRect.height);
+                        // 모서리 스크롤 장식 느낌으로 반투명 오버레이
+                        GUI.DrawTexture(worldRect, bgTex, ScaleMode.StretchToFill);
+                    }
+                }
+            }
         }
 
         protected override void OnHide()

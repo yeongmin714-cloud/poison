@@ -8,7 +8,7 @@ using System.IO;
 /// </summary>
 public static class Phase3_TerrainTextureSetup
 {
-    private const string POLYHAVEN_PATH = "Assets/Resources/Models/PolyHeven";
+    private const string POLYHAVEN_PATH = "Assets/Models/PolyHeven";
 
     [MenuItem("Tools/Phase 3.10 - 지형 텍스처 적용")]
     public static void SetupTerrainTextures()

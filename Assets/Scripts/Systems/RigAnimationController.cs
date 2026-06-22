@@ -142,7 +142,7 @@ namespace ProjectName.Systems
         private void Update()
         {
             // Update animator parameters each frame
-            if (_animator != null && _animator.isActiveAndEnabled)
+            if (_animator != null && _animator.isActiveAndEnabled && _animator.runtimeAnimatorController != null)
             {
                 _animator.SetFloat(_speedParam, _currentSpeed);
                 _animator.SetInteger(_stateParam, (int)_currentState);
@@ -160,6 +160,9 @@ namespace ProjectName.Systems
         /// <param name="newState">The target animation state.</param>
         public void SetState(AnimationState newState)
         {
+            if (_animator == null || _animator.runtimeAnimatorController == null)
+                return;
+
             if (newState == _currentState && !IsTransitioning)
                 return;
 
@@ -175,6 +178,9 @@ namespace ProjectName.Systems
         /// <param name="state">The animation state to apply.</param>
         public void SetStateImmediate(AnimationState state)
         {
+            if (_animator == null || _animator.runtimeAnimatorController == null)
+                return;
+
             if (_transitionCoroutine != null)
             {
                 StopCoroutine(_transitionCoroutine);
@@ -268,7 +274,7 @@ namespace ProjectName.Systems
         /// </summary>
         private void ApplyAnimatorState(AnimationState state)
         {
-            if (_animator == null || !_animator.isActiveAndEnabled)
+            if (_animator == null || !_animator.isActiveAndEnabled || _animator.runtimeAnimatorController == null)
                 return;
 
             // Reset all triggers first

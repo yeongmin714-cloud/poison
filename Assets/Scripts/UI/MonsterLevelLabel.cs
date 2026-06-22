@@ -1,6 +1,7 @@
 using ProjectName.Core;
 using ProjectName.Systems;
 using UnityEngine;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -29,6 +30,7 @@ namespace ProjectName.UI
         [SerializeField] private Color _highColor = Color.red;
 
         // 캐싱
+        private UIDesignTheme _theme;
         private AnimalAI _ai;
         private Transform _playerCam;
         private int _level;
@@ -43,6 +45,7 @@ namespace ProjectName.UI
         private void Awake()
         {
             _ai = GetComponent<AnimalAI>();
+            _theme = Phase33_Themes.MonsterLevelTheme();
         }
 
         private void Start()

@@ -25,6 +25,9 @@ namespace ProjectName.Systems
         private Transform _player;
         private bool _isDead;
 
+        // Rig animation
+        private RigAnimationController _rigAnim;
+
         // Placeholder 오브젝트 참조
         private GameObject _head;
         private GameObject _body;
@@ -40,6 +43,16 @@ namespace ProjectName.Systems
         private void Awake()
         {
             _currentHP = _maxHP;
+
+            // Rig animation setup
+            _rigAnim = GetComponent<RigAnimationController>();
+            if (_rigAnim == null)
+            {
+                Animator anim = GetComponent<Animator>();
+                if (anim != null && anim.runtimeAnimatorController != null)
+                    _rigAnim = gameObject.AddComponent<RigAnimationController>();
+            }
+
             CreatePlaceholderVisual();
         }
 
@@ -48,11 +61,20 @@ namespace ProjectName.Systems
             var playerGo = GameObject.FindGameObjectWithTag("Player");
             if (playerGo != null)
                 _player = playerGo.transform;
+
+            // 기본 Idle 애니메이션
+            if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
         }
 
         private void Update()
         {
-            if (_isDead || _player == null) return;
+            if (_isDead || _player == null)
+            {
+                // 사망 또는 플레이어 없음 → Idle
+                if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
+                    _rigAnim.SetState(AnimationState.Idle);
+                return;
+            }
 
             float dist = Vector3.Distance(transform.position, _player.position);
 
@@ -63,6 +85,15 @@ namespace ProjectName.Systems
                 dir.y = 0;
                 transform.position += dir * _moveSpeed * Time.deltaTime;
                 transform.rotation = Quaternion.LookRotation(dir);
+
+                // 이동 애니메이션: Walk
+                if (_rigAnim != null) { _rigAnim.CurrentSpeed = _moveSpeed; _rigAnim.SetState(AnimationState.Walk); }
+            }
+            else
+            {
+                // 감지 범위 밖 → Idle
+                if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
+                    _rigAnim.SetState(AnimationState.Idle);
             }
         }
 
@@ -130,6 +161,9 @@ namespace ProjectName.Systems
         {
             if (_isDead) return;
             _isDead = true;
+
+            // 사망 애니메이션 (Idle 즉시 적용)
+            if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
 
             if (_verbose)
                 Debug.Log("[SkeletonGuard] 사망!");

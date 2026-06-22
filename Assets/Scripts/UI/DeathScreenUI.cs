@@ -1,6 +1,7 @@
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -19,6 +20,7 @@ namespace ProjectName.UI
         private float _fadeTimer;
         private bool _isFading;
 
+        private UIDesignTheme _theme;
         private GUIStyle _titleStyle;
         private GUIStyle _buttonStyle;
         private GUIStyle _subTextStyle;
@@ -29,6 +31,7 @@ namespace ProjectName.UI
             if (Instance != null) { Destroy(gameObject); return; }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            _theme = Phase33_Themes.DeathTheme();
         }
 
         public void Show()

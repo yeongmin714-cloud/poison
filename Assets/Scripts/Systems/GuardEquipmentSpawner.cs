@@ -28,7 +28,7 @@ namespace ProjectName.Systems
             // GuardEquipmentSystem 인스턴스가 없으면 동작하지 않음
             if (GuardEquipmentSystem.Instance == null)
             {
-                Debug.LogWarning("[GuardEquipmentSpawner] GuardEquipmentSystem.Instance가 없습니다. 장비 생성을 건너뜁니다.");
+                Debug.Log("[GuardEquipmentSpawner] GuardEquipmentSystem.Instance가 없습니다. 장비 생성을 건너뜁니다.");
                 return;
             }
 

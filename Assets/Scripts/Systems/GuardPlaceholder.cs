@@ -48,8 +48,22 @@ namespace ProjectName.Systems
         private string _statusMessage = "";
         private Vector2 _invScrollPos;
 
+        // Rig animation
+        private RigAnimationController _rigAnim;
+
         private const float HP_BAR_WIDTH = 150f;
         private const float LABEL_WIDTH = 80f;
+
+        private void Awake()
+        {
+            _rigAnim = GetComponent<RigAnimationController>();
+            if (_rigAnim == null)
+            {
+                Animator anim = GetComponent<Animator>();
+                if (anim != null && anim.runtimeAnimatorController != null)
+                    _rigAnim = gameObject.AddComponent<RigAnimationController>();
+            }
+        }
 
         public void SetGuardInfo(string name, int lvl, NationType nationType)
         {
@@ -74,6 +88,9 @@ namespace ProjectName.Systems
         private void Start()
         {
             _currentHP = _maxHP;
+
+            // 기본 Idle 애니메이션
+            if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
 
             // C32-04~06: 병사 장비 자동 생성 및 장착
             GuardEquipmentSpawner.SpawnEquipment(gameObject, level);
@@ -357,6 +374,9 @@ namespace ProjectName.Systems
             if (_isDead) return;
             _isDead = true;
 
+            // 사망 애니메이션 (Idle 즉시 적용)
+            if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
+
             // 사망 이벤트 발생 (GuardResurrectionSystem 등에서 구독)
             OnAnyGuardDied?.Invoke(this);
 
@@ -430,7 +450,7 @@ namespace ProjectName.Systems
         private bool _isInCombat = false;
         private float _combatTimer = 0f;
 
-        public void SetInCombat(bool combat) { _isInCombat = combat; _combatTimer = 0f; }
+        public void SetInCombat(bool combat) { _isInCombat = combat; _combatTimer = 0f; if (_rigAnim != null) _rigAnim.SetState(combat ? AnimationState.Attack : AnimationState.Idle); }
         public bool IsInCombat => _isInCombat;
         public float CombatTimer => _combatTimer;
         public void UpdateCombatTimer(float delta) { if (_isInCombat) _combatTimer += delta; }

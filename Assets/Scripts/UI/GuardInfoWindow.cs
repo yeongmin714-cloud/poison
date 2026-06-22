@@ -3,6 +3,7 @@ using ProjectName.Core;
 using ProjectName.Systems;
 using UnityEngine;
 using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -31,6 +32,7 @@ namespace ProjectName.UI
         // ===== 창 상태 =====
         private bool _isVisible = false;
         public bool IsOpen => _isVisible;
+        private UIDesignTheme _theme;
         private Vector2 _scrollPos;
         private Vector2 _buffScrollPos;
 
@@ -43,8 +45,8 @@ namespace ProjectName.UI
         private GUIStyle _styleHeader;
 
         // ===== 상수 =====
-        private const float WINDOW_WIDTH = 420f;
-        private const float WINDOW_HEIGHT = 560f;
+        private const float WINDOW_WIDTH = 520f;
+        private const float WINDOW_HEIGHT = 640f;
         private const float HP_BAR_WIDTH = 180f;
         private const float SLOT_ICON_SIZE = 50f;
 
@@ -57,6 +59,7 @@ namespace ProjectName.UI
             }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            _theme = Phase33_Themes.GuardInfoTheme();
         }
 
         private void Update()

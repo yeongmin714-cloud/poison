@@ -2,6 +2,7 @@ using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -11,6 +12,7 @@ namespace ProjectName.UI
     /// </summary>
     public class ChurchUI : UIWindow
     {
+        private UIDesignTheme _churchTheme;
         private string _currentTerritoryId = "default";
         private string _statusMessage = "";
         private double _messageTimer;
@@ -22,6 +24,9 @@ namespace ProjectName.UI
 
         public override void Show()
         {
+            if (_churchTheme == null)
+                _churchTheme = Phase33_Themes.ChurchTheme();
+            ApplyTheme(_churchTheme);
             base.Show();
             _statusMessage = "";
         }

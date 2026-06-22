@@ -3,6 +3,7 @@ using ProjectName.Core;
 using ProjectName.Systems;
 using UnityEngine;
 using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -13,9 +14,14 @@ namespace ProjectName.UI
     /// </summary>
     public class RepairStationUI : UIWindow
     {
+        protected virtual void Start()
+        {
+            ApplyTheme(Phase33_Themes.CreateRepairTheme());
+        }
+
         [Header("Repair Station Settings")]
-        [SerializeField] private int _windowWidth = 520;
-        [SerializeField] private int _windowHeight = 420;
+        [SerializeField] private int _windowWidth = 620;
+        [SerializeField] private int _windowHeight = 500;
 
         // ── 상태 ──
         private string _statusMessage = "";
