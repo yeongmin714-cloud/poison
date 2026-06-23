@@ -430,3 +430,73 @@
 - Status: ✅
 - Details: HerbRespawnUI — 녹색 자연 테마(Glass+Filigree). MonsterLevelLabel — 기본 테마(Stone). GuardWorldSpaceHUD — 이미 UI-13에서 완료. Phase33_Themes.HerbRespawnTheme()/MonsterLevelTheme() 적용.
 - Tests: 6개
+
+---
+
+## 추가사항 #30: 🏹 활 화살 시스템 (ROADMAP AB-01~06)
+
+# Cycle: AB-01 — 화살 아이템 데이터
+- Status: ✅
+- Details: ArrowData.cs — ArrowType enum(Regular/Reinforced/Magic), damageBonus(0/5/15), trailColor, GetItemId(), 정적 프로퍼티
+- Tests: ArrowSystemTests.cs — ArrowData 18개 (enum/생성자/displayName/damageBonus/description/rarity/goldCost/trailColor/GetItemId)
+
+# Cycle: AB-02 — 화살 소모 로직
+- Status: ✅
+- Details: ArrowManager.GetTotalArrowCount()/AddArrows()/ConsumeBestArrow() — Magic>Reinforced>Regular 우선 소모
+- Tests: ArrowSystemTests.cs — 소모 14개 (빈인벤토리/AddArrows/HasArrows/ConsumeBestArrow 우선순위/개수감소)
+
+# Cycle: AB-03 — 화살 부족 처리
+- Status: ✅
+- Details: TryShootArrow() — 화살 부족 시 false 반환 + 로그, 화살 있으면 true 반환 + 1개 소모
+- Tests: ArrowSystemTests.cs — 부족처리 6개 (빈상태/false/true/소모/마지막/LogAssert)
+
+# Cycle: AB-04 — 화살 발사체
+- Status: ✅
+- Details: ArrowProjectile.Spawn() — GameObject 생성(Cylinder), Rigidbody+TrailRenderer, velocity/speed/damage/trailColor 설정
+- Tests: ArrowSystemTests.cs — 발사체 12개 (Spawn/컴포넌트/velocity/damage/trailColor/position/방향)
+
+# Cycle: AB-05 — 발사 궤적 & 획득 경로
+- Status: ✅
+- Details: ArrowManager.SetSpawnPoint(), _arrowSpeed 필드, 상점/크래프트/몬스터 드랍 연동 구조
+- Tests: ArrowSystemTests.cs — 궤적/획득 4개 (SetSpawnPoint/null/arrowSpeed)
+
+# Cycle: AB-06 — 통합 테스트
+- Status: ✅
+- Details: AddArrows→TryShootArrow 연결, 다중 화살타입 우선소모, 스택 머징, damageBonus 계산
+- Tests: ArrowSystemTests.cs — 통합 8개 (full flow/우선소모/스택/데미지보너스)
+- Date: 2026-06-23
+
+---
+
+## 추가사항 #31: 🎉 조합 성공 환호 & 결과창 (ROADMAP CR-01~06)
+
+# Cycle: CR-01 — 환호 애니메이션 데이터
+- Status: ✅
+- Details: CraftResult enum (Success/Fail_MaterialPreserved/Fail_MaterialDestroyed/Fail_Burned), GetBaseSuccessRate() 등급별 확률
+- Tests: CraftCelebrationTests.cs — 데이터 10개 (enum/CraftResult/GetBaseSuccessRate/Common=0.90/Uncommon=0.75/Rare=0.60/Epic=0.45/Legendary=0.30/default)
+
+# Cycle: CR-02 — 제작 결과창 UI
+- Status: ✅
+- Details: CraftResultPopup.ShowSuccess(아이템명/등급/효과)/ShowFailure(0/1/2)/OnPopupGUI(), IsShowing, 타이머 자동 Fade Out
+- Tests: CraftCelebrationTests.cs — 결과창 11개 (ShowSuccess/ShowFailure/IsShowing/OnPopupGUI/메시지/색상/등급)
+
+# Cycle: CR-03 — 등급별 색상/효과
+- Status: ✅
+- Details: EquipmentRarityData.GetRarityColor() / GetRarityDisplayName() — 6개 희귀도 한글명+색상
+- Tests: CraftCelebrationTests.cs — 등급색상 6개 (distinct colors/Korean names/all 6 rarities/no duplicates)
+
+# Cycle: CR-04 — 실패 메시지
+- Status: ✅
+- Details: ShowFailure(0=재료보존/1=소멸/2=전소), 실패 분포 40%/40%/20%, GetFinalSuccessRate 알케미/요리 보정
+- Tests: CraftCelebrationTests.cs — 실패처리 7개 (failType별/GetAlchemyBonus/GetCookingBonus/분포/보정)
+
+# Cycle: CR-05 — 크래프트 시스템 연동
+- Status: ✅
+- Details: GetFinalSuccessRate 0~1 클램프, GetGradeFromItemId 접두사 기반 등급 추정, ExecuteCraft 성공률 통계
+- Tests: CraftCelebrationTests.cs — 연동 8개 (clamp/GradeFromId/ExecuteCraft/90%통계)
+
+# Cycle: CR-06 — 통합 테스트
+- Status: ✅
+- Details: ShowSuccess→타이머→IsShowing false, ShowFailure 각 타입, 연속 호출 스택
+- Tests: CraftCelebrationTests.cs — 통합 8개 (timer expire/success+failure sequential/reflection)
+- Date: 2026-06-23
