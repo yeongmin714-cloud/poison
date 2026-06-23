@@ -1,6 +1,5 @@
 using UnityEngine;
 using ProjectName.Core;
-using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.Core.Data;
 using ProjectName.UI.Themes;
