@@ -51,7 +51,7 @@ namespace ProjectName.UI
 
             _titleStyle = new GUIStyle
             {
-                fontSize = 20,
+                fontSize = 30,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = TitleColor }
@@ -59,7 +59,7 @@ namespace ProjectName.UI
 
             _closeButtonStyle = new GUIStyle
             {
-                fontSize = 18,
+                fontSize = 26,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white, background = MakeTexture(1, 1, CloseBtnColor) }
@@ -80,7 +80,7 @@ namespace ProjectName.UI
 
             _labelStyle = new GUIStyle
             {
-                fontSize = 14,
+                fontSize = 20,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = TextColor },

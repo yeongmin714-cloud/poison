@@ -551,14 +551,14 @@ namespace ProjectName.UI
 
             _playerIconStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 10,
+                fontSize = 15,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.cyan },
             };
 
             _territoryDotStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 9,
+                fontSize = 14,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white },
@@ -566,14 +566,14 @@ namespace ProjectName.UI
 
             _labelStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 9,
+                fontSize = 14,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = new Color(1f, 1f, 1f, 0.7f) },
             };
 
             _zoomLabelStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 10,
+                fontSize = 15,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleRight,
                 normal = { textColor = Color.white },

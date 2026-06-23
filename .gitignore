@@ -72,3 +72,13 @@ swap_log*Library.backup/
 Editor.log
 *.log
 Library.backup
+
+# Backup files
+*_Backup.*
+*_Backup.tar.gz
+*_Backup.zip
+UserProvided_Archive/
+NUL
+
+# Temp scripts
+sync_to_mybox.sh

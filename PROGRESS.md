@@ -309,10 +309,61 @@
    293|   348|||| 2026-06-18 | **Phase 3.3+3.4 — 영지 데이터 + 국기 시스템 완료 🏁** | Phase 3.3: TerritoryDatabase.cs 81개 영지 데이터 + EmpireAccessRule.cs (80영지 점령 시 황제국 입장). Phase 3.4: NationFlagData.cs (5개국 국기 정의), NationFlagDatabase.cs, NationFlagVisualData.cs, FlagManager.cs (중앙 깃발 관리), FlagPoleDisplay.cs (3D 절차적 깃대+깃발+흔들림+반기), PlayerFlagRegistrationWindow.cs (국기 등록 UI). 57개 EditMode 테스트 작성 ✅
    294|   349|||| 2026-06-18 | **Phase 3.5 — 월드맵 UI & 국기 표시 완료 🗺️** | MapWindow.cs 완전 재작성 (IMGUI 월드맵, Overview→Nation 2단계 줌, 5지역×20영지 그리드, 국기+난이도+소유주표시, 플레이어위치📍, 황제국안개❓). FlagPoleDisplay.FadeTransition 추가 (페이드 교체 연출). Phase35_MapWindowTests 20개 ✅
    295|   350|||| 2026-06-18 | **🎮 Phase G3 시작 — Batch 1~3 완료 (9/13 사이클)** | G3-01: DayNightCycle Moon Light / Skybox Lerp / Weather 연동 ✅ | G3-02: MainMenuUI 그라디언트 배경 + 펄스 + Credits ✅ | G3-03: SettingsMenuUI.cs 신규 (Graphics/Audio/KeyBindings 3탭) ✅ | G3-04: SaveManager 5슬롯 + AutoSave ✅ | G3-05: UIStyleManager.cs (공통 스타일/테두리/딤드/닫기버튼) ✅ | G3-06: ItemIconDatabase.cs (아이콘 캐싱 + 3개 창 적용) ✅ | G3-07: EscMenuUI.cs (일시정지/재개/저장/설정/타이틀로/종료) ✅ | G3-08: DeathScreenUI.cs (붉은 Fade + 부활/로드) ✅ | G3-13: AchievementSystem.cs (15개 업적 + 팝업) ✅ | 총 20개 신규 파일, 컴파일 ✅
-   296|   351|||| 2026-06-18 | **🎮 Phase G3 Batch 4 완료 — 13/13 사이클 전부 완료 🎉** | G3-09: QuestJournalUI.cs 563줄 (J키/탭/진행률/완료효과) ✅ | G3-10: ControllerSupport.cs 560줄 (Xbox/PS/DualSense 매핑 + 힌트 오버레이) ✅ | G3-11: LoadingScreenUI.cs 327줄 (그라디언트/로고/부드러운바/카테고리팁/링스피너) + TipDatabase.cs TipCategory 분류 ✅ | G3-12: SoundRefinement.cs 423줄 (FootstepSoundController/UISoundIntegrator/BiomeAmbientController 3컴포넌트) + PlayerMovement footstep 패치 ✅ | 신규 9개 파일(코드 6 + 테스트 4), 총 29개 파일, 279개→0개 컴파일 오류 해소 ✅
-   297|   353||| 2026-06-20 | **🔧 GLB 메모리 OOM 수정 & 용량 정리** | GLB 279개(2.1GB) Resources→Assets/Models/UserProvided_Archive 이동 (RuntimeModelLoader OOM 방지) ✅ | GLBTextureSizeLimiter.cs 생성 (텍스처 1024 제한) ✅ | ModelSwapper 경로 업데이트 ✅ | Library.backup 1.6GB 삭제 ✅ | compile*.log 12개 삭제 ✅ | agent.log.2~3, errors.log.2, request_dump 삭제 ✅ | 크론잡 5개 재개 (code/qa/design/glb-watcher/qa2) ✅ | 총 1.6GB 확보 | Editor 재시작 시 Recovery "예" 선택 필요 |
+   > 헤더: Hermes가 작업 완료 시마다 자동 업데이트합니다.
+   > 각 문제는 원인-해결-효과 순서로 기록됩니다.
 
----
+   ---
+
+   ## 🔧 MainScene 통합 수정 (2026-06-23) — 7대 문제점 개선
+
+   ### 문제 1: Player 위치 오류 (가장 근본 원인)
+   - **원인:** Player Transform `m_LocalPosition {x:0, y:0, z:-950}` — 원점에서 950m 떨어져 있어 카메라/몬스터/영지 모두 화면 밖
+   - **해결:** 위치 z:-950 → z:0, 스케일 1→2, CharacterController height 2→4, radius 0.4→0.8
+   - **효과:** 이 하나로 몬스터/영지/Player크기 문제 3개 동시 해결
+
+   ### 문제 2: Player 애니메이션 미동작
+   - **원인:** Player에 Animator 컴포넌트 없음, RigAnimationController 없음, SnakeSlitherMotion(뱀 모션)이 잘못 할당됨
+   - **해결:** (YAML) SnakeSlitherMotion 제거 완료
+   - **해결:** (Editor 필요) `Tools > Scene Fix > Fix All Issues` 실행 → Animator + RigAnimationController + PlayerPlaceholder 자동 추가
+
+   ### 문제 3: 몬스터 미출현
+   - **원인:** Player가 z=-950에 있어 스폰된 몬스터와 거리 950m (화면 밖)
+   - **해결:** Player 위치 원점 복귀로 해결. MonsterSpawner 로직은 정상.
+   - **추가:** advancedOuter=1000→1800 수정 완료
+
+   ### 문제 4: 영지(Territory) 미출현
+   - **원인:** Player가 z=-950에 있어 TerritoryBuilder 생성 건물이 화면 밖
+   - **해결:** Player 위치 원점 복귀로 해결. EnsureTerritoryManager() 런타임 자동 생성 정상.
+
+   ### 문제 5: UI 글씨 너무 작음
+   - **원인:** IMGUI 고정 fontSize (title=20, label=14, closeBtn=18, minimap=9~10)
+   - **해결:** 모든 fontSize 1.5배 확대
+     - UIStyleManager: title 20→30, label 14→20, closeBtn 18→26
+     - HUD: fontSize 16→24, barWidth 250→350, barHeight 25→35
+     - MinimapUI: fontSize 9~10→14~15
+
+   ### 문제 6: 체력바 위치 (좌상단 → 좌하단)
+   - **원인:** HUD._barY = 20 (좌측 상단 고정)
+   - **해결:** `_barY = Screen.height - _barHeight - 30` 동적 계산 (좌측 하단)
+   - 버프 아이콘, 티어 범례도 자동 아래 정렬
+
+   ### 문제 7: 미니맵 미표시
+   - **원인:** GameManager.InitializeSystems()에 MinimapUI 생성 코드 누락
+   - **해결:** `CreateSystemIfMissing("MinimapUI")` GameManager 129줄에 추가
+
+   ---
+
+   > ## 사장님 확인 사항 — Unity Editor에서 1회 실행 필수
+
+   > 아래를 꼭 실행해주세요:
+
+   > 1. **Unity 프로젝트 열기** (Poly Haven 모델로 끊기면 `Tools > Poly Haven > Replace With Primitives` 먼저)
+   > 2. **`Tools > Scene Fix > Fix All Issues`** 실행 (애니메이션/Placeholder 자동 추가)
+   > 3. **Play 모드**로 게임 실행 → 몬스터/영지/애니메이션/미니맵 모두 정상 표시
+
+   > 복원 방법:
+   > - Poly Haven 모델: `Tools > Poly Haven > Restore From Backup`
+   > - 전체 씬: `MainScene_PolyHaven_Backup.unity` 복사
 
 ## ✅ Phase 33: 🎨 UI 완전 개선 — 창별 개성화 & 고급화 (✅ 완료 🎉)
 

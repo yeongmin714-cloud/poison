@@ -15,10 +15,10 @@ namespace ProjectName.UI
     public class HUD : MonoBehaviour
     {
         [Header("HP Bar")]
-        [SerializeField] private int _barWidth = 250;
-        [SerializeField] private int _barHeight = 25;
+        [SerializeField] private int _barWidth = 350;
+        [SerializeField] private int _barHeight = 35;
         [SerializeField] private int _barX = 20;
-        [SerializeField] private int _barY = 20;
+        private int _barY; // 동적 계산: 좌하단
         [SerializeField] private GUISkin _customSkin;
 
         [Header("Colors")]
@@ -27,7 +27,7 @@ namespace ProjectName.UI
         [SerializeField] private Color _lowColor = Color.red;
 
         [Header("Text")]
-        [SerializeField] private int _fontSize = 16;
+        [SerializeField] private int _fontSize = 24;
         [SerializeField] private Color _textColor = Color.white;
 
         [Header("Death Overlay")]
@@ -36,8 +36,8 @@ namespace ProjectName.UI
         [Header("Buff Icons")]
         [SerializeField] private int _iconSize = 30;
         [SerializeField] private int _iconSpacing = 5;
-        [SerializeField] private int _iconOffsetX = 280; // X offset from HP bar
-        [SerializeField] private int _iconOffsetY = 20; // Y offset from top
+        [SerializeField] private int _iconOffsetX = 380; // X offset from left (barX + barWidth + 10)
+        private int _iconOffsetY; // 동적 계산: 좌하단 기준
         private Dictionary<string, Color> _buffColors = new Dictionary<string, Color>
         {
             { "AttackUp", Color.red },
@@ -82,6 +82,8 @@ namespace ProjectName.UI
 
         private void OnGUI()
         {
+            _barY = Screen.height - _barHeight - 30;
+            _iconOffsetY = _barY;
             if (_customSkin != null)
                 GUI.skin = _customSkin;
 

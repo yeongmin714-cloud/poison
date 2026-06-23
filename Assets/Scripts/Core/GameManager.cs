@@ -125,7 +125,10 @@ namespace ProjectName.Core
             // 13. DeathScreenUI (UI)
             CreateSystemIfMissing("DeathScreenUI");
 
-            // 14. LoadingScreenUI + LoadingManager (same GameObject)
+            // 14. MinimapUI (UI) — 우측 상단 원형 미니맵
+            CreateSystemIfMissing("MinimapUI");
+
+            // 15. LoadingScreenUI + LoadingManager (same GameObject)
             CreateLoadingScreenSystemIfMissing();
         }
 
