@@ -1987,7 +1987,88 @@ Phase 10 (⚔️ 전쟁/맵전환/연출/배포)
 
 ---
 
-## ⚠️ Hermes 개발 철칙 (필수 준수)
+## 🛠️ Phase FIX: 긴급 수정 — 건물 실내 전환 & 애니메이션 & UI 버그
+
+> **발견된 5대 문제점**을 해결합니다. 아래 사이클을 순서대로 진행합니다.
+
+### 문제 진단 요약
+
+| # | 문제 | 원인 | 영향 |
+|:-:|:-----|:-----|:----:|
+| 1️⃣ | 🏗️ **건물→실내 전환 없음** | `BuildingPlaceholder`가 E키 시 바로 ShopWindow 열음. `BuildingTrigger`+`IndoorSceneTransition` 시스템 미사용 | 상점/NPC가 야외에 그대로 있음 |
+| 2️⃣ | 🎬 **애니메이션 리깅 미동작** | `SceneFixer` 미실행. `#if UNITY_ANIMATION_RIGGING` define 누락 가능 | 캐릭터가 T포스/로봇처럼 움직임 |
+| 3️⃣ | ❌ **ShopWindow NullReferenceException** | `PlayerStats.Instance`가 null인데 ShopWindow.OnGUI()에서 Gold 접근 | 상점 열면 콘솔 에러 |
+| 4️⃣ | 🗺️ **미니맵 미표시** | GameManager 오브젝트가 씬에 없거나 실행 안 됨 | 우측 상단 미니맵 안 보임 |
+| 5️⃣ | 🗺️ **맵 표시 불량** | `WorldMap.unity` 별도 씬. MapWindow 동작 불안정 | M키 지도 미표시 |
+
+---
+
+#### 사이클 FIX-01: 🏗️ 건물 실내 전환 시스템 재설계
+
+> **목표:** `BuildingPlaceholder`가 직접 ShopWindow를 여는 대신, 건물 문 앞에서 E키 → 실내 진입 → 실내에 상점 NPC 배치
+
+| 단계 | 내용 |
+|:----:|:------|
+| 1.1 | **`BuildingPlaceholder` 수정** — 상점/크래프트하우스/교회 건물에서 E키 누르면 `IndoorSceneTransition.EnterBuilding(buildingType)` 호출. 직접 ShopWindow 열지 않음 |
+| 1.2 | **`ShopInteriorBuilder` 확장** — 실내에 상점 NPC(`GameObject`+`ShopPlaceholder` 컴포넌트) 동적 생성. 카운터 뒤에 NPC 배치 |
+| 1.3 | **`CraftHouseInteriorBuilder` 확장** — 실내에 크래프트 테이블 + CraftingStation 컴포넌트 동적 생성 |
+| 1.4 | **`ChurchInteriorBuilder` 확장** — 실내에 Church NPC + ChurchSystem 연동 |
+| 1.5 | **`HouseInteriorBuilder` 확장** — 실내에 NPC 주민 + NpcQuestGiver 배치 |
+| 1.6 | **출구 시스템** — 실내에서 문 근처 E키 → `IndoorSceneTransition.ExitBuilding()` 호출. 모든 인테리어 빌더에 출구 트리거 추가 |
+| 1.7 | **`TerritoryBuilder` 수정** — 건물 생성 시 `BuildingTrigger` 컴포넌트 자동 부착 (기존 `BuildingPlaceholder` 직접 상호작용 제거) |
+| 1.8 | **테스트** — 건물 진입→실내→NPC상호작용→퇴출 플로우 EditMode 테스트 8개+ |
+
+---
+
+#### 사이클 FIX-02: 🎬 애니메이션 리깅 복구
+
+> **목표:** 모든 캐릭터(플레이어/NPC/몬스터/병사)에 Animator + RigAnimationController 활성화
+
+| 단계 | 내용 |
+|:----:|:------|
+| 2.1 | **Scripting Define Symbols 설정** — `ProjectSettings`에 `UNITY_ANIMATION_RIGGING` 추가. `RigAnimationController.cs`의 `#if UNITY_ANIMATION_RIGGING` 블록 활성화 |
+| 2.2 | **Player 애니메이션 셋업** — Player 게임오브젝트에 `Animator` + `RigAnimationController` 컴포넌트 부착. `RuntimeAnimatorController` 할당 (GLB 임포트 시 생성된 Controller 사용) |
+| 2.3 | **GuardPlaceholder 애니메이션** — 모든 병사 Placeholder에 `Animator` + `RigAnimationController` 보장. `PlayerMovement`에서 `RigAnimationController.SetState()` 호출 연동 |
+| 2.4 | **AnimalAI 애니메이션** — 몬스터/동물에 `Animator` + `RigAnimationController` 보장. `AnimalAI` 상태머신(Idle/Walk/Run/Attack/Die)과 연동 |
+| 2.5 | **GLB 애니메이션 데이터 연동** — `Resources/Models/UserProvided/`의 GLB 41개에서 `RuntimeAnimatorController` 추출. `RuntimeModelLoader`가 로드 시 자동 연결 |
+| 2.6 | **`SceneFixer` 자동 실행** — `EditorAutoSetup.cs`의 `[InitializeOnLoad]`에서 SceneFixer.FixAllIssues()를 1회 자동 실행. 또는 GameManager.Start()에서 런타임 검증 |
+| 2.7 | **테스트** — 캐릭터별 Idle/Walk/Run/Attack 애니메이션 전환 테스트 10개+ |
+
+---
+
+#### 사이클 FIX-03: ❌ NullReferenceException & 시스템 초기화 버그
+
+> **목표:** Runtime 에러 0, 모든 싱글톤/시스템이 씬 시작 시 자동 생성
+
+| 단계 | 내용 |
+|:----:|:------|
+| 3.1 | **`PlayerStats` 자동 생성** — `GameManager.InitializeSystems()`에 `CreateSystemIfMissing("PlayerStats")` 추가. 또는 `PlayerStats.Awake()`에서 `DontDestroyOnLoad` + lazy-init 보장 |
+| 3.2 | **`PlayerHealth` 자동 생성** — `PlayerStats` 생성 시 `PlayerHealth`도 함께 생성하거나, `PlayerHealth.Instance` null-safe 처리 |
+| 3.3 | **`ShopWindow` null-safe 수정** — `ShopWindow.OnGUI()` line 205: `PlayerStats.Instance?.Gold ?? 0` null 조건부 접근. 모든 `PlayerStats.Instance` 참조에 null 체크 추가 |
+| 3.4 | **`UIManager` 자동 생성** — `GameManager`에서 `UIManager`가 없으면 생성. `BuildingPlaceholder`/`ShopPlaceholder`의 `_uiManager` null 체크 강화 |
+| 3.5 | **`GameManager` 씬 배치 보장** — `EditorAutoSetup`에서 `MainScene`에 `GameManager` 게임오브젝트 없으면 자동 생성. `[RuntimeInitializeOnLoadMethod]` 폴백 |
+| 3.6 | **테스트** — 모든 싱글톤 초기화 검증 EditMode 테스트 10개+ |
+
+---
+
+#### 사이클 FIX-04: 🗺️ 미니맵 & 월드맵 복구
+
+> **목표:** 미니맵(우측 상단) 정상 표시, M키 월드맵 정상 작동
+
+| 단계 | 내용 |
+|:----:|:------|
+| 4.1 | **`MinimapUI` 강제 생성** — `GameManager`가 없을 경우를 대비해 `[RuntimeInitializeOnLoadMethod]`에서 MinimapUI 생성 폴백. 또는 기존 GameManager.Start() 확인 |
+| 4.2 | **`MinimapUI` 카메라 참조** — `Camera.main`이 null일 경우 `FindObjectOfType<Camera>()` fallback. `_playerTransform` null 시 위치(0,0,0) 가정 |
+| 4.3 | **`MapWindow` 복구** — M키 토글 확인. `MapWindow.OnShow()`에서 `TerritoryDatabase` 데이터 로드 검증. 영지 아이콘/국기/난이도 표시 확인 |
+| 4.4 | **`MapWindow` 확장** — 국가별 확대/축소 2단계 줌. 황제국 안개 표시. 현재 플레이어 위치 표시 |
+| 4.5 | **미니맵 영지 위치** — `GetTerritoryWorldPosition()` 계산 검증. 국가별 방향 벡터가 실제 씬 배치와 일치하는지 확인 |
+| 4.6 | **테스트** — MinimapUI 캐싱/줌/렌더링 + MapWindow 타일/줌/국기 표시 테스트 12개+ |
+
+---
+
+> **우선순위:** FIX-01 > FIX-03 > FIX-02 > FIX-04
+> — FIX-01(건물 실내 전환)이 가장 체감도 높은 핵심 문제입니다.
+> — FIX-02(애니메이션)와 FIX-04(맵)는 FIX-03(에러 수정) 이후 진행합니다.
 >
 > 사장님이 명령을 내리면 **반드시** 아래 순서를 따라야 합니다:
 >
