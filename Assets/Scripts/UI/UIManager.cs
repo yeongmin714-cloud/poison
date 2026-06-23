@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Core;
+using ProjectName.Systems;
 
 namespace ProjectName.UI
 {
@@ -82,6 +83,15 @@ namespace ProjectName.UI
             // _keyBindings가 없으면 기본값 생성
             if (_keyBindings == null)
                 _keyBindings = ScriptableObject.CreateInstance<KeyBindings>();
+
+            // LootBasket 이벤트 구독 (LootWindow 열기 요청 처리)
+            LootBasket.OnOpenLootWindowRequested += OpenLootWindow;
+        }
+
+        private void OnDestroy()
+        {
+            // LootBasket 이벤트 구독 해제
+            LootBasket.OnOpenLootWindowRequested -= OpenLootWindow;
         }
 
         /// <summary>외부에서 KeyBindings 설정 (SceneSetup에서 호출)</summary>

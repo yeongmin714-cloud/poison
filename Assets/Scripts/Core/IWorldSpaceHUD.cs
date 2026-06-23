@@ -1,4 +1,4 @@
-namespace ProjectName.UI
+namespace ProjectName.Core
 {
     /// <summary>
     /// World Space HUD 인터페이스 — 몬스터/병사 구분 없이 머리 위 오버레이 표시

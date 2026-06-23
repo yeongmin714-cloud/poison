@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
-using ProjectName.UI;
 using UnityEngine.InputSystem;
 
 namespace ProjectName.Systems

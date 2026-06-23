@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Core;
-using ProjectName.UI;
 using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
@@ -252,9 +251,9 @@ namespace ProjectName.Systems
         // ================================================================
 
         /// <summary>
-        /// LootWindow를 열어 플레이어가 개별 아이템을 선택/획득할 수 있게 합니다.
-        /// E 키 입력 시 호출됩니다. UIManager가 없으면 직접 TakeAll() 수행합니다.
+        /// LootWindow를 열기 위한 정적 이벤트 — UIManager가 구독하여 처리합니다.
         /// </summary>
+        public static event System.Action<ILootBasket> OnOpenLootWindowRequested;
         private void OpenForLoot()
         {
             if (_isLooted) return;
@@ -268,14 +267,14 @@ namespace ProjectName.Systems
 
             HidePrompt();
 
-            if (UIManager.Instance != null)
+            if (OnOpenLootWindowRequested != null)
             {
-                UIManager.Instance.OpenLootWindow(this);
+                OnOpenLootWindowRequested.Invoke(this);
             }
             else
             {
-                // UIManager가 없으면 직접 루팅 (fallback)
-                Debug.LogWarning("[LootBasket] UIManager가 없어 직접 루팅합니다.");
+                // No UI handler registered — fallback: take all directly
+                Debug.LogWarning("[LootBasket] LootWindow handler가 없어 직접 루팅합니다.");
                 TakeAll();
             }
         }

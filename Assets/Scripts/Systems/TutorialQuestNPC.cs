@@ -1,6 +1,5 @@
 using UnityEngine;
 using ProjectName.Core;
-using ProjectName.UI;
 using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
@@ -167,10 +166,6 @@ namespace ProjectName.Systems
             {
                 Debug.Log($"[NPC 영주] {dialogue[_dialogueIndex]}");
                 // TODO: Phase 2 — 실제 Dialogue UI (TMP 텍스트) 표시
-                if (UIManager.Instance != null)
-                {
-                    // UIManager를 통해 대화 UI 표시
-                }
             }
         }
 

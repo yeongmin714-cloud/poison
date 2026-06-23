@@ -1,6 +1,5 @@
 using System.Collections;
 using ProjectName.Core;
-using ProjectName.UI;
 using UnityEngine;
 
 namespace ProjectName.Systems
