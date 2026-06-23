@@ -144,24 +144,48 @@ namespace ProjectName.Core
 
         private void CreateEventSystemIfMissing()
         {
-            var esType = System.Type.GetType("UnityEngine.EventSystems.EventSystem, UnityEngine.UI");
+            System.Type esType = System.Type.GetType("UnityEngine.EventSystems.EventSystem, UnityEngine.UI");
             if (esType == null)
             {
                 Debug.LogWarning("[GameManager] EventSystem type not found. Is UnityEngine.UI module present?");
                 return;
             }
 
+            System.Type oldModuleType = System.Type.GetType("UnityEngine.EventSystems.StandaloneInputModule, UnityEngine.UI");
+            System.Type newModuleType = System.Type.GetType("UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem");
+
             var existing = FindAnyObjectByType(esType);
-            if (existing != null) return;
+            if (existing != null)
+            {
+                // Replace StandaloneInputModule with InputSystemUIInputModule if present
+                if (oldModuleType != null && newModuleType != null)
+                {
+                    Component oldModule = null;
+                    foreach (var c in (existing as Component).GetComponents<Component>())
+                    {
+                        if (c != null && c.GetType() == oldModuleType)
+                        {
+                            oldModule = c;
+                            break;
+                        }
+                    }
+                    if (oldModule != null)
+                    {
+                        Object.DestroyImmediate(oldModule);
+                        (existing as Component).gameObject.AddComponent(newModuleType);
+                        Debug.Log("[GameManager] StandaloneInputModule → InputSystemUIInputModule 교체");
+                    }
+                }
+                return;
+            }
 
             var go = new GameObject("EventSystem");
             go.AddComponent(esType);
 
-            var imType = System.Type.GetType("UnityEngine.EventSystems.StandaloneInputModule, UnityEngine.UI");
-            if (imType != null)
-                go.AddComponent(imType);
+            if (newModuleType != null)
+                go.AddComponent(newModuleType);
 
-            Debug.Log("[GameManager] EventSystem 자동 생성됨");
+            Debug.Log("[GameManager] EventSystem + InputSystemUIInputModule 자동 생성됨");
         }
 
         // ================================================================

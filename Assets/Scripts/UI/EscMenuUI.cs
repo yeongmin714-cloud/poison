@@ -2,6 +2,7 @@ using ProjectName.Core;
 using ProjectName.Systems;
 using UnityEngine;
 using ProjectName.UI.Themes;
+using UnityEngine.InputSystem;
 
 namespace ProjectName.UI
 {
@@ -34,7 +35,7 @@ namespace ProjectName.UI
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Escape))
+            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
                 Toggle();
             }
