@@ -49,26 +49,26 @@ namespace ProjectName.UI
 
             EnsureStyles();
 
-            float panelW = 900f;
-            float panelH = 750f;
+            float panelW = 600f;
+            float panelH = 500f;
             float x = (Screen.width - panelW) / 2f;
             float y = (Screen.height - panelH) / 2f;
 
             GUI.Box(new Rect(x, y, panelW, panelH), "");
 
             // 타이틀
-            GUI.Label(new Rect(x + 10, y + 5, panelW - 20, 42), "📋 퀘스트 목록", _styleTitle);
+            GUI.Label(new Rect(x + 10, y + 5, panelW - 20, 28), "📋 퀘스트 목록", _styleTitle);
 
             // 통계
             var active = QuestManager.GetActiveQuests();
             var completed = QuestManager.GetCompletedQuests();
-            GUI.Label(new Rect(x + 10, y + 35, 300, 30), $"🔄 진행 중: {active.Count}개", _styleLabel);
-            GUI.Label(new Rect(x + 220, y + 35, 300, 30), $"✅ 완료: {completed.Count}개", _styleValue);
+            GUI.Label(new Rect(x + 10, y + 35, 200, 20), $"🔄 진행 중: {active.Count}개", _styleLabel);
+            GUI.Label(new Rect(x + 220, y + 35, 200, 20), $"✅ 완료: {completed.Count}개", _styleValue);
 
             // 퀘스트 목록
             float listY = y + 60;
             float listH = panelH - 100;
-            float itemH = 120f;
+            float itemH = 80f;
             float totalH = (active.Count + completed.Count) * itemH + 10;
 
             _scrollPos = GUI.BeginScrollView(new Rect(x + 10, listY, panelW - 20, listH), _scrollPos,
@@ -94,7 +94,7 @@ namespace ProjectName.UI
 
             if (active.Count == 0 && completed.Count == 0)
             {
-                GUI.Label(new Rect(10, cy, panelW - 40, 30), "퀘스트가 없습니다. NPC를 찾아 퀘스트를 수락하세요.", _styleLabel);
+                GUI.Label(new Rect(10, cy, panelW - 40, 20), "퀘스트가 없습니다. NPC를 찾아 퀘스트를 수락하세요.", _styleLabel);
             }
 
             GUI.EndScrollView();
@@ -102,21 +102,21 @@ namespace ProjectName.UI
 
         private void DrawQuestEntry(QuestData quest, float y, float width, QuestState state)
         {
-            GUI.Box(new Rect(0, y, width, 112), "");
+            GUI.Box(new Rect(0, y, width, 75), "");
 
             string stateStr = state == QuestState.Active ? "🔄 진행 중" : "✅ 완료";
             string colorHex = state == QuestState.Active ? "#FFDD44" : "#44FF44";
 
-            GUI.Label(new Rect(10, y + 4, width - 20, 33), $"<color={colorHex}>{quest.questName}</color>  {stateStr}", _styleTitle);
+            GUI.Label(new Rect(10, y + 4, width - 20, 22), $"<color={colorHex}>{quest.questName}</color>  {stateStr}", _styleTitle);
 
             if (!string.IsNullOrEmpty(quest.description))
-                GUI.Label(new Rect(10, y + 28, width - 20, 27), quest.description, new GUIStyle(GUI.skin.label) { fontSize = 48, normal = { textColor = Color.gray } });
+                GUI.Label(new Rect(10, y + 28, width - 20, 18), quest.description, new GUIStyle(GUI.skin.label) { fontSize = 48, normal = { textColor = Color.gray } });
 
             if (quest.objectives != null && quest.objectives.Count > 0)
             {
                 var obj = quest.objectives[0];
                 string prog = obj.requiredCount > 0 ? $" ({obj.currentCount}/{obj.requiredCount})" : "";
-                GUI.Label(new Rect(10, y + 48, width - 20, 24), $"▸ {obj.description}{prog}", new GUIStyle(GUI.skin.label) { fontSize = 44, normal = { textColor = Color.cyan } });
+                GUI.Label(new Rect(10, y + 48, width - 20, 16), $"▸ {obj.description}{prog}", new GUIStyle(GUI.skin.label) { fontSize = 44, normal = { textColor = Color.cyan } });
             }
 
             // 보상 표시
@@ -124,7 +124,7 @@ namespace ProjectName.UI
             if (quest.reward.gold > 0) rewardStr += $"💰{quest.reward.gold} ";
             if (quest.reward.exp > 0) rewardStr += $"✨{quest.reward.exp}EXP";
             if (!string.IsNullOrEmpty(rewardStr))
-                GUI.Label(new Rect(10, y + 64, width - 20, 21), rewardStr, new GUIStyle(GUI.skin.label) { fontSize = 40, normal = { textColor = Color.yellow } });
+                GUI.Label(new Rect(10, y + 64, width - 20, 14), rewardStr, new GUIStyle(GUI.skin.label) { fontSize = 40, normal = { textColor = Color.yellow } });
         }
 
         private void EnsureStyles()

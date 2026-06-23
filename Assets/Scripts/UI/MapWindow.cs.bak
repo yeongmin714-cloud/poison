@@ -21,11 +21,11 @@ namespace ProjectName.UI
         [SerializeField] private float _zoomSpeed = 1f;        // 줌 속도
 
         [Header("Map Layout")]
-        [SerializeField] private float _windowPadding = 15f;
-        [SerializeField] private float _regionCardWidth = 210f;
-        [SerializeField] private float _regionCardHeight = 150f;
-        [SerializeField] private float _territoryCellWidth = 195f;
-        [SerializeField] private float _territoryCellHeight = 82.5f;
+        [SerializeField] private float _windowPadding = 10f;
+        [SerializeField] private float _regionCardWidth = 140f;
+        [SerializeField] private float _regionCardHeight = 100f;
+        [SerializeField] private float _territoryCellWidth = 130f;
+        [SerializeField] private float _territoryCellHeight = 55f;
         [SerializeField] private float _gridSpacing = 5f;
 
         private float _currentZoom = 1f;
@@ -231,7 +231,7 @@ namespace ProjectName.UI
             );
 
             // Title
-            Rect titleRect = new Rect(innerRect.x, innerRect.y, innerRect.width, 60f);
+            Rect titleRect = new Rect(innerRect.x, innerRect.y, innerRect.width, 40f);
             GUI.Label(titleRect, "🗺️ 포이즌 대륙", _titleStyle);
 
             float contentY = titleRect.y + titleRect.height + 10f;
@@ -248,7 +248,7 @@ namespace ProjectName.UI
 
             // Bottom controls
             float controlsY = windowRect.y + windowRect.height - 35f;
-            DrawControls(new Rect(windowRect.x + _windowPadding, controlsY, windowRect.width - _windowPadding * 2, 45f));
+            DrawControls(new Rect(windowRect.x + _windowPadding, controlsY, windowRect.width - _windowPadding * 2, 30f));
         }
 
         /// <summary>
@@ -396,7 +396,7 @@ namespace ProjectName.UI
 
             // Back button if zoomed into a nation
             string backLabel = "[ ← 뒤로 ] ";
-            Rect backRect = new Rect(area.x, area.y + area.height - 25f, 150f, 33f);
+            Rect backRect = new Rect(area.x, area.y + area.height - 25f, 100f, 22f);
             if (GUI.Button(backRect, backLabel))
             {
                 _selectedNation = NationType.None;
@@ -426,7 +426,7 @@ namespace ProjectName.UI
                 _ => "알 수 없음"
             };
 
-            Rect headerRect = new Rect(area.x, area.y, area.width, 45f);
+            Rect headerRect = new Rect(area.x, area.y, area.width, 30f);
             GUI.Label(headerRect, nationHeader, _titleStyle);
 
             // Territory grid
@@ -462,7 +462,7 @@ namespace ProjectName.UI
 
             // Back button
             string backLabel = "[ ← 뒤로 ]";
-            Rect backRect = new Rect(area.x, area.y + area.height - 25f, 150f, 33f);
+            Rect backRect = new Rect(area.x, area.y + area.height - 25f, 100f, 22f);
             if (GUI.Button(backRect, backLabel))
             {
                 _selectedNation = NationType.None;
@@ -579,7 +579,7 @@ namespace ProjectName.UI
             float cellInnerX = rect.x + margin;
             float cellInnerY = rect.y + margin;
             float cellInnerW = rect.width - margin * 2;
-            float lineHeight = 21f;
+            float lineHeight = 14f;
 
             // Line 1: Territory name + difficulty stars
             string difficultyStars = def.difficulty switch
@@ -601,7 +601,7 @@ namespace ProjectName.UI
             if (showFlag)
             {
                 // Draw flag color rectangle
-                Rect flagColorRect = new Rect(cellInnerX, flagY, 24f, 18f);
+                Rect flagColorRect = new Rect(cellInnerX, flagY, 16f, 12f);
                 Color origGuiColor = GUI.color;
                 GUI.color = flagColor;
                 GUI.Box(flagColorRect, "");
@@ -645,8 +645,8 @@ namespace ProjectName.UI
         private void DrawControls(Rect area)
         {
             // Zoom buttons
-            float btnWidth = 60f;
-            float btnHeight = 36f;
+            float btnWidth = 40f;
+            float btnHeight = 24f;
 
             Rect zoomOutRect = new Rect(area.x, area.y, btnWidth, btnHeight);
             if (GUI.Button(zoomOutRect, "[-]"))
@@ -679,7 +679,7 @@ namespace ProjectName.UI
                 posText += "알 수 없음";
             }
 
-            Rect posRect = new Rect(area.x + area.width - 250f, area.y, 375f, btnHeight);
+            Rect posRect = new Rect(area.x + area.width - 250f, area.y, 250f, btnHeight);
             GUI.Label(posRect, posText, _infoLabelStyle);
         }
     }

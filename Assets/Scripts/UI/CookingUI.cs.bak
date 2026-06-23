@@ -20,8 +20,8 @@ namespace ProjectName.UI
         }
 
         [Header("Cooking UI Settings")]
-        [SerializeField] private int _windowWidth = 1000;
-        [SerializeField] private int _windowHeight = 870;
+        [SerializeField] private int _windowWidth = 750;
+        [SerializeField] private int _windowHeight = 580;
 
         // ── 상태 ──
         private PlayerInventory.ItemData _selectedMeat;
@@ -141,7 +141,7 @@ namespace ProjectName.UI
             GUILayout.BeginHorizontal();
             GUILayout.Label("  🍳 요리 테이블", _titleStyle);
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button("닫기 X", GUILayout.Width(90), GUILayout.Height(36)))
+            if (GUILayout.Button("닫기 X", GUILayout.Width(60), GUILayout.Height(24)))
             {
                 Hide();
                 return;
@@ -151,7 +151,7 @@ namespace ProjectName.UI
             GUILayout.Space(8);
 
             // ── 재료 슬롯 2개 ──
-            GUILayout.BeginHorizontal(GUILayout.Height(120));
+            GUILayout.BeginHorizontal(GUILayout.Height(80));
             DrawIngredientSlot("고기", ref _selectedMeat, Color.green);
             GUILayout.FlexibleSpace();
             DrawIngredientSlot("약초", ref _selectedHerb, Color.cyan);
@@ -162,7 +162,7 @@ namespace ProjectName.UI
             // ── 요리하기 버튼 ──
             bool canCook = _selectedMeat != null && _selectedHerb != null;
             GUI.enabled = canCook;
-            if (GUILayout.Button("▼ 요리하기 ▼", GUILayout.Height(54)))
+            if (GUILayout.Button("▼ 요리하기 ▼", GUILayout.Height(36)))
             {
                 TryCook();
             }
@@ -176,7 +176,7 @@ namespace ProjectName.UI
                 string resultText = string.IsNullOrEmpty(_resultItemName)
                     ? $"{_resultMessage}"
                     : $"{_resultMessage}\n효과: {_resultEffect}\n등급: {_resultGrade}";
-                GUILayout.Box(resultText, _resultStyle, GUILayout.Height(90));
+                GUILayout.Box(resultText, _resultStyle, GUILayout.Height(60));
             }
             else if (!string.IsNullOrEmpty(_resultMessage))
             {
@@ -186,11 +186,11 @@ namespace ProjectName.UI
                     alignment = TextAnchor.MiddleCenter,
                     normal = { textColor = new Color(1f, 0.6f, 0.4f), background = MakeTexture(1, 1, new Color(0.25f, 0.1f, 0.1f, 0.8f)) }
                 };
-                GUILayout.Box(_resultMessage, style, GUILayout.Height(60));
+                GUILayout.Box(_resultMessage, style, GUILayout.Height(40));
             }
             else
             {
-                GUILayout.Box("고기와 약초를 선택하고 요리해보세요.", GUILayout.Height(54));
+                GUILayout.Box("고기와 약초를 선택하고 요리해보세요.", GUILayout.Height(36));
             }
 
             GUILayout.Space(4);
@@ -297,9 +297,9 @@ namespace ProjectName.UI
         /// </summary>
         private void DrawIngredientSlot(string label, ref PlayerInventory.ItemData slot, Color accentColor)
         {
-            GUILayout.BeginVertical(GUILayout.Width(240), GUILayout.Height(120));
+            GUILayout.BeginVertical(GUILayout.Width(160), GUILayout.Height(80));
 
-            GUILayout.Label(label, GUILayout.Height(27));
+            GUILayout.Label(label, GUILayout.Height(18));
 
             Rect slotRect = GUILayoutUtility.GetRect(120, 54);
             var slotBg = MakeTexture(1, 1, new Color(accentColor.r * 0.3f, accentColor.g * 0.3f, accentColor.b * 0.3f, 0.7f));
@@ -308,7 +308,7 @@ namespace ProjectName.UI
 
             if (slot != null)
             {
-                GUI.Label(new Rect(slotRect.x + 4, slotRect.y + 4, slotRect.width - 8, 30), slot.displayName);
+                GUI.Label(new Rect(slotRect.x + 4, slotRect.y + 4, slotRect.width - 8, 20), slot.displayName);
 
                 // 우클릭 감지 → 슬롯 비우기
                 if (Event.current.type == EventType.MouseDown && Event.current.button == 1 && slotRect.Contains(Event.current.mousePosition))
@@ -319,7 +319,7 @@ namespace ProjectName.UI
                     Event.current.Use();
                 }
 
-                if (GUI.Button(new Rect(slotRect.xMax - 20, slotRect.y + 4, 24, 24), "X"))
+                if (GUI.Button(new Rect(slotRect.xMax - 20, slotRect.y + 4, 16, 16), "X"))
                 {
                     slot = null;
                     _hasResult = false;
@@ -366,7 +366,7 @@ namespace ProjectName.UI
             GUI.color = Color.white;
 
             // 이름 + 개수
-            GUI.Label(new Rect(rect.x + 2, rect.y + size - 22, rect.width - 4, 30), label, new GUIStyle(GUI.skin.label)
+            GUI.Label(new Rect(rect.x + 2, rect.y + size - 22, rect.width - 4, 20), label, new GUIStyle(GUI.skin.label)
             {
                 fontSize = 40,
                 alignment = TextAnchor.MiddleCenter,

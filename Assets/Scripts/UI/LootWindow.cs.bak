@@ -22,12 +22,12 @@ namespace ProjectName.UI
         private int _selectedIndex = -1;
 
         // ===== 레퍼런스 스타일 상수 =====
-        private const float WINDOW_WIDTH = 1000f;
-        private const float WINDOW_HEIGHT = 1000f;
-        private const float TITLE_BAR_HEIGHT = 90f;
-        private const float BOTTOM_BAR_HEIGHT = 120f;
+        private const float WINDOW_WIDTH = 900f;
+        private const float WINDOW_HEIGHT = 900f;
+        private const float TITLE_BAR_HEIGHT = 60f;
+        private const float BOTTOM_BAR_HEIGHT = 80f;
         private const int GRID_COLUMNS = 3;
-        private const float SLOT_MARGIN = 12f;
+        private const float SLOT_MARGIN = 8f;
 
         // ===== 다크 테마 색상 (인벤토리와 통일) =====
         private static readonly Color ColorBg = new Color(0.18f, 0.13f, 0.16f, 0.92f);
@@ -131,7 +131,7 @@ namespace ProjectName.UI
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
-                padding = new RectOffset(21, 4, 0, 0)
+                padding = new RectOffset(14, 4, 0, 0)
             };
 
             _styleSlot = new GUIStyle(GUI.skin.box)
@@ -261,7 +261,7 @@ namespace ProjectName.UI
             DrawColoredRect(new Rect(panelX, gridY, WINDOW_WIDTH, gridHeight), ColorBg);
 
             float slotWidth = (innerWidth - SLOT_MARGIN * (GRID_COLUMNS + 1)) / GRID_COLUMNS;
-            float slotHeight = 108f;
+            float slotHeight = 72f;
             float rowHeight = slotHeight + SLOT_MARGIN;
 
             int totalSlots = _cachedItems != null ? _cachedItems.Length : 0;
@@ -277,7 +277,7 @@ namespace ProjectName.UI
 
             if (_cachedItems == null || _cachedItems.Length == 0)
             {
-                GUI.Label(new Rect(0, 20, innerWidth - 20, 45), "(전리품이 없습니다)", _styleEmptyText);
+                GUI.Label(new Rect(0, 20, innerWidth - 20, 30), "(전리품이 없습니다)", _styleEmptyText);
             }
             else
             {
@@ -302,26 +302,26 @@ namespace ProjectName.UI
                     Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(entry.item);
                     if (iconTex != null)
                     {
-                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 60, 60), iconTex);
+                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 40, 40), iconTex);
                     }
                     else
                     {
                         // 폴백: 카테고리 색상 사각형
                         Color iconColor = GetItemColor(entry.item.category);
                         GUI.color = iconColor;
-                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 60, 60), _texWhite);
+                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 40, 40), _texWhite);
                         GUI.color = Color.white;
                     }
 
                     // 이름
                     float nameY = sy + 38;
                     float nameWidth = slotWidth - 12;
-                    GUI.Label(new Rect(sx + 6, nameY, nameWidth, 24),
+                    GUI.Label(new Rect(sx + 6, nameY, nameWidth, 16),
                         TruncateText(entry.item.displayName, nameWidth, _styleSlotLabel),
                         _styleSlotLabel);
 
                     // 개수
-                    GUI.Label(new Rect(sx + 6, nameY + 14, nameWidth, 21),
+                    GUI.Label(new Rect(sx + 6, nameY + 14, nameWidth, 14),
                         $"x{entry.count}",
                         _styleItemCount);
 
@@ -346,14 +346,14 @@ namespace ProjectName.UI
             DrawColoredRect(new Rect(panelX, bottomY, WINDOW_WIDTH, BOTTOM_BAR_HEIGHT), ColorBottomBar);
             DrawColoredRect(new Rect(panelX, bottomY, WINDOW_WIDTH, 1), ColorBorder);
 
-            float btnWidth = 240f;
-            float btnHeight = 48f;
+            float btnWidth = 160f;
+            float btnHeight = 32f;
             float btnX = panelX + (WINDOW_WIDTH - btnWidth) / 2;
             float btnY = bottomY + (BOTTOM_BAR_HEIGHT - btnHeight) / 2;
 
             // 아이템 개수 표시
             int totalItems = _cachedItems != null ? _cachedItems.Length : 0;
-            GUI.Label(new Rect(panelX + 10, bottomY + 4, 180, 30),
+            GUI.Label(new Rect(panelX + 10, bottomY + 4, 120, 20),
                 $"아이템 {totalItems}개", _styleEmptyText);
 
             // 전부 획득 버튼

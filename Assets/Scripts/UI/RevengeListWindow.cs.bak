@@ -93,7 +93,7 @@ namespace ProjectName.UI
             DrawDetailPanel(x, y, panelW, panelH, mgr);
 
             // 닫기 버튼
-            if (GUI.Button(new Rect(x + panelW - 70, y + panelH - 38, 90, 42), "닫기", _styleCloseButton))
+            if (GUI.Button(new Rect(x + panelW - 70, y + panelH - 38, 60, 28), "닫기", _styleCloseButton))
             {
                 Hide();
             }
@@ -110,10 +110,10 @@ namespace ProjectName.UI
             int revealedPoison = mgr.GetRevealedPoisonConspiratorCount();
             int totalPoison = mgr.GetPoisonConspirators().Count;
 
-            const float statsH = 54f;
+            const float statsH = 36f;
 
             // C14-12: 제목 "🗡️ 복수명부"
-            GUI.Label(new Rect(x + 12, y + 4, 300, statsH), "🗡️ 복수명부", _styleTitle);
+            GUI.Label(new Rect(x + 12, y + 4, 200, statsH), "🗡️ 복수명부", _styleTitle);
 
             // C14-12: 통계: "발견: X/10 독살 공모자 | 완료: X/81"
             string stats = $"발견: {revealedPoison}/{totalPoison} 독살 공모자  |  완료: {completed}/{total}";
@@ -126,8 +126,8 @@ namespace ProjectName.UI
 
         private void DrawLordList(float x, float y, float panelW, float panelH, RevengeListManager mgr)
         {
-            const float statsH = 54f;
-            const float listItemH = 33f;
+            const float statsH = 36f;
+            const float listItemH = 22f;
             float listW = panelW * 0.44f;
             float listX = x + 10;
             float listY = y + statsH + 10;
@@ -200,7 +200,7 @@ namespace ProjectName.UI
 
         private void DrawDetailPanel(float x, float y, float panelW, float panelH, RevengeListManager mgr)
         {
-            const float statsH = 54f;
+            const float statsH = 36f;
             float listW = panelW * 0.44f;
             float detailX = x + listW + 20;
             float detailY = y + statsH + 10;
@@ -211,7 +211,7 @@ namespace ProjectName.UI
 
             if (_selectedIndex < 0 || _selectedIndex >= mgr.Entries.Count)
             {
-                GUI.Label(new Rect(detailX + 10, detailY + 10, detailW - 20, 30),
+                GUI.Label(new Rect(detailX + 10, detailY + 10, detailW - 20, 20),
                     "영주를 선택하세요.", _styleDetailLabel);
                 return;
             }
@@ -229,27 +229,27 @@ namespace ProjectName.UI
                 ? entry.lordName
                 : "???";
             string poisonBadge = entry.isPoisonConspirator ? " ☠️" : "";
-            GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 36), $"👤 {nameStr}{poisonBadge}", _styleTitle);
+            GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 24), $"👤 {nameStr}{poisonBadge}", _styleTitle);
             dy += 30;
 
             // 국가
             string nationStr = GetNationDisplayName(def.nation);
-            GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), "국가", _styleDetailLabel);
-            GUI.Label(new Rect(detailX + 100, dy, detailW - 120, 30), nationStr, _styleDetailValue);
+            GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 20), "국가", _styleDetailLabel);
+            GUI.Label(new Rect(detailX + 100, dy, detailW - 120, 20), nationStr, _styleDetailValue);
             dy += 24;
 
             // 난이도
             string diffStr = GetDifficultyDisplayName(def.difficulty);
-            GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), "난이도", _styleDetailLabel);
-            GUI.Label(new Rect(detailX + 100, dy, detailW - 120, 30), diffStr, _styleDetailValue);
+            GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 20), "난이도", _styleDetailLabel);
+            GUI.Label(new Rect(detailX + 100, dy, detailW - 120, 20), diffStr, _styleDetailValue);
             dy += 24;
 
             // 영지
-            GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), "영지", _styleDetailLabel);
+            GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 20), "영지", _styleDetailLabel);
             string terrStr = !string.IsNullOrEmpty(def.territoryName)
                 ? def.territoryName
                 : entry.territoryId;
-            GUI.Label(new Rect(detailX + 100, dy, detailW - 120, 30), terrStr, _styleDetailValue);
+            GUI.Label(new Rect(detailX + 100, dy, detailW - 120, 20), terrStr, _styleDetailValue);
             dy += 30;
 
             // 구분선
@@ -259,7 +259,7 @@ namespace ProjectName.UI
             // 복수 이유 (공개된 경우에만)
             if (entry.isRevealed || entry.isCompleted)
             {
-                GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), "복수 이유", _styleDetailLabel);
+                GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 20), "복수 이유", _styleDetailLabel);
                 dy += 22;
 
                 string reasonText = entry.revengeReason;
@@ -267,14 +267,14 @@ namespace ProjectName.UI
                 {
                     reasonText = $"☠️ {reasonText}";
                 }
-                GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 66), reasonText, _styleDetailReason);
+                GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 44), reasonText, _styleDetailReason);
                 dy += 50;
             }
             else
             {
-                GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), "복수 이유", _styleDetailLabel);
+                GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 20), "복수 이유", _styleDetailLabel);
                 dy += 22;
-                GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), "???", new GUIStyle(GUI.skin.label)
+                GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 20), "???", new GUIStyle(GUI.skin.label)
                 {
                     fontSize = 52,
                     fontStyle = FontStyle.Italic,
@@ -284,7 +284,7 @@ namespace ProjectName.UI
             }
 
             // 상태
-            GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), "상태", _styleDetailLabel);
+            GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 20), "상태", _styleDetailLabel);
             dy += 22;
 
             string statusText;
@@ -306,7 +306,7 @@ namespace ProjectName.UI
                 statusColor = Color.gray;
             }
 
-            GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), statusText, new GUIStyle(GUI.skin.label)
+            GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 20), statusText, new GUIStyle(GUI.skin.label)
             {
                 fontSize = 52,
                 fontStyle = FontStyle.Bold,

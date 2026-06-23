@@ -142,12 +142,12 @@ namespace ProjectName.UI
             _popupBgStyle = new GUIStyle { normal = { background = UIStyleManager.MakeTexture(1, 1, _popupBgColor) } };
             _popupTitleStyle = new GUIStyle
             {
-                fontSize = 72, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft,
+                fontSize = 288, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = _popupTitleColor }
             };
             _popupDescStyle = new GUIStyle
             {
-                fontSize = 56, fontStyle = FontStyle.Normal, alignment = TextAnchor.MiddleLeft,
+                fontSize = 224, fontStyle = FontStyle.Normal, alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = _popupTextColor }
             };
             _stylesInit = true;
@@ -172,7 +172,7 @@ namespace ProjectName.UI
             GUI.Box(new Rect(x, y, w, h), "", _popupBgStyle);
 
             // 아이콘
-            GUI.Label(new Rect(x + 8, y + 8, 30, 30), _currentPopupIcon, new GUIStyle { fontSize = 96, alignment = TextAnchor.MiddleCenter });
+            GUI.Label(new Rect(x + 8, y + 8, 30, 30), _currentPopupIcon, new GUIStyle { fontSize = 384, alignment = TextAnchor.MiddleCenter });
 
             // 제목
             GUI.Label(new Rect(x + 45, y + 6, w - 55, 28), $"🏆 {_currentPopupTitle}", _popupTitleStyle);

@@ -190,19 +190,19 @@ namespace ProjectName.UI
             
             float x = (Screen.width - 680) / 2;
             float y = (Screen.height - 580) / 2;
-            float width = 960f;
-            float height = 780f;
+            float width = 680f;
+            float height = 580f;
             
             // === 배경 + 외곽 박스 ==
             GUI.Box(new Rect(x, y, width, height), "", _stylePanelBox);
             
             // === 타이틀 바 ==
-            float titleHeight = 60f;
+            float titleHeight = 40f;
             GUI.Label(new Rect(x, y, width, titleHeight), "🏪 상점", _styleTitle);
             
             // === 골드 표시 ==
             float goldY = y + titleHeight + 10f;
-            GUI.Label(new Rect(x + 10, goldY, width - 20, 38), $"골드: {PlayerStats.Instance?.Gold ?? 0}", _styleItemName);
+            GUI.Label(new Rect(x + 10, goldY, width - 20, 25), $"골드: {PlayerStats.Instance?.Gold ?? 0}", _styleItemName);
             
             // === 아이템 목록 ==
             float itemsY = goldY + 30f;
@@ -221,7 +221,7 @@ namespace ProjectName.UI
                 bool inStock = selectedItem.stock == 0 || selectedItem.stock > 0;
                 
                 GUI.enabled = canAfford && inStock;
-                if (GUI.Button(new Rect(x + 10, buttonY, buttonWidth, 45), "구매", _styleBuyButton))
+                if (GUI.Button(new Rect(x + 10, buttonY, buttonWidth, 30), "구매", _styleBuyButton))
                 {
                     BuySelectedItem();
                 }
@@ -230,16 +230,16 @@ namespace ProjectName.UI
                 // 재고나 금액 부족 표시
                 if (!canAfford)
                 {
-                    GUI.Label(new Rect(x + 10, buttonY - 20f, buttonWidth, 27), "골드 부족!", _styleEmptyText);
+                    GUI.Label(new Rect(x + 10, buttonY - 20f, buttonWidth, 18), "골드 부족!", _styleEmptyText);
                 }
                 else if (!inStock)
                 {
-                    GUI.Label(new Rect(x + 10, buttonY - 20f, buttonWidth, 27), "품절!", _styleEmptyText);
+                    GUI.Label(new Rect(x + 10, buttonY - 20f, buttonWidth, 18), "품절!", _styleEmptyText);
                 }
             }
             
             // 판매 버튼 (플레이어 인벤토리에서 selected item이 있으면)
-            if (GUI.Button(new Rect(x + width - buttonWidth - 10, buttonY, buttonWidth, 45), "판매", _styleSellButton))
+            if (GUI.Button(new Rect(x + width - buttonWidth - 10, buttonY, buttonWidth, 30), "판매", _styleSellButton))
             {
                 SellSelectedItem();
             }
@@ -250,14 +250,14 @@ namespace ProjectName.UI
         {
             if (_currentItems == null || _currentItems.Count == 0)
             {
-                GUI.Label(new Rect(panelX, panelY, panelWidth, 45), "판매 중인 아이템이 없습니다.", _styleEmptyText);
+                GUI.Label(new Rect(panelX, panelY, panelWidth, 30), "판매 중인 아이템이 없습니다.", _styleEmptyText);
                 return;
             }
             
             // 그리드 설정
             int columns = 2;
             float slotWidth = (panelWidth - 10f) / columns;
-            float slotHeight = 120f;
+            float slotHeight = 80f;
             float margin = 5f;
             
             // 스크롤 뷰
@@ -291,7 +291,7 @@ namespace ProjectName.UI
                 Texture2D iconTex = ItemIconDatabase.GetIconFromSlot(null);
                 if (iconTex != null)
                 {
-                    GUI.DrawTexture(new Rect(sx + 5, sy + 5, 60, 60), iconTex);
+                    GUI.DrawTexture(new Rect(sx + 5, sy + 5, 40, 40), iconTex);
                 }
                 else
                 {
@@ -299,35 +299,35 @@ namespace ProjectName.UI
                     Color fallbackColor = GetCategoryColor(item.item.category);
                     var oldColor = GUI.color;
                     GUI.color = fallbackColor;
-                    GUI.DrawTexture(new Rect(sx + 5, sy + 5, 60, 60), _texWhite);
+                    GUI.DrawTexture(new Rect(sx + 5, sy + 5, 40, 40), _texWhite);
                     GUI.color = oldColor;
                 }
                 
                 // 아이템 이름
                 float nameY = sy + 5f;
-                GUI.Label(new Rect(sx + 42, nameY, slotWidth - 47, 30), 
+                GUI.Label(new Rect(sx + 42, nameY, slotWidth - 47, 20), 
                     item.item.displayName, _styleItemName);
                 
                 // 희귀 태그
                 if (item.isRare)
                 {
-                    GUI.Label(new Rect(sx + 42, nameY + 18f, slotWidth - 47, 24), 
+                    GUI.Label(new Rect(sx + 42, nameY + 18f, slotWidth - 47, 16), 
                         "[희귀]", _styleRareTag);
                 }
                 
                 // 아이템 설명 (간단히)
                 float descY = sy + 35f;
-                GUI.Label(new Rect(sx + 42, descY, slotWidth - 47, 24), 
+                GUI.Label(new Rect(sx + 42, descY, slotWidth - 47, 16), 
                     item.item.description, _styleSlotLabel);
                 
                 // 가격
                 float priceY = sy + 52f;
-                GUI.Label(new Rect(sx + 42, priceY, slotWidth/2 - 10, 27), 
+                GUI.Label(new Rect(sx + 42, priceY, slotWidth/2 - 10, 18), 
                     $"가격: {item.price}G", _styleItemPrice);
                 
                 // 재고
                 string stockText = item.stock == 0 ? "무한" : $"{item.stock}개";
-                GUI.Label(new Rect(sx + slotWidth/2 + 5, priceY, slotWidth/2 - 10, 27), 
+                GUI.Label(new Rect(sx + slotWidth/2 + 5, priceY, slotWidth/2 - 10, 18), 
                     $"재고: {stockText}", _styleItemStock);
                 
                 // 클릭 처리

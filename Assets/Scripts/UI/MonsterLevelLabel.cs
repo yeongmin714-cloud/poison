@@ -22,7 +22,7 @@ namespace ProjectName.UI
         [SerializeField] private float _maxDisplayDistance = 20f;
         [SerializeField] private float _labelScale = 0.02f;
         [SerializeField] private Font _labelFont;
-        [SerializeField] private int _fontSize = 28;
+        [SerializeField] private int _fontSize = 56;
 
         [Header("Color Settings")]
         [SerializeField] private Color _lowColor = Color.green;

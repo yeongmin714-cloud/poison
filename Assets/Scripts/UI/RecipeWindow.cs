@@ -141,7 +141,7 @@ namespace ProjectName.UI
             Text nameText = nameGo.AddComponent<Text>();
             nameText.text = discovered ? name : $"<color=grey>???</color>";
             nameText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            nameText.fontSize = 26;
+            nameText.fontSize = 52;
             nameText.color = discovered ? Color.white : Color.grey;
             nameText.alignment = TextAnchor.MiddleLeft;
             RectTransform nameRect = nameGo.GetComponent<RectTransform>();
@@ -153,7 +153,7 @@ namespace ProjectName.UI
             Text effectText = effectGo.AddComponent<Text>();
             effectText.text = discovered ? $"{effect}" : "";
             effectText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            effectText.fontSize = 22;
+            effectText.fontSize = 44;
             effectText.color = new Color(0.8f, 0.8f, 0.8f);
             effectText.alignment = TextAnchor.MiddleLeft;
             RectTransform effectRect = effectGo.GetComponent<RectTransform>();
@@ -170,7 +170,7 @@ namespace ProjectName.UI
                 Text btnText = btnGo.AddComponent<Text>();
                 btnText.text = "제작";
                 btnText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-                btnText.fontSize = 22;
+                btnText.fontSize = 44;
                 btnText.alignment = TextAnchor.MiddleCenter;
                 btnText.color = Color.white;
                 RectTransform btnRect = btnGo.GetComponent<RectTransform>();

@@ -32,13 +32,13 @@ namespace ProjectName.UI
         private int _selectedSlotIndex = -1;
 
         // ===== 레퍼런스 스타일 상수 =====
-        private const float WINDOW_WIDTH = 1000f;
-        private const float WINDOW_HEIGHT = 1000f;
-        private const float TITLE_BAR_HEIGHT = 90f;
-        private const float TAB_BAR_HEIGHT = 81f;
-        private const float INFO_PANEL_HEIGHT = 240f;
+        private const float WINDOW_WIDTH = 960f;
+        private const float WINDOW_HEIGHT = 800f;
+        private const float TITLE_BAR_HEIGHT = 60f;
+        private const float TAB_BAR_HEIGHT = 54f;
+        private const float INFO_PANEL_HEIGHT = 160f;
         private const int GRID_COLUMNS = 3;
-        private const float SLOT_MARGIN = 12f;
+        private const float SLOT_MARGIN = 8f;
 
         // ===== 다크 테마 색상 =====
         private static readonly Color ColorBg = new Color(0.18f, 0.13f, 0.16f, 0.92f);        // 전체 배경 (어두운 보라빛 회색)
@@ -106,7 +106,7 @@ namespace ProjectName.UI
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
-                padding = new RectOffset(21, 4, 0, 0)
+                padding = new RectOffset(14, 4, 0, 0)
             };
 
             // 탭 (비활성)
@@ -333,7 +333,7 @@ namespace ProjectName.UI
             // 스크롤 뷰
             float slotTotalWidth = innerWidth;
             float slotWidth = (slotTotalWidth - SLOT_MARGIN * (GRID_COLUMNS + 1)) / GRID_COLUMNS;
-            float slotHeight = 108f;
+            float slotHeight = 72f;
             float rowHeight = slotHeight + SLOT_MARGIN;
 
             int totalSlots = _currentSlots != null ? _currentSlots.Length : 0;
@@ -352,7 +352,7 @@ namespace ProjectName.UI
 
             if (_currentSlots == null || _currentSlots.Length == 0)
             {
-                GUI.Label(new Rect(0, 20, innerWidth - 20, 45), "(이 카테고리에 아이템이 없습니다)", _styleEmptyText);
+                GUI.Label(new Rect(0, 20, innerWidth - 20, 30), "(이 카테고리에 아이템이 없습니다)", _styleEmptyText);
             }
             else
             {
@@ -378,26 +378,26 @@ namespace ProjectName.UI
                     Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(slot.item);
                     if (iconTex != null)
                     {
-                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 60, 60), iconTex);
+                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 40, 40), iconTex);
                     }
                     else
                     {
                         // 폴백: 카테고리 색상 사각형
                         Color iconColor = GetCategoryColor(slot.item.category);
                         GUI.color = iconColor;
-                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 60, 60), _texWhite);
+                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 40, 40), _texWhite);
                         GUI.color = Color.white;
                     }
 
                     // 아이템 이름
                     float nameY = sy + 38;
                     float nameWidth = slotWidth - 12;
-                    GUI.Label(new Rect(sx + 6, nameY, nameWidth, 24),
+                    GUI.Label(new Rect(sx + 6, nameY, nameWidth, 16),
                         TruncateText(slot.item.displayName, nameWidth, _styleSlotLabel),
                         _styleSlotLabel);
 
                     // 개수
-                    GUI.Label(new Rect(sx + 6, nameY + 14, nameWidth, 21),
+                    GUI.Label(new Rect(sx + 6, nameY + 14, nameWidth, 14),
                         $"x{slot.count}",
                         _styleItemCount);
 
@@ -429,7 +429,7 @@ namespace ProjectName.UI
                     // 툴팁 (마우스 호버 시)
                     if (slotRect.Contains(Event.current.mousePosition))
                     {
-                        DrawSlotTooltip(Event.current.mousePosition + new Vector2(22, 22), slot);
+                        DrawSlotTooltip(Event.current.mousePosition + new Vector2(15, 15), slot);
                     }
                 }
             }
@@ -439,19 +439,19 @@ namespace ProjectName.UI
 
         private void DrawSlotTooltip(Vector2 position, PlayerInventory.ItemSlot slot)
         {
-            float tooltipWidth = 300f;
+            float tooltipWidth = 200f;
             float tooltipHeight = slot.item.maxDurability > 0 ? 80f : 60f;
             Rect tooltipRect = new Rect(position.x, position.y, tooltipWidth, tooltipHeight);
             if (tooltipRect.xMax > Screen.width) tooltipRect.x = Screen.width - tooltipWidth;
             if (tooltipRect.yMax > Screen.height) tooltipRect.y = Screen.height - tooltipHeight;
             GUI.Box(tooltipRect, "", _styleSlot);
-            GUI.Label(new Rect(tooltipRect.x + 5, tooltipRect.y + 5, tooltipWidth - 10, 30), slot.item.displayName, _styleSlotLabel);
-            GUI.Label(new Rect(tooltipRect.x + 5, tooltipRect.y + 25, tooltipWidth - 10, 30), slot.item.description, _styleInfoDesc);
-            GUI.Label(new Rect(tooltipRect.x + 5, tooltipRect.y + 45, tooltipWidth - 10, 30), $"x{slot.count}", _styleItemCount);
+            GUI.Label(new Rect(tooltipRect.x + 5, tooltipRect.y + 5, tooltipWidth - 10, 20), slot.item.displayName, _styleSlotLabel);
+            GUI.Label(new Rect(tooltipRect.x + 5, tooltipRect.y + 25, tooltipWidth - 10, 20), slot.item.description, _styleInfoDesc);
+            GUI.Label(new Rect(tooltipRect.x + 5, tooltipRect.y + 45, tooltipWidth - 10, 20), $"x{slot.count}", _styleItemCount);
             if (slot.item.maxDurability > 0)
             {
                 string durStr = ProjectName.Systems.EquipmentDurabilitySystem.GetDurabilityString(slot);
-                GUI.Label(new Rect(tooltipRect.x + 5, tooltipRect.y + 62, tooltipWidth - 10, 24), $"내구도: {durStr}", _styleItemCount);
+                GUI.Label(new Rect(tooltipRect.x + 5, tooltipRect.y + 62, tooltipWidth - 10, 16), $"내구도: {durStr}", _styleItemCount);
             }
         }
 
@@ -478,12 +478,12 @@ namespace ProjectName.UI
                     {
                         Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(selSlot.item);
                         if (iconTex != null)
-                            GUI.DrawTexture(new Rect(innerX, innerY + 2, 48, 48), iconTex);
+                            GUI.DrawTexture(new Rect(innerX, innerY + 2, 32, 32), iconTex);
                         else
                         {
                             Color iconColor = GetCategoryColorForSelected();
                             GUI.color = iconColor;
-                            GUI.DrawTexture(new Rect(innerX, innerY + 2, 48, 48), _texWhite);
+                            GUI.DrawTexture(new Rect(innerX, innerY + 2, 32, 32), _texWhite);
                             GUI.color = Color.white;
                         }
                     }
@@ -491,7 +491,7 @@ namespace ProjectName.UI
                     {
                         Color iconColor = GetCategoryColorForSelected();
                         GUI.color = iconColor;
-                        GUI.DrawTexture(new Rect(innerX, innerY + 2, 48, 48), _texWhite);
+                        GUI.DrawTexture(new Rect(innerX, innerY + 2, 32, 32), _texWhite);
                         GUI.color = Color.white;
                     }
                 }
@@ -499,18 +499,18 @@ namespace ProjectName.UI
                 {
                     Color iconColor = GetCategoryColorForSelected();
                     GUI.color = iconColor;
-                    GUI.DrawTexture(new Rect(innerX, innerY + 2, 36, 36), _texWhite);
+                    GUI.DrawTexture(new Rect(innerX, innerY + 2, 24, 24), _texWhite);
                     GUI.color = Color.white;
                 }
 
                 // 이름
-                GUI.Label(new Rect(innerX + 32, innerY, innerWidth - 32, 33), _selectedItemName, _styleInfoName);
+                GUI.Label(new Rect(innerX + 32, innerY, innerWidth - 32, 22), _selectedItemName, _styleInfoName);
 
                 // 설명
-                GUI.Label(new Rect(innerX + 32, innerY + 24, innerWidth - 32, 54), _selectedItemDesc, _styleInfoDesc);
+                GUI.Label(new Rect(innerX + 32, innerY + 24, innerWidth - 32, 36), _selectedItemDesc, _styleInfoDesc);
 
                 // 보유 개수
-                GUI.Label(new Rect(innerX, innerY + 62, innerWidth, 30),
+                GUI.Label(new Rect(innerX, innerY + 62, innerWidth, 20),
                     $"보유: {_selectedItemCount}개", _styleInfoLabel);
 
                 // C9-18: 선택된 아이템 내구도 정보 (장비만)
@@ -524,14 +524,14 @@ namespace ProjectName.UI
                                      ratio >= 0.3f ? Color.yellow : Color.red;
                     var oldColor = GUI.color;
                     GUI.color = durColor;
-                    GUI.Label(new Rect(innerX + 120, innerY + 62, innerWidth - 120, 30),
+                    GUI.Label(new Rect(innerX + 120, innerY + 62, innerWidth - 120, 20),
                         $"내구도: {durStr}", _styleInfoLabel);
                     GUI.color = oldColor;
 
                     // C9-19: 수리 버튼 (내구도가 가득 차지 않았을 때만)
                     if (ratio < 1f)
                     {
-                        if (GUI.Button(new Rect(innerX + innerWidth - 100, innerY + 62, 135, 33), "🔧 수리"))
+                        if (GUI.Button(new Rect(innerX + innerWidth - 100, innerY + 62, 90, 22), "🔧 수리"))
                         {
                             var result = ProjectName.Systems.EquipmentRepairSystem.RepairInventorySlot(_selectedSlotIndex);
                             Debug.Log($"[Repair] {result.message}");
@@ -549,7 +549,7 @@ namespace ProjectName.UI
                     // 사용 버튼 (소비 가능한 아이템만)
                     if (IsConsumable(_selectedCategory))
                     {
-                        if (GUI.Button(new Rect(innerX, innerY + 85, innerWidth - 16, 38), "사용"))
+                        if (GUI.Button(new Rect(innerX, innerY + 85, innerWidth - 16, 25), "사용"))
                         {
                             if (_selectedSlotIndex >= 0 && _currentSlots != null && _selectedSlotIndex < _currentSlots.Length)
                             {
@@ -564,7 +564,7 @@ namespace ProjectName.UI
                 // 사용 버튼 (소비 가능한 아이템만)
                 if (IsConsumable(_selectedCategory))
                 {
-                    if (GUI.Button(new Rect(innerX, innerY + 85, innerWidth - 16, 38), "사용"))
+                    if (GUI.Button(new Rect(innerX, innerY + 85, innerWidth - 16, 25), "사용"))
                     {
                         if (_selectedSlotIndex >= 0 && _currentSlots != null && _selectedSlotIndex < _currentSlots.Length)
                         {
@@ -580,7 +580,7 @@ namespace ProjectName.UI
             }
             else
             {
-                GUI.Label(new Rect(innerX, innerY + 20, innerWidth, 45),
+                GUI.Label(new Rect(innerX, innerY + 20, innerWidth, 30),
                     "아이템을 선택하면 상세 정보가 표시됩니다.", _styleEmptyText);
             }
         }

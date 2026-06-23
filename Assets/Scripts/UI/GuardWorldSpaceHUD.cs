@@ -173,26 +173,26 @@ namespace ProjectName.UI
             if (_styleName != null) return;
             _styleName = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 48,
+                fontSize = 192,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.white },
                 alignment = TextAnchor.MiddleLeft
             };
             _styleLevel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 44,
+                fontSize = 176,
                 normal = { textColor = Color.yellow },
                 alignment = TextAnchor.MiddleRight
             };
             _styleLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 44,
+                fontSize = 176,
                 normal = { textColor = Color.white },
                 alignment = TextAnchor.MiddleLeft
             };
             _styleValue = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 40,
+                fontSize = 160,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.white },
                 alignment = TextAnchor.MiddleLeft

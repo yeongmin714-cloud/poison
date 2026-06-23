@@ -19,8 +19,8 @@ namespace ProjectName.UI
         }
 
         [Header("Crafting UI Settings")]
-        [SerializeField] private int _windowWidth = 1000;
-        [SerializeField] private int _windowHeight = 870;
+        [SerializeField] private int _windowWidth = 750;
+        [SerializeField] private int _windowHeight = 580;
 
         // ── 상태 ──
         private PlayerInventory.ItemData _slot1;
@@ -141,7 +141,7 @@ namespace ProjectName.UI
             GUILayout.BeginHorizontal();
             GUILayout.Label("  🧪 크래프트 테이블", _titleStyle);
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button("닫기 X", GUILayout.Width(90), GUILayout.Height(36)))
+            if (GUILayout.Button("닫기 X", GUILayout.Width(60), GUILayout.Height(24)))
             {
                 Hide();
                 return;
@@ -151,7 +151,7 @@ namespace ProjectName.UI
             GUILayout.Space(8);
 
             // ── 재료 슬롯 2개 ──
-            GUILayout.BeginHorizontal(GUILayout.Height(120));
+            GUILayout.BeginHorizontal(GUILayout.Height(80));
             DrawMaterialSlot("재료 1", ref _slot1);
             GUILayout.FlexibleSpace();
             DrawMaterialSlot("재료 2", ref _slot2);
@@ -162,7 +162,7 @@ namespace ProjectName.UI
             // ── 조합 버튼 ──
             bool canCraft = _slot1 != null && _slot2 != null;
             GUI.enabled = canCraft;
-            if (GUILayout.Button("▼ 조합하기 ▼", GUILayout.Height(54)))
+            if (GUILayout.Button("▼ 조합하기 ▼", GUILayout.Height(36)))
             {
                 TryCraft();
             }
@@ -176,7 +176,7 @@ namespace ProjectName.UI
                 string resultText = string.IsNullOrEmpty(_resultItemName)
                     ? $"{_resultMessage}"
                     : $"{_resultMessage}\n효과: {_resultEffect}";
-                GUILayout.Box(resultText, _resultStyle, GUILayout.Height(75));
+                GUILayout.Box(resultText, _resultStyle, GUILayout.Height(50));
             }
             else if (!string.IsNullOrEmpty(_resultMessage))
             {
@@ -186,11 +186,11 @@ namespace ProjectName.UI
                     alignment = TextAnchor.MiddleCenter,
                     normal = { textColor = new Color(1f, 0.6f, 0.4f), background = MakeTexture(1, 1, new Color(0.25f, 0.1f, 0.1f, 0.8f)) }
                 };
-                GUILayout.Box(_resultMessage, style, GUILayout.Height(60));
+                GUILayout.Box(_resultMessage, style, GUILayout.Height(40));
             }
             else
             {
-                GUILayout.Box("재료 2개를 선택하고 조합해보세요.", GUILayout.Height(54));
+                GUILayout.Box("재료 2개를 선택하고 조합해보세요.", GUILayout.Height(36));
             }
 
             GUILayout.Space(4);
@@ -257,9 +257,9 @@ namespace ProjectName.UI
         /// </summary>
         private void DrawMaterialSlot(string label, ref PlayerInventory.ItemData slot)
         {
-            GUILayout.BeginVertical(GUILayout.Width(240), GUILayout.Height(120));
+            GUILayout.BeginVertical(GUILayout.Width(160), GUILayout.Height(80));
 
-            GUILayout.Label(label, GUILayout.Height(27));
+            GUILayout.Label(label, GUILayout.Height(18));
 
             Rect slotRect = GUILayoutUtility.GetRect(120, 54);
             GUI.Box(slotRect, "", _slotStyle);
@@ -267,7 +267,7 @@ namespace ProjectName.UI
             if (slot != null)
             {
                 // 아이템 이름 표시
-                GUI.Label(new Rect(slotRect.x + 4, slotRect.y + 4, slotRect.width - 8, 30), slot.displayName);
+                GUI.Label(new Rect(slotRect.x + 4, slotRect.y + 4, slotRect.width - 8, 20), slot.displayName);
 
                 // 우클릭 감지 → 슬롯 비우기
                 if (Event.current.type == EventType.MouseDown && Event.current.button == 1 && slotRect.Contains(Event.current.mousePosition))
@@ -279,7 +279,7 @@ namespace ProjectName.UI
                 }
 
                 // 작은 X 버튼
-                if (GUI.Button(new Rect(slotRect.xMax - 20, slotRect.y + 4, 24, 24), "X"))
+                if (GUI.Button(new Rect(slotRect.xMax - 20, slotRect.y + 4, 16, 16), "X"))
                 {
                     slot = null;
                     _hasResult = false;
@@ -340,7 +340,7 @@ namespace ProjectName.UI
             GUI.color = Color.white;
 
             // 이름 + 개수
-            GUI.Label(new Rect(rect.x + 2, rect.y + size - 22, rect.width - 4, 30), label, new GUIStyle(GUI.skin.label)
+            GUI.Label(new Rect(rect.x + 2, rect.y + size - 22, rect.width - 4, 20), label, new GUIStyle(GUI.skin.label)
             {
                 fontSize = 40,
                 alignment = TextAnchor.MiddleCenter,

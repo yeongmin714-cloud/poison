@@ -16,12 +16,12 @@ namespace ProjectName.UI
         [SerializeField] private EquipmentManager _equipmentManager;
 
         // ===== 레이아웃 상수 =====
-        private const float WINDOW_WIDTH = 1000f;
-        private const float WINDOW_HEIGHT = 1000f;
-        private const float TITLE_BAR_HEIGHT = 90f;
-        private const float SLOT_HEIGHT = 120f;
-        private const float SLOT_GAP = 12f;
-        private const float BUTTON_AREA_HEIGHT = 90f;
+        private const float WINDOW_WIDTH = 780f;
+        private const float WINDOW_HEIGHT = 800f;
+        private const float TITLE_BAR_HEIGHT = 60f;
+        private const float SLOT_HEIGHT = 80f;
+        private const float SLOT_GAP = 8f;
+        private const float BUTTON_AREA_HEIGHT = 60f;
 
         // ===== 선택 상태 =====
         private EquipmentManager.EquipmentSlot _selectedSlot = EquipmentManager.EquipmentSlot.Helmet;
@@ -102,7 +102,7 @@ namespace ProjectName.UI
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
-                padding = new RectOffset(21, 4, 0, 0)
+                padding = new RectOffset(14, 4, 0, 0)
             };
 
             _styleSlotLabel = new GUIStyle(GUI.skin.label)
@@ -111,7 +111,7 @@ namespace ProjectName.UI
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
-                padding = new RectOffset(12, 4, 0, 0)
+                padding = new RectOffset(8, 4, 0, 0)
             };
 
             _styleSlotValue = new GUIStyle(GUI.skin.label)
@@ -120,7 +120,7 @@ namespace ProjectName.UI
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextSecondary },
-                padding = new RectOffset(12, 4, 0, 0)
+                padding = new RectOffset(8, 4, 0, 0)
             };
 
             _styleEmptyText = new GUIStyle(GUI.skin.label)
@@ -129,7 +129,7 @@ namespace ProjectName.UI
                 fontStyle = FontStyle.Italic,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextDim },
-                padding = new RectOffset(12, 4, 0, 0)
+                padding = new RectOffset(8, 4, 0, 0)
             };
 
             _styleInfoText = new GUIStyle(GUI.skin.label)
@@ -138,7 +138,7 @@ namespace ProjectName.UI
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextDim },
-                padding = new RectOffset(12, 4, 0, 0)
+                padding = new RectOffset(8, 4, 0, 0)
             };
 
             _styleButton = new GUIStyle(GUI.skin.button)
@@ -146,7 +146,7 @@ namespace ProjectName.UI
                 fontSize = 48,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
-                padding = new RectOffset(12, 12, 4, 4),
+                padding = new RectOffset(8, 8, 4, 4),
                 normal = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorSlotHover) },
                 hover = { textColor = ColorAccent, background = MakeTexture(1, 1, new Color(0.45f, 0.32f, 0.22f, 1f)) },
                 active = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorSlotSelected()) }
@@ -182,7 +182,7 @@ namespace ProjectName.UI
             GUI.Label(new Rect(x, y + 2, WINDOW_WIDTH - 60, TITLE_BAR_HEIGHT), "  🛡️ 장비창", _styleTitle);
 
             // 닫기 버튼
-            if (GUI.Button(new Rect(x + WINDOW_WIDTH - 50, y + 6, 66, 42), "✕", _styleButton))
+            if (GUI.Button(new Rect(x + WINDOW_WIDTH - 50, y + 6, 44, 28), "✕", _styleButton))
             {
                 Hide();
                 return;
@@ -228,7 +228,7 @@ namespace ProjectName.UI
                 DrawColoredRect(new Rect(slotRect.x, slotRect.y, slotRect.width, 1), ColorBorder);
 
                 // === 아이콘 (색상 원) ===
-                float iconSize = 42f;
+                float iconSize = 28f;
                 float iconX = slotRect.x + 10;
                 float iconY = slotRect.y + (SLOT_HEIGHT - iconSize) / 2;
 
@@ -251,21 +251,21 @@ namespace ProjectName.UI
                 float labelX = iconX + iconSize + 10;
                 float labelWidth = panelWidth - labelX - 120; // 오른쪽 내구도 바 공간 확보
 
-                GUI.Label(new Rect(labelX, slotRect.y + 2, labelWidth, 33),
+                GUI.Label(new Rect(labelX, slotRect.y + 2, labelWidth, 22),
                     $"{slotDef.icon} {slotDef.label}:", _styleSlotLabel);
 
                 if (!isEmpty && slotData.itemData != null)
                 {
                     // 아이템 이름
                     string itemName = slotData.itemData.displayName;
-                    GUI.Label(new Rect(labelX, slotRect.y + 22, labelWidth, 33),
+                    GUI.Label(new Rect(labelX, slotRect.y + 22, labelWidth, 22),
                         itemName, _styleSlotValue);
 
                     // === 내구도 바 ===
                     float durBarX = slotRect.x + panelWidth - 110;
                     float durBarY = slotRect.y + (SLOT_HEIGHT - 14) / 2;
-                    float durBarWidth = 150f;
-                    float durBarHeight = 21f;
+                    float durBarWidth = 100f;
+                    float durBarHeight = 14f;
 
                     if (slotData.itemData.maxDurability > 0)
                     {
@@ -300,13 +300,13 @@ namespace ProjectName.UI
                 else
                 {
                     // 빈 슬롯
-                    GUI.Label(new Rect(labelX, slotRect.y + 14, labelWidth, 33),
+                    GUI.Label(new Rect(labelX, slotRect.y + 14, labelWidth, 22),
                         "[비어있음]", _styleEmptyText);
 
                     // 우측 빈 공간
                     float emptyX = slotRect.x + panelWidth - 110;
                     float emptyY = slotRect.y + (SLOT_HEIGHT - 14) / 2;
-                    GUI.Label(new Rect(emptyX, emptyY, 150, 21), "- - -", _styleInfoText);
+                    GUI.Label(new Rect(emptyX, emptyY, 100, 14), "- - -", _styleInfoText);
                 }
 
                 // === 클릭 처리 (슬롯 클릭 → 장비 해제) ===
@@ -334,7 +334,7 @@ namespace ProjectName.UI
 
             // 장비 해제 버튼 (선택된 슬롯이 있을 때)
             GUI.enabled = _hasSelection && _equipmentManager != null;
-            if (GUI.Button(new Rect(centerX, buttonY + 4, 165, 45), "🔓 장비 해제", _styleButton))
+            if (GUI.Button(new Rect(centerX, buttonY + 4, 110, 30), "🔓 장비 해제", _styleButton))
             {
                 if (_equipmentManager != null)
                 {
@@ -348,7 +348,7 @@ namespace ProjectName.UI
             }
 
             // 아이템 정보 버튼
-            if (GUI.Button(new Rect(centerX + 120, buttonY + 4, 165, 45), "ℹ️ 아이템 정보", _styleButton))
+            if (GUI.Button(new Rect(centerX + 120, buttonY + 4, 110, 30), "ℹ️ 아이템 정보", _styleButton))
             {
                 if (_hasSelection && _equipmentManager != null)
                 {
@@ -362,7 +362,7 @@ namespace ProjectName.UI
             GUI.enabled = true;
 
             // 하단 도움말
-            GUI.Label(new Rect(panelX + 8, buttonY + 38, WINDOW_WIDTH - 16, 24),
+            GUI.Label(new Rect(panelX + 8, buttonY + 38, WINDOW_WIDTH - 16, 16),
                 "💡 슬롯 클릭 → 장비 해제", _styleInfoText);
         }
 

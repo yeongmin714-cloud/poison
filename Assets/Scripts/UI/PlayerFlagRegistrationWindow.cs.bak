@@ -15,9 +15,9 @@ namespace ProjectName.UI
         private UIDesignTheme _flagTheme;
 
         [Header("Flag Registration Settings")]
-        [SerializeField] private int _windowWidth = 930;
-        [SerializeField] private int _windowHeight = 825;
-        [SerializeField] private int _previewSize = 240;
+        [SerializeField] private int _windowWidth = 620;
+        [SerializeField] private int _windowHeight = 550;
+        [SerializeField] private int _previewSize = 160;
 
         // ── 편집 중인 문장 데이터 (임시) ──
         private string _editName;
@@ -200,14 +200,14 @@ namespace ProjectName.UI
             GUILayout.Label("이름", _sectionLabelStyle);
             GUI.SetNextControlName("FlagNameField");
             string prevName = _editName;
-            _editName = GUILayout.TextField(_editName, 8, GUILayout.Height(42), GUILayout.Width(_windowWidth - 40));
+            _editName = GUILayout.TextField(_editName, 8, GUILayout.Height(28), GUILayout.Width(_windowWidth - 40));
             if (_editName.Length > 8)
                 _editName = _editName.Substring(0, 8);
 
             // ── 배경색 선택 ──
             GUILayout.Space(8);
             GUILayout.Label("배경색", _sectionLabelStyle);
-            _scrollPos = GUILayout.BeginScrollView(_scrollPos, GUILayout.Height(84));
+            _scrollPos = GUILayout.BeginScrollView(_scrollPos, GUILayout.Height(56));
             GUILayout.BeginHorizontal();
             foreach (var color in AllColors)
             {
@@ -254,7 +254,7 @@ namespace ProjectName.UI
             if (_showMessage && !string.IsNullOrEmpty(_message))
             {
                 GUILayout.Space(4);
-                GUILayout.Box(_message, _messageStyle, GUILayout.Height(48));
+                GUILayout.Box(_message, _messageStyle, GUILayout.Height(32));
             }
 
             // ── 완료 버튼 ──
@@ -264,7 +264,7 @@ namespace ProjectName.UI
 
             bool canConfirm = EmblemManager.Instance != null && !string.IsNullOrEmpty(_editName);
             GUI.enabled = canConfirm;
-            if (GUILayout.Button("완료", GUILayout.Width(210), GUILayout.Height(60)))
+            if (GUILayout.Button("완료", GUILayout.Width(140), GUILayout.Height(40)))
             {
                 OnConfirm();
             }

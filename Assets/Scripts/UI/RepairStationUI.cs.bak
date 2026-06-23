@@ -20,8 +20,8 @@ namespace ProjectName.UI
         }
 
         [Header("Repair Station Settings")]
-        [SerializeField] private int _windowWidth = 930;
-        [SerializeField] private int _windowHeight = 750;
+        [SerializeField] private int _windowWidth = 620;
+        [SerializeField] private int _windowHeight = 500;
 
         // ── 상태 ──
         private string _statusMessage = "";
@@ -137,7 +137,7 @@ namespace ProjectName.UI
             GUILayout.BeginHorizontal();
             GUILayout.Label("  🔧 장비 수리 스테이션", _titleStyle);
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button("닫기 X", GUILayout.Width(90), GUILayout.Height(36)))
+            if (GUILayout.Button("닫기 X", GUILayout.Width(60), GUILayout.Height(24)))
             {
                 Hide();
                 return;
@@ -161,12 +161,12 @@ namespace ProjectName.UI
                 {
                     normal = { textColor = _statusColor }
                 };
-                GUILayout.Box(_statusMessage, msgStyle, GUILayout.Height(54));
+                GUILayout.Box(_statusMessage, msgStyle, GUILayout.Height(36));
                 GUILayout.Space(4);
             }
             else
             {
-                GUILayout.Box("파손된 장비를 선택하여 수리하세요.", GUILayout.Height(42));
+                GUILayout.Box("파손된 장비를 선택하여 수리하세요.", GUILayout.Height(28));
                 GUILayout.Space(2);
             }
 
@@ -254,19 +254,19 @@ namespace ProjectName.UI
         /// </summary>
         private void DrawRepairItemRow(DamagedEquipmentEntry entry, int playerGold)
         {
-            GUILayout.BeginHorizontal(_itemRowStyle, GUILayout.Height(66));
+            GUILayout.BeginHorizontal(_itemRowStyle, GUILayout.Height(44));
 
             // ── 장비 정보 ──
             float duraRatio = (float)entry.currentDurability / entry.maxDurability;
             string duraColor = duraRatio <= 0.25f ? "🔴" : (duraRatio <= 0.5f ? "🟡" : "🟢");
             string itemInfo = $"{duraColor} {entry.itemData.displayName}  |  내구도: {entry.currentDurability}/{entry.maxDurability}";
 
-            GUILayout.Label(itemInfo, GUILayout.Width(360), GUILayout.Height(60));
+            GUILayout.Label(itemInfo, GUILayout.Width(240), GUILayout.Height(40));
 
             GUILayout.FlexibleSpace();
 
             // ── 수리비 ──
-            GUILayout.Label($"💰 {entry.repairCost}G", GUILayout.Width(90), GUILayout.Height(60));
+            GUILayout.Label($"💰 {entry.repairCost}G", GUILayout.Width(60), GUILayout.Height(40));
 
             // ── 수리 버튼 ──
             bool canAfford = playerGold >= entry.repairCost;
@@ -279,7 +279,7 @@ namespace ProjectName.UI
             }
 
             string btnLabel = canAfford ? "수리" : "골드부족";
-            if (GUILayout.Button(btnLabel, GUILayout.Width(105), GUILayout.Height(48)))
+            if (GUILayout.Button(btnLabel, GUILayout.Width(70), GUILayout.Height(32)))
             {
                 TryRepairSlot(entry.slotIndex);
             }

@@ -17,12 +17,12 @@ namespace ProjectName.UI
         public static SettingsMenuUI Instance { get; private set; }
 
         [Header("Layout")]
-        [SerializeField] private int _windowWidth = 900;
-        [SerializeField] private int _windowHeight = 975;
-        [SerializeField] private int _tabButtonHeight = 60;
-        [SerializeField] private int _sliderHeight = 45;
-        [SerializeField] private int _buttonHeight = 45;
-        [SerializeField] private int _spacing = 18;
+        [SerializeField] private int _windowWidth = 600;
+        [SerializeField] private int _windowHeight = 650;
+        [SerializeField] private int _tabButtonHeight = 40;
+        [SerializeField] private int _sliderHeight = 30;
+        [SerializeField] private int _buttonHeight = 30;
+        [SerializeField] private int _spacing = 8;
 
         [Header("Colors")]
         [SerializeField] private Color _bgColor = new Color(0f, 0f, 0f, 0.88f);
@@ -184,7 +184,7 @@ namespace ProjectName.UI
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleRight,
                 normal = { textColor = _textColor },
-                padding = new RectOffset(4, 12, 2, 2)
+                padding = new RectOffset(4, 8, 2, 2)
             };
 
             _backButtonStyle = new GUIStyle
@@ -241,7 +241,7 @@ namespace ProjectName.UI
             GUI.Box(new Rect(centerX, centerY, _windowWidth, _windowHeight), "", bgStyle);
 
             // 제목
-            GUI.Label(new Rect(centerX, centerY + 12, _windowWidth, 52), "설정", _titleStyle);
+            GUI.Label(new Rect(centerX, centerY + 12, _windowWidth, 35), "설정", _titleStyle);
 
             // ===== 탭 =====
             DrawTabs(centerX, centerY);
@@ -266,7 +266,7 @@ namespace ProjectName.UI
 
             // ===== 닫기 버튼 =====
             int backButtonY = centerY + _windowHeight - 50;
-            int backButtonWidth = 180;
+            int backButtonWidth = 120;
             int backButtonX = centerX + (_windowWidth - backButtonWidth) / 2;
             GUI.backgroundColor = _backColor;
             if (GUI.Button(new Rect(backButtonX, backButtonY, backButtonWidth, _backButtonStyle.fontSize + 12), "← 닫기", _backButtonStyle))
@@ -303,7 +303,7 @@ namespace ProjectName.UI
 
             // 품질 설정
             GUIStyle label = _labelStyle;
-            GUI.Label(new Rect(x, currentY, width, 38), "품질 설정", label);
+            GUI.Label(new Rect(x, currentY, width, 25), "품질 설정", label);
             currentY += 30;
 
             string[] qualityNames = QualitySettings.names;
@@ -326,7 +326,7 @@ namespace ProjectName.UI
             currentY += _buttonHeight + 15;
 
             // 해상도
-            GUI.Label(new Rect(x, currentY, width, 38), "해상도", label);
+            GUI.Label(new Rect(x, currentY, width, 25), "해상도", label);
             currentY += 30;
 
             int resBtnWidth = (width - 30) / 2;
@@ -370,19 +370,19 @@ namespace ProjectName.UI
             DrawVolumeSlider(ref currentY, x, width, "Ambient (환경음)", ref _ambientVolume);
 
             // 설명
-            GUI.Label(new Rect(x + 10, currentY + 10, width, 30),
+            GUI.Label(new Rect(x + 10, currentY + 10, width, 20),
                 "※ 변경사항은 자동 저장됩니다.", _labelStyle);
         }
 
         private void DrawVolumeSlider(ref int y, int x, int width, string label, ref float volume)
         {
-            GUI.Label(new Rect(x + 10, y, width - 20, 38), label, _labelStyle);
+            GUI.Label(new Rect(x + 10, y, width - 20, 25), label, _labelStyle);
             y += 28;
 
             int sliderX = x + 15;
             int sliderWidth = width - 70;
             int sliderY = y;
-            int sliderHeight = 30;
+            int sliderHeight = 20;
 
             var tex = MakeTexture(1, 1, _sliderBgColor);
             var sliderBgStyle = new GUIStyle { normal = { background = tex } };
@@ -392,15 +392,15 @@ namespace ProjectName.UI
             volume = GUI.HorizontalSlider(new Rect(sliderX, sliderY, sliderWidth, sliderHeight), volume, 0f, 1f, sliderBgStyle, thumbStyle);
 
             // 볼륨 % 표시
-            GUI.Label(new Rect(sliderX + sliderWidth + 10, sliderY, 75, sliderHeight),
+            GUI.Label(new Rect(sliderX + sliderWidth + 10, sliderY, 50, sliderHeight),
                 $"{(int)(volume * 100)}%", _valueStyle);
 
             y += sliderHeight + 10;
 
             // 0% / 50% / 100% 가이드
-            GUI.Label(new Rect(sliderX, y, 45, 22), "0%", new GUIStyle { fontSize = 160, normal = { textColor = Color.gray } });
-            GUI.Label(new Rect(sliderX + sliderWidth / 2 - 10, y, 45, 22), "50%", new GUIStyle { fontSize = 160, normal = { textColor = Color.gray } });
-            GUI.Label(new Rect(sliderX + sliderWidth - 30, y, 45, 22), "100%", new GUIStyle { fontSize = 160, normal = { textColor = Color.gray } });
+            GUI.Label(new Rect(sliderX, y, 30, 15), "0%", new GUIStyle { fontSize = 160, normal = { textColor = Color.gray } });
+            GUI.Label(new Rect(sliderX + sliderWidth / 2 - 10, y, 30, 15), "50%", new GUIStyle { fontSize = 160, normal = { textColor = Color.gray } });
+            GUI.Label(new Rect(sliderX + sliderWidth - 30, y, 30, 15), "100%", new GUIStyle { fontSize = 160, normal = { textColor = Color.gray } });
             y += 18;
         }
 
@@ -428,7 +428,7 @@ namespace ProjectName.UI
             };
 
             int keyWidth = (width - 30) / 2;
-            int lineHeight = 36;
+            int lineHeight = 24;
 
             for (int i = 0; i < keyBindings.Length; i++)
             {

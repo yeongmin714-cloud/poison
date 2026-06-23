@@ -13,10 +13,10 @@ namespace ProjectName.UI
     {
         public static EscMenuUI Instance { get; private set; }
 
-        [SerializeField] private int _windowWidth = 675;
-        [SerializeField] private int _windowHeight = 750;
-        [SerializeField] private int _buttonHeight = 75;
-        [SerializeField] private int _buttonSpacing = 18;
+        [SerializeField] private int _windowWidth = 450;
+        [SerializeField] private int _windowHeight = 500;
+        [SerializeField] private int _buttonHeight = 50;
+        [SerializeField] private int _buttonSpacing = 12;
 
         private bool _isOpen;
         private UIDesignTheme _theme;
@@ -90,7 +90,7 @@ namespace ProjectName.UI
             UIStyleManager.DrawTitle(bgRect, "일시정지");
 
             int btnY = cy + 60;
-            int btnW = 330;
+            int btnW = 220;
             int btnX = cx + (_windowWidth - btnW) / 2;
 
             string[] labels = { "▶ 재개", "💾 저장", "⚙ 설정", "🏠 타이틀로", "❌ 종료" };

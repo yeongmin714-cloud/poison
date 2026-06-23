@@ -73,7 +73,7 @@ namespace ProjectName.Core.UI
             RectTransform panelRect = panel.AddComponent<RectTransform>();
             panelRect.anchorMin = new Vector2(0.5f, 0.5f);
             panelRect.anchorMax = new Vector2(0.5f, 0.5f);
-            panelRect.sizeDelta = new Vector2(900, 788);
+            panelRect.sizeDelta = new Vector2(400, 350);
             panelRect.anchoredPosition = Vector2.zero;
 
             // Add background image with theme colors
@@ -82,8 +82,8 @@ namespace ProjectName.Core.UI
 
             // Create layout
             VerticalLayoutGroup layout = panel.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(30, 30, 30, 30);
-            layout.spacing = 22;
+            layout.padding = new RectOffset(20, 20, 20, 20);
+            layout.spacing = 15;
             layout.childForceExpandHeight = false;
 
             // Herb 1 row
@@ -142,7 +142,7 @@ namespace ProjectName.Core.UI
             row.transform.SetParent(parent.transform, false);
             HorizontalLayoutGroup hLayout = row.AddComponent<HorizontalLayoutGroup>();
             hLayout.padding = new RectOffset(0, 0, 0, 0);
-            hLayout.spacing = 15;
+            hLayout.spacing = 10;
             hLayout.childForceExpandWidth = false;
             hLayout.childForceExpandHeight = false;
 
@@ -164,7 +164,7 @@ namespace ProjectName.Core.UI
             iconImg.color = new Color(0.5f, 0.5f, 0.5f, 0.5f); // gray placeholder
             iconImg.preserveAspect = true;
             RectTransform iconRect = iconGo.AddComponent<RectTransform>();
-            iconRect.sizeDelta = new Vector2(68, 68);
+            iconRect.sizeDelta = new Vector2(30, 30);
             iconImageOut = iconImg;
 
             // Dropdown
@@ -216,7 +216,7 @@ namespace ProjectName.Core.UI
             txt.fontSize = 64;
             txt.color = Color.white;
             RectTransform rect = go.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(0, 90);
+            rect.sizeDelta = new Vector2(0, 40);
             return go;
         }
 
@@ -228,7 +228,7 @@ namespace ProjectName.Core.UI
             bg.color = new Color(0.1f, 0.1f, 0.1f, 0.8f);
             dropdown = go.AddComponent<Dropdown>();
             RectTransform rect = go.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(450, 68);
+            rect.sizeDelta = new Vector2(200, 30);
             return go;
         }
 
