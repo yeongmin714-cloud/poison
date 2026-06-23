@@ -61,6 +61,12 @@ namespace ProjectName.UI
             // Phase 33: 배경 패턴 텍스처 (base.OnShow가 처리)
             base.OnShow();
 
+            if (TerritoryDatabase.Instance == null)
+            {
+                Debug.LogWarning("[MapWindow] TerritoryDatabase.Instance가 null입니다 — 지도를 갱신할 수 없습니다.");
+                return;
+            }
+
             Debug.Log("[MapWindow] 열림 — 지도 갱신");
             RefreshMap();
 
@@ -254,7 +260,7 @@ namespace ProjectName.UI
 
             _titleStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 24,
+                fontSize = 96,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white }
@@ -262,7 +268,7 @@ namespace ProjectName.UI
 
             _regionButtonStyle = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 14,
+                fontSize = 56,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white },
@@ -272,7 +278,7 @@ namespace ProjectName.UI
 
             _territoryCellStyle = new GUIStyle(GUI.skin.box)
             {
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = Color.white },
@@ -281,7 +287,7 @@ namespace ProjectName.UI
 
             _infoLabelStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                fontSize = 52,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = new Color(0.8f, 0.8f, 0.8f) },
                 richText = true
@@ -289,7 +295,7 @@ namespace ProjectName.UI
 
             _starStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14,
+                fontSize = 56,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.yellow }
             };
@@ -630,7 +636,7 @@ namespace ProjectName.UI
             // Difficulty/guard count info
             float guardY = rect.y + rect.height - lineHeight - margin;
             Rect guardRect = new Rect(cellInnerX, guardY, cellInnerW, lineHeight);
-            GUI.Label(guardRect, $"병사: {def.guardCount}명", new GUIStyle(_infoLabelStyle) { fontSize = 9, normal = { textColor = new Color(0.7f, 0.7f, 0.7f) } });
+            GUI.Label(guardRect, $"병사: {def.guardCount}명", new GUIStyle(_infoLabelStyle) { fontSize = 36, normal = { textColor = new Color(0.7f, 0.7f, 0.7f) } });
         }
 
         /// <summary>

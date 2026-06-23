@@ -62,12 +62,12 @@ namespace ProjectName.UI
             if (_stylesInit) return;
             _titleStyle = new GUIStyle
             {
-                fontSize = 24, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter,
+                fontSize = 96, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = UIStyleManager.TitleColor }
             };
             _buttonStyle = new GUIStyle
             {
-                fontSize = 18, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter,
+                fontSize = 72, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white }
             };
             _buttonStyle.hover.background = UIStyleManager.MakeTexture(1, 1, UIStyleManager.HoverColor);

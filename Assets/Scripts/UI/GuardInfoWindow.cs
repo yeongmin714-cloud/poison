@@ -45,10 +45,10 @@ namespace ProjectName.UI
         private GUIStyle _styleHeader;
 
         // ===== 상수 =====
-        private const float WINDOW_WIDTH = 520f;
-        private const float WINDOW_HEIGHT = 640f;
-        private const float HP_BAR_WIDTH = 180f;
-        private const float SLOT_ICON_SIZE = 50f;
+        private const float WINDOW_WIDTH = 780f;
+        private const float WINDOW_HEIGHT = 900f;
+        private const float HP_BAR_WIDTH = 300f;
+        private const float SLOT_ICON_SIZE = 80f;
 
         private void Awake()
         {
@@ -536,7 +536,7 @@ namespace ProjectName.UI
 
             if (!string.IsNullOrEmpty(detail))
             {
-                var detailStyle = new GUIStyle(_styleLabel) { fontSize = 10, normal = { textColor = Color.gray } };
+                var detailStyle = new GUIStyle(_styleLabel) { fontSize = 40, normal = { textColor = Color.gray } };
                 GUI.Label(new Rect(x + 220, cy, WINDOW_WIDTH - 240, 22), detail, detailStyle);
             }
 
@@ -621,41 +621,41 @@ namespace ProjectName.UI
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 18,
+                fontSize = 72,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.white }
             };
 
             _styleHeader = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14,
+                fontSize = 56,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = new Color(0.6f, 0.9f, 1f) } // 밝은 하늘색
             };
 
             _styleLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                fontSize = 52,
                 normal = { textColor = Color.white }
             };
 
             _styleValue = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                fontSize = 52,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.yellow }
             };
 
             _styleSlotLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 12,
+                fontSize = 48,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = new Color(0.8f, 0.8f, 0.8f) }
             };
 
             _styleBuffLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 12,
+                fontSize = 48,
                 normal = { textColor = Color.green }
             };
         }

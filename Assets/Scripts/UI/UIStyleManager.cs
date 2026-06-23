@@ -32,7 +32,7 @@ namespace ProjectName.UI
         /// <summary>서브텍스트 (회색)</summary>
         public static readonly Color SubTextColor = new Color(0.75f, 0.75f, 0.75f, 1f);
         /// <summary>테두리 두께 (픽셀)</summary>
-        public const int BorderWidth = 2;
+        public const int BorderWidth = 4;
 
         // ================================================================
         // 스타일 캐싱
@@ -50,42 +50,42 @@ namespace ProjectName.UI
             if (_initialized) return;
 
             _titleStyle = new GUIStyle
-            {
-                fontSize = 30,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = TitleColor }
-            };
+                        {
+                            fontSize = 60,
+                            fontStyle = FontStyle.Bold,
+                            alignment = TextAnchor.MiddleCenter,
+                            normal = { textColor = TitleColor }
+                        };
 
-            _closeButtonStyle = new GUIStyle
-            {
-                fontSize = 26,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = Color.white, background = MakeTexture(1, 1, CloseBtnColor) }
-            };
-            _closeButtonStyle.hover.background = MakeTexture(1, 1, CloseHoverColor);
-            _closeButtonStyle.active.background = MakeTexture(1, 1, new Color(0.5f, 0.1f, 0.1f, 1f));
+                        _closeButtonStyle = new GUIStyle
+                        {
+                            fontSize = 52,
+                            fontStyle = FontStyle.Bold,
+                            alignment = TextAnchor.MiddleCenter,
+                            normal = { textColor = Color.white, background = MakeTexture(1, 1, CloseBtnColor) }
+                        };
+                        _closeButtonStyle.hover.background = MakeTexture(1, 1, CloseHoverColor);
+                        _closeButtonStyle.active.background = MakeTexture(1, 1, new Color(0.5f, 0.1f, 0.1f, 1f));
 
-            _borderBoxStyle = new GUIStyle
-            {
-                normal = { background = MakeTexture(1, 1, BgColor) },
-                border = new RectOffset(BorderWidth, BorderWidth, BorderWidth, BorderWidth)
-            };
+                        _borderBoxStyle = new GUIStyle
+                        {
+                            normal = { background = MakeTexture(1, 1, BgColor) },
+                            border = new RectOffset(BorderWidth, BorderWidth, BorderWidth, BorderWidth)
+                        };
 
-            _dimBoxStyle = new GUIStyle
-            {
-                normal = { background = MakeTexture(1, 1, DimColor) }
-            };
+                        _dimBoxStyle = new GUIStyle
+                        {
+                            normal = { background = MakeTexture(1, 1, DimColor) }
+                        };
 
-            _labelStyle = new GUIStyle
-            {
-                fontSize = 20,
-                fontStyle = FontStyle.Normal,
-                alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = TextColor },
-                padding = new RectOffset(8, 8, 2, 2)
-            };
+                        _labelStyle = new GUIStyle
+                        {
+                            fontSize = 40,
+                            fontStyle = FontStyle.Normal,
+                            alignment = TextAnchor.MiddleLeft,
+                            normal = { textColor = TextColor },
+                            padding = new RectOffset(16, 16, 4, 4)
+                        };
 
             _initialized = true;
         }
@@ -162,7 +162,7 @@ namespace ProjectName.UI
         public static void DrawTitle(Rect windowRect, string title)
         {
             EnsureStyles();
-            GUI.Label(new Rect(windowRect.x, windowRect.y + 10, windowRect.width, 35), title, _titleStyle);
+            GUI.Label(new Rect(windowRect.x, windowRect.y + 20, windowRect.width, 70), title, _titleStyle);
         }
 
         /// <summary>
@@ -171,9 +171,9 @@ namespace ProjectName.UI
         public static bool DrawCloseButton(Rect windowRect)
         {
             EnsureStyles();
-            int btnSize = 28;
-            int btnX = (int)(windowRect.x + windowRect.width - btnSize - 5);
-            int btnY = (int)(windowRect.y + 5);
+            int btnSize = 56;
+            int btnX = (int)(windowRect.x + windowRect.width - btnSize - 10);
+            int btnY = (int)(windowRect.y + 10);
             GUI.backgroundColor = CloseBtnColor;
             return GUI.Button(new Rect(btnX, btnY, btnSize, btnSize), "X", _closeButtonStyle);
         }

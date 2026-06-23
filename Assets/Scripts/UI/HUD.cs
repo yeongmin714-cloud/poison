@@ -15,9 +15,9 @@ namespace ProjectName.UI
     public class HUD : MonoBehaviour
     {
         [Header("HP Bar")]
-        [SerializeField] private int _barWidth = 350;
-        [SerializeField] private int _barHeight = 35;
-        [SerializeField] private int _barX = 20;
+        [SerializeField] private int _barWidth = 700;
+        [SerializeField] private int _barHeight = 70;
+        [SerializeField] private int _barX = 40;
         private int _barY; // 동적 계산: 좌하단
         [SerializeField] private GUISkin _customSkin;
 
@@ -27,16 +27,16 @@ namespace ProjectName.UI
         [SerializeField] private Color _lowColor = Color.red;
 
         [Header("Text")]
-        [SerializeField] private int _fontSize = 24;
+        [SerializeField] private int _fontSize = 48;
         [SerializeField] private Color _textColor = Color.white;
 
         [Header("Death Overlay")]
         [SerializeField] private Color _deathOverlayColor = new Color(0.5f, 0f, 0f, 0.4f);
 
         [Header("Buff Icons")]
-        [SerializeField] private int _iconSize = 30;
-        [SerializeField] private int _iconSpacing = 5;
-        [SerializeField] private int _iconOffsetX = 380; // X offset from left (barX + barWidth + 10)
+        [SerializeField] private int _iconSize = 60;
+        [SerializeField] private int _iconSpacing = 10;
+        [SerializeField] private int _iconOffsetX = 760; // X offset from left (barX + barWidth + 10)
         private int _iconOffsetY; // 동적 계산: 좌하단 기준
         private Dictionary<string, Color> _buffColors = new Dictionary<string, Color>
         {
@@ -82,7 +82,7 @@ namespace ProjectName.UI
 
         private void OnGUI()
         {
-            _barY = Screen.height - _barHeight - 30;
+            _barY = Screen.height - _barHeight - 60;
             _iconOffsetY = _barY;
             if (_customSkin != null)
                 GUI.skin = _customSkin;
@@ -133,22 +133,22 @@ namespace ProjectName.UI
         private void DrawTierLegend()
         {
             GUIStyle legendStyle = new GUIStyle(GUI.skin.label);
-            legendStyle.fontSize = 12;
+            legendStyle.fontSize = 24;
 
-            int legendY = _barY + _barHeight + 10;
+            int legendY = _barY + _barHeight + 20;
             int legendX = _barX;
 
             // 초반 🟢
             GUI.color = Color.green;
-            GUI.Label(new Rect(legendX, legendY, 60, 20), "🟢 초급", legendStyle);
+            GUI.Label(new Rect(legendX, legendY, 120, 40), "🟢 초급", legendStyle);
 
             // 중반 🟡
             GUI.color = Color.yellow;
-            GUI.Label(new Rect(legendX + 70, legendY, 60, 20), "🟡 중급", legendStyle);
+            GUI.Label(new Rect(legendX + 140, legendY, 120, 40), "🟡 중급", legendStyle);
 
             // 후반 🔴
             GUI.color = Color.red;
-            GUI.Label(new Rect(legendX + 140, legendY, 60, 20), "🔴 고급", legendStyle);
+            GUI.Label(new Rect(legendX + 280, legendY, 120, 40), "🔴 고급", legendStyle);
 
             GUI.color = Color.white;
         }
@@ -215,16 +215,16 @@ namespace ProjectName.UI
             // "사망" 메시지
             GUI.color = Color.white;
             GUIStyle deathStyle = new GUIStyle(GUI.skin.label);
-            deathStyle.fontSize = 48;
+            deathStyle.fontSize = 96;
             deathStyle.alignment = TextAnchor.MiddleCenter;
             deathStyle.fontStyle = FontStyle.Bold;
-            GUI.Label(new Rect(0, Screen.height * 0.35f, Screen.width, 60), "💀 사망", deathStyle);
+            GUI.Label(new Rect(0, Screen.height * 0.35f, Screen.width, 120), "💀 사망", deathStyle);
 
             // 리스폰 안내
             GUIStyle respawnStyle = new GUIStyle(GUI.skin.label);
-            respawnStyle.fontSize = 20;
+            respawnStyle.fontSize = 40;
             respawnStyle.alignment = TextAnchor.MiddleCenter;
-            GUI.Label(new Rect(0, Screen.height * 0.35f + 60, Screen.width, 30), "리스폰 중...", respawnStyle);
+            GUI.Label(new Rect(0, Screen.height * 0.35f + 120, Screen.width, 60), "리스폰 중...", respawnStyle);
 
             GUI.color = Color.white;
         }

@@ -378,29 +378,29 @@ namespace ProjectName.UI
             _windowBgStyle.border = new RectOffset(4, 4, 4, 4);
 
             _nameStyle = new GUIStyle(GUI.skin.label);
-            _nameStyle.fontSize = 18;
+            _nameStyle.fontSize = 36;
             _nameStyle.fontStyle = FontStyle.Bold;
             _nameStyle.normal.textColor = Color.white;
             _nameStyle.alignment = TextAnchor.MiddleLeft;
 
             _dialogueStyle = new GUIStyle(GUI.skin.label);
-            _dialogueStyle.fontSize = 14;
+            _dialogueStyle.fontSize = 28;
             _dialogueStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
             _dialogueStyle.wordWrap = true;
             _dialogueStyle.richText = true;
 
             _questStyle = new GUIStyle(GUI.skin.label);
-            _questStyle.fontSize = 13;
+            _questStyle.fontSize = 26;
             _questStyle.normal.textColor = new Color(0.8f, 0.9f, 1.0f);
             _questStyle.wordWrap = true;
 
             _buttonStyle = new GUIStyle(GUI.skin.button);
-            _buttonStyle.fontSize = 12;
+            _buttonStyle.fontSize = 24;
             _buttonStyle.normal.textColor = Color.white;
             _buttonStyle.hover.textColor = Color.yellow;
 
             _statusStyle = new GUIStyle(GUI.skin.label);
-            _statusStyle.fontSize = 11;
+            _statusStyle.fontSize = 22;
             _statusStyle.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
             _statusStyle.alignment = TextAnchor.MiddleCenter;
 

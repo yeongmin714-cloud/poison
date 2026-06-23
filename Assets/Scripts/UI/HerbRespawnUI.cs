@@ -64,7 +64,7 @@ namespace ProjectName.UI
             _labelStyle = new GUIStyle
             {
                 alignment = TextAnchor.LowerCenter,
-                fontSize = 12,
+                fontSize = 48,
                 fontStyle = FontStyle.Bold
             };
             _labelStyle.normal.textColor = Color.white;
@@ -72,7 +72,7 @@ namespace ProjectName.UI
             _timerStyle = new GUIStyle
             {
                 alignment = TextAnchor.MiddleCenter,
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Bold
             };
             _timerStyle.normal.textColor = Color.white;
@@ -80,7 +80,7 @@ namespace ProjectName.UI
             _collectibleStyle = new GUIStyle
             {
                 alignment = TextAnchor.LowerCenter,
-                fontSize = 13,
+                fontSize = 52,
                 fontStyle = FontStyle.Bold
             };
             _collectibleStyle.normal.textColor = ColorGreenText;

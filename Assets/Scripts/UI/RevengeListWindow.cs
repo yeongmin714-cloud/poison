@@ -276,7 +276,7 @@ namespace ProjectName.UI
                 dy += 22;
                 GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 20), "???", new GUIStyle(GUI.skin.label)
                 {
-                    fontSize = 13,
+                    fontSize = 52,
                     fontStyle = FontStyle.Italic,
                     normal = { textColor = Color.gray }
                 });
@@ -308,7 +308,7 @@ namespace ProjectName.UI
 
             GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 20), statusText, new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                fontSize = 52,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = statusColor }
             });
@@ -324,7 +324,7 @@ namespace ProjectName.UI
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 16,
+                fontSize = 64,
                 fontStyle = FontStyle.Bold,
                 richText = true,
                 normal = { textColor = Color.white }
@@ -332,20 +332,20 @@ namespace ProjectName.UI
 
             _styleStatLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                fontSize = 52,
                 normal = { textColor = new Color(0.8f, 0.8f, 0.8f) }
             };
 
             _styleStatValue = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                fontSize = 52,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.green }
             };
 
             _styleListItem = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 12,
+                fontSize = 48,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = Color.gray },
                 hover = { textColor = Color.white },
@@ -354,7 +354,7 @@ namespace ProjectName.UI
 
             _styleListRevealed = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 12,
+                fontSize = 48,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = new Color(1f, 0.6f, 0f) }, // 주황
                 hover = { textColor = Color.white },
@@ -363,7 +363,7 @@ namespace ProjectName.UI
 
             _styleListCompleted = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 12,
+                fontSize = 48,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = new Color(0.5f, 0.5f, 0.5f) }, // 회색
                 hover = { textColor = new Color(0.7f, 0.7f, 0.7f) },
@@ -372,20 +372,20 @@ namespace ProjectName.UI
 
             _styleDetailLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                fontSize = 52,
                 normal = { textColor = new Color(0.7f, 0.7f, 0.7f) }
             };
 
             _styleDetailValue = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                fontSize = 52,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.white }
             };
 
             _styleDetailReason = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14,
+                fontSize = 56,
                 fontStyle = FontStyle.Bold,
                 wordWrap = true,
                 richText = true,
@@ -394,7 +394,7 @@ namespace ProjectName.UI
 
             _styleCloseButton = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 12,
+                fontSize = 48,
                 normal = { textColor = Color.white }
             };
         }

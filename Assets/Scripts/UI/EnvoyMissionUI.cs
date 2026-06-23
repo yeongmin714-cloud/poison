@@ -615,7 +615,7 @@ namespace ProjectName.UI
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 16,
+                fontSize = 64,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.white },
                 alignment = TextAnchor.MiddleLeft
@@ -623,14 +623,14 @@ namespace ProjectName.UI
 
             _styleLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                fontSize = 52,
                 normal = { textColor = Color.white },
                 alignment = TextAnchor.MiddleLeft
             };
 
             _styleValue = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 12,
+                fontSize = 48,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.yellow },
                 alignment = TextAnchor.MiddleLeft
@@ -638,7 +638,7 @@ namespace ProjectName.UI
 
             _styleWarning = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                fontSize = 52,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.red },
                 alignment = TextAnchor.MiddleLeft
@@ -646,7 +646,7 @@ namespace ProjectName.UI
 
             _styleButton = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 13,
+                fontSize = 52,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.white }
             };

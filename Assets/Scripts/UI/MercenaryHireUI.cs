@@ -352,39 +352,39 @@ namespace ProjectName.UI
 
             _titleStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 18, fontStyle = FontStyle.Bold,
+                fontSize = 72, fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.white }
             };
 
             _nameStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14, fontStyle = FontStyle.Bold,
+                fontSize = 56, fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.yellow }
             };
 
             _statStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 12,
+                fontSize = 48,
                 normal = { textColor = new Color(0.8f, 0.8f, 0.9f) }
             };
 
             _storyStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11, fontStyle = FontStyle.Italic,
+                fontSize = 44, fontStyle = FontStyle.Italic,
                 wordWrap = true,
                 normal = { textColor = new Color(0.7f, 0.9f, 0.7f) }
             };
 
             _buttonStyle = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 12,
+                fontSize = 48,
                 normal = { textColor = Color.white },
                 hover = { textColor = Color.yellow }
             };
 
             _msgStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 12, fontStyle = FontStyle.Bold,
+                fontSize = 48, fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.cyan }
             };
 

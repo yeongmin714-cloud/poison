@@ -66,7 +66,7 @@ namespace ProjectName.UI
 
             _titleStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 18,
+                fontSize = 72,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = Color.white }
@@ -74,14 +74,14 @@ namespace ProjectName.UI
 
             _itemRowStyle = new GUIStyle(GUI.skin.box)
             {
-                fontSize = 12,
+                fontSize = 48,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = Color.white, background = MakeTexture(1, 1, new Color(0.2f, 0.2f, 0.25f, 0.9f)) }
             };
 
             _repairButtonStyle = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 12,
+                fontSize = 48,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white, background = MakeTexture(1, 1, new Color(0.2f, 0.6f, 0.2f, 1f)) },
@@ -90,14 +90,14 @@ namespace ProjectName.UI
 
             _statusStyle = new GUIStyle(GUI.skin.box)
             {
-                fontSize = 13,
+                fontSize = 52,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white, background = MakeTexture(1, 1, new Color(0.15f, 0.15f, 0.15f, 0.85f)) }
             };
 
             _categoryHeaderStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = new Color(0.8f, 0.8f, 0.8f) }
             };
@@ -204,7 +204,7 @@ namespace ProjectName.UI
             // ── 안내 문구 ──
             GUILayout.Label("R 키를 다시 누르면 창이 닫힙니다.", new GUIStyle(GUI.skin.label)
             {
-                fontSize = 10,
+                fontSize = 40,
                 normal = { textColor = new Color(0.6f, 0.6f, 0.6f) }
             });
 

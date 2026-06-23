@@ -30,9 +30,9 @@ namespace ProjectName.UI
     public class MinimapUI : UIWindow
     {
         [Header("Minimap Layout")]
-        [SerializeField] private float _minimapSize = 200f;
-        [SerializeField] private float _marginRight = 20f;
-        [SerializeField] private float _marginTop = 20f;
+        [SerializeField] private float _minimapSize = 400f;
+        [SerializeField] private float _marginRight = 40f;
+        [SerializeField] private float _marginTop = 40f;
 
         [Header("Zoom")]
         [SerializeField] private float _minZoom = 0.5f;
@@ -346,7 +346,7 @@ namespace ProjectName.UI
 
             // ---------- Draw zoom level label ----------
             string zoomText = $"x{_currentZoom:F1}";
-            Rect zoomRect = new Rect(_minimapSize - 50f, _minimapSize - 18f, 48f, 16f);
+            Rect zoomRect = new Rect(_minimapSize - 100f, _minimapSize - 36f, 96f, 32f);
             GUI.Label(zoomRect, zoomText, _zoomLabelStyle);
 
             // ---------- Draw scale bar (50m) ----------
@@ -387,18 +387,18 @@ namespace ProjectName.UI
                 if (distFromCenter > radius - 4f)
                     continue;
 
-                float iconX = center.x + px - 8f;
-                float iconY = center.y + py - 8f;
+                float iconX = center.x + px - 16f;
+                float iconY = center.y + py - 16f;
 
                 // Draw colored dot
                 Color origColor = GUI.color;
                 GUI.color = NationColors[nation];
-                Rect dotRect = new Rect(iconX, iconY, 16f, 16f);
+                Rect dotRect = new Rect(iconX, iconY, 32f, 32f);
                 GUI.Box(dotRect, "");
                 GUI.color = origColor;
 
                 // Draw label text
-                Rect labelRect = new Rect(iconX + 18f, iconY, 20f, 16f);
+                Rect labelRect = new Rect(iconX + 36f, iconY, 40f, 32f);
                 GUI.Label(labelRect, NationLabels[nation], _territoryDotStyle);
 
                 // Draw individual territory dots for nearby territories
@@ -416,9 +416,9 @@ namespace ProjectName.UI
 
                         GUI.color = NationColors[nation] * 0.7f;
                         Rect tDotRect = new Rect(
-                            center.x + tPx - 2f,
-                            center.y + tPy - 2f,
-                            4f, 4f);
+                            center.x + tPx - 4f,
+                            center.y + tPy - 4f,
+                            8f, 8f);
                         GUI.Box(tDotRect, "");
                         GUI.color = origColor;
                     }
@@ -439,7 +439,7 @@ namespace ProjectName.UI
             float sin = Mathf.Sin(yaw);
 
             // 삼각형 점 3개 (위쪽 방향 = forward)
-            float size = 8f;
+            float size = 16f;
             Vector2 tip = new Vector2(0f, -size);
             Vector2 left = new Vector2(-size * 0.5f, size);
             Vector2 right = new Vector2(size * 0.5f, size);
@@ -462,7 +462,7 @@ namespace ProjectName.UI
 
             // Center dot
             GUI.color = Color.white;
-            Rect centerDot = new Rect(center.x - 2f, center.y - 2f, 4f, 4f);
+            Rect centerDot = new Rect(center.x - 4f, center.y - 4f, 8f, 8f);
             GUI.Box(centerDot, "");
             GUI.color = origColor;
         }
@@ -476,12 +476,12 @@ namespace ProjectName.UI
             Color orig = GUI.color;
             GUI.color = color;
             float dist = Vector2.Distance(a, b);
-            int steps = Mathf.Max(2, Mathf.RoundToInt(dist / 2f));
+            int steps = Mathf.Max(2, Mathf.RoundToInt(dist / 4f));
             for (int i = 0; i <= steps; i++)
             {
                 float t = i / (float)steps;
                 Vector2 p = Vector2.Lerp(a, b, t);
-                Rect r = new Rect(p.x - 1f, p.y - 1f, 2f, 2f);
+                Rect r = new Rect(p.x - 2f, p.y - 2f, 4f, 4f);
                 GUI.Box(r, "");
             }
             GUI.color = orig;
@@ -524,7 +524,7 @@ namespace ProjectName.UI
             float scalePixels = 50f / (_mapRadiusMeters * _currentZoom) * radius;
             scalePixels = Mathf.Min(scalePixels, radius * 1.5f);
 
-            float barY = center.y + radius - 24f;
+            float barY = center.y + radius - 48f;
             float barX = center.x - scalePixels * 0.5f;
 
             Color orig = GUI.color;
@@ -533,13 +533,13 @@ namespace ProjectName.UI
             // Horizontal line
             DrawLine(new Vector2(barX, barY), new Vector2(barX + scalePixels, barY), GUI.color);
             // End ticks
-            DrawLine(new Vector2(barX, barY - 3f), new Vector2(barX, barY + 3f), GUI.color);
-            DrawLine(new Vector2(barX + scalePixels, barY - 3f), new Vector2(barX + scalePixels, barY + 3f), GUI.color);
+            DrawLine(new Vector2(barX, barY - 6f), new Vector2(barX, barY + 6f), GUI.color);
+            DrawLine(new Vector2(barX + scalePixels, barY - 6f), new Vector2(barX + scalePixels, barY + 6f), GUI.color);
 
             GUI.color = orig;
 
             // Label
-            Rect labelRect = new Rect(barX, barY + 4f, scalePixels, 14f);
+            Rect labelRect = new Rect(barX, barY + 8f, scalePixels, 28f);
             GUI.Label(labelRect, "50m", _labelStyle);
         }
 
@@ -557,14 +557,14 @@ namespace ProjectName.UI
 
             _playerIconStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 15,
+                fontSize = 30,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.cyan },
             };
 
             _territoryDotStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14,
+                fontSize = 28,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white },
@@ -572,14 +572,14 @@ namespace ProjectName.UI
 
             _labelStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14,
+                fontSize = 28,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = new Color(1f, 1f, 1f, 0.7f) },
             };
 
             _zoomLabelStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 15,
+                fontSize = 30,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleRight,
                 normal = { textColor = Color.white },

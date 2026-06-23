@@ -16,12 +16,12 @@ namespace ProjectName.UI
         [SerializeField] private EquipmentManager _equipmentManager;
 
         // ===== 레이아웃 상수 =====
-        private const float WINDOW_WIDTH = 520f;
-        private const float WINDOW_HEIGHT = 560f;
-        private const float TITLE_BAR_HEIGHT = 40f;
-        private const float SLOT_HEIGHT = 50f;
-        private const float SLOT_GAP = 4f;
-        private const float BUTTON_AREA_HEIGHT = 40f;
+        private const float WINDOW_WIDTH = 780f;
+        private const float WINDOW_HEIGHT = 800f;
+        private const float TITLE_BAR_HEIGHT = 60f;
+        private const float SLOT_HEIGHT = 80f;
+        private const float SLOT_GAP = 8f;
+        private const float BUTTON_AREA_HEIGHT = 60f;
 
         // ===== 선택 상태 =====
         private EquipmentManager.EquipmentSlot _selectedSlot = EquipmentManager.EquipmentSlot.Helmet;
@@ -98,7 +98,7 @@ namespace ProjectName.UI
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 18,
+                fontSize = 72,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
@@ -107,7 +107,7 @@ namespace ProjectName.UI
 
             _styleSlotLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                fontSize = 52,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
@@ -116,7 +116,7 @@ namespace ProjectName.UI
 
             _styleSlotValue = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 12,
+                fontSize = 48,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextSecondary },
@@ -125,7 +125,7 @@ namespace ProjectName.UI
 
             _styleEmptyText = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 12,
+                fontSize = 48,
                 fontStyle = FontStyle.Italic,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextDim },
@@ -134,7 +134,7 @@ namespace ProjectName.UI
 
             _styleInfoText = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextDim },
@@ -143,7 +143,7 @@ namespace ProjectName.UI
 
             _styleButton = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 12,
+                fontSize = 48,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 padding = new RectOffset(8, 8, 4, 4),
@@ -285,7 +285,7 @@ namespace ProjectName.UI
                         string durLabel = slotData.currentDurability <= 0 ? "🔴 파괴됨" : $"{GetDurabilityEmoji(ratio)} {slotData.currentDurability}/{slotData.itemData.maxDurability}";
                         GUI.Label(new Rect(durBarX, durBarY, durBarWidth, durBarHeight), durLabel, new GUIStyle(GUI.skin.label)
                         {
-                            fontSize = 9,
+                            fontSize = 36,
                             fontStyle = FontStyle.Bold,
                             alignment = TextAnchor.MiddleCenter,
                             normal = { textColor = ColorTextPrimary }

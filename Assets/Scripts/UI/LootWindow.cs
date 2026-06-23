@@ -22,12 +22,12 @@ namespace ProjectName.UI
         private int _selectedIndex = -1;
 
         // ===== 레퍼런스 스타일 상수 =====
-        private const float WINDOW_WIDTH = 600f;
-        private const float WINDOW_HEIGHT = 620f;
-        private const float TITLE_BAR_HEIGHT = 40f;
-        private const float BOTTOM_BAR_HEIGHT = 50f;
+        private const float WINDOW_WIDTH = 900f;
+        private const float WINDOW_HEIGHT = 900f;
+        private const float TITLE_BAR_HEIGHT = 60f;
+        private const float BOTTOM_BAR_HEIGHT = 80f;
         private const int GRID_COLUMNS = 3;
-        private const float SLOT_MARGIN = 4f;
+        private const float SLOT_MARGIN = 8f;
 
         // ===== 다크 테마 색상 (인벤토리와 통일) =====
         private static readonly Color ColorBg = new Color(0.18f, 0.13f, 0.16f, 0.92f);
@@ -127,7 +127,7 @@ namespace ProjectName.UI
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 18,
+                fontSize = 72,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
@@ -141,7 +141,7 @@ namespace ProjectName.UI
                 border = new RectOffset(2, 2, 2, 2),
                 padding = new RectOffset(4, 4, 4, 4),
                 margin = new RectOffset(2, 2, 2, 2),
-                fontSize = 12,
+                fontSize = 48,
                 alignment = TextAnchor.MiddleCenter
             };
 
@@ -152,7 +152,7 @@ namespace ProjectName.UI
 
             _styleSlotLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary },
@@ -161,7 +161,7 @@ namespace ProjectName.UI
 
             _styleItemCount = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleRight,
                 normal = { textColor = ColorAccent }
@@ -169,7 +169,7 @@ namespace ProjectName.UI
 
             _styleEmptyText = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                fontSize = 52,
                 fontStyle = FontStyle.Italic,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextDim }
@@ -185,7 +185,7 @@ namespace ProjectName.UI
 
             _styleTakeAllBtn = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 14,
+                fontSize = 56,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorBtnTakeAll) },

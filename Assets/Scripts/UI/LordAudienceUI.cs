@@ -39,9 +39,9 @@ namespace ProjectName.UI
         [SerializeField] private int _selectedOption = -1;
 
         // === IMGUI ===
-        private const float WINDOW_WIDTH = 600f;
-        private const float WINDOW_HEIGHT = 500f;
-        private const float OPTION_HEIGHT = 40f;
+        private const float WINDOW_WIDTH = 900f;
+        private const float WINDOW_HEIGHT = 750f;
+        private const float OPTION_HEIGHT = 60f;
 
         private static readonly Color ColorBg = new Color(0.15f, 0.10f, 0.12f, 0.92f);
         private static readonly Color ColorTitle = new Color(0.12f, 0.08f, 0.10f, 1f);
@@ -89,7 +89,7 @@ namespace ProjectName.UI
 
             // 닫기 버튼
             if (GUI.Button(new Rect(x + WINDOW_WIDTH - 44, y + 4, 36, 28), "✕",
-                new GUIStyle(GUI.skin.button) { fontSize = 14, fontStyle = FontStyle.Bold }))
+                new GUIStyle(GUI.skin.button) { fontSize = 56, fontStyle = FontStyle.Bold }))
             {
                 Hide();
                 return;
@@ -180,28 +180,28 @@ namespace ProjectName.UI
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 15, fontStyle = FontStyle.Bold,
+                fontSize = 60, fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorText }
             };
 
             _styleText = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13, fontStyle = FontStyle.Normal,
+                fontSize = 52, fontStyle = FontStyle.Normal,
                 wordWrap = true,
                 normal = { textColor = ColorText }
             };
 
             _styleOption = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 12, fontStyle = FontStyle.Normal,
+                fontSize = 48, fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorText }
             };
 
             _styleResult = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14, fontStyle = FontStyle.Bold,
+                fontSize = 56, fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorText }
             };

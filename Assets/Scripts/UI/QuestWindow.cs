@@ -110,13 +110,13 @@ namespace ProjectName.UI
             GUI.Label(new Rect(10, y + 4, width - 20, 22), $"<color={colorHex}>{quest.questName}</color>  {stateStr}", _styleTitle);
 
             if (!string.IsNullOrEmpty(quest.description))
-                GUI.Label(new Rect(10, y + 28, width - 20, 18), quest.description, new GUIStyle(GUI.skin.label) { fontSize = 12, normal = { textColor = Color.gray } });
+                GUI.Label(new Rect(10, y + 28, width - 20, 18), quest.description, new GUIStyle(GUI.skin.label) { fontSize = 48, normal = { textColor = Color.gray } });
 
             if (quest.objectives != null && quest.objectives.Count > 0)
             {
                 var obj = quest.objectives[0];
                 string prog = obj.requiredCount > 0 ? $" ({obj.currentCount}/{obj.requiredCount})" : "";
-                GUI.Label(new Rect(10, y + 48, width - 20, 16), $"▸ {obj.description}{prog}", new GUIStyle(GUI.skin.label) { fontSize = 11, normal = { textColor = Color.cyan } });
+                GUI.Label(new Rect(10, y + 48, width - 20, 16), $"▸ {obj.description}{prog}", new GUIStyle(GUI.skin.label) { fontSize = 44, normal = { textColor = Color.cyan } });
             }
 
             // 보상 표시
@@ -124,15 +124,15 @@ namespace ProjectName.UI
             if (quest.reward.gold > 0) rewardStr += $"💰{quest.reward.gold} ";
             if (quest.reward.exp > 0) rewardStr += $"✨{quest.reward.exp}EXP";
             if (!string.IsNullOrEmpty(rewardStr))
-                GUI.Label(new Rect(10, y + 64, width - 20, 14), rewardStr, new GUIStyle(GUI.skin.label) { fontSize = 10, normal = { textColor = Color.yellow } });
+                GUI.Label(new Rect(10, y + 64, width - 20, 14), rewardStr, new GUIStyle(GUI.skin.label) { fontSize = 40, normal = { textColor = Color.yellow } });
         }
 
         private void EnsureStyles()
         {
             if (_styleTitle != null) return;
-            _styleTitle = new GUIStyle(GUI.skin.label) { fontSize = 15, fontStyle = FontStyle.Bold, richText = true, normal = { textColor = Color.white } };
-            _styleLabel = new GUIStyle(GUI.skin.label) { fontSize = 13, normal = { textColor = Color.white } };
-            _styleValue = new GUIStyle(GUI.skin.label) { fontSize = 13, fontStyle = FontStyle.Bold, normal = { textColor = Color.green } };
+            _styleTitle = new GUIStyle(GUI.skin.label) { fontSize = 60, fontStyle = FontStyle.Bold, richText = true, normal = { textColor = Color.white } };
+            _styleLabel = new GUIStyle(GUI.skin.label) { fontSize = 52, normal = { textColor = Color.white } };
+            _styleValue = new GUIStyle(GUI.skin.label) { fontSize = 52, fontStyle = FontStyle.Bold, normal = { textColor = Color.green } };
         }
     }
 }

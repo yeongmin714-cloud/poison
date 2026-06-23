@@ -71,7 +71,7 @@ namespace ProjectName.UI
 
             _titleStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 18,
+                fontSize = 72,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = Color.white }
@@ -79,21 +79,21 @@ namespace ProjectName.UI
 
             _slotStyle = new GUIStyle(GUI.skin.box)
             {
-                fontSize = 12,
+                fontSize = 48,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white, background = MakeTexture(1, 1, new Color(0.2f, 0.2f, 0.25f, 0.9f)) }
             };
 
             _resultStyle = new GUIStyle(GUI.skin.box)
             {
-                fontSize = 13,
+                fontSize = 52,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = new Color(0.7f, 1f, 0.7f), background = MakeTexture(1, 1, new Color(0.1f, 0.25f, 0.1f, 0.8f)) }
             };
 
             _categoryHeaderStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = new Color(0.8f, 0.8f, 0.8f) }
             };
@@ -182,7 +182,7 @@ namespace ProjectName.UI
             {
                 var style = new GUIStyle(GUI.skin.box)
                 {
-                    fontSize = 13,
+                    fontSize = 52,
                     alignment = TextAnchor.MiddleCenter,
                     normal = { textColor = new Color(1f, 0.6f, 0.4f), background = MakeTexture(1, 1, new Color(0.25f, 0.1f, 0.1f, 0.8f)) }
                 };
@@ -368,7 +368,7 @@ namespace ProjectName.UI
             // 이름 + 개수
             GUI.Label(new Rect(rect.x + 2, rect.y + size - 22, rect.width - 4, 20), label, new GUIStyle(GUI.skin.label)
             {
-                fontSize = 10,
+                fontSize = 40,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white }
             });

@@ -465,7 +465,7 @@ namespace ProjectName.UI
             // 타이틀
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 24,
+                fontSize = 96,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.yellow }
@@ -490,7 +490,7 @@ namespace ProjectName.UI
             // 아이템 이름
             _styleItemName = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14,
+                fontSize = 56,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = Color.white }
@@ -499,7 +499,7 @@ namespace ProjectName.UI
             // 가격
             _styleItemPrice = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 12,
+                fontSize = 48,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = Color.yellow }
             };
@@ -507,7 +507,7 @@ namespace ProjectName.UI
             // 재고
             _styleItemStock = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 12,
+                fontSize = 48,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = Color.cyan }
             };
@@ -515,7 +515,7 @@ namespace ProjectName.UI
             // 희귀 태그
             _styleRareTag = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = Color.magenta }
@@ -524,14 +524,14 @@ namespace ProjectName.UI
             // 버튼들
             _styleBuyButton = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 12,
+                fontSize = 48,
                 normal = { textColor = Color.white, background = MakeTexture(1, 1, new Color(0.2f, 0.6f, 0.2f, 1f)) },
                 hover = { textColor = Color.white, background = MakeTexture(1, 1, new Color(0.3f, 0.7f, 0.3f, 1f)) }
             };
             
             _styleSellButton = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 12,
+                fontSize = 48,
                 normal = { textColor = Color.white, background = MakeTexture(1, 1, new Color(0.6f, 0.2f, 0.2f, 1f)) },
                 hover = { textColor = Color.white, background = MakeTexture(1, 1, new Color(0.7f, 0.3f, 0.3f, 1f)) }
             };
@@ -539,7 +539,7 @@ namespace ProjectName.UI
             // 슬롯 라벨
             _styleSlotLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 10,
+                fontSize = 40,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = Color.grey }
             };
@@ -547,7 +547,7 @@ namespace ProjectName.UI
             // 빈 목록 텍스트
             _styleEmptyText = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 12,
+                fontSize = 48,
                 fontStyle = FontStyle.Italic,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.grey }

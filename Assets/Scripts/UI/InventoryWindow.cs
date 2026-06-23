@@ -32,13 +32,13 @@ namespace ProjectName.UI
         private int _selectedSlotIndex = -1;
 
         // ===== 레퍼런스 스타일 상수 =====
-        private const float WINDOW_WIDTH = 680f;
-        private const float WINDOW_HEIGHT = 700f;
-        private const float TITLE_BAR_HEIGHT = 40f;
-        private const float TAB_BAR_HEIGHT = 36f;
-        private const float INFO_PANEL_HEIGHT = 100f;
+        private const float WINDOW_WIDTH = 960f;
+        private const float WINDOW_HEIGHT = 800f;
+        private const float TITLE_BAR_HEIGHT = 60f;
+        private const float TAB_BAR_HEIGHT = 54f;
+        private const float INFO_PANEL_HEIGHT = 160f;
         private const int GRID_COLUMNS = 3;
-        private const float SLOT_MARGIN = 4f;
+        private const float SLOT_MARGIN = 8f;
 
         // ===== 다크 테마 색상 =====
         private static readonly Color ColorBg = new Color(0.18f, 0.13f, 0.16f, 0.92f);        // 전체 배경 (어두운 보라빛 회색)
@@ -102,7 +102,7 @@ namespace ProjectName.UI
             // 타이틀
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 18,
+                fontSize = 72,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
@@ -112,7 +112,7 @@ namespace ProjectName.UI
             // 탭 (비활성)
             _styleTab = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 12,
+                fontSize = 48,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleCenter,
                 padding = new RectOffset(6, 6, 4, 4),
@@ -138,7 +138,7 @@ namespace ProjectName.UI
                 border = new RectOffset(2, 2, 2, 2),
                 padding = new RectOffset(4, 4, 4, 4),
                 margin = new RectOffset(2, 2, 2, 2),
-                fontSize = 12,
+                fontSize = 48,
                 alignment = TextAnchor.MiddleCenter
             };
 
@@ -151,7 +151,7 @@ namespace ProjectName.UI
             // 슬롯 라벨 (이름)
             _styleSlotLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary },
@@ -161,7 +161,7 @@ namespace ProjectName.UI
             // 아이템 이름 (목록형)
             _styleItemName = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 12,
+                fontSize = 48,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary }
@@ -170,7 +170,7 @@ namespace ProjectName.UI
             // 아이템 개수
             _styleItemCount = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleRight,
                 normal = { textColor = ColorAccent }
@@ -179,7 +179,7 @@ namespace ProjectName.UI
             // 정보 패널 - 이름
             _styleInfoName = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 15,
+                fontSize = 60,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorAccent },
@@ -189,7 +189,7 @@ namespace ProjectName.UI
             // 정보 패널 - 설명
             _styleInfoDesc = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 12,
+                fontSize = 48,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.UpperLeft,
                 normal = { textColor = ColorTextSecondary },
@@ -200,7 +200,7 @@ namespace ProjectName.UI
             // 정보 패널 - 레이블
             _styleInfoLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Italic,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextDim }
@@ -209,7 +209,7 @@ namespace ProjectName.UI
             // 빈 목록 텍스트
             _styleEmptyText = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                fontSize = 52,
                 fontStyle = FontStyle.Italic,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextDim }

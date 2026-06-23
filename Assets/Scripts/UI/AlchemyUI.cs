@@ -102,7 +102,7 @@ namespace ProjectName.Core.UI
             // Result text
             GameObject resultGo = CreateLabel(panel, "", out resultText);
             resultText.alignment = TextAnchor.MiddleCenter;
-            resultText.fontSize = 16;
+            resultText.fontSize = 32;
             resultText.color = _theme != null ? _theme.AccentColor : Color.yellow;
         }
 
@@ -153,7 +153,7 @@ namespace ProjectName.Core.UI
             labelTxt.text = labelText;
             labelTxt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             labelTxt.alignment = TextAnchor.MiddleLeft;
-            labelTxt.fontSize = 14;
+            labelTxt.fontSize = 28;
             labelTxt.color = Color.white;
             labelOut = labelTxt;
 
@@ -183,7 +183,7 @@ namespace ProjectName.Core.UI
             txt.text = text;
             txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             txt.alignment = TextAnchor.MiddleLeft;
-            txt.fontSize = 14;
+            txt.fontSize = 28;
             txt.color = Color.white;
             txtComponent = txt;
             return go;
@@ -197,7 +197,7 @@ namespace ProjectName.Core.UI
             txt.text = text;
             txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             txt.alignment = TextAnchor.MiddleLeft;
-            txt.fontSize = 14;
+            txt.fontSize = 28;
             txt.color = Color.white;
             return go;
         }
@@ -213,7 +213,7 @@ namespace ProjectName.Core.UI
             txt.text = text;
             txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             txt.alignment = TextAnchor.MiddleCenter;
-            txt.fontSize = 16;
+            txt.fontSize = 32;
             txt.color = Color.white;
             RectTransform rect = go.AddComponent<RectTransform>();
             rect.sizeDelta = new Vector2(0, 40);

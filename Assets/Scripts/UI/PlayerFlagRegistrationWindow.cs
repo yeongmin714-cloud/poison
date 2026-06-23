@@ -112,7 +112,7 @@ namespace ProjectName.UI
 
             _titleStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 20,
+                fontSize = 80,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = new Color(1f, 0.9f, 0.4f) }
@@ -120,21 +120,21 @@ namespace ProjectName.UI
 
             _previewBoxStyle = new GUIStyle(GUI.skin.box)
             {
-                fontSize = 14,
+                fontSize = 56,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white }
             };
 
             _sectionLabelStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                fontSize = 52,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = new Color(0.85f, 0.85f, 0.85f) }
             };
 
             _colorBtnStyle = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 18,
+                fontSize = 72,
                 alignment = TextAnchor.MiddleCenter,
                 fixedWidth = 48,
                 fixedHeight = 40,
@@ -148,7 +148,7 @@ namespace ProjectName.UI
 
             _shapeBtnStyle = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 16,
+                fontSize = 64,
                 alignment = TextAnchor.MiddleCenter,
                 fixedWidth = 50,
                 fixedHeight = 44,
@@ -162,7 +162,7 @@ namespace ProjectName.UI
 
             _messageStyle = new GUIStyle(GUI.skin.box)
             {
-                fontSize = 13,
+                fontSize = 52,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = new Color(0.7f, 1f, 0.7f) }
             };
@@ -328,7 +328,7 @@ namespace ProjectName.UI
             Rect nameRect = new Rect(previewContainer.x, previewContainer.y + _previewSize * 0.72f, previewContainer.width, _previewSize * 0.25f);
             GUIStyle nameStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 18,
+                fontSize = 72,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white }

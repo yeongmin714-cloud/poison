@@ -313,7 +313,7 @@ namespace ProjectName.UI
             // 아이템명 (굵게, 크게)
             _styleItemName = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14,
+                fontSize = 56,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = new Color(0.95f, 0.90f, 0.80f, 1f) },
@@ -323,7 +323,7 @@ namespace ProjectName.UI
             // 등급/카테고리 레이블
             _styleRarityLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Italic,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = new Color(0.70f, 0.65f, 0.60f, 1f) },
@@ -333,7 +333,7 @@ namespace ProjectName.UI
             // 설명
             _styleDescription = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.UpperLeft,
                 normal = { textColor = new Color(0.85f, 0.82f, 0.78f, 1f) },
@@ -344,7 +344,7 @@ namespace ProjectName.UI
             // 효과
             _styleEffects = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.UpperLeft,
                 normal = { textColor = new Color(0.4f, 0.9f, 0.5f, 1f) },
@@ -355,7 +355,7 @@ namespace ProjectName.UI
             // 카테고리/내구도 레이블
             _styleCategoryLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = new Color(0.75f, 0.70f, 0.65f, 1f) },
@@ -365,7 +365,7 @@ namespace ProjectName.UI
             // 개수
             _styleCountLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = 44,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = new Color(0.80f, 0.60f, 0.20f, 1f) },

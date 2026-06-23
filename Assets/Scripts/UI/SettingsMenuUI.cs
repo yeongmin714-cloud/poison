@@ -150,7 +150,7 @@ namespace ProjectName.UI
 
             _titleStyle = new GUIStyle
             {
-                fontSize = 22,
+                fontSize = 88,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = _textColor }
@@ -158,7 +158,7 @@ namespace ProjectName.UI
 
             _tabStyle = new GUIStyle
             {
-                fontSize = 14,
+                fontSize = 56,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = _textColor }
@@ -171,7 +171,7 @@ namespace ProjectName.UI
 
             _labelStyle = new GUIStyle
             {
-                fontSize = 14,
+                fontSize = 56,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = _labelColor },
@@ -180,7 +180,7 @@ namespace ProjectName.UI
 
             _valueStyle = new GUIStyle
             {
-                fontSize = 14,
+                fontSize = 56,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleRight,
                 normal = { textColor = _textColor },
@@ -189,7 +189,7 @@ namespace ProjectName.UI
 
             _backButtonStyle = new GUIStyle
             {
-                fontSize = 16,
+                fontSize = 64,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = _textColor }
@@ -199,7 +199,7 @@ namespace ProjectName.UI
 
             _fullscreenButtonStyle = new GUIStyle
             {
-                fontSize = 14,
+                fontSize = 56,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = _textColor }
@@ -398,9 +398,9 @@ namespace ProjectName.UI
             y += sliderHeight + 10;
 
             // 0% / 50% / 100% 가이드
-            GUI.Label(new Rect(sliderX, y, 30, 15), "0%", new GUIStyle { fontSize = 10, normal = { textColor = Color.gray } });
-            GUI.Label(new Rect(sliderX + sliderWidth / 2 - 10, y, 30, 15), "50%", new GUIStyle { fontSize = 10, normal = { textColor = Color.gray } });
-            GUI.Label(new Rect(sliderX + sliderWidth - 30, y, 30, 15), "100%", new GUIStyle { fontSize = 10, normal = { textColor = Color.gray } });
+            GUI.Label(new Rect(sliderX, y, 30, 15), "0%", new GUIStyle { fontSize = 40, normal = { textColor = Color.gray } });
+            GUI.Label(new Rect(sliderX + sliderWidth / 2 - 10, y, 30, 15), "50%", new GUIStyle { fontSize = 40, normal = { textColor = Color.gray } });
+            GUI.Label(new Rect(sliderX + sliderWidth - 30, y, 30, 15), "100%", new GUIStyle { fontSize = 40, normal = { textColor = Color.gray } });
             y += 18;
         }
 
