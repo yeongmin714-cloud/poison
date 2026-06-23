@@ -33,7 +33,7 @@ namespace ProjectName.Systems
             public float intermediateInner = 600f;
             public float intermediateOuter = 1200f;
             public float advancedInner = 1200f;
-            public float advancedOuter = 1000f;  // 맵 반경 1000m
+            public float advancedOuter = 1800f;  // 맵 반경 1800m
         }
 
         // ===== C18-02: 시간대 열거형 =====

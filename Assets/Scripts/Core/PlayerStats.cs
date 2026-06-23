@@ -9,9 +9,32 @@ namespace ProjectName.Core
     /// - 레벨당 스탯 증가 적용 (HP, Alchemy, Cooking, Speech, Combat)
     /// - PlayerHealth와 연동하여 최대 HP 업데이트
     /// </summary>
+    [DefaultExecutionOrder(-100)]
     public class PlayerStats : MonoBehaviour
     {
         public static PlayerStats Instance { get; private set; }
+
+        /// <summary>
+        /// [RuntimeInitializeOnLoadMethod] 폴백: 씬에 PlayerStats가 없으면 자동 생성.
+        /// GameManager.InitializeSystems()보다 먼저 실행되어 Awake() 타이밍 문제를 방지합니다.
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void AutoCreateFallback()
+        {
+            if (Instance != null) return;
+
+            var existing = Object.FindAnyObjectByType<PlayerStats>();
+            if (existing != null)
+            {
+                Instance = existing;
+                return;
+            }
+
+            var go = new GameObject("PlayerStats");
+            go.AddComponent<PlayerStats>();
+            Object.DontDestroyOnLoad(go);
+            Debug.Log("[PlayerStats] Auto-created via RuntimeInitializeOnLoadMethod fallback.");
+        }
 
         [Header("Experience Settings")]
         [SerializeField] private int _currentEXP = 0;

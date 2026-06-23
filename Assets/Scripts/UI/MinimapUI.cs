@@ -109,9 +109,13 @@ namespace ProjectName.UI
 
             // Find runtime references
             _mainCamera = Camera.main;
+            if (_mainCamera == null)
+                _mainCamera = FindObjectOfType<Camera>();
             var playerGo = GameObject.FindGameObjectWithTag("Player");
             if (playerGo != null)
                 _playerTransform = playerGo.transform;
+            else
+                Debug.LogWarning("[MinimapUI] Player를 찾을 수 없습니다! Transform 기본값 사용.");
             _mapWindow = FindObjectOfType<MapWindow>();
 
             // Minimap is always visible — force show
@@ -218,7 +222,9 @@ namespace ProjectName.UI
         /// </summary>
         public Vector3 GetTerritoryWorldPosition(TerritoryDefinition def)
         {
-            Vector3 dir = NationDirections[def.nation];
+            // NationDirections 딕셔너리에 없는 국가(None, Dracula 등)는 안전 폴백
+            if (!NationDirections.TryGetValue(def.nation, out Vector3 dir))
+                return Vector3.zero;
 
             // Empire is at center
             if (def.nation == NationType.Empire)

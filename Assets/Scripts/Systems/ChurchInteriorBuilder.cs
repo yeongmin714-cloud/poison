@@ -130,6 +130,22 @@ namespace ProjectName.Systems
                 new Color(1f, 0.8f, 0.5f), 6f, 0.6f);
 
             Debug.Log("[ChurchInteriorBuilder] 교회 실내 생성 완료!");
+
+            // ===== FIX-01: 교회 NPC 생성 (E키로 기부 메뉴) =====
+            GameObject churchNpc = new GameObject("ChurchNPC");
+            churchNpc.transform.SetParent(room.transform);
+            // 벤치 근처 (제단 쪽)
+            churchNpc.transform.localPosition = new Vector3(0, 0, roomDepth * 0.5f - 3.5f);
+            churchNpc.AddComponent<ChurchNPCInteraction>();
+
+            // ===== FIX-01: 출구 트리거 생성 =====
+            GameObject exitTrigger = new GameObject("ExitTrigger");
+            exitTrigger.transform.SetParent(room.transform);
+            exitTrigger.transform.localPosition = new Vector3(0, 0, roomDepth * 0.5f - 0.5f);
+            var exitBt = exitTrigger.AddComponent<BuildingTrigger>();
+            exitBt.BuildingType = "Exit";
+            exitBt.InteractRange = 3f;
+
             return room;
         }
 

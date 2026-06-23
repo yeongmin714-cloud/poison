@@ -16,6 +16,7 @@ namespace ProjectName.UI
     /// - ESC 키는 현재 열려있는 창을 닫습니다
     /// - LootWindow는 LootBasket 오브젝트와 상호작용할 때 열립니다
     /// </summary>
+    [DefaultExecutionOrder(-90)]
     public class UIManager : MonoBehaviour
     {
         [Header("Key Bindings")]
@@ -41,6 +42,28 @@ namespace ProjectName.UI
         // 싱글톤 인스턴스
         private static UIManager _instance;
         public static UIManager Instance => _instance;
+
+        /// <summary>
+        /// [RuntimeInitializeOnLoadMethod] 폴백: 씬에 UIManager가 없으면 자동 생성.
+        /// GameManager.InitializeSystems()보다 먼저 실행되어 Awake() 타이밍 문제를 방지합니다.
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void AutoCreateFallback()
+        {
+            if (_instance != null) return;
+
+            var existing = Object.FindAnyObjectByType<UIManager>();
+            if (existing != null)
+            {
+                _instance = existing;
+                return;
+            }
+
+            var go = new GameObject("UIManager");
+            go.AddComponent<UIManager>();
+            Object.DontDestroyOnLoad(go);
+            Debug.Log("[UIManager] Auto-created via RuntimeInitializeOnLoadMethod fallback.");
+        }
 
         private void Awake()
         {

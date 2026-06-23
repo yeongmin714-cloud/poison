@@ -95,6 +95,22 @@ namespace ProjectName.Systems
             IndoorLighting.SetupIndoorLighting(room, ambientWarm, 0.9f, true);
 
             Debug.Log("[HouseInteriorBuilder] NPC 주택 실내 생성 완료!");
+
+            // ===== FIX-01: 마을 주민 NPC 생성 (퀘스트) =====
+            GameObject villagerNpc = new GameObject("VillagerNPC");
+            villagerNpc.transform.SetParent(room.transform);
+            // 테이블 근처
+            villagerNpc.transform.localPosition = new Vector3(-1.0f, 0, -1.0f);
+            villagerNpc.AddComponent<NPCQuestGiver>();
+
+            // ===== FIX-01: 출구 트리거 생성 =====
+            GameObject exitTrigger = new GameObject("ExitTrigger");
+            exitTrigger.transform.SetParent(room.transform);
+            exitTrigger.transform.localPosition = new Vector3(0, 0, roomDepth * 0.5f - 0.5f);
+            var exitBt = exitTrigger.AddComponent<BuildingTrigger>();
+            exitBt.BuildingType = "Exit";
+            exitBt.InteractRange = 3f;
+
             return room;
         }
     }

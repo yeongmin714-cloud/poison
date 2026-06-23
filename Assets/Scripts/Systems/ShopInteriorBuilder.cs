@@ -96,6 +96,25 @@ namespace ProjectName.Systems
                 new Color(1f, 0.9f, 0.7f), 4f, 0.8f);
 
             Debug.Log("[ShopInteriorBuilder] 상점 실내 생성 완료!");
+
+            // ===== FIX-01: 상점 NPC 생성 =====
+            GameObject shopNpc = new GameObject("ShopNPC");
+            shopNpc.transform.SetParent(room.transform);
+            // 카운터 뒤: 카운터 localPosition 기준으로 z 방향으로 -0.8f 뒤
+            shopNpc.transform.localPosition = new Vector3(0, 0, counter.transform.localPosition.z - 0.8f);
+            shopNpc.AddComponent<ShopPlaceholder>();
+            // 이름표 "상인" 표시
+            var nameplate = shopNpc.AddComponent<NameplateDisplay>();
+            nameplate.DisplayName = "상인";
+
+            // ===== FIX-01: 출구 트리거 생성 =====
+            GameObject exitTrigger = new GameObject("ExitTrigger");
+            exitTrigger.transform.SetParent(room.transform);
+            exitTrigger.transform.localPosition = new Vector3(0, 0, roomDepth * 0.5f - 0.5f);
+            var exitBt = exitTrigger.AddComponent<BuildingTrigger>();
+            exitBt.BuildingType = "Exit";
+            exitBt.InteractRange = 3f;
+
             return room;
         }
     }

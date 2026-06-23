@@ -154,6 +154,11 @@ namespace ProjectName.Systems
             placeholder.buildingType = type;
             placeholder.buildingName = name;
 
+            // BuildingTrigger 컴포넌트 추가 (E키 상호작용용)
+            var trigger = go.AddComponent<BuildingTrigger>();
+            trigger.BuildingType = type.ToString();
+            trigger.InteractRange = 3f;
+
             // 콜라이더는 끄지 않음 (물리적 블로킹)
             var col = go.GetComponent<Collider>();
             if (col != null) col.isTrigger = false;

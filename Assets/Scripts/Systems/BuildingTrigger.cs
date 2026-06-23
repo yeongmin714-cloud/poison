@@ -50,8 +50,16 @@ namespace ProjectName.Systems
 
             if (_playerNearby && Input.GetKeyDown(KeyCode.E))
             {
-                Debug.Log($"[BuildingTrigger] E키 입력 — {_buildingType} 진입");
-                IndoorSceneTransition.EnterBuilding(_buildingType);
+                if (string.Equals(_buildingType, "Exit", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    Debug.Log($"[BuildingTrigger] E키 입력 — 출구를 통해 퇴출");
+                    IndoorSceneTransition.ExitBuilding();
+                }
+                else
+                {
+                    Debug.Log($"[BuildingTrigger] E키 입력 — {_buildingType} 진입");
+                    IndoorSceneTransition.EnterBuilding(_buildingType);
+                }
             }
         }
 

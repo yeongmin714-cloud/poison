@@ -202,7 +202,7 @@ namespace ProjectName.UI
             
             // === 골드 표시 ==
             float goldY = y + titleHeight + 10f;
-            GUI.Label(new Rect(x + 10, goldY, width - 20, 25), $"골드: {PlayerStats.Instance.Gold}", _styleItemName);
+            GUI.Label(new Rect(x + 10, goldY, width - 20, 25), $"골드: {PlayerStats.Instance?.Gold ?? 0}", _styleItemName);
             
             // === 아이템 목록 ==
             float itemsY = goldY + 30f;
@@ -217,7 +217,7 @@ namespace ProjectName.UI
             if (_selectedSlotIndex >= 0 && _selectedSlotIndex < _currentItems.Count)
             {
                 ShopItem selectedItem = _currentItems[_selectedSlotIndex];
-                bool canAfford = PlayerStats.Instance.Gold >= selectedItem.price;
+                bool canAfford = (PlayerStats.Instance?.Gold ?? 0) >= selectedItem.price;
                 bool inStock = selectedItem.stock == 0 || selectedItem.stock > 0;
                 
                 GUI.enabled = canAfford && inStock;
@@ -350,7 +350,7 @@ namespace ProjectName.UI
             ShopItem item = _currentItems[_selectedSlotIndex];
             
             // 골드 확인 및 차감
-            if (!PlayerStats.Instance.SpendGold(item.price)) return;
+            if (!(PlayerStats.Instance?.SpendGold(item.price) ?? false)) return;
             
             // 재고 확인 및 감소
             if (item.stock > 0)
@@ -372,7 +372,7 @@ namespace ProjectName.UI
             else
             {
                 // 인벤토리 가득 찼으면 골드 환불
-                PlayerStats.Instance.AddGold(item.price);
+                PlayerStats.Instance?.AddGold(item.price);
                 Debug.LogWarning("[ShopWindow] 인벤토리 가득 참! 구매 취소.");
             }
         }
@@ -381,7 +381,7 @@ namespace ProjectName.UI
         public bool BuyItem(ShopItem item)
         {
             if (item == null) return false;
-            if (!PlayerStats.Instance.SpendGold(item.price)) return false;
+            if (!(PlayerStats.Instance?.SpendGold(item.price) ?? false)) return false;
 
             if (item.stock > 0)
             {
@@ -396,7 +396,7 @@ namespace ProjectName.UI
             }
             else
             {
-                PlayerStats.Instance.AddGold(item.price);
+                PlayerStats.Instance?.AddGold(item.price);
                 Debug.LogWarning("[ShopWindow] 인벤토리 가득 참! 구매 취소.");
                 return false;
             }
@@ -419,7 +419,7 @@ namespace ProjectName.UI
             var firstItem = allItems[0];
             int sellPrice = CalculateSellPrice(firstItem.item);
             PlayerInventory.Instance.RemoveItem(firstItem.item?.id ?? "", 1);
-            PlayerStats.Instance.AddGold(sellPrice);
+            PlayerStats.Instance?.AddGold(sellPrice);
             Debug.Log($"[ShopWindow] 판매 성공: {firstItem.item.displayName} → {sellPrice}G");
             RefreshShopItems();
             UpdateGoldDisplay();
@@ -451,7 +451,7 @@ namespace ProjectName.UI
         {
             if (_goldText != null)
             {
-                _goldText.text = $"골드: {PlayerStats.Instance.Gold}";
+                _goldText.text = $"골드: {PlayerStats.Instance?.Gold ?? 0}";
             }
         }
         

@@ -94,6 +94,22 @@ namespace ProjectName.Systems
             IndoorLighting.SetupIndoorLighting(room, ambientMid, 0.8f, false);
 
             Debug.Log("[CraftHouseInteriorBuilder] 크래프트하우스 실내 생성 완료!");
+
+            // ===== FIX-01: 크래프트 스테이션 생성 =====
+            GameObject craftStation = new GameObject("CraftStation");
+            craftStation.transform.SetParent(room.transform);
+            // 첫 번째 제작대(workbench1) 옆에 배치
+            craftStation.transform.localPosition = new Vector3(-2.5f, 0.6f, 2.2f);
+            craftStation.AddComponent<CraftingStation>();
+
+            // ===== FIX-01: 출구 트리거 생성 =====
+            GameObject exitTrigger = new GameObject("ExitTrigger");
+            exitTrigger.transform.SetParent(room.transform);
+            exitTrigger.transform.localPosition = new Vector3(0, 0, roomDepth * 0.5f - 0.5f);
+            var exitBt = exitTrigger.AddComponent<BuildingTrigger>();
+            exitBt.BuildingType = "Exit";
+            exitBt.InteractRange = 3f;
+
             return room;
         }
     }

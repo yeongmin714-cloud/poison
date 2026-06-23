@@ -130,6 +130,12 @@ namespace ProjectName.Core
 
             // 15. LoadingScreenUI + LoadingManager (same GameObject)
             CreateLoadingScreenSystemIfMissing();
+
+            // 16. PlayerStats — player experience, gold, and stats singleton
+            CreateSystemIfMissing("PlayerStats");
+
+            // 17. UIManager — UI window management (singleton with FindOrCreate fallback)
+            CreateSystemIfMissing("UIManager");
         }
 
         // ================================================================

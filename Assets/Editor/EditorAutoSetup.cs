@@ -37,6 +37,21 @@ public static class EditorAutoSetup
                     RunFullAutoSetup();
             };
         }
+
+        // SceneFixer 한 번 실행 (FIX-03: Animation Rigging 복구)
+        if (PlayerPrefs.GetInt("SceneFixer_RunOnce", 0) == 0)
+        {
+            EditorApplication.delayCall += () =>
+            {
+                if (!EditorApplication.isPlayingOrWillChangePlaymode)
+                {
+                    Debug.Log("[AutoSetup] ▶ SceneFixer.FixAllIssues() 1회 실행...");
+                    EditorApplication.ExecuteMenuItem("Tools/Scene Fix/Fix All Issues");
+                    PlayerPrefs.SetInt("SceneFixer_RunOnce", 1);
+                    PlayerPrefs.Save();
+                }
+            };
+        }
     }
 
     [MenuItem("Tools/Re-run Auto Setup")]

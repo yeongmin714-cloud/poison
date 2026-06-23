@@ -111,14 +111,17 @@ namespace ProjectName.UI
             foreach (var nation in nations)
             {
                 var list = new List<TerritoryDefinition>();
-                var defs = TerritoryDatabase.Instance.GetDefinitionsByNation(nation);
-                foreach (var def in defs)
+                var defs = TerritoryDatabase.Instance?.GetDefinitionsByNation(nation);
+                if (defs != null)
                 {
-                    list.Add(def);
-                }
+                    foreach (var def in defs)
+                    {
+                        list.Add(def);
+                    }
 
-                // Sort by index
-                list.Sort((a, b) => a.id.index.CompareTo(b.id.index));
+                    // Sort by index
+                    list.Sort((a, b) => a.id.index.CompareTo(b.id.index));
+                }
                 _nationTerritories[nation] = list;
             }
         }
@@ -465,6 +468,12 @@ namespace ProjectName.UI
         /// </summary>
         private void DrawTerritoryCell(Rect rect, TerritoryDefinition def)
         {
+            if (TerritoryDatabase.Instance == null)
+            {
+                GUI.Label(rect, "DB 없음", _infoLabelStyle);
+                return;
+            }
+
             TerritoryState state = TerritoryDatabase.Instance.GetState(def.id);
 
             // 야간 전용 영지 비활성화 처리 (ND-06)
@@ -655,8 +664,9 @@ namespace ProjectName.UI
             string posText = "📍 현재 위치: ";
             if (_playerTerritoryId.HasValue)
             {
-                var def = TerritoryDatabase.Instance.GetDefinition(_playerTerritoryId.Value);
-                posText += def.territoryName;
+                var db = TerritoryDatabase.Instance;
+                var def = db != null ? db.GetDefinition(_playerTerritoryId.Value) : default;
+                posText += !string.IsNullOrEmpty(def.territoryName) ? def.territoryName : "알 수 없음";
             }
             else
             {
