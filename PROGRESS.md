@@ -289,6 +289,10 @@
 || 2026-06-20 | **💀 SkeletonGuardPlaceholder ↔ RigAnimationController** | SkeletonGuardPlaceholder에 RigAnimationController 컴포넌트 부착, GLB 리깅 모델 애니메이션 연동 | 
 || 2026-06-20 | **🐛 버그 수정 4건** | GLBTextureSizeLimiter.cs CS0165 오류 3곳 수정 | GameManager.cs 디버그 컴포넌트 #if UNITY_EDITOR 래핑 | EditorAutoSetup.cs Play 모드 가드 추가 | RigAnimationController.cs runtimeAnimatorController null 체크 추가 |
 || 2026-06-20 | **✅ 컴파일 & 크론잡** | 컴파일 오류 0 ✅ | 크론잡 5개 재개 (code/qa/design/glb-watcher/qa2) |
+|| 2026-06-23 | **🔧 MainScene 7대 문제 통합 수정** | Player z:-950→0, 스케일1→2, UI폰트1.5배, 체력바좌하단, 미니맵등록, SnakeSlitherMotion제거, Camera/CineBrain정리, advOuter=1000→1800 |
+|| 2026-06-23 | **📦 GitHub 연결 + LFS + 자동 Push** | yeongmin714-cloud/poison, LFS 41개 GLB(179MB), 10분 자동 Push cronjob |
+|| 2026-06-23 | **🎨 그래픽 Very Low→Very High 복원** | m_CurrentQuality 0→4 |
+|| 2026-06-23 | **📋 Editor 스크립트 2종** | PolyHavenSimplifier(단순화/복원), SceneFixer(Animator+Placeholder 자동추가) |
    276|   331||| 2026-06-15 | **📐 설계 추가** | ROADMAP + CYCLE에 Phase 11(실내벽타일 14사이클), Phase 12(로딩 5사이클), Phase 13(주야 5사이클) 추가 |
    277|   332||| 2026-06-16 | **C8-31 가스 분사기 데이터 시스템** | GasSprayerSystem.cs (5등급 enum+데이터+매니저), GasSprayerSystemTests.cs 20개 작성, RecordGameplay.cs 컴파일 오류 수정, 컴파일 ✅ |
    278|   333||| 2026-06-16 | **C8-32 가스 분사기 장착/해제** | GasSprayerController.cs (장착/해제/분사 제어, Singleton, 인벤토리 연동), BackSlotUI.cs (HUD 오버레이), GasSprayerControllerTests.cs 14개, git b8c0490 ✅ |
