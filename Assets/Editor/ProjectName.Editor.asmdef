@@ -6,6 +6,7 @@
     "Unity.UGUI",
     "Unity.RenderPipelines.Core.Runtime",
     "ProjectName.Core",
+    "ProjectName.UI",
     "Unity.InputSystem",
     "Unity.RenderPipelines.Universal.Runtime",
     "ProjectName.Systems"

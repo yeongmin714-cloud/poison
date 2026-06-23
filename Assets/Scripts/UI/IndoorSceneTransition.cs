@@ -18,6 +18,19 @@ namespace ProjectName.Systems
         private static string _pendingBuildingType;
         private static string _pendingNationStyle;
 
+        /// <summary>정적 생성자: BuildingEvents 구독</summary>
+        static IndoorSceneTransition()
+        {
+            BuildingEvents.OnEnterBuildingRequest += HandleEnterBuilding;
+            BuildingEvents.OnExitBuildingRequest += ExitBuilding;
+            Debug.Log("[IndoorSceneTransition] BuildingEvents 구독 완료");
+        }
+
+        private static void HandleEnterBuilding(string buildingType, string nationStyle)
+        {
+            EnterBuilding(buildingType, nationStyle);
+        }
+
         /// <summary>
         /// 건물 진입. 현재 활성 씬 이름을 저장하고 "IndoorScene"을 Additive 모드로 로드한 후,
         /// buildingType에 따라 적절한 Builder를 호출합니다.

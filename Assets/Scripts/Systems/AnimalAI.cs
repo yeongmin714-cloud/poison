@@ -122,7 +122,7 @@ namespace ProjectName.Systems
                 _attackDamage = Mathf.Max(1, Mathf.RoundToInt(dmg));
 
                 // MonsterLevelLabel 업데이트
-                UI.MonsterLevelLabel label = GetComponent<UI.MonsterLevelLabel>();
+                ILevelLabel label = GetComponent<ILevelLabel>();
                 if (label != null)
                     label.SetLevel(_level);
             }

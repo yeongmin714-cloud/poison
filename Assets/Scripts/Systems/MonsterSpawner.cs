@@ -383,10 +383,18 @@ namespace ProjectName.Systems
             int level = lvlMgr.GetMonsterLevel(difficulty, ai.Tier);
             ai.SetLevel(level);
 
-            // MonsterLevelLabel 추가
-            UI.MonsterLevelLabel label = ai.GetComponent<UI.MonsterLevelLabel>();
-            if (label == null)
-                label = ai.gameObject.AddComponent<UI.MonsterLevelLabel>();
+            // MonsterLevelLabel 추가 — LabelFactory 통해 생성 (Systems→UI 의존성 제거)
+            if (LabelFactory.CreateLabel != null)
+            {
+                LabelFactory.CreateLabel(ai.gameObject, level);
+            }
+            else
+            {
+                // 이미 붙어있으면 ILevelLabel로 접근
+                ILevelLabel label = ai.GetComponent<ILevelLabel>();
+                if (label != null)
+                    label.SetLevel(level);
+            }
 
             Debug.Log($"[MonsterSpawner] {ai.MonsterId} Lv.{level} ({difficulty})");
         }

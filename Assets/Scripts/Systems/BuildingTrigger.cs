@@ -53,12 +53,12 @@ namespace ProjectName.Systems
                 if (string.Equals(_buildingType, "Exit", System.StringComparison.OrdinalIgnoreCase))
                 {
                     Debug.Log($"[BuildingTrigger] E키 입력 — 출구를 통해 퇴출");
-                    IndoorSceneTransition.ExitBuilding();
+                    BuildingEvents.RequestExitBuilding();
                 }
                 else
                 {
                     Debug.Log($"[BuildingTrigger] E키 입력 — {_buildingType} 진입");
-                    IndoorSceneTransition.EnterBuilding(_buildingType);
+                    BuildingEvents.RequestEnterBuilding(_buildingType);
                 }
             }
         }
