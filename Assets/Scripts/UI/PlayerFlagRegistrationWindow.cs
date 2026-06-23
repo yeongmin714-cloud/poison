@@ -15,9 +15,9 @@ namespace ProjectName.UI
         private UIDesignTheme _flagTheme;
 
         [Header("Flag Registration Settings")]
-        [SerializeField] private int _windowWidth = 930;
-        [SerializeField] private int _windowHeight = 825;
-        [SerializeField] private int _previewSize = 240;
+        [SerializeField] private int _windowWidth = 1395
+        [SerializeField] private int _windowHeight = 1238
+        [SerializeField] private int _previewSize = 360
 
         // ── 편집 중인 문장 데이터 (임시) ──
         private string _editName;

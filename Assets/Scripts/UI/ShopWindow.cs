@@ -190,14 +190,14 @@ namespace ProjectName.UI
             
             float x = (Screen.width - 680) / 2;
             float y = (Screen.height - 580) / 2;
-            float width = 960f;
-            float height = 780f;
+            float width = 1440;
+            float height = 1170;
             
             // === 배경 + 외곽 박스 ==
             GUI.Box(new Rect(x, y, width, height), "", _stylePanelBox);
             
             // === 타이틀 바 ==
-            float titleHeight = 60f;
+            float titleHeight = 90;
             GUI.Label(new Rect(x, y, width, titleHeight), "🏪 상점", _styleTitle);
             
             // === 골드 표시 ==
@@ -257,7 +257,7 @@ namespace ProjectName.UI
             // 그리드 설정
             int columns = 2;
             float slotWidth = (panelWidth - 10f) / columns;
-            float slotHeight = 120f;
+            float slotHeight = 180;
             float margin = 5f;
             
             // 스크롤 뷰
@@ -291,7 +291,7 @@ namespace ProjectName.UI
                 Texture2D iconTex = ItemIconDatabase.GetIconFromSlot(null);
                 if (iconTex != null)
                 {
-                    GUI.DrawTexture(new Rect(sx + 5, sy + 5, 60, 60), iconTex);
+                    GUI.DrawTexture(new Rect(sx + 5, sy + 5, 90, 90), iconTex);
                 }
                 else
                 {
@@ -299,7 +299,7 @@ namespace ProjectName.UI
                     Color fallbackColor = GetCategoryColor(item.item.category);
                     var oldColor = GUI.color;
                     GUI.color = fallbackColor;
-                    GUI.DrawTexture(new Rect(sx + 5, sy + 5, 60, 60), _texWhite);
+                    GUI.DrawTexture(new Rect(sx + 5, sy + 5, 90, 90), _texWhite);
                     GUI.color = oldColor;
                 }
                 

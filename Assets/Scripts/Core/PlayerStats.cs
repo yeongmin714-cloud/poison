@@ -23,7 +23,7 @@ namespace ProjectName.Core
         {
             if (Instance != null) return;
 
-            var existing = Object.FindAnyObjectByType<PlayerStats>();
+            var existing = UnityEngine.Object.FindAnyObjectByType<PlayerStats>();
             if (existing != null)
             {
                 Instance = existing;
@@ -32,7 +32,7 @@ namespace ProjectName.Core
 
             var go = new GameObject("PlayerStats");
             go.AddComponent<PlayerStats>();
-            Object.DontDestroyOnLoad(go);
+            UnityEngine.Object.DontDestroyOnLoad(go);
             Debug.Log("[PlayerStats] Auto-created via RuntimeInitializeOnLoadMethod fallback.");
         }
 

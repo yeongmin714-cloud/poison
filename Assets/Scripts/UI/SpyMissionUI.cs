@@ -188,7 +188,7 @@ namespace ProjectName.UI
 
                 // 뒤로가기
                 float btnY2 = listH - 40f;
-                if (GUI.Button(new Rect(PANEL_WIDTH / 2 - 60, btnY2, 120, 30), "← 뒤로"))
+                if (GUI.Button(new Rect(PANEL_WIDTH / 2 - 60, btnY2, 180, 30), "← 뒤로"))
                 {
                     Close();
                 }
@@ -209,12 +209,12 @@ namespace ProjectName.UI
                     GUI.Box(new Rect(0, iy, PANEL_WIDTH - 40, LIST_ITEM_HEIGHT - 2), "");
 
                     string roleStr = GuardStatusSystem.GetRoleName(guard.Role);
-                    GUI.Label(new Rect(10, iy + 2, 150, 20),
+                    GUI.Label(new Rect(10, iy + 2, 225, 20),
                         $"{guard.GuardName} (Lv.{guard.Level})", _styleLabel);
-                    GUI.Label(new Rect(10, iy + 20, 120, 16),
+                    GUI.Label(new Rect(10, iy + 20, 180, 16),
                         $"{roleStr} | 호감도 {guard.Loyalty:F0}", _styleValue);
 
-                    if (GUI.Button(new Rect(PANEL_WIDTH - 170, iy + 4, 110, 28), "정보원 선택"))
+                    if (GUI.Button(new Rect(PANEL_WIDTH - 170, iy + 4, 165, 28), "정보원 선택"))
                     {
                         _selectedSpy = guard;
                         _currentStep = UIStep.SelectMission;
@@ -284,7 +284,7 @@ namespace ProjectName.UI
                     $"⏱ {timeStr}  |  발각 위험: {detectChance * 100:F0}%",
                     _styleValue);
 
-                if (canDo && GUI.Button(new Rect(x + PANEL_WIDTH - 130, miy + 22, 100, 30), "선택"))
+                if (canDo && GUI.Button(new Rect(x + PANEL_WIDTH - 130, miy + 22, 150, 30), "선택"))
                 {
                     _selectedMission = mission;
                     _missionDuration = duration;
@@ -300,7 +300,7 @@ namespace ProjectName.UI
 
             // 뒤로가기
             cy += 6f;
-            if (GUI.Button(new Rect(x + PANEL_WIDTH / 2 - 60, cy, 120, 30), "← 뒤로"))
+            if (GUI.Button(new Rect(x + PANEL_WIDTH / 2 - 60, cy, 180, 30), "← 뒤로"))
             {
                 _currentStep = UIStep.SelectSpy;
                 _selectedSpy = null;
@@ -347,7 +347,7 @@ namespace ProjectName.UI
             cy += 30f;
 
             // 취소 버튼
-            if (GUI.Button(new Rect(x + PANEL_WIDTH / 2 - 60, cy, 120, 30), "취소"))
+            if (GUI.Button(new Rect(x + PANEL_WIDTH / 2 - 60, cy, 180, 30), "취소"))
             {
                 Close();
             }
@@ -653,7 +653,7 @@ namespace ProjectName.UI
 
         private void DrawInfoRow(float x, ref float cy, string label, string value)
         {
-            GUI.Label(new Rect(x + 20, cy, 100, 22), label, _styleLabel);
+            GUI.Label(new Rect(x + 20, cy, 150, 22), label, _styleLabel);
             GUI.Label(new Rect(x + 120, cy, PANEL_WIDTH - 140, 22), value, _styleValue);
             cy += 24f;
         }

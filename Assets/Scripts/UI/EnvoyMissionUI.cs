@@ -196,12 +196,12 @@ namespace ProjectName.UI
                     GUI.Box(new Rect(0, iy, PANEL_WIDTH - 40, LIST_ITEM_HEIGHT - 2), "");
 
                     string roleStr = GuardStatusSystem.GetRoleName(guard.Role);
-                    GUI.Label(new Rect(10, iy + 2, 150, 20),
+                    GUI.Label(new Rect(10, iy + 2, 225, 20),
                         $"{guard.GuardName} (Lv.{guard.Level})", _styleLabel);
-                    GUI.Label(new Rect(10, iy + 20, 120, 16),
+                    GUI.Label(new Rect(10, iy + 20, 180, 16),
                         $"{roleStr} | 호감도 {guard.Loyalty:F0}", _styleValue);
 
-                    if (GUI.Button(new Rect(PANEL_WIDTH - 170, iy + 4, 110, 28), "특사 선택"))
+                    if (GUI.Button(new Rect(PANEL_WIDTH - 170, iy + 4, 165, 28), "특사 선택"))
                     {
                         _selectedEnvoy = guard;
                         _currentStep = UIStep.SelectMission;
@@ -261,7 +261,7 @@ namespace ProjectName.UI
                 GUI.Label(new Rect(x + 25, miy + 26, PANEL_WIDTH - 50, 20),
                     desc, _styleValue);
 
-                if (canDo && GUI.Button(new Rect(x + PANEL_WIDTH - 130, miy + 12, 100, 30), "선택"))
+                if (canDo && GUI.Button(new Rect(x + PANEL_WIDTH - 130, miy + 12, 150, 30), "선택"))
                 {
                     _selectedMission = mission;
                     if (mission == EnvoySystem.EnvoyMission.Assassinate)
@@ -281,7 +281,7 @@ namespace ProjectName.UI
 
             // 뒤로가기
             cy += 6f;
-            if (GUI.Button(new Rect(x + PANEL_WIDTH / 2 - 60, cy, 120, 30), "← 뒤로"))
+            if (GUI.Button(new Rect(x + PANEL_WIDTH / 2 - 60, cy, 180, 30), "← 뒤로"))
             {
                 _currentStep = UIStep.SelectEnvoy;
                 _selectedEnvoy = null;
@@ -333,12 +333,12 @@ namespace ProjectName.UI
                     bool isPoisoned = IsItemPoisoned(pair.Key.id);
                     string poisonTag = isPoisoned ? " ☠️(독)" : "";
 
-                    GUI.Label(new Rect(10, iy + 2, 180, 20),
+                    GUI.Label(new Rect(10, iy + 2, 270, 20),
                         $"{pair.Key.displayName}{poisonTag}", _styleLabel);
-                    GUI.Label(new Rect(10, iy + 20, 80, 16),
+                    GUI.Label(new Rect(10, iy + 20, 120, 16),
                         $"x{pair.Value}", _styleValue);
 
-                    if (GUI.Button(new Rect(PANEL_WIDTH - 170, iy + 4, 110, 28), "선택"))
+                    if (GUI.Button(new Rect(PANEL_WIDTH - 170, iy + 4, 165, 28), "선택"))
                     {
                         _selectedFoodItemId = pair.Key.id;
                         _selectedFoodName = pair.Key.displayName;
@@ -355,7 +355,7 @@ namespace ProjectName.UI
 
             // 뒤로가기
             float btnY = cy + listH + 6f;
-            if (GUI.Button(new Rect(x + PANEL_WIDTH / 2 - 60, btnY, 120, 30), "← 뒤로"))
+            if (GUI.Button(new Rect(x + PANEL_WIDTH / 2 - 60, btnY, 180, 30), "← 뒤로"))
             {
                 _currentStep = UIStep.SelectMission;
                 _scrollPos = Vector2.zero;
@@ -398,13 +398,13 @@ namespace ProjectName.UI
             cy += 12f;
 
             // 버튼
-            if (GUI.Button(new Rect(x + 30, cy, 150, 36), "✅ 파견하기"))
+            if (GUI.Button(new Rect(x + 30, cy, 225, 36), "✅ 파견하기"))
             {
                 ExecuteMission();
                 return;
             }
 
-            if (GUI.Button(new Rect(x + PANEL_WIDTH - 180, cy, 150, 36), "← 취소"))
+            if (GUI.Button(new Rect(x + PANEL_WIDTH - 180, cy, 225, 36), "← 취소"))
             {
                 Close();
             }
@@ -604,7 +604,7 @@ namespace ProjectName.UI
 
         private void DrawInfoRow(float x, ref float cy, string label, string value)
         {
-            GUI.Label(new Rect(x + 20, cy, 100, 22), label, _styleLabel);
+            GUI.Label(new Rect(x + 20, cy, 150, 22), label, _styleLabel);
             GUI.Label(new Rect(x + 120, cy, PANEL_WIDTH - 140, 22), value, _styleValue);
             cy += 26f;
         }

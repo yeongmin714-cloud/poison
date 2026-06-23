@@ -22,9 +22,9 @@ namespace ProjectName.UI
 
         [Header("Map Layout")]
         [SerializeField] private float _windowPadding = 15f;
-        [SerializeField] private float _regionCardWidth = 210f;
-        [SerializeField] private float _regionCardHeight = 150f;
-        [SerializeField] private float _territoryCellWidth = 195f;
+        [SerializeField] private float _regionCardWidth = 315;
+        [SerializeField] private float _regionCardHeight = 225;
+        [SerializeField] private float _territoryCellWidth = 292;
         [SerializeField] private float _territoryCellHeight = 82.5f;
         [SerializeField] private float _gridSpacing = 5f;
 
@@ -645,7 +645,7 @@ namespace ProjectName.UI
         private void DrawControls(Rect area)
         {
             // Zoom buttons
-            float btnWidth = 60f;
+            float btnWidth = 90;
             float btnHeight = 36f;
 
             Rect zoomOutRect = new Rect(area.x, area.y, btnWidth, btnHeight);

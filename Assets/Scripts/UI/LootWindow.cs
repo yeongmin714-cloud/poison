@@ -261,7 +261,7 @@ namespace ProjectName.UI
             DrawColoredRect(new Rect(panelX, gridY, WINDOW_WIDTH, gridHeight), ColorBg);
 
             float slotWidth = (innerWidth - SLOT_MARGIN * (GRID_COLUMNS + 1)) / GRID_COLUMNS;
-            float slotHeight = 108f;
+            float slotHeight = 162;
             float rowHeight = slotHeight + SLOT_MARGIN;
 
             int totalSlots = _cachedItems != null ? _cachedItems.Length : 0;
@@ -302,14 +302,14 @@ namespace ProjectName.UI
                     Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(entry.item);
                     if (iconTex != null)
                     {
-                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 60, 60), iconTex);
+                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 90, 90), iconTex);
                     }
                     else
                     {
                         // 폴백: 카테고리 색상 사각형
                         Color iconColor = GetItemColor(entry.item.category);
                         GUI.color = iconColor;
-                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 60, 60), _texWhite);
+                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 90, 90), _texWhite);
                         GUI.color = Color.white;
                     }
 
@@ -346,14 +346,14 @@ namespace ProjectName.UI
             DrawColoredRect(new Rect(panelX, bottomY, WINDOW_WIDTH, BOTTOM_BAR_HEIGHT), ColorBottomBar);
             DrawColoredRect(new Rect(panelX, bottomY, WINDOW_WIDTH, 1), ColorBorder);
 
-            float btnWidth = 240f;
+            float btnWidth = 360;
             float btnHeight = 48f;
             float btnX = panelX + (WINDOW_WIDTH - btnWidth) / 2;
             float btnY = bottomY + (BOTTOM_BAR_HEIGHT - btnHeight) / 2;
 
             // 아이템 개수 표시
             int totalItems = _cachedItems != null ? _cachedItems.Length : 0;
-            GUI.Label(new Rect(panelX + 10, bottomY + 4, 180, 30),
+            GUI.Label(new Rect(panelX + 10, bottomY + 4, 270, 30),
                 $"아이템 {totalItems}개", _styleEmptyText);
 
             // 전부 획득 버튼

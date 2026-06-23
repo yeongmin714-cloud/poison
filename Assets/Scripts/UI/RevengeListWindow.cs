@@ -93,7 +93,7 @@ namespace ProjectName.UI
             DrawDetailPanel(x, y, panelW, panelH, mgr);
 
             // 닫기 버튼
-            if (GUI.Button(new Rect(x + panelW - 70, y + panelH - 38, 90, 42), "닫기", _styleCloseButton))
+            if (GUI.Button(new Rect(x + panelW - 70, y + panelH - 38, 135, 42), "닫기", _styleCloseButton))
             {
                 Hide();
             }

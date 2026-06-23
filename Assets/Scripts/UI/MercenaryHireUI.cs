@@ -148,14 +148,14 @@ namespace ProjectName.UI
             int gold = 0;
             if (PlayerInventory.Instance != null)
                 gold = PlayerInventory.Instance.GetItemCount("gold");
-            GUI.Label(new Rect(x, y, 225, 33), $"💰 {gold}G", _statStyle);
+            GUI.Label(new Rect(x, y, 338, 33), $"💰 {gold}G", _statStyle);
         }
 
         private void DrawHiredCount(float x, float y)
         {
             int hired = MercenaryManager.Instance != null ? MercenaryManager.Instance.HiredCount : 0;
             int max = MercenaryManager.Instance != null ? MercenaryManager.Instance.MaxMercenaries : 10;
-            GUI.Label(new Rect(x, y, 225, 33), $"👥 {hired}/{max}", _statStyle);
+            GUI.Label(new Rect(x, y, 338, 33), $"👥 {hired}/{max}", _statStyle);
         }
 
         private void DrawMercenaryEntry(MercenaryData merc, bool isHired, bool isSelected, int index, float entryW, ref float cy)
@@ -168,24 +168,24 @@ namespace ProjectName.UI
             GUI.Box(new Rect(0, cy, entryW, entryH), "");
 
             // 등급 표시
-            GUI.Label(new Rect(xOff, cy + 5, 90, 33), merc.GradeStars, _nameStyle);
+            GUI.Label(new Rect(xOff, cy + 5, 135, 33), merc.GradeStars, _nameStyle);
 
             // 이름
-            GUI.Label(new Rect(xOff + 65, cy + 5, 225, 33), merc.mercenaryName, _titleStyle);
+            GUI.Label(new Rect(xOff + 65, cy + 5, 338, 33), merc.mercenaryName, _titleStyle);
 
             // 직업
             string jobIcon = merc.jobType == "Bard" ? "🎵" : "⚔️";
-            GUI.Label(new Rect(xOff + 220, cy + 5, 120, 33), $"{jobIcon} {merc.jobType}", _statStyle);
+            GUI.Label(new Rect(xOff + 220, cy + 5, 180, 33), $"{jobIcon} {merc.jobType}", _statStyle);
 
             // 능력치
             string stats = $"❤️{merc.maxHP} ⚔️{merc.attack} 🛡️{merc.defense} 💨{merc.moveSpeed}";
-            GUI.Label(new Rect(xOff, cy + 30, 450, 30), stats, _statStyle);
+            GUI.Label(new Rect(xOff, cy + 30, 675, 30), stats, _statStyle);
 
             // 특수 능력
-            GUI.Label(new Rect(xOff, cy + 50, 450, 30), $"✨ {merc.specialAbility}", _statStyle);
+            GUI.Label(new Rect(xOff, cy + 50, 675, 30), $"✨ {merc.specialAbility}", _statStyle);
 
             // 고용 비용
-            GUI.Label(new Rect(xOff + 310, cy + 5, 150, 33), $"💰 {merc.hireCost}G", _nameStyle);
+            GUI.Label(new Rect(xOff + 310, cy + 5, 225, 33), $"💰 {merc.hireCost}G", _nameStyle);
 
             // 버튼
             float btnX = entryW - 110;
@@ -193,26 +193,26 @@ namespace ProjectName.UI
             {
                 // 해고 버튼 (빨간색 계열)
                 GUI.color = new Color(1f, 0.4f, 0.3f);
-                if (GUI.Button(new Rect(btnX, cy + 25, 150, 42), "🔴 해고", _buttonStyle))
+                if (GUI.Button(new Rect(btnX, cy + 25, 225, 42), "🔴 해고", _buttonStyle))
                 {
                     OnFireMercenary(merc.id);
                 }
                 GUI.color = Color.white;
 
                 // 고용됨 표시
-                GUI.Label(new Rect(btnX, cy + 58, 150, 30), "✅ 고용됨", _statStyle);
+                GUI.Label(new Rect(btnX, cy + 58, 225, 30), "✅ 고용됨", _statStyle);
             }
             else
             {
                 // 고용 버튼
-                if (GUI.Button(new Rect(btnX, cy + 25, 150, 42), "📋 고용", _buttonStyle))
+                if (GUI.Button(new Rect(btnX, cy + 25, 225, 42), "📋 고용", _buttonStyle))
                 {
                     OnHireMercenary(merc.id);
                 }
             }
 
             // 상세 보기 버튼
-            if (GUI.Button(new Rect(btnX - 55, cy + 25, 75, 42), "📖", _buttonStyle))
+            if (GUI.Button(new Rect(btnX - 55, cy + 25, 112, 42), "📖", _buttonStyle))
             {
                 _selectedMercenaryId = _selectedMercenaryId == merc.id ? "" : merc.id;
             }
@@ -229,7 +229,7 @@ namespace ProjectName.UI
                 if (isHired)
                 {
                     float aff = MercenaryManager.Instance.GetAffinity(merc.id);
-                    GUI.Label(new Rect(xOff + 5, detailY + detailH - 22, 300, 30), $"❤️ 호감도: {(int)aff}% (보너스: +{aff / 100f * 0.2f * 100:F0}%)", _msgStyle);
+                    GUI.Label(new Rect(xOff + 5, detailY + detailH - 22, 450, 30), $"❤️ 호감도: {(int)aff}% (보너스: +{aff / 100f * 0.2f * 100:F0}%)", _msgStyle);
                 }
 
                 cy += entryH + detailH + 5;

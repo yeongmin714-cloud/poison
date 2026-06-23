@@ -21,7 +21,7 @@ namespace ProjectName.UI
         [Header("Tooltip Settings")]
         [SerializeField] private float _showDelay = 0.3f;     // 표시 지연 (초)
         [SerializeField] private float _hideDelay = 0.1f;      // 숨김 지연 (초)
-        [SerializeField] private float _tooltipWidth = 240f;
+        [SerializeField] private float _tooltipWidth = 360;
         [SerializeField] private float _padding = 6f;
         [SerializeField] private Vector2 _mouseOffset = new Vector2(18f, 18f); // 마우스로부터 오프셋
 

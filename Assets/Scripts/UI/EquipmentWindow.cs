@@ -182,7 +182,7 @@ namespace ProjectName.UI
             GUI.Label(new Rect(x, y + 2, WINDOW_WIDTH - 60, TITLE_BAR_HEIGHT), "  🛡️ 장비창", _styleTitle);
 
             // 닫기 버튼
-            if (GUI.Button(new Rect(x + WINDOW_WIDTH - 50, y + 6, 66, 42), "✕", _styleButton))
+            if (GUI.Button(new Rect(x + WINDOW_WIDTH - 50, y + 6, 99, 42), "✕", _styleButton))
             {
                 Hide();
                 return;
@@ -264,7 +264,7 @@ namespace ProjectName.UI
                     // === 내구도 바 ===
                     float durBarX = slotRect.x + panelWidth - 110;
                     float durBarY = slotRect.y + (SLOT_HEIGHT - 14) / 2;
-                    float durBarWidth = 150f;
+                    float durBarWidth = 225;
                     float durBarHeight = 21f;
 
                     if (slotData.itemData.maxDurability > 0)
@@ -306,7 +306,7 @@ namespace ProjectName.UI
                     // 우측 빈 공간
                     float emptyX = slotRect.x + panelWidth - 110;
                     float emptyY = slotRect.y + (SLOT_HEIGHT - 14) / 2;
-                    GUI.Label(new Rect(emptyX, emptyY, 150, 21), "- - -", _styleInfoText);
+                    GUI.Label(new Rect(emptyX, emptyY, 225, 21), "- - -", _styleInfoText);
                 }
 
                 // === 클릭 처리 (슬롯 클릭 → 장비 해제) ===
@@ -334,7 +334,7 @@ namespace ProjectName.UI
 
             // 장비 해제 버튼 (선택된 슬롯이 있을 때)
             GUI.enabled = _hasSelection && _equipmentManager != null;
-            if (GUI.Button(new Rect(centerX, buttonY + 4, 165, 45), "🔓 장비 해제", _styleButton))
+            if (GUI.Button(new Rect(centerX, buttonY + 4, 248, 45), "🔓 장비 해제", _styleButton))
             {
                 if (_equipmentManager != null)
                 {
@@ -348,7 +348,7 @@ namespace ProjectName.UI
             }
 
             // 아이템 정보 버튼
-            if (GUI.Button(new Rect(centerX + 120, buttonY + 4, 165, 45), "ℹ️ 아이템 정보", _styleButton))
+            if (GUI.Button(new Rect(centerX + 120, buttonY + 4, 248, 45), "ℹ️ 아이템 정보", _styleButton))
             {
                 if (_hasSelection && _equipmentManager != null)
                 {

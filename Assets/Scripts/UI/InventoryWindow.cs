@@ -333,7 +333,7 @@ namespace ProjectName.UI
             // 스크롤 뷰
             float slotTotalWidth = innerWidth;
             float slotWidth = (slotTotalWidth - SLOT_MARGIN * (GRID_COLUMNS + 1)) / GRID_COLUMNS;
-            float slotHeight = 108f;
+            float slotHeight = 162;
             float rowHeight = slotHeight + SLOT_MARGIN;
 
             int totalSlots = _currentSlots != null ? _currentSlots.Length : 0;
@@ -378,14 +378,14 @@ namespace ProjectName.UI
                     Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(slot.item);
                     if (iconTex != null)
                     {
-                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 60, 60), iconTex);
+                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 90, 90), iconTex);
                     }
                     else
                     {
                         // 폴백: 카테고리 색상 사각형
                         Color iconColor = GetCategoryColor(slot.item.category);
                         GUI.color = iconColor;
-                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 60, 60), _texWhite);
+                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 90, 90), _texWhite);
                         GUI.color = Color.white;
                     }
 
@@ -439,7 +439,7 @@ namespace ProjectName.UI
 
         private void DrawSlotTooltip(Vector2 position, PlayerInventory.ItemSlot slot)
         {
-            float tooltipWidth = 300f;
+            float tooltipWidth = 450;
             float tooltipHeight = slot.item.maxDurability > 0 ? 80f : 60f;
             Rect tooltipRect = new Rect(position.x, position.y, tooltipWidth, tooltipHeight);
             if (tooltipRect.xMax > Screen.width) tooltipRect.x = Screen.width - tooltipWidth;
@@ -531,7 +531,7 @@ namespace ProjectName.UI
                     // C9-19: 수리 버튼 (내구도가 가득 차지 않았을 때만)
                     if (ratio < 1f)
                     {
-                        if (GUI.Button(new Rect(innerX + innerWidth - 100, innerY + 62, 135, 33), "🔧 수리"))
+                        if (GUI.Button(new Rect(innerX + innerWidth - 100, innerY + 62, 202, 33), "🔧 수리"))
                         {
                             var result = ProjectName.Systems.EquipmentRepairSystem.RepairInventorySlot(_selectedSlotIndex);
                             Debug.Log($"[Repair] {result.message}");

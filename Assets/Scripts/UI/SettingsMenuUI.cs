@@ -17,9 +17,9 @@ namespace ProjectName.UI
         public static SettingsMenuUI Instance { get; private set; }
 
         [Header("Layout")]
-        [SerializeField] private int _windowWidth = 900;
-        [SerializeField] private int _windowHeight = 975;
-        [SerializeField] private int _tabButtonHeight = 60;
+        [SerializeField] private int _windowWidth = 1350
+        [SerializeField] private int _windowHeight = 1462
+        [SerializeField] private int _tabButtonHeight = 90
         [SerializeField] private int _sliderHeight = 45;
         [SerializeField] private int _buttonHeight = 45;
         [SerializeField] private int _spacing = 18;
@@ -266,7 +266,7 @@ namespace ProjectName.UI
 
             // ===== 닫기 버튼 =====
             int backButtonY = centerY + _windowHeight - 50;
-            int backButtonWidth = 180;
+            int backButtonWidth = 270
             int backButtonX = centerX + (_windowWidth - backButtonWidth) / 2;
             GUI.backgroundColor = _backColor;
             if (GUI.Button(new Rect(backButtonX, backButtonY, backButtonWidth, _backButtonStyle.fontSize + 12), "← 닫기", _backButtonStyle))

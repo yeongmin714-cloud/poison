@@ -62,8 +62,8 @@ namespace ProjectName.UI
             // 통계
             var active = QuestManager.GetActiveQuests();
             var completed = QuestManager.GetCompletedQuests();
-            GUI.Label(new Rect(x + 10, y + 35, 300, 30), $"🔄 진행 중: {active.Count}개", _styleLabel);
-            GUI.Label(new Rect(x + 220, y + 35, 300, 30), $"✅ 완료: {completed.Count}개", _styleValue);
+            GUI.Label(new Rect(x + 10, y + 35, 450, 30), $"🔄 진행 중: {active.Count}개", _styleLabel);
+            GUI.Label(new Rect(x + 220, y + 35, 450, 30), $"✅ 완료: {completed.Count}개", _styleValue);
 
             // 퀘스트 목록
             float listY = y + 60;

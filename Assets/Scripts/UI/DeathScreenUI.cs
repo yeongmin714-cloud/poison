@@ -103,8 +103,8 @@ namespace ProjectName.UI
                 int cy = Screen.height / 2;
 
                 // YOU DIED
-                GUI.Label(new Rect(cx - 150, cy - 120, 450, 90), "YOU DIED", _titleStyle);
-                GUI.Label(new Rect(cx - 150, cy - 60, 450, 45), "당신은 쓰러졌습니다...", _subTextStyle);
+                GUI.Label(new Rect(cx - 150, cy - 120, 675, 135), "YOU DIED", _titleStyle);
+                GUI.Label(new Rect(cx - 150, cy - 60, 675, 45), "당신은 쓰러졌습니다...", _subTextStyle);
 
                 // 부활 버튼
                 int btnW = 330;

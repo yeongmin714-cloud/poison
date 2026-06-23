@@ -52,7 +52,7 @@ namespace ProjectName.UI
         {
             if (_instance != null) return;
 
-            var existing = Object.FindAnyObjectByType<UIManager>();
+            var existing = UnityEngine.Object.FindAnyObjectByType<UIManager>();
             if (existing != null)
             {
                 _instance = existing;
@@ -61,7 +61,7 @@ namespace ProjectName.UI
 
             var go = new GameObject("UIManager");
             go.AddComponent<UIManager>();
-            Object.DontDestroyOnLoad(go);
+            UnityEngine.Object.DontDestroyOnLoad(go);
             Debug.Log("[UIManager] Auto-created via RuntimeInitializeOnLoadMethod fallback.");
         }
 

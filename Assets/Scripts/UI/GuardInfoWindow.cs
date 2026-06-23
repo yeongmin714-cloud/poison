@@ -158,17 +158,17 @@ namespace ProjectName.UI
             cy += 32f;
 
             // --- 레벨 ---
-            GUI.Label(new Rect(x + 15, cy, 80, 22), "Lv.", _styleLabel);
-            GUI.Label(new Rect(x + 95, cy, 60, 22), $"{guard.Level}", _styleValue);
+            GUI.Label(new Rect(x + 15, cy, 120, 22), "Lv.", _styleLabel);
+            GUI.Label(new Rect(x + 95, cy, 90, 22), $"{guard.Level}", _styleValue);
             string nationDisplay = !string.IsNullOrEmpty(guard.Nation) ? $" ({guard.Nation})" : "";
-            GUI.Label(new Rect(x + 155, cy, 120, 22), nationDisplay, _styleLabel);
+            GUI.Label(new Rect(x + 155, cy, 180, 22), nationDisplay, _styleLabel);
             cy += 26f;
 
             // --- HP 프로그레스바 ---
-            GUI.Label(new Rect(x + 15, cy, 60, 22), "❤️ HP:", _styleLabel);
+            GUI.Label(new Rect(x + 15, cy, 90, 22), "❤️ HP:", _styleLabel);
             float hpRatio = guard.HP / guard.MaxHP;
             DrawBar(x + 80, cy, HP_BAR_WIDTH, 20, hpRatio, Color.green, Color.red);
-            GUI.Label(new Rect(x + 80 + HP_BAR_WIDTH + 8, cy, 80, 22),
+            GUI.Label(new Rect(x + 80 + HP_BAR_WIDTH + 8, cy, 120, 22),
                 $"{(int)guard.HP}/{(int)guard.MaxHP}", _styleValue);
             cy += 28f;
 
@@ -176,8 +176,8 @@ namespace ProjectName.UI
             float combatPower = 0f;
             if (GuardEquipmentSystem.Instance != null)
                 combatPower = GuardEquipmentSystem.Instance.CalculateGuardCombatPower(guard);
-            GUI.Label(new Rect(x + 15, cy, 80, 22), "⚡ 전투력:", _styleLabel);
-            GUI.Label(new Rect(x + 95, cy, 80, 22), $"{combatPower:F0}", _styleValue);
+            GUI.Label(new Rect(x + 15, cy, 120, 22), "⚡ 전투력:", _styleLabel);
+            GUI.Label(new Rect(x + 95, cy, 120, 22), $"{combatPower:F0}", _styleValue);
             cy += 26f;
 
             // --- 공격/방어/이속 ---
@@ -222,16 +222,16 @@ namespace ProjectName.UI
             cy += 32f;
 
             // --- 레벨 (용병은 기본 Lv.1 표시) ---
-            GUI.Label(new Rect(x + 15, cy, 80, 22), "Lv.", _styleLabel);
-            GUI.Label(new Rect(x + 95, cy, 60, 22), "1", _styleValue);
-            GUI.Label(new Rect(x + 155, cy, 120, 22), $"{data.grade}", _styleLabel);
+            GUI.Label(new Rect(x + 15, cy, 120, 22), "Lv.", _styleLabel);
+            GUI.Label(new Rect(x + 95, cy, 90, 22), "1", _styleValue);
+            GUI.Label(new Rect(x + 155, cy, 180, 22), $"{data.grade}", _styleLabel);
             cy += 26f;
 
             // --- HP 프로그레스바 ---
-            GUI.Label(new Rect(x + 15, cy, 60, 22), "❤️ HP:", _styleLabel);
+            GUI.Label(new Rect(x + 15, cy, 90, 22), "❤️ HP:", _styleLabel);
             float hpRatio = merc.currentHP / data.maxHP;
             DrawBar(x + 80, cy, HP_BAR_WIDTH, 20, hpRatio, Color.green, Color.red);
-            GUI.Label(new Rect(x + 80 + HP_BAR_WIDTH + 8, cy, 80, 22),
+            GUI.Label(new Rect(x + 80 + HP_BAR_WIDTH + 8, cy, 120, 22),
                 $"{(int)merc.currentHP}/{(int)data.maxHP}", _styleValue);
             cy += 28f;
 
@@ -239,8 +239,8 @@ namespace ProjectName.UI
             float combatPower = 0f;
             if (GuardEquipmentSystem.Instance != null)
                 combatPower = GuardEquipmentSystem.Instance.CalculateMercenaryCombatPower(_currentMercenaryId);
-            GUI.Label(new Rect(x + 15, cy, 80, 22), "⚡ 전투력:", _styleLabel);
-            GUI.Label(new Rect(x + 95, cy, 80, 22), $"{combatPower:F0}", _styleValue);
+            GUI.Label(new Rect(x + 15, cy, 120, 22), "⚡ 전투력:", _styleLabel);
+            GUI.Label(new Rect(x + 95, cy, 120, 22), $"{combatPower:F0}", _styleValue);
             cy += 26f;
 
             // --- 공격/방어/이속 ---
@@ -265,7 +265,7 @@ namespace ProjectName.UI
             // --- 특수 능력 ---
             if (!string.IsNullOrEmpty(data.specialAbility))
             {
-                GUI.Label(new Rect(x + 15, cy, 100, 22), "✨ 특수능력:", _styleLabel);
+                GUI.Label(new Rect(x + 15, cy, 150, 22), "✨ 특수능력:", _styleLabel);
                 GUI.Label(new Rect(x + 115, cy, WINDOW_WIDTH - 130, 22), data.specialAbility, _styleValue);
                 cy += 26f;
             }
@@ -326,7 +326,7 @@ namespace ProjectName.UI
             GUI.Box(new Rect(slotX, slotY, slotW, slotH), "");
 
             // 슬롯 라벨
-            GUI.Label(new Rect(slotX + 8, slotY + 4, 70, 20), label, _styleSlotLabel);
+            GUI.Label(new Rect(slotX + 8, slotY + 4, 105, 20), label, _styleSlotLabel);
 
             if (item != null && item.itemData != null)
             {
@@ -531,8 +531,8 @@ namespace ProjectName.UI
 
         private void DrawStatRow(float x, ref float cy, string label, string value, string detail = "")
         {
-            GUI.Label(new Rect(x + 15, cy, 110, 22), label, _styleLabel);
-            GUI.Label(new Rect(x + 125, cy, 100, 22), value, _styleValue);
+            GUI.Label(new Rect(x + 15, cy, 165, 22), label, _styleLabel);
+            GUI.Label(new Rect(x + 125, cy, 150, 22), value, _styleValue);
 
             if (!string.IsNullOrEmpty(detail))
             {
