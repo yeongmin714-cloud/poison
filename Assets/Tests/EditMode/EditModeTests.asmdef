@@ -4,6 +4,7 @@
   "references": [
     "ProjectName.Core",
     "ProjectName.Systems",
+    "ProjectName.UI",
     "Assembly-CSharp-Editor",
     "ProjectName.Editor",
     "Unity.RenderPipelines.Universal.Runtime",

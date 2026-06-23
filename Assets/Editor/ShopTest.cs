@@ -8,20 +8,18 @@ using ProjectName.UI;
 
 public class ShopTest : MonoBehaviour
 {
-    // Test method to be called via Unity's -executeMethod
     [UnityEditor.MenuItem("Tools/Run Shop Test")]
     public static void RunShopTest()
     {
-        // This will only work in editor mode
         Debug.Log("[ShopTest] Running shop test in editor...");
-        
+        Debug.Log("[ShopTest] NOTE: Shop is now accessed via BuildingTrigger → IndoorSceneTransition");
+        Debug.Log("[ShopTest] Manual test: Approach a Shop building, press E to enter interior,");
+        Debug.Log("[ShopTest] then approach ShopNPC inside and press E to open shop.");
+
         // Load main scene
         SceneManager.LoadScene("MainScene");
-        
-        // Give it a frame to load
-        // In actual test we'd use coroutines, but for simplicity we'll just log
         Debug.Log("[ShopTest] MainScene loaded");
-        
+
         // Find player
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player == null)
@@ -29,9 +27,9 @@ public class ShopTest : MonoBehaviour
             Debug.LogError("[ShopTest] Player not found! Make sure player exists in scene.");
             return;
         }
-        
+
         Debug.Log($"[ShopTest] Player found at {player.transform.position}");
-        
+
         // Find a shop building
         BuildingPlaceholder[] buildings = GameObject.FindObjectsByType<BuildingPlaceholder>(FindObjectsSortMode.None);
         BuildingPlaceholder shopBuilding = null;
@@ -43,82 +41,43 @@ public class ShopTest : MonoBehaviour
                 break;
             }
         }
-        
+
         if (shopBuilding == null)
         {
-            Debug.LogError("[ShopTest] No shop building found! Run TerritorySetup to create one.");
+            Debug.LogError("[ShopTest] No shop building found! Run TerritoryBuilder to create one.");
             return;
         }
-        
+
         Debug.Log($"[ShopTest] Shop building found: {shopBuilding.buildingName} at {shopBuilding.transform.position}");
-        
-        // Simulate player moving close to shop
-        player.transform.position = shopBuilding.transform.position + new Vector3(0, 0, -2); // Behind shop
-        
-        Debug.Log("[ShopTest] Player moved near shop");
-        
-        // Simulate pressing E key — directly call toggle
-        shopBuilding.ToggleShop();
-        
-        Debug.Log("[ShopTest] Shop toggle called");
-        
-        // Check if shop window is open
-        if (shopBuilding._shopWindow != null && shopBuilding._shopWindow.IsOpen)
+
+        // Verify BuildingTrigger is attached (FIX-01)
+        var trigger = shopBuilding.GetComponent<BuildingTrigger>();
+        if (trigger != null)
         {
-            Debug.Log("[ShopTest] Shop window opened successfully!");
-            
-            // Try to buy an item
-            if (shopBuilding._shopWindow._shopInventory.Count > 0)
-            {
-                var firstItem = shopBuilding._shopWindow._shopInventory[0];
-                Debug.Log($"[ShopTest] Attempting to buy: {firstItem.item.displayName} for {firstItem.price} gold");
-
-                int goldBefore = PlayerStats.Instance.Gold;
-                bool success = shopBuilding._shopWindow.BuyItem(firstItem);
-
-                if (success)
-                {
-                    int goldAfter = PlayerStats.Instance.Gold;
-                    Debug.Log($"[ShopTest] Purchase successful! Gold: {goldBefore} -> {goldAfter}");
-
-                    // Check if item was added to inventory
-                    int itemCount = PlayerInventory.Instance.GetItemCount(firstItem.item.id);
-                    Debug.Log($"[ShopTest] Item count in inventory: {itemCount}");
-                }
-                else
-                {
-                    Debug.LogWarning("[ShopTest] Purchase failed - not enough gold or other issue");
-                }
-            }
-            else
-            {
-                Debug.LogWarning("[ShopTest] Shop inventory is empty");
-            }
-            
-            // Close shop
-            shopBuilding.ToggleShop();
-            Debug.Log("[ShopTest] Shop closed");
+            Debug.Log($"[ShopTest] ✅ BuildingTrigger found on shop. Type: {trigger.BuildingType}");
         }
         else
         {
-            Debug.LogError("[ShopTest] Failed to open shop window");
+            Debug.LogError("[ShopTest] ❌ BuildingTrigger NOT found on shop! Bug: FIX-01 not applied.");
         }
-        
-        Debug.Log("[ShopTest] Test completed");
+
+        // Simulate player moving near shop
+        player.transform.position = shopBuilding.transform.position + new Vector3(0, 0, -2);
+        Debug.Log("[ShopTest] Player moved near shop. Press E to enter (manual test).");
+
+        // Verify building has correct type
+        if (shopBuilding.buildingType == BuildingPlaceholder.BuildingType.Shop)
+        {
+            Debug.Log("[ShopTest] ✅ Shop building type is correct");
+        }
+
+        Debug.Log("[ShopTest] Test completed — building is properly set up for interior transition.");
     }
-    
-    // Actual test that can run in batch mode without requiring editor menu item
+
     public static void RunBatchTest()
     {
         Debug.Log("[ShopTest] Starting batch test...");
-        
-        // In batch mode, we need to load scene and wait for initialization
-        // This is more complex - for now we'll rely on the editor test
-        // User can run this manually in editor
-        
-        // For batch mode testing, we could create a test scene that auto-runs
-        // But given time, we'll provide instructions for manual test
-        
-        Debug.Log("[ShopTest] Batch test would require more setup - please run manual test or editor test");
+        Debug.Log("[ShopTest] Batch test requires manual execution in editor.");
+        Debug.Log("[ShopTest] Steps: 1) Open MainScene 2) Tools > Run Shop Test");
     }
 }

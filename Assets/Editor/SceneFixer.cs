@@ -46,80 +46,52 @@ public class SceneFixer
         // 1. Player → Add Animator + RigAnimationController
         // ==============================================================
         var player = GameObject.FindWithTag("Player");
-        if (player != null)
+        FixGameObjectAnimator(player, "Player");
+
+        // ==============================================================
+        // 1b. GuardPlaceholder → Add Animator + RigAnimationController
+        // ==============================================================
+        var guardPlaceholders = GameObject.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+        System.Type guardType = FindType("GuardPlaceholder");
+        if (guardType != null)
         {
-            // Add Animator
-            var animator = player.GetComponent<Animator>();
-            if (animator == null)
+            foreach (var obj in guardPlaceholders)
             {
-                animator = player.AddComponent<Animator>();
-                fixedCount++;
-                Debug.Log("[SceneFix] Player: Animator 추가 완료");
-            }
-
-            // Add RigAnimationController (ProjectName.Systems namespace)
-            var rigType = FindType("RigAnimationController");
-            if (rigType != null)
-            {
-                var existing = player.GetComponent(rigType);
-                if (existing == null)
+                if (guardType.IsAssignableFrom(obj.GetType()))
                 {
-                    player.AddComponent(rigType);
-                    fixedCount++;
-                    Debug.Log("[SceneFix] Player: RigAnimationController 추가 완료");
+                    FixGameObjectAnimator(obj.gameObject, "GuardPlaceholder");
                 }
-            }
-
-            // Add PlayerPlaceholder (ProjectName.Systems namespace)
-            var ppType = FindType("PlayerPlaceholder");
-            if (ppType != null)
-            {
-                var existing = player.GetComponent(ppType);
-                if (existing == null)
-                {
-                    player.AddComponent(ppType);
-                    fixedCount++;
-                    Debug.Log("[SceneFix] Player: PlayerPlaceholder 추가 완료");
-                }
-            }
-
-            // Remove AnimationRiggingSetup (ProjectName.Systems namespace)
-            var arsType = FindType("AnimationRiggingSetup");
-            if (arsType != null)
-            {
-                var existing = player.GetComponent(arsType);
-                if (existing != null)
-                {
-                    Object.DestroyImmediate(existing);
-                    fixedCount++;
-                    Debug.Log("[SceneFix] Player: 잘못된 AnimationRiggingSetup 제거");
-                }
-            }
-
-            // Remove MotionDetector (ProjectName.Systems.Motions namespace)
-            var mdType = FindType("MotionDetector");
-            if (mdType != null)
-            {
-                var existing = player.GetComponent(mdType);
-                if (existing != null)
-                {
-                    Object.DestroyImmediate(existing);
-                    fixedCount++;
-                    Debug.Log("[SceneFix] Player: MotionDetector 제거");
-                }
-            }
-
-            // Set CharacterController center for proper ground collision
-            var cc = player.GetComponent<CharacterController>();
-            if (cc != null)
-            {
-                cc.center = new Vector3(0, 1, 0);
-                fixedCount++;
             }
         }
-        else
+
+        // ==============================================================
+        // 1c. AnimalAI → Add Animator + RigAnimationController
+        // ==============================================================
+        System.Type animalType = FindType("AnimalAI");
+        if (animalType != null)
         {
-            Debug.LogWarning("[SceneFix] Player GameObject not found in scene!");
+            foreach (var obj in guardPlaceholders)
+            {
+                if (animalType.IsAssignableFrom(obj.GetType()))
+                {
+                    FixGameObjectAnimator(obj.gameObject, "AnimalAI");
+                }
+            }
+        }
+
+        // ==============================================================
+        // 1d. SkeletonGuardPlaceholder → Add Animator + RigAnimationController
+        // ==============================================================
+        System.Type skeletonType = FindType("SkeletonGuardPlaceholder");
+        if (skeletonType != null)
+        {
+            foreach (var obj in guardPlaceholders)
+            {
+                if (skeletonType.IsAssignableFrom(obj.GetType()))
+                {
+                    FixGameObjectAnimator(obj.gameObject, "SkeletonGuardPlaceholder");
+                }
+            }
         }
 
         // ==============================================================
@@ -224,5 +196,97 @@ public class SceneFixer
 
         Debug.Log($"[SceneFix] Player: 모든 자식 본 제거 완료");
         EditorUtility.DisplayDialog("Done", "Player의 모든 자식 본(GLB 스켈레톤)이 제거되었습니다.", "OK");
+    }
+
+    /// <summary>
+    /// 지정된 GameObject에 Animator + RigAnimationController를 추가하고,
+    /// AnimationRiggingSetup/MotionDetector를 제거합니다.
+    /// </summary>
+    private static void FixGameObjectAnimator(GameObject go, string label)
+    {
+        if (go == null)
+        {
+            Debug.LogWarning($"[SceneFix] {label} GameObject not found in scene!");
+            return;
+        }
+
+        int count = 0;
+
+        // Add Animator
+        var animator = go.GetComponent<Animator>();
+        if (animator == null)
+        {
+            animator = go.AddComponent<Animator>();
+            count++;
+            Debug.Log($"[SceneFix] {label}: Animator 추가 완료");
+        }
+
+        // Add RigAnimationController
+        var rigType = FindType("RigAnimationController");
+        if (rigType != null)
+        {
+            var existing = go.GetComponent(rigType);
+            if (existing == null)
+            {
+                go.AddComponent(rigType);
+                count++;
+                Debug.Log($"[SceneFix] {label}: RigAnimationController 추가 완료");
+            }
+        }
+
+        // Add PlayerPlaceholder (only for Player)
+        if (label == "Player")
+        {
+            var ppType = FindType("PlayerPlaceholder");
+            if (ppType != null)
+            {
+                var existing = go.GetComponent(ppType);
+                if (existing == null)
+                {
+                    go.AddComponent(ppType);
+                    count++;
+                    Debug.Log("[SceneFix] Player: PlayerPlaceholder 추가 완료");
+                }
+            }
+        }
+
+        // Remove AnimationRiggingSetup (deprecated)
+        var arsType = FindType("AnimationRiggingSetup");
+        if (arsType != null)
+        {
+            var existing = go.GetComponent(arsType);
+            if (existing != null)
+            {
+                Object.DestroyImmediate(existing);
+                count++;
+                Debug.Log($"[SceneFix] {label}: 잘못된 AnimationRiggingSetup 제거");
+            }
+        }
+
+        // Remove MotionDetector (deprecated)
+        var mdType = FindType("MotionDetector");
+        if (mdType != null)
+        {
+            var existing = go.GetComponent(mdType);
+            if (existing != null)
+            {
+                Object.DestroyImmediate(existing);
+                count++;
+                Debug.Log($"[SceneFix] {label}: MotionDetector 제거");
+            }
+        }
+
+        // Set CharacterController center for proper ground collision (only for Player)
+        if (label == "Player")
+        {
+            var cc = go.GetComponent<CharacterController>();
+            if (cc != null)
+            {
+                cc.center = new Vector3(0, 1, 0);
+                count++;
+            }
+        }
+
+        Debug.Log($"[SceneFix] {label}: {count}개 수정 완료");
     }
 }

@@ -98,8 +98,7 @@ public class ShopBatchTest : MonoBehaviour
         building.buildingType = BuildingPlaceholder.BuildingType.Shop;
         building.buildingName = "Test Shop";
         
-        // Simulate Awake and Start
-        building.Awake();
+        // Simulate Start (Awake is not public on BuildingPlaceholder)
         building.Start();
         
         Debug.Log($"[ShopBatchTest] Building placeholder created: {building.buildingName} ({building.buildingType})");

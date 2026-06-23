@@ -16,6 +16,28 @@ namespace ProjectName.Core
     {
         public static PlayerHealth Instance { get; private set; }
 
+        /// <summary>
+        /// [RuntimeInitializeOnLoadMethod] 폴백: 씬에 PlayerHealth가 없으면 자동 생성.
+        /// GameManager.InitializeSystems()보다 먼저 실행되어 Awake() 타이밍 문제를 방지합니다.
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void AutoCreateFallback()
+        {
+            if (Instance != null) return;
+
+            var existing = UnityEngine.Object.FindAnyObjectByType<PlayerHealth>();
+            if (existing != null)
+            {
+                Instance = existing;
+                return;
+            }
+
+            var go = new GameObject("PlayerHealth");
+            go.AddComponent<PlayerHealth>();
+            UnityEngine.Object.DontDestroyOnLoad(go);
+            Debug.Log("[PlayerHealth] Auto-created via RuntimeInitializeOnLoadMethod fallback.");
+        }
+
         [Header("Health Settings")]
         [SerializeField] private float _maxHP = 100f;
         [SerializeField] private float _currentHP;
