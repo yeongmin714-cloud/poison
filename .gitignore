@@ -28,6 +28,9 @@
 *.pdb
 *.mdb
 
+# VS Code
+.vscode/
+
 # JetBrains Rider
 *.idea/
 *.sln.dotsettings
@@ -40,25 +43,13 @@
 .DS_Store
 Thumbs.db
 
-# Git LFS tracking
-*.psd
-*.png
-*.jpg
-*.jpeg
-*.tga
-*.tiff
-*.psb
-*.exr
-*.hdr
-*.fbx
-*.glb
-*.gltf
-*.mp3
-*.wav
-*.ogg
-*.mov
-*.mp4
-*.avi
+# Git LFS (tracked via .gitattributes, NOT ignored)
+# *.glb, *.gltf, *.png, *.jpg are handled by LFS — remove from gitignore
+
+# PolyHeven large binary files (replaceable with primitives)
+*.bin
+Assets/Models/PolyHeven/*.jpg
+Assets/Models/PolyHeven/*.png
 
 # Hermes
 .hermes_watcher_state
