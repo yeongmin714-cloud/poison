@@ -13,9 +13,9 @@ namespace ProjectName.UI
     {
         public static EscMenuUI Instance { get; private set; }
 
-        [SerializeField] private int _windowWidth = 1012
-        [SerializeField] private int _windowHeight = 1125
-        [SerializeField] private int _buttonHeight = 112
+        [SerializeField] private int _windowWidth = 1012;
+        [SerializeField] private int _windowHeight = 1125;
+        [SerializeField] private int _buttonHeight = 112;
         [SerializeField] private int _buttonSpacing = 18;
 
         private bool _isOpen;

@@ -1,6 +1,5 @@
 using UnityEngine;
 using ProjectName.Core;
-using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.Core.Data;
 using ProjectName.UI.Themes;
@@ -19,8 +18,8 @@ namespace ProjectName.UI
         }
 
         [Header("Crafting UI Settings")]
-        [SerializeField] private int _windowWidth = 1500
-        [SerializeField] private int _windowHeight = 1305
+        [SerializeField] private int _windowWidth = 1500;
+        [SerializeField] private int _windowHeight = 1305;
 
         // ── 상태 ──
         private PlayerInventory.ItemData _slot1;

@@ -8,7 +8,8 @@
     "Unity.UGUI",
     "Unity.RenderPipelines.Universal.Runtime",
     "Unity.RenderPipelines.Core.Runtime",
-    "Unity.ugui"
+    "Unity.ugui",
+    "ProjectName.UI"
   ],
   "autoReferenced": true,
   "overrideReferences": false,

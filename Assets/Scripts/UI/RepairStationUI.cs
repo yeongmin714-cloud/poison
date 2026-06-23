@@ -20,8 +20,8 @@ namespace ProjectName.UI
         }
 
         [Header("Repair Station Settings")]
-        [SerializeField] private int _windowWidth = 1395
-        [SerializeField] private int _windowHeight = 1125
+        [SerializeField] private int _windowWidth = 1395;
+        [SerializeField] private int _windowHeight = 1125;
 
         // ── 상태 ──
         private string _statusMessage = "";

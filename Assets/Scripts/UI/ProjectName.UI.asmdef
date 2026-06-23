@@ -3,6 +3,7 @@
     "rootNamespace": "ProjectName.UI",
     "references": [
         "ProjectName.Core",
+        "ProjectName.Systems",
         "Unity.InputSystem",
         "Unity.UGUI"
     ],
