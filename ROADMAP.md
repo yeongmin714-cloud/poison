@@ -2020,55 +2020,86 @@ Phase 10 (⚔️ 전쟁/맵전환/연출/배포)
 
 ---
 
-#### 사이클 FIX-02: 🎬 애니메이션 리깅 복구
+#### 사이클 FIX-02: 🐛 몬스터 스폰 버그 수정 & 기본 지형 테스트 모드
+
+> **문제:** `MonsterSpawner.advancedOuter=1000f < advancedInner=1200f` → 고급 몬스터 0마리. Poly Heaven 모델이 테스트 시 너무 무거움.
+
+| 단계 | 내용 |
+|:----:|:------|
+| 2.1 | **`advancedOuter` 버그 수정** — `MonsterSpawner.cs` 36번 줄 `advancedOuter = 1000f` → `1800f`. 맵 반경과 일치하도록 수정 |
+| 2.2 | **`SpawnConfig` 검증 로직** — `Start()`에서 `advancedInner >= advancedOuter` 체크하는 유효성 검증 추가. 잘못된 범위에서 경고 로그 출력 |
+| 2.3 | **테스트 모드 지형 단순화** — `GameManager`에 `_useSimpleTerrain` 플래그 추가. true 시 `PolyHavenSimplifier.ReplaceWithPrimitives()` Editor 호출 또는 런타임 primitive 생성으로 대체 |
+| 2.4 | **Primitive 지형 스폰 시스템** — `MonsterSpawner`에 `_usePrimitiveOnly` 모드 추가. Poly Haven 모델 대신 Cube/Sphere primitive로 몬스터/지형 표시 |
+| 2.5 | **테스트** — 몬스터 3티어 모두 정상 스폰 확인. 기본 지형/풀지형 전환 검증 8개+ |
+
+---
+
+#### 사이클 FIX-03: 🎬 애니메이션 리깅 복구
 
 > **목표:** 모든 캐릭터(플레이어/NPC/몬스터/병사)에 Animator + RigAnimationController 활성화
 
 | 단계 | 내용 |
 |:----:|:------|
-| 2.1 | **Scripting Define Symbols 설정** — `ProjectSettings`에 `UNITY_ANIMATION_RIGGING` 추가. `RigAnimationController.cs`의 `#if UNITY_ANIMATION_RIGGING` 블록 활성화 |
-| 2.2 | **Player 애니메이션 셋업** — Player 게임오브젝트에 `Animator` + `RigAnimationController` 컴포넌트 부착. `RuntimeAnimatorController` 할당 (GLB 임포트 시 생성된 Controller 사용) |
-| 2.3 | **GuardPlaceholder 애니메이션** — 모든 병사 Placeholder에 `Animator` + `RigAnimationController` 보장. `PlayerMovement`에서 `RigAnimationController.SetState()` 호출 연동 |
-| 2.4 | **AnimalAI 애니메이션** — 몬스터/동물에 `Animator` + `RigAnimationController` 보장. `AnimalAI` 상태머신(Idle/Walk/Run/Attack/Die)과 연동 |
-| 2.5 | **GLB 애니메이션 데이터 연동** — `Resources/Models/UserProvided/`의 GLB 41개에서 `RuntimeAnimatorController` 추출. `RuntimeModelLoader`가 로드 시 자동 연결 |
-| 2.6 | **`SceneFixer` 자동 실행** — `EditorAutoSetup.cs`의 `[InitializeOnLoad]`에서 SceneFixer.FixAllIssues()를 1회 자동 실행. 또는 GameManager.Start()에서 런타임 검증 |
-| 2.7 | **테스트** — 캐릭터별 Idle/Walk/Run/Attack 애니메이션 전환 테스트 10개+ |
+|| 3.1 | **Scripting Define Symbols 설정** — `ProjectSettings`에 `UNITY_ANIMATION_RIGGING` 추가. `RigAnimationController.cs`의 `#if UNITY_ANIMATION_RIGGING` 블록 활성화 |
+|| 3.2 | **Player 애니메이션 셋업** — Player 게임오브젝트에 `Animator` + `RigAnimationController` 컴포넌트 부착. `RuntimeAnimatorController` 할당 (GLB 임포트 시 생성된 Controller 사용) |
+|| 3.3 | **GuardPlaceholder 애니메이션** — 모든 병사 Placeholder에 `Animator` + `RigAnimationController` 보장. `PlayerMovement`에서 `RigAnimationController.SetState()` 호출 연동 |
+|| 3.4 | **AnimalAI 애니메이션** — 몬스터/동물에 `Animator` + `RigAnimationController` 보장. `AnimalAI` 상태머신(Idle/Walk/Run/Attack/Die)과 연동 |
+|| 3.5 | **GLB 애니메이션 데이터 연동** — `Resources/Models/UserProvided/`의 GLB 41개에서 `RuntimeAnimatorController` 추출. `RuntimeModelLoader`가 로드 시 자동 연결 |
+|| 3.6 | **`SceneFixer` 자동 실행** — `EditorAutoSetup.cs`의 `[InitializeOnLoad]`에서 SceneFixer.FixAllIssues()를 1회 자동 실행. 또는 GameManager.Start()에서 런타임 검증 |
+|| 3.7 | **테스트** — 캐릭터별 Idle/Walk/Run/Attack 애니메이션 전환 테스트 10개+ |
 
 ---
 
-#### 사이클 FIX-03: ❌ NullReferenceException & 시스템 초기화 버그
+#### 사이클 FIX-04: ❌ NullReferenceException & 시스템 초기화 버그
 
 > **목표:** Runtime 에러 0, 모든 싱글톤/시스템이 씬 시작 시 자동 생성
 
 | 단계 | 내용 |
 |:----:|:------|
-| 3.1 | **`PlayerStats` 자동 생성** — `GameManager.InitializeSystems()`에 `CreateSystemIfMissing("PlayerStats")` 추가. 또는 `PlayerStats.Awake()`에서 `DontDestroyOnLoad` + lazy-init 보장 |
-| 3.2 | **`PlayerHealth` 자동 생성** — `PlayerStats` 생성 시 `PlayerHealth`도 함께 생성하거나, `PlayerHealth.Instance` null-safe 처리 |
-| 3.3 | **`ShopWindow` null-safe 수정** — `ShopWindow.OnGUI()` line 205: `PlayerStats.Instance?.Gold ?? 0` null 조건부 접근. 모든 `PlayerStats.Instance` 참조에 null 체크 추가 |
-| 3.4 | **`UIManager` 자동 생성** — `GameManager`에서 `UIManager`가 없으면 생성. `BuildingPlaceholder`/`ShopPlaceholder`의 `_uiManager` null 체크 강화 |
-| 3.5 | **`GameManager` 씬 배치 보장** — `EditorAutoSetup`에서 `MainScene`에 `GameManager` 게임오브젝트 없으면 자동 생성. `[RuntimeInitializeOnLoadMethod]` 폴백 |
-| 3.6 | **테스트** — 모든 싱글톤 초기화 검증 EditMode 테스트 10개+ |
+| 4.1 | **`PlayerStats` 자동 생성** — `GameManager.InitializeSystems()`에 `CreateSystemIfMissing("PlayerStats")` 추가. 또는 `PlayerStats.Awake()`에서 `DontDestroyOnLoad` + lazy-init 보장 |
+| 4.2 | **`PlayerHealth` 자동 생성** — `PlayerStats` 생성 시 `PlayerHealth`도 함께 생성하거나, `PlayerHealth.Instance` null-safe 처리 |
+| 4.3 | **`ShopWindow` null-safe 수정** — `ShopWindow.OnGUI()` line 205: `PlayerStats.Instance?.Gold ?? 0` null 조건부 접근. 모든 `PlayerStats.Instance` 참조에 null 체크 추가 |
+| 4.4 | **`UIManager` 자동 생성** — `GameManager`에서 `UIManager`가 없으면 생성. `BuildingPlaceholder`/`ShopPlaceholder`의 `_uiManager` null 체크 강화 |
+| 4.5 | **`GameManager` 씬 배치 보장** — `EditorAutoSetup`에서 `MainScene`에 `GameManager` 게임오브젝트 없으면 자동 생성. `[RuntimeInitializeOnLoadMethod]` 폴백 |
+| 4.6 | **테스트** — 모든 싱글톤 초기화 검증 EditMode 테스트 10개+ |
 
 ---
 
-#### 사이클 FIX-04: 🗺️ 미니맵 & 월드맵 복구
+#### 사이클 FIX-05: 🗺️ 미니맵 & 월드맵 복구
 
 > **목표:** 미니맵(우측 상단) 정상 표시, M키 월드맵 정상 작동
 
 | 단계 | 내용 |
 |:----:|:------|
-| 4.1 | **`MinimapUI` 강제 생성** — `GameManager`가 없을 경우를 대비해 `[RuntimeInitializeOnLoadMethod]`에서 MinimapUI 생성 폴백. 또는 기존 GameManager.Start() 확인 |
-| 4.2 | **`MinimapUI` 카메라 참조** — `Camera.main`이 null일 경우 `FindObjectOfType<Camera>()` fallback. `_playerTransform` null 시 위치(0,0,0) 가정 |
-| 4.3 | **`MapWindow` 복구** — M키 토글 확인. `MapWindow.OnShow()`에서 `TerritoryDatabase` 데이터 로드 검증. 영지 아이콘/국기/난이도 표시 확인 |
-| 4.4 | **`MapWindow` 확장** — 국가별 확대/축소 2단계 줌. 황제국 안개 표시. 현재 플레이어 위치 표시 |
-| 4.5 | **미니맵 영지 위치** — `GetTerritoryWorldPosition()` 계산 검증. 국가별 방향 벡터가 실제 씬 배치와 일치하는지 확인 |
-| 4.6 | **테스트** — MinimapUI 캐싱/줌/렌더링 + MapWindow 타일/줌/국기 표시 테스트 12개+ |
+|| 5.1 | **`MinimapUI` 강제 생성** — `GameManager`가 없을 경우를 대비해 `[RuntimeInitializeOnLoadMethod]`에서 MinimapUI 생성 폴백. 또는 기존 GameManager.Start() 확인 |
+|| 5.2 | **`MinimapUI` 카메라 참조** — `Camera.main`이 null일 경우 `FindObjectOfType<Camera>()` fallback. `_playerTransform` null 시 위치(0,0,0) 가정 |
+|| 5.3 | **`MapWindow` 복구** — M키 토글 확인. `MapWindow.OnShow()`에서 `TerritoryDatabase` 데이터 로드 검증. 영지 아이콘/국기/난이도 표시 확인 |
+|| 5.4 | **`MapWindow` 확장** — 국가별 확대/축소 2단계 줌. 황제국 안개 표시. 현재 플레이어 위치 표시 |
+|| 5.5 | **미니맵 영지 위치** — `GetTerritoryWorldPosition()` 계산 검증. 국가별 방향 벡터가 실제 씬 배치와 일치하는지 확인 |
+|| 5.6 | **테스트** — MinimapUI 캐싱/줌/렌더링 + MapWindow 타일/줌/국기 표시 테스트 12개+ |
 
 ---
 
-> **우선순위:** FIX-01 > FIX-03 > FIX-02 > FIX-04
+#### 사이클 FIX-06: 📏 UI 폰트 & 크기 2배 확대
+
+> **문제:** 모든 UI 창의 폰트/버튼/레이아웃이 현재 1.5배 상태. 사장님 요청으로 **2배**로 확대.
+
+| 단계 | 내용 |
+|:----:|:------|
+|| 6.1 | **`UIStyleManager` 폰트 2배** — `title` 30→60, `label` 20→40, `closeBtn` 26→52. `BorderWidth` 2→4. `DrawTitle()` Y offset 조정 |
+|| 6.2 | **HUD 체력바/스탯 2배** — `HUD.cs` fontSize 24→48. `barWidth` 350→700. `barHeight` 35→70. 모든 HUD 요소 위치/크기 재조정 |
+|| 6.3 | **`MinimapUI` 2배** — `_minimapSize` 200→400. 폰트 14→28. 아이콘/도트 크기 2배. 줌 레이블 위치 조정 |
+|| 6.4 | **모든 UIWindow 하위 클래스** — `ShopWindow`, `InventoryWindow`, `QuestWindow`, `RecipeWindow`, `MapWindow`, `EquipmentWindow`, `CraftingUI`, `CookingUI`, `AlchemyUI`, `RepairStationUI`, `LootWindow`, `ChurchUI`, `EscMenuUI`, `SettingsMenuUI`, `DeathScreenUI`, `GuardInfoWindow`, `MercenaryHireUI` 등 20+개 창의 내부 레이아웃/폰트/버튼 2배 조정 |
+|| 6.5 | **WorldSpace HUD** — `HerbRespawnUI`, `MonsterLevelLabel`, `GuardWorldSpaceHUD`, `NPCDialogueWindow` 폰트/게이지 2배 |
+|| 6.6 | **WindowAnimationProfile** — 애니메이션 시작/종료 위치/크기 2배 대응. FadeSlide 거리 조정 |
+|| 6.7 | **테스트** — 모든 UI 창 2배 렌더링/레이아웃 검증 EditMode 테스트 15개+ |
+
+---
+
+> **우선순위:** FIX-01 > FIX-02 > FIX-03 > FIX-04 > FIX-05 > FIX-06
 > — FIX-01(건물 실내 전환)이 가장 체감도 높은 핵심 문제입니다.
-> — FIX-02(애니메이션)와 FIX-04(맵)는 FIX-03(에러 수정) 이후 진행합니다.
+> — FIX-02는 몬스터 스폰 버그로, 수정만 하면 즉시 해결됩니다.
+> — FIX-05(UI 2배)는 마지막에 한 번에 적용합니다.
 >
 > 사장님이 명령을 내리면 **반드시** 아래 순서를 따라야 합니다:
 >
