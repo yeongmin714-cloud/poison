@@ -341,12 +341,14 @@ namespace ProjectName.UI
             if (GUI.Button(new Rect(x + 10, currentY, resBtnWidth, _buttonHeight), "<<", _fullscreenButtonStyle))
             {
                 _selectedResolutionIndex = Mathf.Max(0, _selectedResolutionIndex - 1);
+                ApplyCurrentResolution();
             }
             GUI.Label(new Rect(x + 10 + resBtnWidth + 10, currentY, width - resBtnWidth * 2 - 40, _buttonHeight),
                 _selectedResolutionIndex < _resolutionLabels.Length ? _resolutionLabels[_selectedResolutionIndex] : "N/A", _valueStyle);
             if (GUI.Button(new Rect(x + width - resBtnWidth - 10, currentY, resBtnWidth, _buttonHeight), ">>", _fullscreenButtonStyle))
             {
                 _selectedResolutionIndex = Mathf.Min(_availableResolutions.Length - 1, _selectedResolutionIndex + 1);
+                ApplyCurrentResolution();
             }
             currentY += _buttonHeight + 15;
 
@@ -447,6 +449,18 @@ namespace ProjectName.UI
 
                 GUI.Label(new Rect(bx, by, keyWidth - 10, lineHeight),
                     $"{keyBindings[i].name}:  [{keyBindings[i].key}]", _labelStyle);
+            }
+        }
+
+        /// <summary>현재 선택된 해상도를 즉시 적용하고 PlayerPrefs에 저장합니다.</summary>
+        private void ApplyCurrentResolution()
+        {
+            if (_selectedResolutionIndex >= 0 && _selectedResolutionIndex < _availableResolutions.Length)
+            {
+                var res = _availableResolutions[_selectedResolutionIndex];
+                Screen.SetResolution(res.width, res.height, Screen.fullScreen);
+                PlayerPrefs.SetInt("Settings_Resolution", _selectedResolutionIndex);
+                PlayerPrefs.Save();
             }
         }
     }
