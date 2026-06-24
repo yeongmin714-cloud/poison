@@ -281,6 +281,8 @@ namespace ProjectName.UI
 
         private void OnGUI()
         {
+            if (!_isOpen) return;
+
             DrawMinimap();
         }
 

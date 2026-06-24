@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -175,7 +176,11 @@ namespace ProjectName.Systems
             // Check alias
             if (_aliases != null && _aliases.TryGetValue(lowerKey, out string realKey))
                 lowerKey = realKey;
-            return _loadedModels.TryGetValue(lowerKey, out model) && _modelMetadata.TryGetValue(lowerKey, out metadata);
+            if (_loadedModels.TryGetValue(lowerKey, out model) && _modelMetadata.TryGetValue(lowerKey, out metadata))
+                return true;
+            metadata = default;
+            model = null;
+            return false;
         }
 
         /// <summary>

@@ -7,7 +7,7 @@ USER_PROVIDED_DIR="$PROJECT_PATH/Assets/Resources/Models/UserProvided"
 STATE_FILE="/tmp/.hermes_glb_state.json"
 
 # Get list of .glb files in UserProvided (top level only)
-mapfile -t glb_files < <(find "$USER_PROVIDED_DIR" -maxdepth 1 -name "*.glb" -type f -basename | sort)
+mapfile -t glb_files < <(find "$USER_PROVIDED_DIR" -maxdepth 1 -name "*.glb" -type f | sort)
 
 # Extract allowed basenames from ModelMapping.cs (lowercase, no extension, spaces->underscores)
 allowed_basenames=$(grep -o '\"[^\"]*\"\\s*=>' "$PROJECT_PATH/Assets/Editor/ModelMapping.cs" | sed 's/\"//g' | sed 's/=>//g' | tr -d ' ' | tr '[:upper:]' '[:lower:]')

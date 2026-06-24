@@ -262,19 +262,19 @@ namespace ProjectName.Systems
                 modelInstance.name = entry.label + "_Model";
                 // Continue with label creation (skip primitive creation)
                 // BuildingPlaceholder 컴포넌트 부착 (기존 시스템 연동)
-                var placeholder = modelInstance.AddComponent<BuildingPlaceholder>();
-                placeholder.buildingName = entry.label;
-                placeholder.buildingType = MapToBuildingType(entry.componentType);
+                var bhPlaceholder = modelInstance.AddComponent<BuildingPlaceholder>();
+                bhPlaceholder.buildingName = entry.label;
+                bhPlaceholder.buildingType = MapToBuildingType(entry.componentType);
                 // TextMesh 라벨
-                var labelGo = new GameObject($"{entry.label}_Label");
-                labelGo.transform.SetParent(modelInstance.transform);
-                labelGo.transform.localPosition = new Vector3(0f, entry.scale.y * 0.5f + 0.6f, 0f);
-                var textMesh = labelGo.AddComponent<TextMesh>();
-                textMesh.text = GetLabelText(entry.componentType, entry.label);
-                textMesh.anchor = TextAnchor.MiddleCenter;
-                textMesh.characterSize = 0.08f;
-                textMesh.color = Color.white;
-                textMesh.fontSize = 22;
+                var labelGo2 = new GameObject($"{entry.label}_Label");
+                labelGo2.transform.SetParent(modelInstance.transform);
+                labelGo2.transform.localPosition = new Vector3(0f, entry.scale.y * 0.5f + 0.6f, 0f);
+                var textMesh2 = labelGo2.AddComponent<TextMesh>();
+                textMesh2.text = GetLabelText(entry.componentType, entry.label);
+                textMesh2.anchor = TextAnchor.MiddleCenter;
+                textMesh2.characterSize = 0.08f;
+                textMesh2.color = Color.white;
+                textMesh2.fontSize = 22;
                 Debug.Log($"[TownBuilder] 🏠 '{entry.label}' ({entry.componentType}) GLB 모델 생성 @ {entry.position}");
                 return;
             }
