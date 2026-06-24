@@ -110,11 +110,11 @@ namespace ProjectName.Systems
             }
 
             Debug.Log($"[TerrainTextureApplier] Loaded {allTextures.Length} textures. " +
-                      $"East={_nationTextures.ContainsKey(NationType.East) ? _nationTextures[NationType.East].Count : 0}, " +
-                      $"West={_nationTextures.ContainsKey(NationType.West) ? _nationTextures[NationType.West].Count : 0}, " +
-                      $"South={_nationTextures.ContainsKey(NationType.South) ? _nationTextures[NationType.South].Count : 0}, " +
-                      $"North={_nationTextures.ContainsKey(NationType.North) ? _nationTextures[NationType.North].Count : 0}, " +
-                      $"Empire={_nationTextures.ContainsKey(NationType.Empire) ? _nationTextures[NationType.Empire].Count : 0}, " +
+                      $"East={(_nationTextures.ContainsKey(NationType.East) ? _nationTextures[NationType.East].Count : 0)}, " +
+                      $"West={(_nationTextures.ContainsKey(NationType.West) ? _nationTextures[NationType.West].Count : 0)}, " +
+                      $"South={(_nationTextures.ContainsKey(NationType.South) ? _nationTextures[NationType.South].Count : 0)}, " +
+                      $"North={(_nationTextures.ContainsKey(NationType.North) ? _nationTextures[NationType.North].Count : 0)}, " +
+                      $"Empire={(_nationTextures.ContainsKey(NationType.Empire) ? _nationTextures[NationType.Empire].Count : 0)}, " +
                       $"Extra={_extraTextures.Count}");
         }
 
