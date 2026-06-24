@@ -108,10 +108,18 @@ namespace ProjectName.UI
         private void LoadSettings()
         {
             _selectedQualityLevel = PlayerPrefs.GetInt("Settings_Quality", QualitySettings.GetQualityLevel());
+            _selectedResolutionIndex = PlayerPrefs.GetInt("Settings_Resolution", 0);
             _bgmVolume = PlayerPrefs.GetFloat("Settings_BGM", 0.8f);
             _sfxVolume = PlayerPrefs.GetFloat("Settings_SFX", 0.8f);
             _uiVolume = PlayerPrefs.GetFloat("Settings_UI", 0.7f);
             _ambientVolume = PlayerPrefs.GetFloat("Settings_Ambient", 0.6f);
+
+            // 저장된 해상도 즉시 적용
+            if (_selectedResolutionIndex > 0 && _selectedResolutionIndex < _availableResolutions.Length)
+            {
+                var res = _availableResolutions[_selectedResolutionIndex];
+                Screen.SetResolution(res.width, res.height, Screen.fullScreen);
+            }
         }
 
         private void SaveSettings()
