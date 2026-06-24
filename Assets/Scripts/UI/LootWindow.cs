@@ -87,7 +87,7 @@ namespace ProjectName.UI
         public void OpenForBasket(ILootBasket basket)
         {
             if (_theme == null)
-                ApplyTheme(Phase33_Themes.LootTheme());
+                ApplyTheme(Phase33_Themes.CreateMedievalShopTheme());
             _currentBasket = basket;
             _selectedIndex = -1;
             RefreshLoot();

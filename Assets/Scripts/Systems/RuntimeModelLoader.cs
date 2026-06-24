@@ -50,6 +50,9 @@ namespace ProjectName.Systems
         /// <summary>로드된 모델 메타데이터 캐시 (key: 소문자 파일명)</summary>
         private static Dictionary<string, ModelMetadata> _modelMetadata;
 
+        /// <summary>별칭 맵 (short name → actual model key)</summary>
+        private static Dictionary<string, string> _aliases;
+
         /// <summary>초기화 완료 여부</summary>
         private static bool _isInitialized;
 
@@ -73,6 +76,40 @@ namespace ProjectName.Systems
             _attemptedLoad = true;
             _loadedModels = new Dictionary<string, GameObject>();
             _modelMetadata = new Dictionary<string, ModelMetadata>();
+            _aliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "player", "player_rigged" },
+                { "soldier", "soldier_lv1-20_rigged" },
+                { "soldier_lv1", "soldier_lv1-20_rigged" },
+                { "soldier_lv20", "soldier_lv20-40_rigged" },
+                { "soldier_lv40", "soldier_lv40-50_rigged" },
+                { "mercenary", "mercenary_rigged" },
+                { "bard", "bard_rigged" },
+                { "lord", "npc_lord_rigged" },
+                { "king", "npc_king_rigged" },
+                { "shop_npc", "npc_shop_rigged" },
+                { "man1", "npc_man1_rigged" },
+                { "man2", "npc_man2_rigged" },
+                { "girl1", "npc_girl1_rigged" },
+                { "girl2", "npc_girl2_rigged" },
+                { "girl3", "npc_girl3_rigged" },
+                { "oldman1", "npc_oldman1_rigged" },
+                { "oldman2", "npc_oldman2_rigged" },
+                { "dracula", "npc_dracula_rigged" },
+                { "hut", "hut" },
+                { "shop", "shop" },
+                { "castle", "castle" },
+                { "bar", "bar" },
+                { "church", "hut" },
+                { "craft_equip", "craft_equipment" },
+                { "craft_cook", "craft_cook" },
+                { "craft_blend", "craft_blend" },
+                { "kingdom", "kingdom" },
+                { "red_castle", "red_castle" },
+                { "blue_castle", "blue_castle" },
+                { "green_castle", "green_castle" },
+                { "purple_castle", "purple_castle" },
+            };
 
             try
             {
@@ -124,23 +161,34 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 지정된 모델 키에 해당하는 GLB 프리팹이 있는지 확인하고 반환합니다.
+        /// 지정된 모델 키에 해당하는 GLB 프리팹과 메타데이터를 반환합니다.
+        /// 별칭(alias)을 먼저 확인하여 짧은 이름을 실제 모델 키로 변환합니다.
         /// </summary>
-        /// <param name="modelKey">모델 키 (소문자, 확장자 제외 파일명, 예: "player", "soldier", "blue_castle")</param>
-        /// <param name="prefab">찾은 GLB 프리팹 (없으면 null)</param>
+        /// <param name="key">모델 키 또는 별칭 (대소문자 무시)</param>
+        /// <param name="model">찾은 GLB 프리팹 (없으면 null)</param>
+        /// <param name="metadata">찾은 ModelMetadata 구조체 (없으면 기본값)</param>
         /// <returns>모델이 존재하면 true, 아니면 false</returns>
-        public static bool TryGetModel(string modelKey, out GameObject prefab)
+        public static bool TryGetModel(string key, out GameObject model, out ModelMetadata metadata)
         {
-            prefab = null;
+            Initialize();
+            string lowerKey = (key ?? "").ToLowerInvariant();
+            // Check alias
+            if (_aliases != null && _aliases.TryGetValue(lowerKey, out string realKey))
+                lowerKey = realKey;
+            return _loadedModels.TryGetValue(lowerKey, out model) && _modelMetadata.TryGetValue(lowerKey, out metadata);
+        }
 
-            if (!EnsureInitialized())
-                return false;
-
-            if (string.IsNullOrEmpty(modelKey))
-                return false;
-
-            string key = modelKey.ToLowerInvariant();
-            return _loadedModels.TryGetValue(key, out prefab);
+        /// <summary>
+        /// 지정된 모델 키에 해당하는 GLB 프리팹이 있는지 확인하고 반환합니다.
+        /// 별칭(alias)을 먼저 확인하여 짧은 이름을 실제 모델 키로 변환합니다.
+        /// </summary>
+        /// <param name="key">모델 키 (소문자, 확장자 제외 파일명, 예: "player", "soldier", "blue_castle")</param>
+        /// <param name="model">찾은 GLB 프리팹 (없으면 null)</param>
+        /// <returns>모델이 존재하면 true, 아니면 false</returns>
+        public static bool TryGetModel(string key, out GameObject model)
+        {
+            var dummy = default(ModelMetadata);
+            return TryGetModel(key, out model, out dummy);
         }
 
         /// <summary>

@@ -73,7 +73,7 @@ namespace ProjectName.UI
         {
             base.Awake();
             // Phase 33 UI-03: 장비창 테마 적용
-            ApplyTheme(Phase33_Themes.CreateEquipmentTheme());
+            ApplyTheme(Phase33_Themes.CreateMedievalInventoryTheme());
             if (_equipmentManager == null)
                 _equipmentManager = FindObjectOfType<EquipmentManager>();
         }

@@ -57,7 +57,7 @@ namespace ProjectName.UI
         protected override void Awake()
         {
             base.Awake();
-            ApplyTheme(Phase33_Themes.ShopTheme());
+            ApplyTheme(Phase33_Themes.CreateMedievalShopTheme());
             InitializeShopInventory(); // 상점 초기 재고 설정
         }
         

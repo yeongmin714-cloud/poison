@@ -41,7 +41,7 @@ namespace ProjectName.Core.UI
         {
             // Phase 33: create alchemy theme
             if (_theme == null)
-                _theme = Phase33_Themes.CreateAlchemyTheme();
+                _theme = Phase33_Themes.CreateMedievalQuestTheme();
 
             CreateUI();
             PopulateDropdowns();

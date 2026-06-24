@@ -372,25 +372,39 @@ namespace ProjectName.UI
             OnHide();
         }
 
-        // --- 상속받은 클래스가 필요하면 재정의하는 메서드 ---
+        /// <summary>
+        /// Called after the window has opened and the open animation completes.
+        /// Phase 33: Draws the background texture for the window.
+        /// If a medieval panel texture is configured on the theme, renders it via
+        /// MedievalBackgroundRenderer instead of the procedural texture.
+        /// </summary>
         protected virtual void OnShow()
         {
-            // Phase 33: 테마가 설정되어 있으면 절차적 배경 텍스처 렌더링
-            if (_theme != null)
+            if (_theme == null || _windowRoot == null)
+                return;
+
+            var rectTransform = _windowRoot.GetComponent<RectTransform>();
+            if (rectTransform == null)
+                return;
+
+            var rectRect = rectTransform.rect;
+            var worldRect = new Rect(
+                rectTransform.position.x + rectRect.x,
+                rectTransform.position.y + rectRect.y,
+                rectRect.width, rectRect.height);
+
+            // Medieval (PNG texture) background takes priority over procedural
+            if (_theme.UseMedievalBackground)
             {
+                MedievalBackgroundRenderer.DrawBackground(worldRect, _theme.MedievalPanelTexture);
+            }
+            else
+            {
+                // Fallback to procedural Perlin-noise texture
                 var bgTex = ProceduralTextureGenerator.GetPatternTexture(_theme.CurrentPattern);
-                if (bgTex != null && _windowRoot != null)
+                if (bgTex != null)
                 {
-                    var rect = _windowRoot.GetComponent<RectTransform>();
-                    if (rect != null)
-                    {
-                        var rectRect = rect.rect;
-                        var worldRect = new Rect(
-                            rect.position.x + rectRect.x,
-                            rect.position.y + rectRect.y,
-                            rectRect.width, rectRect.height);
-                        GUI.DrawTexture(worldRect, bgTex, ScaleMode.StretchToFill);
-                    }
+                    GUI.DrawTexture(worldRect, bgTex, ScaleMode.StretchToFill);
                 }
             }
         }

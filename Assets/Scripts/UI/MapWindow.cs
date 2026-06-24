@@ -51,7 +51,7 @@ namespace ProjectName.UI
         protected override void Awake()
         {
             base.Awake();
-            ApplyTheme(Phase33_Themes.CreateMapTheme());
+            ApplyTheme(Phase33_Themes.CreateMedievalMapTheme());
             CacheTerritories();
             _empireDiscovered = PlayerPrefs.GetInt(EMPIRE_DISCOVERED_KEY, 0) == 1;
         }

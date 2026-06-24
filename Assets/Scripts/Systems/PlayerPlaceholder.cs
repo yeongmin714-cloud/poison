@@ -58,7 +58,7 @@ namespace ProjectName.Systems
             // 이미 파트가 있으면 스킵
             if (_body != null) return true;
 
-            if (!RuntimeModelLoader.TryGetModel("player", out var playerModel))
+            if (!RuntimeModelLoader.TryGetModel("player_rigged", out var playerModel, out var _))
                 return false;
 
             GameObject avatar = Object.Instantiate(playerModel, transform);
@@ -66,6 +66,9 @@ namespace ProjectName.Systems
             avatar.transform.localPosition = Vector3.zero;
             avatar.transform.localRotation = Quaternion.identity;
             avatar.transform.localScale = Vector3.one;
+
+            // Assign animator controller for the player model
+            ModelAnimatorAssigner.AssignController(avatar, "player");
 
             Debug.Log("[PlayerPlaceholder] GLB 플레이어 모델 로드 완료");
             return true;

@@ -53,6 +53,21 @@ namespace ProjectName.Systems
                     _rigAnim = gameObject.AddComponent<RigAnimationController>();
             }
 
+            // Try to load real GLB model first
+            if (RuntimeModelLoader.TryGetModel("soldier", out var guardModel))
+            {
+                var instance = Instantiate(guardModel, transform);
+                instance.transform.localPosition = Vector3.zero;
+                instance.transform.localRotation = Quaternion.identity;
+                // Remove placeholder visual components
+                var rend = GetComponentInChildren<Renderer>();
+                if (rend != null) Destroy(rend);
+                var filter = GetComponentInChildren<MeshFilter>();
+                if (filter != null) Destroy(filter);
+                ModelAnimatorAssigner.AssignController(instance, "soldier");
+                return; // Skip CreatePlaceholderVisual
+            }
+
             CreatePlaceholderVisual();
         }
 

@@ -15,7 +15,7 @@ namespace ProjectName.UI
     {
         protected virtual void Start()
         {
-            ApplyTheme(Phase33_Themes.CreateCookingTheme());
+            ApplyTheme(Phase33_Themes.CreateMedievalCraftingTheme());
         }
 
         [Header("Cooking UI Settings")]

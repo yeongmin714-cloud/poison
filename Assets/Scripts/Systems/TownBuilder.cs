@@ -252,6 +252,33 @@ namespace ProjectName.Systems
         /// </summary>
         private static void CreateBuilding(TownBuildingEntry entry, Transform parent)
         {
+            // Try real building model
+            string buildingKey = GetBuildingModelKey(entry.componentType);
+            if (RuntimeModelLoader.TryGetModel(buildingKey, out var buildingModel))
+            {
+                var modelInstance = UnityEngine.Object.Instantiate(buildingModel, parent);
+                modelInstance.transform.localPosition = entry.position;
+                modelInstance.transform.localRotation = Quaternion.identity;
+                modelInstance.name = entry.label + "_Model";
+                // Continue with label creation (skip primitive creation)
+                // BuildingPlaceholder 컴포넌트 부착 (기존 시스템 연동)
+                var placeholder = modelInstance.AddComponent<BuildingPlaceholder>();
+                placeholder.buildingName = entry.label;
+                placeholder.buildingType = MapToBuildingType(entry.componentType);
+                // TextMesh 라벨
+                var labelGo = new GameObject($"{entry.label}_Label");
+                labelGo.transform.SetParent(modelInstance.transform);
+                labelGo.transform.localPosition = new Vector3(0f, entry.scale.y * 0.5f + 0.6f, 0f);
+                var textMesh = labelGo.AddComponent<TextMesh>();
+                textMesh.text = GetLabelText(entry.componentType, entry.label);
+                textMesh.anchor = TextAnchor.MiddleCenter;
+                textMesh.characterSize = 0.08f;
+                textMesh.color = Color.white;
+                textMesh.fontSize = 22;
+                Debug.Log($"[TownBuilder] 🏠 '{entry.label}' ({entry.componentType}) GLB 모델 생성 @ {entry.position}");
+                return;
+            }
+
             // 본체 (Cube)
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             go.name = entry.label;
@@ -370,6 +397,21 @@ namespace ProjectName.Systems
                 textMesh.fontSize = 20;
 
                 Debug.Log($"[TownBuilder] 🗡️ '{guardName}' (Lv.{level}) 배치 @ {spawnPos}");
+            }
+        }
+
+        /// <summary>
+        /// TownComponent → GLB 모델 키 매핑
+        /// </summary>
+        private static string GetBuildingModelKey(TownComponent component)
+        {
+            switch (component)
+            {
+                case TownComponent.Shop:       return "shop";
+                case TownComponent.CraftHouse: return "craft_equip";
+                case TownComponent.Church:     return "church";
+                case TownComponent.NPCHouse:   return "hut";
+                default:                       return "hut";
             }
         }
 

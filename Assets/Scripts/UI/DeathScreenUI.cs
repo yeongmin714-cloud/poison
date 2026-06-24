@@ -31,7 +31,7 @@ namespace ProjectName.UI
             if (Instance != null) { Destroy(gameObject); return; }
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            _theme = Phase33_Themes.DeathTheme();
+            _theme = Phase33_Themes.CreateMedievalDeathTheme();
         }
 
         public void Show()

@@ -14,7 +14,7 @@ namespace ProjectName.UI
     {
         protected virtual void Start()
         {
-            ApplyTheme(Phase33_Themes.CreateRecipeTheme());
+            ApplyTheme(Phase33_Themes.CreateMedievalQuestTheme());
         }
 
         [Header("Recipe Window")]

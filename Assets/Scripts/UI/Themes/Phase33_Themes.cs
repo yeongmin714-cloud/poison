@@ -16,6 +16,8 @@ namespace ProjectName.UI.Themes
         private static FieldInfo _animField;
         private static FieldInfo _nameField;
         private static FieldInfo _iconField;
+        private static FieldInfo _medievalPanelField;
+        private static FieldInfo _medievalBgField;
 
         private static void EnsureReflection()
         {
@@ -27,6 +29,8 @@ namespace ProjectName.UI.Themes
             _animField = t.GetField("_animationType", BindingFlags.NonPublic | BindingFlags.Instance);
             _nameField = t.GetField("_themeName", BindingFlags.NonPublic | BindingFlags.Instance);
             _iconField = t.GetField("_iconPrefix", BindingFlags.NonPublic | BindingFlags.Instance);
+            _medievalPanelField = t.GetField("_medievalPanelTexture", BindingFlags.NonPublic | BindingFlags.Instance);
+            _medievalBgField = t.GetField("_medievalBackgroundTexture", BindingFlags.NonPublic | BindingFlags.Instance);
         }
 
         private static UIDesignTheme Create(string name, string icon,
@@ -576,6 +580,126 @@ namespace ProjectName.UI.Themes
                 UIDesignTheme.BorderType.Shield,
                 UIDesignTheme.DecorationType.Rivet,
                 UIDesignTheme.AnimationType.FadeSlide);
+        }
+
+        // ================================================================
+        // Phase FIX: Medieval PNG Texture Themes (젤다풍 중세 판타지)
+        // ================================================================
+
+        /// <summary>Create a theme with medieval PNG panel texture</summary>
+        private static UIDesignTheme CreateMedieval(string name, string icon,
+            Color bg, Color border, Color title, Color text, Color subText, Color accent,
+            UIDesignTheme.PatternType pattern, UIDesignTheme.BorderType borderType,
+            UIDesignTheme.DecorationType deco, UIDesignTheme.AnimationType anim,
+            string panelTexture, string bgTexture)
+        {
+            var theme = Create(name, icon, bg, border, title, text, subText, accent,
+                pattern, borderType, deco, anim);
+            _medievalPanelField?.SetValue(theme, panelTexture ?? "");
+            _medievalBgField?.SetValue(theme, bgTexture ?? "");
+            return theme;
+        }
+
+        /// <summary>Shop / Loot / Mercenary: 화려한 금장 패널</summary>
+        public static UIDesignTheme CreateMedievalShopTheme()
+        {
+            return CreateMedieval("Medieval Shop", "🏪",
+                new Color(0.08f, 0.15f, 0.06f, 0.9f),
+                new Color(0.85f, 0.7f, 0.2f, 0.85f),
+                new Color(0.9f, 0.75f, 0.25f, 1f),
+                Color.white,
+                new Color(0.75f, 0.75f, 0.75f, 1f),
+                new Color(0.3f, 0.8f, 0.3f, 1f),
+                UIDesignTheme.PatternType.Parchment,
+                UIDesignTheme.BorderType.Filigree,
+                UIDesignTheme.DecorationType.Seal,
+                UIDesignTheme.AnimationType.FadeSlide,
+                "ornate", "paper");
+        }
+
+        /// <summary>Quest / Recipe: 고서적 느낌 어두운 패널</summary>
+        public static UIDesignTheme CreateMedievalQuestTheme()
+        {
+            return CreateMedieval("Medieval Quest", "📜",
+                new Color(0.25f, 0.18f, 0.1f, 0.9f),
+                new Color(0.6f, 0.5f, 0.3f, 0.7f),
+                new Color(0.9f, 0.8f, 0.3f, 1f),
+                Color.white,
+                new Color(0.75f, 0.7f, 0.6f, 1f),
+                new Color(0.6f, 0.4f, 0.2f, 1f),
+                UIDesignTheme.PatternType.Parchment,
+                UIDesignTheme.BorderType.Filigree,
+                UIDesignTheme.DecorationType.CornerScroll,
+                UIDesignTheme.AnimationType.FadeSlide,
+                "dark", "paper");
+        }
+
+        /// <summary>Inventory / Equipment: 넓은 금장 패널</summary>
+        public static UIDesignTheme CreateMedievalInventoryTheme()
+        {
+            return CreateMedieval("Medieval Inventory", "🎒",
+                new Color(0.15f, 0.1f, 0.05f, 0.9f),
+                new Color(0.8f, 0.65f, 0.2f, 0.85f),
+                new Color(0.9f, 0.75f, 0.3f, 1f),
+                Color.white,
+                new Color(0.75f, 0.7f, 0.6f, 1f),
+                new Color(0.8f, 0.5f, 0.2f, 1f),
+                UIDesignTheme.PatternType.Wood,
+                UIDesignTheme.BorderType.Filigree,
+                UIDesignTheme.DecorationType.Rivet,
+                UIDesignTheme.AnimationType.FadeSlide,
+                "gold", "wood");
+        }
+
+        /// <summary>Death / Dark: 어둡고 무거운 패널</summary>
+        public static UIDesignTheme CreateMedievalDeathTheme()
+        {
+            return CreateMedieval("Medieval Death", "💀",
+                new Color(0.05f, 0.02f, 0.02f, 0.92f),
+                new Color(0.5f, 0.1f, 0.1f, 0.85f),
+                new Color(0.8f, 0.2f, 0.2f, 1f),
+                Color.white,
+                new Color(0.5f, 0.5f, 0.5f, 1f),
+                new Color(0.6f, 0.1f, 0.1f, 1f),
+                UIDesignTheme.PatternType.Stone,
+                UIDesignTheme.BorderType.Thorn,
+                UIDesignTheme.DecorationType.Skull,
+                UIDesignTheme.AnimationType.Shatter,
+                "dark", "paper");
+        }
+
+        /// <summary>Crafting / Repair: 나무+금속 느낌 와이드 패널</summary>
+        public static UIDesignTheme CreateMedievalCraftingTheme()
+        {
+            return CreateMedieval("Medieval Crafting", "🔨",
+                new Color(0.22f, 0.14f, 0.08f, 0.9f),
+                new Color(0.72f, 0.45f, 0.2f, 0.85f),
+                new Color(0.9f, 0.7f, 0.3f, 1f),
+                Color.white,
+                new Color(0.75f, 0.75f, 0.75f, 1f),
+                new Color(0.8f, 0.5f, 0.2f, 1f),
+                UIDesignTheme.PatternType.Wood,
+                UIDesignTheme.BorderType.Thorn,
+                UIDesignTheme.DecorationType.Rivet,
+                UIDesignTheme.AnimationType.FadeSlide,
+                "wide", "wood");
+        }
+
+        /// <summary>Map / Minimap: 양피지 느낌 오네이트 패널</summary>
+        public static UIDesignTheme CreateMedievalMapTheme()
+        {
+            return CreateMedieval("Medieval Map", "🗺️",
+                new Color(0.32f, 0.26f, 0.16f, 0.9f),
+                new Color(0.7f, 0.55f, 0.25f, 0.8f),
+                new Color(0.9f, 0.8f, 0.4f, 1f),
+                Color.white,
+                new Color(0.75f, 0.7f, 0.55f, 1f),
+                new Color(0.5f, 0.35f, 0.15f, 1f),
+                UIDesignTheme.PatternType.Parchment,
+                UIDesignTheme.BorderType.Filigree,
+                UIDesignTheme.DecorationType.CornerScroll,
+                UIDesignTheme.AnimationType.Reveal,
+                "ornate", "paper");
         }
     }
 }

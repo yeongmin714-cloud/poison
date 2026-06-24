@@ -75,7 +75,7 @@ namespace ProjectName.UI
         protected override void Awake()
         {
             base.Awake();
-            ApplyTheme(Phase33_Themes.CreateInventoryTheme());
+            ApplyTheme(Phase33_Themes.CreateMedievalInventoryTheme());
         }
 
         protected override void OnShow()

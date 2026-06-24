@@ -19,6 +19,28 @@ namespace ProjectName.Systems
 
         private void Start()
         {
+            // Add visual placeholder if no model assigned
+            if (GetComponent<MeshRenderer>() == null && GetComponentInChildren<MeshRenderer>() == null)
+            {
+                string modelKey = "craft_blend";
+                // Try GLB model
+                if (!RuntimeModelLoader.TryGetModel(modelKey, out var stationModel))
+                {
+                    // Fallback: create a visible placeholder
+                    var visual = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    visual.transform.SetParent(transform);
+                    visual.transform.localPosition = Vector3.zero;
+                    visual.transform.localScale = new Vector3(1f, 1f, 1f);
+                    var renderer = visual.GetComponent<Renderer>();
+                    renderer.material.color = new Color(0.5f, 0.3f, 0.1f); // Brown
+                }
+                else
+                {
+                    var instance = Instantiate(stationModel, transform);
+                    instance.transform.localPosition = Vector3.zero;
+                }
+            }
+
             _player = GameObject.FindGameObjectWithTag("Player")?.transform;
         }
 

@@ -96,6 +96,17 @@ namespace ProjectName.Systems
             var behaviour = npcGO.AddComponent<TerritoryNPCBehaviour>();
             behaviour.Initialize(npc);
 
+            // Try to load real NPC GLB model
+            string npcKey = GetNPCKey(npc);
+            if (RuntimeModelLoader.TryGetModel(npcKey, out var npcModel))
+            {
+                var instance = Object.Instantiate(npcModel, npcGO.transform);
+                instance.transform.localPosition = Vector3.zero;
+                instance.transform.localRotation = Quaternion.identity;
+                ModelAnimatorAssigner.AssignController(instance, npcKey);
+                return npcGO;
+            }
+
             // NPC ID 기반 시드로 고유 색상 선택 (같은 NPC = 항상 같은 색상)
             Color bodyColor = GetColorForNPC(npc.npcId);
             Color skinColor = new Color(1.0f, 0.8f, 0.6f); // 기본 살색
@@ -122,6 +133,32 @@ namespace ProjectName.Systems
                 headRenderer.material = MaterialHelper.CreateLitMaterial(skinColor, npc.npcName + "_Head");
 
             return npcGO;
+        }
+
+        /// <summary>
+        /// NPC 인스턴스에서 사용할 GLB 모델 키를 반환합니다.
+        /// NPC 인덱스를 기반으로 다양한 NPC 외형을 순환합니다.
+        /// </summary>
+        private static string GetNPCKey(NPCInstance npc)
+        {
+            // Use npcIndex to cycle through NPC visual types
+            string[] npcTypes = { "Man1", "Man2", "Girl1", "Girl2", "Girl3", "Oldman1", "Oldman2" };
+            string npcType = npcTypes[npc.npcIndex % npcTypes.Length];
+            switch (npcType)
+            {
+                case "Lord": return "npc_lord_rigged";
+                case "King": return "npc_king_rigged";
+                case "Shop": return "npc_shop_rigged";
+                case "Man1": return "npc_man1_rigged";
+                case "Man2": return "npc_man2_rigged";
+                case "Girl1": return "npc_girl1_rigged";
+                case "Girl2": return "npc_girl2_rigged";
+                case "Girl3": return "npc_girl3_rigged";
+                case "Oldman1": return "npc_oldman1_rigged";
+                case "Oldman2": return "npc_oldman2_rigged";
+                case "Dracula": return "npc_dracula_rigged";
+                default: return "npc_man1_rigged";
+            }
         }
 
         private static Color GetColorForNPC(string npcId)

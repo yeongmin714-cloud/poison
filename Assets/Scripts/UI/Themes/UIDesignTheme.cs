@@ -85,6 +85,10 @@ namespace ProjectName.UI.Themes
         [SerializeField] private DecorationType _decorationType = DecorationType.None;
         [SerializeField] private AnimationType _animationType = AnimationType.FadeSlide;
 
+        [Header("Medieval Theme (Optional — PNG Textures)")]
+        [SerializeField] private string _medievalPanelTexture = "";
+        [SerializeField] private string _medievalBackgroundTexture = "";
+
         [Header("Window Sizing")]
         [SerializeField] private float _windowWidth = 600f;
         [SerializeField] private float _windowHeight = 400f;
@@ -111,6 +115,31 @@ namespace ProjectName.UI.Themes
 
         public float WindowWidth => _windowWidth;
         public float WindowHeight => _windowHeight;
+
+        // ================================================================
+        // Medieval Theme Properties
+        // ================================================================
+
+        /// <summary>Panel texture name for medieval backgrounds (e.g. "ornate", "dark")</summary>
+        public string MedievalPanelTexture => _medievalPanelTexture;
+
+        /// <summary>Background texture name for medieval backgrounds (e.g. "paper", "wood")</summary>
+        public string MedievalBackgroundTexture => _medievalBackgroundTexture;
+
+        /// <summary>Returns true if a medieval panel texture is configured and should be used</summary>
+        public bool UseMedievalBackground => !string.IsNullOrEmpty(_medievalPanelTexture);
+
+        /// <summary>Sets the medieval panel texture type (ornate, dark, gold, wide)</summary>
+        public void SetMedievalPanelTexture(string panelType)
+        {
+            _medievalPanelTexture = panelType ?? "";
+        }
+
+        /// <summary>Sets the medieval background texture type (paper, wood)</summary>
+        public void SetMedievalBackgroundTexture(string bgType)
+        {
+            _medievalBackgroundTexture = bgType ?? "";
+        }
 
         // ================================================================
         // 공개 메서드

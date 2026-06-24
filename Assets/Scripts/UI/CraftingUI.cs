@@ -14,7 +14,7 @@ namespace ProjectName.UI
     {
         protected virtual void Start()
         {
-            ApplyTheme(Phase33_Themes.CreateCraftingTheme());
+            ApplyTheme(Phase33_Themes.CreateMedievalCraftingTheme());
         }
 
         [Header("Crafting UI Settings")]

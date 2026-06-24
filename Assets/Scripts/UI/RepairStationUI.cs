@@ -16,7 +16,7 @@ namespace ProjectName.UI
     {
         protected virtual void Start()
         {
-            ApplyTheme(Phase33_Themes.CreateRepairTheme());
+            ApplyTheme(Phase33_Themes.CreateMedievalCraftingTheme());
         }
 
         [Header("Repair Station Settings")]
