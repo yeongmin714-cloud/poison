@@ -35,7 +35,7 @@ public static class CheckBuildSettings
         };
         foreach (var name in keyScripts)
         {
-            var objs = GameObject.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+            var objs = GameObject.FindObjectsByType<MonoBehaviour>();
             bool found = false;
             foreach (var obj in objs)
             {

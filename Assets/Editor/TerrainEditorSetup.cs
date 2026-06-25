@@ -139,7 +139,7 @@ public static class TerrainEditorSetup
                 renderer.sharedMaterial = eastMat;
                 Debug.Log($"[TerrainEditorSetup] {ground.name} ← East(초원) Material 할당");
             }
-            else if (materials.Values.Count > 0)
+            else if (materials.Count > 0)
             {
                 renderer.sharedMaterial = materials.Values.First();
                 Debug.Log($"[TerrainEditorSetup] {ground.name} ← {materials.Keys.First()} Material 할당");

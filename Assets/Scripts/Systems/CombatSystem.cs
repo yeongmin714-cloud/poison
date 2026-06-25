@@ -218,7 +218,7 @@ namespace ProjectName.Systems
         private void EnsureLootBasket(GameObject deadObject)
         {
             // 죽은 오브젝트 위치에 이미 LootBasket이 있는지 확인
-            LootBasket[] existing = FindObjectsByType<LootBasket>(FindObjectsSortMode.None);
+            LootBasket[] existing = FindObjectsByType<LootBasket>();
             foreach (var basket in existing)
             {
                 if (Vector3.Distance(basket.transform.position, deadObject.transform.position) < 0.5f)

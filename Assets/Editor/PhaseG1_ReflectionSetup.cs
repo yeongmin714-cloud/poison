@@ -296,7 +296,7 @@ namespace ProjectName.Editor
             int upgradedCount = 0;
 
             // Upgrade WaterBody materials
-            var waterBodies = Object.FindObjectsByType<WaterBody>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var waterBodies = Object.FindObjectsByType<WaterBody>(FindObjectsInactive.Include);
             foreach (var wb in waterBodies)
             {
                 wb.UpgradeReflectionMaterial();
@@ -305,7 +305,7 @@ namespace ProjectName.Editor
             }
 
             // Upgrade LakeGenerator materials
-            var lakeGens = Object.FindObjectsByType<LakeGenerator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var lakeGens = Object.FindObjectsByType<LakeGenerator>(FindObjectsInactive.Include);
             foreach (var lg in lakeGens)
             {
                 lg.UpgradeReflectionMaterial();

@@ -135,7 +135,7 @@ public static class Phase36_WaterPlacer
 
     private static void CleanupExisting()
     {
-        var allGOs = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+        var allGOs = GameObject.FindObjectsByType<GameObject>();
         foreach (var go in allGOs)
         {
             if (go.name == "WaterBodies" || go.name.StartsWith("WaterBody_"))

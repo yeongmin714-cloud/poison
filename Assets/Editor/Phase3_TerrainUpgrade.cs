@@ -182,7 +182,7 @@ public static class Phase3_TerrainUpgrade
     private static void PlaceEnvironmentObjects()
     {
         // 기존 환경 오브젝트 제거
-        var oldPillars = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+        var oldPillars = GameObject.FindObjectsByType<GameObject>();
         foreach (var go in oldPillars)
         {
             if (go.name.StartsWith("Pillar_"))

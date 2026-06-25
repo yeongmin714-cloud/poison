@@ -31,7 +31,7 @@ public class ShopTest : MonoBehaviour
         Debug.Log($"[ShopTest] Player found at {player.transform.position}");
 
         // Find a shop building
-        BuildingPlaceholder[] buildings = GameObject.FindObjectsByType<BuildingPlaceholder>(FindObjectsSortMode.None);
+        BuildingPlaceholder[] buildings = GameObject.FindObjectsByType<BuildingPlaceholder>();
         BuildingPlaceholder shopBuilding = null;
         foreach (var building in buildings)
         {

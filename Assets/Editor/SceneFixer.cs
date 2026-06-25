@@ -51,7 +51,7 @@ public class SceneFixer
         // ==============================================================
         // 1b. GuardPlaceholder → Add Animator + RigAnimationController
         // ==============================================================
-        var guardPlaceholders = GameObject.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+        var guardPlaceholders = GameObject.FindObjectsByType<MonoBehaviour>();
         System.Type guardType = FindType("GuardPlaceholder");
         if (guardType != null)
         {
@@ -100,7 +100,7 @@ public class SceneFixer
         var msType = FindType("MonsterSpawner");
         if (msType != null)
         {
-            var spawner = Object.FindObjectOfType(msType) as MonoBehaviour;
+            var spawner = Object.FindAnyObjectByType(msType) as MonoBehaviour;
             if (spawner != null)
             {
                 Debug.Log("[SceneFix] MonsterSpawner found. Config: advancedOuter=1800 (fixed).");

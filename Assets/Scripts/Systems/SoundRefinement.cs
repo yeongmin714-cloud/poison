@@ -269,7 +269,7 @@ namespace ProjectName.Systems
         private MonoBehaviour FindBiomeComponent()
         {
             // "Biome"이 이름에 포함된 컴포넌트 검색
-            var allBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var allBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
             foreach (var mb in allBehaviours)
             {
                 if (mb != null && mb.GetType().Name.Contains("Biome"))

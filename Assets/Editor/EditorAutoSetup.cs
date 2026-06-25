@@ -458,7 +458,7 @@ public static class EditorAutoSetup
         
         foreach (var targetName in rigTargets)
         {
-            var objects = GameObject.FindObjectsByType<Transform>(FindObjectsSortMode.None);
+            var objects = GameObject.FindObjectsByType<Transform>();
             foreach (var t in objects)
             {
                 if (!t.name.Contains(targetName)) continue;

@@ -327,5 +327,14 @@ namespace ProjectName.Systems
 
         /// <summary>Total number of placed props.</summary>
         public int PropCount => _placedProps?.Count ?? 0;
+
+        /// <summary>
+        /// Sets the parent transform for all placed props.
+        /// Call before PlaceProps() to override the default parent.
+        /// </summary>
+        public void SetPropsParent(Transform parent)
+        {
+            _propsParent = parent;
+        }
     }
 }

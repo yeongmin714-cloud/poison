@@ -94,7 +94,7 @@ namespace ProjectName.UI
 
             // 주기적으로 약초 목록 갱신 (매 프레임 FindObjects는 부담되므로 0.5초 간격)
             // 하지만 요구사항에 "매 프레임 Update()에서 모든 약초 순회"라고 명시되어 있으므로 매 프레임 순회
-            _herbCache = GameObject.FindObjectsByType<HerbPickup>(FindObjectsSortMode.None);
+            _herbCache = GameObject.FindObjectsByType<HerbPickup>();
         }
 
         private void OnGUI()

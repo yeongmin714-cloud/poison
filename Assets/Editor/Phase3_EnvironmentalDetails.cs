@@ -39,7 +39,7 @@ public static class Phase3_EnvironmentalDetails
 
     private static void CleanupExisting()
     {
-        var allGOs = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+        var allGOs = GameObject.FindObjectsByType<GameObject>();
         foreach (var go in allGOs)
         {
             if (go.name.StartsWith("Grass_") ||
