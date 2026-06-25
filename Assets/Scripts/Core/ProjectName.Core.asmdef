@@ -2,8 +2,11 @@
   "name": "ProjectName.Core",
   "rootNamespace": "ProjectName.Core",
   "references": [
-    "Unity.UGUI",
-    "Unity.InputSystem"
+    "Unity.Cinemachine",
+    "Unity.InputSystem",
+    "Unity.RenderPipelines.Core.Runtime",
+    "Unity.RenderPipelines.Universal.Runtime",
+    "Unity.UGUI"
   ],
   "autoReferenced": true,
   "overrideReferences": false,
