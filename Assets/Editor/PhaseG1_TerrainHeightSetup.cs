@@ -8,7 +8,7 @@ using ProjectName.Core;
 /// <summary>
 /// Phase G1-01: Terrain Heightmap System.
 /// Replaces the flat Ground plane with a Perlin noise-based heightmap mesh
-/// (hills/valleys/mountains up to 40m). Repositions all Poly Haven models
+/// (hills/valleys/mountains up to 40m). Repositions all 3D models
 /// to match the terrain height.
 /// </summary>
 public static class PhaseG1_TerrainHeightSetup
@@ -119,7 +119,7 @@ public static class PhaseG1_TerrainHeightSetup
         Debug.Log($"[PhaseG1] ✅ Terrain heightmap applied. Mesh has {terrainMesh.vertexCount} vertices, size {TerrainSize}x{TerrainSize}m, max height {MaxHeight}m.");
 
         // Reposition Poly Haven models to match terrain height
-        int repositionedCount = RepositionPolyHavenModels(ground);
+        int repositionedCount = RepositionModels(ground);
 
         // Save scene
         string scenePath = scene.path;
@@ -199,7 +199,7 @@ public static class PhaseG1_TerrainHeightSetup
         {
             if (t.gameObject.scene != scene) continue;
             if (t.parent != null) continue; // only root objects
-            if (IsPolyHavenModel(t.name))
+            if (IsModel(t.name))
             {
                 Vector3 pos = t.position;
                 pos.y = 0f;
@@ -228,7 +228,7 @@ public static class PhaseG1_TerrainHeightSetup
     /// Scans all root GameObjects for Poly Haven models matching known
     /// name prefixes and repositions them onto the terrain surface.
     /// </summary>
-    private static int RepositionPolyHavenModels(GameObject ground)
+    private static int RepositionModels(GameObject ground)
     {
         int count = 0;
         var scene = ground.scene;
@@ -244,7 +244,7 @@ public static class PhaseG1_TerrainHeightSetup
         {
             if (t.gameObject.scene != scene) continue;
             if (t.parent != null) continue; // only root objects for direct positioning
-            if (!IsPolyHavenModel(t.name)) continue;
+            if (!IsModel(t.name)) continue;
 
             Vector3 originalPos = t.position;
             Vector3 rayOrigin = new Vector3(originalPos.x, 200f, originalPos.z);
@@ -272,7 +272,7 @@ public static class PhaseG1_TerrainHeightSetup
     /// <summary>
     /// Checks if a GameObject name matches any known Poly Haven model prefix.
     /// </summary>
-    public static bool IsPolyHavenModel(string name)
+    public static bool IsModel(string name)
     {
         if (string.IsNullOrEmpty(name)) return false;
         foreach (string prefix in ModelPrefixes)

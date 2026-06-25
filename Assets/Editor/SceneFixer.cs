@@ -108,17 +108,6 @@ public class SceneFixer
             }
         }
 
-        // ==============================================================
-        // 3. Clean up PolyHaven child bone objects under Player
-        // ==============================================================
-        if (player != null)
-        {
-            int boneCount = player.transform.childCount;
-            if (boneCount > 50)
-            {
-                Debug.Log($"[SceneFix] Player has {boneCount} child bones. Keep for now — PlayerPlaceholder GLB loader will replace.");
-            }
-        }
 
         // ==============================================================
         // Summary
@@ -130,12 +119,7 @@ public class SceneFixer
             $"- Player Animator + RigAnimationController 추가\n" +
             $"- PlayerPlaceholder 추가\n" +
             $"- AnimationRiggingSetup/MotionDetector 정리\n" +
-            $"- MonsterSpawner 설정 검증\n\n" +
-            $"🔄 Poly Haven 단순화는:\n" +
-            $"  Tools > Poly Haven > Replace With Primitives\n\n" +
-            $"📦 복원은:\n" +
-            $"  Tools > Poly Haven > Restore From Backup\n\n" +
-            $"백업: MainScene_PolyHaven_Backup.unity",
+            $"- MonsterSpawner 설정 검증\n",
             "OK");
 
         SceneView.RepaintAll();
@@ -172,36 +156,11 @@ public class SceneFixer
         EditorUtility.DisplayDialog("Done", "Player 애니메이션 시스템 추가 완료!", "OK");
     }
 
-    [MenuItem("Tools/Scene Fix/Remove PolyHaven Hierarchy Under Player")]
-    private static void RemovePlayerChildBones()
-    {
-        var player = GameObject.FindWithTag("Player");
-        if (player == null)
-        {
-            EditorUtility.DisplayDialog("Error", "Player GameObject not found!", "OK");
-            return;
-        }
-
-        if (!EditorUtility.DisplayDialog("Remove Player Bones?",
-            $"Player에 {player.transform.childCount}개의 자식 오브젝트(본)가 있습니다.\n\n" +
-            "제거하면 PlayerPlaceholder가 런타임에 GLB를 로드합니다.\n\n제거하시겠습니까?",
-            "제거", "취소"))
-            return;
-
-        for (int i = player.transform.childCount - 1; i >= 0; i--)
-        {
-            var child = player.transform.GetChild(i).gameObject;
-            Undo.DestroyObjectImmediate(child);
-        }
-
-        Debug.Log($"[SceneFix] Player: 모든 자식 본 제거 완료");
-        EditorUtility.DisplayDialog("Done", "Player의 모든 자식 본(GLB 스켈레톤)이 제거되었습니다.", "OK");
-    }
-
     /// <summary>
     /// 지정된 GameObject에 Animator + RigAnimationController를 추가하고,
     /// AnimationRiggingSetup/MotionDetector를 제거합니다.
     /// </summary>
+    [MenuItem("Tools/Scene Fix/Add Player Animator Only")]
     private static void FixGameObjectAnimator(GameObject go, string label)
     {
         if (go == null)

@@ -3,8 +3,7 @@
   "rootNamespace": "ProjectName.Core",
   "references": [
     "Unity.UGUI",
-    "Unity.InputSystem",
-    "Unity.ugui"
+    "Unity.InputSystem"
   ],
   "autoReferenced": true,
   "overrideReferences": false,

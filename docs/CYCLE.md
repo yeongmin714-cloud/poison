@@ -191,7 +191,7 @@
 
 ## Phase 7: 🌍 월드맵 & 지형 (ROADMAP Phase 3.x)
 
-> 4방위×20영지 + 황제국, Top-Down 카메라, Poly Haven 모델/텍스처, 장애물, 스테이터스
+> 4방위×20영지 + 황제국, Top-Down 카메라, 3D 모델/텍스처, 장애물, 스테이터스
 
 | 사이클 | 내용 | 상태 |
 |:------:|:-----|:----:|
@@ -213,8 +213,8 @@
 | C7-16 | 맵 4면 경계 (반투명 물 효과) | ✅ |
 | C7-17 | **Global Volume Post-processing** (톤 매핑/컬러 그레이딩) | ✅ |
 | C7-18 | **스카이박스 설정** | ✅ |
-| C7-19 | Poly Haven 모델 245개 배치 (나무75/바위90/식물80) | ✅ |
-| C7-20 | Poly Haven 지형 텍스처 3링 (중앙/중간/외곽) | ✅ |
+| C7-19 | 3D 모델 245개 배치 (나무75/바위90/식물80) | ✅ |
+| C7-20 | 지형 텍스처 3링 (중앙/중간/외곽) | ✅ |
 | C7-21 | **풀/나무 흔들림 애니메이션** (Wind Zone) | ✅ |
 | C7-22 | **계곡 & 물 지형 배치** | ✅ |
 | C7-23 | **국가별 지형 텍스처 차별화** (동/서/남/북) | ✅ |
@@ -586,7 +586,7 @@ PROGRESS.md에 진행 상황 기록 (자동)
 | C22-10 | **통합 테스트 + 최적화** — Biome 전환 검증 | ✅ 24개 EditMode 테스트 |
 || C22-11 | **영지/왕국 진입로** — 영지 주변 Path 텍스처, 자연스러운 길 표시 | ✅ |
 || C22-12 | **국가 간 지형 전환** — 텍스처/높이맵 점진적 블랜딩 (50m 전환구역) | ✅ |
-|| C22-13 | **황제국 돌 텍스처** — Poly Haven 다운로드 + 깔끔한 돌 지형 | ✅ |
+|| C22-13 | **황제국 돌 텍스처** — 깔끔한 돌 지형 | ✅ |
 || C22-14 | **서쪽 갈대 지형** — Biome 업데이트 (West=노란갈대 50%/바위30%/늪20%) | ✅ |
 
 ## Phase 7: ⚔️ 전쟁 & 영지 점령 (v2.2 ROADMAP #1)
@@ -743,7 +743,7 @@ PROGRESS.md에 진행 상황 기록 (자동)
 | G1-03 | 🪞 **Reflection Probes + SSR** — 6개 반사프로브 배치, SSR RF 추가, 물반사 | ✅ PhaseG1_ReflectionSetup |
 | G1-04 | 🌿 **잔디/초목 시스템** — GPU Instancing 블레이드 5000~10000개, Biome별 색상/밀도 | ✅ GrassRenderer+PhaseG1_GrassPlacer |
 | G1-05 | 🌤️ **날씨 시스템** — WeatherManager(맑음/비/눈/안개/강풍), 파티클, 환경변화 | ✅ WeatherManager+WeatherParticleController |
-| G1-06 | 📦 **LOD 시스템** — Poly Haven 8종×3단계 LOD + Editor 배치 스크립트 | ✅ PhaseG1_LODGenerator |
+| G1-06 | 📦 **LOD 시스템** — 3단계 LOD + Editor 배치 스크립트 | ✅ PhaseG1_LODGenerator |
 | G1-07 | 🪄 **GLB 최종 교체** — ModelSwapper 전면실행, AnimationRigging+캐릭터쉐이딩 | ✅ PhaseG1_GLBFinalizer |
 | G1-08 | 🪩 **앰비언트 이펙트** — 반딧불이/낙엽/먼지/불꽃 파티클, AmbientEffectManager | ✅ AmbientEffectManager |
 | G1-09 | 🌊 **워터 쉐이더 업그레이드** — URP Lit 물, 2축파도, SSR반사, 깊이별색상 | ✅ WaterMaterialUpgrader |

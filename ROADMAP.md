@@ -433,27 +433,25 @@
 
 ---
 
-## Phase 3.6: 🎨 지형 그래픽 개선 & 환경 조형물 (✅ 완료 — Poly Haven 교체)
+## Phase 3.6: 🎨 지형 그래픽 개선 & 환경 조형물 (✅ 완료)
 
-> 평지(단색) → Poly Haven 3D 모델 + 지형 텍스처로 자연 지형 개선
-> **기존 도형 1350개 제거 → 고품질 GLTF 모델 245개 + 텍스처 3링 배치**
+> 평지(단색) → 3D 모델 + 지형 텍스처로 자연 지형 개선
+> **기존 도형 1350개 제거 → 고품질 모델 245개 + 텍스처 3링 배치**
 
 ### 3.6.1 — 지형 텍스처
 - [x] 잔디 텍스처 생성 (Perlin noise 기반 procedural, 256×256 RGB24)
 - [x] URP Lit 머티리얼 생성 + Ground 메시에 적용 (tiling 20×20)
 - [x] 흙 텍스처 적용 (brown_mud_leaves → 중앙 링 0~350m)
 - [x] 돌 텍스처 적용 (rocky_terrain → 중간 링 350~700m)
-- [x] Terrain 시스템으로 업그레이드 (현재 Plane에 텍스처 적용) → Poly Haven 3링으로 대체
+- [x] Terrain 시스템으로 업그레이드 (현재 Plane에 텍스처 적용) → 3링으로 대체
 - [x] 래퍼런스 영상 수준의 디테일 확보
 
 ### 3.6.2 — 환경 조형물
-- [x] **나무** 3종 배치 (Poly Haven fir/jacaranda/small → 75그루)
-- [x] **바위** 3종 배치 (Poly Haven boulder/boulder02/cliff → 90개)
-- [x] **식물/덤불** 2종 배치 (Poly Haven periwinkle/searsia → 80개)
+- [x] **나무** 3종 배치 (75그루)
+- [x] **바위** 3종 배치 (90개)
+- [x] **식물/덤불** 2종 배치 (80개)
 - [x] **기존 도형** 전량 제거 (Pillar 200개 + 도형 1150개 = 1350개 제거)
 - [x] 랜덤 배치 시스템 (fixed seed 42/43/44, 중앙 20~30m 제외, 크기/회전 변형)
-- [x] 나무 3종 완성 (Poly Haven으로 대체 완료)
-- [x] 바위/암석 3종 완성 (Poly Haven으로 대체 완료)
 
 ### 3.6.3 — 조명 & 분위기
 - [x] Directional Light 각도/강도 튜닝 (intensity=1.5f, warm tint, shadow=0.5f)
@@ -470,14 +468,14 @@
 > 지형의 풀과 나무가 바람에 흔들리는 자연스러운 효과 추가.
 
 - [x] 풀 오브젝트에 자동 흔들림 애니메이션 (Wind Zone 또는 셰이더 기반)
-- [x] 나무 가지/잎 흔들림 (Poly Haven 모델 포함)
+- [x] 나무 가지/잎 흔들림
 - [x] 바람 방향/세기 파라미터 조절 가능
 - [x] URP Lit 셰이더 + 버텍스 애니메이션 활용
 
 ### 3.6.6 — 🌊 계곡 & 물 지형
 > 지형 곳곳에 계곡 형태의 물을 배치하여 자연 환경 개선.
 
-- [x] 계곡 지형 모델링 (Poly Haven glTF 가능하면 활용)
+- [x] 계곡 지형 모델링
 - [x] 물 표면 쉐이더/URP Lit 머티리얼 (반투명, 약한 반사)
 - [x] 계곡 위치: 지형 중간중간 낮은 지대에 배치
 - [x] 물 효과: 약한 출령임 애니메이션
@@ -492,7 +490,6 @@
 - [x] 북(North) — 회색 툰드라/눈 섞인 텍스처
 - [x] 황제국 — 황금빛 대리석/정원 텍스처
 - [x] 국가 경계선에서 텍스처 자연스러운 전환 (블렌딩)
-- [x] Poly Haven 텍스처 추가 확보 필요시
 
 ---
 
@@ -2030,8 +2027,8 @@ Phase 10 (⚔️ 전쟁/맵전환/연출/배포)
 |:----:|:------|
 | 2.1 | **`advancedOuter` 버그 수정** — `MonsterSpawner.cs` 36번 줄 `advancedOuter = 1000f` → `1800f`. 맵 반경과 일치하도록 수정 |
 | 2.2 | **`SpawnConfig` 검증 로직** — `Start()`에서 `advancedInner >= advancedOuter` 체크하는 유효성 검증 추가. 잘못된 범위에서 경고 로그 출력 |
-| 2.3 | **테스트 모드 지형 단순화** — `GameManager`에 `_useSimpleTerrain` 플래그 추가. true 시 `PolyHavenSimplifier.ReplaceWithPrimitives()` Editor 호출 또는 런타임 primitive 생성으로 대체 |
-| 2.4 | **Primitive 지형 스폰 시스템** — `MonsterSpawner`에 `_usePrimitiveOnly` 모드 추가. Poly Haven 모델 대신 Cube/Sphere primitive로 몬스터/지형 표시 |
+| 2.3 | **테스트 모드 지형 단순화** — `GameManager`에 `_useSimpleTerrain` 플래그 추가 |
+| 2.4 | **Primitive 지형 스폰 시스템** — `MonsterSpawner`에 `_usePrimitiveOnly` 모드 추가. Cube/Sphere primitive로 몬스터/지형 표시 |
 | 2.5 | **테스트** — 몬스터 3티어 모두 정상 스폰 확인. 기본 지형/풀지형 전환 검증 8개+ |
 
 ---

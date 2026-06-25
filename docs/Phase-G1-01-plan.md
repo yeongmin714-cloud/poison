@@ -8,7 +8,7 @@
 - **BiomeType** enum, **BiomeData** definitions, **BiomeDefinition** struct
 - **NationTerrainController.cs** — 국가별 텍스처 적용, GetNationFromPosition()
 - **Phase36_TerrainSetup.cs** (Editor) — 지형 설정 에디터 메뉴
-- **MainScene.unity** — 1000m×1000m Ground Plane, Poly Haven 245개 모델
+- **MainScene.unity** — 1000m×1000m Ground Plane, 245개 3D 모델
 - **WaterBody.cs / LakeGenerator.cs** — 절차적 물 시스템
 - **CharacterController** — PlayerMovement + AnimalAI (몬스터)
 
@@ -30,7 +30,7 @@
 - UV 기반 텍스처 블렌딩 또는 높이맵 기반 vertex color
 
 ### 3. 오브젝트 재배치
-- Poly Haven 모델 245개 Y축 위치를 지형 높이에 맞게 조정
+- 3D 모델 245개 Y축 위치를 지형 높이에 맞게 조정
 - Raycast로 지형 표면 높이 측정 → 오브젝트 Y = terrainHeight
 - 나무/바위/식물 각각 terrainHeight에 약간의 랜덤 Y offset (+0.1~0.5m)
 

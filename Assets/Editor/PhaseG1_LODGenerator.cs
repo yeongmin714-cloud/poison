@@ -8,8 +8,8 @@ using System.Linq;
 namespace ProjectName.Editor
 {
     /// <summary>
-    /// Phase G1-06: LOD System for 245 Poly Haven models.
-    /// Scans all GameObjects in MainScene for Poly Haven models by name prefix,
+    /// Phase G1-06: LOD System for 245 3D models.
+    /// Scans all GameObjects in MainScene for 3D models by name prefix,
     /// adds LODGroup components with 3 LOD levels (plus culled).
     /// Provides simplified meshes for lower LOD levels via vertex decimation.
     ///
@@ -30,7 +30,7 @@ namespace ProjectName.Editor
         /// <summary>
         /// All Poly Haven model name prefixes used to identify models in the scene.
         /// </summary>
-        public static readonly string[] PolyHavenPrefixes =
+        public static readonly string[] ModelPrefixes =
         {
             "fir_tree_01_1k",
             "jacaranda_tree_1k",
@@ -62,7 +62,7 @@ namespace ProjectName.Editor
         // ================================================================
 
         /// <summary>
-        /// Scans MainScene for all Poly Haven models and adds LODGroup components.
+        /// Scans MainScene for all 3D models and adds LODGroup components.
         /// Menu: Tools/Phase G1/Apply LOD Groups
         /// </summary>
         [MenuItem("Tools/Phase G1/Apply LOD Groups")]
@@ -76,15 +76,14 @@ namespace ProjectName.Editor
                 return;
             }
 
-            // Find all Poly Haven model GameObjects
-            var polyHavenObjects = FindAllPolyHavenObjects();
-            if (polyHavenObjects.Count == 0)
-            {
-                Debug.LogWarning("[PhaseG1_LODGenerator] No Poly Haven models found in scene.");
-                EditorUtility.DisplayDialog("Phase G1-06", "No Poly Haven models found in scene.", "OK");
-                return;
-            }
+            var sceneObjects = FindAllSceneModels();
+                        if (sceneObjects.Count == 0)
+                        {
+                            Debug.LogWarning("[PhaseG1_LODGenerator] No 3D models found in scene.");
+                            EditorUtility.DisplayDialog("Phase G1-06", "No 3D models found in scene.", "OK");
+                        }
 
+                        foreach (var go in sceneObjects)
             // Clear cache from previous runs
             _simplifiedMeshCache.Clear();
 
@@ -472,7 +471,7 @@ namespace ProjectName.Editor
         /// Finds all GameObjects in the active scene whose names start with
         /// any of the known Poly Haven model prefixes.
         /// </summary>
-        public static List<GameObject> FindAllPolyHavenObjects()
+        public static List<GameObject> FindAllSceneModels()
         {
             var results = new List<GameObject>();
             var allObjects = GameObject.FindObjectsOfType<GameObject>(true);
@@ -482,7 +481,7 @@ namespace ProjectName.Editor
                 if (go.scene.isLoaded == false)
                     continue;
 
-                foreach (var prefix in PolyHavenPrefixes)
+                foreach (var prefix in ModelPrefixes)
                 {
                     if (go.name.StartsWith(prefix) || go.name.Contains(prefix))
                     {
@@ -501,13 +500,13 @@ namespace ProjectName.Editor
         public static Dictionary<string, int> CountModelsByPrefix()
         {
             var counts = new Dictionary<string, int>();
-            foreach (var prefix in PolyHavenPrefixes)
+            foreach (var prefix in ModelPrefixes)
                 counts[prefix] = 0;
 
-            var objects = FindAllPolyHavenObjects();
+            var objects = FindAllSceneModels();
             foreach (var go in objects)
             {
-                foreach (var prefix in PolyHavenPrefixes)
+                foreach (var prefix in ModelPrefixes)
                 {
                     if (go.name.StartsWith(prefix) || go.name.Contains(prefix))
                     {

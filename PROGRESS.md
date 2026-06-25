@@ -92,25 +92,14 @@
     91|   121||||| **Phase 3.5** | 🗺️ 월드맵 UI & 국기 표시 — MapWindow(IMGUI,2단계줌,5지역×20영지,국기,안개), FlagPoleDisplay.FadeTransition, 20개 테스트 | ✅ |
     92|   122||||| **Phase 3.6** | 🎨 지형 그래픽 개선 & 환경 조형물 — Skybox+NationTerrainController+WaterBody+Phase36_EditorSetup, 40개 테스트 | ✅ |
     93|   123|| Phase 3.8 | 📊 캐릭터 스테이터스 & 레벨업 시스템 | ✅ (구현 완료) |
-    94|   124|| Phase 3.9 | 🏔️ Poly Haven 3D 모델 8종 배치 (245개) | ✅ |
-    95|   125|| Phase 3.10 | 🟤 Poly Haven 지형 텍스처 3종 적용 (3링) | ✅ |
+    94|   124|| Phase 3.9 | 🏔️ 3D 모델 8종 배치 (245개) | ✅ |
+    95|   125|| Phase 3.10 | 🟤 지형 텍스처 3종 적용 (3링) | ✅ |
     96|   126||    └ 3.6.1 지형 텍스처 | Procedural 잔디 텍스처 + URP Lit 머티리얼 적용 | ✅~40% |
     97|   127||    └ 3.6.2 환경 조형물 | 나무30+바위20+풀50+덤불20+꽃15 랜덤 배치 | ✅~70% |
     98|   128||    └ 3.6.3 조명 & 분위기 | Directional Light 튜닝 + 안개 + Global Volume + Post-processing 7종 | ✅✅ Phase 3C 완료 |
     99|   129||    └ 3.6.4 경계 오브젝트 | 맵 4면 경계 표시 (반투명 물) | ✅~50% |
-   100|   130||    └ **Phase 3.9 — Poly Haven 3D 모델** | **✅ 245개 배치 완료** |
-   101|   131||        └ 🌲 전나무 25그루 | fir_tree_01_1k.gltf | ✅ |
-   102|   132||        └ 🌲 자카란다 25그루 | jacaranda_tree_1k.gltf | ✅ |
-   103|   133||        └ 🌲 작은나무 25그루 | tree_small_02_1k.gltf | ✅ |
-   104|   134||        └ 🪨 둥근바위 30개 | boulder_01_1k.gltf | ✅ |
-   105|   135||        └ 🪨 납작바위 30개 | namaqualand_boulder_02_1k.gltf | ✅ |
-   106|   136||        └ 🪨 절벽바위 30개 | namaqualand_cliff_02_1k.gltf | ✅ |
-   107|   137||        └ 🌿 작은식물 40개 | periwinkle_plant_1k.gltf | ✅ |
-   108|   138||        └ 🌿 관목 40개 | searsia_lucida_1k.gltf | ✅ |
-   109|   139||    └ **Phase 3.10 — Poly Haven 지형 텍스처** | **✅ 3링 적용** |
-   110|   140||        └ 🟤 중앙 0~350m | brown_mud_leaves | ✅ |
-   111|   141||        └ 🪨 중간 350~700m | rocky_terrain | ✅ |
-   112|   142||        └ 🏖️ 외곽 700~1000m | coast_sand_rocks | ✅ |
+   100|   130||    └ **Phase 3.9 — 3D 모델 8종 배치** | **✅ 245개 배치 완료** |
+   101|   131||    └ **Phase 3.10 — 지형 텍스처 3링** | **✅ 적용 완료** |
    113|   143||    || Phase 3.7 | 🧱 장애물 & 벽 충돌 시스템 | ✅ |
    | **Phase 0.5** | 🤖 Animation Rigging 기반 애니메이션 시스템 | ✅ |
            └ | 몬스터 리깅 GLB 21종 Resources/Models/UserProvided/ 복사 | ✅ |
@@ -155,7 +144,7 @@
    143|   177|16. **🌿 풀/나무 흔들림 애니메이션** → Phase 3.6.5 (신규)
    144|   178|17. **🏁 국가마다 지형 텍스처 차별화** → Phase 3.6.7 (신규)
    145|   179|18. **🏰 성 내부 진입 씬 전환 + 바닥/벽 텍스처** → Phase 6.5 (신규)
-   146|   180|19. **🌊 계곡 & 물 지형 배치 (Poly Haven 활용)** → Phase 3.6.6 (신규)
+   | 19. **🌊 계곡 & 물 지형 배치** → Phase 3.6.6 (신규)
    147|   181|20. **🏁 영토 차지 애니메이션 + 국기 교체** → Phase 7.4 (신규)
    148|   182|21. **🗡️ 병사 무기 파츠 교체 시스템 (외형 변화)** → Phase 5.3.11 (신규)
    149|   183|22. **⛏️ 광부 역할 추가 (벌목/채석/철광/제련)** → Phase 5.3.9.7 (신규)
@@ -232,9 +221,9 @@
    220|   267||> **Phase 11 실내 맵 진행:** ✅ **14/14 완료 (Phase 11 끝!) 🎉**
    221|   268|> **Phase 3.5 완료:** Top-Down 카메라 + 커서 시선 회전 + URP 할당
    222|   269|> **Phase 3.6 완료 항목:** ✓ Procedural 잔디 텍스처 ✓ URP Lit 재질 ✓ Directional Light 튜닝 ✓ 안개(Fog) ✓ Global Volume
-   223|   270|> **Phase 3.9 완료:** ✅ Poly Haven 3D 모델 8종 (나무3/바위3/식물2) → 총 245개 배치
-   224|   271|> **Phase 3.10 완료:** ✅ Poly Haven 지형 텍스처 3종 → 중앙/중간/외곽 3링 구역 적용
-   225|   272|> **Phase 3.6 미완료:** 나무 3종 완성, 바위 3종 완성 (Poly Haven으로 대체 완료), Post-processing Volume 설정, 스카이박스 구성
+   > **Phase 3.9 완료:** ✅ 3D 모델 8종 → 총 245개 배치
+   > **Phase 3.10 완료:** ✅ 지형 텍스처 3종 → 중앙/중간/외곽 3링 구역 적용
+   225|   272|> **Phase 3.6 미완료:** 나무 3종 완성, 바위 3종 완성, Post-processing Volume 설정, 스카이박스 구성
    226|   273|> **Phase 4 완료:** ✅ C4-08 자동조준 + C4-12~15 LootWindow 연동 + C4-16~19 드랍테이블 + C4-20 카메라 무빙 + C4-21 타격 이펙트 완료 (21/21)
    227|   274|> **GLB 자산 (2026-06-13):** 사장님 GLB 36종 UserProvided/ 준비 완료 (Player_Rigged/몬스터20종Rigged/건물6종/도구2종/NPC/병사/약초4종) — Placeholder 생성 시 ModelSwapper 자동 교체
    228|   278||||> **Phase 14 완료:** ✅ **10/10 사이클 완료 (복수명부 시스템)** 🎉
@@ -292,7 +281,7 @@
 || 2026-06-23 | **🔧 MainScene 7대 문제 통합 수정** | Player z:-950→0, 스케일1→2, UI폰트1.5배, 체력바좌하단, 미니맵등록, SnakeSlitherMotion제거, Camera/CineBrain정리, advOuter=1000→1800 |
 || 2026-06-23 | **📦 GitHub 연결 + LFS + 자동 Push** | yeongmin714-cloud/poison, LFS 41개 GLB(179MB), 10분 자동 Push cronjob |
 || 2026-06-23 | **🎨 그래픽 Very Low→Very High 복원** | m_CurrentQuality 0→4 |
-||| 2026-06-23 | **📋 Editor 스크립트 2종** | PolyHavenSimplifier(단순화/복원), SceneFixer(Animator+Placeholder 자동추가) |
+||| 2026-06-23 | **📋 Editor 스크립트 2종** | SceneFixer(Animator+Placeholder 자동추가)
 ||| 2026-06-23 | **🏹 활 화살 시스템 AB-01~06 완료** | ArrowData(3티어)/ArrowManager(소모/우선순위)/ArrowProjectile(발사체/충돌/데미지) — ArrowSystemTests 62개 신규 작성 ✅ |
 ||| 2026-06-23 | **🎉 조합 성공 환호 CR-01~06 완료** | CraftSuccessSystem(성공률)/CraftResultPopup(IMGUI 결과창/타이머) — CraftCelebrationTests 50개 신규 작성 ✅ |
    276|   331||| 2026-06-15 | **📐 설계 추가** | ROADMAP + CYCLE에 Phase 11(실내벽타일 14사이클), Phase 12(로딩 5사이클), Phase 13(주야 5사이클) 추가 |
@@ -363,13 +352,9 @@
 
    > 아래를 꼭 실행해주세요:
 
-   > 1. **Unity 프로젝트 열기** (Poly Haven 모델로 끊기면 `Tools > Poly Haven > Replace With Primitives` 먼저)
+   > 1. **Unity 프로젝트 열기**
    > 2. **`Tools > Scene Fix > Fix All Issues`** 실행 (애니메이션/Placeholder 자동 추가)
    > 3. **Play 모드**로 게임 실행 → 몬스터/영지/애니메이션/미니맵 모두 정상 표시
-
-   > 복원 방법:
-   > - Poly Haven 모델: `Tools > Poly Haven > Restore From Backup`
-   > - 전체 씬: `MainScene_PolyHaven_Backup.unity` 복사
 
 ## ✅ Phase 33: 🎨 UI 완전 개선 — 창별 개성화 & 고급화 (✅ 완료 🎉)
 

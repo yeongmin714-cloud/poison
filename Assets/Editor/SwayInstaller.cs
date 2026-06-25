@@ -11,7 +11,7 @@ using ProjectName.Systems;
 ///   - Rock_*, *boulder*, *cliff*, *rock* → 바위
 ///   - Plant_*, *plant*, *searsia*, *shrub*, *bush* → 풀/식물
 /// 
-/// Poly Haven GLB 모델 (fir_tree_01_1k, jacaranda_tree_1k, boulder_01_1k 등)도 포함.
+/// PolyHaven 모델 (fir_tree_01_1k, jacaranda_tree_1k, boulder_01_1k 등)도 포함.
 /// </summary>
 public static class SwayInstaller
 {
@@ -67,7 +67,7 @@ public static class SwayInstaller
 
     /// <summary>
     /// GameObject 이름과 속성 기반 분류.
-    /// Tree_* prefix + Poly Haven naming (*tree*, *fir*, *jacaranda*, *boulder*, *plant* 등).
+    /// PolyHaven 모델 명명 규칙 (*tree*, *fir*, *jacaranda*, *boulder*, *plant* 등).
     /// null 반환 시 SwayController 부착하지 않음.
     /// </summary>
     private static SwayControllerPreset ClassifyObject(GameObject go)
