@@ -160,7 +160,6 @@ public class SceneFixer
     /// 지정된 GameObject에 Animator + RigAnimationController를 추가하고,
     /// AnimationRiggingSetup/MotionDetector를 제거합니다.
     /// </summary>
-    [MenuItem("Tools/Scene Fix/Add Player Animator Only")]
     private static void FixGameObjectAnimator(GameObject go, string label)
     {
         if (go == null)
