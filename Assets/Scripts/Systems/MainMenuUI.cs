@@ -1,4 +1,5 @@
 using ProjectName.Core;
+using ProjectName.Core.Data;
 using UnityEngine;
 
 namespace ProjectName.Systems

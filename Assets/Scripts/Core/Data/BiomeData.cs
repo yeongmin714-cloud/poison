@@ -1,7 +1,7 @@
 using UnityEngine;
 using ProjectName.Core.Data;
 
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     /// <summary>
     /// 생물군계(Biome) 열거형 — 11종
@@ -49,7 +49,8 @@ namespace ProjectName.Core
             if (_definitions != null)
                 return;
 
-            _definitions = new BiomeDefinition[11];
+            int count = System.Enum.GetValues<BiomeType>().Length;
+            _definitions = new BiomeDefinition[count];
 
             _definitions[(int)BiomeType.Plains] = new BiomeDefinition
             {

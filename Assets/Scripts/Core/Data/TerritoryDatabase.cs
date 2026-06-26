@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
-using ProjectName.Core.Data;
 
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     /// <summary>
     /// 영지 데이터베이스 — 모든 영지(81개)의 정의와 상태를 관리합니다.

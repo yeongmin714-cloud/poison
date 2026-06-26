@@ -7,24 +7,24 @@ namespace ProjectName.Core.Data
     /// 각 국가(NationType)의 색상, 문양, 설명을 담습니다.
     /// </summary>
     [System.Serializable]
-    public struct NationFlagDefinition
+    public readonly struct NationFlagDefinition
     {
         /// <summary>국가</summary>
-        public NationType nation;
+        public NationType nation { get; init; }
 
         /// <summary>상징 색상 이름 (예: "파랑", "초록")</summary>
-        public string colorName;
+        public string colorName { get; init; }
 
         /// <summary>국기 설명</summary>
-        public string description;
+        public string description { get; init; }
 
         /// <summary>국기 배경색 실제 Color 값</summary>
-        public Color flagColor;
+        public Color flagColor { get; init; }
 
         /// <summary>문양 이름 (예: "떠오르는 태양")</summary>
-        public string symbolName;
+        public string symbolName { get; init; }
 
         /// <summary>문양 이모지 (예: "🌅")</summary>
-        public string symbolEmoji;
+        public string symbolEmoji { get; init; }
     }
 }

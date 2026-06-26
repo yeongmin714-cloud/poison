@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Core;
 
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     /// <summary>
     /// Test consumable system: press 'U' to use the first food item in inventory.

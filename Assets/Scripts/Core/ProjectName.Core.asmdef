@@ -1,18 +1,19 @@
-{
-  "name": "ProjectName.Core",
-  "rootNamespace": "ProjectName.Core",
-  "references": [
-    "Unity.Cinemachine",
-    "Unity.InputSystem",
-    "Unity.RenderPipelines.Core.Runtime",
-    "Unity.RenderPipelines.Universal.Runtime",
-    "Unity.UGUI"
-  ],
-  "autoReferenced": true,
-  "overrideReferences": false,
-  "allowUnsafeCode": false,
-  "precompiledReferences": [],
-  "defineConstraints": [],
-  "versionDefines": [],
-  "noEngineReferences": false
-}
+     1|{
+     2|  "name": "ProjectName.Core",
+     3|  "rootNamespace": "ProjectName.Core",
+     4|  "references": [
+     5|    "Unity.Cinemachine",
+     6|    "Unity.InputSystem",
+     7|    "Unity.RenderPipelines.Core.Runtime",
+     8|    "Unity.RenderPipelines.Universal.Runtime",
+     9|    "Unity.UGUI"
+    10|      "Unity.ugui",],
+    11|  "autoReferenced": true,
+    12|  "overrideReferences": false,
+    13|  "allowUnsafeCode": false,
+    14|  "precompiledReferences": [    "Unity.ugui",],
+    15|  "defineConstraints": [    "Unity.ugui",],
+    16|  "versionDefines": [    "Unity.ugui",],
+    17|  "noEngineReferences": false
+    18|}
+    19|

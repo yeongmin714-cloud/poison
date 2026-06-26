@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using ProjectName.Core;
 
 namespace ProjectName.Core.Data
 {
@@ -9,19 +10,19 @@ namespace ProjectName.Core.Data
     /// </summary>
     public struct MonsterDropEntry
     {
-        public MonsterTier tier;
-        public string itemId;
-        public float probability;
-        public int minCount;
-        public int maxCount;
+        public MonsterTier Tier { get; }
+        public string ItemId { get; }
+        public float Probability { get; }
+        public int MinCount { get; }
+        public int MaxCount { get; }
 
         public MonsterDropEntry(MonsterTier tier, string itemId, float probability, int minCount, int maxCount = -1)
         {
-            this.tier = tier;
-            this.itemId = itemId;
-            this.probability = Mathf.Clamp01(probability);
-            this.minCount = Mathf.Max(1, minCount);
-            this.maxCount = maxCount >= this.minCount ? maxCount : this.minCount;
+            Tier = tier;
+            ItemId = itemId;
+            Probability = Mathf.Clamp01(probability);
+            MinCount = Mathf.Max(1, minCount);
+            MaxCount = maxCount >= MinCount ? maxCount : MinCount;
         }
     }
 
@@ -164,12 +165,12 @@ namespace ProjectName.Core.Data
 
             foreach (var entry in entries)
             {
-                if (string.IsNullOrEmpty(entry.itemId)) continue;
+                if (string.IsNullOrEmpty(entry.ItemId)) continue;
 
-                if (Random.value <= entry.probability)
+                if (Random.value <= entry.Probability)
                 {
-                    int count = Random.Range(entry.minCount, entry.maxCount + 1);
-                    drops.Add(new KeyValuePair<string, int>(entry.itemId, count));
+                    int count = Random.Range(entry.MinCount, entry.MaxCount + 1);
+                    drops.Add(new KeyValuePair<string, int>(entry.ItemId, count));
                 }
             }
 

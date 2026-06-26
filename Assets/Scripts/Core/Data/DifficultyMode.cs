@@ -1,4 +1,4 @@
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     public enum DifficultyMode
     {

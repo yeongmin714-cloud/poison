@@ -2,17 +2,17 @@
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     /// <summary>
     /// Represents the result of cooking a meat with a herb.
     /// </summary>
-    public struct CookingResult
+    public readonly struct CookingResult
     {
-        public string dishId;       // placeholder for future item lookup
-        public string dishName;     // from 요리 명칭 column
-        public string description;  // e.g., "토끼 고기 + 회복꽃"
-        public string effect;       // from 주요 효과 column
+        public string DishId { get; init; }
+        public string DishName { get; init; }
+        public string Description { get; init; }
+        public string Effect { get; init; }
     }
 
     /// <summary>
@@ -125,10 +125,10 @@ namespace ProjectName.Core
                         {
                             _recipes[key] = new CookingResult
                             {
-                                dishId = $"cook_{meat.Replace(' ', '_')}_{herb.Replace(' ', '_')}", // simple placeholder
-                                dishName = dishName,
-                                description = $"{meat} + {herb}",
-                                effect = effect
+                                DishId = $"cook_{meat.Replace(' ', '_')}_{herb.Replace(' ', '_')}",
+                                DishName = dishName,
+                                Description = $"{meat} + {herb}",
+                                Effect = effect
                             };
                         }
                     }

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     /// <summary>
     /// 중독성 레벨 (GAME_DATA.md 마약 시스템)
@@ -22,11 +22,11 @@ namespace ProjectName.Core
     /// </summary>
     public struct DrugInfo
     {
-        public int stage;              // 1~10
-        public string drugName;        // 약물 명칭
-        public string ingredients;     // 조합 재료 (e.g. "향기꽃 + 맑은잎")
-        public AddictionLevel addiction;
-        public string description;     // 특징
+        public int Stage { get; init; }              // 1~10
+        public string DrugName { get; init; }        // 약물 명칭
+        public string Ingredients { get; init; }     // 조합 재료 (e.g. "향기꽃 + 맑은잎")
+        public AddictionLevel Addiction { get; init; }
+        public string Description { get; init; }     // 특징
     }
 
     /// <summary>
@@ -104,11 +104,11 @@ namespace ProjectName.Core
 
                         var info = new DrugInfo
                         {
-                            stage = stage,
-                            drugName = drugName,
-                            ingredients = ingredients,
-                            addiction = addiction,
-                            description = description
+                            Stage = stage,
+                            DrugName = drugName,
+                            Ingredients = ingredients,
+                            Addiction = addiction,
+                            Description = description
                         };
 
                         _byStage[stage] = info;

@@ -190,8 +190,8 @@ namespace ProjectName.Systems
             _bodyColor = def.gizmoColor;
 
             // C20-02: 난이도별 HP/데미지 배율 적용
-            float hpMult = DifficultyManager.GetHpMultiplier((ProjectName.Core.DifficultyMode)GameManager.CurrentDifficulty);
-            float dmgMult = DifficultyManager.GetDamageMultiplier((ProjectName.Core.DifficultyMode)GameManager.CurrentDifficulty);
+            float hpMult = DifficultyManager.GetHpMultiplier((DifficultyMode)GameManager.CurrentDifficulty);
+            float dmgMult = DifficultyManager.GetDamageMultiplier((DifficultyMode)GameManager.CurrentDifficulty);
             _maxHP = Mathf.RoundToInt(_maxHP * hpMult);
             _attackDamage = Mathf.Max(1, Mathf.RoundToInt(_attackDamage * dmgMult));
 
@@ -311,7 +311,7 @@ namespace ProjectName.Systems
             }
 
             // C20-02: 난이도별 드랍률 배율 적용
-            _rareDropChance = Mathf.Clamp01(_rareDropChance * DifficultyManager.GetDropRateMultiplier((ProjectName.Core.DifficultyMode)GameManager.CurrentDifficulty));
+            _rareDropChance = Mathf.Clamp01(_rareDropChance * DifficultyManager.GetDropRateMultiplier((DifficultyMode)GameManager.CurrentDifficulty));
         }
 
         private void Update()
@@ -749,7 +749,7 @@ namespace ProjectName.Systems
             // 리스폰
             float respawnDelay = 10f + (int)_tier * 5f;
             // C20-02: 난이도별 리스폰 속도 배율 (Easy: 빠름, Hard: 느림)
-            respawnDelay *= DifficultyManager.GetRespawnRateMultiplier((ProjectName.Core.DifficultyMode)GameManager.CurrentDifficulty);
+            respawnDelay *= DifficultyManager.GetRespawnRateMultiplier((DifficultyMode)GameManager.CurrentDifficulty);
             Invoke(nameof(Respawn), respawnDelay); // 고급 몬스터는 더 천천히 리스폰
 
             // === G2-04: 처치 카메라 이펙트 ===

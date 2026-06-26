@@ -1,5 +1,6 @@
 using UnityEngine;
 using ProjectName.Core;
+using ProjectName.Core.Data;
 
 namespace ProjectName.Core
 {
@@ -28,7 +29,7 @@ namespace ProjectName.Core
 
         private static Color GetPoisonColor(DrugInfo info)
         {
-            switch (info.addiction)
+            switch (info.Addiction)
             {
                 case AddictionLevel.Low: return Color.red; // 공격성 (red)
                 case AddictionLevel.Medium: return new Color(0.5f, 0f, 0.5f); // 보라색 (purple)
@@ -110,7 +111,7 @@ namespace ProjectName.Core
                 PlayerStats.Instance.AddGold(goldGained);
             }
 
-            Debug.Log($"[DrugEffectSystem] 💊 {drug.drugName} (Stage {stage}): +{goldGained} gold, " +
+            Debug.Log($"[DrugEffectSystem] 💊 {drug.DrugName} (Stage {stage}): +{goldGained} gold, " +
                       $"addiction +{addictionIncrease}% (now {_drugAddictionLevel:F1}%)");
 
             // Spawn poison VFX
@@ -164,8 +165,8 @@ namespace ProjectName.Core
             return new PlayerInventory.ItemData
             {
                 id = $"drug_{stage:D2}",
-                displayName = drug.drugName,
-                description = $"Stage {stage} | 중독성: {drug.addiction} | {drug.description}",
+                displayName = drug.DrugName,
+                description = $"Stage {stage} | 중독성: {drug.Addiction} | {drug.Description}",
                 category = PlayerInventory.ItemCategory.Drug,
                 maxStack = 10
             };

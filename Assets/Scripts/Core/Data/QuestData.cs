@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using ProjectName.Core;
-using UnityEngine;
 
 namespace ProjectName.Core.Data
 {

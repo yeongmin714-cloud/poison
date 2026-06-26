@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     /// <summary>
     /// Simple test to verify cooking recipes are loaded correctly.

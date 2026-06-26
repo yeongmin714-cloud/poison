@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using ProjectName.Core;
 
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     /// <summary>
     /// Simple test to verify dishes are loaded correctly and can be added to inventory.

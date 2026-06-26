@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
 /// <summary>
 /// Parses monster data from GAME_DATA.md and provides runtime lookup.
@@ -14,10 +14,10 @@ public static class MonsterDataReader
 
     public class MonsterInfo
     {
-        public string Id;   // e.g., "M01"
-        public string Name; // display name, e.g., "토끼"
-        public string Description; // from "주요 용도" column maybe
-        public string[] DropItems; // e.g., new[] {"토끼 고기", "토끼 가죽"}
+        public string Id { get; init; }   // e.g., "M01"
+        public string Name { get; init; } // display name, e.g., "토끼"
+        public string Description { get; init; } // from "주요 용도" column maybe
+        public string[] DropItems { get; init; } // e.g., new[] {"토끼 고기", "토끼 가죽"}
     }
 
     public static void Initialize()

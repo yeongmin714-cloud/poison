@@ -1,6 +1,4 @@
-using ProjectName.Core.Data;
-
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     /// <summary>
     /// Phase 30: 국가별 표시 이름 상수.

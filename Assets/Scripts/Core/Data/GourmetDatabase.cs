@@ -2,16 +2,23 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     /// <summary>
     /// 미식 등급 (별점 1~5) — GAME_DATA.md section 4.2
     /// </summary>
-    public struct GourmetGrade
+    public readonly struct GourmetGrade
     {
-        public int stars;          // 1~5
-        public string gradeName;   // e.g., "서민", "평민", "중급", "상급", "왕실"
-        public string description; // 특징 설명
+        public int Stars { get; }          // 1~5
+        public string GradeName { get; }   // e.g., "서민", "평민", "중급", "상급", "왕실"
+        public string Description { get; } // 특징 설명
+
+        public GourmetGrade(int stars, string gradeName, string description)
+        {
+            Stars = stars;
+            GradeName = gradeName;
+            Description = description;
+        }
     }
 
     /// <summary>
@@ -81,12 +88,7 @@ namespace ProjectName.Core
 
                         if (stars >= 1 && stars <= 5)
                         {
-                            _grades[stars] = new GourmetGrade
-                            {
-                                stars = stars,
-                                gradeName = gradeName,
-                                description = desc
-                            };
+                            _grades[stars] = new GourmetGrade(stars, gradeName, desc);
                         }
                     }
                 }

@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using ProjectName.Core;
 using UnityEngine;
 
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     /// <summary>
     /// Loads dish data from GAME_DATA.md at runtime.
