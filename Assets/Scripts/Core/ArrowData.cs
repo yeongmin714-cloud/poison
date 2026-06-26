@@ -17,13 +17,13 @@ namespace ProjectName.Core
             Magic         // 마법 화살
         }
 
-        public ArrowType arrowType;
-        public string displayName;
-        public int damageBonus;
-        public string description;
-        public ItemRarity rarity;
-        public int goldCost;       // 상점 구매 비용
-        public Color trailColor;   // 궤적 색상
+        public ArrowType arrowType { get; private set; }
+        public string displayName { get; private set; }
+        public int damageBonus { get; private set; }
+        public string description { get; private set; }
+        public ItemRarity rarity { get; private set; }
+        public int goldCost { get; private set; }       // 상점 구매 비용
+        public Color trailColor { get; private set; }   // 궤적 색상
 
         public ArrowData(ArrowType type)
         {
@@ -57,9 +57,9 @@ namespace ProjectName.Core
             }
         }
 
-        public static ArrowData Regular => new ArrowData(ArrowType.Regular);
-        public static ArrowData Reinforced => new ArrowData(ArrowType.Reinforced);
-        public static ArrowData Magic => new ArrowData(ArrowType.Magic);
+        public static readonly ArrowData Regular = new ArrowData(ArrowType.Regular);
+        public static readonly ArrowData Reinforced = new ArrowData(ArrowType.Reinforced);
+        public static readonly ArrowData Magic = new ArrowData(ArrowType.Magic);
 
         public string GetItemId() => $"arrow_{arrowType.ToString().ToLower()}";
     }

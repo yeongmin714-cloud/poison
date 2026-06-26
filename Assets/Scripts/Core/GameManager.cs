@@ -10,7 +10,7 @@ namespace ProjectName.Core
     public class GameManager : MonoBehaviour
     {
         /// <summary>C20-01: Current game difficulty level (0=Easy, 1=Normal, 2=Hard).</summary>
-        public static int CurrentDifficulty { get; private set; } = 0;
+        public static int CurrentDifficulty { get; set; } = 0;
 
         [SerializeField] private bool _debugMode = false;
 

@@ -4,6 +4,7 @@ using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Systems;
 using UnityEngine;
+using System.Reflection;
 
 namespace ProjectName.Tests.EditMode
 {
@@ -56,8 +57,6 @@ namespace ProjectName.Tests.EditMode
             }
 
             // PlayerHealth 이벤트 정리
-            PlayerHealth.OnPlayerDied = null;
-            PlayerHealth.OnPlayerRespawned = null;
         }
 
         // ================================================================
@@ -427,7 +426,7 @@ namespace ProjectName.Tests.EditMode
             GuardManager.Instance.RegisterGuard(_testTerritory, guard);
 
             // 플레이어 사망 이벤트 발생
-            PlayerHealth.OnPlayerDied?.Invoke();
+            PlayerHealth.Instance.TakeDamage(1000f);
 
             Assert.IsTrue(GuardManager.Instance.IsRetreatMode,
                 "플레이어 사망 시 퇴각 모드가 활성화되어야 함");
@@ -440,7 +439,11 @@ namespace ProjectName.Tests.EditMode
         {
             GuardManager.Instance.SetRetreatMode(true);
 
-            PlayerHealth.OnPlayerRespawned?.Invoke();
+            // Kill the player and invoke respawn via reflection
+            PlayerHealth.Instance.TakeDamage(1000f);
+            var playerType = typeof(PlayerHealth);
+            var respawnMethod = playerType.GetMethod("Respawn", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            respawnMethod.Invoke(PlayerHealth.Instance, null);
 
             Assert.IsFalse(GuardManager.Instance.IsRetreatMode,
                 "플레이어 부활 시 퇴각 모드가 해제되어야 함");
