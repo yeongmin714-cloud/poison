@@ -1,4 +1,3 @@
-using ProjectName.Core.Data;
 using UnityEngine;
 
 namespace ProjectName.Core
@@ -17,7 +16,7 @@ namespace ProjectName.Core
             if (slot?.item == null || slot.item.maxDurability <= 0)
                 return 1f;
 
-            return Mathf.Clamp01(slot.currentDurability / slot.item.maxDurability);
+            return Mathf.Clamp01((float)slot.currentDurability / slot.item.maxDurability);
         }
 
         /// <summary>
@@ -51,7 +50,7 @@ namespace ProjectName.Core
             if (slot?.item == null || slot.item.maxDurability <= 0)
                 return 0;
 
-            float missingRatio = 1f - (slot.currentDurability / slot.item.maxDurability);
+            float missingRatio = 1f - ((float)slot.currentDurability / slot.item.maxDurability);
             if (missingRatio <= 0f) return 0;
 
             // 기본 1개 + 부족 비율당 추가 재료 (최대 5개)

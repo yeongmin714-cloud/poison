@@ -16,10 +16,10 @@ public static class MonsterDataReader
 
     public class MonsterInfo
     {
-        public string Id { get; init; }   // e.g., "M01"
-        public string Name { get; init; } // display name, e.g., "토끼"
-        public string Description { get; init; } // from "주요 용도" column maybe
-        public string[] DropItems { get; init; } // e.g., new[] {"토끼 고기", "토끼 가죽"}
+        public string Id { get; set; }   // e.g., "M01"
+        public string Name { get; set; } // display name, e.g., "토끼"
+        public string Description { get; set; } // from "주요 용도" column maybe
+        public string[] DropItems { get; set; } // e.g., new[] {"토끼 고기", "토끼 가죽"}
     }
 
     public static void Initialize()

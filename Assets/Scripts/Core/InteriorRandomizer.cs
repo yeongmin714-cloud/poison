@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace ProjectName.Core
 {
@@ -94,7 +95,7 @@ namespace ProjectName.Core
         /// </summary>
         public static int ClampTier(int tier)
         {
-            return Math.Clamp(tier, 1, 5);
+            return Mathf.Clamp(tier, 1, 5);
         }
     }
 }

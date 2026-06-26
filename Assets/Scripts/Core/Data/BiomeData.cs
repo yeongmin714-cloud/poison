@@ -49,7 +49,7 @@ namespace ProjectName.Core.Data
             if (_definitions != null)
                 return;
 
-            int count = System.Enum.GetValues<BiomeType>().Length;
+            int count = System.Enum.GetValues(typeof(BiomeType)).Length;
             _definitions = new BiomeDefinition[count];
 
             _definitions[(int)BiomeType.Plains] = new BiomeDefinition

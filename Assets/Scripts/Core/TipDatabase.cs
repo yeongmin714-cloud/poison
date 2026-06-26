@@ -113,7 +113,7 @@ namespace ProjectName.Core
         /// <summary>특정 카테고리의 모든 팁 반환</summary>
         public static TipInfo[] GetTipsByCategory(TipCategory category)
         {
-            var list = new System.Collections.Generic.List<TipInfo>();
+            var list = new List<TipInfo>();
             foreach (var tip in Tips)
             {
                 if (tip.Category == category)

@@ -1,0 +1,14 @@
+{
+  "name": "ProjectName.Effects",
+  "rootNamespace": "ProjectName.Effects",
+  "references": [
+    "ProjectName.Core"
+  ],
+  "autoReferenced": true,
+  "overrideReferences": false,
+  "allowUnsafeCode": false,
+  "precompiledReferences": [],
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

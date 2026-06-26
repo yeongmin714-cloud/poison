@@ -7,12 +7,12 @@ namespace ProjectName.Core.Data
     /// <summary>
     /// Represents the result of cooking a meat with a herb.
     /// </summary>
-    public readonly struct CookingResult
+    public struct CookingResult
     {
-        public string DishId { get; init; }
-        public string DishName { get; init; }
-        public string Description { get; init; }
-        public string Effect { get; init; }
+        public string DishId { get; set; }
+        public string DishName { get; set; }
+        public string Description { get; set; }
+        public string Effect { get; set; }
     }
 
     /// <summary>

@@ -7,7 +7,7 @@ namespace ProjectName.Core.Data
     /// <summary>
     /// 미식 등급 (별점 1~5) — GAME_DATA.md section 4.2
     /// </summary>
-    public readonly struct GourmetGrade
+    public struct GourmetGrade
     {
         public int Stars { get; }          // 1~5
         public string GradeName { get; }   // e.g., "서민", "평민", "중급", "상급", "왕실"
@@ -53,7 +53,7 @@ namespace ProjectName.Core.Data
             }
 
             int pos = startIdx + startMarker.Length;
-            string[] lines = content.Substring(pos).Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            string[] lines = content.Substring(pos).Split(new[] { "\r\n", "\n" }, System.StringSplitOptions.None);
 
             var tableRowRegex = new Regex(@"^\s*\|.*\|.*\|.*\|");
             var separatorRegex = new Regex(@":---");

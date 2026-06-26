@@ -22,11 +22,11 @@ namespace ProjectName.Core.Data
     /// </summary>
     public struct DrugInfo
     {
-        public int Stage { get; init; }              // 1~10
-        public string DrugName { get; init; }        // 약물 명칭
-        public string Ingredients { get; init; }     // 조합 재료 (e.g. "향기꽃 + 맑은잎")
-        public AddictionLevel Addiction { get; init; }
-        public string Description { get; init; }     // 특징
+        public int Stage { get; set; }              // 1~10
+        public string DrugName { get; set; }        // 약물 명칭
+        public string Ingredients { get; set; }     // 조합 재료 (e.g. "향기꽃 + 맑은잎")
+        public AddictionLevel Addiction { get; set; }
+        public string Description { get; set; }     // 특징
     }
 
     /// <summary>

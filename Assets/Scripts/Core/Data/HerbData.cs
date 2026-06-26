@@ -12,7 +12,7 @@ namespace ProjectName.Core.Data
         Physical
     }
 
-    public readonly struct HerbInfo
+    public struct HerbInfo
     {
         public readonly string id;        // e.g., "A1"
         public readonly string displayName; // e.g., "쓴풀"

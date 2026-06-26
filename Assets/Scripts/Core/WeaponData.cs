@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace ProjectName.Core
 {
     public enum WeaponType { Fist, Sword, Spear, Bow }
@@ -17,7 +15,11 @@ namespace ProjectName.Core
 
         public WeaponData(string name, float dmg, float speed, float rng, WeaponType type)
         {
-            weaponName = name; damage = dmg; attackSpeed = speed; range = rng; weaponType = type;
+            weaponName = name;
+            damage = dmg;
+            attackSpeed = speed;
+            range = rng;
+            weaponType = type;
         }
 
         public static WeaponData Fist => new WeaponData("맨손", 5f, 0.8f, 2f, WeaponType.Fist);

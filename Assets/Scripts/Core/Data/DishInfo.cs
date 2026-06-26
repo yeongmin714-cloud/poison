@@ -8,12 +8,12 @@ namespace ProjectName.Core.Data
     /// </summary>
     public class DishInfo
     {
-        public string Id { get; init; }           // e.g., "D01"
-        public string DisplayName { get; init; }  // e.g., "토끼 허브 구이"
-        public string Description { get; init; }  // e.g., "토끼 고기 + 회복꽃"
-        public string Effect { get; init; }       // from 주요 효과 column
-        public Sprite Icon { get; init; }         // optional, set via editor or resources
-        public int StarRating { get; init; }      // 1~5 미식 등급 (0 = unrated)
+        public string Id { get; set; }           // e.g., "D01"
+        public string DisplayName { get; set; }  // e.g., "토끼 허브 구이"
+        public string Description { get; set; }  // e.g., "토끼 고기 + 회복꽃"
+        public string Effect { get; set; }       // from 주요 효과 column
+        public Sprite Icon { get; set; }         // optional, set via editor or resources
+        public int StarRating { get; set; }      // 1~5 미식 등급 (0 = unrated)
         public PlayerInventory.ItemData ToItemData()
         {
             return new PlayerInventory.ItemData

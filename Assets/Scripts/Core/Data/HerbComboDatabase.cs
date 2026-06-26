@@ -9,10 +9,10 @@ namespace ProjectName.Core.Data
     /// </summary>
     public struct HerbComboResult
     {
-        public string resultId { get; init; }       // Could be used to look up an item (e.g., potion)
-        public string resultName { get; init; }
-        public string description { get; init; }
-        public string effect { get; init; }         // From the "효과" column
+        public string resultId { get; set; }       // Could be used to look up an item (e.g., potion)
+        public string resultName { get; set; }
+        public string description { get; set; }
+        public string effect { get; set; }         // From the "효과" column
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ namespace ProjectName.Core.Data
                 if (TableRowRegex.IsMatch(line))
                 {
                     // Split by '|', remove empty first/last
-                    string[] parts = line.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] parts = line.Split(new char[] { '|' }, System.StringSplitOptions.RemoveEmptyEntries);
                     // Expected format: 재료1 | 재료2 | 결과물 | 효과
                     if (parts.Length >= 4)
                     {

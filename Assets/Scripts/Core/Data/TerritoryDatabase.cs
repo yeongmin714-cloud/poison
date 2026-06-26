@@ -70,7 +70,7 @@ namespace ProjectName.Core.Data
             if (_definitions.TryGetValue(key, out var def))
                 return def;
             Debug.LogWarning($"[TerritoryDatabase] 정의 없음: {key}");
-            return null;
+            return new TerritoryDefinition();
         }
 
         public TerritoryDefinition GetDefinition(TerritoryId id)
@@ -83,7 +83,7 @@ namespace ProjectName.Core.Data
             if (_definitions.TryGetValue(key, out var def))
                 return def;
             Debug.LogWarning($"[TerritoryDatabase] 정의 없음: {key}");
-            return null;
+            return new TerritoryDefinition();
         }
 
         public IEnumerable<TerritoryDefinition> GetAllDefinitions()
@@ -108,7 +108,7 @@ namespace ProjectName.Core.Data
             if (_states.TryGetValue(key, out var state))
                 return state;
             Debug.LogWarning($"[TerritoryDatabase] 상태 없음: {key}");
-            return null;
+            return new TerritoryState(new TerritoryId(nation, index));
         }
 
         public TerritoryState GetState(TerritoryId id)

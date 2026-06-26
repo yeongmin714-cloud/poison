@@ -522,7 +522,11 @@ namespace ProjectName.Systems
                 float d = Vector3.Distance(transform.position, m.transform.position);
                 if (d < _packCallRange)
                 {
-                    // 이미 감지 범위 안이면 자동 추격
+                    // C27-02: 합세 — MonsterAggroSystem을 통해 다른 몬스터 어그로 설정
+                    if (MonsterAggroSystem.Instance != null)
+                    {
+                        MonsterAggroSystem.Instance.NotifyAttack(m.gameObject, _player?.gameObject);
+                    }
                 }
             }
         }

@@ -153,26 +153,26 @@ namespace ProjectName.Core.Data
         [SerializeField] private bool _isActive = true;               // 낮에 비활성화되는 영지용 (ND-01)
 
         public TerritoryId id => _id;
-        public TerritoryOwnership ownership { get => _ownership; public set => _ownership = value; }
-        public float guardAliveRatio { get => _guardAliveRatio; public set => _guardAliveRatio = value; }
-        public float loyaltyToPlayer { get => _loyaltyToPlayer; public set => _loyaltyToPlayer = value; }
-        public bool isUnderAttack { get => _isUnderAttack; public set => _isUnderAttack = value; }
-        public bool flagRaised { get => _flagRaised; public set => _flagRaised = value; }
-        public bool lordSurrendered { get => _lordSurrendered; public set => _lordSurrendered = value; }
-        public bool lordDefeated { get => _lordDefeated; public set => _lordDefeated = value; }
-        public bool lordExecuted { get => _lordExecuted; public set => _lordExecuted = value; }
-        public bool lordSpared { get => _lordSpared; public set => _lordSpared = value; }
-        public bool spyReportRecon { get => _spyReportRecon; public set => _spyReportRecon = value; }
-        public bool spyReportInfiltrate { get => _spyReportInfiltrate; public set => _spyReportInfiltrate = value; }
-        public bool spyReportSurvey { get => _spyReportSurvey; public set => _spyReportSurvey = value; }
-        public float lastSpyTime { get => _lastSpyTime; public set => _lastSpyTime = value; }
-        public TerritoryBattleState battleState { get => _battleState; public set => _battleState = value; }
-        public float retreatTimer { get => _retreatTimer; public set => _retreatTimer = value; }
-        public float reinforceTimer { get => _reinforceTimer; public set => _reinforceTimer = value; }
-        public int reinforcedCount { get => _reinforcedCount; public set => _reinforcedCount = value; }
-        public int deadGuardCount { get => _deadGuardCount; public set => _deadGuardCount = value; }
-        public int totalGuardCount { get => _totalGuardCount; public set => _totalGuardCount = value; }
-        public bool isActive { get => _isActive; public set => _isActive = value; }
+        public TerritoryOwnership ownership { get => _ownership; set => _ownership = value; }
+        public float guardAliveRatio { get => _guardAliveRatio; set => _guardAliveRatio = value; }
+        public float loyaltyToPlayer { get => _loyaltyToPlayer; set => _loyaltyToPlayer = value; }
+        public bool isUnderAttack { get => _isUnderAttack; set => _isUnderAttack = value; }
+        public bool flagRaised { get => _flagRaised; set => _flagRaised = value; }
+        public bool lordSurrendered { get => _lordSurrendered; set => _lordSurrendered = value; }
+        public bool lordDefeated { get => _lordDefeated; set => _lordDefeated = value; }
+        public bool lordExecuted { get => _lordExecuted; set => _lordExecuted = value; }
+        public bool lordSpared { get => _lordSpared; set => _lordSpared = value; }
+        public bool spyReportRecon { get => _spyReportRecon; set => _spyReportRecon = value; }
+        public bool spyReportInfiltrate { get => _spyReportInfiltrate; set => _spyReportInfiltrate = value; }
+        public bool spyReportSurvey { get => _spyReportSurvey; set => _spyReportSurvey = value; }
+        public float lastSpyTime { get => _lastSpyTime; set => _lastSpyTime = value; }
+        public TerritoryBattleState battleState { get => _battleState; set => _battleState = value; }
+        public float retreatTimer { get => _retreatTimer; set => _retreatTimer = value; }
+        public float reinforceTimer { get => _reinforceTimer; set => _reinforceTimer = value; }
+        public int reinforcedCount { get => _reinforcedCount; set => _reinforcedCount = value; }
+        public int deadGuardCount { get => _deadGuardCount; set => _deadGuardCount = value; }
+        public int totalGuardCount { get => _totalGuardCount; set => _totalGuardCount = value; }
+        public bool isActive { get => _isActive; set => _isActive = value; }
 
         public TerritoryState(TerritoryId id)
         {
