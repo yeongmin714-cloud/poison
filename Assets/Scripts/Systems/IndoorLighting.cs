@@ -26,16 +26,21 @@ namespace ProjectName.Systems
                 ambientColor.b * ambientIntensity
             );
 
-            // 방 크기 추정 (자식 MeshFilter들의 bounds로)
+            // 방 크기 추정 (자식 MeshFilter들의 bounds로, 월드 공간 변환)
             Bounds bounds = new Bounds(room.transform.position, Vector3.zero);
             var filters = room.GetComponentsInChildren<MeshFilter>();
-            if (filters.Length > 0)
+            for (int i = 0; i < filters.Length; i++)
             {
-                bounds = filters[0].mesh.bounds;
-                for (int i = 1; i < filters.Length; i++)
-                {
-                    bounds.Encapsulate(filters[i].mesh.bounds);
-                }
+                var mesh = filters[i].sharedMesh;
+                if (mesh == null) continue;
+                // 로컬 mesh.bounds → 월드 공간 변환
+                Vector3 worldCenter = filters[i].transform.TransformPoint(mesh.bounds.center);
+                Vector3 worldSize = Vector3.Scale(mesh.bounds.size, filters[i].transform.lossyScale);
+                Bounds worldBounds = new Bounds(worldCenter, worldSize);
+                if (i == 0)
+                    bounds = worldBounds;
+                else
+                    bounds.Encapsulate(worldBounds);
             }
 
             // 방 중앙 천장 위치 계산
