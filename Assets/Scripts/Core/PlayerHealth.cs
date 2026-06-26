@@ -69,7 +69,7 @@ namespace ProjectName.Core
         /// <summary>IDamageable: 생존 여부</summary>
         public bool IsAlive => !_isDead;
         /// <summary>최대 체력 변경 (확장용)</summary>
-        internal void SetMaxHP(float value) { _maxHP = Mathf.Max(1f, value); }
+        public void SetMaxHP(float value) { _maxHP = Mathf.Max(1f, value); }
 
         // HP 변경 이벤트 (HUD에서 구독)
         public event System.Action<float, float> OnHPChanged; // (current, max)
@@ -314,7 +314,7 @@ namespace ProjectName.Core
         /// <summary>
         /// 무적 시간 설정 (외부에서 조정)
         /// </summary>
-        internal void SetInvincibleTime(float seconds)
+        public void SetInvincibleTime(float seconds)
         {
             _invincibleTime = Mathf.Max(0f, seconds);
         }

@@ -206,39 +206,39 @@ namespace ProjectName.Core
 
 
         // ===== 편의 정적 아이템 데이터 =====
-        public static ItemData Herb_Red    = new ItemData { id = "herb_red",    displayName = "치유초",   description = "빨간 약초. 기본 치료 성분.",   category = ItemCategory.Herb,    maxStack = 20 };
-        public static ItemData Herb_Purple = new ItemData { id = "herb_purple", displayName = "독나물",   description = "보라색 약초. 독성 성분.",     category = ItemCategory.Herb,    maxStack = 20 };
-        public static ItemData Herb_Yellow = new ItemData { id = "herb_yellow", displayName = "황혼초",   description = "노란 약초. 환각/마취 성분.",   category = ItemCategory.Herb,    maxStack = 20 };
-        public static ItemData Herb_Silver = new ItemData { id = "herb_silver", displayName = "은빛 이끼", description = "은색 이끼. 해독 성분.",        category = ItemCategory.Herb,    maxStack = 20 };
-        public static ItemData Herb_Green  = new ItemData { id = "herb_green",  displayName = "피어리",   description = "초록 약초. 재생/회복 성분.",   category = ItemCategory.Herb,    maxStack = 20 };
+        public static readonly ItemData Herb_Red    = new ItemData { id = "herb_red",    displayName = "치유초",   description = "빨간 약초. 기본 치료 성분.",   category = ItemCategory.Herb,    maxStack = 20 };
+        public static readonly ItemData Herb_Purple = new ItemData { id = "herb_purple", displayName = "독나물",   description = "보라색 약초. 독성 성분.",     category = ItemCategory.Herb,    maxStack = 20 };
+        public static readonly ItemData Herb_Yellow = new ItemData { id = "herb_yellow", displayName = "황혼초",   description = "노란 약초. 환각/마취 성분.",   category = ItemCategory.Herb,    maxStack = 20 };
+        public static readonly ItemData Herb_Silver = new ItemData { id = "herb_silver", displayName = "은빛 이끼", description = "은색 이끼. 해독 성분.",        category = ItemCategory.Herb,    maxStack = 20 };
+        public static readonly ItemData Herb_Green  = new ItemData { id = "herb_green",  displayName = "피어리",   description = "초록 약초. 재생/회복 성분.",   category = ItemCategory.Herb,    maxStack = 20 };
 
-        public static ItemData RabbitMeat  = new ItemData { id = "meat_rabbit", displayName = "토끼고기",  description = "작고 부드러운 고기.",          category = ItemCategory.Meat,    maxStack = 20 };
-        public static ItemData BoarMeat    = new ItemData { id = "meat_boar",   displayName = "멧돼지고기", description = "걸쭉한 맛이 나는 고기.",        category = ItemCategory.Meat,    maxStack = 20 };
-        public static ItemData WolfMeat    = new ItemData { id = "meat_wolf",   displayName = "늑대고기",  description = "담백한 늑대 고기.",            category = ItemCategory.Meat,    maxStack = 20 };
+        public static readonly ItemData RabbitMeat  = new ItemData { id = "meat_rabbit", displayName = "토끼고기",  description = "작고 부드러운 고기.",          category = ItemCategory.Meat,    maxStack = 20 };
+        public static readonly ItemData BoarMeat    = new ItemData { id = "meat_boar",   displayName = "멧돼지고기", description = "걸쭉한 맛이 나는 고기.",        category = ItemCategory.Meat,    maxStack = 20 };
+        public static readonly ItemData WolfMeat    = new ItemData { id = "meat_wolf",   displayName = "늑대고기",  description = "담백한 늑대 고기.",            category = ItemCategory.Meat,    maxStack = 20 };
 
         // 몬스터 추가 드롭 재료
-        public static ItemData RabbitFur   = new ItemData { id = "mat_rabbit_fur",  displayName = "토끼털",     description = "부드러운 토끼 털. 기본 방어구 재료.", category = ItemCategory.Material, maxStack = 20 };
-        public static ItemData BoarLeather = new ItemData { id = "mat_boar_leather", displayName = "멧돼지 가죽", description = "질긴 멧돼지 가죽. 중급 방어구 재료.",   category = ItemCategory.Material, maxStack = 20 };
-        public static ItemData BoarTusk    = new ItemData { id = "mat_boar_tusk",    displayName = "멧돼지 엄니", description = "날카로운 멧돼지 엄니. 기본 무기 재료.",   category = ItemCategory.Material, maxStack = 10 };
-        public static ItemData WolfTooth   = new ItemData { id = "mat_wolf_tooth",   displayName = "늑대 이빨",   description = "날카로운 늑대 이빨. 날카로운 무기 재료.", category = ItemCategory.Material, maxStack = 10 };
-        public static ItemData WolfFur     = new ItemData { id = "mat_wolf_fur",     displayName = "늑대 모피",   description = "고급 늑대 모피. 고급 방어구 재료.",     category = ItemCategory.Material, maxStack = 10 };
+        public static readonly ItemData RabbitFur   = new ItemData { id = "mat_rabbit_fur",  displayName = "토끼털",     description = "부드러운 토끼 털. 기본 방어구 재료.", category = ItemCategory.Material, maxStack = 20 };
+        public static readonly ItemData BoarLeather = new ItemData { id = "mat_boar_leather", displayName = "멧돼지 가죽", description = "질긴 멧돼지 가죽. 중급 방어구 재료.",   category = ItemCategory.Material, maxStack = 20 };
+        public static readonly ItemData BoarTusk    = new ItemData { id = "mat_boar_tusk",    displayName = "멧돼지 엄니", description = "날카로운 멧돼지 엄니. 기본 무기 재료.",   category = ItemCategory.Material, maxStack = 10 };
+        public static readonly ItemData WolfTooth   = new ItemData { id = "mat_wolf_tooth",   displayName = "늑대 이빨",   description = "날카로운 늑대 이빨. 날카로운 무기 재료.", category = ItemCategory.Material, maxStack = 10 };
+        public static readonly ItemData WolfFur     = new ItemData { id = "mat_wolf_fur",     displayName = "늑대 모피",   description = "고급 늑대 모피. 고급 방어구 재료.",     category = ItemCategory.Material, maxStack = 10 };
 
-        public static ItemData EstateDeed  = new ItemData { id = "quest_deed",  displayName = "영지 증서", description = "튜토리얼 영주의 영지 증서.",     category = ItemCategory.Quest,   maxStack = 1 };
-        public static ItemData Gold    = new ItemData { id = "gold",    displayName = "금",    description = "통화",    category = ItemCategory.Material,    maxStack = 99 };
+        public static readonly ItemData EstateDeed  = new ItemData { id = "quest_deed",  displayName = "영지 증서", description = "튜토리얼 영주의 영지 증서.",     category = ItemCategory.Quest,   maxStack = 1 };
+        public static readonly ItemData Gold    = new ItemData { id = "gold",    displayName = "금",    description = "통화",    category = ItemCategory.Material,    maxStack = 99 };
 
         // ===== C9-06: 무기/방어구/도구 =====
         // 기본 무기 (재료로 구매)
-        public static ItemData SwordWood  = new ItemData { id = "weapon_sword_wood",  displayName = "목검",   description = "나무로 만든 검. 기본 무기.",   category = ItemCategory.Weapon, maxStack = 1, maxDurability = 20 };
-        public static ItemData SpearWood  = new ItemData { id = "weapon_spear_wood",  displayName = "나무 창", description = "나무로 만든 창. 약간 긴 사거리.", category = ItemCategory.Weapon, maxStack = 1, maxDurability = 20 };
-        public static ItemData BowWood    = new ItemData { id = "weapon_bow_wood",    displayName = "나무 활", description = "나무로 만든 활. 원거리 공격.",   category = ItemCategory.Weapon, maxStack = 1, maxDurability = 20 };
+        public static readonly ItemData SwordWood  = new ItemData { id = "weapon_sword_wood",  displayName = "목검",   description = "나무로 만든 검. 기본 무기.",   category = ItemCategory.Weapon, maxStack = 1, maxDurability = 20 };
+        public static readonly ItemData SpearWood  = new ItemData { id = "weapon_spear_wood",  displayName = "나무 창", description = "나무로 만든 창. 약간 긴 사거리.", category = ItemCategory.Weapon, maxStack = 1, maxDurability = 20 };
+        public static readonly ItemData BowWood    = new ItemData { id = "weapon_bow_wood",    displayName = "나무 활", description = "나무로 만든 활. 원거리 공격.",   category = ItemCategory.Weapon, maxStack = 1, maxDurability = 20 };
 
         // 기본 방어구
-        public static ItemData LeatherArmor = new ItemData { id = "armor_leather",    displayName = "가죽 갑옷", description = "동물 가죽으로 만든 방어구.", category = ItemCategory.Armor,  maxStack = 1, maxDurability = 30 };
-        public static ItemData ClothArmor   = new ItemData { id = "armor_cloth",      displayName = "천 옷",    description = "천으로 만든 가벼운 옷.",     category = ItemCategory.Armor,  maxStack = 1, maxDurability = 15 };
+        public static readonly ItemData LeatherArmor = new ItemData { id = "armor_leather",    displayName = "가죽 갑옷", description = "동물 가죽으로 만든 방어구.", category = ItemCategory.Armor,  maxStack = 1, maxDurability = 30 };
+        public static readonly ItemData ClothArmor   = new ItemData { id = "armor_cloth",      displayName = "천 옷",    description = "천으로 만든 가벼운 옷.",     category = ItemCategory.Armor,  maxStack = 1, maxDurability = 15 };
 
         // 기본 도구
-        public static ItemData Pickaxe      = new ItemData { id = "tool_pickaxe",     displayName = "곡괭이",  description = "광석 채굴용 도구.",          category = ItemCategory.Tool,   maxStack = 1, maxDurability = 30 };
-        public static ItemData Axe          = new ItemData { id = "tool_axe",         displayName = "도끼",     description = "벌목용 도구.",               category = ItemCategory.Tool,   maxStack = 1, maxDurability = 30 };
-        public static ItemData FishingRod   = new ItemData { id = "tool_fishing_rod", displayName = "낚싯대",   description = "낚시용 도구.",               category = ItemCategory.Tool,   maxStack = 1, maxDurability = 20 };
+        public static readonly ItemData Pickaxe      = new ItemData { id = "tool_pickaxe",     displayName = "곡괭이",  description = "광석 채굴용 도구.",          category = ItemCategory.Tool,   maxStack = 1, maxDurability = 30 };
+        public static readonly ItemData Axe          = new ItemData { id = "tool_axe",         displayName = "도끼",     description = "벌목용 도구.",               category = ItemCategory.Tool,   maxStack = 1, maxDurability = 30 };
+        public static readonly ItemData FishingRod   = new ItemData { id = "tool_fishing_rod", displayName = "낚싯대",   description = "낚시용 도구.",               category = ItemCategory.Tool,   maxStack = 1, maxDurability = 20 };
     }
 }

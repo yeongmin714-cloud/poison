@@ -23,7 +23,7 @@ namespace ProjectName.Core
         {
             if (Instance != null) return;
 
-            var existing = UnityEngine.Object.FindAnyObjectByType<PlayerStats>();
+            var existing = UnityEngine.Object.FindFirstObjectByType<PlayerStats>();
             if (existing != null)
             {
                 Instance = existing;
@@ -73,12 +73,12 @@ namespace ProjectName.Core
 
         // Base stats (can be modified by buffs, equipment, etc.)
         [Header("Base Stats")]
-        [SerializeField] public float _attackDamageBase = 10f;   // 기본 공격력
-        [SerializeField] public float _defenseBase = 0f;         // 기본 방어력 (뎀지 감소량)
-        [SerializeField] public float _moveSpeedBase = 5f;       // 기본 이동 속도
-        [SerializeField] public float _alchemyTempBonus = 0f;    // 임시 연금술 보너스 (버프 등)
-        [SerializeField] public float _cookingTempBonus = 0f;    // 임시 요리 보너스 (버프 등)
-        [SerializeField] public float _critChanceBase = 0f;      // 기본 치명타 확률
+        public float _attackDamageBase = 10f;   // 기본 공격력
+        public float _defenseBase = 0f;         // 기본 방어력 (뎀지 감소량)
+        public float _moveSpeedBase = 5f;       // 기본 이동 속도
+        public float _alchemyTempBonus = 0f;    // 임시 연금술 보너스 (버프 등)
+        public float _cookingTempBonus = 0f;    // 임시 요리 보너스 (버프 등)
+        public float _critChanceBase = 0f;      // 기본 치명타 확률
 
         // 스탯 계산 속성 (레벨에 따라 동적으로 계산)
         public int HPBase => 100 + (_level - 1) * 5; // Lv1=100, Lv50=345
