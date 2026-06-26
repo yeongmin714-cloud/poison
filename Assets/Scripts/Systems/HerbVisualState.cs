@@ -1,5 +1,4 @@
 using UnityEngine;
-using ProjectName.Systems;
 
 namespace ProjectName.Systems
 {
@@ -15,6 +14,7 @@ namespace ProjectName.Systems
     {
         private HerbPickup _herbPickup;
         private MeshRenderer _meshRenderer;
+        private Material _material;
         private Color _originalColor;
         private bool _hasRenderer;
 
@@ -26,7 +26,8 @@ namespace ProjectName.Systems
 
             if (_hasRenderer)
             {
-                _originalColor = _meshRenderer.material.color;
+                _material = _meshRenderer.material;
+                _originalColor = _material.color;
             }
         }
 
@@ -64,7 +65,7 @@ namespace ProjectName.Systems
 
             Color color = _originalColor;
             color.a = alpha;
-            _meshRenderer.material.color = color;
+            _material.color = color;
         }
 
         /// <summary>
@@ -73,7 +74,7 @@ namespace ProjectName.Systems
         public float GetCurrentAlpha()
         {
             if (!_hasRenderer) return 1f;
-            return _meshRenderer.material.color.a;
+            return _material.color.a;
         }
     }
 }
