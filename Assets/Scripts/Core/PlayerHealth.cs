@@ -25,7 +25,7 @@ namespace ProjectName.Core
         {
             if (Instance != null) return;
 
-            var existing = UnityEngine.Object.FindAnyObjectByType<PlayerHealth>();
+            var existing = UnityEngine.Object.FindFirstObjectByType<PlayerHealth>();
             if (existing != null)
             {
                 Instance = existing;
@@ -69,15 +69,15 @@ namespace ProjectName.Core
         /// <summary>IDamageable: 생존 여부</summary>
         public bool IsAlive => !_isDead;
         /// <summary>최대 체력 변경 (확장용)</summary>
-        public void SetMaxHP(float value) { _maxHP = Mathf.Max(1f, value); }
+        internal void SetMaxHP(float value) { _maxHP = Mathf.Max(1f, value); }
 
         // HP 변경 이벤트 (HUD에서 구독)
-        public System.Action<float, float> OnHPChanged; // (current, max)
+        public event System.Action<float, float> OnHPChanged; // (current, max)
 
         /// <summary>사망 시 발생 (Systems.DeathEffectController 등에서 구독)</summary>
-        public static System.Action OnPlayerDied;
+        public static event System.Action OnPlayerDied;
         /// <summary>부활 시 발생 (Systems.DeathEffectController 등에서 구독)</summary>
-        public static System.Action OnPlayerRespawned;
+        public static event System.Action OnPlayerRespawned;
 
         private void Awake()
         {
@@ -215,10 +215,16 @@ namespace ProjectName.Core
                 if (collider != null) collider.enabled = false;
             }
 
-            Invoke(nameof(Respawn), _respawnDelay);
+            StartCoroutine(RespawnCoroutine());
 
             // 사망 이벤트 발생 (DeathEffectController 등에서 처리)
             OnPlayerDied?.Invoke();
+        }
+
+        private System.Collections.IEnumerator RespawnCoroutine()
+        {
+            yield return new WaitForSeconds(_respawnDelay);
+            Respawn();
         }
 
         private void Respawn()
@@ -262,9 +268,11 @@ namespace ProjectName.Core
                         System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)?.GetValue(null);
                     if (tmInstance != null)
                     {
-                        var getCenterMethod = tmType.GetMethod("GetTerritoryCenter", System.Type.EmptyTypes);
+                        var getCenterMethod = tmType.GetMethod("GetTerritoryCenter",
+                            new System.Type[] { typeof(TerritoryId) });
                         if (getCenterMethod != null)
-                            respawnPos = (Vector3)getCenterMethod.Invoke(tmInstance, null);
+                            respawnPos = (Vector3)getCenterMethod.Invoke(tmInstance,
+                                new object[] { nearestTerritory.Value });
                     }
                     Debug.Log($"[PlayerHealth] 가장 가까운 영지에서 부활: {nearestTerritory.Value}");
                 }
@@ -306,7 +314,7 @@ namespace ProjectName.Core
         /// <summary>
         /// 무적 시간 설정 (외부에서 조정)
         /// </summary>
-        public void SetInvincibleTime(float seconds)
+        internal void SetInvincibleTime(float seconds)
         {
             _invincibleTime = Mathf.Max(0f, seconds);
         }

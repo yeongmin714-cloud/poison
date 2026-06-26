@@ -10,7 +10,7 @@ namespace ProjectName.Core
     public class GameManager : MonoBehaviour
     {
         /// <summary>C20-01: Current game difficulty level (0=Easy, 1=Normal, 2=Hard).</summary>
-        public static int CurrentDifficulty { get; set; } = 0;
+        public static int CurrentDifficulty { get; private set; } = 0;
 
         [SerializeField] private bool _debugMode = false;
 
@@ -154,24 +154,17 @@ namespace ProjectName.Core
             System.Type oldModuleType = System.Type.GetType("UnityEngine.EventSystems.StandaloneInputModule, UnityEngine.UI");
             System.Type newModuleType = System.Type.GetType("UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem");
 
-            var existing = FindAnyObjectByType(esType);
+            var existing = FindFirstObjectByType(esType);
             if (existing != null)
             {
                 // Replace StandaloneInputModule with InputSystemUIInputModule if present
                 if (oldModuleType != null && newModuleType != null)
                 {
                     Component oldModule = null;
-                    foreach (var c in (existing as Component).GetComponents<Component>())
-                    {
-                        if (c != null && c.GetType() == oldModuleType)
-                        {
-                            oldModule = c;
-                            break;
-                        }
-                    }
+                    oldModule = (existing as Component).GetComponent(oldModuleType);
                     if (oldModule != null)
                     {
-                        Object.DestroyImmediate(oldModule);
+                        Object.Destroy(oldModule);
                         (existing as Component).gameObject.AddComponent(newModuleType);
                         Debug.Log("[GameManager] StandaloneInputModule → InputSystemUIInputModule 교체");
                     }
@@ -197,7 +190,7 @@ namespace ProjectName.Core
             var tmType = FindTypeInAssemblies("TimeManager");
             if (tmType == null) return;
 
-            var existingTM = FindAnyObjectByType(tmType);
+            var existingTM = FindFirstObjectByType(tmType);
             GameObject go;
 
             if (existingTM == null)
@@ -270,7 +263,7 @@ namespace ProjectName.Core
                 return;
             }
 
-            var existing = FindAnyObjectByType(type);
+            var existing = FindFirstObjectByType(type);
             if (existing != null) return;
 
             var go = new GameObject(shortName);
@@ -289,7 +282,7 @@ namespace ProjectName.Core
 
             if (lmType == null || lsType == null) return;
 
-            var existingLM = FindAnyObjectByType(lmType);
+            var existingLM = FindFirstObjectByType(lmType);
             if (existingLM != null) return;
 
             var go = new GameObject("LoadingScreen");
