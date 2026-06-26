@@ -1,7 +1,7 @@
 using UnityEngine;
-using ProjectName.Core.Data;
+using ProjectName.Core;
 
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     /// <summary>
     /// Consumable system: applies effects of food items when consumed.

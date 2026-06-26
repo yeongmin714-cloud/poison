@@ -41,10 +41,10 @@ namespace ProjectName.Core.Data
                 if (result.HasValue)
                 {
                     var r = result.Value;
-                    Debug.Log($"[CookingTester] {tc.meat} + {tc.herb} -> {r.dishName} (effect: {r.effect})");
-                    if (!r.dishName.Equals(tc.expectedDish))
+                    Debug.Log($"[CookingTester] {tc.meat} + {tc.herb} -> {r.DishName} (effect: {r.Effect})");
+                    if (r.DishName != tc.expectedDish)
                     {
-                        Debug.LogWarning($"[CookingTester] Mismatch: expected {tc.expectedDish}, got {r.dishName}");
+                        Debug.LogWarning($"[CookingTester] Mismatch: expected {tc.expectedDish}, got {r.DishName}");
                     }
                 }
                 else
@@ -57,7 +57,7 @@ namespace ProjectName.Core.Data
             Debug.Log("[CookingTester] Testing reverse lookup (herb + meat) should return null (order matters).");
             var rev = CookingDatabase.GetCooking("회복꽃", "토끼 고기");
             if (rev.HasValue)
-                Debug.Log($"[CookingTester] Reverse lookup gave: {rev.Value.dishName} (unexpected)");
+                Debug.Log($"[CookingTester] Reverse lookup gave: {rev.Value.DishName} (unexpected)");
             else
                 Debug.Log("[CookingTester] Reverse lookup correctly returned null.");
         }

@@ -27,6 +27,9 @@ namespace ProjectName.Core.Data
         private readonly Dictionary<string, TerritoryDefinition> _definitions = new Dictionary<string, TerritoryDefinition>();
         private readonly Dictionary<string, TerritoryState> _states = new Dictionary<string, TerritoryState>();
 
+        // ===== 상수 =====
+        private static readonly string[] _diseasePool = { "심장병", "당뇨", "간질환", "폐질환", "신장병" };
+
         // ===== 영주 이름 배열 (Core 내장 — NamePools 의존 없음) =====
         private static readonly string[] _lordEastNames = {
             "세드릭", "알드릭", "레오나드", "마커스", "펜드릭",
@@ -67,7 +70,7 @@ namespace ProjectName.Core.Data
             if (_definitions.TryGetValue(key, out var def))
                 return def;
             Debug.LogWarning($"[TerritoryDatabase] 정의 없음: {key}");
-            return default;
+            return null;
         }
 
         public TerritoryDefinition GetDefinition(TerritoryId id)
@@ -80,7 +83,7 @@ namespace ProjectName.Core.Data
             if (_definitions.TryGetValue(key, out var def))
                 return def;
             Debug.LogWarning($"[TerritoryDatabase] 정의 없음: {key}");
-            return default;
+            return null;
         }
 
         public IEnumerable<TerritoryDefinition> GetAllDefinitions()
@@ -324,8 +327,8 @@ namespace ProjectName.Core.Data
                 TerritoryDifficulty.Ring2 => rng.Next(4) == 0 ? new[] { "통풍", "관절염", "두통" }[rng.Next(3)] : "",
                 TerritoryDifficulty.Ring3 => new[] { "편두통", "천식", "소화불량", "불면증" }[rng.Next(4)],
                 TerritoryDifficulty.Ring4 => rng.Next(2) == 0
-                    ? new[] { "심장병", "당뇨", "간질환", "폐질환", "신장병" }[rng.Next(5)]
-                    : $"{new[] { "심장병", "당뇨", "간질환", "폐질환", "신장병" }[rng.Next(5)]}, {new[] { "심장병", "당뇨", "간질환", "폐질환", "신장병" }[rng.Next(5)]}",
+                    ? _diseasePool[rng.Next(_diseasePool.Length)]
+                    : $"{_diseasePool[rng.Next(_diseasePool.Length)]}, {_diseasePool[rng.Next(_diseasePool.Length)]}",
                 _ => ""
             };
 

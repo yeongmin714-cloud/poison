@@ -24,7 +24,7 @@ namespace ProjectName.Core
 
         private void Awake()
         {
-            if (Instance != null && Instance != null)
+            if (Instance != null)
             {
                 Destroy(gameObject);
                 return;
@@ -172,7 +172,8 @@ namespace ProjectName.Core
                     stats._moveSpeedBase -= value;
                     break;
                 case "Slowness":
-                    stats._moveSpeedBase -= value;
+                    // Restore speed — ApplyBuff subtracted it
+                    stats._moveSpeedBase += value;
                     break;
                 case "AlchemyBoost":
                     stats._alchemyTempBonus -= value;

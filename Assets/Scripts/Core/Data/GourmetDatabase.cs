@@ -53,7 +53,7 @@ namespace ProjectName.Core.Data
             }
 
             int pos = startIdx + startMarker.Length;
-            string[] lines = content.Substring(pos).Split('\n');
+            string[] lines = content.Substring(pos).Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
 
             var tableRowRegex = new Regex(@"^\s*\|.*\|.*\|.*\|");
             var separatorRegex = new Regex(@":---");

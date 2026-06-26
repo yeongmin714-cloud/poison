@@ -21,7 +21,7 @@ namespace ProjectName.Core.Data
     /// </summary>
     public static class CookingDatabase
     {
-        private static Dictionary<string, CookingResult> _recipes = new Dictionary<string, CookingResult>();
+        private static Dictionary<string, CookingResult> _recipes = new();
         private static bool _initialized = false;
 
         private static void Initialize()
@@ -97,7 +97,7 @@ namespace ProjectName.Core.Data
                     }
 
                     // Split by '|', remove empty first/last
-                    string[] parts = line.Split(new char[] { '|' }, System.StringSplitOptions.RemoveEmptyEntries);
+                    string[] parts = line.Split('|', System.StringSplitOptions.RemoveEmptyEntries);
                     // Expected format: # | 주재료 | 조합 재료 | 요리 명칭 | 주요 효과
                     if (parts.Length >= 5)
                     {

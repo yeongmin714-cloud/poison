@@ -59,10 +59,10 @@ namespace ProjectName.Core.Data
         public const string ID_TERRITORY_INTRO = "territory_intro";
 
         // ================================================================
-        // 전체 가이드 목록
+        // 전체 가이드 목록 (캐시)
         // ================================================================
 
-        public static GuideEntry[] AllGuides => new GuideEntry[]
+        private static readonly GuideEntry[] _allGuides = new GuideEntry[]
         {
             // T4: 야외 조작
             new GuideEntry { id = ID_01_MOVEMENT,     title = "이동하기",      description = "WASD 키로 캐릭터를 이동하세요.", actionTrigger = "최초 WASD 입력" },
@@ -96,11 +96,16 @@ namespace ProjectName.Core.Data
         };
 
         /// <summary>
+        /// 전체 가이드 목록 (캐시된 배열, 읽기 전용 용례 권장)
+        /// </summary>
+        public static GuideEntry[] AllGuides => _allGuides;
+
+        /// <summary>
         /// ID로 GuideEntry 찾기
         /// </summary>
         public static GuideEntry? FindById(string id)
         {
-            foreach (var guide in AllGuides)
+            foreach (var guide in _allGuides)
             {
                 if (guide.id == id)
                     return guide;

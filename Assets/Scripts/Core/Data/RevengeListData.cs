@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using ProjectName.Core.Data;
 
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     /// <summary>
     /// C14-01: 복수명부 엔트리 — 영주별 복수 정보

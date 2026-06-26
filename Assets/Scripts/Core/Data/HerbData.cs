@@ -66,15 +66,13 @@ namespace ProjectName.Core.Data
             int pos = startIdx + startMarker.Length;
             // We'll parse until next "## " (next major section) or end of file.
             // For simplicity, we'll parse lines until we hit a line that starts with "## " and not part of a subsection.
-            string[] lines = content.Substring(pos).Split('\n');
+            string[] lines = content.Substring(pos).Split(new[] { "\r\n", "\n" }, System.StringSplitOptions.None);
 
             HerbAttribute currentAttr = HerbAttribute.Attack; // default
             // Regex to detect subsection lines like "### 1.1 공격성 (🔴 붉은색 계열) — 독살 및 타격"
-            var subsectionRegex = new Regex(@"^###\s*\d+\.\d+\s*(공격성|정신성|회복성|물리性?)\s*".Replace("성?", ""), System.Text.RegularExpressions.RegexOptions.None);
             // Actually Korean: 공격성, 정신성, 회복성, 물리성
             var attrRegex = new Regex(@"(공격성|정신성|회복성|물리성)");
             // Table row pattern: starts with || or | then cells separated by |
-            var rowRegex = new Regex(@"^\s*[|]\s*.+\s*[|]\s*$");
 
             foreach (string line in lines)
             {

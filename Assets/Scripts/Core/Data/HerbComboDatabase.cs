@@ -24,6 +24,10 @@ namespace ProjectName.Core.Data
         private static Dictionary<string, HerbComboResult> _combos = new Dictionary<string, HerbComboResult>();
         private static bool _initialized = false;
 
+        private static readonly Regex SubsectionHeaderRegex = new Regex(@"^###\s*\d+\.\d+\s*");
+        private static readonly Regex TableRowRegex = new Regex(@"^\s*[|]\s*.+\s*[|]\s*$");
+        private static readonly Regex SeparatorRegex = new Regex(@"^\s*[|]\s*:-|:---"); // matches |:-:|:----|:-----| etc.
+
         private static void Initialize()
         {
             if (_initialized) return;
@@ -53,9 +57,6 @@ namespace ProjectName.Core.Data
 
             // We'll parse until the next major section (starts with "## ")
             // Subsections: 2.1 공격성 조합, 2.2 정신성 조합, 2.3 회복성 조합, 2.4 물리성 조합, 2.5 마약 시스템 (we stop before 2.5)
-            var subsectionHeaderRegex = new Regex(@"^###\s*\d+\.\d+\s*");
-            var tableRowRegex = new Regex(@"^\s*[|]\s*.+\s*[|]\s*$");
-            var separatorRegex = new Regex(@"^\s*[|]\s*:-|:---"); // matches |:-:|:----|:-----| etc.
 
             string currentSubsection = "";
             foreach (string lineRaw in lines)
@@ -72,21 +73,21 @@ namespace ProjectName.Core.Data
                 }
 
                 // Detect subsection header
-                if (subsectionHeaderRegex.IsMatch(line))
+                if (SubsectionHeaderRegex.IsMatch(line))
                 {
                     currentSubsection = line;
                     continue;
                 }
 
                 // Skip separator lines
-                if (separatorRegex.IsMatch(line))
+                if (SeparatorRegex.IsMatch(line))
                     continue;
 
                 // Parse table row
-                if (tableRowRegex.IsMatch(line))
+                if (TableRowRegex.IsMatch(line))
                 {
                     // Split by '|', remove empty first/last
-                    string[] parts = line.Split(new char[] { '|' }, System.StringSplitOptions.RemoveEmptyEntries);
+                    string[] parts = line.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
                     // Expected format: 재료1 | 재료2 | 결과물 | 효과
                     if (parts.Length >= 4)
                     {

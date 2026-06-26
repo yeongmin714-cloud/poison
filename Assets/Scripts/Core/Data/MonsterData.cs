@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace ProjectName.Core.Data
@@ -49,7 +51,7 @@ public static class MonsterDataReader
             // Remove leading/trailing ||
             if (line.StartsWith("||")) line = line.Substring(2);
             if (line.EndsWith("||")) line = line.Substring(0, line.Length - 2);
-            var parts = line.Split(new[] { '|' }, System.StringSplitOptions.RemoveEmptyEntries);
+            var parts = line.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
             // Expected: 몬스터 | 획득 재료 | 주요 용도
             if (parts.Length >= 3)
             {
@@ -57,8 +59,8 @@ public static class MonsterDataReader
                 var dropsRaw = parts[1].Trim();
                 var desc = parts[2].Trim();
 
-                var drops = System.Text.RegularExpressions.Regex.Split(dropsRaw, @"[,、]+");
-                var dropList = new System.Collections.Generic.List<string>();
+                var drops = Regex.Split(dropsRaw, @"[,、]+");
+                var dropList = new List<string>();
                 foreach (var d in drops)
                 {
                     var trimmed = d.Trim();
