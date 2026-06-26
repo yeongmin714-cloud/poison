@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     public enum HerbAttribute
     {
@@ -12,13 +12,22 @@ namespace ProjectName.Core
         Physical
     }
 
-    public struct HerbInfo
+    public readonly struct HerbInfo
     {
-        public string id;        // e.g., "A1"
-        public string displayName; // e.g., "쓴풀"
-        public string description;
-        public HerbAttribute attribute;
-        public int index;        // 1-10 within attribute
+        public readonly string id;        // e.g., "A1"
+        public readonly string displayName; // e.g., "쓴풀"
+        public readonly string description;
+        public readonly HerbAttribute attribute;
+        public readonly int index;        // 1-10 within attribute
+
+        public HerbInfo(string id, string displayName, string description, HerbAttribute attribute, int index)
+        {
+            this.id = id;
+            this.displayName = displayName;
+            this.description = description;
+            this.attribute = attribute;
+            this.index = index;
+        }
     }
 
     /// <summary>
@@ -120,14 +129,13 @@ namespace ProjectName.Core
                             }
                         }
                         // Add herb
-                        _herbs.Add(new HerbInfo
-                        {
-                            id = id,
-                            displayName = name,
-                            description = desc,
-                            attribute = currentAttr,
-                            index = index
-                        });
+                        _herbs.Add(new HerbInfo(
+                            id,
+                            name,
+                            desc,
+                            currentAttr,
+                            index
+                        ));
                     }
                 }
             }
@@ -143,7 +151,7 @@ namespace ProjectName.Core
                 if (h.id.Equals(herbId))
                     return h;
             }
-            return new HerbInfo { id = herbId }; // return empty
+            return new HerbInfo(herbId, "", "", default, 0); // return empty
         }
 
         public static IReadOnlyList<HerbInfo> AllHerbs => _herbs;

@@ -1,8 +1,6 @@
-using System.Linq;
 using UnityEngine;
-using ProjectName.Core.Data;
 
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     [AddComponentMenu("")]
     public class ComboTester : MonoBehaviour

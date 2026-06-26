@@ -2,17 +2,17 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace ProjectName.Core
+namespace ProjectName.Core.Data
 {
     /// <summary>
     /// Represents the result of combining two herbs.
     /// </summary>
     public struct HerbComboResult
     {
-        public string resultId;       // Could be used to look up an item (e.g., potion)
-        public string resultName;
-        public string description;
-        public string effect;         // From the "효과" column
+        public string resultId { get; init; }       // Could be used to look up an item (e.g., potion)
+        public string resultName { get; init; }
+        public string description { get; init; }
+        public string effect { get; init; }         // From the "효과" column
     }
 
     /// <summary>
