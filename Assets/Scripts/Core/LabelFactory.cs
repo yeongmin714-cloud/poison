@@ -12,9 +12,16 @@ namespace ProjectName.Core
     {
         /// <summary>
         /// GameObject에 MonsterLevelLabel을 추가하는 팩토리 델리게이트.
-        /// UI 어셈블리에서 등록: LabelFactory.CreateLabel = (go, level) => { ... }
+        /// UI 어셈블리에서 등록: LabelFactory.Register(...)
         /// </summary>
-        public static Action<GameObject, int> CreateLabel { get; set; }
+        public static Action<GameObject, int> CreateLabel { get; private set; }
+
+        /// <summary>팩토리 델리게이트 등록 (최초 1회만 허용)</summary>
+        public static void Register(Action<GameObject, int> factory)
+        {
+            if (CreateLabel == null)
+                CreateLabel = factory;
+        }
 
         /// <summary>테스트용: 팩토리 등록 여부</summary>
         public static bool IsRegistered => CreateLabel != null;

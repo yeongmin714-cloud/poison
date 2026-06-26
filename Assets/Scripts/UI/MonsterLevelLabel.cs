@@ -18,13 +18,13 @@ namespace ProjectName.UI
         {
             if (LabelFactory.CreateLabel == null)
             {
-                LabelFactory.CreateLabel = (go, level) =>
+                LabelFactory.Register((go, level) =>
                 {
                     var label = go.GetComponent<MonsterLevelLabel>();
                     if (label == null)
                         label = go.AddComponent<MonsterLevelLabel>();
                     label.SetLevel(level);
-                };
+                });
             }
         }
         [Header("Label Settings")]
