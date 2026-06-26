@@ -34,27 +34,21 @@ namespace ProjectName.Core.Data
     public struct LevelGroup
     {
         /// <summary>그룹 식별자</summary>
-        [SerializeField]
         public LevelGroupId groupId;
 
         /// <summary>그룹 표시명 (예: "Novice", "Adept")</summary>
-        [SerializeField]
         public string groupName;
 
         /// <summary>그룹 최소 레벨 (inclusive)</summary>
-        [SerializeField]
         public int minLevel;
 
         /// <summary>그룹 최대 레벨 (inclusive)</summary>
-        [SerializeField]
         public int maxLevel;
 
         /// <summary>시각적 변형 접미사 (예: "_tier1", "_tier2")</summary>
-        [SerializeField]
         public string visualSuffix;
 
         /// <summary>Placeholder 틴트 색상 (레벨 그룹별 시각 구분용)</summary>
-        [SerializeField]
         public Color placeholderColor;
 
         /// <summary>

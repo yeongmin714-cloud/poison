@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using ProjectName.Core.Data;
 
 namespace ProjectName.Core
 {
@@ -79,7 +80,7 @@ namespace ProjectName.Core
         // ======================================================================
         // 데이터
         // ======================================================================
-        private List<RevengeListEntry> _entries = new List<RevengeListEntry>();
+        private readonly List<RevengeListEntry> _entries = new List<RevengeListEntry>();
         private bool _initialized = false;
 
         // ======================================================================
@@ -310,9 +311,8 @@ namespace ProjectName.Core
         {
             get
             {
-                int total = _entries.Count(e => e.isPoisonConspirator);
-                if (total == 0) return false;
-                return _entries.Where(e => e.isPoisonConspirator).All(e => e.isRevealed);
+                var conspirators = _entries.Where(e => e.isPoisonConspirator).ToArray();
+                return conspirators.Length > 0 && Array.TrueForAll(conspirators, e => e.isRevealed);
             }
         }
 
