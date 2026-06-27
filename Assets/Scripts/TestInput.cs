@@ -1,7 +1,10 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class TestInput : MonoBehaviour
+namespace ProjectName.Core
 {
-    public InputAction testAction;
+    public class TestInput : MonoBehaviour
+    {
+        public InputAction testAction;
+    }
 }

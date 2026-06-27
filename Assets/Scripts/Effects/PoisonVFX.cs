@@ -1,5 +1,4 @@
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Core.Effects
 {
@@ -9,14 +8,12 @@ namespace ProjectName.Core.Effects
     public class PoisonVFX : MonoBehaviour
     {
         private ParticleSystem _ps;
-        private ParticleSystemRenderer _rend;
         private Material _createdMaterial;
         private float _duration;
 
         private void Awake()
         {
             _ps = GetComponent<ParticleSystem>();
-            _rend = GetComponent<ParticleSystemRenderer>();
             if (_ps == null)
             {
                 Debug.LogError("[PoisonVFX] ParticleSystem component not found.");
@@ -104,6 +101,12 @@ namespace ProjectName.Core.Effects
 
             // Renderer settings — URP Fallback 체인 사용
             Shader shader = FindParticleShader();
+            if (shader == null)
+            {
+                Debug.LogError("[PoisonVFX] No valid particle shader found!");
+                Object.Destroy(go);
+                return null;
+            }
             rend.material = new Material(shader);
             rend.material.name = "PoisonVFX_Mat_Generated";
             rend.renderMode = ParticleSystemRenderMode.Billboard;

@@ -1,8 +1,11 @@
 using UnityEngine;
-public class TestKoreanComment : MonoBehaviour
+namespace ProjectName.Core
 {
-    // 이은 한국어 주석입니다.
-    void Start() {
-        Debug.Log("테스트");
+    public class TestKoreanComment : MonoBehaviour
+    {
+        // 이건 한국어 주석입니다.
+        void Start() {
+            Debug.Log("테스트");
+        }
     }
 }
