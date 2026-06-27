@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -11,6 +10,8 @@ namespace ProjectName.Systems
     /// </summary>
     public class GrassRenderer : MonoBehaviour
     {
+        private const int MaxBatchSize = 1023;
+
         [Header("Meshes")]
         [SerializeField] private Mesh _grassBladeStraight;
         [SerializeField] private Mesh _grassBladeBentLeft;
@@ -18,6 +19,7 @@ namespace ProjectName.Systems
 
         [Header("Material")]
         [SerializeField] private Material _material;
+        private Material _instancedMaterial;
 
         [Header("Wind Animation")]
         [SerializeField, Range(0.5f, 3f)] private float _windSpeed = 1.2f;
@@ -49,13 +51,9 @@ namespace ProjectName.Systems
         {
             public Mesh mesh;
             public List<Matrix4x4> matrices;
-            public MaterialPropertyBlock propertyBlock;
         }
 
         private List<MeshBatch> _batches;
-
-        // Material property block for per-instance color
-        private static readonly int _colorProperty = Shader.PropertyToID("_Color");
 
         // ================================================================
         // Properties (for tests / inspector)
@@ -88,14 +86,18 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// Sets the shared material and enables GPU instancing.
+        /// Sets the shared material and creates an instanced copy for runtime.
         /// </summary>
         public void SetMaterial(Material mat)
         {
             _material = mat;
             if (_material != null)
             {
-                _material.enableInstancing = true;
+                CreateInstancedMaterial();
+            }
+            else
+            {
+                _instancedMaterial = null;
             }
         }
 

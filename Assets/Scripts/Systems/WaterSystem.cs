@@ -3,8 +3,10 @@ using UnityEngine;
 namespace ProjectName.Systems
 {
     /// <summary>
-    /// 물 시스템 — 호수/늪/강의 물 시각 효과 및 인터랙션 관리
-    /// C22-05 구현 완료 (WaterBody, LakeGenerator, WaterMaterialUpgrader 참조)
+    /// 물 시스템 퍼사드 — 호수/늪/강의 물 시각 효과 및 인터랙션 관리.
+    /// C22-05: 런타임 구현은 <see cref="WaterBody"/> 및 <see cref="LakeGenerator"/> 참조.
+    /// 이 클래스는 외부 호출을 위한 정적 API 표면 역할을 하며,
+    /// WaterBody/LakeGenerator 내부에서 직접 처리할 수도 있음.
     /// </summary>
     public static class WaterSystem
     {
@@ -33,7 +35,11 @@ namespace ProjectName.Systems
         /// <param name="character">물에 들어가는 캐릭터 GameObject</param>
         public static void OnEnterWater(GameObject character)
         {
-            if (character == null) return;
+            if (character == null)
+            {
+                Debug.LogError("[WaterSystem] OnEnterWater: character is null!");
+                return;
+            }
             Debug.Log($"[WaterSystem] OnEnterWater: {character.name}");
         }
 
@@ -44,7 +50,11 @@ namespace ProjectName.Systems
         /// <param name="character">물에서 나오는 캐릭터 GameObject</param>
         public static void OnExitWater(GameObject character)
         {
-            if (character == null) return;
+            if (character == null)
+            {
+                Debug.LogError("[WaterSystem] OnExitWater: character is null!");
+                return;
+            }
             Debug.Log($"[WaterSystem] OnExitWater: {character.name}");
         }
     }

@@ -78,6 +78,12 @@ namespace ProjectName.Systems
         /// </summary>
         public void SpawnGateGuards()
         {
+            // 기존 스폰된 오브젝트 정리 (메모리 누수 방지)
+            foreach (var guard in _spawnedGuards)
+            {
+                if (guard != null)
+                    Destroy(guard.gameObject);
+            }
             _spawnedGuards.Clear();
 
             int count = Mathf.Clamp(_guardCount, 2, 5);

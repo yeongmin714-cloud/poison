@@ -1,5 +1,4 @@
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -36,6 +35,9 @@ namespace ProjectName.Systems
         private ParticleSystem _snowSystem;
         private GameObject _rainGo;
         private GameObject _snowGo;
+        private Material _weatherMaterial;
+        private Texture2D _rainTexture;
+        private Texture2D _snowTexture;
         private bool _initialized;
 
         // ================================================================
@@ -141,9 +143,11 @@ namespace ProjectName.Systems
             var renderer = _rainSystem.GetComponent<ParticleSystemRenderer>();
             renderer.renderMode = ParticleSystemRenderMode.Stretch;
             renderer.lengthScale = 2f;
-            renderer.material = CreateWeatherParticleMaterial();
+            _weatherMaterial ??= CreateWeatherParticleMaterial();
+            renderer.material = _weatherMaterial;
             // Assign procedural texture AFTER material is set (not before, or it gets discarded)
-            renderer.material.mainTexture = CreateProceduralParticleTexture(8, 8, new Color(0.7f, 0.8f, 1f, 0.7f));
+            _rainTexture ??= CreateProceduralParticleTexture(8, 8, new Color(0.7f, 0.8f, 1f, 0.7f));
+            renderer.material.mainTexture = _rainTexture;
         }
 
         private void ConfigureSnowParticles()
@@ -171,14 +175,16 @@ namespace ProjectName.Systems
             velocity.enabled = true;
             velocity.x = new ParticleSystem.MinMaxCurve(-_snowSwayAmount, _snowSwayAmount);
             velocity.z = new ParticleSystem.MinMaxCurve(-_snowSwayAmount, _snowSwayAmount);
-            velocity.space = ParticleSystemSimulationSpace.Local;
+            velocity.space = ParticleSystemSimulationSpace.World;
 
             // Renderer
             var renderer = _snowSystem.GetComponent<ParticleSystemRenderer>();
             renderer.renderMode = ParticleSystemRenderMode.Billboard;
-            renderer.material = CreateWeatherParticleMaterial();
+            _weatherMaterial ??= CreateWeatherParticleMaterial();
+            renderer.material = _weatherMaterial;
             // Assign procedural texture AFTER material is set (not before, or it gets discarded)
-            renderer.material.mainTexture = CreateProceduralParticleTexture(8, 8, Color.white);
+            _snowTexture ??= CreateProceduralParticleTexture(8, 8, Color.white);
+            renderer.material.mainTexture = _snowTexture;
         }
 
         // ================================================================
@@ -189,6 +195,7 @@ namespace ProjectName.Systems
         {
             var tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
             tex.name = "ProceduralParticle_" + color.r + "_" + color.g + "_" + color.b;
+            tex.hideFlags = HideFlags.HideAndDontSave;
 
             float cx = width * 0.5f;
             float cy = height * 0.5f;
@@ -288,6 +295,34 @@ namespace ProjectName.Systems
                     DestroyImmediate(_snowGo);
                 _snowGo = null;
                 _snowSystem = null;
+            }
+
+            // Destroy cached runtime assets
+            if (_weatherMaterial != null)
+            {
+                if (Application.isPlaying)
+                    Destroy(_weatherMaterial);
+                else
+                    DestroyImmediate(_weatherMaterial);
+                _weatherMaterial = null;
+            }
+
+            if (_rainTexture != null)
+            {
+                if (Application.isPlaying)
+                    Destroy(_rainTexture);
+                else
+                    DestroyImmediate(_rainTexture);
+                _rainTexture = null;
+            }
+
+            if (_snowTexture != null)
+            {
+                if (Application.isPlaying)
+                    Destroy(_snowTexture);
+                else
+                    DestroyImmediate(_snowTexture);
+                _snowTexture = null;
             }
         }
 

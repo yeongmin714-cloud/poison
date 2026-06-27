@@ -1,8 +1,7 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using ProjectName.Core;
-using ProjectName.Core.Data;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -84,14 +83,34 @@ namespace ProjectName.Systems
         private static GUIStyle _historyTitleStyle;
         private static GUIStyle _historyEntryStyle;
 
+        // 캐시된 읽기 전용 래퍼 (GC Alloc 방지)
+        private static ReadOnlyCollection<NotificationEntry> _activeNotificationsReadOnly;
+        private static ReadOnlyCollection<NotificationEntry> _historyReadOnly;
+
         /// <summary>UI 표시 활성화 여부</summary>
         public static bool IsVisible { get; set; } = true;
 
-        /// <summary>현재 표시 중인 알림 목록 (읽기 전용 복사본)</summary>
-        public static IReadOnlyList<NotificationEntry> ActiveNotifications => _activeNotifications.AsReadOnly();
+        /// <summary>현재 표시 중인 알림 목록 (읽기 전용)</summary>
+        public static IReadOnlyList<NotificationEntry> ActiveNotifications
+        {
+            get
+            {
+                if (_activeNotificationsReadOnly == null || _activeNotificationsReadOnly.Count != _activeNotifications.Count)
+                    _activeNotificationsReadOnly = _activeNotifications.AsReadOnly();
+                return _activeNotificationsReadOnly;
+            }
+        }
 
-        /// <summary>전체 이력 목록 (읽기 전용 복사본)</summary>
-        public static IReadOnlyList<NotificationEntry> History => _history.AsReadOnly();
+        /// <summary>전체 이력 목록 (읽기 전용)</summary>
+        public static IReadOnlyList<NotificationEntry> History
+        {
+            get
+            {
+                if (_historyReadOnly == null || _historyReadOnly.Count != _history.Count)
+                    _historyReadOnly = _history.AsReadOnly();
+                return _historyReadOnly;
+            }
+        }
 
         // ===== 메인 퍼블릭 메서드 =====
 
@@ -144,6 +163,7 @@ namespace ProjectName.Systems
         public static void ClearAll()
         {
             _activeNotifications.Clear();
+            _activeNotificationsReadOnly = null;
         }
 
         /// <summary>
@@ -151,8 +171,9 @@ namespace ProjectName.Systems
         /// </summary>
         public static void ClearHistory()
         {
-            _activeNotifications.Clear();
             _history.Clear();
+            // 캐시된 래퍼 무효화
+            _historyReadOnly = null;
         }
 
         /// <summary>
@@ -368,6 +389,8 @@ namespace ProjectName.Systems
             _showHistory = false;
             IsVisible = true;
             _historyScrollPosition = Vector2.zero;
+            _activeNotificationsReadOnly = null;
+            _historyReadOnly = null;
         }
     }
 }

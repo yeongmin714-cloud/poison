@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using ProjectName.Core;
 using UnityEngine;
-using ProjectName.Core.Data;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -98,10 +96,21 @@ namespace ProjectName.Systems
             return true;
         }
 
-        /// <summary>해당 영지 창고 아이템 목록 조회 (방어적 복사)</summary>
+        /// <summary>해당 영지 창고 아이템 목록 조회 (방어적 복사 — 슬롯 단위 딥카피)</summary>
         public List<PlayerInventory.ItemSlot> GetItems(string territoryId)
         {
-            return new List<PlayerInventory.ItemSlot>(GetOrCreateWarehouse(territoryId));
+            var source = GetOrCreateWarehouse(territoryId);
+            var copy = new List<PlayerInventory.ItemSlot>(source.Count);
+            foreach (var slot in source)
+            {
+                copy.Add(new PlayerInventory.ItemSlot
+                {
+                    item = slot.item,
+                    count = slot.count,
+                    currentDurability = slot.currentDurability
+                });
+            }
+            return copy;
         }
 
         /// <summary>총 아이템 종류 수</summary>

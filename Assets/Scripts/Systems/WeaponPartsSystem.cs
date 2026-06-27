@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -97,8 +96,10 @@ namespace ProjectName.Systems
             {
                 if (!PlayerInventory.Instance.RemoveItem(item.id, 1))
                 {
-                    // 롤백: guard에 설정한 장비 제거
+                    // 롤백: guard에 설정한 장비 제거 + 인벤토리에 추가된 기존 장비 제거 (중복 방지)
                     SetEquippedItem(guard, slot, existingItem);
+                    if (existingItem != null)
+                        PlayerInventory.Instance.RemoveItem(existingItem.id, 1);
                     return new EquipResult { success = false, message = "인벤토리에서 아이템을 제거할 수 없습니다." };
                 }
             }

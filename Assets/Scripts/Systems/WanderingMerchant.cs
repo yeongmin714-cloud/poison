@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 using ProjectName.Core;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -151,7 +150,15 @@ namespace ProjectName.Systems
                 return false;
             }
 
-            bool added = PlayerInventory.Instance.AddItem(itemData, count);
+            var inventory = PlayerInventory.Instance;
+            if (inventory == null)
+            {
+                Debug.LogError("[WanderingMerchant] PlayerInventory.Instance is null! 환불 처리.");
+                PlayerStats.Instance.AddGold(totalPrice);
+                return false;
+            }
+
+            bool added = inventory.AddItem(itemData, count);
             if (!added)
             {
                 PlayerStats.Instance.AddGold(totalPrice); // 환불

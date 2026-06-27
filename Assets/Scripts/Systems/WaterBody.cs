@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -31,7 +30,6 @@ namespace ProjectName.Systems
         private MeshRenderer _surfaceRenderer;
         private Material _surfaceMaterial;
         private GameObject _collisionVolume;
-        private float _baseY;
 
         // FIX: Cache Rigidbody and its entry speed on trigger enter to avoid:
         //    1) Per-frame GetComponent<Rigidbody> calls (performance)
@@ -46,6 +44,9 @@ namespace ProjectName.Systems
 
         /// <summary>Public accessor for the current surface Material (for testing).</summary>
         public Material SurfaceMaterial => _surfaceMaterial;
+
+        /// <summary>Public accessor for the MeshRenderer on the water surface (for testing).</summary>
+        public MeshRenderer SurfaceRenderer => _surfaceRenderer;
 
         /// <summary>Radius of this water body.</summary>
         public float Radius => _radius;
@@ -99,7 +100,7 @@ namespace ProjectName.Systems
             _waterSurface.transform.localScale = new Vector3(scale, scale, scale);
 
             // Remove the default collider from the visual plane — we'll add our own
-            Destroy(_waterSurface.GetComponent<MeshCollider>());
+            DestroyImmediate(_waterSurface.GetComponent<MeshCollider>());
 
             // --- Create semi-transparent URP Lit material ---
             _surfaceRenderer = _waterSurface.GetComponent<MeshRenderer>();
@@ -141,9 +142,8 @@ namespace ProjectName.Systems
             // Set tag for detection
             _collisionVolume.tag = "Water";
 
-            // --- Store base Y for wave animation ---
-            _baseY = _surfaceY;
-            transform.position = new Vector3(transform.position.x, _baseY, transform.position.z);
+            // --- Position at surface Y ---
+            transform.position = new Vector3(transform.position.x, _surfaceY, transform.position.z);
         }
 
         private void Update()

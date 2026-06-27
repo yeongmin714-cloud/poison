@@ -1,6 +1,6 @@
 using System.Collections;
 using UnityEngine;
-#pragma warning disable 0414
+using UnityEngine.UI;
 
 namespace ProjectName.Systems
 {
@@ -36,9 +36,7 @@ namespace ProjectName.Systems
         [SerializeField] private float _defaultDuration = 0.3f;
         [SerializeField] private Color _fadeColor = Color.black;
 
-        private Canvas _canvas;
         private CanvasGroup _canvasGroup;
-        private RectTransform _overlayRect;
         private Coroutine _activeFadeRoutine;
 
         /// <summary>현재 페이드 진행 중인지 여부</summary>
@@ -83,9 +81,9 @@ namespace ProjectName.Systems
             GameObject canvasGo = new GameObject("FadeCanvas");
             canvasGo.transform.SetParent(transform);
 
-            _canvas = canvasGo.AddComponent<Canvas>();
-            _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            _canvas.sortingOrder = 9999; // 최상단 표시
+            var canvas = canvasGo.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 9999; // 최상단 표시
 
             // CanvasGroup
             _canvasGroup = canvasGo.AddComponent<CanvasGroup>();
@@ -97,13 +95,13 @@ namespace ProjectName.Systems
             GameObject overlayGo = new GameObject("FadeOverlay");
             overlayGo.transform.SetParent(canvasGo.transform);
 
-            _overlayRect = overlayGo.AddComponent<RectTransform>();
-            _overlayRect.anchorMin = Vector2.zero;
-            _overlayRect.anchorMax = Vector2.one;
-            _overlayRect.offsetMin = Vector2.zero;
-            _overlayRect.offsetMax = Vector2.zero;
+            var overlayRect = overlayGo.AddComponent<RectTransform>();
+            overlayRect.anchorMin = Vector2.zero;
+            overlayRect.anchorMax = Vector2.one;
+            overlayRect.offsetMin = Vector2.zero;
+            overlayRect.offsetMax = Vector2.zero;
 
-            var image = overlayGo.AddComponent<UnityEngine.UI.Image>();
+            var image = overlayGo.AddComponent<Image>();
             image.color = _fadeColor;
             image.raycastTarget = false;
         }

@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -171,8 +170,6 @@ namespace ProjectName.Systems
             // Resolve directional light if not set
             if (_directionalLight == null)
             {
-                _directionalLight = FindAnyObjectByType<Light>();
-                // Try to find a light tagged as directional
                 var lights = FindObjectsByType<Light>();
                 foreach (var l in lights)
                 {
@@ -259,7 +256,6 @@ namespace ProjectName.Systems
         /// <summary>Force a specific weather type, skipping the timer.</summary>
         public void SetWeather(WeatherType weather)
         {
-            _previousWeather = _currentWeather;
             CurrentWeather = weather;
             _weatherTimer = GetRandomDuration(weather);
         }
@@ -334,10 +330,7 @@ namespace ProjectName.Systems
             _previousLightIntensity = _hasDirectionalLight
                 ? _directionalLight.intensity
                 : 0f;
-            if (_windZone != null)
-            {
-                _previousWeather = _currentWeather;
-            }
+            _previousWeather = _currentWeather;
 
             _currentWeather = next;
             _weatherTimer = GetRandomDuration(next);

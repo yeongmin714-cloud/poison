@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -62,9 +61,8 @@ namespace ProjectName.Systems
 
             // Depth-based color: blend between shallow and deep
             Color waterColor = Color.Lerp(DeepColor, ShallowColor, Mathf.Clamp01(shallowWeight));
-            mat.color = waterColor;
-            if (mat.HasProperty("_BaseColor"))
-                mat.SetColor("_BaseColor", waterColor);
+            // URP Lit uses _BaseColor; also set legacy _Color for fallback shaders
+            mat.SetColor("_BaseColor", waterColor);
             if (mat.HasProperty("_Color"))
                 mat.SetColor("_Color", waterColor);
 
@@ -78,19 +76,15 @@ namespace ProjectName.Systems
             mat.EnableKeyword("_REFLECTION_PROBE_BLENDING");
             mat.EnableKeyword("_REFLECTION_PROBE_BOX_PROJECTION");
 
-            // Transparent surface type (URP Lit manages blend state internally via _BlendMode)
+            // Transparent surface type (URP Lit manages blend state internally via _Blend)
             mat.SetFloat("_Surface", 1f);
-            mat.SetFloat("_BlendMode", 0f);
+            mat.SetFloat("_Blend", 0f);         // 0 = Alpha blending
+            mat.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+            mat.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
             mat.SetFloat("_ZWrite", 0f);
             mat.SetFloat("_AlphaClip", 0f);
             mat.renderQueue = TransparentQueue;
             mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            mat.EnableKeyword("_BLENDMODE_ALPHA");
-
-            // Set alpha in color to ensure transparency
-            Color finalColor = mat.color;
-            finalColor.a = waterColor.a;
-            mat.color = finalColor;
 
             return mat;
         }
@@ -126,18 +120,19 @@ namespace ProjectName.Systems
             }
 
             mat.name = string.IsNullOrEmpty(materialName) ? "Simple_Water_Mat" : materialName;
-            mat.color = color;
-            if (mat.HasProperty("_BaseColor"))
-                mat.SetColor("_BaseColor", color);
+            mat.SetColor("_BaseColor", color);
+            if (mat.HasProperty("_Color"))
+                mat.SetColor("_Color", color);
 
-            // Simple transparent setup without reflection keywords (URP Lit manages blend state via _BlendMode)
+            // Simple transparent setup without reflection keywords (URP Lit manages blend state via _Blend)
             mat.SetFloat("_Surface", 1f);
-            mat.SetFloat("_BlendMode", 0f);
+            mat.SetFloat("_Blend", 0f);         // 0 = Alpha blending
+            mat.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+            mat.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
             mat.SetFloat("_ZWrite", 0f);
             mat.SetFloat("_AlphaClip", 0f);
             mat.renderQueue = TransparentQueue;
             mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            mat.EnableKeyword("_BLENDMODE_ALPHA");
 
             // Disable reflection probe keywords
             mat.DisableKeyword("_REFLECTION_PROBE_BLENDING");
@@ -177,14 +172,20 @@ namespace ProjectName.Systems
         /// Applies a subtle vertex color normal-map effect to a mesh by varying
         /// vertex colors with a slight blue-green tint offset. This creates a
         /// perceived normal variation on URP Lit surfaces that use vertex colors.
+        /// Operates on a copy of the mesh to avoid mutating the source asset.
         /// </summary>
-        /// <param name="mesh">The mesh to modify.</param>
+        /// <param name="mesh">The mesh to modify. Must be readable (isReadable = true).</param>
         /// <param name="offsetMagnitude">Magnitude of the color offset (default 0.05).</param>
-        public static void ApplyVertexColorNormalEffect(Mesh mesh, float offsetMagnitude = 0.05f)
+        /// <returns>The modified mesh copy, or null if the mesh is null/not readable.</returns>
+        public static Mesh ApplyVertexColorNormalEffect(Mesh mesh, float offsetMagnitude = 0.05f)
         {
-            if (mesh == null) return;
+            if (mesh == null) return null;
+            if (!mesh.isReadable) return null;
 
-            Vector3[] vertices = mesh.vertices;
+            // Create a writable copy to avoid modifying the source asset
+            Mesh writableMesh = InstantiateMesh(mesh);
+
+            Vector3[] vertices = writableMesh.vertices;
             Color[] colors = new Color[vertices.Length];
 
             for (int i = 0; i < vertices.Length; i++)
@@ -202,7 +203,31 @@ namespace ProjectName.Systems
                 );
             }
 
-            mesh.colors = colors;
+            writableMesh.colors = colors;
+            writableMesh.UploadMeshData(false);
+            return writableMesh;
+        }
+
+        /// <summary>
+        /// Creates a writable copy of a mesh.
+        /// </summary>
+        private static Mesh InstantiateMesh(Mesh source)
+        {
+            Mesh clone = new Mesh();
+            clone.name = source.name + " (WaterColorFX)";
+            clone.vertices = source.vertices;
+            clone.triangles = source.triangles;
+            clone.normals = source.normals;
+            clone.uv = source.uv;
+            clone.tangents = source.tangents;
+            clone.bindposes = source.bindposes;
+            clone.boneWeights = source.boneWeights;
+            clone.colors = source.colors;
+            clone.subMeshCount = source.subMeshCount;
+            for (int i = 0; i < source.subMeshCount; i++)
+                clone.SetTriangles(source.GetTriangles(i), i);
+            clone.RecalculateBounds();
+            return clone;
         }
 
         /// <summary>
