@@ -1,7 +1,5 @@
 using UnityEngine;
-using ProjectName.Core;
 using ProjectName.Systems;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -48,9 +46,10 @@ namespace ProjectName.UI
         private void Update()
         {
             if (_player == null) return;
+            if (Time.timeScale == 0) return;  // 메뉴/일시정지 시 상호작용 방지
 
-            float dist = Vector3.Distance(transform.position, _player.position);
-            _isPlayerNearby = dist <= _interactRange;
+            float distSqr = (_player.position - transform.position).sqrMagnitude;
+            _isPlayerNearby = distSqr <= _interactRange * _interactRange;
 
             // E 키로 크래프트 UI 열기
             if (_isPlayerNearby && Input.GetKeyDown(KeyCode.E))

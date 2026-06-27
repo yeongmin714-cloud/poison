@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.Core.Data;
@@ -40,6 +41,9 @@ namespace ProjectName.UI
         private GUIStyle _inventoryLabelStyle;
         private bool _stylesInitialized;
 
+        // 추적: MakeTexture로 생성한 Texture2D (메모리 누수 방지)
+        private readonly List<Texture2D> _createdTextures = new List<Texture2D>();
+
         protected override void OnShow()
         {
             base.OnShow();
@@ -69,6 +73,9 @@ namespace ProjectName.UI
         private void InitializeStyles()
         {
             if (_stylesInitialized) return;
+
+            // 이전 텍스처 정리 (메모리 누수 방지)
+            DestroyCreatedTextures();
 
             _titleStyle = new GUIStyle(GUI.skin.label)
             {
@@ -123,10 +130,27 @@ namespace ProjectName.UI
                 for (int y = 0; y < h; y++)
                     tex.SetPixel(x, y, color);
             tex.Apply();
+            _createdTextures.Add(tex); // 추적: 메모리 누수 방지
             return tex;
         }
 
-        private void OnGUI()
+        /// <summary>MakeTexture로 생성한 모든 Texture2D를 파괴합니다.</summary>
+        private void DestroyCreatedTextures()
+        {
+            foreach (var tex in _createdTextures)
+            {
+                if (tex != null)
+                {
+                    if (Application.isPlaying)
+                        Destroy(tex);
+                    else
+                        DestroyImmediate(tex);
+                }
+            }
+            _createdTextures.Clear();
+        }
+
+        protected override void OnGUI()
         {
             if (!_isOpen) return;
 

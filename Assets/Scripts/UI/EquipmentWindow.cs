@@ -34,6 +34,7 @@ namespace ProjectName.UI
         private static readonly Color ColorSlotBg = new Color(0.22f, 0.17f, 0.14f, 0.9f);
         private static readonly Color ColorSlotHover = new Color(0.35f, 0.25f, 0.18f, 0.9f);
         private static readonly Color ColorSlotEmpty = new Color(0.15f, 0.12f, 0.10f, 0.7f);
+        private static readonly Color ColorSlotSelected = new Color(0.40f, 0.28f, 0.20f, 1f);
         private static readonly Color ColorTextPrimary = new Color(0.92f, 0.88f, 0.80f, 1f);
         private static readonly Color ColorTextSecondary = new Color(0.70f, 0.65f, 0.60f, 1f);
         private static readonly Color ColorTextDim = new Color(0.50f, 0.45f, 0.40f, 1f);
@@ -51,7 +52,6 @@ namespace ProjectName.UI
         private GUIStyle _stylePanelBox;
         private GUIStyle _styleDurabilityLabel; // C01: 캐시된 내구도 레이블 스타일 (매 프레임 new GUIStyle 방지)
         private bool _stylesInitialized;
-        private static readonly Color ColorSlotSelected = new Color(0.40f, 0.28f, 0.20f, 1f); // C05: 메서드 → static readonly
 
         // ===== 슬롯 정의 (표시 순서) =====
         private struct SlotDef
@@ -61,7 +61,7 @@ namespace ProjectName.UI
             public EquipmentManager.EquipmentSlot slot;
         }
 
-        private SlotDef[] _slotDefs = new SlotDef[]
+        private static readonly SlotDef[] _slotDefs = new SlotDef[]
         {
             new SlotDef { icon = "🪖", label = "헬멧", slot = EquipmentManager.EquipmentSlot.Helmet },
             new SlotDef { icon = "👕", label = "갑옷", slot = EquipmentManager.EquipmentSlot.Armor },
@@ -191,8 +191,9 @@ namespace ProjectName.UI
         }
 
         // ===== OnGUI — IMGUI 렌더링 =====
-        private void OnGUI()
+        protected override void OnGUI()
         {
+            base.OnGUI();
             if (!IsOpen) return;
             if (Event.current == null) return; // C02: NRE 방지
 
@@ -352,11 +353,15 @@ namespace ProjectName.UI
         // ===== 하단 버튼 영역 =====
         private void DrawBottomButtons(float panelX, float buttonY)
         {
-            float centerX = panelX + (WINDOW_WIDTH - 240) / 2;
+            float btnWidth = 248f;
+            float btnHeight = 45f;
+            float gap = 16f;
+            float totalWidth = btnWidth * 2 + gap;
+            float leftX = panelX + (WINDOW_WIDTH - totalWidth) / 2;
 
             // 장비 해제 버튼 (선택된 슬롯이 있을 때)
             GUI.enabled = _hasSelection && _equipmentManager != null;
-            if (GUI.Button(new Rect(centerX, buttonY + 4, 248, 45), "🔓 장비 해제", _styleButton))
+            if (GUI.Button(new Rect(leftX, buttonY + 4, btnWidth, btnHeight), "🔓 장비 해제", _styleButton))
             {
                 if (_equipmentManager != null)
                 {
@@ -370,7 +375,7 @@ namespace ProjectName.UI
             }
 
             // 아이템 정보 버튼
-            if (GUI.Button(new Rect(centerX + 120, buttonY + 4, 248, 45), "ℹ️ 아이템 정보", _styleButton))
+            if (GUI.Button(new Rect(leftX + btnWidth + gap, buttonY + 4, btnWidth, btnHeight), "ℹ️ 아이템 정보", _styleButton))
             {
                 if (_hasSelection && _equipmentManager != null)
                 {

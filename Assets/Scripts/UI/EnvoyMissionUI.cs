@@ -4,7 +4,7 @@ using ProjectName.Core.Data;
 using ProjectName.Systems;
 using UnityEngine;
 using ProjectName.UI.Themes;
-#pragma warning disable 0414
+#pragma warning disable 0414 // envoyer fields - all assigned for lifecycle clarity
 
 namespace ProjectName.UI
 {
@@ -33,6 +33,9 @@ namespace ProjectName.UI
         private UIStep _currentStep = UIStep.SelectEnvoy;
         private Vector2 _scrollPos;
 
+        // ===== 캐시 =====
+        private GameObject _playerCache;
+
         // ===== 선택 데이터 =====
         private GuardPlaceholder _selectedEnvoy;
         private EnvoySystem.EnvoyMission _selectedMission;
@@ -53,6 +56,7 @@ namespace ProjectName.UI
         private const float PANEL_WIDTH = 520f;
         private const float PANEL_HEIGHT = 540f;
         private const float LIST_ITEM_HEIGHT = 36f;
+        private const float TERRITORY_SEARCH_RADIUS = 100f;
 
         private UIDesignTheme _theme;
 
@@ -65,6 +69,7 @@ namespace ProjectName.UI
             }
             Instance = this;
             _theme = Phase33_Themes.EnvoyTheme();
+            _playerCache = GameObject.FindGameObjectWithTag("Player");
         }
 
         private void Update()
@@ -72,7 +77,10 @@ namespace ProjectName.UI
             // E키로 열기/닫기 토글 (영지 내에서만)
             if (Input.GetKeyDown(_openKey))
             {
-                var player = GameObject.FindGameObjectWithTag("Player");
+                // 캐시된 플레이어 갱신 (비활성화 시 재탐색)
+                if (_playerCache == null || !_playerCache.activeInHierarchy)
+                    _playerCache = GameObject.FindGameObjectWithTag("Player");
+                var player = _playerCache;
                 if (player == null) return;
 
                 // 현재 영역(territory) 확인
@@ -542,8 +550,7 @@ namespace ProjectName.UI
         {
             // Phase 4.2: PoisonTakeoverSystem 또는 CookingSystem에 독 조합 확인 로직 연동
             // 현재는 간단히 false 반환 (향후 확장)
-            // Phase 4.2 integration - currently disabled
-            if (false) { }
+            // TODO: Phase 4.2 integration — call CookingSystem.IsPoisoned(itemId)
             return false;
         }
 
@@ -588,7 +595,7 @@ namespace ProjectName.UI
             // TerritoryManager에 없으면 가장 가까운 영지 찾기
             if (TerritoryDatabase.Instance == null) return null;
 
-            float nearestDist = _interactRange;
+            float nearestDist = TERRITORY_SEARCH_RADIUS;
             TerritoryId? nearest = null;
 
             foreach (var def in TerritoryDatabase.Instance.GetAllDefinitions())
@@ -633,7 +640,7 @@ namespace ProjectName.UI
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 64,
+                fontSize = 16,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.white },
                 alignment = TextAnchor.MiddleLeft
@@ -641,14 +648,14 @@ namespace ProjectName.UI
 
             _styleLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 52,
+                fontSize = 14,
                 normal = { textColor = Color.white },
                 alignment = TextAnchor.MiddleLeft
             };
 
             _styleValue = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 48,
+                fontSize = 13,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.yellow },
                 alignment = TextAnchor.MiddleLeft
@@ -656,7 +663,7 @@ namespace ProjectName.UI
 
             _styleWarning = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 52,
+                fontSize = 14,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.red },
                 alignment = TextAnchor.MiddleLeft

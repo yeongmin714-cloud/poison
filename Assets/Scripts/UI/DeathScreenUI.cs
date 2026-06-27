@@ -1,7 +1,6 @@
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -43,11 +42,20 @@ namespace ProjectName.UI
                 Time.timeScale = 1f;
             }
 
-            // 텍스처 정리
+            // 텍스처 정리 (OnGUI 스타일에서 생성한 텍스처)
             if (_overlayTex != null)
             {
                 Destroy(_overlayTex);
                 _overlayTex = null;
+            }
+
+            // 버튼 hover/active 텍스처 정리 (UIStyleManager.MakeTexture로 생성됨)
+            if (_buttonStyle != null)
+            {
+                if (_buttonStyle.hover.background != null)
+                    Destroy(_buttonStyle.hover.background);
+                if (_buttonStyle.active.background != null)
+                    Destroy(_buttonStyle.active.background);
             }
         }
 

@@ -33,7 +33,6 @@ namespace ProjectName.UI
         private bool _hasResult = false;
         private Vector2 _meatScrollPos;
         private Vector2 _herbScrollPos;
-        private int _gridColumns = 4;
 
         // ── 스타일 ──
         private GUIStyle _titleStyle;
@@ -94,14 +93,14 @@ namespace ProjectName.UI
             {
                 fontSize = 48,
                 alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = Color.white, background = MakeTexture(1, 1, new Color(0.2f, 0.2f, 0.25f, 0.9f)) }
+                normal = { textColor = Color.white, background = UIStyleManager.MakeTexture(1, 1, new Color(0.2f, 0.2f, 0.25f, 0.9f)) }
             };
 
             _resultStyle = new GUIStyle(GUI.skin.box)
             {
                 fontSize = 52,
                 alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = new Color(0.7f, 1f, 0.7f), background = MakeTexture(1, 1, new Color(0.1f, 0.25f, 0.1f, 0.8f)) }
+                normal = { textColor = new Color(0.7f, 1f, 0.7f), background = UIStyleManager.MakeTexture(1, 1, new Color(0.1f, 0.25f, 0.1f, 0.8f)) }
             };
 
             _categoryHeaderStyle = new GUIStyle(GUI.skin.label)
@@ -116,7 +115,7 @@ namespace ProjectName.UI
             {
                 fontSize = 52,
                 alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = new Color(1f, 0.6f, 0.4f), background = MakeTexture(1, 1, new Color(0.25f, 0.1f, 0.1f, 0.8f)) }
+                normal = { textColor = new Color(1f, 0.6f, 0.4f), background = UIStyleManager.MakeTexture(1, 1, new Color(0.25f, 0.1f, 0.1f, 0.8f)) }
             };
 
             // 인벤토리 푸드 슬롯 라벨 스타일 (캐싱)
@@ -128,26 +127,16 @@ namespace ProjectName.UI
             };
 
             // ── 재료 슬롯 배경 텍스처 캐싱 ──
-            _meatSlotBg = MakeTexture(1, 1, new Color(Color.green.r * 0.3f, Color.green.g * 0.3f, Color.green.b * 0.3f, 0.7f));
-            _herbSlotBg = MakeTexture(1, 1, new Color(Color.cyan.r * 0.3f, Color.cyan.g * 0.3f, Color.cyan.b * 0.3f, 0.7f));
+            _meatSlotBg = UIStyleManager.MakeTexture(1, 1, new Color(Color.green.r * 0.3f, Color.green.g * 0.3f, Color.green.b * 0.3f, 0.7f));
+            _herbSlotBg = UIStyleManager.MakeTexture(1, 1, new Color(Color.cyan.r * 0.3f, Color.cyan.g * 0.3f, Color.cyan.b * 0.3f, 0.7f));
 
             // ── 인벤토리 슬롯 배경 텍스처 캐싱 ──
-            _meatFoodBg = MakeTexture(1, 1, new Color(0.5f, 0.25f, 0.1f, 0.8f));
-            _herbFoodBg = MakeTexture(1, 1, new Color(0.15f, 0.4f, 0.15f, 0.8f));
-            _meatFoodSelectedBg = MakeTexture(1, 1, new Color(0.6f, 0.4f, 0.2f, 0.9f));
-            _herbFoodSelectedBg = MakeTexture(1, 1, new Color(0.3f, 0.6f, 0.3f, 0.9f));
+            _meatFoodBg = UIStyleManager.MakeTexture(1, 1, new Color(0.5f, 0.25f, 0.1f, 0.8f));
+            _herbFoodBg = UIStyleManager.MakeTexture(1, 1, new Color(0.15f, 0.4f, 0.15f, 0.8f));
+            _meatFoodSelectedBg = UIStyleManager.MakeTexture(1, 1, new Color(0.6f, 0.4f, 0.2f, 0.9f));
+            _herbFoodSelectedBg = UIStyleManager.MakeTexture(1, 1, new Color(0.3f, 0.6f, 0.3f, 0.9f));
 
             _stylesInitialized = true;
-        }
-
-        private static Texture2D MakeTexture(int w, int h, Color color)
-        {
-            var tex = new Texture2D(w, h);
-            for (int x = 0; x < w; x++)
-                for (int y = 0; y < h; y++)
-                    tex.SetPixel(x, y, color);
-            tex.Apply();
-            return tex;
         }
 
         private void OnGUI()
@@ -156,12 +145,12 @@ namespace ProjectName.UI
 
             // G3-05: 통일 스타일 — 딤드 오버레이 + 배경 + 타이틀 + 닫기 버튼
             UIStyleManager.DrawDimOverlay();
-            float _winX = (Screen.width - _windowWidth) / 2f;
-            float _winY = (Screen.height - _windowHeight) / 2f;
-            Rect _winRect = new Rect(_winX, _winY, _windowWidth, _windowHeight);
-            UIStyleManager.DrawWindowBackground(_winRect);
-            UIStyleManager.DrawTitle(_winRect, "  🍳 요리 테이블");
-            if (UIStyleManager.DrawCloseButton(_winRect))
+            float winX = (Screen.width - _windowWidth) / 2f;
+            float winY = (Screen.height - _windowHeight) / 2f;
+            Rect winRect = new Rect(winX, winY, _windowWidth, _windowHeight);
+            UIStyleManager.DrawWindowBackground(winRect);
+            UIStyleManager.DrawTitle(winRect, "  🍳 요리 테이블");
+            if (UIStyleManager.DrawCloseButton(winRect))
             {
                 Hide();
                 return;
@@ -169,12 +158,7 @@ namespace ProjectName.UI
 
             InitializeStyles();
 
-            // 메인 윈도우 영역 (중앙)
-            float x = _winX;
-            float y = _winY;
-            Rect windowRect = _winRect;
-
-            GUILayout.BeginArea(windowRect, GUI.skin.box);
+            GUILayout.BeginArea(winRect, GUI.skin.box);
 
             GUILayout.Space(60); // 타이틀 영역 확보 (UIStyleManager 타이틀과 겹치지 않도록)
 
@@ -223,7 +207,7 @@ namespace ProjectName.UI
 
             // ── 고기 인벤토리 그리드 ──
             float availableWidth = _windowWidth - 30;
-            float itemSlotSize = Mathf.Min(80, (availableWidth - (_gridColumns - 1) * 6) / _gridColumns);
+            float itemSlotSize = Mathf.Min(80, (availableWidth - 3 * 6) / 4f);
             float gridHeight = (_windowHeight - 340) / 2f;
             if (gridHeight < 60) gridHeight = 60;
 
@@ -411,6 +395,9 @@ namespace ProjectName.UI
             {
                 _resultMessage = "고기와 약초를 선택해주세요.";
                 _hasResult = false;
+                _resultItemName = "";
+                _resultEffect = "";
+                _resultGrade = "";
                 return;
             }
 
@@ -419,6 +406,9 @@ namespace ProjectName.UI
             {
                 _resultMessage = "인벤토리를 찾을 수 없습니다.";
                 _hasResult = false;
+                _resultItemName = "";
+                _resultEffect = "";
+                _resultGrade = "";
                 return;
             }
 
@@ -427,12 +417,18 @@ namespace ProjectName.UI
             {
                 _resultMessage = $"'{_selectedMeat.displayName}'이(가) 인벤토리에 없습니다.";
                 _hasResult = false;
+                _resultItemName = "";
+                _resultEffect = "";
+                _resultGrade = "";
                 return;
             }
             if (!inventory.HasItem(_selectedHerb.id) || inventory.GetItemCount(_selectedHerb.id) < 1)
             {
                 _resultMessage = $"'{_selectedHerb.displayName}'이(가) 인벤토리에 없습니다.";
                 _hasResult = false;
+                _resultItemName = "";
+                _resultEffect = "";
+                _resultGrade = "";
                 return;
             }
 

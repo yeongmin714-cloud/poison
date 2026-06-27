@@ -1,7 +1,8 @@
 using ProjectName.Core;
+using ProjectName.Systems;
 using UnityEngine;
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// C11-08: 크래프트하우스 실내 인테리어 빌더.

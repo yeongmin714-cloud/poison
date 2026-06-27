@@ -438,9 +438,9 @@ namespace ProjectName.UI
 
         /// <summary>
         /// OnGUI — IMGUI 배경 드로잉. 이 메서드 내에서만 GUI.* 호출.
-        /// OnShow()에서 준비된 텍스처를 실제로 그립니다.
+        /// protected virtual로 선언되어 자식 클래스에서 override 가능.
         /// </summary>
-        private void OnGUI()
+        protected virtual void OnGUI()
         {
             if (!_isOpen)
                 return;
