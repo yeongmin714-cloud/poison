@@ -82,8 +82,8 @@ namespace ProjectName.UI
             GUI.Label(new Rect(x + 10, y + 5, panelW - 20, 42), "📋 퀘스트 목록", _styleTitle);
 
             // 통계 (캐시 사용)
-            GUI.Label(new Rect(x + 10, y + 35, 450, 30), $"🔄 진행 중: {_cachedActive.Count}개", _styleLabel);
-            GUI.Label(new Rect(x + 220, y + 35, 450, 30), $"✅ 완료: {_cachedCompleted.Count}개", _styleValue);
+            GUI.Label(new Rect(x + 10, y + 35, 400, 30), $"🔄 진행 중: {_cachedActive.Count}개", _styleLabel);
+            GUI.Label(new Rect(x + 420, y + 35, 400, 30), $"✅ 완료: {_cachedCompleted.Count}개", _styleValue);
 
             // 퀘스트 목록
             float listY = y + 60;

@@ -100,6 +100,17 @@ namespace ProjectName.UI
         /// <summary>현재 테마 (Phase 33)</summary>
         public UIDesignTheme Theme => _theme;
 
+        protected virtual void OnDestroy()
+        {
+            // 애니메이션 코루틴 정리 (오브젝트 파괴 시 Unity가 자동 중단하지만
+            // _animCoroutine 참조를 명시적으로 해제하여 잠재적 메모리 이슈 방지)
+            if (_animCoroutine != null)
+            {
+                StopCoroutine(_animCoroutine);
+                _animCoroutine = null;
+            }
+        }
+
         protected virtual void Awake()
         {
             // _windowRoot가 설정되지 않았으면 자기 자신으로 지정
@@ -151,7 +162,8 @@ namespace ProjectName.UI
 
             var dimObj = new GameObject("DimBackground", typeof(Image));
             var dimRect = dimObj.GetComponent<RectTransform>();
-            dimObj.transform.SetParent(transform.parent, false);
+            // 캐시된 _parentCanvas.transform 사용 (transform.parent 대신)
+            dimObj.transform.SetParent(_parentCanvas.transform, false);
 
             // 현재 윈도우 바로 앞에 배치
             dimObj.transform.SetSiblingIndex(transform.GetSiblingIndex());
@@ -414,11 +426,26 @@ namespace ProjectName.UI
             if (_rectTransform == null)
                 return;
 
-            var rectRect = _rectTransform.rect;
-            _backgroundRect = new Rect(
-                _rectTransform.position.x + rectRect.x,
-                _rectTransform.position.y + rectRect.y,
-                rectRect.width, rectRect.height);
+            // GetWorldCorners로 RectTransform을 화면/월드 공간 모서리로 변환
+            // corners[0]=bottom-left, [1]=top-left, [2]=top-right, [3]=bottom-right
+            Vector3[] corners = new Vector3[4];
+            _rectTransform.GetWorldCorners(corners);
+            float width = corners[2].x - corners[0].x;
+            float height = corners[1].y - corners[0].y;
+
+            // Screen Space Overlay: world 좌표 = screen 좌표, y-flip 필요 (IMGUI y=0 top)
+            if (_parentCanvas != null && _parentCanvas.renderMode == UnityEngine.RenderMode.ScreenSpaceOverlay)
+            {
+                _backgroundRect = new Rect(
+                    corners[0].x,
+                    UnityEngine.Screen.height - corners[1].y,
+                    width, height);
+            }
+            else
+            {
+                // Screen Space Camera / World Space: GetWorldCorners 좌표 그대로 사용
+                _backgroundRect = new Rect(corners[0].x, corners[0].y, width, height);
+            }
 
             // Medieval (PNG texture) background takes priority over procedural
             if (_theme.UseMedievalBackground)

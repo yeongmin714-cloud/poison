@@ -489,6 +489,7 @@ namespace ProjectName.UI
         /// </summary>
         public void ResetAllActions()
         {
+            // 11종 기본 액션 리셋
             for (int i = 0; i < ALL_ACTIONS.Length; i++)
             {
                 string key = PREFS_PREFIX + ALL_ACTIONS[i].id;
@@ -496,8 +497,23 @@ namespace ProjectName.UI
                     PlayerPrefs.DeleteKey(key);
                 _detectedState[i] = false;
             }
+
+            // T6 영지 액션 리셋
+            foreach (string actionId in _detectedActions)
+            {
+                string key = PREFS_PREFIX + actionId;
+                if (PlayerPrefs.HasKey(key))
+                    PlayerPrefs.DeleteKey(key);
+            }
+            _detectedActions.Clear();
+
             PlayerPrefs.Save();
             _allDone = false;
+            _t6Complete = false;
+            _territoryGuidesStarted = false;
+            _cachedGuard = null;
+            _cachedGuardInfoWindow = null;
+            _cachedShopWindow = null;
             Debug.Log("[TutorialActionDetector] 🔄 모든 액션 감지 상태 초기화 완료");
         }
 

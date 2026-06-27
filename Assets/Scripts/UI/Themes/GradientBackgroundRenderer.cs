@@ -1,5 +1,3 @@
-#pragma warning disable 0414
-#nullable disable
 using UnityEngine;
 
 namespace ProjectName.UI.Themes
@@ -26,6 +24,11 @@ namespace ProjectName.UI.Themes
         // ================================================================
 
         private static Texture2D _cachedGradientTex;
+        private static GradientMode _lastMode;
+        private static Color _lastC1;
+        private static Color _lastC2;
+        private static int _lastWidth;
+        private static int _lastHeight;
 
         // ================================================================
         // 공개 API
@@ -39,7 +42,25 @@ namespace ProjectName.UI.Themes
             if (rect.width <= 0 || rect.height <= 0)
                 return;
 
-            _cachedGradientTex = GenerateGradientTexture((int)rect.width, (int)rect.height, mode, c1, c2);
+            int w = (int)rect.width;
+            int h = (int)rect.height;
+
+            // 캐시된 텍스처가 같은 파라미터와 일치하면 재사용
+            if (_cachedGradientTex == null || w != _lastWidth || h != _lastHeight ||
+                mode != _lastMode || !c1.Equals(_lastC1) || !c2.Equals(_lastC2))
+            {
+                // 이전 텍스처 해제
+                if (_cachedGradientTex != null)
+                    Object.DestroyImmediate(_cachedGradientTex);
+
+                _cachedGradientTex = GenerateGradientTexture(w, h, mode, c1, c2);
+                _lastWidth = w;
+                _lastHeight = h;
+                _lastMode = mode;
+                _lastC1 = c1;
+                _lastC2 = c2;
+            }
+
             if (_cachedGradientTex != null)
                 GUI.DrawTexture(rect, _cachedGradientTex, ScaleMode.StretchToFill);
         }

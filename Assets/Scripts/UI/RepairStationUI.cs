@@ -44,7 +44,6 @@ namespace ProjectName.UI
         {
             base.OnShow();
             _statusMessage = "";
-            _stylesInitialized = false;
             Debug.Log("[RepairStationUI] 수리 스테이션 열림");
         }
 
@@ -57,7 +56,7 @@ namespace ProjectName.UI
         /// <summary>
         /// 외부에서 강제로 열기 (CraftingStation에서 호출)
         /// </summary>
-        public void Open()
+        public new void Open()
         {
             if (!_isOpen)
                 Show();
@@ -128,7 +127,7 @@ namespace ProjectName.UI
             return tex;
         }
 
-        private void OnGUI()
+        protected override void OnGUI()
         {
             if (!_isOpen) return;
             InitializeStyles();

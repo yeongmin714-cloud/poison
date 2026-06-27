@@ -1,5 +1,3 @@
-#pragma warning disable 0414
-#nullable disable
 using UnityEngine;
 
 namespace ProjectName.UI.Themes
@@ -11,6 +9,7 @@ namespace ProjectName.UI.Themes
     public static class DecorativeBorderRenderer
     {
         private static GUIStyle _borderStyle;
+        private static Color _lastBorderColor;
 
         /// <summary>
         /// 지정된 Rect에 테두리 장식을 그립니다.
@@ -169,7 +168,16 @@ namespace ProjectName.UI.Themes
         {
             if (_borderStyle == null)
                 _borderStyle = new GUIStyle();
-            _borderStyle.normal.background = ProceduralTextureGenerator.MakeTexture(1, 1, color);
+
+            // 색상이 변경된 경우에만 새 텍스처 생성 (기존 텍스처는 해제)
+            if (!_lastBorderColor.Equals(color) || _borderStyle.normal.background == null)
+            {
+                if (_borderStyle.normal.background != null)
+                    Object.DestroyImmediate(_borderStyle.normal.background);
+
+                _borderStyle.normal.background = ProceduralTextureGenerator.MakeTexture(1, 1, color);
+                _lastBorderColor = color;
+            }
         }
 
         private static void DrawLine(float x1, float y1, float x2, float y2, Color color, float thickness)
@@ -199,10 +207,16 @@ namespace ProjectName.UI.Themes
                 float maxY = Mathf.Max(y1, y2);
                 float angle = Mathf.Atan2(y2 - y1, x2 - x1) * Mathf.Rad2Deg;
                 var matrix = GUI.matrix;
-                GUIUtility.RotateAroundPivot(angle, new Vector2((x1 + x2) * 0.5f, (y1 + y2) * 0.5f));
-                GUI.DrawTexture(new Rect(minX, minY - thickness * 0.5f, maxX - minX, thickness),
-                    ProceduralTextureGenerator.MakeTexture(1, 1, color));
-                GUI.matrix = matrix;
+                try
+                {
+                    GUIUtility.RotateAroundPivot(angle, new Vector2((x1 + x2) * 0.5f, (y1 + y2) * 0.5f));
+                    GUI.DrawTexture(new Rect(minX, minY - thickness * 0.5f, maxX - minX, thickness),
+                        ProceduralTextureGenerator.MakeTexture(1, 1, color));
+                }
+                finally
+                {
+                    GUI.matrix = matrix;
+                }
             }
         }
 

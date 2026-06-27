@@ -12,11 +12,6 @@ namespace ProjectName.UI
     /// </summary>
     public class PlayerStatusWindow : UIWindow
     {
-        protected virtual void Start()
-        {
-            ApplyTheme(Phase33_Themes.CreateStatusTheme());
-        }
-
         [Header("UI References")]
         [SerializeField] private Text levelText;
         [SerializeField] private Text expText;
@@ -27,6 +22,11 @@ namespace ProjectName.UI
         [SerializeField] private Text combatText;
         [SerializeField] private Slider addictionSlider;
         [SerializeField] private Text addictionText;
+
+        protected virtual void Start()
+        {
+            ApplyTheme(Phase33_Themes.CreateStatusTheme());
+        }
 
         protected override void OnShow()
         {

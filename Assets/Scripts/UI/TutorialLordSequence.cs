@@ -5,7 +5,7 @@ using ProjectName.UI;
 using UnityEngine;
 #pragma warning disable 0414
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// T-Cycle-03: 영주 등장 이벤트 시퀀스.
@@ -84,9 +84,6 @@ namespace ProjectName.Systems
 
         [SerializeField, Tooltip("말풍선 지속 시간 (초)")]
         private float _bubbleDuration = 2f;
-
-        [SerializeField, Tooltip("복수명부 자동 표시 지속 시간 (초)")]
-        private float _revengeListDuration = 3f;
 
         [SerializeField, Tooltip("영주 NPC 이동 속도")]
         private float _lordMoveSpeed = 2f;

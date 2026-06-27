@@ -44,10 +44,8 @@ namespace ProjectName.Systems
 
         private bool _playerNearby = false;
         private bool _showInfo = false;
-        private Vector2 _scrollPos;
         private string _statusMessage = "";
         private Vector2 _invScrollPos;
-
         // Rig animation
         private RigAnimationController _rigAnim;
 
@@ -303,18 +301,18 @@ namespace ProjectName.Systems
                     float heal = 5f + item.displayName.Length * 0.5f;
                     _currentHP = Mathf.Min(_maxHP, _currentHP + heal);
                     GuardLoyaltySystem.GiveGift(this, 30);
-                    _statusMessage = $"{guardName}: \"음식 고맙다!\" ❤️ 호감도 UP";
+                    _statusMessage = $"{guardName}: \\\"음식 고맙다!\\\" ❤️ 호감도 UP";
                     break;
 
                 case PlayerInventory.ItemCategory.Potion:
                     _currentHP = Mathf.Min(_maxHP, _currentHP + 10f);
                     GuardLoyaltySystem.GiveGift(this, 50);
-                    _statusMessage = $"{guardName}: \"약을 주다니 고맙군!\" ❤️ 호감도 UP";
+                    _statusMessage = $"{guardName}: \\\"약을 주다니 고맙군!\\\" ❤️ 호감도 UP";
                     break;
 
                 case PlayerInventory.ItemCategory.Drug:
                     GuardLoyaltySystem.GiveDrug(this, 2);
-                    _statusMessage = $"{guardName}: \"어.. 뭔가 이상한 기분이...\" 💊 중독+10";
+                    _statusMessage = $"{guardName}: \\\"어.. 뭔가 이상한 기분이...\\\" 💊 중독+10";
                     break;
             }
         }
@@ -338,7 +336,7 @@ namespace ProjectName.Systems
 
         private void OnTalk()
         {
-            _statusMessage = guardName + ": \"무슨 일이냐?\"";
+            _statusMessage = guardName + ": \\\"무슨 일이냐?\\\"";
         }
 
         // ===== C9-15: 포섭 =====
@@ -346,7 +344,7 @@ namespace ProjectName.Systems
         {
             if (_isRecruited)
             {
-                _statusMessage = $"{guardName}: \"이미 영지에 소속되어 있네.\"";
+                _statusMessage = $"{guardName}: \\\"이미 영지에 소속되어 있네.\\\"";
                 return;
             }
 

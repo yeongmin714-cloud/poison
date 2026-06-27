@@ -181,7 +181,7 @@ namespace ProjectName.UI
 
         private void OnGUI()
         {
-            if (!_isOpen) return;
+            if (!IsOpen) return;
             InitializeStyles();
 
             // 배경 딤드

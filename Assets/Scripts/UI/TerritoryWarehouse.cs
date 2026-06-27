@@ -1,8 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 using ProjectName.Core;
-using ProjectName.UI;
-using ProjectName.Core.Data;
 #pragma warning disable 0414
 
 namespace ProjectName.UI
@@ -27,7 +25,7 @@ namespace ProjectName.UI
             public int quantity;
         }
 
-        [SerializeField] private List<WarehouseSlot> _slots = new List<WarehouseSlot>();
+        [NonSerialized] private List<WarehouseSlot> _slots = new List<WarehouseSlot>();
 
         private Transform _player;
         private bool _isPlayerNearby;
@@ -35,11 +33,13 @@ namespace ProjectName.UI
         // OnGUI GC 방지: 캐시
         private bool _guiDirty = true;
         private string _cachedGuiLabel = "";
+        private Rect _guiLabelRect;
+        private System.Collections.ObjectModel.ReadOnlyCollection<WarehouseSlot> _cachedReadOnly;
 
         public string TerritoryId => _territoryId;
         public int SlotCount => _slots.Count;
         public int MaxSlots => _maxSlots;
-        public IReadOnlyList<WarehouseSlot> Slots => _slots.AsReadOnly();
+        public IReadOnlyList<WarehouseSlot> Slots => _cachedReadOnly ??= _slots.AsReadOnly();
 
         private void Awake()
         {
@@ -57,7 +57,11 @@ namespace ProjectName.UI
 
         private void Update()
         {
-            if (_player == null) return;
+            if (_player == null)
+            {
+                _player = GameObject.FindGameObjectWithTag("Player")?.transform;
+                if (_player == null) return;
+            }
 
             // Vector3.Distance → sqrMagnitude (Sqrt 제거 성능 최적화)
             float sqrDist = (transform.position - _player.position).sqrMagnitude;
@@ -192,9 +196,15 @@ namespace ProjectName.UI
                 var wui = UIManager.Instance.warehouseWindow;
                 // UI에 현재 영지 ID 설정 (기본값 "default" 대신)
                 if (wui is WarehouseUI warehouseUI)
+                {
                     warehouseUI.SetTerritory(_territoryId);
-                wui.Open();
-                Debug.Log($"[TerritoryWarehouse] 창고 UI 열림 (영지: {_territoryId})");
+                    wui.Open();
+                    Debug.Log($"[TerritoryWarehouse] 창고 UI 열림 (영지: {_territoryId})");
+                }
+                else
+                {
+                    Debug.LogWarning("[TerritoryWarehouse] warehouseWindow가 WarehouseUI 타입이 아닙니다.");
+                }
             }
             else
             {
@@ -215,11 +225,11 @@ namespace ProjectName.UI
                         used++;
                 }
                 _cachedGuiLabel = $"[E] 영지 창고 ({used}/{_maxSlots})";
+                _guiLabelRect = new Rect(Screen.width / 2 - 150, Screen.height / 2 + 50, 300, 30);
                 _guiDirty = false;
             }
 
-            // Rect는 struct — 스택 할당, GC 없음
-            GUI.Label(new Rect(Screen.width / 2 - 150, Screen.height / 2 + 50, 300, 30), _cachedGuiLabel);
+            GUI.Label(_guiLabelRect, _cachedGuiLabel);
         }
     }
 }

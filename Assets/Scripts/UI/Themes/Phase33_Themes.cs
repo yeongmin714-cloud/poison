@@ -1,4 +1,3 @@
-#pragma warning disable 0414
 #nullable disable
 using System.Reflection;
 using UnityEngine;
@@ -56,6 +55,8 @@ namespace ProjectName.UI.Themes
         // ================================================================
 
         /// <summary>상점 — 녹색 펠트, 필그리 테두리, 인장 장식, FadeSlide</summary>
+        /// <remarks>CreateMedievalShopTheme()로 대체됨</remarks>
+        [System.Obsolete("CreateMedievalShopTheme()로 대체됨")]
         public static UIDesignTheme ShopTheme()
         {
             return Create("Shop", "🏪",
@@ -72,6 +73,8 @@ namespace ProjectName.UI.Themes
         }
 
         /// <summary>전리품 — 나무 느낌, 가시(쇠테) 테두리, 리벳 장식</summary>
+        /// <remarks>CreateMedievalShopTheme()로 대체됨</remarks>
+        [System.Obsolete("CreateMedievalShopTheme()로 대체됨")]
         public static UIDesignTheme LootTheme()
         {
             return Create("Loot", "🎁",

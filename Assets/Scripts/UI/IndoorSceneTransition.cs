@@ -2,7 +2,7 @@ using ProjectName.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// C10-02: 실내/외 맵 전환 관리 (Additive Scene Loading).

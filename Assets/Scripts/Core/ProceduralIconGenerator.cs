@@ -411,10 +411,10 @@ namespace ProjectName.Core
         /// <summary>화살 모양</summary>
         private static void DrawArrow(Texture2D tex, Color color)
         {
-            // 화살촉 (삼각형)
+            // 화살촉 (삼각형, 부드러운 테이퍼를 위해 부동소수점 사용)
             for (int y = 6; y <= 14; y++)
             {
-                int halfW = (y - 6) / 2;
+                int halfW = Mathf.RoundToInt(4f * ((y - 6f) / 8f));
                 for (int x = 16 - halfW; x <= 16 + halfW; x++)
                     tex.SetPixel(x, y, color);
             }

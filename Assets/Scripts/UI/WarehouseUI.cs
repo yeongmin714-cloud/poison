@@ -3,7 +3,6 @@ using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.Core.Data;
 using ProjectName.UI.Themes;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -24,10 +23,10 @@ namespace ProjectName.UI
         private string _cachedHeader;
         private string _lastHeaderTerritory;
         private int _lastHeaderCount = -1;
-        private readonly Rect _itemNameRect = new Rect(0, 0, 0, 18);
-        private readonly Rect _countRect = new Rect(0, 0, 18, 18);
-        private readonly Rect _transferRect = new Rect(0, 0, 16, 16);
-        private readonly Rect _iconRect = new Rect(0, 0, 0, 0);
+        private Rect _itemNameRect = new Rect(0, 0, 0, 18);
+        private Rect _countRect = new Rect(0, 0, 18, 18);
+        private Rect _transferRect = new Rect(0, 0, 16, 16);
+        private Rect _iconRect = new Rect(0, 0, 0, 0);
         private string _countLabel;
 
         protected override void Awake()
@@ -167,9 +166,13 @@ namespace ProjectName.UI
                 case PlayerInventory.ItemCategory.Meat: return new Color(0.8f, 0.3f, 0.2f, 0.5f);
                 case PlayerInventory.ItemCategory.Food: return new Color(0.9f, 0.7f, 0.2f, 0.5f);
                 case PlayerInventory.ItemCategory.Potion: return new Color(0.3f, 0.5f, 0.9f, 0.5f);
+                case PlayerInventory.ItemCategory.Drug: return new Color(0.9f, 0.2f, 0.8f, 0.5f);
                 case PlayerInventory.ItemCategory.Material: return new Color(0.6f, 0.6f, 0.6f, 0.5f);
+                case PlayerInventory.ItemCategory.Quest: return new Color(1.0f, 0.8f, 0.0f, 0.5f);
                 case PlayerInventory.ItemCategory.Weapon: return new Color(0.8f, 0.4f, 0.2f, 0.5f);
                 case PlayerInventory.ItemCategory.Armor: return new Color(0.4f, 0.5f, 0.8f, 0.5f);
+                case PlayerInventory.ItemCategory.Tool: return new Color(0.7f, 0.5f, 0.3f, 0.5f);
+                case PlayerInventory.ItemCategory.Arrow: return new Color(0.6f, 0.3f, 0.1f, 0.5f);
                 default: return new Color(0.5f, 0.5f, 0.5f, 0.5f);
             }
         }
@@ -182,9 +185,13 @@ namespace ProjectName.UI
                 case PlayerInventory.ItemCategory.Meat: return "🥩";
                 case PlayerInventory.ItemCategory.Food: return "🍲";
                 case PlayerInventory.ItemCategory.Potion: return "🧪";
+                case PlayerInventory.ItemCategory.Drug: return "💊";
                 case PlayerInventory.ItemCategory.Material: return "🪨";
+                case PlayerInventory.ItemCategory.Quest: return "⭐";
                 case PlayerInventory.ItemCategory.Weapon: return "🗡️";
                 case PlayerInventory.ItemCategory.Armor: return "🛡️";
+                case PlayerInventory.ItemCategory.Tool: return "🔧";
+                case PlayerInventory.ItemCategory.Arrow: return "🏹";
                 default: return "📦";
             }
         }

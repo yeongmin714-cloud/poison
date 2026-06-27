@@ -3,7 +3,6 @@ using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.Core.Data;
 using ProjectName.UI.Themes;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -43,7 +42,6 @@ namespace ProjectName.UI
         private int _lastShowFrame = -1;  // ShowTooltip이 호출된 마지막 프레임
 
         // ===== GUIStyle 캐시 =====
-        private GUIStyle _styleBackground;
         private GUIStyle _styleItemName;
         private GUIStyle _styleRarityLabel;
         private GUIStyle _styleDescription;
@@ -210,15 +208,17 @@ namespace ProjectName.UI
 
             // 아이템명
             _gcItemName.text = _tooltipData.itemName;
-            GUI.Label(new Rect(cx, cy, cw, 22), _gcItemName, _styleItemName);
-            cy += 24;
+            float itemNameHeight = _styleItemName.CalcHeight(_gcItemName, cw);
+            GUI.Label(new Rect(cx, cy, cw, itemNameHeight), _gcItemName, _styleItemName);
+            cy += itemNameHeight + 4;
 
             // 등급 + 카테고리
             string rarityStr = ItemTooltipData.GetRarityDisplayName(_tooltipData.rarity);
             string categoryStr = GetCategoryDisplayName(_tooltipData.category);
             _gcRarityCategory.text = $"{rarityStr} · {categoryStr}";
-            GUI.Label(new Rect(cx, cy, cw, 16), _gcRarityCategory, _styleRarityLabel);
-            cy += 18;
+            float rarityHeight = _styleRarityLabel.CalcHeight(_gcRarityCategory, cw);
+            GUI.Label(new Rect(cx, cy, cw, rarityHeight), _gcRarityCategory, _styleRarityLabel);
+            cy += rarityHeight + 4;
 
             // 구분선
             DrawColoredRect(new Rect(cx, cy, cw, 1), new Color(0.3f, 0.3f, 0.3f, 0.5f));
@@ -249,8 +249,9 @@ namespace ProjectName.UI
                 Color durColor = ItemTooltipData.GetDurabilityColor(durRatio);
 
                 _gcDurability.text = $"내구도: {_tooltipData.currentDurability}/{_tooltipData.maxDurability}";
-                GUI.Label(new Rect(cx, cy, cw, 16), _gcDurability, _styleCategoryLabel);
-                cy += 16;
+                float durLabelHeight = _styleCategoryLabel.CalcHeight(_gcDurability, cw);
+                GUI.Label(new Rect(cx, cy, cw, durLabelHeight), _gcDurability, _styleCategoryLabel);
+                cy += durLabelHeight + 2;
 
                 // 내구도 바
                 float barWidth = cw;
@@ -263,8 +264,9 @@ namespace ProjectName.UI
             // 개수/재고
             if (_tooltipData.count > 0)
             {
-                _gcCount.text = _tooltipData.count == -1 ? "재고: 무한" : $"x{_tooltipData.count}";
-                GUI.Label(new Rect(cx, cy, cw, 16), _gcCount, _styleCountLabel);
+                _gcCount.text = _tooltipData.count == ItemTooltipData.InfiniteCount ? "재고: 무한" : $"x{_tooltipData.count}";
+                float countHeight = _styleCountLabel.CalcHeight(_gcCount, cw);
+                GUI.Label(new Rect(cx, cy, cw, countHeight), _gcCount, _styleCountLabel);
             }
         }
 
@@ -276,8 +278,17 @@ namespace ProjectName.UI
             InitStyles();
             float cw = _tooltipWidth - _padding * 2;
             float h = _padding * 2;
-            h += 24; // 아이템명
-            h += 18; // 등급 + 카테고리
+
+            // 아이템명
+            _gcItemName.text = _tooltipData.itemName;
+            h += _styleItemName.CalcHeight(_gcItemName, cw) + 4;
+
+            // 등급 + 카테고리
+            string rarityStr = ItemTooltipData.GetRarityDisplayName(_tooltipData.rarity);
+            string categoryStr = GetCategoryDisplayName(_tooltipData.category);
+            _gcRarityCategory.text = $"{rarityStr} · {categoryStr}";
+            h += _styleRarityLabel.CalcHeight(_gcRarityCategory, cw) + 4;
+
             h += 5;  // 구분선 + 간격
 
             if (!string.IsNullOrEmpty(_tooltipData.description))
@@ -294,13 +305,17 @@ namespace ProjectName.UI
 
             if (_tooltipData.hasDurability)
             {
-                h += 16; // 내구도 텍스트
+                _gcDurability.text = $"내구도: {_tooltipData.currentDurability}/{_tooltipData.maxDurability}";
+                h += _styleCategoryLabel.CalcHeight(_gcDurability, cw) + 2;
                 h += 6;  // 내구도 바
                 h += 4;  // 간격
             }
 
             if (_tooltipData.count > 0)
-                h += 16; // 개수
+            {
+                _gcCount.text = _tooltipData.count == ItemTooltipData.InfiniteCount ? "재고: 무한" : $"x{_tooltipData.count}";
+                h += _styleCountLabel.CalcHeight(_gcCount, cw);
+            }
 
             return h;
         }
@@ -340,7 +355,7 @@ namespace ProjectName.UI
             // 아이템명 (굵게, 크게)
             _styleItemName = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 56,
+                fontSize = 28,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = new Color(0.95f, 0.90f, 0.80f, 1f) },
@@ -350,7 +365,7 @@ namespace ProjectName.UI
             // 등급/카테고리 레이블
             _styleRarityLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 44,
+                fontSize = 22,
                 fontStyle = FontStyle.Italic,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = new Color(0.70f, 0.65f, 0.60f, 1f) },
@@ -360,7 +375,7 @@ namespace ProjectName.UI
             // 설명
             _styleDescription = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 44,
+                fontSize = 22,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.UpperLeft,
                 normal = { textColor = new Color(0.85f, 0.82f, 0.78f, 1f) },
@@ -371,7 +386,7 @@ namespace ProjectName.UI
             // 효과
             _styleEffects = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 44,
+                fontSize = 22,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.UpperLeft,
                 normal = { textColor = new Color(0.4f, 0.9f, 0.5f, 1f) },
@@ -382,7 +397,7 @@ namespace ProjectName.UI
             // 카테고리/내구도 레이블
             _styleCategoryLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 44,
+                fontSize = 22,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = new Color(0.75f, 0.70f, 0.65f, 1f) },
@@ -392,7 +407,7 @@ namespace ProjectName.UI
             // 개수
             _styleCountLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 44,
+                fontSize = 22,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = new Color(0.80f, 0.60f, 0.20f, 1f) },
@@ -408,6 +423,7 @@ namespace ProjectName.UI
         private Texture2D MakeTexture(int w, int h, Color color)
         {
             var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            tex.hideFlags = HideFlags.HideAndDontSave;
             tex.SetPixel(0, 0, color);
             tex.Apply();
             return tex;

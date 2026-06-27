@@ -3,7 +3,6 @@ using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Systems;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -128,9 +127,7 @@ namespace ProjectName.UI
             body.transform.SetParent(npcGO.transform, false);
             body.transform.localPosition = new Vector3(0, 0.5f * scale, 0);
             body.transform.localScale = new Vector3(0.6f * scale, 0.6f * scale, 0.4f * scale);
-            var bodyRenderer = body.GetComponent<MeshRenderer>();
-            if (bodyRenderer != null)
-                bodyRenderer.material = MaterialHelper.CreateLitMaterial(bodyColor, npc.NpcName + "_Body");
+            body.GetComponent<MeshRenderer>().material = MaterialHelper.CreateLitMaterial(bodyColor, npc.NpcName + "_Body");
 
             // 머리 (Sphere)
             GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -138,9 +135,7 @@ namespace ProjectName.UI
             head.transform.SetParent(npcGO.transform, false);
             head.transform.localPosition = new Vector3(0, 1.05f * scale, 0);
             head.transform.localScale = new Vector3(0.35f * scale, 0.35f * scale, 0.35f * scale);
-            var headRenderer = head.GetComponent<MeshRenderer>();
-            if (headRenderer != null)
-                headRenderer.material = MaterialHelper.CreateLitMaterial(skinColor, npc.NpcName + "_Head");
+            head.GetComponent<MeshRenderer>().material = MaterialHelper.CreateLitMaterial(skinColor, npc.NpcName + "_Head");
 
             return npcGO;
         }
@@ -156,9 +151,6 @@ namespace ProjectName.UI
             string npcType = npcTypes[npc.NpcIndex % npcTypes.Length];
             switch (npcType)
             {
-                case "Lord": return "npc_lord_rigged";
-                case "King": return "npc_king_rigged";
-                case "Shop": return "npc_shop_rigged";
                 case "Man1": return "npc_man1_rigged";
                 case "Man2": return "npc_man2_rigged";
                 case "Girl1": return "npc_girl1_rigged";
@@ -166,7 +158,6 @@ namespace ProjectName.UI
                 case "Girl3": return "npc_girl3_rigged";
                 case "Oldman1": return "npc_oldman1_rigged";
                 case "Oldman2": return "npc_oldman2_rigged";
-                case "Dracula": return "npc_dracula_rigged";
                 default: return "npc_man1_rigged";
             }
         }

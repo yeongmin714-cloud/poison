@@ -4,7 +4,7 @@ using ProjectName.Core.Data;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// G3-09: 퀘스트 저널 UI — IMGUI 기반, J 키로 토글.
@@ -89,7 +89,9 @@ namespace ProjectName.Systems
         [Header("퀘스트 데이터")]
         [SerializeField] private List<JournalQuestEntry> _quests = new List<JournalQuestEntry>();
 
+        // 스크롤 및 필터링 (캐시)
         private Vector2 _scrollPos;
+        private List<JournalQuestEntry> _filteredCache = new List<JournalQuestEntry>();
         private bool _stylesInitialized;
 
         // 배경/테두리 텍스처 (메모리 관리용)
@@ -299,6 +301,9 @@ namespace ProjectName.Systems
             return null;
         }
 
+        /// <summary>완료 이펙트용 캐시된 스타일 (매 프레임 new GUIStyle 방지)</summary>
+        private GUIStyle _cachedEffectStyle;
+
         #endregion
 
         #region === IMGUI 드로잉 ===
@@ -420,17 +425,17 @@ namespace ProjectName.Systems
             float listW = WINDOW_WIDTH - CONTENT_PADDING * 2;
             float listH = WINDOW_HEIGHT - (listY - y) - CONTENT_PADDING;
 
-            // 현재 탭에 맞는 퀘스트 리스트
-            List<JournalQuestEntry> filteredQuests = new List<JournalQuestEntry>();
+            // 현재 탭에 맞는 퀘스트 리스트 (캐시 사용, GC 방지)
+            _filteredCache.Clear();
             for (int i = 0; i < _quests.Count; i++)
             {
                 if (_activeTab == 0 && _quests[i].state == QuestState.Active)
-                    filteredQuests.Add(_quests[i]);
+                    _filteredCache.Add(_quests[i]);
                 else if (_activeTab == 1 && _quests[i].state == QuestState.Completed)
-                    filteredQuests.Add(_quests[i]);
+                    _filteredCache.Add(_quests[i]);
             }
 
-            float contentH = Mathf.Max(listH, filteredQuests.Count * ENTRY_HEIGHT + 10);
+            float contentH = Mathf.Max(listH, _filteredCache.Count * ENTRY_HEIGHT + 10);
 
             _scrollPos = GUI.BeginScrollView(
                 new Rect(listX, listY, listW, listH),
@@ -438,7 +443,7 @@ namespace ProjectName.Systems
                 new Rect(0, 0, listW - 20, contentH)
             );
 
-            if (filteredQuests.Count == 0)
+            if (_filteredCache.Count == 0)
             {
                 string emptyMsg = _activeTab == 0
                     ? "진행 중인 퀘스트가 없습니다.\nNPC를 찾아 퀘스트를 수락하세요."
@@ -447,9 +452,9 @@ namespace ProjectName.Systems
             }
             else
             {
-                for (int i = 0; i < filteredQuests.Count; i++)
+                for (int i = 0; i < _filteredCache.Count; i++)
                 {
-                    DrawQuestEntry(filteredQuests[i], i, listW - 20);
+                    DrawQuestEntry(_filteredCache[i], i, listW - 20);
                 }
             }
 
@@ -558,16 +563,19 @@ namespace ProjectName.Systems
             float textWidth = 400f;
             float textHeight = 80f;
 
-            // 매 프레임 새로운 fontSize로 임시 스타일 생성
+            // 캐시된 스타일 사용 (매 프레임 new GUIStyle 방지)
             int dynamicFontSize = Mathf.RoundToInt(24 + (1f - progress) * 6);
-            GUIStyle tempEffectStyle = new GUIStyle(_styleEffect)
+            if (_cachedEffectStyle == null || _cachedEffectStyle.fontSize != dynamicFontSize)
             {
-                fontSize = dynamicFontSize
-            };
+                _cachedEffectStyle = new GUIStyle(_styleEffect)
+                {
+                    fontSize = dynamicFontSize
+                };
+            }
 
             GUI.Label(new Rect(cx - textWidth / 2f, cy - textHeight / 2f, textWidth, textHeight),
                 text,
-                tempEffectStyle);
+                _cachedEffectStyle);
 
             // GUI.color 복원
             GUI.color = prevColor;

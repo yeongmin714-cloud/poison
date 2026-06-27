@@ -409,6 +409,7 @@ namespace ProjectName.UI.Themes
                 if (dimCG != null) dimCG.alpha = (1f - t) * dimAlpha;
                 yield return null;
             }
+            cg.alpha = 0f;
             if (dimCG != null) dimCG.alpha = 0f;
         }
 

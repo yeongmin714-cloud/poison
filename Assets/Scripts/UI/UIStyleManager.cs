@@ -124,6 +124,7 @@ namespace ProjectName.UI
         public static Texture2D MakeTexture(int width, int height, Color color)
         {
             var tex = new Texture2D(width, height);
+            tex.hideFlags = HideFlags.HideAndDontSave;
             for (int y = 0; y < height; y++)
                 for (int x = 0; x < width; x++)
                     tex.SetPixel(x, y, color);
@@ -141,7 +142,6 @@ namespace ProjectName.UI
         public static void DrawDimOverlay()
         {
             EnsureStyles();
-            // _cachedDimTex는 EnsureStyles()에서 한 번 생성, 캐싱 텍스처 재할당 없음
             GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "", _dimBoxStyle);
         }
 
@@ -152,7 +152,6 @@ namespace ProjectName.UI
         {
             EnsureStyles();
 
-            // 테두리용 박스 (골드) — 캐싱된 텍스처/스타일 사용, GC 발생 없음
             int bw = BorderWidth;
             var borderRect = new Rect(rect.x - bw, rect.y - bw,
                 rect.width + bw * 2, rect.height + bw * 2);
@@ -161,12 +160,12 @@ namespace ProjectName.UI
             GUI.Box(new Rect(borderRect.x, borderRect.y, bw, borderRect.height), "", _cachedBorderStyle);
             // 오른쪽
             GUI.Box(new Rect(borderRect.x + borderRect.width - bw, borderRect.y, bw, borderRect.height), "", _cachedBorderStyle);
-            // 위
-            GUI.Box(new Rect(borderRect.x, borderRect.y, borderRect.width, bw), "", _cachedBorderStyle);
-            // 아래
-            GUI.Box(new Rect(borderRect.x, borderRect.y + borderRect.height - bw, borderRect.width, bw), "", _cachedBorderStyle);
+            // 위 (좌우 테두리와 겹치지 않도록)
+            GUI.Box(new Rect(borderRect.x + bw, borderRect.y, borderRect.width - bw * 2, bw), "", _cachedBorderStyle);
+            // 아래 (좌우 테두리와 겹치지 않도록)
+            GUI.Box(new Rect(borderRect.x + bw, borderRect.y + borderRect.height - bw, borderRect.width - bw * 2, bw), "", _cachedBorderStyle);
 
-            // 내부 배경 — 캐싱 텍스처 사용, GC 없음
+            // 내부 배경
             GUI.Box(rect, "", _borderBoxStyle);
         }
 
@@ -189,7 +188,7 @@ namespace ProjectName.UI
             int btnX = (int)(windowRect.x + windowRect.width - btnSize - 10);
             int btnY = (int)(windowRect.y + 10);
             var prevColor = GUI.backgroundColor;
-            GUI.backgroundColor = CloseBtnColor;
+            GUI.backgroundColor = Color.white;
             bool result = GUI.Button(new Rect(btnX, btnY, btnSize, btnSize), "X", _closeButtonStyle);
             GUI.backgroundColor = prevColor;
             return result;

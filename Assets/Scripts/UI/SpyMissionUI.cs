@@ -522,7 +522,7 @@ namespace ProjectName.UI
             // SpySystem.SendSpy 호출
             _lastResult = SpySystem.SendSpy(_selectedSpy, _currentTerritoryId, _selectedMission);
 
-            if (_lastResult.detected || (_lastResult.spyLost))
+            if (_lastResult.detected || _lastResult.spyLost)
             {
                 // 발각/처형
                 _currentStep = UIStep.Detected;
@@ -555,7 +555,7 @@ namespace ProjectName.UI
         /// <summary>현재 위치의 영지 ID 반환</summary>
         private TerritoryId? GetCurrentTerritory(Vector3 position)
         {
-            if (TerritoryManager.Instance != null)
+            if (TerritoryManager.Instance != null && TerritoryDatabase.Instance != null)
             {
                 TerritoryId currentId = TerritoryManager.Instance.CurrentTerritoryId;
                 var def = TerritoryDatabase.Instance.GetDefinition(currentId);
@@ -564,6 +564,8 @@ namespace ProjectName.UI
                     return currentId;
                 }
             }
+
+            if (TerritoryDatabase.Instance == null) return null;
 
             float nearestDist = _interactRange;
             TerritoryId? nearest = null;
@@ -690,14 +692,13 @@ namespace ProjectName.UI
         private void DrawInfoRow(float x, ref float cy, string label, string value)
         {
             GUI.Label(new Rect(x + 20, cy, 150, 22), label, _styleLabel);
-            GUI.Label(new Rect(x + 120, cy, PANEL_WIDTH - 140, 22), value, _styleValue);
+            GUI.Label(new Rect(x + 175, cy, PANEL_WIDTH - 195, 22), value, _styleValue);
             cy += 24f;
         }
 
         private void DrawBar(float x, float y, float width, float height, float ratio, Color fillColor, Color bgColor)
         {
             var tex = GetCachedTex();
-            GUI.DrawTexture(new Rect(x, y, width, height), tex);
             var oldColor = GUI.color;
             GUI.color = bgColor;
             GUI.DrawTexture(new Rect(x, y, width, height), tex);

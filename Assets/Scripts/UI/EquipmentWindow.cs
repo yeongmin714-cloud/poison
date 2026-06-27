@@ -17,12 +17,12 @@ namespace ProjectName.UI
         [SerializeField] private EquipmentManager _equipmentManager;
 
         // ===== 레이아웃 상수 =====
-        private const float WINDOW_WIDTH = 1000f;
-        private const float WINDOW_HEIGHT = 1000f;
-        private const float TITLE_BAR_HEIGHT = 90f;
-        private const float SLOT_HEIGHT = 120f;
-        private const float SLOT_GAP = 12f;
-        private const float BUTTON_AREA_HEIGHT = 90f;
+        private const float WINDOW_WIDTH = 600f;
+        private const float WINDOW_HEIGHT = 540f;
+        private const float TITLE_BAR_HEIGHT = 40f;
+        private const float SLOT_HEIGHT = 64f;
+        private const float SLOT_GAP = 6f;
+        private const float BUTTON_AREA_HEIGHT = 60f;
 
         // ===== 선택 상태 =====
         private EquipmentManager.EquipmentSlot _selectedSlot = EquipmentManager.EquipmentSlot.Helmet;
@@ -117,52 +117,52 @@ namespace ProjectName.UI
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 72,
+                fontSize = 20,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
-                padding = new RectOffset(21, 4, 0, 0)
+                padding = new RectOffset(16, 4, 0, 0)
             };
 
             _styleSlotLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 52,
+                fontSize = 15,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
-                padding = new RectOffset(12, 4, 0, 0)
+                padding = new RectOffset(10, 4, 0, 0)
             };
 
             _styleSlotValue = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 48,
+                fontSize = 13,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextSecondary },
-                padding = new RectOffset(12, 4, 0, 0)
+                padding = new RectOffset(10, 4, 0, 0)
             };
 
             _styleEmptyText = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 48,
+                fontSize = 13,
                 fontStyle = FontStyle.Italic,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextDim },
-                padding = new RectOffset(12, 4, 0, 0)
+                padding = new RectOffset(10, 4, 0, 0)
             };
 
             _styleInfoText = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 44,
+                fontSize = 12,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextDim },
-                padding = new RectOffset(12, 4, 0, 0)
+                padding = new RectOffset(10, 4, 0, 0)
             };
 
             _styleDurabilityLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 36,
+                fontSize = 11,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary }
@@ -170,10 +170,10 @@ namespace ProjectName.UI
 
             _styleButton = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 48,
+                fontSize = 14,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
-                padding = new RectOffset(12, 12, 4, 4),
+                padding = new RectOffset(8, 8, 2, 2),
                 normal = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorSlotHover) },
                 hover = { textColor = ColorAccent, background = MakeTexture(1, 1, new Color(0.45f, 0.32f, 0.22f, 1f)) },
                 active = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorSlotSelected) }
@@ -211,7 +211,7 @@ namespace ProjectName.UI
             GUI.Label(new Rect(x, y + 2, WINDOW_WIDTH - 60, TITLE_BAR_HEIGHT), "  🛡️ 장비창", _styleTitle);
 
             // 닫기 버튼
-            if (GUI.Button(new Rect(x + WINDOW_WIDTH - 50, y + 6, 99, 42), "✕", _styleButton))
+            if (GUI.Button(new Rect(x + WINDOW_WIDTH - 44, y + 6, 36, 28), "✕", _styleButton))
             {
                 Hide();
                 return;
@@ -278,23 +278,23 @@ namespace ProjectName.UI
 
                 // === 슬롯 라벨 ===
                 float labelX = iconX + iconSize + 10;
-                float labelWidth = panelWidth - labelX - 120; // 오른쪽 내구도 바 공간 확보
+                float labelWidth = panelWidth - labelX - 130; // 오른쪽 내구도 바 공간 확보
 
-                GUI.Label(new Rect(labelX, slotRect.y + 2, labelWidth, 33),
+                GUI.Label(new Rect(labelX, slotRect.y + 2, labelWidth, 22),
                     $"{slotDef.icon} {slotDef.label}:", _styleSlotLabel);
 
                 if (!isEmpty && slotData.itemData != null)
                 {
                     // 아이템 이름
                     string itemName = slotData.itemData.displayName;
-                    GUI.Label(new Rect(labelX, slotRect.y + 22, labelWidth, 33),
+                    GUI.Label(new Rect(labelX, slotRect.y + 24, labelWidth, 22),
                         itemName, _styleSlotValue);
 
                     // === 내구도 바 ===
-                    float durBarX = slotRect.x + panelWidth - 110;
-                    float durBarY = slotRect.y + (SLOT_HEIGHT - 14) / 2;
-                    float durBarWidth = 225;
-                    float durBarHeight = 21f;
+                    float durBarX = slotRect.x + panelWidth - 120;
+                    float durBarY = slotRect.y + (SLOT_HEIGHT - 12) / 2;
+                    float durBarWidth = 110;
+                    float durBarHeight = 14f;
 
                     if (slotData.itemData.maxDurability > 0)
                     {
@@ -323,13 +323,13 @@ namespace ProjectName.UI
                 else
                 {
                     // 빈 슬롯
-                    GUI.Label(new Rect(labelX, slotRect.y + 14, labelWidth, 33),
+                    GUI.Label(new Rect(labelX, slotRect.y + 6, labelWidth, 22),
                         "[비어있음]", _styleEmptyText);
 
                     // 우측 빈 공간
-                    float emptyX = slotRect.x + panelWidth - 110;
-                    float emptyY = slotRect.y + (SLOT_HEIGHT - 14) / 2;
-                    GUI.Label(new Rect(emptyX, emptyY, 225, 21), "- - -", _styleInfoText);
+                    float emptyX = slotRect.x + panelWidth - 120;
+                    float emptyY = slotRect.y + 8;
+                    GUI.Label(new Rect(emptyX, emptyY, 110, 16), "- - -", _styleInfoText);
                 }
 
                 // === 클릭 처리 (슬롯 클릭 → 장비 해제) ===
@@ -353,9 +353,9 @@ namespace ProjectName.UI
         // ===== 하단 버튼 영역 =====
         private void DrawBottomButtons(float panelX, float buttonY)
         {
-            float btnWidth = 248f;
-            float btnHeight = 45f;
-            float gap = 16f;
+            float btnWidth = 160f;
+            float btnHeight = 32f;
+            float gap = 12f;
             float totalWidth = btnWidth * 2 + gap;
             float leftX = panelX + (WINDOW_WIDTH - totalWidth) / 2;
 

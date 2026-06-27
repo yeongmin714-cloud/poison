@@ -1,10 +1,11 @@
 using System.Collections;
 using ProjectName.Core;
+using ProjectName.Systems;
 using UnityEngine;
 using UnityEngine.InputSystem;
 #pragma warning disable 0414
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// T-Cycle-07: 퀘스트 완료 → 영주 처형 → 씬 전환 시퀀스.

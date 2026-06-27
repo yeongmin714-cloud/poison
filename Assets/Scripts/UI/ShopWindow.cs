@@ -15,8 +15,7 @@ namespace ProjectName.UI
     public class ShopWindow : UIWindow
     {
         [Header("Shop Window")]
-        [SerializeField] private Transform _itemsGridContainer; // 아이템 그리드 컨테이너
-        [SerializeField] private GameObject _itemSlotPrefab;    // 아이템 슬롯 프리팹
+        // 아이템 그리드는 IMGUI OnGUI로 렌더링되므로 Transform/프리팹 불필요
         
         [Header("Shop Inventory")]
         [SerializeField] private List<ShopItem> _shopInventory = new List<ShopItem>(); // 상점에서 판매하는 아이템 목록
@@ -201,8 +200,8 @@ namespace ProjectName.UI
             
             InitStyles();
             
-            float x = (Screen.width - 680) / 2;
-            float y = (Screen.height - 580) / 2;
+            float x = (Screen.width - 1440) / 2;
+            float y = (Screen.height - 1170) / 2;
             float width = 1440;
             float height = 1170;
             
@@ -246,14 +245,14 @@ namespace ProjectName.UI
                 }
                 GUI.enabled = true;
                 
-                // 재고나 금액 부족 표시
+                // 재고나 금액 부족 표시 (버튼 위에 표시)
                 if (!canAfford)
                 {
-                    GUI.Label(new Rect(x + 10, buttonY - 20f, buttonWidth, 27), "골드 부족!", _styleEmptyText);
+                    GUI.Label(new Rect(x + 10, buttonY - 22f, buttonWidth, 20), "골드 부족!", _styleEmptyText);
                 }
                 else if (!inStock)
                 {
-                    GUI.Label(new Rect(x + 10, buttonY - 20f, buttonWidth, 27), "품절!", _styleEmptyText);
+                    GUI.Label(new Rect(x + 10, buttonY - 22f, buttonWidth, 20), "품절!", _styleEmptyText);
                 }
             }
             
@@ -305,10 +304,15 @@ namespace ProjectName.UI
                 GUI.Box(slotRect, "", isSelected ? _styleSlotSelected : _styleSlot);
                 
                 ShopItem item = _currentItems[i];
+                if (item.item == null)
+                {
+                    GUI.Label(new Rect(sx + 5, sy + 5, slotWidth - 10, 30), "[데이터 없음]", _styleEmptyText);
+                    continue;
+                }
                 
                 // 아이콘 캐싱 (ItemIconDatabase 사용)
                 Texture2D iconTex;
-                if (i < _cachedIconTextures.Length && _cachedIconTextures[i] != null)
+                if (_cachedIconTextures != null && i < _cachedIconTextures.Length && _cachedIconTextures[i] != null)
                     iconTex = _cachedIconTextures[i];
                 else
                     iconTex = ItemIconDatabase.GetOrCreateIcon(item.item);
@@ -370,6 +374,11 @@ namespace ProjectName.UI
             if (_selectedSlotIndex < 0 || _selectedSlotIndex >= _currentItems.Count) return;
             
             ShopItem item = _currentItems[_selectedSlotIndex];
+            if (item.item == null)
+            {
+                Debug.LogError("[ShopWindow] 구매 실패: 아이템 데이터가 없습니다.");
+                return;
+            }
             
             // 골드 확인 및 차감
             if (!(PlayerStats.Instance?.SpendGold(item.price) ?? false)) return;
@@ -397,7 +406,7 @@ namespace ProjectName.UI
         // Public buy method for tests/external calls
         public bool BuyItem(ShopItem item)
         {
-            if (item == null) return false;
+            if (item == null || item.item == null) return false;
             if (!(PlayerStats.Instance?.SpendGold(item.price) ?? false)) return false;
 
             if (item.stock > 0)
@@ -426,18 +435,27 @@ namespace ProjectName.UI
 
             // TODO: UI에서 판매할 아이템을 선택하는 기능. 현재는 임시로 첫 번째 아이템 판매
             var allItems = PlayerInventory.Instance.GetAllSlots();
-            if (allItems.Length == 0)
+            PlayerInventory.ItemSlot firstSlot = null;
+            foreach (var slot in allItems)
+            {
+                if (slot != null && slot.item != null && slot.count > 0)
+                {
+                    firstSlot = slot;
+                    break;
+                }
+            }
+            if (firstSlot == null)
             {
                 Debug.Log("[ShopWindow] 판매할 아이템이 없습니다.");
                 return;
             }
 
             // 첫 번째 아이템 판매 (가격은 아이템 등급에 따라 1~100G)
-            var firstItem = allItems[0];
-            int sellPrice = CalculateSellPrice(firstItem.item);
-            PlayerInventory.Instance.RemoveItem(firstItem.item?.id ?? "", 1);
+            var itemData = firstSlot.item;
+            int sellPrice = CalculateSellPrice(itemData);
+            PlayerInventory.Instance.RemoveItem(itemData.id, 1);
             PlayerStats.Instance?.AddGold(sellPrice);
-            Debug.Log($"[ShopWindow] 판매 성공: {firstItem.item.displayName} → {sellPrice}G");
+            Debug.Log($"[ShopWindow] 판매 성공: {itemData.displayName} → {sellPrice}G");
             RefreshShopItems();
             UpdateGoldDisplay();
         }

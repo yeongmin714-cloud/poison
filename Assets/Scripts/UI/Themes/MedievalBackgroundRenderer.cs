@@ -1,5 +1,3 @@
-#pragma warning disable 0414
-#nullable disable
 using UnityEngine;
 
 namespace ProjectName.UI.Themes
@@ -72,31 +70,36 @@ namespace ProjectName.UI.Themes
             Texture2D borderLeft = MedievalUIResources.GetTexture("border_left");
             Texture2D borderRight = MedievalUIResources.GetTexture("border_right");
 
-            // Apply color tint
-            GUI.color = color;
+            // Apply color tint with safe restore
+            Color prevColor = GUI.color;
+            try
+            {
+                GUI.color = color;
 
-            // Top edge
-            if (borderTop != null)
-                GUI.DrawTexture(new Rect(rect.x, rect.y, rect.width, thickness),
-                    borderTop, ScaleMode.StretchToFill, alphaBlend: true);
+                // Top edge
+                if (borderTop != null)
+                    GUI.DrawTexture(new Rect(rect.x, rect.y, rect.width, thickness),
+                        borderTop, ScaleMode.StretchToFill, alphaBlend: true);
 
-            // Bottom edge
-            if (borderBottom != null)
-                GUI.DrawTexture(new Rect(rect.x, rect.y + rect.height - thickness, rect.width, thickness),
-                    borderBottom, ScaleMode.StretchToFill, alphaBlend: true);
+                // Bottom edge
+                if (borderBottom != null)
+                    GUI.DrawTexture(new Rect(rect.x, rect.y + rect.height - thickness, rect.width, thickness),
+                        borderBottom, ScaleMode.StretchToFill, alphaBlend: true);
 
-            // Left edge
-            if (borderLeft != null)
-                GUI.DrawTexture(new Rect(rect.x, rect.y, thickness, rect.height),
-                    borderLeft, ScaleMode.StretchToFill, alphaBlend: true);
+                // Left edge
+                if (borderLeft != null)
+                    GUI.DrawTexture(new Rect(rect.x, rect.y, thickness, rect.height),
+                        borderLeft, ScaleMode.StretchToFill, alphaBlend: true);
 
-            // Right edge
-            if (borderRight != null)
-                GUI.DrawTexture(new Rect(rect.x + rect.width - thickness, rect.y, thickness, rect.height),
-                    borderRight, ScaleMode.StretchToFill, alphaBlend: true);
-
-            // Restore color
-            GUI.color = Color.white;
+                // Right edge
+                if (borderRight != null)
+                    GUI.DrawTexture(new Rect(rect.x + rect.width - thickness, rect.y, thickness, rect.height),
+                        borderRight, ScaleMode.StretchToFill, alphaBlend: true);
+            }
+            finally
+            {
+                GUI.color = prevColor;
+            }
 
             // (borderStyle parameter is reserved for future styled border variants)
         }

@@ -1,7 +1,5 @@
 using UnityEngine;
 using ProjectName.Core;
-using ProjectName.UI;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -23,27 +21,27 @@ namespace ProjectName.UI
         [Header("레벨 제한")]
         [SerializeField] private int _minLevel = 1;
 
-        private Transform _player;
+        private GameObject _player;
         private bool _isPlayerNearby;
 
         public string StationName => _stationName;
         public string TerritoryId => _territoryId;
         public Recipe[] AvailableRecipes => _availableRecipes;
 
-        private void Start()
-        {
-            _player = GameObject.FindGameObjectWithTag("Player")?.transform;
-        }
-
         private void Update()
         {
-            if (_player == null) return;
+            // 플레이어 참조 캐싱 (씬 전환/재생성 대비)
+            if (_player == null)
+            {
+                _player = GameObject.FindGameObjectWithTag("Player");
+                if (_player == null) return;
+            }
 
-            float sqrDist = (transform.position - _player.position).sqrMagnitude;
+            float sqrDist = (transform.position - _player.transform.position).sqrMagnitude;
             float sqrRange = _interactRange * _interactRange;
             _isPlayerNearby = sqrDist <= sqrRange;
 
-            if (_isPlayerNearby && Input.GetKeyDown(KeyCode.E))
+            if (_isPlayerNearby && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
             {
                 if (!CanUse())
                 {

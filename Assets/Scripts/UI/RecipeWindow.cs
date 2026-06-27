@@ -25,7 +25,7 @@ namespace ProjectName.UI
 
         // Tab state
         private bool _showAlchemy = true;
-        private Text _tabButtonText;
+        [SerializeField] private Text _tabButtonText; // Assign in inspector for tab label updates
 
         // Cached font (avoid repeated Resources.GetBuiltinResource in loop)
         private static Font _cachedFont;
@@ -59,7 +59,9 @@ namespace ProjectName.UI
             // Clear existing entries — safe pattern (no foreach enumeration mutation)
             while (_recipeGridContainer.childCount > 0)
             {
-                DestroyImmediate(_recipeGridContainer.GetChild(0).gameObject);
+                var child = _recipeGridContainer.GetChild(0).gameObject;
+                child.transform.SetParent(null);
+                Destroy(child);
             }
 
             // Ensure databases are initialized before access
@@ -74,7 +76,17 @@ namespace ProjectName.UI
 
             // Update count display
             int total = _showAlchemy ? HerbComboDatabase.AllCombos.Count : DishDatabase.All.Count;
-            int discovered = RecipeDiscoverySystem.DiscoveredCount;
+            int discovered = 0;
+            if (_showAlchemy)
+            {
+                foreach (var kv in HerbComboDatabase.AllCombos)
+                    if (RecipeDiscoverySystem.IsDiscovered(kv.Value.resultName)) discovered++;
+            }
+            else
+            {
+                foreach (var dish in DishDatabase.All)
+                    if (RecipeDiscoverySystem.IsDiscovered(dish.DisplayName)) discovered++;
+            }
             string tabName = _showAlchemy ? "연금술" : "요리";
             Debug.Log($"[RecipeWindow] {tabName} 레시피: 발견 {discovered}/{total}");
         }

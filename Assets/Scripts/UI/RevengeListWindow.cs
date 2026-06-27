@@ -4,7 +4,6 @@ using ProjectName.Systems;
 using UnityEngine;
 using ProjectName.UI.Themes;
 using System.Collections.Generic;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -57,6 +56,11 @@ namespace ProjectName.UI
             ApplyTheme(_revengeTheme);
 
             // RevengeListManager가 초기화되지 않았으면 초기화
+            if (RevengeListManager.Instance == null)
+            {
+                Debug.LogError("[RevengeListWindow] RevengeListManager.Instance is null!");
+                return;
+            }
             if (!RevengeListManager.Instance.IsInitialized)
             {
                 RevengeListManager.Instance.Initialize();
@@ -106,7 +110,7 @@ namespace ProjectName.UI
             DrawDetailPanel(x, y, panelW, panelH, allEntries, total);
 
             // 닫기 버튼
-            if (GUI.Button(new Rect(x + panelW - 70, y + panelH - 38, 135, 42), "닫기", _styleCloseButton))
+            if (GUI.Button(new Rect(x + panelW - 120, y + panelH - 38, 110, 42), "닫기", _styleCloseButton))
             {
                 Hide();
             }
@@ -239,7 +243,14 @@ namespace ProjectName.UI
 
             // TerritoryDatabase에서 영지 정보 조회
             var db = TerritoryDatabase.Instance;
-            var def = db.GetDefinition(entry.territoryId);
+            var def = db?.GetDefinition(entry.territoryId);
+            if (def == null)
+            {
+                Debug.LogWarning($"[RevengeListWindow] Territory '{entry.territoryId}'에 대한 정의를 찾을 수 없습니다.");
+                GUI.Label(new Rect(detailX + 14, detailY + 10, detailW - 20, 30),
+                    $"영지 정보 없음 ({entry.territoryId})", _styleDetailLabel);
+                return;
+            }
 
             float dy = detailY + 14;
 

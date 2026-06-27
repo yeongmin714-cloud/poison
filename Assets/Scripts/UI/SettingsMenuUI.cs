@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using ProjectName.Core;
 using UnityEngine;
 using ProjectName.UI.Themes;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -18,12 +16,10 @@ namespace ProjectName.UI
         public static SettingsMenuUI Instance { get; private set; }
 
         [Header("Layout")]
-        [SerializeField] private int _windowWidth = 1350;
-        [SerializeField] private int _windowHeight = 1462;
-        [SerializeField] private int _tabButtonHeight = 90;
-        [SerializeField] private int _sliderHeight = 45;
-        [SerializeField] private int _buttonHeight = 45;
-        [SerializeField] private int _spacing = 18;
+        [SerializeField] private int _windowWidth = 800;
+        [SerializeField] private int _windowHeight = 620;
+        [SerializeField] private int _tabButtonHeight = 50;
+        [SerializeField] private int _buttonHeight = 32;
 
         [Header("Colors")]
         [SerializeField] private Color _bgColor = new Color(0f, 0f, 0f, 0.88f);
@@ -41,7 +37,6 @@ namespace ProjectName.UI
 
         // ===== 상태 =====
         private bool _isVisible;
-        private UIDesignTheme _theme;
         private int _selectedQualityLevel;
         private int _selectedResolutionIndex;
         private Resolution[] _availableResolutions;
@@ -88,7 +83,6 @@ namespace ProjectName.UI
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
-            _theme = Phase33_Themes.SettingsTheme();
             LoadSettings();
         }
 
@@ -180,7 +174,7 @@ namespace ProjectName.UI
 
         private void ApplySavedResolution()
         {
-            if (_selectedResolutionIndex > 0 && _selectedResolutionIndex < _availableResolutions.Length)
+            if (_selectedResolutionIndex >= 0 && _selectedResolutionIndex < _availableResolutions.Length)
             {
                 var res = _availableResolutions[_selectedResolutionIndex];
                 Screen.SetResolution(res.width, res.height, Screen.fullScreen);
@@ -223,7 +217,7 @@ namespace ProjectName.UI
 
             _titleStyle = new GUIStyle
             {
-                fontSize = 352,
+                fontSize = 24,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = _textColor }
@@ -231,7 +225,7 @@ namespace ProjectName.UI
 
             _tabStyle = new GUIStyle
             {
-                fontSize = 224,
+                fontSize = 16,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = _textColor }
@@ -244,7 +238,7 @@ namespace ProjectName.UI
 
             _labelStyle = new GUIStyle
             {
-                fontSize = 224,
+                fontSize = 16,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = _labelColor },
@@ -253,7 +247,7 @@ namespace ProjectName.UI
 
             _valueStyle = new GUIStyle
             {
-                fontSize = 224,
+                fontSize = 16,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleRight,
                 normal = { textColor = _textColor },
@@ -262,7 +256,7 @@ namespace ProjectName.UI
 
             _backButtonStyle = new GUIStyle
             {
-                fontSize = 256,
+                fontSize = 20,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = _textColor }
@@ -272,7 +266,7 @@ namespace ProjectName.UI
 
             _fullscreenButtonStyle = new GUIStyle
             {
-                fontSize = 224,
+                fontSize = 16,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = _textColor }
@@ -295,7 +289,7 @@ namespace ProjectName.UI
 
             _guideLabelStyle = new GUIStyle
             {
-                fontSize = 160,
+                fontSize = 12,
                 normal = { textColor = Color.gray }
             };
 
