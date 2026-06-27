@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -11,14 +12,31 @@ namespace ProjectName.Core
     public class RecipeDatabase : ScriptableObject
     {
         [Header("레시피 목록")]
-        public List<Recipe> recipes = new List<Recipe>();
+        [SerializeField] private List<Recipe> recipes = new List<Recipe>();
 
         /// <summary>
-        /// 레시피 이름으로 찾기 (표시명 기준)
+        /// 인스펙터/에디터에서 리스트 읽기 전용 접근 (에디터 스크립트용)
+        /// </summary>
+        public IReadOnlyList<Recipe> Recipes => recipes;
+
+        /// <summary>
+        /// 레시피 목록을 설정합니다 (에디터 스크립트에서 사용).
+        /// </summary>
+        public void SetRecipes(List<Recipe> newRecipes)
+        {
+            recipes = newRecipes ?? new List<Recipe>();
+        }
+
+        /// <summary>
+        /// 레시피 이름으로 찾기 (표시명 기준, 대소문자 무시)
         /// </summary>
         public Recipe GetRecipeByName(string name)
         {
-            return recipes.Find(r => r.displayName == name);
+            if (string.IsNullOrEmpty(name))
+                return null;
+
+            return recipes.Find(r =>
+                r != null && string.Equals(r.displayName, name, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>

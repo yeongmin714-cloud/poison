@@ -1,5 +1,4 @@
 using UnityEngine;
-using ProjectName.Core;
 
 namespace ProjectName.Systems
 {
@@ -115,7 +114,7 @@ namespace ProjectName.Systems
 
             // BuildingTrigger 추가 (E키 상호작용)
             var trigger = door.AddComponent<BuildingTrigger>();
-            trigger.BuildingType = "barn";
+            trigger.BuildingType = "Exit";
         }
 
         private static void BuildHayBales()

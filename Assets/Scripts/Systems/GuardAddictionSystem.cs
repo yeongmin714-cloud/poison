@@ -1,5 +1,4 @@
 using UnityEngine;
-using ProjectName.Core;
 
 namespace ProjectName.Systems
 {
@@ -29,13 +28,20 @@ namespace ProjectName.Systems
         // 독약 효과
         public const float POISON_DAMAGE_PER_SECOND = 0.5f; // 초당 0.5 HP 데미지
         public const float POISON_ADDICTION_PER_DOSE = 15f;  // 1회 투여 시 중독도 +15
+        public const float POISON_ADDICTION_RATIO = 0.5f;    // 독은 마약보다 중독도 증가율 50%
         public const float POISON_LOYALTY_PENALTY = -10f;    // 호감도 -10
 
         // 해독제 효과
         public const float ANTIDOTE_REDUCTION = 0.5f;   // 중독도 50% 감소
 
+        // 스테이지 4 완전 중독 보너스
+        public const float STAGE_4_LOYALTY_BONUS = 20f;  // 절대 복종 (호감도 +20)
+
+        // 최대 중독도 (과다복용 감지를 위해 100 이상 허용)
+        public const float MAX_ADDICTION = 999f;
+
         /// <summary>
-        /// 중독 단계 반환 (1~5)
+        /// 중독 단계 반환 (0~5, 0=정상, 5=과다복용)
         /// </summary>
         public static int GetAddictionStage(float addiction)
         {
@@ -130,10 +136,12 @@ namespace ProjectName.Systems
         /// </summary>
         public static void ApplyPoison(GuardPlaceholder guard)
         {
-            if (guard == null) return;
-            guard.Addiction += POISON_ADDICTION_PER_DOSE / 2f; // 독은 마약보다 중독도 증가 적음
+            if (guard == null || !guard.IsAlive) return;
+            float addictionIncrease = POISON_ADDICTION_PER_DOSE * POISON_ADDICTION_RATIO;
+            guard.Addiction += addictionIncrease;
             guard.Loyalty += POISON_LOYALTY_PENALTY;
-            Debug.Log($"[GuardAddiction] {guard.GuardName} 독약 투여! 중독도 +{POISON_ADDICTION_PER_DOSE / 2f}, 호감도 {POISON_LOYALTY_PENALTY}");
+            Debug.Log($"[GuardAddiction] {guard.GuardName} 독약 투여! 중독도 +{addictionIncrease:F1}, 호감도 {POISON_LOYALTY_PENALTY}");
+            CheckOverdose(guard);
         }
 
         /// <summary>
@@ -169,7 +177,7 @@ namespace ProjectName.Systems
         {
             int stage = GetAddictionStage(addiction);
             if (stage == 1) return STAGE_1_LOYALTY_BONUS; // 가벼운 의존 → 호감도 +5
-            if (stage == 4) return 20f; // 완전 중독 → 절대 복종 (호감도 +20)
+            if (stage == 4) return STAGE_4_LOYALTY_BONUS; // 완전 중독 → 절대 복종 (호감도 +20)
             return 0f;
         }
 

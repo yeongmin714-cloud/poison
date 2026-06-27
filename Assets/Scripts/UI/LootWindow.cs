@@ -332,7 +332,7 @@ namespace ProjectName.UI
                 for (int i = 0; i < _cachedItems.Length; i++)
                 {
                     var entry = _cachedItems[i];
-                    if (entry == null || entry.item == null || entry.count <= 0) continue;
+                    if (entry == null || entry.Item == null || entry.Count <= 0) continue;
 
                     int col = i % GRID_COLUMNS;
                     int row = i / GRID_COLUMNS;
@@ -347,7 +347,7 @@ namespace ProjectName.UI
                     GUI.Box(_rectSlot, "", slotStyle);
 
                     // 아이콘 (ItemIconDatabase 사용 — 캐싱됨)
-                    Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(entry.item);
+                    Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(entry.Item);
                     if (iconTex != null)
                     {
                         _rectWork.Set(sx + 6, sy + 4, 90, 90);
@@ -355,7 +355,7 @@ namespace ProjectName.UI
                     }
                     else
                     {
-                        Color iconColor = GetItemColor(entry.item.category);
+                        Color iconColor = GetItemColor(entry.Item.category);
                         _rectWork.Set(sx + 6, sy + 4, 90, 90);
                         GUI.color = iconColor;
                         GUI.DrawTexture(_rectWork, _texWhite);
@@ -367,12 +367,12 @@ namespace ProjectName.UI
                     float nameWidth = slotWidth - 12;
                     _rectWork.Set(sx + 6, nameY, nameWidth, 24);
                     GUI.Label(_rectWork,
-                        TruncateText(entry.item.displayName, nameWidth, _styleSlotLabel),
+                        TruncateText(entry.Item.displayName, nameWidth, _styleSlotLabel),
                         _styleSlotLabel);
 
                     // 개수 (GC 최적화: string.Concat 사용)
                     _rectWork.Set(sx + 6, nameY + 14, nameWidth, 21);
-                    _strItemCount = "x" + entry.count;
+                    _strItemCount = "x" + entry.Count;
                     _gcItemCount.text = _strItemCount;
                     GUI.Label(_rectWork, _gcItemCount, _styleItemCount);
 

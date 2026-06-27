@@ -1,6 +1,5 @@
 using ProjectName.Core;
 using UnityEngine;
-using System.Collections;
 
 namespace ProjectName.Systems
 {
@@ -13,13 +12,27 @@ namespace ProjectName.Systems
     {
         public static CraftResultPopup Instance { get; private set; }
 
+        /// <summary>실패 유형 열거형 — 매직 넘버 대체</summary>
+        public enum CraftFailType
+        {
+            MaterialsPreserved = 0, // 재료보존
+            MaterialsPartiallyLost = 1, // 재료일부소멸
+            MaterialsCompletelyLost = 2, // 전소
+        }
+
         [Header("표시 설정")]
         [SerializeField] private float _displayDuration = 3f;
         [SerializeField] private float _fadeDuration = 0.5f;
 
+        // ── 캐시된 IMGUI 스타일 (OnPopupGUI에서 매프레임 생성 방지) ──
+        private GUIStyle _titleStyle;
+        private GUIStyle _gradeStyle;
+        private GUIStyle _failStyle;
+
         private string _currentMessage = "";
         private string _currentItemName = "";
         private string _currentGradeText = "";
+        private string _failureDetailMessage = ""; // 실패 시 상세 메시지 (Replace 제거용)
         private Color _currentGradeColor = Color.gray;
         private float _showTimer = 0f;
         private float _fadeProgress = 1f;
@@ -47,13 +60,13 @@ namespace ProjectName.Systems
 
             _currentMessage = $"🎉 {itemName} 제작 성공!\n{_currentGradeText} 등급\n{effectDescription}";
 
-            // 환효 효과음 (간단한 로그)
+            // 환호 효과음 (간단한 로그)
             Debug.Log($"[CraftResult] ✅ 성공: {_currentMessage}");
         }
 
         /// <summary>제작 실패 결과창 표시</summary>
-        /// <param name="failType">0=재료보존, 1=재료소멸, 2=전소</param>
-        public void ShowFailure(int failType)
+        /// <param name="failType">실패 유형 (CraftFailType 열거형)</param>
+        public void ShowFailure(CraftFailType failType)
         {
             _isSuccess = false;
             _isShowing = true;
@@ -63,21 +76,22 @@ namespace ProjectName.Systems
             string failMsg;
             switch (failType)
             {
-                case 0:
+                case CraftFailType.MaterialsPreserved:
                     failMsg = "재료가 보존되었습니다.";
                     _currentGradeColor = new Color(0.8f, 0.6f, 0.2f); // 노란색
                     break;
-                case 1:
+                case CraftFailType.MaterialsPartiallyLost:
                     failMsg = "재료 일부가 소멸되었습니다.";
                     _currentGradeColor = new Color(0.8f, 0.3f, 0.2f); // 주황색
                     break;
-                case 2:
+                case CraftFailType.MaterialsCompletelyLost:
                 default:
                     failMsg = "재료가 모두 전소되었습니다!";
                     _currentGradeColor = new Color(0.8f, 0.1f, 0.1f); // 빨간색
                     break;
             }
 
+            _failureDetailMessage = failMsg;
             _currentMessage = $"❌ 제작 실패!\n{failMsg}";
             _currentItemName = "";
             _currentGradeText = "";
@@ -124,45 +138,53 @@ namespace ProjectName.Systems
             GUI.color = bgColor;
             GUI.Box(new Rect(boxX, boxY, boxW, boxH), "");
 
-            // 타이틀
-            GUI.color = new Color(1f, 1f, 1f, _fadeProgress);
-            var titleStyle = new GUIStyle(GUI.skin.label)
+            // ── 캐시된 스타일 초기화 (최초 1회) ──
+            if (_titleStyle == null)
             {
-                fontSize = 22,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.UpperCenter,
-                normal = { textColor = Color.white }
-            };
+                _titleStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 22,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.UpperCenter,
+                    normal = { textColor = Color.white }
+                };
 
-            string title = _isSuccess ? "🎉 제작 완료!" : "❌ 제작 실패";
-            GUI.Label(new Rect(boxX, boxY + 8, boxW, 30), title, titleStyle);
-
-            // 아이템명 + 등급
-            if (_isSuccess && !string.IsNullOrEmpty(_currentItemName))
-            {
-                GUI.color = _currentGradeColor;
-                var gradeStyle = new GUIStyle(GUI.skin.label)
+                _gradeStyle = new GUIStyle(GUI.skin.label)
                 {
                     fontSize = 16,
                     fontStyle = FontStyle.Bold,
                     alignment = TextAnchor.MiddleCenter,
-                    normal = { textColor = _currentGradeColor }
+                    normal = { textColor = Color.white }
                 };
-                GUI.Label(new Rect(boxX, boxY + 42, boxW, 24), $"{_currentItemName}", gradeStyle);
 
-                GUI.color = new Color(_currentGradeColor.r, _currentGradeColor.g, _currentGradeColor.b, 0.8f);
-                GUI.Label(new Rect(boxX, boxY + 68, boxW, 20), $"{_currentGradeText} 등급", gradeStyle);
-            }
-            else if (!_isSuccess)
-            {
-                GUI.color = _currentGradeColor;
-                var failStyle = new GUIStyle(GUI.skin.label)
+                _failStyle = new GUIStyle(GUI.skin.label)
                 {
                     fontSize = 14,
                     alignment = TextAnchor.MiddleCenter,
-                    normal = { textColor = _currentGradeColor }
+                    normal = { textColor = Color.white }
                 };
-                GUI.Label(new Rect(boxX, boxY + 50, boxW, 50), _currentMessage.Replace("❌ 제작 실패!\n", ""), failStyle);
+            }
+
+            // 타이틀
+            GUI.color = new Color(1f, 1f, 1f, _fadeProgress);
+            string title = _isSuccess ? "🎉 제작 완료!" : "❌ 제작 실패";
+            GUI.Label(new Rect(boxX, boxY + 8, boxW, 30), title, _titleStyle);
+
+            // 아이템명 + 등급
+            if (_isSuccess && !string.IsNullOrEmpty(_currentItemName))
+            {
+                _gradeStyle.normal.textColor = _currentGradeColor;
+                GUI.color = _currentGradeColor;
+                GUI.Label(new Rect(boxX, boxY + 42, boxW, 24), _currentItemName, _gradeStyle);
+
+                _gradeStyle.normal.textColor = new Color(_currentGradeColor.r, _currentGradeColor.g, _currentGradeColor.b, 0.8f);
+                GUI.Label(new Rect(boxX, boxY + 68, boxW, 20), $"{_currentGradeText} 등급", _gradeStyle);
+            }
+            else if (!_isSuccess)
+            {
+                _failStyle.normal.textColor = _currentGradeColor;
+                GUI.color = _currentGradeColor;
+                GUI.Label(new Rect(boxX, boxY + 50, boxW, 50), _failureDetailMessage, _failStyle);
             }
 
             GUI.color = Color.white;

@@ -121,7 +121,7 @@ public static class Phase4_GenerateRecipeAssets
     {
         var db = ScriptableObject.CreateInstance<RecipeDatabase>();
         db.name = dbName;
-        db.recipes = new List<Recipe>(recipes);
+        db.SetRecipes(new List<Recipe>(recipes));
         string path = $"{RecipesDir}/{dbName}.asset";
         AssetDatabase.CreateAsset(db, path);
         Debug.Log($"[Phase4] RecipeDatabase 생성: {dbName} ({recipes.Count}개 레시피)");

@@ -161,7 +161,7 @@ namespace ProjectName.Systems
             _alertPositions.Remove(territoryId);
 
             // 모든 병사 전투 해제 (GuardCombatAI.RecallAll 등)
-            DeactivateAllGuards(territoryId);
+            DeactivateAllGuards();
 
             Debug.Log($"[AlarmSystem] ✅ 평화 복구! 영지:{territoryId}");
 
@@ -190,9 +190,21 @@ namespace ProjectName.Systems
             else if (state == AlarmState.Battle)
             {
                 _alarmTimers[territoryId] = ALARM_TO_BATTLE_DELAY; // 즉시 Battle
+                ActivateAllTerritoryGuards(territoryId);
             }
 
+            OnAlarmTriggered?.Invoke(territoryId, state);
             OnAlarmStateChanged?.Invoke(territoryId, previousState, state);
+        }
+
+        /// <summary>
+        /// 경보 발생 위치 반환 (없으면 null)
+        /// </summary>
+        public static Vector3? GetAlertPosition(TerritoryId territoryId)
+        {
+            if (_alertPositions.TryGetValue(territoryId, out var pos))
+                return pos;
+            return null;
         }
 
         /// <summary>
@@ -212,7 +224,7 @@ namespace ProjectName.Systems
         /// </summary>
         private static void ActivateNearbyGuards(TerritoryId territoryId, Vector3 attackPosition)
         {
-            var guards = UnityEngine.Object.FindObjectsOfType<GuardPlaceholder>();
+            var guards = UnityEngine.Object.FindObjectsByType<GuardPlaceholder>();
             foreach (var guard in guards)
             {
                 if (guard == null || !guard.IsAlive) continue;
@@ -231,7 +243,7 @@ namespace ProjectName.Systems
         /// </summary>
         private static void ActivateAllTerritoryGuards(TerritoryId territoryId)
         {
-            var gateGuards = UnityEngine.Object.FindObjectsOfType<GateGuardPlaceholder>();
+            var gateGuards = UnityEngine.Object.FindObjectsByType<GateGuardPlaceholder>();
             foreach (var gate in gateGuards)
             {
                 if (gate.Nation != territoryId.nation || gate.TerritoryIndex != territoryId.index)
@@ -247,7 +259,7 @@ namespace ProjectName.Systems
             }
 
             // 전체 영지의 모든 GuardPlaceholder 전투 활성화
-            var allGuards = UnityEngine.Object.FindObjectsOfType<GuardPlaceholder>();
+            var allGuards = UnityEngine.Object.FindObjectsByType<GuardPlaceholder>();
             foreach (var guard in allGuards)
             {
                 if (guard != null && guard.IsAlive)
@@ -260,9 +272,9 @@ namespace ProjectName.Systems
         /// <summary>
         /// 모든 병사 전투 해제
         /// </summary>
-        private static void DeactivateAllGuards(TerritoryId territoryId)
+        private static void DeactivateAllGuards()
         {
-            var guards = UnityEngine.Object.FindObjectsOfType<GuardPlaceholder>();
+            var guards = UnityEngine.Object.FindObjectsByType<GuardPlaceholder>();
             foreach (var guard in guards)
             {
                 if (guard != null)

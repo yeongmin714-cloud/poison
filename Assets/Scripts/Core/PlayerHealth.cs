@@ -54,7 +54,7 @@ namespace ProjectName.Core
 
         // 상태
         private bool _isDead = false;
-        private float _lastDamageTime = -10f;
+        private float _lastDamageTime = float.NegativeInfinity;
         private Transform _playerTransform;
         private Component _movement; // C21-02: 구르기 무적 체크용 (reflection-safe)
 
@@ -94,12 +94,15 @@ namespace ProjectName.Core
         private void Start()
         {
             _currentHP = _maxHP;
-            _playerTransform = GetComponent<Transform>();
-            if (_playerTransform == null)
+
+            // 자신의 Transform을 가져오고, 이 GameObject가 실제 Player가 아니라면 Player 태그로 찾는다
+            _playerTransform = transform;
+            if (gameObject.tag != "Player")
             {
                 var player = GameObject.FindGameObjectWithTag("Player");
                 if (player != null) _playerTransform = player.transform;
             }
+
             OnHPChanged?.Invoke(_currentHP, _maxHP);
         }
 
@@ -135,7 +138,7 @@ namespace ProjectName.Core
                 Debug.Log($"[PlayerHealth] 방어력 {defense}로 데미지 감소: {damage} → {actualDamage}");
 
             _currentHP -= actualDamage;
-            _currentHP = Mathf.Max(0, _currentHP);
+            _currentHP = Mathf.Max(0f, _currentHP);
 
             Debug.Log($"[PlayerHealth] 💥 {actualDamage} 데미지! HP: {_currentHP}/{_maxHP}");
             OnHPChanged?.Invoke(_currentHP, _maxHP);
@@ -193,6 +196,7 @@ namespace ProjectName.Core
 
         private void Die()
         {
+            if (_isDead) return;
             _isDead = true;
             Debug.Log("[PlayerHealth] 💀 플레이어 사망! 리스폰 중...");
             OnHPChanged?.Invoke(0, _maxHP);
@@ -223,7 +227,9 @@ namespace ProjectName.Core
 
         private System.Collections.IEnumerator RespawnCoroutine()
         {
-            yield return new WaitForSeconds(_respawnDelay);
+            // WaitForSecondsRealtime 사용: DeathEffects의 unscaled time(Time.unscaledTime)과 동기화
+            // SlowMo(Time.timeScale=0.3) 중에도 실제 3초 후에 리스폰되도록 함
+            yield return new WaitForSecondsRealtime(_respawnDelay);
             Respawn();
         }
 

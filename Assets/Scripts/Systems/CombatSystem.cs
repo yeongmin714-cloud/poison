@@ -13,6 +13,9 @@ namespace ProjectName.Systems
     ///
     /// PlayerCombat은 실제 데미지 계산/적중 이펙트를 담당하고,
     /// CombatSystem은 입력 → 타겟 선정 → 공격 명령 오케스트레이션을 담당합니다.
+    ///
+    /// ⚠ PlayerCombat이 존재하는 경우 PlayerCombat이 자체적으로 입력을 처리합니다.
+    ///   CombatSystem은 PlayerCombat이 없을 때의 Fallback 전투 시스템으로 동작합니다.
     /// </summary>
     public class CombatSystem : MonoBehaviour
     {
@@ -25,7 +28,7 @@ namespace ProjectName.Systems
         [SerializeField] private KeyCode _attackKey = KeyCode.Mouse0;
 
         [Header("Debug")]
-        [SerializeField] private bool _debugLogs = true;
+        [SerializeField] private bool _debugLogs = false;
 
         // 캐시
         private Camera _mainCamera;
@@ -46,6 +49,11 @@ namespace ProjectName.Systems
         private void Update()
         {
             if (PlayerHealth.Instance != null && PlayerHealth.Instance.IsDead) return;
+
+            // PlayerCombat이 존재하면 PlayerCombat이 자체적으로 입력을 처리하므로
+            // CombatSystem은 중복 입력 처리를 피하기 위해 건너뜁니다.
+            if (_playerCombat != null) return;
+
             if (!Input.GetKeyDown(_attackKey)) return;
 
             TryPerformAttack();
@@ -57,20 +65,22 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 좌클릭 입력을 처리합니다.
-        /// 1. Physics.Raycast (마우스 커서 위치)
+        /// 1. Physics.Raycast (마우스 커서 위치, 무한 거리)
         /// 2. IDamageable 감지
-        /// 3. 거리 체크 (_maxAttackRange 이내)
-        /// 4. PlayerCombat.Attack() 호출
+        /// 3. 거리 체크 (_maxAttackRange 이내, 플레이어 기준)
+        /// 4. 직접 데미지 처리 (AttackDirect)
+        ///
+        /// ※ PlayerCombat이 없는 Fallback 시나리오에서만 호출됩니다.
         /// </summary>
         private void TryPerformAttack()
         {
             if (_mainCamera == null) return;
 
-            // 1) 마우스 커서 위치로 Raycast
+            // 1) 마우스 커서 위치로 Raycast (무한 거리 — 카메라 기준 거리가 아닌 플레이어 기준 거리로 필터링)
             Vector2 mousePos = Input.mousePosition;
             Ray ray = _mainCamera.ScreenPointToRay(mousePos);
 
-            // 2) IDamageable 감지 (Raycast + SphereCast fallback)
+            // 2) IDamageable 감지 (Raycast + SphereCast fallback, 무한 거리)
             IDamageable target = FindTargetByRaycast(ray);
 
             if (target == null)
@@ -83,7 +93,7 @@ namespace ProjectName.Systems
                 return;
             }
 
-            // 3) 거리 체크
+            // 3) 거리 체크 (플레이어 기준)
             MonoBehaviour targetBehaviour = target as MonoBehaviour;
             if (targetBehaviour == null) return;
 
@@ -95,54 +105,12 @@ namespace ProjectName.Systems
                 return;
             }
 
-            // 4) PlayerCombat.Attack() 호출
-            if (_playerCombat != null)
-            {
-                // PlayerCombat의 AttackTarget은 internal이므로
-                // 직접 TakeDamage를 호출하거나 public API 사용
-                AttackViaPlayerCombat(target);
-            }
-            else
-            {
-                // Fallback: 직접 데미지 처리
-                AttackDirect(target, targetBehaviour);
-            }
+            // 4) 직접 데미지 처리 (PlayerCombat이 없으므로)
+            AttackDirect(target, targetBehaviour);
         }
 
         /// <summary>
-        /// PlayerCombat 인스턴스를 통해 공격합니다.
-        /// </summary>
-        private void AttackViaPlayerCombat(IDamageable target)
-        {
-            if (!target.IsAlive) return;
-
-            // PlayerCombat.TryAttack() / AttackTarget() 호출이 불가능하면
-            // 직접 데미지를 처리하되 PlayerCombat의 이펙트를 재사용
-            float damage = CalculateDamage();
-            Vector3 hitDirection = (GetTargetPosition(target) - transform.position).normalized;
-
-            target.TakeDamage(damage, hitDirection, "melee");
-
-            if (_debugLogs)
-                Debug.Log($"[CombatSystem] 🎯 공격! 데미지: {damage}");
-
-            // 사망 시 LootBasket.Create()는 AnimalAI.Die() 또는 GuardPlaceholder.Die()에서 자동 처리됨
-            // 하지만 여기서도 안전장치로 체크
-            if (!target.IsAlive)
-            {
-                MonoBehaviour mb = target as MonoBehaviour;
-                if (mb != null)
-                {
-                    // LootBasket 생성 (Die()에서 이미 생성하지만, 놓친 경우를 대비)
-                    // 이미 AnimalAI.Die()가 LootBasket.Create()를 호출하므로
-                    // 중복 생성 방지를 위해 플래그 사용
-                    EnsureLootBasket(mb.gameObject);
-                }
-            }
-        }
-
-        /// <summary>
-        /// PlayerCombat 없이 직접 데미지 처리하는 폴백.
+        /// 직접 데미지 처리 (PlayerCombat이 없는 Fallback 시나리오).
         /// </summary>
         private void AttackDirect(IDamageable target, MonoBehaviour targetBehaviour)
         {
@@ -153,6 +121,11 @@ namespace ProjectName.Systems
 
             target.TakeDamage(damage, hitDirection, "melee");
 
+            if (_debugLogs)
+                Debug.Log($"[CombatSystem] 🎯 공격! 데미지: {damage}");
+
+            // 사망 시 LootBasket 생성 (AnimalAI/GuardPlaceholder.Die()에서 이미 처리,
+            // CombatSystem이 직접 처리한 경우를 위한 안전장치)
             if (!target.IsAlive)
             {
                 EnsureLootBasket(targetBehaviour.gameObject);
@@ -163,42 +136,55 @@ namespace ProjectName.Systems
         // Raycast 탐색
         // ================================================================
 
-        /// <summary>정밀 Raycast — 마우스 커서 직선상의 IDamageable 탐색</summary>
+        /// <summary>정밀 Raycast — 마우스 커서 직선상의 IDamageable 탐색 (무한 거리, 플레이어 기준 필터링)</summary>
         private IDamageable FindTargetByRaycast(Ray ray)
         {
-            RaycastHit[] hits = Physics.RaycastAll(ray, _maxAttackRange, _targetLayers);
+            // 무한 거리로 Raycast (카메라 기준 거리가 아닌 플레이어 기준 거리로 필터링)
+            RaycastHit[] hits = Physics.RaycastAll(ray, float.PositiveInfinity, _targetLayers);
 
             IDamageable closest = null;
-            float closestDist = float.MaxValue;
+            float closestPlayerDist = float.MaxValue;
 
             foreach (var hit in hits)
             {
                 IDamageable dmg = hit.collider.GetComponent<IDamageable>();
-                if (dmg != null && dmg.IsAlive && hit.distance < closestDist)
+                if (dmg != null && dmg.IsAlive)
                 {
-                    closestDist = hit.distance;
-                    closest = dmg;
+                    MonoBehaviour mb = dmg as MonoBehaviour;
+                    if (mb == null) continue;
+                    float playerDist = Vector3.Distance(transform.position, mb.transform.position);
+                    if (playerDist < closestPlayerDist)
+                    {
+                        closestPlayerDist = playerDist;
+                        closest = dmg;
+                    }
                 }
             }
             return closest;
         }
 
-        /// <summary>SphereCast fallback — Raycast 실패 시 넓은 범위 탐색</summary>
+        /// <summary>SphereCast fallback — Raycast 실패 시 넓은 범위 탐색 (무한 거리)</summary>
         private IDamageable FindTargetBySphereCast(Ray ray)
         {
             float radius = 0.5f;
-            RaycastHit[] hits = Physics.SphereCastAll(ray.origin, radius, ray.direction, _maxAttackRange, _targetLayers);
+            RaycastHit[] hits = Physics.SphereCastAll(ray.origin, radius, ray.direction, float.PositiveInfinity, _targetLayers);
 
             IDamageable closest = null;
-            float closestDist = float.MaxValue;
+            float closestPlayerDist = float.MaxValue;
 
             foreach (var hit in hits)
             {
                 IDamageable dmg = hit.collider.GetComponent<IDamageable>();
-                if (dmg != null && dmg.IsAlive && hit.distance < closestDist)
+                if (dmg != null && dmg.IsAlive)
                 {
-                    closestDist = hit.distance;
-                    closest = dmg;
+                    MonoBehaviour mb = dmg as MonoBehaviour;
+                    if (mb == null) continue;
+                    float playerDist = Vector3.Distance(transform.position, mb.transform.position);
+                    if (playerDist < closestPlayerDist)
+                    {
+                        closestPlayerDist = playerDist;
+                        closest = dmg;
+                    }
                 }
             }
             return closest;
@@ -217,23 +203,22 @@ namespace ProjectName.Systems
         /// </summary>
         private void EnsureLootBasket(GameObject deadObject)
         {
-            // 죽은 오브젝트 위치에 이미 LootBasket이 있는지 확인
-            LootBasket[] existing = FindObjectsByType<LootBasket>();
-            foreach (var basket in existing)
+            // 죽은 오브젝트 위치에 이미 LootBasket이 있는지 확인 (OverlapSphere, FindObjectsByType보다 효율적)
+            Collider[] nearby = Physics.OverlapSphere(deadObject.transform.position, 0.5f);
+            foreach (var col in nearby)
             {
-                if (Vector3.Distance(basket.transform.position, deadObject.transform.position) < 0.5f)
+                if (col.GetComponent<LootBasket>() != null)
                 {
                     if (_debugLogs)
                         Debug.Log("[CombatSystem] ✅ LootBasket 이미 존재, 중복 생성 방지");
-                    return; // 이미 있음
+                    return;
                 }
             }
 
             // 없으면 직접 생성
-            LootBasket basket2 = LootBasket.Create(deadObject.transform.position, _basketLifetime);
+            LootBasket.Create(deadObject.transform.position, _basketLifetime);
             if (_debugLogs)
-                Debug.Log($"[CombatSystem] 🧺 LootBasket 생성됨 (30초 후 소멸)");
-            _ = basket2; // 사용됨
+                Debug.Log($"[CombatSystem] 🧺 LootBasket 생성됨 ({_basketLifetime:F0}초 후 소멸)");
         }
 
         // ================================================================
@@ -242,24 +227,12 @@ namespace ProjectName.Systems
 
         private float CalculateDamage()
         {
-            // PlayerCombat이 있으면 PlayerCombat의 데미지 사용
-            if (_playerCombat != null)
-            {
-                // PlayerCombat.CalculateDamage()는 private이므로
-                // WeaponData 기반 추정값 사용
-                return 10f; // 기본값
-            }
-
+            // PlayerCombat이 없으므로 WeaponData를 참조할 수 없음.
+            // PlayerStats 기반 기본 데미지 사용 (PlayerCombat.CalculateDamage()와 일관된 로직)
             float damage = 10f;
             if (PlayerStats.Instance != null)
                 damage += PlayerStats.Instance.Level * 0.5f;
             return damage;
-        }
-
-        private Vector3 GetTargetPosition(IDamageable target)
-        {
-            MonoBehaviour mb = target as MonoBehaviour;
-            return mb != null ? mb.transform.position : Vector3.zero;
         }
 
         // ================================================================

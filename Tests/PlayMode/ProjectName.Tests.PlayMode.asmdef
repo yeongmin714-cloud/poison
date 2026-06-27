@@ -1,20 +1,17 @@
 {
-    "name": "ProjectName.Tests.PlayMode",
-    "rootNamespace": "ProjectName.Tests.PlayMode",
-    "references": [
-        "ProjectName.Core"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": true,
-    "precompiledReferences": [
-        "nunit.framework.dll"
-    ],
-    "autoReferenced": false,
-    "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
-    ],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "ProjectName.Tests.PlayMode",
+  "rootNamespace": "ProjectName.Tests.PlayMode",
+  "references": [
+    "ProjectName.Core"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "autoReferenced": true,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

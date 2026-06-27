@@ -77,7 +77,6 @@ namespace ProjectName.Systems
         [SerializeField] private int _leavesMaxParticles = 75;
         [SerializeField] private float _leavesEmissionRate = 8f;
         [SerializeField] private Color _leavesColor1 = new Color(0.55f, 0.35f, 0.15f);
-        [SerializeField] private Color _leavesColor2 = new Color(0.30f, 0.55f, 0.15f);
 
         [Header("Dust (desert/wasteland — West/South)")]
         [SerializeField] private int _dustMaxParticles = 40;
@@ -132,7 +131,9 @@ namespace ProjectName.Systems
 
         public bool Initialized => _initialized;
 
-        /// <summary>Current effective ambient effects given the detected biome.</summary>
+        /// <summary>Primary ambient effect for the detected nation.
+        /// Note: some nations activate multiple effects simultaneously
+        /// (e.g. East = Fireflies + Leaves, South = Embers + Dust, Empire = Fireflies + Embers).</summary>
         public AmbientEffectType CurrentEffect
         {
             get
@@ -215,8 +216,15 @@ namespace ProjectName.Systems
                 var playerMove = FindObjectOfType<PlayerMovement>();
                 if (playerMove != null)
                     _player = playerMove.transform;
+                else if (Camera.main != null)
+                    _player = Camera.main.transform;
                 else
-                    _player = Camera.main?.transform ?? new GameObject("AmbientOrigin").transform;
+                {
+                    var fallback = new GameObject("AmbientOrigin");
+                    fallback.transform.SetParent(transform, false);
+                    fallback.transform.localPosition = Vector3.zero;
+                    _player = fallback.transform;
+                }
             }
 
             // Create all four particle systems
@@ -605,8 +613,12 @@ namespace ProjectName.Systems
             }
         }
 
-        /// <summary>Get the update interval setting.</summary>
-        public float UpdateInterval => _updateInterval;
+        /// <summary>Get or set the update interval for biome detection.</summary>
+        public float UpdateInterval
+        {
+            get => _updateInterval;
+            internal set => _updateInterval = value;
+        }
 
         /// <summary>Get the effect radius setting.</summary>
         public float EffectRadius => _effectRadius;
@@ -614,10 +626,5 @@ namespace ProjectName.Systems
         // ================================================================
         // Editor helpers (accessed via reflection in tests)
         // ================================================================
-
-        internal void SetUpdateInterval(float value)
-        {
-            _updateInterval = value;
-        }
     }
 }

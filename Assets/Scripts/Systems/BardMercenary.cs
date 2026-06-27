@@ -51,11 +51,30 @@ namespace ProjectName.Systems
             }
         }
 
+        /// <summary>이 바드가 부여한 모든 버프 해제 (비활성화/파괴 시)</summary>
+        private void ClearAllBuffs()
+        {
+            if (BardBuffManager.Instance != null)
+            {
+                BardBuffManager.Instance.ClearBySource(_mercenaryId);
+            }
+        }
+
+        private void OnDisable()
+        {
+            ClearAllBuffs();
+        }
+
+        private void OnDestroy()
+        {
+            ClearAllBuffs();
+        }
+
         /// <summary>반경 내 아군에게 버프 적용</summary>
         private void ApplyBuffs()
         {
             // 주변 GuardPlaceholder 검색
-            var guards = FindObjectsOfType<GuardPlaceholder>();
+            var guards = FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
             int buffedCount = 0;
 
             foreach (var guard in guards)
@@ -71,7 +90,7 @@ namespace ProjectName.Systems
             }
 
             // 주변 MercenaryPlaceholder 검색 (다른 용병)
-            var mercs = FindObjectsOfType<MercenaryPlaceholder>();
+            var mercs = FindObjectsByType<MercenaryPlaceholder>(FindObjectsSortMode.None);
             foreach (var merc in mercs)
             {
                 if (merc.MercenaryId == _mercenaryId) continue; // 자기 자신 제외
@@ -79,6 +98,7 @@ namespace ProjectName.Systems
                 float dist = Vector3.Distance(transform.position, merc.transform.position);
                 if (dist <= _buffRange)
                 {
+                    ApplyBuffToMercenary(merc);
                     buffedCount++;
                 }
             }
@@ -108,6 +128,21 @@ namespace ProjectName.Systems
             }
         }
 
+        /// <summary>개별 용병에게 버프 적용</summary>
+        private void ApplyBuffToMercenary(MercenaryPlaceholder merc)
+        {
+            if (BardBuffManager.Instance != null)
+            {
+                BardBuffManager.Instance.RegisterBuffedMercenary(merc, new BardBuffData
+                {
+                    attackBonus = _attackBuffPercent / 100f,
+                    defenseBonus = _defenseBuffPercent / 100f,
+                    speedBonus = _speedBuffPercent / 100f,
+                    sourceId = _mercenaryId
+                });
+            }
+        }
+
         /// <summary>버프 중인 아군 수 계산</summary>
         public int GetBuffedAllyCount()
         {
@@ -117,86 +152,15 @@ namespace ProjectName.Systems
 
         private void OnDrawGizmosSelected()
         {
+            // 버프 범위 표시
             Gizmos.color = new Color(1f, 0.8f, 0.2f, 0.3f);
             Gizmos.DrawWireSphere(transform.position, _buffRange);
 
-            // 버프 아이콘 위치
+            // 버프 위치 마커 (상단에 노란색 구체)
             Vector3 labelPos = transform.position + Vector3.up * 3f;
             Gizmos.color = Color.yellow;
-            Gizmos.DrawIcon(labelPos, "♫", true);
-        }
-    }
-
-    /// <summary>바드 버프 데이터</summary>
-    [System.Serializable]
-    public struct BardBuffData
-    {
-        public float attackBonus;   // 공격력 보너스 비율 (0.15 = +15%)
-        public float defenseBonus;  // 방어력 보너스 비율
-        public float speedBonus;    // 이동속도 보너스 비율
-        public string sourceId;     // 버프 출처 용병 ID
-    }
-
-    /// <summary>바드 버프 관리자 (싱글톤)</summary>
-    public class BardBuffManager : MonoBehaviour
-    {
-        public static BardBuffManager Instance { get; private set; }
-
-        // 버프 받은 가드 목록: guard instance ID → buff data
-        private System.Collections.Generic.Dictionary<int, BardBuffData> _buffedGuards =
-            new System.Collections.Generic.Dictionary<int, BardBuffData>();
-
-        // 버프 출처별 카운트
-        private System.Collections.Generic.Dictionary<string, System.Collections.Generic.HashSet<int>> _sourceToGuards =
-            new System.Collections.Generic.Dictionary<string, System.Collections.Generic.HashSet<int>>();
-
-        private void Awake()
-        {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-
-        public void RegisterBuffedGuard(GuardPlaceholder guard, BardBuffData buffData)
-        {
-            int id = guard.GetInstanceID();
-            _buffedGuards[id] = buffData;
-
-            if (!_sourceToGuards.ContainsKey(buffData.sourceId))
-                _sourceToGuards[buffData.sourceId] = new System.Collections.Generic.HashSet<int>();
-            _sourceToGuards[buffData.sourceId].Add(id);
-        }
-
-        public void UnregisterGuard(GuardPlaceholder guard)
-        {
-            int id = guard.GetInstanceID();
-            _buffedGuards.Remove(id);
-            foreach (var kvp in _sourceToGuards)
-            {
-                kvp.Value.Remove(id);
-            }
-        }
-
-        public bool TryGetBuff(GuardPlaceholder guard, out BardBuffData buffData)
-        {
-            return _buffedGuards.TryGetValue(guard.GetInstanceID(), out buffData);
-        }
-
-        public int GetBuffedCountBySource(string sourceId)
-        {
-            if (_sourceToGuards.TryGetValue(sourceId, out var set))
-                return set.Count;
-            return 0;
-        }
-
-        public void Clear()
-        {
-            _buffedGuards.Clear();
-            _sourceToGuards.Clear();
+            Gizmos.DrawSphere(labelPos, 0.25f);
+            Gizmos.DrawWireSphere(labelPos, 0.35f);
         }
     }
 }

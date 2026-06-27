@@ -12,7 +12,7 @@ namespace ProjectName.Systems
     {
         /// <summary>
         /// 완성된 NPC 주택 실내 GameObject 반환.
-        /// 생성된 Material은 자동 추적되어 GameObject 파괴 시 함께 정리됩니다.
+        /// 생성된 Material/Texture는 자동 추적되어 GameObject 파괴 시 함께 정리됩니다.
         /// </summary>
         public static GameObject BuildHouseInterior()
         {
@@ -30,8 +30,14 @@ namespace ProjectName.Systems
             Shader shader = Shader.Find("Universal Render Pipeline/Lit");
             if (shader == null)
             {
-                Debug.LogError("[HouseInteriorBuilder] URP Lit shader not found!");
-                shader = Shader.Find("Standard");
+                Debug.LogError("[HouseInteriorBuilder] URP Lit shader not found! " +
+                    "Ensure URP is installed and assigned in Graphics Settings. " +
+                    "Aborting interior generation.");
+                // 생성된 텍스처 정리
+                Object.Destroy(floorTex);
+                Object.Destroy(wallTex);
+                Object.Destroy(ceilingTex);
+                return null;
             }
 
             Material floorMat = new Material(shader) { name = "House_FloorMat" };
@@ -56,13 +62,16 @@ namespace ProjectName.Systems
             GameObject room = IndoorBuilder.CreateRoom(roomWidth, roomHeight, roomDepth,
                 floorMat, wallMat, ceilingMat);
 
-            // ===== Material 누수 방지: 생성된 재질을 room에 추적 등록 =====
+            // ===== 리소스 누수 방지: 생성된 재질/텍스처를 room에 추적 등록 =====
             var matTracker = room.AddComponent<MaterialTracker>();
             matTracker.Track(floorMat);
             matTracker.Track(wallMat);
             matTracker.Track(ceilingMat);
             matTracker.Track(woodMat);
             matTracker.Track(fabricMat);
+            matTracker.TrackTexture(floorTex);
+            matTracker.TrackTexture(wallTex);
+            matTracker.TrackTexture(ceilingTex);
 
             // ===== 침대 =====
             GameObject bed = IndoorFurniturePlacer.CreateBed(1.8f, 2.0f, fabricMat);
@@ -125,17 +134,24 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 런타임에 생성된 Material을 추적하여 GameObject 파괴 시 함께 정리합니다.
+        /// 런타임에 생성된 Material과 Texture를 추적하여 GameObject 파괴 시 함께 정리합니다.
         /// (메모리 누수 방지)
         /// </summary>
-        private class MaterialTracker : MonoBehaviour
+        public class MaterialTracker : MonoBehaviour
         {
             private readonly List<Material> _materials = new List<Material>();
+            private readonly List<Texture2D> _textures = new List<Texture2D>();
 
             public void Track(Material mat)
             {
                 if (mat != null)
                     _materials.Add(mat);
+            }
+
+            public void TrackTexture(Texture2D tex)
+            {
+                if (tex != null)
+                    _textures.Add(tex);
             }
 
             private void OnDestroy()
@@ -146,6 +162,13 @@ namespace ProjectName.Systems
                         Destroy(_materials[i]);
                 }
                 _materials.Clear();
+
+                for (int i = _textures.Count - 1; i >= 0; i--)
+                {
+                    if (_textures[i] != null)
+                        Destroy(_textures[i]);
+                }
+                _textures.Clear();
             }
         }
     }

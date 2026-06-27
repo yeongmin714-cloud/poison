@@ -104,7 +104,7 @@ namespace ProjectName.Tests.EditMode
             Assert.AreEqual(0.90f, EquipmentPartConfig.GetSlotProbability(100), 0.001f);
         }
 
-        // ===================== GetExpectedSlotCount =====================
+        // ===================== GetSlotCountMin / GetSlotCountMax =====================
 
         [TestCase(1, 1)]
         [TestCase(5, 1)]
@@ -121,10 +121,10 @@ namespace ProjectName.Tests.EditMode
         [TestCase(41, 4)]
         [TestCase(45, 4)]
         [TestCase(50, 4)]
-        public void GetExpectedSlotCount_ReturnsCorrectMin(int level, int expected)
+        public void GetSlotCountMin_ReturnsCorrectMin(int level, int expected)
         {
             Assert.AreEqual(expected,
-                EquipmentPartConfig.GetExpectedSlotCount(level));
+                EquipmentPartConfig.GetSlotCountMin(level));
         }
 
         [TestCase(1, 2)]
@@ -142,22 +142,22 @@ namespace ProjectName.Tests.EditMode
         [TestCase(41, 5)]
         [TestCase(45, 5)]
         [TestCase(50, 5)]
-        public void GetExpectedSlotCountMax_ReturnsCorrectMax(int level, int expected)
+        public void GetSlotCountMax_ReturnsCorrectMax(int level, int expected)
         {
             Assert.AreEqual(expected,
-                EquipmentPartConfig.GetExpectedSlotCountMax(level));
+                EquipmentPartConfig.GetSlotCountMax(level));
         }
 
         [Test]
-        public void GetExpectedSlotCount_IncreasesWithLevel()
+        public void GetSlotCountMin_IncreasesWithLevel()
         {
             int[] levels = { 5, 15, 25, 35, 45 };
-            int prev = EquipmentPartConfig.GetExpectedSlotCount(levels[0]);
+            int prev = EquipmentPartConfig.GetSlotCountMin(levels[0]);
             for (int i = 1; i < levels.Length; i++)
             {
-                int current = EquipmentPartConfig.GetExpectedSlotCount(levels[i]);
+                int current = EquipmentPartConfig.GetSlotCountMin(levels[i]);
                 Assert.LessOrEqual(prev, current,
-                    $"Level {levels[i]} expected min ({current}) should be >= level {levels[i-1]} ({prev})");
+                    $"Level {levels[i]} min count ({current}) should be >= level {levels[i-1]} ({prev})");
                 prev = current;
             }
         }

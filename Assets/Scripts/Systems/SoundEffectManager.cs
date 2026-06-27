@@ -333,7 +333,7 @@ namespace ProjectName.Systems
         /// <summary>
         /// SFXType에 해당하는 내부 이름을 반환합니다.
         /// </summary>
-        private static string GetSFXName(SFXType type)
+        public static string GetSFXName(SFXType type)
         {
             return type switch
             {

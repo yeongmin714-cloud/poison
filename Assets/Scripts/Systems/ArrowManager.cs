@@ -17,7 +17,6 @@ namespace ProjectName.Systems
         [SerializeField] private Transform _arrowSpawnPoint; // 플레이어 손/활 위치
 
         private PlayerInventory _inventory;
-        private int _lastArrowCount = -1;
 
         // 화살 아이템 ID
         private const string ARROW_REGULAR_ID = "arrow_regular";
@@ -53,7 +52,7 @@ namespace ProjectName.Systems
 
             // 가장 좋은 화살부터 소모 (마법 > 강화 > 일반)
             ArrowData.ArrowType consumedType = ConsumeBestArrow();
-            if (consumedType == ArrowData.ArrowType.Regular && GetTotalArrowCount() == 0)
+            if (consumedType == ArrowData.ArrowType.Regular && !HasArrows())
             {
                 // 소모 실패 (없음)
                 ShowNoArrowMessage();
@@ -72,8 +71,6 @@ namespace ProjectName.Systems
 
             ArrowProjectile.Spawn(spawnPos, direction, _arrowSpeed, totalDamage, arrowData.trailColor);
 
-            // UI 업데이트
-            _lastArrowCount = GetTotalArrowCount();
             return true;
         }
 
@@ -105,27 +102,13 @@ namespace ProjectName.Systems
                 return ArrowData.ArrowType.Reinforced;
             if (TryConsumeArrow(ARROW_REGULAR_ID))
                 return ArrowData.ArrowType.Regular;
-            return ArrowData.ArrowType.Regular; // 없음
+            return ArrowData.ArrowType.Regular; // 없음 — 호출부에서 HasArrows()로 걸러짐
         }
 
         private bool TryConsumeArrow(string itemId)
         {
             if (_inventory == null) return false;
-            var slots = _inventory.GetAllSlots();
-            foreach (var slot in slots)
-            {
-                if (slot == null || slot.item == null) continue;
-                if (slot.item.id == itemId && slot.count > 0)
-                {
-                    slot.count--;
-                    if (slot.count <= 0)
-                    {
-                        _inventory.RemoveItem(itemId, 1);
-                    }
-                    return true;
-                }
-            }
-            return false;
+            return _inventory.RemoveItem(itemId, 1);
         }
 
         /// <summary>화살 부족 메시지</summary>
@@ -139,29 +122,16 @@ namespace ProjectName.Systems
         /// </summary>
         public void AddArrows(ArrowData.ArrowType type, int count)
         {
-            if (_inventory == null) return;
+            if (_inventory == null || count <= 0) return;
             var data = new ArrowData(type);
             string itemId = data.GetItemId();
 
-            // 기존 아이템이 있으면 개수 추가
-            var slots = _inventory.GetAllSlots();
-            foreach (var slot in slots)
-            {
-                if (slot == null || slot.item == null) continue;
-                if (slot.item.id == itemId)
-                {
-                    slot.count += count;
-                    return;
-                }
-            }
-
-            // 새 아이템 생성
             var item = new PlayerInventory.ItemData
             {
                 id = itemId,
                 displayName = data.displayName,
                 description = data.description,
-                category = PlayerInventory.ItemCategory.Weapon,
+                category = PlayerInventory.ItemCategory.Arrow,
                 rarity = data.rarity,
                 maxStack = 99,
                 maxDurability = 0

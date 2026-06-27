@@ -116,7 +116,15 @@ namespace ProjectName.Systems
         private void OnDestroy()
         {
             // Clean up any rig builder references if this object is destroyed
+            UnregisterFromRuntimeModelLoader();
             IsRiggingReady = false;
+        }
+
+        private void Awake()
+        {
+            // If bones were manually assigned in the inspector, mark rigging as ready
+            if (_headBone != null)
+                IsRiggingReady = true;
         }
 
         // ──────────────────────────────────────────────
@@ -233,6 +241,7 @@ namespace ProjectName.Systems
 
 #if UNITY_ANIMATION_RIGGING
             SetupRiggingInternal();
+            IsRiggingReady = true;
             Debug.Log(
                 $"[AnimationRiggingSetup] Rigging setup complete on '{gameObject.name}' " +
                 $"(type: {_characterType}).",
@@ -244,8 +253,6 @@ namespace ProjectName.Systems
                 "Add com.unity.animation.rigging to Packages/manifest.json to enable.",
                 this);
 #endif
-
-            IsRiggingReady = true;
         }
 
 #if UNITY_ANIMATION_RIGGING
@@ -261,16 +268,20 @@ namespace ProjectName.Systems
             if (rigBuilder == null)
                 rigBuilder = gameObject.AddComponent<RigBuilder>();
 
-            // 2. Create Rig layers
-            CreateRigLayer("IK_Arm_L", CreateArmIKConstraint(_leftArmBone));
-            CreateRigLayer("IK_Arm_R", CreateArmIKConstraint(_rightArmBone));
-            CreateRigLayer("IK_Leg_L", CreateLegIKConstraint(_leftLegBone));
-            CreateRigLayer("IK_Leg_R", CreateLegIKConstraint(_rightLegBone));
+            // Prepare layers list — preserve any existing layers
+            var layers = new List<RigLayer>(rigBuilder.layers);
+
+            // 2. Create Rig layers and register each with the builder
+            CreateRigLayer(rigBuilder, layers, "IK_Arm_L", CreateArmIKConstraint(_leftArmBone));
+            CreateRigLayer(rigBuilder, layers, "IK_Arm_R", CreateArmIKConstraint(_rightArmBone));
+            CreateRigLayer(rigBuilder, layers, "IK_Leg_L", CreateLegIKConstraint(_leftLegBone));
+            CreateRigLayer(rigBuilder, layers, "IK_Leg_R", CreateLegIKConstraint(_rightLegBone));
 
             if (_headBone != null)
-                CreateRigLayer("Aim_Head", CreateAimConstraint(_headBone));
+                CreateRigLayer(rigBuilder, layers, "Aim_Head", CreateAimConstraint(_headBone));
 
-            // 3. Build the rig
+            // 3. Assign updated layers and build
+            rigBuilder.layers = layers.ToArray();
             rigBuilder.Build();
         }
 
@@ -278,7 +289,7 @@ namespace ProjectName.Systems
         /// Creates a Rig GameObject with the given name and constraint, adding it
         /// as a child of this transform, and registers it with the RigBuilder.
         /// </summary>
-        private void CreateRigLayer(string layerName, IRigConstraint constraint)
+        private void CreateRigLayer(RigBuilder rigBuilder, List<RigLayer> layers, string layerName, IRigConstraint constraint)
         {
             if (constraint == null)
                 return;
@@ -290,6 +301,9 @@ namespace ProjectName.Systems
 
             Rig rig = rigGO.AddComponent<Rig>();
             rig.weight = 1f;
+
+            // Register this Rig layer with the RigBuilder
+            layers.Add(new RigLayer(rig, true));
 
             // Add the constraint component
             MonoBehaviour constraintBehaviour = constraint as MonoBehaviour;

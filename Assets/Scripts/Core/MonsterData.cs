@@ -103,7 +103,7 @@ namespace ProjectName.Core
         }
 
         /// <summary>
-        /// C18-01: ActiveTime과 티어로 몬스터 필터링
+        /// C18-01: ActiveTime으로 몬스터 필터링 (Both는 주야간 모두 포함)
         /// </summary>
         public static List<MonsterDef> GetByActiveTime(ActiveTime time)
         {

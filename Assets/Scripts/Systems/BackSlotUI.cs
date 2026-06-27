@@ -37,6 +37,7 @@ namespace ProjectName.Systems
         private GUIStyle _styleReload;
         private GUIStyle _styleHint;
         private Texture2D _texWhite;
+        private Texture2D _texBoxBg;
         private bool _stylesInitialized;
 
         // ===== C8-34: 재장전 완료 안내 타이머 =====
@@ -53,23 +54,22 @@ namespace ProjectName.Systems
         private void Awake()
         {
             _controller = GetComponent<GasSprayerController>();
-            if (_controller == null)
-            {
-                _controller = FindObjectOfType<GasSprayerController>();
-            }
         }
 
         private void Start()
         {
-            if (_controller == null)
-            {
-                _controller = GasSprayerController.Instance;
-            }
-
-            // C8-34: 재장전 완료 이벤트 구독
             if (_controller != null)
             {
                 _controller.OnReloadCompleted += OnReloadCompleted;
+            }
+        }
+
+        private void Update()
+        {
+            // C8-34: 재장전 완료 안내 타이머 감소
+            if (_reloadCompleteTimer > 0f)
+            {
+                _reloadCompleteTimer -= Time.deltaTime;
             }
         }
 
@@ -78,6 +78,18 @@ namespace ProjectName.Systems
             if (_controller != null)
             {
                 _controller.OnReloadCompleted -= OnReloadCompleted;
+            }
+
+            DestroyTexture(ref _texWhite);
+            DestroyTexture(ref _texBoxBg);
+        }
+
+        private static void DestroyTexture(ref Texture2D tex)
+        {
+            if (tex != null)
+            {
+                Destroy(tex);
+                tex = null;
             }
         }
 
@@ -99,12 +111,6 @@ namespace ProjectName.Systems
             float y = HUD_MARGIN;
 
             DrawHudElement(x, y);
-
-            // C8-34: 재장전 완료 안내 타이머 감소
-            if (_reloadCompleteTimer > 0f)
-            {
-                _reloadCompleteTimer -= Time.deltaTime;
-            }
         }
 
         private void InitStyles()
@@ -112,11 +118,12 @@ namespace ProjectName.Systems
             if (_stylesInitialized) return;
 
             _texWhite = MakeTexture(1, 1, Color.white);
+            _texBoxBg = MakeTexture(1, 1, ColorBg);
 
             // 배경 박스
             _styleBox = new GUIStyle(GUI.skin.box)
             {
-                normal = { background = MakeTexture(1, 1, ColorBg), textColor = ColorText },
+                normal = { background = _texBoxBg, textColor = ColorText },
                 border = new RectOffset(2, 2, 2, 2),
                 padding = new RectOffset(6, 6, 4, 4),
                 margin = new RectOffset(0, 0, 0, 0),
@@ -255,12 +262,15 @@ namespace ProjectName.Systems
                 $"가스: {timeDisplay}", _styleDetail);
             GUI.color = oldColor;
 
+            // currentY remains at gas-time line position; the gas bar is drawn just below it
+            currentY += lineHeight;
+
             // 가스 게이지 바 (시간 기반) — C8-34: 높이 8px, 10% 미만 깜빡임
             if (!data.isUnlimited && data.maxSprayTime > 0f)
             {
                 float ratio = Mathf.Clamp01(remaining / data.maxSprayTime);
                 float barWidth = HUD_WIDTH - 24f;
-                float barY = currentY + lineHeight - 2f;
+                float barY = currentY - 2f;
 
                 // 게이지 색상 결정
                 Color barColor = remaining < 5f ? ColorGasLow : (remaining < 15f ? ColorGasMid : ColorGasFull);
@@ -340,25 +350,23 @@ namespace ProjectName.Systems
         /// <summary>C8-34: 현재 상태에 필요한 HUD 높이 계산</summary>
         private float CalculateRequiredHeight(bool isReloading, bool isUnlimited)
         {
-            float baseHeight = 8f + (4 * 18f) + 4f; // padding + 4 lines + bottom padding
+            // padding-top(8) + name(18) + grade(18) + gas-time(18) + hint(18) + padding-bottom(4)
+            float baseHeight = 8f + (4 * 18f) + 4f;
             if (!isUnlimited)
             {
                 baseHeight += 10f; // gas bar (8px + 2px spacing)
             }
             if (isReloading)
             {
-                baseHeight += 18f + 18f + 4f; // reload label + progress bar + spacing
-                baseHeight += 18f; // hint line
+                baseHeight += 18f + 14f + 6f; // reload label + progress bar + spacing
+                baseHeight += 18f; // hint line (reload hint)
             }
-            else
-            {
-                baseHeight += 18f; // hint line (always show hint)
-            }
+            // when not reloading, the 4th line already covers the hint
             return baseHeight;
         }
 
         /// <summary>1x1 텍스처 생성</summary>
-        private Texture2D MakeTexture(int w, int h, Color color)
+        private static Texture2D MakeTexture(int w, int h, Color color)
         {
             var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
             for (int y = 0; y < h; y++)

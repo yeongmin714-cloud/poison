@@ -18,10 +18,10 @@ namespace ProjectName.Tests.EditMode
         // ================================================================
 
         [Test]
-        public void NationFlagDatabase_GetAllFlags_Returns5()
+        public void NationFlagDatabase_GetAllFlags_Returns6()
         {
             var flags = NationFlagDatabase.GetAllFlags();
-            Assert.AreEqual(5, flags.Count, "5개 국가의 국기 정의가 있어야 함");
+            Assert.AreEqual(6, flags.Count, "6개 국가의 국기 정의가 있어야 함");
         }
 
         [TestCase(NationType.East)]
@@ -29,6 +29,7 @@ namespace ProjectName.Tests.EditMode
         [TestCase(NationType.South)]
         [TestCase(NationType.North)]
         [TestCase(NationType.Empire)]
+        [TestCase(NationType.Dracula)]
         public void NationFlagDatabase_HasFlag_ReturnsTrue_ForAllNations(NationType nation)
         {
             Assert.IsTrue(NationFlagDatabase.HasFlag(nation), $"{nation} 국가의 국기 정의가 있어야 함");
@@ -102,6 +103,18 @@ namespace ProjectName.Tests.EditMode
             Assert.AreEqual(new Color(1f, 0.85f, 0.2f), flag.flagColor);
             Assert.AreEqual("독수리/왕관", flag.symbolName);
             Assert.AreEqual("👑", flag.symbolEmoji);
+        }
+
+        [Test]
+        public void NationFlagDatabase_GetFlag_Dracula_ReturnsCorrectData()
+        {
+            var flag = NationFlagDatabase.GetFlag(NationType.Dracula);
+            Assert.AreEqual(NationType.Dracula, flag.nation);
+            Assert.AreEqual("검정", flag.colorName);
+            Assert.AreEqual("밤의 어둠과 피", flag.description);
+            Assert.AreEqual(new Color(0.8f, 0f, 0f), flag.flagColor);
+            Assert.AreEqual("박쥐", flag.symbolName);
+            Assert.AreEqual("🦇", flag.symbolEmoji);
         }
 
         [Test]
@@ -247,7 +260,7 @@ namespace ProjectName.Tests.EditMode
             var go = new GameObject("TestFlagManager");
             go.AddComponent<FlagManager>();
 
-            var nations = new[] { NationType.East, NationType.West, NationType.South, NationType.North, NationType.Empire };
+            var nations = new[] { NationType.East, NationType.West, NationType.South, NationType.North, NationType.Empire, NationType.Dracula };
             foreach (var nation in nations)
             {
                 var flag = FlagManager.Instance.GetNationFlag(nation);

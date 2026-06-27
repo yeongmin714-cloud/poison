@@ -444,17 +444,9 @@ namespace ProjectName.Core.UI
                 return false;
             }
 
-            // Calculate success rate using our configurable parameters
-            int levelBonus = 0;
-            int playerLevel = 0;
-            if (PlayerStats.Instance != null)
-            {
-                playerLevel = PlayerStats.Instance.Level;
-                levelBonus = Mathf.RoundToInt(playerLevel * levelSuccessBonus);
-            }
-            int successRate = recipe.baseSuccessRate + levelBonus + recipe.difficultyPenalty;
-            successRate = Mathf.Clamp(successRate, 0, 100);
-            Debug.Log("[AlchemyUI] 기준 성공률: " + recipe.baseSuccessRate + "%, 스탯 보너스: " + levelBonus + "% (Lv." + playerLevel + " × " + levelSuccessBonus + "%), 난이도 페널티: " + recipe.difficultyPenalty + "%, 최종 성공률: " + successRate + "%");
+            // Calculate success rate using Recipe's centralized calculation
+            int successRate = recipe.CalculateSuccessRate();
+            Debug.Log($"[AlchemyUI] 최종 성공률: {successRate}% (기준: {recipe.baseSuccessRate}%, 레시피 타입: {recipe.recipeType}, 난이도: {recipe.difficultyPenalty})");
 
             // Roll for success
             bool success = Random.Range(0, 100) < successRate;

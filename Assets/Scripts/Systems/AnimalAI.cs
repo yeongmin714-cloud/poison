@@ -548,7 +548,7 @@ namespace ProjectName.Systems
                 if (BuffManager.Instance != null)
                 {
                     BuffManager.Instance.AddBuff("Slowness", 0.5f, 5f); // 이동 속도 0.5 감소, 5초 지속
-                    Debug.Log("[AnimalAI] 🐌 플레이어에게 슬로우넝 디버프 적용 (속도 -0.5, 5초)");
+                    Debug.Log("[AnimalAI] 🐌 플레이어에게 슬로우 디버프 적용 (속도 -0.5, 5초)");
                 }
                 else
                 {
@@ -642,7 +642,7 @@ namespace ProjectName.Systems
             }
         }
 
-                /// <summary>
+        /// <summary>
         /// Auto-hunt by Hunter guard — returns drops directly and kills animal.
         /// Used by HuntingMission.
         /// </summary>
@@ -697,7 +697,15 @@ namespace ProjectName.Systems
                 case MonsterTier.Intermediate: exp = Random.Range(50, 101); break;
                 case MonsterTier.Advanced: exp = Random.Range(150, 301); break;
             }
-            PlayerStats.Instance.AddEXP(exp);
+            PlayerStats stats = PlayerStats.Instance;
+            if (stats != null)
+            {
+                stats.AddEXP(exp);
+            }
+            else
+            {
+                Debug.LogWarning("[AnimalAI] PlayerStats.Instance를 찾을 수 없습니다.");
+            }
 
             // === G2-05: 사망 VFX ===
             CombatVFXController.SpawnBloodSplatter(transform.position, Vector3.up);
@@ -714,7 +722,9 @@ namespace ProjectName.Systems
 
             // 드랍 아이템 바구니 생성
             LootBasket basket = LootBasket.Create(transform.position);
-            DropTable dropTable = DropTableManager.Instance.GetMonsterTable(_tier);
+
+            DropTableManager dropMgr = DropTableManager.Instance;
+            DropTable dropTable = dropMgr != null ? dropMgr.GetMonsterTable(_tier) : null;
 
             // [5.3.5] 레벨 기반 희귀 드랍률 보정
             float levelDropBonus = 0f;
@@ -830,6 +840,7 @@ namespace ProjectName.Systems
             _aggroState = AggroState.Cooldown;
             _aggroTimer = 0f;
             _aggroTarget = null;
+            _aggroAttacker = null;
         }
 
         /// <summary>어그로 타이머 업데이트 (상태 전이)</summary>
@@ -963,6 +974,9 @@ namespace ProjectName.Systems
                         else { if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack); TryAttackAggroTarget(); }
                         break;
                     }
+                    case "wolf":
+                    case "giant_rat":
+                    case "poison_snake":
                     default:
                     {
                         // 추격 (늑대, 거대쥐, 독뱀 등 기본)

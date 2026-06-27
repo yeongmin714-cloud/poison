@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using ProjectName.Core.Data;
 using UnityEngine;
 
+using ProjectName.Core;
 namespace ProjectName.Systems
 {
     /// <summary>

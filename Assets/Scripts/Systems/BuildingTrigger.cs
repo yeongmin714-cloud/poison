@@ -18,10 +18,11 @@ namespace ProjectName.Systems
 
         // 상태
         private Transform _player;
-        private bool _playerNearby = false;
+        private bool _playerNearby;
+        private Camera _mainCamera;
 
         [Header("건물 추가 설정")]
-        [SerializeField] private string _nationStyle = null;
+        [SerializeField] private string _nationStyle;
 
         /// <summary>건물 유형 (House, Shop, CraftHouse, Church, Castle)</summary>
         public string BuildingType
@@ -49,6 +50,10 @@ namespace ProjectName.Systems
             _player = GameObject.FindGameObjectWithTag("Player")?.transform;
             if (_player == null)
                 Debug.LogWarning($"[BuildingTrigger] {_buildingType}: Player 태그 오브젝트 없음");
+
+            _mainCamera = Camera.main;
+            if (_mainCamera == null)
+                Debug.LogWarning("[BuildingTrigger] MainCamera 태그 오브젝트 없음 — 말풍선 표시 불가");
         }
 
         private void Update()
@@ -75,16 +80,16 @@ namespace ProjectName.Systems
 
         private void OnGUI()
         {
-            if (!_playerNearby) return;
+            if (!_playerNearby || _mainCamera == null) return;
 
             // 말풍선: 트리거 위치 위에 표시
-            Vector3 screenPos = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
+            Vector3 screenPos = _mainCamera.WorldToScreenPoint(transform.position + Vector3.up * 2.5f);
             if (screenPos.z < 0) return;
             screenPos.y = Screen.height - screenPos.y;
 
             float bubbleW = 60f;
             float bubbleH = 24f;
-            GUI.Box(new Rect(screenPos.x - bubbleW / 2f, screenPos.y - bubbleH - 5, bubbleW, bubbleH), "💬 E");
+            GUI.Box(new Rect(screenPos.x - bubbleW / 2f, screenPos.y - bubbleH - 5, bubbleW, bubbleH), string.Empty);
             GUI.Label(new Rect(screenPos.x - bubbleW / 2f, screenPos.y - bubbleH - 5, bubbleW, bubbleH),
                 "💬 E", new GUIStyle(GUI.skin.label) { fontSize = 14, alignment = TextAnchor.MiddleCenter });
         }

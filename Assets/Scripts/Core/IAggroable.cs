@@ -9,6 +9,7 @@ namespace ProjectName.Core
     public interface IAggroable
     {
         /// <summary>어그로 대상 설정 (같은 종류 몬스터가 공격받음 → 합세)</summary>
+        /// <param name="target">어그로 대상 GameObject (null 전달 시 무시됨)</param>
         void SetAggroTarget(GameObject target);
 
         /// <summary>어그로 해제 (대상 사망/이탈)</summary>
@@ -26,7 +27,8 @@ namespace ProjectName.Core
         /// <summary>현재 어그로 대상 GameObject (null 가능)</summary>
         GameObject AggroTarget { get; }
 
-        /// <summary>어그로 타이머 업데이트 (deltaTime). 각 몬스터가 자체 상태 전이 처리.</summary>
+        /// <summary>어그로 타이머 업데이트. 각 몬스터가 자체 상태 전이 처리.</summary>
+        /// <param name="deltaTime">프레임 간 경과 시간 (초 단위)</param>
         void UpdateAggroTimer(float deltaTime);
     }
 }

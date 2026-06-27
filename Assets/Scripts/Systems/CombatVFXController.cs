@@ -18,12 +18,12 @@ namespace ProjectName.Systems
             Renderer[] renderers = target.GetComponentsInChildren<Renderer>();
             if (renderers.Length == 0) return;
 
-            var cache = new Dictionary<Renderer, Color>();
+            var cache = new Dictionary<Renderer, Color>(renderers.Length);
             foreach (Renderer r in renderers)
             {
-                if (r == null || r.material == null) continue;
-                cache[r] = r.material.color;
-                r.material.color = Color.white;
+                if (r == null || r.sharedMaterial == null) continue;
+                cache[r] = r.sharedMaterial.color;
+                r.sharedMaterial.color = Color.white;
             }
 
             var go = new GameObject("HitFlashRunner");
@@ -89,20 +89,23 @@ namespace ProjectName.Systems
             private Renderer[] _renderers;
             private Dictionary<Renderer, Color> _cache;
             private float _elapsed;
+            private bool _restored;
 
             public void Init(Renderer[] renderers, Dictionary<Renderer, Color> cache)
             {
                 _renderers = renderers;
                 _cache = cache;
                 _elapsed = 0f;
+                _restored = false;
             }
 
             private void Update()
             {
                 _elapsed += Time.deltaTime;
-                if (_elapsed >= 0.1f)
+                if (_elapsed >= 0.1f && !_restored)
                 {
                     Restore();
+                    _restored = true;
                     Destroy(gameObject);
                 }
             }
@@ -111,16 +114,17 @@ namespace ProjectName.Systems
             {
                 foreach (Renderer r in _renderers)
                 {
-                    if (r == null || r.material == null) continue;
+                    if (r == null || r.sharedMaterial == null) continue;
                     if (_cache.TryGetValue(r, out Color color))
-                        r.material.color = color;
+                        r.sharedMaterial.color = color;
                 }
             }
 
             private void OnDestroy()
             {
-                if (_renderers != null && _cache != null)
+                if (!_restored && _renderers != null && _cache != null)
                     Restore();
+                _restored = true;
             }
         }
 
@@ -133,6 +137,9 @@ namespace ProjectName.Systems
             private Color _color;
             private float _elapsed;
             private Camera _cam;
+            private GUIStyle _style;
+            private GUIStyle _shadowStyle;
+            private GUIContent _guiContent;
 
             public void Init(string text, Color color)
             {
@@ -140,6 +147,20 @@ namespace ProjectName.Systems
                 _color = color;
                 _elapsed = 0f;
                 _cam = Camera.main;
+
+                _guiContent = new GUIContent(text);
+
+                _style = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 14,
+                    alignment = TextAnchor.MiddleCenter,
+                    fontStyle = FontStyle.Bold
+                };
+
+                _shadowStyle = new GUIStyle(_style)
+                {
+                    normal = { textColor = new Color(0, 0, 0, 0.5f) }
+                };
             }
 
             private void Update()
@@ -165,27 +186,17 @@ namespace ProjectName.Systems
                 float alpha = Mathf.Lerp(1f, 0f, _elapsed / 1.5f);
                 Color guiColor = new Color(_color.r, _color.g, _color.b, alpha);
 
-                GUIStyle style = new GUIStyle(GUI.skin.label)
-                {
-                    fontSize = 14,
-                    alignment = TextAnchor.MiddleCenter,
-                    fontStyle = FontStyle.Bold,
-                    normal = { textColor = guiColor }
-                };
+                _style.normal.textColor = guiColor;
+                _shadowStyle.normal.textColor = new Color(0, 0, 0, alpha * 0.5f);
 
-                Vector2 textSize = style.CalcSize(new GUIContent(_text));
+                Vector2 textSize = _style.CalcSize(_guiContent);
                 Rect rect = new Rect(
                     screenPos.x - textSize.x * 0.5f,
                     screenPos.y - textSize.y * 0.5f,
                     textSize.x, textSize.y);
 
-                // Shadow
-                GUIStyle shadow = new GUIStyle(style)
-                {
-                    normal = { textColor = new Color(0, 0, 0, alpha * 0.5f) }
-                };
-                GUI.Label(new Rect(rect.x + 1, rect.y + 1, rect.width, rect.height), _text, shadow);
-                GUI.Label(rect, _text, style);
+                GUI.Label(new Rect(rect.x + 1, rect.y + 1, rect.width, rect.height), _guiContent, _shadowStyle);
+                GUI.Label(rect, _guiContent, _style);
             }
         }
     }

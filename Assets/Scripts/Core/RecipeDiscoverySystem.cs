@@ -6,13 +6,18 @@ namespace ProjectName.Core
     /// <summary>
     /// Tracks which recipes the player has discovered.
     /// Recipes are identified by their display name.
-    /// Data is persisted via PlayerPrefs.
+    /// Data is persisted via PlayerPrefs using pipe-delimited encoding.
     /// </summary>
     public static class RecipeDiscoverySystem
     {
         private static HashSet<string> _discovered = new HashSet<string>();
         private static bool _initialized = false;
 
+        /// <summary>
+        /// Separator used for serializing recipe names.
+        /// Pipe character chosen over comma to allow commas in display names.
+        /// </summary>
+        private const char SEPARATOR = '|';
         private const string PREFS_KEY = "DiscoveredRecipes";
 
         /// <summary>
@@ -26,7 +31,7 @@ namespace ProjectName.Core
             string saved = PlayerPrefs.GetString(PREFS_KEY, "");
             if (!string.IsNullOrEmpty(saved))
             {
-                string[] names = saved.Split(',');
+                string[] names = saved.Split(SEPARATOR);
                 foreach (string name in names)
                 {
                     string trimmed = name.Trim();
@@ -39,9 +44,16 @@ namespace ProjectName.Core
 
         /// <summary>
         /// Mark a recipe as discovered and save.
+        /// Null or empty names are silently ignored.
         /// </summary>
         public static void MarkDiscovered(string recipeName)
         {
+            if (string.IsNullOrEmpty(recipeName))
+            {
+                Debug.LogWarning("[RecipeDiscoverySystem] MarkDiscovered called with null/empty name — ignored.");
+                return;
+            }
+
             if (!_initialized) Initialize();
 
             if (_discovered.Add(recipeName))
@@ -53,20 +65,22 @@ namespace ProjectName.Core
 
         /// <summary>
         /// Check if a recipe has been discovered.
+        /// Returns false for null or empty names.
         /// </summary>
         public static bool IsDiscovered(string recipeName)
         {
+            if (string.IsNullOrEmpty(recipeName)) return false;
             if (!_initialized) Initialize();
             return _discovered.Contains(recipeName);
         }
 
         /// <summary>
-        /// Get all discovered recipe names.
+        /// Get all discovered recipe names (defensive copy).
         /// </summary>
         public static IReadOnlyCollection<string> GetAllDiscovered()
         {
             if (!_initialized) Initialize();
-            return _discovered;
+            return new HashSet<string>(_discovered);
         }
 
         /// <summary>
@@ -93,7 +107,7 @@ namespace ProjectName.Core
 
         private static void Save()
         {
-            string joined = string.Join(",", _discovered);
+            string joined = string.Join(SEPARATOR.ToString(), _discovered);
             PlayerPrefs.SetString(PREFS_KEY, joined);
             PlayerPrefs.Save();
         }

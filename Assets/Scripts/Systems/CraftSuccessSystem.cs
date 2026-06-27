@@ -20,6 +20,10 @@ namespace ProjectName.Systems
     /// </summary>
     public static class CraftSuccessSystem
     {
+        // ── 실패 분배 상수 ──
+        private const float FailThreshold_Preserved  = 0.40f; // 40% 재료 보존
+        private const float FailThreshold_Destroyed  = 0.80f; // 40% 재료 1개 소멸
+        // 나머지 20%: 재료 전소 (Fail_Burned)
         /// <summary>
         /// 재료 등급별 기본 성공률
         /// </summary>
@@ -89,11 +93,11 @@ namespace ProjectName.Systems
                 return CraftResult.Success;
             }
 
-            // 실패 결과 랜덤分配
+            // 실패 결과 랜덤 분배
             float failRoll = Random.value;
-            if (failRoll < 0.40f)
+            if (failRoll < FailThreshold_Preserved)
                 return CraftResult.Fail_MaterialPreserved;   // 40% 재료 보존
-            else if (failRoll < 0.80f)
+            else if (failRoll < FailThreshold_Destroyed)
                 return CraftResult.Fail_MaterialDestroyed;   // 40% 재료 1개 소멸
             else
                 return CraftResult.Fail_Burned;              // 20% 재료 전소
@@ -101,22 +105,21 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 아이템 ID로부터 등급 추정
-        /// id 접두사 또는 패턴 기반
+        /// 소문자 접두사/패턴 매칭 기반
         /// </summary>
         public static string GetGradeFromItemId(string itemId)
         {
             if (string.IsNullOrEmpty(itemId))
                 return "Common";
 
-            // ID 기반 등급 추정 (필요에 따라 확장)
-            if (itemId.Contains("legendary") || itemId.Contains("epic_") || itemId.Contains("rare_"))
-            {
-                if (itemId.Contains("legendary")) return "Legendary";
-                if (itemId.Contains("epic"))      return "Epic";
-                if (itemId.Contains("rare"))      return "Rare";
-            }
+            // 소문자 변환 후 패턴 매칭 (대소문자 구분 없음)
+            // legendary는 접두사 제약 없이 매칭, epic/rare는 '_' 접미사 필요 (오탐 방지)
+            string idLower = itemId.ToLowerInvariant();
 
-            // displayName 기반 추정
+            if (idLower.Contains("legendary")) return "Legendary";
+            if (idLower.Contains("epic_"))     return "Epic";
+            if (idLower.Contains("rare_"))     return "Rare";
+
             return "Common";
         }
     }

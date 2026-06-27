@@ -68,10 +68,17 @@ namespace ProjectName.Core
         /// </summary>
         public bool AddItem(ItemData item, int count = 1)
         {
+            if (item == null)
+            {
+                Debug.LogError("[PlayerInventory] AddItem: item is null!");
+                return false;
+            }
+            if (count <= 0) return true;
+
             // 같은 아이템이 있는 슬롯 먼저 찾기 (stack)
             for (int i = 0; i < _slots.Length; i++)
             {
-                if (_slots[i] != null && _slots[i].item.id == item.id && _slots[i].count < item.maxStack)
+                if (_slots[i] != null && _slots[i].item != null && _slots[i].item.id == item.id && _slots[i].count < item.maxStack)
                 {
                     int space = item.maxStack - _slots[i].count;
                     int add = Mathf.Min(space, count);
@@ -104,7 +111,7 @@ namespace ProjectName.Core
             int remaining = count;
             for (int i = 0; i < _slots.Length; i++)
             {
-                if (_slots[i] != null && _slots[i].item.id == itemId)
+                if (_slots[i] != null && _slots[i].item != null && _slots[i].item.id == itemId)
                 {
                     int remove = Mathf.Min(remaining, _slots[i].count);
                     _slots[i].count -= remove;
@@ -125,7 +132,7 @@ namespace ProjectName.Core
             int count = 0;
             foreach (var slot in _slots)
             {
-                if (slot != null && slot.item.id == itemId)
+                if (slot != null && slot.item != null && slot.item.id == itemId)
                     count += slot.count;
             }
             return count;
@@ -144,7 +151,7 @@ namespace ProjectName.Core
             var list = new System.Collections.Generic.List<ItemSlot>();
             foreach (var slot in _slots)
             {
-                if (slot != null && slot.item.category == category)
+                if (slot != null && slot.item != null && slot.item.category == category)
                     list.Add(slot);
             }
             return list.ToArray();

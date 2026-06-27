@@ -305,6 +305,7 @@ namespace ProjectName.Tests.EditMode
             Assert.IsTrue(NationFlagDatabase.HasFlag(NationType.South), "South should have a flag");
             Assert.IsTrue(NationFlagDatabase.HasFlag(NationType.North), "North should have a flag");
             Assert.IsTrue(NationFlagDatabase.HasFlag(NationType.Empire), "Empire should have a flag");
+            Assert.IsTrue(NationFlagDatabase.HasFlag(NationType.Dracula), "Dracula should have a flag");
 
             // Verify emojis
             Assert.AreEqual("🌅", NationFlagDatabase.GetFlag(NationType.East).symbolEmoji);
@@ -312,6 +313,7 @@ namespace ProjectName.Tests.EditMode
             Assert.AreEqual("🔥", NationFlagDatabase.GetFlag(NationType.South).symbolEmoji);
             Assert.AreEqual("❄️", NationFlagDatabase.GetFlag(NationType.North).symbolEmoji);
             Assert.AreEqual("👑", NationFlagDatabase.GetFlag(NationType.Empire).symbolEmoji);
+            Assert.AreEqual("🦇", NationFlagDatabase.GetFlag(NationType.Dracula).symbolEmoji);
         }
 
         [Test]
@@ -331,6 +333,10 @@ namespace ProjectName.Tests.EditMode
             Color expectedGold = new Color(1f, 0.85f, 0.2f);
             Assert.AreEqual(expectedGold, NationFlagDatabase.GetFlag(NationType.Empire).flagColor,
                 "Empire flag should be gold");
+
+            Color expectedDracula = new Color(0.8f, 0f, 0f);
+            Assert.AreEqual(expectedDracula, NationFlagDatabase.GetFlag(NationType.Dracula).flagColor,
+                "Dracula flag should be deep red");
         }
 
         [Test]

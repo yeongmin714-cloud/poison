@@ -88,15 +88,15 @@ namespace ProjectName.Core
             return result;
         }
 
-        // ===================== 예상 슬롯 개수 =====================
+        // ===================== 슬롯 개수 범위 =====================
 
         /// <summary>
-        /// 주어진 레벨에서 기대되는 장비 슬롯 개수 범위를 반환합니다.
-        /// Lv1-10: 1~2, Lv11-20: 2~3, Lv21-30: 3~4, Lv31-50: 4~5
+        /// 주어진 레벨에서 장비 슬롯 개수 범위의 최소값을 반환합니다.
+        /// Lv1-10: 1, Lv11-20: 2, Lv21-30: 3, Lv31-50: 4
         /// </summary>
-        public static int GetExpectedSlotCount(int level)
+        public static int GetSlotCountMin(int level)
         {
-            if (level >= 1 && level <= 10)  return 1; // 최소값 반환
+            if (level >= 1 && level <= 10)  return 1;
             if (level >= 11 && level <= 20) return 2;
             if (level >= 21 && level <= 30) return 3;
             if (level >= 31 && level <= 50) return 4;
@@ -105,10 +105,10 @@ namespace ProjectName.Core
         }
 
         /// <summary>
-        /// 주어진 레벨에서 기대되는 장비 슬롯 개수 범위의 최대값을 반환합니다.
+        /// 주어진 레벨에서 장비 슬롯 개수 범위의 최대값을 반환합니다.
         /// Lv1-10: 2, Lv11-20: 3, Lv21-30: 4, Lv31-50: 5
         /// </summary>
-        public static int GetExpectedSlotCountMax(int level)
+        public static int GetSlotCountMax(int level)
         {
             if (level >= 1 && level <= 10)  return 2;
             if (level >= 11 && level <= 20) return 3;

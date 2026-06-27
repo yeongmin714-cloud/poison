@@ -27,14 +27,21 @@ namespace ProjectName.Core
         }
 
         /// <summary>
-        /// Calculates final success rate based on player level, base success rate, and difficulty penalty.
+        /// Calculates final success rate based on player level (recipe-type-specific bonus),
+        /// base success rate, and difficulty penalty.
         /// Returns value clamped between 0 and 100.
         /// </summary>
         public int CalculateSuccessRate()
         {
             if (PlayerStats.Instance == null)
                 return baseSuccessRate;
-            int levelBonus = PlayerStats.Instance.Level; // +1% per level
+
+            // Use recipe-type-specific success bonus from PlayerStats
+            float successBonus = recipeType == RecipeType.Alchemy
+                ? PlayerStats.Instance.GetAlchemySuccessRate()
+                : PlayerStats.Instance.GetCookingSuccessRate();
+
+            int levelBonus = Mathf.RoundToInt(successBonus * 100f); // convert 0-1 float to percent
             int rate = baseSuccessRate + levelBonus + difficultyPenalty;
             return Mathf.Clamp(rate, 0, 100);
         }

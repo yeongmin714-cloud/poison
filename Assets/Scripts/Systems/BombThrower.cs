@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 namespace ProjectName.Systems
 {
     /// <summary>
-    /// 폭탄 투척 시스템: 마우스 우클릭으로 충전 후 투척, 투척 궤도 미리보기
+    /// 폭탄 투척 시스템: 마우스 가운데 버튼(Mouse2)으로 충전 후 투척, 투척 궤도 미리보기
     /// </summary>
     [RequireComponent(typeof(LineRenderer))]
     public class BombThrower : MonoBehaviour
@@ -23,18 +23,18 @@ namespace ProjectName.Systems
         public int trajectoryResolution = 30;
         public float trajectoryTimeStep = 0.1f; // 각 점 사이의 시간 간격
         public Color trajectoryColor = Color.cyan;
-        public float trajectoryDuration = 0.2f; // 프리뷰 라인이 유지되는 시간 (최소한의 잔상)
-
         private LineRenderer _lr;
         private Camera _mainCamera;
         private float _chargeStartTime;
         private bool _isCharging;
-        private bool _aimValid;
 
         private void Awake()
         {
             _lr = GetComponent<LineRenderer>();
             _lr.enabled = false;
+            // LineRenderer 설정 (한 번만)
+            _lr.startWidth = 0.05f;
+            _lr.endWidth = 0.05f;
             _mainCamera = Camera.main;
             // Load bomb prefabs from Resources/Bombs
             _bombPrefabs = Resources.LoadAll<GameObject>("Bombs");
@@ -124,6 +124,13 @@ namespace ProjectName.Systems
 
         private Vector3 GetAimDirection()
         {
+            if (_mainCamera == null)
+            {
+                _mainCamera = Camera.main;
+                if (_mainCamera == null)
+                    return Vector3.zero;
+            }
+
             // 마우스 커서의 월드 위치를 지면 평면(y=0)에서 찾음
             Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
             Plane groundPlane = new Plane(Vector3.up, 0f); // y=0 평면
@@ -180,11 +187,9 @@ namespace ProjectName.Systems
                 }
             }
 
-            // 라인 renderer 설정
+            // 라인 renderer 색상 설정 (매 프레임 갱신)
             _lr.startColor = trajectoryColor;
             _lr.endColor = new Color(trajectoryColor.r, trajectoryColor.g, trajectoryColor.b, 0.5f);
-            _lr.startWidth = 0.05f;
-            _lr.endWidth = 0.05f;
         }
 
         private Vector3 CalculateTrajectoryPoint(Vector3 start, Vector3 velocity, float time)

@@ -84,6 +84,7 @@ namespace ProjectName.Systems
         private bool _isCountingDown = false;
         private float _countdownStartTime;
         private int _currentCount = 3;
+        private const float CountdownDuration = 3f; // 3 → 2 → 1 → 종료
 
         // --- 페이드 인 (부활 시) ---
         private bool _isFadingIn = false;
@@ -112,17 +113,13 @@ namespace ProjectName.Systems
             _whiteTexture.SetPixel(0, 0, Color.white);
             _whiteTexture.Apply();
 
-#if UNITY_EDITOR
-            // 테스트 환경에서 PlayerHealth 없을 수 있으므로 안전하게 구독
+            // 테스트/빌드 환경에서 PlayerHealth 없을 수 있으므로 안전하게 구독
+            // PlayerHealth는 [RuntimeInitializeOnLoadMethod]로 자동 생성됨
             if (PlayerHealth.Instance != null)
             {
                 PlayerHealth.OnPlayerDied += PlayDeathEffects;
                 PlayerHealth.OnPlayerRespawned += StartFadeIn;
             }
-#else
-            PlayerHealth.OnPlayerDied += PlayDeathEffects;
-            PlayerHealth.OnPlayerRespawned += StartFadeIn;
-#endif
         }
 
         private void Start()
@@ -136,10 +133,8 @@ namespace ProjectName.Systems
             {
                 _instance = null;
 
-                // 구독 해제
-#if UNITY_EDITOR
+                // 구독 해제 (null-safe)
                 if (PlayerHealth.Instance != null)
-#endif
                 {
                     PlayerHealth.OnPlayerDied -= PlayDeathEffects;
                     PlayerHealth.OnPlayerRespawned -= StartFadeIn;
@@ -343,15 +338,29 @@ namespace ProjectName.Systems
             if (_isCountingDown)
             {
                 float elapsed = now - _countdownStartTime;
-                int newCount = 3 - Mathf.FloorToInt(elapsed);
-                if (newCount != _currentCount && newCount >= 0)
-                {
-                    _currentCount = newCount;
-                }
-                if (newCount < 0)
+
+                // 3초가 지나면 카운트다운 종료
+                if (elapsed >= CountdownDuration)
                 {
                     _isCountingDown = false;
+                    _currentCount = 0;
                 }
+                else
+                {
+                    int newCount = 3 - Mathf.FloorToInt(elapsed);
+                    if (newCount != _currentCount && newCount >= 0)
+                    {
+                        _currentCount = newCount;
+                    }
+                }
+            }
+
+            // --- 안전장치: 사망 효과 전체 타임아웃 ---
+            // 모든 효과가 완료되었는데 _isPlaying이 해제되지 않으면 강제 리셋
+            if (_isPlaying && !_isShaking && !_isSlomo && !_isFadingToBlack
+                && !_isShowingDeathText && !_isCountingDown && !_isFadingIn)
+            {
+                _isPlaying = false;
             }
         }
 

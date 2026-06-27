@@ -68,7 +68,16 @@ namespace ProjectName.Systems
                 }
                 else
                 {
-                    guard.ResetCombatTimer();
+                    // 명령 지점에 도착했으면 명령 해제 → 타이머 시작
+                    float distToTarget = Vector3.Distance(guard.transform.position, guard.CommandTarget);
+                    if (distToTarget <= 1.5f)
+                    {
+                        guard.ClearCommand();
+                    }
+                    else
+                    {
+                        guard.ResetCombatTimer();
+                    }
                 }
                 return;
             }

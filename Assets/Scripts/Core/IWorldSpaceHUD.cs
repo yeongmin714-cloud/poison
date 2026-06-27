@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace ProjectName.Core
 {
     /// <summary>
@@ -6,12 +8,12 @@ namespace ProjectName.Core
     public interface IWorldSpaceHUD
     {
         /// <summary>월드 좌표 (머리 위 표시 기준점)</summary>
-        UnityEngine.Vector3 WorldPosition { get; }
+        Vector3 WorldPosition { get; }
         /// <summary>표시 여부</summary>
         bool ShouldShowHUD { get; }
         /// <summary>레벨</summary>
         int HUDLevel { get; }
-        /// <summary>호감도 (0~100, 음수 가능)</summary>
+        /// <summary>호감도 (-100~100, 음수는 적대)</summary>
         float HUDLoyalty { get; }
         /// <summary>중독도 (0~100)</summary>
         float HUDAddiction { get; }

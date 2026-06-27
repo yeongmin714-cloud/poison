@@ -20,14 +20,25 @@ namespace ProjectName.Core
             DefineQuests();
         }
 
-        /// <summary>모든 상태 초기화 (테스트용)</summary>
+        /// <summary>모든 상태 및 진행도 초기화 (테스트용).</summary>
         public static void ResetAll()
         {
             _questStates.Clear();
-            // 각 퀘스트의 초기 상태 계산
+            // 각 퀘스트의 목표 진행도(currentCount)도 함께 리셋
             foreach (var kvp in _allQuests)
             {
-                _questStates[kvp.Key] = CalculateInitialState(kvp.Value);
+                var quest = kvp.Value;
+                if (quest.objectives != null)
+                {
+                    for (int i = 0; i < quest.objectives.Count; i++)
+                    {
+                        var obj = quest.objectives[i];
+                        obj.currentCount = 0;
+                        quest.objectives[i] = obj;
+                    }
+                    _allQuests[kvp.Key] = quest;
+                }
+                _questStates[kvp.Key] = CalculateInitialState(quest);
             }
         }
 
@@ -39,7 +50,7 @@ namespace ProjectName.Core
                 for (int i = 0; i < quest.prerequisiteQuestIds.Length; i++)
                 {
                     string prereqId = quest.prerequisiteQuestIds[i];
-                    if (!_questStates.ContainsKey(prereqId) || _questStates[prereqId] != QuestState.Completed)
+                    if (!_questStates.TryGetValue(prereqId, out QuestState prereqState) || prereqState != QuestState.Completed)
                         return QuestState.Locked;
                 }
             }
@@ -50,16 +61,20 @@ namespace ProjectName.Core
 
         public static QuestData GetQuest(string questId)
         {
-            if (string.IsNullOrEmpty(questId) || !_allQuests.ContainsKey(questId))
+            if (string.IsNullOrEmpty(questId))
                 return default;
-            return _allQuests[questId];
+            if (_allQuests.TryGetValue(questId, out QuestData quest))
+                return quest;
+            return default;
         }
 
         public static QuestState GetQuestState(string questId)
         {
-            if (string.IsNullOrEmpty(questId) || !_questStates.ContainsKey(questId))
+            if (string.IsNullOrEmpty(questId))
                 return QuestState.Locked;
-            return _questStates[questId];
+            if (_questStates.TryGetValue(questId, out QuestState state))
+                return state;
+            return QuestState.Locked;
         }
 
         public static List<QuestData> GetActiveQuests()
@@ -98,7 +113,7 @@ namespace ProjectName.Core
             foreach (var kvp in _allQuests)
             {
                 if (kvp.Value.requiredLevel > playerLevel) continue;
-                QuestState state = _questStates.ContainsKey(kvp.Key) ? _questStates[kvp.Key] : QuestState.Locked;
+                _questStates.TryGetValue(kvp.Key, out QuestState state);
 
                 if (state == QuestState.Available)
                 {
@@ -113,7 +128,7 @@ namespace ProjectName.Core
                         for (int i = 0; i < kvp.Value.prerequisiteQuestIds.Length; i++)
                         {
                             string pid = kvp.Value.prerequisiteQuestIds[i];
-                            if (!_questStates.ContainsKey(pid) || _questStates[pid] != QuestState.Completed)
+                            if (!_questStates.TryGetValue(pid, out QuestState prereqState) || prereqState != QuestState.Completed)
                             { prereqsMet = false; break; }
                         }
                     }
@@ -134,8 +149,7 @@ namespace ProjectName.Core
             if (string.IsNullOrEmpty(questId) || !_allQuests.ContainsKey(questId))
                 return false;
 
-            QuestState state = _questStates.ContainsKey(questId) ? _questStates[questId] : QuestState.Locked;
-            if (state != QuestState.Available)
+            if (!_questStates.TryGetValue(questId, out QuestState state) || state != QuestState.Available)
                 return false;
 
             _questStates[questId] = QuestState.Active;
@@ -162,8 +176,7 @@ namespace ProjectName.Core
             if (string.IsNullOrEmpty(questId) || !_allQuests.ContainsKey(questId))
                 return;
 
-            QuestState state = _questStates.ContainsKey(questId) ? _questStates[questId] : QuestState.Locked;
-            if (state != QuestState.Active)
+            if (!_questStates.TryGetValue(questId, out QuestState state) || state != QuestState.Active)
                 return;
 
             var quest = _allQuests[questId];
@@ -192,8 +205,7 @@ namespace ProjectName.Core
             if (string.IsNullOrEmpty(questId) || !_allQuests.ContainsKey(questId))
                 return false;
 
-            QuestState state = _questStates.ContainsKey(questId) ? _questStates[questId] : QuestState.Locked;
-            if (state != QuestState.Active)
+            if (!_questStates.TryGetValue(questId, out QuestState state) || state != QuestState.Active)
                 return false;
 
             var quest = _allQuests[questId];
@@ -210,10 +222,10 @@ namespace ProjectName.Core
 
         public static void FailQuest(string questId)
         {
-            if (string.IsNullOrEmpty(questId) || !_questStates.ContainsKey(questId))
+            if (string.IsNullOrEmpty(questId))
                 return;
 
-            if (_questStates[questId] == QuestState.Active)
+            if (_questStates.TryGetValue(questId, out QuestState state) && state == QuestState.Active)
             {
                 _questStates[questId] = QuestState.Failed;
                 Debug.Log($"[QuestManager] ❌ 퀘스트 실패: {questId}");

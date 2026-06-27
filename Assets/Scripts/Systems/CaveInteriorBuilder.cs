@@ -180,6 +180,7 @@ namespace ProjectName.Systems
             handle.transform.SetParent(parent.transform);
             handle.transform.localPosition = new Vector3(0f, -0.3f, 0f);
             handle.transform.localScale = new Vector3(0.08f, 0.3f, 0.08f);
+            Object.DestroyImmediate(handle.GetComponent<CapsuleCollider>());
             var handleRenderer = handle.GetComponent<MeshRenderer>();
             handleRenderer.material = MaterialHelper.CreateLitMaterial(
                 new Color(0.35f, 0.25f, 0.15f), "TorchHandleMat");
@@ -190,6 +191,7 @@ namespace ProjectName.Systems
             head.transform.SetParent(parent.transform);
             head.transform.localPosition = new Vector3(0f, 0.1f, 0f);
             head.transform.localScale = new Vector3(0.15f, 0.1f, 0.15f);
+            Object.DestroyImmediate(head.GetComponent<BoxCollider>());
             var headRenderer = head.GetComponent<MeshRenderer>();
             headRenderer.material = MaterialHelper.CreateLitMaterial(
                 new Color(0.8f, 0.4f, 0.1f), "TorchHeadMat");

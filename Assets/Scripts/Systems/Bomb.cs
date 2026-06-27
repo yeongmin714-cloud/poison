@@ -91,8 +91,6 @@ namespace ProjectName.Systems
                 // 폭발력 적용 (Rigidbody가 있으면)
                 if (hit.attachedRigidbody != null)
                 {
-                    Vector3 direction = hit.transform.position - transform.position;
-                    direction.y = 0f; // 수평 힘만 적용 (선택)
                     hit.attachedRigidbody.AddExplosionForce(explosionForce, transform.position, explosionRadius, 1f, ForceMode.Impulse);
                 }
             }
@@ -110,7 +108,7 @@ namespace ProjectName.Systems
                 if (damageable != null)
                 {
                     Vector3 hitDir = (hit.transform.position - transform.position).normalized;
-                    damageable.TakeDamage(5f, hitDir, "Explosion");
+                    damageable.TakeDamage(5f, hitDir, "Poison");
                 }
             }
             // 가스 시각 효과는 explosionEffectPrefab에서 처리한다고 가정

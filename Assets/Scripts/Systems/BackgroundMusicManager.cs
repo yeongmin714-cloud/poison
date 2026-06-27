@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -153,7 +154,7 @@ namespace ProjectName.Systems
                 return;
             }
 
-            if (track == _currentTrack && _currentSource.isPlaying)
+            if (track == _currentTrack && _currentSource != null && _currentSource.isPlaying)
             {
                 Debug.Log($"[BackgroundMusicManager] 이미 재생 중인 트랙: {track}");
                 return;
@@ -187,6 +188,7 @@ namespace ProjectName.Systems
                 // 새 트랙 재생
                 if (_currentSource != null)
                 {
+                    _currentSource.clip = GetTrackClip();
                     _currentSource.volume = _volume;
                     _currentSource.Play();
                 }
@@ -285,7 +287,7 @@ namespace ProjectName.Systems
         /// <summary>
         /// 크로스페이드 코루틴 — 현재 트랙을 페이드 아웃하고 새 트랙을 페이드 인합니다.
         /// </summary>
-        private System.Collections.IEnumerator CrossfadeCoroutine()
+        private IEnumerator CrossfadeCoroutine()
         {
             if (_currentSource == null || _nextSource == null)
                 yield break;

@@ -11,6 +11,10 @@ namespace ProjectName.Core
     {
         // ===================== 레벨 그룹 정의 =====================
 
+        /// <summary>
+        /// 10레벨 단위로 구분된 레벨 그룹 (Lv1-10, Lv11-20, ..., Lv41-50).
+        /// 각 그룹은 서로 다른 등장 확률 구성을 가집니다.
+        /// </summary>
         public enum LevelGroup
         {
             Lv1_10,

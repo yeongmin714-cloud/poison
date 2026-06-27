@@ -6,9 +6,10 @@
     "Unity.InputSystem",
     "Unity.RenderPipelines.Core.Runtime",
     "Unity.RenderPipelines.Universal.Runtime",
-    "Unity.UGUI"
+    "Unity.UGUI",
+    "UnityEngine.CoreModule",
+    "System.Core"
   ],
-  "autoReferenced": true,
   "overrideReferences": false,
   "allowUnsafeCode": false,
   "precompiledReferences": [],

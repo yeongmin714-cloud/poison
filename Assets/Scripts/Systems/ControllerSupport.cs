@@ -41,6 +41,9 @@ namespace ProjectName.Systems
         private Gamepad _gamepad;
         private Keyboard _keyboard;
 
+        // IMGUI 힌트 배경 텍스처 (캐싱 - 메모리 누수 방지)
+        private static Texture2D _hintBgTexture;
+
         /// <summary>
         /// 현재 입력 모드
         /// </summary>
@@ -294,9 +297,9 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 대쉬 키 입력 감지 (Left Shift 또는 LB/L1)
+        /// 대쉬 키 홀드 감지 (Left Shift 또는 LB/L1, isPressed 기반)
         /// </summary>
-        public static bool GetDashPressed()
+        public static bool IsDashHeld()
         {
             Keyboard kb = Keyboard.current;
             Gamepad gp = Gamepad.current;
@@ -396,6 +399,7 @@ namespace ProjectName.Systems
         /// </summary>
         public void ShowHint()
         {
+            _hintForceVisible = false; // 강제 표시 모드 해제 (자동 페이드 가능하게)
             _hintTimer = _hintDisplayTime;
             _hintAlpha = 1f;
             _hintVisible = true;
@@ -433,7 +437,7 @@ namespace ProjectName.Systems
 
                 if (_hintTimer <= 0f)
                 {
-                    _hintAlpha -= Time.deltaTime / _hintFadeDuration;
+                    _hintAlpha -= Time.deltaTime / Mathf.Max(_hintFadeDuration, 0.001f);
                     if (_hintAlpha <= 0f)
                     {
                         _hintAlpha = 0f;
@@ -514,7 +518,7 @@ namespace ProjectName.Systems
             sb.Append($"{btnRB} 구르기\n");
             sb.Append($"{btnStart} 메뉴    ");
             sb.Append($"{btnSelect} 취소\n");
-            sb.Append($"[{btnStart} + {btnSelect}] 힌트 토글\n");
+            sb.Append($"{btnStart} + {btnSelect} 힌트 토글\n");
             sb.Append($"(ESC / 키보드 입력 시 자동 전환)");
 
             // 알파값 적용
@@ -528,11 +532,15 @@ namespace ProjectName.Systems
             float boxX = Screen.width / 2f - boxWidth / 2f;
             float boxY = Screen.height - boxHeight - 20f;
 
-            // 배경 그리기
-            Texture2D bgTexture = new Texture2D(1, 1);
-            bgTexture.SetPixel(0, 0, bgColor);
-            bgTexture.Apply();
-            GUI.DrawTexture(new Rect(boxX, boxY, boxWidth, boxHeight), bgTexture);
+            // 배경 그리기 (캐싱된 텍스처 사용 - 메모리 누수 방지)
+            if (_hintBgTexture == null)
+            {
+                _hintBgTexture = new Texture2D(1, 1);
+                _hintBgTexture.hideFlags = HideFlags.HideAndDontSave;
+            }
+            _hintBgTexture.SetPixel(0, 0, bgColor);
+            _hintBgTexture.Apply();
+            GUI.DrawTexture(new Rect(boxX, boxY, boxWidth, boxHeight), _hintBgTexture);
 
             // 텍스트 스타일
             GUIStyle hintStyle = new GUIStyle(GUI.skin.label);

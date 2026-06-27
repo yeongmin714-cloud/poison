@@ -154,6 +154,7 @@ namespace ProjectName.Systems
         public static void StopCutscene()
         {
             _isPlaying = false;
+            _currentNarrationLine = null;
             if (_runner != null)
             {
                 _runner.StopAllCoroutines();
@@ -249,6 +250,7 @@ namespace ProjectName.Systems
             // 영지 소유권 변경
             state.ownership = TerritoryOwnership.PlayerOwned;
             state.lordExecuted = true;
+            state.lordDefeated = true;
             state.lordSurrendered = true;
 
             OnAssassinationExecuted?.Invoke(territoryId);

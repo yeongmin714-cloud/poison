@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -39,26 +40,29 @@ namespace ProjectName.Systems
             "Foot_L", "Foot_R"
         };
 
-        /// <summary>Alternative names commonly found in Mixamo / GLB exports for humanoids.</summary>
-        private static readonly string[] HumanoidAlternates =
+        /// <summary>
+        /// Alternative names commonly found in Mixamo / GLB exports for humanoids.
+        /// Each inner array corresponds 1:1 to <see cref="HumanoidBoneNames"/>.
+        /// </summary>
+        private static readonly string[][] HumanoidAlternateGroups =
         {
-            "head", "HEAD", "Head_Top", "Head_End",
-            "neck", "NECK", "Neck_Pivot",
-            "spine", "SPINE", "Spine1", "Spine2",
-            "chest", "CHEST", "Chest_Pivot",
-            "hips", "HIPS", "Hip", "Pelvis",
-            "upperarm_l", "Upper_Arm_L", "Arm_L", "LeftArm", "Left_Arm",
-            "upperarm_r", "Upper_Arm_R", "Arm_R", "RightArm", "Right_Arm",
-            "lowerarm_l", "Lower_Arm_L", "Forearm_L", "Forearm_L",
-            "lowerarm_r", "Lower_Arm_R", "Forearm_R", "Forearm_R",
-            "hand_l", "Hand_L", "LeftHand", "Left_Hand",
-            "hand_r", "Hand_R", "RightHand", "Right_Hand",
-            "upperleg_l", "Upper_Leg_L", "Leg_L", "LeftLeg", "Left_Leg",
-            "upperleg_r", "Upper_Leg_R", "Leg_R", "RightLeg", "Right_Leg",
-            "lowerleg_l", "Lower_Leg_L", "Leg_Low_L",
-            "lowerleg_r", "Lower_Leg_R", "Leg_Low_R",
-            "foot_l", "Foot_L", "LeftFoot", "Left_Foot",
-            "foot_r", "Foot_R", "RightFoot", "Right_Foot"
+            /* Head       */ new[] { "head", "HEAD", "Head_Top", "Head_End" },
+            /* Neck       */ new[] { "neck", "NECK", "Neck_Pivot" },
+            /* Spine      */ new[] { "spine", "SPINE", "Spine1", "Spine2" },
+            /* Chest      */ new[] { "chest", "CHEST", "Chest_Pivot" },
+            /* Hips       */ new[] { "hips", "HIPS", "Hip", "Pelvis" },
+            /* UpperArm_L */ new[] { "upperarm_l", "Upper_Arm_L", "Arm_L", "LeftArm", "Left_Arm" },
+            /* UpperArm_R */ new[] { "upperarm_r", "Upper_Arm_R", "Arm_R", "RightArm", "Right_Arm" },
+            /* LowerArm_L */ new[] { "lowerarm_l", "Lower_Arm_L", "Forearm_L" },
+            /* LowerArm_R */ new[] { "lowerarm_r", "Lower_Arm_R", "Forearm_R" },
+            /* Hand_L     */ new[] { "hand_l", "Hand_L", "LeftHand", "Left_Hand" },
+            /* Hand_R     */ new[] { "hand_r", "Hand_R", "RightHand", "Right_Hand" },
+            /* UpperLeg_L */ new[] { "upperleg_l", "Upper_Leg_L", "Leg_L", "LeftLeg", "Left_Leg" },
+            /* UpperLeg_R */ new[] { "upperleg_r", "Upper_Leg_R", "Leg_R", "RightLeg", "Right_Leg" },
+            /* LowerLeg_L */ new[] { "lowerleg_l", "Lower_Leg_L", "Leg_Low_L" },
+            /* LowerLeg_R */ new[] { "lowerleg_r", "Lower_Leg_R", "Leg_Low_R" },
+            /* Foot_L     */ new[] { "foot_l", "Foot_L", "LeftFoot", "Left_Foot" },
+            /* Foot_R     */ new[] { "foot_r", "Foot_R", "RightFoot", "Right_Foot" }
         };
 
         // ──────────────────────────────────────────────
@@ -78,27 +82,30 @@ namespace ProjectName.Systems
             "Tail"
         };
 
-        /// <summary>Alternative quadruped bone name variants.</summary>
-        private static readonly string[] QuadrupedAlternates =
+        /// <summary>
+        /// Alternative quadruped bone name variants.
+        /// Each inner array corresponds 1:1 to <see cref="QuadrupedBoneNames"/>.
+        /// </summary>
+        private static readonly string[][] QuadrupedAlternateGroups =
         {
-            "head", "HEAD", "Head_Top",
-            "neck", "NECK",
-            "spine", "SPINE", "Spine1", "Spine2",
-            "chest", "CHEST",
-            "hips", "HIPS", "Pelvis",
-            "upperleg_fl", "UpperLeg_F_L", "FrontLeg_L", "Front_Leg_L", "Arm_FL",
-            "upperleg_fr", "UpperLeg_F_R", "FrontLeg_R", "Front_Leg_R", "Arm_FR",
-            "lowerleg_fl", "LowerLeg_F_L", "FrontKnee_L",
-            "lowerleg_fr", "LowerLeg_F_R", "FrontKnee_R",
-            "paw_fl", "Paw_F_L", "Foot_FL", "Hoof_FL",
-            "paw_fr", "Paw_F_R", "Foot_FR", "Hoof_FR",
-            "upperleg_hl", "UpperLeg_H_L", "BackLeg_L", "Rear_Leg_L",
-            "upperleg_hr", "UpperLeg_H_R", "BackLeg_R", "Rear_Leg_R",
-            "lowerleg_hl", "LowerLeg_H_L", "BackKnee_L",
-            "lowerleg_hr", "LowerLeg_H_R", "BackKnee_R",
-            "paw_hl", "Paw_H_L", "Foot_HL", "Hoof_HL",
-            "paw_hr", "Paw_H_R", "Foot_HR", "Hoof_HR",
-            "tail", "TAIL", "Tail_End"
+            /* Head        */ new[] { "head", "HEAD", "Head_Top" },
+            /* Neck        */ new[] { "neck", "NECK" },
+            /* Spine       */ new[] { "spine", "SPINE", "Spine1", "Spine2" },
+            /* Chest       */ new[] { "chest", "CHEST" },
+            /* Hips        */ new[] { "hips", "HIPS", "Pelvis" },
+            /* UpperLeg_FL */ new[] { "upperleg_fl", "UpperLeg_F_L", "FrontLeg_L", "Front_Leg_L", "Arm_FL" },
+            /* UpperLeg_FR */ new[] { "upperleg_fr", "UpperLeg_F_R", "FrontLeg_R", "Front_Leg_R", "Arm_FR" },
+            /* LowerLeg_FL */ new[] { "lowerleg_fl", "LowerLeg_F_L", "FrontKnee_L" },
+            /* LowerLeg_FR */ new[] { "lowerleg_fr", "LowerLeg_F_R", "FrontKnee_R" },
+            /* Paw_FL      */ new[] { "paw_fl", "Paw_F_L", "Foot_FL", "Hoof_FL" },
+            /* Paw_FR      */ new[] { "paw_fr", "Paw_F_R", "Foot_FR", "Hoof_FR" },
+            /* UpperLeg_HL */ new[] { "upperleg_hl", "UpperLeg_H_L", "BackLeg_L", "Rear_Leg_L" },
+            /* UpperLeg_HR */ new[] { "upperleg_hr", "UpperLeg_H_R", "BackLeg_R", "Rear_Leg_R" },
+            /* LowerLeg_HL */ new[] { "lowerleg_hl", "LowerLeg_H_L", "BackKnee_L" },
+            /* LowerLeg_HR */ new[] { "lowerleg_hr", "LowerLeg_H_R", "BackKnee_R" },
+            /* Paw_HL      */ new[] { "paw_hl", "Paw_H_L", "Foot_HL", "Hoof_HL" },
+            /* Paw_HR      */ new[] { "paw_hr", "Paw_H_R", "Foot_HR", "Hoof_HR" },
+            /* Tail        */ new[] { "tail", "TAIL", "Tail_End" }
         };
 
         // ──────────────────────────────────────────────
@@ -119,51 +126,39 @@ namespace ProjectName.Systems
         };
 
         // ──────────────────────────────────────────────
-        //  Lookup map (built once)
+        //  Lookup map (built once, thread-safe)
         // ──────────────────────────────────────────────
 
-        private static Dictionary<string, string[]> _alternateMap;
+        private static readonly Lazy<Dictionary<string, string[]>> _alternateMap =
+            new Lazy<Dictionary<string, string[]>>(BuildAlternateMap);
 
         /// <summary>
-        /// Lazily builds a lookup from canonical bone name → list of alternative names.
+        /// Builds a lookup from canonical bone name → list of alternative names.
         /// </summary>
-        private static Dictionary<string, string[]> GetAlternateMap()
+        private static Dictionary<string, string[]> BuildAlternateMap()
         {
-            if (_alternateMap != null)
-                return _alternateMap;
+            var map = new Dictionary<string, string[]>(StringComparer.Ordinal);
 
-            _alternateMap = new Dictionary<string, string[]>();
-
-            // Humanoid alternates: every 2 entries (canonical, alt)
-            for (int i = 0; i < HumanoidBoneNames.Length; i++)
+            // Humanoid: walk paired arrays
+            for (int i = 0; i < HumanoidBoneNames.Length && i < HumanoidAlternateGroups.Length; i++)
             {
-                var alts = new List<string>();
-                int altStart = i * 4; // up to 4 alts per bone in the alternates array
-                for (int j = 0; j < 4; j++)
-                {
-                    int idx = altStart + j;
-                    if (idx < HumanoidAlternates.Length)
-                        alts.Add(HumanoidAlternates[idx]);
-                }
-                _alternateMap[HumanoidBoneNames[i]] = alts.ToArray();
+                map[HumanoidBoneNames[i]] = HumanoidAlternateGroups[i];
             }
 
-            // Quadruped alternates
-            for (int i = 0; i < QuadrupedBoneNames.Length; i++)
+            // Quadruped: walk paired arrays
+            for (int i = 0; i < QuadrupedBoneNames.Length && i < QuadrupedAlternateGroups.Length; i++)
             {
-                var alts = new List<string>();
-                int altStart = i * 4;
-                for (int j = 0; j < 4; j++)
-                {
-                    int idx = altStart + j;
-                    if (idx < QuadrupedAlternates.Length)
-                        alts.Add(QuadrupedAlternates[idx]);
-                }
-                _alternateMap[QuadrupedBoneNames[i]] = alts.ToArray();
+                map[QuadrupedBoneNames[i]] = QuadrupedAlternateGroups[i];
             }
 
-            return _alternateMap;
+            return map;
         }
+
+        /// <summary>
+        /// Returns the cached alternate-name map, building it on first access.
+        /// Thread-safe via <see cref="Lazy{T}"/>.
+        /// </summary>
+        private static Dictionary<string, string[]> AlternateMap => _alternateMap.Value;
 
         // ──────────────────────────────────────────────
         //  Public helpers
@@ -182,7 +177,7 @@ namespace ProjectName.Systems
             if (root == null || possibleNames == null || possibleNames.Length == 0)
                 return null;
 
-            // Build a hash set for fast lookups
+            // Build a hash set for fast lookups (case-insensitive)
             var lookup = new HashSet<string>();
             foreach (string name in possibleNames)
             {
@@ -217,22 +212,25 @@ namespace ProjectName.Systems
         /// <returns>The matching Transform, or null.</returns>
         public static Transform TryFindBoneCanonical(Transform root, string canonicalName)
         {
-            // Try direct canonical name first
+            if (root == null || string.IsNullOrEmpty(canonicalName))
+                return null;
+
+            // Try direct canonical name first (TryFindBone lowercases internally)
             Transform result = TryFindBone(root, new[] { canonicalName });
             if (result != null)
                 return result;
 
             // Try alternates
-            var map = GetAlternateMap();
-            if (map.TryGetValue(canonicalName, out string[] alts))
+            var map = AlternateMap;
+            if (map.TryGetValue(canonicalName, out string[] alts) && alts.Length > 0)
             {
                 result = TryFindBone(root, alts);
                 if (result != null)
                     return result;
             }
 
-            // Try a case-insensitive variant of canonical
-            return TryFindBone(root, new[] { canonicalName.ToLowerInvariant(), canonicalName.ToUpperInvariant() });
+            // Final fallback: case-insensitive variant of canonical
+            return TryFindBone(root, new[] { canonicalName.ToLowerInvariant() });
         }
 
         /// <summary>
@@ -276,13 +274,13 @@ namespace ProjectName.Systems
         public static string[] GetAlternateNames(string canonicalName)
         {
             if (string.IsNullOrEmpty(canonicalName))
-                return System.Array.Empty<string>();
+                return Array.Empty<string>();
 
-            var map = GetAlternateMap();
+            var map = AlternateMap;
             if (map.TryGetValue(canonicalName, out string[] alts))
                 return alts;
 
-            return System.Array.Empty<string>();
+            return Array.Empty<string>();
         }
     }
 }

@@ -557,13 +557,13 @@ namespace ProjectName.Core
         }
 
         /// <summary>
-        /// 빌더에서 생성된 텍스처가 외부 지형과 충분히 다른지 검증합니다.
-        /// 각 건물 유형별 바닥 텍스처가 외부 잔디/지형과 구분되는지 확인하고
-        /// 필요한 경우 자동 조정합니다.
+        /// 빌더에서 생성된 텍스처가 외부 지형과 충분히 다른지 검증하고
+        /// 필요한 경우 자동 조정하여 반환합니다.
         /// </summary>
-        /// <param name="buildingType">건물 유형 (\"Shop\", \"House\", \"CraftHouse\", \"Church\", \"Castle\")</param>
+        /// <param name="buildingType">건물 유형 (\&quot;Shop\&quot;, \&quot;House\&quot;, \&quot;CraftHouse\&quot;, \&quot;Church\&quot;, \&quot;Castle\&quot;)</param>
         /// <param name="exteriorColor">외부 지형 기준 색상 (기본 잔디색)</param>
-        public static void ValidateAndFixFloorTexture(string buildingType, Color? exteriorColor = null)
+        /// <returns>조정된 실내 바닥 텍스처 (외부 지형과 충분히 다른 경우 원본 유지)</returns>
+        public static Texture2D ValidateAndFixFloorTexture(string buildingType, Color? exteriorColor = null)
         {
             Color extColor = exteriorColor ?? new Color(0.3f, 0.6f, 0.2f);
 
@@ -581,6 +581,8 @@ namespace ProjectName.Core
             {
                 DifferentiateFromExterior(floorTex, extColor);
             }
+
+            return floorTex;
         }
 
         // ===================================================================

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using ProjectName.Core.Data;
 
@@ -7,64 +8,64 @@ namespace ProjectName.Core
     /// 레벨 그룹 정의를 관리하는 정적 매니저.
     /// 5단계 레벨 그룹(Novice, Adept, Veteran, Elite, Legendary)에 대한
     /// 조회, 시각적 변형명 생성, Placeholder 틴트 색상 제공 기능을 제공합니다.
+    /// Thread-safe합니다.
     /// </summary>
     public static class LevelGroupManager
     {
-        private static LevelGroup[] s_groups;
-        private static bool s_initialized;
+        private static readonly Lazy<LevelGroup[]> s_groups = new Lazy<LevelGroup[]>(
+            BuildGroups, LazyThreadSafetyMode.ExecutionAndPublication
+        );
+
+        private static LevelGroup[] BuildGroups()
+        {
+            return new LevelGroup[]
+            {
+                new LevelGroup(
+                    LevelGroupId.Novice,
+                    "Novice",
+                    1, 10,
+                    "_tier1",
+                    new Color(0.678f, 0.847f, 0.902f)  // 연한 하늘색
+                ),
+                new LevelGroup(
+                    LevelGroupId.Adept,
+                    "Adept",
+                    11, 20,
+                    "_tier2",
+                    new Color(0.565f, 0.792f, 0.565f)  // 연한 초록
+                ),
+                new LevelGroup(
+                    LevelGroupId.Veteran,
+                    "Veteran",
+                    21, 30,
+                    "_tier3",
+                    new Color(1.0f, 0.843f, 0.4f)      // 황금색
+                ),
+                new LevelGroup(
+                    LevelGroupId.Elite,
+                    "Elite",
+                    31, 40,
+                    "_tier4",
+                    new Color(1.0f, 0.647f, 0.0f)      // 주황색
+                ),
+                new LevelGroup(
+                    LevelGroupId.Legendary,
+                    "Legendary",
+                    41, 50,
+                    "_tier5",
+                    new Color(0.863f, 0.078f, 0.235f)  // 선명한 빨강
+                ),
+            };
+        }
 
         /// <summary>
         /// 5개 레벨 그룹 정의를 초기화합니다.
-        /// 최초 호출 시 한 번만 실행됩니다.
+        /// 최초 호출 시 한 번만 실행됩니다. (이후 호출은 무시됩니다.)
+        /// Thread-safe합니다.
         /// </summary>
         public static void Initialize()
         {
-            if (s_initialized)
-                return;
-
-            s_groups = new LevelGroup[5];
-
-            s_groups[0] = new LevelGroup(
-                LevelGroupId.Novice,
-                "Novice",
-                1, 10,
-                "_tier1",
-                new Color(0.678f, 0.847f, 0.902f)  // 연한 하늘색
-            );
-
-            s_groups[1] = new LevelGroup(
-                LevelGroupId.Adept,
-                "Adept",
-                11, 20,
-                "_tier2",
-                new Color(0.565f, 0.792f, 0.565f)  // 연한 초록
-            );
-
-            s_groups[2] = new LevelGroup(
-                LevelGroupId.Veteran,
-                "Veteran",
-                21, 30,
-                "_tier3",
-                new Color(1.0f, 0.843f, 0.4f)      // 황금색
-            );
-
-            s_groups[3] = new LevelGroup(
-                LevelGroupId.Elite,
-                "Elite",
-                31, 40,
-                "_tier4",
-                new Color(1.0f, 0.647f, 0.0f)      // 주황색
-            );
-
-            s_groups[4] = new LevelGroup(
-                LevelGroupId.Legendary,
-                "Legendary",
-                41, 50,
-                "_tier5",
-                new Color(0.863f, 0.078f, 0.235f)  // 선명한 빨강
-            );
-
-            s_initialized = true;
+            _ = s_groups.Value;
         }
 
         /// <summary>
@@ -77,23 +78,22 @@ namespace ProjectName.Core
         /// </remarks>
         public static LevelGroup GetGroup(int level)
         {
-            if (!s_initialized)
-                Initialize();
+            LevelGroup[] groups = s_groups.Value;
 
             if (level <= 0)
-                return s_groups[(int)LevelGroupId.Novice];
+                return groups[(int)LevelGroupId.Novice];
 
-            if (level >= 50)
-                return s_groups[(int)LevelGroupId.Legendary];
+            if (level >= groups[(int)LevelGroupId.Legendary].maxLevel)
+                return groups[(int)LevelGroupId.Legendary];
 
-            for (int i = 0; i < s_groups.Length; i++)
+            for (int i = 0; i < groups.Length; i++)
             {
-                if (level >= s_groups[i].minLevel && level <= s_groups[i].maxLevel)
-                    return s_groups[i];
+                if (level >= groups[i].minLevel && level <= groups[i].maxLevel)
+                    return groups[i];
             }
 
             // Fallback (should not reach here for valid level ranges)
-            return s_groups[(int)LevelGroupId.Novice];
+            return groups[(int)LevelGroupId.Novice];
         }
 
         /// <summary>
@@ -101,24 +101,26 @@ namespace ProjectName.Core
         /// </summary>
         /// <param name="id">조회할 그룹 식별자</param>
         /// <returns>해당 그룹 정의</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// id가 유효한 LevelGroupId 값이 아닌 경우 발생합니다.
+        /// </exception>
         public static LevelGroup GetGroup(LevelGroupId id)
         {
-            if (!s_initialized)
-                Initialize();
+            if (!Enum.IsDefined(typeof(LevelGroupId), id))
+                throw new ArgumentOutOfRangeException(nameof(id), id,
+                    $"Invalid LevelGroupId value: {id}");
 
-            return s_groups[(int)id];
+            return s_groups.Value[(int)id];
         }
 
         /// <summary>
         /// 모든 5개의 레벨 그룹 정의를 반환합니다.
+        /// 반환된 배열을 수정해도 내부 상태에 영향을 주지 않습니다 (방어적 복사).
         /// </summary>
-        /// <returns>LevelGroup 배열 (길이 5)</returns>
+        /// <returns>LevelGroup 배열 (길이 5, 방어적 복사본)</returns>
         public static LevelGroup[] GetLevelGroups()
         {
-            if (!s_initialized)
-                Initialize();
-
-            return s_groups;
+            return (LevelGroup[])s_groups.Value.Clone();
         }
 
         /// <summary>
@@ -127,6 +129,7 @@ namespace ProjectName.Core
         /// <param name="baseName">기본 이름 (예: "soldier")</param>
         /// <param name="level">대상 레벨</param>
         /// <returns>접미사가 추가된 이름 (예: "soldier_tier1")</returns>
+        /// <exception cref="ArgumentNullException">baseName이 null인 경우</exception>
         /// <example>
         /// <code>
         /// string name = LevelGroupManager.GetVisualVariantName("soldier", 5);
@@ -135,6 +138,9 @@ namespace ProjectName.Core
         /// </example>
         public static string GetVisualVariantName(string baseName, int level)
         {
+            if (baseName == null)
+                throw new ArgumentNullException(nameof(baseName));
+
             LevelGroup group = GetGroup(level);
             return baseName + group.visualSuffix;
         }

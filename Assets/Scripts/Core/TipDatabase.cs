@@ -16,11 +16,11 @@ namespace ProjectName.Core
         Lore
     }
 
-    /// <summary>팁 정보 구조체</summary>
-    public struct TipInfo
+    /// <summary>팁 정보 구조체 (불변)</summary>
+    public readonly struct TipInfo
     {
-        public string Text;
-        public TipCategory Category;
+        public readonly string Text;
+        public readonly TipCategory Category;
 
         public TipInfo(string text, TipCategory category)
         {
@@ -68,28 +68,40 @@ namespace ProjectName.Core
             new TipInfo("몬스터 레벨이 높을수록 더 좋은 전리품을 드롭합니다.", TipCategory.Lore),
         };
 
-        /// <summary>랜덤 팁 한 개 반환 (하위 호환)</summary>
+        /// <summary>랜덤 팁 한 개 반환 (하위 호환). 팁이 없으면 빈 문자열 반환.</summary>
+        /// <returns>랜덤 팁 텍스트, 또는 빈 문자열</returns>
         public static string GetRandomTip()
         {
+            if (Tips.Length == 0) return string.Empty;
             return Tips[UnityEngine.Random.Range(0, Tips.Length)].Text;
         }
 
-        /// <summary>랜덤 팁 한 개의 TipInfo 반환</summary>
+        /// <summary>랜덤 팁 한 개의 TipInfo 반환. 팁이 없으면 기본값 반환.</summary>
+        /// <returns>랜덤으로 선택된 TipInfo 구조체, 팁이 없으면 default(TipInfo)</returns>
         public static TipInfo GetRandomTipInfo()
         {
+            if (Tips.Length == 0) return default;
             return Tips[UnityEngine.Random.Range(0, Tips.Length)];
         }
 
         /// <summary>
         /// 서로 다른 카테고리의 팁 2개를 반환합니다.
-        /// 가능하면 다른 카테고리에서 선택하며, 팁이 2개 미만이면 같은 카테고리일 수 있습니다.
+        /// 가능하면 다른 카테고리에서 선택하며, 팁이 2개 미만이면 같은 팁/카테고리일 수 있습니다.
         /// </summary>
-        /// <returns>(text1, cat1, text2, cat2)</returns>
+        /// <returns>(text1, cat1, text2, cat2). 팁이 없으면 빈 문자열과 기본 카테고리.</returns>
         public static (string text1, TipCategory cat1, string text2, TipCategory cat2) GetTwoRandomTips()
         {
+            // 빈 배열 보호
+            if (Tips.Length == 0)
+                return (string.Empty, TipCategory.Gameplay, string.Empty, TipCategory.Gameplay);
+
             int idx1 = UnityEngine.Random.Range(0, Tips.Length);
             TipInfo t1 = Tips[idx1];
             TipInfo t2;
+
+            // 팁이 1개만 있으면 같은 팁 두 번 반환
+            if (Tips.Length == 1)
+                return (t1.Text, t1.Category, t1.Text, t1.Category);
 
             // 같은 카테고리인 팁 중 랜덤 선택 시도 (최대 5회)
             int attempts = 0;
@@ -98,10 +110,10 @@ namespace ProjectName.Core
                 int idx2 = UnityEngine.Random.Range(0, Tips.Length);
                 t2 = Tips[idx2];
                 attempts++;
-            } while (t2.Category == t1.Category && attempts < 5 && Tips.Length >= 2);
+            } while (t2.Category == t1.Category && attempts < 5);
 
-            // 만약 끝까지 다른 카테고리를 못 찾았거나 인덱스가 같으면 인접 팁 사용
-            if (attempts >= 5 && t2.Category == t1.Category)
+            // 만약 끝까지 다른 카테고리를 못 찾았으면 인접 팁 사용
+            if (t2.Category == t1.Category)
             {
                 int idx2 = (idx1 + 1) % Tips.Length;
                 t2 = Tips[idx2];
@@ -110,7 +122,9 @@ namespace ProjectName.Core
             return (t1.Text, t1.Category, t2.Text, t2.Category);
         }
 
-        /// <summary>특정 카테고리의 모든 팁 반환</summary>
+        /// <summary>특정 카테고리의 모든 팁을 반환합니다. 해당 카테고리의 팁이 없으면 빈 배열을 반환합니다.</summary>
+        /// <param name="category">조회할 팁 카테고리</param>
+        /// <returns>해당 카테고리의 TipInfo 배열</returns>
         public static TipInfo[] GetTipsByCategory(TipCategory category)
         {
             var list = new List<TipInfo>();
@@ -122,7 +136,7 @@ namespace ProjectName.Core
             return list.ToArray();
         }
 
-        /// <summary>전체 팁 개수</summary>
+        /// <summary>등록된 전체 팁의 개수를 반환합니다.</summary>
         public static int TotalTips => Tips.Length;
     }
 }

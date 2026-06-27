@@ -171,25 +171,25 @@ namespace ProjectName.Core
             switch (buffId)
             {
                 case "AttackUp":
-                    _stats._attackDamageBase += value;
+                    _stats.AttackDamageBase += value;
                     break;
                 case "DefenseUp":
-                    _stats._defenseBase += value;
+                    _stats.DefenseBase += value;
                     break;
                 case "SpeedUp":
-                    _stats._moveSpeedBase += value;
+                    _stats.MoveSpeedBase += value;
                     break;
                 case "Slowness":
-                    _stats._moveSpeedBase -= value;
+                    _stats.MoveSpeedBase -= value;
                     break;
                 case "AlchemyBoost":
-                    _stats._alchemyTempBonus += value;
+                    _stats.AlchemyTempBonus += value;
                     break;
                 case "CookingBoost":
-                    _stats._cookingTempBonus += value;
+                    _stats.CookingTempBonus += value;
                     break;
                 case "CritUp":
-                    _stats._critChanceBase += value;
+                    _stats.CritChanceBase += value;
                     break;
                 case "HealOverTime":
                     _health.Heal(value);
@@ -223,26 +223,26 @@ namespace ProjectName.Core
             switch (buffId)
             {
                 case "AttackUp":
-                    _stats._attackDamageBase -= value;
+                    _stats.AttackDamageBase -= value;
                     break;
                 case "DefenseUp":
-                    _stats._defenseBase -= value;
+                    _stats.DefenseBase -= value;
                     break;
                 case "SpeedUp":
-                    _stats._moveSpeedBase -= value;
+                    _stats.MoveSpeedBase -= value;
                     break;
                 case "Slowness":
                     // Restore speed — ApplyBuff subtracted it
-                    _stats._moveSpeedBase += value;
+                    _stats.MoveSpeedBase += value;
                     break;
                 case "AlchemyBoost":
-                    _stats._alchemyTempBonus -= value;
+                    _stats.AlchemyTempBonus -= value;
                     break;
                 case "CookingBoost":
-                    _stats._cookingTempBonus -= value;
+                    _stats.CookingTempBonus -= value;
                     break;
                 case "CritUp":
-                    _stats._critChanceBase -= value;
+                    _stats.CritChanceBase -= value;
                     break;
                 case "HealOverTime":
                     // No reversal needed for instant heal
@@ -260,37 +260,37 @@ namespace ProjectName.Core
         public float GetAttackDamageBase()
         {
             if (_stats == null) CacheReferences();
-            return _stats != null ? _stats._attackDamageBase : 0f;
+            return _stats != null ? _stats.AttackDamageBase : 0f;
         }
 
         public float GetDefenseBase()
         {
             if (_stats == null) CacheReferences();
-            return _stats != null ? _stats._defenseBase : 0f;
+            return _stats != null ? _stats.DefenseBase : 0f;
         }
 
         public float GetMoveSpeedBase()
         {
             if (_stats == null) CacheReferences();
-            return _stats != null ? _stats._moveSpeedBase : 0f;
+            return _stats != null ? _stats.MoveSpeedBase : 0f;
         }
 
         public float GetAlchemyTempBonus()
         {
             if (_stats == null) CacheReferences();
-            return _stats != null ? _stats._alchemyTempBonus : 0f;
+            return _stats != null ? _stats.AlchemyTempBonus : 0f;
         }
 
         public float GetCookingTempBonus()
         {
             if (_stats == null) CacheReferences();
-            return _stats != null ? _stats._cookingTempBonus : 0f;
+            return _stats != null ? _stats.CookingTempBonus : 0f;
         }
 
         public float GetCritChanceBase()
         {
             if (_stats == null) CacheReferences();
-            return _stats != null ? _stats._critChanceBase : 0f;
+            return _stats != null ? _stats.CritChanceBase : 0f;
         }
     }
 }

@@ -12,9 +12,7 @@ namespace ProjectName.Systems
     {
         public static DraculaTerritoryController Instance { get; private set; }
 
-        [Header("Settings")]
-        [SerializeField] private int _nightStartHour = 20; // 밤 시작 20:00
-        [SerializeField] private int _nightEndHour = 6;    // 낮 시작 06:00
+        [Header("Debug")]
         [SerializeField] private bool _verbose;
 
         private TerritoryState _draculaState;
@@ -33,11 +31,14 @@ namespace ProjectName.Systems
 
             if (_draculaState != null)
             {
-                _draculaState.isActive = false; // 기본 비활성화 (밤에 활성화)
+                // 저장된 상태에서 점령 여부 복원 (save/load 대응)
+                _isConquered = _draculaState.ownership == TerritoryOwnership.PlayerOwned
+                            || _draculaState.lordDefeated;
+
+                _draculaState.isActive = _isConquered; // 점령 상태면 항상 활성, 아니면 기본 비활성
             }
 
             _wasNight = false;
-            _isConquered = false;
         }
 
         private void Update()
@@ -67,7 +68,7 @@ namespace ProjectName.Systems
             if (_draculaState == null) return;
             _draculaState.isActive = true;
             if (_verbose)
-                Debug.Log($"[DraculaTerritoryController] 영지 활성화: {_draculaDef.territoryName}");
+                Debug.Log($"[DraculaTerritoryController] 영지 활성화: {_draculaDef.territoryName ?? "(알 수 없음)"}");
         }
 
         /// <summary>
@@ -78,7 +79,7 @@ namespace ProjectName.Systems
             if (_draculaState == null) return;
             _draculaState.isActive = false;
             if (_verbose)
-                Debug.Log($"[DraculaTerritoryController] 영지 비활성화: {_draculaDef.territoryName}");
+                Debug.Log($"[DraculaTerritoryController] 영지 비활성화: {_draculaDef.territoryName ?? "(알 수 없음)"}");
         }
 
         /// <summary>
@@ -92,7 +93,7 @@ namespace ProjectName.Systems
                 _draculaState.isActive = true;
                 _draculaState.ownership = TerritoryOwnership.PlayerOwned;
                 _draculaState.lordDefeated = true;
-                _draculaState.lordSurrendered = true;
+                // NOTE: lordSurrendered는 별도 항복 시에만 true — 패배(처치)와는 다른 개념
             }
             if (_verbose)
                 Debug.Log("[DraculaTerritoryController] 드라큘라 점령 완료! 영지 영구 활성화.");

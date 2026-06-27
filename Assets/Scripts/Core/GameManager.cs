@@ -1,5 +1,4 @@
 using UnityEngine;
-using ProjectName.Core;
 using ProjectName.Core.Data;
 
 namespace ProjectName.Core
@@ -11,11 +10,20 @@ namespace ProjectName.Core
     {
         /// <summary>C20-01: Current game difficulty level (0=Easy, 1=Normal, 2=Hard).</summary>
         public static int CurrentDifficulty { get; set; } = 0;
+        public static GameManager Instance { get; private set; }
 
         [SerializeField] private bool _debugMode = false;
 
         private void Awake()
         {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            
             Application.targetFrameRate = 60;
 #if UNITY_EDITOR
             // Editor 전용 디버그/테스트 컴포넌트 (Play 모드에서도 데이터 검증용)
@@ -184,16 +192,19 @@ namespace ProjectName.Core
             var existing = FindFirstObjectByType(esType);
             if (existing != null)
             {
-                // Replace StandaloneInputModule with InputSystemUIInputModule if present
-                if (oldModuleType != null && newModuleType != null)
+                var existingComponent = existing as Component;
+                if (existingComponent != null)
                 {
-                    Component oldModule = null;
-                    oldModule = (existing as Component).GetComponent(oldModuleType);
-                    if (oldModule != null)
+                    // Replace StandaloneInputModule with InputSystemUIInputModule if present
+                    if (oldModuleType != null && newModuleType != null)
                     {
-                        Object.Destroy(oldModule);
-                        (existing as Component).gameObject.AddComponent(newModuleType);
-                        Debug.Log("[GameManager] StandaloneInputModule → InputSystemUIInputModule 교체");
+                        var oldModule = existingComponent.GetComponent(oldModuleType);
+                        if (oldModule != null)
+                        {
+                            Object.Destroy(oldModule);
+                            existingComponent.gameObject.AddComponent(newModuleType);
+                            Debug.Log("[GameManager] StandaloneInputModule → InputSystemUIInputModule 교체");
+                        }
                     }
                 }
                 return;

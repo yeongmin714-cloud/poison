@@ -24,7 +24,9 @@ namespace ProjectName.Core
             public PlayerInventory.ItemData item;
 
             [Header("개수 범위")]
+            [Tooltip("최소 드랍 개수 (1 이상)")]
             public int minCount = 1;
+            [Tooltip("최대 드랍 개수 (minCount 이상)")]
             public int maxCount = 1;
 
             [Header("드랍 확률")]
@@ -85,10 +87,11 @@ namespace ProjectName.Core
         public void ApplyToBasket(ILootBasket basket, float levelDropBonus)
         {
             if (basket == null) return;
+            if (entries == null || entries.Length == 0) return;
 
             foreach (var entry in entries)
             {
-                if (entry.item == null || entry.dropChance <= 0f) continue;
+                if (entry == null || entry.item == null || entry.dropChance <= 0f) continue;
 
                 float finalChance = entry.dropChance;
 
@@ -100,7 +103,9 @@ namespace ProjectName.Core
 
                 if (Random.value <= finalChance)
                 {
-                    int count = Random.Range(entry.minCount, entry.maxCount + 1);
+                    int safeMin = Mathf.Max(1, entry.minCount);
+                    int safeMax = Mathf.Max(safeMin, entry.maxCount);
+                    int count = Random.Range(safeMin, safeMax + 1);
                     if (count > 0)
                     {
                         basket.AddItem(entry.item, count);
@@ -126,11 +131,13 @@ namespace ProjectName.Core
             // 희귀 드랍 항목이 별도로 있으면 추가 롤
             foreach (var entry in entries)
             {
-                if (entry.item == null || !entry.isRare) continue;
+                if (entry == null || entry.item == null || !entry.isRare) continue;
 
                 if (Random.value <= rareChance)
                 {
-                    int count = Random.Range(entry.minCount, entry.maxCount + 1);
+                    int safeMin = Mathf.Max(1, entry.minCount);
+                    int safeMax = Mathf.Max(safeMin, entry.maxCount);
+                    int count = Random.Range(safeMin, safeMax + 1);
                     if (count > 0)
                     {
                         basket.AddItem(entry.item, count);
@@ -148,11 +155,18 @@ namespace ProjectName.Core
             string summary = $"[{_tableName}] (티어: {_tier})\n";
             summary += $"기본 희귀 확률: {_baseRareChance * 100:F1}%\n";
             summary += $"티어별 희귀 보너스: {_rareChanceBonusPerTier * 100:F1}%\n";
+
+            if (entries == null || entries.Length == 0)
+            {
+                summary += "항목 수: 0 (할당되지 않음)\n";
+                return summary;
+            }
+
             summary += $"항목 수: {entries.Length}\n";
 
             foreach (var entry in entries)
             {
-                if (entry.item == null) continue;
+                if (entry == null || entry.item == null) continue;
                 string rareMark = entry.isRare ? " ★" : "";
                 summary += $"  - {entry.item.displayName} x{entry.minCount}~{entry.maxCount} ({entry.dropChance * 100:F1}%){rareMark}\n";
             }

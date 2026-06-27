@@ -59,12 +59,18 @@ namespace ProjectName.Systems
             Texture2D ceilingTex = IndoorTextureGenerator.GeneratePlasterWall(256, 256,
                 new Color(0.60f, 0.55f, 0.50f));
 
-            // ===== 재질 생성 (URP Lit) =====
+            // ===== 재질 생성 (URP Lit, fallback Standard) =====
             Shader shader = Shader.Find("Universal Render Pipeline/Lit");
             if (shader == null)
             {
-                Debug.LogError("[CastleInteriorBuilder] URP Lit shader not found!");
+                Debug.LogWarning("[CastleInteriorBuilder] URP Lit shader not found. Falling back to Standard.");
                 shader = Shader.Find("Standard");
+            }
+
+            if (shader == null)
+            {
+                Debug.LogError("[CastleInteriorBuilder] No shader found (URP Lit nor Standard)! Using default material.");
+                shader = Shader.Find("Universal Render Pipeline/Lit");
             }
 
             Material floorMat = new Material(shader) { name = $"Castle_FloorMat_{nationStyle}" };
@@ -88,6 +94,13 @@ namespace ProjectName.Systems
             // ===== 방 생성 =====
             GameObject room = IndoorBuilder.CreateRoom(roomWidth, roomHeight, roomDepth,
                 floorMat, wallMat, ceilingMat);
+
+            if (room == null)
+            {
+                Debug.LogError("[CastleInteriorBuilder] 방 생성 실패: IndoorBuilder.CreateRoom returned null.");
+                var fallback = new GameObject("Room_Fallback");
+                return fallback;
+            }
 
             // ===== 기둥 좌우 2열 (Cylinder) =====
             int pillarCountPerSide = 5;
@@ -138,7 +151,8 @@ namespace ProjectName.Systems
                     meetingChair.name = $"MeetingChair_{side}_{pos}";
                     meetingChair.transform.SetParent(room.transform);
                     meetingChair.transform.localPosition = new Vector3(side * chairOffset, 0, -1.0f + pos * 1.2f);
-                    meetingChair.transform.localRotation = Quaternion.Euler(0, side > 0 ? 180 : 0, 0);
+                    // pos=-1: 뒤쪽 (z<-1), pos=1: 앞쪽 (z>-1) — 모두 테이블 중앙(0,0,-1)을 향함
+                    meetingChair.transform.localRotation = Quaternion.Euler(0, side > 0 ? -90 : 90, 0);
                 }
             }
 

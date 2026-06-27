@@ -25,6 +25,7 @@ namespace ProjectName.Core
         private static readonly Color ColorArmor = new Color(0.20f, 0.30f, 0.70f);     // 파랑
         private static readonly Color ColorTool = new Color(0.60f, 0.40f, 0.20f);      // 갈색
         private static readonly Color ColorQuest = new Color(0.80f, 0.75f, 0.15f);     // 노랑
+        private static readonly Color ColorArrow = new Color(0.55f, 0.35f, 0.20f);     // 화살 (짙은 갈색)
 
         // ===== 포션 세부 색상 =====
         private static readonly Color PotionRed = new Color(0.85f, 0.15f, 0.15f);
@@ -48,6 +49,7 @@ namespace ProjectName.Core
                 return cached;
 
             var tex = new Texture2D(ICON_SIZE, ICON_SIZE, TextureFormat.RGBA32, false);
+            tex.hideFlags = HideFlags.HideAndDontSave;
             Color fillColor = GetCategoryColor(category, itemId);
             Color borderColor = maxDurability > 0 ? BorderBright : BorderDim;
 
@@ -96,13 +98,20 @@ namespace ProjectName.Core
             var fields = typeof(PlayerInventory).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
             foreach (var field in fields)
             {
-                if (field.FieldType == typeof(PlayerInventory.ItemData))
+                try
                 {
-                    var item = field.GetValue(null) as PlayerInventory.ItemData;
-                    if (item != null && item.icon == null)
+                    if (field.FieldType == typeof(PlayerInventory.ItemData))
                     {
-                        item.icon = GetOrCreateIcon(item);
+                        var item = field.GetValue(null) as PlayerInventory.ItemData;
+                        if (item != null && item.icon == null)
+                        {
+                            item.icon = GetOrCreateIcon(item);
+                        }
                     }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning($"[ProceduralIconGenerator] 아이콘 생성 중 오류 (field={field.Name}): {ex.Message}");
                 }
             }
         }
@@ -146,12 +155,14 @@ namespace ProjectName.Core
                 PlayerInventory.ItemCategory.Armor => ColorArmor,
                 PlayerInventory.ItemCategory.Tool => ColorTool,
                 PlayerInventory.ItemCategory.Quest => ColorQuest,
+                PlayerInventory.ItemCategory.Arrow => ColorArrow,
                 _ => Color.gray,
             };
         }
 
         private static Color GetPotionColor(string itemId)
         {
+            if (string.IsNullOrEmpty(itemId)) return ColorPotion;
             string id = itemId.ToLowerInvariant();
             if (id.Contains("red")) return PotionRed;
             if (id.Contains("purple")) return PotionPurple;
@@ -178,6 +189,7 @@ namespace ProjectName.Core
                 case PlayerInventory.ItemCategory.Armor: DrawShield(tex, color); break;
                 case PlayerInventory.ItemCategory.Tool: DrawPickaxe(tex, color); break;
                 case PlayerInventory.ItemCategory.Quest: DrawDocument(tex, color); break;
+                case PlayerInventory.ItemCategory.Arrow: DrawArrow(tex, color); break;
                 default: DrawCircle(tex, 16, 16, 10, color); break;
             }
         }
@@ -239,9 +251,15 @@ namespace ProjectName.Core
                 for (int x = 13; x <= 19; x++)
                     tex.SetPixel(x, y, new Color(0.6f, 0.6f, 0.6f));
             // 십자 표시
+            tex.SetPixel(14, 16, new Color(1f, 1f, 1f, 0.6f));
+            tex.SetPixel(15, 16, new Color(1f, 1f, 1f, 0.6f));
             tex.SetPixel(16, 14, new Color(1f, 1f, 1f, 0.6f));
+            tex.SetPixel(16, 15, new Color(1f, 1f, 1f, 0.6f));
             tex.SetPixel(16, 16, new Color(1f, 1f, 1f, 0.6f));
+            tex.SetPixel(16, 17, new Color(1f, 1f, 1f, 0.6f));
             tex.SetPixel(16, 18, new Color(1f, 1f, 1f, 0.6f));
+            tex.SetPixel(17, 16, new Color(1f, 1f, 1f, 0.6f));
+            tex.SetPixel(18, 16, new Color(1f, 1f, 1f, 0.6f));
         }
 
         /// <summary>고기 덩어리</summary>
@@ -387,6 +405,30 @@ namespace ProjectName.Core
             }
             // 봉인 도장
             DrawCircle(tex, 20, 20, 3, new Color(0.8f, 0.2f, 0.2f));
+        }
+
+        /// <summary>화살 모양</summary>
+        private static void DrawArrow(Texture2D tex, Color color)
+        {
+            // 화살촉 (삼각형)
+            for (int y = 6; y <= 14; y++)
+            {
+                int halfW = (y - 6) / 2;
+                for (int x = 16 - halfW; x <= 16 + halfW; x++)
+                    tex.SetPixel(x, y, color);
+            }
+            // 화살대
+            for (int y = 14; y <= 26; y++)
+                for (int x = 15; x <= 17; x++)
+                    tex.SetPixel(x, y, new Color(0.5f, 0.3f, 0.1f));
+            // 깃털
+            for (int y = 24; y <= 26; y++)
+            {
+                tex.SetPixel(13, y, new Color(0.7f, 0.2f, 0.2f));
+                tex.SetPixel(14, y, new Color(0.7f, 0.2f, 0.2f));
+                tex.SetPixel(18, y, new Color(0.7f, 0.2f, 0.2f));
+                tex.SetPixel(19, y, new Color(0.7f, 0.2f, 0.2f));
+            }
         }
 
         // ===================================================================

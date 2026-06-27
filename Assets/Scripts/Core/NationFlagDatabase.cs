@@ -6,7 +6,7 @@ namespace ProjectName.Core
 {
     /// <summary>
     /// Phase 34: 국가별 국기 데이터베이스.
-    /// 5개 국가(NationType.East/West/South/North/Empire)의 국기 정의를 제공합니다.
+    /// 6개 국가(NationType.East/West/South/North/Empire/Dracula)의 국기 정의를 제공합니다.
     /// </summary>
     public static class NationFlagDatabase
     {
@@ -75,6 +75,18 @@ namespace ProjectName.Core
                         symbolName = "독수리/왕관",
                         symbolEmoji = "👑"
                     }
+                },
+                {
+                    NationType.Dracula,
+                    new NationFlagDefinition
+                    {
+                        nation = NationType.Dracula,
+                        colorName = "검정",
+                        description = "밤의 어둠과 피",
+                        flagColor = new Color(0.8f, 0f, 0f),
+                        symbolName = "박쥐",
+                        symbolEmoji = "🦇"
+                    }
                 }
             };
         }
@@ -92,7 +104,7 @@ namespace ProjectName.Core
         }
 
         /// <summary>
-        /// 모든 5개 국가의 국기 정의 목록을 반환합니다.
+        /// 모든 6개 국가의 국기 정의 목록을 반환합니다.
         /// </summary>
         public static List<NationFlagDefinition> GetAllFlags()
         {

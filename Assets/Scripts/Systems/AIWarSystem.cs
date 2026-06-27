@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using UnityEngine;
@@ -71,8 +72,24 @@ namespace ProjectName.Systems
         private static int _nextWarId = 1;
         private static int _lastCheckDay = -1;
 
-        /// <summary>활성 전쟁 목록 (읽기 전용 복사본)</summary>
-        public static IReadOnlyList<AIWarData> ActiveWars => _activeWars.AsReadOnly();
+        /// <summary>
+        /// 전쟁 완료 후 영지의 실질적 소속 국가를 추적합니다. (key: territoryId.ToString(), value: 새 소속 NationType)
+        /// TerritoryDefinition.nation이 readonly이므로, 전쟁으로 인한 소속 변경은 이 딕셔너리로 관리합니다.
+        /// </summary>
+        private static readonly Dictionary<string, NationType> _conqueredNations = new Dictionary<string, NationType>();
+
+        /// <summary>_activeWars.AsReadOnly() 캐시 — GC 할당 방지</summary>
+        private static ReadOnlyCollection<AIWarData>? _activeWarsReadOnly;
+
+        /// <summary>활성 전쟁 목록 (읽기 전용 복사본, 캐시됨)</summary>
+        public static IReadOnlyList<AIWarData> ActiveWars
+        {
+            get
+            {
+                _activeWarsReadOnly ??= _activeWars.AsReadOnly();
+                return _activeWarsReadOnly;
+            }
+        }
 
         // ===== 메인 퍼블릭 메서드 =====
 
@@ -132,6 +149,7 @@ namespace ProjectName.Systems
             };
 
             _activeWars.Add(warData);
+            _activeWarsReadOnly = null; // 캐시 무효화
 
             // 쿨다운 등록
             string cooldownKey = GetCooldownKey(attacker, defender);
@@ -151,7 +169,8 @@ namespace ProjectName.Systems
         public static void UpdateAIWars()
         {
             // 완료된 전쟁 제거
-            _activeWars.RemoveAll(w => w.isCompleted);
+            int removed = _activeWars.RemoveAll(w => w.isCompleted);
+            if (removed > 0) _activeWarsReadOnly = null; // 캐시 무효화
 
             for (int i = 0; i < _activeWars.Count; i++)
             {
@@ -185,42 +204,71 @@ namespace ProjectName.Systems
             if (_lastCheckDay == currentDay) return; // 중복 체크 방지
             _lastCheckDay = currentDay;
 
-            // AI 국가 소속의 LordOwned 영지 목록 수집
-            var aiTerritories = new List<TerritoryId>();
+            // AI 국가 소속의 LordOwned 영지 목록 수집 (전쟁 중이 아닌 영지만)
+            var aiTerritoriesPool = new List<TerritoryId>();
             var db = TerritoryDatabase.Instance;
-            foreach (var def in db.GetAllDefinitions())
+
+            // 현재 전쟁에 참여 중인 영지 ID 집합 (빠른 조회용)
+            var warZone = new HashSet<TerritoryId>();
+            foreach (var w in _activeWars)
             {
-                var state = db.GetState(def.id);
-                if (state != null && state.ownership == TerritoryOwnership.LordOwned)
+                if (!w.isCompleted)
                 {
-                    // PlayterOwned가 아닌 AI 영지
-                    aiTerritories.Add(def.id);
+                    warZone.Add(w.attackerTerritoryId);
+                    warZone.Add(w.defenderTerritoryId);
                 }
             }
 
-            if (aiTerritories.Count < 2) return; // 전쟁에 필요한 영지 부족
+            foreach (var def in db.GetAllDefinitions())
+            {
+                var state = db.GetState(def.id);
+                // LordOwned이며 전쟁 중이 아니고, PlayerOwned가 아닌 AI 영지
+                if (state != null && state.ownership == TerritoryOwnership.LordOwned &&
+                    !warZone.Contains(def.id))
+                {
+                    aiTerritoriesPool.Add(def.id);
+                }
+            }
+
+            if (aiTerritoriesPool.Count < 2) return; // 전쟁에 필요한 영지 부족
 
             // 무작위 전쟁 쌍 선택 (3쌍 이하)
-            int warCount = Mathf.Min(Random.Range(1, 4), aiTerritories.Count / 2);
+            int warCount = Mathf.Min(Random.Range(1, 4), aiTerritoriesPool.Count / 2);
             for (int w = 0; w < warCount; w++)
             {
                 if (_activeWars.Count >= MAX_CONCURRENT_WARS) break;
 
-                // 무작위로 공격자와 방어자 선택
-                int attackerIdx = Random.Range(0, aiTerritories.Count);
-                int defenderIdx;
-                int tries = 0;
-                do
+                // 무작위로 공격자와 방어자 선택 (100회 시도, 실패 시 건너뜀)
+                int maxPairAttempts = 100;
+                bool foundPair = false;
+                TerritoryId attacker = default;
+                TerritoryId defender = default;
+
+                for (int attempt = 0; attempt < maxPairAttempts; attempt++)
                 {
-                    defenderIdx = Random.Range(0, aiTerritories.Count);
-                    tries++;
+                    int aIdx = Random.Range(0, aiTerritoriesPool.Count);
+                    int dIdx = Random.Range(0, aiTerritoriesPool.Count);
+                    if (aIdx != dIdx)
+                    {
+                        attacker = aiTerritoriesPool[aIdx];
+                        defender = aiTerritoriesPool[dIdx];
+
+                        // 같은 국가 내 전쟁 금지 (ValidateWar에서 추가 검증, 여기서 미리 거름)
+                        var defA = db.GetDefinition(attacker);
+                        var defD = db.GetDefinition(defender);
+                        if (defA.nation != defD.nation)
+                        {
+                            foundPair = true;
+                            break;
+                        }
+                    }
                 }
-                while (defenderIdx == attackerIdx && tries < 10);
 
-                if (attackerIdx == defenderIdx) continue;
+                if (!foundPair) continue;
 
-                TerritoryId attacker = aiTerritories[attackerIdx];
-                TerritoryId defender = aiTerritories[defenderIdx];
+                // 선택된 쌍을 풀에서 제거 (중복 선택 방지)
+                aiTerritoriesPool.Remove(attacker);
+                aiTerritoriesPool.Remove(defender);
 
                 StartAIWar(attacker, defender, currentDay);
             }
@@ -259,6 +307,20 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
+        /// 특정 영지의 현재 실질적 소속 국가를 반환합니다.
+        /// 전쟁으로 점령된 영지는 승자의 국가로 반환되며,
+        /// 그 외에는 TerritoryDefinition.nation 값을 반환합니다.
+        /// </summary>
+        public static NationType GetEffectiveNation(TerritoryId territoryId)
+        {
+            string key = territoryId.ToString();
+            if (_conqueredNations.TryGetValue(key, out NationType conqueredNation))
+                return conqueredNation;
+            var def = TerritoryDatabase.Instance.GetDefinition(territoryId);
+            return def.nation;
+        }
+
+        /// <summary>
         /// 완료된 전쟁 중 가장 최근 전쟁을 반환하고 큐에서 제거합니다.
         /// </summary>
         public static AIWarData? DequeueCompletedWar()
@@ -275,8 +337,10 @@ namespace ProjectName.Systems
             _activeWars.Clear();
             _completedWars.Clear();
             _warCooldowns.Clear();
+            _conqueredNations.Clear();
             _nextWarId = 1;
             _lastCheckDay = -1;
+            _activeWarsReadOnly = null;
         }
 
         // ===== 내부 메서드 =====
@@ -333,13 +397,22 @@ namespace ProjectName.Systems
             var db = TerritoryDatabase.Instance;
             var stateDefender = db.GetState(war.defenderTerritoryId);
             var stateAttacker = db.GetState(war.attackerTerritoryId);
+            var defAttacker = db.GetDefinition(war.attackerTerritoryId);
+            var defDefender = db.GetDefinition(war.defenderTerritoryId);
 
             if (stateDefender == null || stateAttacker == null) return;
 
-            // 승자는 공격자 (진행도가 100%에 도달 = 공격 성공)
-            // 방어 영지 소유권을 공격자의 국가로 이전
+            // 🔴 CRITICAL FIX: 방어 영지의 소속 국가를 공격자 국가로 이전
+            // TerritoryDefinition.nation은 readonly이므로 _conqueredNations 딕셔너리에 기록합니다.
+            string defKey = war.defenderTerritoryId.ToString();
+            _conqueredNations[defKey] = defAttacker.nation;
+
+            // 전투 상태 정리
+            stateDefender.isUnderAttack = false;
+
+            // 소유권은 LordOwned로 유지 (AI 국가 간 전쟁이므로)
             stateDefender.ownership = TerritoryOwnership.LordOwned;
-            // 간단히: 공격자 국가의 영지로 표시 (nation은 유지, ownership만 LordOwned로 유지 — 영지 소속 변경은 별도 처리)
+
             // 완료된 전쟁 정보는 큐에 저장
             AIWarData completed = war;
             completed.isCompleted = true;
@@ -348,14 +421,12 @@ namespace ProjectName.Systems
 
             _activeWars[index] = completed;
 
-            var defAttacker = db.GetDefinition(war.attackerTerritoryId);
-            var defDefender = db.GetDefinition(war.defenderTerritoryId);
-
-            Debug.Log($"[AIWarSystem] 🏁 전쟁 완료! (ID:{war.warId}) {defAttacker.territoryName} 승리 → {defDefender.territoryName} 점령");
+            Debug.Log($"[AIWarSystem] 🏁 전쟁 완료! (ID:{war.warId}) {defAttacker.territoryName} 승리 → {defDefender.territoryName} 점령 (소속: {defDefender.nation} → {defAttacker.nation})");
 
             OnWarCompleted?.Invoke(completed);
 
-            // WarNotification 연동
+            // UI 알림 (향후 이벤트 기반으로 분리 권장)
+            // TODO: OnWarCompleted/OnWarStarted 이벤트를 구독하는 별도 프레젠테이션 레이어로 분리
             WarNotificationUI.ShowNotification(
                 $"⚔️ {defAttacker.territoryName} → {defDefender.territoryName} 점령!",
                 WarNotificationUI.NotificationType.WarEnd);

@@ -16,9 +16,8 @@
   ],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
-  "overrideReferences": true,
-  "precompiledReferences": [],
-  "autoReferenced": false,
+  "overrideReferences": false,
+  "autoReferenced": true,
   "defineConstraints": [
     "UNITY_EDITOR"
   ],

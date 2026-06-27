@@ -418,7 +418,7 @@ namespace ProjectName.Systems
         public float HP => _currentHP;
         public float MaxHP => _maxHP;
         public float Loyalty { get => _loyalty; set => _loyalty = Mathf.Clamp(value, -100, 100); }
-        public float Addiction { get => _addiction; set => _addiction = Mathf.Clamp(value, 0, 100); }
+        public float Addiction { get => _addiction; set => _addiction = Mathf.Clamp(value, 0, GuardAddictionSystem.MAX_ADDICTION); }
         public bool IsPlayerNearby => _playerNearby;
         public bool IsShowingInfo => _showInfo;
         public bool IsSelectingItem => _selectionMode != SelectionMode.None;

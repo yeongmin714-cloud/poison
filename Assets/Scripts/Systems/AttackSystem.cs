@@ -38,6 +38,10 @@ namespace ProjectName.Systems
         private Camera _mainCamera;
         private PlayerCombat _playerCombat;
 
+        // Non-allocating raycast buffers (GC 할당 방지)
+        private readonly RaycastHit[] _raycastHits = new RaycastHit[32];
+        private readonly RaycastHit[] _sphereCastHits = new RaycastHit[32];
+
         // ================================================================
         // Unity Lifecycle
         // ================================================================
@@ -56,8 +60,8 @@ namespace ProjectName.Systems
             if (PlayerHealth.Instance != null && PlayerHealth.Instance.IsDead)
                 return;
 
-            // 좌클릭 확인
-            if (!Input.GetMouseButtonDown(0))
+            // 공격 키 확인 (설정 가능)
+            if (!Input.GetKeyDown(_attackKey))
                 return;
 
             TryPerformAttack();
@@ -100,7 +104,12 @@ namespace ProjectName.Systems
 
             // 3) 거리 체크 (근접/원거리 판단)
             MonoBehaviour targetBehaviour = target as MonoBehaviour;
-            if (targetBehaviour == null) return;
+            if (targetBehaviour == null)
+            {
+                if (_debugLogs)
+                    Debug.LogWarning("[AttackSystem] IDamageable 대상이 MonoBehaviour가 아닙니다 — 공격 불가");
+                return;
+            }
 
             float distance = Vector3.Distance(transform.position, targetBehaviour.transform.position);
 
@@ -113,7 +122,7 @@ namespace ProjectName.Systems
 
             // 4) 공격 타입 결정 및 HIT
             string weaponType = distance <= _meleeRange ? "melee" : "ranged";
-            ApplyDamage(target, targetBehaviour, weaponType);
+            ApplyDamage(target, targetBehaviour, weaponType, distance);
         }
 
         /// <summary>
@@ -121,7 +130,7 @@ namespace ProjectName.Systems
         /// PlayerCombat이 있으면 PlayerCombat 경유, 없으면 직접 IDamageable.TakeDamage() 호출.
         /// 사망 시 LootBasket을 생성합니다.
         /// </summary>
-        private void ApplyDamage(IDamageable target, MonoBehaviour targetBehaviour, string weaponType)
+        private void ApplyDamage(IDamageable target, MonoBehaviour targetBehaviour, string weaponType, float distance)
         {
             if (!target.IsAlive) return;
 
@@ -142,7 +151,7 @@ namespace ProjectName.Systems
             }
 
             if (_debugLogs)
-                Debug.Log($"[AttackSystem] 🎯 {weaponType} 공격! 데미지: {damage} (거리: {Vector3.Distance(transform.position, targetBehaviour.transform.position):F1}m)");
+                Debug.Log($"[AttackSystem] 🎯 {weaponType} 공격! 데미지: {damage} (거리: {distance:F1}m)");
 
             // 사망 처리
             if (!target.IsAlive)
@@ -237,17 +246,17 @@ namespace ProjectName.Systems
         /// <summary>정밀 Raycast — 마우스 커서 직선상의 IDamageable 탐색</summary>
         private IDamageable FindTargetByRaycast(Ray ray)
         {
-            RaycastHit[] hits = Physics.RaycastAll(ray, _rangedRange, _targetLayers);
+            int hitCount = Physics.RaycastNonAlloc(ray, _raycastHits, _rangedRange, _targetLayers);
 
             IDamageable closest = null;
             float closestDist = float.MaxValue;
 
-            foreach (var hit in hits)
+            for (int i = 0; i < hitCount; i++)
             {
-                IDamageable dmg = hit.collider.GetComponent<IDamageable>();
-                if (dmg != null && dmg.IsAlive && hit.distance < closestDist)
+                IDamageable dmg = _raycastHits[i].collider.GetComponent<IDamageable>();
+                if (dmg != null && dmg.IsAlive && _raycastHits[i].distance < closestDist)
                 {
-                    closestDist = hit.distance;
+                    closestDist = _raycastHits[i].distance;
                     closest = dmg;
                 }
             }
@@ -259,17 +268,17 @@ namespace ProjectName.Systems
         private IDamageable FindTargetBySphereCast(Ray ray)
         {
             float radius = 0.5f;
-            RaycastHit[] hits = Physics.SphereCastAll(ray.origin, radius, ray.direction, _rangedRange, _targetLayers);
+            int hitCount = Physics.SphereCastNonAlloc(ray.origin, radius, ray.direction, _sphereCastHits, _rangedRange, _targetLayers);
 
             IDamageable closest = null;
             float closestDist = float.MaxValue;
 
-            foreach (var hit in hits)
+            for (int i = 0; i < hitCount; i++)
             {
-                IDamageable dmg = hit.collider.GetComponent<IDamageable>();
-                if (dmg != null && dmg.IsAlive && hit.distance < closestDist)
+                IDamageable dmg = _sphereCastHits[i].collider.GetComponent<IDamageable>();
+                if (dmg != null && dmg.IsAlive && _sphereCastHits[i].distance < closestDist)
                 {
-                    closestDist = hit.distance;
+                    closestDist = _sphereCastHits[i].distance;
                     closest = dmg;
                 }
             }
@@ -300,7 +309,7 @@ namespace ProjectName.Systems
         /// <summary>주변에 LootBasket이 있는지 확인 (중복 생성 방지)</summary>
         private bool IsLootBasketNearby(Vector3 position)
         {
-            LootBasket[] existing = FindObjectsByType<LootBasket>();
+            LootBasket[] existing = FindObjectsByType<LootBasket>(FindObjectsSortMode.None);
             foreach (var basket in existing)
             {
                 if (Vector3.Distance(basket.transform.position, position) < 0.5f)
@@ -314,11 +323,25 @@ namespace ProjectName.Systems
         {
             if (string.IsNullOrEmpty(itemId)) return null;
 
-            // Resources/Items/ 경로에서 로드 시도
-            PlayerInventory.ItemData loaded = null; // placeholder - replaced from Resources.Load
+            // 1) 정적 ItemData 상수에서 ID로 검색 (PlayerInventory 클래스의 static readonly 필드)
+            var inventoryType = typeof(PlayerInventory);
+            var fields = inventoryType.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.FlattenHierarchy);
+            foreach (var field in fields)
+            {
+                if (field.FieldType == typeof(PlayerInventory.ItemData))
+                {
+                    var item = field.GetValue(null) as PlayerInventory.ItemData;
+                    if (item != null && item.id == itemId)
+                        return item;
+                }
+            }
+
+            // 2) Resources/Items/ 경로에서 로드 시도
+            PlayerInventory.ItemData loaded = Resources.Load<PlayerInventory.ItemData>($"Items/{itemId}");
             if (loaded != null) return loaded;
 
-            // 폴백: 기본 ItemData 생성 (테스트/디버그용)
+            // 3) 폴백: 기본 ItemData 생성 (테스트/디버그용)
+            Debug.LogWarning($"[AttackSystem] 아이템 '{itemId}'을(를) 찾을 수 없습니다. 임시 ItemData를 생성합니다.");
             return new PlayerInventory.ItemData
             {
                 id = itemId,
@@ -333,8 +356,24 @@ namespace ProjectName.Systems
         /// <summary>병사 오브젝트에서 레벨 추출 (기본값 1)</summary>
         private int ExtractGuardLevel(GameObject guardObject)
         {
-            // GuardManager 또는 기타 컴포넌트에서 레벨 읽기
-            // 없으면 기본값 1
+            // GuardPlaceholder 컴포넌트에서 레벨 읽기
+            if (guardObject == null) return 1;
+
+            GuardPlaceholder guard = guardObject.GetComponent<GuardPlaceholder>();
+            if (guard != null)
+            {
+                // GuardPlaceholder의 level 필드는 SerializeField로 private 접근 — reflection 사용
+                var levelField = typeof(GuardPlaceholder).GetField("level",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (levelField != null)
+                {
+                    object val = levelField.GetValue(guard);
+                    if (val is int lv)
+                        return Mathf.Max(1, lv);
+                }
+            }
+
+            // 폴백: 기본값 1
             return 1;
         }
 

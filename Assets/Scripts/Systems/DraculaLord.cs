@@ -32,11 +32,16 @@ namespace ProjectName.Systems
         // ===== Placeholder 도형 =====
         private GameObject _visualRoot;
         private Transform _target;
-        private string _targetTag = "Player";
+        private readonly string _targetTag = "Player";
 
         // ===== 영지/식별 =====
         private TerritoryId _territoryId;
-        private string _fullName = "드라큘라 백작";
+        private string _fullName = "드라큘라 영주";
+
+        // ===== 타겟 캐싱 (Find 대신) =====
+        private Transform _cachedPlayerTarget;
+        private float _lastTargetSearchTime;
+        private const float TARGET_SEARCH_INTERVAL = 0.5f;
 
         // ===== 이벤트 =====
         public static event System.Action<DraculaLord> OnLordDefeated;
@@ -57,6 +62,13 @@ namespace ProjectName.Systems
             gameObject.tag = "DraculaLord";
         }
 
+        private void OnDestroy()
+        {
+            // 정적 이벤트 구독 해제 방어
+            // (필요시 여기서 OnLordDefeated -= ... 수행)
+            CleanupVisuals();
+        }
+
         private void Update()
         {
             if (_isDead) return;
@@ -64,9 +76,15 @@ namespace ProjectName.Systems
             _attackTimer += Time.deltaTime;
             _teleportTimer += Time.deltaTime;
 
-            // 타겟 탐색
+            // 타겟 탐색 (주기적으로만 Find 수행)
             if (_target == null || !_target.gameObject.activeInHierarchy)
-                FindTarget();
+            {
+                if (Time.time - _lastTargetSearchTime >= TARGET_SEARCH_INTERVAL)
+                {
+                    FindTarget();
+                    _lastTargetSearchTime = Time.time;
+                }
+            }
 
             if (_target == null) return;
 
@@ -98,12 +116,26 @@ namespace ProjectName.Systems
 
         private void FindTarget()
         {
+            // 캐싱된 타겟이 유효하면 재사용
+            if (_cachedPlayerTarget != null && _cachedPlayerTarget.gameObject.activeInHierarchy)
+            {
+                float dist = Vector3.Distance(transform.position, _cachedPlayerTarget.position);
+                if (dist <= _detectRange * 1.5f)
+                {
+                    _target = _cachedPlayerTarget;
+                    return;
+                }
+            }
+
             GameObject player = GameObject.FindGameObjectWithTag(_targetTag);
             if (player != null)
             {
                 float dist = Vector3.Distance(transform.position, player.transform.position);
                 if (dist <= _detectRange * 1.5f)
+                {
                     _target = player.transform;
+                    _cachedPlayerTarget = _target;
+                }
             }
         }
 
@@ -125,14 +157,8 @@ namespace ProjectName.Systems
 
             Debug.Log($"[DraculaLord] ⚡ 순간이동! → {teleportPos}");
 
-            // 순간이동 시 시각 효과 (간단한 파티클 — SphereCast 디버그)
-            var flash = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            flash.transform.position = teleportPos;
-            flash.transform.localScale = Vector3.one * 1.5f;
-            var flashRenderer = flash.GetComponent<Renderer>();
-            flashRenderer.material.color = new Color(0.8f, 0f, 0f, 0.5f);
-            flashRenderer.material.SetFloat("_Mode", 3); // Transparent
-            Destroy(flash, 0.3f);
+            // 순간이동 시 시각 효과 — Sphere 대신 단순 Debug 표시로 변경 (불필요한 콜라이더 방지)
+            Debug.DrawLine(teleportPos, teleportPos + Vector3.up * 2f, Color.red, 0.3f);
         }
 
         private void AttackTarget()
@@ -144,27 +170,30 @@ namespace ProjectName.Systems
             {
                 Vector3 hitDir = (_target.position - transform.position).normalized;
 
-                // 데미지 적용
-                float damage = _attackDamage;
-                damageable.TakeDamage(damage, hitDir, "melee");
+                // 데미지 적용 (방어력 적용)
+                float finalDamage = Mathf.Max(1f, _attackDamage - _defense);
+                damageable.TakeDamage(finalDamage, hitDir, "melee");
 
-                // 흡혈: 데미지의 20% HP 회복
-                float healAmount = damage * _lifeStealRatio;
+                // 흡혈: 실제 가한 데미지의 20% HP 회복
+                float healAmount = finalDamage * _lifeStealRatio;
                 _currentHP = Mathf.Min(_maxHP, _currentHP + healAmount);
 
-                Debug.Log($"[DraculaLord] 🧛 공격! {damage} 데미지, {healAmount:F1} HP 회복 (HP: {_currentHP}/{_maxHP})");
+                Debug.Log($"[DraculaLord] 🧛 공격! {finalDamage} 데미지 (방어력 적용), {healAmount:F1} HP 회복 (HP: {_currentHP}/{_maxHP})");
             }
         }
 
         // ===== Placeholder 시각적 생성 =====
         private void CreateVisualPlaceholder()
         {
+            if (_visualRoot != null)
+                Destroy(_visualRoot);
+
             _visualRoot = new GameObject("DraculaLord_Visual");
             _visualRoot.transform.SetParent(transform, false);
             _visualRoot.transform.localPosition = Vector3.zero;
 
             // 몸통 (검은색 큐브 — 더 크게)
-            var body = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var body = CreatePrimitiveNoCollider(PrimitiveType.Cube);
             body.transform.SetParent(_visualRoot.transform, false);
             body.transform.localScale = new Vector3(1.0f, 1.2f, 0.6f);
             body.transform.localPosition = new Vector3(0, 1.5f, 0);
@@ -172,7 +201,7 @@ namespace ProjectName.Systems
             bodyRenderer.material.color = Color.black;
 
             // 망토 (빨간색 원기둥 — 뒤쪽)
-            var cape = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            var cape = CreatePrimitiveNoCollider(PrimitiveType.Cylinder);
             cape.transform.SetParent(_visualRoot.transform, false);
             cape.transform.localScale = new Vector3(0.8f, 0.3f, 0.4f);
             cape.transform.localPosition = new Vector3(0, 1.2f, -0.4f);
@@ -181,7 +210,7 @@ namespace ProjectName.Systems
             capeRenderer.material.color = Color.red;
 
             // 머리 (빨간색 캡슐)
-            var head = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            var head = CreatePrimitiveNoCollider(PrimitiveType.Capsule);
             head.transform.SetParent(_visualRoot.transform, false);
             head.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
             head.transform.localPosition = new Vector3(0, 2.3f, 0);
@@ -204,9 +233,21 @@ namespace ProjectName.Systems
             transform.localScale = Vector3.one * 1.2f;
         }
 
+        /// <summary>
+        /// 콜라이더 없는 Primitive 생성 (시각적 Placeholder 전용)
+        /// </summary>
+        private static GameObject CreatePrimitiveNoCollider(PrimitiveType type)
+        {
+            var go = GameObject.CreatePrimitive(type);
+            var collider = go.GetComponent<Collider>();
+            if (collider != null)
+                Object.DestroyImmediate(collider);
+            return go;
+        }
+
         private void CreateEye(Vector3 position, Color color)
         {
-            var eye = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var eye = CreatePrimitiveNoCollider(PrimitiveType.Sphere);
             eye.transform.SetParent(_visualRoot.transform, false);
             eye.transform.localScale = new Vector3(0.12f, 0.12f, 0.12f);
             eye.transform.localPosition = position;
@@ -216,12 +257,21 @@ namespace ProjectName.Systems
 
         private void CreateLimb(Vector3 position, Vector3 scale, Color color)
         {
-            var limb = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            var limb = CreatePrimitiveNoCollider(PrimitiveType.Capsule);
             limb.transform.SetParent(_visualRoot.transform, false);
             limb.transform.localScale = scale;
             limb.transform.localPosition = position;
             var limbRenderer = limb.GetComponent<Renderer>();
             limbRenderer.material.color = color;
+        }
+
+        private void CleanupVisuals()
+        {
+            if (_visualRoot != null)
+            {
+                Destroy(_visualRoot);
+                _visualRoot = null;
+            }
         }
 
         // ===== IDamageable =====
@@ -232,8 +282,13 @@ namespace ProjectName.Systems
         {
             if (_isDead) return;
 
-            _currentHP -= amount;
-            Debug.Log($"[DraculaLord] 💥 {amount} 데미지! (HP: {Mathf.Max(0, _currentHP)}/{_maxHP})");
+            // 방어력 적용 (최소 1 데미지)
+            float actualDamage = Mathf.Max(1f, amount - _defense);
+            _currentHP -= actualDamage;
+
+            Debug.Log($"[DraculaLord] 💥 {amount} raw 데미지 → {actualDamage} 실제 데미지 (방어력 {_defense}) (HP: {Mathf.Max(0, _currentHP)}/{_maxHP})");
+
+            OnLordDamaged?.Invoke(this);
 
             if (_currentHP <= 0)
                 Die();
@@ -244,10 +299,11 @@ namespace ProjectName.Systems
             if (_isDead) return;
             _isDead = true;
 
-            Debug.Log("[DraculaLord] 🧛 드라큘라 백작 처치!");
+            Debug.Log("[DraculaLord] 🧛 드라큘라 영주 처치!");
 
-            // 사망 이벤트 발생
+            // 사망 이벤트 발생 (static + instance)
             OnLordDefeated?.Invoke(this);
+            OnLordDied?.Invoke(this);
 
             // DraculaTerritoryController에 통지
             if (DraculaTerritoryController.Instance != null)
@@ -288,13 +344,11 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 테스트용 부활
+        /// 테스트용 부활 (ResetHP와 동일, API 호환 유지)
         /// </summary>
         public void Resurrect()
         {
-            _isDead = false;
-            _currentHP = _maxHP;
-            gameObject.SetActive(true);
+            ResetHP();
         }
 
         // ===== 추가 메서드 (ND-02/ND-06 호환) =====

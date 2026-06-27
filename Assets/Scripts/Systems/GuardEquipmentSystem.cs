@@ -174,7 +174,7 @@ namespace ProjectName.Systems
             {
                 id = "unique_bard_lute",
                 displayName = "전설의 류트",
-                description = "고대 바드의 영혼이 깃든 류트. 루트 연주자 리리엔만이 연주할 수 있다.",
+                description = "고대 바드의 영혼이 깃든 류트. 류트 연주자 리리엔만이 연주할 수 있다.",
                 category = PlayerInventory.ItemCategory.Weapon,
                 rarity = ItemRarity.Legendary,
                 maxStack = 1,
@@ -302,11 +302,13 @@ namespace ProjectName.Systems
                 return false;
             }
 
-            // 최소 등급 확인
+            // 최소 등급 확인 + 슬롯 적합성 확인 (바드 직업은 악기 슬롯 가능)
+            var mercData = MercenaryManager.Instance?.GetMercenaryData(mercenaryId);
+            bool isBard = mercData.HasValue && mercData.Value.jobType == "Bard";
+
             var minGrade = UniqueItemConstraint.ParseMinGrade(item.effects);
             if (minGrade.HasValue)
             {
-                var mercData = MercenaryManager.Instance?.GetMercenaryData(mercenaryId);
                 if (mercData.HasValue && mercData.Value.grade < minGrade.Value)
                 {
                     Debug.LogWarning($"[GuardEquipment] {item.displayName}은(는) {minGrade} 이상 등급 필요!");
@@ -314,19 +316,9 @@ namespace ProjectName.Systems
                 }
             }
 
-            // 슬롯 적합성 확인
-            // 바드 직업은 악기 슬롯 가능
-            var mercDataCheck = MercenaryManager.Instance?.GetMercenaryData(mercenaryId);
-            bool isBard = mercDataCheck.HasValue && mercDataCheck.Value.jobType == "Bard";
-
             if (!IsItemValidForSlot(slot, item, isBard)) return false;
 
-            // 바드가 아닌데 악기 슬롯에 장착하려는 경우 차단
-            if (slot == EquipSlot.Instrument && !isBard)
-            {
-                Debug.LogWarning("[GuardEquipment] 악기 슬롯은 바드 전용입니다.");
-                return false;
-            }
+            // (IsItemValidForSlot에서 Instrument 슬롯은 isBard=true 때만 허용하므로 별도 차단 불필요)
 
             if (!_mercenaryEquipment.ContainsKey(mercenaryId))
                 _mercenaryEquipment[mercenaryId] = new Dictionary<EquipSlot, EquippedItem>();

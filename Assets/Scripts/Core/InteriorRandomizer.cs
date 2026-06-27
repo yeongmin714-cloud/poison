@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 
+using ProjectName.Core;
 namespace ProjectName.Core
 {
     /// <summary>
@@ -12,24 +13,44 @@ namespace ProjectName.Core
         private const int SALT = 0x5EED_1234;
 
         /// <summary>
-        /// 영지 ID로 시드 생성 (territoryId.GetHashCode() + 고정 Salt)
+        /// 문자열에 대한 결정적(deterministic) 해시를 계산합니다.
+        /// string.GetHashCode()는 .NET Core 3.0+에서 플랫폼/런타임/실행마다
+        /// 결과가 달라지므로 사용할 수 없습니다. 대신 Bernstein 해시를 사용합니다.
         /// </summary>
-        public static int GetSeed(string territoryId)
+        private static int GetDeterministicHash(string str)
         {
             unchecked
             {
-                int hash = territoryId.GetHashCode();
+                int hash = 17;
+                foreach (char c in str)
+                    hash = hash * 31 + c;
+                return hash;
+            }
+        }
+
+        /// <summary>
+        /// 영지 ID로 결정적(deterministic) 시드 생성 (Bernstein 해시 + 고정 Salt)
+        /// </summary>
+        public static int GetSeed(string territoryId)
+        {
+            if (territoryId == null)
+                throw new ArgumentNullException(nameof(territoryId));
+
+            unchecked
+            {
+                int hash = GetDeterministicHash(territoryId);
                 return hash ^ SALT;
             }
         }
 
         /// <summary>
         /// 지정된 영지의 시드로 [min, max) 범위 랜덤 정수를 반환합니다.
+        /// territoryId가 null/empty/"default"이면 min을 반환합니다 (fallback).
         /// </summary>
         public static int Range(string territoryId, int min, int max)
         {
             if (string.IsNullOrEmpty(territoryId) || territoryId == "default")
-                return min; // 기본값: 항상 최소값
+                return min;
 
             int seed = GetSeed(territoryId);
             var rng = new System.Random(seed);
@@ -38,6 +59,7 @@ namespace ProjectName.Core
 
         /// <summary>
         /// 지정된 영지의 시드로 [min, max] 범위 랜덤 실수를 반환합니다.
+        /// territoryId가 null/empty/"default"이면 min을 반환합니다 (fallback).
         /// </summary>
         public static float Range(string territoryId, float min, float max)
         {
@@ -52,6 +74,7 @@ namespace ProjectName.Core
 
         /// <summary>
         /// 지정된 영지의 시드로 확률 체크 (0.0~1.0).
+        /// territoryId가 null/empty/"default"이면 항상 false를 반환합니다 (fallback).
         /// </summary>
         public static bool Chance(string territoryId, float probability)
         {
@@ -69,6 +92,9 @@ namespace ProjectName.Core
         /// </summary>
         public static System.Random CreateRandom(string territoryId)
         {
+            if (string.IsNullOrEmpty(territoryId))
+                throw new ArgumentException("territoryId는 null 또는 빈 문자열일 수 없습니다.", nameof(territoryId));
+
             int seed = GetSeed(territoryId);
             return new System.Random(seed);
         }

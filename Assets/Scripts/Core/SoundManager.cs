@@ -40,7 +40,6 @@ namespace ProjectName.Core
                 go.transform.SetParent(transform);
                 bgmSource = go.AddComponent<AudioSource>();
                 bgmSource.loop = true;
-                bgmSource.spatialBlend = 0f;
             }
             if (sfxSource == null)
             {
@@ -48,7 +47,6 @@ namespace ProjectName.Core
                 go.transform.SetParent(transform);
                 sfxSource = go.AddComponent<AudioSource>();
                 sfxSource.loop = false;
-                sfxSource.spatialBlend = 0f;
             }
             if (uiSource == null)
             {
@@ -56,10 +54,12 @@ namespace ProjectName.Core
                 go.transform.SetParent(transform);
                 uiSource = go.AddComponent<AudioSource>();
                 uiSource.loop = false;
-                uiSource.spatialBlend = 0f;
             }
 
-            if (config != null) config.BuildLookup();
+            if (config != null)
+            {
+                config.BuildLookup();
+            }
         }
 
         void OnDestroy()
@@ -82,8 +82,9 @@ namespace ProjectName.Core
             AudioClip clip = GetOrCreateClip(data);
             if (clip == null) return;
 
-            float vol = GetEffectiveVolume(data);
-            bgmSource.volume = vol;
+            bgmSource.loop = data.loop;
+            bgmSource.spatialBlend = data.spatialBlend;
+            bgmSource.volume = GetEffectiveVolume(data);
             bgmSource.pitch = Random.Range(data.pitchMin, data.pitchMax);
             bgmSource.clip = clip;
             bgmSource.Play();
@@ -91,7 +92,7 @@ namespace ProjectName.Core
 
         public void StopBGM()
         {
-            bgmSource.Stop();
+            if (bgmSource != null) bgmSource.Stop();
             _currentBGMId = null;
         }
 
@@ -107,9 +108,9 @@ namespace ProjectName.Core
             AudioClip clip = GetOrCreateClip(data);
             if (clip == null) return;
 
-            float vol = GetEffectiveVolume(data);
+            sfxSource.spatialBlend = data.spatialBlend;
             sfxSource.pitch = Random.Range(data.pitchMin, data.pitchMax);
-            sfxSource.PlayOneShot(clip, vol);
+            sfxSource.PlayOneShot(clip, GetEffectiveVolume(data));
         }
 
         // ================================================================
@@ -124,9 +125,9 @@ namespace ProjectName.Core
             AudioClip clip = GetOrCreateClip(data);
             if (clip == null) return;
 
-            float vol = GetEffectiveVolume(data);
+            uiSource.spatialBlend = data.spatialBlend;
             uiSource.pitch = Random.Range(data.pitchMin, data.pitchMax);
-            uiSource.PlayOneShot(clip, vol);
+            uiSource.PlayOneShot(clip, GetEffectiveVolume(data));
         }
 
         // ================================================================
@@ -143,7 +144,7 @@ namespace ProjectName.Core
                 case SoundType.SFX: config.sfxVolume = volume; break;
                 case SoundType.UI: config.uiVolume = volume; break;
             }
-            ApplyVolume(type);
+            RefreshBGMVolume();
         }
 
         public float GetVolume(SoundType type)
@@ -158,42 +159,38 @@ namespace ProjectName.Core
             }
         }
 
-        private void ApplyVolume(SoundType type)
+        /// <summary>
+        /// 현재 재생 중인 BGM의 볼륨을 config의 최신 값으로 갱신합니다.
+        /// </summary>
+        private void RefreshBGMVolume()
         {
-            if (config == null) return;
-            switch (type)
-            {
-                case SoundType.BGM:
-                    bgmSource.volume = config.bgmVolume * config.masterVolume;
-                    break;
-                case SoundType.SFX:
-                    sfxSource.volume = config.sfxVolume * config.masterVolume;
-                    break;
-                case SoundType.UI:
-                    uiSource.volume = config.uiVolume * config.masterVolume;
-                    break;
-            }
+            if (bgmSource == null) return;
+            if (string.IsNullOrEmpty(_currentBGMId) || config == null) return;
+
+            var data = GetSoundData(_currentBGMId);
+            if (data != null)
+                bgmSource.volume = GetEffectiveVolume(data);
         }
 
         public void MuteAll()
         {
-            bgmSource.mute = true;
-            sfxSource.mute = true;
-            uiSource.mute = true;
+            if (bgmSource != null) bgmSource.mute = true;
+            if (sfxSource != null) sfxSource.mute = true;
+            if (uiSource != null) uiSource.mute = true;
         }
 
         public void UnmuteAll()
         {
-            bgmSource.mute = false;
-            sfxSource.mute = false;
-            uiSource.mute = false;
+            if (bgmSource != null) bgmSource.mute = false;
+            if (sfxSource != null) sfxSource.mute = false;
+            if (uiSource != null) uiSource.mute = false;
         }
 
         public void StopAll()
         {
-            bgmSource.Stop();
-            sfxSource.Stop();
-            uiSource.Stop();
+            if (bgmSource != null) bgmSource.Stop();
+            if (sfxSource != null) sfxSource.Stop();
+            if (uiSource != null) uiSource.Stop();
             _currentBGMId = null;
         }
 
@@ -240,7 +237,7 @@ namespace ProjectName.Core
             AudioClip clip = AudioClip.Create(data.soundId, lengthSamples, 1, _sampleRate, false);
 
             float[] samples = new float[lengthSamples];
-            float freq = data.proceduralPitch;
+            float freq = data.proceduralFrequency;
             float amplitude = 0.3f;
 
             for (int i = 0; i < lengthSamples; i++)
@@ -250,16 +247,16 @@ namespace ProjectName.Core
 
                 switch (data.waveformType)
                 {
-                    case 0: // Sine
+                    case WaveformType.Sine: // Sine
                         samples[i] = Mathf.Sin(2f * Mathf.PI * phase) * amplitude;
                         break;
-                    case 1: // Square
+                    case WaveformType.Square: // Square
                         samples[i] = (Mathf.Sin(2f * Mathf.PI * phase) >= 0 ? 1f : -1f) * amplitude;
                         break;
-                    case 2: // Sawtooth
+                    case WaveformType.Sawtooth: // Sawtooth
                         samples[i] = (2f * (phase - Mathf.Floor(phase)) - 1f) * amplitude;
                         break;
-                    case 3: // Triangle
+                    case WaveformType.Triangle: // Triangle
                         float saw = 2f * (phase - Mathf.Floor(phase)) - 1f;
                         samples[i] = (2f * Mathf.Abs(saw) - 1f) * amplitude;
                         break;

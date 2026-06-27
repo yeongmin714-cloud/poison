@@ -30,7 +30,16 @@ namespace ProjectName.Systems
         private Vector3 _originalCamLocalPos;
         private Coroutine _activeShake;
         private Coroutine _activeTimeScale;
-        private float _preTimeScale;
+        /// <summary>
+        /// 효과가 시작되기 전의 원본 Time.timeScale.
+        /// 중첩 호출 시 덮어쓰지 않도록 보존한다.
+        /// </summary>
+        private float _baseTimeScale = 1f;
+        /// <summary>
+        /// 현재 시간 스케일 효과가 실행 중인지 여부.
+        /// _activeTimeScale 대신 사용하여 중첩 시 _baseTimeScale 보호.
+        /// </summary>
+        private bool _isTimeScaleEffectRunning;
 
         private void Awake()
         {
@@ -40,12 +49,14 @@ namespace ProjectName.Systems
                 return;
             }
             Instance = this;
-            _preTimeScale = 1f;
+
+            // Camera.main을 Awake에서 미리 캐싱 (Start보다 빠름)
+            _mainCamera = Camera.main;
+            _baseTimeScale = Time.timeScale;
         }
 
         private void Start()
         {
-            _mainCamera = Camera.main;
             if (_mainCamera != null)
                 _originalCamLocalPos = _mainCamera.transform.localPosition;
         }
@@ -141,7 +152,12 @@ namespace ProjectName.Systems
 
         private IEnumerator HitStopRoutine()
         {
-            _preTimeScale = Time.timeScale;
+            // 최초 효과 시작 시에만 _baseTimeScale 저장 (중첩 호출 시 덮어쓰지 않음)
+            if (!_isTimeScaleEffectRunning)
+            {
+                _baseTimeScale = Time.timeScale;
+                _isTimeScaleEffectRunning = true;
+            }
 
             // Immediate time scale drop
             Time.timeScale = _hitStopTimeScale;
@@ -154,24 +170,30 @@ namespace ProjectName.Systems
                 yield return null;
             }
 
-            // Lerp recovery back to original scale
+            // Lerp recovery back to _baseTimeScale (원본 값으로 복구)
             float recoveryElapsed = 0f;
             float startScale = Time.timeScale;
             while (recoveryElapsed < _hitStopRecoveryDuration)
             {
                 float t = recoveryElapsed / _hitStopRecoveryDuration;
-                Time.timeScale = Mathf.Lerp(startScale, _preTimeScale, t);
+                Time.timeScale = Mathf.Lerp(startScale, _baseTimeScale, t);
                 recoveryElapsed += Time.unscaledDeltaTime;
                 yield return null;
             }
 
-            Time.timeScale = _preTimeScale;
+            Time.timeScale = _baseTimeScale;
             _activeTimeScale = null;
+            _isTimeScaleEffectRunning = false;
         }
 
         private IEnumerator KillSlowMotionRoutine()
         {
-            _preTimeScale = Time.timeScale;
+            // 최초 효과 시작 시에만 _baseTimeScale 저장 (중첩 호출 시 덮어쓰지 않음)
+            if (!_isTimeScaleEffectRunning)
+            {
+                _baseTimeScale = Time.timeScale;
+                _isTimeScaleEffectRunning = true;
+            }
 
             // Immediate time scale drop
             Time.timeScale = _killSlowTimeScale;
@@ -184,19 +206,20 @@ namespace ProjectName.Systems
                 yield return null;
             }
 
-            // Lerp recovery back to original scale
+            // Lerp recovery back to _baseTimeScale (원본 값으로 복구)
             float recoveryElapsed = 0f;
             float startScale = Time.timeScale;
             while (recoveryElapsed < _killSlowRecoveryDuration)
             {
                 float t = recoveryElapsed / _killSlowRecoveryDuration;
-                Time.timeScale = Mathf.Lerp(startScale, _preTimeScale, t);
+                Time.timeScale = Mathf.Lerp(startScale, _baseTimeScale, t);
                 recoveryElapsed += Time.unscaledDeltaTime;
                 yield return null;
             }
 
-            Time.timeScale = _preTimeScale;
+            Time.timeScale = _baseTimeScale;
             _activeTimeScale = null;
+            _isTimeScaleEffectRunning = false;
         }
 
         /// <summary>Scene이 언로드될 때 timeScale 복구</summary>
@@ -204,7 +227,7 @@ namespace ProjectName.Systems
         {
             if (Instance == this)
             {
-                Time.timeScale = 1f;
+                Time.timeScale = _baseTimeScale;
                 Instance = null;
             }
         }

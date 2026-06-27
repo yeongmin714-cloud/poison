@@ -110,7 +110,7 @@ namespace ProjectName.Systems
                 return Fail("영지 상태를 찾을 수 없습니다.");
 
             if (state.loyaltyToPlayer < 60)
-                return Fail($"동맵 제안 실패! 호감도 부족 ({(int)state.loyaltyToPlayer}/60)");
+                return Fail($"동맹 제안 실패! 호감도 부족 ({(int)state.loyaltyToPlayer}/60)");
 
             int gain = 30;
             SetTerritoryLoyalty(targetId, (int)state.loyaltyToPlayer + gain);
@@ -134,7 +134,7 @@ namespace ProjectName.Systems
             if (detected)
             {
                 // 발각
-                state.loyaltyToPlayer = 0;
+                SetTerritoryLoyalty(targetId, 0);
                 // 특사 사망 처리
                 envoy.TakeDamage(9999f, Vector3.zero, "Executed");
                 return Fail($"💀 발각! {envoy.GuardName} 처형됨. 호감도 0");
@@ -142,7 +142,6 @@ namespace ProjectName.Systems
             else
             {
                 // 성공: 영주 암살
-                int gain = -50; // 영주 사망으로 주변 호감도 하락?
                 SetTerritoryLoyalty(targetId, Mathf.Max(0, (int)state.loyaltyToPlayer - 30));
 
                 // 영주 사망 처리 — TerritoryState에 플래그 (현재는 간단히)
@@ -158,7 +157,7 @@ namespace ProjectName.Systems
             {
                 case EnvoyMission.Gift: return "🎁 선물 전달";
                 case EnvoyMission.Friendship: return "🤝 우호 제안";
-                case EnvoyMission.Alliance: return "🕊️ 동맵 제안";
+                case EnvoyMission.Alliance: return "🕊️ 동맹 제안";
                 case EnvoyMission.Assassinate: return "☠️ 독살 선물";
                 default: return "알 수 없음";
             }
@@ -170,7 +169,7 @@ namespace ProjectName.Systems
             {
                 case EnvoyMission.Gift: return "대상 영지에 선물을 전달하여 호감도를 높입니다";
                 case EnvoyMission.Friendship: return "우호 관계를 제안하여 일시적 휴전을 얻습니다";
-                case EnvoyMission.Alliance: return "국가 단위 동맵을 제안합니다";
+                case EnvoyMission.Alliance: return "국가 단위 동맹을 제안합니다";
                 case EnvoyMission.Assassinate: return "음식에 독을 넣어 영주를 암살합니다 (발각 위험)";
                 default: return "";
             }
@@ -194,7 +193,7 @@ namespace ProjectName.Systems
         public static List<GuardPlaceholder> GetAvailableEnvoys()
         {
             var result = new List<GuardPlaceholder>();
-            var guards = Object.FindObjectsOfType<GuardPlaceholder>();
+            var guards = Object.FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
             foreach (var g in guards)
             {
                 if (g.IsAlive && g.IsRecruited)

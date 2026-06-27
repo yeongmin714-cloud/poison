@@ -1,5 +1,4 @@
 using UnityEngine;
-using ProjectName.Core;
 using ProjectName.Core.Data;
 
 namespace ProjectName.Core
@@ -114,10 +113,8 @@ namespace ProjectName.Core
             Debug.Log($"[DrugEffectSystem] 💊 {drug.DrugName} (Stage {stage}): +{goldGained} gold, " +
                       $"addiction +{addictionIncrease}% (now {_drugAddictionLevel:F1}%)");
 
-            // Spawn poison VFX
-            Color poisonColor = GetPoisonColor(drug);
-            Vector3 playerPos = PlayerStats.Instance != null ? PlayerStats.Instance.transform.position : Vector3.zero;
-            // PoisonVFX.Spawn(poisonColor, playerPos, 5f); // TODO: VFX system needed
+            // TODO: VFX system needed — spawn poison VFX here
+            // PoisonVFX.Spawn(GetPoisonColor(drug), playerTransform.position, 5f);
 
             return goldGained;
         }
@@ -157,10 +154,8 @@ namespace ProjectName.Core
 
             var drug = drugInfo.Value;
 
-            // Spawn poison VFX
-            Color poisonColor = GetPoisonColor(drug);
-            Vector3 playerPos = PlayerStats.Instance != null ? PlayerStats.Instance.transform.position : Vector3.zero;
-            // PoisonVFX.Spawn(poisonColor, playerPos, 5f); // TODO: VFX system needed
+            // TODO: VFX system needed — spawn poison VFX here
+            // PoisonVFX.Spawn(GetPoisonColor(drug), playerTransform.position, 5f);
 
             return new PlayerInventory.ItemData
             {

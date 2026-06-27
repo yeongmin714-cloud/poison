@@ -6,7 +6,7 @@ namespace ProjectName.Systems
 {
     /// <summary>
     /// C22-06: Biome별 이동 속도/시각 효과 제어.
-    /// Swamp (늪): dark green tinted fog, slow movement (0.7x), bubbling particle effect.
+    /// Swamp (늪): dark green tinted fog, slow movement (0.5x), bubbling particle effect.
     /// Desert (사막): sandy/yellow tint, heat haze shimmer.
     /// Uses BiomeType enum to detect current biome and applies temporary
     /// movement speed modifier to PlayerMovement.
@@ -52,15 +52,9 @@ namespace ProjectName.Systems
         private float _originalFogDensity;
         private Color _originalFogColor;
         private PlayerMovement _playerMovement;
-        private float _originalSpeedModifier;
-
-        private CharacterController _controller;
-        private float _originalSpeed;
 
         private void Awake()
         {
-            _controller = GetComponent<CharacterController>();
-
             // Cache original environment settings
             _originalAmbientLight = RenderSettings.ambientLight;
             _originalFogDensity = RenderSettings.fogDensity;
@@ -68,10 +62,6 @@ namespace ProjectName.Systems
 
             // Cache player movement reference
             _playerMovement = GetComponent<PlayerMovement>();
-            if (_playerMovement != null)
-            {
-                _originalSpeedModifier = _playerMovement.SpeedModifier;
-            }
         }
 
         /// <summary>

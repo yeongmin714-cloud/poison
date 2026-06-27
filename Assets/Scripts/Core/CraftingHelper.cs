@@ -37,8 +37,8 @@ namespace ProjectName.Core
             var resultItem = CreatePotionItem(result);
 
             var recipe = ScriptableObject.CreateInstance<Recipe>();
-            recipe.displayName = result.resultName;
-            recipe.description = $"{herbInfo1.displayName} + {herbInfo2.displayName} → {result.resultName}";
+            recipe.displayName = result.resultName ?? "Unknown";
+            recipe.description = $"{herbInfo1.displayName} + {herbInfo2.displayName} → {result.resultName ?? "Unknown"}";
             recipe.requiredItem1 = herbItem1;
             recipe.requiredItem2 = herbItem2;
             recipe.resultItem = resultItem;
@@ -48,7 +48,9 @@ namespace ProjectName.Core
             recipe.expReward = 25;
             recipe.recipeType = Recipe.RecipeType.Alchemy;
 
-            return PerformCraft(recipe);
+            bool crafted = PerformCraft(recipe);
+            Object.Destroy(recipe);
+            return crafted;
         }
 
         /// <summary>
@@ -69,21 +71,27 @@ namespace ProjectName.Core
                 return false;
             }
 
+            if (recipe.requiredItem1 == null)
+            {
+                Debug.LogError("[CraftingHelper] Recipe requiredItem1 is null.");
+                return false;
+            }
+
             bool hasItem1 = inventory.HasItem(recipe.requiredItem1.id);
             bool hasItem2 = recipe.requiredItem2 == null || inventory.HasItem(recipe.requiredItem2.id);
 
             if (!hasItem1 || !hasItem2)
             {
-                Debug.Log($"[CraftingHelper] 재료 부족. 필요: {recipe.requiredItem1.displayName}");
+                string missing = !hasItem1
+                    ? recipe.requiredItem1.displayName ?? recipe.requiredItem1.id
+                    : recipe.requiredItem2?.displayName ?? "unknown";
+                Debug.Log($"[CraftingHelper] 재료 부족. 필요: {recipe.requiredItem1.displayName}" +
+                          (recipe.requiredItem2 != null ? $", {recipe.requiredItem2.displayName}" : ""));
                 return false;
             }
 
-            // Success rate
-            int levelBonus = 0;
-            if (PlayerStats.Instance != null)
-                levelBonus = PlayerStats.Instance.Level;
-
-            int successRate = Mathf.Clamp(recipe.baseSuccessRate + levelBonus + recipe.difficultyPenalty, 0, 100);
+            // Success rate — use Recipe's built-in calculation which accounts for recipe type
+            int successRate = recipe.CalculateSuccessRate();
             bool success = Random.Range(0, 100) < successRate;
 
             if (success)
@@ -92,13 +100,18 @@ namespace ProjectName.Core
                 if (recipe.requiredItem2 != null)
                     inventory.RemoveItem(recipe.requiredItem2.id, 1);
 
-                inventory.AddItem(recipe.resultItem, 1);
+                if (!inventory.AddItem(recipe.resultItem, 1))
+                {
+                    Debug.LogError($"[CraftingHelper] 인벤토리 가득 참! {recipe.resultItem?.displayName ?? "Unknown"} 생성 실패");
+                    // 재료는 이미 차감됐으므로 복구 불가 — 로그만 남김
+                    return false;
+                }
 
                 if (PlayerStats.Instance != null)
                     PlayerStats.Instance.AddEXP(recipe.expReward);
 
-                RecipeDiscoverySystem.MarkDiscovered(recipe.resultItem.displayName);
-                Debug.Log($"[CraftingHelper] ✅ {recipe.resultItem.displayName} 제작 성공!");
+                RecipeDiscoverySystem.MarkDiscovered(recipe.resultItem?.displayName ?? "Unknown");
+                Debug.Log($"[CraftingHelper] ✅ {recipe.resultItem?.displayName ?? "Unknown"} 제작 성공!");
                 return true;
             }
             else
@@ -141,7 +154,7 @@ namespace ProjectName.Core
         {
             var category = PlayerInventory.ItemCategory.Potion;
 
-            string name = result.resultName;
+            string name = result.resultName ?? string.Empty;
             if (name.Contains("접착제") || name.Contains("코팅제") || name.Contains("도구") ||
                 name.Contains("방패") || name.Contains("트랩") || name.Contains("용액"))
                 category = PlayerInventory.ItemCategory.Material;
@@ -154,9 +167,9 @@ namespace ProjectName.Core
 
             return new PlayerInventory.ItemData
             {
-                id = $"combo_{result.resultName}",
-                displayName = result.resultName,
-                description = result.effect,
+                id = $"combo_{result.resultName ?? "unknown"}",
+                displayName = result.resultName ?? "Unknown",
+                description = result.effect ?? string.Empty,
                 category = category,
                 maxStack = 10
             };

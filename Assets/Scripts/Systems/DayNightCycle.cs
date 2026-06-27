@@ -86,7 +86,6 @@ namespace ProjectName.Systems
 
         [Header("Weather Integration (G3-01)")]
         [SerializeField, Range(0f, 1f)] private float _rainLightMultiplier = 0.6f;
-        [SerializeField, Range(0f, 1f)] private float _rainTransitionSpeed = 0.5f; // 비 오는 날 전환 속도 계수
 
         // ================================================================
         // Private State
@@ -101,6 +100,12 @@ namespace ProjectName.Systems
         private Material _resolvedSkybox;
         private bool _hasSkybox;
         private float _sunAngle; // 현재 태양 각도 (디버깅/참조용)
+
+        // ================================================================
+        // Cached Constants (GC 방지)
+        // ================================================================
+
+        private static readonly Color RainColorTint = new Color(0.7f, 0.75f, 0.9f);
 
         // ================================================================
         // Unity Lifecycle
@@ -153,10 +158,9 @@ namespace ProjectName.Systems
             // ===== 2. 날씨 영향 계산 =====
             bool isRaining = IsRaining();
             float weatherMultiplier = isRaining ? _rainLightMultiplier : 1f;
-            float transitionSpeed = isRaining ? _rainTransitionSpeed : 1f;
 
             // ===== 3. SmoothStep 기반 색상/강도 보간 =====
-            UpdateSunProperties(smoothDayFactor, weatherMultiplier, transitionSpeed, cosValue);
+            UpdateSunProperties(smoothDayFactor, weatherMultiplier);
             UpdateMoonProperties(smoothDayFactor);
 
             // ===== 4. 환경 설정 (Cos 기반 SmoothStep 보간) =====
@@ -216,7 +220,7 @@ namespace ProjectName.Systems
         /// 태양의 색상, 강도, 그림자 강도를 SmoothStep 기반으로 보간합니다.
         /// 날씨(비)에 따른 보정도 함께 적용합니다.
         /// </summary>
-        private void UpdateSunProperties(float smoothDayFactor, float weatherMultiplier, float transitionSpeed, float cosValue)
+        private void UpdateSunProperties(float smoothDayFactor, float weatherMultiplier)
         {
             if (!_hasSun || _resolvedSun == null) return;
 
@@ -240,7 +244,7 @@ namespace ProjectName.Systems
                 float smoothT = Mathf.SmoothStep(0f, 1f, t);
                 sunColor = Color.Lerp(_eveningColor, _noonColor, smoothT);
                 sunIntensity = Mathf.Lerp(_eveningIntensity, _noonIntensity, smoothT);
-                shadowStrength = Mathf.Lerp(_noonShadowStrength, _noonShadowStrength, smoothT);
+                shadowStrength = Mathf.Lerp(_nightShadowStrength, _noonShadowStrength, smoothT);
             }
             else if (smoothDayFactor < 0.75f)
             {
@@ -249,7 +253,7 @@ namespace ProjectName.Systems
                 float smoothT = Mathf.SmoothStep(0f, 1f, t);
                 sunColor = Color.Lerp(_noonColor, _eveningColor, smoothT);
                 sunIntensity = Mathf.Lerp(_noonIntensity, _eveningIntensity, smoothT);
-                shadowStrength = Mathf.Lerp(_noonShadowStrength, _noonShadowStrength, smoothT);
+                shadowStrength = Mathf.Lerp(_noonShadowStrength, _nightShadowStrength, smoothT);
             }
             else
             {
@@ -266,7 +270,7 @@ namespace ProjectName.Systems
             {
                 sunIntensity *= _rainLightMultiplier;
                 // 비 오는 날 태양 색상 약간 차갑게
-                sunColor = Color.Lerp(sunColor, new Color(0.7f, 0.75f, 0.9f), 0.3f);
+                sunColor = Color.Lerp(sunColor, RainColorTint, 0.3f);
             }
 
             _resolvedSun.color = sunColor;
@@ -418,7 +422,7 @@ namespace ProjectName.Systems
             UpdateCelestialRotation(smoothDayFactor);
 
             // 태양 속성
-            UpdateSunProperties(smoothDayFactor, 1f, 1f, cosValue);
+            UpdateSunProperties(smoothDayFactor, 1f);
 
             // Moon 속성
             UpdateMoonProperties(smoothDayFactor);

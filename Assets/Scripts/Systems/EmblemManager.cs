@@ -1,5 +1,3 @@
-using ProjectName.Core;
-using System;
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -76,6 +74,7 @@ namespace ProjectName.Systems
         public bool ChangeEmblem(PlayerEmblemData newEmblem, int playerGold)
         {
             if (playerGold < _changeCost) return false;
+            if (newEmblem == null) return false;
             CurrentEmblem = newEmblem.Clone();
             return true;
         }

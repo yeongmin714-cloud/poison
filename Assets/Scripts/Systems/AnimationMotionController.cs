@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using ProjectName.Systems.Motions;
 using UnityEngine;
@@ -11,7 +10,7 @@ namespace ProjectName.Systems
     /// animation loops.
     ///
     /// Listens to state changes from <see cref="RigAnimationController"/>,
-    /// activates the corresponding <see cref="MotionBase"/> component, and
+    /// activates the corresponding motion component, and
     /// handles smooth transitions between states.
     /// </summary>
     [AddComponentMenu("ProjectName/Systems/Animation Motion Controller")]
@@ -326,8 +325,22 @@ namespace ProjectName.Systems
         /// <param name="state">The animation state to activate.</param>
         public void ActivateMotion(AnimationState state)
         {
+            // Stop any pending transition coroutine to prevent it from
+            // overriding this activation after a delay
+            if (_transitionRoutine != null)
+            {
+                StopCoroutine(_transitionRoutine);
+                _transitionRoutine = null;
+            }
+
+            // Sync _previousState with the RigController's actual current state
+            // so the Update polling loop does NOT detect a spurious change and
+            // override the motion we are about to start.
+            _previousState = _rigController != null
+                ? _rigController.CurrentState
+                : state;
+
             StopAllMotion();
-            _previousState = state;
             StartMotionForState(state);
         }
 

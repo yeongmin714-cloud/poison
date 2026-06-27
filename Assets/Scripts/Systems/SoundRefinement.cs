@@ -288,8 +288,14 @@ namespace ProjectName.Systems
         /// </summary>
         private IBiomeProvider FindBiomeProvider()
         {
-            // Unity 2023.1+: 인터페이스 타입으로 FindFirstObjectByType 사용 가능
-            return FindFirstObjectByType<IBiomeProvider>(FindObjectsInactive.Include);
+            // Find any MonoBehaviour that implements IBiomeProvider
+            var monoBehaviors = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None, FindObjectsInactive.Include);
+            foreach (var mb in monoBehaviors)
+            {
+                if (mb is IBiomeProvider provider)
+                    return provider;
+            }
+            return null;
         }
 
         /// <summary>

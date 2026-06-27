@@ -54,7 +54,7 @@ namespace ProjectName.Systems
                 if (_isLooted) return true;
                 foreach (var entry in _items)
                 {
-                    if (entry != null && entry.item != null && entry.count > 0)
+                    if (entry != null && entry.Item != null && entry.Count > 0)
                         return false;
                 }
                 return true;
@@ -70,7 +70,7 @@ namespace ProjectName.Systems
                 int count = 0;
                 foreach (var entry in _items)
                 {
-                    if (entry != null && entry.item != null && entry.count > 0)
+                    if (entry != null && entry.Item != null && entry.Count > 0)
                         count++;
                 }
                 return count;
@@ -90,10 +90,10 @@ namespace ProjectName.Systems
                 int totalCount = 0;
                 foreach (var entry in _items)
                 {
-                    if (entry != null && entry.item != null && entry.count > 0)
+                    if (entry != null && entry.Item != null && entry.Count > 0)
                     {
                         if (firstName == null)
-                            firstName = entry.item.displayName;
+                            firstName = entry.Item.displayName;
                         totalCount++;
                     }
                 }
@@ -122,15 +122,15 @@ namespace ProjectName.Systems
             // 같은 아이템이 있으면 스택
             for (int i = 0; i < _items.Count; i++)
             {
-                if (_items[i].item != null && _items[i].item.id == item.id)
+                if (_items[i].Item != null && _items[i].Item.id == item.id)
                 {
-                    _items[i].count += count;
+                    _items[i].Count += count;
                     return;
                 }
             }
 
             // 새 슬롯 추가
-            _items.Add(new LootEntry { item = item, count = count });
+            _items.Add(new LootEntry { Item = item, Count = count });
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace ProjectName.Systems
             if (index < 0 || index >= _items.Count) return false;
 
             var entry = _items[index];
-            if (entry == null || entry.item == null || entry.count <= 0) return false;
+            if (entry == null || entry.Item == null || entry.Count <= 0) return false;
 
             if (PlayerInventory.Instance == null)
             {
@@ -153,10 +153,10 @@ namespace ProjectName.Systems
                 return false;
             }
 
-            bool success = PlayerInventory.Instance.AddItem(entry.item, entry.count);
+            bool success = PlayerInventory.Instance.AddItem(entry.Item, entry.Count);
             if (success)
             {
-                Debug.Log($"[LootBasket] {entry.item.displayName} x{entry.count} 획득!");
+                Debug.Log($"[LootBasket] {entry.Item.displayName} x{entry.Count} 획득!");
                 _items.RemoveAt(index);
 
                 // 바구니가 비었으면 자동 소멸
@@ -170,7 +170,7 @@ namespace ProjectName.Systems
             }
             else
             {
-                Debug.LogWarning($"[LootBasket] {entry.item.displayName} x{entry.count} — 인벤토리 가득 참!");
+                Debug.LogWarning($"[LootBasket] {entry.Item.displayName} x{entry.Count} — 인벤토리 가득 참!");
                 return false;
             }
         }
@@ -196,18 +196,18 @@ namespace ProjectName.Systems
             for (int i = _items.Count - 1; i >= 0; i--)
             {
                 var entry = _items[i];
-                if (entry == null || entry.item == null || entry.count <= 0) continue;
+                if (entry == null || entry.Item == null || entry.Count <= 0) continue;
 
-                bool success = PlayerInventory.Instance.AddItem(entry.item, entry.count);
+                bool success = PlayerInventory.Instance.AddItem(entry.Item, entry.Count);
                 if (success)
                 {
-                    Debug.Log($"[LootBasket] {entry.item.displayName} x{entry.count} 획득!");
+                    Debug.Log($"[LootBasket] {entry.Item.displayName} x{entry.Count} 획득!");
                     _items.RemoveAt(i);
                     anySuccess = true;
                 }
                 else
                 {
-                    Debug.LogWarning($"[LootBasket] {entry.item.displayName} x{entry.count} — 인벤토리 가득 참, 바구니에 남김!");
+                    Debug.LogWarning($"[LootBasket] {entry.Item.displayName} x{entry.Count} — 인벤토리 가득 참, 바구니에 남김!");
                 }
             }
 

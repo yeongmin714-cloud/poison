@@ -45,18 +45,18 @@ namespace ProjectName.Core
 
         // 경험치 테이블 (레벨별 누적 경험치)
         // Level 1: 0, Level 2: 100, Level 3: 350, ..., Level 10: 13850
-        private readonly int[] _levelUpThresholds = new int[]
+        private readonly int[] _levelUpThresholds =
         {
-            0,   // Level 1
-            100, // Level 2
-            350, // Level 3
-            850, // Level 4
-            1650, // Level 5
-            2850, // Level 6
-            4550, // Level 7
-            6850, // Level 8
-            9850, // Level 9
-            13850 // Level 10
+            0,     // Level 1
+            100,   // Level 2
+            350,   // Level 3
+            850,   // Level 4
+            1650,  // Level 5
+            2850,  // Level 6
+            4550,  // Level 7
+            6850,  // Level 8
+            9850,  // Level 9
+            13850  // Level 10
         };
 
         // 최대 레벨 (설계 문서에 따라)
@@ -71,14 +71,30 @@ namespace ProjectName.Core
 
         public int Gold => _gold;
 
-        // Base stats (can be modified by buffs, equipment, etc.)
+        // ── Base Stats ─────────────────────────────────────────────────────
+
         [Header("Base Stats")]
-        public float _attackDamageBase = 10f;   // 기본 공격력
-        public float _defenseBase = 0f;         // 기본 방어력 (뎀지 감소량)
-        public float _moveSpeedBase = 5f;       // 기본 이동 속도
-        public float _alchemyTempBonus = 0f;    // 임시 연금술 보너스 (버프 등)
-        public float _cookingTempBonus = 0f;    // 임시 요리 보너스 (버프 등)
-        public float _critChanceBase = 0f;      // 기본 치명타 확률
+        [SerializeField] private float _attackDamageBase = 10f;   // 기본 공격력
+        [SerializeField] private float _defenseBase = 0f;         // 기본 방어력 (뎀지 감소량)
+        [SerializeField] private float _moveSpeedBase = 5f;       // 기본 이동 속도
+        [SerializeField] private float _alchemyTempBonus = 0f;    // 임시 연금술 보너스 (버프 등)
+        [SerializeField] private float _cookingTempBonus = 0f;    // 임시 요리 보너스 (버프 등)
+        [SerializeField] private float _critChanceBase = 0f;      // 기본 치명타 확률
+
+        /// <summary>기본 공격력 (읽기/쓰기)</summary>
+        public float AttackDamageBase { get => _attackDamageBase; set => _attackDamageBase = value; }
+        /// <summary>기본 방어력 (읽기/쓰기)</summary>
+        public float DefenseBase { get => _defenseBase; set => _defenseBase = value; }
+        /// <summary>기본 이동 속도 (읽기/쓰기)</summary>
+        public float MoveSpeedBase { get => _moveSpeedBase; set => _moveSpeedBase = value; }
+        /// <summary>임시 연금술 보너스 — 버프 등 외부 수정용 (읽기/쓰기)</summary>
+        public float AlchemyTempBonus { get => _alchemyTempBonus; set => _alchemyTempBonus = value; }
+        /// <summary>임시 요리 보너스 — 버프 등 외부 수정용 (읽기/쓰기)</summary>
+        public float CookingTempBonus { get => _cookingTempBonus; set => _cookingTempBonus = value; }
+        /// <summary>기본 치명타 확률 (읽기/쓰기)</summary>
+        public float CritChanceBase { get => _critChanceBase; set => _critChanceBase = value; }
+
+        // ── Computed Stat Bonuses ──────────────────────────────────────────
 
         // 스탯 계산 속성 (레벨에 따라 동적으로 계산)
         public int HPBase => 100 + (_level - 1) * 5; // Lv1=100, Lv50=345
@@ -122,13 +138,25 @@ namespace ProjectName.Core
             UpdatePlayerHealthMaxHP();
         }
 
+        private void OnValidate()
+        {
+            _level = Mathf.Clamp(_level, 1, MaxLevel);
+            _currentEXP = Mathf.Max(0, _currentEXP);
+            _gold = Mathf.Max(0, _gold);
+        }
+
         /// <summary>
         /// 경험치 추가 및 레벨업 처리
         /// </summary>
         /// <param name="amount">추가할 경험치량</param>
         public void AddEXP(int amount)
         {
-            if (amount <= 0 || _level >= MaxLevel) return;
+            if (amount <= 0) return;
+            if (_level >= MaxLevel)
+            {
+                Debug.Log($"[PlayerStats] Max level ({MaxLevel}) reached. {amount} EXP discarded.");
+                return;
+            }
 
             _currentEXP += amount;
             int originalLevel = _level;
@@ -200,6 +228,10 @@ namespace ProjectName.Core
                 PlayerHealth.Instance.SetMaxHP(newMaxHP);
                 // 현재 HP는 이전 최대 HP 내에서였으므로, 새로운 최대 HP가 증가했을 때는 자동으로 범위 내에 있음.
                 // 따라서 별도 조정이 필요하지 않음.
+            }
+            else
+            {
+                Debug.LogWarning("[PlayerStats] PlayerHealth.Instance is null. HP could not be updated.");
             }
         }
 

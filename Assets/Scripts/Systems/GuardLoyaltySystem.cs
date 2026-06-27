@@ -51,6 +51,7 @@ namespace ProjectName.Systems
             if (guardNation == NationType.None) return;
 
             float baseLoyalty = 50f; // 기본값
+            int hostileCount = 0;
 
             // 모든 영지의 소유 상태 확인
             foreach (var def in db.GetAllDefinitions())
@@ -69,11 +70,14 @@ namespace ProjectName.Systems
                 {
                     // 적대 국가 영지 점령 → 호감도 하락
                     baseLoyalty += HOSTILE_NATION_PENALTY;
-
-                    // 추가 적대 영지당 추가 패널티
-                    int hostileCount = CountPlayerOwnedHostile(guardNation);
-                    baseLoyalty += (hostileCount - 1) * HOSTILE_MULTI_PENALTY;
+                    hostileCount++;
                 }
+            }
+
+            // 추가 적대 영지당 패널티 (한 번만 적용)
+            if (hostileCount > 1)
+            {
+                baseLoyalty += (hostileCount - 1) * HOSTILE_MULTI_PENALTY;
             }
 
             guard.Loyalty = Mathf.Clamp(baseLoyalty, MIN_LOYALTY, MAX_LOYALTY);
@@ -84,7 +88,7 @@ namespace ProjectName.Systems
         /// </summary>
         public static void UpdateAllGuards()
         {
-            var guards = Object.FindObjectsOfType<GuardPlaceholder>();
+            var guards = Object.FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
             foreach (var guard in guards)
             {
                 UpdateLoyaltyByTerritory(guard);

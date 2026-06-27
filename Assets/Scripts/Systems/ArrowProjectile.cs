@@ -11,13 +11,17 @@ namespace ProjectName.Systems
     [RequireComponent(typeof(Rigidbody))]
     public class ArrowProjectile : MonoBehaviour
     {
-        private int _damage = 10;
+        private float _damage = 10f;
         private float _lifetime = 5f;
         private float _elapsed = 0f;
         private TrailRenderer _trail;
+        private Rigidbody _rb;
+        private Collider _collider;
 
         private void Awake()
         {
+            _rb = GetComponent<Rigidbody>();
+            _collider = GetComponent<Collider>();
             _trail = GetComponent<TrailRenderer>();
             if (_trail == null)
                 _trail = gameObject.AddComponent<TrailRenderer>();
@@ -30,7 +34,7 @@ namespace ProjectName.Systems
         }
 
         /// <summary>화살 발사</summary>
-        public static ArrowProjectile Spawn(Vector3 position, Vector3 direction, float speed, int damage, Color trailColor)
+        public static ArrowProjectile Spawn(Vector3 position, Vector3 direction, float speed, float damage, Color trailColor)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             go.name = "Arrow(Clone)";
@@ -79,10 +83,9 @@ namespace ProjectName.Systems
             }
 
             // 회전을 속도 방향으로 정렬
-            var rb = GetComponent<Rigidbody>();
-            if (rb != null && rb.linearVelocity.magnitude > 0.1f)
+            if (_rb != null && _rb.linearVelocity.magnitude > 0.1f)
             {
-                transform.forward = rb.linearVelocity.normalized;
+                transform.forward = _rb.linearVelocity.normalized;
             }
         }
 
@@ -103,9 +106,8 @@ namespace ProjectName.Systems
             else if (!other.CompareTag("Player") && !other.isTrigger)
             {
                 _lifetime = Mathf.Min(_lifetime, _elapsed + 2f); // 2초 후 소멸
-                var rb = GetComponent<Rigidbody>();
-                if (rb != null) rb.linearVelocity = Vector3.zero;
-                GetComponent<Collider>().enabled = false; // 중복 충돌 방지
+                if (_rb != null) _rb.linearVelocity = Vector3.zero;
+                if (_collider != null) _collider.enabled = false; // 중복 충돌 방지
             }
         }
     }

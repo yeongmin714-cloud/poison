@@ -15,7 +15,7 @@ namespace ProjectName.Systems
     ///   4. GenerateEquipmentItem(rarity, part) → 아이템 생성
     ///   5. GuardEquipmentSystem.Instance.EquipGuard(guard, slot, item) → 장착
     /// </summary>
-    public class GuardEquipmentSpawner : MonoBehaviour
+    public static class GuardEquipmentSpawner
     {
         /// <summary>
         /// 병사에게 장비를 생성하여 장착합니다.
@@ -82,6 +82,8 @@ namespace ProjectName.Systems
         /// <returns>생성된 아이템 데이터</returns>
         public static PlayerInventory.ItemData GenerateEquipmentItem(ItemRarity rarity, EquipmentPartConfig.EquipmentPart part, int level = 1)
         {
+            string rarityStr = rarity.ToString().ToLower();
+            string partStr = part.ToString().ToLower();
             string rarityName = EquipmentRarityData.GetRarityDisplayName(rarity);
             string partName = EquipmentPartConfig.GetPartDisplayName(part);
 
@@ -94,20 +96,26 @@ namespace ProjectName.Systems
             {
                 case EquipmentPartConfig.EquipmentPart.Weapon:
                     category = PlayerInventory.ItemCategory.Weapon;
-                    itemId = $"equip_weapon_{rarity.ToString().ToLower()}_{level}";
+                    itemId = $"equip_weapon_{rarityStr}_{level}";
                     description = "기본 무기";
                     break;
                 case EquipmentPartConfig.EquipmentPart.Head:
                 case EquipmentPartConfig.EquipmentPart.Body:
+                    // Armor 슬롯 → Armor 카테고리
+                    category = PlayerInventory.ItemCategory.Armor;
+                    itemId = $"equip_armor_{partStr}_{rarityStr}_{level}";
+                    description = "기본 방어구";
+                    break;
                 case EquipmentPartConfig.EquipmentPart.Hands:
                 case EquipmentPartConfig.EquipmentPart.Feet:
-                    category = PlayerInventory.ItemCategory.Armor;
-                    itemId = $"equip_armor_{part.ToString().ToLower()}_{rarity.ToString().ToLower()}_{level}";
-                    description = "기본 방어구";
+                    // Accessory 슬롯 → Material 카테고리 (IsItemValidForSlot 통과용)
+                    category = PlayerInventory.ItemCategory.Material;
+                    itemId = $"equip_armor_{partStr}_{rarityStr}_{level}";
+                    description = "기본 장신구";
                     break;
                 default:
                     category = PlayerInventory.ItemCategory.Material;
-                    itemId = $"equip_misc_{part.ToString().ToLower()}_{rarity.ToString().ToLower()}";
+                    itemId = $"equip_misc_{partStr}_{rarityStr}_{level}";
                     description = "기타 장비";
                     break;
             }

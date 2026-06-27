@@ -14,8 +14,10 @@ namespace ProjectName.Core
     [System.Serializable]
     public class LootEntry
     {
-        public PlayerInventory.ItemData item;
-        public int count;
+        [field: SerializeField]
+        public PlayerInventory.ItemData Item { get; set; }
+        [field: SerializeField]
+        public int Count { get; set; }
     }
 
     // ================================================================

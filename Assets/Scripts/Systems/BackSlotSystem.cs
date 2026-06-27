@@ -1,5 +1,5 @@
-using UnityEngine;
 using ProjectName.Core;
+using UnityEngine;
 
 namespace ProjectName.Systems
 {
@@ -17,7 +17,7 @@ namespace ProjectName.Systems
             public string displayName;
             public BackSlotType slotType;
             public float moveSpeedBonus;      // 이동 속도 보너스
-            public float carryCapacityBonus;  // 휴대 용량 보너스
+            public float carryCapacityBonus;  // 휴대 용량 보너스 (PlayerInventory 슬롯 증가)
             public string description;
         }
 
@@ -40,7 +40,16 @@ namespace ProjectName.Systems
         public BackSlotEffect CurrentEffect => _currentEffect;
         public bool HasBackItem => _currentEffect != null && !string.IsNullOrEmpty(_currentEffect.itemId);
 
+        /// <summary>
+        /// 현재 적용 중인 휴대 용량 보너스. PlayerInventory 등에서 참조 가능.
+        /// PlayerInventory 확장 시 이 값을 활용하여 _maxSlots에 반영하십시오.
+        /// </summary>
+        public float CurrentCarryCapacityBonus { get; private set; }
+
         public static BackSlotSystem Instance { get; private set; }
+
+        // ── 이전 상태 추적 (스택 방지) ──
+        private float _previousMoveSpeedBase;
 
         private void Awake()
         {
@@ -53,15 +62,54 @@ namespace ProjectName.Systems
             DontDestroyOnLoad(gameObject);
         }
 
+        private void Start()
+        {
+            // EquipmentManager의 Back 슬롯 변경 이벤트 구독
+            if (EquipmentManager.Instance != null)
+            {
+                EquipmentManager.Instance.OnEquipmentChanged += HandleEquipmentChanged;
+            }
+            else
+            {
+                Debug.LogWarning("[BackSlotSystem] EquipmentManager.Instance is null. 이벤트 구독 실패.");
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (EquipmentManager.Instance != null)
+            {
+                EquipmentManager.Instance.OnEquipmentChanged -= HandleEquipmentChanged;
+            }
+        }
+
+        /// <summary>
+        /// EquipmentManager의 장비 변경 이벤트 핸들러.
+        /// Back 슬롯 변경 시에만 반응합니다.
+        /// </summary>
+        private void HandleEquipmentChanged(EquipmentManager.EquipmentSlot slot, string newItemId)
+        {
+            if (slot != EquipmentManager.EquipmentSlot.Back) return;
+            EquipBackItem(newItemId);
+        }
+
         /// <summary>
         /// Back 슬롯에 아이템을 장착합니다.
-        /// EquipmentManager의 Back 슬롯 변경 시 호출됩니다.
+        /// EquipmentManager의 Back 슬롯 변경 시 자동 호출됩니다.
+        /// 직접 호출도 가능합니다.
         /// </summary>
         public void EquipBackItem(string itemId)
         {
+            // 기존 효과가 있다면 먼저 제거 (스택 방지)
+            if (_currentEffect != null)
+            {
+                RemoveEffect();
+            }
+
             if (string.IsNullOrEmpty(itemId))
             {
-                UnequipBackItem();
+                _currentEffect = null;
+                Debug.Log("[BackSlotSystem] Back 슬롯 비어있음");
                 return;
             }
 
@@ -105,8 +153,14 @@ namespace ProjectName.Systems
         {
             if (PlayerStats.Instance == null || _currentEffect == null) return;
 
-            // 이동 속도 보너스 적용 (PlayerStats로 위임)
-            Debug.Log($"[BackSlotSystem] 효과 적용: 이동속도 +{_currentEffect.moveSpeedBonus}, 용량 +{_currentEffect.carryCapacityBonus}");
+            // 이동 속도 보너스 저장 및 적용
+            _previousMoveSpeedBase = PlayerStats.Instance.MoveSpeedBase;
+            PlayerStats.Instance.MoveSpeedBase += _currentEffect.moveSpeedBonus;
+
+            // 휴대 용량 보너스 저장
+            CurrentCarryCapacityBonus = _currentEffect.carryCapacityBonus;
+
+            Debug.Log($"[BackSlotSystem] 효과 적용: 이동속도 {_previousMoveSpeedBase:F1} → {PlayerStats.Instance.MoveSpeedBase:F1} (+{_currentEffect.moveSpeedBonus}), 용량 +{_currentEffect.carryCapacityBonus}");
         }
 
         /// <summary>
@@ -114,14 +168,28 @@ namespace ProjectName.Systems
         /// </summary>
         private void RemoveEffect()
         {
-            Debug.Log("[BackSlotSystem] 효과 제거");
+            if (PlayerStats.Instance == null || _currentEffect == null) return;
+
+            // 이동 속도 복원
+            PlayerStats.Instance.MoveSpeedBase = _previousMoveSpeedBase;
+
+            // 휴대 용량 보너스 초기화
+            CurrentCarryCapacityBonus = 0f;
+            _previousMoveSpeedBase = PlayerStats.Instance.MoveSpeedBase;
+
+            Debug.Log("[BackSlotSystem] 효과 제거 완료");
         }
 
+        /// <summary>
+        /// _itemEffects 배열에서 itemId와 일치하는 BackSlotEffect를 찾습니다.
+        /// </summary>
         private BackSlotEffect FindEffect(string itemId)
         {
             if (_itemEffects == null) return null;
             foreach (var e in _itemEffects)
             {
+                // null 요소 방어
+                if (e == null) continue;
                 if (e.itemId == itemId) return e;
             }
             return null;
