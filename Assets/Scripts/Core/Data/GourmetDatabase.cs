@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -7,7 +9,7 @@ namespace ProjectName.Core.Data
     /// <summary>
     /// 미식 등급 (별점 1~5) — GAME_DATA.md section 4.2
     /// </summary>
-    public struct GourmetGrade
+    public readonly struct GourmetGrade
     {
         public int Stars { get; }          // 1~5
         public string GradeName { get; }   // e.g., "서민", "평민", "중급", "상급", "왕실"
@@ -23,16 +25,26 @@ namespace ProjectName.Core.Data
 
     /// <summary>
     /// Loads gourmet rating data from GAME_DATA.md section 4.2.
+    /// Thread-safe on initialization.
     /// </summary>
     public static class GourmetDatabase
     {
         private static Dictionary<int, GourmetGrade> _grades = new Dictionary<int, GourmetGrade>();
-        private static bool _initialized = false;
+        private static bool _initialized;
+        private static readonly object _lock = new object();
+
+        private static readonly Regex TableRowRegex = new Regex(@"^\s*\|.*\|.*\|.*\|");
+        private static readonly Regex SeparatorRegex = new Regex(@":---");
 
         private static void Initialize()
         {
             if (_initialized) return;
-            _initialized = true;
+
+            lock (_lock)
+            {
+                if (_initialized) return;
+                _initialized = true;
+            }
 
             TextAsset txt = Resources.Load<TextAsset>("GAME_DATA");
             if (txt == null)
@@ -55,19 +67,16 @@ namespace ProjectName.Core.Data
             int pos = startIdx + startMarker.Length;
             string[] lines = content.Substring(pos).Split(new[] { "\r\n", "\n" }, System.StringSplitOptions.None);
 
-            var tableRowRegex = new Regex(@"^\s*\|.*\|.*\|.*\|");
-            var separatorRegex = new Regex(@":---");
-
             foreach (string lineRaw in lines)
             {
                 string trimmed = lineRaw.Trim();
                 if (trimmed.StartsWith("---") || trimmed.StartsWith("## "))
                     break;
 
-                if (separatorRegex.IsMatch(trimmed))
+                if (SeparatorRegex.IsMatch(trimmed))
                     continue;
 
-                if (tableRowRegex.IsMatch(trimmed))
+                if (TableRowRegex.IsMatch(trimmed))
                 {
                     // Split by |
                     string[] parts = trimmed.Split('|');
@@ -77,8 +86,8 @@ namespace ProjectName.Core.Data
                         string gradeName = parts[2].Trim();
                         string desc = parts[3].Trim();
 
-                        // Skip header
-                        if (starStr.Equals("별점") || gradeName.Equals("등급"))
+                        // Skip header — both columns must match header labels
+                        if (starStr.Equals("별점") && gradeName.Equals("등급"))
                             continue;
 
                         // Count ★ to determine star rating
@@ -94,12 +103,12 @@ namespace ProjectName.Core.Data
                 }
             }
 
-            Debug.Log($"[GourmetDatabase] Loaded {_grades.Count} gourmet grades (1★~{_grades.Count}★).");
+            Debug.Log($"[GourmetDatabase] Loaded {_grades.Count} gourmet grades (★1~★{_grades.Count}).");
         }
 
         public static GourmetGrade? GetGrade(int stars)
         {
-            if (!_initialized) Initialize();
+            Initialize();
             if (_grades.TryGetValue(stars, out var grade))
                 return grade;
             return null;
@@ -109,8 +118,8 @@ namespace ProjectName.Core.Data
         {
             get
             {
-                if (!_initialized) Initialize();
-                return _grades;
+                Initialize();
+                return new ReadOnlyDictionary<int, GourmetGrade>(_grades);
             }
         }
     }

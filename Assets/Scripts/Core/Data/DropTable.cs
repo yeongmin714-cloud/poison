@@ -8,21 +8,21 @@ namespace ProjectName.Core.Data
     /// G2-07: 몬스터 드랍 항목 정의 구조체.
     /// 티어, 아이템ID, 확률, 개수 정보를 담습니다.
     /// </summary>
-    public struct MonsterDropEntry
+    public readonly struct MonsterDropEntry
     {
-        public MonsterTier Tier { get; }
-        public string ItemId { get; }
-        public float Probability { get; }
-        public int MinCount { get; }
-        public int MaxCount { get; }
+        public readonly MonsterTier tier;
+        public readonly string itemId;
+        public readonly float probability;
+        public readonly int minCount;
+        public readonly int maxCount;
 
         public MonsterDropEntry(MonsterTier tier, string itemId, float probability, int minCount, int maxCount = -1)
         {
-            Tier = tier;
-            ItemId = itemId;
-            Probability = Mathf.Clamp01(probability);
-            MinCount = Mathf.Max(1, minCount);
-            MaxCount = maxCount >= MinCount ? maxCount : MinCount;
+            this.tier = tier;
+            this.itemId = itemId;
+            this.probability = Mathf.Clamp01(probability);
+            this.minCount = Mathf.Max(1, minCount);
+            this.maxCount = maxCount >= this.minCount ? maxCount : this.minCount;
         }
     }
 
@@ -30,8 +30,12 @@ namespace ProjectName.Core.Data
     /// G2-07: 간소화된 정적 드랍 테이블 유틸리티.
     /// MonsterDropEntry 기반으로 몬스터/병사 사망 시 드랍 목록을 생성합니다.
     ///
-    /// 등급 확률:
-    ///   Common(90%), Uncommon(45%), Rare(10%), Epic(3%), Legendary(1%)
+    /// 등급별 기본 확률 상수 (중첩 체크 방식으로 사용):
+    ///   CommonChance=90%, UncommonChance=45%, RareChance=10%, EpicChance=3%, LegendaryChance=1%
+    /// 실제 드랍률은 티어에 따라 달라집니다:
+    ///   - Beginner: Legendary 1%, Common 99%
+    ///   - Intermediate: Legendary 1%, Epic 3%, Rare ~3%, Uncommon ~52%, Common ~41%
+    ///   - Advanced:   Legendary 1%, Epic 3%, Rare ~6.5%, Uncommon ~48.5%, Common ~41%
     /// </summary>
     public static class DropTableUtility
     {
@@ -87,7 +91,8 @@ namespace ProjectName.Core.Data
 
         /// <summary>
         /// 몬스터 티어별 드랍 목록을 생성합니다.
-        /// 기본적으로 1~3개의 일반/언커먼 아이템과 10% 확률의 희귀 아이템을 추가합니다.
+        /// 기본적으로 1~4개의 일반/언커먼 아이템(티어/랜덤 기반)과
+        /// 10% 확률의 희귀 아이템을 추가합니다.
         /// </summary>
         /// <param name="tier">몬스터 티어</param>
         /// <returns>아이템ID-개수 쌍의 리스트</returns>
@@ -139,7 +144,7 @@ namespace ProjectName.Core.Data
             var drops = new List<KeyValuePair<string, int>>();
 
             // 금화: 레벨 비례
-            int goldCount = Random.Range(level, Mathf.Max(level + 1, level * 2 + 1));
+            int goldCount = Random.Range(level, level * 2 + 1);
             drops.Add(new KeyValuePair<string, int>(GoldCoinId, goldCount));
 
             // 은화
@@ -165,12 +170,12 @@ namespace ProjectName.Core.Data
 
             foreach (var entry in entries)
             {
-                if (string.IsNullOrEmpty(entry.ItemId)) continue;
+                if (string.IsNullOrEmpty(entry.itemId)) continue;
 
-                if (Random.value <= entry.Probability)
+                if (Random.value <= entry.probability)
                 {
-                    int count = Random.Range(entry.MinCount, entry.MaxCount + 1);
-                    drops.Add(new KeyValuePair<string, int>(entry.ItemId, count));
+                    int count = Random.Range(entry.minCount, entry.maxCount + 1);
+                    drops.Add(new KeyValuePair<string, int>(entry.itemId, count));
                 }
             }
 
@@ -262,9 +267,12 @@ namespace ProjectName.Core.Data
                 drops.Add(new KeyValuePair<string, int>(rareItem, Random.Range(1, 3)));
             }
 
-            // Epic 장비 (레벨 10+): ~3%
+            // Epic 장비 (레벨 10+): ~3% — 전설급 방어구 드랍
             if (level >= 10 && Random.value <= EpicChance)
             {
+                string epicArmor = GuardArmorIds[Random.Range(0, GuardArmorIds.Length)];
+                drops.Add(new KeyValuePair<string, int>(epicArmor, 1));
+                // 추가 금화 보너스
                 drops.Add(new KeyValuePair<string, int>(GoldCoinId, Random.Range(5, 15)));
             }
         }

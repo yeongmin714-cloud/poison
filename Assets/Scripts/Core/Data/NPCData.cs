@@ -110,10 +110,11 @@ namespace ProjectName.Core.Data
             // Tier가 낮을수록 Child 확률 ↑, Tier가 높을수록 Elderly 확률 ↑
             float childChance = Mathf.Max(0.1f, 0.40f - tier * 0.05f);
             float elderlyChance = Mathf.Min(0.40f, 0.10f + tier * 0.07f);
+            float adultChance = 1.0f - childChance - elderlyChance;
 
             if (roll < childChance)
                 return NPCAgeType.Child;
-            if (roll < childChance + 1.0f - childChance - elderlyChance)
+            if (roll < childChance + adultChance)
                 return NPCAgeType.Adult;
             return NPCAgeType.Elderly;
         }

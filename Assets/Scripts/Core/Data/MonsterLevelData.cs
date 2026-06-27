@@ -15,16 +15,16 @@ namespace ProjectName.Core.Data
         [Header("=== 티어별 기본 레벨 범위 ===")]
 
         [SerializeField]
-        [Tooltip("초반 몬스터 기본 레벨 범위")]
-        private Vector2Int _basicLevelRange = new Vector2Int(1, 5);
+        [Tooltip("초반(Beginner) 몬스터 기본 레벨 범위")]
+        private Vector2Int _beginnerLevelRange = new Vector2Int(1, 5);
 
         [SerializeField]
-        [Tooltip("중반 몬스터 기본 레벨 범위")]
-        private Vector2Int _midLevelRange = new Vector2Int(6, 15);
+        [Tooltip("중반(Intermediate) 몬스터 기본 레벨 범위")]
+        private Vector2Int _intermediateLevelRange = new Vector2Int(6, 15);
 
         [SerializeField]
-        [Tooltip("후반 몬스터 기본 레벨 범위")]
-        private Vector2Int _highLevelRange = new Vector2Int(16, 30);
+        [Tooltip("후반(Advanced) 몬스터 기본 레벨 범위")]
+        private Vector2Int _advancedLevelRange = new Vector2Int(16, 30);
 
         [Header("=== 영지 난이도 보정 (Ring별 추가 레벨) ===")]
 
@@ -51,15 +51,15 @@ namespace ProjectName.Core.Data
         [Header("=== 레벨당 스탯 증가 ===")]
 
         [SerializeField]
-        [Tooltip("초반 티어: 레벨당 HP")]
+        [Tooltip("초반(Beginner) 티어: 레벨당 HP")]
         private float _beginnerHPPerLevel = 5f;
 
         [SerializeField]
-        [Tooltip("중반 티어: 레벨당 HP")]
+        [Tooltip("중반(Intermediate) 티어: 레벨당 HP")]
         private float _intermediateHPPerLevel = 10f;
 
         [SerializeField]
-        [Tooltip("후반 티어: 레벨당 HP")]
+        [Tooltip("후반(Advanced) 티어: 레벨당 HP")]
         private float _advancedHPPerLevel = 20f;
 
         [SerializeField]
@@ -94,25 +94,55 @@ namespace ProjectName.Core.Data
 
         // ===== Public 접근자 =====
 
-        public Vector2Int BasicLevelRange => _basicLevelRange;
-        public Vector2Int MidLevelRange => _midLevelRange;
-        public Vector2Int HighLevelRange => _highLevelRange;
+        /// <summary>초반(Beginner) 티어 몬스터의 기본 레벨 범위</summary>
+        public Vector2Int BeginnerLevelRange => _beginnerLevelRange;
 
+        /// <summary>중반(Intermediate) 티어 몬스터의 기본 레벨 범위</summary>
+        public Vector2Int IntermediateLevelRange => _intermediateLevelRange;
+
+        /// <summary>후반(Advanced) 티어 몬스터의 기본 레벨 범위</summary>
+        public Vector2Int AdvancedLevelRange => _advancedLevelRange;
+
+        /// <summary>Ring1 (최외각) 영지 레벨 보정치</summary>
         public int Ring1Bonus => _ring1Bonus;
+
+        /// <summary>Ring2 영지 레벨 보정치</summary>
         public int Ring2Bonus => _ring2Bonus;
+
+        /// <summary>Ring3 영지 레벨 보정치</summary>
         public int Ring3Bonus => _ring3Bonus;
+
+        /// <summary>Ring4 영지 레벨 보정치</summary>
         public int Ring4Bonus => _ring4Bonus;
+
+        /// <summary>Empire (황제국) 영지 레벨 보정치</summary>
         public int EmpireBonus => _empireBonus;
 
+        /// <summary>초반(Beginner) 티어 레벨당 HP 증가량</summary>
         public float BeginnerHPPerLevel => _beginnerHPPerLevel;
+
+        /// <summary>중반(Intermediate) 티어 레벨당 HP 증가량</summary>
         public float IntermediateHPPerLevel => _intermediateHPPerLevel;
+
+        /// <summary>후반(Advanced) 티어 레벨당 HP 증가량</summary>
         public float AdvancedHPPerLevel => _advancedHPPerLevel;
+
+        /// <summary>레벨당 데미지 증가 계수</summary>
         public float DamagePerLevel => _damagePerLevel;
+
+        /// <summary>기본 데미지 (레벨 0 기준)</summary>
         public float BaseDamage => _baseDamage;
 
+        /// <summary>레벨 10당 추가 희귀 드랍 확률 (0.05 = 5%)</summary>
         public float RareDropBonusPer10Levels => _rareDropBonusPer10Levels;
+
+        /// <summary>🟢 초록색 레벨 표시 임계값 (이하)</summary>
         public int GreenThreshold => _greenThreshold;
+
+        /// <summary>🟡 노랑색 레벨 표시 임계값 (이하)</summary>
         public int YellowThreshold => _yellowThreshold;
+
+        /// <summary>최대 허용 레벨</summary>
         public int MaxLevel => _maxLevel;
 
         // ===== 조회 메서드 =====
@@ -124,10 +154,10 @@ namespace ProjectName.Core.Data
         {
             switch (tier)
             {
-                case MonsterTier.Beginner:       return _basicLevelRange;
-                case MonsterTier.Intermediate:   return _midLevelRange;
-                case MonsterTier.Advanced:       return _highLevelRange;
-                default: return _basicLevelRange;
+                case MonsterTier.Beginner:       return _beginnerLevelRange;
+                case MonsterTier.Intermediate:   return _intermediateLevelRange;
+                case MonsterTier.Advanced:       return _advancedLevelRange;
+                default: return _beginnerLevelRange;
             }
         }
 
@@ -160,5 +190,47 @@ namespace ProjectName.Core.Data
                 default: return _beginnerHPPerLevel;
             }
         }
+
+        // ===== 에디터 데이터 무결성 검증 =====
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            // 티어별 레벨 범위: x <= y 보장
+            _beginnerLevelRange = new Vector2Int(
+                Mathf.Max(1, _beginnerLevelRange.x),
+                Mathf.Max(_beginnerLevelRange.x, _beginnerLevelRange.y));
+
+            _intermediateLevelRange = new Vector2Int(
+                Mathf.Max(_beginnerLevelRange.y + 1, _intermediateLevelRange.x),
+                Mathf.Max(_intermediateLevelRange.x, _intermediateLevelRange.y));
+
+            _advancedLevelRange = new Vector2Int(
+                Mathf.Max(_intermediateLevelRange.y + 1, _advancedLevelRange.x),
+                Mathf.Max(_advancedLevelRange.x, _advancedLevelRange.y));
+
+            // 영지 보정: 음수 방지
+            _ring1Bonus = Mathf.Max(0, _ring1Bonus);
+            _ring2Bonus = Mathf.Max(0, _ring2Bonus);
+            _ring3Bonus = Mathf.Max(0, _ring3Bonus);
+            _ring4Bonus = Mathf.Max(0, _ring4Bonus);
+            _empireBonus = Mathf.Max(0, _empireBonus);
+
+            // 스탯: 양수 보장
+            _beginnerHPPerLevel = Mathf.Max(0f, _beginnerHPPerLevel);
+            _intermediateHPPerLevel = Mathf.Max(0f, _intermediateHPPerLevel);
+            _advancedHPPerLevel = Mathf.Max(0f, _advancedHPPerLevel);
+            _damagePerLevel = Mathf.Max(0f, _damagePerLevel);
+            _baseDamage = Mathf.Max(0f, _baseDamage);
+
+            // 드랍률: 0~1 범위
+            _rareDropBonusPer10Levels = Mathf.Clamp01(_rareDropBonusPer10Levels);
+
+            // 레벨 표시 임계값: Green < Yellow <= Max
+            _greenThreshold = Mathf.Clamp(_greenThreshold, 1, _maxLevel - 1);
+            _yellowThreshold = Mathf.Clamp(_yellowThreshold, _greenThreshold + 1, _maxLevel);
+            _maxLevel = Mathf.Max(1, _maxLevel);
+        }
+#endif
     }
 }

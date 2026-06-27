@@ -146,12 +146,19 @@ namespace ProjectName.Core.Data
             Initialize();
             foreach (var h in _herbs)
             {
-                if (h.id.Equals(herbId))
+                if (h.id.Equals(herbId, System.StringComparison.OrdinalIgnoreCase))
                     return h;
             }
-            return new HerbInfo(herbId, "", "", default, 0); // return empty
+            return new HerbInfo(herbId, "", "", HerbAttribute.Attack, 0); // return empty sentinel
         }
 
-        public static IReadOnlyList<HerbInfo> AllHerbs => _herbs;
+        public static IReadOnlyList<HerbInfo> AllHerbs
+        {
+            get
+            {
+                Initialize();
+                return _herbs.AsReadOnly();
+            }
+        }
     }
 }

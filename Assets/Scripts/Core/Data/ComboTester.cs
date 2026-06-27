@@ -2,16 +2,28 @@ using UnityEngine;
 
 namespace ProjectName.Core.Data
 {
-    [AddComponentMenu("")]
+    [AddComponentMenu("")] // Hidden from Add Component menu — tester-only
     public class ComboTester : MonoBehaviour
     {
         private void Awake()
         {
-            Debug.Log("[ComboTester] Awake");
-            // Ensure databases are initialized
-            var dummy = HerbDatabase.AllHerbs.Count;
-            var combos = HerbComboDatabase.AllCombos.Count;
-            Debug.Log($"[ComboTester] Herbs: {dummy}, Combos: {combos}");
+            Debug.Log("[ComboTester] Awake — initializing databases...");
+
+            // Force initialization of both databases
+            int herbCount = HerbDatabase.AllHerbs.Count;
+            int comboCount = HerbComboDatabase.AllCombos.Count;
+            Debug.Log($"[ComboTester] Herbs loaded: {herbCount}, Combos loaded: {comboCount}");
+
+            if (herbCount == 0)
+            {
+                Debug.LogError("[ComboTester] HerbDatabase returned 0 herbs — GAME_DATA.md may be missing or malformed.");
+                return;
+            }
+
+            if (comboCount == 0)
+            {
+                Debug.LogWarning("[ComboTester] HerbComboDatabase returned 0 combos — check GAME_DATA.md combo section.");
+            }
 
             // Test a few known combos from the data
             TestCombo("A1", "A2"); // 쓴풀 + 가시덤불 -> 독성 가시액

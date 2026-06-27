@@ -5,24 +5,32 @@ using UnityEngine;
 namespace ProjectName.Core.Data
 {
     /// <summary>
-    /// Represents the result of cooking a meat with a herb.
+    /// Represents the result of cooking a meat with a herb (or special ingredient).
     /// </summary>
-    public struct CookingResult
+    public readonly struct CookingResult
     {
-        public string DishId { get; set; }
-        public string DishName { get; set; }
-        public string Description { get; set; }
-        public string Effect { get; set; }
+        public string DishId { get; }
+        public string DishName { get; }
+        public string Description { get; }
+        public string Effect { get; }
+
+        public CookingResult(string dishId, string dishName, string description, string effect)
+        {
+            DishId = dishId;
+            DishName = dishName;
+            Description = description;
+            Effect = effect;
+        }
     }
 
     /// <summary>
     /// Loads cooking recipes from GAME_DATA.md at runtime.
-    /// Provides lookup by meat display name + herb display name.
+    /// Provides lookup by meat display name + ingredient display name.
     /// </summary>
     public static class CookingDatabase
     {
         private static Dictionary<string, CookingResult> _recipes = new();
-        private static bool _initialized = false;
+        private static bool _initialized;
 
         private static void Initialize()
         {
@@ -49,11 +57,11 @@ namespace ProjectName.Core.Data
             }
 
             int pos = startIdx + startMarker.Length;
-            string[] lines = content.Substring(pos).Split('\n');
+            string[] lines = content.Substring(pos).Split(new[] { "\r\n", "\n" }, System.StringSplitOptions.None);
 
-            // We'll parse until the next major section (starts with "## ")
-            var tableRowRegex = new Regex(@"^\s*\|\s*.+\s*\|\s*$");
-            var separatorRegex = new Regex(@"^\s*\|\s*:-|:---\s*");
+            // Regex to match markdown table separator rows (e.g., |:-:|:------|:---------|...)
+            var tableRowRegex = new Regex(@"^\s*\|\s*.+\|\s*$");
+            var separatorRegex = new Regex(@"^\s*\|[\s:-]+\|");
 
             bool inTable = false;
             bool headerSkipped = false;
@@ -111,25 +119,23 @@ namespace ProjectName.Core.Data
                         if (meat.Equals("주재료") || herb.Equals("조합 재료") || dishName.Equals("요리 명칭") || effect.Equals("주요 효과"))
                             continue;
 
-                        // Validate herb exists via HerbDatabase
+                        // Warn about non-herb ingredients but still add the recipe.
+                        // Some recipes (e.g., #19 "밴시 눈물", #24 "약초 꽃가루") use non-herb ingredients.
                         var herbInfo = HerbDatabase.GetHerbInfoByDisplayName(herb);
                         if (string.IsNullOrEmpty(herbInfo.id))
                         {
-                            Debug.Log($"[CookingDatabase] Unknown herb '{herb}' in recipe '{dishName}' (non-standard ingredient).");
-                            // Still add? We'll skip for safety.
-                            continue;
+                            Debug.LogWarning($"[CookingDatabase] Unknown ingredient '{herb}' in recipe #{index} '{dishName}' (non-herb ingredient). Recipe will still be added.");
                         }
 
                         string key = MakeKey(meat, herb);
                         if (!_recipes.ContainsKey(key))
                         {
-                            _recipes[key] = new CookingResult
-                            {
-                                DishId = $"cook_{meat.Replace(' ', '_')}_{herb.Replace(' ', '_')}",
-                                DishName = dishName,
-                                Description = $"{meat} + {herb}",
-                                Effect = effect
-                            };
+                            _recipes[key] = new CookingResult(
+                                dishId: $"cook_{index.PadLeft(2, '0')}",
+                                dishName: dishName,
+                                description: $"{meat} + {herb}",
+                                effect: effect
+                            );
                         }
                     }
                 }
@@ -140,14 +146,12 @@ namespace ProjectName.Core.Data
 
         private static string MakeKey(string meat, string herb)
         {
-            // Order-independent? Cooking is ordered (meat + herb). We'll keep order as given.
-            // But to allow lookup regardless of order we could sort, but cooking is not commutative.
-            // We'll keep exact order as meat|herb.
+            // Cooking is ordered (meat + herb). Not commutative — exact order preserved.
             return $"{meat}|{herb}";
         }
 
         /// <summary>
-        /// Returns the cooking result for the given meat and herb, or null if not found.
+        /// Returns the cooking result for the given meat and ingredient, or null if not found.
         /// </summary>
         public static CookingResult? GetCooking(string meatDisplayName, string herbDisplayName)
         {
@@ -159,8 +163,15 @@ namespace ProjectName.Core.Data
         }
 
         /// <summary>
-        /// Returns all loaded recipes (read-only).
+        /// Returns all loaded recipes (read-only). Forces initialization if needed.
         /// </summary>
-        public static IReadOnlyDictionary<string, CookingResult> AllRecipes => _recipes;
+        public static IReadOnlyDictionary<string, CookingResult> AllRecipes
+        {
+            get
+            {
+                Initialize();
+                return _recipes;
+            }
+        }
     }
 }

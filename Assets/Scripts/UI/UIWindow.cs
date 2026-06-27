@@ -439,17 +439,24 @@ namespace ProjectName.UI
         /// </summary>
         private void OnGUI()
         {
-            if (!_isOpen || !_needsBackgroundDraw)
+            if (!_isOpen)
                 return;
 
-            if (_useMedievalBackground && !string.IsNullOrEmpty(_medievalPanelType))
+            // 배경 드로잉 (OnShow에서 준비됨)
+            if (_needsBackgroundDraw)
             {
-                MedievalBackgroundRenderer.DrawBackground(_backgroundRect, _medievalPanelType);
+                if (_useMedievalBackground && !string.IsNullOrEmpty(_medievalPanelType))
+                {
+                    MedievalBackgroundRenderer.DrawBackground(_backgroundRect, _medievalPanelType);
+                }
+                else if (_backgroundTexture != null)
+                {
+                    GUI.DrawTexture(_backgroundRect, _backgroundTexture, ScaleMode.StretchToFill);
+                }
             }
-            else if (_backgroundTexture != null)
-            {
-                GUI.DrawTexture(_backgroundRect, _backgroundTexture, ScaleMode.StretchToFill);
-            }
+
+            // 자식 클래스의 IMGUI 컨텐츠 드로잉
+            DrawWindowContent();
         }
         protected virtual void OnHide()
         {

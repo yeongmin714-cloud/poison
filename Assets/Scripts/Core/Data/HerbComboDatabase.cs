@@ -26,7 +26,7 @@ namespace ProjectName.Core.Data
 
         private static readonly Regex SubsectionHeaderRegex = new Regex(@"^###\s*\d+\.\d+\s*");
         private static readonly Regex TableRowRegex = new Regex(@"^\s*[|]\s*.+\s*[|]\s*$");
-        private static readonly Regex SeparatorRegex = new Regex(@"^\s*[|]\s*:-|:---"); // matches |:-:|:----|:-----| etc.
+        private static readonly Regex SeparatorRegex = new Regex(@"^\s*\|[-:\s]+\|"); // matches |:-:|, |:----|:-----| etc.
 
         private static void Initialize()
         {
@@ -53,7 +53,7 @@ namespace ProjectName.Core.Data
             }
 
             int pos = startIdx + startMarker.Length;
-            string[] lines = content.Substring(pos).Split('\n');
+            string[] lines = content.Substring(pos).Split(new[] { "\r\n", "\r", "\n" }, System.StringSplitOptions.None);
 
             // We'll parse until the next major section (starts with "## ")
             // Subsections: 2.1 공격성 조합, 2.2 정신성 조합, 2.3 회복성 조합, 2.4 물리성 조합, 2.5 마약 시스템 (we stop before 2.5)
@@ -110,20 +110,18 @@ namespace ProjectName.Core.Data
                         if (!string.IsNullOrEmpty(info1.id) && !string.IsNullOrEmpty(info2.id))
                         {
                             string key = MakeKey(info1.id, info2.id);
-                            if (!_combos.ContainsKey(key))
+                            // Not checking ContainsKey — last combo for a pair wins, which is intentional
+                            _combos[key] = new HerbComboResult
                             {
-                                _combos[key] = new HerbComboResult
-                                {
-                                    resultId = $"combo_{info1.id}_{info2.id}", // placeholder
-                                    resultName = resultName,
-                                    description = $"Result of {herb1} + {herb2}",
-                                    effect = effect
-                                };
-                            }
+                                resultId = $"combo_{info1.id}_{info2.id}", // placeholder
+                                resultName = resultName,
+                                description = $"{herb1} + {herb2} 의 결과물",
+                                effect = effect
+                            };
                         }
                         else
                         {
-                            Debug.LogWarning($"[HerbComboDatabase] Could not find herbs for combo: '{herb1}' / '{herb2}'");
+                            Debug.LogWarning($"[HerbComboDatabase] Unknown herb name in combo: '{herb1}' / '{herb2}' — skipping.");
                         }
                     }
                 }
@@ -159,7 +157,7 @@ namespace ProjectName.Core.Data
             get
             {
                 Initialize();
-                return _combos;
+                return new System.Collections.ObjectModel.ReadOnlyDictionary<string, HerbComboResult>(_combos);
             }
         }
     }

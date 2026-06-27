@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 using ProjectName.Core;
+using ProjectName.Core.Data;
 
 namespace ProjectName.Editor
 {
@@ -66,22 +67,22 @@ namespace ProjectName.Editor
                 if (existing != null)
                 {
                     // Update existing
-                    existing.id = info.id;
-                    existing.displayName = info.displayName;
-                    existing.description = info.description;
-                    existing.attribute = info.attribute;
-                    existing.index = info.index;
+                    existing.Id = info.id;
+                    existing.DisplayName = info.displayName;
+                    existing.Description = info.description;
+                    existing.Attribute = info.attribute;
+                    existing.Index = info.index;
                     EditorUtility.SetDirty(existing);
                 }
                 else
                 {
                     // Create new
                     Herb herb = ScriptableObject.CreateInstance<Herb>();
-                    herb.id = info.id;
-                    herb.displayName = info.displayName;
-                    herb.description = info.description;
-                    herb.attribute = info.attribute;
-                    herb.index = info.index;
+                    herb.Id = info.id;
+                    herb.DisplayName = info.displayName;
+                    herb.Description = info.description;
+                    herb.Attribute = info.attribute;
+                    herb.Index = info.index;
                     AssetDatabase.CreateAsset(herb, assetPath);
                     created++;
                 }

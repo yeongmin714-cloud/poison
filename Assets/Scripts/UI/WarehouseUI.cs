@@ -19,6 +19,16 @@ namespace ProjectName.UI
         private const float SlotSize = 60f;
         private const float Padding = 5f;
 
+        // === GC 최적화: 캐시된 필드 ===
+        private string _cachedHeader;
+        private string _lastHeaderTerritory;
+        private int _lastHeaderCount = -1;
+        private readonly Rect _itemNameRect = new Rect(0, 0, 0, 18);
+        private readonly Rect _countRect = new Rect(0, 0, 18, 18);
+        private readonly Rect _transferRect = new Rect(0, 0, 16, 16);
+        private readonly Rect _iconRect = new Rect(0, 0, 0, 0);
+        private string _countLabel;
+
         protected override void Awake()
         {
             base.Awake();
@@ -47,7 +57,14 @@ namespace ProjectName.UI
             var items = WarehouseSystem.Instance.GetItems(_currentTerritoryId);
             int count = items != null ? items.Count : 0;
 
-            GUILayout.Label($"📦 창고 ({_currentTerritoryId}) — {count}/{MaxSlots}", GUI.skin.box);
+            // GC 최적화: 헤더 캐싱
+            if (_cachedHeader == null || _lastHeaderTerritory != _currentTerritoryId || _lastHeaderCount != count)
+            {
+                _cachedHeader = $"📦 창고 ({_currentTerritoryId}) — {count}/{MaxSlots}";
+                _lastHeaderTerritory = _currentTerritoryId;
+                _lastHeaderCount = count;
+            }
+            GUILayout.Label(_cachedHeader, GUI.skin.box);
 
             if (items == null || items.Count == 0)
             {
@@ -93,19 +110,32 @@ namespace ProjectName.UI
             GUI.Box(rect, "");
 
             float iconSize = SlotSize * 0.6f;
-            float iconX = rect.x + (rect.width - iconSize) / 2;
-            float iconY = rect.y + 4;
-            DrawItemIcon(new Rect(iconX, iconY, iconSize, iconSize), slot.item);
+            // GC 최적화: 캐시된 Rect 재사용
+            _iconRect.x = rect.x + (rect.width - iconSize) / 2;
+            _iconRect.y = rect.y + 4;
+            _iconRect.width = iconSize;
+            _iconRect.height = iconSize;
+            DrawItemIcon(_iconRect, slot.item);
 
-            // 아이템 이름
-            GUI.Label(new Rect(rect.x + 2, rect.y + iconSize + 2, rect.width - 4, 18), slot.item.displayName);
+            // 아이템 이름 (캐시된 Rect 재사용)
+            _itemNameRect.x = rect.x + 2;
+            _itemNameRect.y = rect.y + iconSize + 2;
+            _itemNameRect.width = rect.width - 4;
+            GUI.Label(_itemNameRect, slot.item.displayName);
 
-            // 수량
+            // 수량 (캐시된 Rect + 캐시된 문자열)
             if (slot.count > 1)
-                GUI.Label(new Rect(rect.x + rect.width - 20, rect.y + rect.height - 18, 18, 18), $"x{slot.count}");
+            {
+                _countRect.x = rect.x + rect.width - 20;
+                _countRect.y = rect.y + rect.height - 18;
+                _countLabel = "x" + slot.count;
+                GUI.Label(_countRect, _countLabel);
+            }
 
-            // 인벤토리 이동 버튼
-            if (GUI.Button(new Rect(rect.x + rect.width - 18, rect.y + 2, 16, 16), "▽"))
+            // 인벤토리 이동 버튼 (캐시된 Rect 재사용)
+            _transferRect.x = rect.x + rect.width - 18;
+            _transferRect.y = rect.y + 2;
+            if (GUI.Button(_transferRect, "▽"))
             {
                 WarehouseSystem.Instance.TransferToInventory(_currentTerritoryId, index, 1);
             }

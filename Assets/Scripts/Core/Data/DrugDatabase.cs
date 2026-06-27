@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -19,30 +21,47 @@ namespace ProjectName.Core.Data
 
     /// <summary>
     /// Represents a single drug entry from GAME_DATA.md section 2.5.
+    /// Immutable to prevent struct-copy mutation bugs.
     /// </summary>
-    public struct DrugInfo
+    public readonly struct DrugInfo
     {
-        public int Stage { get; set; }              // 1~10
-        public string DrugName { get; set; }        // 약물 명칭
-        public string Ingredients { get; set; }     // 조합 재료 (e.g. "향기꽃 + 맑은잎")
-        public AddictionLevel Addiction { get; set; }
-        public string Description { get; set; }     // 특징
+        public int Stage { get; }              // 1~10
+        public string DrugName { get; }        // 약물 명칭
+        public string Ingredients { get; }     // 조합 재료 (e.g. "향기꽃 + 맑은잎")
+        public AddictionLevel Addiction { get; }
+        public string Description { get; }     // 특징
+
+        public DrugInfo(int stage, string drugName, string ingredients, AddictionLevel addiction, string description)
+        {
+            Stage = stage;
+            DrugName = drugName;
+            Ingredients = ingredients;
+            Addiction = addiction;
+            Description = description;
+        }
     }
 
     /// <summary>
     /// Loads drug (마약) data from GAME_DATA.md section 2.5 at runtime.
     /// Provides lookup by stage number or drug name.
+    /// Thread-safe on initialization.
     /// </summary>
     public static class DrugDatabase
     {
         private static Dictionary<int, DrugInfo> _byStage = new Dictionary<int, DrugInfo>();
         private static Dictionary<string, DrugInfo> _byName = new Dictionary<string, DrugInfo>();
         private static bool _initialized = false;
+        private static readonly object _lock = new object();
 
         private static void Initialize()
         {
             if (_initialized) return;
-            _initialized = true;
+
+            lock (_lock)
+            {
+                if (_initialized) return;
+                _initialized = true;
+            }
 
             TextAsset txt = Resources.Load<TextAsset>("GAME_DATA");
             if (txt == null)
@@ -67,7 +86,9 @@ namespace ProjectName.Core.Data
 
             // Table pattern: | 단계 | 약물 명칭 | 조합 재료 | 중독성 | 특징 |
             var tableRowRegex = new Regex(@"^\s*[|]\s*.+[|]\s*$");
-            var separatorRegex = new Regex(@":---|:--:|:-");
+            var separatorRegex = new Regex(@":-{2,}");
+
+            int loadedCount = 0;
 
             foreach (string lineRaw in lines)
             {
@@ -102,24 +123,30 @@ namespace ProjectName.Core.Data
 
                         AddictionLevel addiction = ParseAddiction(addictionStr);
 
-                        var info = new DrugInfo
-                        {
-                            Stage = stage,
-                            DrugName = drugName,
-                            Ingredients = ingredients,
-                            Addiction = addiction,
-                            Description = description
-                        };
+                        var info = new DrugInfo(stage, drugName, ingredients, addiction, description);
+
+                        // Warn on duplicate stage
+                        if (_byStage.ContainsKey(stage))
+                            Debug.LogWarning($"[DrugDatabase] Duplicate stage {stage} ('{drugName}') — overwriting previous entry.");
+
+                        // Warn on duplicate name
+                        if (_byName.ContainsKey(drugName))
+                            Debug.LogWarning($"[DrugDatabase] Duplicate drug name '{drugName}' (stage {stage}) — overwriting previous entry.");
 
                         _byStage[stage] = info;
                         _byName[drugName] = info;
+                        loadedCount++;
                     }
                 }
             }
 
-            Debug.Log($"[DrugDatabase] Loaded {_byStage.Count} drugs from GAME_DATA.md.");
+            Debug.Log($"[DrugDatabase] Loaded {loadedCount} drugs from GAME_DATA.md.");
         }
 
+        /// <summary>
+        /// Parses Korean addiction level strings into the AddictionLevel enum.
+        /// Logs a warning for unrecognized values.
+        /// </summary>
         private static AddictionLevel ParseAddiction(string raw)
         {
             return raw switch
@@ -130,8 +157,15 @@ namespace ProjectName.Core.Data
                 "매우 높음" => AddictionLevel.VeryHigh,
                 "극도로 높음" => AddictionLevel.Extreme,
                 "치명적" => AddictionLevel.Fatal,
-                _ => AddictionLevel.Low
+                _ when string.IsNullOrEmpty(raw) => AddictionLevel.Low,
+                _ => LogUnknownAddiction(raw)
             };
+        }
+
+        private static AddictionLevel LogUnknownAddiction(string raw)
+        {
+            Debug.LogWarning($"[DrugDatabase] Unknown addiction level '{raw}' — defaulting to Low.");
+            return AddictionLevel.Low;
         }
 
         /// <summary>
@@ -165,10 +199,9 @@ namespace ProjectName.Core.Data
             {
                 if (!_initialized) Initialize();
                 var list = new List<DrugInfo>(_byStage.Count);
-                for (int i = 1; i <= _byStage.Count; i++)
+                foreach (int stage in _byStage.Keys.OrderBy(k => k))
                 {
-                    if (_byStage.TryGetValue(i, out var info))
-                        list.Add(info);
+                    list.Add(_byStage[stage]);
                 }
                 return list;
             }

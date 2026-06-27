@@ -30,14 +30,14 @@ namespace ProjectName.Tests.EditMode
             var data = ScriptableObject.CreateInstance<MonsterLevelData>();
 
             // 기본 레벨 범위 확인
-            Assert.AreEqual(1, data.BasicLevelRange.x);
-            Assert.AreEqual(5, data.BasicLevelRange.y);
+            Assert.AreEqual(1, data.BeginnerLevelRange.x);
+            Assert.AreEqual(5, data.BeginnerLevelRange.y);
 
-            Assert.AreEqual(6, data.MidLevelRange.x);
-            Assert.AreEqual(15, data.MidLevelRange.y);
+            Assert.AreEqual(6, data.IntermediateLevelRange.x);
+            Assert.AreEqual(15, data.IntermediateLevelRange.y);
 
-            Assert.AreEqual(16, data.HighLevelRange.x);
-            Assert.AreEqual(30, data.HighLevelRange.y);
+            Assert.AreEqual(16, data.AdvancedLevelRange.x);
+            Assert.AreEqual(30, data.AdvancedLevelRange.y);
         }
 
         [Test]

@@ -8,15 +8,18 @@ namespace ProjectName.Core.Data
     /// </summary>
     public class CookingTester : MonoBehaviour
     {
-        private void Awake()
+        private void Start()
         {
-            Debug.Log("[CookingTester] Awake");
+            Debug.Log("[CookingTester] Start");
             TestRecipes();
         }
 
+        [ContextMenu("Test Recipes")]
         private void TestRecipes()
         {
-            // Force initialization
+            // Force initialization before reading AllRecipes (AllRecipes does not call Initialize internally)
+            var dummy = CookingDatabase.GetCooking("토끼 고기", "회복꽃");
+
             var all = CookingDatabase.AllRecipes;
             Debug.Log($"[CookingTester] Total recipes loaded: {all.Count}");
 

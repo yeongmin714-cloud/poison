@@ -42,12 +42,12 @@ namespace ProjectName.Core.Data
         {
             if (string.IsNullOrEmpty(effect))
             {
-                Debug.Log("[ConsumableSystem] Empty effect.");
+                Debug.LogWarning("[ConsumableSystem] Empty effect — no effect applied.");
                 return;
             }
 
             // Heal effects
-            if (effect.Contains("체력 회복") || effect.Contains("재생") || effect.Contains("치유") || effect.Contains("지속 체력 재생"))
+            if (effect.Contains("체력 회복") || effect.Contains("재생") || effect.Contains("치유"))
             {
                 // Heal a flat amount; could be scaled based on dish but we keep simple.
                 HealPlayer(25f);
@@ -56,7 +56,7 @@ namespace ProjectName.Core.Data
             }
 
             // Attack boost
-            if (effect.Contains("공격력 증가") || effect.Contains("공격력") || effect.Contains("물리 공격력 강화"))
+            if (effect.Contains("공격력"))
             {
                 if (BuffManager.Instance != null)
                 {
@@ -71,7 +71,7 @@ namespace ProjectName.Core.Data
             }
 
             // Defense boost
-            if (effect.Contains("방어력 증가") || effect.Contains("방어력") || effect.Contains("생명 보호막"))
+            if (effect.Contains("방어력") || effect.Contains("생명 보호막"))
             {
                 if (BuffManager.Instance != null)
                 {
@@ -86,7 +86,7 @@ namespace ProjectName.Core.Data
             }
 
             // Speed boost
-            if (effect.Contains("이동 속도") || effect.Contains("속도") || effect.Contains("영웅의 신속"))
+            if (effect.Contains("속도"))
             {
                 if (BuffManager.Instance != null)
                 {
@@ -116,7 +116,7 @@ namespace ProjectName.Core.Data
             }
 
             // Affinity / intimacy
-            if (effect.Contains("친밀도") || effect.Contains("매력") || effect.Contains("친밀도 대폭 상승"))
+            if (effect.Contains("친밀도") || effect.Contains("매력"))
             {
                 if (BuffManager.Instance != null)
                 {
@@ -131,7 +131,7 @@ namespace ProjectName.Core.Data
             }
 
             // Stealth / invisibility
-            if (effect.Contains("은신") || effect.Contains("시야 차단") || effect.Contains("은신 효과") || effect.Contains("은신 시간 연장"))
+            if (effect.Contains("은신") || effect.Contains("시야 차단"))
             {
                 // We could add a stealth buff that reduces enemy detection; placeholder.
                 Debug.Log("[ConsumableSystem] Stealth/invisibility effect applied (placeholder).");
@@ -155,7 +155,7 @@ namespace ProjectName.Core.Data
             }
 
             // Status cure
-            if (effect.Contains("상태 이상 치료") || effect.Contains("상태이상 방지") || effect.Contains("상태 이상"))
+            if (effect.Contains("상태이상 방지") || effect.Contains("상태 이상"))
             {
                 // Cure status effects; placeholder.
                 Debug.Log("[ConsumableSystem] Status cure effect applied (placeholder).");

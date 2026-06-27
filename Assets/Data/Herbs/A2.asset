@@ -1,19 +1,3 @@
-%YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
---- !u!114 &11400000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5032133748d029e4a96d5583770b70bb, type: 3}
-  m_Name: A2
-  m_EditorClassIdentifier: ProjectName.Core::ProjectName.Core.Herb
-  id: A2
-  displayName: "\uAC00\uC2DC\uB364\uBD88"
-  description: "\uCD9C\uD608/\uCC0C\uB974\uAE30 \uD6A8\uACFC"
-  attribute: 0
-  index: 2
+version https://git-lfs.github.com/spec/v1
+oid sha256:05f1b1f4ebdeb110b0c44dd46e49e2f849a9de501df859a8ea331d860a056ca5
+size 569
