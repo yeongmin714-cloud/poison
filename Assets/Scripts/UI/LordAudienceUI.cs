@@ -2,7 +2,6 @@ using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.UI.Themes;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -16,15 +15,20 @@ namespace ProjectName.UI
     {
         private UIDesignTheme _lordTheme;
 
-        [System.Serializable]
+        /// <summary>
+        /// 대화 선택지 데이터.
+        /// NOTE: [System.Serializable]이지만 onSuccess/onFail(System.Action)은
+        /// Unity가 직렬화할 수 없으므로 Inspector에서 설정할 수 없습니다.
+        /// 코드에서 동적으로 할당하세요.
+        /// </summary>
         public class AudienceOption
         {
             public string text;                          // 선택지 텍스트
             public int speechDifficulty;                 // 필요 화술 난이도 (0 = 자동 성공)
             public string successResult;                 // 성공 시 표시 텍스트
             public string failResult;                    // 실패 시 표시 텍스트
-            public System.Action onSuccess;              // 성공 시 액션
-            public System.Action onFail;                 // 실패 시 액션
+            public System.Action onSuccess;              // 성공 시 액션 (직렬화 불가)
+            public System.Action onFail;                 // 실패 시 액션 (직렬화 불가)
         }
 
         [Header("영주 정보")]
@@ -43,6 +47,10 @@ namespace ProjectName.UI
         private const float WINDOW_WIDTH = 900f;
         private const float WINDOW_HEIGHT = 750f;
         private const float OPTION_HEIGHT = 60f;
+        private const int MAX_OPTIONS = 4;
+        private const int FONT_SIZE_TITLE = 18;
+        private const int FONT_SIZE_TEXT = 16;
+        private const int FONT_SIZE_OPTION = 15;
 
         private static readonly Color ColorBg = new Color(0.15f, 0.10f, 0.12f, 0.92f);
         private static readonly Color ColorTitle = new Color(0.12f, 0.08f, 0.10f, 1f);
@@ -51,7 +59,6 @@ namespace ProjectName.UI
         private static readonly Color ColorFail = new Color(0.9f, 0.3f, 0.3f, 1f);
         private static readonly Color ColorDim = new Color(0.5f, 0.45f, 0.40f, 1f);
         private GUIStyle _styleTitle, _styleText, _styleOption;
-        private Texture2D _texWhite;
         private Texture2D _texBg;
         private bool _stylesInit;
 
@@ -76,7 +83,6 @@ namespace ProjectName.UI
 
         private void OnDestroy()
         {
-            if (_texWhite != null) Destroy(_texWhite);
             if (_texBg != null) Destroy(_texBg);
         }
 
@@ -113,7 +119,11 @@ namespace ProjectName.UI
 
             if (_showOptions && _options != null)
             {
-                for (int i = 0; i < _options.Length && i < 4; i++)
+                int displayCount = Mathf.Min(_options.Length, MAX_OPTIONS);
+                if (_options.Length > MAX_OPTIONS)
+                    Debug.LogWarning($"[LordAudienceUI] 선택지가 {MAX_OPTIONS}개를 초과합니다 ({_options.Length}개). 초과분은 표시되지 않습니다.");
+
+                for (int i = 0; i < displayCount; i++)
                 {
                     var opt = _options[i];
                     Rect optRect = new Rect(x + 20, optY, WINDOW_WIDTH - 40, OPTION_HEIGHT);
@@ -186,26 +196,25 @@ namespace ProjectName.UI
         private void InitStyles()
         {
             if (_stylesInit) return;
-            _texWhite = MakeTex(1, 1, Color.white);
             _texBg = MakeTex(1, 1, ColorBg);
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 60, fontStyle = FontStyle.Bold,
+                fontSize = FONT_SIZE_TITLE, fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorText }
             };
 
             _styleText = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 52, fontStyle = FontStyle.Normal,
+                fontSize = FONT_SIZE_TEXT, fontStyle = FontStyle.Normal,
                 wordWrap = true,
                 normal = { textColor = ColorText }
             };
 
             _styleOption = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 48, fontStyle = FontStyle.Normal,
+                fontSize = FONT_SIZE_OPTION, fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorText }
             };

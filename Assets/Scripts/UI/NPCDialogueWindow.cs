@@ -3,7 +3,6 @@ using ProjectName.Core.Data;
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.UI.Themes;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -44,7 +43,6 @@ namespace ProjectName.UI
         private Vector2 _scrollPosition = Vector2.zero;
 
         // IMGUI 스타일 캐싱
-        private GUIStyle _titleStyle;
         private GUIStyle _nameStyle;
         private GUIStyle _dialogueStyle;
         private GUIStyle _questStyle;
@@ -75,6 +73,14 @@ namespace ProjectName.UI
             _isOpen = false;
         }
 
+        private void OnDestroy()
+        {
+            if (_dimStyle?.normal?.background != null)
+                Destroy(_dimStyle.normal.background);
+            if (_windowBgStyle?.normal?.background != null)
+                Destroy(_windowBgStyle.normal.background);
+        }
+
         private void Update()
         {
             if (!_isOpen) return;
@@ -92,8 +98,9 @@ namespace ProjectName.UI
 
         // ===== IMGUI =====
 
-        private void OnGUI()
+        protected override void OnGUI()
         {
+            base.OnGUI();
             if (!_isOpen) return;
 
             InitializeStyles();
@@ -215,16 +222,6 @@ namespace ProjectName.UI
                     AdvanceDialogue();
                 }
             }
-            else if (_showingQuestList)
-            {
-                if (_currentNPC.HasQuests)
-                {
-                    if (GUI.Button(new Rect(startX, rect.y, btnWidth, 25), "퀘스트 목록", _buttonStyle))
-                    {
-                        // 이미 퀘스트 목록 표시 중
-                    }
-                }
-            }
 
             if (GUI.Button(new Rect(startX + btnWidth + spacing, rect.y, btnWidth, 25), "닫기 ✕", _buttonStyle))
             {
@@ -237,6 +234,12 @@ namespace ProjectName.UI
         /// <summary>NPC 대화 UI 열기</summary>
         public void ShowDialogue(NPCInstance npc)
         {
+            if (string.IsNullOrEmpty(npc.NpcName))
+            {
+                Debug.LogWarning("[NPCDialogue] ShowDialogue: 유효하지 않은 NPC 데이터");
+                return;
+            }
+
             _currentNPC = npc;
             _currentDialogueIndex = 0;
             _isInDialogue = true;
@@ -394,29 +397,29 @@ namespace ProjectName.UI
             _windowBgStyle.border = new RectOffset(4, 4, 4, 4);
 
             _nameStyle = new GUIStyle(GUI.skin.label);
-            _nameStyle.fontSize = 72;
+            _nameStyle.fontSize = 18;
             _nameStyle.fontStyle = FontStyle.Bold;
             _nameStyle.normal.textColor = Color.white;
             _nameStyle.alignment = TextAnchor.MiddleLeft;
 
             _dialogueStyle = new GUIStyle(GUI.skin.label);
-            _dialogueStyle.fontSize = 56;
+            _dialogueStyle.fontSize = 16;
             _dialogueStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
             _dialogueStyle.wordWrap = true;
             _dialogueStyle.richText = true;
 
             _questStyle = new GUIStyle(GUI.skin.label);
-            _questStyle.fontSize = 52;
+            _questStyle.fontSize = 15;
             _questStyle.normal.textColor = new Color(0.8f, 0.9f, 1.0f);
             _questStyle.wordWrap = true;
 
             _buttonStyle = new GUIStyle(GUI.skin.button);
-            _buttonStyle.fontSize = 48;
+            _buttonStyle.fontSize = 14;
             _buttonStyle.normal.textColor = Color.white;
             _buttonStyle.hover.textColor = Color.yellow;
 
             _statusStyle = new GUIStyle(GUI.skin.label);
-            _statusStyle.fontSize = 44;
+            _statusStyle.fontSize = 13;
             _statusStyle.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
             _statusStyle.alignment = TextAnchor.MiddleCenter;
 

@@ -243,18 +243,18 @@ namespace ProjectName.UI
                 return Vector3.zero;
 
             // Distance from center based on difficulty ring
-            float distance = (int)def.difficulty switch
+            float distance = def.difficulty switch
             {
-                0 => 15f,  // Ring1
-                1 => 30f,  // Ring2
-                2 => 45f,  // Ring3
-                3 => 60f,  // Ring4
+                TerritoryDifficulty.Ring1 => 15f,
+                TerritoryDifficulty.Ring2 => 30f,
+                TerritoryDifficulty.Ring3 => 45f,
+                TerritoryDifficulty.Ring4 => 60f,
                 _ => 20f,
             };
 
             // Add slight offset based on index so territories in same ring spread a bit
-            float spreadAngle = (def.id.index % 5) * 18f * Mathf.Deg2Rad;
-            Vector3 spreadDir = Quaternion.Euler(0f, spreadAngle * Mathf.Rad2Deg, 0f) * dir;
+            float spreadAngle = (def.id.index % 5) * 18f;
+            Vector3 spreadDir = Quaternion.Euler(0f, spreadAngle, 0f) * dir;
             if (spreadDir.sqrMagnitude < 0.01f)
                 spreadDir = dir;
 
@@ -398,7 +398,9 @@ namespace ProjectName.UI
                 }
 
                 // Draw nation label at the nation's center direction
-                Vector3 nationCenterWorld = NationDirections[nation] * 30f;
+                if (!NationDirections.TryGetValue(nation, out Vector3 nationDir))
+                    continue;
+                Vector3 nationCenterWorld = nationDir * 30f;
                 Vector2 localPos = WorldToMinimapLocal(
                     PlayerWorldPosition + nationCenterWorld);
 
@@ -414,15 +416,18 @@ namespace ProjectName.UI
                 float iconY = cy + py - 16f;
 
                 // Draw colored dot
+                if (!NationColors.TryGetValue(nation, out Color nationColor))
+                    nationColor = Color.gray;
                 Color origColor = GUI.color;
-                GUI.color = NationColors[nation];
+                GUI.color = nationColor;
                 Rect dotRect = new Rect(iconX, iconY, 32f, 32f);
                 GUI.Box(dotRect, "");
                 GUI.color = origColor;
 
                 // Draw label text
+                string label = NationLabels.TryGetValue(nation, out string lbl) ? lbl : "?";
                 Rect labelRect = new Rect(iconX + 36f, iconY, 40f, 32f);
-                GUI.Label(labelRect, NationLabels[nation], _territoryDotStyle);
+                GUI.Label(labelRect, label, _territoryDotStyle);
 
                 // Draw individual territory dots for nearby territories
                 for (int i = 0; i < territories.Count; i++)
@@ -437,7 +442,8 @@ namespace ProjectName.UI
                         continue;
 
                     // NationColors[nation] * 0.7f — Color struct, stack only, no GC
-                    GUI.color = NationColors[nation] * 0.7f;
+                    Color dotColor = NationColors.TryGetValue(nation, out Color nc) ? nc * 0.7f : Color.gray * 0.7f;
+                    GUI.color = dotColor;
                     Rect tDotRect = new Rect(
                         cx + tPx - 4f,
                         cy + tPy - 4f,

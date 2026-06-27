@@ -4,7 +4,6 @@ using ProjectName.Systems;
 using UnityEngine;
 using ProjectName.Core.Data;
 using ProjectName.UI.Themes;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -114,7 +113,7 @@ namespace ProjectName.UI
                     _cachedHiredIds.Add(hired[i].data.id);
             }
 
-            _cachedContentHeight = _cachedMercData.Length * 90f + 20f;
+            _cachedContentHeight = _cachedMercData.Length * 222.5f + 20f;
         }
 
         private void OnGUI()
@@ -218,7 +217,7 @@ namespace ProjectName.UI
             GUI.Label(new Rect(xOff + 310, cy + 5, 225, 33), $"💰 {merc.hireCost}G", _nameStyle);
 
             // 버튼
-            float btnX = entryW - 110;
+            float btnX = entryW - 235;
             if (isHired)
             {
                 // 해고 버튼 (빨간색 계열)
@@ -313,10 +312,13 @@ namespace ProjectName.UI
         {
             if (MercenaryManager.Instance == null) return;
 
-            MercenaryManager.Instance.TryGetMercenaryData(mercenaryId, out var data);
+            string name = mercenaryId;
+            if (MercenaryManager.Instance.TryGetMercenaryData(mercenaryId, out var data))
+                name = data.mercenaryName;
+
             if (MercenaryManager.Instance.FireMercenary(mercenaryId))
             {
-                _statusMessage = $"🔴 {data.mercenaryName} 해고됨.";
+                _statusMessage = $"🔴 {name} 해고됨.";
                 _statusTimer = 3f;
             }
         }

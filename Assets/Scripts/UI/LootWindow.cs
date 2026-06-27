@@ -239,11 +239,10 @@ namespace ProjectName.UI
         }
 
         // ===================================================================
-        // OnGUI — IMGUI 렌더링
+        // DrawWindowContent — IMGUI 렌더링 (UIWindow.OnGUI → DrawWindowContent 파이프라인)
         // ===================================================================
-        private void OnGUI()
+        protected override void DrawWindowContent()
         {
-            if (!IsOpen) return;
             InitStyles();
 
             if (_currentBasket == null || _currentBasket.IsEmpty || !_currentBasket.IsAvailable)
@@ -455,6 +454,11 @@ namespace ProjectName.UI
                 PlayerInventory.ItemCategory.Potion => new Color(0.7f, 0.3f, 0.8f),
                 PlayerInventory.ItemCategory.Material => new Color(0.5f, 0.5f, 0.5f),
                 PlayerInventory.ItemCategory.Quest => new Color(0.2f, 0.7f, 0.8f),
+                PlayerInventory.ItemCategory.Drug => new Color(0.9f, 0.2f, 0.6f),
+                PlayerInventory.ItemCategory.Weapon => new Color(0.8f, 0.2f, 0.2f),
+                PlayerInventory.ItemCategory.Armor => new Color(0.3f, 0.4f, 0.8f),
+                PlayerInventory.ItemCategory.Tool => new Color(0.6f, 0.5f, 0.3f),
+                PlayerInventory.ItemCategory.Arrow => new Color(0.6f, 0.3f, 0.1f),
                 _ => Color.gray,
             };
         }

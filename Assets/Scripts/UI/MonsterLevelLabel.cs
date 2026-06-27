@@ -1,7 +1,6 @@
 using ProjectName.Core;
 using ProjectName.Systems;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -45,6 +44,7 @@ namespace ProjectName.UI
         private Color _labelColor;
         private GUIStyle _guiStyle;
         private bool _styleInitialized = false;
+        private bool _isInRange;
 
         public int CurrentLevel => _level;
 
@@ -83,7 +83,7 @@ namespace ProjectName.UI
             }
 
             float dist = Vector3.Distance(transform.position, _playerCam.position);
-            if (dist > _maxDisplayDistance) return;
+            _isInRange = dist <= _maxDisplayDistance;
         }
 
         /// <summary>ILevelLabel 구현: 레벨 설정</summary>
@@ -125,6 +125,7 @@ namespace ProjectName.UI
         private void OnGUI()
         {
             if (_playerCam == null || _cachedCamera == null) return;
+            if (!_isInRange) return;
 
             Vector3 worldPos = transform.position + _labelOffset;
             Vector3 screenPos = _cachedCamera.WorldToScreenPoint(worldPos);

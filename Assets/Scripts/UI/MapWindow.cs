@@ -50,10 +50,6 @@ namespace ProjectName.UI
         private GUIStyle _guardCountStyle; // 캐싱: DrawTerritoryCell의 병사 수 스타일 (GC 방지)
         private bool _stylesInitialized;
 
-        // 캐싱: 리플렉션 방지 (매 OnShow() 호출 시 GetField 제거)
-        private bool _reflectionCacheValid;
-        private bool _playerHealthHasLastTerritory;
-
         protected override void Awake()
         {
             base.Awake();
@@ -172,7 +168,7 @@ namespace ProjectName.UI
 
         // ===== IMGUI Rendering =====
 
-        private void OnGUI()
+        protected override void OnGUI()
         {
             if (!_isOpen) return;
 
@@ -198,10 +194,10 @@ namespace ProjectName.UI
             );
 
             // Title
-            Rect titleRect = new Rect(innerRect.x, innerRect.y, innerRect.width, 60f);
+            Rect titleRect = new Rect(innerRect.x, innerRect.y, innerRect.width, 100f);
             GUI.Label(titleRect, "🗺️ 포이즌 대륙", _titleStyle);
 
-            float contentY = titleRect.y + titleRect.height + 10f;
+            float contentY = titleRect.y + titleRect.height + 5f;
             Rect contentRect = new Rect(innerRect.x, contentY, innerRect.width, innerRect.height - (contentY - innerRect.y));
 
             if (_selectedNation == NationType.None)
@@ -368,14 +364,6 @@ namespace ProjectName.UI
             }
 
             GUI.backgroundColor = origBg2;
-
-            // Back button if zoomed into a nation
-            string backLabel = "[ ← 뒤로 ] ";
-            Rect backRect = new Rect(area.x, area.y + area.height - 25f, 150f, 33f);
-            if (GUI.Button(backRect, backLabel))
-            {
-                _selectedNation = NationType.None;
-            }
         }
 
         /// <summary>
@@ -409,8 +397,8 @@ namespace ProjectName.UI
             float gridWidth = area.width;
             float gridHeight = area.height - 65f;
 
-            float cellWidth = _territoryCellWidth;
-            float cellHeight = _territoryCellHeight;
+            float cellWidth = _territoryCellWidth * _currentZoom;
+            float cellHeight = _territoryCellHeight * _currentZoom;
 
             // Calculate columns based on available width
             int cols = Mathf.Max(1, Mathf.FloorToInt((gridWidth + _gridSpacing) / (cellWidth + _gridSpacing)));
