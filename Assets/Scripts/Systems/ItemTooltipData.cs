@@ -19,6 +19,10 @@ namespace ProjectName.Systems
         public int maxDurability;
         public int currentDurability;
         public int count;
+
+        /// <summary>count == -1일 때 무한 재고를 의미</summary>
+        public const int InfiniteCount = -1;
+
         public bool hasDurability => maxDurability > 0;
         public float durabilityRatio => hasDurability
             ? Mathf.Clamp01((float)currentDurability / maxDurability)
@@ -112,35 +116,34 @@ namespace ProjectName.Systems
         /// <summary>ShopWindow.ShopItem → ItemTooltipData</summary>
         public static ItemTooltipData ToTooltipData(this object shopItem)
         {
-            var item = shopItem;
-            if (item == null)
+            if (shopItem == null)
                 return default;
 
-            // Reflection-safe: ShopItem 클래스에 직접 접근하지 않고
-            // ShopItem 구조가 item(ItemData), price, stock, isRare 필드를 가짐
-            var type = item.GetType();
+            // ShopItem 구조: item(ItemData), price, stock, isRare 필드를 가짐
+            // object 타입으로 받아 리플렉션으로 접근 (어셈블리 의존성 분리)
+            var type = shopItem.GetType();
             var itemDataField = type.GetField("item");
             if (itemDataField == null)
                 return default;
 
-            var itemData = itemDataField.GetValue(item) as PlayerInventory.ItemData;
+            var itemData = itemDataField.GetValue(shopItem) as PlayerInventory.ItemData;
             if (itemData == null)
                 return default;
 
             int stock = 0;
             var stockField = type.GetField("stock");
             if (stockField != null)
-                stock = (int)stockField.GetValue(item);
+                stock = (int)stockField.GetValue(shopItem);
 
             int price = 0;
             var priceField = type.GetField("price");
             if (priceField != null)
-                price = (int)priceField.GetValue(item);
+                price = (int)priceField.GetValue(shopItem);
 
             bool isRare = false;
             var rareField = type.GetField("isRare");
             if (rareField != null)
-                isRare = (bool)rareField.GetValue(item);
+                isRare = (bool)rareField.GetValue(shopItem);
 
             return new ItemTooltipData
             {
@@ -151,7 +154,7 @@ namespace ProjectName.Systems
                 category = itemData.category,
                 maxDurability = itemData.maxDurability,
                 currentDurability = itemData.maxDurability,
-                count = stock > 0 ? stock : -1 // -1 = 무한
+                count = stock >= 0 ? stock : ItemTooltipData.InfiniteCount // -1 = 무한, 0 = 품절
             };
         }
 

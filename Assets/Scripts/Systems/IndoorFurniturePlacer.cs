@@ -15,7 +15,7 @@ namespace ProjectName.Systems
 
         private static void ValidatePositive(float value, string paramName)
         {
-            if (value <= 0f)
+            if (value <= 0f || float.IsNaN(value) || float.IsInfinity(value))
                 throw new ArgumentException($"{paramName} must be positive (> 0), but got {value}.", paramName);
         }
 
@@ -24,9 +24,9 @@ namespace ProjectName.Systems
             if (mat != null) return mat;
             var fallback = new Material(Shader.Find("Universal Render Pipeline/Lit"))
             {
-                name = $"{name}_DefaultMat",
-                color = new Color(0.8f, 0.8f, 0.8f)
+                name = $"{name}_DefaultMat"
             };
+            fallback.SetColor("_BaseColor", new Color(0.8f, 0.8f, 0.8f));
             return fallback;
         }
 
@@ -238,17 +238,17 @@ namespace ProjectName.Systems
 
             // 프레임 (테두리)
             // 앞
-            CreateBox(bed, "Frame_Front", new Vector3(width, frameThickness, frameThickness),
-                new Vector3(0, frameThickness * 0.5f, depth * 0.5f - frameThickness * 0.5f), mat);
+            CreateBox(bed, "Frame_Front", new Vector3(width, frameHeight, frameThickness),
+                new Vector3(0, frameHeight * 0.5f, depth * 0.5f - frameThickness * 0.5f), mat);
             // 뒤
-            CreateBox(bed, "Frame_Back", new Vector3(width, frameThickness, frameThickness),
-                new Vector3(0, frameThickness * 0.5f, -depth * 0.5f + frameThickness * 0.5f), mat);
+            CreateBox(bed, "Frame_Back", new Vector3(width, frameHeight, frameThickness),
+                new Vector3(0, frameHeight * 0.5f, -depth * 0.5f + frameThickness * 0.5f), mat);
             // 좌
-            CreateBox(bed, "Frame_Left", new Vector3(frameThickness, frameThickness, depth - frameThickness * 2f),
-                new Vector3(-width * 0.5f + frameThickness * 0.5f, frameThickness * 0.5f, 0), mat);
+            CreateBox(bed, "Frame_Left", new Vector3(frameThickness, frameHeight, depth - frameThickness * 2f),
+                new Vector3(-width * 0.5f + frameThickness * 0.5f, frameHeight * 0.5f, 0), mat);
             // 우
-            CreateBox(bed, "Frame_Right", new Vector3(frameThickness, frameThickness, depth - frameThickness * 2f),
-                new Vector3(width * 0.5f - frameThickness * 0.5f, frameThickness * 0.5f, 0), mat);
+            CreateBox(bed, "Frame_Right", new Vector3(frameThickness, frameHeight, depth - frameThickness * 2f),
+                new Vector3(width * 0.5f - frameThickness * 0.5f, frameHeight * 0.5f, 0), mat);
 
             // 베개 (간단히 작은 박스)
             float pillowWidth = width * 0.25f;
@@ -279,7 +279,7 @@ namespace ProjectName.Systems
         {
             GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             go.name = name;
-            go.transform.SetParent(parent.transform);
+            go.transform.SetParent(parent.transform, false);
             go.transform.localPosition = localPosition;
             go.transform.localScale = size;
 

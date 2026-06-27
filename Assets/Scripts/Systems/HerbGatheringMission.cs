@@ -46,11 +46,11 @@ namespace ProjectName.Systems
                 return results;
             }
             
-            var herbs = Object.FindObjectsOfType<HerbPickup>();
-            var availableHerbs = new List<HerbPickup>();
+            var herbs = Object.FindObjectsByType<HerbPickup>(FindObjectsSortMode.None);
+            var availableHerbs = new List<HerbPickup>(herbs.Length);
             foreach (var h in herbs)
             {
-                if (h.IsAvailable) availableHerbs.Add(h);
+                if (h != null && h.IsAvailable) availableHerbs.Add(h);
             }
             
             if (availableHerbs.Count == 0)
@@ -93,16 +93,32 @@ namespace ProjectName.Systems
                     int finalYield = Mathf.RoundToInt(yield * bonus);
                     
                     // 인벤토리 전달
-                    bool added = PlayerInventory.Instance != null && PlayerInventory.Instance.AddItem(item, finalYield);
-                    
-                    results.Add(new GatherResult
+                    if (PlayerInventory.Instance != null && PlayerInventory.Instance.AddItem(item, finalYield))
                     {
-                        success = true,
-                        message = $"{herbalist.GuardName}: {item.displayName} x{finalYield} 채집! (기본{yield}×{bonus:F1}배)",
-                        herbsGathered = finalYield,
-                        herbName = item.displayName,
-                        gathererName = herbalist.GuardName
-                    });
+                        results.Add(new GatherResult
+                        {
+                            success = true,
+                            message = $"{herbalist.GuardName}: {item.displayName} x{finalYield} 채집! (기본{yield}×{bonus:F1}배)",
+                            herbsGathered = finalYield,
+                            herbName = item.displayName,
+                            gathererName = herbalist.GuardName
+                        });
+                    }
+                    else
+                    {
+                        // NOTE: TryAutoGather가 이미 약초를 소비(harvest)했으므로
+                        // AddItem 실패 시 아이템이 소실됩니다. 이는 HerbPickup.TryAutoGather의
+                        // 설계상 한계로, 향후에는 소비 전 인벤토리 확인 로직으로 개선 필요.
+                        Debug.LogWarning($"[HerbGatheringMission] {herbalist.GuardName}: {item.displayName} x{finalYield} 인벤토리 추가 실패 (가득 참) — 약초가 소실되었습니다.");
+                        results.Add(new GatherResult
+                        {
+                            success = false,
+                            message = $"{herbalist.GuardName}: {item.displayName} 채집 실패 (인벤토리 가득 참)",
+                            herbsGathered = 0,
+                            herbName = item.displayName,
+                            gathererName = herbalist.GuardName
+                        });
+                    }
                 }
                 
                 herbIndex++;
@@ -117,10 +133,10 @@ namespace ProjectName.Systems
         public static List<GuardPlaceholder> GetActiveHerbalists()
         {
             var result = new List<GuardPlaceholder>();
-            var guards = Object.FindObjectsOfType<GuardPlaceholder>();
+            var guards = Object.FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
             foreach (var g in guards)
             {
-                if (g.IsAlive && g.IsRecruited && g.Role == GuardRole.Herbalist)
+                if (g != null && g.isActiveAndEnabled && g.IsAlive && g.IsRecruited && g.Role == GuardRole.Herbalist)
                     result.Add(g);
                 if (result.Count >= MAX_GATHERERS) break;
             }

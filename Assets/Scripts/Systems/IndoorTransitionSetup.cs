@@ -39,7 +39,7 @@ namespace ProjectName.Systems
             triggerGo.transform.position = position;
 
             if (parent != null)
-                triggerGo.transform.SetParent(parent);
+                triggerGo.transform.SetParent(parent, true);
 
             var trigger = triggerGo.AddComponent<BuildingTrigger>();
             trigger.BuildingType = buildingType;

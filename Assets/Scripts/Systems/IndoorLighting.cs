@@ -150,6 +150,7 @@ namespace ProjectName.Systems
         /// 깜빡임 효과를 실행하는 내부 MonoBehaviour.
         /// 방 GameObject에 직접 Component로 추가되어 별도 GameObject 생성을 피합니다.
         /// </summary>
+        [DisallowMultipleComponent]
         private class FlickerRunner : MonoBehaviour
         {
             private Light _target;
@@ -182,6 +183,19 @@ namespace ProjectName.Systems
                 }
             }
 
+            private void OnDisable()
+            {
+                if (_coroutine != null)
+                {
+                    StopCoroutine(_coroutine);
+                    _coroutine = null;
+                }
+
+                // 비활성화 시 intensity를 기본값으로 복원
+                if (_target != null)
+                    _target.intensity = _baseIntensity;
+            }
+
             private void OnDestroy()
             {
                 if (_coroutine != null)
@@ -189,6 +203,10 @@ namespace ProjectName.Systems
                     StopCoroutine(_coroutine);
                     _coroutine = null;
                 }
+
+                // 컴포넌트 제거 시 intensity를 기본값으로 복원
+                if (_target != null)
+                    _target.intensity = _baseIntensity;
             }
         }
     }
