@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ProjectName.Core;
 using UnityEngine;
 
@@ -5,12 +6,13 @@ namespace ProjectName.Systems
 {
     /// <summary>
     /// C11-10: NPC 주택 실내 인테리어 빌더.
-    /// 방(8x3x6) + 나무 바닥 + 나무 패널 벽 + 침대 + 테이블+의자 2개 + 난로.
+    /// 방(8x3x6) + 나무 바닥 + 회반죽 벽 + 침대 + 테이블+의자 2개 + 난로.
     /// </summary>
     public static class HouseInteriorBuilder
     {
         /// <summary>
         /// 완성된 NPC 주택 실내 GameObject 반환.
+        /// 생성된 Material은 자동 추적되어 GameObject 파괴 시 함께 정리됩니다.
         /// </summary>
         public static GameObject BuildHouseInterior()
         {
@@ -54,6 +56,14 @@ namespace ProjectName.Systems
             GameObject room = IndoorBuilder.CreateRoom(roomWidth, roomHeight, roomDepth,
                 floorMat, wallMat, ceilingMat);
 
+            // ===== Material 누수 방지: 생성된 재질을 room에 추적 등록 =====
+            var matTracker = room.AddComponent<MaterialTracker>();
+            matTracker.Track(floorMat);
+            matTracker.Track(wallMat);
+            matTracker.Track(ceilingMat);
+            matTracker.Track(woodMat);
+            matTracker.Track(fabricMat);
+
             // ===== 침대 =====
             GameObject bed = IndoorFurniturePlacer.CreateBed(1.8f, 2.0f, fabricMat);
             bed.transform.SetParent(room.transform);
@@ -96,14 +106,14 @@ namespace ProjectName.Systems
 
             Debug.Log("[HouseInteriorBuilder] NPC 주택 실내 생성 완료!");
 
-            // ===== FIX-01: 마을 주민 NPC 생성 (퀘스트) =====
+            // ===== 마을 주민 NPC 생성 (퀘스트) =====
             GameObject villagerNpc = new GameObject("VillagerNPC");
             villagerNpc.transform.SetParent(room.transform);
             // 테이블 근처
             villagerNpc.transform.localPosition = new Vector3(-1.0f, 0, -1.0f);
             villagerNpc.AddComponent<NPCQuestGiver>();
 
-            // ===== FIX-01: 출구 트리거 생성 =====
+            // ===== 출구 트리거 생성 =====
             GameObject exitTrigger = new GameObject("ExitTrigger");
             exitTrigger.transform.SetParent(room.transform);
             exitTrigger.transform.localPosition = new Vector3(0, 0, roomDepth * 0.5f - 0.5f);
@@ -112,6 +122,31 @@ namespace ProjectName.Systems
             exitBt.InteractRange = 3f;
 
             return room;
+        }
+
+        /// <summary>
+        /// 런타임에 생성된 Material을 추적하여 GameObject 파괴 시 함께 정리합니다.
+        /// (메모리 누수 방지)
+        /// </summary>
+        private class MaterialTracker : MonoBehaviour
+        {
+            private readonly List<Material> _materials = new List<Material>();
+
+            public void Track(Material mat)
+            {
+                if (mat != null)
+                    _materials.Add(mat);
+            }
+
+            private void OnDestroy()
+            {
+                for (int i = _materials.Count - 1; i >= 0; i--)
+                {
+                    if (_materials[i] != null)
+                        Destroy(_materials[i]);
+                }
+                _materials.Clear();
+            }
         }
     }
 }

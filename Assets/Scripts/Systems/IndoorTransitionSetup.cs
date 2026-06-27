@@ -8,6 +8,17 @@ namespace ProjectName.Systems
     /// </summary>
     public static class IndoorTransitionSetup
     {
+        // ── 건물 유형 상수 ───────────────────────────────────────────
+        public const string TYPE_HOUSE = "House";
+        public const string TYPE_SHOP = "Shop";
+        public const string TYPE_CRAFT_HOUSE = "CraftHouse";
+        public const string TYPE_CHURCH = "Church";
+        public const string TYPE_CASTLE = "Castle";
+
+        // ── 기본 상호작용 범위 ──────────────────────────────────────
+        public const float DEFAULT_INTERACT_RANGE = 3f;
+        public const float CASTLE_INTERACT_RANGE = 4f;
+
         /// <summary>
         /// 지정된 위치에 BuildingTrigger를 생성하고 설정합니다.
         /// </summary>
@@ -16,8 +27,14 @@ namespace ProjectName.Systems
         /// <param name="interactRange">상호작용 범위 (기본 3f)</param>
         /// <param name="parent">부모 Transform (선택사항)</param>
         /// <returns>생성된 BuildingTrigger GameObject</returns>
-        public static GameObject CreateBuildingTrigger(Vector3 position, string buildingType, float interactRange = 3f, Transform parent = null)
+        public static GameObject CreateBuildingTrigger(Vector3 position, string buildingType, float interactRange = DEFAULT_INTERACT_RANGE, Transform parent = null)
         {
+            if (string.IsNullOrWhiteSpace(buildingType))
+            {
+                Debug.LogError("[IndoorTransitionSetup] buildingType이 null 또는 빈 문자열");
+                return null;
+            }
+
             GameObject triggerGo = new GameObject($"{buildingType}_Trigger");
             triggerGo.transform.position = position;
 
@@ -28,10 +45,6 @@ namespace ProjectName.Systems
             trigger.BuildingType = buildingType;
             trigger.InteractRange = interactRange;
 
-            // Tag 설정 (Player 찾기 위함)
-            // BuildingTrigger.Start()에서 GameObject.FindGameObjectWithTag("Player")를 사용하므로
-            // Player 태그가 월드에 존재해야 합니다.
-
             Debug.Log($"[IndoorTransitionSetup] {buildingType} BuildingTrigger 생성 완료 at {position}");
             return triggerGo;
         }
@@ -41,7 +54,7 @@ namespace ProjectName.Systems
         /// </summary>
         public static GameObject CreateTutorialHouseTrigger(Vector3 position, Transform parent = null)
         {
-            return CreateBuildingTrigger(position, "House", 3f, parent);
+            return CreateBuildingTrigger(position, TYPE_HOUSE, DEFAULT_INTERACT_RANGE, parent);
         }
 
         /// <summary>
@@ -49,7 +62,7 @@ namespace ProjectName.Systems
         /// </summary>
         public static GameObject CreateShopTrigger(Vector3 position, Transform parent = null)
         {
-            return CreateBuildingTrigger(position, "Shop", 3f, parent);
+            return CreateBuildingTrigger(position, TYPE_SHOP, DEFAULT_INTERACT_RANGE, parent);
         }
 
         /// <summary>
@@ -57,7 +70,7 @@ namespace ProjectName.Systems
         /// </summary>
         public static GameObject CreateCraftHouseTrigger(Vector3 position, Transform parent = null)
         {
-            return CreateBuildingTrigger(position, "CraftHouse", 3f, parent);
+            return CreateBuildingTrigger(position, TYPE_CRAFT_HOUSE, DEFAULT_INTERACT_RANGE, parent);
         }
 
         /// <summary>
@@ -65,7 +78,7 @@ namespace ProjectName.Systems
         /// </summary>
         public static GameObject CreateChurchTrigger(Vector3 position, Transform parent = null)
         {
-            return CreateBuildingTrigger(position, "Church", 3f, parent);
+            return CreateBuildingTrigger(position, TYPE_CHURCH, DEFAULT_INTERACT_RANGE, parent);
         }
 
         /// <summary>
@@ -77,9 +90,13 @@ namespace ProjectName.Systems
         /// <param name="parent">부모 Transform (선택사항)</param>
         public static GameObject CreateCastleTrigger(Vector3 position, string nationStyle = "Empire", Transform parent = null)
         {
-            // Castle 트리거는 buildingType="Castle"로 생성
-            // NationStyle은 EnterBuilding 호출 시 전달됨
-            return CreateBuildingTrigger(position, "Castle", 4f, parent);
+            GameObject go = CreateBuildingTrigger(position, TYPE_CASTLE, CASTLE_INTERACT_RANGE, parent);
+            if (go == null) return null;
+            var trigger = go.GetComponent<BuildingTrigger>();
+            if (trigger != null)
+                trigger.NationStyle = nationStyle;
+            Debug.Log($"[IndoorTransitionSetup] Castle 트리거 생성 완료 (nationStyle: {nationStyle})");
+            return go;
         }
     }
 }

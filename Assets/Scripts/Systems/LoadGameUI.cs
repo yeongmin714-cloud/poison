@@ -1,4 +1,3 @@
-using System.Collections;
 using ProjectName.Core;
 using UnityEngine;
 
@@ -8,7 +7,7 @@ namespace ProjectName.Systems
     /// C17-02: 저장 파일 선택 (불러오기) UI.
     /// C17-03: 슬롯 선택 시 SaveManager.Load() + LoadingManager.LoadScene() 호출.
     /// C17-04: 빈 슬롯은 "비어있음" 표시, 클릭 불가.
-    /// IMGUI 기반으로 SaveManager의 3개 슬롯(0, 1, 2) 정보를 표시합니다.
+    /// IMGUI 기반으로 SaveManager의 5개 슬롯(0~4) 정보를 표시합니다.
     /// </summary>
     public class LoadGameUI : MonoBehaviour
     {
@@ -41,9 +40,19 @@ namespace ProjectName.Systems
         private GUIStyle _slotButtonStyle;
         private GUIStyle _backButtonStyle;
         private GUIStyle _messageStyle;
+        private GUIStyle _dimBgStyle;
+        private GUIStyle _windowBgStyle;
+        private GUIStyle _slotBgStyle;
+        private GUIStyle _emptyBgStyle;
         private bool _stylesInitialized;
 
-        private const int SLOT_COUNT = 5;
+        // 캐시된 텍스처 (메모리 누수 방지용)
+        private Texture2D _cachedDimTex;
+        private Texture2D _cachedBgTex;
+        private Texture2D _cachedSlotTex;
+        private Texture2D _cachedEmptyTex;
+
+        private int _slotCount;
 
         /// <summary>
         /// 메인 메뉴 UI 참조를 설정합니다.
@@ -61,6 +70,7 @@ namespace ProjectName.Systems
             if (SaveManager.Instance != null)
             {
                 _slotInfos = SaveManager.Instance.GetAllSlotInfos();
+                _slotCount = SaveManager.Instance.SlotCount;
             }
             _isLoadingInProgress = false;
         }
@@ -131,6 +141,19 @@ namespace ProjectName.Systems
                 normal = { textColor = new Color(0.9f, 0.7f, 0.3f, 1f) }
             };
 
+            // OnGUI에서 매 프레임 생성하지 않도록 스타일/텍스처를 미리 캐싱
+            _cachedDimTex = MakeTexture(1, 1, new Color(0f, 0f, 0f, 0.5f));
+            _dimBgStyle = new GUIStyle { normal = { background = _cachedDimTex } };
+
+            _cachedBgTex = MakeTexture(1, 1, _bgColor);
+            _windowBgStyle = new GUIStyle { normal = { background = _cachedBgTex } };
+
+            _cachedSlotTex = MakeTexture(1, 1, _slotColor);
+            _slotBgStyle = new GUIStyle { normal = { background = _cachedSlotTex } };
+
+            _cachedEmptyTex = MakeTexture(1, 1, _slotEmptyColor);
+            _emptyBgStyle = new GUIStyle { normal = { background = _cachedEmptyTex } };
+
             _stylesInitialized = true;
         }
 
@@ -142,6 +165,26 @@ namespace ProjectName.Systems
                     tex.SetPixel(x, y, color);
             tex.Apply();
             return tex;
+        }
+
+        /// <summary>
+        /// 생성된 캐시 텍스처를 정리합니다.
+        /// </summary>
+        private void CleanupCachedTextures()
+        {
+            if (_cachedDimTex != null) Destroy(_cachedDimTex);
+            if (_cachedBgTex != null) Destroy(_cachedBgTex);
+            if (_cachedSlotTex != null) Destroy(_cachedSlotTex);
+            if (_cachedEmptyTex != null) Destroy(_cachedEmptyTex);
+            _cachedDimTex = null;
+            _cachedBgTex = null;
+            _cachedSlotTex = null;
+            _cachedEmptyTex = null;
+        }
+
+        private void OnDestroy()
+        {
+            CleanupCachedTextures();
         }
 
         private void Update()
@@ -160,43 +203,36 @@ namespace ProjectName.Systems
 
             if (_mainMenu == null) return;
 
-            // 배경 딤
-            var dimTex = MakeTexture(1, 1, new Color(0f, 0f, 0f, 0.5f));
-            var dimStyle = new GUIStyle { normal = { background = dimTex } };
-            GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "", dimStyle);
+            // 배경 딤 (캐시된 텍스처 사용)
+            GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "", _dimBgStyle);
 
             int centerX = (Screen.width - _windowWidth) / 2;
             int centerY = (Screen.height - _windowHeight) / 2;
 
-            // 메인 박스 배경
-            var bgTex = MakeTexture(1, 1, _bgColor);
-            var bgStyle = new GUIStyle { normal = { background = bgTex } };
-            GUI.Box(new Rect(centerX, centerY, _windowWidth, _windowHeight), "", bgStyle);
+            // 메인 박스 배경 (캐시된 텍스처 사용)
+            GUI.Box(new Rect(centerX, centerY, _windowWidth, _windowHeight), "", _windowBgStyle);
 
             // 제목
             GUI.Label(new Rect(centerX, centerY + 15, _windowWidth, 35), "저장 파일 불러오기", _titleStyle);
 
-            // 슬롯 버튼 (3개)
+            // 슬롯 버튼
             int slotStartY = centerY + 60;
             int slotX = centerX + 20;
             int slotWidth = _windowWidth - 40;
+            int displaySlotCount = (_slotCount > 0) ? _slotCount : SLOT_COUNT_DEFAULT;
 
-            for (int i = 0; i < SLOT_COUNT; i++)
+            for (int i = 0; i < displaySlotCount; i++)
             {
                 int slotY = slotStartY + (_slotButtonHeight + _buttonSpacing) * i;
                 SaveData info = (_slotInfos != null && i < _slotInfos.Length) ? _slotInfos[i] : null;
                 bool hasSave = info != null;
 
+                Rect slotRect = new Rect(slotX, slotY, slotWidth, _slotButtonHeight);
+
                 if (hasSave)
                 {
-                    // 채워진 슬롯: 타임스탬프, Day, Level 정보 표시
-                    GUI.backgroundColor = _slotColor;
-
-                    Rect slotRect = new Rect(slotX, slotY, slotWidth, _slotButtonHeight);
-
-                    var slotBgTex = MakeTexture(1, 1, _slotColor);
-                    var slotBgStyle = new GUIStyle { normal = { background = slotBgTex } };
-                    GUI.Box(slotRect, "", slotBgStyle);
+                    // 채워진 슬롯: 타임스탬프, Day, Level 정보 표시 (캐시된 텍스처 사용)
+                    GUI.Box(slotRect, "", _slotBgStyle);
 
                     // 슬롯 번호 + 타임스탬프 (상단)
                     string header = $"슬롯 {i + 1}  —  {info.timestamp ?? "날짜 없음"}";
@@ -208,30 +244,19 @@ namespace ProjectName.Systems
                     string details = $"{dayStr}  |  {levelStr}";
                     GUI.Label(new Rect(slotX + 10, slotY + 34, slotWidth - 20, 22), details, _slotDetailStyle);
 
-                    // 클릭 가능한 버튼 오버레이
-                    GUI.backgroundColor = Color.clear;
-                    if (!_isLoadingInProgress && GUI.Button(slotRect, "", _slotButtonStyle))
+                    // 클릭 가능한 투명 버튼 오버레이
+                    if (!_isLoadingInProgress)
                     {
-                        OnSlotClicked(i);
-                    }
-
-                    // 로딩 중이면 클릭 방지
-                    if (_isLoadingInProgress)
-                    {
-                        GUI.enabled = false;
-                        GUI.Button(slotRect, "");
-                        GUI.enabled = true;
+                        if (GUI.Button(slotRect, "", _slotButtonStyle))
+                        {
+                            OnSlotClicked(i);
+                        }
                     }
                 }
                 else
                 {
-                    // 빈 슬롯: "비어있음" 표시, 회색
-                    GUI.backgroundColor = _slotEmptyColor;
-                    Rect slotRect = new Rect(slotX, slotY, slotWidth, _slotButtonHeight);
-
-                    var emptyBgTex = MakeTexture(1, 1, _slotEmptyColor);
-                    var emptyBgStyle = new GUIStyle { normal = { background = emptyBgTex } };
-                    GUI.Box(slotRect, "", emptyBgStyle);
+                    // 빈 슬롯: "비어있음" 표시, 회색 (캐시된 텍스처 사용)
+                    GUI.Box(slotRect, "", _emptyBgStyle);
 
                     // "비어있음" 텍스트
                     string slotLabel = $"슬롯 {i + 1}";
@@ -243,19 +268,23 @@ namespace ProjectName.Systems
             // 빈 슬롯 클릭 메시지
             if (!string.IsNullOrEmpty(_emptySlotMessage))
             {
-                int msgY = slotStartY + (_slotButtonHeight + _buttonSpacing) * 3 + 5;
+                int msgY = slotStartY + (_slotButtonHeight + _buttonSpacing) * displaySlotCount + 5;
                 GUI.Label(new Rect(centerX, msgY, _windowWidth, 30), _emptySlotMessage, _messageStyle);
             }
 
             // 뒤로 가기 버튼
-            int backButtonY = slotStartY + (_slotButtonHeight + _buttonSpacing) * 3 + 35;
+            int backButtonY = slotStartY + (_slotButtonHeight + _buttonSpacing) * displaySlotCount + 35;
             int backButtonWidth = 120;
             int backButtonX = centerX + (_windowWidth - backButtonWidth) / 2;
 
-            GUI.backgroundColor = _backColor;
-            if (!_isLoadingInProgress && GUI.Button(new Rect(backButtonX, backButtonY, backButtonWidth, _backButtonHeight), "← 뒤로", _backButtonStyle))
+            if (!_isLoadingInProgress)
             {
-                OnBackClicked();
+                GUI.backgroundColor = _backColor;
+                if (GUI.Button(new Rect(backButtonX, backButtonY, backButtonWidth, _backButtonHeight), "← 뒤로", _backButtonStyle))
+                {
+                    OnBackClicked();
+                }
+                GUI.backgroundColor = Color.white;
             }
         }
 
@@ -267,7 +296,7 @@ namespace ProjectName.Systems
 
             if (info == null)
             {
-                // 빈 슬롯 클릭 → 메시지 표시
+                // 빈 슬롯 클릭 → 메시지 표시 (데이터 동기화 지연 등으로 info가 null인 경우)
                 _emptySlotMessage = "저장된 게임이 없습니다";
                 _emptySlotMessageTimer = 2.0f;
                 return;
@@ -305,5 +334,8 @@ namespace ProjectName.Systems
             }
             gameObject.SetActive(false);
         }
+
+        // 상수: 기본 슬롯 개수 (SaveManager.SlotCount를 우선 사용)
+        private const int SLOT_COUNT_DEFAULT = 5;
     }
 }

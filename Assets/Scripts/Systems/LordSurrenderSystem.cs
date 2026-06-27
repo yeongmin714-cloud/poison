@@ -79,9 +79,12 @@ namespace ProjectName.Systems
         /// <returns>영주가 성공적으로 소환/항복했으면 true</returns>
         public static bool TrySummonLord(TerritoryId territoryId)
         {
-            // 이미 처리된 영주
-            if (_lords.TryGetValue(territoryId, out var existing) && !existing.isAlive)
-                return false;
+            // 이미 처리된 영주 — 사망했거나 이미 항복함
+            if (_lords.TryGetValue(territoryId, out var existing))
+            {
+                if (!existing.isAlive || existing.hasSurrendered)
+                    return false;
+            }
 
             // 영지 데이터 확인
             var db = TerritoryDatabase.Instance;
@@ -135,9 +138,9 @@ namespace ProjectName.Systems
             lord.hasSurrendered = true;
             _lords[territoryId] = lord;
             state.lordSurrendered = true;
+            state.lordDefeated = true;
 
             Debug.Log($"[LordSurrenderSystem] 🏳️ 영주 항복! 영지:{territoryId} {lord.lordName}: \"{surrenderText}\"");
-            Debug.Log($"[LordSurrenderSystem] 항복 대화: {surrenderText}");
 
             OnLordSummoned?.Invoke(territoryId, lord);
             OnLordSurrendered?.Invoke(territoryId, lord);
@@ -159,7 +162,12 @@ namespace ProjectName.Systems
             // 간단한 시각적 표시를 위한 큐브
             var renderer = lordGo.AddComponent<MeshRenderer>();
             var filter = lordGo.AddComponent<MeshFilter>();
-            filter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            var cubeMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            if (cubeMesh == null)
+            {
+                Debug.LogWarning("[LordSurrenderSystem] Built-in Cube.fbx를 찾을 수 없습니다. 큐브 없이 Placeholder 생성합니다.");
+            }
+            filter.sharedMesh = cubeMesh;
             renderer.material.color = GetLordColor(lord.personality);
             lordGo.transform.localScale = new Vector3(1.5f, 2f, 1.5f);
 
@@ -169,7 +177,12 @@ namespace ProjectName.Systems
             crownGo.transform.localPosition = new Vector3(0f, 1.5f, 0f);
             var crownRenderer = crownGo.AddComponent<MeshRenderer>();
             var crownFilter = crownGo.AddComponent<MeshFilter>();
-            crownFilter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            var crownMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            if (crownMesh == null)
+            {
+                Debug.LogWarning("[LordSurrenderSystem] Crown용 Built-in Cube.fbx를 찾을 수 없습니다.");
+            }
+            crownFilter.sharedMesh = crownMesh;
             crownRenderer.material.color = Color.yellow;
             crownGo.transform.localScale = new Vector3(0.8f, 0.3f, 0.8f);
 
@@ -183,7 +196,21 @@ namespace ProjectName.Systems
         /// </summary>
         private static Vector3 FindCastlePosition(TerritoryId territoryId)
         {
-            // "Castle" 이름 포함 건물 찾기
+            // 우선 TerritoryManager의 캐시된 건물 목록에서 Castle 검색 (현재 영지)
+            if (TerritoryManager.Instance != null)
+            {
+                foreach (var name in TerritoryManager.Instance.BuildingNames)
+                {
+                    var b = TerritoryManager.Instance.GetBuilding(name);
+                    if (b != null && b.buildingName != null &&
+                        b.buildingName.ToLowerInvariant().Contains("castle"))
+                    {
+                        return b.transform.position + Vector3.up * 0.5f;
+                    }
+                }
+            }
+
+            // TerritoryManager에 없으면 전역 검색 (fallback — 성능 주의)
             var buildings = UnityEngine.Object.FindObjectsOfType<BuildingPlaceholder>();
             foreach (var b in buildings)
             {

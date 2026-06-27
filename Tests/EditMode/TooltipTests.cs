@@ -19,7 +19,7 @@ public class TooltipTests
             displayName = "테스트 아이템",
             description = "이것은 테스트 아이템입니다",
             effects = "HP +20",
-            rarity = PlayerInventory.ItemRarity.Rare,
+            rarity = ItemRarity.Rare,
             category = PlayerInventory.ItemCategory.Potion,
             maxDurability = 50,
             maxStack = 99
@@ -51,7 +51,7 @@ public class TooltipTests
         Assert.AreEqual("테스트 아이템", data.itemName);
         Assert.AreEqual("이것은 테스트 아이템입니다", data.description);
         Assert.AreEqual("HP +20", data.effects);
-        Assert.AreEqual(PlayerInventory.ItemRarity.Rare, data.rarity);
+        Assert.AreEqual(ItemRarity.Rare, data.rarity);
         Assert.AreEqual(PlayerInventory.ItemCategory.Potion, data.category);
     }
 
@@ -98,18 +98,20 @@ public class TooltipTests
     [Test]
     public void ItemTooltipData_RarityDisplayName()
     {
-        Assert.AreEqual("일반", ItemTooltipData.GetRarityDisplayName(PlayerInventory.ItemRarity.Common));
-        Assert.AreEqual("고급", ItemTooltipData.GetRarityDisplayName(PlayerInventory.ItemRarity.Uncommon));
-        Assert.AreEqual("희귀", ItemTooltipData.GetRarityDisplayName(PlayerInventory.ItemRarity.Rare));
-        Assert.AreEqual("영웅", ItemTooltipData.GetRarityDisplayName(PlayerInventory.ItemRarity.Epic));
-        Assert.AreEqual("전설", ItemTooltipData.GetRarityDisplayName(PlayerInventory.ItemRarity.Legendary));
+        Assert.AreEqual("일반", ItemTooltipData.GetRarityDisplayName(ItemRarity.Common));
+        Assert.AreEqual("고급", ItemTooltipData.GetRarityDisplayName(ItemRarity.Uncommon));
+        Assert.AreEqual("희귀", ItemTooltipData.GetRarityDisplayName(ItemRarity.Rare));
+        Assert.AreEqual("영웅", ItemTooltipData.GetRarityDisplayName(ItemRarity.Epic));
+        Assert.AreEqual("전설", ItemTooltipData.GetRarityDisplayName(ItemRarity.Legendary));
+        Assert.AreEqual("유니크", ItemTooltipData.GetRarityDisplayName(ItemRarity.Unique));
     }
 
     [Test]
     public void ItemTooltipData_RarityBorderColor()
     {
-        Assert.AreEqual(new Color(0.8f, 0.8f, 0.8f, 1f), ItemTooltipData.GetRarityBorderColor(PlayerInventory.ItemRarity.Common));
-        Assert.AreEqual(new Color(1.0f, 0.7f, 0.1f, 1f), ItemTooltipData.GetRarityBorderColor(PlayerInventory.ItemRarity.Legendary));
+        Assert.AreEqual(new Color(0.8f, 0.8f, 0.8f, 1f), ItemTooltipData.GetRarityBorderColor(ItemRarity.Common));
+        Assert.AreEqual(new Color(1.0f, 0.7f, 0.1f, 1f), ItemTooltipData.GetRarityBorderColor(ItemRarity.Legendary));
+        Assert.AreEqual(new Color(1.0f, 0.85f, 0.0f, 1f), ItemTooltipData.GetRarityBorderColor(ItemRarity.Unique));
     }
 
     [Test]

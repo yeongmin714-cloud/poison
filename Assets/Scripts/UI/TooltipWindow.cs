@@ -409,6 +409,7 @@ namespace ProjectName.UI
                 PlayerInventory.ItemCategory.Weapon => "무기",
                 PlayerInventory.ItemCategory.Armor => "방어구",
                 PlayerInventory.ItemCategory.Tool => "도구",
+                PlayerInventory.ItemCategory.Arrow => "화살",
                 _ => "기타"
             };
         }

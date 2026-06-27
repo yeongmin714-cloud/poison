@@ -37,18 +37,23 @@ namespace ProjectName.Core
 
         /// <summary>
         /// 피격 시 Renderer의 material.color를 하양으로 변경 후 0.1초 뒤 원래 색상 복원.
+        /// Renderer.material 접근으로 인한 Material 인스턴스화 누수를 방지하기 위해
+        /// material 참조를 한 번만 가져와 캐싱 후 사용.
         /// </summary>
         /// <param name="renderer">대상 Renderer</param>
         public static void PlayHitFlash(Renderer renderer)
         {
-            if (renderer == null || renderer.material == null) return;
+            if (renderer == null || renderer.sharedMaterial == null) return;
 
-            Color originalColor = renderer.material.color;
-            renderer.material.color = Color.white;
+            // renderer.material getter는 sharedMaterial을 자동 인스턴스화하므로
+            // 딱 한 번만 호출하여 Material 객체 누수 방지
+            Material instance = renderer.material;
+            Color originalColor = instance.color;
+            instance.color = Color.white;
 
-            // 코루틴 대신 임시 GameObject + Update 루프로 복원 처리
+            // 임시 GameObject + Update 루프로 복원 처리
             var runner = new GameObject("HitFlash_Runner");
-            runner.AddComponent<HitFlashRunner>().Init(renderer, originalColor);
+            runner.AddComponent<HitFlashRunner>().Init(instance, originalColor);
         }
 
         /// <summary>
@@ -75,17 +80,18 @@ namespace ProjectName.Core
 
     /// <summary>
     /// HitFlash 처리를 위한 내부 MonoBehaviour (Update 기반 복원)
+    /// Material 참조를 직접 받아 renderer.material 재접근 방지
     /// </summary>
     internal class HitFlashRunner : MonoBehaviour
     {
-        private Renderer _targetRenderer;
+        private Material _targetMaterial;
         private Color _originalColor;
         private float _elapsed = 0f;
         private const float DURATION = 0.1f;
 
-        public void Init(Renderer renderer, Color originalColor)
+        public void Init(Material targetMaterial, Color originalColor)
         {
-            _targetRenderer = renderer;
+            _targetMaterial = targetMaterial;
             _originalColor = originalColor;
         }
 
@@ -94,8 +100,8 @@ namespace ProjectName.Core
             _elapsed += Time.deltaTime;
             if (_elapsed >= DURATION)
             {
-                if (_targetRenderer != null && _targetRenderer.material != null)
-                    _targetRenderer.material.color = _originalColor;
+                if (_targetMaterial != null)
+                    _targetMaterial.color = _originalColor;
                 Destroy(gameObject);
             }
         }

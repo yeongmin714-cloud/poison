@@ -20,6 +20,9 @@ namespace ProjectName.Systems
         private Transform _player;
         private bool _playerNearby = false;
 
+        [Header("건물 추가 설정")]
+        [SerializeField] private string _nationStyle = null;
+
         /// <summary>건물 유형 (House, Shop, CraftHouse, Church, Castle)</summary>
         public string BuildingType
         {
@@ -32,6 +35,13 @@ namespace ProjectName.Systems
         {
             get => _interactRange;
             set => _interactRange = value;
+        }
+
+        /// <summary>국가 스타일 (Castle 전용: Eastern, Western, Southern, Northern, Empire)</summary>
+        public string NationStyle
+        {
+            get => _nationStyle;
+            set => _nationStyle = value;
         }
 
         private void Start()
@@ -57,8 +67,8 @@ namespace ProjectName.Systems
                 }
                 else
                 {
-                    Debug.Log($"[BuildingTrigger] E키 입력 — {_buildingType} 진입");
-                    BuildingEvents.RequestEnterBuilding(_buildingType);
+                    Debug.Log($"[BuildingTrigger] E키 입력 — {_buildingType} 진입 (nationStyle: {_nationStyle ?? \"null\"})");
+                    BuildingEvents.RequestEnterBuilding(_buildingType, _nationStyle);
                 }
             }
         }

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -9,14 +10,44 @@ namespace ProjectName.Systems
     public static class IndoorFurniturePlacer
     {
         // ===================================================================
+        // 유효성 검사 헬퍼
+        // ===================================================================
+
+        private static void ValidatePositive(float value, string paramName)
+        {
+            if (value <= 0f)
+                throw new ArgumentException($"{paramName} must be positive (> 0), but got {value}.", paramName);
+        }
+
+        private static Material EnsureMaterial(Material mat, string name)
+        {
+            if (mat != null) return mat;
+            var fallback = new Material(Shader.Find("Universal Render Pipeline/Lit"))
+            {
+                name = $"{name}_DefaultMat",
+                color = new Color(0.8f, 0.8f, 0.8f)
+            };
+            return fallback;
+        }
+
+        // ===================================================================
         // 테이블
         // ===================================================================
 
         /// <summary>
         /// 테이블 생성 (상판 + 다리 4개).
         /// </summary>
+        /// <param name="width">테이블 상판 폭 (meter, > 0).</param>
+        /// <param name="depth">테이블 상판 깊이 (meter, > 0).</param>
+        /// <param name="height">테이블 전체 높이 (meter, > 0).</param>
+        /// <param name="mat">머티리얼 (null 시 기본 Lit 생성).</param>
         public static GameObject CreateTable(float width, float depth, float height, Material mat)
         {
+            ValidatePositive(width, nameof(width));
+            ValidatePositive(depth, nameof(depth));
+            ValidatePositive(height, nameof(height));
+
+            mat = EnsureMaterial(mat, "Table");
             GameObject table = new GameObject("Table");
 
             // 상판
@@ -46,8 +77,12 @@ namespace ProjectName.Systems
         /// <summary>
         /// 의자 생성 (좌석 + 등받이 + 다리 4개).
         /// </summary>
+        /// <param name="height">의자 전체 높이 (meter, > 0).</param>
+        /// <param name="mat">머티리얼 (null 시 기본 Lit 생성).</param>
         public static GameObject CreateChair(float height, Material mat)
         {
+            ValidatePositive(height, nameof(height));
+            mat = EnsureMaterial(mat, "Chair");
             GameObject chair = new GameObject("Chair");
 
             float seatThickness = 0.05f;
@@ -70,13 +105,13 @@ namespace ProjectName.Systems
             float legHeight = seatY - seatThickness * 0.5f;
             float legOffset = 0.18f;
 
-            CreateBox(chair, "Leg_FL", new Vector3(legThickness, legHeight, legThickness),
+            CreateBox(chair, "Leg_FrontLeft", new Vector3(legThickness, legHeight, legThickness),
                 new Vector3(-legOffset, legHeight * 0.5f, -legOffset), mat);
-            CreateBox(chair, "Leg_FR", new Vector3(legThickness, legHeight, legThickness),
+            CreateBox(chair, "Leg_FrontRight", new Vector3(legThickness, legHeight, legThickness),
                 new Vector3(legOffset, legHeight * 0.5f, -legOffset), mat);
-            CreateBox(chair, "Leg_BL", new Vector3(legThickness, legHeight, legThickness),
+            CreateBox(chair, "Leg_BackLeft", new Vector3(legThickness, legHeight, legThickness),
                 new Vector3(-legOffset, legHeight * 0.5f, legOffset), mat);
-            CreateBox(chair, "Leg_BR", new Vector3(legThickness, legHeight, legThickness),
+            CreateBox(chair, "Leg_BackRight", new Vector3(legThickness, legHeight, legThickness),
                 new Vector3(legOffset, legHeight * 0.5f, legOffset), mat);
 
             return chair;
@@ -89,8 +124,17 @@ namespace ProjectName.Systems
         /// <summary>
         /// 선반 생성 (기둥 4개 + 선반판 N개).
         /// </summary>
+        /// <param name="width">선반 전체 폭 (meter, > 0).</param>
+        /// <param name="height">선반 전체 높이 (meter, > 0).</param>
+        /// <param name="depth">선반 전체 깊이 (meter, > 0).</param>
+        /// <param name="mat">머티리얼 (null 시 기본 Lit 생성).</param>
+        /// <param name="shelves">선반판 개수 (기본 3, 최소 1).</param>
         public static GameObject CreateShelf(float width, float height, float depth, Material mat, int shelves = 3)
         {
+            ValidatePositive(width, nameof(width));
+            ValidatePositive(height, nameof(height));
+            ValidatePositive(depth, nameof(depth));
+            mat = EnsureMaterial(mat, "Shelf");
             GameObject shelf = new GameObject("Shelf");
 
             float postThickness = 0.05f;
@@ -134,8 +178,16 @@ namespace ProjectName.Systems
         /// <summary>
         /// 카운터/데스크 생성.
         /// </summary>
+        /// <param name="width">카운터 폭 (meter, > 0).</param>
+        /// <param name="height">카운터 전체 높이 (meter, > 0).</param>
+        /// <param name="depth">카운터 깊이 (meter, > 0).</param>
+        /// <param name="mat">머티리얼 (null 시 기본 Lit 생성).</param>
         public static GameObject CreateCounter(float width, float height, float depth, Material mat)
         {
+            ValidatePositive(width, nameof(width));
+            ValidatePositive(height, nameof(height));
+            ValidatePositive(depth, nameof(depth));
+            mat = EnsureMaterial(mat, "Counter");
             GameObject counter = new GameObject("Counter");
 
             // 상판
@@ -164,10 +216,16 @@ namespace ProjectName.Systems
         // ===================================================================
 
         /// <summary>
-        /// 침대 생성 (매트리스 + 프레임).
+        /// 침대 생성 (매트리스 + 프레임 + 베개).
         /// </summary>
+        /// <param name="width">침대 폭 (meter, > 0).</param>
+        /// <param name="depth">침대 깊이 (meter, > 0).</param>
+        /// <param name="mat">머티리얼 (null 시 기본 Lit 생성).</param>
         public static GameObject CreateBed(float width, float depth, Material mat)
         {
+            ValidatePositive(width, nameof(width));
+            ValidatePositive(depth, nameof(depth));
+            mat = EnsureMaterial(mat, "Bed");
             GameObject bed = new GameObject("Bed");
 
             float mattressHeight = 0.2f;
@@ -208,7 +266,15 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// PrimitiveType.Cube 기반 상자 생성.
+        /// Cube 프리미티브(1×1×1)를 생성하고 localScale로 크기를 설정.
+        /// BoxCollider는 유지되어 물리적 존재감을 제공.
         /// </summary>
+        /// <param name="parent">부모 Transform을 가진 GameObject.</param>
+        /// <param name="name">자식 오브젝트 이름.</param>
+        /// <param name="size">월드 스케일 (x/y/z meter).</param>
+        /// <param name="localPosition">부모 기준 로컬 위치.</param>
+        /// <param name="mat">할당할 머티리얼 (null 허용, EnsureMaterial로 처리됨).</param>
+        /// <returns>생성된 Cube GameObject.</returns>
         private static GameObject CreateBox(GameObject parent, string name, Vector3 size, Vector3 localPosition, Material mat)
         {
             GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);

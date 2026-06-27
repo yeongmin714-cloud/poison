@@ -14,9 +14,10 @@ namespace ProjectName.Systems
     {
         private HerbPickup _herbPickup;
         private MeshRenderer _meshRenderer;
-        private Material _material;
+        private MaterialPropertyBlock _propBlock;
         private Color _originalColor;
         private bool _hasRenderer;
+        private static readonly int ColorProp = Shader.PropertyToID("_Color");
 
         private void Awake()
         {
@@ -26,8 +27,15 @@ namespace ProjectName.Systems
 
             if (_hasRenderer)
             {
-                _material = _meshRenderer.material;
-                _originalColor = _material.color;
+                _propBlock = new MaterialPropertyBlock();
+                _meshRenderer.GetPropertyBlock(_propBlock);
+
+                Material sharedMat = _meshRenderer.sharedMaterial;
+                _originalColor = sharedMat != null ? sharedMat.color : Color.white;
+
+                // 초기값 설정 (GetCurrentAlpha()가 이벤트 발생 전에 호출돼도 안전)
+                _propBlock.SetColor(ColorProp, _originalColor);
+                _meshRenderer.SetPropertyBlock(_propBlock);
             }
         }
 
@@ -61,11 +69,12 @@ namespace ProjectName.Systems
 
         private void SetAlpha(float alpha)
         {
-            if (!_hasRenderer) return;
+            if (!_hasRenderer || _propBlock == null) return;
 
             Color color = _originalColor;
             color.a = alpha;
-            _material.color = color;
+            _propBlock.SetColor(ColorProp, color);
+            _meshRenderer.SetPropertyBlock(_propBlock);
         }
 
         /// <summary>
@@ -73,8 +82,9 @@ namespace ProjectName.Systems
         /// </summary>
         public float GetCurrentAlpha()
         {
-            if (!_hasRenderer) return 1f;
-            return _material.color.a;
+            if (!_hasRenderer || _propBlock == null) return 1f;
+            _meshRenderer.GetPropertyBlock(_propBlock);
+            return _propBlock.GetColor(ColorProp).a;
         }
     }
 }

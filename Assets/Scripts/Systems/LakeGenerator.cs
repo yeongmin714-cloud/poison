@@ -131,6 +131,8 @@ namespace ProjectName.Systems
                 {
                     for (int gx = 0; gx < gridRes; gx++)
                     {
+                        if (isWater[gy, gx]) continue; // Already counted
+
                         float wx = (gx + 0.5f) * cellSize - _radius;
                         float wz = (gy + 0.5f) * cellSize - _radius;
                         float distFromCenter = Mathf.Sqrt(wx * wx + wz * wz);
@@ -201,7 +203,8 @@ namespace ProjectName.Systems
             _waterSurface.transform.localScale = new Vector3(scale, scale, scale);
 
             // Remove default collider from visual plane
-            DestroyImmediate(_waterSurface.GetComponent<MeshCollider>());
+            var meshCollider = _waterSurface.GetComponent<MeshCollider>();
+            if (meshCollider != null) Destroy(meshCollider);
 
             // URP Lit transparent material
             _surfaceRenderer = _waterSurface.GetComponent<MeshRenderer>();
@@ -236,7 +239,9 @@ namespace ProjectName.Systems
             BoxCollider collider = _collisionVolume.AddComponent<BoxCollider>();
             collider.isTrigger = true;
             float volumeSize = _radius * 2f;
-            collider.size = new Vector3(volumeSize, Mathf.Max(1f, _depth), volumeSize);
+            float volumeHeight = Mathf.Max(1f, _depth);
+            collider.size = new Vector3(volumeSize, volumeHeight, volumeSize);
+            collider.center = new Vector3(0f, -volumeHeight * 0.5f, 0f);
 
             _collisionVolume.tag = "Water";
 
@@ -274,6 +279,23 @@ namespace ProjectName.Systems
             {
                 Destroy(_surfaceMaterial);
                 _surfaceMaterial = null;
+            }
+
+            // Destroy created child objects explicitly (belt-and-suspenders cleanup)
+            if (_waterSurface != null)
+            {
+                Destroy(_waterSurface);
+                _waterSurface = null;
+            }
+            if (_lakeBed != null)
+            {
+                Destroy(_lakeBed);
+                _lakeBed = null;
+            }
+            if (_collisionVolume != null)
+            {
+                Destroy(_collisionVolume);
+                _collisionVolume = null;
             }
         }
     }

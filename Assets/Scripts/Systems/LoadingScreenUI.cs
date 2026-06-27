@@ -76,7 +76,7 @@ namespace ProjectName.Systems
         {
             _manager = GetComponent<LoadingManager>();
             if (_manager == null)
-                _manager = FindObjectOfType<LoadingManager>();
+                _manager = FindFirstObjectByType<LoadingManager>();
 
             DontDestroyOnLoad(gameObject);
         }

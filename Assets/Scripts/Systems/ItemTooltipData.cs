@@ -37,6 +37,7 @@ namespace ProjectName.Systems
                 ItemRarity.Rare => "희귀",
                 ItemRarity.Epic => "영웅",
                 ItemRarity.Legendary => "전설",
+                ItemRarity.Unique => "유니크",
                 _ => "일반"
             };
         }
@@ -51,6 +52,7 @@ namespace ProjectName.Systems
                 ItemRarity.Rare => new Color(0.3f, 0.5f, 1.0f, 1f),
                 ItemRarity.Epic => new Color(0.7f, 0.3f, 0.9f, 1f),
                 ItemRarity.Legendary => new Color(1.0f, 0.7f, 0.1f, 1f),
+                ItemRarity.Unique => new Color(1.0f, 0.85f, 0.0f, 1f),
                 _ => new Color(0.8f, 0.8f, 0.8f, 1f)
             };
         }
@@ -70,6 +72,7 @@ namespace ProjectName.Systems
                 PlayerInventory.ItemCategory.Weapon => new Color(0.8f, 0.3f, 0.2f, 1f),
                 PlayerInventory.ItemCategory.Armor => new Color(0.4f, 0.5f, 0.8f, 1f),
                 PlayerInventory.ItemCategory.Tool => new Color(0.6f, 0.5f, 0.3f, 1f),
+                PlayerInventory.ItemCategory.Arrow => new Color(0.6f, 0.4f, 0.2f, 1f),
                 _ => Color.gray
             };
         }

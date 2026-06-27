@@ -33,6 +33,9 @@ namespace ProjectName.Systems
         private Transform _player;
         private Keyboard _keyboard;
 
+        // Create()에서 생성된 Material 추적 (메모리 누수 방지)
+        private List<Material> _createdMaterials = new List<Material>();
+
         // ================================================================
         // ILootBasket Implementation
         // ================================================================
@@ -173,14 +176,13 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 모든 아이템을 플레이어 인벤토리로 이동 후 바구니를 소멸시킵니다.
+        /// 모든 아이템을 플레이어 인벤토리로 이동합니다.
+        /// 인벤토리가 가득 차서 이동 실패한 아이템은 바구니에 남깁니다.
         /// </summary>
         /// <returns>하나라도 성공적으로 이동한 경우 true</returns>
         public bool TakeAll()
         {
             if (_isLooted) return false;
-            _isLooted = true;
-            HidePrompt();
 
             if (PlayerInventory.Instance == null)
             {
@@ -190,24 +192,32 @@ namespace ProjectName.Systems
             }
 
             bool anySuccess = false;
-            foreach (var entry in _items)
+            // 뒤에서부터 순회하여 안전하게 제거
+            for (int i = _items.Count - 1; i >= 0; i--)
             {
+                var entry = _items[i];
                 if (entry == null || entry.item == null || entry.count <= 0) continue;
 
                 bool success = PlayerInventory.Instance.AddItem(entry.item, entry.count);
                 if (success)
                 {
                     Debug.Log($"[LootBasket] {entry.item.displayName} x{entry.count} 획득!");
+                    _items.RemoveAt(i);
                     anySuccess = true;
                 }
                 else
                 {
-                    Debug.LogWarning($"[LootBasket] {entry.item.displayName} x{entry.count} — 인벤토리 가득 참, 일부 손실!");
+                    Debug.LogWarning($"[LootBasket] {entry.item.displayName} x{entry.count} — 인벤토리 가득 참, 바구니에 남김!");
                 }
             }
 
-            _items.Clear();
-            Destroy(gameObject);
+            if (_items.Count == 0)
+            {
+                _isLooted = true;
+                HidePrompt();
+                Destroy(gameObject);
+            }
+
             return anySuccess;
         }
 
@@ -225,6 +235,17 @@ namespace ProjectName.Systems
 
             // 자동 소멸 타이머
             Destroy(gameObject, _lifetime);
+        }
+
+        private void OnDestroy()
+        {
+            // Create()에서 생성된 Material 정리 (메모리 누수 방지)
+            foreach (var mat in _createdMaterials)
+            {
+                if (mat != null)
+                    Destroy(mat);
+            }
+            _createdMaterials.Clear();
         }
 
         private void Update()
@@ -266,6 +287,7 @@ namespace ProjectName.Systems
             }
 
             HidePrompt();
+            _playerNearby = false; // 프롬프트 상태 리셋 — LootWindow 닫힌 후 재표시 가능하도록
 
             if (OnOpenLootWindowRequested != null)
             {
@@ -326,11 +348,13 @@ namespace ProjectName.Systems
             body.transform.localPosition = new Vector3(0, 0.2f, 0);
             body.transform.localScale = new Vector3(0.8f, 0.6f, 0.8f);
 
+            Material bodyMat = null;
             Renderer bodyRenderer = body.GetComponent<Renderer>();
             if (bodyRenderer != null)
             {
-                bodyRenderer.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                bodyRenderer.material.color = new Color(0.6f, 0.4f, 0.2f);
+                bodyMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                bodyMat.color = new Color(0.6f, 0.4f, 0.2f);
+                bodyRenderer.material = bodyMat;
             }
 
             Collider bodyCol = body.GetComponent<Collider>();
@@ -343,11 +367,13 @@ namespace ProjectName.Systems
             opening.transform.localPosition = new Vector3(0, 0.55f, 0);
             opening.transform.localScale = new Vector3(0.85f, 0.1f, 0.85f);
 
+            Material openingMat = null;
             Renderer openingRenderer = opening.GetComponent<Renderer>();
             if (openingRenderer != null)
             {
-                openingRenderer.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                openingRenderer.material.color = new Color(0.5f, 0.3f, 0.15f);
+                openingMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                openingMat.color = new Color(0.5f, 0.3f, 0.15f);
+                openingRenderer.material = openingMat;
             }
 
             Collider openingCol = opening.GetComponent<Collider>();
@@ -361,6 +387,8 @@ namespace ProjectName.Systems
             // LootBasket 컴포넌트 추가
             LootBasket basket = basketGO.AddComponent<LootBasket>();
             basket._lifetime = lifetime;
+            basket._createdMaterials.Add(bodyMat);
+            basket._createdMaterials.Add(openingMat);
 
             return basket;
         }
