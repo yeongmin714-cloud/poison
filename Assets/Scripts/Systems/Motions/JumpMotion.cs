@@ -313,11 +313,12 @@ namespace ProjectName.Systems.Motions
                 float t = Mathf.Clamp01(elapsed / _airTime);
                 float heightCurve = _heightCurve.Evaluate(t);
 
-                // Body at peak height
+                // Body at peak height (curve drives jump arc shape)
                 if (_hipsBone != null)
                 {
                     Vector3 hipsPos = _hipsOriginalLocalPos;
-                    hipsPos.y += _jumpHeight * (1f - Mathf.Pow(2f * t - 1f, 2f)); // arch
+                    float parabola = 1f - Mathf.Pow(2f * t - 1f, 2f); // natural arc 0→1→0
+                    hipsPos.y += _jumpHeight * parabola * heightCurve; // shaped by curve
                     _hipsBone.localPosition = hipsPos;
                 }
 
@@ -338,17 +339,25 @@ namespace ProjectName.Systems.Motions
                     _rightLegIK.Target.localPosition = legTarget;
                 }
 
-                // Arms balance
+                // Arms balance (preserve original Y/Z offsets, add outward wing)
                 if (_leftArmBone != null)
                 {
                     float armAngle = Mathf.Lerp(-120f, -90f, t);
-                    _leftArmBone.localEulerAngles = new Vector3(armAngle, -10f, 0f);
+                    float yWing = Mathf.Lerp(0f, -10f, t); // smooth wing-out
+                    _leftArmBone.localEulerAngles = new Vector3(
+                        _leftArmOriginalEuler.x + armAngle,
+                        _leftArmOriginalEuler.y + yWing,
+                        _leftArmOriginalEuler.z);
                 }
 
                 if (_rightArmBone != null)
                 {
                     float armAngle = Mathf.Lerp(-120f, -90f, t);
-                    _rightArmBone.localEulerAngles = new Vector3(armAngle, 10f, 0f);
+                    float yWing = Mathf.Lerp(0f, 10f, t); // smooth wing-out
+                    _rightArmBone.localEulerAngles = new Vector3(
+                        _rightArmOriginalEuler.x + armAngle,
+                        _rightArmOriginalEuler.y + yWing,
+                        _rightArmOriginalEuler.z);
                 }
 
                 yield return null;

@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems.Motions
 {
@@ -53,6 +52,7 @@ namespace ProjectName.Systems.Motions
         private Quaternion _headOriginalLocalRot;
         private float _breathTimer;
         private bool _isPlaying;
+        private bool _wasPlayingBeforeDisable;
 
         #endregion
 
@@ -93,12 +93,14 @@ namespace ProjectName.Systems.Motions
 
         private void OnEnable()
         {
-            if (_isPlaying)
+            if (_wasPlayingBeforeDisable)
                 StartMotion();
+            _wasPlayingBeforeDisable = false;
         }
 
         private void OnDisable()
         {
+            _wasPlayingBeforeDisable = _isPlaying;
             StopMotion();
         }
 
@@ -170,9 +172,11 @@ namespace ProjectName.Systems.Motions
         {
             float lookTimer = UnityEngine.Random.Range(1f, _lookInterval);
             float earTwitchTimer = UnityEngine.Random.Range(0.5f, _earTwitchInterval);
+            float earTwitchRevertTimer = 0f;
             float headLookTarget = 0f;
             float currentHeadPitch = 0f;
             float tailPhase = 0f;
+            bool earTwitching = false;
 
             while (_isPlaying)
             {
@@ -197,12 +201,31 @@ namespace ProjectName.Systems.Motions
                 currentHeadPitch = Mathf.MoveTowards(currentHeadPitch, headLookTarget, _lookSpeed * dt);
                 ApplyHeadLook(currentHeadPitch);
 
-                // ── Ear twitch ──
-                earTwitchTimer -= dt;
-                if (earTwitchTimer <= 0f)
+                // ── Ear twitch (attack + hold + release) ──
+                if (!earTwitching)
                 {
-                    ApplyEarTwitch();
-                    earTwitchTimer = _earTwitchInterval + UnityEngine.Random.Range(-0.5f, 0.5f);
+                    earTwitchTimer -= dt;
+                    if (earTwitchTimer <= 0f)
+                    {
+                        ApplyEarTwitch();
+                        earTwitching = true;
+                        earTwitchRevertTimer = 0.15f; // hold twitch for 150ms
+                    }
+                }
+                else
+                {
+                    earTwitchRevertTimer -= dt;
+                    if (earTwitchRevertTimer <= 0f)
+                    {
+                        // Revert ears to original pose
+                        if (_earLeftBone != null)
+                            _earLeftBone.localEulerAngles = _earLeftOriginalLocalEuler;
+                        if (_earRightBone != null)
+                            _earRightBone.localEulerAngles = _earRightOriginalLocalEuler;
+
+                        earTwitching = false;
+                        earTwitchTimer = _earTwitchInterval + UnityEngine.Random.Range(-0.5f, 0.5f);
+                    }
                 }
 
                 yield return null;

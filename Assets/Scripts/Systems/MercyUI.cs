@@ -1,7 +1,6 @@
 using ProjectName.Core.Data;
 using ProjectName.Core;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {

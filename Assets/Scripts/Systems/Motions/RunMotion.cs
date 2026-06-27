@@ -44,6 +44,8 @@ namespace ProjectName.Systems.Motions
         private float _cycleTime;
         private Vector3 _hipsOriginalLocalPos;
         private Vector3 _spineOriginalLocalEuler;
+        private Vector3 _leftArmOriginalLocalEuler;
+        private Vector3 _rightArmOriginalLocalEuler;
         private bool _isPlaying;
 
         private Transform _leftFootTarget;
@@ -117,6 +119,10 @@ namespace ProjectName.Systems.Motions
                 _hipsOriginalLocalPos = _hipsBone.localPosition;
             if (_spineBone != null)
                 _spineOriginalLocalEuler = _spineBone.localEulerAngles;
+            if (_leftArmBone != null)
+                _leftArmOriginalLocalEuler = _leftArmBone.localEulerAngles;
+            if (_rightArmBone != null)
+                _rightArmOriginalLocalEuler = _rightArmBone.localEulerAngles;
         }
 
         private void CaptureIKTargets()
@@ -189,10 +195,10 @@ namespace ProjectName.Systems.Motions
                 float rightPhase = (phase + 0.5f) % 1f;
 
                 // ── Leg cycle (higher steps, longer stride) ──
-                ApplyLegCycle(_leftFootTarget, _leftFootRestPos, leftPhase, true);
-                ApplyLegCycle(_rightFootTarget, _rightFootRestPos, rightPhase, false);
+                ApplyLegCycle(_leftFootTarget, _leftFootRestPos, leftPhase);
+                ApplyLegCycle(_rightFootTarget, _rightFootRestPos, rightPhase);
 
-                // ── Arm swing (more aggressive) ──
+                // ── Arm swing (opposite leg pairing) ──
                 ApplyArmSwing(leftPhase, rightPhase);
 
                 // ── Body lean ──
@@ -211,8 +217,9 @@ namespace ProjectName.Systems.Motions
 
         /// <summary>
         /// Moves the foot IK target through a swing cycle with run parameters.
+        /// Left/right opposition is handled by passing different phases.
         /// </summary>
-        private void ApplyLegCycle(Transform footTarget, Vector3 restPos, float phase, bool isLeft)
+        private void ApplyLegCycle(Transform footTarget, Vector3 restPos, float phase)
         {
             if (footTarget == null) return;
 
@@ -227,31 +234,33 @@ namespace ProjectName.Systems.Motions
 
             // Longer horizontal stride
             float stride = forwardCurve * _stepLength * 0.5f;
-            targetPos.z += isLeft ? stride : stride;
+            targetPos.z += stride;
 
             footTarget.localPosition = targetPos;
         }
 
         /// <summary>
         /// Applies aggressive opposite-arm swing for running.
+        /// Left arm swings with right leg, right arm swings with left leg.
         /// </summary>
         private void ApplyArmSwing(float leftLegPhase, float rightLegPhase)
         {
+            // Arms swing opposite to legs: left arm pairs with right leg, right arm pairs with left leg
             if (_leftArmBone != null)
             {
-                float swing = Mathf.Sin(leftLegPhase * Mathf.PI * 2f) * _armSwingAmount;
+                float swing = Mathf.Sin(rightLegPhase * Mathf.PI * 2f) * _armSwingAmount;
                 _leftArmBone.localEulerAngles = new Vector3(swing, 0f, 0f);
             }
 
             if (_rightArmBone != null)
             {
-                float swing = Mathf.Sin(rightLegPhase * Mathf.PI * 2f) * _armSwingAmount;
+                float swing = Mathf.Sin(leftLegPhase * Mathf.PI * 2f) * _armSwingAmount;
                 _rightArmBone.localEulerAngles = new Vector3(swing, 0f, 0f);
             }
 
             if (_leftArmIK != null && _leftArmIK.Target != null)
             {
-                float swing = Mathf.Sin(leftLegPhase * Mathf.PI * 2f) * _armSwingAmount * 0.015f;
+                float swing = Mathf.Sin(rightLegPhase * Mathf.PI * 2f) * _armSwingAmount * 0.015f;
                 Vector3 armPos = _leftArmIK.Target.localPosition;
                 armPos.z += swing;
                 _leftArmIK.Target.localPosition = armPos;
@@ -259,7 +268,7 @@ namespace ProjectName.Systems.Motions
 
             if (_rightArmIK != null && _rightArmIK.Target != null)
             {
-                float swing = Mathf.Sin(rightLegPhase * Mathf.PI * 2f) * _armSwingAmount * 0.015f;
+                float swing = Mathf.Sin(leftLegPhase * Mathf.PI * 2f) * _armSwingAmount * 0.015f;
                 Vector3 armPos = _rightArmIK.Target.localPosition;
                 armPos.z += swing;
                 _rightArmIK.Target.localPosition = armPos;
@@ -303,10 +312,10 @@ namespace ProjectName.Systems.Motions
                 _spineBone.localEulerAngles = _spineOriginalLocalEuler;
 
             if (_leftArmBone != null)
-                _leftArmBone.localEulerAngles = Vector3.zero;
+                _leftArmBone.localEulerAngles = _leftArmOriginalLocalEuler;
 
             if (_rightArmBone != null)
-                _rightArmBone.localEulerAngles = Vector3.zero;
+                _rightArmBone.localEulerAngles = _rightArmOriginalLocalEuler;
 
             if (_leftFootTarget != null)
                 _leftFootTarget.localPosition = _leftFootRestPos;

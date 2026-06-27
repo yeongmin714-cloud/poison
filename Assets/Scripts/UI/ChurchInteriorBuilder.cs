@@ -1,8 +1,8 @@
 using ProjectName.Core;
+using ProjectName.Systems;
 using UnityEngine;
-#pragma warning disable 0414
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// C11-09: 교회 실내 인테리어 빌더.

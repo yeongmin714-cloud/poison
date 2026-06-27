@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems.Motions
 {
@@ -253,6 +252,9 @@ namespace ProjectName.Systems.Motions
         {
             float elapsed = 0f;
 
+            // Capture other arm wind-up rotation for safe slerp back to original
+            Quaternion otherArmStartRot = _otherArmBone != null ? _otherArmBone.localRotation : Quaternion.identity;
+
             while (elapsed < _throwSpeed)
             {
                 elapsed += Time.deltaTime;
@@ -273,8 +275,8 @@ namespace ProjectName.Systems.Motions
                 // Other arm drops back for counterbalance
                 if (_otherArmBone != null)
                 {
-                    _otherArmBone.localEulerAngles = Vector3.Lerp(
-                        _otherArmBone.localEulerAngles, _otherArmOriginalEuler, curve);
+                    _otherArmBone.localRotation = Quaternion.Slerp(
+                        otherArmStartRot, Quaternion.Euler(_otherArmOriginalEuler), curve);
                 }
 
                 // Body twists through
@@ -332,6 +334,12 @@ namespace ProjectName.Systems.Motions
         {
             float elapsed = 0f;
 
+            // Capture current rotations for safe slerp back to originals
+            Quaternion throwArmStartRot = _throwArmBone != null ? _throwArmBone.localRotation : Quaternion.identity;
+            Quaternion otherArmStartRot = _otherArmBone != null ? _otherArmBone.localRotation : Quaternion.identity;
+            Quaternion spineStartRot = _spineBone != null ? _spineBone.localRotation : Quaternion.identity;
+            Quaternion chestStartRot = _chestBone != null ? _chestBone.localRotation : Quaternion.identity;
+
             while (elapsed < _followThroughTime)
             {
                 elapsed += Time.deltaTime;
@@ -340,40 +348,28 @@ namespace ProjectName.Systems.Motions
 
                 // Smoothly interpolate everything back to original
                 if (_throwArmBone != null)
-                {
-                    _throwArmBone.localEulerAngles = Vector3.Lerp(
-                        _throwArmBone.localEulerAngles, _throwArmOriginalEuler, smooth);
-                }
+                    _throwArmBone.localRotation = Quaternion.Slerp(
+                        throwArmStartRot, Quaternion.Euler(_throwArmOriginalEuler), smooth);
 
                 if (_otherArmBone != null)
-                {
-                    _otherArmBone.localEulerAngles = Vector3.Lerp(
-                        _otherArmBone.localEulerAngles, _otherArmOriginalEuler, smooth);
-                }
+                    _otherArmBone.localRotation = Quaternion.Slerp(
+                        otherArmStartRot, Quaternion.Euler(_otherArmOriginalEuler), smooth);
 
                 if (_spineBone != null)
-                {
-                    _spineBone.localEulerAngles = Vector3.Lerp(
-                        _spineBone.localEulerAngles, _spineOriginalLocalEuler, smooth);
-                }
+                    _spineBone.localRotation = Quaternion.Slerp(
+                        spineStartRot, Quaternion.Euler(_spineOriginalLocalEuler), smooth);
 
                 if (_chestBone != null)
-                {
-                    _chestBone.localEulerAngles = Vector3.Lerp(
-                        _chestBone.localEulerAngles, _chestOriginalLocalEuler, smooth);
-                }
+                    _chestBone.localRotation = Quaternion.Slerp(
+                        chestStartRot, Quaternion.Euler(_chestOriginalLocalEuler), smooth);
 
                 if (_headBone != null)
-                {
                     _headBone.localRotation = Quaternion.Slerp(
                         _headBone.localRotation, _headOriginalLocalRot, smooth);
-                }
 
                 if (_hipsBone != null)
-                {
                     _hipsBone.localRotation = Quaternion.Slerp(
                         _hipsBone.localRotation, _hipsOriginalLocalRot, smooth);
-                }
 
                 yield return null;
             }

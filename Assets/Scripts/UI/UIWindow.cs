@@ -47,6 +47,8 @@ namespace ProjectName.UI
         protected CanvasGroup _canvasGroup;
         protected CanvasGroup _dimCanvasGroup;  // 캐시: 애니메이션 루프에서 GetComponent GC 방지
         protected Canvas _parentCanvas;         // 캐시: CreateDimBackground에서 GetComponentInParent GC 방지
+        protected RectTransform _rectTransform;
+        protected Coroutine _animCoroutine;
 
         // IMGUI 배경 드로잉 상태 (OnGUI에서만 GUI.* 호출)
         private bool _needsBackgroundDraw;
@@ -79,9 +81,9 @@ namespace ProjectName.UI
             }
 
             OnWindowOpen?.Invoke();
+            // Show()와의 일관성을 위해 OnShow()도 호출
+            OnShow();
         }
-        protected RectTransform _rectTransform;
-        protected Coroutine _animCoroutine;
 
         /// <summary>윈도우가 열려있는지?</summary>
         public bool IsOpen => _isOpen;
@@ -459,15 +461,21 @@ namespace ProjectName.UI
             // 자식 클래스의 IMGUI 컨텐츠 드로잉
             DrawWindowContent();
         }
+
+        /// <summary>닫힐 때 호출됩니다. IMGUI 배경 상태를 정리합니다.</summary>
         protected virtual void OnHide()
         {
             _needsBackgroundDraw = false;
             _backgroundTexture = null;
             _useMedievalBackground = false;
             _medievalPanelType = null;
-        }  // 닫힐 때 추가 동작
-        protected virtual void OnRefresh() { } // 내용 갱신 (외부에서 호출)
-        protected virtual void DrawWindowContent() { }  // IMGUI 창 내용 그리기 (ChurchUI/WarehouseUI 등에서 사용)
+        }
+
+        /// <summary>내용 갱신 (외부에서 호출)</summary>
+        protected virtual void OnRefresh() { }
+
+        /// <summary>IMGUI 창 내용 그리기 (ChurchUI/WarehouseUI 등에서 사용)</summary>
+        protected virtual void DrawWindowContent() { }
 
         /// <summary>
         /// Phase 33: UI 테마를 적용합니다. 애니메이션 타입과 배경 패턴을 변경합니다.

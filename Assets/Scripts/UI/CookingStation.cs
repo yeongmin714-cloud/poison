@@ -1,7 +1,5 @@
 using UnityEngine;
-using ProjectName.UI;
 using ProjectName.Systems;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -32,8 +30,10 @@ namespace ProjectName.UI
                     visual.transform.SetParent(transform);
                     visual.transform.localPosition = Vector3.zero;
                     visual.transform.localScale = new Vector3(1f, 1f, 1f);
+                    // CreatePrimitive creates BoxCollider — remove to avoid unintended physics
+                    DestroyImmediate(visual.GetComponent<Collider>());
                     var renderer = visual.GetComponent<Renderer>();
-                    renderer.material.color = new Color(0.5f, 0.3f, 0.1f); // Brown
+                    renderer.sharedMaterial.color = new Color(0.5f, 0.3f, 0.1f); // Brown
                 }
                 else
                 {
@@ -47,7 +47,12 @@ namespace ProjectName.UI
 
         private void Update()
         {
-            if (_player == null) return;
+            // Retry player lookup if not found yet (e.g. player spawned after this station)
+            if (_player == null)
+            {
+                _player = GameObject.FindGameObjectWithTag("Player")?.transform;
+                if (_player == null) return;
+            }
 
             float dist = (transform.position - _player.position).sqrMagnitude;
             _isPlayerNearby = dist <= _interactRange * _interactRange;

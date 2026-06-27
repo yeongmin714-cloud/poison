@@ -1,8 +1,6 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems.Motions
 {
@@ -37,6 +35,7 @@ namespace ProjectName.Systems.Motions
         private List<Vector3> _originalLocalPositions = new List<Vector3>();
         private float _waveTimer;
         private bool _isPlaying;
+        private bool _wasPlayingBeforeDisable;
 
         #endregion
 
@@ -80,12 +79,13 @@ namespace ProjectName.Systems.Motions
 
         private void OnEnable()
         {
-            if (_isPlaying)
+            if (_wasPlayingBeforeDisable)
                 StartMotion();
         }
 
         private void OnDisable()
         {
+            _wasPlayingBeforeDisable = _isPlaying;
             StopMotion();
         }
 

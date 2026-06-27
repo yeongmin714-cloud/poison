@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems.Motions
 {
@@ -17,7 +16,6 @@ namespace ProjectName.Systems.Motions
         #region Serialized Fields
 
         [Header("Bones")]
-        [SerializeField] private Transform _hipsBone;
         [SerializeField] private Transform _spineBone;
         [SerializeField] private Transform _chestBone;
         [SerializeField] private Transform _headBone;
@@ -42,11 +40,11 @@ namespace ProjectName.Systems.Motions
         #region Private State
 
         private Coroutine _motionRoutine;
-        private Vector3 _hipsOriginalLocalPos;
         private Vector3 _spineOriginalLocalEuler;
         private Vector3 _chestOriginalLocalEuler;
         private Quaternion _headOriginalLocalRot;
         private Vector3 _reachArmOriginalEuler;
+        private Vector3 _ikTargetOriginalLocalPos;
         private bool _isPlaying;
 
         #endregion
@@ -107,8 +105,6 @@ namespace ProjectName.Systems.Motions
         /// </summary>
         private void CacheOriginalTransforms()
         {
-            if (_hipsBone != null)
-                _hipsOriginalLocalPos = _hipsBone.localPosition;
             if (_spineBone != null)
                 _spineOriginalLocalEuler = _spineBone.localEulerAngles;
             if (_chestBone != null)
@@ -117,6 +113,8 @@ namespace ProjectName.Systems.Motions
                 _headOriginalLocalRot = _headBone.localRotation;
             if (_reachArmBone != null)
                 _reachArmOriginalEuler = _reachArmBone.localEulerAngles;
+            if (_reachArmIK != null && _reachArmIK.Target != null)
+                _ikTargetOriginalLocalPos = _reachArmIK.Target.localPosition;
         }
 
         #endregion
@@ -251,14 +249,11 @@ namespace ProjectName.Systems.Motions
                     _reachArmIK.Target.localPosition = pos;
                 }
 
-                // Slight arm retraction (pulling toward body)
+                // Slight arm retraction (pulling toward body) — relative to original pose
                 if (_reachArmBone != null)
                 {
                     float retract = Mathf.Sin(t * Mathf.PI) * 5f;
-                    _reachArmBone.localEulerAngles = new Vector3(
-                        _reachArmBone.localEulerAngles.x - retract,
-                        _reachArmBone.localEulerAngles.y,
-                        _reachArmBone.localEulerAngles.z);
+                    _reachArmBone.localEulerAngles = _reachArmOriginalEuler + new Vector3(-retract, 0f, 0f);
                 }
 
                 yield return null;
@@ -300,7 +295,7 @@ namespace ProjectName.Systems.Motions
                 {
                     _reachArmIK.Target.localPosition = Vector3.Lerp(
                         _reachArmIK.Target.localPosition,
-                        _reachArmIK.Target.localPosition - _reachOffset * _reachDistance * (1f - t),
+                        _ikTargetOriginalLocalPos,
                         t);
                 }
 
@@ -334,7 +329,7 @@ namespace ProjectName.Systems.Motions
             if (_reachArmIK != null && _reachArmIK.Target != null)
             {
                 // Return to original rest pos
-                _reachArmIK.Target.localPosition -= _reachOffset * _reachDistance;
+                _reachArmIK.Target.localPosition = _ikTargetOriginalLocalPos;
                 _reachArmIK.BlendWeight = 0f;
             }
 

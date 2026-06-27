@@ -145,7 +145,6 @@ namespace ProjectName.UI
             _rectLegendGreen = new Rect(0, 0, 120, 40);
             _rectLegendYellow = new Rect(140, 0, 120, 40);
             _rectLegendRed = new Rect(280, 0, 120, 40);
-            _rectDeathOverlay = new Rect(0, 0, Screen.width, Screen.height);
         }
 
         private void UpdateStaticRectPositions()
@@ -166,7 +165,8 @@ namespace ProjectName.UI
             _rectLegendRed.x = _barX + 280;
             _rectLegendRed.y = legendY;
 
-            // 사망 오버레이 위치
+            // 사망 오버레이 위치 (매 프레임 Screen 크기로 갱신)
+            _rectDeathOverlay = new Rect(0, 0, Screen.width, Screen.height);
             _rectDeathLabel = new Rect(0, Screen.height * 0.35f, Screen.width, 120);
             _rectRespawnLabel = new Rect(0, Screen.height * 0.35f + 120, Screen.width, 60);
         }
@@ -254,6 +254,7 @@ namespace ProjectName.UI
             if (BuffManager.Instance == null) return;
 
             var activeBuffs = BuffManager.Instance.GetActiveBuffs();
+            if (activeBuffs == null) return;
             float x = _iconOffsetX;
             float y = _iconOffsetY;
             float size = _iconSize;

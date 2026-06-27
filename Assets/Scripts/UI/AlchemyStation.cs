@@ -1,5 +1,6 @@
 using UnityEngine;
 using ProjectName.Core.UI;
+using ProjectName.Systems;
 #pragma warning disable 0414
 
 namespace ProjectName.UI
@@ -15,8 +16,7 @@ namespace ProjectName.UI
         [SerializeField] private string _stationName = "연금술 테이블";
 
         private Transform _player;
-        private bool _isOpen = false;
-        private GameObject _alchemyUIGameObject;
+        private bool _isPlayerNearby = false;
 
         private void Start()
         {
@@ -57,51 +57,46 @@ namespace ProjectName.UI
             }
 
             float distSq = (transform.position - _player.position).sqrMagnitude;
-            bool nearby = distSq <= _interactRange * _interactRange;
+            _isPlayerNearby = distSq <= _interactRange * _interactRange;
 
-            if (nearby && Input.GetKeyDown(KeyCode.E) && !_isOpen)
+            if (_isPlayerNearby && Input.GetKeyDown(KeyCode.E))
+            {
                 OpenAlchemyUI();
-            else if (_isOpen && Input.GetKeyDown(KeyCode.Escape))
-                CloseAlchemyUI();
+            }
         }
 
         private void OpenAlchemyUI()
         {
-            _isOpen = true;
             Debug.Log($"[AlchemyStation] {_stationName} 열림");
 
-            // AlchemyUI를 가진 GameObject 생성
-            _alchemyUIGameObject = new GameObject("AlchemyUI");
-            _alchemyUIGameObject.AddComponent<AlchemyUI>();
-            Debug.Log("[AlchemyStation] AlchemyUI 인스턴스 생성 및 UI 생성됨");
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.OpenWindow(typeof(AlchemyUI));
+            }
+            else
+            {
+                Debug.LogWarning("[AlchemyStation] UIManager가 없습니다.");
+            }
         }
 
-        private void CloseAlchemyUI()
+        // ── OnGUI 상호작용 프롬프트 ──
+        private void OnGUI()
         {
-            _isOpen = false;
-            Debug.Log($"[AlchemyStation] {_stationName} 닫힘");
+            if (!_isPlayerNearby) return;
+            if (_player == null) return;
 
-            // AlchemyUI GameObject 파괴 (메모리 정리)
-            if (_alchemyUIGameObject != null)
-            {
-                Destroy(_alchemyUIGameObject);
-                _alchemyUIGameObject = null;
-            }
+            float labelWidth = 200;
+            float labelHeight = 30;
+            float x = (Screen.width - labelWidth) / 2f;
+            float y = Screen.height - 80;
+
+            GUI.Box(new Rect(x, y, labelWidth, labelHeight), "E - 연금술");
         }
 
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = new Color(0.6f, 0.4f, 0.8f); // 보라색 계열로 연금술 스테이션 표시
             Gizmos.DrawWireSphere(transform.position, _interactRange);
-        }
-
-        private void OnDestroy()
-        {
-            // 스테이션이 파괴될 때 열려있는 UI도 정리
-            if (_isOpen && _alchemyUIGameObject != null)
-            {
-                Destroy(_alchemyUIGameObject);
-            }
         }
     }
 }

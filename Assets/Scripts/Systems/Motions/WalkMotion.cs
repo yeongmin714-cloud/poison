@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems.Motions
 {
@@ -43,6 +42,8 @@ namespace ProjectName.Systems.Motions
         private float _cycleTime;
         private Vector3 _hipsOriginalLocalPos;
         private Vector3 _spineOriginalLocalEuler;
+        private Vector3 _leftArmOriginalLocalEuler;
+        private Vector3 _rightArmOriginalLocalEuler;
         private bool _isPlaying;
 
         // Foot IK target game objects for cycling
@@ -50,6 +51,8 @@ namespace ProjectName.Systems.Motions
         private Transform _rightFootTarget;
         private Vector3 _leftFootRestPos;
         private Vector3 _rightFootRestPos;
+        private Vector3 _leftArmIKRestPos;
+        private Vector3 _rightArmIKRestPos;
 
         #endregion
 
@@ -113,6 +116,10 @@ namespace ProjectName.Systems.Motions
                 _hipsOriginalLocalPos = _hipsBone.localPosition;
             if (_spineBone != null)
                 _spineOriginalLocalEuler = _spineBone.localEulerAngles;
+            if (_leftArmBone != null)
+                _leftArmOriginalLocalEuler = _leftArmBone.localEulerAngles;
+            if (_rightArmBone != null)
+                _rightArmOriginalLocalEuler = _rightArmBone.localEulerAngles;
         }
 
         /// <summary>
@@ -134,6 +141,12 @@ namespace ProjectName.Systems.Motions
                 if (_rightFootTarget != null)
                     _rightFootRestPos = _rightFootTarget.localPosition;
             }
+
+            if (_leftArmIK != null && _leftArmIK.Target != null)
+                _leftArmIKRestPos = _leftArmIK.Target.localPosition;
+
+            if (_rightArmIK != null && _rightArmIK.Target != null)
+                _rightArmIKRestPos = _rightArmIK.Target.localPosition;
         }
 
         #endregion
@@ -192,8 +205,8 @@ namespace ProjectName.Systems.Motions
                 float rightPhase = (phase + 0.5f) % 1f;
 
                 // ── Leg IK cycling ──
-                ApplyLegCycle(_leftFootTarget, _leftFootRestPos, leftPhase, true);
-                ApplyLegCycle(_rightFootTarget, _rightFootRestPos, rightPhase, false);
+                ApplyLegCycle(_leftFootTarget, _leftFootRestPos, leftPhase);
+                ApplyLegCycle(_rightFootTarget, _rightFootRestPos, rightPhase);
 
                 // ── Arm swing (opposite to legs) ──
                 ApplyArmSwing(leftPhase, rightPhase);
@@ -218,8 +231,7 @@ namespace ProjectName.Systems.Motions
         /// <param name="footTarget">The IK target transform for the foot.</param>
         /// <param name="restPos">The rest local position of the foot target.</param>
         /// <param name="phase">Cycle phase 0..1.</param>
-        /// <param name="isLeft">True for the left foot.</param>
-        private void ApplyLegCycle(Transform footTarget, Vector3 restPos, float phase, bool isLeft)
+        private void ApplyLegCycle(Transform footTarget, Vector3 restPos, float phase)
         {
             if (footTarget == null) return;
 
@@ -234,42 +246,48 @@ namespace ProjectName.Systems.Motions
 
             // Horizontal stride
             float stride = forwardCurve * _stepLength * 0.5f;
-            targetPos.z += isLeft ? stride : stride;
+            targetPos.z += stride;
 
             footTarget.localPosition = targetPos;
         }
 
         /// <summary>
         /// Applies opposite-arm swing relative to the leg cycle.
+        /// Left arm swings opposite to left leg; right arm swings opposite to right leg.
         /// </summary>
         private void ApplyArmSwing(float leftLegPhase, float rightLegPhase)
         {
+            // Left arm swings opposite to left leg
             if (_leftArmBone != null)
             {
-                // Left arm swings opposite to left leg
-                float swing = Mathf.Sin(leftLegPhase * Mathf.PI * 2f) * _armSwingAmount;
-                _leftArmBone.localEulerAngles = new Vector3(swing, 0f, 0f);
+                float swing = -Mathf.Sin(leftLegPhase * Mathf.PI * 2f) * _armSwingAmount;
+                Vector3 euler = _leftArmOriginalLocalEuler;
+                euler.x += swing;
+                _leftArmBone.localEulerAngles = euler;
             }
 
+            // Right arm swings opposite to right leg
             if (_rightArmBone != null)
             {
-                float swing = Mathf.Sin(rightLegPhase * Mathf.PI * 2f) * _armSwingAmount;
-                _rightArmBone.localEulerAngles = new Vector3(swing, 0f, 0f);
+                float swing = -Mathf.Sin(rightLegPhase * Mathf.PI * 2f) * _armSwingAmount;
+                Vector3 euler = _rightArmOriginalLocalEuler;
+                euler.x += swing;
+                _rightArmBone.localEulerAngles = euler;
             }
 
             // Also drive arm IK if available
             if (_leftArmIK != null && _leftArmIK.Target != null)
             {
-                float swing = Mathf.Sin(leftLegPhase * Mathf.PI * 2f) * _armSwingAmount * 0.01f;
-                Vector3 armPos = _leftArmIK.Target.localPosition;
+                float swing = -Mathf.Sin(leftLegPhase * Mathf.PI * 2f) * _armSwingAmount * 0.01f;
+                Vector3 armPos = _leftArmIKRestPos;
                 armPos.z += swing;
                 _leftArmIK.Target.localPosition = armPos;
             }
 
             if (_rightArmIK != null && _rightArmIK.Target != null)
             {
-                float swing = Mathf.Sin(rightLegPhase * Mathf.PI * 2f) * _armSwingAmount * 0.01f;
-                Vector3 armPos = _rightArmIK.Target.localPosition;
+                float swing = -Mathf.Sin(rightLegPhase * Mathf.PI * 2f) * _armSwingAmount * 0.01f;
+                Vector3 armPos = _rightArmIKRestPos;
                 armPos.z += swing;
                 _rightArmIK.Target.localPosition = armPos;
             }
@@ -312,16 +330,22 @@ namespace ProjectName.Systems.Motions
                 _spineBone.localEulerAngles = _spineOriginalLocalEuler;
 
             if (_leftArmBone != null)
-                _leftArmBone.localEulerAngles = Vector3.zero;
+                _leftArmBone.localEulerAngles = _leftArmOriginalLocalEuler;
 
             if (_rightArmBone != null)
-                _rightArmBone.localEulerAngles = Vector3.zero;
+                _rightArmBone.localEulerAngles = _rightArmOriginalLocalEuler;
 
             if (_leftFootTarget != null)
                 _leftFootTarget.localPosition = _leftFootRestPos;
 
             if (_rightFootTarget != null)
                 _rightFootTarget.localPosition = _rightFootRestPos;
+
+            if (_leftArmIK != null && _leftArmIK.Target != null)
+                _leftArmIK.Target.localPosition = _leftArmIKRestPos;
+
+            if (_rightArmIK != null && _rightArmIK.Target != null)
+                _rightArmIK.Target.localPosition = _rightArmIKRestPos;
         }
 
         #endregion

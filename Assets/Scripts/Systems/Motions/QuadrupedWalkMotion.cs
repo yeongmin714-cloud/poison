@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems.Motions
 {
@@ -47,8 +46,10 @@ namespace ProjectName.Systems.Motions
         private float _cycleTime;
         private Vector3 _hipsOriginalLocalPos;
         private Vector3 _spineOriginalLocalEuler;
+        private Vector3 _headOriginalLocalPos;
         private Quaternion _headOriginalLocalRot;
         private bool _isPlaying;
+        private bool _wasPlayingBeforeDisable;
 
         // IK target transforms and rest positions
         private Transform _hindLeftTarget;
@@ -100,12 +101,13 @@ namespace ProjectName.Systems.Motions
 
         private void OnEnable()
         {
-            if (_isPlaying)
+            if (_wasPlayingBeforeDisable)
                 StartMotion();
         }
 
         private void OnDisable()
         {
+            _wasPlayingBeforeDisable = _isPlaying;
             StopMotion();
         }
 
@@ -123,7 +125,10 @@ namespace ProjectName.Systems.Motions
             if (_spineBone != null)
                 _spineOriginalLocalEuler = _spineBone.localEulerAngles;
             if (_headBone != null)
+            {
+                _headOriginalLocalPos = _headBone.localPosition;
                 _headOriginalLocalRot = _headBone.localRotation;
+            }
         }
 
         /// <summary>
@@ -284,7 +289,7 @@ namespace ProjectName.Systems.Motions
             if (_headBone == null) return;
 
             float bob = Mathf.Abs(Mathf.Sin(phase * Mathf.PI)) * _headBobAmplitude;
-            Vector3 pos = _headBone.localPosition;
+            Vector3 pos = _headOriginalLocalPos;
             pos.y += bob;
             _headBone.localPosition = pos;
         }
@@ -301,7 +306,10 @@ namespace ProjectName.Systems.Motions
                 _spineBone.localEulerAngles = _spineOriginalLocalEuler;
 
             if (_headBone != null)
+            {
+                _headBone.localPosition = _headOriginalLocalPos;
                 _headBone.localRotation = _headOriginalLocalRot;
+            }
 
             if (_hindLeftTarget != null)
                 _hindLeftTarget.localPosition = _hindLeftRestPos;

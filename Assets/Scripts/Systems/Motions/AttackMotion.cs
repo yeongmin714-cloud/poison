@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using UnityEngine;
 #pragma warning disable 0414
@@ -30,7 +29,7 @@ namespace ProjectName.Systems.Motions
 
         [Header("Attack Timings")]
         [SerializeField] private float _windUpTime = 0.2f;
-        [SerializeField] private float _swingSpeed = 0.3f;
+        [SerializeField] private float _swingTime = 0.3f;
         [SerializeField] private float _recoveryTime = 0.25f;
 
         [Header("Attack Settings")]
@@ -65,10 +64,10 @@ namespace ProjectName.Systems.Motions
         }
 
         /// <summary>Duration of the swing phase in seconds.</summary>
-        public float SwingSpeed
+        public float SwingTime
         {
-            get => _swingSpeed;
-            set => _swingSpeed = Mathf.Max(0.02f, value);
+            get => _swingTime;
+            set => _swingTime = Mathf.Max(0.02f, value);
         }
 
         /// <summary>Duration of the recovery/follow-through phase in seconds.</summary>
@@ -252,10 +251,10 @@ namespace ProjectName.Systems.Motions
         {
             float elapsed = 0f;
 
-            while (elapsed < _swingSpeed)
+            while (elapsed < _swingTime)
             {
                 elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / _swingSpeed);
+                float t = Mathf.Clamp01(elapsed / _swingTime);
                 float curve = t * (2f - t); // ease-out
 
                 // Weapon arm swings forward

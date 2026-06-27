@@ -237,21 +237,18 @@ namespace ProjectName.UI
 
             // G3-05: 통일 스타일 — 딤드 오버레이 + 배경 + 타이틀 + 닫기 버튼
             UIStyleManager.DrawDimOverlay();
-            float _winX = (Screen.width - WINDOW_WIDTH) / 2;
-            float _winY = (Screen.height - WINDOW_HEIGHT) / 2;
-            Rect _winRect = new Rect(_winX, _winY, WINDOW_WIDTH, WINDOW_HEIGHT);
-            UIStyleManager.DrawWindowBackground(_winRect);
-            UIStyleManager.DrawTitle(_winRect, "  📦 인벤토리");
-            if (UIStyleManager.DrawCloseButton(_winRect))
+            float x = (Screen.width - WINDOW_WIDTH) / 2;
+            float y = (Screen.height - WINDOW_HEIGHT) / 2;
+            Rect winRect = new Rect(x, y, WINDOW_WIDTH, WINDOW_HEIGHT);
+            UIStyleManager.DrawWindowBackground(winRect);
+            UIStyleManager.DrawTitle(winRect, "  📦 인벤토리");
+            if (UIStyleManager.DrawCloseButton(winRect))
             {
                 Hide();
                 return;
             }
 
             InitStyles();
-
-            float x = (Screen.width - WINDOW_WIDTH) / 2;
-            float y = (Screen.height - WINDOW_HEIGHT) / 2;
 
             // === 배경 + 외곽 박스 ===
             GUI.Box(new Rect(x, y, WINDOW_WIDTH, WINDOW_HEIGHT), "", _stylePanelBox);
@@ -532,9 +529,11 @@ namespace ProjectName.UI
                     // C9-19: 수리 버튼 (내구도가 가득 차지 않았을 때만)
                     if (ratio < 1f)
                     {
-                        if (GUI.Button(new Rect(innerX + innerWidth - 100, innerY + 62, 202, 33), "🔧 수리"))
+                        // _selectedSlotIndex는 필터링된 _currentSlots의 인덱스 — 전역 인덱스로 변환
+                        int globalSlotIdx = GetGlobalSlotIndex(_selectedCategory, _selectedSlotIndex);
+                        if (globalSlotIdx >= 0 && GUI.Button(new Rect(innerX + innerWidth - 100, innerY + 62, 202, 33), "🔧 수리"))
                         {
-                            var result = ProjectName.Systems.EquipmentRepairSystem.RepairInventorySlot(_selectedSlotIndex);
+                            var result = ProjectName.Systems.EquipmentRepairSystem.RepairInventorySlot(globalSlotIdx);
                             Debug.Log($"[Repair] {result.message}");
                             _selectedItemDesc = result.message;
                             if (result.success)
@@ -546,7 +545,9 @@ namespace ProjectName.UI
                             }
                         }
                     }
-                // 사용 버튼 (소비 가능한 아이템만)
+                } // end if (maxDurability > 0)
+
+                // 사용 버튼 (소비 가능한 아이템만) — durability 블록 외부에서 독립적 처리
                 if (IsConsumable(_selectedCategory))
                 {
                     if (GUI.Button(new Rect(innerX, innerY + 85, innerWidth - 16, 38), "사용"))
@@ -562,7 +563,7 @@ namespace ProjectName.UI
                     }
                 }
 
-            }
+            } // end if (!string.IsNullOrEmpty(_selectedItemName))
             else
             {
                 GUI.Label(new Rect(innerX, innerY + 20, innerWidth, 45),
@@ -642,6 +643,25 @@ namespace ProjectName.UI
                     tex.SetPixel(x, y, color);
             tex.Apply();
             return tex;
+        }
+
+        /// <summary>필터링된 카테고리 인덱스를 전역 슬롯 인덱스로 변환</summary>
+        private int GetGlobalSlotIndex(PlayerInventory.ItemCategory category, int filteredIndex)
+        {
+            if (PlayerInventory.Instance == null || filteredIndex < 0) return -1;
+            int count = -1;
+            var allSlots = PlayerInventory.Instance.GetAllSlots();
+            for (int i = 0; i < allSlots.Length; i++)
+            {
+                var slot = allSlots[i];
+                if (slot != null && slot.item != null && slot.item.category == category)
+                {
+                    count++;
+                    if (count == filteredIndex)
+                        return i;
+                }
+            }
+            return -1;
         }
 
         /// <summary>아이템 ID로 슬롯 찾아 선택</summary>

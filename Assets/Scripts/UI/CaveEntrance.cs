@@ -1,6 +1,6 @@
+using ProjectName.Systems;
 using UnityEngine;
 using System.Collections;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -13,8 +13,6 @@ namespace ProjectName.UI
     public class CaveEntrance : MonoBehaviour
     {
         [Header("Cave Settings")]
-        [SerializeField] private string _caveSceneName = "Cave_Dungeon";
-        [SerializeField] private Vector3 _spawnOffset = Vector3.zero;
         [SerializeField] private float _interactionRadius = 2.5f;
         [SerializeField] private bool _isActive = true;
 
@@ -244,7 +242,7 @@ namespace ProjectName.UI
 
             if (FadeManager.Instance != null)
             {
-                FadeManager.Instance.FadeIn(0.3f);
+                yield return FadeManager.Instance.FadeIn(0.3f);
             }
         }
 

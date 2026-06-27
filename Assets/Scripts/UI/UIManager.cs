@@ -13,7 +13,7 @@ namespace ProjectName.UI
     /// 
     /// [Unity 초보자 설명]
     /// - 게임 시작 시 자동으로 생성되는 싱글톤(하나만 존재)입니다
-    /// - 매 프레임마다 Q/R/I/M 키를 체크합니다
+    /// - 매 프레임마다 단축키를 체크합니다 (Q/R/I/M/K/C/E/W + ESC)
     /// - 키가 눌리면 해당 윈도우를 열거나 닫습니다 (Toggle)
     /// - ESC 키는 현재 열려있는 창을 닫습니다
     /// - LootWindow는 LootBasket 오브젝트와 상호작용할 때 열립니다
@@ -35,6 +35,7 @@ namespace ProjectName.UI
         public CraftingUI craftingWindow;
         public CookingUI cookingWindow;
         public RepairStationUI repairWindow;
+        public AlchemyUI alchemyWindow;
         public UIWindow equipmentWindow;
         public UIWindow warehouseWindow;
 
@@ -134,6 +135,8 @@ namespace ProjectName.UI
                 ToggleWindow(inventoryWindow);
             if (WasKeyPressedThisFrame(keyboard, _keyBindings.GetKey("Map")))
                 ToggleWindow(mapWindow);
+            if (WasKeyPressedThisFrame(keyboard, _keyBindings.GetKey("Status")))
+                ToggleWindow(statusWindow);
             if (WasKeyPressedThisFrame(keyboard, _keyBindings.GetKey("RevengeList")))
                 ToggleWindow(revengeListWindow);
             if (WasKeyPressedThisFrame(keyboard, _keyBindings.GetKey("Crafting")))
@@ -211,10 +214,15 @@ namespace ProjectName.UI
                 if (window != null)
                 {
                     window.Hide();
-                    SoundManager.Instance?.PlayUI("ui_close");
                 }
             }
             _openWindows.Clear();   // Clear로 한 번에 정리 (GC 0)
+
+            // AlchemyUI는 UIWindow가 아니므로 별도 처리
+            if (alchemyWindow != null && alchemyWindow.IsOpen)
+                alchemyWindow.Hide();
+
+            SoundManager.Instance?.PlayUI("ui_close");  // 한 번만 재생
         }
 
         /// <summary>
@@ -250,6 +258,19 @@ namespace ProjectName.UI
                     SoundManager.Instance?.PlayUI("ui_open");
                 }
             }
+            else if (windowType == typeof(AlchemyUI) && alchemyWindow != null)
+            {
+                if (alchemyWindow.IsOpen)
+                {
+                    alchemyWindow.Hide();
+                    SoundManager.Instance?.PlayUI("ui_close");
+                }
+                else
+                {
+                    alchemyWindow.Show();
+                    SoundManager.Instance?.PlayUI("ui_open");
+                }
+            }
             else
             {
                 Debug.LogWarning($"[UIManager] 알 수 없는 윈도우 타입: {windowType.Name}");
@@ -269,6 +290,10 @@ namespace ProjectName.UI
             if (revengeListWindow is T && revengeListWindow.IsOpen) return true;
             if (craftingWindow is T && craftingWindow.IsOpen) return true;
             if (cookingWindow is T && cookingWindow.IsOpen) return true;
+            if (repairWindow is T && repairWindow.IsOpen) return true;
+            if (alchemyWindow != null && alchemyWindow is T && alchemyWindow.IsOpen) return true;
+            if (equipmentWindow is T && equipmentWindow.IsOpen) return true;
+            if (warehouseWindow is T && warehouseWindow.IsOpen) return true;
             return false;
         }
 

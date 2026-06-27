@@ -63,7 +63,7 @@ namespace ProjectName.Tests.EditMode
         {
             var style = UIStyleManager.LabelStyle;
             Assert.IsNotNull(style, "LabelStyle은 null이 아니어야 함");
-            Assert.AreEqual(14, style.fontSize, "LabelStyle fontSize = 14");
+            Assert.AreEqual(40, style.fontSize, "LabelStyle fontSize = 40");
         }
 
         [Test]
@@ -71,13 +71,13 @@ namespace ProjectName.Tests.EditMode
         {
             var style = UIStyleManager.TitleStyle;
             Assert.IsNotNull(style, "TitleStyle은 null이 아니어야 함");
-            Assert.AreEqual(20, style.fontSize, "TitleStyle fontSize = 20");
+            Assert.AreEqual(60, style.fontSize, "TitleStyle fontSize = 60");
         }
 
         [Test]
-        public void BorderWidth_Is_2()
+        public void BorderWidth_Is_4()
         {
-            Assert.AreEqual(2, UIStyleManager.BorderWidth, "테두리 두께는 2px");
+            Assert.AreEqual(4, UIStyleManager.BorderWidth, "테두리 두께는 4px");
         }
 
         [Test]

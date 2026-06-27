@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using ProjectName.UI.Themes;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -53,13 +51,12 @@ namespace ProjectName.UI
 
         // ===== 상태 =====
         private HashSet<string> _unlocked = new HashSet<string>();
-        private string _currentPopupId;
         private string _currentPopupTitle;
         private string _currentPopupDesc;
         private string _currentPopupIcon;
+        private string _currentPopupDisplayTitle; // 캐싱: "🏆 {title}"
         private float _popupTimer;
 
-        private UIDesignTheme _theme;
         private GUIStyle _popupBgStyle;
         private GUIStyle _popupTitleStyle;
         private GUIStyle _popupDescStyle;
@@ -73,7 +70,6 @@ namespace ProjectName.UI
             if (Instance != null) { Destroy(gameObject); return; }
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            _theme = Phase33_Themes.AchievementTheme();
             LoadAll();
         }
 
@@ -119,10 +115,10 @@ namespace ProjectName.UI
 
         private void ShowPopup(AchievementDef ach)
         {
-            _currentPopupId = ach.id;
             _currentPopupTitle = ach.title;
             _currentPopupDesc = ach.description;
             _currentPopupIcon = ach.icon;
+            _currentPopupDisplayTitle = $"🏆 {ach.title}";
             _popupTimer = _popupDuration;
         }
 
@@ -144,15 +140,15 @@ namespace ProjectName.UI
             _popupBgStyle = new GUIStyle { normal = { background = UIStyleManager.MakeTexture(1, 1, _popupBgColor) } };
             _popupTitleStyle = new GUIStyle
             {
-                fontSize = 288, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft,
+                fontSize = 28, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = _popupTitleColor }
             };
             _popupDescStyle = new GUIStyle
             {
-                fontSize = 224, fontStyle = FontStyle.Normal, alignment = TextAnchor.MiddleLeft,
+                fontSize = 22, fontStyle = FontStyle.Normal, alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = _popupTextColor }
             };
-            _popupIconStyle = new GUIStyle { fontSize = 384, alignment = TextAnchor.MiddleCenter };
+            _popupIconStyle = new GUIStyle { fontSize = 38, alignment = TextAnchor.MiddleCenter };
             _stylesInit = true;
         }
 
@@ -178,7 +174,7 @@ namespace ProjectName.UI
             GUI.Label(new Rect(x + 8, y + 8, 30, 30), _currentPopupIcon, _popupIconStyle);
 
             // 제목
-            GUI.Label(new Rect(x + 45, y + 6, w - 55, 28), $"🏆 {_currentPopupTitle}", _popupTitleStyle);
+            GUI.Label(new Rect(x + 45, y + 6, w - 55, 28), _currentPopupDisplayTitle, _popupTitleStyle);
 
             // 설명
             GUI.Label(new Rect(x + 45, y + 36, w - 55, 28), _currentPopupDesc, _popupDescStyle);

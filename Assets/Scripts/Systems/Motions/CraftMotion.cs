@@ -45,6 +45,8 @@ namespace ProjectName.Systems.Motions
         private Vector3 _rightArmOriginalEuler;
         private Quaternion _headOriginalLocalRot;
         private Vector3 _hipsOriginalLocalPos;
+        private Vector3 _leftIKTargetBaseLocalPos;
+        private Vector3 _rightIKTargetBaseLocalPos;
         private bool _isPlaying;
 
         #endregion
@@ -157,7 +159,6 @@ namespace ProjectName.Systems.Motions
             while (_isPlaying && elapsed < _workDuration)
             {
                 elapsed += Time.deltaTime;
-                float dt = Time.deltaTime;
 
                 // Arm pumping (sinusoidal)
                 ApplyArmPump(elapsed);
@@ -194,12 +195,16 @@ namespace ProjectName.Systems.Motions
             {
                 _leftArmIK.SetTargetPosition(workWorldPos);
                 _leftArmIK.BlendWeight = 1f;
+                if (_leftArmIK.Target != null)
+                    _leftIKTargetBaseLocalPos = _leftArmIK.Target.localPosition;
             }
 
             if (_rightArmIK != null)
             {
                 _rightArmIK.SetTargetPosition(workWorldPos);
                 _rightArmIK.BlendWeight = 1f;
+                if (_rightArmIK.Target != null)
+                    _rightIKTargetBaseLocalPos = _rightArmIK.Target.localPosition;
             }
         }
 
@@ -227,7 +232,7 @@ namespace ProjectName.Systems.Motions
             // Also oscillate IK targets slightly for visual feedback
             if (_leftArmIK?.Target != null)
             {
-                Vector3 pos = _leftArmIK.Target.localPosition;
+                Vector3 pos = _leftIKTargetBaseLocalPos;
                 pos.y += Mathf.Sin(time * _workSpeed * Mathf.PI * 2f) * 0.03f;
                 pos.z += Mathf.Cos(time * _workSpeed * Mathf.PI * 2f) * 0.02f;
                 _leftArmIK.Target.localPosition = pos;
@@ -235,7 +240,7 @@ namespace ProjectName.Systems.Motions
 
             if (_rightArmIK?.Target != null)
             {
-                Vector3 pos = _rightArmIK.Target.localPosition;
+                Vector3 pos = _rightIKTargetBaseLocalPos;
                 pos.y += Mathf.Sin(time * _workSpeed * Mathf.PI * 2f) * 0.03f;
                 pos.z += Mathf.Cos(time * _workSpeed * Mathf.PI * 2f) * 0.02f;
                 _rightArmIK.Target.localPosition = pos;

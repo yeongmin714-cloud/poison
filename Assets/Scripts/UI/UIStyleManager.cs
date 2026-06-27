@@ -1,5 +1,4 @@
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -52,6 +51,11 @@ namespace ProjectName.UI
         private static Texture2D _cachedDimTex;
         private static Texture2D _cachedBgTex;
 
+        // 닫기 버튼 텍스처 캐싱 (Cleanup에서 정리 가능하도록)
+        private static Texture2D _cachedCloseBtnTex;
+        private static Texture2D _cachedCloseHoverTex;
+        private static Texture2D _cachedCloseActiveTex;
+
         private static void EnsureStyles()
         {
             if (_initialized) return;
@@ -73,15 +77,19 @@ namespace ProjectName.UI
                 normal = { textColor = TitleColor }
             };
 
+            _cachedCloseBtnTex = MakeTexture(1, 1, CloseBtnColor);
+            _cachedCloseHoverTex = MakeTexture(1, 1, CloseHoverColor);
+            _cachedCloseActiveTex = MakeTexture(1, 1, new Color(0.5f, 0.1f, 0.1f, 1f));
+
             _closeButtonStyle = new GUIStyle
             {
                 fontSize = 52,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = Color.white, background = MakeTexture(1, 1, CloseBtnColor) }
+                normal = { textColor = Color.white, background = _cachedCloseBtnTex }
             };
-            _closeButtonStyle.hover.background = MakeTexture(1, 1, CloseHoverColor);
-            _closeButtonStyle.active.background = MakeTexture(1, 1, new Color(0.5f, 0.1f, 0.1f, 1f));
+            _closeButtonStyle.hover.background = _cachedCloseHoverTex;
+            _closeButtonStyle.active.background = _cachedCloseActiveTex;
 
             _borderBoxStyle = new GUIStyle
             {
@@ -180,12 +188,15 @@ namespace ProjectName.UI
             int btnSize = 56;
             int btnX = (int)(windowRect.x + windowRect.width - btnSize - 10);
             int btnY = (int)(windowRect.y + 10);
+            var prevColor = GUI.backgroundColor;
             GUI.backgroundColor = CloseBtnColor;
-            return GUI.Button(new Rect(btnX, btnY, btnSize, btnSize), "X", _closeButtonStyle);
+            bool result = GUI.Button(new Rect(btnX, btnY, btnSize, btnSize), "X", _closeButtonStyle);
+            GUI.backgroundColor = prevColor;
+            return result;
         }
 
         /// <summary>
-        /// 기본 라벨 스타일을 반환합니다.
+        /// 기본 라벨 스타일을 반환합니다. EnsureStyles()를 통해 지연 초기화됩니다.
         /// </summary>
         public static GUIStyle LabelStyle
         {
@@ -193,11 +204,47 @@ namespace ProjectName.UI
         }
 
         /// <summary>
-        /// 제목 스타일을 반환합니다.
+        /// 제목 스타일을 반환합니다. EnsureStyles()를 통해 지연 초기화됩니다.
         /// </summary>
         public static GUIStyle TitleStyle
         {
             get { EnsureStyles(); return _titleStyle; }
+        }
+
+        // ================================================================
+        // 리소스 정리
+        // ================================================================
+
+        /// <summary>
+        /// 생성된 모든 텍스처와 GUIStyle 리소스를 정리합니다.
+        /// MonoBehaviour.OnDestroy() 또는 씬 전환 시 호출하세요.
+        /// </summary>
+        public static void Cleanup()
+        {
+            if (!_initialized) return;
+
+            Object.Destroy(_cachedBorderTex);
+            Object.Destroy(_cachedDimTex);
+            Object.Destroy(_cachedBgTex);
+            Object.Destroy(_cachedCloseBtnTex);
+            Object.Destroy(_cachedCloseHoverTex);
+            Object.Destroy(_cachedCloseActiveTex);
+
+            _cachedBorderTex = null;
+            _cachedDimTex = null;
+            _cachedBgTex = null;
+            _cachedCloseBtnTex = null;
+            _cachedCloseHoverTex = null;
+            _cachedCloseActiveTex = null;
+            _cachedBorderStyle = null;
+
+            _titleStyle = null;
+            _closeButtonStyle = null;
+            _borderBoxStyle = null;
+            _dimBoxStyle = null;
+            _labelStyle = null;
+
+            _initialized = false;
         }
     }
 }

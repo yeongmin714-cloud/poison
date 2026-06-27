@@ -1,8 +1,6 @@
-using ProjectName.UI;
 using UnityEngine;
-#pragma warning disable 0414
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// FIX-01: 교회 NPC — E키로 기부 메뉴(ChurchUI)를 엽니다.
@@ -69,6 +67,10 @@ namespace ProjectName.Systems
             {
                 _uiManager.ToggleWindow(_churchUI);
             }
+            else
+            {
+                Debug.LogWarning("[ChurchNPCInteraction] UIManager 인스턴스가 없어 ChurchUI를 토글할 수 없습니다!");
+            }
 
             if (_churchUI.IsOpen)
             {
@@ -81,13 +83,6 @@ namespace ProjectName.Systems
         {
             _churchUIInstance = new GameObject("ChurchUI_Runtime");
             _churchUI = _churchUIInstance.AddComponent<ChurchUI>();
-
-            if (_churchUI == null)
-            {
-                Debug.LogError("[ChurchNPCInteraction] ChurchUI 컴포넌트를 추가할 수 없습니다!");
-                _churchUIInstance = null;
-                return;
-            }
 
             _churchUIInstance.SetActive(false);
             Debug.Log("[ChurchNPCInteraction] 런타임 ChurchUI 인스턴스 생성");

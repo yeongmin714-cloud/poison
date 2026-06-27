@@ -83,8 +83,7 @@ namespace ProjectName.Systems.Motions
 
         private void OnEnable()
         {
-            if (_isPlaying)
-                StartMotion();
+            StartMotion();
         }
 
         private void OnDisable()

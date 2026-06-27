@@ -33,16 +33,6 @@ namespace ProjectName.UI
             _messageTimer = 0f;
         }
 
-        /// <summary>
-        /// FIX: DrawWindowContent()를 실제로 호출하는 OnGUI 추가.
-        /// 기존: DrawWindowContent()는 UIWindow에 virtual로만 선언되고 호출되지 않음.
-        /// </summary>
-        private void OnGUI()
-        {
-            if (!IsOpen) return;
-            DrawWindowContent();
-        }
-
         protected override void DrawWindowContent()
         {
             if (ChurchSystem.Instance == null)

@@ -5,17 +5,18 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using System.Linq;
 
-/// <summary>
-/// Phase G2-01: Bloom + Tonemapping + Color Grading post-processing setup.
-/// Configures URP Global Volume profile with Bloom, Tonemapping, ColorAdjustments,
-/// LiftGammaGain, WhiteBalance, and Vignette overrides.
-/// Coexists with existing overrides (SSAO / Shadow from Phase G1).
-/// Menu: Tools/Phase G2/Apply Post-Processing
-/// </summary>
-public static class PhaseG2_PostProcessingSetup
+namespace ProjectName.Systems
 {
+    /// <summary>
+    /// Phase G2-01: Bloom + Tonemapping + Color Grading post-processing setup.
+    /// Configures URP Global Volume profile with Bloom, Tonemapping, ColorAdjustments,
+    /// LiftGammaGain, WhiteBalance, and Vignette overrides.
+    /// Coexists with existing overrides (SSAO / Shadow from Phase G1).
+    /// Menu: Tools/Phase G2/Apply Post-Processing
+    /// </summary>
+    public static class PhaseG2_PostProcessingSetup
+    {
     private const string VolumeProfilePath = "Assets/DefaultVolumeProfile.asset";
 
     // ================================================================
@@ -337,6 +338,7 @@ public static class PhaseG2_PostProcessingSetup
         vignette.rounded.value = false;
 
         Debug.Log("[PhaseG2] ✅ Vignette configured: Intensity=0.3, Smoothness=0.5, Color=black.");
+    }
     }
 }
 

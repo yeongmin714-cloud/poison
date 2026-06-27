@@ -4,9 +4,8 @@ using UnityEngine.UI;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.UI.Themes;
-#pragma warning disable 0414
 
-namespace ProjectName.Core.UI
+namespace ProjectName.UI
 {
     /// <summary>
     /// 연금술 UI - 두 가지 약초를 선택하여 제조합니다.
@@ -23,8 +22,6 @@ namespace ProjectName.Core.UI
         [SerializeField] private int requiredLevel = 1;
         [Tooltip("Experience reward for successful alchemy crafting")]
         [SerializeField] private int expReward = 25;
-        [Tooltip("Additional success rate bonus per player level (as percentage)")]
-        [SerializeField] private float levelSuccessBonus = 0.01f; // 1% per level
 
         [Header("Phase 33 Theme")]
         [SerializeField] private UIDesignTheme _theme;
@@ -37,6 +34,9 @@ namespace ProjectName.Core.UI
         private Image herbIconImage1;
         private Image herbIconImage2;
         private GameObject _panel;
+
+        /// <summary>현재 AlchemyUI가 열려있는지 여부</summary>
+        public bool IsOpen { get; private set; }
 
         private void Awake()
         {
@@ -52,6 +52,36 @@ namespace ProjectName.Core.UI
                 UpdateHerbIcon1(herbDropdown1.options[0].text);
             if (herbDropdown2.options.Count > 0)
                 UpdateHerbIcon2(herbDropdown2.options[0].text);
+            // Start hidden — UIManager.Show() will activate
+            if (_panel != null)
+                _panel.SetActive(false);
+        }
+
+        /// <summary>AlchemyUI를 화면에 표시합니다.</summary>
+        public void Show()
+        {
+            if (_panel == null)
+            {
+                CreateUI();
+                PopulateDropdowns();
+                SetupDropdownListeners();
+                if (herbDropdown1.options.Count > 0)
+                    UpdateHerbIcon1(herbDropdown1.options[0].text);
+                if (herbDropdown2.options.Count > 0)
+                    UpdateHerbIcon2(herbDropdown2.options[0].text);
+            }
+            _panel.SetActive(true);
+            IsOpen = true;
+            Debug.Log("[AlchemyUI] 연금술 UI 열림");
+        }
+
+        /// <summary>AlchemyUI를 화면에서 숨깁니다.</summary>
+        public void Hide()
+        {
+            if (_panel != null)
+                _panel.SetActive(false);
+            IsOpen = false;
+            Debug.Log("[AlchemyUI] 연금술 UI 닫힘");
         }
 
         private void CreateUI()
@@ -189,19 +219,6 @@ namespace ProjectName.Core.UI
             return go;
         }
 
-        private GameObject CreateLabel(GameObject parent, string text)
-        {
-            GameObject go = new GameObject("Label");
-            go.transform.SetParent(parent.transform, false);
-            Text txt = go.AddComponent<Text>();
-            txt.text = text;
-            txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            txt.alignment = TextAnchor.MiddleLeft;
-            txt.fontSize = 56;
-            txt.color = Color.white;
-            return go;
-        }
-
         private GameObject CreateButton(GameObject parent, string text, out Button buttonOut)
         {
             GameObject go = new GameObject("Button");
@@ -309,9 +326,13 @@ namespace ProjectName.Core.UI
 
             // Perform crafting
             bool success = PerformAlchemyCraft(recipe);
+            int awardedExp = recipe.expReward;
+
+            // Runtime-created ScriptableObjects must be destroyed to prevent memory leaks
+            Destroy(recipe);
 
             string msg = success
-                ? $"<b>{herbName1}</b> + <b>{herbName2}</b> → <b>{result.resultName}</b>\nEffect: {result.effect}\n제조 성공! 경험치 {recipe.expReward} 획득"
+                ? $"<b>{herbName1}</b> + <b>{herbName2}</b> → <b>{result.resultName}</b>\nEffect: {result.effect}\n제조 성공! 경험치 {awardedExp} 획득"
                 : $"<b>{herbName1}</b> + <b>{herbName2}</b> → <b>{result.resultName}</b>\nEffect: {result.effect}\n제조 실패. 재료가 소실되었습니다.";
 
             resultText.text = msg;
@@ -507,13 +528,15 @@ namespace ProjectName.Core.UI
                     else if (loseOne)
                     {
                         // Randomly choose one of the required items to lose
-                        if (Random.value < 0.5f && recipe.requiredItem1 != null)
+                        // Build a list of available non-null items
+                        var availableItems = new List<PlayerInventory.ItemData>();
+                        if (recipe.requiredItem1 != null) availableItems.Add(recipe.requiredItem1);
+                        if (recipe.requiredItem2 != null) availableItems.Add(recipe.requiredItem2);
+
+                        if (availableItems.Count > 0)
                         {
-                            inventory.RemoveItem(recipe.requiredItem1.id, 1);
-                        }
-                        else if (recipe.requiredItem2 != null)
-                        {
-                            inventory.RemoveItem(recipe.requiredItem2.id, 1);
+                            var lostItem = availableItems[Random.Range(0, availableItems.Count)];
+                            inventory.RemoveItem(lostItem.id, 1);
                         }
                     }
                 }

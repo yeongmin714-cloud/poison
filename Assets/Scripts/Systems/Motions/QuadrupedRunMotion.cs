@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems.Motions
 {
@@ -51,6 +50,7 @@ namespace ProjectName.Systems.Motions
         private Vector3 _hipsOriginalLocalPos;
         private Vector3 _spineOriginalLocalEuler;
         private Quaternion _headOriginalLocalRot;
+        private Vector3 _headOriginalLocalPos;
         private bool _isPlaying;
 
         // IK target transforms and rest positions
@@ -116,7 +116,13 @@ namespace ProjectName.Systems.Motions
 
         private void OnDisable()
         {
-            StopMotion();
+            if (_motionRoutine != null)
+            {
+                StopCoroutine(_motionRoutine);
+                _motionRoutine = null;
+            }
+            ResetBonesAndIK();
+            // NOTE: _isPlaying is preserved so OnEnable can resume the motion
         }
 
         #endregion
@@ -133,7 +139,10 @@ namespace ProjectName.Systems.Motions
             if (_spineBone != null)
                 _spineOriginalLocalEuler = _spineBone.localEulerAngles;
             if (_headBone != null)
+            {
                 _headOriginalLocalRot = _headBone.localRotation;
+                _headOriginalLocalPos = _headBone.localPosition;
+            }
         }
 
         /// <summary>
@@ -230,11 +239,11 @@ namespace ProjectName.Systems.Motions
                 ApplyLegCycle(_hindRightTarget, _hindRightRestPos, diagonalB_Phase);
                 ApplyLegCycle(_frontLeftTarget, _frontLeftRestPos, diagonalB_Phase);
 
-                // ── Spine extension ──
-                ApplySpineExtension(phase);
-
                 // ── Body lean (forward) ──
                 ApplyBodyLean();
+
+                // ── Spine extension ──
+                ApplySpineExtension(phase);
 
                 // ── Head bob ──
                 ApplyHeadBob(phase);
@@ -280,7 +289,7 @@ namespace ProjectName.Systems.Motions
 
             float extension = Mathf.Sin(phase * Mathf.PI * 2f) * _spineExtensionAmplitude;
 
-            Vector3 euler = _spineOriginalLocalEuler;
+            Vector3 euler = _spineBone.localEulerAngles;
             euler.x += extension * 0.7f;
             euler.y += extension * 0.4f;
             _spineBone.localEulerAngles = euler;
@@ -293,7 +302,7 @@ namespace ProjectName.Systems.Motions
         {
             if (_spineBone == null) return;
 
-            Vector3 euler = _spineBone.localEulerAngles;
+            Vector3 euler = _spineOriginalLocalEuler;
             euler.x += _bodyLeanAngle;
             _spineBone.localEulerAngles = euler;
         }
@@ -306,8 +315,8 @@ namespace ProjectName.Systems.Motions
             if (_headBone == null) return;
 
             float bob = Mathf.Abs(Mathf.Sin(phase * Mathf.PI)) * _headBobAmplitude;
-            Vector3 pos = _headBone.localPosition;
-            pos.y = _headBone.localPosition.y + bob;
+            Vector3 pos = _headOriginalLocalPos;
+            pos.y += bob;
             _headBone.localPosition = pos;
         }
 
@@ -323,7 +332,10 @@ namespace ProjectName.Systems.Motions
                 _spineBone.localEulerAngles = _spineOriginalLocalEuler;
 
             if (_headBone != null)
+            {
                 _headBone.localRotation = _headOriginalLocalRot;
+                _headBone.localPosition = _headOriginalLocalPos;
+            }
 
             if (_hindLeftTarget != null)
                 _hindLeftTarget.localPosition = _hindLeftRestPos;
