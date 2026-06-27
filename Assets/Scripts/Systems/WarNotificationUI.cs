@@ -78,6 +78,11 @@ namespace ProjectName.Systems
         private static bool _showHistory;
         private static Vector2 _historyScrollPosition;
 
+        // 캐시된 GUIStyle (GC Alloc 방지)
+        private static GUIStyle _notificationLabelStyle;
+        private static GUIStyle _historyTitleStyle;
+        private static GUIStyle _historyEntryStyle;
+
         /// <summary>UI 표시 활성화 여부</summary>
         public static bool IsVisible { get; set; } = true;
 
@@ -220,16 +225,23 @@ namespace ProjectName.Systems
             GUI.backgroundColor = bgColor;
             GUI.Box(new Rect(x, y, width, height), "");
 
-            // 텍스트
-            GUI.contentColor = Color.white;
-            var style = new GUIStyle(GUI.skin.label)
+            // 텍스트 — 캐시된 스타일 사용
+            if (_notificationLabelStyle == null)
             {
-                fontSize = Mathf.RoundToInt(Screen.height * 0.018f),
-                fontStyle = FontStyle.Bold,
-                wordWrap = true,
-                alignment = TextAnchor.MiddleLeft
-            };
-            GUI.Label(new Rect(x + 8f, y + 2f, width - 16f, height - 4f), message, style);
+                _notificationLabelStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = Mathf.RoundToInt(Screen.height * 0.018f),
+                    fontStyle = FontStyle.Bold,
+                    wordWrap = true,
+                    alignment = TextAnchor.MiddleLeft
+                };
+            }
+            else
+            {
+                _notificationLabelStyle.fontSize = Mathf.RoundToInt(Screen.height * 0.018f);
+            }
+            GUI.contentColor = Color.white;
+            GUI.Label(new Rect(x + 8f, y + 2f, width - 16f, height - 4f), message, _notificationLabelStyle);
 
             GUI.backgroundColor = originalColor;
             GUI.contentColor = originalContent;
@@ -250,15 +262,22 @@ namespace ProjectName.Systems
             GUI.backgroundColor = new Color(0.1f, 0.1f, 0.1f, 0.9f);
             GUI.Box(new Rect(windowX, windowY, windowWidth, windowHeight), "");
 
-            // 제목
-            var titleStyle = new GUIStyle(GUI.skin.label)
+            // 제목 — 캐시된 스타일
+            if (_historyTitleStyle == null)
             {
-                fontSize = Mathf.RoundToInt(Screen.height * 0.025f),
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter,
-                normal = new GUIStyleState { textColor = Color.white }
-            };
-            GUI.Label(new Rect(windowX, windowY + 5f, windowWidth, 30f), "📜 전쟁 이력", titleStyle);
+                _historyTitleStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = Mathf.RoundToInt(Screen.height * 0.025f),
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.MiddleCenter,
+                    normal = new GUIStyleState { textColor = Color.white }
+                };
+            }
+            else
+            {
+                _historyTitleStyle.fontSize = Mathf.RoundToInt(Screen.height * 0.025f);
+            }
+            GUI.Label(new Rect(windowX, windowY + 5f, windowWidth, 30f), "📜 전쟁 이력", _historyTitleStyle);
 
             // 닫기 버튼
             if (GUI.Button(new Rect(windowX + windowWidth - 30f, windowY + 5f, 25f, 25f), "X"))
@@ -269,17 +288,26 @@ namespace ProjectName.Systems
             // 스크롤 뷰
             float contentHeight = _history.Count * 25f;
             float viewHeight = windowHeight - 45f;
+            float scrollWidth = windowWidth - 10f;
             _historyScrollPosition = GUI.BeginScrollView(
-                new Rect(windowX + 5f, windowY + 40f, windowWidth - 10f, viewHeight),
+                new Rect(windowX + 5f, windowY + 40f, scrollWidth, viewHeight),
                 _historyScrollPosition,
-                new Rect(0, 0, windowWidth - 25f, contentHeight));
+                new Rect(0, 0, scrollWidth - 15f, contentHeight));
 
-            var entryStyle = new GUIStyle(GUI.skin.label)
+            // 엔트리 스타일 — 캐시된 스타일
+            if (_historyEntryStyle == null)
             {
-                fontSize = Mathf.RoundToInt(Screen.height * 0.016f),
-                wordWrap = true,
-                richText = true
-            };
+                _historyEntryStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = Mathf.RoundToInt(Screen.height * 0.016f),
+                    wordWrap = true,
+                    richText = true
+                };
+            }
+            else
+            {
+                _historyEntryStyle.fontSize = Mathf.RoundToInt(Screen.height * 0.016f);
+            }
 
             for (int i = 0; i < _history.Count; i++)
             {
@@ -289,8 +317,7 @@ namespace ProjectName.Systems
                 Color entryColor = GetTypeColor(entry.type);
 
                 GUI.contentColor = entryColor;
-                entryStyle.normal.textColor = entryColor;
-                GUI.Label(new Rect(5f, i * 25f, windowWidth - 35f, 25f), $"[{timeStr}] {prefix} {entry.message}", entryStyle);
+                GUI.Label(new Rect(5f, i * 25f, scrollWidth - 25f, 25f), $"[{timeStr}] {prefix} {entry.message}", _historyEntryStyle);
             }
 
             GUI.contentColor = Color.white;

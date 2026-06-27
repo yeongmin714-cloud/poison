@@ -5,7 +5,7 @@ namespace ProjectName.Systems
     /// <summary>
     /// G3-12: FootstepSoundController — 발소리 처리.
     /// 표면 종류 감지(Raycast), 걷기/달리기/대쉬에 따라 간격 조절.
-    /// SoundEffectManager.Instance.PlaySFX(SFXType.Footstep) 사용.
+    /// SoundEffectManager.Instance.PlaySurfacedSFX 사용 (표면별 사운드).
     /// </summary>
     [RequireComponent(typeof(PlayerMovement))]
     public class FootstepSoundController : MonoBehaviour
@@ -31,14 +31,24 @@ namespace ProjectName.Systems
         private float _footstepTimer;
         private string _currentSurfaceTag = "step_grass";
 
+        // 중복 인스턴스 방지용 플래그
+        private static FootstepSoundController _existingInstance;
+
         private void Awake()
         {
+            if (_existingInstance != null && _existingInstance != this)
+            {
+                Debug.LogWarning("[FootstepSoundController] 중복 인스턴스 제거");
+                Destroy(gameObject);
+                return;
+            }
+            _existingInstance = this;
             DontDestroyOnLoad(gameObject);
         }
 
         private void Start()
         {
-            _playerMovement = FindObjectOfType<PlayerMovement>();
+            _playerMovement = GetComponent<PlayerMovement>();
             if (_playerMovement == null)
             {
                 Debug.LogWarning("[FootstepSoundController] PlayerMovement를 찾을 수 없습니다.");
@@ -73,7 +83,8 @@ namespace ProjectName.Systems
             if (_footstepTimer >= interval)
             {
                 _footstepTimer = 0f;
-                SoundEffectManager.Instance?.PlaySFX(SoundEffectManager.SFXType.Footstep);
+                // 표면별 발소리 재생 — _currentSurfaceTag를 variant로 전달
+                SoundEffectManager.Instance?.PlaySurfacedSFX(SoundEffectManager.SFXType.Footstep, _currentSurfaceTag);
             }
         }
 
@@ -143,9 +154,9 @@ namespace ProjectName.Systems
     }
 
     /// <summary>
-    /// G3-12: UISoundIntegrator — OnGUI 기반 UI 사운드 통합.
+    /// G3-12: UISoundIntegrator — UI 사운드 통합.
     /// UISoundManager와 함께 동작하는 보조 컴포넌트.
-    /// 기존 UISoundManager를 수정하지 않고 UI 사운드를 보강합니다.
+    /// OnGUI 대신 Update + Input 시스템 사용 (GC 최적화).
     /// </summary>
     public class UISoundIntegrator : MonoBehaviour
     {
@@ -157,46 +168,45 @@ namespace ProjectName.Systems
         }
 
         private PanelState _lastPanelState = PanelState.Unknown;
+        private bool _previousMouseUp;
+        private static UISoundIntegrator _existingInstance;
 
         private void Awake()
         {
+            if (_existingInstance != null && _existingInstance != this)
+            {
+                Debug.LogWarning("[UISoundIntegrator] 중복 인스턴스 제거");
+                Destroy(gameObject);
+                return;
+            }
+            _existingInstance = this;
             DontDestroyOnLoad(gameObject);
         }
 
-        private void OnGUI()
+        private void Update()
         {
             DetectUIClick();
-            DetectPanelTransition();
         }
 
         /// <summary>
-        /// OnGUI에서 마우스 클릭을 감지하여 버튼 클릭 사운드를 재생합니다.
+        /// Update에서 마우스 클릭을 감지하여 버튼 클릭 사운드를 재생합니다.
+        /// OnGUI 대신 사용하여 GC 할당을 방지합니다.
         /// </summary>
         private void DetectUIClick()
         {
-            if (Event.current == null) return;
+            bool currentMouseUp = Input.GetMouseButtonUp(0);
 
-            // 마우스 왼쪽 버튼이 UI 영역에서 떼어졌을 때
-            if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
+            // 마우스 버튼이 막 떼어진 시점 (이전 프레임과 비교)
+            if (currentMouseUp && !_previousMouseUp)
             {
-                // GUI 컨트롤이 활성화된 상태에서만 클릭으로 간주
+                // UI 컨트롤이 활성화된 상태에서만 클릭으로 간주
                 if (GUIUtility.hotControl != 0)
                 {
                     PlayClick();
                 }
             }
-        }
 
-        /// <summary>
-        /// OnGUI 레이아웃 이벤트를 통해 UI 패널 열림/닫힘을 감지합니다.
-        /// </summary>
-        private void DetectPanelTransition()
-        {
-            if (Event.current == null) return;
-            if (Event.current.type != EventType.Layout) return;
-
-            // Layout 단계에서는 GUI 컨트롤 수가 변경될 때 패널 상태 변화로 간주
-            // 실제 패널 감지는 외부에서 Setter를 통해 명시적으로 호출하는 것이 정확함
+            _previousMouseUp = currentMouseUp;
         }
 
         /// <summary>
@@ -228,6 +238,7 @@ namespace ProjectName.Systems
 
     /// <summary>
     /// G3-12: BiomeAmbientController — 바이옴 기반 앰비언트 사운드 관리.
+    /// IBiomeProvider 인터페이스를 통해 바이옴 정보를 얻습니다 (리플렉션 대체).
     /// 현재 바이옴을 감지하여 SoundManagerEnhanced.PlayAmbient로 앰비언트 자동 전환.
     /// </summary>
     public class BiomeAmbientController : MonoBehaviour
@@ -239,17 +250,25 @@ namespace ProjectName.Systems
         private string _lastBiome;
         private string _currentAmbientName;
         private float _checkTimer;
-        private MonoBehaviour _biomeComponent;
+        private IBiomeProvider _biomeProvider;
+        private static BiomeAmbientController _existingInstance;
 
         private void Awake()
         {
+            if (_existingInstance != null && _existingInstance != this)
+            {
+                Debug.LogWarning("[BiomeAmbientController] 중복 인스턴스 제거");
+                Destroy(gameObject);
+                return;
+            }
+            _existingInstance = this;
             DontDestroyOnLoad(gameObject);
         }
 
         private void Start()
         {
-            // Biome 관련 컴포넌트 탐색
-            _biomeComponent = FindBiomeComponent();
+            // IBiomeProvider 인터페이스 구현체 탐색 (리플렉션 대체)
+            _biomeProvider = FindBiomeProvider();
             ForceUpdateAmbient();
         }
 
@@ -264,20 +283,13 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 씬에서 Biome 관련 컴포넌트를 찾습니다.
+        /// 씬에서 IBiomeProvider 인터페이스를 구현한 컴포넌트를 찾습니다.
+        /// FindFirstObjectByType<IBiomeProvider>로 GC 할당 최소화.
         /// </summary>
-        private MonoBehaviour FindBiomeComponent()
+        private IBiomeProvider FindBiomeProvider()
         {
-            // "Biome"이 이름에 포함된 컴포넌트 검색
-            var allBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
-            foreach (var mb in allBehaviours)
-            {
-                if (mb != null && mb.GetType().Name.Contains("Biome"))
-                {
-                    return mb;
-                }
-            }
-            return null;
+            // Unity 2023.1+: 인터페이스 타입으로 FindFirstObjectByType 사용 가능
+            return FindFirstObjectByType<IBiomeProvider>(FindObjectsInactive.Include);
         }
 
         /// <summary>
@@ -295,34 +307,16 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 현재 바이옴을 결정합니다.
-        /// 1. Biome 컴포넌트가 있으면 해당 정보 사용
+        /// 1. IBiomeProvider 인터페이스 구현체가 있으면 해당 정보 사용
         /// 2. 없으면 씬 이름 키워드로 판단
         /// </summary>
         private string GetCurrentBiome()
         {
-            if (_biomeComponent != null)
+            if (_biomeProvider != null)
             {
-                // BiomeComponent에 biomeName 같은 public 필드/속성이 있을 수 있음
-                var type = _biomeComponent.GetType();
-                var biomeProp = type.GetProperty("CurrentBiome")
-                              ?? type.GetProperty("BiomeName")
-                              ?? type.GetProperty("biomeName");
-                if (biomeProp != null)
-                {
-                    string value = biomeProp.GetValue(_biomeComponent) as string;
-                    if (!string.IsNullOrEmpty(value))
-                        return value;
-                }
-
-                var biomeField = type.GetField("currentBiome")
-                             ?? type.GetField("biomeName")
-                             ?? type.GetField("_currentBiome");
-                if (biomeField != null)
-                {
-                    string value = biomeField.GetValue(_biomeComponent) as string;
-                    if (!string.IsNullOrEmpty(value))
-                        return value;
-                }
+                string biomeName = _biomeProvider.GetCurrentBiome();
+                if (!string.IsNullOrEmpty(biomeName))
+                    return biomeName;
             }
 
             // 폴백: 씬 이름 키워드 분석
@@ -420,5 +414,15 @@ namespace ProjectName.Systems
 
         /// <summary>현재 재생 중인 앰비언트 이름</summary>
         public string CurrentAmbientName => _currentAmbientName;
+    }
+
+    /// <summary>
+    /// 바이옴 정보 제공자 인터페이스.
+    /// BiomeAmbientController가 리플렉션 없이 바이옴 정보를 얻을 수 있게 합니다.
+    /// </summary>
+    public interface IBiomeProvider
+    {
+        /// <summary>현재 바이옴 이름을 반환합니다.</summary>
+        string GetCurrentBiome();
     }
 }

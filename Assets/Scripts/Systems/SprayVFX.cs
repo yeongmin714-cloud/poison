@@ -12,6 +12,7 @@ namespace ProjectName.Systems
         private GasSprayerController _controller;
         private ParticleSystem _particleSystem;
         private ParticleSystem.MainModule _mainModule;
+        private Material _createdMaterial;
 
         [Header("VFX 설정")]
         [SerializeField] private GameObject _particlePrefab;
@@ -28,7 +29,6 @@ namespace ProjectName.Systems
         [SerializeField] private Color _colorRegen = new Color(0.2f, 0.9f, 0.3f, 0.6f);    // herb_green: 초록
         [SerializeField] private Color _colorDefault = new Color(0.9f, 0.9f, 0.9f, 0.5f);  // 기본: 흰색 연기
 
-        private ParticleSystem.MinMaxGradient _currentColor;
         private bool _wasSpraying;
 
         private void Awake()
@@ -42,6 +42,57 @@ namespace ProjectName.Systems
             }
 
             InitializeParticleSystem();
+
+            // 이벤트 구독 — Update() 폴링 의존성 감소
+            _controller.OnPotionChanged += OnPotionChanged;
+            _controller.OnEquipChanged += OnEquipChanged;
+        }
+
+        private void OnDestroy()
+        {
+            // 이벤트 구독 해제
+            if (_controller != null)
+            {
+                _controller.OnPotionChanged -= OnPotionChanged;
+                _controller.OnEquipChanged -= OnEquipChanged;
+            }
+
+            // 동적 생성한 Material 정리 (메모리 누수 방지)
+            if (_createdMaterial != null)
+            {
+                Destroy(_createdMaterial);
+                _createdMaterial = null;
+            }
+        }
+
+        /// <summary>
+        /// 물약 변경 시 파티클 색상 업데이트 (이벤트 핸들러)
+        /// </summary>
+        private void OnPotionChanged()
+        {
+            if (_particleSystem != null && _controller != null)
+            {
+                UpdateParticleColor();
+            }
+        }
+
+        /// <summary>
+        /// 장착 변경 시 파티클 상태 리셋 (이벤트 핸들러)
+        /// </summary>
+        private void OnEquipChanged()
+        {
+            if (_particleSystem != null)
+            {
+                // 장착 해제 시 파티클 정지
+                if (_controller == null || !_controller.IsEquipped)
+                {
+                    if (_particleSystem.isPlaying)
+                    {
+                        _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+                    }
+                    _wasSpraying = false;
+                }
+            }
         }
 
         private void InitializeParticleSystem()
@@ -54,6 +105,8 @@ namespace ProjectName.Systems
                 if (_particlePrefab != null)
                 {
                     var go = Instantiate(_particlePrefab, transform);
+                    go.transform.localPosition = Vector3.zero;
+                    go.transform.localRotation = Quaternion.identity;
                     _particleSystem = go.GetComponent<ParticleSystem>();
                     if (_particleSystem == null)
                     {
@@ -67,7 +120,6 @@ namespace ProjectName.Systems
             }
 
             _mainModule = _particleSystem.main;
-            _currentColor = _colorDefault;
 
             // 기본 설정
             _mainModule.startLifetime = _particleLifetime;
@@ -92,7 +144,14 @@ namespace ProjectName.Systems
             var renderer = _particleSystem.GetComponent<ParticleSystemRenderer>();
             if (renderer != null)
             {
-                renderer.material = new Material(Shader.Find("Particles/Standard Unlit"));
+                // URP 호환 셰이더 사용 (Fallback 체인)
+                var shader = Shader.Find("Universal Render Pipeline/Particles/Simple Lit")
+                    ?? Shader.Find("Universal Render Pipeline/Lit")
+                    ?? Shader.Find("Particles/Standard Unlit");
+
+                _createdMaterial = new Material(shader != null ? shader : Shader.Find("Unlit/Color"));
+                _createdMaterial.name = "SprayVFX_Material_Generated";
+                renderer.material = _createdMaterial;
                 renderer.renderMode = ParticleSystemRenderMode.Billboard;
                 renderer.sortingOrder = 0;
             }
@@ -119,11 +178,6 @@ namespace ProjectName.Systems
             {
                 // 분사 중단 — 파티클 정지
                 _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmitting);
-            }
-            else if (isSpraying && _wasSpraying)
-            {
-                // 분사 중 — 컬러 변경 감시 (물약 변경 시)
-                UpdateParticleColor();
             }
 
             _wasSpraying = isSpraying;

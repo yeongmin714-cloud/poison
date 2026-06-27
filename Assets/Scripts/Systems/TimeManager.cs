@@ -20,22 +20,41 @@ namespace ProjectName.Systems
 
         // ===== 상태 =====
         private float _gameTime;
+        private int _currentDay;
         private int _lastHour = -1;
         private int _lastMinute = -1;
         private bool _lastIsDay = true;
 
         // ===== 공개 프로퍼티 =====
 
+        /// <summary>
+        /// 게임 시간(초). 86400f 이상 설정 시 자동으로 _currentDay 증가/감소.
+        /// </summary>
         public float GameTime
         {
             get => _gameTime;
-            set => _gameTime = Mathf.Clamp(value, 0f, 86400f);
+            set
+            {
+                if (value >= 86400f)
+                {
+                    int daysToAdd = Mathf.FloorToInt(value / 86400f);
+                    _currentDay += daysToAdd;
+                    value -= daysToAdd * 86400f;
+                }
+                else if (value < 0f)
+                {
+                    int daysToSub = Mathf.CeilToInt(Mathf.Abs(value) / 86400f);
+                    _currentDay -= daysToSub;
+                    value += daysToSub * 86400f;
+                }
+                _gameTime = value;
+            }
         }
 
         public float TimeScale
         {
             get => _timeScale;
-            set => _timeScale = value;
+            set => _timeScale = Mathf.Max(0f, value);
         }
 
         public int Hour => (int)(_gameTime / 3600f) % 24;
@@ -46,12 +65,12 @@ namespace ProjectName.Systems
         /// <summary>
         /// Current in-game day number. Incremented each full day cycle.
         /// </summary>
-        public int CurrentDay => Mathf.FloorToInt(_gameTime / 86400f);
+        public int CurrentDay => _currentDay;
 
         /// <summary>
         /// 하루 진행률 (0.0 ~ 1.0). 0 = 자정, 0.5 = 정오
         /// </summary>
-        public float DayProgress => (_gameTime % 86400f) / 86400f;
+        public float DayProgress => _gameTime / 86400f;
 
         // ===== 수면 상태 =====
         public bool IsSleeping { get; set; }
@@ -61,9 +80,7 @@ namespace ProjectName.Systems
         {
             if (IsSleeping) return;
             IsSleeping = true;
-            _gameTime += hours * 3600f;
-            if (_gameTime >= 86400f)
-                _gameTime -= 86400f;
+            GameTime = _gameTime + hours * 3600f;
             IsSleeping = false;
             onComplete?.Invoke();
         }
@@ -101,13 +118,7 @@ namespace ProjectName.Systems
 
         private void Update()
         {
-            _gameTime += Time.deltaTime * _timeScale;
-
-            // 0~86400 순환
-            if (_gameTime >= 86400f)
-                _gameTime -= 86400f;
-            if (_gameTime < 0f)
-                _gameTime += 86400f;
+            GameTime = _gameTime + Time.deltaTime * _timeScale;
 
             // 시간/분 변경 감지
             int currentHour = Hour;

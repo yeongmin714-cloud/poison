@@ -117,6 +117,13 @@ namespace ProjectName.Systems
             DontDestroyOnLoad(gameObject);
         }
 
+        private void OnDestroy()
+        {
+            // ★ Texture2D 메모리 정리 — MakeTexture 누수 방지
+            if (_bgTex != null) Destroy(_bgTex);
+            if (_borderTex != null) Destroy(_borderTex);
+        }
+
         private void Update()
         {
             // J 키 토글
@@ -341,6 +348,13 @@ namespace ProjectName.Systems
                 normal = { textColor = ColorProgress }
             };
 
+            _styleProgressLabelMet = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 12,
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = Color.green }
+            };
+
             _styleObjective = new GUIStyle(GUI.skin.label)
             {
                 fontSize = 11,
@@ -496,11 +510,7 @@ namespace ProjectName.Systems
                     GUI.Label(new Rect(8, objY, width - 60, 16),
                         $"▸ {objDesc}", _styleObjective);
 
-                    Color progColor = obj.IsMet ? Color.green : ColorProgress;
-                    GUIStyle progStyle = new GUIStyle(_styleProgressLabel)
-                    {
-                        normal = { textColor = progColor }
-                    };
+                    GUIStyle progStyle = obj.IsMet ? _styleProgressLabelMet : _styleProgressLabel;
                     GUI.Label(new Rect(width - 55, objY, 48, 16), progressText, progStyle);
 
                     objY += 15;
@@ -536,14 +546,11 @@ namespace ProjectName.Systems
             float cx = Screen.width / 2f;
             float cy = Screen.height / 2f + riseOffset;
 
+            // ★ 기존 _styleEffect 재사용 — 매 프레임 new GUIStyle 방지
             Color effectColor = ColorGold;
             effectColor.a = alpha;
-
-            GUIStyle effectStyle = new GUIStyle(_styleEffect)
-            {
-                normal = { textColor = effectColor },
-                fontSize = Mathf.RoundToInt(24 + (1f - progress) * 6) // 점점 작아짐
-            };
+            _styleEffect.normal.textColor = effectColor;
+            _styleEffect.fontSize = Mathf.RoundToInt(24 + (1f - progress) * 6);
 
             string text = $"✨ <color=#FFD700>✅ 퀘스트 완료!</color>\n<color=#FFAA00>{_currentEffect.questName}</color>";
 
@@ -551,7 +558,7 @@ namespace ProjectName.Systems
             float textHeight = 80f;
             GUI.Label(new Rect(cx - textWidth / 2f, cy - textHeight / 2f, textWidth, textHeight),
                 text,
-                effectStyle);
+                _styleEffect);
 
             // 만료 시 제거
             if (_currentEffect.IsExpired)

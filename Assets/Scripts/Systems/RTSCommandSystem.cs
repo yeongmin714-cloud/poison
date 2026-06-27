@@ -29,6 +29,13 @@ namespace ProjectName.Systems
             _mainCamera = Camera.main;
         }
 
+        private void OnEnable()
+        {
+            // 씬 전환 시 Camera.main이 stale될 수 있으므로 갱신
+            if (_mainCamera == null || !_mainCamera.gameObject.activeInHierarchy)
+                _mainCamera = Camera.main;
+        }
+
         /// <summary>
         /// 현재 선택된 병사들을 가져옴 (GuardSelectionManager에 위임)
         /// </summary>
@@ -67,26 +74,26 @@ namespace ProjectName.Systems
             IDamageable target = hit.collider.GetComponent<IDamageable>();
             if (target != null && target.IsAlive)
             {
-                // 공격 명령
+                // 공격 명령 — selected 목록을 전달하여 중복 호출 방지
                 if (ctrl)
                 {
-                    IssueSynchronizedAttackCommand(target, hit.point);
+                    IssueSynchronizedAttackCommand(selected, target, hit.point);
                 }
                 else
                 {
-                    IssueAttackCommand(target);
+                    IssueAttackCommand(selected, target);
                 }
             }
             else
             {
-                // 이동 명령
+                // 이동 명령 — selected 목록을 전달하여 중복 호출 방지
                 if (ctrl)
                 {
-                    IssueSynchronizedMoveCommand(hit.point);
+                    IssueSynchronizedMoveCommand(selected, hit.point);
                 }
                 else
                 {
-                    IssueMoveCommand(hit.point);
+                    IssueMoveCommand(selected, hit.point);
                 }
             }
         }
@@ -125,9 +132,8 @@ namespace ProjectName.Systems
         /// <summary>
         /// 개별 공격 명령 — 각 병사가 각자 타겟을 공격
         /// </summary>
-        private void IssueAttackCommand(IDamageable target)
+        private void IssueAttackCommand(IReadOnlyList<GuardPlaceholder> selected, IDamageable target)
         {
-            var selected = GetSelectedGuards();
             int count = 0;
             foreach (var guard in selected)
             {
@@ -146,9 +152,8 @@ namespace ProjectName.Systems
         /// <summary>
         /// 일제 공격 명령 (Ctrl+우클릭) — 모든 병사가 동일한 타겟 위치를 공격
         /// </summary>
-        private void IssueSynchronizedAttackCommand(IDamageable target, Vector3 hitPoint)
+        private void IssueSynchronizedAttackCommand(IReadOnlyList<GuardPlaceholder> selected, IDamageable target, Vector3 hitPoint)
         {
-            var selected = GetSelectedGuards();
             var targetTransform = (target as MonoBehaviour)?.transform;
             Vector3 attackPos = targetTransform != null ? targetTransform.position : hitPoint;
 
@@ -168,9 +173,8 @@ namespace ProjectName.Systems
         /// <summary>
         /// 이동 명령
         /// </summary>
-        private void IssueMoveCommand(Vector3 position)
+        private void IssueMoveCommand(IReadOnlyList<GuardPlaceholder> selected, Vector3 position)
         {
-            var selected = GetSelectedGuards();
             int count = 0;
             foreach (var guard in selected)
             {
@@ -186,9 +190,8 @@ namespace ProjectName.Systems
         /// <summary>
         /// 일제 이동 명령 (Ctrl+우클릭) — 모든 병사가 동일한 지점으로 이동
         /// </summary>
-        private void IssueSynchronizedMoveCommand(Vector3 position)
+        private void IssueSynchronizedMoveCommand(IReadOnlyList<GuardPlaceholder> selected, Vector3 position)
         {
-            var selected = GetSelectedGuards();
             int count = 0;
             foreach (var guard in selected)
             {

@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using ProjectName.Core.Data;
 using UnityEngine;
 
-namespace ProjectName.Core
+namespace ProjectName.Systems
 {
     /// <summary>
     /// 영지별 난이도(Tier 1~5)에 따른 퀘스트 정의 풀.
-    /// 각 퀘스트는 QuestData 구조체로 정의되며 QuestManager.DefineQuests()에 의해 등록됩니다.
+    /// 각 퀘스트는 QuestData 구조체로 정의되며 Phase6B_GenerateTerritoryNPCs에 의해 등록됩니다.
     /// </summary>
     public static class TerritoryQuestDefinitions
     {

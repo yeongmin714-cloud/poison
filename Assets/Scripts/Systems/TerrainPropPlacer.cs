@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using ProjectName.Core.Data;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace ProjectName.Systems
 {
@@ -171,11 +169,11 @@ namespace ProjectName.Systems
                 _propsParent = parentGO.transform;
             }
 
-            _placedProps = new List<GameObject>();
-            System.Random rng = new System.Random(_seed);
-
             // Clear previous props if any
             ClearProps();
+
+            _placedProps = new List<GameObject>();
+            System.Random rng = new System.Random(_seed);
 
             // Place trees
             int treeCount = rng.Next(_treeMin, _treeMax + 1);
@@ -282,8 +280,20 @@ namespace ProjectName.Systems
                 return pos;
             }
 
-            // Fallback: return any valid position
-            return new Vector3(RandomRange(rng, -halfSize, halfSize), 0f, RandomRange(rng, -halfSize, halfSize));
+            // Fallback: keep trying until we get a valid position
+            for (int attempt = 0; attempt < 50; attempt++)
+            {
+                float x = RandomRange(rng, -halfSize, halfSize);
+                float z = RandomRange(rng, -halfSize, halfSize);
+                Vector3 pos = new Vector3(x, 0f, z);
+
+                if (pos.magnitude >= _spawnExclusionRadius)
+                    return pos;
+            }
+
+            // Absolute last resort: return (0,0,0) will be excluded but this should never happen
+            Debug.LogWarning("[TerrainPropPlacer] Could not find valid spawn position after 100 attempts.");
+            return Vector3.zero;
         }
 
         // ================================================================

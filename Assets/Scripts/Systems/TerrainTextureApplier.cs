@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using ProjectName.Core.Data;
 using UnityEngine;
 
@@ -10,6 +9,8 @@ namespace ProjectName.Systems
     /// Resources/Models/UserProvided/terrain/textures/ 에서 PNG를 로드하여
     /// URP Lit Material로 변환, Ground MeshRenderer에 적용한다.
     /// NationTerrainController를 대체하여 동작한다.
+    ///
+    /// 지원 국가 접두사: east_, west_, south_, north_, empire_, dracula_, extra_
     /// </summary>
     public class TerrainTextureApplier : MonoBehaviour
     {
@@ -67,13 +68,32 @@ namespace ProjectName.Systems
             ApplyMaterialForNation(_currentNation);
         }
 
+        private void OnDestroy()
+        {
+            // Cleanup created materials to prevent memory leaks
+            if (_nationMaterials != null)
+            {
+                foreach (var kvp in _nationMaterials)
+                {
+                    if (kvp.Value != null)
+                    {
+                        if (Application.isPlaying)
+                            Destroy(kvp.Value);
+                        else
+                            DestroyImmediate(kvp.Value);
+                    }
+                }
+                _nationMaterials.Clear();
+            }
+        }
+
         // ================================================================
         //  Texture Loading
         // ================================================================
 
         /// <summary>
         /// Loads all PNG textures from the resources path and categorizes
-        /// them by nation prefix (east_, west_, south_, north_, empire_, extra_).
+        /// them by nation prefix (east_, west_, south_, north_, empire_, dracula_, extra_).
         /// </summary>
         public void LoadTextures()
         {
@@ -103,6 +123,8 @@ namespace ProjectName.Systems
                     AddToNation(NationType.North, tex);
                 else if (lowerName.StartsWith("empire_"))
                     AddToNation(NationType.Empire, tex);
+                else if (lowerName.StartsWith("dracula_"))
+                    AddToNation(NationType.Dracula, tex);
                 else if (lowerName.StartsWith("extra_"))
                     _extraTextures.Add(tex);
                 else
@@ -115,6 +137,7 @@ namespace ProjectName.Systems
                       $"South={(_nationTextures.ContainsKey(NationType.South) ? _nationTextures[NationType.South].Count : 0)}, " +
                       $"North={(_nationTextures.ContainsKey(NationType.North) ? _nationTextures[NationType.North].Count : 0)}, " +
                       $"Empire={(_nationTextures.ContainsKey(NationType.Empire) ? _nationTextures[NationType.Empire].Count : 0)}, " +
+                      $"Dracula={(_nationTextures.ContainsKey(NationType.Dracula) ? _nationTextures[NationType.Dracula].Count : 0)}, " +
                       $"Extra={_extraTextures.Count}");
         }
 
@@ -136,6 +159,7 @@ namespace ProjectName.Systems
         ///   extra1 (red) → south, empire
         ///   extra2 (gray) → north
         ///   extra3 (yellow) → west, empire
+        /// Dracula uses only its base texture (no extra blend).
         /// </summary>
         public void CreateMaterials()
         {
@@ -146,7 +170,7 @@ namespace ProjectName.Systems
             Texture2D extra2 = _extraTextures.Count > 1 ? _extraTextures[1] : null;
             Texture2D extra3 = _extraTextures.Count > 2 ? _extraTextures[2] : null;
 
-            foreach (NationType nation in new[] { NationType.East, NationType.West, NationType.South, NationType.North, NationType.Empire })
+            foreach (NationType nation in new[] { NationType.East, NationType.West, NationType.South, NationType.North, NationType.Empire, NationType.Dracula })
             {
                 if (!_nationTextures.ContainsKey(nation) || _nationTextures[nation].Count == 0)
                 {
@@ -178,6 +202,12 @@ namespace ProjectName.Systems
 
         private Material CreateLitMaterial(string name, Texture2D mainTex)
         {
+            if (mainTex == null)
+            {
+                Debug.LogError($"[TerrainTextureApplier] mainTex is null for material '{name}'. Using fallback.");
+                return CreateFallbackMaterial(name);
+            }
+
             Shader shader = Shader.Find("Universal Render Pipeline/Lit");
             if (shader == null)
             {
@@ -205,6 +235,23 @@ namespace ProjectName.Systems
 
             mat.mainTextureScale = Vector2.one * _textureTiling;
 
+            return mat;
+        }
+
+        /// <summary>
+        /// Creates a fallback material when the primary texture is null.
+        /// Uses a plain white material with the correct shader.
+        /// </summary>
+        private static Material CreateFallbackMaterial(string name)
+        {
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+            if (shader == null) shader = Shader.Find("Standard");
+
+            Material mat = new Material(shader);
+            mat.name = name + "_Fallback";
+            mat.SetColor("_BaseColor", Color.magenta);
+            mat.SetColor("_Color", Color.magenta);
+            Debug.LogWarning($"[TerrainTextureApplier] Created fallback material '{mat.name}'.");
             return mat;
         }
 

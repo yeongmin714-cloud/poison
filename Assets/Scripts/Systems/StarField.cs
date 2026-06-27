@@ -11,7 +11,6 @@ namespace ProjectName.Systems
     ///   - 반짝임 주기/크기 랜덤화
     ///   - 부드러운 알파 페이드 인/아웃
     /// </summary>
-    [RequireComponent(typeof(TimeManager))]
     public class StarField : MonoBehaviour
     {
         [Header("Star Settings")]
@@ -35,8 +34,9 @@ namespace ProjectName.Systems
         private GameObject _particleGo;
         private bool _wasNight;
 
-        private void Start()
+        private void Awake()
         {
+            // 싱글톤 Instance를 통해 TimeManager 참조 획득
             _timeManager = TimeManager.Instance;
             if (_timeManager == null)
             {
@@ -45,6 +45,13 @@ namespace ProjectName.Systems
                 return;
             }
 
+            // 이벤트 구독: 폴링 대신 TimeManager의 OnDayNightChanged 사용
+            _timeManager.OnDayNightChanged += OnDayNightChanged;
+        }
+
+        private void Start()
+        {
+            // Awake에서 이미 Instance 체크 완료
             _wasNight = _timeManager.IsNight;
             if (_wasNight)
             {
@@ -52,24 +59,25 @@ namespace ProjectName.Systems
             }
         }
 
-        private void Update()
+        private void OnDayNightChanged(bool isDay)
         {
-            if (_timeManager == null) return;
-
-            bool isNight = _timeManager.IsNight;
-
-            if (isNight && !_wasNight)
+            if (isDay)
             {
-                // 밤 시작 → 별 생성
-                CreateStarField();
-            }
-            else if (!isNight && _wasNight)
-            {
-                // 낮 시작 → 별 파괴
                 DestroyStarField();
             }
+            else
+            {
+                CreateStarField();
+            }
+        }
 
-            _wasNight = isNight;
+        private void OnDestroy()
+        {
+            if (_timeManager != null)
+            {
+                _timeManager.OnDayNightChanged -= OnDayNightChanged;
+            }
+            DestroyStarField();
         }
 
         /// <summary>
@@ -98,26 +106,39 @@ namespace ProjectName.Systems
             main.startColor = _starColor1;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
 
-            // Emission: 모든 별을 한 번에 방출
+            // Emission: rateOverTime으로 별을 지속적으로 재생성
+            // 각 별의 평균 수명을 기준으로 _starCount를 유지하도록 rate 계산
             var emission = _particleSystem.emission;
             emission.enabled = true;
-            emission.rateOverTime = 0;
+            float avgLifetime = (_minTwinkleSpeed + _maxTwinkleSpeed) * 0.5f;
+            float ratePerSecond = avgLifetime > 0f ? _starCount / avgLifetime : _starCount;
+            emission.rateOverTime = Mathf.Max(ratePerSecond, 1f);
+
+            // 초기 별들을 한 번에 방출하여 즉시 별이 보이게 함
             emission.SetBursts(new ParticleSystem.Burst[]
             {
                 new ParticleSystem.Burst(0f, (short)_starCount)
             });
 
-            // Shape: 구체 영역
+            // Shape: 구체 영역 (표면 분포)
             var shape = _particleSystem.shape;
             shape.enabled = true;
             shape.shapeType = ParticleSystemShapeType.Sphere;
             shape.radius = _starRange;
-            shape.randomDirectionAmount = 1f;
+            shape.randomDirectionAmount = 0f;        // 불필요한 방향 랜덤화 제거
+            shape.alignToDirection = false;
 
-            // Renderer: 작은 점
+            // Renderer: URP 호환 Particle 셰이더 사용
             var renderer = _particleSystem.GetComponent<ParticleSystemRenderer>();
             renderer.renderMode = ParticleSystemRenderMode.Billboard;
-            renderer.material = new Material(Shader.Find("Sprites/Default"));
+            var particleShader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+            if (particleShader == null)
+            {
+                // Fallback: Built-in Sprites/Default (URP가 아닌 환경 대응)
+                particleShader = Shader.Find("Sprites/Default");
+            }
+            renderer.material = new Material(particleShader);
+            renderer.sortingOrder = -1; // 배경보다 뒤에 렌더링
 
             // ================================================================
             // [G3-01] 별 반짝임 (깜빡임) 강화
@@ -151,14 +172,18 @@ namespace ProjectName.Systems
             // Gradient: 알파가 0.1↔1.0으로 깜빡이고 색상도 흰색↔노란색 변화
             var gradient = new Gradient();
 
+            // 밝기 계수를 미리 계산해서 Color 연산 최적화
+            Color brightColor1 = _starColor1 * _starBrightness;
+            Color brightColor2 = _starColor2 * _starBrightness;
+
             // Color keys: 흰색(별색1) ↔ 노란색(별색2)
             gradient.SetKeys(
                 new GradientColorKey[] {
-                    new GradientColorKey(_starColor1 * _starBrightness, 0f),
-                    new GradientColorKey(_starColor2 * _starBrightness, 0.25f),
-                    new GradientColorKey(_starColor1 * _starBrightness, 0.5f),
-                    new GradientColorKey(_starColor2 * _starBrightness, 0.75f),
-                    new GradientColorKey(_starColor1 * _starBrightness, 1f)
+                    new GradientColorKey(brightColor1, 0f),
+                    new GradientColorKey(brightColor2, 0.25f),
+                    new GradientColorKey(brightColor1, 0.5f),
+                    new GradientColorKey(brightColor2, 0.75f),
+                    new GradientColorKey(brightColor1, 1f)
                 },
                 new GradientAlphaKey[] {
                     new GradientAlphaKey(_minTwinkleAlpha, 0f),     // 시작: 거의 안보임
@@ -182,17 +207,13 @@ namespace ProjectName.Systems
 
             if (_particleSystem != null)
             {
-                _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+                // 기존 파티클까지 즉시 제거해야 잔상이 남지 않음
+                _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             }
 
             Destroy(_particleGo);
             _particleGo = null;
             _particleSystem = null;
-        }
-
-        private void OnDestroy()
-        {
-            DestroyStarField();
         }
     }
 }

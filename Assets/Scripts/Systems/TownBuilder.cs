@@ -194,12 +194,23 @@ namespace ProjectName.Systems
         /// </summary>
         public static void ClearAll()
         {
-            var roots = GameObject.FindObjectsOfType<GameObject>();
+            // Unity 6000: FindObjectsByType 사용 (FindObjectsOfType<GameObject>()보다 효율적)
+#if UNITY_EDITOR
+            var roots = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+#else
+            var roots = GameObject.FindObjectsByType<GameObject>();
+#endif
             for (int i = 0; i < roots.Length; i++)
             {
                 if (roots[i].name.StartsWith("Town_"))
                 {
-                    GameObject.DestroyImmediate(roots[i]);
+                    // 에디터 모드에서는 DestroyImmediate로 즉시 제거 (씬 저장 반영)
+                    // 런타임에서는 안전하게 Destroy 사용
+                    if (Application.isPlaying)
+                        GameObject.Destroy(roots[i]);
+                    else
+                        GameObject.DestroyImmediate(roots[i]);
+
                     Debug.Log($"[TownBuilder] 🗑️ '{roots[i].name}' 제거됨");
                 }
             }
@@ -357,7 +368,7 @@ namespace ProjectName.Systems
                 GameObject guardGo;
                 if (RuntimeModelLoader.TryGetModel("soldier", out var soldierPrefab))
                 {
-                    guardGo = UnityEngine.Object.Instantiate(soldierPrefab);
+                    guardGo = UnityEngine.Object.Instantiate(soldierPrefab, parent);
                     guardGo.name = $"Guard_{layout.territoryId}_{i + 1}";
                     guardGo.transform.position = spawnPos;
                 }

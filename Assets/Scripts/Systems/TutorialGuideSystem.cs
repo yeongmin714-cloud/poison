@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
 {
@@ -18,36 +19,36 @@ namespace ProjectName.Systems
             public string id;
             public string title;
             public string description;
-            public string actionTrigger; // "W" "E" "LeftClick" "I" 등
+            public string actionTrigger; // TutorialGuideData ID (e.g. "01_movement")
         }
 
-        // T4: 기본 조작 설명창 11종
+        // T4: 기본 조작 설명창 11종 — ID는 TutorialGuideData 상수와 일치
         public static readonly GuideData[] BasicGuides = new[]
         {
-            new GuideData { id = "t_move",     title = "이동",     description = "WASD 키로 이동합니다.\nShift 키로 달리기.",                        actionTrigger = "W" },
-            new GuideData { id = "t_camera",   title = "시점",     description = "마우스를 화면 가장자리로 이동하여\n시점을 회전합니다.",                 actionTrigger = "MouseEdge" },
-            new GuideData { id = "t_attack",   title = "공격",     description = "좌클릭으로 적을 공격합니다.\n커서 방향의 가장 가까운 적을 자동 조준합니다.", actionTrigger = "LeftClick" },
-            new GuideData { id = "t_sprint",   title = "달리기",   description = "Shift 키를 누르면 빠르게 달립니다.",                              actionTrigger = "Shift" },
-            new GuideData { id = "t_jump",     title = "점프",     description = "Space 키로 점프합니다.",                                         actionTrigger = "Space" },
-            new GuideData { id = "t_interact", title = "상호작용", description = "E 키로 약초 채집, NPC 대화,\n크래프트 테이블을 사용합니다.",          actionTrigger = "E" },
-            new GuideData { id = "t_inventory",title = "인벤토리", description = "I 키로 인벤토리를 엽니다.\n획득한 아이템을 확인할 수 있습니다.",       actionTrigger = "I" },
-            new GuideData { id = "t_recipe",   title = "레시피",   description = "R 키로 레시피 북을 엽니다.\n발견한 조합법을 확인할 수 있습니다.",       actionTrigger = "R" },
-            new GuideData { id = "t_zoom",     title = "줌",       description = "마우스 휠로 줌 인/아웃합니다.",                                    actionTrigger = "ScrollWheel" },
-            new GuideData { id = "t_map",      title = "지도",     description = "M 키로 월드맵을 엽니다.\n점령한 영지와 현재 위치를 확인할 수 있습니다.", actionTrigger = "M" },
-            new GuideData { id = "t_quest",    title = "퀘스트",   description = "Q 키로 퀘스트 창을 엽니다.",                                        actionTrigger = "Q" },
+            new GuideData { id = TutorialGuideData.ID_01_MOVEMENT,   title = "이동",     description = "WASD 키로 이동합니다.\nShift 키로 달리기.",                        actionTrigger = TutorialGuideData.ID_01_MOVEMENT },
+            new GuideData { id = TutorialGuideData.ID_02_CAMERA,     title = "시점",     description = "마우스 우클릭 드래그로\n시점을 회전합니다.",                       actionTrigger = TutorialGuideData.ID_02_CAMERA },
+            new GuideData { id = TutorialGuideData.ID_03_ATTACK,     title = "공격",     description = "좌클릭으로 적을 공격합니다.\n커서 방향의 가장 가까운 적을 자동 조준합니다.",  actionTrigger = TutorialGuideData.ID_03_ATTACK },
+            new GuideData { id = TutorialGuideData.ID_04_DASH,       title = "달리기",   description = "Shift 키를 누르면 빠르게 달립니다.",                              actionTrigger = TutorialGuideData.ID_04_DASH },
+            new GuideData { id = TutorialGuideData.ID_05_ROLL,       title = "구르기",   description = "Space 키로 구를 수 있습니다\n(무적 판정).",                        actionTrigger = TutorialGuideData.ID_05_ROLL },
+            new GuideData { id = TutorialGuideData.ID_06_CHOP_TREE,  title = "나무 채집",description = "E 키로 나무를 캐서\n재료를 얻으세요.",                              actionTrigger = TutorialGuideData.ID_06_CHOP_TREE },
+            new GuideData { id = TutorialGuideData.ID_07_MINE_STONE, title = "돌 채집",  description = "E 키로 돌을 캐서\n재료를 얻으세요.",                              actionTrigger = TutorialGuideData.ID_07_MINE_STONE },
+            new GuideData { id = TutorialGuideData.ID_08_HERB_PICK,  title = "약초 채집",description = "E 키로 약초를 채집합니다.\n획득한 약초는 인벤토리에서 확인 가능합니다.",   actionTrigger = TutorialGuideData.ID_08_HERB_PICK },
+            new GuideData { id = TutorialGuideData.ID_09_INVENTORY,  title = "인벤토리", description = "I 키로 인벤토리를 엽니다.\n획득한 아이템을 확인할 수 있습니다.",        actionTrigger = TutorialGuideData.ID_09_INVENTORY },
+            new GuideData { id = TutorialGuideData.ID_10_CRAFT,      title = "제작",     description = "크래프트 테이블에서 E 키로\n아이템을 제작할 수 있습니다.",              actionTrigger = TutorialGuideData.ID_10_CRAFT },
+            new GuideData { id = TutorialGuideData.ID_11_RECIPE_BOOK,title = "레시피",   description = "R 키로 레시피 북을 엽니다.\n발견한 조합법을 확인할 수 있습니다.",        actionTrigger = TutorialGuideData.ID_11_RECIPE_BOOK },
         };
 
-        // T6: 영지 최초 액션 설명창
+        // T6: 영지 최초 액션 설명창 — ID는 TutorialGuideData 상수와 일치
         public static readonly GuideData[] TerritoryGuides = new[]
         {
-            new GuideData { id = "t_guard",     title = "병사 상호작용", description = "E 키로 병사에게 말을 걸 수 있습니다.\n호감도에 따라 대화/음식/약물 제공이 가능합니다.", actionTrigger = "GuardInteraction" },
-            new GuideData { id = "t_equip",     title = "장비",         description = "인벤토리에서 병사에게 장비를 지급할 수 있습니다.",                      actionTrigger = "Equipment" },
-            new GuideData { id = "t_sprayer",   title = "가스 분사기",  description = "가스 분사기를 등에 장착하여\n독/치료/마약 안개를 분사할 수 있습니다.",      actionTrigger = "GasSprayer" },
-            new GuideData { id = "t_guardmission", title = "병사 임무", description = "병사에게 특사/정보원/약초꾼/사냥꾼/광부 임무를\n지시할 수 있습니다.",       actionTrigger = "GuardMission" },
-            new GuideData { id = "t_shop",      title = "상점",         description = "상점에서 무기/방어구/물약을 구매하고\n불필요한 아이템을 판매할 수 있습니다.",      actionTrigger = "Shop" },
-            new GuideData { id = "t_status",    title = "스테이터스",   description = "C 키로 캐릭터 정보와\n장비창을 확인할 수 있습니다.",                     actionTrigger = "Status" },
-            new GuideData { id = "t_indoor",    title = "실내 진입",    description = "건물 문 앞에서 E 키로\n건물 내부에 진입할 수 있습니다.",                 actionTrigger = "IndoorScene" },
-            new GuideData { id = "t_repair",    title = "장비 수리",    description = "크래프트 테이블에서\n손상된 장비를 수리할 수 있습니다.",                actionTrigger = "Repair" },
+            new GuideData { id = TutorialGuideData.ID_12_GUARD_INTERACT, title = "병사 상호작용", description = "E 키로 병사에게 말을 걸 수 있습니다.\n호감도에 따라 대화/음식/약물 제공이 가능합니다.", actionTrigger = TutorialGuideData.ID_12_GUARD_INTERACT },
+            new GuideData { id = TutorialGuideData.ID_13_GUARD_INFO,     title = "병사 정보",     description = "병사 정보창에서 레벨,\n호감도, 중독도를 확인하세요.",                      actionTrigger = TutorialGuideData.ID_13_GUARD_INFO },
+            new GuideData { id = TutorialGuideData.ID_14_GUARD_EQUIP,    title = "장비 지급",     description = "병사에게 장비를 지급하면\n전투력이 상승합니다.",                          actionTrigger = TutorialGuideData.ID_14_GUARD_EQUIP },
+            new GuideData { id = TutorialGuideData.ID_16_GAS_SPRAYER,    title = "가스 분사기",  description = "가스 분사기를 Back 슬롯에\n장착해 사용하세요.",                           actionTrigger = TutorialGuideData.ID_16_GAS_SPRAYER },
+            new GuideData { id = TutorialGuideData.ID_17_GUARD_MISSION,  title = "병사 임무",    description = "병사에게 특사/정보원/약초꾼/사냥꾼/광부 임무를\n지시할 수 있습니다.",       actionTrigger = TutorialGuideData.ID_17_GUARD_MISSION },
+            new GuideData { id = TutorialGuideData.ID_18_SHOP,           title = "상점",         description = "상점에서 무기/방어구/물약을 구매하고\n불필요한 아이템을 판매할 수 있습니다.",      actionTrigger = TutorialGuideData.ID_18_SHOP },
+            new GuideData { id = TutorialGuideData.ID_20_STATUS,         title = "스테이터스",   description = "C 키로 캐릭터 정보와\n장비창을 확인할 수 있습니다.",                     actionTrigger = TutorialGuideData.ID_20_STATUS },
+            new GuideData { id = TutorialGuideData.ID_22_BUILDING_ENTER, title = "실내 진입",    description = "건물 문 앞에서 E 키로\n건물 내부에 진입할 수 있습니다.",                 actionTrigger = TutorialGuideData.ID_22_BUILDING_ENTER },
         };
 
         // 상태 관리
@@ -61,13 +62,13 @@ namespace ProjectName.Systems
         /// <summary>가이드가 표시/숨김될 때 발생하는 이벤트</summary>
         public System.Action<string, bool> OnGuideProcessed;
         
-        /// <summary>현재 가이드가 표시 중인가?</summary>
-        public bool IsGuideShown(string guideId)
+        /// <summary>해당 가이드가 이미 PlayerPrefs에 기록되었는지 (과거에 본 적이 있는지) 확인</summary>
+        public bool HasGuideBeenShown(string guideId)
         {
             return PlayerPrefs.HasKey($"guide_{guideId}");
         }
 
-        /// <summary>TutorialActionDetector에서 호출 — 특정 액션 가이드 표시</summary>
+        /// <summary>TutorialActionDetector 등에서 호출 — 특정 액션 가이드 표시 요청</summary>
         public void ShowGuide(string actionId)
         {
             TriggerGuide(actionId);
@@ -77,6 +78,7 @@ namespace ProjectName.Systems
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
 
         private void Start()
@@ -99,7 +101,6 @@ namespace ProjectName.Systems
                 _currentGuide = _guideQueue.Dequeue();
                 _isShowingGuide = true;
                 _guideShowTime = _guideDuration;
-                OnGuideProcessed?.Invoke(_currentGuide?.id ?? "", false);
             }
 
             if (_isShowingGuide)
@@ -118,10 +119,10 @@ namespace ProjectName.Systems
             if (PlayerPrefs.HasKey($"guide_{actionId}")) return; // 이미 확인 완료
 
             GuideData? match = null;
-            foreach (var g in BasicGuides) { if (g.actionTrigger == actionId) { match = g; break; } }
+            foreach (var g in BasicGuides) { if (g.id == actionId) { match = g; break; } }
             if (match == null)
             {
-                foreach (var g in TerritoryGuides) { if (g.actionTrigger == actionId) { match = g; break; } }
+                foreach (var g in TerritoryGuides) { if (g.id == actionId) { match = g; break; } }
             }
 
             if (match.HasValue)
@@ -141,8 +142,9 @@ namespace ProjectName.Systems
             }
             _isShowingGuide = false;
             var lastId = _currentGuide?.id ?? "";
+            bool wasEscPressed = Input.GetKeyDown(KeyCode.Escape);
             _currentGuide = null;
-            OnGuideProcessed?.Invoke(lastId, true);
+            OnGuideProcessed?.Invoke(lastId, wasEscPressed);
         }
 
         /// <summary>OnGUI로 가이드 팝업 렌더링</summary>

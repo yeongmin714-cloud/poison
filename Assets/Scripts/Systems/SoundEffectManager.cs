@@ -89,7 +89,7 @@ namespace ProjectName.Systems
 
         [SerializeField]
         [Tooltip("AudioSource 풀 크기 (동시 재생 가능한 효과음 수)")]
-        private int _poolSize = 4;
+        private int _poolSize = 12;
 
         // ===== 상태 =====
 
@@ -166,6 +166,12 @@ namespace ProjectName.Systems
                 return;
             }
 
+            // 소스 상태 초기화 (PlaySFXAtPoint에서 오염 방지)
+            source.transform.localPosition = Vector3.zero;
+            source.spatialBlend = 0f;      // 2D 사운드
+            source.pitch = 1f;
+            source.panStereo = 0f;
+
             // 플레이스홀더: clip이 null이므로 재생되지 않음
             // 실제 구현에서는 Resources.Load 또는 Addressables로 SFX 클립 로드
             source.clip = null;
@@ -192,14 +198,20 @@ namespace ProjectName.Systems
             // 플레이스홀더: AudioSource.PlayClipAtPoint 사용 (3D 공간 음향)
             // clip이 null이므로 실제로 재생되지는 않음
             AudioSource source = GetNextAvailableSource();
-            if (source != null)
+            if (source == null)
             {
-                source.transform.position = position;
-                source.clip = null;
-                source.volume = _volume;
-                source.spatialBlend = 1f; // 3D 사운드
-                source.Play();
+                Debug.LogWarning("[SoundEffectManager] 사용 가능한 AudioSource 없음 — 3D SFX 재생 불가");
+                return;
             }
+
+            source.transform.position = position;
+            // 소스 상태 초기화
+            source.spatialBlend = 1f;      // 3D 사운드
+            source.pitch = 1f;
+            source.panStereo = 0f;
+            source.clip = null;
+            source.volume = _volume;
+            source.Play();
         }
 
         /// <summary>
@@ -285,6 +297,40 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
+        /// 지정된 효과음을 표면 변형 정보와 함께 재생합니다.
+        /// Footstep 등 표면에 따라 다른 사운드가 필요한 경우 사용합니다.
+        /// </summary>
+        /// <param name="type">재생할 효과음 종류</param>
+        /// <param name="surfaceVariant">표면 변형 태그 (step_grass, step_stone 등, 빈 문자열이면 기본값)</param>
+        public void PlaySurfacedSFX(SFXType type, string surfaceVariant)
+        {
+            if (!Application.isPlaying)
+            {
+                Debug.Log($"[SoundEffectManager] (Editor) PlaySurfacedSFX: {type} variant={surfaceVariant}");
+                return;
+            }
+
+            string sfxName = GetSFXNameWithVariant(type, surfaceVariant);
+            Debug.Log($"[SoundEffectManager] 🔊 SFX 재생: {sfxName} (플레이스홀더 — 실제 오디오 없음)");
+
+            AudioSource source = GetNextAvailableSource();
+            if (source == null)
+            {
+                Debug.LogWarning("[SoundEffectManager] 사용 가능한 AudioSource 없음 — 풀 확장 필요");
+                return;
+            }
+
+            source.transform.localPosition = Vector3.zero;
+            source.spatialBlend = 0f;
+            source.pitch = 1f;
+            source.panStereo = 0f;
+
+            source.clip = null;
+            source.volume = _volume;
+            source.Play();
+        }
+
+        /// <summary>
         /// SFXType에 해당하는 내부 이름을 반환합니다.
         /// </summary>
         private static string GetSFXName(SFXType type)
@@ -306,6 +352,17 @@ namespace ProjectName.Systems
                 SFXType.Defeat => "SFX_Defeat",
                 _ => "SFX_Unknown"
             };
+        }
+
+        /// <summary>
+        /// SFXType과 표면 변형 정보를 결합한 내부 이름을 반환합니다.
+        /// variant가 비어있으면 기본 GetSFXName 결과를 반환합니다.
+        /// </summary>
+        private static string GetSFXNameWithVariant(SFXType type, string variant)
+        {
+            string baseName = GetSFXName(type);
+            if (string.IsNullOrEmpty(variant)) return baseName;
+            return $"{baseName}_{variant}";
         }
 
         /// <summary>

@@ -11,16 +11,56 @@ namespace ProjectName.Systems
     {
         public enum ResourceType { Wood, Stone, IronOre }
 
-        [SerializeField] private ResourceType _resourceType = ResourceType.Wood;
-        [SerializeField] private int _minYield = 1;
-        [SerializeField] private int _maxYield = 3;
-        [SerializeField] private float _respawnTime = 15f;
+        [SerializeField, Tooltip("자원 종류")]
+        private ResourceType _resourceType = ResourceType.Wood;
+
+        [SerializeField, Tooltip("최소 수확량"), Range(1, 999)]
+        private int _minYield = 1;
+
+        [SerializeField, Tooltip("최대 수확량"), Range(1, 999)]
+        private int _maxYield = 3;
+
+        [SerializeField, Tooltip("리스폰 시간 (초)"), Min(0.1f)]
+        private float _respawnTime = 15f;
+
         private bool _isDepleted = false;
+
+        // --- 캐시된 컴포넌트 참조 ---
+        private Renderer _renderer;
+        private Collider _collider;
 
         public bool IsAvailable => !_isDepleted;
         public ResourceType NodeType => _resourceType;
 
-        /// <summary>Miner auto-mine — returns resources directly</summary>
+        private void Awake()
+        {
+            _renderer = GetComponent<Renderer>();
+            _collider = GetComponent<Collider>();
+
+            // Inspector 설정 검증
+            if (_minYield > _maxYield)
+            {
+                Debug.LogWarning($"[ResourceNode] _minYield({_minYield}) > _maxYield({_maxYield}), 자동 교정합니다.");
+                _maxYield = _minYield;
+            }
+        }
+
+        private void OnDisable()
+        {
+            CancelInvoke();
+        }
+
+        private void OnDestroy()
+        {
+            CancelInvoke();
+        }
+
+        /// <summary>
+        /// Miner auto-mine — 자원 채광 및 시각적 고갈 처리
+        /// </summary>
+        /// <param name="item">채광된 아이템 데이터 (고갈 시 null)</param>
+        /// <param name="yield">수확량 (고갈 시 0)</param>
+        /// <returns>채광 성공 여부</returns>
         public bool TryAutoMine(out PlayerInventory.ItemData item, out int yield)
         {
             item = null;
@@ -32,10 +72,8 @@ namespace ProjectName.Systems
             item = GetItemData();
 
             // Hide visual
-            var r = GetComponent<Renderer>();
-            if (r) r.enabled = false;
-            var c = GetComponent<Collider>();
-            if (c) c.enabled = false;
+            if (_renderer) _renderer.enabled = false;
+            if (_collider) _collider.enabled = false;
 
             Invoke(nameof(Respawn), _respawnTime);
             return true;
@@ -43,11 +81,11 @@ namespace ProjectName.Systems
 
         private void Respawn()
         {
+            if (this == null) return; // 객체 파괴됐을 경우 방어
+
             _isDepleted = false;
-            var r = GetComponent<Renderer>();
-            if (r) r.enabled = true;
-            var c = GetComponent<Collider>();
-            if (c) c.enabled = true;
+            if (_renderer) _renderer.enabled = true;
+            if (_collider) _collider.enabled = true;
         }
 
         private PlayerInventory.ItemData GetItemData()

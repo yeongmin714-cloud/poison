@@ -1,5 +1,4 @@
 using UnityEngine;
-using ProjectName.Core;
 using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
@@ -26,8 +25,13 @@ namespace ProjectName.Systems
             float pathWidth,
             float pathLength)
         {
+            if (meshResolution < 2)
+            {
+                Debug.LogError("[TerrainPathGenerator] meshResolution은 2 이상이어야 합니다.");
+                return Vector4.zero;
+            }
+
             float halfSize = meshSize * 0.5f;
-            float step = meshSize / (meshResolution - 1);
 
             // 영지 중심 → UV 좌표
             float centerU = (territoryCenter.x + halfSize) / meshSize;
@@ -62,6 +66,12 @@ namespace ProjectName.Systems
             float pathWidth,
             float pathLength)
         {
+            if (vertices == null || vertices.Length == 0)
+            {
+                Debug.LogError("[TerrainPathGenerator] vertices가 null이거나 비어 있습니다.");
+                return System.Array.Empty<int>();
+            }
+
             // Path AABB 계산
             float halfWidth = pathWidth * 0.5f;
             float minX = territoryCenter.x - halfWidth;
@@ -117,12 +127,15 @@ namespace ProjectName.Systems
             Color pathColor = GetPathColor(biome);
 
             // Path 영역 Vertex에 Path 색상 블렌딩 (50% 혼합)
-            foreach (int idx in pathIndices)
+            if (pathIndices != null)
             {
-                if (idx >= 0 && idx < vertexCount)
+                foreach (int idx in pathIndices)
                 {
-                    Color baseColor = colors[idx];
-                    colors[idx] = Color.Lerp(baseColor, pathColor, 0.5f);
+                    if (idx >= 0 && idx < vertexCount)
+                    {
+                        Color baseColor = colors[idx];
+                        colors[idx] = Color.Lerp(baseColor, pathColor, 0.5f);
+                    }
                 }
             }
 
@@ -140,12 +153,22 @@ namespace ProjectName.Systems
                     return new Color(0.5f, 0.3f, 0.15f);      // 갈색
                 case BiomeType.Forest:
                     return new Color(0.4f, 0.25f, 0.1f);     // 진한 갈색
+                case BiomeType.Lake:
+                    return new Color(0.3f, 0.25f, 0.2f);     // 진흙색
+                case BiomeType.Rocky:
+                    return new Color(0.45f, 0.45f, 0.4f);    // 회색 돌길
+                case BiomeType.Swamp:
+                    return new Color(0.35f, 0.3f, 0.15f);    // 짙은 갈색 진흙
                 case BiomeType.Reed:
                     return new Color(0.6f, 0.5f, 0.2f);      // 연한 갈색
                 case BiomeType.Desert:
                     return new Color(0.7f, 0.6f, 0.3f);      // 더 진한 모래
+                case BiomeType.Volcanic:
+                    return new Color(0.3f, 0.2f, 0.15f);     // 검은 재/용암길
                 case BiomeType.Tundra:
                     return new Color(0.5f, 0.5f, 0.5f);      // 회색 자갈
+                case BiomeType.Mountain:
+                    return new Color(0.4f, 0.4f, 0.38f);     // 암석길
                 case BiomeType.Empire:
                     return new Color(0.6f, 0.6f, 0.65f);     // 돌 블록
                 default:

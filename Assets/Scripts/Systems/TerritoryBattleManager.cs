@@ -27,9 +27,6 @@ namespace ProjectName.Systems
         private readonly Dictionary<string, Queue<GuardRespawnEntry>> _respawnQueues
             = new Dictionary<string, Queue<GuardRespawnEntry>>();
 
-        // 활성 전투 중인 영지 (UnderAttack 상태)
-        private readonly HashSet<string> _activeBattleTerritories = new HashSet<string>();
-
         // 플레이어 참조
         private Transform _playerTransform;
 
@@ -43,7 +40,6 @@ namespace ProjectName.Systems
         public class GuardRespawnEntry
         {
             public GuardPlaceholder guard;
-            public float timeUntilRespawn; // 남은 시간 (초)
         }
 
         // ================================================================
@@ -65,6 +61,12 @@ namespace ProjectName.Systems
             _playerTransform = GameObject.FindGameObjectWithTag("Player")?.transform;
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         private void Update()
         {
             if (_playerTransform == null) return;
@@ -80,7 +82,6 @@ namespace ProjectName.Systems
             Vector3 center = tm.GetTerritoryCenter();
             float dist = Vector3.Distance(playerPos, center);
             TerritoryId currentId = tm.CurrentTerritoryId;
-            string key = currentId.ToString();
 
             TerritoryState state = db.GetState(currentId);
             if (state == null) return;
@@ -94,6 +95,7 @@ namespace ProjectName.Systems
                     if (state.retreatTimer >= _retreatDelay)
                     {
                         // 10초 이상 떨어져 있음 → Retreat
+                        state.retreatTimer = 0f; // Retreated 타이머 리셋 (Bug fix: 누적된 타이머로 인해 5초 대기 스킵 방지)
                         TransitionTo(currentId, TerritoryBattleState.Retreated);
                     }
                 }
@@ -174,8 +176,7 @@ namespace ProjectName.Systems
 
             _respawnQueues[key].Enqueue(new GuardRespawnEntry
             {
-                guard = guard,
-                timeUntilRespawn = _reinforceInterval
+                guard = guard
             });
         }
 

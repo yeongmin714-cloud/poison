@@ -68,6 +68,9 @@ namespace ProjectName.Systems
         private static readonly Dictionary<TerritoryId, Color> _borderColors = new Dictionary<TerritoryId, Color>();
         private static readonly List<GameObject> _activeParticles = new List<GameObject>();
 
+        /// <summary>캐시된 Cube 메시 (Resources.GetBuiltinResource 호출 최소화)</summary>
+        private static Mesh _cubeMesh;
+
         /// <summary>모든 깃발 데이터 (읽기 전용 복사본)</summary>
         public static IReadOnlyDictionary<TerritoryId, TerritoryFlag> Flags => _flags;
 
@@ -82,12 +85,12 @@ namespace ProjectName.Systems
         /// AssassinationCutscene.OnAssassinationExecuted에서 호출됩니다.
         /// </summary>
         /// <param name="territoryId">점령된 영지 ID</param>
-        /// <param name="newOwner">새 소유자 (NationType 또는 Player)</param>
+        /// <param name="newOwner">새 소유주 (NationType)</param>
         public static void OnTerritoryCaptured(TerritoryId territoryId, NationType newOwner)
         {
             var db = TerritoryDatabase.Instance;
             var def = db.GetDefinition(territoryId);
-            if (def.territoryName == null)
+            if (string.IsNullOrEmpty(def.territoryName))
             {
                 Debug.LogWarning($"[TerritoryCaptureSystem] 영지 정의 없음: {territoryId}");
                 return;
@@ -101,6 +104,11 @@ namespace ProjectName.Systems
 
             // c) 파티클 효과
             SpawnCaptureParticles(territoryId, GetOwnerColor(newOwner));
+
+            // d) TerritoryState 동기화
+            var state = db.GetState(territoryId);
+            if (state != null)
+                state.flagRaised = true;
 
             Debug.Log($"[TerritoryCaptureSystem] 🏁 영지 점령 효과: {def.territoryName} → {newOwner}");
 
@@ -181,6 +189,16 @@ namespace ProjectName.Systems
         // ===== 내부 메서드 =====
 
         /// <summary>
+        /// 캐시된 큐브 메시 반환 (Resources.GetBuiltinResource 최소화)
+        /// </summary>
+        private static Mesh GetCubeMesh()
+        {
+            if (_cubeMesh == null)
+                _cubeMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            return _cubeMesh;
+        }
+
+        /// <summary>
         /// 영지 중심에 깃발을 생성합니다.
         /// </summary>
         private static void SpawnFlag(TerritoryId territoryId, Color color)
@@ -202,7 +220,7 @@ namespace ProjectName.Systems
             poleGo.transform.localPosition = Vector3.zero;
             var poleRenderer = poleGo.AddComponent<MeshRenderer>();
             var poleFilter = poleGo.AddComponent<MeshFilter>();
-            poleFilter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            poleFilter.sharedMesh = GetCubeMesh();
             poleRenderer.material.color = Color.gray;
             poleGo.transform.localScale = new Vector3(0.1f, FLAG_POLE_HEIGHT, 0.1f);
 
@@ -212,7 +230,7 @@ namespace ProjectName.Systems
             flagCubeGo.transform.localPosition = new Vector3(0f, FLAG_POLE_HEIGHT, 0f);
             var flagRenderer = flagCubeGo.AddComponent<MeshRenderer>();
             var flagFilter = flagCubeGo.AddComponent<MeshFilter>();
-            flagFilter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            flagFilter.sharedMesh = GetCubeMesh();
             flagRenderer.material.color = color;
             flagCubeGo.transform.localScale = new Vector3(FLAG_CUBE_SIZE, FLAG_CUBE_SIZE * 0.6f, 0.1f);
 
@@ -257,7 +275,7 @@ namespace ProjectName.Systems
 
                 var renderer = particleGo.AddComponent<MeshRenderer>();
                 var filter = particleGo.AddComponent<MeshFilter>();
-                filter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+                filter.sharedMesh = GetCubeMesh();
                 renderer.material.color = color;
 
                 particleGo.transform.localScale = Vector3.one * PARTICLE_CUBE_SIZE;
@@ -279,6 +297,8 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 영지 중심 위치를 반환합니다. TerritoryManager 또는 건물 위치 기반.
+        /// 주의: TerritoryManager가 없거나 현재 영지와 다른 경우,
+        /// 모든 BuildingPlaceholder의 평균 위치를 사용하므로 정확하지 않을 수 있습니다.
         /// </summary>
         private static Vector3 GetTerritoryCenterPosition(TerritoryId territoryId)
         {
@@ -292,7 +312,9 @@ namespace ProjectName.Systems
                 }
             }
 
-            // 건물 기반 위치 찾기
+            // 건물 기반 위치 찾기 — 현재 영지가 아닌 경우 부정확할 수 있음
+            Debug.LogWarning($"[TerritoryCaptureSystem] TerritoryManager에 {territoryId} 없음, " +
+                             $"모든 건물 평균 위치로 폴백 (부정확할 수 있음)");
             var buildings = Object.FindObjectsOfType<BuildingPlaceholder>();
             Vector3 sum = Vector3.zero;
             int count = 0;
@@ -322,6 +344,7 @@ namespace ProjectName.Systems
                 case NationType.South: return Color.red;
                 case NationType.North: return new Color(0.5f, 0f, 0.5f); // 보라
                 case NationType.Empire: return new Color(0.9f, 0.7f, 0f); // 황금
+                case NationType.Dracula: return new Color(0.8f, 0f, 0f); // 진한 빨강
                 case NationType.None:
                 default: return Color.white;
             }
@@ -335,12 +358,20 @@ namespace ProjectName.Systems
             private Vector3 _velocity;
             private float _lifetime;
             private float _elapsed;
+            private MeshRenderer _cachedRenderer;
 
             public void Initialize(Vector3 velocity, float lifetime)
             {
                 _velocity = velocity;
                 _lifetime = lifetime;
                 _elapsed = 0f;
+                _cachedRenderer = GetComponent<MeshRenderer>();
+            }
+
+            private void OnDestroy()
+            {
+                // _activeParticles에서 자신 제거 (메모리 누수 방지)
+                _activeParticles.Remove(gameObject);
             }
 
             private void Update()
@@ -359,14 +390,13 @@ namespace ProjectName.Systems
                 // 회전
                 transform.Rotate(Vector3.one * 180f * Time.deltaTime);
 
-                // 페이드 아웃
-                float alpha = 1f - (_elapsed / _lifetime);
-                var renderer = GetComponent<MeshRenderer>();
-                if (renderer != null)
+                // 페이드 아웃 (캐시된 Renderer 사용)
+                if (_cachedRenderer != null)
                 {
-                    Color c = renderer.material.color;
+                    float alpha = 1f - (_elapsed / _lifetime);
+                    Color c = _cachedRenderer.material.color;
                     c.a = alpha;
-                    renderer.material.color = c;
+                    _cachedRenderer.material.color = c;
                 }
             }
         }

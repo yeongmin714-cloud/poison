@@ -51,17 +51,17 @@ namespace ProjectName.Systems
 
         private static readonly string[] GUIDE_IDS = new string[]
         {
-            "01_movement",
-            "02_attack",
-            "03_herb_gathering",
-            "04_guard_summon",
-            "05_guard_trade",
-            "06_guard_bag",
-            "07_drop_loot",
-            "08_revenge",
-            "09_territory_claim",
-            "10_territory_ui",
-            "11_recipe_book"
+            TutorialGuideData.ID_01_MOVEMENT,
+            TutorialGuideData.ID_02_CAMERA,
+            TutorialGuideData.ID_03_ATTACK,
+            TutorialGuideData.ID_04_DASH,
+            TutorialGuideData.ID_05_ROLL,
+            TutorialGuideData.ID_06_CHOP_TREE,
+            TutorialGuideData.ID_07_MINE_STONE,
+            TutorialGuideData.ID_08_HERB_PICK,
+            TutorialGuideData.ID_09_INVENTORY,
+            TutorialGuideData.ID_10_CRAFT,
+            TutorialGuideData.ID_11_RECIPE_BOOK,
         };
 
         // ================================================================
@@ -72,6 +72,10 @@ namespace ProjectName.Systems
         private bool _questsRegistered;
         private bool _allGuidesComplete;
         private bool _isSkipped;
+
+        // CheckQuestCompletion 타이머 — 매 프레임 대신 간격 체크
+        private float _completionCheckTimer;
+        private const float COMPLETION_CHECK_INTERVAL = 0.5f;
 
         // ================================================================
         // MonoBehaviour 생명주기
@@ -106,10 +110,15 @@ namespace ProjectName.Systems
 
         private void Update()
         {
-            // 퀘스트 등록 + 모든 가이드 완료 후에만 퀘스트 완료 체크
+            // 퀘스트 등록 + 모든 가이드 완료 후에만 퀘스트 완료 체크 (간격 기반)
             if (_questsRegistered && _allGuidesComplete)
             {
-                CheckQuestCompletion();
+                _completionCheckTimer -= Time.deltaTime;
+                if (_completionCheckTimer <= 0f)
+                {
+                    _completionCheckTimer = COMPLETION_CHECK_INTERVAL;
+                    CheckQuestCompletion();
+                }
             }
         }
 
@@ -286,7 +295,7 @@ namespace ProjectName.Systems
             var guideSystem = TutorialGuideSystem.Instance;
             foreach (string guideId in GUIDE_IDS)
             {
-                if (guideSystem != null && !guideSystem.IsGuideShown(guideId))
+                if (guideSystem != null && !guideSystem.HasGuideBeenShown(guideId))
                 {
                     _guideQueue.Enqueue(guideId);
                 }
@@ -303,13 +312,16 @@ namespace ProjectName.Systems
                 return;
             }
 
-            string nextId = _guideQueue.Dequeue();
             var guideSystem = TutorialGuideSystem.Instance;
-            if (guideSystem != null)
+            if (guideSystem == null)
             {
-                guideSystem.ShowGuide(nextId);
-                Debug.Log($"[TutorialQuestManager] 가이드 표시: '{nextId}' (남은 큐: {_guideQueue.Count})");
+                Debug.LogError("[TutorialQuestManager] TutorialGuideSystem.Instance is null — 가이드를 표시할 수 없습니다");
+                return;
             }
+
+            string nextId = _guideQueue.Dequeue();
+            guideSystem.ShowGuide(nextId);
+            Debug.Log($"[TutorialQuestManager] 가이드 표시: '{nextId}' (남은 큐: {_guideQueue.Count})");
         }
 
         private void CompleteAllGuides()

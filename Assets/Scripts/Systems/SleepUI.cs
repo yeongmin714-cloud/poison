@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -29,6 +30,10 @@ namespace ProjectName.Systems
         [SerializeField] private Color _sleepOverlayColor = new Color(0f, 0f, 0f, 0.7f);
         [SerializeField] private int _overlayFontSize = 28;
 
+        [Header("Overlay Duration")]
+        [SerializeField] private float _minOverlaySeconds = 0.5f;
+        [SerializeField] private float _maxOverlaySeconds = 3f;
+
         private Bed _currentBed;
         private bool _isVisible;
         private GUIStyle _titleStyle;
@@ -36,6 +41,14 @@ namespace ProjectName.Systems
         private GUIStyle _cancelButtonStyle;
         private GUIStyle _overlayStyle;
         private bool _stylesInitialized;
+
+        // ===== 캐싱된 텍스처 (GC 누수 방지) =====
+        private Texture2D _cachedBgTex;
+        private Texture2D _cachedOverlayTex;
+
+        // ===== 수면 상태 (SleepFor가 동기식이므로 SleepUI가 직접 관리) =====
+        private bool _isSleeping;
+        private Coroutine _sleepCoroutine;
 
         private void Awake()
         {
@@ -51,7 +64,18 @@ namespace ProjectName.Systems
 
         private void Update()
         {
-            // 수면 중 ESC 누르면 기상
+            // ===== SleepUI 자체 수면 상태로 ESC 기상 처리 =====
+            if (_isSleeping && Input.GetKeyDown(KeyCode.Escape))
+            {
+                if (_sleepCoroutine != null)
+                    StopCoroutine(_sleepCoroutine);
+                _isSleeping = false;
+                _currentBed = null;
+                _sleepCoroutine = null;
+                Debug.Log("[SleepUI] ESC로 기상");
+            }
+
+            // ===== TimeManager.IsSleeping fallback (SaveSlotUI 경로 등) =====
             if (TimeManager.Instance != null && TimeManager.Instance.IsSleeping)
             {
                 if (Input.GetKeyDown(KeyCode.Escape))
@@ -122,10 +146,14 @@ namespace ProjectName.Systems
                 normal = { textColor = Color.white }
             };
 
+            // ===== 캐싱된 텍스처 미리 생성 (GC 누수 방지) =====
+            _cachedBgTex = MakeTexture(1, 1, _bgColor);
+            _cachedOverlayTex = MakeTexture(1, 1, _sleepOverlayColor);
+
             _stylesInitialized = true;
         }
 
-        private Texture2D MakeTexture(int width, int height, Color color)
+        private static Texture2D MakeTexture(int width, int height, Color color)
         {
             var tex = new Texture2D(width, height);
             for (int y = 0; y < height; y++)
@@ -144,11 +172,11 @@ namespace ProjectName.Systems
             InitializeStyles();
 
             // ===== 수면 중 검은 화면 오버레이 =====
-            if (TimeManager.Instance != null && TimeManager.Instance.IsSleeping)
+            bool anySleeping = _isSleeping || (TimeManager.Instance != null && TimeManager.Instance.IsSleeping);
+            if (anySleeping)
             {
-                // 전체 화면 검정 오버레이
-                var overlayTex = MakeTexture(1, 1, _sleepOverlayColor);
-                var overlayStyle = new GUIStyle { normal = { background = overlayTex } };
+                // 캐싱된 오버레이 텍스처 사용 (매 프레임 MakeTexture 호출 방지)
+                var overlayStyle = new GUIStyle { normal = { background = _cachedOverlayTex } };
                 GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "", overlayStyle);
 
                 // "😴 Sleeping... (ESC to wake)" 텍스트
@@ -162,9 +190,8 @@ namespace ProjectName.Systems
             int centerX = (Screen.width - _windowWidth) / 2;
             int centerY = (Screen.height - _windowHeight) / 2;
 
-            // 배경 박스
-            var bgTex = MakeTexture(1, 1, _bgColor);
-            var bgStyle = new GUIStyle { normal = { background = bgTex } };
+            // 캐싱된 배경 텍스처 사용
+            var bgStyle = new GUIStyle { normal = { background = _cachedBgTex } };
             GUI.Box(new Rect(centerX, centerY, _windowWidth, _windowHeight), "", bgStyle);
 
             // 제목
@@ -210,14 +237,72 @@ namespace ProjectName.Systems
             }
             else if (TimeManager.Instance != null)
             {
-                // SaveSlotUI가 없으면 기존처럼 바로 수면 (fallback)
-                TimeManager.Instance.SleepFor(hours, OnWakeUpComplete);
+                // SaveSlotUI가 없으면 SleepUI가 직접 수면 코루틴 실행
+                _sleepCoroutine = StartCoroutine(DoSleep(hours));
                 _isVisible = false;
             }
         }
 
+        /// <summary>
+        /// 수면을 수행하는 코루틴.
+        /// TimeManager.SleepFor가 동기식이므로 SleepUI가 직접 수면 상태를 관리합니다.
+        /// </summary>
+        private IEnumerator DoSleep(float hours)
+        {
+            _isSleeping = true;
+            _isVisible = false;
+
+            // 수면 시간 계산
+            float sleepSeconds;
+            if (hours <= 0f)
+            {
+                // "아침까지 자기": 현재 시간 → 다음 날 06:00
+                sleepSeconds = CalculateTimeUntilMorning();
+            }
+            else
+            {
+                sleepSeconds = hours * 3600f;
+            }
+
+            // 게임 시간 즉시 이동 (TimeManager.GameTime setter가 _currentDay 자동 처리)
+            TimeManager.Instance.GameTime = TimeManager.Instance.GameTime + sleepSeconds;
+
+            // 오버레이 표시 시간 (게임 시간을 현실 시간으로 변환, 0.5~3초 클램프)
+            float realDuration = sleepSeconds / TimeManager.Instance.TimeScale;
+            realDuration = Mathf.Clamp(realDuration, _minOverlaySeconds, _maxOverlaySeconds);
+
+            float elapsed = 0f;
+            while (elapsed < realDuration)
+            {
+                if (!_isSleeping) yield break; // ESC로 조기 기상
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            _isSleeping = false;
+            _currentBed = null;
+            _sleepCoroutine = null;
+            Debug.Log("[SleepUI] 기상 완료!");
+        }
+
+        /// <summary>
+        /// 현재 시간에서 다음 날 06:00(아침)까지의 게임 시간(초)을 계산합니다.
+        /// </summary>
+        private float CalculateTimeUntilMorning()
+        {
+            float currentTimeOfDay = TimeManager.Instance.GameTime % 86400f; // 오늘 0시 기준 경과 시간
+            const float morningTime = 6f * 3600f; // 06:00 = 21600초
+
+            if (currentTimeOfDay < morningTime)
+                return morningTime - currentTimeOfDay;
+            else
+                return (86400f - currentTimeOfDay) + morningTime; // 다음 날 아침
+        }
+
         private void OnWakeUpComplete()
         {
+            // DoSleep 코루틴에서 직접 _currentBed를 정리하므로,
+            // 이 콜백은 SaveSlotUI 경로 fallback용으로만 유지
             _currentBed = null;
             Debug.Log("[SleepUI] 기상 완료!");
         }

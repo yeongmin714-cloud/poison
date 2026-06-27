@@ -89,27 +89,28 @@ namespace ProjectName.Systems
         /// </summary>
         /// <param name="envoy">파견할 특사 (GuardPlaceholder)</param>
         /// <param name="territoryId">대상 영지 ID</param>
+        /// <param name="path">점령 경로 (기본값 PoisonGift)</param>
         /// <returns>독살 시도 결과</returns>
-        public static PoisonResult TryPoisonTakeover(GuardPlaceholder envoy, TerritoryId territoryId)
+        public static PoisonResult TryPoisonTakeover(GuardPlaceholder envoy, TerritoryId territoryId, TakeoverPath path = TakeoverPath.PoisonGift)
         {
             if (_takenOver.Contains(territoryId))
-                return new PoisonResult { success = false, message = "이미 점령된 영지입니다.", path = TakeoverPath.PoisonGift };
+                return new PoisonResult { success = false, message = "이미 점령된 영지입니다.", path = path };
 
             var db = TerritoryDatabase.Instance;
             var state = db.GetState(territoryId);
             if (state == null)
-                return new PoisonResult { success = false, message = "영지 상태를 찾을 수 없습니다.", path = TakeoverPath.PoisonGift };
+                return new PoisonResult { success = false, message = "영지 상태를 찾을 수 없습니다.", path = path };
 
             // 이미 처리된 영지 확인
             if (state.lordExecuted || state.lordSurrendered || state.ownership == TerritoryOwnership.PlayerOwned)
-                return new PoisonResult { success = false, message = "이미 처리된 영지입니다.", path = TakeoverPath.PoisonGift };
+                return new PoisonResult { success = false, message = "이미 처리된 영지입니다.", path = path };
 
             // 특사 유효성 검사
             if (envoy == null || !envoy.IsAlive)
-                return new PoisonResult { success = false, message = "특사가 없거나 사망했습니다.", path = TakeoverPath.PoisonGift };
+                return new PoisonResult { success = false, message = "특사가 없거나 사망했습니다.", path = path };
 
             if (!envoy.IsRecruited)
-                return new PoisonResult { success = false, message = "포섭된 병사만 특사로 파견할 수 있습니다.", path = TakeoverPath.PoisonGift };
+                return new PoisonResult { success = false, message = "포섭된 병사만 특사로 파견할 수 있습니다.", path = path };
 
             // 레벨 체크 (EnvoySystem.ASSASSINATE_REQUIRED_LEVEL 사용)
             if (envoy.Level < EnvoySystem.ASSASSINATE_REQUIRED_LEVEL)
@@ -117,7 +118,7 @@ namespace ProjectName.Systems
                 {
                     success = false,
                     message = $"특사 레벨 부족! 필요: Lv.{EnvoySystem.ASSASSINATE_REQUIRED_LEVEL}, 현재: Lv.{envoy.Level}",
-                    path = TakeoverPath.PoisonGift
+                    path = path
                 };
 
             // 독살 시도
@@ -153,19 +154,19 @@ namespace ProjectName.Systems
                         success = false,
                         message = $"💀 발각! {envoy.GuardName} 처형됨. 독살 시도가 들통났습니다!",
                         detected = true,
-                        path = TakeoverPath.PoisonGift
+                        path = path
                     };
                 }
 
                 // 성공: 영주 독살 완료
-                ExecutePoisonTakeover(territoryId, TakeoverPath.PoisonGift, envoy);
+                ExecutePoisonTakeover(territoryId, path, envoy);
 
                 return new PoisonResult
                 {
                     success = true,
                     message = $"☠️ {db.GetDefinition(territoryId).territoryName} 영주 독살 성공! 영지가 점령되었습니다.",
                     detected = false,
-                    path = TakeoverPath.PoisonGift
+                    path = path
                 };
             }
             else
@@ -176,7 +177,7 @@ namespace ProjectName.Systems
                     success = false,
                     message = "독살 시도가 실패했습니다. 특사가 기회를 찾지 못했습니다.",
                     detected = false,
-                    path = TakeoverPath.PoisonGift
+                    path = path
                 };
             }
         }
@@ -290,7 +291,7 @@ namespace ProjectName.Systems
                     path = TakeoverPath.SpyExploit
                 };
 
-            return TryPoisonTakeover(envoy, territoryId);
+            return TryPoisonTakeover(envoy, territoryId, TakeoverPath.SpyExploit);
         }
 
         /// <summary>
@@ -379,6 +380,7 @@ namespace ProjectName.Systems
             // 영지 소유권 변경
             state.ownership = TerritoryOwnership.PlayerOwned;
             state.lordExecuted = true;
+            state.lordDefeated = true;
             state.lordSurrendered = true;
 
             // 독살 플래그 설정
@@ -401,13 +403,10 @@ namespace ProjectName.Systems
         /// </summary>
         private static string BuildWeaknessDescription(TerritoryDefinition def, string spyInfo)
         {
-            string food = string.IsNullOrEmpty(def.lord.preferredFood) ? "알 수 없음" : def.lord.preferredFood;
-            string disease = string.IsNullOrEmpty(def.lord.chronicDisease) ? "없음" : def.lord.chronicDisease;
-
             if (!string.IsNullOrEmpty(def.lord.preferredFood))
-                return $"영주 {def.lord.lordName}는 {food}을(를) 좋아합니다. 독살하기 쉽습니다.";
+                return $"영주 {def.lord.lordName}는 {def.lord.preferredFood}을(를) 좋아합니다. 독살하기 쉽습니다.";
             if (!string.IsNullOrEmpty(def.lord.chronicDisease))
-                return $"영주 {def.lord.lordName}는 {disease} 지병이 있습니다. 약을 독으로 대체할 수 있습니다.";
+                return $"영주 {def.lord.lordName}는 {def.lord.chronicDisease} 지병이 있습니다. 약을 독으로 대체할 수 있습니다.";
 
             return $"영주 {def.lord.lordName}의 정보를 입수했습니다. ({spyInfo})";
         }

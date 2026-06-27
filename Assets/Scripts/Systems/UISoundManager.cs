@@ -52,7 +52,7 @@ namespace ProjectName.Systems
                 {
                     var go = new GameObject("UISoundManager");
                     _instance = go.AddComponent<UISoundManager>();
-                    DontDestroyOnLoad(go);
+                    // Awake()에서 DontDestroyOnLoad를 처리하므로 여기서는 불필요
                 }
                 return _instance;
             }
@@ -203,6 +203,15 @@ namespace ProjectName.Systems
         /// </summary>
         private void InitializeAudioSource()
         {
+            // [SerializeField]로 인스펙터에서 이미 할당된 경우 새로 생성하지 않음
+            if (_uiAudioSource != null)
+            {
+                _uiAudioSource.playOnAwake = false;
+                _uiAudioSource.volume = _volume;
+                _uiAudioSource.spatialBlend = 0f; // 2D 사운드
+                return;
+            }
+
             _uiAudioSource = gameObject.AddComponent<AudioSource>();
             _uiAudioSource.playOnAwake = false;
             _uiAudioSource.volume = _volume;

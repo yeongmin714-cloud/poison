@@ -45,6 +45,29 @@ namespace ProjectName.Systems
             GenerateAndApplyTerrain();
         }
 
+        private void OnDestroy()
+        {
+            if (_terrainMesh != null)
+            {
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                    DestroyImmediate(_terrainMesh);
+                else
+                    Destroy(_terrainMesh);
+#else
+                Destroy(_terrainMesh);
+#endif
+                _terrainMesh = null;
+            }
+        }
+
+        private void OnValidate()
+        {
+            _resolution = Mathf.Max(_resolution, 2);
+            _size = Mathf.Max(_size, 1f);
+            _maxHeight = Mathf.Max(_maxHeight, 0f);
+        }
+
         // ================================================================
         //  Public API
         // ================================================================
@@ -86,6 +109,23 @@ namespace ProjectName.Systems
             if (mf == null)
                 mf = gameObject.AddComponent<MeshFilter>();
             mf.sharedMesh = _terrainMesh;
+
+            // Ensure MeshRenderer exists for visibility
+            MeshRenderer mr = GetComponent<MeshRenderer>();
+            if (mr == null)
+                mr = gameObject.AddComponent<MeshRenderer>();
+
+            // Assign a default material if none set
+            if (mr.sharedMaterial == null)
+            {
+                Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+                if (shader == null)
+                    shader = Shader.Find("Standard");
+                mr.sharedMaterial = new Material(shader)
+                {
+                    color = new Color(0.4f, 0.6f, 0.3f)
+                };
+            }
 
             // Update collider
             MeshCollider mc = GetComponent<MeshCollider>();

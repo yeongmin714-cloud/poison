@@ -10,14 +10,16 @@ namespace ProjectName.Systems
 {
     /// <summary>
     /// C16-04: 저장/로드 코어 싱글톤 매니저.
-    /// 3개의 슬롯(slot_0.json ~ slot_2.json)을 Application.persistentDataPath/saves/ 에 저장합니다.
     /// JsonUtility를 사용하여 JSON 직렬화/역직렬화를 수행합니다.
+    /// 슬롯 개수는 _slotCount로 설정 가능 (기본값 5).
+    /// 각 슬롯 파일은 Application.persistentDataPath/saves/slot_{n}.json에 저장됩니다.
     /// </summary>
     public class SaveManager : MonoBehaviour
     {
         public static SaveManager Instance { get; private set; }
 
         [Header("Save Settings")]
+        [Range(1, 20)]
         [SerializeField] private int _slotCount = 5;
         [SerializeField] private string _saveDirectoryName = "saves";
         [SerializeField] private string _saveFilePrefix = "slot_";
@@ -51,8 +53,15 @@ namespace ProjectName.Systems
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
+            // _slotCount가 0 이하이면 기본값 3으로 설정
+            if (_slotCount <= 0)
+            {
+                _slotCount = 3;
+                Debug.LogWarning("[SaveManager] _slotCount가 0 이하입니다. 기본값 3으로 설정합니다.");
+            }
+
             EnsureSaveDirectory();
-            if (_verbose) Debug.Log($"[SaveManager] 초기화 완료. 저장 경로: {GetSaveDirectory()}");
+            if (_verbose) Debug.Log($"[SaveManager] 초기화 완료. 저장 경로: {GetSaveDirectory()}, 슬롯 수: {_slotCount}");
         }
 
         // ===== 디렉토리 관리 =====
@@ -64,11 +73,18 @@ namespace ProjectName.Systems
 
         private void EnsureSaveDirectory()
         {
-            string dir = GetSaveDirectory();
-            if (!Directory.Exists(dir))
+            try
             {
-                Directory.CreateDirectory(dir);
-                if (_verbose) Debug.Log($"[SaveManager] 저장 디렉토리 생성: {dir}");
+                string dir = GetSaveDirectory();
+                if (!Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                    if (_verbose) Debug.Log($"[SaveManager] 저장 디렉토리 생성: {dir}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SaveManager] 저장 디렉토리 생성/확인 중 오류: {ex.Message}");
             }
         }
 
@@ -91,28 +107,35 @@ namespace ProjectName.Systems
                 return;
             }
 
-            SaveData data = new SaveData
+            try
             {
-                timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                difficulty = (DifficultyMode)GameManager.CurrentDifficulty, // C20-01
-                player = CollectPlayerData(),
-                inventory = CollectInventoryData(),
-                time = CollectTimeData(),
-                territories = CollectTerritoryData(),
-                quests = CollectQuestData(),
-                revengeList = CollectRevengeListData(),
-                nationReputations = CollectNationReputationData()
-            };
+                SaveData data = new SaveData
+                {
+                    timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    difficulty = (DifficultyMode)GameManager.CurrentDifficulty, // C20-01
+                    player = CollectPlayerData(),
+                    inventory = CollectInventoryData(),
+                    time = CollectTimeData(),
+                    territories = CollectTerritoryData(),
+                    quests = CollectQuestData(),
+                    revengeList = CollectRevengeListData(),
+                    nationReputations = CollectNationReputationData()
+                };
 
-            string json = JsonUtility.ToJson(data, prettyPrint: true);
-            string filePath = GetSlotFilePath(slotIndex);
+                string json = JsonUtility.ToJson(data, prettyPrint: true);
+                string filePath = GetSlotFilePath(slotIndex);
 
-            EnsureSaveDirectory();
-            File.WriteAllText(filePath, json);
+                EnsureSaveDirectory();
+                File.WriteAllText(filePath, json);
 
-            if (_verbose) Debug.Log($"[SaveManager] 슬롯 {slotIndex} 저장 완료: {filePath}");
+                if (_verbose) Debug.Log($"[SaveManager] 슬롯 {slotIndex} 저장 완료: {filePath}");
 
-            OnSaveCompleted?.Invoke(slotIndex);
+                OnSaveCompleted?.Invoke(slotIndex);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SaveManager] 슬롯 {slotIndex} 저장 중 오류 발생: {ex.Message}\n{ex.StackTrace}");
+            }
         }
 
         // ===== 로드 (Deserialize) =====
@@ -129,38 +152,45 @@ namespace ProjectName.Systems
                 return;
             }
 
-            string filePath = GetSlotFilePath(slotIndex);
-
-            if (!File.Exists(filePath))
+            try
             {
-                Debug.LogWarning($"[SaveManager] 슬롯 {slotIndex}에 저장된 데이터가 없습니다: {filePath}");
-                return;
+                string filePath = GetSlotFilePath(slotIndex);
+
+                if (!File.Exists(filePath))
+                {
+                    Debug.LogWarning($"[SaveManager] 슬롯 {slotIndex}에 저장된 데이터가 없습니다: {filePath}");
+                    return;
+                }
+
+                string json = File.ReadAllText(filePath);
+                SaveData data = JsonUtility.FromJson<SaveData>(json);
+
+                if (data == null)
+                {
+                    Debug.LogError($"[SaveManager] 슬롯 {slotIndex} JSON 역직렬화 실패");
+                    return;
+                }
+
+                ApplyTimeData(data.time);
+                ApplyPlayerData(data.player);
+                ApplyInventoryData(data.inventory);
+                ApplyTerritoryData(data.territories);
+                ApplyQuestData(data.quests);
+                ApplyRevengeListData(data.revengeList);
+                ApplyNationReputationData(data.nationReputations);
+
+                // C20-01: 난이도 복원
+                GameManager.CurrentDifficulty = (int)data.difficulty;
+                Debug.Log($"[SaveManager] 난이도 복원: {data.difficulty}");
+
+                if (_verbose) Debug.Log($"[SaveManager] 슬롯 {slotIndex} 로드 완료 (Day {data.time?.day}, 저장시각: {data.timestamp})");
+
+                OnLoadCompleted?.Invoke(slotIndex);
             }
-
-            string json = File.ReadAllText(filePath);
-            SaveData data = JsonUtility.FromJson<SaveData>(json);
-
-            if (data == null)
+            catch (Exception ex)
             {
-                Debug.LogError($"[SaveManager] 슬롯 {slotIndex} JSON 역직렬화 실패");
-                return;
+                Debug.LogError($"[SaveManager] 슬롯 {slotIndex} 로드 중 오류 발생: {ex.Message}\n{ex.StackTrace}");
             }
-
-            ApplyTimeData(data.time);
-            ApplyPlayerData(data.player);
-            ApplyInventoryData(data.inventory);
-            ApplyTerritoryData(data.territories);
-            ApplyQuestData(data.quests);
-            ApplyRevengeListData(data.revengeList);
-            ApplyNationReputationData(data.nationReputations);
-
-            // C20-01: 난이도 복원
-            GameManager.CurrentDifficulty = (int)data.difficulty;
-            Debug.Log($"[SaveManager] 난이도 복원: {data.difficulty}");
-
-            if (_verbose) Debug.Log($"[SaveManager] 슬롯 {slotIndex} 로드 완료 (Day {data.time?.day}, 저장시각: {data.timestamp})");
-
-            OnLoadCompleted?.Invoke(slotIndex);
         }
 
         // ===== 슬롯 정보/조회 =====
@@ -170,11 +200,19 @@ namespace ProjectName.Systems
         /// </summary>
         public SaveData GetSlotInfo(int slotIndex)
         {
-            string filePath = GetSlotFilePath(slotIndex);
-            if (!File.Exists(filePath)) return null;
+            try
+            {
+                string filePath = GetSlotFilePath(slotIndex);
+                if (!File.Exists(filePath)) return null;
 
-            string json = File.ReadAllText(filePath);
-            return JsonUtility.FromJson<SaveData>(json);
+                string json = File.ReadAllText(filePath);
+                return JsonUtility.FromJson<SaveData>(json);
+            }
+            catch (Exception ex)
+            {
+                if (_verbose) Debug.LogWarning($"[SaveManager] 슬롯 {slotIndex} 정보 로드 중 오류: {ex.Message}");
+                return null;
+            }
         }
 
         /// <summary>
@@ -195,6 +233,7 @@ namespace ProjectName.Systems
         /// <param name="slotIndex">슬롯 인덱스 (0~4)</param>
         public bool HasSave(int slotIndex)
         {
+            if (slotIndex < 0 || slotIndex >= _slotCount) return false;
             return File.Exists(GetSlotFilePath(slotIndex));
         }
 
@@ -203,11 +242,24 @@ namespace ProjectName.Systems
         /// <param name="slotIndex">슬롯 인덱스 (0~4)</param>
         public void DeleteSlot(int slotIndex)
         {
-            string filePath = GetSlotFilePath(slotIndex);
-            if (File.Exists(filePath))
+            if (slotIndex < 0 || slotIndex >= _slotCount)
             {
-                File.Delete(filePath);
-                if (_verbose) Debug.Log($"[SaveManager] 슬롯 {slotIndex} 삭제됨: {filePath}");
+                Debug.LogError($"[SaveManager] 잘못된 슬롯 인덱스: {slotIndex}. 유효 범위: 0~{_slotCount - 1}");
+                return;
+            }
+
+            try
+            {
+                string filePath = GetSlotFilePath(slotIndex);
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                    if (_verbose) Debug.Log($"[SaveManager] 슬롯 {slotIndex} 삭제됨: {filePath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SaveManager] 슬롯 {slotIndex} 삭제 중 오류: {ex.Message}");
             }
         }
 
@@ -424,6 +476,11 @@ namespace ProjectName.Systems
         private void ApplyInventoryData(InventorySaveData data)
         {
             if (data == null) return;
+            if (data.items == null)
+            {
+                if (_verbose) Debug.LogWarning("[SaveManager] 인벤토리 데이터(items)가 null입니다. 복원을 건너뛰니다.");
+                return;
+            }
             if (PlayerInventory.Instance == null) return;
 
             try
@@ -573,6 +630,11 @@ namespace ProjectName.Systems
         private void ApplyNationReputationData(NationReputationSaveData data)
         {
             if (data == null) return;
+            if (data.reputations == null)
+            {
+                if (_verbose) Debug.LogWarning("[SaveManager] 국가 호감도 데이터(reputations)가 null입니다.");
+                return;
+            }
             try
             {
                 if (NationReputationSystem.Instance != null)

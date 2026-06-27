@@ -367,26 +367,11 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// SoundEffectManager.SFXType에 대응하는 리소스 이름을 반환합니다.
+        /// SoundEffectManager.GetSFXName에 위임합니다.
         /// </summary>
         private static string GetSFXNameForType(SoundEffectManager.SFXType type)
         {
-            return type switch
-            {
-                SoundEffectManager.SFXType.Footstep => "SFX_Footstep",
-                SoundEffectManager.SFXType.Gather => "SFX_Gather",
-                SoundEffectManager.SFXType.Craft => "SFX_Craft",
-                SoundEffectManager.SFXType.Combat_Hit => "SFX_Combat_Hit",
-                SoundEffectManager.SFXType.Combat_Swing => "SFX_Combat_Swing",
-                SoundEffectManager.SFXType.Assassination => "SFX_Assassination",
-                SoundEffectManager.SFXType.DoorOpen => "SFX_DoorOpen",
-                SoundEffectManager.SFXType.DoorClose => "SFX_DoorClose",
-                SoundEffectManager.SFXType.ItemPickup => "SFX_ItemPickup",
-                SoundEffectManager.SFXType.ItemDrop => "SFX_ItemDrop",
-                SoundEffectManager.SFXType.Alarm => "SFX_Alarm",
-                SoundEffectManager.SFXType.Victory => "SFX_Victory",
-                SoundEffectManager.SFXType.Defeat => "SFX_Defeat",
-                _ => "SFX_Unknown"
-            };
+            return SoundEffectManager.GetSFXName(type);
         }
 
         // ================================================================
@@ -640,11 +625,11 @@ namespace ProjectName.Systems
             // AmbientEffectManager.CurrentEffect 기반으로 앰비언트 사운드 선택
             string ambientClip = ambientEffectManager.CurrentEffect switch
             {
-                AmbientEffectManager.AmbientEffectType.Fireflies => "Ambient_Forest",
-                AmbientEffectManager.AmbientEffectType.Leaves => "Ambient_Forest",
-                AmbientEffectManager.AmbientEffectType.Dust => "Ambient_Desert",
-                AmbientEffectManager.AmbientEffectType.Embers => "Ambient_Volcanic",
-                _ => "Ambient_Default"
+                AmbientEffectManager.AmbientEffectType.Fireflies => "ambient_forest",
+                AmbientEffectManager.AmbientEffectType.Leaves => "ambient_forest",
+                AmbientEffectManager.AmbientEffectType.Dust => "ambient_desert",
+                AmbientEffectManager.AmbientEffectType.Embers => "ambient_volcanic",
+                _ => "ambient_default"
             };
 
             PlayAmbient(ambientClip, _volumeAmbient);

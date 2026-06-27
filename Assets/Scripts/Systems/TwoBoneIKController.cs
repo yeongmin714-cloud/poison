@@ -68,14 +68,6 @@ namespace ProjectName.Systems
         //  Private state
         // ──────────────────────────────────────────────
 
-        // Cached original transforms for smooth blending
-        private Vector3 _rootOriginalPos;
-        private Quaternion _rootOriginalRot;
-        private Vector3 _midOriginalPos;
-        private Quaternion _midOriginalRot;
-        private Vector3 _tipOriginalPos;
-        private Quaternion _tipOriginalRot;
-
         private bool _hasValidChain;
         private bool _initialized;
 
@@ -176,8 +168,6 @@ namespace ProjectName.Systems
                 return;
             }
 
-            CacheOriginalTransforms();
-
 #if UNITY_ANIMATION_RIGGING
             TrySetupRigConstraint();
 #endif
@@ -212,19 +202,6 @@ namespace ProjectName.Systems
                         this);
                 }
             }
-        }
-
-        /// <summary>
-        /// Caches the original local positions/rotations for blend calculations.
-        /// </summary>
-        private void CacheOriginalTransforms()
-        {
-            _rootOriginalPos = _rootBone.localPosition;
-            _rootOriginalRot = _rootBone.localRotation;
-            _midOriginalPos = _midBone.localPosition;
-            _midOriginalRot = _midBone.localRotation;
-            _tipOriginalPos = _tipBone.localPosition;
-            _tipOriginalRot = _tipBone.localRotation;
         }
 
 #if UNITY_ANIMATION_RIGGING
@@ -292,84 +269,106 @@ namespace ProjectName.Systems
         {
             if (_target == null) return;
 
-            float rootToMidLen = Vector3.Distance(_rootBone.position, _midBone.position);
-            float midToTipLen = Vector3.Distance(_midBone.position, _tipBone.position);
+            // Cache pre-IK positions for proper blend between animation pose and IK
+            Vector3 animRootPos = _rootBone.position;
+            Vector3 animMidPos = _midBone.position;
+            Vector3 animTipPos = _tipBone.position;
+            Quaternion animRootRot = _rootBone.rotation;
+            Quaternion animMidRot = _midBone.rotation;
+            Quaternion animTipRot = _tipBone.rotation;
+
+            float rootToMidLen = Vector3.Distance(animRootPos, animMidPos);
+            float midToTipLen = Vector3.Distance(animMidPos, animTipPos);
             float chainLength = rootToMidLen + midToTipLen;
+
+            // Guard against degenerate chain
+            if (rootToMidLen < 0.0001f || midToTipLen < 0.0001f)
+                return;
 
             Vector3 targetPos = _target.position;
 
             // Clamp target within reach
-            float distToTarget = Vector3.Distance(_rootBone.position, targetPos);
+            float distToTarget = Vector3.Distance(animRootPos, targetPos);
             if (distToTarget > chainLength)
             {
-                targetPos = _rootBone.position + (targetPos - _rootBone.position).normalized * chainLength * 0.999f;
+                targetPos = animRootPos + (targetPos - animRootPos).normalized * chainLength * 0.999f;
             }
 
-            // --- Forward pass: root → mid → tip ---
-            Vector3 rootPos = _rootBone.position;
-            Vector3 midPos = _midBone.position;
-            Vector3 tipPos = _tipBone.position;
+            // Initialize working positions
+            Vector3 rootPos = animRootPos;
+            Vector3 midPos = animMidPos;
+            Vector3 tipPos = animTipPos;
 
-            // Set tip to target
-            tipPos = targetPos;
-
-            // Pull mid toward tip maintaining mid→tip distance
-            Vector3 midToTipDir = (tipPos - midPos).normalized;
-            midPos = tipPos - midToTipDir * midToTipLen;
-
-            // Pull root toward mid maintaining root→mid distance
-            Vector3 rootToMidDir = (midPos - rootPos).normalized;
-            rootPos = midPos - rootToMidDir * rootToMidLen;
-
-            // --- Backward pass: fix root position, propagate forward ---
-            rootPos = _rootBone.position;
-
-            Vector3 rootToMidDir2 = (midPos - rootPos).normalized;
-            midPos = rootPos + rootToMidDir2 * rootToMidLen;
-
-            Vector3 midToTipDir2 = (tipPos - midPos).normalized;
-            tipPos = midPos + midToTipDir2 * midToTipLen;
-
-            // --- Hint (pole vector) adjustment ---
-            if (_hint != null && _hintWeight > 0.01f)
+            for (int i = 0; i < _fabrikIterations; i++)
             {
-                Vector3 hintDir = (_hint.position - rootPos).normalized;
-                Vector3 midDir = (midPos - rootPos).normalized;
-                Vector3 blendedMidDir = Vector3.Slerp(midDir, hintDir, _hintWeight * 0.5f).normalized;
-                midPos = rootPos + blendedMidDir * rootToMidLen;
+                // --- Forward pass: set tip to target, pull mid, pull root ---
+                tipPos = targetPos;
 
-                // Re-project tip
-                Vector3 midToTipDir3 = (tipPos - midPos).normalized;
-                tipPos = midPos + midToTipDir3 * midToTipLen;
+                Vector3 midToTipDir = (tipPos - midPos).normalized;
+                midPos = tipPos - midToTipDir * midToTipLen;
+
+                Vector3 rootToMidDir = (midPos - rootPos).normalized;
+                rootPos = midPos - rootToMidDir * rootToMidLen;
+
+                // --- Backward pass: fix root position, propagate forward ---
+                rootPos = animRootPos;
+
+                Vector3 rootToMidDir2 = (midPos - rootPos).normalized;
+                midPos = rootPos + rootToMidDir2 * rootToMidLen;
+
+                Vector3 midToTipDir2 = (tipPos - midPos).normalized;
+                tipPos = midPos + midToTipDir2 * midToTipLen;
+
+                // --- Hint (pole vector) adjustment ---
+                if (_hint != null && _hintWeight > 0.01f)
+                {
+                    Vector3 hintDir = (_hint.position - rootPos).normalized;
+                    Vector3 midDir = (midPos - rootPos).normalized;
+                    Vector3 blendedMidDir = Vector3.Slerp(midDir, hintDir, _hintWeight * 0.5f).normalized;
+                    midPos = rootPos + blendedMidDir * rootToMidLen;
+
+                    // Re-project tip
+                    Vector3 midToTipDir3 = (tipPos - midPos).normalized;
+                    tipPos = midPos + midToTipDir3 * midToTipLen;
+                }
+
+                // --- Convergence check ---
+                float error = Vector3.Distance(tipPos, targetPos);
+                if (error <= _fabrikTolerance)
+                    break;
             }
 
-            // --- Apply with blending ---
-            _midBone.position = Vector3.Lerp(_midBone.position, midPos, _blendWeight);
-            _tipBone.position = Vector3.Lerp(_tipBone.position, tipPos, _blendWeight);
+            // --- Apply positions with proper animation-IK blend ---
+            _midBone.position = Vector3.Lerp(animMidPos, midPos, _blendWeight);
+            _tipBone.position = Vector3.Lerp(animTipPos, tipPos, _blendWeight);
 
             // --- Apply rotations ---
             if (_applyRotation)
             {
-                Quaternion targetRootRot = Quaternion.LookRotation(
-                    (_midBone.position - _rootBone.position).normalized,
-                    _hint != null ? (_hint.position - _rootBone.position).normalized : Vector3.up);
+                Vector3 rootToMid = _midBone.position - _rootBone.position;
+                Vector3 midUp = _hint != null
+                    ? (_hint.position - _rootBone.position)
+                    : Vector3.up;
 
-                Quaternion targetMidRot = Quaternion.LookRotation(
-                    (_tipBone.position - _midBone.position).normalized,
-                    _midBone.position - _rootBone.position);
+                if (rootToMid.sqrMagnitude > 0.0001f)
+                {
+                    Quaternion targetRootRot = Quaternion.LookRotation(
+                        rootToMid.normalized, midUp.normalized);
+                    _rootBone.rotation = Quaternion.Slerp(
+                        animRootRot, targetRootRot, _blendWeight);
+                }
 
-                _rootBone.rotation = Quaternion.Slerp(
-                    _rootBone.rotation, targetRootRot, _blendWeight);
+                Vector3 midToTip = _tipBone.position - _midBone.position;
+                if (midToTip.sqrMagnitude > 0.0001f)
+                {
+                    Quaternion targetMidRot = Quaternion.LookRotation(
+                        midToTip.normalized, rootToMid.normalized);
+                    _midBone.rotation = Quaternion.Slerp(
+                        animMidRot, targetMidRot, _blendWeight);
+                }
 
-                _midBone.rotation = Quaternion.Slerp(
-                    _midBone.rotation, targetMidRot, _blendWeight);
-            }
-
-            // Apply target rotation to tip
-            if (_applyRotation)
-            {
                 _tipBone.rotation = Quaternion.Slerp(
-                    _tipBone.rotation, _target.rotation, _blendWeight);
+                    animTipRot, _target.rotation, _blendWeight);
             }
         }
 
@@ -449,6 +448,34 @@ namespace ProjectName.Systems
                 current = current.parent;
             }
             return false;
+        }
+
+        // ──────────────────────────────────────────────
+        //  Cleanup
+        // ──────────────────────────────────────────────
+
+        private void OnDestroy()
+        {
+#if UNITY_ANIMATION_RIGGING
+            if (_constraintGO != null)
+            {
+                if (Application.isPlaying)
+                    Destroy(_constraintGO);
+                else
+                    DestroyImmediate(_constraintGO);
+                _constraintGO = null;
+            }
+#endif
+            // Clean up default target if we created it
+            if (_target != null && _target.name.EndsWith("_IK_Target_Default"))
+            {
+                GameObject go = _target.gameObject;
+                _target = null;
+                if (Application.isPlaying)
+                    Destroy(go);
+                else
+                    DestroyImmediate(go);
+            }
         }
 
         // ──────────────────────────────────────────────

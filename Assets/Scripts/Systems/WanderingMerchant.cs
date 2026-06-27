@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 using ProjectName.Core;
-using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
 {
@@ -36,6 +35,9 @@ namespace ProjectName.Systems
         private Vector3 _origin;
         private bool _isTrading;
 
+        // FindItemData용 캐시: 최초 1회 리플렉션 후 Dictionary에 저장
+        private static Dictionary<string, PlayerInventory.ItemData> _itemDataCache;
+
         private void Start()
         {
             _player = GameObject.FindGameObjectWithTag("Player")?.transform;
@@ -50,17 +52,20 @@ namespace ProjectName.Systems
             float dist = Vector3.Distance(transform.position, _player.position);
             _isPlayerNearby = dist <= _interactRange;
 
-            if (_isPlayerNearby && Input.GetKeyDown(KeyCode.E))
+            if (_isPlayerNearby && !_isTrading && Input.GetKeyDown(KeyCode.E))
             {
                 OpenTradeUI();
             }
 
-            // 위치 이동 타이머
-            _wanderTimer -= Time.deltaTime;
-            if (_wanderTimer <= 0f)
+            // 위치 이동 타이머 (거래 중에는 이동하지 않음)
+            if (!_isTrading)
             {
-                WanderToNewPosition();
-                _wanderTimer = _wanderInterval;
+                _wanderTimer -= Time.deltaTime;
+                if (_wanderTimer <= 0f)
+                {
+                    WanderToNewPosition();
+                    _wanderTimer = _wanderInterval;
+                }
             }
         }
 
@@ -121,13 +126,14 @@ namespace ProjectName.Systems
         /// </summary>
         public bool BuyItem(int index, int count = 1)
         {
+            if (_isTrading == false) return false;
             if (index < 0 || index >= _inventory.Length) return false;
             var item = _inventory[index];
             if (item == null || item.stock < count) return false;
 
-            int totalPrice = Mathf.RoundToInt(item.price * _priceMultiplier * count);
-
             if (PlayerStats.Instance == null) return false;
+
+            int totalPrice = Mathf.RoundToInt(item.price * _priceMultiplier * count);
 
             if (!PlayerStats.Instance.SpendGold(totalPrice))
             {
@@ -159,22 +165,43 @@ namespace ProjectName.Systems
 
         private PlayerInventory.ItemData FindItemData(string itemId)
         {
-            var fields = typeof(PlayerInventory).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-            foreach (var field in fields)
+            // 캐시 미초기화 시 최초 1회 리플렉션으로 빌드
+            if (_itemDataCache == null)
             {
-                if (field.FieldType == typeof(PlayerInventory.ItemData))
+                _itemDataCache = new Dictionary<string, PlayerInventory.ItemData>();
+                var fields = typeof(PlayerInventory).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                foreach (var field in fields)
                 {
-                    var val = field.GetValue(null) as PlayerInventory.ItemData;
-                    if (val != null && val.id == itemId) return val;
+                    if (field.FieldType == typeof(PlayerInventory.ItemData))
+                    {
+                        var val = field.GetValue(null) as PlayerInventory.ItemData;
+                        if (val != null && !string.IsNullOrEmpty(val.id) && !_itemDataCache.ContainsKey(val.id))
+                        {
+                            _itemDataCache[val.id] = val;
+                        }
+                    }
                 }
             }
-            return null;
+
+            _itemDataCache.TryGetValue(itemId, out var result);
+            return result;
         }
 
         private void OpenTradeUI()
         {
+            if (_isTrading) return;
             _isTrading = true;
             Debug.Log($"[WanderingMerchant] {_merchantName} 거래 UI 열림");
+        }
+
+        /// <summary>
+        /// 거래 UI를 닫고 거래 상태를 해제합니다.
+        /// </summary>
+        public void CloseTradeUI()
+        {
+            if (!_isTrading) return;
+            _isTrading = false;
+            Debug.Log($"[WanderingMerchant] {_merchantName} 거래 UI 닫힘");
         }
 
         private void OnGUI()

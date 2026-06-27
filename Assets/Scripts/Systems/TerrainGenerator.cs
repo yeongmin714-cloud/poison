@@ -38,6 +38,12 @@ namespace ProjectName.Systems
                 resolution = 2;
             }
 
+            if (size <= 0f)
+            {
+                Debug.LogError("[TerrainGenerator] Size must be > 0");
+                size = 100f;
+            }
+
             int vertexCount = resolution * resolution;
             int quadCount = (resolution - 1) * (resolution - 1);
             int triangleCount = quadCount * 2;
@@ -119,7 +125,13 @@ namespace ProjectName.Systems
                 Vector3 v2 = vertices[i2];
                 Vector3 v3 = vertices[i3];
 
-                Vector3 normal = Vector3.Cross(v2 - v1, v3 - v1).normalized;
+                Vector3 edge1 = v2 - v1;
+                Vector3 edge2 = v3 - v1;
+                Vector3 normal = Vector3.Cross(edge1, edge2);
+
+                // Degenerate triangle 방어
+                if (normal.sqrMagnitude > 0f)
+                    normal.Normalize();
 
                 calculatedNormals[i1] += normal;
                 calculatedNormals[i2] += normal;
@@ -145,7 +157,7 @@ namespace ProjectName.Systems
             Mesh waterMesh = null;
             if (waterThreshold > 0f)
             {
-                waterMesh = GenerateWaterMesh(vertices, triangles, resolution, step, halfSize, waterThreshold, def.waterColor);
+                waterMesh = GenerateWaterMesh(vertices, triangles, resolution, step, halfSize, size, waterThreshold, def.waterColor);
             }
 
             return (terrainMesh, waterMesh);
@@ -156,7 +168,7 @@ namespace ProjectName.Systems
         /// </summary>
         private static Mesh GenerateWaterMesh(
             Vector3[] terrainVertices, int[] terrainTriangles,
-            int resolution, float step, float halfSize,
+            int resolution, float step, float halfSize, float size,
             float waterThreshold, Color waterColor)
         {
             // 물 높이: threshold의 절반 정도로 설정하여 지형보다 약간 낮게
@@ -197,6 +209,15 @@ namespace ProjectName.Systems
             waterMesh.indexFormat = waterVerts.Count > 65535 ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16;
             waterMesh.vertices = waterVerts.ToArray();
             waterMesh.triangles = waterTris.ToArray();
+
+            // 물 UV — 평면 투영
+            Vector2[] waterUV = new Vector2[waterVerts.Count];
+            for (int i = 0; i < waterVerts.Count; i++)
+            {
+                Vector3 wv = waterVerts[i];
+                waterUV[i] = new Vector2(wv.x / size + 0.5f, wv.z / size + 0.5f);
+            }
+            waterMesh.uv = waterUV;
 
             // 물 노멀은 항상 위쪽
             Vector3[] waterNormals = new Vector3[waterVerts.Count];
@@ -244,6 +265,11 @@ namespace ProjectName.Systems
             if (mf == null)
             {
                 mf = groundObject.AddComponent<MeshFilter>();
+            }
+            else if (mf.sharedMesh != null)
+            {
+                // 이전 메시 해제 (메모리 누수 방지)
+                Object.Destroy(mf.sharedMesh);
             }
             mf.sharedMesh = terrainMesh;
 
@@ -311,6 +337,8 @@ namespace ProjectName.Systems
                 MeshFilter waterMf = waterObj.GetComponent<MeshFilter>();
                 if (waterMf == null)
                     waterMf = waterObj.AddComponent<MeshFilter>();
+                else if (waterMf.sharedMesh != null)
+                    Object.Destroy(waterMf.sharedMesh);
                 waterMf.sharedMesh = waterMesh;
 
                 MeshRenderer waterMr = waterObj.GetComponent<MeshRenderer>();
@@ -333,7 +361,6 @@ namespace ProjectName.Systems
                         waterMat.SetInt("_ZWrite", 0);
                         waterMat.renderQueue = 3000;
                         waterMat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                        waterMat.EnableKeyword("_ALPHAPREMULTIPLY_ON");
 
                         waterMr.sharedMaterial = waterMat;
                     }
@@ -352,7 +379,7 @@ namespace ProjectName.Systems
                 Transform existingWater = groundObject.transform.Find("Water");
                 if (existingWater != null)
                 {
-                    Object.DestroyImmediate(existingWater.gameObject);
+                    Object.Destroy(existingWater.gameObject);
                 }
             }
         }

@@ -8,10 +8,10 @@ namespace ProjectName.Systems
     /// <summary>
     /// 영지 관리자 — 현재 로드된 영지의 건물, 병사, 시설 등을 추적하고 관리합니다.
     /// TerritoryDatabase와 연동하여 영지 정의/상태를 제공합니다.
-    /// 
+    ///
     /// 사용법:
     ///   TerritoryManager.Instance.CurrentTerritoryId  // 현재 영지 ID
-    ///   TerritoryManager.Instance.TerritoryData       // TerritoryDatabase 인스턴스
+    ///   TerritoryManager.Instance.TerritoryDatabase    // TerritoryDatabase 인스턴스
     /// </summary>
     public class TerritoryManager : MonoBehaviour
     {
@@ -26,23 +26,17 @@ namespace ProjectName.Systems
         // 병사 목록
         private readonly Dictionary<string, GuardPlaceholder> _guards = new Dictionary<string, GuardPlaceholder>();
 
+        // 캐싱: TerritoryDatabase 인스턴스
+        private TerritoryDatabase _territoryDatabase;
+
         /// <summary>현재 영지의 TerritoryId</summary>
         public TerritoryId CurrentTerritoryId => new TerritoryId(_currentNation, _currentTerritoryIndex);
 
-        /// <summary>TerritoryDatabase 인스턴스</summary>
-        public TerritoryDatabase TerritoryData => TerritoryDatabase.Instance;
+        /// <summary>로드된 모든 건물 이름 목록 (읽기 전용 복사본)</summary>
+        public ICollection<string> BuildingNames => new List<string>(_buildings.Keys);
 
-        /// <summary>현재 영지 정의</summary>
-        public TerritoryDefinition CurrentDefinition => TerritoryDatabase.Instance.GetDefinition(CurrentTerritoryId);
-
-        /// <summary>현재 영지 상태</summary>
-        public TerritoryState CurrentState => TerritoryDatabase.Instance.GetState(CurrentTerritoryId);
-
-        /// <summary>로드된 모든 건물 이름 목록</summary>
-        public ICollection<string> BuildingNames => _buildings.Keys;
-
-        /// <summary>로드된 모든 병사 이름 목록</summary>
-        public ICollection<string> GuardNames => _guards.Keys;
+        /// <summary>로드된 모든 병사 이름 목록 (읽기 전용 복사본)</summary>
+        public ICollection<string> GuardNames => new List<string>(_guards.Keys);
 
         private void Awake()
         {
@@ -55,44 +49,43 @@ namespace ProjectName.Systems
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
-            // 모든 건물과 병사 오브젝트를 찾아서 등록
-            FindAllBuildings();
-            FindAllGuards();
-
-            // 영지 데이터 출력
-            var def = CurrentDefinition;
-            Debug.Log($"[TerritoryManager] 영지 초기화 완료: {def.territoryName} ({def.nation} Ring{(int)def.difficulty + 1}) " +
-                      $"건물: {_buildings.Count}개, 병사: {_guards.Count}명");
-        }
-
-        private void FindAllBuildings()
-        {
-            var buildingObjects = Object.FindObjectsOfType<BuildingPlaceholder>();
-            foreach (var building in buildingObjects)
+            // TerritoryDatabase 캐싱
+            _territoryDatabase = TerritoryDatabase.Instance;
+            if (_territoryDatabase == null)
             {
-                if (!_buildings.ContainsKey(building.name))
-                {
-                    _buildings.Add(building.name, building);
-                }
-                else
-                {
-                    Debug.LogWarning($"[TerritoryManager] 중복된 건물 이름 발견: {building.name}");
-                }
+                Debug.LogError("[TerritoryManager] TerritoryDatabase.Instance가 null입니다. 영지 기능이 동작하지 않습니다.");
+                return;
+            }
+
+            // 모든 건물과 병사 오브젝트를 찾아서 등록
+            FindAndRegisterAll<BuildingPlaceholder>(_buildings, "건물");
+            FindAndRegisterAll<GuardPlaceholder>(_guards, "병사");
+
+            // 영지 데이터 출력 (null 방어)
+            var def = _territoryDatabase.GetDefinition(CurrentTerritoryId);
+            if (def != null)
+            {
+                Debug.Log($"[TerritoryManager] 영지 초기화 완료: {def.territoryName} ({def.nation} Ring{(int)def.difficulty + 1}) " +
+                          $"건물: {_buildings.Count}개, 병사: {_guards.Count}명");
             }
         }
 
-        private void FindAllGuards()
+        /// <summary>
+        /// 씬에서 특정 타입의 컴포넌트를 모두 찾아 딕셔너리에 등록합니다.
+        /// Unity 6000+ FindObjectsByType 사용.
+        /// </summary>
+        private static void FindAndRegisterAll<T>(Dictionary<string, T> registry, string label) where T : Component
         {
-            var guardObjects = Object.FindObjectsOfType<GuardPlaceholder>();
-            foreach (var guard in guardObjects)
+            var objects = Object.FindObjectsByType<T>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (var obj in objects)
             {
-                if (!_guards.ContainsKey(guard.name))
+                if (!registry.ContainsKey(obj.name))
                 {
-                    _guards.Add(guard.name, guard);
+                    registry.Add(obj.name, obj);
                 }
                 else
                 {
-                    Debug.LogWarning($"[TerritoryManager] 중복된 병사 이름 발견: {guard.name}");
+                    Debug.LogWarning($"[TerritoryManager] 중복된 {label} 이름 발견: {obj.name}");
                 }
             }
         }
@@ -116,19 +109,22 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 특정 유형의 모든 건물 반환
+        /// 특정 유형의 모든 건물을 읽기 전용 리스트로 반환합니다.
+        /// (yield return 대신 List를 반환하여 GC Alloc을 호출 측에서 제어 가능)
         /// </summary>
-        public IEnumerable<BuildingPlaceholder> GetBuildingsByType(BuildingPlaceholder.BuildingType type)
+        public List<BuildingPlaceholder> GetBuildingsByType(BuildingPlaceholder.BuildingType type)
         {
+            var results = new List<BuildingPlaceholder>(_buildings.Count);
             foreach (var building in _buildings.Values)
             {
                 if (building.buildingType == type)
-                    yield return building;
+                    results.Add(building);
             }
+            return results;
         }
 
         /// <summary>
-        /// 영지 중심점 계산 (모든 건물의 평균 위치)
+        /// 현재 영지의 중심점 계산 (모든 건물의 평균 위치)
         /// </summary>
         public Vector3 GetTerritoryCenter()
         {
@@ -141,10 +137,24 @@ namespace ProjectName.Systems
             return sum / _buildings.Count;
         }
 
-        /// <summary>특정 영지의 중심점 반환</summary>
-        public Vector3 GetTerritoryCenter(ProjectName.Core.Data.TerritoryId territoryId)
+        /// <summary>특정 영지 ID의 중심점을 데이터베이스에서 계산하여 반환합니다.</summary>
+        public Vector3 GetTerritoryCenter(TerritoryId territoryId)
         {
-            return GetTerritoryCenter();
+            var db = _territoryDatabase ?? TerritoryDatabase.Instance;
+            if (db == null)
+            {
+                Debug.LogError("[TerritoryManager] TerritoryDatabase를 사용할 수 없어 중심점을 계산할 수 없습니다.");
+                return Vector3.zero;
+            }
+
+            var def = db.GetDefinition(territoryId);
+            if (def == null)
+            {
+                Debug.LogWarning($"[TerritoryManager] TerritoryId {territoryId}에 대한 정의가 없습니다.");
+                return Vector3.zero;
+            }
+
+            return def.centerPosition;
         }
 
         /// <summary>
@@ -160,15 +170,51 @@ namespace ProjectName.Systems
         /// </summary>
         public string GetDifficultyDescription()
         {
-            var def = CurrentDefinition;
-            switch (def.difficulty)
+            var db = _territoryDatabase ?? TerritoryDatabase.Instance;
+            if (db == null) return "알 수 없음 (DB 없음)";
+
+            var def = db.GetDefinition(CurrentTerritoryId);
+            if (def == null) return "알 수 없음 (정의 없음)";
+
+            return def.difficulty switch
             {
-                case TerritoryDifficulty.Ring1: return "🟢 쉬움 (Ring 1)";
-                case TerritoryDifficulty.Ring2: return "🟡 보통 (Ring 2)";
-                case TerritoryDifficulty.Ring3: return "🟠 어려움 (Ring 3)";
-                case TerritoryDifficulty.Ring4: return "🔴 매우 어려움 (Ring 4)";
-                case TerritoryDifficulty.Empire: return "👑 황제국";
-                default: return "알 수 없음";
+                TerritoryDifficulty.Ring1 => "🟢 쉬움 (Ring 1)",
+                TerritoryDifficulty.Ring2 => "🟡 보통 (Ring 2)",
+                TerritoryDifficulty.Ring3 => "🟠 어려움 (Ring 3)",
+                TerritoryDifficulty.Ring4 => "🔴 매우 어려움 (Ring 4)",
+                TerritoryDifficulty.Empire => "👑 황제국",
+                _ => "알 수 없음"
+            };
+        }
+
+        /// <summary>TerritoryDatabase 인스턴스 (안전 접근)</summary>
+        public TerritoryDatabase TerritoryDatabase
+        {
+            get
+            {
+                if (_territoryDatabase == null)
+                    _territoryDatabase = TerritoryDatabase.Instance;
+                return _territoryDatabase;
+            }
+        }
+
+        /// <summary>현재 영지 정의 (null-safe)</summary>
+        public TerritoryDefinition CurrentDefinition
+        {
+            get
+            {
+                var db = TerritoryDatabase;
+                return db != null ? db.GetDefinition(CurrentTerritoryId) : null;
+            }
+        }
+
+        /// <summary>현재 영지 상태 (null-safe)</summary>
+        public TerritoryState CurrentState
+        {
+            get
+            {
+                var db = TerritoryDatabase;
+                return db != null ? db.GetState(CurrentTerritoryId) : null;
             }
         }
 
@@ -176,6 +222,7 @@ namespace ProjectName.Systems
         {
             if (Instance == this)
                 Instance = null;
+            _territoryDatabase = null;
         }
     }
 }

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using ProjectName.Core;
-using ProjectName.Core;
 using UnityEngine;
 using ProjectName.Core.Data;
 
@@ -304,10 +303,14 @@ namespace ProjectName.Systems
             var state = TerritoryDatabase.Instance.GetState(targetId);
             if (state == null) return 0.5f;
 
+            var def = TerritoryDatabase.Instance.GetDefinition(targetId);
+            if (string.IsNullOrEmpty(def.territoryName))
+                return 0.5f;
+
             float chance = BASE_DETECT_CHANCE;
             chance -= state.loyaltyToPlayer * LOYALTY_DETECT_REDUCTION;
             chance -= spy.Level * LEVEL_DETECT_REDUCTION;
-            chance += GetDifficultyModifier(TerritoryDatabase.Instance.GetDefinition(targetId).difficulty);
+            chance += GetDifficultyModifier(def.difficulty);
             return Mathf.Clamp01(chance);
         }
 

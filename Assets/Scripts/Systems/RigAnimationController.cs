@@ -139,6 +139,15 @@ namespace ProjectName.Systems
             ApplyStateImmediate(_currentState);
         }
 
+        private void OnDestroy()
+        {
+            if (_transitionCoroutine != null)
+            {
+                StopCoroutine(_transitionCoroutine);
+                _transitionCoroutine = null;
+            }
+        }
+
         private void Update()
         {
             // Update animator parameters each frame
@@ -163,7 +172,15 @@ namespace ProjectName.Systems
             if (_animator == null || _animator.runtimeAnimatorController == null)
                 return;
 
-            if (newState == _currentState && !IsTransitioning)
+            // Allow re-triggering for trigger-based animation states (Jump, Attack, etc.)
+            bool isTriggerState = newState == AnimationState.Jump
+                || newState == AnimationState.Gather
+                || newState == AnimationState.Craft
+                || newState == AnimationState.Attack
+                || newState == AnimationState.Throw
+                || newState == AnimationState.Kneel;
+
+            if (!isTriggerState && newState == _currentState && !IsTransitioning)
                 return;
 
             if (_transitionCoroutine != null)
@@ -224,10 +241,7 @@ namespace ProjectName.Systems
                             rig.weight = _rigWeight;
                     }
 
-                    if (_rigBuilder != null)
-                        yield return null;
-                    else
-                        yield return null;
+                    yield return null;
                 }
 
                 _rigWeight = targetWeight;
@@ -242,10 +256,12 @@ namespace ProjectName.Systems
             IsTransitioning = false;
             _transitionCoroutine = null;
 
+            #if UNITY_EDITOR || DEVELOPMENT_BUILD
             Debug.Log(
                 $"[RigAnimationController] State transition: {previousState} → {newState} " +
                 $"on '{gameObject.name}'",
                 this);
+#endif
         }
 
         /// <summary>
@@ -289,6 +305,7 @@ namespace ProjectName.Systems
                 case AnimationState.Idle:
                     // Idle is the default blend tree state
                     _animator.SetFloat(_speedParam, 0f);
+                    _currentSpeed = 0f;
                     break;
                 case AnimationState.Walk:
                     _currentSpeed = 0.5f;

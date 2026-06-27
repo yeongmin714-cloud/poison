@@ -53,8 +53,8 @@ namespace ProjectName.Systems
         public void SetSwayAmount(float value) { _swayAmount = Mathf.Clamp(value, 0f, 5f); }
         public void SetBobSpeed(float value) { _bobSpeed = Mathf.Clamp(value, 0.5f, 2f); }
         public void SetBobAmount(float value) { _bobAmount = Mathf.Clamp(value, 0f, 0.05f); }
-        public void SetWindInfluence(float value) { _windInfluence = value; }
-        public void SetCullDistance(float value) { _cullDistance = value; }
+        public void SetWindInfluence(float value) { _windInfluence = Mathf.Clamp01(value); }
+        public void SetCullDistance(float value) { _cullDistance = Mathf.Max(0f, value); }
 
         // ================================================================
         // Unity Lifecycle
@@ -73,26 +73,44 @@ namespace ProjectName.Systems
             _bobOffset = (float)(rng.NextDouble() * Mathf.PI * 2f);
 
             // 씬의 WindZone 캐시
+            RefreshWindZone();
+        }
+
+        private void OnEnable()
+        {
+            // Awake 이후 WindZone이 동적으로 추가/변경된 경우 재탐색
+            if (_windZone == null)
+                RefreshWindZone();
+        }
+
+        private void RefreshWindZone()
+        {
             _windZone = FindObjectOfType<WindZone>();
         }
 
         private void Update()
         {
-            // 거리 기반 컬링
-            if (_mainCamera != null)
+            // 메인 카메라 캐싱 (씬 전환 등으로 null 시 재탐색)
+            if (_mainCamera == null)
             {
-                float dist = Vector3.Distance(transform.position, _mainCamera.transform.position);
-                if (dist > _cullDistance)
-                {
-                    if (!_isCulled)
-                    {
-                        _isCulled = true;
-                        enabled = false; // 비활성화
-                    }
-                    return;
-                }
+                _mainCamera = Camera.main;
+                if (_mainCamera == null)
+                    return; // 카메라 없으면 Update 스킵
             }
 
+            // 거리 기반 컬링
+            float dist = Vector3.Distance(transform.position, _mainCamera.transform.position);
+            if (dist > _cullDistance)
+            {
+                if (!_isCulled)
+                {
+                    _isCulled = true;
+                    ResetState(); // 초기 위치로 복귀 (움직임 중단)
+                }
+                return;
+            }
+
+            // 카메라가 다시 가까워지면 _isCulled 해제 (아래에서 처리)
             _isCulled = false;
 
             // --- WindZone 영향 계산 ---

@@ -37,7 +37,7 @@ namespace ProjectName.Systems
             CreateWalls(room, width, height, depth, territoryId);
 
             // 천장
-            CreateCeiling(room, width, depth);
+            CreateCeiling(room, width, height, depth);
 
             // 카운터 (뒷벽 기준)
             CreateCounter(room, width, depth, territoryId);
@@ -51,7 +51,7 @@ namespace ProjectName.Systems
                 CreateTable(room, tblX, tblZ, i, territoryId);
             }
 
-            // 의자 (테이블 주변)
+            // 의자 (랜덤 위치, 회전 다양화)
             int chairCount = rng.Next(4, 9);
             for (int i = 0; i < chairCount; i++)
             {
@@ -108,12 +108,12 @@ namespace ProjectName.Systems
             return wall;
         }
 
-        private static void CreateCeiling(GameObject room, float width, float depth)
+        private static void CreateCeiling(GameObject room, float width, float height, float depth)
         {
             var ceiling = GameObject.CreatePrimitive(PrimitiveType.Cube);
             ceiling.name = "Ceiling";
             ceiling.transform.SetParent(room.transform);
-            ceiling.transform.localPosition = new Vector3(0, 3f, 0);
+            ceiling.transform.localPosition = new Vector3(0, height - 0.05f, 0);
             ceiling.transform.localScale = new Vector3(width, 0.1f, depth);
 
             var renderer = ceiling.GetComponent<MeshRenderer>();

@@ -28,6 +28,7 @@ namespace ProjectName.Systems
         private GUIStyle _labelStyle;
         private GUIStyle _barBgStyle;
         private GUIStyle _barFillStyle;
+        private Texture2D _fillTexture; // GC 방지: 재사용 1x1 텍스처
         private bool _stylesInitialized;
 
         private void Start()
@@ -53,24 +54,20 @@ namespace ProjectName.Systems
             };
 
             _barBgStyle = new GUIStyle();
-            _barBgStyle.normal.background = MakeTexture(1, 1, new Color(0.2f, 0.2f, 0.2f, 0.6f));
+            _barBgStyle.normal.background = CreateTexture1x1(new Color(0.2f, 0.2f, 0.2f, 0.6f));
 
             _barFillStyle = new GUIStyle();
-            _barFillStyle.normal.background = MakeTexture(1, 1, Color.white);
+            _fillTexture = CreateTexture1x1(Color.white);
+            _barFillStyle.normal.background = _fillTexture;
 
             _stylesInitialized = true;
         }
 
-        private Texture2D MakeTexture(int width, int height, Color color)
+        /// <summary>1x1 단색 텍스처 생성. Mipmap 비활성화로 메모리 최적화.</summary>
+        private static Texture2D CreateTexture1x1(Color color)
         {
-            var tex = new Texture2D(width, height);
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    tex.SetPixel(x, y, color);
-                }
-            }
+            var tex = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+            tex.SetPixel(0, 0, color);
             tex.Apply();
             return tex;
         }
@@ -101,9 +98,11 @@ namespace ProjectName.Systems
             // 배경
             GUI.Box(new Rect(x + barPadding, barY, barWidth, barHeight), "", _barBgStyle);
 
-            // 채움
+            // 채움 — 재사용 텍스처에 SetPixel만 수행 (GC 할당 0)
             Color fillColor = _timeManager.IsDay ? _dayBarColor : _nightBarColor;
-            _barFillStyle.normal.background = MakeTexture(1, 1, fillColor);
+            _fillTexture.SetPixel(0, 0, fillColor);
+            _fillTexture.Apply();
+
             int fillWidth = Mathf.RoundToInt(barWidth * progress);
             if (fillWidth > 0)
             {

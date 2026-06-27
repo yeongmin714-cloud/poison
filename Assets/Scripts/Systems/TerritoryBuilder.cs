@@ -56,6 +56,10 @@ namespace ProjectName.Systems
         {
             // C9-02: 광장 (중앙), 상점, 크래프트하우스, 교회
             // C9-03: NPC 주택 3~4채
+            // 광장 (중앙)
+            CreateBuilding("TownSquare", BuildingPlaceholder.BuildingType.Other,
+                _territoryCenter, new Vector3(6, 0.2f, 6), new Color(0.6f, 0.5f, 0.3f));
+
             CreateBuilding("Shop", BuildingPlaceholder.BuildingType.Shop, 
                 _territoryCenter + new Vector3(-5, 0, 0), _buildingSize, Color.yellow);
             CreateBuilding("CraftHouse", BuildingPlaceholder.BuildingType.CraftHouse, 
@@ -76,10 +80,15 @@ namespace ProjectName.Systems
 
         private void BuildGuards()
         {
-            // C9-04: 영지 입구 병사 3명
-            CreateGuard("Guard_Entrance1", _territoryCenter + new Vector3(-2, 0, 2), "리카드 병사", 1, NationType.East);
-            CreateGuard("Guard_Entrance2", _territoryCenter + new Vector3(2, 0, 2), "리카드 병사", 1, NationType.East);
-            CreateGuard("Guard_Entrance3", _territoryCenter + new Vector3(0, 0, 3), "리카드 병사", 2, NationType.East);
+            // C9-04: 영지 입구 병사 (인스펙터 _guardCount만큼 생성)
+            int count = Mathf.Max(1, _guardCount);
+            for (int i = 0; i < count; i++)
+            {
+                float angle = (i / (float)count) * Mathf.PI * 2f;
+                Vector3 offset = new Vector3(Mathf.Sin(angle) * 2.5f, 0, Mathf.Cos(angle) * 2.5f + 1f);
+                int level = 1 + (i % 3); // 1~3 레벨 순환
+                CreateGuard($"Guard_Entrance{i + 1}", _territoryCenter + offset, "리카드 병사", level, NationType.East);
+            }
         }
 
         /// <summary>

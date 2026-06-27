@@ -50,15 +50,16 @@ namespace ProjectName.Tests.EditMode
                 int southCount = applier.NationTextureCount(NationType.South);
                 int northCount = applier.NationTextureCount(NationType.North);
                 int empireCount = applier.NationTextureCount(NationType.Empire);
+                int draculaCount = applier.NationTextureCount(NationType.Dracula);
                 int extraCount = applier.ExtraTextureCount;
 
                 // We expect at least some textures to be loaded
-                int total = eastCount + westCount + southCount + northCount + empireCount + extraCount;
+                int total = eastCount + westCount + southCount + northCount + empireCount + draculaCount + extraCount;
                 Assert.GreaterOrEqual(total, 0, "Should have loaded textures (may be 0 if no Resources exist).");
 
                 // Log for debugging
                 Debug.Log($"[Test] Loaded textures: East={eastCount}, West={westCount}, " +
-                          $"South={southCount}, North={northCount}, Empire={empireCount}, Extra={extraCount}");
+                          $"South={southCount}, North={northCount}, Empire={empireCount}, Dracula={draculaCount}, Extra={extraCount}");
             }
             finally
             {
@@ -91,9 +92,10 @@ namespace ProjectName.Tests.EditMode
                 Assert.DoesNotThrow(() => { var _ = applier.NationTextureCount(NationType.South); });
                 Assert.DoesNotThrow(() => { var _ = applier.NationTextureCount(NationType.North); });
                 Assert.DoesNotThrow(() => { var _ = applier.NationTextureCount(NationType.Empire); });
+                Assert.DoesNotThrow(() => { var _ = applier.NationTextureCount(NationType.Dracula); });
 
                 Debug.Log($"[Test] Texture counts: East={eastCount}, West={westCount}, " +
-                          $"South={southCount}, North={northCount}, Empire={empireCount}");
+                          $"South={southCount}, North={northCount}, Empire={empireCount}, Dracula={applier.NationTextureCount(NationType.Dracula)}");
             }
             finally
             {
@@ -140,14 +142,16 @@ namespace ProjectName.Tests.EditMode
                               applier.HasMaterialFor(NationType.West) ||
                               applier.HasMaterialFor(NationType.South) ||
                               applier.HasMaterialFor(NationType.North) ||
-                              applier.HasMaterialFor(NationType.Empire),
+                              applier.HasMaterialFor(NationType.Empire) ||
+                              applier.HasMaterialFor(NationType.Dracula),
                     "At least one nation material should be created when textures exist.");
 
                 Debug.Log($"[Test] Materials: East={applier.HasMaterialFor(NationType.East)}, " +
                           $"West={applier.HasMaterialFor(NationType.West)}, " +
                           $"South={applier.HasMaterialFor(NationType.South)}, " +
                           $"North={applier.HasMaterialFor(NationType.North)}, " +
-                          $"Empire={applier.HasMaterialFor(NationType.Empire)}");
+                          $"Empire={applier.HasMaterialFor(NationType.Empire)}, " +
+                          $"Dracula={applier.HasMaterialFor(NationType.Dracula)}");
             }
             finally
             {

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using ProjectName.Core;
 using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
@@ -8,11 +7,21 @@ namespace ProjectName.Systems
     /// <summary>
     /// C16-04: JSON 직렬화 가능한 최상위 저장 데이터 컨테이너.
     /// JsonUtility와 완벽 호환 (System.Serializable + public 필드).
+    ///
+    /// ⚠ saveVersion 관리 규칙:
+    ///   - 데이터 구조 변경 시 saveVersion을 증가시키고,
+    ///   - SaveManager.Load()에서 버전 검증 + 마이그레이션 로직 추가 필수.
+    ///   - 현재 v1: 초기 스키마.
+    ///
+    /// ⚠ equipment / warehouse / church 필드:
+    ///   - Phase 5.6.3 / 5.6.2 / 5.7.3 에서 추가된 예비 필드.
+    ///   - SaveManager.Save()/Load()에서 아직 연동되지 않음 (TODO).
+    ///   - Null-safe하게 설계되어 있으므로 역직렬화 시 문제없음.
     /// </summary>
     [System.Serializable]
     public class SaveData
     {
-        public int saveVersion = 1;
+        public int saveVersion = 1; // TODO: SaveManager.Load()에서 버전 검증 + 마이그레이션 구현 필요
         public string timestamp;
         public DifficultyMode difficulty = DifficultyMode.Normal; // C20-01
         public PlayerSaveData player;
@@ -92,21 +101,6 @@ namespace ProjectName.Systems
         public int backDurability;
     }
 
-    // ===== Phase 5.6.2: 창고 데이터 =====
-    [System.Serializable]
-    public class WarehouseSlotData
-    {
-        public string itemId;
-        public int quantity;
-    }
-
-    [System.Serializable]
-    public class TerritoryWarehouseData
-    {
-        public string territoryId;
-        public List<WarehouseSlotData> slots;
-    }
-
     // ===== Phase 5.7.3: 성당 데이터 =====
     [System.Serializable]
     public class ChurchFavorData
@@ -122,6 +116,10 @@ namespace ProjectName.Systems
     }
 
     // ===== 국가 호감도 저장 데이터 =====
+    /// <summary>
+    /// 국가 호감도 저장 컨테이너.
+    /// nationKey는 NationType.ToString() 값 (East/West/South/North/Empire/Dracula).
+    /// </summary>
     [System.Serializable]
     public class NationReputationSaveData
     {

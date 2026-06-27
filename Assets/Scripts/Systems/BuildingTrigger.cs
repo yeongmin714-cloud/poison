@@ -67,7 +67,7 @@ namespace ProjectName.Systems
                 }
                 else
                 {
-                    Debug.Log($"[BuildingTrigger] E키 입력 — {_buildingType} 진입 (nationStyle: {_nationStyle ?? \"null\"})");
+                    Debug.Log($"[BuildingTrigger] E키 입력 — {_buildingType} 진입 (nationStyle: {_nationStyle ?? "null"})");
                     BuildingEvents.RequestEnterBuilding(_buildingType, _nationStyle);
                 }
             }

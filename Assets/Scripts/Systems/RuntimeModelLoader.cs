@@ -209,7 +209,11 @@ namespace ProjectName.Systems
             if (string.IsNullOrEmpty(modelKey))
                 return false;
 
-            return _loadedModels.ContainsKey(modelKey.ToLowerInvariant());
+            string key = modelKey.ToLowerInvariant();
+            // 별칭 해석: TryGetModel과 동일한 alias 로직 적용
+            if (_aliases != null && _aliases.TryGetValue(key, out string realKey))
+                key = realKey;
+            return _loadedModels.ContainsKey(key);
         }
 
         /// <summary>
@@ -285,6 +289,9 @@ namespace ProjectName.Systems
                 return false;
 
             string key = modelKey.ToLowerInvariant();
+            // 별칭 해석: TryGetModel과 동일한 alias 로직 적용
+            if (_aliases != null && _aliases.TryGetValue(key, out string realKey))
+                key = realKey;
             return _modelMetadata.TryGetValue(key, out metadata);
         }
 

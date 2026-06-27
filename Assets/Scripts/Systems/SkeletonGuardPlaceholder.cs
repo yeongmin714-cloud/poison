@@ -59,11 +59,12 @@ namespace ProjectName.Systems
                 var instance = Instantiate(guardModel, transform);
                 instance.transform.localPosition = Vector3.zero;
                 instance.transform.localRotation = Quaternion.identity;
-                // Remove placeholder visual components
-                var rend = GetComponentInChildren<Renderer>();
-                if (rend != null) Destroy(rend);
-                var filter = GetComponentInChildren<MeshFilter>();
-                if (filter != null) Destroy(filter);
+                // Remove this object's own placeholder mesh components only
+                // (NOT GetComponentInChildren — that would destroy the GLB model's renderer)
+                var myRenderer = GetComponent<Renderer>();
+                if (myRenderer != null) Destroy(myRenderer);
+                var myFilter = GetComponent<MeshFilter>();
+                if (myFilter != null) Destroy(myFilter);
                 ModelAnimatorAssigner.AssignController(instance, "soldier");
                 return; // Skip CreatePlaceholderVisual
             }
@@ -96,8 +97,11 @@ namespace ProjectName.Systems
             if (dist < _detectRange)
             {
                 // 플레이어 추격
-                Vector3 dir = (_player.position - transform.position).normalized;
+                Vector3 dir = _player.position - transform.position;
                 dir.y = 0;
+                // Zero-vector 방어 (플레이어와 완전히 같은 위치)
+                if (dir.sqrMagnitude < 0.001f) return;
+                dir.Normalize();
                 transform.position += dir * _moveSpeed * Time.deltaTime;
                 transform.rotation = Quaternion.LookRotation(dir);
 
@@ -119,6 +123,7 @@ namespace ProjectName.Systems
             _head.transform.SetParent(transform);
             _head.transform.localPosition = new Vector3(0, 1.2f, 0);
             _head.transform.localScale = Vector3.one * 0.3f;
+            Destroy(_head.GetComponent<Collider>());
             SetColor(_head, _skeletonColor);
 
             // 몸통 (Capsule)
@@ -126,6 +131,7 @@ namespace ProjectName.Systems
             _body.transform.SetParent(transform);
             _body.transform.localPosition = new Vector3(0, 0.6f, 0);
             _body.transform.localScale = new Vector3(0.5f, 0.8f, 0.3f);
+            Destroy(_body.GetComponent<Collider>());
             SetColor(_body, Color.Lerp(_skeletonColor, Color.gray, 0.3f));
 
             // 왼팔 (Cylinder)
@@ -134,6 +140,7 @@ namespace ProjectName.Systems
             _leftArm.transform.localPosition = new Vector3(-0.4f, 0.8f, 0);
             _leftArm.transform.localScale = new Vector3(0.15f, 0.4f, 0.15f);
             _leftArm.transform.localRotation = Quaternion.Euler(0, 0, 15);
+            Destroy(_leftArm.GetComponent<Collider>());
             SetColor(_leftArm, _skeletonColor);
 
             // 오른팔 (Cylinder)
@@ -142,6 +149,7 @@ namespace ProjectName.Systems
             _rightArm.transform.localPosition = new Vector3(0.4f, 0.8f, 0);
             _rightArm.transform.localScale = new Vector3(0.15f, 0.4f, 0.15f);
             _rightArm.transform.localRotation = Quaternion.Euler(0, 0, -15);
+            Destroy(_rightArm.GetComponent<Collider>());
             SetColor(_rightArm, _skeletonColor);
 
             // 태그 설정
@@ -183,10 +191,10 @@ namespace ProjectName.Systems
             if (_verbose)
                 Debug.Log("[SkeletonGuard] 사망!");
 
-            // LootBasket 드랍 (ND-05 연동) - DropTableManager로 위임
+            // LootBasket 드랍 (ND-05 연동)
+            LootBasket basket = LootBasket.Create(transform.position);
             if (DropTableManager.Instance != null)
             {
-                ILootBasket basket = null; // 실제 바스켓 참조
                 DropTableManager.Instance.ApplySkeletonGuardDrops(basket, _level);
             }
 

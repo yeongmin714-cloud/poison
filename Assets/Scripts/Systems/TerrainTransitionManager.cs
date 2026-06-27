@@ -11,7 +11,7 @@ namespace ProjectName.Systems
     public static class TerrainTransitionManager
     {
         /// <summary>
-        /// 전환 구역 폭 (50m)
+        /// 전환 구역 폭 (미터 단위). 국경선 양쪽으로 절반씩 적용됨.
         /// </summary>
         public const float TRANSITION_ZONE_WIDTH = 50f;
 
@@ -50,7 +50,7 @@ namespace ProjectName.Systems
         /// <param name="seedA">A 국가 노이즈 시드</param>
         /// <param name="biomeB">B 국가 Biome 정의</param>
         /// <param name="seedB">B 국가 노이즈 시드</param>
-        /// <param name="blend">블렌드 계수 (0.0=A, 1.0=B)</param>
+        /// <param name="blend">블렌드 계수 (0.0=A, 1.0=B), 자동 클램프됨</param>
         /// <returns>(height, color) — 블렌딩된 높이와 색상</returns>
         public static (float height, Color color) GetBlendedTerrainData(
             float x, float z,
@@ -58,17 +58,10 @@ namespace ProjectName.Systems
             BiomeDefinition biomeB, int seedB,
             float blend)
         {
-            // Biome A 높이 계산
-            float noiseA = Mathf.PerlinNoise(
-                x * biomeA.noiseFrequency + seedA,
-                z * biomeA.noiseFrequency + seedA);
-            float heightA = noiseA * biomeA.noiseAmplitude;
+            blend = Mathf.Clamp01(blend);
 
-            // Biome B 높이 계산
-            float noiseB = Mathf.PerlinNoise(
-                x * biomeB.noiseFrequency + seedB,
-                z * biomeB.noiseFrequency + seedB);
-            float heightB = noiseB * biomeB.noiseAmplitude;
+            float heightA = SampleBiomeHeight(x, z, biomeA, seedA);
+            float heightB = SampleBiomeHeight(x, z, biomeB, seedB);
 
             // 높이: 선형 보간
             float blendedHeight = Mathf.Lerp(heightA, heightB, blend);
@@ -77,6 +70,17 @@ namespace ProjectName.Systems
             Color blendedColor = Color.Lerp(biomeA.surfaceColor, biomeB.surfaceColor, blend);
 
             return (blendedHeight, blendedColor);
+        }
+
+        /// <summary>
+        /// Biome 정의와 시드를 기반으로 Perlin 노이즈 높이값 계산
+        /// </summary>
+        private static float SampleBiomeHeight(float x, float z, BiomeDefinition biome, int seed)
+        {
+            float noise = Mathf.PerlinNoise(
+                x * biome.noiseFrequency + seed,
+                z * biome.noiseFrequency + seed);
+            return noise * biome.noiseAmplitude;
         }
     }
 }

@@ -136,6 +136,33 @@ namespace ProjectName.Core
 
             // 17. UIManager — UI window management (singleton with FindOrCreate fallback)
             CreateSystemIfMissing("UIManager");
+
+            // 18. RevengeListIntegration — 복수명부 이벤트 구독 초기화 (정적 클래스, reflection)
+            InitializeRevengeListIntegration();
+        }
+
+        /// <summary>
+        /// RevengeListIntegration.Initialize()를 리플렉션으로 호출 (Core→Systems 크로스 어셈블리)
+        /// </summary>
+        private static void InitializeRevengeListIntegration()
+        {
+            var type = FindTypeInAssemblies("RevengeListIntegration");
+            if (type == null)
+            {
+                Debug.LogWarning("[GameManager] RevengeListIntegration 타입을 찾을 수 없습니다.");
+                return;
+            }
+
+            var method = type.GetMethod("Initialize",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            if (method == null)
+            {
+                Debug.LogWarning("[GameManager] RevengeListIntegration.Initialize() 메서드를 찾을 수 없습니다.");
+                return;
+            }
+
+            method.Invoke(null, null);
+            Debug.Log("[GameManager] RevengeListIntegration 초기화 완료 (reflection)");
         }
 
         // ================================================================

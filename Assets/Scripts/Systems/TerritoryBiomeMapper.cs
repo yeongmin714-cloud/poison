@@ -1,4 +1,3 @@
-using ProjectName.Core;
 using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
@@ -17,6 +16,20 @@ namespace ProjectName.Systems
         /// <returns>해당 영지의 BiomeType</returns>
         public static BiomeType GetBiome(NationType nation, int index)
         {
+            // index 범위 검증 (1~20)
+            if (index < 1 || index > 20)
+            {
+                UnityEngine.Debug.LogWarning($"[TerritoryBiomeMapper] 영지 인덱스 범위 초과: {index} (허용: 1~20), 1로 보정");
+                index = UnityEngine.Mathf.Clamp(index, 1, 20);
+            }
+
+            // None 국가 조기 반환
+            if (nation == NationType.None)
+            {
+                UnityEngine.Debug.LogWarning("[TerritoryBiomeMapper] NationType.None 입력, 기본값 Plains 반환");
+                return BiomeType.Plains;
+            }
+
             // 결정론적 시드: (nation * 100 + index)
             int hash = ((int)nation * 100 + index);
             System.Random rng = new System.Random(hash);
@@ -50,6 +63,11 @@ namespace ProjectName.Systems
                 case NationType.Empire:
                     // Empire: 100% Empire
                     return BiomeType.Empire;
+
+                case NationType.Dracula:
+                    // Dracula: 70% Volcanic, 30% Swamp
+                    if (roll < 0.70f) return BiomeType.Volcanic;
+                    return BiomeType.Swamp;
 
                 default:
                     UnityEngine.Debug.LogWarning($"[TerritoryBiomeMapper] 알 수 없는 국가: {nation}, 기본값 Plains 반환");

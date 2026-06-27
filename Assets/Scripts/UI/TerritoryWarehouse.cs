@@ -9,7 +9,7 @@ namespace ProjectName.Systems
     /// <summary>
     /// Phase 5.6.2: 영지 창고 — 20슬롯.
     /// 영지 단위로 아이템을 보관/회수합니다.
-    /// SaveData의 TerritoryWarehouseData / WarehouseSlotData와 연동.
+    /// 저장 데이터는 WarehouseSystem.WarehouseSaveData 사용 (SaveData.warehouse).
     /// </summary>
     public class TerritoryWarehouse : MonoBehaviour
     {

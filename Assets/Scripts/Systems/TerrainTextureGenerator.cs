@@ -1,5 +1,4 @@
 using UnityEngine;
-using ProjectName.Core;
 using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
@@ -61,7 +60,7 @@ namespace ProjectName.Systems
                     // 두 번째 octave로 디테일 추가
                     float detailX = (float)x / TEXTURE_SIZE * 8.0f + seed * 0.1f;
                     float detailY = (float)y / TEXTURE_SIZE * 8.0f + seed * 0.1f;
-                    float detail = Mathf.PerlinNoise(detailX, detailY) * 0.3f;
+                    float detail = (Mathf.PerlinNoise(detailX, detailY) - 0.5f) * 0.3f;
 
                     // noise로 색상 변형 (±15%)
                     float variation = (noise - 0.5f) * 0.3f + detail;

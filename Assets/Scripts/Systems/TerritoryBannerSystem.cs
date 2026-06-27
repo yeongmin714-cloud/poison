@@ -1,5 +1,4 @@
 using ProjectName.Core;
-using ProjectName.Core;
 using UnityEngine;
 using ProjectName.Core.Data;
 
@@ -28,53 +27,59 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 영지 소유주 변경 시 호출.
-        /// 깃발/색상 교체 + 알림 표시.
         /// </summary>
+        /// <param name="territoryId">대상 영지 ID</param>
+        /// <param name="territoryName">대상 영지 이름</param>
+        /// <param name="newOwner">새 소유주 국가 (NationType)</param>
+        /// <param name="isPlayerOwned">플레이어 소유 여부</param>
         public void ChangeOwnership(string territoryId, string territoryName, NationType newOwner, bool isPlayerOwned = false)
         {
             Debug.Log($"[TerritoryBannerSystem] 🎉 {territoryName}을(를) 점령했습니다!");
 
-            bool isPlayer = isPlayerOwned;
-
-            // FadeManager를 통한 페이드 효과
-            FadeManager fade = FindObjectOfType<FadeManager>();
-            if (fade != null)
+            // 페이드 효과 (FadeManager 싱글톤)
+            if (FadeManager.Instance != null)
             {
-                // 페이드 효과 (선택 사항 — FadeManager API에 따라 조정)
+                // TODO: 실제 페이드 아웃/인 로직 구현
+                // ex) FadeManager.Instance.FadeOut(0.5f);
             }
 
-            // 병사 색상 변경 (TerritoryManager 연동)
-            TerritoryManager territoryManager = FindObjectOfType<TerritoryManager>();
-            if (territoryManager != null)
+            // 영지 소유자 갱신 (TerritoryManager 싱글톤)
+            if (TerritoryManager.Instance != null)
             {
-                territoryManager.SetTerritoryOwner(territoryId, newOwner);
+                TerritoryManager.Instance.SetTerritoryOwner(territoryId, newOwner);
             }
 
             // 플레이어 소유 시 문장에 맞게 색상 교체
-            if (isPlayer && EmblemManager.Instance != null)
+            if (isPlayerOwned && EmblemManager.Instance != null)
             {
                 EmblemManager.Instance.CreateFlagMaterial();
                 Debug.Log($"[TerritoryBannerSystem] {EmblemManager.Instance.CurrentEmblem.emblemName}의 깃발이 게양됩니다!");
             }
 
             // 병사들 색상 변경
-            UpdateGuardColors(territoryId, isPlayer);
+            UpdateGuardColors(territoryId, isPlayerOwned);
         }
 
         /// <summary>해당 영지 병사들의 색상을 변경</summary>
+        /// <param name="territoryId">대상 영지 ID (향후 특정 영지 필터링용)</param>
+        /// <param name="isPlayer">플레이어 소유 여부</param>
         private void UpdateGuardColors(string territoryId, bool isPlayer)
         {
-            var guards = FindObjectsOfType<GuardPlaceholder>();
             Color targetColor = isPlayer && EmblemManager.Instance != null
                 ? EmblemManager.GetEmblemColor(EmblemManager.Instance.CurrentEmblem.primaryColor)
                 : Color.gray;
 
+            var guards = FindObjectsOfType<GuardPlaceholder>();
             foreach (var guard in guards)
             {
                 var renderer = guard.GetComponent<MeshRenderer>();
                 if (renderer != null)
                 {
-                    renderer.material.color = Color.Lerp(renderer.material.color, targetColor, 0.5f);
+                    // MaterialPropertyBlock 사용으로 인스턴스 생성 방지
+                    var block = new MaterialPropertyBlock();
+                    renderer.GetPropertyBlock(block);
+                    block.SetColor(Shader.PropertyToID("_BaseColor"), targetColor);
+                    renderer.SetPropertyBlock(block);
                 }
             }
         }
@@ -82,6 +87,8 @@ namespace ProjectName.Systems
         /// <summary>
         /// 점령 완료 알림 문자열 반환 (UI 표시용).
         /// </summary>
+        /// <param name="territoryName">대상 영지 이름</param>
+        /// <returns>UI 표시용 점령 완료 메시지</returns>
         public static string GetOccupationMessage(string territoryName)
         {
             string emblemName = EmblemManager.Instance != null

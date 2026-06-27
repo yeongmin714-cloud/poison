@@ -13,7 +13,8 @@ namespace ProjectName.Systems
         private GasSprayerController _controller;
 
         [Header("입력 설정")]
-        [SerializeField] private KeyCode _sprayKey = KeyCode.Mouse1;  // 우클릭 홀드
+        [SerializeField, Tooltip("분사 키 (홀드)")]
+        private KeyCode _sprayKey = KeyCode.Mouse1;  // 우클릭 홀드
 
         private void Awake()
         {

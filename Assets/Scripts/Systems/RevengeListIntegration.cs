@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using ProjectName.Core;
-using ProjectName.Core;
 using UnityEngine;
 using ProjectName.Core.Data;
 
@@ -26,17 +25,53 @@ namespace ProjectName.Systems
 
             LordSurrenderSystem.OnLordExecuted += OnLordExecuted;
             PoisonTakeoverSystem.OnLordPoisoned += OnLordPoisoned;
+            AssassinationCutscene.OnAssassinationExecuted += OnAssassinationExecuted;
 
-            // 숨은 GameObject 생성 (OnGUI 알림 표시용)
-            var go = new GameObject("[RevengeListIntegration]");
-            Object.DontDestroyOnLoad(go);
-            _controller = go.AddComponent<NotificationController>();
+            // 숨은 GameObject 생성 또는 기존 GameObject 재사용 (도메인 리로드 대응)
+            _controller = FindOrCreateController();
 
             // C14-07: 모든 독살 공모자 보상 구독
             RevengeListManager.Instance.AllPoisonFound += OnAllPoisonFound;
 
             _initialized = true;
-            Debug.Log("[RevengeListIntegration] 초기화 완료 — OnLordExecuted, OnLordPoisoned 구독됨");
+            Debug.Log("[RevengeListIntegration] 초기화 완료 — OnLordExecuted, OnLordPoisoned, OnAssassinationExecuted 구독됨");
+        }
+
+        /// <summary>기존 GameObject가 있으면 재사용, 없으면 새로 생성 (도메인 리로드 안전)</summary>
+        private static NotificationController FindOrCreateController()
+        {
+            const string goName = "[RevengeListIntegration]";
+
+            // 도메인 리로드 후에도 DontDestroyOnLoad GameObject가 남아있을 수 있음
+            var existing = GameObject.Find(goName);
+            if (existing != null)
+            {
+                var ctrl = existing.GetComponent<NotificationController>();
+                if (ctrl != null)
+                    return ctrl;
+            }
+
+            var go = new GameObject(goName);
+            Object.DontDestroyOnLoad(go);
+            return go.AddComponent<NotificationController>();
+        }
+
+        /// <summary>
+        /// 구독 해제 및 정리 (도메인 리로드 / 게임 종료 시)
+        /// </summary>
+        public static void Deinitialize()
+        {
+            if (!_initialized) return;
+
+            LordSurrenderSystem.OnLordExecuted -= OnLordExecuted;
+            PoisonTakeoverSystem.OnLordPoisoned -= OnLordPoisoned;
+            AssassinationCutscene.OnAssassinationExecuted -= OnAssassinationExecuted;
+
+            if (RevengeListManager.Instance != null)
+                RevengeListManager.Instance.AllPoisonFound -= OnAllPoisonFound;
+
+            _initialized = false;
+            Debug.Log("[RevengeListIntegration] 구독 해제 완료");
         }
 
         /// <summary>
@@ -74,7 +109,7 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// C14-09: 독살 영주 이벤트 핸들러 — PoisonTakeoverSystem.OnLordPoisoned
+        /// C14-05: 독살/암살 영주 이벤트 핸들러 — PoisonTakeoverSystem.OnLordPoisoned
         /// </summary>
         private static void OnLordPoisoned(TerritoryId territoryId)
         {
@@ -99,6 +134,41 @@ namespace ProjectName.Systems
             else
             {
                 message = $"☠️ {entry.lordName}(이)가 독살되었다!";
+            }
+
+            _controller?.ShowRevealNotification(message, entry.isPoisonConspirator);
+
+            // C14-08: 모든 복수 완료 체크
+            CheckFullCompletion();
+        }
+
+        /// <summary>
+        /// C14-05: 암살 컷씬 영주 사망 핸들러 — AssassinationCutscene.OnAssassinationExecuted
+        /// 독살과 동일한 RevealReason 로직 적용
+        /// </summary>
+        private static void OnAssassinationExecuted(TerritoryId territoryId)
+        {
+            string tid = territoryId.ToString();
+
+            // 이유 공개
+            RevengeListManager.Instance.RevealReason(tid);
+
+            // 엔트리 조회
+            var entry = RevengeListManager.Instance.GetEntry(tid);
+
+            // 알림 텍스트 구성
+            string message;
+            if (entry.isPoisonConspirator)
+            {
+                message = $"☠️ {entry.lordName}이(가) 왕의 독살에 가담했다!";
+            }
+            else if (!string.IsNullOrEmpty(entry.revengeReason))
+            {
+                message = $"🗡️ {entry.lordName}(암살): {entry.revengeReason}";
+            }
+            else
+            {
+                message = $"🗡️ {entry.lordName}(이)가 암살되었다!";
             }
 
             _controller?.ShowRevealNotification(message, entry.isPoisonConspirator);
@@ -141,14 +211,14 @@ namespace ProjectName.Systems
         /// </summary>
         private class NotificationController : MonoBehaviour
         {
+            private enum NotificationType { Reveal, Reward, Completion }
+
             private struct Notification
             {
                 public string message;
                 public bool isPoison;
                 public float startTime;
                 public NotificationType type;
-
-                public enum NotificationType { Reveal, Reward, Completion }
             }
 
             private List<Notification> _notifications = new List<Notification>();
@@ -166,7 +236,7 @@ namespace ProjectName.Systems
                     message = message,
                     isPoison = isPoison,
                     startTime = Time.time,
-                    type = Notification.NotificationType.Reveal
+                    type = NotificationType.Reveal
                 });
             }
 
@@ -176,7 +246,7 @@ namespace ProjectName.Systems
                 {
                     message = message,
                     startTime = Time.time,
-                    type = Notification.NotificationType.Reward
+                    type = NotificationType.Reward
                 });
             }
 
@@ -186,7 +256,7 @@ namespace ProjectName.Systems
                 {
                     message = message,
                     startTime = Time.time,
-                    type = Notification.NotificationType.Completion
+                    type = NotificationType.Completion
                 });
             }
 
@@ -199,7 +269,7 @@ namespace ProjectName.Systems
                 {
                     var notif = _notifications[i];
                     float elapsed = Time.time - notif.startTime;
-                    float duration = (notif.type == Notification.NotificationType.Completion) ? 5f : 3f;
+                    float duration = (notif.type == NotificationType.Completion) ? 5f : 3f;
 
                     if (elapsed > duration)
                     {
@@ -211,38 +281,43 @@ namespace ProjectName.Systems
                     float alpha = Mathf.Clamp01(1.0f - (elapsed / duration));
 
                     GUIStyle style;
+                    Color baseColor;
                     switch (notif.type)
                     {
-                        case Notification.NotificationType.Reveal:
+                        case NotificationType.Reveal:
                             if (notif.isPoison)
                             {
                                 style = _stylePoison;
-                                style.normal.textColor = new Color(1f, 0.3f, 0.3f, alpha);
+                                baseColor = new Color(1f, 0.3f, 0.3f, 1f);
                             }
                             else
                             {
                                 style = _styleReveal;
-                                style.normal.textColor = new Color(1f, 0.1f, 0.1f, alpha);
+                                baseColor = new Color(1f, 0.1f, 0.1f, 1f);
                             }
                             break;
-                        case Notification.NotificationType.Reward:
+                        case NotificationType.Reward:
                             style = _styleReward;
-                            style.normal.textColor = new Color(0.3f, 1f, 0.3f, alpha);
+                            baseColor = new Color(0.3f, 1f, 0.3f, 1f);
                             break;
-                        case Notification.NotificationType.Completion:
+                        case NotificationType.Completion:
                             style = _styleCompletion;
-                            style.normal.textColor = new Color(1f, 0.8f, 0f, alpha);
+                            baseColor = new Color(1f, 0.8f, 0f, 1f);
                             break;
                         default:
                             style = _styleReveal;
-                            style.normal.textColor = new Color(1f, 0.1f, 0.1f, alpha);
+                            baseColor = new Color(1f, 0.1f, 0.1f, 1f);
                             break;
                     }
 
                     float textWidth = style.CalcSize(new GUIContent(notif.message)).x;
                     float x = (Screen.width - textWidth) / 2f;
 
+                    // GUI.contentColor로 알파 페이드 아웃 (style.textColor 불변 유지)
+                    Color prevColor = GUI.contentColor;
+                    GUI.contentColor = new Color(baseColor.r, baseColor.g, baseColor.b, alpha);
                     GUI.Label(new Rect(x, y, textWidth + 20, 45), notif.message, style);
+                    GUI.contentColor = prevColor;
                     y += 50f;
                 }
             }
