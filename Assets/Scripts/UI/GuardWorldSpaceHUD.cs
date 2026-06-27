@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Systems;
 using UnityEngine;
-using ProjectName.UI.Themes;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -29,10 +27,8 @@ namespace ProjectName.UI
 
         // 스타일 (lazy init)
         private GUIStyle _styleName;
-        private GUIStyle _styleLevel;
         private GUIStyle _styleLabel;
         private GUIStyle _styleValue;
-        private UIDesignTheme _theme;
 
         // HUD 표시 온/오프
         private bool _hudEnabled = true;
@@ -60,7 +56,6 @@ namespace ProjectName.UI
                 return;
             }
             Instance = this;
-            _theme = Phase33_Themes.GuardHUDTheme();
             CacheReferences();
         }
 
@@ -68,6 +63,29 @@ namespace ProjectName.UI
         {
             // 재활성화 시 참조 갱신
             CacheReferences();
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+
+            // 정적 텍스처 정리 (메모리 누수 방지)
+            if (_bgTexture != null)
+            {
+                Destroy(_bgTexture);
+                _bgTexture = null;
+            }
+            if (_loyaltyFillTexture != null)
+            {
+                Destroy(_loyaltyFillTexture);
+                _loyaltyFillTexture = null;
+            }
+            if (_addictionFillTexture != null)
+            {
+                Destroy(_addictionFillTexture);
+                _addictionFillTexture = null;
+            }
         }
 
         /// <summary>플레이어 및 카메라 참조 캐싱</summary>
@@ -170,7 +188,7 @@ namespace ProjectName.UI
                 : Color.Lerp(Color.red, Color.gray, Mathf.Clamp01((hud.HUDLoyalty + 100f) / 100f));
 
             // 캐시된 텍스처 사용 (매 프레임 new Texture2D 방지)
-            GUI.DrawTexture(new Rect(barX, barY, barW, barH), GetCachedBgTexture(alpha));
+            GUI.DrawTexture(new Rect(barX, barY, barW, barH), GetCachedBgTexture());
             GUI.DrawTexture(new Rect(barX, barY, barW * loyaltyNorm, barH), GetCachedTex(ref _loyaltyFillTexture, ref _lastLoyaltyColor, loyaltyColor));
             // 텍스트
             GUI.Label(new Rect(barX + 2, barY + 1, barW - 4, barH - 2),
@@ -186,7 +204,7 @@ namespace ProjectName.UI
 
             Color addictionColor = Color.Lerp(Color.green, Color.magenta, addictionNorm);
 
-            GUI.DrawTexture(new Rect(addBarX, addBarY, addBarW, addBarH), GetCachedBgTexture(alpha));
+            GUI.DrawTexture(new Rect(addBarX, addBarY, addBarW, addBarH), GetCachedBgTexture());
             GUI.DrawTexture(new Rect(addBarX, addBarY, addBarW * addictionNorm, addBarH), GetCachedTex(ref _addictionFillTexture, ref _lastAddictionColor, addictionColor));
             GUI.Label(new Rect(addBarX + 2, addBarY + 1, addBarW - 4, addBarH - 2),
                 $"{(int)hud.HUDAddiction}%", _styleValue);
@@ -223,12 +241,6 @@ namespace ProjectName.UI
                 normal = { textColor = Color.white },
                 alignment = TextAnchor.MiddleLeft
             };
-            _styleLevel = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 12,
-                normal = { textColor = Color.yellow },
-                alignment = TextAnchor.MiddleRight
-            };
             _styleLabel = new GUIStyle(GUI.skin.label)
             {
                 fontSize = 12,
@@ -244,10 +256,10 @@ namespace ProjectName.UI
             };
         }
 
-        /// <summary>배경용 어두운 텍스처 (알파만 다름, 캐시됨)</summary>
-        private static Texture2D GetCachedBgTexture(float alpha)
+        /// <summary>배경용 어두운 텍스처 (캐시, GUI.color가 알파 조절)</summary>
+        private static Texture2D GetCachedBgTexture()
         {
-            Color c = new Color(0.3f, 0.3f, 0.3f, alpha);
+            Color c = new Color(0.3f, 0.3f, 0.3f, 1f);
             if (_bgTexture == null || _lastBgColor != c)
             {
                 _bgTexture = MakeTexStatic(1, 1, c);
@@ -261,7 +273,7 @@ namespace ProjectName.UI
         {
             if (cache == null || lastColor != newColor)
             {
-                Object.DestroyImmediate(cache);
+                Object.Destroy(cache);
                 cache = MakeTexStatic(1, 1, newColor);
                 lastColor = newColor;
             }

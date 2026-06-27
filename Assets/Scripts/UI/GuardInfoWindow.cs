@@ -3,8 +3,6 @@ using ProjectName.Core;
 using ProjectName.Systems;
 using UnityEngine;
 using ProjectName.Core.Data;
-using ProjectName.UI.Themes;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -32,8 +30,6 @@ namespace ProjectName.UI
 
         // ===== 창 상태 =====
         private bool _isVisible = false;
-        public bool IsOpen => _isVisible;
-        private UIDesignTheme _theme;
         private Vector2 _scrollPos;
         private Vector2 _buffScrollPos;
 
@@ -77,7 +73,6 @@ namespace ProjectName.UI
             }
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            _theme = Phase33_Themes.GuardInfoTheme();
         }
 
         private void Update()

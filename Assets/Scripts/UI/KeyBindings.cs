@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -34,7 +32,7 @@ namespace ProjectName.UI
         [SerializeField] private KeyCode _revengeListKey = KeyCode.K;
 
         [Header("Crafting Table")]
-        [SerializeField] private KeyCode _craftingKey = KeyCode.C;
+        [SerializeField] private KeyCode _craftingKey = KeyCode.X; // BUGFIX: KeyCode.C was conflicting with _statusKey
 
         [Header("Equipment Window")]
         [SerializeField] private KeyCode _equipmentKey = KeyCode.E;
@@ -44,13 +42,22 @@ namespace ProjectName.UI
 
         // 액션 이름 → KeyCode 매핑 (코드에서 사용)
         private Dictionary<string, KeyCode> _bindings;
+        private bool _bindingsDirty = true;
+
+        /// <summary>
+        /// 에디터에서 값이 변경되면 캐시를 무효화하여 인스펙터 변경 사항이 반영되도록 함
+        /// </summary>
+        private void OnValidate()
+        {
+            _bindingsDirty = true;
+        }
 
         /// <summary>
         /// 모든 키 바인딩을 딕셔너리로 반환
         /// </summary>
         public Dictionary<string, KeyCode> GetAllBindings()
         {
-            if (_bindings == null)
+            if (_bindings == null || _bindingsDirty)
             {
                 _bindings = new Dictionary<string, KeyCode>
                 {
@@ -65,6 +72,7 @@ namespace ProjectName.UI
                     { "Equipment", _equipmentKey },
                     { "Warehouse", _warehouseKey }
                 };
+                _bindingsDirty = false;
             }
             return _bindings;
         }

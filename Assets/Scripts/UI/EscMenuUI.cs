@@ -1,9 +1,7 @@
 using ProjectName.Core;
 
 using UnityEngine;
-using ProjectName.UI.Themes;
 using UnityEngine.InputSystem;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -21,10 +19,11 @@ namespace ProjectName.UI
         [SerializeField] private int _buttonSpacing = 18;
 
         private bool _isOpen;
-        private UIDesignTheme _theme;
         private GUIStyle _titleStyle;
         private GUIStyle _buttonStyle;
         private bool _stylesInit;
+        private Texture2D _cachedHoverTex;
+        private Texture2D _cachedActiveTex;
         private static readonly string[] ButtonLabels = { "▶ 재개", "💾 저장", "⚙ 설정", "🏠 타이틀로", "❌ 종료" };
         private System.Action[] _buttonActions;
         private bool _actionsCached;
@@ -34,7 +33,6 @@ namespace ProjectName.UI
             if (Instance != null) { Destroy(gameObject); return; }
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            _theme = Phase33_Themes.EscMenuTheme();
             CacheActions();
         }
 
@@ -77,6 +75,18 @@ namespace ProjectName.UI
             Time.timeScale = 1f;
         }
 
+        private void OnDestroy()
+        {
+            if (_cachedHoverTex != null) Destroy(_cachedHoverTex);
+            if (_cachedActiveTex != null) Destroy(_cachedActiveTex);
+            _cachedHoverTex = null;
+            _cachedActiveTex = null;
+            _buttonStyle = null;
+            _titleStyle = null;
+            _stylesInit = false;
+            _actionsCached = false;
+        }
+
         private void InitStyles()
         {
             if (_stylesInit) return;
@@ -90,8 +100,10 @@ namespace ProjectName.UI
                 fontSize = 72, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white }
             };
-            _buttonStyle.hover.background = UIStyleManager.MakeTexture(1, 1, UIStyleManager.HoverColor);
-            _buttonStyle.active.background = UIStyleManager.MakeTexture(1, 1, new Color(0.1f, 0.2f, 0.5f, 1f));
+            _cachedHoverTex = UIStyleManager.MakeTexture(1, 1, UIStyleManager.HoverColor);
+            _cachedActiveTex = UIStyleManager.MakeTexture(1, 1, new Color(0.1f, 0.2f, 0.5f, 1f));
+            _buttonStyle.hover.background = _cachedHoverTex;
+            _buttonStyle.active.background = _cachedActiveTex;
             _stylesInit = true;
         }
 

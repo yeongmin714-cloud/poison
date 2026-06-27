@@ -1,8 +1,6 @@
 using UnityEngine;
 using ProjectName.Core;
 using System.Collections.Generic;
-using ProjectName.Core.Data;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -39,7 +37,7 @@ namespace ProjectName.UI
         [SerializeField] private int _iconSpacing = 10;
         [SerializeField] private int _iconOffsetX = 760; // X offset from left (barX + barWidth + 10)
         private int _iconOffsetY; // 동적 계산: 좌하단 기준
-        private Dictionary<string, Color> _buffColors = new Dictionary<string, Color>
+        private static readonly Dictionary<string, Color> _buffColors = new Dictionary<string, Color>
         {
             { "AttackUp", Color.red },
             { "DefenseUp", Color.blue },
@@ -269,7 +267,7 @@ namespace ProjectName.UI
                 float remaining = buff.EndTime - Time.time;
                 if (remaining <= 0f) continue;
 
-                // GC: Rect 재사용
+                // Rect 재사용 (구조체, 스택 할당)
                 _rectBuffBg = new Rect(x, y, size, size);
                 _rectBuffInner = new Rect(x + 1, y + 1, size - 2, size - 2);
 

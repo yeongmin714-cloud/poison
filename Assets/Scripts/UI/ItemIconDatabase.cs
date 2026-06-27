@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -39,16 +38,6 @@ namespace ProjectName.UI
         }
 
         /// <summary>
-        /// ItemSlot에서 아이콘을 가져옵니다.
-        /// </summary>
-        public static Texture2D GetIconFromSlot(PlayerInventory.ItemSlot slot)
-        {
-            if (slot == null || slot.item == null)
-                return GetFallbackIcon();
-            return GetOrCreateIcon(slot.item);
-        }
-
-        /// <summary>
         /// 캐시를 모두 비웁니다.
         /// </summary>
         public static void ClearCache()
@@ -59,6 +48,12 @@ namespace ProjectName.UI
                     Object.Destroy(tex);
             }
             _iconCache.Clear();
+
+            if (_fallbackIcon != null)
+            {
+                Object.Destroy(_fallbackIcon);
+                _fallbackIcon = null;
+            }
         }
 
         // ================================================================
@@ -72,6 +67,7 @@ namespace ProjectName.UI
             if (_fallbackIcon != null) return _fallbackIcon;
 
             _fallbackIcon = new Texture2D(ICON_SIZE, ICON_SIZE, TextureFormat.RGBA32, false);
+            _fallbackIcon.hideFlags = HideFlags.HideAndDontSave;
             Color bg = new Color(0.2f, 0.2f, 0.2f);
             Color fg = new Color(0.5f, 0.5f, 0.5f);
             for (int y = 0; y < ICON_SIZE; y++)
@@ -93,6 +89,9 @@ namespace ProjectName.UI
 
         private static Texture2D ScaleUpTexture(Texture2D source, int targetWidth, int targetHeight)
         {
+            if (source == null || source.width <= 0 || source.height <= 0)
+                return GetFallbackIcon();
+
             var dest = new Texture2D(targetWidth, targetHeight, source.format, false);
             float sx = (float)source.width / targetWidth;
             float sy = (float)source.height / targetHeight;

@@ -1,9 +1,6 @@
-using System.Collections.Generic;
 using System.Text;
 using ProjectName.Systems;
 using UnityEngine;
-using ProjectName.UI.Themes;
-#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -30,9 +27,7 @@ namespace ProjectName.UI
         // 캐싱
         private Camera _mainCamera;
         private HerbPickup[] _herbCache;
-        private List<HerbPickup> _activeHerbs = new List<HerbPickup>(64);
 
-        private UIDesignTheme _theme;
         // GUI 스타일
         private GUIStyle _labelStyle;
         private GUIStyle _timerStyle;
@@ -58,7 +53,6 @@ namespace ProjectName.UI
                 return;
             }
             _instance = this;
-            _theme = Phase33_Themes.HerbRespawnTheme();
         }
 
         private void Start()
@@ -94,7 +88,7 @@ namespace ProjectName.UI
             _labelStyle = new GUIStyle
             {
                 alignment = TextAnchor.LowerCenter,
-                fontSize = 192,
+                fontSize = 14,
                 fontStyle = FontStyle.Bold
             };
             _labelStyle.normal.textColor = Color.white;
@@ -102,7 +96,7 @@ namespace ProjectName.UI
             _timerStyle = new GUIStyle
             {
                 alignment = TextAnchor.MiddleCenter,
-                fontSize = 176,
+                fontSize = 13,
                 fontStyle = FontStyle.Bold
             };
             _timerStyle.normal.textColor = Color.white;
@@ -110,7 +104,7 @@ namespace ProjectName.UI
             _collectibleStyle = new GUIStyle
             {
                 alignment = TextAnchor.LowerCenter,
-                fontSize = 208,
+                fontSize = 15,
                 fontStyle = FontStyle.Bold
             };
             _collectibleStyle.normal.textColor = ColorGreenText;

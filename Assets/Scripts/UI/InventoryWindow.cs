@@ -1,7 +1,6 @@
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems;
-using ProjectName.Core.Data;
 using ProjectName.UI.Themes;
 #pragma warning disable 0414
 
@@ -469,35 +468,25 @@ namespace ProjectName.UI
             if (!string.IsNullOrEmpty(_selectedItemName))
             {
                 // 아이콘 (ItemIconDatabase 사용)
+                Texture2D iconTex = null;
                 if (_selectedSlotIndex >= 0 && _currentSlots != null && _selectedSlotIndex < _currentSlots.Length)
                 {
                     var selSlot = _currentSlots[_selectedSlotIndex];
                     if (selSlot != null && selSlot.item != null)
-                    {
-                        Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(selSlot.item);
-                        if (iconTex != null)
-                            GUI.DrawTexture(new Rect(innerX, innerY + 2, 48, 48), iconTex);
-                        else
-                        {
-                            Color iconColor = GetCategoryColorForSelected();
-                            GUI.color = iconColor;
-                            GUI.DrawTexture(new Rect(innerX, innerY + 2, 48, 48), _texWhite);
-                            GUI.color = Color.white;
-                        }
-                    }
-                    else
-                    {
-                        Color iconColor = GetCategoryColorForSelected();
-                        GUI.color = iconColor;
-                        GUI.DrawTexture(new Rect(innerX, innerY + 2, 48, 48), _texWhite);
-                        GUI.color = Color.white;
-                    }
+                        iconTex = ItemIconDatabase.GetOrCreateIcon(selSlot.item);
+                }
+
+                if (iconTex != null)
+                {
+                    GUI.DrawTexture(new Rect(innerX, innerY + 2, 48, 48), iconTex);
                 }
                 else
                 {
+                    // 폴백: 카테고리 색상 사각형
                     Color iconColor = GetCategoryColorForSelected();
                     GUI.color = iconColor;
-                    GUI.DrawTexture(new Rect(innerX, innerY + 2, 36, 36), _texWhite);
+                    float iconSize = _selectedSlotIndex >= 0 && _currentSlots != null && _selectedSlotIndex < _currentSlots.Length ? 48 : 36;
+                    GUI.DrawTexture(new Rect(innerX, innerY + 2, iconSize, iconSize), _texWhite);
                     GUI.color = Color.white;
                 }
 
@@ -680,15 +669,6 @@ namespace ProjectName.UI
                 }
             }
             _selectedSlotIndex = -1;
-        }
-
-        // 캐시된 원형 텍스처
-        // (사용되지 않음 — MakeCircleTexture가 _texWhite 반환)
-
-        private Texture2D MakeCircleTexture(Color color)
-        {
-            // 단순화: 흰색 텍스처로 대체 (GUI.color로 색상 지정)
-            return _texWhite;
         }
 
         // 캐시된 GUIContent (TruncateText GC 절감)
