@@ -28,8 +28,13 @@ namespace ProjectName.Systems
             Shader shader = Shader.Find("Universal Render Pipeline/Lit");
             if (shader == null)
             {
-                Debug.LogError("[CraftHouseInteriorBuilder] URP Lit shader not found!");
+                Debug.LogWarning("[CraftHouseInteriorBuilder] URP Lit shader not found, falling back to Standard.");
                 shader = Shader.Find("Standard");
+            }
+            if (shader == null)
+            {
+                Debug.LogError("[CraftHouseInteriorBuilder] Standard shader also not found! Cannot create materials.");
+                return null;
             }
 
             Material floorMat = new Material(shader) { name = "CraftHouse_FloorMat" };
@@ -53,6 +58,11 @@ namespace ProjectName.Systems
             // ===== 방 생성 =====
             GameObject room = IndoorBuilder.CreateRoom(roomWidth, roomHeight, roomDepth,
                 floorMat, wallMat, ceilingMat);
+            if (room == null)
+            {
+                Debug.LogError("[CraftHouseInteriorBuilder] IndoorBuilder.CreateRoom returned null!");
+                return null;
+            }
 
             // ===== 제작대 2개 (CreateTable 변형) =====
             // 첫 번째 제작대 (중앙 근처)

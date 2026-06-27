@@ -100,12 +100,50 @@ namespace ProjectName.Systems
             Debug.Log($"[ChurchSystem] {_churchName} UI 열림 (친밀도: {_favor}/{_maxFavor})");
         }
 
-        // ===== Quick-fix stub methods =====
-        public string GetFavorLevelText() => "보통";
-        public string GetFavorBenefitsText() => "기본 혜택";
-        public int GetFavor() => 0;
-        public int DonateGold(int amount) { return amount; }
-        public bool CanRequestAudience() => false;
+        // ===== ChurchUI 연동 메서드 =====
+        public string GetFavorLevelText()
+        {
+            if (_favor >= 80) return "🌟 충성 (영주 대면 가능)";
+            if (_favor >= 60) return "✨ 존경";
+            if (_favor >= 40) return "👍 호의적";
+            if (_favor >= 20) return "🤝 보통";
+            return "❄️ 냉담";
+        }
+
+        public string GetFavorBenefitsText()
+        {
+            if (_favor >= 80) return "• 이동 속도 +15%\n• 체력 회복 +3/초\n• 영주 대면 가능";
+            if (_favor >= 60) return "• 이동 속도 +10%\n• 체력 회복 +2/초";
+            if (_favor >= 40) return "• 이동 속도 +5%\n• 체력 회복 +1/초";
+            if (_favor >= 20) return "• 체력 회복 +1/초";
+            return "• 기본 혜택 없음";
+        }
+
+        public int GetFavor() => _favor;
+
+        public int DonateGold(int amount)
+        {
+            if (PlayerStats.Instance == null) return 0;
+
+            int canSpend = Mathf.Min(amount, PlayerStats.Instance.Gold);
+            if (canSpend <= 0) return 0;
+
+            if (!PlayerStats.Instance.SpendGold(canSpend))
+                return 0;
+
+            int favorGain = canSpend / 10;
+            _favor = Mathf.Min(_favor + favorGain, _maxFavor);
+            OnFavorChanged?.Invoke(_favor);
+
+            Debug.Log($"[ChurchSystem] {_churchName} 기부 완료! {canSpend}골드 소모, 친밀도 +{favorGain} (현재 {_favor})");
+
+            if (_favor >= _favorThresholdBlessing)
+                ApplyBlessing();
+
+            return canSpend;
+        }
+
+        public bool CanRequestAudience() => _favor >= 80;
 
         private void OnGUI()
         {

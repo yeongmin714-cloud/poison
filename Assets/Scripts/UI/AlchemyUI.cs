@@ -41,7 +41,7 @@ namespace ProjectName.Core.UI
         {
             // Phase 33: create alchemy theme
             if (_theme == null)
-                _theme = Phase33_Themes.CreateMedievalQuestTheme();
+                _theme = Phase33_Themes.CreateAlchemyTheme();
 
             CreateUI();
             PopulateDropdowns();
@@ -56,7 +56,7 @@ namespace ProjectName.Core.UI
         private void CreateUI()
         {
             // Create a Canvas if not already present in the scene
-            Canvas canvas = FindObjectOfType<Canvas>();
+            Canvas canvas = FindFirstObjectByType<Canvas>();
             if (canvas == null)
             {
                 GameObject canvasObj = new GameObject("AlchemyCanvas");
@@ -168,8 +168,7 @@ namespace ProjectName.Core.UI
             iconImageOut = iconImg;
 
             // Dropdown
-            GameObject dropdownGo = CreateDropdown(out Dropdown dropdown);
-            dropdownGo.transform.SetParent(row.transform, false);
+            GameObject dropdownGo = CreateDropdown(row, out Dropdown dropdown);
             dropdownOut = dropdown;
 
             return row;
@@ -220,10 +219,10 @@ namespace ProjectName.Core.UI
             return go;
         }
 
-        private GameObject CreateDropdown(out Dropdown dropdown)
+        private GameObject CreateDropdown(GameObject parentRow, out Dropdown dropdown)
         {
             GameObject go = new GameObject("Dropdown");
-            go.transform.SetParent(_panel.transform, false);
+            go.transform.SetParent(parentRow.transform, false);
             Image bg = go.AddComponent<Image>();
             bg.color = new Color(0.1f, 0.1f, 0.1f, 0.8f);
             dropdown = go.AddComponent<Dropdown>();
@@ -446,10 +445,16 @@ namespace ProjectName.Core.UI
             }
 
             // Calculate success rate using our configurable parameters
-            int levelBonus = Mathf.RoundToInt(PlayerStats.Instance.Level * levelSuccessBonus);
+            int levelBonus = 0;
+            int playerLevel = 0;
+            if (PlayerStats.Instance != null)
+            {
+                playerLevel = PlayerStats.Instance.Level;
+                levelBonus = Mathf.RoundToInt(playerLevel * levelSuccessBonus);
+            }
             int successRate = recipe.baseSuccessRate + levelBonus + recipe.difficultyPenalty;
             successRate = Mathf.Clamp(successRate, 0, 100);
-            Debug.Log("[AlchemyUI] 기준 성공률: " + recipe.baseSuccessRate + "%, 스탯 보너스: " + levelBonus + "% (Lv." + PlayerStats.Instance.Level + " × " + levelSuccessBonus + "%), 난이도 페널티: " + recipe.difficultyPenalty + "%, 최종 성공률: " + successRate + "%");
+            Debug.Log("[AlchemyUI] 기준 성공률: " + recipe.baseSuccessRate + "%, 스탯 보너스: " + levelBonus + "% (Lv." + playerLevel + " × " + levelSuccessBonus + "%), 난이도 페널티: " + recipe.difficultyPenalty + "%, 최종 성공률: " + successRate + "%");
 
             // Roll for success
             bool success = Random.Range(0, 100) < successRate;
@@ -465,7 +470,10 @@ namespace ProjectName.Core.UI
                 inventory.AddItem(recipe.resultItem, 1);
 
                 // Award EXP
-                PlayerStats.Instance.AddEXP(recipe.expReward);
+                if (PlayerStats.Instance != null)
+                    PlayerStats.Instance.AddEXP(recipe.expReward);
+                else
+                    Debug.LogWarning("[AlchemyUI] PlayerStats.Instance is null, cannot award EXP.");
                 
                 Debug.Log($"[AlchemyUI] 🎉 제조 성공! {recipe.resultItem.displayName} 획득 및 {recipe.expReward} EXP 획득");
                 RecipeDiscoverySystem.MarkDiscovered(recipe.resultItem.displayName);

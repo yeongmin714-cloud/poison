@@ -255,6 +255,15 @@ namespace ProjectName.UI
                     SoundManager.Instance?.PlayUI("ui_open");
                 }
             }
+            else if (windowType == typeof(RepairStationUI) && repairWindow != null)
+            {
+                if (!repairWindow.IsOpen)
+                {
+                    repairWindow.Show();
+                    _openWindows.Push(repairWindow);
+                    SoundManager.Instance?.PlayUI("ui_open");
+                }
+            }
             else
             {
                 Debug.LogWarning($"[UIManager] 알 수 없는 윈도우 타입: {windowType.Name}");

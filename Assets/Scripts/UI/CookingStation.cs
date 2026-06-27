@@ -1,8 +1,8 @@
 using UnityEngine;
-using ProjectName.Core;
 using ProjectName.UI;
+using ProjectName.Systems;
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// 요리 스테이션 — E 키로 요리 UI 열기.
@@ -12,6 +12,7 @@ namespace ProjectName.Systems
         [Header("설정")]
         [SerializeField] private float _interactRange = 3f;
         [SerializeField] private string _stationName = "요리 테이블";
+        [SerializeField] private string _modelKey = "craft_cook";
 
         private Transform _player;
         private bool _isPlayerNearby = false;
@@ -21,7 +22,7 @@ namespace ProjectName.Systems
             // Add visual placeholder if no model assigned
             if (GetComponent<MeshRenderer>() == null && GetComponentInChildren<MeshRenderer>() == null)
             {
-                string modelKey = "craft_cook";
+                string modelKey = _modelKey;
                 // Try GLB model
                 if (!RuntimeModelLoader.TryGetModel(modelKey, out var stationModel))
                 {
@@ -47,8 +48,8 @@ namespace ProjectName.Systems
         {
             if (_player == null) return;
 
-            float dist = Vector3.Distance(transform.position, _player.position);
-            _isPlayerNearby = dist <= _interactRange;
+            float dist = (transform.position - _player.position).sqrMagnitude;
+            _isPlayerNearby = dist <= _interactRange * _interactRange;
 
             // E 키로 요리 UI 열기
             if (_isPlayerNearby && Input.GetKeyDown(KeyCode.E))

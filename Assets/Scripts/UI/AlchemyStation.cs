@@ -1,7 +1,7 @@
 using UnityEngine;
 using ProjectName.Core.UI;
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// 연금술 스테이션 — E 키로 연금술 UI 열기.
@@ -31,8 +31,10 @@ namespace ProjectName.Systems
                     visual.transform.SetParent(transform);
                     visual.transform.localPosition = Vector3.zero;
                     visual.transform.localScale = new Vector3(1f, 1f, 1f);
+                    // CreatePrimitive creates BoxCollider — remove to avoid unintended physics
+                    DestroyImmediate(visual.GetComponent<Collider>());
                     var renderer = visual.GetComponent<Renderer>();
-                    renderer.material.color = new Color(0.5f, 0.3f, 0.1f); // Brown
+                    renderer.sharedMaterial.color = new Color(0.5f, 0.3f, 0.1f); // Brown
                 }
                 else
                 {
@@ -46,10 +48,15 @@ namespace ProjectName.Systems
 
         private void Update()
         {
-            if (_player == null) return;
+            // Retry player lookup if not found yet (e.g. player spawned after this station)
+            if (_player == null)
+            {
+                _player = GameObject.FindGameObjectWithTag("Player")?.transform;
+                if (_player == null) return;
+            }
 
-            float dist = Vector3.Distance(transform.position, _player.position);
-            bool nearby = dist <= _interactRange;
+            float distSq = (transform.position - _player.position).sqrMagnitude;
+            bool nearby = distSq <= _interactRange * _interactRange;
 
             if (nearby && Input.GetKeyDown(KeyCode.E) && !_isOpen)
                 OpenAlchemyUI();

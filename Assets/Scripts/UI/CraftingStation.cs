@@ -1,11 +1,11 @@
 using UnityEngine;
 using ProjectName.Core;
-using ProjectName.UI;
+using ProjectName.Systems;
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
-    /// 크래프트 스테이션 — E 키로 크래프트 테이블 UI 열기.
+    /// 크래프트 스테이션 — E 키로 크래프트 테이블 UI 열기, R 키로 수리 스테이션 열기.
     /// 튜토리얼 집 안에 배치.
     /// </summary>
     public class CraftingStation : MonoBehaviour
@@ -13,10 +13,6 @@ namespace ProjectName.Systems
         [Header("설정")]
         [SerializeField] private float _interactRange = 3f;
         [SerializeField] private string _stationName = "크래프트 테이블";
-
-        // For testing: hardcoded recipe (or load from RecipeDatabase)
-        [Header("테스트 레시피 (하드코딩)")]
-        [SerializeField] private Recipe testRecipe;
 
         private Transform _player;
         private bool _isPlayerNearby = false;
@@ -72,13 +68,14 @@ namespace ProjectName.Systems
         {
             Debug.Log($"[CraftingStation] {_stationName} 열림");
 
-            if (UIManager.Instance != null && UIManager.Instance.craftingWindow != null)
+            if (UIManager.Instance != null)
             {
-                UIManager.Instance.craftingWindow.Open();
+                // UIManager.OpenWindow를 통해 윈도우 스택 관리와 함께 열기
+                UIManager.Instance.OpenWindow(typeof(CraftingUI));
             }
             else
             {
-                Debug.LogWarning("[CraftingStation] CraftingUI가 UIManager에 설정되지 않았습니다.");
+                Debug.LogWarning("[CraftingStation] UIManager가 존재하지 않습니다.");
             }
         }
 
@@ -86,17 +83,18 @@ namespace ProjectName.Systems
         {
             Debug.Log($"[CraftingStation] {_stationName} 수리 스테이션 열림");
 
-            if (UIManager.Instance != null && UIManager.Instance.repairWindow != null)
+            if (UIManager.Instance != null)
             {
-                // 크래프트 UI가 열려있으면 닫고 수리 UI 열기
+                // 크래프트 UI가 열려있으면 먼저 닫기
                 if (UIManager.Instance.craftingWindow != null && UIManager.Instance.craftingWindow.IsOpen)
                     UIManager.Instance.craftingWindow.Hide();
 
-                UIManager.Instance.repairWindow.Open();
+                // UIManager.OpenWindow를 통해 윈도우 스택 관리와 함께 열기
+                UIManager.Instance.OpenWindow(typeof(RepairStationUI));
             }
             else
             {
-                Debug.LogWarning("[CraftingStation] RepairStationUI가 UIManager에 설정되지 않았습니다.");
+                Debug.LogWarning("[CraftingStation] UIManager가 존재하지 않습니다.");
             }
         }
 

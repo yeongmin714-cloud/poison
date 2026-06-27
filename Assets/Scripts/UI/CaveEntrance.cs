@@ -1,6 +1,7 @@
 using UnityEngine;
+using System.Collections;
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// C22-07: 동굴 입구 시스템.
@@ -35,7 +36,6 @@ namespace ProjectName.Systems
 
         // Interaction prompt display
         private bool _playerInRange = false;
-        private string _interactionLabel = "동굴 입장";
 
         /// <summary>Saved player position for return from cave.</summary>
         public static Vector3 SavedPlayerPosition => _savedPlayerPosition;
@@ -76,24 +76,21 @@ namespace ProjectName.Systems
             _archRoot.transform.localPosition = Vector3.zero;
 
             // Left pillar
-            var leftPillar = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            leftPillar.name = "Arch_LeftPillar";
+            var leftPillar = CreateMeshCube("Arch_LeftPillar");
             leftPillar.transform.SetParent(_archRoot.transform);
             leftPillar.transform.localPosition = new Vector3(-_archWidth / 2f, _archHeight / 2f, 0f);
             leftPillar.transform.localScale = new Vector3(_archThickness, _archHeight, _archThickness);
             SetMeshMaterial(leftPillar);
 
             // Right pillar
-            var rightPillar = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            rightPillar.name = "Arch_RightPillar";
+            var rightPillar = CreateMeshCube("Arch_RightPillar");
             rightPillar.transform.SetParent(_archRoot.transform);
             rightPillar.transform.localPosition = new Vector3(_archWidth / 2f, _archHeight / 2f, 0f);
             rightPillar.transform.localScale = new Vector3(_archThickness, _archHeight, _archThickness);
             SetMeshMaterial(rightPillar);
 
             // Top beam (horizontal)
-            var topBeam = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            topBeam.name = "Arch_TopBeam";
+            var topBeam = CreateMeshCube("Arch_TopBeam");
             topBeam.transform.SetParent(_archRoot.transform);
             topBeam.transform.localPosition = new Vector3(0f, _archHeight, 0f);
             topBeam.transform.localScale = new Vector3(_archWidth + _archThickness, _archThickness, _archThickness);
@@ -108,8 +105,7 @@ namespace ProjectName.Systems
                 float x = Mathf.Cos(angle) * _archWidth * 0.4f;
                 float y = Mathf.Sin(angle) * _archHeight * 0.25f + _archHeight;
 
-                var archSegment = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                archSegment.name = $"Arch_Segment_{i}";
+                var archSegment = CreateMeshCube($"Arch_Segment_{i}");
                 archSegment.transform.SetParent(_archRoot.transform);
                 archSegment.transform.localPosition = new Vector3(x, y, 0f);
                 archSegment.transform.localScale = new Vector3(_archThickness * 0.8f, _archThickness * 0.8f, _archThickness * 1.5f);
@@ -117,8 +113,7 @@ namespace ProjectName.Systems
             }
 
             // Floor step (slightly raised entrance)
-            var floorStep = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            floorStep.name = "Arch_FloorStep";
+            var floorStep = CreateMeshCube("Arch_FloorStep");
             floorStep.transform.SetParent(_archRoot.transform);
             floorStep.transform.localPosition = new Vector3(0f, 0.1f, 0f);
             floorStep.transform.localScale = new Vector3(_archWidth * 0.8f, 0.2f, _archThickness * 2f);
@@ -146,6 +141,18 @@ namespace ProjectName.Systems
         private void SetMeshMaterial(GameObject obj)
         {
             SetMeshMaterial(obj, _archColor);
+        }
+
+        /// <summary>
+        /// Creates a primitive cube without the auto-generated Collider.
+        /// </summary>
+        private static GameObject CreateMeshCube(string name)
+        {
+            var obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            obj.name = name;
+            // Remove auto-generated MeshCollider — we only need visuals
+            Object.DestroyImmediate(obj.GetComponent<MeshCollider>());
+            return obj;
         }
 
         private void SetMeshMaterial(GameObject obj, Color color)
@@ -223,12 +230,14 @@ namespace ProjectName.Systems
                 FadeManager.Instance.FadeOut(0.5f);
             }
 
-            // After a brief delay (simulated via Invoke), enter the cave
-            Invoke(nameof(EnterCave), 0.6f);
+            // After a brief delay, enter the cave
+            StartCoroutine(EnterCaveCoroutine());
         }
 
-        private void EnterCave()
+        private IEnumerator EnterCaveCoroutine()
         {
+            yield return new WaitForSeconds(0.6f);
+
             // Pass "cave" as buildingType to IndoorSceneTransition
             IndoorSceneTransition.EnterBuilding("cave", "default");
 

@@ -16,6 +16,7 @@ namespace ProjectName.Systems
         private UIManager _uiManager;
         private GameObject _churchUIInstance;
         private ChurchUI _churchUI;
+        private Transform _player;
 
         private void Awake()
         {
@@ -26,15 +27,19 @@ namespace ProjectName.Systems
 
         private void Start()
         {
+            _player = GameObject.FindGameObjectWithTag("Player")?.transform;
             Debug.Log($"[ChurchNPCInteraction] {_npcName} 생성됨");
         }
 
         private void Update()
         {
-            var player = GameObject.FindGameObjectWithTag("Player");
-            if (player == null) return;
+            if (_player == null)
+            {
+                _player = GameObject.FindGameObjectWithTag("Player")?.transform;
+                if (_player == null) return;
+            }
 
-            float dist = Vector3.Distance(transform.position, player.transform.position);
+            float dist = Vector3.Distance(transform.position, _player.position);
             bool nearby = dist <= _interactRange;
 
             if (nearby && Input.GetKeyDown(KeyCode.E))
@@ -42,7 +47,8 @@ namespace ProjectName.Systems
                 ToggleChurchUI();
             }
 
-            CheckAndCleanupClosedWindow();
+            if (_churchUIInstance != null)
+                CheckAndCleanupClosedWindow();
         }
 
         public void ToggleChurchUI()
@@ -99,14 +105,23 @@ namespace ProjectName.Systems
 
         private void OnGUI()
         {
-            var player = GameObject.FindGameObjectWithTag("Player");
-            if (player == null) return;
+            if (_player == null)
+            {
+                _player = GameObject.FindGameObjectWithTag("Player")?.transform;
+                if (_player == null) return;
+            }
 
-            float dist = Vector3.Distance(transform.position, player.transform.position);
+            float dist = Vector3.Distance(transform.position, _player.position);
             if (dist > _interactRange) return;
 
+            // 화면 하단 중앙 (CraftingStation/CookingStation과 일관성)
+            float labelWidth = 300;
+            float labelHeight = 30;
+            float x = (Screen.width - labelWidth) / 2f;
+            float y = Screen.height - 80;
+
             string msg = $"[E] {_npcName} — 기부 메뉴";
-            GUI.Label(new Rect(Screen.width / 2 - 150, Screen.height / 2 + 50, 300, 30), msg);
+            GUI.Box(new Rect(x, y, labelWidth, labelHeight), msg);
         }
 
         private void OnDrawGizmosSelected()

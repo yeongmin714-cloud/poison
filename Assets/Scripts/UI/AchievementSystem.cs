@@ -62,6 +62,7 @@ namespace ProjectName.UI
         private GUIStyle _popupBgStyle;
         private GUIStyle _popupTitleStyle;
         private GUIStyle _popupDescStyle;
+        private GUIStyle _popupIconStyle;
         private bool _stylesInit;
 
         private const string PREFS_KEY = "Achievement_";
@@ -150,6 +151,7 @@ namespace ProjectName.UI
                 fontSize = 224, fontStyle = FontStyle.Normal, alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = _popupTextColor }
             };
+            _popupIconStyle = new GUIStyle { fontSize = 384, alignment = TextAnchor.MiddleCenter };
             _stylesInit = true;
         }
 
@@ -172,7 +174,7 @@ namespace ProjectName.UI
             GUI.Box(new Rect(x, y, w, h), "", _popupBgStyle);
 
             // 아이콘
-            GUI.Label(new Rect(x + 8, y + 8, 30, 30), _currentPopupIcon, new GUIStyle { fontSize = 384, alignment = TextAnchor.MiddleCenter });
+            GUI.Label(new Rect(x + 8, y + 8, 30, 30), _currentPopupIcon, _popupIconStyle);
 
             // 제목
             GUI.Label(new Rect(x + 45, y + 6, w - 55, 28), $"🏆 {_currentPopupTitle}", _popupTitleStyle);

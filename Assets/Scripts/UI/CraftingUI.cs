@@ -29,13 +29,14 @@ namespace ProjectName.UI
         private string _resultEffect = "";
         private bool _hasResult = false;
         private Vector2 _inventoryScrollPos;
-        private int _inventoryGridColumns = 5;
 
         // ── 스타일 ──
         private GUIStyle _titleStyle;
         private GUIStyle _slotStyle;
         private GUIStyle _resultStyle;
+        private GUIStyle _errorStyle;
         private GUIStyle _categoryHeaderStyle;
+        private GUIStyle _inventoryLabelStyle;
         private bool _stylesInitialized;
 
         protected override void OnShow()
@@ -97,6 +98,20 @@ namespace ProjectName.UI
                 normal = { textColor = new Color(0.8f, 0.8f, 0.8f) }
             };
 
+            _errorStyle = new GUIStyle(GUI.skin.box)
+            {
+                fontSize = 52,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = new Color(1f, 0.6f, 0.4f), background = MakeTexture(1, 1, new Color(0.25f, 0.1f, 0.1f, 0.8f)) }
+            };
+
+            _inventoryLabelStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 40,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = Color.white }
+            };
+
             _stylesInitialized = true;
         }
 
@@ -136,18 +151,7 @@ namespace ProjectName.UI
 
             GUILayout.BeginArea(windowRect, GUI.skin.box);
 
-            // ── 제목 표시줄 ──
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("  🧪 크래프트 테이블", _titleStyle);
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("닫기 X", GUILayout.Width(90), GUILayout.Height(36)))
-            {
-                Hide();
-                return;
-            }
-            GUILayout.EndHorizontal();
-
-            GUILayout.Space(8);
+            GUILayout.Space(60); // UIStyleManager.DrawTitle 영역 확보
 
             // ── 재료 슬롯 2개 ──
             GUILayout.BeginHorizontal(GUILayout.Height(120));
@@ -179,13 +183,7 @@ namespace ProjectName.UI
             }
             else if (!string.IsNullOrEmpty(_resultMessage))
             {
-                var style = new GUIStyle(GUI.skin.box)
-                {
-                    fontSize = 52,
-                    alignment = TextAnchor.MiddleCenter,
-                    normal = { textColor = new Color(1f, 0.6f, 0.4f), background = MakeTexture(1, 1, new Color(0.25f, 0.1f, 0.1f, 0.8f)) }
-                };
-                GUILayout.Box(_resultMessage, style, GUILayout.Height(60));
+                GUILayout.Box(_resultMessage, _errorStyle, GUILayout.Height(60));
             }
             else
             {
@@ -199,7 +197,7 @@ namespace ProjectName.UI
 
             // ── 인벤토리 그리드 (스크롤) ──
             float availableWidth = _windowWidth - 30;
-            float itemSlotSize = Mathf.Min(90, (availableWidth - (_inventoryGridColumns - 1) * 6) / _inventoryGridColumns);
+            float itemSlotSize = Mathf.Min(90, (availableWidth - 4 * 6) / 5f);
             float gridHeight = _windowHeight - 280;
             if (gridHeight < 80) gridHeight = 80;
 
@@ -214,6 +212,7 @@ namespace ProjectName.UI
 
                 GUILayout.BeginVertical();
                 int idx = 0;
+                bool rowStarted = false;
                 foreach (var slot in slots)
                 {
                     if (slot == null || slot.item == null || slot.count <= 0)
@@ -223,17 +222,25 @@ namespace ProjectName.UI
                     }
 
                     if (idx % cols == 0)
+                    {
+                        if (rowStarted)
+                            GUILayout.EndHorizontal();
                         GUILayout.BeginHorizontal();
+                        rowStarted = true;
+                    }
 
                     DrawInventoryItemSlot(slot, itemSlotSize);
 
                     idx++;
                     if (idx % cols == 0)
+                    {
                         GUILayout.EndHorizontal();
+                        rowStarted = false;
+                    }
                 }
 
                 // 마지막 행 닫기
-                if (idx % cols != 0)
+                if (rowStarted)
                     GUILayout.EndHorizontal();
 
                 GUILayout.EndVertical();
@@ -329,8 +336,10 @@ namespace ProjectName.UI
             if ((_slot1 != null && _slot1.id == item.id) || (_slot2 != null && _slot2.id == item.id))
                 bgColor = new Color(0.3f, 0.6f, 0.3f, 0.9f);
 
-            var slotBg = MakeTexture(1, 1, bgColor);
-            GUI.DrawTexture(rect, slotBg);
+            // 배경 (whiteTexture + GUI.color로 GC 할당 제거)
+            GUI.color = bgColor;
+            GUI.DrawTexture(rect, Texture2D.whiteTexture);
+            GUI.color = Color.white;
 
             // 아이콘 (색상 사각형 fallback)
             Color iconColor = GetCategoryColor(item.category);
@@ -338,13 +347,8 @@ namespace ProjectName.UI
             GUI.DrawTexture(new Rect(rect.x + 4, rect.y + 4, size - 8, size - 24), Texture2D.whiteTexture);
             GUI.color = Color.white;
 
-            // 이름 + 개수
-            GUI.Label(new Rect(rect.x + 2, rect.y + size - 22, rect.width - 4, 30), label, new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 40,
-                alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = Color.white }
-            });
+            // 이름 + 개수 (캐시된 스타일 사용)
+            GUI.Label(new Rect(rect.x + 2, rect.y + size - 22, rect.width - 4, 30), label, _inventoryLabelStyle);
 
             // 클릭 감지
             if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && rect.Contains(Event.current.mousePosition))

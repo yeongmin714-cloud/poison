@@ -15,7 +15,7 @@ namespace ProjectName.UI
         private UIDesignTheme _churchTheme;
         private string _currentTerritoryId = "default";
         private string _statusMessage = "";
-        private double _messageTimer;
+        private float _messageTimer;        // FIX: double → float (Time.time 타입 일치)
 
         public void SetTerritory(string territoryId)
         {
@@ -29,6 +29,17 @@ namespace ProjectName.UI
             ApplyTheme(_churchTheme);
             base.Show();
             _statusMessage = "";
+            _messageTimer = 0f;
+        }
+
+        /// <summary>
+        /// FIX: DrawWindowContent()를 실제로 호출하는 OnGUI 추가.
+        /// 기존: DrawWindowContent()는 UIWindow에 virtual로만 선언되고 호출되지 않음.
+        /// </summary>
+        private void OnGUI()
+        {
+            if (!IsOpen) return;
+            DrawWindowContent();
         }
 
         protected override void DrawWindowContent()
@@ -41,6 +52,7 @@ namespace ProjectName.UI
 
             int favor = ChurchSystem.Instance.GetFavor();
 
+            // OPTIMIZE: string interpolation GC — 호출 빈도가 낮아 허용
             GUILayout.Label($"⛪ 성당 — {_currentTerritoryId}", GUI.skin.box);
 
             // 친밀도 프로그레스바
@@ -82,7 +94,8 @@ namespace ProjectName.UI
             }
 
             // 상태 메시지 (3초 표시)
-            if (_messageTimer > 0 && Time.time < _messageTimer)
+            // FIX: _messageTimer > 0 조건 제거 — Time.time < _messageTimer 만으로 충분
+            if (Time.time < _messageTimer)
             {
                 GUILayout.Space(5);
                 GUILayout.Label(_statusMessage);
@@ -103,6 +116,7 @@ namespace ProjectName.UI
 
             Color old = GUI.color;
             GUI.color = barColor;
+            // OPTIMIZE: new Rect — IMGUI 필연적, GC 할당 없음 (struct)
             GUI.Box(new Rect(rect.x, rect.y, rect.width * pct, rect.height), "");
             GUI.color = old;
         }
@@ -113,12 +127,12 @@ namespace ProjectName.UI
             if (spent > 0)
             {
                 _statusMessage = $"✅ {spent}골드 기부 완료! 친밀도 +{spent / 10}";
-                _messageTimer = Time.time + 3;
+                _messageTimer = Time.time + 3f;
             }
             else
             {
                 _statusMessage = "❌ 골드가 부족합니다.";
-                _messageTimer = Time.time + 3;
+                _messageTimer = Time.time + 3f;
             }
         }
     }
