@@ -13,15 +13,39 @@ namespace ProjectName.Core
     {
         public static BuffManager Instance { get; private set; }
 
-        public struct ActiveBuff
+        /// <summary>
+        /// Represents a single active buff on the player.
+        /// </summary>
+        public readonly struct ActiveBuff
         {
-            public string BuffId;        // e.g., "AttackUp", "DefenseUp"
-            public float Value;          // amount to add to stat
-            public float EndTime;        // Time.time when buff expires
+            /// <summary>Identifier of the buff (e.g., "AttackUp", "DefenseUp")</summary>
+            public string BuffId { get; }
+
+            /// <summary>Amount to add to (or subtract from) the stat</summary>
+            public float Value { get; }
+
+            /// <summary>Time.time when this buff expires</summary>
+            public float EndTime { get; }
+
+            public ActiveBuff(string buffId, float value, float endTime)
+            {
+                BuffId = buffId ?? throw new ArgumentNullException(nameof(buffId));
+                Value = value;
+                EndTime = endTime;
+            }
         }
 
+        // ── Constants ──────────────────────────────────────────────────────
+        private const float DefaultDuration = 5f;
+
+        // ── State ───────────────────────────────────────────────────────────
         private readonly List<ActiveBuff> _activeBuffs = new List<ActiveBuff>();
 
+        // Cached component references to avoid repeated FindObjectOfType calls.
+        private PlayerStats _stats;
+        private PlayerHealth _health;
+
+        // ── Lifecycle ───────────────────────────────────────────────────────
         private void Awake()
         {
             if (Instance != null)
@@ -31,83 +55,114 @@ namespace ProjectName.Core
             }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            CacheReferences();
         }
 
         /// <summary>
-        /// Returns a copy of the currently active buffs.
+        /// Caches PlayerStats and PlayerHealth references.
+        /// Called on Awake and any time a null reference is detected.
         /// </summary>
-        public List<ActiveBuff> GetActiveBuffs()
+        private void CacheReferences()
+        {
+            _stats = PlayerStats.Instance != null
+                ? PlayerStats.Instance
+                : FindObjectOfType<PlayerStats>();
+
+            _health = PlayerHealth.Instance != null
+                ? PlayerHealth.Instance
+                : FindObjectOfType<PlayerHealth>();
+        }
+
+        /// <summary>
+        /// Returns a snapshot (copy) of the currently active buffs.
+        /// </summary>
+        public IReadOnlyList<ActiveBuff> GetActiveBuffs()
         {
             return new List<ActiveBuff>(_activeBuffs);
         }
 
+        // ── Per-frame expiry ────────────────────────────────────────────────
         private void Update()
         {
             float now = Time.time;
-            // Remove expired buffs
+
+            // Iterate backwards so swap-remove does not skip elements.
             for (int i = _activeBuffs.Count - 1; i >= 0; i--)
             {
                 if (now >= _activeBuffs[i].EndTime)
                 {
-                    RemoveBuff(_activeBuffs[i].BuffId, _activeBuffs[i].Value);
-                    _activeBuffs[i] = _activeBuffs[_activeBuffs.Count - 1];
-                    _activeBuffs.RemoveAt(_activeBuffs.Count - 1);
+                    // Reverse stat modification before removing.
+                    ReverseBuff(_activeBuffs[i].BuffId, _activeBuffs[i].Value);
+                    // Swap-remove: copy last element to current position, then trim.
+                    int lastIndex = _activeBuffs.Count - 1;
+                    _activeBuffs[i] = _activeBuffs[lastIndex];
+                    _activeBuffs.RemoveAt(lastIndex);
                 }
             }
         }
 
+        // ── Public API ──────────────────────────────────────────────────────
+
         /// <summary>
-        /// Adds a buff. If same buff already exists, refresh its duration.
+        /// Adds a buff. If the same buff already exists, refresh its duration
+        /// (value does NOT stack — only duration refreshes).
         /// </summary>
-        /// <param name="buffId">Identifier of the buff (e.g., "AttackUp")</param>
-        /// <param name="value">Amount to add to the stat</param>
-        /// <param name="duration">Duration in seconds</param>
+        /// <param name="buffId">Identifier of the buff (e.g., "AttackUp", "Slowness")</param>
+        /// <param name="value">Amount to add to (or subtract from) the stat</param>
+        /// <param name="duration">Duration in seconds. If zero or negative, uses <see cref="DefaultDuration"/>.</param>
         public void AddBuff(string buffId, float value, float duration)
         {
-            if (duration <= 0f) duration = 5f; // default
+            if (duration <= 0f) duration = DefaultDuration;
             float endTime = Time.time + duration;
 
-            // Check if same buff already active
+            // Refresh if already active (duration-only refresh; value unchanged).
             for (int i = 0; i < _activeBuffs.Count; i++)
             {
                 if (_activeBuffs[i].BuffId == buffId)
                 {
-                    // Refresh duration (optional: could stack values)
-                    var buff = _activeBuffs[i];
-                    buff.EndTime = endTime;
-                    _activeBuffs[i] = buff;
-                    Debug.Log($"[BuffManager] Refreshed buff {buffId} (value {value}) for {duration}s");
+                    var newBuff = new ActiveBuff(buffId, _activeBuffs[i].Value, endTime);
+                    _activeBuffs[i] = newBuff;
+                    Debug.Log($"[BuffManager] Refreshed buff {buffId} (value {_activeBuffs[i].Value}) for {duration}s");
                     return;
                 }
             }
 
-            // Apply buff immediately
+            // Apply immediately and track.
             ApplyBuff(buffId, value);
-            _activeBuffs.Add(new ActiveBuff { BuffId = buffId, Value = value, EndTime = endTime });
+            _activeBuffs.Add(new ActiveBuff(buffId, value, endTime));
             Debug.Log($"[BuffManager] Added buff {buffId} (+{value}) for {duration}s");
         }
 
+        // ── Internal apply / reverse ────────────────────────────────────────
+
         /// <summary>
-        /// Removes a buff (called when duration expires).
+        /// Returns true when <paramref name="buffId"/> requires <see cref="PlayerStats"/>.
         /// </summary>
-        private void RemoveBuff(string buffId, float value)
+        private static bool RequiresStats(string buffId)
         {
-            // Reverse the application
-            ReverseBuff(buffId, value);
-            Debug.Log($"[BuffManager] Removed buff {buffId} (-{value})");
+            return buffId switch
+            {
+                "AttackUp" or "DefenseUp" or "SpeedUp" or "Slowness"
+                    or "AlchemyBoost" or "CookingBoost" or "CritUp" => true,
+                _ => false,
+            };
         }
 
-        // ===== Buff application logic =====
         private void ApplyBuff(string buffId, float value)
         {
-            var stats = PlayerStats.Instance ?? FindObjectOfType<PlayerStats>();
-            var health = PlayerHealth.Instance ?? FindObjectOfType<PlayerHealth>();
-            if (stats == null && (buffId == "AttackUp" || buffId == "DefenseUp" || buffId == "SpeedUp" || buffId == "AlchemyBoost" || buffId == "CookingBoost" || buffId == "CritUp"))
+            // Lazily re-cache if references were lost (e.g. scene reload).
+            if (_stats == null) CacheReferences();
+            if (_health == null) CacheReferences();
+
+            bool usesStats = RequiresStats(buffId);
+
+            if (usesStats && _stats == null)
             {
                 Debug.LogWarning($"[BuffManager] PlayerStats not found for buff {buffId}");
                 return;
             }
-            if (health == null && buffId == "HealOverTime")
+
+            if (buffId == "HealOverTime" && _health == null)
             {
                 Debug.LogWarning("[BuffManager] PlayerHealth not found for HealOverTime buff");
                 return;
@@ -116,28 +171,28 @@ namespace ProjectName.Core
             switch (buffId)
             {
                 case "AttackUp":
-                    stats._attackDamageBase += value;
+                    _stats._attackDamageBase += value;
                     break;
                 case "DefenseUp":
-                    stats._defenseBase += value;
+                    _stats._defenseBase += value;
                     break;
                 case "SpeedUp":
-                    stats._moveSpeedBase += value;
+                    _stats._moveSpeedBase += value;
                     break;
                 case "Slowness":
-                    stats._moveSpeedBase -= value;
+                    _stats._moveSpeedBase -= value;
                     break;
                 case "AlchemyBoost":
-                    stats._alchemyTempBonus += value;
+                    _stats._alchemyTempBonus += value;
                     break;
                 case "CookingBoost":
-                    stats._cookingTempBonus += value;
+                    _stats._cookingTempBonus += value;
                     break;
                 case "CritUp":
-                    stats._critChanceBase += value;
+                    _stats._critChanceBase += value;
                     break;
                 case "HealOverTime":
-                    health.Heal(value);
+                    _health.Heal(value);
                     break;
                 default:
                     Debug.LogWarning($"[BuffManager] Unknown buffId: {buffId}");
@@ -147,14 +202,19 @@ namespace ProjectName.Core
 
         private void ReverseBuff(string buffId, float value)
         {
-            var stats = PlayerStats.Instance ?? FindObjectOfType<PlayerStats>();
-            var health = PlayerHealth.Instance ?? FindObjectOfType<PlayerHealth>();
-            if (stats == null && (buffId == "AttackUp" || buffId == "DefenseUp" || buffId == "SpeedUp" || buffId == "AlchemyBoost" || buffId == "CookingBoost" || buffId == "CritUp"))
+            // Lazily re-cache if references were lost.
+            if (_stats == null) CacheReferences();
+            if (_health == null) CacheReferences();
+
+            bool usesStats = RequiresStats(buffId);
+
+            if (usesStats && _stats == null)
             {
                 Debug.LogWarning($"[BuffManager] PlayerStats not found for buff {buffId} (reverse)");
                 return;
             }
-            if (health == null && buffId == "HealOverTime")
+
+            if (buffId == "HealOverTime" && _health == null)
             {
                 Debug.LogWarning("[BuffManager] PlayerHealth not found for HealOverTime buff (reverse)");
                 return;
@@ -163,26 +223,26 @@ namespace ProjectName.Core
             switch (buffId)
             {
                 case "AttackUp":
-                    stats._attackDamageBase -= value;
+                    _stats._attackDamageBase -= value;
                     break;
                 case "DefenseUp":
-                    stats._defenseBase -= value;
+                    _stats._defenseBase -= value;
                     break;
                 case "SpeedUp":
-                    stats._moveSpeedBase -= value;
+                    _stats._moveSpeedBase -= value;
                     break;
                 case "Slowness":
                     // Restore speed — ApplyBuff subtracted it
-                    stats._moveSpeedBase += value;
+                    _stats._moveSpeedBase += value;
                     break;
                 case "AlchemyBoost":
-                    stats._alchemyTempBonus -= value;
+                    _stats._alchemyTempBonus -= value;
                     break;
                 case "CookingBoost":
-                    stats._cookingTempBonus -= value;
+                    _stats._cookingTempBonus -= value;
                     break;
                 case "CritUp":
-                    stats._critChanceBase -= value;
+                    _stats._critChanceBase -= value;
                     break;
                 case "HealOverTime":
                     // No reversal needed for instant heal
@@ -194,36 +254,43 @@ namespace ProjectName.Core
         }
 
         // ===== Getter helpers for other systems =====
+        // These proxy to PlayerStats for convenience. They use the cached
+        // reference and lazily re-cache if needed.
+
         public float GetAttackDamageBase()
         {
-            var stats = PlayerStats.Instance ?? FindObjectOfType<PlayerStats>();
-            return stats != null ? stats._attackDamageBase : 0f;
+            if (_stats == null) CacheReferences();
+            return _stats != null ? _stats._attackDamageBase : 0f;
         }
+
         public float GetDefenseBase()
         {
-            var stats = PlayerStats.Instance ?? FindObjectOfType<PlayerStats>();
-            return stats != null ? stats._defenseBase : 0f;
+            if (_stats == null) CacheReferences();
+            return _stats != null ? _stats._defenseBase : 0f;
         }
+
         public float GetMoveSpeedBase()
         {
-            var stats = PlayerStats.Instance ?? FindObjectOfType<PlayerStats>();
-            return stats != null ? stats._moveSpeedBase : 0f;
+            if (_stats == null) CacheReferences();
+            return _stats != null ? _stats._moveSpeedBase : 0f;
         }
+
         public float GetAlchemyTempBonus()
         {
-            var stats = PlayerStats.Instance ?? FindObjectOfType<PlayerStats>();
-            return stats != null ? stats._alchemyTempBonus : 0f;
+            if (_stats == null) CacheReferences();
+            return _stats != null ? _stats._alchemyTempBonus : 0f;
         }
+
         public float GetCookingTempBonus()
         {
-            var stats = PlayerStats.Instance ?? FindObjectOfType<PlayerStats>();
-            return stats != null ? stats._cookingTempBonus : 0f;
+            if (_stats == null) CacheReferences();
+            return _stats != null ? _stats._cookingTempBonus : 0f;
         }
 
         public float GetCritChanceBase()
         {
-            var stats = PlayerStats.Instance ?? FindObjectOfType<PlayerStats>();
-            return stats != null ? stats._critChanceBase : 0f;
+            if (_stats == null) CacheReferences();
+            return _stats != null ? _stats._critChanceBase : 0f;
         }
     }
 }

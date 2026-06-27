@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace ProjectName.Core
@@ -16,6 +17,13 @@ namespace ProjectName.Core
             Reinforced,   // 강화 화살
             Magic         // 마법 화살
         }
+
+        /// <summary>기본 화살 인스턴스.</summary>
+        public static readonly ArrowData Regular = new ArrowData(ArrowType.Regular);
+        /// <summary>강화 화살 인스턴스.</summary>
+        public static readonly ArrowData Reinforced = new ArrowData(ArrowType.Reinforced);
+        /// <summary>마법 화살 인스턴스.</summary>
+        public static readonly ArrowData Magic = new ArrowData(ArrowType.Magic);
 
         public ArrowType arrowType { get; private set; }
         public string displayName { get; private set; }
@@ -54,12 +62,10 @@ namespace ProjectName.Core
                     goldCost = 50;
                     trailColor = new Color(0.7f, 0.2f, 0.9f); // 보라색
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, $"알 수 없는 ArrowType: {type}");
             }
         }
-
-        public static readonly ArrowData Regular = new ArrowData(ArrowType.Regular);
-        public static readonly ArrowData Reinforced = new ArrowData(ArrowType.Reinforced);
-        public static readonly ArrowData Magic = new ArrowData(ArrowType.Magic);
 
         public string GetItemId() => $"arrow_{arrowType.ToString().ToLower()}";
     }

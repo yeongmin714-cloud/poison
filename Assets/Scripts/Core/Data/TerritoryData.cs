@@ -56,26 +56,28 @@ namespace ProjectName.Core.Data
 
     /// <summary>
     /// 영주 정보 — 선호 음식, 지병, 충성심, 성격
+    /// (readonly struct: 생성 후 변경 불가, 복사본 수정 버그 방지)
     /// </summary>
     [Serializable]
-    public struct LordInfo
+    public readonly struct LordInfo
     {
-        [field: SerializeField] public string lordName { get; set; }                  // 영주 이름
-        [field: SerializeField] public string preferredFood { get; set; }             // 선호 음식
-        [field: SerializeField] public string chronicDisease { get; set; }            // 지병 (null/"" = 없음)
+        [field: SerializeField] public string lordName { get; init; }                  // 영주 이름
+        [field: SerializeField] public string preferredFood { get; init; }             // 선호 음식 (null/"" = 없음)
+        [field: SerializeField] public string chronicDisease { get; init; }            // 지병 (null/"" = 없음)
         [field: SerializeField, Range(0, 100)]
-        public int loyalty { get; set; }                      // 충성도 (0=반역, 100=완전 충성)
-        [field: SerializeField] public LordPersonality personality { get; set; }       // 성격
+        public int loyalty { get; init; }                      // 충성도 (0=반역, 100=완전 충성)
+        [field: SerializeField] public LordPersonality personality { get; init; }       // 성격
     }
 
     /// <summary>
     /// 영지 고유 식별자 — 국가 + 인덱스로 구성
+    /// (readonly struct: 생성 후 변경 불가)
     /// </summary>
     [Serializable]
-    public struct TerritoryId
+    public readonly struct TerritoryId
     {
-        [field: SerializeField] public NationType nation { get; private set; }
-        [field: SerializeField] public int index { get; private set; }  // 1~20 (Ring 1~4 각 5개씩)
+        [field: SerializeField] public NationType nation { get; init; }
+        [field: SerializeField] public int index { get; init; }  // 1~20 (Ring 1~4 각 5개씩)
 
         public TerritoryId(NationType nation, int index)
         {
@@ -92,18 +94,19 @@ namespace ProjectName.Core.Data
     /// <summary>
     /// 영지 정의 데이터 (변하지 않는 설계 정보)
     /// Resources에서 로드하거나 코드에서 정의
+    /// (readonly struct: 생성 후 변경 불가, 복사본 수정 버그 방지)
     /// </summary>
     [Serializable]
-    public struct TerritoryDefinition
+    public readonly struct TerritoryDefinition
     {
-        [field: SerializeField] public TerritoryId id { get; set; }
-        [field: SerializeField] public string territoryName { get; set; }             // 영지 이름 (예: "동쪽 초원지대")
-        [field: SerializeField] public NationType nation { get; set; }                // 소속 국가
-        [field: SerializeField] public TerritoryDifficulty difficulty { get; set; }    // 난이도 링
-        [field: SerializeField] public int guardCount { get; set; }                   // 병사 수
-        [field: SerializeField] public LordInfo lord { get; set; }                    // 영주 정보
-        [field: SerializeField] public string description { get; set; }               // 영지 설명
-        [field: SerializeField] public bool isNightOnly { get; set; }                 // 야간에만 활성화되는 영지 (ND-01)
+        [field: SerializeField] public TerritoryId id { get; init; }
+        [field: SerializeField] public string territoryName { get; init; }             // 영지 이름 (예: "동쪽 초원지대")
+        [field: SerializeField] public NationType nation { get; init; }                // 소속 국가
+        [field: SerializeField] public TerritoryDifficulty difficulty { get; init; }    // 난이도 링
+        [field: SerializeField] public int guardCount { get; init; }                   // 병사 수
+        [field: SerializeField] public LordInfo lord { get; init; }                    // 영주 정보
+        [field: SerializeField] public string description { get; init; }               // 영지 설명
+        [field: SerializeField] public bool isNightOnly { get; init; }                 // 야간에만 활성화되는 영지 (ND-01)
     }
 
     /// <summary>
@@ -111,10 +114,15 @@ namespace ProjectName.Core.Data
     /// </summary>
     public enum TerritoryBattleState
     {
+        /// <summary>평화 상태 — 전투 없음</summary>
         Peaceful,
+        /// <summary>공격 받는 중 — 방어전 진행</summary>
         UnderAttack,
+        /// <summary>후퇴 — 병사 후퇴 타이머 가동</summary>
         Retreated,
+        /// <summary>증원 — 지원군 도착 대기</summary>
         Reinforcing,
+        /// <summary>정복됨 — 영지 함락 완료</summary>
         Conquered
     }
 
@@ -154,8 +162,25 @@ namespace ProjectName.Core.Data
 
         public TerritoryId id => _id;
         public TerritoryOwnership ownership { get => _ownership; set => _ownership = value; }
-        public float guardAliveRatio { get => _guardAliveRatio; set => _guardAliveRatio = value; }
-        public float loyaltyToPlayer { get => _loyaltyToPlayer; set => _loyaltyToPlayer = value; }
+
+        /// <summary>
+        /// 병사 생존 비율 (0~1). setter가 자동으로 0~1 범위로 클램핑합니다.
+        /// </summary>
+        public float guardAliveRatio
+        {
+            get => _guardAliveRatio;
+            set => _guardAliveRatio = Mathf.Clamp01(value);
+        }
+
+        /// <summary>
+        /// 플레이어에 대한 충성도 (0~100). setter가 자동으로 0~100 범위로 클램핑합니다.
+        /// </summary>
+        public float loyaltyToPlayer
+        {
+            get => _loyaltyToPlayer;
+            set => _loyaltyToPlayer = Mathf.Clamp(value, 0f, 100f);
+        }
+
         public bool isUnderAttack { get => _isUnderAttack; set => _isUnderAttack = value; }
         public bool flagRaised { get => _flagRaised; set => _flagRaised = value; }
         public bool lordSurrendered { get => _lordSurrendered; set => _lordSurrendered = value; }
@@ -173,6 +198,14 @@ namespace ProjectName.Core.Data
         public int deadGuardCount { get => _deadGuardCount; set => _deadGuardCount = value; }
         public int totalGuardCount { get => _totalGuardCount; set => _totalGuardCount = value; }
         public bool isActive { get => _isActive; set => _isActive = value; }
+
+        /// <summary>
+        /// Unity 역직렬화용 매개변수 없는 생성자.
+        /// 필드 초기값은 인라인 선언에 의해 설정됩니다.
+        /// </summary>
+        public TerritoryState()
+        {
+        }
 
         public TerritoryState(TerritoryId id)
         {

@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace ProjectName.Core.Data
 {
     /// <summary>
-    /// 영지 데이터베이스 — 모든 영지(81개)의 정의와 상태를 관리합니다.
+    /// 영지 데이터베이스 — 모든 영지(82개)의 정의와 상태를 관리합니다.
     /// 
     /// 사용법:
     ///   TerritoryDatabase db = TerritoryDatabase.Instance;
@@ -13,22 +14,31 @@ namespace ProjectName.Core.Data
     /// </summary>
     public class TerritoryDatabase
     {
-        private static TerritoryDatabase _instance;
-        public static TerritoryDatabase Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = new TerritoryDatabase();
-                return _instance;
-            }
-        }
+        private static readonly Lazy<TerritoryDatabase> _instance =
+            new Lazy<TerritoryDatabase>(() => new TerritoryDatabase(), isThreadSafe: true);
+
+        public static TerritoryDatabase Instance => _instance.Value;
 
         private readonly Dictionary<string, TerritoryDefinition> _definitions = new Dictionary<string, TerritoryDefinition>();
         private readonly Dictionary<string, TerritoryState> _states = new Dictionary<string, TerritoryState>();
 
         // ===== 상수 =====
         private static readonly string[] _diseasePool = { "심장병", "당뇨", "간질환", "폐질환", "신장병" };
+
+        /// <summary>
+        /// 프로세스 재시작 간에도 동일한 결과를 보장하는 결정론적 문자열 해시
+        /// (string.GetHashCode()는 .NET Core 5+에서 프로세스마다 값이 바뀌므로 사용 불가)
+        /// </summary>
+        private static int GetDeterministicHash(string input)
+        {
+            unchecked
+            {
+                int hash = 17;
+                foreach (char c in input)
+                    hash = hash * 31 + c;
+                return hash;
+            }
+        }
 
         // ===== 영주 이름 배열 (Core 내장 — NamePools 의존 없음) =====
         private static readonly string[] _lordEastNames = {
@@ -75,7 +85,11 @@ namespace ProjectName.Core.Data
 
         public TerritoryDefinition GetDefinition(TerritoryId id)
         {
-            return GetDefinition(id.nation, id.index);
+            string key = id.ToString();
+            if (_definitions.TryGetValue(key, out var def))
+                return def;
+            Debug.LogWarning($"[TerritoryDatabase] 정의 없음: {key}");
+            return new TerritoryDefinition();
         }
 
         public TerritoryDefinition GetDefinition(string key)
@@ -113,19 +127,21 @@ namespace ProjectName.Core.Data
 
         public TerritoryState GetState(TerritoryId id)
         {
-            return GetState(id.nation, id.index);
+            string key = id.ToString();
+            if (_states.TryGetValue(key, out var state))
+                return state;
+            Debug.LogWarning($"[TerritoryDatabase] 상태 없음: {key}");
+            return new TerritoryState(id);
         }
 
         public void SetOwnership(NationType nation, int index, TerritoryOwnership ownership)
         {
-            var state = GetState(nation, index);
-            if (state != null)
-                state.ownership = ownership;
+            GetState(nation, index).ownership = ownership;
         }
 
         public void SetOwnership(TerritoryId id, TerritoryOwnership ownership)
         {
-            SetOwnership(id.nation, id.index, ownership);
+            GetState(id).ownership = ownership;
         }
 
         // ===== 초기화 =====
@@ -136,11 +152,11 @@ namespace ProjectName.Core.Data
         }
 
         /// <summary>
-        /// 81개 전 영지 정의 생성 (Seed 기반 결정론적 생성)
+        /// 82개 전 영지 정의 생성 (Seed 기반 결정론적 생성)
         /// </summary>
         private void GenerateAllDefinitions()
         {
-            // 국가별, 링별로 5개씩 총 80영지 + 황제국 1영지 생성
+            // 국가별 링별로 5개씩 총 80영지 + 황제국 1영지 + 드라큘라 1영지 = 82영지
             foreach (NationType nation in new[] { NationType.East, NationType.West, NationType.South, NationType.North })
             {
                 for (int ring = 0; ring < 4; ring++)
@@ -162,7 +178,7 @@ namespace ProjectName.Core.Data
 
             // 황제국 (인덱스 1, Ring = Empire, 병사 50명)
             {
-                var rng = new System.Random("Empire_1".GetHashCode());
+                var rng = new System.Random(GetDeterministicHash("Empire_1"));
                 string[] empireNames = {
                     "황제국의 심장 아우리아", "황제국 빛의 대성당", "황제국 황금 돔",
                     "황제국 대리석 전당", "황제국 보석 정원", "황제국 태양 광장",
@@ -302,7 +318,7 @@ namespace ProjectName.Core.Data
         /// </summary>
         private static LordInfo GenerateLordInfo(NationType nation, TerritoryDifficulty difficulty, int index)
         {
-            int seed = ($"{nation}_{index}").GetHashCode();
+            int seed = GetDeterministicHash($"{nation}_{index}");
             var rng = new System.Random(seed);
 
             // 영주 이름 (Core 내장 배열 — NamePools 의존 없음)

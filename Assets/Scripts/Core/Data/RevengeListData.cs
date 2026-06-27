@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using ProjectName.Core.Data;
 
 namespace ProjectName.Core.Data
 {
@@ -270,7 +269,7 @@ namespace ProjectName.Core.Data
             var stats = PlayerStats.Instance;
             if (stats == null) return false;
 
-            // 성공 확률 = (Level * 2 + SpeechAffinityBonus) % = (Level * 2 + Level) % = Level * 3 %
+            // 성공 확률 = Level * 2 + SpeechAffinityBonus (%)
             int successChance = stats.Level * 2 + stats.SpeechAffinityBonus;
             bool success = UnityEngine.Random.Range(0, 100) < successChance;
 
@@ -311,8 +310,8 @@ namespace ProjectName.Core.Data
         {
             get
             {
-                var conspirators = _entries.Where(e => e.isPoisonConspirator).ToArray();
-                return conspirators.Length > 0 && Array.TrueForAll(conspirators, e => e.isRevealed);
+                return _entries.Count(e => e.isPoisonConspirator) > 0
+                    && _entries.Where(e => e.isPoisonConspirator).All(e => e.isRevealed);
             }
         }
 
@@ -327,10 +326,27 @@ namespace ProjectName.Core.Data
         /// <summary>
         /// 특정 영지의 엔트리 조회
         /// </summary>
+        /// <returns>엔트리, 없으면 default (territoryId == null 로 판별 가능)</returns>
         public RevengeListEntry GetEntry(string territoryId)
         {
             int idx = FindEntryIndex(territoryId);
             return idx >= 0 ? _entries[idx] : default;
+        }
+
+        /// <summary>
+        /// 특정 영지의 엔트리 조회 — TryGet 패턴
+        /// </summary>
+        /// <returns>발견 시 true, entry에 값 할당</returns>
+        public bool TryGetEntry(string territoryId, out RevengeListEntry entry)
+        {
+            int idx = FindEntryIndex(territoryId);
+            if (idx >= 0)
+            {
+                entry = _entries[idx];
+                return true;
+            }
+            entry = default;
+            return false;
         }
 
         // ======================================================================

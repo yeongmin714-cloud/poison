@@ -6,6 +6,9 @@ namespace ProjectName.Core.Data
     /// </summary>
     public static class NationNames
     {
+        /// <summary>미소속 (중립)</summary>
+        public const string NoneName = "중립 지역";
+
         /// <summary>동방 비르텐시아 왕국</summary>
         public const string KingdomNameEast = "동방 비르텐시아 왕국";
 
@@ -21,6 +24,9 @@ namespace ProjectName.Core.Data
         /// <summary>중앙 아우레우스 제국</summary>
         public const string EmpireName = "중앙 아우레우스 제국";
 
+        /// <summary>드라큘라의 영지</summary>
+        public const string DraculaName = "드라큘라의 영지";
+
         /// <summary>
         /// NationType에 대응하는 국가명 반환.
         /// </summary>
@@ -28,11 +34,13 @@ namespace ProjectName.Core.Data
         {
             return nation switch
             {
+                NationType.None => NoneName,
                 NationType.East => KingdomNameEast,
                 NationType.West => KingdomNameWest,
                 NationType.South => KingdomNameSouth,
                 NationType.North => KingdomNameNorth,
                 NationType.Empire => EmpireName,
+                NationType.Dracula => DraculaName,
                 _ => "알 수 없는 국가"
             };
         }

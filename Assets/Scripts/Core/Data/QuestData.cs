@@ -28,10 +28,15 @@ namespace ProjectName.Core.Data
     [Serializable]
     public struct QuestObjective
     {
+        /// <summary>목표 유형 (수집, 처치, 대화, 탐험, 제작)</summary>
         public QuestObjectiveType type;
+        /// <summary>대상 ID (아이템 ID, 몬스터 ID, NPC ID 등)</summary>
         public string targetId;
+        /// <summary>필요 수량</summary>
         public int requiredCount;
+        /// <summary>현재 진행 수량</summary>
         public int currentCount;
+        /// <summary>목표 설명</summary>
         public string description;
 
         public bool IsMet => currentCount >= requiredCount;
@@ -63,7 +68,8 @@ namespace ProjectName.Core.Data
         {
             get
             {
-                if (objectives == null || objectives.Count == 0) return false;
+                if (objectives == null) return false;
+                if (objectives.Count == 0) return true;
                 for (int i = 0; i < objectives.Count; i++)
                 {
                     if (!objectives[i].IsMet) return false;
