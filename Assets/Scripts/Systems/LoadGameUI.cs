@@ -72,7 +72,20 @@ namespace ProjectName.Systems
                 _slotInfos = SaveManager.Instance.GetAllSlotInfos();
                 _slotCount = SaveManager.Instance.SlotCount;
             }
+            else
+            {
+                _slotInfos = null;
+                _slotCount = 0;
+            }
+
+            _emptySlotMessage = "";
+            _emptySlotMessageTimer = 0f;
             _isLoadingInProgress = false;
+        }
+
+        private void OnEnable()
+        {
+            RefreshSlots();
         }
 
         private void InitializeStyles()
@@ -118,7 +131,7 @@ namespace ProjectName.Systems
                 fontSize = 16,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = _textColor }
+                normal = { textColor = _textColor, background = MakeTexture(1, 1, new Color(0, 0, 0, 0)) }
             };
             _slotButtonStyle.hover.background = MakeTexture(1, 1, _slotHoverColor);
             _slotButtonStyle.active.background = MakeTexture(1, 1, new Color(0.1f, 0.2f, 0.5f, 1f));

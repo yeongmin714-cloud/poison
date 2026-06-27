@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {

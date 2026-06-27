@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+#pragma warning disable 0414
 
 #if UNITY_ANIMATION_RIGGING
 using UnityEngine.Animations.Rigging;

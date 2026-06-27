@@ -5,11 +5,17 @@ using ProjectName.Core.Data;
 namespace ProjectName.Systems
 {
     /// <summary>
-    /// C9-14: 몬스터 레벨 시스템 (티어별 기본Lv + 영지 보정)
+    /// [DEPRECATED] C9-14: 몬스터 레벨 시스템 (티어별 기본Lv + 영지 보정)
     /// 
     /// 몬스터 티어(초반/중반/후반)에 따라 기본 레벨이 결정되고,
     /// 영지 난이도에 따라 레벨이 보정됩니다.
+    /// 
+    /// ⚠ 이 클래스는 더 이상 사용되지 않습니다.
+    /// 대신 <see cref="MonsterLevelManager"/> (MonsterLevelData ScriptableObject 기반)를 사용하세요.
+    /// 하드코딩된 상수는 MonsterLevelData의 기본값과 동기화되어 있으나,
+    /// 수동 유지보수가 필요하므로 신규 코드에서는 MonsterLevelManager를 통해 주입된 데이터를 사용해야 합니다.
     /// </summary>
+    [System.Obsolete("MonsterLevelSystem is deprecated. Use MonsterLevelManager (Singleton + MonsterLevelData ScriptableObject) instead.")]
     public static class MonsterLevelSystem
     {
         // ===== 상수 (MonsterLevelData 기본값과 동기화 유지) =====

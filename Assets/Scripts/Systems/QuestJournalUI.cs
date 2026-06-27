@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ProjectName.Core.Data;
 using UnityEngine;
 using UnityEngine.InputSystem;
+#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {

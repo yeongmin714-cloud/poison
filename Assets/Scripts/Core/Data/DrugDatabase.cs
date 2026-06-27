@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
+#pragma warning disable 0414
 
 namespace ProjectName.Core.Data
 {
@@ -23,7 +24,7 @@ namespace ProjectName.Core.Data
     /// Represents a single drug entry from GAME_DATA.md section 2.5.
     /// Immutable to prevent struct-copy mutation bugs.
     /// </summary>
-    public readonly struct DrugInfo
+    public struct DrugInfo
     {
         public int Stage { get; }              // 1~10
         public string DrugName { get; }        // 약물 명칭

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+#pragma warning disable 0414
 
 /// <summary>
 /// Top-down 카메라 컨트롤러 v4

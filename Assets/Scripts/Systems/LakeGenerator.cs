@@ -1,4 +1,4 @@
-using ProjectName.Core;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -38,6 +38,10 @@ namespace ProjectName.Systems
         private MeshRenderer _surfaceRenderer;
         private Material _surfaceMaterial;
         private float _baseY;
+        private bool _constructed;
+
+        // Cached entry speeds per Rigidbody to prevent exponential velocity decay (same as WaterBody)
+        private readonly Dictionary<Rigidbody, float> _entrySpeeds = new Dictionary<Rigidbody, float>();
 
         /// <summary>Public accessor for the water surface (for testing).</summary>
         public GameObject WaterSurface => _waterSurface;
@@ -80,6 +84,10 @@ namespace ProjectName.Systems
 
         private void ConstructLake()
         {
+            // Guard: prevent duplicate construction
+            if (_constructed) return;
+            _constructed = true;
+
             // --- Step 1: Sample Perlin noise grid to determine lake shape extent ---
             // We create a 16x16 sample grid within the lake radius to determine
             // which cells are "water" (noise below threshold) vs "land" (noise above threshold).
@@ -181,8 +189,14 @@ namespace ProjectName.Systems
                     var bedCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
                     bedCube.name = $"LakeBed_Cube_{gy}_{gx}";
                     bedCube.transform.SetParent(_lakeBed.transform);
-                    bedCube.transform.localPosition = new Vector3(wx, _surfaceY - cubeHeight * 0.5f, wz);
+
+                    // Use 0 for local Y — parent transform handles world Y positioning
+                    bedCube.transform.localPosition = new Vector3(wx, -cubeHeight * 0.5f, wz);
                     bedCube.transform.localScale = new Vector3(bedCubeSize, Mathf.Max(0.05f, cubeHeight), bedCubeSize);
+
+                    // Remove unnecessary collider — bed cubes are visual only
+                    var cubeCollider = bedCube.GetComponent<BoxCollider>();
+                    if (cubeCollider != null) Destroy(cubeCollider);
 
                     var renderer = bedCube.GetComponent<MeshRenderer>();
                     renderer.material = MaterialHelper.CreateLitMaterial(
@@ -245,7 +259,7 @@ namespace ProjectName.Systems
 
             _collisionVolume.tag = "Water";
 
-            // --- Step 5: Store base Y for wave animation ---
+            // --- Step 5: Position parent at the desired surface Y ---
             _baseY = _surfaceY;
             transform.position = new Vector3(transform.position.x, _baseY, transform.position.z);
         }
@@ -261,15 +275,44 @@ namespace ProjectName.Systems
             _waterSurface.transform.localPosition = pos;
         }
 
+        private void OnTriggerEnter(Collider other)
+        {
+            if (!other.CompareTag(_playerTag)) return;
+
+            Rigidbody rb = other.GetComponent<Rigidbody>();
+            if (rb != null && !_entrySpeeds.ContainsKey(rb))
+            {
+                // Cache entry speed so we can clamp instead of exponential decay
+                _entrySpeeds[rb] = rb.linearVelocity.magnitude;
+            }
+        }
+
         private void OnTriggerStay(Collider other)
         {
-            if (other.CompareTag(_playerTag))
+            if (!other.CompareTag(_playerTag)) return;
+
+            Rigidbody rb = other.GetComponent<Rigidbody>();
+            if (rb != null && _entrySpeeds.TryGetValue(rb, out float entrySpeed))
             {
-                Rigidbody rb = other.GetComponent<Rigidbody>();
-                if (rb != null)
+                // Clamp velocity magnitude to _slowFactor * entry speed
+                // (not per-frame multiplication which decays exponentially to zero)
+                Vector3 velocity = rb.linearVelocity;
+                float maxSpeed = entrySpeed * _slowFactor;
+                if (velocity.magnitude > maxSpeed)
                 {
-                    rb.linearVelocity *= _slowFactor;
+                    rb.linearVelocity = velocity.normalized * maxSpeed;
                 }
+            }
+        }
+
+        private void OnTriggerExit(Collider other)
+        {
+            if (!other.CompareTag(_playerTag)) return;
+
+            Rigidbody rb = other.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                _entrySpeeds.Remove(rb);
             }
         }
 
@@ -280,6 +323,8 @@ namespace ProjectName.Systems
                 Destroy(_surfaceMaterial);
                 _surfaceMaterial = null;
             }
+
+            _entrySpeeds.Clear();
 
             // Destroy created child objects explicitly (belt-and-suspenders cleanup)
             if (_waterSurface != null)

@@ -81,6 +81,13 @@ namespace ProjectName.Systems
             DontDestroyOnLoad(gameObject);
         }
 
+        private void OnDestroy()
+        {
+            if (_texWhite != null) Destroy(_texWhite);
+            if (_texGradient != null) Destroy(_texGradient);
+            if (_texRingSegment != null) Destroy(_texRingSegment);
+        }
+
         private void Update()
         {
             if (_manager == null || !_manager.IsLoading)
@@ -175,11 +182,11 @@ namespace ProjectName.Systems
 
             _texWhite = MakeTexture(1, 1, Color.white);
             _texGradient = MakeGradientTexture(4, 64, ColorBgTop, ColorBgBottom);
-            _texRingSegment = MakeRingSegmentTexture(32, 10f, 14f);
+            _texRingSegment = MakeRingSegmentTexture((int)SPINNER_SIZE, 15f, 19f);
 
             _styleLogo = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 36,
+                fontSize = (int)LOGO_FONT_SIZE,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.UpperCenter,
                 normal = { textColor = ColorLogo }
@@ -187,7 +194,7 @@ namespace ProjectName.Systems
 
             _styleSubtitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14,
+                fontSize = (int)SUBTITLE_FONT_SIZE,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.UpperCenter,
                 normal = { textColor = ColorSubtitle }
@@ -195,7 +202,7 @@ namespace ProjectName.Systems
 
             _stylePct = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14,
+                fontSize = (int)SUBTITLE_FONT_SIZE,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorProgressText }
@@ -244,12 +251,13 @@ namespace ProjectName.Systems
         private void DrawRingSpinner(float cx, float cy)
         {
             float angleOffset = Time.time * 100f; // 초당 100도 회전
-            float segmentSize = 32f;
-            float half = segmentSize / 2f;
+            float half = SPINNER_SIZE / 2f;
+            var originalMatrix = GUI.matrix;
 
             for (int i = 0; i < 4; i++)
             {
                 float angle = angleOffset + i * 90f;
+                GUI.matrix = originalMatrix;
                 GUIUtility.RotateAroundPivot(angle, new Vector2(cx, cy));
 
                 // 4개 세그먼트 중 회전 방향에 따라 알파값이 다른 3개만 보임
@@ -266,11 +274,11 @@ namespace ProjectName.Systems
                 Color c = ColorSpinner;
                 c.a *= alpha;
                 GUI.color = c;
-                GUI.DrawTexture(new Rect(cx - half, cy - half, segmentSize, segmentSize), _texRingSegment);
+                GUI.DrawTexture(new Rect(cx - half, cy - half, SPINNER_SIZE, SPINNER_SIZE), _texRingSegment);
                 GUI.color = Color.white;
-
-                GUI.matrix = Matrix4x4.identity;
             }
+
+            GUI.matrix = originalMatrix;
         }
 
         // ===== 텍스처 생성 유틸 =====

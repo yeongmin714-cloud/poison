@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
+#pragma warning disable 0414
 
 namespace ProjectName.Core.Data
 {
@@ -8,7 +9,7 @@ namespace ProjectName.Core.Data
     /// G2-07: 몬스터 드랍 항목 정의 구조체.
     /// 티어, 아이템ID, 확률, 개수 정보를 담습니다.
     /// </summary>
-    public readonly struct MonsterDropEntry
+    public struct MonsterDropEntry
     {
         public readonly MonsterTier tier;
         public readonly string itemId;

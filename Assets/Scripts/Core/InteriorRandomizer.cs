@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 
 using ProjectName.Core;
+#pragma warning disable 0414
 namespace ProjectName.Core
 {
     /// <summary>

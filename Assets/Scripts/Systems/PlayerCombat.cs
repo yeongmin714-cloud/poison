@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Core;
 using Unity.Cinemachine;
+#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {

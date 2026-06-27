@@ -7,14 +7,13 @@ namespace ProjectName.Systems
     /// 금색+은색 재질로 일반 병사와 구분됩니다.
     /// 바드 타입은 류트 모양 오브젝트가 추가됩니다.
     /// </summary>
+    [DisallowMultipleComponent]
     public class MercenaryPlaceholder : MonoBehaviour
     {
         [Header("설정")]
         [SerializeField] private string _mercenaryId = "";
         [SerializeField] private MercenaryGrade _grade = MercenaryGrade.Normal;
         [SerializeField] private string _jobType = "Soldier";
-
-        private MercenaryData _data;
 
         /// <summary>용병 ID</summary>
         public string MercenaryId => _mercenaryId;
@@ -40,18 +39,16 @@ namespace ProjectName.Systems
 
             // 금색+은색 재질 적용 (등급별 색상)
             var renderer = go.GetComponent<MeshRenderer>();
-            if (renderer != null)
-            {
-                Color matColor = GetGradeColor(data.grade);
-                renderer.material = MaterialHelper.CreateLitMaterial(matColor, $"{goName}_Mat");
-            }
+            Color matColor = GetGradeColor(data.grade);
+            var mat = MaterialHelper.CreateLitMaterial(matColor, $"{goName}_Mat");
+            if (mat != null)
+                renderer.material = mat;
 
             // MercenaryPlaceholder 컴포넌트 추가
             var placeholder = go.AddComponent<MercenaryPlaceholder>();
             placeholder._mercenaryId = data.id;
             placeholder._grade = data.grade;
             placeholder._jobType = data.jobType;
-            placeholder._data = data;
 
             // 바드: 류트 모양 오브젝트 추가
             if (data.jobType == "Bard")
@@ -88,38 +85,44 @@ namespace ProjectName.Systems
         /// <summary>바드 악기 생성 (르트/하프 모양)</summary>
         private static void CreateBardInstrument(GameObject parent)
         {
-            // 류트 몸체 (타원형 Cube)
+            // 류트 몸체 (타원형 Sphere)
             var body = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             body.name = "LuteBody";
+            Object.DestroyImmediate(body.GetComponent<Collider>());
             body.transform.SetParent(parent.transform);
             body.transform.localPosition = new Vector3(0.6f, 0.3f, 0);
             body.transform.localScale = new Vector3(0.25f, 0.35f, 0.15f);
 
             var bodyRenderer = body.GetComponent<MeshRenderer>();
-            bodyRenderer.material = MaterialHelper.CreateLitMaterial(new Color(0.60f, 0.40f, 0.15f), "LuteBodyMat");
+            var bodyMat = MaterialHelper.CreateLitMaterial(new Color(0.60f, 0.40f, 0.15f), "LuteBodyMat");
+            if (bodyMat != null) bodyRenderer.material = bodyMat;
 
             // 류트 목 (Cylinder-like Cube)
             var neck = GameObject.CreatePrimitive(PrimitiveType.Cube);
             neck.name = "LuteNeck";
+            Object.DestroyImmediate(neck.GetComponent<Collider>());
             neck.transform.SetParent(parent.transform);
             neck.transform.localPosition = new Vector3(0.6f, 0.7f, 0);
             neck.transform.localScale = new Vector3(0.05f, 0.4f, 0.05f);
 
             var neckRenderer = neck.GetComponent<MeshRenderer>();
-            neckRenderer.material = MaterialHelper.CreateLitMaterial(new Color(0.40f, 0.25f, 0.10f), "LuteNeckMat");
+            var neckMat = MaterialHelper.CreateLitMaterial(new Color(0.40f, 0.25f, 0.10f), "LuteNeckMat");
+            if (neckMat != null) neckRenderer.material = neckMat;
 
             // 현 (가는 막대 3개)
             for (int i = 0; i < 3; i++)
             {
                 var str = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 str.name = $"String_{i}";
+                Object.DestroyImmediate(str.GetComponent<Collider>());
                 str.transform.SetParent(parent.transform);
                 float xOff = (i - 1) * 0.04f;
                 str.transform.localPosition = new Vector3(0.6f + xOff, 0.5f, 0.05f);
                 str.transform.localScale = new Vector3(0.01f, 0.4f, 0.01f);
 
                 var strRenderer = str.GetComponent<MeshRenderer>();
-                strRenderer.material = MaterialHelper.CreateLitMaterial(new Color(0.90f, 0.90f, 0.80f), $"LuteString_{i}");
+                var strMat = MaterialHelper.CreateLitMaterial(new Color(0.90f, 0.90f, 0.80f), $"LuteString_{i}");
+                if (strMat != null) strRenderer.material = strMat;
             }
         }
     }

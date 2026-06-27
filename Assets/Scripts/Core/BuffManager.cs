@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+#pragma warning disable 0414
 
 namespace ProjectName.Core
 {
@@ -16,7 +17,7 @@ namespace ProjectName.Core
         /// <summary>
         /// Represents a single active buff on the player.
         /// </summary>
-        public readonly struct ActiveBuff
+        public struct ActiveBuff
         {
             /// <summary>Identifier of the buff (e.g., "AttackUp", "DefenseUp")</summary>
             public string BuffId { get; }

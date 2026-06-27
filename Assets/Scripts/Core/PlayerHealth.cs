@@ -1,5 +1,6 @@
 using UnityEngine;
 using ProjectName.Core.Data;
+#pragma warning disable 0414
 
 namespace ProjectName.Core
 {
@@ -25,7 +26,7 @@ namespace ProjectName.Core
         {
             if (Instance != null) return;
 
-            var existing = UnityEngine.Object.FindFirstObjectByType<PlayerHealth>();
+            var existing = UnityEngine.Object.FindAnyObjectByType<PlayerHealth>();
             if (existing != null)
             {
                 Instance = existing;

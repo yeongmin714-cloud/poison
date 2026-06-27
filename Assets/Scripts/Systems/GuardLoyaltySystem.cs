@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using UnityEngine;
+#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -88,7 +89,7 @@ namespace ProjectName.Systems
         /// </summary>
         public static void UpdateAllGuards()
         {
-            var guards = Object.FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
+            var guards = Object.FindObjectsByType<GuardPlaceholder>();
             foreach (var guard in guards)
             {
                 UpdateLoyaltyByTerritory(guard);

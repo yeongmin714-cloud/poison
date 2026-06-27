@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+#pragma warning disable 0414
 
 namespace ProjectName.Core
 {
@@ -17,7 +18,7 @@ namespace ProjectName.Core
     }
 
     /// <summary>팁 정보 구조체 (불변)</summary>
-    public readonly struct TipInfo
+    public struct TipInfo
     {
         public readonly string Text;
         public readonly TipCategory Category;

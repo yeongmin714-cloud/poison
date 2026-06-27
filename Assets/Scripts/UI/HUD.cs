@@ -2,6 +2,7 @@ using UnityEngine;
 using ProjectName.Core;
 using System.Collections.Generic;
 using ProjectName.Core.Data;
+#pragma warning disable 0414
 
 namespace ProjectName.UI
 {

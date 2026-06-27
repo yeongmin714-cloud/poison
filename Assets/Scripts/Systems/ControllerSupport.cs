@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.DualShock;
 using UnityEngine.InputSystem.XInput;
 using System.Text;
+#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {

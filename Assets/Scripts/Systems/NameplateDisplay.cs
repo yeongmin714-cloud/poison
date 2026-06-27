@@ -3,14 +3,17 @@ using UnityEngine;
 namespace ProjectName.Systems
 {
     /// <summary>
-    /// FIX-01: NPC 위에 이름표를 표시하는 간단한 OnGUI 컴포넌트.
+    /// NPC 위에 이름표를 표시하는 간단한 OnGUI 컴포넌트.
     /// GameObject 위쪽(float offset)에 이름 문자열을 표시합니다.
     /// </summary>
     public class NameplateDisplay : MonoBehaviour
     {
         [Header("설정")]
+        [Tooltip("이름표에 표시할 텍스트")]
         [SerializeField] private string _displayName = "NPC";
+        [Tooltip("NPC 머리 위 오프셋 높이 (월드 단위)")]
         [SerializeField] private float _floatOffset = 2.0f;
+        [Tooltip("플레이어가 이 거리 이내로 접근하면 이름표 표시")]
         [SerializeField] private float _interactRange = 3f;
 
         private Transform _player;
@@ -18,11 +21,11 @@ namespace ProjectName.Systems
         private Camera _mainCamera;
         private GUIStyle _nameStyle;
 
-        /// <summary>표시할 이름</summary>
+        /// <summary>표시할 이름. null이나 빈 문자열은 빈 레이블로 표시됩니다.</summary>
         public string DisplayName
         {
             get => _displayName;
-            set => _displayName = value;
+            set => _displayName = value ?? string.Empty;
         }
 
         private void Start()
@@ -47,7 +50,7 @@ namespace ProjectName.Systems
         private void OnGUI()
         {
             if (!_playerNearby) return;
-            if (_mainCamera == null) return;
+            if (_mainCamera == null || _nameStyle == null) return;
 
             Vector3 screenPos = _mainCamera.WorldToScreenPoint(transform.position + Vector3.up * _floatOffset);
             if (screenPos.z < 0) return;

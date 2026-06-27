@@ -46,7 +46,7 @@ namespace ProjectName.Systems
                 return results;
             }
             
-            var herbs = Object.FindObjectsByType<HerbPickup>(FindObjectsSortMode.None);
+            var herbs = Object.FindObjectsByType<HerbPickup>();
             var availableHerbs = new List<HerbPickup>(herbs.Length);
             foreach (var h in herbs)
             {
@@ -133,7 +133,7 @@ namespace ProjectName.Systems
         public static List<GuardPlaceholder> GetActiveHerbalists()
         {
             var result = new List<GuardPlaceholder>();
-            var guards = Object.FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
+            var guards = Object.FindObjectsByType<GuardPlaceholder>();
             foreach (var g in guards)
             {
                 if (g != null && g.isActiveAndEnabled && g.IsAlive && g.IsRecruited && g.Role == GuardRole.Herbalist)

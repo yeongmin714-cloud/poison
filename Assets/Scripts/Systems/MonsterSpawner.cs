@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -123,20 +124,38 @@ namespace ProjectName.Systems
 
         private void OnEnable()
         {
-            // C18-02: 시간 변경 구독
+            // C18-02: 시간 변경 구독 — OnTimeChanged로 주기 변화 감지
             if (TimeManager.Instance != null)
+            {
+                TimeManager.Instance.OnTimeChanged += OnTimeChanged;
                 TimeManager.Instance.OnDayNightChanged += OnDayNightChanged;
+            }
         }
 
         private void OnDisable()
         {
             // C18-02: 구독 해제
             if (TimeManager.Instance != null)
+            {
+                TimeManager.Instance.OnTimeChanged -= OnTimeChanged;
                 TimeManager.Instance.OnDayNightChanged -= OnDayNightChanged;
+            }
         }
 
         private void Update()
         {
+            // C18-02: 안전장치 — CurrentPeriod 주기 동기화 (TimeManager 이벤트 누락 대비)
+            if (TimeManager.Instance != null)
+            {
+                TimePeriod actual = GetTimePeriod(TimeManager.Instance.Hour);
+                if (actual != CurrentPeriod)
+                {
+                    CurrentPeriod = actual;
+                    RefreshSpawn();
+                    return; // RefreshSpawn 내부에서 CheckAndRespawn 실행되므로 중복 방지
+                }
+            }
+
             // C18-03: 주기적 리스폰 체크
             if (Time.time - _lastRespawnCheck >= _respawnThreshold.checkInterval)
             {
@@ -172,6 +191,21 @@ namespace ProjectName.Systems
         private void OnDayNightChanged(bool isDay)
         {
             RefreshSpawn();
+        }
+
+        /// <summary>
+        /// C18-02: 매 시간 변경 시 CurrentPeriod 갱신.
+        /// OnDayNightChanged만 구독하면 Evening→Night(20시) 전환을 감지하지 못하므로
+        /// OnTimeChanged로 주기 변화 시 RefreshSpawn()을 호출합니다.
+        /// </summary>
+        private void OnTimeChanged(int hour, int minute)
+        {
+            TimePeriod newPeriod = GetTimePeriod(hour);
+            if (newPeriod != CurrentPeriod)
+            {
+                CurrentPeriod = newPeriod;
+                RefreshSpawn();
+            }
         }
 
         /// <summary>
@@ -260,7 +294,7 @@ namespace ProjectName.Systems
             if (tierPool.Count == 0) return;
 
             // C18-03: 밤이면 _nightRespawnRateMultiplier 적용
-            float countMultiplier = (CurrentPeriod == TimePeriod.Night && TimeManager.Instance != null && TimeManager.Instance.IsNight)
+            float countMultiplier = CurrentPeriod == TimePeriod.Night
                 ? _nightRespawnRateMultiplier
                 : 1f;
 
@@ -278,7 +312,8 @@ namespace ProjectName.Systems
                 {
                     Vector3 pos = RandomPositionInRing(innerRadius, outerRadius);
                     GameObject go = CreateMonster(def, pos);
-                    _spawnedMonsters.Add(go);
+                    if (go != null)
+                        _spawnedMonsters.Add(go);
                 }
             }
         }
@@ -314,6 +349,12 @@ namespace ProjectName.Systems
         /// </summary>
         private GameObject CreateMonster(MonsterDef def, Vector3 position)
         {
+            if (def == null)
+            {
+                Debug.LogError("[MonsterSpawner] CreateMonster: def가 null입니다!");
+                return null;
+            }
+
             GameObject go;
 
             if (_monsterPrefab != null)
@@ -342,7 +383,7 @@ namespace ProjectName.Systems
                 }
             }
 
-            go.name = $"Monster_{def.id}_{Random.Range(1000, 9999)}";
+            go.name = $"Monster_{def.id}_{Random.Range(10000, 99999)}";
             go.tag = "Monster";
 
             // AnimalAI 컴포넌트
@@ -477,7 +518,10 @@ namespace ProjectName.Systems
             Renderer r = go.GetComponent<Renderer>();
             if (r != null)
             {
-                r.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                Shader shader = Shader.Find("Universal Render Pipeline/Lit")
+                    ?? Shader.Find("Standard")
+                    ?? Shader.Find("Diffuse");
+                r.material = new Material(shader);
                 r.material.color = def.gizmoColor;
 
                 // C18-04: 밤눈 이펙트 (emissive)
@@ -603,6 +647,9 @@ namespace ProjectName.Systems
         {
             if (TimeManager.Instance == null) return;
 
+            // 죽은 몬스터 참조 정리 (외부에서 Destroy된 항목 제거)
+            _spawnedMonsters.RemoveAll(go => go == null);
+
             bool isNight = TimeManager.Instance.IsNight;
             int minPerTier = _respawnThreshold.minMonstersPerTier;
             if (isNight)
@@ -651,7 +698,8 @@ namespace ProjectName.Systems
                 var def = tierPool[Random.Range(0, tierPool.Count)];
                 Vector3 pos = RandomPositionInRing(innerRadius, outerRadius);
                 GameObject go = CreateMonster(def, pos);
-                _spawnedMonsters.Add(go);
+                if (go != null)
+                    _spawnedMonsters.Add(go);
             }
         }
 

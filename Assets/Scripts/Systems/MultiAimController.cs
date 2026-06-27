@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+#pragma warning disable 0414
 
 #if UNITY_ANIMATION_RIGGING
 using UnityEngine.Animations.Rigging;
@@ -92,6 +93,13 @@ namespace ProjectName.Systems
             set => _spineBone = value;
         }
 
+        /// <summary>Body bone Transform (horizontal-only body follow).</summary>
+        public Transform BodyBone
+        {
+            get => _bodyBone;
+            set => _bodyBone = value;
+        }
+
         /// <summary>Current aim target Transform.</summary>
         public Transform Target
         {
@@ -105,7 +113,16 @@ namespace ProjectName.Systems
         public float AimWeight
         {
             get => _aimWeight;
-            set => _aimWeight = Mathf.Clamp01(value);
+            set
+            {
+                _aimWeight = Mathf.Clamp01(value);
+#if UNITY_ANIMATION_RIGGING
+                if (_headConstraint != null)
+                    _headConstraint.weight = _aimWeight;
+                if (_spineConstraint != null)
+                    _spineConstraint.weight = _aimWeight;
+#endif
+            }
         }
 
         /// <summary>Rotation speed in degrees per second.</summary>
@@ -131,8 +148,15 @@ namespace ProjectName.Systems
 
         private void LateUpdate()
         {
-            if (!IsReady || _aimWeight < 0.001f)
+            if (!IsReady)
                 return;
+
+            if (_aimWeight < 0.001f)
+            {
+                if (_hasInitialized)
+                    ReturnBonesToOriginal();
+                return;
+            }
 
 #if UNITY_ANIMATION_RIGGING
             // If Animation Rigging manages head/spine, skip procedural rotations
@@ -151,6 +175,8 @@ namespace ProjectName.Systems
 
             if (_target != null)
                 UpdateAimRotation();
+            else if (_hasInitialized)
+                ReturnBonesToOriginal();
         }
 
         // ──────────────────────────────────────────────
@@ -396,6 +422,38 @@ namespace ProjectName.Systems
         }
 
         // ──────────────────────────────────────────────
+        //  Return to original pose
+        // ──────────────────────────────────────────────
+
+        /// <summary>
+        /// Smoothly returns all tracked bones back to their cached original local rotations.
+        /// Called automatically when <see cref="_target"/> is null or <see cref="_aimWeight"/>
+        /// is near zero, ensuring the character's head/eyes/body naturally return to their
+        /// animation pose instead of freezing in the last aim direction.
+        /// </summary>
+        private void ReturnBonesToOriginal()
+        {
+            _headBone.localRotation = Quaternion.RotateTowards(
+                _headBone.localRotation, _headOriginalLocalRot, _rotationSpeed * Time.deltaTime);
+
+            if (_spineBone != null)
+                _spineBone.localRotation = Quaternion.RotateTowards(
+                    _spineBone.localRotation, _spineOriginalLocalRot, _bodyRotationSpeed * Time.deltaTime);
+
+            if (_bodyBone != null)
+                _bodyBone.localRotation = Quaternion.RotateTowards(
+                    _bodyBone.localRotation, _bodyOriginalLocalRot, _bodyRotationSpeed * Time.deltaTime);
+
+            if (_leftEyeBone != null)
+                _leftEyeBone.localRotation = Quaternion.RotateTowards(
+                    _leftEyeBone.localRotation, _leftEyeOriginalLocalRot, _eyeRotationSpeed * Time.deltaTime);
+
+            if (_rightEyeBone != null)
+                _rightEyeBone.localRotation = Quaternion.RotateTowards(
+                    _rightEyeBone.localRotation, _rightEyeOriginalLocalRot, _eyeRotationSpeed * Time.deltaTime);
+        }
+
+        // ──────────────────────────────────────────────
         //  Public methods
         // ──────────────────────────────────────────────
 
@@ -467,6 +525,14 @@ namespace ProjectName.Systems
                 Destroy(_tempTargetObject);
                 _tempTargetObject = null;
             }
+
+#if UNITY_ANIMATION_RIGGING
+            if (_constraintRoot != null)
+            {
+                Destroy(_constraintRoot);
+                _constraintRoot = null;
+            }
+#endif
         }
 
         // ──────────────────────────────────────────────
@@ -508,32 +574,79 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// Draws a wireframe cone indicating the aim field of view.
+        /// Renders an elliptical arc at the given distance, limited to the
+        /// specified horizontal and vertical half-angles, plus guide lines
+        /// from the origin to the arc endpoints.
         /// </summary>
         private static void DrawCone(Vector3 origin, Vector3 direction, float distance,
             float horizontalAngle, float verticalAngle)
         {
-            const int segments = 16;
+            const int segments = 32;
+            float hRad = horizontalAngle * Mathf.Deg2Rad;
+            float vRad = verticalAngle * Mathf.Deg2Rad;
 
-            // Horizontal arc
-            Vector3 up = Vector3.up;
-            Vector3 right = Vector3.Cross(direction, up).normalized;
-            Vector3 forward = direction;
+            // Build an orthonormal basis: forward = aim direction,
+            // right = perpendicular in the XZ plane (horizontal),
+            // up = perpendicular in the vertical plane.
+            Vector3 forward = direction.normalized;
+            Vector3 right = Vector3.Cross(forward, Vector3.up).normalized;
+            if (right.sqrMagnitude < 0.001f)
+                right = Vector3.Cross(forward, Vector3.forward).normalized;
+            Vector3 up = Vector3.Cross(right, forward).normalized;
 
-            Gizmos.color = new Color(1f, 1f, 0f, 0.2f);
+            Gizmos.color = new Color(1f, 1f, 0f, 0.3f);
 
-            for (int i = 0; i < segments; i++)
+            // Draw the elliptical arc at the given distance
+            Vector3 prevPoint = Vector3.zero;
+            for (int i = 0; i <= segments; i++)
             {
-                float t1 = (float)i / segments * 2f * Mathf.PI;
-                float t2 = (float)(i + 1) / segments * 2f * Mathf.PI;
+                float t = (float)i / segments * Mathf.PI * 2f;
+                float cosT = Mathf.Cos(t);
+                float sinT = Mathf.Sin(t);
 
-                Vector3 p1 = origin + forward * distance * Mathf.Cos(t1)
-                             + right * distance * Mathf.Sin(t1) * Mathf.Sin(horizontalAngle * Mathf.Deg2Rad);
-                Vector3 p2 = origin + forward * distance * Mathf.Cos(t2)
-                             + right * distance * Mathf.Sin(t2) * Mathf.Sin(horizontalAngle * Mathf.Deg2Rad);
+                // Elliptical point on the cone face
+                Vector3 point = origin
+                                + forward * (distance * cosT)
+                                + right * (distance * sinT * Mathf.Sin(hRad))
+                                + up * (distance * sinT * Mathf.Sin(vRad));
 
-                Gizmos.DrawLine(origin, p1);
-                Gizmos.DrawLine(p1, p2);
+                // Only draw points in front of the origin (positive forward direction)
+                Vector3 offset = point - origin;
+                float forwardDot = Vector3.Dot(offset, forward);
+                if (forwardDot < 0f)
+                {
+                    prevPoint = point;
+                    continue;
+                }
+
+                if (i > 0 && prevPoint != Vector3.zero)
+                {
+                    Vector3 prevOffset = prevPoint - origin;
+                    if (Vector3.Dot(prevOffset, forward) >= 0f)
+                        Gizmos.DrawLine(prevPoint, point);
+                }
+
+                // Draw guide line from origin to this arc point
+                Gizmos.DrawLine(origin, point);
+
+                prevPoint = point;
             }
+
+            // Draw the bounding rectangle (horizontal and vertical limit lines)
+            Gizmos.color = new Color(1f, 0.8f, 0f, 0.15f);
+            float hExtent = distance * Mathf.Tan(hRad);
+            float vExtent = distance * Mathf.Tan(vRad);
+            Vector3 center = origin + forward * distance;
+
+            Vector3 tl = center - right * hExtent + up * vExtent;
+            Vector3 tr = center + right * hExtent + up * vExtent;
+            Vector3 bl = center - right * hExtent - up * vExtent;
+            Vector3 br = center + right * hExtent - up * vExtent;
+
+            Gizmos.DrawLine(tl, tr);
+            Gizmos.DrawLine(tr, br);
+            Gizmos.DrawLine(br, bl);
+            Gizmos.DrawLine(bl, tl);
         }
     }
 }

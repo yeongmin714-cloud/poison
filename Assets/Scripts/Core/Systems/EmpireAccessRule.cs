@@ -1,4 +1,5 @@
 using ProjectName.Core.Data;
+#pragma warning disable 0414
 
 namespace ProjectName.Core.Systems
 {

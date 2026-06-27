@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using UnityEngine;
+#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -193,7 +194,7 @@ namespace ProjectName.Systems
         public static List<GuardPlaceholder> GetAvailableEnvoys()
         {
             var result = new List<GuardPlaceholder>();
-            var guards = Object.FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
+            var guards = Object.FindObjectsByType<GuardPlaceholder>();
             foreach (var g in guards)
             {
                 if (g.IsAlive && g.IsRecruited)

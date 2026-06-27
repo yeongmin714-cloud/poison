@@ -40,6 +40,21 @@ namespace ProjectName.Systems
         /// <summary>로드된 데이터</summary>
         public MonsterLevelData Data => _data;
 
+        /// <summary>
+        /// _data가 null이면 경고 로그를 출력하고 false 반환
+        /// </summary>
+        private bool TryGetData(out MonsterLevelData data)
+        {
+            if (_data == null)
+            {
+                Debug.LogError("[MonsterLevelManager] MonsterLevelData가 로드되지 않았습니다. Awake()가 호출되었는지 확인하세요.");
+                data = null;
+                return false;
+            }
+            data = _data;
+            return true;
+        }
+
         private void Awake()
         {
             if (_instance != null && _instance != this)
@@ -71,10 +86,13 @@ namespace ProjectName.Systems
         /// <returns>최종 레벨 (1~MaxLevel)</returns>
         public int GetMonsterLevel(TerritoryDifficulty difficulty, MonsterTier tier)
         {
-            Vector2Int baseRange = _data.GetBaseLevelRange(tier);
+            if (!TryGetData(out var data))
+                return 1;
+
+            Vector2Int baseRange = data.GetBaseLevelRange(tier);
             int baseLevel = Random.Range(baseRange.x, baseRange.y + 1);
-            int bonus = _data.GetDifficultyBonus(difficulty);
-            return Mathf.Clamp(baseLevel + bonus, 1, _data.MaxLevel);
+            int bonus = data.GetDifficultyBonus(difficulty);
+            return Mathf.Clamp(baseLevel + bonus, 1, data.MaxLevel);
         }
 
         // ===== 스탯 계산 =====
@@ -87,7 +105,10 @@ namespace ProjectName.Systems
         /// <returns>최대 HP</returns>
         public float GetMonsterHP(int level, MonsterTier tier)
         {
-            float hpPerLevel = _data.GetHPPerLevel(tier);
+            if (!TryGetData(out var data))
+                return 0f;
+
+            float hpPerLevel = data.GetHPPerLevel(tier);
             return hpPerLevel * level;
         }
 
@@ -98,17 +119,32 @@ namespace ProjectName.Systems
         /// <returns>추가 데미지</returns>
         public float GetMonsterDamage(int level)
         {
-            return _data.BaseDamage + level * _data.DamagePerLevel;
+            if (!TryGetData(out var data))
+                return 0f;
+
+            return data.BaseDamage + level * data.DamagePerLevel;
         }
 
         /// <summary>
-        /// 레벨 기반 희귀 드랍률 보정
+        /// 레벨 기반 희귀 드랍률 보정 (10레벨 단위 계단식)
+        /// 정수 나눗셈: Lv.1~9 → 0, Lv.10~19 → 1, Lv.20~29 → 2 ...
         /// </summary>
         /// <param name="level">최종 레벨</param>
         /// <returns>추가 확률 (0.05 = 5%)</returns>
         public float GetDropRateBonus(int level)
         {
-            return (level / 10) * _data.RareDropBonusPer10Levels;
+            if (!TryGetData(out var data))
+                return 0f;
+
+            return (level / 10) * data.RareDropBonusPer10Levels;
+        }
+
+        /// <summary>
+        /// 레벨 기반 경험치 보상 계산
+        /// </summary>
+        public float GetMonsterXP(int level)
+        {
+            return 5f + level * 2f;
         }
 
         /// <summary>
@@ -116,6 +152,9 @@ namespace ProjectName.Systems
         /// </summary>
         public float GetFinalDropChance(float baseChance, int level)
         {
+            if (!TryGetData(out var _))
+                return Mathf.Clamp01(baseChance);
+
             return Mathf.Clamp01(baseChance + GetDropRateBonus(level));
         }
 
@@ -127,8 +166,15 @@ namespace ProjectName.Systems
         /// </summary>
         public string GetLevelColorTag(int level)
         {
-            if (level <= _data.GreenThreshold) return "🟢";   // 초급
-            if (level <= _data.YellowThreshold) return "🟡";  // 중급
+            if (!TryGetData(out var data))
+            {
+                if (level <= 10) return "🟢";
+                if (level <= 20) return "🟡";
+                return "🔴";
+            }
+
+            if (level <= data.GreenThreshold) return "🟢";   // 초급
+            if (level <= data.YellowThreshold) return "🟡";  // 중급
             return "🔴";                                       // 고급
         }
 
@@ -138,6 +184,27 @@ namespace ProjectName.Systems
         public string GetLevelDisplay(int level)
         {
             return $"{GetLevelColorTag(level)} Lv.{level}";
+        }
+
+        // ===== 몬스터별 티어 매핑 (이름 기반) =====
+
+        /// <summary>
+        /// 몬스터 이름으로 티어 추정
+        /// </summary>
+        public MonsterTier EstimateTierByName(string monsterName)
+        {
+            string[] beginner = { "토끼", "까마귀", "박쥐", "쥐", "설치류", "거미" };
+            string[] intermediate = { "늑대", "멧돼지", "사슴", "악어", "슬라임", "골렘", "도마뱀", "트롤", "오우거" };
+            string[] advanced = { "만티코어", "암살자", "미노타우로스", "드래곤", "히드라", "리치", "데몬" };
+
+            foreach (var name in beginner)
+                if (monsterName.Contains(name)) return MonsterTier.Beginner;
+            foreach (var name in intermediate)
+                if (monsterName.Contains(name)) return MonsterTier.Intermediate;
+            foreach (var name in advanced)
+                if (monsterName.Contains(name)) return MonsterTier.Advanced;
+
+            return MonsterTier.Beginner;
         }
 
         /// <summary>

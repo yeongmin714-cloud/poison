@@ -122,7 +122,7 @@ namespace ProjectName.Systems
             yield return FadeManager.Instance.FadeIn(_fadeInDuration);
         }
 
-        private IEnumerator LoadSceneCoroutine(string sceneName, float fadeOutDuration, LoadSceneMode mode = LoadSceneMode.Single)
+        private IEnumerator LoadSceneCoroutine(string sceneName, float fadeOutDuration, LoadSceneMode mode)
         {
             // 씬이 존재하는지 확인
             bool sceneExists = false;
@@ -160,8 +160,7 @@ namespace ProjectName.Systems
             // 잠시 대기 후 씬 활성화
             yield return new WaitForSeconds(0.5f);
 
-            // 페이드 아웃 후 씬 활성화
-            _fadeOutDuration = fadeOutDuration;
+            // 로딩 완료 후 씬 활성화 (CompleteLoading은 내부 코루틴으로 페이드 지연 처리)
             CompleteLoading(fadeOutDuration);
 
             // 씬 활성화

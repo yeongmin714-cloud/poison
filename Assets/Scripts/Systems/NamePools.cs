@@ -1,4 +1,3 @@
-using ProjectName.Core;
 using System;
 using ProjectName.Core.Data;
 
@@ -68,30 +67,13 @@ namespace ProjectName.Systems
             "미스트케슬", "파이어브랜드", "아이스베일", "스카이워커", "문로드"
         };
 
-        // ===== 국가명 =====
-        public const string KingdomNameEast = "동방 비르텐시아 왕국";
-        public const string KingdomNameWest = "서부 아르델리아 대공국";
-        public const string KingdomNameSouth = "남부 이그니스 제국";
-        public const string KingdomNameNorth = "북부 프로스트가드 왕국";
-        public const string EmpireName = "중앙 아우레우스 제국";
-        public const string DraculaKingdomName = "드라큘라의 영지";
+        // ===== 공유 난수 생성기 (매 호출 new Random() 방지) =====
+        private static readonly System.Random _sharedRng = new System.Random();
 
-        /// <summary>국가 타입에 따른 국가명 반환</summary>
+        /// <summary>국가 타입에 따른 국가명 반환 (NationNames 위임)</summary>
         /// <param name="nation">국가 타입 (NationType)</param>
         /// <returns>해당 국가의 표시 이름 문자열</returns>
-        public static string GetKingdomName(NationType nation)
-        {
-            return nation switch
-            {
-                NationType.East => KingdomNameEast,
-                NationType.West => KingdomNameWest,
-                NationType.South => KingdomNameSouth,
-                NationType.North => KingdomNameNorth,
-                NationType.Empire => EmpireName,
-                NationType.Dracula => DraculaKingdomName,
-                _ => "알 수 없는 국가"
-            };
-        }
+        public static string GetKingdomName(NationType nation) => NationNames.GetName(nation);
 
         /// <summary>국가별 영주 이름 풀 반환</summary>
         /// <param name="nation">국가 타입 (NationType)</param>
@@ -106,27 +88,28 @@ namespace ProjectName.Systems
                 NationType.North => LordNorth,
                 NationType.Empire => LordEmpire,
                 NationType.Dracula => LordDracula,
+                NationType.None => LordEast,
                 _ => LordEast
             };
         }
 
         /// <summary>랜덤 영주 이름 생성</summary>
         /// <param name="nation">국가 타입 (NationType)</param>
-        /// <param name="rng">난수 생성기 (null 시 새 인스턴스 생성)</param>
+        /// <param name="rng">난수 생성기 (null 시 _sharedRng 사용)</param>
         /// <returns>랜덤하게 선택된 영주 이름 문자열</returns>
         public static string GetRandomLordName(NationType nation, System.Random rng = null)
         {
-            rng ??= new System.Random();
+            rng ??= _sharedRng;
             var pool = GetLordNames(nation);
             return pool[rng.Next(pool.Length)];
         }
 
         /// <summary>랜덤 용병 이름 생성 (이름 + 성)</summary>
-        /// <param name="rng">난수 생성기 (null 시 새 인스턴스 생성)</param>
+        /// <param name="rng">난수 생성기 (null 시 _sharedRng 사용)</param>
         /// <returns>"이름 성" 형식의 랜덤 용병 이름 문자열</returns>
         public static string GetRandomMercenaryName(System.Random rng = null)
         {
-            rng ??= new System.Random();
+            rng ??= _sharedRng;
             string first = MercenaryFirst[rng.Next(MercenaryFirst.Length)];
             string last = MercenaryLast[rng.Next(MercenaryLast.Length)];
             return $"{first} {last}";

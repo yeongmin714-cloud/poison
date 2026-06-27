@@ -1,4 +1,3 @@
-#nullable disable
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -98,7 +97,7 @@ namespace ProjectName.Systems
 
             // NPCs — soldier controller (basic walk/idle)
             if (modelName.Contains("npc") || modelName.Contains("lord") || modelName.Contains("king")
-                || modelName.Contains("shop") || modelName.Contains("man") || modelName.Contains("girl")
+                || modelName.Contains("shop") || modelName.EndsWith("man") || modelName.Contains("girl")
                 || modelName.Contains("oldman") || modelName.Contains("dracula") || modelName.Contains("bard"))
                 return _soldierController;
 

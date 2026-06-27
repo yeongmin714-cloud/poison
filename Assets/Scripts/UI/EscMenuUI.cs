@@ -3,6 +3,7 @@ using ProjectName.Core;
 using UnityEngine;
 using ProjectName.UI.Themes;
 using UnityEngine.InputSystem;
+#pragma warning disable 0414
 
 namespace ProjectName.UI
 {

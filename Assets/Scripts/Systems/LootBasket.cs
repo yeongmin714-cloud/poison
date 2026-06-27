@@ -28,8 +28,8 @@ namespace ProjectName.Systems
         [SerializeField] private List<LootEntry> _items = new List<LootEntry>();
 
         // 상태
-        private bool _isLooted = false;
-        private bool _playerNearby = false;
+        private bool _isLooted;
+        private bool _playerNearby;
         private Transform _player;
         private Keyboard _keyboard;
 
@@ -187,6 +187,8 @@ namespace ProjectName.Systems
             if (PlayerInventory.Instance == null)
             {
                 Debug.LogError("[LootBasket] PlayerInventory.Instance가 없습니다!");
+                HidePrompt();
+                _isLooted = true;
                 Destroy(gameObject);
                 return false;
             }
@@ -379,16 +381,18 @@ namespace ProjectName.Systems
             Collider openingCol = opening.GetComponent<Collider>();
             if (openingCol != null) Destroy(openingCol);
 
-            // 3) 트리거 Collider (상호작용 영역)
-            SphereCollider trigger = basketGO.AddComponent<SphereCollider>();
-            trigger.isTrigger = true;
-            trigger.radius = 0.5f;
+            // 3) 트리거 Collider (상호작용 영역) — 추후 물리 기반 감지용 예비 코드
+            // 현재는 Vector3.Distance 기반 Update() 감지를 사용 중이므로 실제로 동작하지 않음.
+            // 필요 시 OnTriggerEnter/Exit 구현 후 활성화.
+            // SphereCollider trigger = basketGO.AddComponent<SphereCollider>();
+            // trigger.isTrigger = true;
+            // trigger.radius = 0.5f;
 
             // LootBasket 컴포넌트 추가
             LootBasket basket = basketGO.AddComponent<LootBasket>();
             basket._lifetime = lifetime;
-            basket._createdMaterials.Add(bodyMat);
-            basket._createdMaterials.Add(openingMat);
+            if (bodyMat != null) basket._createdMaterials.Add(bodyMat);
+            if (openingMat != null) basket._createdMaterials.Add(openingMat);
 
             return basket;
         }

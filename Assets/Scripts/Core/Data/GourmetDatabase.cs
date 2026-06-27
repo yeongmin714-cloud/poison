@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
 using UnityEngine;
+#pragma warning disable 0414
 
 namespace ProjectName.Core.Data
 {
     /// <summary>
     /// 미식 등급 (별점 1~5) — GAME_DATA.md section 4.2
     /// </summary>
-    public readonly struct GourmetGrade
+    public struct GourmetGrade
     {
         public int Stars { get; }          // 1~5
         public string GradeName { get; }   // e.g., "서민", "평민", "중급", "상급", "왕실"

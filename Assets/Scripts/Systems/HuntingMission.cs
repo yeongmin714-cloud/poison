@@ -46,7 +46,7 @@ namespace ProjectName.Systems
                 return results;
             }
             
-            var animals = Object.FindObjectsByType<AnimalAI>(FindObjectsSortMode.None);
+            var animals = Object.FindObjectsByType<AnimalAI>();
             var availableAnimals = new List<AnimalAI>();
             foreach (var a in animals)
             {
@@ -110,7 +110,7 @@ namespace ProjectName.Systems
         public static List<GuardPlaceholder> GetActiveHunters()
         {
             var result = new List<GuardPlaceholder>();
-            var guards = Object.FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
+            var guards = Object.FindObjectsByType<GuardPlaceholder>();
             foreach (var g in guards)
             {
                 if (g.IsAlive && g.IsRecruited && g.Role == GuardRole.Hunter)

@@ -4,6 +4,7 @@ using ProjectName.Systems;
 using UnityEngine;
 using ProjectName.Core.Data;
 using ProjectName.UI.Themes;
+#pragma warning disable 0414
 
 namespace ProjectName.UI
 {
@@ -277,8 +278,7 @@ namespace ProjectName.UI
         {
             if (MercenaryManager.Instance == null) return;
 
-            var data = MercenaryManager.Instance.GetMercenaryData(mercenaryId);
-            if (data.id == null)
+            if (!MercenaryManager.Instance.TryGetMercenaryData(mercenaryId, out var data))
             {
                 _statusMessage = "⚠️ 알 수 없는 용병입니다.";
                 _statusTimer = 3f;
@@ -313,7 +313,7 @@ namespace ProjectName.UI
         {
             if (MercenaryManager.Instance == null) return;
 
-            var data = MercenaryManager.Instance.GetMercenaryData(mercenaryId);
+            MercenaryManager.Instance.TryGetMercenaryData(mercenaryId, out var data);
             if (MercenaryManager.Instance.FireMercenary(mercenaryId))
             {
                 _statusMessage = $"🔴 {data.mercenaryName} 해고됨.";

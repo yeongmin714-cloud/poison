@@ -1,3 +1,4 @@
+#pragma warning disable 0414
 #if UNITY_EDITOR
 
 using UnityEditor;
@@ -307,7 +308,7 @@ namespace ProjectName.Systems
             if (RenderSettings.sun != null)
                 return RenderSettings.sun;
 
-            Light[] lights = Object.FindObjectsByType<Light>(FindObjectsSortMode.None);
+            Light[] lights = Object.FindObjectsByType<Light>();
             foreach (Light l in lights)
             {
                 if (l.type == LightType.Directional)

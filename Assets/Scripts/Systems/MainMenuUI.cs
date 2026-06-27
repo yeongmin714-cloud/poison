@@ -44,7 +44,6 @@ namespace ProjectName.Systems
 
         // ===== 상태 =====
         private bool _isVisible = true;
-        private bool _showLoadUI;
         private bool _showDifficultySelect; // C20-03
         private DifficultyMode _selectedDifficulty = DifficultyMode.Normal; // C20-03
         private string _settingsMessage = "";
@@ -73,6 +72,7 @@ namespace ProjectName.Systems
         private GUIStyle _creditsBgPanelStyle;
         private GUIStyle _cachedGradientStyle;
         private GUIStyle _cachedStarStyle;
+        private GUIStyle _pulseTitleStyle;
         private Texture2D[] _cachedStarTextures;
         private Texture2D _cachedDimTexture;
         private Texture2D _cachedBgPanelTexture;
@@ -101,7 +101,6 @@ namespace ProjectName.Systems
         private void Start()
         {
             Debug.Log("[MainMenuUI] 메인 메뉴 표시");
-            _showLoadUI = false;
             _showDifficultySelect = false;
         }
 
@@ -111,7 +110,6 @@ namespace ProjectName.Systems
         public void Show()
         {
             _isVisible = true;
-            _showLoadUI = false;
             _showDifficultySelect = false;
             if (_loadGameUIObject != null)
                 _loadGameUIObject.SetActive(false);
@@ -132,7 +130,6 @@ namespace ProjectName.Systems
         /// </summary>
         public void SetLoadUIActive(bool active)
         {
-            _showLoadUI = active;
             if (_loadGameUIObject != null)
                 _loadGameUIObject.SetActive(active);
         }
@@ -197,17 +194,21 @@ namespace ProjectName.Systems
             _cachedBgPanelTexture = MakeTexture(1, 1, _bgColor);
             _cachedCreditsBgTexture = MakeTexture(1, 1, _creditsBgColor);
 
-            // 별 텍스처 미리 생성 (30개, 매프레임 생성 방지)
+            // 별 텍스처 미리 생성 (30개, 각각 고유 알파값으로 매프레임 SetPixel/Apply 방지)
             int starCount = 30;
             _cachedStarTextures = new Texture2D[starCount];
             for (int i = 0; i < starCount; i++)
-                _cachedStarTextures[i] = MakeTexture(2, 2, Color.white);
+            {
+                float alpha = 0.05f + (float)i / (starCount - 1) * 0.45f;
+                _cachedStarTextures[i] = MakeTexture(2, 2, new Color(1f, 1f, 1f, alpha));
+            }
 
             // ===== 캐싱 스타일 =====
             _dimBgStyle = new GUIStyle { normal = { background = _cachedDimTexture } };
             _bgPanelStyle = new GUIStyle { normal = { background = _cachedBgPanelTexture } };
             _creditsBgPanelStyle = new GUIStyle { normal = { background = _cachedCreditsBgTexture } };
             _cachedStarStyle = new GUIStyle { normal = { background = _cachedStarTextures[0] } };
+            _pulseTitleStyle = new GUIStyle(_titleStyle);
 
             _subtitleStyle = new GUIStyle
             {
@@ -288,17 +289,45 @@ namespace ProjectName.Systems
             }
         }
 
-        // C20-03: 저장된 게임 난이도 힌트 (UI 표시용)
+        private void OnDestroy()
+        {
+            // 생성된 텍스처 정리 (메모리 누수 방지)
+            if (_cachedDimTexture != null)
+                Object.Destroy(_cachedDimTexture);
+            if (_cachedBgPanelTexture != null)
+                Object.Destroy(_cachedBgPanelTexture);
+            if (_cachedCreditsBgTexture != null)
+                Object.Destroy(_cachedCreditsBgTexture);
+            if (_cachedGradientTexture != null)
+                Object.Destroy(_cachedGradientTexture);
+            if (_cachedStarTextures != null)
+            {
+                for (int i = 0; i < _cachedStarTextures.Length; i++)
+                {
+                    if (_cachedStarTextures[i] != null)
+                        Object.Destroy(_cachedStarTextures[i]);
+                }
+            }
+        }
+
+        // C20-03: 저장된 게임 난이도 힌트 (UI 표시용, 가장 최근 저장 기준)
         private string GetSavedDifficultyHint()
         {
             if (SaveManager.Instance != null)
             {
                 var infos = SaveManager.Instance.GetAllSlotInfos();
+                SaveData mostRecent = null;
+                string newestTimestamp = "";
                 foreach (var info in infos)
                 {
-                    if (info != null)
-                        return $"저장된 난이도: {GetDifficultyDisplayName(info.difficulty)}";
+                    if (info != null && string.CompareOrdinal(info.timestamp, newestTimestamp) > 0)
+                    {
+                        mostRecent = info;
+                        newestTimestamp = info.timestamp;
+                    }
                 }
+                if (mostRecent != null)
+                    return $"저장된 난이도: {GetDifficultyDisplayName(mostRecent.difficulty)}";
             }
             return null;
         }
@@ -342,15 +371,12 @@ namespace ProjectName.Systems
             // 메인 박스 배경 — 캐싱 사용
             GUI.Box(new Rect(centerX, centerY, _windowWidth, _windowHeight), "", _bgPanelStyle);
 
-            // G3-02: 펄스 효과 적용된 타이틀
+            // G3-02: 펄스 효과 적용된 타이틀 (캐싱된 스타일 재사용)
             float pulse = 1f + Mathf.Sin(_titlePulseTimer) * _titlePulseAmount;
-            var pulseTitleStyle = new GUIStyle(_titleStyle)
-            {
-                fontSize = (int)(36 * pulse)
-            };
-            pulseTitleStyle.normal.textColor = Color.Lerp(_titleColor, _titlePulseColor,
+            _pulseTitleStyle.fontSize = (int)(36 * pulse);
+            _pulseTitleStyle.normal.textColor = Color.Lerp(_titleColor, _titlePulseColor,
                 (Mathf.Sin(_titlePulseTimer) + 1f) / 2f);
-            GUI.Label(new Rect(centerX - 20, centerY + 30, _windowWidth + 40, 55), "Korea 1420", pulseTitleStyle);
+            GUI.Label(new Rect(centerX - 20, centerY + 30, _windowWidth + 40, 55), "Korea 1420", _pulseTitleStyle);
 
             // 부제목 — 캐싱된 스타일 사용
             GUI.Label(new Rect(centerX, centerY + 80, _windowWidth, 30), "— 조선 —", _subtitleStyle);
@@ -408,12 +434,10 @@ namespace ProjectName.Systems
         private void OnLoadGameClicked()
         {
             Debug.Log("[MainMenuUI] 불러오기 화면으로 전환");
-            _showLoadUI = true;
             if (_loadGameUIObject != null)
             {
                 _loadGameUIObject.SetActive(true);
-                if (LoadGameUIComponent != null)
-                    LoadGameUIComponent.RefreshSlots();
+                // RefreshSlots()는 LoadGameUI.OnEnable()에서 자동 호출됨
             }
         }
 
@@ -527,29 +551,33 @@ namespace ProjectName.Systems
             Color bgColor = isSelected ? baseColor : baseColor * 0.5f;
             GUI.backgroundColor = bgColor;
 
-            // isSelected 상태에 따라 textColor 설정 (new GUIStyle 방지)
+            // isSelected 상태에 따라 textColor/fontSize 변경 (try/finally로 복원 보장)
             Color originalTextColor = _buttonStyle.normal.textColor;
             Color originalHoverColor = _buttonStyle.hover.textColor;
-            if (isSelected)
-            {
-                _buttonStyle.normal.textColor = Color.white;
-                _buttonStyle.hover.textColor = Color.white;
-            }
-
-            GUIStyle btnStyle = _buttonStyle;
             int originalFontSize = _buttonStyle.fontSize;
-            _buttonStyle.fontSize = 18;
-
-            if (GUI.Button(new Rect(x, y, w, h), label, btnStyle))
+            try
             {
-                _selectedDifficulty = mode;
-                Debug.Log($"[MainMenuUI] 난이도 선택: {mode}");
+                if (isSelected)
+                {
+                    _buttonStyle.normal.textColor = Color.white;
+                    _buttonStyle.hover.textColor = Color.white;
+                }
+                _buttonStyle.fontSize = 18;
+
+                if (GUI.Button(new Rect(x, y, w, h), label, _buttonStyle))
+                {
+                    _selectedDifficulty = mode;
+                    Debug.Log($"[MainMenuUI] 난이도 선택: {mode}");
+                }
+            }
+            finally
+            {
+                // 원래 값 복원 (예외 발생 시에도 안전)
+                _buttonStyle.fontSize = originalFontSize;
+                _buttonStyle.normal.textColor = originalTextColor;
+                _buttonStyle.hover.textColor = originalHoverColor;
             }
 
-            // 원래 값 복원
-            _buttonStyle.fontSize = originalFontSize;
-            _buttonStyle.normal.textColor = originalTextColor;
-            _buttonStyle.hover.textColor = originalHoverColor;
             GUI.backgroundColor = Color.white;
         }
 
@@ -649,24 +677,19 @@ namespace ProjectName.Systems
                 _cachedStarPositionsInitialized = true;
             }
 
-            // 별 반짝임 — 캐싱된 텍스처/스타일 사용
+            // 별 반짝임 — 캐싱된 텍스처 (매프레임 SetPixel/Apply 없이 인덱싱)
             for (int i = 0; i < _cachedStarPositions.Length; i++)
             {
                 float starX = _cachedStarPositions[i].x;
                 float starY = _cachedStarPositions[i].y;
                 float twinkle = 0.3f + 0.7f * Mathf.Sin(_titlePulseTimer * 2f + i * 1.7f);
                 twinkle = Mathf.Max(0.1f, twinkle);
-                Color starColor = new Color(1f, 1f, 1f, twinkle * 0.5f);
-
-                // 미리 생성된 별 텍스처의 색상만 업데이트
-                var tex = _cachedStarTextures[i];
-                tex.SetPixel(0, 0, starColor);
-                tex.SetPixel(1, 0, starColor);
-                tex.SetPixel(0, 1, starColor);
-                tex.SetPixel(1, 1, starColor);
-                tex.Apply();
-
-                _cachedStarStyle.normal.background = tex;
+                float desiredAlpha = twinkle * 0.5f;
+                // Map desired alpha to nearest pre-created texture index
+                int texIndex = Mathf.Clamp(
+                    (int)((desiredAlpha - 0.05f) / 0.45f * (_cachedStarTextures.Length - 1)),
+                    0, _cachedStarTextures.Length - 1);
+                _cachedStarStyle.normal.background = _cachedStarTextures[texIndex];
                 GUI.Box(new Rect(starX, starY, 2, 2), "", _cachedStarStyle);
             }
         }

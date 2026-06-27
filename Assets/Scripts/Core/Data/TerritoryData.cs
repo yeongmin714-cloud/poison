@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+#pragma warning disable 0414
 
 namespace ProjectName.Core.Data
 {
@@ -56,28 +57,28 @@ namespace ProjectName.Core.Data
 
     /// <summary>
     /// 영주 정보 — 선호 음식, 지병, 충성심, 성격
-    /// (readonly struct: 생성 후 변경 불가, 복사본 수정 버그 방지)
+    /// (struct: 생성 후 변경 불가, 복사본 수정 버그 방지)
     /// </summary>
     [Serializable]
-    public readonly struct LordInfo
+    public struct LordInfo
     {
-        [field: SerializeField] public string lordName { get; init; }                  // 영주 이름
-        [field: SerializeField] public string preferredFood { get; init; }             // 선호 음식 (null/"" = 없음)
-        [field: SerializeField] public string chronicDisease { get; init; }            // 지병 (null/"" = 없음)
+        [field: SerializeField] public string lordName { get; set; }                  // 영주 이름
+        [field: SerializeField] public string preferredFood { get; set; }             // 선호 음식 (null/"" = 없음)
+        [field: SerializeField] public string chronicDisease { get; set; }            // 지병 (null/"" = 없음)
         [field: SerializeField, Range(0, 100)]
-        public int loyalty { get; init; }                      // 충성도 (0=반역, 100=완전 충성)
-        [field: SerializeField] public LordPersonality personality { get; init; }       // 성격
+        public int loyalty { get; set; }                      // 충성도 (0=반역, 100=완전 충성)
+        [field: SerializeField] public LordPersonality personality { get; set; }       // 성격
     }
 
     /// <summary>
     /// 영지 고유 식별자 — 국가 + 인덱스로 구성
-    /// (readonly struct: 생성 후 변경 불가)
+    /// (struct: 생성 후 변경 불가)
     /// </summary>
     [Serializable]
-    public readonly struct TerritoryId
+    public struct TerritoryId
     {
-        [field: SerializeField] public NationType nation { get; init; }
-        [field: SerializeField] public int index { get; init; }  // 1~20 (Ring 1~4 각 5개씩)
+        [field: SerializeField] public NationType nation { get; set; }
+        [field: SerializeField] public int index { get; set; }  // 1~20 (Ring 1~4 각 5개씩)
 
         public TerritoryId(NationType nation, int index)
         {
@@ -94,19 +95,19 @@ namespace ProjectName.Core.Data
     /// <summary>
     /// 영지 정의 데이터 (변하지 않는 설계 정보)
     /// Resources에서 로드하거나 코드에서 정의
-    /// (readonly struct: 생성 후 변경 불가, 복사본 수정 버그 방지)
+    /// (struct: 생성 후 변경 불가, 복사본 수정 버그 방지)
     /// </summary>
     [Serializable]
-    public readonly struct TerritoryDefinition
+    public struct TerritoryDefinition
     {
-        [field: SerializeField] public TerritoryId id { get; init; }
-        [field: SerializeField] public string territoryName { get; init; }             // 영지 이름 (예: "동쪽 초원지대")
-        [field: SerializeField] public NationType nation { get; init; }                // 소속 국가
-        [field: SerializeField] public TerritoryDifficulty difficulty { get; init; }    // 난이도 링
-        [field: SerializeField] public int guardCount { get; init; }                   // 병사 수
-        [field: SerializeField] public LordInfo lord { get; init; }                    // 영주 정보
-        [field: SerializeField] public string description { get; init; }               // 영지 설명
-        [field: SerializeField] public bool isNightOnly { get; init; }                 // 야간에만 활성화되는 영지 (ND-01)
+        [field: SerializeField] public TerritoryId id { get; set; }
+        [field: SerializeField] public string territoryName { get; set; }             // 영지 이름 (예: "동쪽 초원지대")
+        [field: SerializeField] public NationType nation { get; set; }                // 소속 국가
+        [field: SerializeField] public TerritoryDifficulty difficulty { get; set; }    // 난이도 링
+        [field: SerializeField] public int guardCount { get; set; }                   // 병사 수
+        [field: SerializeField] public LordInfo lord { get; set; }                    // 영주 정보
+        [field: SerializeField] public string description { get; set; }               // 영지 설명
+        [field: SerializeField] public bool isNightOnly { get; set; }                 // 야간에만 활성화되는 영지 (ND-01)
     }
 
     /// <summary>

@@ -4,6 +4,7 @@ using ProjectName.Core.Data;
 using ProjectName.UI;
 using ProjectName.UI.Themes;
 using System.Collections.Generic;
+#pragma warning disable 0414
 
 namespace ProjectName.UI
 {

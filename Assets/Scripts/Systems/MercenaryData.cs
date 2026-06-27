@@ -42,27 +42,29 @@ namespace ProjectName.Systems
         /// <summary>직업/타입 (Soldier, Bard 등)</summary>
         public string jobType;
 
-        /// <summary>생성자</summary>
+        /// <summary>
+        /// 생성자. 음수 값은 0으로 클램프됩니다.
+        /// </summary>
         public MercenaryData(
             string id, string mercenaryName, MercenaryGrade grade,
             float maxHP, float attack, float defense, float moveSpeed,
             int hireCost, string specialAbility, string backStory, string jobType = "Soldier")
         {
-            this.id = id;
-            this.mercenaryName = mercenaryName;
+            this.id = id ?? string.Empty;
+            this.mercenaryName = mercenaryName ?? string.Empty;
             this.grade = grade;
-            this.maxHP = maxHP;
-            this.attack = attack;
-            this.defense = defense;
-            this.moveSpeed = moveSpeed;
-            this.hireCost = hireCost;
-            this.specialAbility = specialAbility;
-            this.backStory = backStory;
-            this.jobType = jobType;
+            this.maxHP = maxHP < 0f ? 0f : maxHP;
+            this.attack = attack < 0f ? 0f : attack;
+            this.defense = defense < 0f ? 0f : defense;
+            this.moveSpeed = moveSpeed < 0f ? 0f : moveSpeed;
+            this.hireCost = hireCost < 0 ? 0 : hireCost;
+            this.specialAbility = specialAbility ?? string.Empty;
+            this.backStory = backStory ?? string.Empty;
+            this.jobType = jobType ?? "Soldier";
         }
 
         /// <summary>등급에 따른 별표 표기</summary>
-        public string GradeStars
+        public readonly string GradeStars
         {
             get
             {
@@ -78,7 +80,7 @@ namespace ProjectName.Systems
         }
 
         /// <summary>일반 병사 대비 능력치 배율</summary>
-        public float StatMultiplier
+        public readonly float StatMultiplier
         {
             get
             {
@@ -92,14 +94,17 @@ namespace ProjectName.Systems
                 };
             }
         }
+
+        /// <summary>용병 ID가 비어 있거나 null인지 여부 (존재하지 않는 용병 감지)</summary>
+        public readonly bool IsValid => !string.IsNullOrEmpty(id);
     }
 
     /// <summary>용병 등급</summary>
     public enum MercenaryGrade
     {
-        Normal,    // ★ 일반
-        High,      // ★★ 고급
-        Elite,     // ★★★ 정예
-        Legendary  // ★★★★ 전설
+        Normal = 0,    // ★ 일반
+        High = 1,      // ★★ 고급
+        Elite = 2,     // ★★★ 정예
+        Legendary = 3  // ★★★★ 전설
     }
 }

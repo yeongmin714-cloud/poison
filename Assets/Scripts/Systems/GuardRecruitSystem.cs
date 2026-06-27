@@ -1,4 +1,5 @@
 using UnityEngine;
+#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -37,7 +38,7 @@ namespace ProjectName.Systems
         /// <param name="success">성공 여부</param>
         /// <param name="message">결과 메시지</param>
         /// <param name="method">포섭 방식: "auto", "normal", "gift", "threat", "fail"</param>
-        public readonly struct RecruitResult
+        public struct RecruitResult
         {
             public readonly bool success;
             public readonly string message;

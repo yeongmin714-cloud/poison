@@ -160,13 +160,16 @@ namespace ProjectName.Systems
             lordGo.transform.position = castlePosition;
 
             // 간단한 시각적 표시를 위한 큐브
-            var renderer = lordGo.AddComponent<MeshRenderer>();
-            var filter = lordGo.AddComponent<MeshFilter>();
             var cubeMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
             if (cubeMesh == null)
             {
                 Debug.LogWarning("[LordSurrenderSystem] Built-in Cube.fbx를 찾을 수 없습니다. 큐브 없이 Placeholder 생성합니다.");
+                Debug.Log($"[LordSurrenderSystem] 영주 Placeholder (무형) 생성: {lord.lordName} at {castlePosition}");
+                return lordGo;
             }
+
+            var renderer = lordGo.AddComponent<MeshRenderer>();
+            var filter = lordGo.AddComponent<MeshFilter>();
             filter.sharedMesh = cubeMesh;
             renderer.material.color = GetLordColor(lord.personality);
             lordGo.transform.localScale = new Vector3(1.5f, 2f, 1.5f);
@@ -175,16 +178,19 @@ namespace ProjectName.Systems
             var crownGo = new GameObject("Crown");
             crownGo.transform.SetParent(lordGo.transform);
             crownGo.transform.localPosition = new Vector3(0f, 1.5f, 0f);
-            var crownRenderer = crownGo.AddComponent<MeshRenderer>();
-            var crownFilter = crownGo.AddComponent<MeshFilter>();
             var crownMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
-            if (crownMesh == null)
+            if (crownMesh != null)
             {
-                Debug.LogWarning("[LordSurrenderSystem] Crown용 Built-in Cube.fbx를 찾을 수 없습니다.");
+                var crownRenderer = crownGo.AddComponent<MeshRenderer>();
+                var crownFilter = crownGo.AddComponent<MeshFilter>();
+                crownFilter.sharedMesh = crownMesh;
+                crownRenderer.material.color = Color.yellow;
+                crownGo.transform.localScale = new Vector3(0.8f, 0.3f, 0.8f);
             }
-            crownFilter.sharedMesh = crownMesh;
-            crownRenderer.material.color = Color.yellow;
-            crownGo.transform.localScale = new Vector3(0.8f, 0.3f, 0.8f);
+            else
+            {
+                Debug.LogWarning("[LordSurrenderSystem] Crown용 Built-in Cube.fbx를 찾을 수 없습니다. 왕관 없이 생성합니다.");
+            }
 
             Debug.Log($"[LordSurrenderSystem] 영주 Placeholder 생성: {lord.lordName} at {castlePosition}");
 
@@ -274,6 +280,7 @@ namespace ProjectName.Systems
             // 영지 상태 업데이트
             state.ownership = TerritoryOwnership.PlayerOwned;
             state.lordExecuted = true;
+            state.lordDefeated = true;
             state.lordSurrendered = true;
 
             // Lord Placeholder 제거

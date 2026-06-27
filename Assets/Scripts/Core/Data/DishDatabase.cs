@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using ProjectName.Core;
 using UnityEngine;
+#pragma warning disable 0414
 
 namespace ProjectName.Core.Data
 {

@@ -1,4 +1,5 @@
 using UnityEngine;
+#pragma warning disable 0414
 
 namespace ProjectName.Core
 {
@@ -65,7 +66,7 @@ namespace ProjectName.Core
         /// <summary>
         /// 등급별 데이터를 담는 내부 레코드 구조체.
         /// </summary>
-        private readonly struct RarityEntry
+        private struct RarityEntry
         {
             public readonly float   statMultiplier;
             public readonly float   statVariance;

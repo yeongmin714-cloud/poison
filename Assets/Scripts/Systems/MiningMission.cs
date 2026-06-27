@@ -103,16 +103,29 @@ namespace ProjectName.Systems
                 {
                     float bonus = GuardStatusSystem.GetActivityBonus(GuardRole.Miner);
                     int finalCount = Mathf.RoundToInt(yield * bonus);
-                    bool added = PlayerInventory.Instance != null && PlayerInventory.Instance.AddItem(item, finalCount);
 
-                    results.Add(new MineResult
+                    if (PlayerInventory.Instance != null && PlayerInventory.Instance.AddItem(item, finalCount))
                     {
-                        success = true,
-                        message = $"{miner.GuardName}: {item.displayName} x{finalCount} 채광! ({bonus:F1}배)",
-                        itemsGathered = finalCount,
-                        resourceName = item.id,
-                        minerName = miner.GuardName
-                    });
+                        results.Add(new MineResult
+                        {
+                            success = true,
+                            message = $"{miner.GuardName}: {item.displayName} x{finalCount} 채광! ({bonus:F1}배)",
+                            itemsGathered = finalCount,
+                            resourceName = item.id,
+                            minerName = miner.GuardName
+                        });
+                    }
+                    else
+                    {
+                        results.Add(new MineResult
+                        {
+                            success = false,
+                            message = $"{miner.GuardName}: 인벤토리 공간 부족 — {item.displayName} x{finalCount} 손실",
+                            itemsGathered = 0,
+                            resourceName = item.id,
+                            minerName = miner.GuardName
+                        });
+                    }
                 }
 
                 nodeIndex++;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ProjectName.Core.Data;
 using UnityEngine;
+#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -196,7 +197,7 @@ namespace ProjectName.Systems
         {
             // Unity 6000: FindObjectsByType 사용 (FindObjectsOfType<GameObject>()보다 효율적)
 #if UNITY_EDITOR
-            var roots = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+            var roots = GameObject.FindObjectsByType<GameObject>();
 #else
             var roots = GameObject.FindObjectsByType<GameObject>();
 #endif

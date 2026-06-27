@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+#pragma warning disable 0414
 
 namespace ProjectName.Core.Data
 {
@@ -8,7 +9,7 @@ namespace ProjectName.Core.Data
     /// 각 가이드는 고유 ID, 제목, 설명, 트리거 액션 정보를 담습니다.
     /// </summary>
     [System.Serializable]
-    public readonly struct GuideEntry
+    public struct GuideEntry
     {
         public string Id { get; }
         public string Title { get; }

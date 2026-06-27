@@ -1,3 +1,4 @@
+#pragma warning disable 0414
 ﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -7,7 +8,7 @@ namespace ProjectName.Core.Data
     /// <summary>
     /// Represents the result of cooking a meat with a herb (or special ingredient).
     /// </summary>
-    public readonly struct CookingResult
+    public struct CookingResult
     {
         public string DishId { get; }
         public string DishName { get; }

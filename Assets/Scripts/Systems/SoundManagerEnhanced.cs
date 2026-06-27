@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {

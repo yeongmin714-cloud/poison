@@ -16,6 +16,7 @@ namespace ProjectName.Systems
     public class MonsterAggroSystem : MonoBehaviour
     {
         public const float AGGRO_RANGE = 10f;
+        private const float AGGRO_RANGE_SQR = AGGRO_RANGE * AGGRO_RANGE; // 100f
 
         private static MonsterAggroSystem _instance;
         public static MonsterAggroSystem Instance
@@ -81,18 +82,22 @@ namespace ProjectName.Systems
         {
             if (attackedMonster == null || attacker == null) return;
 
+            // 공격받은 몬스터의 IAggroable 한 번만 조회
+            var attackedAggro = attackedMonster.GetComponent<IAggroable>();
+            if (attackedAggro == null) return;
+
             Vector3 attackPos = attackedMonster.transform.position;
-            string attackedType = GetMonsterType(attackedMonster);
+            string attackedType = attackedAggro.MonsterType;
             if (attackedType == null) return;
 
             // 공격받은 몬스터 자신도 어그로 설정 (전투 중이 아니거나 쿨다운 중일 때만)
-            var selfAggro = attackedMonster.GetComponent<IAggroable>();
-            if (selfAggro != null && !selfAggro.IsInCombat)
+            if (!attackedAggro.IsInCombat)
             {
-                selfAggro.SetAggroTarget(attacker);
+                attackedAggro.SetAggroTarget(attacker);
             }
 
-            // 주변 같은 종류 몬스터 탐색
+            // 주변 같은 종류 몬스터 탐색 (제곱 거리 비교로 sqrt 절약)
+            float sqrRange = AGGRO_RANGE_SQR;
             foreach (var kvp in _monsterMap)
             {
                 var monster = kvp.Key;
@@ -103,8 +108,8 @@ namespace ProjectName.Systems
                 if (monster.MonsterType != attackedType) continue;
                 if (monster.IsInCombat) continue; // 이미 전투 중이면 스킵
 
-                float dist = Vector3.Distance(go.transform.position, attackPos);
-                if (dist <= AGGRO_RANGE)
+                float sqrDist = (go.transform.position - attackPos).sqrMagnitude;
+                if (sqrDist <= sqrRange)
                 {
                     monster.SetAggroTarget(attacker);
                 }
@@ -164,7 +169,7 @@ namespace ProjectName.Systems
             }
             GUILayout.EndArea();
         }
-#endif
+        #endif
 
         #if UNITY_EDITOR
         /// <summary>테스트용: 싱글톤 강제 초기화</summary>
@@ -176,20 +181,20 @@ namespace ProjectName.Systems
                 _instance = null;
             }
         }
-#endif
+        #endif
 
-        /// <summary>테스트용: 특정 위치의 몬스터 찾기 (거리 기반)</summary>
+        /// <summary>테스트용: 특정 위치의 몬스터 찾기 (거리 기반, 제곱 거리 비교)</summary>
         public IAggroable FindNearestAggroable(Vector3 position, float maxDist)
         {
             IAggroable nearest = null;
-            float bestDist = maxDist;
+            float bestSqrDist = maxDist * maxDist;
             foreach (var kvp in _monsterMap)
             {
                 if (kvp.Value == null) continue;
-                float d = Vector3.Distance(kvp.Value.transform.position, position);
-                if (d <= bestDist)
+                float sqrDist = (kvp.Value.transform.position - position).sqrMagnitude;
+                if (sqrDist <= bestSqrDist)
                 {
-                    bestDist = d;
+                    bestSqrDist = sqrDist;
                     nearest = kvp.Key;
                 }
             }

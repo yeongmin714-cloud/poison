@@ -1,6 +1,7 @@
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.UI;
+#pragma warning disable 0414
 
 namespace ProjectName.UI
 {

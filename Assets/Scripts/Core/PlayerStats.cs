@@ -1,3 +1,5 @@
+using UnityEngine;
+#pragma warning disable 0414
 ﻿using UnityEngine;
 using System;
 
@@ -23,7 +25,7 @@ namespace ProjectName.Core
         {
             if (Instance != null) return;
 
-            var existing = UnityEngine.Object.FindFirstObjectByType<PlayerStats>();
+            var existing = UnityEngine.Object.FindAnyObjectByType<PlayerStats>();
             if (existing != null)
             {
                 Instance = existing;
