@@ -35,6 +35,9 @@ namespace ProjectName.Systems
         /// <summary>등록된 모든 몬스터 (IAggroable → GameObject 매핑)</summary>
         private readonly Dictionary<IAggroable, GameObject> _monsterMap = new Dictionary<IAggroable, GameObject>();
 
+        /// <summary>Update에서 재사용할 제거 목록 캐시 (GC 부하 방지)</summary>
+        private readonly List<IAggroable> _toRemoveCache = new List<IAggroable>();
+
         /// <summary>등록된 모든 IAggroable 목록</summary>
         public IReadOnlyCollection<IAggroable> AllMonsters => _monsterMap.Keys;
 
@@ -82,9 +85,9 @@ namespace ProjectName.Systems
             string attackedType = GetMonsterType(attackedMonster);
             if (attackedType == null) return;
 
-            // 공격받은 몬스터 자신도 어그로 설정
+            // 공격받은 몬스터 자신도 어그로 설정 (전투 중이 아니거나 쿨다운 중일 때만)
             var selfAggro = attackedMonster.GetComponent<IAggroable>();
-            if (selfAggro != null)
+            if (selfAggro != null && !selfAggro.IsInCombat)
             {
                 selfAggro.SetAggroTarget(attacker);
             }
@@ -122,7 +125,7 @@ namespace ProjectName.Systems
         private void Update()
         {
             // 각 몬스터의 어그로 타이머 업데이트
-            var toRemove = new List<IAggroable>();
+            _toRemoveCache.Clear();
             foreach (var kvp in _monsterMap)
             {
                 var monster = kvp.Key;
@@ -130,17 +133,18 @@ namespace ProjectName.Systems
 
                 if (go == null)
                 {
-                    toRemove.Add(monster);
+                    _toRemoveCache.Add(monster);
                     continue;
                 }
 
                 monster.UpdateAggroTimer(Time.deltaTime);
             }
 
-            foreach (var m in toRemove)
+            foreach (var m in _toRemoveCache)
                 _monsterMap.Remove(m);
         }
 
+        #if UNITY_EDITOR
         private void OnGUI()
         {
             GUILayout.BeginArea(new Rect(10, 10, 300, 600));
@@ -160,7 +164,9 @@ namespace ProjectName.Systems
             }
             GUILayout.EndArea();
         }
+#endif
 
+        #if UNITY_EDITOR
         /// <summary>테스트용: 싱글톤 강제 초기화</summary>
         public static void ResetInstance()
         {
@@ -170,6 +176,7 @@ namespace ProjectName.Systems
                 _instance = null;
             }
         }
+#endif
 
         /// <summary>테스트용: 특정 위치의 몬스터 찾기 (거리 기반)</summary>
         public IAggroable FindNearestAggroable(Vector3 position, float maxDist)

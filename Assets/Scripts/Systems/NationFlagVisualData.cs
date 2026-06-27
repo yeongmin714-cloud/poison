@@ -15,11 +15,13 @@ namespace ProjectName.Systems
         {
             return nation switch
             {
+                NationType.None => "⬜",
                 NationType.East => "🌅",
                 NationType.West => "🌿",
                 NationType.South => "🔥",
                 NationType.North => "❄️",
                 NationType.Empire => "👑",
+                NationType.Dracula => "🧛",
                 _ => "❓"
             };
         }
@@ -31,11 +33,13 @@ namespace ProjectName.Systems
         {
             return nation switch
             {
+                NationType.None => "회색",
                 NationType.East => "파랑",
                 NationType.West => "초록",
                 NationType.South => "빨강",
                 NationType.North => "보라",
                 NationType.Empire => "황금",
+                NationType.Dracula => "검정",
                 _ => "알 수 없음"
             };
         }
@@ -47,11 +51,13 @@ namespace ProjectName.Systems
         {
             return nation switch
             {
+                NationType.None => "미소속",
                 NationType.East => "떠오르는 태양",
                 NationType.West => "떡갈나무 잎",
                 NationType.South => "불꽃",
                 NationType.North => "눈송이/산",
                 NationType.Empire => "독수리/왕관",
+                NationType.Dracula => "박쥐/달",
                 _ => "알 수 없음"
             };
         }
@@ -63,11 +69,13 @@ namespace ProjectName.Systems
         {
             return nation switch
             {
+                NationType.None => "소속되지 않은 영역",
                 NationType.East => "동쪽의 시작을 상징",
                 NationType.West => "서쪽의 대지와 자연",
                 NationType.South => "남쪽의 열정과 전투",
                 NationType.North => "북쪽의 냉철함",
                 NationType.Empire => "중앙 황제의 권위",
+                NationType.Dracula => "밤의 공포, 드라큘라의 영역",
                 _ => "알 수 없는 국가"
             };
         }

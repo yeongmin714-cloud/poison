@@ -257,7 +257,7 @@
    256|   311|| 2026-06-15 | **C9-11 병사 음식/약 주기** | GuardPlaceholder 아이템 선택 팝업(IMGUI), 음식→체력회복+호감도, 약→체력회복+호감도, 마약→호감도+중독도, PlayerInventory.GetAllSlots/GetSlotsByCategory 연동, GuardGiveItemTests 12개 All passed ✅ |
    257|   312|| 2026-06-15 | **C9-12 병사 중독 시스템** | GuardAddictionSystem (6단계: 정상~과다복용, 전투력계수/행동오류확률/자연감소/해독제50%감소/독약호감도-10), GuardPlaceholder Update 연동, GuardAddictionTests 15개 All passed ✅ |
    258|   313|| 2026-06-15 | **C9-13 병사 레벨 시스템** | GuardLevelSystem (Lv.1~50, 영지난이도별 범위: Ring1=1~10, Ring4=26~40, Empire=41~50, 레벨당HP+10/공격+1/방어+0.5, 경험치체계 1.2배율), GuardLevelTests 22개 All passed ✅ |
-   259|   314|| 2026-06-15 | **C9-14 몬스터 레벨 시스템** | MonsterLevelSystem (티어별 기본Lv: 초반1~5/중반6~15/후반16~30, 영지난이도보정 Ring3=+3/Empire=+10, HP/데미지/XP계산, 드랍률보정 Lv10당+5%, 티어추정), MonsterLevelTests 22개 All passed ✅ |
+   259|   314|| 2026-06-15 | **C9-14 몬스터 레벨 시스템** | MonsterLevelSystem (티어별 기본Lv: 초반1~5/중반6~15/후반16~30, 영지난이도보정 Ring3=+5/Empire=+15, HP/데미지/XP계산, 드랍률보정 Lv10당+5%, 티어추정), MonsterLevelTests 22개 All passed ✅ |
    260|   315|| 2026-06-15 | **C9-15 병사 포섭 시스템** | GuardRecruitSystem (4단계: 자동100%/일반70+/선물50+50%/위협0+20%, 실패시 호감도감소), GuardPlaceholder 포섭 버튼+IsRecruited 속성, GuardRecruitTests 15개 All passed ✅ |
    261|   316|| 2026-06-15 | **C9-16 병사 상태 체계** | GuardStatusSystem (GuardRole 5종, 일일사망률/활동보너스/전투가능여부, 상태요약 문자열), GuardPlaceholder Role 속성+StatusSummary, GuardStatusTests 18개 All passed ✅ |
    262|   317|| 2026-06-15 | **C9-17 장비 내구도 시스템** | ItemData.maxDurability + ItemSlot.currentDurability, 무기20/방어구30/도구30 내구도, ReduceDurability/Repair/색상태그(🟢🟡🔴)/수리비용/파괴감지, DurabilityTests 22개 All passed ✅ |

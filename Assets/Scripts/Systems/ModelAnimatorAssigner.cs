@@ -18,8 +18,16 @@ namespace ProjectName.Systems
         private static RuntimeAnimatorController _soldierController;
         private static RuntimeAnimatorController _monsterController;
 
+        // Animator 파라미터 상수
+        private const string ParamState = "State";
+        private const string ParamAttackTrigger = "AttackTrigger";
+        private const string ParamJumpTrigger = "JumpTrigger";
+        private const string ParamGatherTrigger = "GatherTrigger";
+
+        private const int StateIdle = 0;
+
         /// <summary>
-        /// Animator Controller들을 로드합니다. (최초 1회)
+        /// Animator Controller들을 로드합니다. (최초 1회, 스레드 안전하지 않음 — 메인 스레드 전용)
         /// </summary>
         private static void EnsureControllers()
         {
@@ -31,6 +39,10 @@ namespace ProjectName.Systems
 
             if (_playerController == null)
                 Debug.LogWarning("[ModelAnimatorAssigner] Player_Animator.controller를 찾을 수 없습니다. (Resources/Animations/ 경로 확인)");
+            if (_soldierController == null)
+                Debug.LogWarning("[ModelAnimatorAssigner] Soldier_Animator.controller를 찾을 수 없습니다. (Resources/Animations/ 경로 확인)");
+            if (_monsterController == null)
+                Debug.LogWarning("[ModelAnimatorAssigner] Monster_Animator.controller를 찾을 수 없습니다. (Resources/Animations/ 경로 확인)");
         }
 
         /// <summary>
@@ -43,18 +55,14 @@ namespace ProjectName.Systems
             if (model == null) return;
             EnsureControllers();
 
-            Animator animator = model.GetComponentInChildren<Animator>();
+            Animator animator = model.GetComponentInChildren<Animator>(includeInactive: false);
             if (animator == null)
             {
-                animator = model.GetComponent<Animator>();
-                if (animator == null)
-                {
-                    // Animator가 없으면 새로 추가 (SkinnedMeshRenderer 있는 경우)
-                    if (model.GetComponentInChildren<SkinnedMeshRenderer>() != null)
-                        animator = model.AddComponent<Animator>();
-                    else
-                        return; // Skinned mesh가 없으면 스킵
-                }
+                // Animator가 없으면 SkinnedMeshRenderer 존재 시 새로 추가
+                if (model.GetComponentInChildren<SkinnedMeshRenderer>() != null)
+                    animator = model.AddComponent<Animator>();
+                else
+                    return; // Skinned mesh가 없으면 스킵
             }
 
             string lowerName = modelName.ToLowerInvariant();
@@ -67,7 +75,7 @@ namespace ProjectName.Systems
                 animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
 
                 // 시작 시 Idle 상태
-                animator.SetInteger("State", 0); // 0 = Idle
+                animator.SetInteger(ParamState, StateIdle);
             }
         }
 
@@ -111,44 +119,61 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
+        /// Animator가 있는 GameObject에서 Animator 컴포넌트를 찾습니다.
+        /// </summary>
+        private static Animator FindAnimator(GameObject model)
+        {
+            return model != null ? model.GetComponentInChildren<Animator>(includeInactive: false) : null;
+        }
+
+        /// <summary>
         /// Animator의 상태를 변경합니다.
         /// State: 0=Idle, 1=Walk, 2=Run
         /// Triggers: AttackTrigger, JumpTrigger, GatherTrigger
         /// </summary>
         public static void SetState(GameObject model, int state)
         {
-            Animator animator = model.GetComponentInChildren<Animator>();
+            Animator animator = FindAnimator(model);
             if (animator != null)
-                animator.SetInteger("State", state);
+                animator.SetInteger(ParamState, state);
         }
 
+        /// <summary>
+        /// Attack 트리거를 발동합니다. 애니메이션 종료 후 Idle로 복귀합니다.
+        /// </summary>
         public static void TriggerAttack(GameObject model)
         {
-            Animator animator = model.GetComponentInChildren<Animator>();
+            Animator animator = FindAnimator(model);
             if (animator != null)
             {
-                animator.SetInteger("State", 0); // Return to idle after attack
-                animator.SetTrigger("AttackTrigger");
+                animator.SetInteger(ParamState, StateIdle);
+                animator.SetTrigger(ParamAttackTrigger);
             }
         }
 
+        /// <summary>
+        /// Jump 트리거를 발동합니다. 애니메이션 종료 후 Idle로 복귀합니다.
+        /// </summary>
         public static void TriggerJump(GameObject model)
         {
-            Animator animator = model.GetComponentInChildren<Animator>();
+            Animator animator = FindAnimator(model);
             if (animator != null)
             {
-                animator.SetInteger("State", 0);
-                animator.SetTrigger("JumpTrigger");
+                animator.SetInteger(ParamState, StateIdle);
+                animator.SetTrigger(ParamJumpTrigger);
             }
         }
 
+        /// <summary>
+        /// Gather(채집) 트리거를 발동합니다. 애니메이션 종료 후 Idle로 복귀합니다.
+        /// </summary>
         public static void TriggerGather(GameObject model)
         {
-            Animator animator = model.GetComponentInChildren<Animator>();
+            Animator animator = FindAnimator(model);
             if (animator != null)
             {
-                animator.SetInteger("State", 0);
-                animator.SetTrigger("GatherTrigger");
+                animator.SetInteger(ParamState, StateIdle);
+                animator.SetTrigger(ParamGatherTrigger);
             }
         }
     }

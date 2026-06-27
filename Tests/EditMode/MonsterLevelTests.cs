@@ -133,6 +133,13 @@ namespace ProjectName.Tests.EditMode
         }
 
         [Test]
+        public void GetLevelColorTag_MidLevel_Yellow()
+        {
+            Assert.AreEqual("🟡", MonsterLevelSystem.GetLevelColorTag(11));
+            Assert.AreEqual("🟡", MonsterLevelSystem.GetLevelColorTag(20));
+        }
+
+        [Test]
         public void GetLevelColorTag_HighLevel_Red()
         {
             Assert.AreEqual("🔴", MonsterLevelSystem.GetLevelColorTag(30));
@@ -144,9 +151,25 @@ namespace ProjectName.Tests.EditMode
         {
             string display = MonsterLevelSystem.GetLevelDisplay(10);
             Assert.IsTrue(display.Contains("Lv.10"), "레벨 표시에 Lv.10 포함");
+            Assert.IsTrue(display.Contains("🟢"), "레벨 표시에 색상 이모지 포함");
+        }
+
+        [Test]
+        public void GetLevelDisplay_MidLevel_YellowEmoji()
+        {
+            string display = MonsterLevelSystem.GetLevelDisplay(15);
+            Assert.IsTrue(display.Contains("🟡"), "중간 레벨 표시에 🟡 이모지 포함");
+            Assert.IsTrue(display.Contains("Lv.15"), "레벨 표시에 Lv.15 포함");
         }
 
         // ===================== 드랍률 보정 =====================
+
+        [Test]
+        public void GetRareDropBonus_Level1_ReturnsZero()
+        {
+            Assert.AreEqual(0f, MonsterLevelSystem.GetRareDropBonus(1), "레벨 1은 드랍률 보정 0%");
+            Assert.AreEqual(0f, MonsterLevelSystem.GetRareDropBonus(9), "레벨 9까지 드랍률 보정 0%");
+        }
 
         [Test]
         public void GetRareDropBonus_Level10_Returns5Percent()
@@ -158,6 +181,13 @@ namespace ProjectName.Tests.EditMode
         public void GetRareDropBonus_Level50_Returns25Percent()
         {
             Assert.AreEqual(0.25f, MonsterLevelSystem.GetRareDropBonus(50));
+        }
+
+        [Test]
+        public void GetFinalDropChance_ZeroBase_NoBonus()
+        {
+            float result = MonsterLevelSystem.GetFinalDropChance(0f, 1);
+            Assert.AreEqual(0f, result, 0.001f, "기본 확률 0%면 레벨 1에서 0%");
         }
 
         [Test]
@@ -198,6 +228,28 @@ namespace ProjectName.Tests.EditMode
         public void EstimateTierByName_Unknown_Beginner()
         {
             Assert.AreEqual(MonsterTier.Beginner, MonsterLevelSystem.EstimateTierByName("알 수 없는 몬스터"));
+        }
+
+        // ===================== default/예외 처리 =====================
+
+        [Test]
+        public void GetBaseLevelRange_UnknownTier_ReturnsBeginner()
+        {
+            var range = MonsterLevelSystem.GetBaseLevelRange((MonsterTier)999);
+            Assert.AreEqual(1, range.x);
+            Assert.AreEqual(3, range.y);
+        }
+
+        [Test]
+        public void GetDifficultyBonus_UnknownDifficulty_ReturnsZero()
+        {
+            Assert.AreEqual(0, MonsterLevelSystem.GetDifficultyBonus((TerritoryDifficulty)999));
+        }
+
+        [Test]
+        public void CalculateHP_UnknownTier_ReturnsBeginnerHP()
+        {
+            Assert.AreEqual(25f, MonsterLevelSystem.CalculateHP((MonsterTier)999, 5));
         }
     }
 }

@@ -1,7 +1,5 @@
 using ProjectName.Core;
-using ProjectName.Systems;
 using System;
-using UnityEngine;
 using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
@@ -47,6 +45,14 @@ namespace ProjectName.Systems
             "레오니다스", "필립포스", "카시우스", "루피누스", "마우리키우스"
         };
 
+        // ===== 드라큘라 영주 이름 =====
+        public static readonly string[] LordDracula = {
+            "블라드", "노스페라투", "드라코", "라두", "바실리",
+            "알루카드", "카미라", "바토리", "오를로크", "레드아이",
+            "블러드본", "나이트메어", "섀도우윙", "다크하트", "세라",
+            "미스트발", "팡고른", "블러드레인", "다크문", "뱀파이어로드"
+        };
+
         // ===== 용병 이름 =====
         public static readonly string[] MercenaryFirst = {
             "루카스", "이사벨라", "로완", "세라핀", "도리스",
@@ -68,8 +74,11 @@ namespace ProjectName.Systems
         public const string KingdomNameSouth = "남부 이그니스 제국";
         public const string KingdomNameNorth = "북부 프로스트가드 왕국";
         public const string EmpireName = "중앙 아우레우스 제국";
+        public const string DraculaKingdomName = "드라큘라의 영지";
 
         /// <summary>국가 타입에 따른 국가명 반환</summary>
+        /// <param name="nation">국가 타입 (NationType)</param>
+        /// <returns>해당 국가의 표시 이름 문자열</returns>
         public static string GetKingdomName(NationType nation)
         {
             return nation switch
@@ -79,11 +88,14 @@ namespace ProjectName.Systems
                 NationType.South => KingdomNameSouth,
                 NationType.North => KingdomNameNorth,
                 NationType.Empire => EmpireName,
+                NationType.Dracula => DraculaKingdomName,
                 _ => "알 수 없는 국가"
             };
         }
 
         /// <summary>국가별 영주 이름 풀 반환</summary>
+        /// <param name="nation">국가 타입 (NationType)</param>
+        /// <returns>해당 국가의 영주 이름 문자열 배열</returns>
         public static string[] GetLordNames(NationType nation)
         {
             return nation switch
@@ -93,11 +105,15 @@ namespace ProjectName.Systems
                 NationType.South => LordSouth,
                 NationType.North => LordNorth,
                 NationType.Empire => LordEmpire,
+                NationType.Dracula => LordDracula,
                 _ => LordEast
             };
         }
 
         /// <summary>랜덤 영주 이름 생성</summary>
+        /// <param name="nation">국가 타입 (NationType)</param>
+        /// <param name="rng">난수 생성기 (null 시 새 인스턴스 생성)</param>
+        /// <returns>랜덤하게 선택된 영주 이름 문자열</returns>
         public static string GetRandomLordName(NationType nation, System.Random rng = null)
         {
             rng ??= new System.Random();
@@ -106,6 +122,8 @@ namespace ProjectName.Systems
         }
 
         /// <summary>랜덤 용병 이름 생성 (이름 + 성)</summary>
+        /// <param name="rng">난수 생성기 (null 시 새 인스턴스 생성)</param>
+        /// <returns>"이름 성" 형식의 랜덤 용병 이름 문자열</returns>
         public static string GetRandomMercenaryName(System.Random rng = null)
         {
             rng ??= new System.Random();

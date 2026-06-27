@@ -65,6 +65,9 @@ namespace ProjectName.Systems
 
         private bool _hasInitialized;
 
+        // Tracks temporary target GameObject created by SetAimPosition for cleanup
+        private GameObject _tempTargetObject;
+
 #if UNITY_ANIMATION_RIGGING
         private MultiAimConstraint _headConstraint;
         private MultiAimConstraint _spineConstraint;
@@ -132,9 +135,18 @@ namespace ProjectName.Systems
                 return;
 
 #if UNITY_ANIMATION_RIGGING
-            // If Animation Rigging package manages this, skip procedural rotation
+            // If Animation Rigging manages head/spine, skip procedural rotations
+            // but still run eye tracking (eyes aren't typically in the rig constraints)
             if (_headConstraint != null && _headConstraint.isActiveAndEnabled)
+            {
+                if (_target != null && (_leftEyeBone != null || _rightEyeBone != null))
+                {
+                    Vector3 targetDir = (_target.position - _headBone.position).normalized;
+                    if (targetDir.sqrMagnitude >= 0.001f)
+                        UpdateEyeTracking(targetDir);
+                }
                 return;
+            }
 #endif
 
             if (_target != null)
@@ -352,27 +364,34 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// Updates eye bone rotations toward the aim direction.
+        /// Computes original world rotation from cached local rotation + parent transform,
+        /// then blends smoothly toward the target world rotation.
         /// </summary>
         private void UpdateEyeTracking(Vector3 worldDirection)
         {
+            Quaternion targetWorldEyeRot = Quaternion.LookRotation(worldDirection, transform.up);
+
             if (_leftEyeBone != null)
             {
-                Quaternion targetEyeRot = Quaternion.LookRotation(worldDirection, transform.up);
+                // Original world rotation = parent.rotation * originalLocalRotation
+                Quaternion originalWorldRot = _leftEyeBone.parent != null
+                    ? _leftEyeBone.parent.rotation * _leftEyeOriginalLocalRot
+                    : _leftEyeOriginalLocalRot;
+
+                Quaternion blendedRot = Quaternion.Slerp(originalWorldRot, targetWorldEyeRot, _aimWeight);
                 _leftEyeBone.rotation = Quaternion.RotateTowards(
-                    _leftEyeBone.rotation,
-                    Quaternion.Slerp(_leftEyeOriginalLocalRot * _leftEyeBone.parent?.rotation ?? Quaternion.identity,
-                        targetEyeRot, _aimWeight),
-                    _eyeRotationSpeed * Time.deltaTime);
+                    _leftEyeBone.rotation, blendedRot, _eyeRotationSpeed * Time.deltaTime);
             }
 
             if (_rightEyeBone != null)
             {
-                Quaternion targetEyeRot = Quaternion.LookRotation(worldDirection, transform.up);
+                Quaternion originalWorldRot = _rightEyeBone.parent != null
+                    ? _rightEyeBone.parent.rotation * _rightEyeOriginalLocalRot
+                    : _rightEyeOriginalLocalRot;
+
+                Quaternion blendedRot = Quaternion.Slerp(originalWorldRot, targetWorldEyeRot, _aimWeight);
                 _rightEyeBone.rotation = Quaternion.RotateTowards(
-                    _rightEyeBone.rotation,
-                    Quaternion.Slerp(_rightEyeOriginalLocalRot * _rightEyeBone.parent?.rotation ?? Quaternion.identity,
-                        targetEyeRot, _aimWeight),
-                    _eyeRotationSpeed * Time.deltaTime);
+                    _rightEyeBone.rotation, blendedRot, _eyeRotationSpeed * Time.deltaTime);
             }
         }
 
@@ -417,9 +436,9 @@ namespace ProjectName.Systems
         {
             if (_target == null)
             {
-                GameObject tempTarget = new GameObject($"{gameObject.name}_Aim_Target");
-                tempTarget.transform.SetParent(null);
-                _target = tempTarget.transform;
+                _tempTargetObject = new GameObject($"{gameObject.name}_Aim_Target");
+                _tempTargetObject.transform.SetParent(null);
+                _target = _tempTargetObject.transform;
             }
 
             _target.position = worldPosition;
@@ -427,10 +446,27 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// Resets head rotation back to original pose with a smooth blend.
+        /// Also cleans up any temporary target GameObject created by SetAimPosition.
         /// </summary>
         public void ResetAim()
         {
             FollowTarget(null);
+
+            if (_tempTargetObject != null)
+            {
+                Destroy(_tempTargetObject);
+                _tempTargetObject = null;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            // Clean up temporary target on destroy to prevent leaks
+            if (_tempTargetObject != null)
+            {
+                Destroy(_tempTargetObject);
+                _tempTargetObject = null;
+            }
         }
 
         // ──────────────────────────────────────────────

@@ -67,12 +67,24 @@ namespace ProjectName.Systems
 
         private void AcceptQuest()
         {
+            if (_quest == null)
+            {
+                Debug.LogError("[NPCQuestGiver] QuestDef가 할당되지 않았습니다! Inspector에서 _quest를 설정해주세요.");
+                return;
+            }
+
             _questAccepted = true;
             Debug.Log($"[NPCQuestGiver] {_npcName}: \"{_quest.description}\"");
         }
 
         private void TryCompleteQuest()
         {
+            if (_quest == null)
+            {
+                Debug.LogError("[NPCQuestGiver] QuestDef가 할당되지 않았습니다! Inspector에서 _quest를 설정해주세요.");
+                return;
+            }
+
             if (PlayerInventory.Instance == null) return;
 
             int count = PlayerInventory.Instance.GetItemCount(_quest.requiredItemId);
@@ -98,6 +110,12 @@ namespace ProjectName.Systems
         private void OnGUI()
         {
             if (!_isPlayerNearby || _questCompleted) return;
+
+            if (_quest == null)
+            {
+                GUI.Label(new Rect(Screen.width / 2 - 150, Screen.height / 2 + 50, 300, 30), "[E] 설정 오류: 퀘스트 데이터 없음");
+                return;
+            }
 
             string msg = _questAccepted
                 ? $"[E] {_npcName} — 퀘스트 제출"

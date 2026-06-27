@@ -49,6 +49,7 @@ namespace ProjectName.Systems
         [SerializeField] private Color _southTint = new Color(0.55f, 0.15f, 0.10f); // red volcanic
         [SerializeField] private Color _northTint = new Color(0.50f, 0.50f, 0.55f); // gray tundra
         [SerializeField] private Color _empireTint = new Color(0.85f, 0.72f, 0.18f); // golden
+        [SerializeField] private Color _draculaTint = new Color(0.25f, 0.05f, 0.05f); // dark red/black
 
         [Header("Nation Overlay")]
         [SerializeField, Range(0f, 1f)] private float _baseTintStrength = 0.35f;
@@ -76,9 +77,13 @@ namespace ProjectName.Systems
                 case NationType.South:  return _southTint;
                 case NationType.North:  return _northTint;
                 case NationType.Empire: return _empireTint;
+                case NationType.Dracula: return _draculaTint;
                 default:                return Color.white;
             }
         }
+
+        /// <summary>Dracula tint color (readonly for tests).</summary>
+        public Color DraculaTint => _draculaTint;
 
         // ================================================================
         //  Public API
@@ -179,6 +184,12 @@ namespace ProjectName.Systems
             _previousNation = _currentNation;
             _previousTexture = renderer.sharedMaterial.mainTexture as Texture2D;
 
+            // Destroy the old target texture if it exists and is not the same as previous
+            if (_targetTexture != null && _targetTexture != _previousTexture && !IsPersistentTexture(_targetTexture))
+            {
+                Destroy(_targetTexture);
+            }
+
             // Generate the new target texture
             _currentNation = nation;
             _targetTexture = GenerateNationFocusedTexture(nation);
@@ -222,7 +233,10 @@ namespace ProjectName.Systems
             }
 
             int size = Mathf.Max(64, _textureSize);
-            Debug.Log($"[NationTerrainController] Smooth transition: {_previousNation} → {_currentNation} over {_transitionDuration}s");
+            Debug.Log($"[NationTerrainController] Smooth transition: {_previousNation} -> {_currentNation} over {_transitionDuration}s");
+
+            // Track previous blend texture for cleanup
+            Texture2D previousBlendTex = null;
 
             while (elapsed < _transitionDuration)
             {
@@ -238,6 +252,13 @@ namespace ProjectName.Systems
                 if (blendTex != null && _terrainMaterial != null)
                 {
                     _terrainMaterial.mainTexture = blendTex;
+
+                    // Destroy previous frame's blend texture to prevent leak
+                    if (previousBlendTex != null && previousBlendTex != blendTex)
+                    {
+                        Destroy(previousBlendTex);
+                    }
+                    previousBlendTex = blendTex;
                 }
 
                 yield return null;
@@ -247,6 +268,13 @@ namespace ProjectName.Systems
             if (_terrainMaterial != null)
             {
                 _terrainMaterial.mainTexture = _targetTexture;
+            }
+
+            // Cleanup the last intermediate blend texture (no longer needed)
+            if (previousBlendTex != null && previousBlendTex != _targetTexture)
+            {
+                Destroy(previousBlendTex);
+                previousBlendTex = null;
             }
 
             // Cleanup previous texture
@@ -269,7 +297,7 @@ namespace ProjectName.Systems
             int size = Mathf.Max(from.width, to.width);
             size = Mathf.Min(size, _textureSize * 2); // cap for performance
 
-            Texture2D blendTex = new Texture2D(size, size, TextureFormat.RGBA32, true);
+            Texture2D blendTex = new Texture2D(size, size, TextureFormat.RGBA32, false);
             blendTex.name = $"TerrainBlend_{_previousNation}to{_currentNation}_t{blend:F2}";
             blendTex.wrapMode = TextureWrapMode.Repeat;
             blendTex.filterMode = FilterMode.Bilinear;

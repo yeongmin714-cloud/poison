@@ -12,7 +12,7 @@ namespace ProjectName.Systems
     ///   0~200m  : 안전 지대 (스폰 위치, 몬스터 없음)
     ///   200~600m: 🟢 초반 몬스터 (Beginner)
     ///   600~1200m: 🟡 중반 몬스터 (Intermediate)
-    ///   1200~1000m: 🔴 후반 몬스터 (Advanced)
+    ///   1200~1800m: 🔴 후반 몬스터 (Advanced)
     ///   
     /// 각 종류당 3~5마리씩, 총 약 72~120마리 배치.
     /// Fixed seed로 재현 가능.
@@ -239,8 +239,13 @@ namespace ProjectName.Systems
         /// </summary>
         private void SpawnTier(MonsterTier tier, float innerRadius, float outerRadius, SpawnProbabilities prob)
         {
-            // C18-02: 현재 시간대에 맞는 ActiveTime 계산
-            ActiveTime filterTime = CurrentPeriod == TimePeriod.Night ? ActiveTime.Night : ActiveTime.Day;
+            // C18-02: 현재 시간대에 맞는 ActiveTime 계산 (Evening=Both Day+Night)
+            ActiveTime filterTime = CurrentPeriod switch
+            {
+                TimePeriod.Night => ActiveTime.Night,
+                TimePeriod.Evening => ActiveTime.Both,
+                _ => ActiveTime.Day
+            };
 
             // C18-02: GetByActiveTime 필터
             var activePool = MonsterDatabase.GetByActiveTime(filterTime);
@@ -619,7 +624,12 @@ namespace ProjectName.Systems
 
             int deficit = minCount - currentCount;
 
-            ActiveTime filterTime = IsNightTime() ? ActiveTime.Night : ActiveTime.Day;
+            ActiveTime filterTime = CurrentPeriod switch
+            {
+                TimePeriod.Night => ActiveTime.Night,
+                TimePeriod.Evening => ActiveTime.Both,
+                _ => ActiveTime.Day
+            };
             var activePool = MonsterDatabase.GetByActiveTime(filterTime);
             var tierPool = new List<MonsterDef>();
 

@@ -12,6 +12,11 @@ namespace ProjectName.Systems
     /// </summary>
     public static class MonsterLevelSystem
     {
+        // ===== 상수 (MonsterLevelData 기본값과 동기화 유지) =====
+        private const int MAX_LEVEL = 50;
+        private const int GREEN_THRESHOLD = 10;
+        private const int YELLOW_THRESHOLD = 20;
+
         // 티어별 기본 레벨 범위
         public static Vector2Int GetBaseLevelRange(MonsterTier tier)
         {
@@ -49,7 +54,7 @@ namespace ProjectName.Systems
             var baseRange = GetBaseLevelRange(tier);
             int baseLevel = Random.Range(baseRange.x, baseRange.y + 1);
             int bonus = GetDifficultyBonus(territoryDifficulty);
-            return Mathf.Clamp(baseLevel + bonus, 1, 50);
+            return Mathf.Clamp(baseLevel + bonus, 1, MAX_LEVEL);
         }
 
         // ===== 레벨당 스탯 =====
@@ -94,8 +99,8 @@ namespace ProjectName.Systems
         /// </summary>
         public static string GetLevelColorTag(int level)
         {
-            if (level <= 10) return "🟢";    // 초급
-            if (level <= 20) return "🟡";   // 중급
+            if (level <= GREEN_THRESHOLD) return "🟢";    // 초급
+            if (level <= YELLOW_THRESHOLD) return "🟡";   // 중급
             return "🔴";                     // 고급
         }
 

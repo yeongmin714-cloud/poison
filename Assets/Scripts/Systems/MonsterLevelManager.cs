@@ -13,6 +13,8 @@ namespace ProjectName.Systems
     /// </summary>
     public class MonsterLevelManager : MonoBehaviour
     {
+        private const string DataResourcePath = "Data/MonsterLevelData";
+
         private static MonsterLevelManager _instance;
         public static MonsterLevelManager Instance
         {
@@ -50,10 +52,10 @@ namespace ProjectName.Systems
 
             if (_data == null)
             {
-                _data = Resources.Load<MonsterLevelData>("Data/MonsterLevelData");
+                _data = Resources.Load<MonsterLevelData>(DataResourcePath);
                 if (_data == null)
                 {
-                    Debug.Log("[MonsterLevelManager] MonsterLevelData를 찾을 수 없습니다. 기본값으로 ScriptableObject 생성합니다.");
+                    Debug.LogWarning($"[MonsterLevelManager] MonsterLevelData를 찾을 수 없습니다 ({DataResourcePath}). 기본값으로 ScriptableObject를 생성합니다.");
                     _data = ScriptableObject.CreateInstance<MonsterLevelData>();
                 }
             }
