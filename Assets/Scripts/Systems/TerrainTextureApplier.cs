@@ -157,14 +157,23 @@ namespace ProjectName.Systems
         /// Creates URP Lit materials for each nation using loaded textures.
         /// Material naming: "Terrain_{nation}_Mat"
         /// Extra textures are applied as secondary/blend textures:
-        ///   extra1 (red) → south, empire
+        ///   extra1 (red) → south
         ///   extra2 (gray) → north
         ///   extra3 (yellow) → west, empire
         /// Dracula uses only its base texture (no extra blend).
+        /// NOTE: _DetailAlbedoMap is a single slot — nations that would need
+        /// multiple extras (e.g. Empire) use only the last-applied extra.
         /// </summary>
         public void CreateMaterials()
         {
             _nationMaterials = new Dictionary<NationType, Material>();
+
+            // Guard: LoadTextures() must be called first
+            if (_nationTextures == null)
+            {
+                Debug.LogError("[TerrainTextureApplier] _nationTextures is null. Call LoadTextures() first.");
+                return;
+            }
 
             // Map extra textures by index
             Texture2D extra1 = _extraTextures.Count > 0 ? _extraTextures[0] : null;
@@ -181,18 +190,21 @@ namespace ProjectName.Systems
 
                 Material mat = CreateLitMaterial($"Terrain_{nation}_Mat", _nationTextures[nation][0]);
 
-                // Apply extra textures for specific nations
-                if (nation == NationType.South || nation == NationType.Empire)
+                // Apply extra textures for specific nations.
+                // NOTE: _DetailAlbedoMap is a single slot — nations with multiple extras
+                // (e.g. Empire originally had extra1+extra3) use only the last-applied.
+                // Empire uses extra3 (yellow/golden) to match its theme.
+                if (nation == NationType.South)
                 {
-                    ApplyExtraTexture(mat, extra1, "_BaseMap", 0.3f, "extra1(red)");
+                    ApplyExtraTexture(mat, extra1, 0.3f, "extra1(red)");
                 }
                 if (nation == NationType.North)
                 {
-                    ApplyExtraTexture(mat, extra2, "_BaseMap", 0.3f, "extra2(gray)");
+                    ApplyExtraTexture(mat, extra2, 0.3f, "extra2(gray)");
                 }
                 if (nation == NationType.West || nation == NationType.Empire)
                 {
-                    ApplyExtraTexture(mat, extra3, "_BaseMap", 0.3f, "extra3(yellow)");
+                    ApplyExtraTexture(mat, extra3, 0.3f, "extra3(yellow)");
                 }
 
                 _nationMaterials[nation] = mat;
@@ -256,7 +268,7 @@ namespace ProjectName.Systems
             return mat;
         }
 
-        private void ApplyExtraTexture(Material mat, Texture2D extraTex, string propertyName, float blendStrength, string label)
+        private void ApplyExtraTexture(Material mat, Texture2D extraTex, float blendStrength, string label)
         {
             if (extraTex == null) return;
 
@@ -300,10 +312,11 @@ namespace ProjectName.Systems
             }
 
             _currentNation = nation;
-            _meshRenderer.material = _nationMaterials[nation];
-            _meshRenderer.material.mainTextureScale = Vector2.one * _textureTiling;
+            Material mat = _nationMaterials[nation];
+            _meshRenderer.sharedMaterial = mat;
+            mat.mainTextureScale = Vector2.one * _textureTiling;
 
-            Debug.Log($"[TerrainTextureApplier] Applied material '{_nationMaterials[nation].name}' for {nation}.");
+            Debug.Log($"[TerrainTextureApplier] Applied material '{mat.name}' for {nation}.");
         }
 
         /// <summary>

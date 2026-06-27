@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -192,6 +193,7 @@ namespace ProjectName.Systems
         /// <summary>
         /// Update에서 마우스 클릭을 감지하여 버튼 클릭 사운드를 재생합니다.
         /// OnGUI 대신 사용하여 GC 할당을 방지합니다.
+        /// EventSystem을 통해 uGUI(Canvas) UI 클릭 감지.
         /// </summary>
         private void DetectUIClick()
         {
@@ -200,8 +202,8 @@ namespace ProjectName.Systems
             // 마우스 버튼이 막 떼어진 시점 (이전 프레임과 비교)
             if (currentMouseUp && !_previousMouseUp)
             {
-                // UI 컨트롤이 활성화된 상태에서만 클릭으로 간주
-                if (GUIUtility.hotControl != 0)
+                // EventSystem을 통해 uGUI 컨트롤 위에서 클릭했는지 확인
+                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
                 {
                     PlayClick();
                 }
@@ -290,7 +292,7 @@ namespace ProjectName.Systems
         private IBiomeProvider FindBiomeProvider()
         {
             // Find any MonoBehaviour that implements IBiomeProvider
-            var monoBehaviors = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None, FindObjectsInactive.Include);
+            var monoBehaviors = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             foreach (var mb in monoBehaviors)
             {
                 if (mb is IBiomeProvider provider)

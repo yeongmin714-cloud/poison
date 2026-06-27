@@ -1,5 +1,4 @@
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -159,7 +158,6 @@ namespace ProjectName.Systems
 
             // 초기에는 정지
             _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmitting);
-            _wasSpraying = false;
         }
 
         private void Update()

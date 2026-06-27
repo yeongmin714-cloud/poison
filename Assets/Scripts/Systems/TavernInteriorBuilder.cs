@@ -1,6 +1,5 @@
 using ProjectName.Core;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -32,16 +31,16 @@ namespace ProjectName.Systems
             room.transform.position = Vector3.zero;
 
             // 바닥
-            CreateFloor(room, width, depth, territoryId);
+            CreateFloor(room, width, depth);
 
             // 벽
-            CreateWalls(room, width, height, depth, territoryId);
+            CreateWalls(room, width, height, depth);
 
             // 천장
             CreateCeiling(room, width, height, depth);
 
             // 카운터 (뒷벽 기준)
-            CreateCounter(room, width, depth, territoryId);
+            CreateCounter(room, width, depth);
 
             // 테이블 개수: 2~4개 랜덤
             int tableCount = rng.Next(2, 5);
@@ -49,7 +48,7 @@ namespace ProjectName.Systems
             {
                 float tblX = (float)(rng.NextDouble() * (width * 0.6f) - width * 0.3f);
                 float tblZ = (float)(rng.NextDouble() * (depth * 0.4f) - depth * 0.1f);
-                CreateTable(room, tblX, tblZ, i, territoryId);
+                CreateTable(room, tblX, tblZ, i);
             }
 
             // 의자 (랜덤 위치, 회전 다양화)
@@ -60,11 +59,11 @@ namespace ProjectName.Systems
                 float radius = 0.8f + (float)(rng.NextDouble() * 0.6f);
                 float cx = (float)(rng.NextDouble() * (width * 0.4f) - width * 0.2f);
                 float cz = (float)(rng.NextDouble() * (depth * 0.3f));
-                CreateChair(room, cx, cz, angle, i, territoryId);
+                CreateChair(room, cx, cz, angle, i);
             }
 
             // 무대 (앞쪽)
-            CreateStage(room, width, depth, territoryId);
+            CreateStage(room, width, depth);
 
             // 어두운 조명 — 노란빛 PointLight, 낮은 강도
             IndoorLighting.SetupIndoorLighting(room, new Color(0.08f, 0.06f, 0.04f), 0.4f, false);
@@ -75,7 +74,7 @@ namespace ProjectName.Systems
             return room;
         }
 
-        private static void CreateFloor(GameObject room, float width, float depth, string territoryId)
+        private static void CreateFloor(GameObject room, float width, float depth)
         {
             var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
             floor.name = "Floor";
@@ -84,18 +83,20 @@ namespace ProjectName.Systems
             floor.transform.localScale = new Vector3(width, 0.1f, depth);
 
             var renderer = floor.GetComponent<MeshRenderer>();
-            renderer.material = MaterialHelper.CreateLitMaterial(new Color(0.30f, 0.18f, 0.08f), "TavernFloorMat");
+            var mat = MaterialHelper.CreateLitMaterial(new Color(0.30f, 0.18f, 0.08f), "TavernFloorMat");
+            if (mat != null)
+                renderer.material = mat;
         }
 
-        private static void CreateWalls(GameObject room, float width, float height, float depth, string territoryId)
+        private static void CreateWalls(GameObject room, float width, float height, float depth)
         {
-            CreateWallPiece(room, "Wall_Front", new Vector3(0, height / 2f, -depth / 2f), new Vector3(width, height, WALL_THICKNESS), territoryId);
-            CreateWallPiece(room, "Wall_Back", new Vector3(0, height / 2f, depth / 2f), new Vector3(width, height, WALL_THICKNESS), territoryId);
-            CreateWallPiece(room, "Wall_Left", new Vector3(-width / 2f, height / 2f, 0), new Vector3(WALL_THICKNESS, height, depth), territoryId);
-            CreateWallPiece(room, "Wall_Right", new Vector3(width / 2f, height / 2f, 0), new Vector3(WALL_THICKNESS, height, depth), territoryId);
+            CreateWallPiece(room, "Wall_Front", new Vector3(0, height / 2f, -depth / 2f), new Vector3(width, height, WALL_THICKNESS));
+            CreateWallPiece(room, "Wall_Back", new Vector3(0, height / 2f, depth / 2f), new Vector3(width, height, WALL_THICKNESS));
+            CreateWallPiece(room, "Wall_Left", new Vector3(-width / 2f, height / 2f, 0), new Vector3(WALL_THICKNESS, height, depth));
+            CreateWallPiece(room, "Wall_Right", new Vector3(width / 2f, height / 2f, 0), new Vector3(WALL_THICKNESS, height, depth));
         }
 
-        private static GameObject CreateWallPiece(GameObject room, string name, Vector3 position, Vector3 scale, string territoryId)
+        private static GameObject CreateWallPiece(GameObject room, string name, Vector3 position, Vector3 scale)
         {
             var wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
             wall.name = name;
@@ -104,7 +105,9 @@ namespace ProjectName.Systems
             wall.transform.localScale = scale;
 
             var renderer = wall.GetComponent<MeshRenderer>();
-            renderer.material = MaterialHelper.CreateLitMaterial(new Color(0.50f, 0.35f, 0.20f), "TavernWallMat");
+            var mat = MaterialHelper.CreateLitMaterial(new Color(0.50f, 0.35f, 0.20f), "TavernWallMat");
+            if (mat != null)
+                renderer.material = mat;
 
             return wall;
         }
@@ -118,10 +121,12 @@ namespace ProjectName.Systems
             ceiling.transform.localScale = new Vector3(width, 0.1f, depth);
 
             var renderer = ceiling.GetComponent<MeshRenderer>();
-            renderer.material = MaterialHelper.CreateLitMaterial(new Color(0.35f, 0.25f, 0.15f), "TavernCeilingMat");
+            var mat = MaterialHelper.CreateLitMaterial(new Color(0.35f, 0.25f, 0.15f), "TavernCeilingMat");
+            if (mat != null)
+                renderer.material = mat;
         }
 
-        private static void CreateCounter(GameObject room, float width, float depth, string territoryId)
+        private static void CreateCounter(GameObject room, float width, float depth)
         {
             float counterW = 2.5f;
             float counterH = 1.0f;
@@ -134,7 +139,9 @@ namespace ProjectName.Systems
             counter.transform.localScale = new Vector3(counterW, counterH, counterD);
 
             var renderer = counter.GetComponent<MeshRenderer>();
-            renderer.material = MaterialHelper.CreateLitMaterial(new Color(0.40f, 0.25f, 0.10f), "TavernCounterMat");
+            var mat = MaterialHelper.CreateLitMaterial(new Color(0.40f, 0.25f, 0.10f), "TavernCounterMat");
+            if (mat != null)
+                renderer.material = mat;
 
             // 카운터 위 작은 선반
             var shelf = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -144,10 +151,12 @@ namespace ProjectName.Systems
             shelf.transform.localScale = new Vector3(counterW * 0.8f, 0.1f, counterD * 0.5f);
 
             var shelfRenderer = shelf.GetComponent<MeshRenderer>();
-            shelfRenderer.material = MaterialHelper.CreateLitMaterial(new Color(0.50f, 0.30f, 0.10f), "TavernShelfMat");
+            var shelfMat = MaterialHelper.CreateLitMaterial(new Color(0.50f, 0.30f, 0.10f), "TavernShelfMat");
+            if (shelfMat != null)
+                shelfRenderer.material = shelfMat;
         }
 
-        private static void CreateTable(GameObject room, float offsetX, float offsetZ, int index, string territoryId)
+        private static void CreateTable(GameObject room, float offsetX, float offsetZ, int index)
         {
             float tableW = 0.8f;
             float tableH = 0.7f;
@@ -160,10 +169,12 @@ namespace ProjectName.Systems
             table.transform.localScale = new Vector3(tableW, tableH, tableD);
 
             var renderer = table.GetComponent<MeshRenderer>();
-            renderer.material = MaterialHelper.CreateLitMaterial(new Color(0.45f, 0.28f, 0.12f), $"TavernTableMat_{index}");
+            var mat = MaterialHelper.CreateLitMaterial(new Color(0.45f, 0.28f, 0.12f), $"TavernTableMat_{index}");
+            if (mat != null)
+                renderer.material = mat;
         }
 
-        private static void CreateChair(GameObject room, float centerX, float centerZ, float angle, int index, string territoryId)
+        private static void CreateChair(GameObject room, float centerX, float centerZ, float angle, int index)
         {
             float chairSize = 0.35f;
 
@@ -179,10 +190,12 @@ namespace ProjectName.Systems
             chair.transform.localRotation = Quaternion.Euler(0, angle, 0);
 
             var renderer = chair.GetComponent<MeshRenderer>();
-            renderer.material = MaterialHelper.CreateLitMaterial(new Color(0.40f, 0.22f, 0.08f), $"TavernChairMat_{index}");
+            var mat = MaterialHelper.CreateLitMaterial(new Color(0.40f, 0.22f, 0.08f), $"TavernChairMat_{index}");
+            if (mat != null)
+                renderer.material = mat;
         }
 
-        private static void CreateStage(GameObject room, float width, float depth, string territoryId)
+        private static void CreateStage(GameObject room, float width, float depth)
         {
             float stageW = 2.0f;
             float stageH = 0.2f;
@@ -195,21 +208,20 @@ namespace ProjectName.Systems
             stage.transform.localScale = new Vector3(stageW, stageH, stageD);
 
             var renderer = stage.GetComponent<MeshRenderer>();
-            renderer.material = MaterialHelper.CreateLitMaterial(new Color(0.60f, 0.35f, 0.10f), "TavernStageMat");
+            var mat = MaterialHelper.CreateLitMaterial(new Color(0.60f, 0.35f, 0.10f), "TavernStageMat");
+            if (mat != null)
+                renderer.material = mat;
         }
 
         private static void CreateStageLight(GameObject room, float width, float depth)
         {
-            GameObject lightGo = new GameObject("StagePointLight");
-            lightGo.transform.SetParent(room.transform);
-            lightGo.transform.localPosition = new Vector3(0, 2.5f, -depth * 0.35f);
-
-            var light = lightGo.AddComponent<Light>();
-            light.type = LightType.Point;
-            light.color = new Color(1f, 0.85f, 0.5f); // 따뜻한 노란빛
-            light.range = 8f;
-            light.intensity = 0.8f;
-            light.shadows = LightShadows.Soft;
+            IndoorLighting.AddPointLight(
+                room,
+                new Vector3(0, 2.5f, -depth * 0.35f),
+                new Color(1f, 0.85f, 0.5f), // 따뜻한 노란빛
+                8f,
+                0.8f
+            );
         }
     }
 }

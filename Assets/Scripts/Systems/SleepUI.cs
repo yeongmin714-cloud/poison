@@ -239,7 +239,14 @@ namespace ProjectName.Systems
             // C16-04: 저장 슬롯 선택 UI 표시 (저장 후 수면 진행)
             if (SaveSlotUI.Instance != null)
             {
-                SaveSlotUI.Instance.Show(hours);
+                // "아침까지"(-1)를 실 게임 시간(초)으로 변환하여 전달
+                float actualSleepSeconds;
+                if (hours <= 0f)
+                    actualSleepSeconds = CalculateTimeUntilMorning();
+                else
+                    actualSleepSeconds = hours * 3600f;
+
+                SaveSlotUI.Instance.Show(actualSleepSeconds / 3600f);
                 _isVisible = false; // 저장 UI로 전환
             }
             else if (TimeManager.Instance != null)
@@ -252,7 +259,7 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 수면을 수행하는 코루틴.
-        /// TimeManager.SleepFor가 동기식이므로 SleepUI가 직접 수면 상태를 관리합니다.
+        /// TimeManager.SleepFor가 내부 코루틴을 사용하므로 SleepUI는 SaveSlotUI 미존재 시에만 직접 관리합니다.
         /// </summary>
         private IEnumerator DoSleep(float hours)
         {

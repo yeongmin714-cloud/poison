@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -135,7 +134,6 @@ namespace ProjectName.Systems
             if (_uiAudioSource != null)
             {
                 // 플레이스홀더: clip이 null이므로 재생되지 않음
-                _uiAudioSource.clip = null;
                 _uiAudioSource.volume = _volume;
                 _uiAudioSource.Play();
             }
@@ -209,6 +207,7 @@ namespace ProjectName.Systems
             {
                 _uiAudioSource.playOnAwake = false;
                 _uiAudioSource.volume = _volume;
+                _uiAudioSource.clip = null; // 플레이스홀더: 향후 실제 AudioClip으로 교체
                 _uiAudioSource.spatialBlend = 0f; // 2D 사운드
                 return;
             }
@@ -216,6 +215,7 @@ namespace ProjectName.Systems
             _uiAudioSource = gameObject.AddComponent<AudioSource>();
             _uiAudioSource.playOnAwake = false;
             _uiAudioSource.volume = _volume;
+            _uiAudioSource.clip = null; // 플레이스홀더: 향후 실제 AudioClip으로 교체
             _uiAudioSource.spatialBlend = 0f; // 2D 사운드
         }
 

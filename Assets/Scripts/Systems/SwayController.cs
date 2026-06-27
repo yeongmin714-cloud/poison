@@ -1,5 +1,4 @@
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -99,9 +98,11 @@ namespace ProjectName.Systems
                     return; // 카메라 없으면 Update 스킵
             }
 
-            // 거리 기반 컬링
-            float dist = Vector3.Distance(transform.position, _mainCamera.transform.position);
-            if (dist > _cullDistance)
+            // 거리 기반 컬링 (sqrMagnitude로 sqrt 회피)
+            Vector3 posDelta = transform.position - _mainCamera.transform.position;
+            float sqrDist = posDelta.sqrMagnitude;
+            float sqrCull = _cullDistance * _cullDistance;
+            if (sqrDist > sqrCull)
             {
                 if (!_isCulled)
                 {
@@ -155,13 +156,13 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 초기 상태로 리셋
+        /// 초기 상태로 리셋 (Transform만 초기화).
+        /// <c>_isCulled</c>는 변경하지 않음 —<see cref="Update"/>의 컬링 로직이 관리.
         /// </summary>
         public void ResetState()
         {
             transform.localRotation = _initialRotation;
             transform.localPosition = _initialPosition;
-            _isCulled = false;
         }
     }
 }

@@ -1,6 +1,4 @@
-using System;
 using UnityEngine;
-#pragma warning disable 0414
 
 #if UNITY_ANIMATION_RIGGING
 using UnityEngine.Animations.Rigging;
@@ -217,7 +215,7 @@ namespace ProjectName.Systems
             if (_rigConstraint != null)
             {
                 // Ensure it targets our chain
-                if (_rigConstraint.root == _rootBone && _rigConstraint.mid == _midBone)
+                if (_rigConstraint.root == _rootBone && _rigConstraint.mid == _midBone && _rigConstraint.tip == _tipBone)
                     return;
                 _rigConstraint = null;
             }
@@ -238,7 +236,8 @@ namespace ProjectName.Systems
             _rigConstraint.target = _target;
             _rigConstraint.hint = _hint;
 
-            _rigConstraint.data.maintainTargetOffset = 1f;
+            _rigConstraint.data.maintainTargetPositionOffset = true;
+            _rigConstraint.data.maintainTargetRotationOffset = true;
             _rigConstraint.data.targetPositionWeight = _blendWeight;
             _rigConstraint.data.targetRotationWeight = _applyRotation ? _blendWeight : 0f;
             _rigConstraint.data.hintWeight = _hintWeight;

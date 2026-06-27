@@ -1,7 +1,7 @@
 using System;
+using System.Collections;
 using ProjectName.Core;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -16,6 +16,10 @@ namespace ProjectName.Systems
         [Header("Time Settings")]
         [SerializeField] private float _timeScale = 60f; // 현실 1초 = 게임 60초 = 1분
 
+        [Header("Sleep Settings")]
+        [SerializeField, Tooltip("수면 중 TimeScale 배율 (기본 TimeScale * 이 값)")]
+        private float _sleepTimeScaleMultiplier = 10f;
+
         [Header("Debug")]
         [SerializeField] private bool _verbose;
 
@@ -26,32 +30,33 @@ namespace ProjectName.Systems
         private int _lastMinute = -1;
         private bool _lastIsDay = true;
 
+        // ===== 수면 코루틴 =====
+        private Coroutine _sleepCoroutine;
+        private Action _onSleepComplete;
+        private float _originalTimeScale;
+
         // ===== 공개 프로퍼티 =====
 
         /// <summary>
-        /// 게임 시간(초). 86400f 이상 설정 시 자동으로 _currentDay 증가/감소.
+        /// 게임 시간(초). [0, 86400) 범위로 정규화되며, 넘치는 일 수는 _currentDay에 누적됩니다.
         /// </summary>
         public float GameTime
         {
             get => _gameTime;
             set
             {
-                if (value >= 86400f)
-                {
-                    int daysToAdd = Mathf.FloorToInt(value / 86400f);
-                    _currentDay += daysToAdd;
-                    value -= daysToAdd * 86400f;
-                }
-                else if (value < 0f)
-                {
-                    int daysToSub = Mathf.CeilToInt(Mathf.Abs(value) / 86400f);
-                    _currentDay -= daysToSub;
-                    value += daysToSub * 86400f;
-                }
-                _gameTime = value;
+                // FloorToInt를 사용해 양수/음수 모두 올바르게 처리
+                // 예: value = -86450 → dayDelta = -2, _currentDay -= 2, _gameTime = 86350
+                int dayDelta = Mathf.FloorToInt(value / 86400f);
+                _currentDay += dayDelta;
+                _gameTime = value - dayDelta * 86400f;
             }
         }
 
+        /// <summary>
+        /// 시간 척도. 현실 1초 = 게임 _timeScale초.
+        /// 0 이상의 값만 허용됩니다.
+        /// </summary>
         public float TimeScale
         {
             get => _timeScale;
@@ -64,7 +69,7 @@ namespace ProjectName.Systems
         public bool IsNight => !IsDay;
 
         /// <summary>
-        /// Current in-game day number. Incremented each full day cycle.
+        /// 현재 게임 일차. 전체 일 주기가 완료될 때마다 증가합니다.
         /// </summary>
         public int CurrentDay => _currentDay;
 
@@ -74,22 +79,55 @@ namespace ProjectName.Systems
         public float DayProgress => _gameTime / 86400f;
 
         // ===== 수면 상태 =====
-        public bool IsSleeping { get; set; }
+        public bool IsSleeping { get; private set; }
 
-        /// <summary>지정된 시간(게임 시간)만큼 수면하고 완료 시 콜백 호출</summary>
-        public void SleepFor(float hours, Action onComplete)
+        /// <summary>
+        /// 지정된 시간(게임 시간)만큼 수면을 진행합니다.
+        /// 게임 시간을 즉시 점프시키고, 수면 오버레이 지속 시간 동안
+        /// TimeScale을 증가시켜 시간을 가속한 후 콜백을 호출합니다.
+        /// </summary>
+        /// <param name="hours">수면할 게임 시간(시간). 0 이상이어야 합니다.</param>
+        /// <param name="onComplete">기상 완료 시 호출될 콜백 (선택)</param>
+        public void SleepFor(float hours, Action onComplete = null)
         {
-            if (IsSleeping) return;
-            IsSleeping = true;
-            GameTime = _gameTime + hours * 3600f;
-            IsSleeping = false;
-            onComplete?.Invoke();
+            if (hours < 0f)
+            {
+                Debug.LogError($"[TimeManager] SleepFor: hours({hours})는 음수일 수 없습니다.");
+                return;
+            }
+
+            if (IsSleeping)
+            {
+                if (_verbose) Debug.LogWarning("[TimeManager] 이미 수면 중입니다.");
+                return;
+            }
+
+            _onSleepComplete = onComplete;
+            _originalTimeScale = _timeScale;
+
+            // 수면 중 시간 가속 (게임 시간 점프 후 남은 오버레이 시간 가속)
+            _timeScale = Mathf.Max(_timeScale, _timeScale * _sleepTimeScaleMultiplier);
+
+            _sleepCoroutine = StartCoroutine(SleepCoroutine(hours));
         }
 
-        /// <summary>수면 취소/기상</summary>
+        /// <summary>수면 취소/기상. TimeScale을 복원하고 콜백을 호출합니다.</summary>
         public void WakeUp()
         {
+            if (!IsSleeping) return;
+
+            if (_sleepCoroutine != null)
+            {
+                StopCoroutine(_sleepCoroutine);
+                _sleepCoroutine = null;
+            }
+
             IsSleeping = false;
+            _timeScale = _originalTimeScale;
+
+            var callback = _onSleepComplete;
+            _onSleepComplete = null;
+            callback?.Invoke();
         }
 
         // ===== 이벤트 =====
@@ -117,6 +155,14 @@ namespace ProjectName.Systems
             _lastIsDay = IsDay;
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+        }
+
         private void Update()
         {
             GameTime = _gameTime + Time.deltaTime * _timeScale;
@@ -142,6 +188,37 @@ namespace ProjectName.Systems
                     OnNightStart?.Invoke();
                 _lastIsDay = currentIsDay;
             }
+        }
+
+        // ===== 수면 코루틴 =====
+
+        private IEnumerator SleepCoroutine(float hours)
+        {
+            IsSleeping = true;
+
+            // 게임 시간 점프
+            float sleepSeconds = hours * 3600f;
+            GameTime = _gameTime + sleepSeconds;
+
+            // 수면 오버레이 지속 시간 (게임 시간 → 현실 시간, 0.3~2초 클램프)
+            float overlayDuration = Mathf.Clamp(sleepSeconds / _timeScale, 0.3f, 2f);
+
+            if (_verbose)
+                Debug.Log($"[TimeManager] 수면 시작: {hours}h ({sleepSeconds}s 게임), 오버레이 {overlayDuration:F2}s");
+
+            yield return new WaitForSeconds(overlayDuration);
+
+            // TimeScale 복원 및 수면 종료
+            _timeScale = _originalTimeScale;
+            IsSleeping = false;
+            _sleepCoroutine = null;
+
+            var callback = _onSleepComplete;
+            _onSleepComplete = null;
+            callback?.Invoke();
+
+            if (_verbose)
+                Debug.Log("[TimeManager] 기상 완료!");
         }
 
         // ===== 유틸리티 =====

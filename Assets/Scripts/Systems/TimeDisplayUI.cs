@@ -1,5 +1,4 @@
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -7,7 +6,6 @@ namespace ProjectName.Systems
     /// C13-04: IMGUI 기반 시간 표시 UI.
     /// HUD 우측 상단에 현재 시간과 주야 프로그레스 바를 표시합니다.
     /// </summary>
-    [RequireComponent(typeof(TimeManager))]
     public class TimeDisplayUI : MonoBehaviour
     {
         [Header("Layout")]
@@ -20,7 +18,7 @@ namespace ProjectName.Systems
         [SerializeField] private Color _dayBarColor = new Color(1f, 0.9f, 0.2f);    // 노랑
         [SerializeField] private Color _nightBarColor = new Color(0.2f, 0.3f, 0.8f); // 파랑
         [SerializeField] private Color _textColor = Color.white;
-        [SerializeField] private Color _bgColor = new Color(0f, 0f, 0f, 0.4f);
+        [SerializeField] private Color _bgColor = new Color(0.2f, 0.2f, 0.2f, 0.6f);
 
         [Header("Font")]
         [SerializeField] private int _fontSize = 16;
@@ -29,7 +27,7 @@ namespace ProjectName.Systems
         private GUIStyle _labelStyle;
         private GUIStyle _barBgStyle;
         private GUIStyle _barFillStyle;
-        private Texture2D _fillTexture; // GC 방지: 재사용 1x1 텍스처
+        private Texture2D _fillTexture;
         private bool _stylesInitialized;
 
         private void Start()
@@ -55,13 +53,25 @@ namespace ProjectName.Systems
             };
 
             _barBgStyle = new GUIStyle();
-            _barBgStyle.normal.background = CreateTexture1x1(new Color(0.2f, 0.2f, 0.2f, 0.6f));
+            _barBgStyle.normal.background = CreateTexture1x1(_bgColor);
 
             _barFillStyle = new GUIStyle();
             _fillTexture = CreateTexture1x1(Color.white);
             _barFillStyle.normal.background = _fillTexture;
 
             _stylesInitialized = true;
+        }
+
+        private void OnDestroy()
+        {
+            if (_fillTexture != null)
+            {
+                if (Application.isPlaying)
+                    Destroy(_fillTexture);
+                else
+                    DestroyImmediate(_fillTexture);
+                _fillTexture = null;
+            }
         }
 
         /// <summary>1x1 단색 텍스처 생성. Mipmap 비활성화로 메모리 최적화.</summary>

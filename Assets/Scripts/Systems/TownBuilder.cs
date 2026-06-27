@@ -196,11 +196,7 @@ namespace ProjectName.Systems
         public static void ClearAll()
         {
             // Unity 6000: FindObjectsByType 사용 (FindObjectsOfType<GameObject>()보다 효율적)
-#if UNITY_EDITOR
             var roots = GameObject.FindObjectsByType<GameObject>();
-#else
-            var roots = GameObject.FindObjectsByType<GameObject>();
-#endif
             for (int i = 0; i < roots.Length; i++)
             {
                 if (roots[i].name.StartsWith("Town_"))

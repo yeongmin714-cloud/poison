@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -72,10 +71,9 @@ namespace ProjectName.Systems
         private Queue<string> _guideQueue = new Queue<string>();
         private bool _questsRegistered;
         private bool _allGuidesComplete;
-        private bool _isSkipped;
 
         // CheckQuestCompletion 타이머 — 매 프레임 대신 간격 체크
-        private float _completionCheckTimer;
+        private float _completionCheckTimer = COMPLETION_CHECK_INTERVAL;
         private const float COMPLETION_CHECK_INTERVAL = 0.5f;
 
         // ================================================================
@@ -90,6 +88,7 @@ namespace ProjectName.Systems
                 return;
             }
             _instance = this;
+            _applicationIsQuitting = false; // 에디터 플레이 모드 재진입 시 리셋
             DontDestroyOnLoad(gameObject);
         }
 
@@ -166,12 +165,16 @@ namespace ProjectName.Systems
                 return;
 
             Debug.Log("[TutorialQuestManager] 모든 가이드 스킵 (ESC)");
-            _isSkipped = true;
+
+            // 현재 표시 중인 가이드 강제 종료
+            var guideSystem = TutorialGuideSystem.Instance;
+            if (guideSystem != null)
+            {
+                guideSystem.ForceHideGuide();
+            }
 
             // 큐 초기화
             _guideQueue.Clear();
-
-            // 현재 표시 중인 가이드 종료 (TutorialGuideSystem에서 ESC 처리)
 
             // 모든 가이드 완료 처리
             CompleteAllGuides();
@@ -290,7 +293,6 @@ namespace ProjectName.Systems
         {
             _guideQueue.Clear();
             _allGuidesComplete = false;
-            _isSkipped = false;
 
             // 아직 표시되지 않은 가이드만 큐에 추가
             var guideSystem = TutorialGuideSystem.Instance;

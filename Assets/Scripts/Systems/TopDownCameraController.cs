@@ -1,16 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-#pragma warning disable 0414
 
-/// <summary>
-/// Top-down 카메라 컨트롤러 v4
-/// 
-/// - 플레이어가 항상 화면 중앙에 고정
-/// - 카메라가 플레이어 주위를 궤도 회전 (Orbit)
-/// - 커서 위치로 궤도 각도 제어 (좌우=요, 상하=피치)
-/// - 우클릭 드래그: 수동 회전 (보조)
-/// - 휠: 궤도 반경(줌) 조절
-/// </summary>
 namespace ProjectName.Systems
 {
     public class TopDownCameraController : MonoBehaviour
@@ -24,16 +14,23 @@ namespace ProjectName.Systems
         [SerializeField, Range(20f, 80f)] private float _maxPitch = 70f;
 
         [Header("Cursor Look")]
-        [SerializeField] private float _cursorSensitivity = 0.5f;     // 커서→회전 계수
+        [SerializeField] private float _cursorSensitivity = 0.5f;
         [SerializeField, Range(1f, 50f)] private float _deadZonePixels = 15f;
+
+        [Header("Right-Drag Rotation (Auxiliary)")]
+        [SerializeField] private float _dragSensitivityYaw = 0.2f;
+        [SerializeField] private float _dragSensitivityPitch = 0.15f;
+
+        [Header("Zoom")]
+        [SerializeField] private float _zoomSensitivity = 0.5f;
 
         [Header("Smoothing")]
         [SerializeField] private float _orbitSmoothTime = 0.15f;
 
         [Header("Obstacle Avoidance")]
         [Tooltip("레이어마스크: 장애물이 있는 레이어를 지정하세요. 플레이어 레이어는 제외하세요.")]
-        [SerializeField] private LayerMask _obstacleLayers = ~0; // 레이어마스크 (장애물 레이어 권장, 플레이어 레이어 제외)
-        [SerializeField, Range(0.1f, 2f)] private float _obstacleOffset = 0.5f; // 충돌 시 물러날 거리
+        [SerializeField] private LayerMask _obstacleLayers = ~0;
+        [SerializeField, Range(0.1f, 2f)] private float _obstacleOffset = 0.5f;
 
         private Transform _player;
         private Camera _cam;
@@ -51,6 +48,10 @@ namespace ProjectName.Systems
         private float _velocityRadius = 0f;
         private Vector2 _screenSize;
 
+        private const float MaxYawClamp = 180f;
+        private const float CursorPitchRange = 20f;
+        private const float ScrollDeadZone = 0.01f;
+
         void Start()
         {
             _cam = GetComponent<Camera>();
@@ -63,13 +64,8 @@ namespace ProjectName.Systems
             _currentRadius = _targetRadius;
             _screenSize = new Vector2(Screen.width, Screen.height);
 
-            // Auto-exclude player layer from obstacle mask to prevent self-hitting
-            var playerGo = GameObject.FindGameObjectWithTag("Player");
-            if (playerGo != null)
-            {
-                // Remove player's layer from obstacle mask
-                _obstacleLayers &= ~(1 << playerGo.layer);
-            }
+            // Cache player reference and auto-exclude player layer from obstacle mask
+            CachePlayerAndExcludeLayer();
         }
 
         void LateUpdate()
@@ -84,7 +80,10 @@ namespace ProjectName.Systems
             _screenSize = new Vector2(Screen.width, Screen.height);
 
             // ===== 입력 처리 =====
-            HandleCursor();
+            // 우클릭 드래그가 활성화된 경우 커서 기반 회전을 건너뜁니다 (충돌 방지)
+            bool isRightDragging = Mouse.current != null && Mouse.current.rightButton.isPressed;
+            if (!isRightDragging)
+                HandleCursor();
             HandleRightDrag();
             HandleZoom();
 
@@ -93,7 +92,7 @@ namespace ProjectName.Systems
             _currentPitch = Mathf.SmoothDampAngle(_currentPitch, _targetPitch, ref _velocityPitch, _orbitSmoothTime);
             _currentRadius = Mathf.SmoothDamp(_currentRadius, _targetRadius, ref _velocityRadius, _orbitSmoothTime);
 
-            // ===== 카메라 위치 = 플레이어 기준 궤도 (항상 위에 위치) =====
+            // ===== 카메라 위치 = 플레이어 기준 궤도 =====
             float height = _currentRadius * Mathf.Sin(_currentPitch * Mathf.Deg2Rad);
             float distance = _currentRadius * Mathf.Cos(_currentPitch * Mathf.Deg2Rad);
 
@@ -104,6 +103,24 @@ namespace ProjectName.Systems
             HandleObstacleAvoidance(ref desiredPos);
             transform.position = desiredPos;
             transform.LookAt(_player.position, Vector3.up);
+        }
+
+        void OnValidate()
+        {
+            // 인스펙터에서 잘못된 값이 설정되지 않도록 보장
+            _minRadius = Mathf.Min(_minRadius, _maxRadius);
+            _minPitch = Mathf.Min(_minPitch, _maxPitch);
+        }
+
+        void CachePlayerAndExcludeLayer()
+        {
+            var playerGo = GameObject.FindGameObjectWithTag("Player");
+            if (playerGo != null)
+            {
+                _player = playerGo.transform;
+                // Remove player's layer from obstacle mask to prevent self-hitting
+                _obstacleLayers &= ~(1 << playerGo.layer);
+            }
         }
 
         void HandleObstacleAvoidance(ref Vector3 desiredPos)
@@ -132,9 +149,9 @@ namespace ProjectName.Systems
             float ny = offset.y / (_screenSize.y * 0.5f);
 
             // Yaw: ±180°, Pitch: 위로 올리면 먼 곳, 아래로 내리면 가까운 곳
-            _targetYaw = Mathf.Clamp(nx * 180f * _cursorSensitivity, -180f, 180f);
+            _targetYaw = Mathf.Clamp(nx * MaxYawClamp * _cursorSensitivity, -MaxYawClamp, MaxYawClamp);
             _targetPitch = Mathf.Clamp(
-                _defaultPitch - ny * 20f * _cursorSensitivity,
+                _defaultPitch - ny * CursorPitchRange * _cursorSensitivity,
                 _minPitch,
                 _maxPitch
             );
@@ -145,9 +162,9 @@ namespace ProjectName.Systems
             if (Mouse.current == null || !Mouse.current.rightButton.isPressed) return;
 
             Vector2 delta = Mouse.current.delta.ReadValue();
-            _targetYaw += delta.x * 0.2f;
+            _targetYaw += delta.x * _dragSensitivityYaw;
             _targetPitch = Mathf.Clamp(
-                _targetPitch - delta.y * 0.15f,
+                _targetPitch - delta.y * _dragSensitivityPitch,
                 _minPitch,
                 _maxPitch
             );
@@ -157,10 +174,10 @@ namespace ProjectName.Systems
         {
             if (Mouse.current?.scroll == null) return;
             float scroll = Mouse.current.scroll.ReadValue().y;
-            if (Mathf.Abs(scroll) > 0.01f)
+            if (Mathf.Abs(scroll) > ScrollDeadZone)
             {
                 _targetRadius = Mathf.Clamp(
-                    _targetRadius - scroll * 0.5f,
+                    _targetRadius - scroll * _zoomSensitivity,
                     _minRadius,
                     _maxRadius
                 );

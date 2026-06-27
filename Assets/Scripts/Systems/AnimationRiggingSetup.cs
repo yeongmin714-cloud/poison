@@ -364,7 +364,8 @@ namespace ProjectName.Systems
             constraint.hint = hintGO.transform;
 
             // Set reasonable source/mask values
-            constraint.data.maintainTargetOffset = 1f;
+            constraint.data.maintainTargetPositionOffset = true;
+            constraint.data.maintainTargetRotationOffset = true;
             constraint.data.targetPositionWeight = 1f;
             constraint.data.targetRotationWeight = 1f;
             constraint.data.hintWeight = 0.5f;
@@ -417,7 +418,8 @@ namespace ProjectName.Systems
             constraint.target = targetGO.transform;
             constraint.hint = hintGO.transform;
 
-            constraint.data.maintainTargetOffset = 1f;
+            constraint.data.maintainTargetPositionOffset = true;
+            constraint.data.maintainTargetRotationOffset = true;
             constraint.data.targetPositionWeight = 1f;
             constraint.data.targetRotationWeight = 1f;
             constraint.data.hintWeight = 0.7f;

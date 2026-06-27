@@ -1,5 +1,6 @@
 using UnityEngine;
 using ProjectName.Core.Data;
+using System.Collections.Generic;
 
 namespace ProjectName.Systems
 {
@@ -31,6 +32,24 @@ namespace ProjectName.Systems
                 return Vector4.zero;
             }
 
+            if (meshSize <= 0f)
+            {
+                Debug.LogError("[TerrainPathGenerator] meshSize는 0보다 커야 합니다.");
+                return Vector4.zero;
+            }
+
+            if (pathWidth <= 0f)
+            {
+                Debug.LogWarning("[TerrainPathGenerator] pathWidth가 0 이하입니다. 기본값 4m 사용.");
+                pathWidth = 4f;
+            }
+
+            if (pathLength <= 0f)
+            {
+                Debug.LogWarning("[TerrainPathGenerator] pathLength가 0 이하입니다. 기본값 20m 사용.");
+                pathLength = 20f;
+            }
+
             float halfSize = meshSize * 0.5f;
 
             // 영지 중심 → UV 좌표
@@ -44,12 +63,12 @@ namespace ProjectName.Systems
             // 영지 중심에서 +Z 방향(북쪽)으로 진입로
             float halfWidth = uvWidth * 0.5f;
 
-            return new Vector4(
-                centerU - halfWidth,  // minU
-                centerU + halfWidth,  // maxU
-                centerV,              // minV (영지 중심부터)
-                centerV + uvLength    // maxV (북쪽 방향)
-            );
+            float minU = Mathf.Clamp01(centerU - halfWidth);
+            float maxU = Mathf.Clamp01(centerU + halfWidth);
+            float minV = Mathf.Clamp01(centerV);
+            float maxV = Mathf.Clamp01(centerV + uvLength);
+
+            return new Vector4(minU, maxU, minV, maxV);
         }
 
         /// <summary>
@@ -72,6 +91,18 @@ namespace ProjectName.Systems
                 return System.Array.Empty<int>();
             }
 
+            if (pathWidth <= 0f)
+            {
+                Debug.LogError("[TerrainPathGenerator] GetPathVertexIndices: pathWidth가 0 이하입니다.");
+                return System.Array.Empty<int>();
+            }
+
+            if (pathLength <= 0f)
+            {
+                Debug.LogError("[TerrainPathGenerator] GetPathVertexIndices: pathLength가 0 이하입니다.");
+                return System.Array.Empty<int>();
+            }
+
             // Path AABB 계산
             float halfWidth = pathWidth * 0.5f;
             float minX = territoryCenter.x - halfWidth;
@@ -80,7 +111,7 @@ namespace ProjectName.Systems
             float maxZ = territoryCenter.z + pathLength;
 
             // 영역 내 vertex 수집
-            System.Collections.Generic.List<int> indices = new System.Collections.Generic.List<int>();
+            List<int> indices = new List<int>();
 
             for (int i = 0; i < vertices.Length; i++)
             {
@@ -112,15 +143,30 @@ namespace ProjectName.Systems
             Color[] colors = new Color[vertexCount];
 
             // 기본 색상 설정 (기존 색상 또는 흰색)
-            if (existingColors != null && existingColors.Length >= vertexCount)
+            if (existingColors != null)
             {
-                for (int i = 0; i < vertexCount; i++)
-                    colors[i] = existingColors[i];
+                if (existingColors.Length >= vertexCount)
+                {
+                    for (int i = 0; i < vertexCount; i++)
+                    {
+                        colors[i] = existingColors[i];
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("[TerrainPathGenerator] existingColors 길이가 vertexCount보다 작습니다. 흰색으로 초기화합니다.");
+                    for (int i = 0; i < vertexCount; i++)
+                    {
+                        colors[i] = Color.white;
+                    }
+                }
             }
             else
             {
                 for (int i = 0; i < vertexCount; i++)
+                {
                     colors[i] = Color.white;
+                }
             }
 
             // Path 색상

@@ -1,5 +1,4 @@
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -22,8 +21,8 @@ namespace ProjectName.Systems
         [SerializeField] private Color _starColor2 = new Color(1f, 0.9f, 0.6f); // 노란빛
 
         [Header("Twinkle (G3-01)")]
-        [SerializeField] private float _minTwinkleSpeed = 0.5f;
-        [SerializeField] private float _maxTwinkleSpeed = 2f;
+        [SerializeField, Tooltip("반짝임 최소 주기(초). startLifetime으로 사용됩니다.")] private float _minTwinklePeriod = 0.5f;
+        [SerializeField, Tooltip("반짝임 최대 주기(초). startLifetime으로 사용됩니다.")] private float _maxTwinklePeriod = 2f;
         [SerializeField, Range(0f, 1f)] private float _minTwinkleSize = 0.3f;  // 반짝임 최소 크기 계수
         [SerializeField, Range(0f, 1f)] private float _minTwinkleAlpha = 0.1f; // 반짝임 최소 알파
 
@@ -33,7 +32,6 @@ namespace ProjectName.Systems
         private TimeManager _timeManager;
         private ParticleSystem _particleSystem;
         private GameObject _particleGo;
-        private bool _wasNight;
 
         private void Awake()
         {
@@ -53,8 +51,7 @@ namespace ProjectName.Systems
         private void Start()
         {
             // Awake에서 이미 Instance 체크 완료
-            _wasNight = _timeManager.IsNight;
-            if (_wasNight)
+            if (_timeManager.IsNight)
             {
                 CreateStarField();
             }
@@ -98,9 +95,9 @@ namespace ProjectName.Systems
             main.loop = true;
             main.playOnAwake = true;
             main.maxParticles = _starCount;
-            main.duration = 86400f;
+            main.duration = 864000f; // 10 game-days = loop 중 burst 재발사 방지를 위해 충분히 큰 값
             main.startLifetime = new ParticleSystem.MinMaxCurve(
-                _minTwinkleSpeed, _maxTwinkleSpeed
+                _minTwinklePeriod, _maxTwinklePeriod
             );
             main.startSpeed = 0f;
             main.startSize = _starSize;
@@ -108,10 +105,10 @@ namespace ProjectName.Systems
             main.simulationSpace = ParticleSystemSimulationSpace.World;
 
             // Emission: rateOverTime으로 별을 지속적으로 재생성
-            // 각 별의 평균 수명을 기준으로 _starCount를 유지하도록 rate 계산
+            // 각 별의 평균 수명(반짝임 주기)을 기준으로 _starCount를 유지하도록 rate 계산
             var emission = _particleSystem.emission;
             emission.enabled = true;
-            float avgLifetime = (_minTwinkleSpeed + _maxTwinkleSpeed) * 0.5f;
+            float avgLifetime = (_minTwinklePeriod + _maxTwinklePeriod) * 0.5f;
             float ratePerSecond = avgLifetime > 0f ? _starCount / avgLifetime : _starCount;
             emission.rateOverTime = Mathf.Max(ratePerSecond, 1f);
 

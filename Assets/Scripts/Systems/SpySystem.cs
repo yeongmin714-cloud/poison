@@ -39,6 +39,9 @@ namespace ProjectName.Systems
         public const float INFILTRATE_DURATION = 60f;
         public const float SURVEY_DURATION = 45f;
 
+        // 발각 시 정보원 즉시 사망 데미지
+        private const float EXECUTION_DAMAGE = 9999f;
+
         // 결과 구조체
         public struct SpyResult
         {
@@ -74,7 +77,7 @@ namespace ProjectName.Systems
             // 대상 영지 정보
             var db = TerritoryDatabase.Instance;
             var def = db.GetDefinition(targetTerritory);
-            if (def.territoryName == null)
+            if (string.IsNullOrEmpty(def.territoryName))
                 return Fail("대상 영지를 찾을 수 없습니다.", mission);
 
             switch (mission)
@@ -94,28 +97,12 @@ namespace ProjectName.Systems
 
         private static SpyResult ExecuteReconMission(GuardPlaceholder spy, TerritoryId targetId, TerritoryDefinition def)
         {
-            var state = TerritoryDatabase.Instance.GetState(targetId);
-            if (state == null)
-                return Fail("영지 상태를 찾을 수 없습니다.", SpyMission.Recon);
+            var state = GetStateOrFail(targetId);
+            if (state == null) return Fail("영지 상태를 찾을 수 없습니다.", SpyMission.Recon);
 
             // 발각 확인
-            float detectChance = CalculateDetectChance(spy, targetId);
-            bool detected = Random.value < detectChance;
-
-            if (detected)
-            {
-                // 정보원 사망 처리
-                spy.TakeDamage(9999f, Vector3.zero, "Spy caught");
-                return new SpyResult
-                {
-                    success = false,
-                    message = $"💀 발각! 정보원 {spy.GuardName} 처형됨.",
-                    mission = SpyMission.Recon,
-                    detected = true,
-                    spyLost = true,
-                    infoGathered = ""
-                };
-            }
+            var detectResult = TryDetect(spy, targetId, SpyMission.Recon);
+            if (detectResult.HasValue) return detectResult.Value;
 
             // 성공: 병력 정보 수집
             string terrainType = GetDifficultyTerrainName(def.difficulty);
@@ -128,41 +115,17 @@ namespace ProjectName.Systems
             state.spyReportRecon = true;
             state.lastSpyTime = Time.time;
 
-            return new SpyResult
-            {
-                success = true,
-                message = $"🔍 {def.territoryName} 정찰 성공!",
-                mission = SpyMission.Recon,
-                detected = false,
-                spyLost = false,
-                infoGathered = info
-            };
+            return Success($"🔍 {def.territoryName} 정찰 성공!", SpyMission.Recon, info);
         }
 
         private static SpyResult ExecuteInfiltrateMission(GuardPlaceholder spy, TerritoryId targetId, TerritoryDefinition def)
         {
-            var state = TerritoryDatabase.Instance.GetState(targetId);
-            if (state == null)
-                return Fail("영지 상태를 찾을 수 없습니다.", SpyMission.Infiltrate);
+            var state = GetStateOrFail(targetId);
+            if (state == null) return Fail("영지 상태를 찾을 수 없습니다.", SpyMission.Infiltrate);
 
             // 발각 확인
-            float detectChance = CalculateDetectChance(spy, targetId);
-            bool detected = Random.value < detectChance;
-
-            if (detected)
-            {
-                // 정보원 사망 처리
-                spy.TakeDamage(9999f, Vector3.zero, "Spy caught");
-                return new SpyResult
-                {
-                    success = false,
-                    message = $"💀 발각! 정보원 {spy.GuardName} 처형됨.",
-                    mission = SpyMission.Infiltrate,
-                    detected = true,
-                    spyLost = true,
-                    infoGathered = ""
-                };
-            }
+            var detectResult = TryDetect(spy, targetId, SpyMission.Infiltrate);
+            if (detectResult.HasValue) return detectResult.Value;
 
             // 성공: 영주 정보 수집
             string lordName = def.lord.lordName;
@@ -176,41 +139,17 @@ namespace ProjectName.Systems
             state.spyReportInfiltrate = true;
             state.lastSpyTime = Time.time;
 
-            return new SpyResult
-            {
-                success = true,
-                message = $"🕵️ {def.territoryName} 잠입 성공!",
-                mission = SpyMission.Infiltrate,
-                detected = false,
-                spyLost = false,
-                infoGathered = info
-            };
+            return Success($"🕵️ {def.territoryName} 잠입 성공!", SpyMission.Infiltrate, info);
         }
 
         private static SpyResult ExecuteSurveyMission(GuardPlaceholder spy, TerritoryId targetId, TerritoryDefinition def)
         {
-            var state = TerritoryDatabase.Instance.GetState(targetId);
-            if (state == null)
-                return Fail("영지 상태를 찾을 수 없습니다.", SpyMission.Survey);
+            var state = GetStateOrFail(targetId);
+            if (state == null) return Fail("영지 상태를 찾을 수 없습니다.", SpyMission.Survey);
 
             // 발각 확인
-            float detectChance = CalculateDetectChance(spy, targetId);
-            bool detected = Random.value < detectChance;
-
-            if (detected)
-            {
-                // 정보원 사망 처리
-                spy.TakeDamage(9999f, Vector3.zero, "Spy caught");
-                return new SpyResult
-                {
-                    success = false,
-                    message = $"💀 발각! 정보원 {spy.GuardName} 처형됨.",
-                    mission = SpyMission.Survey,
-                    detected = true,
-                    spyLost = true,
-                    infoGathered = ""
-                };
-            }
+            var detectResult = TryDetect(spy, targetId, SpyMission.Survey);
+            if (detectResult.HasValue) return detectResult.Value;
 
             // 성공: 지형/약도 정보 수집
             string terrainType = GetDifficultyTerrainName(def.difficulty);
@@ -223,15 +162,7 @@ namespace ProjectName.Systems
             state.spyReportSurvey = true;
             state.lastSpyTime = Time.time;
 
-            return new SpyResult
-            {
-                success = true,
-                message = $"🗺️ {def.territoryName} 측량 성공!",
-                mission = SpyMission.Survey,
-                detected = false,
-                spyLost = false,
-                infoGathered = info
-            };
+            return Success($"🗺️ {def.territoryName} 측량 성공!", SpyMission.Survey, info);
         }
 
         // ===== 헬퍼 =====
@@ -401,6 +332,40 @@ namespace ProjectName.Systems
                 case LordPersonality.Cruel: return "잔인함";
                 default: return "알 수 없음";
             }
+        }
+
+        // ===== 공통 헬퍼 =====
+
+        /// <summary>
+        /// 영지 상태 조회
+        /// </summary>
+        private static TerritoryState GetStateOrFail(TerritoryId targetId)
+        {
+            return TerritoryDatabase.Instance.GetState(targetId);
+        }
+
+        /// <summary>
+        /// 발각 판정 및 정보원 사망 처리
+        /// 발각되면 SpyResult 반환, 아니면 null 반환
+        /// </summary>
+        private static SpyResult? TryDetect(GuardPlaceholder spy, TerritoryId targetId, SpyMission mission)
+        {
+            float detectChance = CalculateDetectChance(spy, targetId);
+            bool detected = Random.value < detectChance;
+
+            if (!detected) return null;
+
+            // 정보원 사망 처리
+            spy.TakeDamage(EXECUTION_DAMAGE, Vector3.zero, "Spy caught");
+            return new SpyResult
+            {
+                success = false,
+                message = $"💀 발각! 정보원 {spy.GuardName} 처형됨.",
+                mission = mission,
+                detected = true,
+                spyLost = true,
+                infoGathered = ""
+            };
         }
 
         private static SpyResult Success(string msg, SpyMission mission, string infoGathered)

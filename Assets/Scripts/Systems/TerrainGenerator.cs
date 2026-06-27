@@ -2,7 +2,6 @@ using UnityEngine;
 using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -79,9 +78,9 @@ namespace ProjectName.Systems
                     float wx = -halfSize + x * step;
                     float wz = -halfSize + z * step;
 
-                    // Perlin Noise 높이
-                    float noiseX = x * freq + seed;
-                    float noiseZ = z * freq + seed;
+                    // Perlin Noise 높이 (월드 좌표 사용 — 해상도 변화에 일관된 결과)
+                    float noiseX = wx * freq + seed;
+                    float noiseZ = wz * freq + seed;
                     float noise = Mathf.PerlinNoise(noiseX, noiseZ);
                     float height = noise * amp;
 
@@ -139,10 +138,11 @@ namespace ProjectName.Systems
                 calculatedNormals[i3] += normal;
             }
 
-            // 노멀 정규화
+            // 노멀 정규화 (제로벡터 방어)
             for (int i = 0; i < vertexCount; i++)
             {
-                normals[i] = calculatedNormals[i].normalized;
+                Vector3 n = calculatedNormals[i];
+                normals[i] = n.sqrMagnitude > 0f ? n.normalized : Vector3.up;
             }
 
             // === 4. 지형 메시 생성 ===
@@ -152,6 +152,7 @@ namespace ProjectName.Systems
             terrainMesh.triangles = triangles;
             terrainMesh.uv = uv;
             terrainMesh.normals = normals;
+            terrainMesh.RecalculateBounds();
             terrainMesh.name = $"Terrain_{def.displayName}_{resolution}x{resolution}";
 
             // === 5. 물 메시 생성 (waterThreshold > 0) ===
@@ -252,6 +253,9 @@ namespace ProjectName.Systems
         /// <param name="groundObject">적용할 GameObject (MeshFilter 보유)</param>
         /// <param name="biome">Biome 타입</param>
         /// <param name="seed">랜덤 시드</param>
+        /// <param name="pathCenter">진입로 중심 월드 좌표 (null이면 진입로 미생성)</param>
+        /// <param name="pathWidth">진입로 폭 (월드 유닛, 기본 5m)</param>
+        /// <param name="pathLength">진입로 길이 (월드 유닛, 기본 40m)</param>
         public static void ApplyTerrainToGameObject(
             GameObject groundObject, BiomeType biome, int seed,
             Vector3? pathCenter = null, float pathWidth = 5f, float pathLength = 40f)

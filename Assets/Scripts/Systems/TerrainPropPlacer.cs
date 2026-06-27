@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -135,6 +134,7 @@ namespace ProjectName.Systems
             _treeFallback.name = "Tree_Fallback";
             _treeFallback.GetComponent<Renderer>().material.color = new Color(0.2f, 0.6f, 0.1f);
             _treeFallback.transform.localScale = new Vector3(0.5f, 1f, 0.5f);
+            Object.DestroyImmediate(_treeFallback.GetComponent<CapsuleCollider>());
             _treeFallback.SetActive(false);
 
             // Rock fallback: gray box
@@ -142,6 +142,7 @@ namespace ProjectName.Systems
             _rockFallback.name = "Rock_Fallback";
             _rockFallback.GetComponent<Renderer>().material.color = new Color(0.4f, 0.4f, 0.4f);
             _rockFallback.transform.localScale = new Vector3(0.8f, 0.6f, 0.8f);
+            Object.DestroyImmediate(_rockFallback.GetComponent<BoxCollider>());
             _rockFallback.SetActive(false);
 
             // Grass fallback: green sphere
@@ -149,6 +150,7 @@ namespace ProjectName.Systems
             _grassFallback.name = "Grass_Fallback";
             _grassFallback.GetComponent<Renderer>().material.color = new Color(0.2f, 0.8f, 0.2f);
             _grassFallback.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
+            Object.DestroyImmediate(_grassFallback.GetComponent<SphereCollider>());
             _grassFallback.SetActive(false);
         }
 
@@ -248,11 +250,12 @@ namespace ProjectName.Systems
 
         private void PlaceFallback(GameObject fallback, Vector3 position, float scale, float rotationY)
         {
-            GameObject instance = Instantiate(fallback, position, Quaternion.identity, _propsParent);
-            instance.transform.localScale = Vector3.one * scale;
-            instance.transform.rotation = Quaternion.Euler(0f, rotationY, 0f);
-            instance.SetActive(true);
-            _placedProps.Add(instance);
+            if (fallback == null)
+            {
+                Debug.LogError("[TerrainPropPlacer] Fallback object is null! Skipping placement.");
+                return;
+            }
+            PlaceProp(fallback, position, scale, rotationY);
         }
 
         // ================================================================
@@ -267,34 +270,25 @@ namespace ProjectName.Systems
         private Vector3 GetRandomPosition(System.Random rng)
         {
             float halfSize = _terrainSize / 2f;
+            float exclusionRadiusSqr = _spawnExclusionRadius * _spawnExclusionRadius;
 
-            for (int attempt = 0; attempt < 50; attempt++)
+            for (int attempt = 0; attempt < 100; attempt++)
             {
                 float x = RandomRange(rng, -halfSize, halfSize);
                 float z = RandomRange(rng, -halfSize, halfSize);
-                Vector3 pos = new Vector3(x, 0f, z);
 
-                // Exclude center spawn area
-                if (pos.magnitude < _spawnExclusionRadius)
+                // Exclude center spawn area (comparison against sqrMagnitude)
+                if (x * x + z * z < exclusionRadiusSqr)
                     continue;
 
-                return pos;
+                return new Vector3(x, 0f, z);
             }
 
-            // Fallback: keep trying until we get a valid position
-            for (int attempt = 0; attempt < 50; attempt++)
-            {
-                float x = RandomRange(rng, -halfSize, halfSize);
-                float z = RandomRange(rng, -halfSize, halfSize);
-                Vector3 pos = new Vector3(x, 0f, z);
-
-                if (pos.magnitude >= _spawnExclusionRadius)
-                    return pos;
-            }
-
-            // Absolute last resort: return (0,0,0) will be excluded but this should never happen
-            Debug.LogWarning("[TerrainPropPlacer] Could not find valid spawn position after 100 attempts.");
-            return Vector3.zero;
+            // Absolute last resort: place at edge of exclusion zone
+            Debug.LogWarning("[TerrainPropPlacer] Could not find valid spawn position after 100 attempts. " +
+                             "Check that terrainSize > spawnExclusionRadius.");
+            float edgeDist = _spawnExclusionRadius + 1f;
+            return new Vector3(edgeDist, 0f, 0f);
         }
 
         // ================================================================
@@ -321,7 +315,10 @@ namespace ProjectName.Systems
             {
                 if (_placedProps[i] != null)
                 {
-                    DestroyImmediate(_placedProps[i]);
+                    if (Application.isPlaying)
+                        Destroy(_placedProps[i]);
+                    else
+                        DestroyImmediate(_placedProps[i]);
                 }
             }
             _placedProps.Clear();
@@ -331,7 +328,10 @@ namespace ProjectName.Systems
             {
                 for (int i = _propsParent.childCount - 1; i >= 0; i--)
                 {
-                    DestroyImmediate(_propsParent.GetChild(i).gameObject);
+                    if (Application.isPlaying)
+                        Destroy(_propsParent.GetChild(i).gameObject);
+                    else
+                        DestroyImmediate(_propsParent.GetChild(i).gameObject);
                 }
             }
         }

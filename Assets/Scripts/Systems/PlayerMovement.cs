@@ -593,9 +593,15 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// Phase 8.3: 발소리 처리 — 땅에 닿고 이동 중일 때 0.5초 간격
+        /// FootstepSoundController가 존재하면 해당 컴포넌트에 위임 (표면 인지, 속도별 간격)
         /// </summary>
         private void HandleFootstepSound()
         {
+            // FootstepSoundController가 존재하면 자체 발소리 처리 생략
+            // (표면 인지 및 속도별 간격을 지원하는 더 정교한 버전이 처리함)
+            if (TryGetComponent<FootstepSoundController>(out _))
+                return;
+
             if (!_isGrounded) return;
 
             // CharacterController.velocity로 실제 이동 속도 확인

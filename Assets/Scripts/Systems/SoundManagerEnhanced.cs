@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -281,9 +280,6 @@ namespace ProjectName.Systems
                 return;
             }
 
-            _currentBGMId = clipName;
-            _volumeBGM = Mathf.Clamp01(volume);
-
             if (_bgmSource == null)
             {
                 Debug.LogWarning("[SoundManagerEnhanced] BGM AudioSource가 없음");
@@ -302,6 +298,8 @@ namespace ProjectName.Systems
                 _bgmSource.clip = clip;
             }
 
+            _currentBGMId = clipName;
+            _volumeBGM = Mathf.Clamp01(volume);
             _bgmSource.volume = _isMuted ? 0f : _volumeBGM;
             _bgmSource.Play();
         }
@@ -383,7 +381,8 @@ namespace ProjectName.Systems
         /// UI 사운드를 재생합니다.
         /// </summary>
         /// <param name="clipName">UI 사운드 클립 이름 (Resources/Sounds/UI/)</param>
-        public void PlayUI(string clipName)
+        /// <param name="volume">재생 볼륨 (0-1, 기본 1.0)</param>
+        public void PlayUI(string clipName, float volume = 1.0f)
         {
             if (string.IsNullOrEmpty(clipName))
             {
@@ -404,8 +403,30 @@ namespace ProjectName.Systems
                 return;
             }
 
-            float vol = _isMuted ? 0f : _volumeUI;
+            float vol = Mathf.Clamp01(volume) * (_isMuted ? 0f : 1f);
             _uiSource.PlayOneShot(clip, vol);
+        }
+
+        /// <summary>
+        /// SFX 재생을 즉시 정지합니다.
+        /// </summary>
+        public void StopSFX()
+        {
+            if (_sfxSource != null)
+            {
+                _sfxSource.Stop();
+            }
+        }
+
+        /// <summary>
+        /// UI 사운드 재생을 즉시 정지합니다.
+        /// </summary>
+        public void StopUI()
+        {
+            if (_uiSource != null)
+            {
+                _uiSource.Stop();
+            }
         }
 
         // ================================================================
@@ -557,9 +578,8 @@ namespace ProjectName.Systems
         {
             StopBGM();
             StopAmbient();
-
-            if (_sfxSource != null) _sfxSource.Stop();
-            if (_uiSource != null) _uiSource.Stop();
+            StopSFX();
+            StopUI();
 
             Debug.Log("[SoundManagerEnhanced] ⏹️ 모든 사운드 정지");
         }
@@ -619,7 +639,7 @@ namespace ProjectName.Systems
             if (ambientEffectManager == null || !ambientEffectManager.Initialized)
             {
                 // AmbientEffectManager가 없으면 기본 앰비언트
-                PlayAmbient("Ambient_Default", _volumeAmbient);
+                PlayAmbient("ambient_default", _volumeAmbient);
                 return;
             }
 
