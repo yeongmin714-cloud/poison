@@ -1,6 +1,5 @@
 using UnityEngine;
 using ProjectName.Core;
-using ProjectName.Core.Data;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -24,13 +23,15 @@ namespace ProjectName.Systems
         [SerializeField, Tooltip("리스폰 시간 (초)"), Min(0.1f)]
         private float _respawnTime = 15f;
 
-        private bool _isDepleted = false;
+        private bool _isDepleted;
 
         // --- 캐시된 컴포넌트 참조 ---
         private Renderer _renderer;
         private Collider _collider;
 
+        /// <summary>고갈되지 않아 채광 가능한 상태인지 여부</summary>
         public bool IsAvailable => !_isDepleted;
+        /// <summary>이 노드의 자원 종류</summary>
         public ResourceType NodeType => _resourceType;
 
         private void Awake()
@@ -48,7 +49,9 @@ namespace ProjectName.Systems
 
         private void OnDisable()
         {
-            CancelInvoke();
+            // GameObject 비활성화 시에도 Invoke 타이머는 Unity가 일시중지/재개하므로
+            // CancelInvoke를 호출하지 않음 (리스폰 타이머 유지).
+            // OnDestroy에서만 정리.
         }
 
         private void OnDestroy()
@@ -121,6 +124,7 @@ namespace ProjectName.Systems
                         maxStack = 99
                     };
                 default:
+                    Debug.LogError($"[ResourceNode] 알 수 없는 ResourceType: {_resourceType}");
                     return null;
             }
         }

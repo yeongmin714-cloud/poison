@@ -1,4 +1,3 @@
-#pragma warning disable 0414
 #if UNITY_EDITOR
 
 using UnityEditor;

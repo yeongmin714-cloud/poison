@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -70,9 +69,13 @@ namespace ProjectName.Systems
         private float _rollTimer = 0f;
         private float _lastRollTime = -10f;
 
+        // --- 점프 관련 (로컬 추적 — RigAnimationController의 CurrentState 타이밍 이슈 해결) ---
+        private bool _isJumping = false;
+
         // --- 더블탭 구르기 관련 ---
         private enum KeyDirection { Up, Down, Left, Right }
-        private float[] _lastKeyTime = new float[4]; // 각 방향키 마지막 누른 시간
+        // 게임 시작 직후 첫 키 입력이 더블탭으로 오인되지 않도록 음수로 초기화
+        private float[] _lastKeyTime = new float[] { -10f, -10f, -10f, -10f };
 
         // --- 카메라 효과 관련 ---
         private float _defaultFOV;
@@ -85,11 +88,18 @@ namespace ProjectName.Systems
         // Rig animation
         private RigAnimationController _rigAnim;
 
+        // 저장된 CharacterController 초기 높이 (구르기 복원용)
+        private float _originalControllerHeight = 2f;
+
         private void Awake()
         {
             _controller = GetComponent<CharacterController>();
             if (_controller == null)
+            {
                 Debug.LogError("[PlayerMovement] CharacterController가 필요합니다!");
+                return; // CharacterController 없이 진행 불가
+            }
+            _originalControllerHeight = _controller.height;
 
             // RigAnimationController 찾기 (PlayerPlaceholder에서 Awake로 이미 추가됨)
             _rigAnim = GetComponent<RigAnimationController>();
@@ -119,10 +129,12 @@ namespace ProjectName.Systems
 
         private void Update()
         {
+            // ApplyGravity()를 먼저 호출하여 _isGrounded를 최신 상태로 유지
+            ApplyGravity();
+
             HandleMovement();
             HandleRoll();
             HandleJump();
-            ApplyGravity();
             HandleStamina();
             MovePlayer();
             HandleInteraction(); // C16-02: E 키 상호작용
@@ -241,8 +253,9 @@ namespace ProjectName.Systems
             // 애니메이션 상태 업데이트
             if (_rigAnim != null)
             {
-                // Jump나 Attack 등 트리거 기반 상태는 덮어쓰지 않음
-                if (_rigAnim.CurrentState == AnimationState.Jump)
+                // Jump 등 트리거 기반 상태는 로컬 _isJumping 추적으로 덮어쓰지 않음
+                // (RigAnimationController.CurrentState는 코루틴 전환 중 지연되므로 로컬 추적 사용)
+                if (_isJumping)
                     return;
 
                 if (!isMoving)
@@ -329,7 +342,7 @@ namespace ProjectName.Systems
 
         private void HandleRoll()
         {
-            if (_keyboard == null) return;
+            if (_keyboard == null || _controller == null) return;
 
             // Q 키 구르기 + 더블탭 구르기 조건
             if (_keyboard.qKey.wasPressedThisFrame && !_isRolling && 
@@ -352,9 +365,9 @@ namespace ProjectName.Systems
 
                 // 구르기 중 플레이어 높이 약간 낮춤 (스케일을 일시적으로 줄임)
                 // 간단히 CharacterController의 height를 조정 (대신 transform scale 사용)
-                if (_controller.height > 1.0f)
+                if (_controller.height > _originalControllerHeight * 0.5f)
                 {
-                    _controller.height = Mathf.Lerp(_controller.height, 1.0f, Time.deltaTime * 10f);
+                    _controller.height = Mathf.Lerp(_controller.height, _originalControllerHeight * 0.5f, Time.deltaTime * 10f);
                 }
 
                 // 구르기 종료
@@ -362,7 +375,7 @@ namespace ProjectName.Systems
                 {
                     _isRolling = false;
                     _rollTimer = 0f;
-                    _controller.height = 2.0f; // 원래 높이로 복구 (기본값)
+                    _controller.height = _originalControllerHeight; // 저장된 원래 높이로 복구
 
                     // 카메라 흔들림 효과 (구르기 종료 시 약간)
                     TriggerCameraShake(0.05f, 0.05f);
@@ -389,7 +402,9 @@ namespace ProjectName.Systems
             // 구르기 시작 시 카메라 흔들림
             TriggerCameraShake(0.1f, 0.1f);
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
             Debug.Log($"[PlayerMovement] 🌀 구르기 시작! 방향: {_rollDirection}");
+#endif
         }
 
         private void HandleJump()
@@ -402,7 +417,14 @@ namespace ProjectName.Systems
             if (_keyboard.spaceKey.wasPressedThisFrame && _isGrounded)
             {
                 _verticalVelocity = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
+                _isJumping = true;
                 if (_rigAnim != null) _rigAnim.SetState(AnimationState.Jump);
+            }
+
+            // 땅에 닿으면 점프 상태 해제
+            if (_isJumping && _isGrounded && _verticalVelocity <= 0f)
+            {
+                _isJumping = false;
             }
         }
 
@@ -435,6 +457,8 @@ namespace ProjectName.Systems
 
         private void ApplyGravity()
         {
+            if (_controller == null) return;
+
             _isGrounded = _controller.isGrounded;
 
             if (_isGrounded && _verticalVelocity < 0)
@@ -452,6 +476,8 @@ namespace ProjectName.Systems
 
         private void MovePlayer()
         {
+            if (_controller == null) return;
+
             if (_isRolling)
             {
                 // 구르기 중에는 HandleRoll에서 이미 Move 처리
@@ -468,6 +494,10 @@ namespace ProjectName.Systems
         /// </summary>
         private void TriggerCameraShake(float duration, float intensity)
         {
+            // 진행 중인 흔들림보다 강한 효과만 덮어쓰기 (약한 효과는 무시)
+            if (_cameraShakeTimer > 0f && intensity <= _cameraShakeIntensity)
+                return;
+
             _cameraShakeTimer = duration;
             _cameraShakeDuration = duration;
             _cameraShakeIntensity = intensity;
@@ -485,7 +515,7 @@ namespace ProjectName.Systems
                 // 카메라를 원래 위치로 복원한 후 흔들림 오프셋 적용 (누적 방지)
                 _cameraTransform.localPosition = _cameraOriginalLocalPosition;
 
-                float progress = 1f - (_cameraShakeTimer / _cameraShakeDuration);
+                float progress = 1f - (_cameraShakeTimer / Mathf.Max(_cameraShakeDuration, 0.001f));
                 float decay = 1f - Mathf.Clamp01(progress);
                 float shakeAmount = _cameraShakeIntensity * decay;
 
@@ -596,6 +626,7 @@ namespace ProjectName.Systems
         public bool IsGrounded => _isGrounded;
         public bool IsSprinting => _keyboard != null && _keyboard.leftShiftKey.isPressed && _moveDirection.magnitude > 0.1f;
         public bool IsDashing => _isDashing;
+        public bool IsJumping => _isJumping;
         public Vector3 Velocity => _controller != null ? _controller.velocity : Vector3.zero;
 
         public float InteractionRadius => _interactionRadius;

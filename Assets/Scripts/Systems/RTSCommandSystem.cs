@@ -1,7 +1,7 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using ProjectName.Core;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -19,9 +19,16 @@ namespace ProjectName.Systems
 
         [Header("명령 설정")]
         [SerializeField] private float _raycastMaxDistance = 200f;
-        [SerializeField] private LayerMask _groundLayerMask = 1; // Default layer
+
+        [Header("레이캐스트 레이어")]
+        [Tooltip("명령 처리에 사용할 레이어 마스크 (적 유닛 + 지형이 포함된 레이어를 지정)")]
+        [SerializeField] private LayerMask _commandLayerMask = ~0; // Everything by default
 
         private Camera _mainCamera;
+
+        // 빈 리스트 캐시 — 매 GetSelectedGuards() 호출 시 할당 방지
+        private static readonly ReadOnlyCollection<GuardPlaceholder> _emptySelected =
+            new List<GuardPlaceholder>().AsReadOnly();
 
         private void Awake()
         {
@@ -44,7 +51,7 @@ namespace ProjectName.Systems
         {
             if (GuardSelectionManager.Instance != null)
                 return GuardSelectionManager.Instance.SelectedGuards;
-            return new List<GuardPlaceholder>().AsReadOnly();
+            return _emptySelected;
         }
 
         // ===== 퍼블릭 API =====
@@ -65,7 +72,7 @@ namespace ProjectName.Systems
             }
 
             Ray ray = _mainCamera.ScreenPointToRay(mousePosition);
-            if (!Physics.Raycast(ray, out RaycastHit hit, _raycastMaxDistance))
+            if (!Physics.Raycast(ray, out RaycastHit hit, _raycastMaxDistance, _commandLayerMask))
             {
                 Debug.Log("[RTSCommandSystem] 레이캐스트 적중 실패");
                 return;
@@ -82,7 +89,7 @@ namespace ProjectName.Systems
                 }
                 else
                 {
-                    IssueAttackCommand(selected, target);
+                    IssueAttackCommand(selected, target, hit.point);
                 }
             }
             else
@@ -133,21 +140,22 @@ namespace ProjectName.Systems
         /// <summary>
         /// 개별 공격 명령 — 각 병사가 각자 타겟을 공격
         /// </summary>
-        private void IssueAttackCommand(IReadOnlyList<GuardPlaceholder> selected, IDamageable target)
+        private void IssueAttackCommand(IReadOnlyList<GuardPlaceholder> selected, IDamageable target, Vector3 hitPoint)
         {
+            var targetTransform = (target as MonoBehaviour)?.transform;
+            Vector3 attackPos = targetTransform != null ? targetTransform.position : hitPoint;
+
             int count = 0;
             foreach (var guard in selected)
             {
                 if (guard != null && guard.IsAlive)
                 {
-                    var targetTransform = (target as MonoBehaviour)?.transform;
-                    Vector3 targetPos = targetTransform != null ? targetTransform.position : guard.transform.position;
-                    guard.SetCommandTarget(targetPos, true);
+                    guard.SetCommandTarget(attackPos, true);
                     guard.SetInCombat(true);
                     count++;
                 }
             }
-            Debug.Log($"[RTSCommandSystem] {count}명 공격 명령");
+            Debug.Log($"[RTSCommandSystem] {count}명 공격 명령 → {attackPos}");
         }
 
         /// <summary>
@@ -216,7 +224,7 @@ namespace ProjectName.Systems
             if (_mainCamera == null) return false;
 
             Ray ray = _mainCamera.ScreenPointToRay(mousePosition);
-            if (Physics.Raycast(ray, out RaycastHit hit, _raycastMaxDistance))
+            if (Physics.Raycast(ray, out RaycastHit hit, _raycastMaxDistance, _commandLayerMask))
             {
                 hitPoint = hit.point;
                 return true;

@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -31,7 +30,7 @@ namespace ProjectName.Systems
         /// <summary>타이틀 텍스트 표시 시간 (초)</summary>
         public const float TITLE_TEXT_DURATION = 2.5f;
 
-        /// <summary>내레이션 텍스트 표시 시간 (초)</summary>
+        /// <summary>전체 내레이션 표시 시간 (초) — 모든 라인이 이 시간 동안 균등 분할됩니다</summary>
         public const float NARRATION_DURATION = 4.0f;
 
         /// <summary>페이드 아웃 지속 시간 (초)</summary>
@@ -54,6 +53,7 @@ namespace ProjectName.Systems
 
         private static GUIStyle _titleStyle;
         private static GUIStyle _narrationStyle;
+        private static GUIStyle _skipStyle;
         private static bool _stylesInitialized;
 
         // ===== 내부 상태 =====
@@ -62,7 +62,6 @@ namespace ProjectName.Systems
         private static CoroutineRunner _runner;
         private static int _currentNarrationIndex;
         private static float _narrationTimer;
-        private static GUIStyle _skipStyle;
 
         // ===== 메인 퍼블릭 메서드 =====
 
@@ -150,23 +149,7 @@ namespace ProjectName.Systems
         /// </summary>
         public static void StopCutscene()
         {
-            if (!_isPlaying) return;
-
-            _isPlaying = false;
-            if (_runner != null)
-            {
-                _runner.StopAllCoroutines();
-            }
-
-            MarkAsSeen();
-            OnCutsceneSkipped?.Invoke();
-            OnCutsceneCompleted?.Invoke();
-
-            // 페이드 인으로 복구
-            if (FadeManager.Instance != null)
-            {
-                FadeManager.Instance.FadeIn(FADE_IN_DURATION);
-            }
+            InternalStopCutscene(isSkipped: false);
         }
 
         // ===== IMGUI OnGUI =====
@@ -204,15 +187,6 @@ namespace ProjectName.Systems
             }
 
             // 스킵 안내
-            if (_skipStyle == null)
-            {
-                _skipStyle = new GUIStyle
-                {
-                    alignment = TextAnchor.LowerRight,
-                    fontSize = Mathf.RoundToInt(Screen.height * 0.02f),
-                    normal = new GUIStyleState { textColor = new Color(0.6f, 0.6f, 0.6f, 0.6f) }
-                };
-            }
             GUI.Label(new Rect(Screen.width - 200f, Screen.height - 60f, 180f, 40f), "Press ESC/Space to skip", _skipStyle);
         }
 
@@ -291,13 +265,17 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 컷씬 스킵 처리.
+        /// 컷씬 스킵 처리 — SkipCutscene과 StopCutscene의 공통 로직.
         /// </summary>
-        private static void SkipCutscene()
+        /// <param name="isSkipped">true이면 스킵 로그를 출력하고 OnCutsceneSkipped 이벤트를 발생시킵니다.</param>
+        private static void InternalStopCutscene(bool isSkipped)
         {
             if (!_isPlaying) return;
 
-            Debug.Log("[OpeningCutscene] ⏭️ 오프닝 스킵");
+            if (isSkipped)
+            {
+                Debug.Log("[OpeningCutscene] ⏭️ 오프닝 스킵");
+            }
 
             // 현재 코루틴 중단
             if (_runner != null)
@@ -310,7 +288,11 @@ namespace ProjectName.Systems
             _narrationTimer = 0f;
 
             MarkAsSeen();
-            OnCutsceneSkipped?.Invoke();
+
+            if (isSkipped)
+            {
+                OnCutsceneSkipped?.Invoke();
+            }
             OnCutsceneCompleted?.Invoke();
 
             // 페이드 인으로 복구
@@ -347,6 +329,13 @@ namespace ProjectName.Systems
             _narrationStyle.normal.background = null;
             _narrationStyle.wordWrap = true;
 
+            _skipStyle = new GUIStyle
+            {
+                alignment = TextAnchor.LowerRight,
+                fontSize = Mathf.RoundToInt(Screen.height * 0.02f),
+                normal = new GUIStyleState { textColor = new Color(0.6f, 0.6f, 0.6f, 0.6f) }
+            };
+
             _stylesInitialized = true;
         }
 
@@ -370,7 +359,7 @@ namespace ProjectName.Systems
             if (_runner != null)
             {
                 _runner.StopAllCoroutines();
-                Object.DestroyImmediate(_runner.gameObject);
+                Object.Destroy(_runner.gameObject);
                 _runner = null;
             }
 
@@ -405,6 +394,14 @@ namespace ProjectName.Systems
                     SkipCutscene();
                 }
             }
+        }
+
+        /// <summary>
+        /// 컷씬 스킵 처리 — InternalStopCutscene을 호출합니다.
+        /// </summary>
+        private static void SkipCutscene()
+        {
+            InternalStopCutscene(isSkipped: true);
         }
     }
 }

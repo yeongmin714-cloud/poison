@@ -60,8 +60,8 @@ namespace ProjectName.Systems
         [SerializeField] private float _transitionDuration = 2.0f;
 
         // C22-09: Smooth transition state
-        private NationType _previousNation = NationType.East;
-        private NationType _currentNation = NationType.East;
+        private NationType _previousNation = NationType.Empire;
+        private NationType _currentNation = NationType.Empire;
         private Texture2D _previousTexture;
         private Texture2D _targetTexture;
         private Material _terrainMaterial;
@@ -181,6 +181,9 @@ namespace ProjectName.Systems
             var renderer = GetComponent<MeshRenderer>();
             if (renderer == null || renderer.sharedMaterial == null) return;
 
+            // Sync _terrainMaterial with the current renderer material
+            _terrainMaterial = renderer.sharedMaterial;
+
             // Store previous nation and texture before generating new one
             _previousNation = _currentNation;
             _previousTexture = renderer.sharedMaterial.mainTexture as Texture2D;
@@ -219,7 +222,10 @@ namespace ProjectName.Systems
             if (_previousTexture == null || _targetTexture == null)
             {
                 // Fall back to immediate swap
-                _terrainMaterial.mainTexture = _targetTexture;
+                if (_terrainMaterial != null)
+                {
+                    _terrainMaterial.mainTexture = _targetTexture;
+                }
                 Debug.Log("[NationTerrainController] Immediate texture swap (no previous texture).");
                 _isTransitioning = false;
                 yield break;

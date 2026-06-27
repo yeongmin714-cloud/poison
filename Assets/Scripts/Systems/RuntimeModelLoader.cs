@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -193,8 +192,7 @@ namespace ProjectName.Systems
         /// <returns>모델이 존재하면 true, 아니면 false</returns>
         public static bool TryGetModel(string key, out GameObject model)
         {
-            var dummy = default(ModelMetadata);
-            return TryGetModel(key, out model, out dummy);
+            return TryGetModel(key, out model, out _);
         }
 
         /// <summary>

@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using ProjectName.Core;
 using UnityEngine;
 using ProjectName.Core.Data;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -66,9 +64,9 @@ namespace ProjectName.Systems
             if (rep >= 80) return "충성";
             if (rep >= 50) return "우호";
             if (rep >= 20) return "호의";
-            if (rep > -20) return "중립";
-            if (rep > -50) return "냉담";
-            if (rep > -80) return "적대";
+            if (rep >= -20) return "중립";
+            if (rep >= -50) return "냉담";
+            if (rep >= -80) return "적대";
             return "선전포고";
         }
 
@@ -81,8 +79,8 @@ namespace ProjectName.Systems
             int rep = GetReputation(nation);
             if (rep >= 50) return 0.8f;
             if (rep >= 20) return 0.9f;
-            if (rep > -20) return 1.0f;
-            if (rep > -50) return 1.2f;
+            if (rep >= -20) return 1.0f;
+            if (rep >= -50) return 1.2f;
             return 1.5f;
         }
 

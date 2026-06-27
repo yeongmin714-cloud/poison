@@ -96,9 +96,9 @@ namespace ProjectName.Tests.EditMode
         // ================================================================
 
         [Test]
-        public void PoolSize_Default_IsFour()
+        public void PoolSize_Default_IsTwelve()
         {
-            Assert.AreEqual(4, _sfxManager.PoolSize, "기본 풀 크기는 4");
+            Assert.AreEqual(12, _sfxManager.PoolSize, "기본 풀 크기는 12");
         }
 
         [Test]

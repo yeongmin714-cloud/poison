@@ -1,19 +1,20 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
     /// <summary>
     /// C16-04: 저장 슬롯 선택 IMGUI UI.
     /// SleepUI에서 수면 옵션 선택 후 저장할 슬롯을 선택하는 화면을 표시합니다.
-    /// 5개 슬롯 버튼 + 확인/취소 버튼을 제공합니다.
+    /// 최대 5개 슬롯 버튼 + 확인/취소 버튼을 제공합니다.
     /// </summary>
     public class SaveSlotUI : MonoBehaviour
     {
         public static SaveSlotUI Instance { get; private set; }
 
         [Header("Layout")]
+        [SerializeField] private int _maxSlots = 5;
         [SerializeField] private int _windowWidth = 400;
         [SerializeField] private int _windowHeight = 480;
         [SerializeField] private int _slotButtonHeight = 60;
@@ -36,7 +37,6 @@ namespace ProjectName.Systems
         private GUIStyle _titleStyle;
         private GUIStyle _slotLabelStyle;
         private GUIStyle _slotEmptyStyle;
-        private GUIStyle _buttonStyle;
         private GUIStyle _dimStyle;
         private GUIStyle _bgBoxStyle;
         private GUIStyle _confirmButtonStyle;
@@ -47,6 +47,7 @@ namespace ProjectName.Systems
         // ===== 캐싱된 텍스처 =====
         private Texture2D _dimTex;
         private Texture2D _bgTex;
+        private readonly List<Texture2D> _tempTextures = new List<Texture2D>();
         private bool _texturesInitialized;
 
         private void Awake()
@@ -66,6 +67,11 @@ namespace ProjectName.Systems
             // 리소스 정리
             if (_dimTex != null) Destroy(_dimTex);
             if (_bgTex != null) Destroy(_bgTex);
+            foreach (var tex in _tempTextures)
+            {
+                if (tex != null) Destroy(tex);
+            }
+            _tempTextures.Clear();
         }
 
         /// <summary>
@@ -128,7 +134,9 @@ namespace ProjectName.Systems
                 padding = new RectOffset(10, 10, 4, 4)
             };
             _slotLabelStyle.hover.background = MakeTexture(1, 1, new Color(0.3f, 0.4f, 0.6f, 1f));
+            _tempTextures.Add(_slotLabelStyle.hover.background);
             _slotLabelStyle.active.background = MakeTexture(1, 1, new Color(0.2f, 0.3f, 0.4f, 1f));
+            _tempTextures.Add(_slotLabelStyle.active.background);
 
             _slotEmptyStyle = new GUIStyle
             {
@@ -148,16 +156,6 @@ namespace ProjectName.Systems
                 normal = { background = _bgTex }
             };
 
-            _buttonStyle = new GUIStyle
-            {
-                fontSize = 18,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = _textColor }
-            };
-            _buttonStyle.hover.background = MakeTexture(1, 1, new Color(0.3f, 0.4f, 0.8f, 1f));
-            _buttonStyle.active.background = MakeTexture(1, 1, new Color(0.1f, 0.2f, 0.5f, 1f));
-
             _confirmButtonStyle = new GUIStyle
             {
                 fontSize = 18,
@@ -166,7 +164,9 @@ namespace ProjectName.Systems
                 normal = { textColor = _textColor }
             };
             _confirmButtonStyle.hover.background = MakeTexture(1, 1, new Color(0.3f, 0.7f, 0.3f, 1f));
+            _tempTextures.Add(_confirmButtonStyle.hover.background);
             _confirmButtonStyle.active.background = MakeTexture(1, 1, new Color(0.1f, 0.4f, 0.1f, 1f));
+            _tempTextures.Add(_confirmButtonStyle.active.background);
 
             _cancelButtonStyle = new GUIStyle
             {
@@ -176,7 +176,9 @@ namespace ProjectName.Systems
                 normal = { textColor = _textColor }
             };
             _cancelButtonStyle.hover.background = MakeTexture(1, 1, new Color(0.8f, 0.3f, 0.3f, 1f));
+            _tempTextures.Add(_cancelButtonStyle.hover.background);
             _cancelButtonStyle.active.background = MakeTexture(1, 1, new Color(0.5f, 0.1f, 0.1f, 1f));
+            _tempTextures.Add(_cancelButtonStyle.active.background);
 
             _stylesInitialized = true;
         }
@@ -200,9 +202,9 @@ namespace ProjectName.Systems
 
         private void OnGUI()
         {
-            InitializeStyles();
-
             if (!_isVisible) return;
+
+            InitializeStyles();
 
             // 백업: 원래 GUI.backgroundColor 저장
             Color origBgColor = GUI.backgroundColor;
@@ -220,12 +222,12 @@ namespace ProjectName.Systems
             // 제목
             GUI.Label(new Rect(centerX, centerY + 15, _windowWidth, 35), "저장 슬롯 선택", _titleStyle);
 
-            // 슬롯 버튼 (5개)
+            // 슬롯 버튼
             int slotStartY = centerY + 60;
             int slotX = centerX + 20;
             int slotWidth = _windowWidth - 40;
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < _maxSlots; i++)
             {
                 int slotY = slotStartY + (_slotButtonHeight + _buttonSpacing) * i;
                 SaveData info = (_slotInfos != null && i < _slotInfos.Length) ? _slotInfos[i] : null;
@@ -234,15 +236,16 @@ namespace ProjectName.Systems
                 GUI.backgroundColor = isSelected ? _selectedSlotColor : (info != null ? _slotColor : _slotEmptyColor);
 
                 string label = FormatSlotLabel(i, info);
+                GUIStyle slotStyle = (info != null) ? _slotLabelStyle : _slotEmptyStyle;
 
-                if (GUI.Button(new Rect(slotX, slotY, slotWidth, _slotButtonHeight), label, _slotLabelStyle))
+                if (GUI.Button(new Rect(slotX, slotY, slotWidth, _slotButtonHeight), label, slotStyle))
                 {
                     _selectedSlot = i;
                 }
             }
 
-            // 확인/취소 버튼 줄 (5개 슬롯 아래에 위치)
-            int buttonRowY = slotStartY + (_slotButtonHeight + _buttonSpacing) * 5 + 15;
+            // 확인/취소 버튼 줄 (슬롯 아래에 위치)
+            int buttonRowY = slotStartY + (_slotButtonHeight + _buttonSpacing) * _maxSlots + 15;
             int buttonWidth = (_windowWidth - 60) / 2;
 
             // 확인 버튼

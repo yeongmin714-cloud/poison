@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using ProjectName.Core;
 using UnityEngine;
 using ProjectName.Core.Data;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -82,8 +81,9 @@ namespace ProjectName.Systems
         {
             string tid = territoryId.ToString();
 
-            // 이유 공개
+            // 이유 공개 + 복수 완료 처리
             RevengeListManager.Instance.RevealReason(tid);
+            RevengeListManager.Instance.CompleteEntry(tid);
 
             // 엔트리 조회
             var entry = RevengeListManager.Instance.GetEntry(tid);
@@ -116,8 +116,9 @@ namespace ProjectName.Systems
         {
             string tid = territoryId.ToString();
 
-            // 이유 공개
+            // 이유 공개 + 복수 완료 처리
             RevengeListManager.Instance.RevealReason(tid);
+            RevengeListManager.Instance.CompleteEntry(tid);
 
             // 엔트리 조회
             var entry = RevengeListManager.Instance.GetEntry(tid);
@@ -145,14 +146,15 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// C14-05: 암살 컷씬 영주 사망 핸들러 — AssassinationCutscene.OnAssassinationExecuted
-        /// 독살과 동일한 RevealReason 로직 적용
+        /// 독살과 동일한 RevealReason + CompleteEntry 로직 적용
         /// </summary>
         private static void OnAssassinationExecuted(TerritoryId territoryId)
         {
             string tid = territoryId.ToString();
 
-            // 이유 공개
+            // 이유 공개 + 복수 완료 처리
             RevengeListManager.Instance.RevealReason(tid);
+            RevengeListManager.Instance.CompleteEntry(tid);
 
             // 엔트리 조회
             var entry = RevengeListManager.Instance.GetEntry(tid);

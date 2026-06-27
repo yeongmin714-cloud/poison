@@ -47,6 +47,10 @@ namespace ProjectName.Systems
         private Texture2D _cachedBgTex;
         private Texture2D _cachedOverlayTex;
 
+        // ===== 캐싱된 GUI 스타일 (매 프레임 할당 방지) =====
+        private GUIStyle _cachedBgStyle;
+        private GUIStyle _cachedOverlayStyle;
+
         // ===== 수면 상태 (SleepFor가 동기식이므로 SleepUI가 직접 관리) =====
         private bool _isSleeping;
         private Coroutine _sleepCoroutine;
@@ -151,6 +155,10 @@ namespace ProjectName.Systems
             _cachedBgTex = MakeTexture(1, 1, _bgColor);
             _cachedOverlayTex = MakeTexture(1, 1, _sleepOverlayColor);
 
+            // 캐싱된 스타일 (매 프레임 GC 할당 방지)
+            _cachedBgStyle = new GUIStyle { normal = { background = _cachedBgTex } };
+            _cachedOverlayStyle = new GUIStyle { normal = { background = _cachedOverlayTex } };
+
             _stylesInitialized = true;
         }
 
@@ -176,9 +184,8 @@ namespace ProjectName.Systems
             bool anySleeping = _isSleeping || (TimeManager.Instance != null && TimeManager.Instance.IsSleeping);
             if (anySleeping)
             {
-                // 캐싱된 오버레이 텍스처 사용 (매 프레임 MakeTexture 호출 방지)
-                var overlayStyle = new GUIStyle { normal = { background = _cachedOverlayTex } };
-                GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "", overlayStyle);
+                // 캐싱된 오버레이 스타일 사용 (매 프레임 GUIStyle/텍스처 생성 방지)
+                GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "", _cachedOverlayStyle);
 
                 // "😴 Sleeping... (ESC to wake)" 텍스트
                 GUI.Label(new Rect(0, Screen.height / 2 - 50, Screen.width, 60), "😴 Sleeping...\n(ESC to wake)", _overlayStyle);
@@ -191,9 +198,8 @@ namespace ProjectName.Systems
             int centerX = (Screen.width - _windowWidth) / 2;
             int centerY = (Screen.height - _windowHeight) / 2;
 
-            // 캐싱된 배경 텍스처 사용
-            var bgStyle = new GUIStyle { normal = { background = _cachedBgTex } };
-            GUI.Box(new Rect(centerX, centerY, _windowWidth, _windowHeight), "", bgStyle);
+            // 캐싱된 배경 스타일 사용 (매 프레임 GUIStyle 생성 방지)
+            GUI.Box(new Rect(centerX, centerY, _windowWidth, _windowHeight), "", _cachedBgStyle);
 
             // 제목
             string title = $"{_currentBed.BedName} — 얼마나 주무시겠습니까?";
@@ -251,7 +257,6 @@ namespace ProjectName.Systems
         private IEnumerator DoSleep(float hours)
         {
             _isSleeping = true;
-            _isVisible = false;
 
             // 수면 시간 계산
             float sleepSeconds;
@@ -298,14 +303,6 @@ namespace ProjectName.Systems
                 return morningTime - currentTimeOfDay;
             else
                 return (86400f - currentTimeOfDay) + morningTime; // 다음 날 아침
-        }
-
-        private void OnWakeUpComplete()
-        {
-            // DoSleep 코루틴에서 직접 _currentBed를 정리하므로,
-            // 이 콜백은 SaveSlotUI 경로 fallback용으로만 유지
-            _currentBed = null;
-            Debug.Log("[SleepUI] 기상 완료!");
         }
     }
 }

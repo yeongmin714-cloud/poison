@@ -121,7 +121,7 @@ namespace ProjectName.Systems
             villagerNpc.transform.SetParent(room.transform);
             // 테이블 근처
             villagerNpc.transform.localPosition = new Vector3(-1.0f, 0, -1.0f);
-            villagerNpc.AddComponent<NPCQuestGiver>();
+            villagerNpc.AddComponent<NpcQuestGiver>();
 
             // ===== 출구 트리거 생성 =====
             GameObject exitTrigger = new GameObject("ExitTrigger");

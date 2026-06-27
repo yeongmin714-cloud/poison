@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using UnityEngine;
-#pragma warning disable 0414
 
 #if UNITY_ANIMATION_RIGGING
 using UnityEngine.Animations.Rigging;
@@ -66,7 +65,9 @@ namespace ProjectName.Systems
         [SerializeField] private string _kneelTrigger = "Kneel";
 
         [Header("Procedural Settings")]
+#pragma warning disable 0414
         [SerializeField, Range(0f, 1f)] private float _rigWeight = 1f;
+#pragma warning restore 0414
 
         // ──────────────────────────────────────────────
         //  Private state
@@ -262,7 +263,7 @@ namespace ProjectName.Systems
                 $"[RigAnimationController] State transition: {previousState} → {newState} " +
                 $"on '{gameObject.name}'",
                 this);
-#endif
+            #endif
         }
 
         /// <summary>

@@ -194,15 +194,16 @@ namespace ProjectName.Tests.EditMode
         [TestCase(NationType.South, "🔥")]
         [TestCase(NationType.North, "❄️")]
         [TestCase(NationType.Empire, "👑")]
+        [TestCase(NationType.Dracula, "🦇")]
         public void NationFlagVisualData_GetSymbolEmoji_ReturnsCorrect(NationType nation, string expectedEmoji)
         {
             Assert.AreEqual(expectedEmoji, nation.GetSymbolEmoji());
         }
 
         [Test]
-        public void NationFlagVisualData_GetSymbolEmoji_None_ReturnsQuestionMark()
+        public void NationFlagVisualData_GetSymbolEmoji_None_ReturnsEmptyFlag()
         {
-            Assert.AreEqual("❓", NationType.None.GetSymbolEmoji());
+            Assert.AreEqual("⬜", NationType.None.GetSymbolEmoji());
         }
 
         [TestCase(NationType.East, "떠오르는 태양")]
@@ -210,6 +211,7 @@ namespace ProjectName.Tests.EditMode
         [TestCase(NationType.South, "불꽃")]
         [TestCase(NationType.North, "눈송이/산")]
         [TestCase(NationType.Empire, "독수리/왕관")]
+        [TestCase(NationType.Dracula, "박쥐")]
         public void NationFlagVisualData_GetSymbolName_ReturnsCorrect(NationType nation, string expectedName)
         {
             Assert.AreEqual(expectedName, nation.GetSymbolName());
@@ -220,9 +222,16 @@ namespace ProjectName.Tests.EditMode
         [TestCase(NationType.South, "남쪽의 열정과 전투")]
         [TestCase(NationType.North, "북쪽의 냉철함")]
         [TestCase(NationType.Empire, "중앙 황제의 권위")]
+        [TestCase(NationType.Dracula, "밤의 어둠과 피")]
         public void NationFlagVisualData_GetFlagDescription_ReturnsCorrect(NationType nation, string expectedDesc)
         {
             Assert.AreEqual(expectedDesc, nation.GetFlagDescription());
+        }
+
+        [Test]
+        public void NationFlagVisualData_GetFlagColorName_None_ReturnsGray()
+        {
+            Assert.AreEqual("회색", NationType.None.GetFlagColorName());
         }
 
         // ================================================================

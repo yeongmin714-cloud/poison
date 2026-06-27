@@ -1,5 +1,4 @@
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -62,7 +61,7 @@ namespace ProjectName.Systems
             if (!RuntimeModelLoader.TryGetModel("player_rigged", out var playerModel, out var _))
                 return false;
 
-            GameObject avatar = Object.Instantiate(playerModel, transform);
+            GameObject avatar = Instantiate(playerModel, transform);
             avatar.name = "Avatar";
             avatar.transform.localPosition = Vector3.zero;
             avatar.transform.localRotation = Quaternion.identity;
@@ -126,8 +125,14 @@ namespace ProjectName.Systems
             if (renderer != null)
             {
                 var mat = MaterialHelper.CreateLitMaterial(color, $"{name}_Mat");
-                renderer.material = mat;
+                if (mat != null)
+                    renderer.material = mat;
             }
+
+            // 시각적 Placeholder이므로 Collider 제거 (물리 오버헤드 방지)
+            var collider = part.GetComponent<Collider>();
+            if (collider != null)
+                Destroy(collider);
 
             return part;
         }

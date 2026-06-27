@@ -15,8 +15,8 @@ namespace ProjectName.Systems
     ///   c) 정보원 경로: 정보원이 첩보 수집 → 약점 노출 → 더 쉬운 점령
     /// 
     /// 사용법:
-    ///   PoisonTakeoverSystem.TryPoisonTakeover(territoryId);
-    ///   PoisonTakeoverSystem.TrySpyTakeover(territoryId);
+    ///   PoisonTakeoverSystem.TryPoisonTakeover(envoy, territoryId);
+    ///   PoisonTakeoverSystem.TrySpyTakeover(spy, territoryId);
     /// </summary>
     public static class PoisonTakeoverSystem
     {
@@ -86,7 +86,8 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 특사 경로: 특사가 독살 선물을 전달하여 영주를 암살합니다.
-        /// EnvoySystem.ExecuteAssassinateMission과 연동되며, 성공 시 영지가 플레이어 소유로 변경됩니다.
+        /// EnvoySystem.SendEnvoy(AssassinateMission)과 유사한 독살 로직을 구현하며,
+        /// 성공 시 영지가 플레이어 소유로 변경됩니다.
         /// </summary>
         /// <param name="envoy">파견할 특사 (GuardPlaceholder)</param>
         /// <param name="territoryId">대상 영지 ID</param>
@@ -162,10 +163,12 @@ namespace ProjectName.Systems
                 // 성공: 영주 독살 완료
                 ExecutePoisonTakeover(territoryId, path, envoy);
 
+                var def = db.GetDefinition(territoryId);
+
                 return new PoisonResult
                 {
                     success = true,
-                    message = $"☠️ {db.GetDefinition(territoryId).territoryName} 영주 독살 성공! 영지가 점령되었습니다.",
+                    message = $"☠️ {def.territoryName} 영주 독살 성공! 영지가 점령되었습니다.",
                     detected = false,
                     path = path
                 };
@@ -382,7 +385,7 @@ namespace ProjectName.Systems
             state.ownership = TerritoryOwnership.PlayerOwned;
             state.lordExecuted = true;
             state.lordDefeated = true;
-            state.lordSurrendered = true;
+            // NOTE: lordSurrendered는 설정하지 않음 — 독살은 항복이 아닌 암살이므로
 
             // 독살 플래그 설정
             _poisonFlags[territoryId] = true;

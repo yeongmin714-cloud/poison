@@ -1,5 +1,4 @@
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -29,8 +28,7 @@ namespace ProjectName.Systems
 
         private void Update()
         {
-            if (_controller == null)
-                return;
+            // Awake에서 null 시 enabled=false 처리되므로 null 체크 불필요
 
             // 장착 해제 시 강제 중단
             if (!_controller.IsEquipped)

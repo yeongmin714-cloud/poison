@@ -1,7 +1,6 @@
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -10,7 +9,7 @@ namespace ProjectName.Systems
     /// 플레이어가 근처에서 E 키를 누르면 퀘스트를 수락/제출.
     /// 예: 고기 3개 가져오기 → 보상 지급.
     /// </summary>
-    public class NPCQuestGiver : MonoBehaviour
+    public class NpcQuestGiver : MonoBehaviour
     {
         [System.Serializable]
         public class QuestDef
@@ -70,41 +69,53 @@ namespace ProjectName.Systems
         {
             if (_quest == null)
             {
-                Debug.LogError("[NPCQuestGiver] QuestDef가 할당되지 않았습니다! Inspector에서 _quest를 설정해주세요.");
+                Debug.LogError("[NpcQuestGiver] QuestDef가 할당되지 않았습니다! Inspector에서 _quest를 설정해주세요.");
                 return;
             }
 
             _questAccepted = true;
-            Debug.Log($"[NPCQuestGiver] {_npcName}: \"{_quest.description}\"");
+            Debug.Log($"[NpcQuestGiver] {_npcName}: \"{_quest.description}\"");
         }
 
         private void TryCompleteQuest()
         {
             if (_quest == null)
             {
-                Debug.LogError("[NPCQuestGiver] QuestDef가 할당되지 않았습니다! Inspector에서 _quest를 설정해주세요.");
+                Debug.LogError("[NpcQuestGiver] QuestDef가 할당되지 않았습니다! Inspector에서 _quest를 설정해주세요.");
                 return;
             }
 
-            if (PlayerInventory.Instance == null) return;
+            if (PlayerInventory.Instance == null)
+            {
+                Debug.LogError("[NpcQuestGiver] PlayerInventory.Instance가 없습니다!");
+                return;
+            }
 
             int count = PlayerInventory.Instance.GetItemCount(_quest.requiredItemId);
             if (count >= _quest.requiredCount)
             {
-                PlayerInventory.Instance.RemoveItem(_quest.requiredItemId, _quest.requiredCount);
+                if (!PlayerInventory.Instance.RemoveItem(_quest.requiredItemId, _quest.requiredCount))
+                {
+                    Debug.LogError($"[NpcQuestGiver] 아이템 제거 실패: {_quest.requiredItemId} x{_quest.requiredCount}");
+                    return;
+                }
 
                 if (PlayerStats.Instance != null)
                 {
                     PlayerStats.Instance.AddGold(_quest.rewardGold);
                     PlayerStats.Instance.AddEXP(_quest.rewardExp);
                 }
+                else
+                {
+                    Debug.LogWarning("[NpcQuestGiver] PlayerStats.Instance가 없어 골드/경험치를 지급할 수 없습니다.");
+                }
 
                 _questCompleted = true;
-                Debug.Log($"[NPCQuestGiver] ✅ 퀘스트 완료! {_quest.questName} — 골드+{_quest.rewardGold}, 경험치+{_quest.rewardExp}");
+                Debug.Log($"[NpcQuestGiver] ✅ 퀘스트 완료! {_quest.questName} — 골드+{_quest.rewardGold}, 경험치+{_quest.rewardExp}");
             }
             else
             {
-                Debug.Log($"[NPCQuestGiver] {_npcName}: 아직 아이템이 부족합니다 ({count}/{_quest.requiredCount})");
+                Debug.Log($"[NpcQuestGiver] {_npcName}: 아직 아이템이 부족합니다 ({count}/{_quest.requiredCount})");
             }
         }
 

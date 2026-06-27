@@ -21,7 +21,7 @@ namespace ProjectName.Systems
                 NationType.South => "🔥",
                 NationType.North => "❄️",
                 NationType.Empire => "👑",
-                NationType.Dracula => "🧛",
+                NationType.Dracula => "🦇",
                 _ => "❓"
             };
         }
@@ -57,7 +57,7 @@ namespace ProjectName.Systems
                 NationType.South => "불꽃",
                 NationType.North => "눈송이/산",
                 NationType.Empire => "독수리/왕관",
-                NationType.Dracula => "박쥐/달",
+                NationType.Dracula => "박쥐",
                 _ => "알 수 없음"
             };
         }
@@ -75,7 +75,7 @@ namespace ProjectName.Systems
                 NationType.South => "남쪽의 열정과 전투",
                 NationType.North => "북쪽의 냉철함",
                 NationType.Empire => "중앙 황제의 권위",
-                NationType.Dracula => "밤의 공포, 드라큘라의 영역",
+                NationType.Dracula => "밤의 어둠과 피",
                 _ => "알 수 없는 국가"
             };
         }

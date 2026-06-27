@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Core;
 using Unity.Cinemachine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -24,15 +23,9 @@ namespace ProjectName.Systems
         [SerializeField] private float _autoAimRange = 15f;           // 자동 조준 최대 거리
         [SerializeField] private float _autoAimAngle = 10f;           // 조준 원뿔 각도 (도)
 
-        [Header("Camera Effects")]
-        [SerializeField] private float _camForwardAmount = 0.3f;
-        [SerializeField] private float _camShakeDuration = 0.1f;
-        [SerializeField] private float _camShakeIntensity = 0.05f;
-
         private WeaponData _currentWeapon;
         private float _lastAttackTime = -10f;
         private Camera _mainCamera;
-        private Vector3 _originalCamPos;
         private CinemachineImpulseSource _impulseSource;
 
         // ===== C4-08: 자동 조준 상태 =====
@@ -73,8 +66,6 @@ namespace ProjectName.Systems
             _mainCamera = Camera.main;
             if (_mainCamera != null)
             {
-                _originalCamPos = _mainCamera.transform.localPosition;
-
                 // Initialize Cinemachine Impulse Source
                 _impulseSource = _mainCamera.GetComponent<CinemachineImpulseSource>();
                 if (_impulseSource == null)
@@ -290,20 +281,14 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 공격 시 카메라 이펙트 — 충격(Impulse) + 전진 + 흔들림
+        /// 공격 시 카메라 이펙트 — Cinemachine Impulse Source로 반동 처리.
+        /// CombatCameraEffects.PlayCrit()가 추가 Shake/HitStop을 처리합니다.
         /// </summary>
         private void TriggerCameraEffects()
         {
             if (_impulseSource != null)
             {
                 _impulseSource.GenerateImpulse(Vector3.forward * 0.5f);
-            }
-
-            // 카메라 전진 효과 (_originalCamPos 기준으로 복원)
-            if (_mainCamera != null)
-            {
-                Vector3 forwardOffset = _mainCamera.transform.forward * _camForwardAmount;
-                _mainCamera.transform.localPosition = Vector3.Lerp(_originalCamPos, _originalCamPos + forwardOffset, 0.3f);
             }
         }
     }

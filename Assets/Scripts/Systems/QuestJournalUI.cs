@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using ProjectName.Core.Data;
 using UnityEngine;
 using UnityEngine.InputSystem;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -92,6 +91,10 @@ namespace ProjectName.Systems
 
         private Vector2 _scrollPos;
         private bool _stylesInitialized;
+
+        // 배경/테두리 텍스처 (메모리 관리용)
+        private Texture2D _bgTex;
+        private Texture2D _borderTex;
 
         // 스타일
         private GUIStyle _styleTitle;
@@ -392,8 +395,7 @@ namespace ProjectName.Systems
 
         private void DrawJournalWindow(float x, float y)
         {
-            // 배경 박스
-            GUI.Box(new Rect(x, y, WINDOW_WIDTH, WINDOW_HEIGHT), "");
+            // 배경 — 커스텀 텍스처 (기본 GUI.Box는 _bgTex로 완전히 덮이므로 생략)
             if (_bgTex == null) _bgTex = MakeTexture(1, 1, ColorBg);
             GUI.DrawTexture(new Rect(x, y, WINDOW_WIDTH, WINDOW_HEIGHT), _bgTex);
 
@@ -461,8 +463,6 @@ namespace ProjectName.Systems
             );
         }
 
-        private Texture2D _borderTex;
-        private Texture2D _bgTex;
         private void DrawBorder(float x, float y, float w, float h, Color color, float thickness)
         {
             if (_borderTex == null) _borderTex = MakeTexture(1, 1, color);
@@ -547,19 +547,31 @@ namespace ProjectName.Systems
             float cx = Screen.width / 2f;
             float cy = Screen.height / 2f + riseOffset;
 
-            // ★ 기존 _styleEffect 재사용 — 매 프레임 new GUIStyle 방지
-            Color effectColor = ColorGold;
-            effectColor.a = alpha;
-            _styleEffect.normal.textColor = effectColor;
-            _styleEffect.fontSize = Mathf.RoundToInt(24 + (1f - progress) * 6);
+            // GUI.color로 알파 제어 (GUIStyle 직접 변형 방지)
+            Color prevColor = GUI.color;
+            Color prevContentColor = GUI.contentColor;
+            GUI.color = new Color(1f, 1f, 1f, alpha);
+            GUI.contentColor = Color.white;
 
             string text = $"✨ <color=#FFD700>✅ 퀘스트 완료!</color>\n<color=#FFAA00>{_currentEffect.questName}</color>";
 
             float textWidth = 400f;
             float textHeight = 80f;
+
+            // 매 프레임 새로운 fontSize로 임시 스타일 생성
+            int dynamicFontSize = Mathf.RoundToInt(24 + (1f - progress) * 6);
+            GUIStyle tempEffectStyle = new GUIStyle(_styleEffect)
+            {
+                fontSize = dynamicFontSize
+            };
+
             GUI.Label(new Rect(cx - textWidth / 2f, cy - textHeight / 2f, textWidth, textHeight),
                 text,
-                _styleEffect);
+                tempEffectStyle);
+
+            // GUI.color 복원
+            GUI.color = prevColor;
+            GUI.contentColor = prevContentColor;
 
             // 만료 시 제거
             if (_currentEffect.IsExpired)

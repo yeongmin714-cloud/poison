@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -235,12 +234,18 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 특정 종류의 효과음이 현재 재생 중인지 확인합니다.
-        /// 플레이스홀더 단계에서는 항상 false를 반환합니다.
+        /// 플레이스홀더 단계에서는 풀 내에서 재생 중인 AudioSource가 있는지 확인합니다.
         /// </summary>
         /// <param name="type">확인할 효과음 종류</param>
         public bool IsPlaying(SFXType type)
         {
-            // 플레이스홀더: clip이 없으므로 항상 재생 중 아님
+            if (_sourcePool == null) return false;
+
+            for (int i = 0; i < _sourcePool.Count; i++)
+            {
+                if (_sourcePool[i] != null && _sourcePool[i].isPlaying)
+                    return true;
+            }
             return false;
         }
 
@@ -274,9 +279,16 @@ namespace ProjectName.Systems
             if (_sourcePool == null || _sourcePool.Count == 0)
                 return null;
 
-            // 라운드 로빈으로 소스 선택
-            AudioSource source = _sourcePool[_nextSourceIndex];
-            _nextSourceIndex = (_nextSourceIndex + 1) % _sourcePool.Count;
+            // 라운드 로빈으로 소스 선택 (null 또는 destroyed된 소스 건너뛰기)
+            int attempts = 0;
+            AudioSource source;
+            do
+            {
+                source = _sourcePool[_nextSourceIndex];
+                _nextSourceIndex = (_nextSourceIndex + 1) % _sourcePool.Count;
+                attempts++;
+            }
+            while (source == null && attempts < _sourcePool.Count);
 
             return source;
         }

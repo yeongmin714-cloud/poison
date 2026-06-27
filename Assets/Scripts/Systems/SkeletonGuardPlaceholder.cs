@@ -22,6 +22,10 @@ namespace ProjectName.Systems
         [SerializeField] private Color _skeletonColor = new Color(0.85f, 0.85f, 0.90f); // 회백색
         [SerializeField] private bool _verbose;
 
+        // NOTE: _attackDamage is declared but currently unused in this class.
+        // It is serialized for future combat-system integration (designer tuning).
+        // CS0414 suppressed via #pragma below.
+
         private float _currentHP;
         private Transform _player;
         private bool _isDead;
@@ -44,6 +48,9 @@ namespace ProjectName.Systems
         private void Awake()
         {
             _currentHP = _maxHP;
+
+            // 태그 설정 (GLB 로드 성공/실패 여부와 무관하게 항상 설정)
+            gameObject.tag = "DraculaGuard";
 
             // Rig animation setup
             _rigAnim = GetComponent<RigAnimationController>();
@@ -152,9 +159,6 @@ namespace ProjectName.Systems
             _rightArm.transform.localRotation = Quaternion.Euler(0, 0, -15);
             Destroy(_rightArm.GetComponent<Collider>());
             SetColor(_rightArm, _skeletonColor);
-
-            // 태그 설정
-            gameObject.tag = "DraculaGuard";
         }
 
         private void SetColor(GameObject obj, Color color)

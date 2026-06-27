@@ -172,6 +172,12 @@ namespace ProjectName.Systems
                     return;
                 }
 
+                // saveVersion 검증 및 마이그레이션
+                if (data.saveVersion < 1 || data.saveVersion > 2)
+                {
+                    Debug.LogWarning($"[SaveManager] 슬롯 {slotIndex}의 saveVersion({data.saveVersion})이 현재 버전(2)과 다릅니다. 호환을 시도합니다.");
+                }
+
                 ApplyTimeData(data.time);
                 ApplyPlayerData(data.player);
                 ApplyInventoryData(data.inventory);
@@ -231,6 +237,7 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 지정된 슬롯에 저장된 데이터가 있는지 확인합니다.
+        /// </summary>
         /// <param name="slotIndex">슬롯 인덱스 (0~4)</param>
         public bool HasSave(int slotIndex)
         {
@@ -240,6 +247,7 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 지정된 슬롯의 저장 파일을 삭제합니다.
+        /// </summary>
         /// <param name="slotIndex">슬롯 인덱스 (0~4)</param>
         public void DeleteSlot(int slotIndex)
         {
@@ -270,7 +278,31 @@ namespace ProjectName.Systems
         public int SlotCount => _slotCount;
 
         /// <summary>
-        /// 자동 저장: 가장 오래된 슬롯 또는 첫 번째 빈 슬롯에 저장합니다.
+        /// 모든 슬롯 중 가장 오래된(타임스탬프가 가장 이른) 슬롯 인덱스를 반환합니다.
+        /// 슬롯이 하나도 없으면 0을 반환합니다.
+        /// </summary>
+        private int FindOldestSlot()
+        {
+            int oldest = 0;
+            string oldestTimestamp = null;
+
+            for (int i = 0; i < _slotCount; i++)
+            {
+                var info = GetSlotInfo(i);
+                if (info == null) return i; // 빈 슬롯이 발견되면 즉시 반환
+
+                if (oldestTimestamp == null || string.CompareOrdinal(info.timestamp, oldestTimestamp) < 0)
+                {
+                    oldestTimestamp = info.timestamp;
+                    oldest = i;
+                }
+            }
+
+            return oldest;
+        }
+
+        /// <summary>
+        /// 자동 저장: 첫 번째 빈 슬롯 또는 가장 오래된 슬롯에 저장합니다.
         /// </summary>
         public void AutoSave()
         {
@@ -284,9 +316,10 @@ namespace ProjectName.Systems
                     return;
                 }
             }
-            // 모두 차있으면 슬롯 0에 덮어쓰기
-            Save(0);
-            Debug.Log("[SaveManager] 자동 저장 완료 (슬롯 0 덮어쓰기)");
+            // 모두 차있으면 가장 오래된 슬롯에 덮어쓰기
+            int oldestSlot = FindOldestSlot();
+            Save(oldestSlot);
+            Debug.Log($"[SaveManager] 자동 저장 완료 (슬롯 {oldestSlot} 덮어쓰기)");
         }
 
         // ===== 데이터 수집 (Collect) 메서드 =====
@@ -308,11 +341,12 @@ namespace ProjectName.Systems
                 data.rotY = t.rotation.eulerAngles.y;
             }
 
-            // PlayerStats (레벨, 경험치)
+            // PlayerStats (레벨, 경험치, 골드)
             if (PlayerStats.Instance != null)
             {
                 data.level = PlayerStats.Instance.Level;
                 data.exp = PlayerStats.Instance.CurrentEXP;
+                data.gold = PlayerStats.Instance.Gold;
                 data.stamina = 100f;
             }
 
@@ -320,7 +354,7 @@ namespace ProjectName.Systems
             if (PlayerHealth.Instance != null)
             {
                 data.hp = PlayerHealth.Instance.CurrentHP;
-                data.maxHp = (int)PlayerHealth.Instance.MaxHP;
+                data.maxHp = PlayerHealth.Instance.MaxHP;
             }
 
             return data;
@@ -407,7 +441,8 @@ namespace ProjectName.Systems
                     list.Add(new QuestSaveData
                     {
                         questId = def.questId,
-                        completed = state == QuestState.Completed
+                        completed = state == QuestState.Completed,
+                        questState = state.ToString()
                     });
                 }
             }
@@ -452,6 +487,7 @@ namespace ProjectName.Systems
                 {
                     SetPrivateField(PlayerStats.Instance, "_level", data.level);
                     SetPrivateField(PlayerStats.Instance, "_currentEXP", (int)data.exp);
+                    SetPrivateField(PlayerStats.Instance, "_gold", data.gold);
                 }
             }
             catch (Exception ex)
@@ -553,7 +589,17 @@ namespace ProjectName.Systems
                 {
                     if (string.IsNullOrEmpty(qData.questId)) continue;
 
-                    QuestState newState = qData.completed ? QuestState.Completed : QuestState.Available;
+                    // questState 필드가 있으면 원래 상태를 복원, 없으면 completed 호환 유지
+                    QuestState newState;
+                    if (!string.IsNullOrEmpty(qData.questState))
+                    {
+                        if (!System.Enum.TryParse(qData.questState, out newState))
+                            newState = qData.completed ? QuestState.Completed : QuestState.Available;
+                    }
+                    else
+                    {
+                        newState = qData.completed ? QuestState.Completed : QuestState.Available;
+                    }
                     QuestManager.ForceState(qData.questId, newState);
                 }
             }
@@ -588,10 +634,12 @@ namespace ProjectName.Systems
 
             try
             {
-                if (RevengeListManager.Instance.IsInitialized)
+                if (!RevengeListManager.Instance.IsInitialized)
                 {
-                    RevengeListManager.Instance.LoadState(data);
+                    RevengeListManager.Instance.Initialize();
+                    if (_verbose) Debug.Log("[SaveManager] RevengeListManager 자동 초기화 완료");
                 }
+                RevengeListManager.Instance.LoadState(data);
             }
             catch (Exception ex)
             {

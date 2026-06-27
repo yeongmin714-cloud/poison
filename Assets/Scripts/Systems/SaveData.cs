@@ -11,24 +11,26 @@ namespace ProjectName.Systems
     /// ⚠ saveVersion 관리 규칙:
     ///   - 데이터 구조 변경 시 saveVersion을 증가시키고,
     ///   - SaveManager.Load()에서 버전 검증 + 마이그레이션 로직 추가 필수.
-    ///   - 현재 v1: 초기 스키마.
+    ///   - 현재 v2: PlayerSaveData.gold 추가, QuestSaveData.questState 추가.
+    ///     v1: 초기 스키마.
     ///
-    /// ⚠ equipment / warehouse / church 필드:
+    /// ⚠ equipment / warehouse / church / nationReputations 필드:
     ///   - Phase 5.6.3 / 5.6.2 / 5.7.3 에서 추가된 예비 필드.
-    ///   - SaveManager.Save()/Load()에서 아직 연동되지 않음 (TODO).
+    ///   - SaveManager.Save()/Load()에서 아직 일부 연동되지 않음 (TODO).
     ///   - Null-safe하게 설계되어 있으므로 역직렬화 시 문제없음.
     /// </summary>
     [System.Serializable]
     public class SaveData
     {
-        public int saveVersion = 1; // TODO: SaveManager.Load()에서 버전 검증 + 마이그레이션 구현 필요
+        public int saveVersion = 2; // v2: PlayerSaveData.gold 추가, QuestSaveData.questState 추가
+        /// <summary>저장 시점의 타임스탬프. SaveManager에서 "yyyy-MM-dd HH:mm:ss" 형식으로 설정.</summary>
         public string timestamp;
         public DifficultyMode difficulty = DifficultyMode.Normal; // C20-01
         public PlayerSaveData player;
         public InventorySaveData inventory;
         public TimeSaveData time;
-        public List<TerritorySaveData> territories;
-        public List<QuestSaveData> quests;
+        public List<TerritorySaveData> territories = new List<TerritorySaveData>();
+        public List<QuestSaveData> quests = new List<QuestSaveData>();
         public RevengeListSaveData revengeList;  // C14-02: 복수명부 저장 데이터
         public EquipmentSaveData equipment;      // Phase 5.6.3: 장비창 저장 데이터
         public WarehouseSaveData warehouse;      // Phase 5.6.2: 영지 창고 저장 데이터 (from WarehouseSystem.cs)
@@ -44,8 +46,9 @@ namespace ProjectName.Systems
         public int level;
         public float exp;
         public float hp;
-        public int maxHp;
+        public float maxHp;
         public float stamina;
+        public int gold;
     }
 
     [System.Serializable]
@@ -81,6 +84,8 @@ namespace ProjectName.Systems
     {
         public string questId;
         public bool completed;
+        /// <summary>퀘스트 상태 문자열: "Locked","Available","Active","Completed","Failed"</summary>
+        public string questState;
     }
 
     // ===== Phase 5.6.3: 장비 데이터 =====
