@@ -1,8 +1,6 @@
-using System.Reflection;
+using System.Collections.Generic;
 using ProjectName.Core;
 using UnityEngine;
-using ProjectName.Core.Data;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -34,7 +32,12 @@ namespace ProjectName.Systems
             public PlayerInventory.ItemData itemData; // 캐시된 ItemData 참조
         }
 
-        [SerializeField] private EquipmentSlotData[] _slots = new EquipmentSlotData[6];
+        private static readonly int SlotCount = System.Enum.GetValues(typeof(EquipmentSlot)).Length;
+
+        [SerializeField] private EquipmentSlotData[] _slots = new EquipmentSlotData[SlotCount];
+
+        // 아이템 ID → ItemData 조회 캐시
+        private static Dictionary<string, PlayerInventory.ItemData> _itemCache = null;
 
         // 장비 변경 이벤트
         public System.Action<EquipmentSlot, string> OnEquipmentChanged; // (slot, newItemId)
@@ -50,16 +53,30 @@ namespace ProjectName.Systems
             DontDestroyOnLoad(gameObject);
 
             // 슬롯 초기화
+            if (_slots == null || _slots.Length != SlotCount)
+                _slots = new EquipmentSlotData[SlotCount];
             for (int i = 0; i < _slots.Length; i++)
             {
                 if (_slots[i] == null)
                     _slots[i] = new EquipmentSlotData();
             }
+
+            // 정적 아이템 데이터 캐시 초기화
+            if (_itemCache == null)
+                BuildItemCache();
         }
 
         // ===== 장비 슬롯 인덱스 =====
 
         public static int SlotIndex(EquipmentSlot slot) => (int)slot;
+
+        private static bool TryGetValidIndex(EquipmentSlot slot, out int index)
+        {
+            index = (int)slot;
+            if (index < 0 || index >= SlotCount || Instance == null || Instance._slots == null || Instance._slots[index] == null)
+                return false;
+            return true;
+        }
 
         // ===== 장착 =====
 
@@ -75,11 +92,21 @@ namespace ProjectName.Systems
             }
 
             int idx = SlotIndex(slot);
+            if (!TryGetValidIndex(slot, out int validatedIdx))
+            {
+                Debug.LogError($"[EquipmentManager] 잘못된 슬롯: {slot}");
+                return false;
+            }
+            idx = validatedIdx;
 
-            // 현재 장비가 있으면 먼저 해제
+            // 현재 장비가 있으면 먼저 해제 (실패 시 중단)
             if (!string.IsNullOrEmpty(_slots[idx].itemId))
             {
-                UnequipSlot(slot);
+                if (!UnequipSlot(slot))
+                {
+                    Debug.LogWarning("[EquipmentManager] 기존 장비 해제 실패 — 장착 중단.");
+                    return false;
+                }
             }
 
             // 아이템 장착
@@ -103,7 +130,11 @@ namespace ProjectName.Systems
         /// </summary>
         public bool UnequipSlot(EquipmentSlot slot)
         {
-            int idx = SlotIndex(slot);
+            if (!TryGetValidIndex(slot, out int idx))
+            {
+                Debug.LogWarning($"[EquipmentManager] 잘못된 슬롯: {slot}");
+                return false;
+            }
 
             if (string.IsNullOrEmpty(_slots[idx].itemId))
             {
@@ -120,6 +151,7 @@ namespace ProjectName.Systems
                 Debug.LogWarning($"[EquipmentManager] 아이템 데이터를 찾을 수 없음: {_slots[idx].itemId}");
                 _slots[idx].itemId = null;
                 _slots[idx].currentDurability = 0;
+                _slots[idx].itemData = null;
                 return false;
             }
 
@@ -135,7 +167,7 @@ namespace ProjectName.Systems
             var allSlots = PlayerInventory.Instance.GetAllSlots();
             for (int i = 0; i < allSlots.Length; i++)
             {
-                if (allSlots[i] != null && allSlots[i].item.id == _slots[idx].itemId)
+                if (allSlots[i] != null && allSlots[i].item != null && allSlots[i].item.id == _slots[idx].itemId)
                 {
                     allSlots[i].currentDurability = _slots[idx].currentDurability;
                     break;
@@ -160,7 +192,8 @@ namespace ProjectName.Systems
         /// </summary>
         public EquipmentSlotData GetSlotData(EquipmentSlot slot)
         {
-            return _slots[SlotIndex(slot)];
+            if (!TryGetValidIndex(slot, out int idx)) return null;
+            return _slots[idx];
         }
 
         /// <summary>
@@ -168,7 +201,8 @@ namespace ProjectName.Systems
         /// </summary>
         public string GetItemId(EquipmentSlot slot)
         {
-            return _slots[SlotIndex(slot)].itemId;
+            if (!TryGetValidIndex(slot, out int idx)) return null;
+            return _slots[idx].itemId;
         }
 
         /// <summary>
@@ -176,7 +210,8 @@ namespace ProjectName.Systems
         /// </summary>
         public bool IsSlotEmpty(EquipmentSlot slot)
         {
-            return string.IsNullOrEmpty(_slots[SlotIndex(slot)].itemId);
+            if (!TryGetValidIndex(slot, out int idx)) return true;
+            return string.IsNullOrEmpty(_slots[idx].itemId);
         }
 
         /// <summary>
@@ -192,7 +227,7 @@ namespace ProjectName.Systems
         /// </summary>
         public void ReduceDurability(EquipmentSlot slot, int amount = 1)
         {
-            int idx = SlotIndex(slot);
+            if (!TryGetValidIndex(slot, out int idx)) return;
             if (string.IsNullOrEmpty(_slots[idx].itemId)) return;
             if (_slots[idx].itemData == null || _slots[idx].itemData.maxDurability <= 0) return;
 
@@ -202,6 +237,10 @@ namespace ProjectName.Systems
                 _slots[idx].currentDurability = 0;
                 Debug.Log($"[EquipmentManager] {slot} 장비가 파괴되었습니다!");
                 OnEquipmentChanged?.Invoke(slot, _slots[idx].itemId);
+                // 슬롯 초기화
+                _slots[idx].itemId = null;
+                _slots[idx].currentDurability = 0;
+                _slots[idx].itemData = null;
             }
         }
 
@@ -210,16 +249,16 @@ namespace ProjectName.Systems
         /// </summary>
         public float GetDurabilityRatio(EquipmentSlot slot)
         {
-            int idx = SlotIndex(slot);
+            if (!TryGetValidIndex(slot, out int idx)) return 0f;
             if (string.IsNullOrEmpty(_slots[idx].itemId)) return 0f;
             if (_slots[idx].itemData == null || _slots[idx].itemData.maxDurability <= 0) return 1f;
             return (float)_slots[idx].currentDurability / _slots[idx].itemData.maxDurability;
         }
 
         /// <summary>
-        /// 내구도 색상 태그 반환.
+        /// 내구도 상태 이모지 반환.
         /// </summary>
-        public string GetDurabilityColorTag(EquipmentSlot slot)
+        public string GetDurabilityIndicator(EquipmentSlot slot)
         {
             float ratio = GetDurabilityRatio(slot);
             if (ratio >= 0.6f) return "🟢";
@@ -234,21 +273,16 @@ namespace ProjectName.Systems
         /// </summary>
         public EquipmentSaveData SaveState()
         {
-            var data = new EquipmentSaveData
+            var data = new EquipmentSaveData();
+            if (_slots != null)
             {
-                helmetItemId = _slots[0].itemId,
-                armorItemId = _slots[1].itemId,
-                weaponItemId = _slots[2].itemId,
-                shoesItemId = _slots[3].itemId,
-                glovesItemId = _slots[4].itemId,
-                backItemId = _slots[5].itemId,
-                helmetDurability = _slots[0].currentDurability,
-                armorDurability = _slots[1].currentDurability,
-                weaponDurability = _slots[2].currentDurability,
-                shoesDurability = _slots[3].currentDurability,
-                glovesDurability = _slots[4].currentDurability,
-                backDurability = _slots[5].currentDurability
-            };
+                if (_slots.Length > 0 && _slots[0] != null) { data.helmetItemId = _slots[0].itemId; data.helmetDurability = _slots[0].currentDurability; }
+                if (_slots.Length > 1 && _slots[1] != null) { data.armorItemId = _slots[1].itemId; data.armorDurability = _slots[1].currentDurability; }
+                if (_slots.Length > 2 && _slots[2] != null) { data.weaponItemId = _slots[2].itemId; data.weaponDurability = _slots[2].currentDurability; }
+                if (_slots.Length > 3 && _slots[3] != null) { data.shoesItemId = _slots[3].itemId; data.shoesDurability = _slots[3].currentDurability; }
+                if (_slots.Length > 4 && _slots[4] != null) { data.glovesItemId = _slots[4].itemId; data.glovesDurability = _slots[4].currentDurability; }
+                if (_slots.Length > 5 && _slots[5] != null) { data.backItemId = _slots[5].itemId; data.backDurability = _slots[5].currentDurability; }
+            }
             return data;
         }
 
@@ -260,8 +294,11 @@ namespace ProjectName.Systems
             if (data == null)
             {
                 // 기본값으로 초기화
+                if (_slots == null) _slots = new EquipmentSlotData[SlotCount];
                 for (int i = 0; i < _slots.Length; i++)
                 {
+                    if (_slots[i] == null)
+                        _slots[i] = new EquipmentSlotData();
                     _slots[i].itemId = null;
                     _slots[i].currentDurability = 0;
                     _slots[i].itemData = null;
@@ -279,12 +316,17 @@ namespace ProjectName.Systems
 
         private void LoadSlot(int idx, string itemId, int durability)
         {
+            if (idx < 0 || idx >= _slots.Length) return;
+            if (_slots[idx] == null) _slots[idx] = new EquipmentSlotData();
+
             if (!string.IsNullOrEmpty(itemId))
             {
                 var itemData = FindItemDataById(itemId);
                 _slots[idx].itemId = itemId;
                 _slots[idx].currentDurability = durability;
                 _slots[idx].itemData = itemData;
+                if (itemData == null)
+                    Debug.LogWarning($"[EquipmentManager] LoadSlot: 알 수 없는 아이템 ID '{itemId}' — 내구도만 복원합니다.");
             }
             else
             {
@@ -298,21 +340,30 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// PlayerInventory의 정적 ItemData 필드에서 itemId로 ItemData를 찾습니다.
+        /// Reflection 없이 Dictionary 캐시를 사용합니다.
         /// </summary>
         private static PlayerInventory.ItemData FindItemDataById(string itemId)
         {
             if (string.IsNullOrEmpty(itemId)) return null;
-            var fields = typeof(PlayerInventory).GetFields(BindingFlags.Public | BindingFlags.Static);
+            if (_itemCache == null)
+                BuildItemCache();
+            _itemCache.TryGetValue(itemId, out var item);
+            return item;
+        }
+
+        private static void BuildItemCache()
+        {
+            _itemCache = new Dictionary<string, PlayerInventory.ItemData>();
+            var fields = typeof(PlayerInventory).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
             foreach (var field in fields)
             {
                 if (field.FieldType == typeof(PlayerInventory.ItemData))
                 {
                     var item = field.GetValue(null) as PlayerInventory.ItemData;
-                    if (item != null && item.id == itemId)
-                        return item;
+                    if (item != null && !string.IsNullOrEmpty(item.id) && !_itemCache.ContainsKey(item.id))
+                        _itemCache[item.id] = item;
                 }
             }
-            return null;
         }
     }
 }

@@ -26,7 +26,7 @@ namespace ProjectName.Systems
             if (slot == null || slot.item == null) return false;
             if (slot.item.maxDurability <= 0) return false; // 내구도 없음
 
-            slot.currentDurability--;
+            slot.currentDurability = Mathf.Max(0, slot.currentDurability - 1);
             Debug.Log($"[Durability] {slot.item.displayName} 내구도 -1 ({slot.currentDurability}/{slot.item.maxDurability})");
 
             // 내구도 0 → 파괴
@@ -36,21 +36,6 @@ namespace ProjectName.Systems
                 return true; // 파괴 신호
             }
             return false;
-        }
-
-        /// <summary>
-        /// 내구도 수리
-        /// </summary>
-        public static void Repair(PlayerInventory.ItemSlot slot, int amount = -1)
-        {
-            if (slot == null || slot.item == null || slot.item.maxDurability <= 0) return;
-
-            if (amount < 0)
-                slot.currentDurability = slot.item.maxDurability; // 완전 수리
-            else
-                slot.currentDurability = Mathf.Min(slot.item.maxDurability, slot.currentDurability + amount);
-
-            Debug.Log($"[Durability] {slot.item.displayName} 수리 완료! ({slot.currentDurability}/{slot.item.maxDurability})");
         }
 
         /// <summary>
@@ -84,25 +69,18 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 수리 비용 계산 (재료 타입 + 수량)
+        /// 수리 완료 (EquipmentRepairSystem.RepairItem 사용 권장)
         /// </summary>
-        public static int GetRepairCost(PlayerInventory.ItemSlot slot)
+        public static void Repair(PlayerInventory.ItemSlot slot, int amount = -1)
         {
-            if (slot == null || slot.item == null) return 0;
-            int missingDurability = slot.item.maxDurability - slot.currentDurability;
-            if (missingDurability <= 0) return 0;
+            if (slot == null || slot.item == null || slot.item.maxDurability <= 0) return;
 
-            // 카테고리별 수리 재료 계수
-            float costMultiplier = 1f;
-            switch (slot.item.category)
-            {
-                case PlayerInventory.ItemCategory.Weapon: costMultiplier = 2f; break;
-                case PlayerInventory.ItemCategory.Armor: costMultiplier = 3f; break;
-                case PlayerInventory.ItemCategory.Tool: costMultiplier = 1f; break;
-                default: costMultiplier = 1f; break;
-            }
+            if (amount < 0)
+                slot.currentDurability = slot.item.maxDurability; // 완전 수리
+            else
+                slot.currentDurability = Mathf.Min(slot.item.maxDurability, slot.currentDurability + amount);
 
-            return Mathf.Max(1, Mathf.CeilToInt(missingDurability * costMultiplier / 10f));
+            Debug.Log($"[Durability] {slot.item.displayName} 수리 완료! ({slot.currentDurability}/{slot.item.maxDurability})");
         }
 
         /// <summary>

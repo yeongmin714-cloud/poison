@@ -174,8 +174,6 @@ namespace ProjectName.Systems
         /// </summary>
         public void RebuildBatches()
         {
-            const int maxBatchSize = 1023;
-
             if (_instances == null || _instances.Count == 0)
             {
                 _batches = new List<MeshBatch>();
@@ -190,8 +188,7 @@ namespace ProjectName.Systems
                 Mesh variantMesh = GetMeshForVariant(variant);
                 if (variantMesh == null) continue;
 
-                List<Matrix4x4> variantMatrices = new List<Matrix4x4>();
-                MaterialPropertyBlock block = new MaterialPropertyBlock();
+                List<Matrix4x4> variantMatrices = new List<Matrix4x4>(_instances.Count / 3 + 1);
 
                 foreach (var inst in _instances)
                 {
@@ -199,17 +196,16 @@ namespace ProjectName.Systems
                     variantMatrices.Add(Matrix4x4.TRS(inst.position, inst.rotation, inst.scale));
                 }
 
-                // Split into batches of 1023
-                for (int i = 0; i < variantMatrices.Count; i += maxBatchSize)
+                // Split into batches of MaxBatchSize (1023)
+                for (int i = 0; i < variantMatrices.Count; i += MaxBatchSize)
                 {
-                    int count = Mathf.Min(maxBatchSize, variantMatrices.Count - i);
+                    int count = Mathf.Min(MaxBatchSize, variantMatrices.Count - i);
                     List<Matrix4x4> batchMatrices = variantMatrices.GetRange(i, count);
 
                     _batches.Add(new MeshBatch
                     {
                         mesh = variantMesh,
-                        matrices = batchMatrices,
-                        propertyBlock = new MaterialPropertyBlock()
+                        matrices = batchMatrices
                     });
                 }
             }
@@ -226,7 +222,7 @@ namespace ProjectName.Systems
 
             if (_material != null)
             {
-                _material.enableInstancing = true;
+                CreateInstancedMaterial();
             }
         }
 
@@ -235,12 +231,16 @@ namespace ProjectName.Systems
             if (_batches == null || _batches.Count == 0)
                 return;
 
-            if (_material == null)
+            if (_material == null || _instancedMaterial == null)
                 return;
 
             // Find main camera if not cached
             if (_mainCamera == null)
                 _mainCamera = Camera.main;
+
+            // Refresh wind zone reference if lost
+            if (_windZone == null)
+                _windZone = FindObjectOfType<WindZone>();
 
             // Get wind strength
             float windStrength = 1f;
@@ -279,6 +279,11 @@ namespace ProjectName.Systems
                 {
                     if (inst.meshVariant != variant) continue;
 
+                    // Advance to next batch when crossing boundary
+                    int localIndex = idxInVariant % MaxBatchSize;
+                    if (localIndex == 0 && idxInVariant > 0)
+                        batchIdx++;
+
                     bool culled = _mainCamera != null &&
                         (inst.position - _mainCamera.transform.position).sqrMagnitude > cullSq;
 
@@ -290,18 +295,16 @@ namespace ProjectName.Systems
                         Quaternion swayRotation = Quaternion.AngleAxis(swayAngle, swayAxis);
                         Quaternion finalRotation = inst.rotation * swayRotation;
 
-                        _batches[batchIdx].matrices[idxInVariant % 1023] =
+                        _batches[batchIdx].matrices[localIndex] =
                             Matrix4x4.TRS(inst.position, finalRotation, inst.scale);
                     }
                     else
                     {
                         // Culled: zero matrix (invisible)
-                        _batches[batchIdx].matrices[idxInVariant % 1023] = Matrix4x4.zero;
+                        _batches[batchIdx].matrices[localIndex] = Matrix4x4.zero;
                     }
 
                     idxInVariant++;
-                    if (idxInVariant > 0 && idxInVariant % 1023 == 0)
-                        batchIdx++;
                 }
             }
         }
@@ -311,7 +314,7 @@ namespace ProjectName.Systems
             if (_batches == null || _batches.Count == 0)
                 return;
 
-            if (_material == null)
+            if (_instancedMaterial == null)
                 return;
 
             // Draw all batches
@@ -323,10 +326,10 @@ namespace ProjectName.Systems
                 Graphics.DrawMeshInstanced(
                     batch.mesh,
                     0,
-                    _material,
+                    _instancedMaterial,
                     batch.matrices.ToArray(),
                     batch.matrices.Count,
-                    batch.propertyBlock,
+                    null,
                     UnityEngine.Rendering.ShadowCastingMode.On,
                     true, // receive shadows
                     gameObject.layer,
@@ -338,6 +341,25 @@ namespace ProjectName.Systems
         // ================================================================
         // Helpers
         // ================================================================
+
+        private void CreateInstancedMaterial()
+        {
+            if (_material == null)
+            {
+                _instancedMaterial = null;
+                return;
+            }
+
+            if (_instancedMaterial != null && _instancedMaterial.shader == _material.shader)
+                return;
+
+            _instancedMaterial = new Material(_material);
+            _instancedMaterial.enableInstancing = true;
+
+#if UNITY_EDITOR
+            _instancedMaterial.hideFlags = HideFlags.HideAndDontSave;
+#endif
+        }
 
         private Mesh GetMeshForVariant(int variant)
         {

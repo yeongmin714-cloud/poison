@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using UnityEngine;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -176,9 +175,6 @@ namespace ProjectName.Systems
 
         private void OnDrawGizmosSelected()
         {
-            if (_entrancePoint == null && Application.isPlaying)
-                return;
-
             Vector3 basePos = _entrancePoint != null ? _entrancePoint.position : transform.position;
 
             // 감지 범위 표시 (GuardCombatAI 기준)

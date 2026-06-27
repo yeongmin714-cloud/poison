@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using ProjectName.Core;
 using UnityEngine;
-using ProjectName.Core.Data;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -22,7 +20,8 @@ namespace ProjectName.Systems
             { ItemRarity.Uncommon, 5 },
             { ItemRarity.Rare, 15 },
             { ItemRarity.Epic, 50 },
-            { ItemRarity.Legendary, 200 }
+            { ItemRarity.Legendary, 200 },
+            { ItemRarity.Unique, 500 }
         };
 
         /// <summary>
@@ -122,16 +121,21 @@ namespace ProjectName.Systems
         /// <param name="maxDurability">최대 내구도</param>
         /// <param name="playerGold">보유 골드 (in/out ref)</param>
         /// <param name="rarity">아이템 등급</param>
+        /// <param name="category">아이템 카테고리 (null 시 CanRepair로 인벤토리 조회)</param>
         /// <returns>수리 결과</returns>
         public static RepairResult RepairItem(
             string itemId,
             int currentDurability,
             int maxDurability,
             ref int playerGold,
-            ItemRarity rarity = ItemRarity.Common)
+            ItemRarity rarity = ItemRarity.Common,
+            PlayerInventory.ItemCategory? category = null)
         {
             // 1. 수리 가능 여부 확인
-            if (!CanRepair(itemId))
+            bool repairable = category.HasValue
+                ? CanRepairByCategory(category.Value) || itemId == "gasmask_3" || itemId == "gasmask_4"
+                : CanRepair(itemId);
+            if (!repairable)
             {
                 return new RepairResult
                 {
@@ -241,20 +245,32 @@ namespace ProjectName.Systems
                 slot.currentDurability,
                 slot.item.maxDurability,
                 ref goldRef,
-                slot.item.rarity
+                slot.item.rarity,
+                slot.item.category
             );
 
             // 성공 시 인벤토리 업데이트
             if (result.success)
             {
-                // 내구도 복구
+                // 내구도 복구 (실패 시 복원 위해 사전 저장)
+                int originalDurability = slot.currentDurability;
                 slot.currentDurability = result.newDurability;
 
                 // 골드 차감
                 int goldSpent = playerGold - goldRef;
                 if (goldSpent > 0)
                 {
-                    PlayerInventory.Instance.RemoveItem("gold", goldSpent);
+                    if (!PlayerInventory.Instance.RemoveItem("gold", goldSpent))
+                    {
+                        // RemoveItem 실패 시 내구도 복원
+                        slot.currentDurability = originalDurability;
+                        return new RepairResult
+                        {
+                            success = false,
+                            message = $"골드 차감 실패! {goldSpent}G를 제거할 수 없습니다.",
+                            goldCost = goldSpent
+                        };
+                    }
                 }
             }
 
