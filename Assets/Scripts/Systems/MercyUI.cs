@@ -88,6 +88,7 @@ namespace ProjectName.Systems
         /// </summary>
         public static void Show(string lordName = "")
         {
+            _currentTerritoryId = default;
             _currentLordName = lordName;
             _isVisible = true;
             _isRewardVisible = false;
@@ -109,6 +110,7 @@ namespace ProjectName.Systems
             _isRewardVisible = false;
             _rewardMessage = "";
             _currentLordName = "";
+            _currentTerritoryId = default;
         }
 
         /// <summary>
@@ -244,7 +246,6 @@ namespace ProjectName.Systems
             // 영지 정보
             var db = TerritoryDatabase.Instance;
             var def = db.GetDefinition(_currentTerritoryId);
-            var state = db.GetState(_currentTerritoryId);
             string territoryName = def.territoryName ?? "알 수 없는 영지";
 
             // 보상 계산
@@ -272,7 +273,6 @@ namespace ProjectName.Systems
             // 영지 정보
             var db = TerritoryDatabase.Instance;
             var def = db.GetDefinition(_currentTerritoryId);
-            var state = db.GetState(_currentTerritoryId);
             string territoryName = def.territoryName ?? "알 수 없는 영지";
 
             // 보상 계산

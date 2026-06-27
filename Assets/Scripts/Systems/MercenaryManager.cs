@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
-using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
 {
@@ -193,6 +192,9 @@ namespace ProjectName.Systems
                 {
                     Debug.Log($"[MercenaryManager] 🔴 용병 해고: {_hiredMercenaries[i].data.mercenaryName}");
                     _hiredMercenaries.RemoveAt(i);
+                    // 호감도 데이터 정리 (고아 데이터 방지)
+                    if (_affinity.ContainsKey(mercenaryId))
+                        _affinity.Remove(mercenaryId);
                     return true;
                 }
             }
@@ -238,7 +240,9 @@ namespace ProjectName.Systems
             {
                 if (_hiredMercenaries[i].data.id == mercenaryId)
                 {
-                    var _m = _hiredMercenaries[i]; _m.affinity = _affinity[mercenaryId]; _hiredMercenaries[i] = _m;
+                    var instance = _hiredMercenaries[i];
+                    instance.affinity = _affinity[mercenaryId];
+                    _hiredMercenaries[i] = instance;
                     break;
                 }
             }
@@ -273,7 +277,9 @@ namespace ProjectName.Systems
                 {
                     if (item == null || item.category == PlayerInventory.ItemCategory.Potion || item.category == PlayerInventory.ItemCategory.Herb)
                     {
-                        var mm = _hiredMercenaries[i]; mm.potionSlots[slotIndex] = item; _hiredMercenaries[i] = mm;
+                        var instance = _hiredMercenaries[i];
+                        instance.potionSlots[slotIndex] = item;
+                        _hiredMercenaries[i] = instance;
                         return true;
                     }
                     return false;
@@ -285,9 +291,10 @@ namespace ProjectName.Systems
         /// <summary>용병 자동 회복 처리 (HP 30% 이하)</summary>
         public void ProcessAutoHeal(string mercenaryId)
         {
-            var merc = GetHiredMercenary(mercenaryId);
-            if (merc.data.id == null) return;
+            int idx = _hiredMercenaries.FindIndex(m => m.data.id == mercenaryId);
+            if (idx < 0) return;
 
+            var merc = _hiredMercenaries[idx];
             if (!merc.isAlive) return;
 
             float hpRatio = merc.currentHP / merc.data.maxHP;
@@ -301,9 +308,9 @@ namespace ProjectName.Systems
                 {
                     // 회복 효과 적용 (임시: displayName 길이 기반 회복량)
                     float healAmount = 15f + item.displayName.Length * 0.5f;
-                    var mmIdx = _hiredMercenaries.FindIndex(m => m.data.id == mercenaryId); var mm = _hiredMercenaries[mmIdx]; mm.currentHP =
-                        Mathf.Min(merc.data.maxHP, merc.currentHP + healAmount);
-                    var mm2 = _hiredMercenaries[mmIdx]; mm2.potionSlots[i] = null; _hiredMercenaries[mmIdx] = mm2;
+                    merc.currentHP = Mathf.Min(merc.data.maxHP, merc.currentHP + healAmount);
+                    merc.potionSlots[i] = null;
+                    _hiredMercenaries[idx] = merc; // ★ struct 재할당 (필수!)
                     Debug.Log($"[MercenaryManager] 💊 {merc.data.mercenaryName} 자동 회복! +{healAmount} HP");
                     return;
                 }

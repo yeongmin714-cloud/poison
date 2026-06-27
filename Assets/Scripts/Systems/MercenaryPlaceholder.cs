@@ -1,6 +1,4 @@
 using UnityEngine;
-using ProjectName.Core;
-using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
 {
@@ -58,7 +56,7 @@ namespace ProjectName.Systems
             // 바드: 류트 모양 오브젝트 추가
             if (data.jobType == "Bard")
             {
-                CreateBardInstrument(go, data.grade);
+                CreateBardInstrument(go);
             }
 
             // 라벨 (TextMesh)
@@ -70,7 +68,6 @@ namespace ProjectName.Systems
             textMesh.anchor = TextAnchor.MiddleCenter;
             textMesh.characterSize = 0.07f;
             textMesh.color = Color.white;
-            textMesh.fontSize = 22;
 
             return go;
         }
@@ -89,7 +86,7 @@ namespace ProjectName.Systems
         }
 
         /// <summary>바드 악기 생성 (르트/하프 모양)</summary>
-        private static void CreateBardInstrument(GameObject parent, MercenaryGrade grade)
+        private static void CreateBardInstrument(GameObject parent)
         {
             // 류트 몸체 (타원형 Cube)
             var body = GameObject.CreatePrimitive(PrimitiveType.Sphere);

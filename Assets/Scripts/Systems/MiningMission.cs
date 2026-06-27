@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
-using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
 {
@@ -145,10 +144,27 @@ namespace ProjectName.Systems
             int smeltCount = oreCount / SMELT_ORE_REQUIRED;
             int oreToRemove = smeltCount * SMELT_ORE_REQUIRED;
 
-            // 철광석 제거
-            PlayerInventory.Instance.RemoveItem("iron_ore", oreToRemove);
-            // 철괴 추가
-            PlayerInventory.Instance.AddItem(IronIngot, smeltCount);
+            // 먼저 철괴를 넣을 수 있는지 확인 후 제련 실행
+            // AddItem이 실패하면 철광석을 제거하지 않음 — 아이템 소실 방지
+            if (!PlayerInventory.Instance.AddItem(IronIngot, smeltCount))
+            {
+                results.Add(new MineResult
+                {
+                    success = false,
+                    message = $"⚙️ 자동 제련 실패: 인벤토리 공간 부족 (철광석 {oreToRemove}개 → 철괴 {smeltCount}개)",
+                    itemsGathered = 0,
+                    resourceName = "iron_ingot",
+                    minerName = "제련소"
+                });
+                return results;
+            }
+
+            // 철광석 제거 (AddItem 성공 후에만 실행)
+            if (!PlayerInventory.Instance.RemoveItem("iron_ore", oreToRemove))
+            {
+                // 이론상 도달 불가: 방어 코드 — 철괴를 이미 추가했으므로 경고만 남김
+                UnityEngine.Debug.LogWarning("[MiningMission] AutoSmeltIronOre: 철광석 제거 실패 — 철괴는 이미 추가됨");
+            }
 
             results.Add(new MineResult
             {
