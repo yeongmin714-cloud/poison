@@ -1,5 +1,6 @@
-using UnityEngine;
 using ProjectName.Core;
+using ProjectName.UI;
+using UnityEngine;
 
 namespace ProjectName.Systems
 {
@@ -28,11 +29,11 @@ namespace ProjectName.Systems
                 new Color(0.90f, 0.87f, 0.80f));
 
             // ===== 재질 생성 (URP Lit) =====
-            Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+            Shader shader = ResolveShader("Universal Render Pipeline/Lit", "Standard");
             if (shader == null)
             {
-                Debug.LogError("[ShopInteriorBuilder] URP Lit shader not found!");
-                shader = Shader.Find("Standard");
+                Debug.LogError("[ShopInteriorBuilder] URP Lit 및 Standard shader 모두 찾을 수 없음!");
+                return null;
             }
 
             Material floorMat = new Material(shader) { name = "Shop_FloorMat" };
@@ -53,6 +54,11 @@ namespace ProjectName.Systems
             // ===== 방 생성 (C11-01) =====
             GameObject room = IndoorBuilder.CreateRoom(roomWidth, roomHeight, roomDepth,
                 floorMat, wallMat, ceilingMat);
+            if (room == null)
+            {
+                Debug.LogError("[ShopInteriorBuilder] IndoorBuilder.CreateRoom returned null!");
+                return null;
+            }
 
             // ===== 가구 배치 (C11-06) =====
             // 카운터 1개 (뒷벽 앞)
@@ -60,8 +66,11 @@ namespace ProjectName.Systems
             float counterHeight = 1.2f;
             float counterDepth = 0.8f;
             GameObject counter = IndoorFurniturePlacer.CreateCounter(counterWidth, counterHeight, counterDepth, furnitureMat);
-            counter.transform.SetParent(room.transform);
-            counter.transform.localPosition = new Vector3(0, 0, -roomDepth * 0.5f + counterDepth * 0.5f + 0.3f);
+            if (counter != null)
+            {
+                counter.transform.SetParent(room.transform);
+                counter.transform.localPosition = new Vector3(0, 0, -roomDepth * 0.5f + counterDepth * 0.5f + 0.3f);
+            }
 
             // 선반 2개 (좌우 벽)
             float shelfWidth = 1.5f;
@@ -70,20 +79,29 @@ namespace ProjectName.Systems
 
             // 왼쪽 선반
             GameObject shelfLeft = IndoorFurniturePlacer.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 3);
-            shelfLeft.transform.SetParent(room.transform);
-            shelfLeft.transform.localPosition = new Vector3(-roomWidth * 0.5f + shelfDepth * 0.5f + 0.3f, 0, -1.5f);
+            if (shelfLeft != null)
+            {
+                shelfLeft.transform.SetParent(room.transform);
+                shelfLeft.transform.localPosition = new Vector3(-roomWidth * 0.5f + shelfDepth * 0.5f + 0.3f, 0, -1.5f);
+            }
 
             // 오른쪽 선반
             GameObject shelfRight = IndoorFurniturePlacer.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 3);
-            shelfRight.transform.SetParent(room.transform);
-            shelfRight.transform.localPosition = new Vector3(roomWidth * 0.5f - shelfDepth * 0.5f - 0.3f, 0, 1.5f);
+            if (shelfRight != null)
+            {
+                shelfRight.transform.SetParent(room.transform);
+                shelfRight.transform.localPosition = new Vector3(roomWidth * 0.5f - shelfDepth * 0.5f - 0.3f, 0, 1.5f);
+            }
 
             // 카운터 앞에 작은 테이블 (진열용)
             Material displayMat = new Material(shader) { name = "Shop_DisplayMat" };
             displayMat.color = new Color(0.55f, 0.40f, 0.25f);
             GameObject displayTable = IndoorFurniturePlacer.CreateTable(1.2f, 0.6f, 0.9f, displayMat);
-            displayTable.transform.SetParent(room.transform);
-            displayTable.transform.localPosition = new Vector3(1.5f, 0, -roomDepth * 0.5f + 2f);
+            if (displayTable != null)
+            {
+                displayTable.transform.SetParent(room.transform);
+                displayTable.transform.localPosition = new Vector3(1.5f, 0, -roomDepth * 0.5f + 2f);
+            }
 
             // ===== 조명 설정 (C11-05) =====
             // 따뜻한 앰비언트 + 천장 중앙 Point Light + 깜빡임
@@ -101,7 +119,10 @@ namespace ProjectName.Systems
             GameObject shopNpc = new GameObject("ShopNPC");
             shopNpc.transform.SetParent(room.transform);
             // 카운터 뒤: 카운터 localPosition 기준으로 z 방향으로 -0.8f 뒤
-            shopNpc.transform.localPosition = new Vector3(0, 0, counter.transform.localPosition.z - 0.8f);
+            float npcZ = counter != null
+                ? counter.transform.localPosition.z - 0.8f
+                : -roomDepth * 0.5f - 0.5f; // 폴백: 뒷벽 바깥쪽
+            shopNpc.transform.localPosition = new Vector3(0, 0, npcZ);
             shopNpc.AddComponent<ShopPlaceholder>();
             // 이름표 "상인" 표시
             var nameplate = shopNpc.AddComponent<NameplateDisplay>();
@@ -116,6 +137,24 @@ namespace ProjectName.Systems
             exitBt.InteractRange = 3f;
 
             return room;
+        }
+
+        /// <summary>
+        /// 셰이더 찾기 — primary 실패 시 fallback, 둘 다 없으면 null 반환.
+        /// </summary>
+        private static Shader ResolveShader(string primary, string fallback)
+        {
+            Shader shader = Shader.Find(primary);
+            if (shader == null)
+            {
+                Debug.LogWarning($"[ShopInteriorBuilder] '{primary}' shader not found, falling back to '{fallback}'.");
+                shader = Shader.Find(fallback);
+            }
+            if (shader == null)
+            {
+                Debug.LogError($"[ShopInteriorBuilder] '{fallback}' shader also not found!");
+            }
+            return shader;
         }
     }
 }

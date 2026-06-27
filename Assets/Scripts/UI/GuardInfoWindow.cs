@@ -44,6 +44,23 @@ namespace ProjectName.UI
         private GUIStyle _styleBuffLabel;
         private GUIStyle _styleHeader;
 
+        // ===== 캐시된 스타일 (GC 방지: 매 프레임 new GUIStyle() 지양) =====
+        private GUIStyle _styleBuffPositive;
+        private GUIStyle _styleBuffNegative;
+        private GUIStyle _styleDetail;
+        private GUIStyle _styleRarityCommon;
+        private GUIStyle _styleRarityUncommon;
+        private GUIStyle _styleRarityRare;
+        private GUIStyle _styleRarityEpic;
+        private GUIStyle _styleRarityLegendary;
+
+        // ===== 캐시된 데이터 (GC 방지: 매 프레임 new List<T>() 지양) =====
+        private readonly List<BuffInfo> _cachedGuardBuffs = new List<BuffInfo>(8);
+        private readonly List<BuffInfo> _cachedMercenaryBuffs = new List<BuffInfo>(8);
+
+        // ===== 캐시된 텍스처 (GC 방지: 매 프레임 new Texture2D() 지양) =====
+        private static Texture2D _cachedWhiteTex;
+
         // ===== 상수 =====
         private const float WINDOW_WIDTH = 780f;
         private const float WINDOW_HEIGHT = 900f;
@@ -120,8 +137,6 @@ namespace ProjectName.UI
             float y = (Screen.height - WINDOW_HEIGHT) / 2f;
 
             // 배경 상자
-            GUI.Box(new Rect(x, y, WINDOW_WIDTH, WINDOW_HEIGHT), "");
-            // 테두리
             GUI.Box(new Rect(x, y, WINDOW_WIDTH, WINDOW_HEIGHT), "");
 
             // 닫기 버튼 (우측 상단)
@@ -211,7 +226,7 @@ namespace ProjectName.UI
             if (mercManager == null) return;
 
             var merc = mercManager.GetHiredMercenary(_currentMercenaryId);
-            if (merc.data.id == null || mercManager == null) { Close(); return; }
+            if (merc.data == null || merc.data.id == null) { Close(); return; }
 
             var data = merc.data;
 
@@ -336,8 +351,7 @@ namespace ProjectName.UI
                     ? $"내구도 {item.currentDurability}/{item.itemData.maxDurability}"
                     : "내구도 ∞";
 
-                Color rarityColor = GetRarityColor(item.itemData.rarity);
-                var style = new GUIStyle(_styleValue) { normal = { textColor = rarityColor } };
+                GUIStyle style = GetRarityStyle(item.itemData.rarity);
                 GUI.Label(new Rect(slotX + 80, slotY + 4, slotW - 120, 22), itemName, style);
                 GUI.Label(new Rect(slotX + 80, slotY + 26, slotW - 120, 18), durabilityStr, _styleLabel);
 
@@ -383,7 +397,6 @@ namespace ProjectName.UI
             }
             else
             {
-                float listHeight = Mathf.Min(buffs.Count * 22f, 80f);
                 _buffScrollPos = GUI.BeginScrollView(
                     new Rect(x + 20, cy, WINDOW_WIDTH - 40, 80f),
                     _buffScrollPos,
@@ -394,8 +407,7 @@ namespace ProjectName.UI
                 {
                     var buff = buffs[i];
                     string buffText = $"{buff.icon} {buff.name}: {buff.description}";
-                    Color buffColor = buff.isPositive ? Color.green : Color.red;
-                    var style = new GUIStyle(_styleBuffLabel) { normal = { textColor = buffColor } };
+                    GUIStyle style = buff.isPositive ? _styleBuffPositive : _styleBuffNegative;
                     GUI.Label(new Rect(0, i * 22f, WINDOW_WIDTH - 60, 20), buffText, style);
                 }
 
@@ -417,7 +429,6 @@ namespace ProjectName.UI
             }
             else
             {
-                float listHeight = Mathf.Min(buffs.Count * 22f, 80f);
                 _buffScrollPos = GUI.BeginScrollView(
                     new Rect(x + 20, cy, WINDOW_WIDTH - 40, 80f),
                     _buffScrollPos,
@@ -428,8 +439,7 @@ namespace ProjectName.UI
                 {
                     var buff = buffs[i];
                     string buffText = $"{buff.icon} {buff.name}: {buff.description}";
-                    Color buffColor = buff.isPositive ? Color.green : Color.red;
-                    var style = new GUIStyle(_styleBuffLabel) { normal = { textColor = buffColor } };
+                    GUIStyle style = buff.isPositive ? _styleBuffPositive : _styleBuffNegative;
                     GUI.Label(new Rect(0, i * 22f, WINDOW_WIDTH - 60, 20), buffText, style);
                 }
 
@@ -450,7 +460,8 @@ namespace ProjectName.UI
 
         private List<BuffInfo> GetGuardBuffs(GuardPlaceholder guard)
         {
-            var buffs = new List<BuffInfo>();
+            var buffs = _cachedGuardBuffs;
+            buffs.Clear();
 
             // 바드 버프 확인
             if (BardBuffManager.Instance != null && BardBuffManager.Instance.TryGetBuff(guard, out var bardBuff))
@@ -493,7 +504,8 @@ namespace ProjectName.UI
 
         private List<BuffInfo> GetMercenaryBuffs(string mercenaryId)
         {
-            var buffs = new List<BuffInfo>();
+            var buffs = _cachedMercenaryBuffs;
+            buffs.Clear();
 
             // 호감도 버프
             var merc = MercenaryManager.Instance?.GetHiredMercenary(mercenaryId);
@@ -536,8 +548,7 @@ namespace ProjectName.UI
 
             if (!string.IsNullOrEmpty(detail))
             {
-                var detailStyle = new GUIStyle(_styleLabel) { fontSize = 40, normal = { textColor = Color.gray } };
-                GUI.Label(new Rect(x + 220, cy, WINDOW_WIDTH - 240, 22), detail, detailStyle);
+                GUI.Label(new Rect(x + 220, cy, WINDOW_WIDTH - 240, 22), detail, _styleDetail);
             }
 
             cy += 24f;
@@ -545,30 +556,44 @@ namespace ProjectName.UI
 
         private void DrawBar(float x, float y, float width, float height, float ratio, Color fillColor, Color bgColor)
         {
-            GUI.DrawTexture(new Rect(x, y, width, height), MakeTex(1, 1, bgColor));
-            GUI.DrawTexture(new Rect(x, y, width * Mathf.Clamp01(ratio), height), MakeTex(1, 1, fillColor));
+            EnsureWhiteTex();
+            GUI.color = bgColor;
+            GUI.DrawTexture(new Rect(x, y, width, height), _cachedWhiteTex);
+            GUI.color = fillColor;
+            GUI.DrawTexture(new Rect(x, y, width * Mathf.Clamp01(ratio), height), _cachedWhiteTex);
+            GUI.color = Color.white;
         }
 
-        private Texture2D MakeTex(int w, int h, Color c)
+        private static void EnsureWhiteTex()
         {
-            var tex = new Texture2D(w, h);
-            for (int i = 0; i < w; i++)
-                for (int j = 0; j < h; j++)
-                    tex.SetPixel(i, j, c);
-            tex.Apply();
-            return tex;
+            if (_cachedWhiteTex == null)
+            {
+                _cachedWhiteTex = new Texture2D(1, 1);
+                _cachedWhiteTex.SetPixel(0, 0, Color.white);
+                _cachedWhiteTex.Apply();
+            }
         }
 
-        private Color GetRarityColor(ItemRarity rarity)
+        private void OnDestroy()
+        {
+            // 에디터 종료 시 정리 (선택 사항, 누수 방지)
+            if (_cachedWhiteTex != null)
+            {
+                Destroy(_cachedWhiteTex);
+                _cachedWhiteTex = null;
+            }
+        }
+
+        private GUIStyle GetRarityStyle(ItemRarity rarity)
         {
             switch (rarity)
             {
-                case ItemRarity.Common: return Color.white;
-                case ItemRarity.Uncommon: return Color.green;
-                case ItemRarity.Rare: return Color.blue;
-                case ItemRarity.Epic: return new Color(0.7f, 0.2f, 0.9f); // 보라
-                case ItemRarity.Legendary: return new Color(1f, 0.84f, 0f); // 금
-                default: return Color.white;
+                case ItemRarity.Common: return _styleRarityCommon;
+                case ItemRarity.Uncommon: return _styleRarityUncommon;
+                case ItemRarity.Rare: return _styleRarityRare;
+                case ItemRarity.Epic: return _styleRarityEpic;
+                case ItemRarity.Legendary: return _styleRarityLegendary;
+                default: return _styleRarityCommon;
             }
         }
 
@@ -621,43 +646,68 @@ namespace ProjectName.UI
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 72,
+                fontSize = 18,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.white }
             };
 
             _styleHeader = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 56,
+                fontSize = 16,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = new Color(0.6f, 0.9f, 1f) } // 밝은 하늘색
             };
 
             _styleLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 52,
+                fontSize = 14,
                 normal = { textColor = Color.white }
             };
 
             _styleValue = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 52,
+                fontSize = 14,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.yellow }
             };
 
             _styleSlotLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 48,
+                fontSize = 13,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = new Color(0.8f, 0.8f, 0.8f) }
             };
 
             _styleBuffLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 48,
+                fontSize = 13,
                 normal = { textColor = Color.green }
             };
+
+            // ===== 캐시된 파생 스타일 (GC 방지) =====
+            _styleBuffPositive = new GUIStyle(_styleBuffLabel)
+            {
+                normal = { textColor = Color.green }
+            };
+
+            _styleBuffNegative = new GUIStyle(_styleBuffLabel)
+            {
+                normal = { textColor = Color.red }
+            };
+
+            _styleDetail = new GUIStyle(_styleLabel)
+            {
+                fontSize = 12,
+                normal = { textColor = Color.gray }
+            };
+
+            _styleRarityCommon = new GUIStyle(_styleValue) { normal = { textColor = Color.white } };
+            _styleRarityUncommon = new GUIStyle(_styleValue) { normal = { textColor = Color.green } };
+            _styleRarityRare = new GUIStyle(_styleValue) { normal = { textColor = Color.blue } };
+            var epicColor = new Color(0.7f, 0.2f, 0.9f);
+            _styleRarityEpic = new GUIStyle(_styleValue) { normal = { textColor = epicColor } };
+            var legendaryColor = new Color(1f, 0.84f, 0f);
+            _styleRarityLegendary = new GUIStyle(_styleValue) { normal = { textColor = legendaryColor } };
         }
     }
 }

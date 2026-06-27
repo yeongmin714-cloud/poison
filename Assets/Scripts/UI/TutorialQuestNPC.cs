@@ -1,8 +1,8 @@
 using UnityEngine;
 using ProjectName.Core;
-using ProjectName.Core.Data;
+using ProjectName.Systems;
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// 길 잃은 영주 NPC — 튜토리얼 퀘스트.
@@ -186,23 +186,20 @@ namespace ProjectName.Systems
 
                 case QuestState.AskingFood:
                     // 플레이어가 음식을 가져왔다고 가정
-                    // TODO: Phase 4에서 실제 크래프트 후 독든 음식 판정
-                    // 지금은 임시로 바로 독 효과
+                    // 영주가 음식을 받고 설사약을 눈치챔
                     _state = QuestState.HasPoison;
-                    // 음식 먹는 애니메이션 (Gather 재사용)
+                    // 음식 받는 애니메이션 (Gather 재사용)
                     if (_rigAnim != null) _rigAnim.SetState(AnimationState.Gather);
-                    // 강제로 독 효과 진행
+                    Debug.Log("[TutorialQuestNPC] 영주가 음식을 받았다. (다음 대화에서 설사약 의심)");
+                    break;
+
+                case QuestState.HasPoison:
+                    // 설사약 의심 대화 종료 → 독 효과 진행
                     _state = QuestState.Poisoned;
                     _poisonTimer = _poisonDuration;
                     // 중독 애니메이션 (비틀거림 = Kneel)
                     if (_rigAnim != null) _rigAnim.SetState(AnimationState.Kneel);
                     Debug.Log($"[TutorialQuestNPC] 영주가 독에 걸렸다! {_poisonDuration}초 행동불능");
-                    break;
-
-                case QuestState.HasPoison:
-                    _state = QuestState.Poisoned;
-                    _poisonTimer = _poisonDuration;
-                    if (_rigAnim != null) _rigAnim.SetState(AnimationState.Kneel);
                     break;
             }
         }

@@ -19,6 +19,9 @@ namespace ProjectName.Systems
     {
         private static MercyUI _instance;
 
+        /// <summary>싱글톤 인스턴스</summary>
+        public static MercyUI Instance => _instance;
+
         [Header("UI 설정")]
         [SerializeField] private float _panelWidth = 400f;
         [SerializeField] private float _panelHeight = 280f;

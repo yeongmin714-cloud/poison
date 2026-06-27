@@ -117,7 +117,14 @@ namespace ProjectName.Core.Data
             Debug.Log($"[DishDatabase] Loaded {_all.Count} dishes from GAME_DATA.md.");
         }
 
-        public static IReadOnlyList<DishInfo> All => _all;
+        public static IReadOnlyList<DishInfo> All
+        {
+            get
+            {
+                if (!_initialized) Initialize();
+                return _all;
+            }
+        }
         public static DishInfo GetDishInfoByName(string name)
         {
             if (!_initialized) Initialize();

@@ -1,24 +1,25 @@
 using System.Collections.Generic;
 using ProjectName.Core;
-using ProjectName.UI;
-using UnityEngine;
 using ProjectName.Core.Data;
+using ProjectName.Systems;
+using UnityEngine;
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
+    [System.Serializable]
     public struct NPCInstance
     {
-        public string npcId;
-        public string npcName;
-        public NPCData.NPCAgeType ageType;
-        public string greeting;
-        public string questOfferLine;
-        public List<string> questIds;
-        public List<string> dialogues;
-        public string territoryId;
-        public int npcIndex;
+        public string NpcId;
+        public string NpcName;
+        public NPCData.NPCAgeType AgeType;
+        public string Greeting;
+        public string QuestOfferLine;
+        public List<string> QuestIds;
+        public List<string> Dialogues;
+        public string TerritoryId;
+        public int NpcIndex;
 
-        public bool HasQuests => questIds != null && questIds.Count > 0;
+        public bool HasQuests => QuestIds != null && QuestIds.Count > 0;
     }
 
     public static class TerritoryNPCSpawner
@@ -42,36 +43,41 @@ namespace ProjectName.Systems
             new Color(0.70f, 0.50f, 0.30f), // 카키
         };
 
+        // 캐싱: 부모 오브젝트를 매번 Find하지 않음
+        private static GameObject _cachedParent;
+
         public static List<NPCInstance> GenerateNPCs(string territoryId, int tier)
         {
             int npcCount = tier switch { 1 => 2, 2 => 3, 3 => 4, 4 => 4, 5 => 5, _ => 2 };
 
-            var npcs = new List<NPCInstance>();
+            var npcs = new List<NPCInstance>(npcCount);
 
             for (int i = 0; i < npcCount; i++)
             {
                 string npcId = $"{territoryId}_npc_{i:D2}";
                 NPCData.NPCAgeType ageType = NPCData.PickAgeType(territoryId, i, tier);
                 string npcName = NPCData.PickName(territoryId, i, ageType);
+                string greeting = NPCData.PickGreeting(territoryId, i, ageType);
+                string questOffer = NPCData.PickQuestOffer(territoryId, i, ageType);
 
                 var questIds = TerritoryQuestDefinitions.PickQuestIdsForNPC(territoryId, i, tier);
 
                 var npc = new NPCInstance
                 {
-                    npcId = npcId,
-                    npcName = npcName,
-                    ageType = ageType,
-                    greeting = NPCData.PickGreeting(territoryId, i, ageType),
-                    questOfferLine = NPCData.PickQuestOffer(territoryId, i, ageType),
-                    questIds = questIds,
-                    dialogues = new List<string>
+                    NpcId = npcId,
+                    NpcName = npcName,
+                    AgeType = ageType,
+                    Greeting = greeting,
+                    QuestOfferLine = questOffer,
+                    QuestIds = questIds,
+                    Dialogues = new List<string>
                     {
-                        NPCData.PickGreeting(territoryId, i, ageType),
-                        NPCData.PickQuestOffer(territoryId, i, ageType),
+                        greeting,
+                        questOffer,
                         "(NPC가 조용히 생각에 잠겼다.)"
                     },
-                    territoryId = territoryId,
-                    npcIndex = i
+                    TerritoryId = territoryId,
+                    NpcIndex = i
                 };
 
                 npcs.Add(npc);
@@ -82,15 +88,18 @@ namespace ProjectName.Systems
 
         public static GameObject SpawnNPC(NPCInstance npc, Vector3 position)
         {
-            GameObject parent = GameObject.Find(ParentObjectName);
-            if (parent == null)
+            if (_cachedParent == null)
             {
-                parent = new GameObject(ParentObjectName);
-                Object.DontDestroyOnLoad(parent);
+                _cachedParent = GameObject.Find(ParentObjectName);
+                if (_cachedParent == null)
+                {
+                    _cachedParent = new GameObject(ParentObjectName);
+                    Object.DontDestroyOnLoad(_cachedParent);
+                }
             }
 
-            GameObject npcGO = new GameObject(npc.npcName);
-            npcGO.transform.SetParent(parent.transform);
+            GameObject npcGO = new GameObject(npc.NpcName);
+            npcGO.transform.SetParent(_cachedParent.transform);
             npcGO.transform.position = position;
 
             var behaviour = npcGO.AddComponent<TerritoryNPCBehaviour>();
@@ -108,7 +117,7 @@ namespace ProjectName.Systems
             }
 
             // NPC ID 기반 시드로 고유 색상 선택 (같은 NPC = 항상 같은 색상)
-            Color bodyColor = GetColorForNPC(npc.npcId);
+            Color bodyColor = GetColorForNPC(npc.NpcId);
             Color skinColor = new Color(1.0f, 0.8f, 0.6f); // 기본 살색
             const float scale = 1.0f;
 
@@ -120,7 +129,7 @@ namespace ProjectName.Systems
             body.transform.localScale = new Vector3(0.6f * scale, 0.6f * scale, 0.4f * scale);
             var bodyRenderer = body.GetComponent<MeshRenderer>();
             if (bodyRenderer != null)
-                bodyRenderer.material = MaterialHelper.CreateLitMaterial(bodyColor, npc.npcName + "_Body");
+                bodyRenderer.material = MaterialHelper.CreateLitMaterial(bodyColor, npc.NpcName + "_Body");
 
             // 머리 (Sphere)
             GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -130,7 +139,7 @@ namespace ProjectName.Systems
             head.transform.localScale = new Vector3(0.35f * scale, 0.35f * scale, 0.35f * scale);
             var headRenderer = head.GetComponent<MeshRenderer>();
             if (headRenderer != null)
-                headRenderer.material = MaterialHelper.CreateLitMaterial(skinColor, npc.npcName + "_Head");
+                headRenderer.material = MaterialHelper.CreateLitMaterial(skinColor, npc.NpcName + "_Head");
 
             return npcGO;
         }
@@ -143,7 +152,7 @@ namespace ProjectName.Systems
         {
             // Use npcIndex to cycle through NPC visual types
             string[] npcTypes = { "Man1", "Man2", "Girl1", "Girl2", "Girl3", "Oldman1", "Oldman2" };
-            string npcType = npcTypes[npc.npcIndex % npcTypes.Length];
+            string npcType = npcTypes[npc.NpcIndex % npcTypes.Length];
             switch (npcType)
             {
                 case "Lord": return "npc_lord_rigged";
@@ -163,7 +172,7 @@ namespace ProjectName.Systems
 
         private static Color GetColorForNPC(string npcId)
         {
-            int seed = npcId.GetHashCode() ^ 0x3C5EED1F;
+            int seed = StableHash(npcId) ^ 0x3C5EED1F;
             var rng = new System.Random(seed);
             int idx = rng.Next(0, _npcPalette.Length);
 
@@ -179,7 +188,7 @@ namespace ProjectName.Systems
         public static Vector3 GetSpawnPosition(string territoryId, int npcIndex, Vector3 territoryCenter)
         {
             string seedKey = territoryId + "_npc" + npcIndex + "_spawn";
-            int seed = seedKey.GetHashCode() ^ unchecked((int)0x5EED_1234);
+            int seed = StableHash(seedKey) ^ unchecked((int)0x5EED_1234);
             var rng = new System.Random(seed);
             float angle = (float)(rng.NextDouble() * 360.0);
             float distance = (float)(3.0 + rng.NextDouble() * 5.0);
@@ -188,6 +197,24 @@ namespace ProjectName.Systems
             Vector3 offset = new Vector3(Mathf.Cos(rad), 0, Mathf.Sin(rad)) * distance;
 
             return territoryCenter + offset;
+        }
+
+        /// <summary>
+        /// 애플리케이션 재시작 간에도 동일한 결과를 보장하는 안정적인 해시 함수.
+        /// .NET string.GetHashCode()는 문서화되지 않은 알고리즘을 사용하므로 대체.
+        /// </summary>
+        private static int StableHash(string str)
+        {
+            if (str == null) return 0;
+            unchecked
+            {
+                int hash = 17;
+                for (int i = 0; i < str.Length; i++)
+                {
+                    hash = hash * 31 + str[i];
+                }
+                return hash;
+            }
         }
     }
 
@@ -200,12 +227,12 @@ namespace ProjectName.Systems
         public void Initialize(NPCInstance data)
         {
             _npcData = data;
-            gameObject.name = data.npcName;
+            gameObject.name = data.NpcName;
         }
 
         public void Interact()
         {
-            Debug.Log("[TerritoryNPC] " + _npcData.npcName + ": " + _npcData.greeting);
+            Debug.Log("[TerritoryNPC] " + _npcData.NpcName + ": " + _npcData.Greeting);
             if (NPCDialogueWindow.Instance != null)
             {
                 NPCDialogueWindow.Instance.ShowDialogue(_npcData);

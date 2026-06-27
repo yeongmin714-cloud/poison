@@ -26,7 +26,7 @@ namespace ProjectName.UI
         [SerializeField] private KeyCode _mapKey = KeyCode.M;
         [SerializeField] private KeyCode _closeKey = KeyCode.Escape;
 
-[Header("Status Window")]
+        [Header("Status Window")]
         [SerializeField] private KeyCode _statusKey = KeyCode.C;
 
         [Header("Revenge List")]
@@ -86,6 +86,7 @@ namespace ProjectName.UI
                     case "Inventory": _inventoryKey = newKey; break;
                     case "Map": _mapKey = newKey; break;
                     case "Close": _closeKey = newKey; break;
+                    case "Status": _statusKey = newKey; break;
                     case "RevengeList": _revengeListKey = newKey; break;
                     case "Crafting": _craftingKey = newKey; break;
                     case "Equipment": _equipmentKey = newKey; break;
@@ -112,7 +113,7 @@ namespace ProjectName.UI
         /// </summary>
         public static string[] GetActionNames()
         {
-            return new[] { "Quest", "Recipe", "Inventory", "Map", "Close", "Status", "RevengeList", "Crafting" };
+            return new[] { "Quest", "Recipe", "Inventory", "Map", "Close", "Status", "RevengeList", "Crafting", "Equipment", "Warehouse" };
         }
     }
 }

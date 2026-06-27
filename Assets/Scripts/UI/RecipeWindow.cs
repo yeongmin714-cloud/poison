@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 using ProjectName.Core;
@@ -24,8 +25,13 @@ namespace ProjectName.UI
         // Tab state
         private bool _showAlchemy = true;
         private Text _tabButtonText;
-        private Text _countText;
-        private Button _craftButton;
+
+        // Cached font (avoid repeated Resources.GetBuiltinResource in loop)
+        private static Font _cachedFont;
+
+        // Cached reflection results (avoid per-frame GC alloc from GetFields)
+        private static Dictionary<string, PlayerInventory.ItemData> _itemCache;
+        private static bool _itemCacheBuilt;
 
         protected override void OnShow()
         {
@@ -49,11 +55,15 @@ namespace ProjectName.UI
                 CreateRecipeContainer();
             }
 
-            // Clear existing entries
-            foreach (Transform child in _recipeGridContainer)
+            // Clear existing entries — safe pattern (no foreach enumeration mutation)
+            while (_recipeGridContainer.childCount > 0)
             {
-                Destroy(child.gameObject);
+                DestroyImmediate(_recipeGridContainer.GetChild(0).gameObject);
             }
+
+            // Ensure databases are initialized before access
+            var _ = HerbComboDatabase.AllCombos;
+            var __ = DishDatabase.All;
 
             // Determine which recipes to show
             if (_showAlchemy)
@@ -62,10 +72,10 @@ namespace ProjectName.UI
                 ShowCookingRecipes();
 
             // Update count display
-            int total = _showAlchemy ? HerbComboDatabase.AllCombos.Count : CookingDatabase.AllRecipes.Count;
+            int total = _showAlchemy ? HerbComboDatabase.AllCombos.Count : DishDatabase.All.Count;
             int discovered = RecipeDiscoverySystem.DiscoveredCount;
             string tabName = _showAlchemy ? "연금술" : "요리";
-                        Debug.Log($"[RecipeWindow] {tabName} 레시피: 발견 {discovered}/{total}");
+            Debug.Log($"[RecipeWindow] {tabName} 레시피: 발견 {discovered}/{total}");
         }
 
         private void ShowAlchemyRecipes()
@@ -140,7 +150,7 @@ namespace ProjectName.UI
             nameGo.transform.SetParent(entry.transform, false);
             Text nameText = nameGo.AddComponent<Text>();
             nameText.text = discovered ? name : $"<color=grey>???</color>";
-            nameText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            nameText.font = GetDefaultFont();
             nameText.fontSize = 52;
             nameText.color = discovered ? Color.white : Color.grey;
             nameText.alignment = TextAnchor.MiddleLeft;
@@ -152,7 +162,7 @@ namespace ProjectName.UI
             effectGo.transform.SetParent(entry.transform, false);
             Text effectText = effectGo.AddComponent<Text>();
             effectText.text = discovered ? $"{effect}" : "";
-            effectText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            effectText.font = GetDefaultFont();
             effectText.fontSize = 44;
             effectText.color = new Color(0.8f, 0.8f, 0.8f);
             effectText.alignment = TextAnchor.MiddleLeft;
@@ -169,16 +179,24 @@ namespace ProjectName.UI
                 Button btn = btnGo.AddComponent<Button>();
                 Text btnText = btnGo.AddComponent<Text>();
                 btnText.text = "제작";
-                btnText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                btnText.font = GetDefaultFont();
                 btnText.fontSize = 44;
                 btnText.alignment = TextAnchor.MiddleCenter;
                 btnText.color = Color.white;
                 RectTransform btnRect = btnGo.GetComponent<RectTransform>();
                 btnRect.sizeDelta = new Vector2(50, 22);
 
-                string recipeName = name; // capture for closure
-                btn.onClick.AddListener(() => TryCraftFromBook(recipeName, dish));
+                string capturedName = name; // capture for closure
+                DishInfo capturedDish = dish;
+                btn.onClick.AddListener(() => TryCraftFromBook(capturedName, capturedDish));
             }
+        }
+
+        private static Font GetDefaultFont()
+        {
+            if (_cachedFont == null)
+                _cachedFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            return _cachedFont;
         }
 
         private void TryCraftFromBook(string recipeName, DishInfo dish = null)
@@ -240,39 +258,36 @@ namespace ProjectName.UI
         }
 
         // ===================================================================
-        // 레시피 결과 아이템 찾기 (아이콘 표시용)
+        // 레시피 결과 아이템 찾기 (아이콘 표시용) — cached reflection
         // ===================================================================
-        private PlayerInventory.ItemData FindRecipeItem(string recipeName, DishInfo dish)
+        private static PlayerInventory.ItemData FindRecipeItem(string recipeName, DishInfo dish)
         {
-            // Cooking dish: use DishDatabase
-            if (dish != null)
+            BuildItemCache();
+            _itemCache.TryGetValue(recipeName, out var item);
+            return item;
+        }
+
+        /// <summary>
+        /// Build a lookup dictionary from PlayerInventory static ItemData fields once.
+        /// Uses reflection but caches the result permanently.
+        /// </summary>
+        private static void BuildItemCache()
+        {
+            if (_itemCacheBuilt) return;
+            _itemCacheBuilt = true;
+            _itemCache = new Dictionary<string, PlayerInventory.ItemData>();
+
+            var fields = typeof(PlayerInventory).GetFields(BindingFlags.Public | BindingFlags.Static);
+            foreach (var field in fields)
             {
-                // Search all PlayerInventory static fields for matching displayName
-                var fields = typeof(PlayerInventory).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-                foreach (var field in fields)
+                if (field.FieldType != typeof(PlayerInventory.ItemData)) continue;
+                if (field.GetValue(null) is PlayerInventory.ItemData item && !string.IsNullOrEmpty(item.displayName))
                 {
-                    if (field.FieldType == typeof(PlayerInventory.ItemData))
-                    {
-                        var item = field.GetValue(null) as PlayerInventory.ItemData;
-                        if (item != null && item.displayName == recipeName)
-                            return item;
-                    }
+                    _itemCache[item.displayName] = item;
                 }
-                return null;
             }
 
-            // Alchemy recipe: search all PlayerInventory static fields
-            var allFields = typeof(PlayerInventory).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-            foreach (var field in allFields)
-            {
-                if (field.FieldType == typeof(PlayerInventory.ItemData))
-                {
-                    var item = field.GetValue(null) as PlayerInventory.ItemData;
-                    if (item != null && item.displayName == recipeName)
-                        return item;
-                }
-            }
-            return null;
+            Debug.Log($"[RecipeWindow] 빌드된 아이템 캐시: {_itemCache.Count}개 항목");
         }
     }
 }

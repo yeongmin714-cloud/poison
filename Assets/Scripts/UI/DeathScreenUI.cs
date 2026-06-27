@@ -1,7 +1,6 @@
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems;
-using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -20,10 +19,12 @@ namespace ProjectName.UI
         private float _fadeTimer;
         private bool _isFading;
 
-        private UIDesignTheme _theme;
+        // --- 캐싱된 스타일 (OnGUI GC 방지) ---
         private GUIStyle _titleStyle;
         private GUIStyle _buttonStyle;
         private GUIStyle _subTextStyle;
+        private GUIStyle _overlayStyle;
+        private Texture2D _overlayTex;
         private bool _stylesInit;
 
         private void Awake()
@@ -31,7 +32,22 @@ namespace ProjectName.UI
             if (Instance != null) { Destroy(gameObject); return; }
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            _theme = Phase33_Themes.CreateMedievalDeathTheme();
+        }
+
+        private void OnDestroy()
+        {
+            // Time.timeScale 안전 복원 — 오브젝트 파괴 시 타임스케일 고정 방지
+            if (_isVisible)
+            {
+                Time.timeScale = 1f;
+            }
+
+            // 텍스처 정리
+            if (_overlayTex != null)
+            {
+                Destroy(_overlayTex);
+                _overlayTex = null;
+            }
         }
 
         public void Show()
@@ -64,23 +80,40 @@ namespace ProjectName.UI
         private void InitStyles()
         {
             if (_stylesInit) return;
+
             _titleStyle = new GUIStyle
             {
-                fontSize = 768, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter,
+                fontSize = 60,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = new Color(0.9f, 0.2f, 0.2f, 1f) }
             };
+
             _buttonStyle = new GUIStyle
             {
-                fontSize = 320, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter,
+                fontSize = 36,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white }
             };
             _buttonStyle.hover.background = UIStyleManager.MakeTexture(1, 1, new Color(0.5f, 0.1f, 0.1f, 1f));
             _buttonStyle.active.background = UIStyleManager.MakeTexture(1, 1, new Color(0.3f, 0.05f, 0.05f, 1f));
+
             _subTextStyle = new GUIStyle
             {
-                fontSize = 256, fontStyle = FontStyle.Italic, alignment = TextAnchor.MiddleCenter,
+                fontSize = 24,
+                fontStyle = FontStyle.Italic,
+                alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = new Color(0.8f, 0.4f, 0.4f, 1f) }
             };
+
+            // 오버레이용 1x1 흰색 텍스처 캐싱 (OnGUI에서 매 프레임 새 텍스처 생성 방지)
+            _overlayTex = new Texture2D(1, 1);
+            _overlayTex.hideFlags = HideFlags.HideAndDontSave;
+            _overlayTex.SetPixel(0, 0, Color.white);
+            _overlayTex.Apply();
+            _overlayStyle = new GUIStyle { normal = { background = _overlayTex } };
+
             _stylesInit = true;
         }
 
@@ -90,12 +123,15 @@ namespace ProjectName.UI
 
             InitStyles();
 
-            // 붉은 오버레이 (페이드 인)
+            // 붉은 오버레이 (페이드 인) — GUI.color로 색상만 변경, 텍스처 재사용
             float alpha = Mathf.Clamp01(_fadeTimer / _fadeDuration);
             Color overlayColor = _deathOverlayColor;
             overlayColor.a = alpha * 0.85f;
-            var overlayTex = UIStyleManager.MakeTexture(1, 1, overlayColor);
-            GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "", new GUIStyle { normal = { background = overlayTex } });
+
+            var prevColor = GUI.color;
+            GUI.color = overlayColor;
+            GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "", _overlayStyle);
+            GUI.color = prevColor;
 
             if (!_isFading)
             {
@@ -103,8 +139,8 @@ namespace ProjectName.UI
                 int cy = Screen.height / 2;
 
                 // YOU DIED
-                GUI.Label(new Rect(cx - 150, cy - 120, 675, 135), "YOU DIED", _titleStyle);
-                GUI.Label(new Rect(cx - 150, cy - 60, 675, 45), "당신은 쓰러졌습니다...", _subTextStyle);
+                GUI.Label(new Rect(cx - 225, cy - 120, 450, 90), "YOU DIED", _titleStyle);
+                GUI.Label(new Rect(cx - 200, cy - 60, 400, 40), "당신은 쓰러졌습니다...", _subTextStyle);
 
                 // 부활 버튼
                 int btnW = 330;
@@ -123,22 +159,17 @@ namespace ProjectName.UI
 
         private void OnRespawn()
         {
-            // PlayerHealth 체력 회복
+            // PlayerHealth 체력 회복 (리플렉션 최소화)
             if (PlayerHealth.Instance != null)
             {
-                // 리플렉션으로 _currentHP 최대치로 설정 (Heal은 상대치)
-                var hpField = typeof(PlayerHealth).GetField("_currentHP",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                var maxField = typeof(PlayerHealth).GetField("_maxHP",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                if (hpField != null && maxField != null)
-                {
-                    hpField.SetValue(PlayerHealth.Instance, maxField.GetValue(PlayerHealth.Instance));
-                }
+                // _isDead = false 로 설정 (필요한 리플렉션만 유지)
                 var deadField = typeof(PlayerHealth).GetField("_isDead",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (deadField != null)
                     deadField.SetValue(PlayerHealth.Instance, false);
+
+                // 공개 API인 HealFull() 사용 (리플렉션 불필요)
+                PlayerHealth.Instance.HealFull();
             }
             Hide();
         }

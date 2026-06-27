@@ -37,8 +37,8 @@ namespace ProjectName.UI
         public UIWindow equipmentWindow;
         public UIWindow warehouseWindow;
 
-        // 열려있는 윈도우 스택 (ESC로 순서대로 닫기)
-        private Stack<UIWindow> _openWindows = new Stack<UIWindow>();
+        // 열려있는 윈도우 리스트 (리스트 끝 = 최상단). Stack 대신 List 사용으로 GC 할당 제거.
+        private List<UIWindow> _openWindows = new List<UIWindow>();
 
         // 싱글톤 인스턴스
         private static UIManager _instance;
@@ -169,30 +169,14 @@ namespace ProjectName.UI
 
             if (window.IsOpen)
             {
-                // 이미 열려있으면 닫고 스택에서 제거
                 window.Hide();
-                if (_openWindows.Contains(window))
-                {
-                    var tempStack = new Stack<UIWindow>(_openWindows);
-                    var newStack = new Stack<UIWindow>();
-                    foreach (var w in tempStack)
-                    {
-                        if (w != window)
-                            newStack.Push(w);
-                    }
-                    _openWindows = new Stack<UIWindow>(newStack);
-                }
-
-                // Phase 8.3: UI 닫힘 사운드
+                RemoveFromStack(window);    // Stack 재구축 없이 List에서 제거
                 SoundManager.Instance?.PlayUI("ui_close");
             }
             else
             {
-                // 닫혀있으면 열고 스택에 추가
                 window.Show();
-                _openWindows.Push(window);
-
-                // Phase 8.3: UI 열림 사운드
+                _openWindows.Add(window);   // Stack.Push 대신 List.Add (GC 0)
                 SoundManager.Instance?.PlayUI("ui_open");
             }
         }
@@ -204,11 +188,12 @@ namespace ProjectName.UI
         {
             if (_openWindows.Count > 0)
             {
-                var topWindow = _openWindows.Pop();
+                int lastIndex = _openWindows.Count - 1;
+                var topWindow = _openWindows[lastIndex];
+                _openWindows.RemoveAt(lastIndex);   // Stack.Pop 대신 RemoveAt (GC 0)
                 if (topWindow != null)
                 {
                     topWindow.Hide();
-                    // Phase 8.3: UI 닫힘 사운드
                     SoundManager.Instance?.PlayUI("ui_close");
                 }
             }
@@ -219,16 +204,16 @@ namespace ProjectName.UI
         /// </summary>
         public void CloseAllWindows()
         {
-            while (_openWindows.Count > 0)
+            for (int i = _openWindows.Count - 1; i >= 0; i--)
             {
-                var window = _openWindows.Pop();
+                var window = _openWindows[i];
                 if (window != null)
                 {
                     window.Hide();
-                    // Phase 8.3: UI 닫힘 사운드
                     SoundManager.Instance?.PlayUI("ui_close");
                 }
             }
+            _openWindows.Clear();   // Clear로 한 번에 정리 (GC 0)
         }
 
         /// <summary>
@@ -242,7 +227,7 @@ namespace ProjectName.UI
                 if (!craftingWindow.IsOpen)
                 {
                     craftingWindow.Show();
-                    _openWindows.Push(craftingWindow);
+                    _openWindows.Add(craftingWindow);
                     SoundManager.Instance?.PlayUI("ui_open");
                 }
             }
@@ -251,7 +236,7 @@ namespace ProjectName.UI
                 if (!cookingWindow.IsOpen)
                 {
                     cookingWindow.Show();
-                    _openWindows.Push(cookingWindow);
+                    _openWindows.Add(cookingWindow);
                     SoundManager.Instance?.PlayUI("ui_open");
                 }
             }
@@ -260,7 +245,7 @@ namespace ProjectName.UI
                 if (!repairWindow.IsOpen)
                 {
                     repairWindow.Show();
-                    _openWindows.Push(repairWindow);
+                    _openWindows.Add(repairWindow);
                     SoundManager.Instance?.PlayUI("ui_open");
                 }
             }
@@ -312,20 +297,15 @@ namespace ProjectName.UI
             }
 
             lootWindow.OpenForBasket(basket);
-            _openWindows.Push(lootWindow);
+            _openWindows.Add(lootWindow);
         }
 
         /// <summary>
-        /// 스택에서 특정 윈도우 제거
+        /// 리스트에서 특정 윈도우 제거 (Stack 재구축 없음, GC 할당 0)
         /// </summary>
         private void RemoveFromStack(UIWindow window)
         {
-            var tempList = new List<UIWindow>(_openWindows);
-            tempList.Remove(window);
-            _openWindows = new Stack<UIWindow>();
-            // 역순으로 다시 푸시 (스택 순서 유지)
-            for (int i = tempList.Count - 1; i >= 0; i--)
-                _openWindows.Push(tempList[i]);
+            _openWindows.Remove(window);    // List.Remove = O(n) 선형탐색, 할당 0
         }
 
         // --- 씬에서 UIManager를 찾을 때 사용 ---

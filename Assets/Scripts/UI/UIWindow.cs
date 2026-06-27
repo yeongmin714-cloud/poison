@@ -44,9 +44,41 @@ namespace ProjectName.UI
         // 현재 상태
         protected bool _isOpen = false;
         protected CanvasGroup _canvasGroup;
+        protected CanvasGroup _dimCanvasGroup;  // 캐시: 애니메이션 루프에서 GetComponent GC 방지
+        protected Canvas _parentCanvas;         // 캐시: CreateDimBackground에서 GetComponentInParent GC 방지
 
-        /// <summary>윈도우 열기</summary>
-        public void Open() { _isOpen = true; OnWindowOpen?.Invoke(); }
+        // IMGUI 배경 드로잉 상태 (OnGUI에서만 GUI.* 호출)
+        private bool _needsBackgroundDraw;
+        private Rect _backgroundRect;
+        private Texture2D _backgroundTexture;
+        private bool _useMedievalBackground;
+        private string _medievalPanelType;
+
+        /// <summary>윈도우 열기 (비애니메이션, 즉시 표시)</summary>
+        public void Open()
+        {
+            if (_isOpen) return;
+            _isOpen = true;
+
+            // 즉시 시각적 표시
+            gameObject.SetActive(true);
+            if (_windowRoot != null)
+                _windowRoot.SetActive(true);
+            if (_canvasGroup != null)
+            {
+                _canvasGroup.alpha = 1f;
+                _canvasGroup.interactable = true;
+                _canvasGroup.blocksRaycasts = true;
+            }
+            if (_dimBackground != null)
+            {
+                _dimBackground.SetActive(true);
+                if (_dimCanvasGroup != null)
+                    _dimCanvasGroup.alpha = _dimAlpha;
+            }
+
+            OnWindowOpen?.Invoke();
+        }
         protected RectTransform _rectTransform;
         protected Coroutine _animCoroutine;
 
@@ -79,9 +111,16 @@ namespace ProjectName.UI
             // RectTransform 캐싱
             _rectTransform = _windowRoot.GetComponent<RectTransform>();
 
+            // 부모 Canvas 캐싱 (GetComponentInParent GC 방지)
+            _parentCanvas = GetComponentInParent<Canvas>();
+
             // 배경 딤드 자동 생성 (미할당 시)
             if (_dimBackground == null)
                 _dimBackground = CreateDimBackground();
+
+            // 딤드 CanvasGroup 캐싱
+            if (_dimBackground != null)
+                _dimCanvasGroup = _dimBackground.GetComponent<CanvasGroup>();
 
             // 시작할 때는 항상 닫힌 상태
             // 중요: _windowRoot를 비활성화하면 Coroutine이 동작하지 않음.
@@ -105,8 +144,7 @@ namespace ProjectName.UI
         /// </summary>
         private GameObject CreateDimBackground()
         {
-            var canvas = GetComponentInParent<Canvas>();
-            if (canvas == null) return null;
+            if (_parentCanvas == null) return null;
 
             var dimObj = new GameObject("DimBackground", typeof(Image));
             var dimRect = dimObj.GetComponent<RectTransform>();
@@ -192,19 +230,16 @@ namespace ProjectName.UI
             if (_dimBackground != null)
             {
                 _dimBackground.SetActive(true);
-                var dimCG = _dimBackground.GetComponent<CanvasGroup>();
-                if (dimCG != null) dimCG.alpha = 0f;
+                if (_dimCanvasGroup != null)
+                    _dimCanvasGroup.alpha = 0f;
             }
 
             // CanvasGroup이 없으면 구식 동작 (즉시 표시)
             if (_canvasGroup == null)
             {
                 // 딤드만 처리
-                if (_dimBackground != null)
-                {
-                    var dimCG = _dimBackground.GetComponent<CanvasGroup>();
-                    if (dimCG != null) dimCG.alpha = _dimAlpha;
-                }
+                if (_dimCanvasGroup != null)
+                    _dimCanvasGroup.alpha = _dimAlpha;
                 _animCoroutine = null;
                 OnWindowOpen?.Invoke();
                 OnShow();
@@ -214,11 +249,10 @@ namespace ProjectName.UI
             // 테마 애니메이션 사용
             if (_theme != null)
             {
-                var dimCG = _dimBackground != null ? _dimBackground.GetComponent<CanvasGroup>() : null;
                 yield return WindowAnimationProfile.GetOpenAnimation(
                     _theme.CurrentAnimation,
                     _canvasGroup, _rectTransform,
-                    dimCG, _dimAlpha,
+                    _dimCanvasGroup, _dimAlpha,
                     _openFadeDuration, _slideOffset);
                 _animCoroutine = null;
                 OnWindowOpen?.Invoke();
@@ -259,11 +293,8 @@ namespace ProjectName.UI
                 }
 
                 // 딤드
-                if (_dimBackground != null)
-                {
-                    var dimCG = _dimBackground.GetComponent<CanvasGroup>();
-                    if (dimCG != null) dimCG.alpha = t * _dimAlpha;
-                }
+                if (_dimCanvasGroup != null)
+                    _dimCanvasGroup.alpha = t * _dimAlpha;
 
                 yield return null;
             }
@@ -272,11 +303,8 @@ namespace ProjectName.UI
             _canvasGroup.alpha = 1f;
             if (_rectTransform != null)
                 _rectTransform.anchoredPosition = startPos;
-            if (_dimBackground != null)
-            {
-                var dimCG = _dimBackground.GetComponent<CanvasGroup>();
-                if (dimCG != null) dimCG.alpha = _dimAlpha;
-            }
+            if (_dimCanvasGroup != null)
+                _dimCanvasGroup.alpha = _dimAlpha;
 
             _animCoroutine = null;
             OnWindowOpen?.Invoke();
@@ -309,11 +337,10 @@ namespace ProjectName.UI
             // 테마 애니메이션 사용
             if (_theme != null)
             {
-                var dimCG = _dimBackground != null ? _dimBackground.GetComponent<CanvasGroup>() : null;
                 yield return WindowAnimationProfile.GetCloseAnimation(
                     _theme.CurrentAnimation,
                     _canvasGroup, _rectTransform,
-                    dimCG, _dimAlpha,
+                    _dimCanvasGroup, _dimAlpha,
                     _closeFadeDuration, _slideOffset);
                 if (_windowRoot != null)
                     _windowRoot.SetActive(false);
@@ -344,11 +371,8 @@ namespace ProjectName.UI
                 }
 
                 // 딤드 fade out
-                if (_dimBackground != null)
-                {
-                    var dimCG = _dimBackground.GetComponent<CanvasGroup>();
-                    if (dimCG != null) dimCG.alpha = (1f - t) * _dimAlpha;
-                }
+                if (_dimCanvasGroup != null)
+                    _dimCanvasGroup.alpha = (1f - t) * _dimAlpha;
 
                 yield return null;
             }
@@ -374,7 +398,8 @@ namespace ProjectName.UI
 
         /// <summary>
         /// Called after the window has opened and the open animation completes.
-        /// Phase 33: Draws the background texture for the window.
+        /// Phase 33: Prepares the background texture for the window.
+        /// Actual IMGUI drawing happens in OnGUI() — DO NOT call GUI.* here.
         /// If a medieval panel texture is configured on the theme, renders it via
         /// MedievalBackgroundRenderer instead of the procedural texture.
         /// </summary>
@@ -383,32 +408,56 @@ namespace ProjectName.UI
             if (_theme == null || _windowRoot == null)
                 return;
 
-            var rectTransform = _windowRoot.GetComponent<RectTransform>();
-            if (rectTransform == null)
+            if (_rectTransform == null)
                 return;
 
-            var rectRect = rectTransform.rect;
-            var worldRect = new Rect(
-                rectTransform.position.x + rectRect.x,
-                rectTransform.position.y + rectRect.y,
+            var rectRect = _rectTransform.rect;
+            _backgroundRect = new Rect(
+                _rectTransform.position.x + rectRect.x,
+                _rectTransform.position.y + rectRect.y,
                 rectRect.width, rectRect.height);
 
             // Medieval (PNG texture) background takes priority over procedural
             if (_theme.UseMedievalBackground)
             {
-                MedievalBackgroundRenderer.DrawBackground(worldRect, _theme.MedievalPanelTexture);
+                _useMedievalBackground = true;
+                _medievalPanelType = _theme.MedievalPanelTexture;
+                _backgroundTexture = null;
             }
             else
             {
-                // Fallback to procedural Perlin-noise texture
-                var bgTex = ProceduralTextureGenerator.GetPatternTexture(_theme.CurrentPattern);
-                if (bgTex != null)
-                {
-                    GUI.DrawTexture(worldRect, bgTex, ScaleMode.StretchToFill);
-                }
+                _useMedievalBackground = false;
+                _medievalPanelType = null;
+                _backgroundTexture = ProceduralTextureGenerator.GetPatternTexture(_theme.CurrentPattern);
+            }
+            _needsBackgroundDraw = true;
+        }
+
+        /// <summary>
+        /// OnGUI — IMGUI 배경 드로잉. 이 메서드 내에서만 GUI.* 호출.
+        /// OnShow()에서 준비된 텍스처를 실제로 그립니다.
+        /// </summary>
+        private void OnGUI()
+        {
+            if (!_isOpen || !_needsBackgroundDraw)
+                return;
+
+            if (_useMedievalBackground && !string.IsNullOrEmpty(_medievalPanelType))
+            {
+                MedievalBackgroundRenderer.DrawBackground(_backgroundRect, _medievalPanelType);
+            }
+            else if (_backgroundTexture != null)
+            {
+                GUI.DrawTexture(_backgroundRect, _backgroundTexture, ScaleMode.StretchToFill);
             }
         }
-        protected virtual void OnHide() { }  // 닫힐 때 추가 동작
+        protected virtual void OnHide()
+        {
+            _needsBackgroundDraw = false;
+            _backgroundTexture = null;
+            _useMedievalBackground = false;
+            _medievalPanelType = null;
+        }  // 닫힐 때 추가 동작
         protected virtual void OnRefresh() { } // 내용 갱신 (외부에서 호출)
         protected virtual void DrawWindowContent() { }  // IMGUI 창 내용 그리기 (ChurchUI/WarehouseUI 등에서 사용)
 

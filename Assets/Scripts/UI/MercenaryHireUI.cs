@@ -34,6 +34,19 @@ namespace ProjectName.UI
         private GUIStyle _msgStyle;
         private bool _stylesInitialized = false;
 
+        // --- OnGUI GC-safe 캐시 (매 프레임 1회 갱신) ---
+        private MercenaryData[] _cachedMercData;
+        private readonly HashSet<string> _cachedHiredIds = new HashSet<string>();
+        private float _cachedContentHeight;
+
+        // 재사용 GUIContent (string GC 억제)
+        private static readonly GUIContent _titleContent = new GUIContent("🍺 용병 고용소");
+        private static readonly GUIContent _emptyContent = GUIContent.none;
+        private readonly GUIContent _goldContent = new GUIContent();
+        private readonly GUIContent _hiredContent = new GUIContent();
+        private readonly GUIContent _backStoryContent = new GUIContent();
+        private readonly GUIContent _affinityContent = new GUIContent();
+
         private UIDesignTheme _theme;
 
         private void Awake()
@@ -81,11 +94,34 @@ namespace ProjectName.UI
         /// <summary>UI 열림 상태</summary>
         public bool IsOpen => _isOpen;
 
+        /// <summary>
+        /// OnGUI 진입 전 1회 호출: 모든 데이터 캐싱으로 GC 할당 최소화.
+        /// </summary>
+        private void RefreshCachedData()
+        {
+            // 용병 데이터 배열 (매니저 내부에서 할당 — 피할 수 없음, 1회만)
+            _cachedMercData = MercenaryManager.Instance != null
+                ? MercenaryManager.Instance.GetAllMercenaryData()
+                : System.Array.Empty<MercenaryData>();
+
+            // 고용된 용병 ID 집합 → O(1) 조회
+            _cachedHiredIds.Clear();
+            if (MercenaryManager.Instance != null)
+            {
+                var hired = MercenaryManager.Instance.GetHiredMercenaries();
+                for (int i = 0; i < hired.Length; i++)
+                    _cachedHiredIds.Add(hired[i].data.id);
+            }
+
+            _cachedContentHeight = _cachedMercData.Length * 90f + 20f;
+        }
+
         private void OnGUI()
         {
             if (!_isOpen) return;
 
             EnsureStyles();
+            RefreshCachedData();
 
             float panelW = 930f;
             float panelH = 780f;
@@ -94,79 +130,74 @@ namespace ProjectName.UI
 
             // 배경
             Color bgColor = _theme != null ? _theme.BgColor : new Color(0.1f, 0.1f, 0.15f, 0.6f);
-            Color borderColor = _theme != null ? _theme.BorderColor : new Color(0.6f, 0.4f, 0.2f, 0.85f);
-            GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "");
+            GUI.Box(new Rect(0, 0, Screen.width, Screen.height), _emptyContent);
             var oldColor = GUI.color;
             GUI.color = bgColor;
-            GUI.Box(new Rect(x, y, panelW, panelH), "");
+            GUI.Box(new Rect(x, y, panelW, panelH), _emptyContent);
             GUI.color = oldColor;
 
-            // 타이틀
-            GUI.Label(new Rect(x + 10, y + 10, panelW - 20, 45), "🍺 용병 고용소", _titleStyle);
+            // 타이틀 (캐시된 GUIContent)
+            GUI.Label(new Rect(x + 10, y + 10, panelW - 20, 45), _titleContent, _titleStyle);
 
+            // 상태 메시지
             if (!string.IsNullOrEmpty(_statusMessage) && _statusTimer > 0)
             {
                 GUI.Label(new Rect(x + 10, y + 40, panelW - 20, 36), _statusMessage, _msgStyle);
             }
 
-            float contentTop = y + 70;
-            float contentH = panelH - 90;
+            // [FIX] 골드 & 고용 인원 — ScrollView 밖에서 절대 좌표로 그림
+            DrawGoldDisplay(x + 10, y + 55);
+            DrawHiredCount(x + panelW - 160, y + 55);
+
+            float contentTop = y + 80;
+            float contentH = panelH - 100;
 
             _scrollPos = GUI.BeginScrollView(
                 new Rect(x + 10, contentTop, panelW - 20, contentH),
                 _scrollPos,
-                new Rect(0, 0, panelW - 40, GetContentHeight())
+                new Rect(0, 0, panelW - 40, _cachedContentHeight)
             );
 
             float cy = 0;
-            DrawGoldDisplay(x + panelW - 160, y + 12);
-            DrawHiredCount(x + panelW - 160, y + 36);
 
-            // 용병 목록
-            var allMercs = GetMercenaryDataList();
-            for (int i = 0; i < allMercs.Count; i++)
+            for (int i = 0; i < _cachedMercData.Length; i++)
             {
-                var merc = allMercs[i];
-                bool isHired = IsMercenaryHired(merc.id);
+                var merc = _cachedMercData[i];
+                bool isHired = _cachedHiredIds.Contains(merc.id);
                 bool isSelected = _selectedMercenaryId == merc.id;
 
-                DrawMercenaryEntry(merc, isHired, isSelected, i, panelW - 40, ref cy);
+                DrawMercenaryEntry(merc, isHired, isSelected, panelW - 40, ref cy);
             }
 
             GUI.EndScrollView();
         }
 
-        private float GetContentHeight()
-        {
-            var allMercs = GetMercenaryDataList();
-            return allMercs.Count * 90f + 20f;
-        }
-
         private void DrawGoldDisplay(float x, float y)
         {
-            int gold = 0;
-            if (PlayerInventory.Instance != null)
-                gold = PlayerInventory.Instance.GetItemCount("gold");
-            GUI.Label(new Rect(x, y, 338, 33), $"💰 {gold}G", _statStyle);
+            int gold = PlayerInventory.Instance != null
+                ? PlayerInventory.Instance.GetItemCount("gold")
+                : 0;
+            _goldContent.text = $"💰 {gold}G";
+            GUI.Label(new Rect(x, y, 338, 33), _goldContent, _statStyle);
         }
 
         private void DrawHiredCount(float x, float y)
         {
             int hired = MercenaryManager.Instance != null ? MercenaryManager.Instance.HiredCount : 0;
             int max = MercenaryManager.Instance != null ? MercenaryManager.Instance.MaxMercenaries : 10;
-            GUI.Label(new Rect(x, y, 338, 33), $"👥 {hired}/{max}", _statStyle);
+            _hiredContent.text = $"👥 {hired}/{max}";
+            GUI.Label(new Rect(x, y, 338, 33), _hiredContent, _statStyle);
         }
 
-        private void DrawMercenaryEntry(MercenaryData merc, bool isHired, bool isSelected, int index, float entryW, ref float cy)
+        private void DrawMercenaryEntry(MercenaryData merc, bool isHired, bool isSelected, float entryW, ref float cy)
         {
             float entryH = 127.5f;
             float xOff = 5f;
 
             // 배경 박스
-            Color bgColor = isSelected ? new Color(0.2f, 0.3f, 0.4f, 0.8f) : new Color(0.1f, 0.1f, 0.15f, 0.6f);
-            GUI.Box(new Rect(0, cy, entryW, entryH), "");
+            GUI.Box(new Rect(0, cy, entryW, entryH), _emptyContent);
 
-            // 등급 표시
+            // 등급 표시 (GradeStars는 switch const string 반환 — GC-safe)
             GUI.Label(new Rect(xOff, cy + 5, 135, 33), merc.GradeStars, _nameStyle);
 
             // 이름
@@ -177,8 +208,7 @@ namespace ProjectName.UI
             GUI.Label(new Rect(xOff + 220, cy + 5, 180, 33), $"{jobIcon} {merc.jobType}", _statStyle);
 
             // 능력치
-            string stats = $"❤️{merc.maxHP} ⚔️{merc.attack} 🛡️{merc.defense} 💨{merc.moveSpeed}";
-            GUI.Label(new Rect(xOff, cy + 30, 675, 30), stats, _statStyle);
+            GUI.Label(new Rect(xOff, cy + 30, 675, 30), $"❤️{merc.maxHP} ⚔️{merc.attack} 🛡️{merc.defense} 💨{merc.moveSpeed}", _statStyle);
 
             // 특수 능력
             GUI.Label(new Rect(xOff, cy + 50, 675, 30), $"✨ {merc.specialAbility}", _statStyle);
@@ -221,14 +251,16 @@ namespace ProjectName.UI
             {
                 float detailY = cy + entryH + 2;
                 float detailH = 90f;
-                GUI.Box(new Rect(0, detailY, entryW, detailH), "");
-                GUI.Label(new Rect(xOff + 5, detailY + 5, entryW - 10, 75), $"📜 {merc.backStory}", _storyStyle);
+                GUI.Box(new Rect(0, detailY, entryW, detailH), _emptyContent);
+                _backStoryContent.text = $"📜 {merc.backStory}";
+                GUI.Label(new Rect(xOff + 5, detailY + 5, entryW - 10, 75), _backStoryContent, _storyStyle);
 
                 // 호감도 표시 (고용된 경우)
                 if (isHired)
                 {
                     float aff = MercenaryManager.Instance.GetAffinity(merc.id);
-                    GUI.Label(new Rect(xOff + 5, detailY + detailH - 22, 450, 30), $"❤️ 호감도: {(int)aff}% (보너스: +{aff / 100f * 0.2f * 100:F0}%)", _msgStyle);
+                    _affinityContent.text = $"❤️ 호감도: {(int)aff}% (보너스: +{aff / 100f * 0.2f * 100:F0}%)";
+                    GUI.Label(new Rect(xOff + 5, detailY + detailH - 22, 450, 30), _affinityContent, _msgStyle);
                 }
 
                 cy += entryH + detailH + 5;
@@ -239,26 +271,7 @@ namespace ProjectName.UI
             }
         }
 
-        private List<MercenaryData> GetMercenaryDataList()
-        {
-            var list = new List<MercenaryData>();
-            if (MercenaryManager.Instance != null)
-            {
-                list.AddRange(MercenaryManager.Instance.GetAllMercenaryData());
-            }
-            return list;
-        }
-
-        private bool IsMercenaryHired(string mercenaryId)
-        {
-            if (MercenaryManager.Instance == null) return false;
-            var hired = MercenaryManager.Instance.GetHiredMercenaries();
-            foreach (var h in hired)
-            {
-                if (h.data.id == mercenaryId) return true;
-            }
-            return false;
-        }
+        // ===== 이벤트 핸들러 =====
 
         private void OnHireMercenary(string mercenaryId)
         {
@@ -287,18 +300,7 @@ namespace ProjectName.UI
                 PlayerInventory.Instance.RemoveItem("gold", data.hireCost);
                 _statusMessage = $"✅ {data.mercenaryName} 고용 완료! ({data.hireCost}G 지불)";
                 _statusTimer = 3f;
-
-                // NPC 대화 이벤트 호출
-                if (NPCDialogueWindow.Instance != null)
-                {
-                    // 용병 고용 시 NPC 대화 표시를 위한 간단한 문자열 전달
-                    string dialogue = $"{data.mercenaryName}: \\\"{data.backStory}\\\"";
-                    // 직접 NPCInstance를 만들 순 없으므로 ShowDialogue 대신 간이 메시지 처리
-                    Debug.Log($"[MercenaryHireUI] 🎭 용병 대화: {dialogue}");
-
-                    // 용병 개성 대화를 NPCDialogueWindow에 표시
-                    TriggerMercenaryDialogue(data);
-                }
+                Debug.Log($"[MercenaryHireUI] 🎭 용병 고용: {data.mercenaryName}");
             }
             else
             {
@@ -316,32 +318,6 @@ namespace ProjectName.UI
             {
                 _statusMessage = $"🔴 {data.mercenaryName} 해고됨.";
                 _statusTimer = 3f;
-            }
-        }
-
-        /// <summary>
-        /// 용병 고용 시 NPC 대화 이벤트 (NPCDialogueWindow 연동).
-        /// </summary>
-        private void TriggerMercenaryDialogue(MercenaryData data)
-        {
-            if (NPCDialogueWindow.Instance == null)
-            {
-                Debug.LogWarning("[MercenaryHireUI] NPCDialogueWindow.Instance 없음");
-                return;
-            }
-
-            // NPCDialogueWindow의 ShowDialogue를 직접 호출할 수 없으므로
-            // 대화 내용을 콘솔과 상태 메시지로 전달
-            string[] lines = new string[]
-            {
-                $"\\\"{data.mercenaryName}이라 합니다.\\\"",
-                $"\\\"{data.backStory}\\\"",
-                $"\\\"${data.specialAbility}\\\" - 등급: {data.GradeStars}"
-            };
-
-            foreach (var line in lines)
-            {
-                Debug.Log($"[MercenaryDialogue] 🎭 {line}");
             }
         }
 

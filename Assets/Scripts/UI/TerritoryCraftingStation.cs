@@ -1,9 +1,8 @@
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.UI;
-using ProjectName.Core.Data;
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// Phase 5.6.1: 영지 크래프팅 시설.
@@ -39,25 +38,32 @@ namespace ProjectName.Systems
         {
             if (_player == null) return;
 
-            float dist = Vector3.Distance(transform.position, _player.position);
-            _isPlayerNearby = dist <= _interactRange;
+            float sqrDist = (transform.position - _player.position).sqrMagnitude;
+            float sqrRange = _interactRange * _interactRange;
+            _isPlayerNearby = sqrDist <= sqrRange;
 
             if (_isPlayerNearby && Input.GetKeyDown(KeyCode.E))
             {
+                if (!CanUse())
+                {
+                    Debug.Log($"[TerritoryCraftingStation] 레벨 부족: 필요 {_minLevel}, 현재 {PlayerStats.Instance?.Level ?? 0}");
+                    return;
+                }
                 OpenCraftingUI();
             }
         }
 
         private void OpenCraftingUI()
         {
-            if (UIManager.Instance != null && UIManager.Instance.craftingWindow != null)
+            Debug.Log($"[TerritoryCraftingStation] {_stationName} 열림 (영지: {_territoryId})");
+
+            if (UIManager.Instance != null)
             {
-                UIManager.Instance.craftingWindow.Open();
-                Debug.Log($"[TerritoryCraftingStation] {_stationName} 열림 (영지: {_territoryId})");
+                UIManager.Instance.OpenWindow(typeof(CraftingUI));
             }
             else
             {
-                Debug.LogWarning("[TerritoryCraftingStation] CraftingWindow가 UIManager에 없습니다.");
+                Debug.LogWarning("[TerritoryCraftingStation] UIManager가 없습니다.");
             }
         }
 
@@ -72,13 +78,24 @@ namespace ProjectName.Systems
 
         private void OnGUI()
         {
-            if (!_isPlayerNearby) return;
+            if (!_isPlayerNearby || _player == null) return;
+
+            float labelWidth = 320;
+            float labelHeight = 40;
+            float x = (Screen.width - labelWidth) / 2f;
+            float y = Screen.height - 90;
 
             string msg = $"[E] {_stationName}";
             if (!CanUse())
                 msg += $" (레벨 {_minLevel} 필요)";
 
-            GUI.Label(new Rect(Screen.width / 2 - 150, Screen.height / 2 + 50, 300, 30), msg);
+            GUI.Box(new Rect(x, y, labelWidth, labelHeight), msg);
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.color = new Color(0.2f, 0.8f, 0.4f);
+            Gizmos.DrawWireSphere(transform.position, _interactRange);
         }
     }
 }

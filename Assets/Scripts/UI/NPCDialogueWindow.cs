@@ -1,6 +1,5 @@
 using ProjectName.Core;
 using ProjectName.Core.Data;
-using ProjectName.Systems;
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.UI.Themes;
@@ -35,7 +34,12 @@ namespace ProjectName.UI
         // 대화 라인 (NPCInstance.dialogues + 퀘스트 제안)
         private List<string> _dialogueLines = new List<string>();
 
-        private UIDesignTheme _npcTheme;
+        // 라인 인덱스 → QuestId 매핑 (OnGUI에서 Substring 방지)
+        private Dictionary<int, string> _lineQuestIds = new Dictionary<int, string>();
+
+        // NPC 헤더 캐시 (OnGUI 문자열 할당 방지)
+        private string _cachedHeaderText = string.Empty;
+
         private Vector2 _scrollPosition = Vector2.zero;
 
         // IMGUI 스타일 캐싱
@@ -45,15 +49,16 @@ namespace ProjectName.UI
         private GUIStyle _questStyle;
         private GUIStyle _buttonStyle;
         private GUIStyle _statusStyle;
+        private GUIStyle _dimStyle;
+        private GUIStyle _windowBgStyle;
         private bool _stylesInitialized = false;
 
         protected override void Awake()
         {
             base.Awake();
 
-            if (_npcTheme == null)
-                _npcTheme = Phase33_Themes.NPCDialogueTheme();
-            ApplyTheme(_npcTheme);
+            var npcTheme = Phase33_Themes.NPCDialogueTheme();
+            ApplyTheme(npcTheme);
 
             if (Instance != null && Instance != this)
             {
@@ -120,16 +125,7 @@ namespace ProjectName.UI
 
         private void DrawNPCHeader(Rect rect)
         {
-            string ageIcon = _currentNPC.ageType switch
-            {
-                NPCData.NPCAgeType.Child => "🧒",
-                NPCData.NPCAgeType.Elderly => "👴",
-                _ => "🧑"
-            };
-
-            string questBadge = _currentNPC.HasQuests ? " ❓" : "";
-
-            GUI.Label(rect, $"{ageIcon} {_currentNPC.npcName}{questBadge}", _nameStyle);
+            GUI.Label(rect, _cachedHeaderText, _nameStyle);
         }
 
         private void DrawDialogueArea(Rect rect)
@@ -161,6 +157,13 @@ namespace ProjectName.UI
         {
             QuestData quest = QuestManager.GetQuest(questId);
             QuestState state = QuestManager.GetQuestState(questId);
+
+            // 유효하지 않은 퀘스트 ID 처리
+            if (string.IsNullOrEmpty(quest.questName))
+            {
+                GUI.Label(new Rect(rect.x, rect.y, rect.width - 80, 20), $"[알 수 없는 퀘스트: {questId}]", _questStyle);
+                return;
+            }
 
             string stateIcon = state switch
             {
@@ -238,13 +241,24 @@ namespace ProjectName.UI
             _isInDialogue = true;
             _showingQuestList = false;
 
+            // 헤더 텍스트 캐시 (OnGUI GC 방지)
+            string ageIcon = npc.AgeType switch
+            {
+                NPCData.NPCAgeType.Child => "🧒",
+                NPCData.NPCAgeType.Elderly => "👴",
+                _ => "🧑"
+            };
+            string questBadge = npc.HasQuests ? " ❓" : "";
+            _cachedHeaderText = $"{ageIcon} {npc.NpcName}{questBadge}";
+
             // 대화 라인 구성
             _dialogueLines.Clear();
-            _dialogueLines.Add($"\"{npc.greeting}\"");
+            _lineQuestIds.Clear();
+            _dialogueLines.Add($"\"{npc.Greeting}\"");
 
             if (npc.HasQuests)
             {
-                _dialogueLines.Add($"\"{npc.questOfferLine}\"");
+                _dialogueLines.Add($"\"{npc.QuestOfferLine}\"");
                 _dialogueLines.Add("---");
                 _dialogueLines.Add("(NPC가 퀘스트를 줄 준비가 되었다.)");
                 _dialogueLines.Add("[E] 퀘스트 목록 보기");
@@ -266,6 +280,7 @@ namespace ProjectName.UI
             _showingQuestList = false;
             _currentNPC = default;
             _dialogueLines.Clear();
+            _lineQuestIds.Clear();
             Hide();
         }
 
@@ -298,13 +313,17 @@ namespace ProjectName.UI
 
             // 퀘스트 목록 대화로 전환
             _dialogueLines.Clear();
-            _dialogueLines.Add($"--- {_currentNPC.npcName}의 퀘스트 ---");
+            _lineQuestIds.Clear();
+            _dialogueLines.Add($"--- {_currentNPC.NpcName}의 퀘스트 ---");
 
-            if (_currentNPC.questIds != null)
+            if (_currentNPC.QuestIds != null)
             {
-                for (int i = 0; i < _currentNPC.questIds.Count; i++)
+                for (int i = 0; i < _currentNPC.QuestIds.Count; i++)
                 {
-                    _dialogueLines.Add($"__QUEST__:{_currentNPC.questIds[i]}");
+                    string questId = _currentNPC.QuestIds[i];
+                    int lineIndex = _dialogueLines.Count;
+                    _dialogueLines.Add(questId);
+                    _lineQuestIds[lineIndex] = questId;
                 }
             }
 
@@ -321,9 +340,8 @@ namespace ProjectName.UI
             if (lineIndex < 0 || lineIndex >= _dialogueLines.Count)
                 return null;
 
-            string line = _dialogueLines[lineIndex];
-            if (line.StartsWith("__QUEST__:"))
-                return line.Substring(10);
+            if (_lineQuestIds.TryGetValue(lineIndex, out string questId))
+                return questId;
 
             return null;
         }
@@ -362,9 +380,6 @@ namespace ProjectName.UI
         }
 
         // ===== 스타일 초기화 =====
-
-        private GUIStyle _dimStyle;
-        private GUIStyle _windowBgStyle;
 
         private void InitializeStyles()
         {

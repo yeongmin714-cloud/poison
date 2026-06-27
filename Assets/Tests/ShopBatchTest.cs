@@ -44,12 +44,12 @@ public class ShopBatchTest : MonoBehaviour
             // Initialize inventory (this happens in Awake, but we can call it)
             shopWindow.InitializeShopInventory();
             
-            Debug.Log($"[ShopBatchTest] Shop inventory initialized with {shopWindow._shopInventory.Count} items");
+            Debug.Log($"[ShopBatchTest] Shop inventory initialized with {shopWindow.ShopInventory.Count} items");
             
             // Test buying an item if we have enough gold
-            if (shopWindow._shopInventory.Count > 0 && PlayerStats.Instance.Gold >= 10)
+            if (shopWindow.ShopInventory.Count > 0 && PlayerStats.Instance.Gold >= 10)
             {
-                ShopWindow.ShopItem firstItem = shopWindow._shopInventory[0];
+                ShopWindow.ShopItem firstItem = shopWindow.ShopInventory[0];
                 Debug.Log($"[ShopBatchTest] Attempting to buy: {firstItem.item.displayName} for {firstItem.price} gold");
                 
                 // We need to simulate the selection - for now just call BuySelectedItem with a mock selection

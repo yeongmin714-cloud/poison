@@ -51,6 +51,7 @@ namespace ProjectName.UI
         private float _uiVolume = 0.7f;
         private float _ambientVolume = 0.6f;
 
+        // ===== 캐싱된 스타일 (OnGUI GC 방지) =====
         private GUIStyle _titleStyle;
         private GUIStyle _tabStyle;
         private GUIStyle _tabActiveStyle;
@@ -58,7 +59,20 @@ namespace ProjectName.UI
         private GUIStyle _valueStyle;
         private GUIStyle _backButtonStyle;
         private GUIStyle _fullscreenButtonStyle;
+        private GUIStyle _dimStyle;
+        private GUIStyle _bgBoxStyle;
+        private GUIStyle _sliderBgStyle;
+        private GUIStyle _sliderThumbStyle;
+        private GUIStyle _guideLabelStyle;
+        private Texture2D _dimTexture;
+        private Texture2D _bgTexture;
+        private Texture2D _sliderBgTex;
+        private Texture2D _sliderThumbTex;
         private bool _stylesInitialized;
+
+        // ===== 캐싱된 문자열 (OnGUI string GC 방지) =====
+        private string[] _keyBindingLabels;
+        private string[] _qualityButtonLabels;
 
         // ===== 콜백 =====
         public Action OnSettingsClosed;
@@ -88,19 +102,66 @@ namespace ProjectName.UI
             }
 
             // 현재 해상도와 가장 가까운 인덱스 찾기
-            _selectedResolutionIndex = 0;
-            for (int i = 0; i < _availableResolutions.Length; i++)
+            // (저장된 값이 없거나 유효하지 않은 인덱스인 경우에만)
+            if (_selectedResolutionIndex <= 0 || _selectedResolutionIndex >= _availableResolutions.Length)
             {
-                var r = _availableResolutions[i];
-                if (r.width == Screen.currentResolution.width &&
-                    r.height == Screen.currentResolution.height)
+                _selectedResolutionIndex = 0;
+                for (int i = 0; i < _availableResolutions.Length; i++)
                 {
-                    _selectedResolutionIndex = i;
-                    break;
+                    var r = _availableResolutions[i];
+                    if (r.width == Screen.currentResolution.width &&
+                        r.height == Screen.currentResolution.height)
+                    {
+                        _selectedResolutionIndex = i;
+                        break;
+                    }
                 }
             }
 
             _selectedQualityLevel = QualitySettings.GetQualityLevel();
+
+            // 저장된 해상도 즉시 적용
+            // (LoadSettings 시점엔 _availableResolutions가 null이었으므로 여기서 적용)
+            ApplySavedResolution();
+
+            // 키 바인딩 라벨 미리 포맷팅 (OnGUI string GC 방지)
+            CacheKeyBindingLabels();
+            // 품질 버튼 라벨 미리 포맷팅 (OnGUI string GC 방지)
+            CacheQualityButtonLabels();
+        }
+
+        private void CacheKeyBindingLabels()
+        {
+            var keyBindings = new (string name, string key)[]
+            {
+                ("이동 (WASD)", "W/A/S/D"),
+                ("달리기", "Shift"),
+                ("점프", "Space"),
+                ("공격", "좌클릭"),
+                ("상호작용", "E"),
+                ("인벤토리", "I"),
+                ("레시피", "R"),
+                ("퀘스트", "Q"),
+                ("월드맵", "M"),
+                ("크래프트", "C"),
+                ("복수명부", "K"),
+                ("ESC 메뉴", "ESC"),
+            };
+            _keyBindingLabels = new string[keyBindings.Length];
+            for (int i = 0; i < keyBindings.Length; i++)
+            {
+                _keyBindingLabels[i] = $"{keyBindings[i].name}:  [{keyBindings[i].key}]";
+            }
+        }
+
+        private void CacheQualityButtonLabels()
+        {
+            string[] qualityNames = QualitySettings.names;
+            _qualityButtonLabels = new string[qualityNames.Length];
+            for (int i = 0; i < qualityNames.Length; i++)
+            {
+                _qualityButtonLabels[i] = qualityNames[i];
+            }
         }
 
         // ===== 설정 저장/로드 =====
@@ -113,8 +174,11 @@ namespace ProjectName.UI
             _sfxVolume = PlayerPrefs.GetFloat("Settings_SFX", 0.8f);
             _uiVolume = PlayerPrefs.GetFloat("Settings_UI", 0.7f);
             _ambientVolume = PlayerPrefs.GetFloat("Settings_Ambient", 0.6f);
+            // NOTE: 해상도 적용은 Start()에서 _availableResolutions 초기화 후 수행
+        }
 
-            // 저장된 해상도 즉시 적용
+        private void ApplySavedResolution()
+        {
             if (_selectedResolutionIndex > 0 && _selectedResolutionIndex < _availableResolutions.Length)
             {
                 var res = _availableResolutions[_selectedResolutionIndex];
@@ -215,10 +279,29 @@ namespace ProjectName.UI
             _fullscreenButtonStyle.hover.background = MakeTexture(1, 1, new Color(0.3f, 0.6f, 0.3f, 1f));
             _fullscreenButtonStyle.active.background = MakeTexture(1, 1, new Color(0.1f, 0.4f, 0.1f, 1f));
 
+            // ===== OnGUI GC 방지: 미리 텍스처 + 스타일 캐싱 =====
+            _dimTexture = MakeTexture(1, 1, new Color(0f, 0f, 0f, 0.5f));
+            _dimStyle = new GUIStyle { normal = { background = _dimTexture } };
+
+            _bgTexture = MakeTexture(1, 1, _bgColor);
+            _bgBoxStyle = new GUIStyle { normal = { background = _bgTexture } };
+
+            _sliderBgTex = MakeTexture(1, 1, _sliderBgColor);
+            _sliderBgStyle = new GUIStyle { normal = { background = _sliderBgTex } };
+
+            _sliderThumbTex = MakeTexture(1, 1, _sliderThumbColor);
+            _sliderThumbStyle = new GUIStyle { normal = { background = _sliderThumbTex } };
+
+            _guideLabelStyle = new GUIStyle
+            {
+                fontSize = 160,
+                normal = { textColor = Color.gray }
+            };
+
             _stylesInitialized = true;
         }
 
-        private Texture2D MakeTexture(int width, int height, Color color)
+        private static Texture2D MakeTexture(int width, int height, Color color)
         {
             var tex = new Texture2D(width, height);
             for (int y = 0; y < height; y++)
@@ -235,18 +318,14 @@ namespace ProjectName.UI
             InitializeStyles();
             if (!_isVisible) return;
 
-            // 배경 딤
-            var dimTex = MakeTexture(1, 1, new Color(0f, 0f, 0f, 0.5f));
-            var dimStyle = new GUIStyle { normal = { background = dimTex } };
-            GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "", dimStyle);
+            // 배경 딤 (캐싱된 텍스처/스타일 — GC 할당 0)
+            GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "", _dimStyle);
 
             int centerX = (Screen.width - _windowWidth) / 2;
             int centerY = (Screen.height - _windowHeight) / 2;
 
-            // 메인 박스 배경
-            var bgTex = MakeTexture(1, 1, _bgColor);
-            var bgStyle = new GUIStyle { normal = { background = bgTex } };
-            GUI.Box(new Rect(centerX, centerY, _windowWidth, _windowHeight), "", bgStyle);
+            // 메인 박스 배경 (캐싱된 텍스처/스타일 — GC 할당 0)
+            GUI.Box(new Rect(centerX, centerY, _windowWidth, _windowHeight), "", _bgBoxStyle);
 
             // 제목
             GUI.Label(new Rect(centerX, centerY + 12, _windowWidth, 52), "설정", _titleStyle);
@@ -310,8 +389,7 @@ namespace ProjectName.UI
             int currentY = y;
 
             // 품질 설정
-            GUIStyle label = _labelStyle;
-            GUI.Label(new Rect(x, currentY, width, 38), "품질 설정", label);
+            GUI.Label(new Rect(x, currentY, width, 38), "품질 설정", _labelStyle);
             currentY += 30;
 
             string[] qualityNames = QualitySettings.names;
@@ -322,7 +400,8 @@ namespace ProjectName.UI
             {
                 bool isSelected = _selectedQualityLevel == i;
                 GUI.backgroundColor = isSelected ? _sliderThumbColor : _sliderBgColor;
-                string btnLabel = isSelected ? $"▶ {qualityNames[i]}" : qualityNames[i];
+                // 선택된 버튼에만 "▶ " 접두사 (1개만 할당, 미미함)
+                string btnLabel = isSelected ? $"▶ {_qualityButtonLabels[i]}" : _qualityButtonLabels[i];
 
                 int btnX = x + 10 + i * (optionWidth + 4);
                 if (GUI.Button(new Rect(btnX, currentY, optionWidth, _buttonHeight), btnLabel, _fullscreenButtonStyle))
@@ -334,7 +413,7 @@ namespace ProjectName.UI
             currentY += _buttonHeight + 15;
 
             // 해상도
-            GUI.Label(new Rect(x, currentY, width, 38), "해상도", label);
+            GUI.Label(new Rect(x, currentY, width, 38), "해상도", _labelStyle);
             currentY += 30;
 
             int resBtnWidth = (width - 30) / 2;
@@ -394,23 +473,19 @@ namespace ProjectName.UI
             int sliderY = y;
             int sliderHeight = 30;
 
-            var tex = MakeTexture(1, 1, _sliderBgColor);
-            var sliderBgStyle = new GUIStyle { normal = { background = tex } };
-            var thumbTex = MakeTexture(1, 1, _sliderThumbColor);
-            var thumbStyle = new GUIStyle { normal = { background = thumbTex } };
+            // 캐싱된 슬라이더 스타일 사용 (GC 할당 0)
+            volume = GUI.HorizontalSlider(new Rect(sliderX, sliderY, sliderWidth, sliderHeight), volume, 0f, 1f, _sliderBgStyle, _sliderThumbStyle);
 
-            volume = GUI.HorizontalSlider(new Rect(sliderX, sliderY, sliderWidth, sliderHeight), volume, 0f, 1f, sliderBgStyle, thumbStyle);
-
-            // 볼륨 % 표시
+            // 볼륨 % 표시 (매 프레임 string 할당, 불가피 — 5~15바이트, 초소형)
             GUI.Label(new Rect(sliderX + sliderWidth + 10, sliderY, 75, sliderHeight),
                 $"{(int)(volume * 100)}%", _valueStyle);
 
             y += sliderHeight + 10;
 
-            // 0% / 50% / 100% 가이드
-            GUI.Label(new Rect(sliderX, y, 45, 22), "0%", new GUIStyle { fontSize = 160, normal = { textColor = Color.gray } });
-            GUI.Label(new Rect(sliderX + sliderWidth / 2 - 10, y, 45, 22), "50%", new GUIStyle { fontSize = 160, normal = { textColor = Color.gray } });
-            GUI.Label(new Rect(sliderX + sliderWidth - 30, y, 45, 22), "100%", new GUIStyle { fontSize = 160, normal = { textColor = Color.gray } });
+            // 0% / 50% / 100% 가이드 (캐싱된 스타일 사용 — GC 할당 0)
+            GUI.Label(new Rect(sliderX, y, 45, 22), "0%", _guideLabelStyle);
+            GUI.Label(new Rect(sliderX + sliderWidth / 2 - 10, y, 45, 22), "50%", _guideLabelStyle);
+            GUI.Label(new Rect(sliderX + sliderWidth - 30, y, 45, 22), "100%", _guideLabelStyle);
             y += 18;
         }
 
@@ -420,27 +495,11 @@ namespace ProjectName.UI
         {
             int currentY = y;
 
-            // 표시만 (실제 변경은 별도 구현)
-            var keyBindings = new (string name, string key)[]
-            {
-                ("이동 (WASD)", "W/A/S/D"),
-                ("달리기", "Shift"),
-                ("점프", "Space"),
-                ("공격", "좌클릭"),
-                ("상호작용", "E"),
-                ("인벤토리", "I"),
-                ("레시피", "R"),
-                ("퀘스트", "Q"),
-                ("월드맵", "M"),
-                ("크래프트", "C"),
-                ("복수명부", "K"),
-                ("ESC 메뉴", "ESC"),
-            };
-
             int keyWidth = (width - 30) / 2;
             int lineHeight = 36;
 
-            for (int i = 0; i < keyBindings.Length; i++)
+            // 미리 포맷팅된 _keyBindingLabels 사용 (GC 할당 0)
+            for (int i = 0; i < _keyBindingLabels.Length; i++)
             {
                 int row = i / 2;
                 int col = i % 2;
@@ -448,7 +507,7 @@ namespace ProjectName.UI
                 int by = currentY + row * lineHeight;
 
                 GUI.Label(new Rect(bx, by, keyWidth - 10, lineHeight),
-                    $"{keyBindings[i].name}:  [{keyBindings[i].key}]", _labelStyle);
+                    _keyBindingLabels[i], _labelStyle);
             }
         }
 

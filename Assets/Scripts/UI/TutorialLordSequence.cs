@@ -1,6 +1,7 @@
 using System.Collections;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.UI;
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -110,13 +111,14 @@ namespace ProjectName.Systems
         private GameObject _lordNpc;
         private string _bubbleText;
         private float _bubbleTimer;
-        private float _revengeListTimer;
 
         // IMGUI 스타일
         private GUIStyle _bubbleStyle;
         private GUIStyle _dialogueStyle;
-        private GUIStyle _revengePopupStyle;
         private bool _stylesInitialized;
+
+        // IMGUI 배경 텍스처 (메모리 릭 방지: OnGUI 매 프레임 생성 금지)
+        private Texture2D _bubbleBgTexture;
 
         /// <summary>시퀀스 진행 중인지 여부</summary>
         public bool IsPlaying => _state != SequenceState.Idle && _state != SequenceState.Complete;
@@ -240,9 +242,9 @@ namespace ProjectName.Systems
             float bubbleX = (screenW - bubbleW) / 2f;
             float bubbleY = screenH - 150f;
 
-            // 말풍선 배경
-            var bgTex = MakeTexture(1, 1, new Color(0f, 0f, 0f, 0.7f));
-            GUI.DrawTexture(new Rect(bubbleX, bubbleY, bubbleW, bubbleH), bgTex);
+            // 말풍선 배경 (캐싱된 텍스처 사용 — 메모리 릭 방지)
+            if (_bubbleBgTexture != null)
+                GUI.DrawTexture(new Rect(bubbleX, bubbleY, bubbleW, bubbleH), _bubbleBgTexture);
 
             // 말풍선 텍스트
             GUIStyle style;
@@ -280,14 +282,8 @@ namespace ProjectName.Systems
                 normal = { textColor = Color.white }
             };
 
-            _revengePopupStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 22,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter,
-                wordWrap = true,
-                normal = { textColor = new Color(1f, 0.2f, 0.2f) } // 빨간색
-            };
+            // 배경 텍스처 — OnGUI 매 프레임 생성 방지를 위해 한 번만 생성
+            _bubbleBgTexture = MakeTexture(1, 1, new Color(0f, 0f, 0f, 0.7f));
 
             _stylesInitialized = true;
         }
@@ -318,7 +314,6 @@ namespace ProjectName.Systems
             _doorPosition = doorPosition;
             _bubbleText = null;
             _bubbleTimer = 0f;
-            _revengeListTimer = 0f;
 
             // 영주 NPC 생성
             SpawnLordNpc();
@@ -354,7 +349,6 @@ namespace ProjectName.Systems
             _state = SequenceState.Idle;
             _bubbleText = null;
             _bubbleTimer = 0f;
-            _revengeListTimer = 0f;
 
             // 영주 NPC 제거
             if (_lordNpc != null)
@@ -430,6 +424,13 @@ namespace ProjectName.Systems
         {
             if (_instance == this)
                 _instance = null;
+
+            // 배경 텍스처 정리 (메모리 릭 방지)
+            if (_bubbleBgTexture != null)
+            {
+                Destroy(_bubbleBgTexture);
+                _bubbleBgTexture = null;
+            }
         }
 
         private void OnApplicationQuit()

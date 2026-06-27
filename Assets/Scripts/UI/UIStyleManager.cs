@@ -45,60 +45,72 @@ namespace ProjectName.UI
         private static GUIStyle _labelStyle;
         private static bool _initialized;
 
+        // 테두리 캐싱 (OnGUI GC 방지)
+        private static Texture2D _cachedBorderTex;
+        private static GUIStyle _cachedBorderStyle;
+        private static Texture2D _cachedDimTex;
+        private static Texture2D _cachedBgTex;
+
         private static void EnsureStyles()
         {
             if (_initialized) return;
 
+            // 텍스처 사전 생성 (EnsureStyles는 한 번만 실행됨)
+            _cachedDimTex = MakeTexture(1, 1, DimColor);
+            _cachedBgTex = MakeTexture(1, 1, BgColor);
+            _cachedBorderTex = MakeTexture(1, 1, BorderColor);
+            _cachedBorderStyle = new GUIStyle
+            {
+                normal = { background = _cachedBorderTex }
+            };
+
             _titleStyle = new GUIStyle
-                        {
-                            fontSize = 60,
-                            fontStyle = FontStyle.Bold,
-                            alignment = TextAnchor.MiddleCenter,
-                            normal = { textColor = TitleColor }
-                        };
+            {
+                fontSize = 60,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = TitleColor }
+            };
 
-                        _closeButtonStyle = new GUIStyle
-                        {
-                            fontSize = 52,
-                            fontStyle = FontStyle.Bold,
-                            alignment = TextAnchor.MiddleCenter,
-                            normal = { textColor = Color.white, background = MakeTexture(1, 1, CloseBtnColor) }
-                        };
-                        _closeButtonStyle.hover.background = MakeTexture(1, 1, CloseHoverColor);
-                        _closeButtonStyle.active.background = MakeTexture(1, 1, new Color(0.5f, 0.1f, 0.1f, 1f));
+            _closeButtonStyle = new GUIStyle
+            {
+                fontSize = 52,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = Color.white, background = MakeTexture(1, 1, CloseBtnColor) }
+            };
+            _closeButtonStyle.hover.background = MakeTexture(1, 1, CloseHoverColor);
+            _closeButtonStyle.active.background = MakeTexture(1, 1, new Color(0.5f, 0.1f, 0.1f, 1f));
 
-                        _borderBoxStyle = new GUIStyle
-                        {
-                            normal = { background = MakeTexture(1, 1, BgColor) },
-                            border = new RectOffset(BorderWidth, BorderWidth, BorderWidth, BorderWidth)
-                        };
+            _borderBoxStyle = new GUIStyle
+            {
+                normal = { background = _cachedBgTex }
+            };
 
-                        _dimBoxStyle = new GUIStyle
-                        {
-                            normal = { background = MakeTexture(1, 1, DimColor) }
-                        };
+            _dimBoxStyle = new GUIStyle
+            {
+                normal = { background = _cachedDimTex }
+            };
 
-                        _labelStyle = new GUIStyle
-                        {
-                            fontSize = 40,
-                            fontStyle = FontStyle.Normal,
-                            alignment = TextAnchor.MiddleLeft,
-                            normal = { textColor = TextColor },
-                            padding = new RectOffset(16, 16, 4, 4)
-                        };
+            _labelStyle = new GUIStyle
+            {
+                fontSize = 40,
+                fontStyle = FontStyle.Normal,
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = TextColor },
+                padding = new RectOffset(16, 16, 4, 4)
+            };
 
             _initialized = true;
         }
 
         // ================================================================
-        // 텍스처 헬퍼 (중복 방지)
+        // 텍스처 헬퍼 (중복 생성 방지)
         // ================================================================
 
-        private static Texture2D _cachedDimTex;
-        private static Texture2D _cachedBgTex;
-
         /// <summary>
-        /// 단색 텍스처를 생성합니다. 캐싱 지원.
+        /// 단색 텍스처를 생성합니다. OnGUI 진입 전 EnsureStyles()에서 캐싱 완료.
+        /// 외부 호출 시에도 생성된 텍스처는 Destroy되지 않으므로 주의.
         /// </summary>
         public static Texture2D MakeTexture(int width, int height, Color color)
         {
@@ -120,9 +132,7 @@ namespace ProjectName.UI
         public static void DrawDimOverlay()
         {
             EnsureStyles();
-            if (_cachedDimTex == null)
-                _cachedDimTex = MakeTexture(1, 1, DimColor);
-            _dimBoxStyle.normal.background = _cachedDimTex;
+            // _cachedDimTex는 EnsureStyles()에서 한 번 생성, 캐싱 텍스처 재할당 없음
             GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "", _dimBoxStyle);
         }
 
@@ -133,26 +143,21 @@ namespace ProjectName.UI
         {
             EnsureStyles();
 
-            // 테두리용 박스 (골드)
-            var borderRect = new Rect(rect.x - BorderWidth, rect.y - BorderWidth,
-                rect.width + BorderWidth * 2, rect.height + BorderWidth * 2);
+            // 테두리용 박스 (골드) — 캐싱된 텍스처/스타일 사용, GC 발생 없음
+            int bw = BorderWidth;
+            var borderRect = new Rect(rect.x - bw, rect.y - bw,
+                rect.width + bw * 2, rect.height + bw * 2);
 
-            // 골드 테두리 그리기
-            var borderTex = MakeTexture(1, 1, BorderColor);
-            var borderStyle = new GUIStyle { normal = { background = borderTex } };
             // 왼쪽
-            GUI.Box(new Rect(borderRect.x, borderRect.y, BorderWidth, borderRect.height), "", borderStyle);
+            GUI.Box(new Rect(borderRect.x, borderRect.y, bw, borderRect.height), "", _cachedBorderStyle);
             // 오른쪽
-            GUI.Box(new Rect(borderRect.x + borderRect.width - BorderWidth, borderRect.y, BorderWidth, borderRect.height), "", borderStyle);
+            GUI.Box(new Rect(borderRect.x + borderRect.width - bw, borderRect.y, bw, borderRect.height), "", _cachedBorderStyle);
             // 위
-            GUI.Box(new Rect(borderRect.x, borderRect.y, borderRect.width, BorderWidth), "", borderStyle);
+            GUI.Box(new Rect(borderRect.x, borderRect.y, borderRect.width, bw), "", _cachedBorderStyle);
             // 아래
-            GUI.Box(new Rect(borderRect.x, borderRect.y + borderRect.height - BorderWidth, borderRect.width, BorderWidth), "", borderStyle);
+            GUI.Box(new Rect(borderRect.x, borderRect.y + borderRect.height - bw, borderRect.width, bw), "", _cachedBorderStyle);
 
-            // 내부 배경
-            if (_cachedBgTex == null)
-                _cachedBgTex = MakeTexture(1, 1, BgColor);
-            _borderBoxStyle.normal.background = _cachedBgTex;
+            // 내부 배경 — 캐싱 텍스처 사용, GC 없음
             GUI.Box(rect, "", _borderBoxStyle);
         }
 

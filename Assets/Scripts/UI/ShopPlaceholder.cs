@@ -1,9 +1,8 @@
 using UnityEngine;
-using ProjectName.Core;
 using ProjectName.UI;
 using UnityEngine.InputSystem;
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// 상점Placeholder - 사장님이 GLB를 제공하기 전까지 사용할 임시 상점 모델.
@@ -13,56 +12,65 @@ namespace ProjectName.Systems
     public class ShopPlaceholder : MonoBehaviour
     {
         [Header("설정")]
-        [SerializeField] private string shopkeeperName = "상인";
+        [SerializeField] private string _shopkeeperName = "상인";
         [SerializeField] private float _interactRange = 3f;
 
         // 참조를 위한 UIManager
         private UIManager _uiManager;
         
-        // 현재 활성화된 상점 창 인스턴스 (없으면 null)
+        // 캐싱된 플레이어 참조 (매 프레임 Find 대신)
+        private GameObject _player;
+        
+        // 재사용되는 상점 창 인스턴스
         private GameObject _shopWindowInstance;
         private ShopWindow _shopWindow;
 
         private void Awake()
         {
-            // UIManager 찾기
             _uiManager = UIManager.Instance;
             if (_uiManager == null)
             {
-                Debug.LogWarning("[ShopPlaceholder] UIManager를 찾을 수 없습니다!");
+                Debug.LogWarning("[ShopPlaceholder] UIManager를 찾을 수 없습니다! NPC가 작동하지 않을 수 있습니다.");
             }
         }
 
         private void Start()
         {
-            Debug.Log($"[ShopPlaceholder] {shopkeeperName} 상점 생성됨");
+            Debug.Log($"[ShopPlaceholder] {_shopkeeperName} 상점 생성됨");
         }
 
         private void Update()
         {
-            // 플레이어 찾기
-            var player = GameObject.FindGameObjectWithTag("Player");
-            if (player == null) return;
+            // 플레이어 참조 캐싱 (씬 전환 시 재탐색)
+            if (_player == null)
+            {
+                _player = GameObject.FindGameObjectWithTag("Player");
+                if (_player == null) return;
+            }
 
-            float dist = Vector3.Distance(transform.position, player.transform.position);
-            bool nearby = dist <= _interactRange;
+            // sqrMagnitude로 거리 비교 (Distance보다 GC/성능 우수)
+            float sqrDist = (transform.position - _player.transform.position).sqrMagnitude;
+            if (sqrDist > _interactRange * _interactRange) return;
 
             // E키로 상호작용 (Input System)
-            if (nearby && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+            if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
             {
                 ToggleShop();
             }
-            
-            // 창이 닫혔는지 확인하여 인스턴스 정리
-            CheckAndCleanupClosedWindow();
         }
 
         /// <summary>
-        /// 상점 토클 (열림/닫힘)
+        /// 상점 토글 (열림/닫힘)
         /// </summary>
         public void ToggleShop()
         {
-            // 상점 창 인스턴스가 없으면 생성
+            if (_uiManager == null)
+            {
+                Debug.LogWarning("[ShopPlaceholder] UIManager가 없어 상점을 열 수 없습니다!");
+                return;
+            }
+
+            // 최초 요청 시에만 ShopWindow 인스턴스 생성 (이후 재사용)
             if (_shopWindowInstance == null)
             {
                 CreateShopWindowInstance();
@@ -78,7 +86,6 @@ namespace ProjectName.Systems
             _uiManager.ToggleWindow(_shopWindow);
             
             // Show/Hide에 따라 게임 오브젝트 활성화 상태 업데이트
-            // UIWindow.Show()/Hide()가 내부에서 처리하므로 여기서는 활성화만 관리
             if (_shopWindow.IsOpen)
             {
                 _shopWindowInstance.SetActive(true);
@@ -86,25 +93,25 @@ namespace ProjectName.Systems
             }
             else
             {
-                // 닫힐 때는 잠시 비활성화 상태로 두지만, 실제 정리는 CheckAndCleanupClosedWindow에서 함
+                // 닫힐 때는 UIWindow Hide()가 CloseAnimation 코루틴을 실행하므로
+                // 오브젝트는 활성 상태로 두고 애니메이션 완료 후 비활성화는 UIWindow가 처리
                 Debug.Log("[ShopPlaceholder] 상점 UI 닫힘 요청");
             }
         }
 
         /// <summary>
-        /// 상점 창 인스턴스 생성
+        /// 상점 창 인스턴스 생성 (최초 1회, 이후 재사용)
         /// </summary>
         private void CreateShopWindowInstance()
         {
-            // 새 GameObject 생성
             _shopWindowInstance = new GameObject("ShopWindow_Runtime");
             
-            // ShopWindow 컴포넌트 추가
             _shopWindow = _shopWindowInstance.AddComponent<ShopWindow>();
             
             if (_shopWindow == null)
             {
                 Debug.LogError("[ShopPlaceholder] ShopWindow 컴포넌트를 추가할 수 없습니다!");
+                Destroy(_shopWindowInstance);
                 _shopWindowInstance = null;
                 return;
             }
@@ -112,23 +119,17 @@ namespace ProjectName.Systems
             // 초기에는 비활성화 상태
             _shopWindowInstance.SetActive(false);
             
-            Debug.Log("[ShopPlaceholder] 런타임 시 ShopWindow 인스턴스 생성");
+            Debug.Log("[ShopPlaceholder] 런타임 시 ShopWindow 인스턴스 생성 (재사용)");
         }
 
-        /// <summary>
-        /// 닫힌 창이 있는지 확인하고 정리 (메모리 누수 방지)
-        /// </summary>
-        private void CheckAndCleanupClosedWindow()
+        private void OnDestroy()
         {
-            // 인스턴스가 있고, 창이 닫혔으면 인스턴스 파괴
-            if (_shopWindowInstance != null && _shopWindow != null && !_shopWindow.IsOpen)
+            // ShopPlaceholder가 파괴될 때 ShopWindow 인스턴스 정리 (메모리 누수 방지)
+            if (_shopWindowInstance != null)
             {
-                // 조금 delay를 줘서 창이 완전히 닫혔는지 확인 (같은 프레임에서 열렸다가 닫힐 수 있음)
-                // 하지만 여기서는 간단히 바로 정리
                 Destroy(_shopWindowInstance);
                 _shopWindowInstance = null;
                 _shopWindow = null;
-                Debug.Log("[ShopPlaceholder] 닫힌 ShopWindow 인스턴스 정리");
             }
         }
 

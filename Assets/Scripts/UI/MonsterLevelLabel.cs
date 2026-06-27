@@ -1,7 +1,6 @@
 using ProjectName.Core;
 using ProjectName.Systems;
 using UnityEngine;
-using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -28,11 +27,8 @@ namespace ProjectName.UI
             }
         }
         [Header("Label Settings")]
-        [SerializeField] private GameObject _labelPrefab;
         [SerializeField] private Vector3 _labelOffset = new Vector3(0f, 1.8f, 0f);
         [SerializeField] private float _maxDisplayDistance = 20f;
-        [SerializeField] private float _labelScale = 0.02f;
-        [SerializeField] private Font _labelFont;
         [SerializeField] private int _fontSize = 56;
 
         [Header("Color Settings")]
@@ -40,9 +36,9 @@ namespace ProjectName.UI
         [SerializeField] private Color _midColor = Color.yellow;
         [SerializeField] private Color _highColor = Color.red;
 
-        private UIDesignTheme _theme;
         private AnimalAI _ai;
         private Transform _playerCam;
+        private Camera _cachedCamera;
         private int _level;
         private string _levelText;
         private Color _labelColor;
@@ -60,7 +56,14 @@ namespace ProjectName.UI
                 enabled = false;
                 return;
             }
-            _playerCam = Camera.main?.transform;
+
+            Camera mainCam = Camera.main;
+            if (mainCam != null)
+            {
+                _cachedCamera = mainCam;
+                _playerCam = mainCam.transform;
+            }
+
             _level = _ai.Level;
             UpdateLevelDisplay();
         }
@@ -69,14 +72,17 @@ namespace ProjectName.UI
         {
             if (_playerCam == null)
             {
-                _playerCam = Camera.main?.transform;
+                Camera mainCam = Camera.main;
+                if (mainCam != null)
+                {
+                    _cachedCamera = mainCam;
+                    _playerCam = mainCam.transform;
+                }
                 if (_playerCam == null) return;
             }
 
             float dist = Vector3.Distance(transform.position, _playerCam.position);
             if (dist > _maxDisplayDistance) return;
-
-            FaceCamera();
         }
 
         /// <summary>ILevelLabel 구현: 레벨 설정</summary>
@@ -90,29 +96,37 @@ namespace ProjectName.UI
         {
             _levelText = $"Lv.{_level}";
             _labelColor = GetLevelColor(_level);
+
+            // GUIStyle이 이미 초기화된 경우에도 색상 업데이트 (SetLevel 재호출 대응)
+            if (_styleInitialized && _guiStyle != null)
+            {
+                _guiStyle.normal.textColor = _labelColor;
+            }
         }
 
         private Color GetLevelColor(int level)
         {
+            // MonsterLevelData의 GreenThreshold/YellowThreshold 참조 (데이터 드리븐)
+            MonsterLevelManager lvlMgr = MonsterLevelManager.Instance;
+            if (lvlMgr != null && lvlMgr.Data != null)
+            {
+                var data = lvlMgr.Data;
+                if (level <= data.GreenThreshold) return _lowColor;
+                if (level <= data.YellowThreshold) return _midColor;
+                return _highColor;
+            }
+            // Fallback: Manager/Data 없을 시 하드코딩 임계값
             if (level <= 10) return _lowColor;
             if (level <= 20) return _midColor;
             return _highColor;
         }
 
-        private void FaceCamera()
-        {
-            if (_playerCam != null)
-            {
-                transform.LookAt(transform.position + _playerCam.forward);
-            }
-        }
-
         private void OnGUI()
         {
-            if (_playerCam == null) return;
+            if (_playerCam == null || _cachedCamera == null) return;
 
             Vector3 worldPos = transform.position + _labelOffset;
-            Vector3 screenPos = _playerCam.GetComponent<Camera>()?.WorldToScreenPoint(worldPos) ?? Vector3.zero;
+            Vector3 screenPos = _cachedCamera.WorldToScreenPoint(worldPos);
 
             if (screenPos.z < 0) return;
             screenPos.y = Screen.height - screenPos.y;

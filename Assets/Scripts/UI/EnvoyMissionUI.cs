@@ -48,7 +48,6 @@ namespace ProjectName.UI
         private GUIStyle _styleLabel;
         private GUIStyle _styleValue;
         private GUIStyle _styleWarning;
-        private GUIStyle _styleButton;
 
         private const float PANEL_WIDTH = 520f;
         private const float PANEL_HEIGHT = 540f;
@@ -372,8 +371,11 @@ namespace ProjectName.UI
                 "📋 파견 확인", _styleTitle);
             cy += 34f;
 
-            // 특사 정보
-            DrawInfoRow(x, ref cy, "특사:", $"{_selectedEnvoy.GuardName} (Lv.{_selectedEnvoy.Level})");
+            // 특사 정보 (null 안전)
+            string envoyName = _selectedEnvoy != null
+                ? $"{_selectedEnvoy.GuardName} (Lv.{_selectedEnvoy.Level})"
+                : "선택된 특사 없음";
+            DrawInfoRow(x, ref cy, "특사:", envoyName);
             DrawInfoRow(x, ref cy, "목적지:", GetTerritoryName(_currentTerritoryId));
             DrawInfoRow(x, ref cy, "임무:", EnvoySystem.GetMissionName(_selectedMission));
             DrawInfoRow(x, ref cy, "임무 설명:", EnvoySystem.GetMissionDescription(_selectedMission));
@@ -384,7 +386,9 @@ namespace ProjectName.UI
             }
 
             // 발각 확률 표시
-            float detectChance = EnvoySystem.CalculateDetectChance(_selectedEnvoy, _currentTerritoryId);
+            float detectChance = _selectedEnvoy != null
+                ? EnvoySystem.CalculateDetectChance(_selectedEnvoy, _currentTerritoryId)
+                : 0f;
             string detectColor = detectChance >= 0.4f ? "🔴" : (detectChance >= 0.2f ? "🟡" : "🟢");
             DrawInfoRow(x, ref cy, "발각 위험:", $"{detectColor} {detectChance * 100:F0}%");
 
@@ -468,6 +472,8 @@ namespace ProjectName.UI
             _selectedEnvoy = null;
             _selectedFoodItemId = null;
             _selectedFoodName = null;
+            _currentStep = UIStep.SelectEnvoy;
+            _scrollPos = Vector2.zero;
         }
 
         /// <summary>UI 표시 여부</summary>
@@ -564,14 +570,23 @@ namespace ProjectName.UI
             if (TerritoryManager.Instance != null)
             {
                 TerritoryId currentId = TerritoryManager.Instance.CurrentTerritoryId;
-                var def = TerritoryDatabase.Instance.GetDefinition(currentId);
-                if (def.territoryName != null)
+                if (TerritoryDatabase.Instance != null)
                 {
-                    return currentId;
+                    var def = TerritoryDatabase.Instance.GetDefinition(currentId);
+                    if (def != null && def.territoryName != null)
+                    {
+                        return currentId;
+                    }
                 }
+            }
+            else
+            {
+                return null;
             }
 
             // TerritoryManager에 없으면 가장 가까운 영지 찾기
+            if (TerritoryDatabase.Instance == null) return null;
+
             float nearestDist = _interactRange;
             TerritoryId? nearest = null;
 
@@ -594,8 +609,10 @@ namespace ProjectName.UI
 
         private string GetTerritoryName(TerritoryId id)
         {
+            if (TerritoryDatabase.Instance == null)
+                return "알 수 없는 영지";
             var def = TerritoryDatabase.Instance.GetDefinition(id);
-            return def.territoryName ?? "알 수 없는 영지";
+            return def != null && def.territoryName != null ? def.territoryName : "알 수 없는 영지";
         }
 
         // ================================================================
@@ -642,13 +659,6 @@ namespace ProjectName.UI
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.red },
                 alignment = TextAnchor.MiddleLeft
-            };
-
-            _styleButton = new GUIStyle(GUI.skin.button)
-            {
-                fontSize = 52,
-                fontStyle = FontStyle.Bold,
-                normal = { textColor = Color.white }
             };
         }
     }

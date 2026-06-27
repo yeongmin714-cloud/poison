@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using ProjectName.Systems;
 using UnityEngine;
 using ProjectName.UI.Themes;
@@ -42,6 +43,12 @@ namespace ProjectName.UI
         private static readonly Color ColorBg     = new Color(0f, 0f, 0f, 0.5f);
         private static readonly Color ColorGreenText = new Color(0.3f, 1f, 0.3f, 1f);
 
+        // GC 방지: 재사용 StringBuilder + 화이트 텍스처
+        private readonly StringBuilder _sb = new StringBuilder(32);
+        private Texture2D _whiteTex;
+        private GUIStyle _bgStyle;
+        private float _herbSearchTimer;
+
         private void Awake()
         {
             if (_instance != null && _instance != this)
@@ -57,6 +64,28 @@ namespace ProjectName.UI
         {
             _mainCamera = Camera.main;
             InitializeStyles();
+            InitializeWhiteTexture();
+        }
+
+        private void OnDestroy()
+        {
+            if (_whiteTex != null)
+            {
+                Destroy(_whiteTex);
+                _whiteTex = null;
+            }
+            if (_bgStyle != null && _bgStyle.normal.background != null)
+            {
+                Destroy(_bgStyle.normal.background);
+                _bgStyle.normal.background = null;
+            }
+        }
+
+        private void InitializeWhiteTexture()
+        {
+            _whiteTex = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+            _whiteTex.SetPixel(0, 0, Color.white);
+            _whiteTex.Apply();
         }
 
         private void InitializeStyles()
@@ -92,9 +121,13 @@ namespace ProjectName.UI
                 _mainCamera = Camera.main;
             if (_mainCamera == null) return;
 
-            // 주기적으로 약초 목록 갱신 (매 프레임 FindObjects는 부담되므로 0.5초 간격)
-            // 하지만 요구사항에 "매 프레임 Update()에서 모든 약초 순회"라고 명시되어 있으므로 매 프레임 순회
-            _herbCache = GameObject.FindObjectsByType<HerbPickup>();
+            // FindObjectsByType 성능 최적화: 0.5초 간격으로 갱신
+            _herbSearchTimer -= Time.deltaTime;
+            if (_herbSearchTimer <= 0f)
+            {
+                _herbCache = GameObject.FindObjectsByType<HerbPickup>();
+                _herbSearchTimer = 0.5f;
+            }
         }
 
         private void OnGUI()
@@ -131,7 +164,13 @@ namespace ProjectName.UI
                 {
                     // --- 리스폰 중: 텍스트 + 프로그레스바 ---
                     float remaining = herb.RespawnTimeLeft;
-                    string timerText = $"[재생성 중 {remaining:F1}초]";
+
+                    // GC-safe: StringBuilder 재사용 (string interpolation 대비)
+                    _sb.Clear();
+                    _sb.Append("[재생성 중 ");
+                    _sb.Append(remaining.ToString("F1"));
+                    _sb.Append("초]");
+                    string timerText = _sb.ToString();
 
                     // 텍스트
                     Rect labelRect = new Rect(guiX - _gaugeWidth / 2f, guiY - _textOffsetY, _gaugeWidth, 20f);
@@ -139,7 +178,7 @@ namespace ProjectName.UI
 
                     // 프로그레스바 배경
                     Rect barBgRect = new Rect(guiX - _gaugeWidth / 2f, guiY - _textOffsetY + 20f, _gaugeWidth, _gaugeHeight);
-                    GUI.Box(barBgRect, "", CreateBackgroundStyle());
+                    GUI.Box(barBgRect, "", _bgStyle ?? CreateBackgroundStyle());
 
                     // 프로그레스바 채움 (진행률: 0 = 방금 수확, 1 = 곧 리스폰)
                     float fillWidth = _gaugeWidth * progress;
@@ -162,7 +201,11 @@ namespace ProjectName.UI
                             barColor = Color.Lerp(ColorYellow, ColorRed, t);
                         }
 
-                        GUI.DrawTexture(barFillRect, CreateGradientTexture(barColor));
+                        // GUI.color로 색상 적용 → Texture2D 재할당/Apply 불필요
+                        Color prevColor = GUI.color;
+                        GUI.color = barColor;
+                        GUI.DrawTexture(barFillRect, _whiteTex);
+                        GUI.color = prevColor;
                     }
                 }
                 else
@@ -175,34 +218,20 @@ namespace ProjectName.UI
         }
 
         // 백그라운드 스타일 캐싱
-        private GUIStyle _bgStyle;
         private GUIStyle CreateBackgroundStyle()
         {
-            if (_bgStyle == null)
-            {
-                _bgStyle = new GUIStyle();
-                _bgStyle.normal.background = CreateGradientTexture(ColorBg);
-                _bgStyle.border = new RectOffset(2, 2, 2, 2);
-            }
+            _bgStyle = new GUIStyle();
+            _bgStyle.normal.background = CreateBackgroundTexture();
+            _bgStyle.border = new RectOffset(2, 2, 2, 2);
             return _bgStyle;
         }
 
-        // 프로그레스바 채움 텍스처 캐싱
-        private Texture2D _fillTex;
-        private Texture2D CreateGradientTexture(Color color)
+        private Texture2D CreateBackgroundTexture()
         {
-            if (_fillTex == null)
-            {
-                _fillTex = new Texture2D(1, 1);
-                _fillTex.SetPixel(0, 0, color);
-                _fillTex.Apply();
-            }
-            else
-            {
-                _fillTex.SetPixel(0, 0, color);
-                _fillTex.Apply();
-            }
-            return _fillTex;
+            var tex = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+            tex.SetPixel(0, 0, ColorBg);
+            tex.Apply();
+            return tex;
         }
 
         // --- 테스트/디버그용 ---

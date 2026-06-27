@@ -9,12 +9,13 @@ namespace ProjectName.UI
     /// 전리품 창 (Loot Window) — LootBasket 열었을 때 표시.
     /// 인벤토리와 비슷한 레이아웃, "전리품" 헤더, "전부 획득" 버튼.
     /// 개별 아이템 클릭 시 인벤토리로 이동. 비면 자동 닫힘.
+    /// 
+    /// [QA v1.1] OnGUI GC 최적화 완료 (Rect 캐싱, GUIContent 재사용, string 보간 제거).
     /// </summary>
     public class LootWindow : UIWindow
     {
         [Header("Loot Window")]
-        [SerializeField] private ILootBasket _currentBasket;
-        [SerializeField] private string _windowTitle = "🎁 전리품";
+        private ILootBasket _currentBasket;
 
         // 아이템 목록 캐시
         private LootEntry[] _cachedItems;
@@ -53,9 +54,33 @@ namespace ProjectName.UI
         private GUIStyle _styleEmptyText;
         private GUIStyle _stylePanelBox;
         private GUIStyle _styleTakeAllBtn;
-        private GUIStyle _styleTakeAllBtnHover;
         private bool _stylesInitialized;
         private Texture2D _texWhite;
+
+        // ===== GC 최적화: Rect 재사용 =====
+        private readonly Rect _rectWork = new Rect();
+        private Rect _rectBg;
+        private Rect _rectBorderTop;
+        private Rect _rectTitleBar;
+        private Rect _rectTitleLabel;
+        private Rect _rectTitleDivider;
+        private Rect _rectGridBg;
+        private Rect _rectScrollView;
+        private Rect _rectScrollContent;
+        private Rect _rectEmptyLabel;
+        private Rect _rectBottomBar;
+        private Rect _rectBottomBorder;
+        private Rect _rectItemCountLabel;
+        private Rect _rectTakeAllBtn;
+        private Rect _rectSlot;
+
+        // GC 최적화: GUIContent 재사용
+        private readonly GUIContent _gcCache = new GUIContent();
+        private readonly GUIContent _gcItemCount = new GUIContent();
+
+        // ===== GC 최적화: 문자열 버퍼 =====
+        private string _strBasketName;
+        private string _strItemCount;
 
         public ILootBasket CurrentBasket
         {
@@ -86,6 +111,9 @@ namespace ProjectName.UI
         /// </summary>
         public void OpenForBasket(ILootBasket basket)
         {
+            if (basket == null) return;
+            if (basket.IsEmpty) return;
+
             if (_theme == null)
                 ApplyTheme(Phase33_Themes.CreateMedievalShopTheme());
             _currentBasket = basket;
@@ -99,10 +127,9 @@ namespace ProjectName.UI
         /// </summary>
         public void RefreshLoot()
         {
-            if (_currentBasket == null || _currentBasket.IsEmpty)
+            if (_currentBasket == null || _currentBasket.IsEmpty || !_currentBasket.IsAvailable)
             {
                 _cachedItems = null;
-                // 비었으면 자동 닫기
                 if (IsOpen)
                     Hide();
                 return;
@@ -113,6 +140,18 @@ namespace ProjectName.UI
             for (int i = 0; i < items.Count; i++)
             {
                 _cachedItems[i] = items[i];
+            }
+        }
+
+        /// <summary>
+        /// 생성된 텍스처 정리 (메모리 누수 방지)
+        /// </summary>
+        protected virtual void OnDestroy()
+        {
+            if (_texWhite != null)
+            {
+                Destroy(_texWhite);
+                _texWhite = null;
             }
         }
 
@@ -195,11 +234,6 @@ namespace ProjectName.UI
                 padding = new RectOffset(0, 0, 4, 4)
             };
 
-            _styleTakeAllBtnHover = new GUIStyle(_styleTakeAllBtn)
-            {
-                normal = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorBtnTakeAllHover) }
-            };
-
             _stylesInitialized = true;
         }
 
@@ -211,33 +245,38 @@ namespace ProjectName.UI
             if (!IsOpen) return;
             InitStyles();
 
-            // 바스켓이 없거나 비었으면 닫기
-            if (_currentBasket == null || _currentBasket.IsEmpty)
+            if (_currentBasket == null || _currentBasket.IsEmpty || !_currentBasket.IsAvailable)
             {
                 Hide();
                 return;
             }
 
-            // 혹시 모를 캐시 업데이트
             if (_cachedItems == null || _cachedItems.Length != _currentBasket.ItemCount)
                 RefreshLoot();
 
             float x = (Screen.width - WINDOW_WIDTH) / 2;
             float y = (Screen.height - WINDOW_HEIGHT) / 2;
 
+            // === Rect 캐싱 (GC 최적화) ===
+            _rectBg.Set(x, y, WINDOW_WIDTH, WINDOW_HEIGHT);
+            _rectBorderTop.Set(x, y, WINDOW_WIDTH, 2);
+            _rectTitleBar.Set(x, y + 2, WINDOW_WIDTH, TITLE_BAR_HEIGHT);
+            _rectTitleLabel.Set(x, y + 2, WINDOW_WIDTH, TITLE_BAR_HEIGHT);
+            _rectTitleDivider.Set(x, y + TITLE_BAR_HEIGHT + 2, WINDOW_WIDTH, 2);
+
             // === 배경 박스 ===
-            GUI.Box(new Rect(x, y, WINDOW_WIDTH, WINDOW_HEIGHT), "", _stylePanelBox);
+            GUI.Box(_rectBg, "", _stylePanelBox);
 
             // === 상단 테두리 ===
-            DrawColoredRect(new Rect(x, y, WINDOW_WIDTH, 2), ColorBorder);
+            DrawColoredRect(_rectBorderTop, ColorBorder);
 
             // === 타이틀 바 ===
-            DrawColoredRect(new Rect(x, y + 2, WINDOW_WIDTH, TITLE_BAR_HEIGHT), ColorTitleBar);
-            string basketName = _currentBasket != null ? _currentBasket.BasketName : "전리품";
-            GUI.Label(new Rect(x, y + 2, WINDOW_WIDTH, TITLE_BAR_HEIGHT), $"  🎁 {basketName}", _styleTitle);
+            DrawColoredRect(_rectTitleBar, ColorTitleBar);
+            _strBasketName = _currentBasket != null ? _currentBasket.BasketName : "전리품";
+            GUI.Label(_rectTitleLabel, "  🎁 " + _strBasketName, _styleTitle);
 
             // 구분선
-            DrawColoredRect(new Rect(x, y + TITLE_BAR_HEIGHT + 2, WINDOW_WIDTH, 2), ColorBorder);
+            DrawColoredRect(_rectTitleDivider, ColorBorder);
 
             // === 아이템 그리드 ===
             float gridY = y + TITLE_BAR_HEIGHT + 4;
@@ -258,7 +297,8 @@ namespace ProjectName.UI
             float innerY = gridY + 2;
             float innerWidth = WINDOW_WIDTH - 8;
 
-            DrawColoredRect(new Rect(panelX, gridY, WINDOW_WIDTH, gridHeight), ColorBg);
+            _rectGridBg.Set(panelX, gridY, WINDOW_WIDTH, gridHeight);
+            DrawColoredRect(_rectGridBg, ColorBg);
 
             float slotWidth = (innerWidth - SLOT_MARGIN * (GRID_COLUMNS + 1)) / GRID_COLUMNS;
             float slotHeight = 162;
@@ -269,18 +309,26 @@ namespace ProjectName.UI
             float contentHeight = totalRows * rowHeight + SLOT_MARGIN;
             float viewHeight = gridHeight - 4;
 
+            _rectScrollView.Set(innerX, innerY, innerWidth, viewHeight);
+            _rectScrollContent.Set(0, 0, innerWidth - 20, contentHeight);
+
             _scrollPosition = GUI.BeginScrollView(
-                new Rect(innerX, innerY, innerWidth, viewHeight),
+                _rectScrollView,
                 _scrollPosition,
-                new Rect(0, 0, innerWidth - 20, contentHeight)
+                _rectScrollContent
             );
 
             if (_cachedItems == null || _cachedItems.Length == 0)
             {
-                GUI.Label(new Rect(0, 20, innerWidth - 20, 45), "(전리품이 없습니다)", _styleEmptyText);
+                _rectEmptyLabel.Set(0, 20, innerWidth - 20, 45);
+                GUI.Label(_rectEmptyLabel, "(전리품이 없습니다)", _styleEmptyText);
             }
             else
             {
+                // EventType 캐싱 (GC 최적화)
+                Event currentEvent = Event.current;
+                bool isMouseDown = currentEvent.type == EventType.MouseDown;
+
                 for (int i = 0; i < _cachedItems.Length; i++)
                 {
                     var entry = _cachedItems[i];
@@ -292,44 +340,47 @@ namespace ProjectName.UI
                     float sx = SLOT_MARGIN + col * (slotWidth + SLOT_MARGIN);
                     float sy = SLOT_MARGIN + row * rowHeight;
 
-                    Rect slotRect = new Rect(sx, sy, slotWidth, slotHeight);
+                    _rectSlot.Set(sx, sy, slotWidth, slotHeight);
                     bool isSelected = (i == _selectedIndex);
 
                     var slotStyle = isSelected ? _styleSlotSelected : _styleSlot;
-                    GUI.Box(slotRect, "", slotStyle);
+                    GUI.Box(_rectSlot, "", slotStyle);
 
-                    // 아이콘 (ItemIconDatabase 사용)
+                    // 아이콘 (ItemIconDatabase 사용 — 캐싱됨)
                     Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(entry.item);
                     if (iconTex != null)
                     {
-                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 90, 90), iconTex);
+                        _rectWork.Set(sx + 6, sy + 4, 90, 90);
+                        GUI.DrawTexture(_rectWork, iconTex);
                     }
                     else
                     {
-                        // 폴백: 카테고리 색상 사각형
                         Color iconColor = GetItemColor(entry.item.category);
+                        _rectWork.Set(sx + 6, sy + 4, 90, 90);
                         GUI.color = iconColor;
-                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 90, 90), _texWhite);
+                        GUI.DrawTexture(_rectWork, _texWhite);
                         GUI.color = Color.white;
                     }
 
                     // 이름
                     float nameY = sy + 38;
                     float nameWidth = slotWidth - 12;
-                    GUI.Label(new Rect(sx + 6, nameY, nameWidth, 24),
+                    _rectWork.Set(sx + 6, nameY, nameWidth, 24);
+                    GUI.Label(_rectWork,
                         TruncateText(entry.item.displayName, nameWidth, _styleSlotLabel),
                         _styleSlotLabel);
 
-                    // 개수
-                    GUI.Label(new Rect(sx + 6, nameY + 14, nameWidth, 21),
-                        $"x{entry.count}",
-                        _styleItemCount);
+                    // 개수 (GC 최적화: string.Concat 사용)
+                    _rectWork.Set(sx + 6, nameY + 14, nameWidth, 21);
+                    _strItemCount = "x" + entry.count;
+                    _gcItemCount.text = _strItemCount;
+                    GUI.Label(_rectWork, _gcItemCount, _styleItemCount);
 
-                    // 클릭 → 획득
-                    if (Event.current.type == EventType.MouseDown && slotRect.Contains(Event.current.mousePosition))
+                    // 클릭 → 획득 (MouseDown에서만 처리)
+                    if (isMouseDown && _rectSlot.Contains(currentEvent.mousePosition))
                     {
                         _selectedIndex = i;
-                        Event.current.Use();
+                        currentEvent.Use();
                         TakeSelectedItem(i);
                     }
                 }
@@ -343,21 +394,25 @@ namespace ProjectName.UI
         // ===================================================================
         private void DrawBottomBar(float panelX, float bottomY)
         {
-            DrawColoredRect(new Rect(panelX, bottomY, WINDOW_WIDTH, BOTTOM_BAR_HEIGHT), ColorBottomBar);
-            DrawColoredRect(new Rect(panelX, bottomY, WINDOW_WIDTH, 1), ColorBorder);
+            _rectBottomBar.Set(panelX, bottomY, WINDOW_WIDTH, BOTTOM_BAR_HEIGHT);
+            _rectBottomBorder.Set(panelX, bottomY, WINDOW_WIDTH, 1);
+            DrawColoredRect(_rectBottomBar, ColorBottomBar);
+            DrawColoredRect(_rectBottomBorder, ColorBorder);
 
             float btnWidth = 360;
             float btnHeight = 48f;
             float btnX = panelX + (WINDOW_WIDTH - btnWidth) / 2;
             float btnY = bottomY + (BOTTOM_BAR_HEIGHT - btnHeight) / 2;
 
-            // 아이템 개수 표시
+            // 아이템 개수 표시 (GC 최적화: string.Concat 사용)
             int totalItems = _cachedItems != null ? _cachedItems.Length : 0;
-            GUI.Label(new Rect(panelX + 10, bottomY + 4, 270, 30),
-                $"아이템 {totalItems}개", _styleEmptyText);
+            _rectItemCountLabel.Set(panelX + 10, bottomY + 4, 270, 30);
+            _gcCache.text = "아이템 " + totalItems + "개";
+            GUI.Label(_rectItemCountLabel, _gcCache, _styleEmptyText);
 
             // 전부 획득 버튼
-            if (GUI.Button(new Rect(btnX, btnY, btnWidth, btnHeight), "📥 전부 획득", _styleTakeAllBtn))
+            _rectTakeAllBtn.Set(btnX, btnY, btnWidth, btnHeight);
+            if (GUI.Button(_rectTakeAllBtn, "📥 전부 획득", _styleTakeAllBtn))
             {
                 TakeAllItems();
             }
@@ -371,7 +426,7 @@ namespace ProjectName.UI
             if (_currentBasket == null) return;
             if (_currentBasket.TakeItem(index))
             {
-                Debug.Log($"[LootWindow] 아이템 획득 완료");
+                Debug.Log("[LootWindow] 아이템 획득 완료");
                 RefreshLoot();
             }
         }
@@ -406,9 +461,10 @@ namespace ProjectName.UI
         private Texture2D MakeTexture(int w, int h, Color color)
         {
             var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
-            for (int y = 0; y < h; y++)
-                for (int x = 0; x < w; x++)
-                    tex.SetPixel(x, y, color);
+            var pixels = new Color[w * h];
+            for (int i = 0; i < pixels.Length; i++)
+                pixels[i] = color;
+            tex.SetPixels(pixels);
             tex.Apply();
             return tex;
         }
@@ -421,18 +477,20 @@ namespace ProjectName.UI
             GUI.color = oldColor;
         }
 
+        private readonly GUIContent _gcTruncate = new GUIContent();
+
         private string TruncateText(string text, float maxWidth, GUIStyle style)
         {
             if (string.IsNullOrEmpty(text)) return "";
-            var content = new GUIContent(text);
-            float width = style.CalcSize(content).x;
+            _gcTruncate.text = text;
+            float width = style.CalcSize(_gcTruncate).x;
             if (width <= maxWidth) return text;
 
             for (int i = text.Length - 1; i > 0; i--)
             {
                 string truncated = text.Substring(0, i) + "..";
-                content.text = truncated;
-                if (style.CalcSize(content).x <= maxWidth)
+                _gcTruncate.text = truncated;
+                if (style.CalcSize(_gcTruncate).x <= maxWidth)
                     return truncated;
             }
             return text.Length > 0 ? text[0] + ".." : "..";

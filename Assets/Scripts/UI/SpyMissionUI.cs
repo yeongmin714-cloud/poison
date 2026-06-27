@@ -50,7 +50,9 @@ namespace ProjectName.UI
         private GUIStyle _styleWarning;
         private GUIStyle _styleInfo;
 
+        // ===== 캐시 =====
         private UIDesignTheme _theme;
+        private static Texture2D _cachedTexWhite;
         private const float PANEL_WIDTH = 520f;
         private const float PANEL_HEIGHT = 560f;
         private const float LIST_ITEM_HEIGHT = 36f;
@@ -126,10 +128,17 @@ namespace ProjectName.UI
             Color bgColor = _theme != null ? _theme.BgColor : new Color(0.08f, 0.08f, 0.1f, 0.92f);
             Color borderColor = _theme != null ? _theme.BorderColor : new Color(0.3f, 0.8f, 0.3f, 0.85f);
             var oldGuiColor = GUI.color;
+
+            // 바탕
             GUI.color = bgColor;
             GUI.Box(new Rect(x, y, PANEL_WIDTH, PANEL_HEIGHT), "");
+            // 테두리 (2px 두께)
             GUI.color = borderColor;
-            GUI.Box(new Rect(x, y, PANEL_WIDTH, PANEL_HEIGHT), "");
+            const float bw = 2f;
+            GUI.Box(new Rect(x, y, PANEL_WIDTH, bw), "");                          // 상단
+            GUI.Box(new Rect(x, y + PANEL_HEIGHT - bw, PANEL_WIDTH, bw), "");      // 하단
+            GUI.Box(new Rect(x, y, bw, PANEL_HEIGHT), "");                        // 좌측
+            GUI.Box(new Rect(x + PANEL_WIDTH - bw, y, bw, PANEL_HEIGHT), "");     // 우측
             GUI.color = oldGuiColor;
 
             // 닫기 버튼
@@ -234,6 +243,12 @@ namespace ProjectName.UI
         // ================================================================
         private void DrawMissionSelection(float x, ref float cy)
         {
+            if (_selectedSpy == null)
+            {
+                _currentStep = UIStep.SelectSpy;
+                return;
+            }
+
             GUI.Label(new Rect(x + 15, cy, PANEL_WIDTH - 30, 28),
                 $"🎯 임무 선택 — {_selectedSpy.GuardName}", _styleTitle);
             cy += 34f;
@@ -242,7 +257,7 @@ namespace ProjectName.UI
                 "수행할 정보 수집 임무를 선택하세요", _styleLabel);
             cy += 30f;
 
-            // SpySystem의 기존 3종 + 방해공작 (별도 구현)
+            // SpySystem의 기존 3종 임무 (Recon/Infiltrate/Survey)
             var missions = new (SpySystem.SpyMission mission, int requiredLevel, string name, string desc, float duration)[]
             {
                 (SpySystem.SpyMission.Recon, SpySystem.RECON_REQUIRED_LEVEL,
@@ -313,6 +328,12 @@ namespace ProjectName.UI
         // ================================================================
         private void DrawInProgress(float x, ref float cy)
         {
+            if (_selectedSpy == null)
+            {
+                _currentStep = UIStep.SelectSpy;
+                return;
+            }
+
             string missionName = SpySystem.GetMissionName(_selectedMission);
             GUI.Label(new Rect(x + 15, cy, PANEL_WIDTH - 30, 28),
                 $"⏳ 정보 수집 중...", _styleTitle);
@@ -358,6 +379,12 @@ namespace ProjectName.UI
         // ================================================================
         private void DrawResult(float x, ref float cy)
         {
+            if (_selectedSpy == null)
+            {
+                _currentStep = UIStep.SelectSpy;
+                return;
+            }
+
             string missionName = SpySystem.GetMissionName(_selectedMission);
             GUI.Label(new Rect(x + 15, cy, PANEL_WIDTH - 30, 28),
                 $"✅ 정보 수집 완료 — {missionName}", _styleTitle);
@@ -380,7 +407,7 @@ namespace ProjectName.UI
                 "📋 수집된 정보:", _styleTitle);
             cy += 28f;
 
-            string infoText = _lastResult.infoGathered;
+            string infoText = _lastResult.infoGathered ?? "";
             if (!string.IsNullOrEmpty(infoText))
             {
                 GUI.Label(new Rect(x + 25, cy, PANEL_WIDTH - 50, 60),
@@ -389,16 +416,16 @@ namespace ProjectName.UI
             }
 
             // 추가 정보 표시 (임무 타입별)
-            var def = TerritoryDatabase.Instance.GetDefinition(_currentTerritoryId);
-            var state = TerritoryDatabase.Instance.GetState(_currentTerritoryId);
+            var def = TerritoryDatabase.Instance?.GetDefinition(_currentTerritoryId);
+            var state = TerritoryDatabase.Instance?.GetState(_currentTerritoryId);
 
-            if (_selectedMission == SpySystem.SpyMission.Recon && def.territoryName != null)
+            if (def != null && _selectedMission == SpySystem.SpyMission.Recon && def.territoryName != null)
             {
                 DrawInfoRow(x, ref cy, "병력 수:", $"{def.guardCount}명");
                 DrawInfoRow(x, ref cy, "방어 상태:", GetDefenseStatusText(def.guardCount));
                 DrawInfoRow(x, ref cy, "난이도:", GetDifficultyText(def.difficulty));
             }
-            else if (_selectedMission == SpySystem.SpyMission.Infiltrate && def.lord.lordName != null)
+            else if (def != null && _selectedMission == SpySystem.SpyMission.Infiltrate && def.lord?.lordName != null)
             {
                 DrawInfoRow(x, ref cy, "영주:", def.lord.lordName);
                 DrawInfoRow(x, ref cy, "선호 음식:", string.IsNullOrEmpty(def.lord.preferredFood) ? "알 수 없음" : def.lord.preferredFood);
@@ -406,7 +433,7 @@ namespace ProjectName.UI
                 DrawInfoRow(x, ref cy, "성격:", GetPersonalityText(def.lord.personality));
                 DrawInfoRow(x, ref cy, "충성심:", $"{def.lord.loyalty}/100");
             }
-            else if (_selectedMission == SpySystem.SpyMission.Survey && def.territoryName != null)
+            else if (def != null && _selectedMission == SpySystem.SpyMission.Survey && def.territoryName != null)
             {
                 DrawInfoRow(x, ref cy, "지형:", GetDifficultyTerrainName(def.difficulty));
                 DrawInfoRow(x, ref cy, "접근 경로:", GetApproachPathText(def.difficulty));
@@ -425,6 +452,12 @@ namespace ProjectName.UI
         // ================================================================
         private void DrawDetected(float x, ref float cy)
         {
+            if (_selectedSpy == null)
+            {
+                _currentStep = UIStep.SelectSpy;
+                return;
+            }
+
             GUI.Label(new Rect(x + 15, cy, PANEL_WIDTH - 30, 28),
                 "💀 정보원이 체포/처형되었습니다", _styleWarning);
             cy += 38f;
@@ -440,8 +473,9 @@ namespace ProjectName.UI
             cy += 30f;
 
             // 처형 메시지 세부정보
+            string msg = _lastResult.message ?? "발각되어 처형되었습니다.";
             GUI.Label(new Rect(x + 20, cy, PANEL_WIDTH - 40, 60),
-                $"{_lastResult.message}", _styleInfo);
+                msg, _styleInfo);
             cy += 70f;
 
             float remaining = Mathf.Max(0, _resultTimer);
@@ -469,6 +503,7 @@ namespace ProjectName.UI
         {
             _isVisible = false;
             _selectedSpy = null;
+            _scrollPos = Vector2.zero;
         }
 
         /// <summary>UI 표시 여부</summary>
@@ -660,10 +695,29 @@ namespace ProjectName.UI
 
         private void DrawBar(float x, float y, float width, float height, float ratio, Color fillColor, Color bgColor)
         {
-            GUI.DrawTexture(new Rect(x, y, width, height), MakeTex(1, 1, bgColor));
-            GUI.DrawTexture(new Rect(x, y, width * Mathf.Clamp01(ratio), height), MakeTex(1, 1, fillColor));
+            var tex = GetCachedTex();
+            GUI.DrawTexture(new Rect(x, y, width, height), tex);
+            var oldColor = GUI.color;
+            GUI.color = bgColor;
+            GUI.DrawTexture(new Rect(x, y, width, height), tex);
+            GUI.color = fillColor;
+            GUI.DrawTexture(new Rect(x, y, width * Mathf.Clamp01(ratio), height), tex);
+            GUI.color = oldColor;
         }
 
+        private static Texture2D GetCachedTex()
+        {
+            if (_cachedTexWhite == null)
+            {
+                _cachedTexWhite = new Texture2D(1, 1);
+                _cachedTexWhite.hideFlags = HideFlags.HideAndDontSave;
+                _cachedTexWhite.SetPixel(0, 0, Color.white);
+                _cachedTexWhite.Apply();
+            }
+            return _cachedTexWhite;
+        }
+
+        [System.Obsolete("Use GetCachedTex() instead — allocates every call")]
         private Texture2D MakeTex(int w, int h, Color c)
         {
             var tex = new Texture2D(w, h);
@@ -680,7 +734,7 @@ namespace ProjectName.UI
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 64,
+                fontSize = 16,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.white },
                 alignment = TextAnchor.MiddleLeft
@@ -688,14 +742,14 @@ namespace ProjectName.UI
 
             _styleLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 52,
+                fontSize = 14,
                 normal = { textColor = Color.white },
                 alignment = TextAnchor.MiddleLeft
             };
 
             _styleValue = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 48,
+                fontSize = 13,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.yellow },
                 alignment = TextAnchor.MiddleLeft
@@ -703,7 +757,7 @@ namespace ProjectName.UI
 
             _styleWarning = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 52,
+                fontSize = 14,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.red },
                 alignment = TextAnchor.MiddleLeft
@@ -711,7 +765,7 @@ namespace ProjectName.UI
 
             _styleInfo = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 48,
+                fontSize = 13,
                 fontStyle = FontStyle.Italic,
                 normal = { textColor = Color.cyan },
                 alignment = TextAnchor.MiddleLeft,

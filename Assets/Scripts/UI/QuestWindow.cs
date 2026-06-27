@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
@@ -15,18 +16,25 @@ namespace ProjectName.UI
             ApplyTheme(Phase33_Themes.CreateMedievalQuestTheme());
         }
 
-        [Header("Quest Window")]
-        [SerializeField] private Transform _questListContainer;
-
         private Vector2 _scrollPos;
 
+        // 캐시된 GUIStyle — GC-safe
         private GUIStyle _styleTitle;
         private GUIStyle _styleLabel;
         private GUIStyle _styleValue;
+        private GUIStyle _styleDesc;
+        private GUIStyle _styleObjective;
+        private GUIStyle _styleReward;
+
+        // 캐시된 퀘스트 리스트 — OnGUI GC 할당 방지
+        private List<QuestData> _cachedActive;
+        private List<QuestData> _cachedCompleted;
+        private bool _needsRefresh = true;
 
         protected override void OnShow()
         {
             Debug.Log("[QuestWindow] 열림");
+            base.OnShow(); // ★ 필수: 테마 배경 렌더링
             RefreshQuestList();
         }
 
@@ -36,11 +44,20 @@ namespace ProjectName.UI
         }
 
         /// <summary>
-        /// 퀘스트 목록 갱신 — QuestManager에서 데이터 로드
+        /// 퀘스트 목록 갱신 — QuestManager에서 데이터 로드, 캐시 갱신
         /// </summary>
         public void RefreshQuestList()
         {
-            Debug.Log($"[QuestWindow] 퀘스트 목록 갱신: {QuestManager.GetActiveQuests().Count} 진행 중");
+            _cachedActive = QuestManager.GetActiveQuests();
+            _cachedCompleted = QuestManager.GetCompletedQuests();
+            _needsRefresh = false;
+            Debug.Log($"[QuestWindow] 캐시 갱신: {_cachedActive.Count} 진행 중, {_cachedCompleted.Count} 완료");
+        }
+
+        /// <summary>강제 재갱신 플래그 설정 (외부에서 퀘스트 변경 시 호출)</summary>
+        public void MarkDirty()
+        {
+            _needsRefresh = true;
         }
 
         private void OnGUI()
@@ -48,6 +65,10 @@ namespace ProjectName.UI
             if (!IsOpen) return;
 
             EnsureStyles();
+
+            // 변경 감지 시 캐시 갱신 (OnGUI 루프 내 QuestManager 직접 호출 방지)
+            if (_needsRefresh)
+                RefreshQuestList();
 
             float panelW = 900f;
             float panelH = 750f;
@@ -59,40 +80,36 @@ namespace ProjectName.UI
             // 타이틀
             GUI.Label(new Rect(x + 10, y + 5, panelW - 20, 42), "📋 퀘스트 목록", _styleTitle);
 
-            // 통계
-            var active = QuestManager.GetActiveQuests();
-            var completed = QuestManager.GetCompletedQuests();
-            GUI.Label(new Rect(x + 10, y + 35, 450, 30), $"🔄 진행 중: {active.Count}개", _styleLabel);
-            GUI.Label(new Rect(x + 220, y + 35, 450, 30), $"✅ 완료: {completed.Count}개", _styleValue);
+            // 통계 (캐시 사용)
+            GUI.Label(new Rect(x + 10, y + 35, 450, 30), $"🔄 진행 중: {_cachedActive.Count}개", _styleLabel);
+            GUI.Label(new Rect(x + 220, y + 35, 450, 30), $"✅ 완료: {_cachedCompleted.Count}개", _styleValue);
 
             // 퀘스트 목록
             float listY = y + 60;
             float listH = panelH - 100;
             float itemH = 120f;
-            float totalH = (active.Count + completed.Count) * itemH + 10;
+            float totalH = (_cachedActive.Count + _cachedCompleted.Count) * itemH + 10;
 
             _scrollPos = GUI.BeginScrollView(new Rect(x + 10, listY, panelW - 20, listH), _scrollPos,
                 new Rect(0, 0, panelW - 40, totalH));
 
             float cy = 5;
 
-            // 진행 중 퀘스트
-            for (int i = 0; i < active.Count; i++)
+            // 진행 중 퀘스트 (캐시 사용)
+            for (int i = 0; i < _cachedActive.Count; i++)
             {
-                var quest = active[i];
-                DrawQuestEntry(quest, cy, panelW - 60, QuestState.Active);
+                DrawQuestEntry(_cachedActive[i], cy, panelW - 60, QuestState.Active);
                 cy += itemH;
             }
 
-            // 완료 퀘스트
-            for (int i = 0; i < completed.Count; i++)
+            // 완료 퀘스트 (캐시 사용)
+            for (int i = 0; i < _cachedCompleted.Count; i++)
             {
-                var quest = completed[i];
-                DrawQuestEntry(quest, cy, panelW - 60, QuestState.Completed);
+                DrawQuestEntry(_cachedCompleted[i], cy, panelW - 60, QuestState.Completed);
                 cy += itemH;
             }
 
-            if (active.Count == 0 && completed.Count == 0)
+            if (_cachedActive.Count == 0 && _cachedCompleted.Count == 0)
             {
                 GUI.Label(new Rect(10, cy, panelW - 40, 30), "퀘스트가 없습니다. NPC를 찾아 퀘스트를 수락하세요.", _styleLabel);
             }
@@ -100,6 +117,10 @@ namespace ProjectName.UI
             GUI.EndScrollView();
         }
 
+        /// <summary>
+        /// 퀘스트 항목 하나를 IMGUI로 렌더링합니다.
+        /// 모든 스타일은 캐시된 인스턴스를 사용하여 GC 할당을 방지합니다.
+        /// </summary>
         private void DrawQuestEntry(QuestData quest, float y, float width, QuestState state)
         {
             GUI.Box(new Rect(0, y, width, 112), "");
@@ -110,13 +131,13 @@ namespace ProjectName.UI
             GUI.Label(new Rect(10, y + 4, width - 20, 33), $"<color={colorHex}>{quest.questName}</color>  {stateStr}", _styleTitle);
 
             if (!string.IsNullOrEmpty(quest.description))
-                GUI.Label(new Rect(10, y + 28, width - 20, 27), quest.description, new GUIStyle(GUI.skin.label) { fontSize = 48, normal = { textColor = Color.gray } });
+                GUI.Label(new Rect(10, y + 28, width - 20, 27), quest.description, _styleDesc);
 
             if (quest.objectives != null && quest.objectives.Count > 0)
             {
                 var obj = quest.objectives[0];
                 string prog = obj.requiredCount > 0 ? $" ({obj.currentCount}/{obj.requiredCount})" : "";
-                GUI.Label(new Rect(10, y + 48, width - 20, 24), $"▸ {obj.description}{prog}", new GUIStyle(GUI.skin.label) { fontSize = 44, normal = { textColor = Color.cyan } });
+                GUI.Label(new Rect(10, y + 48, width - 20, 24), $"▸ {obj.description}{prog}", _styleObjective);
             }
 
             // 보상 표시
@@ -124,15 +145,22 @@ namespace ProjectName.UI
             if (quest.reward.gold > 0) rewardStr += $"💰{quest.reward.gold} ";
             if (quest.reward.exp > 0) rewardStr += $"✨{quest.reward.exp}EXP";
             if (!string.IsNullOrEmpty(rewardStr))
-                GUI.Label(new Rect(10, y + 64, width - 20, 21), rewardStr, new GUIStyle(GUI.skin.label) { fontSize = 40, normal = { textColor = Color.yellow } });
+                GUI.Label(new Rect(10, y + 64, width - 20, 21), rewardStr, _styleReward);
         }
 
+        /// <summary>
+        /// GUIStyle을 1회 생성 후 캐시합니다.
+        /// OnGUI 내에서 new GUIStyle(...) 호출이 없도록 보장합니다.
+        /// </summary>
         private void EnsureStyles()
         {
             if (_styleTitle != null) return;
             _styleTitle = new GUIStyle(GUI.skin.label) { fontSize = 60, fontStyle = FontStyle.Bold, richText = true, normal = { textColor = Color.white } };
             _styleLabel = new GUIStyle(GUI.skin.label) { fontSize = 52, normal = { textColor = Color.white } };
             _styleValue = new GUIStyle(GUI.skin.label) { fontSize = 52, fontStyle = FontStyle.Bold, normal = { textColor = Color.green } };
+            _styleDesc = new GUIStyle(GUI.skin.label) { fontSize = 48, normal = { textColor = Color.gray } };
+            _styleObjective = new GUIStyle(GUI.skin.label) { fontSize = 44, normal = { textColor = Color.cyan } };
+            _styleReward = new GUIStyle(GUI.skin.label) { fontSize = 40, normal = { textColor = Color.yellow } };
         }
     }
 }

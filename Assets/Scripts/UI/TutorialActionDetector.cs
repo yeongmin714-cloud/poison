@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Core.Data;
-using ProjectName.UI;
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// T-Cycle-06: T4 설명창 11종 액션 감지 구현.
@@ -32,16 +31,16 @@ namespace ProjectName.Systems
         private static readonly ActionEntry[] ALL_ACTIONS = new ActionEntry[]
         {
             new ActionEntry { id = TutorialGuideData.ID_01_MOVEMENT,     description = "WASD 이동" },
-            new ActionEntry { id = "02_camera",                          description = "카메라 회전 (우클릭 드래그)" },
+            new ActionEntry { id = TutorialGuideData.ID_02_CAMERA,       description = "카메라 회전 (우클릭 드래그)" },
             new ActionEntry { id = TutorialGuideData.ID_03_ATTACK,       description = "좌클릭 공격" },
             new ActionEntry { id = "04_dash",                            description = "Shift 대쉬" },
             new ActionEntry { id = "05_roll",                            description = "Space 구르기" },
             new ActionEntry { id = "06_chop_tree",                     description = "E키 나무 채집" },
             new ActionEntry { id = "07_mine_stone",                    description = "E키 돌 채집" },
             new ActionEntry { id = TutorialGuideData.ID_08_HERB_PICK,    description = "E키 약초 채집" },
-                        new ActionEntry { id = "09_inventory",                        description = "I키 인벤토리" },
-                        new ActionEntry { id = "10_craft",                            description = "E키 제작대" },
-                        new ActionEntry { id = TutorialGuideData.ID_11_RECIPE_BOOK,  description = "R키 레시피 북" },
+            new ActionEntry { id = "09_inventory",                        description = "I키 인벤토리" },
+            new ActionEntry { id = "10_craft",                            description = "E키 제작대" },
+            new ActionEntry { id = TutorialGuideData.ID_11_RECIPE_BOOK,  description = "R키 레시피 북" },
         };
 
         // ================================================================
@@ -347,9 +346,9 @@ namespace ProjectName.Systems
         /// 학습 진행률을 문자열로 반환
         /// </summary>
         public string GetProgressString()
-                {
-                    return $"{DetectedCount}/{TotalCount} actions completed";
-                }
+        {
+            return $"{DetectedCount}/{TotalCount} actions completed";
+        }
 
         /// <summary>
         /// 특정 액션이 이미 감지되었는지 확인합니다.
@@ -371,6 +370,12 @@ namespace ProjectName.Systems
             _territoryGuidesStarted = true;
         }
 
+        private GuardPlaceholder _cachedGuard;
+        private GuardInfoWindow _cachedGuardInfoWindow;
+        private ShopWindow _cachedShopWindow;
+        private float _territoryRefreshTimer;
+        private const float TERRITORY_REFRESH_INTERVAL = 0.5f;
+
         /// <summary>
         /// T6 영지 액션 감지
         /// </summary>
@@ -378,64 +383,56 @@ namespace ProjectName.Systems
         {
             if (!_territoryGuidesStarted) return;
 
-            // 12_guard_interact: E키 + GuardPlaceholder
-            if (!_detectedActions.Contains("12_guard_interact") && Input.GetKeyDown(KeyCode.E))
+            // FindObjectOfType 캐싱 — 매 프레임 대신 간격 체크
+            _territoryRefreshTimer -= Time.deltaTime;
+            if (_territoryRefreshTimer <= 0f)
             {
-                var guard = FindGuardNearby();
-                if (guard != null)
-                {
-                    _detectedActions.Add("12_guard_interact");
-                    PlayerPrefs.SetInt("TutorialAction_12_guard_interact", 1);
-                    TutorialGuideSystem.Instance.ShowGuide("12_guard_interact");
-                }
+                _territoryRefreshTimer = TERRITORY_REFRESH_INTERVAL;
+                if (_cachedGuardInfoWindow == null)
+                    _cachedGuardInfoWindow = FindObjectOfType<GuardInfoWindow>();
+                if (_cachedShopWindow == null)
+                    _cachedShopWindow = FindObjectOfType<ShopWindow>();
+                if (_cachedGuard == null && !_detectedActions.Contains("12_guard_interact"))
+                    _cachedGuard = FindGuardNearby();
+            }
+
+            // 12_guard_interact: E키 + GuardPlaceholder
+            if (!_detectedActions.Contains("12_guard_interact") && _cachedGuard != null
+                && _keyboard != null && _keyboard.eKey.wasPressedThisFrame)
+            {
+                MarkTerritoryAction("12_guard_interact");
             }
 
             // 13_guard_info: GuardInfoWindow 열림 감지
-            if (!_detectedActions.Contains("13_guard_info"))
+            if (!_detectedActions.Contains("13_guard_info")
+                && _cachedGuardInfoWindow != null && _cachedGuardInfoWindow.IsOpen)
             {
-                var infoWindow = FindObjectOfType<GuardInfoWindow>();
-                if (infoWindow != null && infoWindow.IsOpen)
-                {
-                    _detectedActions.Add("13_guard_info");
-                    PlayerPrefs.SetInt("TutorialAction_13_guard_info", 1);
-                    TutorialGuideSystem.Instance.ShowGuide("13_guard_info");
-                }
+                MarkTerritoryAction("13_guard_info");
             }
 
             // 18_shop: ShopWindow 열림
-            if (!_detectedActions.Contains("18_shop"))
+            if (!_detectedActions.Contains("18_shop")
+                && _cachedShopWindow != null && _cachedShopWindow.IsOpen)
             {
-                var shop = FindObjectOfType<ShopWindow>();
-                if (shop != null && shop.IsOpen)
-                {
-                    _detectedActions.Add("18_shop");
-                    PlayerPrefs.SetInt("TutorialAction_18_shop", 1);
-                    TutorialGuideSystem.Instance.ShowGuide("18_shop");
-                }
+                MarkTerritoryAction("18_shop");
             }
 
             // 19_world_map: M키
-            if (!_detectedActions.Contains("19_world_map") && Input.GetKeyDown(KeyCode.M))
+            if (!_detectedActions.Contains("19_world_map") && _keyboard != null
+                && _keyboard.mKey.wasPressedThisFrame)
             {
-                _detectedActions.Add("19_world_map");
-                PlayerPrefs.SetInt("TutorialAction_19_world_map", 1);
-                TutorialGuideSystem.Instance.ShowGuide("19_world_map");
+                MarkTerritoryAction("19_world_map");
             }
 
             // 20_status: C키
-            if (!_detectedActions.Contains("20_status") && Input.GetKeyDown(KeyCode.C))
+            if (!_detectedActions.Contains("20_status") && _keyboard != null
+                && _keyboard.cKey.wasPressedThisFrame)
             {
-                _detectedActions.Add("20_status");
-                PlayerPrefs.SetInt("TutorialAction_20_status", 1);
-                TutorialGuideSystem.Instance.ShowGuide("20_status");
+                MarkTerritoryAction("20_status");
             }
 
-            // 22_building_enter: 건물 출입
-            if (!_detectedActions.Contains("22_building_enter"))
-            {
-                // IndoorSceneTransition이 최근에 호출되었는지 확인
-                // (프록시 변수나 이벤트로 감지)
-            }
+            // 22_building_enter: 건물 출입 — TODO: IndoorSceneTransition 이벤트 기반 구현 필요
+            // TutorialLordSequence.Step9에서 IndoorSceneTransition.OnEnterBuilding += () => MarkTerritoryAction("22_building_enter")
 
             // T6 5종 완료 시 메시지
             if (_territoryGuidesStarted && !_t6Complete)
@@ -451,6 +448,19 @@ namespace ProjectName.Systems
                     Debug.Log("[TutorialActionDetector] 🎉 튜토리얼 완료!");
                 }
             }
+        }
+
+        /// <summary>T6 영지 액션 감지 마킹 헬퍼</summary>
+        private void MarkTerritoryAction(string actionId)
+        {
+            if (_detectedActions.Contains(actionId)) return;
+            _detectedActions.Add(actionId);
+            PlayerPrefs.SetInt(PREFS_PREFIX + actionId, 1);
+            PlayerPrefs.Save();
+            Debug.Log($"[TutorialActionDetector] ✅ T6 액션 감지: '{actionId}'");
+
+            if (TutorialGuideSystem.Instance != null)
+                TutorialGuideSystem.Instance.ShowGuide(actionId);
         }
 
         private GuardPlaceholder FindGuardNearby()

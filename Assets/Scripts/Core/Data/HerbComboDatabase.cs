@@ -154,7 +154,14 @@ namespace ProjectName.Core.Data
         /// <summary>
         /// Returns all loaded combinations (read-only).
         /// </summary>
-        public static IReadOnlyDictionary<string, HerbComboResult> AllCombos => _combos;
+        public static IReadOnlyDictionary<string, HerbComboResult> AllCombos
+        {
+            get
+            {
+                Initialize();
+                return _combos;
+            }
+        }
     }
 
     /// <summary>

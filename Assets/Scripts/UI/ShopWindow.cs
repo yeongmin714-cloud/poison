@@ -18,7 +18,10 @@ namespace ProjectName.UI
         [SerializeField] private GameObject _itemSlotPrefab;    // 아이템 슬롯 프리팹
         
         [Header("Shop Inventory")]
-        [SerializeField] public List<ShopItem> _shopInventory = new List<ShopItem>(); // 상점에서 판매하는 아이템 목록
+        [SerializeField] private List<ShopItem> _shopInventory = new List<ShopItem>(); // 상점에서 판매하는 아이템 목록
+        
+        /// <summary>테스트/외부 접근용 읽기 전용 인벤토리</summary>
+        public IReadOnlyList<ShopItem> ShopInventory => _shopInventory;
         
         [Header("UI Texts")]
         [SerializeField] private UnityEngine.UI.Text _goldText; // 현재 골드 표시
@@ -28,13 +31,20 @@ namespace ProjectName.UI
         private Vector2 _scrollPosition;
         private int _selectedSlotIndex = -1;
         
+        // OnGUI GC 최적화: 캐시된 표시 문자열
+        private string _cachedGoldText;
+        private int _cachedGoldValue = int.MinValue;
+        private string[] _cachedPriceTexts;
+        private string[] _cachedStockTexts;
+        private Texture2D[] _cachedIconTextures;
+        
         // ===== 상점 아이템 데이터 구조 =====
         [System.Serializable]
         public class ShopItem
         {
             public PlayerInventory.ItemData item;      // 판매할 아이템
             public int price;          // 가격 (골드)
-            public int stock;          // 재고 (0이면 무한)
+            public int stock;          // 재고 (-1이면 무한, 0이면 품절, 양수면 남은 재고)
             public bool isRare;        // 희귀 아이템 여부
         }
         
@@ -168,9 +178,10 @@ namespace ProjectName.UI
         {
             // 실제 프로젝트에서는 물약 아이템 데이터베이스가 있어야 함
             // 여기서는 간단히 소비 가능한 아이템으로 생성
+            // id는 안정적인 문자열 사용 (GetHashCode() 대신)
             return new PlayerInventory.ItemData
             {
-                id = $"potion_{displayName.GetHashCode()}",
+                id = $"potion_{displayName.Replace(" ", "_")}",
                 displayName = displayName,
                 description = description,
                 category = PlayerInventory.ItemCategory.Potion,
@@ -185,6 +196,7 @@ namespace ProjectName.UI
         private void OnGUI()
         {
             if (!IsOpen) return;
+            if (_currentItems == null) return; // NRE 방지
             
             InitStyles();
             
@@ -200,9 +212,15 @@ namespace ProjectName.UI
             float titleHeight = 90;
             GUI.Label(new Rect(x, y, width, titleHeight), "🏪 상점", _styleTitle);
             
-            // === 골드 표시 ==
+            // === 골드 표시 (캐시 사용) ==
             float goldY = y + titleHeight + 10f;
-            GUI.Label(new Rect(x + 10, goldY, width - 20, 38), $"골드: {PlayerStats.Instance?.Gold ?? 0}", _styleItemName);
+            int currentGold = PlayerStats.Instance?.Gold ?? 0;
+            if (currentGold != _cachedGoldValue)
+            {
+                _cachedGoldValue = currentGold;
+                _cachedGoldText = $"골드: {currentGold}";
+            }
+            GUI.Label(new Rect(x + 10, goldY, width - 20, 38), _cachedGoldText, _styleItemName);
             
             // === 아이템 목록 ==
             float itemsY = goldY + 30f;
@@ -218,7 +236,7 @@ namespace ProjectName.UI
             {
                 ShopItem selectedItem = _currentItems[_selectedSlotIndex];
                 bool canAfford = (PlayerStats.Instance?.Gold ?? 0) >= selectedItem.price;
-                bool inStock = selectedItem.stock == 0 || selectedItem.stock > 0;
+                bool inStock = selectedItem.stock == -1 || selectedItem.stock > 0;
                 
                 GUI.enabled = canAfford && inStock;
                 if (GUI.Button(new Rect(x + 10, buttonY, buttonWidth, 45), "구매", _styleBuyButton))
@@ -287,8 +305,12 @@ namespace ProjectName.UI
                 
                 ShopItem item = _currentItems[i];
                 
-                // 아이콘 (ItemIconDatabase 사용)
-                Texture2D iconTex = ItemIconDatabase.GetIconFromSlot(null);
+                // 아이콘 캐싱 (ItemIconDatabase 사용)
+                Texture2D iconTex;
+                if (i < _cachedIconTextures.Length && _cachedIconTextures[i] != null)
+                    iconTex = _cachedIconTextures[i];
+                else
+                    iconTex = ItemIconDatabase.GetOrCreateIcon(item.item);
                 if (iconTex != null)
                 {
                     GUI.DrawTexture(new Rect(sx + 5, sy + 5, 90, 90), iconTex);
@@ -320,15 +342,14 @@ namespace ProjectName.UI
                 GUI.Label(new Rect(sx + 42, descY, slotWidth - 47, 24), 
                     item.item.description, _styleSlotLabel);
                 
-                // 가격
+                // 가격 (캐시 사용)
                 float priceY = sy + 52f;
                 GUI.Label(new Rect(sx + 42, priceY, slotWidth/2 - 10, 27), 
-                    $"가격: {item.price}G", _styleItemPrice);
+                    _cachedPriceTexts != null && i < _cachedPriceTexts.Length ? _cachedPriceTexts[i] : $"가격: {item.price}G", _styleItemPrice);
                 
-                // 재고
-                string stockText = item.stock == 0 ? "무한" : $"{item.stock}개";
+                // 재고 (캐시 사용)
                 GUI.Label(new Rect(sx + slotWidth/2 + 5, priceY, slotWidth/2 - 10, 27), 
-                    $"재고: {stockText}", _styleItemStock);
+                    _cachedStockTexts != null && i < _cachedStockTexts.Length ? _cachedStockTexts[i] : "재고: ?", _styleItemStock);
                 
                 // 클릭 처리
                 if (Event.current.type == EventType.MouseDown && slotRect.Contains(Event.current.mousePosition))
@@ -352,22 +373,17 @@ namespace ProjectName.UI
             // 골드 확인 및 차감
             if (!(PlayerStats.Instance?.SpendGold(item.price) ?? false)) return;
             
-            // 재고 확인 및 감소
+            // 재고 확인 및 감소 (-1은 무한)
             if (item.stock > 0)
             {
                 item.stock--;
-                if (item.stock <= 0)
-                {
-                    // 재고 0이면 목록에서 제거 (옵션)
-                    // 여기서는 그냥 0으로 둠
-                }
             }
             
             // 아이템을 플레이어 인벤토리에 추가
             if (PlayerInventory.Instance.AddItem(item.item, 1))
             {
                 Debug.Log($"[ShopWindow] 구매 성공: {item.item.displayName}");
-                RefreshShopItems(); // UI 업데이트
+                RefreshShopItems(); // UI 업데이트 + 캐시 갱신
             }
             else
             {
@@ -444,6 +460,33 @@ namespace ProjectName.UI
         public void RefreshShopItems()
         {
             _currentItems = new List<ShopItem>(_shopInventory); // 복사본 생성
+            BuildDisplayCache(); // GC 최적화: 표시 문자열 캐시 갱신
+        }
+        
+        // 표시 문자열 캐시 빌드 (OnGUI 내 string interpolation GC 할당 방지)
+        private void BuildDisplayCache()
+        {
+            if (_currentItems == null || _currentItems.Count == 0)
+            {
+                _cachedPriceTexts = null;
+                _cachedStockTexts = null;
+                _cachedIconTextures = null;
+                return;
+            }
+            int count = _currentItems.Count;
+            if (_cachedPriceTexts == null || _cachedPriceTexts.Length != count)
+            {
+                _cachedPriceTexts = new string[count];
+                _cachedStockTexts = new string[count];
+                _cachedIconTextures = new Texture2D[count];
+            }
+            for (int i = 0; i < count; i++)
+            {
+                var item = _currentItems[i];
+                _cachedPriceTexts[i] = $"가격: {item.price}G";
+                _cachedStockTexts[i] = item.stock == -1 ? "재고: 무한" : $"재고: {item.stock}개";
+                _cachedIconTextures[i] = ItemIconDatabase.GetOrCreateIcon(item.item);
+            }
         }
         
         // 골드 표시 업데이트

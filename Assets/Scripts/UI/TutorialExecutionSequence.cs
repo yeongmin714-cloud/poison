@@ -1,6 +1,7 @@
 using System.Collections;
 using ProjectName.Core;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace ProjectName.Systems
 {
@@ -33,20 +34,24 @@ namespace ProjectName.Systems
             if (_isRunning || _hasExecuted) return;
             _isRunning = true;
 
-            TutorialGuideSystem.Instance.ShowGuide("execution_ready");
+            if (TutorialGuideSystem.Instance != null)
+                TutorialGuideSystem.Instance.ShowGuide("execution_ready");
+            else
+                Debug.LogWarning("[TutorialExecutionSequence] TutorialGuideSystem.Instance is null!");
+
             StartCoroutine(ExecutionCoroutine());
         }
 
         private IEnumerator ExecutionCoroutine()
         {
             // 1. 플레이어가 E키로 영주에게 음식 전달할 때까지 대기
-            yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.E));
+            yield return new WaitUntil(() => Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame);
 
             // 2. 영주 음식 섭취 + 행동불능
             Debug.Log("[TutorialExecutionSequence] 영주 음식 섭취 → 행동불능");
 
             // 3. MercyUI 표시 (처형/살려주기)
-            var mercyUI = FindObjectOfType<MercyUI>();
+            MercyUI mercyUI = MercyUI.Instance;
             if (mercyUI != null)
             {
                 MercyUI.Show("처형할까?");
@@ -68,7 +73,10 @@ namespace ProjectName.Systems
             yield return new WaitForSeconds(0.5f);
 
             // 7. 영지 가이드 시작
-            TutorialGuideSystem.Instance.ShowGuide("territory_intro");
+            if (TutorialGuideSystem.Instance != null)
+                TutorialGuideSystem.Instance.ShowGuide("territory_intro");
+            else
+                Debug.LogWarning("[TutorialExecutionSequence] TutorialGuideSystem.Instance is null on territory guide!");
 
             _isRunning = false;
             _hasExecuted = true;

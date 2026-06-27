@@ -3,7 +3,7 @@ using ProjectName.Core.Data;
 using ProjectName.UI;
 using UnityEngine;
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// T-Cycle-04: 살인명부 연동 — TutorialLordSequence Step5~7 연결.
@@ -43,8 +43,6 @@ namespace ProjectName.Systems
                 return;
             }
 
-            MarkShown();
-
             var controllerGo = new GameObject("[TutorialRevengeListController]");
             Object.DontDestroyOnLoad(controllerGo);
             var controller = controllerGo.AddComponent<RevengeListController>();
@@ -69,14 +67,17 @@ namespace ProjectName.Systems
                 if (uiManager != null && uiManager.revengeListWindow != null)
                 {
                     if (!uiManager.revengeListWindow.IsOpen)
+                    {
                         uiManager.ToggleWindow(uiManager.revengeListWindow);
+                        // ToggleWindow → Show() → OnShow()에서 _selectedIndex = -1로 리셋되므로,
+                        // ToggleWindow 완료 후 SelectIndex()로 첫 번째 항목 선택 (reflection 대체)
+                        uiManager.revengeListWindow.SelectIndex(0);
+                    }
                 }
 
-                // 4) 첫 번째 항목 선택 (하이라이트)
-                var field = typeof(RevengeListWindow).GetField("_selectedIndex",
-                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-                if (field != null)
-                    field.SetValue(uiManager.revengeListWindow, 0);
+                // 4) PlayerPrefs 저장 (시퀀스 성공적 시작 후) — Invoke 직전에 저장하여
+                //    시퀀스 도중 크래시 시 재시도 가능하도록 함
+                MarkShown();
 
                 // 5) 3초 후 Invoke로 자동 닫기
                 Invoke(nameof(CloseAndContinue), 3f);
@@ -84,12 +85,12 @@ namespace ProjectName.Systems
 
             private void CloseAndContinue()
             {
-                // RevengeListWindow 닫기
+                // RevengeListWindow 닫기 (스택 정리 보장을 위해 ToggleWindow 사용)
                 var uiManager = UIManager.Instance;
                 if (uiManager != null && uiManager.revengeListWindow != null)
                 {
                     if (uiManager.revengeListWindow.IsOpen)
-                        uiManager.revengeListWindow.Hide();
+                        uiManager.ToggleWindow(uiManager.revengeListWindow);
                 }
 
                 // 가이드 표시
@@ -101,7 +102,14 @@ namespace ProjectName.Systems
                 else
                 {
                     var guideSystem = TutorialGuideSystem.Instance;
-                    guideSystem?.ShowGuide("01_movement");
+                    if (guideSystem != null)
+                    {
+                        guideSystem.ShowGuide("01_movement");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[TutorialRevengeListIntegration] TutorialQuestManager와 TutorialGuideSystem 모두 null — 가이드 시작 불가");
+                    }
                 }
 
                 Debug.Log("[TutorialRevengeListIntegration] 살인명부 튜토리얼 시퀀스 완료");

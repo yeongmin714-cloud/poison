@@ -1,7 +1,6 @@
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems;
-using ProjectName.Core.Data;
 using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
@@ -31,13 +30,14 @@ namespace ProjectName.UI
 
         // ── 스타일 ──
         private GUIStyle _titleStyle;
-        private GUIStyle _previewBoxStyle;
         private GUIStyle _sectionLabelStyle;
         private GUIStyle _colorBtnStyle;
         private GUIStyle _selectedColorBtnStyle;
         private GUIStyle _shapeBtnStyle;
         private GUIStyle _selectedShapeBtnStyle;
         private GUIStyle _messageStyle;
+        private GUIStyle _symbolPreviewStyle;    // 프리뷰 문양 스타일 (캐싱)
+        private GUIStyle _previewNameStyle;      // 프리뷰 이름 스타일 (캐싱)
         private bool _stylesInitialized;
 
         // ── 모든 색상 및 문양 목록 ──
@@ -118,13 +118,6 @@ namespace ProjectName.UI
                 normal = { textColor = new Color(1f, 0.9f, 0.4f) }
             };
 
-            _previewBoxStyle = new GUIStyle(GUI.skin.box)
-            {
-                fontSize = 224,
-                alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = Color.white }
-            };
-
             _sectionLabelStyle = new GUIStyle(GUI.skin.label)
             {
                 fontSize = 208,
@@ -134,7 +127,7 @@ namespace ProjectName.UI
 
             _colorBtnStyle = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 288,
+                fontSize = 28,
                 alignment = TextAnchor.MiddleCenter,
                 fixedWidth = 48,
                 fixedHeight = 40,
@@ -148,7 +141,7 @@ namespace ProjectName.UI
 
             _shapeBtnStyle = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 256,
+                fontSize = 28,
                 alignment = TextAnchor.MiddleCenter,
                 fixedWidth = 50,
                 fixedHeight = 44,
@@ -162,9 +155,24 @@ namespace ProjectName.UI
 
             _messageStyle = new GUIStyle(GUI.skin.box)
             {
-                fontSize = 208,
+                fontSize = 28,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = new Color(0.7f, 1f, 0.7f) }
+            };
+
+            _symbolPreviewStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 44,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = Color.white }
+            };
+
+            _previewNameStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 28,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = Color.white }
             };
 
             _stylesInitialized = true;
@@ -199,7 +207,6 @@ namespace ProjectName.UI
             GUILayout.Space(8);
             GUILayout.Label("이름", _sectionLabelStyle);
             GUI.SetNextControlName("FlagNameField");
-            string prevName = _editName;
             _editName = GUILayout.TextField(_editName, 8, GUILayout.Height(42), GUILayout.Width(_windowWidth - 40));
             if (_editName.Length > 8)
                 _editName = _editName.Substring(0, 8);
@@ -315,25 +322,13 @@ namespace ProjectName.UI
             GUI.DrawTexture(symbolRect, Texture2D.whiteTexture);
             GUI.color = Color.white;
 
-            // 심볼 텍스트
-            GUIStyle symbolStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = (int)(symbolSize * 0.7f),
-                alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = Color.white }
-            };
-            GUI.Label(symbolRect, symbol, symbolStyle);
+            // 심볼 텍스트 (캐싱된 스타일 사용)
+            _symbolPreviewStyle.fontSize = (int)(symbolSize * 0.7f);
+            GUI.Label(symbolRect, symbol, _symbolPreviewStyle);
 
             // 국기 이름 (하단)
             Rect nameRect = new Rect(previewContainer.x, previewContainer.y + _previewSize * 0.72f, previewContainer.width, _previewSize * 0.25f);
-            GUIStyle nameStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 288,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = Color.white }
-            };
-            GUI.Label(nameRect, displayName, nameStyle);
+            GUI.Label(nameRect, displayName, _previewNameStyle);
         }
 
         /// <summary>

@@ -52,6 +52,14 @@ namespace ProjectName.UI
         private bool _stylesInitialized;
         private Texture2D _texWhite;
 
+        // ===== GUIContent 캐시 (OnGUI GC 할당 방지) =====
+        private readonly GUIContent _gcItemName = new GUIContent();
+        private readonly GUIContent _gcRarityCategory = new GUIContent();
+        private readonly GUIContent _gcDescription = new GUIContent();
+        private readonly GUIContent _gcEffects = new GUIContent();
+        private readonly GUIContent _gcDurability = new GUIContent();
+        private readonly GUIContent _gcCount = new GUIContent();
+
         private void Awake()
         {
             if (_instance != null && _instance != this)
@@ -64,6 +72,17 @@ namespace ProjectName.UI
             // Phase 33: create tooltip theme if none assigned
             if (_theme == null)
                 _theme = Phase33_Themes.CreateTooltipTheme();
+        }
+
+        private void OnDestroy()
+        {
+            if (_texWhite != null)
+            {
+                Destroy(_texWhite);
+                _texWhite = null;
+            }
+            if (_instance == this)
+                _instance = null;
         }
 
         /// <summary>툴팁 표시 요청 (슬롯 호버 시 매 프레임 호출)</summary>
@@ -189,13 +208,15 @@ namespace ProjectName.UI
             float cw = tooltipRect.width - _padding * 2;
 
             // 아이템명
-            GUI.Label(new Rect(cx, cy, cw, 22), _tooltipData.itemName, _styleItemName);
+            _gcItemName.text = _tooltipData.itemName;
+            GUI.Label(new Rect(cx, cy, cw, 22), _gcItemName, _styleItemName);
             cy += 24;
 
             // 등급 + 카테고리
             string rarityStr = ItemTooltipData.GetRarityDisplayName(_tooltipData.rarity);
             string categoryStr = GetCategoryDisplayName(_tooltipData.category);
-            GUI.Label(new Rect(cx, cy, cw, 16), $"{rarityStr} · {categoryStr}", _styleRarityLabel);
+            _gcRarityCategory.text = $"{rarityStr} · {categoryStr}";
+            GUI.Label(new Rect(cx, cy, cw, 16), _gcRarityCategory, _styleRarityLabel);
             cy += 18;
 
             // 구분선
@@ -205,18 +226,18 @@ namespace ProjectName.UI
             // 설명
             if (!string.IsNullOrEmpty(_tooltipData.description))
             {
-                float descHeight = _styleDescription.CalcHeight(
-                    new GUIContent(_tooltipData.description), cw);
-                GUI.Label(new Rect(cx, cy, cw, descHeight), _tooltipData.description, _styleDescription);
+                _gcDescription.text = _tooltipData.description;
+                float descHeight = _styleDescription.CalcHeight(_gcDescription, cw);
+                GUI.Label(new Rect(cx, cy, cw, descHeight), _gcDescription, _styleDescription);
                 cy += descHeight + 4;
             }
 
             // 효과
             if (!string.IsNullOrEmpty(_tooltipData.effects))
             {
-                float effHeight = _styleEffects.CalcHeight(
-                    new GUIContent(_tooltipData.effects), cw);
-                GUI.Label(new Rect(cx, cy, cw, effHeight), _tooltipData.effects, _styleEffects);
+                _gcEffects.text = _tooltipData.effects;
+                float effHeight = _styleEffects.CalcHeight(_gcEffects, cw);
+                GUI.Label(new Rect(cx, cy, cw, effHeight), _gcEffects, _styleEffects);
                 cy += effHeight + 4;
             }
 
@@ -226,8 +247,8 @@ namespace ProjectName.UI
                 float durRatio = _tooltipData.durabilityRatio;
                 Color durColor = ItemTooltipData.GetDurabilityColor(durRatio);
 
-                string durText = $"내구도: {_tooltipData.currentDurability}/{_tooltipData.maxDurability}";
-                GUI.Label(new Rect(cx, cy, cw, 16), durText, _styleCategoryLabel);
+                _gcDurability.text = $"내구도: {_tooltipData.currentDurability}/{_tooltipData.maxDurability}";
+                GUI.Label(new Rect(cx, cy, cw, 16), _gcDurability, _styleCategoryLabel);
                 cy += 16;
 
                 // 내구도 바
@@ -241,8 +262,8 @@ namespace ProjectName.UI
             // 개수/재고
             if (_tooltipData.count > 0)
             {
-                string countText = _tooltipData.count == -1 ? "재고: 무한" : $"x{_tooltipData.count}";
-                GUI.Label(new Rect(cx, cy, cw, 16), countText, _styleCountLabel);
+                _gcCount.text = _tooltipData.count == -1 ? "재고: 무한" : $"x{_tooltipData.count}";
+                GUI.Label(new Rect(cx, cy, cw, 16), _gcCount, _styleCountLabel);
             }
         }
 
@@ -259,10 +280,16 @@ namespace ProjectName.UI
             h += 5;  // 구분선 + 간격
 
             if (!string.IsNullOrEmpty(_tooltipData.description))
-                h += _styleDescription.CalcHeight(new GUIContent(_tooltipData.description), cw) + 4;
+            {
+                _gcDescription.text = _tooltipData.description;
+                h += _styleDescription.CalcHeight(_gcDescription, cw) + 4;
+            }
 
             if (!string.IsNullOrEmpty(_tooltipData.effects))
-                h += _styleEffects.CalcHeight(new GUIContent(_tooltipData.effects), cw) + 4;
+            {
+                _gcEffects.text = _tooltipData.effects;
+                h += _styleEffects.CalcHeight(_gcEffects, cw) + 4;
+            }
 
             if (_tooltipData.hasDurability)
             {
@@ -380,9 +407,7 @@ namespace ProjectName.UI
         private Texture2D MakeTexture(int w, int h, Color color)
         {
             var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
-            for (int y = 0; y < h; y++)
-                for (int x = 0; x < w; x++)
-                    tex.SetPixel(x, y, color);
+            tex.SetPixel(0, 0, color);
             tex.Apply();
             return tex;
         }

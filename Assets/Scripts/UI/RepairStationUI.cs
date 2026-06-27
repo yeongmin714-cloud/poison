@@ -35,6 +35,8 @@ namespace ProjectName.UI
         private GUIStyle _repairButtonStyle;
         private GUIStyle _statusStyle;
         private GUIStyle _categoryHeaderStyle;
+        private GUIStyle _msgStyle;              // 캐싱: OnGUI new 방지
+        private GUIStyle _hintStyle;             // 캐싱: OnGUI new 방지
         private bool _stylesInitialized;
 
         protected override void OnShow()
@@ -102,6 +104,16 @@ namespace ProjectName.UI
                 normal = { textColor = new Color(0.8f, 0.8f, 0.8f) }
             };
 
+            // 메시지 스타일 캐싱 (OnGUI 매 프레임 new 방지)
+            _msgStyle = new GUIStyle(_statusStyle);
+
+            // 힌트 스타일 캐싱 (OnGUI 매 프레임 new 방지)
+            _hintStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 40,
+                normal = { textColor = new Color(0.6f, 0.6f, 0.6f) }
+            };
+
             _stylesInitialized = true;
         }
 
@@ -140,7 +152,6 @@ namespace ProjectName.UI
             if (GUILayout.Button("닫기 X", GUILayout.Width(90), GUILayout.Height(36)))
             {
                 Hide();
-                return;
             }
             GUILayout.EndHorizontal();
 
@@ -157,11 +168,8 @@ namespace ProjectName.UI
             // ── 수리 상태 메시지 ──
             if (!string.IsNullOrEmpty(_statusMessage))
             {
-                var msgStyle = new GUIStyle(_statusStyle)
-                {
-                    normal = { textColor = _statusColor }
-                };
-                GUILayout.Box(_statusMessage, msgStyle, GUILayout.Height(54));
+                _msgStyle.normal.textColor = _statusColor;
+                GUILayout.Box(_statusMessage, _msgStyle, GUILayout.Height(54));
                 GUILayout.Space(4);
             }
             else
@@ -202,11 +210,7 @@ namespace ProjectName.UI
             GUILayout.Space(4);
 
             // ── 안내 문구 ──
-            GUILayout.Label("R 키를 다시 누르면 창이 닫힙니다.", new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 40,
-                normal = { textColor = new Color(0.6f, 0.6f, 0.6f) }
-            });
+            GUILayout.Label("R 키를 다시 누르면 창이 닫힙니다.", _hintStyle);
 
             GUILayout.EndArea();
         }

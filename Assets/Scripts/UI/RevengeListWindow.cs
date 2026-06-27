@@ -3,6 +3,7 @@ using ProjectName.Core.Data;
 using ProjectName.Systems;
 using UnityEngine;
 using ProjectName.UI.Themes;
+using System.Collections.Generic;
 
 namespace ProjectName.UI
 {
@@ -28,12 +29,18 @@ namespace ProjectName.UI
         private GUIStyle _styleDetailValue;
         private GUIStyle _styleDetailReason;
         private GUIStyle _styleCloseButton;
+        private GUIStyle _styleDetailHidden;   // 미발견 영주 ??? 스타일 (GC 방지)
+        private GUIStyle _styleDetailStatus;   // 상태 텍스트 스타일 (GC 방지)
 
         // ======================================================================
         // 상태
         // ======================================================================
         private Vector2 _scrollPos = Vector2.zero;
         private int _selectedIndex = -1;
+        private string _cachedStatsText = "";       // OnGUI GC 방지: 통계 문자열 캐시
+        private int _lastRevealedCount = -1;
+        private int _lastCompletedCount = -1;
+        private int _lastTotalPoisonCount = -1;
 
         // ======================================================================
         // UIWindow 상속
@@ -73,6 +80,11 @@ namespace ProjectName.UI
             var mgr = RevengeListManager.Instance;
             if (!mgr.IsInitialized) return;
 
+            // GC 방지: Entries를 한 번만 캐싱 (AsReadOnly() 매 접근 시 ReadOnlyCollection 할당 방지)
+            var allEntries = mgr.Entries;
+            int total = allEntries.Count;
+            if (total == 0) return;
+
             // C14-12: 창 크기 — 최소 500x400, 최대 900x700
             float panelW = Mathf.Clamp(Screen.width * 0.55f, 500f, 900f);
             float panelH = Mathf.Clamp(Screen.height * 0.65f, 400f, 700f);
@@ -84,13 +96,13 @@ namespace ProjectName.UI
             GUI.Box(new Rect(x, y, panelW, panelH), "");
 
             // 상단: 타이틀 + 통계
-            DrawTopBar(x, y, panelW, mgr);
+            DrawTopBar(x, y, panelW, mgr, total);
 
             // 좌측: 81명 목록 (스크롤)
-            DrawLordList(x, y, panelW, panelH, mgr);
+            DrawLordList(x, y, panelW, panelH, allEntries, total);
 
             // 우측: 선택된 영주 상세 정보
-            DrawDetailPanel(x, y, panelW, panelH, mgr);
+            DrawDetailPanel(x, y, panelW, panelH, allEntries, total);
 
             // 닫기 버튼
             if (GUI.Button(new Rect(x + panelW - 70, y + panelH - 38, 135, 42), "닫기", _styleCloseButton))
@@ -103,12 +115,20 @@ namespace ProjectName.UI
         // 상단 통계 표시줄
         // ======================================================================
 
-        private void DrawTopBar(float x, float y, float panelW, RevengeListManager mgr)
+        private void DrawTopBar(float x, float y, float panelW, RevengeListManager mgr, int total)
         {
-            int total = mgr.Entries.Count;
             int completed = mgr.GetCompletionCount();
             int revealedPoison = mgr.GetRevealedPoisonConspiratorCount();
             int totalPoison = mgr.GetPoisonConspirators().Count;
+
+            // GC 방지: 값이 변경된 경우에만 문자열 재생성
+            if (_lastRevealedCount != revealedPoison || _lastCompletedCount != completed || _lastTotalPoisonCount != totalPoison)
+            {
+                _cachedStatsText = $"발견: {revealedPoison}/{totalPoison} 독살 공모자  |  완료: {completed}/{total}";
+                _lastRevealedCount = revealedPoison;
+                _lastCompletedCount = completed;
+                _lastTotalPoisonCount = totalPoison;
+            }
 
             const float statsH = 54f;
 
@@ -116,15 +136,14 @@ namespace ProjectName.UI
             GUI.Label(new Rect(x + 12, y + 4, 300, statsH), "🗡️ 복수명부", _styleTitle);
 
             // C14-12: 통계: "발견: X/10 독살 공모자 | 완료: X/81"
-            string stats = $"발견: {revealedPoison}/{totalPoison} 독살 공모자  |  완료: {completed}/{total}";
-            GUI.Label(new Rect(x + 200, y + 6, panelW - 220, statsH), stats, _styleStatLabel);
+            GUI.Label(new Rect(x + 200, y + 6, panelW - 220, statsH), _cachedStatsText, _styleStatLabel);
         }
 
         // ======================================================================
         // 좌측: 영주 목록 (스크롤)
         // ======================================================================
 
-        private void DrawLordList(float x, float y, float panelW, float panelH, RevengeListManager mgr)
+        private void DrawLordList(float x, float y, float panelW, float panelH, IReadOnlyList<RevengeListEntry> entries, int total)
         {
             const float statsH = 54f;
             const float listItemH = 33f;
@@ -133,7 +152,6 @@ namespace ProjectName.UI
             float listY = y + statsH + 10;
             float listH = panelH - statsH - 70;
 
-            var entries = mgr.Entries;
             float totalH = entries.Count * listItemH + 10;
 
             // C14-12: 스크롤뷰 — 높이 22px 라인
@@ -198,7 +216,7 @@ namespace ProjectName.UI
         // 우측: 선택된 영주 상세 정보
         // ======================================================================
 
-        private void DrawDetailPanel(float x, float y, float panelW, float panelH, RevengeListManager mgr)
+        private void DrawDetailPanel(float x, float y, float panelW, float panelH, IReadOnlyList<RevengeListEntry> entries, int total)
         {
             const float statsH = 54f;
             float listW = panelW * 0.44f;
@@ -209,14 +227,14 @@ namespace ProjectName.UI
 
             GUI.Box(new Rect(detailX, detailY, detailW, detailH), "");
 
-            if (_selectedIndex < 0 || _selectedIndex >= mgr.Entries.Count)
+            if (_selectedIndex < 0 || _selectedIndex >= entries.Count)
             {
                 GUI.Label(new Rect(detailX + 10, detailY + 10, detailW - 20, 30),
                     "영주를 선택하세요.", _styleDetailLabel);
                 return;
             }
 
-            var entry = mgr.Entries[_selectedIndex];
+            var entry = entries[_selectedIndex];
 
             // TerritoryDatabase에서 영지 정보 조회
             var db = TerritoryDatabase.Instance;
@@ -274,12 +292,7 @@ namespace ProjectName.UI
             {
                 GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), "복수 이유", _styleDetailLabel);
                 dy += 22;
-                GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), "???", new GUIStyle(GUI.skin.label)
-                {
-                    fontSize = 52,
-                    fontStyle = FontStyle.Italic,
-                    normal = { textColor = Color.gray }
-                });
+                GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), "???", _styleDetailHidden);
                 dy += 30;
             }
 
@@ -306,12 +319,9 @@ namespace ProjectName.UI
                 statusColor = Color.gray;
             }
 
-            GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), statusText, new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 52,
-                fontStyle = FontStyle.Bold,
-                normal = { textColor = statusColor }
-            });
+            GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), statusText, _styleDetailStatus);
+            // Dynamic color update (매 프레임 new GUIStyle 방지)
+            _styleDetailStatus.normal.textColor = statusColor;
         }
 
         // ======================================================================
@@ -397,6 +407,30 @@ namespace ProjectName.UI
                 fontSize = 48,
                 normal = { textColor = Color.white }
             };
+
+            _styleDetailHidden = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 52,
+                fontStyle = FontStyle.Italic,
+                normal = { textColor = Color.gray }
+            };
+
+            _styleDetailStatus = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 52,
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = Color.white }
+            };
+        }
+
+        // ======================================================================
+        // 튜토리얼 연동 — reflection 없이 _selectedIndex 설정
+        // ======================================================================
+
+        /// <summary>TutorialRevengeListIntegration에서 호출 — reflection 우회</summary>
+        public void SelectIndex(int index)
+        {
+            _selectedIndex = index;
         }
 
         // ======================================================================

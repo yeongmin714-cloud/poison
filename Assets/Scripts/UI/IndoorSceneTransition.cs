@@ -17,10 +17,19 @@ namespace ProjectName.Systems
         private static string _previousSceneName;
         private static string _pendingBuildingType;
         private static string _pendingNationStyle;
+        private static bool _initialized;
 
-        /// <summary>정적 생성자: BuildingEvents 구독</summary>
+        /// <summary>정적 생성자: BuildingEvents 구독 (중복 방지)</summary>
         static IndoorSceneTransition()
         {
+            Initialize();
+        }
+
+        private static void Initialize()
+        {
+            if (_initialized) return;
+            _initialized = true;
+
             BuildingEvents.OnEnterBuildingRequest += HandleEnterBuilding;
             BuildingEvents.OnExitBuildingRequest += ExitBuilding;
             Debug.Log("[IndoorSceneTransition] BuildingEvents 구독 완료");
@@ -114,6 +123,7 @@ namespace ProjectName.Systems
                     ChurchInteriorBuilder.BuildChurchInterior();
                     break;
                 case "house":
+                case "npchouse":
                     HouseInteriorBuilder.BuildHouseInterior();
                     break;
                 case "castle":

@@ -48,8 +48,9 @@ namespace ProjectName.UI
         private GUIStyle _styleInfoText;
         private GUIStyle _styleButton;
         private GUIStyle _stylePanelBox;
+        private GUIStyle _styleDurabilityLabel; // C01: 캐시된 내구도 레이블 스타일 (매 프레임 new GUIStyle 방지)
         private bool _stylesInitialized;
-        private Texture2D _texWhite;
+        private static readonly Color ColorSlotSelected = new Color(0.40f, 0.28f, 0.20f, 1f); // C05: 메서드 → static readonly
 
         // ===== 슬롯 정의 (표시 순서) =====
         private struct SlotDef
@@ -89,12 +90,29 @@ namespace ProjectName.UI
             Debug.Log("[EquipmentWindow] 닫힘");
         }
 
+        // ===== 텍스처 정리 =====
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            if (!_stylesInitialized) return;
+
+            if (_styleTitle?.normal?.background != null) Destroy(_styleTitle.normal.background);
+            if (_styleSlotLabel?.normal?.background != null) Destroy(_styleSlotLabel.normal.background);
+            if (_styleSlotValue?.normal?.background != null) Destroy(_styleSlotValue.normal.background);
+            if (_styleEmptyText?.normal?.background != null) Destroy(_styleEmptyText.normal.background);
+            if (_styleInfoText?.normal?.background != null) Destroy(_styleInfoText.normal.background);
+            if (_styleDurabilityLabel?.normal?.background != null) Destroy(_styleDurabilityLabel.normal.background);
+            if (_styleButton?.normal?.background != null) Destroy(_styleButton.normal.background);
+            if (_styleButton?.hover?.background != null) Destroy(_styleButton.hover.background);
+            if (_styleButton?.active?.background != null) Destroy(_styleButton.active.background);
+            if (_stylePanelBox?.normal?.background != null) Destroy(_stylePanelBox.normal.background);
+            _stylesInitialized = false;
+        }
+
         // ===== 스타일 초기화 =====
         private void InitStyles()
         {
             if (_stylesInitialized) return;
-
-            _texWhite = MakeTexture(1, 1, Color.white);
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
@@ -141,6 +159,14 @@ namespace ProjectName.UI
                 padding = new RectOffset(12, 4, 0, 0)
             };
 
+            _styleDurabilityLabel = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 36,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = ColorTextPrimary }
+            };
+
             _styleButton = new GUIStyle(GUI.skin.button)
             {
                 fontSize = 48,
@@ -149,7 +175,7 @@ namespace ProjectName.UI
                 padding = new RectOffset(12, 12, 4, 4),
                 normal = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorSlotHover) },
                 hover = { textColor = ColorAccent, background = MakeTexture(1, 1, new Color(0.45f, 0.32f, 0.22f, 1f)) },
-                active = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorSlotSelected()) }
+                active = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorSlotSelected) }
             };
 
             _stylePanelBox = new GUIStyle(GUI.skin.box)
@@ -167,6 +193,7 @@ namespace ProjectName.UI
         private void OnGUI()
         {
             if (!IsOpen) return;
+            if (Event.current == null) return; // C02: NRE 방지
 
             InitStyles();
 
@@ -236,14 +263,14 @@ namespace ProjectName.UI
                 {
                     // 아이템 카테고리 색상으로 아이콘 표시
                     GUI.color = GetCategoryColor(slotData.itemData.category);
-                    GUI.DrawTexture(new Rect(iconX, iconY, iconSize, iconSize), _texWhite);
+                    GUI.DrawTexture(new Rect(iconX, iconY, iconSize, iconSize), Texture2D.whiteTexture);
                     GUI.color = Color.white;
                 }
                 else
                 {
                     // 빈 슬롯 — 더 어두운 아이콘
                     GUI.color = ColorTextDim;
-                    GUI.DrawTexture(new Rect(iconX, iconY, iconSize, iconSize), _texWhite);
+                    GUI.DrawTexture(new Rect(iconX, iconY, iconSize, iconSize), Texture2D.whiteTexture);
                     GUI.color = Color.white;
                 }
 
@@ -283,13 +310,7 @@ namespace ProjectName.UI
 
                         // 내구도 텍스트
                         string durLabel = slotData.currentDurability <= 0 ? "🔴 파괴됨" : $"{GetDurabilityEmoji(ratio)} {slotData.currentDurability}/{slotData.itemData.maxDurability}";
-                        GUI.Label(new Rect(durBarX, durBarY, durBarWidth, durBarHeight), durLabel, new GUIStyle(GUI.skin.label)
-                        {
-                            fontSize = 36,
-                            fontStyle = FontStyle.Bold,
-                            alignment = TextAnchor.MiddleCenter,
-                            normal = { textColor = ColorTextPrimary }
-                        });
+                        GUI.Label(new Rect(durBarX, durBarY, durBarWidth, durBarHeight), durLabel, _styleDurabilityLabel);
                     }
                     else
                     {
@@ -316,8 +337,8 @@ namespace ProjectName.UI
                     {
                         _selectedSlot = slotDef.slot;
                         _hasSelection = true;
-                        Event.current.Use();
                     }
+                    Event.current.Use(); // C02: 빈 슬롯 클릭도 이벤트 소비 (하위 전파 방지)
                 }
 
                 currentY += SLOT_HEIGHT + SLOT_GAP;
@@ -389,11 +410,6 @@ namespace ProjectName.UI
                 case PlayerInventory.ItemCategory.Tool: return new Color(0.7f, 0.5f, 0.2f);
                 default: return Color.gray;
             }
-        }
-
-        private static Color ColorSlotSelected()
-        {
-            return new Color(0.40f, 0.28f, 0.20f, 1f);
         }
 
         // ===== 텍스처/렉트 헬퍼 =====

@@ -545,22 +545,6 @@ namespace ProjectName.UI
                             }
                         }
                     }
-                }
-                    // 사용 버튼 (소비 가능한 아이템만)
-                    if (IsConsumable(_selectedCategory))
-                    {
-                        if (GUI.Button(new Rect(innerX, innerY + 85, innerWidth - 16, 38), "사용"))
-                        {
-                            if (_selectedSlotIndex >= 0 && _currentSlots != null && _selectedSlotIndex < _currentSlots.Length)
-                            {
-                                PlayerInventory.Instance.UseItemFromCategory(_selectedCategory, _selectedSlotIndex);
-                                // 선택 초기화
-                                _selectedItemName = "";
-                                _selectedItemDesc = "";
-                                _selectedItemCount = 0;
-                            }
-                        }
-                    }
                 // 사용 버튼 (소비 가능한 아이템만)
                 if (IsConsumable(_selectedCategory))
                 {
@@ -678,13 +662,16 @@ namespace ProjectName.UI
         }
 
         // 캐시된 원형 텍스처
-        private Texture2D _circleTexture;
+        // (사용되지 않음 — MakeCircleTexture가 _texWhite 반환)
 
         private Texture2D MakeCircleTexture(Color color)
         {
             // 단순화: 흰색 텍스처로 대체 (GUI.color로 색상 지정)
             return _texWhite;
         }
+
+        // 캐시된 GUIContent (TruncateText GC 절감)
+        private readonly GUIContent _truncateContent = new GUIContent();
 
         /// <summary>컬러 사각형 그리기</summary>
         private void DrawColoredRect(Rect rect, Color color)
@@ -699,15 +686,15 @@ namespace ProjectName.UI
         private string TruncateText(string text, float maxWidth, GUIStyle style)
         {
             if (string.IsNullOrEmpty(text)) return "";
-            var content = new GUIContent(text);
-            float width = style.CalcSize(content).x;
+            _truncateContent.text = text;
+            float width = style.CalcSize(_truncateContent).x;
             if (width <= maxWidth) return text;
 
             for (int i = text.Length - 1; i > 0; i--)
             {
                 string truncated = text.Substring(0, i) + "..";
-                content.text = truncated;
-                if (style.CalcSize(content).x <= maxWidth)
+                _truncateContent.text = truncated;
+                if (style.CalcSize(_truncateContent).x <= maxWidth)
                     return truncated;
             }
             return text.Length > 0 ? text[0] + ".." : "..";

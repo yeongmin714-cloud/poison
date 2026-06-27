@@ -53,16 +53,121 @@ namespace ProjectName.UI
         private float _currentHP;
         private float _maxHP = 100f;
         private bool _isDead = false;
+        private string _lastHpText; // GC: 이전 HP 텍스트 캐싱 (변경 시에만 재할당)
+        private bool _hpTextDirty = true; // HP 텍스트 갱신 필요 플래그
+
+        // GC: 캐싱된 GUIStyle — OnGUI에서 new GUIStyle() 방지
+        private GUIStyle _cachedLabelStyle;
+        private GUIStyle _cachedLegendStyle;
+        private GUIStyle _cachedDeathStyle;
+        private GUIStyle _cachedRespawnStyle;
+        private GUIStyle _cachedBuffTimerStyle;
+        private GUIStyle _cachedBuffIdStyle;
+
+        // GC: 캐싱된 Rect — OnGUI에서 new Rect() 방지 (구조체지만 스택 할당 최적화)
+        private Rect _rectBg;
+        private Rect _rectHp;
+        private Rect _rectDeathOverlay;
+        private Rect _rectDeathLabel;
+        private Rect _rectRespawnLabel;
+        private Rect _rectLegendGreen;
+        private Rect _rectLegendYellow;
+        private Rect _rectLegendRed;
+
+        // 버프 아이콘용 재사용 Rect
+        private Rect _rectBuffBg;
+        private Rect _rectBuffInner;
 
         private void Start()
         {
+            // GUI.skin — OnGUI가 아닌 Start에서 한 번만 설정
+            if (_customSkin != null)
+                GUI.skin = _customSkin;
+
+            // GC: GUIStyle 캐싱 — OnGUI 내 new 방지
+            CacheStyles();
+
+            // GC: Rect 캐싱 — 고정 위치 Rect는 미리 계산
+            CacheStaticRects();
+
             // PlayerHealth 구독
             if (PlayerHealth.Instance != null)
             {
                 PlayerHealth.Instance.OnHPChanged += OnHealthChanged;
                 _currentHP = PlayerHealth.Instance.CurrentHP;
                 _maxHP = PlayerHealth.Instance.MaxHP;
+                _hpTextDirty = true; // 초기 텍스트 생성
             }
+        }
+
+        private void CacheStyles()
+        {
+            // 모든 GUIStyle을 미리 캐싱 (OnGUI에서 new GUIStyle() 호출 금지)
+            _cachedLabelStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = _fontSize,
+                alignment = TextAnchor.MiddleCenter,
+                fontStyle = FontStyle.Bold
+            };
+
+            _cachedLegendStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 24
+            };
+
+            _cachedDeathStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 96,
+                alignment = TextAnchor.MiddleCenter,
+                fontStyle = FontStyle.Bold
+            };
+
+            _cachedRespawnStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 40,
+                alignment = TextAnchor.MiddleCenter
+            };
+
+            _cachedBuffTimerStyle = new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleCenter
+            };
+
+            _cachedBuffIdStyle = new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleCenter
+            };
+        }
+
+        private void CacheStaticRects()
+        {
+            _rectLegendGreen = new Rect(0, 0, 120, 40);
+            _rectLegendYellow = new Rect(140, 0, 120, 40);
+            _rectLegendRed = new Rect(280, 0, 120, 40);
+            _rectDeathOverlay = new Rect(0, 0, Screen.width, Screen.height);
+        }
+
+        private void UpdateStaticRectPositions()
+        {
+            // 바 위치 업데이트
+            _barY = Screen.height - _barHeight - 60;
+            _iconOffsetY = _barY;
+
+            _rectBg = new Rect(_barX, _barY, _barWidth, _barHeight);
+            _rectHp = new Rect(_barX + 1, _barY + 1, _barWidth - 2, _barHeight - 2);
+
+            // 티어 범례 위치
+            int legendY = _barY + _barHeight + 20;
+            _rectLegendGreen.x = _barX;
+            _rectLegendGreen.y = legendY;
+            _rectLegendYellow.x = _barX + 140;
+            _rectLegendYellow.y = legendY;
+            _rectLegendRed.x = _barX + 280;
+            _rectLegendRed.y = legendY;
+
+            // 사망 오버레이 위치
+            _rectDeathLabel = new Rect(0, Screen.height * 0.35f, Screen.width, 120);
+            _rectRespawnLabel = new Rect(0, Screen.height * 0.35f + 120, Screen.width, 60);
         }
 
         private void OnDestroy()
@@ -78,14 +183,12 @@ namespace ProjectName.UI
             _currentHP = current;
             _maxHP = max;
             _isDead = current <= 0;
+            _hpTextDirty = true; // GC: HP 변경 시에만 텍스트 재생성
         }
 
         private void OnGUI()
         {
-            _barY = Screen.height - _barHeight - 60;
-            _iconOffsetY = _barY;
-            if (_customSkin != null)
-                GUI.skin = _customSkin;
+            UpdateStaticRectPositions();
 
             DrawHPBar();
             DrawBuffIcons();
@@ -97,8 +200,7 @@ namespace ProjectName.UI
             float ratio = _maxHP > 0 ? Mathf.Clamp01(_currentHP / _maxHP) : 0f;
 
             // 배경 (어두운 회색)
-            Rect bgRect = new Rect(_barX, _barY, _barWidth, _barHeight);
-            GUI.Box(bgRect, "");
+            GUI.Box(_rectBg, "");
 
             // HP 바 (색상 그라데이션)
             Color barColor = ratio > 0.5f
@@ -106,22 +208,21 @@ namespace ProjectName.UI
                 : Color.Lerp(_lowColor, _midColor, ratio * 2f);
 
             GUI.color = barColor;
-            Rect hpRect = new Rect(_barX + 1, _barY + 1, (_barWidth - 2) * ratio, _barHeight - 2);
-            GUI.Box(hpRect, "");
+            _rectHp.width = (_barWidth - 2) * ratio;
+            GUI.Box(_rectHp, "");
 
             // 테두리
             GUI.color = Color.white;
-            GUI.Box(bgRect, "");
+            GUI.Box(_rectBg, "");
 
-            // HP 텍스트
+            // HP 텍스트 — Dirty Flag 패턴: 변경 시에만 문자열 할당
+            if (_hpTextDirty)
+            {
+                _lastHpText = _isDead ? "💀 사망" : $"❤️ HP: {Mathf.Ceil(_currentHP)} / {_maxHP}";
+                _hpTextDirty = false;
+            }
             GUI.color = _textColor;
-            GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
-            labelStyle.fontSize = _fontSize;
-            labelStyle.alignment = TextAnchor.MiddleCenter;
-            labelStyle.fontStyle = FontStyle.Bold;
-
-            string hpText = _isDead ? "💀 사망" : $"❤️ HP: {Mathf.Ceil(_currentHP)} / {_maxHP}";
-            GUI.Label(bgRect, hpText, labelStyle);
+            GUI.Label(_rectBg, _lastHpText, _cachedLabelStyle);
 
             // 티어 정보 표시 (MonsterTier 범례)
             DrawTierLegend();
@@ -132,23 +233,17 @@ namespace ProjectName.UI
         /// </summary>
         private void DrawTierLegend()
         {
-            GUIStyle legendStyle = new GUIStyle(GUI.skin.label);
-            legendStyle.fontSize = 24;
-
-            int legendY = _barY + _barHeight + 20;
-            int legendX = _barX;
-
             // 초반 🟢
             GUI.color = Color.green;
-            GUI.Label(new Rect(legendX, legendY, 120, 40), "🟢 초급", legendStyle);
+            GUI.Label(_rectLegendGreen, "🟢 초급", _cachedLegendStyle);
 
             // 중반 🟡
             GUI.color = Color.yellow;
-            GUI.Label(new Rect(legendX + 140, legendY, 120, 40), "🟡 중급", legendStyle);
+            GUI.Label(_rectLegendYellow, "🟡 중급", _cachedLegendStyle);
 
             // 후반 🔴
             GUI.color = Color.red;
-            GUI.Label(new Rect(legendX + 280, legendY, 120, 40), "🔴 고급", legendStyle);
+            GUI.Label(_rectLegendRed, "🔴 고급", _cachedLegendStyle);
 
             GUI.color = Color.white;
         }
@@ -163,41 +258,42 @@ namespace ProjectName.UI
             float size = _iconSize;
             float spacing = _iconSpacing;
 
+            _cachedBuffTimerStyle.fontSize = Mathf.Max(9, (int)(size * 0.3f));
+            _cachedBuffIdStyle.fontSize = Mathf.Max(9, (int)(size * 0.2f));
+
             foreach (var buff in activeBuffs)
             {
                 if (buff.BuffId == null) continue;
                 float remaining = buff.EndTime - Time.time;
                 if (remaining <= 0f) continue;
 
+                // GC: Rect 재사용
+                _rectBuffBg = new Rect(x, y, size, size);
+                _rectBuffInner = new Rect(x + 1, y + 1, size - 2, size - 2);
+
                 Color buffColor;
                 if (_buffColors.TryGetValue(buff.BuffId, out buffColor))
                 {
                     // draw background
                     GUI.color = new Color(0f, 0f, 0f, 0.5f);
-                    GUI.Box(new Rect(x, y, size, size), string.Empty);
+                    GUI.Box(_rectBuffBg, string.Empty);
                     // draw icon color
                     GUI.color = buffColor;
-                    GUI.Box(new Rect(x + 1, y + 1, size - 2, size - 2), string.Empty);
+                    GUI.Box(_rectBuffInner, string.Empty);
                     // draw timer text
                     GUI.color = Color.white;
-                    GUIStyle style = new GUIStyle(GUI.skin.label);
-                    style.alignment = TextAnchor.MiddleCenter;
-                    style.fontSize = Mathf.Max(9, (int)(size * 0.3f));
                     string timerText = remaining.ToString("0.0");
-                    GUI.Label(new Rect(x, y, size, size), timerText, style);
+                    GUI.Label(_rectBuffBg, timerText, _cachedBuffTimerStyle);
                 }
                 else
                 {
                     // fallback: draw gray icon with buffId text
                     GUI.color = new Color(0f, 0f, 0f, 0.5f);
-                    GUI.Box(new Rect(x, y, size, size), string.Empty);
+                    GUI.Box(_rectBuffBg, string.Empty);
                     GUI.color = Color.gray;
-                    GUI.Box(new Rect(x + 1, y + 1, size - 2, size - 2), string.Empty);
+                    GUI.Box(_rectBuffInner, string.Empty);
                     GUI.color = Color.white;
-                    GUIStyle style = new GUIStyle(GUI.skin.label);
-                    style.alignment = TextAnchor.MiddleCenter;
-                    style.fontSize = Mathf.Max(9, (int)(size * 0.2f));
-                    GUI.Label(new Rect(x, y, size, size), buff.BuffId, style);
+                    GUI.Label(_rectBuffBg, buff.BuffId, _cachedBuffIdStyle);
                 }
 
                 x += size + spacing;
@@ -210,21 +306,14 @@ namespace ProjectName.UI
 
             // 화면 전체 붉은 반투명 오버레이
             GUI.color = _deathOverlayColor;
-            GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "");
+            GUI.Box(_rectDeathOverlay, "");
 
             // "사망" 메시지
             GUI.color = Color.white;
-            GUIStyle deathStyle = new GUIStyle(GUI.skin.label);
-            deathStyle.fontSize = 96;
-            deathStyle.alignment = TextAnchor.MiddleCenter;
-            deathStyle.fontStyle = FontStyle.Bold;
-            GUI.Label(new Rect(0, Screen.height * 0.35f, Screen.width, 120), "💀 사망", deathStyle);
+            GUI.Label(_rectDeathLabel, "💀 사망", _cachedDeathStyle);
 
             // 리스폰 안내
-            GUIStyle respawnStyle = new GUIStyle(GUI.skin.label);
-            respawnStyle.fontSize = 40;
-            respawnStyle.alignment = TextAnchor.MiddleCenter;
-            GUI.Label(new Rect(0, Screen.height * 0.35f + 120, Screen.width, 60), "리스폰 중...", respawnStyle);
+            GUI.Label(_rectRespawnLabel, "리스폰 중...", _cachedRespawnStyle);
 
             GUI.color = Color.white;
         }

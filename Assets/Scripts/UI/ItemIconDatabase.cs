@@ -6,10 +6,12 @@ namespace ProjectName.UI
 {
     /// <summary>
     /// G3-06: 아이템 아이콘 데이터베이스 — 캐싱 + 생성 래퍼.
-    /// 기존 ProceduralIconGenerator (Core)를 활용하여 64×64 아이콘을 제공합니다.
+    /// ProceduralIconGenerator (Core)에서 생성한 32×32 아이콘을 64×64로 업스케일하여 제공합니다.
     /// </summary>
     public static class ItemIconDatabase
     {
+        private const int ICON_SIZE = 64;
+
         private static Dictionary<string, Texture2D> _iconCache = new Dictionary<string, Texture2D>();
 
         /// <summary>
@@ -23,12 +25,13 @@ namespace ProjectName.UI
             if (_iconCache.TryGetValue(item.id, out var cached))
                 return cached;
 
-            // ProceduralIconGenerator 호출 (Category enum 필요)
+            // ProceduralIconGenerator 32×32 생성 → 64×64 업스케일
             var generated = ProceduralIconGenerator.GenerateIcon(item.id, item.category, item.maxDurability);
             if (generated != null)
             {
-                _iconCache[item.id] = generated;
-                return generated;
+                var scaled = ScaleUpTexture(generated, ICON_SIZE, ICON_SIZE);
+                _iconCache[item.id] = scaled;
+                return scaled;
             }
 
             return GetFallbackIcon();
@@ -67,20 +70,40 @@ namespace ProjectName.UI
         {
             if (_fallbackIcon != null) return _fallbackIcon;
 
-            _fallbackIcon = new Texture2D(64, 64);
+            _fallbackIcon = new Texture2D(ICON_SIZE, ICON_SIZE, TextureFormat.RGBA32, false);
             Color bg = new Color(0.2f, 0.2f, 0.2f);
             Color fg = new Color(0.5f, 0.5f, 0.5f);
-            for (int y = 0; y < 64; y++)
+            for (int y = 0; y < ICON_SIZE; y++)
             {
-                for (int x = 0; x < 64; x++)
+                for (int x = 0; x < ICON_SIZE; x++)
                 {
-                    bool border = x < 2 || x >= 62 || y < 2 || y >= 62;
-                    bool cross = Mathf.Abs(x - 32) + Mathf.Abs(y - 32) < 8;
+                    bool border = x < 2 || x >= ICON_SIZE - 2 || y < 2 || y >= ICON_SIZE - 2;
+                    bool cross = Mathf.Abs(x - ICON_SIZE / 2) + Mathf.Abs(y - ICON_SIZE / 2) < 8;
                     _fallbackIcon.SetPixel(x, y, border ? fg : cross ? fg : bg);
                 }
             }
             _fallbackIcon.Apply();
             return _fallbackIcon;
+        }
+
+        // ================================================================
+        // 업스케일: 32×32 → 64×64 (Nearest-Neighbor)
+        // ================================================================
+
+        private static Texture2D ScaleUpTexture(Texture2D source, int targetWidth, int targetHeight)
+        {
+            var dest = new Texture2D(targetWidth, targetHeight, source.format, false);
+            float sx = (float)source.width / targetWidth;
+            float sy = (float)source.height / targetHeight;
+            for (int y = 0; y < targetHeight; y++)
+            {
+                for (int x = 0; x < targetWidth; x++)
+                {
+                    dest.SetPixel(x, y, source.GetPixel(Mathf.FloorToInt(x * sx), Mathf.FloorToInt(y * sy)));
+                }
+            }
+            dest.Apply();
+            return dest;
         }
     }
 }

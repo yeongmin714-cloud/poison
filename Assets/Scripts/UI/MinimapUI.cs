@@ -70,14 +70,23 @@ namespace ProjectName.UI
             { NationType.Empire, "★" },
         };
 
-        // 국가별 색상
+        // 국가별 색상 (static readonly — GC 회피, 매 프레임 new Color 방지)
+        private static readonly Color ColorNorth    = new Color(0.4f, 0.1f, 0.6f);
+        private static readonly Color ColorEast     = new Color(0.0f, 0.3f, 0.8f);
+        private static readonly Color ColorSouth    = new Color(0.7f, 0.1f, 0.1f);
+        private static readonly Color ColorWest     = new Color(0.1f, 0.5f, 0.1f);
+        private static readonly Color ColorEmpire   = new Color(1f, 0.85f, 0.2f);
+        private static readonly Color ColorBgMinimap = new Color(0.1f, 0.1f, 0.15f, 0.85f);
+        private static readonly Color ColorBorder   = new Color(0.6f, 0.6f, 0.7f, 0.8f);
+        private static readonly Color ColorScaleBar = new Color(1f, 1f, 1f, 0.7f);
+
         private static readonly Dictionary<NationType, Color> NationColors = new Dictionary<NationType, Color>
         {
-            { NationType.North, new Color(0.4f, 0.1f, 0.6f) },
-            { NationType.East,  new Color(0.0f, 0.3f, 0.8f) },
-            { NationType.South, new Color(0.7f, 0.1f, 0.1f) },
-            { NationType.West,  new Color(0.1f, 0.5f, 0.1f) },
-            { NationType.Empire, new Color(1f, 0.85f, 0.2f) },
+            { NationType.North, ColorNorth },
+            { NationType.East,  ColorEast },
+            { NationType.South, ColorSouth },
+            { NationType.West,  ColorWest },
+            { NationType.Empire, ColorEmpire },
         };
 
         // 캐싱된 영지 정의
@@ -86,11 +95,13 @@ namespace ProjectName.UI
 
         // ===== Styles =====
 
-        private GUIStyle _borderStyle;
-        private GUIStyle _playerIconStyle;
         private GUIStyle _territoryDotStyle;
         private GUIStyle _labelStyle;
         private GUIStyle _zoomLabelStyle;
+
+        // ===== 캐싱된 OnGUI 재사용 변수 (GC 회피) =====
+        private string _lastZoomText;
+        private float _lastZoomValue;
 
         // ===== Lifecycle =====
 
@@ -293,12 +304,17 @@ namespace ProjectName.UI
         {
             InitializeStyles();
 
-            Rect rect = MinimapRect;
-            Vector2 center = MinimapCenter;
             float radius = MinimapRadiusPx;
+            // Group-local center: BeginGroup 내에서는 rect 기준 상대 좌표
+            float cx = _minimapSize * 0.5f;
+            float cy = cx; // square => same
 
             // ---------- Handle mouse wheel zoom ----------
-            if (rect.Contains(Event.current.mousePosition))
+            Vector2 mousePos = Event.current.mousePosition;
+            float rectX = Screen.width - _minimapSize - _marginRight;
+            float rectY = _marginTop;
+            if (mousePos.x >= rectX && mousePos.x <= rectX + _minimapSize &&
+                mousePos.y >= rectY && mousePos.y <= rectY + _minimapSize)
             {
                 if (Event.current.type == EventType.ScrollWheel)
                 {
@@ -325,49 +341,53 @@ namespace ProjectName.UI
                 }
             }
 
-            // ---------- Background ----------
-            Color bgColor = new Color(0.1f, 0.1f, 0.15f, 0.85f);
+            // ---------- Background (Screen 좌표, BeginGroup 밖) ----------
+            Rect bgRect = new Rect(rectX, rectY, _minimapSize, _minimapSize);
             Color origBg = GUI.backgroundColor;
-            GUI.backgroundColor = bgColor;
-            GUI.Box(rect, "");
+            GUI.backgroundColor = ColorBgMinimap;
+            GUI.Box(bgRect, "");
             GUI.backgroundColor = origBg;
 
             // ---------- Circular clip via GUI.BeginGroup ----------
-            // Draw within the square area, clip icons by distance from center
-            GUI.BeginGroup(rect);
+            GUI.BeginGroup(bgRect);
 
-            // Inner area with slightly darker background
-            Rect innerRect = new Rect(0, 0, _minimapSize, _minimapSize);
+            // Inner area
+            Rect innerRect = new Rect(0f, 0f, _minimapSize, _minimapSize);
             GUI.Box(innerRect, "");
 
-            // ---------- Draw territory icons ----------
-            DrawTerritoryIcons(center, radius);
+            // ---------- Draw territory icons (Group-local 좌표) ----------
+            DrawTerritoryIcons(cx, cy, radius);
 
-            // ---------- Draw player icon (center, rotated) ----------
-            DrawPlayerIcon(center);
+            // ---------- Draw player icon ----------
+            DrawPlayerIcon(cx, cy);
 
-            // ---------- Draw zoom level label ----------
-            string zoomText = $"x{_currentZoom:F1}";
+            // ---------- Draw zoom level label (캐싱으로 GC 회피) ----------
+            if (_currentZoom != _lastZoomValue)
+            {
+                _lastZoomValue = _currentZoom;
+                _lastZoomText = $"x{_currentZoom:F1}";
+            }
             Rect zoomRect = new Rect(_minimapSize - 100f, _minimapSize - 36f, 96f, 32f);
-            GUI.Label(zoomRect, zoomText, _zoomLabelStyle);
+            GUI.Label(zoomRect, _lastZoomText ?? $"x{_currentZoom:F1}", _zoomLabelStyle);
 
-            // ---------- Draw scale bar (50m) ----------
-            DrawScaleBar(center, radius);
+            // ---------- Draw scale bar ----------
+            DrawScaleBar(cx, cy, radius);
 
             GUI.EndGroup();
 
-            // ---------- Circular border (drawn over group) ----------
-            DrawCircularBorder(rect);
+            // ---------- Circular border (Screen 좌표, BeginGroup 밖) ----------
+            DrawCircularBorder(bgRect);
         }
 
         /// <summary>
-        /// 영지 아이콘을 미니맵에 그립니다.
+        /// 영지 아이콘을 미니맵에 그립니다. (Group-local 좌표: cx, cy)
         /// </summary>
-        private void DrawTerritoryIcons(Vector2 center, float radius)
+        private void DrawTerritoryIcons(float cx, float cy, float radius)
         {
             foreach (var kvp in _nationTerritories)
             {
                 NationType nation = kvp.Key;
+                List<TerritoryDefinition> territories = kvp.Value;
 
                 // Empire is only shown if discovered
                 if (nation == NationType.Empire)
@@ -376,7 +396,7 @@ namespace ProjectName.UI
                         continue;
                 }
 
-                // Draw nation label at the nation's "center" direction
+                // Draw nation label at the nation's center direction
                 Vector3 nationCenterWorld = NationDirections[nation] * 30f;
                 Vector2 localPos = WorldToMinimapLocal(
                     PlayerWorldPosition + nationCenterWorld);
@@ -385,12 +405,12 @@ namespace ProjectName.UI
                 float py = localPos.y * radius;
 
                 // Only draw if within circle radius (with small margin)
-                float distFromCenter = Mathf.Sqrt(px * px + py * py);
-                if (distFromCenter > radius - 4f)
+                // GC: sqrMagnitude 비교로 Mathf.Sqrt 제거
+                if (px * px + py * py > (radius - 4f) * (radius - 4f))
                     continue;
 
-                float iconX = center.x + px - 16f;
-                float iconY = center.y + py - 16f;
+                float iconX = cx + px - 16f;
+                float iconY = cy + py - 16f;
 
                 // Draw colored dot
                 Color origColor = GUI.color;
@@ -404,26 +424,25 @@ namespace ProjectName.UI
                 GUI.Label(labelRect, NationLabels[nation], _territoryDotStyle);
 
                 // Draw individual territory dots for nearby territories
-                if (_nationTerritories.TryGetValue(nation, out var territories))
+                for (int i = 0; i < territories.Count; i++)
                 {
-                    foreach (var def in territories)
-                    {
-                        Vector3 twp = GetTerritoryWorldPosition(def);
-                        Vector2 tLocal = WorldToMinimapLocal(twp);
-                        float tPx = tLocal.x * radius;
-                        float tPy = tLocal.y * radius;
-                        float tDist = Mathf.Sqrt(tPx * tPx + tPy * tPy);
-                        if (tDist > radius - 2f)
-                            continue;
+                    var def = territories[i];
+                    Vector3 twp = GetTerritoryWorldPosition(def);
+                    Vector2 tLocal = WorldToMinimapLocal(twp);
+                    float tPx = tLocal.x * radius;
+                    float tPy = tLocal.y * radius;
+                    // GC: sqrMagnitude 비교로 Mathf.Sqrt 회피
+                    if (tPx * tPx + tPy * tPy > (radius - 2f) * (radius - 2f))
+                        continue;
 
-                        GUI.color = NationColors[nation] * 0.7f;
-                        Rect tDotRect = new Rect(
-                            center.x + tPx - 4f,
-                            center.y + tPy - 4f,
-                            8f, 8f);
-                        GUI.Box(tDotRect, "");
-                        GUI.color = origColor;
-                    }
+                    // NationColors[nation] * 0.7f — Color struct, stack only, no GC
+                    GUI.color = NationColors[nation] * 0.7f;
+                    Rect tDotRect = new Rect(
+                        cx + tPx - 4f,
+                        cy + tPy - 4f,
+                        8f, 8f);
+                    GUI.Box(tDotRect, "");
+                    GUI.color = origColor;
                 }
             }
         }
@@ -431,7 +450,7 @@ namespace ProjectName.UI
         /// <summary>
         /// 플레이어 아이콘 (삼각형/화살표)을 미니맵 중앙에 회전하여 그립니다.
         /// </summary>
-        private void DrawPlayerIcon(Vector2 center)
+        private void DrawPlayerIcon(float cx, float cy)
         {
             Color origColor = GUI.color;
             GUI.color = Color.cyan;
@@ -446,25 +465,33 @@ namespace ProjectName.UI
             Vector2 left = new Vector2(-size * 0.5f, size);
             Vector2 right = new Vector2(size * 0.5f, size);
 
-            // 회전
+            // 회전 (Group-local center 기준)
             Vector2 tipR = new Vector2(
                 tip.x * cos - tip.y * sin,
-                tip.x * sin + tip.y * cos) + center;
+                tip.x * sin + tip.y * cos);
+            tipR.x += cx;
+            tipR.y += cy;
+
             Vector2 leftR = new Vector2(
                 left.x * cos - left.y * sin,
-                left.x * sin + left.y * cos) + center;
+                left.x * sin + left.y * cos);
+            leftR.x += cx;
+            leftR.y += cy;
+
             Vector2 rightR = new Vector2(
                 right.x * cos - right.y * sin,
-                right.x * sin + right.y * cos) + center;
+                right.x * sin + right.y * cos);
+            rightR.x += cx;
+            rightR.y += cy;
 
             // Draw triangle using lines
             DrawLine(tipR, leftR, Color.cyan);
             DrawLine(leftR, rightR, Color.cyan);
             DrawLine(rightR, tipR, Color.cyan);
 
-            // Center dot
+            // Center dot (Group-local)
             GUI.color = Color.white;
-            Rect centerDot = new Rect(center.x - 4f, center.y - 4f, 8f, 8f);
+            Rect centerDot = new Rect(cx - 4f, cy - 4f, 8f, 8f);
             GUI.Box(centerDot, "");
             GUI.color = origColor;
         }
@@ -482,8 +509,9 @@ namespace ProjectName.UI
             for (int i = 0; i <= steps; i++)
             {
                 float t = i / (float)steps;
-                Vector2 p = Vector2.Lerp(a, b, t);
-                Rect r = new Rect(p.x - 2f, p.y - 2f, 4f, 4f);
+                float px = a.x + (b.x - a.x) * t;
+                float py = a.y + (b.y - a.y) * t;
+                Rect r = new Rect(px - 2f, py - 2f, 4f, 4f);
                 GUI.Box(r, "");
             }
             GUI.color = orig;
@@ -496,22 +524,22 @@ namespace ProjectName.UI
         {
             Vector2 center = rect.center;
             float radius = _minimapSize * 0.5f;
-            Color borderColor = new Color(0.6f, 0.6f, 0.7f, 0.8f);
             Color orig = GUI.color;
-            GUI.color = borderColor;
+            GUI.color = ColorBorder;
 
             int segments = 32;
             for (int i = 0; i < segments; i++)
             {
                 float angle1 = (i / (float)segments) * Mathf.PI * 2f;
                 float angle2 = ((i + 1) / (float)segments) * Mathf.PI * 2f;
-                Vector2 p1 = new Vector2(
-                    center.x + Mathf.Cos(angle1) * radius,
-                    center.y + Mathf.Sin(angle1) * radius);
-                Vector2 p2 = new Vector2(
-                    center.x + Mathf.Cos(angle2) * radius,
-                    center.y + Mathf.Sin(angle2) * radius);
-                DrawLine(p1, p2, borderColor);
+                float cos1 = Mathf.Cos(angle1);
+                float sin1 = Mathf.Sin(angle1);
+                float cos2 = Mathf.Cos(angle2);
+                float sin2 = Mathf.Sin(angle2);
+                DrawLine(
+                    new Vector2(center.x + cos1 * radius, center.y + sin1 * radius),
+                    new Vector2(center.x + cos2 * radius, center.y + sin2 * radius),
+                    ColorBorder);
             }
 
             GUI.color = orig;
@@ -520,23 +548,23 @@ namespace ProjectName.UI
         /// <summary>
         /// 미니맵 하단에 배율 막대(50m)를 표시합니다.
         /// </summary>
-        private void DrawScaleBar(Vector2 center, float radius)
+        private void DrawScaleBar(float cx, float cy, float radius)
         {
             // 50m = 50 / (_mapRadiusMeters * _currentZoom) * radius pixels
             float scalePixels = 50f / (_mapRadiusMeters * _currentZoom) * radius;
             scalePixels = Mathf.Min(scalePixels, radius * 1.5f);
 
-            float barY = center.y + radius - 48f;
-            float barX = center.x - scalePixels * 0.5f;
+            float barY = cy + radius - 48f;
+            float barX = cx - scalePixels * 0.5f;
 
             Color orig = GUI.color;
-            GUI.color = new Color(1f, 1f, 1f, 0.7f);
+            GUI.color = ColorScaleBar;
 
             // Horizontal line
-            DrawLine(new Vector2(barX, barY), new Vector2(barX + scalePixels, barY), GUI.color);
+            DrawLine(new Vector2(barX, barY), new Vector2(barX + scalePixels, barY), ColorScaleBar);
             // End ticks
-            DrawLine(new Vector2(barX, barY - 6f), new Vector2(barX, barY + 6f), GUI.color);
-            DrawLine(new Vector2(barX + scalePixels, barY - 6f), new Vector2(barX + scalePixels, barY + 6f), GUI.color);
+            DrawLine(new Vector2(barX, barY - 6f), new Vector2(barX, barY + 6f), ColorScaleBar);
+            DrawLine(new Vector2(barX + scalePixels, barY - 6f), new Vector2(barX + scalePixels, barY + 6f), ColorScaleBar);
 
             GUI.color = orig;
 
@@ -552,18 +580,6 @@ namespace ProjectName.UI
         {
             if (_stylesInitialized) return;
 
-            _borderStyle = new GUIStyle(GUI.skin.box)
-            {
-                normal = { background = Texture2D.whiteTexture, textColor = new Color(0.6f, 0.6f, 0.7f, 0.8f) },
-            };
-
-            _playerIconStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 30,
-                alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = Color.cyan },
-            };
-
             _territoryDotStyle = new GUIStyle(GUI.skin.label)
             {
                 fontSize = 28,
@@ -576,7 +592,7 @@ namespace ProjectName.UI
             {
                 fontSize = 28,
                 alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = new Color(1f, 1f, 1f, 0.7f) },
+                normal = { textColor = ColorScaleBar },
             };
 
             _zoomLabelStyle = new GUIStyle(GUI.skin.label)

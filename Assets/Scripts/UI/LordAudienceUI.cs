@@ -49,8 +49,9 @@ namespace ProjectName.UI
         private static readonly Color ColorSuccess = new Color(0.3f, 0.9f, 0.4f, 1f);
         private static readonly Color ColorFail = new Color(0.9f, 0.3f, 0.3f, 1f);
         private static readonly Color ColorDim = new Color(0.5f, 0.45f, 0.40f, 1f);
-        private GUIStyle _styleTitle, _styleText, _styleOption, _styleResult;
+        private GUIStyle _styleTitle, _styleText, _styleOption;
         private Texture2D _texWhite;
+        private Texture2D _texBg;
         private bool _stylesInit;
 
         protected override void OnShow()
@@ -68,7 +69,14 @@ namespace ProjectName.UI
         protected override void OnHide()
         {
             base.OnHide();
+            CancelInvoke(nameof(ResetDialogue));
             Debug.Log("[LordAudienceUI] 대면 종료");
+        }
+
+        private void OnDestroy()
+        {
+            if (_texWhite != null) Destroy(_texWhite);
+            if (_texBg != null) Destroy(_texBg);
         }
 
         private void OnGUI()
@@ -79,9 +87,9 @@ namespace ProjectName.UI
             float x = (Screen.width - WINDOW_WIDTH) / 2;
             float y = (Screen.height - WINDOW_HEIGHT) / 2;
 
-            // 배경
+            // 배경 (캐시된 텍스처 사용 — 매 프레임 생성 방지)
             GUI.Box(new Rect(x, y, WINDOW_WIDTH, WINDOW_HEIGHT), "", new GUIStyle(GUI.skin.box)
-            { normal = { background = MakeTex(1, 1, ColorBg) } });
+            { normal = { background = _texBg } });
 
             // 제목 바
             DrawColorRect(new Rect(x, y, WINDOW_WIDTH, 36), ColorTitle);
@@ -89,7 +97,7 @@ namespace ProjectName.UI
 
             // 닫기 버튼
             if (GUI.Button(new Rect(x + WINDOW_WIDTH - 44, y + 4, 36, 28), "✕",
-                new GUIStyle(GUI.skin.button) { fontSize = 56, fontStyle = FontStyle.Bold }))
+                new GUIStyle(GUI.skin.button) { fontSize = 24, fontStyle = FontStyle.Bold }))
             {
                 Hide();
                 return;
@@ -146,6 +154,7 @@ namespace ProjectName.UI
             // SpeechAffinityBonus = _level, 화술 성공 판정: speechLevel >= difficulty
             bool success = opt.speechDifficulty <= 0 || speechLevel >= opt.speechDifficulty;
 
+            Color oldColor = GUI.color;
             if (success)
             {
                 _dialogueText = $"{_lordName}: \"{opt.successResult}\"";
@@ -160,7 +169,7 @@ namespace ProjectName.UI
                 opt.onFail?.Invoke();
                 Debug.Log($"[LordAudienceUI] ❌ 화술 실패! (레벨 {speechLevel} < 필요 {opt.speechDifficulty})");
             }
-            GUI.color = Color.white;
+            GUI.color = oldColor;
 
             // 3초 후 선택지 재표시
             Invoke(nameof(ResetDialogue), 3f);
@@ -177,6 +186,7 @@ namespace ProjectName.UI
         {
             if (_stylesInit) return;
             _texWhite = MakeTex(1, 1, Color.white);
+            _texBg = MakeTex(1, 1, ColorBg);
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
@@ -196,13 +206,6 @@ namespace ProjectName.UI
             {
                 fontSize = 48, fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = ColorText }
-            };
-
-            _styleResult = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 56, fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorText }
             };
 

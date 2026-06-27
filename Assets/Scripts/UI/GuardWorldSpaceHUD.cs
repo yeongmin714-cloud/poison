@@ -19,9 +19,12 @@ namespace ProjectName.UI
         [SerializeField] private float _hudHeight = 70f;
         [SerializeField] private KeyCode _toggleKey = KeyCode.F6;
 
+        // 캐시된 오브젝트 참조
+        private Transform _playerTransform;
+        private Camera _mainCamera;
+
         // 표시 대상 (매 프레임 갱신)
         private readonly List<IWorldSpaceHUD> _activeHUDs = new List<IWorldSpaceHUD>();
-        private readonly List<GameObject> _allGuardObjects = new List<GameObject>();
 
         // 스타일 (lazy init)
         private GUIStyle _styleName;
@@ -32,6 +35,18 @@ namespace ProjectName.UI
 
         // HUD 표시 온/오프
         private bool _hudEnabled = true;
+
+        // 재사용 가능한 단색 텍스처 캐시 (GC 할당 방지)
+        private static Texture2D _bgTexture;
+        private static Texture2D _loyaltyFillTexture;
+        private static Texture2D _addictionFillTexture;
+        private static Color _lastBgColor = Color.clear;
+        private static Color _lastLoyaltyColor = Color.clear;
+        private static Color _lastAddictionColor = Color.clear;
+
+        // 갱신 주기 (매 프레임 FindObjects 대신 0.5초마다)
+        private float _refreshTimer;
+        private const float REFRESH_INTERVAL = 0.5f;
 
         // ===== 싱글톤 =====
         public static GuardWorldSpaceHUD Instance { get; private set; }
@@ -45,6 +60,22 @@ namespace ProjectName.UI
             }
             Instance = this;
             _theme = Phase33_Themes.GuardHUDTheme();
+            CacheReferences();
+        }
+
+        private void OnEnable()
+        {
+            // 재활성화 시 참조 갱신
+            CacheReferences();
+        }
+
+        /// <summary>플레이어 및 카메라 참조 캐싱</summary>
+        private void CacheReferences()
+        {
+            _mainCamera = Camera.main;
+            var playerGo = GameObject.FindGameObjectWithTag("Player");
+            if (playerGo != null)
+                _playerTransform = playerGo.transform;
         }
 
         private void Update()
@@ -58,8 +89,17 @@ namespace ProjectName.UI
 
             if (!_hudEnabled) return;
 
-            // 표시 대상 갱신
-            RefreshActiveHUDs();
+            // 주기적으로만 HUD 목록 갱신 (매 프레임 FindObjects 방지)
+            _refreshTimer += Time.deltaTime;
+            if (_refreshTimer >= REFRESH_INTERVAL)
+            {
+                _refreshTimer = 0f;
+                RefreshActiveHUDs();
+
+                // 주기적으로 캐시 참조도 갱신 (씬 전환 대비)
+                if (_playerTransform == null || _mainCamera == null)
+                    CacheReferences();
+            }
         }
 
         private void OnGUI()
@@ -68,13 +108,14 @@ namespace ProjectName.UI
 
             EnsureStyles();
 
-            var mainCam = Camera.main;
+            // 캐시된 참조 사용
+            var mainCam = _mainCamera;
             if (mainCam == null) return;
 
-            var player = GameObject.FindGameObjectWithTag("Player");
-            if (player == null) return;
+            var playerTr = _playerTransform;
+            if (playerTr == null) return;
 
-            Vector3 playerPos = player.transform.position;
+            Vector3 playerPos = playerTr.position;
 
             foreach (var hud in _activeHUDs)
             {
@@ -122,13 +163,14 @@ namespace ProjectName.UI
             float barW = _hudWidth - 32;
             float barH = 14;
 
-            // 배경
-            GUI.DrawTexture(new Rect(barX, barY, barW, barH), MakeTex(1, 1, new Color(0.3f, 0.3f, 0.3f, alpha)));
-            // 채움 (호감도에 따라 색상: 낮으면 빨강, 높으면 파랑)
+            // 호감도에 따른 채움 색상
             Color loyaltyColor = hud.HUDLoyalty >= 0
                 ? Color.Lerp(Color.gray, Color.blue, loyaltyNorm)
                 : Color.Lerp(Color.red, Color.gray, Mathf.Clamp01((hud.HUDLoyalty + 100f) / 100f));
-            GUI.DrawTexture(new Rect(barX, barY, barW * loyaltyNorm, barH), MakeTex(1, 1, loyaltyColor));
+
+            // 캐시된 텍스처 사용 (매 프레임 new Texture2D 방지)
+            GUI.DrawTexture(new Rect(barX, barY, barW, barH), GetCachedBgTexture(alpha));
+            GUI.DrawTexture(new Rect(barX, barY, barW * loyaltyNorm, barH), GetCachedTex(ref _loyaltyFillTexture, ref _lastLoyaltyColor, loyaltyColor));
             // 텍스트
             GUI.Label(new Rect(barX + 2, barY + 1, barW - 4, barH - 2),
                 $"{(int)hud.HUDLoyalty}", _styleValue);
@@ -141,9 +183,10 @@ namespace ProjectName.UI
             float addBarW = _hudWidth - 32;
             float addBarH = 14;
 
-            GUI.DrawTexture(new Rect(addBarX, addBarY, addBarW, addBarH), MakeTex(1, 1, new Color(0.3f, 0.3f, 0.3f, alpha)));
             Color addictionColor = Color.Lerp(Color.green, Color.magenta, addictionNorm);
-            GUI.DrawTexture(new Rect(addBarX, addBarY, addBarW * addictionNorm, addBarH), MakeTex(1, 1, addictionColor));
+
+            GUI.DrawTexture(new Rect(addBarX, addBarY, addBarW, addBarH), GetCachedBgTexture(alpha));
+            GUI.DrawTexture(new Rect(addBarX, addBarY, addBarW * addictionNorm, addBarH), GetCachedTex(ref _addictionFillTexture, ref _lastAddictionColor, addictionColor));
             GUI.Label(new Rect(addBarX + 2, addBarY + 1, addBarW - 4, addBarH - 2),
                 $"{(int)hud.HUDAddiction}%", _styleValue);
 
@@ -160,9 +203,9 @@ namespace ProjectName.UI
             var guards = Object.FindObjectsOfType<GuardPlaceholder>();
             foreach (var guard in guards)
             {
-                if (guard != null && (guard as IWorldSpaceHUD) != null)
+                if (guard is IWorldSpaceHUD hud)
                 {
-                    _activeHUDs.Add(guard as IWorldSpaceHUD);
+                    _activeHUDs.Add(hud);
                 }
             }
 
@@ -174,39 +217,64 @@ namespace ProjectName.UI
             if (_styleName != null) return;
             _styleName = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 192,
+                fontSize = 14,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.white },
                 alignment = TextAnchor.MiddleLeft
             };
             _styleLevel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 176,
+                fontSize = 12,
                 normal = { textColor = Color.yellow },
                 alignment = TextAnchor.MiddleRight
             };
             _styleLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 176,
+                fontSize = 12,
                 normal = { textColor = Color.white },
                 alignment = TextAnchor.MiddleLeft
             };
             _styleValue = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 160,
+                fontSize = 11,
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.white },
                 alignment = TextAnchor.MiddleLeft
             };
         }
 
-        private Texture2D MakeTex(int w, int h, Color c)
+        /// <summary>배경용 어두운 텍스처 (알파만 다름, 캐시됨)</summary>
+        private static Texture2D GetCachedBgTexture(float alpha)
+        {
+            Color c = new Color(0.3f, 0.3f, 0.3f, alpha);
+            if (_bgTexture == null || _lastBgColor != c)
+            {
+                _bgTexture = MakeTexStatic(1, 1, c);
+                _lastBgColor = c;
+            }
+            return _bgTexture;
+        }
+
+        /// <summary>색상별 텍스처 캐시 (매 프레임 new Texture2D 방지)</summary>
+        private static Texture2D GetCachedTex(ref Texture2D cache, ref Color lastColor, Color newColor)
+        {
+            if (cache == null || lastColor != newColor)
+            {
+                Object.DestroyImmediate(cache);
+                cache = MakeTexStatic(1, 1, newColor);
+                lastColor = newColor;
+            }
+            return cache;
+        }
+
+        private static Texture2D MakeTexStatic(int w, int h, Color c)
         {
             var tex = new Texture2D(w, h);
             for (int i = 0; i < w; i++)
                 for (int j = 0; j < h; j++)
                     tex.SetPixel(i, j, c);
             tex.Apply();
+            tex.hideFlags = HideFlags.HideAndDontSave; // DontDestroy와 GC 마킹
             return tex;
         }
 

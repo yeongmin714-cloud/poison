@@ -1,5 +1,5 @@
 using ProjectName.Core;
-using ProjectName.Systems;
+
 using UnityEngine;
 using ProjectName.UI.Themes;
 using UnityEngine.InputSystem;
@@ -24,6 +24,9 @@ namespace ProjectName.UI
         private GUIStyle _titleStyle;
         private GUIStyle _buttonStyle;
         private bool _stylesInit;
+        private static readonly string[] ButtonLabels = { "▶ 재개", "💾 저장", "⚙ 설정", "🏠 타이틀로", "❌ 종료" };
+        private System.Action[] _buttonActions;
+        private bool _actionsCached;
 
         private void Awake()
         {
@@ -31,6 +34,21 @@ namespace ProjectName.UI
             Instance = this;
             DontDestroyOnLoad(gameObject);
             _theme = Phase33_Themes.EscMenuTheme();
+            CacheActions();
+        }
+
+        private void CacheActions()
+        {
+            if (_actionsCached) return;
+            _buttonActions = new System.Action[]
+            {
+                Resume,
+                () => { if (SaveManager.Instance != null) SaveManager.Instance.AutoSave(); Resume(); },
+                () => { Resume(); SettingsMenuUI.Instance?.Show(); },
+                () => { Time.timeScale = 1f; UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu"); },
+                () => { Time.timeScale = 1f; Application.Quit(); }
+            };
+            _actionsCached = true;
         }
 
         private void Update()
@@ -94,21 +112,12 @@ namespace ProjectName.UI
             int btnW = 330;
             int btnX = cx + (_windowWidth - btnW) / 2;
 
-            string[] labels = { "▶ 재개", "💾 저장", "⚙ 설정", "🏠 타이틀로", "❌ 종료" };
-            System.Action[] actions = {
-                Resume,
-                () => { if (SaveManager.Instance != null) SaveManager.Instance.AutoSave(); Resume(); },
-                () => { Resume(); SettingsMenuUI.Instance?.Show(); },
-                () => { Time.timeScale = 1f; UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu"); },
-                () => { Time.timeScale = 1f; Application.Quit(); }
-            };
-
-            for (int i = 0; i < labels.Length; i++)
+            for (int i = 0; i < ButtonLabels.Length; i++)
             {
                 int y = btnY + i * (_buttonHeight + _buttonSpacing);
                 GUI.backgroundColor = i == 4 ? new Color(0.6f, 0.2f, 0.2f, 0.9f) : new Color(0.2f, 0.35f, 0.5f, 0.9f);
-                if (GUI.Button(new Rect(btnX, y, btnW, _buttonHeight), labels[i], _buttonStyle))
-                    actions[i]();
+                if (GUI.Button(new Rect(btnX, y, btnW, _buttonHeight), ButtonLabels[i], _buttonStyle))
+                    _buttonActions[i]();
             }
         }
     }

@@ -46,7 +46,12 @@ namespace ProjectName.UI
         private GUIStyle _territoryCellStyle;
         private GUIStyle _infoLabelStyle;
         private GUIStyle _starStyle;
+        private GUIStyle _guardCountStyle; // 캐싱: DrawTerritoryCell의 병사 수 스타일 (GC 방지)
         private bool _stylesInitialized;
+
+        // 캐싱: 리플렉션 방지 (매 OnShow() 호출 시 GetField 제거)
+        private bool _reflectionCacheValid;
+        private bool _playerHealthHasLastTerritory;
 
         protected override void Awake()
         {
@@ -58,8 +63,7 @@ namespace ProjectName.UI
 
         protected override void OnShow()
         {
-            // Phase 33: 배경 패턴 텍스처 (base.OnShow가 처리)
-            base.OnShow();
+            base.OnShow(); // UIWindow.OnShow에서 theme 배경纹理를 처리하므로 중복 DrawTexture 제거
 
             if (TerritoryDatabase.Instance == null)
             {
@@ -69,26 +73,6 @@ namespace ProjectName.UI
 
             Debug.Log("[MapWindow] 열림 — 지도 갱신");
             RefreshMap();
-
-            // Phase 33 UI-02: 추가 장식 요소 렌더링
-            if (_theme != null && _windowRoot != null)
-            {
-                var bgTex = ProceduralTextureGenerator.GetPatternTexture(_theme.CurrentPattern);
-                if (bgTex != null)
-                {
-                    var rect = _windowRoot.GetComponent<RectTransform>();
-                    if (rect != null)
-                    {
-                        var rectRect = rect.rect;
-                        var worldRect = new Rect(
-                            rect.position.x + rectRect.x,
-                            rect.position.y + rectRect.y,
-                            rectRect.width, rectRect.height);
-                        // 모서리 스크롤 장식 느낌으로 반투명 오버레이
-                        GUI.DrawTexture(worldRect, bgTex, ScaleMode.StretchToFill);
-                    }
-                }
-            }
         }
 
         protected override void OnHide()
@@ -134,30 +118,12 @@ namespace ProjectName.UI
 
         /// <summary>
         /// 플레이어 현재 위치를 업데이트합니다.
-        /// PlayerHealth.LastTerritoryId 또는 TerritoryManager.CurrentTerritoryId에서 읽습니다.
+        /// TerritoryManager.CurrentTerritoryId에서 직접 읽습니다 (리플렉션 제거 — GC 방지).
         /// </summary>
         private void UpdatePlayerPosition()
         {
-            // Try PlayerHealth first
-            if (PlayerHealth.Instance != null)
-            {
-                // PlayerHealth has LastTerritoryId? Let's check via reflection or direct.
-                // We'll try to get it via the Component's field
-                var healthType = PlayerHealth.Instance.GetType();
-                var lastTerritoryField = healthType.GetField("LastTerritoryId",
-                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                if (lastTerritoryField != null)
-                {
-                    var val = lastTerritoryField.GetValue(PlayerHealth.Instance);
-                    if (val != null && val is TerritoryId)
-                    {
-                        _playerTerritoryId = (TerritoryId)val;
-                        return;
-                    }
-                }
-            }
-
-            // Fall back to TerritoryManager
+            // PlayerHealth에 LastTerritoryId 필드가 없으므로(PlayerHealth.cs 확인 완료)
+            // TerritoryManager.CurrentTerritoryId를 직접 사용합니다.
             if (TerritoryManager.Instance != null)
             {
                 _playerTerritoryId = TerritoryManager.Instance.CurrentTerritoryId;
@@ -298,6 +264,14 @@ namespace ProjectName.UI
                 fontSize = 56,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.yellow }
+            };
+
+            _guardCountStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 36,
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = new Color(0.7f, 0.7f, 0.7f) },
+                richText = true
             };
 
             _stylesInitialized = true;
@@ -636,7 +610,7 @@ namespace ProjectName.UI
             // Difficulty/guard count info
             float guardY = rect.y + rect.height - lineHeight - margin;
             Rect guardRect = new Rect(cellInnerX, guardY, cellInnerW, lineHeight);
-            GUI.Label(guardRect, $"병사: {def.guardCount}명", new GUIStyle(_infoLabelStyle) { fontSize = 36, normal = { textColor = new Color(0.7f, 0.7f, 0.7f) } });
+            GUI.Label(guardRect, $"병사: {def.guardCount}명", _guardCountStyle);
         }
 
         /// <summary>
