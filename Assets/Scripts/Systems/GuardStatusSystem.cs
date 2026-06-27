@@ -22,7 +22,7 @@ namespace ProjectName.Systems
         public const float INFORMANT_DEATH_CHANCE = 0.02f; // 2%
         public const float HERBALIST_DEATH_CHANCE = 0.005f; // 0.5%
         public const float MINER_DEATH_CHANCE = 0.01f;     // 1%
-        public const float SOLDIER_DEATH_CHANCE = 0f;      // 0% (전투 중死亡 별도)
+        public const float SOLDIER_DEATH_CHANCE = 0f;      // 0% (전투 중 사망 별도)
 
         // 역할별 행동 보너스
         public const float HERBALIST_GATHER_BONUS = 1.5f;   // 채집량 1.5배

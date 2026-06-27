@@ -1,5 +1,7 @@
 using UnityEngine;
 using ProjectName.Core.Data;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace ProjectName.Systems
 {
@@ -29,14 +31,93 @@ namespace ProjectName.Systems
         public const float XP_PER_KILL = 50f;
         public const float XP_PER_DAY_AUTO = 5f;  // 자동 성장 (1일당)
 
-        // 영지 난이도별 기본 레벨 범위
+        // ===== 캐시된 Reflection FieldInfo (성능 최적화) =====
+        private static FieldInfo _levelField;
+        private static FieldInfo _maxHPField;
+
+        /// <summary>
+        /// GuardPlaceholder.level 필드 캐시 (읽기 전용 Level 프로퍼티 우회)
+        /// </summary>
+        private static FieldInfo LevelField
+        {
+            get
+            {
+                if (_levelField == null)
+                {
+                    _levelField = typeof(GuardPlaceholder).GetField("level",
+                        BindingFlags.NonPublic | BindingFlags.Instance);
+                }
+                return _levelField;
+            }
+        }
+
+        /// <summary>
+        /// GuardPlaceholder._maxHP 필드 캐시 (읽기 전용 MaxHP 프로퍼티 우회)
+        /// </summary>
+        private static FieldInfo MaxHPField
+        {
+            get
+            {
+                if (_maxHPField == null)
+                {
+                    _maxHPField = typeof(GuardPlaceholder).GetField("_maxHP",
+                        BindingFlags.NonPublic | BindingFlags.Instance);
+                }
+                return _maxHPField;
+            }
+        }
+
+        // ===== 경험치 저장소 (GuardPlaceholder에 xp 필드가 없으므로 정적 사전 사용) =====
+        private static readonly Dictionary<GuardPlaceholder, float> _guardXP = new Dictionary<GuardPlaceholder, float>();
+
+        /// <summary>
+        /// GuardPlaceholder가 파괴될 때 XP 사전에서 정리하기 위해 구독
+        /// </summary>
+        static GuardLevelSystem()
+        {
+            GuardPlaceholder.OnAnyGuardDied += OnGuardDied;
+        }
+
+        private static void OnGuardDied(GuardPlaceholder guard)
+        {
+            if (guard != null && _guardXP.ContainsKey(guard))
+            {
+                _guardXP.Remove(guard);
+            }
+        }
+
+        // ===== XP 공개 API =====
+
+        /// <summary>
+        /// 해당 병사의 누적 경험치 반환
+        /// </summary>
+        public static float GetGuardXP(GuardPlaceholder guard)
+        {
+            if (guard == null) return 0f;
+            return _guardXP.TryGetValue(guard, out float xp) ? xp : 0f;
+        }
+
+        /// <summary>
+        /// 병사의 누적 경험치를 수동 설정 (GuardManager 로드 등)
+        /// </summary>
+        public static void SetGuardXP(GuardPlaceholder guard, float xp)
+        {
+            if (guard == null) return;
+            _guardXP[guard] = Mathf.Max(0f, xp);
+        }
+
+        // ===== 영지 난이도별 기본 레벨 범위 =====
+
+        /// <summary>
+        /// 영지 난이도에 따른 병사 기본 레벨 범위 반환
+        /// </summary>
         public static Vector2Int GetLevelRange(TerritoryDifficulty difficulty)
         {
             switch (difficulty)
             {
                 case TerritoryDifficulty.Ring1: return new Vector2Int(1, 10);
-                case TerritoryDifficulty.Ring2: return new Vector2Int(11, 25);
-                case TerritoryDifficulty.Ring3: return new Vector2Int(11, 25);
+                case TerritoryDifficulty.Ring2: return new Vector2Int(11, 20);
+                case TerritoryDifficulty.Ring3: return new Vector2Int(16, 25);
                 case TerritoryDifficulty.Ring4: return new Vector2Int(26, 40);
                 case TerritoryDifficulty.Empire: return new Vector2Int(41, 50);
                 default: return new Vector2Int(1, 5);
@@ -124,17 +205,29 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 전투 경험치 획득
+        /// 전투 경험치 획득 — XP가 충분하면 자동 레벨업 및 스탯 갱신
         /// </summary>
         public static void AddCombatXP(GuardPlaceholder guard, float xpAmount)
         {
             if (guard == null || !guard.IsAlive) return;
-            int beforeLevel = guard.Level;
 
-            // XP는 GuardPlaceholder에 xp 필드 추가 필요
-            // 현재는 이 메서드가 호출될 때 로그만 출력
-            // 실제 XP 저장은 GuardPlaceholder 확장 후 구현
-            Debug.Log($"[GuardLevel] {guard.GuardName} 전투 경험치 +{xpAmount}");
+            // XP 누적
+            if (!_guardXP.ContainsKey(guard))
+            {
+                _guardXP[guard] = 0f;
+            }
+            _guardXP[guard] += xpAmount;
+
+            // 레벨업 체크
+            int newLevel = CalculateLevelFromXP(_guardXP[guard]);
+            if (newLevel > guard.Level)
+            {
+                SetGuardLevel(guard, newLevel);
+                ApplyStatsFromLevel(guard);
+                Debug.Log($"[GuardLevel] {guard.GuardName} 레벨업! Lv.{newLevel}");
+            }
+
+            Debug.Log($"[GuardLevel] {guard.GuardName} 전투 경험치 +{xpAmount} (총:{_guardXP[guard]})");
         }
 
         /// <summary>
@@ -154,26 +247,64 @@ namespace ProjectName.Systems
             if (guard == null) return;
             int initialLevel = GenerateInitialLevel(difficulty);
 
-            // 리플렉션으로 private level 필드 설정
-            var levelField = typeof(GuardPlaceholder).GetField("level",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (levelField != null)
-            {
-                levelField.SetValue(guard, initialLevel);
-            }
+            SetGuardLevel(guard, initialLevel);
+            ApplyStatsFromLevel(guard);
 
             Debug.Log($"[GuardLevel] {guard.GuardName} 초기 레벨 설정: Lv.{initialLevel} (난이도: {difficulty})");
         }
 
         /// <summary>
-        /// 병사에게 레벨 기반 스탯 적용
+        /// 리플렉션 없이 병사 레벨을 안전하게 설정 (캐시된 FieldInfo 사용)
+        /// </summary>
+        private static void SetGuardLevel(GuardPlaceholder guard, int level)
+        {
+            if (guard == null) return;
+            int clampedLevel = Mathf.Clamp(level, LV_MIN, LV_MAX);
+
+            var field = LevelField;
+            if (field != null)
+            {
+                field.SetValue(guard, clampedLevel);
+            }
+            else
+            {
+                Debug.LogError($"[GuardLevel] GuardPlaceholder.level 필드를 찾을 수 없습니다! " +
+                    $"클래스 구조가 변경되었을 수 있습니다.");
+            }
+        }
+
+        /// <summary>
+        /// 병사에게 레벨 기반 스탯 적용 (MaxHP, 현재 체력 등)
         /// </summary>
         public static void ApplyStatsFromLevel(GuardPlaceholder guard)
         {
             if (guard == null) return;
-            // GuardPlaceholder에 MaxHP가 있다면 여기서 설정
-            // 현재는 GuardPlaceholder.MaxHP가 [SerializeField]라 직접 설정 불가
-            Debug.Log($"[GuardLevel] {guard.GuardName} Lv.{guard.Level} 스탯: HP+{CalculateMaxHP(guard.Level)}, 공격+{CalculateDamage(guard.Level)}, 방어+{CalculateDefense(guard.Level)}");
+
+            float newMaxHP = CalculateMaxHP(guard.Level);
+            float newDamage = CalculateDamage(guard.Level);
+            float newDefense = CalculateDefense(guard.Level);
+
+            // _maxHP 설정 (읽기 전용 MaxHP 프로퍼티 우회)
+            var field = MaxHPField;
+            if (field != null)
+            {
+                float oldMaxHP = guard.MaxHP;
+                field.SetValue(guard, newMaxHP);
+
+                // 최대HP가 증가했다면 현재 체력도 비율 유지
+                if (newMaxHP > oldMaxHP && guard.HP > 0f)
+                {
+                    float ratio = guard.HP / oldMaxHP;
+                    guard.SetHP(newMaxHP * ratio);
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"[GuardLevel] GuardPlaceholder._maxHP 필드를 찾을 수 없어 스탯을 적용할 수 없습니다.");
+            }
+
+            Debug.Log($"[GuardLevel] {guard.GuardName} Lv.{guard.Level} 스탯 적용: " +
+                $"HP {guard.MaxHP}(+{newMaxHP}), 공격 +{newDamage}, 방어 +{newDefense}");
         }
     }
 }

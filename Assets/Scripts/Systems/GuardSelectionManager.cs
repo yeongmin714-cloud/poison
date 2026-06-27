@@ -32,6 +32,12 @@ namespace ProjectName.Systems
         private Vector2 _dragStartMouse;
         private Rect _selectionRect;
 
+        // 캐시된 흰색 텍스처 (MakeTex 메모리 누수 방지)
+        private static Texture2D _cachedWhiteTex;
+
+        // 캐시된 ReadOnlyCollection (매 접근마다 생성 방지)
+        private System.Collections.ObjectModel.ReadOnlyCollection<GuardPlaceholder> _selectedGuardsReadOnly;
+
         // 카메라 참조
         private Camera _mainCamera;
 
@@ -40,6 +46,17 @@ namespace ProjectName.Systems
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
             _mainCamera = Camera.main;
+            _selectedGuardsReadOnly = _selectedGuards.AsReadOnly();
+        }
+
+        private void OnEnable()
+        {
+            // 씬 전환 시 Camera.main이 stale될 수 있으므로 갱신
+            if (_mainCamera == null || !_mainCamera.gameObject.activeInHierarchy)
+                _mainCamera = Camera.main;
+
+            // 캐시된 ReadOnlyCollection 갱신 (리스트가 바뀌었을 수 있음)
+            _selectedGuardsReadOnly = _selectedGuards.AsReadOnly();
         }
 
         private void Update()
@@ -62,7 +79,6 @@ namespace ProjectName.Systems
                 if (dragDist > _clickThreshold)
                 {
                     UpdateSelectionRect(_dragStartMouse, currentMouse);
-                    DrawSelectionBox();
                 }
             }
 
@@ -125,12 +141,13 @@ namespace ProjectName.Systems
 
         private Texture2D MakeTex(int w, int h, Color c)
         {
-            var tex = new Texture2D(w, h);
-            for (int x = 0; x < w; x++)
-                for (int y = 0; y < h; y++)
-                    tex.SetPixel(x, y, c);
-            tex.Apply();
-            return tex;
+            if (_cachedWhiteTex == null)
+            {
+                _cachedWhiteTex = new Texture2D(1, 1);
+                _cachedWhiteTex.SetPixel(0, 0, Color.white);
+                _cachedWhiteTex.Apply();
+            }
+            return _cachedWhiteTex;
         }
 
         // ===== 드래그 Rect 계산 =====
@@ -144,11 +161,6 @@ namespace ProjectName.Systems
         }
 
         // ===== 화면 좌표의 선택 Rect로 드래그 선택 =====
-        private void DrawSelectionBox()
-        {
-            // OnGUI에서 실제로 그림
-        }
-
         /// <summary>
         /// 화면 Rect 내의 모든 GuardPlaceholder 선택
         /// </summary>
@@ -202,47 +214,9 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 우클릭 명령 처리 — RTSCommandSystem에 위임 (레거시 호환)
-        /// </summary>
-        private void HandleRightClickCommand()
-        {
-            if (RTSCommandSystem.Instance != null)
-                RTSCommandSystem.Instance.IssueRightClickCommand(Mouse.current.position.ReadValue());
-        }
-
-        /// <summary>
-        /// 공격 명령 — RTSCommandSystem에 위임 (레거시 호환)
-        /// </summary>
-        private void IssueAttackCommand(IDamageable target)
-        {
-            // RTSCommandSystem을 통해 처리
-            if (RTSCommandSystem.Instance != null)
-                RTSCommandSystem.Instance.IssueRightClickCommand(Mouse.current.position.ReadValue());
-        }
-
-        /// <summary>
-        /// 이동 명령 — RTSCommandSystem에 위임 (레거시 호환)
-        /// </summary>
-        private void IssueMoveCommand(Vector3 position)
-        {
-            // RTSCommandSystem을 통해 처리
-            if (RTSCommandSystem.Instance != null)
-                RTSCommandSystem.Instance.IssueRightClickCommand(Mouse.current.position.ReadValue());
-        }
-
-        /// <summary>
-        /// 모든 병사 정지 — RTSCommandSystem에 위임 (레거시 호환)
-        /// </summary>
-        public void StopAllGuards()
-        {
-            if (RTSCommandSystem.Instance != null)
-                RTSCommandSystem.Instance.StopAllSelectedGuards();
-        }
-
-        /// <summary>
         /// 현재 선택된 병사 목록
         /// </summary>
-        public IReadOnlyList<GuardPlaceholder> SelectedGuards => _selectedGuards.AsReadOnly();
+        public IReadOnlyList<GuardPlaceholder> SelectedGuards => _selectedGuardsReadOnly;
         public int SelectedCount => _selectedGuards.Count;
     }
 }

@@ -47,6 +47,12 @@ namespace ProjectName.Systems
             Instance = this;
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         private void Update()
         {
             _timer += Time.deltaTime;
@@ -61,7 +67,7 @@ namespace ProjectName.Systems
         /// </summary>
         private void ProcessHostility()
         {
-            var guards = Object.FindObjectsOfType<GuardPlaceholder>();
+            var guards = Object.FindObjectsByType<GuardPlaceholder>();
             var player = GameObject.FindGameObjectWithTag("Player");
 
             foreach (var guard in guards)

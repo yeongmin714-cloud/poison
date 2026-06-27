@@ -163,22 +163,6 @@ namespace ProjectName.Systems
             return false;
         }
 
-        private static int CountPlayerOwnedHostile(NationType guardNation)
-        {
-            int count = 0;
-            var db = TerritoryDatabase.Instance;
-            foreach (var def in db.GetAllDefinitions())
-            {
-                var state = db.GetState(def.id);
-                if (state != null && state.ownership == TerritoryOwnership.PlayerOwned
-                    && IsHostileNation(guardNation, def.nation))
-                {
-                    count++;
-                }
-            }
-            return count;
-        }
-
         private static NationType ParseNationFromKorean(string korean)
         {
             switch (korean)

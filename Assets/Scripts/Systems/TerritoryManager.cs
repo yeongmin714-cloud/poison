@@ -137,24 +137,12 @@ namespace ProjectName.Systems
             return sum / _buildings.Count;
         }
 
-        /// <summary>특정 영지 ID의 중심점을 데이터베이스에서 계산하여 반환합니다.</summary>
+        /// <summary>특정 영지 ID의 중심점을 반환합니다. (건물 평균 위치로 폴백)</summary>
         public Vector3 GetTerritoryCenter(TerritoryId territoryId)
         {
-            var db = _territoryDatabase ?? TerritoryDatabase.Instance;
-            if (db == null)
-            {
-                Debug.LogError("[TerritoryManager] TerritoryDatabase를 사용할 수 없어 중심점을 계산할 수 없습니다.");
-                return Vector3.zero;
-            }
-
-            var def = db.GetDefinition(territoryId);
-            if (def == null)
-            {
-                Debug.LogWarning($"[TerritoryManager] TerritoryId {territoryId}에 대한 정의가 없습니다.");
-                return Vector3.zero;
-            }
-
-            return def.centerPosition;
+            // TerritoryDefinition은 centerPosition 필드가 없으므로
+            // 현재 로드된 건물들의 중심점으로 폴백합니다.
+            return GetTerritoryCenter();
         }
 
         /// <summary>

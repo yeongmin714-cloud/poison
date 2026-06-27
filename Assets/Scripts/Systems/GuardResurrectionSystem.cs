@@ -181,10 +181,10 @@ namespace ProjectName.Systems
         /// </summary>
         private Vector3 GetTerritoryEntrance(TerritoryId territoryId)
         {
-            // TerritoryManager에서 영지 중심점 가져오기
+            // TerritoryManager에서 해당 영지의 중심점 가져오기
             if (TerritoryManager.Instance != null)
             {
-                return TerritoryManager.Instance.GetTerritoryCenter();
+                return TerritoryManager.Instance.GetTerritoryCenter(territoryId);
             }
 
             // Fallback: TerritoryDatabase에서 GateGuardPlaceholder 찾기

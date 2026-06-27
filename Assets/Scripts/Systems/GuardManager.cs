@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Collections.Generic;
 using ProjectName.Core.Data;
 using UnityEngine;
 using ProjectName.Core;
@@ -280,19 +279,18 @@ namespace ProjectName.Systems
             TerritoryId id = ParseTerritoryKey(key);
 
             // 새 병사 생성
-            GameObject guardGO = new GameObject(GenerateGuardName());
+            string newName = GenerateGuardName();
+            GameObject guardGO = new GameObject(newName);
             guardGO.transform.position = GetRandomSpawnPosition(id);
             var guard = guardGO.AddComponent<GuardPlaceholder>();
 
             // 새 병사 정보 설정
-            string newName = GenerateGuardName();
             int newLevel = Random.Range(1, 4);
             guard.SetGuardInfo(newName, newLevel, id.nation);
             guard.SetRecruited(true);
 
             // 생성된 병사를 현재 영지에 등록
             guards.Add(guard);
-            _territoryGuards[key] = guards;
 
             Debug.Log($"[GuardManager] 🆕 신규 병사 생성: {newName} (Lv.{newLevel}) → {key}");
             OnGuardSpawned?.Invoke(id, guard);

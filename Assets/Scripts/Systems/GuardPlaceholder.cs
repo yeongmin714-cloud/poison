@@ -50,6 +50,12 @@ namespace ProjectName.Systems
         // Rig animation
         private RigAnimationController _rigAnim;
 
+        // 캐시된 텍스처 (메모리 누수 방지)
+        private static Texture2D _whitePixelTex;
+
+        // 캐시된 플레이어 참조 (매 프레임 Find 방지)
+        private GameObject _playerCache;
+
         private const float HP_BAR_WIDTH = 150f;
         private const float LABEL_WIDTH = 80f;
 
@@ -88,6 +94,9 @@ namespace ProjectName.Systems
         {
             _currentHP = _maxHP;
 
+            // 플레이어 캐싱
+            _playerCache = GameObject.FindGameObjectWithTag("Player");
+
             // 기본 Idle 애니메이션
             if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
 
@@ -97,7 +106,10 @@ namespace ProjectName.Systems
 
         private void Update()
         {
-            var player = GameObject.FindGameObjectWithTag("Player");
+            // 캐시된 참조 갱신 (null이거나 비활성화된 경우 재탐색)
+            if (_playerCache == null || !_playerCache.activeInHierarchy)
+                _playerCache = GameObject.FindGameObjectWithTag("Player");
+            var player = _playerCache;
             if (player == null) return;
 
             float dist = Vector3.Distance(transform.position, player.transform.position);
@@ -121,6 +133,9 @@ namespace ProjectName.Systems
                 GuardAddictionSystem.ProcessPoisonDamage(this, Time.deltaTime);
                 GuardAddictionSystem.CheckOverdose(this);
             }
+
+            // 전투 타이머 갱신
+            UpdateCombatTimer(Time.deltaTime);
         }
 
         private void OnGUI()
@@ -144,8 +159,8 @@ namespace ProjectName.Systems
             GUI.Box(new Rect(x, y, panelW, panelH), "");
 
             // 타이틀
-                        string roleStr = GuardStatusSystem.GetRoleName(_role);
-                        GUI.Label(new Rect(x + 10, cy, panelW - 20, 24), $"⚔️ [{nation}] {roleStr} Lv.{level}", _styleTitle);
+            string roleStr = GuardStatusSystem.GetRoleName(_role);
+            GUI.Label(new Rect(x + 10, cy, panelW - 20, 24), $"⚔️ [{nation}] {roleStr} Lv.{level}", _styleTitle);
             cy += 30f;
 
             GUI.Label(new Rect(x + 10, cy, LABEL_WIDTH, 20), "❤️ 체력:", _styleLabel);
@@ -170,25 +185,25 @@ namespace ProjectName.Systems
                 cy += 24f;
             }
             // 메뉴 버튼들
-                        float btnW = (panelW - 50f) / 5f;
-                        float btnY = y + panelH - 40f;
+            float btnW = (panelW - 50f) / 5f;
+            float btnY = y + panelH - 40f;
 
-                        if (GUI.Button(new Rect(x + 8, btnY, btnW, 30), "🗣️ 말걸기")) OnTalk();
-                        if (GUI.Button(new Rect(x + 8 + btnW + 4, btnY, btnW, 30), "🥩 음식주기"))
-                        {
-                            _selectionMode = SelectionMode.SelectingFood;
-                            _invScrollPos = Vector2.zero;
-                        }
-                        if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 2, btnY, btnW, 30), "💊 약주기"))
-                        {
-                            _selectionMode = SelectionMode.SelectingDrug;
-                            _invScrollPos = Vector2.zero;
-                        }
-                        if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 3, btnY, btnW, 30), "🤝 포섭"))
-                        {
-                            OnRecruit();
-                        }
-                        if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 4, btnY, btnW, 30), "🔙 닫기")) _showInfo = false;
+            if (GUI.Button(new Rect(x + 8, btnY, btnW, 30), "🗣️ 말걸기")) OnTalk();
+            if (GUI.Button(new Rect(x + 8 + btnW + 4, btnY, btnW, 30), "🥩 음식주기"))
+            {
+                _selectionMode = SelectionMode.SelectingFood;
+                _invScrollPos = Vector2.zero;
+            }
+            if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 2, btnY, btnW, 30), "💊 약주기"))
+            {
+                _selectionMode = SelectionMode.SelectingDrug;
+                _invScrollPos = Vector2.zero;
+            }
+            if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 3, btnY, btnW, 30), "🤝 포섭"))
+            {
+                OnRecruit();
+            }
+            if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 4, btnY, btnW, 30), "🔙 닫기")) _showInfo = false;
         }
 
         // ===== C9-11: 아이템 선택 팝업 =====
@@ -233,7 +248,7 @@ namespace ProjectName.Systems
                     float iy = i * itemH;
                     GUI.Box(new Rect(0, iy, popupW - 40, itemH - 2), "");
                     GUI.Label(new Rect(10, iy + 2, 180, 20), pair.Key.displayName, _styleLabel);
-            GUI.Label(new Rect(10, iy + 20, 80, 16), $"x{pair.Value}", _styleValue);
+                    GUI.Label(new Rect(10, iy + 20, 80, 16), $"x{pair.Value}", _styleValue);
 
                     if (GUI.Button(new Rect(popupW - 160, iy + 5, 100, 28), "주기"))
                     {
@@ -305,18 +320,19 @@ namespace ProjectName.Systems
 
         private void DrawBar(float x, float y, float width, float height, float ratio, Color fillColor, Color bgColor)
         {
-            GUI.DrawTexture(new Rect(x, y, width, height), MakeTex(1, 1, bgColor));
-            GUI.DrawTexture(new Rect(x, y, width * Mathf.Clamp01(ratio), height), MakeTex(1, 1, fillColor));
-        }
+            if (_whitePixelTex == null)
+            {
+                _whitePixelTex = new Texture2D(1, 1);
+                _whitePixelTex.SetPixel(0, 0, Color.white);
+                _whitePixelTex.Apply();
+            }
 
-        private Texture2D MakeTex(int w, int h, Color c)
-        {
-            var tex = new Texture2D(w, h);
-            for (int i = 0; i < w; i++)
-                for (int j = 0; j < h; j++)
-                    tex.SetPixel(i, j, c);
-            tex.Apply();
-            return tex;
+            var prevColor = GUI.color;
+            GUI.color = bgColor;
+            GUI.DrawTexture(new Rect(x, y, width, height), _whitePixelTex);
+            GUI.color = fillColor;
+            GUI.DrawTexture(new Rect(x, y, width * Mathf.Clamp01(ratio), height), _whitePixelTex);
+            GUI.color = prevColor;
         }
 
         private void OnTalk()

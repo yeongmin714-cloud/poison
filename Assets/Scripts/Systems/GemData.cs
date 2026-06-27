@@ -86,7 +86,7 @@ namespace ProjectName.Systems
                     goldValue = 3000,
                     color = new Color(0.8f, 0.9f, 1f)
                 },
-                _ => GetGemData(GemType.Ruby)
+                _ => throw new System.ArgumentOutOfRangeException(nameof(type), type, $"알 수 없는 GemType: {type}")
             };
         }
     }
