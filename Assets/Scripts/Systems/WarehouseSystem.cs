@@ -66,7 +66,7 @@ namespace ProjectName.Systems
             if (slotIndex < 0 || slotIndex >= slots.Count) return false;
 
             var slot = slots[slotIndex];
-            if (slot.count < count) return false;
+            if (slot.item == null || slot.count < count) return false;
 
             slot.count -= count;
             if (slot.count <= 0)
@@ -83,7 +83,7 @@ namespace ProjectName.Systems
             if (slotIndex < 0 || slotIndex >= slots.Count) return false;
 
             var slot = slots[slotIndex];
-            if (slot.count < count) return false;
+            if (slot.item == null || slot.count < count) return false;
 
             if (PlayerInventory.Instance == null) return false;
 
@@ -97,10 +97,10 @@ namespace ProjectName.Systems
             return true;
         }
 
-        /// <summary>해당 영지 창고 아이템 목록 조회</summary>
+        /// <summary>해당 영지 창고 아이템 목록 조회 (방어적 복사)</summary>
         public List<PlayerInventory.ItemSlot> GetItems(string territoryId)
         {
-            return GetOrCreateWarehouse(territoryId);
+            return new List<PlayerInventory.ItemSlot>(GetOrCreateWarehouse(territoryId));
         }
 
         /// <summary>총 아이템 종류 수</summary>

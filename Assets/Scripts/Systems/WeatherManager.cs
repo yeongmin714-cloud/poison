@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace ProjectName.Systems
 {
@@ -59,8 +60,16 @@ namespace ProjectName.Systems
         // ================================================================
 
         [Header("Timing")]
-        [SerializeField] private float _minDuration = 15f;
-        [SerializeField] private float _maxDuration = 180f;
+        [SerializeField] private float _clearMinDuration = 60f;
+        [SerializeField] private float _clearMaxDuration = 180f;
+        [SerializeField] private float _rainMinDuration = 30f;
+        [SerializeField] private float _rainMaxDuration = 90f;
+        [SerializeField] private float _snowMinDuration = 40f;
+        [SerializeField] private float _snowMaxDuration = 120f;
+        [SerializeField] private float _fogMinDuration = 20f;
+        [SerializeField] private float _fogMaxDuration = 60f;
+        [SerializeField] private float _windMinDuration = 15f;
+        [SerializeField] private float _windMaxDuration = 40f;
 
         [Header("References (optional)")]
         [SerializeField] private Light _directionalLight;
@@ -100,6 +109,12 @@ namespace ProjectName.Systems
         private WeatherType _previousWeather;
         private WindZone _windZone;
         private bool _hasDirectionalLight;
+
+        // URP Volume-based fog support
+        private Volume _volume;
+#if UNIVERSAL_RENDERING_PIPELINE
+        private bool _useVolumeFog;
+#endif
 
         // ================================================================
         // Public Properties
@@ -155,9 +170,9 @@ namespace ProjectName.Systems
             // Resolve directional light if not set
             if (_directionalLight == null)
             {
-                _directionalLight = FindObjectOfType<Light>();
+                _directionalLight = FindAnyObjectByType<Light>();
                 // Try to find a light tagged as directional
-                var lights = FindObjectsOfType<Light>();
+                var lights = FindObjectsByType<Light>();
                 foreach (var l in lights)
                 {
                     if (l.type == LightType.Directional)
@@ -171,11 +186,18 @@ namespace ProjectName.Systems
             _hasDirectionalLight = _directionalLight != null;
 
             // Resolve wind zone
-            _windZone = FindObjectOfType<WindZone>();
+            _windZone = FindAnyObjectByType<WindZone>();
+
+            // URP Volume-based fog: prefer Volume component over RenderSettings
+            _volume = FindAnyObjectByType<Volume>();
+#if UNIVERSAL_RENDERING_PIPELINE
+            _useVolumeFog = _volume != null && _volume.profile != null
+                && _volume.profile.Has<global::UnityEngine.Rendering.Universal.Fog>();
+#endif
 
             // Store initial fog/light values for transition targets
             _targetFogDensity = _clearFogDensity;
-            _previousFogDensity = RenderSettings.fogDensity;
+            _previousFogDensity = GetFogDensity();
             if (_hasDirectionalLight)
             {
                 _targetLightIntensity = _clearLightIntensity;
@@ -197,8 +219,8 @@ namespace ProjectName.Systems
                     _transitionProgress = 1f;
 
                 // Lerp fog density
-                RenderSettings.fogDensity = Mathf.Lerp(
-                    _previousFogDensity, _targetFogDensity, _transitionProgress);
+                SetFogDensity(Mathf.Lerp(
+                    _previousFogDensity, _targetFogDensity, _transitionProgress));
 
                 // Lerp light intensity
                 if (_hasDirectionalLight)
@@ -236,16 +258,7 @@ namespace ProjectName.Systems
         /// <summary>Force a specific weather type, skipping the timer.</summary>
         public void SetWeather(WeatherType weather)
         {
-            _previousFogDensity = RenderSettings.fogDensity;
-            _previousLightIntensity = _hasDirectionalLight
-                ? _directionalLight.intensity
-                : 0f;
-
-            if (_windZone != null)
-            {
-                _previousWeather = _currentWeather;
-            }
-
+            _previousWeather = _currentWeather;
             CurrentWeather = weather;
             _weatherTimer = GetRandomDuration(weather);
         }
@@ -255,12 +268,12 @@ namespace ProjectName.Systems
         {
             return weather switch
             {
-                WeatherType.Clear => new Vector2(60f, 180f),
-                WeatherType.Rain => new Vector2(30f, 90f),
-                WeatherType.Snow => new Vector2(40f, 120f),
-                WeatherType.Fog => new Vector2(20f, 60f),
-                WeatherType.StrongWind => new Vector2(15f, 40f),
-                _ => new Vector2(60f, 180f),
+                WeatherType.Clear => new Vector2(_clearMinDuration, _clearMaxDuration),
+                WeatherType.Rain => new Vector2(_rainMinDuration, _rainMaxDuration),
+                WeatherType.Snow => new Vector2(_snowMinDuration, _snowMaxDuration),
+                WeatherType.Fog => new Vector2(_fogMinDuration, _fogMaxDuration),
+                WeatherType.StrongWind => new Vector2(_windMinDuration, _windMaxDuration),
+                _ => new Vector2(_clearMinDuration, _clearMaxDuration),
             };
         }
 
@@ -273,7 +286,7 @@ namespace ProjectName.Systems
             _transitionProgress = 0f;
 
             // Set target values
-            _previousFogDensity = RenderSettings.fogDensity;
+            _previousFogDensity = GetFogDensity();
             _previousLightIntensity = _hasDirectionalLight
                 ? _directionalLight.intensity
                 : 0f;
@@ -284,7 +297,7 @@ namespace ProjectName.Systems
 
         private void ApplyWeatherImmediate(WeatherType weather)
         {
-            RenderSettings.fogDensity = GetTargetFogDensity(weather);
+            SetFogDensity(GetTargetFogDensity(weather));
             if (_hasDirectionalLight)
                 _directionalLight.intensity = GetTargetLightIntensity(weather);
             if (_windZone != null)
@@ -316,7 +329,7 @@ namespace ProjectName.Systems
             WeatherType next = PickRandomWeather();
 
             // Store previous values for smooth transition
-            _previousFogDensity = RenderSettings.fogDensity;
+            _previousFogDensity = GetFogDensity();
             _previousLightIntensity = _hasDirectionalLight
                 ? _directionalLight.intensity
                 : 0f;
@@ -355,6 +368,37 @@ namespace ProjectName.Systems
         {
             Vector2 range = GetDurationRange(weather);
             return UnityEngine.Random.Range(range.x, range.y);
+        }
+
+        // ================================================================
+        // URP Volume Fog Helpers
+        // ================================================================
+
+        /// <summary>Set fog density via Volume Fog override (URP) or fallback to RenderSettings.</summary>
+        private void SetFogDensity(float density)
+        {
+#if UNIVERSAL_RENDERING_PIPELINE
+            if (_useVolumeFog && _volume != null && _volume.profile != null
+                && _volume.profile.TryGet<global::UnityEngine.Rendering.Universal.Fog>(out var fog))
+            {
+                fog.density.value = density;
+                return;
+            }
+#endif
+            RenderSettings.fogDensity = density;
+        }
+
+        /// <summary>Get current fog density from Volume Fog override (URP) or RenderSettings.</summary>
+        private float GetFogDensity()
+        {
+#if UNIVERSAL_RENDERING_PIPELINE
+            if (_useVolumeFog && _volume != null && _volume.profile != null
+                && _volume.profile.TryGet<global::UnityEngine.Rendering.Universal.Fog>(out var fog))
+            {
+                return fog.density.value;
+            }
+#endif
+            return RenderSettings.fogDensity;
         }
 
         // ================================================================

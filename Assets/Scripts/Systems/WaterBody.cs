@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -30,6 +31,11 @@ namespace ProjectName.Systems
         private Material _surfaceMaterial;
         private GameObject _collisionVolume;
         private float _baseY;
+
+        // FIX: Cache Rigidbody and its entry speed on trigger enter to avoid:
+        //    1) Per-frame GetComponent<Rigidbody> calls (performance)
+        //    2) Per-frame velocity *= _slowFactor causing exponential decay to zero (BUG)
+        private readonly Dictionary<Rigidbody, float> _entrySpeeds = new Dictionary<Rigidbody, float>();
 
         /// <summary>Public accessor for the water surface GameObject (for testing).</summary>
         public GameObject WaterSurface => _waterSurface;
@@ -92,7 +98,7 @@ namespace ProjectName.Systems
             _waterSurface.transform.localScale = new Vector3(scale, scale, scale);
 
             // Remove the default collider from the visual plane — we'll add our own
-            DestroyImmediate(_waterSurface.GetComponent<MeshCollider>());
+            Destroy(_waterSurface.GetComponent<MeshCollider>());
 
             // --- Create semi-transparent URP Lit material ---
             _surfaceRenderer = _waterSurface.GetComponent<MeshRenderer>();
@@ -150,19 +156,46 @@ namespace ProjectName.Systems
             _waterSurface.transform.localPosition = pos;
         }
 
+        private void OnTriggerEnter(Collider other)
+        {
+            if (!other.CompareTag(_playerTag)) return;
+
+            Rigidbody rb = other.GetComponent<Rigidbody>();
+            if (rb != null && !_entrySpeeds.ContainsKey(rb))
+            {
+                // Cache the entry speed so we can clamp velocity to _slowFactor * entry speed
+                _entrySpeeds[rb] = rb.linearVelocity.magnitude;
+            }
+        }
+
         private void OnTriggerStay(Collider other)
         {
-            if (other.CompareTag(_playerTag))
+            if (!other.CompareTag(_playerTag)) return;
+
+            Rigidbody rb = other.GetComponent<Rigidbody>();
+            if (rb != null && _entrySpeeds.TryGetValue(rb, out float entrySpeed))
             {
-                // Apply slow factor to movement
-                // The actual speed modification is handled by a movement controller
-                // listening for this event; we broadcast intent via the tag.
-                // For direct implementation, we modify Rigidbody velocity if present.
-                Rigidbody rb = other.GetComponent<Rigidbody>();
-                if (rb != null)
+                // FIX: Clamp velocity magnitude to _slowFactor * entry speed instead of
+                // per-frame multiplication.  This keeps speed at a consistent 50% of the
+                // entry speed rather than decaying exponentially toward zero.
+                Vector3 velocity = rb.linearVelocity;
+                float maxSpeed = entrySpeed * _slowFactor;
+                if (velocity.magnitude > maxSpeed)
                 {
-                    rb.linearVelocity *= _slowFactor;
+                    rb.linearVelocity = velocity.normalized * maxSpeed;
                 }
+            }
+        }
+
+        private void OnTriggerExit(Collider other)
+        {
+            if (!other.CompareTag(_playerTag)) return;
+
+            // Remove cached speed — player has left the water
+            Rigidbody rb = other.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                _entrySpeeds.Remove(rb);
             }
         }
 
@@ -173,6 +206,8 @@ namespace ProjectName.Systems
                 Destroy(_surfaceMaterial);
                 _surfaceMaterial = null;
             }
+
+            _entrySpeeds.Clear();
         }
     }
 }

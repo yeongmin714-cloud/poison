@@ -73,7 +73,7 @@ namespace ProjectName.Systems
 
             // Resolve WeatherManager
             if (_weatherManager == null)
-                _weatherManager = FindObjectOfType<WeatherManager>();
+                _weatherManager = FindAnyObjectByType<WeatherManager>();
             if (_weatherManager == null)
                 _weatherManager = WeatherManager.Instance;
 
@@ -121,11 +121,6 @@ namespace ProjectName.Systems
             main.gravityModifier = 2f;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
 
-            // Procedural rain texture (stretched white dot)
-            // Unity 6: assign procedural texture via renderer material instead of startTexture
-            var rainRenderer = _rainSystem.GetComponent<ParticleSystemRenderer>();
-            rainRenderer.material.mainTexture = CreateProceduralParticleTexture(8, 8, new Color(0.7f, 0.8f, 1f, 0.7f));
-
             // Shape: box high above
             var shape = _rainSystem.shape;
             shape.shapeType = ParticleSystemShapeType.Box;
@@ -146,6 +141,8 @@ namespace ProjectName.Systems
             renderer.renderMode = ParticleSystemRenderMode.Stretch;
             renderer.lengthScale = 2f;
             renderer.material = CreateWeatherParticleMaterial();
+            // Assign procedural texture AFTER material is set (not before, or it gets discarded)
+            renderer.material.mainTexture = CreateProceduralParticleTexture(8, 8, new Color(0.7f, 0.8f, 1f, 0.7f));
         }
 
         private void ConfigureSnowParticles()
@@ -158,11 +155,6 @@ namespace ProjectName.Systems
             main.startColor = new Color(1f, 1f, 1f, 0.8f);
             main.gravityModifier = 0.5f;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
-
-            // Procedural snow texture (white circle)
-            // Unity 6: assign procedural texture via renderer material instead of startTexture
-            var snowRenderer = _snowSystem.GetComponent<ParticleSystemRenderer>();
-            snowRenderer.material.mainTexture = CreateProceduralParticleTexture(8, 8, Color.white);
 
             // Shape: box high above, slightly smaller than rain
             var shape = _snowSystem.shape;
@@ -184,6 +176,8 @@ namespace ProjectName.Systems
             var renderer = _snowSystem.GetComponent<ParticleSystemRenderer>();
             renderer.renderMode = ParticleSystemRenderMode.Billboard;
             renderer.material = CreateWeatherParticleMaterial();
+            // Assign procedural texture AFTER material is set (not before, or it gets discarded)
+            renderer.material.mainTexture = CreateProceduralParticleTexture(8, 8, Color.white);
         }
 
         // ================================================================
@@ -218,8 +212,8 @@ namespace ProjectName.Systems
         private static Material CreateWeatherParticleMaterial()
         {
             var mat = new Material(Shader.Find("Universal Render Pipeline/Particles/Simple Lit")
-                ?? Shader.Find("Universal Render Pipeline/Lit")
-                ?? Shader.Find("Particles/Standard Unlit"));
+                ?? Shader.Find("Universal Render Pipeline/Particles/Lit")
+                ?? Shader.Find("Universal Render Pipeline/Lit"));
             mat.name = "WeatherParticleMaterial";
             return mat;
         }
@@ -262,8 +256,38 @@ namespace ProjectName.Systems
         /// <summary>Force (re)initialization. Safe to call multiple times.</summary>
         public void ForceInitialize()
         {
+            Cleanup();
             _initialized = false;
             Initialize();
+        }
+
+        /// <summary>Destroy and null out all created objects (for re-init or cleanup).</summary>
+        private void Cleanup()
+        {
+            if (_weatherManager != null)
+            {
+                _weatherManager.OnWeatherChanged -= OnWeatherChanged;
+            }
+
+            if (_rainGo != null)
+            {
+                if (Application.isPlaying)
+                    Destroy(_rainGo);
+                else
+                    DestroyImmediate(_rainGo);
+                _rainGo = null;
+                _rainSystem = null;
+            }
+
+            if (_snowGo != null)
+            {
+                if (Application.isPlaying)
+                    Destroy(_snowGo);
+                else
+                    DestroyImmediate(_snowGo);
+                _snowGo = null;
+                _snowSystem = null;
+            }
         }
 
         /// <summary>Set WeatherManager reference (for tests).</summary>

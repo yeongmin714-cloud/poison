@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace ProjectName.Systems
 {
@@ -43,8 +44,8 @@ namespace ProjectName.Systems
             }
             else
             {
-                // Fallback: try pipeline default
-                var pipeline = GraphicsSettings.defaultRenderPipeline;
+                // Fallback: try URP pipeline default material
+                var pipeline = GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset;
                 if (pipeline != null && pipeline.defaultMaterial != null)
                 {
                     mat = new Material(pipeline.defaultMaterial);
@@ -76,11 +77,9 @@ namespace ProjectName.Systems
             mat.EnableKeyword("_REFLECTION_PROBE_BLENDING");
             mat.EnableKeyword("_REFLECTION_PROBE_BOX_PROJECTION");
 
-            // Transparent surface type
+            // Transparent surface type (URP Lit manages blend state internally via _BlendMode)
             mat.SetFloat("_Surface", 1f);
             mat.SetFloat("_BlendMode", 0f);
-            mat.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
-            mat.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
             mat.SetFloat("_ZWrite", 0f);
             mat.SetFloat("_AlphaClip", 0f);
             mat.renderQueue = TransparentQueue;
@@ -113,7 +112,7 @@ namespace ProjectName.Systems
             }
             else
             {
-                var pipeline = GraphicsSettings.defaultRenderPipeline;
+                var pipeline = GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset;
                 if (pipeline != null && pipeline.defaultMaterial != null)
                 {
                     mat = new Material(pipeline.defaultMaterial);
@@ -130,11 +129,9 @@ namespace ProjectName.Systems
             if (mat.HasProperty("_BaseColor"))
                 mat.SetColor("_BaseColor", color);
 
-            // Simple transparent setup without reflection keywords
+            // Simple transparent setup without reflection keywords (URP Lit manages blend state via _BlendMode)
             mat.SetFloat("_Surface", 1f);
             mat.SetFloat("_BlendMode", 0f);
-            mat.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
-            mat.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
             mat.SetFloat("_ZWrite", 0f);
             mat.SetFloat("_AlphaClip", 0f);
             mat.renderQueue = TransparentQueue;

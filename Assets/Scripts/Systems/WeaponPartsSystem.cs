@@ -80,14 +80,12 @@ namespace ProjectName.Systems
             if (item.maxDurability <= 0)
                 return new EquipResult { success = false, message = "내구도가 없는 아이템은 장비할 수 없습니다." };
 
-            // 기존 장비가 있으면 인벤토리로 반환
+            // 기존 장비가 있으면 인벤토리로 반환 (공간 확인)
             var existingItem = GetEquippedItem(guard, slot);
             if (existingItem != null)
             {
-                if (PlayerInventory.Instance != null)
-                {
-                    PlayerInventory.Instance.AddItem(existingItem, 1);
-                }
+                if (PlayerInventory.Instance != null && !PlayerInventory.Instance.AddItem(existingItem, 1))
+                    return new EquipResult { success = false, message = "인벤토리가 가득 찼습니다. 기존 장비를 먼저 비워주세요." };
             }
 
             // 새 장비를 guard 슬롯에 설정
@@ -96,7 +94,12 @@ namespace ProjectName.Systems
             // 인벤토리에서 제거
             if (PlayerInventory.Instance != null)
             {
-                PlayerInventory.Instance.RemoveItem(item.id, 1);
+                if (!PlayerInventory.Instance.RemoveItem(item.id, 1))
+                {
+                    // 롤백: guard에 설정한 장비 제거
+                    SetEquippedItem(guard, slot, existingItem);
+                    return new EquipResult { success = false, message = "인벤토리에서 아이템을 제거할 수 없습니다." };
+                }
             }
 
             // 외형 업데이트
@@ -155,6 +158,8 @@ namespace ProjectName.Systems
         /// <summary>병사의 특정 슬롯 장비 아이템 설정</summary>
         private static void SetEquippedItem(GuardPlaceholder guard, EquipSlot slot, PlayerInventory.ItemData item)
         {
+            if (guard == null) return;
+
             switch (slot)
             {
                 case EquipSlot.Weapon: guard.WeaponItem = item; break;
