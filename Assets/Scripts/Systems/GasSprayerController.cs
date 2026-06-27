@@ -19,7 +19,7 @@ namespace ProjectName.Systems
         public bool IsEquipped { get; private set; }
         public GasSprayerGrade CurrentGrade { get; private set; }
         public string EquippedSprayerName { get; private set; }  // "나무 가스 분사기"
-        public float CurrentSprayTimeRemaining { get; set; }
+        public float CurrentSprayTimeRemaining { get; private set; }
 
         // === C8-32 새 필드: 분사 상태 ===
         [SerializeField] private bool _isSpraying;
@@ -51,7 +51,7 @@ namespace ProjectName.Systems
         public bool isSpraying
         {
             get => _isSpraying;
-            set => _isSpraying = value;
+            private set => _isSpraying = value;
         }
 
         // ===== C8-34: 재장전 상태 =====
@@ -63,8 +63,8 @@ namespace ProjectName.Systems
         public float ReloadTimeRemaining { get; private set; }
 
         // 삽입된 물약 정보
-        public string LoadedPotionId { get; set; }  // 빈 문자열 = 없음
-        public int LoadedPotionCount { get; set; }
+        public string LoadedPotionId { get; internal set; }  // 빈 문자열 = 없음
+        public int LoadedPotionCount { get; internal set; }
 
         // ===== C8-33: 물약 장전 설정 =====
         [SerializeField] private float _potionConsumptionMultiplier = 2.0f;  // 물약 장전 시 추가 소모율
@@ -288,6 +288,12 @@ namespace ProjectName.Systems
                 return;
             }
 
+            if (_isSpraying)
+            {
+                Debug.LogWarning("[GasSprayerController] 이미 분사 중입니다.");
+                return;
+            }
+
             // C8-34: 재장전 중에는 분사 불가
             if (_isReloading)
             {
@@ -330,12 +336,6 @@ namespace ProjectName.Systems
                 return false;
             }
 
-            if (!CanEquipSprayer(sprayerItemId))
-            {
-                Debug.LogWarning($"[GasSprayerController] 인벤토리에 {sprayerItemId}이(가) 없습니다.");
-                return false;
-            }
-
             // 아이템 ID로 등급 찾기
             GasSprayerGrade grade;
             try
@@ -355,6 +355,12 @@ namespace ProjectName.Systems
                 return false;
             }
 
+            if (!CanEquipSprayer(sprayerItemId))
+            {
+                Debug.LogWarning($"[GasSprayerController] 인벤토리에 {sprayerItemId}이(가) 없습니다.");
+                return false;
+            }
+
             bool removed = PlayerInventory.Instance.RemoveItem(sprayerItemId, 1);
             if (!removed)
             {
@@ -362,21 +368,8 @@ namespace ProjectName.Systems
                 return false;
             }
 
-            // 장착 상태 설정
-            IsEquipped = true;
-            CurrentGrade = grade;
-            EquippedSprayerName = GasSprayerManager.GetGradeData(grade).sprayerName;
-
-            // 가스 초기값 (Equip과 동일한 로직)
-            var data = GasSprayerManager.GetGradeData(grade);
-            if (data.isUnlimited)
-                CurrentSprayTimeRemaining = float.PositiveInfinity;
-            else
-                CurrentSprayTimeRemaining = data.maxSprayTime;
-
-            Debug.Log($"[GasSprayerController] {EquippedSprayerName} 장착 완료!");
-
-            OnEquipChanged?.Invoke();
+            // 장착 상태 설정 — Equip(grade)에 위임
+            Equip(grade);
             return true;
         }
 
@@ -396,9 +389,6 @@ namespace ProjectName.Systems
                 Debug.LogWarning("[GasSprayerController] PlayerInventory.Instance가 없습니다.");
                 return false;
             }
-
-            // C8-34: 재장전 중이면 취소
-            CancelReload();
 
             // 아이템 데이터 생성
             string itemId = GetSprayerItemId(CurrentGrade);
@@ -420,18 +410,8 @@ namespace ProjectName.Systems
                 return false;
             }
 
-            // 상태 초기화
-            IsEquipped = false;
-            CurrentGrade = default;
-            EquippedSprayerName = null;
-            _isSpraying = false;
-            CurrentSprayTimeRemaining = 0f;
-            LoadedPotionId = "";
-            LoadedPotionCount = 0;
-
-            Debug.Log("[GasSprayerController] 분사기 해제 완료!");
-
-            OnEquipChanged?.Invoke();
+            // 상태 초기화 — Unequip()에 위임
+            Unequip();
             return true;
         }
 
@@ -547,7 +527,7 @@ namespace ProjectName.Systems
             ReloadTimeRemaining = 0f;
 
             var data = GasSprayerManager.GetGradeData(CurrentGrade);
-            CurrentSprayTimeRemaining = data.isUnlimited ? float.PositiveInfinity : data.maxSprayTime;
+            CurrentSprayTimeRemaining = data.maxSprayTime;
 
             OnReloadChanged?.Invoke();
             OnReloadCompleted?.Invoke();

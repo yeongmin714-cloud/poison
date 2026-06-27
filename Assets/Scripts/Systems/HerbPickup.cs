@@ -47,7 +47,7 @@ namespace ProjectName.Systems
 
         // Public API
         public bool IsAvailable => !_isHarvested;
-        public HerbPickup.HerbType HerbPickupType => _herbType;
+        public HerbType HerbPickupType => _herbType;
         public bool IsHarvested => _isHarvested;
         public float RespawnDuration => _respawnTime;
         public float RespawnTimeLeft => _isHarvested ? Mathf.Max(0f, _respawnTime - (Time.time - _harvestTime)) : 0f;
@@ -155,9 +155,9 @@ namespace ProjectName.Systems
             SoundManager.Instance?.PlaySFX("pickup");
 
             // 잠시 안 보이게 (채집 연출)
-            GetComponent<Collider>().enabled = false;
-            var renderer = GetComponent<Renderer>();
-            if (renderer != null) renderer.enabled = false;
+            var collider = GetComponent<Collider>();
+            if (collider != null) collider.enabled = false;
+            if (_renderer != null) _renderer.enabled = false;
 
             // Fire harvest event
             OnHarvestStarted?.Invoke();
@@ -169,9 +169,9 @@ namespace ProjectName.Systems
         private void Respawn()
         {
             _isHarvested = false;
-            GetComponent<Collider>().enabled = true;
-            var renderer = GetComponent<Renderer>();
-            if (renderer != null) renderer.enabled = true;
+            var collider = GetComponent<Collider>();
+            if (collider != null) collider.enabled = true;
+            if (_renderer != null) _renderer.enabled = true;
 
             // 약초 자체 Idle 애니메이션
             if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
@@ -202,8 +202,7 @@ namespace ProjectName.Systems
             // Hide visual
             var collider = GetComponent<Collider>();
             if (collider != null) collider.enabled = false;
-            var renderer = GetComponent<Renderer>();
-            if (renderer != null) renderer.enabled = false;
+            if (_renderer != null) _renderer.enabled = false;
 
             OnHarvestStarted?.Invoke();
 
@@ -238,7 +237,6 @@ namespace ProjectName.Systems
         {
             if (_renderer == null || _materialCopy == null) return;
 
-            float remaining = RespawnTimeLeft;
             float progress = RespawnProgress;
 
             // 리스폰 진행에 따라 0.2→1.0 알파
@@ -246,13 +244,6 @@ namespace ProjectName.Systems
             Color c = _materialCopy.color;
             c.a = alpha;
             _renderer.material.color = c;
-
-            // 리스폰 완료 시 원래 상태로 복원
-            if (!_isHarvested && _renderer != null)
-            {
-                c.a = 1f;
-                _renderer.material.color = c;
-            }
         }
 
         private void OnDrawGizmosSelected()

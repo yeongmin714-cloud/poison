@@ -15,7 +15,10 @@ namespace ProjectName.Systems
         public static FlagManager Instance { get; private set; }
 
         /// <summary>모든 깃대 표시 인스턴스</summary>
-        private readonly List<GameObject> _flagPoles = new List<GameObject>();
+        private readonly List<FlagPoleDisplay> _flagPoles = new List<FlagPoleDisplay>();
+
+        /// <summary>영지 ID -> 깃대 표시 매핑 (직접 조회 최적화)</summary>
+        private readonly Dictionary<string, FlagPoleDisplay> _flagPoleByTerritory = new Dictionary<string, FlagPoleDisplay>();
 
         /// <summary>영지별 국기 높이 상태 (true = 반기/contested)</summary>
         private readonly Dictionary<string, bool> _contestedStates = new Dictionary<string, bool>();
@@ -35,24 +38,37 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 깃대 표시를 등록합니다.
+        /// 깃대 표시를 영지 ID와 함께 등록합니다.
         /// </summary>
-        public void RegisterFlagPole(GameObject flagPole)
+        /// <param name="territoryId">깃대가 속한 영지 ID</param>
+        /// <param name="flagPole">등록할 FlagPoleDisplay 컴포넌트</param>
+        public void RegisterFlagPole(string territoryId, FlagPoleDisplay flagPole)
         {
-            if (flagPole != null && !_flagPoles.Contains(flagPole))
+            if (flagPole == null || string.IsNullOrEmpty(territoryId))
+                return;
+
+            if (!_flagPoles.Contains(flagPole))
             {
                 _flagPoles.Add(flagPole);
+                _flagPoleByTerritory[territoryId] = flagPole;
+                _territoryOwners.TryAdd(territoryId, NationType.None);
+                _contestedStates.TryAdd(territoryId, false);
             }
         }
 
         /// <summary>
         /// 깃대 표시를 제거합니다.
         /// </summary>
-        public void UnregisterFlagPole(GameObject flagPole)
+        /// <param name="territoryId">제거할 깃대의 영지 ID</param>
+        public void UnregisterFlagPole(string territoryId)
         {
-            if (flagPole != null)
+            if (string.IsNullOrEmpty(territoryId))
+                return;
+
+            if (_flagPoleByTerritory.TryGetValue(territoryId, out var pole))
             {
-                _flagPoles.Remove(flagPole);
+                _flagPoles.Remove(pole);
+                _flagPoleByTerritory.Remove(territoryId);
             }
         }
 
@@ -80,8 +96,8 @@ namespace ProjectName.Systems
                 TerritoryBannerSystem.Instance.ChangeOwnership(territoryId, territoryName, newOwner, isPlayer);
             }
 
-            // 모든 깃대 업데이트
-            UpdateAllFlagDisplays();
+            // 해당 영지의 깃대 직접 업데이트
+            UpdateFlagDisplay(territoryId, newOwner);
         }
 
         /// <summary>
@@ -104,7 +120,29 @@ namespace ProjectName.Systems
                 Debug.Log($"[FlagManager] 영지 {territoryId}의 전쟁 상태가 해제되었습니다 — 국기 정상 게양");
             }
 
-            UpdateAllFlagDisplays();
+            // 해당 영지의 깃대 반기/정상 게양 업데이트
+            if (_flagPoleByTerritory.TryGetValue(territoryId, out var pole) && pole != null)
+            {
+                pole.SetHalfMast(isContested);
+            }
+        }
+
+        /// <summary>
+        /// 특정 영지의 깃대를 현재 소유권에 맞게 업데이트합니다.
+        /// </summary>
+        private void UpdateFlagDisplay(string territoryId, NationType owner)
+        {
+            if (_flagPoleByTerritory.TryGetValue(territoryId, out var pole) && pole != null)
+            {
+                bool isPlayer = owner == NationType.East; // 임시 플레이어 소유 판별
+                pole.FadeTransition(owner, isPlayer);
+
+                // 반기 상태도 함께 적용
+                if (_contestedStates.TryGetValue(territoryId, out bool isContested) && isContested)
+                {
+                    pole.SetHalfMast(true);
+                }
+            }
         }
 
         /// <summary>
@@ -116,17 +154,27 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 모든 깃대 표시를 현재 상태에 맞게 업데이트합니다.
+        /// 모든 깃대 표시를 현재 상태에 맞게 일괄 업데이트합니다.
+        /// 씬 로드/리로드 시 전체 동기화에 사용합니다.
         /// </summary>
-        private void UpdateAllFlagDisplays()
+        public void RefreshAllFlagDisplays()
         {
-            // 깃대 시각 업데이트 (향후 확장: 깃발 색상, 높이, 메테리얼 변경)
-            foreach (var pole in _flagPoles)
+            foreach (var kvp in _flagPoleByTerritory)
             {
-                if (pole != null)
+                string territoryId = kvp.Key;
+                FlagPoleDisplay pole = kvp.Value;
+
+                if (pole == null) continue;
+
+                if (_territoryOwners.TryGetValue(territoryId, out var owner))
                 {
-                    // 깃발 시각 업데이트 로직 (향후 구현)
-                    // 현재는 로그만 출력
+                    bool isPlayer = owner == NationType.East;
+                    pole.SetOwner(owner, isPlayer);
+                }
+
+                if (_contestedStates.TryGetValue(territoryId, out bool isContested) && isContested)
+                {
+                    pole.SetHalfMast(true);
                 }
             }
         }
@@ -154,6 +202,11 @@ namespace ProjectName.Systems
         /// 등록된 영지 소유권 수를 반환합니다.
         /// </summary>
         public int TerritoryOwnerCount => _territoryOwners.Count;
+
+        /// <summary>
+        /// 등록된 contested 상태 수를 반환합니다.
+        /// </summary>
+        public int ContestedStateCount => _contestedStates.Count;
 
         private void OnDestroy()
         {

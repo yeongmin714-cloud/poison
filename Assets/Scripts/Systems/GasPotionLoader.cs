@@ -238,7 +238,9 @@ namespace ProjectName.Systems
                 displayName = potionId,
                 description = "알 수 없는 물약",
                 category = PlayerInventory.ItemCategory.Potion,
-                maxStack = 99
+                maxStack = 99,
+                rarity = PlayerInventory.ItemRarity.Common,
+                effects = ""
             };
         }
 
@@ -256,7 +258,9 @@ namespace ProjectName.Systems
                 category = source.category,
                 icon = source.icon,
                 maxStack = source.maxStack,
-                maxDurability = source.maxDurability
+                maxDurability = source.maxDurability,
+                rarity = source.rarity,
+                effects = source.effects
             };
         }
     }

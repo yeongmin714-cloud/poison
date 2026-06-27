@@ -163,16 +163,26 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// Smoothly transitions the flag material color from current to target over duration seconds.
-        /// Stops waving animation during the transition if specified.
+        /// Stops any active fade transition immediately.
+        /// Safe to call even if no transition is running.
         /// </summary>
-        public void FadeTransition(NationType newOwner, bool isPlayer, float duration = 0.5f)
+        private void StopFadeIfActive()
         {
             if (_isTransitioning && _fadeCoroutine != null)
             {
                 StopCoroutine(_fadeCoroutine);
                 _isTransitioning = false;
+                _fadeCoroutine = null;
             }
+        }
+
+        /// <summary>
+        /// Smoothly transitions the flag material color from current to target over duration seconds.
+        /// Stops waving animation during the transition if specified.
+        /// </summary>
+        public void FadeTransition(NationType newOwner, bool isPlayer, float duration = 0.5f)
+        {
+            StopFadeIfActive();
 
             Color[] targetColors = GetTargetColors(newOwner, isPlayer);
             _fadeCoroutine = StartCoroutine(FadeColorCoroutine(targetColors[0], targetColors[1], duration));
@@ -213,6 +223,7 @@ namespace ProjectName.Systems
 
             SetWaveEnabled(wasWaveEnabled);
             _isTransitioning = false;
+            _fadeCoroutine = null;
         }
 
         private void Update()
@@ -240,31 +251,16 @@ namespace ProjectName.Systems
         /// </summary>
         public void SetOwner(NationType nation, bool isPlayer)
         {
+            StopFadeIfActive();
+
             if (isPlayer)
             {
                 SetPlayerFlag();
                 return;
             }
 
-            var flagDef = NationFlagDatabase.GetFlag(nation);
-            Color flagColor = flagDef.flagColor;
-            Color poleColor = Color.gray;
-
-            switch (nation)
-            {
-                case NationType.None:
-                    flagColor = Color.white;
-                    poleColor = Color.gray;
-                    break;
-                case NationType.Empire:
-                    poleColor = new Color(0.8f, 0.7f, 0.2f);
-                    break;
-                default:
-                    poleColor = Color.gray;
-                    break;
-            }
-
-            UpdateFlagColor(flagColor, poleColor);
+            Color[] colors = GetTargetColors(nation, false);
+            UpdateFlagColor(colors[0], colors[1]);
         }
 
         /// <summary>
@@ -289,6 +285,8 @@ namespace ProjectName.Systems
         /// </summary>
         public void SetPlayerFlag()
         {
+            StopFadeIfActive();
+
             if (EmblemManager.Instance != null)
             {
                 Material playerMat = EmblemManager.Instance.CreateFlagMaterial();

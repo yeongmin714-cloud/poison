@@ -1,6 +1,5 @@
 using ProjectName.Core;
 using UnityEngine;
-using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
 {
@@ -15,13 +14,14 @@ namespace ProjectName.Systems
         [SerializeField] private int _gemCount = 1;
         [SerializeField] private float _interactRange = 2.5f;
         [SerializeField] private KeyCode _interactKey = KeyCode.E;
-        [SerializeField] private bool _isOpen = false;
+        [System.NonSerialized] private bool _isOpen = false;
 
         [Header("참조")]
         [SerializeField] private Light _pointLight;
         [SerializeField] private MeshRenderer _chestRenderer;
 
         private Transform _player;
+        private Camera _mainCamera;
 
         /// <summary>상자가 열렸는가</summary>
         public bool IsOpen => _isOpen;
@@ -32,6 +32,7 @@ namespace ProjectName.Systems
         private void Start()
         {
             _player = GameObject.FindGameObjectWithTag("Player")?.transform;
+            _mainCamera = Camera.main;
 
             if (_pointLight == null)
             {
@@ -72,7 +73,9 @@ namespace ProjectName.Systems
             float dist = Vector3.Distance(transform.position, _player.position);
             if (dist > _interactRange) return;
 
-            Vector3 screenPos = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 1.5f);
+            if (_mainCamera == null) return;
+
+            Vector3 screenPos = _mainCamera.WorldToScreenPoint(transform.position + Vector3.up * 1.5f);
             if (screenPos.z < 0) return;
             screenPos.y = Screen.height - screenPos.y;
 
@@ -95,20 +98,20 @@ namespace ProjectName.Systems
             Vector3 dropPos = transform.position + Vector3.up * 0.3f;
             var basket = LootBasket.Create(dropPos); // uses default lifetime
 
-            for (int i = 0; i < _gemCount; i++)
+            string gemTypeId = $"gem_{_gemType.ToString().ToLower()}";
+            string displayName = data.displayName;
+
+            var item = new PlayerInventory.ItemData
             {
-                var item = new PlayerInventory.ItemData
-                {
-                    id = $"gem_{_gemType.ToString().ToLower()}",
-                    displayName = data.displayName,
-                    description = $"보석: {data.displayName}",
-                    category = PlayerInventory.ItemCategory.Material,
-                    rarity = data.starRating >= 5 ? ItemRarity.Legendary :
-                             data.starRating >= 4 ? ItemRarity.Epic : ItemRarity.Rare,
-                    maxStack = 99
-                };
-                basket.AddItem(item);
-            }
+                id = gemTypeId,
+                displayName = displayName,
+                description = $"보석: {displayName}",
+                category = PlayerInventory.ItemCategory.Material,
+                rarity = data.starRating >= 5 ? ItemRarity.Legendary :
+                         data.starRating >= 4 ? ItemRarity.Epic : ItemRarity.Rare,
+                maxStack = 99
+            };
+            basket.AddItem(item, _gemCount);
 
             // 시각 효과: 빛 제거, 반투명
             if (_pointLight != null) _pointLight.enabled = false;
