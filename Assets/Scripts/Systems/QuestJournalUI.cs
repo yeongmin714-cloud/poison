@@ -99,6 +99,7 @@ namespace ProjectName.Systems
         private GUIStyle _styleLabel;
         private GUIStyle _styleDimLabel;
         private GUIStyle _styleProgressLabel;
+        private GUIStyle _styleProgressLabelMet; // ★ 추가: 달성 시 초록색
         private GUIStyle _styleEffect;
         private GUIStyle _styleObjective;
         private GUIStyle _styleEntryBox;

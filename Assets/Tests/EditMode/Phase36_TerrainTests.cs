@@ -257,6 +257,8 @@ namespace ProjectName.Tests.EditMode
                     "Ring1 default color should be brown_mud_leaves.");
                 Assert.AreEqual(new Color(0.20f, 0.55f, 0.15f), controller.EastTint,
                     "East default tint should be green.");
+                Assert.AreEqual(new Color(0.25f, 0.05f, 0.05f), controller.DraculaTint,
+                    "Dracula default tint should be dark red/black.");
             }
             finally
             {
@@ -307,6 +309,28 @@ namespace ProjectName.Tests.EditMode
 
                 Assert.Greater(diff, 0.01f,
                     "East-focused and West-focused textures should produce different center pixels.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
+        public void GenerateNationFocusedTexture_Dracula_UsesCorrectTint()
+        {
+            var go = new GameObject("_TestGround");
+            try
+            {
+                var controller = go.AddComponent<NationTerrainController>();
+                Texture2D draculaTex = controller.GenerateNationFocusedTexture(NationType.Dracula);
+                Assert.IsNotNull(draculaTex, "Dracula-focused texture must not be null.");
+
+                // Center pixel should be dark (Dracula tint is dark red/black)
+                Color center = draculaTex.GetPixel(draculaTex.width / 2, draculaTex.height / 2);
+                float luminance = 0.2126f * center.r + 0.7152f * center.g + 0.0722f * center.b;
+                Assert.Less(luminance, 0.5f,
+                    "Dracula-focused texture center should be dark (luminance < 0.5).");
             }
             finally
             {

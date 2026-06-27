@@ -136,12 +136,12 @@ namespace ProjectName.Systems
         /// </summary>
         public void ClearPlaceholder()
         {
-            if (_body != null) Destroy(_body);
-            if (_head != null) Destroy(_head);
-            if (_leftArm != null) Destroy(_leftArm);
-            if (_rightArm != null) Destroy(_rightArm);
-            if (_leftLeg != null) Destroy(_leftLeg);
-            if (_rightLeg != null) Destroy(_rightLeg);
+            if (_body != null) { Destroy(_body); _body = null; }
+            if (_head != null) { Destroy(_head); _head = null; }
+            if (_leftArm != null) { Destroy(_leftArm); _leftArm = null; }
+            if (_rightArm != null) { Destroy(_rightArm); _rightArm = null; }
+            if (_leftLeg != null) { Destroy(_leftLeg); _leftLeg = null; }
+            if (_rightLeg != null) { Destroy(_rightLeg); _rightLeg = null; }
         }
     }
 }

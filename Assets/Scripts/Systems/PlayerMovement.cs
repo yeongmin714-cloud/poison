@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using ProjectName.Core;
 
 namespace ProjectName.Systems
 {
@@ -73,7 +72,6 @@ namespace ProjectName.Systems
         // --- 더블탭 구르기 관련 ---
         private enum KeyDirection { Up, Down, Left, Right }
         private float[] _lastKeyTime = new float[4]; // 각 방향키 마지막 누른 시간
-        private KeyDirection[] _keyToDirection = new KeyDirection[4]; // key index to direction
 
         // --- 카메라 효과 관련 ---
         private float _defaultFOV;
@@ -81,6 +79,7 @@ namespace ProjectName.Systems
         private float _cameraShakeTimer = 0f;
         private float _cameraShakeDuration = 0f;
         private float _cameraShakeIntensity = 0f;
+        private Vector3 _cameraOriginalLocalPosition; // 카메라 흔들림 원위치 복원용
 
         // Rig animation
         private RigAnimationController _rigAnim;
@@ -106,6 +105,7 @@ namespace ProjectName.Systems
                 _cameraTransform = Camera.main.transform;
                 _camera = Camera.main;
                 _defaultFOV = _camera.fieldOfView;
+                _cameraOriginalLocalPosition = _cameraTransform.localPosition;
             }
             else
             {
@@ -178,7 +178,7 @@ namespace ProjectName.Systems
             if (dPressed) horizontal += 1;
 
             // 더블탭 감지 (구르기용)
-            DetectDoubleTap(wPressed, sPressed, aPressed, dPressed);
+            DetectDoubleTap();
 
             Vector3 inputDirection = new Vector3(horizontal, 0, vertical).normalized;
 
@@ -240,6 +240,10 @@ namespace ProjectName.Systems
             // 애니메이션 상태 업데이트
             if (_rigAnim != null)
             {
+                // Jump나 Attack 등 트리거 기반 상태는 덮어쓰지 않음
+                if (_rigAnim.CurrentState == AnimationState.Jump)
+                    return;
+
                 if (!isMoving)
                 {
                     if (_rigAnim.CurrentState != AnimationState.Idle)
@@ -266,7 +270,7 @@ namespace ProjectName.Systems
         /// <summary>
         /// 더블탭 방향키 감지 — 같은 방향키를 _doubleTapTimeWindow 내에 두 번 누르면 구르기
         /// </summary>
-        private void DetectDoubleTap(bool wPressed, bool sPressed, bool aPressed, bool dPressed)
+        private void DetectDoubleTap()
         {
             if (_keyboard == null) return;
 
@@ -469,13 +473,16 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 카메라 흔들림 효과 처리
+        /// 카메라 흔들림 효과 처리 — 누적 버그 수정: 원래 위치로 복원
         /// </summary>
         private void HandleCameraShake()
         {
             if (_cameraShakeTimer > 0f && _cameraTransform != null)
             {
                 _cameraShakeTimer -= Time.deltaTime;
+
+                // 카메라를 원래 위치로 복원한 후 흔들림 오프셋 적용 (누적 방지)
+                _cameraTransform.localPosition = _cameraOriginalLocalPosition;
 
                 float progress = 1f - (_cameraShakeTimer / _cameraShakeDuration);
                 float decay = 1f - Mathf.Clamp01(progress);
@@ -488,6 +495,11 @@ namespace ProjectName.Systems
                 );
 
                 _cameraTransform.localPosition += shakeOffset;
+            }
+            else if (_cameraTransform != null && _cameraTransform.localPosition != _cameraOriginalLocalPosition)
+            {
+                // 흔들림 종료 후 원래 위치로 복원
+                _cameraTransform.localPosition = _cameraOriginalLocalPosition;
             }
         }
 

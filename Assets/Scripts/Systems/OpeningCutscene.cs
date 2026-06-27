@@ -61,6 +61,7 @@ namespace ProjectName.Systems
         private static CoroutineRunner _runner;
         private static int _currentNarrationIndex;
         private static float _narrationTimer;
+        private static GUIStyle _skipStyle;
 
         // ===== 메인 퍼블릭 메서드 =====
 
@@ -156,6 +157,10 @@ namespace ProjectName.Systems
                 _runner.StopAllCoroutines();
             }
 
+            MarkAsSeen();
+            OnCutsceneSkipped?.Invoke();
+            OnCutsceneCompleted?.Invoke();
+
             // 페이드 인으로 복구
             if (FadeManager.Instance != null)
             {
@@ -198,13 +203,16 @@ namespace ProjectName.Systems
             }
 
             // 스킵 안내
-            GUIStyle skipStyle = new GUIStyle
+            if (_skipStyle == null)
             {
-                alignment = TextAnchor.LowerRight,
-                fontSize = Mathf.RoundToInt(Screen.height * 0.02f),
-                normal = new GUIStyleState { textColor = new Color(0.6f, 0.6f, 0.6f, 0.6f) }
-            };
-            GUI.Label(new Rect(Screen.width - 200f, Screen.height - 60f, 180f, 40f), "Press ESC/Space to skip", skipStyle);
+                _skipStyle = new GUIStyle
+                {
+                    alignment = TextAnchor.LowerRight,
+                    fontSize = Mathf.RoundToInt(Screen.height * 0.02f),
+                    normal = new GUIStyleState { textColor = new Color(0.6f, 0.6f, 0.6f, 0.6f) }
+                };
+            }
+            GUI.Label(new Rect(Screen.width - 200f, Screen.height - 60f, 180f, 40f), "Press ESC/Space to skip", _skipStyle);
         }
 
         // ===== 내부 =====
@@ -369,6 +377,7 @@ namespace ProjectName.Systems
             _currentNarrationIndex = 0;
             _narrationTimer = 0f;
             _stylesInitialized = false;
+            _skipStyle = null;
         }
 
         // ===== 내부 CoroutineRunner =====
