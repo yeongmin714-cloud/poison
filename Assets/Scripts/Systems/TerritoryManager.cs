@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.Core.Utils;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -64,7 +65,7 @@ namespace ProjectName.Systems
 
             // 영지 데이터 출력 (null 방어)
             var def = _territoryDatabase.GetDefinition(CurrentTerritoryId);
-            if (def != null)
+            if (def.id.nation != NationType.None)
             {
                 Debug.Log($"[TerritoryManager] 영지 초기화 완료: {def.territoryName} ({def.nation} Ring{(int)def.difficulty + 1}) " +
                           $"건물: {_buildings.Count}개, 병사: {_guards.Count}명");
@@ -162,8 +163,7 @@ namespace ProjectName.Systems
             var db = _territoryDatabase ?? TerritoryDatabase.Instance;
             if (db == null) return "알 수 없음 (DB 없음)";
 
-            var def = db.GetDefinition(CurrentTerritoryId);
-            if (def == null) return "알 수 없음 (정의 없음)";
+            if (def.id.nation == NationType.None) return "알 수 없음 (정의 없음)";
 
             return def.difficulty switch
             {
@@ -193,7 +193,7 @@ namespace ProjectName.Systems
             get
             {
                 var db = TerritoryDatabase;
-                return db != null ? db.GetDefinition(CurrentTerritoryId) : null;
+                return db != null ? db.GetDefinition(CurrentTerritoryId) : new TerritoryDefinition();
             }
         }
 

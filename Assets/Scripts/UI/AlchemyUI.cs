@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.Core.Utils;
+using ProjectName.Core.Utils;
 using ProjectName.UI.Themes;
 
 namespace ProjectName.UI

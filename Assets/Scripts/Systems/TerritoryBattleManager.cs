@@ -76,7 +76,7 @@ namespace ProjectName.Systems
             TerritoryManager tm = TerritoryManager.Instance;
             if (tm == null) return;
 
-            TerritoryDatabase db = tm.TerritoryData;
+            TerritoryDatabase db = tm.TerritoryDatabase;
             Vector3 playerPos = _playerTransform.position;
 
             // 현재 영지 중심에서 플레이어 거리 계산
