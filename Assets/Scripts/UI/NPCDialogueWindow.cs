@@ -1,5 +1,6 @@
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.Systems;
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.UI.Themes;
@@ -73,12 +74,13 @@ namespace ProjectName.UI
             _isOpen = false;
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             if (_dimStyle?.normal?.background != null)
                 Destroy(_dimStyle.normal.background);
             if (_windowBgStyle?.normal?.background != null)
                 Destroy(_windowBgStyle.normal.background);
+            base.OnDestroy();
         }
 
         private void Update()

@@ -263,21 +263,21 @@ namespace ProjectName.UI
             dy += 30;
 
             // 국가
-            string nationStr = GetNationDisplayName(def.nation);
+            string nationStr = GetNationDisplayName(def.Value.nation);
             GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), "국가", _styleDetailLabel);
             GUI.Label(new Rect(detailX + 100, dy, detailW - 120, 30), nationStr, _styleDetailValue);
             dy += 24;
 
             // 난이도
-            string diffStr = GetDifficultyDisplayName(def.difficulty);
+            string diffStr = GetDifficultyDisplayName(def.Value.difficulty);
             GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), "난이도", _styleDetailLabel);
             GUI.Label(new Rect(detailX + 100, dy, detailW - 120, 30), diffStr, _styleDetailValue);
             dy += 24;
 
             // 영지
             GUI.Label(new Rect(detailX + 14, dy, detailW - 28, 30), "영지", _styleDetailLabel);
-            string terrStr = !string.IsNullOrEmpty(def.territoryName)
-                ? def.territoryName
+            string terrStr = !string.IsNullOrEmpty(def.Value.territoryName)
+                ? def.Value.territoryName
                 : entry.territoryId;
             GUI.Label(new Rect(detailX + 100, dy, detailW - 120, 30), terrStr, _styleDetailValue);
             dy += 30;

@@ -34,6 +34,7 @@ namespace ProjectName.UI
         /// RevengeListWindow 열기 → 3초 후 자동 닫힘 → TutorialQuestManager 가이드 표시.
         /// PlayerPrefs로 최초 1회만 실행됩니다.
         /// </summary>
+#if false
         public static void ShowRevengeListForTutorial()
         {
             if (HasShown)
@@ -48,6 +49,7 @@ namespace ProjectName.UI
             controller.StartSequence();
         }
 
+        #if false
         private class RevengeListController : MonoBehaviour
         {
             public void StartSequence()
@@ -115,5 +117,7 @@ namespace ProjectName.UI
                 Destroy(gameObject);
             }
         }
+#endif
+#endif
     }
 }

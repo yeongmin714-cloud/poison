@@ -581,7 +581,7 @@ namespace ProjectName.UI
                 if (TerritoryDatabase.Instance != null)
                 {
                     var def = TerritoryDatabase.Instance.GetDefinition(currentId);
-                    if (def != null && def.territoryName != null)
+                    if (def.territoryName != null)
                     {
                         return currentId;
                     }
@@ -620,7 +620,7 @@ namespace ProjectName.UI
             if (TerritoryDatabase.Instance == null)
                 return "알 수 없는 영지";
             var def = TerritoryDatabase.Instance.GetDefinition(id);
-            return def != null && def.territoryName != null ? def.territoryName : "알 수 없는 영지";
+            return def.territoryName != null ? def.territoryName : "알 수 없는 영지";
         }
 
         // ================================================================

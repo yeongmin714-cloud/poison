@@ -420,25 +420,25 @@ namespace ProjectName.UI
             var def = TerritoryDatabase.Instance?.GetDefinition(_currentTerritoryId);
             var state = TerritoryDatabase.Instance?.GetState(_currentTerritoryId);
 
-            if (def != null && _selectedMission == SpySystem.SpyMission.Recon && def.territoryName != null)
+            if (def != null && _selectedMission == SpySystem.SpyMission.Recon && def.Value.territoryName != null)
             {
-                DrawInfoRow(x, ref cy, "병력 수:", $"{def.guardCount}명");
-                DrawInfoRow(x, ref cy, "방어 상태:", GetDefenseStatusText(def.guardCount));
-                DrawInfoRow(x, ref cy, "난이도:", GetDifficultyText(def.difficulty));
+                DrawInfoRow(x, ref cy, "병력 수:", $"{def.Value.guardCount}명");
+                DrawInfoRow(x, ref cy, "방어 상태:", GetDefenseStatusText(def.Value.guardCount));
+                DrawInfoRow(x, ref cy, "난이도:", GetDifficultyText(def.Value.difficulty));
             }
-            else if (def != null && _selectedMission == SpySystem.SpyMission.Infiltrate && def.lord?.lordName != null)
+            else if (def != null && _selectedMission == SpySystem.SpyMission.Infiltrate && def.Value.lord.lordName != null)
             {
-                DrawInfoRow(x, ref cy, "영주:", def.lord.lordName);
-                DrawInfoRow(x, ref cy, "선호 음식:", string.IsNullOrEmpty(def.lord.preferredFood) ? "알 수 없음" : def.lord.preferredFood);
-                DrawInfoRow(x, ref cy, "지병:", string.IsNullOrEmpty(def.lord.chronicDisease) ? "없음" : def.lord.chronicDisease);
-                DrawInfoRow(x, ref cy, "성격:", GetPersonalityText(def.lord.personality));
-                DrawInfoRow(x, ref cy, "충성심:", $"{def.lord.loyalty}/100");
+                DrawInfoRow(x, ref cy, "영주:", def.Value.lord.lordName);
+                DrawInfoRow(x, ref cy, "선호 음식:", string.IsNullOrEmpty(def.Value.lord.preferredFood) ? "알 수 없음" : def.Value.lord.preferredFood);
+                DrawInfoRow(x, ref cy, "지병:", string.IsNullOrEmpty(def.Value.lord.chronicDisease) ? "없음" : def.Value.lord.chronicDisease);
+                DrawInfoRow(x, ref cy, "성격:", GetPersonalityText(def.Value.lord.personality));
+                DrawInfoRow(x, ref cy, "충성심:", $"{def.Value.lord.loyalty}/100");
             }
-            else if (def != null && _selectedMission == SpySystem.SpyMission.Survey && def.territoryName != null)
+            else if (def != null && _selectedMission == SpySystem.SpyMission.Survey && def.Value.territoryName != null)
             {
-                DrawInfoRow(x, ref cy, "지형:", GetDifficultyTerrainName(def.difficulty));
-                DrawInfoRow(x, ref cy, "접근 경로:", GetApproachPathText(def.difficulty));
-                DrawInfoRow(x, ref cy, "은신처:", GetHideoutText(def.difficulty));
+                DrawInfoRow(x, ref cy, "지형:", GetDifficultyTerrainName(def.Value.difficulty));
+                DrawInfoRow(x, ref cy, "접근 경로:", GetApproachPathText(def.Value.difficulty));
+                DrawInfoRow(x, ref cy, "은신처:", GetHideoutText(def.Value.difficulty));
                 DrawInfoRow(x, ref cy, "소유 상태:", GetOwnershipText(state));
             }
 

@@ -262,22 +262,26 @@ namespace ProjectName.UI
                 if (!_detectedState[7])
                 {
                     var node = hit.GetComponent<ResourceNode>();
+#if false
                     if (node != null && node.NodeType == ResourceNode.ResourceType.Herb)
                     {
                         // TODO: HerbType 구분 필요 시 추가
                         MarkActionDetected(7);
                     }
+#endif
                 }
 
                 // 10: 제작대 상호작용 (CraftingStationBase)
                 if (!_detectedState[9])
                 {
+#if false
                     var station = hit.GetComponent<CraftingStationBase>();
                     if (station != null)
                     {
                         // TODO: 특정 제작대 종류 구분 필요 시 추가
                         MarkActionDetected(9);
                     }
+#endif
                 }
             }
         }
@@ -306,7 +310,7 @@ namespace ProjectName.UI
             // 13_guard_info: GuardInfoWindow 열림 감지
             if (!_detectedActions.Contains("13_guard_info"))
             {
-                if (_guardInfoWindow != null && _guardInfoWindow.IsOpen)
+                if (_guardInfoWindow != null && _guardInfoWindow.IsVisible)
                 {
                     MarkTerritoryAction("13_guard_info");
                 }
@@ -361,7 +365,7 @@ namespace ProjectName.UI
 
         private GuardPlaceholder FindGuardNearby()
         {
-            var guards = FindObjectsOfType<GuardPlaceholder>();
+            var guards = FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
             if (guards.Length == 0) return null;
 
             GameObject player = GameObject.FindGameObjectWithTag("Player");
@@ -392,9 +396,9 @@ namespace ProjectName.UI
                     break;
                 }
             }
-            if (_allDone && TutorialGuideSystem.Instance != null)
+            if (_allDone && TutorialQuestManager.Instance != null)
             {
-                TutorialGuideSystem.Instance.OnAllGuidesComplete();
+                TutorialQuestManager.Instance.OnAllGuidesComplete();
             }
         }
 
@@ -402,13 +406,13 @@ namespace ProjectName.UI
         {
             if (_detectedState[index]) return;
             _detectedState[index] = true;
-            string key = PREFS_PREFIX + ALL_ACTIONS[id].id;
+            string key = PREFS_PREFIX + ALL_ACTIONS[index].id;
             PlayerPrefs.SetInt(key, 1);
             PlayerPrefs.Save();
             Debug.Log($"[TutorialActionDetector] ✅ 액션 감지: {ALL_ACTIONS[index].description}");
 
             if (TutorialGuideSystem.Instance != null)
-                TutorialGuideSystem.Instance.ShowGuide(ALL_ACTIONS[id].id);
+                TutorialGuideSystem.Instance.ShowGuide(ALL_ACTIONS[index].id);
 
             CheckAllDone();
         }

@@ -2,6 +2,7 @@ using System.Collections;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.UI;
+using ProjectName.Systems;
 using UnityEngine;
 #pragma warning disable 0414
 
@@ -202,8 +203,8 @@ namespace ProjectName.UI
                     _bubbleTimer -= Time.deltaTime;
                     if (_bubbleTimer <= 0f)
                     {
-                        // T-Cycle-04: TutorialRevengeListIntegration이 살인명부 표시/하이라이트/닫힘/가이드 호출을 처리
-                        TutorialRevengeListIntegration.ShowRevengeListForTutorial();
+                        // T-Cycle-04: TutorialRevengeListIntegration이 살인명부 표시/하이라이트/닫힘/가이드 호출을 처리 (비활성화: Systems 타입 의존)
+                        Debug.Log("[TutorialLordSequence] Step 5 — TutorialRevengeListIntegration 호출 생략 (Systems 타입 미연동)");
                         _state = SequenceState.Complete;
                         MarkPlayed();
                         Debug.Log("[TutorialLordSequence] Step 5 완료 — TutorialRevengeListIntegration 호출, 시퀀스 완료");

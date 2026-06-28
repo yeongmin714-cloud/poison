@@ -222,7 +222,7 @@ namespace ProjectName.UI
             if (mercManager == null) return;
 
             var merc = mercManager.GetHiredMercenary(_currentMercenaryId);
-            if (merc.data == null || merc.data.id == null) { Close(); return; }
+            if (merc.data.id == null) { Close(); return; }
 
             var data = merc.data;
 

@@ -75,7 +75,7 @@ namespace ProjectName.UI
             _player = GameObject.FindGameObjectWithTag("Player")?.transform;
 
             // 기본 Idle 애니메이션
-            if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
+            if (_rigAnim != null) _rigAnim.SetStateImmediate(ProjectName.Systems.AnimationState.Idle);
         }
 
         private void Update()
@@ -92,7 +92,7 @@ namespace ProjectName.UI
                 {
                     // 독 효과 끝 → 플레이어가 처형 가능
                     _state = QuestState.Dead;
-                    if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
+                    if (_rigAnim != null) _rigAnim.SetStateImmediate(ProjectName.Systems.AnimationState.Idle);
                     Debug.Log("[TutorialQuestNPC] 영주가 쓰러졌다! E 키로 영지 증서 획득");
                 }
                 return;
@@ -190,7 +190,7 @@ namespace ProjectName.UI
                     // 영주가 음식을 받고 설사약을 눈치챔
                     _state = QuestState.HasPoison;
                     // 음식 받는 애니메이션 (Gather 재사용)
-                    if (_rigAnim != null) _rigAnim.SetState(AnimationState.Gather);
+                    if (_rigAnim != null) _rigAnim.SetState(ProjectName.Systems.AnimationState.Gather);
                     Debug.Log("[TutorialQuestNPC] 영주가 음식을 받았다. (다음 대화에서 설사약 의심)");
                     break;
 
@@ -199,7 +199,7 @@ namespace ProjectName.UI
                     _state = QuestState.Poisoned;
                     _poisonTimer = _poisonDuration;
                     // 중독 애니메이션 (비틀거림 = Kneel)
-                    if (_rigAnim != null) _rigAnim.SetState(AnimationState.Kneel);
+                    if (_rigAnim != null) _rigAnim.SetState(ProjectName.Systems.AnimationState.Kneel);
                     Debug.Log($"[TutorialQuestNPC] 영주가 독에 걸렸다! {_poisonDuration}초 행동불능");
                     break;
             }
