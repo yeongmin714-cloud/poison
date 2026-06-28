@@ -10,7 +10,7 @@ namespace ProjectName.Systems
     /// <summary>
     /// 영지 관리자 — 현재 로드된 영지의 건물, 병사, 시설 등을 추적하고 관리합니다.
     /// TerritoryDatabase와 연동하여 영지 정의/상태를 제공합니다.
-    ///
+    ///</summary>
     /// 사용법:
     ///   TerritoryManager.Instance.CurrentTerritoryId  // 현재 영지 ID
     ///   TerritoryManager.Instance.TerritoryDatabase    // TerritoryDatabase 인스턴스
@@ -163,6 +163,7 @@ namespace ProjectName.Systems
             var db = _territoryDatabase ?? TerritoryDatabase.Instance;
             if (db == null) return "알 수 없음 (DB 없음)";
 
+            var def = db.GetDefinition(CurrentTerritoryId);
             if (def.id.nation == NationType.None) return "알 수 없음 (정의 없음)";
 
             return def.difficulty switch

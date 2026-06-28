@@ -2,17 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Core.Data;
+using ProjectName.Systems;
 #pragma warning disable 0414
 
 namespace ProjectName.UI
 {
     /// <summary>
     /// T-Cycle-06: T4 설명창 11종 액션 감지 구현.
-    ///
-    /// - Update()에서 플레이어의 각종 액션(이동/카메라 회전/공격/대쉬/구르기/채집/인벤토리/크래프트 등)을 감지
-    /// - 최초 감지 시 PlayerPrefs에 기록하고 TutorialGuideSystem.ShowGuide() 호출
-    /// - 각 가이드는 최초 1회만 발동
-    /// - 11종 모두 완료 시 TutorialQuestManager.OnAllGuidesComplete() 호출
     /// </summary>
     public class TutorialActionDetector : MonoBehaviour
     {
@@ -41,7 +37,7 @@ namespace ProjectName.UI
             new ActionEntry { id = TutorialGuideData.ID_08_HERB_PICK,    description = "E키 약초 채집" },
             new ActionEntry { id = "09_inventory",                        description = "I키 인벤토리" },
             new ActionEntry { id = "10_craft",                            description = "E키 제작대" },
-            new ActionEntry { id = TutorialGuideData.ID_11_RECIPE_BOOK,  description = "R키 레시피 북" },
+            new ActionEntry { id = TutorialGuideData.ID_11_RECIPE_BOOK,  description = "R키 레시피 북" }
         };
 
         // ================================================================
@@ -169,7 +165,7 @@ namespace ProjectName.UI
                     Vector2 delta = _mouse.delta.ReadValue();
                     if (delta.magnitude > 10f)
                     {
-                        MarkActionDetected(1);
+                        MarkActionDetected(2);
                     }
                 }
             }
@@ -249,18 +245,6 @@ namespace ProjectName.UI
                     if (node != null && node.NodeType == ResourceNode.ResourceType.Wood)
                     {
                         MarkActionDetected(5);
-                        return;
-                    }
-                }
-
-                // 08: 약초 채집 (HerbPickup)
-                if (!_detectedState[7])
-                {
-                    var herb = hit.GetComponent<HerbPickup>();
-                    if (herb != null && herb.IsAvailable)
-                    {
-                        MarkActionDetected(7);
-                        return;
                     }
                 }
 
@@ -271,187 +255,98 @@ namespace ProjectName.UI
                     if (node != null && node.NodeType == ResourceNode.ResourceType.Stone)
                     {
                         MarkActionDetected(6);
-                        return;
                     }
                 }
 
-                // 10: 크래프트 테이블 (CraftingStation)
+                // 08: 약초 채집 (ResourceNode.Herb)
+                if (!_detectedState[7])
+                {
+                    var node = hit.GetComponent<ResourceNode>();
+                    if (node != null && node.NodeType == ResourceNode.ResourceType.Herb)
+                    {
+                        // TODO: HerbType 구분 필요 시 추가
+                        MarkActionDetected(7);
+                    }
+                }
+
+                // 10: 제작대 상호작용 (CraftingStationBase)
                 if (!_detectedState[9])
                 {
-                    var craft = hit.GetComponent<CraftingStation>();
-                    if (craft != null)
+                    var station = hit.GetComponent<CraftingStationBase>();
+                    if (station != null)
                     {
+                        // TODO: 특정 제작대 종류 구분 필요 시 추가
                         MarkActionDetected(9);
-                        return;
                     }
                 }
             }
         }
 
         // ================================================================
-        // 액션 감지 처리
+        // T6 영지 액션 감지
         // ================================================================
 
-        private void MarkActionDetected(int index)
-        {
-            if (_detectedState[index])
-                return;
-
-            string actionId = ALL_ACTIONS[index].id;
-            string desc = ALL_ACTIONS[index].description;
-
-            _detectedState[index] = true;
-            PlayerPrefs.SetInt(PREFS_PREFIX + actionId, 1);
-            PlayerPrefs.Save();
-
-            Debug.Log($"[TutorialActionDetector] ✅ 액션 감지: '{actionId}' ({desc})");
-
-            // ShowGuide 호출 (가이드 데이터가 존재하는 경우에만 표시)
-            var guideSystem = TutorialGuideSystem.Instance;
-            if (guideSystem != null)
-            {
-                guideSystem.ShowGuide(actionId);
-            }
-
-            // 11종 모두 완료 체크
-            CheckAllDone();
-        }
-
-        private void CheckAllDone()
-        {
-            if (_allDone)
-                return;
-
-            for (int i = 0; i < _detectedState.Length; i++)
-            {
-                if (!_detectedState[i])
-                    return;
-            }
-
-            _allDone = true;
-            Debug.Log("[TutorialActionDetector] 🎉 11종 액션 모두 감지 완료!");
-
-            // TutorialQuestManager에 모든 가이드 완료 알림
-            var questManager = TutorialQuestManager.Instance;
-            if (questManager != null)
-            {
-                questManager.OnAllGuidesComplete();
-            }
-        }
-
-        // ================================================================
-        // 공개 메서드
-        // ================================================================
-
-        /// <summary>
-        /// 학습 진행률을 문자열로 반환
-        /// </summary>
-        public string GetProgressString()
-        {
-            return $"{DetectedCount}/{TotalCount} actions completed";
-        }
-
-        /// <summary>
-        /// 특정 액션이 이미 감지되었는지 확인합니다.
-        /// </summary>
-        public bool IsActionDetected(string actionId)
-        {
-            return PlayerPrefs.HasKey(PREFS_PREFIX + actionId);
-        }
-
-        // ===== T6 영지 액션 감지 =====
-
-        private bool _territoryGuidesStarted = false;
-
-        /// <summary>
-        /// 영지 진입 후 T6 가이드 액션 감지 시작
-        /// </summary>
-        public void StartTerritoryGuides()
-        {
-            _territoryGuidesStarted = true;
-        }
-
-        private GuardPlaceholder _cachedGuard;
-        private GuardInfoWindow _cachedGuardInfoWindow;
-        private ShopWindow _cachedShopWindow;
-        private float _territoryRefreshTimer;
-        private const float TERRITORY_REFRESH_INTERVAL = 0.5f;
-
-        /// <summary>
-        /// T6 영지 액션 감지
-        /// </summary>
         private void DetectTerritoryActions()
         {
             if (!_territoryGuidesStarted) return;
 
-            // FindObjectOfType 캐싱 — 매 프레임 대신 간격 체크
-            _territoryRefreshTimer -= Time.deltaTime;
-            if (_territoryRefreshTimer <= 0f)
+            // 12_guard_interact: 경비병과 상호작용
+            if (!_detectedActions.Contains("12_guard_interact"))
             {
-                _territoryRefreshTimer = TERRITORY_REFRESH_INTERVAL;
-                if (_cachedGuardInfoWindow == null)
-                    _cachedGuardInfoWindow = FindObjectOfType<GuardInfoWindow>();
-                if (_cachedShopWindow == null)
-                    _cachedShopWindow = FindObjectOfType<ShopWindow>();
-                if (_cachedGuard == null && !_detectedActions.Contains("12_guard_interact"))
-                    _cachedGuard = FindGuardNearby();
-            }
-
-            // 12_guard_interact: E키 + GuardPlaceholder
-            if (!_detectedActions.Contains("12_guard_interact") && _cachedGuard != null
-                && _keyboard != null && _keyboard.eKey.wasPressedThisFrame)
-            {
-                MarkTerritoryAction("12_guard_interact");
+                var guard = FindGuardNearby();
+                if (guard != null && Vector3.Distance(_player.position, guard.transform.position) <= 2f)
+                {
+                    if (Input.GetKeyDown(KeyCode.E))
+                    {
+                        MarkTerritoryAction("12_guard_interact");
+                    }
+                }
             }
 
             // 13_guard_info: GuardInfoWindow 열림 감지
-            if (!_detectedActions.Contains("13_guard_info")
-                && _cachedGuardInfoWindow != null && _cachedGuardInfoWindow.IsOpen)
+            if (!_detectedActions.Contains("13_guard_info"))
             {
-                MarkTerritoryAction("13_guard_info");
+                if (_guardInfoWindow != null && _guardInfoWindow.IsOpen)
+                {
+                    MarkTerritoryAction("13_guard_info");
+                }
             }
 
             // 18_shop: ShopWindow 열림
-            if (!_detectedActions.Contains("18_shop")
-                && _cachedShopWindow != null && _cachedShopWindow.IsOpen)
+            if (!_detectedActions.Contains("18_shop"))
             {
-                MarkTerritoryAction("18_shop");
+                if (_shopWindow != null && _shopWindow.IsOpen)
+                {
+                    MarkTerritoryAction("18_shop");
+                }
             }
 
             // 19_world_map: M키
-            if (!_detectedActions.Contains("19_world_map") && _keyboard != null
-                && _keyboard.mKey.wasPressedThisFrame)
+            if (!_detectedActions.Contains("19_world_map") && _keyboard != null)
             {
-                MarkTerritoryAction("19_world_map");
+                if (_keyboard.mKey.wasPressedThisFrame)
+                {
+                    MarkTerritoryAction("19_world_map");
+                }
             }
 
             // 20_status: C키
-            if (!_detectedActions.Contains("20_status") && _keyboard != null
-                && _keyboard.cKey.wasPressedThisFrame)
+            if (!_detectedActions.Contains("20_status") && _keyboard != null)
             {
-                MarkTerritoryAction("20_status");
+                if (_keyboard.cKey.wasPressedThisFrame)
+                {
+                    MarkTerritoryAction("20_status");
+                }
             }
 
             // 22_building_enter: 건물 출입 — TODO: IndoorSceneTransition 이벤트 기반 구현 필요
-            // TutorialLordSequence.Step9에서 IndoorSceneTransition.OnEnterBuilding += () => MarkTerritoryAction("22_building_enter")
-
-            // T6 5종 완료 시 메시지
-            if (_territoryGuidesStarted && !_t6Complete)
-            {
-                string[] t6Ids = { "12_guard_interact", "13_guard_info", "18_shop", "19_world_map", "20_status" };
-                int t6Done = 0;
-                foreach (var id in t6Ids)
-                    if (_detectedActions.Contains(id)) t6Done++;
-
-                if (t6Done >= t6Ids.Length)
-                {
-                    _t6Complete = true;
-                    Debug.Log("[TutorialActionDetector] 🎉 튜토리얼 완료!");
-                }
-            }
+            // (주석 처리된 코드는 그대로 유지)
         }
 
-        /// <summary>T6 영지 액션 감지 마킹 헬퍼</summary>
+        // ================================================================
+        // T6 영지 액션 감지 헬퍼
+        // ================================================================
+
         private void MarkTerritoryAction(string actionId)
         {
             if (_detectedActions.Contains(actionId)) return;
@@ -482,82 +377,80 @@ namespace ProjectName.UI
             return nearest;
         }
 
-        private bool _t6Complete = false;
+        // ================================================================
+        // 상태 관리
+        // ================================================================
 
-        /// <summary>
-        /// 모든 액션 감지 상태를 초기화합니다 (디버그용).
-        /// </summary>
-        public void ResetAllActions()
+        private void CheckAllDone()
         {
-            // 11종 기본 액션 리셋
+            _allDone = true;
             for (int i = 0; i < ALL_ACTIONS.Length; i++)
             {
-                string key = PREFS_PREFIX + ALL_ACTIONS[i].id;
-                if (PlayerPrefs.HasKey(key))
-                    PlayerPrefs.DeleteKey(key);
-                _detectedState[i] = false;
-            }
-
-            // T6 영지 액션 리셋
-            foreach (string actionId in _detectedActions)
-            {
-                string key = PREFS_PREFIX + actionId;
-                if (PlayerPrefs.HasKey(key))
-                    PlayerPrefs.DeleteKey(key);
-            }
-            _detectedActions.Clear();
-
-            PlayerPrefs.Save();
-            _allDone = false;
-            _t6Complete = false;
-            _territoryGuidesStarted = false;
-            _cachedGuard = null;
-            _cachedGuardInfoWindow = null;
-            _cachedShopWindow = null;
-            Debug.Log("[TutorialActionDetector] 🔄 모든 액션 감지 상태 초기화 완료");
-        }
-
-        /// <summary>
-        /// 현재까지 감지된 액션 수를 반환합니다.
-        /// </summary>
-        public int DetectedCount
-        {
-            get
-            {
-                int count = 0;
-                for (int i = 0; i < _detectedState.Length; i++)
+                if (!_detectedState[i])
                 {
-                    if (_detectedState[i]) count++;
+                    _allDone = false;
+                    break;
                 }
-                return count;
+            }
+            if (_allDone && TutorialGuideSystem.Instance != null)
+            {
+                TutorialGuideSystem.Instance.OnAllGuidesComplete();
             }
         }
 
-        /// <summary>
-        /// 전체 액션 수를 반환합니다.
-        /// </summary>
-        public int TotalCount => ALL_ACTIONS.Length;
-
-#if UNITY_EDITOR
-        private void OnGUI()
+        private void MarkActionDetected(int index)
         {
-            if (!UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.Contains("Test"))
-                return;
+            if (_detectedState[index]) return;
+            _detectedState[index] = true;
+            string key = PREFS_PREFIX + ALL_ACTIONS[id].id;
+            PlayerPrefs.SetInt(key, 1);
+            PlayerPrefs.Save();
+            Debug.Log($"[TutorialActionDetector] ✅ 액션 감지: {ALL_ACTIONS[index].description}");
 
-            GUILayout.BeginArea(new Rect(10, 10, 300, 600));
-            GUILayout.Label("[TutorialActionDetector] 디버그", GUI.skin.box);
-            for (int i = 0; i < ALL_ACTIONS.Length; i++)
-            {
-                string status = _detectedState[i] ? "✅" : "⬜";
-                GUILayout.Label($"  {status} {ALL_ACTIONS[i].description}");
-            }
-            GUILayout.Label($"감지: {DetectedCount}/{TotalCount}");
-            if (GUILayout.Button("모든 액션 리셋"))
-            {
-                ResetAllActions();
-            }
-            GUILayout.EndArea();
+            if (TutorialGuideSystem.Instance != null)
+                TutorialGuideSystem.Instance.ShowGuide(ALL_ACTIONS[id].id);
+
+            CheckAllDone();
         }
-#endif
+
+        // ================================================================
+        // 필드 (직렬화되지 않은 것들)
+        // ================================================================
+
+        [System.NonSerialized]
+        private bool _territoryGuidesStarted = false;
+
+        [System.NonSerialized]
+        private GuardInfoWindow _guardInfoWindow;
+
+        [System.NonSerialized]
+        private ShopWindow _shopWindow;
+
+        // ================================================================
+        // 공개 메서드 (타 시스템에서 호출)
+        // ================================================================
+
+        public void StartTerritoryGuides()
+        {
+            _territoryGuidesStarted = true;
+            Debug.Log("[TutorialActionDetector] T6 영지 안내 시작");
+        }
+
+        public void SetGuardInfoWindow(GuardInfoWindow window)
+        {
+            _guardInfoWindow = window;
+        }
+
+        public void SetShopWindow(ShopWindow window)
+        {
+            _shopWindow = window;
+        }
+
+        // ================================================================
+        // T5.6.3: 미구현 기능 플래그 (추후 구현 시 제거)
+        // ================================================================
+
+        // TODO: T5.6.3: 미구현 기능 플래그 (추후 구현 시 제거)
+        // private bool _featureFlag = false;
     }
 }

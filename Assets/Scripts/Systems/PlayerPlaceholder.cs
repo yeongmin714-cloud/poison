@@ -1,4 +1,5 @@
 using UnityEngine;
+using ProjectName.Core.Utils;
 
 namespace ProjectName.Systems
 {
@@ -9,7 +10,7 @@ namespace ProjectName.Systems
     /// [Unity 초보자 설명]
     /// 원통(Cylinder) = 몸통, 구(Sphere) = 머리
     /// 작은 원통 2개 = 팔, 작은 원통 2개 = 다리
-    /// 이렇게 5개의 도형을 합쳐서 사람 모양을 만듭니다.
+    /// 이렇게 5개의 도형합쳐서 사람 모양을 만듭니다.
     /// </summary>
     public class PlayerPlaceholder : MonoBehaviour
     {
@@ -55,86 +56,157 @@ namespace ProjectName.Systems
         /// <returns>GLB 모델이 로드되었으면 true, 아니면 false</returns>
         private bool TryLoadGLBModel()
         {
-            // 이미 파트가 있으면 스킵
-            if (_body != null) return true;
-
-            if (!RuntimeModelLoader.TryGetModel("player_rigged", out var playerModel, out var _))
-                return false;
-
-            GameObject avatar = Instantiate(playerModel, transform);
-            avatar.name = "Avatar";
-            avatar.transform.localPosition = Vector3.zero;
-            avatar.transform.localRotation = Quaternion.identity;
-            avatar.transform.localScale = Vector3.one;
-
-            // Assign animator controller for the player model
-            ModelAnimatorAssigner.AssignController(avatar, "player");
-
-            Debug.Log("[PlayerPlaceholder] GLB 플레이어 모델 로드 완료");
-            return true;
-        }
-
-        /// <summary>
-        /// Unity 기본 도형으로 사람 모양 만들기
-        /// </summary>
-        private void BuildPlaceholderBody()
-        {
             // 이미 파트가 있으면 스킵 (GLB 교체 후에도 유지)
-            if (_body != null) return;
+            if (_body != null)
+            {
+                return false;
+            }
 
-            float scale = 2.0f; // 전체 크기 비율
+            // RuntimeModelLoader에서 플레이어 모델을 찾음
+            if (RuntimeModelLoader.TryGetModel("player", out var playerModel))
+            {
+                // 플레이어 모델을 인스턴스화하고 자식으로 붙임
+                var playerInstance = Instantiate(playerModel, transform);
+                playerInstance.name = "PlayerModel";
+                playerInstance.transform.localPosition = Vector3.zero;
+                playerInstance.transform.localRotation = Quaternion.identity;
+                playerInstance.transform.localScale = Vector3.one;
 
-            // === 몸통 (Cylinder) ===
-            _body = CreatePart(PrimitiveType.Cylinder, "Body", new Vector3(0, 0.6f, 0), 
-                new Vector3(0.8f * scale, 0.5f * scale, 0.5f * scale), _bodyColor);
+                // 기존 도형들 제거
+                Destroy(_body);
+                Destroy(_head);
+                Destroy(_leftArm);
+                Destroy(_rightArm);
+                Destroy(_leftLeg);
+                Destroy(_rightLeg);
+                _body = _head = _leftArm = _rightArm = _leftLeg = _rightLeg = null;
 
-            // === 머리 (Sphere) ===
-            _head = CreatePart(PrimitiveType.Sphere, "Head", new Vector3(0, 1.3f, 0), 
-                new Vector3(0.4f * scale, 0.4f * scale, 0.4f * scale), _skinColor);
+                return true;
+            }
 
-            // === 왼팔 (Cylinder) ===
-            _leftArm = CreatePart(PrimitiveType.Cylinder, "LeftArm", new Vector3(-0.7f, 0.9f, 0), 
-                new Vector3(0.15f * scale, 0.4f * scale, 0.15f * scale), _skinColor);
-
-            // === 오른팔 (Cylinder) ===
-            _rightArm = CreatePart(PrimitiveType.Cylinder, "RightArm", new Vector3(0.7f, 0.9f, 0), 
-                new Vector3(0.15f * scale, 0.4f * scale, 0.15f * scale), _skinColor);
-
-            // === 왼다리 (Cylinder) ===
-            _leftLeg = CreatePart(PrimitiveType.Cylinder, "LeftLeg", new Vector3(-0.3f, 0.2f, 0), 
-                new Vector3(0.2f * scale, 0.4f * scale, 0.2f * scale), _bodyColor);
-
-            // === 오른다리 (Cylinder) ===
-            _rightLeg = CreatePart(PrimitiveType.Cylinder, "RightLeg", new Vector3(0.3f, 0.2f, 0), 
-                new Vector3(0.2f * scale, 0.4f * scale, 0.2f * scale), _bodyColor);
+            return false;
         }
 
-        /// <summary>
-        /// 하나의 신체 부위를 생성
-        /// </summary>
-        private GameObject CreatePart(PrimitiveType type, string name, Vector3 localPos, Vector3 localScale, Color color)
+        private GameObject BuildPlaceholderBody()
         {
-            var part = GameObject.CreatePrimitive(type);
-            part.name = name;
-            part.transform.SetParent(transform, false);
-            part.transform.localPosition = localPos;
-            part.transform.localScale = localScale;
+            // 몸통
+            _body = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            _body.name = "Body";
+            _body.transform.SetParent(transform);
+            _body.transform.localPosition = new Vector3(0, 0.5f, 0);
+            _body.transform.localScale = new Vector3(0.5f, 1.5f, 0.5f);
+            _body.transform.localRotation = Quaternion.identity;
+
+            // 머리
+            _head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            _head.name = "Head";
+            _head.transform.SetParent(transform);
+            _head.transform.localPosition = new Vector3(0, 1.5f, 0);
+            _head.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+            _head.transform.localRotation = Quaternion.identity;
+
+            // 왼쪽 팔
+            _leftArm = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            _leftArm.name = "LeftArm";
+            _leftArm.transform.SetParent(transform);
+            _leftArm.transform.localPosition = new Vector3(-0.75f, 0.5f, 0);
+            _leftArm.transform.localScale = new Vector3(0.3f, 0.8f, 0.3f);
+            _leftArm.transform.localRotation = Quaternion.Euler(0, 0, -30f);
+
+            // 오른쪽 팔
+            _rightArm = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            _rightArm.name = "RightArm";
+            _rightArm.transform.SetParent(transform);
+            _rightArm.transform.localPosition = new Vector3(0.75f, 0.5f, 0);
+            _rightArm.transform.localScale = new Vector3(0.3f, 0.8f, 0.3f);
+            _rightArm.transform.localRotation = Quaternion.Euler(0, 0, 30f);
+
+            // 왼쪽 다리
+            _leftLeg = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            _leftLeg.name = "LeftLeg";
+            _leftLeg.transform.SetParent(transform);
+            _leftLeg.transform.localPosition = new Vector3(-0.3f, 0, 0);
+            _leftLeg.transform.localScale = new Vector3(0.3f, 1.0f, 0.3f);
+            _leftLeg.transform.localRotation = Quaternion.Euler(0, 0, -10f);
+
+            // 오른쪽 다리
+            _rightLeg = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            _rightLeg.name = "RightLeg";
+            _rightLeg.transform.SetParent(transform);
+            _rightLeg.transform.localPosition = new Vector3(0.3f, 0, 0);
+            _rightLeg.transform.localScale = new Vector3(0.3f, 1.0f, 0.3f);
+            _rightLeg.transform.localRotation = Quaternion.Euler(0, 0, 10f);
 
             // 색상 적용 (MaterialHelper로 URP Lit 또는 기본 셰이더 자동 선택)
-            var renderer = part.GetComponent<MeshRenderer>();
-            if (renderer != null)
+            var bodyRenderer = _body.GetComponent<MeshRenderer>();
+            if (bodyRenderer != null)
             {
-                var mat = MaterialHelper.CreateLitMaterial(color, $"{name}_Mat");
+                var mat = MaterialHelper.CreateLitMaterial(_bodyColor, "Body_Mat");
                 if (mat != null)
-                    renderer.material = mat;
+                    bodyRenderer.material = mat;
+            }
+
+            var headRenderer = _head.GetComponent<MeshRenderer>();
+            if (headRenderer != null)
+            {
+                var mat = MaterialHelper.CreateLitMaterial(_skinColor, "Head_Mat");
+                if (mat != null)
+                    headRenderer.material = mat;
+            }
+
+            var leftArmRenderer = _leftArm.GetComponent<MeshRenderer>();
+            if (leftArmRenderer != null)
+            {
+                var mat = MaterialHelper.CreateLitMaterial(_skinColor, "LeftArm_Mat");
+                if (mat != null)
+                    leftArmRenderer.material = mat;
+            }
+
+            var rightArmRenderer = _rightArm.GetComponent<MeshRenderer>();
+            if (rightArmRenderer != null)
+            {
+                var mat = MaterialHelper.CreateLitMaterial(_skinColor, "RightArm_Mat");
+                if (mat != null)
+                    rightArmRenderer.material = mat;
+            }
+
+            var leftLegRenderer = _leftLeg.GetComponent<MeshRenderer>();
+            if (leftLegRenderer != null)
+            {
+                var mat = MaterialHelper.CreateLitMaterial(_skinColor, "LeftLeg_Mat");
+                if (mat != null)
+                    leftLegRenderer.material = mat;
+            }
+
+            var rightLegRenderer = _rightLeg.GetComponent<MeshRenderer>();
+            if (rightLegRenderer != null)
+            {
+                var mat = MaterialHelper.CreateLitMaterial(_skinColor, "RightLeg_Mat");
+                if (mat != null)
+                    rightLegRenderer.material = mat;
             }
 
             // 시각적 Placeholder이므로 Collider 제거 (물리 오버헤드 방지)
-            var collider = part.GetComponent<Collider>();
-            if (collider != null)
-                Destroy(collider);
+            var bodyCollider = _body.GetComponent<Collider>();
+            if (bodyCollider != null)
+                Destroy(bodyCollider);
+            var headCollider = _head.GetComponent<Collider>();
+            if (headCollider != null)
+                Destroy(headCollider);
+            var leftArmCollider = _leftArm.GetComponent<Collider>();
+            if (leftArmCollider != null)
+                Destroy(leftArmCollider);
+            var rightArmCollider = _rightArm.GetComponent<Collider>();
+            if (rightArmCollider != null)
+                Destroy(rightArmCollider);
+            var leftLegCollider = _leftLeg.GetComponent<Collider>();
+            if (leftLegCollider != null)
+                Destroy(leftLegCollider);
+            var rightLegCollider = _rightLeg.GetComponent<Collider>();
+            if (rightLegCollider != null)
+                Destroy(rightLegCollider);
 
-            return part;
+            return _body;
         }
 
         /// <summary>

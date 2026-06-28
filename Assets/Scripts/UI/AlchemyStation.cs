@@ -1,5 +1,4 @@
 using UnityEngine;
-using ProjectName.Core.UI;
 using ProjectName.Systems;
 #pragma warning disable 0414
 
@@ -52,7 +51,7 @@ namespace ProjectName.UI
             // Retry player lookup if not found yet (e.g. player spawned after this station)
             if (_player == null)
             {
-                _player = GameObject.FindGameObjectWithTag("Player")?.transform;
+                _player = GameObject.FindGameObjectWithTag("Player" )?.transform;
                 if (_player == null) return;
             }
 
@@ -68,7 +67,6 @@ namespace ProjectName.UI
         private void OpenAlchemyUI()
         {
             Debug.Log($"[AlchemyStation] {_stationName} 열림");
-
             if (UIManager.Instance != null)
             {
                 UIManager.Instance.OpenWindow(typeof(AlchemyUI));

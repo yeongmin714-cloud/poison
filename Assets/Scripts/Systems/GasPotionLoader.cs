@@ -63,7 +63,7 @@ namespace ProjectName.Systems
             PlayerInventory.ItemData itemData = null;
             for (int i = 0; i < slots.Length; i++)
             {
-                if (slots[i] != null && slots[i].item.id == potionItemId)
+                if (slots[i] != null && slots[i].item != null && slots[i].item.id == potionItemId)
                 {
                     itemData = slots[i].item;
                     break;
@@ -96,7 +96,7 @@ namespace ProjectName.Systems
             controller.LoadedPotionId = potionItemId;
             controller.LoadedPotionCount += inventoryCount;
 
-            Debug.Log($"[GasPotionLoader] {itemData.displayName} x{inventoryCount} 장전 완료! (총 {controller.LoadedPotionCount}개)");
+            Debug.Log($"{itemData.displayName} x{inventoryCount} 장전 완료! (총 {controller.LoadedPotionCount}개)");
 
             // 장전 완료 이벤트 발생
             controller.NotifyPotionChanged();
@@ -191,7 +191,7 @@ namespace ProjectName.Systems
             var slots = PlayerInventory.Instance.GetAllSlots();
             for (int i = 0; i < slots.Length; i++)
             {
-                if (slots[i] != null && slots[i].item.id == potionItemId)
+                if (slots[i] != null && slots[i].item != null && slots[i].item.id == potionItemId)
                 {
                     var cat = slots[i].item.category;
                     return cat == PlayerInventory.ItemCategory.Potion ||
@@ -240,7 +240,7 @@ namespace ProjectName.Systems
                 description = "알 수 없는 물약",
                 category = PlayerInventory.ItemCategory.Potion,
                 maxStack = 99,
-                rarity = PlayerInventory.ItemRarity.Common,
+                rarity = ItemRarity.Common,
                 effects = ""
             };
         }

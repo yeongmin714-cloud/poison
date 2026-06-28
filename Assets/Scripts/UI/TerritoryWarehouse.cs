@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 using System.Collections.Generic;
 using ProjectName.Core;
 #pragma warning disable 0414
@@ -113,7 +114,7 @@ namespace ProjectName.UI
         {
             if (string.IsNullOrEmpty(itemId)) return null;
 
-            // TODO: Resources.Load("Items/" + itemId) 또는 ItemDatabase.Instance.Get(itemId)
+            // TODO: Resources.Load("Items/" + itemId) or ItemDatabase.Instance.Get(itemId)
             return new PlayerInventory.ItemData
             {
                 id = itemId,
