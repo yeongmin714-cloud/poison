@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
@@ -337,9 +338,19 @@ namespace ProjectName.Systems
                 }
             }
 
-            // 2) Resources/Items/ 경로에서 로드 시도
-            PlayerInventory.ItemData loaded = Resources.Load<PlayerInventory.ItemData>($"Items/{itemId}");
-            if (loaded != null) return loaded;
+            // 2) Resources/Items/ 경로에서 로드 시도 (JSON 텍스트 에셋)
+            TextAsset txt = Resources.Load<TextAsset>($"Items/{itemId}");
+            if (txt != null)
+            {
+                try
+                {
+                    return JsonUtility.FromJson<PlayerInventory.ItemData>(txt.text);
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"[AttackSystem] Failed to deserialize item JSON for {itemId}: {ex}");
+                }
+            }
 
             // 3) 폴백: 기본 ItemData 생성 (테스트/디버그용)
             Debug.LogWarning($"[AttackSystem] 아이템 '{itemId}'을(를) 찾을 수 없습니다. 임시 ItemData를 생성합니다.");

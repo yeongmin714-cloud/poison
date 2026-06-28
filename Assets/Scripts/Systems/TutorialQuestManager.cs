@@ -170,7 +170,7 @@ namespace ProjectName.Systems
             var guideSystem = TutorialGuideSystem.Instance;
             if (guideSystem != null)
             {
-                guideSystem.ForceHideGuide();
+                guideSystem.HideGuide();
             }
 
             // 큐 초기화

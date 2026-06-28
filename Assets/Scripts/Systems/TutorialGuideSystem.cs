@@ -209,7 +209,7 @@ namespace ProjectName.Systems
             return null;
         }
 
-        private void HideGuide()
+        public void HideGuide()
         {
             if (_currentGuide.HasValue)
             {

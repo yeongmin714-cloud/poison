@@ -1018,7 +1018,7 @@ namespace ProjectName.Systems
                 if (dmg != null && dmg.IsAlive)
                 {
                     Vector3 dir = (_aggroTarget.transform.position - transform.position).normalized;
-                    dmg.TakeDamage(_attackDamage, dir);
+                    dmg.TakeDamage(_attackDamage, dir, "melee");
                     Debug.Log($"{_monsterId}가(이) {_aggroTarget.name}에게 {_attackDamage} 데미지 (어그로)!");
                 }
             }
