@@ -49,6 +49,16 @@ namespace ProjectName.UI
         private GUIStyle _guardCountStyle; // 캐싱: DrawTerritoryCell의 병사 수 스타일 (GC 방지)
         private bool _stylesInitialized;
 
+        // Phase 40: 자동 이동 관련
+        private TerritoryId? _selectedTerritoryId;          // 좌클릭 선택된 영지
+        private Vector3 _selectedTerritoryWorldPos;         // 선택된 영지의 월드 좌표
+        private bool _showContextMenu = false;              // 우클릭 컨텍스트 메뉴 표시
+        private Rect _contextMenuRect;                      // 컨텍스트 메뉴 위치
+        private string _contextMenuTerritoryName = "";      // 컨텍스트 메뉴용 영지 이름
+        private TerritoryId? _contextMenuTerritoryId;       // 컨텍스트 메뉴용 영지 ID
+        private Vector3 _contextMenuWorldPos;               // 컨텍스트 메뉴용 월드 좌표
+        private const float TERRITORY_WORLD_Y = 0f;         // 영지의 기본 Y 좌표 (지면)
+
         protected override void Awake()
         {
             base.Awake();
@@ -214,6 +224,230 @@ namespace ProjectName.UI
             // Bottom controls
             float controlsY = windowRect.y + windowRect.height - 35f;
             DrawControls(new Rect(windowRect.x + _windowPadding, controlsY, windowRect.width - _windowPadding * 2, 45f));
+
+            // Phase 40: 우클릭 컨텍스트 메뉴 (자동 이동)
+            DrawAutoMoveContextMenu();
+
+            // Phase 40: 선택된 영지까지 점선 경로 표시
+            DrawMapPathLine(windowRect);
+        }
+
+        /// <summary>
+        /// Phase 40: 우클릭 컨텍스트 메뉴 — "자동 이동" 옵션
+        /// </summary>
+        private void DrawAutoMoveContextMenu()
+        {
+            if (!_showContextMenu) return;
+
+            // 컨텍스트 메뉴 배경
+            Color origBg = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(0.1f, 0.1f, 0.15f); // 어두운 배경
+            GUI.Box(_contextMenuRect, "");
+            GUI.backgroundColor = origBg;
+
+            // 테두리
+            Color origBorder = GUI.color;
+            GUI.color = new Color(0.3f, 0.3f, 0.5f);
+            GUI.Box(_contextMenuRect, "");
+            GUI.color = origBorder;
+
+            // 메뉴 제목
+            float margin = 5f;
+            Rect titleRect = new Rect(_contextMenuRect.x + margin, _contextMenuRect.y + margin,
+                _contextMenuRect.width - margin * 2, 25f);
+            GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 16,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = Color.white }
+            };
+            GUI.Label(titleRect, $"📌 {_contextMenuTerritoryName}", titleStyle);
+
+            // "자동 이동" 버튼
+            Rect moveBtnRect = new Rect(_contextMenuRect.x + margin, titleRect.y + titleRect.height + 2f,
+                _contextMenuRect.width - margin * 2, 30f);
+            Color origBtnColor = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(0f, 0.4f, 0f);
+            if (GUI.Button(moveBtnRect, "🚶 자동 이동"))
+            {
+                if (_contextMenuTerritoryId.HasValue)
+                {
+                    StartAutoMoveToTerritory(_contextMenuTerritoryId.Value, _contextMenuWorldPos);
+                }
+                _showContextMenu = false;
+            }
+            GUI.backgroundColor = origBtnColor;
+
+            // 취소 버튼
+            Rect cancelBtnRect = new Rect(_contextMenuRect.x + margin, moveBtnRect.y + moveBtnRect.height + 2f,
+                _contextMenuRect.width - margin * 2, 22f);
+            if (GUI.Button(cancelBtnRect, "취소"))
+            {
+                _showContextMenu = false;
+            }
+
+            // 컨텍스트 메뉴 외부 클릭 시 닫기
+            Event evt = Event.current;
+            if (evt != null && evt.type == EventType.MouseDown && evt.button == 0)
+            {
+                if (!_contextMenuRect.Contains(evt.mousePosition))
+                {
+                    _showContextMenu = false;
+                    evt.Use();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Phase 40: 지도 위에 선택된 영지까지 점선 경로를 그립니다.
+        /// 현재 위치 → 선택/이동 목표까지 시각적 경로 표시.
+        /// </summary>
+        private void DrawMapPathLine(Rect windowRect)
+        {
+            // 컨텍스트 메뉴가 열려있을 때는 그리지 않음 (겹침 방지)
+            if (_showContextMenu) return;
+
+            // 자동 이동 목표 또는 선택된 영지가 있을 때 경로 표시
+            Vector3? targetPos = null;
+            string targetName = "";
+
+            // 우선순위: 자동 이동 목표 > 선택된 영지
+            if (AutoMoveManager.Instance != null && AutoMoveManager.Instance.HasDestination)
+            {
+                targetPos = AutoMoveManager.Instance.Destination;
+                targetName = "자동 이동 목표";
+            }
+            else if (_selectedTerritoryId.HasValue)
+            {
+                targetPos = _selectedTerritoryWorldPos;
+                var db = TerritoryDatabase.Instance;
+                if (db != null)
+                {
+                    var def = db.GetDefinition(_selectedTerritoryId.Value);
+                    targetName = !string.IsNullOrEmpty(def.territoryName) ? def.territoryName : "선택 영지";
+                }
+                else
+                {
+                    targetName = "선택 영지";
+                }
+            }
+
+            if (!targetPos.HasValue) return;
+
+            // 지도 좌표계에서의 플레이어 위치 (개요/상세 화면에 따라 다름)
+            Vector2 playerMapPos = GetPlayerMapPosition(windowRect);
+            Vector2 targetMapPos = GetTerritoryMapPosition(targetPos.Value, windowRect);
+
+            // 점선 경로 그리기 (세로로 흐르는 점선)
+            Color pathColor = new Color(0f, 1f, 0.8f, 0.6f); // 청록색 반투명
+            int segments = 8;
+            for (int i = 0; i < segments; i++)
+            {
+                float t1 = (float)i / segments;
+                float t2 = (float)(i + 1) / segments;
+
+                float x1 = Mathf.Lerp(playerMapPos.x, targetMapPos.x, t1);
+                float y1 = Mathf.Lerp(playerMapPos.y, targetMapPos.y, t1);
+                float x2 = Mathf.Lerp(playerMapPos.x, targetMapPos.x, t2);
+                float y2 = Mathf.Lerp(playerMapPos.y, targetMapPos.y, t2);
+
+                // 점선 효과: 짝수 세그먼트만 그림
+                if (i % 2 == 0)
+                {
+                    DrawIMGUILine(x1, y1, x2, y2, pathColor, 2f);
+                }
+            }
+
+            // 목표 마커
+            GUIStyle markerStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 18,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = Color.green }
+            };
+            GUI.Label(new Rect(targetMapPos.x - 30f, targetMapPos.y - 15f, 60f, 30f), "📍", markerStyle);
+        }
+
+        /// <summary>
+        /// Phase 40: 지도 위 플레이어 위치 좌표를 반환합니다. (개요/상세 화면별 추정)
+        /// </summary>
+        private Vector2 GetPlayerMapPosition(Rect windowRect)
+        {
+            // 개요 화면: 중앙 하단 (플레이어가 위치한 국가 지역 근처)
+            if (_selectedNation == NationType.None)
+            {
+                return new Vector2(windowRect.x + windowRect.width * 0.5f,
+                    windowRect.y + windowRect.height * 0.7f);
+            }
+            // 상세 화면: 현재 위치 영지 셀 위치 (대략 왼쪽 상단)
+            else
+            {
+                return new Vector2(windowRect.x + 50f, windowRect.y + windowRect.height * 0.4f);
+            }
+        }
+
+        /// <summary>
+        /// Phase 40: 월드 좌표를 지도 좌표로 변환합니다.
+        /// </summary>
+        private Vector2 GetTerritoryMapPosition(Vector3 worldPos, Rect windowRect)
+        {
+            // 지도 중심: 화면 중앙
+            // 월드 좌표를 지도 좌표로 매핑 (스케일 10 유닛 = 1 지도 픽셀로 가정)
+            float centerX = windowRect.x + windowRect.width * 0.5f;
+            float centerY = windowRect.y + windowRect.height * 0.3f;
+
+            float mapX = centerX + worldPos.x * 1.5f;
+            float mapZ = centerY + worldPos.z * 1.5f;
+
+            // 화면 경계 내 클램프
+            mapX = Mathf.Clamp(mapX, windowRect.x + 30f, windowRect.x + windowRect.width - 30f);
+            mapZ = Mathf.Clamp(mapZ, windowRect.y + 50f, windowRect.y + windowRect.height - 50f);
+
+            return new Vector2(mapX, mapZ);
+        }
+
+        /// <summary>
+        /// Phase 40: 선택된 영지로 자동 이동을 시작합니다.
+        /// </summary>
+        private void StartAutoMoveToTerritory(TerritoryId territoryId, Vector3 worldPos)
+        {
+            if (AutoMoveManager.Instance == null)
+            {
+                Debug.LogWarning("[MapWindow] AutoMoveManager 인스턴스가 없습니다! Scene에 AutoMoveManager를 추가해주세요.");
+                return;
+            }
+
+            // 지도 닫기 (이동 중에는 지도가 필요 없음)
+            Hide();
+
+            // 자동 이동 시작
+            AutoMoveManager.Instance.SetDestination(worldPos);
+
+            Debug.Log($"[MapWindow] 🚶 자동 이동 시작 → 영지 {territoryId}");
+        }
+
+        /// <summary>
+        /// Phase 40: IMGUI에서 선을 그리는 헬퍼 메서드.
+        /// GUI.DrawTexture와 회전을 사용하여 얇은 선을 그립니다.
+        /// </summary>
+        private void DrawIMGUILine(float x1, float y1, float x2, float y2, Color color, float thickness)
+        {
+            float dx = x2 - x1;
+            float dy = y2 - y1;
+            float length = Mathf.Sqrt(dx * dx + dy * dy);
+            if (length < 0.001f) return;
+
+            float angle = Mathf.Atan2(dy, dx) * Mathf.Rad2Deg;
+            float cx = (x1 + x2) * 0.5f;
+            float cy = (y1 + y2) * 0.5f;
+
+            Color origColor = GUI.color;
+            GUI.color = color;
+            GUIUtility.RotateAroundPivot(angle, new Vector2(cx, cy));
+            GUI.DrawTexture(new Rect(x1, cy - thickness * 0.5f, length, thickness), Texture2D.whiteTexture);
+            GUIUtility.RotateAroundPivot(-angle, new Vector2(cx, cy));
+            GUI.color = origColor;
         }
 
         /// <summary>
@@ -602,10 +836,55 @@ namespace ProjectName.UI
             float guardY = rect.y + rect.height - lineHeight - margin;
             Rect guardRect = new Rect(cellInnerX, guardY, cellInnerW, lineHeight);
             GUI.Label(guardRect, $"병사: {def.guardCount}명", _guardCountStyle);
+
+            // Phase 40: 클릭 감지 (좌클릭 = 선택, 우클릭 = 자동 이동 컨텍스트 메뉴)
+            HandleTerritoryCellClick(rect, def);
         }
 
         /// <summary>
-        /// 하단 컨트롤 — 확대/축소 버튼과 현재 위치 표시.
+        /// Phase 40: 영지 셀 클릭 처리 — 좌클릭 선택, 우클릭 컨텍스트 메뉴.
+        /// </summary>
+        private void HandleTerritoryCellClick(Rect cellRect, TerritoryDefinition def)
+        {
+            Event evt = Event.current;
+            if (evt == null) return;
+            if (evt.type != EventType.MouseDown) return;
+
+            // 셀 영역 내 클릭인지 확인
+            if (!cellRect.Contains(evt.mousePosition)) return;
+
+            if (evt.button == 0) // 좌클릭 — 영지 선택
+            {
+                _selectedTerritoryId = def.id;
+                _selectedTerritoryWorldPos = new Vector3(
+                    def.id.index * 10f, // 영지의 대략적 X 좌표 (실제 월드 좌표로 대체 필요)
+                    TERRITORY_WORLD_Y,
+                    (int)def.nation * 10f // 영지의 대략적 Z 좌표
+                );
+
+                Debug.Log($"[MapWindow] 🎯 영지 선택: {def.territoryName} (ID: {def.id})");
+                evt.Use();
+            }
+            else if (evt.button == 1) // 우클릭 — 컨텍스트 메뉴
+            {
+                // 컨텍스트 메뉴 위치 설정 (마우스 위치)
+                _contextMenuRect = new Rect(evt.mousePosition.x, evt.mousePosition.y, 200f, 80f);
+                _contextMenuTerritoryName = def.territoryName;
+                _contextMenuTerritoryId = def.id;
+                _contextMenuWorldPos = new Vector3(
+                    def.id.index * 10f,
+                    TERRITORY_WORLD_Y,
+                    (int)def.nation * 10f
+                );
+
+                _showContextMenu = true;
+                Debug.Log($"[MapWindow] 📌 우클릭 — {def.territoryName} 컨텍스트 메뉴");
+                evt.Use();
+            }
+        }
+
+        /// <summary>
+        /// 하단 컨트롤 — 확대/축소 버튼, 자동 이동 버튼, 현재 위치 표시.
         /// </summary>
         private void DrawControls(Rect area)
         {
@@ -629,6 +908,40 @@ namespace ProjectName.UI
             if (GUI.Button(zoomInRect, "[+]"))
             {
                 _currentZoom = Mathf.Min(2f, _currentZoom + 0.25f * _zoomSpeed);
+            }
+
+            // Phase 40: 자동 이동 버튼 (영지 선택 시 활성화)
+            if (_selectedTerritoryId.HasValue)
+            {
+                float moveBtnWidth = 180f;
+                float moveBtnX = area.x + (btnWidth + 5f) * 3 + 10f;
+                Rect moveBtnRect = new Rect(moveBtnX, area.y, moveBtnWidth, btnHeight);
+
+                string selectedName = "선택된 영지";
+                var db = TerritoryDatabase.Instance;
+                if (db != null)
+                {
+                    var def = db.GetDefinition(_selectedTerritoryId.Value);
+                    if (!string.IsNullOrEmpty(def.territoryName))
+                        selectedName = def.territoryName;
+                }
+
+                Color origBtnColor = GUI.backgroundColor;
+                GUI.backgroundColor = new Color(0f, 0.5f, 0f); // 녹색
+
+                if (GUI.Button(moveBtnRect, $"🚶 {selectedName}으로 이동"))
+                {
+                    StartAutoMoveToTerritory(_selectedTerritoryId.Value, _selectedTerritoryWorldPos);
+                }
+
+                GUI.backgroundColor = origBtnColor;
+
+                // 선택 초기화 버튼
+                Rect clearBtnRect = new Rect(moveBtnX + moveBtnWidth + 5f, area.y, 60f, btnHeight);
+                if (GUI.Button(clearBtnRect, "✕ 취소"))
+                {
+                    _selectedTerritoryId = null;
+                }
             }
 
             // Current position label
