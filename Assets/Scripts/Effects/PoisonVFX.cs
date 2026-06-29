@@ -24,7 +24,7 @@ namespace ProjectName.Core.Effects
 
         private void OnDestroy()
         {
-            // 동적으로 생성한 Material 정리 (메모리 누수 방지)
+            // 동적 생성한 Material 정리 (메모리 누수 방지)
             if (_createdMaterial != null)
             {
                 Destroy(_createdMaterial);
@@ -44,9 +44,7 @@ namespace ProjectName.Core.Effects
             var main = _ps.main;
             main.startColor = color;
 
-            // playOnAwake가 false인 상태에서만 Play() 호출
-            _ps.Play();
-
+            // playOnAwake가 false이므로 재시작 필요 없음 (이미 Play() 호출됨)
             // Auto destroy after duration
             Destroy(gameObject, duration);
         }

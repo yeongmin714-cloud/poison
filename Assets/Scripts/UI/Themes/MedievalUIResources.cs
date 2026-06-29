@@ -71,8 +71,7 @@ namespace ProjectName.UI.Themes
                     return GetTexture("panel_wide");
 
                 default:
-                    Debug.LogWarning($"[MedievalUIResources] Unknown panel type '{panelType}'. " +
-                                     "Valid types: ornate, dark, gold, wide. Falling back to 'ornate'.");
+                    // Fallback to \"ornate\" instead of warning (default behavior)
                     return GetTexture("panel_ornate");
             }
         }
@@ -152,14 +151,13 @@ namespace ProjectName.UI.Themes
                     return GetTexture("bg_wood");
 
                 default:
-                    Debug.LogWarning($"[MedievalUIResources] Unknown background type '{bgType}'. " +
-                                     "Valid: paper, wood. Falling back to 'paper'.");
+                    // Fallback to "paper" instead of warning (default behavior)
                     return GetTexture("bg_paper");
             }
         }
 
         /// <summary>
-        /// Clears all cached textures and sprites.
+        /// Clears the cached textures and sprites.
         /// Call during scene unload if needed to free memory.
         /// NOTE: Textures loaded via Resources.Load are managed by Unity's Resources system
         /// and should not be destroyed manually. Only dynamically created Sprites are cleaned up.

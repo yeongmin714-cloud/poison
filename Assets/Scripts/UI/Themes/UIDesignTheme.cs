@@ -1,6 +1,7 @@
 #nullable disable
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace ProjectName.UI.Themes
 {
@@ -145,11 +146,33 @@ namespace ProjectName.UI.Themes
         // Medieval Theme Properties
         // ================================================================
 
-        /// <summary>Panel texture name for medieval backgrounds (e.g. "ornate", "dark")</summary>
-        public string MedievalPanelTexture => _medievalPanelTexture;
+        /// <summary>
+        /// Returns the panel texture name for medieval backgrounds (e.g. "ornate", "dark").
+        /// If empty or null, defaults to "ornate".
+        /// </summary>
+        public string MedievalPanelTexture
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_medievalPanelTexture))
+                    return "ornate";
+                return _medievalPanelTexture;
+            }
+        }
 
-        /// <summary>Background texture name for medieval backgrounds (e.g. "paper", "wood")</summary>
-        public string MedievalBackgroundTexture => _medievalBackgroundTexture;
+        /// <summary>
+        /// Returns the background texture name for medieval backgrounds (e.g. "paper", "wood").
+        /// If empty or null, defaults to "paper".
+        /// </summary>
+        public string MedievalBackgroundTexture
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_medievalBackgroundTexture))
+                    return "paper";
+                return _medievalBackgroundTexture;
+            }
+        }
 
         /// <summary>Returns true if a medieval panel texture is configured and should be used</summary>
         public bool UseMedievalBackground => !string.IsNullOrEmpty(_medievalPanelTexture);
@@ -189,7 +212,23 @@ namespace ProjectName.UI.Themes
             return Color.white;
         }
 
-        /// <summary>색상 개수</summary>
-        public int ColorCount => _colorSet.Length;
-    }
+        /// <summary>Creates a copy of this theme with a new name.</summary>
+        public UIDesignTheme Clone(string newName)
+        {
+            UIDesignTheme clone = ScriptableObject.CreateInstance<UIDesignTheme>();
+            clone.name = newName;
+            clone._themeName = _themeName;
+            clone._iconPrefix = _iconPrefix;
+            clone._colorSet = new Color[_colorSet.Length];
+            Array.Copy(_colorSet, clone._colorSet, _colorSet.Length);
+            clone._patternType = _patternType;
+            clone._borderType = _borderType;
+            clone._decorationType = _decorationType;
+            clone._animationType = _animationType;
+            clone._medievalPanelTexture = _medievalPanelTexture;
+            clone._medievalBackgroundTexture = _medievalBackgroundTexture;
+            clone._windowWidth = _windowWidth;
+            clone._windowHeight = _windowHeight;
+            return clone;
+        }
 }
