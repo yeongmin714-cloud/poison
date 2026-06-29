@@ -125,7 +125,7 @@ namespace ProjectName.UI
                 for (int i = 0; i < _availableResolutions.Length; i++)
                 {
                     var r = _availableResolutions[i];
-                    _resolutionLabels[i] = $"{r.width}x{r.height} @{r.refreshRate}Hz";
+                    _resolutionLabels[i] = $"{r.width}x{r.height} @{r.refreshRateRatio.value}Hz";
                 }
 
                 // Clamp saved resolution index
@@ -249,6 +249,15 @@ namespace ProjectName.UI
             var rect = go.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(160, _buttonHeight);
             return btn;
+        }
+
+        protected override void OnDestroy()
+        {
+            // Clean up created textures to prevent resource leaks
+            if (_dimTexture != null) Destroy(_dimTexture);
+            if (_bgTexture != null) Destroy(_bgTexture);
+            if (_sliderBgTex != null) Destroy(_sliderBgTex);
+            if (_sliderThumbTex != null) Destroy(_sliderThumbTex);
         }
 
         #endregion

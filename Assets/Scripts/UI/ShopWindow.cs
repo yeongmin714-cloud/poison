@@ -71,7 +71,17 @@ namespace ProjectName.UI
             ApplyTheme(Phase33_Themes.CreateMedievalShopTheme());
             InitializeShopInventory(); // 상점 초기 재고 설정
         }
-        
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            if (_texWhite != null)
+            {
+                Destroy(_texWhite);
+                _texWhite = null;
+            }
+        }
+
         protected override void OnShow()
         {
             Debug.Log("[ShopWindow] 열림");
@@ -194,7 +204,7 @@ namespace ProjectName.UI
         // ===================================================================
         // OnGUI — IMGUI 렌더링
         // ===================================================================
-        private void OnGUI()
+        protected override void OnGUI()
         {
             if (!IsOpen) return;
             if (_currentItems == null) return; // NRE 방지

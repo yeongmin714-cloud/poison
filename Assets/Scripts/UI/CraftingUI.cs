@@ -61,10 +61,16 @@ namespace ProjectName.UI
             Debug.Log("[CraftingUI] 크래프트 테이블 닫힘");
         }
 
+        protected override void OnDestroy()
+        {
+            DestroyCreatedTextures();
+            base.OnDestroy();
+        }
+
         /// <summary>
         /// 외부에서 강제로 열기 (CraftingStation에서 호출)
         /// </summary>
-        public void Open()
+        public new void Open()
         {
             if (!_isOpen)
                 Show();

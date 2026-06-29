@@ -78,6 +78,16 @@ namespace ProjectName.UI
             ApplyTheme(Phase33_Themes.CreateMedievalInventoryTheme());
         }
 
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            if (_texWhite != null)
+            {
+                Destroy(_texWhite);
+                _texWhite = null;
+            }
+        }
+
         protected override void OnShow()
         {
             Debug.Log("[InventoryWindow] 열림 - 카테고리: " + _selectedCategory);
@@ -230,9 +240,11 @@ namespace ProjectName.UI
         // ===================================================================
         // OnGUI — IMGUI 렌더링
         // ===================================================================
-        private void OnGUI()
+        protected override void OnGUI()
         {
             if (!IsOpen) return;
+
+            base.OnGUI();
 
             // G3-05: 통일 스타일 — 딤드 오버레이 + 배경 + 타이틀 + 닫기 버튼
             UIStyleManager.DrawDimOverlay();

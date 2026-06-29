@@ -10,6 +10,7 @@ namespace ProjectName.UI.Themes
     {
         private static GUIStyle _borderStyle;
         private static Color _lastBorderColor;
+        private static Texture2D _sharedWhiteTex;
 
         /// <summary>
         /// 지정된 Rect에 테두리 장식을 그립니다.
@@ -182,21 +183,24 @@ namespace ProjectName.UI.Themes
 
         private static void DrawLine(float x1, float y1, float x2, float y2, Color color, float thickness)
         {
+            Texture2D whiteTex = GetSharedWhiteTex();
+
+            Color prevColor = GUI.color;
+            GUI.color = color;
+
             if (Mathf.Approximately(x1, x2))
             {
                 // 수직선
                 float minY = Mathf.Min(y1, y2);
                 float maxY = Mathf.Max(y1, y2);
-                GUI.DrawTexture(new Rect(x1 - thickness * 0.5f, minY, thickness, maxY - minY),
-                    ProceduralTextureGenerator.MakeTexture(1, 1, color));
+                GUI.DrawTexture(new Rect(x1 - thickness * 0.5f, minY, thickness, maxY - minY), whiteTex);
             }
             else if (Mathf.Approximately(y1, y2))
             {
                 // 수평선
                 float minX = Mathf.Min(x1, x2);
                 float maxX = Mathf.Max(x1, x2);
-                GUI.DrawTexture(new Rect(minX, y1 - thickness * 0.5f, maxX - minX, thickness),
-                    ProceduralTextureGenerator.MakeTexture(1, 1, color));
+                GUI.DrawTexture(new Rect(minX, y1 - thickness * 0.5f, maxX - minX, thickness), whiteTex);
             }
             else
             {
@@ -210,14 +214,25 @@ namespace ProjectName.UI.Themes
                 try
                 {
                     GUIUtility.RotateAroundPivot(angle, new Vector2((x1 + x2) * 0.5f, (y1 + y2) * 0.5f));
-                    GUI.DrawTexture(new Rect(minX, minY - thickness * 0.5f, maxX - minX, thickness),
-                        ProceduralTextureGenerator.MakeTexture(1, 1, color));
+                    GUI.DrawTexture(new Rect(minX, minY - thickness * 0.5f, maxX - minX, thickness), whiteTex);
                 }
                 finally
                 {
                     GUI.matrix = matrix;
                 }
             }
+
+            GUI.color = prevColor;
+        }
+
+        private static Texture2D GetSharedWhiteTex()
+        {
+            if (_sharedWhiteTex == null)
+            {
+                _sharedWhiteTex = ProceduralTextureGenerator.MakeTexture(1, 1, Color.white);
+                _sharedWhiteTex.hideFlags = HideFlags.DontSave;
+            }
+            return _sharedWhiteTex;
         }
 
         private static void DrawCurve(float x1, float y1, float x2, float y2, float x3, float y3, Color color, float thickness)

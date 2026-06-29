@@ -68,6 +68,18 @@ namespace ProjectName.UI
             Debug.Log("[CookingUI] 요리 테이블 닫힘");
         }
 
+        protected override void OnDestroy()
+        {
+            // Clean up cached textures
+            if (_meatSlotBg != null) Destroy(_meatSlotBg);
+            if (_herbSlotBg != null) Destroy(_herbSlotBg);
+            if (_meatFoodBg != null) Destroy(_meatFoodBg);
+            if (_herbFoodBg != null) Destroy(_herbFoodBg);
+            if (_meatFoodSelectedBg != null) Destroy(_meatFoodSelectedBg);
+            if (_herbFoodSelectedBg != null) Destroy(_herbFoodSelectedBg);
+            base.OnDestroy();
+        }
+
         /// <summary>
         /// 창을 엽니다. 베이스의 Open()을 override하여 Show()를 호출합니다.
         /// </summary>
@@ -139,7 +151,7 @@ namespace ProjectName.UI
             _stylesInitialized = true;
         }
 
-        private void OnGUI()
+        protected override void OnGUI()
         {
             if (!_isOpen) return;
 

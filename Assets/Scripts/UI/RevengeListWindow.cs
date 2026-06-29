@@ -76,7 +76,7 @@ namespace ProjectName.UI
         // OnGUI — IMGUI 렌더링
         // ======================================================================
 
-        private void OnGUI()
+        protected override void OnGUI()
         {
             if (!IsOpen) return;
 

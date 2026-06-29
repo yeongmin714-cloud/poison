@@ -40,6 +40,8 @@ namespace ProjectName.UI
         private GUIStyle _hintStyle;             // 캐싱: OnGUI new 방지
         private bool _stylesInitialized;
 
+        private readonly List<Texture2D> _createdTextures = new List<Texture2D>();
+
         protected override void OnShow()
         {
             base.OnShow();
@@ -124,7 +126,19 @@ namespace ProjectName.UI
                 for (int y = 0; y < h; y++)
                     tex.SetPixel(x, y, color);
             tex.Apply();
+            _createdTextures.Add(tex);
             return tex;
+        }
+
+        protected override void OnDestroy()
+        {
+            foreach (var tex in _createdTextures)
+            {
+                if (tex != null)
+                    Destroy(tex);
+            }
+            _createdTextures.Clear();
+            base.OnDestroy();
         }
 
         protected override void OnGUI()

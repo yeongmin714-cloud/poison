@@ -98,8 +98,13 @@ namespace ProjectName.UI.Themes
             if (width <= 0 || height <= 0)
                 return null;
 
+            // 1픽셀인 경우 div-by-zero 방지
+            int safeW = Mathf.Max(width, 2);
+            int safeH = Mathf.Max(height, 2);
+
             var tex = new Texture2D(width, height);
             tex.wrapMode = TextureWrapMode.Clamp;
+            tex.hideFlags = HideFlags.DontSave;
 
             for (int y = 0; y < height; y++)
             {
@@ -109,14 +114,14 @@ namespace ProjectName.UI.Themes
                     switch (mode)
                     {
                         case GradientMode.Vertical2Color:
-                            t = (float)y / (height - 1);
+                            t = (float)y / (safeH - 1);
                             break;
                         case GradientMode.Horizontal2Color:
-                            t = (float)x / (width - 1);
+                            t = (float)x / (safeW - 1);
                             break;
                         case GradientMode.Radial:
-                            float cx = (float)x / (width - 1) - 0.5f;
-                            float cy = (float)y / (height - 1) - 0.5f;
+                            float cx = (float)x / (safeW - 1) - 0.5f;
+                            float cy = (float)y / (safeH - 1) - 0.5f;
                             t = Mathf.Sqrt(cx * cx * 4f + cy * cy * 4f);
                             t = Mathf.Clamp01(t);
                             break;

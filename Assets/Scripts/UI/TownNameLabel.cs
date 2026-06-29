@@ -23,7 +23,7 @@ namespace ProjectName.UI
         [SerializeField] private Color _shadowColor = new Color(0f, 0f, 0f, 0.6f);
 
         [Header("Radius Settings")]
-        [SerializeField] private float _enterRadius = 15f;
+        [SerializeField] private float _enterRadius = 15f; // CS0414: SerializeField로 유지 (에디터에서 설정 가능)
 
         private Transform _playerCam;
         private Camera _cachedCamera;

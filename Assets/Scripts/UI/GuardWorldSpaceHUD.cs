@@ -219,7 +219,7 @@ namespace ProjectName.UI
             _activeHUDs.Clear();
 
             // 씬의 모든 IWorldSpaceHUD 찾기 (주로 GuardPlaceholder)
-            var guards = Object.FindObjectsOfType<GuardPlaceholder>();
+            var guards = Object.FindObjectsByType<GuardPlaceholder>(FindObjectsInactive.Include);
             foreach (var guard in guards)
             {
                 if (guard is IWorldSpaceHUD hud)

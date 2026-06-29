@@ -165,7 +165,7 @@ namespace ProjectName.UI
                     Vector2 delta = _mouse.delta.ReadValue();
                     if (delta.magnitude > 10f)
                     {
-                        MarkActionDetected(2);
+                        MarkActionDetected(1);
                     }
                 }
             }
@@ -365,7 +365,7 @@ namespace ProjectName.UI
 
         private GuardPlaceholder FindGuardNearby()
         {
-            var guards = FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
+            var guards = FindObjectsByType<GuardPlaceholder>();
             if (guards.Length == 0) return null;
 
             GameObject player = GameObject.FindGameObjectWithTag("Player");

@@ -4,7 +4,6 @@ using UnityEngine.UI;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Core.Utils;
-using ProjectName.Core.Utils;
 using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
@@ -89,7 +88,7 @@ namespace ProjectName.UI
         private void CreateUI()
         {
             // Create a Canvas if not already present in the scene
-            Canvas canvas = FindFirstObjectByType<Canvas>();
+            Canvas canvas = FindAnyObjectByType<Canvas>();
             if (canvas == null)
             {
                 GameObject canvasObj = new GameObject("AlchemyCanvas");

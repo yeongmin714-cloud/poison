@@ -68,23 +68,33 @@ namespace ProjectName.UI
             // ===== 제작대 2개 (CreateTable 변형) =====
             // 첫 번째 제작대 (중앙 근처)
             GameObject workbench1 = IndoorFurniturePlacer.CreateTable(2.0f, 1.0f, 1.2f, furnitureMat);
-            workbench1.transform.SetParent(room.transform);
-            workbench1.transform.localPosition = new Vector3(-2.5f, 0, 1.0f);
+            if (workbench1 != null)
+            {
+                workbench1.transform.SetParent(room.transform);
+                workbench1.transform.localPosition = new Vector3(-2.5f, 0, 1.0f);
+            }
 
             // 두 번째 제작대
             GameObject workbench2 = IndoorFurniturePlacer.CreateTable(2.0f, 1.0f, 1.2f, furnitureMat);
-            workbench2.transform.SetParent(room.transform);
-            workbench2.transform.localPosition = new Vector3(2.5f, 0, 1.0f);
+            if (workbench2 != null)
+            {
+                workbench2.transform.SetParent(room.transform);
+                workbench2.transform.localPosition = new Vector3(2.5f, 0, 1.0f);
+            }
 
             // ===== 화덕 (CreateTable + 빨간 Point Light) =====
             GameObject forge = IndoorFurniturePlacer.CreateTable(1.5f, 1.0f, 1.5f, forgeMat);
-            forge.transform.SetParent(room.transform);
-            forge.transform.localPosition = new Vector3(0, 0, -roomDepth * 0.5f + 2.0f);
+            if (forge != null)
+            {
+                forge.transform.SetParent(room.transform);
+                forge.transform.localPosition = new Vector3(0, 0, -roomDepth * 0.5f + 2.0f);
+            }
 
             // 화덕 위 붉은 Point Light
-            IndoorLighting.AddPointLight(room,
-                new Vector3(0, roomHeight - 1.0f, -roomDepth * 0.5f + 2.0f),
-                new Color(1f, 0.3f, 0.1f), 8f, 1.0f);
+            if (forge != null)
+                IndoorLighting.AddPointLight(room,
+                    new Vector3(0, roomHeight - 1.0f, -roomDepth * 0.5f + 2.0f),
+                    new Color(1f, 0.3f, 0.1f), 8f, 1.0f);
 
             // ===== 재료선반 2개 (좌우 벽) =====
             float shelfWidth = 2.0f;
@@ -92,12 +102,18 @@ namespace ProjectName.UI
             float shelfDepth = 0.5f;
 
             GameObject shelfLeft = IndoorFurniturePlacer.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 4);
-            shelfLeft.transform.SetParent(room.transform);
-            shelfLeft.transform.localPosition = new Vector3(-roomWidth * 0.5f + shelfDepth * 0.5f + 0.3f, 0, -2.0f);
+            if (shelfLeft != null)
+            {
+                shelfLeft.transform.SetParent(room.transform);
+                shelfLeft.transform.localPosition = new Vector3(-roomWidth * 0.5f + shelfDepth * 0.5f + 0.3f, 0, -2.0f);
+            }
 
             GameObject shelfRight = IndoorFurniturePlacer.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 4);
-            shelfRight.transform.SetParent(room.transform);
-            shelfRight.transform.localPosition = new Vector3(roomWidth * 0.5f - shelfDepth * 0.5f - 0.3f, 0, -2.0f);
+            if (shelfRight != null)
+            {
+                shelfRight.transform.SetParent(room.transform);
+                shelfRight.transform.localPosition = new Vector3(roomWidth * 0.5f - shelfDepth * 0.5f - 0.3f, 0, -2.0f);
+            }
 
             // ===== 조명 설정 =====
             // 중간 밝기, 깜빡임 없음

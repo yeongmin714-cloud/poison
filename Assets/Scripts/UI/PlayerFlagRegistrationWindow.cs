@@ -179,7 +179,7 @@ namespace ProjectName.UI
             _stylesInitialized = true;
         }
 
-        private void OnGUI()
+        protected override void OnGUI()
         {
             if (!IsOpen) return;
             InitializeStyles();

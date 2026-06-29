@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.UI.Themes;
 
@@ -93,7 +92,7 @@ namespace ProjectName.UI
             for (int i = 0; i < _availableResolutions.Length; i++)
             {
                 var r = _availableResolutions[i];
-                _resolutionLabels[i] = $"{r.width}x{r.height} @{r.refreshRate}Hz";
+                _resolutionLabels[i] = $"{r.width}x{r.height} @{r.refreshRateRatio.value}Hz";
             }
 
             // 현재 해상도와 가장 가까운 인덱스 찾기

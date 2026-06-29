@@ -147,13 +147,14 @@ namespace ProjectName.UI
         /// <summary>
         /// 생성된 텍스처 정리 (메모리 누수 방지)
         /// </summary>
-        protected virtual void OnDestroy()
+        protected override void OnDestroy()
         {
             if (_texWhite != null)
             {
                 Destroy(_texWhite);
                 _texWhite = null;
             }
+            base.OnDestroy();
         }
 
         // ===================================================================

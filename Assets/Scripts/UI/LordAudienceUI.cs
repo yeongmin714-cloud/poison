@@ -81,12 +81,12 @@ namespace ProjectName.UI
             Debug.Log("[LordAudienceUI] 대면 종료");
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             if (_texBg != null) Destroy(_texBg);
         }
 
-        private void OnGUI()
+        protected override void OnGUI()
         {
             if (!IsOpen) return;
             InitStyles();
