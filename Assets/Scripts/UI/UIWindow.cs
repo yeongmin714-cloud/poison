@@ -487,6 +487,12 @@ namespace ProjectName.UI
 
             // 자식 클래스의 IMGUI 컨텐츠 드로잉
             DrawWindowContent();
+
+            // Phase 33: 테마 데코레이션 (그라디언트 + 장식 테두리)
+            if (_needsBackgroundDraw && _backgroundRect.width > 0)
+            {
+                DrawThemeDecorations(_backgroundRect);
+            }
         }
 
         /// <summary>닫힐 때 호출됩니다. IMGUI 배경 상태를 정리합니다.</summary>
@@ -510,6 +516,42 @@ namespace ProjectName.UI
         public void ApplyTheme(UIDesignTheme theme)
         {
             _theme = theme;
+        }
+
+        // ================================================================
+        // Phase 33.1~33.11: 테마 데코레이션 드로잉 헬퍼
+        // ================================================================
+
+        /// <summary>
+        /// Phase 33: 현재 테마에 따라 그라디언트 배경과 장식 테두리를 그립니다.
+        /// OnGUI() 내에서 windowRect가 결정된 후 호출하세요.
+        /// 테마가 없으면 UIStyleManager.DrawWindowBackground로 폴백합니다.
+        /// </summary>
+        protected void DrawThemeDecorations(Rect windowRect)
+        {
+            if (_theme != null)
+            {
+                // 1. 그라디언트 배경 오버레이 (세로 방향, Bg→Accent*0.3)
+                GradientBackgroundRenderer.DrawGradientBackground(
+                    windowRect,
+                    GradientBackgroundRenderer.GradientMode.Vertical2Color,
+                    _theme.BgColor,
+                    Color.Lerp(_theme.AccentColor, new Color(0, 0, 0, 0), 0.7f)
+                );
+
+                // 2. 장식 테두리
+                DecorativeBorderRenderer.DrawBorder(
+                    windowRect,
+                    _theme.CurrentBorder,
+                    _theme.BorderColor,
+                    4f
+                );
+            }
+            else
+            {
+                // Fallback: 기존 UIStyleManager
+                UIStyleManager.DrawWindowBackground(windowRect);
+            }
         }
     }
 }

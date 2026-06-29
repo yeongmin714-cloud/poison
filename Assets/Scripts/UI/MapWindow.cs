@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
+using ProjectName.Core.Data;
 using ProjectName.Systems;
 using ProjectName.UI.Themes;
-using ProjectName.UI.Windows;
 
 namespace ProjectName.UI
 {
@@ -183,6 +183,9 @@ namespace ProjectName.UI
 
             // Background
             GUI.Box(windowRect, "");
+
+            // Phase 33: 테마 데코레이션 (그라디언트 + 장식 테두리)
+            DrawThemeDecorations(windowRect);
 
             // Inner area with padding
             Rect innerRect = new Rect(

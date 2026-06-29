@@ -16,7 +16,7 @@ namespace ProjectName.UI
     {
         protected virtual void Start()
         {
-            ApplyTheme(Phase33_Themes.CreateMedievalCraftingTheme());
+            ApplyTheme(Phase33_Themes.CreateCookingTheme());
         }
 
         [Header("Cooking UI Settings")]
@@ -167,6 +167,9 @@ namespace ProjectName.UI
                 Hide();
                 return;
             }
+
+            // Phase 33: 테마 데코레이션 (그라디언트 + 장식 테두리)
+            DrawThemeDecorations(winRect);
 
             InitializeStyles();
 

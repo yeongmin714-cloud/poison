@@ -35,8 +35,12 @@ namespace ProjectName.UI.Themes
                     return OpenShatter(canvasGroup, rectTransform, dimCG, dimAlpha, duration);
                 case UIDesignTheme.AnimationType.Spin:
                     return OpenSpin(canvasGroup, rectTransform, dimCG, dimAlpha, duration);
+                case UIDesignTheme.AnimationType.Pop:
+                    return OpenPop(canvasGroup, rectTransform, dimCG, dimAlpha, duration);
                 case UIDesignTheme.AnimationType.Bounce:
                     return OpenBounce(canvasGroup, rectTransform, dimCG, dimAlpha, duration, slideOffset);
+                case UIDesignTheme.AnimationType.Expand:
+                    return OpenExpand(canvasGroup, rectTransform, dimCG, dimAlpha, duration);
                 case UIDesignTheme.AnimationType.Reveal:
                     return OpenReveal(canvasGroup, rectTransform, dimCG, dimAlpha, duration);
                 case UIDesignTheme.AnimationType.Zoom:
@@ -66,8 +70,12 @@ namespace ProjectName.UI.Themes
                     return CloseShatter(canvasGroup, rectTransform, dimCG, dimAlpha, duration);
                 case UIDesignTheme.AnimationType.Spin:
                     return CloseSpin(canvasGroup, rectTransform, dimCG, dimAlpha, duration);
+                case UIDesignTheme.AnimationType.Pop:
+                    return ClosePop(canvasGroup, rectTransform, dimCG, dimAlpha, duration);
                 case UIDesignTheme.AnimationType.Bounce:
                     return CloseBounce(canvasGroup, rectTransform, dimCG, dimAlpha, duration, slideOffset);
+                case UIDesignTheme.AnimationType.Expand:
+                    return CloseExpand(canvasGroup, rectTransform, dimCG, dimAlpha, duration);
                 case UIDesignTheme.AnimationType.Reveal:
                     return CloseReveal(canvasGroup, rectTransform, dimCG, dimAlpha, duration);
                 case UIDesignTheme.AnimationType.Zoom:
@@ -227,6 +235,70 @@ namespace ProjectName.UI.Themes
             }
             cg.alpha = 1f;
             if (rt != null) rt.anchoredPosition = startPos;
+            if (dimCG != null) dimCG.alpha = dimAlpha;
+        }
+
+        /// <summary>
+        /// Pop: 0.3→1.0 overshoot 스케일 + 약간의 바운스 (탄력적 등장)
+        /// </summary>
+        private static IEnumerator OpenPop(CanvasGroup cg, RectTransform rt,
+            CanvasGroup dimCG, float dimAlpha, float dur)
+        {
+            Vector3 startScale = rt != null ? rt.localScale : Vector3.one;
+            float elapsed = 0f;
+            cg.alpha = 0f;
+            if (rt != null) rt.localScale = startScale * 0.3f;
+            while (elapsed < dur)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / dur);
+                cg.alpha = Mathf.Clamp01(t * 1.5f); // 빠르게 페이드 인
+                if (rt != null)
+                {
+                    // Overshoot scale: 0.3 → 1.15 → 0.95 → 1.0
+                    float scaleT;
+                    if (t < 0.6f)
+                        scaleT = Mathf.Lerp(0.3f, 1.15f, t / 0.6f);
+                    else if (t < 0.85f)
+                        scaleT = Mathf.Lerp(1.15f, 0.95f, (t - 0.6f) / 0.25f);
+                    else
+                        scaleT = Mathf.Lerp(0.95f, 1.0f, (t - 0.85f) / 0.15f);
+                    rt.localScale = startScale * scaleT;
+                }
+                if (dimCG != null) dimCG.alpha = t * dimAlpha;
+                yield return null;
+            }
+            cg.alpha = 1f;
+            if (rt != null) rt.localScale = startScale;
+            if (dimCG != null) dimCG.alpha = dimAlpha;
+        }
+
+        /// <summary>
+        /// Expand: 중앙에서 좌우로 확장 (width 애니메이션 + X축 스케일)
+        /// </summary>
+        private static IEnumerator OpenExpand(CanvasGroup cg, RectTransform rt,
+            CanvasGroup dimCG, float dimAlpha, float dur)
+        {
+            Vector3 startScale = rt != null ? rt.localScale : Vector3.one;
+            float elapsed = 0f;
+            cg.alpha = 0f;
+            if (rt != null) rt.localScale = new Vector3(0.01f, startScale.y, startScale.z);
+            while (elapsed < dur)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / dur);
+                cg.alpha = t;
+                if (rt != null)
+                {
+                    // X축만 확장: 0.01 → 1.0 (ease out)
+                    float scaleX = 1f - Mathf.Pow(1f - t, 3f);
+                    rt.localScale = new Vector3(Mathf.Lerp(0.01f, startScale.x, scaleX), startScale.y, startScale.z);
+                }
+                if (dimCG != null) dimCG.alpha = t * dimAlpha;
+                yield return null;
+            }
+            cg.alpha = 1f;
+            if (rt != null) rt.localScale = startScale;
             if (dimCG != null) dimCG.alpha = dimAlpha;
         }
 
@@ -392,6 +464,51 @@ namespace ProjectName.UI.Themes
                 yield return null;
             }
             cg.alpha = 0f;
+            if (dimCG != null) dimCG.alpha = 0f;
+        }
+
+        /// <summary>Pop: 1.0→0.3 축소 + 빠른 페이드</summary>
+        private static IEnumerator ClosePop(CanvasGroup cg, RectTransform rt,
+            CanvasGroup dimCG, float dimAlpha, float dur)
+        {
+            Vector3 startScale = rt != null ? rt.localScale : Vector3.one;
+            float elapsed = 0f;
+            while (elapsed < dur)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / dur);
+                cg.alpha = 1f - Mathf.Clamp01(t * 1.5f);
+                if (rt != null)
+                    rt.localScale = Vector3.Lerp(startScale, startScale * 0.3f, t);
+                if (dimCG != null) dimCG.alpha = (1f - t) * dimAlpha;
+                yield return null;
+            }
+            cg.alpha = 0f;
+            if (rt != null) rt.localScale = startScale * 0.3f;
+            if (dimCG != null) dimCG.alpha = 0f;
+        }
+
+        /// <summary>Expand: X축 축소 (우→좌)</summary>
+        private static IEnumerator CloseExpand(CanvasGroup cg, RectTransform rt,
+            CanvasGroup dimCG, float dimAlpha, float dur)
+        {
+            Vector3 startScale = rt != null ? rt.localScale : Vector3.one;
+            float elapsed = 0f;
+            while (elapsed < dur)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / dur);
+                cg.alpha = 1f - t;
+                if (rt != null)
+                {
+                    float scaleX = 1f - Mathf.Pow(t, 2f);
+                    rt.localScale = new Vector3(Mathf.Lerp(startScale.x, 0.01f, 1f - scaleX), startScale.y, startScale.z);
+                }
+                if (dimCG != null) dimCG.alpha = (1f - t) * dimAlpha;
+                yield return null;
+            }
+            cg.alpha = 0f;
+            if (rt != null) rt.localScale = new Vector3(0.01f, startScale.y, startScale.z);
             if (dimCG != null) dimCG.alpha = 0f;
         }
 

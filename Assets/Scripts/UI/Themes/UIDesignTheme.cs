@@ -26,14 +26,17 @@ namespace ProjectName.UI.Themes
             Glass
         }
 
-        /// <summary>테두리 장식 종류</summary>
+        /// <summary>테두리 장식 종류 (8종)</summary>
         public enum BorderType
         {
+            None,
             Filigree,
             Rune,
             Thorn,
             Star,
-            Shield
+            Shield,
+            Chain,
+            Barbed
         }
 
         /// <summary>모서리 장식 종류</summary>
@@ -47,7 +50,7 @@ namespace ProjectName.UI.Themes
             Skull
         }
 
-        /// <summary>창 애니메이션 종류</summary>
+        /// <summary>창 애니메이션 종류 (8종 + 레거시 2종)</summary>
         public enum AnimationType
         {
             FadeSlide,
@@ -55,7 +58,10 @@ namespace ProjectName.UI.Themes
             Flip,
             Shatter,
             Spin,
+            Pop,
             Bounce,
+            Expand,
+            // 레거시 호환 (Phase33_Themes.cs에서 사용)
             Reveal,
             Zoom
         }
@@ -99,6 +105,8 @@ namespace ProjectName.UI.Themes
 
         public string ThemeName => _themeName;
         public string IconPrefix => _iconPrefix;
+        /// <summary>아이콘 유니코드 (IconPrefix와 동일, Phase 33 명세)</summary>
+        public string iconUnicode => _iconPrefix;
 
         public Color BgColor => _colorSet[0];
         public Color BorderColor => _colorSet[1];
@@ -107,6 +115,22 @@ namespace ProjectName.UI.Themes
         public Color SubTextColor => _colorSet[4];
         public Color AccentColor => _colorSet[5];
         public Color[] ColorSet => _colorSet;
+
+        // Phase 33 명세 컬러 팔레트 이름 (기존 색상과 매핑)
+        /// <summary>bg (BgColor와 동일)</summary>
+        public Color bg => _colorSet[0];
+        /// <summary>bgAlt (SubTextColor와 동일, 대체 배경색)</summary>
+        public Color bgAlt => _colorSet[4];
+        /// <summary>accent (AccentColor와 동일)</summary>
+        public Color accent => _colorSet[5];
+        /// <summary>text (TextColor와 동일)</summary>
+        public Color text => _colorSet[3];
+        /// <summary>textDim (SubTextColor와 동일, 흐린 텍스트)</summary>
+        public Color textDim => _colorSet[4];
+        /// <summary>border (BorderColor와 동일)</summary>
+        public Color border => _colorSet[1];
+        /// <summary>title (TitleColor와 동일)</summary>
+        public Color title => _colorSet[2];
 
         public PatternType CurrentPattern => _patternType;
         public BorderType CurrentBorder => _borderType;

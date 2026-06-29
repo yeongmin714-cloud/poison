@@ -217,8 +217,12 @@ namespace ProjectName.UI
             float height = 1170;
             
             // === 배경 + 외곽 박스 ==
-            GUI.Box(new Rect(x, y, width, height), "", _stylePanelBox);
-            
+            Rect shopRect = new Rect(x, y, width, height);
+            GUI.Box(shopRect, "", _stylePanelBox);
+
+            // Phase 33: 테마 데코레이션 (그라디언트 + 장식 테두리)
+            DrawThemeDecorations(shopRect);
+
             // === 타이틀 바 ==
             float titleHeight = 90;
             GUI.Label(new Rect(x, y, width, titleHeight), "🏪 상점", _styleTitle);

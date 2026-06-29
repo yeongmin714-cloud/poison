@@ -46,6 +46,9 @@ namespace ProjectName.UI.Themes
 
         private static void DrawCornerDecoration(Rect rect, UIDesignTheme.BorderType type, Color color, float thickness)
         {
+            if (type == UIDesignTheme.BorderType.None)
+                return;
+
             float cornerSize = Mathf.Min(rect.width, rect.height) * 0.12f;
             cornerSize = Mathf.Clamp(cornerSize, 10f, 50f);
 
@@ -65,6 +68,12 @@ namespace ProjectName.UI.Themes
                     break;
                 case UIDesignTheme.BorderType.Shield:
                     DrawShieldCorners(rect, color, cornerSize, thickness);
+                    break;
+                case UIDesignTheme.BorderType.Chain:
+                    DrawChainBorder(rect, color, thickness);
+                    break;
+                case UIDesignTheme.BorderType.Barbed:
+                    DrawBarbedBorder(rect, color, thickness);
                     break;
             }
         }
@@ -281,6 +290,101 @@ namespace ProjectName.UI.Themes
             DrawLine(right + halfSize * 0.3f, midBot, cx, bottom, color, thickness);       // 우하단
             DrawLine(cx, bottom, left - halfSize * 0.3f, midBot, color, thickness);        // 좌하단
             DrawLine(left - halfSize * 0.3f, midBot, left, top, color, thickness);         // 좌측
+        }
+
+        /// <summary>체인 테두리: 각 코너에 연결고리 모양</summary>
+        private static void DrawChainBorder(Rect rect, Color color, float thickness)
+        {
+            float spacing = 18f;
+            float linkHalf = 6f;
+
+            // 상단 체인
+            for (float x = rect.x; x <= rect.x + rect.width; x += spacing)
+            {
+                DrawEllipse(x, rect.y - linkHalf * 0.5f, linkHalf, linkHalf * 0.7f, color, thickness);
+            }
+            // 하단 체인
+            for (float x = rect.x; x <= rect.x + rect.width; x += spacing)
+            {
+                DrawEllipse(x, rect.y + rect.height + linkHalf * 0.5f, linkHalf, linkHalf * 0.7f, color, thickness);
+            }
+            // 좌측 체인
+            for (float y = rect.y; y <= rect.y + rect.height; y += spacing)
+            {
+                DrawEllipse(rect.x - linkHalf * 0.5f, y, linkHalf * 0.7f, linkHalf, color, thickness);
+            }
+            // 우측 체인
+            for (float y = rect.y; y <= rect.y + rect.height; y += spacing)
+            {
+                DrawEllipse(rect.x + rect.width + linkHalf * 0.5f, y, linkHalf * 0.7f, linkHalf, color, thickness);
+            }
+
+            // 코너에 큰 링
+            float bigLink = linkHalf * 1.5f;
+            DrawEllipse(rect.x, rect.y, bigLink, bigLink, color, thickness);
+            DrawEllipse(rect.x + rect.width, rect.y, bigLink, bigLink, color, thickness);
+            DrawEllipse(rect.x, rect.y + rect.height, bigLink, bigLink, color, thickness);
+            DrawEllipse(rect.x + rect.width, rect.y + rect.height, bigLink, bigLink, color, thickness);
+        }
+
+        /// <summary>가시철조망: 각 코너에 날카로운 가시 + 철사</summary>
+        private static void DrawBarbedBorder(Rect rect, Color color, float thickness)
+        {
+            float spacing = 16f;
+            float barbLen = 10f;
+            float wireOffset = 4f;
+
+            // 상단: 철사 2줄 + 가시
+            for (float x = rect.x; x <= rect.x + rect.width; x += spacing)
+            {
+                DrawLine(x, rect.y - wireOffset, x, rect.y + wireOffset, color, thickness * 0.5f);
+                DrawLine(x - barbLen, rect.y, x + barbLen, rect.y, color, thickness * 0.3f);
+            }
+            // 하단
+            for (float x = rect.x; x <= rect.x + rect.width; x += spacing)
+            {
+                DrawLine(x, rect.y + rect.height - wireOffset, x, rect.y + rect.height + wireOffset, color, thickness * 0.5f);
+                DrawLine(x - barbLen, rect.y + rect.height, x + barbLen, rect.y + rect.height, color, thickness * 0.3f);
+            }
+            // 좌측
+            for (float y = rect.y; y <= rect.y + rect.height; y += spacing)
+            {
+                DrawLine(rect.x - wireOffset, y, rect.x + wireOffset, y, color, thickness * 0.5f);
+                DrawLine(rect.x, y - barbLen, rect.x, y + barbLen, color, thickness * 0.3f);
+            }
+            // 우측
+            for (float y = rect.y; y <= rect.y + rect.height; y += spacing)
+            {
+                DrawLine(rect.x + rect.width - wireOffset, y, rect.x + rect.width + wireOffset, y, color, thickness * 0.5f);
+                DrawLine(rect.x + rect.width, y - barbLen, rect.x + rect.width, y + barbLen, color, thickness * 0.3f);
+            }
+
+            // 모서리: X자 보강
+            float cx = 8f;
+            DrawLine(rect.x - cx, rect.y - cx, rect.x + cx, rect.y + cx, color, thickness);
+            DrawLine(rect.x - cx, rect.y + cx, rect.x + cx, rect.y - cx, color, thickness);
+            DrawLine(rect.x + rect.width - cx, rect.y - cx, rect.x + rect.width + cx, rect.y + cx, color, thickness);
+            DrawLine(rect.x + rect.width - cx, rect.y + cx, rect.x + rect.width + cx, rect.y - cx, color, thickness);
+            DrawLine(rect.x - cx, rect.y + rect.height - cx, rect.x + cx, rect.y + rect.height + cx, color, thickness);
+            DrawLine(rect.x - cx, rect.y + rect.height + cx, rect.x + cx, rect.y + rect.height - cx, color, thickness);
+            DrawLine(rect.x + rect.width - cx, rect.y + rect.height - cx, rect.x + rect.width + cx, rect.y + rect.height + cx, color, thickness);
+            DrawLine(rect.x + rect.width - cx, rect.y + rect.height + cx, rect.x + rect.width + cx, rect.y + rect.height - cx, color, thickness);
+        }
+
+        /// <summary>타원 그리기 (체인 링용)</summary>
+        private static void DrawEllipse(float cx, float cy, float rx, float ry, Color color, float thickness)
+        {
+            int segments = 16;
+            for (int i = 0; i < segments; i++)
+            {
+                float a1 = (float)i / segments * Mathf.PI * 2f;
+                float a2 = (float)(i + 1) / segments * Mathf.PI * 2f;
+                float x1 = cx + Mathf.Cos(a1) * rx;
+                float y1 = cy + Mathf.Sin(a1) * ry;
+                float x2 = cx + Mathf.Cos(a2) * rx;
+                float y2 = cy + Mathf.Sin(a2) * ry;
+                DrawLine(x1, y1, x2, y2, color, thickness);
+            }
         }
     }
 }

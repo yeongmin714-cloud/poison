@@ -349,6 +349,9 @@ namespace ProjectName.UI
             GUI.Box(bgRect, "");
             GUI.backgroundColor = origBg;
 
+            // Phase 33: 테마 데코레이션 (그라디언트 + 장식 테두리)
+            DrawThemeDecorations(bgRect);
+
             // ---------- Circular clip via GUI.BeginGroup ----------
             GUI.BeginGroup(bgRect);
 

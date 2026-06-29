@@ -116,7 +116,7 @@ namespace ProjectName.UI
             if (basket.IsEmpty) return;
 
             if (_theme == null)
-                ApplyTheme(Phase33_Themes.CreateMedievalShopTheme());
+                ApplyTheme(Phase33_Themes.LootTheme());
             _currentBasket = basket;
             _selectedIndex = -1;
             RefreshLoot();

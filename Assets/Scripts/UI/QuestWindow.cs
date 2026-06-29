@@ -14,7 +14,7 @@ namespace ProjectName.UI
     {
         protected virtual void Start()
         {
-            ApplyTheme(Phase33_Themes.CreateMedievalQuestTheme());
+            ApplyTheme(Phase33_Themes.CreateQuestTheme());
         }
 
         private Vector2 _scrollPos;
@@ -76,7 +76,11 @@ namespace ProjectName.UI
             float x = (Screen.width - panelW) / 2f;
             float y = (Screen.height - panelH) / 2f;
 
-            GUI.Box(new Rect(x, y, panelW, panelH), "");
+            Rect windowRect = new Rect(x, y, panelW, panelH);
+            GUI.Box(windowRect, "");
+
+            // Phase 33: 테마 데코레이션 (그라디언트 + 장식 테두리)
+            DrawThemeDecorations(windowRect);
 
             // 타이틀
             GUI.Label(new Rect(x + 10, y + 5, panelW - 20, 42), "📋 퀘스트 목록", _styleTitle);

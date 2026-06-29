@@ -17,7 +17,7 @@ namespace ProjectName.UI
     {
         protected virtual void Start()
         {
-            ApplyTheme(Phase33_Themes.CreateMedievalCraftingTheme());
+            ApplyTheme(Phase33_Themes.CreateRepairTheme());
         }
 
         [Header("Repair Station Settings")]
@@ -156,6 +156,9 @@ namespace ProjectName.UI
             float x = (Screen.width - _windowWidth) / 2f;
             float y = (Screen.height - _windowHeight) / 2f;
             Rect windowRect = new Rect(x, y, _windowWidth, _windowHeight);
+
+            // Phase 33: 테마 데코레이션 (그라디언트 + 장식 테두리)
+            DrawThemeDecorations(windowRect);
 
             GUILayout.BeginArea(windowRect, GUI.skin.box);
 
