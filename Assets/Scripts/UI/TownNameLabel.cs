@@ -23,8 +23,9 @@ namespace ProjectName.UI
         [SerializeField] private Color _shadowColor = new Color(0f, 0f, 0f, 0.6f);
 
         [Header("Radius Settings")]
+        #pragma warning disable CS0414
         [SerializeField] private float _enterRadius = 15f; // CS0414: SerializeField로 유지 (에디터에서 설정 가능)
-
+#pragma warning restore CS0414
         private Transform _playerCam;
         private Camera _cachedCamera;
         private GUIStyle _guiStyle;

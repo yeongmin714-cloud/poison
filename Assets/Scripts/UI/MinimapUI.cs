@@ -122,13 +122,13 @@ namespace ProjectName.UI
             // Find runtime references
             _mainCamera = Camera.main;
             if (_mainCamera == null)
-                _mainCamera = FindAnyObjectOfType<Camera>();
+                _mainCamera = FindAnyObjectByType<Camera>();
             var playerGo = GameObject.FindGameObjectWithTag("Player");
             if (playerGo != null)
                 _playerTransform = playerGo.transform;
             else
                 Debug.LogWarning("[MinimapUI] Player를 찾을 수 없습니다! Transform 기본값 사용.");
-            _mapWindow = FindAnyObjectOfType<MapWindow>();
+            _mapWindow = FindAnyObjectByType<MapWindow>();
 
             // Minimap is always visible — force show
             if (!_isOpen)
