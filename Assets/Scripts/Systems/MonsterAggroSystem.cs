@@ -183,7 +183,9 @@ namespace ProjectName.Systems
         }
         #endif
 
-        /// <summary>테스트용: 특정 위치의 몬스터 찾기 (거리 기반, 제곱 거리 비교)</summary>
+        /// <summary>
+        /// 특정 위치의 몬스터를 찾습니다 (거리 기반, 제곱 거리 비교).
+        /// </summary>
         public IAggroable FindNearestAggroable(Vector3 position, float maxDist)
         {
             IAggroable nearest = null;
@@ -199,6 +201,52 @@ namespace ProjectName.Systems
                 }
             }
             return nearest;
+        }
+
+        /// <summary>
+        /// 암살 발각 시 주변 모든 몬스터를 Alerted(전투) 상태로 전환.
+        /// NPCAwarenessSystem과 연동하여 몬스터의 경계 상태를 강제로 설정합니다.
+        /// </summary>
+        /// <param name="position">발각 위치</param>
+        /// <param name="radius">영향 반경</param>
+        public static void SetAlertAllNearby(Vector3 position, float radius)
+        {
+            if (_instance == null) return;
+
+            float sqrRadius = radius * radius;
+
+            foreach (var kvp in _instance._monsterMap)
+            {
+                var go = kvp.Value;
+                if (go == null) continue;
+
+                float sqrDist = (go.transform.position - position).sqrMagnitude;
+                if (sqrDist <= sqrRadius)
+                {
+                    var monster = kvp.Key;
+
+                    // 이미 전투 중이면 스킵
+                    if (monster.IsInCombat) continue;
+
+                    // 플레이어 찾기
+                    GameObject player = GameObject.FindGameObjectWithTag("Player");
+                    if (player != null)
+                    {
+                        monster.SetAggroTarget(player);
+                    }
+
+                    // NPCAwarenessSystem이 있으면 Detected 상태로 전환
+                    var awareness = go.GetComponent<NPCAwarenessSystem>();
+                    if (awareness != null && awareness.IsActive)
+                    {
+                        GameObject target = player ?? null;
+                        if (target != null)
+                            awareness.SetDetected(target);
+                    }
+                }
+            }
+
+            Debug.Log($"[MonsterAggroSystem] SetAlertAllNearby at {position}, radius={radius}, monsters alerted");
         }
     }
 }

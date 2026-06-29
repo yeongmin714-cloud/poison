@@ -11,6 +11,7 @@ namespace ProjectName.UI
     /// - 사망 시 "사망" 표시
     /// - 버프 아이콘 표시 (우측에 HP 바 옆)
     /// - 가스 분사기 타이머 (장착 시 분사 가능 시간 프로그레스바 + 숫자)
+    /// - Phase 34: 은신 상태 아이콘 + 발각 게이지
     /// </summary>
     public class HUD : MonoBehaviour
     {
@@ -69,6 +70,9 @@ namespace ProjectName.UI
         private GUIStyle _cachedBuffTimerStyle;
         private GUIStyle _cachedBuffIdStyle;
         private GUIStyle _cachedGasTimerStyle;
+        // Phase 34: 은신 스타일
+        private GUIStyle _cachedStealthIconStyle;
+        private GUIStyle _cachedDetectionLabelStyle;
 
         // GC: 캐싱된 Rect — OnGUI에서 new Rect() 방지 (구조체지만 스택 할당 최적화)
         private Rect _rectBg;
@@ -103,6 +107,31 @@ namespace ProjectName.UI
         [Header("GasSprayUI Integration")]
         [SerializeField] private GasSprayUI _gasSprayUI;
 
+        // ===== Phase 34: 은신 HUD =====
+        [Header("Stealth HUD (Phase 34)")]
+        [SerializeField] private int _stealthIconSize = 48;
+        [SerializeField] private int _stealthIconX = 40;
+        [SerializeField] private int _stealthIconY = 20; // HP 바 위
+        [SerializeField] private int _detectionBarWidth = 200;
+        [SerializeField] private int _detectionBarHeight = 12;
+        [SerializeField] private Color _stealthActiveColor = new Color(0.3f, 0.6f, 1f, 1f);
+        [SerializeField] private Color _stealthDangerColor = new Color(1f, 0.2f, 0.2f, 1f);
+        [SerializeField] private Color _detectionBarBgColor = new Color(0.1f, 0.1f, 0.1f, 0.7f);
+        [SerializeField] private Color _detectionBarLowColor = Color.green;
+        [SerializeField] private Color _detectionBarMidColor = Color.yellow;
+        [SerializeField] private Color _detectionBarHighColor = Color.red;
+
+        // 캐싱
+        private Rect _rectStealthIcon;
+        private Rect _rectDetectionBarBg;
+        private Rect _rectDetectionBarFill;
+        private Rect _rectStealthLabel;
+        private bool _stealthIconDirty = true;
+
+        // 파괴 시 구독 해제용
+        private System.Action<bool> _stealthStateHandler;
+        private System.Action<float> _detectionGaugeHandler;
+
         private void Start()
         {
             // GC: Rect 캐싱 — 고정 위치 Rect는 미리 계산
@@ -115,6 +144,25 @@ namespace ProjectName.UI
                 _currentHP = PlayerHealth.Instance.CurrentHP;
                 _maxHP = PlayerHealth.Instance.MaxHP;
                 _hpTextDirty = true; // 초기 텍스트 생성
+            }
+
+            // Phase 34: StealthSystem 이벤트 구독
+            SubscribeStealthEvents();
+        }
+
+        /// <summary>
+        /// Phase 34: StealthSystem 이벤트 구독
+        /// </summary>
+        private void SubscribeStealthEvents()
+        {
+            var stealth = ProjectName.Systems.StealthSystem.Instance;
+            if (stealth != null)
+            {
+                _stealthStateHandler = (stealthed) => { _stealthIconDirty = true; };
+                _detectionGaugeHandler = (gauge) => { /* 매 프레임 갱신, OnGUI에서 직접 읽음 */ };
+
+                stealth.OnStealthStateChanged += _stealthStateHandler;
+                stealth.OnDetectionGaugeChanged += _detectionGaugeHandler;
             }
         }
 
@@ -162,6 +210,19 @@ namespace ProjectName.UI
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter
             };
+            
+            // Phase 34: 은신 스타일
+            _cachedStealthIconStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 14,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+            _cachedDetectionLabelStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 11,
+                alignment = TextAnchor.MiddleLeft
+            };
         }
 
         private void CacheStaticRects()
@@ -207,6 +268,24 @@ namespace ProjectName.UI
             {
                 PlayerHealth.Instance.OnHPChanged -= OnHealthChanged;
             }
+
+            // Phase 34: StealthSystem 이벤트 구독 해제
+            UnsubscribeStealthEvents();
+        }
+
+        /// <summary>
+        /// Phase 34: StealthSystem 이벤트 구독 해제
+        /// </summary>
+        private void UnsubscribeStealthEvents()
+        {
+            var stealth = ProjectName.Systems.StealthSystem.Instance;
+            if (stealth != null)
+            {
+                if (_stealthStateHandler != null)
+                    stealth.OnStealthStateChanged -= _stealthStateHandler;
+                if (_detectionGaugeHandler != null)
+                    stealth.OnDetectionGaugeChanged -= _detectionGaugeHandler;
+            }
         }
 
         private void OnHealthChanged(float current, float max)
@@ -233,12 +312,98 @@ namespace ProjectName.UI
             DrawBuffIcons();
             DrawDeathOverlay();
             DrawGasSprayerTimer();
+            DrawStealthHUD(); // Phase 34: 은신 HUD
 
             // Phase 4: GasSprayUI 연동 — 물약 정보 + 타이머 패널
             if (_gasSprayUI != null)
             {
                 _gasSprayUI.OnDrawGUI();
             }
+        }
+
+        // ===== Phase 34: 은신 HUD =====
+
+        /// <summary>
+        /// 은신 상태 아이콘 + 발각 게이지 표시
+        /// </summary>
+        private void DrawStealthHUD()
+        {
+            var stealth = ProjectName.Systems.StealthSystem.Instance;
+            if (stealth == null) return;
+
+            bool isStealthed = stealth.IsStealthed;
+            float detectionGauge = stealth.DetectionGauge;
+
+            if (!isStealthed && detectionGauge <= 0f)
+                return;
+
+            // Rect 위치 계산
+            float iconSize = _stealthIconSize;
+            float iconX = _stealthIconX;
+            float iconY = _stealthIconY;
+
+            _rectStealthIcon = new Rect(iconX, iconY, iconSize, iconSize);
+
+            if (isStealthed)
+            {
+                // 은신 아이콘 (파란색 원)
+                GUI.color = _stealthActiveColor;
+                GUI.Box(_rectStealthIcon, "");
+
+                // 아이콘 내부 텍스트
+                GUI.color = Color.white;
+                string iconText = isStealthed ? "🥷" : "👤";
+                GUI.Label(_rectStealthIcon, iconText, _cachedStealthIconStyle);
+
+                // 발각 게이지 바 (아이콘 아래)
+                float barX = iconX;
+                float barY = iconY + iconSize + 4;
+                float barWidth = _detectionBarWidth;
+                float barHeight = _detectionBarHeight;
+
+                _rectDetectionBarBg = new Rect(barX, barY, barWidth, barHeight);
+                _rectDetectionBarFill = new Rect(barX + 1, barY + 1, (barWidth - 2) * Mathf.Clamp01(detectionGauge / 100f), barHeight - 2);
+
+                // 배경
+                GUI.color = _detectionBarBgColor;
+                GUI.Box(_rectDetectionBarBg, "");
+
+                // 채움 (색상 그라데이션)
+                Color barColor;
+                float ratio = detectionGauge / 100f;
+                if (ratio < 0.5f)
+                    barColor = Color.Lerp(_detectionBarLowColor, _detectionBarMidColor, ratio * 2f);
+                else
+                    barColor = Color.Lerp(_detectionBarMidColor, _detectionBarHighColor, (ratio - 0.5f) * 2f);
+                GUI.color = barColor;
+                GUI.Box(_rectDetectionBarFill, "");
+
+                // 테두리
+                GUI.color = Color.white;
+                GUI.Box(_rectDetectionBarBg, "");
+
+                // 레이블
+                _rectStealthLabel = new Rect(barX + barWidth + 8, barY, 60, barHeight);
+                GUI.color = Color.white;
+                string labelText = detectionGauge >= 100f ? "🔴 발각!" : $"발각: {detectionGauge:F0}%";
+                GUI.Label(_rectStealthLabel, labelText, _cachedDetectionLabelStyle);
+
+                // 위험 상태 (70% 이상)
+                if (detectionGauge >= 70f)
+                {
+                    GUI.color = new Color(1f, 0.2f, 0.2f, 0.3f + Mathf.Sin(Time.time * 4f) * 0.2f);
+                    // 위험 표시 테두리
+                    GUI.Box(new Rect(barX - 2, barY - 2, barWidth + 4, barHeight + 4), "");
+                }
+            }
+            else if (detectionGauge > 0f)
+            {
+                // 은신 해제 후 게이지 잔여 표시 (서서히 사라짐)
+                GUI.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+                GUI.Box(_rectStealthIcon, "🥷");
+            }
+
+            GUI.color = Color.white;
         }
 
         private void UpdateGasSprayerState()

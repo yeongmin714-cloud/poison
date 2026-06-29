@@ -83,6 +83,44 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
+        // 5. 암살 VFX — 붉은 섬광 + 블러드 스플래터
+        // ================================================================
+        public static void PlayAssassinationVFX(Vector3 position)
+        {
+            // 붉은 섬광 (ParticleSystem)
+            var flashGo = new GameObject("AssassinationFlash", typeof(ParticleSystem));
+            flashGo.transform.position = position + Vector3.up * 0.5f;
+            var flashPs = flashGo.GetComponent<ParticleSystem>();
+            var flashMain = flashPs.main;
+            flashMain.startLifetime = 0.3f;
+            flashMain.startSpeed = 0f;
+            flashMain.startSize = new ParticleSystem.MinMaxCurve(0.5f, 1.0f);
+            flashMain.startColor = new Color(1f, 0.2f, 0.2f, 0.8f);
+            flashPs.Emit(5);
+            Object.Destroy(flashGo, 0.4f);
+
+            // 블러드 스플래터 (확산)
+            var bloodGo = new GameObject("AssassinationBlood", typeof(ParticleSystem));
+            bloodGo.transform.position = position;
+            var bloodPs = bloodGo.GetComponent<ParticleSystem>();
+            var bloodMain = bloodPs.main;
+            bloodMain.startLifetime = 0.6f;
+            bloodMain.startSpeed = new ParticleSystem.MinMaxCurve(1f, 3f);
+            bloodMain.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.3f);
+            bloodMain.startColor = Color.red;
+            for (int i = 0; i < 3; i++)
+            {
+                Vector3 vel = Random.insideUnitSphere.normalized * 2.5f;
+                vel.y = Mathf.Abs(vel.y) * 0.5f;
+                var emitParams = new ParticleSystem.EmitParams { velocity = vel };
+                bloodPs.Emit(emitParams, 3);
+            }
+            Object.Destroy(bloodGo, 0.8f);
+
+            Debug.Log($"[CombatVFXController] Assassination VFX at {position}");
+        }
+
+        // ================================================================
         // 내부 Runner: HitFlash 복원
         // ================================================================
         private class HitFlashRunner : MonoBehaviour

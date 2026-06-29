@@ -77,6 +77,9 @@ namespace ProjectName.Systems
         // 게임 시작 직후 첫 키 입력이 더블탭으로 오인되지 않도록 음수로 초기화
         private float[] _lastKeyTime = new float[] { -10f, -10f, -10f, -10f };
 
+        // --- 은신 관련 (Phase 34) ---
+        private bool _stealthToggleHeld = false; // Ctrl 키 홀드 상태 추적
+
         // --- 카메라 효과 관련 ---
         private float _defaultFOV;
         private float _dashFOVMultiplier = 1.1f; // 10% 줌아웃
@@ -143,6 +146,34 @@ namespace ProjectName.Systems
 
             // Phase 8.3: 발소리 (땅에 닿고 이동 중)
             HandleFootstepSound();
+
+            // Phase 34: 은신 입력 처리
+            HandleStealthInput();
+
+            // Phase 34: 은신 중 암살 가능 체크 (StealthSystem으로 위임)
+            // Phase 34: 은신 상태에서 속도 제한은 HandleMovement()에서 직접 적용 (_walkSpeed * 0.5f)
+        }
+
+        /// <summary>
+        /// Phase 34: Ctrl 키 입력 → StealthSystem.ToggleStealth() 호출
+        /// </summary>
+        private void HandleStealthInput()
+        {
+            if (_keyboard == null) return;
+
+            // Ctrl 키 누름/뗌 토글
+            bool ctrlPressed = _keyboard.ctrlKey.isPressed;
+
+            if (ctrlPressed && !_stealthToggleHeld)
+            {
+                _stealthToggleHeld = true;
+                if (StealthSystem.Instance != null)
+                    StealthSystem.Instance.ToggleStealth();
+            }
+            else if (!ctrlPressed && _stealthToggleHeld)
+            {
+                _stealthToggleHeld = false;
+            }
         }
 
         /// <summary>
@@ -248,6 +279,13 @@ namespace ProjectName.Systems
             {
                 _currentSpeed = _walkSpeed;
                 _isDashing = false;
+            }
+
+            // Phase 34: 은신 중 속도 50% 제한
+            if (StealthSystem.Instance != null && StealthSystem.Instance.IsStealthed)
+            {
+                _currentSpeed = _walkSpeed * 0.5f;
+                _isDashing = false; // 은신 중 대쉬 불가
             }
 
             // 애니메이션 상태 업데이트

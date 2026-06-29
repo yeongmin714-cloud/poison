@@ -21,12 +21,26 @@ namespace ProjectName.Core.Data
                 return;
             }
 
-            if (item.category != PlayerInventory.ItemCategory.Food)
+            // Food 또는 Potion 카테고리 모두 허용 (Phase 34: 은신 물약/진정제 등)
+            if (item.category == PlayerInventory.ItemCategory.Food)
             {
-                Debug.LogWarning($"[ConsumableSystem] Item {item.displayName} is not food (category {item.category}).");
-                return;
+                ConsumeFood(item);
             }
+            else if (item.category == PlayerInventory.ItemCategory.Potion || item.category == PlayerInventory.ItemCategory.Drug)
+            {
+                ConsumePotion(item);
+            }
+            else
+            {
+                Debug.LogWarning($"[ConsumableSystem] Item {item.displayName} is not consumable (category {item.category}).");
+            }
+        }
 
+        /// <summary>
+        /// Food 아이템 소비.
+        /// </summary>
+        private static void ConsumeFood(PlayerInventory.ItemData item)
+        {
             // Get dish info to retrieve effect
             var dish = DishDatabase.GetDishInfoByName(item.displayName);
             if (dish == null)
@@ -37,6 +51,82 @@ namespace ProjectName.Core.Data
 
             ApplyEffect(dish.Effect);
             Debug.Log($"[ConsumableSystem] Consumed {item.displayName}. Effect: {dish.Effect}");
+        }
+
+        /// <summary>
+        /// Potion/Drug 아이템 소비 (Phase 34: 은신 물약, 진정제 등).
+        /// </summary>
+        private static void ConsumePotion(PlayerInventory.ItemData item)
+        {
+            // Potion 효과는 item.displayName 기반으로 처리
+            string itemName = item.displayName ?? "";
+            string effect = item.effects ?? "";
+
+            Debug.Log($"[ConsumableSystem] Consumed potion: {itemName}");
+
+            // 은신 물약: 10초 반투명 + 발소음 제로
+            if (itemName.Contains("은신") || effect.Contains("은신"))
+            {
+                ApplyStealthInvisibility();
+                return;
+            }
+
+            // 진정제: NPC 행동불능 (direct effect, no buff)
+            if (itemName.Contains("진정제") || effect.Contains("진정제"))
+            {
+                ApplySedative();
+                return;
+            }
+
+            // 기존 Potion/Drug 효과 (효과 문자열 기반)
+            if (!string.IsNullOrEmpty(effect))
+            {
+                ApplyEffect(effect);
+            }
+        }
+
+        /// <summary>
+        /// 은신 물약 효과: 10초 반투명 + 발소음 제로.
+        /// </summary>
+        private static void ApplyStealthInvisibility()
+        {
+            if (BuffManager.Instance != null)
+            {
+                BuffManager.Instance.AddBuff("StealthInvisibility", 1f, 10f);
+                Debug.Log("[ConsumableSystem] 🕵️ 은신 물약 효과 적용! 10초간 반투명 + 발소음 제로");
+            }
+            else
+            {
+                Debug.LogWarning("[ConsumableSystem] BuffManager not found for stealth potion.");
+            }
+        }
+
+        /// <summary>
+        /// 진정제 효과: 주변 NPC 5초 행동불능.
+        /// </summary>
+        private static void ApplySedative()
+        {
+            // 주변 NPC 찾기
+            var npcs = Resources.FindObjectsOfTypeAll<NPCAwarenessSystem>();
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null) return;
+
+            Vector3 playerPos = player.transform.position;
+            float range = 5f;
+            int affectedCount = 0;
+
+            foreach (var npc in npcs)
+            {
+                if (!npc.IsActive) continue;
+                float dist = Vector3.Distance(npc.transform.position, playerPos);
+                if (dist <= range)
+                {
+                    npc.ForcePeace();
+                    affectedCount++;
+                }
+            }
+
+            Debug.Log($"[ConsumableSystem] 💊 진정제 사용! 주변 NPC {affectedCount}명 행동불능 (5초)");
         }
 
         private static void ApplyEffect(string effect)

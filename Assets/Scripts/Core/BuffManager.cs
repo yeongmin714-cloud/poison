@@ -144,7 +144,8 @@ namespace ProjectName.Core
             return buffId switch
             {
                 "AttackUp" or "DefenseUp" or "SpeedUp" or "Slowness"
-                    or "AlchemyBoost" or "CookingBoost" or "CritUp" => true,
+                    or "AlchemyBoost" or "CookingBoost" or "CritUp"
+                    or "StealthInvisibility" => true,
                 _ => false,
             };
         }
@@ -195,11 +196,22 @@ namespace ProjectName.Core
                 case "HealOverTime":
                     _health.Heal(value);
                     break;
+                case "StealthInvisibility":
+                    // StealthSystem에서 직접 사용하는 플래그 버프 (Stat 변경 불필요)
+                    Debug.Log("[BuffManager] StealthInvisibility 버프 활성화 — 반투명 + 발소음 제로");
+                    break;
+                case "Bleeding":
+                    // 암살 시 보스/영주에게 적용되는 출혈 DOT (시각/효과는 StealthAssassination에서 처리)
+                    Debug.Log($"[BuffManager] 🩸 Bleeding 버프 활성화 — 초당 {value} 데미지, {_bleedDurationCache}s 지속");
+                    break;
                 default:
                     Debug.LogWarning($"[BuffManager] Unknown buffId: {buffId}");
                     break;
             }
         }
+
+        // Bleeding 지속시간 캐시 (ApplyBuff에서 사용)
+        private float _bleedDurationCache = 5f;
 
         private void ReverseBuff(string buffId, float value)
         {
@@ -247,6 +259,12 @@ namespace ProjectName.Core
                     break;
                 case "HealOverTime":
                     // No reversal needed for instant heal
+                    break;
+                case "StealthInvisibility":
+                    Debug.Log("[BuffManager] StealthInvisibility 버프 만료");
+                    break;
+                case "Bleeding":
+                    Debug.Log("[BuffManager] Bleeding 출혈 버프 만료");
                     break;
                 default:
                     Debug.LogWarning($"[BuffManager] Unknown buffId for reversal: {buffId}");

@@ -11,6 +11,7 @@ namespace ProjectName.Systems
     /// 병사Placeholder - 사장님이 GLB를 제공하기 전까지 사용할 임시 병사 모델.
     /// C9-08: E키 상호작용 → 병사 정보 HUD 표시 + 메뉴 (말걸기/음식주기/약주기)
     /// C9-11: 음식/약주기 — 인벤토리 선택 → 아이템 지급 → 호감도/중독도 변화
+    /// Phase 34: NPCAwarenessSystem 연동 + 시야각 120° + 암살
     /// </summary>
     public class GuardPlaceholder : MonoBehaviour, IDamageable, IWorldSpaceHUD
     {
@@ -35,6 +36,12 @@ namespace ProjectName.Systems
 
         [Header("역할 (C9-16)")]
         [SerializeField] private GuardRole _role = GuardRole.Soldier; // 플레이어에게 포섭되었는가
+
+        // ===== Phase 34: NPCAwarenessSystem =====
+        [Header("Phase 34 — 경계 AI")]
+        [SerializeField] private float _sightRange = 12f;
+        [SerializeField][Range(1f, 180f)] private float _fieldOfView = 120f; // 시야각 120°
+        private NPCAwarenessSystem _awareness;
 
         // ===== 사망 이벤트 (GuardResurrectionSystem 연동) =====
         public static event System.Action<GuardPlaceholder> OnAnyGuardDied;
@@ -66,6 +73,13 @@ namespace ProjectName.Systems
                 Animator anim = GetComponent<Animator>();
                 if (anim != null && anim.runtimeAnimatorController != null)
                     _rigAnim = gameObject.AddComponent<RigAnimationController>();
+            }
+
+            // Phase 34: NPCAwarenessSystem 캐싱 (없으면 자동 추가)
+            _awareness = GetComponent<NPCAwarenessSystem>();
+            if (_awareness == null)
+            {
+                _awareness = gameObject.AddComponent<NPCAwarenessSystem>();
             }
         }
 
@@ -135,6 +149,12 @@ namespace ProjectName.Systems
 
             // 전투 타이머 갱신
             UpdateCombatTimer(Time.deltaTime);
+
+            // Phase 34: NPCAwarenessSystem 연동 — 시야각 120° 체크
+            UpdateAwareness(player, dist);
+
+            // Phase 34: 은신 상태 NPC 뒤에서 좌클릭 → 암살
+            TryAssassinateGuard(player, dist);
         }
 
         private void OnGUI()
@@ -423,6 +443,116 @@ namespace ProjectName.Systems
         {
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(transform.position, _interactRange);
+
+            // Phase 34: 시야 원뿔 (Gizmos)
+            Gizmos.color = new Color(1f, 1f, 0f, 0.25f);
+            Vector3 forward = transform.forward;
+            float halfFOV = _fieldOfView * 0.5f;
+            Vector3 leftDir = Quaternion.Euler(0, -halfFOV, 0) * forward;
+            Vector3 rightDir = Quaternion.Euler(0, halfFOV, 0) * forward;
+            Gizmos.DrawLine(transform.position, transform.position + leftDir * _sightRange);
+            Gizmos.DrawLine(transform.position, transform.position + rightDir * _sightRange);
+        }
+
+        // ===== Phase 34: NPCAwareness 연동 =====
+        /// <summary>
+        /// NPC 시야각 120° 기반 플레이어 감지 및 NPCAwarenessSystem 상태 업데이트.
+        /// </summary>
+        private void UpdateAwareness(GameObject player, float distance)
+        {
+            if (_isDead || _awareness == null) return;
+            if (player == null) return;
+
+            // 사망 시 강제 평화 상태
+            if (!gameObject.activeInHierarchy)
+            {
+                _awareness.ForcePeace();
+                return;
+            }
+
+            // 플레이어가 시야 범위 내에 있는가
+            if (distance > _sightRange)
+                return; // 너무 멀면 체크 불필요
+
+            // 시야 방향 계산
+            Vector3 dirToPlayer = (player.transform.position - transform.position).normalized;
+            float angle = Vector3.Angle(transform.forward, dirToPlayer);
+
+            // 시야각 120° (절반 60°)
+            bool inSightCone = angle < (_fieldOfView * 0.5f);
+
+            if (inSightCone)
+            {
+                // Raycast로 시야 차단 확인
+                if (!Physics.Raycast(transform.position + Vector3.up * 1.5f, dirToPlayer, out RaycastHit hit, distance))
+                {
+                    // 플레이어 발견 → Detected
+                    if (_awareness.CurrentAwarenessState != NPCAwarenessSystem.AwarenessState.Detected)
+                    {
+                        _awareness.SetDetected(player);
+                        SetInCombat(true);
+                    }
+                }
+                else
+                {
+                    // 차단된 오브젝트가 플레이어 본인인지 확인
+                    if (hit.collider.gameObject == player)
+                    {
+                        if (_awareness.CurrentAwarenessState != NPCAwarenessSystem.AwarenessState.Detected)
+                        {
+                            _awareness.SetDetected(player);
+                            SetInCombat(true);
+                        }
+                    }
+                    else
+                    {
+                        // 장애물 뒤 — Suspicious
+                        _awareness.SetSuspicious(player.transform.position);
+                    }
+                }
+            }
+            else
+            {
+                // 시야 밖 — 은신 상태 체크할 필요 없음 (NPCAwarenessSystem 자체 처리)
+            }
+        }
+
+        /// <summary>
+        /// 은신 상태 + NPC 뒤에서 좌클릭 시 StealthAssassination.TryAssassinate 호출.
+        /// </summary>
+        private void TryAssassinateGuard(GameObject player, float distance)
+        {
+            if (_isDead) return;
+            if (player == null) return;
+
+            // 암살 시스템 확인
+            if (StealthAssassination.Instance == null) return;
+            if (StealthAssassination.IsPerformingAssassination) return;
+
+            // 은신 상태 확인
+            if (StealthSystem.Instance == null || !StealthSystem.Instance.IsStealthed) return;
+
+            // 거리 체크 (암살 가능 거리)
+            if (distance > 2.5f) return;
+
+            // 좌클릭 감지
+            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                // NPC 뒤에서만 암살 가능
+                Vector3 dirToPlayer = (player.transform.position - transform.position).normalized;
+                float dot = Vector3.Dot(transform.forward, dirToPlayer);
+                // dot < -0.3 = 뒤쪽 (≈ 120° 범위)
+                if (dot < -0.3f)
+                {
+                    // 암살 시도
+                    bool success = StealthAssassination.Instance.TryAssassinate(gameObject);
+                    if (success)
+                    {
+                        // 구독자에게 암살 알림
+                        Debug.Log($"[GuardPlaceholder] {guardName} 암살당함!");
+                    }
+                }
+            }
         }
 
         // ===== 퍼블릭 API =====
