@@ -10,6 +10,7 @@ namespace ProjectName.UI
     /// - HP 수치 텍스트
     /// - 사망 시 "사망" 표시
     /// - 버프 아이콘 표시 (우측에 HP 바 옆)
+    /// - 가스 분사기 타이머 (장착 시 분사 가능 시간 프로그레스바 + 숫자)
     /// </summary>
     public class HUD : MonoBehaviour
     {
@@ -48,6 +49,11 @@ namespace ProjectName.UI
             { "HealOverTime", Color.green }
         };
 
+        [Header("가스 분사기 타이머")]
+        [SerializeField] private int _gasTimerWidth = 300;
+        [SerializeField] private int _gasTimerHeight = 24;
+        [SerializeField] private int _gasTimerY = 10; // 상단 고정
+
         // 캐싱
         private float _currentHP;
         private float _maxHP = 100f;
@@ -62,6 +68,7 @@ namespace ProjectName.UI
         private GUIStyle _cachedRespawnStyle;
         private GUIStyle _cachedBuffTimerStyle;
         private GUIStyle _cachedBuffIdStyle;
+        private GUIStyle _cachedGasTimerStyle;
 
         // GC: 캐싱된 Rect — OnGUI에서 new Rect() 방지 (구조체지만 스택 할당 최적화)
         private Rect _rectBg;
@@ -76,6 +83,25 @@ namespace ProjectName.UI
         // 버프 아이콘용 재사용 Rect
         private Rect _rectBuffBg;
         private Rect _rectBuffInner;
+
+        // 가스 분사기 타이머용 Rect
+        private Rect _rectGasBarBg;
+        private Rect _rectGasBarFill;
+        private Rect _rectGasLabel;
+
+        // 가스 분사기 상태 캐시
+        private bool _gasSprayerEquipped;
+        private float _gasRemaining;
+        private float _gasMax;
+        private bool _gasUnlimited;
+        private bool _gasReloading;
+        private float _gasReloadRemaining;
+        private float _gasReloadDuration;
+        private string _gasCachedLabel;
+
+        // Phase 4: GasSprayUI 연동
+        [Header("GasSprayUI Integration")]
+        [SerializeField] private GasSprayUI _gasSprayUI;
 
         private void Start()
         {
@@ -129,6 +155,13 @@ namespace ProjectName.UI
             {
                 alignment = TextAnchor.MiddleCenter
             };
+
+            _cachedGasTimerStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 14,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
         }
 
         private void CacheStaticRects()
@@ -160,6 +193,12 @@ namespace ProjectName.UI
             _rectDeathOverlay = new Rect(0, 0, Screen.width, Screen.height);
             _rectDeathLabel = new Rect(0, Screen.height * 0.35f, Screen.width, 120);
             _rectRespawnLabel = new Rect(0, Screen.height * 0.35f + 120, Screen.width, 60);
+
+            // 가스 분사기 타이머 위치 (상단 중앙)
+            float gasX = (Screen.width - _gasTimerWidth) / 2;
+            _rectGasBarBg = new Rect(gasX, _gasTimerY, _gasTimerWidth, _gasTimerHeight);
+            _rectGasBarFill = new Rect(gasX + 1, _gasTimerY + 1, _gasTimerWidth - 2, _gasTimerHeight - 2);
+            _rectGasLabel = new Rect(gasX - 100, _gasTimerY, _gasTimerWidth + 200, _gasTimerHeight);
         }
 
         private void OnDestroy()
@@ -193,6 +232,102 @@ namespace ProjectName.UI
             DrawHPBar();
             DrawBuffIcons();
             DrawDeathOverlay();
+            DrawGasSprayerTimer();
+
+            // Phase 4: GasSprayUI 연동 — 물약 정보 + 타이머 패널
+            if (_gasSprayUI != null)
+            {
+                _gasSprayUI.OnDrawGUI();
+            }
+        }
+
+        private void UpdateGasSprayerState()
+        {
+            var controller = ProjectName.Systems.GasSprayerController.Instance;
+            if (controller == null || !controller.IsEquipped)
+            {
+                _gasSprayerEquipped = false;
+                return;
+            }
+
+            _gasSprayerEquipped = true;
+            var data = ProjectName.Systems.GasSprayerManager.GetGradeData(controller.CurrentGrade);
+
+            if (data.isUnlimited)
+            {
+                _gasUnlimited = true;
+                _gasRemaining = 0f;
+                _gasMax = 1f;
+                _gasCachedLabel = "♾️ 무제한";
+            }
+            else
+            {
+                _gasUnlimited = false;
+                _gasMax = data.maxSprayTime;
+                _gasRemaining = controller.CurrentSprayTimeRemaining;
+                _gasReloading = controller.IsReloading;
+                _gasReloadRemaining = controller.ReloadTimeRemaining;
+                _gasReloadDuration = ProjectName.Systems.GasSprayerManager.GetReloadTime(controller.CurrentGrade);
+
+                if (_gasReloading)
+                {
+                    _gasCachedLabel = $"🔄 재장전... {_gasReloadRemaining:F1}s";
+                }
+                else
+                {
+                    _gasCachedLabel = $"💨 분사: {Mathf.Max(0, _gasRemaining):F1}s / {_gasMax:F0}s";
+                }
+            }
+        }
+
+        private void DrawGasSprayerTimer()
+        {
+            UpdateGasSprayerState();
+            if (!_gasSprayerEquipped) return;
+
+            // 배경
+            GUI.color = new Color(0.1f, 0.1f, 0.1f, 0.8f);
+            GUI.Box(_rectGasBarBg, "");
+
+            if (!_gasUnlimited)
+            {
+                float ratio = _gasMax > 0 ? Mathf.Clamp01(_gasRemaining / _gasMax) : 0f;
+
+                if (_gasReloading)
+                {
+                    float reloadRatio = _gasReloadDuration > 0 ? Mathf.Clamp01(1f - (_gasReloadRemaining / _gasReloadDuration)) : 0f;
+                    // 재장전 프로그레스바 (파란색)
+                    GUI.color = new Color(0.3f, 0.5f, 1f, 0.9f);
+                    _rectGasBarFill.width = (_gasTimerWidth - 2) * reloadRatio;
+                    GUI.Box(_rectGasBarFill, "");
+                }
+                else
+                {
+                    // 분사 가능 시간 프로그레스바 (초록→노랑→빨강)
+                    Color barColor = ratio > 0.5f
+                        ? Color.Lerp(Color.yellow, Color.green, (ratio - 0.5f) * 2f)
+                        : Color.Lerp(Color.red, Color.yellow, ratio * 2f);
+                    GUI.color = barColor;
+                    _rectGasBarFill.width = (_gasTimerWidth - 2) * ratio;
+                    GUI.Box(_rectGasBarFill, "");
+                }
+            }
+            else
+            {
+                // 무제한 — 파란색 풀바
+                GUI.color = new Color(0.3f, 0.6f, 1f, 0.9f);
+                _rectGasBarFill.width = _gasTimerWidth - 2;
+                GUI.Box(_rectGasBarFill, "");
+            }
+
+            // 테두리
+            GUI.color = Color.white;
+            GUI.Box(_rectGasBarBg, "");
+
+            // 레이블 텍스트
+            GUI.color = Color.white;
+            GUI.Label(_rectGasLabel, _gasCachedLabel, _cachedGasTimerStyle);
+            GUI.color = Color.white;
         }
 
         private void DrawHPBar()

@@ -11,11 +11,17 @@ namespace ProjectName.UI
     /// <summary>
     /// [5.3.9.3] 정보원 파견 UI (IMGUI)
     /// 
-    /// 정보원 선택 → 임무 선택 (정찰/잠입/측량/방해공작)
+    /// 정보원 선택 → 임무 선택 (영주정보/병력정보/영지약도/방해공작)
     /// 미션 진행 중 상태 표시
     /// 완료 시 수집된 정보 UI 표시
     /// 발각 시 메시지: "정보원이 체포/처형되었습니다"
     /// 수집된 정보: 영주 선호음식/지병, 병력, 내부구조
+    /// 
+    /// ROADMAP L951-966:
+    /// - 🔍 영주 정보 (Lv.5+)
+    /// - 📋 병력 정보 (Lv.10+)
+    /// - 🗺️ 영지 약도 (Lv.15+)
+    /// - 💣 방해 공작 (Lv.20+)
     /// </summary>
     public class SpyMissionUI : MonoBehaviour
     {
@@ -53,8 +59,8 @@ namespace ProjectName.UI
         // ===== 캐시 =====
         private UIDesignTheme _theme;
         private static Texture2D _cachedTexWhite;
-        private const float PANEL_WIDTH = 520f;
-        private const float PANEL_HEIGHT = 560f;
+        private const float PANEL_WIDTH = 560f;
+        private const float PANEL_HEIGHT = 600f;
         private const float LIST_ITEM_HEIGHT = 36f;
 
         private void Awake()
@@ -181,7 +187,7 @@ namespace ProjectName.UI
             cy += 34f;
 
             GUI.Label(new Rect(x + 15, cy, PANEL_WIDTH - 30, 22),
-                "파견할 정보원을 선택하세요 (Lv.3+ 필요)", _styleLabel);
+                "파견할 정보원을 선택하세요 (Lv.5+ 필요)", _styleLabel);
             cy += 26f;
 
             var availableSpies = GetAvailableSpiesForUI();
@@ -193,7 +199,7 @@ namespace ProjectName.UI
             if (availableSpies.Count == 0)
             {
                 GUI.Label(new Rect(10, 10, PANEL_WIDTH - 40, 24),
-                    "⚠️ 파견 가능한 정보원이 없습니다.\nLv.3 이상 포섭된 병사가 필요합니다.", _styleWarning);
+                    "⚠️ 파견 가능한 정보원이 없습니다.\nLv.5 이상 포섭된 병사가 필요합니다.", _styleWarning);
 
                 // 뒤로가기
                 float btnY2 = listH - 40f;
@@ -239,7 +245,7 @@ namespace ProjectName.UI
         }
 
         // ================================================================
-        // 임무 선택 화면
+        // 임무 선택 화면 — ROADMAP 4종 임무
         // ================================================================
         private void DrawMissionSelection(float x, ref float cy)
         {
@@ -257,32 +263,38 @@ namespace ProjectName.UI
                 "수행할 정보 수집 임무를 선택하세요", _styleLabel);
             cy += 30f;
 
-            // SpySystem의 기존 3종 임무 (Recon/Infiltrate/Survey)
-            var missions = new (SpySystem.SpyMission mission, int requiredLevel, string name, string desc, float duration)[]
+            // ROADMAP 4종 임무
+            var missions = new (SpySystem.SpyMission mission, int requiredLevel, string name, string desc, float duration, string icon)[]
             {
-                (SpySystem.SpyMission.Recon, SpySystem.RECON_REQUIRED_LEVEL,
-                    SpySystem.GetMissionName(SpySystem.SpyMission.Recon),
-                    SpySystem.GetMissionDescription(SpySystem.SpyMission.Recon),
-                    SpySystem.RECON_DURATION),
-                (SpySystem.SpyMission.Infiltrate, SpySystem.INFILTRATE_REQUIRED_LEVEL,
-                    SpySystem.GetMissionName(SpySystem.SpyMission.Infiltrate),
-                    SpySystem.GetMissionDescription(SpySystem.SpyMission.Infiltrate),
-                    SpySystem.INFILTRATE_DURATION),
-                (SpySystem.SpyMission.Survey, SpySystem.SURVEY_REQUIRED_LEVEL,
-                    SpySystem.GetMissionName(SpySystem.SpyMission.Survey),
-                    SpySystem.GetMissionDescription(SpySystem.SpyMission.Survey),
-                    SpySystem.SURVEY_DURATION)
+                (SpySystem.SpyMission.LordInfo, SpySystem.LORDINFO_REQUIRED_LEVEL,
+                    SpySystem.GetMissionName(SpySystem.SpyMission.LordInfo),
+                    SpySystem.GetMissionDescription(SpySystem.SpyMission.LordInfo),
+                    SpySystem.LORDINFO_DURATION, "🔍"),
+                (SpySystem.SpyMission.TroopInfo, SpySystem.TROOPINFO_REQUIRED_LEVEL,
+                    SpySystem.GetMissionName(SpySystem.SpyMission.TroopInfo),
+                    SpySystem.GetMissionDescription(SpySystem.SpyMission.TroopInfo),
+                    SpySystem.TROOPINFO_DURATION, "📋"),
+                (SpySystem.SpyMission.TerritoryMap, SpySystem.TERRITORYMAP_REQUIRED_LEVEL,
+                    SpySystem.GetMissionName(SpySystem.SpyMission.TerritoryMap),
+                    SpySystem.GetMissionDescription(SpySystem.SpyMission.TerritoryMap),
+                    SpySystem.TERRITORYMAP_DURATION, "🗺️"),
+                (SpySystem.SpyMission.Sabotage, SpySystem.SABOTAGE_REQUIRED_LEVEL,
+                    SpySystem.GetMissionName(SpySystem.SpyMission.Sabotage),
+                    SpySystem.GetMissionDescription(SpySystem.SpyMission.Sabotage),
+                    SpySystem.SABOTAGE_DURATION, "💣")
             };
 
-            foreach (var (mission, reqLv, name, desc, duration) in missions)
+            foreach (var (mission, reqLv, name, desc, duration, icon) in missions)
             {
                 bool canDo = _selectedSpy.Level >= reqLv;
 
-                // 발각 확률 계산
-                float detectChance = SpySystem.CalculateDetectChance(_selectedSpy, _currentTerritoryId);
+                // 발각 확률 계산 (방해 공작은 추가 발각 위험)
+                float extraDetect = (mission == SpySystem.SpyMission.Sabotage) ? 0.1f : 0f;
+                float detectChance = SpySystem.CalculateDetectChance(_selectedSpy, _currentTerritoryId) + extraDetect;
+                detectChance = Mathf.Clamp01(detectChance);
 
                 float miy = cy;
-                GUI.Box(new Rect(x + 15, miy, PANEL_WIDTH - 30, 76), "");
+                GUI.Box(new Rect(x + 15, miy, PANEL_WIDTH - 30, 86), "");
 
                 string lockStr = canDo ? "" : $" (Lv.{reqLv} 필요)";
                 GUI.Label(new Rect(x + 25, miy + 4, PANEL_WIDTH - 50, 22),
@@ -295,12 +307,31 @@ namespace ProjectName.UI
                 int min = Mathf.FloorToInt(duration / 60f);
                 int sec = Mathf.FloorToInt(duration % 60f);
                 string timeStr = min > 0 ? $"{min}분 {sec}초" : $"{sec}초";
+                string detectText = (mission == SpySystem.SpyMission.Sabotage) ? "⚠️ " : "";
                 GUI.Label(new Rect(x + 25, miy + 46, PANEL_WIDTH - 50, 22),
-                    $"⏱ {timeStr}  |  발각 위험: {detectChance * 100:F0}%",
+                    $"⏱ {timeStr}  |  발각 위험: {detectText}{detectChance * 100:F0}%",
                     _styleValue);
 
-                if (canDo && GUI.Button(new Rect(x + PANEL_WIDTH - 130, miy + 22, 150, 30), "선택"))
+                // 필요한 소모품 표시 (방해 공작)
+                if (mission == SpySystem.SpyMission.Sabotage)
                 {
+                    GUI.Label(new Rect(x + 25, miy + 66, PANEL_WIDTH - 50, 18),
+                        "소모품 필요: 독약/마약", _styleInfo);
+                }
+
+                if (canDo && GUI.Button(new Rect(x + PANEL_WIDTH - 130, miy + 26, 150, 30), "선택"))
+                {
+                    // 방해 공작: 소모품 체크 및 소비
+                    if (mission == SpySystem.SpyMission.Sabotage)
+                    {
+                        if (!HasSabotageConsumables())
+                        {
+                            Debug.Log("[SpyMissionUI] 방해 공작에 필요한 소모품(독약/마약)이 부족합니다.");
+                            continue;
+                        }
+                        // 소모품 1개 소비
+                        ConsumeSabotageItem();
+                    }
                     _selectedMission = mission;
                     _missionDuration = duration;
                     _missionTimer = duration;
@@ -310,7 +341,7 @@ namespace ProjectName.UI
                     return;
                 }
 
-                cy = miy + 80f + 6f;
+                cy = miy + 90f + 6f;
             }
 
             // 뒤로가기
@@ -410,22 +441,16 @@ namespace ProjectName.UI
             string infoText = _lastResult.infoGathered ?? "";
             if (!string.IsNullOrEmpty(infoText))
             {
-                GUI.Label(new Rect(x + 25, cy, PANEL_WIDTH - 50, 60),
+                GUI.Label(new Rect(x + 25, cy, PANEL_WIDTH - 50, 80),
                     infoText, _styleInfo);
-                cy += 65f;
+                cy += 85f;
             }
 
             // 추가 정보 표시 (임무 타입별)
             var def = TerritoryDatabase.Instance?.GetDefinition(_currentTerritoryId);
             var state = TerritoryDatabase.Instance?.GetState(_currentTerritoryId);
 
-            if (def != null && _selectedMission == SpySystem.SpyMission.Recon && def.Value.territoryName != null)
-            {
-                DrawInfoRow(x, ref cy, "병력 수:", $"{def.Value.guardCount}명");
-                DrawInfoRow(x, ref cy, "방어 상태:", GetDefenseStatusText(def.Value.guardCount));
-                DrawInfoRow(x, ref cy, "난이도:", GetDifficultyText(def.Value.difficulty));
-            }
-            else if (def != null && _selectedMission == SpySystem.SpyMission.Infiltrate && def.Value.lord.lordName != null)
+            if (def != null && _selectedMission == SpySystem.SpyMission.LordInfo && def.Value.territoryName != null)
             {
                 DrawInfoRow(x, ref cy, "영주:", def.Value.lord.lordName);
                 DrawInfoRow(x, ref cy, "선호 음식:", string.IsNullOrEmpty(def.Value.lord.preferredFood) ? "알 수 없음" : def.Value.lord.preferredFood);
@@ -433,18 +458,34 @@ namespace ProjectName.UI
                 DrawInfoRow(x, ref cy, "성격:", GetPersonalityText(def.Value.lord.personality));
                 DrawInfoRow(x, ref cy, "충성심:", $"{def.Value.lord.loyalty}/100");
             }
-            else if (def != null && _selectedMission == SpySystem.SpyMission.Survey && def.Value.territoryName != null)
+            else if (def != null && _selectedMission == SpySystem.SpyMission.TroopInfo && def.Value.territoryName != null)
             {
-                DrawInfoRow(x, ref cy, "지형:", GetDifficultyTerrainName(def.Value.difficulty));
+                DrawInfoRow(x, ref cy, "병력 수:", $"{def.Value.guardCount}명");
+                DrawInfoRow(x, ref cy, "방어 상태:", GetDefenseStatusText(def.Value.guardCount));
+                DrawInfoRow(x, ref cy, "배치:", GetDeploymentInfoText(def.Value.difficulty));
+                DrawInfoRow(x, ref cy, "난이도:", GetDifficultyText(def.Value.difficulty));
+            }
+            else if (def != null && _selectedMission == SpySystem.SpyMission.TerritoryMap && def.Value.territoryName != null)
+            {
+                DrawInfoRow(x, ref cy, "지형:", GetDifficultyTerrainName2(def.Value.difficulty));
                 DrawInfoRow(x, ref cy, "접근 경로:", GetApproachPathText(def.Value.difficulty));
                 DrawInfoRow(x, ref cy, "은신처:", GetHideoutText(def.Value.difficulty));
+                DrawInfoRow(x, ref cy, "취약점:", GetWeakPointText(def.Value.difficulty));
                 DrawInfoRow(x, ref cy, "소유 상태:", GetOwnershipText(state));
+            }
+            else if (def != null && _selectedMission == SpySystem.SpyMission.Sabotage)
+            {
+                int casualties = Mathf.Max(1, Mathf.FloorToInt(def.Value.guardCount * 0.3f));
+                int remaining = Mathf.Max(0, def.Value.guardCount - casualties);
+                DrawInfoRow(x, ref cy, "피해 병사:", $"{casualties}명 (잔여: {remaining}명)");
+                DrawInfoRow(x, ref cy, "영지 혼란:", "방해 공작 성공적");
+                DrawInfoRow(x, ref cy, "효과 지속:", "24시간");
             }
 
             cy += 10f;
-            float remaining = Mathf.Max(0, _resultTimer);
+            float remainingTime = Mathf.Max(0, _resultTimer);
             GUI.Label(new Rect(x + 15, cy, PANEL_WIDTH - 30, 22),
-                $"({remaining:F1}초 후 창 닫힘)", _styleValue);
+                $"({remainingTime:F1}초 후 창 닫힘)", _styleValue);
         }
 
         // ================================================================
@@ -463,7 +504,7 @@ namespace ProjectName.UI
             cy += 38f;
 
             GUI.Label(new Rect(x + 15, cy, PANEL_WIDTH - 30, 40),
-                $"정보원 {_selectedSpy.GuardName} (Lv.{_selectedSpy.Level})이(가)\n" +
+                $"정보원 {_selectedSpy.GuardName} (Lv.{_selectedSpy.Level})이(가)\\n" +
                 $"{GetTerritoryName(_currentTerritoryId)}에서 발각되어 처형되었습니다.",
                 _styleLabel);
             cy += 50f;
@@ -493,7 +534,7 @@ namespace ProjectName.UI
             _isVisible = true;
             _currentStep = UIStep.SelectSpy;
             _selectedSpy = null;
-            _selectedMission = SpySystem.SpyMission.Recon;
+            _selectedMission = SpySystem.SpyMission.LordInfo;
             _scrollPos = Vector2.zero;
             _missionCompleted = false;
         }
@@ -502,232 +543,41 @@ namespace ProjectName.UI
         public void Close()
         {
             _isVisible = false;
+            _currentStep = UIStep.SelectSpy;
             _selectedSpy = null;
             _scrollPos = Vector2.zero;
         }
 
-        /// <summary>UI 표시 여부</summary>
-        public bool IsVisible => _isVisible;
-
         // ================================================================
-        // 내부 로직
+        // 임무 완료 처리
         // ================================================================
 
         private void CompleteMission()
         {
-            if (_missionCompleted) return;
             _missionCompleted = true;
+            _resultTimer = 5f; // 결과 표시 5초
 
             // SpySystem.SendSpy 호출
             _lastResult = SpySystem.SendSpy(_selectedSpy, _currentTerritoryId, _selectedMission);
 
-            if (_lastResult.detected || _lastResult.spyLost)
+            if (_lastResult.detected)
             {
-                // 발각/처형
                 _currentStep = UIStep.Detected;
-                // 정보원 영구 소실 — 이미 SpySystem에서 TakeDamage(9999) 처리됨
-                Debug.Log($"[SpyMissionUI] 💀 정보원 {_selectedSpy.GuardName} 처형됨!");
+            }
+            else if (_lastResult.success)
+            {
+                _currentStep = UIStep.Result;
             }
             else
             {
-                // 성공
-                _currentStep = UIStep.Result;
-                Debug.Log($"[SpyMissionUI] ✅ 정보 수집 성공: {_lastResult.infoGathered}");
-            }
-
-            _resultTimer = 8f; // 8초 후 자동 닫힘
-        }
-
-        private List<GuardPlaceholder> GetAvailableSpiesForUI()
-        {
-            var result = new List<GuardPlaceholder>();
-            var spies = SpySystem.GetAvailableSpies();
-            foreach (var g in spies)
-            {
-                // Lv.3+ 표시 (Recon이 최소 요구 레벨)
-                if (g.Level >= SpySystem.RECON_REQUIRED_LEVEL)
-                    result.Add(g);
-            }
-            return result;
-        }
-
-        /// <summary>현재 위치의 영지 ID 반환</summary>
-        private TerritoryId? GetCurrentTerritory(Vector3 position)
-        {
-            if (TerritoryManager.Instance != null && TerritoryDatabase.Instance != null)
-            {
-                TerritoryId currentId = TerritoryManager.Instance.CurrentTerritoryId;
-                var def = TerritoryDatabase.Instance.GetDefinition(currentId);
-                if (def.territoryName != null)
-                {
-                    return currentId;
-                }
-            }
-
-            if (TerritoryDatabase.Instance == null) return null;
-
-            float nearestDist = _interactRange;
-            TerritoryId? nearest = null;
-
-            foreach (var def in TerritoryDatabase.Instance.GetAllDefinitions())
-            {
-                Vector3 center = TerritoryManager.Instance != null
-                    ? TerritoryManager.Instance.GetTerritoryCenter(def.id)
-                    : Vector3.zero;
-
-                float dist = Vector3.Distance(position, center);
-                if (dist < nearestDist)
-                {
-                    nearestDist = dist;
-                    nearest = def.id;
-                }
-            }
-
-            return nearest;
-        }
-
-        private string GetTerritoryName(TerritoryId id)
-        {
-            var def = TerritoryDatabase.Instance.GetDefinition(id);
-            return def.territoryName ?? "알 수 없는 영지";
-        }
-
-        // ================================================================
-        // 텍스트 헬퍼
-        // ================================================================
-
-        private string GetDefenseStatusText(int guardCount)
-        {
-            if (guardCount <= 3) return "약함";
-            if (guardCount <= 6) return "보통";
-            if (guardCount <= 10) return "강함";
-            return "매우 강함";
-        }
-
-        private string GetDifficultyText(TerritoryDifficulty difficulty)
-        {
-            switch (difficulty)
-            {
-                case TerritoryDifficulty.Ring1: return "🟢 Ring 1 (초원)";
-                case TerritoryDifficulty.Ring2: return "🟡 Ring 2 (구릉)";
-                case TerritoryDifficulty.Ring3: return "🟠 Ring 3 (산악)";
-                case TerritoryDifficulty.Ring4: return "🔴 Ring 4 (협곡)";
-                case TerritoryDifficulty.Empire: return "👑 황제국";
-                default: return "알 수 없음";
-            }
-        }
-
-        private string GetDifficultyTerrainName(TerritoryDifficulty difficulty)
-        {
-            switch (difficulty)
-            {
-                case TerritoryDifficulty.Ring1: return "초원 지형 — 평탄, 시야 좋음";
-                case TerritoryDifficulty.Ring2: return "구릉 지형 — 완만한 언덕";
-                case TerritoryDifficulty.Ring3: return "산악 지형 — 험난, 엄폐물 많음";
-                case TerritoryDifficulty.Ring4: return "협곡 지형 — 좁은 통로, 매복 위험";
-                case TerritoryDifficulty.Empire: return "황성 지형 — 정교한 건축물";
-                default: return "알 수 없음";
-            }
-        }
-
-        private string GetApproachPathText(TerritoryDifficulty difficulty)
-        {
-            switch (difficulty)
-            {
-                case TerritoryDifficulty.Ring1: return "남쪽에서 접근 용이";
-                case TerritoryDifficulty.Ring2: return "동쪽 숲길로 접근";
-                case TerritoryDifficulty.Ring3: return "북서쪽 암벽길로 접근";
-                case TerritoryDifficulty.Ring4: return "지하 통로로 접근";
-                case TerritoryDifficulty.Empire: return "비밀 통로 필요";
-                default: return "정문에서 접근";
-            }
-        }
-
-        private string GetHideoutText(TerritoryDifficulty difficulty)
-        {
-            switch (difficulty)
-            {
-                case TerritoryDifficulty.Ring1: return "북쪽 바위 뒤 은신 가능";
-                case TerritoryDifficulty.Ring2: return "동쪽 숲에 은신 가능";
-                case TerritoryDifficulty.Ring3: return "서쪽 동굴에 은신 가능";
-                case TerritoryDifficulty.Ring4: return "남쪽 폐허에 은신 가능";
-                case TerritoryDifficulty.Empire: return "지하 비밀 방에 은신 가능";
-                default: return "은신처 없음";
-            }
-        }
-
-        private string GetPersonalityText(LordPersonality personality)
-        {
-            switch (personality)
-            {
-                case LordPersonality.Neutral: return "보통";
-                case LordPersonality.Greedy: return "탐욕스러움 — 선물에 약함";
-                case LordPersonality.Suspicious: return "의심 많음 — 접근 어려움";
-                case LordPersonality.Brave: return "용감함 — 협박에 안 통함";
-                case LordPersonality.Cowardly: return "겁많음 — 협박에 약함";
-                case LordPersonality.Wise: return "현명함 — 설득 어려움";
-                case LordPersonality.Cruel: return "잔인함 — 위험";
-                default: return "알 수 없음";
-            }
-        }
-
-        private string GetOwnershipText(TerritoryState state)
-        {
-            if (state == null) return "알 수 없음";
-            switch (state.ownership)
-            {
-                case TerritoryOwnership.Unoccupied: return "미점령";
-                case TerritoryOwnership.PlayerOwned: return "플레이어 소유";
-                case TerritoryOwnership.LordOwned: return "AI 영주 소유";
-                case TerritoryOwnership.Contested: return "전쟁 중";
-                default: return "알 수 없음";
+                // 실패 시 닫기
+                Close();
             }
         }
 
         // ================================================================
-        // UI 헬퍼
+        // UI 렌더링 헬퍼
         // ================================================================
-
-        private void DrawInfoRow(float x, ref float cy, string label, string value)
-        {
-            GUI.Label(new Rect(x + 20, cy, 150, 22), label, _styleLabel);
-            GUI.Label(new Rect(x + 175, cy, PANEL_WIDTH - 195, 22), value, _styleValue);
-            cy += 24f;
-        }
-
-        private void DrawBar(float x, float y, float width, float height, float ratio, Color fillColor, Color bgColor)
-        {
-            var tex = GetCachedTex();
-            var oldColor = GUI.color;
-            GUI.color = bgColor;
-            GUI.DrawTexture(new Rect(x, y, width, height), tex);
-            GUI.color = fillColor;
-            GUI.DrawTexture(new Rect(x, y, width * Mathf.Clamp01(ratio), height), tex);
-            GUI.color = oldColor;
-        }
-
-        private static Texture2D GetCachedTex()
-        {
-            if (_cachedTexWhite == null)
-            {
-                _cachedTexWhite = new Texture2D(1, 1);
-                _cachedTexWhite.hideFlags = HideFlags.HideAndDontSave;
-                _cachedTexWhite.SetPixel(0, 0, Color.white);
-                _cachedTexWhite.Apply();
-            }
-            return _cachedTexWhite;
-        }
-
-        [System.Obsolete("Use GetCachedTex() instead — allocates every call")]
-        private Texture2D MakeTex(int w, int h, Color c)
-        {
-            var tex = new Texture2D(w, h);
-            for (int i = 0; i < w; i++)
-                for (int j = 0; j < h; j++)
-                    tex.SetPixel(i, j, c);
-            tex.Apply();
-            return tex;
-        }
 
         private void EnsureStyles()
         {
@@ -735,43 +585,230 @@ namespace ProjectName.UI
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 16,
+                fontSize = 14,
                 fontStyle = FontStyle.Bold,
-                normal = { textColor = Color.white },
-                alignment = TextAnchor.MiddleLeft
+                normal = { textColor = new Color(0.9f, 0.9f, 0.9f) }
             };
 
             _styleLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14,
-                normal = { textColor = Color.white },
-                alignment = TextAnchor.MiddleLeft
+                fontSize = 12,
+                normal = { textColor = new Color(0.8f, 0.8f, 0.8f) }
             };
 
             _styleValue = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
-                fontStyle = FontStyle.Bold,
-                normal = { textColor = Color.yellow },
-                alignment = TextAnchor.MiddleLeft
+                fontSize = 11,
+                normal = { textColor = new Color(0.7f, 0.7f, 0.7f) }
             };
 
             _styleWarning = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14,
+                fontSize = 12,
                 fontStyle = FontStyle.Bold,
-                normal = { textColor = Color.red },
-                alignment = TextAnchor.MiddleLeft
+                normal = { textColor = new Color(1f, 0.4f, 0.4f) }
             };
 
             _styleInfo = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
-                fontStyle = FontStyle.Italic,
-                normal = { textColor = Color.cyan },
-                alignment = TextAnchor.MiddleLeft,
-                wordWrap = true
+                fontSize = 11,
+                wordWrap = true,
+                normal = { textColor = new Color(0.6f, 0.9f, 0.6f) }
             };
+        }
+
+        private static void DrawBar(float x, float y, float w, float h, float fill, Color fillColor, Color bgColor)
+        {
+            var oldColor = GUI.color;
+
+            GUI.color = bgColor;
+            GUI.Box(new Rect(x, y, w, h), "");
+
+            GUI.color = fillColor;
+            if (fill > 0f)
+                GUI.Box(new Rect(x + 1, y + 1, (w - 2) * fill, h - 2), "");
+
+            GUI.color = oldColor;
+        }
+
+        private static void DrawInfoRow(float x, ref float cy, string label, string value)
+        {
+            GUI.Label(new Rect(x + 25, cy, 120, 20), label, GUI.skin.label);
+            GUI.Label(new Rect(x + 145, cy, PANEL_WIDTH - 170, 20), value, GUI.skin.label);
+            cy += 22f;
+        }
+
+        // ================================================================
+        // 데이터 접근 헬퍼
+        // ================================================================
+
+        private List<GuardPlaceholder> GetAvailableSpiesForUI()
+        {
+            var all = SpySystem.GetAvailableSpies();
+            // 최소 Lv.5 이상만 표시 (가장 낮은 임무 요구 레벨)
+            var filtered = new List<GuardPlaceholder>();
+            foreach (var g in all)
+            {
+                if (g.Level >= 5)
+                    filtered.Add(g);
+            }
+            return filtered;
+        }
+
+        /// <summary>방해 공작에 필요한 소모품(독약/마약) 보유 여부 확인</summary>
+        private static bool HasSabotageConsumables()
+        {
+            if (PlayerInventory.Instance == null) return false;
+            var slots = PlayerInventory.Instance.GetAllSlots();
+            foreach (var slot in slots)
+            {
+                if (slot == null || slot.item == null || slot.count <= 0) continue;
+                if (slot.item.category == PlayerInventory.ItemCategory.Potion ||
+                    slot.item.category == PlayerInventory.ItemCategory.Drug)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>방해 공작 소모품 1개 소비</summary>
+        private static void ConsumeSabotageItem()
+        {
+            if (PlayerInventory.Instance == null) return;
+            var slots = PlayerInventory.Instance.GetAllSlots();
+            foreach (var slot in slots)
+            {
+                if (slot == null || slot.item == null || slot.count <= 0) continue;
+                if (slot.item.category == PlayerInventory.ItemCategory.Potion ||
+                    slot.item.category == PlayerInventory.ItemCategory.Drug)
+                {
+                    PlayerInventory.Instance.RemoveItem(slot.item.id, 1);
+                    Debug.Log($"[SpyMissionUI] 방해 공작 소모품 {slot.item.displayName} x1 소비됨");
+                    return;
+                }
+            }
+        }
+
+        private static TerritoryId? GetCurrentTerritory(Vector3 playerPos)
+        {
+            // TODO: 실제 영지 판정 로직으로 교체
+            // 현재는 TerritoryDatabase의 첫 번째 영지 반환 (데모용)
+            if (TerritoryDatabase.Instance == null) return null;
+            var allTerritories = TerritoryDatabase.Instance.GetAllTerritoryIds();
+            if (allTerritories == null || allTerritories.Length == 0) return null;
+            return allTerritories[0];
+        }
+
+        private static string GetTerritoryName(TerritoryId id)
+        {
+            var def = TerritoryDatabase.Instance?.GetDefinition(id);
+            return string.IsNullOrEmpty(def?.territoryName) ? id.zoneId : def.Value.territoryName;
+        }
+
+        private static string GetDefenseStatusText(int guardCount)
+        {
+            if (guardCount <= 3) return "약함";
+            if (guardCount <= 6) return "보통";
+            if (guardCount <= 10) return "강함";
+            return "매우 강함";
+        }
+
+        private static string GetDifficultyText(TerritoryDifficulty d)
+        {
+            switch (d)
+            {
+                case TerritoryDifficulty.Ring1: return "⭐";
+                case TerritoryDifficulty.Ring2: return "⭐⭐";
+                case TerritoryDifficulty.Ring3: return "⭐⭐⭐";
+                case TerritoryDifficulty.Ring4: return "⭐⭐⭐⭐";
+                case TerritoryDifficulty.Empire: return "👑";
+                default: return "?";
+            }
+        }
+
+        private static string GetDeploymentInfoText(TerritoryDifficulty d)
+        {
+            switch (d)
+            {
+                case TerritoryDifficulty.Ring1: return "정문 집중 배치";
+                case TerritoryDifficulty.Ring2: return "정문 + 성벽 순찰";
+                case TerritoryDifficulty.Ring3: return "다중 초소 분산 배치";
+                case TerritoryDifficulty.Ring4: return "전 방위 밀집 배치";
+                case TerritoryDifficulty.Empire: return "계층적 방어 체계";
+                default: return "알 수 없음";
+            }
+        }
+
+        private static string GetPersonalityText(LordPersonality p)
+        {
+            switch (p)
+            {
+                case LordPersonality.Neutral: return "보통";
+                case LordPersonality.Greedy: return "탐욕스러움";
+                case LordPersonality.Suspicious: return "의심 많음";
+                case LordPersonality.Brave: return "용감함";
+                case LordPersonality.Cowardly: return "겁많음";
+                case LordPersonality.Wise: return "현명함";
+                case LordPersonality.Cruel: return "잔인함";
+                default: return "알 수 없음";
+            }
+        }
+
+        private static string GetDifficultyTerrainName2(TerritoryDifficulty d)
+        {
+            switch (d)
+            {
+                case TerritoryDifficulty.Ring1: return "초원";
+                case TerritoryDifficulty.Ring2: return "구릉";
+                case TerritoryDifficulty.Ring3: return "산악";
+                case TerritoryDifficulty.Ring4: return "협곡";
+                case TerritoryDifficulty.Empire: return "황성";
+                default: return "알 수 없음";
+            }
+        }
+
+        private static string GetApproachPathText(TerritoryDifficulty d)
+        {
+            switch (d)
+            {
+                case TerritoryDifficulty.Ring1: return "남쪽에서 접근 용이";
+                case TerritoryDifficulty.Ring2: return "동쪽 숲길 우회 가능";
+                case TerritoryDifficulty.Ring3: return "북서쪽 절벽 경로";
+                case TerritoryDifficulty.Ring4: return "지하 통로 존재";
+                case TerritoryDifficulty.Empire: return "비밀 통로 확인 필요";
+                default: return "알 수 없음";
+            }
+        }
+
+        private static string GetHideoutText(TerritoryDifficulty d)
+        {
+            switch (d)
+            {
+                case TerritoryDifficulty.Ring1: return "북쪽 바위 뒤 은신 가능";
+                case TerritoryDifficulty.Ring2: return "동쪽 숲에 은신 가능";
+                case TerritoryDifficulty.Ring3: return "서쪽 동굴에 은신 가능";
+                case TerritoryDifficulty.Ring4: return "남쪽 폐허에 은신 가능";
+                case TerritoryDifficulty.Empire: return "지하 비밀 방에 은신 가능";
+                default: return "없음";
+            }
+        }
+
+        private static string GetWeakPointText(TerritoryDifficulty d)
+        {
+            switch (d)
+            {
+                case TerritoryDifficulty.Ring1: return "야간 경계 허술";
+                case TerritoryDifficulty.Ring2: return "동쪽 담장 낮음";
+                case TerritoryDifficulty.Ring3: return "서쪽 성벽 균열";
+                case TerritoryDifficulty.Ring4: return "식량 비축 장소 노출";
+                case TerritoryDifficulty.Empire: return "내부 분열 징후";
+                default: return "확인되지 않음";
+            }
+        }
+
+        private static string GetOwnershipText(TerritoryState? state)
+        {
+            if (state == null) return "알 수 없음";
+            return "미점령"; // TODO: 실제 점령 상태 반영
         }
     }
 }

@@ -135,6 +135,33 @@ namespace ProjectName.Core.Data
             return new TerritoryState(id);
         }
 
+        /// <summary>
+        /// 문자열 키로 영지 상태를 조회합니다. (키 형식: "NationType_Index")
+        /// </summary>
+        /// <param name="key">영지 키 (예: "East_01")</param>
+        public TerritoryState GetState(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                return null;
+
+            if (_states.TryGetValue(key, out var state))
+                return state;
+
+            // 키를 TerritoryId로 파싱하여 폴백
+            string[] parts = key.Split('_');
+            if (parts.Length == 2)
+            {
+                if (System.Enum.TryParse<NationType>(parts[0], out var nation) &&
+                    int.TryParse(parts[1], out var index))
+                {
+                    return new TerritoryState(new TerritoryId(nation, index));
+                }
+            }
+
+            Debug.LogWarning($"[TerritoryDatabase] 상태 없음: {key}");
+            return null;
+        }
+
         public void SetOwnership(NationType nation, int index, TerritoryOwnership ownership)
         {
             GetState(nation, index).ownership = ownership;

@@ -18,9 +18,9 @@ namespace ProjectName.Systems
         public static GuardSelectionManager Instance { get; private set; }
 
         [Header("선택 설정")]
-        [SerializeField] private Color _selectionBoxColor = new Color(0.3f, 0.8f, 0.3f, 0.2f);
-        [SerializeField] private Color _selectionBorderColor = new Color(0.3f, 0.8f, 0.3f, 0.8f);
-        [SerializeField] private float _clickThreshold = 10f; // 드래그 vs 클릭 판정 거리
+           [SerializeField] private Color _selectionBoxColor = new Color(0.2f, 0.5f, 1.0f, 0.2f);   // 파란색 반투명
+           [SerializeField] private Color _selectionBorderColor = new Color(0.2f, 0.5f, 1.0f, 0.8f); // 파란색 테두리
+           [SerializeField] private float _clickThreshold = 10f;// 드래그 vs 클릭 판정 거리
 
         [Header("선택 표시")]
         [SerializeField] private Material _selectedIndicatorMaterial;
@@ -123,6 +123,62 @@ namespace ProjectName.Systems
         {
             if (_isDragging)
                 DrawSelectionBoxGUI();
+
+            // 선택된 병사 위에 파란색 원 표시
+            DrawSelectionIndicators();
+        }
+
+        // ===== 선택 표시 (파란색 원) =====
+        private void DrawSelectionIndicators()
+        {
+            if (_mainCamera == null || _selectedGuards.Count == 0) return;
+
+            var oldColor = GUI.color;
+            var oldMatrix = GUI.matrix;
+
+            foreach (var guard in _selectedGuards)
+            {
+                if (guard == null || !guard.IsAlive || !guard.gameObject.activeInHierarchy) continue;
+
+                Vector3 worldPos = guard.transform.position + Vector3.up * 1.8f;
+                Vector3 screenPos = _mainCamera.WorldToScreenPoint(worldPos);
+                if (screenPos.z < 0) continue;
+
+                screenPos.y = Screen.height - screenPos.y;
+
+                // 파란색 원 (원형 텍스처 대신 4개의 선으로 원 표현)
+                float radius = 18f;
+                float segments = 16;
+                float thickness = 3f;
+
+                GUI.color = new Color(0.2f, 0.5f, 1.0f, 0.9f);
+
+                for (int i = 0; i < segments; i++)
+                {
+                    float angle1 = (i / segments) * Mathf.PI * 2f;
+                    float angle2 = ((i + 1) / segments) * Mathf.PI * 2f;
+
+                    float x1 = screenPos.x + Mathf.Cos(angle1) * radius - thickness / 2f;
+                    float y1 = screenPos.y + Mathf.Sin(angle1) * radius - thickness / 2f;
+                    float x2 = screenPos.x + Mathf.Cos(angle2) * radius - thickness / 2f;
+                    float y2 = screenPos.y + Mathf.Sin(angle2) * radius - thickness / 2f;
+
+                    float len = Mathf.Sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+                    if (len < 1f) continue;
+
+                    float angleDeg = Mathf.Atan2(y2 - y1, x2 - x1) * Mathf.Rad2Deg;
+                    GUIUtility.RotateAroundPivot(angleDeg, new Vector2(x1, y1));
+                    GUI.DrawTexture(new Rect(x1, y1, len, thickness), MakeTex(1, 1, Color.white));
+                    GUI.matrix = oldMatrix;
+                }
+
+                // 내부 반투명 원
+                GUI.color = new Color(0.2f, 0.5f, 1.0f, 0.15f);
+                GUI.DrawTexture(new Rect(screenPos.x - radius, screenPos.y - radius, radius * 2f, radius * 2f), MakeTex(1, 1, Color.white));
+
+                GUI.color = oldColor;
+                GUI.matrix = oldMatrix;
+            }
         }
 
         // ===== 선택 박스 (IMGUI) =====
