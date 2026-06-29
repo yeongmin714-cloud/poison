@@ -319,6 +319,16 @@ namespace ProjectName.Core
         }
 
         /// <summary>
+        /// 최근 지정된 시간(초) 이내에 피격되었는지 확인합니다.
+        /// </summary>
+        /// <param name="seconds">확인할 시간 범위 (초)</param>
+        /// <returns>해당 시간 이내에 피격되었다면 true</returns>
+        public bool WasRecentlyHit(float seconds)
+        {
+            return Time.time - _lastDamageTime <= seconds;
+        }
+
+        /// <summary>
         /// 무적 시간 설정 (외부에서 조정)
         /// </summary>
         public void SetInvincibleTime(float seconds)

@@ -54,8 +54,8 @@
 | 조건 | 동작 |
 |------|------|
 | WASD 키 입력 | 즉시 취소 (AutoMoveManager.DetectWASDInput) |
-| 전투 상태 진입 | 일시 정지 (PauseAutoMove — TODO: 전투 시스템 연동) |
-| 목표 도착 | 자동 완료 + 알림 표시 |
+| 전투 상태 진입 | 일시 정지 (PauseAutoMove — PlayerHealth 피격 + GuardHostility 적대 + MonsterAggro 연동 완료) |
+| 목표 도착 | 자동 완료 + 알림 표시 + 도착 사운드 |
 
 ## 의존성
 - `ProjectName.Systems.PlayerMovement` — WalkSpeed 참조
@@ -65,7 +65,7 @@
 - `CharacterController` — 이동 (PlayerMovement와 동일)
 
 ## TODO
-- [ ] 전투 시스템(CombatManager) 연동 — IsInCombat() 구현
+- [x] 전투 시스템(CombatManager) 연동 — IsInCombat() 구현 (PlayerHealth 피격 + GuardHostility 적대 + MonsterAggro 연동)
+- [x] SoundManager 연동 (이동 시작/도착/취소 사운드 — SFXType: AutoMove_Start/Complete/Cancel)
 - [ ] NavMesh 기반 경로 탐색 (현재는 직선 Lerp 이동)
 - [ ] 영지별 실제 월드 좌표 설정 (현재는 ID 기반 추정 좌표)
-- [ ] SoundManager 연동 (이동 시작/도착/취소 사운드)

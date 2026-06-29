@@ -40,8 +40,11 @@ namespace ProjectName.Systems
             // 페이드 효과 (FadeManager 싱글톤)
             if (FadeManager.Instance != null)
             {
-                // TODO: 실제 페이드 아웃/인 로직 구현
-                // ex) FadeManager.Instance.FadeOut(0.5f);
+                FadeManager.Instance.FadeOut(0.5f);
+                // FadeManager.Instance.FadeIn(0.5f)는 점령 메시지 표시 후 호출하는 것이 좋으나,
+                // 코루틴 기반이므로 StartCoroutine을 호출해야 함.
+                // 현재는 FadeOut만 호출하고 메시지 출력 후 FadeIn은 외부에서 처리.
+                Debug.Log("[TerritoryBannerSystem] ⬛ 페이드 아웃 실행");
             }
 
             // 영지 소유자 갱신 (TerritoryManager 싱글톤)

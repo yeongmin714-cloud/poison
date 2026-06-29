@@ -53,7 +53,16 @@ namespace ProjectName.Systems
             Victory,
 
             /// <summary>패배</summary>
-            Defeat
+            Defeat,
+
+            /// <summary>자동 이동 시작</summary>
+            AutoMove_Start,
+
+            /// <summary>자동 이동 완료 (도착)</summary>
+            AutoMove_Complete,
+
+            /// <summary>자동 이동 취소</summary>
+            AutoMove_Cancel
         }
 
         // ===== 싱글톤 =====
@@ -363,6 +372,9 @@ namespace ProjectName.Systems
                 SFXType.Alarm => "SFX_Alarm",
                 SFXType.Victory => "SFX_Victory",
                 SFXType.Defeat => "SFX_Defeat",
+                SFXType.AutoMove_Start => "SFX_AutoMove_Start",
+                SFXType.AutoMove_Complete => "SFX_AutoMove_Complete",
+                SFXType.AutoMove_Cancel => "SFX_AutoMove_Cancel",
                 _ => "SFX_Unknown"
             };
         }

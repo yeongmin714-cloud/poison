@@ -27,6 +27,13 @@ namespace ProjectName.Systems
         [Header("Debug")]
         [SerializeField] private bool _showDebugLogs = false;
 
+        [Header("Combat Detection")]
+        [SerializeField] private float _recentHitWindow = 5f;      // 피격 감지 시간 범위
+        [SerializeField] private float _hostileDetectionRadius = 15f; // 적대 NPC 감지 반경
+
+        [Header("Sound Effects")]
+        [SerializeField] private bool _enableAutoMoveSounds = true;
+
         // 싱글톤
         private static AutoMoveManager _instance;
         public static AutoMoveManager Instance => _instance;
@@ -206,6 +213,9 @@ namespace ProjectName.Systems
             if (_showDebugLogs)
                 Debug.Log($"[AutoMoveManager] 🚶 자동 이동 시작! 목표: {worldPos}");
 
+            // 사운드 재생
+            PlayAutoMoveSound(SoundEffectManager.SFXType.AutoMove_Start);
+
             NotifyAutoMoveEvent("🚶 자동 이동 시작... [WASD로 취소]");
         }
 
@@ -226,6 +236,9 @@ namespace ProjectName.Systems
             if (_showDebugLogs)
                 Debug.Log($"[AutoMoveManager] {msg}");
 
+            // 사운드 재생
+            PlayAutoMoveSound(SoundEffectManager.SFXType.AutoMove_Cancel);
+
             NotifyAutoMoveEvent($"⏹️ {msg}");
         }
 
@@ -242,6 +255,9 @@ namespace ProjectName.Systems
             if (_showDebugLogs)
                 Debug.Log("[AutoMoveManager] ⏸️ 자동 이동 일시 정지 (전투 상태)");
 
+            // 사운드 재생
+            PlayAutoMoveSound(SoundEffectManager.SFXType.AutoMove_Cancel);
+
             NotifyAutoMoveEvent("⏸️ 전투 중 - 자동 이동 일시 정지");
         }
 
@@ -257,6 +273,9 @@ namespace ProjectName.Systems
 
             if (_showDebugLogs)
                 Debug.Log("[AutoMoveManager] ▶️ 자동 이동 재개");
+
+            // 사운드 재생
+            PlayAutoMoveSound(SoundEffectManager.SFXType.AutoMove_Start);
 
             NotifyAutoMoveEvent("▶️ 자동 이동 재개");
         }
@@ -345,6 +364,9 @@ namespace ProjectName.Systems
             if (_showDebugLogs)
                 Debug.Log($"[AutoMoveManager] ✅ 도착했습니다! 목표: {_destination}");
 
+            // 사운드 재생
+            PlayAutoMoveSound(SoundEffectManager.SFXType.AutoMove_Complete);
+
             NotifyAutoMoveEvent("✅ 도착했습니다!");
         }
 
@@ -367,12 +389,76 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 전투 상태 여부를 확인합니다.
+        /// 5초 이내 피격 or 적대적 NPC(가드/몬스터)가 근처(15m)에 있으면 true 반환.
         /// </summary>
         private bool IsInCombat()
         {
-            // 전투 상태 감지 로직 (CombatManager 등이 있다면 활용)
-            // 예시: CombatManager.Instance != null && CombatManager.Instance.IsInCombat
-            return false; // TODO: 실제 전투 시스템 연동 시 활성화
+            // 1) 최근 피격 여부 확인 (PlayerHealth)
+            if (PlayerHealth.Instance != null && PlayerHealth.Instance.WasRecentlyHit(_recentHitWindow))
+            {
+                if (_showDebugLogs)
+                    Debug.Log("[AutoMoveManager] ⚔️ 전투 감지: 최근 피격됨");
+                return true;
+            }
+
+            // 2) 플레이어 주변 15m 이내의 적대적 가드 확인 (GuardHostilitySystem)
+            GameObject playerObj = _playerTransform != null ? _playerTransform.gameObject : null;
+            if (playerObj == null)
+                playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+            {
+                Vector3 playerPos = playerObj.transform.position;
+
+                // 2a) GuardPlaceholder 중 Hostile 상태인 것 확인
+                var guards = FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
+                float sqrDetectRadius = _hostileDetectionRadius * _hostileDetectionRadius;
+                foreach (var guard in guards)
+                {
+                    if (guard == null || !guard.IsAlive) continue;
+                    float sqrDist = (guard.transform.position - playerPos).sqrMagnitude;
+                    if (sqrDist > sqrDetectRadius) continue;
+
+                    // GuardHostilitySystem을 통해 적대 상태 확인
+                    bool isHostile = false;
+                    if (GuardHostilitySystem.Instance != null)
+                        isHostile = GuardHostilitySystem.Instance.IsHostile(guard);
+                    else if (guard.IsInCombat)
+                        isHostile = true;
+
+                    if (isHostile)
+                    {
+                        if (_showDebugLogs)
+                            Debug.Log($"[AutoMoveManager] ⚔️ 전투 감지: 적대 가드 {guard.GuardName} 근접");
+                        return true;
+                    }
+                }
+
+                // 2b) MonsterAggroSystem — 플레이어를 대상으로 하는 몬스터 확인
+                if (MonsterAggroSystem.Instance != null)
+                {
+                    foreach (var monster in MonsterAggroSystem.Instance.AllMonsters)
+                    {
+                        if (monster == null) continue;
+                        var mb = monster as MonoBehaviour;
+                        if (mb == null || mb.gameObject == null) continue;
+                        float sqrDist = (mb.transform.position - playerPos).sqrMagnitude;
+                        if (sqrDist > sqrDetectRadius) continue;
+                        if (monster.IsInCombat && monster.AggroTarget != null)
+                        {
+                            // AggroTarget이 플레이어인지 확인
+                            GameObject aggroTarget = monster.AggroTarget;
+                            if (aggroTarget == playerObj)
+                            {
+                                if (_showDebugLogs)
+                                    Debug.Log("[AutoMoveManager] ⚔️ 전투 감지: 몬스터가 플레이어를 어그로");
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -437,6 +523,17 @@ namespace ProjectName.Systems
         {
             // 정적 이벤트로 알림 — AutoMoveUI가 구독
             OnAutoMoveNotification?.Invoke(message);
+        }
+
+        /// <summary>
+        /// 자동 이동 사운드를 재생합니다.
+        /// _enableAutoMoveSounds가 false이면 재생하지 않습니다.
+        /// </summary>
+        private void PlayAutoMoveSound(SoundEffectManager.SFXType type)
+        {
+            if (!_enableAutoMoveSounds) return;
+            if (SoundEffectManager.Instance != null)
+                SoundEffectManager.Instance.PlaySFX(type);
         }
 
         // ===== Events =====
