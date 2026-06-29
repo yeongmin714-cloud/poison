@@ -32,6 +32,7 @@ namespace ProjectName.UI.Themes
         private static Color _lastC4;
         private static int _lastWidth;
         private static int _lastHeight;
+        private static readonly Dictionary<string, Texture2D> _cachedTextures = new Dictionary<string, Texture2D>();
 
         // ================================================================
         // 공개 API
@@ -171,6 +172,7 @@ namespace ProjectName.UI.Themes
                 }
             }
             tex.Apply();
+            _cachedTextures[$"{mode}_{c1}_{c2}_{width}_{height}"] = tex;
             return tex;
         }
 
@@ -221,6 +223,7 @@ namespace ProjectName.UI.Themes
                 }
             }
             tex.Apply();
+            _cachedTextures[$"4color_{top}_{topMid}_{botMid}_{bottom}_{width}_{height}"] = tex;
             return tex;
         }
     }

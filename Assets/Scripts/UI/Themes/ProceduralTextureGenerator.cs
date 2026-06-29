@@ -13,6 +13,7 @@ namespace ProjectName.UI.Themes
     {
         private const int DEFAULT_SIZE = 256;
         private static readonly Dictionary<string, Texture2D> _cache = new Dictionary<string, Texture2D>();
+        private static readonly Dictionary<string, Texture2D> _cachedTextures = new Dictionary<string, Texture2D>();
 
         // ================================================================
         // 공개 API
@@ -29,6 +30,7 @@ namespace ProjectName.UI.Themes
 
             Texture2D tex = GeneratePattern(patternType, DEFAULT_SIZE, DEFAULT_SIZE);
             _cache[key] = tex;
+            _cachedTextures[key] = tex;
             return tex;
         }
 
@@ -43,6 +45,12 @@ namespace ProjectName.UI.Themes
                     Object.DestroyImmediate(kvp.Value);
             }
             _cache.Clear();
+            foreach (var kvp in _cachedTextures)
+            {
+                if (kvp.Value != null)
+                    Object.DestroyImmediate(kvp.Value);
+            }
+            _cachedTextures.Clear();
         }
 
         /// <summary>
