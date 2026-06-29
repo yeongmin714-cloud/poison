@@ -109,18 +109,10 @@ namespace ProjectName.Systems
             // 사운드 재생
             PlayDiscoverSound();
 
-            // 메모가 있으면 UI 열기
+            // 메모가 있으면 UI 열기 (정적 델리게이트 브리지 사용)
             if (_noteData != null)
             {
-                var readWindow = ProjectName.UI.ReadDocumentWindow.Instance;
-                if (readWindow != null)
-                {
-                    readWindow.ShowDocument(_noteData);
-                }
-                else
-                {
-                    Debug.Log($"[DeadBodyWithNote] Note found: {_noteData.Title}\n{_noteData.Content}");
-                }
+                InteractableDocument.OnDocumentReadRequested?.Invoke(_noteData);
 
                 AmbientDialogueManager.Instance?.RegisterDiscovery(_noteData.DocumentId);
             }

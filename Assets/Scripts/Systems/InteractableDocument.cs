@@ -1,4 +1,3 @@
-using ProjectName.UI;
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -40,6 +39,13 @@ namespace ProjectName.Systems
         // ===== 이벤트 =====
         /// <summary>문서가 처음 발견되었을 때 발생</summary>
         public event System.Action<ReadableDocument> OnDocumentDiscovered;
+
+        /// <summary>
+        /// 문서 읽기 UI 표시 요청을 위한 정적 델리게이트.
+        /// UI 레이어(ProjectName.UI.ReadDocumentWindow)에서 구독합니다.
+        /// Systems → UI 직접 참조를 피하기 위한 이벤트 브리지.
+        /// </summary>
+        public static System.Action<ReadableDocument> OnDocumentReadRequested;
 
         // ================================================================
         // Unity 생명주기
@@ -107,8 +113,8 @@ namespace ProjectName.Systems
                 return;
             }
 
-            // 문서 읽기 UI 열기
-            ReadDocumentWindow.Instance?.ShowDocument(_documentData);
+            // 문서 읽기 UI 열기 — 정적 델리게이트를 통해 UI 연결
+            OnDocumentReadRequested?.Invoke(_documentData);
 
             // 최초 발견 처리
             if (!_alreadyDiscovered)

@@ -50,6 +50,18 @@ namespace ProjectName.UI
                 return;
             }
             Instance = this;
+
+            // Systems → UI 이벤트 브리지 구독
+            InteractableDocument.OnDocumentReadRequested += ShowDocument;
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                InteractableDocument.OnDocumentReadRequested -= ShowDocument;
+                Instance = null;
+            }
         }
 
         private void OnGUI()
