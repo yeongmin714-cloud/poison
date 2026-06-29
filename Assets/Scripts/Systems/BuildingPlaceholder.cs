@@ -39,13 +39,7 @@ namespace ProjectName.Systems
 
             _mainCamera = Camera.main;
 
-            // GUIStyle 캐싱 (OnGUI에서 매번 생성하지 않음)
-            _labelStyle = new GUIStyle(GUI.skin.label)
-            {
-                alignment = TextAnchor.UpperCenter,
-                fontSize = 14,
-            };
-            _labelStyle.normal.textColor = Color.yellow;
+            // _labelStyle은 OnGUI()에서 지연 초기화 (GUI.skin은 OnGUI 내에서만 접근 가능)
 
             Debug.Log($"[BuildingPlaceholder] {buildingName} ({buildingType}) 생성됨");
         }
@@ -76,6 +70,17 @@ namespace ProjectName.Systems
         // 건물 이름 표시 (선택 사항)
         private void OnGUI()
         {
+            // _labelStyle 지연 초기화 (GUI.skin은 OnGUI 내에서만 접근 가능)
+            if (_labelStyle == null)
+            {
+                _labelStyle = new GUIStyle(GUI.skin.label)
+                {
+                    alignment = TextAnchor.UpperCenter,
+                    fontSize = 14,
+                };
+                _labelStyle.normal.textColor = Color.yellow;
+            }
+
             // 플레이어와 가까운 경우에만 이름 표시
             if (_player == null || _mainCamera == null) return;
 

@@ -79,13 +79,6 @@ namespace ProjectName.UI
 
         private void Start()
         {
-            // GUI.skin — OnGUI가 아닌 Start에서 한 번만 설정
-            if (_customSkin != null)
-                GUI.skin = _customSkin;
-
-            // GC: GUIStyle 캐싱 — OnGUI 내 new 방지
-            CacheStyles();
-
             // GC: Rect 캐싱 — 고정 위치 Rect는 미리 계산
             CacheStaticRects();
 
@@ -187,6 +180,14 @@ namespace ProjectName.UI
 
         private void OnGUI()
         {
+            // 지연 초기화: GUI.skin 및 GUIStyle 캐싱 — GUI.skin은 OnGUI 내에서만 접근 가능
+            if (_cachedLabelStyle == null)
+            {
+                if (_customSkin != null)
+                    GUI.skin = _customSkin;
+                CacheStyles();
+            }
+
             UpdateStaticRectPositions();
 
             DrawHPBar();

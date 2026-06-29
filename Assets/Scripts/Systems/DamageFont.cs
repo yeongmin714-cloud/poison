@@ -41,12 +41,6 @@ namespace ProjectName.Systems
         private void Awake()
         {
             _camera = Camera.main;
-            _style = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = _isCrit ? 24 : 18,
-                fontStyle = _isCrit ? FontStyle.Bold : FontStyle.Normal,
-                alignment = TextAnchor.MiddleCenter
-            };
         }
 
         private void Update()
@@ -66,6 +60,17 @@ namespace ProjectName.Systems
         {
             if (_elapsed >= Lifetime) return;
             if (_camera == null) return;
+
+            // 지연 초기화: GUI.skin은 OnGUI 내에서만 접근 가능
+            if (_style == null)
+            {
+                _style = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = _isCrit ? 24 : 18,
+                    fontStyle = _isCrit ? FontStyle.Bold : FontStyle.Normal,
+                    alignment = TextAnchor.MiddleCenter
+                };
+            }
 
             Vector3 screenPos = _camera.WorldToScreenPoint(transform.position);
 

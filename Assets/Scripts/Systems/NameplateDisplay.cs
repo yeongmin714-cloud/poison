@@ -32,12 +32,6 @@ namespace ProjectName.Systems
         {
             _player = GameObject.FindGameObjectWithTag("Player")?.transform;
             _mainCamera = Camera.main;
-            _nameStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 14,
-                alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = Color.white }
-            };
         }
 
         private void Update()
@@ -50,7 +44,18 @@ namespace ProjectName.Systems
         private void OnGUI()
         {
             if (!_playerNearby) return;
-            if (_mainCamera == null || _nameStyle == null) return;
+            if (_mainCamera == null) return;
+
+            // 지연 초기화: GUI.skin은 OnGUI 내에서만 접근 가능
+            if (_nameStyle == null)
+            {
+                _nameStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 14,
+                    alignment = TextAnchor.MiddleCenter,
+                    normal = { textColor = Color.white }
+                };
+            }
 
             Vector3 screenPos = _mainCamera.WorldToScreenPoint(transform.position + Vector3.up * _floatOffset);
             if (screenPos.z < 0) return;
