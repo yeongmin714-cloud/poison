@@ -260,7 +260,7 @@ public static class NPCDataStore
         {
             foreach (var npc in kvp.Value)
             {
-                if (npc.npcId == npcId)
+                if (npc.NpcId == npcId)
                     return npc;
             }
         }

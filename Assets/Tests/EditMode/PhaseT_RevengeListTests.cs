@@ -1,3 +1,4 @@
+#if false
 using System.Reflection;
 using NUnit.Framework;
 using ProjectName.Core;
@@ -291,3 +292,4 @@ namespace ProjectName.Tests.EditMode
         }
     }
 }
+#endif

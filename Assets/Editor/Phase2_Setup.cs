@@ -3,6 +3,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems;
+using ProjectName.UI;
 
 /// <summary>
 /// Phase 2: 🏠 튜토리얼 — 추방지 허름한 집 셋업

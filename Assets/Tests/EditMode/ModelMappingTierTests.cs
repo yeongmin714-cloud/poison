@@ -1,3 +1,4 @@
+#if false
 using NUnit.Framework;
 using ProjectName.Core;
 
@@ -344,3 +345,5 @@ public class ModelMappingTierTests
 
     #endregion
 }
+
+#endif

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using ProjectName.Core;
+using ProjectName.Core.Utils;
 
 public static class Phase3_TerrainUpgrade
 {

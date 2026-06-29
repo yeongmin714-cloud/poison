@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using ProjectName.Core;
+using ProjectName.Core.Utils;
 
 /// <summary>
 /// Phase 3.6: 2000x2000 TopDownScene에 3개 국가 × 20 영지 오버레이 추가

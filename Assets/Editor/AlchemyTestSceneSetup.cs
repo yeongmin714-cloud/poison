@@ -47,7 +47,7 @@ public static class AlchemyTestSceneSetup
         
         // Add AlchemyUI for testing
         var alchemyGO = new GameObject("AlchemyUITest");
-        alchemyGO.AddComponent<ProjectName.Core.UI.AlchemyUI>();
+        alchemyGO.AddComponent<ProjectName.UI.AlchemyUI>();
 
         // Add a simple test script to give player some starting herbs
         var testGO = new GameObject("AlchemyTestInitializer");

@@ -341,10 +341,9 @@ public static class EditorAutoSetup
                 clipData.name = id;
                 clipData.soundId = id;
                 clipData.soundType = id.StartsWith("ui") ? ProjectName.Core.SoundType.UI : ProjectName.Core.SoundType.SFX;
-                clipData.category = id.Contains("craft") ? "craft" : id.Contains("ui") ? "ui" : id.Contains("attack") ? "combat" : "movement";
 
                 // 주파수 설정 (사운드 특성에 맞게)
-                clipData.proceduralPitch = id switch
+                clipData.proceduralFrequency = id switch
                 {
                     "footstep" => 100f,
                     "pickup" => 660f,

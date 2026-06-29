@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -50,14 +51,6 @@ namespace ProjectName.Editor
                 return;
             }
 
-            // Clear existing assets in the output folder (optional)
-            // string[] existingGuids = AssetDatabase.FindAssets("t:Herb", new[] { OutputFolder });
-            // foreach (string guid in existingGuids)
-            // {
-            //     string path = AssetDatabase.GUIDToAssetPath(guid);
-            //     AssetDatabase.DeleteAsset(path);
-            // }
-
             int created = 0;
             foreach (var info in herbs)
             {
@@ -66,23 +59,15 @@ namespace ProjectName.Editor
                 Herb existing = AssetDatabase.LoadAssetAtPath<Herb>(assetPath);
                 if (existing != null)
                 {
-                    // Update existing
-                    existing.Id = info.id;
-                    existing.DisplayName = info.displayName;
-                    existing.Description = info.description;
-                    existing.Attribute = info.attribute;
-                    existing.Index = info.index;
+                    // Update existing via reflection (properties have private set)
+                    SetHerbProperties(existing, info);
                     EditorUtility.SetDirty(existing);
                 }
                 else
                 {
                     // Create new
                     Herb herb = ScriptableObject.CreateInstance<Herb>();
-                    herb.Id = info.id;
-                    herb.DisplayName = info.displayName;
-                    herb.Description = info.description;
-                    herb.Attribute = info.attribute;
-                    herb.Index = info.index;
+                    SetHerbProperties(herb, info);
                     AssetDatabase.CreateAsset(herb, assetPath);
                     created++;
                 }
@@ -95,6 +80,19 @@ namespace ProjectName.Editor
                 "Success",
                 $"Imported {herbs.Count} herbs. Created {created} new assets, updated {herbs.Count - created} existing.",
                 "OK");
+        }
+
+        /// <summary>
+        /// Set Herb properties via reflection (bypasses private set restriction).
+        /// </summary>
+        private static void SetHerbProperties(Herb herb, HerbInfo info)
+        {
+            var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
+            typeof(Herb).GetProperty("Id", flags)?.GetSetMethod(true)?.Invoke(herb, new object[] { info.id });
+            typeof(Herb).GetProperty("DisplayName", flags)?.GetSetMethod(true)?.Invoke(herb, new object[] { info.displayName });
+            typeof(Herb).GetProperty("Description", flags)?.GetSetMethod(true)?.Invoke(herb, new object[] { info.description });
+            typeof(Herb).GetProperty("Attribute", flags)?.GetSetMethod(true)?.Invoke(herb, new object[] { info.attribute });
+            typeof(Herb).GetProperty("Index", flags)?.GetSetMethod(true)?.Invoke(herb, new object[] { info.index });
         }
 
         // Reuse the parsing logic from HerbDatabase (copy-paste for simplicity)

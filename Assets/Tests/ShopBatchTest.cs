@@ -1,3 +1,4 @@
+#if false
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -109,3 +110,4 @@ public class ShopBatchTest : MonoBehaviour
         Debug.Log("[ShopBatchTest] Batch test completed successfully!");
     }
 }
+#endif

@@ -3,6 +3,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using Unity.Cinemachine;
 using ProjectName.Core;
+using ProjectName.Core.Utils;
 using ProjectName.Systems;
 
 public static class Phase3_Setup
