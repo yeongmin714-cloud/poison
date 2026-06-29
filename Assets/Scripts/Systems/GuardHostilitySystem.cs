@@ -162,7 +162,7 @@ namespace ProjectName.Systems
             TerritoryId? territoryId = FindGuardTerritory(guard);
             if (territoryId.HasValue)
             {
-                AlarmSystem.TriggerAlert(territoryId.Value, guard.transform.position);
+                AlarmSystem.TriggerAlert(territoryId.Value.ToString(), guard.transform.position);
                 Debug.Log($"[GuardHostility] 🚨 {guard.GuardName} 경보 발령! 영지: {territoryId.Value}");
             }
             else

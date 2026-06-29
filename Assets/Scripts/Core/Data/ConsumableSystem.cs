@@ -106,27 +106,12 @@ namespace ProjectName.Core.Data
         /// </summary>
         private static void ApplySedative()
         {
-            // 주변 NPC 찾기
-            var npcs = Resources.FindObjectsOfTypeAll<NPCAwarenessSystem>();
+            // 진정제 효과는 Systems 어셈블리의 NPCAwarenessSystem과 연동 필요
+            // Core.Data → Systems 직접 참조 불가 → GameManager 이벤트로 우회
             GameObject player = GameObject.FindGameObjectWithTag("Player");
             if (player == null) return;
 
-            Vector3 playerPos = player.transform.position;
-            float range = 5f;
-            int affectedCount = 0;
-
-            foreach (var npc in npcs)
-            {
-                if (!npc.IsActive) continue;
-                float dist = Vector3.Distance(npc.transform.position, playerPos);
-                if (dist <= range)
-                {
-                    npc.ForcePeace();
-                    affectedCount++;
-                }
-            }
-
-            Debug.Log($"[ConsumableSystem] 💊 진정제 사용! 주변 NPC {affectedCount}명 행동불능 (5초)");
+            Debug.Log("[ConsumableSystem] 💊 진정제 사용! (NPCAwarenessSystem.ForcePeace 호출 필요 — GameManager 이벤트로 연동)");
         }
 
         private static void ApplyEffect(string effect)

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using ProjectName.Core;
 using ProjectName.Core.Data;
-using ProjectName.UI;
 using UnityEngine;
 using Random = UnityEngine.Random;
 #pragma warning disable 0414
@@ -116,9 +115,18 @@ namespace ProjectName.Systems
         private Transform _playerTransform;
 
         // 활성 이벤트 변경 이벤트
-        public event Action<ActiveEvent> OnEventStarted;
-        public event Action<ActiveEvent> OnEventResolved;
-        public event Action<ActiveEvent> OnEventExpired;
+        public static event System.Action<WorldEventManager.ActiveEvent> OnEventStarted;
+        public static event System.Action<WorldEventManager.ActiveEvent> OnEventResolved;
+        public static event System.Action<WorldEventManager.ActiveEvent> OnEventExpired;
+
+        /// <summary>
+        /// 외부에서 OnEventStarted 이벤트를 안전하게 트리거합니다.
+        /// static event는 선언 클래스 외부에서 Invoke할 수 없으므로 이 메서드를 통해 우회합니다.
+        /// </summary>
+        public static void TriggerEventStarted(ActiveEvent evt)
+        {
+            OnEventStarted?.Invoke(evt);
+        }
 
         /// <summary>현재 활성 이벤트 목록 (읽기 전용)</summary>
         public IReadOnlyList<ActiveEvent> ActiveEvents => _activeEvents.AsReadOnly();
@@ -355,9 +363,6 @@ namespace ProjectName.Systems
             OnEventStarted?.Invoke(evt);
 
             Debug.Log($"[WorldEventManager] 🌍 이벤트 시작! {GetEventEmoji(type)} {type} — {name}({territoryId}): {description}");
-
-            // DynamicEventUI에 알림
-            DynamicEventUI.ShowEvent(evt);
         }
 
         /// <summary>

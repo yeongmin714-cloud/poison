@@ -92,6 +92,18 @@ namespace ProjectName.Systems
             Material throneMat = new Material(shader) { name = "Castle_ThroneMat" };
             throneMat.color = new Color(0.55f, 0.40f, 0.20f); // 나무 왕좌
 
+            Material officeMat = new Material(shader) { name = "Castle_OfficeMat" };
+            officeMat.color = new Color(0.35f, 0.25f, 0.15f); // 집무실 나무
+
+            Material armoryMat = new Material(shader) { name = "Castle_ArmoryMat" };
+            armoryMat.color = new Color(0.40f, 0.35f, 0.30f); // 무기고 석재
+
+            Material vaultMat = new Material(shader) { name = "Castle_VaultMat" };
+            vaultMat.color = new Color(0.25f, 0.20f, 0.15f); // 금고실 어두운 석재
+
+            Material archiveMat = new Material(shader) { name = "Castle_ArchiveMat" };
+            archiveMat.color = new Color(0.50f, 0.40f, 0.30f); // 문서고
+
             // ===== 방 생성 =====
             GameObject room = IndoorBuilder.CreateRoom(roomWidth, roomHeight, roomDepth,
                 floorMat, wallMat, ceilingMat);
@@ -156,6 +168,67 @@ namespace ProjectName.Systems
                     meetingChair.transform.localRotation = Quaternion.Euler(0, side > 0 ? -90 : 90, 0);
                 }
             }
+
+            // ===== Phase 35: 성 내부 추가 구역 =====
+            // 1. 영주 집무실 (왼쪽 벽 — VeryHard)
+            GameObject lordOfficeDoor = new GameObject("LordOfficeDoor_Locked");
+            lordOfficeDoor.transform.SetParent(room.transform);
+            lordOfficeDoor.transform.localPosition = new Vector3(-roomWidth * 0.5f + 0.5f, 1.5f, -roomDepth * 0.25f);
+            lordOfficeDoor.transform.localScale = new Vector3(1.0f, 2.5f, 0.3f);
+            var officeRenderer = lordOfficeDoor.AddComponent<MeshRenderer>();
+            var officeFilter = lordOfficeDoor.AddComponent<MeshFilter>();
+            officeFilter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            if (officeRenderer != null) officeRenderer.sharedMaterial = officeMat;
+            var officeLock = lordOfficeDoor.AddComponent<LockedDoor>();
+            officeLock.LocationId = "castle_lord_office";
+            officeLock.Difficulty = LockpickingSystem.LockDifficulty.VeryHard;
+            var officeLabel = lordOfficeDoor.AddComponent<NameplateDisplay>();
+            officeLabel.DisplayName = "🚪 영주 집무실 (잠김)";
+
+            // 2. 무기고 (오른쪽 벽 — Hard)
+            GameObject armoryDoor = new GameObject("ArmoryDoor_Locked");
+            armoryDoor.transform.SetParent(room.transform);
+            armoryDoor.transform.localPosition = new Vector3(roomWidth * 0.5f - 0.5f, 1.5f, -roomDepth * 0.25f);
+            armoryDoor.transform.localScale = new Vector3(1.0f, 2.5f, 0.3f);
+            var armoryRenderer = armoryDoor.AddComponent<MeshRenderer>();
+            var armoryFilter = armoryDoor.AddComponent<MeshFilter>();
+            armoryFilter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            if (armoryRenderer != null) armoryRenderer.sharedMaterial = armoryMat;
+            var armoryLock = armoryDoor.AddComponent<LockedDoor>();
+            armoryLock.LocationId = "castle_armory";
+            armoryLock.Difficulty = LockpickingSystem.LockDifficulty.Hard;
+            var armoryLabel = armoryDoor.AddComponent<NameplateDisplay>();
+            armoryLabel.DisplayName = "⚔️ 무기고 (잠김)";
+
+            // 3. 금고실 (왼쪽 뒷벽 — Legendary)
+            GameObject vaultDoor = new GameObject("VaultDoor_Locked");
+            vaultDoor.transform.SetParent(room.transform);
+            vaultDoor.transform.localPosition = new Vector3(-roomWidth * 0.25f, 1.5f, roomDepth * 0.5f - 1.5f);
+            vaultDoor.transform.localScale = new Vector3(1.2f, 2.5f, 0.3f);
+            var vaultRenderer = vaultDoor.AddComponent<MeshRenderer>();
+            var vaultFilter = vaultDoor.AddComponent<MeshFilter>();
+            vaultFilter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            if (vaultRenderer != null) vaultRenderer.sharedMaterial = vaultMat;
+            var vaultLock = vaultDoor.AddComponent<LockedDoor>();
+            vaultLock.LocationId = "castle_vault";
+            vaultLock.Difficulty = LockpickingSystem.LockDifficulty.Legendary;
+            var vaultLabel = vaultDoor.AddComponent<NameplateDisplay>();
+            vaultLabel.DisplayName = "💰 금고실 (전설 잠김)";
+
+            // 4. 문서고 (오른쪽 뒷벽 — Easy)
+            GameObject archiveDoor = new GameObject("ArchiveDoor_Locked");
+            archiveDoor.transform.SetParent(room.transform);
+            archiveDoor.transform.localPosition = new Vector3(roomWidth * 0.25f, 1.5f, roomDepth * 0.5f - 1.5f);
+            archiveDoor.transform.localScale = new Vector3(1.0f, 2.5f, 0.3f);
+            var archiveRenderer = archiveDoor.AddComponent<MeshRenderer>();
+            var archiveFilter = archiveDoor.AddComponent<MeshFilter>();
+            archiveFilter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            if (archiveRenderer != null) archiveRenderer.sharedMaterial = archiveMat;
+            var archiveLock = archiveDoor.AddComponent<LockedDoor>();
+            archiveLock.LocationId = "castle_archive";
+            archiveLock.Difficulty = LockpickingSystem.LockDifficulty.Easy;
+            var archiveLabel = archiveDoor.AddComponent<NameplateDisplay>();
+            archiveLabel.DisplayName = "📜 문서고 (잠김)";
 
             // ===== 조명 설정 =====
             Color ambient = new Color(0.08f, 0.07f, 0.06f);

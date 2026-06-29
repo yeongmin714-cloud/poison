@@ -11,6 +11,13 @@ namespace ProjectName.UI
     /// </summary>
     public static class DynamicEventUI
     {
+        /// <summary>런타임 초기화 — WorldEventManager 이벤트 구독</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void Initialize()
+        {
+            WorldEventManager.OnEventStarted += (evt) => ShowEvent(evt);
+        }
+
         // ===== 상수 =====
         private const float POPUP_WIDTH_RATIO = 0.4f;
         private const float POPUP_HEIGHT_RATIO = 0.3f;

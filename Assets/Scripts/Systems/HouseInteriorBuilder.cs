@@ -59,6 +59,9 @@ namespace ProjectName.Systems
             Material fabricMat = new Material(shader) { name = "House_FabricMat" };
             fabricMat.color = new Color(0.60f, 0.50f, 0.40f); // 천/매트리스 색
 
+            Material lordMat = new Material(shader) { name = "House_LordMat" };
+            lordMat.color = new Color(0.35f, 0.20f, 0.10f); // 짙은 나무 (영주 방)
+
             // ===== 방 생성 =====
             GameObject room = IndoorBuilder.CreateRoom(roomWidth, roomHeight, roomDepth,
                 floorMat, wallMat, ceilingMat);
@@ -108,6 +111,34 @@ namespace ProjectName.Systems
             IndoorLighting.AddPointLight(room,
                 new Vector3(-roomWidth * 0.5f + 2.0f, 2.0f, -roomDepth * 0.5f + 1.0f),
                 new Color(1f, 0.6f, 0.2f), 6f, 0.8f);
+
+            // ===== Phase 35: 2층 영주 방 (계단 + 잠긴 문) =====
+            // 계단 오브젝트 (경사진 큐브)
+            GameObject stairsCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            stairsCube.name = "StairsToUpstairs";
+            stairsCube.transform.SetParent(room.transform);
+            stairsCube.transform.localPosition = new Vector3(-roomWidth * 0.5f + 1.2f, 1.2f, -roomDepth * 0.5f + 1.5f);
+            stairsCube.transform.localScale = new Vector3(1.0f, 0.4f, 1.5f);
+            stairsCube.transform.localRotation = Quaternion.Euler(20, 0, 0);
+            var stairsRenderer = stairsCube.GetComponent<MeshRenderer>();
+            if (stairsRenderer != null) stairsRenderer.sharedMaterial = woodMat;
+
+            // 2층 영주 방 문 (잠긴 문)
+            GameObject lordDoor = new GameObject("LordRoomDoor_Locked");
+            lordDoor.transform.SetParent(room.transform);
+            lordDoor.transform.localPosition = new Vector3(-roomWidth * 0.5f + 1.5f, 1.5f, -roomDepth * 0.5f + 2.8f);
+            lordDoor.transform.localScale = new Vector3(0.8f, 2.0f, 0.2f);
+            var lordDoorRenderer = lordDoor.AddComponent<MeshRenderer>();
+            var lordDoorFilter = lordDoor.AddComponent<MeshFilter>();
+            lordDoorFilter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            if (lordDoorRenderer != null) lordDoorRenderer.sharedMaterial = lordMat;
+            var lordLock = lordDoor.AddComponent<LockedDoor>();
+            lordLock.LocationId = "house_lord_room";
+            lordLock.Difficulty = LockpickingSystem.LockDifficulty.Medium;
+
+            // 2층 영주 방 라벨
+            var lordLabel = lordDoor.AddComponent<NameplateDisplay>();
+            lordLabel.DisplayName = "🚪 2층 영주 방 (잠김)";
 
             // ===== 조명 설정 =====
             // 따뜻한 앰비언트 + 깜빡임(난로 불빛 연출)

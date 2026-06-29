@@ -51,6 +51,9 @@ namespace ProjectName.Systems
             Material furnitureMat = new Material(shader) { name = "Shop_FurnitureMat" };
             furnitureMat.color = new Color(0.50f, 0.35f, 0.20f); // 짙은 나무색
 
+            Material officeMat = new Material(shader) { name = "Shop_OfficeMat" };
+            officeMat.color = new Color(0.40f, 0.25f, 0.15f); // 어두운 나무색 (사무실)
+
             // ===== 방 생성 (C11-01) =====
             GameObject room = IndoorBuilder.CreateRoom(roomWidth, roomHeight, roomDepth,
                 floorMat, wallMat, ceilingMat);
@@ -102,6 +105,55 @@ namespace ProjectName.Systems
                 displayTable.transform.SetParent(room.transform);
                 displayTable.transform.localPosition = new Vector3(1.5f, 0, -roomDepth * 0.5f + 2f);
             }
+
+            // ===== Phase 35: 카운터 뒤 사무실 (금고) =====
+            // 뒷벽 쪽에 사무실 공간 표시 (벽면 큐브)
+            float officeDepth = 2f;
+            float officeWidth = 3f;
+            GameObject officeFloor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            officeFloor.name = "OfficeFloor";
+            officeFloor.transform.SetParent(room.transform);
+            officeFloor.transform.localPosition = new Vector3(0, 0.01f, -roomDepth * 0.5f + officeDepth * 0.5f);
+            officeFloor.transform.localScale = new Vector3(officeWidth, 0.05f, officeDepth);
+            var officeFloorRenderer = officeFloor.GetComponent<MeshRenderer>();
+            if (officeFloorRenderer != null) officeFloorRenderer.sharedMaterial = officeMat;
+
+            // 사무실 책상
+            GameObject officeDesk = IndoorFurniturePlacer.CreateTable(1.5f, 0.8f, 0.7f, officeMat);
+            officeDesk.name = "OfficeDesk";
+            officeDesk.transform.SetParent(room.transform);
+            officeDesk.transform.localPosition = new Vector3(0, 0, -roomDepth * 0.5f + 1.2f);
+
+            // ===== Phase 35: 잠긴 금고 문 =====
+            // 사무실 내 금고 (LockedDoor 프리팹 대신 컴포넌트 추가)
+            GameObject safeDoor = new GameObject("SafeDoor_Locked");
+            safeDoor.transform.SetParent(room.transform);
+            safeDoor.transform.localPosition = new Vector3(1.0f, 0.8f, -roomDepth * 0.5f + 1.8f);
+            safeDoor.transform.localScale = new Vector3(0.6f, 0.8f, 0.2f);
+            var safeRenderer = safeDoor.AddComponent<MeshRenderer>();
+            var safeFilter = safeDoor.AddComponent<MeshFilter>();
+            safeFilter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            if (safeRenderer != null) safeRenderer.sharedMaterial = officeMat;
+            var safeLock = safeDoor.AddComponent<LockedDoor>();
+            safeLock.LocationId = "shop_safe";
+            safeLock.Difficulty = LockpickingSystem.LockDifficulty.Hard;
+
+            // ===== Phase 35: 지하 창고 입구 (잠긴 문) =====
+            GameObject storageDoor = new GameObject("StorageDoor_Locked");
+            storageDoor.transform.SetParent(room.transform);
+            storageDoor.transform.localPosition = new Vector3(roomWidth * 0.5f - 1.0f, 0.5f, roomDepth * 0.5f - 0.8f);
+            storageDoor.transform.localScale = new Vector3(1.2f, 2.0f, 0.2f);
+            var storageRenderer = storageDoor.AddComponent<MeshRenderer>();
+            var storageFilter = storageDoor.AddComponent<MeshFilter>();
+            storageFilter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            if (storageRenderer != null) storageRenderer.sharedMaterial = furnitureMat;
+            var storageLock = storageDoor.AddComponent<LockedDoor>();
+            storageLock.LocationId = "shop_storage";
+            storageLock.Difficulty = LockpickingSystem.LockDifficulty.Medium;
+
+            // 지하 창고 라벨
+            var storageLabel = storageDoor.AddComponent<NameplateDisplay>();
+            storageLabel.DisplayName = "🚪 지하 창고 (잠김)";
 
             // ===== 조명 설정 (C11-05) =====
             // 따뜻한 앰비언트 + 천장 중앙 Point Light + 깜빡임
