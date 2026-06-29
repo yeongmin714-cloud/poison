@@ -249,7 +249,7 @@ namespace ProjectName.Systems
                 return new PoisonResult { success = false, message = "포섭된 병사만 정보원으로 파견할 수 있습니다.", path = TakeoverPath.SpyExploit };
 
             // Infiltrate 임무로 영주 정보 수집
-            var spyResult = SpySystem.SendSpy(spy, territoryId, SpySystem.SpyMission.Infiltrate);
+            var spyResult = SpySystem.SendSpy(spy, territoryId, SpySystem.SpyMission.LordInfo);
             if (!spyResult.success)
             {
                 return new PoisonResult

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Systems;
+using System.Linq;
 using UnityEngine;
 using ProjectName.UI.Themes;
 #pragma warning disable 0414
@@ -529,6 +530,8 @@ namespace ProjectName.UI
         // ================================================================
 
         /// <summary>정보원 파견 UI 열기</summary>
+        public bool IsVisible => _isVisible;
+
         public void Open()
         {
             _isVisible = true;
@@ -693,15 +696,15 @@ namespace ProjectName.UI
             // TODO: 실제 영지 판정 로직으로 교체
             // 현재는 TerritoryDatabase의 첫 번째 영지 반환 (데모용)
             if (TerritoryDatabase.Instance == null) return null;
-            var allTerritories = TerritoryDatabase.Instance.GetAllTerritoryIds();
-            if (allTerritories == null || allTerritories.Length == 0) return null;
-            return allTerritories[0];
+            var allTerritories = TerritoryDatabase.Instance.GetAllDefinitions().ToList();
+            if (allTerritories == null || allTerritories.Count == 0) return null;
+            return allTerritories[0].id;
         }
 
         private static string GetTerritoryName(TerritoryId id)
         {
             var def = TerritoryDatabase.Instance?.GetDefinition(id);
-            return string.IsNullOrEmpty(def?.territoryName) ? id.zoneId : def.Value.territoryName;
+            return string.IsNullOrEmpty(def?.territoryName) ? id.ToString() : def.Value.territoryName;
         }
 
         private static string GetDefenseStatusText(int guardCount)

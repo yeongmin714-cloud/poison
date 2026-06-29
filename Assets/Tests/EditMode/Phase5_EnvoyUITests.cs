@@ -210,33 +210,33 @@ namespace ProjectName.Tests.EditMode
         [Test]
         public void SpySystem_MissionNames_NotNull()
         {
-            Assert.IsNotEmpty(SpySystem.GetMissionName(SpySystem.SpyMission.Recon));
-            Assert.IsNotEmpty(SpySystem.GetMissionName(SpySystem.SpyMission.Infiltrate));
-            Assert.IsNotEmpty(SpySystem.GetMissionName(SpySystem.SpyMission.Survey));
+            Assert.IsNotEmpty(SpySystem.GetMissionName(SpySystem.SpyMission.LordInfo));
+            Assert.IsNotEmpty(SpySystem.GetMissionName(SpySystem.SpyMission.TroopInfo));
+            Assert.IsNotEmpty(SpySystem.GetMissionName(SpySystem.SpyMission.TerritoryMap));
         }
 
         [Test]
         public void SpySystem_RequiredLevel_MatchesMissions()
         {
-            Assert.AreEqual(3, SpySystem.RECON_REQUIRED_LEVEL, "Recon 필요 Lv.3");
-            Assert.AreEqual(8, SpySystem.INFILTRATE_REQUIRED_LEVEL, "Infiltrate 필요 Lv.8");
-            Assert.AreEqual(5, SpySystem.SURVEY_REQUIRED_LEVEL, "Survey 필요 Lv.5");
+            Assert.AreEqual(5, SpySystem.LORDINFO_REQUIRED_LEVEL, "LordInfo 필요 Lv.5");
+            Assert.AreEqual(10, SpySystem.TROOPINFO_REQUIRED_LEVEL, "TroopInfo 필요 Lv.10");
+            Assert.AreEqual(15, SpySystem.TERRITORYMAP_REQUIRED_LEVEL, "TerritoryMap 필요 Lv.15");
 
-            Assert.AreEqual(SpySystem.RECON_REQUIRED_LEVEL, SpySystem.GetRequiredLevel(SpySystem.SpyMission.Recon));
-            Assert.AreEqual(SpySystem.INFILTRATE_REQUIRED_LEVEL, SpySystem.GetRequiredLevel(SpySystem.SpyMission.Infiltrate));
-            Assert.AreEqual(SpySystem.SURVEY_REQUIRED_LEVEL, SpySystem.GetRequiredLevel(SpySystem.SpyMission.Survey));
+            Assert.AreEqual(SpySystem.LORDINFO_REQUIRED_LEVEL, SpySystem.GetRequiredLevel(SpySystem.SpyMission.LordInfo));
+            Assert.AreEqual(SpySystem.TROOPINFO_REQUIRED_LEVEL, SpySystem.GetRequiredLevel(SpySystem.SpyMission.TroopInfo));
+            Assert.AreEqual(SpySystem.TERRITORYMAP_REQUIRED_LEVEL, SpySystem.GetRequiredLevel(SpySystem.SpyMission.TerritoryMap));
         }
 
         [Test]
         public void SpySystem_Duration_Positive()
         {
-            Assert.Greater(SpySystem.RECON_DURATION, 0f, "Recon 지속시간 > 0");
-            Assert.Greater(SpySystem.INFILTRATE_DURATION, 0f, "Infiltrate 지속시간 > 0");
-            Assert.Greater(SpySystem.SURVEY_DURATION, 0f, "Survey 지속시간 > 0");
+            Assert.Greater(SpySystem.LORDINFO_DURATION, 0f, "Recon 지속시간 > 0");
+            Assert.Greater(SpySystem.TROOPINFO_DURATION, 0f, "Infiltrate 지속시간 > 0");
+            Assert.Greater(SpySystem.TERRITORYMAP_DURATION, 0f, "Survey 지속시간 > 0");
 
-            Assert.AreEqual(SpySystem.RECON_DURATION, SpySystem.GetDuration(SpySystem.SpyMission.Recon), 0.01f);
-            Assert.AreEqual(SpySystem.INFILTRATE_DURATION, SpySystem.GetDuration(SpySystem.SpyMission.Infiltrate), 0.01f);
-            Assert.AreEqual(SpySystem.SURVEY_DURATION, SpySystem.GetDuration(SpySystem.SpyMission.Survey), 0.01f);
+            Assert.AreEqual(SpySystem.LORDINFO_DURATION, SpySystem.GetDuration(SpySystem.SpyMission.LordInfo), 0.01f);
+            Assert.AreEqual(SpySystem.TROOPINFO_DURATION, SpySystem.GetDuration(SpySystem.SpyMission.TroopInfo), 0.01f);
+            Assert.AreEqual(SpySystem.TERRITORYMAP_DURATION, SpySystem.GetDuration(SpySystem.SpyMission.TerritoryMap), 0.01f);
         }
 
         [Test]
@@ -264,7 +264,7 @@ namespace ProjectName.Tests.EditMode
             // 사망 처리
             spy.TakeDamage(9999f, Vector3.zero, "Test");
 
-            var result = SpySystem.SendSpy(spy, _testTerritory, SpySystem.SpyMission.Recon);
+            var result = SpySystem.SendSpy(spy, _testTerritory, SpySystem.SpyMission.LordInfo);
             Assert.IsFalse(result.success, "사망한 정보원 파견 실패");
             Assert.IsNotEmpty(result.message, "실패 메시지 있어야 함");
 
@@ -279,7 +279,7 @@ namespace ProjectName.Tests.EditMode
             spy.SetGuardInfo("미포섭정보원", 10, NationType.East);
             spy.SetRecruited(false); // 미포섭
 
-            var result = SpySystem.SendSpy(spy, _testTerritory, SpySystem.SpyMission.Recon);
+            var result = SpySystem.SendSpy(spy, _testTerritory, SpySystem.SpyMission.LordInfo);
             Assert.IsFalse(result.success, "미포섭 정보원 파견 실패");
             Assert.IsNotEmpty(result.message, "실패 메시지 있어야 함");
 
@@ -297,7 +297,7 @@ namespace ProjectName.Tests.EditMode
 
             // 직접 Execute 메서드 호출 — 성공/실패는 Random.value에 의존
             // 정보 구조체가 올바르게 채워지는지 확인
-            var result = SpySystem.SendSpy(spy, _testTerritory, SpySystem.SpyMission.Recon);
+            var result = SpySystem.SendSpy(spy, _testTerritory, SpySystem.SpyMission.LordInfo);
             // 결과가 성공이든 실패든 결과 구조체는 null이 아니어야 함
             Assert.IsNotNull(result, "SpyResult는 null이 아니어야 함");
 
@@ -326,7 +326,7 @@ namespace ProjectName.Tests.EditMode
             {
                 success = false,
                 message = "💀 발각! 정보원 테스트 처형됨.",
-                mission = SpySystem.SpyMission.Recon,
+                mission = SpySystem.SpyMission.LordInfo,
                 detected = true,
                 spyLost = true,
                 infoGathered = ""
@@ -365,9 +365,9 @@ namespace ProjectName.Tests.EditMode
         [Test]
         public void SpySystem_MissionDescriptions_NotEmpty()
         {
-            Assert.IsNotEmpty(SpySystem.GetMissionDescription(SpySystem.SpyMission.Recon));
-            Assert.IsNotEmpty(SpySystem.GetMissionDescription(SpySystem.SpyMission.Infiltrate));
-            Assert.IsNotEmpty(SpySystem.GetMissionDescription(SpySystem.SpyMission.Survey));
+            Assert.IsNotEmpty(SpySystem.GetMissionDescription(SpySystem.SpyMission.LordInfo));
+            Assert.IsNotEmpty(SpySystem.GetMissionDescription(SpySystem.SpyMission.TroopInfo));
+            Assert.IsNotEmpty(SpySystem.GetMissionDescription(SpySystem.SpyMission.TerritoryMap));
         }
 
         [Test]

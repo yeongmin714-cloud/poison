@@ -150,7 +150,6 @@ namespace ProjectName.UI
             // 타이머 정보
             if (_controller.IsReloading)
             {
-                GasSprayerData data = GasSprayerManager.GetGradeData(_controller.CurrentGrade);
                 float reloadDuration = GasSprayerManager.GetReloadTime(_controller.CurrentGrade);
                 _isReloading = true;
                 _reloadRatio = reloadDuration > 0f

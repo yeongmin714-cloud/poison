@@ -3,6 +3,7 @@ using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.Core.Data;
 using ProjectName.UI.Themes;
+using System.Linq;
 using UnityEngine;
 
 namespace ProjectName.UI
@@ -115,14 +116,13 @@ namespace ProjectName.UI
         {
             if (TerritoryDatabase.Instance != null)
             {
-                var ids = TerritoryDatabase.Instance.GetAllTerritoryIds();
-                if (ids != null && ids.Length > 0)
+                var defs = TerritoryDatabase.Instance.GetAllDefinitions();
+                if (defs != null)
                 {
                     var list = new List<string>();
-                    foreach (var id in ids)
+                    foreach (var def in defs)
                     {
-                        var def = TerritoryDatabase.Instance.GetDefinition(id);
-                        string name = string.IsNullOrEmpty(def.territoryName) ? id.zoneId : def.territoryName;
+                        string name = string.IsNullOrEmpty(def.territoryName) ? def.id.ToString() : def.territoryName;
                         list.Add(name);
                     }
                     _territoryOptions = list.ToArray();
@@ -270,10 +270,10 @@ namespace ProjectName.UI
                             // territoryId 찾기
                             if (TerritoryDatabase.Instance != null)
                             {
-                                var ids = TerritoryDatabase.Instance.GetAllTerritoryIds();
-                                if (ids != null && i < ids.Length)
+                                var defsList = TerritoryDatabase.Instance.GetAllDefinitions().ToList();
+                                if (defsList != null && i < defsList.Count)
                                 {
-                                    _currentTerritoryId = ids[i].zoneId;
+                                    _currentTerritoryId = defsList[i].id.ToString();
                                 }
                             }
                             else
@@ -698,19 +698,18 @@ namespace ProjectName.UI
                 return;
             }
 
-            // 대상 영지에 추가 (targetTerritoryId가 name인 경우를 대비해 zoneId로 변환 시도)
+            // 대상 영지에 추가
             string targetId = _targetTerritoryId;
             if (TerritoryDatabase.Instance != null)
             {
-                var allIds = TerritoryDatabase.Instance.GetAllTerritoryIds();
-                if (allIds != null)
+                var allDefs = TerritoryDatabase.Instance.GetAllDefinitions();
+                if (allDefs != null)
                 {
-                    foreach (var id in allIds)
+                    foreach (var def in allDefs)
                     {
-                        var def = TerritoryDatabase.Instance.GetDefinition(id);
-                        if (def.territoryName == _targetTerritoryId || id.zoneId == _targetTerritoryId)
+                        if (def.territoryName == _targetTerritoryId)
                         {
-                            targetId = id.zoneId;
+                            targetId = def.id.ToString();
                             break;
                         }
                     }
