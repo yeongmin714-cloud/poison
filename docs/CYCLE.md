@@ -892,72 +892,71 @@ PROGRESS.md에 진행 상황 기록 (자동)
 
 ## 🛠️ Phase FIX: 긴급 수정 — 건물 실내 전환 & 애니메이션 & UI 버그
 
-> ROADMAP.md에 진단된 5대 문제점을 해결하는 사이클들.
-> **우선순위:** FIX-01(건물) > FIX-03(에러) > FIX-02(애니메이션) > FIX-04(맵)
+> ✅ **모든 FIX 항목 코드 구현 완료 (2026-06-30 기준 코드 검증 완료)**
 
 ### FIX-01: 🏗️ 건물 실내 전환 시스템 재설계
 
 | 사이클 | 내용 | 상태 |
 |:------:|:-----|:----:|
-| F1-01 | **BuildingPlaceholder 수정** — E키 시 `IndoorSceneTransition.EnterBuilding()` 호출. ShopWindow 직접 열기 제거 | ⬜ |
-| F1-02 | **ShopInteriorBuilder 확장** — 실내에 ShopPlaceholder(상점NPC)+상호작용트리거 동적 생성 | ⬜ |
-| F1-03 | **CraftHouseInteriorBuilder 확장** — 실내에 크래프트 테이블+CraftingStation+안내UI 동적 생성 | ⬜ |
-| F1-04 | **ChurchInteriorBuilder 확장** — 실내에 Church NPC+기부 시스템 연동 | ⬜ |
-| F1-05 | **HouseInteriorBuilder 확장** — 실내에 NPC주민+NpcQuestGiver 배치 | ⬜ |
-| F1-06 | **출구 트리거 시스템** — 모든 인테리어 빌더에 문 근처 E키 → ExitBuilding() 트리거 추가 | ⬜ |
-| F1-07 | **TerritoryBuilder 수정** — 건물 생성 시 BuildingTrigger(실내전환용) 부착. BuildingPlaceholder 직접 상호작용 제거 | ⬜ |
-| F1-08 | **EditMode 테스트** — 진입→실내→NPC상호작용→퇴출 8개+ | ⬜ |
+| F1-01 | **BuildingPlaceholder 수정** — E키 시 `IndoorSceneTransition.EnterBuilding()` 호출. ShopWindow 직접 열기 제거 | ✅ |
+| F1-02 | **ShopInteriorBuilder 확장** — 실내에 ShopPlaceholder(상점NPC)+상호작용트리거 동적 생성 | ✅ |
+| F1-03 | **CraftHouseInteriorBuilder 확장** — 실내에 크래프트 테이블+CraftingStation+안내UI 동적 생성 | ✅ |
+| F1-04 | **ChurchInteriorBuilder 확장** — 실내에 Church NPC+기부 시스템 연동 | ✅ |
+| F1-05 | **HouseInteriorBuilder 확장** — 실내에 NPC주민+NpcQuestGiver 배치 | ✅ |
+| F1-06 | **출구 트리거 시스템** — 모든 인테리어 빌더에 문 근처 E키 → ExitBuilding() 트리거 추가 | ✅ |
+| F1-07 | **TerritoryBuilder 수정** — 건물 생성 시 BuildingTrigger(실내전환용) 부착. BuildingPlaceholder 직접 상호작용 제거 | ✅ |
+| F1-08 | **EditMode 테스트** — 진입→실내→NPC상호작용→퇴출 8개+ | ✅ |
 
 ### FIX-02: 🐛 몬스터 스폰 버그 수정 & 기본 지형 테스트 모드
 
 | 사이클 | 내용 | 상태 |
 |:------:|:-----|:----:|
-| F2-01 | **advancedOuter 버그 수정** — 1000f→1800f, MonsterSpawner.cs 36번 줄 | ⬜ |
-| F2-02 | **SpawnConfig 검증 로직** — Start()에서 inner>outer 체크 경고 | ⬜ |
-| F2-03 | **테스트 모드 지형 단순화** — GameManager _useSimpleTerrain 플래그 | ⬜ |
-| F2-04 | **Primitive 스폰 모드** — MonsterSpawner _usePrimitiveOnly 모드 | ⬜ |
-| F2-05 | **EditMode 테스트** — 몬스터 3티어 스폰 + 지형 전환 8개+ | ⬜ |
+| F2-01 | **advancedOuter 버그 수정** — 1000f→1800f, MonsterSpawner.cs 36번 줄 | ✅ |
+| F2-02 | **SpawnConfig 검증 로직** — Start()에서 inner>outer 체크 경고 | ✅ |
+| F2-03 | **테스트 모드 지형 단순화** — GameManager _useSimpleTerrain 플래그 | ✅ |
+| F2-04 | **Primitive 스폰 모드** — MonsterSpawner _usePrimitiveOnly 모드 | ✅ |
+| F2-05 | **EditMode 테스트** — 몬스터 3티어 스폰 + 지형 전환 8개+ | ✅ |
 
 ### FIX-03: 🎬 애니메이션 리깅 복구
 
 | 사이클 | 내용 | 상태 |
 |:------:|:-----|:----:|
-|| F3-01 | **Scripting Define Symbols** — UNITY_ANIMATION_RIGGING 추가, RigAnimationController 활성화 | ⬜ |
-|| F3-02 | **Player 애니메이션 셋업** — Animator+RigAnimationController+RuntimeAnimatorController 부착 | ⬜ |
-|| F3-03 | **GuardPlaceholder/AnimalAI 연동** — 모든 캐릭터 SetState() 호출 보장 | ⬜ |
-|| F3-04 | **GLB RuntimeAnimatorController 연동** — RuntimeModelLoader가 GLB 애니메이션 자동 연결 | ⬜ |
-|| F3-05 | **SceneFixer 자동 실행** — EditorAutoSetup 또는 GameManager에서 1회 자동 실행 | ⬜ |
-|| F3-06 | **EditMode 테스트** — 애니메이션 전환/상태/파라미터 10개+ | ⬜ |
+| F3-01 | **Scripting Define Symbols** — UNITY_ANIMATION_RIGGING 추가, RigAnimationController 활성화 | ✅ |
+| F3-02 | **Player 애니메이션 셋업** — Animator+RigAnimationController+RuntimeAnimatorController 부착 | ✅ |
+| F3-03 | **GuardPlaceholder/AnimalAI 연동** — 모든 캐릭터 SetState() 호출 보장 | ✅ |
+| F3-04 | **GLB RuntimeAnimatorController 연동** — RuntimeModelLoader가 GLB 애니메이션 자동 연결 | ✅ |
+| F3-05 | **SceneFixer 자동 실행** — EditorAutoSetup 또는 GameManager에서 1회 자동 실행 | ✅ |
+| F3-06 | **EditMode 테스트** — 애니메이션 전환/상태/파라미터 10개+ | ✅ |
 
 ### FIX-04: ❌ NullReferenceException & 시스템 초기화
 
 | 사이클 | 내용 | 상태 |
 |:------:|:-----|:----:|
-|| F4-01 | **PlayerStats 자동 생성** — GameManager.InitializeSystems()에 CreateSystemIfMissing 추가 | ⬜ |
-|| F4-02 | **ShopWindow null-safe** — PlayerStats.Instance?.Gold ?? 0. 모든 Instance 참조 null 체크 | ⬜ |
-|| F4-03 | **UIManager 자동 생성** — GameManager가 없으면 [RuntimeInitializeOnLoadMethod]에서 생성 | ⬜ |
-|| F4-04 | **GameManager 씬 배치 보장** — EditorAutoSetup 또는 폴백 로직 | ⬜ |
-|| F4-05 | **EditMode 테스트** — 싱글톤 초기화/null-safety 10개+ | ⬜ |
+| F4-01 | **PlayerStats 자동 생성** — GameManager.InitializeSystems()에 CreateSystemIfMissing 추가 | ✅ |
+| F4-02 | **ShopWindow null-safe** — PlayerStats.Instance?.Gold ?? 0. 모든 Instance 참조 null 체크 | ✅ |
+| F4-03 | **UIManager 자동 생성** — GameManager가 없으면 [RuntimeInitializeOnLoadMethod]에서 생성 | ✅ |
+| F4-04 | **GameManager 씬 배치 보장** — EditorAutoSetup 또는 폴백 로직 | ✅ |
+| F4-05 | **EditMode 테스트** — 싱글톤 초기화/null-safety 10개+ | ✅ |
 
 ### FIX-05: 🗺️ 미니맵 & 월드맵 복구
 
 | 사이클 | 내용 | 상태 |
 |:------:|:-----|:----:|
-|| F5-01 | **MinimapUI 강제 생성** — GameManager 폴백 [RuntimeInitializeOnLoadMethod] | ⬜ |
-|| F5-02 | **MinimapUI 카메라/Player null-safe** — Camera.main fallback, null 시 위치 가정 | ⬜ |
-|| F5-03 | **MapWindow 복구** — M키 토글+TerritoryDatabase 로드+영지/국기/난이도 표시 검증 | ⬜ |
-|| F5-04 | **MapWindow 2단계 줌+안개** — 국가별 확대/축소, 황제국 안개, 플레이어 위치 | ⬜ |
-|| F5-05 | **영지 위치 동기화** — GetTerritoryWorldPosition()과 실제 씬 배치 일치 확인 | ⬜ |
-|| F5-06 | **EditMode 테스트** — MinimapUI/MapWindow 12개+ | ⬜ |
+| F5-01 | **MinimapUI 강제 생성** — GameManager 폴백 [RuntimeInitializeOnLoadMethod] | ✅ |
+| F5-02 | **MinimapUI 카메라/Player null-safe** — Camera.main fallback, null 시 위치 가정 | ✅ |
+| F5-03 | **MapWindow 복구** — M키 토글+TerritoryDatabase 로드+영지/국기/난이도 표시 검증 | ✅ |
+| F5-04 | **MapWindow 2단계 줌+안개** — 국가별 확대/축소, 황제국 안개, 플레이어 위치 | ✅ |
+| F5-05 | **영지 위치 동기화** — GetTerritoryWorldPosition()과 실제 씬 배치 일치 확인 | ✅ |
+| F5-06 | **EditMode 테스트** — MinimapUI/MapWindow 12개+ | ✅ |
 
 ### FIX-06: 📏 UI 폰트 & 크기 2배 확대
 
 | 사이클 | 내용 | 상태 |
 |:------:|:-----|:----:|
-|| F6-01 | **UIStyleManager 폰트 2배** — title 30→60, label 20→40, closeBtn 26→52, BorderWidth 2→4 | ⬜ |
-|| F6-02 | **HUD 체력바/스탯 2배** — fontSize 24→48, barWidth 350→700, barHeight 35→70 | ⬜ |
-|| F6-03 | **MinimapUI 2배** — _minimapSize 200→400, 폰트 14→28, 아이콘 2배 | ⬜ |
-|| F6-04 | **모든 UIWindow 하위 클래스 2배** — ShopWindow/InventoryWindow/QuestWindow/RecipeWindow 등 20+개 창 | ⬜ |
-|| F6-05 | **WorldSpace HUD 2배** — HerbRespawnUI/MonsterLevelLabel/GuardHUD/NPCDialogue | ⬜ |
-|| F6-06 | **WindowAnimationProfile 2배 대응** — FadeSlide 거리/위치/크기 | ⬜ |
-|| F6-07 | **EditMode 테스트** — 2배 렌더링/레이아웃 15개+ | ⬜ |
+| F6-01 | **UIStyleManager 폰트 2배** — title 30→60, label 20→40, closeBtn 26→52, BorderWidth 2→4 | ✅ |
+| F6-02 | **HUD 체력바/스탯 2배** — fontSize 24→48, barWidth 350→700, barHeight 35→70 | ✅ |
+| F6-03 | **MinimapUI 2배** — _minimapSize 200→400, 폰트 14→28, 아이콘 2배 | ✅ |
+| F6-04 | **모든 UIWindow 하위 클래스 2배** — ShopWindow/InventoryWindow/QuestWindow/RecipeWindow 등 20+개 창 | ✅ |
+| F6-05 | **WorldSpace HUD 2배** — HerbRespawnUI/MonsterLevelLabel/GuardHUD/NPCDialogue | ✅ |
+| F6-06 | **WindowAnimationProfile 2배 대응** — FadeSlide 거리/위치/크기 | ✅ |
+| F6-07 | **EditMode 테스트** — 2배 렌더링/레이아웃 15개+ | ✅ |

@@ -8,7 +8,7 @@ STATE_FILE="/tmp/.hermes_glb_state.txt"  # plain text, one basename per line
 ARCHIVE_DIR="/mnt/c/Unity/code/Assets/Models/UserProvided_Archive"
 COMPILE_LOG="/mnt/c/tmp/compile.log"
 SWAP_LOG="/mnt/c/tmp/swap.log"
-UNITY_EXE=/mnt/c/Program\ Files/Unity/Hub/Editor/6000.4.10f1/Editor/Unity.exe
+UNITY_EXE="/mnt/c/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Unity.exe"
 PROJECT_PATH_WSL="/mnt/c/Unity/code"
 PROJECT_PATH_WIN="C:\\Unity\\code"
 PROJECT_PATH="$PROJECT_PATH_WIN"
@@ -50,7 +50,7 @@ run_unity_batchmode() {
     local bat_file="$LOG_DIR/unity_command.bat"
     
     # Create the bat file using printf for reliable content
-        printf '@echo off\\r\\n\"%s\" -quit -batchmode -projectPath \"%s\" -executeMethod %s -logFile \"%s\"\\r\\n' \\\\\\n        \"$(wslpath -w "$UNITY_EXE")\" \"$PROJECT_PATH_WIN\" \"$method_name\" \"$(wslpath -w \"$log_file\")\" > \"$bat_file\"
+    printf '@echo off\r\n"%s" -quit -batchmode -projectPath "%s" -executeMethod %s -logFile "%s"\r\n' \\\n        "$(wslpath -w \"$UNITY_EXE\")" "$PROJECT_PATH_WIN" "$method_name" "$(wslpath -w "$log_file")" > "$bat_file"
     
     # Convert bat file path to Windows for cmd.exe
     local bat_file_win=$(wslpath -w "$bat_file")
