@@ -50,7 +50,7 @@ run_unity_batchmode() {
     local bat_file="$LOG_DIR/unity_command.bat"
     
     # Create the bat file using printf for reliable content
-    printf '@echo off\r\n"%s" -quit -batchmode -projectPath "%s" -executeMethod %s -logFile "%s"\r\n' \\\n        "$(wslpath -w \"$UNITY_EXE\")" "$PROJECT_PATH_WIN" "$method_name" "$(wslpath -w \"$log_file\")" > "$bat_file"
+    printf '@echo off\r\n"%s" -quit -batchmode -projectPath "%s" -executeMethod %s -logFile "%s"\r\n' \\\n        "$(wslpath -w \"$UNITY_EXE\")" "$PROJECT_PATH_WIN" "$method_name" "$(wslpath -w "$log_file")" > "$bat_file"
     
     # Convert bat file path to Windows for cmd.exe
     local bat_file_win=$(wslpath -w "$bat_file")
