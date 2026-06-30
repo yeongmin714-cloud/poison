@@ -44,24 +44,27 @@ update_state_file() {
 }
 
 # Function to run Unity batchmode command
+}
+# Function to run Unity batchmode command
 run_unity_batchmode() {
     local method_name="$1"
     local log_file="$2"
     local bat_file="$LOG_DIR/unity_command.bat"
-    
+
     # Create the bat file using printf for reliable content
-        printf '@echo off\\r\\n\"%s\" -quit -batchmode -projectPath \"%s\" -executeMethod %s -logFile \"%s\"\\r\\n' \\\\\\n        \"$(wslpath -w "$UNITY_EXE")\" \"$PROJECT_PATH_WIN\" \"$method_name\" \"$(wslpath -w \"$log_file\")\" > \"$bat_file\"
-    
+        printf '@echo off\\r\\n"%s" -quit -batchmode -projectPath "%s" -executeMethod %s -logFile "%s"\\r\\n' \
+               "$(wslpath -w "$UNITY_EXE")" "$PROJECT_PATH_WIN" "$method_name" "$(wslpath -w "$log_file")" > "$bat_file"
+
     # Convert bat file path to Windows for cmd.exe
     local bat_file_win=$(wslpath -w "$bat_file")
-    
+
     # Run the bat file
     cmd.exe /c "$bat_file_win"
     local exit_code=$?
-    
+
     # Clean up bat file
     rm -f "$bat_file"
-    
+
     return $exit_code
 }
 unity_cleanup() {
