@@ -10,6 +10,7 @@ SWAP_LOG="/mnt/c/tmp/swap.log"
 UNITY_EXE="/mnt/c/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Unity.exe"
 PROJECT_PATH_WSL="/mnt/c/Unity/code"
 PROJECT_PATH_WIN="C:\\Unity\\code"
+PROJECT_PATH="$PROJECT_PATH_WIN"
 LOG_DIR="/mnt/c/tmp"
 
 # Ensure directories exist
