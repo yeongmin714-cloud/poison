@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 set -euo pipefail
 
 # Configuration
@@ -49,8 +50,7 @@ run_unity_batchmode() {
     local bat_file="$LOG_DIR/unity_command.bat"
     
     # Create the bat file using printf for reliable content
-    printf '@echo off\r\n"%s" -quit -batchmode -projectPath "%s" -executeMethod %s -logFile "%s"\r\n' \
-        "$UNITY_EXE" "$PROJECT_PATH_WIN" "$method_name" "$log_file" > "$bat_file"
+    printf '@echo off\r\n"%s" -quit -batchmode -projectPath "%s" -executeMethod %s -logFile "%s"\r\n' \\\n        "$(wslpath -w \"$UNITY_EXE\")" "$PROJECT_PATH_WIN" "$method_name" "$(wslpath -w \"$log_file\")" > "$bat_file"
     
     # Convert bat file path to Windows for cmd.exe
     local bat_file_win=$(wslpath -w "$bat_file")
@@ -64,8 +64,6 @@ run_unity_batchmode() {
     
     return $exit_code
 }
-
-# Function to kill Unity processes and remove lockfiles
 unity_cleanup() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Killing Unity processes..."
     powershell.exe -NoProfile "Get-Process | Where-Object { $_.ProcessName -like '*Unity*' } | Stop-Process -Force" 2>/dev/null || true

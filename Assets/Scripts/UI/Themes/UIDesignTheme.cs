@@ -117,6 +117,7 @@ namespace ProjectName.UI.Themes
         public Color SubTextColor => _colorSet[4];
         public Color AccentColor => _colorSet[5];
         public Color[] ColorSet => _colorSet;
+        public int ColorCount => _colorSet.Length;
 
         // Phase 33 명세 컬러 팔레트 이름 (기존 색상과 매핑)
         /// <summary>bg (BgColor와 동일)</summary>
@@ -231,4 +232,5 @@ namespace ProjectName.UI.Themes
             clone._windowHeight = _windowHeight;
             return clone;
         }
+}
 }
