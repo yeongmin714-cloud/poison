@@ -22,9 +22,7 @@ namespace ProjectName.UI
         public static NPCDialogueWindow Instance { get; private set; }
 
         [Header("Dialogue Settings")]
-        #pragma warning disable CS0414
-        [SerializeField] private KeyCode _interactKey = KeyCode.E; // CS0414: 의도적으로 유지 (미래 확장용)
-#pragma warning restore CS0414
+        [SerializeField] private KeyCode _interactKey = KeyCode.E;
         [SerializeField] private KeyCode _nextKey = KeyCode.E;
         [SerializeField] private KeyCode _closeKey = KeyCode.Escape;
 

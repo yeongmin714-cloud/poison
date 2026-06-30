@@ -352,8 +352,7 @@ namespace ProjectName.UI
 
                 // 아이콘 내부 텍스트
                 GUI.color = Color.white;
-                string iconText = isStealthed ? "🥷" : "👤";
-                GUI.Label(_rectStealthIcon, iconText, _cachedStealthIconStyle);
+                GUI.Label(_rectStealthIcon, "🥷", _cachedStealthIconStyle);
 
                 // 발각 게이지 바 (아이콘 아래)
                 float barX = iconX;

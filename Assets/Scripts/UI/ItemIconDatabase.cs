@@ -93,6 +93,7 @@ namespace ProjectName.UI
                 return GetFallbackIcon();
 
             var dest = new Texture2D(targetWidth, targetHeight, source.format, false);
+            dest.hideFlags = HideFlags.HideAndDontSave;
             float sx = (float)source.width / targetWidth;
             float sy = (float)source.height / targetHeight;
             for (int y = 0; y < targetHeight; y++)
