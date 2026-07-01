@@ -19,7 +19,7 @@ mkdir -p "$ARCHIVE_DIR" "$LOG_DIR"
 
 # Function to get allowed GLB basenames (lowercase, no extension) from ModelMapping.cs
 get_allowed_basenames() {
-    awk -F'"' '/{/{print $2}' "/mnt/c/Unity/code/Assets/Editor/ModelMapping.cs" | tr -d ' ' | tr '[:upper:]' '[:lower:]' | sort | uniq
+    awk -F'\"' '/{/{print $2}' "/mnt/c/Unity/code/Assets/Editor/ModelMapping.cs" | grep -v '^_.*' | tr -d ' ' | tr '[:upper:]' '[:lower:]' | sort | uniq
 }
 
 # Function to get processed basenames from state file (one per line)
