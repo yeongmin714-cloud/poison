@@ -16,12 +16,12 @@ LOG_DIR="/mnt/c/tmp"
 
 # Ensure directories exist
 mkdir -p "$ARCHIVE_DIR" "$LOG_DIR"
+SUFFIXES=("_rigged" "_tier1" "_tier2" "_tier3" "_tier4" "_tier5")
 
 # Function to get allowed GLB basenames (lowercase, no extension) from ModelMapping.cs
 get_allowed_basenames() {
-    awk -F'"' '/{/{print $2}' "/mnt/c/Unity/code/Assets/Editor/ModelMapping.cs" | tr -d ' ' | tr '[:upper:]' '[:lower:]' | sort | uniq
+    awk -F'"' '/{/{print $2}' "/mnt/c/Unity/code/Assets/Editor/ModelMapping.cs" | tr -d ' ' | tr '[:upper:]' '[:lower:]' | sort | uniq | grep -v '^_.*'
 }
-
 # Function to get processed basenames from state file (one per line)
 get_processed_basenames() {
     if [[ -f "$STATE_FILE" ]]; then
@@ -101,9 +101,31 @@ for file_path in "${current_files[@]}"; do
     filename=$(basename "$file_path")
     basename_no_ext="${filename%.*}"
     basename_lower=$(echo "$basename_no_ext" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
-    
+    # Handle suffix stripping for matching allowed baselines
+    matched_basename="$basename_lower"
+    matched=false
+    # First, try exact match
+    if [[ " ${allowed_basenames[*]} " == *" $matched_basename "* ]]; then
+        matched=true
+    else
+        # Try stripping known suffixes
+        for suffix in "${SUFFIXES[@]}"; do
+            if [[ "$basename_lower" == *"$suffix" ]]; then
+                stripped="${basename_lower%"$suffix"}"
+                if [[ " ${allowed_basenames[*]} " == *" $stripped "* ]]; then
+                    matched_basename="$stripped"
+                    matched=true
+                    break
+                fi
+            fi
+        done
+    fi
+    # If not matched via suffix, we keep the original basename_lower for the check (will fail)
+    if [[ -z "$matched" ]]; then
+        matched_basename="$basename_lower"
+    fi
     # Check if allowed and not processed
-    if [[ " ${allowed_basenames[*]} " == *" $basename_lower "* ]] && [[ -z "${processed_set[$basename_lower]:-}" ]]; then
+    if [[ " ${allowed_basenames[*]} " == *" $matched_basename "* ]] && [[ -z "${processed_set[$matched_basename]:-}" ]]; then
         new_files+=("$file_path")
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] New file to process: $filename (basename: $basename_lower)"
     else
