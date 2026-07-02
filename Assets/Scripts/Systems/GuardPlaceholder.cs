@@ -584,7 +584,19 @@ namespace ProjectName.Systems
         private bool _hasCommand = false;
         private bool _isAttackCommand = false;
 
-        public void SetSelected(bool selected) { _isSelected = selected; }
+        public void SetSelected(bool selected)
+        {
+            _isSelected = selected;
+
+            // Phase 41-2: Selection Outline 표시/제거
+            if (SpecialEffectsController.Instance != null)
+            {
+                if (selected)
+                    SpecialEffectsController.Instance.AddSelectionOutline(this);
+                else
+                    SpecialEffectsController.Instance.RemoveSelectionOutline(this);
+            }
+        }
         public bool IsSelected => _isSelected;
         public void SetCommandTarget(Vector3 t, bool a) { _commandTargetPos = t; _isAttackCommand = a; _hasCommand = true; }
         public void ClearCommand() { _hasCommand = false; _isAttackCommand = false; }

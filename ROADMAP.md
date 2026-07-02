@@ -1891,7 +1891,79 @@ WorldEventManager (싱글톤)
 
 ---
 
-## 🛠️ 작업 규칙
+## Phase 57: 🎨 그래픽 설정 향상 ✅ (2026-07-02)
+
+> URP 안티앨리어싱 + 접촉 그림자로 전체적인 화질 개선.
+
+### 57.1 — SMAA 안티앨리어싱
+- [x] `GraphicConfigSetup.cs` (Editor) — Tools/Graphics/Apply URP Quality Settings
+- [x] URP Asset: antiAliasing=SMAA, antiAliasingQuality=High, MSAA=2x/4x
+
+### 57.2 — 접촉 그림자 (Contact Shadows)
+- [x] Volume Profile → Shadows Override → contactShadows=true
+- [x] Bloom Override 추가 (기존에 없으면)
+
+### 57.3 — 라이트 프로브
+- [x] `LightProbeSetup.cs` (Editor) — Tools/Graphics/Auto-Place Light Probes
+- [x] Interior 태그 기반 자동 프로브 배치 (방당 4코너+중앙)
+- [x] Tools/Graphics/Place Reflection Probe — 카메라 위치 리플렉션 프로브 생성
+
+---
+
+## Phase 58: 🩸 URP 데칼 시스템 ✅ (2026-07-02)
+
+> 전투 흔적이 바닥에 남는 시각 효과.
+
+### 58.1 — 데칼 스포너
+- [x] `DecalSpawner.cs` — 3종 데칼 (BloodSplat/PoisonPuddle/Footprint)
+- [x] 절차적 텍스처 생성 (Perlin noise 기반, 외부 이미지 불필요)
+- [x] URP DecalProjector 사용, 최대 50개 풀링, Auto-cleanup
+
+### 58.2 — 데칼 연동
+- [x] `DecalSpawnerIntegration.cs` — PlayerCombat/AnimalAI 데미지 시 BloodSplat
+- [x] 가스 분사 시 PoisonPuddle, 이동 시 Footprint (1.5초 간격)
+
+---
+
+## Phase 59: 🌤️ 환경 파티클 시스템 ✅ (2026-07-02)
+
+> 날씨/시간대에 따른 자연스러운 환경 파티클.
+
+### 59.1 — 파티클 4종
+- [x] `EnvironmentParticleController.cs` — WeatherManager + DayNightCycle 연동
+- [x] 🌧️ **Rain**: 500입자, 빗줄기 효과
+- [x] ❄️ **Snow**: 200입자, 수평 흔들림
+- [x] 🪰 **Fireflies**: 15입자, 반짝임, 밤+숲에서만
+- [x] 🌫️ **Dust/Pollen**: 30입자, 낮+맑음
+
+### 59.2 — 에디터 도구
+- [x] `GraphicsSetup.cs` (Editor) — Tools/Graphics/Create Environment Particle Controller
+
+---
+
+## Phase 60: ✨ 특수 이펙트 시스템 ✅ (2026-07-02)
+
+> 코드 기반 셰이더 이펙트 (Shader Graph 불필요).
+
+### 60.1 — 보석 글로우
+- [x] `SpecialEffectsController.AddGemGlow()` — Point Light 펄싱 + 회전 빌보드
+- [x] GemChest.Start() 연동 완료
+
+### 60.2 — 독안개 고급화
+- [x] `SpawnPoisonFog()` — Additive 파티클, 속성별 색상, 1→5 확장, 3~5초 페이드
+- [x] GasSprayerController.StartSpray() 연동 완료
+
+### 60.3 — 무기 발광
+- [x] `AddWeaponGlow()` — 희귀도별 발광 색상 (Rare=파랑~Unique=황금)
+- [x] URP/Lit Emission 속성 제어, 펄싱 애니메이션
+
+### 60.4 — 병사 선택 테두리
+- [x] `AddSelectionOutline()` — 파란색 반투명 링, 알파 0.3~0.7 펄싱
+- [x] GuardPlaceholder.SetSelected() 연동 완료
+
+---
+
+## 🛠️ 작업 규칙## 🛠️ 작업 규칙
 
 ### 1️⃣ 서브에이전트 위임 원칙
 - 모든 코딩/QA 작업은 `delegate_task`로 서브에이전트에 위임

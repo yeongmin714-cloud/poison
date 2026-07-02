@@ -310,6 +310,12 @@ namespace ProjectName.Systems
 
             _isSpraying = true;
             Debug.Log("[GasSprayerController] 분사 시작!");
+
+            // Phase 41-2: SpecialEffectsController를 통해 독안개 생성
+            if (SpecialEffectsController.Instance != null)
+            {
+                SpecialEffectsController.Instance.OnGasSprayStart();
+            }
         }
 
         /// <summary>

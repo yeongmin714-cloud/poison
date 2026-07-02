@@ -8,6 +8,7 @@ namespace ProjectName.Systems
     /// <summary>
     /// Phase 29-01: 보석 상자 (Gem Chest).
     /// E 키 상호작용 → 희귀 광석 드랍 (LootBasket).
+    /// Phase 41-2: SpecialEffectsController를 통한 Gem Glow 효과 연동.
     /// </summary>
     public class GemChest : MonoBehaviour
     {
@@ -54,6 +55,12 @@ namespace ProjectName.Systems
             var data = GemData.GetGemData(_gemType);
             if (_chestRenderer != null)
                 _chestRenderer.material = MaterialHelper.CreateLitMaterial(data.color, "GemChestMat");
+
+            // Phase 41-2: SpecialEffectsController에 Gem Glow 효과 등록
+            if (SpecialEffectsController.Instance != null)
+            {
+                SpecialEffectsController.Instance.AddGemGlow(this, data.color);
+            }
         }
 
         private void Update()
