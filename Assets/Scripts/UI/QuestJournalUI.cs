@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ProjectName.Core;
 using ProjectName.Core.Data;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -109,6 +110,7 @@ namespace ProjectName.UI
         private GUIStyle _styleEffect;
         private GUIStyle _styleObjective;
         private GUIStyle _styleEntryBox;
+        private GUIStyle _styleReward; // 🌟 보상 요약 스타일
 
         // 완료 이펙트
         private CompletionEffect _currentEffect;
@@ -304,6 +306,9 @@ namespace ProjectName.UI
         /// <summary>완료 이펙트용 캐시된 스타일 (매 프레임 new GUIStyle 방지)</summary>
         private GUIStyle _cachedEffectStyle;
 
+        /// <summary>툴팁 표시용 — 현재 호버 중인 퀘스트 ID</summary>
+        private string _hoveredQuestId;
+
         #endregion
 
         #region === IMGUI 드로잉 ===
@@ -385,6 +390,15 @@ namespace ProjectName.UI
                 border = new RectOffset(1, 1, 1, 1)
             };
 
+            _styleReward = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 10,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleRight,
+                richText = true,
+                normal = { textColor = ColorGold }
+            };
+
             _stylesInitialized = true;
         }
 
@@ -427,6 +441,7 @@ namespace ProjectName.UI
 
             // 현재 탭에 맞는 퀘스트 리스트 (캐시 사용, GC 방지)
             _filteredCache.Clear();
+            _hoveredQuestId = null; // 🌟 호버 상태 초기화
             for (int i = 0; i < _quests.Count; i++)
             {
                 if (_activeTab == 0 && _quests[i].state == QuestState.Active)
@@ -460,6 +475,13 @@ namespace ProjectName.UI
 
             GUI.EndScrollView();
 
+            // 🌟 툴팁 — 호버 중인 퀘스트 보상 상세 표시
+            if (!string.IsNullOrEmpty(_hoveredQuestId))
+            {
+                string tooltip = QuestRewardPreview.GetRewardDetail(_hoveredQuestId);
+                QuestRewardPreview.DrawTooltip(tooltip, Event.current.mousePosition);
+            }
+
             // 닫기 안내
             GUI.Label(
                 new Rect(x + WINDOW_WIDTH - 170, y + WINDOW_HEIGHT - 22, 160, 18),
@@ -491,11 +513,18 @@ namespace ProjectName.UI
         {
             float yPos = index * ENTRY_HEIGHT;
 
+            // 엔트리 영역 (호버 감지용)
+            Rect entryRect = new Rect(0, yPos, width, ENTRY_HEIGHT - 2);
+
             // 엔트리 배경
-            GUI.Box(new Rect(0, yPos, width, ENTRY_HEIGHT - 2), "", _styleEntryBox);
+            GUI.Box(entryRect, "", _styleEntryBox);
 
             // 퀘스트 이름
-            GUI.Label(new Rect(8, yPos + 3, width - 16, 20), entry.questName, _styleLabel);
+            GUI.Label(new Rect(8, yPos + 3, width - 100, 20), entry.questName, _styleLabel);
+
+            // 🌟 보상 요약 (우측)
+            string rewardSummary = QuestRewardPreview.GetRewardSummary(entry.questId);
+            GUI.Label(new Rect(width - 110, yPos + 3, 102, 18), rewardSummary, _styleReward);
 
             // 설명
             if (!string.IsNullOrEmpty(entry.description))
@@ -532,6 +561,12 @@ namespace ProjectName.UI
                 GUI.Label(new Rect(8, yPos + 40, width - 16, 20),
                     $"<color=#44FF44>{completeInfo}</color>",
                     _styleLabel);
+            }
+
+            // 🌟 호버 감지 — 툴팁 표시용
+            if (entryRect.Contains(Event.current.mousePosition))
+            {
+                _hoveredQuestId = entry.questId;
             }
         }
 

@@ -32,6 +32,11 @@ namespace ProjectName.UI
         private Vector2 _infoScrollPosition;
         private int _selectedSlotIndex = -1;
 
+        // ===== 정렬 =====
+        private enum SortMode { None, Category, Name, Rarity, Quantity }
+        private SortMode _sortMode = SortMode.None;
+        private string[] _sortModeLabels = { "정렬 안함", "카테고리순", "이름순", "등급순", "수량순" };
+
         // ===== 레퍼런스 스타일 상수 =====
         private const float WINDOW_WIDTH = 1000f;
         private const float WINDOW_HEIGHT = 1000f;
@@ -272,6 +277,25 @@ namespace ProjectName.UI
             DrawColoredRect(new Rect(x, y + 2, WINDOW_WIDTH, TITLE_BAR_HEIGHT), ColorTitleBar);
             GUI.Label(new Rect(x, y + 2, WINDOW_WIDTH, TITLE_BAR_HEIGHT), "  📦 인벤토리", _styleTitle);
 
+            // 정렬 버튼 (타이틀 바 우측)
+            float sortBtnWidth = 280f;
+            float sortBtnHeight = 66f;
+            float sortBtnX = x + WINDOW_WIDTH - sortBtnWidth - 12f;
+            float sortBtnY = y + 12f;
+            if (GUI.Button(new Rect(sortBtnX, sortBtnY, sortBtnWidth, sortBtnHeight), $"📊 {_sortModeLabels[(int)_sortMode]}"))
+            {
+                _sortMode = (SortMode)(((int)_sortMode + 1) % 5);
+                if (_sortMode != SortMode.None)
+                {
+                    SortInventory();
+                    RefreshInventory();
+                }
+                else
+                {
+                    RefreshInventory();
+                }
+            }
+
             // 타이틀 하단 구분선
             DrawColoredRect(new Rect(x, y + TITLE_BAR_HEIGHT + 2, WINDOW_WIDTH, 2), ColorBorder);
 
@@ -449,8 +473,20 @@ namespace ProjectName.UI
 
         private void DrawSlotTooltip(Vector2 position, PlayerInventory.ItemSlot slot)
         {
+            if (slot == null || slot.item == null) return;
+
             float tooltipWidth = 450;
-            float tooltipHeight = slot.item.maxDurability > 0 ? 80f : 60f;
+            float baseHeight = slot.item.maxDurability > 0 ? 80f : 60f;
+
+            // 장비 비교 섹션 높이 계산
+            float compareHeight = 0f;
+            bool isEquipment = CompareTooltip.IsEquipmentCategory(slot.item.category);
+            if (isEquipment)
+            {
+                compareHeight = CompareTooltip.CalculateCompareHeight(tooltipWidth - 10);
+            }
+
+            float tooltipHeight = baseHeight + compareHeight;
             Rect tooltipRect = new Rect(position.x, position.y, tooltipWidth, tooltipHeight);
             if (tooltipRect.xMax > Screen.width) tooltipRect.x = Screen.width - tooltipWidth;
             if (tooltipRect.yMax > Screen.height) tooltipRect.y = Screen.height - tooltipHeight;
@@ -462,6 +498,30 @@ namespace ProjectName.UI
             {
                 string durStr = ProjectName.Systems.EquipmentDurabilitySystem.GetDurabilityString(slot);
                 GUI.Label(new Rect(tooltipRect.x + 5, tooltipRect.y + 62, tooltipWidth - 10, 24), $"내구도: {durStr}", _styleItemCount);
+            }
+
+            // ──── 장비 비교 섹션 ────
+            if (isEquipment)
+            {
+                var equippedData = CompareTooltip.GetEquippedCompareData(slot.item.category);
+                if (equippedData.HasValue)
+                {
+                    float cx = tooltipRect.x + 5;
+                    float cy = tooltipRect.y + baseHeight + 2;
+                    float cw = tooltipWidth - 10;
+                    var newItemData = new ItemTooltipData
+                    {
+                        itemName = slot.item.displayName,
+                        description = slot.item.description,
+                        effects = slot.item.effects,
+                        rarity = slot.item.rarity,
+                        category = slot.item.category,
+                        maxDurability = slot.item.maxDurability,
+                        currentDurability = slot.currentDurability,
+                        count = slot.count
+                    };
+                    CompareTooltip.DrawComparison(cx, cy, cw, newItemData, equippedData.Value, _texWhite);
+                }
             }
         }
 
@@ -573,6 +633,77 @@ namespace ProjectName.UI
             }
         }
 
+        // ===== 인벤토리 정렬 =====
+        private void SortInventory()
+        {
+            if (PlayerInventory.Instance == null) return;
+            var allSlots = PlayerInventory.Instance.GetAllSlots();
+            if (allSlots == null) return;
+
+            // null이 아닌 슬롯만 리스트로 추출
+            var nonEmpty = new System.Collections.Generic.List<PlayerInventory.ItemSlot>();
+            for (int i = 0; i < allSlots.Length; i++)
+            {
+                if (allSlots[i] != null && allSlots[i].item != null && allSlots[i].count > 0)
+                    nonEmpty.Add(allSlots[i]);
+            }
+
+            // 정렬 기준에 따라 정렬
+            switch (_sortMode)
+            {
+                case SortMode.Category:
+                    nonEmpty.Sort((a, b) =>
+                    {
+                        int catCompare = GetCategorySortOrder(a.item.category).CompareTo(GetCategorySortOrder(b.item.category));
+                        if (catCompare != 0) return catCompare;
+                        return string.Compare(a.item.displayName, b.item.displayName, System.StringComparison.Ordinal);
+                    });
+                    break;
+                case SortMode.Name:
+                    nonEmpty.Sort((a, b) => string.Compare(a.item.displayName, b.item.displayName, System.StringComparison.Ordinal));
+                    break;
+                case SortMode.Rarity:
+                    nonEmpty.Sort((a, b) =>
+                    {
+                        int rCompare = a.item.rarity.CompareTo(b.item.rarity);
+                        if (rCompare != 0) return rCompare;
+                        return string.Compare(a.item.displayName, b.item.displayName, System.StringComparison.Ordinal);
+                    });
+                    break;
+                case SortMode.Quantity:
+                    nonEmpty.Sort((a, b) => b.count.CompareTo(a.count));
+                    break;
+            }
+
+            // 배열 재구성: 정렬된 아이템 → 빈 슬롯
+            for (int i = 0; i < allSlots.Length; i++)
+            {
+                if (i < nonEmpty.Count)
+                    allSlots[i] = nonEmpty[i];
+                else
+                    allSlots[i] = null;
+            }
+        }
+
+        private int GetCategorySortOrder(PlayerInventory.ItemCategory category)
+        {
+            return category switch
+            {
+                PlayerInventory.ItemCategory.Herb => 0,
+                PlayerInventory.ItemCategory.Meat => 1,
+                PlayerInventory.ItemCategory.Food => 2,
+                PlayerInventory.ItemCategory.Potion => 3,
+                PlayerInventory.ItemCategory.Material => 4,
+                PlayerInventory.ItemCategory.Drug => 5,
+                PlayerInventory.ItemCategory.Quest => 6,
+                PlayerInventory.ItemCategory.Weapon => 7,
+                PlayerInventory.ItemCategory.Armor => 8,
+                PlayerInventory.ItemCategory.Tool => 9,
+                PlayerInventory.ItemCategory.Arrow => 10,
+                _ => 99,
+            };
+        }
+
         // ===================================================================
         // 헬퍼
         // ===================================================================
@@ -664,6 +795,43 @@ namespace ProjectName.UI
                 }
             }
             return -1;
+        }
+
+        // ===== 퀵슬롯 연동 (QuickSlotUI에서 호출) =====
+
+        /// <summary>
+        /// 현재 선택된 아이템의 ItemData 반환 (없으면 null)
+        /// </summary>
+        public PlayerInventory.ItemData GetSelectedItemData()
+        {
+            if (_selectedSlotIndex < 0 || _currentSlots == null || _selectedSlotIndex >= _currentSlots.Length)
+                return null;
+            var slot = _currentSlots[_selectedSlotIndex];
+            if (slot == null) return null;
+            return slot.item;
+        }
+
+        /// <summary>
+        /// 현재 선택된 아이템의 개수 반환
+        /// </summary>
+        public int GetSelectedItemCount()
+        {
+            if (_selectedSlotIndex < 0 || _currentSlots == null || _selectedSlotIndex >= _currentSlots.Length)
+                return 0;
+            var slot = _currentSlots[_selectedSlotIndex];
+            if (slot == null) return 0;
+            return slot.count;
+        }
+
+        /// <summary>
+        /// 현재 선택된 아이템이 있는지 확인
+        /// </summary>
+        public bool HasSelectedItem()
+        {
+            if (_selectedSlotIndex < 0 || _currentSlots == null || _selectedSlotIndex >= _currentSlots.Length)
+                return false;
+            var slot = _currentSlots[_selectedSlotIndex];
+            return slot != null && slot.item != null && slot.count > 0;
         }
 
         /// <summary>아이템 ID로 슬롯 찾아 선택</summary>

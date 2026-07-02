@@ -41,6 +41,9 @@ namespace ProjectName.UI
         private Vector2 _lastMousePos;
         private int _lastShowFrame = -1;  // ShowTooltip이 호출된 마지막 프레임
 
+        // 비교 툴팁 데이터 (장비 아이템 비교용)
+        private ItemTooltipData _compareItem;
+
         // ===== GUIStyle 캐시 =====
         private GUIStyle _styleItemName;
         private GUIStyle _styleRarityLabel;
@@ -94,6 +97,7 @@ namespace ProjectName.UI
             _hasTooltip = true;
             _wasHovering = true;
             _lastShowFrame = Time.frameCount;
+            _compareItem = default; // 새 툴팁 표시 시 비교 데이터 초기화
 
             // 첫 호버 시간 기록 (딜레이용)
             if (!_isShowing)
@@ -109,6 +113,7 @@ namespace ProjectName.UI
             _isShowing = false;
             _wasHovering = false;
             _lastShowFrame = -1;
+            _compareItem = default;
         }
 
         /// <summary>현재 툴팁 표시 중인지</summary>
@@ -116,6 +121,12 @@ namespace ProjectName.UI
 
         /// <summary>현재 호버 중인지</summary>
         public bool IsHovering => _wasHovering;
+
+        /// <summary>비교할 장착 아이템 설정 (장비 카테고리일 때만 호출)</summary>
+        public void SetCompareItem(ItemTooltipData compareData)
+        {
+            _compareItem = compareData;
+        }
 
         // ===================================================================
         // OnGUI — IMGUI 툴팁 렌더링
@@ -155,11 +166,13 @@ namespace ProjectName.UI
                 {
                     _isShowing = false;
                     _hasTooltip = false;
+                    _compareItem = default;
                     return;
                 }
                 if (!_isShowing)
                 {
                     _hasTooltip = false;
+                    _compareItem = default;
                     return;
                 }
             }
@@ -267,6 +280,13 @@ namespace ProjectName.UI
                 _gcCount.text = _tooltipData.count == ItemTooltipData.InfiniteCount ? "재고: 무한" : $"x{_tooltipData.count}";
                 float countHeight = _styleCountLabel.CalcHeight(_gcCount, cw);
                 GUI.Label(new Rect(cx, cy, cw, countHeight), _gcCount, _styleCountLabel);
+                cy += countHeight + 2;
+            }
+
+            // ──── 장비 비교 섹션 (장비 아이템 + 비교 데이터 있을 때) ────
+            if (_compareItem.IsValid && CompareTooltip.IsEquipmentCategory(_tooltipData.category))
+            {
+                cy = CompareTooltip.DrawComparison(cx, cy, cw, _tooltipData, _compareItem, _texWhite);
             }
         }
 
@@ -315,6 +335,12 @@ namespace ProjectName.UI
             {
                 _gcCount.text = _tooltipData.count == ItemTooltipData.InfiniteCount ? "재고: 무한" : $"x{_tooltipData.count}";
                 h += _styleCountLabel.CalcHeight(_gcCount, cw);
+            }
+
+            // 비교 섹션 높이 (장비 아이템 + 비교 데이터 있을 때)
+            if (_compareItem.IsValid && CompareTooltip.IsEquipmentCategory(_tooltipData.category))
+            {
+                h += CompareTooltip.CalculateCompareHeight(cw);
             }
 
             return h;
@@ -435,6 +461,12 @@ namespace ProjectName.UI
             GUI.color = color;
             GUI.DrawTexture(rect, _texWhite);
             GUI.color = oldColor;
+        }
+
+        /// <summary>장비 카테고리인지 확인 (Weapon/Armor/Tool/Arrow)</summary>
+        public static bool IsEquipmentCategory(PlayerInventory.ItemCategory category)
+        {
+            return CompareTooltip.IsEquipmentCategory(category);
         }
 
         private string GetCategoryDisplayName(PlayerInventory.ItemCategory category)

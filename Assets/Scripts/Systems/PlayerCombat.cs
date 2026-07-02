@@ -225,6 +225,10 @@ namespace ProjectName.Systems
 
             target.TakeDamage(damage, hitDirection, _currentWeapon?.weaponType.ToString() ?? "melee");
 
+            // ⏱️ 전투 로그: 데미지 기록
+            string targetName = targetBehaviour != null ? targetBehaviour.gameObject.name : "Unknown";
+            CombatLog.AddEntry($"{targetName}에게 {damage} 데미지", LogType.Damage);
+
             // G2-04: 치명타/백어택 감지 → Shake 2배 + HitStop
             if (targetBehaviour != null)
             {

@@ -1,5 +1,6 @@
 using UnityEngine;
 using ProjectName.Core.Data;
+using ProjectName.Systems;
 #pragma warning disable 0414
 
 namespace ProjectName.Core
@@ -142,6 +143,8 @@ namespace ProjectName.Core
             _currentHP = Mathf.Max(0f, _currentHP);
 
             Debug.Log($"[PlayerHealth] 💥 {actualDamage} 데미지! HP: {_currentHP}/{_maxHP}");
+            // ⏱️ 전투 로그: 피격 기록
+            CombatLog.AddEntry($"{actualDamage} 데미지를 받음", LogType.Damage);
             OnHPChanged?.Invoke(_currentHP, _maxHP);
 
             // G2-04: 피격 카메라 이펙트 (주석처리 - 임시)
@@ -184,6 +187,8 @@ namespace ProjectName.Core
             _currentHP += amount;
             _currentHP = Mathf.Min(_currentHP, _maxHP);
             Debug.Log($"[PlayerHealth] 💚 {amount} 회복! HP: {_currentHP}/{_maxHP}");
+            // ⏱️ 전투 로그: 회복 기록
+            CombatLog.AddEntry($"HP {amount} 회복", LogType.Heal);
             OnHPChanged?.Invoke(_currentHP, _maxHP);
         }
 

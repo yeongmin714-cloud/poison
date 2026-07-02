@@ -406,6 +406,8 @@ namespace ProjectName.Systems
         private void Die()
         {
             if (_isDead) return;
+            // ⏱️ 전투 로그: 병사 처치 기록
+            CombatLog.AddEntry($"{guardName} 처치!", LogType.Kill);
             _isDead = true;
 
             // 사망 애니메이션 (Idle 즉시 적용)

@@ -273,9 +273,12 @@ namespace ProjectName.UI
             // 보상 표시
             string rewardStr = "";
             if (quest.reward.gold > 0) rewardStr += $"💰{quest.reward.gold} ";
-            if (quest.reward.exp > 0) rewardStr += $"✨{quest.reward.exp}EXP";
-            if (!string.IsNullOrEmpty(rewardStr))
-                GUI.Label(new Rect(10, y + 64, width - 20, 21), rewardStr, _styleReward);
+            if (quest.reward.exp > 0) rewardStr += $"✨{quest.reward.exp}EXP ";
+            if (quest.reward.affinity > 0) rewardStr += $"📈+{quest.reward.affinity} ";
+            if (quest.reward.items != null && quest.reward.items.Count > 0)
+                rewardStr += $"🎁{quest.reward.items.Count}종";
+            if (!string.IsNullOrEmpty(rewardStr.Trim()))
+                GUI.Label(new Rect(10, y + 64, width - 20, 21), rewardStr.TrimEnd(), _styleReward);
         }
 
         /// <summary>

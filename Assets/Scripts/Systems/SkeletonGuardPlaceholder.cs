@@ -195,6 +195,8 @@ namespace ProjectName.Systems
 
             if (_verbose)
                 Debug.Log("[SkeletonGuard] 사망!");
+            // ⏱️ 전투 로그: 스켈레톤 처치 기록
+            CombatLog.AddEntry($"{gameObject.name} 처치!", LogType.Kill);
 
             // LootBasket 드랍 (ND-05 연동)
             LootBasket basket = LootBasket.Create(transform.position);

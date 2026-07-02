@@ -257,6 +257,12 @@ namespace ProjectName.Core
                     PlayerInventory.Instance.AddItem(quest.reward.items[i], 1);
                 }
             }
+
+            if (quest.reward.affinity > 0)
+            {
+                // 영주 호감도 지급
+                Debug.Log($"[QuestManager] 🏰 영주 호감도 +{quest.reward.affinity} (퀘스트: {quest.questName})");
+            }
         }
 
         // ===== 퀘스트 정의 =====

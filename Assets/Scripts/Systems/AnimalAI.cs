@@ -690,6 +690,9 @@ namespace ProjectName.Systems
 
             // 플레이어 경험치/킬 카운트 (선택적)
             Debug.Log($"{MonsterDatabase.Get(_monsterId)?.displayName ?? _monsterId} 사망!");
+            // ⏱️ 전투 로그: 처치 기록
+            string monsterName = MonsterDatabase.Get(_monsterId)?.displayName ?? _monsterId;
+            CombatLog.AddEntry($"{monsterName} 처치!", LogType.Kill);
             // 경험치 획득
             int exp = 0;
             switch (_tier)

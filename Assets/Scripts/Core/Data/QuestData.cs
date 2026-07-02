@@ -49,6 +49,11 @@ namespace ProjectName.Core.Data
         public int gold;
         public int exp;
         public List<PlayerInventory.ItemData> items;
+        /// <summary>영주 호감도</summary>
+        public int affinity;
+
+        /// <summary>보상이 전혀 없는지 여부</summary>
+        public bool IsEmpty => gold == 0 && exp == 0 && affinity == 0 && (items == null || items.Count == 0);
     }
 
     /// <summary>C9-30: 퀘스트 데이터 정의</summary>
