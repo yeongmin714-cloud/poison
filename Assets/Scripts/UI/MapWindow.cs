@@ -910,6 +910,18 @@ namespace ProjectName.UI
                 _currentZoom = Mathf.Min(2f, _currentZoom + 0.25f * _zoomSpeed);
             }
 
+            // ⚡ Fast Travel: 빠른 이동 버튼 (항상 표시)
+            float ftBtnWidth = 130f;
+            float ftBtnX = area.x + area.width - ftBtnWidth - 260f; // 위치 레이블 왼쪽
+            Rect ftBtnRect = new Rect(ftBtnX, area.y, ftBtnWidth, btnHeight);
+            Color origFtColor = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(0.5f, 0.3f, 0.0f); // 황금색
+            if (GUI.Button(ftBtnRect, "⚡ 빠른 이동"))
+            {
+                FastTravelUI.Show();
+            }
+            GUI.backgroundColor = origFtColor;
+
             // Phase 40: 자동 이동 버튼 (영지 선택 시 활성화)
             if (_selectedTerritoryId.HasValue)
             {

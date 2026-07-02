@@ -64,6 +64,9 @@ namespace ProjectName.Core.Data
         public string giverNpcId;
         public string[] prerequisiteQuestIds;
 
+        /// <summary>대상 영지 ID (예: "East_01") — 퀘스트 마커/웨이포인트에 사용. null/빈 값 = 대상 영지 없음.</summary>
+        public string targetTerritoryId;
+
         public bool AllObjectivesMet
         {
             get

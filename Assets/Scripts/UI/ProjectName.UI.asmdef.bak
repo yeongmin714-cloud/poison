@@ -5,7 +5,7 @@
         "ProjectName.Core",
         "ProjectName.Systems",
         "Unity.InputSystem",
-        "Unity.UGUI"
+        "UnityEngine.UI"
     ],
     "autoReferenced": true,
     "overrideReferences": false,

@@ -250,10 +250,58 @@ namespace ProjectName.Core
         public static readonly ItemData Axe          = new ItemData { id = "tool_axe",         displayName = "도끼",     description = "벌목용 도구.",               category = ItemCategory.Tool,   maxStack = 1, maxDurability = 30 };
         public static readonly ItemData FishingRod   = new ItemData { id = "tool_fishing_rod", displayName = "낚싯대",   description = "낚시용 도구.",               category = ItemCategory.Tool,   maxStack = 1, maxDurability = 20 };
 
+        // ===== 물고기 아이템 =====
+        public static readonly ItemData Fish_Common = new ItemData
+        {
+            id = "fish_common",
+            displayName = "🐟 붕어",
+            description = "평범한 붕어.",
+            category = ItemCategory.Material,
+            maxStack = 99
+        };
+
+        public static readonly ItemData Fish_Rare = new ItemData
+        {
+            id = "fish_rare",
+            displayName = "🐠 황금송어",
+            description = "희귀한 황금송어.",
+            category = ItemCategory.Material,
+            maxStack = 99
+        };
+
+        public static readonly ItemData Fish_Legendary = new ItemData
+        {
+            id = "fish_legendary",
+            displayName = "🐉 전설의 물고기",
+            description = "전설의 물고기!",
+            category = ItemCategory.Material,
+            maxStack = 10
+        };
+
+        public static readonly ItemData FishingRodItem = new ItemData
+        {
+            id = "fishing_rod",
+            displayName = "🎣 낚시대",
+            description = "낚시용 도구.",
+            category = ItemCategory.Tool,
+            maxStack = 1,
+            maxDurability = 20
+        };
+
         // ===== Phase 34: 은신 장비 아이템 =====
         public static readonly ItemData StealthBoots = new ItemData { id = "stealth_boots",  displayName = "은신 부츠", description = "발소음 50% 감소. 은신 효율 증가.", category = ItemCategory.Armor, maxStack = 1, maxDurability = 40 };
         public static readonly ItemData DarkCloak    = new ItemData { id = "dark_cloak",     displayName = "어두운 망토", description = "야간 감지 거리 50% 감소.",      category = ItemCategory.Armor, maxStack = 1, maxDurability = 40 };
         public static readonly ItemData StealthPotion = new ItemData { id = "potion_stealth", displayName = "은신 물약", description = "10초간 반투명 + 발소음 제로.",  category = ItemCategory.Potion, maxStack = 10 };
         public static readonly ItemData Sedative      = new ItemData { id = "potion_sedative", displayName = "진정제",   description = "NPC 5초 행동불능.",            category = ItemCategory.Potion, maxStack = 10 };
+
+        // ===== 말 소환 아이템 (Phase 4) =====
+        public static readonly ItemData MountToken = new ItemData
+        {
+            id = "mount_token",
+            displayName = "🐴 말 소환석",
+            description = "사용 시 가장 가까운 길바닥에 말을 소환합니다.",
+            category = ItemCategory.Tool,
+            maxStack = 1
+        };
     }
 }

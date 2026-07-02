@@ -30,6 +30,10 @@ namespace ProjectName.Core.Data
             {
                 ConsumePotion(item);
             }
+            else if (item.category == PlayerInventory.ItemCategory.Tool)
+            {
+                ConsumeTool(item);
+            }
             else
             {
                 Debug.LogWarning($"[ConsumableSystem] Item {item.displayName} is not consumable (category {item.category}).");
@@ -85,6 +89,48 @@ namespace ProjectName.Core.Data
             }
         }
 
+        /// <summary>
+        /// Tool 아이템 소비 (Phase 4: 말 소환석 등).
+        /// </summary>
+        private static void ConsumeTool(PlayerInventory.ItemData item)
+        {
+            if (item == null) return;
+
+            string itemName = item.displayName ?? "";
+            string itemId = item.id ?? "";
+
+            // 말 소환석 (mount_token)
+            if (itemId == "mount_token" || itemName.Contains("말 소환석"))
+            {
+                // MountSystem.SummonHorse() 호출
+                var mountSystem = MountSystem.Instance;
+                if (mountSystem == null)
+                {
+                    mountSystem = GameObject.FindObjectOfType<MountSystem>();
+                }
+
+                if (mountSystem != null)
+                {
+                    bool success = mountSystem.SummonHorse();
+                    if (success)
+                    {
+                        Debug.Log("[ConsumableSystem] 🐴 말 소환석 사용! 말이 소환되었습니다.");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[ConsumableSystem] 말 소환 실패 — 쿨다운 중이거나 조건 불충족.");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("[ConsumableSystem] MountSystem 인스턴스가 없어 말을 소환할 수 없습니다.");
+                }
+                return;
+            }
+
+            // 기본 Tool 처리 (향후 확장)
+            Debug.Log($"[ConsumableSystem] Tool item '{itemName}' used — no special effect defined.");
+        }
 
         /// <summary>
         /// 은신 물약 효과: 10초 반투명 + 발소음 제로.

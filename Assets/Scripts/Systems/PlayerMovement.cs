@@ -60,6 +60,9 @@ namespace ProjectName.Systems
         // --- 속도 수정자 (BiomeEffectController 등에서 설정) ---
         private float _speedModifier = 1f;
 
+        // --- 이동 잠금 (MountSystem 등에서 설정 — 탑승 중 PlayerMovement 이동 방지) ---
+        private bool _movementLocked = false;
+
         // --- 발소리 타이머 ---
         private float _footstepTimer = 0f;
 
@@ -186,6 +189,10 @@ namespace ProjectName.Systems
             // E 키 (wasPressedThisFrame: 눌린 순간만 반응)
             if (_keyboard.eKey.wasPressedThisFrame)
             {
+                // 탑승 중에는 상호작용 무시 (MountSystem에서 하차 처리)
+                if (MountSystem.Instance != null && MountSystem.Instance.IsMounted)
+                    return;
+
                 // Physics.OverlapSphere로 주변 Bed 검색
                 Collider[] hits = Physics.OverlapSphere(transform.position, _interactionRadius, _interactableLayers);
 
@@ -451,6 +458,10 @@ namespace ProjectName.Systems
 
             // 구르기 중 점프 불가
             if (_isRolling) return;
+
+            // 탑승 중 점프 불가 (MountSystem)
+            if (MountSystem.Instance != null && MountSystem.Instance.IsMounted)
+                return;
 
             if (_keyboard.spaceKey.wasPressedThisFrame && _isGrounded)
             {

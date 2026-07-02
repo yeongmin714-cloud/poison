@@ -1,0 +1,257 @@
+using UnityEngine;
+using ProjectName.Systems;
+
+namespace ProjectName.UI
+{
+    /// <summary>
+    /// Phase 4: 말 탑승 UI
+    /// IMGUI 기반 HUD 오버레이로 말 상태를 표시합니다.
+    /// - 탑승 중 우측 하단 말 HP바 (초록→노랑→빨강)
+    /// - 질주 중 표시: "🏃 질주 중"
+    /// - HUD 말 아이콘 + 현재 속도 표시 (걷기/달리기/질주)
+    /// - E키 하차 안내 (탑승 중일 때만)
+    /// </summary>
+    [DefaultExecutionOrder(110)] // 다른 UI보다 늦게 실행 (최상단 표시)
+    public class MountUI : MonoBehaviour
+    {
+        [Header("패널 설정")]
+        [SerializeField] private float _panelWidth = 280f;
+        [SerializeField] private float _panelHeight = 100f;
+        [SerializeField] private float _panelMargin = 15f;
+
+        [Header("HP 바 설정")]
+        [SerializeField] private float _hpBarWidth = 200f;
+        [SerializeField] private float _hpBarHeight = 18f;
+
+        [Header("색상")]
+        [SerializeField] private Color _panelBgColor = new Color(0f, 0f, 0f, 0.6f);
+        [SerializeField] private Color _hpGreenColor = Color.green;
+        [SerializeField] private Color _hpYellowColor = Color.yellow;
+        [SerializeField] private Color _hpRedColor = Color.red;
+        [SerializeField] private Color _sprintTextColor = new Color(1f, 0.6f, 0f); // 주황
+        [SerializeField] private Color _normalTextColor = Color.white;
+        [SerializeField] private Color _dismountHintColor = new Color(0.8f, 0.8f, 0.8f);
+
+        // 백색 픽셀 텍스처 (HP 바 그리기용)
+        private static Texture2D _whitePixelTex;
+
+        // GUI 스타일
+        private GUIStyle _titleStyle;
+        private GUIStyle _speedStyle;
+        private GUIStyle _hpLabelStyle;
+        private GUIStyle _hintStyle;
+        private bool _stylesInitialized;
+
+        // 캐싱
+        private MountSystem _mountSystem;
+
+        // ===== Unity Lifecycle =====
+
+        private void Awake()
+        {
+            // MountSystem 참조 캐싱
+            _mountSystem = MountSystem.Instance;
+            if (_mountSystem == null)
+            {
+                // 없으면 찾기
+                _mountSystem = FindAnyObjectByType<MountSystem>();
+            }
+
+            if (_mountSystem == null)
+            {
+                Debug.LogWarning("[MountUI] MountSystem 인스턴스가 없습니다 — UI가 동작하지 않습니다.");
+            }
+        }
+
+        private void OnDestroy()
+        {
+            // 정리할 이벤트 구독이 있다면 여기서 해제
+        }
+
+        // ===== IMGUI Rendering =====
+
+        private void OnGUI()
+        {
+            if (Event.current.type != EventType.Repaint && Event.current.type != EventType.Layout)
+                return;
+
+            // MountSystem이 없거나 탑승 중이 아니면 표시 안 함
+            if (_mountSystem == null)
+            {
+                _mountSystem = MountSystem.Instance;
+                if (_mountSystem == null) return;
+            }
+
+            if (!_mountSystem.IsMounted) return;
+
+            InitializeStyles();
+
+            // 우측 하단 패널
+            DrawMountHUD();
+        }
+
+        /// <summary>
+        /// GUI 스타일을 초기화합니다.
+        /// </summary>
+        private void InitializeStyles()
+        {
+            if (_stylesInitialized) return;
+
+            _titleStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 20,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = Color.white }
+            };
+
+            _speedStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 16,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = _normalTextColor }
+            };
+
+            _hpLabelStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 12,
+                fontStyle = FontStyle.Normal,
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = Color.white }
+            };
+
+            _hintStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 13,
+                fontStyle = FontStyle.Italic,
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = _dismountHintColor }
+            };
+
+            _stylesInitialized = true;
+        }
+
+        /// <summary>
+        /// 말 탑승 HUD를 우측 하단에 그립니다.
+        /// </summary>
+        private void DrawMountHUD()
+        {
+            float x = Screen.width - _panelWidth - _panelMargin;
+            float y = Screen.height - _panelHeight - _panelMargin;
+            float cy = y + 5f;
+
+            // 배경 패널
+            Color origBg = GUI.backgroundColor;
+            GUI.backgroundColor = _panelBgColor;
+            GUI.Box(new Rect(x, y, _panelWidth, _panelHeight), "");
+            GUI.backgroundColor = origBg;
+
+            // 말 아이콘 + 타이틀
+            float titleX = x + 8f;
+            string titleText = "🐴 말 탑승";
+            GUI.Label(new Rect(titleX, cy, 140f, 24f), titleText, _titleStyle);
+
+            // 현재 속도 표시
+            string speedText = _mountSystem.SpeedStateText;
+            bool isSprinting = _mountSystem.IsSprinting;
+
+            string speedDisplay;
+            Color speedColor;
+
+            if (isSprinting)
+            {
+                speedDisplay = $"🏃 질주 중";
+                speedColor = _sprintTextColor;
+            }
+            else if (speedText == "달리기" || speedText.Contains("달리기"))
+            {
+                speedDisplay = "🚶 달리기";
+                speedColor = Color.white;
+            }
+            else
+            {
+                speedDisplay = "🚶 걷기";
+                speedColor = Color.white;
+            }
+
+            // 속도 텍스트
+            float speedX = titleX + 135f;
+            Color origTextColor = GUI.color;
+            GUI.color = speedColor;
+            GUI.Label(new Rect(speedX, cy, 120f, 24f), speedDisplay, _speedStyle);
+            GUI.color = origTextColor;
+
+            cy += 28f;
+
+            // HP 바
+            float hpRatio = _mountSystem.MountHPRatio;
+            float hpBarX = titleX;
+            float hpBarY = cy;
+
+            // HP 바 배경
+            GUI.color = new Color(0.3f, 0.3f, 0.3f);
+            GUI.DrawTexture(new Rect(hpBarX, hpBarY, _hpBarWidth, _hpBarHeight), GetWhitePixelTexture());
+            GUI.color = Color.white;
+
+            // HP 바 채움 (초록→노랑→빨강)
+            Color hpColor;
+            if (hpRatio > 0.6f)
+                hpColor = Color.Lerp(_hpYellowColor, _hpGreenColor, (hpRatio - 0.6f) / 0.4f);
+            else if (hpRatio > 0.3f)
+                hpColor = Color.Lerp(_hpRedColor, _hpYellowColor, (hpRatio - 0.3f) / 0.3f);
+            else
+                hpColor = _hpRedColor;
+
+            GUI.color = hpColor;
+            GUI.DrawTexture(new Rect(hpBarX, hpBarY, _hpBarWidth * Mathf.Clamp01(hpRatio), _hpBarHeight), GetWhitePixelTexture());
+            GUI.color = Color.white;
+
+            // HP 텍스트
+            float currentHP = _mountSystem.MountHP;
+            float maxHP = _mountSystem.MaxMountHP;
+            string hpText = $"HP: {(int)currentHP} / {(int)maxHP}";
+            GUI.Label(new Rect(hpBarX + 5f, hpBarY, _hpBarWidth - 10f, _hpBarHeight), hpText, _hpLabelStyle);
+
+            cy += 22f;
+
+            // E키 하차 안내
+            GUI.Label(new Rect(titleX, cy, _panelWidth - 16f, 20f), "[E] 말에서 내리기", _hintStyle);
+
+            cy += 18f;
+
+            // 질주 중 추가 표시 (HP 바 아래)
+            if (isSprinting)
+            {
+                GUI.color = _sprintTextColor;
+                string sprintInfo = $"⚡ 질주 중 - HP - {(_mountSystem.CurrentHorseSpawner != null ? "5" : "0")}/초";
+                GUI.color = origTextColor;
+            }
+        }
+
+        /// <summary>
+        /// 백색 픽셀 텍스처를 반환합니다 (캐싱).
+        /// </summary>
+        private static Texture2D GetWhitePixelTexture()
+        {
+            if (_whitePixelTex == null)
+            {
+                _whitePixelTex = new Texture2D(1, 1);
+                _whitePixelTex.SetPixel(0, 0, Color.white);
+                _whitePixelTex.Apply();
+            }
+            return _whitePixelTex;
+        }
+
+        // ===== Gizmos =====
+
+        private void OnDrawGizmosSelected()
+        {
+            // 편의용: 패널 위치 시각화
+            Gizmos.color = Color.magenta;
+            float x = Screen.width - _panelWidth - _panelMargin;
+            float y = Screen.height - _panelHeight - _panelMargin;
+            // Note: Scene view에서는 Screen 좌표가 정확하지 않을 수 있음
+        }
+    }
+}

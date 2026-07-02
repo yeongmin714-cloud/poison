@@ -1617,7 +1617,124 @@ WorldEventManager (싱글톤)
 
 ---
 
-## 📐 구현 우선순위 & 예상 작업량
+## Phase 43: 🐴 말/탈것 시스템 ✅ (2026-07-02)
+
+> 오픈월드 이동 피로도 해소. 탑승/하차/질주/체력 시스템.
+
+### 43.1 — 말 시스템
+- [x] `MountSystem.cs` — 탑승/하차 토글 (3m, E키), 걷기 2.5배/질주 4배
+- [x] 말 체력 시스템: HP 100, 질주 시 초당 -5, 정지 시 초당 +10
+- [x] 말 소환: mount_token 아이템 사용 시 스폰
+- [x] Shift 질주, Ctrl 탑승 불가, HP 0 → 강제 하차 + 30초 쿨다운
+
+### 43.2 — 말 UI
+- [x] `MountUI.cs` — 우측 하단 HP바 (초록→노랑→빨강), 속도 표시
+- [x] 질주 중 표시 + E키 하차 안내
+
+### 43.3 — 말 스포너
+- [x] `MountSpawner.cs` — 말 NPC 생명주기 관리
+- [x] 플레이어 50m 이탈 시 자동 제거, 60초 후 재소환
+
+### 43.4 — 필요 GLB
+- [ ] **Horse_Riding.glb** — 말 탈것 모델 (애니메이션: Idle/Run)
+
+---
+
+## Phase 44: ⚡ 빠른 이동 (Fast Travel) ✅ (2026-07-02)
+
+> 점령 영지 간 즉시 이동. 후반 영지 관리 편의성.
+
+### 44.1 — 시스템
+- [x] `FastTravelSystem.cs` — 점령 영지 목록 조회 → 골드 차감 → 로딩 → 텔레포트
+- [x] 비용: Ring1=5G, Ring2=10G, Ring3=15G, Ring4=20G
+- [x] 3초 로딩 화면 표시, 플레이어 위치 텔레포트
+- [x] 이벤트: OnFastTravelStart, OnFastTravelComplete
+
+### 44.2 — UI
+- [x] `FastTravelUI.cs` — MapWindow에서 열기, 영지 목록 스크롤뷰
+- [x] 보유 골드 부족 시 회색 처리, 확인 대화상자
+
+### 44.3 — MapWindow 연동
+- [x] MapWindow에 "⚡ 빠른 이동" 버튼 추가
+
+---
+
+## Phase 45: 🎯 퀘스트 마커 & 길찾기 ✅ (2026-07-02)
+
+> 퀘스트 목표 위치를 미니맵/화면에 표시. 플레이어 방향성 제공.
+
+### 45.1 — 마커 시스템
+- [x] `QuestMarkerSystem.cs` — 활성 퀘스트의 targetTerritoryId 기반 마커 계산
+- [x] 영지 ID → 월드 위치 변환 (TerritoryDatabase)
+
+### 45.2 — HUD
+- [x] `QuestMarkerHUD.cs` — 상단 화살표 (목표 방향 표시)
+- [x] 우측 상단: 퀘스트명 + 거리 표시
+- [x] 메인퀘스트=황금, 일반=파랑 색상 구분
+
+### 45.3 — QuestData 확장
+- [x] `QuestData.targetTerritoryId` 필드 추가
+- [x] 기존 퀘스트와 호환 (필드 없으면 무시)
+
+---
+
+## Phase 46: 🐟 낚시 시스템 ✅ (2026-07-02)
+
+> 힐링 콘텐츠 + 요리 재료 수급 + 숨겨진 보물.
+
+### 46.1 — 낚시 로직
+- [x] `FishingSystem.cs` — 물가 Water 태그 감지, E키 토글
+- [x] 낚시대 필요: PlayerInventory.HasItem("fishing_rod")
+- [x] 미니게임: 스위트스팟(30px) + 이동 핀 + 스페이스바 타이밍
+- [x] 시간대/날씨 보정: 밤 희귀×2, 비 희귀×1.5
+
+### 46.2 — 아이템
+- [x] 붕어 (일반 60%), 황금송어 (희귀 30%), 전설의 물고기 (전설 10%)
+- [x] 낚시대 (Tool, 내구도 20)
+
+### 46.3 — UI
+- [x] `FishingUI.cs` — 중앙 프로그레스바 + 스위트스팟 + 핀
+- [x] 성공/실패 팝업 (3초), ESC 취소
+
+---
+
+## Phase 47: ⚔️ 아레나/투기장 시스템 ✅ (2026-07-02)
+
+> 전투 보상 + 병사 레벨업 수단 + 랭킹.
+
+### 47.1 — 시스템
+- [x] `ArenaSystem.cs` — 각 영지 아레나, Ring 기반 참가비/난이도
+- [x] 3모드: 직접 싸우기 / 병사 출전 / 용병 출전
+- [x] 전투 시뮬레이션: HP+공+방 계산, 최대 5라운드, 라운드 간 3초
+- [x] 연승 보너스 (2연승 1.5배~5연승 3배), 10연승 전설 보상
+- [x] PlayerPrefs 랭킹 저장, ArenaNPCPlaceholder 월드 배치
+
+### 47.2 — UI
+- [x] `ArenaMenuUI.cs` — 3탭 (메인/병사선택/전투로그)
+- [x] `ArenaBattleUI.cs` — 실시간 체력바 + 라운드 로그
+
+---
+
+## 📋 필요 GLB 모델 목록
+
+| # | GLB 파일명 | 용도 | 현재 상태 | 우선순위 |
+|:-:|:----------|:----|:---------:|:--------:|
+| 1 | `Horse_Riding.glb` | 말 탈것 모델 (Idle/Run 애니메이션) | ❌ 없음 | 🔴 **상** |
+| 2 | `Potion_Antidote.glb` | 해독제 3D 모델 | 🟡 Archive→복사 필요 | 🟡 중 |
+| 3 | `Potion_Drug.glb` | 마약 3D 모델 | 🟡 Archive→복사 필요 | 🟡 중 |
+| 4 | `Potion_Heal.glb` | 회복 물약 3D 모델 | 🟡 Archive→복사 필요 | 🟡 중 |
+| 5 | `Potion_Poison.glb` | 독약 3D 모델 | 🟡 Archive→복사 필요 | 🟡 중 |
+| 6 | `RecipeBook.glb` | 레시피북 3D 모델 | 🟡 Archive→복사 필요 | 🟡 중 |
+| 7 | `Soldier_Lv01_10.glb` | 병사 1~10레벨 모델 | ❌ 없음 | 🟡 중 |
+| 8 | `Soldier_Lv10_20.glb` | 병사 10~20레벨 모델 | ❌ 없음 | 🟡 중 |
+| 9 | `Soldier_Lv20_30.glb` | 병사 20~30레벨 모델 | ❌ 없음 | 🟡 중 |
+| 10 | `Arena_Building.glb` | 아레나 건물 모델 | ❌ 없음 | 🟢 하 |
+| 11 | `Fishing_Rod.glb` | 낚싯대 3D 모델 | ❌ 없음 | 🟢 하 |
+| 12 | `Fish_Common/Rare/Legendary.glb` | 물고기 3D 모델 (3종) | ❌ 없음 | 🟢 하 |
+
+> **참고:** 기존 GLB 170+개 이미 존재 (몬스터22/NPC12/병사3/건물9/무기방어구60+/지형20+).
+> 물약 4종 + RecipeBook은 Archive 폴더에서 Resources/Models/UserProvided/로 복사만 하면 즉시 사용 가능.
+> Horse_Riding.glb가 가장 시급 (MountSystem 기능에 필수).
 
 | 순위 | Phase | 예상 작업량 | 기대 효과 |
 |:----:|:------|:----------:|:---------:|

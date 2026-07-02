@@ -2,14 +2,16 @@
   "name": "ProjectName.Editor",
   "rootNamespace": "",
   "references": [
-    "Unity.Cinemachine",
-    "Unity.UGUI",
-    "Unity.RenderPipelines.Core.Runtime",
     "ProjectName.Core",
+    "ProjectName.Systems",
     "ProjectName.UI",
+    "Unity.Cinemachine",
+    "Unity.Cinemachine.Editor",
     "Unity.InputSystem",
+    "Unity.RenderPipelines.Core.Runtime",
+    "Unity.RenderPipelines.Universal.Editor",
     "Unity.RenderPipelines.Universal.Runtime",
-    "ProjectName.Systems"
+    "Unity.UGUI"
   ],
   "includePlatforms": [
     "Editor"
