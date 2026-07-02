@@ -1735,6 +1735,147 @@ WorldEventManager (싱글톤)
 > **참고:** 기존 GLB 170+개 이미 존재 (몬스터22/NPC12/병사3/건물9/무기방어구60+/지형20+).
 > 물약 4종 + RecipeBook은 Archive 폴더에서 Resources/Models/UserProvided/로 복사만 하면 즉시 사용 가능.
 > Horse_Riding.glb가 가장 시급 (MountSystem 기능에 필수).
+---
+
+## Phase 48: 🔢 퀵슬롯 시스템 ✅ (2026-07-02)
+
+> 1~6키로 자주 쓰는 아이템 빠르게 사용.
+
+### 48.1 — 시스템
+- [x] `QuickSlotManager.cs` — 6개 슬롯 데이터 + PlayerPrefs 저장/복원
+- [x] 인벤토리 열린 상태: 슬롯 번호 누르면 선택 아이템 등록
+- [x] 인벤토리 닫힌 상태: 슬롯 번호 누르면 아이템 사용
+
+### 48.2 — UI
+- [x] `QuickSlotUI.cs` — 화면 하단 중앙 6슬롯 (48×48px, 아이콘+수량)
+- [x] 빈 슬롯 반투명, 채워진 슬롯 아이콘+키번호 표시
+
+---
+
+## Phase 49: 📦 인벤토리 자동 정렬 ✅ (2026-07-02)
+
+> 아이템 정리 편의성.
+
+- [x] `InventoryWindow.cs` — 정렬 버튼 추가 (타이틀바 우측)
+- [x] 5개 정렬 모드 순환: 카테고리순 / 이름순 / 등급순 / 수량순 / 해제
+- [x] 빈 슬롯 항상 뒤로, 모든 아이템 데이터 보존
+
+---
+
+## Phase 50: 🛡️ 아이템 비교 툴팁 ✅ (2026-07-02)
+
+> 장비 교체 시 현재 장착 장비와 능력치 비교.
+
+- [x] `CompareTooltip.cs` — 정적 헬퍼: 현재 장착 아이템 조회 + 스탯 비교
+- [x] `TooltipWindow.cs` — 장비 툴팁 하단에 비교 섹션 추가
+- [x] 🟢 좋음 / 🔴 나쁨 / ⚪ 같음 표시
+- [x] 비장비 아이템은 기존 툴팁 유지
+
+---
+
+## Phase 51: 📊 게임 통계 화면 ✅ (2026-07-02)
+
+> 플레이 기록을 한눈에 확인.
+
+### 51.1 — 수집기
+- [x] `GameStatsCollector.cs` — 정적 클래스, 11개 통계 Track/Load/Save
+- [x] TrackKill/Death/Gold/Distance/Fish/Arena 등
+- [x] PlayerPrefs 저장, 0 기본값
+
+### 51.2 — UI
+- [x] `GameStatsWindow.cs` — U키 오픈, 7개 섹션 (전투/퀘스트/영지/아레나/수집/경제/시간)
+- [x] 스크롤 가능, 섹션별 헤더
+
+---
+
+## Phase 52: ⏱️ 전투 기록 로그 ✅ (2026-07-02)
+
+> 전투 중 발생한 모든 이벤트를 실시간 로그로 기록.
+
+### 52.1 — 로그 시스템
+- [x] `CombatLog.cs` — 정적 클래스, 최대 100개 엔트리, LogType별 색상
+- [x] AddEntry(message, type), GetRecentEntries(), Clear()
+
+### 52.2 — 연동
+- [x] PlayerCombat: 데미지 줄 때 로그
+- [x] PlayerHealth: 피격/회복 시 로그
+- [x] AnimalAI/GuardPlaceholder/SkeletonGuard: 처치 시 로그
+
+### 52.3 — UI
+- [x] `CombatLogUI.cs` — L키 토글, 스크롤 목록, 색상 구분, 전체 지우기
+
+---
+
+## Phase 53: 🌟 퀘스트 보상 미리보기 ✅ (2026-07-02)
+
+> 퀘스트 수락 전에 보상 정보 확인.
+
+- [x] `QuestRewardPreview.cs` — 정적 헬퍼: 보상 요약 문자열 + 툴팁 렌더링
+- [x] `QuestData.cs` — rewardGold/XP/itemId/itemCount/affinity 필드
+- [x] `QuestJournalUI.cs` — 항목 우측에 보상 요약 + 호버 시 상세 툴팁
+- [x] 필드 없으면 '???' 표시, 기존 퀘스트 하위호환
+
+---
+
+## Phase 54: 🏘️ NPC 일상 사이클 ✅ (2026-07-02)
+
+> 시간대별 NPC 행동 변화로 월드 생동감.
+
+### 54.1 — 시스템
+- [x] `NPCDailyCycle.cs` — 4개 시간대 (새벽/낮/저녁/밤)
+- [x] 밤(20~4시): NPC SetActive(false) 수면
+- [x] 낮(6~18시): NPC 활성화, 상점 영업
+- [x] TimeManager.OnTimeChanged 이벤트 구독
+
+### 54.2 — UI
+- [x] `NPCDailyUI.cs` — NPC 머리 위 말풍선 (🛒 영업중 / 😴 잠자는중 등)
+- [x] WorldToScreenPoint 기반, 거리 컬링
+
+---
+
+## Phase 55: 🎵 지역별 BGM ✅ (2026-07-02)
+
+> 국가/시간대/전투 상태에 따른 배경음 자동 전환.
+
+### 55.1 — 컨트롤러
+- [x] `RegionBGMController.cs` — TerritoryManager 국가 감지 + TimeManager 시간 감지
+- [x] BGM 우선순위: 전투 > 야간 > 지역
+- [x] 페이드 아웃/인 (1.5초) 부드러운 전환
+- [x] BGM 키: bgm_east/west/south/north/empire/night/combat
+
+### 55.2 — 페이드 헬퍼
+- [x] `Transitions.cs` — FadeVolume(AudioSource, target, duration) 코루틴
+
+---
+
+## Phase 56: 🌅 엔딩 & 뉴게임+ ✅ (2026-07-02)
+
+> 모든 영지 점령 시 엔딩. 클리어 후 뉴게임+로 재도전.
+
+### 56.1 — 엔딩 트리거
+- [x] `GameEndingManager.cs` — 81개 영지 전부 PlayerOwned 체크 → 엔딩 시퀀스
+
+### 56.2 — 엔딩 시퀀스
+- [x] Phase 1: 왕좌 스토리 텍스트 (5초, 슬로우모션)
+- [x] Phase 2: 크레딧 자동 스크롤 (15초)
+- [x] Phase 3: 게임 통계 요약
+- [x] Phase 4: 뉴게임+ / 메인메뉴 선택
+- [x] ESC 스킵
+
+### 56.3 — UI
+- [x] `EndingCreditsUI.cs` — 풀스크린 IMGUI 오버레이, 4개 Phase
+
+### 56.4 — 뉴게임+
+- [x] `NewGamePlusSystem.cs` — 레벨/골드/레시피/업적 유지
+- [x] 영토/퀘스트/인벤토리/병사 리셋
+- [x] NG+ 보너스: EXP×1.5, 적 레벨+5
+
+### 56.5 — 연동
+- [x] `GameManager.cs` — 엔딩 조건 체크 추가
+- [x] `SaveData.cs` — isNewGamePlus 플래그
+- [x] `SaveManager.cs` — NG+ 상태 저장
+
+---
 
 | 순위 | Phase | 예상 작업량 | 기대 효과 |
 |:----:|:------|:----------:|:---------:|
