@@ -1,502 +1,516 @@
-     1|     1|     1|     1|# Cycle: C10-01 아이템 툴팁 시스템
-     2|     2|     2|     2|- Completed: TooltipWindow (MonoBehaviour, IMGUI 385줄), ItemTooltipData (struct+확장메서드 171줄)
-     3|     3|     3|     3|- Details: 0.3s 지연 표시, 등급별 테두리/카테고리별 색상, 내구도 표시, 화면 끝 반대조정
-     4|     4|     4|     4|- Integration: InventoryWindow, ShopWindow, LootWindow, CraftingUI — 4개 창 연동
-     5|     5|     5|     5|- Tests: TooltipTests 20개 (데이터생성/유효성/등급명/색상/내구도/표시/숨김)
-     6|     6|     6|     6|- Date: 2026-06-17
-     7|     7|     7|     7|
-     8|     8|     8|     8|# Cycle: C10-02 몬스터 어그로 합세 시스템
-     9|     9|     9|     9|- Completed: MonsterAggroSystem (싱글톤 191줄), IAggroable 인터페이스, AggroState enum
-    10|    10|    10|    10|- Details: 10m 범위 같은 종 합세, 이미 전투중 스킵, 사망/이탈 시 5초후 Idle. WindZone 무시 경고 회피
-    11|    11|    11|    11|- Tests: MonsterAggroTests 16개 (등록/통보/10m범위/타입구분/전투중스킵/타이머/해제/멀티합세)
-    12|    12|    12|    12|- Date: 2026-06-17
-    13|    13|    13|    13|
-    14|    14|    14|    14|# Cycle: C10-03 약초 리스폰 게이지 UI
-    15|    15|    15|    15|- Completed: HerbRespawnUI (MonoBehaviour, IMGUI 209줄)
-    16|    16|    16|    16|- Details: 리스폰 중 프로그레스바(녹→황→적) + 텍스트, 채집가능 [E]채집 표시, 30m 거리 컬링
-    17|    17|    17|    17|- Tests: HerbRespawnUITests 11개 (싱글톤/컬링/거리/게이지)
-    18|    18|    18|    18|- Date: 2026-06-17
-    19|    19|    19|    19|
-    20|    20|    20|    20|# Cycle: C10-04 풀/나무 흔들림 애니메이션
-    21|    21|    21|    21|- Completed: SwayController (MonoBehaviour, 147줄)
-    22|    22|    22|    22|- Details: 회전진동(sway) + 상하보빙(bobbing), WindZone 방향영향, 50m 거리 컬링, InstanceID 기반 랜덤오프셋
-    23|    23|    23|    23|- Tests: SwayControllerTests 15개 (설정값/범위/세터/리셋/컬링)
-    24|    24|    24|    24|- Date: 2026-06-17
-    25|    25|    25|    25|
-    26|    26|    26|    26|# Cycle: C23-01~04 — Phase 23: 🔄 몬스터 15초 리스폰
-    27|    27|    27|    27|- Status: ✅ 기존 코드로 이미 구현 (Die() 괄호 버그 수정)
-    28|    28|    28|    28|- Details: AnimalAI.Die() → Invoke(Respawn, tier-based 10~20s) → Respawn() at _spawnPos
-    29|    29|    29|    29|- Integration: DifficultyManager, MonsterSpawner.CheckAndRespawn night ×1.5
-    30|    30|    30|    30|- Date: 2026-06-17
-    31|    31|    31|    31|
-    32|    32|    32|    32|# Cycle: C24-01~05 — Phase 24: 🏴 영지 미완전 점령 시 병사 리스폰 시스템
-    33|    33|    33|    33|- Completed: ✅ **전체 5사이클 구현 완료**
-    34|    34|    34|    34|- Details:
-    35|    35|    35|    35|  - C24-01: **TerritoryBattleState enum** (Peaceful/UnderAttack/Retreated/Reinforcing/Conquered) + TerritoryState 필드 추가
-    36|    36|    36|    36|  - C24-02: **TerritoryBattleManager** (270줄) — 플레이어 이탈 감지(50m), 10초 Retreat 타이머, 상태 머신
-    37|    37|    37|    37|  - C24-03: **병사 리스폰 큐** — 30초 간격 1명 복원, GuardRespawnEntry 큐 관리
-    38|    38|    38|    38|  - C24-04: **GuardPlaceholder.Die() 수정** — Destroy 대신 Hide + HP복원 Respawn() 추가, AlarmSystem 연동
-    39|    39|    39|    39|  - C24-05: **TerritoryBattleManagerTests 12개** — 싱글톤/상태전환/가드사망/영주처치/Peace복원/Conquered중단
-    40|    40|    40|    40|- Integration: AlarmSystem.TriggerAlert() → StartBattle(), GuardPlaceholder.Die() → EnqueueGuardRespawn()
-    41|    41|    41|    41|- Date: 2026-06-17
-    42|    42|    42|# Cycle: C25-01~14 — Phase 25: 🍺 선술집 & 용병 시스템
-    43|    43|    43|- Status: ✅ **전체 14사이클 구현 완료** (코드+테스트)
-    44|    44|    44|- Details:
-    45|    45|    45|  - C25-01: TavernInteriorBuilder (카운터+테이블+무대+어두운 조명) — 213줄
-    46|    46|    46|  - C25-02: MercenaryData (struct, 4등급, 능력치/비용/스토리) — 104줄
-    47|    47|    47|  - C25-02~03: MercenaryManager 싱글톤 (고용/해고/호감도, 8종 용병) — 335줄
-    48|    48|    48|  - C25-03: MercenaryHireUI (IMGUI 고용 창, H키) — 381줄
-    49|    49|    49|  - C25-04: BardMercenary (반경 15m 버프, 공+15%/방+10%/이속+10%) — 201줄
-    50|    50|    50|  - C25-06: MercenaryPlaceholder (금색/은색 모델, 바드 류트) — 127줄
-    51|    51|    51|- Tests: Phase25_MercenaryTests 14개 (데이터/별표/배율/싱글톤/DB/바드/Placeholder/Tavern)
-    52|    52|    52|- Date: 2026-06-17
-    53|    53|    53|
-    54|    54|    54|# Cycle: C26-01~10 — Phase 26: 📊 병사/용병 스탯창 & 장비 지급
-    55|    55|    55|- Status: ✅ **전체 10사이클 구현 완료** (코드+테스트)
-    56|    56|    56|- Details:
-    57|    57|    57|  - C26-01: GuardInfoWindow (IMGUI 657줄, 이름/Lv/HP/전투력/장비/버프, 싱글톤)
-    58|    58|    58|  - C26-02: GuardEquipmentSystem (651줄, EquipSlot 4종, 장착/회수/내구도/유니크제한)
-    59|    59|    59|  - C26-03: Bard 악기 슬롯 + 전설 용병 유니크 아이템
-    60|    60|    60|- Tests: Phase26_GuardEquipmentTests — 확인 필요
-    61|    61|    61|- Date: 2026-06-17
-    62|    62|    62|
-    63|    63|    63|# Cycle: C27-01~07 — Phase 27: 💀 병사 사망 & 부활 시스템 개선
-    64|    64|    64|- Status: ✅ **전체 7사이클 구현 완료** (코드+테스트)
-    65|    65|    65|- Details:
-    66|    66|    66|  - C27-01: GuardManager (463줄, 영지별 병사 관리, 영구 사망, 재충원)
-    67|    67|    67|  - C27-02: 플레이어 사망 → 병사 체력 10% 부활 + 30초 자동 회복
-    68|    68|    68|  - C27-03: 전쟁 중 퇴각 모드, "플레이어가 쓰러졌다!" 메시지
-    69|    69|    69|- Tests: GuardManagerTests 460줄
-    70|    70|    70|- Date: 2026-06-17
-    71|    71|    71|
-    72|    72|    72|# Cycle: C28-01~07 — Phase 28: 🧛 드라큘라 영지 & 야간 컨텐츠
-    73|    73|    73|- Status: ✅ **전체 7사이클 구현 완료** (코드+테스트)
-    74|    74|    74|- Details:
-    75|    75|    75|  - C28-01: DraculaTerritoryController (밤에만 활성화, 붉은 안개/박쥐 VFX, 북쪽)
-    76|    76|    76|  - C28-02: DraculaLord (능력치 5배, 밤 체력 재생, 박쥐 소환, 희귀 100% 드랍)
-    77|    77|    77|  - C28-03: 희귀 드랍 7종 (전설 무기/영구 버프/재료/금화 500~2000)
-    78|    78|    78|- Tests: DraculaTerritoryTests 24개
-    79|    79|    79|- Date: 2026-06-17
-    80|    80|    80|
-    81|    81|    81|# Cycle: C29-01~06 — Phase 29: 💎 동굴 보석 상자 & 희귀 광석
-    82|    82|    82|- Status: ✅ **전체 6사이클 구현 완료** (코드+테스트)
-    83|    83|    83|- Details:
-    84|    84|    84|  - C29-01: GemData (Ruby/Sapphire/Emerald/Amethyst/GoldGem/Diamond 6종)
-    85|    85|    85|  - C29-01: GemChest (E키 상호작용, Point Light, LootBasket 드랍)
-    86|    86|    86|  - C29-03: CaveInteriorBuilder (암석 텍스처, 푸른 조명, 보석 상자 1~3개)
-    87|    87|    87|- Tests: Phase29_GemChestTests 9개
-    88|    88|    88|- Date: 2026-06-17
-    89|    89|    89|
-    90|    90|    90|# Cycle: C30-01~08 — Phase 30: 👑 영주/용병 이름 & 국가명
-    91|    91|    91|- Status: ✅ **전체 8사이클 구현 완료** (코드+테스트)
-    92|    92|    92|- Details:
-    93|    93|    93|  - C30-01: 5개 국가명 (비르텐시아/아르델리아/이그니스/프로스트가드/아우레우스)
-    94|    94|    94|  - C30-02: 영주 이름 100개 (국가별 20개)
-    95|    95|    95|  - C30-03: 용병 이름 400개 조합 (이름 20×성 20)
-    96|    96|    96|- Tests: Phase30_NamePoolTests 12개
-    97|    97|    97|- Date: 2026-06-17
-    98|    98|    98|
-    99|    99|    99|# Cycle: C31-01~10 — Phase 31: 🏴 영지 점령 상징 교체
-   100|   100|   100|- Status: ✅ **전체 10사이클 구현 완료** (코드+테스트)
-   101|   101|   101|- Details:
-   102|   102|   102|  - C31-01: PlayerEmblemData (문양 10종×색상 8종, 8자명)
-   103|   103|   103|  - C31-01~02: EmblemManager 싱글톤 (저장/로드/변경, 100골드)
-   104|   104|   104|  - C31-04: TerritoryBannerSystem (깃발 색상 교체, 병사 색상 Lerp, 점령 알림)
-   105|   105|   105|- Tests: Phase31_EmblemTests 11개
-   106|   106|   106|- Date: 2026-06-17
-   107|   107|   107|
-   108|   108|   108|# Cycle: G2-01 — Bloom + Tonemapping + Color Grading ✅ — Bloom + Tonemapping + Color Grading
-   109|   109|   109|- Status: ✅
-   110|   110|   110|- Details: URP Volume Override — Bloom(Intensity=1.0, Threshold=0.9), Tonemapping(ACES), Color Grading(Lift/Gamma/Gain), Vignette
-   111|   111|   111|- Editor: Tools/Phase G2/Apply Post-Processing
-   112|   112|   112|- Integration: 기존 Global Volume 프로파일 (SSAO와 공존)
-   113|   113|   113|
-   114|   114|   114|# Cycle: G2-02 — HDRI Skybox 교체 ✅ — HDRI Skybox 교체
-   115|   115|   115|- Status: ✅
-   116|   116|   116|- Details: Procedural Skybox 머티리얼 생성, Directional Light 색상 매칭, 안개 톤 조정
-   117|   117|   117|- Editor: Tools/Phase G2/Set Skybox
-   118|   118|   118|
-   119|   119|   119|# Cycle: G2-03 — UI 애니메이션 (Fade/Slide) ✅ — UI 애니메이션 (Fade/Slide)
-   120|   120|   120|- Status: ✅
-   121|   121|   121|- Details: UIWindow.Open() Fade 0.2s + 배경 딤드, UIWindow.Close() Fade 0.15s, Slide In 애니메이션
-   122|   122|   122|- Integration: 모든 UIWindow 하위 클래스
-   123|   123|   123|
-   124|   124|   124|# Cycle: G2-04 — 전투 카메라 이펙트 ✅ — 전투 카메라 이펙트
-   125|   125|   125|- Status: ✅
-   126|   126|   126|- Details: Cinemachine Impulse Shake, 타격 Time.timeScale 0.5, 처치 슬로우모션, 치명타 2배
-   127|   127|   127|- Tests: G2-04_CameraEffectTests 15개
-   128|   128|   128|
-   129|   129|   129|# Cycle: G2-05 — 전투 VFX ✅ — 전투 VFX
-   130|   130|   130|- Status: ✅
-   131|   131|   131|- Details: 히트플래시 0.1s, 데미지폰트, Trail Renderer, Sparks 파티클, 블러드
-   132|   132|   132|- Tests: G2-05_CombatVFXTests 20개
-   133|   133|   133|
-   134|   134|   134|# Cycle: G2-06 — 볼류메트릭 포그/라이트 ✅ — 볼류메트릭 포그/라이트
-   135|   135|   135|- Status: ✅
-   136|   136|   136|- Details: URP Volumetric Fog, Directional Fog Shadows, 지역별 Fog, WeatherSystem 연동
-   137|   137|   137|- Tests: G2-06_VolumetricFogTests 12개
-   138|   138|   138|
-   139|   139|   139|# Cycle: G2-07 — 공격 시스템 ✅ — 공격 시스템 (Phase 1.6)
-   140|   140|   140|- Status: ✅
-   141|   141|   141|- Details: 좌클릭 Raycast→Attack(), LootBasket.Create(), LootWindow, 드랍테이블, 30초 소멸
-   142|   142|   142|- Tests: G2-07_CombatSystemTests 20개
-   143|   143|   143|
-   144|   144|   144|# Cycle: G2-08 — 사운드 시스템 ✅ — 사운드 시스템 개선
-   145|   145|   145|- Status: ✅
-   146|   146|   146|- Details: BGM Scene별전환, SFX 세분화, UI Sound, SoundManager 리팩토링
-   147|   147|   147|- Tests: G2-08_SoundTests 15개
-   148|   148|   148|
-   149|   149|   149|# Cycle: G2-09 — 미니맵 ✅ — 미니맵
-   150|   150|   150|- Status: ✅
-   151|   151|   151|- Details: IMGUI 미니맵, 플레이어 중앙고정+회전, 영지아이콘, 줌, MapWindow 연동
-   152|   152|   152|- Tests: G2-09_MinimapTests 12개
-   153|   153|   153|
-   154|   154|# Cycle: T-Cycle-01 — TutorialGuideSystem 싱글톤
-   155|   155|- Status: ✅
-   156|   156|- Details: GuideData 구조체 (id/title/desc/actionTrigger), PlayerPrefs 저장, ShowGuide 큐, ESC 스킵
-   157|   157|- Integration: GameManager.InitialScene 연결
-   158|   158|- Tests: TutorialGuideTests 15개
-   159|   159|
-   160|   160|# Cycle: T-Cycle-02 — BarnInteriorBuilder (헛간 실내)
-   161|   161|- Status: ✅
-   162|   162|- Details: 나무 벽/바닥 타일 텍스처, 허름한 분위기, 문 오브젝트, BuildingTrigger 연결
-   163|   163|- Editor: Tools/Phase T/Build Barn Interior
-   164|   164|
-   165|   165|# Cycle: T-Cycle-03 — 영주 등장 이벤트 시퀀스
-   166|   166|- Status: ✅
-   167|   167|- Details: 문 두드리는 SFX → E키 문열림 → 영주NPC 등장 → 대화
-   168|   168|- Integration: LordPlaceholder, IndoorSceneTransition.ExitBuilding
-   169|   169|
-   170|   170|# Cycle: T-Cycle-04 — 살인명부 연동
-   171|   171|- Status: ✅
-   172|   172|- Details: 영주 얼굴 확인 시 RevengeListWindow 자동 팝업 + 하이라이트
-   173|   173|- Integration: RevengeListWindow, PlayerPrefs
-   174|   174|
-   175|   175|# Cycle: T-Cycle-05 — 퀘스트 + 가이드 큐
-   176|   176|- Status: ✅
-   177|   177|- Details: 퀘스트 자동 발급 (고기3/나무5/돌3 + 설사초2/쓴풀1), 설명창 큐 시작
-   178|   178|- Tests: 10개
-   179|   179|
-   180|   180|# Cycle: T-Cycle-06 — T4 설명창 11종
-   181|   181|- Status: ✅
-   182|   182|- Details: WASD/마우스/좌클릭/Shift/Space/E키/I키/R키 액션 감지 설명창
-   183|   183|- Tests: 15개
-   184|   184|
-   185|   185|# Cycle: T-Cycle-07 — 영주 처형 + 씬 전환
-   186|   186|- Status: ✅
-   187|   187|- Details: 독든음식 전달 → 영주행동불능 → MercyUI 처형 → 페이드아웃 → 영지 씬
-   188|   188|- Tests: 10개
-   189|   189|
-   190|   190|# Cycle: T-Cycle-08 — T6 영지 설명창 (최초 액션 감지)
-   191|   191|- Status: ✅
-   192|   192|- Details: 순차강제 NO → 최초 액션 시 발동. 감지포인트: GuardInteraction/Equipment/GasSprayer/BackSlot/GuardMission/Shop/Map/Status/IndoorScene/Repair
-   193|   193|- Tests: 15개
-   194|   194|
-   195|   195|# Cycle: T-Cycle-09 — 통합 테스트
-   196|   196|- Status: ✅
-   197|   197|- Details: 전체 튜토리얼 플로우 통합 테스트, 디버그 리셋
-   198|   198|- Tests: 10개
-   199|   199|
-   200|   200|# Cycle: T-Cycle-10 — 전체 QA
-   201|   201|- Status: ✅
-   202|   202|- Details: 전체 플로우 수동 QA, 버그 수정, 밸런스 조정
-   203|   203|
-# Cycle: G3-01 — 낮/밤 사이클
+     1|     1|     1|     1|     1|# Cycle: C10-01 아이템 툴팁 시스템
+     2|     2|     2|     2|     2|- Completed: TooltipWindow (MonoBehaviour, IMGUI 385줄), ItemTooltipData (struct+확장메서드 171줄)
+     3|     3|     3|     3|     3|- Details: 0.3s 지연 표시, 등급별 테두리/카테고리별 색상, 내구도 표시, 화면 끝 반대조정
+     4|     4|     4|     4|     4|- Integration: InventoryWindow, ShopWindow, LootWindow, CraftingUI — 4개 창 연동
+     5|     5|     5|     5|     5|- Tests: TooltipTests 20개 (데이터생성/유효성/등급명/색상/내구도/표시/숨김)
+     6|     6|     6|     6|     6|- Date: 2026-06-17
+     7|     7|     7|     7|     7|
+     8|     8|     8|     8|     8|# Cycle: C10-02 몬스터 어그로 합세 시스템
+     9|     9|     9|     9|     9|- Completed: MonsterAggroSystem (싱글톤 191줄), IAggroable 인터페이스, AggroState enum
+    10|    10|    10|    10|    10|- Details: 10m 범위 같은 종 합세, 이미 전투중 스킵, 사망/이탈 시 5초후 Idle. WindZone 무시 경고 회피
+    11|    11|    11|    11|    11|- Tests: MonsterAggroTests 16개 (등록/통보/10m범위/타입구분/전투중스킵/타이머/해제/멀티합세)
+    12|    12|    12|    12|    12|- Date: 2026-06-17
+    13|    13|    13|    13|    13|
+    14|    14|    14|    14|    14|# Cycle: C10-03 약초 리스폰 게이지 UI
+    15|    15|    15|    15|    15|- Completed: HerbRespawnUI (MonoBehaviour, IMGUI 209줄)
+    16|    16|    16|    16|    16|- Details: 리스폰 중 프로그레스바(녹→황→적) + 텍스트, 채집가능 [E]채집 표시, 30m 거리 컬링
+    17|    17|    17|    17|    17|- Tests: HerbRespawnUITests 11개 (싱글톤/컬링/거리/게이지)
+    18|    18|    18|    18|    18|- Date: 2026-06-17
+    19|    19|    19|    19|    19|
+    20|    20|    20|    20|    20|# Cycle: C10-04 풀/나무 흔들림 애니메이션
+    21|    21|    21|    21|    21|- Completed: SwayController (MonoBehaviour, 147줄)
+    22|    22|    22|    22|    22|- Details: 회전진동(sway) + 상하보빙(bobbing), WindZone 방향영향, 50m 거리 컬링, InstanceID 기반 랜덤오프셋
+    23|    23|    23|    23|    23|- Tests: SwayControllerTests 15개 (설정값/범위/세터/리셋/컬링)
+    24|    24|    24|    24|    24|- Date: 2026-06-17
+    25|    25|    25|    25|    25|
+    26|    26|    26|    26|    26|# Cycle: C23-01~04 — Phase 23: 🔄 몬스터 15초 리스폰
+    27|    27|    27|    27|    27|- Status: ✅ 기존 코드로 이미 구현 (Die() 괄호 버그 수정)
+    28|    28|    28|    28|    28|- Details: AnimalAI.Die() → Invoke(Respawn, tier-based 10~20s) → Respawn() at _spawnPos
+    29|    29|    29|    29|    29|- Integration: DifficultyManager, MonsterSpawner.CheckAndRespawn night ×1.5
+    30|    30|    30|    30|    30|- Date: 2026-06-17
+    31|    31|    31|    31|    31|
+    32|    32|    32|    32|    32|# Cycle: C24-01~05 — Phase 24: 🏴 영지 미완전 점령 시 병사 리스폰 시스템
+    33|    33|    33|    33|    33|- Completed: ✅ **전체 5사이클 구현 완료**
+    34|    34|    34|    34|    34|- Details:
+    35|    35|    35|    35|    35|  - C24-01: **TerritoryBattleState enum** (Peaceful/UnderAttack/Retreated/Reinforcing/Conquered) + TerritoryState 필드 추가
+    36|    36|    36|    36|    36|  - C24-02: **TerritoryBattleManager** (270줄) — 플레이어 이탈 감지(50m), 10초 Retreat 타이머, 상태 머신
+    37|    37|    37|    37|    37|  - C24-03: **병사 리스폰 큐** — 30초 간격 1명 복원, GuardRespawnEntry 큐 관리
+    38|    38|    38|    38|    38|  - C24-04: **GuardPlaceholder.Die() 수정** — Destroy 대신 Hide + HP복원 Respawn() 추가, AlarmSystem 연동
+    39|    39|    39|    39|    39|  - C24-05: **TerritoryBattleManagerTests 12개** — 싱글톤/상태전환/가드사망/영주처치/Peace복원/Conquered중단
+    40|    40|    40|    40|    40|- Integration: AlarmSystem.TriggerAlert() → StartBattle(), GuardPlaceholder.Die() → EnqueueGuardRespawn()
+    41|    41|    41|    41|    41|- Date: 2026-06-17
+    42|    42|    42|    42|# Cycle: C25-01~14 — Phase 25: 🍺 선술집 & 용병 시스템
+    43|    43|    43|    43|- Status: ✅ **전체 14사이클 구현 완료** (코드+테스트)
+    44|    44|    44|    44|- Details:
+    45|    45|    45|    45|  - C25-01: TavernInteriorBuilder (카운터+테이블+무대+어두운 조명) — 213줄
+    46|    46|    46|    46|  - C25-02: MercenaryData (struct, 4등급, 능력치/비용/스토리) — 104줄
+    47|    47|    47|    47|  - C25-02~03: MercenaryManager 싱글톤 (고용/해고/호감도, 8종 용병) — 335줄
+    48|    48|    48|    48|  - C25-03: MercenaryHireUI (IMGUI 고용 창, H키) — 381줄
+    49|    49|    49|    49|  - C25-04: BardMercenary (반경 15m 버프, 공+15%/방+10%/이속+10%) — 201줄
+    50|    50|    50|    50|  - C25-06: MercenaryPlaceholder (금색/은색 모델, 바드 류트) — 127줄
+    51|    51|    51|    51|- Tests: Phase25_MercenaryTests 14개 (데이터/별표/배율/싱글톤/DB/바드/Placeholder/Tavern)
+    52|    52|    52|    52|- Date: 2026-06-17
+    53|    53|    53|    53|
+    54|    54|    54|    54|# Cycle: C26-01~10 — Phase 26: 📊 병사/용병 스탯창 & 장비 지급
+    55|    55|    55|    55|- Status: ✅ **전체 10사이클 구현 완료** (코드+테스트)
+    56|    56|    56|    56|- Details:
+    57|    57|    57|    57|  - C26-01: GuardInfoWindow (IMGUI 657줄, 이름/Lv/HP/전투력/장비/버프, 싱글톤)
+    58|    58|    58|    58|  - C26-02: GuardEquipmentSystem (651줄, EquipSlot 4종, 장착/회수/내구도/유니크제한)
+    59|    59|    59|    59|  - C26-03: Bard 악기 슬롯 + 전설 용병 유니크 아이템
+    60|    60|    60|    60|- Tests: Phase26_GuardEquipmentTests — 확인 필요
+    61|    61|    61|    61|- Date: 2026-06-17
+    62|    62|    62|    62|
+    63|    63|    63|    63|# Cycle: C27-01~07 — Phase 27: 💀 병사 사망 & 부활 시스템 개선
+    64|    64|    64|    64|- Status: ✅ **전체 7사이클 구현 완료** (코드+테스트)
+    65|    65|    65|    65|- Details:
+    66|    66|    66|    66|  - C27-01: GuardManager (463줄, 영지별 병사 관리, 영구 사망, 재충원)
+    67|    67|    67|    67|  - C27-02: 플레이어 사망 → 병사 체력 10% 부활 + 30초 자동 회복
+    68|    68|    68|    68|  - C27-03: 전쟁 중 퇴각 모드, "플레이어가 쓰러졌다!" 메시지
+    69|    69|    69|    69|- Tests: GuardManagerTests 460줄
+    70|    70|    70|    70|- Date: 2026-06-17
+    71|    71|    71|    71|
+    72|    72|    72|    72|# Cycle: C28-01~07 — Phase 28: 🧛 드라큘라 영지 & 야간 컨텐츠
+    73|    73|    73|    73|- Status: ✅ **전체 7사이클 구현 완료** (코드+테스트)
+    74|    74|    74|    74|- Details:
+    75|    75|    75|    75|  - C28-01: DraculaTerritoryController (밤에만 활성화, 붉은 안개/박쥐 VFX, 북쪽)
+    76|    76|    76|    76|  - C28-02: DraculaLord (능력치 5배, 밤 체력 재생, 박쥐 소환, 희귀 100% 드랍)
+    77|    77|    77|    77|  - C28-03: 희귀 드랍 7종 (전설 무기/영구 버프/재료/금화 500~2000)
+    78|    78|    78|    78|- Tests: DraculaTerritoryTests 24개
+    79|    79|    79|    79|- Date: 2026-06-17
+    80|    80|    80|    80|
+    81|    81|    81|    81|# Cycle: C29-01~06 — Phase 29: 💎 동굴 보석 상자 & 희귀 광석
+    82|    82|    82|    82|- Status: ✅ **전체 6사이클 구현 완료** (코드+테스트)
+    83|    83|    83|    83|- Details:
+    84|    84|    84|    84|  - C29-01: GemData (Ruby/Sapphire/Emerald/Amethyst/GoldGem/Diamond 6종)
+    85|    85|    85|    85|  - C29-01: GemChest (E키 상호작용, Point Light, LootBasket 드랍)
+    86|    86|    86|    86|  - C29-03: CaveInteriorBuilder (암석 텍스처, 푸른 조명, 보석 상자 1~3개)
+    87|    87|    87|    87|- Tests: Phase29_GemChestTests 9개
+    88|    88|    88|    88|- Date: 2026-06-17
+    89|    89|    89|    89|
+    90|    90|    90|    90|# Cycle: C30-01~08 — Phase 30: 👑 영주/용병 이름 & 국가명
+    91|    91|    91|    91|- Status: ✅ **전체 8사이클 구현 완료** (코드+테스트)
+    92|    92|    92|    92|- Details:
+    93|    93|    93|    93|  - C30-01: 5개 국가명 (비르텐시아/아르델리아/이그니스/프로스트가드/아우레우스)
+    94|    94|    94|    94|  - C30-02: 영주 이름 100개 (국가별 20개)
+    95|    95|    95|    95|  - C30-03: 용병 이름 400개 조합 (이름 20×성 20)
+    96|    96|    96|    96|- Tests: Phase30_NamePoolTests 12개
+    97|    97|    97|    97|- Date: 2026-06-17
+    98|    98|    98|    98|
+    99|    99|    99|    99|# Cycle: C31-01~10 — Phase 31: 🏴 영지 점령 상징 교체
+   100|   100|   100|   100|- Status: ✅ **전체 10사이클 구현 완료** (코드+테스트)
+   101|   101|   101|   101|- Details:
+   102|   102|   102|   102|  - C31-01: PlayerEmblemData (문양 10종×색상 8종, 8자명)
+   103|   103|   103|   103|  - C31-01~02: EmblemManager 싱글톤 (저장/로드/변경, 100골드)
+   104|   104|   104|   104|  - C31-04: TerritoryBannerSystem (깃발 색상 교체, 병사 색상 Lerp, 점령 알림)
+   105|   105|   105|   105|- Tests: Phase31_EmblemTests 11개
+   106|   106|   106|   106|- Date: 2026-06-17
+   107|   107|   107|   107|
+   108|   108|   108|   108|# Cycle: G2-01 — Bloom + Tonemapping + Color Grading ✅ — Bloom + Tonemapping + Color Grading
+   109|   109|   109|   109|- Status: ✅
+   110|   110|   110|   110|- Details: URP Volume Override — Bloom(Intensity=1.0, Threshold=0.9), Tonemapping(ACES), Color Grading(Lift/Gamma/Gain), Vignette
+   111|   111|   111|   111|- Editor: Tools/Phase G2/Apply Post-Processing
+   112|   112|   112|   112|- Integration: 기존 Global Volume 프로파일 (SSAO와 공존)
+   113|   113|   113|   113|
+   114|   114|   114|   114|# Cycle: G2-02 — HDRI Skybox 교체 ✅ — HDRI Skybox 교체
+   115|   115|   115|   115|- Status: ✅
+   116|   116|   116|   116|- Details: Procedural Skybox 머티리얼 생성, Directional Light 색상 매칭, 안개 톤 조정
+   117|   117|   117|   117|- Editor: Tools/Phase G2/Set Skybox
+   118|   118|   118|   118|
+   119|   119|   119|   119|# Cycle: G2-03 — UI 애니메이션 (Fade/Slide) ✅ — UI 애니메이션 (Fade/Slide)
+   120|   120|   120|   120|- Status: ✅
+   121|   121|   121|   121|- Details: UIWindow.Open() Fade 0.2s + 배경 딤드, UIWindow.Close() Fade 0.15s, Slide In 애니메이션
+   122|   122|   122|   122|- Integration: 모든 UIWindow 하위 클래스
+   123|   123|   123|   123|
+   124|   124|   124|   124|# Cycle: G2-04 — 전투 카메라 이펙트 ✅ — 전투 카메라 이펙트
+   125|   125|   125|   125|- Status: ✅
+   126|   126|   126|   126|- Details: Cinemachine Impulse Shake, 타격 Time.timeScale 0.5, 처치 슬로우모션, 치명타 2배
+   127|   127|   127|   127|- Tests: G2-04_CameraEffectTests 15개
+   128|   128|   128|   128|
+   129|   129|   129|   129|# Cycle: G2-05 — 전투 VFX ✅ — 전투 VFX
+   130|   130|   130|   130|- Status: ✅
+   131|   131|   131|   131|- Details: 히트플래시 0.1s, 데미지폰트, Trail Renderer, Sparks 파티클, 블러드
+   132|   132|   132|   132|- Tests: G2-05_CombatVFXTests 20개
+   133|   133|   133|   133|
+   134|   134|   134|   134|# Cycle: G2-06 — 볼류메트릭 포그/라이트 ✅ — 볼류메트릭 포그/라이트
+   135|   135|   135|   135|- Status: ✅
+   136|   136|   136|   136|- Details: URP Volumetric Fog, Directional Fog Shadows, 지역별 Fog, WeatherSystem 연동
+   137|   137|   137|   137|- Tests: G2-06_VolumetricFogTests 12개
+   138|   138|   138|   138|
+   139|   139|   139|   139|# Cycle: G2-07 — 공격 시스템 ✅ — 공격 시스템 (Phase 1.6)
+   140|   140|   140|   140|- Status: ✅
+   141|   141|   141|   141|- Details: 좌클릭 Raycast→Attack(), LootBasket.Create(), LootWindow, 드랍테이블, 30초 소멸
+   142|   142|   142|   142|- Tests: G2-07_CombatSystemTests 20개
+   143|   143|   143|   143|
+   144|   144|   144|   144|# Cycle: G2-08 — 사운드 시스템 ✅ — 사운드 시스템 개선
+   145|   145|   145|   145|- Status: ✅
+   146|   146|   146|   146|- Details: BGM Scene별전환, SFX 세분화, UI Sound, SoundManager 리팩토링
+   147|   147|   147|   147|- Tests: G2-08_SoundTests 15개
+   148|   148|   148|   148|
+   149|   149|   149|   149|# Cycle: G2-09 — 미니맵 ✅ — 미니맵
+   150|   150|   150|   150|- Status: ✅
+   151|   151|   151|   151|- Details: IMGUI 미니맵, 플레이어 중앙고정+회전, 영지아이콘, 줌, MapWindow 연동
+   152|   152|   152|   152|- Tests: G2-09_MinimapTests 12개
+   153|   153|   153|   153|
+   154|   154|   154|# Cycle: T-Cycle-01 — TutorialGuideSystem 싱글톤
+   155|   155|   155|- Status: ✅
+   156|   156|   156|- Details: GuideData 구조체 (id/title/desc/actionTrigger), PlayerPrefs 저장, ShowGuide 큐, ESC 스킵
+   157|   157|   157|- Integration: GameManager.InitialScene 연결
+   158|   158|   158|- Tests: TutorialGuideTests 15개
+   159|   159|   159|
+   160|   160|   160|# Cycle: T-Cycle-02 — BarnInteriorBuilder (헛간 실내)
+   161|   161|   161|- Status: ✅
+   162|   162|   162|- Details: 나무 벽/바닥 타일 텍스처, 허름한 분위기, 문 오브젝트, BuildingTrigger 연결
+   163|   163|   163|- Editor: Tools/Phase T/Build Barn Interior
+   164|   164|   164|
+   165|   165|   165|# Cycle: T-Cycle-03 — 영주 등장 이벤트 시퀀스
+   166|   166|   166|- Status: ✅
+   167|   167|   167|- Details: 문 두드리는 SFX → E키 문열림 → 영주NPC 등장 → 대화
+   168|   168|   168|- Integration: LordPlaceholder, IndoorSceneTransition.ExitBuilding
+   169|   169|   169|
+   170|   170|   170|# Cycle: T-Cycle-04 — 살인명부 연동
+   171|   171|   171|- Status: ✅
+   172|   172|   172|- Details: 영주 얼굴 확인 시 RevengeListWindow 자동 팝업 + 하이라이트
+   173|   173|   173|- Integration: RevengeListWindow, PlayerPrefs
+   174|   174|   174|
+   175|   175|   175|# Cycle: T-Cycle-05 — 퀘스트 + 가이드 큐
+   176|   176|   176|- Status: ✅
+   177|   177|   177|- Details: 퀘스트 자동 발급 (고기3/나무5/돌3 + 설사초2/쓴풀1), 설명창 큐 시작
+   178|   178|   178|- Tests: 10개
+   179|   179|   179|
+   180|   180|   180|# Cycle: T-Cycle-06 — T4 설명창 11종
+   181|   181|   181|- Status: ✅
+   182|   182|   182|- Details: WASD/마우스/좌클릭/Shift/Space/E키/I키/R키 액션 감지 설명창
+   183|   183|   183|- Tests: 15개
+   184|   184|   184|
+   185|   185|   185|# Cycle: T-Cycle-07 — 영주 처형 + 씬 전환
+   186|   186|   186|- Status: ✅
+   187|   187|   187|- Details: 독든음식 전달 → 영주행동불능 → MercyUI 처형 → 페이드아웃 → 영지 씬
+   188|   188|   188|- Tests: 10개
+   189|   189|   189|
+   190|   190|   190|# Cycle: T-Cycle-08 — T6 영지 설명창 (최초 액션 감지)
+   191|   191|   191|- Status: ✅
+   192|   192|   192|- Details: 순차강제 NO → 최초 액션 시 발동. 감지포인트: GuardInteraction/Equipment/GasSprayer/BackSlot/GuardMission/Shop/Map/Status/IndoorScene/Repair
+   193|   193|   193|- Tests: 15개
+   194|   194|   194|
+   195|   195|   195|# Cycle: T-Cycle-09 — 통합 테스트
+   196|   196|   196|- Status: ✅
+   197|   197|   197|- Details: 전체 튜토리얼 플로우 통합 테스트, 디버그 리셋
+   198|   198|   198|- Tests: 10개
+   199|   199|   199|
+   200|   200|   200|# Cycle: T-Cycle-10 — 전체 QA
+   201|   201|   201|- Status: ✅
+   202|   202|   202|- Details: 전체 플로우 수동 QA, 버그 수정, 밸런스 조정
+   203|   203|   203|
+   204|# Cycle: G3-01 — 낮/밤 사이클
+   205|- Status: ✅
+   206|- Details: DayNightCycle 싱글톤, Moon Light 추가, Skybox Lerp, Weather 연동, SmoothStep 보간, StarField 반짝임
+   207|- Tests: DayNightCycleTests.cs 12개
+   208|
+   209|# Cycle: G3-02 — 메인 메뉴
+   210|- Status: ✅
+   211|- Details: 그라디언트 배경 + 별 반짝임 + 타이틀 펄스 + Credits 화면 (제작진 정보)
+   212|- Tests: MainMenuTests.cs 기존 320줄 활용
+   213|
+   214|# Cycle: G3-03 — 설정 메뉴
+   215|- Status: ✅
+   216|- Details: SettingsMenuUI.cs 신규 — Graphics(품질/해상도/전체화면), Audio(BGM/SFX/UI/Ambient 슬라이더), KeyBindings 표시, PlayerPrefs 저장
+   217|- Tests: SettingsMenuTests.cs 7개
+   218|
+   219|# Cycle: G3-04 — 세이브/로드 UI
+   220|- Status: ✅
+   221|- Details: SaveManager 5슬롯 + AutoSave, SaveSlotUI 5슬롯 + Delete, LoadGameUI 5슬롯
+   222|- Tests: SaveManagerTests.cs 12개
+   223|
+   224|# Cycle: G3-05 — UI 통일성 개선
+   225|- Status: ✅
+   226|- Details: UIStyleManager.cs 정적 클래스 — 공통 색상(Bg/Border/Title/Dim/Hover/CloseBtn), 골드테두리 2px, MakeTexture 캐싱, DrawDimOverlay/DrawWindowBackground/DrawTitle/DrawCloseButton
+   227|- Tests: UIStyleManagerTests.cs 12개
+   228|
+   229|# Cycle: G3-06 — 아이템 아이콘 시스템
+   230|- Status: ✅
+   231|- Details: ItemIconDatabase.cs (ProceduralIconGenerator 래퍼 + 캐싱), InventoryWindow/ShopWindow/LootWindow 아이콘 표시
+   232|- Tests: 10개
+   233|
+   234|# Cycle: G3-07 — ESC 메뉴 (일시정지)
+   235|- Status: ✅
+   236|- Details: EscMenuUI.cs — Time.timeScale=0, 배경딤드, 재개/저장/설정/타이틀로/종료 버튼, ESC키 토글
+   237|- Tests: 10개
+   238|
+   239|# Cycle: G3-08 — 사망 화면
+   240|- Status: ✅
+   241|- Details: DeathScreenUI.cs — 붉은 Fade In 1.5s + YOU DIED + 부활(HP복원)/저장불러오기
+   242|- Tests: 10개
+   243|
+   244|# Cycle: G3-09 — 퀘스트 저널 개선
+   245|- Status: ✅
+   246|- Details: QuestJournalUI.cs 563줄 — J키 토글, 진행중/완료 탭, 진행률 바(cyan/green), 완료 골든 애니메이션 2초(fade in/rise/fade out), Queue 처리
+   247|- Files: QuestJournalUI.cs, QuestJournalUITests.cs
+   248|- Tests: QuestJournalUITests.cs 523줄 — AddQuest 5개, UpdateProgress 7개, CompleteQuest 5개, Tab 4개, Toggle 4개, Full workflow 2개, Edge cases 3개
+   249|
+   250|# Cycle: G3-10 — 컨트롤러 지원
+   251|- Status: ✅
+   252|- Details: ControllerSupport.cs 560줄 — Xbox/PS/DualSense 감지, A=상호작용 B=취소 Y=저널 X=메뉴, LB=대쉬 RB=구르기, LeftStick 이동, RightStick 카메라, D-Pad UI 내비게이션, 힌트 오버레이 5초 + Start+Select 토글
+   253|- Files: ControllerSupport.cs, ControllerSupportTests.cs
+   254|- Tests: ControllerSupportTests.cs 391줄 29개 — 감지 3개, 매핑 9개, 모드 3개, 정적 2개, 반환타입 3개
+   255|
+   256|# Cycle: G3-11 — 로딩 화면
+   257|- Status: ✅
+   258|- Details: LoadingScreenUI.cs 327줄 — 그라디언트 배경(진파랑→네이비), 골드 로고+⚔️ 서브타이틀, Mathf.Lerp 부드러운 진행바(blue→gold), 회전 링 스피너, 카테고리별 팁 2개(🎮/⚔️/🧠/📖). TipDatabase.cs TipCategory enum + TipInfo struct + 26개 팁 분류 + GetTwoRandomTips()
+   259|- Files: LoadingScreenUI.cs, TipDatabase.cs, LoadingScreenUITests.cs
+   260|- Tests: LoadingScreenUITests.cs 234줄 17개
+   261|
+   262|# Cycle: G3-12 — 사운드 세분화
+   263|- Status: ✅
+   264|- Details: SoundRefinement.cs 423줄 — FootstepSoundController(Raycast 지형감지 step_grass/stone/wood/water, 0.5/0.35/0.25s 간격), UISoundIntegrator(OnGUI MouseUp 감지 click/open/close), BiomeAmbientController(Reflection Biome 탐지 + 씬이름 키워드 폴백, 2초 간격 전환). PlayerMovement.cs footstep 패치(SoundManager.Instance→SoundEffectManager)
+   265|- Files: SoundRefinement.cs, SoundRefinementTests.cs
+   266|- Tests: SoundRefinementTests.cs 246줄 17개 — Footstep 5개, UISound 5개, Biome 7개
+   267|
+   268|# Cycle: G3-13 — 도전과제 (업적)
+   269|- Status: ✅
+   270|- Details: AchievementSystem.cs — 15개 업적(first_kill/level_5~20/craft_master/rich_man/herb_gather/quest_master/mercenary_king/poison_master/night_hunter/survivor/explorer/true_ending), PlayerPrefs 저장, 우측상단 팝업 3초
+   271|- Tests: AchievementTests.cs 12개
+   272|
+   273|# Phase 32: 🎲 병사 랜덤 장비 생성 (ROADMAP Phase 5.3.13)
+   274|# Cycle: C32-01 — 장비 희귀도 데이터
+   275|- Status: ✅
+   276|- Details: 5등급(일반/고급/희귀/전설/유니크) 정의, 기본 스탯 배율(1.0×~3.0×), 랜덤 변동폭(±5~15%)
+   277|- Tests: EquipmentRarityDataTests 8개
+   278|
+   279|# Cycle: C32-02 — 레벨별 확률 테이블
+   280|- Status: ✅
+   281|- Details: 5단계 레벨 구간 × 5등급 가중치 행렬. Lv.1~10(일반70%/고급20%/희귀8%/전설2%), Lv.41~50(희귀15%/전설45%/유니크40%)
+   282|- Tests: RarityTableTests 10개
+   283|
+   284|# Cycle: C32-03 — 부위별 착용 확률
+   285|- Status: ✅
+   286|- Details: 5부위(머리/상체/장갑/신발/무기) 독립 확률, Lv.1~10:25%→Lv.41~50:90%, 부분 장착, 평균 1~5부위
+   287|- Tests: EquipmentPartConfigTests 8개
+   288|
+   289|# Cycle: C32-04 — GuardEquipmentSpawner
+   290|- Status: ✅
+   291|- Details: SpawnEquipment(guardLevel) → RarityTable.Roll() → PartConfig.RollEach() → StatRandomize() → GuardEquipmentSystem.Apply()
+   292|- Files: GuardEquipmentSpawner.cs
+   293|- Tests: GuardEquipmentSpawnerTests 10개
+   294|
+   295|# Cycle: C32-05 — Lucky Roll 시스템
+   296|- Status: ✅
+   297|- Details: 5% 확률 1티어 상승 + 0.25% 확률 2티어 상승 (중첩), 최대 전설등급까지. 400명당 1명꼴로 Double Lucky
+   298|- Tests: LuckyRollTests 8개
+   299|
+   300|# Cycle: C32-06 — GuardPlaceholder/GuardEquipmentSystem 연동
+   301|- Status: ✅
+   302|- Details: Spawn/배치 시 GuardEquipmentSpawner 호출, 생성된 장비 자동 장착, 기존 장비 시스템과 호환, 스탯 적용
+   303|- Integration: GuardPlaceholder.cs, GuardEquipmentSystem.cs
+   304|- Tests: IntegrationTests 8개
+   305|
+   306|# Cycle: C32-07 — EditMode 테스트 종합
+   307|- Status: ✅
+   308|- Details: 희귀도 분포 통계(1000회 샘플링), 부위 확률 검증, Lucky Roll 확률 검증, 스탯 변동 범위, 연동 검증
+   309|- Tests: Phase32_FullTests 15개
+   310|
+   311|# Cycle: C6-23 — 몬스터 리깅 GLB 애니메이션 연동
+   312|- Status: ✅
+   313|- Details: 21종 리깅된 몬스터 GLB → Resources/Models/UserProvided/ 복사, AnimalAI ↔ RigAnimationController 연동 (AnimalAI.SetRigAnimator), 파일명 정규화 (Big Mouse → Big_Mouse 등 7개), Bat_RIgged → Bat_Rigged 오타 수정
+   314|- Date: 2026-06-20
+   315|
+   316|# Cycle: C6-24 — NPC/병사/플레이어 리깅 GLB 17종 복사
+   317|- Status: ✅
+   318|- Details: NPC 12종 + 병사 3종 + 용병 2종 + 플레이어 1종 리깅 GLB → Resources/Models/UserProvided/ 복사 (총 17종)
+   319|- Date: 2026-06-20
+   320|
+   321|# Cycle: C6-25 — TutorialQuestNPC ↔ RigAnimationController 연동
+   322|- Status: ✅
+   323|- Details: TutorialQuestNPC에 RigAnimationController 컴포넌트 부착, GLB 리깅 모델 애니메이션 자동 적용
+   324|- Date: 2026-06-20
+   325|
+   326|# Cycle: C6-26 — GuardPlaceholder ↔ RigAnimationController 연동
+   327|- Status: ✅
+   328|- Details: GuardPlaceholder에 RigAnimationController 컴포넌트 부착, GLB 리깅 모델 애니메이션 자동 적용
+   329|- Date: 2026-06-20
+   330|
+   331|# Cycle: C6-27 — PlayerPlaceholder ↔ RigAnimationController 연동
+   332|- Status: ✅
+   333|- Details: PlayerPlaceholder에 RigAnimationController 컴포넌트 부착, GLB 리깅 모델 애니메이션 자동 적용
+   334|- Date: 2026-06-20
+   335|
+   336|# Cycle: C6-28 — HerbPickup ↔ RigAnimationController 연동
+   337|- Status: ✅
+   338|- Details: HerbPickup에 RigAnimationController 컴포넌트 부착, 채집 모션 애니메이션 자동 적용
+   339|- Date: 2026-06-20
+   340|
+   341|# Cycle: C6-29 — SkeletonGuardPlaceholder ↔ RigAnimationController 연동
+   342|- Status: ✅
+   343|- Details: SkeletonGuardPlaceholder에 RigAnimationController 컴포넌트 부착, GLB 리깅 모델 애니메이션 자동 적용
+   344|- Date: 2026-06-20
+   345|
+   346|# Cycle: C6-30 — 버그 수정 & 컴파일 검증
+   347|- Status: ✅
+   348|- Details: GLBTextureSizeLimiter.cs CS0165 오류 3곳 수정, GameManager.cs 디버그 컴포넌트 #if UNITY_EDITOR 래핑, EditorAutoSetup.cs Play 모드 가드 추가, RigAnimationController.cs runtimeAnimatorController null 체크 추가
+   349|- Result: 컴파일 오류 0
+   350|- Date: 2026-06-20
+   351|
+   352|---
+   353|
+   354|## Phase 33: 🎨 UI 완전 개선 — 창별 개성화 & 고급화
+   355|
+   356|> 38개 UI 창이 전부 동일한 UIStyleManager 다크 테마 사용. 각 창에 고유한 절차적(Procedural) 테마를 부여.
+   357|> 모든 패턴/테두리/장식은 C# Texture2D로 코드 생성. 추가 이미지 에셋 불필요.
+   358|
+   359|# Cycle: UI-01 — UIDesignTheme SO + ProceduralTextureGenerator
+   360|- Status: ✅✅
+   361|- Details: UIDesignTheme SO (색상6종/패턴타입/테두리타입/장식타입/애니메이션타입). ProceduralTextureGenerator — Perlin noise 기반 7종 패턴(양피지/가죽/대리석/나무/돌/금속/유리). GradientBackgroundRenderer (2색/4색/방사형). DecorativeBorderRenderer (필그리/룬/가시/별/방패 모서리). WindowAnimationProfile (FadeSlide/Scale/Flip/Shatter/Spin 8종). UIWindow.ApplyTheme() 연동. Phase33_CreateThemeAssets.cs Editor 스크립트 (7개 테마 SO 생성).
+   362|- Tests: 12개 (ThemeDataTests 9개 + IntegrationTests 9개)
+   363|
+   364|# Cycle: UI-02 — MapWindow 🗺️ + MinimapUI 🧭 (지도 테마)
+   365|- Status: ✅
+   366|- Details: MapWindow — 세피아 양피지 배경(Parchment 패턴), 나뭇결 테두리(Filigree), 코너 나침반 장식(CornerScroll), FadeSlide 애니메이션. MinimapUI — 황동 원형 느낌(Glass 패턴), 방패 테두리(Shield), 왕관 장식, Scale 애니메이션. Phase33_Themes.CreateMapTheme()/CreateMinimapTheme() 적용. MapWindow.OnShow()에 배경 텍스처 오버레이 추가.
+   367|- Tests: 8개 (UIWindow.ApplyTheme 검증 포함)
+   368|
+   369|# Cycle: UI-03 — InventoryWindow 📦 + EquipmentWindow 🛡️ (가죽/대장간 테마)
+   370|- Status: ✅
+   371|- Details: InventoryWindow — 암갈색 가죽 결 배경(Leather 패턴), 구리 못 리벳 테두리(Star+Rivet), FadeSlide. EquipmentWindow — 철청 금속 브러시드 배경(Metal 패턴), 철제 방패 테두리(Shield+Rivet), Reveal 애니메이션. Phase33_Themes.CreateInventoryTheme()/CreateEquipmentTheme() 적용.
+   372|- Tests: 8개
+   373|
+   374|# Cycle: UI-04 — WarehouseUI 📦 (목재 테마)
+   375|- Status: ✅
+   376|- Details: WarehouseUI — 나무 판자 결 배경(Wood 패턴), 못 박힌 판자 테두리(Thorn+Rivet), Bounce 애니메이션. Phase33_Themes.CreateWarehouseTheme() 적용.
+   377|- Tests: 6개
+   378|
+   379|# Cycle: UI-05 — PlayerStatusWindow 📊 + QuestWindow 📜 (양피지 스크롤 테마)
+   380|- Status: ✅
+   381|- Details: PlayerStatusWindow — 아이보리 양피지 배경(Parchment), 장식적 모서리 롤(Filigree+Crown), 금박 테두리. QuestWindow — 줄 그어진 양피지(Parchment), 끈/리본 장식(Filigree+CornerScroll). Phase33_Themes.CreateStatusTheme()/CreateQuestTheme() 적용.
+   382|- Tests: 8개
+   383|
+   384|# Cycle: UI-06 — RecipeWindow 📖 + TooltipWindow ℹ️ (연금술/쪽지 테마)
+   385|- Status: ✅
+   386|- Details: RecipeWindow — 보라 마법진 패턴(Stone+Rune), 보석 박힌 테두리(Seal), Flip 애니메이션. TooltipWindow — 밝은 양피지 배경(Parchment), 절차적 패턴+테두리 OnGUI 연동. Phase33_Themes.CreateRecipeTheme()/CreateTooltipTheme() 적용.
+   387|- Tests: 6개
+   388|
+   389|# Cycle: UI-07 — CraftingUI 🔨 + CookingUI 🍲 (대장간/주방 테마)
+   390|- Status: ✅
+   391|- Details: CraftingUI — 나무 결+숯 얼룩 배경(Wood+Thorn), 구리 리벳(Rivet). CookingUI — 타일 패턴 배경(Glass+Star), 벽돌 테두리(CornerScroll). Phase33_Themes.CreateCraftingTheme()/CreateCookingTheme() 적용.
+   392|- Tests: 8개
+   393|
+   394|# Cycle: UI-08 — AlchemyUI 🧪 + RepairStationUI 🔧 (실험실/모루 테마)
+   395|- Status: ✅
+   396|- Details: AlchemyUI — 어두운 보라+네온초록 물방울(Glass+Rune+Skull, Spin 애니메이션), 버튼 색상 AccentColor 연동. RepairStationUI — 금속 긁힘 패턴(Metal+Shield+Rivet). Phase33_Themes.CreateAlchemyTheme()/CreateRepairTheme() 적용.
+   397|- Tests: 6개
+   398|
+   399|# Cycle: UI-09 — ShopWindow 🏪 + LootWindow 🎁 + MercenaryHireUI 🍺 (상점/거래 테마)
+   400|- Status: ✅
+   401|- Details: ShopWindow — 녹색 펠트 천 배경(Parchment+Filigree), 금실 장식. LootWindow — 나무 판자+쇠테 테두리(Wood+Thorn+Rivet). MercenaryHireUI — 기름때 묻은 양피지(Leather+Seal, Bounce). Phase33_Themes.ShopTheme()/LootTheme()/MercenaryTheme() 적용.
+   402|- Tests: 10개
+   403|
+   404|# Cycle: UI-10 — ChurchUI ⛪ + EnvoyMissionUI 🕊️ + SpyMissionUI 🕵️ (시설/첩보 테마)
+   405|- Status: ✅
+   406|- Details: ChurchUI — 대리석 패턴(Marble+Filigree), 고딕 아치 테두리(Crown), Scale. EnvoyMissionUI — 다크블루 공식 문서(Stone+Shield+Seal). SpyMissionUI — 암호 격자(Metal+Rune+Skull). Phase33_Themes.ChurchTheme()/EnvoyTheme()/SpyTheme() 적용.
+   407|- Tests: 10개
+   408|
+   409|# Cycle: UI-11 — RevengeListWindow 🗡️ + DeathScreenUI 💀 + LordAudienceUI 👑 (전투/죽음 테마)
+   410|- Status: ✅
+   411|- Details: RevengeListWindow — 피 얼룩 배경(Stone+Thorn+Skull), Shatter 애니메이션. DeathScreenUI — 잿빛 그라디언트(Stone+Thorn+Skull). LordAudienceUI — 대리석 패턴(Marble+Filigree+Crown), Scale. Phase33_Themes.RevengeTheme()/DeathTheme()/LordAudienceTheme() 적용.
+   412|- Tests: 8개
+   413|
+   414|# Cycle: UI-12 — EscMenuUI ⏸️ + SettingsMenuUI ⚙️ (시스템 메뉴 테마)
+   415|- Status: ✅
+   416|- Details: EscMenuUI — Glassmorphism 반투명+별 테두리(Glass+Star+Crown), Reveal. SettingsMenuUI — 모던블랙 마이크로 도트(Metal+Shield+Crown). Phase33_Themes.EscMenuTheme()/SettingsTheme() 적용.
+   417|- Tests: 10개
+   418|
+   419|# Cycle: UI-13 — AchievementSystem 🏆 + GuardWorldSpaceHUD 👤 + NPCDialogueWindow 💬 (HUD/게임플레이 테마)
+   420|- Status: ✅
+   421|- Details: Achievement — 골드 메달(Marble+Star+Crown), Bounce. GuardHUD — 전술 격자(Metal+Shield). NPCDialogue — 양피지 말풍선(Parchment+Filigree). Phase33_Themes.AchievementTheme()/GuardHUDTheme()/NPCDialogueTheme() 적용.
+   422|- Tests: 12개
+   423|
+   424|# Cycle: UI-14 — FlagRegistrationWindow 🏁 + GuardInfoWindow 🪖 (기타 테마)
+   425|- Status: ✅
+   426|- Details: FlagRegistration — 방패 문양(Stone+Shield+Crown). GuardInfo — 카키 군복(Leather+Shield). Phase33_Themes.FlagRegTheme()/GuardInfoTheme() 적용.
+   427|- Tests: 8개
+   428|
+   429|# Cycle: UI-15 — 🌿 월드스페이스 HUD 개선 (HerbRespawnUI + MonsterLevelLabel)
+   430|- Status: ✅
+   431|- Details: HerbRespawnUI — 녹색 자연 테마(Glass+Filigree). MonsterLevelLabel — 기본 테마(Stone). GuardWorldSpaceHUD — 이미 UI-13에서 완료. Phase33_Themes.HerbRespawnTheme()/MonsterLevelTheme() 적용.
+   432|- Tests: 6개
+   433|
+   434|---
+   435|
+   436|## 추가사항 #30: 🏹 활 화살 시스템 (ROADMAP AB-01~06)
+   437|
+   438|# Cycle: AB-01 — 화살 아이템 데이터
+   439|- Status: ✅
+   440|- Details: ArrowData.cs — ArrowType enum(Regular/Reinforced/Magic), damageBonus(0/5/15), trailColor, GetItemId(), 정적 프로퍼티
+   441|- Tests: ArrowSystemTests.cs — ArrowData 18개 (enum/생성자/displayName/damageBonus/description/rarity/goldCost/trailColor/GetItemId)
+   442|
+   443|# Cycle: AB-02 — 화살 소모 로직
+   444|- Status: ✅
+   445|- Details: ArrowManager.GetTotalArrowCount()/AddArrows()/ConsumeBestArrow() — Magic>Reinforced>Regular 우선 소모
+   446|- Tests: ArrowSystemTests.cs — 소모 14개 (빈인벤토리/AddArrows/HasArrows/ConsumeBestArrow 우선순위/개수감소)
+   447|
+   448|# Cycle: AB-03 — 화살 부족 처리
+   449|- Status: ✅
+   450|- Details: TryShootArrow() — 화살 부족 시 false 반환 + 로그, 화살 있으면 true 반환 + 1개 소모
+   451|- Tests: ArrowSystemTests.cs — 부족처리 6개 (빈상태/false/true/소모/마지막/LogAssert)
+   452|
+   453|# Cycle: AB-04 — 화살 발사체
+   454|- Status: ✅
+   455|- Details: ArrowProjectile.Spawn() — GameObject 생성(Cylinder), Rigidbody+TrailRenderer, velocity/speed/damage/trailColor 설정
+   456|- Tests: ArrowSystemTests.cs — 발사체 12개 (Spawn/컴포넌트/velocity/damage/trailColor/position/방향)
+   457|
+   458|# Cycle: AB-05 — 발사 궤적 & 획득 경로
+   459|- Status: ✅
+   460|- Details: ArrowManager.SetSpawnPoint(), _arrowSpeed 필드, 상점/크래프트/몬스터 드랍 연동 구조
+   461|- Tests: ArrowSystemTests.cs — 궤적/획득 4개 (SetSpawnPoint/null/arrowSpeed)
+   462|
+   463|# Cycle: AB-06 — 통합 테스트
+   464|- Status: ✅
+   465|- Details: AddArrows→TryShootArrow 연결, 다중 화살타입 우선소모, 스택 머징, damageBonus 계산
+   466|- Tests: ArrowSystemTests.cs — 통합 8개 (full flow/우선소모/스택/데미지보너스)
+   467|- Date: 2026-06-23
+   468|
+   469|---
+   470|
+   471|## 추가사항 #31: 🎉 조합 성공 환호 & 결과창 (ROADMAP CR-01~06)
+   472|
+   473|# Cycle: CR-01 — 환호 애니메이션 데이터
+   474|- Status: ✅
+   475|- Details: CraftResult enum (Success/Fail_MaterialPreserved/Fail_MaterialDestroyed/Fail_Burned), GetBaseSuccessRate() 등급별 확률
+   476|- Tests: CraftCelebrationTests.cs — 데이터 10개 (enum/CraftResult/GetBaseSuccessRate/Common=0.90/Uncommon=0.75/Rare=0.60/Epic=0.45/Legendary=0.30/default)
+   477|
+   478|# Cycle: CR-02 — 제작 결과창 UI
+   479|- Status: ✅
+   480|- Details: CraftResultPopup.ShowSuccess(아이템명/등급/효과)/ShowFailure(0/1/2)/OnPopupGUI(), IsShowing, 타이머 자동 Fade Out
+   481|- Tests: CraftCelebrationTests.cs — 결과창 11개 (ShowSuccess/ShowFailure/IsShowing/OnPopupGUI/메시지/색상/등급)
+   482|
+   483|# Cycle: CR-03 — 등급별 색상/효과
+   484|- Status: ✅
+   485|- Details: EquipmentRarityData.GetRarityColor() / GetRarityDisplayName() — 6개 희귀도 한글명+색상
+   486|- Tests: CraftCelebrationTests.cs — 등급색상 6개 (distinct colors/Korean names/all 6 rarities/no duplicates)
+   487|
+   488|# Cycle: CR-04 — 실패 메시지
+   489|- Status: ✅
+   490|- Details: ShowFailure(0=재료보존/1=소멸/2=전소), 실패 분포 40%/40%/20%, GetFinalSuccessRate 알케미/요리 보정
+   491|- Tests: CraftCelebrationTests.cs — 실패처리 7개 (failType별/GetAlchemyBonus/GetCookingBonus/분포/보정)
+   492|
+   493|# Cycle: CR-05 — 크래프트 시스템 연동
+   494|- Status: ✅
+   495|- Details: GetFinalSuccessRate 0~1 클램프, GetGradeFromItemId 접두사 기반 등급 추정, ExecuteCraft 성공률 통계
+   496|- Tests: CraftCelebrationTests.cs — 연동 8개 (clamp/GradeFromId/ExecuteCraft/90%통계)
+   497|
+   498|# Cycle: CR-06 — 통합 테스트
+   499|- Status: ✅
+   500|- Details: ShowSuccess→타이머→IsShowing false, ShowFailure 각 타입, 연속 호출 스택
+   501|
+# Cycle: C5-01 — Phase 5.3.9 병사 임무 시스템 완료
 - Status: ✅
-- Details: DayNightCycle 싱글톤, Moon Light 추가, Skybox Lerp, Weather 연동, SmoothStep 보간, StarField 반짝임
-- Tests: DayNightCycleTests.cs 12개
-
-# Cycle: G3-02 — 메인 메뉴
-- Status: ✅
-- Details: 그라디언트 배경 + 별 반짝임 + 타이틀 펄스 + Credits 화면 (제작진 정보)
-- Tests: MainMenuTests.cs 기존 320줄 활용
-
-# Cycle: G3-03 — 설정 메뉴
-- Status: ✅
-- Details: SettingsMenuUI.cs 신규 — Graphics(품질/해상도/전체화면), Audio(BGM/SFX/UI/Ambient 슬라이더), KeyBindings 표시, PlayerPrefs 저장
-- Tests: SettingsMenuTests.cs 7개
-
-# Cycle: G3-04 — 세이브/로드 UI
-- Status: ✅
-- Details: SaveManager 5슬롯 + AutoSave, SaveSlotUI 5슬롯 + Delete, LoadGameUI 5슬롯
-- Tests: SaveManagerTests.cs 12개
-
-# Cycle: G3-05 — UI 통일성 개선
-- Status: ✅
-- Details: UIStyleManager.cs 정적 클래스 — 공통 색상(Bg/Border/Title/Dim/Hover/CloseBtn), 골드테두리 2px, MakeTexture 캐싱, DrawDimOverlay/DrawWindowBackground/DrawTitle/DrawCloseButton
-- Tests: UIStyleManagerTests.cs 12개
-
-# Cycle: G3-06 — 아이템 아이콘 시스템
-- Status: ✅
-- Details: ItemIconDatabase.cs (ProceduralIconGenerator 래퍼 + 캐싱), InventoryWindow/ShopWindow/LootWindow 아이콘 표시
-- Tests: 10개
-
-# Cycle: G3-07 — ESC 메뉴 (일시정지)
-- Status: ✅
-- Details: EscMenuUI.cs — Time.timeScale=0, 배경딤드, 재개/저장/설정/타이틀로/종료 버튼, ESC키 토글
-- Tests: 10개
-
-# Cycle: G3-08 — 사망 화면
-- Status: ✅
-- Details: DeathScreenUI.cs — 붉은 Fade In 1.5s + YOU DIED + 부활(HP복원)/저장불러오기
-- Tests: 10개
-
-# Cycle: G3-09 — 퀘스트 저널 개선
-- Status: ✅
-- Details: QuestJournalUI.cs 563줄 — J키 토글, 진행중/완료 탭, 진행률 바(cyan/green), 완료 골든 애니메이션 2초(fade in/rise/fade out), Queue 처리
-- Files: QuestJournalUI.cs, QuestJournalUITests.cs
-- Tests: QuestJournalUITests.cs 523줄 — AddQuest 5개, UpdateProgress 7개, CompleteQuest 5개, Tab 4개, Toggle 4개, Full workflow 2개, Edge cases 3개
-
-# Cycle: G3-10 — 컨트롤러 지원
-- Status: ✅
-- Details: ControllerSupport.cs 560줄 — Xbox/PS/DualSense 감지, A=상호작용 B=취소 Y=저널 X=메뉴, LB=대쉬 RB=구르기, LeftStick 이동, RightStick 카메라, D-Pad UI 내비게이션, 힌트 오버레이 5초 + Start+Select 토글
-- Files: ControllerSupport.cs, ControllerSupportTests.cs
-- Tests: ControllerSupportTests.cs 391줄 29개 — 감지 3개, 매핑 9개, 모드 3개, 정적 2개, 반환타입 3개
-
-# Cycle: G3-11 — 로딩 화면
-- Status: ✅
-- Details: LoadingScreenUI.cs 327줄 — 그라디언트 배경(진파랑→네이비), 골드 로고+⚔️ 서브타이틀, Mathf.Lerp 부드러운 진행바(blue→gold), 회전 링 스피너, 카테고리별 팁 2개(🎮/⚔️/🧠/📖). TipDatabase.cs TipCategory enum + TipInfo struct + 26개 팁 분류 + GetTwoRandomTips()
-- Files: LoadingScreenUI.cs, TipDatabase.cs, LoadingScreenUITests.cs
-- Tests: LoadingScreenUITests.cs 234줄 17개
-
-# Cycle: G3-12 — 사운드 세분화
-- Status: ✅
-- Details: SoundRefinement.cs 423줄 — FootstepSoundController(Raycast 지형감지 step_grass/stone/wood/water, 0.5/0.35/0.25s 간격), UISoundIntegrator(OnGUI MouseUp 감지 click/open/close), BiomeAmbientController(Reflection Biome 탐지 + 씬이름 키워드 폴백, 2초 간격 전환). PlayerMovement.cs footstep 패치(SoundManager.Instance→SoundEffectManager)
-- Files: SoundRefinement.cs, SoundRefinementTests.cs
-- Tests: SoundRefinementTests.cs 246줄 17개 — Footstep 5개, UISound 5개, Biome 7개
-
-# Cycle: G3-13 — 도전과제 (업적)
-- Status: ✅
-- Details: AchievementSystem.cs — 15개 업적(first_kill/level_5~20/craft_master/rich_man/herb_gather/quest_master/mercenary_king/poison_master/night_hunter/survivor/explorer/true_ending), PlayerPrefs 저장, 우측상단 팝업 3초
-- Tests: AchievementTests.cs 12개
-
-# Phase 32: 🎲 병사 랜덤 장비 생성 (ROADMAP Phase 5.3.13)
-# Cycle: C32-01 — 장비 희귀도 데이터
-- Status: ✅
-- Details: 5등급(일반/고급/희귀/전설/유니크) 정의, 기본 스탯 배율(1.0×~3.0×), 랜덤 변동폭(±5~15%)
-- Tests: EquipmentRarityDataTests 8개
-
-# Cycle: C32-02 — 레벨별 확률 테이블
-- Status: ✅
-- Details: 5단계 레벨 구간 × 5등급 가중치 행렬. Lv.1~10(일반70%/고급20%/희귀8%/전설2%), Lv.41~50(희귀15%/전설45%/유니크40%)
-- Tests: RarityTableTests 10개
-
-# Cycle: C32-03 — 부위별 착용 확률
-- Status: ✅
-- Details: 5부위(머리/상체/장갑/신발/무기) 독립 확률, Lv.1~10:25%→Lv.41~50:90%, 부분 장착, 평균 1~5부위
-- Tests: EquipmentPartConfigTests 8개
-
-# Cycle: C32-04 — GuardEquipmentSpawner
-- Status: ✅
-- Details: SpawnEquipment(guardLevel) → RarityTable.Roll() → PartConfig.RollEach() → StatRandomize() → GuardEquipmentSystem.Apply()
-- Files: GuardEquipmentSpawner.cs
-- Tests: GuardEquipmentSpawnerTests 10개
-
-# Cycle: C32-05 — Lucky Roll 시스템
-- Status: ✅
-- Details: 5% 확률 1티어 상승 + 0.25% 확률 2티어 상승 (중첩), 최대 전설등급까지. 400명당 1명꼴로 Double Lucky
-- Tests: LuckyRollTests 8개
-
-# Cycle: C32-06 — GuardPlaceholder/GuardEquipmentSystem 연동
-- Status: ✅
-- Details: Spawn/배치 시 GuardEquipmentSpawner 호출, 생성된 장비 자동 장착, 기존 장비 시스템과 호환, 스탯 적용
-- Integration: GuardPlaceholder.cs, GuardEquipmentSystem.cs
-- Tests: IntegrationTests 8개
-
-# Cycle: C32-07 — EditMode 테스트 종합
-- Status: ✅
-- Details: 희귀도 분포 통계(1000회 샘플링), 부위 확률 검증, Lucky Roll 확률 검증, 스탯 변동 범위, 연동 검증
-- Tests: Phase32_FullTests 15개
-
-# Cycle: C6-23 — 몬스터 리깅 GLB 애니메이션 연동
-- Status: ✅
-- Details: 21종 리깅된 몬스터 GLB → Resources/Models/UserProvided/ 복사, AnimalAI ↔ RigAnimationController 연동 (AnimalAI.SetRigAnimator), 파일명 정규화 (Big Mouse → Big_Mouse 등 7개), Bat_RIgged → Bat_Rigged 오타 수정
-- Date: 2026-06-20
-
-# Cycle: C6-24 — NPC/병사/플레이어 리깅 GLB 17종 복사
-- Status: ✅
-- Details: NPC 12종 + 병사 3종 + 용병 2종 + 플레이어 1종 리깅 GLB → Resources/Models/UserProvided/ 복사 (총 17종)
-- Date: 2026-06-20
-
-# Cycle: C6-25 — TutorialQuestNPC ↔ RigAnimationController 연동
-- Status: ✅
-- Details: TutorialQuestNPC에 RigAnimationController 컴포넌트 부착, GLB 리깅 모델 애니메이션 자동 적용
-- Date: 2026-06-20
-
-# Cycle: C6-26 — GuardPlaceholder ↔ RigAnimationController 연동
-- Status: ✅
-- Details: GuardPlaceholder에 RigAnimationController 컴포넌트 부착, GLB 리깅 모델 애니메이션 자동 적용
-- Date: 2026-06-20
-
-# Cycle: C6-27 — PlayerPlaceholder ↔ RigAnimationController 연동
-- Status: ✅
-- Details: PlayerPlaceholder에 RigAnimationController 컴포넌트 부착, GLB 리깅 모델 애니메이션 자동 적용
-- Date: 2026-06-20
-
-# Cycle: C6-28 — HerbPickup ↔ RigAnimationController 연동
-- Status: ✅
-- Details: HerbPickup에 RigAnimationController 컴포넌트 부착, 채집 모션 애니메이션 자동 적용
-- Date: 2026-06-20
-
-# Cycle: C6-29 — SkeletonGuardPlaceholder ↔ RigAnimationController 연동
-- Status: ✅
-- Details: SkeletonGuardPlaceholder에 RigAnimationController 컴포넌트 부착, GLB 리깅 모델 애니메이션 자동 적용
-- Date: 2026-06-20
-
-# Cycle: C6-30 — 버그 수정 & 컴파일 검증
-- Status: ✅
-- Details: GLBTextureSizeLimiter.cs CS0165 오류 3곳 수정, GameManager.cs 디버그 컴포넌트 #if UNITY_EDITOR 래핑, EditorAutoSetup.cs Play 모드 가드 추가, RigAnimationController.cs runtimeAnimatorController null 체크 추가
-- Result: 컴파일 오류 0
-- Date: 2026-06-20
-
----
-
-## Phase 33: 🎨 UI 완전 개선 — 창별 개성화 & 고급화
-
-> 38개 UI 창이 전부 동일한 UIStyleManager 다크 테마 사용. 각 창에 고유한 절차적(Procedural) 테마를 부여.
-> 모든 패턴/테두리/장식은 C# Texture2D로 코드 생성. 추가 이미지 에셋 불필요.
-
-# Cycle: UI-01 — UIDesignTheme SO + ProceduralTextureGenerator
-- Status: ✅✅
-- Details: UIDesignTheme SO (색상6종/패턴타입/테두리타입/장식타입/애니메이션타입). ProceduralTextureGenerator — Perlin noise 기반 7종 패턴(양피지/가죽/대리석/나무/돌/금속/유리). GradientBackgroundRenderer (2색/4색/방사형). DecorativeBorderRenderer (필그리/룬/가시/별/방패 모서리). WindowAnimationProfile (FadeSlide/Scale/Flip/Shatter/Spin 8종). UIWindow.ApplyTheme() 연동. Phase33_CreateThemeAssets.cs Editor 스크립트 (7개 테마 SO 생성).
-- Tests: 12개 (ThemeDataTests 9개 + IntegrationTests 9개)
-
-# Cycle: UI-02 — MapWindow 🗺️ + MinimapUI 🧭 (지도 테마)
-- Status: ✅
-- Details: MapWindow — 세피아 양피지 배경(Parchment 패턴), 나뭇결 테두리(Filigree), 코너 나침반 장식(CornerScroll), FadeSlide 애니메이션. MinimapUI — 황동 원형 느낌(Glass 패턴), 방패 테두리(Shield), 왕관 장식, Scale 애니메이션. Phase33_Themes.CreateMapTheme()/CreateMinimapTheme() 적용. MapWindow.OnShow()에 배경 텍스처 오버레이 추가.
-- Tests: 8개 (UIWindow.ApplyTheme 검증 포함)
-
-# Cycle: UI-03 — InventoryWindow 📦 + EquipmentWindow 🛡️ (가죽/대장간 테마)
-- Status: ✅
-- Details: InventoryWindow — 암갈색 가죽 결 배경(Leather 패턴), 구리 못 리벳 테두리(Star+Rivet), FadeSlide. EquipmentWindow — 철청 금속 브러시드 배경(Metal 패턴), 철제 방패 테두리(Shield+Rivet), Reveal 애니메이션. Phase33_Themes.CreateInventoryTheme()/CreateEquipmentTheme() 적용.
-- Tests: 8개
-
-# Cycle: UI-04 — WarehouseUI 📦 (목재 테마)
-- Status: ✅
-- Details: WarehouseUI — 나무 판자 결 배경(Wood 패턴), 못 박힌 판자 테두리(Thorn+Rivet), Bounce 애니메이션. Phase33_Themes.CreateWarehouseTheme() 적용.
-- Tests: 6개
-
-# Cycle: UI-05 — PlayerStatusWindow 📊 + QuestWindow 📜 (양피지 스크롤 테마)
-- Status: ✅
-- Details: PlayerStatusWindow — 아이보리 양피지 배경(Parchment), 장식적 모서리 롤(Filigree+Crown), 금박 테두리. QuestWindow — 줄 그어진 양피지(Parchment), 끈/리본 장식(Filigree+CornerScroll). Phase33_Themes.CreateStatusTheme()/CreateQuestTheme() 적용.
-- Tests: 8개
-
-# Cycle: UI-06 — RecipeWindow 📖 + TooltipWindow ℹ️ (연금술/쪽지 테마)
-- Status: ✅
-- Details: RecipeWindow — 보라 마법진 패턴(Stone+Rune), 보석 박힌 테두리(Seal), Flip 애니메이션. TooltipWindow — 밝은 양피지 배경(Parchment), 절차적 패턴+테두리 OnGUI 연동. Phase33_Themes.CreateRecipeTheme()/CreateTooltipTheme() 적용.
-- Tests: 6개
-
-# Cycle: UI-07 — CraftingUI 🔨 + CookingUI 🍲 (대장간/주방 테마)
-- Status: ✅
-- Details: CraftingUI — 나무 결+숯 얼룩 배경(Wood+Thorn), 구리 리벳(Rivet). CookingUI — 타일 패턴 배경(Glass+Star), 벽돌 테두리(CornerScroll). Phase33_Themes.CreateCraftingTheme()/CreateCookingTheme() 적용.
-- Tests: 8개
-
-# Cycle: UI-08 — AlchemyUI 🧪 + RepairStationUI 🔧 (실험실/모루 테마)
-- Status: ✅
-- Details: AlchemyUI — 어두운 보라+네온초록 물방울(Glass+Rune+Skull, Spin 애니메이션), 버튼 색상 AccentColor 연동. RepairStationUI — 금속 긁힘 패턴(Metal+Shield+Rivet). Phase33_Themes.CreateAlchemyTheme()/CreateRepairTheme() 적용.
-- Tests: 6개
-
-# Cycle: UI-09 — ShopWindow 🏪 + LootWindow 🎁 + MercenaryHireUI 🍺 (상점/거래 테마)
-- Status: ✅
-- Details: ShopWindow — 녹색 펠트 천 배경(Parchment+Filigree), 금실 장식. LootWindow — 나무 판자+쇠테 테두리(Wood+Thorn+Rivet). MercenaryHireUI — 기름때 묻은 양피지(Leather+Seal, Bounce). Phase33_Themes.ShopTheme()/LootTheme()/MercenaryTheme() 적용.
-- Tests: 10개
-
-# Cycle: UI-10 — ChurchUI ⛪ + EnvoyMissionUI 🕊️ + SpyMissionUI 🕵️ (시설/첩보 테마)
-- Status: ✅
-- Details: ChurchUI — 대리석 패턴(Marble+Filigree), 고딕 아치 테두리(Crown), Scale. EnvoyMissionUI — 다크블루 공식 문서(Stone+Shield+Seal). SpyMissionUI — 암호 격자(Metal+Rune+Skull). Phase33_Themes.ChurchTheme()/EnvoyTheme()/SpyTheme() 적용.
-- Tests: 10개
-
-# Cycle: UI-11 — RevengeListWindow 🗡️ + DeathScreenUI 💀 + LordAudienceUI 👑 (전투/죽음 테마)
-- Status: ✅
-- Details: RevengeListWindow — 피 얼룩 배경(Stone+Thorn+Skull), Shatter 애니메이션. DeathScreenUI — 잿빛 그라디언트(Stone+Thorn+Skull). LordAudienceUI — 대리석 패턴(Marble+Filigree+Crown), Scale. Phase33_Themes.RevengeTheme()/DeathTheme()/LordAudienceTheme() 적용.
-- Tests: 8개
-
-# Cycle: UI-12 — EscMenuUI ⏸️ + SettingsMenuUI ⚙️ (시스템 메뉴 테마)
-- Status: ✅
-- Details: EscMenuUI — Glassmorphism 반투명+별 테두리(Glass+Star+Crown), Reveal. SettingsMenuUI — 모던블랙 마이크로 도트(Metal+Shield+Crown). Phase33_Themes.EscMenuTheme()/SettingsTheme() 적용.
-- Tests: 10개
-
-# Cycle: UI-13 — AchievementSystem 🏆 + GuardWorldSpaceHUD 👤 + NPCDialogueWindow 💬 (HUD/게임플레이 테마)
-- Status: ✅
-- Details: Achievement — 골드 메달(Marble+Star+Crown), Bounce. GuardHUD — 전술 격자(Metal+Shield). NPCDialogue — 양피지 말풍선(Parchment+Filigree). Phase33_Themes.AchievementTheme()/GuardHUDTheme()/NPCDialogueTheme() 적용.
-- Tests: 12개
-
-# Cycle: UI-14 — FlagRegistrationWindow 🏁 + GuardInfoWindow 🪖 (기타 테마)
-- Status: ✅
-- Details: FlagRegistration — 방패 문양(Stone+Shield+Crown). GuardInfo — 카키 군복(Leather+Shield). Phase33_Themes.FlagRegTheme()/GuardInfoTheme() 적용.
-- Tests: 8개
-
-# Cycle: UI-15 — 🌿 월드스페이스 HUD 개선 (HerbRespawnUI + MonsterLevelLabel)
-- Status: ✅
-- Details: HerbRespawnUI — 녹색 자연 테마(Glass+Filigree). MonsterLevelLabel — 기본 테마(Stone). GuardWorldSpaceHUD — 이미 UI-13에서 완료. Phase33_Themes.HerbRespawnTheme()/MonsterLevelTheme() 적용.
-- Tests: 6개
-
----
-
-## 추가사항 #30: 🏹 활 화살 시스템 (ROADMAP AB-01~06)
-
-# Cycle: AB-01 — 화살 아이템 데이터
-- Status: ✅
-- Details: ArrowData.cs — ArrowType enum(Regular/Reinforced/Magic), damageBonus(0/5/15), trailColor, GetItemId(), 정적 프로퍼티
-- Tests: ArrowSystemTests.cs — ArrowData 18개 (enum/생성자/displayName/damageBonus/description/rarity/goldCost/trailColor/GetItemId)
-
-# Cycle: AB-02 — 화살 소모 로직
-- Status: ✅
-- Details: ArrowManager.GetTotalArrowCount()/AddArrows()/ConsumeBestArrow() — Magic>Reinforced>Regular 우선 소모
-- Tests: ArrowSystemTests.cs — 소모 14개 (빈인벤토리/AddArrows/HasArrows/ConsumeBestArrow 우선순위/개수감소)
-
-# Cycle: AB-03 — 화살 부족 처리
-- Status: ✅
-- Details: TryShootArrow() — 화살 부족 시 false 반환 + 로그, 화살 있으면 true 반환 + 1개 소모
-- Tests: ArrowSystemTests.cs — 부족처리 6개 (빈상태/false/true/소모/마지막/LogAssert)
-
-# Cycle: AB-04 — 화살 발사체
-- Status: ✅
-- Details: ArrowProjectile.Spawn() — GameObject 생성(Cylinder), Rigidbody+TrailRenderer, velocity/speed/damage/trailColor 설정
-- Tests: ArrowSystemTests.cs — 발사체 12개 (Spawn/컴포넌트/velocity/damage/trailColor/position/방향)
-
-# Cycle: AB-05 — 발사 궤적 & 획득 경로
-- Status: ✅
-- Details: ArrowManager.SetSpawnPoint(), _arrowSpeed 필드, 상점/크래프트/몬스터 드랍 연동 구조
-- Tests: ArrowSystemTests.cs — 궤적/획득 4개 (SetSpawnPoint/null/arrowSpeed)
-
-# Cycle: AB-06 — 통합 테스트
-- Status: ✅
-- Details: AddArrows→TryShootArrow 연결, 다중 화살타입 우선소모, 스택 머징, damageBonus 계산
-- Tests: ArrowSystemTests.cs — 통합 8개 (full flow/우선소모/스택/데미지보너스)
-- Date: 2026-06-23
-
----
-
-## 추가사항 #31: 🎉 조합 성공 환호 & 결과창 (ROADMAP CR-01~06)
-
-# Cycle: CR-01 — 환호 애니메이션 데이터
-- Status: ✅
-- Details: CraftResult enum (Success/Fail_MaterialPreserved/Fail_MaterialDestroyed/Fail_Burned), GetBaseSuccessRate() 등급별 확률
-- Tests: CraftCelebrationTests.cs — 데이터 10개 (enum/CraftResult/GetBaseSuccessRate/Common=0.90/Uncommon=0.75/Rare=0.60/Epic=0.45/Legendary=0.30/default)
-
-# Cycle: CR-02 — 제작 결과창 UI
-- Status: ✅
-- Details: CraftResultPopup.ShowSuccess(아이템명/등급/효과)/ShowFailure(0/1/2)/OnPopupGUI(), IsShowing, 타이머 자동 Fade Out
-- Tests: CraftCelebrationTests.cs — 결과창 11개 (ShowSuccess/ShowFailure/IsShowing/OnPopupGUI/메시지/색상/등급)
-
-# Cycle: CR-03 — 등급별 색상/효과
-- Status: ✅
-- Details: EquipmentRarityData.GetRarityColor() / GetRarityDisplayName() — 6개 희귀도 한글명+색상
-- Tests: CraftCelebrationTests.cs — 등급색상 6개 (distinct colors/Korean names/all 6 rarities/no duplicates)
-
-# Cycle: CR-04 — 실패 메시지
-- Status: ✅
-- Details: ShowFailure(0=재료보존/1=소멸/2=전소), 실패 분포 40%/40%/20%, GetFinalSuccessRate 알케미/요리 보정
-- Tests: CraftCelebrationTests.cs — 실패처리 7개 (failType별/GetAlchemyBonus/GetCookingBonus/분포/보정)
-
-# Cycle: CR-05 — 크래프트 시스템 연동
-- Status: ✅
-- Details: GetFinalSuccessRate 0~1 클램프, GetGradeFromItemId 접두사 기반 등급 추정, ExecuteCraft 성공률 통계
-- Tests: CraftCelebrationTests.cs — 연동 8개 (clamp/GradeFromId/ExecuteCraft/90%통계)
-
-# Cycle: CR-06 — 통합 테스트
-- Status: ✅
-- Details: ShowSuccess→타이머→IsShowing false, ShowFailure 각 타입, 연속 호출 스택
-- Tests: CraftCelebrationTests.cs — 통합 8개 (timer expire/success+failure sequential/reflection)
-- Date: 2026-06-23
+- Details:
+  - ROADMAP.md Phase 5.3.9 전체 문서화 + 체크표시 완료
+  - 5.3.9.1~2: EnvoySystem (특사 파견/독살) — 기존 코드 검증
+  - 5.3.9.3: SpySystem (정보원 파견) — 기존 코드 검증
+  - 5.3.9.4: HerbGatheringMission (약초꾼) — 기존 코드 검증
+  - 5.3.9.5: HuntingMission (사냥꾼) — 기존 코드 검증
+  - 5.3.9.7: MiningMission (광부) — 기존 코드 검증
+  - 5.3.9.9: **AutoMissionManager.cs** (신규, 92줄) — 5초 간격 자동 임무 스케줄러
+  - 5.3.9.10: **MissionResultUI.cs** (신규, 414줄) — 우측 하단 알림 + M키 히스토리
+  - 5.3.9.11: **GuardInfoWindow.cs** 역할 변경 UI 추가 (5개 GuardRole 그리드)
+- Files: AutoMissionManager.cs, MissionResultUI.cs, GuardInfoWindow.cs (patched)
+- Tests: ✅ EditMode all pass (existing tests + no compilation errors)
+- Date: 2026-07-02

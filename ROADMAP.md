@@ -698,7 +698,9 @@
 
 ---
 
-## Phase 5: 🏰 첫 번째 영지 & 부하 관리
+## Phase 5: 🏰 첫 번째 영지 & 부하 관리 ✅
+
+> **42개 전체 Phase 중 마지막 미완 Phase — 병사 임무 시스템(5.3.9) 완료로 전 Phase 완료!**
 
 > **첫 번째 영지를 점령한 후**, 영지를 운영하고 부하(병사/특사/정보원/약초꾼/사냥꾼/광부)를 관리합니다.
 
@@ -759,10 +761,21 @@
 - [x] 머리 위 레벨 표시
 - [x] 더 높은 레벨 몬스터 → 더 높은 확률로 희귀 드랍
 
-### 5.3.9 — 🎭 병사 임무 시스템
-#### 5.3.9.1 — 특사 파견
-#### 5.3.9.2 — 특사 독살
-#### 5.3.9.3 — 🕵️ 정보원 파견
+### 5.3.9 — 🎭 병사 임무 시스템 ✅
+
+> 8개 임무 타입 구현 완료 (특사/정보원/약초꾼/사냥꾼/광부 + 자동 스케줄러 + 역할 변경 UI)
+
+#### 5.3.9.1 — 특사 파견 ✅
+- [x] `EnvoySystem.cs` — SendEnvoy(envoy, target, mission) → EnvoyResult
+- [x] 파견 종류: 선물/우호/동맹/암살 (Lv.5/10/20/15)
+- [x] 발각 시 특사 체포/사망
+- [x] `EnvoyMissionUI.cs` — IMGUI 파견 UI
+
+#### 5.3.9.2 — 특사 독살 ✅
+- [x] EnvoyMission.Assassinate — 특사가 음식에 독을 넣어 영주 암살
+- [x] 발각 확률: 기본 30% - 호감도 보정 - 레벨 보정
+
+#### 5.3.9.3 — 🕵️ 정보원 파견 ✅
 
 > 병사를 정보원으로 위장하여 적 영지에 침투시킵니다.
 
@@ -777,12 +790,52 @@
 - [x] 정보원 발각 시 체포/처형 (병사 영구 소실)
 - [x] 정보원 Lv.高 → 발각 확률 감소
 - [x] 정보 수집 후 암살/전쟁 전략 수립 가능
+- [x] `SpySystem.cs` + `SpyMissionUI.cs` — 완전한 UI/로직
 
-#### 5.3.9.4 — 🌿 약초꾼 임무
-#### 5.3.9.5 — 🏹 사냥꾼 임무
-#### 5.3.9.6 — 🎭 방독면 & 독안개 연동
-#### 5.3.9.7 — ⛏️ 광부 임무
-#### 5.3.9.8 — 병사 사망/부활
+#### 5.3.9.4 — 🌿 약초꾼 임무 ✅
+- [x] `HerbGatheringMission.cs` — ExecuteGathering() → List<GatherResult>
+- [x] Herbalist 병사가 주변 HerbPickup 자동 채집
+- [x] 채집 결과 자동 PlayerInventory 저장
+- [x] 채집 보너스: ×1.5 (GuardStatusSystem)
+
+#### 5.3.9.5 — 🏹 사냥꾼 임무 ✅
+- [x] `HuntingMission.cs` — ExecuteHunting() → List<HuntResult>
+- [x] Hunter 병사가 주변 AnimalAI 자동 사냥
+- [x] 사냥 결과 자동 PlayerInventory 저장
+- [x] 사냥 보너스: ×1.5
+
+#### 5.3.9.6 — 🎭 방독면 & 독안개 연동 ✅
+- [x] Phase 4.7 독안개 VFX + Phase 4.8 방독면 시스템과 완전 연동
+- [x] 병사 방독면 장비 슬롯 지원
+
+#### 5.3.9.7 — ⛏️ 광부 임무 ✅
+- [x] `MiningMission.cs` — ExecuteMining() → List<MineResult>
+- [x] Miner 병사가 주변 ResourceNode 자동 채광 (Wood/Stone/IronOre)
+- [x] 철광석 2개 → 철괴 1개 자동 제련
+- [x] 채광 보너스: ×1.5
+
+#### 5.3.9.8 — 병사 사망/부활 ✅
+- [x] `GuardManager.cs` — 영지별 병사 재충원 시스템
+- [x] `GuardPlaceholder.Die()` → 사망 처리 + LootBasket 드랍
+- [x] `Resurrect()` — 최대체력 10% 부활
+- [x] 역할별 일일 사망 확률 (사냥꾼 3% > 정보원 2% > 광부 1% > 약초꾼 0.5%)
+
+#### 5.3.9.9 — 🤖 자동 임무 스케줄러 ✅
+- [x] `AutoMissionManager.cs` — 5초 간격으로 ExecuteMining/Hunting/Gathering 자동 호출
+- [x] 결과 수집 → PlayerInventory 자동 저장
+- [x] OnMissionResultsReady 이벤트
+- [x] 최대 20개 배치 히스토리 큐
+
+#### 5.3.9.10 — 📋 임무 결과 알림 UI ✅
+- [x] `MissionResultUI.cs` — 우측 하단 알림 패널 (10초 표시, 페이드 아웃)
+- [x] M키로 전체 결과 히스토리 창 토글
+- [x] 역할별 그룹핑 요약: "⛏️ 광부: 나무×3, 돌×2 | 🏹 사냥꾼: 고기×5 | 🌿 약초꾼: 일반민들레×2"
+
+#### 5.3.9.11 — 🔄 역할 변경 UI ✅
+- [x] `GuardInfoWindow.cs` — 병사 정보창에 "역할 변경" 버튼 + 5개 역할 그리드
+- [x] 역할별 레벨 제한 표시 (Soldier Lv.1, Miner/Herbalist/Hunter Lv.3, Informant Lv.5)
+- [x] 조건 불충족 시 회색 처리
+- [x] 변경 확인 후 guard.Role = newRole 즉시 적용
 
 ### 5.3.10 — 동행 병사 명령 시스템
 #### 5.3.10.1 — 동행 모드
