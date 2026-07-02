@@ -533,3 +533,18 @@
 - Status: ✅
 - Details: CraftPresetManager.cs (300줄) + PresetNamePopup.cs (221줄) + CraftingUI 패치 (프리셋/즐겨찾기)
 - Date: 2026-07-02
+
+# Cycle: P64-01~03 — 🗺️ 오토루트 시스템
+- Status: ✅
+- Details: AutoRouteSystem.cs (368줄, 4매핑) + RouteConfirmationUI.cs (359줄) + InventoryWindow 패치
+- Date: 2026-07-02
+
+# Cycle: P65-01~02 — 🔊 컨트롤러 진동
+- Status: ✅
+- Details: HapticFeedback.cs (186줄, 6프리셋) + 5개 시스템 연동 (PlayerCombat/Health/AnimalAI/Gas/Stealth)
+- Date: 2026-07-02
+
+# Cycle: P66-01~03 — ⚙️ 접근성 설정
+- Status: ✅
+- Details: AccessibilityManager.cs + SettingsMenuUI 접근성탭 + TooltipWindow/NPCDialogue/TutorialGuide 연동
+- Date: 2026-07-02

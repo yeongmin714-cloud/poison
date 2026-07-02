@@ -2019,7 +2019,63 @@ WorldEventManager (싱글톤)
 
 ---
 
-## 🛠️ 작업 규칙## 🛠️ 작업 규칙## 🛠️ 작업 규칙
+## Phase 64: 🗺️ 오토루트 시스템 ✅ (2026-07-02)
+
+> 인벤토리에서 아이템 우클릭 → 해당 아이템이 있는 영지로 자동 이동.
+
+### 64.1 — 경로 데이터
+- [x] `AutoRouteSystem.cs` — 4가지 매핑 (약초→속성영지, 몬스터드롭→난이도영지, 자원→국가, 상점아이템→Ring1)
+- [x] ItemRouteData: itemId → territoryId 매핑
+
+### 64.2 — 인벤토리 연동
+- [x] InventoryWindow: 우클릭 → "📍 오토루트: [영지명]" 컨텍스트 메뉴
+- [x] 장비 아이템 제외 (비교 툴팁과 충돌 방지)
+
+### 64.3 — UI
+- [x] `RouteConfirmationUI.cs` — 이동 확인 팝업 + 3초 자동 닫힘
+- [x] [이동] → AutoMoveManager.SetDestination() 호출
+
+---
+
+## Phase 65: 🔊 컨트롤러 진동 (햅틱) ✅ (2026-07-02)
+
+> 공격/피격/암살/폭발 시 게임패드 진동.
+
+### 65.1 — 시스템
+- [x] `HapticFeedback.cs` — Gamepad.SetMotorSpeeds() 기반, 6개 프리셋
+- [x] Light(0.2s) / Medium(0.3s) / Heavy(0.45s) / Short(0.05s) / Long(3s) / Custom
+- [x] 코루틴 자동 종료, IsGamepadConnected 가드
+
+### 65.2 — 연동 (5개 시스템)
+- [x] PlayerCombat: 공격 hit → Light
+- [x] PlayerHealth: 피격 20↑ → Medium
+- [x] AnimalAI: 몬스터 사망 → Light
+- [x] GasSprayer: 분사 → Heavy
+- [x] StealthAssassination: 암살 성공 → Heavy
+
+---
+
+## Phase 66: ⚙️ 접근성 설정 ✅ (2026-07-02)
+
+> 다양한 플레이어를 위한 접근성 옵션.
+
+### 66.1 — 시스템
+- [x] `AccessibilityManager.cs` — 정적 클래스, PlayerPrefs 저장/로드
+- [x] ColorBlindMode / TooltipDelay / SubtitleScale
+
+### 66.2 — 설정 UI
+- [x] SettingsMenuUI: "⚙️ 접근성" 탭 추가
+- [x] 툴팁 지연 슬라이더 (0.0~1.5초), 색맹 모드 토글, 자막 크기 (0.8x~2.0x)
+
+### 66.3 — 연동
+- [x] TooltipWindow: AccessibilityManager.TooltipDelay 사용
+- [x] NPCDialogueWindow: SubtitleScale 반영
+- [x] TutorialGuideSystem: SubtitleScale 반영
+- [x] GameManager: Initialize() 호출
+
+---
+
+## 🛠️ 작업 규칙## 🛠️ 작업 규칙## 🛠️ 작업 규칙## 🛠️ 작업 규칙
 
 ### 1️⃣ 서브에이전트 위임 원칙
 - 모든 코딩/QA 작업은 `delegate_task`로 서브에이전트에 위임

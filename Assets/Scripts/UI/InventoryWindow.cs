@@ -931,5 +931,148 @@ namespace ProjectName.UI
             }
             return text.Length > 0 ? text[0] + ".." : "..";
         }
+
+        // ===================================================================
+        // 🗺️ 오토루트 컨텍스트 메뉴
+        // ===================================================================
+
+        /// <summary>
+        /// 우클릭 시 표시되는 오토루트 컨텍스트 메뉴를 그립니다.
+        /// </summary>
+        private void DrawRouteContextMenu()
+        {
+            if (!_showRouteContextMenu) return;
+
+            // ESC 또는 다른 클릭으로 닫기
+            if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
+            {
+                _showRouteContextMenu = false;
+                Event.current.Use();
+                return;
+            }
+
+            // 컨텍스트 메뉴 위치 보정 (화면 밖으로 나가지 않도록)
+            float menuX = _routeContextMenuRect.x;
+            float menuY = _routeContextMenuRect.y;
+            float menuWidth = _routeContextMenuRect.width;
+            float menuHeight = _routeContextMenuRect.height;
+
+            if (menuX + menuWidth > Screen.width)
+                menuX = Screen.width - menuWidth - 10;
+            if (menuY + menuHeight > Screen.height)
+                menuY = Screen.height - menuHeight - 10;
+            if (menuX < 0) menuX = 10;
+            if (menuY < 0) menuY = 10;
+
+            Rect menuRect = new Rect(menuX, menuY, menuWidth, menuHeight);
+
+            // 배경
+            Color oldBg = GUI.color;
+            GUI.color = new Color(0.12f, 0.10f, 0.14f, 0.95f);
+            GUI.DrawTexture(menuRect, _texWhite);
+            // 테두리
+            GUI.color = new Color(0.70f, 0.50f, 0.15f, 1f);
+            DrawColoredRect(new Rect(menuX, menuY, menuWidth, 2), new Color(0.70f, 0.50f, 0.15f, 1f));
+            DrawColoredRect(new Rect(menuX, menuY + menuHeight - 2, menuWidth, 2), new Color(0.70f, 0.50f, 0.15f, 1f));
+            GUI.color = oldBg;
+
+            // 메뉴 항목
+            string routeLabel = $"📍 오토루트: {_routeContextTerritoryName}";
+            var labelStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 42,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = new Color(0.92f, 0.88f, 0.80f, 1f) },
+                padding = new RectOffset(8, 4, 2, 2)
+            };
+            GUI.Label(new Rect(menuX + 4, menuY + 6, menuWidth - 8, 38), routeLabel, labelStyle);
+
+            // [이동] 버튼
+            float btnWidth = menuWidth - 16;
+            float btnHeight = 44;
+            float btnY = menuY + menuHeight - btnHeight - 6;
+            var btnStyle = new GUIStyle(GUI.skin.button)
+            {
+                fontSize = 38,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = new Color(0.80f, 0.60f, 0.20f, 1f),
+                           background = MakeTexture(1, 1, new Color(0.30f, 0.22f, 0.16f, 1f)) },
+                hover = { textColor = Color.white,
+                          background = MakeTexture(1, 1, new Color(0.45f, 0.32f, 0.22f, 1f)) },
+                border = new RectOffset(2, 2, 2, 2)
+            };
+
+            if (GUI.Button(new Rect(menuX + 8, btnY, btnWidth, btnHeight), "🚶 이동", btnStyle))
+            {
+                ConfirmRouteAction();
+                _showRouteContextMenu = false;
+                Event.current.Use();
+            }
+        }
+
+        /// <summary>
+        /// 오토루트 이동 확인 — RouteConfirmationUI 팝업 표시 후 AutoMoveManager 실행
+        /// </summary>
+        private void ConfirmRouteAction()
+        {
+            if (string.IsNullOrEmpty(_routeContextTerritoryId))
+            {
+                Debug.LogWarning("[InventoryWindow] 영지 ID가 없어 오토루트를 실행할 수 없습니다.");
+                return;
+            }
+
+            // 영지 ID 파싱
+            string[] parts = _routeContextTerritoryId.Split('_');
+            if (parts.Length != 2)
+            {
+                Debug.LogWarning($"[InventoryWindow] 영지 ID 형식 오류: {_routeContextTerritoryId}");
+                return;
+            }
+
+            if (!System.Enum.TryParse<NationType>(parts[0], out var nation))
+            {
+                Debug.LogWarning($"[InventoryWindow] 국가 파싱 실패: {parts[0]}");
+                return;
+            }
+
+            if (!int.TryParse(parts[1], out int index))
+            {
+                Debug.LogWarning($"[InventoryWindow] 영지 인덱스 파싱 실패: {parts[1]}");
+                return;
+            }
+
+            // AutoMoveManager 확인
+            if (AutoMoveManager.Instance == null)
+            {
+                Debug.LogError("[InventoryWindow] AutoMoveManager 인스턴스가 없습니다! Scene에 AutoMoveManager를 추가해주세요.");
+                return;
+            }
+
+            // 영지 월드 좌표 계산 (MapWindow와 동일한 방식)
+            Vector3 worldPos = new Vector3(
+                index * 10f,
+                0f,
+                (int)nation * 10f
+            );
+
+            // 자동 이동 시작
+            AutoMoveManager.Instance.SetDestination(worldPos);
+
+            // 확인 메시지
+            string confirmMsg = $"📍 {_routeContextTerritoryName} (으)로 자동 이동합니다";
+            Debug.Log($"[InventoryWindow] {confirmMsg}");
+
+            // RouteConfirmationUI 팝업 표시
+            if (RouteConfirmationUI.Instance != null)
+            {
+                RouteConfirmationUI.Instance.Show(
+                    _routeContextItemName,
+                    _routeContextTerritoryName,
+                    _routeContextTerritoryId
+                );
+            }
+        }
     }
 }
