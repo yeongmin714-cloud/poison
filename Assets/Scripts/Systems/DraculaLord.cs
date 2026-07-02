@@ -147,6 +147,7 @@ namespace ProjectName.Systems
         }
 
         private void FindTarget()
+        {
             if (_cachedPlayerTarget != null && _cachedPlayerTarget.gameObject.activeInHierarchy)
             {
                 float dist = Vector3.Distance(transform.position, _cachedPlayerTarget.position);

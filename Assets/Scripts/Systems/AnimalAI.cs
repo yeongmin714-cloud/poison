@@ -742,6 +742,9 @@ namespace ProjectName.Systems
             // === G2-05: 사망 VFX ===
             CombatVFXController.SpawnBloodSplatter(transform.position, Vector3.up);
 
+            // 🔊 컨트롤러 진동: 몬스터 사망 (Light)
+            HapticFeedback.PlayPreset(HapticFeedback.RumblePreset.Light);
+
             // Death effect
             if (deathEffectPrefab != null)
             {

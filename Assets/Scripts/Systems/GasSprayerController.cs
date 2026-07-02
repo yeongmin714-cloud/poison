@@ -311,6 +311,9 @@ namespace ProjectName.Systems
             _isSpraying = true;
             Debug.Log("[GasSprayerController] 분사 시작!");
 
+            // 🔊 컨트롤러 진동: 가스 분사 (Heavy)
+            HapticFeedback.PlayPreset(HapticFeedback.RumblePreset.Heavy);
+
             // Phase 41-2: SpecialEffectsController를 통해 독안개 생성
             if (SpecialEffectsController.Instance != null)
             {

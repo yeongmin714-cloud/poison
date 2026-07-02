@@ -122,9 +122,11 @@ namespace ProjectName.Systems
         {
             if (_stylesInitialized) return;
 
+            float subScale = ProjectName.Systems.AccessibilityManager.SubtitleScale;
+
             _titleStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 20,
+                fontSize = Mathf.RoundToInt(20 * subScale),
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.UpperCenter,
                 normal = { textColor = Color.yellow }
@@ -132,7 +134,7 @@ namespace ProjectName.Systems
 
             _descStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14,
+                fontSize = Mathf.RoundToInt(14 * subScale),
                 alignment = TextAnchor.MiddleCenter,
                 wordWrap = true,
                 normal = { textColor = Color.white }
@@ -140,7 +142,7 @@ namespace ProjectName.Systems
 
             _closeStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                fontSize = Mathf.RoundToInt(11 * subScale),
                 alignment = TextAnchor.LowerRight,
                 normal = { textColor = Color.gray }
             };

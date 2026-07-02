@@ -153,8 +153,9 @@ namespace ProjectName.UI
             // 표시/숨김 타이밍 관리
             if (_wasHovering)
             {
-                // 마우스가 위에 있음: 딜레이 후 표시
-                if (!_isShowing && (now - _mouseEnterTime) >= _showDelay)
+                // 마우스가 위에 있음: 딜레이 후 표시 (접근성 설정 반영)
+                float effectiveDelay = ProjectName.Systems.AccessibilityManager.TooltipDelay;
+                if (!_isShowing && (now - _mouseEnterTime) >= effectiveDelay)
                 {
                     _isShowing = true;
                 }

@@ -31,7 +31,7 @@ namespace ProjectName.UI
         [SerializeField] private Color _labelColor = new Color(0.8f, 0.8f, 0.8f, 1f);
 
         // ===== 탭 종류 =====
-        private enum SettingsTab { Graphics, Audio, KeyBindings }
+        private enum SettingsTab { Graphics, Audio, KeyBindings, Accessibility }
         private SettingsTab _currentTab = SettingsTab.Graphics;
 
         // ===== 상태 =====
@@ -45,6 +45,11 @@ namespace ProjectName.UI
         private float _sfxVolume = 0.8f;
         private float _uiVolume = 0.7f;
         private float _ambientVolume = 0.6f;
+
+        // ===== 접근성 상태 =====
+        private float _tooltipDelay = 0.3f;
+        private bool _colorBlindMode;
+        private float _subtitleScale = 1.0f;
 
         // ===== 캐싱된 스타일 (OnGUI GC 방지) =====
         private GUIStyle _titleStyle;
@@ -81,6 +86,9 @@ namespace ProjectName.UI
             }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            // 접근성 설정 초기화 (PlayerPrefs 로드)
+            ProjectName.Systems.AccessibilityManager.Initialize();
 
             LoadSettings();
         }
@@ -168,6 +176,11 @@ namespace ProjectName.UI
             _sfxVolume = PlayerPrefs.GetFloat("Settings_SFX", 0.8f);
             _uiVolume = PlayerPrefs.GetFloat("Settings_UI", 0.7f);
             _ambientVolume = PlayerPrefs.GetFloat("Settings_Ambient", 0.6f);
+
+            // 접근성 설정 (AccessibilityManager에서 읽어와서 UI 상태와 동기화)
+            _tooltipDelay   = ProjectName.Systems.AccessibilityManager.TooltipDelay;
+            _colorBlindMode = ProjectName.Systems.AccessibilityManager.ColorBlindMode;
+            _subtitleScale  = ProjectName.Systems.AccessibilityManager.SubtitleScale;
             // NOTE: 해상도 적용은 Start()에서 _availableResolutions 초기화 후 수행
         }
 
@@ -188,6 +201,9 @@ namespace ProjectName.UI
             PlayerPrefs.SetFloat("Settings_UI", _uiVolume);
             PlayerPrefs.SetFloat("Settings_Ambient", _ambientVolume);
             PlayerPrefs.Save();
+
+            // 접근성 설정 저장 (AccessibilityManager 통해 즉시 저장)
+            ProjectName.Systems.AccessibilityManager.SaveSettings();
 
             QualitySettings.SetQualityLevel(_selectedQualityLevel, true);
             Debug.Log("[SettingsMenuUI] 설정 저장 완료");
@@ -343,6 +359,9 @@ namespace ProjectName.UI
                 case SettingsTab.KeyBindings:
                     DrawKeyBindingsTab(contentX, contentY, contentWidth);
                     break;
+                case SettingsTab.Accessibility:
+                    DrawAccessibilityTab(contentX, contentY, contentWidth);
+                    break;
             }
 
             // ===== 닫기 버튼 =====
@@ -359,9 +378,9 @@ namespace ProjectName.UI
         private void DrawTabs(int centerX, int centerY)
         {
             int tabY = centerY + 55;
-            string[] tabNames = { "그래픽", "오디오", "키 설정" };
-            SettingsTab[] tabs = { SettingsTab.Graphics, SettingsTab.Audio, SettingsTab.KeyBindings };
-            int tabWidth = (_windowWidth - 30) / 3;
+            string[] tabNames = { "그래픽", "오디오", "키 설정", "⚙️ 접근성" };
+            SettingsTab[] tabs = { SettingsTab.Graphics, SettingsTab.Audio, SettingsTab.KeyBindings, SettingsTab.Accessibility };
+            int tabWidth = (_windowWidth - 30) / 4;
             int tabX = centerX + 15;
 
             for (int i = 0; i < tabs.Length; i++)
@@ -503,6 +522,104 @@ namespace ProjectName.UI
                 GUI.Label(new Rect(bx, by, keyWidth - 10, lineHeight),
                     _keyBindingLabels[i], _labelStyle);
             }
+        }
+
+        // ===== 접근성 탭 =====
+
+        private void DrawAccessibilityTab(int x, int y, int width)
+        {
+            int currentY = y;
+
+            // ── 툴팁 지연 시간 ──
+            GUI.Label(new Rect(x + 10, currentY, width - 20, 38), "툴팁 지연 시간", _labelStyle);
+            currentY += 28;
+
+            int sliderX = x + 15;
+            int sliderWidth = width - 110;
+            int sliderY = currentY;
+            int sliderHeight = 30;
+
+            float newDelay = GUI.HorizontalSlider(
+                new Rect(sliderX, sliderY, sliderWidth, sliderHeight),
+                _tooltipDelay, 0f, 1.5f,
+                _sliderBgStyle, _sliderThumbStyle);
+
+            // 값이 변경되었으면 즉시 AccessibilityManager에 반영
+            if (Mathf.Abs(newDelay - _tooltipDelay) > 0.001f)
+            {
+                _tooltipDelay = newDelay;
+                ProjectName.Systems.AccessibilityManager.SetTooltipDelay(_tooltipDelay);
+            }
+
+            GUI.Label(new Rect(sliderX + sliderWidth + 10, sliderY, 75, sliderHeight),
+                $"{_tooltipDelay:F1}초", _valueStyle);
+
+            currentY += sliderHeight + 5;
+
+            // 가이드
+            GUI.Label(new Rect(sliderX, currentY, 45, 22), "0.0초", _guideLabelStyle);
+            GUI.Label(new Rect(sliderX + sliderWidth / 2 - 10, currentY, 45, 22), "0.8초", _guideLabelStyle);
+            GUI.Label(new Rect(sliderX + sliderWidth - 30, currentY, 45, 22), "1.5초", _guideLabelStyle);
+            currentY += 28;
+
+            // ── 색맹 모드 ──
+            GUI.Label(new Rect(x + 10, currentY, width - 20, 38), "색맹 모드", _labelStyle);
+            currentY += 28;
+
+            string btnLabel = _colorBlindMode ? "🟢 켜짐" : "🔴 꺼짐";
+            GUI.backgroundColor = _colorBlindMode
+                ? new Color(0.3f, 0.6f, 0.3f, 1f)
+                : new Color(0.5f, 0.3f, 0.3f, 1f);
+
+            if (GUI.Button(new Rect(x + 15, currentY, width - 30, _buttonHeight),
+                btnLabel, _fullscreenButtonStyle))
+            {
+                _colorBlindMode = !_colorBlindMode;
+                ProjectName.Systems.AccessibilityManager.SetColorBlindMode(_colorBlindMode);
+            }
+            currentY += _buttonHeight + 15;
+
+            // 색맹 모드 설명
+            if (_colorBlindMode)
+            {
+                GUI.Label(new Rect(x + 15, currentY, width - 30, 50),
+                    "✓ 빨간색/초록색 대신 패턴/아이콘으로 표시\n✓ 등급 색상에 텍스트 라벨 추가",
+                    _guideLabelStyle);
+                currentY += 50;
+            }
+
+            currentY += 10;
+
+            // ── 자막 크기 ──
+            GUI.Label(new Rect(x + 10, currentY, width - 20, 38), "자막 크기", _labelStyle);
+            currentY += 28;
+
+            sliderY = currentY;
+            float newSubScale = GUI.HorizontalSlider(
+                new Rect(sliderX, sliderY, sliderWidth, sliderHeight),
+                _subtitleScale, 0.8f, 2.0f,
+                _sliderBgStyle, _sliderThumbStyle);
+
+            if (Mathf.Abs(newSubScale - _subtitleScale) > 0.001f)
+            {
+                _subtitleScale = newSubScale;
+                ProjectName.Systems.AccessibilityManager.SetSubtitleScale(_subtitleScale);
+            }
+
+            GUI.Label(new Rect(sliderX + sliderWidth + 10, sliderY, 75, sliderHeight),
+                $"{_subtitleScale:F1}x", _valueStyle);
+
+            currentY += sliderHeight + 5;
+
+            // 가이드
+            GUI.Label(new Rect(sliderX, currentY, 45, 22), "0.8x", _guideLabelStyle);
+            GUI.Label(new Rect(sliderX + sliderWidth / 2 - 10, currentY, 45, 22), "1.4x", _guideLabelStyle);
+            GUI.Label(new Rect(sliderX + sliderWidth - 30, currentY, 45, 22), "2.0x", _guideLabelStyle);
+            currentY += 28;
+
+            // 설명
+            GUI.Label(new Rect(x + 10, currentY + 10, width, 30),
+                "※ 변경사항은 즉시 저장됩니다.", _labelStyle);
         }
 
         /// <summary>현재 선택된 해상도를 즉시 적용하고 PlayerPrefs에 저장합니다.</summary>

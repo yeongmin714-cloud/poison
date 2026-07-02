@@ -391,6 +391,8 @@ namespace ProjectName.UI
         {
             if (_stylesInitialized) return;
 
+            float subScale = ProjectName.Systems.AccessibilityManager.SubtitleScale;
+
             _dimStyle = new GUIStyle(GUI.skin.box);
             _dimStyle.normal.background = MakeTex(2, 2, new Color(0, 0, 0, 0.5f));
 
@@ -399,29 +401,29 @@ namespace ProjectName.UI
             _windowBgStyle.border = new RectOffset(4, 4, 4, 4);
 
             _nameStyle = new GUIStyle(GUI.skin.label);
-            _nameStyle.fontSize = 18;
+            _nameStyle.fontSize = Mathf.RoundToInt(18 * subScale);
             _nameStyle.fontStyle = FontStyle.Bold;
             _nameStyle.normal.textColor = Color.white;
             _nameStyle.alignment = TextAnchor.MiddleLeft;
 
             _dialogueStyle = new GUIStyle(GUI.skin.label);
-            _dialogueStyle.fontSize = 16;
+            _dialogueStyle.fontSize = Mathf.RoundToInt(16 * subScale);
             _dialogueStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
             _dialogueStyle.wordWrap = true;
             _dialogueStyle.richText = true;
 
             _questStyle = new GUIStyle(GUI.skin.label);
-            _questStyle.fontSize = 15;
+            _questStyle.fontSize = Mathf.RoundToInt(15 * subScale);
             _questStyle.normal.textColor = new Color(0.8f, 0.9f, 1.0f);
             _questStyle.wordWrap = true;
 
             _buttonStyle = new GUIStyle(GUI.skin.button);
-            _buttonStyle.fontSize = 14;
+            _buttonStyle.fontSize = Mathf.RoundToInt(14 * subScale);
             _buttonStyle.normal.textColor = Color.white;
             _buttonStyle.hover.textColor = Color.yellow;
 
             _statusStyle = new GUIStyle(GUI.skin.label);
-            _statusStyle.fontSize = 13;
+            _statusStyle.fontSize = Mathf.RoundToInt(13 * subScale);
             _statusStyle.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
             _statusStyle.alignment = TextAnchor.MiddleCenter;
 

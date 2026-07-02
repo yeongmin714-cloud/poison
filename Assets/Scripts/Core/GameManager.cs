@@ -172,6 +172,9 @@ namespace ProjectName.Core
 
             // 19. GameEndingManager — 엔딩 조건 체크
             CreateSystemIfMissing("GameEndingManager");
+
+            // 20. AccessibilityManager — 접근성 설정 초기화 (정적 클래스, 인스턴스 불필요)
+            ProjectName.Systems.AccessibilityManager.Initialize();
         }
 
         /// <summary>

@@ -142,6 +142,12 @@ namespace ProjectName.Core
             _currentHP = Mathf.Max(0f, _currentHP);
 
             Debug.Log($"[PlayerHealth] 💥 {actualDamage} 데미지! HP: {_currentHP}/{_maxHP}");
+
+            // 🔊 컨트롤러 진동: 큰 데미지(>20)는 Medium 럼블
+            if (actualDamage > 20f)
+            {
+                HapticFeedback.PlayPreset(HapticFeedback.RumblePreset.Medium);
+            }
             // ⏱️ 전투 로그: 피격 기록
             Debug.Log("[CombatLog] " + actualDamage + " 데미지를 받음");
             OnHPChanged?.Invoke(_currentHP, _maxHP);

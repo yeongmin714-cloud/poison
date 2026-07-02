@@ -32,6 +32,15 @@ namespace ProjectName.UI
         private Vector2 _infoScrollPosition;
         private int _selectedSlotIndex = -1;
 
+        // ===== 🗺️ 오토루트 컨텍스트 메뉴 =====
+        private bool _showRouteContextMenu = false;
+        private Rect _routeContextMenuRect;
+        private string _routeContextItemName = "";
+        private string _routeContextItemId = "";
+        private string _routeContextTerritoryName = "";
+        private string _routeContextTerritoryId = "";
+        private PlayerInventory.ItemSlot _routeContextSlot;
+
         // ===== 정렬 =====
         private enum SortMode { None, Category, Name, Rarity, Quantity }
         private SortMode _sortMode = SortMode.None;
@@ -313,6 +322,9 @@ namespace ProjectName.UI
             // === 하단 정보 패널 ===
             float infoY = gridY + gridHeight + 2;
             DrawInfoPanel(x, infoY);
+
+            // === 🗺️ 오토루트 컨텍스트 메뉴 ===
+            DrawRouteContextMenu();
         }
 
         // ===================================================================
@@ -451,14 +463,52 @@ namespace ProjectName.UI
                         DrawColoredRect(new Rect(sx + 6, barY, barWidth * Mathf.Clamp01(durability), barHeight), durColor);
                     }
 
-                    // 클릭 처리 (호버 영역)
+                    // 클릭 처리 (호버 영역) — 🗺️ 오토루트 우클릭 연동
                     if (Event.current.type == EventType.MouseDown && slotRect.Contains(Event.current.mousePosition))
                     {
-                        _selectedSlotIndex = i;
-                        _selectedItemName = slot.item.displayName;
-                        _selectedItemDesc = slot.item.description;
-                        _selectedItemCount = slot.count;
-                        Event.current.Use();
+                        if (Event.current.button == 0) // 좌클릭 — 선택
+                        {
+                            _selectedSlotIndex = i;
+                            _selectedItemName = slot.item.displayName;
+                            _selectedItemDesc = slot.item.description;
+                            _selectedItemCount = slot.count;
+                            Event.current.Use();
+                        }
+                        else if (Event.current.button == 1) // 우클릭 — 🗺️ 오토루트 컨텍스트 메뉴
+                        {
+                            // 장비 아이템이 아닌 경우만 오토루트 표시
+                            if (!CompareTooltip.IsEquipmentCategory(slot.item.category))
+                            {
+                                // AutoRouteSystem에서 경로 조회
+                                if (AutoRouteSystem.Instance != null)
+                                {
+                                    var route = AutoRouteSystem.Instance.GetRouteForItem(slot.item.id);
+                                    if (route.HasValue)
+                                    {
+                                        var routeData = route.Value;
+                                        // 영지 이름 조회
+                                        string territoryName = routeData.territoryId;
+                                        if (TerritoryDatabase.Instance != null)
+                                        {
+                                            var def = TerritoryDatabase.Instance.GetDefinition(routeData.territoryId);
+                                            if (def.id.nation != NationType.None && !string.IsNullOrEmpty(def.territoryName))
+                                            {
+                                                territoryName = def.territoryName;
+                                            }
+                                        }
+
+                                        _showRouteContextMenu = true;
+                                        _routeContextMenuRect = new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 360f, 110f);
+                                        _routeContextItemName = slot.item.displayName;
+                                        _routeContextItemId = slot.item.id;
+                                        _routeContextTerritoryName = territoryName;
+                                        _routeContextTerritoryId = routeData.territoryId;
+                                        _routeContextSlot = slot;
+                                    }
+                                }
+                            }
+                            Event.current.Use();
+                        }
                     }
                     // 툴팁 (마우스 호버 시)
                     if (slotRect.Contains(Event.current.mousePosition))

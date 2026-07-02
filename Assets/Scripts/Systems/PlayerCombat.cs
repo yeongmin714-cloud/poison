@@ -229,6 +229,9 @@ namespace ProjectName.Systems
             string targetName = targetBehaviour != null ? targetBehaviour.gameObject.name : "Unknown";
             CombatLog.AddEntry($"{targetName}에게 {damage} 데미지", LogType.Damage);
 
+            // 🔊 컨트롤러 진동: 기본 공격 hit (Light)
+            HapticFeedback.PlayPreset(HapticFeedback.RumblePreset.Light);
+
             // G2-04: 치명타/백어택 감지 → Shake 2배 + HitStop
             if (targetBehaviour != null)
             {

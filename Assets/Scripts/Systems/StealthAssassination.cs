@@ -224,6 +224,9 @@ namespace ProjectName.Systems
                 // 데미지 폰트
                 CombatVFXController.ShowDamageNumber(targetPos, Mathf.RoundToInt(maxHP), Color.red);
 
+                // 🔊 컨트롤러 진동: 암살 성공 (Heavy)
+                HapticFeedback.PlayPreset(HapticFeedback.RumblePreset.Heavy);
+
                 // 사운드
                 SoundManager.Instance?.PlaySFX("assassination_kill");
 
