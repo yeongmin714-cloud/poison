@@ -25,6 +25,11 @@ namespace ProjectName.Systems
         [SerializeField] private float _teleportCooldown = 5f;
         [SerializeField] [Range(0f, 1f)] private float _lifeStealRatio = 0.2f;
 
+        // 🐉 MonsterSkillSystem 연동
+        private MonsterSkillSystem _skillSystem;
+        private MonsterSkillSystem.MonsterSkillData[] _draculaSkills;
+        private float _skillTimer;
+
         private float _currentHP;
         private bool _isDead;
         private float _attackTimer;
@@ -55,7 +60,15 @@ namespace ProjectName.Systems
             _currentHP = _maxHP;
             _attackTimer = 0f;
             _teleportTimer = 0f;
+            _skillTimer = 0f;
             CreateVisualPlaceholder();
+
+            // 🐉 MonsterSkillSystem 연동: 드라큘라 스킬 로드
+            _skillSystem = MonsterSkillSystem.Instance;
+            if (_skillSystem != null)
+            {
+                _draculaSkills = _skillSystem.GetDraculaSkills();
+            }
         }
 
         private void Start()
@@ -76,6 +89,7 @@ namespace ProjectName.Systems
 
             _attackTimer += Time.deltaTime;
             _teleportTimer += Time.deltaTime;
+            _skillTimer += Time.deltaTime;
 
             // 타겟 탐색 (주기적으로만 Find 수행)
             if (_target == null || !_target.gameObject.activeInHierarchy)
@@ -99,6 +113,23 @@ namespace ProjectName.Systems
                 return;
             }
 
+            // 🐉 MonsterSkillSystem: 보스 스킬 주기적 사용
+            if (_draculaSkills != null && _draculaSkills.Length > 0 && _target != null)
+            {
+                float skillInterval = 4f;
+                if (_skillTimer >= skillInterval)
+                {
+                    _skillTimer = 0f;
+                    var nonTeleportSkills = System.Array.FindAll(_draculaSkills,
+                        s => s.skill != MonsterSkillSystem.MonsterSkill.Teleport);
+                    if (nonTeleportSkills.Length > 0)
+                    {
+                        var skillData = nonTeleportSkills[Random.Range(0, nonTeleportSkills.Length)];
+                        ExecuteDraculaSkill(skillData);
+                    }
+                }
+            }
+
             // 공격
             if (dist <= _attackRange && _attackTimer >= _attackCooldown)
             {
@@ -116,8 +147,6 @@ namespace ProjectName.Systems
         }
 
         private void FindTarget()
-        {
-            // 캐싱된 타겟이 유효하면 재사용
             if (_cachedPlayerTarget != null && _cachedPlayerTarget.gameObject.activeInHierarchy)
             {
                 float dist = Vector3.Distance(transform.position, _cachedPlayerTarget.position);

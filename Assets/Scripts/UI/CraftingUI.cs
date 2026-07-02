@@ -32,6 +32,18 @@ namespace ProjectName.UI
         private bool _hasResult = false;
         private Vector2 _inventoryScrollPos;
 
+        // ── 프리셋 & 즐겨찾기 ──
+        private string[] _presetNames = new string[0];
+        private int _selectedPresetIndex = -1;
+        private Vector2 _recipeScrollPos;
+        private bool _showFavoritesOnly = false;
+        private bool _showPresetDropdown = false;
+        private Vector2 _presetScrollPos;
+        private GUIStyle _starOnStyle;
+        private GUIStyle _starOffStyle;
+        private GUIStyle _tabSelectedStyle;
+        private GUIStyle _tabNormalStyle;
+
         // ── 스타일 ──
         private GUIStyle _titleStyle;
         private GUIStyle _slotStyle;
@@ -52,6 +64,9 @@ namespace ProjectName.UI
             _resultMessage = "";
             _hasResult = false;
             _stylesInitialized = false;
+            _showFavoritesOnly = false;
+            _showPresetDropdown = false;
+            RefreshPresetNames();
             Debug.Log("[CraftingUI] 크래프트 테이블 열림");
         }
 
@@ -124,6 +139,36 @@ namespace ProjectName.UI
                 fontSize = 40,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white }
+            };
+
+            // ── 즐겨찾기 스타일 ──
+            _starOnStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 36,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = new Color(1f, 0.8f, 0f) } // 금색
+            };
+
+            _starOffStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 36,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = new Color(0.5f, 0.5f, 0.5f) } // 회색
+            };
+
+            _tabSelectedStyle = new GUIStyle(GUI.skin.button)
+            {
+                fontSize = 32,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = Color.white, background = MakeTexture(1, 1, new Color(0.2f, 0.4f, 0.7f, 0.9f)) }
+            };
+
+            _tabNormalStyle = new GUIStyle(GUI.skin.button)
+            {
+                fontSize = 32,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = new Color(0.7f, 0.7f, 0.7f), background = MakeTexture(1, 1, new Color(0.15f, 0.15f, 0.2f, 0.8f)) }
             };
 
             _stylesInitialized = true;
@@ -226,6 +271,86 @@ namespace ProjectName.UI
 
             GUILayout.Space(4);
 
+            // ── 프리셋 저장 버튼 (조합 성공 시 활성화) ──
+            GUILayout.BeginHorizontal();
+            bool canSavePreset = _hasResult && !string.IsNullOrEmpty(_resultItemName) && _slot1 != null && _slot2 != null;
+            GUI.enabled = canSavePreset;
+            if (GUILayout.Button("💾 프리셋 저장", GUILayout.Height(48), GUILayout.Width(240)))
+            {
+                string resultId = "combo_" + _resultItemName;
+                var ingredientIds = new List<string>();
+                if (_slot1 != null) ingredientIds.Add(_slot1.id);
+                if (_slot2 != null) ingredientIds.Add(_slot2.id);
+
+                PresetNamePopup.Instance.Show(
+                    "프리셋 이름 입력",
+                    _resultItemName,
+                    (name) =>
+                    {
+                        CraftPresetManager.Instance.SavePreset(name, ingredientIds, resultId, CraftType.Alchemy);
+                        RefreshPresetNames();
+                    }
+                );
+            }
+            GUI.enabled = true;
+
+            // ── 프리셋 불러오기 영역 ──
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("📂 프리셋:", GUILayout.Height(48), GUILayout.Width(160));
+
+            string[] presetNames = _presetNames;
+            bool hasPresets = presetNames.Length > 0;
+
+            // 현재 선택된 프리셋 이름 표시
+            string currentLabel = hasPresets
+                ? (_selectedPresetIndex >= 0 && _selectedPresetIndex < presetNames.Length
+                    ? presetNames[_selectedPresetIndex]
+                    : "선택하세요")
+                : "저장된 프리셋 없음";
+
+            if (GUILayout.Button(currentLabel, GUILayout.Height(48), GUILayout.Width(280)))
+            {
+                // 클릭 시 토글 확장
+                _showPresetDropdown = !_showPresetDropdown;
+            }
+            GUILayout.EndHorizontal();
+
+            // 프리셋 드롭다운 확장 시 목록 표시
+            if (_showPresetDropdown && hasPresets)
+            {
+                GUILayout.BeginVertical(GUILayout.Width(440));
+                float presetItemHeight = 40;
+                float dropdownHeight = Mathf.Min(presetNames.Length * presetItemHeight, 200);
+                _presetScrollPos = GUILayout.BeginScrollView(_presetScrollPos, GUILayout.Height(dropdownHeight));
+
+                for (int i = 0; i < presetNames.Length; i++)
+                {
+                    GUILayout.BeginHorizontal();
+                    if (GUILayout.Button(presetNames[i], GUILayout.Height(presetItemHeight)))
+                    {
+                        _selectedPresetIndex = i;
+                        ApplyPreset(presetNames[i]);
+                        _showPresetDropdown = false;
+                    }
+
+                    // 삭제 버튼
+                    if (GUILayout.Button("X", GUILayout.Width(36), GUILayout.Height(presetItemHeight)))
+                    {
+                        CraftPresetManager.Instance.DeletePreset(presetNames[i]);
+                        RefreshPresetNames();
+                        if (_selectedPresetIndex >= _presetNames.Length)
+                            _selectedPresetIndex = -1;
+                    }
+                    GUILayout.EndHorizontal();
+                }
+
+                GUILayout.EndScrollView();
+                GUILayout.EndVertical();
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(4);
+
             // ── 구분선 ──
             GUILayout.Label("─── 인벤토리 ───", _categoryHeaderStyle);
 
@@ -284,10 +409,110 @@ namespace ProjectName.UI
 
             GUILayout.Space(4);
 
-            // ── 발견된 조합 카운트 ──
-            int totalCombos = HerbComboDatabase.AllCombos.Count;
-            int discovered = RecipeDiscoverySystem.DiscoveredCount;
-            GUILayout.Label($"발견된 조합: {discovered:D2}/{totalCombos}");
+            // ── 레시피 북 (발견된 조합 목록 + 즐겨찾기) ──
+            GUILayout.Label("─── 레시피 북 ───", _categoryHeaderStyle);
+
+            // 탭 버튼
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("📜 전체 레시피", _showFavoritesOnly ? _tabNormalStyle : _tabSelectedStyle, GUILayout.Height(44)))
+            {
+                _showFavoritesOnly = false;
+            }
+            if (GUILayout.Button("📌 즐겨찾기", _showFavoritesOnly ? _tabSelectedStyle : _tabNormalStyle, GUILayout.Height(44)))
+            {
+                _showFavoritesOnly = true;
+            }
+            GUILayout.EndHorizontal();
+
+            // 레시피 스크롤 영역
+            float recipeGridHeight = 240;
+            _recipeScrollPos = GUILayout.BeginScrollView(_recipeScrollPos, GUILayout.Height(recipeGridHeight));
+
+            var allCombos = HerbComboDatabase.AllCombos;
+            var discovered = RecipeDiscoverySystem.GetAllDiscovered();
+            int totalCombos = allCombos.Count;
+            int discoveredCount = RecipeDiscoverySystem.DiscoveredCount;
+
+            // 표시할 레시피 목록 구성
+            var displayRecipes = new List<KeyValuePair<string, HerbComboResult>>();
+            foreach (var kvp in allCombos)
+            {
+                string recipeId = kvp.Value.resultName;
+                if (!discovered.Contains(recipeId))
+                    continue;
+
+                // 즐겨찾기 모드면 필터링
+                if (_showFavoritesOnly && !CraftPresetManager.Instance.IsFavorite(recipeId))
+                    continue;
+
+                displayRecipes.Add(kvp);
+            }
+
+            if (displayRecipes.Count > 0)
+            {
+                int cols = Mathf.Max(1, (int)((_windowWidth - 30) / 340));
+                int colIdx = 0;
+
+                GUILayout.BeginVertical();
+                foreach (var kvp in displayRecipes)
+                {
+                    if (colIdx % cols == 0)
+                        GUILayout.BeginHorizontal();
+
+                    string recipeName = kvp.Value.resultName;
+                    string effect = kvp.Value.effect;
+                    bool isFav = CraftPresetManager.Instance.IsFavorite(recipeName);
+
+                    // 레시피 카드
+                    GUILayout.BeginVertical(GUILayout.Width(330), GUILayout.Height(60));
+                    GUILayout.BeginHorizontal();
+
+                    // 즐겨찾기 ★/☆ 버튼
+                    string favLabel = isFav ? "★" : "☆";
+                    GUI.color = isFav ? new Color(1f, 0.8f, 0f) : new Color(0.5f, 0.5f, 0.5f);
+                    if (GUILayout.Button(favLabel, GUILayout.Width(40), GUILayout.Height(40)))
+                    {
+                        CraftPresetManager.Instance.ToggleFavorite(recipeName);
+                    }
+                    GUI.color = Color.white;
+
+                    GUILayout.BeginVertical();
+                    GUILayout.Label(recipeName, GUILayout.Height(26));
+                    if (!string.IsNullOrEmpty(effect))
+                    {
+                        GUILayout.Label($"효과: {effect}", GUILayout.Height(20));
+                    }
+                    GUILayout.EndVertical();
+
+                    GUILayout.EndHorizontal();
+                    GUILayout.EndVertical();
+
+                    colIdx++;
+                    if (colIdx % cols == 0)
+                        GUILayout.EndHorizontal();
+                }
+
+                // 마지막 행 정리
+                if (colIdx % cols != 0)
+                    GUILayout.EndHorizontal();
+
+                GUILayout.EndVertical();
+            }
+            else
+            {
+                string emptyMsg = _showFavoritesOnly
+                    ? "즐겨찾기한 레시피가 없습니다. ★을 눌러 추가하세요."
+                    : "아직 발견한 레시피가 없습니다.";
+                GUILayout.Label(emptyMsg, GUILayout.Height(40));
+            }
+
+            GUILayout.EndScrollView();
+
+            // 카운트 표시
+            int favCount = _showFavoritesOnly
+                ? displayRecipes.Count
+                : CraftPresetManager.Instance.GetFavorites().Count;
+            GUILayout.Label($"발견된 조합: {discoveredCount:D2}/{totalCombos}  |  즐겨찾기: {favCount:D2}");
 
             GUILayout.EndArea();
         }
@@ -726,6 +951,76 @@ namespace ProjectName.UI
         private static string MakeKey(string id1, string id2)
         {
             return string.CompareOrdinal(id1, id2) < 0 ? $"{id1}_{id2}" : $"{id2}_{id1}";
+        }
+
+        // ── 프리셋 & 즐겨찾기 헬퍼 ──
+
+        /// <summary>
+        /// 저장된 프리셋 이름 목록을 갱신합니다.
+        /// </summary>
+        private void RefreshPresetNames()
+        {
+            if (CraftPresetManager.Instance == null) return;
+
+            var presets = CraftPresetManager.Instance.LoadPresets();
+            _presetNames = new string[presets.Count];
+            for (int i = 0; i < presets.Count; i++)
+            {
+                _presetNames[i] = presets[i].presetName;
+            }
+            _selectedPresetIndex = -1;
+        }
+
+        /// <summary>
+        /// 선택한 프리셋을 재료 슬롯에 적용합니다.
+        /// 인벤토리에서 해당 재료 ID를 찾아 슬롯에 배치합니다.
+        /// </summary>
+        private void ApplyPreset(string presetName)
+        {
+            if (CraftPresetManager.Instance == null) return;
+
+            var presetOpt = CraftPresetManager.Instance.GetPreset(presetName);
+            if (!presetOpt.HasValue)
+            {
+                Debug.LogWarning($"[CraftingUI] 프리셋 '{presetName}'을 찾을 수 없습니다.");
+                return;
+            }
+
+            var preset = presetOpt.Value;
+            var inventory = PlayerInventory.Instance;
+            if (inventory == null)
+            {
+                Debug.LogError("[CraftingUI] PlayerInventory not found.");
+                return;
+            }
+
+            _slot1 = null;
+            _slot2 = null;
+            _hasResult = false;
+            _resultMessage = "";
+            _resultItemName = "";
+            _resultEffect = "";
+
+            // 재료 ID 목록에서 인벤토리 아이템 찾기
+            var allSlots = inventory.GetAllSlots();
+            foreach (var slot in allSlots)
+            {
+                if (slot == null || slot.item == null || slot.count <= 0)
+                    continue;
+
+                if (preset.ingredientIds.Contains(slot.item.id))
+                {
+                    if (_slot1 == null)
+                        _slot1 = slot.item;
+                    else if (_slot2 == null && _slot1.id != slot.item.id)
+                        _slot2 = slot.item;
+
+                    if (_slot1 != null && _slot2 != null)
+                        break;
+                }
+            }
+
+            Debug.Log($"[CraftingUI] 프리셋 '{presetName}' 적용됨 (재료: {_slot1?.displayName}, {_slot2?.displayName})");
         }
     }
 }

@@ -518,3 +518,18 @@
 - Status: ✅
 - Details: SpecialEffectsController.cs (929줄, 보석글로우/독안개/무기발광/선택테두리) + GemChest/GasSprayer/GuardPlaceholder 연동
 - Date: 2026-07-02
+
+# Cycle: P61-01~03 — 🐉 몬스터 스킬/패턴 시스템
+- Status: ✅
+- Details: MonsterSkillSystem.cs (10스킬, 12종매핑) + MonsterSkillUI.cs (팝업) + 동물 AI 연동
+- Date: 2026-07-02
+
+# Cycle: P62-01~03 — 🗺️ 월드맵 필터 & 영지 상세
+- Status: ✅
+- Details: MapWindow 패치 (5필터+호버툴팁) + TerritoryInfoPopup.cs (458줄, 영지상세)
+- Date: 2026-07-02
+
+# Cycle: P63-01~03 — 🔧 크래프트 프리셋 & 즐겨찾기
+- Status: ✅
+- Details: CraftPresetManager.cs (300줄) + PresetNamePopup.cs (221줄) + CraftingUI 패치 (프리셋/즐겨찾기)
+- Date: 2026-07-02

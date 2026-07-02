@@ -540,12 +540,32 @@ namespace ProjectName.Systems
             // 애니메이션: Attack
             if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack);
 
-            // 플레이어에게 실제 데미지
+            // 🐉 MonsterSkillSystem: 스킬이 있는 몬스터는 스킬 우선 사용
+            if (MonsterSkillSystem.Instance != null)
+            {
+                var skills = MonsterSkillSystem.Instance.GetSkillsForAI(this);
+                if (skills.Length > 0)
+                {
+                    // 랜덤 스킬 선택 (50% 확률로 스킬 사용, 나머지는 기본 공격)
+                    if (Random.value < 0.5f)
+                    {
+                        GameObject player = _player != null ? _player.gameObject : GameObject.FindGameObjectWithTag("Player");
+                        if (player != null)
+                        {
+                            MonsterSkillSystem.MonsterSkillData skillData = skills[Random.Range(0, skills.Length)];
+                            if (MonsterSkillSystem.Instance.ExecuteSkill(this, skillData, player))
+                                return; // 스킬 실행 성공 → 기본 공격 스킵
+                        }
+                    }
+                }
+            }
+
+            // 플레이어에게 실제 데미지 (기본 공격)
             if (PlayerHealth.Instance != null)
             {
                 PlayerHealth.Instance.TakeDamage(_attackDamage);
                 Debug.Log($"{MonsterDatabase.Get(_monsterId)?.displayName ?? _monsterId}가(이) 플레이어에게 {_attackDamage} 데미지!");
-                // 적용 디버프: 슬로우넝 (이동 속도 감소)
+                // 적용 디버프: 슬로우 (이동 속도 감소)
                 if (BuffManager.Instance != null)
                 {
                     BuffManager.Instance.AddBuff("Slowness", 0.5f, 5f); // 이동 속도 0.5 감소, 5초 지속
@@ -629,6 +649,14 @@ namespace ProjectName.Systems
             if (hitSound != null)
             {
                 AudioSource.PlayClipAtPoint(hitSound, transform.position);
+            }
+
+            // 🐉 슬라임 분열 체크 (HP 30% 이하)
+            if (_monsterId == "slime" && _currentHP > 0 && _currentHP <= _maxHP * 0.3f)
+            {
+                // TrySplitSlime이 true를 반환하면 원본은 사망 처리됨
+                if (MonsterSkillSystem.TrySplitSlime(this))
+                    return;
             }
 
             if (_currentHP <= 0)
@@ -1014,7 +1042,23 @@ namespace ProjectName.Systems
             // 애니메이션: Attack
             if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack);
 
-            // IDamageable이면 데미지
+            // 🐉 MonsterSkillSystem: 스킬이 있는 몬스터는 스킬 우선 사용
+            if (MonsterSkillSystem.Instance != null && _aggroTarget != null)
+            {
+                var skills = MonsterSkillSystem.Instance.GetSkillsForAI(this);
+                if (skills.Length > 0)
+                {
+                    // 랜덤 스킬 선택 (50% 확률)
+                    if (Random.value < 0.5f)
+                    {
+                        MonsterSkillSystem.MonsterSkillData skillData = skills[Random.Range(0, skills.Length)];
+                        if (MonsterSkillSystem.Instance.ExecuteSkill(this, skillData, _aggroTarget))
+                            return;
+                    }
+                }
+            }
+
+            // IDamageable이면 데미지 (기본 공격)
             if (_aggroTarget != null)
             {
                 var dmg = _aggroTarget.GetComponent<IDamageable>();

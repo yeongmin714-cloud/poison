@@ -59,6 +59,36 @@ namespace ProjectName.UI
         private Vector3 _contextMenuWorldPos;               // 컨텍스트 메뉴용 월드 좌표
         private const float TERRITORY_WORLD_Y = 0f;         // 영지의 기본 Y 좌표 (지면)
 
+        // Phase 44: 영지 필터 모드
+        private enum TerritoryFilterMode
+        {
+            All,            // 전체 보기
+            MyTerritory,    // 내 영지만
+            WarOnly,        // 전쟁 중만
+            UnoccupiedOnly, // 미점령만
+            ByNation        // 국가별 (현재 선택된 국가 기준)
+        }
+        private TerritoryFilterMode _currentFilter = TerritoryFilterMode.All;
+        private static readonly string[] FilterLabels =
+        {
+            "🔍 필터: 전체 보기",
+            "🔍 필터: 내 영지",
+            "🔍 필터: 전쟁 중",
+            "🔍 필터: 미점령",
+            "🔍 필터: 국가별"
+        };
+        private int _filterModeCount = 5;
+
+        // Phase 44: 호버 툴팁 상태
+        private bool _isHoveringTerritory = false;
+        private string _hoverTooltipText = "";
+        private Vector2 _hoverMousePos;
+        private float _hoverStartTime = 0f;
+        private const float HOVER_DELAY = 0.4f; // 0.4초 후 툴팁 표시
+
+        // Phase 44: 우클릭 메뉴에서 영지 소유주 캐시
+        private TerritoryOwnership _contextMenuOwnership;
+
         protected override void Awake()
         {
             base.Awake();
@@ -209,6 +239,17 @@ namespace ProjectName.UI
             Rect titleRect = new Rect(innerRect.x, innerRect.y, innerRect.width, 100f);
             GUI.Label(titleRect, "🗺️ 포이즌 대륙", _titleStyle);
 
+            // Phase 44: 필터 버튼 (좌측 상단, 타이틀 아래)
+            Rect filterRect = new Rect(innerRect.x, titleRect.y + titleRect.height - 30f, 260f, 26f);
+            Color origFilterBg = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(0.15f, 0.25f, 0.4f);
+            if (GUI.Button(filterRect, FilterLabels[(int)_currentFilter]))
+            {
+                _currentFilter = (TerritoryFilterMode)(((int)_currentFilter + 1) % _filterModeCount);
+                Debug.Log($"[MapWindow] 🔍 필터 변경: {_currentFilter}");
+            }
+            GUI.backgroundColor = origFilterBg;
+
             float contentY = titleRect.y + titleRect.height + 5f;
             Rect contentRect = new Rect(innerRect.x, contentY, innerRect.width, innerRect.height - (contentY - innerRect.y));
 
@@ -228,12 +269,16 @@ namespace ProjectName.UI
             // Phase 40: 우클릭 컨텍스트 메뉴 (자동 이동)
             DrawAutoMoveContextMenu();
 
+            // Phase 44: 호버 툴팁 표시
+            DrawTerritoryHoverTooltip();
+
             // Phase 40: 선택된 영지까지 점선 경로 표시
             DrawMapPathLine(windowRect);
         }
 
         /// <summary>
         /// Phase 40: 우클릭 컨텍스트 메뉴 — "자동 이동" 옵션
+        /// Phase 44: 확장 — 빠른 이동 / 영지 정보 추가
         /// </summary>
         private void DrawAutoMoveContextMenu()
         {
@@ -264,12 +309,16 @@ namespace ProjectName.UI
             };
             GUI.Label(titleRect, $"📌 {_contextMenuTerritoryName}", titleStyle);
 
-            // "자동 이동" 버튼
-            Rect moveBtnRect = new Rect(_contextMenuRect.x + margin, titleRect.y + titleRect.height + 2f,
-                _contextMenuRect.width - margin * 2, 30f);
+            float btnY = titleRect.y + titleRect.height + 2f;
+            float btnHeight = 28f;
+            float btnSpacing = 2f;
+
+            // "📍 자동 이동" 버튼
+            Rect moveBtnRect = new Rect(_contextMenuRect.x + margin, btnY,
+                _contextMenuRect.width - margin * 2, btnHeight);
             Color origBtnColor = GUI.backgroundColor;
             GUI.backgroundColor = new Color(0f, 0.4f, 0f);
-            if (GUI.Button(moveBtnRect, "🚶 자동 이동"))
+            if (GUI.Button(moveBtnRect, "📍 자동 이동"))
             {
                 if (_contextMenuTerritoryId.HasValue)
                 {
@@ -279,8 +328,42 @@ namespace ProjectName.UI
             }
             GUI.backgroundColor = origBtnColor;
 
+            // "⚡ 빠른 이동" 버튼 (Phase 44: 소유한 영지만)
+            bool isOwned = _contextMenuOwnership == TerritoryOwnership.PlayerOwned;
+            Rect ftBtnRect = new Rect(_contextMenuRect.x + margin, moveBtnRect.y + moveBtnRect.height + btnSpacing,
+                _contextMenuRect.width - margin * 2, btnHeight);
+            Color origFtColor = GUI.backgroundColor;
+            GUI.backgroundColor = isOwned ? new Color(0.5f, 0.3f, 0.0f) : new Color(0.2f, 0.2f, 0.2f);
+            GUI.enabled = isOwned;
+            if (GUI.Button(ftBtnRect, isOwned ? "⚡ 빠른 이동" : "⚡ 빠른 이동 (미소유)"))
+            {
+                if (isOwned && _contextMenuTerritoryId.HasValue)
+                {
+                    FastTravelUI.Hide(); // 기존 UI 닫고
+                    FastTravelUI.Show(); // 새로 열기 — 사용자가 영지 선택
+                }
+                _showContextMenu = false;
+            }
+            GUI.enabled = true;
+            GUI.backgroundColor = origFtColor;
+
+            // "ℹ️ 영지 정보" 버튼 (Phase 44: 상세 팝업)
+            Rect infoBtnRect = new Rect(_contextMenuRect.x + margin, ftBtnRect.y + ftBtnRect.height + btnSpacing,
+                _contextMenuRect.width - margin * 2, btnHeight);
+            Color origInfoColor = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(0.2f, 0.2f, 0.5f);
+            if (GUI.Button(infoBtnRect, "ℹ️ 영지 정보"))
+            {
+                if (_contextMenuTerritoryId.HasValue)
+                {
+                    TerritoryInfoPopup.Show(_contextMenuTerritoryId.Value);
+                }
+                _showContextMenu = false;
+            }
+            GUI.backgroundColor = origInfoColor;
+
             // 취소 버튼
-            Rect cancelBtnRect = new Rect(_contextMenuRect.x + margin, moveBtnRect.y + moveBtnRect.height + 2f,
+            Rect cancelBtnRect = new Rect(_contextMenuRect.x + margin, infoBtnRect.y + infoBtnRect.height + btnSpacing,
                 _contextMenuRect.width - margin * 2, 22f);
             if (GUI.Button(cancelBtnRect, "취소"))
             {
@@ -695,6 +778,23 @@ namespace ProjectName.UI
                 return;
             }
 
+            // Phase 44: 필터 적용 — 조건에 맞지 않으면 흐리게 표시
+            bool passesFilter = PassesFilter(def, state);
+            float dimAlpha = passesFilter ? 1.0f : 0.3f;
+
+            // 필터 불일치 시 빈 셀로 표시
+            if (!passesFilter)
+            {
+                Color dimBg = GUI.backgroundColor;
+                GUI.backgroundColor = new Color(0.08f, 0.08f, 0.1f);
+                Color origColor = GUI.color;
+                GUI.color = new Color(1f, 1f, 1f, 0.3f);
+                GUI.Box(rect, "");
+                GUI.color = origColor;
+                GUI.backgroundColor = dimBg;
+                return;
+            }
+
             // Determine background color based on difficulty
             Color bgColor = def.difficulty switch
             {
@@ -837,14 +937,18 @@ namespace ProjectName.UI
             Rect guardRect = new Rect(cellInnerX, guardY, cellInnerW, lineHeight);
             GUI.Label(guardRect, $"병사: {def.guardCount}명", _guardCountStyle);
 
+            // Phase 44: 호버 툴팁 감지
+            CheckTerritoryHover(rect, def, state);
+
             // Phase 40: 클릭 감지 (좌클릭 = 선택, 우클릭 = 자동 이동 컨텍스트 메뉴)
-            HandleTerritoryCellClick(rect, def);
+            HandleTerritoryCellClick(rect, def, state);
         }
 
         /// <summary>
         /// Phase 40: 영지 셀 클릭 처리 — 좌클릭 선택, 우클릭 컨텍스트 메뉴.
+        /// Phase 44: 우클릭 메뉴에 빠른 이동/영지 정보 추가.
         /// </summary>
-        private void HandleTerritoryCellClick(Rect cellRect, TerritoryDefinition def)
+        private void HandleTerritoryCellClick(Rect cellRect, TerritoryDefinition def, TerritoryState state)
         {
             Event evt = Event.current;
             if (evt == null) return;
@@ -867,10 +971,11 @@ namespace ProjectName.UI
             }
             else if (evt.button == 1) // 우클릭 — 컨텍스트 메뉴
             {
-                // 컨텍스트 메뉴 위치 설정 (마우스 위치)
-                _contextMenuRect = new Rect(evt.mousePosition.x, evt.mousePosition.y, 200f, 80f);
+                // 컨텍스트 메뉴 위치 설정 (마우스 위치) — Phase 44: 높이 증가
+                _contextMenuRect = new Rect(evt.mousePosition.x, evt.mousePosition.y, 220f, 150f);
                 _contextMenuTerritoryName = def.territoryName;
                 _contextMenuTerritoryId = def.id;
+                _contextMenuOwnership = state != null ? state.ownership : TerritoryOwnership.Unoccupied;
                 _contextMenuWorldPos = new Vector3(
                     def.id.index * 10f,
                     TERRITORY_WORLD_Y,
@@ -971,6 +1076,203 @@ namespace ProjectName.UI
 
             Rect posRect = new Rect(area.x + area.width - 250f, area.y, 375f, btnHeight);
             GUI.Label(posRect, posText, _infoLabelStyle);
+        }
+
+        // ===== Phase 44: Filtermethod =====
+
+        /// <summary>
+        /// 현재 필터 모드에 따라 영지 표시 여부를 결정합니다.
+        /// </summary>
+        private bool PassesFilter(TerritoryDefinition def, TerritoryState state)
+        {
+            if (_currentFilter == TerritoryFilterMode.All)
+                return true;
+
+            if (_currentFilter == TerritoryFilterMode.ByNation)
+            {
+                // 국가별 필터: 현재 선택된 국가의 영지만 표시
+                if (_selectedNation != NationType.None)
+                    return def.nation == _selectedNation;
+                return true; // 개요 화면에서는 전체 표시
+            }
+
+            // MyTerritory, WarOnly, UnoccupiedOnly — 상태 기반
+            if (state == null) return false;
+
+            switch (_currentFilter)
+            {
+                case TerritoryFilterMode.MyTerritory:
+                    return state.ownership == TerritoryOwnership.PlayerOwned;
+                case TerritoryFilterMode.WarOnly:
+                    return state.isUnderAttack || state.ownership == TerritoryOwnership.Contested;
+                case TerritoryFilterMode.UnoccupiedOnly:
+                    return state.ownership == TerritoryOwnership.Unoccupied;
+                default:
+                    return true;
+            }
+        }
+
+        /// <summary>
+        /// Phase 44: 마우스 호버 시 영지 정보 툴팁을 준비합니다.
+        /// </summary>
+        private void CheckTerritoryHover(Rect cellRect, TerritoryDefinition def, TerritoryState state)
+        {
+            Event evt = Event.current;
+            if (evt == null) return;
+            if (evt.type != EventType.Repaint) return;
+
+            Vector2 mousePos = evt.mousePosition;
+            bool mouseOver = cellRect.Contains(mousePos);
+
+            if (mouseOver)
+            {
+                if (!_isHoveringTerritory)
+                {
+                    // 호버 시작
+                    _isHoveringTerritory = true;
+                    _hoverStartTime = Time.realtimeSinceStartup;
+                    _hoverMousePos = mousePos;
+                    _hoverTooltipText = BuildHoverTooltipText(def, state);
+                }
+                else
+                {
+                    // 마우스 위치 업데이트
+                    _hoverMousePos = mousePos;
+                }
+            }
+            else if (_isHoveringTerritory)
+            {
+                // 같은 프레임에 다른 영지로 이동했는지 확인
+                _isHoveringTerritory = false;
+            }
+        }
+
+        /// <summary>
+        /// Phase 44: 호버 툴팁 문자열을 생성합니다.
+        /// </summary>
+        private string BuildHoverTooltipText(TerritoryDefinition def, TerritoryState state)
+        {
+            string name = def.territoryName;
+            string nationStr = def.nation switch
+            {
+                NationType.East => "동 (East)",
+                NationType.West => "서 (West)",
+                NationType.South => "남 (South)",
+                NationType.North => "북 (North)",
+                NationType.Empire => "황제국 (Empire)",
+                NationType.Dracula => "드라큘라",
+                _ => "알 수 없음"
+            };
+            string difficultyStr = def.difficulty switch
+            {
+                TerritoryDifficulty.Ring1 => "⭐ (Ring 1)",
+                TerritoryDifficulty.Ring2 => "⭐⭐ (Ring 2)",
+                TerritoryDifficulty.Ring3 => "⭐⭐⭐ (Ring 3)",
+                TerritoryDifficulty.Ring4 => "⭐⭐⭐⭐ (Ring 4)",
+                TerritoryDifficulty.Empire => "👑 (Empire)",
+                _ => ""
+            };
+            string ownerStr = "미점령";
+            if (state != null)
+            {
+                ownerStr = state.ownership switch
+                {
+                    TerritoryOwnership.Unoccupied => $"미점령 ({def.nation} 영토)",
+                    TerritoryOwnership.PlayerOwned => "👤 플레이어",
+                    TerritoryOwnership.LordOwned => $"🔴 {def.lord.lordName}",
+                    TerritoryOwnership.Contested => "⚔️ 전쟁 중",
+                    _ => "알 수 없음"
+                };
+            }
+
+            // 병사 수 요약
+            int guardCount = def.guardCount;
+            string guardSummary = $"{guardCount}명";
+            if (state != null)
+            {
+                float aliveRatio = state.guardAliveRatio;
+                if (aliveRatio < 1f)
+                {
+                    int alive = Mathf.Max(0, Mathf.RoundToInt(guardCount * aliveRatio));
+                    guardSummary = $"{alive}/{guardCount}명 (생존)";
+                }
+            }
+
+            // 상태 아이콘
+            string statusIcons = "";
+            bool isPlayerHere = _playerTerritoryId.HasValue &&
+                                _playerTerritoryId.Value.nation == def.nation &&
+                                _playerTerritoryId.Value.index == def.id.index;
+            if (isPlayerHere)
+                statusIcons += " 📍";
+            if (state != null && state.isUnderAttack)
+                statusIcons += " ⚔️";
+            if (state != null && state.ownership == TerritoryOwnership.Contested)
+                statusIcons += " ⚔️";
+
+            // 축제 확인
+            if (FestivalManager.Instance != null)
+            {
+                var festival = FestivalManager.Instance.GetActiveFestivalAtTerritory(def.id);
+                if (festival != null)
+                    statusIcons += " 🎪";
+            }
+
+            return $"{name} ({nationStr})\n{difficultyStr}\n소유주: {ownerStr}\n병사: {guardSummary}{statusIcons}";
+        }
+
+        /// <summary>
+        /// Phase 44: 호버 툴팁을 화면에 그립니다.
+        /// </summary>
+        private void DrawTerritoryHoverTooltip()
+        {
+            if (!_isHoveringTerritory) return;
+            if (string.IsNullOrEmpty(_hoverTooltipText)) return;
+
+            // 호버 지연 확인
+            if (Time.realtimeSinceStartup - _hoverStartTime < HOVER_DELAY) return;
+
+            float tooltipWidth = 320f;
+            float lineHeight = 22f;
+            int lineCount = _hoverTooltipText.Split('\n').Length;
+            float tooltipHeight = lineCount * lineHeight + 10f;
+
+            // 마우스 위치 기준 툴팁 위치 (마우스 오른쪽 아래)
+            float tooltipX = _hoverMousePos.x + 15f;
+            float tooltipY = _hoverMousePos.y + 10f;
+
+            // 화면 경계 내로 보정
+            if (tooltipX + tooltipWidth > Screen.width)
+                tooltipX = _hoverMousePos.x - tooltipWidth - 10f;
+            if (tooltipY + tooltipHeight > Screen.height)
+                tooltipY = Screen.height - tooltipHeight - 5f;
+
+            Rect tooltipRect = new Rect(tooltipX, tooltipY, tooltipWidth, tooltipHeight);
+
+            // 배경
+            Color origBg = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(0.08f, 0.08f, 0.12f, 0.95f);
+            GUI.Box(tooltipRect, "");
+            GUI.backgroundColor = origBg;
+
+            // 테두리
+            Color origColor = GUI.color;
+            GUI.color = new Color(0.3f, 0.4f, 0.6f, 0.8f);
+            GUI.Box(tooltipRect, "");
+            GUI.color = origColor;
+
+            // 텍스트
+            Rect textRect = new Rect(tooltipRect.x + 5f, tooltipRect.y + 5f, tooltipRect.width - 10f, tooltipRect.height - 10f);
+            GUIStyle tooltipStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 14,
+                fontStyle = FontStyle.Normal,
+                alignment = TextAnchor.UpperLeft,
+                normal = { textColor = Color.white },
+                richText = true,
+                wordWrap = true
+            };
+            GUI.Label(textRect, _hoverTooltipText, tooltipStyle);
         }
     }
 }
