@@ -47,6 +47,27 @@ namespace ProjectName.Core
             EnsureTerritoryManager();
         }
 
+        private void Update()
+        {
+            // 🌅 엔딩 조건 체크 (모든 영지 점령 시)
+            if (!_debugMode)
+            {
+                var endingMgr = System.Type.GetType("ProjectName.Systems.GameEndingManager");
+                if (endingMgr != null)
+                {
+                    var instanceProp = endingMgr.GetProperty("Instance",
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                    var instance = instanceProp?.GetValue(null);
+                    if (instance != null)
+                    {
+                        var checkMethod = endingMgr.GetMethod("CheckEndingCondition",
+                            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                        checkMethod?.Invoke(instance, null);
+                    }
+                }
+            }
+        }
+
         private void EnsureTerritoryManager()
         {
             // Use reflection to access Systems types (avoid circular reference)
@@ -148,6 +169,9 @@ namespace ProjectName.Core
 
             // 18. RevengeListIntegration — 복수명부 이벤트 구독 초기화 (정적 클래스, reflection)
             InitializeRevengeListIntegration();
+
+            // 19. GameEndingManager — 엔딩 조건 체크
+            CreateSystemIfMissing("GameEndingManager");
         }
 
         /// <summary>

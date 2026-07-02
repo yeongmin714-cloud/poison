@@ -120,7 +120,8 @@ namespace ProjectName.Systems
                     territories = CollectTerritoryData(),
                     quests = CollectQuestData(),
                     revengeList = CollectRevengeListData(),
-                    nationReputations = CollectNationReputationData()
+                    nationReputations = CollectNationReputationData(),
+                    isNewGamePlus = NewGamePlusSystem.IsNewGamePlus
                 };
 
                 string json = JsonUtility.ToJson(data, prettyPrint: true);
@@ -173,9 +174,9 @@ namespace ProjectName.Systems
                 }
 
                 // saveVersion 검증 및 마이그레이션
-                if (data.saveVersion < 1 || data.saveVersion > 2)
+                if (data.saveVersion < 1 || data.saveVersion > 3)
                 {
-                    Debug.LogWarning($"[SaveManager] 슬롯 {slotIndex}의 saveVersion({data.saveVersion})이 현재 버전(2)과 다릅니다. 호환을 시도합니다.");
+                    Debug.LogWarning($"[SaveManager] 슬롯 {slotIndex}의 saveVersion({data.saveVersion})이 현재 버전(3)과 다릅니다. 호환을 시도합니다.");
                 }
 
                 ApplyTimeData(data.time);

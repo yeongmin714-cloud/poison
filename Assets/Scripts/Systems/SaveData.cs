@@ -22,7 +22,7 @@ namespace ProjectName.Systems
     [System.Serializable]
     public class SaveData
     {
-        public int saveVersion = 2; // v2: PlayerSaveData.gold 추가, QuestSaveData.questState 추가
+        public int saveVersion = 3; // v3: SaveData.isNewGamePlus 추가
         /// <summary>저장 시점의 타임스탬프. SaveManager에서 "yyyy-MM-dd HH:mm:ss" 형식으로 설정.</summary>
         public string timestamp;
         public DifficultyMode difficulty = DifficultyMode.Normal; // C20-01
@@ -36,6 +36,7 @@ namespace ProjectName.Systems
         public WarehouseSaveData warehouse;      // Phase 5.6.2: 영지 창고 저장 데이터 (from WarehouseSystem.cs)
         public ChurchSaveData church;            // Phase 5.7.3: 성당 친밀도 저장 데이터
         public NationReputationSaveData nationReputations; // 국가 호감도 저장 데이터
+        public bool isNewGamePlus = false;       // NG+ 모드로 저장된 데이터인지 여부
     }
 
     [System.Serializable]
