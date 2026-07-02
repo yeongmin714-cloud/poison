@@ -210,7 +210,7 @@ namespace ProjectName.UI
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
 
             // GUIUtility.RotateAroundPivot 사용
-            GUIUtility.PushMatrix();
+             Matrix4x4 backup = GUI.matrix;
 
             Vector2 pivot = p1;
             GUIUtility.RotateAroundPivot(angle, pivot);
@@ -218,7 +218,7 @@ namespace ProjectName.UI
             Rect lineRect = new Rect(pivot.x, pivot.y - thickness * 0.5f, distance, thickness);
             GUI.DrawTexture(lineRect, GetWhiteTexture());
 
-            GUIUtility.PopMatrix();
+             GUI.matrix = backup;
         }
 
         /// <summary>
