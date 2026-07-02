@@ -32,6 +32,7 @@ namespace ProjectName.UI
         private bool _isVisible = false;
         private Vector2 _scrollPos;
         private Vector2 _buffScrollPos;
+        private bool _showRolePanel = false;
 
         // ===== 스타일 (lazy init) =====
         private GUIStyle _styleTitle;
@@ -151,6 +152,7 @@ namespace ProjectName.UI
             else if (_currentGuard != null)
             {
                 DrawGuardInfo(x, ref cy);
+                DrawRoleSection(x, ref cy);
             }
         }
 
@@ -625,6 +627,167 @@ namespace ProjectName.UI
             return "★";
         }
 
+        // ===== 역할 변경 UI =====
+
+        /// <summary>역할 변경 섹션 그리기 (DrawGuardInfo 후 호출)</summary>
+        private void DrawRoleSection(float x, ref float cy)
+        {
+            var guard = _currentGuard;
+            if (guard == null) return;
+
+            // 구분선
+            cy += 6f;
+            GUI.Box(new Rect(x + 15, cy, WINDOW_WIDTH - 30, 2f), "");
+            cy += 10f;
+
+            // 현재 역할 표시
+            string currentRoleName = GuardStatusSystem.GetRoleName(guard.Role);
+            string currentRoleDesc = GuardStatusSystem.GetRoleDescription(guard.Role);
+            GUI.Label(new Rect(x + 15, cy, 120, 22), "🎯 현재 역할:", _styleLabel);
+            GUI.Label(new Rect(x + 115, cy, 250, 22), currentRoleName, _styleValue);
+            cy += 22f;
+            GUI.Label(new Rect(x + 25, cy, WINDOW_WIDTH - 40, 20), currentRoleDesc, _styleDetail);
+            cy += 26f;
+
+            // 역할 변경 버튼 (토글)
+            if (!_showRolePanel)
+            {
+                if (GUI.Button(new Rect(x + 15, cy, 180, 30), "🔄 역할 변경"))
+                {
+                    _showRolePanel = true;
+                }
+                cy += 36f;
+            }
+            else
+            {
+                if (GUI.Button(new Rect(x + 15, cy, 180, 30), "🔽 접기"))
+                {
+                    _showRolePanel = false;
+                }
+                cy += 36f;
+
+                DrawRoleGrid(x, ref cy, guard);
+            }
+        }
+
+        /// <summary>5개 역할 선택 그리드</summary>
+        private void DrawRoleGrid(float x, ref float cy, GuardPlaceholder guard)
+        {
+            // 역할 정의: (role, 필요레벨)
+            var roleOptions = new (GuardRole role, int requiredLevel)[]
+            {
+                (GuardRole.Soldier, 1),
+                (GuardRole.Miner, 3),
+                (GuardRole.Herbalist, 3),
+                (GuardRole.Hunter, 3),
+                (GuardRole.Informant, 5)
+            };
+
+            float gridStartY = cy;
+            float cardW = (WINDOW_WIDTH - 60f) / 2f; // 2열
+            float cardH = 80f;
+            float spacing = 6f;
+
+            for (int i = 0; i < roleOptions.Length; i++)
+            {
+                var (role, reqLv) = roleOptions[i];
+                bool isCurrentRole = guard.Role == role;
+                bool canChange = guard.Level >= reqLv;
+                bool meetsLevelReq = canChange;
+
+                int col = i % 2;
+                int row = i / 2;
+                float cx = x + 15 + col * (cardW + spacing);
+                float cardY = gridStartY + row * (cardH + spacing);
+
+                // 카드 배경
+                Color originalBg = GUI.backgroundColor;
+                if (isCurrentRole)
+                    GUI.backgroundColor = new Color(0.2f, 0.5f, 0.2f, 0.8f); // 현재 역할 강조
+                else if (!meetsLevelReq)
+                    GUI.backgroundColor = new Color(0.3f, 0.3f, 0.3f, 0.5f); // 잠금
+
+                GUI.Box(new Rect(cx, cardY, cardW, cardH), "");
+                GUI.backgroundColor = originalBg;
+
+                // 역할명 + 아이콘
+                string roleName = GuardStatusSystem.GetRoleName(role);
+                string lockIcon = meetsLevelReq ? "" : " 🔒";
+                GUIStyle nameStyle = meetsLevelReq ? _styleValue : _styleDetail;
+                GUI.Label(new Rect(cx + 8, cardY + 4, cardW - 16, 22),
+                    $"{roleName}{lockIcon}", nameStyle);
+
+                // 설명
+                string desc = GuardStatusSystem.GetRoleDescription(role);
+                GUI.Label(new Rect(cx + 8, cardY + 26, cardW - 16, 20), desc, _styleDetail);
+
+                // 레벨 요구사항
+                string reqText = reqLv <= 1 ? "기본" : $"Lv.{reqLv} 필요";
+                GUI.Label(new Rect(cx + 8, cardY + 46, cardW - 16, 16), reqText, _styleTimestamp);
+
+                // 현재 역할 표시
+                if (isCurrentRole)
+                {
+                    GUI.Label(new Rect(cx + cardW - 70, cardY + 48, 65, 18), "✔ 현재", _styleValue);
+                }
+                // 변경 버튼 (잠금 상태는 비활성화 느낌)
+                else if (meetsLevelReq)
+                {
+                    Color origColor = GUI.color;
+                    GUI.color = new Color(0.6f, 0.9f, 0.6f);
+                    if (GUI.Button(new Rect(cx + cardW - 80, cardY + 44, 72, 24), "변경"))
+                    {
+                        TryChangeRole(guard, role);
+                    }
+                    GUI.color = origColor;
+                }
+                else
+                {
+                    GUI.Label(new Rect(cx + cardW - 80, cardY + 46, 72, 18), "레벨 부족", _styleTimestamp);
+                }
+            }
+
+            // 그리드가 차지한 높이 계산
+            int totalRows = (roleOptions.Length + 1) / 2; // 올림 나눗셈
+            cy = gridStartY + totalRows * (cardH + spacing);
+        }
+
+        /// <summary>역할 변경 시도</summary>
+        private void TryChangeRole(GuardPlaceholder guard, GuardRole newRole)
+        {
+            if (guard == null) return;
+            if (guard.Role == newRole) return;
+
+            // 레벨 요구사항 검사
+            int requiredLevel = 1;
+            switch (newRole)
+            {
+                case GuardRole.Miner:
+                case GuardRole.Herbalist:
+                case GuardRole.Hunter:
+                    requiredLevel = 3;
+                    break;
+                case GuardRole.Informant:
+                    requiredLevel = 5;
+                    break;
+                default:
+                    requiredLevel = 1;
+                    break;
+            }
+
+            if (guard.Level < requiredLevel)
+            {
+                Debug.Log($"[GuardInfoWindow] {guard.GuardName}의 레벨({guard.Level})이 {newRole} 요구 레벨({requiredLevel})에 미달합니다.");
+                return;
+            }
+
+            guard.Role = newRole;
+            _showRolePanel = false;
+            Debug.Log($"[GuardInfoWindow] {guard.GuardName}의 역할이 {newRole}(으)로 변경되었습니다.");
+        }
+
+        private GUIStyle _styleTimestamp;
+
         private string GetAffinityTag(float affinity)
         {
             if (affinity >= 90) return "충성";
@@ -704,6 +867,12 @@ namespace ProjectName.UI
             _styleRarityEpic = new GUIStyle(_styleValue) { normal = { textColor = epicColor } };
             var legendaryColor = new Color(1f, 0.84f, 0f);
             _styleRarityLegendary = new GUIStyle(_styleValue) { normal = { textColor = legendaryColor } };
+
+            _styleTimestamp = new GUIStyle(_styleLabel)
+            {
+                fontSize = 11,
+                normal = { textColor = Color.gray }
+            };
         }
     }
 }

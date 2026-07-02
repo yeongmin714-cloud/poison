@@ -40,7 +40,8 @@ get_processed_basenames() {
 update_state_file() {
     local basenames=("$@")
     # Write each basename on a new line
-    printf '%s\\n' "${basenames[@]}" > "$STATE_FILE"
+    printf '%s
+' "${basenames[@]}" > "$STATE_FILE"
 }
 
 

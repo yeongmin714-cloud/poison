@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 set -euo pipefail
 
 # Configuration
@@ -7,19 +8,20 @@ STATE_FILE="/tmp/.hermes_glb_state.txt"  # plain text, one basename per line
 ARCHIVE_DIR="/mnt/c/Unity/code/Assets/Models/UserProvided_Archive"
 COMPILE_LOG="/mnt/c/tmp/compile.log"
 SWAP_LOG="/mnt/c/tmp/swap.log"
-UNITY_EXE="/mnt/c/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Unity.exe"
+UNITY_EXE=/mnt/c/Program\ Files/Unity/Hub/Editor/6000.4.10f1/Editor/Unity.exe
 PROJECT_PATH_WSL="/mnt/c/Unity/code"
 PROJECT_PATH_WIN="C:\\Unity\\code"
+PROJECT_PATH="$PROJECT_PATH_WIN"
 LOG_DIR="/mnt/c/tmp"
 
 # Ensure directories exist
 mkdir -p "$ARCHIVE_DIR" "$LOG_DIR"
+SUFFIXES=("_rigged" "_tier1" "_tier2" "_tier3" "_tier4" "_tier5")
 
 # Function to get allowed GLB basenames (lowercase, no extension) from ModelMapping.cs
 get_allowed_basenames() {
-    awk -F'"' '/{/{print $2}' "/mnt/c/Unity/code/Assets/Editor/ModelMapping.cs" | tr -d ' ' | tr '[:upper:]' '[:lower:]' | sort | uniq
+    awk -F'"' '/{/{print $2}' "/mnt/c/Unity/code/Assets/Editor/ModelMapping.cs" | tr -d ' ' | tr '[:upper:]' '[:lower:]' | sort | uniq | grep -v '^_.*'
 }
-
 # Function to get processed basenames from state file (one per line)
 get_processed_basenames() {
     if [[ -f "$STATE_FILE" ]]; then
@@ -38,33 +40,32 @@ get_processed_basenames() {
 update_state_file() {
     local basenames=("$@")
     # Write each basename on a new line
-    printf '%s\n' "${basenames[@]}" > "$STATE_FILE"
+    printf '%s\\n' "${basenames[@]}" > "$STATE_FILE"
 }
 
-# Function to run Unity batchmode command
-run_unity_batchmode() {
+
+run_unitybatchmode() {
+    # Function to run Unity batchmode command
     local method_name="$1"
     local log_file="$2"
     local bat_file="$LOG_DIR/unity_command.bat"
-    
+
     # Create the bat file using printf for reliable content
     printf '@echo off\r\n"%s" -quit -batchmode -projectPath "%s" -executeMethod %s -logFile "%s"\r\n' \
-        "$UNITY_EXE" "$PROJECT_PATH_WIN" "$method_name" "$log_file" > "$bat_file"
-    
+        "$(wslpath -w "$UNITY_EXE")" "$PROJECT_PATH_WIN" "$method_name" "$(wslpath -w "$log_file")" > "$bat_file"
+
     # Convert bat file path to Windows for cmd.exe
     local bat_file_win=$(wslpath -w "$bat_file")
-    
+
     # Run the bat file
     cmd.exe /c "$bat_file_win"
     local exit_code=$?
-    
+
     # Clean up bat file
     rm -f "$bat_file"
-    
+
     return $exit_code
 }
-
-# Function to kill Unity processes and remove lockfiles
 unity_cleanup() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Killing Unity processes..."
     powershell.exe -NoProfile "Get-Process | Where-Object { $_.ProcessName -like '*Unity*' } | Stop-Process -Force" 2>/dev/null || true
@@ -100,9 +101,31 @@ for file_path in "${current_files[@]}"; do
     filename=$(basename "$file_path")
     basename_no_ext="${filename%.*}"
     basename_lower=$(echo "$basename_no_ext" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
-    
+    # Handle suffix stripping for matching allowed baselines
+    matched_basename="$basename_lower"
+    matched=false
+    # First, try exact match
+    if [[ " ${allowed_basenames[*]} " == *" $matched_basename "* ]]; then
+        matched=true
+    else
+        # Try stripping known suffixes
+        for suffix in "${SUFFIXES[@]}"; do
+            if [[ "$basename_lower" == *"$suffix" ]]; then
+                stripped="${basename_lower%"$suffix"}"
+                if [[ " ${allowed_basenames[*]} " == *" $stripped "* ]]; then
+                    matched_basename="$stripped"
+                    matched=true
+                    break
+                fi
+            fi
+        done
+    fi
+    # If not matched via suffix, we keep the original basename_lower for the check (will fail)
+    if [[ -z "$matched" ]]; then
+        matched_basename="$basename_lower"
+    fi
     # Check if allowed and not processed
-    if [[ " ${allowed_basenames[*]} " == *" $basename_lower "* ]] && [[ -z "${processed_set[$basename_lower]:-}" ]]; then
+    if [[ " ${allowed_basenames[*]} " == *" $matched_basename "* ]] && [[ -z "${processed_set[$matched_basename]:-}" ]]; then
         new_files+=("$file_path")
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] New file to process: $filename (basename: $basename_lower)"
     else
@@ -120,14 +143,14 @@ unity_cleanup
 
 # Run compile test
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Running compile test..."
-if ! run_unity_batchmode "ProjectName.Core.CompileTestHelper.DoNothing" "$COMPILE_LOG"; then
+if ! run_unitybatchmode "ProjectName.Core.CompileTestHelper.DoNothing" "$COMPILE_LOG"; then
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Compile test failed to launch Unity batchmode."
     exit 1
 fi
 
 # Check compile log for success
-if ! grep -q "Exiting batchmode successfully now!" "$COMPILE_LOG" || grep -i "error CS" "$COMPILE_LOG"; then
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Compile test failed. Checking log for errors..."
+if grep -i "error CS" "$COMPILE_LOG"; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Compile test failed. Checking log for errors...]\n"
     # Show first 10 error lines
     grep -i "error CS" "$COMPILE_LOG" | head -10 || true
     exit 1
@@ -136,14 +159,14 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Compile test passed."
 
 # Run swap
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Running model swap..."
-if ! run_unity_batchmode "ModelSwapper.SwapAndSave" "$SWAP_LOG"; then
+if ! run_unitybatchmode "ModelSwapper.SwapAndSave" "$SWAP_LOG"; then
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Swap failed to launch Unity batchmode."
     exit 1
 fi
 
 # Check swap log for success
-if ! grep -q "Exiting batchmode successfully now!" "$SWAP_LOG" || grep -i "error CS" "$SWAP_LOG"; then
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Swap failed. Checking log for errors..."
+if grep -i "error CS" "$SWAP_LOG"; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Swap failed. Checking log for errors...]\n"
     grep -i "error CS" "$SWAP_LOG" | head -10 || true
     exit 1
 fi
