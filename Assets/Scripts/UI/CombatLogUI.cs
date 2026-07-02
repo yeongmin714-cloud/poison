@@ -116,14 +116,14 @@ namespace ProjectName.UI
             }
         }
 
-        private GUIStyle GetStyleForType(LogType type)
+        private GUIStyle GetStyleForType(ProjectName.Systems.LogType type)
         {
             switch (type)
             {
-                case LogType.Damage:    return _styleDamage;
-                case LogType.Heal:      return _styleHeal;
-                case LogType.Kill:      return _styleKill;
-                case LogType.Warning:   return _styleWarning;
+                case ProjectName.Systems.LogType.Damage:    return _styleDamage;
+                case ProjectName.Systems.LogType.Heal:      return _styleHeal;
+                case ProjectName.Systems.LogType.Kill:      return _styleKill;
+                case ProjectName.Systems.LogType.Warning:   return _styleWarning;
                 default:                return _styleNormal;
             }
         }

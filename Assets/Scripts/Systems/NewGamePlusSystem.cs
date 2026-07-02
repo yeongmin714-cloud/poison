@@ -274,7 +274,7 @@ namespace ProjectName.Systems
                 {
                     var instanceField = guardManagerType.GetProperty("Instance",
                         System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
-                        ?? guardManagerType.GetField("Instance",
+                        ?? (System.Reflection.MemberInfo)guardManagerType.GetField("Instance",
                             System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
 
                     var instance = instanceField?.GetValue(null);

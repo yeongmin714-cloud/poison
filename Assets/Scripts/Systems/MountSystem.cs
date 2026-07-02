@@ -364,6 +364,39 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 말 탑승을 시도합니다.
+        /// <summary>
+        /// UI 호출용: 플레이어 반경 내 말 탑승.
+        /// </summary>
+        public void MountHorse()
+        {
+            if (_isMounted) return;
+            if (_playerMovement == null) return;
+
+            Collider[] hits = Physics.OverlapSphere(_playerMovement.transform.position, _mountRange);
+            foreach (var hit in hits)
+            {
+                if (hit == null) continue;
+                if (hit.CompareTag("Mount") || hit.CompareTag("Horse") ||
+                    hit.gameObject.layer == LayerMask.NameToLayer("Mount") ||
+                    hit.gameObject.layer == LayerMask.NameToLayer("Horse"))
+                {
+                    TryMount(hit.gameObject);
+                    return;
+                }
+            }
+
+            Debug.Log("[MountSystem] 탑승 가능한 말을 찾을 수 없습니다.");
+        }
+
+        /// <summary>
+        /// UI 호출용: 말에서 내리기.
+        /// </summary>
+        public void DismountHorse()
+        {
+            Dismount();
+        }
+
+
         /// </summary>
         private void TryMount(GameObject horse)
         {

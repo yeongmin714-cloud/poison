@@ -1,4 +1,5 @@
 using UnityEngine;
+using ProjectName.Systems;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
@@ -78,7 +79,7 @@ public class MountUI : MonoBehaviour
         {
             if (_mountSystem.CurrentHorseSpawner != null)
             {
-                horseHPSlider.value = _mountSystem.CurrentHorseSpawner.HP / _mountSystem.CurrentHorseSpawner.MaxHP;
+                horseHPSlider.value = _mountSystem.CurrentHorseSpawner.CurrentHP / _mountSystem.CurrentHorseSpawner.MaxHP;
             }
             else
             {
