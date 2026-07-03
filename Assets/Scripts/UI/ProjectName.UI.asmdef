@@ -1,0 +1,19 @@
+{
+  "name": "ProjectName.UI",
+  "rootNamespace": "ProjectName.UI",
+  "references": [
+    "ProjectName.Core",
+    "ProjectName.Systems",
+    "Unity.InputSystem",
+    "Unity.Cinemachine",
+    "Unity.UGUI",
+    "Unity.RenderPipelines.Universal.Runtime",
+    "Unity.RenderPipelines.Core.Runtime"
+  ],
+  "overrideReferences": false,
+  "allowUnsafeCode": false,
+  "precompiledReferences": [],
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -307,7 +307,7 @@ namespace ProjectName.Systems
             if (RenderSettings.sun != null)
                 return RenderSettings.sun;
 
-            Light[] lights = Object.FindObjectsByType<Light>();
+            Light[] lights = Object.FindObjectsByType<Light>(FindObjectsSortMode.None);
             foreach (Light l in lights)
             {
                 if (l.type == LightType.Directional)
