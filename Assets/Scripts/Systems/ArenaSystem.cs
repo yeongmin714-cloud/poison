@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
-using ProjectName.UI;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -762,13 +761,24 @@ namespace ProjectName.Systems
         private void OpenArenaMenu()
         {
             _uiOpen = true;
-            UI.ArenaMenuUI.Instance?.Show();
+            InvokeArenaMenuUIMethod("Show");
         }
 
         private void CloseArenaMenu()
         {
             _uiOpen = false;
-            UI.ArenaMenuUI.Instance?.Hide();
+            InvokeArenaMenuUIMethod("Hide");
+        }
+
+        /// <summary>리플렉션으로 ProjectName.UI.ArenaMenuUI 메서드 호출 (순환 참조 방지)</summary>
+        private static void InvokeArenaMenuUIMethod(string methodName)
+        {
+            var uiType = System.Type.GetType("ProjectName.UI.ArenaMenuUI, ProjectName.UI");
+            if (uiType == null) return;
+            var instanceProp = uiType.GetProperty("Instance", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            var instance = instanceProp?.GetValue(null);
+            if (instance == null) return;
+            instance.GetType().GetMethod(methodName)?.Invoke(instance, null);
         }
 
         private void OnDrawGizmosSelected()

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
+using ProjectName.Core.Data;
 using ProjectName.Systems;
 using ProjectName.UI.Themes;
 #pragma warning disable 0414

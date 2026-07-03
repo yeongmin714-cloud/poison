@@ -136,10 +136,8 @@ namespace ProjectName.Systems
             }
 
             // 2. 알려진 NPC 스크립트 타입으로 찾기
-            if (System.Type.GetType("TutorialQuestNPC") != null)
-                FindNPCsByScriptType<TutorialQuestNPC>(found, isShop: false);
-            if (System.Type.GetType("ChurchNPCInteraction") != null)
-                FindNPCsByScriptType<ChurchNPCInteraction>(found, isShop: false);
+            FindNPCsByType("TutorialQuestNPC", found, false);
+            FindNPCsByType("ChurchNPCInteraction", found, false);
             FindNPCsByScriptType<FestivalNPC>(found, isShop: false);
             FindNPCsByScriptType<GuardPlaceholder>(found, isShop: false);
             FindNPCsByScriptType<GateGuardPlaceholder>(found, isShop: false);
@@ -157,6 +155,27 @@ namespace ProjectName.Systems
         private void FindNPCsByScriptType<T>(HashSet<GameObject> found, bool isShop) where T : MonoBehaviour
         {
             T[] components = FindObjectsByType<T>();
+            foreach (var comp in components)
+            {
+                if (comp != null && comp.gameObject != null && !found.Contains(comp.gameObject))
+                {
+                    found.Add(comp.gameObject);
+                    _allNPCs.Add(new NPCData(
+                        comp.gameObject,
+                        comp.transform.position,
+                        comp.gameObject.name,
+                        isShop
+                    ));
+                }
+            }
+        }
+
+        /// <summary>리플렉션으로 UI 어셈블리의 타입을 찾아 NPC 등록 (순환 참조 방지)</summary>
+        private void FindNPCsByType(string typeName, HashSet<GameObject> found, bool isShop)
+        {
+            var type = System.Type.GetType(typeName + ", ProjectName.UI");
+            if (type == null) return;
+            var components = (MonoBehaviour[])FindObjectsByType(type);
             foreach (var comp in components)
             {
                 if (comp != null && comp.gameObject != null && !found.Contains(comp.gameObject))

@@ -156,7 +156,7 @@ namespace ProjectName.Systems
         private static Vector3 FindAlarmPosition(string locationId)
         {
             // 모든 LockedDoor 오브젝트 검색
-            LockedDoor[] doors = FindObjectsByType<LockedDoor>(FindObjectsInactive.Include);
+            LockedDoor[] doors = Object.FindObjectsByType<LockedDoor>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             foreach (var door in doors)
             {
                 if (door.LocationId == locationId)
