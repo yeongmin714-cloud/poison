@@ -61,6 +61,43 @@ public class GameSetup : MonoBehaviour
             player.AddComponent<BombThrower>();
             Debug.Log("[GameSetup] ✅ BombThrower → Player에 추가");
         }
+
+        // ── PlayerStats ────────────────────────────────────────────────
+        if (player.GetComponent<PlayerStats>() == null)
+        {
+            player.AddComponent<PlayerStats>();
+            Debug.Log("[GameSetup] ✅ PlayerStats → Player에 추가");
+        }
+
+        // ── PlayerInventory ───────────────────────────────────────────
+        if (player.GetComponent<PlayerInventory>() == null)
+        {
+            player.AddComponent<PlayerInventory>();
+            Debug.Log("[GameSetup] ✅ PlayerInventory → Player에 추가");
+        }
+
+        // ── PlayerCombat ──────────────────────────────────────────────
+        if (player.GetComponent<PlayerCombat>() == null)
+        {
+            player.AddComponent<PlayerCombat>();
+            Debug.Log("[GameSetup] ✅ PlayerCombat → Player에 추가");
+        }
+
+        // ── PlayerInput (Input System) ────────────────────────────────
+        if (player.GetComponent<UnityEngine.InputSystem.PlayerInput>() == null)
+        {
+            var pi = player.AddComponent<UnityEngine.InputSystem.PlayerInput>();
+            pi.defaultActionMap = "Player";
+            pi.notificationBehavior = UnityEngine.InputSystem.PlayerNotifications.InvokeUnityEvents;
+            Debug.Log("[GameSetup] ✅ PlayerInput → Player에 추가");
+        }
+
+        // ── BuffManager ───────────────────────────────────────────────
+        if (player.GetComponent<BuffManager>() == null)
+        {
+            player.AddComponent<BuffManager>();
+            Debug.Log("[GameSetup] ✅ BuffManager → Player에 추가");
+        }
     }
 
     /// <summary>
@@ -90,6 +127,31 @@ public class GameSetup : MonoBehaviour
             var buffGO = new GameObject("BuffManager");
             buffGO.AddComponent<BuffManager>();
             Debug.Log("[GameSetup] ✅ BuffManager 생성");
+        }
+
+        // EventSystem (Input System 필수)
+        if (FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
+        {
+            var esGO = new GameObject("EventSystem");
+            esGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
+            esGO.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+            Debug.Log("[GameSetup] ✅ EventSystem 생성");
+        }
+
+        // MinimapUI
+        if (FindAnyObjectByType<MinimapUI>() == null)
+        {
+            var mmGO = new GameObject("MinimapUI");
+            mmGO.AddComponent<MinimapUI>();
+            Debug.Log("[GameSetup] ✅ MinimapUI 생성");
+        }
+
+        // Player Camera 활성화
+        var playerCamGO = GameObject.Find("Player Camera");
+        if (playerCamGO != null && !playerCamGO.activeSelf)
+        {
+            playerCamGO.SetActive(true);
+            Debug.Log("[GameSetup] ✅ Player Camera 활성화");
         }
     }
 }
