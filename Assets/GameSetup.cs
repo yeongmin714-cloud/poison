@@ -36,6 +36,40 @@ public class GameSetup : MonoBehaviour
             return;
         }
 
+        // ── 잘못된 컴포넌트 제거 ─────────────────────────────────────
+        var snakeMotion = player.GetComponent<SnakeSlitherMotion>();
+        if (snakeMotion != null)
+        {
+            Object.DestroyImmediate(snakeMotion);
+            Debug.Log("[GameSetup] ✅ SnakeSlitherMotion 제거 (Player에 맞지 않음)");
+        }
+
+        var wrongDetector = player.GetComponent<MotionDetector>();
+        if (wrongDetector != null)
+        {
+            Object.DestroyImmediate(wrongDetector);
+            Debug.Log("[GameSetup] ✅ MotionDetector 제거 (재설정 필요 시 자동 재생성)");
+        }
+
+        // ── Player Camera 활성화 및 Camera 컴포넌트 추가 ─────────────
+        var playerCamGO = GameObject.Find("Player Camera");
+        if (playerCamGO != null)
+        {
+            if (!playerCamGO.activeSelf)
+            {
+                playerCamGO.SetActive(true);
+                Debug.Log("[GameSetup] ✅ Player Camera 활성화");
+            }
+            if (playerCamGO.GetComponent<Camera>() == null)
+            {
+                var cam = playerCamGO.AddComponent<Camera>();
+                cam.clearFlags = CameraClearFlags.Depth;
+                cam.cullingMask = -1;
+                cam.depth = 0;
+                Debug.Log("[GameSetup] ✅ Player Camera에 Camera 컴포넌트 추가");
+            }
+        }
+
         // ── PlayerHealth ───────────────────────────────────────────────
         // PlayerHealth는 [RuntimeInitializeOnLoadMethod]로 자동 생성될 수 있음.
         // Instance가 이미 있으면 AddComponent하지 않고 Instance를 설정.
@@ -146,12 +180,31 @@ public class GameSetup : MonoBehaviour
             Debug.Log("[GameSetup] ✅ MinimapUI 생성");
         }
 
-        // Player Camera 활성화
-        var playerCamGO = GameObject.Find("Player Camera");
-        if (playerCamGO != null && !playerCamGO.activeSelf)
+        // TerrainTextureApplier (Ground에 자동 부착)
+        if (FindAnyObjectByType<TerrainTextureApplier>() == null)
         {
-            playerCamGO.SetActive(true);
-            Debug.Log("[GameSetup] ✅ Player Camera 활성화");
+            var ground = GameObject.Find("Ground_Inner");
+            if (ground != null && ground.GetComponent<TerrainTextureApplier>() == null)
+            {
+                ground.AddComponent<TerrainTextureApplier>();
+                Debug.Log("[GameSetup] ✅ TerrainTextureApplier → Ground_Inner에 추가");
+            }
+        }
+
+        // NationTerrainController
+        if (FindAnyObjectByType<NationTerrainController>() == null)
+        {
+            var ntcGO = new GameObject("NationTerrainController");
+            ntcGO.AddComponent<NationTerrainController>();
+            Debug.Log("[GameSetup] ✅ NationTerrainController 생성");
+        }
+
+        // LoadingManager
+        if (FindAnyObjectByType<LoadingManager>() == null)
+        {
+            var loadGO = new GameObject("LoadingManager");
+            loadGO.AddComponent<LoadingManager>();
+            Debug.Log("[GameSetup] ✅ LoadingManager 생성");
         }
     }
 }
