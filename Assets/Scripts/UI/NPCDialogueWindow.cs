@@ -4,6 +4,7 @@ using ProjectName.Systems;
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.UI.Themes;
+#pragma warning disable 0414
 
 namespace ProjectName.UI
 {

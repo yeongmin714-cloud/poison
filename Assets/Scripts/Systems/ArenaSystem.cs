@@ -6,7 +6,6 @@ using ProjectName.Core;
 using ProjectName.Core.Data;
 #pragma warning disable 0414
 
-using ProjectName.UI;
 namespace ProjectName.Systems
 {
     /// <summary>

@@ -435,11 +435,12 @@ namespace ProjectName.UI
             int discoveredCount = RecipeDiscoverySystem.DiscoveredCount;
 
             // 표시할 레시피 목록 구성
+            var discoveredSet = new HashSet<string>(discovered);
             var displayRecipes = new List<KeyValuePair<string, HerbComboResult>>();
             foreach (var kvp in allCombos)
             {
                 string recipeId = kvp.Value.resultName;
-                if (!discovered.Contains(recipeId))
+                if (!discoveredSet.Contains(recipeId))
                     continue;
 
                 // 즐겨찾기 모드면 필터링
