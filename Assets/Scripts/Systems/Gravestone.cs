@@ -200,11 +200,13 @@ namespace ProjectName.Systems
             Gizmos.color = new Color(0.7f, 0.7f, 0.7f, 0.15f);
             Gizmos.DrawSphere(transform.position, _interactRadius);
 
+#if UNITY_EDITOR
             if (_gravestoneData != null)
             {
                 // 묘비 이름 표시
                 UnityEditor.Handles.Label(transform.position + Vector3.up * 0.5f, _gravestoneData.personName);
             }
+#endif
         }
     }
 }

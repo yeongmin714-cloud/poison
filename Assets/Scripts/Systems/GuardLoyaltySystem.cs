@@ -89,7 +89,7 @@ namespace ProjectName.Systems
         /// </summary>
         public static void UpdateAllGuards()
         {
-            var guards = Object.FindObjectsByType<GuardPlaceholder>();
+            var guards = Object.FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
             foreach (var guard in guards)
             {
                 UpdateLoyaltyByTerritory(guard);

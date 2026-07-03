@@ -38,7 +38,7 @@ namespace ProjectName.Systems
                 {
                     return PlayerPrefs.GetInt(PREFS_NG_PLUS, 0) == 1;
                 }
-                catch (PlayerPrefsException)
+                catch (System.Exception)
                 {
                     return false;
                 }
@@ -56,7 +56,7 @@ namespace ProjectName.Systems
                 {
                     return PlayerPrefs.GetInt(PREFS_DIFFICULTY_BONUS, 0);
                 }
-                catch (PlayerPrefsException)
+                catch (System.Exception)
                 {
                     return 0;
                 }
