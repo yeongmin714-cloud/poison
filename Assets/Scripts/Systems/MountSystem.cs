@@ -363,9 +363,7 @@ namespace ProjectName.Systems
         // ===== 탑승/하차 =====
 
         /// <summary>
-        /// 말 탑승을 시도합니다.
-        /// <summary>
-        /// UI 호출용: 플레이어 반경 내 말 탑승.
+        /// 말 탑승을 시도합니다. UI 호출용: 플레이어 반경 내 말 탑승.
         /// </summary>
         public void MountHorse()
         {
@@ -397,7 +395,6 @@ namespace ProjectName.Systems
         }
 
 
-        /// </summary>
         private void TryMount(GameObject horse)
         {
             if (horse == null) return;

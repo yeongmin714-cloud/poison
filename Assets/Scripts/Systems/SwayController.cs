@@ -67,7 +67,7 @@ namespace ProjectName.Systems
             _mainCamera = Camera.main;
 
             // 각 오브젝트마다 고유한 랜덤 오프셋 (Seed 기반)
-            int seed = gameObject.GetInstanceID();
+            int seed = gameObject.GetHashCode() ^ (int)(Time.realtimeSinceStartup * 1000);
             var rng = new System.Random(seed);
             _swayOffset = (float)(rng.NextDouble() * Mathf.PI * 2f);
             _bobOffset = (float)(rng.NextDouble() * Mathf.PI * 2f);
@@ -85,7 +85,7 @@ namespace ProjectName.Systems
 
         private void RefreshWindZone()
         {
-            _windZone = FindObjectOfType<WindZone>();
+            _windZone = FindAnyObjectByType<WindZone>();
         }
 
         private void Update()
