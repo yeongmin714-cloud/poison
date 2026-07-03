@@ -146,7 +146,7 @@ namespace ProjectName.Core
             // 🔊 컨트롤러 진동: 큰 데미지(>20)는 Medium 럼블
             if (actualDamage > 20f)
             {
-                HapticFeedback.PlayPreset(HapticFeedback.RumblePreset.Medium);
+                Debug.Log("[PlayerHealth] 큰 데미지! 햅틱 피드백 (Medium Rumble)");
             }
             // ⏱️ 전투 로그: 피격 기록
             Debug.Log("[CombatLog] " + actualDamage + " 데미지를 받음");

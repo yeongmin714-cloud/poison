@@ -2075,7 +2075,27 @@ WorldEventManager (싱글톤)
 
 ---
 
-## 🛠️ 작업 규칙## 🛠️ 작업 규칙## 🛠️ 작업 규칙## 🛠️ 작업 규칙
+## 🔧 컴파일 오류/경고 긴급 수정 (2026-07-03)
+
+### 수정 내역
+
+| 파일 | 오류/경고 | 수정 내용 |
+|------|----------|----------|
+| `PlayerStats.cs` | CS0105 (중복 using) | BOM 포함 중복 `using UnityEngine;` 제거 |
+| `BuffManager.cs` | CS0618 ×2 | `FindObjectOfType<T>` → `FindAnyObjectByType<T>` |
+| `GameManager.cs` | **CS0234** (ERROR) | `ProjectName.Systems.AccessibilityManager` 직접참조 → 리플렉션 |
+| `GameManager.cs` | CS0618 ×4 | `FindFirstObjectByType(Type)` → `FindAnyObjectByType(Type)` |
+| `PlayerHealth.cs` | **CS0103** (ERROR) | `HapticFeedback` 미존재 → `Debug.Log` 대체 |
+
+### 검증
+- ✅ Unity Editor 컴파일: CS 에러 0, 관련 CS 경고 0
+- ✅ `FindFirstObjectByType` / `FindObjectOfType<` 잔여 0건
+- ✅ `ProjectName.Systems.AccessibilityManager` 직접참조 → 리플렉션 변환 완료
+- ✅ `HapticFeedback` 참조 모두 제거
+
+---
+
+## 🛠️ 작업 규칙
 
 ### 1️⃣ 서브에이전트 위임 원칙
 - 모든 코딩/QA 작업은 `delegate_task`로 서브에이전트에 위임

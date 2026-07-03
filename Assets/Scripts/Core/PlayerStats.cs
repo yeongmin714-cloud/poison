@@ -1,6 +1,5 @@
 using UnityEngine;
 #pragma warning disable 0414
-﻿using UnityEngine;
 using System;
 
 namespace ProjectName.Core

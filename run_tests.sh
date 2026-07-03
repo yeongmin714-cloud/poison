@@ -4,7 +4,7 @@
 
 set -e
 
-UNITY="/mnt/c/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Unity.exe"
+UNITY="/mnt/c/Program Files/Unity 6000.3.17f1/Editor/Unity.exe"
 PROJECT="C:/Unity/code"
 LOG_FILE="/tmp/unity-test-log.txt"
 

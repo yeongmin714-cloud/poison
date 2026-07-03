@@ -67,11 +67,11 @@ namespace ProjectName.Core
         {
             _stats = PlayerStats.Instance != null
                 ? PlayerStats.Instance
-                : FindObjectOfType<PlayerStats>();
+                : FindAnyObjectByType<PlayerStats>();
 
             _health = PlayerHealth.Instance != null
                 ? PlayerHealth.Instance
-                : FindObjectOfType<PlayerHealth>();
+                : FindAnyObjectByType<PlayerHealth>();
         }
 
         /// <summary>

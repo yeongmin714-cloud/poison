@@ -174,7 +174,7 @@ namespace ProjectName.Core
             CreateSystemIfMissing("GameEndingManager");
 
             // 20. AccessibilityManager — 접근성 설정 초기화 (정적 클래스, 인스턴스 불필요)
-            ProjectName.Systems.AccessibilityManager.Initialize();
+            InitializeAccessibilityManager();
         }
 
         /// <summary>
@@ -201,6 +201,30 @@ namespace ProjectName.Core
             Debug.Log("[GameManager] RevengeListIntegration 초기화 완료 (reflection)");
         }
 
+        /// <summary>
+        /// AccessibilityManager.Initialize()를 리플렉션으로 호출 (Core→Systems 크로스 어셈블리)
+        /// </summary>
+        private static void InitializeAccessibilityManager()
+        {
+            var type = FindTypeInAssemblies("AccessibilityManager");
+            if (type == null)
+            {
+                Debug.LogWarning("[GameManager] AccessibilityManager 타입을 찾을 수 없습니다.");
+                return;
+            }
+
+            var method = type.GetMethod("Initialize",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            if (method == null)
+            {
+                Debug.LogWarning("[GameManager] AccessibilityManager.Initialize() 메서드를 찾을 수 없습니다.");
+                return;
+            }
+
+            method.Invoke(null, null);
+            Debug.Log("[GameManager] AccessibilityManager 초기화 완료 (reflection)");
+        }
+
         // ================================================================
         // EventSystem
         // ================================================================
@@ -217,7 +241,7 @@ namespace ProjectName.Core
             System.Type oldModuleType = System.Type.GetType("UnityEngine.EventSystems.StandaloneInputModule, UnityEngine.UI");
             System.Type newModuleType = System.Type.GetType("UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem");
 
-            var existing = FindFirstObjectByType(esType);
+            var existing = FindAnyObjectByType(esType);
             if (existing != null)
             {
                 var existingComponent = existing as Component;
@@ -256,7 +280,7 @@ namespace ProjectName.Core
             var tmType = FindTypeInAssemblies("TimeManager");
             if (tmType == null) return;
 
-            var existingTM = FindFirstObjectByType(tmType);
+            var existingTM = FindAnyObjectByType(tmType);
             GameObject go;
 
             if (existingTM == null)
@@ -329,7 +353,7 @@ namespace ProjectName.Core
                 return;
             }
 
-            var existing = FindFirstObjectByType(type);
+            var existing = FindAnyObjectByType(type);
             if (existing != null) return;
 
             var go = new GameObject(shortName);
@@ -348,7 +372,7 @@ namespace ProjectName.Core
 
             if (lmType == null || lsType == null) return;
 
-            var existingLM = FindFirstObjectByType(lmType);
+            var existingLM = FindAnyObjectByType(lmType);
             if (existingLM != null) return;
 
             var go = new GameObject("LoadingScreen");
