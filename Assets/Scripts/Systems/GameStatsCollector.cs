@@ -48,7 +48,7 @@ namespace ProjectName.Systems
         private static float _sessionStartTime;      // 현재 세션 시작 시간 (Time.realtimeSinceStartup)
         private static Vector3 _lastPosition;         // 마지막 위치 (이동 거리 계산용)
         private static bool _hasLastPosition;
-        private static bool _loaded;
+        // private static bool _loaded;
 
         // ======================================================================
         // 초기화
@@ -73,7 +73,7 @@ namespace ProjectName.Systems
             _warParticipations = PlayerPrefs.GetInt(PREFS_WAR_PARTICIPATIONS, 0);
 
             _sessionStartTime = Time.realtimeSinceStartup;
-            _loaded = true;
+            // _loaded = true;
 
             Debug.Log($"[GameStatsCollector] 통계 로드 완료: 플레이타임 {FormatTime(_playTime)}, 처치 {_kills}, 사망 {_deaths}");
         }

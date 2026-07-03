@@ -227,7 +227,7 @@ namespace ProjectName.Systems
 
             if (!additive) ClearSelection();
 
-            var guards = FindObjectsOfType<GuardPlaceholder>();
+            var guards = FindObjectsByType<GuardPlaceholder>();
             foreach (var guard in guards)
             {
                 if (!guard.IsAlive || guard.IsRecruited == false) continue;

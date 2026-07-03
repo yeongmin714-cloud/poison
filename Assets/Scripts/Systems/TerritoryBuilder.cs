@@ -39,7 +39,7 @@ namespace ProjectName.Systems
         {
             if (_hasBuilt) return;
 
-            var existing = FindObjectsOfType<BuildingPlaceholder>();
+            var existing = FindObjectsByType<BuildingPlaceholder>();
             if (existing.Length > 0)
             {
                 Debug.Log($"[TerritoryBuilder] 이미 {existing.Length}개의 건물이 존재합니다. 생성 건너뜀.");
@@ -214,10 +214,10 @@ namespace ProjectName.Systems
         /// </summary>
         public void ClearAll()
         {
-            var buildings = FindObjectsOfType<BuildingPlaceholder>();
+            var buildings = FindObjectsByType<BuildingPlaceholder>();
             foreach (var b in buildings) Destroy(b.gameObject);
 
-            var guards = FindObjectsOfType<GuardPlaceholder>();
+            var guards = FindObjectsByType<GuardPlaceholder>();
             foreach (var g in guards) Destroy(g.gameObject);
 
             _hasBuilt = false;

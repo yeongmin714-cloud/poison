@@ -410,7 +410,7 @@ namespace ProjectName.Systems
                 Vector3 playerPos = playerObj.transform.position;
 
                 // 2a) GuardPlaceholder 중 Hostile 상태인 것 확인
-                var guards = FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
+                var guards = FindObjectsByType<GuardPlaceholder>();
                 float sqrDetectRadius = _hostileDetectionRadius * _hostileDetectionRadius;
                 foreach (var guard in guards)
                 {

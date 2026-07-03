@@ -61,7 +61,7 @@ namespace ProjectName.Systems
         private float _speedModifier = 1f;
 
         // --- 이동 잠금 (MountSystem 등에서 설정 — 탑승 중 PlayerMovement 이동 방지) ---
-        private bool _movementLocked = false;
+        // private bool _movementLocked = false;
 
         // --- 발소리 타이머 ---
         private float _footstepTimer = 0f;

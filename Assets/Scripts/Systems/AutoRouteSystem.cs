@@ -196,7 +196,7 @@ namespace ProjectName.Systems
 
                 NationType nation;
                 int index;
-                string biomeHint;
+                // string biomeHint;
 
                 if (monsterIndex <= 10)
                 {

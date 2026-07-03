@@ -19,6 +19,42 @@ namespace ProjectName.Systems
         private bool _isSequenceActive;
         private bool _isInitialized;
 
+        // ===== Reflection 캐시 (EndingCreditsUI가 다른 네임스페이스에 있음) =====
+        private static System.Type _endingCreditsUIType;
+        private static System.Type EndingCreditsUIType
+        {
+            get
+            {
+                if (_endingCreditsUIType == null)
+                    _endingCreditsUIType = System.Type.GetType("ProjectName.UI.EndingCreditsUI, Assembly-CSharp");
+                return _endingCreditsUIType;
+            }
+        }
+
+        private static object GetEndingCreditsInstance()
+        {
+            var type = EndingCreditsUIType;
+            if (type == null) return null;
+            var prop = type.GetProperty("Instance", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            return prop?.GetValue(null);
+        }
+
+        private static void CallEndingCreditsMethod(string methodName, object instance, params object[] args)
+        {
+            var type = EndingCreditsUIType;
+            if (type == null || instance == null) return;
+            var method = type.GetMethod(methodName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            method?.Invoke(instance, args);
+        }
+
+        private static void SetEndingCreditsDelegate(string fieldName, object instance, System.Delegate value)
+        {
+            var type = EndingCreditsUIType;
+            if (type == null || instance == null) return;
+            var field = type.GetField(fieldName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            field?.SetValue(instance, value);
+        }
+
         /// <summary>
         /// 엔딩이 이미 트리거되었는지 여부 (재트리거 방지)
         /// </summary>
@@ -53,13 +89,20 @@ namespace ProjectName.Systems
 
         private void EnsureEndingCreditsUI()
         {
-            if (EndingCreditsUI.Instance != null) return;
+            if (GetEndingCreditsInstance() != null) return;
 
-            var existing = FindAnyObjectByType<EndingCreditsUI>();
+            var type = EndingCreditsUIType;
+            if (type == null)
+            {
+                Debug.LogError("[GameEndingManager] EndingCreditsUI 타입을 찾을 수 없습니다 (ProjectName.UI.EndingCreditsUI)");
+                return;
+            }
+
+            var existing = FindObjectOfType(type) as MonoBehaviour;
             if (existing != null) return;
 
             var go = new GameObject("EndingCreditsUI");
-            go.AddComponent<EndingCreditsUI>();
+            go.AddComponent(type);
             go.SetActive(false);
             Debug.Log("[GameEndingManager] EndingCreditsUI 자동 생성됨");
         }
@@ -151,13 +194,13 @@ namespace ProjectName.Systems
             UnlockTrueEndingAchievement();
 
             // 3. EndingCreditsUI 시작
-            var creditsUI = EndingCreditsUI.Instance;
+            var creditsUI = GetEndingCreditsInstance();
             if (creditsUI != null)
             {
-                // 콜백 연결
-                creditsUI.OnNewGamePlusClicked = OnNewGamePlusSelected;
-                creditsUI.OnMainMenuClicked = OnMainMenuSelected;
-                creditsUI.StartEndingSequence();
+                // 콜백 연결 (reflection)
+                SetEndingCreditsDelegate("OnNewGamePlusClicked", creditsUI, (System.Action)OnNewGamePlusSelected);
+                SetEndingCreditsDelegate("OnMainMenuClicked", creditsUI, (System.Action)OnMainMenuSelected);
+                CallEndingCreditsMethod("StartEndingSequence", creditsUI);
             }
             else
             {
@@ -202,10 +245,10 @@ namespace ProjectName.Systems
             Time.timeScale = 1f;
 
             // EndingCreditsUI 종료
-            var creditsUI = EndingCreditsUI.Instance;
+            var creditsUI = GetEndingCreditsInstance();
             if (creditsUI != null)
             {
-                creditsUI.Close();
+                CallEndingCreditsMethod("Close", creditsUI);
             }
 
             _isSequenceActive = false;
@@ -222,10 +265,10 @@ namespace ProjectName.Systems
             Time.timeScale = 1f;
 
             // EndingCreditsUI 종료
-            var creditsUI = EndingCreditsUI.Instance;
+            var creditsUI = GetEndingCreditsInstance();
             if (creditsUI != null)
             {
-                creditsUI.Close();
+                CallEndingCreditsMethod("Close", creditsUI);
             }
 
             _isSequenceActive = false;

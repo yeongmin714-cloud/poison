@@ -451,7 +451,7 @@ namespace ProjectName.Systems
             }
             else
             {
-                var found = FindObjectOfType<Light>();
+                var found = FindAnyObjectByType<Light>();
                 if (found != null && found.type == LightType.Directional)
                 {
                     _resolvedSun = found;

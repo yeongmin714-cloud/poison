@@ -60,7 +60,7 @@ namespace ProjectName.Systems
                 return results;
             }
 
-            var nodes = Object.FindObjectsOfType<ResourceNode>();
+            var nodes = Object.FindObjectsByType<ResourceNode>();
             var availableNodes = new List<ResourceNode>();
             foreach (var n in nodes)
             {
@@ -197,7 +197,7 @@ namespace ProjectName.Systems
         public static List<GuardPlaceholder> GetActiveMiners()
         {
             var result = new List<GuardPlaceholder>();
-            var guards = Object.FindObjectsOfType<GuardPlaceholder>();
+            var guards = Object.FindObjectsByType<GuardPlaceholder>();
             foreach (var g in guards)
             {
                 if (g.IsAlive && g.IsRecruited && g.Role == GuardRole.Miner)

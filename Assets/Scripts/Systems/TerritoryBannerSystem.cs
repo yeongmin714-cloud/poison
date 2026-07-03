@@ -73,7 +73,7 @@ namespace ProjectName.Systems
                 ? EmblemManager.GetEmblemColor(EmblemManager.Instance.CurrentEmblem.primaryColor)
                 : Color.gray;
 
-            var guards = FindObjectsOfType<GuardPlaceholder>();
+            var guards = FindObjectsByType<GuardPlaceholder>();
             foreach (var guard in guards)
             {
                 var renderer = guard.GetComponent<MeshRenderer>();

@@ -48,7 +48,7 @@ namespace ProjectName.Systems
 
         public void RegisterBuffedGuard(GuardPlaceholder guard, BardBuffData buffData)
         {
-            int id = guard.GetInstanceID();
+            int id = guard.GetHashCode();
             _buffedGuards[id] = buffData;
 
             if (!_sourceToGuards.ContainsKey(buffData.sourceId))
@@ -58,7 +58,7 @@ namespace ProjectName.Systems
 
         public void RegisterBuffedMercenary(MercenaryPlaceholder merc, BardBuffData buffData)
         {
-            int id = merc.GetInstanceID();
+            int id = merc.GetHashCode();
             _buffedMercenaries[id] = buffData;
 
             if (!_sourceToMercenaries.ContainsKey(buffData.sourceId))
@@ -68,7 +68,7 @@ namespace ProjectName.Systems
 
         public void UnregisterGuard(GuardPlaceholder guard)
         {
-            int id = guard.GetInstanceID();
+            int id = guard.GetHashCode();
             _buffedGuards.Remove(id);
             foreach (var kvp in _sourceToGuards)
             {
@@ -78,7 +78,7 @@ namespace ProjectName.Systems
 
         public void UnregisterMercenary(MercenaryPlaceholder merc)
         {
-            int id = merc.GetInstanceID();
+            int id = merc.GetHashCode();
             _buffedMercenaries.Remove(id);
             foreach (var kvp in _sourceToMercenaries)
             {
@@ -112,12 +112,12 @@ namespace ProjectName.Systems
 
         public bool TryGetBuff(GuardPlaceholder guard, out BardBuffData buffData)
         {
-            return _buffedGuards.TryGetValue(guard.GetInstanceID(), out buffData);
+            return _buffedGuards.TryGetValue(guard.GetHashCode(), out buffData);
         }
 
         public bool TryGetMercenaryBuff(MercenaryPlaceholder merc, out BardBuffData buffData)
         {
-            return _buffedMercenaries.TryGetValue(merc.GetInstanceID(), out buffData);
+            return _buffedMercenaries.TryGetValue(merc.GetHashCode(), out buffData);
         }
 
         public int GetBuffedCountBySource(string sourceId)

@@ -53,7 +53,7 @@ namespace ProjectName.Systems
             _mainCamera = Camera.main;
             _playerCombat = GetComponent<PlayerCombat>();
             if (_playerCombat == null)
-                _playerCombat = FindFirstObjectByType<PlayerCombat>();
+                _playerCombat = FindAnyObjectByType<PlayerCombat>();
         }
 
         private void Update()
@@ -311,7 +311,7 @@ namespace ProjectName.Systems
         /// <summary>주변에 LootBasket이 있는지 확인 (중복 생성 방지)</summary>
         private bool IsLootBasketNearby(Vector3 position)
         {
-            LootBasket[] existing = FindObjectsByType<LootBasket>(FindObjectsSortMode.None);
+            LootBasket[] existing = FindObjectsByType<LootBasket>();
             foreach (var basket in existing)
             {
                 if (Vector3.Distance(basket.transform.position, position) < 0.5f)

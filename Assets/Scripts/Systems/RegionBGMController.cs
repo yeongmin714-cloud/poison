@@ -406,7 +406,7 @@ namespace ProjectName.Systems
         private bool IsInCombat()
         {
             // 씬에 있는 모든 GuardPlaceholder 검사
-            var guards = FindObjectsByType<GuardPlaceholder>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            var guards = FindObjectsByType<GuardPlaceholder>(FindObjectsInactive.Exclude);
             foreach (var guard in guards)
             {
                 if (guard != null && guard.IsInCombat)

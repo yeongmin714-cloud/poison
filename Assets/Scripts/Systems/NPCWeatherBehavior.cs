@@ -437,7 +437,7 @@ namespace ProjectName.Systems
         /// </summary>
         private void RefreshNPCSnapshot()
         {
-            _allNpcs = FindObjectsByType<NPCAwarenessSystem>(FindObjectsSortMode.None);
+            _allNpcs = FindObjectsByType<NPCAwarenessSystem>();
         }
 
         // ================================================================

@@ -213,6 +213,15 @@ namespace ProjectName.Systems
             }
         }
 
+        /// <summary>
+        /// 🐉 MonsterSkillSystem을 통해 드라큘라 스킬 실행
+        /// </summary>
+        private void ExecuteDraculaSkill(MonsterSkillSystem.MonsterSkillData skillData)
+        {
+            if (_skillSystem == null || _target == null) return;
+            _skillSystem.ExecuteSkill(null, skillData, _target.gameObject, _fullName);
+        }
+
         // ===== Placeholder 시각적 생성 =====
         private void CreateVisualPlaceholder()
         {

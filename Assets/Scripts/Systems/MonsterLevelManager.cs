@@ -22,7 +22,7 @@ namespace ProjectName.Systems
             {
                 if (_instance == null)
                 {
-                    _instance = FindFirstObjectByType<MonsterLevelManager>();
+                    _instance = FindAnyObjectByType<MonsterLevelManager>();
                     if (_instance == null)
                     {
                         GameObject go = new GameObject(nameof(MonsterLevelManager));

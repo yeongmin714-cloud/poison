@@ -75,7 +75,7 @@ namespace ProjectName.Systems
         private void ApplyBuffs()
         {
             // 주변 GuardPlaceholder 검색
-            var guards = FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
+            var guards = FindObjectsByType<GuardPlaceholder>();
             int buffedCount = 0;
 
             foreach (var guard in guards)
@@ -91,7 +91,7 @@ namespace ProjectName.Systems
             }
 
             // 주변 MercenaryPlaceholder 검색 (다른 용병)
-            var mercs = FindObjectsByType<MercenaryPlaceholder>(FindObjectsSortMode.None);
+            var mercs = FindObjectsByType<MercenaryPlaceholder>();
             foreach (var merc in mercs)
             {
                 if (merc.MercenaryId == _mercenaryId) continue; // 자기 자신 제외

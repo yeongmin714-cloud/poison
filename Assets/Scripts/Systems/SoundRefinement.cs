@@ -293,7 +293,7 @@ namespace ProjectName.Systems
         private IBiomeProvider FindBiomeProvider()
         {
             // Find any MonoBehaviour that implements IBiomeProvider
-            var monoBehaviors = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var monoBehaviors = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
             foreach (var mb in monoBehaviors)
             {
                 if (mb is IBiomeProvider provider)

@@ -44,7 +44,7 @@ namespace ProjectName.Systems
             _mainCamera = Camera.main;
             _playerCombat = GetComponent<PlayerCombat>();
             if (_playerCombat == null)
-                _playerCombat = FindFirstObjectByType<PlayerCombat>();
+                _playerCombat = FindAnyObjectByType<PlayerCombat>();
         }
 
         private void Update()

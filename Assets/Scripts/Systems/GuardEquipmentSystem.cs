@@ -230,7 +230,7 @@ namespace ProjectName.Systems
             // 슬롯 적합성 확인
             if (!IsItemValidForSlot(slot, item)) return false;
 
-            int guardId = guard.GetInstanceID();
+            int guardId = guard.GetHashCode();
 
             if (!_guardEquipment.ContainsKey(guardId))
                 _guardEquipment[guardId] = new Dictionary<EquipSlot, EquippedItem>();
@@ -256,7 +256,7 @@ namespace ProjectName.Systems
         {
             if (guard == null) return null;
 
-            int guardId = guard.GetInstanceID();
+            int guardId = guard.GetHashCode();
             if (!_guardEquipment.ContainsKey(guardId) || !_guardEquipment[guardId].ContainsKey(slot))
                 return null;
 
@@ -272,7 +272,7 @@ namespace ProjectName.Systems
         public EquippedItem GetGuardEquipped(GuardPlaceholder guard, EquipSlot slot)
         {
             if (guard == null) return null;
-            int guardId = guard.GetInstanceID();
+            int guardId = guard.GetHashCode();
             if (_guardEquipment.TryGetValue(guardId, out var slots) && slots.TryGetValue(slot, out var item))
                 return item;
             return null;
@@ -282,7 +282,7 @@ namespace ProjectName.Systems
         public Dictionary<EquipSlot, EquippedItem> GetAllGuardEquipment(GuardPlaceholder guard)
         {
             if (guard == null) return null;
-            int guardId = guard.GetInstanceID();
+            int guardId = guard.GetHashCode();
             if (_guardEquipment.TryGetValue(guardId, out var slots))
                 return slots;
             return new Dictionary<EquipSlot, EquippedItem>();
@@ -380,7 +380,7 @@ namespace ProjectName.Systems
         public void OnGuardDeath(GuardPlaceholder guard)
         {
             if (guard == null) return;
-            int guardId = guard.GetInstanceID();
+            int guardId = guard.GetHashCode();
 
             if (_guardEquipment.TryGetValue(guardId, out var slots))
             {
@@ -499,7 +499,7 @@ namespace ProjectName.Systems
         public void ReduceDurability(GuardPlaceholder guard, EquipSlot slot, int amount = 1)
         {
             if (guard == null) return;
-            int guardId = guard.GetInstanceID();
+            int guardId = guard.GetHashCode();
 
             if (!_guardEquipment.TryGetValue(guardId, out var slots) || !slots.TryGetValue(slot, out var equipped))
                 return;

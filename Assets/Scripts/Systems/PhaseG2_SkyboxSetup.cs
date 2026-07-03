@@ -286,7 +286,7 @@ namespace ProjectName.Systems
                 return RenderSettings.sun;
 
             // Fallback: find first directional light
-            Light[] lights = Object.FindObjectsByType<Light>(FindObjectsSortMode.None);
+            Light[] lights = Object.FindObjectsByType<Light>();
             foreach (Light l in lights)
             {
                 if (l.type == LightType.Directional)

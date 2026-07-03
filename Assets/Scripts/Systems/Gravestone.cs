@@ -33,7 +33,7 @@ namespace ProjectName.Systems
         // ===== 상태 =====
         private SphereCollider _sphereCollider;
         private bool _playerInRange;
-        private bool _hasBeenRead;
+        // private bool _hasBeenRead;
         private float _displayTimer;
 
         // 화면 표시용 텍스트
@@ -154,7 +154,7 @@ namespace ProjectName.Systems
                 return;
             }
 
-            _hasBeenRead = true;
+            // _hasBeenRead = true;
 
             // 표시 텍스트 설정
             if (string.IsNullOrEmpty(_gravestoneData.epitaph))

@@ -317,7 +317,7 @@ namespace ProjectName.Systems
             // 건물 기반 위치 찾기 — 현재 영지가 아닌 경우 부정확할 수 있음
             Debug.LogWarning($"[TerritoryCaptureSystem] TerritoryManager에 {territoryId} 없음, " +
                              $"모든 건물 평균 위치로 폴백 (부정확할 수 있음)");
-            var buildings = Object.FindObjectsOfType<BuildingPlaceholder>();
+            var buildings = Object.FindObjectsByType<BuildingPlaceholder>();
             Vector3 sum = Vector3.zero;
             int count = 0;
             foreach (var b in buildings)

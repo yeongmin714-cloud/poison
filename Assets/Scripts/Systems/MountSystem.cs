@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Core;
+#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -50,7 +51,7 @@ namespace ProjectName.Systems
         private bool _isOnCooldown = false;
 
         // 입력 상태 트래킹
-        private bool _sprintKeyWasPressed = false;
+        // private bool _sprintKeyWasPressed = false;
 
         // 애니메이션
         private RigAnimationController _rigAnim;

@@ -59,11 +59,11 @@ namespace ProjectName.Systems
             _mainCamera = Camera.main;
             _stealthSystem = GetComponent<StealthSystem>();
             if (_stealthSystem == null)
-                _stealthSystem = FindFirstObjectByType<StealthSystem>();
+                _stealthSystem = FindAnyObjectByType<StealthSystem>();
 
             _playerMovement = GetComponent<PlayerMovement>();
             if (_playerMovement == null)
-                _playerMovement = FindFirstObjectByType<PlayerMovement>();
+                _playerMovement = FindAnyObjectByType<PlayerMovement>();
         }
 
         private void Update()
@@ -272,7 +272,7 @@ namespace ProjectName.Systems
         /// </summary>
         private void AlertNearbyNPCs(Vector3 position)
         {
-            NPCAwarenessSystem[] npcs = FindObjectsByType<NPCAwarenessSystem>(FindObjectsSortMode.None);
+            NPCAwarenessSystem[] npcs = FindObjectsByType<NPCAwarenessSystem>();
             foreach (var npc in npcs)
             {
                 if (!npc.IsActive) continue;

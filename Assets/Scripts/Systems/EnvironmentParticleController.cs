@@ -639,7 +639,7 @@ namespace ProjectName.Systems
         private bool IsInForestOrGrassBiome()
         {
             // BiomeAmbientController의 IBiomeProvider 패턴 활용
-            var monoBehaviors = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var monoBehaviors = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
             foreach (var mb in monoBehaviors)
             {
                 if (mb is IBiomeProvider provider)

@@ -214,7 +214,7 @@ namespace ProjectName.Systems
             // Resolve player transform
             if (_player == null)
             {
-                var playerMove = FindObjectOfType<PlayerMovement>();
+                var playerMove = FindAnyObjectByType<PlayerMovement>();
                 if (playerMove != null)
                     _player = playerMove.transform;
                 else if (Camera.main != null)

@@ -2095,6 +2095,45 @@ WorldEventManager (싱글톤)
 
 ---
 
+## 🔧 컴파일 오류/경고 대량 수정 — Systems 폴더 (2026-07-03)
+
+### ERROR 수정 (6개 파일)
+
+| 파일 | 오류 | 수정 |
+|------|------|------|
+| `ArenaSystem.cs` | **CS0103** — `UI` 미존재 | `using ProjectName.UI;` 추가 |
+| `DraculaLord.cs` | **CS0103** — `ExecuteDraculaSkill` 미존재 | private 메서드 정의 |
+| `GameEndingManager.cs` | **CS0246** — `EndingCreditsUI` 미존재 | 리플렉션 기반 lookup으로 변환 |
+| `NPCDailyCycle.cs` | **CS0246** — `TutorialQuestNPC`, `ChurchNPCInteraction` 미존재 | `System.Type.GetType()` 존재 확인 후 호출 |
+| `NewGamePlusSystem.cs` | **CS1061** — `MemberInfo.GetValue` 없음 | PropertyInfo/FieldInfo 분기 처리 |
+| `SpySystem.cs` | **CS0103** — `FindObjectsByType` 미존재 | `Object.FindObjectsByType`으로 명시 |
+
+### CS0618 경고 수정 (~50개 파일)
+
+| 변경 전 | 변경 후 | 적용 파일 수 |
+|---------|---------|:----------:|
+| `FindObjectOfType<T>()` | `FindAnyObjectByType<T>()` | 6 |
+| `FindFirstObjectByType<T>()` | `FindAnyObjectByType<T>()` | 5 |
+| `FindObjectsOfType<T>()` | `FindObjectsByType<T>()` | 7 |
+| `FindObjectsByType<T>(FindObjectsSortMode)` | `FindObjectsByType<T>()` | 17 |
+| `FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)` | `FindObjectsByType<T>(FindObjectsInactive)` | 4 |
+| `GetInstanceID()` | `GetHashCode()` | 3 |
+
+### 기타 경고 수정
+
+| 파일 | 경고 | 수정 |
+|------|------|------|
+| `AIWarSystem.cs` | CS8632 (nullable) | `#nullable enable` 추가 |
+| `AutoRouteSystem.cs` | CS0219 (unused var) | 변수 주석처리 |
+| 10개 파일 | CS0414 (unused fields) | `#pragma warning disable 0414` 추가 |
+| 8개 파일 (2차) | `FindObjectsSortMode` 잔여 | 최종 제거 |
+
+### 최종 검증
+- ✅ `FindObjectsSortMode` 잔여 0건
+- ✅ `GetInstanceID()` 잔여 0건
+
+---
+
 ## 🛠️ 작업 규칙
 
 ### 1️⃣ 서브에이전트 위임 원칙

@@ -146,7 +146,7 @@ namespace ProjectName.Systems
                 return;
             }
 
-            System.Random rng = new System.Random(seed != 0 ? seed : gameObject.GetInstanceID());
+            System.Random rng = new System.Random(seed != 0 ? seed : gameObject.GetHashCode());
             _instances = new List<GrassBladeInstance>(positions.Count);
 
             foreach (Vector3 pos in positions)
@@ -218,7 +218,7 @@ namespace ProjectName.Systems
         private void Awake()
         {
             _mainCamera = Camera.main;
-            _windZone = FindObjectOfType<WindZone>();
+            _windZone = FindAnyObjectByType<WindZone>();
 
             if (_material != null)
             {
@@ -240,7 +240,7 @@ namespace ProjectName.Systems
 
             // Refresh wind zone reference if lost
             if (_windZone == null)
-                _windZone = FindObjectOfType<WindZone>();
+                _windZone = FindAnyObjectByType<WindZone>();
 
             // Get wind strength
             float windStrength = 1f;

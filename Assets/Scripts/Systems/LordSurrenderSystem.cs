@@ -217,7 +217,7 @@ namespace ProjectName.Systems
             }
 
             // TerritoryManager에 없으면 전역 검색 (fallback — 성능 주의)
-            var buildings = UnityEngine.Object.FindObjectsOfType<BuildingPlaceholder>();
+            var buildings = UnityEngine.Object.FindObjectsByType<BuildingPlaceholder>();
             foreach (var b in buildings)
             {
                 if (b != null && b.buildingName != null &&

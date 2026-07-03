@@ -28,7 +28,7 @@ namespace ProjectName.Systems
             var damageable = target.GetComponent<IDamageable>();
             if (damageable == null || !damageable.IsAlive) return;
 
-            var guards = Object.FindObjectsOfType<GuardPlaceholder>();
+            var guards = Object.FindObjectsByType<GuardPlaceholder>();
             foreach (var guard in guards)
             {
                 if (!guard.IsAlive || !guard.IsRecruited) continue;
@@ -104,7 +104,7 @@ namespace ProjectName.Systems
         {
             if (playerTransform == null) return;
 
-            var guards = Object.FindObjectsOfType<GuardPlaceholder>();
+            var guards = Object.FindObjectsByType<GuardPlaceholder>();
             foreach (var guard in guards)
             {
                 if (!guard.IsAlive || !guard.IsRecruited) continue;

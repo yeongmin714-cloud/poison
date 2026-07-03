@@ -136,8 +136,10 @@ namespace ProjectName.Systems
             }
 
             // 2. 알려진 NPC 스크립트 타입으로 찾기
-            FindNPCsByScriptType<TutorialQuestNPC>(found, isShop: false);
-            FindNPCsByScriptType<ChurchNPCInteraction>(found, isShop: false);
+            if (System.Type.GetType("TutorialQuestNPC") != null)
+                FindNPCsByScriptType<TutorialQuestNPC>(found, isShop: false);
+            if (System.Type.GetType("ChurchNPCInteraction") != null)
+                FindNPCsByScriptType<ChurchNPCInteraction>(found, isShop: false);
             FindNPCsByScriptType<FestivalNPC>(found, isShop: false);
             FindNPCsByScriptType<GuardPlaceholder>(found, isShop: false);
             FindNPCsByScriptType<GateGuardPlaceholder>(found, isShop: false);
@@ -154,7 +156,7 @@ namespace ProjectName.Systems
         /// <summary>특정 스크립트 타입이 붙은 오브젝트를 찾아 등록</summary>
         private void FindNPCsByScriptType<T>(HashSet<GameObject> found, bool isShop) where T : MonoBehaviour
         {
-            T[] components = FindObjectsByType<T>(FindObjectsSortMode.None);
+            T[] components = FindObjectsByType<T>();
             foreach (var comp in components)
             {
                 if (comp != null && comp.gameObject != null && !found.Contains(comp.gameObject))

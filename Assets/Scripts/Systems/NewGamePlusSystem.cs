@@ -272,12 +272,18 @@ namespace ProjectName.Systems
 
                 if (guardManagerType != null)
                 {
-                    var instanceField = guardManagerType.GetProperty("Instance",
-                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
-                        ?? (System.Reflection.MemberInfo)guardManagerType.GetField("Instance",
+                    var propInfo = guardManagerType.GetProperty("Instance",
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                    object instance = null;
+                    if (propInfo != null)
+                        instance = propInfo.GetValue(null);
+                    else
+                    {
+                        var fieldInfo = guardManagerType.GetField("Instance",
                             System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-
-                    var instance = instanceField?.GetValue(null);
+                        if (fieldInfo != null)
+                            instance = fieldInfo.GetValue(null);
+                    }
                     if (instance != null)
                     {
                         var resetMethod = guardManagerType.GetMethod("ResetAllGuards",

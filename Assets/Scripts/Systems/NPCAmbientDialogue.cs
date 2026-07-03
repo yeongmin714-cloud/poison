@@ -46,7 +46,7 @@ namespace ProjectName.Systems
         private float _dialogueTimer;
 
         // 마지막 대사 인덱스 (중복 방지)
-        private int _lastDialogueIndex = -1;
+        // private int _lastDialogueIndex = -1;
 
         // IMGUI 표시
         private bool _showingBubble;

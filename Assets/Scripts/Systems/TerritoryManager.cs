@@ -78,7 +78,7 @@ namespace ProjectName.Systems
         /// </summary>
         private static void FindAndRegisterAll<T>(Dictionary<string, T> registry, string label) where T : Component
         {
-            var objects = Object.FindObjectsByType<T>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var objects = Object.FindObjectsByType<T>(FindObjectsInactive.Include);
             foreach (var obj in objects)
             {
                 if (!registry.ContainsKey(obj.name))

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Core;
+#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
@@ -74,7 +75,7 @@ namespace ProjectName.Systems
         {
             _playerMovement = GetComponent<PlayerMovement>();
             if (_playerMovement == null)
-                _playerMovement = FindFirstObjectByType<PlayerMovement>();
+                _playerMovement = FindAnyObjectByType<PlayerMovement>();
 
             _mainCamera = Camera.main;
             if (_mainCamera != null)
@@ -164,7 +165,7 @@ namespace ProjectName.Systems
 
             // 주변 NPC 스캔
             float totalDetection = 0f;
-            NPCAwarenessSystem[] npcs = FindObjectsByType<NPCAwarenessSystem>(FindObjectsSortMode.None);
+            NPCAwarenessSystem[] npcs = FindObjectsByType<NPCAwarenessSystem>();
             if (npcs == null || npcs.Length == 0)
             {
                 // 감지 대상 없음 → 게이지 감소
@@ -281,12 +282,12 @@ namespace ProjectName.Systems
         /// </summary>
         private bool IsNightTime()
         {
-            var dnc = FindFirstObjectByType<DayNightCycle>();
+            var dnc = FindAnyObjectByType<DayNightCycle>();
             if (dnc == null) return false;
 
             // DayNightCycle이 태양 각도를 추적 중이면 그대로 사용
             // 간단한 방식: TimeManager의 DayProgress 확인
-            var timeManager = FindFirstObjectByType<TimeManager>();
+            var timeManager = FindAnyObjectByType<TimeManager>();
             if (timeManager == null) return false;
 
             float progress = timeManager.DayProgress;

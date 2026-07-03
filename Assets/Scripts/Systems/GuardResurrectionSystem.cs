@@ -189,7 +189,7 @@ namespace ProjectName.Systems
             }
 
             // Fallback: TerritoryDatabase에서 GateGuardPlaceholder 찾기
-            var gateGuards = Object.FindObjectsOfType<GateGuardPlaceholder>();
+            var gateGuards = Object.FindObjectsByType<GateGuardPlaceholder>();
             foreach (var gate in gateGuards)
             {
                 if (gate.Nation == territoryId.nation && gate.TerritoryIndex == territoryId.index)

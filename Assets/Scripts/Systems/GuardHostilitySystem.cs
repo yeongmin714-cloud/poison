@@ -68,7 +68,7 @@ namespace ProjectName.Systems
         /// </summary>
         private void ProcessHostility()
         {
-            var guards = Object.FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
+            var guards = Object.FindObjectsByType<GuardPlaceholder>();
             var player = GameObject.FindGameObjectWithTag("Player");
 
             foreach (var guard in guards)

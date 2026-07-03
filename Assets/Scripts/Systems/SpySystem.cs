@@ -273,7 +273,7 @@ namespace ProjectName.Systems
         public static List<GuardPlaceholder> GetAvailableSpies()
         {
             var result = new List<GuardPlaceholder>();
-            var guards = FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
+            var guards = Object.FindObjectsByType<GuardPlaceholder>();
             foreach (var g in guards)
             {
                 if (g.IsAlive && g.IsRecruited)
