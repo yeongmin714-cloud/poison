@@ -28,48 +28,6 @@
 *.pdb
 *.mdb
 
-# VS Code
-.vscode/
-
-# JetBrains Rider
-*.idea/
-*.sln.dotsettings
-*.sln.dotsettings.user
-
-# VS Code
-.vscode/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Git LFS (tracked via .gitattributes, NOT ignored)
-# *.glb, *.gltf, *.png, *.jpg are handled by LFS — remove from gitignore
-
-# PolyHeven large binary files (replaceable with primitives)
-*.bin
-Assets/Models/PolyHeven/*.jpg
-Assets/Models/PolyHeven/*.png
-
-# Hermes
-.hermes_watcher_state
-*_snapshot.json
-
-# Build logs
-build_*.txt
-compile_*.txt
-setup_log*
-swap_log*Library.backup/
-Editor.log
-*.log
-Library.backup
-
-# Backup files
-*_Backup.*
-*_Backup.tar.gz
-*_Backup.zip
-UserProvided_Archive/
-NUL
-
-# Temp scripts
-sync_to_mybox.sh
+# Windows invalid path files
+C:temprun_unity.bat
+C:temptest.bat
