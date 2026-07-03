@@ -59,7 +59,7 @@ public static class GraphicConfigSetup
             int oldAa = antialiasingProp.intValue;
             antialiasingProp.intValue = 2; // 2 = SMAA
             so.ApplyModifiedProperties();
-            string msg = $"Anti-aliasing: {(AntiAliasingQuality)oldAa} → SMAA";
+            string msg = $"Anti-aliasing: {(AntialiasingQuality)oldAa} → SMAA";
             changes.Add(msg);
             Debug.Log($"[GraphicConfig] {msg}");
         }
@@ -71,7 +71,7 @@ public static class GraphicConfigSetup
             int oldQ = aaQualityProp.intValue;
             aaQualityProp.intValue = 2; // 2 = High
             so.ApplyModifiedProperties();
-            string msg = $"SMAA 품질: {(AntiAliasingQuality)oldQ} → High";
+            string msg = $"SMAA 품질: {(AntialiasingQuality)oldQ} → High";
             changes.Add(msg);
             Debug.Log($"[GraphicConfig] {msg}");
         }
@@ -115,15 +115,11 @@ public static class GraphicConfigSetup
             Debug.Log("[GraphicConfig] 기존 Volume Profile 로드");
         }
 
-        // === 4. Shadows Override: Contact Shadows = true ===
-        var shadows = GetOrAddVolumeComponent<Shadows>(profile);
-        if (shadows != null)
-        {
-            shadows.contactShadows.overrideState = true;
-            shadows.contactShadows.value = true;
-            changes.Add("Contact Shadows 활성화");
-            Debug.Log("[GraphicConfig] Shadows → Contact Shadows = true");
-        }
+        // === 4. Shadows Override (Contact Shadows) ===
+        // 참고: URP 17에서 Shadows 볼륨 컴포넌트가 제거되었습니다.
+        // Contact Shadows는 이제 Renderer Feature로 설정하거나
+        // Universal Render Pipeline Asset의 Main/Additional Light 설정에서 제어합니다.
+        Debug.Log("[GraphicConfig] Shadows 볼륨 컴포넌트는 URP 17에서 제거됨 (생략)");
 
         // === 5. Bloom Override 추가 ===
         var bloom = GetOrAddVolumeComponent<Bloom>(profile);

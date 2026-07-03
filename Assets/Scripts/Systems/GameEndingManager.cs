@@ -98,7 +98,7 @@ namespace ProjectName.Systems
                 return;
             }
 
-            var existing = FindObjectOfType(type) as MonoBehaviour;
+            var existing = FindAnyObjectByType(type) as MonoBehaviour;
             if (existing != null) return;
 
             var go = new GameObject("EndingCreditsUI");

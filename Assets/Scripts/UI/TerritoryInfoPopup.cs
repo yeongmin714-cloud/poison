@@ -191,7 +191,7 @@ namespace ProjectName.UI
                     (int)def.nation * 10f
                 );
                 // MapWindow가 열려있으면 자동 이동 시작
-                var mapWindow = Object.FindObjectOfType<MapWindow>();
+                var mapWindow = Object.FindAnyObjectByType<MapWindow>();
                 if (mapWindow != null)
                 {
                     // MapWindow.StartAutoMoveToTerritory는 private이므로

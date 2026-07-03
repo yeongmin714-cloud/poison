@@ -16,7 +16,7 @@ public static class LightProbeSetup
     public static void AutoPlaceLightProbes()
     {
         // 1. "Interior" 태그 또는 레이어를 가진 모든 Renderer 찾기
-        Renderer[] allRenderers = Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+        Renderer[] allRenderers = Object.FindObjectsByType<Renderer>();
         List<Renderer> interiorRenderers = new List<Renderer>();
 
         foreach (Renderer r in allRenderers)
@@ -161,8 +161,8 @@ public static class LightProbeSetup
         reflectionProbe.shadowDistance = 0f;
         reflectionProbe.clearFlags = UnityEngine.Rendering.ReflectionProbeClearFlags.Skybox;
         reflectionProbe.cullingMask = ~0;
-        reflectionProbe.intensityMultiplier = 1f;
-        reflectionProbe.boxSize = new Vector3(20f, 10f, 20f);
+        reflectionProbe.intensity = 1f;
+        reflectionProbe.size = new Vector3(20f, 10f, 20f);
         reflectionProbe.boxProjection = false;
         reflectionProbe.blendDistance = 1f;
 

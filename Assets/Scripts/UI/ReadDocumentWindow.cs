@@ -42,7 +42,7 @@ namespace ProjectName.UI
         // Unity 생명주기
         // ================================================================
 
-        private void Awake()
+        protected override void Awake()
         {
             if (Instance != null && Instance != this)
             {
@@ -55,7 +55,7 @@ namespace ProjectName.UI
             InteractableDocument.OnDocumentReadRequested += ShowDocument;
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             if (Instance == this)
             {
@@ -64,7 +64,7 @@ namespace ProjectName.UI
             }
         }
 
-        private void OnGUI()
+        protected override void OnGUI()
         {
             if (!_isDocumentOpen || _currentDocument == null) return;
 

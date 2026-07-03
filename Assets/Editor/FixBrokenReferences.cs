@@ -21,7 +21,7 @@ public static class FixBrokenReferences
         int scanned = 0;
 
         // Get all GameObjects in the scene including inactive
-        GameObject[] allObjects = GameObject.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        GameObject[] allObjects = GameObject.FindObjectsByType<GameObject>(FindObjectsInactive.Include);
         HashSet<GameObject> processed = new HashSet<GameObject>();
 
         foreach (var go in allObjects)

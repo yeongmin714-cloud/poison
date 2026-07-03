@@ -21,7 +21,7 @@ public class MountUI : MonoBehaviour
     
     void Start()
     {
-        _mountSystem = FindObjectOfType<MountSystem>();
+        _mountSystem = FindAnyObjectByType<MountSystem>();
         _canvasGroup = GetComponent<CanvasGroup>();
         
         if (_mountSystem == null)
