@@ -2134,6 +2134,42 @@ WorldEventManager (싱글톤)
 
 ---
 
+## 🐛 MainScene 통합 문제점 & 컴파일 오류 수정 (2026-07-08)
+
+> **문제:** MainScene 실행 시 Player 미동작, 지형 미표시, 화면 고정
+> **원인:** 컴파일 오류 42개로 인해 GameSetup.cs 실행 불가 + Player에 잘못된 컴포넌트
+
+### 🔴 Phase: 컴파일 오류 42건 수정
+
+| 파일 | 에러 | 수정 | 상태 |
+|:-----|:-----|:------|:----:|
+| ArenaSystem.cs | CS0103 — UI 없음 | `using ProjectName.UI;` → 리플렉션 전환 | ✅ (기존 수정 유지) |
+| DraculaLord.cs | CS0103 — ExecuteDraculaSkill | 메서드 접근성/시그니처 수정 | ✅ (기존 수정 유지) |
+| GameEndingManager.cs | CS0246 — EndingCreditsUI | `Assembly-CSharp` → `ProjectName.UI` | ✅ (기존 수정 유지) |
+| NPCDailyCycle.cs | CS0246 — TutorialQuestNPC, ChurchNPCInteraction | 리플렉션 전환 | ✅ (기존 수정 유지) |
+| NewGamePlusSystem.cs | CS1061 — MemberInfo.GetValue | 분기 처리 | ✅ (기존 수정 유지) |
+| SpySystem.cs | CS0103 — FindObjectsByType | `Object.FindObjectsByType` 명시 | ✅ (기존 수정 유지) |
+
+### 🟡 Phase: Player 컴포넌트 정리 & 지형 수정
+
+| 항목 | 문제 | 수정 | 상태 |
+|:-----|:-----|:------|:----:|
+| SnakeSlitherMotion 제거 | Player에 뱀 스크립트가 붙어있음 | **씬 YAML에서 블록 제거 완료** | ✅ |
+| MotionDetector 확인 | Player에 불필요 | **씬 YAML에서 블록 제거 완료** | ✅ |
+| AnimationRiggingSetup 본 수정 | 모든 본이 headBone으로 통일 | `_autoFindBonesOnStart: 1`로 자동 해결 | ✅ |
+| PlayerHealth _currentHP | 0으로 시작 | **100으로 설정 완료** | ✅ |
+| Ground_Inner/Mid/Outer Mesh | Cube 메시(10209) 참조 | **Plane(10208)으로 교체 완료** | ✅ |
+
+### 🟢 Phase: 컴파일 검증 & Play 테스트
+
+| 항목 | 설명 | 상태 |
+|:-----|:------|:----:|
+| Unity batchmode 컴파일 | CS 에러 0 검증 | ✅ |
+| run_tests.sh 실행 | EditMode/PlayMode 테스트 통과 확인 | ✅ |
+| 씬 최종 점검 | Player/카메라/지형 정상 확인 | ✅ (2026-07-08) |
+
+---
+
 ## 🛠️ 작업 규칙
 
 ### 1️⃣ 서브에이전트 위임 원칙

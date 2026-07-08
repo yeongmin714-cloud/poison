@@ -36,21 +36,6 @@ public class GameSetup : MonoBehaviour
             return;
         }
 
-        // ── 잘못된 컴포넌트 제거 ─────────────────────────────────────
-        var snakeMotion = player.GetComponent<SnakeSlitherMotion>();
-        if (snakeMotion != null)
-        {
-            Object.DestroyImmediate(snakeMotion);
-            Debug.Log("[GameSetup] ✅ SnakeSlitherMotion 제거 (Player에 맞지 않음)");
-        }
-
-        var wrongDetector = player.GetComponent<MotionDetector>();
-        if (wrongDetector != null)
-        {
-            Object.DestroyImmediate(wrongDetector);
-            Debug.Log("[GameSetup] ✅ MotionDetector 제거 (재설정 필요 시 자동 재생성)");
-        }
-
         // ── Player Camera 활성화 및 Camera 컴포넌트 추가 ─────────────
         var playerCamGO = GameObject.Find("Player Camera");
         if (playerCamGO != null)

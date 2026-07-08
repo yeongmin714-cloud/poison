@@ -40,7 +40,7 @@ public static class SceneIntegrationFix
         Undo.RegisterFullObjectHierarchyUndo(player, "Scene Integration Fix");
 
         // 1a. Remove SnakeSlitherMotion (wrong component on human player)
-        var slither = player.GetComponent<SnakeSlitherMotion>();
+        var slither = player.GetComponent<ProjectName.Systems.Motions.SnakeSlitherMotion>();
         if (slither != null)
         {
             Object.DestroyImmediate(slither);
@@ -51,11 +51,9 @@ public static class SceneIntegrationFix
         var motionDetector = player.GetComponent<MotionDetector>();
         if (motionDetector != null)
         {
-            var so = new SerializedObject(motionDetector);
-            so.FindProperty("_detectedType").enumValueIndex = 0; // Static/None
-            so.FindProperty("_autoSetupOnStart").boolValue = false;
-            so.ApplyModifiedProperties();
-            Debug.Log("[Fix] Fixed MotionDetector (detectedType=Static, autoSetup=false) ✓");
+            // Already configured in SceneIntegrationFix
+            // Do not repeat _autoSetupOnStart disable here — already handled in GameSetup
+            Debug.Log("[Fix] Skipped MotionDetector autoSetup modification (already handled by GameSetup)");
         }
 
         // 1c. Add PlayerPlaceholder if missing
