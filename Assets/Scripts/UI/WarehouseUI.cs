@@ -39,14 +39,18 @@ namespace ProjectName.UI
 
         // === 인벤토리 → 창고 ===
         private bool _showInventoryTransfer = false;
+#pragma warning disable 0414
         private int _selectedInventorySlot = -1;
+#pragma warning restore 0414
         private int _invTransferCount = 1;
         private Vector2 _invScrollPos;
 
         // === GC 최적화: 캐시된 필드 ===
         private string _cachedHeader;
         private string _lastHeaderTerritory;
+#pragma warning disable 0414
         private int _lastHeaderCount = -1;
+#pragma warning restore 0414
         private Rect _itemNameRect = new Rect(0, 0, 0, 18);
         private Rect _countRect = new Rect(0, 0, 18, 18);
         private Rect _transferRect = new Rect(0, 0, 16, 16);

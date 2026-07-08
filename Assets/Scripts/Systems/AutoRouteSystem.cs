@@ -223,6 +223,8 @@ namespace ProjectName.Systems
                     biomeHint = "설원";
                 }
 
+                _ = biomeHint; // CS0219 경고 억제
+
                 var def = db.GetDefinition(nation, index);
                 if (def.id.nation == NationType.None) continue;
 

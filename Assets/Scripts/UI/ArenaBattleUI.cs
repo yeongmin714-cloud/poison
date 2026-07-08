@@ -175,6 +175,7 @@ namespace ProjectName.UI
             float barWidth = _panelWidth - 80f;
             float barHeight = 20f;
             float labelOffset = 70f;
+            _ = labelOffset;
 
             // 상대 (좌측)
             GUI.Label(new Rect(x + 10, cy, contentW, 22), $"⚔️ {_opponent.name} Lv.{_opponent.level}", _styleLabel);

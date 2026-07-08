@@ -31,3 +31,7 @@
 # Windows invalid path files
 C:temprun_unity.bat
 C:temptest.bat
+# Backup files
+*.bak
+*.bak2
+*.bakup

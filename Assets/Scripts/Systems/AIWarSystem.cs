@@ -23,13 +23,13 @@ namespace ProjectName.Systems
         // ===== 이벤트 =====
 
         /// <summary>전쟁이 시작되었을 때 발생 (AIWarData)</summary>
-        public static event System.Action<AIWarData> OnWarStarted;
+        public static event System.Action<AIWarData>? OnWarStarted;
 
         /// <summary>전쟁 진행도가 변경되었을 때 발생 (AIWarData)</summary>
-        public static event System.Action<AIWarData> OnWarProgressed;
+        public static event System.Action<AIWarData>? OnWarProgressed;
 
         /// <summary>전쟁이 완료되었을 때 발생 (AIWarData)</summary>
-        public static event System.Action<AIWarData> OnWarCompleted;
+        public static event System.Action<AIWarData>? OnWarCompleted;
 
         // ===== 상수 =====
 

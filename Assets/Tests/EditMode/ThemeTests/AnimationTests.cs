@@ -27,7 +27,7 @@ namespace ProjectName.Tests.EditMode.ThemeTests
         [TearDown]
         public void TearDown()
         {
-            var objects = GameObject.FindObjectsOfType<GameObject>();
+            var objects = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
             foreach (var obj in objects)
             {
                 if (obj.name.StartsWith("Mock"))

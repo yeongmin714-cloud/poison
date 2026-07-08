@@ -270,7 +270,6 @@ namespace ProjectName.UI
 
         private void DrawTopBar()
         {
-            const float topBarHeight = 32f;
             const float padding = 8f;
             float y = 30f; // 타이틀 바 아래
 
@@ -430,8 +429,6 @@ namespace ProjectName.UI
             }
 
             var entry = _selectedEntry;
-            float x = detailStartX + 12f;
-            float y = detailStartY + 12f;
             float labelW = 100f;
             float valueW = detailWidth - 130f;
             float lineH = 28f;

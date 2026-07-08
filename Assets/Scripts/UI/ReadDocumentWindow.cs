@@ -180,7 +180,7 @@ namespace ProjectName.UI
         /// <summary>
         /// 현재 열려있는지 여부
         /// </summary>
-        public bool IsOpen => _isDocumentOpen;
+        public new bool IsOpen => _isDocumentOpen;
 
         // ================================================================
         // 내부 메서드

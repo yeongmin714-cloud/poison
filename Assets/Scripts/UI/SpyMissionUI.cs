@@ -808,7 +808,7 @@ namespace ProjectName.UI
             }
         }
 
-        private static string GetOwnershipText(TerritoryState? state)
+        private static string GetOwnershipText(TerritoryState state)
         {
             if (state == null) return "알 수 없음";
             return "미점령"; // TODO: 실제 점령 상태 반영

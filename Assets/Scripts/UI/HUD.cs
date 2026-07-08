@@ -126,7 +126,9 @@ namespace ProjectName.UI
         private Rect _rectDetectionBarBg;
         private Rect _rectDetectionBarFill;
         private Rect _rectStealthLabel;
+        #pragma warning disable 0414
         private bool _stealthIconDirty = true;
+#pragma warning restore 0414
 
         // 파괴 시 구독 해제용
         private System.Action<bool> _stealthStateHandler;
