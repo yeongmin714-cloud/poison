@@ -26,7 +26,7 @@ namespace ProjectName.Systems
             get
             {
                 if (_endingCreditsUIType == null)
-                    _endingCreditsUIType = System.Type.GetType("ProjectName.UI.EndingCreditsUI, Assembly-CSharp");
+                    _endingCreditsUIType = System.Type.GetType("ProjectName.UI.EndingCreditsUI, ProjectName.UI");
                 return _endingCreditsUIType;
             }
         }
