@@ -165,14 +165,68 @@ namespace ProjectName.UI
             string[] dialogue = GetCurrentDialogue();
             if (_dialogueIndex < dialogue.Length)
             {
-                Debug.Log($"[NPC 영주] {dialogue[_dialogueIndex]}");
-                // TODO: Phase 2 — 실제 Dialogue UI (TMP 텍스트) 표시
+                string text = dialogue[_dialogueIndex];
+                Debug.Log($"[NPC 영주] {text}");
+                
+                // NPCDialogueWindow가 있으면 연동
+                if (NPCDialogueWindow.Instance != null)
+                {
+                    // 간단한 텍스트 표시를 위해 라인 구성
+                    var lines = new System.Collections.Generic.List<string>();
+                    lines.Add($"\"{text}\"");
+                    // TODO: Phase 2 — NPCDialogueWindow와 통합
+                }
+                
+                _currentDialogueText = text;
+                _showDialogueText = true;
+                _dialogueTextTimer = 0f;
             }
         }
 
         private void HideDialogueUI()
         {
-            // TODO: 대화 UI 숨김
+            _showDialogueText = false;
+            _currentDialogueText = "";
+        }
+
+        // IMGUI 대화 텍스트 표시 (NPCDialogueWindow가 없을 때 폴백)
+        private string _currentDialogueText = "";
+        private bool _showDialogueText = false;
+        private float _dialogueTextTimer = 0f;
+
+        private void OnGUI()
+        {
+            if (!_showDialogueText || string.IsNullOrEmpty(_currentDialogueText)) return;
+
+            // 화면 하단 중앙에 말풍선 표시
+            float labelWidth = Mathf.Min(700, Screen.width * 0.8f);
+            float labelHeight = 80f;
+            float x = (Screen.width - labelWidth) / 2f;
+            float y = Screen.height - labelHeight - 60f;
+
+            // 배경 상자
+            GUI.Box(new Rect(x, y, labelWidth, labelHeight), "");
+
+            // NPC 이름
+            GUI.Label(new Rect(x + 10, y + 5, labelWidth - 20, 25),
+                "👑 길 잃은 영주", new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 16,
+                    fontStyle = FontStyle.Bold,
+                    normal = { textColor = Color.white },
+                    alignment = TextAnchor.MiddleLeft
+                });
+
+            // 대화 텍스트
+            GUI.Label(new Rect(x + 10, y + 30, labelWidth - 20, 45),
+                _currentDialogueText, new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 15,
+                    fontStyle = FontStyle.Normal,
+                    normal = { textColor = new Color(0.9f, 0.9f, 0.9f) },
+                    wordWrap = true,
+                    alignment = TextAnchor.UpperLeft
+                });
         }
 
         private void OnDialogueEnd()
