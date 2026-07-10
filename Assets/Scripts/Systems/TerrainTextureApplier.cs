@@ -126,10 +126,10 @@ namespace ProjectName.Systems
                     AddToNation(NationType.Empire, tex);
                 else if (lowerName.StartsWith("dracula_"))
                     AddToNation(NationType.Dracula, tex);
-                else if (lowerName.StartsWith("extra_"))
+                else if (lowerName.StartsWith("extra_") || lowerName.StartsWith("extra"))
                     _extraTextures.Add(tex);
                 else
-                    Debug.LogWarning($"[TerrainTextureApplier] Unrecognized texture prefix: {tex.name}");
+                    Debug.Log($"[TerrainTextureApplier] Unrecognized texture prefix: {tex.name}");
             }
 
             Debug.Log($"[TerrainTextureApplier] Loaded {allTextures.Length} textures. " +
