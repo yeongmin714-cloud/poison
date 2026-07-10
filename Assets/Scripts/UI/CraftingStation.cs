@@ -86,8 +86,8 @@ namespace ProjectName.UI
             if (UIManager.Instance != null)
             {
                 // 크래프트 UI가 열려있으면 먼저 닫기
-                if (UIManager.Instance.craftingWindow != null && UIManager.Instance.craftingWindow.IsOpen)
-                    UIManager.Instance.craftingWindow.Hide();
+                if (UIManager.craftingWindow != null && UIManager.craftingWindow.IsOpen)
+                    UIManager.craftingWindow.Hide();
 
                 // UIManager.OpenWindow를 통해 윈도우 스택 관리와 함께 열기
                 UIManager.Instance.OpenWindow(typeof(RepairStationUI));

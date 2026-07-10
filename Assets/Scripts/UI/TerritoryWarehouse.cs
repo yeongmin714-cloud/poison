@@ -193,9 +193,9 @@ namespace ProjectName.UI
 
         private void OpenWarehouseUI()
         {
-            if (UIManager.Instance != null && UIManager.Instance.warehouseWindow != null)
+            if (UIManager.Instance != null && UIManager.warehouseWindow != null)
             {
-                var wui = UIManager.Instance.warehouseWindow;
+                var wui = UIManager.warehouseWindow;
                 // UI에 현재 영지 ID 설정 (기본값 "default" 대신)
                 if (wui is WarehouseUI warehouseUI)
                 {

@@ -41,7 +41,7 @@ namespace ProjectName.Systems
         [SerializeField] private ModelType _detectedType = ModelType.Static;
 
         [Header("Auto-Apply Motion Components")]
-        [SerializeField] private bool _autoSetupOnStart = true;
+        [SerializeField] public bool _autoSetupOnStart = true;
 
         #endregion
 
@@ -325,9 +325,10 @@ namespace ProjectName.Systems
             if (spineCount >= 5)
             {
                 // Snake-like: add SnakeSlitherMotion
-                if (GetComponent<SnakeSlitherMotion>() == null)
+                // Snake-like: use SnakeSlitherMotion (fixed path reference)
+                if (GetComponent<ProjectName.Systems.Motions.SnakeSlitherMotion>() == null)
                 {
-                    var slither = gameObject.AddComponent<SnakeSlitherMotion>();
+                    var slither = gameObject.AddComponent<ProjectName.Systems.Motions.SnakeSlitherMotion>();
 
                     // Auto-detect spine bones for the slither chain
                     var spineBones = FindSpineBoneChain(transform);

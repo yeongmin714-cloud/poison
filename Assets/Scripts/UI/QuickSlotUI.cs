@@ -229,8 +229,8 @@ namespace ProjectName.UI
 
             // UIManager가 있고 인벤토리가 열려있으면 퀵슬롯 키는 사용 등록 모드
             bool inventoryOpen = (UIManager.Instance != null &&
-                                  UIManager.Instance.inventoryWindow != null &&
-                                  UIManager.Instance.inventoryWindow.IsOpen);
+                                  UIManager.inventoryWindow != null &&
+                                  UIManager.inventoryWindow.IsOpen);
 
             for (int i = 0; i < QuickSlotManager.Instance.SlotCount; i++)
             {
@@ -340,8 +340,8 @@ namespace ProjectName.UI
             if (slotIndex < 0 || slotIndex >= 6) return;
 
             bool inventoryOpen = (UIManager.Instance != null &&
-                                  UIManager.Instance.inventoryWindow != null &&
-                                  UIManager.Instance.inventoryWindow.IsOpen);
+                                  UIManager.inventoryWindow != null &&
+                                  UIManager.inventoryWindow.IsOpen);
 
             if (!inventoryOpen)
             {

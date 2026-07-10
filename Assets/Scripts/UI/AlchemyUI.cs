@@ -1,6 +1,6 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Core.Utils;

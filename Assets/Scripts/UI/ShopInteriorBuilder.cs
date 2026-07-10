@@ -1,12 +1,13 @@
 using ProjectName.Core;
+using ProjectName.Systems;
 using ProjectName.UI;
 using UnityEngine;
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// C11-07: 상점 실내 인테리어 빌더.
-    /// IndoorBuilder, IndoorFurniturePlacer, IndoorLighting, IndoorTextureGenerator를
+    /// ProjectName.Systems.IndoorBuilder, ProjectName.Systems.IndoorFurniturePlacer, ProjectName.Systems.IndoorLighting, IndoorTextureGenerator를
     /// 조합하여 완성된 상점 실내를 생성.
     /// </summary>
     public static class ShopInteriorBuilder
@@ -55,11 +56,11 @@ namespace ProjectName.Systems
             officeMat.color = new Color(0.40f, 0.25f, 0.15f); // 어두운 나무색 (사무실)
 
             // ===== 방 생성 (C11-01) =====
-            GameObject room = IndoorBuilder.CreateRoom(roomWidth, roomHeight, roomDepth,
+            GameObject room = ProjectName.Systems.IndoorBuilder.CreateRoom(roomWidth, roomHeight, roomDepth,
                 floorMat, wallMat, ceilingMat);
             if (room == null)
             {
-                Debug.LogError("[ShopInteriorBuilder] IndoorBuilder.CreateRoom returned null!");
+                Debug.LogError("[ShopInteriorBuilder] ProjectName.Systems.IndoorBuilder.CreateRoom returned null!");
                 return null;
             }
 
@@ -68,7 +69,7 @@ namespace ProjectName.Systems
             float counterWidth = 2f;
             float counterHeight = 1.2f;
             float counterDepth = 0.8f;
-            GameObject counter = IndoorFurniturePlacer.CreateCounter(counterWidth, counterHeight, counterDepth, furnitureMat);
+            GameObject counter = ProjectName.Systems.IndoorFurniturePlacer.CreateCounter(counterWidth, counterHeight, counterDepth, furnitureMat);
             if (counter != null)
             {
                 counter.transform.SetParent(room.transform);
@@ -81,7 +82,7 @@ namespace ProjectName.Systems
             float shelfDepth = 0.4f;
 
             // 왼쪽 선반
-            GameObject shelfLeft = IndoorFurniturePlacer.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 3);
+            GameObject shelfLeft = ProjectName.Systems.IndoorFurniturePlacer.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 3);
             if (shelfLeft != null)
             {
                 shelfLeft.transform.SetParent(room.transform);
@@ -89,7 +90,7 @@ namespace ProjectName.Systems
             }
 
             // 오른쪽 선반
-            GameObject shelfRight = IndoorFurniturePlacer.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 3);
+            GameObject shelfRight = ProjectName.Systems.IndoorFurniturePlacer.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 3);
             if (shelfRight != null)
             {
                 shelfRight.transform.SetParent(room.transform);
@@ -99,7 +100,7 @@ namespace ProjectName.Systems
             // 카운터 앞에 작은 테이블 (진열용)
             Material displayMat = new Material(shader) { name = "Shop_DisplayMat" };
             displayMat.color = new Color(0.55f, 0.40f, 0.25f);
-            GameObject displayTable = IndoorFurniturePlacer.CreateTable(1.2f, 0.6f, 0.9f, displayMat);
+            GameObject displayTable = ProjectName.Systems.IndoorFurniturePlacer.CreateTable(1.2f, 0.6f, 0.9f, displayMat);
             if (displayTable != null)
             {
                 displayTable.transform.SetParent(room.transform);
@@ -119,13 +120,13 @@ namespace ProjectName.Systems
             if (officeFloorRenderer != null) officeFloorRenderer.sharedMaterial = officeMat;
 
             // 사무실 책상
-            GameObject officeDesk = IndoorFurniturePlacer.CreateTable(1.5f, 0.8f, 0.7f, officeMat);
+            GameObject officeDesk = ProjectName.Systems.IndoorFurniturePlacer.CreateTable(1.5f, 0.8f, 0.7f, officeMat);
             officeDesk.name = "OfficeDesk";
             officeDesk.transform.SetParent(room.transform);
             officeDesk.transform.localPosition = new Vector3(0, 0, -roomDepth * 0.5f + 1.2f);
 
             // ===== Phase 35: 잠긴 금고 문 =====
-            // 사무실 내 금고 (LockedDoor 프리팹 대신 컴포넌트 추가)
+            // 사무실 내 금고 (ProjectName.Systems.LockedDoor 프리팹 대신 컴포넌트 추가)
             GameObject safeDoor = new GameObject("SafeDoor_Locked");
             safeDoor.transform.SetParent(room.transform);
             safeDoor.transform.localPosition = new Vector3(1.0f, 0.8f, -roomDepth * 0.5f + 1.8f);
@@ -134,9 +135,9 @@ namespace ProjectName.Systems
             var safeFilter = safeDoor.AddComponent<MeshFilter>();
             safeFilter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
             if (safeRenderer != null) safeRenderer.sharedMaterial = officeMat;
-            var safeLock = safeDoor.AddComponent<LockedDoor>();
+            var safeLock = safeDoor.AddComponent<ProjectName.Systems.LockedDoor>();
             safeLock.LocationId = "shop_safe";
-            safeLock.Difficulty = LockpickingSystem.LockDifficulty.Hard;
+            safeLock.Difficulty = ProjectName.Systems.LockpickingSystem.LockDifficulty.Hard;
 
             // ===== Phase 35: 지하 창고 입구 (잠긴 문) =====
             GameObject storageDoor = new GameObject("StorageDoor_Locked");
@@ -147,21 +148,21 @@ namespace ProjectName.Systems
             var storageFilter = storageDoor.AddComponent<MeshFilter>();
             storageFilter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
             if (storageRenderer != null) storageRenderer.sharedMaterial = furnitureMat;
-            var storageLock = storageDoor.AddComponent<LockedDoor>();
+            var storageLock = storageDoor.AddComponent<ProjectName.Systems.LockedDoor>();
             storageLock.LocationId = "shop_storage";
-            storageLock.Difficulty = LockpickingSystem.LockDifficulty.Medium;
+            storageLock.Difficulty = ProjectName.Systems.LockpickingSystem.LockDifficulty.Medium;
 
             // 지하 창고 라벨
-            var storageLabel = storageDoor.AddComponent<NameplateDisplay>();
+            var storageLabel = storageDoor.AddComponent<ProjectName.Systems.NameplateDisplay>();
             storageLabel.DisplayName = "🚪 지하 창고 (잠김)";
 
             // ===== 조명 설정 (C11-05) =====
             // 따뜻한 앰비언트 + 천장 중앙 Point Light + 깜빡임
             Color ambientWarm = new Color(0.15f, 0.10f, 0.05f);
-            IndoorLighting.SetupIndoorLighting(room, ambientWarm, 1f, true);
+            ProjectName.Systems.IndoorLighting.SetupIndoorLighting(room, ambientWarm, 1f, true);
 
             // 추가 포인트 라이트 (카운터 위)
-            IndoorLighting.AddPointLight(room,
+            ProjectName.Systems.IndoorLighting.AddPointLight(room,
                 new Vector3(0, roomHeight - 0.5f, -roomDepth * 0.5f + 1.5f),
                 new Color(1f, 0.9f, 0.7f), 4f, 0.8f);
 
@@ -177,14 +178,14 @@ namespace ProjectName.Systems
             shopNpc.transform.localPosition = new Vector3(0, 0, npcZ);
             shopNpc.AddComponent<ShopPlaceholder>();
             // 이름표 "상인" 표시
-            var nameplate = shopNpc.AddComponent<NameplateDisplay>();
+            var nameplate = shopNpc.AddComponent<ProjectName.Systems.NameplateDisplay>();
             nameplate.DisplayName = "상인";
 
             // ===== FIX-01: 출구 트리거 생성 =====
             GameObject exitTrigger = new GameObject("ExitTrigger");
             exitTrigger.transform.SetParent(room.transform);
             exitTrigger.transform.localPosition = new Vector3(0, 0, roomDepth * 0.5f - 0.5f);
-            var exitBt = exitTrigger.AddComponent<BuildingTrigger>();
+            var exitBt = exitTrigger.AddComponent<ProjectName.Systems.BuildingTrigger>();
             exitBt.BuildingType = "Exit";
             exitBt.InteractRange = 3f;
 

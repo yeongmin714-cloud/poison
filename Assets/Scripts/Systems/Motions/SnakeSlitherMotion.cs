@@ -4,8 +4,9 @@ using UnityEngine;
 
 namespace ProjectName.Systems.Motions
 {
-    /// <summary>
-    /// Procedural slither motion for snake-like creatures.
+    using ProjectName.Systems;
+
+    /// <summary>\n    /// Procedural slither motion for snake-like creatures.
     /// Uses a chain of spine bones to propagate a sinusoidal wave,
     /// creating an S-curve slithering effect. Configurable wave
     /// amplitude, frequency, and speed.

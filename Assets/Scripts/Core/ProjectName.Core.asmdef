@@ -2,12 +2,12 @@
   "name": "ProjectName.Core",
   "rootNamespace": "ProjectName.Core",
   "references": [
+    "UnityEngine.CoreModule",
     "Unity.Cinemachine",
     "Unity.InputSystem",
     "Unity.RenderPipelines.Core.Runtime",
     "Unity.RenderPipelines.Universal.Runtime",
     "Unity.UGUI",
-    "UnityEngine.CoreModule",
     "System.Core"
   ],
   "overrideReferences": false,
