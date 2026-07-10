@@ -47,7 +47,7 @@ namespace ProjectName.Core.Data
             }
             else
             {
-                Debug.LogWarning($"[ComboTester] No combo found for {id1} + {id2}");
+                Debug.Log($"[ComboTester] No combo found for {id1} + {id2} (expected for test)");
             }
         }
     }
