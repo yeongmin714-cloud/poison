@@ -42,8 +42,13 @@ public class GameSetup : MonoBehaviour
         {
             if (!playerCamGO.activeSelf)
             {
+                // Main Camera 비활성화 (충돌 방지)
+                var mainCam = GameObject.FindGameObjectWithTag("MainCamera");
+                if (mainCam != null && mainCam != playerCamGO)
+                    mainCam.SetActive(false);
+
                 playerCamGO.SetActive(true);
-                Debug.Log("[GameSetup] ✅ Player Camera 활성화");
+                Debug.Log("[GameSetup] ✅ Player Camera 활성화 (Main Camera 비활성화)");
             }
             if (playerCamGO.GetComponent<Camera>() == null)
             {
