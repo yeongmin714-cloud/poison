@@ -243,6 +243,22 @@
 
 #### 링별 상세 난이도
 
+- [x] RingDifficultyData.cs 생성: Ring별 난이도 데이터 제공 (병사 레벨/수, 영주 입맛/지병, 방어력, 보상)
+- [x] GetGuardLevelRange: Ring1=1~10, Ring2=11~20, Ring3=21~30, Ring4=31~40, Empire=41~50
+- [x] GetGuardLevelRange(nation, difficulty): 5개국×4Ring 국가 가중치 적용 (동 Lv.1~3~15~20, 북 Lv.8~12~29~40)
+- [x] GetGuardCountRange: Ring1=3~5, Ring2=6~10, Ring3=11~20, Ring4=21~40, Empire=50
+- [x] GetLordTasteTier: Basic→Standard→Gourmet→Royal
+- [x] GetLordDiseaseCountRange: Ring1=0→Ring4=2~3→Empire=3~4
+- [x] GetDefenseRating/GetDefenseMultiplier: Low(0.8x)→VeryHigh(1.6x)
+- [x] GetRewardTier/GetRewardMultiplier: Small(1x)→VeryLarge(8x)
+- [x] GetDifficultyStars/GetDifficultyTier: 1~5성
+- [x] GetMonsterTiersForDifficulty/GetMonsterCountRange: 몬스터 티어+마리수
+- [x] GetTerritoryIndicesForRing: Ring별 영지 인덱스 (1~5, 6~10, 11~15, 16~20)
+- [x] GetNationDisplayName: 5개국+드라큘라 한글 이름
+- [x] GenerateGuardLevel: 시드 기반 결정론적 레벨 생성
+- [x] GetDifficultyDescription: 난이도 설명 문자열
+- [x] Phase31_RingDifficultyDataTests.cs: 20개 테스트 통과
+
 | 항목 | Ring 1 (최외곽) | Ring 2 | Ring 3 | Ring 4 (황제국 인접) |
 |:-----|:--------------:|:------:|:------:|:-------------------:|
 | ⭐ **난이도 티어** | ⭐~⭐⭐ | ⭐⭐~⭐⭐⭐ | ⭐⭐⭐~⭐⭐⭐⭐ | ⭐⭐⭐⭐~⭐⭐⭐⭐⭐ |
