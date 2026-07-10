@@ -310,7 +310,7 @@ namespace ProjectName.UI
             if (PlayerInventory.Instance == null) return;
 
             // InventoryWindow에서 현재 선택된 아이템 가져오기
-            var invWindow = UIManager.Instance?.inventoryWindow as InventoryWindow;
+            var invWindow = UIManager.inventoryWindow as InventoryWindow;
             if (invWindow == null)
             {
                 Debug.LogWarning("[QuickSlotUI] InventoryWindow를 찾을 수 없습니다.");
@@ -371,7 +371,7 @@ namespace ProjectName.UI
             if (slotIndex < 0 || slotIndex >= 6) return;
             if (PlayerInventory.Instance == null) return;
 
-            var invWindow = UIManager.Instance?.inventoryWindow as InventoryWindow;
+            var invWindow = UIManager.inventoryWindow as InventoryWindow;
             if (invWindow == null) return;
 
             if (!invWindow.HasSelectedItem()) return;

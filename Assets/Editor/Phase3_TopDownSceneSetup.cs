@@ -116,35 +116,35 @@ public static class Phase3_TopDownSceneSetup
         invGO.transform.SetParent(uiGO.transform);
         invGO.SetActive(false);
         var invWindow = invGO.AddComponent<InventoryWindow>();
-        uiManager.inventoryWindow = invWindow;
+        UIManager.inventoryWindow = invWindow;
 
         // LootWindow — 전리품
         var lootGO = new GameObject("LootWindow");
         lootGO.transform.SetParent(uiGO.transform);
         lootGO.SetActive(false);
         var lootWindow = lootGO.AddComponent<LootWindow>();
-        uiManager.lootWindow = lootWindow;
+        UIManager.lootWindow = lootWindow;
 
         // QuestWindow — Q 키
         var questGO = new GameObject("QuestWindow");
         questGO.transform.SetParent(uiGO.transform);
         questGO.SetActive(false);
         var questWindow = questGO.AddComponent<QuestWindow>();
-        uiManager.questWindow = questWindow;
+        UIManager.questWindow = questWindow;
 
         // RecipeWindow — R 키
         var recipeGO = new GameObject("RecipeWindow");
         recipeGO.transform.SetParent(uiGO.transform);
         recipeGO.SetActive(false);
         var recipeWindow = recipeGO.AddComponent<RecipeWindow>();
-        uiManager.recipeWindow = recipeWindow;
+        UIManager.recipeWindow = recipeWindow;
 
         // MapWindow — M 키
         var mapGO = new GameObject("MapWindow");
         mapGO.transform.SetParent(uiGO.transform);
         mapGO.SetActive(false);
         var mapWindow = mapGO.AddComponent<MapWindow>();
-        uiManager.mapWindow = mapWindow;
+        UIManager.mapWindow = mapWindow;
 
         // UIManager.KeyBindings 직접 할당
         uiManager.GetComponent<UIManager>().SetKeyBindings(keyBindings);

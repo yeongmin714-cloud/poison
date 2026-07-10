@@ -195,17 +195,16 @@ namespace ProjectName.UI
         {
             if (UIManager.Instance != null && UIManager.warehouseWindow != null)
             {
-                var wui = UIManager.warehouseWindow;
-                // UI에 현재 영지 ID 설정 (기본값 "default" 대신)
-                if (wui is WarehouseUI warehouseUI)
+                var warehouseUI = UIManager.warehouseWindow;
+                if (warehouseUI != null)
                 {
                     warehouseUI.SetTerritory(_territoryId);
-                    wui.Open();
+                    warehouseUI.Open();
                     Debug.Log($"[TerritoryWarehouse] 창고 UI 열림 (영지: {_territoryId})");
                 }
                 else
                 {
-                    Debug.LogWarning("[TerritoryWarehouse] warehouseWindow가 WarehouseUI 타입이 아닙니다.");
+                    Debug.LogWarning("[TerritoryWarehouse] warehouseWindow가 null입니다.");
                 }
             }
             else

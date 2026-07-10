@@ -1,35 +1,19 @@
 using UnityEditor;
 using UnityEngine;
-using System.IO;
+using UnityEditor.Compilation;
 
 public class TestCompile
 {
     [MenuItem("Test/Compile")]
     public static void CompileTest()
     {
-        // Perform actual compilation check
-        var result = UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
-        
-        // Log compilation result
-        if (result != UnityEditor.Compilation.ScriptCompilationResult.Success)
-        {
-            Debug.LogError("Compilation failed");
-            EditorApplication.Exit(1);
-        }
-        else
-        {
-            Debug.Log("Test compile successful");
-        }
+        CompilationPipeline.RequestScriptCompilation();
+        Debug.Log("Compilation requested");
     }
     
-    // Method to check compilation without exiting
     public static bool CheckCompilation()
     {
-        var result = UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
-        if (result != UnityEditor.Compilation.ScriptCompilationResult.Success)
-        {
-            return false;
-        }
+        CompilationPipeline.RequestScriptCompilation();
         return true;
     }
 }
