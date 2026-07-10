@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using ProjectName.Core;
+using ProjectName.Systems;
 
 namespace ProjectName.UI
 {
@@ -17,6 +19,7 @@ namespace ProjectName.UI
         [SerializeField] private RecipeWindow _recipeWindow;
         [SerializeField] private InventoryWindow _inventoryWindow;
         [SerializeField] private MapWindow _mapWindow;
+        [SerializeField] private LootWindow _lootWindow;
 
         public static UIManager Instance { get; private set; }
 
@@ -44,6 +47,7 @@ namespace ProjectName.UI
             recipeWindow = _recipeWindow;
             inventoryWindow = _inventoryWindow;
             mapWindow = _mapWindow;
+            lootWindow = _lootWindow;
         }
 
         private void Start()
@@ -53,6 +57,26 @@ namespace ProjectName.UI
             RegisterWindow("Recipe", _recipeWindow);
             RegisterWindow("Inventory", _inventoryWindow);
             RegisterWindow("Map", _mapWindow);
+
+            // LootBasket 이벤트 구독 — E 키로 LootWindow 열기
+            LootBasket.OnOpenLootWindowRequested += HandleLootWindowRequest;
+        }
+
+        private void OnDestroy()
+        {
+            // 이벤트 구독 해제 (메모리 누수 방지)
+            LootBasket.OnOpenLootWindowRequested -= HandleLootWindowRequest;
+        }
+
+        private void HandleLootWindowRequest(ILootBasket basket)
+        {
+            if (_lootWindow == null)
+            {
+                Debug.LogWarning("[UIManager] LootWindow 참조가 없습니다. 직접 루팅으로 폴백합니다.");
+                basket.TakeAll();
+                return;
+            }
+            _lootWindow.OpenForBasket(basket);
         }
 
         private void RegisterWindow(string actionName, UIWindow window)
