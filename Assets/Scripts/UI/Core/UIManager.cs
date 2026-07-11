@@ -68,7 +68,7 @@ namespace ProjectName.UI
             LootBasket.OnOpenLootWindowRequested -= HandleLootWindowRequest;
         }
 
-        private void HandleLootWindowRequest(ILootBasket basket)
+        private void HandleLootWindowRequest(ProjectName.Core.ILootBasket basket)
         {
             if (_lootWindow == null)
             {
