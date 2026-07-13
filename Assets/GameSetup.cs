@@ -16,6 +16,39 @@ public class GameSetup : MonoBehaviour
     {
         if (!_autoSetup) return;
 
+        // ── 테스트 씬 모드 확인 ─────────────────────────────────────
+        var testConfig = FindAnyObjectByType<TestSceneConfig>();
+        if (testConfig != null && testConfig.isTestScene)
+        {
+            Debug.Log($"[GameSetup] 🧪 테스트 씬 모드: {testConfig.testFocus}");
+            Debug.Log($"[GameSetup] 📋 활성화된 시스템: {string.Join(", ", testConfig.enabledSystems)}");
+
+            if (testConfig.IsSystemEnabled("Player")) SetupPlayerComponents();
+            if (testConfig.IsSystemEnabled("All")) SetupWorldComponents();
+            // 특정 시스템만 선택적 초기화
+            if (testConfig.IsSystemEnabled("UI") || testConfig.IsSystemEnabled("UIManager")) SetupUIManager();
+            if (testConfig.IsSystemEnabled("Monsters")) SetupMonsterSpawner();
+            if (testConfig.IsSystemEnabled("Territory")) SetupTerritorySystems();
+            if (testConfig.IsSystemEnabled("Guards")) SetupGuardSystems();
+            if (testConfig.IsSystemEnabled("Combat") || testConfig.IsSystemEnabled("All")) SetupPlayerComponents();
+            if (testConfig.IsSystemEnabled("Craft") || testConfig.IsSystemEnabled("Inventory")) SetupCraftSystems();
+            if (testConfig.IsSystemEnabled("Time") || testConfig.IsSystemEnabled("Weather")) SetupTimeWeatherSystems();
+            if (testConfig.IsSystemEnabled("Gas") || testConfig.IsSystemEnabled("Bomb")) SetupGasBombSystems();
+            if (testConfig.IsSystemEnabled("Dracula")) SetupDraculaSystems();
+
+            // All 모드: 핵심 시스템만
+            if (testConfig.IsSystemEnabled("All"))
+            {
+                SetupWorldComponents();
+                SetupPlayerComponents();
+                SetupUIManager();
+            }
+
+            _autoSetup = false;
+            return;
+        }
+
+        // ── 메인 씬 모드 (기존 전체 초기화) ────────────────────────
         SetupPlayerComponents();
         SetupWorldComponents();
 
@@ -195,6 +228,116 @@ public class GameSetup : MonoBehaviour
             var loadGO = new GameObject("LoadingManager");
             loadGO.AddComponent<LoadingManager>();
             Debug.Log("[GameSetup] ✅ LoadingManager 생성");
+        }
+    }
+
+    // ── 테스트 씬 전용: 선택적 시스템 초기화 ─────────────────────
+
+    private void SetupUIManager()
+    {
+        if (FindAnyObjectByType<UIManager>() == null)
+        {
+            var uiGO = new GameObject("UIManager");
+            uiGO.AddComponent<UIManager>();
+            Debug.Log("[GameSetup] ✅ UIManager 생성 (테스트 씬)");
+        }
+        if (FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
+        {
+            var esGO = new GameObject("EventSystem");
+            esGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
+            esGO.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+        }
+    }
+
+    private void SetupMonsterSpawner()
+    {
+        if (FindAnyObjectByType<MonsterSpawner>() == null)
+        {
+            var go = new GameObject("MonsterSpawner");
+            go.AddComponent<MonsterSpawner>();
+            Debug.Log("[GameSetup] ✅ MonsterSpawner 생성 (테스트 씬)");
+        }
+    }
+
+    private void SetupTerritorySystems()
+    {
+        if (FindAnyObjectByType<TerritoryManager>() == null)
+        {
+            var go = new GameObject("TerritoryManager");
+            go.AddComponent<TerritoryManager>();
+            Debug.Log("[GameSetup] ✅ TerritoryManager 생성 (테스트 씬)");
+        }
+        if (FindAnyObjectByType<NationTerrainController>() == null)
+        {
+            var go = new GameObject("NationTerrainController");
+            go.AddComponent<NationTerrainController>();
+        }
+    }
+
+    private void SetupGuardSystems()
+    {
+        if (FindAnyObjectByType<GuardManager>() == null)
+        {
+            var go = new GameObject("GuardManager");
+            go.AddComponent<GuardManager>();
+            Debug.Log("[GameSetup] ✅ GuardManager 생성 (테스트 씬)");
+        }
+    }
+
+    private void SetupCraftSystems()
+    {
+        if (FindAnyObjectByType<PlayerInventory>() == null)
+        {
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+                player.AddComponent<PlayerInventory>();
+        }
+        Debug.Log("[GameSetup] ✅ 인벤토리/크래프트 시스템 준비 (테스트 씬)");
+    }
+
+    private void SetupTimeWeatherSystems()
+    {
+        if (FindAnyObjectByType<TimeManager>() == null)
+        {
+            var go = new GameObject("TimeManager");
+            go.AddComponent<TimeManager>();
+            Debug.Log("[GameSetup] ✅ TimeManager 생성 (테스트 씬)");
+        }
+        if (FindAnyObjectByType<DayNightCycle>() == null)
+        {
+            var go = new GameObject("DayNightCycle");
+            go.AddComponent<DayNightCycle>();
+            Debug.Log("[GameSetup] ✅ DayNightCycle 생성 (테스트 씬)");
+        }
+    }
+
+    private void SetupGasBombSystems()
+    {
+        var player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            if (player.GetComponent<BombThrower>() == null)
+                player.AddComponent<BombThrower>();
+            if (player.GetComponent<GasSprayer>() == null)
+                player.AddComponent<GasSprayer>();
+            if (player.GetComponent<GasSprayerController>() == null)
+                player.AddComponent<GasSprayerController>();
+        }
+        Debug.Log("[GameSetup] ✅ 가스/폭탄 시스템 준비 (테스트 씬)");
+    }
+
+    private void SetupDraculaSystems()
+    {
+        if (FindAnyObjectByType<DraculaLord>() == null)
+        {
+            var go = new GameObject("DraculaLord");
+            go.AddComponent<DraculaLord>();
+            Debug.Log("[GameSetup] ✅ DraculaLord 생성 (테스트 씬)");
+        }
+        if (FindAnyObjectByType<DraculaTerritoryController>() == null)
+        {
+            var go = new GameObject("DraculaTerritoryController");
+            go.AddComponent<DraculaTerritoryController>();
         }
     }
 }
