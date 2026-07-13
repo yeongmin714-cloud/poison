@@ -22,10 +22,14 @@ public class GameSetup : MonoBehaviour
         {
             Debug.Log($"[GameSetup] 🧪 테스트 씬 모드: {testConfig.testFocus}");
 
-            // 메인씬 복제 기반 → 모든 컴포넌트가 이미 존재
-            // 필요한 시스템만 추가 보강
+            // 필수 시스템 보강
             EnsureEventSystem();
             EnsureLoadingManager();
+
+            // Player 컴포넌트는 메인씬에서 이미 복제되어 있으나
+            // PlayerInput/PlayerCombat 등은 GameSetup 없이는 추가되지 않음
+            // → 보강: 누락된 Player 컴포넌트 추가
+            SetupPlayerComponents();
 
             _autoSetup = false;
             return;

@@ -4,15 +4,35 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
 /// 메인씬을 복제 → 불필요 시스템 제거 방식으로 테스트 씬 생성.
-/// 실제 PlayerMovement, TopDownCamera, Placeholder 등이 모두 포함됩니다.
+/// 각 씬은 실제 PlayerMovement, TopDownCamera, Placeholder 등을 모두 포함합니다.
 /// </summary>
 public class TestSceneGenerator : EditorWindow
 {
     private string _scenePath = "Assets/Scenes/TestScenes";
     private static readonly string MainScenePath = "Assets/Scenes/MainScene.unity";
+
+    // 시스템별 제거할 오브젝트 이름 목록
+    private static readonly string[] TerritoryRoots = {
+        "Territory_A_", "Territory_B_", "Territory_C_", "Country_", "Label_Territory",
+        "Border_A_", "Border_B_", "Border_C_", "Boundary_", "BoundaryMat_",
+        "GuardPlaceholder", "SkeletonGuard", "GateGuard", "BuildingPlaceholder",
+        "FlagPole", "Emblem"
+    };
+
+    private static readonly string[] MonsterRoots = {
+        "MonsterSpawner", "AnimalAI", "Wolf", "Boar", "Rabbit", "Deer",
+        "Monster_", "Slime_", "Bat_", "Crow_"
+    };
+
+    private static readonly string[] NPCAndMiscRoots = {
+        "NpcQuestGiver", "MercenaryManager", "Mercenary", "BardMercenary",
+        "ArenaSystem", "WanderingMerchant", "CraftingStation", "CraftingTable",
+        "Tavern", "Church"
+    };
 
     [MenuItem("Tools/Test Scenes/📋 Open Generator Window")]
     private static void ShowWindow()
@@ -30,13 +50,7 @@ public class TestSceneGenerator : EditorWindow
         }
     }
 
-    /// <summary>
-    /// 배치모드 진입점
-    /// </summary>
-    public static void GenerateAllBatch()
-    {
-        GenerateAllInternal();
-    }
+    public static void GenerateAllBatch() => GenerateAllInternal();
 
     private static void GenerateAllInternal()
     {
@@ -57,8 +71,9 @@ public class TestSceneGenerator : EditorWindow
     private void OnGUI()
     {
         GUILayout.Label("🧪 테스트 씬 생성기", EditorStyles.boldLabel);
-        EditorGUILayout.HelpBox("메인씬을 복제하여 시스템별로 분할한 테스트 씬을 생성합니다.\n"
-            + "PlayerMovement, TopDownCamera, Placeholder 등 실제 컴포넌트가 모두 포함됩니다.",
+        EditorGUILayout.HelpBox(
+            "메인씬을 복제 → 불필요한 시스템만 제거하여 테스트 씬 생성.\n"
+            + "실제 PlayerMovement, TopDownCamera, Placeholder 등이 모두 포함됩니다.",
             MessageType.Info);
 
         _scenePath = EditorGUILayout.TextField("생성 경로", _scenePath);
@@ -66,55 +81,37 @@ public class TestSceneGenerator : EditorWindow
         EditorGUILayout.Space(10);
         if (GUILayout.Button("🚀 모든 테스트 씬 생성 (9개)", GUILayout.Height(30)))
         {
-            if (EditorUtility.DisplayDialog("확인", "메인씬을 복제하여 9개 테스트 씬을 생성합니다.", "생성", "취소"))
-            {
+            if (EditorUtility.DisplayDialog("확인", "메인씬을 복제하여 9개 테스트 씬 생성", "생성", "취소"))
                 GenerateAllInternal();
-                EditorUtility.DisplayDialog("완료", "✅ 9개 테스트 씬 생성 완료!", "확인");
-            }
         }
 
         EditorGUILayout.Space(5);
-        if (GUILayout.Button("🏃 Test_01_Player (이동+카메라+지형)")) GeneratePlayerScene();
-        if (GUILayout.Button("🖥️ Test_02_UI (모든 UI 창)")) GenerateUIScene();
-        if (GUILayout.Button("⚔️ Test_03_Combat (전투+몬스터)")) GenerateCombatScene();
-        if (GUILayout.Button("🏰 Test_04_Territory (영지+병사+건물)")) GenerateTerritoryScene();
-        if (GUILayout.Button("🧪 Test_05_Craft (크래프트+인벤토리)")) GenerateCraftScene();
-        if (GUILayout.Button("🌙 Test_06_TimeWeather (시간+날씨)")) GenerateTimeWeatherScene();
-        if (GUILayout.Button("💨 Test_07_GasBomb (가스분사기+폭탄)")) GenerateGasBombScene();
-        if (GUILayout.Button("🧛 Test_08_Dracula (드라큘라+야간)")) GenerateDraculaScene();
-        if (GUILayout.Button("🛡️ Test_09_AllInOne (모든 시스템 간소화)")) GenerateAllInOneSimpleScene();
+        if (GUILayout.Button("🏃 Test_01_Player")) GeneratePlayerScene();
+        if (GUILayout.Button("🖥️ Test_02_UI")) GenerateUIScene();
+        if (GUILayout.Button("⚔️ Test_03_Combat")) GenerateCombatScene();
+        if (GUILayout.Button("🏰 Test_04_Territory")) GenerateTerritoryScene();
+        if (GUILayout.Button("🧪 Test_05_Craft")) GenerateCraftScene();
+        if (GUILayout.Button("🌙 Test_06_TimeWeather")) GenerateTimeWeatherScene();
+        if (GUILayout.Button("💨 Test_07_GasBomb")) GenerateGasBombScene();
+        if (GUILayout.Button("🧛 Test_08_Dracula")) GenerateDraculaScene();
+        if (GUILayout.Button("🛡️ Test_09_AllInOne")) GenerateAllInOneSimpleScene();
     }
 
     /// <summary>
-    /// 메인씬을 열고, 특정 루트 오브젝트만 남기고 나머지 제거 후 저장.
+    /// 메인씬을 열고, 지정된 패턴과 일치하는 루트 오브젝트들을 제거한 후 저장.
     /// </summary>
-    private void CloneAndStrip(string sceneName, string[] keepRoots, string[] removeRoots, string[] additionalRemove)
+    private void CloneAndStrip(string sceneName, string[] removePatterns, string focusLabel)
     {
         if (!Directory.Exists(_scenePath))
             Directory.CreateDirectory(_scenePath);
 
         string path = Path.Combine(_scenePath, sceneName + ".unity");
-
-        // Open main scene
         var mainScene = EditorSceneManager.OpenScene(MainScenePath, OpenSceneMode.Single);
         var rootObjects = mainScene.GetRootGameObjects();
 
-        // Determine which roots to keep
-        var keepSet = new HashSet<string>(keepRoots ?? new string[0]);
-        var removeSet = new HashSet<string>(removeRoots ?? new string[0]);
-
-        // Strip: destroy root objects that are NOT in the keep list
         foreach (var root in rootObjects)
         {
-            bool shouldRemove = removeSet.Contains(root.name);
-
-            if (keepSet.Count > 0 && !removeSet.Contains(root.name))
-            {
-                // If we have a keep list, only keep those
-                shouldRemove = !keepSet.Contains(root.name);
-            }
-
-            if (shouldRemove)
+            if (ShouldRemove(root.name, removePatterns))
             {
                 DestroyImmediate(root);
             }
@@ -123,109 +120,109 @@ public class TestSceneGenerator : EditorWindow
         // Add TestSceneConfig
         var configGO = new GameObject("_TestSceneConfig");
         var config = configGO.AddComponent<TestSceneConfig>();
-        config.testFocus = sceneName;
-        config.enabledSystems = keepRoots ?? new string[] { "All" };
-
-        // Remove any additional system objects (non-root)
-        if (additionalRemove != null)
-        {
-            foreach (var typeName in additionalRemove)
-            {
-                // Find and destroy objects with specific component types
-                System.Type type = System.Type.GetType(typeName);
-                if (type != null)
-                {
-                    var components = FindAnyObjectByType(type) as Component;
-                    if (components != null)
-                    {
-                        DestroyImmediate(components.gameObject);
-                    }
-                }
-            }
-        }
+        config.testFocus = focusLabel;
 
         EditorSceneManager.SaveScene(mainScene, path);
-        Debug.Log($"✅ 생성: {path}");
+        Debug.Log($"✅ 생성: {path} ({focusLabel})");
     }
+
+    private bool ShouldRemove(string name, string[] patterns)
+    {
+        foreach (var p in patterns)
+        {
+            if (name.StartsWith(p)) return true;
+            if (name.Contains(p)) return true;
+        }
+        return false;
+    }
+
+    // ── 각 씬별 제거 패턴 정의 ──
 
     private void GeneratePlayerScene()
     {
-        CloneAndStrip("Test_01_Player",
-            keepRoots: new[] { "Player", "Ground", "Ground_Inner", "Ground_Mid", "Ground_Outer", "Directional Light", "Camera", "Cinemachine Brain" },
-            removeRoots: null,
-            additionalRemove: null
-        );
+        // Player + 지형 + 카메라만 유지
+        CloneAndStrip("Test_01_Player", 
+            TerritoryRoots.Concat(MonsterRoots).Concat(NPCAndMiscRoots)
+                .Concat(new[] { "MapWindow", "InventoryWindow", "QuestWindow", "RecipeWindow",
+                                "LootWindow", "UI", "UIManager", "Global Volume",
+                                "MapBoundary", "CountryTerritories_Overlay",
+                                "GameManager" }).ToArray(),
+            "Player 이동 + 카메라 + 지형 (가장 기본)");
     }
 
     private void GenerateUIScene()
     {
+        // UI 창 테스트 - 게임매니저, UI 시스템 유지, 몬스터/영지 제거
         CloneAndStrip("Test_02_UI",
-            keepRoots: new[] { "Player", "Ground", "Directional Light", "Camera", "Cinemachine Brain", "UIManager", "EventSystem", "HUD", "MinimapUI", "Canvas" },
-            removeRoots: null,
-            additionalRemove: null
-        );
+            TerritoryRoots.Concat(MonsterRoots)
+                .Concat(new[] { "MapBoundary", "CountryTerritories_Overlay" }).ToArray(),
+            "모든 UI 창 테스트");
     }
 
     private void GenerateCombatScene()
     {
+        // 전투 테스트 - 몬스터 유지, 영지/UI 제거
         CloneAndStrip("Test_03_Combat",
-            keepRoots: new[] { "Player", "Ground", "Ground_Inner", "Ground_Mid", "Ground_Outer", "Directional Light", "Camera", "Cinemachine Brain", "MonsterSpawner" },
-            removeRoots: null,
-            additionalRemove: null
-        );
+            TerritoryRoots.Concat(NPCAndMiscRoots)
+                .Concat(new[] { "MapWindow", "InventoryWindow", "QuestWindow", "RecipeWindow",
+                                "LootWindow", "MapBoundary", "CountryTerritories_Overlay" }).ToArray(),
+            "전투 + 몬스터 테스트");
     }
 
     private void GenerateTerritoryScene()
     {
+        // 영지 테스트 - 영지 유지, 몬스터 제거
         CloneAndStrip("Test_04_Territory",
-            keepRoots: new[] { "Player", "Ground", "Ground_Inner", "Ground_Mid", "Ground_Outer", "Directional Light", "Camera", "Cinemachine Brain", "TerritoryManager", "GuardManager" },
-            removeRoots: null,
-            additionalRemove: null
-        );
+            MonsterRoots.Concat(NPCAndMiscRoots)
+                .Concat(new[] { "MapWindow", "InventoryWindow", "QuestWindow", "RecipeWindow",
+                                "LootWindow" }).ToArray(),
+            "영지 + 병사 + 건물 테스트");
     }
 
     private void GenerateCraftScene()
     {
+        // 크래프트 테스트 - 크래프트 관련 유지, 영지/몬스터 제거
         CloneAndStrip("Test_05_Craft",
-            keepRoots: new[] { "Player", "Ground", "Ground_Inner", "Directional Light", "Camera", "Cinemachine Brain", "CraftingStation", "CraftingTable" },
-            removeRoots: null,
-            additionalRemove: null
-        );
+            TerritoryRoots.Concat(MonsterRoots)
+                .Concat(new[] { "MapWindow", "QuestWindow", "LootWindow" }).ToArray(),
+            "크래프트 + 인벤토리 테스트");
     }
 
     private void GenerateTimeWeatherScene()
     {
+        // 시간/날씨 테스트
         CloneAndStrip("Test_06_TimeWeather",
-            keepRoots: new[] { "Player", "Ground", "Ground_Inner", "Ground_Mid", "Ground_Outer", "Directional Light", "Camera", "Cinemachine Brain", "TimeManager", "WeatherManager" },
-            removeRoots: null,
-            additionalRemove: null
-        );
+            TerritoryRoots.Concat(MonsterRoots).Concat(NPCAndMiscRoots)
+                .Concat(new[] { "MapWindow", "InventoryWindow", "QuestWindow", "RecipeWindow",
+                                "LootWindow", "MapBoundary", "CountryTerritories_Overlay" }).ToArray(),
+            "주야간 + 날씨 변화 테스트");
     }
 
     private void GenerateGasBombScene()
     {
+        // 가스/폭탄 테스트
         CloneAndStrip("Test_07_GasBomb",
-            keepRoots: new[] { "Player", "Ground", "Ground_Inner", "Directional Light", "Camera", "Cinemachine Brain" },
-            removeRoots: null,
-            additionalRemove: null
-        );
+            TerritoryRoots.Concat(MonsterRoots).Concat(NPCAndMiscRoots)
+                .Concat(new[] { "MapWindow", "InventoryWindow", "QuestWindow", "RecipeWindow",
+                                "LootWindow", "MapBoundary" }).ToArray(),
+            "가스분사기 + 폭탄 테스트");
     }
 
     private void GenerateDraculaScene()
     {
+        // 드라큘라 테스트 - 거의 전체 유지
         CloneAndStrip("Test_08_Dracula",
-            keepRoots: null,
-            removeRoots: new[] { "MonsterSpawner", "MercenaryManager", "ArenaSystem" },
-            additionalRemove: null
-        );
+            MonsterRoots.Concat(new[] { "MercenaryManager", "BardMercenary", "ArenaSystem",
+                                        "WanderingMerchant", "MapBoundary" }).ToArray(),
+            "드라큘라 + 야간 테스트");
     }
 
     private void GenerateAllInOneSimpleScene()
     {
+        // 모든 시스템 포함, 일부 무거운 시스템만 제거
         CloneAndStrip("Test_09_AllInOne",
-            keepRoots: null,
-            removeRoots: new[] { "MercenaryManager", "ArenaSystem", "BardMercenary" },
-            additionalRemove: null
-        );
+            new[] { "MercenaryManager", "BardMercenary", "ArenaSystem",
+                    "MapBoundary", "CountryTerritories_Overlay" },
+            "모든 시스템 (간소화)");
     }
 }
