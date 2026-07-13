@@ -16,24 +16,7 @@ public class GameSetup : MonoBehaviour
     {
         if (!_autoSetup) return;
 
-        // ── 테스트 씬 모드 확인 ─────────────────────────────────────
-        var testConfig = FindAnyObjectByType<TestSceneConfig>();
-        if (testConfig != null && testConfig.isTestScene)
-        {
-            Debug.Log($"[GameSetup] 🧪 테스트 씬 모드: {testConfig.testFocus}");
-
-            // 필수 시스템 보강
-            EnsureEventSystem();
-            EnsureLoadingManager();
-
-            // Player에 Input System 컴포넌트만 추가 (카메라/Health는 건드리지 않음)
-            AddPlayerInputOnly();
-
-            _autoSetup = false;
-            return;
-        }
-
-        // ── 메인 씬 모드 (기존 전체 초기화) ────────────────────────
+        // ── 메인 씬 모드 ────────────────────────
         SetupPlayerComponents();
         SetupWorldComponents();
 
@@ -213,48 +196,6 @@ public class GameSetup : MonoBehaviour
             var loadGO = new GameObject("LoadingManager");
             loadGO.AddComponent<LoadingManager>();
             Debug.Log("[GameSetup] ✅ LoadingManager 생성");
-        }
-    }
-
-    // ── 테스트 씬 전용: Input System만 추가 (카메라/Health 건드리지 않음) ──
-    private void AddPlayerInputOnly()
-    {
-        var player = GameObject.FindGameObjectWithTag("Player");
-        if (player == null)
-        {
-            Debug.LogWarning("[GameSetup] ⚠️ 테스트 씬: 'Player' 태그 없음");
-            return;
-        }
-
-        // PlayerInput만 추가 (메인씬에서 복제되지 않음)
-        if (player.GetComponent<UnityEngine.InputSystem.PlayerInput>() == null)
-        {
-            var pi = player.AddComponent<UnityEngine.InputSystem.PlayerInput>();
-            pi.defaultActionMap = "Player";
-            pi.notificationBehavior = UnityEngine.InputSystem.PlayerNotifications.InvokeUnityEvents;
-            Debug.Log("[GameSetup] ✅ PlayerInput → Player에 추가 (테스트 씬)");
-        }
-    }
-
-    // ── 테스트 씬 전용: 필수 시스템 보강 ─────────────────────
-
-    private void EnsureEventSystem()
-    {
-        if (FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
-        {
-            var esGO = new GameObject("EventSystem");
-            esGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
-            esGO.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
-            Debug.Log("[GameSetup] ✅ EventSystem 생성 (테스트 씬)");
-        }
-    }
-
-    private void EnsureLoadingManager()
-    {
-        if (FindAnyObjectByType<LoadingManager>() == null)
-        {
-            var loadGO = new GameObject("LoadingManager");
-            loadGO.AddComponent<LoadingManager>();
         }
     }
 }

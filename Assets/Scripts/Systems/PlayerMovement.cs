@@ -210,6 +210,7 @@ namespace ProjectName.Systems
 
         private void HandleMovement()
         {
+            if (_keyboard == null) _keyboard = Keyboard.current;
             if (_keyboard == null) return;
 
             // 구르기 중에는 이동 입력을 새로운 방향으로 변경하지 않음
