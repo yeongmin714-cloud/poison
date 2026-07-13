@@ -26,10 +26,8 @@ public class GameSetup : MonoBehaviour
             EnsureEventSystem();
             EnsureLoadingManager();
 
-            // Player 컴포넌트는 메인씬에서 이미 복제되어 있으나
-            // PlayerInput/PlayerCombat 등은 GameSetup 없이는 추가되지 않음
-            // → 보강: 누락된 Player 컴포넌트 추가
-            SetupPlayerComponents();
+            // Player에 Input System 컴포넌트만 추가 (카메라/Health는 건드리지 않음)
+            AddPlayerInputOnly();
 
             _autoSetup = false;
             return;
@@ -215,6 +213,26 @@ public class GameSetup : MonoBehaviour
             var loadGO = new GameObject("LoadingManager");
             loadGO.AddComponent<LoadingManager>();
             Debug.Log("[GameSetup] ✅ LoadingManager 생성");
+        }
+    }
+
+    // ── 테스트 씬 전용: Input System만 추가 (카메라/Health 건드리지 않음) ──
+    private void AddPlayerInputOnly()
+    {
+        var player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null)
+        {
+            Debug.LogWarning("[GameSetup] ⚠️ 테스트 씬: 'Player' 태그 없음");
+            return;
+        }
+
+        // PlayerInput만 추가 (메인씬에서 복제되지 않음)
+        if (player.GetComponent<UnityEngine.InputSystem.PlayerInput>() == null)
+        {
+            var pi = player.AddComponent<UnityEngine.InputSystem.PlayerInput>();
+            pi.defaultActionMap = "Player";
+            pi.notificationBehavior = UnityEngine.InputSystem.PlayerNotifications.InvokeUnityEvents;
+            Debug.Log("[GameSetup] ✅ PlayerInput → Player에 추가 (테스트 씬)");
         }
     }
 

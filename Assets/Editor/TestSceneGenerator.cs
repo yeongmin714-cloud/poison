@@ -140,13 +140,12 @@ public class TestSceneGenerator : EditorWindow
 
     private void GeneratePlayerScene()
     {
-        // Player + 지형 + 카메라만 유지
+        // Player + 지형 + 카메라만 유지 (GameManager는 유지!)
         CloneAndStrip("Test_01_Player", 
             TerritoryRoots.Concat(MonsterRoots).Concat(NPCAndMiscRoots)
                 .Concat(new[] { "MapWindow", "InventoryWindow", "QuestWindow", "RecipeWindow",
-                                "LootWindow", "UI", "UIManager", "Global Volume",
-                                "MapBoundary", "CountryTerritories_Overlay",
-                                "GameManager" }).ToArray(),
+                                "LootWindow", "Global Volume",
+                                "MapBoundary", "CountryTerritories_Overlay" }).ToArray(),
             "Player 이동 + 카메라 + 지형 (가장 기본)");
     }
 
