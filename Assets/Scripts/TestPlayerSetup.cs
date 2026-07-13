@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using ProjectName.Systems;
 
 /// <summary>
 /// 테스트 씬 전용: Player 이동에 필요한 최소 구성 요소만 설정.
