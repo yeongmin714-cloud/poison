@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+namespace ProjectName.Systems
+{
 /// <summary>
 /// 테스트 씬 전용: Player 이동에 필요한 최소 구성 요소만 설정.
 /// GameManager/UIManager 등 모든 시스템을 사용하지 않음.
@@ -138,4 +140,5 @@ public class TestPlayerSetup : MonoBehaviour
             Debug.Log("[TestPlayerSetup] ✅ EventSystem 생성");
         }
     }
+}
 }

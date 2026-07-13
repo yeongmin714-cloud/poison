@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using System.IO;
+using ProjectName.Systems;
 
 /// <summary>
 /// 깨끗한 빈 씬 + 최소 구성 요소만 추가하는 테스트 씬 생성기.
