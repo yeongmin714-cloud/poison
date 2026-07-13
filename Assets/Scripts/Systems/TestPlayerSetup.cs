@@ -1,10 +1,10 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using ProjectName.Systems;
 
 /// <summary>
 /// 테스트 씬 전용: Player 이동에 필요한 최소 구성 요소만 설정.
 /// GameManager/UIManager 등 모든 시스템을 사용하지 않음.
+/// 풀네임을 사용하여 네임스페이스/어셈블리 참조 문제 회피.
 /// </summary>
 public class TestPlayerSetup : MonoBehaviour
 {
@@ -43,10 +43,11 @@ public class TestPlayerSetup : MonoBehaviour
             cc.radius = 0.5f;
         }
 
-        // PlayerMovement
-        if (player.GetComponent<PlayerMovement>() == null)
+        // PlayerMovement (풀네임)
+        var pmType = typeof(ProjectName.Systems.PlayerMovement);
+        if (player.GetComponent(pmType) == null)
         {
-            player.AddComponent<PlayerMovement>();
+            player.AddComponent(pmType);
         }
 
         // PlayerInput (Input System 활성화용)
@@ -65,7 +66,6 @@ public class TestPlayerSetup : MonoBehaviour
             capsule.transform.SetParent(player.transform);
             capsule.transform.localPosition = Vector3.zero;
             capsule.transform.localScale = Vector3.one;
-            // Remove the collider from the visual (CharacterController handles it)
             DestroyImmediate(capsule.GetComponent<CapsuleCollider>());
         }
 
@@ -90,13 +90,13 @@ public class TestPlayerSetup : MonoBehaviour
         cam.nearClipPlane = 0.1f;
         cam.farClipPlane = 500f;
 
-        // TopDownCameraController
-        if (camGO.GetComponent<TopDownCameraController>() == null)
+        // TopDownCameraController (풀네임)
+        var tdcType = typeof(ProjectName.Systems.TopDownCameraController);
+        if (camGO.GetComponent(tdcType) == null)
         {
-            camGO.AddComponent<TopDownCameraController>();
+            camGO.AddComponent(tdcType);
         }
 
-        // AudioListener
         if (camGO.GetComponent<AudioListener>() == null)
             camGO.AddComponent<AudioListener>();
 
