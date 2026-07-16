@@ -76,6 +76,11 @@ namespace ProjectName.UI
         private readonly HashSet<string> _detectedActions = new HashSet<string>(); // T6 영지 액션 감지
         private float _interactionRange = 3f;
 
+        // 가드 캐시 (매 프레임 FindObjectsByType 방지)
+        private GuardPlaceholder _cachedGuard;
+        private float _guardCacheTimer;
+        private const float GUARD_CACHE_INTERVAL = 1.5f;
+
         // ================================================================
         // MonoBehaviour 생명주기
         // ================================================================
@@ -365,20 +370,36 @@ namespace ProjectName.UI
 
         private GuardPlaceholder FindGuardNearby()
         {
-            var guards = FindObjectsByType<GuardPlaceholder>();
-            if (guards.Length == 0) return null;
-
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
-            if (player == null) return guards[0];
-
-            float minDist = 5f;
-            GuardPlaceholder nearest = null;
-            foreach (var g in guards)
+            // 캐시 사용: 주기적 갱신 (매 프레임 FindObjectsByType 방지)
+            _guardCacheTimer += Time.deltaTime;
+            if (_guardCacheTimer >= GUARD_CACHE_INTERVAL || _cachedGuard == null)
             {
-                float d = Vector3.Distance(player.transform.position, g.transform.position);
-                if (d < minDist) { minDist = d; nearest = g; }
+                _guardCacheTimer = 0f;
+                var guards = FindObjectsByType<GuardPlaceholder>();
+                if (guards.Length == 0)
+                {
+                    _cachedGuard = null;
+                    return null;
+                }
+
+                GameObject player = GameObject.FindGameObjectWithTag("Player");
+                if (player == null)
+                {
+                    _cachedGuard = guards[0];
+                    return _cachedGuard;
+                }
+
+                float minDist = 5f;
+                GuardPlaceholder nearest = null;
+                foreach (var g in guards)
+                {
+                    float d = Vector3.Distance(player.transform.position, g.transform.position);
+                    if (d < minDist) { minDist = d; nearest = g; }
+                }
+                _cachedGuard = nearest;
             }
-            return nearest;
+
+            return _cachedGuard;
         }
 
         // ================================================================

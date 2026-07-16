@@ -47,6 +47,11 @@ namespace ProjectName.Systems
         // 플레이어 레벨 캐시
         private int _playerLevel = 1;
 
+        // NPC 캐시 (매 프레임 FindObjectsByType 방지)
+        private NPCAwarenessSystem[] _npcCache = new NPCAwarenessSystem[0];
+        private float _npcCacheTimer;
+        private const float NPC_CACHE_INTERVAL = 1.5f;
+
         // 비네트 텍스처 캐시
         private Texture2D _vignetteTexture;
 
@@ -110,6 +115,14 @@ namespace ProjectName.Systems
             if (PlayerStats.Instance != null)
                 _playerLevel = PlayerStats.Instance.Level;
 
+            // NPC 캐시 주기적 갱신 (매 프레임 FindObjectsByType 방지)
+            _npcCacheTimer += Time.deltaTime;
+            if (_npcCacheTimer >= NPC_CACHE_INTERVAL)
+            {
+                _npcCacheTimer = 0f;
+                _npcCache = FindObjectsByType<NPCAwarenessSystem>();
+            }
+
             HandleCameraLower();
             UpdateDetectionGauge();
 
@@ -163,9 +176,9 @@ namespace ProjectName.Systems
                 return;
             }
 
-            // 주변 NPC 스캔
+            // 주변 NPC 스캔 (캐시 사용, 매 프레임 FindObjectsByType 방지)
             float totalDetection = 0f;
-            NPCAwarenessSystem[] npcs = FindObjectsByType<NPCAwarenessSystem>();
+            NPCAwarenessSystem[] npcs = _npcCache;
             if (npcs == null || npcs.Length == 0)
             {
                 // 감지 대상 없음 → 게이지 감소

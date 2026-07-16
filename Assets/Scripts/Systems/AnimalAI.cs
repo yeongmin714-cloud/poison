@@ -61,6 +61,8 @@ namespace ProjectName.Systems
         // 캐싱
         private float _bodyScale;
         private static readonly float _packCallRange = 8f;
+        private float _packCallTimer; // CallNearbyMonsters 주기적 실행 타이머
+        private const float PACK_CALL_INTERVAL = 1.5f;
 
         // Rig animation
         private RigAnimationController _rigAnim;
@@ -512,10 +514,14 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 근처 같은 종류 몬스터 호출
+        /// 근처 같은 종류 몬스터 호출 (주기적 실행, 매 프레임 FindObjectsByType 방지)
         /// </summary>
         private void CallNearbyMonsters()
         {
+            _packCallTimer += Time.deltaTime;
+            if (_packCallTimer < PACK_CALL_INTERVAL) return;
+            _packCallTimer = 0f;
+
             var monsters = FindObjectsByType<AnimalAI>();
             foreach (var m in monsters)
             {

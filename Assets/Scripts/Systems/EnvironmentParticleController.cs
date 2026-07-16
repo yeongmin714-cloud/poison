@@ -63,6 +63,11 @@ namespace ProjectName.Systems
         // 캐시된 바이옴 이름 (Fireflies 전용)
         private string _currentBiome;
 
+        // 캐시된 IBiomeProvider (매 프레임 FindObjectsByType 방지)
+        private IBiomeProvider _biomeProvider;
+        private float _biomeProviderTimer;
+        private const float BIOME_REFRESH_INTERVAL = 2f;
+
         // 캐시된 텍스처들
         private Texture2D _softCircleTex;
         private Texture2D _softCircleYellowTex;
@@ -143,6 +148,9 @@ namespace ProjectName.Systems
 
             // 초기 상태 적용
             ApplyInitialStates();
+
+            // IBiomeProvider 캐싱 (매 프레임 FindObjectsByType 방지)
+            CacheBiomeProvider();
         }
 
         private void Update()
@@ -150,7 +158,13 @@ namespace ProjectName.Systems
             // 플레이어 따라가기
             FollowPlayer();
 
-            // Fireflies: 바이옴 체크 (간격 체크는 생략, 매 프레임 가벼운 체크)
+            // Fireflies: 바이옴 체크 (주기적 갱신, 매 프레임 FindObjectsByType 방지)
+            _biomeProviderTimer += Time.deltaTime;
+            if (_biomeProviderTimer >= BIOME_REFRESH_INTERVAL)
+            {
+                _biomeProviderTimer = 0f;
+                CacheBiomeProvider();
+            }
             UpdateFireflyBiomeState();
         }
 
@@ -633,23 +647,36 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 현재 바이옴이 Forest 또는 Grass인지 확인합니다.
-        /// IBiomeProvider 또는 씬 이름을 통해 판단합니다.
+        /// IBiomeProvider를 캐싱합니다 (매 프레임 FindObjectsByType 방지).
         /// </summary>
-        private bool IsInForestOrGrassBiome()
+        private void CacheBiomeProvider()
         {
-            // BiomeAmbientController의 IBiomeProvider 패턴 활용
+            if (_biomeProvider != null) return;
             var monoBehaviors = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
             foreach (var mb in monoBehaviors)
             {
                 if (mb is IBiomeProvider provider)
                 {
-                    string biome = provider.GetCurrentBiome();
-                    if (!string.IsNullOrEmpty(biome))
-                    {
-                        string lower = biome.ToLowerInvariant();
-                        return lower.Contains("forest") || lower.Contains("grass");
-                    }
+                    _biomeProvider = provider;
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 현재 바이옴이 Forest 또는 Grass인지 확인합니다.
+        /// 캐시된 IBiomeProvider를 우선 사용합니다.
+        /// </summary>
+        private bool IsInForestOrGrassBiome()
+        {
+            // 캐시된 IBiomeProvider 사용 (매 프레임 FindObjectsByType 방지)
+            if (_biomeProvider != null)
+            {
+                string biome = _biomeProvider.GetCurrentBiome();
+                if (!string.IsNullOrEmpty(biome))
+                {
+                    string lower = biome.ToLowerInvariant();
+                    return lower.Contains("forest") || lower.Contains("grass");
                 }
             }
 

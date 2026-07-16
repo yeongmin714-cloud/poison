@@ -60,6 +60,11 @@ namespace ProjectName.Systems
         // 경로 갱신 타이머
         private float _pathTimer = 0f;
 
+        // 가드 캐시 (매 프레임 FindObjectsByType 방지)
+        private GuardPlaceholder[] _guardCache = new GuardPlaceholder[0];
+        private float _guardCacheTimer;
+        private const float GUARD_CACHE_INTERVAL = 1.5f;
+
         // WASD 감지용 키보드 캐싱 (직접 감지 — PlayerMovement와 독립적)
         private Keyboard _keyboard;
 
@@ -131,6 +136,14 @@ namespace ProjectName.Systems
             {
                 if (!FindPlayerReferences())
                     return;
+            }
+
+            // 가드 캐시 주기적 갱신 (매 프레임 FindObjectsByType 방지)
+            _guardCacheTimer += Time.deltaTime;
+            if (_guardCacheTimer >= GUARD_CACHE_INTERVAL)
+            {
+                _guardCacheTimer = 0f;
+                _guardCache = FindObjectsByType<GuardPlaceholder>();
             }
 
             // WASD 입력 감지 → 즉시 취소
@@ -409,8 +422,8 @@ namespace ProjectName.Systems
             {
                 Vector3 playerPos = playerObj.transform.position;
 
-                // 2a) GuardPlaceholder 중 Hostile 상태인 것 확인
-                var guards = FindObjectsByType<GuardPlaceholder>();
+                // 2a) GuardPlaceholder 중 Hostile 상태인 것 확인 (캐시 사용)
+                var guards = _guardCache;
                 float sqrDetectRadius = _hostileDetectionRadius * _hostileDetectionRadius;
                 foreach (var guard in guards)
                 {
