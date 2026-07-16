@@ -96,9 +96,21 @@ namespace ProjectName.Systems
                 animator.SetInteger(ParamState, StateIdle);
             }
 
-            // 프로시저럴 포즈 보정 컴포넌트 자동 부착 (모든 모델 일괄 적용, 중복 방지)
-            if (model.GetComponent<ProceduralPoseController>() == null)
-                model.AddComponent<ProceduralPoseController>();
+            // 프로시저럴 포즈 보정 — 모델 타입에 따라 2족/4족 컨트롤러 분기 부착 (중복 방지)
+            bool isQuadruped = false;
+            if (RuntimeModelLoader.TryGetModelMetadata(modelName, out var meta))
+                isQuadruped = meta.ModelType == ModelType.RiggedQuadruped;
+
+            if (isQuadruped)
+            {
+                if (model.GetComponent<QuadrupedPoseController>() == null)
+                    model.AddComponent<QuadrupedPoseController>();
+            }
+            else
+            {
+                if (model.GetComponent<ProceduralPoseController>() == null)
+                    model.AddComponent<ProceduralPoseController>();
+            }
         }
 
         /// <summary>
