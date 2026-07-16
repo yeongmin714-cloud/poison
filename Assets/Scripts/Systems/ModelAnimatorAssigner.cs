@@ -64,6 +64,25 @@ namespace ProjectName.Systems
                     return; // Skinned mesh가 없으면 스킵
             }
 
+            // Generic 아바타가 없으면 런타임 생성 (GLB는 에디터 아바타를 안 만듦)
+            if (animator.avatar == null)
+            {
+                Transform rootBone = FindRootBone(model);
+                if (rootBone != null)
+                {
+                    try
+                    {
+                        Avatar genericAvatar = AvatarBuilder.BuildGenericAvatar(model, rootBone.name);
+                        genericAvatar.name = model.name + "_GenericAvatar";
+                        animator.avatar = genericAvatar;
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogWarning($"[ModelAnimatorAssigner] Generic Avatar 생성 실패 ({model.name}): {e.Message}");
+                    }
+                }
+            }
+
             string lowerName = modelName.ToLowerInvariant();
             RuntimeAnimatorController controller = DetermineController(lowerName);
 
@@ -76,6 +95,10 @@ namespace ProjectName.Systems
                 // 시작 시 Idle 상태
                 animator.SetInteger(ParamState, StateIdle);
             }
+
+            // 프로시저럴 포즈 보정 컴포넌트 자동 부착 (모든 모델 일괄 적용, 중복 방지)
+            if (model.GetComponent<ProceduralPoseController>() == null)
+                model.AddComponent<ProceduralPoseController>();
         }
 
         /// <summary>
@@ -115,6 +138,46 @@ namespace ProjectName.Systems
 
             // Default: player controller
             return _playerController;
+        }
+
+        /// <summary>
+        /// GLB 모델 계층에서 루트 본(루트 뼈대) Transform을 찾습니다.
+        /// 우선순위:
+        /// 1. SkinnedMeshRenderer.rootBone
+        /// 2. 이름이 "Root"/"root"/"Armature"/"Hips"/"hips"인 Transform
+        /// 3. SkinnedMeshRenderer.bones[0]의 부모 체인 중 최상위 본
+        /// 4. model.transform
+        /// </summary>
+        private static Transform FindRootBone(GameObject model)
+        {
+            if (model == null) return null;
+
+            // 1. SkinnedMeshRenderer.rootBone 우선 사용
+            SkinnedMeshRenderer smr = model.GetComponentInChildren<SkinnedMeshRenderer>(true);
+            if (smr != null && smr.rootBone != null)
+                return smr.rootBone;
+
+            // 2. 이름 기준 탐색
+            Transform[] allTransforms = model.GetComponentsInChildren<Transform>(true);
+            foreach (Transform t in allTransforms)
+            {
+                string name = t.name;
+                if (name == "Root" || name == "root" || name == "Armature" || name == "Hips" || name == "hips")
+                    return t;
+            }
+
+            // 3. SkinnedMeshRenderer.bones[0]의 부모 체인 중 최상위 본
+            if (smr != null && smr.bones != null && smr.bones.Length > 0)
+            {
+                Transform bone = smr.bones[0];
+                while (bone.parent != null && bone.parent != model.transform)
+                    bone = bone.parent;
+                if (bone != null && bone != model.transform)
+                    return bone;
+            }
+
+            // 4. 기본값: model.transform
+            return model.transform;
         }
 
         /// <summary>

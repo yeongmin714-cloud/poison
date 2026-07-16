@@ -48,6 +48,10 @@ namespace ProjectName.Systems
             {
                 BuildPlaceholderBody();
             }
+            else
+            {
+                // AssignController가 PlayerModel 인스턴스에 PPC를 부착하므로 PlayerPlaceholder에는 직접 부착 불필요
+            }
         }
 
         /// <summary>
@@ -71,6 +75,9 @@ namespace ProjectName.Systems
                 playerInstance.transform.localPosition = Vector3.zero;
                 playerInstance.transform.localRotation = Quaternion.identity;
                 playerInstance.transform.localScale = Vector3.one;
+
+                // GLB 인스턴스에 Animator + Generic Avatar + AnimatorController + 프로시저럴 보정 부착
+                ModelAnimatorAssigner.AssignController(playerInstance, "player");
 
                 // 기존 도형들 제거
                 Destroy(_body);
