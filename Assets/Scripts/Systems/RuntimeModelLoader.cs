@@ -369,6 +369,49 @@ namespace ProjectName.Systems
                 return ModelType.RiggedQuadruped;
             }
 
+            // ── 넘버링 본 모델 (bone_0, bone_1, ... ) 4족 추정 ──
+            // 본 이름이 bone_N 형태이고, Root 아래 깊이 3+ 체인이 4개 이상이면 4족보행으로 판정
+            bool allNumbered = true;
+            foreach (var t in allBones)
+            {
+                if (t == root) continue;
+                string nm = t.name;
+                if (!(nm.StartsWith("bone_", System.StringComparison.OrdinalIgnoreCase)
+                    || nm.StartsWith("Bone", System.StringComparison.OrdinalIgnoreCase)
+                    || int.TryParse(nm, out _)))
+                {
+                    allNumbered = false;
+                    break;
+                }
+            }
+            if (allNumbered && allBones.Length >= 12)
+            {
+                // Root 본 추정: 전체 본 중 자식이 가장 많은 본 (Wolf는 bone_0가 SkeletonBindArmature 자식이라 root 직계가 아님)
+                Transform rootBone = null;
+                int maxChildren = -1;
+                foreach (var t in allBones)
+                {
+                    if (t.childCount > maxChildren)
+                    {
+                        maxChildren = t.childCount;
+                        rootBone = t;
+                    }
+                }
+                if (rootBone != null)
+                {
+                    int legChainCount = 0;
+                    foreach (Transform child in rootBone)
+                    {
+                        int depth = 0;
+                        Transform c = child;
+                        while (c != null && c.childCount > 0) { depth++; c = c.GetChild(0); }
+                        if (depth >= 3) legChainCount++;
+                    }
+                    if (legChainCount >= 4)
+                        return ModelType.RiggedQuadruped;
+                }
+            }
+
             // Check for humanoid bones
             if (AnimationBoneDefinitions.TryFindBoneCanonical(root, "UpperArm_L") != null &&
                 AnimationBoneDefinitions.TryFindBoneCanonical(root, "UpperLeg_L") != null)
