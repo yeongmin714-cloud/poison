@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using ProjectName.Core.Data;
 using UnityEngine;
+using System.Collections;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -64,9 +65,23 @@ namespace ProjectName.Systems
                 return;
             }
 
+            // 지연 로딩: 텍스처 로드는 Start() 또는 첫 UpdateForPosition() 호출 시 수행
+            // Awake에서는 간단한 fallback만 적용
+            _nationTextures = new Dictionary<NationType, List<Texture2D>>();
+            _extraTextures = new List<Texture2D>();
+            _nationMaterials = new Dictionary<NationType, Material>();
+            Debug.Log("[TerrainTextureApplier] Awake: 지연 로딩 모드 (텍스처는 Start에서 로드)");
+        }
+
+        private void Start()
+        {
+            // Start에서 텍스처 로드 — Awake 블로킹 방지
             LoadTextures();
             CreateMaterials();
-            ApplyMaterialForNation(_currentNation);
+            if (_nationMaterials.Count > 0)
+            {
+                ApplyMaterialForNation(_currentNation);
+            }
         }
 
         private void OnDestroy()

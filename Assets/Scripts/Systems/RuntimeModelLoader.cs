@@ -66,8 +66,8 @@ namespace ProjectName.Systems
         public static bool IsInitialized => _isInitialized;
 
         /// <summary>
-        /// Resources/Models/UserProvided/ 폴더에서 모든 GLB 프리팹을 로드하여 캐시합니다.
-        /// 최초 호출 시 한 번만 실행되며, 이후에는 캐시된 데이터를 사용합니다.
+        /// 별칭 맵을 초기화합니다. (더 이상 모든 GLB를 한 번에 로드하지 않음)
+        /// 각 모델은 TryGetModel 호출 시 개별적으로 지연 로드됩니다.
         /// </summary>
         public static void Initialize()
         {
@@ -112,53 +112,36 @@ namespace ProjectName.Systems
                 { "purple_castle", "purple_castle" },
             };
 
-            try
+            _isInitialized = true;
+            Debug.Log("[RuntimeModelLoader] 별칭 맵 초기화 완료 (모델 지연 로딩 모드)");
+        }
+
+        /// <summary>
+        /// 단일 모델 키를 Resources.Load로 개별 로드하여 캐시합니다.
+        /// 기존에 로드된 모델이 있으면 캐시에서 반환합니다.
+        /// </summary>
+        private static bool LoadModelByKey(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                return false;
+
+            if (_loadedModels.ContainsKey(key))
+                return true;
+
+            // Resources.Load로 개별 모델 로드 (한 번에 전체 로드 X)
+            string resourcePath = "Models/UserProvided/" + key;
+            GameObject prefab = Resources.Load<GameObject>(resourcePath);
+            if (prefab == null)
             {
-                // Resources.LoadAll로 UserProvided 폴더의 모든 GameObject 로드
-                GameObject[] allPrefabs = Resources.LoadAll<GameObject>("Models/UserProvided");
-
-                if (allPrefabs == null || allPrefabs.Length == 0)
-                {
-                    Debug.Log("[RuntimeModelLoader] UserProvided 폴더에 로드할 모델이 없습니다. (GLB 파일이 아직 임포트되지 않았거나 glb/ 서브폴더에만 있습니다 — Resources.LoadAll은 임포트된 프리팹/GameObject만 찾습니다)");
-                    _isInitialized = true;
-                    return;
-                }
-
-                int loadedCount = 0;
-                foreach (var prefab in allPrefabs)
-                {
-                    if (prefab == null)
-                        continue;
-
-                    // 파일명(확장자 제외)을 소문자로 변환하여 key로 사용
-                    string key = prefab.name.ToLowerInvariant();
-
-                    // 중복 키는 첫 번째 로드된 것으로 유지
-                    if (!_loadedModels.ContainsKey(key))
-                    {
-                        _loadedModels.Add(key, prefab);
-
-                        // Rig detection: check prefab hierarchy for bones
-                        ModelType modelType = DetectModelType(prefab);
-                        _modelMetadata.Add(key, new ModelMetadata(prefab, modelType));
-
-                        loadedCount++;
-                        Debug.Log($"[RuntimeModelLoader] 모델 '{key}' 감지: {modelType}");
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"[RuntimeModelLoader] 중복 모델 키 무시: '{key}' (기존 유지)");
-                    }
-                }
-
-                Debug.Log($"[RuntimeModelLoader] {loadedCount}개의 모델 로드 완료 (총 {allPrefabs.Length}개 프리팹 발견)");
-                _isInitialized = true;
+                // 전체 폴더 스캔 없이 개별 로드 실패 — 해당 키의 모델이 없음
+                return false;
             }
-            catch (System.Exception ex)
-            {
-                Debug.LogError($"[RuntimeModelLoader] 모델 로드 중 오류 발생: {ex.Message}");
-                _isInitialized = true; // 실패해도 초기화는 완료 상태로 표시
-            }
+
+            _loadedModels.Add(key, prefab);
+            ModelType modelType = DetectModelType(prefab);
+            _modelMetadata.Add(key, new ModelMetadata(prefab, modelType));
+            Debug.Log($"[RuntimeModelLoader] 지연 로드: '{key}' ({modelType})");
+            return true;
         }
 
         /// <summary>
@@ -176,6 +159,11 @@ namespace ProjectName.Systems
             // Check alias
             if (_aliases != null && _aliases.TryGetValue(lowerKey, out string realKey))
                 lowerKey = realKey;
+            // Lazy load: not yet loaded? try per-key Resources.Load
+            if (!_loadedModels.ContainsKey(lowerKey))
+            {
+                LoadModelByKey(lowerKey);
+            }
             if (_loadedModels.TryGetValue(lowerKey, out model) && _modelMetadata.TryGetValue(lowerKey, out metadata))
                 return true;
             metadata = default;
@@ -212,6 +200,11 @@ namespace ProjectName.Systems
             // 별칭 해석: TryGetModel과 동일한 alias 로직 적용
             if (_aliases != null && _aliases.TryGetValue(key, out string realKey))
                 key = realKey;
+            // Lazy load: not yet loaded? try per-key Resources.Load
+            if (!_loadedModels.ContainsKey(key))
+            {
+                LoadModelByKey(key);
+            }
             return _loadedModels.ContainsKey(key);
         }
 
@@ -291,6 +284,11 @@ namespace ProjectName.Systems
             // 별칭 해석: TryGetModel과 동일한 alias 로직 적용
             if (_aliases != null && _aliases.TryGetValue(key, out string realKey))
                 key = realKey;
+            // Lazy load: not yet loaded? try per-key Resources.Load
+            if (!_loadedModels.ContainsKey(key))
+            {
+                LoadModelByKey(key);
+            }
             return _modelMetadata.TryGetValue(key, out metadata);
         }
 

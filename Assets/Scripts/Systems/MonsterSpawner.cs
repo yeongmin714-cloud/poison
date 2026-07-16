@@ -344,6 +344,9 @@ namespace ProjectName.Systems
             return new Vector3(x, 0f, z);
         }
 
+        // 캐시된 몬스터 모델 프리팹 (Resources.Load 중복 방지)
+        private static Dictionary<string, GameObject> _loadedMonsterModels = new Dictionary<string, GameObject>();
+
         /// <summary>
         /// 몬스터 게임오브젝트 생성
         /// </summary>
@@ -363,11 +366,18 @@ namespace ProjectName.Systems
             }
             else
             {
-                // Resources/Models/UserProvided/ 에서 GLB 모델 로드 시도
+                // Resources/Models/UserProvided/ 에서 GLB 모델 로드 시도 (캐시 사용)
                 string modelPath = GetMonsterModelPath(def.id);
                 if (!string.IsNullOrEmpty(modelPath))
                 {
-                    GameObject modelPrefab = Resources.Load<GameObject>($"Models/UserProvided/{modelPath}");
+                    // 캐시 확인: 이미 로드된 모델이 있으면 재사용
+                    GameObject modelPrefab;
+                    if (!_loadedMonsterModels.TryGetValue(modelPath, out modelPrefab))
+                    {
+                        modelPrefab = Resources.Load<GameObject>($"Models/UserProvided/{modelPath}");
+                        _loadedMonsterModels[modelPath] = modelPrefab;
+                    }
+
                     if (modelPrefab != null)
                     {
                         go = Instantiate(modelPrefab, position, Quaternion.identity, transform);
