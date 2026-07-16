@@ -28,6 +28,9 @@ namespace ProjectName.Systems
         private Camera _mainCamera;
         private CinemachineImpulseSource _impulseSource;
 
+        // ===== 애니메이션 =====
+        private RigAnimationController _rigAnim;
+
         // ===== C4-08: 자동 조준 상태 =====
         private IDamageable _currentTarget;
 
@@ -70,6 +73,15 @@ namespace ProjectName.Systems
                 _impulseSource = _mainCamera.GetComponent<CinemachineImpulseSource>();
                 if (_impulseSource == null)
                     _impulseSource = _mainCamera.gameObject.AddComponent<CinemachineImpulseSource>();
+            }
+
+            // RigAnimationController 획득
+            _rigAnim = GetComponent<RigAnimationController>();
+            if (_rigAnim == null)
+            {
+                Animator anim = GetComponent<Animator>();
+                if (anim != null)
+                    _rigAnim = gameObject.AddComponent<RigAnimationController>();
             }
         }
 
@@ -133,6 +145,9 @@ namespace ProjectName.Systems
 
             // Phase 8.3: 공격 스윙 사운드
             SoundManager.Instance?.PlaySFX("attack_swing");
+
+            // 공격 애니메이션 트리거
+            _rigAnim?.Attack();
 
             // C4-08: 커서 방향으로 자동 조준 먼저 시도
             IDamageable autoAimTarget = FindTargetInCursorDirection();

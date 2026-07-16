@@ -58,8 +58,8 @@ namespace ProjectName.Systems
         [SerializeField] private string _speedParam = "Speed";
         [SerializeField] private string _stateParam = "State";
         [SerializeField] private string _jumpTrigger = "Jump";
-        [SerializeField] private string _attackTrigger = "Attack";
-        [SerializeField] private string _gatherTrigger = "Gather";
+        [SerializeField] private string _attackTrigger = "AttackTrigger";
+        [SerializeField] private string _gatherTrigger = "GatherTrigger";
         [SerializeField] private string _craftTrigger = "Craft";
         [SerializeField] private string _throwTrigger = "Throw";
         [SerializeField] private string _kneelTrigger = "Kneel";
