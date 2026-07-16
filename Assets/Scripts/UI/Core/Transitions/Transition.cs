@@ -1,11 +1,20 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UI.Core.Transitions
 {
     public abstract class Transition : MonoBehaviour
     {
-        [SerializeField] protected float duration = 0.5f;
-
-        public abstract void Play();
+        [Header("Transition Settings")]
+        public float duration = 0.5f;
+        public AnimationCurve curve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+        
+        public void PlayTransition()
+        {
+            StartCoroutine(DoTransition());
+        }
+        
+        protected abstract IEnumerator DoTransition();
     }
 }
