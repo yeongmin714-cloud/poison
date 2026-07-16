@@ -60,39 +60,11 @@ public class TestPlayerSetup : MonoBehaviour
             pi.notificationBehavior = PlayerNotifications.InvokeUnityEvents;
         }
 
-        // Player visual: 실제 GLB 모델 1개만 로드 (RuntimeModelLoader는 127개 전부 로드하므로 사용 안 함)
-        GameObject playerPrefab = Resources.Load<GameObject>("Models/UserProvided/Player_Rigged");
-        if (playerPrefab != null)
+        // PlayerPlaceholder: RuntimeModelLoader → Player_Rigged GLB 로드 + RigAnimationController 연결 (MainScene과 동일한 경로)
+        if (player.GetComponent<PlayerPlaceholder>() == null)
         {
-            GameObject visual = Object.Instantiate(playerPrefab, player.transform);
-            visual.name = "PlayerVisual";
-            visual.transform.localPosition = Vector3.zero;
-            visual.transform.localScale = Vector3.one;
-
-            // 애니메이터 컨트롤러 연결
-            ModelAnimatorAssigner.AssignController(visual, "player");
-            ModelAnimatorAssigner.SetState(visual, 0);
-
-            // 애니메이션 적용 검증
-            Animator anim = visual.GetComponentInChildren<Animator>();
-            if (anim != null && anim.runtimeAnimatorController != null)
-                Debug.Log($"[TestPlayerSetup] ✅ 애니메이터 컨트롤러 연결됨: {anim.runtimeAnimatorController.name}");
-            else
-                Debug.LogWarning("[TestPlayerSetup] ⚠️ 애니메이터 컨트롤러가 연결되지 않았습니다.");
-        }
-        else
-        {
-            // Fallback: 캡슐 프리미티브
-            Debug.LogWarning("[TestPlayerSetup] ⚠️ GLB 플레이어 모델(Player_Rigged)을 Resources/Models/UserProvided/에서 찾을 수 없습니다. 캡슐로 대체합니다.");
-            if (player.GetComponent<MeshRenderer>() == null)
-            {
-                var capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-                capsule.name = "PlayerVisual";
-                capsule.transform.SetParent(player.transform);
-                capsule.transform.localPosition = Vector3.zero;
-                capsule.transform.localScale = Vector3.one;
-                Object.DestroyImmediate(capsule.GetComponent<CapsuleCollider>());
-            }
+            player.AddComponent<PlayerPlaceholder>();
+            Debug.Log("[TestPlayerSetup] ✅ PlayerPlaceholder 부착됨 (RuntimeModelLoader가 GLB 모델 로드)");
         }
 
         player.transform.position = Vector3.zero;
