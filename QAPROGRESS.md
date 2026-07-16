@@ -51,3 +51,59 @@
 - [ ] **ArgumentException (경로/키)** — Dictionary 키 없음, 경로 오류
 - [ ] **Coroutine 누수** — 중단되지 않은 코루틴
 - [ ] **Event 구독 해제 누락** — OnDestroy/OnDisable에서 -= 누락
+
+---
+
+## 🎬 애니메이션 시스템 구축 (GLB 제네릭 리깅) — 2026-07-16
+
+> **목표:** GLB 모델(본 이름 Blender 스타일: Root/spine.xxx/thigh.L)에 Unity 제네릭 리깅으로 애니메이션 클립 재생 + 프로시저럴 보정 적용
+> **방식:** 메타 파일 수정 불필요, 런타임 해결 (GLB는 glTFast ScriptedImporter라 ModelImporter 아바타 시스템 미사용)
+> **최종 갱신:** 2026-07-16
+
+### 변경 내역 (커밋)
+
+| 커밋 | 내용 |
+|:-----|:-----|
+| `1235a94` | GLB 애니메이션 풀 해결 — Generic Avatar 런타임 생성 + 프로시러럴 포즈 보정 |
+| `cc83b17` | QuadrupedPoseController 신규 + ModelAnimatorAssigner 4족 분기 |
+| `28d7685` | RuntimeModelLoader 4족 감지(넘버링 본) + rootBone 탐색 수정 |
+| `04601ca` | 플레이어 공격/채집 애니메이션 입력 연결 |
+
+### 핵심 수정 사항
+
+| 파일 | 변경 | 상태 |
+|:-----|:-----|:----:|
+| ModelAnimatorAssigner.cs | GLB 인스턴스에 `AvatarBuilder.BuildGenericAvatar`로 Generic Avatar 런타임 생성 (FindRootBone 헬퍼 추가) | ✅ |
+| ModelAnimatorAssigner.cs | AssignController에서 모델 타입(RiggedQuadruped) 따라 QuadrupedPoseController / ProceduralPoseController 분기 부착 | ✅ |
+| PlayerPlaceholder.cs | **치명적 버그 수정**: GLB 로드 후 `AssignController` 호출 누락 → 추가 (애니메이션 미동작 원인) | ✅ |
+| ProceduralPoseController.cs | **신규** (2족용) — 이동 상체 기울임/달리기 bob/점프 구부림, 순수 Transform 보간 (AnimationRigging 의존성 없음) | ✅ |
+| QuadrupedPoseController.cs | **신규** (4족용) — bone_0~25 넘버링 본을 위치/계층 기반으로 Root+4다리+척추 추론, 사인파 대각 보행(trot) 합성 | ✅ |
+| RuntimeModelLoader.cs | DetectTypeFromBoneNames에 넘버링 본 4족 추정 로직 추가 (Root 아래 깊이3+ 체인 4개 이상 → RiggedQuadruped) | ✅ |
+| RuntimeModelLoader.cs | rootBone 탐색 수정: `t.parent==root` 조건 제거 → 자식 가장 많은 본을 Root로 (Wolf의 SkeletonBindArmature 구조 대응) | ✅ |
+| RigAnimationController.cs | 트리거 기본값 Attack→AttackTrigger, Gather→GatherTrigger (Player_Animator.controller 파라미터 불일치 해결) | ✅ |
+| PlayerCombat.cs | 좌클릭 공격 시 `_rigAnim.Attack()` 호출 추가 (공격 모션 발동) | ✅ |
+| HerbPickup.cs | 기존 Gather 호출이 트리거 이름 수정으로 정상 동작 (추가 수정 없음) | ✅ |
+
+### 모델별 애니메이션 지원 매트릭스
+
+| 모델 | 본 구조 | 아바타 | 애니메이션 | 보정 | 상태 |
+|:-----|:------:|:------:|:----------:|:----:|:----:|
+| 플레이어 (Player_Rigged) | 2족 (Root/spine.xxx) | Generic (런타임) | Player_Anim 6클립 재생 | ProceduralPoseController | ✅ |
+| 병사/일반몬스터 | 2족 (spine/thigh.L) | Generic (런타임) | Soldier/Monster_Anim 재생 | ProceduralPoseController | ✅ |
+| 4족 (Wolf/Boar/Deer) | 넘버링 (bone_0~25) | Generic (런타임) | 클립 매핑 안 됨 → 코드 합성 | QuadrupedPoseController | ✅ |
+| 뱀 (Snake) | 넘버링 | Generic (런타임) | 코드 합성 | QuadrupedPoseController (미최적) | ⚠️ |
+
+### 발견된 버그 (QA가 잡아낸 것)
+
+| 버그 | 영향 | 해결 |
+|:----|:-----|:----|
+| PlayerPlaceholder가 AssignController 호출 안 함 | GLB 애니메이션 전체 미동작 | AssignController 호출 추가 |
+| RigAnimationController 트리거 이름 불일치 (Attack vs AttackTrigger) | 플레이어 공격/채집 모션 미발동 | 기본값 수정 |
+| RuntimeModelLoader가 넘버링 본 4족을 RiggedMonster로 오분류 | 4족 분기 무의미 | 넘버링 본 4족 추정 로직 추가 |
+| rootBone 탐색 `t.parent==root` 조건 | Wolf(SkeletonBindArmature 구조)에서 Root 못 찾음 | 자식最多 본 탐색으로 수정 |
+
+### 알려진 제약
+
+- 4족 모델은 본 이름 넘버링이라 2족 클립(Idle/Walk/Run) 매핑 불가 → QuadrupedPoseController가 클립 없이 사인파로 보행 합성 (실제 애니메이션 클립 아님)
+- 공격 모션 후 Idle 복귀는 Player_Animator.controller 상태머신(Exit Time) 설정에 의존 (표준 Trigger 패턴, 통상 문제없음)
+- 실제 Unity Editor 컴파일/Play 테스트는 미실시 (에디터 없음) → 다음 PC git pull 후 영상 확인 권장
