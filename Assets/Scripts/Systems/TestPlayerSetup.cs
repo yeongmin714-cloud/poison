@@ -60,11 +60,11 @@ public class TestPlayerSetup : MonoBehaviour
             pi.notificationBehavior = PlayerNotifications.InvokeUnityEvents;
         }
 
-        // Player visual: 실제 GLB 모델 로드 시도
-        RuntimeModelLoader.Initialize();
-        if (RuntimeModelLoader.TryGetModel("player", out var playerModel))
+        // Player visual: 실제 GLB 모델 1개만 로드 (RuntimeModelLoader는 127개 전부 로드하므로 사용 안 함)
+        GameObject playerPrefab = Resources.Load<GameObject>("Models/UserProvided/Player_Rigged");
+        if (playerPrefab != null)
         {
-            GameObject visual = Object.Instantiate(playerModel, player.transform);
+            GameObject visual = Object.Instantiate(playerPrefab, player.transform);
             visual.name = "PlayerVisual";
             visual.transform.localPosition = Vector3.zero;
             visual.transform.localScale = Vector3.one;
@@ -83,7 +83,7 @@ public class TestPlayerSetup : MonoBehaviour
         else
         {
             // Fallback: 캡슐 프리미티브
-            Debug.LogWarning("[TestPlayerSetup] ⚠️ GLB 플레이어 모델을 찾을 수 없습니다. 캡슐로 대체합니다.");
+            Debug.LogWarning("[TestPlayerSetup] ⚠️ GLB 플레이어 모델(Player_Rigged)을 Resources/Models/UserProvided/에서 찾을 수 없습니다. 캡슐로 대체합니다.");
             if (player.GetComponent<MeshRenderer>() == null)
             {
                 var capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
