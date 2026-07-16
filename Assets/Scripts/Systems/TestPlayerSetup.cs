@@ -60,15 +60,39 @@ public class TestPlayerSetup : MonoBehaviour
             pi.notificationBehavior = PlayerNotifications.InvokeUnityEvents;
         }
 
-        // Player visual (capsule)
-        if (player.GetComponent<MeshRenderer>() == null)
+        // Player visual: 실제 GLB 모델 로드 시도
+        RuntimeModelLoader.Initialize();
+        if (RuntimeModelLoader.TryGetModel("player", out var playerModel))
         {
-            var capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            capsule.name = "PlayerVisual";
-            capsule.transform.SetParent(player.transform);
-            capsule.transform.localPosition = Vector3.zero;
-            capsule.transform.localScale = Vector3.one;
-            DestroyImmediate(capsule.GetComponent<CapsuleCollider>());
+            GameObject visual = Object.Instantiate(playerModel, player.transform);
+            visual.name = "PlayerVisual";
+            visual.transform.localPosition = Vector3.zero;
+            visual.transform.localScale = Vector3.one;
+
+            // 애니메이터 컨트롤러 연결
+            ModelAnimatorAssigner.AssignController(visual, "player");
+            ModelAnimatorAssigner.SetState(visual, 0);
+
+            // 애니메이션 적용 검증
+            Animator anim = visual.GetComponentInChildren<Animator>();
+            if (anim != null && anim.runtimeAnimatorController != null)
+                Debug.Log($"[TestPlayerSetup] ✅ 애니메이터 컨트롤러 연결됨: {anim.runtimeAnimatorController.name}");
+            else
+                Debug.LogWarning("[TestPlayerSetup] ⚠️ 애니메이터 컨트롤러가 연결되지 않았습니다.");
+        }
+        else
+        {
+            // Fallback: 캡슐 프리미티브
+            Debug.LogWarning("[TestPlayerSetup] ⚠️ GLB 플레이어 모델을 찾을 수 없습니다. 캡슐로 대체합니다.");
+            if (player.GetComponent<MeshRenderer>() == null)
+            {
+                var capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                capsule.name = "PlayerVisual";
+                capsule.transform.SetParent(player.transform);
+                capsule.transform.localPosition = Vector3.zero;
+                capsule.transform.localScale = Vector3.one;
+                Object.DestroyImmediate(capsule.GetComponent<CapsuleCollider>());
+            }
         }
 
         player.transform.position = Vector3.zero;
@@ -107,6 +131,8 @@ public class TestPlayerSetup : MonoBehaviour
 
     private void SetupGround()
     {
+        // TODO: 추후 GLB 지형 모델 로드 가능 (RuntimeModelLoader.TryGetModel("terrain", ...) 사용)
+        // 현재는 Plane 프리미티브 유지
         if (GameObject.Find("Ground") == null)
         {
             var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
