@@ -1,7 +1,7 @@
 using UnityEngine;
 #pragma warning disable 0414
 
-namespace UI.Core.Transitions
+namespace ProjectName.UI.Core.Transitions
 {
     public class PanelTransition : MonoBehaviour
     {

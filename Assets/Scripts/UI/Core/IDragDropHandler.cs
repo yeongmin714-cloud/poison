@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace UI.Core
+namespace ProjectName.UI.Core
 {
     public interface IDragDropHandler
     {

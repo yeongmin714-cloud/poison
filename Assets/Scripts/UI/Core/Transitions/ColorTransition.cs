@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UI.Core.Transitions
+namespace ProjectName.UI.Core.Transitions
 {
     public class ColorTransition : Transition
     {

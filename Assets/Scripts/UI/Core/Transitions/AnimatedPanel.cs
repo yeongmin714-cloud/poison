@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UI.Core.Transitions
+namespace ProjectName.UI.Core.Transitions
 {
     public class AnimatedPanel : Transition
     {

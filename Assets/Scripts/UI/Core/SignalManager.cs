@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace UI.Core
+namespace ProjectName.UI.Core
 {
     public class SignalManager : MonoBehaviour
     {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UI.Core
+namespace ProjectName.UI.Core
 {
     public class AbilityManager : MonoBehaviour
     {

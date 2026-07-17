@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UI.Tutorial
+namespace ProjectName.UI.Tutorial
 {
     public class TutorialExecutionSequence : MonoBehaviour
     {
