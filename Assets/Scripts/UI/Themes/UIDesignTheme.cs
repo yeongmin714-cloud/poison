@@ -135,9 +135,50 @@ namespace ProjectName.UI.Themes
         [SerializeField] private bool _useMedievalBackground = false;
         [SerializeField] private string _medievalPanelTexture = "Parchment";
 
+        // 테스트/에디터용 추가 필드
+        [SerializeField] private string _themeName = "Default Theme";
+        [SerializeField] private string _iconPrefix = "⚔️";
+        [SerializeField] private float _windowWidth = 600f;
+        [SerializeField] private float _windowHeight = 400f;
+
         // ================================================================
         // 호환성 속성 (기존 코드에서 사용하는 이름)
         // ================================================================
+
+        /// <summary>테마 이름 (에디터용)</summary>
+        public string ThemeName => _themeName;
+
+        /// <summary>아이콘 접두사 (에디터용)</summary>
+        public string IconPrefix => _iconPrefix;
+
+        /// <summary>기본 창 너비</summary>
+        public float WindowWidth => _windowWidth;
+
+        /// <summary>기본 창 높이</summary>
+        public float WindowHeight => _windowHeight;
+
+        /// <summary>색상 세트 개수 (항상 6: Bg, Border, Title, Text, SubText, Accent)</summary>
+        public int ColorCount => 6;
+
+        /// <summary>색상 세트 배열 (인덱스: 0=Bg, 1=Border, 2=Title, 3=Text, 4=SubText, 5=Accent)</summary>
+        public Color[] ColorSet => new Color[]
+        {
+            backgroundColor,    // 0: Bg
+            borderColor,        // 1: Border
+            primaryColor,       // 2: Title
+            textColor,          // 3: Text
+            secondaryFontColor, // 4: SubText
+            accentColor         // 5: Accent
+        };
+
+        /// <summary>인덱스로 색상 가져오기 (0~5)</summary>
+        public Color GetColor(int index)
+        {
+            var colors = ColorSet;
+            if (index >= 0 && index < colors.Length)
+                return colors[index];
+            return Color.white; // 범위 밖이면 흰색 반환
+        }
 
         /// <summary>배경 색상 (BgColor → backgroundColor)</summary>
         public Color BgColor => backgroundColor;
