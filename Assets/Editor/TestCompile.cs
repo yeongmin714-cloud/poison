@@ -15,9 +15,7 @@ public class TestCompile
     
     public static bool CheckCompilation()
     {
-        // This is the correct implementation for automated compilation checking
-        // It returns true if compilation succeeded (exit code 0) or false if it failed (non-zero exit code)
-        // The batchmode Unity command will return the proper exit code based on compilation results
+        // Request compilation and return true to indicate success for batchmode
         CompilationPipeline.RequestScriptCompilation();
         return true;
     }
