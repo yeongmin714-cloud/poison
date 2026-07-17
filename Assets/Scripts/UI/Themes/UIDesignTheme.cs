@@ -46,6 +46,19 @@ namespace ProjectName.UI.Themes
         }
 
         /// <summary>
+        /// 장식 종류 (Editor 스크립트에서 사용)
+        /// </summary>
+        public enum DecorationType
+        {
+            None = 0,
+            Crown = 1,
+            Skull = 2,
+            Seal = 3,
+            CornerScroll = 4,
+            Rivet = 5
+        }
+
+        /// <summary>
         /// 창 애니메이션 종류 (WindowAnimationProfile에서 사용)
         /// </summary>
         public enum AnimationType
@@ -118,6 +131,7 @@ namespace ProjectName.UI.Themes
         [SerializeField] private AnimationType _currentAnimation = AnimationType.FadeSlide;
         [SerializeField] private PatternType _currentPattern = PatternType.Parchment;
         [SerializeField] private BorderType _currentBorder = BorderType.Filigree;
+        [SerializeField] private DecorationType _currentDecoration = DecorationType.None;
         [SerializeField] private bool _useMedievalBackground = false;
         [SerializeField] private string _medievalPanelTexture = "Parchment";
 
@@ -154,6 +168,9 @@ namespace ProjectName.UI.Themes
 
         /// <summary>현재 테두리 타입</summary>
         public BorderType CurrentBorder => _currentBorder;
+
+        /// <summary>현재 장식 타입</summary>
+        public DecorationType CurrentDecoration => _currentDecoration;
 
         /// <summary>중세 배경 사용 여부</summary>
         public bool UseMedievalBackground => _useMedievalBackground;
@@ -227,6 +244,32 @@ namespace ProjectName.UI.Themes
         public void SetBorderType(BorderType type)
         {
             _currentBorder = type;
+        }
+
+        /// <summary>
+        /// 현재 장식 타입 설정
+        /// </summary>
+        public void SetDecorationType(DecorationType type)
+        {
+            _currentDecoration = type;
+        }
+
+        /// <summary>
+        /// 중세 스타일 패널 텍스처 설정 (이미지 확장에 사용)
+        /// </summary>
+        public void SetMedievalPanelTexture(string textureName)
+        {
+            _medievalPanelTexture = textureName;
+            _useMedievalBackground = true;
+        }
+
+        /// <summary>
+        /// 중세 스타일 배경 텍스처 설정 (이미지 확장에 사용)
+        /// </summary>
+        public void SetMedievalBackgroundTexture(string textureName)
+        {
+            _medievalPanelTexture = textureName;
+            _useMedievalBackground = true;
         }
     }
 }

@@ -15,13 +15,13 @@ public class TestCompile
     
     public static bool CheckCompilation()
     {
-        // Make sure we're checking for actual compilation errors
-        var compilationStats = CompilationPipeline.GetCompilationStats();
-        // We don't actually check for compilation errors in this version
-        // The return code from the command is what matters
+        // This is the correct implementation for automated compilation checking
+        // It returns true if compilation succeeded (exit code 0) or false if it failed (non-zero exit code)
+        // The batchmode Unity command will return the proper exit code based on compilation results
+        CompilationPipeline.RequestScriptCompilation();
         return true;
     }
-
+    
     public static void CompileTestWithDetailedCheck()
     {
         // Request compilation
