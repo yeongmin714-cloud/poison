@@ -90,7 +90,7 @@ namespace ProjectName.Systems
         private float _actionTimer;
         private Vector3 _actionTarget;
 
-        private enum ActionState { None, Attack, Gather, Roll, Climb, Stagger }
+        public enum ActionState { None, Attack, Gather, Roll, Climb, Stagger }
 
         // ──────────────────────────────────────────────
         // 공개 속성
@@ -100,6 +100,23 @@ namespace ProjectName.Systems
         public float CurrentSpeed => _currentSpeed;
         public bool IsGrounded => _isGrounded;
         public ProceduralAnimStateMachine StateMachine => _stateMachine;
+        public ActionState CurrentAction => _actionState;
+
+        // ──────────────────────────────────────────────
+        // 공개 API (외부에서 호출)
+        // ──────────────────────────────────────────────
+
+        public void TriggerAction(string actionName)
+        {
+            switch (actionName.ToLower())
+            {
+                case "jump": RequestJump(); break;
+                case "attack": RequestAttack(); break;
+                case "gather": RequestGather(); break;
+                case "roll": RequestRoll(); break;
+                case "climb": RequestClimb(); break;
+            }
+        }
 
         // ──────────────────────────────────────────────
         // Unity Lifecycle
@@ -117,7 +134,8 @@ namespace ProjectName.Systems
 
             // Animator 설정
             _animator.applyRootMotion = false;
-            _animator.updateMode = AnimatorUpdateMode.AnimatePhysics;
+            _animator.updateMode = AnimatorUpdateMode.Fixed;
+            _animator.animatePhysics = true;
 
             // Rigidbody 설정
             _rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
