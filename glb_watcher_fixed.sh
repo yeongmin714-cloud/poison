@@ -35,10 +35,14 @@ unity_cleanup() {
 
 # Function to get allowed basenames from ModelMapping.cs
 # Fixed version as suggested in the skill
-# Function to get allowed GLB basenames (lowercase, no extension) from ModelMapping.cs
 get_allowed_basenames() {
-    sed -n 's/.*{"\([^"]*\)",.*//p' "/mnt/c/Unity/code/Assets/Editor/ModelMapping.cs" |     tr '[:upper:]' '[:lower:]' |     sort | uniq
+    grep -o '{\"[^\"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{\"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
 }
+
+# Function to update the state file (fixed version)
 update_state_file() {
     local basenames=("$@")
     # Write each basename on a new line
