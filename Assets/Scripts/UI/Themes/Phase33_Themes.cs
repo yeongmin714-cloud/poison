@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UI.Themes
+namespace ProjectName.UI.Themes
 {
     public class Phase33_Themes : MonoBehaviour
     {
