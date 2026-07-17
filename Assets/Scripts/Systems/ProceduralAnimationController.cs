@@ -89,8 +89,11 @@ namespace ProjectName.Systems
         private ActionState _actionState = ActionState.None;
         private float _actionTimer;
         private Vector3 _actionTarget;
-
+        
         public enum ActionState { None, Attack, Gather, Roll, Climb, Stagger }
+
+        public Vector3 CurrentActionTarget => _actionTarget;
+        public ActionState CurrentAction => _actionState;
 
         // ──────────────────────────────────────────────
         // 공개 속성
@@ -100,7 +103,6 @@ namespace ProjectName.Systems
         public float CurrentSpeed => _currentSpeed;
         public bool IsGrounded => _isGrounded;
         public ProceduralAnimStateMachine StateMachine => _stateMachine;
-        public ActionState CurrentAction => _actionState;
 
         // ──────────────────────────────────────────────
         // 공개 API (외부에서 호출)
