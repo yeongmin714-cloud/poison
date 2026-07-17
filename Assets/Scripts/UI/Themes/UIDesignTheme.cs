@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using ProjectName.UI.Themes;
+using ProjectName.Systems;
 
-namespace ProjectName.UI.Themes
+namespace ProjectName.UI
 {
     /// <summary>
     /// UI 디자인 테마 데이터 컨테이너 (ScriptableObject).

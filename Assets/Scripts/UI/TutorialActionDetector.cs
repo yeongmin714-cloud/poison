@@ -1,9 +1,9 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 using ProjectName.Systems;
-#pragma warning disable 0414
+using ProjectName.Core.Data;
 
 namespace ProjectName.UI
 {
@@ -267,26 +267,20 @@ namespace ProjectName.UI
                 if (!_detectedState[7])
                 {
                     var node = hit.GetComponent<ResourceNode>();
-#if false
                     if (node != null && node.NodeType == ResourceNode.ResourceType.Herb)
                     {
-                        // TODO: HerbType 구분 필요 시 추가
                         MarkActionDetected(7);
                     }
-#endif
                 }
 
                 // 10: 제작대 상호작용 (CraftingStationBase)
                 if (!_detectedState[9])
                 {
-#if false
                     var station = hit.GetComponent<CraftingStationBase>();
                     if (station != null)
                     {
-                        // TODO: 특정 제작대 종류 구분 필요 시 추가
                         MarkActionDetected(9);
                     }
-#endif
                 }
             }
         }

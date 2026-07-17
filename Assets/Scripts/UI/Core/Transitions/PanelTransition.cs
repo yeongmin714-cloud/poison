@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 #pragma warning disable 0414
 
 namespace ProjectName.UI.Core.Transitions
@@ -19,12 +20,22 @@ namespace ProjectName.UI.Core.Transitions
 
         public void FadeIn()
         {
-            // Implementation for fade in
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = 1f;
+                canvasGroup.interactable = true;
+                canvasGroup.blocksRaycasts = true;
+            }
         }
 
         public void FadeOut()
         {
-            // Implementation for fade out
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = 0f;
+                canvasGroup.interactable = false;
+                canvasGroup.blocksRaycasts = false;
+            }
         }
     }
 }

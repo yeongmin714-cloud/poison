@@ -29,13 +29,13 @@ namespace ProjectName.UI.Core.Transitions
                 Color newColor = Color.Lerp(startColor, toColor, t);
                 
                 // Apply color to target
-                // targetRect.color = newColor;
+                targetRect.color = newColor;
                 
                 yield return null;
             }
             
             // Ensure final color is applied
-            // targetRect.color = toColor;
+            targetRect.color = toColor;
         }
     }
 }

@@ -13,7 +13,7 @@ namespace ProjectName.UI
     /// 
     /// 플레이어가 BuildingTrigger.ExitBuilding()을 통해 헛간에서 나온 후
     /// 최초 1회에 한해 영주 NPC 등장 이벤트를 재생합니다.
-    ///
+    /// 
     /// Sequence steps:
     ///   1. SFX 문 두드림 (SoundManagerEnhanced.PlaySFX("knock"))
     ///   2. NPC 말풍선: "열어줘!..." (IMGUI 임시 텍스트, 2초)
