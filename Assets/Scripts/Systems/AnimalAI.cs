@@ -711,6 +711,11 @@ namespace ProjectName.Systems
             return drops.Count > 0;
         }
 
+        public void TakeDamage(DamageInfo damageInfo)
+        {
+            TakeDamage(damageInfo.amount, damageInfo.knockback.normalized, "melee");
+        }
+
         private void Die()
         {
             if (_isDead) return;

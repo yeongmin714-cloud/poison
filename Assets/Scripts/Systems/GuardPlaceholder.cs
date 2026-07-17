@@ -395,12 +395,21 @@ namespace ProjectName.Systems
         }
 
         // ===== IDamageable =====
+        public float CurrentHP => _currentHP;
+        public float MaxHP => _maxHP;
+        public bool IsDead => _isDead;
         public bool IsAlive => !_isDead;
+
         public void TakeDamage(float amount, Vector3 hitDirection, string weaponType = "melee")
         {
             if (_isDead) return;
             _currentHP -= amount;
             if (_currentHP <= 0) Die();
+        }
+
+        public void TakeDamage(DamageInfo damageInfo)
+        {
+            TakeDamage(damageInfo.amount, damageInfo.knockback.normalized, "melee");
         }
 
         private void Die()

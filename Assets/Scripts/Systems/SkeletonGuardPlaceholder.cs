@@ -185,6 +185,11 @@ namespace ProjectName.Systems
             }
         }
 
+        public void TakeDamage(DamageInfo damageInfo)
+        {
+            TakeDamage(damageInfo.amount, damageInfo.knockback.normalized, "melee");
+        }
+
         public void Die()
         {
             if (_isDead) return;
