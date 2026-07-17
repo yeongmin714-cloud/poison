@@ -290,9 +290,17 @@ namespace ProjectName.Systems
         private void UpdateState()
         {
             // Speed 파라미터 읽기 (RigAnimationController가 "Speed" float 설정)
+            // 파라미터가 없으면 에러 방지를 위해 0 반환
             if (_animator.isActiveAndEnabled && _animator.runtimeAnimatorController != null)
             {
-                _speed = _animator.GetFloat("Speed");
+                if (HasParameter(_animator, "Speed"))
+                {
+                    _speed = _animator.GetFloat("Speed");
+                }
+                else
+                {
+                    _speed = 0f;
+                }
             }
 
             // 속도 벡터 계산 (프레임 간 위치 변화)
@@ -308,6 +316,22 @@ namespace ProjectName.Systems
             }
 
             _isJumping = (_velocity.y > 0.15f) || animatorInJump;
+        }
+
+        /// <summary>
+        /// Animator에 특정 파라미터가 존재하는지 확인합니다.
+        /// </summary>
+        private bool HasParameter(Animator animator, string paramName)
+        {
+            if (animator == null || animator.runtimeAnimatorController == null)
+                return false;
+
+            foreach (var param in animator.parameters)
+            {
+                if (param.name == paramName)
+                    return true;
+            }
+            return false;
         }
 
         // ──────────────────────────────────────────────

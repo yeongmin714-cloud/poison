@@ -6,10 +6,10 @@ namespace ProjectName.Systems
     public class TopDownCameraController : MonoBehaviour
     {
         [Header("Orbit")]
-        [SerializeField, Range(10f, 60f)] private float _orbitRadius = 30f;
-        [SerializeField, Range(5f, 30f)] private float _minRadius = 10f;
-        [SerializeField, Range(20f, 80f)] private float _maxRadius = 50f;
-        [SerializeField, Range(10f, 80f)] private float _defaultPitch = 50f;
+        [SerializeField, Range(5f, 30f)] private float _orbitRadius = 15f;
+        [SerializeField, Range(3f, 20f)] private float _minRadius = 5f;
+        [SerializeField, Range(10f, 50f)] private float _maxRadius = 25f;
+        [SerializeField, Range(20f, 70f)] private float _defaultPitch = 45f;
         [SerializeField, Range(10f, 80f)] private float _minPitch = 20f;
         [SerializeField, Range(20f, 80f)] private float _maxPitch = 70f;
 

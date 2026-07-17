@@ -308,20 +308,21 @@ namespace ProjectName.Systems
                 {
                     if (_rigAnim.CurrentState != AnimationState.Idle)
                         _rigAnim.SetState(AnimationState.Idle);
+                    _rigAnim.CurrentSpeed = 0f;
                 }
                 else if (_isDashing)
                 {
-                    _rigAnim.CurrentSpeed = _dashSpeed;
+                    _rigAnim.CurrentSpeed = 1f; // Speed = 1 for Run blend
                     _rigAnim.SetState(AnimationState.Run);
                 }
                 else if (sprintKey)
                 {
-                    _rigAnim.CurrentSpeed = _runSpeed;
+                    _rigAnim.CurrentSpeed = 1f; // Speed = 1 for Run blend
                     _rigAnim.SetState(AnimationState.Run);
                 }
                 else
                 {
-                    _rigAnim.CurrentSpeed = _walkSpeed;
+                    _rigAnim.CurrentSpeed = 0.5f; // Speed = 0.5 for Walk blend
                     _rigAnim.SetState(AnimationState.Walk);
                 }
             }

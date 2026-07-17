@@ -155,9 +155,27 @@ namespace ProjectName.Systems
             // Update animator parameters each frame
             if (_animator != null && _animator.isActiveAndEnabled && _animator.runtimeAnimatorController != null)
             {
-                _animator.SetFloat(_speedParam, _currentSpeed);
-                _animator.SetInteger(_stateParam, (int)_currentState);
+                if (HasParameter(_animator, _speedParam))
+                    _animator.SetFloat(_speedParam, _currentSpeed);
+                if (HasParameter(_animator, _stateParam))
+                    _animator.SetInteger(_stateParam, (int)_currentState);
             }
+        }
+
+        /// <summary>
+        /// Animator에 특정 파라미터가 존재하는지 확인합니다.
+        /// </summary>
+        private bool HasParameter(Animator animator, string paramName)
+        {
+            if (animator == null || animator.runtimeAnimatorController == null)
+                return false;
+
+            foreach (var param in animator.parameters)
+            {
+                if (param.name == paramName)
+                    return true;
+            }
+            return false;
         }
 
         // ──────────────────────────────────────────────

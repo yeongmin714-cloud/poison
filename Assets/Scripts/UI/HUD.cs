@@ -16,8 +16,8 @@ namespace ProjectName.UI
     public class HUD : MonoBehaviour
     {
         [Header("HP Bar")]
-        [SerializeField] private int _barWidth = 700;
-        [SerializeField] private int _barHeight = 70;
+        [SerializeField] private int _barWidth = 2800;   // 700 * 4
+        [SerializeField] private int _barHeight = 280;   // 70 * 4
         [SerializeField] private int _barX = 40;
         private int _barY; // 동적 계산: 좌하단
         [SerializeField] private GUISkin _customSkin;
@@ -28,16 +28,16 @@ namespace ProjectName.UI
         [SerializeField] private Color _lowColor = Color.red;
 
         [Header("Text")]
-        [SerializeField] private int _fontSize = 48;
+        [SerializeField] private int _fontSize = 192;    // 48 * 4
         [SerializeField] private Color _textColor = Color.white;
 
         [Header("Death Overlay")]
         [SerializeField] private Color _deathOverlayColor = new Color(0.5f, 0f, 0f, 0.4f);
 
         [Header("Buff Icons")]
-        [SerializeField] private int _iconSize = 60;
-        [SerializeField] private int _iconSpacing = 10;
-        [SerializeField] private int _iconOffsetX = 760; // X offset from left (barX + barWidth + 10)
+        [SerializeField] private int _iconSize = 240;    // 60 * 4
+        [SerializeField] private int _iconSpacing = 40;  // 10 * 4
+        [SerializeField] private int _iconOffsetX = 2840; // 760 * 4 - HP 바 4배니까
         private int _iconOffsetY; // 동적 계산: 좌하단 기준
         private static readonly Dictionary<string, Color> _buffColors = new Dictionary<string, Color>
         {

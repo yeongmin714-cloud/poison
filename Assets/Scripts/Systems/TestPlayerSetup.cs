@@ -102,18 +102,29 @@ public class TestPlayerSetup : MonoBehaviour
     }
 
     private void SetupGround()
-    {
-        // TODO: 추후 GLB 지형 모델 로드 가능 (RuntimeModelLoader.TryGetModel("terrain", ...) 사용)
-        // 현재는 Plane 프리미티브 유지
-        if (GameObject.Find("Ground") == null)
-        {
-            var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            ground.name = "Ground";
-            ground.transform.position = new Vector3(0, -0.5f, 0);
-            ground.transform.localScale = Vector3.one * 50f;
-            Debug.Log("[TestPlayerSetup] ✅ Ground 생성");
-        }
-    }
+            {
+                // TODO: 추후 GLB 지형 모델 로드 가능 (RuntimeModelLoader.TryGetModel("terrain", ...) 사용)
+                // 현재는 Plane 프리미티브 유지
+                if (GameObject.Find("Ground") == null)
+                {
+                    var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                    ground.name = "Ground";
+                    ground.transform.position = new Vector3(0, -0.5f, 0);
+                    ground.transform.localScale = Vector3.one * 50f;
+                
+                    // URP Lit 머티리얼 적용 (초록색 잔디)
+                    var renderer = ground.GetComponent<MeshRenderer>();
+                    if (renderer != null)
+                    {
+                        var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                        mat.color = new Color(0.2f, 0.5f, 0.2f, 1f); // 잔디색
+                        mat.SetFloat("_Smoothness", 0f);
+                        renderer.material = mat;
+                    }
+                
+                    Debug.Log("[TestPlayerSetup] ✅ Ground 생성 (URP Lit 머티리얼 적용)");
+                }
+            }
 
     private void SetupLight()
     {
