@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
+using ProjectName.Systems.Animation.Procedural.Bones;
+using ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped;
 
 namespace ProjectName.Systems
 {
@@ -175,13 +178,13 @@ namespace ProjectName.Systems
 
         private void UpdateGaitTargets()
         {
-            UpdateLegTarget(_procAnim.LF_Phase, ref _procAnim.LF_Target, ref _procAnim.LF_Hint, ProceduralBoneUtility.BoneRole.L_Hip, ProceduralBoneUtility.BoneRole.L_Knee, ProceduralBoneUtility.BoneRole.L_Ankle);
-            UpdateLegTarget(_procAnim.RF_Phase, ref _procAnim.RF_Target, ref _procAnim.RF_Hint, ProceduralBoneUtility.BoneRole.R_Hip, ProceduralBoneUtility.BoneRole.R_Knee, ProceduralBoneUtility.BoneRole.R_Ankle);
-            UpdateLegTarget(_procAnim.LH_Phase, ref _procAnim.LH_Target, ref _procAnim.LH_Hint, ProceduralBoneUtility.BoneRole.L_Hip, ProceduralBoneUtility.BoneRole.L_Knee, ProceduralBoneUtility.BoneRole.L_Ankle); // Reuse for hind
-            UpdateLegTarget(_procAnim.RH_Phase, ref _procAnim.RH_Target, ref _procAnim.RH_Hint, ProceduralBoneUtility.BoneRole.R_Hip, ProceduralBoneUtility.BoneRole.R_Knee, ProceduralBoneUtility.BoneRole.R_Ankle);
+            UpdateLegTarget(_procAnim.LF_Phase, ref _procAnim.LF_Target, ref _procAnim.LF_Hint, BoneRole.L_Hip, BoneRole.L_Knee, BoneRole.L_Ankle);
+                        UpdateLegTarget(_procAnim.RF_Phase, ref _procAnim.RF_Target, ref _procAnim.RF_Hint, BoneRole.R_Hip, BoneRole.R_Knee, BoneRole.R_Ankle);
+                        UpdateLegTarget(_procAnim.LH_Phase, ref _procAnim.LH_Target, ref _procAnim.LH_Hint, BoneRole.L_Hip, BoneRole.L_Knee, BoneRole.L_Ankle);
+                        UpdateLegTarget(_procAnim.RH_Phase, ref _procAnim.RH_Target, ref _procAnim.RH_Hint, BoneRole.R_Hip, BoneRole.R_Knee, BoneRole.R_Ankle);
         }
 
-        private void UpdateLegTarget(float phase, ref Vector3 target, ref Vector3 hint, ProceduralBoneUtility.BoneRole hipRole, ProceduralBoneUtility.BoneRole kneeRole, ProceduralBoneUtility.BoneRole ankleRole)
+        private void UpdateLegTarget(float phase, ref Vector3 target, ref Vector3 hint, BoneRole hipRole, BoneRole kneeRole, BoneRole ankleRole)
         {
             if (phase < 0.7f) // Stance
             {

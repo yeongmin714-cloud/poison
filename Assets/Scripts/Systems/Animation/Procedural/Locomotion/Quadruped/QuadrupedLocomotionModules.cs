@@ -255,7 +255,7 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped
         public void Execute()
         {
             // Counter-rotate head to cancel body rotation
-            quaternion counterRot = quaternion.inverse(BodyRotation);
+            quaternion counterRot = math.inverse(BodyRotation);
             counterRot = math.slerp(quaternion.identity, counterRot, StabilizationStrength);
 
             // Look at target

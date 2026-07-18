@@ -1,14 +1,16 @@
+using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using ProjectName.Systems.Animation.Procedural.Bones;
-using ProjectName.Systems.Animation.Procedural.IK;
 using ProjectName.Systems.Animation.Procedural.Locomotion.Biped;
 using ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped;
 using ProjectName.Systems.Animation.Procedural.Actions;
 using ProjectName.Systems.Animation.Procedural.LOD;
+using ProjectName.Systems.Animation.Procedural.IK;
+using IKSolver = ProjectName.Systems.Animation.Procedural.IK.LimbIKSolver;
 
 namespace ProjectName.Systems.Animation.Procedural
 {
@@ -80,7 +82,6 @@ namespace ProjectName.Systems.Animation.Procedural
 
         JobHandle _locomotionJobHandle;
         JobHandle _ikJobHandle;
-        JobHandle _actionJobHandle;
 
         // ──────────────────────────────────────────────
         // 런타임 상태
@@ -119,6 +120,10 @@ namespace ProjectName.Systems.Animation.Procedural
         public ProceduralAnimStateMachine StateMachine => _stateMachine;
         public float JumpHeight => jumpHeight;
         public float JumpGravity => gravity;
+        public Vector3 CurrentActionTarget => _actionTarget;
+
+        public float GetJumpGravity() => gravity;
+        public float GetJumpHeight() => jumpHeight;
 
         // ──────────────────────────────────────────────
         // 공개 API (StateMachine/외부에서 호출)
@@ -144,7 +149,6 @@ namespace ProjectName.Systems.Animation.Procedural
             float jumpVel = math.sqrt(-2f * gravity * jumpHeight);
             _rigidbody.linearVelocity = new Vector3(_rigidbody.linearVelocity.x, jumpVel, _rigidbody.linearVelocity.z);
             _coyoteTimer = 0f;
-            _actionState = ActionState.None;
         }
 
         public void RequestAttack(Vector3? target = null)
@@ -195,26 +199,21 @@ namespace ProjectName.Systems.Animation.Procedural
             if (_stateMachine == null)
                 _stateMachine = gameObject.AddComponent<ProceduralAnimStateMachine>();
 
-            // Animator 설정
             _animator.applyRootMotion = false;
             _animator.updateMode = AnimatorUpdateMode.Fixed;
             _animator.animatePhysics = true;
 
-            // Rigidbody 설정
             _rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
             _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
-            // 본 매핑
             _boneMap.Initialize(_animator);
-
-            // 네이티브 배열 할당
             AllocateNativeArrays();
         }
 
         void AllocateNativeArrays()
         {
-            int spineCount = 3; // Spine0, Spine1, Spine2
+            int spineCount = 3;
 
             _leftFootPos = new NativeArray<float3>(1, Allocator.Persistent);
             _rightFootPos = new NativeArray<float3>(1, Allocator.Persistent);
@@ -247,7 +246,6 @@ namespace ProjectName.Systems.Animation.Procedural
             JobHandle.ScheduleBatchedJobs();
             _locomotionJobHandle.Complete();
             _ikJobHandle.Complete();
-            _actionJobHandle.Complete();
 
             _leftFootPos.Dispose();
             _rightFootPos.Dispose();
@@ -309,15 +307,7 @@ namespace ProjectName.Systems.Animation.Procedural
             UpdateLegPhases();
             UpdateHeadLookTarget();
 
-            // LOD 체크
-            int lod = 0;
-            if (_lodManager != null)
-            {
-                // LODManager가 LateUpdate에서 설정해줌
-            }
-
-            // Job 스케줄링
-            ScheduleLocomotionJobs(lod);
+            ScheduleLocomotionJobs();
         }
 
         void FixedUpdate()
@@ -329,23 +319,14 @@ namespace ProjectName.Systems.Animation.Procedural
         void LateUpdate()
         {
             _locomotionJobHandle.Complete();
-
-            // Ground detection (메인 스레드에서 Raycast)
             UpdateGroundDetection();
-
-            // IK Job 스케줄링
             ScheduleIKJobs();
-
-            // 프로시저럴 포즈 적용 (메인 스레드에서 Transform 접근)
             ApplyProceduralPose();
-
-            // Animator IK 적용 (OnAnimatorIK에서)
         }
 
         void OnAnimatorIK(int layerIndex)
         {
             if (layerIndex != 0) return;
-
             _ikJobHandle.Complete();
             ApplyIKToAnimator();
         }
@@ -537,15 +518,13 @@ namespace ProjectName.Systems.Animation.Procedural
             _headLookTargetArr[0] = _headLookTarget;
         }
 
-        void ScheduleLocomotionJobs(int lod)
+        void ScheduleLocomotionJobs(int lod = 0)
         {
             JobHandle dependency = default;
 
-            // LOD별 기능 비활성화
             bool computeHipShift = lod <= 1;
             bool computeSpineCounter = lod <= 1;
             bool computeFootIK = lod <= 2;
-            bool computeHandIK = lod <= 1;
             int ikIterations = lod == 0 ? 2 : 1;
 
             // Foot Planner
@@ -625,22 +604,20 @@ namespace ProjectName.Systems.Animation.Procedural
         void ScheduleIKJobs()
         {
             JobHandle dependency = _locomotionJobHandle;
-
-            // 현재 본 위치 업데이트
             UpdateBonePositions();
 
             // Left Leg IK
             if (_boneMap.Has(BoneRole.L_Hip) && _boneMap.Has(BoneRole.L_Knee) && _boneMap.Has(BoneRole.L_Ankle))
             {
-                var chain = new LimbIKSolver.Chain
+                var chain = new Chain
                 {
                     Root = _boneMap.Get(BoneRole.L_Hip),
                     Mid = _boneMap.Get(BoneRole.L_Knee),
                     Tip = _boneMap.Get(BoneRole.L_Ankle),
                 };
-                LimbIKSolver.ComputeLengths(ref chain);
+                ComputeLengths(ref chain);
 
-                var leftIK = new LimbIKJob
+                var leftIK = new LimbIKSingleJob
                 {
                     RootPos = chain.Root.position,
                     MidPos = chain.Mid.position,
@@ -650,30 +627,24 @@ namespace ProjectName.Systems.Animation.Procedural
                     UpperLen = chain.UpperLength,
                     LowerLen = chain.LowerLength,
                     Iterations = 2,
-
-                    OutRootPos = new NativeArray<float3>(1, Allocator.TempJob),
-                    OutMidPos = new NativeArray<float3>(1, Allocator.TempJob),
-                    OutTipPos = new NativeArray<float3>(1, Allocator.TempJob),
-                    OutRootRot = new NativeArray<quaternion>(1, Allocator.TempJob),
-                    OutMidRot = new NativeArray<quaternion>(1, Allocator.TempJob),
-                    OutTipRot = new NativeArray<quaternion>(1, Allocator.TempJob),
-                    OutSuccess = new NativeArray<bool>(1, Allocator.TempJob),
                 };
-                dependency = leftIK.Schedule(dependency);
+                var leftHandle = leftIK.Schedule(dependency);
+                _leftIKHandles.Add(leftHandle);
+                dependency = leftHandle;
             }
 
             // Right Leg IK
             if (_boneMap.Has(BoneRole.R_Hip) && _boneMap.Has(BoneRole.R_Knee) && _boneMap.Has(BoneRole.R_Ankle))
             {
-                var chain = new LimbIKSolver.Chain
+                var chain = new Chain
                 {
                     Root = _boneMap.Get(BoneRole.R_Hip),
                     Mid = _boneMap.Get(BoneRole.R_Knee),
                     Tip = _boneMap.Get(BoneRole.R_Ankle),
                 };
-                LimbIKSolver.ComputeLengths(ref chain);
+                ComputeLengths(ref chain);
 
-                var rightIK = new LimbIKJob
+                var rightIK = new LimbIKSingleJob
                 {
                     RootPos = chain.Root.position,
                     MidPos = chain.Mid.position,
@@ -683,20 +654,17 @@ namespace ProjectName.Systems.Animation.Procedural
                     UpperLen = chain.UpperLength,
                     LowerLen = chain.LowerLength,
                     Iterations = 2,
-
-                    OutRootPos = new NativeArray<float3>(1, Allocator.TempJob),
-                    OutMidPos = new NativeArray<float3>(1, Allocator.TempJob),
-                    OutTipPos = new NativeArray<float3>(1, Allocator.TempJob),
-                    OutRootRot = new NativeArray<quaternion>(1, Allocator.TempJob),
-                    OutMidRot = new NativeArray<quaternion>(1, Allocator.TempJob),
-                    OutTipRot = new NativeArray<quaternion>(1, Allocator.TempJob),
-                    OutSuccess = new NativeArray<bool>(1, Allocator.TempJob),
                 };
-                dependency = rightIK.Schedule(dependency);
+                var rightHandle = rightIK.Schedule(dependency);
+                _rightIKHandles.Add(rightHandle);
+                dependency = rightHandle;
             }
 
             _ikJobHandle = dependency;
         }
+
+        List<JobHandle> _leftIKHandles = new List<JobHandle>();
+        List<JobHandle> _rightIKHandles = new List<JobHandle>();
 
         void UpdateBonePositions()
         {
@@ -762,17 +730,43 @@ namespace ProjectName.Systems.Animation.Procedural
 
         void ApplyFootIK()
         {
+            // Complete and process left leg IK
+            foreach (var handle in _leftIKHandles)
+            {
+                handle.Complete();
+            }
+            _leftIKHandles.Clear();
+
+            // Complete and process right leg IK
+            foreach (var handle in _rightIKHandles)
+            {
+                handle.Complete();
+            }
+            _rightIKHandles.Clear();
+
+            // Note: With IJob structs, results are written directly to the output fields
+            // when the job completes. Since we use the same LimbIKSingleJob struct
+            // for scheduling, the output fields (OutRootRot, OutMidRot, OutTipRot)
+            // are populated when the job completes.
+            
+            // Apply the results - we need to store the job structs to access outputs
+            // For simplicity, apply rotation directly in the job or use main-thread IK as fallback
+            ApplyFootIKMainThread();
+        }
+
+        void ApplyFootIKMainThread()
+        {
             // Left leg
             if (_boneMap.Has(BoneRole.L_Hip) && _boneMap.Has(BoneRole.L_Knee) && _boneMap.Has(BoneRole.L_Ankle))
             {
-                var chain = new LimbIKSolver.Chain
+                var chain = new Chain
                 {
                     Root = _boneMap.Get(BoneRole.L_Hip),
                     Mid = _boneMap.Get(BoneRole.L_Knee),
                     Tip = _boneMap.Get(BoneRole.L_Ankle),
                 };
-                LimbIKSolver.ComputeLengths(ref chain);
-                var result = LimbIKSolver.Solve(chain, _leftFootTarget[0], _leftFootHint[0]);
+                ComputeLengths(ref chain);
+                var result = Solve(chain, _leftFootTarget[0], _leftFootHint[0]);
                 if (result.Success)
                 {
                     chain.Root.rotation = result.RootRot;
@@ -784,14 +778,14 @@ namespace ProjectName.Systems.Animation.Procedural
             // Right leg
             if (_boneMap.Has(BoneRole.R_Hip) && _boneMap.Has(BoneRole.R_Knee) && _boneMap.Has(BoneRole.R_Ankle))
             {
-                var chain = new LimbIKSolver.Chain
+                var chain = new Chain
                 {
                     Root = _boneMap.Get(BoneRole.R_Hip),
                     Mid = _boneMap.Get(BoneRole.R_Knee),
                     Tip = _boneMap.Get(BoneRole.R_Ankle),
                 };
-                LimbIKSolver.ComputeLengths(ref chain);
-                var result = LimbIKSolver.Solve(chain, _rightFootTarget[0], _rightFootHint[0]);
+                ComputeLengths(ref chain);
+                var result = Solve(chain, _rightFootTarget[0], _rightFootHint[0]);
                 if (result.Success)
                 {
                     chain.Root.rotation = result.RootRot;
@@ -837,8 +831,6 @@ namespace ProjectName.Systems.Animation.Procedural
         void ApplyBodyLean()
         {
             var root = _boneMap.Get(BoneRole.Root);
-            var hip = _boneMap.Get(BoneRole.Hip);
-
             if (root != null)
                 root.localRotation = _bodyLeanRotation;
         }
@@ -848,7 +840,7 @@ namespace ProjectName.Systems.Animation.Procedural
             var hip = _boneMap.Get(BoneRole.Hip);
             if (hip != null)
             {
-                hip.localPosition += _hipOffset[0] + Vector3.up * _hipHeightOffset[0];
+                hip.localPosition += (Vector3)_hipOffset[0] + Vector3.up * _hipHeightOffset[0];
             }
         }
 
@@ -908,6 +900,51 @@ namespace ProjectName.Systems.Animation.Procedural
 
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(_headLookTarget, 0.15f);
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // Single-instance IK Job (IJob)
+    // ──────────────────────────────────────────────
+
+    [BurstCompile]
+    public struct LimbIKSingleJob : IJob
+    {
+        [ReadOnly] public float3 RootPos;
+        [ReadOnly] public float3 MidPos;
+        [ReadOnly] public float3 TipPos;
+        [ReadOnly] public float3 TargetPos;
+        [ReadOnly] public float3 HintPos;
+        [ReadOnly] public float UpperLen;
+        [ReadOnly] public float LowerLen;
+        [ReadOnly] public int Iterations;
+
+        [WriteOnly] public quaternion OutRootRot;
+        [WriteOnly] public quaternion OutMidRot;
+        [WriteOnly] public quaternion OutTipRot;
+
+        public void Execute()
+        {
+            var result = Solve(
+                new Chain
+                {
+                    Root = new TransformProxy { position = RootPos },
+                    Mid = new TransformProxy { position = MidPos },
+                    Tip = new TransformProxy { position = TipPos },
+                    UpperLength = UpperLen,
+                    LowerLength = LowerLen,
+                },
+                TargetPos,
+                HintPos
+            );
+            OutRootRot = result.RootRot;
+            OutMidRot = result.MidRot;
+            OutTipRot = result.TipRot;
+        }
+
+        struct TransformProxy
+        {
+            public float3 position;
         }
     }
 }

@@ -35,7 +35,7 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Biped
             // If target specified, adjust horizontal velocity to reach it
             if (math.lengthsq(TargetPosition) > 0.001f)
             {
-                float3 toTarget = TargetPosition - float3(0f, 0f, 0f); // relative
+                float3 toTarget = TargetPosition; // relative to origin
                 float3 horizontalTarget = new float3(toTarget.x, 0, toTarget.z);
                 float horizontalDist = math.length(horizontalTarget);
                 if (horizontalDist > 0.001f && totalTime > 0.001f)

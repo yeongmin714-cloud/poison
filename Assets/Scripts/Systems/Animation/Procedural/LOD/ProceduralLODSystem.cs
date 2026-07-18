@@ -175,7 +175,7 @@ namespace ProjectName.Systems.Animation.Procedural.LOD
                 if (_controllers[i] != null)
                     _positions[i] = _controllers[i].transform.position;
                 else
-                    _positions[i] = float3(0f, -1000f, 0f); // far away
+                    _positions[i] = new float3(0f, -1000f, 0f); // far away
             }
 
             // Schedule LOD calculation

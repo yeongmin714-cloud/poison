@@ -293,7 +293,7 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Biped
                 float segmentYaw = hipYaw * weight;
 
                 // Add velocity-based lean
-                float3 localVel = math.mul(quaternion.inverse(BodyRotation), BodyVelocity);
+                float3 localVel = math.mul(math.inverse(BodyRotation), BodyVelocity);
                 float leanYaw = math.atan2(localVel.x, localVel.z) * 0.1f * weight;
                 segmentYaw += leanYaw;
 

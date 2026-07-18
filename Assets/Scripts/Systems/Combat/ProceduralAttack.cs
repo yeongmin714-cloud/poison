@@ -1,6 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
+using ProjectName.Core.Data;
+using ProjectName.Systems.Animation.Procedural;
+using ProjectName.Systems.Animation.Procedural.Bones;
+using UnityEngine.InputSystem;
+#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {

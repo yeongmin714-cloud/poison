@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using ProjectName.Systems.Animation.Procedural.Bones;
 
 namespace ProjectName.Systems.Animation.Procedural.Bones
 {
@@ -359,7 +358,7 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             foreach (var role in critical)
             {
                 if (map[role] == null)
-                    Debug.LogWarning($"[ProceduralBoneUtility] Critical bone missing: {role}. Animator: {animatorRoot.name}");
+                    UnityEngine.Debug.LogWarning($"[ProceduralBoneUtility] Critical bone missing: {role}. Animator: {animatorRoot.name}");
             }
         }
     }

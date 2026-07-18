@@ -32,7 +32,7 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
 
             if (_animator == null)
             {
-                Debug.LogWarning("[ProceduralBoneMap] No Animator found");
+                UnityEngine.Debug.LogWarning("[ProceduralBoneMap] No Animator found");
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
                     _boneDict[entry.Role] = entry.Transform;
             }
 
-            Debug.Log($"[ProceduralBoneMap] Mapped {_boneDict.Count} bones");
+            UnityEngine.Debug.Log($"[ProceduralBoneMap] Mapped {_boneDict.Count} bones");
         }
 
         public Transform Get(BoneRole role)
