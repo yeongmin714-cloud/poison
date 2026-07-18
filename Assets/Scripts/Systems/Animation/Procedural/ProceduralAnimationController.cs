@@ -3,17 +3,20 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
+using ProjectName.Systems.Animation.Procedural.Bones;
 using ProjectName.Systems.Animation.Procedural.IK;
 using ProjectName.Systems.Animation.Procedural.Locomotion.Biped;
 using ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped;
 using ProjectName.Systems.Animation.Procedural.Actions;
-using ProjectName.Systems.Animation.Procedural.Bones;
+using ProjectName.Systems.Animation.Procedural.LOD;
 
 namespace ProjectName.Systems.Animation.Procedural
 {
     /// <summary>
-    /// Main procedural animation controller.
-    /// Composes modular IK/locomotion/action jobs for biped characters.
+    /// 완전 프로시저럴 애니메이션 컨트롤러 (모듈 합성 버전).
+    /// - 애니메이션 클립(.anim) 전혀 사용 안 함
+    /// - 모든 모션: Locomotion(보행/달리기), Jump, Attack, Gather, Roll, Climb 등을 수학적으로 실시간 합성
+    /// - Job System + Burst로 병렬 처리
     /// </summary>
     [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(Rigidbody))]
@@ -21,8 +24,9 @@ namespace ProjectName.Systems.Animation.Procedural
     public class ProceduralAnimationController : MonoBehaviour
     {
         // ──────────────────────────────────────────────
-        // Inspector Settings
+        // 인스펙터 설정
         // ──────────────────────────────────────────────
+
         [Header("Locomotion")]
         [SerializeField, Range(0f, 10f)] float walkSpeed = 3f;
         [SerializeField, Range(0f, 15f)] float runSpeed = 7f;
@@ -50,56 +54,55 @@ namespace ProjectName.Systems.Animation.Procedural
         [SerializeField, Range(0.5f, 2f)] float groundCheckDistance = 1.2f;
 
         // ──────────────────────────────────────────────
-        // Components
+        // 컴포넌트
         // ──────────────────────────────────────────────
+
         Animator _animator;
         Rigidbody _rigidbody;
         ProceduralBoneMap _boneMap;
         ProceduralAnimStateMachine _stateMachine;
+        ProceduralLODManager _lodManager;
 
         // ──────────────────────────────────────────────
-        // Native Arrays for Job System
+        // 네이티브 배열 (Job System용)
         // ──────────────────────────────────────────────
+
         NativeArray<float3> _leftFootPos, _rightFootPos, _leftHandPos, _rightHandPos;
         NativeArray<float3> _leftFootTarget, _rightFootTarget, _leftHandTarget, _rightHandTarget;
         NativeArray<float3> _leftFootHint, _rightFootHint, _leftHandHint, _rightHandHint;
         NativeArray<quaternion> _spineRotations;
         NativeArray<float3> _hipOffset;
         NativeArray<float> _hipHeightOffset;
+        NativeArray<float> _leftLegPhaseArr, _rightLegPhaseArr;
+        NativeArray<float> _phaseSpeedArr;
+        NativeArray<bool> _leftFootGroundedArr, _rightFootGroundedArr;
+        NativeArray<float3> _headLookTargetArr;
 
-        // Job handles
         JobHandle _locomotionJobHandle;
         JobHandle _ikJobHandle;
         JobHandle _actionJobHandle;
 
         // ──────────────────────────────────────────────
-        // Runtime State
+        // 런타임 상태
         // ──────────────────────────────────────────────
+
         Vector3 _currentVelocity;
         Vector3 _targetVelocity;
         float _currentSpeed;
         float _targetSpeed;
-        bool _isGrounded;
         float _coyoteTimer;
 
-        // Leg phases
         float _leftLegPhase = 0f;
         float _rightLegPhase = 0.5f;
-        float _phaseSpeed = 1f;
-        const float _dutyCycle = 0.6f; // 60% stance
+        const float _dutyCycle = 0.6f;
 
-        // Ground detection
         RaycastHit _leftFootHit, _rightFootHit;
         bool _leftFootGrounded, _rightFootGrounded;
 
-        // Body lean
         Vector3 _bodyLeanOffset;
         Quaternion _bodyLeanRotation = Quaternion.identity;
-
-        // Head look
         Vector3 _headLookTarget;
 
-        // Action override
         ActionState _actionState = ActionState.None;
         float _actionTimer;
         Vector3 _actionTarget;
@@ -107,12 +110,75 @@ namespace ProjectName.Systems.Animation.Procedural
         public enum ActionState { None, Attack, Gather, Roll, Climb, Stagger }
 
         // ──────────────────────────────────────────────
-        // Public Properties
+        // 공개 속성 (StateMachine 등에서 사용)
         // ──────────────────────────────────────────────
+
         public Vector3 CurrentVelocity => _currentVelocity;
         public float CurrentSpeed => _currentSpeed;
-        public bool IsGrounded => _isGrounded;
+        public bool IsGrounded => _leftFootGrounded || _rightFootGrounded;
         public ProceduralAnimStateMachine StateMachine => _stateMachine;
+        public float JumpHeight => jumpHeight;
+        public float JumpGravity => gravity;
+
+        // ──────────────────────────────────────────────
+        // 공개 API (StateMachine/외부에서 호출)
+        // ──────────────────────────────────────────────
+
+        public void TriggerAction(string actionName)
+        {
+            switch (actionName.ToLower())
+            {
+                case "jump": RequestJump(); break;
+                case "attack": RequestAttack(); break;
+                case "gather": RequestGather(); break;
+                case "roll": RequestRoll(); break;
+                case "climb": RequestClimb(); break;
+            }
+        }
+
+        public void RequestJump()
+        {
+            if (!IsGrounded && _coyoteTimer <= 0) return;
+            if (_actionState != ActionState.None) return;
+
+            float jumpVel = math.sqrt(-2f * gravity * jumpHeight);
+            _rigidbody.linearVelocity = new Vector3(_rigidbody.linearVelocity.x, jumpVel, _rigidbody.linearVelocity.z);
+            _coyoteTimer = 0f;
+            _actionState = ActionState.None;
+        }
+
+        public void RequestAttack(Vector3? target = null)
+        {
+            if (_actionState != ActionState.None) return;
+            _actionState = ActionState.Attack;
+            _actionTimer = 0f;
+            _actionTarget = target ?? (transform.position + transform.forward * 2f);
+        }
+
+        public void RequestGather(Vector3? target = null)
+        {
+            if (_actionState != ActionState.None) return;
+            _actionState = ActionState.Gather;
+            _actionTimer = 0f;
+            _actionTarget = target ?? (transform.position + transform.forward * 1.5f);
+        }
+
+        public void RequestRoll()
+        {
+            if (_actionState != ActionState.None) return;
+            if (!IsGrounded) return;
+
+            _actionState = ActionState.Roll;
+            _actionTimer = 0f;
+            Vector3 dir = _currentVelocity.magnitude > 0.1f ? _currentVelocity.normalized : transform.forward;
+            _rigidbody.AddForce(dir * 15f, ForceMode.VelocityChange);
+        }
+
+        public void RequestClimb()
+        {
+            _actionState = ActionState.Climb;
+            _actionTimer = 0f;
+        }
 
         // ──────────────────────────────────────────────
         // Unity Lifecycle
@@ -124,24 +190,25 @@ namespace ProjectName.Systems.Animation.Procedural
             _rigidbody = GetComponent<Rigidbody>();
             _boneMap = GetComponent<ProceduralBoneMap>();
             _stateMachine = GetComponent<ProceduralAnimStateMachine>();
+            _lodManager = FindFirstObjectByType<ProceduralLODManager>();
 
             if (_stateMachine == null)
                 _stateMachine = gameObject.AddComponent<ProceduralAnimStateMachine>();
 
-            // Animator setup
+            // Animator 설정
             _animator.applyRootMotion = false;
             _animator.updateMode = AnimatorUpdateMode.Fixed;
             _animator.animatePhysics = true;
 
-            // Rigidbody setup
+            // Rigidbody 설정
             _rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
             _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
-            // Initialize bone map
+            // 본 매핑
             _boneMap.Initialize(_animator);
 
-            // Allocate native arrays
+            // 네이티브 배열 할당
             AllocateNativeArrays();
         }
 
@@ -167,17 +234,21 @@ namespace ProjectName.Systems.Animation.Procedural
             _spineRotations = new NativeArray<quaternion>(spineCount, Allocator.Persistent);
             _hipOffset = new NativeArray<float3>(1, Allocator.Persistent);
             _hipHeightOffset = new NativeArray<float>(1, Allocator.Persistent);
+            _leftLegPhaseArr = new NativeArray<float>(1, Allocator.Persistent);
+            _rightLegPhaseArr = new NativeArray<float>(1, Allocator.Persistent);
+            _phaseSpeedArr = new NativeArray<float>(1, Allocator.Persistent);
+            _leftFootGroundedArr = new NativeArray<bool>(1, Allocator.Persistent);
+            _rightFootGroundedArr = new NativeArray<bool>(1, Allocator.Persistent);
+            _headLookTargetArr = new NativeArray<float3>(1, Allocator.Persistent);
         }
 
         void OnDestroy()
         {
-            // Complete any pending jobs
             JobHandle.ScheduleBatchedJobs();
             _locomotionJobHandle.Complete();
             _ikJobHandle.Complete();
             _actionJobHandle.Complete();
 
-            // Dispose native arrays
             _leftFootPos.Dispose();
             _rightFootPos.Dispose();
             _leftHandPos.Dispose();
@@ -193,6 +264,12 @@ namespace ProjectName.Systems.Animation.Procedural
             _spineRotations.Dispose();
             _hipOffset.Dispose();
             _hipHeightOffset.Dispose();
+            _leftLegPhaseArr.Dispose();
+            _rightLegPhaseArr.Dispose();
+            _phaseSpeedArr.Dispose();
+            _leftFootGroundedArr.Dispose();
+            _rightFootGroundedArr.Dispose();
+            _headLookTargetArr.Dispose();
         }
 
         void Start()
@@ -212,7 +289,6 @@ namespace ProjectName.Systems.Animation.Procedural
             if (lHand != null) _leftHandTarget[0] = lHand.position;
             if (rHand != null) _rightHandTarget[0] = rHand.position;
 
-            // Hints
             var lKnee = _boneMap.Get(BoneRole.L_Knee);
             var rKnee = _boneMap.Get(BoneRole.R_Knee);
             var lElbow = _boneMap.Get(BoneRole.L_Elbow);
@@ -230,16 +306,18 @@ namespace ProjectName.Systems.Animation.Procedural
             UpdateMovement();
             UpdateStateMachine();
             UpdateCoyoteTime();
+            UpdateLegPhases();
+            UpdateHeadLookTarget();
 
-            // Head look target
-            _headLookTarget = transform.position + transform.forward * 5f + Vector3.up * 1.5f;
-            if (_actionState == ActionState.Attack || _actionState == ActionState.Gather)
+            // LOD 체크
+            int lod = 0;
+            if (_lodManager != null)
             {
-                _headLookTarget = _actionTarget;
+                // LODManager가 LateUpdate에서 설정해줌
             }
 
-            // Schedule locomotion jobs
-            ScheduleLocomotionJobs();
+            // Job 스케줄링
+            ScheduleLocomotionJobs(lod);
         }
 
         void FixedUpdate()
@@ -250,34 +328,30 @@ namespace ProjectName.Systems.Animation.Procedural
 
         void LateUpdate()
         {
-            // Complete locomotion jobs before IK
             _locomotionJobHandle.Complete();
 
-            // Update ground detection (main thread for raycasts)
+            // Ground detection (메인 스레드에서 Raycast)
             UpdateGroundDetection();
 
-            // Schedule IK jobs
+            // IK Job 스케줄링
             ScheduleIKJobs();
 
-            // Apply procedural pose (main thread for Transform access)
+            // 프로시저럴 포즈 적용 (메인 스레드에서 Transform 접근)
             ApplyProceduralPose();
 
-            // Apply to Animator IK
-            // Done in OnAnimatorIK
+            // Animator IK 적용 (OnAnimatorIK에서)
         }
 
         void OnAnimatorIK(int layerIndex)
         {
             if (layerIndex != 0) return;
 
-            // Complete IK jobs
             _ikJobHandle.Complete();
-
             ApplyIKToAnimator();
         }
 
         // ──────────────────────────────────────────────
-        // Input & Movement
+        // 입력 & 이동
         // ──────────────────────────────────────────────
 
         void HandleInput()
@@ -297,14 +371,12 @@ namespace ProjectName.Systems.Animation.Procedural
             _targetVelocity = transform.TransformDirection(localTarget) * (sprint ? runSpeed : walkSpeed);
             _targetSpeed = _targetVelocity.magnitude;
 
-            // Rotation
             if (_targetVelocity.sqrMagnitude > 0.01f)
             {
                 Quaternion targetRot = Quaternion.LookRotation(_targetVelocity.normalized);
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
             }
 
-            // Actions
             if (Input.GetMouseButtonDown(0)) RequestAttack();
             if (Input.GetKeyDown(KeyCode.Space)) RequestJump();
             if (Input.GetKeyDown(KeyCode.E)) RequestGather();
@@ -316,7 +388,6 @@ namespace ProjectName.Systems.Animation.Procedural
             _currentVelocity = Vector3.MoveTowards(_currentVelocity, _targetVelocity, acceleration * Time.deltaTime);
             _currentSpeed = _currentVelocity.magnitude;
 
-            // Body lean (turning)
             float turnInput = Input.GetKey(KeyCode.A) ? -1f : (Input.GetKey(KeyCode.D) ? 1f : 0f);
             float targetLean = turnInput * bodyLeanAmount * 15f;
             _bodyLeanOffset = Vector3.Lerp(_bodyLeanOffset, new Vector3(targetLean, 0, 0), Time.deltaTime * 5f);
@@ -325,16 +396,16 @@ namespace ProjectName.Systems.Animation.Procedural
 
         void ApplyMovement()
         {
-            if (!_isGrounded) return;
+            if (!IsGrounded) return;
 
             Vector3 move = _currentVelocity * Time.fixedDeltaTime;
-            move.y = _rigidbody.velocity.y;
-            _rigidbody.velocity = move;
+            move.y = _rigidbody.linearVelocity.y;
+            _rigidbody.linearVelocity = move;
         }
 
         void ApplyGravity()
         {
-            if (!_isGrounded)
+            if (!IsGrounded)
             {
                 _rigidbody.AddForce(Vector3.up * gravity * _rigidbody.mass, ForceMode.Force);
             }
@@ -342,12 +413,12 @@ namespace ProjectName.Systems.Animation.Procedural
 
         void UpdateCoyoteTime()
         {
-            if (_isGrounded) _coyoteTimer = coyoteTime;
+            if (IsGrounded) _coyoteTimer = coyoteTime;
             else _coyoteTimer -= Time.deltaTime;
         }
 
         // ──────────────────────────────────────────────
-        // State Machine
+        // 상태 머신
         // ──────────────────────────────────────────────
 
         void UpdateStateMachine()
@@ -379,15 +450,105 @@ namespace ProjectName.Systems.Animation.Procedural
             }
         }
 
+        void UpdateActionAttack()
+        {
+            _actionTimer += Time.deltaTime;
+            float progress = math.clamp(_actionTimer / 0.8f, 0f, 1f);
+            float swing = math.sin(progress * math.PI) * 90f;
+
+            var rHand = _boneMap.Get(BoneRole.R_Hand);
+            var rElbow = _boneMap.Get(BoneRole.R_Elbow);
+
+            if (rHand != null && rElbow != null)
+            {
+                Vector3 swingDir = (_actionTarget - rHand.position).normalized;
+                _rightHandTarget[0] = Vector3.Lerp(_rightHandTarget[0], _actionTarget, progress * 2f);
+                _rightHandHint[0] = rElbow.position + swingDir * 0.5f;
+            }
+
+            if (_actionTimer > 0.8f)
+                _actionState = ActionState.None;
+        }
+
+        void UpdateActionGather()
+        {
+            _actionTimer += Time.deltaTime;
+            float progress = math.clamp(_actionTimer / 1.5f, 0f, 1f);
+
+            var lHand = _boneMap.Get(BoneRole.L_Hand);
+            var rHand = _boneMap.Get(BoneRole.R_Hand);
+
+            if (lHand != null)
+                _leftHandTarget[0] = Vector3.Lerp(_leftHandTarget[0], _actionTarget, progress);
+            if (rHand != null)
+                _rightHandTarget[0] = Vector3.Lerp(_rightHandTarget[0], _actionTarget, progress);
+
+            float bend = progress * 45f;
+            _bodyLeanOffset = Vector3.Lerp(_bodyLeanOffset, new Vector3(0, 0, bend), Time.deltaTime * 3f);
+
+            if (_actionTimer > 1.5f)
+                _actionState = ActionState.None;
+        }
+
+        void UpdateActionRoll()
+        {
+            _actionTimer += Time.deltaTime;
+            float progress = math.clamp(_actionTimer / 0.6f, 0f, 1f);
+            float rollAngle = progress * 360f;
+            transform.Rotate(Vector3.forward, rollAngle * Time.deltaTime / 0.6f);
+
+            if (_actionTimer > 0.6f)
+            {
+                _actionState = ActionState.None;
+                transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
+            }
+        }
+
+        void UpdateActionClimb()
+        {
+            _actionTimer += Time.deltaTime;
+        }
+
         // ──────────────────────────────────────────────
         // Job Scheduling
         // ──────────────────────────────────────────────
 
-        void ScheduleLocomotionJobs()
+        void UpdateLegPhases()
+        {
+            if (!IsGrounded) return;
+
+            float speedRatio = _currentSpeed / runSpeed;
+            _phaseSpeedArr[0] = math.lerp(0.5f, 2.5f, speedRatio);
+
+            float phaseDelta = _phaseSpeedArr[0] * Time.deltaTime;
+            _leftLegPhase = math.fmod(_leftLegPhase + phaseDelta, 1f);
+            _rightLegPhase = math.fmod(_rightLegPhase + phaseDelta, 1f);
+            _leftLegPhaseArr[0] = _leftLegPhase;
+            _rightLegPhaseArr[0] = _rightLegPhase;
+        }
+
+        void UpdateHeadLookTarget()
+        {
+            _headLookTarget = transform.position + transform.forward * 5f + Vector3.up * 1.5f;
+            if (_actionState == ActionState.Attack || _actionState == ActionState.Gather)
+            {
+                _headLookTarget = _actionTarget;
+            }
+            _headLookTargetArr[0] = _headLookTarget;
+        }
+
+        void ScheduleLocomotionJobs(int lod)
         {
             JobHandle dependency = default;
 
-            // Foot planner
+            // LOD별 기능 비활성화
+            bool computeHipShift = lod <= 1;
+            bool computeSpineCounter = lod <= 1;
+            bool computeFootIK = lod <= 2;
+            bool computeHandIK = lod <= 1;
+            int ikIterations = lod == 0 ? 2 : 1;
+
+            // Foot Planner
             var footPlanner = new FootPlannerJob
             {
                 BodyPosition = transform.position,
@@ -419,37 +580,44 @@ namespace ProjectName.Systems.Animation.Procedural
             };
             dependency = footPlanner.Schedule(dependency);
 
-            // Hip shift
-            var hipShift = new HipShiftJob
+            // Hip Shift
+            if (computeHipShift)
             {
-                BodyVelocity = _currentVelocity,
-                BodyRotation = transform.rotation,
-                LeftPhase = _leftLegPhase,
-                RightPhase = _rightLegPhase,
-                DutyCycle = _dutyCycle,
-                MaxLateralShift = 0.1f,
-                MaxVerticalShift = 0.05f,
-                Speed = _currentSpeed,
+                var hipShift = new HipShiftJob
+                {
+                    LeftPhase = _leftLegPhase,
+                    RightPhase = _rightLegPhase,
+                    DutyCycle = _dutyCycle,
+                    LeftWeight = _leftFootGrounded ? 1f : 0f,
+                    RightWeight = _rightFootGrounded ? 1f : 0f,
+                    MaxLateralShift = 0.1f,
+                    MaxVerticalShift = 0.05f,
+                    Speed = _currentSpeed,
+                    TurnAmount = Input.GetKey(KeyCode.A) ? -1f : (Input.GetKey(KeyCode.D) ? 1f : 0f),
 
-                OutHipOffset = _hipOffset,
-                OutHipHeightOffset = _hipHeightOffset,
-            };
-            dependency = hipShift.Schedule(dependency);
+                    OutHipOffset = _hipOffset,
+                    OutHipHeightOffset = _hipHeightOffset,
+                };
+                dependency = hipShift.Schedule(dependency);
+            }
 
-            // Spine counter-rotation
-            var spineCounter = new SpineCounterRotationJob
+            // Spine Counter-Rotation
+            if (computeSpineCounter)
             {
-                PelvisRotation = transform.rotation,
-                BodyAngularVelocity = _rigidbody.angularVelocity,
-                LeftPhase = _leftLegPhase,
-                RightPhase = _rightLegPhase,
-                DutyCycle = _dutyCycle,
-                MaxCounterRotation = 8f,
-                Speed = _currentSpeed,
+                var spineCounter = new SpineCounterRotationJob
+                {
+                    LeftPhase = _leftLegPhase,
+                    RightPhase = _rightLegPhase,
+                    DutyCycle = _dutyCycle,
+                    MaxCounterRotation = 8f,
+                    BodyVelocity = _currentVelocity,
+                    BodyRotation = transform.rotation,
+                    SpineSegmentCount = 3,
 
-                OutSpineRotation = _spineRotations,
-            };
-            dependency = spineCounter.Schedule(dependency);
+                    OutSpineRotations = _spineRotations,
+                };
+                dependency = spineCounter.Schedule(dependency);
+            }
 
             _locomotionJobHandle = dependency;
         }
@@ -458,29 +626,29 @@ namespace ProjectName.Systems.Animation.Procedural
         {
             JobHandle dependency = _locomotionJobHandle;
 
-            // Get current bone positions
+            // 현재 본 위치 업데이트
             UpdateBonePositions();
 
-            // Left leg IK
-            var leftLegChain = new LimbIKSolver.Chain
+            // Left Leg IK
+            if (_boneMap.Has(BoneRole.L_Hip) && _boneMap.Has(BoneRole.L_Knee) && _boneMap.Has(BoneRole.L_Ankle))
             {
-                Root = _boneMap.Get(BoneRole.L_Hip),
-                Mid = _boneMap.Get(BoneRole.L_Knee),
-                Tip = _boneMap.Get(BoneRole.L_Ankle),
-            };
-            if (leftLegChain.Root != null)
-            {
-                LimbIKSolver.ComputeLengths(ref leftLegChain);
+                var chain = new LimbIKSolver.Chain
+                {
+                    Root = _boneMap.Get(BoneRole.L_Hip),
+                    Mid = _boneMap.Get(BoneRole.L_Knee),
+                    Tip = _boneMap.Get(BoneRole.L_Ankle),
+                };
+                LimbIKSolver.ComputeLengths(ref chain);
 
                 var leftIK = new LimbIKSolver.LimbIKJob
                 {
-                    RootPos = leftLegChain.Root.position,
-                    MidPos = leftLegChain.Mid.position,
-                    TipPos = leftLegChain.Tip.position,
+                    RootPos = chain.Root.position,
+                    MidPos = chain.Mid.position,
+                    TipPos = chain.Tip.position,
                     TargetPos = _leftFootTarget[0],
                     HintPos = _leftFootHint[0],
-                    UpperLen = leftLegChain.UpperLength,
-                    LowerLen = leftLegChain.LowerLength,
+                    UpperLen = chain.UpperLength,
+                    LowerLen = chain.LowerLength,
                     Iterations = 2,
 
                     OutRootPos = new NativeArray<float3>(1, Allocator.TempJob),
@@ -494,26 +662,26 @@ namespace ProjectName.Systems.Animation.Procedural
                 dependency = leftIK.Schedule(dependency);
             }
 
-            // Right leg IK (similar)
-            var rightLegChain = new LimbIKSolver.Chain
+            // Right Leg IK
+            if (_boneMap.Has(BoneRole.R_Hip) && _boneMap.Has(BoneRole.R_Knee) && _boneMap.Has(BoneRole.R_Ankle))
             {
-                Root = _boneMap.Get(BoneRole.R_Hip),
-                Mid = _boneMap.Get(BoneRole.R_Knee),
-                Tip = _boneMap.Get(BoneRole.R_Ankle),
-            };
-            if (rightLegChain.Root != null)
-            {
-                LimbIKSolver.ComputeLengths(ref rightLegChain);
+                var chain = new LimbIKSolver.Chain
+                {
+                    Root = _boneMap.Get(BoneRole.R_Hip),
+                    Mid = _boneMap.Get(BoneRole.R_Knee),
+                    Tip = _boneMap.Get(BoneRole.R_Ankle),
+                };
+                LimbIKSolver.ComputeLengths(ref chain);
 
                 var rightIK = new LimbIKSolver.LimbIKJob
                 {
-                    RootPos = rightLegChain.Root.position,
-                    MidPos = rightLegChain.Mid.position,
-                    TipPos = rightLegChain.Tip.position,
+                    RootPos = chain.Root.position,
+                    MidPos = chain.Mid.position,
+                    TipPos = chain.Tip.position,
                     TargetPos = _rightFootTarget[0],
                     HintPos = _rightFootHint[0],
-                    UpperLen = rightLegChain.UpperLength,
-                    LowerLen = rightLegChain.LowerLength,
+                    UpperLen = chain.UpperLength,
+                    LowerLen = chain.LowerLength,
                     Iterations = 2,
 
                     OutRootPos = new NativeArray<float3>(1, Allocator.TempJob),
@@ -575,11 +743,12 @@ namespace ProjectName.Systems.Animation.Procedural
                 }
             }
 
-            _isGrounded = _leftFootGrounded || _rightFootGrounded;
+            _leftFootGroundedArr[0] = _leftFootGrounded;
+            _rightFootGroundedArr[0] = _rightFootGrounded;
         }
 
         // ──────────────────────────────────────────────
-        // Procedural Pose Application
+        // 프로시저럴 포즈 적용 (메인 스레드)
         // ──────────────────────────────────────────────
 
         void ApplyProceduralPose()
@@ -709,7 +878,6 @@ namespace ProjectName.Systems.Animation.Procedural
                 _animator.SetIKHintPosition(AvatarIKHint.RightKnee, _rightFootHint[0]);
             }
 
-            // Hand IK during actions
             if (_actionState == ActionState.Attack || _actionState == ActionState.Gather || _actionState == ActionState.Climb)
             {
                 _animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, handIKWeight);
@@ -722,133 +890,6 @@ namespace ProjectName.Systems.Animation.Procedural
                 _animator.SetIKHintPositionWeight(AvatarIKHint.RightElbow, handIKWeight);
                 _animator.SetIKHintPosition(AvatarIKHint.RightElbow, _rightHandHint[0]);
             }
-        }
-
-        // ──────────────────────────────────────────────
-        // Action Requests
-        // ──────────────────────────────────────────────
-
-        public void RequestJump()
-        {
-            if (!_isGrounded && _coyoteTimer <= 0) return;
-            if (_actionState != ActionState.None) return;
-
-            float jumpVel = Mathf.Sqrt(-2f * gravity * jumpHeight);
-            _rigidbody.velocity = new Vector3(_rigidbody.velocity.x, jumpVel, _rigidbody.velocity.z);
-            _coyoteTimer = 0;
-        }
-
-        public void RequestAttack(Vector3? target = null)
-        {
-            if (_actionState != ActionState.None) return;
-            _actionState = ActionState.Attack;
-            _actionTimer = 0f;
-            _actionTarget = target ?? (transform.position + transform.forward * 2f);
-            _stateMachine.RequestAttack();
-        }
-
-        public void RequestGather(Vector3? target = null)
-        {
-            if (_actionState != ActionState.None) return;
-            _actionState = ActionState.Gather;
-            _actionTimer = 0f;
-            _actionTarget = target ?? (transform.position + transform.forward * 1.5f);
-            _stateMachine.RequestGather();
-        }
-
-        public void RequestRoll()
-        {
-            if (_actionState != ActionState.None) return;
-            if (!_isGrounded) return;
-
-            _actionState = ActionState.Roll;
-            _actionTimer = 0f;
-            Vector3 dir = _currentVelocity.magnitude > 0.1f ? _currentVelocity.normalized : transform.forward;
-            _rigidbody.AddForce(dir * 15f, ForceMode.VelocityChange);
-            _stateMachine.RequestRoll();
-        }
-
-        public void RequestClimb()
-        {
-            _actionState = ActionState.Climb;
-            _actionTimer = 0f;
-        }
-
-        void UpdateActionAttack()
-        {
-            _actionTimer += Time.deltaTime;
-            float progress = Mathf.Clamp01(_actionTimer / 0.8f);
-            float swing = Mathf.Sin(progress * Mathf.PI) * 90f;
-
-            var rHand = _boneMap.Get(BoneRole.R_Hand);
-            var rElbow = _boneMap.Get(BoneRole.R_Elbow);
-
-            if (rHand != null && rElbow != null)
-            {
-                Vector3 swingDir = (_actionTarget - rHand.position).normalized;
-                _rightHandTarget[0] = Vector3.Lerp(_rightHandTarget[0], _actionTarget, progress * 2f);
-                _rightHandHint[0] = rElbow.position + swingDir * 0.5f;
-            }
-
-            if (_actionTimer > 0.8f)
-                _actionState = ActionState.None;
-        }
-
-        void UpdateActionGather()
-        {
-            _actionTimer += Time.deltaTime;
-            float progress = Mathf.Clamp01(_actionTimer / 1.5f);
-
-            var lHand = _boneMap.Get(BoneRole.L_Hand);
-            var rHand = _boneMap.Get(BoneRole.R_Hand);
-
-            if (lHand != null)
-                _leftHandTarget[0] = Vector3.Lerp(_leftHandTarget[0], _actionTarget, progress);
-            if (rHand != null)
-                _rightHandTarget[0] = Vector3.Lerp(_rightHandTarget[0], _actionTarget, progress);
-
-            // Spine bend
-            float bend = progress * 45f;
-            _bodyLeanOffset = Vector3.Lerp(_bodyLeanOffset, new Vector3(0, 0, bend), Time.deltaTime * 3f);
-
-            if (_actionTimer > 1.5f)
-                _actionState = ActionState.None;
-        }
-
-        void UpdateActionRoll()
-        {
-            _actionTimer += Time.deltaTime;
-            float progress = Mathf.Clamp01(_actionTimer / 0.6f);
-            float rollAngle = progress * 360f;
-            transform.Rotate(Vector3.forward, rollAngle * Time.deltaTime / 0.6f);
-
-            if (_actionTimer > 0.6f)
-            {
-                _actionState = ActionState.None;
-                transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
-            }
-        }
-
-        void UpdateActionClimb()
-        {
-            _actionTimer += Time.deltaTime;
-            // Wall detection + hand/foot IK would go here
-        }
-
-        // ──────────────────────────────────────────────
-        // Leg Phase Update
-        // ──────────────────────────────────────────────
-
-        void UpdateLegPhases()
-        {
-            if (!_isGrounded) return;
-
-            float speedRatio = _currentSpeed / runSpeed;
-            _phaseSpeed = Mathf.Lerp(0.5f, 2.5f, speedRatio);
-
-            float phaseDelta = _phaseSpeed * Time.deltaTime;
-            _leftLegPhase = Mathf.Repeat(_leftLegPhase + phaseDelta, 1f);
-            _rightLegPhase = Mathf.Repeat(_rightLegPhase + phaseDelta, 1f);
         }
 
         // ──────────────────────────────────────────────
