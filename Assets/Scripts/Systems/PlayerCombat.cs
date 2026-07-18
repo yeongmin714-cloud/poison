@@ -341,5 +341,25 @@ namespace ProjectName.Systems
                 _impulseSource.GenerateImpulse(Vector3.forward * 0.5f);
             }
         }
+
+        /// <summary>
+        /// 공격 전진 (attack lunge) — 0.15초간 전방 1m 이동
+        /// </summary>
+        private System.Collections.IEnumerator AttackLungeCoroutine()
+        {
+            float duration = 0.15f;
+            float distance = 1.0f;
+            Vector3 startPos = transform.position;
+            Vector3 endPos = startPos + transform.forward * distance;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                float t = elapsed / duration;
+                float ease = 1f - Mathf.Pow(1f - t, 2f);
+                transform.position = Vector3.Lerp(startPos, endPos, ease);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+        }
     }
 }

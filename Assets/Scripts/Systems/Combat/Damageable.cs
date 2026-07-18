@@ -133,6 +133,10 @@ namespace ProjectName.Systems
 
         protected virtual void OnDeath()
         {
+            // 적 처치 슬로우모션
+            if (gameObject.CompareTag("Enemy") || gameObject.CompareTag("Monster"))
+                CombatCameraEffects.PlayKill();
+
             var stateMachine = GetComponent<ProceduralAnimStateMachine>();
             if (stateMachine != null)
                 stateMachine.Die();
