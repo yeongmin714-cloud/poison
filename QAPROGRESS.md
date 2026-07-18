@@ -135,6 +135,8 @@
 | 2026-07-18 | Play | PlayerMovement.cs | ✨ **신규** | 점프/구르기 시 ProceduralAnimationController.TriggerAction 호출 | `_proceduralAnim?.TriggerAction("jump"/"roll")` | ✅ |
 | 2026-07-18 | Play | PlayerCombat.cs | ✨ **신규** | 공격 시 ProceduralAnimationController.TriggerAction 호출 | `_proceduralAnim?.TriggerAction("attack")` | ✅ |
 | 2026-07-18 | Play | HerbPickup.cs | ✨ **신규** | 채집 시 ProceduralAnimationController.TriggerAction 호출 | `_playerProceduralAnim?.TriggerAction("gather")` | ✅ |
+| 2026-07-18 | Play | ProceduralAnimationController.cs | 🎛️ **튜닝** | 파라미터 11개 조정 (walkSpeed/runSpeed/jumpHeight/gravity PlayerMovement 일치, IK/Lean/Swing 완화) | 값 변경 | ✅ |
+| 2026-07-18 | Play | QuadrupedPoseController.cs | 🎛️ **튜닝** | 4족 보행 파라미터 5개 조정 (gaitFrequency/gaitAmplitude/legSwing/spineBob/speedThreshold) | 값 변경 | ✅ |
 
 ### 알려진 제약
 

@@ -593,6 +593,15 @@
 |- [x] `HerbPickup` → 채집 시 `TriggerAction("gather")` 호출
 |- [x] HandleInput — velocityProvider 있을 때 키보드 트리거 스킵 (PlayerMovement 위임)
 |- [x] UpdateMovement — velocityProvider 있을 때 속도 기반 Lean 계산 (A/D 키 대체)
+|
+|### 3.9.8 — 파라미터 튜닝 (2026-07-18)
+|- [x] walkSpeed 3→5, runSpeed 7→10 (PlayerMovement 일치)
+|- [x] acceleration 15→20, turnSpeed 720→540
+|- [x] jumpHeight 2.5→2.0, gravity -25→-9.81 (PlayerMovement 일치)
+|- [x] footIKWeight 1.0→0.9, spineIKWeight 0.8→0.6
+|- [x] bodyLeanAmount 0.6→0.4, armSwingAmount 0.8→0.6, groundCheckDistance 1.2→1.0
+|- [x] FootPlanner: StepLength 0.8→0.6, StepWidth 0.2→0.15, MaxStepHeight 0.3→0.25
+|- [x] QuadrupedPoseController: _gaitFrequency 2.5→2.0, _gaitAmplitude 15→12, _legSwingAmount 10→8, _spineBobAmount 0.05→0.03, _speedThreshold 1.5→1.0
 
 ---
 
