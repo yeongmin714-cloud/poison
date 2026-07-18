@@ -26,11 +26,13 @@ namespace ProjectName.UI.Core
         public void ShowTooltip(string text, Vector2 position)
         {
             // Implementation for showing tooltip
+            Debug.Log($"Showing tooltip: {text} at {position}");
         }
 
         public void HideTooltip()
         {
             // Implementation for hiding tooltip
+            Debug.Log("Hiding tooltip");
         }
     }
 }

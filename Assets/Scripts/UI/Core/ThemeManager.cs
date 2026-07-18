@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace ProjectName.UI.Core
 {
@@ -22,6 +23,7 @@ namespace ProjectName.UI.Core
         public void ApplyTheme(string themeName)
         {
             // Implementation for applying a theme
+            Debug.Log($"Applying theme: {themeName}");
         }
     }
 }
