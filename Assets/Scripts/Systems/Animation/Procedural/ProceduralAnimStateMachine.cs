@@ -268,7 +268,7 @@ namespace ProjectName.Systems.Animation.Procedural
             if (_rigidbody != null && _animController != null)
             {
                 float jumpVel = Mathf.Sqrt(-2f * _animController.GetJumpGravity() * _animController.GetJumpHeight());
-                _rigidbody.velocity = new Vector3(_rigidbody.velocity.x, jumpVel, _rigidbody.velocity.z);
+                _rigidbody.linearVelocity = new Vector3(_rigidbody.linearVelocity.x, jumpVel, _rigidbody.linearVelocity.z);
             }
         }
 
@@ -282,7 +282,7 @@ namespace ProjectName.Systems.Animation.Procedural
         }
 
         bool IsGrounded() => _animController != null && _animController.IsGrounded;
-        bool IsFalling() => _rigidbody != null && _rigidbody.velocity.y < -0.1f;
+        bool IsFalling() => _rigidbody != null && _rigidbody.linearVelocity.y < -0.1f;
         bool IsClimbing() => Physics.Raycast(transform.position + Vector3.up * 0.5f, transform.forward, 1f, LayerMask.GetMask("Climbable"));
 
         // ──────────────────────────────────────────────

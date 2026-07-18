@@ -371,7 +371,7 @@ namespace ProjectName.Systems
 
         private void SpawnSkeletonGuards()
         {
-            int existingCount = FindObjectsByType<SkeletonGuardPlaceholder>(FindObjectsSortMode.None).Length;
+            int existingCount = FindObjectsByType<SkeletonGuardPlaceholder>(FindObjectsInactive.Include).Length;
             if (existingCount > 0)
             {
                 Log($"[TestDraculaSetup] ⚠️ SkeletonGuardPlaceholder {existingCount}개 이미 존재");

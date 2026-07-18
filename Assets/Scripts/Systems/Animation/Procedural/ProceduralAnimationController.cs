@@ -609,7 +609,7 @@ namespace ProjectName.Systems.Animation.Procedural
             // Left Leg IK
             if (_boneMap.Has(BoneRole.L_Hip) && _boneMap.Has(BoneRole.L_Knee) && _boneMap.Has(BoneRole.L_Ankle))
             {
-                var chain = new LimbIKSolver.Chain
+                var chain = new Chain
                 {
                     Root = _boneMap.Get(BoneRole.L_Hip),
                     Mid = _boneMap.Get(BoneRole.L_Knee),
@@ -636,7 +636,7 @@ namespace ProjectName.Systems.Animation.Procedural
             // Right Leg IK
             if (_boneMap.Has(BoneRole.R_Hip) && _boneMap.Has(BoneRole.R_Knee) && _boneMap.Has(BoneRole.R_Ankle))
             {
-                var chain = new LimbIKSolver.Chain
+                var chain = new Chain
                 {
                     Root = _boneMap.Get(BoneRole.R_Hip),
                     Mid = _boneMap.Get(BoneRole.R_Knee),
@@ -759,7 +759,7 @@ namespace ProjectName.Systems.Animation.Procedural
             // Left leg
             if (_boneMap.Has(BoneRole.L_Hip) && _boneMap.Has(BoneRole.L_Knee) && _boneMap.Has(BoneRole.L_Ankle))
             {
-                var chain = new LimbIKSolver.Chain
+                var chain = new Chain
                 {
                     Root = _boneMap.Get(BoneRole.L_Hip),
                     Mid = _boneMap.Get(BoneRole.L_Knee),
@@ -778,7 +778,7 @@ namespace ProjectName.Systems.Animation.Procedural
             // Right leg
             if (_boneMap.Has(BoneRole.R_Hip) && _boneMap.Has(BoneRole.R_Knee) && _boneMap.Has(BoneRole.R_Ankle))
             {
-                var chain = new LimbIKSolver.Chain
+                var chain = new Chain
                 {
                     Root = _boneMap.Get(BoneRole.R_Hip),
                     Mid = _boneMap.Get(BoneRole.R_Knee),

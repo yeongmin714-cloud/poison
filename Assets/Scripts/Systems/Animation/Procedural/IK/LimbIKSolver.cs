@@ -81,7 +81,7 @@ namespace ProjectName.Systems.Animation.Procedural.IK
                         midPos = rootPos + math.up() * upperLen;
 
                     // Stage 2: Backward reaching (root fixed)
-                    rootPos = rootPos; // Root stays fixed
+                    // rootPos stays fixed
 
                     // Root -> Mid constraint
                     rootToMid = midPos - rootPos;

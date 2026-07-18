@@ -1,5 +1,6 @@
 using UnityEngine;
-
+using ProjectName.Systems.Animation.Procedural;
+using ProjectName.Core.Data;
 namespace ProjectName.Systems
 {
     /// <summary>

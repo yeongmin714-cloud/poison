@@ -2,6 +2,8 @@ using UnityEditor;
 using UnityEngine;
 using Unity.Mathematics;
 using System.Collections.Generic;
+using ProjectName.Systems.Animation.Procedural.Bones;
+using ProjectName.Systems.Animation.Procedural;
 
 namespace ProjectName.Systems.Animation.Procedural.Debug
 {
@@ -201,7 +203,7 @@ namespace ProjectName.Systems.Animation.Procedural.Debug
 
             // Head look target
             Handles.color = Color.yellow;
-            Handles.DrawWireSphere(headLook, 0.15f);
+            Handles.DrawWireDisc(headLook, Vector3.up, 0.15f);
             Handles.DrawLine(t.position + Vector3.up * 1.7f, headLook);
         }
 
@@ -260,9 +262,9 @@ namespace ProjectName.Systems.Animation.Procedural.Debug
             for (int i = 0; i < spines.Count - 1; i++)
             {
                 Handles.DrawLine(spines[i].position, spines[i + 1].position, 3f);
-                Handles.DrawWireSphere(spines[i].position, 0.05f);
+                Handles.DrawWireDisc(spines[i].position, Vector3.up, 0.05f);
             }
-            Handles.DrawWireSphere(spines[spines.Count - 1].position, 0.05f);
+            Handles.DrawWireDisc(spines[spines.Count - 1].position, Vector3.up, 0.05f);
 
             // Draw control handles
             Handles.color = new Color(1, 1, 1, 0.3f);

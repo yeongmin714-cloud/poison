@@ -20,7 +20,7 @@ namespace ProjectName.UI.Core.Transitions
             {
                 if (_instance == null)
                 {
-                    _instance = FindObjectOfType<TransitionManager>();
+                    _instance = FindFirstObjectByType<TransitionManager>();
                     if (_instance == null)
                     {
                         GameObject obj = new GameObject("TransitionManager");

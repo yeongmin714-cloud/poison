@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Systems.Animation.Procedural.Bones;
 using ProjectName.Systems.Animation.Procedural.IK;
+using static ProjectName.Systems.Animation.Procedural.IK.LimbIKSolver;
 
 namespace ProjectName.Systems
 {
@@ -237,8 +238,8 @@ namespace ProjectName.Systems
         {
             if (!_isGrounded) return;
             Vector3 move = _currentVelocity * Time.fixedDeltaTime;
-            move.y = _rigidbody.velocity.y;
-            _rigidbody.velocity = move;
+            move.y = _rigidbody.linearVelocity.y;
+            _rigidbody.linearVelocity = move;
         }
 
         private void ApplyGravity()
@@ -504,7 +505,7 @@ namespace ProjectName.Systems
             if (_actionState != ActionState.None) return;
 
             float jumpVelocity = Mathf.Sqrt(-2f * _gravity * _jumpHeight);
-            _rigidbody.velocity = new Vector3(_rigidbody.velocity.x, jumpVelocity, _rigidbody.velocity.z);
+            _rigidbody.linearVelocity = new Vector3(_rigidbody.linearVelocity.x, jumpVelocity, _rigidbody.linearVelocity.z);
             _coyoteTimer = 0;
         }
 

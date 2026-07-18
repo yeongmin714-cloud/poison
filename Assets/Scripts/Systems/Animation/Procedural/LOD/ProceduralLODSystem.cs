@@ -140,7 +140,7 @@ namespace ProjectName.Systems.Animation.Procedural.LOD
         void Awake()
         {
             if (_camera == null) _camera = Camera.main;
-            _controllers = FindObjectsOfType<ProceduralAnimationController>();
+            _controllers = FindObjectsByType<ProceduralAnimationController>(FindObjectsInactive.Include);
             AllocateArrays();
         }
 
@@ -161,7 +161,7 @@ namespace ProjectName.Systems.Animation.Procedural.LOD
         void Update()
         {
             // Refresh controller list
-            _controllers = FindObjectsOfType<ProceduralAnimationController>();
+            _controllers = FindObjectsByType<ProceduralAnimationController>(FindObjectsInactive.Include);
             if (_positions.Length != _controllers.Length)
             {
                 if (_positions.IsCreated) _positions.Dispose();

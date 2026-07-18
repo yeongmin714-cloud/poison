@@ -209,6 +209,7 @@ namespace ProjectName.Systems
         [SerializeField] private float _recoverySpeed = 360f; // deg/s
         [SerializeField] private float _hitStopTime = 0.05f;
         [SerializeField] private float _screenShakeIntensity = 0.1f;
+        [SerializeField] private float _screenShakeDuration = 0.2f;
 
         // State
         private ComboState _comboState = new ComboState();
