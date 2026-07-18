@@ -15,6 +15,16 @@ using static ProjectName.Systems.Animation.Procedural.IK.LimbIKSolver;
 namespace ProjectName.Systems.Animation.Procedural
 {
     /// <summary>
+    /// 외부 이동 시스템(CharacterController 등)에서 현재 속도를 제공하는 인터페이스.
+    /// ProceduralAnimationController가 자체 입력 대신 외부 속도를 사용하도록 함.
+    /// </summary>
+    public interface IVelocityProvider
+    {
+        Vector3 CurrentVelocity { get; }
+        float CurrentSpeed { get; }
+        bool IsGrounded { get; }
+    }
+    /// <summary>
     /// 완전 프로시저럴 애니메이션 컨트롤러 (모듈 합성 버전).
     /// - 애니메이션 클립(.anim) 전혀 사용 안 함
     /// - 모든 모션: Locomotion(보행/달리기), Jump, Attack, Gather, Roll, Climb 등을 수학적으로 실시간 합성
@@ -64,6 +74,31 @@ namespace ProjectName.Systems.Animation.Procedural
         ProceduralBoneMap _boneMap;
         ProceduralAnimStateMachine _stateMachine;
         ProceduralLODManager _lodManager;
+
+        // 외부 속도 공급자 (PlayerMovement 등 CharacterController 기반 이동 시스템)
+        IVelocityProvider _velocityProvider;
+
+        // ──────────────────────────────────────────────
+        // 공개 API
+        // ──────────────────────────────────────────────
+
+        /// <summary>
+        /// 외부 이동 시스템에서 현재 속도를 제공받도록 설정.
+        /// 설정 시 HandleInput에서 자체 입력 대신 외부 속도 사용.
+        /// </summary>
+        public void SetVelocityProvider(IVelocityProvider provider)
+        {
+            _velocityProvider = provider;
+        }
+
+        /// <summary>
+        /// 외부에서 본 맵을 직접 주입 (ModelAnimatorAssigner에서 호출).
+        /// Awake보다 먼저 호출되어야 함.
+        /// </summary>
+        public void SetBoneMap(ProceduralBoneMap boneMap)
+        {
+            _boneMap = boneMap;
+        }
 
         // ──────────────────────────────────────────────
         // 네이티브 배열 (Job System용)
@@ -116,7 +151,7 @@ namespace ProjectName.Systems.Animation.Procedural
 
         public Vector3 CurrentVelocity => _currentVelocity;
         public float CurrentSpeed => _currentSpeed;
-        public bool IsGrounded => _leftFootGrounded || _rightFootGrounded;
+        public bool IsGrounded => _velocityProvider?.IsGrounded ?? (_leftFootGrounded || _rightFootGrounded);
         public ProceduralAnimStateMachine StateMachine => _stateMachine;
         public float JumpHeight => jumpHeight;
         public float JumpGravity => gravity;
@@ -339,23 +374,39 @@ namespace ProjectName.Systems.Animation.Procedural
         {
             if (_actionState != ActionState.None) return;
 
-            Vector2 input = Vector2.zero;
-            if (Input.GetKey(KeyCode.W)) input.y += 1;
-            if (Input.GetKey(KeyCode.S)) input.y -= 1;
-            if (Input.GetKey(KeyCode.A)) input.x -= 1;
-            if (Input.GetKey(KeyCode.D)) input.x += 1;
-            input = Vector2.ClampMagnitude(input, 1f);
-
-            bool sprint = Input.GetKey(KeyCode.LeftShift);
-
-            Vector3 localTarget = new Vector3(input.x, 0, input.y);
-            _targetVelocity = transform.TransformDirection(localTarget) * (sprint ? runSpeed : walkSpeed);
-            _targetSpeed = _targetVelocity.magnitude;
-
-            if (_targetVelocity.sqrMagnitude > 0.01f)
+            // 외부 속도 공급자가 있으면 자체 입력 대신 외부 속도 사용
+            if (_velocityProvider != null)
             {
-                Quaternion targetRot = Quaternion.LookRotation(_targetVelocity.normalized);
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
+                _targetVelocity = _velocityProvider.CurrentVelocity;
+                _targetSpeed = _velocityProvider.CurrentSpeed;
+                // 회전은 목표 속도 방향으로
+                if (_targetVelocity.sqrMagnitude > 0.01f)
+                {
+                    Quaternion targetRot = Quaternion.LookRotation(_targetVelocity.normalized);
+                    transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
+                }
+            }
+            else
+            {
+                // 기존 자체 입력 처리
+                Vector2 input = Vector2.zero;
+                if (Input.GetKey(KeyCode.W)) input.y += 1;
+                if (Input.GetKey(KeyCode.S)) input.y -= 1;
+                if (Input.GetKey(KeyCode.A)) input.x -= 1;
+                if (Input.GetKey(KeyCode.D)) input.x += 1;
+                input = Vector2.ClampMagnitude(input, 1f);
+
+                bool sprint = Input.GetKey(KeyCode.LeftShift);
+
+                Vector3 localTarget = new Vector3(input.x, 0, input.y);
+                _targetVelocity = transform.TransformDirection(localTarget) * (sprint ? runSpeed : walkSpeed);
+                _targetSpeed = _targetVelocity.magnitude;
+
+                if (_targetVelocity.sqrMagnitude > 0.01f)
+                {
+                    Quaternion targetRot = Quaternion.LookRotation(_targetVelocity.normalized);
+                    transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
+                }
             }
 
             if (Input.GetMouseButtonDown(0)) RequestAttack();

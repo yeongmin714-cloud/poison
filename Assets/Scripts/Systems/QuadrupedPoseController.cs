@@ -1,4 +1,6 @@
 using UnityEngine;
+using ProjectName.Systems.Animation.Procedural;
+using ProjectName.Systems.Animation.Procedural.Bones;
 
 namespace ProjectName.Systems
 {
@@ -86,6 +88,27 @@ namespace ProjectName.Systems
                 _lastPosition = transform.position;
                 _prevY = transform.position.y;
             }
+        }
+
+        // ──────────────────────────────────────────────
+        // Public API (ModelAnimatorAssigner 호환용)
+        // ──────────────────────────────────────────────
+
+        /// <summary>
+        /// 호환용: QuadrupedPoseController는 ProceduralBoneMap을 사용하지 않으므로 no-op.
+        /// ModelAnimatorAssigner에서 일관된 API로 호출하기 위해 제공.
+        /// </summary>
+        public void SetBoneMap(ProceduralBoneMap boneMap)
+        {
+            // 이 컨트롤러는 계층 기반 본 탐색을 사용하므로 별도 설정 불필요
+        }
+
+        /// <summary>
+        /// 외부 속도 공급자 설정 (현재는 사용하지 않으나 API 일관성을 위해 제공).
+        /// </summary>
+        public void SetVelocityProvider(IVelocityProvider provider)
+        {
+            // 4족 보행은 자체적으로 속도 계산 (transform.position 변화량)
         }
 
         private void Update()

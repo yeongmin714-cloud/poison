@@ -1,5 +1,6 @@
 using UnityEngine;
 using ProjectName.Systems.Animation.Procedural;
+using ProjectName.Systems.Animation.Procedural.Bones;
 using ProjectName.Core.Data;
 namespace ProjectName.Systems
 {
@@ -97,6 +98,25 @@ namespace ProjectName.Systems
                 animator.SetInteger(ParamState, StateIdle);
             }
 
+            // 프로시저럴 애니메이션용 필수 컴포넌트 추가 (Rigidbody + BoneMap)
+            // 모델 인스턴스(자식)는 kinematic Rigidbody를 가져 부모의 이동과 분리되어 로컬 애니메이션만 수행
+            Rigidbody modelRb = model.GetComponent<Rigidbody>();
+            if (modelRb == null)
+            {
+                modelRb = model.AddComponent<Rigidbody>();
+                modelRb.isKinematic = true;
+                modelRb.useGravity = false;
+                modelRb.constraints = RigidbodyConstraints.FreezeAll;
+            }
+
+            // ProceduralBoneMap 추가 (Animator 하위 본들을 자동 매핑)
+            ProceduralBoneMap boneMap = model.GetComponent<ProceduralBoneMap>();
+            if (boneMap == null)
+            {
+                boneMap = model.AddComponent<ProceduralBoneMap>();
+                boneMap.Initialize(animator);
+            }
+
             // 프로시저럴 포즈 보정 — 모델 타입에 따라 2족/4족 컨트롤러 분기 부착 (중복 방지)
             bool isQuadruped = false;
             if (RuntimeModelLoader.TryGetModelMetadata(modelName, out var meta))
@@ -105,12 +125,20 @@ namespace ProjectName.Systems
             if (isQuadruped)
             {
                 if (model.GetComponent<QuadrupedPoseController>() == null)
-                    model.AddComponent<QuadrupedPoseController>();
+                {
+                    var qpc = model.AddComponent<QuadrupedPoseController>();
+                    qpc.SetBoneMap(boneMap);
+                }
             }
             else
             {
                 if (model.GetComponent<ProceduralAnimationController>() == null)
-                    model.AddComponent<ProceduralAnimationController>();
+                {
+                    var pac = model.AddComponent<ProceduralAnimationController>();
+                    pac.SetBoneMap(boneMap);
+                    // 부모(이동 주체)에서 속도 읽기 위해 설정
+                    pac.SetVelocityProvider(model.transform.parent?.GetComponent<PlayerMovement>());
+                }
             }
         }
 

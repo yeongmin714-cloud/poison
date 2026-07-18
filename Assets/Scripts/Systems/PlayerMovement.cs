@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using ProjectName.Systems.Animation.Procedural;
 
 namespace ProjectName.Systems
 {
@@ -13,7 +14,7 @@ namespace ProjectName.Systems
     /// C21-02: 구르기 시스템 — Q 키, 무적, 쿨다운, 더블탭
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
-    public class PlayerMovement : MonoBehaviour
+    public class PlayerMovement : MonoBehaviour, IVelocityProvider
     {
         [Header("Movement Settings")]
         [SerializeField] private float _walkSpeed = 5f;
@@ -680,7 +681,6 @@ namespace ProjectName.Systems
         public float RunSpeed => _runSpeed;
         public float DashSpeed => _dashSpeed;
         public float JumpHeight => _jumpHeight;
-        public bool IsGrounded => _isGrounded;
         public bool IsSprinting => _keyboard != null && _keyboard.leftShiftKey.isPressed && _moveDirection.magnitude > 0.1f;
         public bool IsDashing => _isDashing;
         public bool IsJumping => _isJumping;
@@ -710,5 +710,13 @@ namespace ProjectName.Systems
         public float StaminaRegenDelay => _staminaRegenDelay;
 
         public float RollSpeedMultiplier => _rollSpeedMultiplier;
+
+        // ──────────────────────────────────────────────
+        // IVelocityProvider 구현 (ProceduralAnimationController 연동)
+        // ──────────────────────────────────────────────
+
+        public Vector3 CurrentVelocity => _controller != null ? _controller.velocity : Vector3.zero;
+        public float CurrentSpeed => _currentSpeed;
+        public bool IsGrounded => _isGrounded;
     }
 }
