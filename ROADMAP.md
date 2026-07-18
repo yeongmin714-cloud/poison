@@ -556,7 +556,7 @@
 - [x] **ModelAnimatorAssigner.cs** — GLB 모델 타입에 따라 2족/4족 컨트롤러 자동 분기 부착
 
 ### 3.9.2 — Locomotion (보행/달리기)
-- [x] **BipedProceduralLocomotion.cs** — 2족 보행: 상대위상(0.5) 사인파 다리 위상, FootPlannerJob, HipShiftJob, SpineCounterRotationJob
+|- [x] **BipedLocomotionModules.cs** — 2족 보행: 상대위상(0.5) 사인파 다리 위상, FootPlannerJob, HipShiftJob, SpineCounterRotationJob
 - [x] **QuadrupedProceduralLocomotion.cs** — 4족 보행: Walk/Trot/Pace/Gallop 걸음걸이 자동 선택, 대각보행 합성
 - [x] **QuadrupedPoseController.cs** — 4족 사인파 보행 합성 (bone_0~25 넘버링 본 대응)
 
@@ -642,7 +642,7 @@
 - [x] **ProceduralAnimDebugger.cs** — Scene View 디버거 (위상/IK타겟/발배치/척추곡선/속도/지면접촉 시각화)
 
 ### 3.9.2 — Locomotion (보행/달리기)
-- [x] **BipedProceduralLocomotion.cs** — 2족 보행: 상대위상(0.5) 사인파 다리 위상, FootPlannerJob, HipShiftJob, SpineCounterRotationJob
+|- [x] **BipedLocomotionModules.cs** — 2족 보행: 상대위상(0.5) 사인파 다리 위상, FootPlannerJob, HipShiftJob, SpineCounterRotationJob
 - [x] **QuadrupedProceduralLocomotion.cs** — 4족 보행: Walk/Trot/Pace/Gallop 걸음걸이 자동 선택, 대각보행 합성
 - [x] **QuadrupedPoseController.cs** — 4족 사인파 보행 합성 (bone_0~25 넘버링 본 대응)
 
