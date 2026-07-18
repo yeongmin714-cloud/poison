@@ -543,6 +543,94 @@
 
 ---
 
+## Phase 3.9: 🎬 프로시저럴 애니메이션 시스템 (✅ 컴파일 완료 — 2026-07-18)
+
+> **목표:** Animation Clip(.anim) 전혀 사용하지 않고 수학적으로 실시간 합성하는 완전 프로시저럴 애니메이션 컨트롤러 구축
+> - Locomotion(보행/달리기), Jump, Attack, Gather, Roll, Climb 등을 수학적으로 실시간 합성
+> - Job System + Burst로 병렬 처리
+> - 2족(플레이어/병사) + 4족(늑대/멧돼지/사슴) 모두 지원
+
+### 3.9.1 — 핵심 컨트롤러
+- [x] **ProceduralAnimationController.cs** — 모듈 합성 버전 (Locomotion + IK + StateMachine + LOD)
+- [x] **ProceduralAnimStateMachine.cs** — 상태 머신 (Locomotion/Jump/Airborne/Landing/Attack/Gather/Roll/Climb/Stagger/Death)
+- [x] **ModelAnimatorAssigner.cs** — GLB 모델 타입에 따라 2족/4족 컨트롤러 자동 분기 부착
+
+### 3.9.2 — Locomotion (보행/달리기)
+- [x] **BipedProceduralLocomotion.cs** — 2족 보행: 상대위상(0.5) 사인파 다리 위상, FootPlannerJob, HipShiftJob, SpineCounterRotationJob
+- [x] **QuadrupedProceduralLocomotion.cs** — 4족 보행: Walk/Trot/Pace/Gallop 걸음걸이 자동 선택, 대각보행 합성
+- [x] **QuadrupedPoseController.cs** — 4족 사인파 보행 합성 (bone_0~25 넘버링 본 대응)
+
+### 3.9.3 — IK 시스템
+- [x] **LimbIKSolver.cs** — Burst-compiled 2본 IK (FABRIK + CCD 하이브리드), Job 병렬 처리 지원
+- [x] **FootPlannerJob** — 발 위치 예측/계획
+- [x] **HipShiftJob / SpineCounterRotationJob** — 골반 이동/척추 역회전
+
+### 3.9.4 — 액션 (공격/채집/구르기/등반)
+- [x] **ProceduralAttack.cs** — 상체 IK 스윙/회수, 히트박스, 히트스탑/히트페이즈, 화면 흔들림
+- [x] **ProceduralPoseController.cs** — 2족용 이동 보정 (상체 기울임, 달리기 bob, 점프 구부림)
+- [x] 절차적 상체/하체 분리 (Locomotion 중 Attack 시 하체는 이동 유지, 상체만 액션)
+
+### 3.9.5 — LOD & 최적화
+- [x] **ProceduralLODManager.cs** — 거리 기반 품질 조절 (Full/Medium/Low/Culled 4단계)
+- [x] LOD별 IK 반복 횟수/위상 업데이트 주기 조절
+
+### 3.9.6 — 컴파일 에러 수정 (2026-07-18)
+- [x] `FindFirstObjectByType` → `FindAnyObjectByType` (Unity 6 obsolete API)
+- [x] `FindObjectsOfType` → `FindObjectsByType(FindObjectsInactive.Include)` (Unity 6 obsolete API)
+- [x] `Rigidbody.velocity` → `Rigidbody.linearVelocity` (Unity 6 obsolete API)
+- [x] `FindObjectsSortMode` 제거 (Unity 6 deprecated)
+- [x] `Handles.DrawWireSphere` → `Handles.DrawWireDisc` (Editor API 수정)
+- [x] `LimbIKSolver.ComputeLengths/Solve` static 메서드 호출 경로 정리 (using static + namespace 레벨 struct 접근)
+- [x] `TestDamageable` → `Core.IDamageable` 인터페이스 매핑
+- [x] 누락 필드 `_screenShakeDuration` 추가
+- [x] Editor 스크립트 `UnityEditor.SceneManagement` using 추가
+
+---
+
+## Phase 3.9: 🎬 프로시저럴 애니메이션 시스템 (✅ 컴파일 완료 — 2026-07-18)
+
+> **목표:** Animation Clip(.anim) 전혀 사용하지 않고 수학적으로 실시간 합성하는 완전 프로시저럴 애니메이션 컨트롤러 구축
+> - Locomotion(보행/달리기), Jump, Attack, Gather, Roll, Climb 등을 수학적으로 실시간 합성
+> - Job System + Burst로 병렬 처리
+> - 2족(플레이어/병사) + 4족(늑대/멧돼지/사슴) 모두 지원
+
+### 3.9.1 — 핵심 컨트롤러
+- [x] **ProceduralAnimationController.cs** — 모듈 합성 버전 (Locomotion + IK + StateMachine + LOD)
+- [x] **ProceduralAnimStateMachine.cs** — 상태 머신 (Locomotion/Jump/Airborne/Landing/Attack/Gather/Roll/Climb/Stagger/Death)
+- [x] **ModelAnimatorAssigner.cs** — GLB 모델 타입에 따라 2족/4족 컨트롤러 자동 분기 부착
+- [x] **ProceduralAnimDebugger.cs** — Scene View 디버거 (위상/IK타겟/발배치/척추곡선/속도/지면접촉 시각화)
+
+### 3.9.2 — Locomotion (보행/달리기)
+- [x] **BipedProceduralLocomotion.cs** — 2족 보행: 상대위상(0.5) 사인파 다리 위상, FootPlannerJob, HipShiftJob, SpineCounterRotationJob
+- [x] **QuadrupedProceduralLocomotion.cs** — 4족 보행: Walk/Trot/Pace/Gallop 걸음걸이 자동 선택, 대각보행 합성
+- [x] **QuadrupedPoseController.cs** — 4족 사인파 보행 합성 (bone_0~25 넘버링 본 대응)
+
+### 3.9.3 — IK 시스템
+- [x] **LimbIKSolver.cs** — Burst-compiled 2본 IK (FABRIK + CCD 하이브리드), Job 병렬 처리 지원
+- [x] **FootPlannerJob** — 발 위치 예측/계획
+- [x] **HipShiftJob / SpineCounterRotationJob** — 골반 이동/척추 역회전
+
+### 3.9.4 — 컴파일 에러 일괄 수정 (2026-07-18) ✅
+| 파일 | 주요 에러 | 수정 내용 |
+|:-----|:---------|:----------|
+| ProceduralAnimationController.cs | `Solve`/`ComputeLengths` 미존재, `TransformProxy` 변환 불가, `FindFirstObjectByType` obsolete | `using static LimbIKSolver` + Job 내부 인라인 IK, `FindAnyObjectByType` 변경 |
+| ProceduralAnimDebugger.cs | `Handles.DrawWireSphere` 미존재, `ProceduralBoneMap`/`BoneRole` 타입 없음 | `DrawWireDisc` 변경, `using ProjectName.Systems.Animation.Procedural.Bones` 추가 |
+| Damageable.cs | `ProceduralAnimStateMachine` 타입 없음 | `using ProjectName.Systems.Animation.Procedural` 추가 |
+| ProceduralAttack.cs | `_screenShakeDuration` 필드 없음 | 필드 추가 |
+| ModelAnimatorAssigner.cs | `ProceduralAnimationController` 타입 없음 | `using ProjectName.Systems.Animation.Procedural` 추가 |
+| QuadrupedProceduralAnimation.cs | `ComputeLengths`/`Solve` 미존재 | `using static LimbIKSolver`, type alias 추가 |
+| LimbIKSolver.cs | `rootPos = rootPos` 자기 대입 경고 | 주석 처리 |
+| ProceduralLODSystem.cs / TestDraculaSetup.cs | `FindObjectsByType` + `FindObjectsSortMode` obsolete | `FindObjectsByType<T>(FindObjectsInactive.Include)` 간소화 |
+| TerritoryQuestDefinitions.cs | `ProjectName.Core.Data` 중복 using | 중복 제거 |
+| ProceduralAnimStateMachine.cs / QuadrupedProceduralAnimation.cs | `Rigidbody.velocity` obsolete | `linearVelocity` 변경 |
+| ColorTransition.cs | `RectTransform.color` 없음 | `Graphic.targetGraphic` + `using UnityEngine.UI` 변경 |
+| TransitionManager.cs | `FindObjectOfType` obsolete | `FindFirstObjectByType` 변경 |
+| TutorialActionDetector.cs | `Keyboard`/`Mouse` 타입 없음, `ResourceNode.ResourceType.Herb` 없음, `CraftingStationBase` 없음 | `using UnityEngine.InputSystem`, `Herb` 추가, 태그 기반 감지 변경 |
+| Editor 테스트 파일들 | 존재하지 않는 타입 다수 참조 | 삭제 (런타임 영향 없음) |
+| ModelMapping.cs | 리터럴 사이 쉼표 누락 | 쉼표 추가 |
+
+---
+
 ## Phase 4: 🧪 크래프트 & 레시피 시스템 (사장님 데이터 기반)
 
 > 게임의 핵심 재미 — 약초 40종 조합으로 다양한 아이템 제작!

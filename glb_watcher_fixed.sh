@@ -114,7 +114,7 @@ main() {
         # Get basename without extension
         filename=$(basename "$glb_path")
         basename="${filename%.glb}"
-        basename_lower=$(echo "$basename" | tr '[:upper:]' '[:lower:]')
+        basename_lower=$(echo "$basename" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
         
         log "Processing $filename (basename: $basename)"
         

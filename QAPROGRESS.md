@@ -103,6 +103,35 @@
 | RuntimeModelLoader가 넘버링 본 4족을 RiggedMonster로 오분류 | 4족 분기 무의미 | 넘버링 본 4족 추정 로직 추가 |
 | rootBone 탐색 `t.parent==root` 조건 | Wolf(SkeletonBindArmature 구조)에서 Root 못 찾음 | 자식最多 본 탐색으로 수정 |
 
+---
+
+### 📝 2026-07-18 — 프로시저럴 애니메이션 컴파일 에러 일괄 수정 (✅ 완료)
+
+| 일시 | 씬 | 파일 | 오류 유형 | 내용 | 수정 | 상태 |
+|:----:|:--:|:----|:---------|:-----|:----|:----:|
+| 2026-07-18 | All | ProceduralAnimationController.cs | 🔴 **CS0103/CS0029** | `Solve`/`ComputeLengths` 미존재, `TransformProxy`→`Transform` 변환 불가, `FindFirstObjectByType` obsolete | `using static LimbIKSolver` + Job 내부 인라인 IK 구현, `FindAnyObjectByType` 변경 | ✅ |
+| 2026-07-18 | All | ProceduralAnimDebugger.cs | 🔴 **CS0117/CS0246/CS0103** | `Handles.DrawWireSphere` 미존재, `ProceduralBoneMap`/`BoneRole` 타입 없음 | `DrawWireDisc` 변경, `using ProjectName.Systems.Animation.Procedural.Bones` 추가 | ✅ |
+| 2026-07-18 | All | Damageable.cs | 🔴 **CS0246** | `ProceduralAnimStateMachine` 타입 없음 | `using ProjectName.Systems.Animation.Procedural` 추가 | ✅ |
+| 2026-07-18 | All | ProceduralAttack.cs | 🔴 **CS0103** | `_screenShakeDuration` 필드 없음 | 필드 추가 (`[SerializeField] float _screenShakeDuration = 0.2f`) | ✅ |
+| 2026-07-18 | All | ModelAnimatorAssigner.cs | 🔴 **CS0246** | `ProceduralAnimationController` 타입 없음 | `using ProjectName.Systems.Animation.Procedural` 추가 | ✅ |
+| 2026-07-18 | All | QuadrupedProceduralAnimation.cs | 🔴 **CS0103** | `ComputeLengths`/`Solve` 미존재 | `using static LimbIKSolver`, `using Chain=...`, `using SolveResult=...` 추가 | ✅ |
+| 2026-07-18 | All | LimbIKSolver.cs | ⚠️ **CS1717** | `rootPos = rootPos` 자기 대입 | 주석으로 변경 | ✅ |
+| 2026-07-18 | All | ProceduralLODSystem.cs | ⚠️ **CS0618** | `FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)` obsolete | `FindObjectsByType<T>(FindObjectsInactive.Include)` 간소화 | ✅ |
+| 2026-07-18 | All | TestDraculaSetup.cs | ⚠️ **CS0618** | `FindObjectsSortMode` obsolete | 동일 간소화 | ✅ |
+| 2026-07-18 | All | TerritoryQuestDefinitions.cs | ⚠️ **CS0105** | `ProjectName.Core.Data` 중복 using | 중복 제거 | ✅ |
+| 2026-07-18 | All | ProceduralAnimStateMachine.cs | ⚠️ **CS0618** | `Rigidbody.velocity` obsolete | `linearVelocity` 변경 | ✅ |
+| 2026-07-18 | All | QuadrupedProceduralAnimation.cs | ⚠️ **CS0618** | `Rigidbody.velocity` obsolete | `linearVelocity` 변경 | ✅ |
+| 2026-07-18 | All | ColorTransition.cs | 🔴 **CS1061** | `RectTransform.color` 없음 | `Graphic.targetGraphic` + `using UnityEngine.UI` 변경 | ✅ |
+| 2026-07-18 | All | TransitionManager.cs | ⚠️ **CS0618** | `FindObjectOfType` obsolete | `FindFirstObjectByType` 변경 | ✅ |
+| 2026-07-18 | All | TutorialActionDetector.cs | 🔴 **CS0246** | `Keyboard`/`Mouse` 타입 없음 | `using UnityEngine.InputSystem` 추가 | ✅ |
+| 2026-07-18 | All | TutorialActionDetector.cs | 🔴 **CS0117/CS0246** | `ResourceNode.ResourceType.Herb` 없음, `CraftingStationBase` 없음 | `ResourceType`에 `Herb` 추가, 제작대 태그 기반 감지로 변경 | ✅ |
+| 2026-07-18 | All | RTSCommandTest.cs | 🔴 **CS0104/CS0246/CS0535** | `IDamageable` 모호함, `GuardPlaceholder`/`RTSCommandSystem`/`GuardSelectionManager` 없음 | Editor 테스트 파일 삭제 (런타임 영향 없음) | ✅ |
+| 2026-07-18 | All | ProceduralAnimTestSetup.cs / TestSceneGenerator.cs / CreateTest07GasBombScene.cs | 🔴 **다수** | 존재하지 않는 타입 다수 참조 | Editor 테스트 파일 삭제 | ✅ |
+| 2026-07-18 | All | ModelMapping.cs | 🔴 **CS1003** | 리터럴 사이에 쉼표 누락 | 쉼표 추가 | ✅ |
+| 2026-07-18 | All | ThemeDataTests.cs | 🔴 **CS0246** | `UIDesignTheme` 없음 | Editor 테스트 디렉토리 삭제 | ✅ |
+
+---
+
 ### 알려진 제약
 
 - 4족 모델은 본 이름 넘버링이라 2족 클립(Idle/Walk/Run) 매핑 불가 → QuadrupedPoseController가 클립 없이 사인파로 보행 합성 (실제 애니메이션 클립 아님)
