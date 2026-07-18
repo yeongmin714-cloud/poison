@@ -40,30 +40,30 @@ namespace ProjectName.Systems.Animation.Procedural
         // ──────────────────────────────────────────────
 
         [Header("Locomotion")]
-        [SerializeField, Range(0f, 10f)] float walkSpeed = 3f;
-        [SerializeField, Range(0f, 15f)] float runSpeed = 7f;
-        [SerializeField, Range(5f, 30f)] float acceleration = 15f;
-        [SerializeField, Range(360f, 1080f)] float turnSpeed = 720f;
+        [SerializeField, Range(0f, 10f)] float walkSpeed = 5f;
+        [SerializeField, Range(0f, 15f)] float runSpeed = 10f;
+        [SerializeField, Range(5f, 30f)] float acceleration = 20f;
+        [SerializeField, Range(360f, 1080f)] float turnSpeed = 540f;
 
         [Header("Jump")]
-        [SerializeField, Range(0.5f, 5f)] float jumpHeight = 2.5f;
-        [SerializeField, Range(-10f, -50f)] float gravity = -25f;
+        [SerializeField, Range(0.5f, 5f)] float jumpHeight = 2.0f;
+        [SerializeField, Range(-10f, -50f)] float gravity = -9.81f;
         [SerializeField, Range(0f, 0.2f)] float coyoteTime = 0.1f;
 
         [Header("IK Weights")]
-        [SerializeField, Range(0f, 1f)] float footIKWeight = 1f;
+        [SerializeField, Range(0f, 1f)] float footIKWeight = 0.9f;
         [SerializeField, Range(0f, 1f)] float handIKWeight = 1f;
-        [SerializeField, Range(0f, 1f)] float spineIKWeight = 0.8f;
+        [SerializeField, Range(0f, 1f)] float spineIKWeight = 0.6f;
         [SerializeField, Range(0f, 1f)] float headLookWeight = 0.7f;
 
         [Header("Procedural Modifiers")]
-        [SerializeField, Range(0f, 1f)] float bodyLeanAmount = 0.6f;
-        [SerializeField, Range(0f, 1f)] float armSwingAmount = 0.8f;
+        [SerializeField, Range(0f, 1f)] float bodyLeanAmount = 0.4f;
+        [SerializeField, Range(0f, 1f)] float armSwingAmount = 0.6f;
         [SerializeField, Range(0f, 1f)] float headStabilization = 0.5f;
 
         [Header("Ground Check")]
         [SerializeField] LayerMask groundMask = ~0;
-        [SerializeField, Range(0.5f, 2f)] float groundCheckDistance = 1.2f;
+        [SerializeField, Range(0.5f, 2f)] float groundCheckDistance = 1.0f;
 
         // ──────────────────────────────────────────────
         // 컴포넌트
@@ -604,9 +604,9 @@ namespace ProjectName.Systems.Animation.Procedural
                 BodyVelocity = _currentVelocity,
                 BodyAngularVelocity = _rigidbody.angularVelocity,
                 DeltaTime = Time.deltaTime,
-                StepLength = 0.8f,
-                StepWidth = 0.2f,
-                MaxStepHeight = 0.3f,
+                StepLength = 0.6f,
+                StepWidth = 0.15f,
+                MaxStepHeight = 0.25f,
                 GroundCheckDistance = groundCheckDistance,
                 LeftFootCurrent = _leftFootTarget[0],
                 RightFootCurrent = _rightFootTarget[0],

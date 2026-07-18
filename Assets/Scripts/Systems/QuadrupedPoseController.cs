@@ -17,14 +17,14 @@ namespace ProjectName.Systems
         // ──────────────────────────────────────────────
 
         [Header("Gait Settings")]
-        [SerializeField, Range(0f, 5f)] private float _gaitFrequency = 2.5f;
-        [SerializeField, Range(0f, 30f)] private float _gaitAmplitude = 15f;
-        [SerializeField, Range(0f, 30f)] private float _legSwingAmount = 10f;
-        [SerializeField, Range(0f, 0.5f)] private float _spineBobAmount = 0.05f;
+        [SerializeField, Range(0f, 5f)] private float _gaitFrequency = 2.0f;
+        [SerializeField, Range(0f, 30f)] private float _gaitAmplitude = 12f;
+        [SerializeField, Range(0f, 30f)] private float _legSwingAmount = 8f;
+        [SerializeField, Range(0f, 0.5f)] private float _spineBobAmount = 0.03f;
         [SerializeField, Range(0f, 3f)] private float _stepPhaseOffset = 0.5f;
 
         [Header("Speed Threshold")]
-        [SerializeField, Range(0f, 5f)] private float _speedThreshold = 1.5f;
+        [SerializeField, Range(0f, 5f)] private float _speedThreshold = 1.0f;
 
         // ──────────────────────────────────────────────
         //  Private fields
