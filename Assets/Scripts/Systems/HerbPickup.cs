@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.Systems.Animation.Procedural;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -43,6 +44,8 @@ namespace ProjectName.Systems
 
         // Rig animation (플레이어의 RigAnimationController)
         private RigAnimationController _playerRigAnim;
+        // Procedural animation (플레이어의 ProceduralAnimationController)
+        private ProceduralAnimationController _playerProceduralAnim;
         // 자체 Rig animation (약초 자체에 Animator가 있는 경우)
         private RigAnimationController _rigAnim;
 
@@ -91,6 +94,15 @@ namespace ProjectName.Systems
                     Animator playerAnim = _player.GetComponent<Animator>();
                     if (playerAnim != null && playerAnim.runtimeAnimatorController != null)
                         _playerRigAnim = _player.gameObject.AddComponent<RigAnimationController>();
+                }
+
+                // 자식 모델의 ProceduralAnimationController 찾기
+                _playerProceduralAnim = _player.GetComponentInChildren<ProceduralAnimationController>();
+                if (_playerProceduralAnim == null)
+                {
+                    Transform model = _player.Find("PlayerModel");
+                    if (model != null)
+                        _playerProceduralAnim = model.GetComponent<ProceduralAnimationController>();
                 }
             }
 
@@ -141,6 +153,7 @@ namespace ProjectName.Systems
 
             // 플레이어 채집 애니메이션 (Gather)
             if (_playerRigAnim != null) _playerRigAnim.SetState(AnimationState.Gather);
+            _playerProceduralAnim?.TriggerAction("gather");
 
             int yield = UnityEngine.Random.Range(_minYield, _maxYield + 1);
             var item = GetItemData();
@@ -196,6 +209,7 @@ namespace ProjectName.Systems
 
             // 플레이어 채집 애니메이션 (Gather)
             if (_playerRigAnim != null) _playerRigAnim.SetState(AnimationState.Gather);
+            _playerProceduralAnim?.TriggerAction("gather");
 
             item = GetItemData();
             yield = UnityEngine.Random.Range(_minYield, _maxYield + 1);

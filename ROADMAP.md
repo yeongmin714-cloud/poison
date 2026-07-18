@@ -543,7 +543,7 @@
 
 ---
 
-## Phase 3.9: 🎬 프로시저럴 애니메이션 시스템 (✅ 컴파일 완료 — 2026-07-18)
+## Phase 3.9: 🎬 프로시저럴 애니메이션 시스템 (✅ 컴파일 완료 + 런타임 연동 완료 — 2026-07-18)
 
 > **목표:** Animation Clip(.anim) 전혀 사용하지 않고 수학적으로 실시간 합성하는 완전 프로시저럴 애니메이션 컨트롤러 구축
 > - Locomotion(보행/달리기), Jump, Attack, Gather, Roll, Climb 등을 수학적으로 실시간 합성
@@ -584,10 +584,19 @@
 - [x] `TestDamageable` → `Core.IDamageable` 인터페이스 매핑
 - [x] 누락 필드 `_screenShakeDuration` 추가
 - [x] Editor 스크립트 `UnityEditor.SceneManagement` using 추가
+|
+|### 3.9.7 — 런타임 액션 연동 (2026-07-18)
+|- [x] `ProceduralAnimationController` — velocityProvider 있을 때 kinematic Rigidbody 무효 코드 분기 처리 (ApplyMovement/ApplyGravity/RequestJump/RequestRoll/HipShiftJob)
+|- [x] `PlayerMovement` → 점프 시 `TriggerAction("jump")` 호출
+|- [x] `PlayerMovement` → 구르기 시 `TriggerAction("roll")` 호출
+|- [x] `PlayerCombat` → 공격 시 `TriggerAction("attack")` 호출
+|- [x] `HerbPickup` → 채집 시 `TriggerAction("gather")` 호출
+|- [x] HandleInput — velocityProvider 있을 때 키보드 트리거 스킵 (PlayerMovement 위임)
+|- [x] UpdateMovement — velocityProvider 있을 때 속도 기반 Lean 계산 (A/D 키 대체)
 
 ---
 
-## Phase 3.9: 🎬 프로시저럴 애니메이션 시스템 (✅ 컴파일 완료 — 2026-07-18)
+## Phase 3.9: 🎬 프로시저럴 애니메이션 시스템 (✅ 컴파일 완료 + 런타임 연동 완료 — 2026-07-18)
 
 > **목표:** Animation Clip(.anim) 전혀 사용하지 않고 수학적으로 실시간 합성하는 완전 프로시저럴 애니메이션 컨트롤러 구축
 > - Locomotion(보행/달리기), Jump, Attack, Gather, Roll, Climb 등을 수학적으로 실시간 합성

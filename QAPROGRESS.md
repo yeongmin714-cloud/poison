@@ -130,10 +130,14 @@
 | 2026-07-18 | All | ModelMapping.cs | 🔴 **CS1003** | 리터럴 사이에 쉼표 누락 | 쉼표 추가 | ✅ |
 | 2026-07-18 | All | ThemeDataTests.cs | 🔴 **CS0246** | `UIDesignTheme` 없음 | Editor 테스트 디렉토리 삭제 | ✅ |
 
----
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-18 | Play | ProceduralAnimationController.cs | 🛠 **아키텍처 수정** | kinematic Rigidbody 무효 코드 분기 (velocityProvider 있을 때 ApplyMovement/ApplyGravity/RequestJump/RequestRoll 스킵) | `if (_velocityProvider != null) return;` 추가 | ✅ |
+| 2026-07-18 | Play | PlayerMovement.cs | ✨ **신규** | 점프/구르기 시 ProceduralAnimationController.TriggerAction 호출 | `_proceduralAnim?.TriggerAction("jump"/"roll")` | ✅ |
+| 2026-07-18 | Play | PlayerCombat.cs | ✨ **신규** | 공격 시 ProceduralAnimationController.TriggerAction 호출 | `_proceduralAnim?.TriggerAction("attack")` | ✅ |
+| 2026-07-18 | Play | HerbPickup.cs | ✨ **신규** | 채집 시 ProceduralAnimationController.TriggerAction 호출 | `_playerProceduralAnim?.TriggerAction("gather")` | ✅ |
 
 ### 알려진 제약
 
 - 4족 모델은 본 이름 넘버링이라 2족 클립(Idle/Walk/Run) 매핑 불가 → QuadrupedPoseController가 클립 없이 사인파로 보행 합성 (실제 애니메이션 클립 아님)
-- 공격 모션 후 Idle 복귀는 Player_Animator.controller 상태머신(Exit Time) 설정에 의존 (표준 Trigger 패턴, 통상 문제없음)
+- 공격/점프/구르기/채집 액션 트리거는 PlayerMovement/PlayerCombat/HerbPickup → ProceduralAnimationController.TriggerAction()으로 연동 완료 (✅ 2026-07-18)
 - 실제 Unity Editor 컴파일/Play 테스트는 미실시 (에디터 없음) → 다음 PC git pull 후 영상 확인 권장
