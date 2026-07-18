@@ -247,9 +247,11 @@ namespace ProjectName.Systems.Animation.Procedural
                     break;
 
                 case State.Stagger:
+                    _animController?.TriggerAction("stagger");
                     break;
 
                 case State.Death:
+                    _animController?.TriggerAction("death");
                     break;
             }
         }

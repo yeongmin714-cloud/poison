@@ -173,6 +173,8 @@ namespace ProjectName.Systems.Animation.Procedural
                 case "gather": RequestGather(); break;
                 case "roll": RequestRoll(); break;
                 case "climb": RequestClimb(); break;
+                case "stagger": RequestStagger(); break;
+                case "death": RequestDeath(); break;
             }
         }
 
@@ -219,6 +221,21 @@ namespace ProjectName.Systems.Animation.Procedural
         {
             _actionState = ActionState.Climb;
             _actionTimer = 0f;
+        }
+
+        public void RequestStagger()
+        {
+            if (_actionState != ActionState.None) return;
+            _actionState = ActionState.Stagger;
+            _actionTimer = 0f;
+            _actionTarget = transform.position - transform.forward * 0.5f; // 뒤로 밀림
+        }
+
+        public void RequestDeath()
+        {
+            _actionState = ActionState.Stagger; // 사망도 경직 애니메이션 재사용
+            _actionTimer = 0f;
+            Destroy(gameObject, 5f); // 5초 후 파괴
         }
 
         // ──────────────────────────────────────────────
@@ -497,6 +514,13 @@ namespace ProjectName.Systems.Animation.Procedural
                 case ProceduralAnimStateMachine.State.Climb:
                     UpdateActionClimb();
                     break;
+
+                case ProceduralAnimStateMachine.State.Stagger:
+                    UpdateActionStagger();
+                    break;
+                case ProceduralAnimStateMachine.State.Death:
+                    UpdateActionDeath();
+                    break;
             }
         }
 
@@ -557,6 +581,32 @@ namespace ProjectName.Systems.Animation.Procedural
         void UpdateActionClimb()
         {
             _actionTimer += Time.deltaTime;
+        }
+
+        void UpdateActionStagger()
+        {
+            _actionTimer += Time.deltaTime;
+            float progress = math.clamp(_actionTimer / 0.5f, 0f, 1f);
+            
+            // 뒤로 기울임 (간단한 사인파)
+            float staggerAngle = math.sin(progress * math.PI) * 15f;
+            var spine1 = _boneMap.Get(BoneRole.Spine1);
+            if (spine1 != null)
+            {
+                spine1.localRotation *= Quaternion.Euler(staggerAngle, 0, 0);
+            }
+            
+            if (_actionTimer > 0.5f)
+                _actionState = ActionState.None;
+        }
+
+        void UpdateActionDeath()
+        {
+            // 천천히 바닥으로 내려감
+            transform.position += Vector3.down * Time.deltaTime * 0.5f;
+            // 약간 뒤로 넘어짐
+            transform.rotation = Quaternion.Slerp(transform.rotation, 
+                Quaternion.Euler(90f, transform.eulerAngles.y, 0), Time.deltaTime * 2f);
         }
 
         // ──────────────────────────────────────────────
