@@ -587,6 +587,8 @@ namespace ProjectName.Systems
         public string HUDName => guardName;
 
         // ===== C9-20: RTS =====
+        [Header("RTS 이동")]
+        [SerializeField] private float _moveSpeed = 3f;
         private bool _isSelected = false;
         private Vector3 _commandTargetPos;
         private bool _hasCommand = false;

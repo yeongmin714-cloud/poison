@@ -12,6 +12,7 @@ namespace ProjectName.Systems
         float CurrentHP { get; }
         float MaxHP { get; }
         bool IsDead { get; }
+        bool IsAlive { get; }
     }
 
     /// <summary>
@@ -69,6 +70,7 @@ namespace ProjectName.Systems
         public float CurrentHP => _currentHP;
         public float MaxHP => _maxHP;
         public bool IsDead => _currentHP <= 0f;
+        public bool IsAlive => !IsDead;
 
         private void Awake()
         {

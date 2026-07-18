@@ -397,7 +397,7 @@ namespace ProjectName.Systems
                         // 애니메이션: Walk (돌진)
                         if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * 1.5f; _rigAnim.SetState(AnimationState.Walk); }
                     }
-                    else { if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack); TryAttack(); }
+                    else { TryAttack(); }
                     break;
                 }
             case "wolf":
@@ -419,7 +419,7 @@ namespace ProjectName.Systems
                         // 애니메이션: Walk (추격)
                         if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed; _rigAnim.SetState(AnimationState.Walk); }
                     }
-                    else { if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack); TryAttack(); }
+                    else { TryAttack(); }
                     break;
                 }
             }
@@ -473,7 +473,6 @@ namespace ProjectName.Systems
             }
             else
             {
-                if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack);
                 TryAttack();
             }
         }
@@ -508,7 +507,6 @@ namespace ProjectName.Systems
             }
             else
             {
-                if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack);
                 TryAttack();
             }
         }
@@ -544,7 +542,24 @@ namespace ProjectName.Systems
             _lastAttackTime = Time.time;
 
             // 애니메이션: Attack
-            if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack);
+            if (_rigAnim != null)
+            {
+                _rigAnim.SetState(AnimationState.Attack);
+            }
+            else
+            {
+                // 4족 몬스터: QuadrupedProceduralAnimation.RequestAttack() 시도
+                var quadAnim = GetComponent<QuadrupedProceduralAnimation>();
+                if (quadAnim != null)
+                {
+                    quadAnim.RequestAttack();
+                }
+                else
+                {
+                    // 애니메이션 컨트롤러 없는 몬스터 — 공격 모션 누락 가능
+                    Debug.LogWarning($"[AnimalAI] ⚠️ {_monsterId}: RigAnimationController/QuadrupedProceduralAnimation 없음 → 공격 애니메이션 미출력");
+                }
+            }
 
             // 🐉 MonsterSkillSystem: 스킬이 있는 몬스터는 스킬 우선 사용
             if (MonsterSkillSystem.Instance != null)
@@ -1017,7 +1032,7 @@ namespace ProjectName.Systems
                             // 애니메이션: Walk (돌진)
                             if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * 1.5f * AGGRO_SPEED_MULT; _rigAnim.SetState(AnimationState.Walk); }
                         }
-                        else { if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack); TryAttackAggroTarget(); }
+                        else { TryAttackAggroTarget(); }
                         break;
                     }
                     case "wolf":
@@ -1040,7 +1055,7 @@ namespace ProjectName.Systems
                             // 애니메이션: Walk (추격)
                             if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * AGGRO_SPEED_MULT; _rigAnim.SetState(AnimationState.Walk); }
                         }
-                        else { if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack); TryAttackAggroTarget(); }
+                        else { TryAttackAggroTarget(); }
                         break;
                     }
                 }
@@ -1054,7 +1069,23 @@ namespace ProjectName.Systems
             _lastAttackTime = Time.time;
 
             // 애니메이션: Attack
-            if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack);
+            if (_rigAnim != null)
+            {
+                _rigAnim.SetState(AnimationState.Attack);
+            }
+            else
+            {
+                // 4족 몬스터: QuadrupedProceduralAnimation.RequestAttack() 시도
+                var quadAnim = GetComponent<QuadrupedProceduralAnimation>();
+                if (quadAnim != null)
+                {
+                    quadAnim.RequestAttack();
+                }
+                else
+                {
+                    Debug.LogWarning($"[AnimalAI] ⚠️ {_monsterId}: RigAnimationController/QuadrupedProceduralAnimation 없음 → 공격 애니메이션 미출력 (어그로)");
+                }
+            }
 
             // 🐉 MonsterSkillSystem: 스킬이 있는 몬스터는 스킬 우선 사용
             if (MonsterSkillSystem.Instance != null && _aggroTarget != null)
