@@ -621,6 +621,11 @@
 |- [x] ModelAnimatorAssigner: PlayerMovement 없으면 ParentVelocityProvider fallback
 |- [x] 모든 NPC/몬스터 모델 자식이 ProceduralAnimationController로 부모 속도 읽음
 
+### 3.9.12 — 절차적 탑승 자세 (Mount Pose) (2026-07-18)
+|- [x] ProceduralAnimationController: ActionState.Mount + RequestMount/RequestDismount/UpdateActionMount
+|- [x] 탑승 자세: 무릎 45° 구부림, 팔 30° 고삐 자세 (0.3s 사인파 전환)
+|- [x] MountSystem: 탑승/하차 시 TriggerAction("mount"/"dismount") 호출
+
 ---
 
 ## Phase 3.9: 🎬 프로시저럴 애니메이션 시스템 (✅ 컴파일 완료 + 런타임 연동 완료 — 2026-07-18)
