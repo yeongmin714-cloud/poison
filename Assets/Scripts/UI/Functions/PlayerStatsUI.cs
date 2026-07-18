@@ -1,0 +1,20 @@
+using UnityEngine;
+
+public class PlayerStatsUI : MonoBehaviour
+{
+    public GameObject statsPanel;
+    public TMPro.TextMeshProUGUI healthText;
+    public TMPro.TextMeshProUGUI manaText;
+    
+    private void Start()
+    {
+        // Initialize player stats
+        // TODO: Implement proper initialization
+    }
+    
+    public void UpdateStats()
+    {
+        // Update stats display
+        Debug.Log("Updating player stats");
+    }
+}
