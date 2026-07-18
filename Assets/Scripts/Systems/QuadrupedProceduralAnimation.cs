@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Systems.Animation.Procedural.Bones;
+using ProjectName.Systems.Animation.Procedural.IK;
 
 namespace ProjectName.Systems
 {
@@ -166,10 +167,10 @@ namespace ProjectName.Systems
 
         private void InitializeIKTargets()
         {
-            var lf = _boneMap.Get(ProceduralBoneUtility.BoneRole.L_Foot);
-            var rf = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Foot);
-            var lh = _boneMap.Get(ProceduralBoneUtility.BoneRole.L_Foot); // Hind uses same role names for now
-            var rh = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Foot);
+            var lf = _boneMap.Get(BoneRole.L_Foot);
+            var rf = _boneMap.Get(BoneRole.R_Foot);
+            var lh = _boneMap.Get(BoneRole.L_Foot); // Hind uses same role names for now
+            var rh = _boneMap.Get(BoneRole.R_Foot);
 
             // 임시: 앞다리/뒷다리 구분 필요시 본 역할 추가
             if (lf != null) LF_Target = lf.position;
@@ -178,8 +179,8 @@ namespace ProjectName.Systems
             if (rh != null) RH_Target = rh.position;
 
             // 힌트
-            var lfKnee = _boneMap.Get(ProceduralBoneUtility.BoneRole.L_Knee);
-            var rfKnee = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Knee);
+            var lfKnee = _boneMap.Get(BoneRole.L_Knee);
+            var rfKnee = _boneMap.Get(BoneRole.R_Knee);
             if (lfKnee != null) LF_Hint = lfKnee.position + Vector3.right * 0.2f;
             if (rfKnee != null) RF_Hint = rfKnee.position + Vector3.left * 0.2f;
         }
@@ -258,8 +259,8 @@ namespace ProjectName.Systems
 
         private void UpdateGroundDetection()
         {
-            var lf = _boneMap.Get(ProceduralBoneUtility.BoneRole.L_Foot);
-            var rf = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Foot);
+            var lf = _boneMap.Get(BoneRole.L_Foot);
+            var rf = _boneMap.Get(BoneRole.R_Foot);
 
             _lfGrounded = false; _rfGrounded = false; _lhGrounded = false; _rhGrounded = false;
 
@@ -347,18 +348,18 @@ namespace ProjectName.Systems
         private void ApplyFootIK()
         {
             // Front Left
-            if (_boneMap.Has(ProceduralBoneUtility.BoneRole.L_Hip) &&
-                _boneMap.Has(ProceduralBoneUtility.BoneRole.L_Knee) &&
-                _boneMap.Has(ProceduralBoneUtility.BoneRole.L_Ankle))
+            if (_boneMap.Has(BoneRole.L_Hip) &&
+                _boneMap.Has(BoneRole.L_Knee) &&
+                _boneMap.Has(BoneRole.L_Ankle))
             {
-                var chain = new LimbIKSolver.Chain
+                var chain = new Chain
                 {
-                    Root = _boneMap.Get(ProceduralBoneUtility.BoneRole.L_Hip),
-                    Mid = _boneMap.Get(ProceduralBoneUtility.BoneRole.L_Knee),
-                    Tip = _boneMap.Get(ProceduralBoneUtility.BoneRole.L_Ankle)
+                    Root = _boneMap.Get(BoneRole.L_Hip),
+                    Mid = _boneMap.Get(BoneRole.L_Knee),
+                    Tip = _boneMap.Get(BoneRole.L_Ankle)
                 };
-                LimbIKSolver.ComputeLengths(ref chain);
-                var result = LimbIKSolver.Solve(chain, LF_Target, LF_Hint);
+                ComputeLengths(ref chain);
+                var result = Solve(chain, LF_Target, LF_Hint);
                 if (result.Success)
                 {
                     chain.Root.rotation = result.RootRot;
@@ -368,18 +369,18 @@ namespace ProjectName.Systems
             }
 
             // Front Right
-            if (_boneMap.Has(ProceduralBoneUtility.BoneRole.R_Hip) &&
-                _boneMap.Has(ProceduralBoneUtility.BoneRole.R_Knee) &&
-                _boneMap.Has(ProceduralBoneUtility.BoneRole.R_Ankle))
+            if (_boneMap.Has(BoneRole.R_Hip) &&
+                _boneMap.Has(BoneRole.R_Knee) &&
+                _boneMap.Has(BoneRole.R_Ankle))
             {
-                var chain = new LimbIKSolver.Chain
+                var chain = new Chain
                 {
-                    Root = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Hip),
-                    Mid = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Knee),
-                    Tip = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Ankle)
+                    Root = _boneMap.Get(BoneRole.R_Hip),
+                    Mid = _boneMap.Get(BoneRole.R_Knee),
+                    Tip = _boneMap.Get(BoneRole.R_Ankle)
                 };
-                LimbIKSolver.ComputeLengths(ref chain);
-                var result = LimbIKSolver.Solve(chain, RF_Target, RF_Hint);
+                ComputeLengths(ref chain);
+                var result = Solve(chain, RF_Target, RF_Hint);
                 if (result.Success)
                 {
                     chain.Root.rotation = result.RootRot;
@@ -389,18 +390,18 @@ namespace ProjectName.Systems
             }
 
             // Hind legs - reuse for now (need proper hind bone roles)
-            if (_boneMap.Has(ProceduralBoneUtility.BoneRole.L_Hip) &&
-                _boneMap.Has(ProceduralBoneUtility.BoneRole.L_Knee) &&
-                _boneMap.Has(ProceduralBoneUtility.BoneRole.L_Ankle))
+            if (_boneMap.Has(BoneRole.L_Hip) &&
+                _boneMap.Has(BoneRole.L_Knee) &&
+                _boneMap.Has(BoneRole.L_Ankle))
             {
-                var chain = new LimbIKSolver.Chain
+                var chain = new Chain
                 {
-                    Root = _boneMap.Get(ProceduralBoneUtility.BoneRole.L_Hip),
-                    Mid = _boneMap.Get(ProceduralBoneUtility.BoneRole.L_Knee),
-                    Tip = _boneMap.Get(ProceduralBoneUtility.BoneRole.L_Ankle)
+                    Root = _boneMap.Get(BoneRole.L_Hip),
+                    Mid = _boneMap.Get(BoneRole.L_Knee),
+                    Tip = _boneMap.Get(BoneRole.L_Ankle)
                 };
-                LimbIKSolver.ComputeLengths(ref chain);
-                var result = LimbIKSolver.Solve(chain, LH_Target, LF_Hint); // reuse hint
+                ComputeLengths(ref chain);
+                var result = Solve(chain, LH_Target, LF_Hint); // reuse hint
                 if (result.Success)
                 {
                     chain.Root.rotation = result.RootRot;
@@ -409,18 +410,18 @@ namespace ProjectName.Systems
                 }
             }
 
-            if (_boneMap.Has(ProceduralBoneUtility.BoneRole.R_Hip) &&
-                _boneMap.Has(ProceduralBoneUtility.BoneRole.R_Knee) &&
-                _boneMap.Has(ProceduralBoneUtility.BoneRole.R_Ankle))
+            if (_boneMap.Has(BoneRole.R_Hip) &&
+                _boneMap.Has(BoneRole.R_Knee) &&
+                _boneMap.Has(BoneRole.R_Ankle))
             {
-                var chain = new LimbIKSolver.Chain
+                var chain = new Chain
                 {
-                    Root = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Hip),
-                    Mid = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Knee),
-                    Tip = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Ankle)
+                    Root = _boneMap.Get(BoneRole.R_Hip),
+                    Mid = _boneMap.Get(BoneRole.R_Knee),
+                    Tip = _boneMap.Get(BoneRole.R_Ankle)
                 };
-                LimbIKSolver.ComputeLengths(ref chain);
-                var result = LimbIKSolver.Solve(chain, RH_Target, RF_Hint);
+                ComputeLengths(ref chain);
+                var result = Solve(chain, RH_Target, RF_Hint);
                 if (result.Success)
                 {
                     chain.Root.rotation = result.RootRot;
@@ -432,14 +433,14 @@ namespace ProjectName.Systems
 
         private void ApplySpineIK()
         {
-            if (!_boneMap.Has(ProceduralBoneUtility.BoneRole.Spine0) ||
-                !_boneMap.Has(ProceduralBoneUtility.BoneRole.Spine1) ||
-                !_boneMap.Has(ProceduralBoneUtility.BoneRole.Spine2))
+            if (!_boneMap.Has(BoneRole.Spine0) ||
+                !_boneMap.Has(BoneRole.Spine1) ||
+                !_boneMap.Has(BoneRole.Spine2))
                 return;
 
-            var spine0 = _boneMap.Get(ProceduralBoneUtility.BoneRole.Spine0);
-            var spine1 = _boneMap.Get(ProceduralBoneUtility.BoneRole.Spine1);
-            var spine2 = _boneMap.Get(ProceduralBoneUtility.BoneRole.Spine2);
+            var spine0 = _boneMap.Get(BoneRole.Spine0);
+            var spine1 = _boneMap.Get(BoneRole.Spine1);
+            var spine2 = _boneMap.Get(BoneRole.Spine2);
 
             if (spine0 == null || spine1 == null || spine2 == null) return;
 
@@ -454,7 +455,7 @@ namespace ProjectName.Systems
 
         private void ApplyHeadLook()
         {
-            var head = _boneMap.Get(ProceduralBoneUtility.BoneRole.Head);
+            var head = _boneMap.Get(BoneRole.Head);
             if (head == null) return;
 
             Vector3 toTarget = (_headLookTarget - head.position).normalized;
@@ -464,7 +465,7 @@ namespace ProjectName.Systems
 
         private void ApplyBodyLean()
         {
-            var root = _boneMap.Get(ProceduralBoneUtility.BoneRole.Root);
+            var root = _boneMap.Get(BoneRole.Root);
             if (root != null)
                 root.localRotation = _bodyLeanRotation;
         }

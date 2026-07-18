@@ -312,8 +312,8 @@ namespace ProjectName.Systems
             _hitRegistered = false;
 
             // 상체 목표 회전 계산 (타겟 방향)
-            var rHand = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Hand);
-            var rShoulder = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Shoulder);
+            var rHand = _boneMap.Get(BoneRole.R_Hand);
+            var rShoulder = _boneMap.Get(BoneRole.R_Shoulder);
 
             if (rHand != null && rShoulder != null)
             {
@@ -327,8 +327,8 @@ namespace ProjectName.Systems
             var hb = new ActiveHitbox
             {
                 step = _currentStep,
-                position = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Hand).position,
-                rotation = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Hand).rotation,
+                position = _boneMap.Get(BoneRole.R_Hand).position,
+                rotation = _boneMap.Get(BoneRole.R_Hand).rotation,
                 timer = 0f,
                 hitTargets = new HashSet<Collider>()
             };
@@ -387,14 +387,14 @@ namespace ProjectName.Systems
 
         private void ApplySwingRotation(float progress)
         {
-            var rShoulder = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Shoulder);
+            var rShoulder = _boneMap.Get(BoneRole.R_Shoulder);
             if (rShoulder == null) return;
 
             Vector3 currentEuler = Vector3.Lerp(_swingStartRotation, _swingTargetRotation, progress);
             rShoulder.rotation = Quaternion.Euler(currentEuler);
 
             // 척추도 약간 따라가게
-            var spine1 = _boneMap.Get(ProceduralBoneUtility.BoneRole.Spine1);
+            var spine1 = _boneMap.Get(BoneRole.Spine1);
             if (spine1 != null)
             {
                 spine1.Rotate(Vector3.up, progress * 15f, Space.Self);
@@ -413,7 +413,7 @@ namespace ProjectName.Systems
                 hb.timer += Time.deltaTime;
 
                 // 위치/회전 업데이트 (손 따라가기)
-                var rHand = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Hand);
+                var rHand = _boneMap.Get(BoneRole.R_Hand);
                 if (rHand != null)
                 {
                     hb.position = rHand.position + hb.step.hitboxOffset;
@@ -523,7 +523,7 @@ namespace ProjectName.Systems
             _hitRegistered = false;
 
             // 상체 복원
-            var rShoulder = _boneMap.Get(ProceduralBoneUtility.BoneRole.R_Shoulder);
+            var rShoulder = _boneMap.Get(BoneRole.R_Shoulder);
             if (rShoulder != null)
             {
                 rShoulder.localRotation = Quaternion.identity;
@@ -556,7 +556,7 @@ namespace ProjectName.Systems
         {
             if (_currentStep != null && _isAttacking)
             {
-                var rHand = _boneMap?.Get(ProceduralBoneUtility.BoneRole.R_Hand);
+                var rHand = _boneMap?.Get(BoneRole.R_Hand);
                 if (rHand != null)
                 {
                     Gizmos.color = Color.red;

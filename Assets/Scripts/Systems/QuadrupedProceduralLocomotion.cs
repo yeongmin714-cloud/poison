@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
 using ProjectName.Systems.Animation.Procedural.Bones;
+using ProjectName.Systems.Animation.Procedural.IK;
 using ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped;
 
 namespace ProjectName.Systems
@@ -215,14 +216,14 @@ namespace ProjectName.Systems
 
         private void ApplySpineWave()
         {
-            if (!_boneMap.Has(ProceduralBoneUtility.BoneRole.Spine0) ||
-                !_boneMap.Has(ProceduralBoneUtility.BoneRole.Spine1) ||
-                !_boneMap.Has(ProceduralBoneUtility.BoneRole.Spine2))
+            if (!_boneMap.Has(BoneRole.Spine0) ||
+                !_boneMap.Has(BoneRole.Spine1) ||
+                !_boneMap.Has(BoneRole.Spine2))
                 return;
 
-            var spine0 = _boneMap.Get(ProceduralBoneUtility.BoneRole.Spine0);
-            var spine1 = _boneMap.Get(ProceduralBoneUtility.BoneRole.Spine1);
-            var spine2 = _boneMap.Get(ProceduralBoneUtility.BoneRole.Spine2);
+            var spine0 = _boneMap.Get(BoneRole.Spine0);
+            var spine1 = _boneMap.Get(BoneRole.Spine1);
+            var spine2 = _boneMap.Get(BoneRole.Spine2);
 
             if (spine0 == null || spine1 == null || spine2 == null) return;
 
