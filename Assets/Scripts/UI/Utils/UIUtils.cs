@@ -25,7 +25,7 @@ namespace UI.Utils
         public void ValidateUIElement(UIElement element)
         {
             // Validate UI element
-            Debug.Log($"Validating element: {element.name}");
+            Debug.Log($"Validating element: {element?.name ?? "null"}");
         }
     }
 }

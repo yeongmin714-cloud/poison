@@ -14,7 +14,7 @@ namespace UI.Utils
             T component = target.GetComponent<T>();
             if (component == null)
             {
-                Debug.LogError($"Component of type {typeof(T)} not found on {target.name}");
+                Debug.LogError($"Component of type {typeof(T)} not found on {target?.name ?? "null"}");
             }
             return component;
         }
@@ -22,13 +22,15 @@ namespace UI.Utils
         public void SetActive(GameObject target, bool active)
         {
             // Set active state of target object
-            target.SetActive(active);
+            if (target != null)
+                target.SetActive(active);
         }
 
         public void DestroyObject(GameObject target)
         {
             // Destroy target object
-            Destroy(target);
+            if (target != null)
+                Destroy(target);
         }
     }
 }

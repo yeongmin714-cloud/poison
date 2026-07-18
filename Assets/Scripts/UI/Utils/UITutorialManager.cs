@@ -20,13 +20,18 @@ namespace UI.Utils
         public void InitializeTutorial()
         {
             // Setup tutorial UI
-            tutorialTitle.text = "Tutorial";
-            tutorialDescription.text = tutorialSteps[currentStep];
+            if (tutorialTitle != null)
+                tutorialTitle.text = "Tutorial";
+            if (tutorialDescription != null)
+                tutorialDescription.text = tutorialSteps[currentStep];
             
             // Add button listeners
-            nextButton.onClick.AddListener(NextStep);
-            prevButton.onClick.AddListener(PrevStep);
-            skipButton.onClick.AddListener(SkipTutorial);
+            if (nextButton != null)
+                nextButton.onClick.AddListener(NextStep);
+            if (prevButton != null)
+                prevButton.onClick.AddListener(PrevStep);
+            if (skipButton != null)
+                skipButton.onClick.AddListener(SkipTutorial);
         }
 
         public void NextStep()
@@ -34,7 +39,8 @@ namespace UI.Utils
             if (currentStep < tutorialSteps.Length - 1)
             {
                 currentStep++;
-                tutorialDescription.text = tutorialSteps[currentStep];
+                if (tutorialDescription != null)
+                    tutorialDescription.text = tutorialSteps[currentStep];
             }
         }
 
@@ -43,7 +49,8 @@ namespace UI.Utils
             if (currentStep > 0)
             {
                 currentStep--;
-                tutorialDescription.text = tutorialSteps[currentStep];
+                if (tutorialDescription != null)
+                    tutorialDescription.text = tutorialSteps[currentStep];
             }
         }
 

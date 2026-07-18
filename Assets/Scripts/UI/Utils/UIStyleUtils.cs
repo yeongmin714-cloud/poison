@@ -18,13 +18,15 @@ namespace UI.Utils
         public void SetColor(Graphic graphic, Color color)
         {
             // Set color of graphic
-            graphic.color = color;
+            if (graphic != null)
+                graphic.color = color;
         }
 
         public void SetFontSize(Text text, int fontSize)
         {
             // Set font size of text
-            text.fontSize = fontSize;
+            if (text != null)
+                text.fontSize = fontSize;
         }
     }
 }

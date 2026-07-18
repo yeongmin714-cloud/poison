@@ -17,13 +17,13 @@ namespace UI.Utils
         public void MoveAlongPath(GameObject target, Vector3[] path)
         {
             // Move target along path
-            Debug.Log($"Moving {target.name} along path");
+            Debug.Log($"Moving {target?.name ?? "null"} along path");
         }
 
         public void StopMovement(GameObject target)
         {
             // Stop movement of target
-            Debug.Log($"Stopping movement of {target.name}");
+            Debug.Log($"Stopping movement of {target?.name ?? "null"}");
         }
     }
 }
