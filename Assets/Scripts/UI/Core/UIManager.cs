@@ -1,42 +1,42 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Localization;
 
-public class UIManager : MonoBehaviour
+namespace ProjectName.UI.Core
 {
-    public static UIManager Instance;
+    public class UIManager : MonoBehaviour
+    {
+        public static UIManager Instance { get; private set; }
 
-    void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-}
+        [Header("UI References")]
+        public UIScreen[] screens;
 
-public class UIManager : MonoBehaviour
-{
-    [Header("UI References")]
-    public UIScreen[] screens;
-    
-    private void Start()
-    {
-        Debug.Log("UI Manager initialized");
-    }
-    
-    public void ShowScreen(UIScreen screen)
-    {
-        // TODO: Implement screen showing logic
-        foreach(var s in screens)
+        void Awake()
         {
-            s.gameObject.SetActive(s == screen);
+            if (Instance == null)
+            {
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
+
+        private void Start()
+        {
+            Debug.Log("UI Manager initialized");
+        }
+
+        public void ShowScreen(UIScreen screen)
+        {
+            if (screens == null) return;
+            foreach (var s in screens)
+            {
+                if (s != null)
+                    s.gameObject.SetActive(s == screen);
+            }
         }
     }
 }
