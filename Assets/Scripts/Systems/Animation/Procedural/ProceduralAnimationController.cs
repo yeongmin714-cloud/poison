@@ -182,9 +182,15 @@ namespace ProjectName.Systems.Animation.Procedural
 
         public void RequestJump()
         {
-            if (_velocityProvider != null) return; // 부모(PlayerMovement)가 점프 처리
-            if (!IsGrounded && _coyoteTimer <= 0) return;
             if (_actionState != ActionState.None) return;
+
+            if (_velocityProvider != null)
+            {
+                // 부모(PlayerMovement)가 점프 처리 — 애니메이션 상태는 UpdateLegPhases()에서 IsGrounded=false로 자연 처리
+                return;
+            }
+
+            if (!IsGrounded && _coyoteTimer <= 0) return;
 
             float jumpVel = math.sqrt(-2f * gravity * jumpHeight);
             _rigidbody.linearVelocity = new Vector3(_rigidbody.linearVelocity.x, jumpVel, _rigidbody.linearVelocity.z);
@@ -209,8 +215,16 @@ namespace ProjectName.Systems.Animation.Procedural
 
         public void RequestRoll()
         {
-            if (_velocityProvider != null) return; // 부모(PlayerMovement)가 구르기 처리
             if (_actionState != ActionState.None) return;
+
+            if (_velocityProvider != null)
+            {
+                // 부모(PlayerMovement)가 구르기 처리 — 시각적 롤 애니메이션만 실행
+                _actionState = ActionState.Roll;
+                _actionTimer = 0f;
+                return;
+            }
+
             if (!IsGrounded) return;
 
             _actionState = ActionState.Roll;
