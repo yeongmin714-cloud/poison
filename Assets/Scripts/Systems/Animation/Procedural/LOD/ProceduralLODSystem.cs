@@ -175,7 +175,7 @@ namespace ProjectName.Systems.Animation.Procedural.LOD
                 if (_controllers[i] != null)
                     _positions[i] = _controllers[i].transform.position;
                 else
-                    _positions[i] = float3(0, -1000, 0); // far away
+                    _positions[i] = float3(0f, -1000f, 0f); // far away
             }
 
             // Schedule LOD calculation
@@ -183,7 +183,7 @@ namespace ProjectName.Systems.Animation.Procedural.LOD
             {
                 Positions = _positions,
                 CameraPosition = _camera ? _camera.transform.position : float3.zero,
-                CameraForward = _camera ? _camera.transform.forward : float3.forward,
+                CameraForward = _camera ? _camera.transform.forward : math.forward(),
                 Lod0Distance = _lod0Distance,
                 Lod1Distance = _lod1Distance,
                 Lod2Distance = _lod2Distance,

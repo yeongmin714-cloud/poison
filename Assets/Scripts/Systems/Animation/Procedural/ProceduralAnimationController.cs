@@ -640,7 +640,7 @@ namespace ProjectName.Systems.Animation.Procedural
                 };
                 LimbIKSolver.ComputeLengths(ref chain);
 
-                var leftIK = new LimbIKSolver.LimbIKJob
+                var leftIK = new LimbIKJob
                 {
                     RootPos = chain.Root.position,
                     MidPos = chain.Mid.position,
@@ -673,7 +673,7 @@ namespace ProjectName.Systems.Animation.Procedural
                 };
                 LimbIKSolver.ComputeLengths(ref chain);
 
-                var rightIK = new LimbIKSolver.LimbIKJob
+                var rightIK = new LimbIKJob
                 {
                     RootPos = chain.Root.position,
                     MidPos = chain.Mid.position,

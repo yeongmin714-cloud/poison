@@ -168,9 +168,9 @@ namespace ProjectName.Systems.Animation.Procedural.Actions
             quaternion torqueRot = quaternion.AxisAngle(math.normalize(TorqueAxis), torqueAmount);
 
             OutPelvisRotation[0] = math.mul(PelvisRotation, torqueRot);
-            OutSpine0Rotation[0] = math.mul(Spine0Rotation, quaternion.Slerp(quaternion.identity, torqueRot, 0.3f));
-            OutSpine1Rotation[0] = math.mul(Spine1Rotation, quaternion.Slerp(quaternion.identity, torqueRot, 0.6f));
-            OutSpine2Rotation[0] = math.mul(Spine2Rotation, quaternion.Slerp(quaternion.identity, torqueRot, 0.3f));
+            OutSpine0Rotation[0] = math.mul(Spine0Rotation, math.slerp(quaternion.identity, torqueRot, 0.3f));
+            OutSpine1Rotation[0] = math.mul(Spine1Rotation, math.slerp(quaternion.identity, torqueRot, 0.6f));
+            OutSpine2Rotation[0] = math.mul(Spine2Rotation, math.slerp(quaternion.identity, torqueRot, 0.3f));
         }
     }
 
@@ -205,7 +205,7 @@ namespace ProjectName.Systems.Animation.Procedural.Actions
             float progress = math.saturate(TimeSinceHit / Duration);
             bool active = progress < 1f;
 
-            float3 headOffset = float3(0);
+            float3 headOffset = float3.zero;
             quaternion rootRot = RootRotation;
             quaternion s0 = Spine0Rot, s1 = Spine1Rot, s2 = Spine2Rot;
             float intensity = 0f;

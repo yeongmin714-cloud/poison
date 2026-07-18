@@ -233,6 +233,7 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Biped
         [ReadOnly] public float TurnAmount; // -1 to 1
 
         public NativeArray<float3> OutHipOffset;
+        public NativeArray<float> OutHipHeightOffset;
         public NativeArray<quaternion> OutHipRotation;
 
         public void Execute()
@@ -255,6 +256,7 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Biped
             quaternion rot = quaternion.AxisAngle(math.forward(), roll);
 
             OutHipOffset[0] = offset;
+            OutHipHeightOffset[0] = vertical;
             OutHipRotation[0] = rot;
         }
     }
@@ -291,7 +293,7 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Biped
                 float segmentYaw = hipYaw * weight;
 
                 // Add velocity-based lean
-                float3 localVel = math.mul(quaternion.Inverse(BodyRotation), BodyVelocity);
+                float3 localVel = math.mul(quaternion.inverse(BodyRotation), BodyVelocity);
                 float leanYaw = math.atan2(localVel.x, localVel.z) * 0.1f * weight;
                 segmentYaw += leanYaw;
 

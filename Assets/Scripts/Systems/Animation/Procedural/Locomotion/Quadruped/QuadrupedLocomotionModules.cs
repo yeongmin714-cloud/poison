@@ -255,17 +255,17 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped
         public void Execute()
         {
             // Counter-rotate head to cancel body rotation
-            quaternion counterRot = quaternion.Inverse(BodyRotation);
-            counterRot = quaternion.Slerp(quaternion.identity, counterRot, StabilizationStrength);
+            quaternion counterRot = quaternion.inverse(BodyRotation);
+            counterRot = math.slerp(quaternion.identity, counterRot, StabilizationStrength);
 
             // Look at target
             float3 toTarget = math.normalize(LookTarget - HeadPosition);
             quaternion lookRot = quaternion.LookRotationSafe(toTarget, math.up());
-            lookRot = quaternion.Slerp(quaternion.identity, lookRot, LookWeight);
+            lookRot = math.slerp(quaternion.identity, lookRot, LookWeight);
 
             // Combine: stabilize first, then look
             quaternion headRot = math.mul(counterRot, lookRot);
-            quaternion neckRot = math.mul(counterRot, quaternion.Slerp(quaternion.identity, lookRot, 0.5f));
+            quaternion neckRot = math.mul(counterRot, math.slerp(quaternion.identity, lookRot, 0.5f));
 
             OutHeadRotation[0] = headRot;
             OutNeckRotation[0] = neckRot;
