@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Core;
+using ProjectName.Systems.Animation.Procedural;
 using Unity.Cinemachine;
 
 namespace ProjectName.Systems
@@ -30,6 +31,7 @@ namespace ProjectName.Systems
 
         // ===== 애니메이션 =====
         private RigAnimationController _rigAnim;
+        private ProceduralAnimationController _proceduralAnim;
 
         // ===== C4-08: 자동 조준 상태 =====
         private IDamageable _currentTarget;
@@ -62,6 +64,15 @@ namespace ProjectName.Systems
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
             _currentWeapon = WeaponData.Fist;
+
+            // ProceduralAnimationController 획득 (PlayerModel 자식)
+            _proceduralAnim = GetComponentInChildren<ProceduralAnimationController>();
+            if (_proceduralAnim == null)
+            {
+                Transform model = transform.Find("PlayerModel");
+                if (model != null)
+                    _proceduralAnim = model.GetComponent<ProceduralAnimationController>();
+            }
         }
 
         private void Start()
@@ -148,6 +159,7 @@ namespace ProjectName.Systems
 
             // 공격 애니메이션 트리거
             _rigAnim?.Attack();
+            _proceduralAnim?.TriggerAction("attack");
 
             // C4-08: 커서 방향으로 자동 조준 먼저 시도
             IDamageable autoAimTarget = FindTargetInCursorDirection();

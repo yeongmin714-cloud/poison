@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Systems.Animation.Procedural;
+using System.Linq;
 
 namespace ProjectName.Systems
 {
@@ -95,6 +96,9 @@ namespace ProjectName.Systems
         // Rig animation
         private RigAnimationController _rigAnim;
 
+        // Procedural animation (PlayerModel 자식에 있음)
+        private ProceduralAnimationController _proceduralAnim;
+
         // 저장된 CharacterController 초기 높이 (구르기 복원용)
         private float _originalControllerHeight = 2f;
 
@@ -132,6 +136,15 @@ namespace ProjectName.Systems
 
             _keyboard = Keyboard.current;
             _stamina = _maxStamina;
+
+            // PlayerModel 자식에서 ProceduralAnimationController 찾기
+            _proceduralAnim = GetComponentInChildren<ProceduralAnimationController>();
+            if (_proceduralAnim == null)
+            {
+                Transform model = transform.Find("PlayerModel");
+                if (model != null)
+                    _proceduralAnim = model.GetComponent<ProceduralAnimationController>();
+            }
         }
 
         private void Update()
@@ -449,6 +462,7 @@ namespace ProjectName.Systems
 
             // 구르기 시작 시 카메라 흔들림
             TriggerCameraShake(0.1f, 0.1f);
+            _proceduralAnim?.TriggerAction("roll");
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             Debug.Log($"[PlayerMovement] 🌀 구르기 시작! 방향: {_rollDirection}");
@@ -471,6 +485,7 @@ namespace ProjectName.Systems
                 _verticalVelocity = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
                 _isJumping = true;
                 if (_rigAnim != null) _rigAnim.SetState(AnimationState.Jump);
+                _proceduralAnim?.TriggerAction("jump");
             }
 
             // 땅에 닿으면 점프 상태 해제

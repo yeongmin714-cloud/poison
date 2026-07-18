@@ -178,6 +178,7 @@ namespace ProjectName.Systems.Animation.Procedural
 
         public void RequestJump()
         {
+            if (_velocityProvider != null) return; // 부모(PlayerMovement)가 점프 처리
             if (!IsGrounded && _coyoteTimer <= 0) return;
             if (_actionState != ActionState.None) return;
 
@@ -204,6 +205,7 @@ namespace ProjectName.Systems.Animation.Procedural
 
         public void RequestRoll()
         {
+            if (_velocityProvider != null) return; // 부모(PlayerMovement)가 구르기 처리
             if (_actionState != ActionState.None) return;
             if (!IsGrounded) return;
 
@@ -409,10 +411,13 @@ namespace ProjectName.Systems.Animation.Procedural
                 }
             }
 
-            if (Input.GetMouseButtonDown(0)) RequestAttack();
-            if (Input.GetKeyDown(KeyCode.Space)) RequestJump();
-            if (Input.GetKeyDown(KeyCode.E)) RequestGather();
-            if (Input.GetKeyDown(KeyCode.Q)) RequestRoll();
+            if (_velocityProvider == null)
+            {
+                if (Input.GetMouseButtonDown(0)) RequestAttack();
+                if (Input.GetKeyDown(KeyCode.Space)) RequestJump();
+                if (Input.GetKeyDown(KeyCode.E)) RequestGather();
+                if (Input.GetKeyDown(KeyCode.Q)) RequestRoll();
+            }
         }
 
         void UpdateMovement()
@@ -420,7 +425,18 @@ namespace ProjectName.Systems.Animation.Procedural
             _currentVelocity = Vector3.MoveTowards(_currentVelocity, _targetVelocity, acceleration * Time.deltaTime);
             _currentSpeed = _currentVelocity.magnitude;
 
-            float turnInput = Input.GetKey(KeyCode.A) ? -1f : (Input.GetKey(KeyCode.D) ? 1f : 0f);
+            float turnInput;
+            if (_velocityProvider != null)
+            {
+                // 속도 방향 전환율로 lean 계산
+                Vector3 horizontalVel = new Vector3(_currentVelocity.x, 0, _currentVelocity.z);
+                float angularSpeed = Vector3.SignedAngle(transform.forward, horizontalVel.normalized, Vector3.up) * Time.deltaTime;
+                turnInput = Mathf.Clamp(angularSpeed * 0.1f, -1f, 1f);
+            }
+            else
+            {
+                turnInput = Input.GetKey(KeyCode.A) ? -1f : (Input.GetKey(KeyCode.D) ? 1f : 0f);
+            }
             float targetLean = turnInput * bodyLeanAmount * 15f;
             _bodyLeanOffset = Vector3.Lerp(_bodyLeanOffset, new Vector3(targetLean, 0, 0), Time.deltaTime * 5f);
             _bodyLeanRotation = Quaternion.Lerp(_bodyLeanRotation, Quaternion.Euler(_bodyLeanOffset), Time.deltaTime * 5f);
@@ -428,6 +444,7 @@ namespace ProjectName.Systems.Animation.Procedural
 
         void ApplyMovement()
         {
+            if (_velocityProvider != null) return; // 부모(PlayerMovement)가 이동 처리
             if (!IsGrounded) return;
 
             Vector3 move = _currentVelocity * Time.fixedDeltaTime;
@@ -437,6 +454,7 @@ namespace ProjectName.Systems.Animation.Procedural
 
         void ApplyGravity()
         {
+            if (_velocityProvider != null) return; // 부모(PlayerMovement)가 중력 처리
             if (!IsGrounded)
             {
                 _rigidbody.AddForce(Vector3.up * gravity * _rigidbody.mass, ForceMode.Force);
@@ -623,7 +641,7 @@ namespace ProjectName.Systems.Animation.Procedural
                     MaxLateralShift = 0.1f,
                     MaxVerticalShift = 0.05f,
                     Speed = _currentSpeed,
-                    TurnAmount = Input.GetKey(KeyCode.A) ? -1f : (Input.GetKey(KeyCode.D) ? 1f : 0f),
+                    TurnAmount = turnInput,
 
                     OutHipOffset = _hipOffset,
                     OutHipHeightOffset = _hipHeightOffset,
