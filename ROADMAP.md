@@ -603,6 +603,24 @@
 |- [x] FootPlanner: StepLength 0.8→0.6, StepWidth 0.2→0.15, MaxStepHeight 0.3→0.25
 |- [x] QuadrupedPoseController: _gaitFrequency 2.5→2.0, _gaitAmplitude 15→12, _legSwingAmount 10→8, _spineBobAmount 0.05→0.03, _speedThreshold 1.5→1.0
 
+### 3.9.9 — Hit Reaction (Stagger/Death) (2026-07-18)
+|- [x] ProceduralAnimStateMachine.EnterState(Stagger/Death) → TriggerAction 호출
+|- [x] ProceduralAnimationController: TriggerAction + RequestStagger/Death + UpdateActionStagger/Death
+|- [x] Stagger: 0.5초 Spine1 사인파 15° 회전 후 None 복귀
+|- [x] Death: 바닥 하강 0.5m/s + 90° 회전, 5초 후 Destroy
+
+### 3.9.10 — 카메라 무빙 & 이펙트 (2026-07-18)
+|- [x] PlayerCombat: 정타 시 CombatCameraEffects.PlayHit() 호출
+|- [x] PlayerCombat: 킬 시 CombatCameraEffects.PlayKill() 호출
+|- [x] PlayerCombat: AttackLungeCoroutine (0.15s, 1m ease-out 전진)
+|- [x] PlayerCombat: TryAttack()에 TriggerCameraEffects() 호출 (Cinemachine Impulse)
+|- [x] Damageable.OnDeath(): Enemy/Monster 태그 시 PlayKill() 호출
+
+### 3.9.11 — NPC/몬스터 프로시저럴 전환 (2026-07-18)
+|- [x] ParentVelocityProvider — 부모 Transform 위치 델타로 속도 계산
+|- [x] ModelAnimatorAssigner: PlayerMovement 없으면 ParentVelocityProvider fallback
+|- [x] 모든 NPC/몬스터 모델 자식이 ProceduralAnimationController로 부모 속도 읽음
+
 ---
 
 ## Phase 3.9: 🎬 프로시저럴 애니메이션 시스템 (✅ 컴파일 완료 + 런타임 연동 완료 — 2026-07-18)
