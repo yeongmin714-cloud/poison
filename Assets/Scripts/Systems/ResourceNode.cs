@@ -9,7 +9,7 @@ namespace ProjectName.Systems
     /// </summary>
     public class ResourceNode : MonoBehaviour
     {
-        public enum ResourceType { Wood, Stone, IronOre }
+        public enum ResourceType { Wood, Stone, IronOre, Herb }
 
         [SerializeField, Tooltip("자원 종류")]
         private ResourceType _resourceType = ResourceType.Wood;

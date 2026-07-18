@@ -274,11 +274,10 @@ namespace ProjectName.UI
                     }
                 }
 
-                // 10: 제작대 상호작용 (CraftingStationBase)
+                // 10: 제작대 상호작용 (태그 기반)
                 if (!_detectedState[9])
                 {
-                    var station = hit.GetComponent<CraftingStationBase>();
-                    if (station != null)
+                    if (hit.CompareTag("CraftingStation") || hit.CompareTag("Workbench"))
                     {
                         MarkActionDetected(9);
                     }

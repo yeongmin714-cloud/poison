@@ -53,7 +53,7 @@ public static class ModelMapping
         {"swamp_ogre", ("Placeholder_Ogre", "replace")},
         {"wild_troll", ("Placeholder_WildTroll", "replace")},
         {"wolf", ("Placeholder_Wolf", "replace")},
-        {"wooden_forest_spirit", ("Placeholder_ForestSpirit", "replace")}
+        {"wooden_forest_spirit", ("Placeholder_ForestSpirit", "replace")},
         {"arrow", ("Placeholder_Arrow", "replace")},
         {"arrow2", ("Placeholder_Arrow2", "replace")},
         {"arrow3", ("Placeholder_Arrow3", "replace")},
