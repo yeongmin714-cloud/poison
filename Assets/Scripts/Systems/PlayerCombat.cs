@@ -174,6 +174,12 @@ namespace ProjectName.Systems
                 // 자동 조준 실패 → 기존 SphereCast 방식 (화면 중앙)
                 AttackCenterScreen();
             }
+
+            // 카메라 이펙트 (Cinemachine Impulse)
+            TriggerCameraEffects();
+
+            // 공격 전진 (attack lunge)
+            StartCoroutine(AttackLungeCoroutine());
         }
 
         /// <summary>
@@ -269,6 +275,16 @@ namespace ProjectName.Systems
                     CombatCameraEffects.PlayCrit();
                     Debug.Log("[PlayerCombat] ★ 백어택! 치명타 카메라 이펙트");
                 }
+                else
+                {
+                    CombatCameraEffects.PlayHit();
+                }
+            }
+
+            // 킬 시 슬로우모션
+            if (target is IDamageable damageable && damageable.IsDead)
+            {
+                CombatCameraEffects.PlayKill();
             }
 
             // Phase 8.3: 적중 사운드
