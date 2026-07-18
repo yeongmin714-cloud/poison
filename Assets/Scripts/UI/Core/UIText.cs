@@ -1,9 +1,10 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.Localization;
 
 public class UIText : MonoBehaviour
 {
-    public TMPro.TextMeshProUGUI textComponent;
+    public TextMeshProUGUI textComponent;
     public string defaultText = "Default Text";
     
     private void Start()

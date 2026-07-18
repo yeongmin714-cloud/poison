@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Localization;
 
 public class UITooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {

@@ -1,10 +1,12 @@
 using UnityEngine;
+using TMPro;
+using UnityEngine.Localization;
 
 public class PlayerStatsUI : MonoBehaviour
 {
     public GameObject statsPanel;
-    public TMPro.TextMeshProUGUI healthText;
-    public TMPro.TextMeshProUGUI manaText;
+    public TextMeshProUGUI healthText;
+    public TextMeshProUGUI manaText;
     
     private void Start()
     {

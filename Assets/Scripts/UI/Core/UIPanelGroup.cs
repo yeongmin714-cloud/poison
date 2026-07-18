@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.Localization;
 
 public class UIPanelGroup : MonoBehaviour
 {

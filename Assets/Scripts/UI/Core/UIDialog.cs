@@ -1,10 +1,12 @@
 using UnityEngine;
+using TMPro;
+using UnityEngine.Localization;
 
 public class UIDialog : MonoBehaviour
 {
     public GameObject dialogBox;
-    public TMPro.TextMeshProUGUI titleText;
-    public TMPro.TextMeshProUGUI messageText;
+    public TextMeshProUGUI titleText;
+    public TextMeshProUGUI messageText;
     
     private void Start()
     {

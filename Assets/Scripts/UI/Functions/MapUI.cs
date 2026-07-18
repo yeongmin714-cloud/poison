@@ -1,9 +1,11 @@
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.Localization;
 
 public class MapUI : MonoBehaviour
 {
     public GameObject mapPanel;
-    public UnityEngine.UI.Image mapImage;
+    public Image mapImage;
     
     private void Start()
     {

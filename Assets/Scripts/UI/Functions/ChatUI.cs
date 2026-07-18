@@ -1,10 +1,12 @@
 using UnityEngine;
+using TMPro;
+using UnityEngine.Localization;
 
 public class ChatUI : MonoBehaviour
 {
     public GameObject chatPanel;
     public Transform messagesContainer;
-    public TMPro.TextMeshProUGUI inputField;
+    public TextMeshProUGUI inputField;
     
     private void Start()
     {

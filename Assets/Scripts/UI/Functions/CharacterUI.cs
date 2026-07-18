@@ -1,10 +1,12 @@
 using UnityEngine;
+using TMPro;
+using UnityEngine.Localization;
 
 public class CharacterUI : MonoBehaviour
 {
     public GameObject characterPanel;
-    public TMPro.TextMeshProUGUI characterName;
-    public TMPro.TextMeshProUGUI characterLevel;
+    public TextMeshProUGUI characterName;
+    public TextMeshProUGUI characterLevel;
     
     private void Start()
     {

@@ -1,9 +1,11 @@
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.Localization;
 
 public class SettingsUI : MonoBehaviour
 {
     public GameObject settingsPanel;
-    public UnityEngine.UI.Slider volumeSlider;
+    public Slider volumeSlider;
     
     private void Start()
     {

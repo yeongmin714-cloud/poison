@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.Localization;
 
 public class UIAnimation : MonoBehaviour
 {
