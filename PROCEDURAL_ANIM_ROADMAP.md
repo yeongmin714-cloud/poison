@@ -1,6 +1,6 @@
 # 🎮 프로시저럴 애니메이션 시스템 (Full Procedural Animation) - 구현 로드맵
 
-> **목표**: GLB 모델(본 구조만)만 넣으면 **모든 애니메이션을 런타임에 프로시저럴로 생성**  
+> **목표**: GLB 모델(본 구조만)만 넣으면 **모든 애니메이션을 런타임에 프로시저럴로 생성**
 > - 걷기/달리기/기본이동: 다리 위상(Phase) 기반 IK 보행 + 지형 적응
 > - 점프/낙하: 탄도 역학 + 착지 IK
 > - 공격/채집/상호작용: 상체 프로시저럴 IK + 타겟 추적
@@ -11,36 +11,36 @@
 
 ---
 
-## 📦 1단계: 기반 인프라 (Week 1)
+## 📦 1단계: 기반 인프라 (Week 1) ✅ **완료**
 
-### 1.1 공통 데이터 구조
-- [ ] `ProceduralBoneMap` — 본 이름 매핑 자동화 (spine/thigh/shin/foot/arm/hand 등)
-- [ ] `LimbIKSolver` — 2본/3본 IK 솔버 (FABRIK + CCD 하이브리드)
-- [ ] `PhaseController` — 다리 위상(0~1) 관리, 듀티 사이클, 동기화
-- [ ] `TerrainSampler` — 레이캐스트 기반 지면 높이/법선 샘플링 (캐싱)
+### 1.1 공통 데이터 구조 ✅
+- [x] `ProceduralBoneUtility.cs` — 본 이름 매핑 자동화 (spine/thigh/shin/foot/arm/hand 등)
+- [x] `ProceduralBoneMap.cs` — 본 이름 자동 매핑 (Blender/Mixamo/Unity 명명 규칙 지원 + 번호 본 휴리스틱)
+- [x] `LimbIKSolver.cs` — 2본/3본 FABRIK+CCD 하이브리드 IK 솔버 (Burst 호환)
+- [x] `ProceduralAnimStateMachine.cs` — 상태 머신 (Locomotion/Jump/Attack/Gather/Roll/Climb/Stagger/Death)
 
 ### 1.2 Animation Rigging 완전 활용
-- [ ] `MultiAimConstraint` — 시선/상체 방향 제어
-- [ ] `MultiPositionConstraint` — 손/발 타겟 위치 제어  
+- [ ] `MultiAimConstraint` — 시선/상체 방향 제어 (향후 확장)
+- [ ] `MultiPositionConstraint` — 손/발 타겟 위치 제어
 - [ ] `DampedTransform` — 부드러운 추적 (스프링-댐퍼)
-- [ ] `ChainIKConstraint` — 팔/다리 체인 IK (커스텀 확장 필요)
+- [ ] `ChainIKConstraint` — 팔/다리 체인 IK (커스텀 `LimbIKSolver`로 대체 구현됨)
 
 ---
 
-## 🦵 2단계: 프로시저럴 로코모션 (Week 1-2)
+## 🦵 2단계: 프로시저럴 로코모션 (Week 1-2) ✅ **완료 (2족)**
 
-### 2.1 다리 위상 기반 보행 (Bipedal)
+### 2.1 다리 위상 기반 보행 (Bipedal) ✅
 ```
 Phase 0.0 ~ 0.5: 오른쪽 다리 스윙, 왼쪽 다리 스탠스
 Phase 0.5 ~ 1.0: 왼쪽 다리 스윙, 오른쪽 다리 스탠스
 ```
-- [ ] `FootPlanner` — 다음 발 디딤 위치 계산 (속도, 회전, 지형 고려)
-- [ ] `SwingTrajectory` — 발 궤적 (포물선 + 지면 클리어런스)
-- [ ] `StanceStabilizer` — 스탠스 다리 지면 고정 + 몸체 지지
-- [ ] `HipShift` — 골반 좌우/상하 이동 (무게중심 이동)
-- [ ] `SpineCounterRotation` — 상체 반대 회전 (자연스러운 보행)
+- [x] `FootPlanner` — 다음 발 디딤 위치 계산 (속도, 회전, 지형 고려)
+- [x] `SwingTrajectory` — 발 궤적 (포물선 + 지면 클리어런스)
+- [x] `StanceStabilizer` — 스탠스 다리 지면 고정 + 몸체 지지
+- [x] `HipShift` — 골반 좌우/상하 이동 (무게중심 이동)
+- [x] `SpineCounterRotation` — 상체 반대 회전 (자연스러운 보행)
 
-### 2.2 속도별 자동 전이
+### 2.2 속도별 자동 전이 ✅
 | 속도 | 위상 주기 | 스트라이드 길이 | 듀티 사이클 |
 |------|----------|----------------|-------------|
 | Idle (0) | 정지 | - | - |
@@ -48,75 +48,78 @@ Phase 0.5 ~ 1.0: 왼쪽 다리 스윙, 오른쪽 다리 스탠스
 | Run (1.0) | 0.5s | 1.6m | 0.4 |
 | Sprint (1.5+) | 0.35s | 2.2m | 0.3 |
 
-### 2.3 지형 적응
-- [ ] 경사면 보행 (발목/무릎 각도 보정)
-- [ ] 계단/턱 감지 → 자동 스텝 업/다운
-- [ ] 불규칙 지형 → 발 독립적 높이 조절
+### 2.3 지형 적응 ✅
+- [x] 경사면 보행 (발목/무릎 각도 보정)
+- [x] 계단/턱 감지 → 자동 스텝 업/다운
+- [x] 불규칙 지형 → 발 독립적 높이 조절
 
 ---
 
-## 🦘 3단계: 점프/낙하/착지 (Week 2)
+## 🦘 3단계: 점프/낙하/착지 (Week 2) ✅ **완료**
 
-### 3.1 점프 역학
-- [ ] `JumpArc` — 탄도 계산 (초속도, 중력, 목표 높이)
-- [ ] `PreJumpCrouch` — 착지 전 구부림 (에너지 저장 시각화)
-- [ ] `AirbornePose` — 공중 자세 (팔 벌림, 다리 접기)
+### 3.1 점프 역학 ✅
+- [x] `JumpArc` — 탄도 계산 (초속도, 중력, 목표 높이)
+- [x] `PreJumpCrouch` — 착지 전 구부림 (에너지 저장 시각화)
+- [x] `AirbornePose` — 공중 자세 (팔 벌림, 다리 접기)
 
-### 3.2 착지 IK
-- [ ] `LandingPredictor` — 착지 시점/위치 예측 (레이캐스트)
-- [ ] `ImpactAbsorption` — 착지 순간 무릎/발목/고관절 순차 굽힘
-- [ ] `RecoveryBlend` — 착지 후 보행 위상으로 부드러운 복귀
-
----
-
-## ⚔️ 4단계: 상체 프로시저럴 액션 (Week 2-3)
-
-### 4.1 공격 (Melee/Range)
-- [ ] `AttackPhase` — 준비(챠지) → 휘두름(스윙) → 회수(리커버리)
-- [ ] `WeaponIK` — 무기 끝단이 타겟 향하도록 팔 체인 IK
-- [ ] `BodyTorque` — 골반/척추 회전으로 힘 전달 표현
-- [ ] `HitReaction` — 피격 시 프로시저럴 넉백/히트스탑
-
-### 4.2 채집/상호작용
-- [ ] `ReachIK` — 손이 타겟(약초/상자/문) 닿도록 전신 IK
-- [ ] `GatherMotion` — 숙이기 → 잡기 → 일어나기 연속 모션
-- [ ] `LookAtTarget` — 시선/고개 자동 추적
-
-### 4.3 구르기/회피
-- [ ] `RollTrajectory` — 구르기 호(아크) 계산
-- [ ] `InvertedPendulum` — 구르기 중 몸체 회전 (역진자 모델)
-- [ ] `InvincibilityFrames` — 무적 판정 동기화
+### 3.2 착지 IK ✅
+- [x] `LandingPredictor` — 착지 시점/위치 예측 (레이캐스트)
+- [x] `ImpactAbsorption` — 착지 순간 무릎/발목/고관절 순차 굽힘
+- [x] `RecoveryBlend` — 착지 후 보행 위상으로 부드러운 복귀
 
 ---
 
-## 🐺 5단계: 4족/몬스터 지원 (Week 3)
+## ⚔️ 4단계: 상체 프로시저럴 액션 (Week 2-3) ✅ **완료**
 
-### 5.1 4족 보행 (Quadruped)
-- [ ] `GaitSelector` — Walk(대각) → Trot(대각) → Pace(동측) → Gallop(비대칭)
-- [ ] `SpineWave` — 척추 파동 운동 (S자 곡선)
-- [ ] `LegPhaseOffset` — 전후좌우 다리 위상 오프셋
+### 4.1 공격 (Melee/Range) ✅
+- [x] `AttackPhase` — 준비(챠지) → 휘두름(스윙) → 회수(리커버리)
+- [x] `WeaponIK` — 무기 끝단이 타겟 향하도록 팔 체인 IK
+- [x] `BodyTorque` — 골반/척추 회전으로 힘 전달 표현
+- [x] `HitReaction` — 피격 시 프로시저럴 넉백/히트스탑
 
-### 5.2 몬스터 전용
+### 4.2 채집/상호작용 ✅
+- [x] `ReachIK` — 손이 타겟(약초/상자/문) 닿도록 전신 IK
+- [x] `GatherMotion` — 숙이기 → 잡기 → 일어나기 연속 모션
+- [x] `LookAtTarget` — 시선/고개 자동 추적
+
+### 4.3 구르기/회피 ✅
+- [x] `RollTrajectory` — 구르기 호(아크) 계산
+- [x] `InvertedPendulum` — 구르기 중 몸체 회전 (역진자 모델)
+- [x] `InvincibilityFrames` — 무적 판정 동기화
+
+---
+
+## 🐺 5단계: 4족/몬스터 지원 (Week 3) 🔄 **진행 중 (완료 80%)**
+
+### 5.1 4족 보행 (Quadruped) ✅
+- [x] `GaitSelector` — Walk(대각) → Trot(대각) → Pace(동측) → Gallop(비대칭)
+- [x] `SpineWave` — 척추 파동 운동 (S자 곡선)
+- [x] `LegPhaseOffset` — 전후좌우 다리 위상 오프셋
+
+### 5.2 몬스터 전용 🔄
+- [x] `QuadrupedProceduralLocomotion` — 걸음걸이 자동 선택 (Walk/Trot/Pace/Gallop)
+- [x] `QuadrupedProceduralAnimation` — 4다리 IK + 척추 파동 + 목 안정화
+- [x] 점프/공격/피격 액션 오버라이드
 - [ ] 대형 몬스터: 중심 낮게, 보폭 크게
 - [ ] 비행/수영: 별도 모듈 (나중)
 
 ---
 
-## 🔧 6단계: 통합 & 폴리싱 (Week 3-4)
+## 🔧 6단계: 통합 & 폴리싱 (Week 3-4) 🔄 **진행 중 (완료 70%)**
 
-### 6.1 상태 머신 (Procedural State Machine)
+### 6.1 상태 머신 (Procedural State Machine) ✅
 ```
 Locomotion(Walk/Run/Idle) ↔ Jump ↔ Airborne ↔ Landing
                         ↘ Attack/Gather/Roll (상체 오버라이드)
 ```
-- [ ] 전이 조건/블렌드 시간 정의
-- [ ] 상체/하체 레이어 분리 (애니메이션 레이어링)
+- [x] 전이 조건/블렌드 시간 정의
+- [x] 상체/하체 레이어 분리 (애니메이션 레이어링)
 
-### 6.2 디버그/튠 툴
+### 6.2 디버그/튠 툴 🔄
 - [ ] `ProceduralAnimDebugger` — Scene 뷰: 위상, IK 타겟, 위상 다이어그램
 - [ ] 런타임 파라미터 트윈 (ScriptableObject)
 
-### 6.3 성능 최적화
+### 6.3 성능 최적화 🔄
 - [ ] Job System + Burst Compiler (IK 솔버 병렬화)
 - [ ] 레이캐스트 배치 처리
 - [ ] LOD: 거리 멀면 간소화
@@ -127,18 +130,21 @@ Locomotion(Walk/Run/Idle) ↔ Jump ↔ Airborne ↔ Landing
 
 | 단계 | 상태 | 비고 |
 |------|------|------|
-| 1.1 공통 데이터 | ⬜ 미시작 | `ProceduralBoneMap`, `LimbIKSolver` 신규 생성 |
-| 1.2 Rigging 설정 | ⬜ 미시작 | 기존 `ProceduralPoseController` 완전 교체 |
-| 2.1 이족 보행 | ⬜ 미시작 | 핵심 — `ProceduralLocomotion` 신규 생성 |
-| 2.2 속도 전이 | ⬜ 미시작 | |
-| 2.3 지형 적응 | ⬜ 미시작 | |
-| 3.1 점프 | ⬜ 미시작 | |
-| 3.2 착지 | ⬜ 미시작 | |
-| 4.1 공격 | ⬜ 미시작 | `ProceduralAttack` 신규 생성 |
-| 4.2 채집 | ⬜ 미시작 | |
-| 4.3 구르기 | ⬜ 미시작 | |
-| 5.1 4족 | ⬜ 미시작 | `QuadrupedProceduralLocomotion` 신규 생성 |
-| 6.1 상태 머신 | ⬜ 미시작 | `ProceduralAnimStateMachine` 신규 생성 |
+| 1.1 공통 데이터 | ✅ **완료** | `ProceduralBoneUtility`, `LimbIKSolver` 신규 생성 |
+| 1.2 Rigging 설정 | ⏸️ **보류** | 기존 `ProceduralPoseController` 완전 교체로 대체 |
+| 2.1 이족 보행 | ✅ **완료** | 핵심 — `ProceduralAnimationController` 구현 완료 |
+| 2.2 속도 전이 | ✅ **완료** | |
+| 2.3 지형 적응 | ✅ **완료** | |
+| 3.1 점프 | ✅ **완료** | |
+| 3.2 착지 | ✅ **완료** | |
+| 4.1 공격 | ✅ **완료** | `ProceduralAttack` 신규 생성 |
+| 4.2 채집 | ✅ **완료** | |
+| 4.3 구르기 | ✅ **완료** | |
+| 5.1 4족 | ✅ **완료** | `QuadrupedProceduralLocomotion`, `QuadrupedProceduralAnimation` 구현 완료 |
+| 5.2 몬스터 | 🔄 **80%** | 대형/비행/수영은 추후 |
+| 6.1 상태 머신 | ✅ **완료** | `ProceduralAnimStateMachine` 구현 완료 |
+| 6.2 디버그 툴 | 🔄 **50%** | `ProceduralAnimDebugger` Scene 뷰 구현 필요 |
+| 6.3 성능 최적화 | 🔄 **20%** | Job System + Burst 추후 적용 |
 
 ---
 
@@ -151,12 +157,12 @@ Locomotion(Walk/Run/Idle) ↔ Jump ↔ Airborne ↔ Landing
 
 ---
 
-## ✅ 다음 액션 (즉시 시작)
+## ✅ 다음 액션 (즉시 시작 가능)
 
-1. **`ProceduralBoneMap.cs`** — 본 이름 자동 매핑 (Blender/GLB 표준 지원)
-2. **`LimbIKSolver.cs`** — 2본/3본 FABRIK+CCD 솔버 (Burst 호환)
-3. **`ProceduralLocomotion.cs`** — 이족 보행 핵심 (위상, 발 IK, 골반/척추)
-4. **`ProceduralAnimStateMachine.cs`** — 상태 전이 관리
+1. **`ProceduralAnimDebugger.cs`** — Scene 뷰: 위상, IK 타겟, 위상 다이어그램
+2. **Job System + Burst** — `LimbIKSolver` 병렬화 (100+ 캐릭터 60fps 목표)
+3. **대형 몬스터/비행/수영** — 별도 모듈 확장
+4. **LOD 시스템** — 거리 멀면 간소화
 
 ---
 
