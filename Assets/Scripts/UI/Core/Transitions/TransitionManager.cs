@@ -74,5 +74,16 @@ namespace ProjectName.UI.Core.Transitions
         {
             activeTransitions.Remove(transition);
         }
+        
+        void Update()
+        {
+            for (int i = activeTransitions.Count - 1; i >= 0; i--)
+            {
+                if (i < activeTransitions.Count)
+                {
+                    activeTransitions[i].UpdateTransition();
+                }
+            }
+        }
     }
 }
