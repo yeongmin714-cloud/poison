@@ -570,25 +570,28 @@ namespace ProjectName.Systems
         /// </summary>
         private void ExecuteHeal(AnimalAI monster, MonsterSkillData skillData)
         {
-            // AnimalAI는 IDamageable이므로 직접 HP 조작은 불가, 대신 리플렉션으로 _currentHP 접근?
-            // AnimalAI의 CurrentHP는 읽기 전용이므로 TakeDamage처럼 직접 조작 불가.
-            // 대신 DraculaLord 전용 스킬이므로 DraculaLord 인스턴스 찾아서 Heal
-            var dracula = monster.GetComponent<DraculaLord>();
+            // DraculaLord 찾기: monster 파라미터가 null일 수 있음 (DraculaLord.ExecuteSkill 호출 시)
+            DraculaLord dracula = null;
+            if (monster != null)
+                dracula = monster.GetComponent<DraculaLord>();
+            else
+                dracula = FindAnyObjectByType<DraculaLord>();
+
             if (dracula != null)
             {
                 float healAmount = dracula.MaxHP * skillData.damage; // 0.2 = 20%
                 dracula.RegenerateHP(healAmount);
                 Debug.Log($"[MonsterSkill] 💚 드라큘라 HP 회복! +{healAmount} ({dracula.HP}/{dracula.MaxHP})");
+
+                // 시각 효과
+                CombatVFXController.SpawnHitSparks(dracula.transform.position);
             }
             else
             {
                 // 일반 몬스터: AnimalAI의 _currentHP 직접 접근 불가, CurrentHP도 readonly
                 // 대신 저레벨 몬스터는 Heal 스킬이 없으므로 무시
-                Debug.LogWarning("[MonsterSkill] Heal 스킬은 DraculaLord 전용입니다.");
+                Debug.LogWarning("[MonsterSkill] Heal 스킬은 DraculaLord 전용입니다. DraculaLord를 찾을 수 없습니다.");
             }
-
-            // 시각 효과
-            CombatVFXController.SpawnHitSparks(monster.transform.position);
         }
 
         /// <summary>
@@ -597,7 +600,13 @@ namespace ProjectName.Systems
         private void ExecuteSummonMinion(AnimalAI monster, GameObject target, Vector3 monsterPos)
         {
             // 드라큘라 영주 전용 — DraculaLord 이벤트 트리거
-            var dracula = monster.GetComponent<DraculaLord>();
+            // monster 파라미터가 null일 수 있음 (DraculaLord.ExecuteSkill 호출 시)
+            DraculaLord dracula = null;
+            if (monster != null)
+                dracula = monster.GetComponent<DraculaLord>();
+            else
+                dracula = FindAnyObjectByType<DraculaLord>();
+
             if (dracula != null)
             {
                 dracula.ForceSummonBats();
@@ -606,6 +615,12 @@ namespace ProjectName.Systems
             }
 
             // 일반 몬스터용: MonsterSpawner처럼 primitive로 미니언 생성
+            if (monster == null)
+            {
+                Debug.LogWarning("[MonsterSkill] SummonMinion 스킬은 DraculaLord 전용입니다.");
+                return;
+            }
+
             for (int i = 0; i < 2; i++)
             {
                 GameObject minion = GameObject.CreatePrimitive(PrimitiveType.Capsule);
