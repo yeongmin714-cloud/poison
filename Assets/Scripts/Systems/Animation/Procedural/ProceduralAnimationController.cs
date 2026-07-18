@@ -10,7 +10,7 @@ using ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped;
 using ProjectName.Systems.Animation.Procedural.Actions;
 using ProjectName.Systems.Animation.Procedural.LOD;
 using ProjectName.Systems.Animation.Procedural.IK;
-using IKSolver = ProjectName.Systems.Animation.Procedural.IK.LimbIKSolver;
+using static ProjectName.Systems.Animation.Procedural.IK.LimbIKSolver;
 
 namespace ProjectName.Systems.Animation.Procedural
 {
@@ -194,7 +194,7 @@ namespace ProjectName.Systems.Animation.Procedural
             _rigidbody = GetComponent<Rigidbody>();
             _boneMap = GetComponent<ProceduralBoneMap>();
             _stateMachine = GetComponent<ProceduralAnimStateMachine>();
-            _lodManager = FindFirstObjectByType<ProceduralLODManager>();
+            _lodManager = FindAnyObjectByType<ProceduralLODManager>();
 
             if (_stateMachine == null)
                 _stateMachine = gameObject.AddComponent<ProceduralAnimStateMachine>();
@@ -609,7 +609,7 @@ namespace ProjectName.Systems.Animation.Procedural
             // Left Leg IK
             if (_boneMap.Has(BoneRole.L_Hip) && _boneMap.Has(BoneRole.L_Knee) && _boneMap.Has(BoneRole.L_Ankle))
             {
-                var chain = new Chain
+                var chain = new LimbIKSolver.Chain
                 {
                     Root = _boneMap.Get(BoneRole.L_Hip),
                     Mid = _boneMap.Get(BoneRole.L_Knee),
@@ -636,7 +636,7 @@ namespace ProjectName.Systems.Animation.Procedural
             // Right Leg IK
             if (_boneMap.Has(BoneRole.R_Hip) && _boneMap.Has(BoneRole.R_Knee) && _boneMap.Has(BoneRole.R_Ankle))
             {
-                var chain = new Chain
+                var chain = new LimbIKSolver.Chain
                 {
                     Root = _boneMap.Get(BoneRole.R_Hip),
                     Mid = _boneMap.Get(BoneRole.R_Knee),
@@ -759,14 +759,14 @@ namespace ProjectName.Systems.Animation.Procedural
             // Left leg
             if (_boneMap.Has(BoneRole.L_Hip) && _boneMap.Has(BoneRole.L_Knee) && _boneMap.Has(BoneRole.L_Ankle))
             {
-                var chain = new Chain
+                var chain = new LimbIKSolver.Chain
                 {
                     Root = _boneMap.Get(BoneRole.L_Hip),
                     Mid = _boneMap.Get(BoneRole.L_Knee),
                     Tip = _boneMap.Get(BoneRole.L_Ankle),
                 };
                 ComputeLengths(ref chain);
-                var result = Solve(chain, _leftFootTarget[0], _leftFootHint[0]);
+                var result = LimbIKSolver.Solve(chain, _leftFootTarget[0], _leftFootHint[0]);
                 if (result.Success)
                 {
                     chain.Root.rotation = result.RootRot;
@@ -778,14 +778,14 @@ namespace ProjectName.Systems.Animation.Procedural
             // Right leg
             if (_boneMap.Has(BoneRole.R_Hip) && _boneMap.Has(BoneRole.R_Knee) && _boneMap.Has(BoneRole.R_Ankle))
             {
-                var chain = new Chain
+                var chain = new LimbIKSolver.Chain
                 {
                     Root = _boneMap.Get(BoneRole.R_Hip),
                     Mid = _boneMap.Get(BoneRole.R_Knee),
                     Tip = _boneMap.Get(BoneRole.R_Ankle),
                 };
                 ComputeLengths(ref chain);
-                var result = Solve(chain, _rightFootTarget[0], _rightFootHint[0]);
+                var result = LimbIKSolver.Solve(chain, _rightFootTarget[0], _rightFootHint[0]);
                 if (result.Success)
                 {
                     chain.Root.rotation = result.RootRot;
@@ -925,21 +925,83 @@ namespace ProjectName.Systems.Animation.Procedural
 
         public void Execute()
         {
-            var result = Solve(
-                new Chain
+            // Inline IK solve (Burst-compatible, adapted from LimbIKSolver.Solve)
+            float3 rootPos = RootPos;
+            float3 midPos = MidPos;
+            float3 tipPos = TipPos;
+            float3 target = TargetPos;
+            float3 hint = HintPos;
+
+            float upperLen = UpperLen;
+            float lowerLen = LowerLen;
+            float totalLen = upperLen + lowerLen;
+
+            float3 rootToTarget = target - rootPos;
+            float distToTarget = math.length(rootToTarget);
+
+            bool success = true;
+
+            // Unreachable: fully extend
+            if (distToTarget > totalLen * 0.999f)
+            {
+                float3 dir = math.normalize(rootToTarget);
+                midPos = rootPos + dir * upperLen;
+                tipPos = midPos + dir * lowerLen;
+                success = false;
+            }
+            else
+            {
+                // FABRIK forward + backward passes
+                for (int i = 0; i < Iterations; i++)
                 {
-                    Root = new TransformProxy { position = RootPos },
-                    Mid = new TransformProxy { position = MidPos },
-                    Tip = new TransformProxy { position = TipPos },
-                    UpperLength = UpperLen,
-                    LowerLength = LowerLen,
-                },
-                TargetPos,
-                HintPos
-            );
-            OutRootRot = result.RootRot;
-            OutMidRot = result.MidRot;
-            OutTipRot = result.TipRot;
+                    // Stage 1: Forward reaching (tip to target)
+                    tipPos = target;
+
+                    // Mid -> Tip constraint
+                    float3 midToTip = tipPos - midPos;
+                    float midTipDist = math.length(midToTip);
+                    if (midTipDist > 0.0001f)
+                        midPos = tipPos - math.normalize(midToTip) * lowerLen;
+                    else
+                        midPos = tipPos - math.up() * lowerLen;
+
+                    // Root -> Mid constraint
+                    float3 rootToMid = midPos - rootPos;
+                    float rootMidDist = math.length(rootToMid);
+                    if (rootMidDist > 0.0001f)
+                        midPos = rootPos + math.normalize(rootToMid) * upperLen;
+                    else
+                        midPos = rootPos + math.up() * upperLen;
+
+                    // Stage 2: Backward reaching (root fixed)
+                    // Root stays fixed
+
+                    // Root -> Mid constraint
+                    rootToMid = midPos - rootPos;
+                    rootMidDist = math.length(rootToMid);
+                    if (rootMidDist > 0.0001f)
+                        midPos = rootPos + math.normalize(rootToMid) * upperLen;
+                    else
+                        midPos = rootPos + math.up() * upperLen;
+
+                    // Mid -> Tip constraint
+                    midToTip = tipPos - midPos;
+                    midTipDist = math.length(midToTip);
+                    if (midTipDist > 0.0001f)
+                        tipPos = midPos + math.normalize(midToTip) * lowerLen;
+                    else
+                        tipPos = midPos + math.up() * lowerLen;
+                }
+            }
+
+            // Compute rotations
+            quaternion rootRot = quaternion.LookRotationSafe(math.normalize(midPos - rootPos), math.up());
+            quaternion midRot = quaternion.LookRotationSafe(math.normalize(tipPos - midPos), math.up());
+            quaternion tipRot = quaternion.LookRotationSafe(math.normalize(tipPos - midPos), math.up());
+
+            OutRootRot = rootRot;
+            OutMidRot = midRot;
+            OutTipRot = tipRot;
         }
 
         struct TransformProxy
