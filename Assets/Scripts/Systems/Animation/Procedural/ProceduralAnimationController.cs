@@ -143,7 +143,7 @@ namespace ProjectName.Systems.Animation.Procedural
         float _actionTimer;
         Vector3 _actionTarget;
 
-        public enum ActionState { None, Attack, Gather, Roll, Climb, Stagger }
+        public enum ActionState { None, Attack, Gather, Roll, Climb, Stagger, Mount }
 
         // ──────────────────────────────────────────────
         // 공개 속성 (StateMachine 등에서 사용)
@@ -175,6 +175,8 @@ namespace ProjectName.Systems.Animation.Procedural
                 case "climb": RequestClimb(); break;
                 case "stagger": RequestStagger(); break;
                 case "death": RequestDeath(); break;
+                case "mount": RequestMount(); break;
+                case "dismount": RequestDismount(); break;
             }
         }
 
@@ -236,6 +238,17 @@ namespace ProjectName.Systems.Animation.Procedural
             _actionState = ActionState.Stagger; // 사망도 경직 애니메이션 재사용
             _actionTimer = 0f;
             Destroy(gameObject, 5f); // 5초 후 파괴
+        }
+
+        public void RequestMount()
+        {
+            _actionState = ActionState.Mount;
+            _actionTimer = 0f;
+        }
+        public void RequestDismount()
+        {
+            _actionState = ActionState.None;
+            _actionTimer = 0f;
         }
 
         // ──────────────────────────────────────────────
@@ -391,7 +404,7 @@ namespace ProjectName.Systems.Animation.Procedural
 
         void HandleInput()
         {
-            if (_actionState != ActionState.None) return;
+            if (_actionState != ActionState.None && _actionState != ActionState.Mount) return;
 
             // 외부 속도 공급자가 있으면 자체 입력 대신 외부 속도 사용
             if (_velocityProvider != null)
@@ -494,6 +507,10 @@ namespace ProjectName.Systems.Animation.Procedural
 
             switch (state)
             {
+                case ProceduralAnimStateMachine.State.Locomotion:
+                    if (_actionState == ActionState.Mount)
+                        UpdateActionMount();
+                    break;
                 case ProceduralAnimStateMachine.State.Jump:
                     if (_actionState != ActionState.None) break;
                     _actionState = ActionState.None;
@@ -580,6 +597,26 @@ namespace ProjectName.Systems.Animation.Procedural
 
         void UpdateActionClimb()
         {
+            _actionTimer += Time.deltaTime;
+        }
+
+        void UpdateActionMount()
+        {
+            // 탑승 자세: 무릎 구부리기 (사인파로 부드럽게 전환)
+            float progress = math.clamp(_actionTimer / 0.3f, 0f, 1f);
+            float sitAmount = math.sin(progress * math.PI * 0.5f) * 45f; // 0→45도
+            
+            var lKnee = _boneMap.Get(BoneRole.L_Knee);
+            var rKnee = _boneMap.Get(BoneRole.R_Knee);
+            var lElbow = _boneMap.Get(BoneRole.L_Elbow);
+            var rElbow = _boneMap.Get(BoneRole.R_Elbow);
+            
+            if (lKnee != null) lKnee.localRotation *= Quaternion.Euler(sitAmount, 0, 0);
+            if (rKnee != null) rKnee.localRotation *= Quaternion.Euler(sitAmount, 0, 0);
+            // 팔은 앞으로 (고삐 잡는 자세)
+            if (lElbow != null) lElbow.localRotation *= Quaternion.Euler(0, 0, 30f);
+            if (rElbow != null) rElbow.localRotation *= Quaternion.Euler(0, 0, -30f);
+            
             _actionTimer += Time.deltaTime;
         }
 

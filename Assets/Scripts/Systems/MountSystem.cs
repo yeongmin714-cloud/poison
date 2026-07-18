@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Core;
+using ProjectName.Systems.Animation.Procedural;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -429,6 +430,10 @@ namespace ProjectName.Systems
             {
                 playerTransform.position = horse.transform.position + Vector3.up * 1.5f;
                 playerTransform.SetParent(horse.transform);
+
+                // 플레이어 ProceduralAnimationController에 탑승 자세 알림
+                var playerProceduralAnim = playerTransform.GetComponentInChildren<ProceduralAnimationController>();
+                playerProceduralAnim?.TriggerAction("mount");
             }
 
             // 플레이어 애니메이션
@@ -479,10 +484,18 @@ namespace ProjectName.Systems
                 dismountPos.y = _currentHorse.transform.position.y;
                 playerTransform.position = dismountPos;
                 playerTransform.SetParent(null);
+
+                // 플레이어 ProceduralAnimationController에 하차 알림
+                var playerProceduralAnim = playerTransform.GetComponentInChildren<ProceduralAnimationController>();
+                playerProceduralAnim?.TriggerAction("dismount");
             }
             else if (playerTransform != null)
             {
                 playerTransform.SetParent(null);
+
+                // 플레이어 ProceduralAnimationController에 하차 알림
+                var playerProceduralAnim = playerTransform.GetComponentInChildren<ProceduralAnimationController>();
+                playerProceduralAnim?.TriggerAction("dismount");
             }
 
             // 말 애니메이션
@@ -534,10 +547,18 @@ namespace ProjectName.Systems
                 dismountPos.y = _currentHorse.transform.position.y;
                 playerTransform.position = dismountPos;
                 playerTransform.SetParent(null);
+
+                // 플레이어 ProceduralAnimationController에 하차 알림
+                var playerProceduralAnim = playerTransform.GetComponentInChildren<ProceduralAnimationController>();
+                playerProceduralAnim?.TriggerAction("dismount");
             }
             else if (playerTransform != null)
             {
                 playerTransform.SetParent(null);
+
+                // 플레이어 ProceduralAnimationController에 하차 알림
+                var playerProceduralAnim = playerTransform.GetComponentInChildren<ProceduralAnimationController>();
+                playerProceduralAnim?.TriggerAction("dismount");
             }
 
             if (_rigAnim != null)
