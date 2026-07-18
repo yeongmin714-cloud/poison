@@ -137,7 +137,20 @@ namespace ProjectName.Systems
                     var pac = model.AddComponent<ProceduralAnimationController>();
                     pac.SetBoneMap(boneMap);
                     // 부모(이동 주체)에서 속도 읽기 위해 설정
-                    pac.SetVelocityProvider(model.transform.parent?.GetComponent<PlayerMovement>());
+                    var parent = model.transform.parent;
+                    var playerMovement = parent?.GetComponent<PlayerMovement>();
+                    if (playerMovement != null)
+                    {
+                        pac.SetVelocityProvider(playerMovement);
+                    }
+                    else if (parent != null)
+                    {
+                        // PlayerMovement 없으면 ParentVelocityProvider로 부모 위치 델타 계산
+                        var pvp = model.GetComponent<ParentVelocityProvider>();
+                        if (pvp == null)
+                            pvp = model.AddComponent<ParentVelocityProvider>();
+                        pac.SetVelocityProvider(pvp);
+                    }
                 }
             }
         }
