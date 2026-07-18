@@ -4,6 +4,7 @@ using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Systems.Animation.Procedural;
 using ProjectName.Systems.Animation.Procedural.Bones;
+using ProjectName.Systems.Animation.Procedural.IK;
 using UnityEngine.InputSystem;
 #pragma warning disable 0414
 
@@ -473,7 +474,7 @@ namespace ProjectName.Systems
 
                     // 화면 흔들림
                     if (Camera.main != null)
-                        CameraShake.Instance?.Shake(_screenShakeIntensity);
+                        CameraShake.Instance?.Shake(_screenShakeIntensity, _screenShakeDuration);
                 }
             }
         }

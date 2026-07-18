@@ -108,8 +108,8 @@ namespace ProjectName.Systems
             }
             else
             {
-                if (model.GetComponent<ProceduralPoseController>() == null)
-                    model.AddComponent<ProceduralPoseController>();
+                if (model.GetComponent<ProceduralAnimationController>() == null)
+                    model.AddComponent<ProceduralAnimationController>();
             }
         }
 
