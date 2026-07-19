@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Localization;
 
 public class MapUI : MonoBehaviour
 {

@@ -1,6 +1,5 @@
 using UnityEngine;
 using TMPro;
-using UnityEngine.Localization;
 
 public class ChatUI : MonoBehaviour
 {
