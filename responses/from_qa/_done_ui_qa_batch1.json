@@ -1,0 +1,54 @@
+{
+  "task_id": "ui-qa-batch1",
+  "status": "completed",
+  "report": {
+    "summary": "UI Core 스크립트에 대한 QA를 완료했습니다. 주요 발견 사항은 다음과 같습니다: 1) PlayerController.cs 파일이 존재하지 않아 테스트 컴파일이 실패합니다. 2) UIManager.cs는 stub 수준으로 완전한 시스템이 아닙니다. 3) PlayerMovement.cs는 OnGUI()를 사용하여 스태미나 바를 렌더링하고 있어 UGUI와의 통합이 제한됩니다.",
+    "findings": [
+      {
+        "severity": "CRITICAL",
+        "category": "Missing File",
+        "description": "PlayerController.cs 파일이 존재하지 않아 테스트 컴파일 실패",
+        "files": [
+          "Assets/Scripts/Systems/PlayerController.cs"
+        ],
+        "impact": "Tests/EditMode/PlayerControllerEditModeTest.cs와 Tests/PlayMode/PlayerMovementTest.cs가 컴파일 실패"
+      },
+      {
+        "severity": "WARNING",
+        "category": "Incomplete Implementation",
+        "description": "UIManager.cs가 Stub 수준으로 완전한 시스템이 아님",
+        "files": [
+          "Assets/Scripts/UI/Core/UIManager.cs"
+        ],
+        "impact": "7개 이상의 UI 스크립트가 UIManager의 OpenWindow() 메서드를 호출하지만 현재 구현되어 있지 않음"
+      },
+      {
+        "severity": "WARNING",
+        "category": "Legacy Implementation",
+        "description": "PlayerMovement.cs가 OnGUI()를 사용하여 스태미나 바를 렌더링",
+        "files": [
+          "Assets/Scripts/Systems/PlayerMovement.cs"
+        ],
+        "impact": "UI와의 통합 제한 및 SRP 위반"
+      }
+    ],
+    "recommendations": [
+      {
+        "priority": "HIGH",
+        "action": "PlayerController.cs 파일 생성",
+        "description": "PlayerMovement.cs에서 기대하는 인터페이스를 구현하는 PlayerController.cs 생성"
+      },
+      {
+        "priority": "MEDIUM",
+        "action": "UIManager.cs 확장",
+        "description": "OpenWindow(), CloseWindow(), HUD 관련 메서드 추가 및 SignalManager 활용"
+      },
+      {
+        "priority": "MEDIUM",
+        "action": "PlayerMovement.cs 리팩토링",
+        "description": "OnGUI() 방식에서 UGUI Canvas 기반으로 변경"
+      }
+    ]
+  },
+  "timestamp": "2026-07-19T10:00:00Z"
+}
