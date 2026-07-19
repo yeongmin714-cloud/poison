@@ -133,6 +133,21 @@ namespace ProjectName.Systems.Animation.Procedural.IK
     /// </summary>
     public struct SolveResult
     {
+        public Quaternion RootRot;
+        public Quaternion MidRot;
+        public Quaternion TipRot;
+        public bool Success;
+    }
+
+    /// <summary>
+    /// Blittable IK solve result for batch/parallel usage with job-compatible types.
+    /// Includes computed positions and rotations for all three bones.
+    /// </summary>
+    public struct SolverResult
+    {
+        public float3 RootPos;
+        public float3 MidPos;
+        public float3 TipPos;
         public quaternion RootRot;
         public quaternion MidRot;
         public quaternion TipRot;
@@ -266,6 +281,117 @@ namespace ProjectName.Systems.Animation.Procedural.IK
                 Iterations = iterations
             };
             return job.Schedule(count, 32, dependency);
+        }
+
+        /// <summary>
+        /// Solve IK for multiple chains in parallel via the Job System (Burst-compiled).
+        /// Extracts Transform data from each Chain on the main thread, schedules a
+        /// LimbIKJob across all chains, and writes results into the SolverResult array.
+        /// All input arrays must have the same length.
+        /// </summary>
+        /// <param name="chains">Chains with pre-computed UpperLength/LowerLength (call ComputeLengths first).</param>
+        /// <param name="targets">Target positions for each chain.</param>
+        /// <param name="hints">Hint/direction vectors for each chain.</param>
+        /// <param name="results">Output array of solver results (positions + rotations + success).</param>
+        /// <param name="iterations">FABRIK iterations per chain (default: 2).</param>
+        /// <param name="allocator">Allocator for temporary NativeArrays (default: TempJob).</param>
+        public static void BatchSolve(
+            NativeArray<Chain> chains,
+            NativeArray<Vector3> targets,
+            NativeArray<Vector3> hints,
+            NativeArray<SolverResult> results,
+            int iterations = 2,
+            Allocator allocator = Allocator.TempJob)
+        {
+            int count = chains.Length;
+            int batchSize = math.max(1, count / SystemInfo.processorCount);
+
+            var rootPositions = new NativeArray<float3>(count, allocator, NativeArrayOptions.UninitializedMemory);
+            var midPositions = new NativeArray<float3>(count, allocator, NativeArrayOptions.UninitializedMemory);
+            var tipPositions = new NativeArray<float3>(count, allocator, NativeArrayOptions.UninitializedMemory);
+            var targetPositions = new NativeArray<float3>(count, allocator, NativeArrayOptions.UninitializedMemory);
+            var hintPositions = new NativeArray<float3>(count, allocator, NativeArrayOptions.UninitializedMemory);
+            var upperLengths = new NativeArray<float>(count, allocator, NativeArrayOptions.UninitializedMemory);
+            var lowerLengths = new NativeArray<float>(count, allocator, NativeArrayOptions.UninitializedMemory);
+
+            var outRootPositions = new NativeArray<float3>(count, allocator, NativeArrayOptions.UninitializedMemory);
+            var outMidPositions = new NativeArray<float3>(count, allocator, NativeArrayOptions.UninitializedMemory);
+            var outTipPositions = new NativeArray<float3>(count, allocator, NativeArrayOptions.UninitializedMemory);
+            var outRootRotations = new NativeArray<quaternion>(count, allocator, NativeArrayOptions.UninitializedMemory);
+            var outMidRotations = new NativeArray<quaternion>(count, allocator, NativeArrayOptions.UninitializedMemory);
+            var outTipRotations = new NativeArray<quaternion>(count, allocator, NativeArrayOptions.UninitializedMemory);
+            var outSuccess = new NativeArray<bool>(count, allocator, NativeArrayOptions.UninitializedMemory);
+
+            try
+            {
+                // --- Main thread: extract Transform data into NativeArrays ---
+                for (int i = 0; i < count; i++)
+                {
+                    var chain = chains[i];
+                    rootPositions[i] = chain.Root.position;
+                    midPositions[i] = chain.Mid.position;
+                    tipPositions[i] = chain.Tip.position;
+                    targetPositions[i] = targets[i];
+                    hintPositions[i] = hints[i];
+                    upperLengths[i] = chain.UpperLength;
+                    lowerLengths[i] = chain.LowerLength;
+                }
+
+                // --- Schedule and complete the Burst-compiled parallel job ---
+                var job = new LimbIKJob
+                {
+                    RootPositions = rootPositions,
+                    MidPositions = midPositions,
+                    TipPositions = tipPositions,
+                    TargetPositions = targetPositions,
+                    HintPositions = hintPositions,
+                    UpperLengths = upperLengths,
+                    LowerLengths = lowerLengths,
+                    OutRootPositions = outRootPositions,
+                    OutMidPositions = outMidPositions,
+                    OutTipPositions = outTipPositions,
+                    OutRootRotations = outRootRotations,
+                    OutMidRotations = outMidRotations,
+                    OutTipRotations = outTipRotations,
+                    OutSuccess = outSuccess,
+                    Iterations = iterations
+                };
+
+                job.Schedule(count, batchSize, default).Complete();
+
+                // --- Write results back to the output array ---
+                for (int i = 0; i < count; i++)
+                {
+                    results[i] = new SolverResult
+                    {
+                        RootPos = outRootPositions[i],
+                        MidPos = outMidPositions[i],
+                        TipPos = outTipPositions[i],
+                        RootRot = outRootRotations[i],
+                        MidRot = outMidRotations[i],
+                        TipRot = outTipRotations[i],
+                        Success = outSuccess[i]
+                    };
+                }
+            }
+            finally
+            {
+                // --- Guaranteed cleanup of all temporary allocations ---
+                rootPositions.Dispose();
+                midPositions.Dispose();
+                tipPositions.Dispose();
+                targetPositions.Dispose();
+                hintPositions.Dispose();
+                upperLengths.Dispose();
+                lowerLengths.Dispose();
+                outRootPositions.Dispose();
+                outMidPositions.Dispose();
+                outTipPositions.Dispose();
+                outRootRotations.Dispose();
+                outMidRotations.Dispose();
+                outTipRotations.Dispose();
+                outSuccess.Dispose();
+            }
         }
     }
 
