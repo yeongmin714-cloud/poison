@@ -19,7 +19,7 @@
 - [x] `LimbIKSolver.cs` — 2본/3본 FABRIK+CCD 하이브리드 IK 솔버 (Burst 호환)
 - [x] `ProceduralAnimStateMachine.cs` — 상태 머신 (Locomotion/Jump/Attack/Gather/Roll/Climb/Stagger/Death)
 
-### 1.2 Animation Rigging 완전 활용
+### 1.2 Animation Rigging 완전 활용 ⏸️ **보류 (커스텀 구현으로 대체)**
 - [ ] `MultiAimConstraint` — 시선/상체 방향 제어 (향후 확장)
 - [ ] `MultiPositionConstraint` — 손/발 타겟 위치 제어
 - [ ] `DampedTransform` — 부드러운 추적 (스프링-댐퍼)
@@ -89,40 +89,41 @@ Phase 0.5 ~ 1.0: 왼쪽 다리 스윙, 오른쪽 다리 스탠스
 
 ---
 
-## 🐺 5단계: 4족/몬스터 지원 (Week 3) 🔄 **진행 중 (완료 80%)**
+## 🐺 5단계: 4족/몬스터 지원 (Week 3) ✅ **완료**
 
 ### 5.1 4족 보행 (Quadruped) ✅
 - [x] `GaitSelector` — Walk(대각) → Trot(대각) → Pace(동측) → Gallop(비대칭)
 - [x] `SpineWave` — 척추 파동 운동 (S자 곡선)
 - [x] `LegPhaseOffset` — 전후좌우 다리 위상 오프셋
 
-### 5.2 몬스터 전용 🔄
+### 5.2 몬스터 전용 ✅ **완료**
 - [x] `QuadrupedProceduralLocomotion` — 걸음걸이 자동 선택 (Walk/Trot/Pace/Gallop)
 - [x] `QuadrupedProceduralAnimation` — 4다리 IK + 척추 파동 + 목 안정화
 - [x] 점프/공격/피격 액션 오버라이드
-- [ ] 대형 몬스터: 중심 낮게, 보폭 크게
-- [ ] 비행/수영: 별도 모듈 (나중)
+- [x] **대형 몬스터: 중심 낮게, 보폭 크게** — `QuadrupedLargeMonster` 모듈 구현 완료 (Stomp 모드, 무게중심 하강, 착지 충격파)
+- [x] **비행: 별도 모듈** — `QuadrupedFlying` 구현 완료 (Glide/Flap/Hover, 3본 날개 IK, 양력/항력 물리, 기류: 상승기류/돌풍)
+- [x] **수영: 별도 모듈** — `QuadrupedSwimming` 구현 완료 (부력, 진행파 척추, 지느러미 IK, 항력 추진, 유체역학: 추가질량/회전항력)
 
 ---
 
-## 🔧 6단계: 통합 & 폴리싱 (Week 3-4) 🔄 **진행 중 (완료 70%)**
+## 🔧 6단계: 통합 & 폴리싱 (Week 3-4) ✅ **완료**
 
 ### 6.1 상태 머신 (Procedural State Machine) ✅
 ```
 Locomotion(Walk/Run/Idle) ↔ Jump ↔ Airborne ↔ Landing
-                        ↘ Attack/Gather/Roll (상체 오버라이드)
+                       ↘ Attack/Gather/Roll (상체 오버라이드)
 ```
 - [x] 전이 조건/블렌드 시간 정의
 - [x] 상체/하체 레이어 분리 (애니메이션 레이어링)
 
-### 6.2 디버그/튠 툴 🔄
-- [ ] `ProceduralAnimDebugger` — Scene 뷰: 위상, IK 타겟, 위상 다이어그램
-- [ ] 런타임 파라미터 트윈 (ScriptableObject)
+### 6.2 디버그/튠 툴 ✅ **완료**
+- [x] `ProceduralAnimDebugger` — Scene 뷰: 7가지 기즈모 (위상 원, IK 타겟/힌트, 발 배치 아크, 척추 웨이브, 걸음걸이 다이어그램, 속도 화살표, 지면 접촉)
+- [x] 런타임 파라미터 트윈 (IMGUI 윈도우, 10개 파라미터 실시간 조절, 전체 컨트롤러 일괄 적용/리셋)
 
-### 6.3 성능 최적화 🔄
-- [ ] Job System + Burst Compiler (IK 솔버 병렬화)
-- [ ] 레이캐스트 배치 처리
-- [ ] LOD: 거리 멀면 간소화
+### 6.3 성능 최적화 ✅ **완료**
+- [x] Job System + Burst Compiler (IK 솔버 병렬화 — `IJobParallelFor` 배치 처리)
+- [x] 레이캐스트 배치 처리 (LOD 기반 스킵/감소)
+- [x] LOD: 거리 멀면 간소화 (`ProceduralLODManager` — 4단계: Full → No Spine Counter → Foot IK Only → Simple Sine)
 
 ---
 
@@ -131,7 +132,7 @@ Locomotion(Walk/Run/Idle) ↔ Jump ↔ Airborne ↔ Landing
 | 단계 | 상태 | 비고 |
 |------|------|------|
 | 1.1 공통 데이터 | ✅ **완료** | `ProceduralBoneUtility`, `LimbIKSolver` 신규 생성 |
-| 1.2 Rigging 설정 | ⏸️ **보류** | 기존 `ProceduralPoseController` 완전 교체로 대체 |
+| 1.2 Rigging 설정 | ⏸️ **보류** | 기존 `ProceduralPoseController` 완전 교체로 대체 (커스텀 IK로 충분) |
 | 2.1 이족 보행 | ✅ **완료** | 핵심 — `ProceduralAnimationController` 구현 완료 |
 | 2.2 속도 전이 | ✅ **완료** | |
 | 2.3 지형 적응 | ✅ **완료** | |
@@ -141,10 +142,10 @@ Locomotion(Walk/Run/Idle) ↔ Jump ↔ Airborne ↔ Landing
 | 4.2 채집 | ✅ **완료** | |
 | 4.3 구르기 | ✅ **완료** | |
 | 5.1 4족 | ✅ **완료** | `QuadrupedProceduralLocomotion`, `QuadrupedProceduralAnimation` 구현 완료 |
-| 5.2 몬스터 | 🔄 **80%** | 대형/비행/수영은 추후 |
+| 5.2 몬스터 | ✅ **완료** | 대형/비행/수영 모듈 추가 완료 |
 | 6.1 상태 머신 | ✅ **완료** | `ProceduralAnimStateMachine` 구현 완료 |
-| 6.2 디버그 툴 | 🔄 **50%** | `ProceduralAnimDebugger` Scene 뷰 구현 필요 |
-| 6.3 성능 최적화 | 🔄 **20%** | Job System + Burst 추후 적용 |
+| 6.2 디버그 툴 | ✅ **완료** | `ProceduralAnimDebugger` Scene 뷰 7가지 기즈모 + IMGUI 파라미터 창 |
+| 6.3 성능 최적화 | ✅ **완료** | Job System + Burst 병렬화, 4단계 LOD 시스템 |
 
 ---
 
@@ -159,10 +160,12 @@ Locomotion(Walk/Run/Idle) ↔ Jump ↔ Airborne ↔ Landing
 
 ## ✅ 다음 액션 (즉시 시작 가능)
 
-1. **`ProceduralAnimDebugger.cs`** — Scene 뷰: 위상, IK 타겟, 위상 다이어그램
-2. **Job System + Burst** — `LimbIKSolver` 병렬화 (100+ 캐릭터 60fps 목표)
-3. **대형 몬스터/비행/수영** — 별도 모듈 확장
-4. **LOD 시스템** — 거리 멀면 간소화
+- ✅ **`ProceduralAnimDebugger.cs`** — Scene 뷰: 위상, IK 타겟, 위상 다이어그램 (완료)
+- ✅ **Job System + Burst** — `LimbIKSolver` 병렬화 (100+ 캐릭터 60fps 목표) (완료)
+- ✅ **대형 몬스터/비행/수영** — 별도 모듈 확장 (완료)
+- ✅ **LOD 시스템** — 거리 멀면 간소화 (완료)
+
+**모든 로드맵 항목 완료.** 다음 단계는 게임플레이 시스템(전투, 퀘스트, 월드맵) 연동입니다.
 
 ---
 

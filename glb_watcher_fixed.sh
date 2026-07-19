@@ -6591,8 +6591,7 @@ main() {
         # Get basename without extension
         filename=$(basename "$glb_path")
         basename="${filename%.glb}"
-        basename_lower=$(echo "$basename" | tr '[:upper:]' '[:lower:]')
-        
+        basename_lower=$(echo "$basename" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
         log "Processing $filename (basename: $basename)"
         
         # Skip if not allowed
@@ -6622,6 +6621,7 @@ main() {
         fi
         
         # If we get here, compile test passed (no error CS and no Unity conflicts)
+        unity_cleanup || true
         log "  -> Compile test passed (no error CS)."
         
         # Step 6: Run the swap

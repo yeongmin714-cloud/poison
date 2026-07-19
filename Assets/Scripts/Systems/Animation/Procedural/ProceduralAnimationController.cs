@@ -138,6 +138,7 @@ namespace ProjectName.Systems.Animation.Procedural
         Vector3 _bodyLeanOffset;
         Quaternion _bodyLeanRotation = Quaternion.identity;
         Vector3 _headLookTarget;
+        float _turnInput;
 
         ActionState _actionState = ActionState.None;
         float _actionTimer;
@@ -156,6 +157,71 @@ namespace ProjectName.Systems.Animation.Procedural
         public float JumpHeight => jumpHeight;
         public float JumpGravity => gravity;
         public Vector3 CurrentActionTarget => _actionTarget;
+
+        // ──────────────────────────────────────────────
+        // LOD Settings (set by ProceduralLODManager)
+        // ──────────────────────────────────────────────
+
+        int _currentLODLevel = 0;
+        bool _lodRaycastEnabled = true;
+        int _lodIKIterations = 2;
+        bool _lodSpineWaveEnabled = true;
+        bool _lodSpineCounterEnabled = true;
+        bool _lodHipShiftEnabled = true;
+        float _lodPhaseUpdateRate = 1f;
+
+        /// <summary>
+        /// Current LOD level assigned by ProceduralLODManager.
+        /// 0=full, 1=medium, 2=low, 3=culled.
+        /// </summary>
+        public int CurrentLODLevel
+        {
+            get => _currentLODLevel;
+            set
+            {
+                _currentLODLevel = value;
+                ApplyLODSettings(value);
+            }
+        }
+
+        void ApplyLODSettings(int lod)
+        {
+            switch (lod)
+            {
+                case 0: // Full
+                    _lodRaycastEnabled = true;
+                    _lodIKIterations = 2;
+                    _lodSpineWaveEnabled = true;
+                    _lodSpineCounterEnabled = true;
+                    _lodHipShiftEnabled = true;
+                    _lodPhaseUpdateRate = 1f;
+                    break;
+                case 1: // Medium
+                    _lodRaycastEnabled = true;
+                    _lodIKIterations = 1;
+                    _lodSpineWaveEnabled = true;
+                    _lodSpineCounterEnabled = false;
+                    _lodHipShiftEnabled = true;
+                    _lodPhaseUpdateRate = 0.5f;
+                    break;
+                case 2: // Low
+                    _lodRaycastEnabled = false; // no raycasts, use fallback
+                    _lodIKIterations = 1;
+                    _lodSpineWaveEnabled = false;
+                    _lodSpineCounterEnabled = false;
+                    _lodHipShiftEnabled = false;
+                    _lodPhaseUpdateRate = 0.25f;
+                    break;
+                default: // Culled (3+)
+                    _lodRaycastEnabled = false;
+                    _lodIKIterations = 0;
+                    _lodSpineWaveEnabled = false;
+                    _lodSpineCounterEnabled = false;
+                    _lodHipShiftEnabled = false;
+                    _lodPhaseUpdateRate = 0f;
+                    break;
+            }
+        }
 
         public float GetJumpGravity() => gravity;
         public float GetJumpHeight() => jumpHeight;
@@ -328,6 +394,14 @@ namespace ProjectName.Systems.Animation.Procedural
             _locomotionJobHandle.Complete();
             _ikJobHandle.Complete();
 
+            // Dispose IK result arrays
+            foreach (var arr in _leftIKResults)
+                if (arr.IsCreated) arr.Dispose();
+            _leftIKResults.Clear();
+            foreach (var arr in _rightIKResults)
+                if (arr.IsCreated) arr.Dispose();
+            _rightIKResults.Clear();
+
             _leftFootPos.Dispose();
             _rightFootPos.Dispose();
             _leftHandPos.Dispose();
@@ -469,19 +543,18 @@ namespace ProjectName.Systems.Animation.Procedural
             _currentVelocity = Vector3.MoveTowards(_currentVelocity, _targetVelocity, acceleration * Time.deltaTime);
             _currentSpeed = _currentVelocity.magnitude;
 
-            float turnInput;
             if (_velocityProvider != null)
             {
                 // 속도 방향 전환율로 lean 계산
                 Vector3 horizontalVel = new Vector3(_currentVelocity.x, 0, _currentVelocity.z);
                 float angularSpeed = Vector3.SignedAngle(transform.forward, horizontalVel.normalized, Vector3.up) * Time.deltaTime;
-                turnInput = Mathf.Clamp(angularSpeed * 0.1f, -1f, 1f);
+                _turnInput = Mathf.Clamp(angularSpeed * 0.1f, -1f, 1f);
             }
             else
             {
-                turnInput = Input.GetKey(KeyCode.A) ? -1f : (Input.GetKey(KeyCode.D) ? 1f : 0f);
+                _turnInput = Input.GetKey(KeyCode.A) ? -1f : (Input.GetKey(KeyCode.D) ? 1f : 0f);
             }
-            float targetLean = turnInput * bodyLeanAmount * 15f;
+            float targetLean = _turnInput * bodyLeanAmount * 15f;
             _bodyLeanOffset = Vector3.Lerp(_bodyLeanOffset, new Vector3(targetLean, 0, 0), Time.deltaTime * 5f);
             _bodyLeanRotation = Quaternion.Lerp(_bodyLeanRotation, Quaternion.Euler(_bodyLeanOffset), Time.deltaTime * 5f);
         }
@@ -668,6 +741,14 @@ namespace ProjectName.Systems.Animation.Procedural
         {
             if (!IsGrounded) return;
 
+            // LOD phase update rate: LOD3=culled→skip; LOD2=every 4th frame; LOD1=every other frame
+            if (_lodPhaseUpdateRate < 1f && Time.frameCount % (int)(1f / math.max(_lodPhaseUpdateRate, 0.01f)) != 0)
+            {
+                _leftLegPhaseArr[0] = _leftLegPhase;
+                _rightLegPhaseArr[0] = _rightLegPhase;
+                return;
+            }
+
             float speedRatio = _currentSpeed / runSpeed;
             _phaseSpeedArr[0] = math.lerp(0.5f, 2.5f, speedRatio);
 
@@ -688,84 +769,84 @@ namespace ProjectName.Systems.Animation.Procedural
             _headLookTargetArr[0] = _headLookTarget;
         }
 
-        void ScheduleLocomotionJobs(int lod = 0)
+        void ScheduleLocomotionJobs()
         {
             JobHandle dependency = default;
 
-            bool computeHipShift = lod <= 1;
-            bool computeSpineCounter = lod <= 1;
-            bool computeFootIK = lod <= 2;
-            int ikIterations = lod == 0 ? 2 : 1;
+            bool computeHipShift = _lodHipShiftEnabled;
+            bool computeSpineCounter = _lodSpineCounterEnabled;
+            int ikIterations = _lodIKIterations;
 
-            // Foot Planner
+            // --- Foot Planner (IJobParallelFor, size 1) ---
             var footPlanner = new FootPlannerJob
             {
-                BodyPosition = transform.position,
-                BodyRotation = transform.rotation,
-                BodyVelocity = _currentVelocity,
-                BodyAngularVelocity = _rigidbody.angularVelocity,
-                DeltaTime = Time.deltaTime,
-                StepLength = 0.6f,
-                StepWidth = 0.15f,
-                MaxStepHeight = 0.25f,
-                GroundCheckDistance = groundCheckDistance,
-                LeftFootCurrent = _leftFootTarget[0],
-                RightFootCurrent = _rightFootTarget[0],
-                LeftFootGrounded = _leftFootGrounded,
-                RightFootGrounded = _rightFootGrounded,
-                LeftPhase = _leftLegPhase,
-                RightPhase = _rightLegPhase,
-                DutyCycle = _dutyCycle,
-                Speed = _currentSpeed,
+                BodyPositions = new NativeArray<float3>(1, Allocator.TempJob) { [0] = transform.position },
+                BodyRotations = new NativeArray<quaternion>(1, Allocator.TempJob) { [0] = transform.rotation },
+                BodyVelocities = new NativeArray<float3>(1, Allocator.TempJob) { [0] = _currentVelocity },
+                BodyAngularVelocities = new NativeArray<float3>(1, Allocator.TempJob) { [0] = _rigidbody.angularVelocity },
+                DeltaTimes = new NativeArray<float>(1, Allocator.TempJob) { [0] = Time.deltaTime },
+                StepLengths = new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.6f },
+                StepWidths = new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.15f },
+                MaxStepHeights = new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.25f },
+                GroundCheckDistances = new NativeArray<float>(1, Allocator.TempJob) { [0] = groundCheckDistance },
+                LeftFootCurrents = new NativeArray<float3>(1, Allocator.TempJob) { [0] = _leftFootTarget[0] },
+                RightFootCurrents = new NativeArray<float3>(1, Allocator.TempJob) { [0] = _rightFootTarget[0] },
+                LeftFootGroundedFlags = new NativeArray<bool>(1, Allocator.TempJob) { [0] = _leftFootGrounded },
+                RightFootGroundedFlags = new NativeArray<bool>(1, Allocator.TempJob) { [0] = _rightFootGrounded },
+                LeftPhases = new NativeArray<float>(1, Allocator.TempJob) { [0] = _leftLegPhase },
+                RightPhases = new NativeArray<float>(1, Allocator.TempJob) { [0] = _rightLegPhase },
+                DutyCycles = new NativeArray<float>(1, Allocator.TempJob) { [0] = _dutyCycle },
+                Speeds = new NativeArray<float>(1, Allocator.TempJob) { [0] = _currentSpeed },
 
-                OutLeftTarget = _leftFootTarget,
-                OutRightTarget = _rightFootTarget,
-                OutLeftHint = _leftFootHint,
-                OutRightHint = _rightFootHint,
-                OutLeftGroundPos = _leftFootPos,
-                OutRightGroundPos = _rightFootPos,
-                OutLeftCanStep = new NativeArray<bool>(1, Allocator.TempJob),
-                OutRightCanStep = new NativeArray<bool>(1, Allocator.TempJob),
+                OutLeftTargets = _leftFootTarget,
+                OutRightTargets = _rightFootTarget,
+                OutLeftHints = _leftFootHint,
+                OutRightHints = _rightFootHint,
+                OutLeftGroundPositions = _leftFootPos,
+                OutRightGroundPositions = _rightFootPos,
+                OutLeftCanStepFlags = new NativeArray<bool>(1, Allocator.TempJob),
+                OutRightCanStepFlags = new NativeArray<bool>(1, Allocator.TempJob),
             };
-            dependency = footPlanner.Schedule(dependency);
+            dependency = footPlanner.Schedule(1, 1, dependency);
 
-            // Hip Shift
+            // --- Hip Shift ---
             if (computeHipShift)
             {
                 var hipShift = new HipShiftJob
                 {
-                    LeftPhase = _leftLegPhase,
-                    RightPhase = _rightLegPhase,
-                    DutyCycle = _dutyCycle,
-                    LeftWeight = _leftFootGrounded ? 1f : 0f,
-                    RightWeight = _rightFootGrounded ? 1f : 0f,
-                    MaxLateralShift = 0.1f,
-                    MaxVerticalShift = 0.05f,
-                    Speed = _currentSpeed,
-                    TurnAmount = turnInput,
+                    LeftPhases = new NativeArray<float>(1, Allocator.TempJob) { [0] = _leftLegPhase },
+                    RightPhases = new NativeArray<float>(1, Allocator.TempJob) { [0] = _rightLegPhase },
+                    DutyCycles = new NativeArray<float>(1, Allocator.TempJob) { [0] = _dutyCycle },
+                    LeftWeights = new NativeArray<float>(1, Allocator.TempJob) { [0] = _leftFootGrounded ? 1f : 0f },
+                    RightWeights = new NativeArray<float>(1, Allocator.TempJob) { [0] = _rightFootGrounded ? 1f : 0f },
+                    MaxLateralShifts = new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.1f },
+                    MaxVerticalShifts = new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.05f },
+                    Speeds = new NativeArray<float>(1, Allocator.TempJob) { [0] = _currentSpeed },
+                    TurnAmounts = new NativeArray<float>(1, Allocator.TempJob) { [0] = turnInput },
 
-                    OutHipOffset = _hipOffset,
-                    OutHipHeightOffset = _hipHeightOffset,
+                    OutHipOffsets = _hipOffset,
+                    OutHipHeightOffsets = _hipHeightOffset,
+                    OutHipRotations = new NativeArray<quaternion>(1, Allocator.TempJob),
                 };
-                dependency = hipShift.Schedule(dependency);
+                dependency = hipShift.Schedule(1, 1, dependency);
             }
 
-            // Spine Counter-Rotation
+            // --- Spine Counter-Rotation ---
             if (computeSpineCounter)
             {
                 var spineCounter = new SpineCounterRotationJob
                 {
-                    LeftPhase = _leftLegPhase,
-                    RightPhase = _rightLegPhase,
-                    DutyCycle = _dutyCycle,
-                    MaxCounterRotation = 8f,
-                    BodyVelocity = _currentVelocity,
-                    BodyRotation = transform.rotation,
-                    SpineSegmentCount = 3,
-
+                    LeftPhases = new NativeArray<float>(1, Allocator.TempJob) { [0] = _leftLegPhase },
+                    RightPhases = new NativeArray<float>(1, Allocator.TempJob) { [0] = _rightLegPhase },
+                    DutyCycles = new NativeArray<float>(1, Allocator.TempJob) { [0] = _dutyCycle },
+                    MaxCounterRotations = new NativeArray<float>(1, Allocator.TempJob) { [0] = 8f },
+                    BodyVelocities = new NativeArray<float3>(1, Allocator.TempJob) { [0] = _currentVelocity },
+                    BodyRotations = new NativeArray<quaternion>(1, Allocator.TempJob) { [0] = transform.rotation },
+                    SpineSegmentCounts = new NativeArray<int>(1, Allocator.TempJob) { [0] = 3 },
                     OutSpineRotations = _spineRotations,
+                    MaxSpineSegments = 3,
                 };
-                dependency = spineCounter.Schedule(dependency);
+                dependency = spineCounter.Schedule(1, 1, dependency);
             }
 
             _locomotionJobHandle = dependency;
@@ -775,6 +856,8 @@ namespace ProjectName.Systems.Animation.Procedural
         {
             JobHandle dependency = _locomotionJobHandle;
             UpdateBonePositions();
+
+            int ikIterations = _lodIKIterations;
 
             // Left Leg IK
             if (_boneMap.Has(BoneRole.L_Hip) && _boneMap.Has(BoneRole.L_Knee) && _boneMap.Has(BoneRole.L_Ankle))
@@ -787,19 +870,36 @@ namespace ProjectName.Systems.Animation.Procedural
                 };
                 ComputeLengths(ref chain);
 
-                var leftIK = new LimbIKSingleJob
+                // Use IJobParallelFor batch IK (size 1)
+                var leftRootRotations = new NativeArray<quaternion>(1, Allocator.TempJob);
+                var leftMidRotations = new NativeArray<quaternion>(1, Allocator.TempJob);
+                var leftTipRotations = new NativeArray<quaternion>(1, Allocator.TempJob);
+                var leftSuccess = new NativeArray<bool>(1, Allocator.TempJob);
+
+                var leftIK = new LimbIKJob
                 {
-                    RootPos = chain.Root.position,
-                    MidPos = chain.Mid.position,
-                    TipPos = chain.Tip.position,
-                    TargetPos = _leftFootTarget[0],
-                    HintPos = _leftFootHint[0],
-                    UpperLen = chain.UpperLength,
-                    LowerLen = chain.LowerLength,
-                    Iterations = 2,
+                    RootPositions = new NativeArray<float3>(1, Allocator.TempJob) { [0] = chain.Root.position },
+                    MidPositions = new NativeArray<float3>(1, Allocator.TempJob) { [0] = chain.Mid.position },
+                    TipPositions = new NativeArray<float3>(1, Allocator.TempJob) { [0] = chain.Tip.position },
+                    TargetPositions = new NativeArray<float3>(1, Allocator.TempJob) { [0] = _leftFootTarget[0] },
+                    HintPositions = new NativeArray<float3>(1, Allocator.TempJob) { [0] = _leftFootHint[0] },
+                    UpperLengths = new NativeArray<float>(1, Allocator.TempJob) { [0] = chain.UpperLength },
+                    LowerLengths = new NativeArray<float>(1, Allocator.TempJob) { [0] = chain.LowerLength },
+                    OutRootPositions = new NativeArray<float3>(1, Allocator.TempJob),
+                    OutMidPositions = new NativeArray<float3>(1, Allocator.TempJob),
+                    OutTipPositions = new NativeArray<float3>(1, Allocator.TempJob),
+                    OutRootRotations = leftRootRotations,
+                    OutMidRotations = leftMidRotations,
+                    OutTipRotations = leftTipRotations,
+                    OutSuccess = leftSuccess,
+                    Iterations = ikIterations,
                 };
-                var leftHandle = leftIK.Schedule(dependency);
+                var leftHandle = leftIK.Schedule(1, 1, dependency);
                 _leftIKHandles.Add(leftHandle);
+                _leftIKResults.Add(leftRootRotations);
+                _leftIKResults.Add(leftMidRotations);
+                _leftIKResults.Add(leftTipRotations);
+                _leftIKResults.Add(leftSuccess.Cast<quaternion>());
                 dependency = leftHandle;
             }
 
@@ -814,19 +914,35 @@ namespace ProjectName.Systems.Animation.Procedural
                 };
                 ComputeLengths(ref chain);
 
-                var rightIK = new LimbIKSingleJob
+                var rightRootRotations = new NativeArray<quaternion>(1, Allocator.TempJob);
+                var rightMidRotations = new NativeArray<quaternion>(1, Allocator.TempJob);
+                var rightTipRotations = new NativeArray<quaternion>(1, Allocator.TempJob);
+                var rightSuccess = new NativeArray<bool>(1, Allocator.TempJob);
+
+                var rightIK = new LimbIKJob
                 {
-                    RootPos = chain.Root.position,
-                    MidPos = chain.Mid.position,
-                    TipPos = chain.Tip.position,
-                    TargetPos = _rightFootTarget[0],
-                    HintPos = _rightFootHint[0],
-                    UpperLen = chain.UpperLength,
-                    LowerLen = chain.LowerLength,
-                    Iterations = 2,
+                    RootPositions = new NativeArray<float3>(1, Allocator.TempJob) { [0] = chain.Root.position },
+                    MidPositions = new NativeArray<float3>(1, Allocator.TempJob) { [0] = chain.Mid.position },
+                    TipPositions = new NativeArray<float3>(1, Allocator.TempJob) { [0] = chain.Tip.position },
+                    TargetPositions = new NativeArray<float3>(1, Allocator.TempJob) { [0] = _rightFootTarget[0] },
+                    HintPositions = new NativeArray<float3>(1, Allocator.TempJob) { [0] = _rightFootHint[0] },
+                    UpperLengths = new NativeArray<float>(1, Allocator.TempJob) { [0] = chain.UpperLength },
+                    LowerLengths = new NativeArray<float>(1, Allocator.TempJob) { [0] = chain.LowerLength },
+                    OutRootPositions = new NativeArray<float3>(1, Allocator.TempJob),
+                    OutMidPositions = new NativeArray<float3>(1, Allocator.TempJob),
+                    OutTipPositions = new NativeArray<float3>(1, Allocator.TempJob),
+                    OutRootRotations = rightRootRotations,
+                    OutMidRotations = rightMidRotations,
+                    OutTipRotations = rightTipRotations,
+                    OutSuccess = rightSuccess,
+                    Iterations = ikIterations,
                 };
-                var rightHandle = rightIK.Schedule(dependency);
+                var rightHandle = rightIK.Schedule(1, 1, dependency);
                 _rightIKHandles.Add(rightHandle);
+                _rightIKResults.Add(rightRootRotations);
+                _rightIKResults.Add(rightMidRotations);
+                _rightIKResults.Add(rightTipRotations);
+                _rightIKResults.Add(rightSuccess.Cast<quaternion>());
                 dependency = rightHandle;
             }
 
@@ -835,6 +951,8 @@ namespace ProjectName.Systems.Animation.Procedural
 
         List<JobHandle> _leftIKHandles = new List<JobHandle>();
         List<JobHandle> _rightIKHandles = new List<JobHandle>();
+        List<NativeArray<quaternion>> _leftIKResults = new List<NativeArray<quaternion>>();
+        List<NativeArray<quaternion>> _rightIKResults = new List<NativeArray<quaternion>>();
 
         void UpdateBonePositions()
         {
@@ -855,6 +973,22 @@ namespace ProjectName.Systems.Animation.Procedural
 
         void UpdateGroundDetection()
         {
+            // LOD raycast reduction: skip raycasts based on level
+            // LOD0: every frame, LOD1: every other frame, LOD2+: never
+            if (!_lodRaycastEnabled)
+            {
+                // Use simple fallback: project feet down by fixed amount
+                _leftFootGrounded = false;
+                _rightFootGrounded = false;
+                _leftFootGroundedArr[0] = false;
+                _rightFootGroundedArr[0] = false;
+                return;
+            }
+
+            // LOD1: raycast every other frame
+            if (_currentLODLevel == 1 && Time.frameCount % 2 != 0)
+                return;
+
             var lFoot = _boneMap.Get(BoneRole.L_Foot);
             var rFoot = _boneMap.Get(BoneRole.R_Foot);
 
@@ -900,27 +1034,60 @@ namespace ProjectName.Systems.Animation.Procedural
 
         void ApplyFootIK()
         {
-            // Complete and process left leg IK
+            // Complete left leg IK handles
             foreach (var handle in _leftIKHandles)
-            {
                 handle.Complete();
-            }
             _leftIKHandles.Clear();
 
-            // Complete and process right leg IK
+            // Complete right leg IK handles
             foreach (var handle in _rightIKHandles)
-            {
                 handle.Complete();
-            }
             _rightIKHandles.Clear();
 
-            // Note: With IJob structs, results are written directly to the output fields
-            // when the job completes. Since we use the same LimbIKSingleJob struct
-            // for scheduling, the output fields (OutRootRot, OutMidRot, OutTipRot)
-            // are populated when the job completes.
-            
-            // Apply the results - we need to store the job structs to access outputs
-            // For simplicity, apply rotation directly in the job or use main-thread IK as fallback
+            // Read LimbIKJob outputs and dispose
+            if (_leftIKResults.Count >= 4)
+            {
+                if (_leftIKResults[0].IsCreated && _leftIKResults[0][0].value != 0)
+                {
+                    var rootRot = _leftIKResults[0][0];
+                    var midRot = _leftIKResults[1][0];
+                    var tipRot = _leftIKResults[2][0];
+
+                    if (_boneMap.Has(BoneRole.L_Hip))
+                        _boneMap.Get(BoneRole.L_Hip).rotation = rootRot;
+                    if (_boneMap.Has(BoneRole.L_Knee))
+                        _boneMap.Get(BoneRole.L_Knee).rotation = midRot;
+                    if (_boneMap.Has(BoneRole.L_Ankle))
+                        _boneMap.Get(BoneRole.L_Ankle).rotation = tipRot;
+                }
+
+                foreach (var arr in _leftIKResults)
+                    if (arr.IsCreated) arr.Dispose();
+                _leftIKResults.Clear();
+            }
+
+            if (_rightIKResults.Count >= 4)
+            {
+                if (_rightIKResults[0].IsCreated && _rightIKResults[0][0].value != 0)
+                {
+                    var rootRot = _rightIKResults[0][0];
+                    var midRot = _rightIKResults[1][0];
+                    var tipRot = _rightIKResults[2][0];
+
+                    if (_boneMap.Has(BoneRole.R_Hip))
+                        _boneMap.Get(BoneRole.R_Hip).rotation = rootRot;
+                    if (_boneMap.Has(BoneRole.R_Knee))
+                        _boneMap.Get(BoneRole.R_Knee).rotation = midRot;
+                    if (_boneMap.Has(BoneRole.R_Ankle))
+                        _boneMap.Get(BoneRole.R_Ankle).rotation = tipRot;
+                }
+
+                foreach (var arr in _rightIKResults)
+                    if (arr.IsCreated) arr.Dispose();
+                _rightIKResults.Clear();
+            }
+
+            // Also apply main-thread IK as fallback for success=false chains
             ApplyFootIKMainThread();
         }
 
@@ -1070,113 +1237,6 @@ namespace ProjectName.Systems.Animation.Procedural
 
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(_headLookTarget, 0.15f);
-        }
-    }
-
-    // ──────────────────────────────────────────────
-    // Single-instance IK Job (IJob)
-    // ──────────────────────────────────────────────
-
-    [BurstCompile]
-    public struct LimbIKSingleJob : IJob
-    {
-        [ReadOnly] public float3 RootPos;
-        [ReadOnly] public float3 MidPos;
-        [ReadOnly] public float3 TipPos;
-        [ReadOnly] public float3 TargetPos;
-        [ReadOnly] public float3 HintPos;
-        [ReadOnly] public float UpperLen;
-        [ReadOnly] public float LowerLen;
-        [ReadOnly] public int Iterations;
-
-        [WriteOnly] public quaternion OutRootRot;
-        [WriteOnly] public quaternion OutMidRot;
-        [WriteOnly] public quaternion OutTipRot;
-
-        public void Execute()
-        {
-            // Inline IK solve (Burst-compatible, adapted from LimbIKSolver.Solve)
-            float3 rootPos = RootPos;
-            float3 midPos = MidPos;
-            float3 tipPos = TipPos;
-            float3 target = TargetPos;
-            float3 hint = HintPos;
-
-            float upperLen = UpperLen;
-            float lowerLen = LowerLen;
-            float totalLen = upperLen + lowerLen;
-
-            float3 rootToTarget = target - rootPos;
-            float distToTarget = math.length(rootToTarget);
-
-            bool success = true;
-
-            // Unreachable: fully extend
-            if (distToTarget > totalLen * 0.999f)
-            {
-                float3 dir = math.normalize(rootToTarget);
-                midPos = rootPos + dir * upperLen;
-                tipPos = midPos + dir * lowerLen;
-                success = false;
-            }
-            else
-            {
-                // FABRIK forward + backward passes
-                for (int i = 0; i < Iterations; i++)
-                {
-                    // Stage 1: Forward reaching (tip to target)
-                    tipPos = target;
-
-                    // Mid -> Tip constraint
-                    float3 midToTip = tipPos - midPos;
-                    float midTipDist = math.length(midToTip);
-                    if (midTipDist > 0.0001f)
-                        midPos = tipPos - math.normalize(midToTip) * lowerLen;
-                    else
-                        midPos = tipPos - math.up() * lowerLen;
-
-                    // Root -> Mid constraint
-                    float3 rootToMid = midPos - rootPos;
-                    float rootMidDist = math.length(rootToMid);
-                    if (rootMidDist > 0.0001f)
-                        midPos = rootPos + math.normalize(rootToMid) * upperLen;
-                    else
-                        midPos = rootPos + math.up() * upperLen;
-
-                    // Stage 2: Backward reaching (root fixed)
-                    // Root stays fixed
-
-                    // Root -> Mid constraint
-                    rootToMid = midPos - rootPos;
-                    rootMidDist = math.length(rootToMid);
-                    if (rootMidDist > 0.0001f)
-                        midPos = rootPos + math.normalize(rootToMid) * upperLen;
-                    else
-                        midPos = rootPos + math.up() * upperLen;
-
-                    // Mid -> Tip constraint
-                    midToTip = tipPos - midPos;
-                    midTipDist = math.length(midToTip);
-                    if (midTipDist > 0.0001f)
-                        tipPos = midPos + math.normalize(midToTip) * lowerLen;
-                    else
-                        tipPos = midPos + math.up() * lowerLen;
-                }
-            }
-
-            // Compute rotations
-            quaternion rootRot = quaternion.LookRotationSafe(math.normalize(midPos - rootPos), math.up());
-            quaternion midRot = quaternion.LookRotationSafe(math.normalize(tipPos - midPos), math.up());
-            quaternion tipRot = quaternion.LookRotationSafe(math.normalize(tipPos - midPos), math.up());
-
-            OutRootRot = rootRot;
-            OutMidRot = midRot;
-            OutTipRot = tipRot;
-        }
-
-        struct TransformProxy
-        {
-            public float3 position;
         }
     }
 }

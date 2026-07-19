@@ -269,97 +269,15 @@ namespace ProjectName.Systems.Animation.Procedural.IK
         }
     }
 
-    // ──────────────────────────────────────────────
-    // Single-instance IK Job (for ProceduralAnimationController)
-    // ──────────────────────────────────────────────
 
     /// <summary>
-    /// Single-instance version of LimbIKJob for use in main controller.
+    /// LOD-aware iterations: returns reduced iteration count based on LOD level.
+    /// LOD0=full(2), LOD1=1, LOD2+=0 (approx fallback)
     /// </summary>
-    [BurstCompile]
-    public struct LimbIKSingleJob : IJob
+    public static int GetLODIterations(int lodLevel)
     {
-        [ReadOnly] public float3 RootPos;
-        [ReadOnly] public float3 MidPos;
-        [ReadOnly] public float3 TipPos;
-        [ReadOnly] public float3 TargetPos;
-        [ReadOnly] public float3 HintPos;
-        [ReadOnly] public float UpperLen;
-        [ReadOnly] public float LowerLen;
-        [ReadOnly] public int Iterations;
-
-        public float3 OutRootPos;
-        public float3 OutMidPos;
-        public float3 OutTipPos;
-        public quaternion OutRootRot;
-        public quaternion OutMidRot;
-        public quaternion OutTipRot;
-        public bool OutSuccess;
-
-        public void Execute()
-        {
-            float3 rootPos = RootPos;
-            float3 midPos = MidPos;
-            float3 tipPos = TipPos;
-            float3 target = TargetPos;
-            float3 hint = HintPos;
-
-            float upperLen = UpperLen;
-            float lowerLen = LowerLen;
-            float totalLen = upperLen + lowerLen;
-
-            float3 rootToTarget = target - rootPos;
-            float distToTarget = math.length(rootToTarget);
-
-            bool success = true;
-
-            if (distToTarget > totalLen * 0.999f)
-            {
-                float3 dir = math.normalize(rootToTarget);
-                midPos = rootPos + dir * upperLen;
-                tipPos = midPos + dir * lowerLen;
-                success = false;
-            }
-            else
-            {
-                for (int i = 0; i < Iterations; i++)
-                {
-                    tipPos = target;
-
-                    float3 midToTip = tipPos - midPos;
-                    float midTipDist = math.length(midToTip);
-                    if (midTipDist > 0.0001f)
-                        midPos = tipPos - math.normalize(midToTip) * lowerLen;
-                    else
-                        midPos = tipPos - math.up() * lowerLen;
-
-                    float3 rootToMid = midPos - rootPos;
-                    float rootMidDist = math.length(rootToMid);
-                    if (rootMidDist > 0.0001f)
-                        midPos = rootPos + math.normalize(rootToMid) * upperLen;
-                    else
-                        midPos = rootPos + math.up() * upperLen;
-
-                    float3 midToTip2 = tipPos - midPos;
-                    float midTipDist2 = math.length(midToTip2);
-                    if (midTipDist2 > 0.0001f)
-                        tipPos = midPos + math.normalize(midToTip2) * lowerLen;
-                    else
-                        tipPos = midPos + math.up() * lowerLen;
-                }
-            }
-
-            quaternion rootRot = quaternion.LookRotationSafe(math.normalize(midPos - rootPos), math.up());
-            quaternion midRot = quaternion.LookRotationSafe(math.normalize(tipPos - midPos), math.up());
-            quaternion tipRot = quaternion.LookRotationSafe(math.normalize(tipPos - midPos), math.up());
-
-            OutRootPos = rootPos;
-            OutMidPos = midPos;
-            OutTipPos = tipPos;
-            OutRootRot = rootRot;
-            OutMidRot = midRot;
-            OutTipRot = tipRot;
-            OutSuccess = success;
-        }
+        if (lodLevel <= 0) return 2;
+        if (lodLevel == 1) return 1;
+        return 0;
     }
 }

@@ -8,28 +8,33 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped
 {
     /// <summary>
     /// Gait selector: chooses Walk/Trot/Pace/Gallop based on speed.
+    /// IJobParallelFor for batch processing multiple characters.
     /// </summary>
     [BurstCompile]
-    public struct GaitSelectorJob : IJob
+    public struct GaitSelectorJob : IJobParallelFor
     {
         public enum Gait { Walk, Trot, Pace, Gallop }
 
-        [ReadOnly] public float CurrentSpeed;
-        [ReadOnly] public float MaxSpeed;
-        [ReadOnly] public float WalkSpeed;
-        [ReadOnly] public float TrotSpeed;
-        [ReadOnly] public float PaceSpeed;
-        [ReadOnly] public float GallopSpeed;
-        [ReadOnly] public Gait CurrentGait;
+        [ReadOnly] public NativeArray<float> CurrentSpeeds;
+        [ReadOnly] public NativeArray<float> MaxSpeeds;
+        [ReadOnly] public NativeArray<float> WalkSpeeds;
+        [ReadOnly] public NativeArray<float> TrotSpeeds;
+        [ReadOnly] public NativeArray<float> PaceSpeeds;
+        [ReadOnly] public NativeArray<float> GallopSpeeds;
+        [ReadOnly] public NativeArray<Gait> CurrentGaits;
 
-        public NativeArray<Gait> OutSelectedGait;
-        public NativeArray<float> OutGaitBlend; // 0-1 for smooth transitions
-        public NativeArray<float> OutPhaseSpeedMultiplier;
+        [WriteOnly] public NativeArray<Gait> OutSelectedGaits;
+        [WriteOnly] public NativeArray<float> OutGaitBlends;
+        [WriteOnly] public NativeArray<float> OutPhaseSpeedMultipliers;
 
-        public void Execute()
+        public void Execute(int index)
         {
-            float normalizedSpeed = CurrentSpeed / MaxSpeed;
-            Gait targetGait = CurrentGait;
+            float currentSpeed = CurrentSpeeds[index];
+            float maxSpeed = MaxSpeeds[index];
+            Gait currentGait = CurrentGaits[index];
+
+            float normalizedSpeed = currentSpeed / maxSpeed;
+            Gait targetGait = currentGait;
             float blend = 0f;
 
             if (normalizedSpeed < 0.25f)
@@ -42,14 +47,10 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped
                 targetGait = Gait.Gallop;
 
             // Smooth transition
-            if (targetGait != CurrentGait)
-            {
-                blend = 0.5f; // transitioning
-            }
+            if (targetGait != currentGait)
+                blend = 0.5f;
             else
-            {
-                blend = 1f; // stable
-            }
+                blend = 1f;
 
             float phaseMult = 1f;
             switch (targetGait)
@@ -60,34 +61,61 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped
                 case Gait.Gallop: phaseMult = 2.0f; break;
             }
 
-            OutSelectedGait[0] = targetGait;
-            OutGaitBlend[0] = blend;
-            OutPhaseSpeedMultiplier[0] = phaseMult;
+            OutSelectedGaits[index] = targetGait;
+            OutGaitBlends[index] = blend;
+            OutPhaseSpeedMultipliers[index] = phaseMult;
         }
     }
 
     /// <summary>
     /// Spine wave: S-curve undulation along spine for quadruped locomotion.
+    /// IJobParallelFor for batch processing.
+    /// Added LOD support: reduces/mutes wave based on LOD level.
     /// </summary>
     [BurstCompile]
-    public struct SpineWaveJob : IJob
+    public struct SpineWaveJob : IJobParallelFor
     {
-        [ReadOnly] public float Time;
-        [ReadOnly] public float Frequency;
-        [ReadOnly] public float Amplitude;
-        [ReadOnly] public float Speed;
-        [ReadOnly] public GaitSelectorJob.Gait CurrentGait;
-        [ReadOnly] public int SpineSegmentCount; // typically 3-5
+        [ReadOnly] public NativeArray<float> Times;
+        [ReadOnly] public NativeArray<float> Frequencies;
+        [ReadOnly] public NativeArray<float> Amplitudes;
+        [ReadOnly] public NativeArray<float> Speeds;
+        [ReadOnly] public NativeArray<GaitSelectorJob.Gait> CurrentGaits;
+        [ReadOnly] public NativeArray<int> SpineSegmentCounts;
+        [ReadOnly] public NativeArray<int> LODLevels; // 0=full, 1=reduced, 2+=disabled
 
-        public NativeArray<quaternion> OutSpineRotations; // length = SpineSegmentCount
+        [WriteOnly] public NativeArray<quaternion> OutSpineRotations; // flattened: index * maxSegments
 
-        public void Execute()
+        [ReadOnly] public int MaxSpineSegments; // stride for flattened output
+
+        public void Execute(int index)
         {
-            float waveFreq = Frequency;
-            float waveAmp = Amplitude;
+            int lod = LODLevels[index];
+
+            // LOD2+: disable spine wave entirely
+            if (lod >= 2)
+            {
+                int baseIdx = index * MaxSpineSegments;
+                for (int i = 0; i < MaxSpineSegments; i++)
+                    OutSpineRotations[baseIdx + i] = quaternion.identity;
+                return;
+            }
+
+            float time = Times[index];
+            float frequency = Frequencies[index];
+            float amplitude = Amplitudes[index];
+            float speed = Speeds[index];
+            GaitSelectorJob.Gait currentGait = CurrentGaits[index];
+            int spineCount = SpineSegmentCounts[index];
+
+            float waveFreq = frequency;
+            float waveAmp = amplitude;
+
+            // LOD1: reduced amplitude
+            if (lod == 1)
+                waveAmp *= 0.5f;
 
             // Gait-specific wave parameters
-            switch (CurrentGait)
+            switch (currentGait)
             {
                 case GaitSelectorJob.Gait.Walk:
                     waveFreq *= 0.8f;
@@ -107,43 +135,50 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped
                     break;
             }
 
-            float phase = Time * waveFreq * Speed;
+            float phase = time * waveFreq * speed;
+            int baseIdx2 = index * MaxSpineSegments;
 
-            for (int i = 0; i < SpineSegmentCount; i++)
+            for (int i = 0; i < spineCount; i++)
             {
-                float segmentPhase = phase + i * 0.5f; // phase lag along spine
+                float segmentPhase = phase + i * 0.5f;
                 float wave = math.sin(segmentPhase) * waveAmp;
-                // Alternate yaw/roll for S-curve
                 float yaw = wave * (i % 2 == 0 ? 1f : -1f);
                 float roll = wave * 0.3f * (i % 2 == 0 ? 1f : -1f);
 
-                OutSpineRotations[i] = quaternion.Euler(0f, math.degrees(yaw), math.degrees(roll));
+                OutSpineRotations[baseIdx2 + i] = quaternion.Euler(0f, math.degrees(yaw), math.degrees(roll));
             }
+
+            // Zero out remaining
+            for (int i = spineCount; i < MaxSpineSegments; i++)
+                OutSpineRotations[baseIdx2 + i] = quaternion.identity;
         }
     }
 
     /// <summary>
     /// Leg phase offsets for each gait pattern.
+    /// IJobParallelFor for batch processing.
     /// </summary>
     [BurstCompile]
-    public struct LegPhaseOffsetJob : IJob
+    public struct LegPhaseOffsetJob : IJobParallelFor
     {
-        public enum Leg { LF, RF, LH, RH } // LeftFront, RightFront, LeftHind, RightHind
+        public enum Leg { LF, RF, LH, RH }
 
-        [ReadOnly] public GaitSelectorJob.Gait CurrentGait;
-        [ReadOnly] public float BasePhase; // 0-1 master phase
-        [ReadOnly] public float DutyCycle; // stance fraction
+        [ReadOnly] public NativeArray<GaitSelectorJob.Gait> CurrentGaits;
+        [ReadOnly] public NativeArray<float> BasePhases;
+        [ReadOnly] public NativeArray<float> DutyCycles;
 
-        public NativeArray<float> OutLegPhases; // length 4: LF, RF, LH, RH
+        [WriteOnly] public NativeArray<float> OutLegPhases; // 4 per character (LF, RF, LH, RH)
 
-        public void Execute()
+        public void Execute(int index)
         {
+            GaitSelectorJob.Gait currentGait = CurrentGaits[index];
+            float basePhase = BasePhases[index];
+
             float lf = 0f, rf = 0f, lh = 0f, rh = 0f;
 
-            switch (CurrentGait)
+            switch (currentGait)
             {
                 case GaitSelectorJob.Gait.Walk:
-                    // 4-beat: LF, RH, RF, LH (0, 0.25, 0.5, 0.75)
                     lf = 0f;
                     rh = 0.25f;
                     rf = 0.5f;
@@ -151,7 +186,6 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped
                     break;
 
                 case GaitSelectorJob.Gait.Trot:
-                    // 2-beat diagonal: LF+RH, RF+LH
                     lf = 0f;
                     rh = 0f;
                     rf = 0.5f;
@@ -159,7 +193,6 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped
                     break;
 
                 case GaitSelectorJob.Gait.Pace:
-                    // 2-beat lateral: LF+LH, RF+RH
                     lf = 0f;
                     lh = 0f;
                     rf = 0.5f;
@@ -167,8 +200,6 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped
                     break;
 
                 case GaitSelectorJob.Gait.Gallop:
-                    // 4-beat asymmetric (rotary): LH, RH, LF, RF
-                    // Lead leg depends on turn direction; assume right lead
                     lh = 0f;
                     rh = 0.15f;
                     lf = 0.4f;
@@ -176,99 +207,115 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped
                     break;
             }
 
-            // Apply base phase
-            OutLegPhases[0] = math.fmod(lf + BasePhase, 1f);
-            OutLegPhases[1] = math.fmod(rf + BasePhase, 1f);
-            OutLegPhases[2] = math.fmod(lh + BasePhase, 1f);
-            OutLegPhases[3] = math.fmod(rh + BasePhase, 1f);
+            int baseIdx = index * 4;
+            OutLegPhases[baseIdx + 0] = math.fmod(lf + basePhase, 1f);
+            OutLegPhases[baseIdx + 1] = math.fmod(rf + basePhase, 1f);
+            OutLegPhases[baseIdx + 2] = math.fmod(lh + basePhase, 1f);
+            OutLegPhases[baseIdx + 3] = math.fmod(rh + basePhase, 1f);
         }
     }
 
     /// <summary>
     /// Quadruped foot target calculator from phase.
+    /// IJobParallelFor for batch processing.
     /// </summary>
     [BurstCompile]
-    public struct QuadrupedFootTargetJob : IJob
+    public struct QuadrupedFootTargetJob : IJobParallelFor
     {
-        [ReadOnly] public float3 BodyPosition;
-        [ReadOnly] public quaternion BodyRotation;
-        [ReadOnly] public float3 BodyVelocity;
-        [ReadOnly] public float LegPhase; // 0-1
-        [ReadOnly] public float DutyCycle;
-        [ReadOnly] public float StepLength;
-        [ReadOnly] public float StepHeight;
-        [ReadOnly] public float3 LegDefaultPos; // relative to body
-        [ReadOnly] public bool IsFrontLeg;
+        [ReadOnly] public NativeArray<float3> BodyPositions;
+        [ReadOnly] public NativeArray<quaternion> BodyRotations;
+        [ReadOnly] public NativeArray<float3> BodyVelocities;
+        [ReadOnly] public NativeArray<float> LegPhases;
+        [ReadOnly] public NativeArray<float> DutyCycles;
+        [ReadOnly] public NativeArray<float> StepLengths;
+        [ReadOnly] public NativeArray<float> StepHeights;
+        [ReadOnly] public NativeArray<float3> LegDefaultPositions; // relative to body
+        [ReadOnly] public NativeArray<bool> IsFrontLegFlags;
 
-        public NativeArray<float3> OutFootTarget;
-        public NativeArray<float3> OutFootHint;
-        public NativeArray<bool> OutIsStance;
+        [WriteOnly] public NativeArray<float3> OutFootTargets;
+        [WriteOnly] public NativeArray<float3> OutFootHints;
+        [WriteOnly] public NativeArray<bool> OutIsStanceFlags;
 
-        public void Execute()
+        public void Execute(int index)
         {
-            bool stance = LegPhase < DutyCycle;
-            OutIsStance[0] = stance;
+            float3 bodyPos = BodyPositions[index];
+            quaternion bodyRot = BodyRotations[index];
+            float3 bodyVel = BodyVelocities[index];
+            float legPhase = LegPhases[index];
+            float dutyCycle = DutyCycles[index];
+            float stepLength = StepLengths[index];
+            float stepHeight = StepHeights[index];
+            float3 legDefaultPos = LegDefaultPositions[index];
+            bool isFrontLeg = IsFrontLegFlags[index];
 
-            float3 forward = math.mul(BodyRotation, math.forward());
-            float3 right = math.mul(BodyRotation, math.right());
+            bool stance = legPhase < dutyCycle;
+            OutIsStanceFlags[index] = stance;
+
+            float3 forward = math.mul(bodyRot, math.forward());
+            float3 right = math.mul(bodyRot, math.right());
             float3 up = math.up();
 
-            float3 defaultWorld = BodyPosition + math.mul(BodyRotation, LegDefaultPos);
+            float3 defaultWorld = bodyPos + math.mul(bodyRot, legDefaultPos);
 
             if (stance)
             {
-                // Stance: foot stays planted, hint is knee position
-                OutFootTarget[0] = defaultWorld;
-                OutFootHint[0] = defaultWorld + right * (IsFrontLeg ? 0.15f : -0.15f) + up * 0.3f;
+                OutFootTargets[index] = defaultWorld;
+                OutFootHints[index] = defaultWorld + right * (isFrontLeg ? 0.15f : -0.15f) + up * 0.3f;
             }
             else
             {
-                // Swing: arc forward and up
-                float swingProgress = (LegPhase - DutyCycle) / (1f - DutyCycle);
-                float height = math.sin(swingProgress * math.PI) * StepHeight;
-                float forwardDist = swingProgress * StepLength * math.max(0.5f, math.length(BodyVelocity) / 5f);
+                float swingProgress = (legPhase - dutyCycle) / (1f - dutyCycle);
+                float height = math.sin(swingProgress * math.PI) * stepHeight;
+                float forwardDist = swingProgress * stepLength * math.max(0.5f, math.length(bodyVel) / 5f);
 
                 float3 target = defaultWorld + forward * forwardDist + up * height;
-                OutFootTarget[0] = target;
-                OutFootHint[0] = target + right * (IsFrontLeg ? 0.2f : -0.2f);
+                OutFootTargets[index] = target;
+                OutFootHints[index] = target + right * (isFrontLeg ? 0.2f : -0.2f);
             }
         }
     }
 
     /// <summary>
     /// Neck/head stabilization: keeps head level during body motion.
+    /// IJobParallelFor for batch processing.
     /// </summary>
     [BurstCompile]
-    public struct NeckStabilizationJob : IJob
+    public struct NeckStabilizationJob : IJobParallelFor
     {
-        [ReadOnly] public quaternion BodyRotation;
-        [ReadOnly] public float3 BodyAngularVelocity;
-        [ReadOnly] public float3 HeadPosition;
-        [ReadOnly] public float3 HeadForward;
-        [ReadOnly] public float3 LookTarget; // world position to look at
-        [ReadOnly] public float StabilizationStrength; // 0-1
-        [ReadOnly] public float LookWeight; // 0-1
+        [ReadOnly] public NativeArray<quaternion> BodyRotations;
+        [ReadOnly] public NativeArray<float3> BodyAngularVelocities;
+        [ReadOnly] public NativeArray<float3> HeadPositions;
+        [ReadOnly] public NativeArray<float3> HeadForwards;
+        [ReadOnly] public NativeArray<float3> LookTargets;
+        [ReadOnly] public NativeArray<float> StabilizationStrengths;
+        [ReadOnly] public NativeArray<float> LookWeights;
 
-        public NativeArray<quaternion> OutHeadRotation;
-        public NativeArray<quaternion> OutNeckRotation;
+        [WriteOnly] public NativeArray<quaternion> OutHeadRotations;
+        [WriteOnly] public NativeArray<quaternion> OutNeckRotations;
 
-        public void Execute()
+        public void Execute(int index)
         {
+            quaternion bodyRot = BodyRotations[index];
+            float3 headPos = HeadPositions[index];
+            float3 lookTarget = LookTargets[index];
+            float stabilizationStrength = StabilizationStrengths[index];
+            float lookWeight = LookWeights[index];
+
             // Counter-rotate head to cancel body rotation
-            quaternion counterRot = math.inverse(BodyRotation);
-            counterRot = math.slerp(quaternion.identity, counterRot, StabilizationStrength);
+            quaternion counterRot = math.inverse(bodyRot);
+            counterRot = math.slerp(quaternion.identity, counterRot, stabilizationStrength);
 
             // Look at target
-            float3 toTarget = math.normalize(LookTarget - HeadPosition);
+            float3 toTarget = math.normalize(lookTarget - headPos);
             quaternion lookRot = quaternion.LookRotationSafe(toTarget, math.up());
-            lookRot = math.slerp(quaternion.identity, lookRot, LookWeight);
+            lookRot = math.slerp(quaternion.identity, lookRot, lookWeight);
 
             // Combine: stabilize first, then look
             quaternion headRot = math.mul(counterRot, lookRot);
             quaternion neckRot = math.mul(counterRot, math.slerp(quaternion.identity, lookRot, 0.5f));
 
-            OutHeadRotation[0] = headRot;
-            OutNeckRotation[0] = neckRot;
+            OutHeadRotations[index] = headRot;
+            OutNeckRotations[index] = neckRot;
         }
     }
 }

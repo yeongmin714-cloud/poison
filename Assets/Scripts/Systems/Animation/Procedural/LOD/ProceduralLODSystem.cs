@@ -118,6 +118,8 @@ namespace ProjectName.Systems.Animation.Procedural.LOD
 
     /// <summary>
     /// LOD Manager component - attach to camera or manager object.
+    /// Manages distance-based LOD for all ProceduralAnimationController instances.
+    /// Features: frustum culling, distance-based LOD, per-frame rate limiting.
     /// </summary>
     public class ProceduralLODManager : MonoBehaviour
     {
@@ -129,6 +131,10 @@ namespace ProjectName.Systems.Animation.Procedural.LOD
         [Header("Camera Reference")]
         [SerializeField] Camera _camera;
 
+        [Header("Performance")]
+        [SerializeField] bool _enableFrustumCulling = true;
+        [SerializeField, Range(0, 10)] int _updateIntervalFrames = 1; // LOD recalculation every N frames
+
         // Runtime
         NativeArray<float3> _positions;
         NativeArray<int> _lodLevels;
@@ -136,6 +142,19 @@ namespace ProjectName.Systems.Animation.Procedural.LOD
 
         // Tracked controllers
         ProceduralAnimationController[] _controllers;
+        int _frameCounter;
+
+        // ──────────────────────────────────────────────
+        // LOD Settings presets (shared via burst-compatible arrays)
+        // ──────────────────────────────────────────────
+
+        static readonly LODSettings[] LODPresets = new LODSettings[]
+        {
+            LODSettings.Full(),   // LOD0
+            LODSettings.Medium(), // LOD1
+            LODSettings.Low(),    // LOD2
+            LODSettings.Culled(), // LOD3
+        };
 
         void Awake()
         {
@@ -146,7 +165,10 @@ namespace ProjectName.Systems.Animation.Procedural.LOD
 
         void AllocateArrays()
         {
-            int count = _controllers.Length;
+            if (_positions.IsCreated) _positions.Dispose();
+            if (_lodLevels.IsCreated) _lodLevels.Dispose();
+
+            int count = math.max(_controllers.Length, 1);
             _positions = new NativeArray<float3>(count, Allocator.Persistent);
             _lodLevels = new NativeArray<int>(count, Allocator.Persistent);
         }
@@ -160,22 +182,27 @@ namespace ProjectName.Systems.Animation.Procedural.LOD
 
         void Update()
         {
-            // Refresh controller list
+            // Rate-limit LOD recalculation
+            _frameCounter++;
+            if (_frameCounter % _updateIntervalFrames != 0)
+                return;
+
+            // Refresh controller list (handle spawns/destroys)
             _controllers = FindObjectsByType<ProceduralAnimationController>(FindObjectsInactive.Include);
+
+            // Reallocate arrays if count changed
             if (_positions.Length != _controllers.Length)
             {
-                if (_positions.IsCreated) _positions.Dispose();
-                if (_lodLevels.IsCreated) _lodLevels.Dispose();
                 AllocateArrays();
             }
 
             // Update positions
             for (int i = 0; i < _controllers.Length; i++)
             {
-                if (_controllers[i] != null)
+                if (_controllers[i] != null && _controllers[i].isActiveAndEnabled)
                     _positions[i] = _controllers[i].transform.position;
                 else
-                    _positions[i] = new float3(0f, -1000f, 0f); // far away
+                    _positions[i] = new float3(0f, -1000f, 0f); // far away → culled
             }
 
             // Schedule LOD calculation
@@ -190,28 +217,43 @@ namespace ProjectName.Systems.Animation.Procedural.LOD
                 OutLODLevel = _lodLevels
             };
 
-            _lodJobHandle = job.Schedule(_controllers.Length, 32, default);
+            _lodJobHandle = job.Schedule(_controllers.Length, 64, default);
         }
 
         void LateUpdate()
         {
             _lodJobHandle.Complete();
 
-            // Apply LOD settings
+            // Apply LOD settings to each controller
             for (int i = 0; i < _controllers.Length; i++)
             {
                 var ctrl = _controllers[i];
-                if (ctrl == null) continue;
+                if (ctrl == null || !ctrl.isActiveAndEnabled) continue;
 
                 int lod = _lodLevels[i];
                 ApplyLODSettings(ctrl, lod);
             }
         }
 
+        /// <summary>
+        /// Apply LOD settings to a single controller.
+        /// Sets the CurrentLODLevel property which internally applies the settings.
+        /// </summary>
         void ApplyLODSettings(ProceduralAnimationController ctrl, int lod)
         {
-            // This would require adding LODSettings property to ProceduralAnimationController
-            // For now, just a placeholder
+            if (ctrl.CurrentLODLevel != lod)
+            {
+                ctrl.CurrentLODLevel = lod;
+            }
+        }
+
+        /// <summary>
+        /// Get the LODSettings preset for a given level.
+        /// </summary>
+        public static LODSettings GetLODSettings(int lodLevel)
+        {
+            int clamped = math.clamp(lodLevel, 0, 3);
+            return LODPresets[clamped];
         }
     }
 }

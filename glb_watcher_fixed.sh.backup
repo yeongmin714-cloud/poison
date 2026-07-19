@@ -55,8 +55,6482 @@ unity_cleanup() {
 # Function to get allowed basenames from ModelMapping.cs
 # Fixed version as suggested in the skill
 get_allowed_basenames() {
-    grep -o '{\\\"[^\\\"]*' "$MODEL_MAPPING_CS" |
-        sed 's/{\\\"//' |
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
+        tr '[:upper:]' '[:lower:]' |
+        sort | uniq
+}
+get_allowed_basenames() {
+    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{"//' |
         tr '[:upper:]' '[:lower:]' |
         sort | uniq
 }
@@ -117,8 +6591,7 @@ main() {
         # Get basename without extension
         filename=$(basename "$glb_path")
         basename="${filename%.glb}"
-        basename_lower=$(echo "$basename" | tr '[:upper:]' '[:lower:]')
-        
+        basename_lower=$(echo "$basename" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
         log "Processing $filename (basename: $basename)"
         
         # Skip if not allowed
