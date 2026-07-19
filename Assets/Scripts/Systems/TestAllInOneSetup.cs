@@ -1,8 +1,9 @@
 using UnityEngine;
+using UnityEngine.UI;
 using ProjectName.Core;
 using ProjectName.Core.Data;
-using ProjectName.UI;
-using ProjectName.UI.Themes;
+using System;
+using System.Reflection;
 
 namespace ProjectName.Systems
 {
@@ -10,6 +11,7 @@ namespace ProjectName.Systems
     /// Test_09_AllInOne 씬 전용: 모든 시스템 종합 검증.
     /// GameManager + 모든 매니저 + Player + Combat + Territory + Craft + Time/Weather + UI + Dracula + GasBomb
     /// 모든 시스템을 한 번에 로드하여 상호작용 테스트.
+    /// UI 타입은 리플렉션으로 접근 (어셈블리 순환 참조 방지).
     /// </summary>
     public class TestAllInOneSetup : MonoBehaviour
     {
@@ -37,10 +39,22 @@ namespace ProjectName.Systems
         [SerializeField] private int _guardCount = 3;
         [SerializeField] private int _dummyCount = 3;
 
+        // 리플렉션용 캐시
+        private Type _uiManagerType;
+        private Type _uiWindowType;
+        private Type _keyBindingsType;
+        private Type _phase33ThemesType;
+        private Type _inventoryWindowType;
+        private Type _questWindowType;
+        private Type _recipeWindowType;
+        private Type _mapWindowType;
+        private Type _lootWindowType;
+
         private void Awake()
         {
             Debug.Log("[TestAllInOneSetup] 🚀 전체 시스템 종합 테스트 시작...");
 
+            CacheUIReflectionTypes();
             EnsureEventSystem();
             EnsureGameManager();
             SetupTimeAndWeather();
@@ -66,6 +80,33 @@ namespace ProjectName.Systems
                 EnsureProceduralAnimation();
 
             Debug.Log("[TestAllInOneSetup] ✅ Test_09_AllInOne 전체 시스템 설정 완료!");
+        }
+
+        private void CacheUIReflectionTypes()
+        {
+            var uiAssembly = Assembly.Load("ProjectName.UI");
+            if (uiAssembly == null)
+            {
+                Debug.LogWarning("[TestAllInOneSetup] ProjectName.UI 어셈블리를 찾을 수 없습니다. UI 테스트는 건너뜁니다.");
+                _includeUI = false;
+                return;
+            }
+
+            _uiManagerType = uiAssembly.GetType("ProjectName.UI.Core.UIManager");
+            _uiWindowType = uiAssembly.GetType("ProjectName.UI.UIWindow");
+            _keyBindingsType = uiAssembly.GetType("ProjectName.UI.KeyBindings");
+            _phase33ThemesType = uiAssembly.GetType("ProjectName.UI.Themes.Phase33_Themes");
+            _inventoryWindowType = uiAssembly.GetType("ProjectName.UI.InventoryWindow");
+            _questWindowType = uiAssembly.GetType("ProjectName.UI.QuestWindow");
+            _recipeWindowType = uiAssembly.GetType("ProjectName.UI.RecipeWindow");
+            _mapWindowType = uiAssembly.GetType("ProjectName.UI.MapWindow");
+            _lootWindowType = uiAssembly.GetType("ProjectName.UI.LootWindow");
+
+            if (_uiManagerType == null || _uiWindowType == null)
+            {
+                Debug.LogWarning("[TestAllInOneSetup] UI 핵심 타입을 찾을 수 없습니다. UI 테스트는 건너뜁니다.");
+                _includeUI = false;
+            }
         }
 
         private void EnsureEventSystem()
@@ -117,16 +158,16 @@ namespace ProjectName.Systems
                 if (sun != null)
                 {
                     var sunField = typeof(DayNightCycle).GetField("_sunLight",
-                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        BindingFlags.NonPublic | BindingFlags.Instance);
                     sunField?.SetValue(dnc, sun);
                 }
                 if (moon != null)
                 {
                     var moonField = typeof(DayNightCycle).GetField("_moonLight",
-                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        BindingFlags.NonPublic | BindingFlags.Instance);
                     moonField?.SetValue(dnc, moon);
                 }
-                Debug.Log("[TestAllInOneSetup] ✅ DayNightCycle 부착");
+                Debug.Log("[TestAllInOneSetup] ✅ DayNightCycle 부착 + Light 참조 연결");
             }
 
             // WeatherManager
@@ -235,7 +276,7 @@ namespace ProjectName.Systems
                 player.tag = "Player";
             }
 
-            // Rigidbody (ProceduralAnimationController용)
+            // Rigidbody
             if (player.GetComponent<Rigidbody>() == null)
             {
                 var rb = player.AddComponent<Rigidbody>();
@@ -262,11 +303,11 @@ namespace ProjectName.Systems
                 pi.notificationBehavior = PlayerNotifications.InvokeUnityEvents;
             }
 
-            // Animator (ProceduralAnimationController용)
+            // Animator
             if (player.GetComponent<Animator>() == null)
                 player.AddComponent<Animator>();
 
-            // PlayerMovement (기존 시스템 호환용)
+            // PlayerMovement
             var pmType = typeof(ProjectName.Systems.PlayerMovement);
             if (player.GetComponent(pmType) == null)
                 player.AddComponent(pmType);
@@ -287,7 +328,7 @@ namespace ProjectName.Systems
             if (player.GetComponent<PlayerInventory>() == null)
                 player.AddComponent<PlayerInventory>();
 
-            // Procedural Animation Components
+            // Procedural Animation
             if (player.GetComponent<ProceduralBoneMap>() == null)
                 player.AddComponent<ProceduralBoneMap>();
             if (player.GetComponent<ProceduralAnimStateMachine>() == null)
@@ -415,15 +456,15 @@ namespace ProjectName.Systems
 
         private void SetupUI()
         {
-            if (!_includeUI) return;
+            if (!_includeUI || _uiManagerType == null) return;
 
             // UIManager
-            if (UIManager.Instance == null)
+            if (_uiManagerType.GetProperty("Instance")?.GetValue(null) == null)
             {
                 var uiMgrGO = new GameObject("UIManager");
-                var uiMgr = uiMgrGO.AddComponent<UIManager>();
-                var kb = ScriptableObject.CreateInstance<KeyBindings>();
-                uiMgr.SetKeyBindings(kb);
+                var uiMgr = uiMgrGO.AddComponent(_uiManagerType);
+                var kb = ScriptableObject.CreateInstance(_keyBindingsType);
+                _uiManagerType.GetMethod("SetKeyBindings")?.Invoke(uiMgr, new object[] { kb });
                 Debug.Log("[TestAllInOneSetup] ✅ UIManager 생성");
             }
 
@@ -433,8 +474,8 @@ namespace ProjectName.Systems
                 var canvasGO = new GameObject("Canvas");
                 var canvas = canvasGO.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                canvasGO.AddComponent<UnityEngine.UI.CanvasScaler>();
-                canvasGO.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+                canvasGO.AddComponent<CanvasScaler>();
+                canvasGO.AddComponent<GraphicRaycaster>();
                 Debug.Log("[TestAllInOneSetup] ✅ Canvas 생성");
             }
 
@@ -442,41 +483,52 @@ namespace ProjectName.Systems
             var canvas = FindAnyObjectByType<Canvas>();
             Transform canvasTransform = canvas != null ? canvas.transform : null;
 
-            CreateWindow<InventoryWindow>("InventoryWindow", canvasTransform);
-            CreateWindow<QuestWindow>("QuestWindow", canvasTransform);
-            CreateWindow<RecipeWindow>("RecipeWindow", canvasTransform);
-            CreateWindow<MapWindow>("MapWindow", canvasTransform);
-            CreateWindow<LootWindow>("LootWindow", canvasTransform);
+            CreateUIWindow(_inventoryWindowType, "InventoryWindow", canvasTransform);
+            CreateUIWindow(_questWindowType, "QuestWindow", canvasTransform);
+            CreateUIWindow(_recipeWindowType, "RecipeWindow", canvasTransform);
+            CreateUIWindow(_mapWindowType, "MapWindow", canvasTransform);
+            CreateUIWindow(_lootWindowType, "LootWindow", canvasTransform);
 
             Debug.Log("[TestAllInOneSetup] ✅ UI 시스템 + 주요 윈도우 생성 완료");
         }
 
-        private void CreateWindow<T>(string name, Transform parent) where T : UIWindow
+        private void CreateUIWindow(Type windowType, string name, Transform parent)
         {
+            if (windowType == null || _uiWindowType == null) return;
+
             var go = new GameObject(name, typeof(RectTransform));
             if (parent != null)
                 go.transform.SetParent(parent, false);
-            var window = go.AddComponent<T>();
-            window.ApplyTheme(GetDefaultThemeForWindow(name));
+            var window = go.AddComponent(windowType);
+            
+            // ApplyTheme 호출
+            var theme = GetDefaultThemeForWindow(name);
+            if (theme != null)
+            {
+                var applyThemeMethod = _uiWindowType.GetMethod("ApplyTheme");
+                applyThemeMethod?.Invoke(window, new object[] { theme });
+            }
+            
             Debug.Log($"[TestAllInOneSetup] ✅ {name} 생성됨");
         }
 
-        private UIDesignTheme GetDefaultThemeForWindow(string windowName)
+        private object GetDefaultThemeForWindow(string windowName)
         {
-            switch (windowName)
+            if (_phase33ThemesType == null) return null;
+
+            return windowName switch
             {
-                case "InventoryWindow": return Phase33_Themes.CreateInventoryTheme();
-                case "QuestWindow": return Phase33_Themes.CreateQuestTheme();
-                case "RecipeWindow": return Phase33_Themes.CreateRecipeTheme();
-                case "MapWindow": return Phase33_Themes.CreateMedievalMapTheme();
-                case "LootWindow": return Phase33_Themes.CreateMedievalShopTheme();
-                default: return Phase33_Themes.CreateInventoryTheme();
-            }
+                "InventoryWindow" => _phase33ThemesType.GetMethod("CreateInventoryTheme")?.Invoke(null, null),
+                "QuestWindow" => _phase33ThemesType.GetMethod("CreateQuestTheme")?.Invoke(null, null),
+                "RecipeWindow" => _phase33ThemesType.GetMethod("CreateRecipeTheme")?.Invoke(null, null),
+                "MapWindow" => _phase33ThemesType.GetMethod("CreateMedievalMapTheme")?.Invoke(null, null),
+                "LootWindow" => _phase33ThemesType.GetMethod("CreateMedievalShopTheme")?.Invoke(null, null),
+                _ => _phase33ThemesType.GetMethod("CreateInventoryTheme")?.Invoke(null, null)
+            };
         }
 
         private void SetupCombat()
         {
-            // 몬스터 스폰
             var monsters = new[]
             {
                 ("wolf", MonsterTier.Beginner),
@@ -602,7 +654,6 @@ namespace ProjectName.Systems
 
         private void SetupTerritory()
         {
-            // 병사 스폰
             if (GuardManager.Instance != null && _guardCount > 0)
             {
                 var territoryId = new TerritoryId(NationType.Dracula, 1);
@@ -642,11 +693,9 @@ namespace ProjectName.Systems
 
         private void SetupCraft()
         {
-            // CraftPresetManager 확인
             if (CraftPresetManager.Instance != null)
                 Debug.Log("[TestAllInOneSetup] ✅ CraftPresetManager 사용 가능");
 
-            // Player에 테스트 재료 추가
             var player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
             {
@@ -666,7 +715,6 @@ namespace ProjectName.Systems
 
         private void SetupDracula()
         {
-            // DraculaLord
             if (FindAnyObjectByType<DraculaLord>() == null)
             {
                 var lordGO = new GameObject("DraculaLord");
@@ -679,7 +727,6 @@ namespace ProjectName.Systems
                 Debug.Log($"[TestAllInOneSetup] ✅ DraculaLord 생성 (HP: {lord.MaxHP}, ATK: {lord.AttackDamage})");
             }
 
-            // Skeleton Guards
             for (int i = 0; i < 3; i++)
             {
                 float angle = (i / 3f) * 360f * Mathf.Deg2Rad;
@@ -717,7 +764,6 @@ namespace ProjectName.Systems
 
         private void SetupGasBomb()
         {
-            // SpecialEffectsController
             if (SpecialEffectsController.Instance == null)
             {
                 var secGO = new GameObject("SpecialEffectsController");
@@ -725,7 +771,6 @@ namespace ProjectName.Systems
                 Debug.Log("[TestAllInOneSetup] ✅ SpecialEffectsController 생성");
             }
 
-            // 테스트 더미
             for (int i = 0; i < _dummyCount; i++)
             {
                 float angle = (i / (float)_dummyCount) * 360f * Mathf.Deg2Rad;
@@ -757,7 +802,6 @@ namespace ProjectName.Systems
                 Debug.Log($"[TestAllInOneSetup] ✅ TestDummy_{i} 생성: 위치 {pos}");
             }
 
-            // 가스 분사기 장착
             var controller = FindAnyObjectByType<GasSprayerController>();
             if (controller != null)
             {
@@ -769,7 +813,6 @@ namespace ProjectName.Systems
 
         private void EnsureProceduralAnimation()
         {
-            // ProceduralAnimDebugger 추가 (선택적)
             if (FindAnyObjectByType<ProceduralAnimDebugger>() == null)
             {
                 var dbgGO = new GameObject("ProceduralAnimDebugger");
@@ -777,7 +820,6 @@ namespace ProjectName.Systems
                 Debug.Log("[TestAllInOneSetup] ✅ ProceduralAnimDebugger 생성");
             }
 
-            // TerrainCache
             if (FindAnyObjectByType<TerrainCache>() == null)
             {
                 var tcGO = new GameObject("TerrainCache");
@@ -785,7 +827,6 @@ namespace ProjectName.Systems
                 Debug.Log("[TestAllInOneSetup] ✅ TerrainCache 생성");
             }
 
-            // ProceduralLODSystem
             if (ProceduralLODSystem.Instance == null)
             {
                 var lodGO = new GameObject("ProceduralLODSystem");
@@ -793,7 +834,6 @@ namespace ProjectName.Systems
                 Debug.Log("[TestAllInOneSetup] ✅ ProceduralLODSystem 생성");
             }
 
-            // ParentVelocityProvider
             if (FindAnyObjectByType<ParentVelocityProvider>() == null)
             {
                 var pvGO = new GameObject("ParentVelocityProvider");
