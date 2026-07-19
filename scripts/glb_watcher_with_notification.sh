@@ -27,11 +27,11 @@ send_telegram_notification() {
     if [[ -x "$TELEGRAM_SEND_SCRIPT" ]]; then
         # The script expects token and chat ID as arguments, or they can be set via environment variables.
         # We assume the script is configured with the token and chat ID either in the script itself or via env.
-        timeout 10 "$TELEGRAM_SEND_SCRIPT" "$message"
+        timeout 10 "$TELEGRAM_SEND_SCRIPT" "$message" || true
         log "Sent Telegram notification: $message"
     else
-            log "WARNING: Telegram send script not found or not executable at $TELEGRAM_SEND_SCRIPT"
-            log "INFO: Telegram notifications disabled."
+        log "WARNING: Telegram send script not found or not executable at $TELEGRAM_SEND_SCRIPT"
+        log "INFO: Telegram notifications disabled."
     fi
 }
 
@@ -65,7 +65,7 @@ main() {
         initial_count=$(python3 -c "
 import json, sys
 try:
-    with open(\"$JSON_STATE_FILE\") as f:
+    with open('$JSON_STATE_FILE') as f:
         data = json.load(f)
     if isinstance(data, list):
         print(len(data))
@@ -99,7 +99,7 @@ except Exception as e:
         final_count=$(python3 -c "
 import json, sys
 try:
-    with open(\"$JSON_STATE_FILE\") as f:
+    with open('$JSON_STATE_FILE') as f:
         data = json.load(f)
     if isinstance(data, list):
         print(len(data))
@@ -121,7 +121,11 @@ except Exception as e:
         message="🎮 GLB Watcher: Successfully processed $new_count new GLB file(s)."
         send_telegram_notification "$message"
     else
-        log "No new GLB files were processed."
+        if [[ $inner_exit -ne 0 ]]; then
+            log "Inner script failed and no new files were processed."
+        else
+            log "No new GLB files were processed."
+        fi
     fi
 
     log "=== GLB Wrapper Finished ==="

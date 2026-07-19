@@ -20,17 +20,17 @@ log() {
 # Unity cleanup function (enhanced with verification)
 unity_cleanup() {
     log "[$(date '+%Y-%m-%d %H:%M:%S')] Killing Unity processes..."
-    # Kill main Unity processes
-    powershell.exe -NoProfile "Get-Process | Where-Object { $_.ProcessName -like '*Unity*' } | Stop-Process -Force" 2>/dev/null || true
-    # Kill Unity background services
+    # Kill all Unity processes with force
+    powershell.exe -NoProfile "Get-Process | Where-Object { $_.ProcessName -like '*Unity*' } | Stop-Process -Force -ErrorAction SilentlyContinue" 2>/dev/null || true
+    # Kill Unity background services with force
     powershell.exe -Command "Get-Process -Name UnityHub,UnityPackageManager,UnityCrashHandler64,'Unity.Licensing.Client' -ErrorAction SilentlyContinue | Stop-Process -Force" 2>/dev/null || true
     
     # Remove lock files
     find /mnt/c/Unity/code/Library -name "*-lock" -delete 2>/dev/null || true
     rm -f /mnt/c/Unity/code/Library/ilpp.pid 2>/dev/null || true
     
-    # Verify termination with retry logic
-    local max_attempts=5
+    # Verify termination with reduced retry logic
+    local max_attempts=3
     local attempt=1
     while [[ $attempt -le $max_attempts ]]; do
         local unity_running=$(powershell.exe -NoProfile "Get-Process | Where-Object { $_.ProcessName -like '*Unity*' }" 2>/dev/null | grep -v "^\\s*$")
@@ -41,19 +41,22 @@ unity_cleanup() {
         fi
         
         log "Attempt $attempt: Still waiting for Unity processes to terminate..."
-        sleep 3
+        sleep 2
         ((attempt++))
     done
     
+    # Additional aggressive cleanup for known stubborn processes
+    powershell.exe -NoProfile "Get-Process -Name 'Unity.Licensing.Client' -ErrorAction SilentlyContinue | Stop-Process -Force" 2>/dev/null || true
+    
     # Final wait to ensure cleanup completes
-    sleep 3
+    sleep 2
 }
 
 # Function to get allowed basenames from ModelMapping.cs
 # Fixed version as suggested in the skill
 get_allowed_basenames() {
-    grep -o '{\"[^\"]*' "$MODEL_MAPPING_CS" |
-        sed 's/{\"//' |
+    grep -o '{\\\"[^\\\"]*' "$MODEL_MAPPING_CS" |
+        sed 's/{\\\"//' |
         tr '[:upper:]' '[:lower:]' |
         sort | uniq
 }
@@ -62,7 +65,7 @@ get_allowed_basenames() {
 update_state_file() {
     local basenames=("$@")
     # Write each basename on a new line
-    printf '%s\n' "${basenames[@]}" > "$STATE_FILE"
+    printf '%s\\n' "${basenames[@]}" > "$STATE_FILE"
 }
 
 # Function to check if a basename is already processed
@@ -114,7 +117,7 @@ main() {
         # Get basename without extension
         filename=$(basename "$glb_path")
         basename="${filename%.glb}"
-        basename_lower=$(echo "$basename" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
+        basename_lower=$(echo "$basename" | tr '[:upper:]' '[:lower:]')
         
         log "Processing $filename (basename: $basename)"
         
@@ -135,14 +138,16 @@ main() {
         "$UNITY_EDITOR" -quit -batchmode -projectPath "$PROJECT_PATH_WIN" -executeMethod TestCompile.CompileTest -logFile "$COMPILE_LOG_WIN" || true
         compile_exit=$?
         
-        # Check compile log for errors
-        if grep -i "error cs" "$COMPILE_LOG" >/dev/null 2>&1; then
-            log "  -> Compiler errors found in $COMPILE_LOG. Skipping swap."
+        # Check compile log for errors or Unity instance conflicts
+        if grep -i "error cs" "$COMPILE_LOG" >/dev/null 2>&1 || \
+           grep -i "another unity instance is running" "$COMPILE_LOG" >/dev/null 2>&1 || \
+           grep -i "failed to acquire global mutex" "$COMPILE_LOG" >/dev/null 2>&1; then
+            log "  -> Compiler errors or Unity instance conflict found in $COMPILE_LOG. Skipping swap."
             # Continue to next file
             continue
         fi
         
-        # If we get here, compile test passed (no error CS)
+        # If we get here, compile test passed (no error CS and no Unity conflicts)
         log "  -> Compile test passed (no error CS)."
         
         # Step 6: Run the swap
@@ -150,16 +155,19 @@ main() {
         "$UNITY_EDITOR" -quit -batchmode -projectPath "$PROJECT_PATH_WIN" -executeMethod ModelSwapper.SwapAndSave -logFile "$SWAP_LOG_WIN" || true
         swap_exit=$?
         
-        # Check swap log for success
+        # Check swap log for success and no Unity errors
         if grep -qi "success" "$SWAP_LOG" || grep -qi "completed" "$SWAP_LOG"; then
-            log "  -> Swap successful."
-            # Add to state file
-            add_to_state "$basename_lower"
-            ((processed_count++))
+            # Additionally, ensure no Unity errors
+            if ! grep -i "another unity instance is running" "$SWAP_LOG" >/dev/null 2>&1 && ! grep -i "failed to acquire global mutex" "$SWAP_LOG" >/dev/null 2>&1; then
+                log "  -> Swap successful."
+                # Add to state file
+                add_to_state "$basename_lower"
+                ((processed_count++))
+            else
+                log "  -> Swap failed due to Unity instance conflict."
+            fi
         else
             log "  -> Swap failed or not confirmed in log."
-            # Optionally, check the swap log for errors
-            # We'll just continue to next file
         fi
     done
     
