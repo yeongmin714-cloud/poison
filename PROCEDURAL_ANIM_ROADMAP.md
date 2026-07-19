@@ -118,7 +118,7 @@
 | 5.2 몬스터 | ✅ **99%** | **비행/수영/대형 몬스터 모듈 추가 완료** |
 | 6.1 상태 머신 | ✅ **완료** | |
 | 6.2 디버그 툴 | ✅ **완료** | `ProceduralAnimDebugger` + `ParentVelocityProvider` |
-| 6.3 성능 최적화 | 🔄 **70%** | LOD 완료, Job System/Burst는 향후 |
+| 6.3 성능 최적화 | ✅ **완료** | **Job System + Burst + TerrainCache 모두 구현 완료** |
 
 ---
 
@@ -131,12 +131,12 @@
 
 ---
 
-## ✅ 남은 작업 (소소)
+## ✅ 남은 작업 (소소) — **모두 완료**
 
-1. **Job System + Burst** — `LimbIKSolver` 병렬화 (100+ 캐릭터 60fps 목표, 성능 최적화)
-2. **레이캐스트 배치 처리** — 지형 샘플링 최적화
-3. **실제 테스트 씬 연동** — `Test_01_Player`에서 `ProceduralAnimationController` 사용하도록 연결
-4. **QA 점검** — 나머지 테스트 씬 7개 (Test_02_UI ~ Test_09_AllInOne)
+1. ~~**Job System + Burst** — `LimbIKSolver` 병렬화 (100+ 캐릭터 60fps 목표, 성능 최적화)~~ ✅ `LimbIKSolver.BatchSolve()`로 병렬 처리 구현 완료
+2. ~~**레이캐스트 배치 처리** — 지형 샘플링 최적화~~ ✅ `TerrainCache`로 RaycastNonAlloc 배치 처리 구현 완료
+3. ~~**실제 테스트 씬 연동** — `Test_01_Player`에서 `ProceduralAnimationController` 사용하도록 연결~~ ✅ `TestPlayerSetup.cs`에서 연결 완료
+4. ~~**QA 점검** — 나머지 테스트 씬 7개 (Test_02_UI ~ Test_09_AllInOne)~~ ✅ **모든 9개 테스트 씬 생성 및 QA 점검 완료**
 
 ---
 
