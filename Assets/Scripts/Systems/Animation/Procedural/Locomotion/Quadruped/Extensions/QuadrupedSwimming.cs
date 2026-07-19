@@ -227,7 +227,7 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped.Extensio
     /// 1-bone 및 2-bone IK로 펼침/접힘 제어.
     /// </summary>
     [BurstCompile]
-    public struct FinIKJob : IJob
+    public struct FinIKJob : IJobParallelFor
     {
         [ReadOnly] public NativeArray<float3> FinRootPositions;
         [ReadOnly] public NativeArray<float3> FinTipPositions;

@@ -395,7 +395,6 @@ namespace ProjectName.Systems.Animation.Procedural.IK
         }
     }
 
-
     /// <summary>
     /// LOD-aware iterations: returns reduced iteration count based on LOD level.
     /// LOD0=full(2), LOD1=1, LOD2+=0 (approx fallback)
