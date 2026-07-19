@@ -1,7 +1,9 @@
 using UnityEngine;
+using UnityEngine.UI;
 using ProjectName.Core;
 using ProjectName.Core.Data;
-using ProjectName.UI;
+using System;
+using System.Reflection;
 
 namespace ProjectName.Systems
 {
@@ -10,6 +12,7 @@ namespace ProjectName.Systems
     /// CraftPresetManager, EquipmentManager, WarehouseSystem, PlayerInventory,
     /// CraftSuccessSystem, EquipmentDurabilitySystem, EquipmentRepairSystem,
     /// CraftResultPopup, UIManager, InventoryWindow, RecipeWindow 구성.
+    /// UI 타입은 리플렉션으로 접근 (어셈블리 순환 참조 방지).
     /// </summary>
     public class TestCraftSetup : MonoBehaviour
     {
@@ -26,8 +29,19 @@ namespace ProjectName.Systems
         [SerializeField] private float _orbitRadius = 30f;
         [SerializeField] private float _defaultPitch = 45f;
 
+        // 리플렉션용 캐시
+        private Type _uiManagerType;
+        private Type _uiWindowType;
+        private Type _keyBindingsType;
+        private Type _phase33ThemesType;
+        private Type _inventoryWindowType;
+        private Type _questWindowType;
+        private Type _recipeWindowType;
+        private Type _craftResultPopupType;
+
         private void Awake()
         {
+            CacheUIReflectionTypes();
             EnsureEventSystem();
             EnsureGameManager();
             CreateUIManager();
@@ -40,6 +54,32 @@ namespace ProjectName.Systems
             AddTestMaterials();
             
             Debug.Log("[TestCraftSetup] ✅ 크래프트+인벤토리 테스트 씬 설정 완료");
+        }
+
+        private void CacheUIReflectionTypes()
+        {
+            var uiAssembly = Assembly.Load("ProjectName.UI");
+            if (uiAssembly == null)
+            {
+                Debug.LogWarning("[TestCraftSetup] ProjectName.UI 어셈블리를 찾을 수 없습니다. UI 테스트는 건너뜁니다.");
+                _createAllWindows = false;
+                return;
+            }
+
+            _uiManagerType = uiAssembly.GetType("ProjectName.UI.Core.UIManager");
+            _uiWindowType = uiAssembly.GetType("ProjectName.UI.UIWindow");
+            _keyBindingsType = uiAssembly.GetType("ProjectName.UI.KeyBindings");
+            _phase33ThemesType = uiAssembly.GetType("ProjectName.UI.Themes.Phase33_Themes");
+            _inventoryWindowType = uiAssembly.GetType("ProjectName.UI.InventoryWindow");
+            _questWindowType = uiAssembly.GetType("ProjectName.UI.QuestWindow");
+            _recipeWindowType = uiAssembly.GetType("ProjectName.UI.RecipeWindow");
+            _craftResultPopupType = uiAssembly.GetType("ProjectName.UI.CraftResultPopup");
+
+            if (_uiManagerType == null || _uiWindowType == null)
+            {
+                Debug.LogWarning("[TestCraftSetup] UI 핵심 타입을 찾을 수 없습니다. UI 테스트는 건너뜁니다.");
+                _createAllWindows = false;
+            }
         }
 
         private void EnsureEventSystem()
@@ -69,73 +109,79 @@ namespace ProjectName.Systems
 
         private void CreateUIManager()
         {
-            if (UIManager.Instance == null)
+            if (!_createAllWindows || _uiManagerType == null) return;
+
+            if (_uiManagerType.GetProperty("Instance")?.GetValue(null) == null)
             {
                 var uiMgrGO = new GameObject("UIManager");
-                var uiMgr = uiMgrGO.AddComponent<UIManager>();
-
-                // KeyBindings 자동 생성
-                var kb = ScriptableObject.CreateInstance<KeyBindings>();
-                uiMgr.SetKeyBindings(kb);
-
+                var uiMgr = uiMgrGO.AddComponent(_uiManagerType);
+                var kb = ScriptableObject.CreateInstance(_keyBindingsType);
+                _uiManagerType.GetMethod("SetKeyBindings")?.Invoke(uiMgr, new object[] { kb });
                 Debug.Log("[TestCraftSetup] ✅ UIManager 생성 + KeyBindings 연결");
             }
         }
 
         private void CreateCanvas()
         {
+            if (!_createAllWindows) return;
+
             if (FindAnyObjectByType<Canvas>() == null)
             {
                 var canvasGO = new GameObject("Canvas");
                 var canvas = canvasGO.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                canvasGO.AddComponent<UnityEngine.UI.CanvasScaler>();
-                canvasGO.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+                canvasGO.AddComponent<CanvasScaler>();
+                canvasGO.AddComponent<GraphicRaycaster>();
                 Debug.Log("[TestCraftSetup] ✅ Canvas 생성");
             }
         }
 
         private void CreateUIWindows()
         {
-            if (!_createAllWindows) return;
+            if (!_createAllWindows || _uiWindowType == null) return;
 
             var canvas = FindAnyObjectByType<Canvas>();
             Transform canvasTransform = canvas != null ? canvas.transform : null;
 
-            // InventoryWindow
-            CreateWindow<InventoryWindow>("InventoryWindow", canvasTransform);
-            // QuestWindow
-            CreateWindow<QuestWindow>("QuestWindow", canvasTransform);
-            // RecipeWindow
-            CreateWindow<RecipeWindow>("RecipeWindow", canvasTransform);
-            // CraftResultPopup
-            CreateWindow<CraftResultPopup>("CraftResultPopup", canvasTransform);
-            // EquipmentWindow (있다면)
-            // CreateWindow<EquipmentWindow>("EquipmentWindow", canvasTransform);
+            CreateUIWindow(_inventoryWindowType, "InventoryWindow", canvasTransform);
+            CreateUIWindow(_questWindowType, "QuestWindow", canvasTransform);
+            CreateUIWindow(_recipeWindowType, "RecipeWindow", canvasTransform);
+            CreateUIWindow(_craftResultPopupType, "CraftResultPopup", canvasTransform);
 
             Debug.Log("[TestCraftSetup] ✅ UI 윈도우 생성 완료");
         }
 
-        private void CreateWindow<T>(string name, Transform parent) where T : UIWindow
+        private void CreateUIWindow(Type windowType, string name, Transform parent)
         {
+            if (windowType == null || _uiWindowType == null) return;
+
             var go = new GameObject(name, typeof(RectTransform));
             if (parent != null)
                 go.transform.SetParent(parent, false);
-            var window = go.AddComponent<T>();
-            window.ApplyTheme(GetDefaultThemeForWindow(name));
+            var window = go.AddComponent(windowType);
+            
+            var theme = GetDefaultThemeForWindow(name);
+            if (theme != null)
+            {
+                var applyThemeMethod = _uiWindowType.GetMethod("ApplyTheme");
+                applyThemeMethod?.Invoke(window, new object[] { theme });
+            }
+            
             Debug.Log($"[TestCraftSetup] ✅ {name} 생성됨");
         }
 
-        private UIDesignTheme GetDefaultThemeForWindow(string windowName)
+        private object GetDefaultThemeForWindow(string windowName)
         {
-            switch (windowName)
+            if (_phase33ThemesType == null) return null;
+
+            return windowName switch
             {
-                case "InventoryWindow": return Phase33_Themes.CreateInventoryTheme();
-                case "QuestWindow": return Phase33_Themes.CreateQuestTheme();
-                case "RecipeWindow": return Phase33_Themes.CreateRecipeTheme();
-                case "CraftResultPopup": return Phase33_Themes.CreateCraftingTheme();
-                default: return Phase33_Themes.CreateInventoryTheme();
-            }
+                "InventoryWindow" => _phase33ThemesType.GetMethod("CreateInventoryTheme")?.Invoke(null, null),
+                "QuestWindow" => _phase33ThemesType.GetMethod("CreateQuestTheme")?.Invoke(null, null),
+                "RecipeWindow" => _phase33ThemesType.GetMethod("CreateRecipeTheme")?.Invoke(null, null),
+                "CraftResultPopup" => _phase33ThemesType.GetMethod("CreateCraftingTheme")?.Invoke(null, null),
+                _ => _phase33ThemesType.GetMethod("CreateInventoryTheme")?.Invoke(null, null)
+            };
         }
 
         private void SetupPlayer()
@@ -177,9 +223,6 @@ namespace ProjectName.Systems
             // PlayerInventory
             if (player.GetComponent<PlayerInventory>() == null)
                 player.AddComponent<PlayerInventory>();
-
-            // CraftPresetManager 접근용
-            // EquipmentManager는 씬에 있으면 자동으로 사용
 
             player.transform.position = Vector3.zero;
             Debug.Log("[TestCraftSetup] ✅ Player 설정 완료 (인벤토리 포함)");
@@ -249,14 +292,12 @@ namespace ProjectName.Systems
         {
             if (!_addTestMaterials) return;
 
-            // PlayerInventory에 테스트 재료 추가
             var player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
             {
                 var inventory = player.GetComponent<PlayerInventory>();
                 if (inventory != null)
                 {
-                    // 기본 재료들 추가
                     inventory.AddItem("iron_ore", 50);
                     inventory.AddItem("wood_log", 50);
                     inventory.AddItem("herb_basic", 30);
@@ -268,7 +309,6 @@ namespace ProjectName.Systems
                 }
             }
 
-            // CraftPresetManager 확인
             if (CraftPresetManager.Instance != null)
             {
                 Debug.Log("[TestCraftSetup] ✅ CraftPresetManager 사용 가능");
