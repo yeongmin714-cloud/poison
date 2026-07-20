@@ -39,37 +39,43 @@ namespace ProjectName.UI
         private Rect[] _slotRects;
         private int _hoveredSlot = -1;
 
-        public override void Awake()
-                {
-                    if (Instance != null && Instance != this)
-                    {
-                        Destroy(gameObject);
-                        return;
-                    }
-                    Instance = this;
-                    // DontDestroyOnLoad은 서브씬 매니저가 관리 (Root GameObject에서만 유효)
-                    if (transform.parent == null)
-                        DontDestroyOnLoad(gameObject);
+        protected override void Awake()
+        {
+            base.Awake();
 
-                    _slotRects = new Rect[6];
-                }
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
+            // DontDestroyOnLoad은 서브씬 매니저가 관리 (Root GameObject에서만 유효)
+            if (transform.parent == null)
+                DontDestroyOnLoad(gameObject);
 
-                public override void OnDestroy()
-                {
-                    if (_texWhite != null)
-                    {
-                        Destroy(_texWhite);
-                        _texWhite = null;
-                    }
-                }
+            _slotRects = new Rect[6];
+        }
 
-                public override void OnGUI()
-                {
-                    if (QuickSlotManager.Instance == null) return;
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
 
-                    InitStyles();
-                    DrawQuickSlots();
-                }
+            if (_texWhite != null)
+            {
+                Destroy(_texWhite);
+                _texWhite = null;
+            }
+        }
+
+        private void Update()
+        {
+            HandleKeyInput();
+        }
+
+        protected override void OnGUI()
+        {
+            base.OnGUI();
+
             if (QuickSlotManager.Instance == null) return;
 
             InitStyles();
@@ -157,6 +163,55 @@ namespace ProjectName.UI
                 {
                     // 빈 슬롯 — 반투명 회색
                     GUI.Box(slotRect, "", _styleEmptySlot);
+                }
+
+                // === 테두리 ===
+                DrawColoredRect(new Rect(slotRect.x, slotRect.y, slotRect.width, 1), _slotBorderColor);
+                DrawColoredRect(new Rect(slotRect.x, slotRect.y + slotRect.height - 1, slotRect.width, 1), _slotBorderColor);
+                DrawColoredRect(new Rect(slotRect.x, slotRect.y, 1, slotRect.height), _slotBorderColor);
+                DrawColoredRect(new Rect(slotRect.x + slotRect.width - 1, slotRect.y, 1, slotRect.height), _slotBorderColor);
+
+                // === 키 번호 표시 (1~6) ===
+                GUI.Label(new Rect(sx, startY, 20, 16), (i + 1).ToString(), _styleKeyLabel);
+
+                // === 아이템이 있으면 아이콘 + 수량 표시 ===
+                if (hasItem)
+                {
+                    var itemData = QuickSlotManager.Instance.GetItemInSlot(i);
+                    if (itemData != null)
+                    {
+                        // 아이콘 (ItemIconDatabase 사용)
+                        Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(itemData);
+                        if (iconTex != null)
+                        {
+                            // 아이콘을 슬롯 중앙에 40×40 크기로 표시
+                            float iconSize = 40f;
+                            float iconOffset = (_slotSize - iconSize) * 0.5f;
+                            GUI.DrawTexture(new Rect(sx + iconOffset, startY + iconOffset, iconSize, iconSize), iconTex);
+                        }
+                        else
+                        {
+                            // 폴백: 카테고리 색상 사각형
+                            var oldColor = GUI.color;
+                            GUI.color = GetCategoryColor(itemData.category);
+                            float iconSize = 40f;
+                            float iconOffset = (_slotSize - iconSize) * 0.5f;
+                            GUI.DrawTexture(new Rect(sx + iconOffset, startY + iconOffset, iconSize, iconSize), _texWhite);
+                            GUI.color = oldColor;
+                        }
+
+                        // 인벤토리에서 실제 아이템 개수 가져오기
+                        int invCount = 0;
+                        if (PlayerInventory.Instance != null)
+                        {
+                            invCount = PlayerInventory.Instance.GetItemCount(itemData.id);
+                        }
+                        if (invCount > 0)
+                        {
+                            GUI.Label(new Rect(sx, startY, _slotSize, _slotSize),
+                                $"x{invCount}", _styleCountLabel);
+                        }
+                    }
                 }
 
                 // === 테두리 ===
@@ -446,29 +501,6 @@ namespace ProjectName.UI
             GUI.color = color;
             GUI.DrawTexture(rect, _texWhite);
             GUI.color = oldColor;
-        }
-
-        // ===== 공개 API (InventoryWindow 연동용) =====
-
-        /// <summary>
-        /// 외부에서 특정 아이템을 퀵슬롯에 등록 (InventoryWindow에서 호출)
-        /// </summary>
-        public void RegisterItem(int slotIndex, PlayerInventory.ItemData itemData)
-        {
-            if (slotIndex < 0 || slotIndex >= 6) return;
-            if (itemData == null) return;
-            if (QuickSlotManager.Instance == null) return;
-
-            QuickSlotManager.Instance.SetSlot(slotIndex, itemData);
-        }
-
-        /// <summary>
-        /// 외부에서 퀵슬롯 초기화 (InventoryWindow에서 호출)
-        /// </summary>
-        public void ClearSlot(int slotIndex)
-        {
-            if (slotIndex < 0 || slotIndex >= 6) return;
-            QuickSlotManager.Instance?.ClearSlot(slotIndex);
         }
     }
 }

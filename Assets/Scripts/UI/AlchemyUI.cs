@@ -11,8 +11,9 @@ namespace ProjectName.UI
 {
     /// <summary>
     /// 연금술 UI - 두 가지 약초를 선택하여 제조합니다.
+    /// UIWindow를 상속받아 Show()/Hide()/IsOpen을 사용합니다.
     /// </summary>
-    public class AlchemyUI : MonoBehaviour
+    public class AlchemyUI : UIWindow
     {
         // Crafting parameters - adjust these to balance gameplay
         [Header("Alchemy Crafting Parameters")]
@@ -26,7 +27,7 @@ namespace ProjectName.UI
         [SerializeField] private int expReward = 25;
 
         [Header("Phase 33 Theme")]
-        [SerializeField] private UIDesignTheme _theme;
+        [SerializeField] private UIDesignTheme _themeOverride;
 
         private Dropdown herbDropdown1;
         private Dropdown herbDropdown2;
@@ -37,14 +38,16 @@ namespace ProjectName.UI
         private Image herbIconImage2;
         private GameObject _panel;
 
-        /// <summary>현재 AlchemyUI가 열려있는지 여부</summary>
-        public bool IsOpen { get; private set; }
+        /// <summary>현재 AlchemyUI가 열려있는지 여부 (UIWindow.IsOpen을 숨김)</summary>
+        public new bool IsOpen { get; private set; }
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
+
             // Phase 33: create alchemy theme
-            if (_theme == null)
-                _theme = Phase33_Themes.CreateAlchemyTheme();
+            if (_themeOverride == null)
+                _themeOverride = Phase33_Themes.CreateAlchemyTheme();
 
             CreateUI();
             PopulateDropdowns();
@@ -59,8 +62,22 @@ namespace ProjectName.UI
                 _panel.SetActive(false);
         }
 
-        /// <summary>AlchemyUI를 화면에 표시합니다.</summary>
-        public void Show()
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+
+            // Clean up listeners to prevent memory leaks
+            if (herbDropdown1 != null)
+                herbDropdown1.onValueChanged.RemoveAllListeners();
+            if (herbDropdown2 != null)
+                herbDropdown2.onValueChanged.RemoveAllListeners();
+            if (craftButton != null)
+                craftButton.onClick.RemoveAllListeners();
+            if (resetButton != null)
+                resetButton.onClick.RemoveAllListeners();
+        }
+
+        public override void Show()
         {
             if (_panel == null)
             {
@@ -77,8 +94,7 @@ namespace ProjectName.UI
             Debug.Log("[AlchemyUI] 연금술 UI 열림");
         }
 
-        /// <summary>AlchemyUI를 화면에서 숨깁니다.</summary>
-        public void Hide()
+        public override void Hide()
         {
             if (_panel != null)
                 _panel.SetActive(false);
@@ -111,7 +127,7 @@ namespace ProjectName.UI
 
             // Add background image with theme colors
             Image bg = panel.AddComponent<Image>();
-            bg.color = _theme != null ? _theme.BgColor : new Color(0f, 0f, 0f, 0.7f);
+            bg.color = _themeOverride != null ? _themeOverride.BgColor : new Color(0f, 0f, 0f, 0.7f);
 
             // Create layout
             VerticalLayoutGroup layout = panel.AddComponent<VerticalLayoutGroup>();
@@ -136,7 +152,7 @@ namespace ProjectName.UI
             GameObject resultGo = CreateLabel(panel, "", out resultText);
             resultText.alignment = TextAnchor.MiddleCenter;
             resultText.fontSize = 64;
-            resultText.color = _theme != null ? _theme.AccentColor : Color.yellow;
+            resultText.color = _themeOverride != null ? _themeOverride.AccentColor : Color.yellow;
         }
 
         private void PopulateDropdowns()
@@ -226,7 +242,7 @@ namespace ProjectName.UI
             GameObject go = new GameObject("Button");
             go.transform.SetParent(parent.transform, false);
             Image bg = go.AddComponent<Image>();
-            bg.color = _theme != null ? _theme.AccentColor : new Color(0.2f, 0.6f, 0.2f, 0.9f);
+            bg.color = _themeOverride != null ? _themeOverride.AccentColor : new Color(0.2f, 0.6f, 0.2f, 0.9f);
             buttonOut = go.AddComponent<Button>();
             Text txt = go.AddComponent<Text>();
             txt.text = text;
@@ -358,9 +374,9 @@ namespace ProjectName.UI
         {
             // Determine category based on result name characteristics
             PlayerInventory.ItemCategory category = PlayerInventory.ItemCategory.Potion; // Default to potion
-            
+
             string name = result.resultName;
-            
+
             // Strong material indicators
             bool isStrongMaterial = name.Contains("접착제") ||  // adhesive
                                    name.Contains("코팅제") ||  // coating
@@ -371,13 +387,13 @@ namespace ProjectName.UI
                                    name.Contains("트랩") ||    // trap
                                    name.Contains("장비") ||    // equipment
                                    (name.Contains("용액") && !name.Contains("생명")) ||  // solution (except life water related)
-                                   (name.Contains("액") && 
+                                   (name.Contains("액") &&
                                     (name.Contains("강화") ||  // strengthening liquid
                                      name.Contains("보호") || // protection liquid
                                      name.Contains("내성") || // resistance liquid
                                      name.Contains("방어") || // defense liquid
                                      name.Contains("공격"))); // attack liquid
-            
+
             // Strong consumable/potion indicators
             bool isStrongPotion = name.Contains("약") ||      // medicine/drug
                                  name.Contains("약물") ||    // medicine
@@ -391,17 +407,17 @@ namespace ProjectName.UI
                                  name.Contains("엑기스") ||   // concentrated extract
                                  name.Contains("수") && name.Length > 2 && !name.Contains("이슬") && !name.Contains("불") // water-like but not obvious compounds
                                  || (name.Contains("엘릭서") || name.Contains("육수")); // elixir, broth
-            
+
             // Special cases that are clearly materials despite sounding like potions
             bool isForcedMaterial = name.Contains("불사의 장비") ||  // immortal equipment
                                    name.Contains("생명 보호막") ||    // life protection barrier (equipment buff)
                                    name.Contains("영웅의 신속");     // hero's swiftness (equipment buff)
-            
+
             // Special cases that are clearly consumables despite material-like names
             bool isForcedPotion = name.Contains("괴력 물약") ||  // strongman potion (explicit)
                                  name.Contains("만능 치유액") || // panacea healing liquid
                                  name.Contains("순수한 생명수");  // pure life water
-            
+
             if (isForcedMaterial || (isStrongMaterial && !isStrongPotion))
             {
                 category = PlayerInventory.ItemCategory.Material;
@@ -411,7 +427,7 @@ namespace ProjectName.UI
                 category = PlayerInventory.ItemCategory.Potion;
             }
             // Otherwise keep default (Potion) for borderline cases
-            
+
             return new PlayerInventory.ItemData
             {
                 id = $"combo_{result.resultId}",
@@ -423,7 +439,7 @@ namespace ProjectName.UI
             };
         }
 
-        private Recipe CreateRecipe(PlayerInventory.ItemData requiredItem1, PlayerInventory.ItemData requiredItem2, PlayerInventory.ItemData resultItem, 
+        private Recipe CreateRecipe(PlayerInventory.ItemData requiredItem1, PlayerInventory.ItemData requiredItem2, PlayerInventory.ItemData resultItem,
                                   string herbName1, string herbName2, HerbComboResult result)
         {
             // Create a new Recipe instance (not a ScriptableObject, just a runtime object)
@@ -438,7 +454,7 @@ namespace ProjectName.UI
             recipe.requiredLevel = requiredLevel;
             recipe.expReward = expReward;
             recipe.recipeType = Recipe.RecipeType.Alchemy;
-            
+
             return recipe;
         }
 
@@ -490,7 +506,7 @@ namespace ProjectName.UI
                     PlayerStats.Instance.AddEXP(recipe.expReward);
                 else
                     Debug.LogWarning("[AlchemyUI] PlayerStats.Instance is null, cannot award EXP.");
-                
+
                 Debug.Log($"[AlchemyUI] 🎉 제조 성공! {recipe.resultItem.displayName} 획득 및 {recipe.expReward} EXP 획득");
                 RecipeDiscoverySystem.MarkDiscovered(recipe.resultItem.displayName);
             }
@@ -498,53 +514,23 @@ namespace ProjectName.UI
             {
                 // Failure: determine failure type (same as CraftingStation)
                 float failureRoll = Random.value;
-                bool preserve = false; // whether materials are preserved
-                bool loseOne = false;  // lose one random material
-                bool loseAll = false;  // lose all materials
 
-                if (failureRoll < 0.3f) // 30% preserve materials
-                {
-                    preserve = true;
-                    Debug.Log("[AlchemyUI] 제조 실패 but 재료 보존 (30%)");
-                }
-                else if (failureRoll < 0.8f) // 50% lose one random material
-                {
-                    loseOne = true;
-                    Debug.Log("[AlchemyUI] 제조 실패: 랜덤 재료 하나 손실 (50%)");
-                }
-                else // 20% lose all materials
-                {
-                    loseAll = true;
-                    Debug.Log("[AlchemyUI] 제조 실패: 모든 재료 손실 (20%)");
-                }
+                // 70% chance: partial failure (only primary material lost)
+                // 30% chance: total failure (all materials lost)
+                bool totalLoss = failureRoll < 0.3f;
 
-                // Apply failure effects
-                if (!preserve)
+                if (totalLoss)
                 {
-                    if (loseAll)
-                    {
-                        inventory.RemoveItem(recipe.requiredItem1.id, 1);
-                        if (recipe.requiredItem2 != null)
-                            inventory.RemoveItem(recipe.requiredItem2.id, 1);
-                    }
-                    else if (loseOne)
-                    {
-                        // Randomly choose one of the required items to lose
-                        // Build a list of available non-null items
-                        var availableItems = new List<PlayerInventory.ItemData>();
-                        if (recipe.requiredItem1 != null) availableItems.Add(recipe.requiredItem1);
-                        if (recipe.requiredItem2 != null) availableItems.Add(recipe.requiredItem2);
-
-                        if (availableItems.Count > 0)
-                        {
-                            var lostItem = availableItems[Random.Range(0, availableItems.Count)];
-                            inventory.RemoveItem(lostItem.id, 1);
-                        }
-                    }
+                    inventory.RemoveItem(recipe.requiredItem1.id, 1);
+                    if (recipe.requiredItem2 != null)
+                        inventory.RemoveItem(recipe.requiredItem2.id, 1);
+                    Debug.Log("[AlchemyUI] 💥 제조 완전 실패! 모든 재료 소실");
                 }
-
-                // No EXP awarded on failure
-                Debug.Log("[AlchemyUI] 제조 실패. 경험치 획득 없음.");
+                else
+                {
+                    inventory.RemoveItem(recipe.requiredItem1.id, 1);
+                    Debug.Log("[AlchemyUI] ⚠ 제조 부분 실패! 주재료만 소실");
+                }
             }
 
             return success;
@@ -564,19 +550,6 @@ namespace ProjectName.UI
                 UpdateHerbIcon2(herbDropdown2.options[0].text);
             }
             resultText.text = "";
-        }
-
-        private void OnDestroy()
-        {
-            // Clean up listeners to prevent memory leaks
-            if (herbDropdown1 != null)
-                herbDropdown1.onValueChanged.RemoveAllListeners();
-            if (herbDropdown2 != null)
-                herbDropdown2.onValueChanged.RemoveAllListeners();
-            if (craftButton != null)
-                craftButton.onClick.RemoveAllListeners();
-            if (resetButton != null)
-                resetButton.onClick.RemoveAllListeners();
         }
     }
 }

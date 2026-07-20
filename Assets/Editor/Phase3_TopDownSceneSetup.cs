@@ -123,7 +123,7 @@ public static class Phase3_TopDownSceneSetup
         var wareGO = new GameObject("WarehouseWindow");
         wareGO.transform.SetParent(uiGO.transform);
         wareGO.SetActive(false);
-        var wareWindow = wareGO.AddComponent<WarehouseWindow>();
+        var wareWindow = wareGO.AddComponent<WarehouseUI>();
         uiManager.warehouseWindow = wareWindow;
 
         // CraftWindow — 제작

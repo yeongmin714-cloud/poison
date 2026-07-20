@@ -187,5 +187,29 @@ namespace ProjectName.Editor
             }
             return tiers.ToArray();
         }
+
+        /// <summary>
+        /// 인식된 모든 GLB 파일명 배열 반환 (테스트용)
+        /// </summary>
+        public static string[] GetRecognizedFiles()
+        {
+            return Map.Keys.ToArray();
+        }
+
+        /// <summary>
+        /// 주어진 파일명 배열 중 Map에 있는 키만 필터링하여 반환 (테스트용)
+        /// </summary>
+        public static string[] GetRecognizedFiles(string[] fileNames)
+        {
+            var result = new List<string>();
+            foreach (var fileName in fileNames)
+            {
+                // 확장자 제거
+                var nameWithoutExt = System.IO.Path.GetFileNameWithoutExtension(fileName);
+                if (Map.ContainsKey(nameWithoutExt))
+                    result.Add(nameWithoutExt);
+            }
+            return result.ToArray();
+        }
     }
 }
