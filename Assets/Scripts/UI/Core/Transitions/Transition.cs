@@ -16,5 +16,11 @@ namespace ProjectName.UI.Core.Transitions
         }
         
         protected abstract IEnumerator DoTransition();
+
+        // Update transition progress (for Update loop if needed)
+        public virtual void UpdateTransition()
+        {
+            // Override in subclasses if frame-by-frame update needed
+        }
     }
 }

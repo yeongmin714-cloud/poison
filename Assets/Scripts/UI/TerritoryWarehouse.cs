@@ -194,13 +194,12 @@ namespace ProjectName.UI
 
         private void OpenWarehouseUI()
         {
-            if (UIManager.Instance != null && UIManager.warehouseWindow != null)
+            if (UIManager.Instance != null && UIManager.Instance.warehouseWindow != null)
             {
-                var warehouseUI = UIManager.warehouseWindow;
+                var warehouseUI = UIManager.Instance.warehouseWindow;
                 if (warehouseUI != null)
                 {
-                    warehouseUI.SetTerritory(_territoryId);
-                    warehouseUI.Open();
+                    warehouseUI.gameObject.SetActive(true);
                     Debug.Log($"[TerritoryWarehouse] 창고 UI 열림 (영지: {_territoryId})");
                 }
                 else

@@ -66,7 +66,7 @@ namespace ProjectName.UI
 
             if (_uiManager != null)
             {
-                _uiManager.ToggleWindow(_churchUI);
+                _uiManager.OpenWindow(_churchUI);
             }
             else
             {

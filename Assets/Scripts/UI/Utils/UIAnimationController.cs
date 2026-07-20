@@ -1,7 +1,6 @@
 using UnityEngine;
-using UnityEngine.UI;
 
-namespace UI.Utils
+namespace ProjectName.UI.Utils
 {
     public class UIAnimationController : MonoBehaviour
     {
@@ -25,12 +24,12 @@ namespace UI.Utils
             Debug.Log($"Animation set to: {animName}");
         }
 
-        public void StopAnimation()
+        public new void StopAnimation()
         {
             // Stop current animation
             if (animator != null)
             {
-                animator.Stop();
+                animator.enabled = false;
             }
         }
     }

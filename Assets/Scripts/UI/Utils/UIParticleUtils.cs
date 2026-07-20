@@ -1,12 +1,11 @@
 using UnityEngine;
-using UnityEngine.UI;
 
-namespace UI.Utils
+namespace ProjectName.UI.Utils
 {
     public class UIParticleUtils : MonoBehaviour
     {
         [Header("Particle Settings")]
-        public ParticleSystem particleSystem;
+        public new ParticleSystem particleSystem;
 
         public void PlayParticles()
         {

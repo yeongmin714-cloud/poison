@@ -23,8 +23,18 @@ namespace ProjectName.UI.Functions
         public void InitializeChat()
         {
             // Set up chat UI
-            messageInput.onEndEdit.AddListener(SendMessage);
-            sendButton.onClick.AddListener(SendMessage);
+            messageInput.onEndEdit.AddListener(OnMessageSubmitted);
+            sendButton.onClick.AddListener(OnSendClicked);
+        }
+
+        public void OnMessageSubmitted(string message)
+        {
+            SendMessage(message);
+        }
+
+        public void OnSendClicked()
+        {
+            SendMessage(messageInput.text);
         }
 
         public void SendMessage(string message)

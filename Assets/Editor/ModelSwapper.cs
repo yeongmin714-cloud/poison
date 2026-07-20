@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using ProjectName.Systems;
+using ProjectName.Editor;
 
 /// <summary>
 /// UserProvided/ 폴더에서 GLB 파일을 찾아 Placeholder를 자동 교체합니다.

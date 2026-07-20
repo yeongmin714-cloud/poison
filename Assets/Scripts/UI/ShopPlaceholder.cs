@@ -82,8 +82,8 @@ namespace ProjectName.UI
                 return;
             }
 
-            // UIManager를 통해 토글 (윈도우 스택 관리)
-            _uiManager.ToggleWindow(_shopWindow);
+            // UIManager를 통해 열기/닫기 (윈도우 스택 관리)
+            _uiManager.OpenWindow(_shopWindow);
             
             // Show/Hide에 따라 게임 오브젝트 활성화 상태 업데이트
             if (_shopWindow.IsOpen)

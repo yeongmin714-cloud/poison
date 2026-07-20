@@ -6,6 +6,7 @@ using ProjectName.Core;
 using ProjectName.Core.Utils;
 using ProjectName.Systems;
 using ProjectName.UI;
+using ProjectName.UI.Core;
 
 public static class Phase3_TopDownSceneSetup
 {
@@ -116,38 +117,56 @@ public static class Phase3_TopDownSceneSetup
         invGO.transform.SetParent(uiGO.transform);
         invGO.SetActive(false);
         var invWindow = invGO.AddComponent<InventoryWindow>();
-        UIManager.inventoryWindow = invWindow;
+        uiManager.inventoryWindow = invWindow;
 
-        // LootWindow — 전리품
-        var lootGO = new GameObject("LootWindow");
-        lootGO.transform.SetParent(uiGO.transform);
-        lootGO.SetActive(false);
-        var lootWindow = lootGO.AddComponent<LootWindow>();
-        UIManager.lootWindow = lootWindow;
+        // WarehouseWindow — 창고
+        var wareGO = new GameObject("WarehouseWindow");
+        wareGO.transform.SetParent(uiGO.transform);
+        wareGO.SetActive(false);
+        var wareWindow = wareGO.AddComponent<WarehouseWindow>();
+        uiManager.warehouseWindow = wareWindow;
 
-        // QuestWindow — Q 키
-        var questGO = new GameObject("QuestWindow");
-        questGO.transform.SetParent(uiGO.transform);
-        questGO.SetActive(false);
-        var questWindow = questGO.AddComponent<QuestWindow>();
-        UIManager.questWindow = questWindow;
+        // CraftWindow — 제작
+        var craftGO = new GameObject("CraftWindow");
+        craftGO.transform.SetParent(uiGO.transform);
+        craftGO.SetActive(false);
+        var craftWindow = craftGO.AddComponent<CraftingUI>();
+        uiManager.craftingWindow = craftWindow;
 
-        // RecipeWindow — R 키
-        var recipeGO = new GameObject("RecipeWindow");
-        recipeGO.transform.SetParent(uiGO.transform);
-        recipeGO.SetActive(false);
-        var recipeWindow = recipeGO.AddComponent<RecipeWindow>();
-        UIManager.recipeWindow = recipeWindow;
+        // ChurchWindow — 교회
+        var churchGO = new GameObject("ChurchWindow");
+        churchGO.transform.SetParent(uiGO.transform);
+        churchGO.SetActive(false);
+        var churchWindow = churchGO.AddComponent<ChurchUI>();
+        uiManager.churchWindow = churchWindow;
 
-        // MapWindow — M 키
-        var mapGO = new GameObject("MapWindow");
-        mapGO.transform.SetParent(uiGO.transform);
-        mapGO.SetActive(false);
-        var mapWindow = mapGO.AddComponent<MapWindow>();
-        UIManager.mapWindow = mapWindow;
+        // AlchemyWindow — 연금술
+        var alchemyGO = new GameObject("AlchemyWindow");
+        alchemyGO.transform.SetParent(uiGO.transform);
+        alchemyGO.SetActive(false);
+        var alchemyWindow = alchemyGO.AddComponent<AlchemyUI>();
+        uiManager.alchemyWindow = alchemyWindow;
 
-        // UIManager.KeyBindings 직접 할당
-        uiManager.GetComponent<UIManager>().SetKeyBindings(keyBindings);
+        // CookingWindow — 요리
+        var cookGO = new GameObject("CookingWindow");
+        cookGO.transform.SetParent(uiGO.transform);
+        cookGO.SetActive(false);
+        var cookWindow = cookGO.AddComponent<CookingUI>();
+        uiManager.cookingWindow = cookWindow;
+
+        // QuickSlotWindow — 퀵슬롯
+        var qsGO = new GameObject("QuickSlotWindow");
+        qsGO.transform.SetParent(uiGO.transform);
+        qsGO.SetActive(false);
+        var qsWindow = qsGO.AddComponent<QuickSlotUI>();
+        uiManager.quickSlotWindow = qsWindow;
+
+        // RepairWindow — 수리
+        var repairGO = new GameObject("RepairWindow");
+        repairGO.transform.SetParent(uiGO.transform);
+        repairGO.SetActive(false);
+        var repairWindow = repairGO.AddComponent<RepairStationUI>();
+        uiManager.repairWindow = repairWindow;
 
         Debug.Log("[Phase3] UIManager + UIWindows 설정 완료 (I=인벤토리, Q=퀘스트, R=레시피, M=지도)");
 
