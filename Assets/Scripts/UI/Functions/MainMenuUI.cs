@@ -14,21 +14,18 @@ namespace ProjectName.UI.Functions
         protected override void Awake()
         {
             base.Awake();
-            Debug.Log("Main Menu UI initialized");
         }
 
         public override void Show()
         {
             if (mainMenuPanel != null)
                 mainMenuPanel.SetActive(true);
-            Debug.Log("[MainMenuUI] 메인 메뉴 표시");
         }
 
         public override void Hide()
         {
             if (mainMenuPanel != null)
                 mainMenuPanel.SetActive(false);
-            Debug.Log("[MainMenuUI] 메인 메뉴 숨김");
         }
     }
 }

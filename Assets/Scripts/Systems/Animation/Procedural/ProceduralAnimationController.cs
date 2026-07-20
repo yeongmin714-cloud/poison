@@ -492,20 +492,56 @@ namespace ProjectName.Systems.Animation.Procedural
         // ──────────────────────────────────────────────
 
         void HandleInput()
-        {
-            if (_actionState != ActionState.None && _actionState != ActionState.Mount) return;
-
-            // 외부 속도 공급자가 있으면 자체 입력 대신 외부 속도 사용
-            if (_velocityProvider != null)
-            {
-                _targetVelocity = _velocityProvider.CurrentVelocity;
-                _targetSpeed = _velocityProvider.CurrentSpeed;
-                // 회전은 목표 속도 방향으로
-                if (_targetVelocity.sqrMagnitude > 0.01f)
                 {
-                    Quaternion targetRot = Quaternion.LookRotation(_targetVelocity.normalized);
-                    transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
+                    if (_actionState != ActionState.None && _actionState != ActionState.Mount) return;
+
+                    // 외부 속도 공급자가 있으면 자체 입력 대신 외부 속도 사용
+                    if (_velocityProvider != null)
+                    {
+                        _targetVelocity = _velocityProvider.CurrentVelocity;
+                        _targetSpeed = _velocityProvider.CurrentSpeed;
+                        // 회전은 목표 속도 방향으로
+                        if (_targetVelocity.sqrMagnitude > 0.01f)
+                        {
+                            Quaternion targetRot = Quaternion.LookRotation(_targetVelocity.normalized);
+                            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
+                        }
+                    }
+                    else
+                    {
+                        // 기존 자체 입력 처리 - Input System 사용
+                        Vector2 input = Vector2.zero;
+                        if (Keyboard.current != null)
+                        {
+                            if (Keyboard.current.wKey.isPressed) input.y += 1;
+                            if (Keyboard.current.sKey.isPressed) input.y -= 1;
+                            if (Keyboard.current.aKey.isPressed) input.x -= 1;
+                            if (Keyboard.current.dKey.isPressed) input.x += 1;
+                        }
+                        input = Vector2.ClampMagnitude(input, 1f);
+
+                        bool sprint = Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed;
+
+                        Vector3 localTarget = new Vector3(input.x, 0, input.y);
+                        _targetVelocity = transform.TransformDirection(localTarget) * (sprint ? runSpeed : walkSpeed);
+                        _targetSpeed = _targetVelocity.magnitude;
+
+                        if (_targetVelocity.sqrMagnitude > 0.01f)
+                        {
+                            Quaternion targetRot = Quaternion.LookRotation(_targetVelocity.normalized);
+                            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
+                        }
+                    }
+
+                    if (_velocityProvider == null)
+                    {
+                        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) RequestAttack();
+                        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame) RequestJump();
+                        if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame) RequestGather();
+                        if (Keyboard.current != null && Keyboard.current.qKey.wasPressedThisFrame) RequestRoll();
+                    }
                 }
+<<<<<<< HEAD
             }
             else
             {

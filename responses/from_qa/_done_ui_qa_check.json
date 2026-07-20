@@ -1,0 +1,26 @@
+{
+  "task": "UI Core QA Check",
+  "status": "completed",
+  "findings": [
+    {
+      "file": "Assets/Scripts/UI/Core/UIManager.cs",
+      "issue": "Contains Debug.Log statements that are likely placeholder code",
+      "description": "Found Debug.Log statements that should be reviewed or removed. These include logging during initialization and when windows are not found.",
+      "severity": "warning"
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/ThemeManager.cs",
+      "issue": "Contains Debug.Log statement that is likely placeholder code",
+      "description": "Found a Debug.Log statement for applying theme, which should be reviewed for actual implementation vs placeholder.",
+      "severity": "warning"
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/ScreenManager.cs",
+      "issue": "File exists but contains no Debug.Log statements",
+      "description": "This file exists but doesn't contain Debug.Log usage detected during analysis.",
+      "severity": "info"
+    }
+  ],
+  "summary": "QA check on UI Core files completed. Found several Debug.Log statements in UIManager.cs and ThemeManager.cs that should be reviewed for correctness. ScreenManager.cs file exists without Debug.Log usage. The UIManager.cs file has proper field definitions for UI windows as expected (AlchemyUI, QuickSlotUI, etc.).",
+  "errors": []
+}

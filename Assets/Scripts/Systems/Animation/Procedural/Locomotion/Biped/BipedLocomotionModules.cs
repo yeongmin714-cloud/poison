@@ -304,6 +304,7 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Biped
     }
 
     /// <summary>
+<<<<<<< HEAD
         /// Spine counter-rotation: upper body rotates opposite to hips for natural gait.
         /// IJob for single character processing (avoids Burst ReadWriteBuffers restriction on parallel writes).
         /// </summary>
@@ -317,6 +318,36 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Biped
             [ReadOnly] public NativeArray<float3> BodyVelocities;
             [ReadOnly] public NativeArray<quaternion> BodyRotations;
             [ReadOnly] public NativeArray<int> SpineSegmentCounts; // per-character spine segment count
+=======
+    /// Spine counter-rotation: upper body rotates opposite to hips for natural gait.
+    /// IJob for single character processing (avoids Burst ReadWriteBuffers restriction on parallel writes).
+    /// </summary>
+    [BurstCompile]
+    public struct SpineCounterRotationJob : IJob
+    {
+        [ReadOnly] public NativeArray<float> LeftPhases;
+        [ReadOnly] public NativeArray<float> RightPhases;
+        [ReadOnly] public NativeArray<float> DutyCycles;
+        [ReadOnly] public NativeArray<float> MaxCounterRotations;
+        [ReadOnly] public NativeArray<float3> BodyVelocities;
+        [ReadOnly] public NativeArray<quaternion> BodyRotations;
+        [ReadOnly] public NativeArray<int> SpineSegmentCounts; // per-character spine segment count
+
+        [WriteOnly] public NativeArray<quaternion> OutSpineRotations; // flattened: index * maxSegments
+
+        [ReadOnly] public int MaxSpineSegments; // stride for flattened output
+
+        public void Execute()
+        {
+            int index = 0; // Single character
+            float leftPhase = LeftPhases[index];
+            float rightPhase = RightPhases[index];
+            float dutyCycle = DutyCycles[index];
+            float maxCounterRotation = MaxCounterRotations[index];
+            float3 bodyVel = BodyVelocities[index];
+            quaternion bodyRot = BodyRotations[index];
+            int spineCount = SpineSegmentCounts[index];
+>>>>>>> c4b5c2e (auto: 8개 파일 변경 (Assets/Scripts/Systems/Animation/Procedural/Bones/ProceduralBoneUtility.cs,Assets/Scripts/Systems/Animation/Procedural/Locomotion/Biped/BipedLocomotionModules.cs,Assets/Scripts/Systems/Animation/Procedural/ProceduralAnimStateMachine.cs,Assets/Scripts/Systems/Animation/Procedural/ProceduralAnimationController.cs,Assets/Scripts/UI/Functions/MainMenuUI.cs))
 
             [WriteOnly] public NativeArray<quaternion> OutSpineRotations; // flattened: index * maxSegments
 

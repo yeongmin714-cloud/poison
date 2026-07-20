@@ -8,7 +8,6 @@ public class UIThemeManager : MonoBehaviour
     private void Start()
     {
         // Initialize theme manager
-        Debug.Log("UI Theme Manager initialized");
     }
     
     public void ApplyTheme(Color primary, Color secondary)
