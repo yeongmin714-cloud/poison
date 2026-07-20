@@ -304,59 +304,61 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Biped
     }
 
     /// <summary>
-    /// Spine counter-rotation: upper body rotates opposite to hips for natural gait.
-    /// IJobParallelFor for batch processing.
-    /// </summary>
-    [BurstCompile]
-    public struct SpineCounterRotationJob : IJobParallelFor
-    {
-        [ReadOnly] public NativeArray<float> LeftPhases;
-        [ReadOnly] public NativeArray<float> RightPhases;
-        [ReadOnly] public NativeArray<float> DutyCycles;
-        [ReadOnly] public NativeArray<float> MaxCounterRotations;
-        [ReadOnly] public NativeArray<float3> BodyVelocities;
-        [ReadOnly] public NativeArray<quaternion> BodyRotations;
-        [ReadOnly] public NativeArray<int> SpineSegmentCounts; // per-character spine segment count
-
-        [WriteOnly] public NativeArray<quaternion> OutSpineRotations; // flattened: index * maxSegments
-
-        [ReadOnly] public int MaxSpineSegments; // stride for flattened output
-
-        public void Execute(int index)
+        /// Spine counter-rotation: upper body rotates opposite to hips for natural gait.
+        /// IJob for single character processing (avoids Burst ReadWriteBuffers restriction on parallel writes).
+        /// </summary>
+        [BurstCompile]
+        public struct SpineCounterRotationJob : IJob
         {
-            float leftPhase = LeftPhases[index];
-            float rightPhase = RightPhases[index];
-            float dutyCycle = DutyCycles[index];
-            float maxCounterRotation = MaxCounterRotations[index];
-            float3 bodyVel = BodyVelocities[index];
-            quaternion bodyRot = BodyRotations[index];
-            int spineCount = SpineSegmentCounts[index];
+            [ReadOnly] public NativeArray<float> LeftPhases;
+            [ReadOnly] public NativeArray<float> RightPhases;
+            [ReadOnly] public NativeArray<float> DutyCycles;
+            [ReadOnly] public NativeArray<float> MaxCounterRotations;
+            [ReadOnly] public NativeArray<float3> BodyVelocities;
+            [ReadOnly] public NativeArray<quaternion> BodyRotations;
+            [ReadOnly] public NativeArray<int> SpineSegmentCounts; // per-character spine segment count
 
-            // Hip yaw from leg phases
-            float leftStance = leftPhase < dutyCycle ? 1f : 0f;
-            float rightStance = rightPhase < dutyCycle ? 1f : 0f;
+            [WriteOnly] public NativeArray<quaternion> OutSpineRotations; // flattened: index * maxSegments
 
-            float hipYaw = (rightStance - leftStance) * math.radians(maxCounterRotation);
+            [ReadOnly] public int MaxSpineSegments; // stride for flattened output
 
-            // Distribute along spine
-            for (int i = 0; i < spineCount; i++)
+            public void Execute()
             {
-                float weight = (float)(i + 1) / spineCount;
-                float segmentYaw = hipYaw * weight;
+                int index = 0; // Single character
+                float leftPhase = LeftPhases[index];
+                float rightPhase = RightPhases[index];
+                float dutyCycle = DutyCycles[index];
+                float maxCounterRotation = MaxCounterRotations[index];
+                float3 bodyVel = BodyVelocities[index];
+                quaternion bodyRot = BodyRotations[index];
+                int spineCount = SpineSegmentCounts[index];
 
-                // Add velocity-based lean
-                float3 localVel = math.mul(math.inverse(bodyRot), bodyVel);
-                float leanYaw = math.atan2(localVel.x, localVel.z) * 0.1f * weight;
-                segmentYaw += leanYaw;
+                // Hip yaw from leg phases
+                float leftStance = leftPhase < dutyCycle ? 1f : 0f;
+                float rightStance = rightPhase < dutyCycle ? 1f : 0f;
 
-                int flatIdx = index * MaxSpineSegments + i;
-                OutSpineRotations[flatIdx] = quaternion.AxisAngle(math.up(), segmentYaw);
-            }
+                float hipYaw = (rightStance - leftStance) * math.radians(maxCounterRotation);
 
-            // Zero out remaining spine segments
-            for (int i = spineCount; i < MaxSpineSegments; i++)
-            {
-                OutSpineRotations[index * MaxSpineSegments + i] = quaternion.identity;
+                // Distribute along spine
+                for (int i = 0; i < spineCount; i++)
+                {
+                    float weight = (float)(i + 1) / spineCount;
+                    float segmentYaw = hipYaw * weight;
+
+                    // Add velocity-based lean
+                    float3 localVel = math.mul(math.inverse(bodyRot), bodyVel);
+                    float leanYaw = math.atan2(localVel.x, localVel.z) * 0.1f * weight;
+                    segmentYaw += leanYaw;
+
+                    int flatIdx = index * MaxSpineSegments + i;
+                    OutSpineRotations[flatIdx] = quaternion.AxisAngle(math.up(), segmentYaw);
+                }
+
+                // Zero out remaining spine segments
+                for (int i = spineCount; i < MaxSpineSegments; i++)
+                {
+                    OutSpineRotations[index * MaxSpineSegments + i] = quaternion.identity;
+                }
             }
         }
     }

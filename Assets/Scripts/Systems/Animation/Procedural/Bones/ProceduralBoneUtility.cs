@@ -358,7 +358,28 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             foreach (var role in critical)
             {
                 if (map[role] == null)
-                    UnityEngine.Debug.LogWarning($"[ProceduralBoneUtility] Critical bone missing: {role}. Animator: {animatorRoot.name}");
+                    UnityEngine.Debug.LogWarning($"[ProceduralBoneUtility] Critical bone missing: {role}. Animator: {animatorRoot.name} - falling back to heuristic mapping");
+            }
+            
+            // Fallback: if Spine0 missing but we have Spine1/Spine2/Neck, use the first available spine bone
+            if (map[BoneRole.Spine0] == null)
+            {
+                if (map[BoneRole.Spine1] != null) map[BoneRole.Spine0] = map[BoneRole.Spine1];
+                else if (map[BoneRole.Spine2] != null) map[BoneRole.Spine0] = map[BoneRole.Spine2];
+                else if (map[BoneRole.Spine3] != null) map[BoneRole.Spine0] = map[BoneRole.Spine3];
+                else if (map[BoneRole.Neck] != null) map[BoneRole.Spine0] = map[BoneRole.Neck];
+            }
+            
+            // Fallback: if Head missing but we have Neck, use Neck
+            if (map[BoneRole.Head] == null && map[BoneRole.Neck] != null)
+            {
+                map[BoneRole.Head] = map[BoneRole.Neck];
+            }
+            
+            // Fallback: if still no Spine0, use Root as last resort
+            if (map[BoneRole.Spine0] == null && map[BoneRole.Root] != null)
+            {
+                map[BoneRole.Spine0] = map[BoneRole.Root];
             }
         }
     }

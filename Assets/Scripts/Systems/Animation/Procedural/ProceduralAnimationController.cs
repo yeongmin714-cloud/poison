@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using ProjectName.Systems.Animation.Procedural.Bones;
 using ProjectName.Systems.Animation.Procedural.Locomotion.Biped;
 using ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped;
@@ -508,15 +509,18 @@ namespace ProjectName.Systems.Animation.Procedural
             }
             else
             {
-                // 기존 자체 입력 처리
+                // 기존 자체 입력 처리 - Input System 사용
                 Vector2 input = Vector2.zero;
-                if (Input.GetKey(KeyCode.W)) input.y += 1;
-                if (Input.GetKey(KeyCode.S)) input.y -= 1;
-                if (Input.GetKey(KeyCode.A)) input.x -= 1;
-                if (Input.GetKey(KeyCode.D)) input.x += 1;
+                if (Keyboard.current != null)
+                {
+                    if (Keyboard.current.wKey.isPressed) input.y += 1;
+                    if (Keyboard.current.sKey.isPressed) input.y -= 1;
+                    if (Keyboard.current.aKey.isPressed) input.x -= 1;
+                    if (Keyboard.current.dKey.isPressed) input.x += 1;
+                }
                 input = Vector2.ClampMagnitude(input, 1f);
 
-                bool sprint = Input.GetKey(KeyCode.LeftShift);
+                bool sprint = Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed;
 
                 Vector3 localTarget = new Vector3(input.x, 0, input.y);
                 _targetVelocity = transform.TransformDirection(localTarget) * (sprint ? runSpeed : walkSpeed);
@@ -531,10 +535,10 @@ namespace ProjectName.Systems.Animation.Procedural
 
             if (_velocityProvider == null)
             {
-                if (Input.GetMouseButtonDown(0)) RequestAttack();
-                if (Input.GetKeyDown(KeyCode.Space)) RequestJump();
-                if (Input.GetKeyDown(KeyCode.E)) RequestGather();
-                if (Input.GetKeyDown(KeyCode.Q)) RequestRoll();
+                if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) RequestAttack();
+                if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame) RequestJump();
+                if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame) RequestGather();
+                if (Keyboard.current != null && Keyboard.current.qKey.wasPressedThisFrame) RequestRoll();
             }
         }
 
@@ -552,7 +556,8 @@ namespace ProjectName.Systems.Animation.Procedural
             }
             else
             {
-                _turnInput = Input.GetKey(KeyCode.A) ? -1f : (Input.GetKey(KeyCode.D) ? 1f : 0f);
+                _turnInput = (Keyboard.current != null && Keyboard.current.aKey.isPressed) ? -1f : 
+                             (Keyboard.current != null && Keyboard.current.dKey.isPressed) ? 1f : 0f;
             }
             float targetLean = _turnInput * bodyLeanAmount * 15f;
             _bodyLeanOffset = Vector3.Lerp(_bodyLeanOffset, new Vector3(targetLean, 0, 0), Time.deltaTime * 5f);
@@ -846,7 +851,7 @@ namespace ProjectName.Systems.Animation.Procedural
                     OutSpineRotations = _spineRotations,
                     MaxSpineSegments = 3,
                 };
-                dependency = spineCounter.Schedule(1, 1, dependency);
+                dependency = spineCounter.Schedule(dependency);
             }
 
             _locomotionJobHandle = dependency;

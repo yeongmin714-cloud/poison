@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using ProjectName.Systems.Animation.Procedural.Bones;
 using ProjectName.Systems.Animation.Procedural.IK;
@@ -126,19 +127,19 @@ namespace ProjectName.Systems.Animation.Procedural
         void CheckLocomotionTransitions()
         {
             // Jump
-            if (Input.GetKeyDown(KeyCode.Space) && Time.time - _lastJumpTime > _jumpCooldown && IsGrounded())
+            if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame && Time.time - _lastJumpTime > _jumpCooldown && IsGrounded())
                 RequestJump();
 
             // Attack
-            if (Input.GetMouseButtonDown(0) && Time.time - _lastAttackTime > _attackCooldown)
+            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame && Time.time - _lastAttackTime > _attackCooldown)
                 RequestAttack();
 
             // Gather
-            if (Input.GetKeyDown(KeyCode.E))
+            if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
                 RequestGather();
 
             // Roll
-            if (Input.GetKeyDown(KeyCode.Q) && IsGrounded())
+            if (Keyboard.current != null && Keyboard.current.qKey.wasPressedThisFrame && IsGrounded())
                 RequestRoll();
         }
 
