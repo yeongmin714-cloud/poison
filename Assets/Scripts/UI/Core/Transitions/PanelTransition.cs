@@ -1,40 +1,25 @@
 using UnityEngine;
-using UnityEngine.UI;
-#pragma warning disable 0414
 
-namespace ProjectName.UI.Core.Transitions
+namespace UI.Core.Transitions
 {
-    public class PanelTransition : MonoBehaviour
+    public class PanelTransition : Transition
     {
-        [SerializeField] private RectTransform rectTransform;
-        [SerializeField] private CanvasGroup canvasGroup;
-        [SerializeField] private float animationDuration = 0.5f;
+        private RectTransform _rectTransform;
+        private Vector2 _startPosition;
+        private Vector2 _targetPosition;
 
-        private void Awake()
+        public void Initialize(RectTransform rectTransform, Vector2 startPosition, Vector2 targetPosition)
         {
-            if (rectTransform == null)
-                rectTransform = GetComponent<RectTransform>();
-            if (canvasGroup == null)
-                canvasGroup = GetComponent<CanvasGroup>();
+            _rectTransform = rectTransform;
+            _startPosition = startPosition;
+            _targetPosition = targetPosition;
         }
 
-        public void FadeIn()
+        public override void Apply(float progress)
         {
-            if (canvasGroup != null)
+            if (_rectTransform != null)
             {
-                canvasGroup.alpha = 1f;
-                canvasGroup.interactable = true;
-                canvasGroup.blocksRaycasts = true;
-            }
-        }
-
-        public void FadeOut()
-        {
-            if (canvasGroup != null)
-            {
-                canvasGroup.alpha = 0f;
-                canvasGroup.interactable = false;
-                canvasGroup.blocksRaycasts = false;
+                _rectTransform.anchoredPosition = Vector2.Lerp(_startPosition, _targetPosition, progress);
             }
         }
     }

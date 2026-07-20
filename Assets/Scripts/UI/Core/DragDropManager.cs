@@ -1,44 +1,49 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
-namespace ProjectName.UI.Core
+namespace UI.Core
 {
-    public class DragDropManager : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+    public class DragDropManager : MonoBehaviour
     {
-        private RectTransform rectTransform;
-        private Canvas canvas;
-        private RectTransform canvasRect;
+        public static DragDropManager Instance { get; private set; }
+
+        private Dictionary<string, IDragDropHandler> _dragDropHandlers = new Dictionary<string, IDragDropHandler>();
+        private GameObject _draggedObject;
 
         private void Awake()
         {
-            rectTransform = GetComponent<RectTransform>();
-            canvas = GetComponentInParent<Canvas>();
-            canvasRect = canvas.GetComponent<RectTransform>();
-        }
-
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            // Handle pointer down logic
-        }
-
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-            // Handle drag start logic
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            // Handle drag logic
-            Vector2 localPoint;
-            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, eventData.position, canvas.worldCamera, out localPoint))
+            if (Instance == null)
             {
-                rectTransform.localPosition = localPoint;
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else
+            {
+                Destroy(gameObject);
             }
         }
 
-        public void OnEndDrag(PointerEventData eventData)
+        public void RegisterDragDropHandler(string name, IDragDropHandler handler)
         {
-            // Handle drag end logic
+            _dragDropHandlers.Add(name, handler);
+        }
+
+        public void StartDrag(GameObject draggedObject)
+        {
+            _draggedObject = draggedObject;
+        }
+
+        public void EndDrag()
+        {
+            _draggedObject = null;
+        }
+
+        public void HandleDrag(PointerEventData eventData)
+        {
+            if (_draggedObject != null && _dragDropHandlers.TryGetValue(_draggedObject.name, out IDragDropHandler handler))
+            {
+                handler.OnDrag(eventData);
+            }
         }
     }
 }

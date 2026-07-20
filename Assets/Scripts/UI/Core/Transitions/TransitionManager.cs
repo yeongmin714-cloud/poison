@@ -1,89 +1,36 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections;
 
-namespace ProjectName.UI.Core.Transitions
+namespace UI.Core.Transitions
 {
     public class TransitionManager : MonoBehaviour
     {
-        [Header("Transition Settings")]
-        public TransitionType defaultTransition = TransitionType.Fade;
-        public float defaultDuration = 0.5f;
-        
-        [Header("Active Transitions")]
-        public List<Transition> activeTransitions = new List<Transition>();
-        
-        private static TransitionManager _instance;
-        public static TransitionManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = FindAnyObjectByType<TransitionManager>();
-                    if (_instance == null)
-                    {
-                        GameObject obj = new GameObject("TransitionManager");
-                        _instance = obj.AddComponent<TransitionManager>();
-                    }
-                }
-                return _instance;
-            }
-        }
-        
+        public static TransitionManager Instance { get; private set; }
+
         private void Awake()
         {
-            if (_instance == null)
+            if (Instance == null)
             {
-                _instance = this;
+                Instance = this;
                 DontDestroyOnLoad(gameObject);
             }
-            else if (_instance != this)
+            else
             {
                 Destroy(gameObject);
             }
         }
-        
-        public void StartTransition(TransitionType type, float duration = 0f)
+
+        public IEnumerator SmoothTransition(float duration, System.Action<float> updateAction, System.Action onComplete = null)
         {
-            if (duration <= 0) duration = defaultDuration;
-            
-            switch (type)
+            float elapsed = 0f;
+            while (elapsed < duration)
             {
-                case TransitionType.Fade:
-                    // Start fade transition
-                    break;
-                case TransitionType.Slide:
-                    // Start slide transition
-                    break;
-                case TransitionType.Scale:
-                    // Start scale transition
-                    break;
+                elapsed += Time.deltaTime;
+                float progress = Mathf.Clamp01(elapsed / duration);
+                updateAction?.Invoke(progress);
+                yield return null;
             }
-        }
-        
-        public void AddActiveTransition(Transition transition)
-        {
-            if (!activeTransitions.Contains(transition))
-            {
-                activeTransitions.Add(transition);
-            }
-        }
-        
-        public void RemoveActiveTransition(Transition transition)
-        {
-            activeTransitions.Remove(transition);
-        }
-        
-        void Update()
-        {
-            for (int i = activeTransitions.Count - 1; i >= 0; i--)
-            {
-                if (i < activeTransitions.Count)
-                {
-                    activeTransitions[i].UpdateTransition();
-                }
-            }
+            onComplete?.Invoke();
         }
     }
 }

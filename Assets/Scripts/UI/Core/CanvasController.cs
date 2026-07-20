@@ -1,28 +1,39 @@
 using UnityEngine;
+using System.Collections.Generic;
 
-namespace ProjectName.UI.Core
+namespace UI.Core
 {
     public class CanvasController : MonoBehaviour
     {
-        [SerializeField] private Canvas canvas;
-        [SerializeField] private RectTransform rectTransform;
+        public static CanvasController Instance { get; private set; }
 
-        private void Start()
+        private Dictionary<string, Canvas> _canvases = new Dictionary<string, Canvas>();
+
+        private void Awake()
         {
-            if (canvas == null)
-                canvas = GetComponent<Canvas>();
-            if (rectTransform == null)
-                rectTransform = GetComponent<RectTransform>();
+            if (Instance == null)
+            {
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
 
-        public void SetCanvasScale(Vector2 scale)
+        public Canvas GetCanvas(string canvasName)
         {
-            rectTransform.localScale = scale;
+            if (_canvases.TryGetValue(canvasName, out Canvas canvas))
+            {
+                return canvas;
+            }
+            return null;
         }
 
-        public void SetCanvasSortingOrder(int order)
+        public void RegisterCanvas(string name, Canvas canvas)
         {
-            canvas.sortingOrder = order;
+            _canvases.Add(name, canvas);
         }
     }
 }

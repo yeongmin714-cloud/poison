@@ -1,13 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace ProjectName.UI.Core
+namespace UI.Core
 {
     public class GameEventSystem : MonoBehaviour
     {
-        private Dictionary<string, System.Action> eventListeners = new Dictionary<string, System.Action>();
-
         public static GameEventSystem Instance { get; private set; }
+
+        private Dictionary<string, List<System.Action<object>>> _eventHandlers = new Dictionary<string, List<System.Action<object>>>();
 
         private void Awake()
         {
@@ -22,31 +22,31 @@ namespace ProjectName.UI.Core
             }
         }
 
-        public void Subscribe(string eventName, System.Action callback)
+        public void Subscribe(string eventName, System.Action<object> handler)
         {
-            if (eventListeners.ContainsKey(eventName))
+            if (!_eventHandlers.ContainsKey(eventName))
             {
-                eventListeners[eventName] += callback;
+                _eventHandlers.Add(eventName, new List<System.Action<object>>());
             }
-            else
+            _eventHandlers[eventName].Add(handler);
+        }
+
+        public void Unsubscribe(string eventName, System.Action<object> handler)
+        {
+            if (_eventHandlers.ContainsKey(eventName))
             {
-                eventListeners[eventName] = callback;
+                _eventHandlers[eventName].Remove(handler);
             }
         }
 
-        public void Unsubscribe(string eventName, System.Action callback)
+        public void Publish(string eventName, object data)
         {
-            if (eventListeners.ContainsKey(eventName))
+            if (_eventHandlers.TryGetValue(eventName, out List<System.Action<object>> handlers))
             {
-                eventListeners[eventName] -= callback;
-            }
-        }
-
-        public void RaiseEvent(string eventName)
-        {
-            if (eventListeners.TryGetValue(eventName, out System.Action callback))
-            {
-                callback?.Invoke();
+                foreach (var handler in handlers)
+                {
+                    handler?.Invoke(data);
+                }
             }
         }
     }

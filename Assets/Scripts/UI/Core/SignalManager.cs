@@ -1,13 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace ProjectName.UI.Core
+namespace UI.Core
 {
     public class SignalManager : MonoBehaviour
     {
-        private Dictionary<string, System.Action<object>> signalListeners = new Dictionary<string, System.Action<object>>();
-
         public static SignalManager Instance { get; private set; }
+
+        private Dictionary<string, List<System.Action>> _signals = new Dictionary<string, List<System.Action>>();
 
         private void Awake()
         {
@@ -22,31 +22,31 @@ namespace ProjectName.UI.Core
             }
         }
 
-        public void Subscribe(string signalName, System.Action<object> callback)
+        public void Subscribe(string signalName, System.Action callback)
         {
-            if (signalListeners.ContainsKey(signalName))
+            if (!_signals.ContainsKey(signalName))
             {
-                signalListeners[signalName] += callback;
+                _signals.Add(signalName, new List<System.Action>());
             }
-            else
+            _signals[signalName].Add(callback);
+        }
+
+        public void Unsubscribe(string signalName, System.Action callback)
+        {
+            if (_signals.ContainsKey(signalName))
             {
-                signalListeners[signalName] = callback;
+                _signals[signalName].Remove(callback);
             }
         }
 
-        public void Unsubscribe(string signalName, System.Action<object> callback)
+        public void Publish(string signalName)
         {
-            if (signalListeners.ContainsKey(signalName))
+            if (_signals.TryGetValue(signalName, out List<System.Action> callbacks))
             {
-                signalListeners[signalName] -= callback;
-            }
-        }
-
-        public void SendSignal(string signalName, object data = null)
-        {
-            if (signalListeners.TryGetValue(signalName, out System.Action<object> callback))
-            {
-                callback?.Invoke(data);
+                foreach (var callback in callbacks)
+                {
+                    callback?.Invoke();
+                }
             }
         }
     }

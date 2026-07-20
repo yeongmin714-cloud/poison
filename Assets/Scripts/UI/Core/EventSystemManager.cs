@@ -1,36 +1,53 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
-namespace ProjectName.UI.Core
+namespace UI.Core
 {
     public class EventSystemManager : MonoBehaviour
     {
-        private EventSystem eventSystem;
-        private StandaloneInputModule inputModule;
+        public static EventSystemManager Instance { get; private set; }
+
+        private Dictionary<string, List<System.Action>> _eventHandlers = new Dictionary<string, List<System.Action>>();
 
         private void Awake()
         {
-            eventSystem = FindAnyObjectByType<EventSystem>();
-            if (eventSystem == null)
+            if (Instance == null)
             {
-                GameObject eventSystemGO = new GameObject("EventSystem");
-                eventSystem = eventSystemGO.AddComponent<EventSystem>();
-                inputModule = eventSystemGO.AddComponent<StandaloneInputModule>();
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
             }
             else
             {
-                inputModule = eventSystem.GetComponent<StandaloneInputModule>();
+                Destroy(gameObject);
             }
         }
 
-        public void SetInputModule(StandaloneInputModule module)
+        public void Subscribe(string eventName, System.Action handler)
         {
-            inputModule = module;
+            if (!_eventHandlers.ContainsKey(eventName))
+            {
+                _eventHandlers.Add(eventName, new List<System.Action>());
+            }
+            _eventHandlers[eventName].Add(handler);
         }
 
-        public StandaloneInputModule GetInputModule()
+        public void Unsubscribe(string eventName, System.Action handler)
         {
-            return inputModule;
+            if (_eventHandlers.ContainsKey(eventName))
+            {
+                _eventHandlers[eventName].Remove(handler);
+            }
+        }
+
+        public void Publish(string eventName)
+        {
+            if (_eventHandlers.TryGetValue(eventName, out List<System.Action> handlers))
+            {
+                foreach (var handler in handlers)
+                {
+                    handler?.Invoke();
+                }
+            }
         }
     }
 }

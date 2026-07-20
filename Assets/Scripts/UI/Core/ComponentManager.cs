@@ -1,35 +1,39 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace ProjectName.UI.Core
+namespace UI.Core
 {
     public class ComponentManager : MonoBehaviour
     {
-        private Dictionary<string, MonoBehaviour> components = new Dictionary<string, MonoBehaviour>();
+        public static ComponentManager Instance { get; private set; }
 
-        public void RegisterComponent(string name, MonoBehaviour component)
+        private Dictionary<string, MonoBehaviour> _components = new Dictionary<string, MonoBehaviour>();
+
+        private void Awake()
         {
-            if (components.ContainsKey(name))
+            if (Instance == null)
             {
-                Debug.LogWarning($"Component with name '{name}' already registered.");
-                return;
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
             }
-            components.Add(name, component);
+            else
+            {
+                Destroy(gameObject);
+            }
         }
 
-        public T GetComponent<T>(string name) where T : MonoBehaviour
+        public T GetComponent<T>(string componentName) where T : MonoBehaviour
         {
-            if (components.TryGetValue(name, out MonoBehaviour component))
+            if (_components.TryGetValue(componentName, out MonoBehaviour component))
             {
                 return component as T;
             }
-            Debug.LogWarning($"Component with name '{name}' not found.");
             return null;
         }
 
-        public void UnregisterComponent(string name)
+        public void RegisterComponent<T>(string name, T component) where T : MonoBehaviour
         {
-            components.Remove(name);
+            _components.Add(name, component);
         }
     }
 }

@@ -1,13 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace ProjectName.UI.Core
+namespace UI.Core
 {
     public class MessageSystem : MonoBehaviour
     {
-        private List<string> messages = new List<string>();
-
         public static MessageSystem Instance { get; private set; }
+
+        private Queue<string> _messages = new Queue<string>();
 
         private void Awake()
         {
@@ -24,21 +24,21 @@ namespace ProjectName.UI.Core
 
         public void AddMessage(string message)
         {
-            messages.Add(message);
+            _messages.Enqueue(message);
         }
 
-        public string GetMessage(int index)
+        public string GetMessage()
         {
-            if (index >= 0 && index < messages.Count)
+            if (_messages.Count > 0)
             {
-                return messages[index];
+                return _messages.Dequeue();
             }
-            return string.Empty;
+            return null;
         }
 
-        public void ClearMessages()
+        public int GetMessageCount()
         {
-            messages.Clear();
+            return _messages.Count;
         }
     }
 }

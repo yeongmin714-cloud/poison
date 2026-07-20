@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ProjectName.UI.Core
+namespace UI.Core
 {
     public interface IUIComponent
     {

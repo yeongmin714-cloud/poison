@@ -1,10 +1,11 @@
 using UnityEngine;
 
-namespace ProjectName.UI.Core
+namespace UI.Core
 {
     public interface ICanvasComponent
     {
-        void OnCanvasEnabled();
-        void OnCanvasDisabled();
+        Canvas Canvas { get; }
+        void Initialize();
+        void Cleanup();
     }
 }

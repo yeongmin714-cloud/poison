@@ -1,14 +1,13 @@
 using UnityEngine;
-using UnityEngine.UI;
+using System.Collections.Generic;
 
-namespace ProjectName.UI.Core
+namespace UI.Core
 {
     public class ToolTipManager : MonoBehaviour
     {
         public static ToolTipManager Instance { get; private set; }
 
-        [SerializeField] private GameObject tooltipPrefab;
-        [SerializeField] private Canvas canvas;
+        private Dictionary<string, GameObject> _toolTips = new Dictionary<string, GameObject>();
 
         private void Awake()
         {
@@ -23,16 +22,29 @@ namespace ProjectName.UI.Core
             }
         }
 
-        public void ShowTooltip(string text, Vector2 position)
+        public void ShowToolTip(string toolTipName, Vector3 position)
         {
-            // Implementation for showing tooltip
-            Debug.Log($"Showing tooltip: {text} at {position}");
+            if (_toolTips.TryGetValue(toolTipName, out GameObject toolTip))
+            {
+                toolTip.SetActive(true);
+                toolTip.transform.position = position;
+            }
         }
 
-        public void HideTooltip()
+        public void HideToolTip(string toolTipName)
         {
-            // Implementation for hiding tooltip
-            Debug.Log("Hiding tooltip");
+            if (_toolTips.TryGetValue(toolTipName, out GameObject toolTip))
+            {
+                toolTip.SetActive(false);
+            }
+        }
+
+        public void RegisterToolTip(string name, GameObject toolTip)
+        {
+            if (!_toolTips.ContainsKey(name))
+            {
+                _toolTips.Add(name, toolTip);
+            }
         }
     }
 }

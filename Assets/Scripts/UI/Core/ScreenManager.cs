@@ -1,14 +1,13 @@
 using UnityEngine;
-using UnityEngine.UI;
 using System.Collections.Generic;
 
-namespace ProjectName.UI.Core
+namespace UI.Core
 {
     public class ScreenManager : MonoBehaviour
     {
-        private Dictionary<string, RectTransform> screens = new Dictionary<string, RectTransform>();
-
         public static ScreenManager Instance { get; private set; }
+
+        private Dictionary<string, Rect> _screens = new Dictionary<string, Rect>();
 
         private void Awake()
         {
@@ -23,25 +22,18 @@ namespace ProjectName.UI.Core
             }
         }
 
-        public void RegisterScreen(string name, RectTransform screen)
+        public Rect GetScreen(string screenName)
         {
-            screens[name] = screen;
+            if (_screens.TryGetValue(screenName, out Rect screen))
+            {
+                return screen;
+            }
+            return new Rect(0, 0, Screen.width, Screen.height);
         }
 
-        public void ShowScreen(string name)
+        public void RegisterScreen(string name, Rect screen)
         {
-            if (screens.TryGetValue(name, out RectTransform screen))
-            {
-                screen.gameObject.SetActive(true);
-            }
-        }
-
-        public void HideScreen(string name)
-        {
-            if (screens.TryGetValue(name, out RectTransform screen))
-            {
-                screen.gameObject.SetActive(false);
-            }
+            _screens.Add(name, screen);
         }
     }
 }

@@ -1,7 +1,6 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
-namespace ProjectName.UI.Core
+namespace UI.Core
 {
     public interface IDragDropHandler
     {
@@ -9,4 +8,3 @@ namespace ProjectName.UI.Core
         void OnDrag(PointerEventData eventData);
         void OnDragEnd(PointerEventData eventData);
     }
-}

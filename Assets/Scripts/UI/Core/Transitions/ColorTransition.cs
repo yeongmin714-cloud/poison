@@ -1,42 +1,26 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
-namespace ProjectName.UI.Core.Transitions
+namespace UI.Core.Transitions
 {
-   public class ColorTransition : Transition
-   {
-       [Header("Color Transition Settings")]
-       public Color fromColor = Color.clear;
-       public Color toColor = Color.clear;
-       public Graphic targetGraphic;
-       
-       protected override IEnumerator DoTransition()
-       {
-           if (targetGraphic == null)
-           {
-               Debug.LogError("Target Graphic not assigned for ColorTransition");
-               yield break;
-           }
-           
-           float elapsedTime = 0f;
-           Color startColor = fromColor;
-           
-           while (elapsedTime < duration)
-           {
-               elapsedTime += Time.deltaTime;
-               float t = curve.Evaluate(elapsedTime / duration);
-               Color newColor = Color.Lerp(startColor, toColor, t);
-               
-               // Apply color to target
-               targetGraphic.color = newColor;
-               
-               yield return null;
-           }
-           
-           // Ensure final color is applied
-           targetGraphic.color = toColor;
-       }
-   }
+    public class ColorTransition : Transition
+    {
+        private Color _startColor;
+        private Color _targetColor;
+        private Material _material;
+
+        public void Initialize(Material material, Color startColor, Color targetColor)
+        {
+            _material = material;
+            _startColor = startColor;
+            _targetColor = targetColor;
+        }
+
+        public override void Apply(float progress)
+        {
+            if (_material != null)
+            {
+                _material.color = Color.Lerp(_startColor, _targetColor, progress);
+            }
+        }
+    }
 }
