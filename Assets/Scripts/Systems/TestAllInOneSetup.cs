@@ -835,17 +835,17 @@ namespace ProjectName.Systems
                 Debug.Log("[TestAllInOneSetup] ✅ TerrainCache 생성");
             }
 
-            if (ProceduralLODSystem.Instance == null)
+            if (ProjectName.Systems.Animation.Procedural.LOD.ProceduralLODManager.Instance == null)
             {
                 var lodGO = new GameObject("ProceduralLODSystem");
-                lodGO.AddComponent<ProceduralLODSystem>();
+                lodGO.AddComponent<ProjectName.Systems.Animation.Procedural.LOD.ProceduralLODManager>();
                 Debug.Log("[TestAllInOneSetup] ✅ ProceduralLODSystem 생성");
             }
 
-            if (FindAnyObjectByType<ParentVelocityProvider>() == null)
+            if (FindAnyObjectByType<ProjectName.Systems.Animation.Procedural.ParentVelocityProvider>() == null)
             {
                 var pvGO = new GameObject("ParentVelocityProvider");
-                pvGO.AddComponent<ParentVelocityProvider>();
+                pvGO.AddComponent<ProjectName.Systems.Animation.Procedural.ParentVelocityProvider>();
                 Debug.Log("[TestAllInOneSetup] ✅ ParentVelocityProvider 생성");
             }
         }

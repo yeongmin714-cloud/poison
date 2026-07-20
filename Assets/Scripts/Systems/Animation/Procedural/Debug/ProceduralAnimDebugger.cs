@@ -244,9 +244,11 @@ namespace ProjectName.Systems.Animation.Procedural.Debug
 
                 // Set step parameters via FootPlannerJob fields in ScheduleLocomotionJobs
                 // These are local variables in the method, so we store them on the DebugData
-                kvp.Value.DutyCycle = _paramDutyCycle;
-                kvp.Value.StepLength = _paramStepLength;
-                kvp.Value.StepHeight = _paramStepHeight;
+                var debugData = kvp.Value;
+                debugData.DutyCycle = _paramDutyCycle;
+                debugData.StepLength = _paramStepLength;
+                debugData.StepHeight = _paramStepHeight;
+                _debugData[kvp.Key] = debugData;
             }
         }
 

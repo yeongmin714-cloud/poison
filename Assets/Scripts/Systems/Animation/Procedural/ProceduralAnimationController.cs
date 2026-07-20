@@ -822,7 +822,7 @@ namespace ProjectName.Systems.Animation.Procedural
                     MaxLateralShifts = new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.1f },
                     MaxVerticalShifts = new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.05f },
                     Speeds = new NativeArray<float>(1, Allocator.TempJob) { [0] = _currentSpeed },
-                    TurnAmounts = new NativeArray<float>(1, Allocator.TempJob) { [0] = turnInput },
+                    TurnAmounts = new NativeArray<float>(1, Allocator.TempJob) { [0] = _turnInput },
 
                     OutHipOffsets = _hipOffset,
                     OutHipHeightOffsets = _hipHeightOffset,
@@ -899,7 +899,7 @@ namespace ProjectName.Systems.Animation.Procedural
                 _leftIKResults.Add(leftRootRotations);
                 _leftIKResults.Add(leftMidRotations);
                 _leftIKResults.Add(leftTipRotations);
-                _leftIKResults.Add(leftSuccess.Cast<quaternion>());
+                _leftIKSuccess.Add(leftSuccess);
                 dependency = leftHandle;
             }
 
@@ -942,7 +942,7 @@ namespace ProjectName.Systems.Animation.Procedural
                 _rightIKResults.Add(rightRootRotations);
                 _rightIKResults.Add(rightMidRotations);
                 _rightIKResults.Add(rightTipRotations);
-                _rightIKResults.Add(rightSuccess.Cast<quaternion>());
+                _rightIKSuccess.Add(rightSuccess);
                 dependency = rightHandle;
             }
 
@@ -953,6 +953,8 @@ namespace ProjectName.Systems.Animation.Procedural
         List<JobHandle> _rightIKHandles = new List<JobHandle>();
         List<NativeArray<quaternion>> _leftIKResults = new List<NativeArray<quaternion>>();
         List<NativeArray<quaternion>> _rightIKResults = new List<NativeArray<quaternion>>();
+        List<NativeArray<bool>> _leftIKSuccess = new List<NativeArray<bool>>();
+        List<NativeArray<bool>> _rightIKSuccess = new List<NativeArray<bool>>();
 
         void UpdateBonePositions()
         {
@@ -1045,9 +1047,10 @@ namespace ProjectName.Systems.Animation.Procedural
             _rightIKHandles.Clear();
 
             // Read LimbIKJob outputs and dispose
-            if (_leftIKResults.Count >= 4)
+            if (_leftIKResults.Count >= 3 && _leftIKSuccess.Count > 0)
             {
-                if (_leftIKResults[0].IsCreated && _leftIKResults[0][0].value != 0)
+                bool leftSuccess = _leftIKSuccess[0].IsCreated && _leftIKSuccess[0][0];
+                if (leftSuccess)
                 {
                     var rootRot = _leftIKResults[0][0];
                     var midRot = _leftIKResults[1][0];
@@ -1063,12 +1066,16 @@ namespace ProjectName.Systems.Animation.Procedural
 
                 foreach (var arr in _leftIKResults)
                     if (arr.IsCreated) arr.Dispose();
+                foreach (var arr in _leftIKSuccess)
+                    if (arr.IsCreated) arr.Dispose();
                 _leftIKResults.Clear();
+                _leftIKSuccess.Clear();
             }
 
-            if (_rightIKResults.Count >= 4)
+            if (_rightIKResults.Count >= 3 && _rightIKSuccess.Count > 0)
             {
-                if (_rightIKResults[0].IsCreated && _rightIKResults[0][0].value != 0)
+                bool rightSuccess = _rightIKSuccess[0].IsCreated && _rightIKSuccess[0][0];
+                if (rightSuccess)
                 {
                     var rootRot = _rightIKResults[0][0];
                     var midRot = _rightIKResults[1][0];
@@ -1084,7 +1091,10 @@ namespace ProjectName.Systems.Animation.Procedural
 
                 foreach (var arr in _rightIKResults)
                     if (arr.IsCreated) arr.Dispose();
+                foreach (var arr in _rightIKSuccess)
+                    if (arr.IsCreated) arr.Dispose();
                 _rightIKResults.Clear();
+                _rightIKSuccess.Clear();
             }
 
             // Also apply main-thread IK as fallback for success=false chains

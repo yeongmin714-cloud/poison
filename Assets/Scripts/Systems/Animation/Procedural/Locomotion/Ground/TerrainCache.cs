@@ -206,19 +206,19 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Ground
         {
             if (!_frameActive)
             {
-                Debug.LogWarning("[TerrainCache] BeginFrame()을 먼저 호출해야 합니다.");
+                UnityEngine.Debug.LogWarning("[TerrainCache] BeginFrame()을 먼저 호출해야 합니다.");
                 return;
             }
 
             if (index < 0 || index >= _capacity)
             {
-                Debug.LogWarning($"[TerrainCache] 인덱스 {index}가 범위를 벗어났습니다 (capacity={_capacity}).");
+                UnityEngine.Debug.LogWarning($"[TerrainCache] 인덱스 {index}가 범위를 벗어났습니다 (capacity={_capacity}).");
                 return;
             }
 
             if (_pendingCount >= _capacity)
             {
-                Debug.LogWarning($"[TerrainCache] 대기 쿼리 초과 (최대 {_capacity}).");
+                UnityEngine.Debug.LogWarning($"[TerrainCache] 대기 쿼리 초과 (최대 {_capacity}).");
                 return;
             }
 
@@ -242,7 +242,7 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Ground
         {
             if (!_frameActive)
             {
-                Debug.LogWarning("[TerrainCache] BeginFrame()을 먼저 호출해야 합니다.");
+                UnityEngine.Debug.LogWarning("[TerrainCache] BeginFrame()을 먼저 호출해야 합니다.");
                 return;
             }
 
