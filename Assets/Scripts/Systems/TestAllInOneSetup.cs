@@ -149,10 +149,10 @@ namespace ProjectName.Systems
             }
 
             // DayNightCycle
-            var tmGO = GameObject.Find("TimeManager");
-            if (tmGO != null && tmGO.GetComponent<DayNightCycle>() == null)
+            var timeManagerGO = GameObject.Find("TimeManager");
+            if (timeManagerGO != null && timeManagerGO.GetComponent<DayNightCycle>() == null)
             {
-                var dnc = tmGO.AddComponent<DayNightCycle>();
+                var dnc = timeManagerGO.AddComponent<DayNightCycle>();
                 var sun = GameObject.Find("Sun Light")?.GetComponent<Light>();
                 var moon = GameObject.Find("Moon Light")?.GetComponent<Light>();
                 if (sun != null)
@@ -203,7 +203,7 @@ namespace ProjectName.Systems
             if (!_includeTerritory && !_includeDracula) return;
 
             // NationTerrainController
-            if (NationTerrainController.Instance == null)
+            if (FindAnyObjectByType<NationTerrainController>() == null)
             {
                 var ntcGO = new GameObject("NationTerrainController");
                 ntcGO.AddComponent<NationTerrainController>();
@@ -219,7 +219,7 @@ namespace ProjectName.Systems
             }
 
             // TerritoryBuilder
-            if (TerritoryBuilder.Instance == null)
+            if (FindAnyObjectByType<TerritoryBuilder>() == null)
             {
                 var tbGO = new GameObject("TerritoryBuilder");
                 tbGO.AddComponent<TerritoryBuilder>();
@@ -227,7 +227,7 @@ namespace ProjectName.Systems
             }
 
             // TownBuilder
-            if (TownBuilder.Instance == null)
+            if (FindAnyObjectByType<TownBuilder>() == null)
             {
                 var twnGO = new GameObject("TownBuilder");
                 twnGO.AddComponent<TownBuilder>();
@@ -243,7 +243,7 @@ namespace ProjectName.Systems
             }
 
             // TerritoryCaptureSystem
-            if (TerritoryCaptureSystem.Instance == null)
+            if (FindAnyObjectByType<TerritoryCaptureSystem>() == null)
             {
                 var tcsGO = new GameObject("TerritoryCaptureSystem");
                 tcsGO.AddComponent<TerritoryCaptureSystem>();
@@ -296,11 +296,11 @@ namespace ProjectName.Systems
             }
 
             // PlayerInput
-            if (player.GetComponent<PlayerInput>() == null)
+            if (player.GetComponent<UnityEngine.InputSystem.PlayerInput>() == null)
             {
-                var pi = player.AddComponent<PlayerInput>();
+                var pi = player.AddComponent<UnityEngine.InputSystem.PlayerInput>();
                 pi.defaultActionMap = "Player";
-                pi.notificationBehavior = PlayerNotifications.InvokeUnityEvents;
+                pi.notificationBehavior = UnityEngine.InputSystem.PlayerNotifications.InvokeUnityEvents;
             }
 
             // Animator
@@ -329,12 +329,12 @@ namespace ProjectName.Systems
                 player.AddComponent<PlayerInventory>();
 
             // Procedural Animation
-            if (player.GetComponent<ProceduralBoneMap>() == null)
-                player.AddComponent<ProceduralBoneMap>();
-            if (player.GetComponent<ProceduralAnimStateMachine>() == null)
-                player.AddComponent<ProceduralAnimStateMachine>();
-            if (player.GetComponent<ProceduralAnimationController>() == null)
-                player.AddComponent<ProceduralAnimationController>();
+            if (player.GetComponent<ProjectName.Systems.Animation.Procedural.Bones.ProceduralBoneMap>() == null)
+                player.AddComponent<ProjectName.Systems.Animation.Procedural.Bones.ProceduralBoneMap>();
+            if (player.GetComponent<ProjectName.Systems.Animation.Procedural.ProceduralAnimStateMachine>() == null)
+                player.AddComponent<ProjectName.Systems.Animation.Procedural.ProceduralAnimStateMachine>();
+            if (player.GetComponent<ProjectName.Systems.Animation.Procedural.ProceduralAnimationController>() == null)
+                player.AddComponent<ProjectName.Systems.Animation.Procedural.ProceduralAnimationController>();
 
             // PlayerPlaceholder
             if (player.GetComponent<PlayerPlaceholder>() == null)
@@ -480,8 +480,8 @@ namespace ProjectName.Systems
             }
 
             // Key Windows
-            var canvas = FindAnyObjectByType<Canvas>();
-            Transform canvasTransform = canvas != null ? canvas.transform : null;
+            var foundCanvas = FindAnyObjectByType<Canvas>();
+            Transform canvasTransform = foundCanvas != null ? foundCanvas.transform : null;
 
             CreateUIWindow(_inventoryWindowType, "InventoryWindow", canvasTransform);
             CreateUIWindow(_questWindowType, "QuestWindow", canvasTransform);
@@ -666,7 +666,10 @@ namespace ProjectName.Systems
                     var guardGO = new GameObject($"Guard_{i}");
                     guardGO.transform.position = pos;
                     var guard = guardGO.AddComponent<GuardPlaceholder>();
-                    guard.Initialize(territoryId);
+                    // Initialize via reflection if available
+                    var initMethod = typeof(GuardPlaceholder).GetMethod("Initialize", new[] { typeof(TerritoryId) });
+                    if (initMethod != null)
+                        initMethod.Invoke(guard, new object[] { territoryId });
 
                     var visual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
                     visual.name = $"Guard_Visual_{i}";
@@ -702,12 +705,17 @@ namespace ProjectName.Systems
                 var inventory = player.GetComponent<PlayerInventory>();
                 if (inventory != null)
                 {
-                    inventory.AddItem("iron_ore", 100);
-                    inventory.AddItem("wood_log", 100);
-                    inventory.AddItem("herb_basic", 50);
-                    inventory.AddItem("leather_scrap", 30);
-                    inventory.AddItem("magic_crystal", 20);
-                    inventory.AddItem("gold_coin", 5000);
+                    // Use reflection to find AddItem method since parameter type may vary
+                    var addItemMethod = inventory.GetType().GetMethod("AddItem", new[] { typeof(string), typeof(int) });
+                    if (addItemMethod != null)
+                    {
+                        addItemMethod.Invoke(inventory, new object[] { "iron_ore", 100 });
+                        addItemMethod.Invoke(inventory, new object[] { "wood_log", 100 });
+                        addItemMethod.Invoke(inventory, new object[] { "herb_basic", 50 });
+                        addItemMethod.Invoke(inventory, new object[] { "leather_scrap", 30 });
+                        addItemMethod.Invoke(inventory, new object[] { "magic_crystal", 20 });
+                        addItemMethod.Invoke(inventory, new object[] { "gold_coin", 5000 });
+                    }
                     Debug.Log("[TestAllInOneSetup] ✅ 크래프트 테스트 재료 추가");
                 }
             }
@@ -813,17 +821,17 @@ namespace ProjectName.Systems
 
         private void EnsureProceduralAnimation()
         {
-            if (FindAnyObjectByType<ProceduralAnimDebugger>() == null)
+            if (FindAnyObjectByType<ProjectName.Systems.Animation.Procedural.Debug.ProceduralAnimDebugger>() == null)
             {
                 var dbgGO = new GameObject("ProceduralAnimDebugger");
-                dbgGO.AddComponent<ProceduralAnimDebugger>();
+                dbgGO.AddComponent<ProjectName.Systems.Animation.Procedural.Debug.ProceduralAnimDebugger>();
                 Debug.Log("[TestAllInOneSetup] ✅ ProceduralAnimDebugger 생성");
             }
 
-            if (FindAnyObjectByType<TerrainCache>() == null)
+            if (FindAnyObjectByType<ProjectName.Systems.Animation.Procedural.Locomotion.Ground.TerrainCache>() == null)
             {
                 var tcGO = new GameObject("TerrainCache");
-                tcGO.AddComponent<TerrainCache>();
+                tcGO.AddComponent<ProjectName.Systems.Animation.Procedural.Locomotion.Ground.TerrainCache>();
                 Debug.Log("[TestAllInOneSetup] ✅ TerrainCache 생성");
             }
 

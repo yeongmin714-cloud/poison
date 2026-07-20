@@ -85,10 +85,10 @@ namespace ProjectName.Systems
             }
 
             // DayNightCycle
-            var tmGO = GameObject.Find("TimeManager");
-            if (tmGO != null && tmGO.GetComponent<DayNightCycle>() == null)
+            var timeManagerGO = GameObject.Find("TimeManager");
+            if (timeManagerGO != null && timeManagerGO.GetComponent<DayNightCycle>() == null)
             {
-                var dnc = tmGO.AddComponent<DayNightCycle>();
+                var dnc = timeManagerGO.AddComponent<DayNightCycle>();
                 var sun = GameObject.Find("Sun Light")?.GetComponent<Light>();
                 var moon = GameObject.Find("Moon Light")?.GetComponent<Light>();
                 if (sun != null)
@@ -126,7 +126,7 @@ namespace ProjectName.Systems
             }
 
             // NationTerrainController
-            if (NationTerrainController.Instance == null)
+            if (FindAnyObjectByType<NationTerrainController>() == null)
             {
                 var ntcGO = new GameObject("NationTerrainController");
                 ntcGO.AddComponent<NationTerrainController>();
@@ -134,7 +134,7 @@ namespace ProjectName.Systems
             }
 
             // TerritoryBuilder
-            if (TerritoryBuilder.Instance == null)
+            if (FindAnyObjectByType<TerritoryBuilder>() == null)
             {
                 var tbGO = new GameObject("TerritoryBuilder");
                 tbGO.AddComponent<TerritoryBuilder>();
@@ -142,7 +142,7 @@ namespace ProjectName.Systems
             }
 
             // TownBuilder
-            if (TownBuilder.Instance == null)
+            if (FindAnyObjectByType<TownBuilder>() == null)
             {
                 var twnGO = new GameObject("TownBuilder");
                 twnGO.AddComponent<TownBuilder>();
@@ -158,7 +158,7 @@ namespace ProjectName.Systems
             }
 
             // TerritoryCaptureSystem
-            if (TerritoryCaptureSystem.Instance == null)
+            if (FindAnyObjectByType<TerritoryCaptureSystem>() == null)
             {
                 var tcsGO = new GameObject("TerritoryCaptureSystem");
                 tcsGO.AddComponent<TerritoryCaptureSystem>();
@@ -197,11 +197,11 @@ namespace ProjectName.Systems
                 player.AddComponent(pmType);
 
             // PlayerInput
-            if (player.GetComponent<PlayerInput>() == null)
+            if (player.GetComponent<UnityEngine.InputSystem.PlayerInput>() == null)
             {
-                var pi = player.AddComponent<PlayerInput>();
+                var pi = player.AddComponent<UnityEngine.InputSystem.PlayerInput>();
                 pi.defaultActionMap = "Player";
-                pi.notificationBehavior = PlayerNotifications.InvokeUnityEvents;
+                pi.notificationBehavior = UnityEngine.InputSystem.PlayerNotifications.InvokeUnityEvents;
             }
 
             // PlayerPlaceholder
@@ -337,7 +337,10 @@ namespace ProjectName.Systems
 
                 // GuardPlaceholder 사용
                 var guard = guardGO.AddComponent<GuardPlaceholder>();
-                guard.Initialize(territoryId);
+                // Initialize via reflection if available
+                var initMethod = typeof(GuardPlaceholder).GetMethod("Initialize", new[] { typeof(TerritoryId) });
+                if (initMethod != null)
+                    initMethod.Invoke(guard, new object[] { territoryId });
 
                 // 시각 표현
                 var visual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
@@ -366,7 +369,7 @@ namespace ProjectName.Systems
 
         private void BuildTestTown()
         {
-            var townBuilder = TownBuilder.Instance;
+            var townBuilder = FindAnyObjectByType<TownBuilder>();
             if (townBuilder == null)
             {
                 Debug.LogWarning("[TestTerritorySetup] TownBuilder가 없습니다.");

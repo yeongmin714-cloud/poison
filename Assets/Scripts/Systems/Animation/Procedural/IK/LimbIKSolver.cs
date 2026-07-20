@@ -393,16 +393,16 @@ namespace ProjectName.Systems.Animation.Procedural.IK
                 outSuccess.Dispose();
             }
         }
-    }
 
-    /// <summary>
-    /// LOD-aware iterations: returns reduced iteration count based on LOD level.
-    /// LOD0=full(2), LOD1=1, LOD2+=0 (approx fallback)
-    /// </summary>
-    public static int GetLODIterations(int lodLevel)
-    {
-        if (lodLevel <= 0) return 2;
-        if (lodLevel == 1) return 1;
-        return 0;
+        /// <summary>
+        /// LOD-aware iterations: returns reduced iteration count based on LOD level.
+        /// LOD0=full(2), LOD1=1, LOD2+=0 (approx fallback)
+        /// </summary>
+        public static int GetLODIterations(int lodLevel)
+        {
+            if (lodLevel <= 0) return 2;
+            if (lodLevel == 1) return 1;
+            return 0;
+        }
     }
 }

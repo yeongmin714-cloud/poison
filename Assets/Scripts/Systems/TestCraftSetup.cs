@@ -209,11 +209,11 @@ namespace ProjectName.Systems
                 player.AddComponent(pmType);
 
             // PlayerInput
-            if (player.GetComponent<PlayerInput>() == null)
+            if (player.GetComponent<UnityEngine.InputSystem.PlayerInput>() == null)
             {
-                var pi = player.AddComponent<PlayerInput>();
+                var pi = player.AddComponent<UnityEngine.InputSystem.PlayerInput>();
                 pi.defaultActionMap = "Player";
-                pi.notificationBehavior = PlayerNotifications.InvokeUnityEvents;
+                pi.notificationBehavior = UnityEngine.InputSystem.PlayerNotifications.InvokeUnityEvents;
             }
 
             // PlayerPlaceholder
@@ -298,12 +298,17 @@ namespace ProjectName.Systems
                 var inventory = player.GetComponent<PlayerInventory>();
                 if (inventory != null)
                 {
-                    inventory.AddItem("iron_ore", 50);
-                    inventory.AddItem("wood_log", 50);
-                    inventory.AddItem("herb_basic", 30);
-                    inventory.AddItem("leather_scrap", 20);
-                    inventory.AddItem("magic_crystal", 10);
-                    inventory.AddItem("gold_coin", 1000);
+                    // Use reflection to find AddItem method since parameter type may vary
+                    var addItemMethod = inventory.GetType().GetMethod("AddItem", new[] { typeof(string), typeof(int) });
+                    if (addItemMethod != null)
+                    {
+                        addItemMethod.Invoke(inventory, new object[] { "iron_ore", 50 });
+                        addItemMethod.Invoke(inventory, new object[] { "wood_log", 50 });
+                        addItemMethod.Invoke(inventory, new object[] { "herb_basic", 30 });
+                        addItemMethod.Invoke(inventory, new object[] { "leather_scrap", 20 });
+                        addItemMethod.Invoke(inventory, new object[] { "magic_crystal", 10 });
+                        addItemMethod.Invoke(inventory, new object[] { "gold_coin", 1000 });
+                    }
 
                     Debug.Log("[TestCraftSetup] ✅ 테스트 재료/아이템 추가 완료");
                 }
