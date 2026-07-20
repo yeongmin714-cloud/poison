@@ -5,6 +5,7 @@ using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Core.Utils;
 using ProjectName.UI.Themes;
+using ProjectName.UI.Core;
 
 namespace ProjectName.UI
 {

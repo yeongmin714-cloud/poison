@@ -7,6 +7,8 @@
     "Unity.InputSystem",
     "Unity.Cinemachine",
     "Unity.UGUI",
+    "Unity.TextMeshPro",
+    "Unity.Localization",
     "Unity.RenderPipelines.Universal.Runtime",
     "Unity.RenderPipelines.Core.Runtime"
   ],

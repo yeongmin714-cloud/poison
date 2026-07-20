@@ -1,7 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
-namespace UI.Functions
+namespace ProjectName.UI.Functions
 {
     public class UIChatSystem : MonoBehaviour
     {
