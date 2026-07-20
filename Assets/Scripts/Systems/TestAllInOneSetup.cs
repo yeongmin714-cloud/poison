@@ -226,13 +226,13 @@ namespace ProjectName.Systems
                 Debug.Log("[TestAllInOneSetup] ✅ TerritoryBuilder 생성");
             }
 
-            // TownBuilder
-            if (FindAnyObjectByType<TownBuilder>() == null)
-            {
-                var twnGO = new GameObject("TownBuilder");
-                twnGO.AddComponent<TownBuilder>();
-                Debug.Log("[TestAllInOneSetup] ✅ TownBuilder 생성");
-            }
+            // TownBuilder is a static class - no component needed
+            // if (FindAnyObjectByType<TownBuilder>() == null)
+            // {
+            //     var twnGO = new GameObject("TownBuilder");
+            //     twnGO.AddComponent<TownBuilder>();
+            //     Debug.Log("[TestAllInOneSetup] ✅ TownBuilder 생성");
+            // }
 
             // GuardManager
             if (GuardManager.Instance == null)
@@ -242,13 +242,13 @@ namespace ProjectName.Systems
                 Debug.Log("[TestAllInOneSetup] ✅ GuardManager 생성");
             }
 
-            // TerritoryCaptureSystem
-            if (FindAnyObjectByType<TerritoryCaptureSystem>() == null)
-            {
-                var tcsGO = new GameObject("TerritoryCaptureSystem");
-                tcsGO.AddComponent<TerritoryCaptureSystem>();
-                Debug.Log("[TestAllInOneSetup] ✅ TerritoryCaptureSystem 생성");
-            }
+            // TerritoryCaptureSystem is a static class - no component needed
+            // if (FindAnyObjectByType<TerritoryCaptureSystem>() == null)
+            // {
+            //     var tcsGO = new GameObject("TerritoryCaptureSystem");
+            //     tcsGO.AddComponent<TerritoryCaptureSystem>();
+            //     Debug.Log("[TestAllInOneSetup] ✅ TerritoryCaptureSystem 생성");
+            // }
 
             // TerritoryWarManager
             if (TerritoryWarManager.Instance == null)
@@ -844,10 +844,10 @@ namespace ProjectName.Systems
                 Debug.Log("[TestAllInOneSetup] ✅ ProceduralLODSystem 생성");
             }
 
-            if (FindAnyObjectByType<ProjectName.Systems.Animation.Procedural.ParentVelocityProvider>() == null)
+            if (FindAnyObjectByType<ProjectName.Systems.ParentVelocityProvider>() == null)
             {
                 var pvGO = new GameObject("ParentVelocityProvider");
-                pvGO.AddComponent<ProjectName.Systems.Animation.Procedural.ParentVelocityProvider>();
+                pvGO.AddComponent<ProjectName.Systems.ParentVelocityProvider>();
                 Debug.Log("[TestAllInOneSetup] ✅ ParentVelocityProvider 생성");
             }
         }
