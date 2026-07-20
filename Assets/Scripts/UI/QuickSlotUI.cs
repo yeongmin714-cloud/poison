@@ -11,7 +11,7 @@ namespace ProjectName.UI
     /// 키 1~6 으로 아이템 사용. 인벤토리(I) 열린 상태에서 우클릭으로 등록.
     /// </summary>
     [DefaultExecutionOrder(-50)]
-    public class QuickSlotUI : MonoBehaviour
+    public class QuickSlotUI : UIWindow
     {
         public static QuickSlotUI Instance { get; private set; }
 
@@ -39,37 +39,37 @@ namespace ProjectName.UI
         private Rect[] _slotRects;
         private int _hoveredSlot = -1;
 
-        private void Awake()
-        {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
-            // DontDestroyOnLoad은 서브씬 매니저가 관리 (Root GameObject에서만 유효)
-            if (transform.parent == null)
-                DontDestroyOnLoad(gameObject);
+        public override void Awake()
+                {
+                    if (Instance != null && Instance != this)
+                    {
+                        Destroy(gameObject);
+                        return;
+                    }
+                    Instance = this;
+                    // DontDestroyOnLoad은 서브씬 매니저가 관리 (Root GameObject에서만 유효)
+                    if (transform.parent == null)
+                        DontDestroyOnLoad(gameObject);
 
-            _slotRects = new Rect[6];
-        }
+                    _slotRects = new Rect[6];
+                }
 
-        private void OnDestroy()
-        {
-            if (_texWhite != null)
-            {
-                Destroy(_texWhite);
-                _texWhite = null;
-            }
-        }
+                public override void OnDestroy()
+                {
+                    if (_texWhite != null)
+                    {
+                        Destroy(_texWhite);
+                        _texWhite = null;
+                    }
+                }
 
-        private void Update()
-        {
-            HandleKeyInput();
-        }
+                public override void OnGUI()
+                {
+                    if (QuickSlotManager.Instance == null) return;
 
-        private void OnGUI()
-        {
+                    InitStyles();
+                    DrawQuickSlots();
+                }
             if (QuickSlotManager.Instance == null) return;
 
             InitStyles();

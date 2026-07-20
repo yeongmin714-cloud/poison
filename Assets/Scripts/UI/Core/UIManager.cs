@@ -13,14 +13,14 @@ namespace ProjectName.UI.Core
         public UIScreen[] screens;
 
         // 개별 윈도우 레퍼런스들
-                public WarehouseUI warehouseWindow;
-                public InventoryWindow inventoryWindow;
-                public CraftingUI craftingWindow;
-                public ChurchUI churchWindow;
-                public AlchemyUI alchemyWindow;
-                public CookingUI cookingWindow;
-                public QuickSlotUI quickSlotWindow;
-                public RepairStationUI repairWindow;
+        public WarehouseUI warehouseWindow;
+        public InventoryWindow inventoryWindow;
+        public CraftingUI craftingWindow;
+        public ChurchUI churchWindow;
+        public AlchemyUI alchemyWindow;
+        public CookingUI cookingWindow;
+        public QuickSlotUI quickSlotWindow;
+        public RepairStationUI repairWindow;
 
         // UIWindow 레퍼런스들 (타입별 열기용)
         public UIWindow shopWindow;
