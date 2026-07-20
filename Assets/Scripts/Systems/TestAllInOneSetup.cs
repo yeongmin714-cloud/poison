@@ -821,21 +821,23 @@ namespace ProjectName.Systems
 
         private void EnsureProceduralAnimation()
         {
-            if (FindAnyObjectByType<ProjectName.Systems.Animation.Procedural.Debug.ProceduralAnimDebugger>() == null)
-            {
-                var dbgGO = new GameObject("ProceduralAnimDebugger");
-                dbgGO.AddComponent<ProjectName.Systems.Animation.Procedural.Debug.ProceduralAnimDebugger>();
-                Debug.Log("[TestAllInOneSetup] ✅ ProceduralAnimDebugger 생성");
-            }
+            // ProceduralAnimDebugger is a static class - no component needed
+            // if (FindAnyObjectByType<ProjectName.Systems.Animation.Procedural.Debug.ProceduralAnimDebugger>() == null)
+            // {
+            //     var dbgGO = new GameObject("ProceduralAnimDebugger");
+            //     dbgGO.AddComponent<ProjectName.Systems.Animation.Procedural.Debug.ProceduralAnimDebugger>();
+            //     Debug.Log("[TestAllInOneSetup] ✅ ProceduralAnimDebugger 생성");
+            // }
 
-            if (FindAnyObjectByType<ProjectName.Systems.Animation.Procedural.Locomotion.Ground.TerrainCache>() == null)
-            {
-                var tcGO = new GameObject("TerrainCache");
-                tcGO.AddComponent<ProjectName.Systems.Animation.Procedural.Locomotion.Ground.TerrainCache>();
-                Debug.Log("[TestAllInOneSetup] ✅ TerrainCache 생성");
-            }
+            // TerrainCache is a plain class, not MonoBehaviour - no component needed
+            // if (FindAnyObjectByType<ProjectName.Systems.Animation.Procedural.Locomotion.Ground.TerrainCache>() == null)
+            // {
+            //     var tcGO = new GameObject("TerrainCache");
+            //     tcGO.AddComponent<ProjectName.Systems.Animation.Procedural.Locomotion.Ground.TerrainCache>();
+            //     Debug.Log("[TestAllInOneSetup] ✅ TerrainCache 생성");
+            // }
 
-            if (ProjectName.Systems.Animation.Procedural.LOD.ProceduralLODManager.Instance == null)
+            if (FindAnyObjectByType<ProjectName.Systems.Animation.Procedural.LOD.ProceduralLODManager>() == null)
             {
                 var lodGO = new GameObject("ProceduralLODSystem");
                 lodGO.AddComponent<ProjectName.Systems.Animation.Procedural.LOD.ProceduralLODManager>();

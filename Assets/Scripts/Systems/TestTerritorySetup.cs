@@ -1,6 +1,10 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.Systems;
+using System;
+using System.Reflection;
 
 namespace ProjectName.Systems
 {
@@ -141,13 +145,13 @@ namespace ProjectName.Systems
                 Debug.Log("[TestTerritorySetup] ✅ TerritoryBuilder 생성");
             }
 
-            // TownBuilder
-            if (FindAnyObjectByType<TownBuilder>() == null)
-            {
-                var twnGO = new GameObject("TownBuilder");
-                twnGO.AddComponent<TownBuilder>();
-                Debug.Log("[TestTerritorySetup] ✅ TownBuilder 생성");
-            }
+            // TownBuilder is a static class - no component needed
+            // if (FindAnyObjectByType<TownBuilder>() == null)
+            // {
+            //     var twnGO = new GameObject("TownBuilder");
+            //     twnGO.AddComponent<TownBuilder>();
+            //     Debug.Log("[TestTerritorySetup] ✅ TownBuilder 생성");
+            // }
 
             // GuardManager
             if (GuardManager.Instance == null)
@@ -157,13 +161,13 @@ namespace ProjectName.Systems
                 Debug.Log("[TestTerritorySetup] ✅ GuardManager 생성");
             }
 
-            // TerritoryCaptureSystem
-            if (FindAnyObjectByType<TerritoryCaptureSystem>() == null)
-            {
-                var tcsGO = new GameObject("TerritoryCaptureSystem");
-                tcsGO.AddComponent<TerritoryCaptureSystem>();
-                Debug.Log("[TestTerritorySetup] ✅ TerritoryCaptureSystem 생성");
-            }
+            // TerritoryCaptureSystem is a static class - no component needed
+            // if (FindAnyObjectByType<TerritoryCaptureSystem>() == null)
+            // {
+            //     var tcsGO = new GameObject("TerritoryCaptureSystem");
+            //     tcsGO.AddComponent<TerritoryCaptureSystem>();
+            //     Debug.Log("[TestTerritorySetup] ✅ TerritoryCaptureSystem 생성");
+            // }
 
             // TerritoryWarManager
             if (TerritoryWarManager.Instance == null)
@@ -337,10 +341,8 @@ namespace ProjectName.Systems
 
                 // GuardPlaceholder 사용
                 var guard = guardGO.AddComponent<GuardPlaceholder>();
-                // Initialize via reflection if available
-                var initMethod = typeof(GuardPlaceholder).GetMethod("Initialize", new[] { typeof(TerritoryId) });
-                if (initMethod != null)
-                    initMethod.Invoke(guard, new object[] { territoryId });
+                // Use SetGuardInfo instead of Initialize
+                guard.SetGuardInfo($"경비병_{i}", 1, NationType.East);
 
                 // 시각 표현
                 var visual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
@@ -369,15 +371,8 @@ namespace ProjectName.Systems
 
         private void BuildTestTown()
         {
-            var townBuilder = FindAnyObjectByType<TownBuilder>();
-            if (townBuilder == null)
-            {
-                Debug.LogWarning("[TestTerritorySetup] TownBuilder가 없습니다.");
-                return;
-            }
-
-            // TownBuilder가 자동으로 영지 내 건물을 배치하도록 유도
-            // 실제로는 TerritoryBuilder가 TownBuilder를 호출함
+            // TownBuilder is a static class, not a MonoBehaviour
+            // Just call its static methods directly
             Debug.Log("[TestTerritorySetup] ✅ TownBuilder 준비됨 (런타임 시 영지 건물 자동 생성)");
         }
     }

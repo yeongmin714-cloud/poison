@@ -4,6 +4,7 @@
   "references": [
       "Unity.InputSystem",
       "ProjectName.Core",
+      "ProjectName.UI",
       "Unity.Cinemachine",
       "Unity.UGUI",
       "Unity.RenderPipelines.Universal.Runtime",
