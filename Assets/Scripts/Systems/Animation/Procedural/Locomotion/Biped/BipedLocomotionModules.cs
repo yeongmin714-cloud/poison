@@ -360,6 +360,7 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Biped
                     OutSpineRotations[index * MaxSpineSegments + i] = quaternion.identity;
                 }
     }
+    }
 
     /// <summary>
     /// Leg phase oscillator: generates anti-phase leg rhythms.
