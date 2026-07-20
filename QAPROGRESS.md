@@ -70,10 +70,37 @@
 | IDamageable 인터페이스 불일치 | 컴파일 에러 4개 | 양방향 오버로드 추가 |
 | DamageInfo struct 초기화 | 컴파일 에러 | 명시적 생성자 추가 |
 | OnAnimatorIK 호출 안 됨 | IK 미동작 | TestPlayerSetup에 설정 추가 필요 |
+| **WarehouseUI/WarehouseWindow 클래스명 불일치** | **UIManager 컴파일 에러** | **WarehouseUI로 통일 (Phase3_TopDownSetup 수정)** |
+| **AlchemyUI/QuickSlotUI가 MonoBehaviour 상속** | **UIWindow로 캐스팅 불가** | **UIWindow 상속으로 변경 + override 메서드 구현** |
+| **ModelMapping GetRecognizedFiles 없음** | **EditMode 테스트 에러** | **GetRecognizedFiles(), GetAvailableTiers() 구현** |
+| **MainMenuUI/LoadGameUI 클래스 없음** | **EditMode 테스트 에러** | **UIWindow 상속 클래스 신규 생성** |
+| **asmdef 순환 참조** | **Systems→UI→Systems** | **ProjectName.Systems.asmdef에서 UI 참조 제거** |
+| **TextMeshPro/Localization 패키지 누락** | **UI 어셈블리 컴파일 에러** | **manifest.json에 추가, UI.asmdef에 참조 추가** |
 
 ---
 
-## 🔧 컴파일 에러 수정 이력 (2026-07-20) — **전체 0개 달성**
+### 2026-07-20: 컴파일 에러 0개 달성 ✅
+
+**수정된 파일 24개:**
+- `Assets/Scripts/UI/WarehouseUI.cs` — 클래스명 `WarehouseUI` 통일
+- `Assets/Scripts/UI/AlchemyUI.cs` — `UIWindow` 상속, override 구현
+- `Assets/Scripts/UI/QuickSlotUI.cs` — `UIWindow` 상속, `protected override` 수정
+- `Assets/Scripts/UI/Functions/MainMenuUI.cs` — 신규 생성 (`UIWindow` 상속)
+- `Assets/Scripts/UI/Functions/LoadGameUI.cs` — 신규 생성 (`UIWindow` 상속, `RefreshSlots()` 구현)
+- `Assets/Scripts/UI/Core/UIManager.cs` — `warehouseWindow` 타입 일치, 필드 정리
+- `Assets/Editor/ModelMapping.cs` — `GetRecognizedFiles()`, `GetAvailableTiers()` 추가
+- `Assets/Editor/Phase3_TopDownSceneSetup.cs` — `WarehouseUI` 사용으로 변경
+- `Assets/Scripts/UI/ProjectName.UI.asmdef` — `Unity.TextMeshPro`, `Unity.Localization` 참조 추가
+- `Packages/manifest.json` — `com.unity.textmeshpro:3.0.6`, `com.unity.localization:1.5.3` 추가
+- `Assets/Scripts/ProjectName.Systems.asmdef` — `ProjectName.UI` 참조 제거 (순환 해제)
+- `Assets/Scripts/UI/Utils/UIAnimationController.cs` — 불필요한 `new` 제거
+- 기타 UI 경고 수정 파일들
+
+**결과:** Unity 6000.4.10f1에서 **컴파일 에러 0개**, 배치모드 종료 성공 (`exit code 0`)
+
+---
+
+## 📐 점검 기준 (체크리스트)
 
 ### Phase 3.9 프로시저럴 애니메이션 완료 후 남은 컴파일 에러 처리
 
