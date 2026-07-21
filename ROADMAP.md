@@ -2220,6 +2220,64 @@ WorldEventManager (싱글톤)
 
 ---
 
+## 🧠 Phase 67: Neural Animation System — Data Pipeline & Training Infrastructure ✅ (2026-07-21)
+
+> 강화학습(PPO) 기반 신경망 애니메이션 시스템.
+> 기존 프로시저럴 애니메이션을 ONNX 정책 모델로 대체하여 더 자연스러운 움직임 구현.
+
+### 📁 관련 파일
+
+| 경로 | 설명 | 상태 |
+|:-----|:------|:----:|
+| `Assets/Scripts/Systems/Animation/Neural/NeuralAnimationController.cs` | 메인 컨트롤러 | ✅ Phase 4.0.1~4.0.2 |
+| `Assets/Scripts/Systems/Animation/Neural/AnimationPolicy.cs` | IPolicy, ONNXPolicy, PolicyMetadata | ✅ Phase 4.0.1~4.0.2 |
+| `Assets/Scripts/Systems/Animation/Neural/MLRuntimeManager.cs` | 싱글톤 모델 매니저 | ✅ Phase 4.0.1~4.0.2 |
+| `Assets/Scripts/Systems/Animation/Neural/NeuralModelDatabase.cs` | ScriptableObject DB | ✅ Phase 4.0.5 |
+| `Assets/Editor/NeuralModelAutoSetup.cs` | Editor 자동 설정 도구 | ✅ Phase 4.0.5 |
+
+### ✅ 완료된 작업
+
+#### Phase 4.0.1 — 코어 C# 스크립트 (2026-07-20)
+- [x] NeuralAnimationController.cs (Policy 로드/스위칭/IK/LOD 통합)
+- [x] AnimationPolicy.cs (IPolicy 인터페이스, ONNXPolicy 구현, PolicyMetadata, ObservationEncoder, ActionDecoder)
+- [x] MLRuntimeManager.cs (모델 캐싱, 병렬 추론, 프로파일링)
+
+#### Phase 4.0.2 — Sentis/InferenceEngine 연동 (2026-07-20)
+- [x] Unity.InferenceEngine v2.2.1 네임스페이스 정리
+- [x] `ModelLoader.Load()` → `ModelAsset.OnnxModel.bytes` 마이그레이션
+- [x] `Tensor<float>.DownloadToArray()` 사용
+- [x] 컴파일 에러 0개 확인
+
+#### Phase 4.0.3 — Training Data Pipeline (2026-07-21)
+- [x] `synthetic_data_generator.py` — 합성 학습 데이터 생성
+- [x] `dataset_analyzer.py` — 데이터셋 분석 및 통계
+- [x] 다양한 지형/속도/경사로 시나리오 지원
+
+#### Phase 4.0.4 — Training Infrastructure (2026-07-21)
+- [x] `config.py` — PPO 하이퍼파라미터 설정
+- [x] `simple_animation_env.py` — 강화학습 환경 (Gymnasium)
+- [x] `ppo_trainer.py` — PPO 학습 엔진
+- [x] `train.py` — 메인 학습 실행 스크립트
+- [x] `onnx_exporter.py` — PyTorch → ONNX 변환
+
+#### Phase 4.0.5 — ONNX 모델 & Unity 통합 (2026-07-21)
+- [x] 5개 ONNX 스타터 모델 생성 (locomotion/combat/react/interact biped + locomotion quadruped)
+- [x] `Assets/Resources/NeuralModels/` — ONNX 모델 Resources 배포
+- [x] `NeuralModelDatabase.cs` — ScriptableObject 모델 DB
+- [x] `NeuralModelAutoSetup.cs` — Editor 자동 설정 도구 (Tools/Neural/Auto-Setup Model Database)
+- [x] `NeuralTrainingGuide.md` — 한글 학습 가이드 문서
+
+### 남은 작업 (미래 Phase)
+
+| 작업 | 우선순위 | 예상 일정 |
+|:-----|:--------:|:---------:|
+| 실제 PPO 학습 실행 및 모델 튜닝 | 🟡 중 | 차주 |
+| 런타임 성능 최적화 (LOD/양자화) | 🟢 하 | 차주 |
+| 모델 앙상블/블렌딩 고도화 | 🟢 하 | 2주 후 |
+| 커스텀 정책 추가 (비행/수영) | 🟢 하 | 2주 후 |
+
+---
+
 ## 🔧 컴파일 오류/경고 긴급 수정 (2026-07-03)
 
 ### 수정 내역

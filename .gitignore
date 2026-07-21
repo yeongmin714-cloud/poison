@@ -35,3 +35,7 @@ C:temptest.bat
 *.bak
 *.bak2
 *.bakup
+
+# Python cache
+__pycache__/
+*.pyc

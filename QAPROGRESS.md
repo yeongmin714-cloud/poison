@@ -159,9 +159,9 @@
 - 실제 Unity Editor Play 테스트는 미실시 (에디터 없음) → 다음 PC git pull 후 영상 확인 권장
 ---
 
-## 🧠 Phase 4: Neural Animation System — Phase 4.0 ✅ **코어 컴파일 완료**
+## 🧠 Phase 4: Neural Animation System — Phase 4.0 ✅ **전체 완료 (Phase 4.0.1 ~ 4.0.5)**
 
-> **2026-07-21:** Phase 4.0.1 ~ 4.0.2 코어 파일 3개 생성 및 컴파일 완료
+> **2026-07-21:** Phase 4.0.1 ~ 4.0.5 전 단계 완료
 > **Inference Engine:** Unity.InferenceEngine v2.2.1 (com.unity.ai.inference) — Sentis 후속
 > **컴파일 에러 (Neural): 0개** (UI namespace 에러만 별도 존재)
 
@@ -172,6 +172,23 @@
 | `NeuralAnimationController.cs` | 메인 컨트롤러 (Policy 로드/스위칭/IK/LOD) | 1,346 | ✅ 컴파일 |
 | `AnimationPolicy.cs` | IPolicy, ONNXPolicy, ObservationEncoder, ActionDecoder | 894 | ✅ 컴파일 |
 | `MLRuntimeManager.cs` | 싱글톤 모델 매니저 (로드/캐시/추론/프로파일링) | 1,078 | ✅ 컴파일 |
+| `NeuralModelDatabase.cs` | ScriptableObject 모델 DB | 203 | ✅ 생성 |
+
+### 📁 Editor 도구
+
+| 파일 | 설명 | 상태 |
+|:-----|:------|:----:|
+| `Assets/Editor/NeuralModelAutoSetup.cs` | Editor 자동 설정 (Tools/Neural/Auto-Setup Model Database) | ✅ 생성 |
+
+### 📁 ONNX 모델 배포 (`Assets/Resources/NeuralModels/`)
+
+| 모델 | obs | act | joints | 아바타 |
+|:-----|:--:|:---:|:------:|:-----:|
+| `locomotion_biped_base.onnx` | 120 | 80 | 18 | Humanoid |
+| `combat_biped.onnx` | 120 | 80 | 18 | Humanoid |
+| `react_biped.onnx` | 120 | 80 | 18 | Humanoid |
+| `interact_biped.onnx` | 120 | 80 | 18 | Humanoid |
+| `locomotion_quadruped.onnx` | 150 | 100 | 24 | Quadruped |
 
 ### 수정된 API 이슈
 | 이슈 | 해결 |
@@ -183,7 +200,9 @@
 | `Tensor.MakeReadable()` 없음 | `ReadbackAndClone()`으로 대체 |
 | `float3 - Vector3` 모호한 연산자 | 명시적 캐스팅으로 해결 |
 
-### 남은 작업 (Phase 4.0.3 ~ 4.0.4)
-- [ ] Training Data Pipeline (오프라인 데이터셋 구축)
-- [ ] Training Infrastructure (Python PPO/RL 학습 파이프라인)
-- [ ] ONNX 모델 실제 학습 및 배포
+### ✅ 완료된 작업 (Phase 4.0.1 ~ 4.0.5)
+- [x] **Phase 4.0.1** — 코어 C# 스크립트 (NeuralAnimationController, AnimationPolicy, MLRuntimeManager)
+- [x] **Phase 4.0.2** — Sentis/InferenceEngine 연동 및 컴파일 에러 0
+- [x] **Phase 4.0.3** — Training Data Pipeline (synthetic_data_generator.py, dataset_analyzer.py)
+- [x] **Phase 4.0.4** — Training Infrastructure (config.py, env, PPO trainer, train.py, ONNX exporter)
+- [x] **Phase 4.0.5** — ONNX 모델 5종 배포 + Unity 통합 (NeuralModelDatabase, Editor AutoSetup, TrainingGuide)
