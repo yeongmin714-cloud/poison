@@ -1,0 +1,11 @@
+arrow
+arrow2
+arrow3
+banshee_rigged
+bar
+bard_rigged
+bat_rigged
+big_mouse_rigged
+blue_castle
+boar_rigged
+craft_cook

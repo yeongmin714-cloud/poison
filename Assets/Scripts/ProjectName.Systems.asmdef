@@ -10,7 +10,7 @@
       "Unity.RenderPipelines.Core.Runtime",
       "Unity.Mathematics",
       "Unity.Burst",
-      "Unity.Sentis"
+      "Unity.InferenceEngine"
     ],
   "autoReferenced": true,
   "overrideReferences": false,

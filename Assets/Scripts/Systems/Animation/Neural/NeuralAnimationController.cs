@@ -6,21 +6,18 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.AI;
+using Unity.InferenceEngine;
 using ProjectName.Systems.Animation.Procedural;
 using ProjectName.Systems.Animation.Procedural.Bones;
 using ProjectName.Systems.Animation.Procedural.IK;
 using ProjectName.Systems.Animation.Procedural.LOD;
 using static ProjectName.Systems.Animation.Procedural.IK.LimbIKSolver;
 
-#if UNITY_SENTIS
-using Unity.Sentis;
-#endif
-
 namespace ProjectName.Systems.Animation.Neural
 {
     /// <summary>
     /// Neural Animation Controller — replaces ProceduralAnimationController with ONNX policy inference via Unity Sentis.
-    ///
+    /// </summary>
     /// Features:
     /// 1) Load and manage ONNX policy models via Unity Sentis
     /// 2) Observation encoding (velocity, terrain, target, joint states)
@@ -40,10 +37,10 @@ namespace ProjectName.Systems.Animation.Neural
         // ──────────────────────────────────────────────
 
         [Header("Neural Policy Models")]
-        [SerializeField] SentisModelAsset _locomotionPolicy;
-        [SerializeField] SentisModelAsset _combatPolicy;
-        [SerializeField] SentisModelAsset _reactPolicy;
-        [SerializeField] SentisModelAsset _interactPolicy;
+        [SerializeField] ModelAsset _locomotionPolicy;
+        [SerializeField] ModelAsset _combatPolicy;
+        [SerializeField] ModelAsset _reactPolicy;
+        [SerializeField] ModelAsset _interactPolicy;
 
         [Header("Observation Encoding")]
         [SerializeField, Range(1, 64)] int _observationDim = 32;
@@ -93,13 +90,6 @@ namespace ProjectName.Systems.Animation.Neural
             Interact
         }
 
-        [Serializable]
-        public class SentisModelAsset
-        {
-            public TextAsset OnnxModel;
-            [HideInInspector] public string ModelPath;
-        }
-
         // ──────────────────────────────────────────────
         // Component References
         // ──────────────────────────────────────────────
@@ -114,12 +104,10 @@ namespace ProjectName.Systems.Animation.Neural
         // Sentis Runtime
         // ──────────────────────────────────────────────
 
-#if UNITY_SENTIS
-        IWorker _worker;
+        Worker _worker;
         Model _runtimeModel;
-        TensorFloat _inputTensor;
-        TensorFloat _outputTensor;
-#endif
+        Tensor<float> _inputTensor;
+        Tensor<float> _outputTensor;
         bool _sentisAvailable;
 
         // ──────────────────────────────────────────────
@@ -139,10 +127,8 @@ namespace ProjectName.Systems.Animation.Neural
         float _blendTimer;
         bool _isBlending;
 
-        #if UNITY_SENTIS
         Dictionary<PolicyType, Model> _policyModels = new Dictionary<PolicyType, Model>();
-        #endif
-        Dictionary<PolicyType, SentisModelAsset> _policyAssets = new Dictionary<PolicyType, SentisModelAsset>();
+        Dictionary<PolicyType, ModelAsset> _policyAssets = new Dictionary<PolicyType, ModelAsset>();
 
         // ──────────────────────────────────────────────
         // Root Motion Decoded from Policy

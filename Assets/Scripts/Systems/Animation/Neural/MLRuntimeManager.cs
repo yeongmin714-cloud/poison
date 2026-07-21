@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Unity.Sentis;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Unity.InferenceEngine;
 using Debug = UnityEngine.Debug;
 
 // Optional Addressables — compile without if package is absent

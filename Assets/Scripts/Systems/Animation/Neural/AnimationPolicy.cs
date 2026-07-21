@@ -1,33 +1,13 @@
 using System;
-using Unity.Mathematics;
 using UnityEngine;
-using Unity.Sentis;
+using Unity.Mathematics;
+using Unity.InferenceEngine;
 
 namespace ProjectName.Systems.Animation.Neural
 {
-    // ─────────────────────────────────────────────────────────────────────────────
-    //  PolicyMetadata
-    // ─────────────────────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Describes the avatar type for policy selection and routing.
-    /// Maps to <see cref="CharacterType"/> in AnimationBoneDefinitions.
-    /// </summary>
-    public enum AvatarType
-    {
-        /// <summary>Two-legged humanoid (player, NPC, soldier).</summary>
-        Humanoid,
-        /// <summary>Four-legged creature (wolf, boar, horse, deer).</summary>
-        Quadruped,
-        /// <summary>Multi-legged or non-standard skeleton (spider, centipede).</summary>
-        MultiLeg,
-        /// <summary>Flying creature (bird, dragon).</summary>
-        Flying,
-        /// <summary>Swimming creature (fish, aquatic).</summary>
-        Swimming,
-        /// <summary>Any other type — fallback heuristic.</summary>
-        Other
-    }
+   // ─────────────────────────────────────────────────────────────────────────────
+   //  PolicyMetadata
+   // ─────────────────────────────────────────────────────────────────────────────
 
     /// <summary>
     /// Quantization format used for the policy model.
@@ -232,12 +212,12 @@ namespace ProjectName.Systems.Animation.Neural
         // ── Model / Worker ────────────────────────────────────────────────────
 
         private Model _model;
-        private IWorker _worker;
+        private Worker _worker;
         private readonly BackendType _backendType;
 
         // ── Tensor binding ────────────────────────────────────────────────────
 
-        private TensorFloat _inputTensor;
+        private Tensor<float> _inputTensor;
         private readonly string _inputName;
         private readonly string _outputName;
 
@@ -326,13 +306,13 @@ namespace ProjectName.Systems.Animation.Neural
                 // Create input tensor from observation array
                 var inputShape = new TensorShape(1, 1, 1, _metadata.ObservationSize);
                 _inputTensor?.Dispose();
-                _inputTensor = new TensorFloat(inputShape, observation);
+                _inputTensor = new Tensor<float>(inputShape, observation);
 
                 // Execute inference
-                _worker.Execute(_inputTensor);
+                _worker.Schedule(_inputTensor);
 
                 // Read output tensor
-                using var outputTensor = _worker.PeekOutput(_outputName) as TensorFloat;
+                using var outputTensor = _worker.PeekOutput(_outputName) as Tensor<float>;
                 if (outputTensor == null)
                 {
                     Debug.LogError("[ONNXPolicy] Output tensor is null or wrong type.");
@@ -382,7 +362,7 @@ namespace ProjectName.Systems.Animation.Neural
         {
             try
             {
-                _model = SentisModelLoader.Load(_metadata.ModelPath);
+                _model = ModelLoader.Load(_metadata.ModelPath);
                 if (_model == null)
                 {
                     Debug.LogError($"[ONNXPolicy] ModelLoader returned null for {_metadata.ModelPath}");
@@ -401,7 +381,7 @@ namespace ProjectName.Systems.Animation.Neural
         {
             try
             {
-                _worker = WorkerFactory.CreateWorker(_backendType, _model);
+                _worker = new Worker(_model, _backendType);
                 IsReady = _worker != null;
                 return IsReady;
             }
@@ -880,47 +860,3 @@ namespace ProjectName.Systems.Animation.Neural
             };
         }
     }
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    //  ModelLoader — lightweight Sentis model loader
-    // ─────────────────────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Static helper to load Sentis models from various sources.
-    /// In the full Phase 4.0 implementation, this will be replaced by
-    /// <see cref="ModelRegistry"/> with caching and async loading.
-    /// </summary>
-    internal static class SentisModelLoader
-    {
-        /// <summary>
-        /// Load a Sentis <see cref="Model"/> from the given path.
-        /// Supports Resources paths ("path/to/model") and
-        /// StreamingAssets paths ("path/to/model.onnx").
-        /// </summary>
-        public static Model Load(string modelPath)
-        {
-            if (string.IsNullOrEmpty(modelPath))
-            {
-                Debug.LogError("[SentisModelLoader] Model path is null or empty.");
-                return null;
-            }
-
-            // Try Resources first (no extension)
-            Model model = Resources.Load<Model>(modelPath);
-            if (model != null)
-                return model;
-
-            // Try as .onnx in StreamingAssets or absolute path
-            try
-            {
-                model = Unity.Sentis.ModelLoader.Load(onnxPath: modelPath);
-                return model;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[SentisModelLoader] Failed to load model from {modelPath}: {ex.Message}");
-                return null;
-            }
-        }
-    }
-}
