@@ -206,18 +206,22 @@ def _plot_observation_distribution(
     # Component-wise mean comparison
     component_labels = []
     component_means = []
-    for comp_name, (start, end) in layout.items():
+    for comp_name, comp_range in layout.items():
         if comp_name == "total":
             continue
+        if not isinstance(comp_range, (list, tuple)) or len(comp_range) != 2:
+            continue
+        start, end = comp_range
         if end is None:
             continue
         component_labels.append(comp_name.replace("_", " ").title())
         component_means.append(np.mean(obs[:, start:end]))
 
-    axes[1, 1].barh(component_labels, component_means, color=COLORS.get(avatar, "blue"), alpha=0.7)
-    axes[1, 1].set_title("Component-wise Mean")
-    axes[1, 1].set_xlabel("Mean Value")
-    axes[1, 1].grid(True, alpha=0.3, axis="x")
+    if component_labels:
+        axes[1, 1].barh(component_labels, component_means, color=COLORS.get(avatar, "blue"), alpha=0.7)
+        axes[1, 1].set_title("Component-wise Mean")
+        axes[1, 1].set_xlabel("Mean Value")
+        axes[1, 1].grid(True, alpha=0.3, axis="x")
 
     plt.tight_layout()
     filepath = f"{prefix}_obs_distribution.png"
@@ -261,19 +265,23 @@ def _plot_action_distribution(
     # Component-wise
     component_labels = []
     component_means = []
-    for comp_name, (start, end) in layout.items():
+    for comp_name, comp_range in layout.items():
         if comp_name == "total":
             continue
+        if not isinstance(comp_range, (list, tuple)) or len(comp_range) != 2:
+            continue
+        start, end = comp_range
         if end is None:
             # Reserved/padding — show remaining mean
             continue
         component_labels.append(comp_name.replace("_", " ").title())
         component_means.append(np.mean(acts[:, start:end]))
 
-    axes[1, 1].barh(component_labels, component_means, color=COLORS.get(avatar, "orange"), alpha=0.7)
-    axes[1, 1].set_title("Component-wise Mean")
-    axes[1, 1].set_xlabel("Mean Value")
-    axes[1, 1].grid(True, alpha=0.3, axis="x")
+    if component_labels:
+        axes[1, 1].barh(component_labels, component_means, color=COLORS.get(avatar, "orange"), alpha=0.7)
+        axes[1, 1].set_title("Component-wise Mean")
+        axes[1, 1].set_xlabel("Mean Value")
+        axes[1, 1].grid(True, alpha=0.3, axis="x")
 
     plt.tight_layout()
     filepath = f"{prefix}_act_distribution.png"
@@ -438,6 +446,9 @@ def _plot_gait_patterns(
     fig.suptitle(f"Velocity Profiles by Gait Type — {avatar.title()}", fontsize=14, fontweight="bold")
 
     vel_start, vel_end = layout.get("velocity", (0, 3))
+    # Ensure both are ints
+    if not isinstance(vel_start, int):
+        vel_start, vel_end = 0, 3
 
     for idx, gait in enumerate(GAIT_TYPES):
         ax = axes[idx] if len(GAIT_TYPES) > 1 else axes
