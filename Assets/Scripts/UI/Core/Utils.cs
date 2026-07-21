@@ -35,7 +35,7 @@ namespace UI.Core
             T component = go.GetComponent<T>();
             if (component == null)
             {
-                component = go.GetComponentInChild<T>();
+                component = go.GetComponentInChildren<T>();
             }
             return component;
         }
