@@ -585,9 +585,7 @@ namespace ProjectName.Systems.Animation.Neural
             _observationBuffer[idx++] = localPos.y;
             _observationBuffer[idx++] = localPos.z;
 
-            float3 vel = t != null
-                ? (Vector3)(worldPos - (Vector3)worldPos) // placeholder — use previous frame diff
-                : float3.zero;
+            float3 vel = float3.zero; // placeholder — use previous frame diff
             _observationBuffer[idx++] = 0f;
             _observationBuffer[idx++] = 0f;
             _observationBuffer[idx++] = 0f;

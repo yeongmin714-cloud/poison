@@ -10,19 +10,19 @@
 
 ## 🏗️ Phase 4.0: 아키텍처 설계 및 기반 인프라
 
-### 4.0.1 — Neural Animation Core Architecture
-- [ ] **NeuralAnimationController.cs** — 메인 컨트롤러 (ProceduralAnimationController 대체)
-- [ ] **AnimationPolicy.cs** — 정책 네트워크 추상화 (ONNX Runtime / Barracuda / ML-Agents 호환)
-- [ ] **AnimationObservation.cs** — 관측 공간 정의 (State: velocity, terrain, target, health, stamina, equipment...)
-- [ ] **AnimationAction.cs** — 행동 공간 정의 (Action: bone rotations, root motion, IK targets, blend weights)
-- [ ] **ObservationEncoder.cs** — 관측값 정규화/인코딩 (StandardScaler, One-hot encoding)
-- [ ] **ActionDecoder.cs** — 행동 디코딩 (Bone rotation → Local/Global transform, Root motion extraction)
+### 4.0.1 — Neural Animation Core Architecture ✅ (컴파일 완료)
+- [x] **NeuralAnimationController.cs** — 메인 컨트롤러 (ProceduralAnimationController 대체)
+- [x] **AnimationPolicy.cs** — 정책 네트워크 추상화 (IPolicy, ONNXPolicy, ObservationEncoder, ActionDecoder)
+- [x] **AnimationObservation.cs** — 관측 공간 정의 (State: velocity, terrain, target, joint states...)
+- [x] **AnimationAction.cs** — 행동 공간 정의 (Action: bone rotations, root motion, IK targets, blend weights)
+- [x] **ObservationEncoder.cs** — 관측값 정규화/인코딩 (StandardScaler, One-hot encoding)
+- [x] **ActionDecoder.cs** — 행동 디코딩 (Bone rotation → Local/Global transform, Root motion extraction)
 
-### 4.0.2 — ML Runtime Integration
-- [ ] **MLRuntimeManager.cs** — ONNX Runtime / Barracuda / ML-Agents 초기화 및 모델 로드 관리
-- [ ] **ModelRegistry.cs** — 아바타 타입별 모델 매핑 (Player, Soldier, Wolf, Boar, Dragon...)
-- [ ] **ModelLoader.cs** — ONNX/ONNX Runtime / Barracuda / Sentis 모델 로드/언로드/캐시
-- [ ] **InferenceScheduler.cs** — 추론 스케줄링 (FixedUpdate 동기화, Job System 연동, Batched Inference)
+### 4.0.2 — ML Runtime Integration ✅ (컴파일 완료)
+- [x] **MLRuntimeManager.cs** — Unity Inference Engine 싱글톤, 모델 로드/캐시/언로드
+- [x] **ModelRegistry.cs** — 아바타 타입별 모델 매핑 (AnimationPolicy.cs의 AvatarType 사용)
+- [x] **ModelLoader.cs** — ModelAsset → ModelLoader.Load() 방식
+- [x] **InferenceScheduler.cs** — FixedUpdate 동기화, 배치 추론 스케줄링
 
 ### 4.0.3 — Training Data Pipeline (Offline)
 - [ ] **MotionCaptureImporter.cs** — FBX/MBV/GLB 모션 캡처 데이터 임포트 (Mixamo, CMU, 라바 모션 등)

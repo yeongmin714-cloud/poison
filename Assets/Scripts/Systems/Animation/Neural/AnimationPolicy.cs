@@ -352,8 +352,7 @@ namespace ProjectName.Systems.Animation.Neural
                 }
 
                 // Copy to action array
-                outputTensor.ReadbackAndClone();
-                var outputData = outputTensor.ToReadOnlyArray();
+                var outputData = outputTensor.DownloadToArray();
                 int copyCount = Math.Min(outputData.Length, _metadata.ActionSize);
                 Array.Copy(outputData, 0, action, 0, copyCount);
 
@@ -383,7 +382,6 @@ namespace ProjectName.Systems.Animation.Neural
             _inputTensor = null;
             _worker?.Dispose();
             _worker = null;
-            _model?.Dispose();
             _model = null;
             IsReady = false;
         }

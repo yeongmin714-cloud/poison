@@ -611,7 +611,7 @@ namespace ProjectName.Systems.Animation.Neural
                 if (outputTensor != null)
                 {
                     // Make tensor readable on CPU
-                    outputTensor.MakeReadable();
+                    outputTensor = outputTensor.ReadbackAndClone();
 
                     // Dispatch results to each request
                     if (actualBatchSize > 1)

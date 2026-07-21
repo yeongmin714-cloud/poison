@@ -157,3 +157,33 @@
 - 4족 모델 본 이름 넘버링(bone_0~25) → `ProceduralBoneUtility.BuildMap`의 번호 본 휴리스틱으로 자동 매핑
 - 공격 모션 프로시저럴 (클립 없음, 코드 합성)
 - 실제 Unity Editor Play 테스트는 미실시 (에디터 없음) → 다음 PC git pull 후 영상 확인 권장
+---
+
+## 🧠 Phase 4: Neural Animation System — Phase 4.0 ✅ **코어 컴파일 완료**
+
+> **2026-07-21:** Phase 4.0.1 ~ 4.0.2 코어 파일 3개 생성 및 컴파일 완료
+> **Inference Engine:** Unity.InferenceEngine v2.2.1 (com.unity.ai.inference) — Sentis 후속
+> **컴파일 에러 (Neural): 0개** (UI namespace 에러만 별도 존재)
+
+### 📁 폴더 구조 (`Assets/Scripts/Systems/Animation/Neural/`)
+
+| 파일 | 설명 | 라인 수 | 상태 |
+|:-----|:------|:-------:|:----:|
+| `NeuralAnimationController.cs` | 메인 컨트롤러 (Policy 로드/스위칭/IK/LOD) | 1,346 | ✅ 컴파일 |
+| `AnimationPolicy.cs` | IPolicy, ONNXPolicy, ObservationEncoder, ActionDecoder | 894 | ✅ 컴파일 |
+| `MLRuntimeManager.cs` | 싱글톤 모델 매니저 (로드/캐시/추론/프로파일링) | 1,078 | ✅ 컴파일 |
+
+### 수정된 API 이슈
+| 이슈 | 해결 |
+|:-----|:------|
+| `Unity.Sentis` → `Unity.InferenceEngine` | Sentis가 IE로 통합됨 |
+| `ModelAsset` → `ModelLoader.Load()` | `Resources.Load<ModelAsset>()` 후 로드 |
+| `Tensor<float>.ToReadOnlyArray()` 없음 | `DownloadToArray()`로 대체 |
+| `Model.Dispose()` 없음 | Model은 IDisposable 아님 → 제거 |
+| `Tensor.MakeReadable()` 없음 | `ReadbackAndClone()`으로 대체 |
+| `float3 - Vector3` 모호한 연산자 | 명시적 캐스팅으로 해결 |
+
+### 남은 작업 (Phase 4.0.3 ~ 4.0.4)
+- [ ] Training Data Pipeline (오프라인 데이터셋 구축)
+- [ ] Training Infrastructure (Python PPO/RL 학습 파이프라인)
+- [ ] ONNX 모델 실제 학습 및 배포

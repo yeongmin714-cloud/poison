@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace UI.Core
 {
@@ -8,3 +9,4 @@ namespace UI.Core
         void OnDrag(PointerEventData eventData);
         void OnDragEnd(PointerEventData eventData);
     }
+}
