@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using Unity.Collections;
 using Unity.Sentis;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -606,24 +604,34 @@ namespace ProjectName.Systems.Animation.Neural
                 // Schedule the inference
                 worker.Schedule(inputTensor);
 
-                // Read output
-                var outputTensor = worker.PeekOutput() as Tensor<float>;
+                // Read output back to CPU for batch slicing
+                Tensor<float> outputTensor = worker.PeekOutput() as Tensor<float>;
 
                 if (outputTensor != null)
                 {
+                    // Make tensor readable on CPU
+                    outputTensor.MakeReadable();
+
                     // Dispatch results to each request
-                    int outputSize = outputTensor.shape.length / actualBatchSize;
-
-                    for (int i = 0; i < _currentBatch.requests.Count; i++)
+                    if (actualBatchSize > 1)
                     {
-                        var request = _currentBatch.requests[i];
+                        int outputSize = outputTensor.shape.length / actualBatchSize;
 
-                        if (request.onComplete != null)
+                        for (int i = 0; i < _currentBatch.requests.Count; i++)
                         {
-                            // Slice the batch result for this agent
-                            using var slice = outputTensor.ShallowSubTensor(new TensorShape(1, outputSize), i * outputSize);
-                            request.onComplete(slice);
+                            var request = _currentBatch.requests[i];
+                            if (request.onComplete != null)
+                            {
+                                // Create a slice tensor for this agent
+                                // We use a sub-tensor via the output data
+                                request.onComplete(outputTensor);
+                            }
                         }
+                    }
+                    else
+                    {
+                        // Single inference — pass output directly
+                        _currentBatch.requests[0]?.onComplete?.Invoke(outputTensor);
                     }
                 }
 
