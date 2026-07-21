@@ -324,7 +324,7 @@ namespace ProjectName.Systems.Animation.Neural
                     model = LoadFromAssetBundle(entry.sourcePath);
                     break;
                 case ModelSourceType.Direct:
-                    model = entry.directModel;
+                    model = entry.directModel != null ? ModelLoader.Load(entry.directModel) : null;
                     break;
 #if UNITY_ADDRESSABLES
                 case ModelSourceType.Addressables:
@@ -384,7 +384,7 @@ namespace ProjectName.Systems.Animation.Neural
                     break;
 #endif
                 case ModelSourceType.Direct:
-                    model = entry.directModel;
+                    model = entry.directModel != null ? ModelLoader.Load(entry.directModel) : null;
                     break;
                 default:
                     loadError = new NotSupportedException($"Async loading not supported for source type '{entry.sourceType}'.");
@@ -595,17 +595,18 @@ namespace ProjectName.Systems.Animation.Neural
             try
             {
                 // Create a worker for this inference
-                using var worker = WorkerFactory.CreateWorker(ActiveBackend, cacheEntry.model);
+                using var worker = new Worker(cacheEntry.model, ActiveBackend);
 
                 // Prepare input tensor — if batch size > 1, we need to concatenate
                 Tensor inputTensor = _currentBatch.inputTensor;
                 int actualBatchSize = _currentBatch.batchSize;
 
                 // Schedule the inference
-                worker.Schedule(inputTensor);
+                worker.SetInput("input", inputTensor);
+                worker.Schedule();
 
                 // Read output back to CPU for batch slicing
-                Tensor<float> outputTensor = worker.PeekOutput() as Tensor<float>;
+                Tensor outputTensor = worker.PeekOutput();
 
                 if (outputTensor != null)
                 {
@@ -677,7 +678,7 @@ namespace ProjectName.Systems.Animation.Neural
                     return;
             }
 
-            entry.model?.Dispose();
+            // Model is managed by Worker lifecycle; no explicit Dispose needed
             _modelCache.Remove(modelId);
             OnModelUnloaded?.Invoke(modelId);
 
@@ -802,29 +803,9 @@ namespace ProjectName.Systems.Animation.Neural
                 var model = kvp.Value.model;
                 if (model != null)
                 {
-                    // Estimate based on model descriptor data
-                    // Sentis doesn't expose a direct memory API, so we use
-                    // a heuristic: count inputs/outputs and their dimensions
-                    try
-                    {
-                        var desc = model.GetModelDesc();
-                        if (desc != null)
-                        {
-                            // Rough estimate: sum of all input/output tensor sizes
-                            foreach (var input in desc.inputs)
-                                totalBytes += input.shape.length * 4;
-                            foreach (var output in desc.outputs)
-                                totalBytes += output.shape.length * 4;
-                        }
-                        else
-                        {
-                            totalBytes += 1024 * 1024; // fallback: 1MB estimate
-                        }
-                    }
-                    catch
-                    {
-                        totalBytes += 1024 * 1024; // fallback: 1MB estimate
-                    }
+                    // Inference Engine does not expose a direct memory API.
+                    // Use a heuristic: 1 MB per loaded model as a rough estimate.
+                    totalBytes += 1024 * 1024;
                 }
             }
             return totalBytes / (1024L * 1024L);
@@ -853,20 +834,25 @@ namespace ProjectName.Systems.Animation.Neural
 
         private Model LoadFromResources(string path)
         {
-            var asset = Resources.Load<Model>(path);
-            return asset;
+            var asset = Resources.Load<ModelAsset>(path);
+            if (asset == null)
+                return null;
+            return ModelLoader.Load(asset);
         }
 
         private IEnumerator LoadFromResourcesAsync(ModelRegistryEntry entry, Action<Model> onComplete, Action<Exception> onError)
         {
-            var request = Resources.LoadAsync<Model>(entry.sourcePath);
+            var request = Resources.LoadAsync<ModelAsset>(entry.sourcePath);
 
             while (!request.isDone)
                 yield return null;
 
-            var model = request.asset as Model;
-            if (model != null)
+            var asset = request.asset as ModelAsset;
+            if (asset != null)
+            {
+                var model = ModelLoader.Load(asset);
                 onComplete?.Invoke(model);
+            }
             else
                 onError?.Invoke(new InvalidOperationException($"Resources.LoadAsync returned null for '{entry.sourcePath}'."));
         }
@@ -877,30 +863,37 @@ namespace ProjectName.Systems.Animation.Neural
             if (bundle == null)
                 return null;
 
-            var model = bundle.LoadAllAssets<Model>().FirstOrDefault();
-            bundle.Unload(false); // Model is now in memory, bundle can be unloaded
+            var asset = bundle.LoadAllAssets<ModelAsset>().FirstOrDefault();
+            if (asset == null)
+            {
+                bundle.Unload(true);
+                return null;
+            }
+
+            var model = ModelLoader.Load(asset);
+            bundle.Unload(false); // ModelAsset is now in memory, bundle can be unloaded
             return model;
         }
 
 #if UNITY_ADDRESSABLES
         private Model LoadFromAddressablesSync(string key)
         {
-            var handle = Addressables.LoadAssetAsync<Model>(key);
+            var handle = Addressables.LoadAssetAsync<ModelAsset>(key);
             handle.WaitForCompletion();
             if (handle.Status == AsyncOperationStatus.Succeeded)
             {
-                var model = handle.Result;
+                var asset = handle.Result;
                 _addressablesHandles[key] = handle;
-                return model;
+                return ModelLoader.Load(asset);
             }
             return null;
         }
 
-        private readonly Dictionary<string, AsyncOperationHandle<Model>> _addressablesHandles = new Dictionary<string, AsyncOperationHandle<Model>>();
+        private readonly Dictionary<string, AsyncOperationHandle<ModelAsset>> _addressablesHandles = new Dictionary<string, AsyncOperationHandle<ModelAsset>>();
 
         private IEnumerator LoadFromAddressablesAsync(ModelRegistryEntry entry, Action<Model> onComplete, Action<Exception> onError)
         {
-            var handle = Addressables.LoadAssetAsync<Model>(entry.sourcePath);
+            var handle = Addressables.LoadAssetAsync<ModelAsset>(entry.sourcePath);
 
             while (!handle.IsDone)
                 yield return null;
@@ -908,7 +901,8 @@ namespace ProjectName.Systems.Animation.Neural
             if (handle.Status == AsyncOperationStatus.Succeeded)
             {
                 _addressablesHandles[entry.modelId] = handle;
-                onComplete?.Invoke(handle.Result);
+                var model = ModelLoader.Load(handle.Result);
+                onComplete?.Invoke(model);
             }
             else
             {
@@ -972,37 +966,8 @@ namespace ProjectName.Systems.Animation.Neural
     // Supporting Types
     // ═════════════════════════════════════════════════════════════════
 
-    /// <summary>Avatar types that map to policy models.</summary>
-    public enum AvatarType
-    {
-        // Bipeds
-        Player,
-        Soldier,
-        HumanoidNpc,
-        Bandit,
-        Merchant,
-
-        // Quadrupeds
-        Wolf,
-        Boar,
-        Deer,
-        Horse,
-
-        // Creatures
-        Dragon,
-        Spider,
-        Snake,
-
-        // Special
-        Boss,
-        Mount,
-        Pet,
-
-        // Generic fallback
-        GenericBiped,
-        GenericQuadruped,
-        GenericCreature,
-    }
+    // AvatarType is defined in AnimationPolicy.cs — use its values:
+    //   Humanoid, Quadruped, MultiLeg, Flying, Swimming, Other
 
     /// <summary>How the model asset is sourced.</summary>
     public enum ModelSourceType
@@ -1041,7 +1006,7 @@ namespace ProjectName.Systems.Animation.Neural
         /// <summary>
         /// Direct model reference. Only used when sourceType == Direct.
         /// </summary>
-        public Model directModel;
+        public ModelAsset directModel;
 
         /// <summary>Human-readable description for debugging.</summary>
         public string description;
