@@ -1,51 +1,42 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace UI.Core
+public class LocalizationManager : MonoBehaviour
 {
-    public class LocalizationManager : MonoBehaviour
+    private static LocalizationManager instance;
+    public static LocalizationManager Instance => instance;
+    
+    private Dictionary<string, string> localizedStrings = new Dictionary<string, string>();
+    
+    private void Awake()
     {
-        public static LocalizationManager Instance { get; private set; }
-
-        private Dictionary<string, Dictionary<string, string>> _localizedText = new Dictionary<string, Dictionary<string, string>>();
-        private string _currentLanguage = "en";
-
-        private void Awake()
+        if (instance == null)
         {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            instance = this;
+            DontDestroyOnLoad(gameObject);
         }
-
-        public string GetText(string key)
+        else
         {
-            if (_localizedText.TryGetValue(_currentLanguage, out Dictionary<string, string> languageText) &&
-                languageText.TryGetValue(key, out string text))
-            {
-                return text;
-            }
-            return key;
+            Destroy(gameObject);
         }
-
-        public void SetLanguage(string language)
+    }
+    
+    public void LoadLocalizationData(string language)
+    {
+        // Implementation for loading localization data
+    }
+    
+    public string GetLocalizedString(string key)
+    {
+        if (localizedStrings.TryGetValue(key, out string value))
         {
-            _currentLanguage = language;
+            return value;
         }
-
-        public void RegisterText(string language, string key, string text)
-        {
-            if (!_localizedText.ContainsKey(language))
-            {
-                _localizedText.Add(language, new Dictionary<string, string>());
-            }
-
-            _localizedText[language].Add(key, text);
-        }
+        return key;
+    }
+    
+    public void SetLocalizedString(string key, string value)
+    {
+        localizedStrings[key] = value;
     }
 }

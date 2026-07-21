@@ -1,44 +1,31 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace UI.Core
+public class MessageSystem : MonoBehaviour
 {
-    public class MessageSystem : MonoBehaviour
+    private static MessageSystem instance;
+    public static MessageSystem Instance => instance;
+    
+    private void Awake()
     {
-        public static MessageSystem Instance { get; private set; }
-
-        private Queue<string> _messages = new Queue<string>();
-
-        private void Awake()
+        if (instance == null)
         {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            instance = this;
+            DontDestroyOnLoad(gameObject);
         }
-
-        public void AddMessage(string message)
+        else
         {
-            _messages.Enqueue(message);
+            Destroy(gameObject);
         }
-
-        public string GetMessage()
-        {
-            if (_messages.Count > 0)
-            {
-                return _messages.Dequeue();
-            }
-            return null;
-        }
-
-        public int GetMessageCount()
-        {
-            return _messages.Count;
-        }
+    }
+    
+    public void ShowMessage(string message)
+    {
+        // Implementation for showing messages
+    }
+    
+    public void ShowMessage(string message, float duration)
+    {
+        // Implementation for showing messages with duration
     }
 }

@@ -1,11 +1,6 @@
 using UnityEngine;
 
-namespace UI.Core
+public interface ICanvasComponent
 {
-    public interface ICanvasComponent
-    {
-        Canvas Canvas { get; }
-        void Initialize();
-        void Cleanup();
-    }
+    void OnCanvasChanged();
 }

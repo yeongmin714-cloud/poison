@@ -1,52 +1,50 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace UI.Core
+public class GameEventSystem : MonoBehaviour
 {
-    public class GameEventSystem : MonoBehaviour
+    private static GameEventSystem instance;
+    public static GameEventSystem Instance => instance;
+    
+    private Dictionary<string, List<System.Action>> eventHandlers = new Dictionary<string, List<System.Action>>();
+    
+    private void Awake()
     {
-        public static GameEventSystem Instance { get; private set; }
-
-        private Dictionary<string, List<System.Action<object>>> _eventHandlers = new Dictionary<string, List<System.Action<object>>>();
-
-        private void Awake()
+        if (instance == null)
         {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            instance = this;
+            DontDestroyOnLoad(gameObject);
         }
-
-        public void Subscribe(string eventName, System.Action<object> handler)
+        else
         {
-            if (!_eventHandlers.ContainsKey(eventName))
-            {
-                _eventHandlers.Add(eventName, new List<System.Action<object>>());
-            }
-            _eventHandlers[eventName].Add(handler);
+            Destroy(gameObject);
         }
-
-        public void Unsubscribe(string eventName, System.Action<object> handler)
+    }
+    
+    public void RegisterEvent(string eventName, System.Action handler)
+    {
+        if (!eventHandlers.ContainsKey(eventName))
         {
-            if (_eventHandlers.ContainsKey(eventName))
-            {
-                _eventHandlers[eventName].Remove(handler);
-            }
+            eventHandlers[eventName] = new List<System.Action>();
         }
-
-        public void Publish(string eventName, object data)
+        eventHandlers[eventName].Add(handler);
+    }
+    
+    public void UnregisterEvent(string eventName, System.Action handler)
+    {
+        if (eventHandlers.TryGetValue(eventName, out List<System.Action> handlers))
         {
-            if (_eventHandlers.TryGetValue(eventName, out List<System.Action<object>> handlers))
+            handlers.Remove(handler);
+        }
+    }
+    
+    public void TriggerEvent(string eventName)
+    {
+        if (eventHandlers.TryGetValue(eventName, out List<System.Action> handlers))
+        {
+            foreach (var handler in handlers)
             {
-                foreach (var handler in handlers)
-                {
-                    handler?.Invoke(data);
-                }
+                handler?.Invoke();
             }
         }
     }

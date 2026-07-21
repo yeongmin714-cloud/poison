@@ -1,12 +1,8 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
-namespace UI.Core
+public interface IDragDropHandler
 {
-    public interface IDragDropHandler
-    {
-        void OnDragStart(PointerEventData eventData);
-        void OnDrag(PointerEventData eventData);
-        void OnDragEnd(PointerEventData eventData);
-    }
+    void OnDragStart();
+    void OnDrag();
+    void OnDragEnd();
 }

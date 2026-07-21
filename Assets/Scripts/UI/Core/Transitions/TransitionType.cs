@@ -1,11 +1,7 @@
-namespace UI.Core.Transitions
+public enum TransitionType
 {
-    public enum TransitionType
-    {
-        None,
-        Fade,
-        Slide,
-        Scale,
-        Color
-    }
+    Fade,
+    Slide,
+    Scale,
+    ColorChange
 }

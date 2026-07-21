@@ -1,39 +1,32 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace UI.Core
+public class AbilityManager : MonoBehaviour
 {
-    public class AbilityManager : MonoBehaviour
+    private static AbilityManager instance;
+    public static AbilityManager Instance => instance;
+    
+    private void Awake()
     {
-        public static AbilityManager Instance { get; private set; }
-
-        private Dictionary<string, bool> _abilities = new Dictionary<string, bool>();
-
-        private void Awake()
+        if (instance == null)
         {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            instance = this;
+            DontDestroyOnLoad(gameObject);
         }
-
-        public bool IsAbilityActive(string abilityName)
+        else
         {
-            if (_abilities.TryGetValue(abilityName, out bool active))
-            {
-                return active;
-            }
-            return false;
+            Destroy(gameObject);
         }
-
-        public void SetAbilityActive(string abilityName, bool active)
-        {
-            _abilities[abilityName] = active;
-        }
+    }
+    
+    public void UseAbility(string abilityName)
+    {
+        // Implementation for using abilities
+    }
+    
+    public bool CanUseAbility(string abilityName)
+    {
+        // Implementation for checking if ability can be used
+        return true;
     }
 }

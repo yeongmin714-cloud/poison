@@ -1,42 +1,42 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace UI.Core
+public class ComponentManager : MonoBehaviour
 {
-    public class ComponentManager : MonoBehaviour
+    private static ComponentManager instance;
+    public static ComponentManager Instance => instance;
+    
+    private Dictionary<string, MonoBehaviour> components = new Dictionary<string, MonoBehaviour>();
+    
+    private void Awake()
     {
-        public static ComponentManager Instance { get; private set; }
-
-        private Dictionary<string, MonoBehaviour> _components = new Dictionary<string, MonoBehaviour>();
-
-        private void Awake()
+        if (instance == null)
         {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            instance = this;
+            DontDestroyOnLoad(gameObject);
         }
-
-        public T GetComponent<T>(string componentName) where T : MonoBehaviour
+        else
         {
-            if (_components.TryGetValue(componentName, out MonoBehaviour component))
-            {
-                return component as T;
-            }
-            return null;
+            Destroy(gameObject);
         }
-
-        public void RegisterComponent<T>(string name, T component) where T : MonoBehaviour
+    }
+    
+    public void RegisterComponent(string name, MonoBehaviour component)
+    {
+        components[name] = component;
+    }
+    
+    public T GetComponent<T>(string name) where T : MonoBehaviour
+    {
+        if (components.TryGetValue(name, out MonoBehaviour component))
         {
-            if (!_components.ContainsKey(name))
-            {
-                _components.Add(name, component);
-            }
+            return component as T;
         }
+        return null;
+    }
+    
+    public void UnregisterComponent(string name)
+    {
+        components.Remove(name);
     }
 }

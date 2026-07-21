@@ -1,53 +1,48 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
-namespace UI.Core
+public class DragDropManager : MonoBehaviour
 {
-    public class DragDropManager : MonoBehaviour
+    private static DragDropManager instance;
+    public static DragDropManager Instance => instance;
+    
+    private List<IDragDropHandler> dragDropHandlers = new List<IDragDropHandler>();
+    
+    private void Awake()
     {
-        public static DragDropManager Instance { get; private set; }
-
-        private Dictionary<string, IDragDropHandler> _dragDropHandlers = new Dictionary<string, IDragDropHandler>();
-        private GameObject _draggedObject;
-
-        private void Awake()
+        if (instance == null)
         {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            instance = this;
+            DontDestroyOnLoad(gameObject);
         }
-
-        public void RegisterDragDropHandler(string name, IDragDropHandler handler)
+        else
         {
-            if (!_dragDropHandlers.ContainsKey(name))
-            {
-                _dragDropHandlers.Add(name, handler);
-            }
+            Destroy(gameObject);
         }
-
-        public void StartDrag(GameObject draggedObject)
-        {
-            _draggedObject = draggedObject;
-        }
-
-        public void EndDrag()
-        {
-            _draggedObject = null;
-        }
-
-        public void HandleDrag(PointerEventData eventData)
-        {
-            if (_draggedObject != null && _dragDropHandlers.TryGetValue(_draggedObject.name, out IDragDropHandler handler))
-            {
-                handler.OnDrag(eventData);
-            }
-        }
+    }
+    
+    public void RegisterDragDropHandler(IDragDropHandler handler)
+    {
+        dragDropHandlers.Add(handler);
+    }
+    
+    public void UnregisterDragDropHandler(IDragDropHandler handler)
+    {
+        dragDropHandlers.Remove(handler);
+    }
+    
+    public void StartDrag(IDragDropHandler handler)
+    {
+        // Drag start implementation
+    }
+    
+    public void UpdateDrag(IDragDropHandler handler, Vector2 position)
+    {
+        // Drag update implementation
+    }
+    
+    public void EndDrag(IDragDropHandler handler)
+    {
+        // Drag end implementation
     }
 }

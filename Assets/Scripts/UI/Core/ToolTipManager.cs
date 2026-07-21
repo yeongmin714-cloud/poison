@@ -1,50 +1,39 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace UI.Core
+public class ToolTipManager : MonoBehaviour
 {
-    public class ToolTipManager : MonoBehaviour
+    private static ToolTipManager instance;
+    public static ToolTipManager Instance => instance;
+    
+    [SerializeField] private GameObject tooltipPrefab;
+    [SerializeField] private Transform tooltipParent;
+    
+    private void Awake()
     {
-        public static ToolTipManager Instance { get; private set; }
-
-        private Dictionary<string, GameObject> _toolTips = new Dictionary<string, GameObject>();
-
-        private void Awake()
+        if (instance == null)
         {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            instance = this;
+            DontDestroyOnLoad(gameObject);
         }
-
-        public void ShowToolTip(string toolTipName, Vector3 position)
+        else
         {
-            if (_toolTips.TryGetValue(toolTipName, out GameObject toolTip))
-            {
-                toolTip.SetActive(true);
-                toolTip.transform.position = position;
-            }
+            Destroy(gameObject);
         }
-
-        public void HideToolTip(string toolTipName)
-        {
-            if (_toolTips.TryGetValue(toolTipName, out GameObject toolTip))
-            {
-                toolTip.SetActive(false);
-            }
-        }
-
-        public void RegisterToolTip(string name, GameObject toolTip)
-        {
-            if (!_toolTips.ContainsKey(name))
-            {
-                _toolTips.Add(name, toolTip);
-            }
-        }
+    }
+    
+    public void ShowTooltip(string text, Vector2 position)
+    {
+        // Implementation for showing tooltip
+    }
+    
+    public void HideTooltip()
+    {
+        // Implementation for hiding tooltip
+    }
+    
+    public void SetTooltipPosition(Vector2 position)
+    {
+        // Implementation for setting tooltip position
     }
 }

@@ -1,9 +1,9 @@
 using UnityEngine;
 
-namespace UI.Core.Transitions
+public class Transition : MonoBehaviour
 {
-    public abstract class Transition : MonoBehaviour
+    public virtual void Play(float duration)
     {
-        public abstract void Apply(float progress);
+        // Base transition implementation
     }
 }

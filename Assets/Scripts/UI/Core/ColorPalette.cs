@@ -1,42 +1,12 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace UI.Core
+[System.Serializable]
+public class ColorPalette
 {
-    public class ColorPalette : MonoBehaviour
-    {
-        public static ColorPalette Instance { get; private set; }
-
-        private Dictionary<string, Color> _colors = new Dictionary<string, Color>();
-
-        private void Awake()
-        {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
-        }
-
-        public Color GetColor(string colorName)
-        {
-            if (_colors.TryGetValue(colorName, out Color color))
-            {
-                return color;
-            }
-            return Color.white;
-        }
-
-        public void RegisterColor(string name, Color color)
-        {
-            if (!_colors.ContainsKey(name))
-            {
-                _colors.Add(name, color);
-            }
-        }
-    }
+    public Color primaryColor;
+    public Color secondaryColor;
+    public Color accentColor;
+    public Color backgroundColor;
+    public Color textColor;
 }

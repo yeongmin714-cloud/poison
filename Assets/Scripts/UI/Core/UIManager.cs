@@ -1,76 +1,53 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace UI.Core
+public class UIManager : MonoBehaviour
 {
-    public class UIManager : MonoBehaviour
+    private Dictionary<string, MonoBehaviour> uiComponents = new Dictionary<string, MonoBehaviour>();
+    
+    public void RegisterUIComponent(string name, MonoBehaviour component)
     {
-        public static UIManager Instance { get; private set; }
-
-        private Dictionary<string, GameObject> _uiPanels = new Dictionary<string, GameObject>();
-        private Dictionary<string, MonoBehaviour> _uiComponents = new Dictionary<string, MonoBehaviour>();
-
-        private void Awake()
+        if (!uiComponents.ContainsKey(name))
         {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            uiComponents.Add(name, component);
         }
-
-        public void ShowPanel(string panelName)
+        else
         {
-            if (_uiPanels.TryGetValue(panelName, out GameObject panel))
-            {
-                panel.SetActive(true);
-            }
+            Debug.LogWarning($"UI Component {name} already registered.");
         }
-
-        public void HidePanel(string panelName)
+    }
+    
+    public T GetUIComponent<T>(string name) where T : MonoBehaviour
+    {
+        if (uiComponents.TryGetValue(name, out MonoBehaviour component))
         {
-            if (_uiPanels.TryGetValue(panelName, out GameObject panel))
-            {
-                panel.SetActive(false);
-            }
+            return component as T;
         }
-
-        public GameObject GetPanel(string panelName)
-        {
-            if (_uiPanels.TryGetValue(panelName, out GameObject panel))
-            {
-                return panel;
-            }
-            return null;
-        }
-
-        public T GetComponent<T>(string componentName) where T : MonoBehaviour
-        {
-            if (_uiComponents.TryGetValue(componentName, out MonoBehaviour component))
-            {
-                return component as T;
-            }
-            return null;
-        }
-
-        public void RegisterPanel(string name, GameObject panel)
-        {
-            if (!_uiPanels.ContainsKey(name))
-            {
-                _uiPanels.Add(name, panel);
-            }
-        }
-
-        public void RegisterComponent<T>(string name, T component) where T : MonoBehaviour
-        {
-            if (!_uiComponents.ContainsKey(name))
-            {
-                _uiComponents.Add(name, component);
-            }
-        }
+        return null;
+    }
+    
+    public void UnregisterUIComponent(string name)
+    {
+        uiComponents.Remove(name);
+    }
+    
+    public void ShowScreen(string screenName)
+    {
+        // Implementation for showing screens
+    }
+    
+    public void HideScreen(string screenName)
+    {
+        // Implementation for hiding screens
+    }
+    
+    public void ShowTooltip(string text, Vector2 position)
+    {
+        // Implementation for showing tooltip
+    }
+    
+    public void HideTooltip()
+    {
+        // Implementation for hiding tooltip
     }
 }

@@ -1,42 +1,44 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace UI.Core
+public class ScreenManager : MonoBehaviour
 {
-    public class ScreenManager : MonoBehaviour
+    private static ScreenManager instance;
+    public static ScreenManager Instance => instance;
+    
+    private Dictionary<string, GameObject> screens = new Dictionary<string, GameObject>();
+    
+    private void Awake()
     {
-        public static ScreenManager Instance { get; private set; }
-
-        private Dictionary<string, Rect> _screens = new Dictionary<string, Rect>();
-
-        private void Awake()
+        if (instance == null)
         {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            instance = this;
+            DontDestroyOnLoad(gameObject);
         }
-
-        public Rect GetScreen(string screenName)
+        else
         {
-            if (_screens.TryGetValue(screenName, out Rect screen))
-            {
-                return screen;
-            }
-            return new Rect(0, 0, Screen.width, Screen.height);
+            Destroy(gameObject);
         }
-
-        public void RegisterScreen(string name, Rect screen)
+    }
+    
+    public void RegisterScreen(string screenName, GameObject screen)
+    {
+        screens[screenName] = screen;
+    }
+    
+    public void ShowScreen(string screenName)
+    {
+        if (screens.TryGetValue(screenName, out GameObject screen))
         {
-            if (!_screens.ContainsKey(name))
-            {
-                _screens.Add(name, screen);
-            }
+            screen.SetActive(true);
+        }
+    }
+    
+    public void HideScreen(string screenName)
+    {
+        if (screens.TryGetValue(screenName, out GameObject screen))
+        {
+            screen.SetActive(false);
         }
     }
 }

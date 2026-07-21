@@ -1,36 +1,30 @@
 using UnityEngine;
-using System.Collections;
 
-namespace UI.Core.Transitions
+public class TransitionManager : MonoBehaviour
 {
-    public class TransitionManager : MonoBehaviour
+    private static TransitionManager instance;
+    public static TransitionManager Instance => instance;
+    
+    private void Awake()
     {
-        public static TransitionManager Instance { get; private set; }
-
-        private void Awake()
+        if (instance == null)
         {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            instance = this;
+            DontDestroyOnLoad(gameObject);
         }
-
-        public IEnumerator SmoothTransition(float duration, System.Action<float> updateAction, System.Action onComplete = null)
+        else
         {
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                float progress = Mathf.Clamp01(elapsed / duration);
-                updateAction?.Invoke(progress);
-                yield return null;
-            }
-            onComplete?.Invoke();
+            Destroy(gameObject);
         }
+    }
+    
+    public void PlayTransition(TransitionType type, float duration)
+    {
+        // Implementation for playing transitions
+    }
+    
+    public void PlayTransition(Transition transition, float duration)
+    {
+        // Implementation for playing custom transitions
     }
 }
