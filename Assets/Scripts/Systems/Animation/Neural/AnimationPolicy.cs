@@ -139,13 +139,13 @@ namespace ProjectName.Systems.Animation.Neural
         {
             return new PolicyMetadata
             {
-                ModelVersion = "1.0.0",
+                ModelVersion = "1.1.0",
                 AvatarType = AvatarType.Humanoid,
                 PolicyName = "Locomotion_Biped_Base",
                 ObservationSize = 120,
                 ActionSize = 80,
                 JointCount = jointCount,
-                TerrainHeightmapResolution = 11,
+                TerrainHeightmapResolution = 6,
                 Quantization = QuantizationFormat.INT8,
                 ModelPath = modelPath,
                 ExpectedLatencyMs = 2.0f,
@@ -160,13 +160,13 @@ namespace ProjectName.Systems.Animation.Neural
         {
             return new PolicyMetadata
             {
-                ModelVersion = "1.0.0",
+                ModelVersion = "1.1.0",
                 AvatarType = AvatarType.Quadruped,
                 PolicyName = "Locomotion_Quadruped_Base",
                 ObservationSize = 150,
                 ActionSize = 100,
                 JointCount = jointCount,
-                TerrainHeightmapResolution = 11,
+                TerrainHeightmapResolution = 7,
                 Quantization = QuantizationFormat.INT8,
                 ModelPath = modelPath,
                 ExpectedLatencyMs = 3.0f,
@@ -459,6 +459,7 @@ namespace ProjectName.Systems.Animation.Neural
 
         private readonly int _jointCount;
         private readonly int _totalObservationSize;
+        private readonly int _paddingSize;
 
         // ── Public API ────────────────────────────────────────────────────────
 
@@ -477,7 +478,7 @@ namespace ProjectName.Systems.Animation.Neural
         /// <param name="styleEmbeddingSize">Size of the style vector if included.</param>
         public ObservationEncoder(
             int jointCount,
-            int terrainResolution = 11,
+            int terrainResolution = 6,
             float terrainSampleRadius = 1.5f,
             bool includeStyleEmbedding = true,
             int styleEmbeddingSize = 8)
@@ -510,7 +511,7 @@ namespace ProjectName.Systems.Animation.Neural
             int rootVel = 3;               // Root linear velocity
             int rootAngVel = 3;            // Root angular velocity
             int jointPos = jointCount * 3; // Joint positions
-            int jointVel = jointCount * 3; // Joint velocities
+            int jointVel = 0;              // REMOVED — joint velocity not used
             int targetDir = 2;             // Target direction (x, z)
             int targetSpeed = 1;           // Target speed
             int terrain = terrainResolution * terrainResolution; // Heightmap
@@ -518,9 +519,22 @@ namespace ProjectName.Systems.Animation.Neural
             int gaitPhase = 1;             // Gait phase [0, 1)
             int style = includeStyleEmbedding ? styleEmbeddingSize : 0;
 
-            _totalObservationSize = rootVel + rootAngVel + jointPos + jointVel +
-                                     targetDir + targetSpeed + terrain +
-                                     contactFlags + gaitPhase + style;
+            int rawTotal = rootVel + rootAngVel + jointPos + jointVel +
+                           targetDir + targetSpeed + terrain +
+                           contactFlags + gaitPhase + style;
+
+            // Add padding to reach canonical obs sizes:
+            // Biped (18 joints, terrain 6): 112 raw + 8 pad = 120
+            // Quadruped (24 joints, terrain 7): 143 raw + 7 pad = 150
+            _paddingSize = 0;
+            if (jointCount <= 18 && terrainResolution <= 6)
+                _paddingSize = 120 - rawTotal;
+            else if (jointCount <= 24 && terrainResolution <= 7)
+                _paddingSize = 150 - rawTotal;
+            else
+                _paddingSize = (rawTotal % 8 == 0) ? 0 : 8 - (rawTotal % 8);
+
+            _totalObservationSize = rawTotal + _paddingSize;
         }
 
         /// <summary>
@@ -599,15 +613,7 @@ namespace ProjectName.Systems.Animation.Neural
                     output[idx++] = 0f; // Zero-pad missing joints
             }
 
-            // 4. Joint velocities (StandardScaler normalization)
-            int jointVelCount = math.min(jointVelocities?.Length ?? 0, _jointCount * 3);
-            for (int i = 0; i < _jointCount * 3; i++)
-            {
-                if (i < jointVelCount)
-                    output[idx++] = (jointVelocities[i] - _jointVelocityMean[i]) / _jointVelocityStd[i];
-                else
-                    output[idx++] = 0f;
-            }
+            // NOTE: Section 4 (Joint velocities) removed — not used in runtime
 
             // 5. Target direction
             output[idx++] = targetDirection.x;
@@ -654,6 +660,10 @@ namespace ProjectName.Systems.Animation.Neural
                 Array.Copy(styleEmbedding, 0, output, idx, copyLen);
                 idx += copyLen;
             }
+
+            // 11. Padding — fill remaining to reach _totalObservationSize
+            while (idx < _totalObservationSize)
+                output[idx++] = 0f;
 
             return true;
         }
@@ -758,32 +768,35 @@ namespace ProjectName.Systems.Animation.Neural
         /// <param name="includeBlendWeights">Whether blend weights are included.</param>
         /// <param name="rotationScale">Scale factor for rotation outputs (policy outputs in [-1, 1]).</param>
         /// <param name="rootMotionScale">Scale factor for root motion outputs.</param>
+        /// <param name="simplifyRootMotion">When true, root motion is 2 (posΔ xy + rotΔ yaw); when false, 6 (full).</param>
         public ActionDecoder(
             int jointCount,
-            bool includeIKTargets = true,
+            bool includeIKTargets = false,
             bool includeBlendWeights = false,
             float rotationScale = 1.0f,
-            float rootMotionScale = 1.0f)
+            float rootMotionScale = 1.0f,
+            bool simplifyRootMotion = false)
         {
             _jointCount = jointCount;
             _rotationScale = rotationScale;
             _rootMotionScale = rootMotionScale;
 
-            // Compute layout
+            // Compute layout — minimal action space for runtime:
+            // Bone rotations + root motion + small reserved padding
             _boneRotationOffset = 0;
             int boneRotationCount = jointCount * 4; // Quaternions
 
             _rootMotionOffset = _boneRotationOffset + boneRotationCount;
-            int rootMotionCount = 6; // posΔ xyz + rotΔ xyz
+            int rootMotionCount = simplifyRootMotion ? 2 : 6; // 2: posΔ xy + rotΔ yaw; 6: full
 
             _ikTargetOffset = _rootMotionOffset + rootMotionCount;
-            int ikTargetCount = includeIKTargets ? 4 * 3 : 0; // 4 feet × 3 position
+            int ikTargetCount = 0; // REMOVED — IK handled separately in controller
 
             _blendWeightOffset = _ikTargetOffset + ikTargetCount;
-            int blendWeightCount = includeBlendWeights ? 4 : 0; // 4 blend weights
+            int blendWeightCount = 0; // REMOVED
 
             _reservedOffset = _blendWeightOffset + blendWeightCount;
-            int reservedCount = 4; // Reserved for future use (stiffness, damping, etc.)
+            int reservedCount = 2; // Small padding only
 
             _actionSize = _reservedOffset + reservedCount;
         }
@@ -805,8 +818,8 @@ namespace ProjectName.Systems.Animation.Neural
             out float[] blendWeights)
         {
             rootMotionDelta = new float3[2]; // [positionDelta, rotationDelta]
-            ikTargets = new float3[4];        // [LF, RF, LH, RH]
-            blendWeights = new float[4];      // 4 blend weights
+            ikTargets = null;  // REMOVED — IK handled separately
+            blendWeights = null; // REMOVED
 
             if (action == null || action.Length < _actionSize)
             {
@@ -828,8 +841,12 @@ namespace ProjectName.Systems.Animation.Neural
             }
 
             // 2. Root motion delta
-            if (rootMotionDelta != null && rootMotionDelta.Length >= 2)
+            int rootMotionCount = _rootMotionOffset > 0
+                ? _ikTargetOffset - _rootMotionOffset
+                : 0;
+            if (rootMotionDelta != null && rootMotionDelta.Length >= 2 && rootMotionCount >= 6)
             {
+                // Full 6-DOF root motion (biped)
                 rootMotionDelta[0] = new float3(
                     action[_rootMotionOffset + 0] * _rootMotionScale,
                     action[_rootMotionOffset + 1] * _rootMotionScale,
@@ -841,27 +858,19 @@ namespace ProjectName.Systems.Animation.Neural
                     action[_rootMotionOffset + 5] * _rotationScale
                 );
             }
-
-            // 3. IK targets (foot positions in root space)
-            if (ikTargets != null && ikTargets.Length >= 4)
+            else if (rootMotionDelta != null && rootMotionDelta.Length >= 2 && rootMotionCount >= 2)
             {
-                for (int i = 0; i < 4; i++)
-                {
-                    ikTargets[i] = new float3(
-                        action[_ikTargetOffset + i * 3 + 0],
-                        action[_ikTargetOffset + i * 3 + 1],
-                        action[_ikTargetOffset + i * 3 + 2]
-                    );
-                }
-            }
-
-            // 4. Blend weights
-            if (blendWeights != null && blendWeights.Length >= 4)
-            {
-                for (int i = 0; i < 4; i++)
-                {
-                    blendWeights[i] = math.saturate(action[_blendWeightOffset + i]);
-                }
+                // Simplified 2-DOF root motion (quadruped): posΔ xy + rotΔ yaw
+                rootMotionDelta[0] = new float3(
+                    action[_rootMotionOffset + 0] * _rootMotionScale,
+                    action[_rootMotionOffset + 1] * _rootMotionScale,
+                    0f
+                );
+                rootMotionDelta[1] = new float3(
+                    0f,
+                    action[_rootMotionOffset + 1] * _rotationScale, // Note: reuse index 1 for yaw if 2-DOF
+                    0f
+                );
             }
 
             return true;
@@ -875,19 +884,39 @@ namespace ProjectName.Systems.Animation.Neural
             if (action == null || action.Length < _actionSize)
                 return new float3[] { float3.zero, float3.zero };
 
-            return new float3[]
+            int rootMotionCount = _ikTargetOffset - _rootMotionOffset;
+            if (rootMotionCount >= 6)
             {
-                new float3(
-                    action[_rootMotionOffset + 0] * _rootMotionScale,
-                    action[_rootMotionOffset + 1] * _rootMotionScale,
-                    action[_rootMotionOffset + 2] * _rootMotionScale
-                ),
-                new float3(
-                    action[_rootMotionOffset + 3] * _rotationScale,
-                    action[_rootMotionOffset + 4] * _rotationScale,
-                    action[_rootMotionOffset + 5] * _rotationScale
-                )
-            };
+                return new float3[]
+                {
+                    new float3(
+                        action[_rootMotionOffset + 0] * _rootMotionScale,
+                        action[_rootMotionOffset + 1] * _rootMotionScale,
+                        action[_rootMotionOffset + 2] * _rootMotionScale
+                    ),
+                    new float3(
+                        action[_rootMotionOffset + 3] * _rotationScale,
+                        action[_rootMotionOffset + 4] * _rotationScale,
+                        action[_rootMotionOffset + 5] * _rotationScale
+                    )
+                };
+            }
+            else
+            {
+                return new float3[]
+                {
+                    new float3(
+                        action[_rootMotionOffset + 0] * _rootMotionScale,
+                        0f,
+                        0f
+                    ),
+                    new float3(
+                        0f,
+                        action[_rootMotionOffset + 1] * _rotationScale,
+                        0f
+                    )
+                };
+            }
         }
     }
 }

@@ -43,8 +43,8 @@ namespace ProjectName.Systems.Animation.Neural
         [SerializeField] ModelAsset _interactPolicy;
 
         [Header("Observation Encoding")]
-        [SerializeField, Range(1, 64)] int _observationDim = 32;
-        [SerializeField, Range(1, 32)] int _actionDim = 16;
+        [SerializeField, Range(1, 256)] int _observationDim = 120;
+        [SerializeField, Range(1, 128)] int _actionDim = 80;
         [SerializeField, Range(0.01f, 0.5f)] float _observationNormalizationEpsilon = 0.01f;
         [SerializeField] bool _normalizeObservations = true;
 
@@ -488,19 +488,22 @@ namespace ProjectName.Systems.Animation.Neural
 
         void EncodeObservation()
         {
-            // Build observation vector from:
-            // - Local velocity (3 floats)
-            // - Local forward direction (3 floats)
-            // - Ground normal (3 floats)
-            // - IsGrounded (1 float)
-            // - Terrain height ahead (1 float)
-            // - Target direction (3 floats)
-            // - Target distance (1 float)
-            // - Joint positions (up to 12 floats for 4 limbs)
-            // - Joint velocities (up to 12 floats)
-            // - Policy type one-hot (4 floats)
-            // - Body lean (2 floats)
-            // Total: ~45 floats, padded to _observationDim
+            // Build observation vector of exactly _observationDim values.
+            // Layout (120 for biped, 150 for quadruped):
+            //   [0-2]   Local velocity xyz (3)
+            //   [3-5]   Forward direction (3)
+            //   [6-8]   Ground normal (3)
+            //   [9]     IsGrounded (1)
+            //   [10]    Terrain height ahead (1)
+            //   [11-13] Target direction local (3)
+            //   [14]    Target distance (1)
+            //   [15-16] Body lean (2)
+            //   [17-20] Policy one-hot (4)
+            //   [21-28] Style embedding (8)
+            //   [29-82] Joint positions: up to 18 joints × 3 = 54 (biped)
+            //   [83-86] Foot contact flags (4)
+            //   [87-88] Gait phase sin/cos (2)
+            //   [89-119] Padding to _observationDim
 
             Vector3 localVel = transform.InverseTransformDirection(_currentVelocity);
             Vector3 forward = transform.forward;
@@ -539,24 +542,51 @@ namespace ProjectName.Systems.Animation.Neural
             obs[idx++] = targetDir.z;
             obs[idx++] = targetDist;
 
-            // Joint states (4 limbs × 3 pos + 3 vel = 24 max)
-            // We use the IK targets as proxy joint observations
-            AppendJointState(ref idx, BoneRole.L_Foot, _leftFootPos[0]);
-            AppendJointState(ref idx, BoneRole.R_Foot, _rightFootPos[0]);
-            AppendJointState(ref idx, BoneRole.L_Hand, _leftHandPos[0]);
-            AppendJointState(ref idx, BoneRole.R_Hand, _rightHandPos[0]);
+            // Body lean (2)
+            obs[idx++] = _bodyLeanOffset.x;
+            obs[idx++] = _bodyLeanOffset.y;
 
             // Policy one-hot (4)
             int policyIdx = (int)_currentPolicy;
             for (int i = 0; i < 4; i++)
                 obs[idx++] = (i == policyIdx) ? 1f : 0f;
 
-            // Body lean (2)
-            obs[idx++] = _bodyLeanOffset.x;
-            obs[idx++] = _bodyLeanOffset.y;
+            // Style embedding (8) — placeholder for now
+            for (int i = 0; i < 8; i++)
+                obs[idx++] = 0f;
 
-            // Normalize if enabled
-            if (_normalizeObservations)
+            // Joint positions (up to 18 joints × 3 = 54)
+            var bones = _boneMap.GetAllBones();
+            int jointCount = math.min(bones?.Length ?? 0, 18);
+            for (int i = 0; i < jointCount && idx + 3 <= _observationDim; i++)
+            {
+                var t = bones[i].transform;
+                Vector3 localPos = t != null
+                    ? transform.InverseTransformPoint(t.position)
+                    : Vector3.zero;
+                obs[idx++] = localPos.x;
+                obs[idx++] = localPos.y;
+                obs[idx++] = localPos.z;
+            }
+            // Pad remaining joint slots
+            int maxJointSlots = 18 * 3;
+            int jointsWritten = math.min(jointCount, 18) * 3;
+            for (int i = jointsWritten; i < maxJointSlots && idx < _observationDim; i++)
+                obs[idx++] = 0f;
+
+            // Foot contact flags (4)
+            obs[idx++] = _leftFootGrounded ? 1f : 0f;
+            obs[idx++] = _rightFootGrounded ? 1f : 0f;
+            obs[idx++] = 0f; // LH placeholder
+            obs[idx++] = 0f; // RH placeholder
+
+            // Gait phase sin/cos (2)
+            float gaitPhase = (_inferenceTimer * 2f) % 1f;
+            obs[idx++] = math.sin(gaitPhase * 2f * math.PI);
+            obs[idx++] = math.cos(gaitPhase * 2f * math.PI);
+
+            // Normalize if enabled (only meaningful features, not padding)
+            if (_normalizeObservations && idx > 0)
             {
                 float invNorm = 1f / math.max(math.sqrt(MeanSquared(obs, idx)), _observationNormalizationEpsilon);
                 for (int i = 0; i < idx; i++)
@@ -570,25 +600,6 @@ namespace ProjectName.Systems.Animation.Neural
             // Copy to native array for job system
             for (int i = 0; i < _observationDim; i++)
                 _nativeObservation[i] = obs[i];
-        }
-
-        void AppendJointState(ref int idx, BoneRole role, float3 worldPos)
-        {
-            if (idx + 6 > _observationDim) return;
-
-            var t = _boneMap.Get(role);
-            float3 localPos = t != null
-                ? math.transform(math.inverse(transform.localToWorldMatrix), worldPos)
-                : float3.zero;
-
-            _observationBuffer[idx++] = localPos.x;
-            _observationBuffer[idx++] = localPos.y;
-            _observationBuffer[idx++] = localPos.z;
-
-            float3 vel = float3.zero; // placeholder — use previous frame diff
-            _observationBuffer[idx++] = 0f;
-            _observationBuffer[idx++] = 0f;
-            _observationBuffer[idx++] = 0f;
         }
 
         static float MeanSquared(float[] arr, int count)
@@ -639,7 +650,7 @@ namespace ProjectName.Systems.Animation.Neural
 
                 _worker = WorkerFactory.CreateWorker(BackendType.GPUCompute, model);
 
-                using (var input = new TensorFloat(new TensorShape(1, _observationDim), _observationBuffer))
+                using (var input = new TensorFloat(new TensorShape(1, 1, 1, _observationDim), _observationBuffer))
                 {
                     _worker.Execute(input);
                     _outputTensor = _worker.PeekOutput() as TensorFloat;
@@ -671,17 +682,20 @@ namespace ProjectName.Systems.Animation.Neural
             float maxSpeed = _integrateWithCharacterController ? 10f : 5f;
             float speedRatio = math.clamp(speed / math.max(maxSpeed, 0.01f), 0f, 1f);
 
-            // Action layout (heuristic):
-            // [0] = forward velocity (local x)
-            // [1] = lateral velocity (local z)
-            // [2] = vertical velocity
-            // [3] = turn angle (degrees)
-            // [4-7] = left leg: hip_x, hip_z, knee, ankle
-            // [8-11] = right leg: hip_x, hip_z, knee, ankle
-            // [12-15] = spine: bend, twist, head_look_x, head_look_y
-
+            // Fill entire action buffer with zeros
             for (int i = 0; i < _actionDim; i++)
                 _actionBuffer[i] = 0f;
+
+            // Action layout (heuristic, fills first 16 of 80):
+            // [0]   = forward velocity (local x)
+            // [1]   = lateral velocity (local z)
+            // [2]   = vertical velocity
+            // [3]   = turn angle (degrees)
+            // [4-7] = left leg: hip_x, hip_z, knee, ankle
+            // [8-11] = right leg: hip_x, hip_z, knee, ankle
+            // [12-13] = spine: bend, twist
+            // [14-15] = head look: x, y
+            // [16-79] = zero (bone rotations not filled in heuristic mode)
 
             _actionBuffer[0] = speedRatio * 0.8f;
             _actionBuffer[3] = _turnInput * 30f;
@@ -711,16 +725,12 @@ namespace ProjectName.Systems.Animation.Neural
 
         void DecodeActions()
         {
-            // Decode action buffer into:
-            // - Root motion delta (position + rotation)
-            // - Per-bone rotation deltas
-            // Uses a decoded action layout:
-            //   [0-2]   root velocity (local xyz)
-            //   [3]     turn angle (degrees)
-            //   [4-7]   left leg: hip, knee, ankle, foot
-            //   [8-11]  right leg: hip, knee, ankle, foot
-            //   [12-13] spine: bend, twist
-            //   [14-15] head look: x, y
+            // Decode action buffer into root motion and bone rotations.
+            // Layout (80 for biped, 100 for quadruped):
+            //   [0-2]   Root velocity (local xyz)
+            //   [3]     Turn angle (degrees)
+            //   [4-75]  Joint rotations: 18 joints × 4 quaternions (72) for biped
+            //   [76-79] Reserved (4)
 
             if (_actionBuffer == null || _actionBuffer.Length < 4) return;
 
@@ -737,29 +747,32 @@ namespace ProjectName.Systems.Animation.Neural
             // Turn angle
             _decodedTurnAngle = _actionBuffer[3];
             _decodedRootRotationDelta = Quaternion.Euler(0f, _decodedTurnAngle * Time.fixedDeltaTime, 0f);
-
-            // Apply bone rotations
-            if (_actionBuffer.Length >= 16)
+            // Apply bone rotations from action buffer
+            // For biped (80): 18 joints × 4 quaternions starting at index 4
+            // For quadruped (100): 24 joints × 4 quaternions starting at index 4
+            int boneRotStart = 4;
+            int boneRotCount = (_actionDim - boneRotStart - 4) / 4; // -4 reserved
+            if (boneRotCount > 0 && _actionBuffer.Length >= boneRotStart + boneRotCount * 4)
             {
-                ApplyBoneRotationFromAction(BoneRole.L_Hip, _actionBuffer[4], 0f, 0f);
-                ApplyBoneRotationFromAction(BoneRole.L_Knee, 0f, 0f, _actionBuffer[6]);
-                ApplyBoneRotationFromAction(BoneRole.R_Hip, _actionBuffer[8], 0f, 0f);
-                ApplyBoneRotationFromAction(BoneRole.R_Knee, 0f, 0f, _actionBuffer[10]);
+                var bones = _boneMap.GetAllBones();
+                int applyCount = math.min(bones?.Length ?? 0, boneRotCount);
 
-                // Spine
-                ApplyBoneRotationFromAction(BoneRole.Spine1, _actionBuffer[12], 0f, 0f);
-                ApplyBoneRotationFromAction(BoneRole.Spine2, _actionBuffer[13] * 0.5f, 0f, 0f);
-
-                // Head look
-                if (_boneMap.Has(BoneRole.Head))
+                for (int i = 0; i < applyCount; i++)
                 {
-                    var head = _boneMap.Get(BoneRole.Head);
-                    float headX = _actionBuffer[14] * 20f;
-                    float headY = _actionBuffer[15] * 10f;
-                    head.localRotation = Quaternion.Slerp(
-                        head.localRotation,
-                        Quaternion.Euler(headY, headX, 0f),
-                        Time.deltaTime * 10f
+                    int bufIdx = boneRotStart + i * 4;
+                    if (bufIdx + 4 > _actionBuffer.Length) break;
+                    var t = bones[i].transform;
+                    if (t == null) continue;
+                    quaternion targetRot = new quaternion(
+                        _actionBuffer[bufIdx + 0],
+                        _actionBuffer[bufIdx + 1],
+                        _actionBuffer[bufIdx + 2],
+                        _actionBuffer[bufIdx + 3]
+                    );
+                    t.localRotation = Quaternion.Slerp(
+                        t.localRotation,
+                        new Quaternion(targetRot.value.x, targetRot.value.y, targetRot.value.z, targetRot.value.w),
+                        Time.deltaTime * 15f
                     );
                 }
             }
