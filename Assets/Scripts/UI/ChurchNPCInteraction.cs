@@ -1,5 +1,5 @@
 using UnityEngine;
-using ProjectName.UI.Core;
+using ProjectName.Core;
 
 namespace ProjectName.UI
 {

@@ -1,6 +1,6 @@
 using UnityEngine;
 using ProjectName.Systems;
-using ProjectName.UI.Core;
+using ProjectName.Core;
 
 namespace ProjectName.UI
 {

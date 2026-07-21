@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-using ProjectName.UI.Core;
+using ProjectName.Core;
 
 namespace ProjectName.UI.Functions
 {

@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Systems;
-using ProjectName.UI.Core;
+using ProjectName.Core;
 
 namespace ProjectName.UI.Functions
 {

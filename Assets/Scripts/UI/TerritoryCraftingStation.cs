@@ -1,7 +1,7 @@
 using UnityEngine;
 using ProjectName.Core;
 using UnityEngine.InputSystem;
-using ProjectName.UI.Core;
+using ProjectName.Core;
 
 namespace ProjectName.UI
 {
