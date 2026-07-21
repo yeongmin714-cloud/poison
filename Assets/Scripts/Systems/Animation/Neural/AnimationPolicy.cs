@@ -6,7 +6,30 @@ using Unity.InferenceEngine;
 namespace ProjectName.Systems.Animation.Neural
 {
    // ─────────────────────────────────────────────────────────────────────────────
-   //  PolicyMetadata
+   //  AvatarType
+   // ─────────────────────────────────────────────────────────────────────────────
+
+   /// <summary>
+   /// High-level avatar categories for policy routing.
+   /// </summary>
+   public enum AvatarType
+   {
+       /// <summary>Two-legged humanoid (player, NPC, soldier).</summary>
+       Humanoid,
+       /// <summary>Four-legged creature (wolf, boar, horse, deer).</summary>
+       Quadruped,
+       /// <summary>Multi-legged or non-standard skeleton (spider, centipede).</summary>
+       MultiLeg,
+       /// <summary>Flying creature (bird, dragon).</summary>
+       Flying,
+       /// <summary>Swimming creature (fish, aquatic).</summary>
+       Swimming,
+       /// <summary>Any other type — fallback heuristic.</summary>
+       Other
+   }
+
+   // ─────────────────────────────────────────────────────────────────────────────
+   //  QuantizationFormat
    // ─────────────────────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -81,10 +104,19 @@ namespace ProjectName.Systems.Animation.Neural
         public override bool Equals(object obj) =>
             obj is PolicyMetadata other && Equals(other);
 
-        public override int GetHashCode() =>
-            HashCode.Combine(ModelVersion, (int)AvatarType, PolicyName,
-                             ObservationSize, ActionSize, JointCount,
-                             TerrainHeightmapResolution, (int)Quantization, ModelPath);
+        public override int GetHashCode()
+        {
+            int hash = ModelVersion?.GetHashCode() ?? 0;
+            hash = hash * 31 + AvatarType.GetHashCode();
+            hash = hash * 31 + (PolicyName?.GetHashCode() ?? 0);
+            hash = hash * 31 + ObservationSize;
+            hash = hash * 31 + ActionSize;
+            hash = hash * 31 + JointCount;
+            hash = hash * 31 + TerrainHeightmapResolution;
+            hash = hash * 31 + Quantization.GetHashCode();
+            hash = hash * 31 + (ModelPath?.GetHashCode() ?? 0);
+            return hash;
+        }
 
         public static bool operator ==(PolicyMetadata left, PolicyMetadata right) => left.Equals(right);
         public static bool operator !=(PolicyMetadata left, PolicyMetadata right) => !left.Equals(right);
@@ -144,7 +176,7 @@ namespace ProjectName.Systems.Animation.Neural
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    //  IPolicy Interface
+    //  HashCode Helper
     // ─────────────────────────────────────────────────────────────────────────────
 
     /// <summary>
