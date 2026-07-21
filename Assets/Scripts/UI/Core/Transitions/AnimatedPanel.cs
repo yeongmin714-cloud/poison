@@ -5,7 +5,6 @@ namespace UI.Core.Transitions
     public class AnimatedPanel : MonoBehaviour
     {
         [SerializeField] private RectTransform _panel;
-        [SerializeField] private float _animationDuration = 0.3f;
         [SerializeField] private TransitionType _transitionType = TransitionType.Fade;
 
         private CanvasGroup _canvasGroup;

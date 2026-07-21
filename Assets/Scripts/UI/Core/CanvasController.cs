@@ -33,7 +33,10 @@ namespace UI.Core
 
         public void RegisterCanvas(string name, Canvas canvas)
         {
-            _canvases.Add(name, canvas);
+            if (!_canvases.ContainsKey(name))
+            {
+                _canvases.Add(name, canvas);
+            }
         }
     }
 }

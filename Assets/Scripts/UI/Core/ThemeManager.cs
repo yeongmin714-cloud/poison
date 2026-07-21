@@ -59,17 +59,26 @@ namespace UI.Core
 
         public void RegisterColor(string name, Color color)
         {
-            _colors.Add(name, color);
+            if (!_colors.ContainsKey(name))
+            {
+                _colors.Add(name, color);
+            }
         }
 
         public void RegisterSprite(string name, Sprite sprite)
         {
-            _sprites.Add(name, sprite);
+            if (!_sprites.ContainsKey(name))
+            {
+                _sprites.Add(name, sprite);
+            }
         }
 
         public void RegisterAudioClip(string name, AudioClip audioClip)
         {
-            _audioClips.Add(name, audioClip);
+            if (!_audioClips.ContainsKey(name))
+            {
+                _audioClips.Add(name, audioClip);
+            }
         }
     }
 }

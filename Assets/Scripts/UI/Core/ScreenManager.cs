@@ -33,7 +33,10 @@ namespace UI.Core
 
         public void RegisterScreen(string name, Rect screen)
         {
-            _screens.Add(name, screen);
+            if (!_screens.ContainsKey(name))
+            {
+                _screens.Add(name, screen);
+            }
         }
     }
 }

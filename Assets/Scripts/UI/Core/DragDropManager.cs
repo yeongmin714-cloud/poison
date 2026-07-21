@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
 namespace UI.Core
@@ -25,7 +26,10 @@ namespace UI.Core
 
         public void RegisterDragDropHandler(string name, IDragDropHandler handler)
         {
-            _dragDropHandlers.Add(name, handler);
+            if (!_dragDropHandlers.ContainsKey(name))
+            {
+                _dragDropHandlers.Add(name, handler);
+            }
         }
 
         public void StartDrag(GameObject draggedObject)

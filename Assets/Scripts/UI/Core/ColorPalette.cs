@@ -33,7 +33,10 @@ namespace UI.Core
 
         public void RegisterColor(string name, Color color)
         {
-            _colors.Add(name, color);
+            if (!_colors.ContainsKey(name))
+            {
+                _colors.Add(name, color);
+            }
         }
     }
 }

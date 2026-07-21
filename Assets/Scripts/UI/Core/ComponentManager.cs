@@ -33,7 +33,10 @@ namespace UI.Core
 
         public void RegisterComponent<T>(string name, T component) where T : MonoBehaviour
         {
-            _components.Add(name, component);
+            if (!_components.ContainsKey(name))
+            {
+                _components.Add(name, component);
+            }
         }
     }
 }
