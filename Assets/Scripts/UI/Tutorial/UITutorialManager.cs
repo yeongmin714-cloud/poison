@@ -8,7 +8,7 @@ public class UITutorialManager : MonoBehaviour
     private void Start()
     {
         // Initialize tutorial
-        // Debug.Log("UI Tutorial Manager initialized");
+        // // Debug.Log("UI Tutorial Manager initialized");
     }
     
     public void ShowTutorialStep(int step)

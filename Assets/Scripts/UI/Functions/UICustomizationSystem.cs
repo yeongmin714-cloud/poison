@@ -42,7 +42,7 @@ namespace UI.Functions
         public void SaveCustomization()
         {
             // Save customization settings
-            Debug.Log("Customization saved");
+            // Debug.Log("Customization saved");
         }
 
         public void CancelCustomization()

@@ -26,7 +26,7 @@ namespace ProjectName.UI.Tutorial
             }
             else
             {
-                // Debug.Log("Tutorial conditions not met");
+                // // Debug.Log("Tutorial conditions not met");
             }
         }
         

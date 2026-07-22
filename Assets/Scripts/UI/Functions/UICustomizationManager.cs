@@ -42,13 +42,13 @@ namespace UI.Functions
         public void SaveCustomization()
         {
             // Save customization settings
-            Debug.Log("Customization saved");
+            // Debug.Log("Customization saved");
         }
 
         public void CancelCustomization()
         {
             // Revert to previous settings
-            Debug.Log("Customization cancelled");
+            // Debug.Log("Customization cancelled");
         }
     }
 }

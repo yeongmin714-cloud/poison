@@ -55,7 +55,7 @@ namespace ProjectName.UI.Tutorial
         {
             if (currentDialogueIndex < dialogueLines.Length)
             {
-                // Debug.Log($"NPC: {dialogueLines[currentDialogueIndex]}");
+                // // Debug.Log($"NPC: {dialogueLines[currentDialogueIndex]}");
                 currentDialogueIndex++;
             }
             else
