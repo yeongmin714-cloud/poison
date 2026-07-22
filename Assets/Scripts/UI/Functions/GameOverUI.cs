@@ -7,7 +7,7 @@ public class GameOverUI : MonoBehaviour
     private void Start()
     {
         // Initialize game over UI
-        // Debug.Log("Game Over UI initialized");
+
     }
     
     public void ShowGameOver()

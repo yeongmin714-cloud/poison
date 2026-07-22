@@ -8,7 +8,7 @@ public class PartyUI : MonoBehaviour
     private void Start()
     {
         // Initialize party UI
-        Debug.Log("Party UI initialized");
+
     }
     
     public void UpdatePartyMembers()

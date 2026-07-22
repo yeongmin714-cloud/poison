@@ -8,7 +8,7 @@ public class ShopUI : MonoBehaviour
     private void Start()
     {
         // Initialize shop
-        Debug.Log("Shop UI initialized");
+
     }
     
     public void UpdateShopItems()

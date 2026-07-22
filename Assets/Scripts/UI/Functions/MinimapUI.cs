@@ -8,7 +8,7 @@ public class MinimapUI : MonoBehaviour
     private void Start()
     {
         // Initialize minimap
-        // Debug.Log("Minimap UI initialized");
+
     }
     
     public void UpdateMinimap()

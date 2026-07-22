@@ -21,7 +21,7 @@ namespace ProjectName.UI.Utils
         {
             // Set animation clip
             animationName = animName;
-            Debug.Log($"Animation set to: {animName}");
+            // Debug.Log($"Animation set to: {animName}");
         }
 
         public new void StopAnimation()

@@ -11,7 +11,7 @@ namespace UI.Utils
         public void SetContext(string newContext)
         {
             context = newContext;
-            Debug.Log($"Context changed to: {newContext}");
+            // Debug.Log($"Context changed to: {newContext}");
         }
 
         public string GetContext()
@@ -22,7 +22,7 @@ namespace UI.Utils
         public void UpdateContext()
         {
             // Update context-specific logic
-            Debug.Log("Updating context");
+            // Debug.Log("Updating context");
         }
     }
 }

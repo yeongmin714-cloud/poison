@@ -8,7 +8,7 @@ public class ControlsUI : MonoBehaviour
     private void Start()
     {
         // Initialize controls UI
-        // Debug.Log("Controls UI initialized");
+
     }
     
     public void UpdateControls()

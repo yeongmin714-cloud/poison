@@ -16,6 +16,6 @@ public class PlayerStatsUI : MonoBehaviour
     public void UpdateStats()
     {
         // Update stats display
-        Debug.Log("Updating player stats");
+
     }
 }

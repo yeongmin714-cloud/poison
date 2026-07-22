@@ -9,7 +9,7 @@ public class MapUI : MonoBehaviour
     private void Start()
     {
         // Initialize map UI
-        // Debug.Log("Map UI initialized");
+
     }
     
     public void UpdateMap()

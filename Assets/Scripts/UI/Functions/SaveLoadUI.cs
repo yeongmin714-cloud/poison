@@ -7,7 +7,7 @@ public class SaveLoadUI : MonoBehaviour
     private void Start()
     {
         // Initialize save/load UI
-        Debug.Log("Save/Load UI initialized");
+
     }
     
     public void SaveGame()

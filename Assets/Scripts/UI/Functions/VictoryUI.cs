@@ -7,7 +7,7 @@ public class VictoryUI : MonoBehaviour
     private void Start()
     {
         // Initialize victory UI
-        // Debug.Log("Victory UI initialized");
+
     }
     
     public void ShowVictory()

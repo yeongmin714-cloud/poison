@@ -8,7 +8,7 @@ public class LoadingUI : MonoBehaviour
     private void Start()
     {
         // Initialize loading UI
-        // Debug.Log("Loading UI initialized");
+
     }
     
     public void ShowLoading(string message)

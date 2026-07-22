@@ -8,7 +8,7 @@ public class ItemUI : MonoBehaviour
     private void Start()
     {
         // Initialize item UI
-        // Debug.Log("Item UI initialized");
+
     }
     
     public void UpdateItems()

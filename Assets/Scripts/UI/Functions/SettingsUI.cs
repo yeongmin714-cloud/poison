@@ -9,7 +9,7 @@ public class SettingsUI : MonoBehaviour
     private void Start()
     {
         // Initialize settings UI
-        Debug.Log("Settings UI initialized");
+
     }
     
     public void SaveSettings()

@@ -7,7 +7,7 @@ public class PauseMenuUI : MonoBehaviour
     private void Start()
     {
         // Initialize pause menu UI
-        Debug.Log("Pause Menu UI initialized");
+
     }
     
     public void ShowPauseMenu()

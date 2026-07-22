@@ -38,7 +38,7 @@ namespace ProjectName.UI
         {
             if (window == null)
             {
-                Debug.LogError("[UIImageThemeExtensions] ApplyMedievalTheme: window is null.");
+                // Debug.LogError("[UIImageThemeExtensions] ApplyMedievalTheme: window is null.");
                 return;
             }
 
@@ -50,7 +50,7 @@ namespace ProjectName.UI
                 theme = ScriptableObject.CreateInstance<UIDesignTheme>();
                 theme.name = "MedievalTheme_Generated";
                 window.ApplyTheme(theme);
-                Debug.Log($"[UIImageThemeExtensions] Created temporary UIDesignTheme for {window.name}. " +
+                // Debug.Log($"[UIImageThemeExtensions] Created temporary UIDesignTheme for {window.name}. " +
                           "Consider assigning a theme in the Inspector for persistent configuration.");
             }
 
@@ -58,8 +58,8 @@ namespace ProjectName.UI
             theme.SetMedievalPanelTexture(panelType);
             theme.SetMedievalBackgroundTexture(bgType);
 
-            Debug.Log($"[UIImageThemeExtensions] Applied medieval theme to '{window.name}': " +
-                      $"panelType={panelType}, bgType={bgType}");
+            // Debug.Log($"[UIImageThemeExtensions] Applied medieval theme to '{window.name}': " +
+                  $"panelType={panelType}, bgType={bgType}");
         }
     }
 }
