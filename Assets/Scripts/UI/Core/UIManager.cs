@@ -13,7 +13,7 @@ public class UIManager : MonoBehaviour
         }
         else
         {
-            // Debug.LogWarning($"UI Component {name} already registered.");
+            Debug.LogWarning($"UI Component {name} already registered.");
         }
     }
     
