@@ -1,53 +1,33 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    private Dictionary<string, MonoBehaviour> uiComponents = new Dictionary<string, MonoBehaviour>();
+    public static UIManager Instance { get; private set; }
     
-    public void RegisterUIComponent(string name, MonoBehaviour component)
+    private void Awake()
     {
-        if (!uiComponents.ContainsKey(name))
+        if (Instance == null)
         {
-            uiComponents.Add(name, component);
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
-            Debug.LogWarning($"UI Component {name} already registered.");
+            Destroy(gameObject);
         }
     }
     
-    public T GetUIComponent<T>(string name) where T : MonoBehaviour
+    // Debug.Log for testing purposes
+    public void ShowUI()
     {
-        if (uiComponents.TryGetValue(name, out MonoBehaviour component))
-        {
-            return component as T;
-        }
-        return null;
+        Debug.Log("UI Shown");
     }
     
-    public void UnregisterUIComponent(string name)
+    public void HideUI()
     {
-        uiComponents.Remove(name);
-    }
-    
-    public void ShowScreen(string screenName)
-    {
-        // Implementation for showing screens
-    }
-    
-    public void HideScreen(string screenName)
-    {
-        // Implementation for hiding screens
-    }
-    
-    public void ShowTooltip(string text, Vector2 position)
-    {
-        // Implementation for showing tooltip
-    }
-    
-    public void HideTooltip()
-    {
-        // Implementation for hiding tooltip
+        Debug.Log("UI Hidden");
     }
 }

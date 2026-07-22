@@ -1,5 +1,7 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class UICore : MonoBehaviour
 {
@@ -16,5 +18,11 @@ public class UICore : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+    
+    // TODO: Implement core UI functionality
+    public void InitializeUI()
+    {
+        // This is a placeholder
     }
 }
