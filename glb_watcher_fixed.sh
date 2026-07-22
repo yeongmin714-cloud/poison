@@ -94,7 +94,7 @@ main() {
     
     # Step 2: Get list of GLB files in UserProvided
     user_provided_dir="/mnt/c/Unity/code/Assets/Resources/Models/UserProvided"
-    mapfile -t glb_files < <(find "$user_provided_dir" -maxdepth 1 -name '*.glb' -type f)
+    mapfile -t glb_files < <(find "$user_provided_dir" -type f -name '*.glb')
     log "Found ${#glb_files[@]} GLB file(s) in UserProvided."
     
     if [[ ${#glb_files[@]} -eq 0 ]]; then
