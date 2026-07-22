@@ -162,7 +162,7 @@ namespace ProjectName.UI
             // UIWindow.Open() 호출 (부모 클래스)
             Open();
 
-            Debug.Log($"[ReadDocumentWindow] Opened document: {document.Title}");
+
         }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace ProjectName.UI
             _currentDocument = null;
             Hide();
 
-            Debug.Log("[ReadDocumentWindow] Closed document window");
+
         }
 
         /// <summary>

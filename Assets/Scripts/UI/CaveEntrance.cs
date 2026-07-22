@@ -213,7 +213,7 @@ namespace ProjectName.UI
         {
             if (!_isActive) return;
 
-            Debug.Log("[CaveEntrance] Player interacting with cave entrance.");
+
 
             // Save player position for return
             GameObject player = GameObject.FindGameObjectWithTag("Player");

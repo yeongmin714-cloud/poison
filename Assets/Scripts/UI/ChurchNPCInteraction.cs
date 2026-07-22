@@ -28,7 +28,7 @@ namespace ProjectName.UI
         private void Start()
         {
             _player = GameObject.FindGameObjectWithTag("Player")?.transform;
-            Debug.Log($"[ChurchNPCInteraction] {_npcName} 생성됨");
+
         }
 
         private void Update()
@@ -76,7 +76,7 @@ namespace ProjectName.UI
             if (_churchUI.IsOpen)
             {
                 _churchUIInstance.SetActive(true);
-                Debug.Log("[ChurchNPCInteraction] ChurchUI 열림");
+    
             }
         }
 
@@ -86,7 +86,7 @@ namespace ProjectName.UI
             _churchUI = _churchUIInstance.AddComponent<ChurchUI>();
 
             _churchUIInstance.SetActive(false);
-            Debug.Log("[ChurchNPCInteraction] 런타임 ChurchUI 인스턴스 생성");
+
         }
 
         private void CheckAndCleanupClosedWindow()
@@ -96,7 +96,7 @@ namespace ProjectName.UI
                 Destroy(_churchUIInstance);
                 _churchUIInstance = null;
                 _churchUI = null;
-                Debug.Log("[ChurchNPCInteraction] 닫힌 ChurchUI 인스턴스 정리");
+    
             }
         }
 

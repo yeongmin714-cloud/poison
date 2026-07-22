@@ -334,7 +334,7 @@ namespace ProjectName.UI
             string itemId = QuickSlotManager.Instance.GetItemIdInSlot(slotIndex);
             if (string.IsNullOrEmpty(itemId))
             {
-                Debug.Log($"[QuickSlotUI] 슬롯 {slotIndex + 1}이 비어있습니다.");
+
                 return;
             }
 
@@ -342,14 +342,14 @@ namespace ProjectName.UI
             int invSlotIndex = FindInventorySlotIndex(itemId);
             if (invSlotIndex < 0)
             {
-                Debug.Log($"[QuickSlotUI] '{itemId}' 아이템이 인벤토리에 없습니다. 슬롯을 초기화합니다.");
+
                 QuickSlotManager.Instance.ClearSlot(slotIndex);
                 return;
             }
 
             // 아이템 사용
             PlayerInventory.Instance.UseItem(invSlotIndex);
-            Debug.Log($"[QuickSlotUI] 퀵슬롯 {slotIndex + 1} 사용: {itemId}");
+
 
             // 사용 후 개수가 0이면 슬롯 정리
             int remainingCount = PlayerInventory.Instance.GetItemCount(itemId);
@@ -387,7 +387,7 @@ namespace ProjectName.UI
             }
 
             QuickSlotManager.Instance.SetSlot(slotIndex, selectedItem);
-            Debug.Log($"[QuickSlotUI] 퀵슬롯 {slotIndex + 1}에 '{selectedItem.displayName}' 등록됨");
+
         }
 
         // ===== 우클릭 처리 (슬롯 내용 변경) =====
@@ -410,7 +410,7 @@ namespace ProjectName.UI
             {
                 // 이미 등록된 아이템이 있으면 제거
                 QuickSlotManager.Instance.ClearSlot(slotIndex);
-                Debug.Log($"[QuickSlotUI] 퀵슬롯 {slotIndex + 1} 제거됨");
+    
             }
             else
             {
@@ -436,7 +436,7 @@ namespace ProjectName.UI
             if (selectedItem == null) return;
 
             QuickSlotManager.Instance.SetSlot(slotIndex, selectedItem);
-            Debug.Log($"[QuickSlotUI] 우클릭: 퀵슬롯 {slotIndex + 1}에 '{selectedItem.displayName}' 등록됨");
+
         }
 
         // ===== 유틸리티 =====

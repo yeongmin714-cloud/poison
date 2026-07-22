@@ -508,7 +508,7 @@ namespace ProjectName.UI
                         }
                         else
                         {
-                            Debug.Log($"[WarehouseUI] {slot.item.displayName} x1 → 창고({_currentTerritoryId})");
+
                         }
                     }
                     break; // 슬롯 구조 변경 방지
@@ -534,7 +534,7 @@ namespace ProjectName.UI
                         }
                         else
                         {
-                            Debug.Log($"[WarehouseUI] {slot.item.displayName} x{transferCount} → 창고({_currentTerritoryId})");
+
                         }
                     }
                     break;

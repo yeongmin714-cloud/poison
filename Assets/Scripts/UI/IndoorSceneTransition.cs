@@ -33,7 +33,7 @@ namespace ProjectName.UI
 
             BuildingEvents.OnEnterBuildingRequest += HandleEnterBuilding;
             BuildingEvents.OnExitBuildingRequest += ExitBuilding;
-            Debug.Log("[IndoorSceneTransition] BuildingEvents 구독 완료");
+
         }
 
         private static void HandleEnterBuilding(string buildingType, string nationStyle)
@@ -60,7 +60,7 @@ namespace ProjectName.UI
             _pendingBuildingType = buildingType;
             _pendingNationStyle = nationStyle;
 
-            Debug.Log($"[IndoorSceneTransition] 진입: 현재 씬 '{_previousSceneName}' → Additive IndoorScene (buildingType: {buildingType})");
+
 
             // 이미 IndoorScene이 로드되어 있으면 언로드 후 재로드
             Scene indoorScene = SceneManager.GetSceneByName(INDOOR_SCENE_NAME);
@@ -109,7 +109,7 @@ namespace ProjectName.UI
             SceneManager.sceneLoaded -= OnIndoorSceneLoaded;
 
             string buildingType = _pendingBuildingType ?? string.Empty;
-            Debug.Log($"[IndoorSceneTransition] IndoorScene 로드 완료 (mode: {mode}). Builder 호출: {buildingType}");
+
 
             // IndoorScene을 활성 씬으로 설정
             SceneManager.SetActiveScene(scene);
@@ -148,7 +148,7 @@ namespace ProjectName.UI
 
             _pendingBuildingType = null;
             _pendingNationStyle = null;
-            Debug.Log("[IndoorSceneTransition] Builder 호출 완료.");
+
         }
 
         /// <summary>
@@ -162,7 +162,7 @@ namespace ProjectName.UI
                 _previousSceneName = DEFAULT_WORLD_SCENE;
             }
 
-            Debug.Log($"[IndoorSceneTransition] 퇴출: IndoorScene 언로드 → '{_previousSceneName}'");
+
 
             // 이전 씬을 활성화
             Scene prevScene = SceneManager.GetSceneByName(_previousSceneName);

@@ -106,14 +106,14 @@ namespace ProjectName.UI
 
         protected override void OnShow()
         {
-            Debug.Log("[InventoryWindow] 열림 - 카테고리: " + _selectedCategory);
+
             _selectedSlotIndex = -1;
             RefreshInventory();
         }
 
         protected override void OnHide()
         {
-            Debug.Log("[InventoryWindow] 닫힘");
+
         }
 
         /// <summary>
@@ -647,7 +647,7 @@ namespace ProjectName.UI
                         if (globalSlotIdx >= 0 && GUI.Button(new Rect(innerX + innerWidth - 100, innerY + 62, 202, 33), "🔧 수리"))
                         {
                             var result = ProjectName.Systems.EquipmentRepairSystem.RepairInventorySlot(globalSlotIdx);
-                            Debug.Log($"[Repair] {result.message}");
+
                             _selectedItemDesc = result.message;
                             if (result.success)
                             {
@@ -1063,7 +1063,7 @@ namespace ProjectName.UI
 
             // 확인 메시지
             string confirmMsg = $"📍 {_routeContextTerritoryName} (으)로 자동 이동합니다";
-            Debug.Log($"[InventoryWindow] {confirmMsg}");
+
 
             // RouteConfirmationUI 팝업 표시
             if (RouteConfirmationUI.Instance != null)
