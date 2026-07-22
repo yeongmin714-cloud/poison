@@ -10,6 +10,6 @@ public class UITabControl : MonoBehaviour
     public void SelectTab(int tabIndex)
     {
         // Logic to select tab
-        Debug.Log($"Selecting tab {tabIndex}");
+        // Debug.Log($"Selecting tab {tabIndex}");
     }
 }

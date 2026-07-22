@@ -18,6 +18,6 @@ public class UIAnimation : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
         // Animation logic here
-        Debug.Log("Animation finished");
+        // Debug.Log("Animation finished");
     }
 }

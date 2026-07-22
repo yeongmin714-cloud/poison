@@ -8,7 +8,7 @@ public class InventoryUI : MonoBehaviour
     private void Start()
     {
         // Initialize inventory
-        Debug.Log("Inventory UI initialized");
+        // Debug.Log("Inventory UI initialized");
     }
     
     public void UpdateInventory()

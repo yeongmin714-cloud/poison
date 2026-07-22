@@ -8,12 +8,12 @@ public class LanguageUI : MonoBehaviour
     private void Start()
     {
         // Initialize language UI
-        Debug.Log("Language UI initialized");
+        // Debug.Log("Language UI initialized");
     }
     
     public void ChangeLanguage(string language)
     {
         // Change language
-        Debug.Log($"Changing language to {language}");
+        // Debug.Log($"Changing language to {language}");
     }
 }

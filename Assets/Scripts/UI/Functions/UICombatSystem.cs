@@ -45,14 +45,14 @@ namespace UI.Functions
         public void Attack()
         {
             // Perform attack action
-            Debug.Log("Attacking!");
+            // Debug.Log("Attacking!");
             UpdateUI();
         }
 
         public void Defend()
         {
             // Perform defend action
-            Debug.Log("Defending!");
+            // Debug.Log("Defending!");
             UpdateUI();
         }
 

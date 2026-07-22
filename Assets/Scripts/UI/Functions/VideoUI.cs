@@ -8,7 +8,7 @@ public class VideoUI : MonoBehaviour
     private void Start()
     {
         // Initialize video UI
-        Debug.Log("Video UI initialized");
+        // Debug.Log("Video UI initialized");
     }
     
     public void UpdateVideoSettings()

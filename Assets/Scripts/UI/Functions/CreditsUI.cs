@@ -8,7 +8,7 @@ public class CreditsUI : MonoBehaviour
     private void Start()
     {
         // Initialize credits UI
-        Debug.Log("Credits UI initialized");
+        // Debug.Log("Credits UI initialized");
     }
     
     public void ShowCredits()

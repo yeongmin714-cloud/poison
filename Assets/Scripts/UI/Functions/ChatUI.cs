@@ -10,7 +10,7 @@ public class ChatUI : MonoBehaviour
     private void Start()
     {
         // Initialize chat UI
-        Debug.Log("Chat UI initialized");
+        // Debug.Log("Chat UI initialized");
     }
     
     public void AddMessage(string message)

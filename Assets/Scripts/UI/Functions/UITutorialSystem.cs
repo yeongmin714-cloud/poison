@@ -56,7 +56,7 @@ namespace UI.Functions
         public void SkipTutorial()
         {
             // Skip tutorial
-            Debug.Log("Tutorial skipped");
+            // Debug.Log("Tutorial skipped");
         }
 
         public void UpdateTutorialStep()

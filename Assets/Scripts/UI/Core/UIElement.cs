@@ -9,6 +9,6 @@ public class UIElement : MonoBehaviour
     public virtual void Init()
     {
         // Common initialization logic
-        Debug.Log("UI Element initialized");
+        // Debug.Log("UI Element initialized");
     }
 }

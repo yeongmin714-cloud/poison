@@ -8,7 +8,7 @@ public class AudioUI : MonoBehaviour
     private void Start()
     {
         // Initialize audio UI
-        Debug.Log("Audio UI initialized");
+        // Debug.Log("Audio UI initialized");
     }
     
     public void UpdateAudioSettings()

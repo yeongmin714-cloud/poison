@@ -7,7 +7,7 @@ public class HelpUI : MonoBehaviour
     private void Start()
     {
         // Initialize help UI
-        Debug.Log("Help UI initialized");
+        // Debug.Log("Help UI initialized");
     }
     
     public void ShowHelp()

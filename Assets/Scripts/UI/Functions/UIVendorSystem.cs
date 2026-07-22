@@ -40,13 +40,13 @@ namespace UI.Functions
         public void BuyItem(int itemIndex)
         {
             // Handle buying an item
-            Debug.Log($"Buying item {itemIndex}");
+            // Debug.Log($"Buying item {itemIndex}");
         }
 
         public void SellItem(int itemIndex)
         {
             // Handle selling an item
-            Debug.Log($"Selling item {itemIndex}");
+            // Debug.Log($"Selling item {itemIndex}");
         }
     }
 }

@@ -8,12 +8,12 @@ public class MultiplayerUI : MonoBehaviour
     private void Start()
     {
         // Initialize multiplayer UI
-        Debug.Log("Multiplayer UI initialized");
+        // Debug.Log("Multiplayer UI initialized");
     }
     
     public void ConnectToServer(string serverIP)
     {
         // Connect to server
-        Debug.Log($"Connecting to server: {serverIP}");
+        // Debug.Log($"Connecting to server: {serverIP}");
     }
 }
