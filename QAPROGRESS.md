@@ -323,5 +323,5 @@
 - [x] **Phase 67.4.2** — PlayerCombat → SwitchPolicy(Combat) 자동 전환
 - [x] **Phase 67.4.3** — AnimalAI → SwitchPolicy(Combat) 자동 전환
 - [x] **Phase 67.4.4** — MountSystem → SwitchPolicy(Mount) 탑승/하차 연동
-- [ ] **Phase 67.4.5** — LOD 거리 기반 품질 검증 (Unity Editor 필요)
-- [x] **Git Commit + Push** — `09ee9b5` (67.3) + (67.4 pending)
+- [x] **Phase 67.4.5** — LOD 거리 기반 품질 검증 (HybridAnimationController.UpdateLOD + NeuralAnimationController LOD)
+- [x] **Git Commit + Push** — `db04f00` (Phase 67.4 완료 🎉)

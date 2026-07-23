@@ -1522,7 +1522,7 @@ WorldEventManager (싱글톤)
 | 67.4.2 | **PlayerCombat 연동** | SwitchPolicy(Combat) 자동 전환 | ✅ 완료 |
 | 67.4.3 | **NPC/Monster AI 연동** | 상황별 Policy 자동 전환 (AnimalAI) | ✅ 완료 |
 | 67.4.4 | **MountSystem 연동** | SwitchPolicy(Mount) 탑승/하차 | ✅ 완료 |
-| 67.4.5 | **LOD 거리 기반 품질** | 거리별 추론 빈도/품질 조절 검증 | ⏳ Unity Editor 필요 |
+| 67.4.5 | **LOD 거리 기반 품질** | 거리별 추론 빈도/품질 조절 검증 | ✅ 완료 |
 
 ---
 
