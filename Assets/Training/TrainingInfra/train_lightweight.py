@@ -225,6 +225,9 @@ def train(
     if tb_writer:
         tb_writer.close()
 
+    # Get actor weights from main trainer (used if no ensemble)
+    actor_weights = trainer.model.get_actor_weights()
+
     # ── Ensemble Training (if seeds provided) ──
     if ensemble_seeds:
         if verbose:
@@ -260,60 +263,61 @@ def train(
 
             # Quick training for ensemble member
             for e in range(epochs):
-                ensemble_trainer.train_epoch(env, progress)
+                ensemble_progress = e / max(epochs - 1, 1)
+                ensemble_trainer.train_epoch(env, ensemble_progress)
 
             ensemble_weights.append(ensemble_trainer.model.get_actor_weights())
 
-        # Average ensemble weights
+        # Average ensemble weights (list of tuples format)
         if verbose:
             print(f"  [Ensemble] Averaging {len(ensemble_weights)} models...")
-        avg_weights = {}
-        for key in ensemble_weights[0].keys():
-            avg_weights[key] = np.mean([w[key] for w in ensemble_weights], axis=0)
+        avg_weights = []
+        for i in range(len(ensemble_weights[0])):
+            w_avg = np.mean([w[i][0] for w in ensemble_weights], axis=0)
+            b_avg = np.mean([w[i][1] for w in ensemble_weights], axis=0)
+            avg_weights.append((w_avg, b_avg))
 
         actor_weights = avg_weights
-    else:
-        # ── Save checkpoint ──
-        os.makedirs(CHECKPOINT_DIR, exist_ok=True)
-        checkpoint_path = os.path.join(CHECKPOINT_DIR, f"{avatar_type}_{policy_type}_policy.npz")
-        trainer.save(checkpoint_path)
 
-        if verbose:
-            print(f"  [Checkpoint] Saved to: {checkpoint_path}")
+    # ── Save checkpoint ──
+    os.makedirs(CHECKPOINT_DIR, exist_ok=True)
+    checkpoint_path = os.path.join(CHECKPOINT_DIR, f"{avatar_type}_{policy_type}_policy.npz")
+    trainer.save(checkpoint_path)
 
-        # ── Export to ONNX ──
-        if verbose:
-            print(f"\n  Exporting to ONNX...")
+    if verbose:
+        print(f"  [Checkpoint] Saved to: {checkpoint_path}")
 
-        actor_weights = trainer.model.get_actor_weights()
+    # ── Export to ONNX ──
+    if verbose:
+        print(f"\n  Exporting to ONNX...")
 
-        # Ensure output dir exists
-        os.makedirs(OUTPUT_DIR, exist_ok=True)
+    # Ensure output dir exists
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-        onnx_filename = f"{policy_type}_{avatar_type}_base.onnx"
-        onnx_path = os.path.join(OUTPUT_DIR, onnx_filename)
+    onnx_filename = f"{policy_type}_{avatar_type}_base.onnx"
+    onnx_path = os.path.join(OUTPUT_DIR, onnx_filename)
 
-        export_policy_to_onnx(
-            weights=actor_weights,
-            obs_dim=obs_dim,
-            act_dim=act_dim,
-            output_path=onnx_path,
-            verbose=verbose,
-        )
+    export_policy_to_onnx(
+        weights=actor_weights,
+        obs_dim=obs_dim,
+        act_dim=act_dim,
+        output_path=onnx_path,
+        verbose=verbose,
+    )
 
-        # ── Validate ──
-        if verbose:
-            print(f"\n  Validating ONNX model...")
+    # ── Validate ──
+    if verbose:
+        print(f"\n  Validating ONNX model...")
 
-        valid = validate_onnx(onnx_path, obs_dim, act_dim, verbose=verbose)
+    valid = validate_onnx(onnx_path, obs_dim, act_dim, verbose=verbose)
 
-        if verbose:
-            if valid:
-                print(f"  ✓ ONNX model is valid: {onnx_path}")
-            else:
-                print(f"  ✗ ONNX model validation failed!")
+    if verbose:
+        if valid:
+            print(f"  ✓ ONNX model is valid: {onnx_path}")
+        else:
+            print(f"  ✗ ONNX model validation failed!")
 
-        return onnx_path
+    return onnx_path
 
 
 # ══════════════════════════════════════════════════════════════════════════════
