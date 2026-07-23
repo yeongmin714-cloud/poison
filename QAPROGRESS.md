@@ -218,14 +218,11 @@
 
 ---
 
-### ✅ Phase 4.0.5 — ONNX 모델 8종 배포 + Unity 통합 완료 (2026-07-23)
-- [x] `locomotion_biped_base.onnx` (120obs/80act) — 69KB
-- [x] `locomotion_quadruped.onnx` (150obs/100act) — 82KB
-- [x] `combat_biped_base.onnx` (120obs/80act) — 68KB
-- [x] `combat_quadruped_base.onnx` (150obs/100act) — 80KB
-- [x] `react_biped_base.onnx` (120obs/80act) — 68KB
-- [x] `react_quadruped_base.onnx` (150obs/100act) — 80KB
-- [x] `interact_biped_base.onnx` (120obs/80act) — 68KB
-- [x] `interact_quadruped_base.onnx` (150obs/100act) — 80KB
-- [x] 기존 더미 ONNX `.bak` 백업 완료
-- [x] Unity Resources 배포 및 git push 완료
+### ✅ Phase 4.0.6 — Neural Animation 런타임 성능 최적화 완료 (2026-07-23)
+- [x] **Worker Pooling** — 정책별 Worker 캐싱으로 매 프레임 Worker 생성/해제 오버헤드 제거
+- [x] **FP16 양자화 지원** — GPUCompute 백엔드에서 FP16 텐서 사용으로 추론 속도 향상
+- [x] **모델 앙상블/블렌딩** — 듀얼 버퍼(_actionBufferA/B)로 두 정책 동시 추론 후 AnimationCurve 기반 보간
+- [x] **Fly/Swim 정책 추가** — PolicyType 확장 (Fly, Swim), Inspector에서 모델 할당 가능
+- [x] **BackendType 선택 가능** — GPUCompute / CPU / GPUCompute 중 선택 (Inspector)
+- [x] **Unity Sentis v2.2.1 호환** — ModelLoader.Load(), WorkerFactory.CreateWorker() 최신 API
+- [x] **메모리 관리 개선** — Worker 풀 정리, 블렌딩 버퍼 정리, OnDestroy에서 완전 해제
