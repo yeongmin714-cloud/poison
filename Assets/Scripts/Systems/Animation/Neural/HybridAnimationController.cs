@@ -156,6 +156,34 @@ namespace ProjectName.Systems.Animation.Neural
         }
 
         /// <summary>
+        /// Set the base blend weights for procedural vs neural.
+        /// proceduralWeight + neuralWeight will be normalized to 1.0.
+        /// </summary>
+        public void SetBaseWeights(float proceduralWeight, float neuralWeight)
+        {
+            float sum = proceduralWeight + neuralWeight;
+            if (sum > 0f)
+            {
+                _baseProceduralWeight = proceduralWeight / sum;
+                _baseNeuralWeight = neuralWeight / sum;
+            }
+            else
+            {
+                _baseProceduralWeight = 0.5f;
+                _baseNeuralWeight = 0.5f;
+            }
+        }
+
+        /// <summary>
+        /// Set the LOD distance threshold where neural weight starts reducing.
+        /// </summary>
+        public void SetLODThreshold(float threshold)
+        {
+            _lodNeuralWeightThreshold = Mathf.Max(0f, threshold);
+            _lodProceduralOnlyDistance = Mathf.Max(_lodNeuralWeightThreshold, _lodProceduralOnlyDistance);
+        }
+
+        /// <summary>
         /// Get the effective control mode for a policy (Neural, Procedural, or Blended).
         /// </summary>
         public ControlMode GetEffectiveControlMode(NeuralAnimationController.PolicyType policy)
