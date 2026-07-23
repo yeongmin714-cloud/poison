@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Systems.Animation.Procedural;
+using ProjectName.Systems.Animation.Neural;
 using System.Linq;
 
 namespace ProjectName.Systems
@@ -99,6 +100,10 @@ namespace ProjectName.Systems
         // Procedural animation (PlayerModel 자식에 있음)
         private ProceduralAnimationController _proceduralAnim;
 
+        // Neural animation (같은 GameObject에 있음)
+        private NeuralAnimationController _neuralAnim;
+        private HybridAnimationController _hybridAnim;
+
         // 저장된 CharacterController 초기 높이 (구르기 복원용)
         private float _originalControllerHeight = 2f;
 
@@ -145,6 +150,21 @@ namespace ProjectName.Systems
                 if (model != null)
                     _proceduralAnim = model.GetComponent<ProceduralAnimationController>();
             }
+
+            // NeuralAnimationController 설정 (같은 GameObject)
+            _neuralAnim = GetComponent<NeuralAnimationController>();
+            if (_neuralAnim == null)
+                _neuralAnim = gameObject.AddComponent<NeuralAnimationController>();
+            _neuralAnim.SetVelocityProvider(this);
+
+            // HybridAnimationController 설정 (같은 GameObject)
+            _hybridAnim = GetComponent<HybridAnimationController>();
+            if (_hybridAnim == null)
+                _hybridAnim = gameObject.AddComponent<HybridAnimationController>();
+
+            // ProgressiveRolloutManager에 등록 (Phase 4.6.2)
+            if (ProgressiveRolloutManager.Instance != null)
+                ProgressiveRolloutManager.Instance.ConfigureHybridController(_hybridAnim);
         }
 
         private void Update()

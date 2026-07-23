@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Core;
 using ProjectName.Systems.Animation.Procedural;
+using ProjectName.Systems.Animation.Neural;
 using Unity.Cinemachine;
 
 namespace ProjectName.Systems
@@ -32,6 +33,7 @@ namespace ProjectName.Systems
         // ===== 애니메이션 =====
         private RigAnimationController _rigAnim;
         private ProceduralAnimationController _proceduralAnim;
+        private NeuralAnimationController _neuralAnim;
 
         // ===== C4-08: 자동 조준 상태 =====
         private IDamageable _currentTarget;
