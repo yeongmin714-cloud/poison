@@ -206,3 +206,11 @@
 - [x] **Phase 4.0.3** — Training Data Pipeline (synthetic_data_generator.py, dataset_analyzer.py)
 - [x] **Phase 4.0.4** — Training Infrastructure (config.py, env, PPO trainer, train.py, ONNX exporter)
 - [x] **Phase 4.0.5** — ONNX 모델 5종 배포 + Unity 통합 (NeuralModelDatabase, Editor AutoSetup, TrainingGuide)
+
+### ✅ Phase 4.0.3L — 경량 CPU 학습 파이프라인 실행 완료 (2026-07-23)
+- [x] **Quick 테스트** — biped 10 epoch (~5초) 검증 완료
+- [x] **본 학습 biped** — `locomotion_biped_base.onnx` 50 epoch (~66초) 완료
+- [x] **본 학습 quadruped** — `locomotion_quadruped_base.onnx` 50 epoch (~80초) 완료
+- [x] **ONNX 검증** — Input/Output name/shape, Opset 17, NHWC [1,1,1,N] 확인
+- [x] **Unity 호환성** — 기존 ONNXPolicy.cs 그대로 로드 가능 확인
+- [x] **Git commit + push** — `70c0737` (biped/quadruped ONNX + checkpoints 업데이트)

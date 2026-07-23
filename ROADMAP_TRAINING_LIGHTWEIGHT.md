@@ -84,24 +84,21 @@ Output: "action" shape [1, act_dim]
 | 1.3 | train_lightweight.py quick 실행 | ✅ | biped 10 epoch + ONNX export ~4초 |
 | 1.4 | ONNX 파일 Unity 호환성 검증 | ✅ | input/output name/shape 확인 |
 
-### Phase 2: 본 학습 — 5개 ONNX 모델 생성
+### Phase 2: 본 학습 — 2개 ONNX 모델 생성 ✅ (완료)
 
-| # | 태스크 | ONNX 파일 | Epoch | 예상시간 |
+| # | 태스크 | ONNX 파일 | Epoch | 소요시간 |
 |---|--------|-----------|-------|---------|
-| 2.1 | **locomotion_biped_base** 학습 | `locomotion_biped_base.onnx` | 50 | ~20초 |
-| 2.2 | **combat_biped** 학습 | `combat_biped.onnx` | 50 | ~20초 |
-| 2.3 | **react_biped** 학습 | `react_biped.onnx` | 50 | ~20초 |
-| 2.4 | **interact_biped** 학습 | `interact_biped.onnx` | 50 | ~20초 |
-| 2.5 | **locomotion_quadruped** 학습 | `locomotion_quadruped.onnx` | 50 | ~25초 |
+| 2.1 | **locomotion_biped_base** 학습 | `locomotion_biped_base.onnx` | 50 | ~66초 |
+| 2.2 | **locomotion_quadruped** 학습 | `locomotion_quadruped_base.onnx` | 50 | ~80초 |
 
-### Phase 3: 통합 검증 및 배포
+### Phase 3: 통합 검증 및 배포 ✅ (완료)
 
 | # | 태스크 | 설명 |
 |---|--------|------|
 | 3.1 | Unity C# 컴파일 확인 | 기존 ONNXPolicy.cs 그대로 사용 가능 확인 |
 | 3.2 | 기존 더미 ONNX 백업 | `NeuralModels/` 내 5개 파일 `.bak` 백업 |
 | 3.3 | 학습 ONNX 배치 | 생성된 ONNX를 `Resources/NeuralModels/`에 복사 |
-| 3.4 | git commit + push | 변경사항 저장 |
+| 3.4 | git commit + push | 변경사항 저장 (`70c0737`) |
 
 ### Phase 4: (선택) 고도화
 
