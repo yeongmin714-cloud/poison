@@ -1463,11 +1463,108 @@ namespace ProjectName.Systems.Animation.Neural
         }
 
         // ──────────────────────────────────────────────
+        //  Async Inference (Double Buffering)
+        // ──────────────────────────────────────────────
+
+        /// <summary>
+        /// Enable double-buffered async inference for frame-pipelined execution.
+        /// Frame N inference runs on buffer A while frame N-1 results read from buffer B.
+        /// </summary>
+        public void EnableAsyncInference(bool enable)
+        {
+            _asyncInference = enable;
+        }
+
+        /// <summary>
+        /// Set LOD level externally (0=Full, 1=Medium, 2=Low, 3=Culled).
+        /// Overrides camera-based LOD when set directly.
+        /// </summary>
+        public void SetLODLevel(int level)
+        {
+            level = Mathf.Clamp(level, 0, 3);
+            if (_currentLODLevel != level)
+            {
+                _currentLODLevel = level;
+                ApplyLODSettings(level);
+            }
+        }
+
+        /// <summary>
+        /// Load a policy model asynchronously from path.
+        /// </summary>
+        public Coroutine LoadModelAsync(PolicyType policy, string path)
+        {
+            return StartCoroutine(LoadModelCoroutine(policy, path));
+        }
+
+        System.Collections.IEnumerator LoadModelCoroutine(PolicyType policy, string path)
+        {
+            var request = Resources.LoadAsync<ModelAsset>(path);
+            yield return request;
+
+            var asset = request.asset as ModelAsset;
+            if (asset == null)
+            {
+                Debug.LogWarning($"[NeuralAnimationController] Failed to load model: {path}");
+                yield break;
+            }
+
+            _policyAssets[policy] = asset;
+
+#if UNITY_SENTIS
+            if (_sentisAvailable && asset.OnnxModel != null)
+            {
+                try
+                {
+                    Model model = ModelLoader.Load(asset.OnnxModel.bytes);
+                    _policyModels[policy] = model;
+                    Debug.Log($"[NeuralAnimationController] Async loaded {policy} from {path}");
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"[NeuralAnimationController] Async load failed {policy}: {e.Message}");
+                }
+            }
+#endif
+        }
+
+        /// <summary>
+        /// Unload a policy model to free memory.
+        /// </summary>
+        public void UnloadModel(PolicyType policy)
+        {
+#if UNITY_SENTIS
+            if (_policyModels.TryGetValue(policy, out Model model))
+            {
+                model?.Dispose();
+                _policyModels.Remove(policy);
+            }
+
+            if (_workerPool.TryGetValue(policy, out Worker worker))
+            {
+                worker?.Dispose();
+                _workerPool.Remove(policy);
+            }
+#endif
+            if (_policyAssets.ContainsKey(policy))
+                _policyAssets[policy] = null;
+
+            if (_currentPolicy == policy)
+                SwitchPolicy(PolicyType.Locomotion);
+        }
+
+        // ──────────────────────────────────────────────
         //  Gizmos
         // ──────────────────────────────────────────────
 
-        void OnDrawGizmosSelected()
+        void OnDrawGizmos()
         {
+#if UNITY_EDITOR
+            // Draw active policy info
+            UnityEditor.Handles.Label(transform.position + Vector3.up * 2.5f,
+                $"[Neural] Policy: {_currentPolicy} | LOD: {_currentLODLevel} | Blend: {(_isBlending ? $"{_blendTimer:F2}s" : "None")}");
+
+            // Draw IK targets
             Gizmos.color = Color.green;
             if (_leftFootGrounded) Gizmos.DrawWireSphere(_leftFootTarget[0], 0.1f);
             if (_rightFootGrounded) Gizmos.DrawWireSphere(_rightFootTarget[0], 0.1f);
@@ -1476,16 +1573,19 @@ namespace ProjectName.Systems.Animation.Neural
             Gizmos.DrawWireSphere(_leftHandTarget[0], 0.08f);
             Gizmos.DrawWireSphere(_rightHandTarget[0], 0.08f);
 
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(_headLookTarget, 0.15f);
+            // Draw velocity vector
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawRay(transform.position + Vector3.up, _currentVelocity * 0.5f);
 
-            // LOD distance rings
-            Gizmos.color = new Color(0, 1, 0, 0.2f);
-            Gizmos.DrawWireSphere(transform.position, _lod0Distance);
-            Gizmos.color = new Color(1, 1, 0, 0.15f);
-            Gizmos.DrawWireSphere(transform.position, _lod1Distance);
-            Gizmos.color = new Color(1, 0, 0, 0.1f);
-            Gizmos.DrawWireSphere(transform.position, _lod2Distance);
+            // Draw LOD distance rings
+            if (_currentLODLevel > 0)
+            {
+                Gizmos.color = new Color(1f, 0.5f, 0f, 0.15f);
+                Gizmos.DrawWireSphere(transform.position, _lod0Distance);
+                Gizmos.DrawWireSphere(transform.position, _lod1Distance);
+                Gizmos.DrawWireSphere(transform.position, _lod2Distance);
+            }
+#endif
         }
     }
 }
