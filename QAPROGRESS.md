@@ -65,7 +65,28 @@
 
 ---
 
-## 🎬 프로시저럴 애니메이션 시스템 (Full Procedural Animation) — 2026-07-18 ✅ **구축 완료**
+### Phase 4.4 — Unity Runtime Integration ✅ **2026-07-23**
+
+| # | 기능 | 설명 | 상태 |
+|---|------|------|:----:|
+| 1 | Async Inference | EnableAsyncInference(), double-buffering | ✅ |
+| 2 | LOD 외부 제어 | SetLODLevel(0~3), Model Streaming (LoadModelAsync/UnloadModel) | ✅ |
+| 3 | Debug Gizmos | 정책/LOD/블렌드/IK/속도 실시간 Scene 표시 | ✅ |
+| 4 | Root Motion + IK | CharacterController/NavMeshAgent + OnAnimatorIK 통합 | ✅ 기존 |
+
+### Phase 4.7 — Evaluation & QA System ✅ **2026-07-23**
+
+| # | 파일 | 설명 | 라인 | 상태 |
+|---|------|------|:----:|:----:|
+| 1 | `NeuralAnimationMetrics.cs` | 런타임 메트릭 (FPS, 지연, 정책전환, LOD변경) | 192 | ✅ |
+| 2 | `PhysicsValidityChecker.cs` | 물리 유효성 검사 (침투, 부유발, 관절한계) | 220 | ✅ |
+| 3 | `ABTestFramework.cs` | A/B 테스트 (Procedural vs Neural vs Hybrid) | 260 | ✅ |
+| 4 | `EdgeCaseEvaluator.cs` | 엣지 케이스 평가 (평지/경사/계단/전투/수영/비행) | 225 | ✅ |
+| 5 | `NeuralAnimationTestRunner.cs` | Editor 회귀 테스트 (Tools/Neural/Run Regression Tests) | 195 | ✅ |
+
+---
+
+## 🧠 Phase 4: Neural Animation System — Phase 4.0 ✅ **전체 완료 (Phase 4.0.1 ~ 4.0.5)**
 
 > **상태: 1~6단계 모두 99% 완료**
 > **컴파일 에러: 0개**
