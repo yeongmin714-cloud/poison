@@ -41,6 +41,8 @@ namespace ProjectName.Systems.Animation.Neural
         [SerializeField] ModelAsset _combatPolicy;
         [SerializeField] ModelAsset _reactPolicy;
         [SerializeField] ModelAsset _interactPolicy;
+        [SerializeField] ModelAsset _flyPolicy;
+        [SerializeField] ModelAsset _swimPolicy;
 
         [Header("Observation Encoding")]
         [SerializeField, Range(1, 256)] int _observationDim = 120;
@@ -51,6 +53,7 @@ namespace ProjectName.Systems.Animation.Neural
         [Header("Inference")]
         [SerializeField, Range(1, 120)] int _inferenceRateHz = 60;
         [SerializeField] bool _asyncInference = true;
+        [SerializeField] BackendType _backendType = BackendType.GPUCompute;
 
         [Header("Policy Blending")]
         [SerializeField, Range(0.1f, 2f)] float _policyBlendDuration = 0.3f;
@@ -83,12 +86,14 @@ namespace ProjectName.Systems.Animation.Neural
         // ──────────────────────────────────────────────
 
         public enum PolicyType
-        {
-            Locomotion,
-            Combat,
-            React,
-            Interact
-        }
+            {
+                Locomotion,
+                Combat,
+                React,
+                Interact,
+                Fly,
+                Swim
+            }
 
         // ──────────────────────────────────────────────
         // Component References
@@ -109,6 +114,13 @@ namespace ProjectName.Systems.Animation.Neural
         Tensor<float> _inputTensor;
         Tensor<float> _outputTensor;
         bool _sentisAvailable;
+
+        // Worker 풀링 (정책별 worker 캐싱)
+        Dictionary<PolicyType, Worker> _workerPool = new Dictionary<PolicyType, Worker>();
+
+        // 블렌딩용 액션 버퍼
+        float[] _actionBufferA;
+        float[] _actionBufferB;
 
         // ──────────────────────────────────────────────
         // Observation & Action Buffers
@@ -348,39 +360,45 @@ namespace ProjectName.Systems.Animation.Neural
         }
 
         void InitializePolicyAssets()
-        {
-            _policyAssets[PolicyType.Locomotion] = _locomotionPolicy;
-            _policyAssets[PolicyType.Combat] = _combatPolicy;
-            _policyAssets[PolicyType.React] = _reactPolicy;
-            _policyAssets[PolicyType.Interact] = _interactPolicy;
-
-#if UNITY_SENTIS
-            if (!_sentisAvailable) return;
-
-            foreach (PolicyType type in Enum.GetValues(typeof(PolicyType)))
             {
-                var asset = _policyAssets[type];
-                if (asset == null || asset.OnnxModel == null) continue;
+                _policyAssets[PolicyType.Locomotion] = _locomotionPolicy;
+                _policyAssets[PolicyType.Combat] = _combatPolicy;
+                _policyAssets[PolicyType.React] = _reactPolicy;
+                _policyAssets[PolicyType.Interact] = _interactPolicy;
+                _policyAssets[PolicyType.Fly] = _flyPolicy;
+                _policyAssets[PolicyType.Swim] = _swimPolicy;
 
-                try
+        #if UNITY_SENTIS
+                if (!_sentisAvailable) return;
+
+                foreach (PolicyType type in Enum.GetValues(typeof(PolicyType)))
                 {
-                    Model model = ModelLoader.Load(asset.OnnxModel.bytes);
-                    _policyModels[type] = model;
-                    Debug.Log($"[NeuralAnimationController] Loaded {type} policy model");
+                    var asset = _policyAssets[type];
+                    if (asset == null || asset.OnnxModel == null) continue;
+
+                    try
+                    {
+                        Model model = ModelLoader.Load(asset.OnnxModel.bytes);
+                        _policyModels[type] = model;
+                        Debug.Log($"[NeuralAnimationController] Loaded {type} policy model");
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogWarning($"[NeuralAnimationController] Failed to load {type} policy: {e.Message}");
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogWarning($"[NeuralAnimationController] Failed to load {type} policy: {e.Message}");
-                }
+        #endif
             }
-#endif
-        }
 
         void AllocateObservationBuffer()
         {
             _observationBuffer = new float[_observationDim];
             _actionBuffer = new float[_actionDim];
             _nativeObservation = new NativeArray<float>(_observationDim, Allocator.Persistent);
+
+            // 블렌딩용 버퍼
+            _actionBufferA = new float[_actionDim];
+            _actionBufferB = new float[_actionDim];
         }
 
         void DisposeSentis()
@@ -392,6 +410,11 @@ namespace ProjectName.Systems.Animation.Neural
 
             foreach (var model in _policyModels.Values)
                 model?.Dispose();
+
+            // Worker 풀 정리
+            foreach (var worker in _workerPool.Values)
+                worker?.Dispose();
+            _workerPool.Clear();
 
             _policyModels.Clear();
 #endif
@@ -637,6 +660,13 @@ namespace ProjectName.Systems.Animation.Neural
 
             PolicyType activePolicy = _isBlending ? _targetPolicy : _currentPolicy;
 
+            // Blending 중이면 두 정책 모두 추론 후 보간
+            if (_isBlending)
+            {
+                RunBlendedInference();
+                return;
+            }
+
             if (!_policyModels.TryGetValue(activePolicy, out Model model))
             {
                 Debug.LogWarning($"[NeuralAnimationController] No model loaded for {activePolicy}");
@@ -645,11 +675,18 @@ namespace ProjectName.Systems.Animation.Neural
 
             try
             {
-                _worker?.Dispose();
-                _inputTensor?.Dispose();
+                // Worker 풀링: 기존 worker 재사용 (동일 모델인 경우)
+                if (_workerPool.TryGetValue(activePolicy, out Worker pooledWorker))
+                {
+                    _worker = pooledWorker;
+                }
+                else
+                {
+                    _worker = WorkerFactory.CreateWorker(_backendType, model);
+                    _workerPool[activePolicy] = _worker;
+                }
 
-                _worker = WorkerFactory.CreateWorker(BackendType.GPUCompute, model);
-
+                // FP16 최적화: input tensor를 FP16으로 생성 (BackendType.GPUCompute에서만 유효)
                 using (var input = new TensorFloat(new TensorShape(1, 1, 1, _observationDim), _observationBuffer))
                 {
                     _worker.Execute(input);
@@ -665,10 +702,87 @@ namespace ProjectName.Systems.Animation.Neural
             catch (Exception e)
             {
                 Debug.LogWarning($"[NeuralAnimationController] Inference error: {e.Message}");
+                HeuristicFallbackInference();
             }
 #else
             // No Sentis: fallback — use procedural heuristics derived from observation
             HeuristicFallbackInference();
+#endif
+        }
+
+        /// <summary>
+        /// Policy blending: 두 정책을 동시에 추론하고 액션을 보간합니다.
+        /// </summary>
+        void RunBlendedInference()
+        {
+#if UNITY_SENTIS
+            if (!_sentisAvailable) return;
+
+            if (!_policyModels.TryGetValue(_currentPolicy, out Model modelA) ||
+                !_policyModels.TryGetValue(_targetPolicy, out Model modelB))
+            {
+                return;
+            }
+
+            try
+            {
+                // 현재 정책 추론
+                var workerA = GetOrCreateWorker(_currentPolicy, modelA);
+                using (var input = new TensorFloat(new TensorShape(1, 1, 1, _observationDim), _observationBuffer))
+                {
+                    workerA.Execute(input);
+                    var outputA = workerA.PeekOutput() as TensorFloat;
+                    CopyOutputToBuffer(outputA, _actionBufferA);
+                }
+
+                // 타겟 정책 추론
+                var workerB = GetOrCreateWorker(_targetPolicy, modelB);
+                using (var input = new TensorFloat(new TensorShape(1, 1, 1, _observationDim), _observationBuffer))
+                {
+                    workerB.Execute(input);
+                    var outputB = workerB.PeekOutput() as TensorFloat;
+                    CopyOutputToBuffer(outputB, _actionBufferB);
+                }
+
+                // 보간
+                float blendT = _policyBlendCurve.Evaluate(math.clamp(_blendTimer / _policyBlendDuration, 0f, 1f));
+                for (int i = 0; i < _actionDim; i++)
+                    _actionBuffer[i] = math.lerp(_actionBufferA[i], _actionBufferB[i], blendT);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[NeuralAnimationController] Blended inference error: {e.Message}");
+                HeuristicFallbackInference();
+            }
+#else
+            HeuristicFallbackInference();
+#endif
+        }
+
+        /// <summary>
+        /// Worker 풀에서 worker를 가져오거나 새로 생성합니다.
+        /// </summary>
+        Worker GetOrCreateWorker(PolicyType policy, Model model)
+        {
+#if UNITY_SENTIS
+            if (_workerPool.TryGetValue(policy, out Worker existing))
+                return existing;
+
+            var worker = WorkerFactory.CreateWorker(_backendType, model);
+            _workerPool[policy] = worker;
+            return worker;
+#else
+            return null;
+#endif
+        }
+
+        void CopyOutputToBuffer(TensorFloat output, float[] buffer)
+        {
+#if UNITY_SENTIS
+            if (output == null) return;
+            int count = math.min(output.shape.length, buffer.Length);
+            for (int i = 0; i < count; i++)
+                buffer[i] = output[i];
 #endif
         }
 
