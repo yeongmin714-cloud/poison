@@ -116,8 +116,7 @@ namespace ProjectName.Systems.Animation.Neural
                     avatarTypes = new[] { SelectorAvatarType.Biped },
                     activePolicies = new[] {
                         AnimationPolicy.Locomotion, AnimationPolicy.Combat,
-                        AnimationPolicy.React, AnimationPolicy.Interact,
-                        AnimationPolicy.Run, AnimationPolicy.Crouch
+                        AnimationPolicy.React, AnimationPolicy.Interact
                     },
                     neuralWeight = 0.8f,
                     enableLOD = true,
@@ -129,8 +128,7 @@ namespace ProjectName.Systems.Animation.Neural
                     phaseName = "Phase 4.6.4 - Quadrupeds",
                     avatarTypes = new[] { SelectorAvatarType.Quadruped },
                     activePolicies = new[] {
-                        AnimationPolicy.Locomotion, AnimationPolicy.React,
-                        AnimationPolicy.Run, AnimationPolicy.Crouch
+                        AnimationPolicy.Locomotion, AnimationPolicy.React
                     },
                     neuralWeight = 0.6f,
                     enableLOD = true,
@@ -149,8 +147,7 @@ namespace ProjectName.Systems.Animation.Neural
                         AnimationPolicy.Locomotion, AnimationPolicy.Combat,
                         AnimationPolicy.React, AnimationPolicy.Interact,
                         AnimationPolicy.Fly, AnimationPolicy.Swim,
-                        AnimationPolicy.Mount, AnimationPolicy.Climb,
-                        AnimationPolicy.Run, AnimationPolicy.Crouch
+                        AnimationPolicy.Mount, AnimationPolicy.Climb
                     },
                     neuralWeight = 1.0f,
                     enableLOD = true,

@@ -40,6 +40,21 @@
 - Latent space interpolation, TransitionConfig (blendDuration, curves)
 - NeuralAnimationController.RequestPolicySwitch() static event
 
+### Phase 4.6.2~4.6.4 — Progressive Rollout Configuration ✅ **2026-07-23**
+
+| # | 파일 | 설명 | 라인 | 상태 |
+|---|------|------|:----:|:----:|
+| 1 | `RolloutPhaseConfig.cs` | ScriptableObject — 5단계 롤아웃 PhaseConfig 정의 | 159 | ✅ 컴파일 |
+| 2 | `ProgressiveRolloutManager.cs` | 싱글톤 매니저 — HybridController 설정, Phase 전환 | 260 | ✅ 컴파일 |
+| 3 | `HybridAnimationController.cs` | `SetBaseWeights()`, `SetLODThreshold()` 추가 | 724 | ✅ |
+
+**롤아웃 단계:**
+- Phase1: Player만 Locomotion Neural (0.3 weight)
+- Phase2: Player+Soldiers, Locomotion+Combat Neural (0.5 weight)
+- Phase3: All Bipeds, 모든 정책 Neural (0.8 weight)
+- Phase4: Quadrupeds, Locomotion+React Neural (0.6 weight)
+- Phase5: All Creatures, Full Neural (1.0 weight, Procedural fallback only)
+
 ---
 
 ## 🎬 프로시저럴 애니메이션 시스템 (Full Procedural Animation) — 2026-07-18 ✅ **구축 완료**

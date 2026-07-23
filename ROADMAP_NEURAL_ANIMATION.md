@@ -158,14 +158,14 @@
 - [x] **Policy Override System:** 특정 상태(Combat/React/Fly/Swim)에서만 Neural, 나머지는 Procedural
 - [x] **A/B Test Framework:** 동일 아바타에 Procedural vs Neural 할당 → 메트릭 비교
 
-### 4.6.2 — Progressive Rollout
-| Phase | Scope | Policy | Fallback |
-|-------|-------|--------|----------|
-| 4.6.1 | Player only | Locomotion | Procedural |
-| 4.6.2 | Player + Soldiers | Locomotion + Combat | Procedural |
-| 4.6.3 | All Bipeds | All policies | Procedural |
-| 4.6.4 | Quadrupeds | Locomotion + React | Procedural |
-| 4.6.5 | All Creatures | Full Neural | Keyframe (Cinematics) |
+### 4.6.2 — Progressive Rollout ✅
+| Phase | Scope | Policy | Fallback | 상태 |
+|-------|-------|--------|----------|:----:|
+| 4.6.1 | Player only | Locomotion | Procedural | ✅ |
+| 4.6.2 | Player + Soldiers | Locomotion + Combat | Procedural | ✅ |
+| 4.6.3 | All Bipeds | All policies | Procedural | ✅ |
+| 4.6.4 | Quadrupeds | Locomotion + React | Procedural | ✅ |
+| 4.6.5 | All Creatures | Full Neural | Keyframe (Cinematics) | ✅ |
 
 ### 4.6.3 — Deprecation Plan
 - [ ] Phase 3.9 Procedural 코드 `Obsolete` 속성 표시
