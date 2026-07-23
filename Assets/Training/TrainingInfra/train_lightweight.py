@@ -53,6 +53,7 @@ CHECKPOINT_DIR = os.path.join(PROJECT_PATH, "Assets/Training/TrainingInfra/check
 
 def train(
     avatar_type: str = "biped",
+    policy_type: str = "locomotion",
     epochs: int = 50,
     quick: bool = False,
     verbose: bool = True,
@@ -62,6 +63,7 @@ def train(
 
     Args:
         avatar_type: "biped" or "quadruped".
+        policy_type: "locomotion", "combat", "react", "interact".
         epochs: Number of training epochs.
         quick: If True, use 10 epochs and reduced steps.
         verbose: Print progress.
@@ -85,6 +87,7 @@ def train(
 
     if verbose:
         print(f"  Avatar type:       {avatar_type}")
+        print(f"  Policy type:       {policy_type}")
         print(f"  Observation dim:   {obs_dim}")
         print(f"  Action dim:        {act_dim}")
         print(f"  Joint count:       {joint_count}")
@@ -94,7 +97,7 @@ def train(
         print("=" * 60)
 
     # ── Environment ──
-    env = SimpleAnimationEnv(cfg)
+    env = SimpleAnimationEnv(cfg, policy_type=policy_type)
 
     # ── Trainer ──
     # Use reduced steps for quick mode
@@ -166,7 +169,7 @@ def train(
 
     # ── Save checkpoint ──
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
-    checkpoint_path = os.path.join(CHECKPOINT_DIR, f"{avatar_type}_policy.npz")
+    checkpoint_path = os.path.join(CHECKPOINT_DIR, f"{avatar_type}_{policy_type}_policy.npz")
     trainer.save(checkpoint_path)
 
     if verbose:
@@ -181,7 +184,7 @@ def train(
     # Ensure output dir exists
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    onnx_filename = f"locomotion_{avatar_type}_base.onnx"
+    onnx_filename = f"{policy_type}_{avatar_type}_base.onnx"
     onnx_path = os.path.join(OUTPUT_DIR, onnx_filename)
 
     export_policy_to_onnx(
@@ -224,6 +227,13 @@ def main():
         help="Avatar type: biped (obs=120, act=80) or quadruped (obs=150, act=100) (default: biped)",
     )
     parser.add_argument(
+        "--policy_type", "-p",
+        type=str,
+        default="locomotion",
+        choices=["locomotion", "combat", "react", "interact"],
+        help="Policy type: locomotion, combat, react, interact (default: locomotion)",
+    )
+    parser.add_argument(
         "--epochs", "-e",
         type=int,
         default=50,
@@ -253,6 +263,7 @@ def main():
 
     onnx_path = train(
         avatar_type=args.avatar_type,
+        policy_type=args.policy_type,
         epochs=args.epochs,
         quick=args.quick,
         verbose=args.verbose,
