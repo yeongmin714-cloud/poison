@@ -90,30 +90,43 @@ Output: "action" shape [1, act_dim]
 |---|--------|-----------|-------|---------|
 | 2.1 | **locomotion_biped_base** 학습 | `locomotion_biped_base.onnx` | 50 | ~66초 |
 | 2.2 | **locomotion_quadruped** 학습 | `locomotion_quadruped_base.onnx` | 50 | ~80초 |
+### Phase 2: 본 학습 — 10개 ONNX 모델 생성 ✅ (완료)
+
+| # | 태스크 | ONNX 파일 | Epoch | 소요시간 |
+|---|--------|-----------|-------|---------|
+| 2.1 | **locomotion_biped_base** 학습 | `locomotion_biped_base.onnx` | 50 | ~66초 |
+| 2.2 | **locomotion_quadruped** 학습 | `locomotion_quadruped_base.onnx` | 50 | ~80초 |
 | 2.3 | **combat_biped** 학습 | `combat_biped_base.onnx` | 50 | ~68초 |
 | 2.4 | **combat_quadruped** 학습 | `combat_quadruped_base.onnx` | 50 | ~75초 |
 | 2.5 | **react_biped** 학습 | `react_biped_base.onnx` | 50 | ~66초 |
 | 2.6 | **react_quadruped** 학습 | `react_quadruped_base.onnx` | 50 | ~74초 |
 | 2.7 | **interact_biped** 학습 | `interact_biped_base.onnx` | 50 | ~75초 |
 | 2.8 | **interact_quadruped** 학습 | `interact_quadruped_base.onnx` | 50 | ~78초 |
+| 2.9 | **fly_quadruped** 학습 | `fly_quadruped_base.onnx` | 50 | ~60초 |
+| 2.10 | **swim_quadruped** 학습 | `swim_quadruped_base.onnx` | 50 | ~65초 |
 
 ### Phase 3: 통합 검증 및 배포 ✅ (완료)
 
 | # | 태스크 | 설명 |
 |---|--------|------|
 | 3.1 | Unity C# 컴파일 확인 | 기존 ONNXPolicy.cs 그대로 사용 가능 확인 |
-| 3.2 | 기존 더미 ONNX 백업 | `NeuralModels/` 내 5개 파일 `.bak` 백업 |
-| 3.3 | 학습 ONNX 배치 | 생성된 8개 ONNX를 `Resources/NeuralModels/`에 복사 |
-| 3.4 | git commit + push | 변경사항 저장 (`af8344d`) |
+| 3.2 | 기존 더미 ONNX 백업 | `NeuralModels/` 내 파일 `.bak` 백업 |
+| 3.3 | 학습 ONNX 배치 | 생성된 10개 ONNX를 `Resources/NeuralModels/`에 복사 |
+| 3.4 | git commit + push | 변경사항 저장 (`58f5580`) |
 
-### Phase 4: (선택) 고도화
+### Phase 4: 고도화 기능 ✅ (완료)
 
 | # | 태스크 | 설명 |
 |---|--------|------|
-| 4.1 | Policy별 네트워크 구조 차별화 | Combat은 더 깊은 네트워크, React는 더 얕은 네트워크 |
-| 4.2 | Curriculum Learning | Easy terrain → Rough terrain 순차 학습 |
-| 4.3 | Style Embedding 학습 | Walk/Run/Crouch 등 스타일 조건부 정책 |
-| 4.4 | TensorBoard 로깅 | 학습 곡선 시각화 (numpy 전용) |
+| 4.1 | **Curriculum Learning** | Easy terrain → Medium → Hard 순차 학습 (`--curriculum`) |
+| 4.2 | **Style Embedding 학습** | Walk/Run/Crouch 조건부 정책 (`--style_embedding`) |
+| 4.3 | **Ensemble Training** | 다중 시드 앙상블 가중치 평균 (`--ensemble_seeds "42,123,456"`) |
+| 4.4 | **TensorBoard 로깅** | 학습 곡선 시각화 (`--tensorboard`) |
+| 4.5 | **Fly/Swim 정책** | Fly/Swim PolicyType 추가 (`--policy_type fly/swim`) |
+| 4.6 | **Worker Pooling** | 정책별 Worker 캐싱으로 추론 속도 향상 |
+| 4.7 | **FP16 양자화** | GPUCompute 백엔드에서 FP16 텐서 지원 |
+| 4.8 | **FP16 양자화 지원** | ONNX 내보내기 시 FP16 옵션 (`--fp16`) |
+| 4.9 | **Worker Pooling 최적화** | Worker 재사용으로 매 프레임 생성/해제 오버헤드 제거 |
 
 ---
 
