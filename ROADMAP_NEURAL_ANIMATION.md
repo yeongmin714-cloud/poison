@@ -167,10 +167,10 @@
 | 4.6.4 | Quadrupeds | Locomotion + React | Procedural | ✅ |
 | 4.6.5 | All Creatures | Full Neural | Keyframe (Cinematics) | ✅ |
 
-### 4.6.3 — Deprecation Plan
-- [ ] Phase 3.9 Procedural 코드 `Obsolete` 속성 표시
-- [ ] Test Scene에서 ProceduralController 완전 제거
-- [ ] Documentation 마이그레이션 가이드 작성
+### 4.6.3 — Deprecation Plan ✅
+- [x] Phase 3.9 Procedural 코드 `[Obsolete]` 속성 표시
+- [x] MIGRATION_GUIDE_PHASE46.md 작성
+- [ ] Test Scene에서 ProceduralController 완전 제거 (추후 작업)
 
 ---
 

@@ -55,6 +55,14 @@
 - Phase4: Quadrupeds, Locomotion+React Neural (0.6 weight)
 - Phase5: All Creatures, Full Neural (1.0 weight, Procedural fallback only)
 
+### Phase 4.6.3 — Deprecation Plan ✅ **2026-07-23**
+
+| # | 작업 | 설명 | 상태 |
+|---|------|------|:----:|
+| 1 | `[Obsolete]` 속성 추가 | 7개 Procedural MonoBehaviour 클래스에 Deprecated 속성 | ✅ |
+| 2 | `MIGRATION_GUIDE_PHASE46.md` | 마이그레이션 가이드 작성 (한글, 7개 섹션) | ✅ |
+| 3 | Test Scene 제거 | (추후 작업 — ProceduralController 완전 제거) | ⏳ |
+
 ---
 
 ## 🎬 프로시저럴 애니메이션 시스템 (Full Procedural Animation) — 2026-07-18 ✅ **구축 완료**

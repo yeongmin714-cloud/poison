@@ -34,6 +34,7 @@ namespace ProjectName.Systems.Animation.Procedural
     [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(ProceduralBoneMap))]
+    [Obsolete("Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md", false)]
     public class ProceduralAnimationController : MonoBehaviour
     {
         // ──────────────────────────────────────────────

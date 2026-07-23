@@ -941,6 +941,7 @@ namespace ProjectName.Systems.Animation.Procedural.Debug
     /// Attach to any GameObject with ProceduralAnimationController.
     /// </summary>
     [ExecuteAlways]
+    [Obsolete("Use NeuralAnimationController with ONNX policies instead. See MIGRATION_GUIDE_PHASE46.md", false)]
     public class ProceduralAnimDebugRegistrar : MonoBehaviour
     {
         ProceduralAnimationController _ctrl;

@@ -121,6 +121,7 @@ namespace ProjectName.Systems.Animation.Procedural.LOD
     /// Manages distance-based LOD for all ProceduralAnimationController instances.
     /// Features: frustum culling, distance-based LOD, per-frame rate limiting.
     /// </summary>
+    [Obsolete("Use NeuralAnimationController with ONNX policies instead. See MIGRATION_GUIDE_PHASE46.md", false)]
     public class ProceduralLODManager : MonoBehaviour
     {
         [Header("LOD Distances")]

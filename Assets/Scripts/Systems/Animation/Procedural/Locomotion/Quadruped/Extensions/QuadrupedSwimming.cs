@@ -501,6 +501,7 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped.Extensio
     /// 수영형 쿼드러페드용 MonoBehaviour.
     /// 부력, 물결파, 지느러미, 유체역학 통합.
     /// </summary>
+    [Obsolete("Use NeuralAnimationController with ONNX policies instead. See MIGRATION_GUIDE_PHASE46.md", false)]
     public class QuadrupedSwimming : MonoBehaviour
     {
         [System.Serializable]
