@@ -92,7 +92,12 @@ namespace ProjectName.Systems.Animation.Neural
                 React,
                 Interact,
                 Fly,
-                Swim
+                Swim,
+                Mount,
+                Climb,
+                Run,
+                Crouch,
+                LargeMonster
             }
 
         // ──────────────────────────────────────────────

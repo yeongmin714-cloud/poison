@@ -39,7 +39,10 @@ namespace ProjectName.Systems.Animation.Neural
             NeuralAnimationController.PolicyType.Combat,
             NeuralAnimationController.PolicyType.React,
             NeuralAnimationController.PolicyType.Fly,
-            NeuralAnimationController.PolicyType.Swim
+            NeuralAnimationController.PolicyType.Swim,
+            NeuralAnimationController.PolicyType.Mount,
+            NeuralAnimationController.PolicyType.Climb,
+            NeuralAnimationController.PolicyType.LargeMonster
         };
 
         [Header("Policy Blending")]

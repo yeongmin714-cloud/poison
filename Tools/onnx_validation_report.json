@@ -1,0 +1,927 @@
+{
+  "total": 27,
+  "valid": 27,
+  "invalid": 0,
+  "errors": 0,
+  "models": [
+    {
+      "file": "climb_biped_base.onnx",
+      "size_kb": 67.6,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            120
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            80
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "combat_biped.onnx",
+      "size_kb": 67.6,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            120
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            80
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "combat_biped_base.onnx",
+      "size_kb": 67.6,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            120
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            80
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "combat_quadruped.onnx",
+      "size_kb": 80.2,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            150
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            100
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "combat_quadruped_base.onnx",
+      "size_kb": 80.2,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            150
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            100
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "crouch_biped_base.onnx",
+      "size_kb": 67.6,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            120
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            80
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "crouch_quadruped_base.onnx",
+      "size_kb": 80.2,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            150
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            100
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "fly_biped_base.onnx",
+      "size_kb": 67.6,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            120
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            80
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "fly_quadruped_base.onnx",
+      "size_kb": 80.2,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            150
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            100
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "interact_biped.onnx",
+      "size_kb": 67.6,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            120
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            80
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "interact_biped_base.onnx",
+      "size_kb": 67.6,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            120
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            80
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "interact_quadruped.onnx",
+      "size_kb": 80.2,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            150
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            100
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "interact_quadruped_base.onnx",
+      "size_kb": 80.2,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            150
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            100
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "large_monster_quadruped_base.onnx",
+      "size_kb": 80.2,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            150
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            100
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "locomotion_biped_base.onnx",
+      "size_kb": 67.6,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            120
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            80
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "locomotion_quadruped.onnx",
+      "size_kb": 80.2,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            150
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            100
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "locomotion_quadruped_base.onnx",
+      "size_kb": 80.2,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            150
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            100
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "mount_biped_base.onnx",
+      "size_kb": 67.6,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            120
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            80
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "mount_quadruped_base.onnx",
+      "size_kb": 80.2,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            150
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            100
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "react_biped.onnx",
+      "size_kb": 67.6,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            120
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            80
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "react_biped_base.onnx",
+      "size_kb": 67.6,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            120
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            80
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "react_quadruped.onnx",
+      "size_kb": 80.2,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            150
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            100
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "react_quadruped_base.onnx",
+      "size_kb": 80.2,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            150
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            100
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "run_biped_base.onnx",
+      "size_kb": 67.6,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            120
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            80
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "run_quadruped_base.onnx",
+      "size_kb": 80.2,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            150
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            100
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "swim_biped_base.onnx",
+      "size_kb": 67.6,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            120
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            80
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    },
+    {
+      "file": "swim_quadruped_base.onnx",
+      "size_kb": 80.2,
+      "opset": "?",
+      "inputs": [
+        {
+          "name": "observation",
+          "shape": [
+            1,
+            1,
+            1,
+            150
+          ],
+          "elem_type": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "action",
+          "shape": [
+            1,
+            100
+          ],
+          "elem_type": 1
+        }
+      ],
+      "op_types": [
+        "Gemm",
+        "Reshape",
+        "Tanh"
+      ],
+      "valid": true,
+      "issues": []
+    }
+  ],
+  "error_details": []
+}

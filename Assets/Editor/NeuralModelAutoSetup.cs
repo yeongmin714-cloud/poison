@@ -26,29 +26,77 @@ public static class NeuralModelAutoSetup
     // Quadruped model:   obs=150, act=100, joints=24
     private static readonly Dictionary<string, ModelSpec> KnownSpecs = new()
     {
+        // ── Biped (obs=120, act=80, joints=18, Humanoid) ──
         ["locomotion_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
             "Locomotion_Biped_Base", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
-        ["locomotion_biped"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
-            "Locomotion_Biped_Base", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
-        ["combat_biped"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+        ["combat_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
             "Combat_Biped", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
-        ["react_biped"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+        ["react_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
             "React_Biped", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
-        ["interact_biped"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+        ["interact_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
             "Interact_Biped", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
-        ["locomotion_quadruped"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+        ["fly_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Fly_Biped", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+        ["swim_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Swim_Biped", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+        ["mount_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Mount_Biped", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+        ["climb_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Climb_Biped", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+        ["run_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Run_Biped_Style", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+        ["crouch_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Crouch_Biped_Style", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+
+        // ── Quadruped (obs=150, act=100, joints=24, Quadruped) ──
+        ["locomotion_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
             "Locomotion_Quadruped_Base", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["combat_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "Combat_Quadruped", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["react_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "React_Quadruped", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["interact_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "Interact_Quadruped", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["fly_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "Fly_Quadruped", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["swim_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "Swim_Quadruped", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["mount_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "Mount_Quadruped", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["large_monster_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "LargeMonster_Quadruped", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["run_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "Run_Quadruped_Style", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["crouch_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "Crouch_Quadruped_Style", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
     };
 
     // Policy type mapping: file prefix → PolicyType
     private static readonly Dictionary<string, NeuralAnimationController.PolicyType> PolicyTypeMap = new()
     {
+        // ── Biped ──
         ["locomotion_biped_base"] = NeuralAnimationController.PolicyType.Locomotion,
-        ["locomotion_biped"] = NeuralAnimationController.PolicyType.Locomotion,
-        ["combat_biped"] = NeuralAnimationController.PolicyType.Combat,
-        ["react_biped"] = NeuralAnimationController.PolicyType.React,
-        ["interact_biped"] = NeuralAnimationController.PolicyType.Interact,
-        ["locomotion_quadruped"] = NeuralAnimationController.PolicyType.Locomotion,
+        ["combat_biped_base"] = NeuralAnimationController.PolicyType.Combat,
+        ["react_biped_base"] = NeuralAnimationController.PolicyType.React,
+        ["interact_biped_base"] = NeuralAnimationController.PolicyType.Interact,
+        ["fly_biped_base"] = NeuralAnimationController.PolicyType.Fly,
+        ["swim_biped_base"] = NeuralAnimationController.PolicyType.Swim,
+        ["mount_biped_base"] = NeuralAnimationController.PolicyType.Mount,
+        ["climb_biped_base"] = NeuralAnimationController.PolicyType.Climb,
+        ["run_biped_base"] = NeuralAnimationController.PolicyType.Run,
+        ["crouch_biped_base"] = NeuralAnimationController.PolicyType.Crouch,
+
+        // ── Quadruped ──
+        ["locomotion_quadruped_base"] = NeuralAnimationController.PolicyType.Locomotion,
+        ["combat_quadruped_base"] = NeuralAnimationController.PolicyType.Combat,
+        ["react_quadruped_base"] = NeuralAnimationController.PolicyType.React,
+        ["interact_quadruped_base"] = NeuralAnimationController.PolicyType.Interact,
+        ["fly_quadruped_base"] = NeuralAnimationController.PolicyType.Fly,
+        ["swim_quadruped_base"] = NeuralAnimationController.PolicyType.Swim,
+        ["mount_quadruped_base"] = NeuralAnimationController.PolicyType.Mount,
+        ["large_monster_quadruped_base"] = NeuralAnimationController.PolicyType.LargeMonster,
+        ["run_quadruped_base"] = NeuralAnimationController.PolicyType.Run,
+        ["crouch_quadruped_base"] = NeuralAnimationController.PolicyType.Crouch,
     };
 
     // ──────────────────────────────────────────────
