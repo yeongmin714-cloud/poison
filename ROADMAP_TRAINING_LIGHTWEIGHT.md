@@ -130,6 +130,60 @@ Output: "action" shape [1, act_dim]
 
 ---
 
+### Phase 5: Full Production 학습 — 10개 정책 × 2 아바타 = 20개 ONNX 모델
+
+> **목표:** 실전 배포용 20개 ONNX 모델 완전 학습 (50 epoch each)
+
+#### 5.1 — Biped 10종 학습
+
+| # | 태스크 | ONNX 파일 | Epoch | 예상시간 |
+|---|--------|-----------|-------|---------|
+| 5.1.1 | **locomotion_biped** | `locomotion_biped_base.onnx` | 50 | ~66초 |
+| 5.1.2 | **combat_biped** | `combat_biped_base.onnx` | 50 | ~68초 |
+| 5.1.3 | **react_biped** | `react_biped_base.onnx` | 50 | ~66초 |
+| 5.1.4 | **interact_biped** | `interact_biped_base.onnx` | 50 | ~75초 |
+| 5.1.5 | **fly_biped** | `fly_biped_base.onnx` | 50 | ~65초 |
+| 5.1.6 | **swim_biped** | `swim_biped_base.onnx` | 50 | ~65초 |
+| 5.1.7 | **mount_biped** | `mount_biped_base.onnx` | 50 | ~65초 |
+| 5.1.8 | **climb_biped** | `climb_biped_base.onnx` | 50 | ~65초 |
+| 5.1.9 | **crouch_biped** (Style=2) | `crouch_biped_base.onnx` | 50 | ~66초 |
+| 5.1.10 | **run_biped** (Style=1) | `run_biped_base.onnx` | 50 | ~66초 |
+
+#### 5.2 — Quadruped 10종 학습
+
+| # | 태스크 | ONNX 파일 | Epoch | 예상시간 |
+|---|--------|-----------|-------|---------|
+| 5.2.1 | **locomotion_quadruped** | `locomotion_quadruped_base.onnx` | 50 | ~80초 |
+| 5.2.2 | **combat_quadruped** | `combat_quadruped_base.onnx` | 50 | ~75초 |
+| 5.2.3 | **react_quadruped** | `react_quadruped_base.onnx` | 50 | ~74초 |
+| 5.2.4 | **interact_quadruped** | `interact_quadruped_base.onnx` | 50 | ~78초 |
+| 5.2.5 | **fly_quadruped** | `fly_quadruped_base.onnx` | 50 | ~60초 |
+| 5.2.5 | **swim_quadruped** | `swim_quadruped_base.onnx` | 50 | ~65초 |
+| 5.2.6 | **mount_quadruped** | `mount_quadruped_base.onnx` | 50 | ~65초 |
+| 5.2.7 | **large_monster_quadruped** | `large_monster_quadruped_base.onnx` | 50 | ~85초 |
+| 5.2.8 | **run_quadruped** (Style=1) | `run_quadruped_base.onnx` | 50 | ~74초 |
+| 5.2.9 | **crouch_quadruped** (Style=2) | `crouch_quadruped_base.onnx` | 50 | ~74초 |
+
+#### 5.3 — Curriculum/Style/Ensemble 강화 학습
+
+| # | 태스크 | 설명 |
+|---|--------|------|
+| 5.3.1 | **Locomotion Curriculum** | `--curriculum` Easy→Medium→Hard 지형 순차 학습 (locomotion 4종) |
+| 5.3.2 | **Style Embedding** | Walk/Run/Crouch 조건부 정책 학습 (`--style_embedding 0/1/2`) |
+| 5.3.3 | **Ensemble Training** | 3-seed 앙상블 (`--ensemble_seeds "42,123,456"`) combat/react/interact |
+| 5.3.4 | **TensorBoard Logging** | 학습 곡선 저장 (`--tensorboard`) |
+
+#### 5.4 — 검증 및 배포
+
+| # | 태스크 | 설명 |
+|---|--------|------|
+| 5.4.1 | **ONNX 검증** | 20개 모델 Input/Output/Shape/Opset 검증 |
+| 5.4.2 | **Unity Resources 배포** | `Assets/Resources/NeuralModels/` 복사 |
+| 5.4.3 | **NeuralModelDatabase 업데이트** | 20개 모델 메타데이터 등록 |
+| 5.4.4 | **Git Commit + Push** | `Phase 5 완료` 태그 |
+
+---
+
 ## 🚀 사용법
 
 ```bash
