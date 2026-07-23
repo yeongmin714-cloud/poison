@@ -156,7 +156,7 @@ class SimpleAnimationEnv:
     - "swim": Underwater propulsion, buoyancy, streamlined motion
     """
 
-    def __init__(self, cfg: Config, policy_type: Literal["locomotion", "combat", "react", "interact", "fly", "swim"] = "locomotion"):
+    def __init__(self, cfg: Config, policy_type: Literal["locomotion", "combat", "react", "interact", "fly", "swim", "mount", "climb", "run", "crouch", "large_monster"] = "locomotion"):
         self.cfg = cfg.env
         self.avatar_spec = AvatarSpec.from_name(cfg.avatar)
         self.obs_dim = cfg.obs_dim
@@ -303,7 +303,74 @@ class SimpleAnimationEnv:
         self.interact_object_type = np.random.choice(["gather", "craft", "door", "lever"])
         self.interact_success = False
 
-    # ═══════════════════════════════════════════════════════════════════════════════
+    def _reset_fly_swim_state(self):
+        """Initialize fly/swim-specific state."""
+        # 3D target position (air/water)
+        angle = np.random.uniform(0, 2 * np.pi)
+        distance = np.random.uniform(3.0, 10.0)
+        height = np.random.uniform(2.0, 8.0)
+        self.fly_swim_target_pos = np.array([
+            math.cos(angle) * distance,
+            height,
+            math.sin(angle) * distance
+        ], dtype=np.float32)
+        self.fly_swim_speed = np.random.uniform(2.0, 5.0)
+        self.fly_swim_bank_angle = 0.0
+
+    def _reset_mount_state(self):
+        """Initialize mount (horse riding) state."""
+        # Mount target velocity (faster than locomotion)
+        angle = np.random.uniform(-np.pi/4, np.pi/4)
+        distance = np.random.uniform(5.0, 15.0)
+        self.mount_target_pos = np.array([
+            math.cos(angle) * distance,
+            0.0,
+            math.sin(angle) * distance
+        ], dtype=np.float32)
+        self.mount_target_speed = np.random.uniform(3.0, 8.0)
+        self.mount_stamina = 1.0
+
+    def _reset_climb_state(self):
+        """Initialize climb state."""
+        # Climbing target (vertical surface)
+        angle = np.random.uniform(-np.pi/6, np.pi/6)
+        distance = np.random.uniform(1.0, 3.0)
+        self.climb_target_pos = np.array([
+            math.cos(angle) * distance,
+            np.random.uniform(0.5, 2.0),
+            math.sin(angle) * distance
+        ], dtype=np.float32)
+        self.climb_progress = 0.0
+        self.climb_stamina = 1.0
+
+    def _reset_style_state(self):
+        """Initialize run/crouch style state."""
+        # Run: faster target velocity, Crouch: lower height
+        angle = np.random.uniform(-np.pi/4, np.pi/4)
+        distance = np.random.uniform(3.0, 10.0)
+        self.style_target_pos = np.array([
+            math.cos(angle) * distance,
+            0.0 if "run" in self.policy_type else np.random.uniform(0.0, 0.5),
+            math.sin(angle) * distance
+        ], dtype=np.float32)
+        self.style_target_speed = np.random.uniform(5.0, 12.0) if "run" in self.policy_type else np.random.uniform(0.5, 1.5)
+        self.style_crouch_amount = 0.0 if "run" in self.policy_type else 1.0
+
+    def _reset_large_monster_state(self):
+        """Initialize large monster state."""
+        # Large monster: slow but powerful, territory-based
+        angle = np.random.uniform(0, 2 * np.pi)
+        distance = np.random.uniform(5.0, 15.0)
+        self.large_monster_target_pos = np.array([
+            math.cos(angle) * distance,
+            0.0,
+            math.sin(angle) * distance
+        ], dtype=np.float32)
+        self.large_monster_territory_radius = 20.0
+        self.large_monster_rage = 0.0
+        self.large_monster_stamina = 1.0
+
+    # ══════════════════════════════════════════════════════════════════════════════
     #  Curriculum & Style API
     # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -535,6 +602,121 @@ class SimpleAnimationEnv:
             if dist > 3.0 or self.interact_timer > 50:
                 # Reset for next interaction
                 self._reset_interact_state()
+
+    def _update_fly_swim_state(self, action: np.ndarray):
+        """Update fly/swim-specific state."""
+        # Move towards 3D target
+        to_target = self.fly_swim_target_pos - self.chain.root_pos
+        dist = np.linalg.norm(to_target)
+        
+        if dist < 2.0:
+            # Reached target, pick new one
+            angle = np.random.uniform(0, 2 * np.pi)
+            distance = np.random.uniform(5.0, 15.0)
+            height = np.random.uniform(2.0, 10.0)
+            self.fly_swim_target_pos = np.array([
+                math.cos(angle) * distance,
+                height,
+                math.sin(angle) * distance
+            ], dtype=np.float32)
+            self.fly_swim_speed = np.random.uniform(2.0, 5.0)
+
+        # Bank angle for turning (fly only)
+        if self.policy_type == "fly":
+            to_target_norm = to_target / max(dist, 1e-6)
+            forward = np.array([math.sin(self.chain.root_rot[1]), 0.0, math.cos(self.chain.root_rot[1])], dtype=np.float32)
+            target_dir = to_target_norm
+            target_dir[1] = 0
+            target_dir = target_dir / max(np.linalg.norm(target_dir), 1e-6)
+            turn = np.cross(forward, target_dir)[1]
+            self.fly_swim_bank_angle = np.clip(turn * 2.0, -1.0, 1.0)
+
+    def _update_mount_state(self, action: np.ndarray):
+        """Update mount (horse riding) state."""
+        # Update mount stamina
+        self.mount_stamina = min(1.0, self.mount_stamina + 0.001)
+        
+        # Check if target reached
+        to_target = self.mount_target_pos - self.chain.root_pos
+        to_target[1] = 0
+        dist = np.linalg.norm(to_target)
+        
+        if dist < 3.0:
+            # Pick new target
+            angle = np.random.uniform(-np.pi/4, np.pi/4)
+            distance = np.random.uniform(10.0, 20.0)
+            self.mount_target_pos = np.array([
+                math.cos(angle) * distance,
+                0.0,
+                math.sin(angle) * distance
+            ], dtype=np.float32)
+            self.mount_target_speed = np.random.uniform(5.0, 12.0)
+        
+        # Consume stamina when sprinting
+        if np.linalg.norm(self.chain.root_vel) > 5.0:
+            self.mount_stamina = max(0.0, self.mount_stamina - 0.005)
+
+    def _update_climb_state(self, action: np.ndarray):
+        """Update climb state."""
+        # Update climb progress
+        self.climb_progress = min(1.0, self.climb_progress + 0.01)
+        self.climb_stamina = min(1.0, self.climb_stamina + 0.0005)
+        
+        # Check if reached top
+        if self.climb_progress >= 1.0:
+            # Pick new climb target
+            angle = np.random.uniform(-np.pi/6, np.pi/6)
+            distance = np.random.uniform(1.0, 3.0)
+            self.climb_target_pos = np.array([
+                math.cos(angle) * distance,
+                np.random.uniform(0.5, 2.0),
+                math.sin(angle) * distance
+            ], dtype=np.float32)
+            self.climb_progress = 0.0
+            self.climb_stamina = 1.0
+
+    def _update_style_state(self, action: np.ndarray):
+        """Update run/crouch style state."""
+        # Update style target
+        to_target = self.style_target_pos - self.chain.root_pos
+        to_target[1] = 0
+        dist = np.linalg.norm(to_target)
+        
+        if dist < 2.0:
+            # Pick new style target
+            angle = np.random.uniform(-np.pi/4, np.pi/4)
+            distance = np.random.uniform(5.0, 15.0)
+            self.style_target_pos = np.array([
+                math.cos(angle) * distance,
+                0.0 if "run" in self.policy_type else np.random.uniform(0.0, 0.5),
+                math.sin(angle) * distance
+            ], dtype=np.float32)
+            self.style_target_speed = np.random.uniform(5.0, 12.0) if "run" in self.policy_type else np.random.uniform(0.5, 1.5)
+            self.style_crouch_amount = 0.0 if "run" in self.policy_type else 1.0
+
+    def _update_large_monster_state(self, action: np.ndarray):
+        """Update large monster state."""
+        # Update rage and stamina
+        self.large_monster_rage = min(1.0, self.large_monster_rage + 0.001)
+        self.large_monster_stamina = min(1.0, self.large_monster_stamina + 0.0005)
+        
+        # Territory behavior
+        to_target = self.large_monster_target_pos - self.chain.root_pos
+        to_target[1] = 0
+        dist = np.linalg.norm(to_target)
+        
+        if dist < 2.0 or np.random.random() < 0.001:
+            # Pick new territory target
+            angle = np.random.uniform(0, 2 * np.pi)
+            distance = np.random.uniform(5.0, 15.0)
+            self.large_monster_target_pos = np.array([
+                math.cos(angle) * distance,
+                0.0,
+                math.sin(angle) * distance
+            ], dtype=np.float32)
+        
+        # Rage increases when player nearby (simplified)
+        # In real implementation, check player distance
 
     def _is_facing_target(self) -> bool:
         """Check if character is facing combat target."""

@@ -340,8 +340,8 @@ def main():
         "--policy_type", "-p",
         type=str,
         default="locomotion",
-        choices=["locomotion", "combat", "react", "interact", "fly", "swim"],
-        help="Policy type: locomotion, combat, react, interact, fly, swim (default: locomotion)",
+        choices=["locomotion", "combat", "react", "interact", "fly", "swim", "mount", "climb", "run", "crouch", "large_monster"],
+        help="Policy type: locomotion, combat, react, interact, fly, swim, mount, climb, run, crouch, large_monster (default: locomotion)",
     )
     parser.add_argument(
         "--epochs", "-e",
