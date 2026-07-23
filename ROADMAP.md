@@ -2278,6 +2278,65 @@ WorldEventManager (싱글톤)
 
 ---
 
+## 🧠 Phase 67.x: Neural Animation System — Production Complete
+
+> 20개 ONNX 모델 완전 학습 + 실전 배포 + 런타임 완전 연동
+
+### Phase 67.1: Full 50 Epoch 학습 — 20개 모델 (전체 ~26분)
+
+| # | 모델 | Avatar | Policy | Epoch | 상태 |
+|---|------|--------|--------|-------|------|
+| 67.1.1 | locomotion_biped_base.onnx | Biped | Locomotion | 50 | ⏳ 대기 |
+| 67.1.2 | combat_biped_base.onnx | Biped | Combat | 50 | ⏳ 대기 |
+| 67.1.3 | react_biped_base.onnx | Biped | React | 50 | ⏳ 대기 |
+| 67.1.4 | interact_biped_base.onnx | Biped | Interact | 50 | ⏳ 대기 |
+| 67.1.5 | fly_biped_base.onnx | Biped | Fly | 50 | ⏳ 대기 |
+| 67.1.6 | swim_biped_base.onnx | Biped | Swim | 50 | ⏳ 대기 |
+| 67.1.6 | mount_biped_base.onnx | Biped | Mount | 50 | ⏳ 대기 |
+| 67.1.7 | climb_biped_base.onnx | Biped | Climb | 50 | ⏳ 대기 |
+| 67.1.8 | run_biped_base.onnx | Biped | Style=Run | 50 | ⏳ 대기 |
+| 67.1.9 | crouch_biped_base.onnx | Biped | Style=Crouch | 50 | ⏳ 대기 |
+| 67.1.9 | locomotion_quadruped.onnx | Quadruped | Locomotion | 50 | ⏳ 대기 |
+| 67.1.10 | combat_quadruped.onnx | Quadruped | Combat | 50 | ⏳ 대기 |
+| 67.1.11 | react_quadruped.onnx | Quadruped | React | 50 | ⏳ 대기 |
+| 67.1.12 | interact_quadruped.onnx | Quadruped | Interact | 50 | ⏳ 대기 |
+| 67.1.13 | fly_quadruped.onnx | Quadruped | Fly | 50 | ⏳ 대기 |
+| 67.1.14 | swim_quadruped.onnx | Quadruped | Swim | 50 | ⏳ 대기 |
+| 67.1.15 | mount_quadruped.onnx | Quadruped | Mount | 50 | ⏳ 대기 |
+| 67.1.16 | large_monster_quadruped.onnx | Quadruped | LargeMonster | 50 | ⏳ 대기 |
+| 67.1.17 | run_quadruped.onnx | Quadruped | Style=Run | 50 | ⏳ 대기 |
+| 67.1.18 | crouch_quadruped.onnx | Quadruped | Style=Crouch | 50 | ⏳ 대기 |
+
+### Phase 67.2: Curriculum/Style/Ensemble 강화 학습
+
+| # | 작업 | 설명 | 상태 |
+|---|------|------|------|
+| 67.2.1 | **Locomotion Curriculum** | `--curriculum` Easy→Medium→Hard 지형 순차 학습 (locomotion 4종) | ⏳ 대기 |
+| 67.2.2 | **Style Embedding 학습** | Walk/Run/Crouch 조건부 정책 학습 (`--style_embedding 0/1/2`) | ⏳ 대기 |
+| 67.2.3 | **Ensemble Training** | 3-seed 앙상블 (`--ensemble_seeds "42,123,456"`) combat/react/interact | ⏳ 대기 |
+| 67.2.4 | **TensorBoard Logging** | 학습 곡선 저장 (`--tensorboard`) | ⏳ 대기 |
+
+### Phase 67.3: 검증 및 배포
+
+| # | 작업 | 설명 | 상태 |
+|---|------|------|------|
+| 67.3.1 | **ONNX 검증** | 20개 모델 Input/Output/Shape/Opset 검증 | ⏳ 대기 |
+| 67.3.2 | **Unity Resources 배포** | `Assets/Resources/NeuralModels/` 복사 | ⏳ 대기 |
+| 67.3.3 | **NeuralModelDatabase 업데이트** | 20개 모델 메타데이터 등록 | ⏳ 대기 |
+| 67.3.4 | **Git Commit + Push** | `Phase 67 완료` 태그 | ⏳ 대기 |
+
+### Phase 67.4: 런타임 완전 연동
+
+| # | 작업 | 설명 | 상태 |
+|---|------|------|------|
+| 67.4.1 | **PlayerMovement 연동** | velocityProvider → NeuralAnimationController 연결 | ⏳ 대기 |
+| 67.4.2 | **PlayerCombat 연동** | SwitchPolicy(Combat) 자동 전환 | ⏳ 대기 |
+| 67.4.3 | **NPC/Monster AI 연동** | 상황별 Policy 자동 전환 (상태머신) | ⏳ 대기 |
+| 67.4.4 | **MountSystem 연동** | SwitchPolicy(Mount) 탑승/하차 | ⏳ 대기 |
+| 67.4.5 | **LOD 거리 기반 품질** | 거리별 추론 빈도/품질 조절 검증 | ⏳ 대기 |
+
+---
+
 ## 🔧 컴파일 오류/경고 긴급 수정 (2026-07-03)
 
 ### 수정 내역
