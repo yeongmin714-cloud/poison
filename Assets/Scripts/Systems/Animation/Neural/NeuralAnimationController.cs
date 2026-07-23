@@ -776,15 +776,15 @@ namespace ProjectName.Systems.Animation.Neural
 #endif
         }
 
+        #if UNITY_SENTIS
         void CopyOutputToBuffer(TensorFloat output, float[] buffer)
         {
-#if UNITY_SENTIS
             if (output == null) return;
             int count = math.min(output.shape.length, buffer.Length);
             for (int i = 0; i < count; i++)
                 buffer[i] = output[i];
-#endif
         }
+#endif
 
         /// <summary>
         /// Fallback inference when Sentis is unavailable. Converts observation-based

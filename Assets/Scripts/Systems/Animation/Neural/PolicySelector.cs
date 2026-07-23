@@ -98,13 +98,14 @@ namespace ProjectName.Systems.Animation.Neural
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    //  AvatarType
+    //  SelectorAvatarType
     // ─────────────────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Avatar classification for policy routing. Maps to AnimationPolicy.AvatarType.
+    /// Avatar classification for policy routing. Separate from AnimationPolicy.AvatarType
+    /// to distinguish Biped (two-legged) from Humanoid (which includes MultiLeg).
     /// </summary>
-    public enum AvatarType
+    public enum SelectorAvatarType
     {
         /// <summary>Two-legged humanoid (player, NPCs, soldiers).</summary>
         Biped = 0,
@@ -291,7 +292,7 @@ namespace ProjectName.Systems.Animation.Neural
     public readonly struct PolicySelectionContext
     {
         public readonly AnimationState currentState;
-        public readonly AvatarType avatarType;
+        public readonly SelectorAvatarType avatarType;
         public readonly CombatContext combatContext;
         public readonly bool isGrounded;
         public readonly bool isInWater;
@@ -305,7 +306,7 @@ namespace ProjectName.Systems.Animation.Neural
 
         public PolicySelectionContext(
             AnimationState currentState,
-            AvatarType avatarType,
+            SelectorAvatarType avatarType,
             CombatContext combatContext,
             bool isGrounded,
             bool isInWater,
@@ -333,7 +334,7 @@ namespace ProjectName.Systems.Animation.Neural
 
         public static PolicySelectionContext Default => new PolicySelectionContext(
             AnimationState.Locomotion,
-            AvatarType.Biped,
+            SelectorAvatarType.Biped,
             CombatContext.Default,
             true, false, false, false, false,
             0f, 0f, Vector3.forward, 0f);
@@ -401,12 +402,12 @@ namespace ProjectName.Systems.Animation.Neural
         public AnimationPolicy policy;
 
         /// <summary>Avatar type this embedding is for.</summary>
-        public AvatarType avatarType;
+        public SelectorAvatarType avatarType;
 
         /// <summary>Timestamp when embedding was captured.</summary>
         public float timestamp;
 
-        public static LatentEmbedding Zero(AnimationPolicy policy, AvatarType avatarType, int embeddingSize = 8) => new LatentEmbedding
+        public static LatentEmbedding Zero(AnimationPolicy policy, SelectorAvatarType avatarType, int embeddingSize = 8) => new LatentEmbedding
         {
             values = new float[embeddingSize],
             policy = policy,
@@ -493,7 +494,7 @@ namespace ProjectName.Systems.Animation.Neural
         private static AnimationPolicy s_LatentFromPolicy = AnimationPolicy.Locomotion;
         private static AnimationPolicy s_LatentToPolicy = AnimationPolicy.Locomotion;
         private static Dictionary<AnimationPolicy, float[]> s_PolicyLatentEmbeddings = new Dictionary<AnimationPolicy, float[]>();
-        private static Dictionary<AvatarType, Dictionary<AnimationPolicy, float[]>> s_AvatarPolicyEmbeddings = new Dictionary<AvatarType, Dictionary<AnimationPolicy, float[]>>();
+        private static Dictionary<SelectorAvatarType, Dictionary<AnimationPolicy, float[]>> s_AvatarPolicyEmbeddings = new Dictionary<SelectorAvatarType, Dictionary<AnimationPolicy, float[]>>();
 
         // ─────────────────────────────────────────────────────────────────────────────
         //  Public Properties
@@ -558,7 +559,7 @@ namespace ProjectName.Systems.Animation.Neural
         /// </summary>
         public static PolicySelectionResult SelectPolicy(
             AnimationState currentState,
-            AvatarType avatarType,
+            SelectorAvatarType avatarType,
             CombatContext combatCtx,
             TransitionConfig? transitionConfig = null)
         {
@@ -610,7 +611,7 @@ namespace ProjectName.Systems.Animation.Neural
         /// Register a latent embedding for a policy/avatar combination.
         /// Call this when a policy is loaded to capture its style embedding.
         /// </summary>
-        public static void RegisterLatentEmbedding(AnimationPolicy policy, AvatarType avatarType, float[] embedding)
+        public static void RegisterLatentEmbedding(AnimationPolicy policy, SelectorAvatarType avatarType, float[] embedding)
         {
             if (embedding == null || embedding.Length == 0) return;
 
@@ -624,7 +625,7 @@ namespace ProjectName.Systems.Animation.Neural
         /// <summary>
         /// Get the latent embedding for a policy/avatar combination.
         /// </summary>
-        public static float[] GetLatentEmbedding(AnimationPolicy policy, AvatarType avatarType)
+        public static float[] GetLatentEmbedding(AnimationPolicy policy, SelectorAvatarType avatarType)
         {
             if (s_AvatarPolicyEmbeddings.TryGetValue(avatarType, out var policyDict) &&
                 policyDict.TryGetValue(policy, out var embedding))
@@ -905,27 +906,27 @@ namespace ProjectName.Systems.Animation.Neural
         //  Internal: Policy Validation & Fallback
         // ─────────────────────────────────────────────────────────────────────────────
 
-        private static bool IsPolicyAvailableForAvatar(AnimationPolicy policy, AvatarType avatarType)
+        private static bool IsPolicyAvailableForAvatar(AnimationPolicy policy, SelectorAvatarType avatarType)
         {
             // Define policy-avatar compatibility matrix
             switch (avatarType)
             {
-                case AvatarType.Biped:
+                case SelectorAvatarType.Biped:
                     return policy != AnimationPolicy.Fly && policy != AnimationPolicy.Swim;
 
-                case AvatarType.Quadruped:
+                case SelectorAvatarType.Quadruped:
                     return policy != AnimationPolicy.Fly && policy != AnimationPolicy.Swim &&
                            policy != AnimationPolicy.Mount; // Quadrupeds don't mount typically
 
-                case AvatarType.Flying:
+                case SelectorAvatarType.Flying:
                     return policy == AnimationPolicy.Fly || policy == AnimationPolicy.Locomotion ||
                            policy == AnimationPolicy.Combat || policy == AnimationPolicy.React;
 
-                case AvatarType.Swimming:
+                case SelectorAvatarType.Swimming:
                     return policy == AnimationPolicy.Swim || policy == AnimationPolicy.Locomotion ||
                            policy == AnimationPolicy.Combat || policy == AnimationPolicy.React;
 
-                case AvatarType.LargeMonster:
+                case SelectorAvatarType.LargeMonster:
                     return policy != AnimationPolicy.Mount && policy != AnimationPolicy.Climb &&
                            policy != AnimationPolicy.Fly && policy != AnimationPolicy.Swim;
 
@@ -934,7 +935,7 @@ namespace ProjectName.Systems.Animation.Neural
             }
         }
 
-        private static AnimationPolicy GetFallbackPolicy(AvatarType avatarType, AnimationPolicy preferredFallback)
+        private static AnimationPolicy GetFallbackPolicy(SelectorAvatarType avatarType, AnimationPolicy preferredFallback)
         {
             // Check if preferred fallback is valid
             if (IsPolicyAvailableForAvatar(preferredFallback, avatarType))
@@ -943,11 +944,11 @@ namespace ProjectName.Systems.Animation.Neural
             // Avatar-specific fallbacks
             switch (avatarType)
             {
-                case AvatarType.Biped: return AnimationPolicy.Locomotion;
-                case AvatarType.Quadruped: return AnimationPolicy.Locomotion;
-                case AvatarType.Flying: return AnimationPolicy.Fly;
-                case AvatarType.Swimming: return AnimationPolicy.Swim;
-                case AvatarType.LargeMonster: return AnimationPolicy.Combat;
+                case SelectorAvatarType.Biped: return AnimationPolicy.Locomotion;
+                case SelectorAvatarType.Quadruped: return AnimationPolicy.Locomotion;
+                case SelectorAvatarType.Flying: return AnimationPolicy.Fly;
+                case SelectorAvatarType.Swimming: return AnimationPolicy.Swim;
+                case SelectorAvatarType.LargeMonster: return AnimationPolicy.Combat;
                 default: return AnimationPolicy.Locomotion;
             }
         }
@@ -1012,7 +1013,7 @@ namespace ProjectName.Systems.Animation.Neural
         /// <summary>
         /// Convert AnimationState to AnimationPolicy.
         /// </summary>
-        public static AnimationPolicy PolicyFromState(AnimationState state, AvatarType avatarType, CombatContext combatCtx)
+        public static AnimationPolicy PolicyFromState(AnimationState state, SelectorAvatarType avatarType, CombatContext combatCtx)
         {
             var context = new PolicySelectionContext(state, avatarType, combatCtx, true, false, false, false, false, 0f, 0f, Vector3.forward, 0f);
             return EvaluatePolicyPriority(context);

@@ -657,7 +657,7 @@ namespace ProjectName.Systems.Animation.Neural
         /// <summary>
         /// Set velocity provider for both controllers.
         /// </summary>
-        public void SetVelocityProvider(ProceduralAnimationController.IVelocityProvider provider)
+        public void SetVelocityProvider(IVelocityProvider provider)
         {
             if (_proceduralController != null)
                 _proceduralController.SetVelocityProvider(provider);
