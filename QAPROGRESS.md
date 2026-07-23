@@ -84,6 +84,15 @@
 | 4 | `EdgeCaseEvaluator.cs` | 엣지 케이스 평가 (평지/경사/계단/전투/수영/비행) | 225 | ✅ |
 | 5 | `NeuralAnimationTestRunner.cs` | Editor 회귀 테스트 (Tools/Neural/Run Regression Tests) | 195 | ✅ |
 
+### Phase 4.8 — Editor Tools ✅ **2026-07-23**
+
+| # | 파일 | 설명 | 라인 | 상태 |
+|---|------|------|:----:|:----:|
+| 1 | `NeuralPolicyInspector.cs` | Policy Inspector 창 (Tools/Neural/Policy Inspector) | 195 | ✅ |
+| 2 | `NeuralStyleEditor.cs` | Style Embedding Editor (Tools/Neural/Style Editor) | 220 | ✅ |
+| 3 | `NeuralTransitionDesigner.cs` | Transition Designer (Tools/Neural/Transition Designer) | 240 | ✅ |
+| 4 | `NeuralTrainingDashboard.cs` | Training Dashboard (Tools/Neural/Training Dashboard) | 310 | ✅ |
+
 ---
 
 ## 🧠 Phase 4: Neural Animation System — Phase 4.0 ✅ **전체 완료 (Phase 4.0.1 ~ 4.0.5)**
