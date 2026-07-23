@@ -1,0 +1,354 @@
+{
+  "batch": "ui-qa-batch3",
+  "goal": "UI theme/tutorial/effects/utils QA",
+  "total_files": 36,
+  "issues": [
+    {
+      "file": "Assets/Scripts/UI/Tutorial/TutorialLordSequence.cs",
+      "compilation_errors": [
+        "Line 9: Possible missing semicolon or syntax error",
+        "Line 16: Possible missing semicolon or syntax error",
+        "Line 27: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (4 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Tutorial/TutorialQuestNPC.cs",
+      "compilation_errors": [
+        "Line 9: Possible missing semicolon or syntax error",
+        "Line 16: Possible missing semicolon or syntax error",
+        "Line 20: Possible missing semicolon or syntax error",
+        "Line 61: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (7 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Effects/EffectManager.cs",
+      "compilation_errors": [
+        "Line 15: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Effects/Effect.cs",
+      "compilation_errors": [
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIAnimationUtils.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (19 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIAssetManager.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (5 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIAnimationController.cs",
+      "compilation_errors": [
+        "Line 7: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIContextUtils.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (4 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIValidationUtils.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (4 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIUtils.cs",
+      "compilation_errors": [
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UITutorialManager.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "Line 16: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (7 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIStyleUtils.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIStateUtils.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (4 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UISoundUtils.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIResourceUtils.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (4 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIResourceLoader.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (4 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIPathfinding.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (6 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UINetworkUtils.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (5 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIKeyboardManager.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIInputUtils.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIEventSystem.cs",
+      "compilation_errors": [
+        "Line 9: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIEffectUtils.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (7 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIEffectManager.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "Line 13: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (5 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIComponentUtils.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIImageThemeExtensions.cs",
+      "compilation_errors": [
+        "Line 36: Possible missing semicolon or syntax error",
+        "Line 54: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/StringUtils.cs",
+      "compilation_errors": [
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/ScreenUtils.cs",
+      "compilation_errors": [
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/ResourceUtils.cs",
+      "compilation_errors": [
+        "Line 24: Possible missing semicolon or syntax error",
+        "Line 53: Possible missing semicolon or syntax error",
+        "Line 54: Possible missing semicolon or syntax error",
+        "Line 55: Possible missing semicolon or syntax error",
+        "Line 56: Possible missing semicolon or syntax error",
+        "Line 57: Possible missing semicolon or syntax error",
+        "Line 58: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/InventoryUtils.cs",
+      "compilation_errors": [
+        "Line 36: Possible missing semicolon or syntax error",
+        "Line 46: Possible missing semicolon or syntax error",
+        "Line 47: Possible missing semicolon or syntax error",
+        "Line 48: Possible missing semicolon or syntax error",
+        "Line 49: Possible missing semicolon or syntax error",
+        "Line 50: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [
+        "Multiple classes in one file (2 classes found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/TimerUtils.cs",
+      "compilation_errors": [
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/Utils.cs",
+      "compilation_errors": [
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    }
+  ]
+}

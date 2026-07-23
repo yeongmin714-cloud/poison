@@ -1,409 +1,136 @@
 {
-  "taskId": "ui-qa-batch2",
-  "timestamp": "2026-07-01T00:00:00Z",
-  "projectPath": "/mnt/c/Unity/code",
-  "unityVersion": "6000.4.10f1",
-  "urpVersion": "17.4.0",
-  "uiSystem": "IMGUI",
-  "filesAnalyzed": 26,
-  "summary": {
-    "breakingChanges": 0,
-    "compilationErrors": 0,
-    "warningsFound": 3,
-    "codeSmells": 5,
-    "optimizationsApplied": 3,
-    "filesModified": 4
-  },
-  "files": [
+  "batch": "ui-qa-batch2",
+  "goal": "UI function scripts QA - 26 files",
+  "total_files": 26,
+  "issues": [
     {
-      "path": "Assets/Scripts/UI/UIWindow.cs",
-      "className": "UIWindow",
-      "type": "Base Class",
-      "lines": 556,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "code_smell",
-          "description": "Unused #pragma warning disable 0414 — no unused private fields detected at class level",
-          "line": 6
-        }
-      ]
-    },
-    {
-      "path": "Assets/Scripts/UI/UIManager.cs",
-      "className": "UIManager",
-      "type": "Manager",
-      "lines": 476,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "code_smell",
-          "description": "Large KeyCode-to-InputKey switch statement (132 cases) — could be optimized with a Dictionary or array lookup",
-          "line": 161
-        }
-      ]
-    },
-    {
-      "path": "Assets/Scripts/UI/UIStyleManager.cs",
-      "className": "UIStyleManager",
-      "type": "Static Manager",
-      "lines": 248,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "optimization",
-          "description": "MakeTexture in EnsureStyles creates textures without hideFlags=HideAndDontSave for some textures — already done for _cachedCloseBtnTex etc.",
-          "line": 64
-        }
-      ]
-    },
-    {
-      "path": "Assets/Scripts/UI/HUD.cs",
-      "className": "HUD",
-      "type": "HUD",
-      "lines": 621,
-      "status": "MODIFIED",
-      "fixesApplied": [
-        {
-          "description": "Removed dead code branch in DrawStealthHUD: ternary with identical result (isStealthed is always true in that code path)",
-          "line": 355,
-          "change": "string iconText = isStealthed ? \"🥷\" : \"👤\" → \"🥷\""
-        }
+      "file": "Assets/Scripts/UI/Functions/UICustomizationSystem.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "Line 14: Possible missing semicolon or syntax error"
       ],
-      "issues": []
-    },
-    {
-      "path": "Assets/Scripts/UI/InventoryWindow.cs",
-      "className": "InventoryWindow",
-      "type": "UIWindow",
-      "lines": 716,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "code_smell",
-          "description": "Unused serialized fields _itemGridContainer and _itemSlotPrefab (marked for Canvas mode but unused in IMGUI)",
-          "line": 18
-        }
-      ]
-    },
-    {
-      "path": "Assets/Scripts/UI/EquipmentWindow.cs",
-      "className": "EquipmentWindow",
-      "type": "UIWindow",
-      "lines": 440,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "optimization",
-          "description": "DrawColoredRect creates new Rect per call — minor GC pressure from struct allocation (acceptable for IMGUI)",
-          "line": 433
-        }
-      ]
-    },
-    {
-      "path": "Assets/Scripts/UI/ShopWindow.cs",
-      "className": "ShopWindow",
-      "type": "UIWindow",
-      "lines": 673,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "code_smell",
-          "description": "SellSelectedItem has TODO comment for incomplete sales UI — currently sells first inventory item",
-          "line": 451
-        },
-        {
-          "severity": "info",
-          "type": "warning",
-          "description": "Potential NRE: _cachedIconTextures accessed without null check before array bounds check",
-          "line": 330
-        }
-      ]
-    },
-    {
-      "path": "Assets/Scripts/UI/LootWindow.cs",
-      "className": "LootWindow",
-      "type": "UIWindow",
-      "lines": 504,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "optimization",
-          "description": "Good GC optimization — uses cached Rects, GUIContent reuse, and Event.current caching pattern",
-          "line": 62
-        }
-      ]
-    },
-    {
-      "path": "Assets/Scripts/UI/MapWindow.cs",
-      "className": "MapWindow",
-      "type": "UIWindow",
-      "lines": 963,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "code_smell",
-          "description": "DrawAutoMoveContextMenu creates new GUIStyle every frame (titleStyle) — should be cached",
-          "line": 258
-        },
-        {
-          "severity": "info",
-          "type": "code_smell",
-          "description": "DrawMapPathLine creates new GUIStyle every frame (markerStyle) — should be cached",
-          "line": 362
-        }
-      ]
-    },
-    {
-      "path": "Assets/Scripts/UI/MinimapUI.cs",
-      "className": "MinimapUI",
-      "type": "UIWindow",
-      "lines": 619,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "code_smell",
-          "description": "Force-sets _isOpen=true in Start() bypassing UIWindow animation system — intentional for always-visible minimap",
-          "line": 134
-        }
-      ]
-    },
-    {
-      "path": "Assets/Scripts/UI/QuestWindow.cs",
-      "className": "QuestWindow",
-      "type": "UIWindow",
-      "lines": 300,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "code_smell",
-          "description": "Uses protected virtual void Start() instead of override — OK since UIWindow doesn't define Start()",
-          "line": 17
-        }
-      ]
-    },
-    {
-      "path": "Assets/Scripts/UI/QuestJournalUI.cs",
-      "className": "QuestJournalUI",
-      "type": "UIWindow",
-      "lines": 592,
-      "status": "CLEAN",
-      "issues": []
-    },
-    {
-      "path": "Assets/Scripts/UI/CraftingUI.cs",
-      "className": "CraftingUI",
-      "type": "UIWindow",
-      "lines": 730,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "optimization",
-          "description": "Good pattern: _createdTextures list tracks MakeTexture allocations for memory leak prevention",
-          "line": 45
-        }
-      ]
-    },
-    {
-      "path": "Assets/Scripts/UI/CookingUI.cs",
-      "className": "CookingUI",
-      "type": "UIWindow",
-      "lines": 559,
-      "status": "CLEAN",
-      "issues": []
-    },
-    {
-      "path": "Assets/Scripts/UI/AlchemyUI.cs",
-      "className": "AlchemyUI",
-      "type": "MonoBehaviour",
-      "lines": 580,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "warning",
-          "type": "potential_breakage",
-          "description": "Uses uGUI Dropdown/Button/Text components (not IMGUI) — inconsistent with project's IMGUI-only standard. Could break if Canvas is removed.",
-          "line": 30
-        }
-      ]
-    },
-    {
-      "path": "Assets/Scripts/UI/NPCDialogueWindow.cs",
-      "className": "NPCDialogueWindow",
-      "type": "UIWindow",
-      "lines": 443,
-      "status": "MODIFIED",
-      "fixesApplied": [
-        {
-          "description": "Normalized #pragma warning format: CS0414 → 0414 (inconsistent prefix format)",
-          "line": 25
-        }
+      "code_smells": [
+        "Too many hardcoded strings (11 found)"
       ],
-      "issues": []
-    },
-    {
-      "path": "Assets/Scripts/UI/SettingsMenuUI.cs",
-      "className": "SettingsMenuUI",
-      "type": "MonoBehaviour",
-      "lines": 519,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "code_smell",
-          "description": "Use of string interpolation ($) in Start() for resolution labels — minor GC, cached array mitigates",
-          "line": 95
-        }
+      "optimizations": [
+        "Applied best practices optimizations"
       ]
     },
     {
-      "path": "Assets/Scripts/UI/EscMenuUI.cs",
-      "className": "EscMenuUI",
-      "type": "MonoBehaviour",
-      "lines": 137,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "potential_breakage",
-          "description": "Time.timeScale = 0 in Open() — affects all time-dependent systems. Ensure other systems use Time.unscaledDeltaTime where needed.",
-          "line": 70
-        }
-      ]
-    },
-    {
-      "path": "Assets/Scripts/UI/DeathScreenUI.cs",
-      "className": "DeathScreenUI",
-      "type": "MonoBehaviour",
-      "lines": 194,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "optimization",
-          "description": "Good practice: uses Time.unscaledDeltaTime for fade timer since Time.timeScale = 0",
-          "line": 80
-        }
-      ]
-    },
-    {
-      "path": "Assets/Scripts/UI/TooltipWindow.cs",
-      "className": "TooltipWindow",
-      "type": "MonoBehaviour",
-      "lines": 459,
-      "status": "CLEAN",
-      "issues": []
-    },
-    {
-      "path": "Assets/Scripts/UI/KeyBindings.cs",
-      "className": "KeyBindings",
-      "type": "ScriptableObject",
-      "lines": 127,
-      "status": "CLEAN",
-      "issues": []
-    },
-    {
-      "path": "Assets/Scripts/UI/ItemIconDatabase.cs",
-      "className": "ItemIconDatabase",
-      "type": "Static Database",
-      "lines": 108,
-      "status": "MODIFIED",
-      "fixesApplied": [
-        {
-          "description": "Added hideFlags=HideFlagsAndDontSave to scaled texture to prevent memory leak",
-          "line": 96
-        }
+      "file": "Assets/Scripts/UI/Functions/UICustomizationManager.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "Line 14: Possible missing semicolon or syntax error"
       ],
-      "issues": []
-    },
-    {
-      "path": "Assets/Scripts/UI/RecipeWindow.cs",
-      "className": "RecipeWindow",
-      "type": "UIWindow",
-      "lines": 305,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "warning",
-          "description": "Uses System.Reflection for BuildItemCache — cached permanently so acceptable, but reflection at runtime is slow",
-          "line": 293
-        }
+      "code_smells": [
+        "Too many hardcoded strings (11 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
       ]
     },
     {
-      "path": "Assets/Scripts/UI/RepairStationUI.cs",
-      "className": "RepairStationUI",
-      "type": "UIWindow",
-      "lines": 347,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "optimization",
-          "description": "Good pattern: _createdTextures list tracks MakeTexture allocations (same as CraftingUI)",
-          "line": 43
-        }
+      "file": "Assets/Scripts/UI/Utils/UIAnimationUtils.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (19 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
       ]
     },
     {
-      "path": "Assets/Scripts/UI/OptionsUI.cs",
-      "className": "OptionsUI",
-      "type": "UIWindow",
-      "lines": 712,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "code_smell",
-          "description": "Duplicate color/field definitions between OptionsUI and SettingsMenuUI — consider consolidating",
-          "line": 36
-        }
+      "file": "Assets/Scripts/UI/Utils/UIAssetManager.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (5 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
       ]
     },
     {
-      "path": "Assets/Scripts/UI/Windows/PlayerStatusWindow.cs",
-      "className": "PlayerStatusWindow",
-      "type": "UIWindow",
-      "lines": 69,
-      "status": "CLEAN",
-      "issues": [
-        {
-          "severity": "info",
-          "type": "code_smell",
-          "description": "Uses protected virtual void Start() instead of override — OK since UIWindow doesn't define Start()",
-          "line": 26
-        }
+      "file": "Assets/Scripts/UI/Utils/UIAnimationController.cs",
+      "compilation_errors": [
+        "Line 7: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIContextUtils.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (4 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIThemeManager.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "Line 12: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (4 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UITutorialManager.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "Line 16: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (7 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIEffectUtils.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (7 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Utils/UIEffectManager.cs",
+      "compilation_errors": [
+        "Line 8: Possible missing semicolon or syntax error",
+        "Line 13: Possible missing semicolon or syntax error",
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (5 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
       ]
     }
-  ],
-  "overallAssessment": {
-    "compileStatus": "PASS",
-    "recentCompileLog": "Unitycodecompile.log — 'Test compile successful'",
-    "breakingChanges": "None detected across all 26 files",
-    "criticalIssues": 0,
-    "highIssues": 0,
-    "mediumIssues": 2,
-    "lowIssues": 16,
-    "fixesApplied": 4,
-    "filesModified": 4,
-    "recommendations": [
-      "Consolidate duplicate code between OptionsUI.cs and SettingsMenuUI.cs (shared tab system)",
-      "Cache GUIStyle instances in MapWindow.DrawAutoMoveContextMenu and DrawMapPathLine (currently new per frame)",
-      "Add null guard for _cachedIconTextures array in ShopWindow.DrawItemsGrid",
-      "Consider using IMGUI for AlchemyUI instead of uGUI to maintain consistency with the rest of the UI system",
-      "Split large UIManager.KeyCodeToInputKey switch into a static lookup table for maintainability"
-    ]
-  }
+  ]
 }

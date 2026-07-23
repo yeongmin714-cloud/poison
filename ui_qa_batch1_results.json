@@ -1,0 +1,198 @@
+{
+  "batch": "ui-qa-batch1",
+  "goal": "UI core scripts QA - 23 files",
+  "total_files": 24,
+  "issues": [
+    {
+      "file": "Assets/Scripts/UI/Core/UICore.cs",
+      "compilation_errors": [
+        "Line 17: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/UIManager.cs",
+      "compilation_errors": [
+        "Line 17: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/ToolTipManager.cs",
+      "compilation_errors": [
+        "Line 21: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/ThemeManager.cs",
+      "compilation_errors": [
+        "Line 20: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/SignalManager.cs",
+      "compilation_errors": [
+        "Line 18: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/ScreenManager.cs",
+      "compilation_errors": [
+        "Line 20: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/MessageSystem.cs",
+      "compilation_errors": [
+        "Line 18: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (4 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/LocalizationManager.cs",
+      "compilation_errors": [
+        "Line 20: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/GameEventSystem.cs",
+      "compilation_errors": [
+        "Line 20: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/EventSystemManager.cs",
+      "compilation_errors": [
+        "Line 16: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/DragDropManager.cs",
+      "compilation_errors": [
+        "Line 20: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (5 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/ComponentManager.cs",
+      "compilation_errors": [
+        "Line 20: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/ColorPalette.cs",
+      "compilation_errors": [
+        "Line 5: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/CanvasController.cs",
+      "compilation_errors": [
+        "Line 20: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/AbilityManager.cs",
+      "compilation_errors": [
+        "Line 18: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/Transitions/TransitionManager.cs",
+      "compilation_errors": [
+        "Line 17: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (5 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/Transitions/ColorTransition.cs",
+      "compilation_errors": [
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (7 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/Transitions/PanelTransition.cs",
+      "compilation_errors": [
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [
+        "Too many hardcoded strings (4 found)"
+      ],
+      "optimizations": [
+        "Applied best practices optimizations"
+      ]
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/Transitions/TransitionType.cs",
+      "compilation_errors": [
+        "Line 7: Possible missing semicolon or syntax error",
+        "Line 8: Possible missing semicolon or syntax error",
+        "Line 9: Possible missing semicolon or syntax error",
+        "Line 10: Possible missing semicolon or syntax error"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/Transitions/Transition.cs",
+      "compilation_errors": [
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    },
+    {
+      "file": "Assets/Scripts/UI/Core/Transitions/AnimatedPanel.cs",
+      "compilation_errors": [
+        "MonoBehaviour class detected but no lifecycle methods found"
+      ],
+      "code_smells": [],
+      "optimizations": []
+    }
+  ]
+}
