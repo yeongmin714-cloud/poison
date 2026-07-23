@@ -34,5 +34,6 @@ public class CanvasController : MonoBehaviour
     public void SetCanvasActive(RectTransform canvas, bool active)
     {
         // Implementation for setting canvas active
+        // Add actual canvas activation logic here
     }
 }

@@ -26,6 +26,7 @@ public class LocalizationManager : MonoBehaviour
     public void LoadLocalizationData(string language)
     {
         // Implementation for loading localization data
+        // Add actual localization loading logic here
     }
     
     public string GetLocalizedString(string key)

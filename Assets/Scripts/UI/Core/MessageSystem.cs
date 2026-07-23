@@ -24,10 +24,12 @@ public class MessageSystem : MonoBehaviour
     public void ShowMessage(string message)
     {
         // Implementation for showing messages
+        // Add actual message display logic here
     }
     
     public void ShowMessage(string message, float duration)
     {
         // Implementation for showing messages with duration
+        // Add actual message display logic here
     }
 }

@@ -26,6 +26,7 @@ public class ComponentManager : MonoBehaviour
     public void RegisterComponent(string name, MonoBehaviour component)
     {
         components[name] = component;
+        // Add actual component registration logic here
     }
     
     public T GetComponent<T>(string name) where T : MonoBehaviour
@@ -40,5 +41,6 @@ public class ComponentManager : MonoBehaviour
     public void UnregisterComponent(string name)
     {
         components.Remove(name);
+        // Add actual component unregistration logic here
     }
 }

@@ -26,16 +26,22 @@ public class ToolTipManager : MonoBehaviour
     
     public void ShowTooltip(string text, Vector2 position)
     {
-        // Implementation for showing tooltip
+        if (tooltipPrefab == null || tooltipParent == null)
+            return;
+        
+        GameObject tooltip = Instantiate(tooltipPrefab, tooltipParent);
+        // Additional tooltip setup would go here
     }
     
     public void HideTooltip()
     {
         // Implementation for hiding tooltip
+        // Add actual tooltip hiding logic here if needed
     }
     
     public void SetTooltipPosition(Vector2 position)
     {
         // Implementation for setting tooltip position
+        // Add actual position setting logic here if needed
     }
 }

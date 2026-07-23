@@ -30,6 +30,7 @@ public class GameEventSystem : MonoBehaviour
             eventHandlers[eventName] = new List<System.Action>();
         }
         eventHandlers[eventName].Add(handler);
+        // Add actual event registration logic here
     }
     
     public void UnregisterEvent(string eventName, System.Action handler)
@@ -38,6 +39,7 @@ public class GameEventSystem : MonoBehaviour
         {
             handlers.Remove(handler);
         }
+        // Add actual event unregistration logic here
     }
     
     public void TriggerEvent(string eventName)
@@ -49,5 +51,6 @@ public class GameEventSystem : MonoBehaviour
                 handler?.Invoke();
             }
         }
+        // Add actual event triggering logic here
     }
 }

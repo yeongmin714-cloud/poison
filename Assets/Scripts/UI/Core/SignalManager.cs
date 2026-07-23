@@ -24,10 +24,12 @@ public class SignalManager : MonoBehaviour
     public void SendSignal(string signalName)
     {
         // Implementation for sending signals
+        // Add actual signal sending logic here
     }
     
     public void RegisterSignal(string signalName, System.Action handler)
     {
         // Implementation for registering signals
+        // Add actual signal registration logic here
     }
 }
