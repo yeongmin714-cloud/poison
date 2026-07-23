@@ -583,7 +583,7 @@ namespace ProjectName.Systems.Animation.Neural
             int jointCount = math.min(bones?.Length ?? 0, 18);
             for (int i = 0; i < jointCount && idx + 3 <= _observationDim; i++)
             {
-                var t = bones[i].transform;
+                var t = bones[i].Transform;
                 Vector3 localPos = t != null
                     ? transform.InverseTransformPoint(t.position)
                     : Vector3.zero;
@@ -875,7 +875,7 @@ namespace ProjectName.Systems.Animation.Neural
                 {
                     int bufIdx = boneRotStart + i * 4;
                     if (bufIdx + 4 > _actionBuffer.Length) break;
-                    var t = bones[i].transform;
+                    var t = bones[i].Transform;
                     if (t == null) continue;
                     quaternion targetRot = new quaternion(
                         _actionBuffer[bufIdx + 0],
@@ -1444,7 +1444,26 @@ namespace ProjectName.Systems.Animation.Neural
         }
 
         // ──────────────────────────────────────────────
-        // Debug
+        //  Static Policy Switch Event
+        // ──────────────────────────────────────────────
+
+        /// <summary>
+        /// Static event for policy switch requests from PolicySelector.
+        /// HybridAnimationController subscribes to this to route to the correct instance.
+        /// </summary>
+        public static event Action<PolicyType, float> OnPolicySwitchRequested;
+
+        /// <summary>
+        /// Static method called by PolicySelector to request a policy switch.
+        /// Fires the event which HybridAnimationController handles.
+        /// </summary>
+        public static void RequestPolicySwitch(PolicyType policy, float blendDuration)
+        {
+            OnPolicySwitchRequested?.Invoke(policy, blendDuration);
+        }
+
+        // ──────────────────────────────────────────────
+        //  Gizmos
         // ──────────────────────────────────────────────
 
         void OnDrawGizmosSelected()

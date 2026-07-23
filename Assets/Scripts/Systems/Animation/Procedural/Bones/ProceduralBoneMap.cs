@@ -71,6 +71,11 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
 
         public IReadOnlyDictionary<BoneRole, Transform> AllBones => _boneDict;
 
+        /// <summary>
+        /// Returns all serialized bone entries. Used by neural/hybrid controllers for iteration.
+        /// </summary>
+        public BoneEntry[] GetAllBones() => _bones;
+
         void OnValidate()
         {
             if (Application.isPlaying) return;

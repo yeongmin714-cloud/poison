@@ -480,7 +480,7 @@ namespace ProjectName.Systems.Animation.Neural
 
             for (int i = 0; i < _boneCount && i < bones.Length; i++)
             {
-                var t = bones[i].transform;
+                var t = bones[i].Transform;
                 if (t != null)
                 {
                     _proceduralBoneRotations[i] = t.localRotation;
@@ -504,7 +504,7 @@ namespace ProjectName.Systems.Animation.Neural
             // For now, capture from transforms (they hold the neural result after neural FixedUpdate)
             for (int i = 0; i < _boneCount && i < bones.Length; i++)
             {
-                var t = bones[i].transform;
+                var t = bones[i].Transform;
                 if (t != null)
                 {
                     _neuralBoneRotations[i] = t.localRotation;
@@ -587,7 +587,7 @@ namespace ProjectName.Systems.Animation.Neural
 
             for (int i = 0; i < _boneCount && i < bones.Length; i++)
             {
-                var t = bones[i].transform;
+                var t = bones[i].Transform;
                 if (t != null)
                 {
                     t.localRotation = _blendedBoneRotations[i];
