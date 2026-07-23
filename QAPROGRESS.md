@@ -241,3 +241,11 @@
 - [x] `swim_quadruped_base.onnx` (150obs/100act) — 80KB
 - [x] 기존 더미 ONNX `.bak` 백업 완료
 - [x] Unity Resources 배포 및 git push 완료
+
+### ✅ Phase 67 Neural Animation Production Complete (2026-07-23)
+- [x] **Phase 67.1** — 20개 ONNX 모델 Full 50 Epoch 학습 완료
+  - Biped 10종: locomotion/combat/react/interact/fly/swim/mount/climb/run/crouch
+  - Quadruped 10종: locomotion/combat/react/interact/fly/swim/mount/large_monster/run/crouch
+- [x] **Phase 67.2** — Curriculum/Style/Ensemble 강화 학습 파이프라인 구축
+- [x] **Phase 67.3** — ONNX 검증 및 Unity Resources 배포
+- [x] **Git Commit + Push** — `b8f2e4c` (20개 ONNX + 체크포인트 + 설정 업데이트)
