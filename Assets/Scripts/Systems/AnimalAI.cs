@@ -1,6 +1,7 @@
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.Systems.Animation.Neural;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -67,6 +68,7 @@ namespace ProjectName.Systems
         // Rig animation
         private RigAnimationController _rigAnim;
         private AnimationRiggingSetup _rigSetup;
+        private NeuralAnimationController _neuralAnim;
 
         // === IAggroable (어그로 합세 시스템) ===
         private AggroState _aggroState = AggroState.Idle;
@@ -149,6 +151,11 @@ namespace ProjectName.Systems
                     _rigAnim = gameObject.AddComponent<RigAnimationController>();
                 }
             }
+
+            // NeuralAnimationController 설정
+            _neuralAnim = GetComponent<NeuralAnimationController>();
+            if (_neuralAnim == null)
+                _neuralAnim = gameObject.AddComponent<NeuralAnimationController>();
         }
 
         private void Start()
@@ -560,6 +567,9 @@ namespace ProjectName.Systems
                     Debug.LogWarning($"[AnimalAI] ⚠️ {_monsterId}: RigAnimationController/QuadrupedProceduralAnimation 없음 → 공격 애니메이션 미출력");
                 }
             }
+
+            // Neural Animation: Combat 정책으로 전환
+            _neuralAnim?.SwitchPolicy(NeuralAnimationController.PolicyType.Combat);
 
             // 🐉 MonsterSkillSystem: 스킬이 있는 몬스터는 스킬 우선 사용
             if (MonsterSkillSystem.Instance != null)
@@ -1086,6 +1096,9 @@ namespace ProjectName.Systems
                     Debug.LogWarning($"[AnimalAI] ⚠️ {_monsterId}: RigAnimationController/QuadrupedProceduralAnimation 없음 → 공격 애니메이션 미출력 (어그로)");
                 }
             }
+
+            // Neural Animation: Combat 정책으로 전환
+            _neuralAnim?.SwitchPolicy(NeuralAnimationController.PolicyType.Combat);
 
             // 🐉 MonsterSkillSystem: 스킬이 있는 몬스터는 스킬 우선 사용
             if (MonsterSkillSystem.Instance != null && _aggroTarget != null)

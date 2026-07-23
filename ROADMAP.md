@@ -1509,20 +1509,20 @@ WorldEventManager (싱글톤)
 
 | # | 작업 | 설명 | 상태 |
 |---|------|------|------|
-| 67.3.1 | **ONNX 검증** | 20개 모델 Input/Output/Shape/Opset 검증 | ⏳ 대기 |
-| 67.3.2 | **Unity Resources 배포** | `Assets/Resources/NeuralModels/` 복사 | ⏳ 대기 |
-| 67.3.3 | **NeuralModelDatabase 업데이트** | 20개 모델 메타데이터 등록 | ⏳ 대기 |
-| 67.3.4 | **Git Commit + Push** | `Phase 67 완료` 태그 | ⏳ 대기 |
+| 67.3.1 | **ONNX 검증** | 20개 모델 Input/Output/Shape/Opset 검증 | ✅ 완료 |
+| 67.3.2 | **Unity Resources 배포** | `Assets/Resources/NeuralModels/` 복사 | ✅ 완료 |
+| 67.3.3 | **NeuralModelDatabase 업데이트** | 20개 모델 메타데이터 등록 (Unity Editor 실행 필요) | ✅ 코드 준비 |
+| 67.3.4 | **Git Commit + Push** | `Phase 67.3 완료` 태그 | ✅ 완료 |
 
 ### Phase 67.4: 런타임 완전 연동
 
 | # | 작업 | 설명 | 상태 |
 |---|------|------|------|
-| 67.4.1 | **PlayerMovement 연동** | velocityProvider → NeuralAnimationController 연결 | ⏳ 대기 |
-| 67.4.2 | **PlayerCombat 연동** | SwitchPolicy(Combat) 자동 전환 | ⏳ 대기 |
-| 67.4.3 | **NPC/Monster AI 연동** | 상황별 Policy 자동 전환 (상태머신) | ⏳ 대기 |
-| 67.4.4 | **MountSystem 연동** | SwitchPolicy(Mount) 탑승/하차 | ⏳ 대기 |
-| 67.4.5 | **LOD 거리 기반 품질** | 거리별 추론 빈도/품질 조절 검증 | ⏳ 대기 |
+| 67.4.1 | **PlayerMovement 연동** | velocityProvider → NeuralAnimationController 연결 | ✅ 완료 |
+| 67.4.2 | **PlayerCombat 연동** | SwitchPolicy(Combat) 자동 전환 | ✅ 완료 |
+| 67.4.3 | **NPC/Monster AI 연동** | 상황별 Policy 자동 전환 (AnimalAI) | ✅ 완료 |
+| 67.4.4 | **MountSystem 연동** | SwitchPolicy(Mount) 탑승/하차 | ✅ 완료 |
+| 67.4.5 | **LOD 거리 기반 품질** | 거리별 추론 빈도/품질 조절 검증 | ⏳ Unity Editor 필요 |
 
 ---
 

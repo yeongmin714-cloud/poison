@@ -96,6 +96,11 @@ namespace ProjectName.Systems
                 if (anim != null)
                     _rigAnim = gameObject.AddComponent<RigAnimationController>();
             }
+
+            // NeuralAnimationController 획득 (같은 GameObject)
+            _neuralAnim = GetComponent<NeuralAnimationController>();
+            if (_neuralAnim == null)
+                _neuralAnim = gameObject.AddComponent<NeuralAnimationController>();
         }
 
         private void Update()
@@ -162,6 +167,7 @@ namespace ProjectName.Systems
             // 공격 애니메이션 트리거
             _rigAnim?.Attack();
             _proceduralAnim?.TriggerAction("attack");
+            _neuralAnim?.SwitchPolicy(NeuralAnimationController.PolicyType.Combat);
 
             // C4-08: 커서 방향으로 자동 조준 먼저 시도
             IDamageable autoAimTarget = FindTargetInCursorDirection();

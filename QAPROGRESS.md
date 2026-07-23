@@ -318,5 +318,10 @@
   - Biped 10종: locomotion/combat/react/interact/fly/swim/mount/climb/run/crouch
   - Quadruped 10종: locomotion/combat/react/interact/fly/swim/mount/large_monster/run/crouch
 - [x] **Phase 67.2** — Curriculum/Style/Ensemble 강화 학습 파이프라인 구축
-- [x] **Phase 67.3** — ONNX 검증 및 Unity Resources 배포
-- [x] **Git Commit + Push** — `b8f2e4c` (20개 ONNX + 체크포인트 + 설정 업데이트)
+- [x] **Phase 67.3** — ONNX 검증 + 정리 + PolicyType 확장 + NeuralModelAutoSetup 20개 대응
+- [x] **Phase 67.4.1** — PlayerMovement → NeuralAnimationController velocityProvider 연결
+- [x] **Phase 67.4.2** — PlayerCombat → SwitchPolicy(Combat) 자동 전환
+- [x] **Phase 67.4.3** — AnimalAI → SwitchPolicy(Combat) 자동 전환
+- [x] **Phase 67.4.4** — MountSystem → SwitchPolicy(Mount) 탑승/하차 연동
+- [ ] **Phase 67.4.5** — LOD 거리 기반 품질 검증 (Unity Editor 필요)
+- [x] **Git Commit + Push** — `09ee9b5` (67.3) + (67.4 pending)
