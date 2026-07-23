@@ -298,474 +298,225 @@ class SimpleAnimationEnv:
         self.interact_success = False
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, dict]:
-            """
-            Step the environment.
+        """
+        Step the environment.
 
-            Args:
-                action: Action array of shape (act_dim,), values in [-1, 1].
+        Args:
+            action: Action array of shape (act_dim,), values in [-1, 1].
 
-            Returns: (observation, reward, terminated, truncated, info)
-            """
-            # Clip action to valid range
-            action = np.clip(action, -1.0, 1.0).astype(np.float32)
+        Returns: (observation, reward, terminated, truncated, info)
+        """
+        # Clip action to valid range
+        action = np.clip(action, -1.0, 1.0).astype(np.float32)
 
-            # Add action noise (exploration)
-            if self.cfg.action_noise > 0:
-                action += np.random.randn(self.act_dim).astype(np.float32) * self.cfg.action_noise
-                action = np.clip(action, -1.0, 1.0)
+        # Add action noise (exploration)
+        if self.cfg.action_noise > 0:
+            action += np.random.randn(self.act_dim).astype(np.float32) * self.cfg.action_noise
+            action = np.clip(action, -1.0, 1.0)
 
-            # Physics step
-            self.chain.step(action, self.dt)
+        # Physics step
+        self.chain.step(action, self.dt)
 
-            # Root motion (simplified — forward velocity from joint motion)
-            root_forward = self._compute_root_velocity(action)
-            self.chain.root_vel = root_forward * 0.5 + self.chain.root_vel * 0.5  # smooth
-            self.chain.root_pos += self.chain.root_vel * self.dt
+        # Root motion (simplified — forward velocity from joint motion)
+        root_forward = self._compute_root_velocity(action)
+        self.chain.root_vel = root_forward * 0.5 + self.chain.root_vel * 0.5  # smooth
+        self.chain.root_pos += self.chain.root_vel * self.dt
 
-            # Root rotation (simplified)
-            turn_amount = float(np.mean(action[0:3])) * 0.1  # subtle turning from first few joints
-            self.chain.root_ang_vel = np.array([0.0, turn_amount, 0.0], dtype=np.float32)
-            self.chain.root_rot += self.chain.root_ang_vel * self.dt
+        # Root rotation (simplified)
+        turn_amount = float(np.mean(action[0:3])) * 0.1  # subtle turning from first few joints
+        self.chain.root_ang_vel = np.array([0.0, turn_amount, 0.0], dtype=np.float32)
+        self.chain.root_rot += self.chain.root_ang_vel * self.dt
 
-            # Policy-specific state updates
-            if self.policy_type == "locomotion":
-                self._update_locomotion_state()
-            elif self.policy_type == "combat":
-                self._update_combat_state(action)
-            elif self.policy_type == "react":
-                self._update_react_state(action)
-            elif self.policy_type == "interact":
-                self._update_interact_state(action)
+        # Policy-specific state updates
+        if self.policy_type == "locomotion":
+            self._update_locomotion_state()
+        elif self.policy_type == "combat":
+            self._update_combat_state(action)
+        elif self.policy_type == "react":
+            self._update_react_state(action)
+        elif self.policy_type == "interact":
+            self._update_interact_state(action)
 
-            # Compute reward
-            reward = self._compute_reward(action)
+        # Compute reward
+        reward = self._compute_reward(action)
 
-            # Build observation
-            obs = self._encode_observation()
+        # Build observation
+        obs = self._encode_observation()
 
-            # Episode termination
-            self.step_count += 1
-            terminated = False
-            truncated = self.step_count >= self.max_episode_length
+        # Episode termination
+        self.step_count += 1
+        terminated = False
+        truncated = self.step_count >= self.max_episode_length
 
-            # Info
-            info = {
-                "target_speed": self.target_speed,
-                "root_velocity": np.linalg.norm(self.chain.root_vel),
-                "step_count": self.step_count,
-                "policy_type": self.policy_type,
-            }
+        # Info
+        info = {
+            "target_speed": self.target_speed,
+            "root_velocity": np.linalg.norm(self.chain.root_vel),
+            "step_count": self.step_count,
+            "policy_type": self.policy_type,
+        }
 
-            self.prev_action = action.copy()
+        self.prev_action = action.copy()
 
-            return obs, reward, terminated, truncated, info
+        return obs, reward, terminated, truncated, info
 
-        def _update_combat_state(self, action: np.ndarray):
-            """Update combat-specific state."""
-            # Update attack cooldown
-            if self.combat_attack_cooldown > 0:
-                self.combat_attack_cooldown -= 1
+    def _update_locomotion_state(self):
+        """Update locomotion-specific state."""
+        # Update target velocity periodically
+        self.target_change_timer += 1
+        if self.target_change_timer >= self.target_change_interval:
+            self._sample_target_velocity()
+            self.target_change_timer = 0
 
-            # Regenerate stamina
-            self.combat_stamina = min(1.0, self.combat_stamina + 0.01)
+    def _update_combat_state(self, action: np.ndarray):
+        """Update combat-specific state."""
+        # Update attack cooldown
+        if self.combat_attack_cooldown > 0:
+            self.combat_attack_cooldown -= 1
 
-            # Update target distance
-            to_target = self.combat_target_pos - self.chain.root_pos
-            self.combat_target_distance = np.linalg.norm(to_target[::2])  # XZ distance
+        # Regenerate stamina
+        self.combat_stamina = min(1.0, self.combat_stamina + 0.01)
 
-            # Check for attack (first action component as attack trigger)
-            attack_triggered = action[0] > 0.5 and self.combat_attack_cooldown == 0 and self.combat_stamina > 0.2
-            if attack_triggered:
-                self.combat_attack_cooldown = 30  # 0.6s cooldown
-                self.combat_stamina -= 0.15
-                # Check hit (based on distance and facing)
-                facing_target = self._is_facing_target()
-                if self.combat_target_distance < 2.5 and facing_target:
-                    self.combat_last_hit_time = self.step_count
-                    self.combat_hit_streak += 1
-                else:
-                    self.combat_hit_streak = 0
+        # Update target distance
+        to_target = self.combat_target_pos - self.chain.root_pos
+        self.combat_target_distance = np.linalg.norm(to_target[::2])  # XZ distance
 
-            # Move target occasionally
-            if self.step_count % 300 == 0:
-                self._reset_combat_state()
-
-        def _update_react_state(self, action: np.ndarray):
-            """Update react-specific state."""
-            # Recovery timer
-            if self.react_recovery_timer > 0:
-                self.react_recovery_timer -= 1
-
-            # State transitions
-            if self.react_is_knocked_down:
-                if self.react_recovery_timer <= 0:
-                    self.react_is_knocked_down = False
-                    self.react_recovery_timer = 20  # Getting up time
-            elif self.react_is_stunned:
-                if self.react_recovery_timer <= 0:
-                    self.react_is_stunned = False
-
-            # Randomly trigger hits during episode
-            if self.react_hit_intensity == 0.0 and np.random.random() < 0.005:
-                self._trigger_react_hit()
-
-        def _trigger_react_hit(self):
-            """Trigger a hit reaction."""
-            hit_type = np.random.choice(["light", "heavy", "launch", "stun", "knockdown"], 
-                                         p=[0.4, 0.25, 0.1, 0.15, 0.1])
-            self.react_hit_type = hit_type
-        
-            if hit_type == "light":
-                self.react_hit_intensity = np.random.uniform(0.3, 0.6)
-                self.react_recovery_timer = np.random.randint(10, 20)
-            elif hit_type == "heavy":
-                self.react_hit_intensity = np.random.uniform(0.6, 0.9)
-                self.react_recovery_timer = np.random.randint(20, 40)
-            elif hit_type == "launch":
-                self.react_hit_intensity = np.random.uniform(0.8, 1.0)
-                self.react_recovery_timer = np.random.randint(40, 60)
-            elif hit_type == "stun":
-                self.react_hit_intensity = np.random.uniform(0.5, 0.8)
-                self.react_is_stunned = True
-                self.react_recovery_timer = np.random.randint(30, 50)
-            elif hit_type == "knockdown":
-                self.react_hit_intensity = 1.0
-                self.react_is_knocked_down = True
-                self.react_recovery_timer = np.random.randint(60, 100)
-
-            # Random hit direction (from front/side/back)
-            angle = np.random.uniform(0, 2 * np.pi)
-            self.react_hit_direction = np.array([math.cos(angle), 0.0, math.sin(angle)], dtype=np.float32)
-
-        def _update_interact_state(self, action: np.ndarray):
-            """Update interact-specific state."""
-            self.interact_timer += 1
-
-            # Distance to interaction target
-            to_target = self.interact_target_pos - self.chain.root_pos
-            dist = np.linalg.norm(to_target[::2])  # XZ distance
-
-            # Phase progression
-            if self.interact_phase == 0.0:  # Approach
-                if dist < 1.5:
-                    self.interact_phase = 1.0  # Align
-                    self.interact_timer = 0
-            elif self.interact_phase == 1.0:  # Align
-                facing_target = self._is_facing_interact_target()
-                if facing_target and self.interact_timer > 10:
-                    self.interact_phase = 2.0  # Interact
-                    self.interact_timer = 0
-            elif self.interact_phase == 2.0:  # Interact
-                if self.interact_timer > 30:  # Interaction duration
-                    self.interact_success = True
-                    self.interact_phase = 3.0  # Retreat
-                    self.interact_timer = 0
-            elif self.interact_phase == 3.0:  # Retreat
-                if dist > 3.0 or self.interact_timer > 50:
-                    # Reset for next interaction
-                    self._reset_interact_state()
-
-        def _is_facing_target(self) -> bool:
-            """Check if character is facing combat target."""
-            forward = np.array([math.sin(self.chain.root_rot[1]), 0.0, math.cos(self.chain.root_rot[1])], dtype=np.float32)
-            to_target = self.combat_target_pos - self.chain.root_pos
-            to_target[1] = 0
-            target_dist = np.linalg.norm(to_target)
-            if target_dist < 1e-6:
-                return True
-            to_target = to_target / target_dist
-            return np.dot(forward, to_target) > 0.7  # ~45 degree cone
-
-        def _is_facing_interact_target(self) -> bool:
-            """Check if character is facing interaction target."""
-            forward = np.array([math.sin(self.chain.root_rot[1]), 0.0, math.cos(self.chain.root_rot[1])], dtype=np.float32)
-            to_target = self.interact_target_pos - self.chain.root_pos
-            to_target[1] = 0
-            target_dist = np.linalg.norm(to_target)
-            if target_dist < 1e-6:
-                return True
-            to_target = to_target / target_dist
-            return np.dot(forward, to_target) > 0.85  # ~30 degree cone
-
-        def _compute_reward(self, action: np.ndarray) -> float:
-            """
-            Compute reward signal based on policy type.
-
-            Components:
-            1. Locomotion: velocity tracking, energy efficiency, smoothness, ground contact, pose consistency
-            2. Combat: attack accuracy, damage, dodge, stamina management, target facing
-            3. React: hit reaction quality, knockback/stun/death animation quality, recovery speed
-            4. Interact: interaction pose accuracy, naturalness, timing, object alignment
-            """
-            if self.policy_type == "locomotion":
-                return self._compute_locomotion_reward(action)
-            elif self.policy_type == "combat":
-                return self._compute_combat_reward(action)
-            elif self.policy_type == "react":
-                return self._compute_react_reward(action)
-            elif self.policy_type == "interact":
-                return self._compute_interact_reward(action)
-            return 0.0
-
-        def _compute_locomotion_reward(self, action: np.ndarray) -> float:
-            """Original locomotion reward."""
-            reward = 0.0
-
-            # 1. Velocity tracking reward
-            current_vel = self.chain.root_vel
-            target_vel = self.target_velocity
-            vel_error = np.linalg.norm(current_vel - target_vel)
-            vel_reward = math.exp(-vel_error * 0.5)  # Gaussian-like reward
-            reward += self.cfg.reward_velocity_weight * vel_reward
-
-            # 2. Energy efficiency (penalize large actions)
-            action_magnitude = np.mean(action ** 2)
-            energy_penalty = -action_magnitude
-            reward += self.cfg.reward_energy_weight * energy_penalty
-
-            # 3. Smoothness (penalize large changes in action)
-            action_delta = np.mean((action - self.prev_action) ** 2)
-            smoothness_penalty = -action_delta
-            reward += self.cfg.reward_smoothness_weight * smoothness_penalty
-
-            # 4. Ground contact (simple: reward alternating foot contact)
-            phase = (self.step_count % 30) / 30.0
-            left_contact = 1.0 if phase < 0.5 else 0.0
-            right_contact = 1.0 if phase >= 0.5 else 0.0
-            contact_reward = (left_contact + right_contact) * 0.5
-            reward += self.cfg.reward_contact_weight * contact_reward
-
-            # 5. Pose consistency (stay near default pose)
-            pose_error = np.mean((self.chain.angles - self.chain.default_pose) ** 2)
-            pose_reward = math.exp(-pose_error)
-            reward += self.cfg.reward_pose_weight * pose_reward
-
-            return reward
-
-        def _compute_combat_reward(self, action: np.ndarray) -> float:
-            """Combat policy reward: attack accuracy, damage, dodge, stamina management, target facing."""
-            reward = 0.0
-
-            # 1. Target facing reward (face the enemy)
-            facing_reward = 1.0 if self._is_facing_target() else -0.5
-            reward += 2.0 * facing_reward
-
-            # 2. Distance management (stay in optimal range 1.5-3.0)
-            optimal_dist = 2.0
-            dist_error = abs(self.combat_target_distance - optimal_dist)
-            dist_reward = math.exp(-dist_error * 0.8)
-            reward += 1.5 * dist_reward
-
-            # 3. Attack accuracy (hit when in range and facing)
-            attack_triggered = action[0] > 0.5
-            if attack_triggered and self.combat_attack_cooldown == 0:
-                if self.combat_target_distance < 2.5 and self._is_facing_target():
-                    reward += 5.0  # Successful hit
-                    if self.combat_hit_streak > 0:
-                        reward += 1.0 * min(self.combat_hit_streak, 5)  # Combo bonus
-                else:
-                    reward -= 1.0  # Missed attack penalty
-
-            # 4. Stamina management
-            stamina_reward = self.combat_stamina * 0.5
-            reward += stamina_reward
-            if self.combat_stamina < 0.2:
-                reward -= 2.0  # Low stamina penalty
-
-            # 5. Dodge/evade (move perpendicular to target when close and not attacking)
-            if self.combat_target_distance < 3.0 and not attack_triggered:
-                to_target = self.combat_target_pos - self.chain.root_pos
-                to_target[1] = 0
-                if np.linalg.norm(to_target) > 1e-6:
-                    to_target = to_target / np.linalg.norm(to_target)
-                    # Check if moving sideways (dodge)
-                    velocity = self.chain.root_vel
-                    velocity[1] = 0
-                    if np.linalg.norm(velocity) > 0.1:
-                        velocity = velocity / np.linalg.norm(velocity)
-                        dodge_alignment = abs(np.dot(velocity, to_target))
-                        if dodge_alignment < 0.3:  # Moving perpendicular
-                            reward += 1.0
-
-            # 6. Energy efficiency
-            action_magnitude = np.mean(action ** 2)
-            reward -= 0.3 * action_magnitude
-
-            # 7. Smoothness
-            action_delta = np.mean((action - self.prev_action) ** 2)
-            reward -= 0.2 * action_delta
-
-            return reward
-
-        def _compute_react_reward(self, action: np.ndarray) -> float:
-            """React policy reward: hit reaction quality, recovery speed, animation naturalness."""
-            reward = 0.0
-
-            if self.react_hit_intensity > 0.0:
-                # During hit reaction
-                hit_intensity = self.react_hit_intensity
-            
-                # 1. Reaction magnitude matches hit intensity
-                action_magnitude = np.mean(np.abs(action))
-                target_magnitude = hit_intensity * 0.8  # Scale to action space
-                reaction_accuracy = 1.0 - abs(action_magnitude - target_magnitude)
-                reward += 3.0 * max(0.0, reaction_accuracy)
-
-                # 2. Directional reaction (react away from hit)
-                if np.linalg.norm(self.react_hit_direction) > 1e-6:
-                    # Action should push away from hit direction
-                    # Simplified: check if root velocity opposes hit direction
-                    velocity = self.chain.root_vel.copy()
-                    velocity[1] = 0
-                    if np.linalg.norm(velocity) > 0.05:
-                        velocity = velocity / np.linalg.norm(velocity)
-                        opposite_alignment = -np.dot(velocity, self.react_hit_direction)
-                        if opposite_alignment > 0.3:
-                            reward += 2.0 * opposite_alignment
-
-                # 3. Stun/knockdown specific rewards
-                if self.react_is_stunned:
-                    # During stun: minimal movement, character should be unstable
-                    if action_magnitude < 0.2:
-                        reward += 1.0
-                elif self.react_is_knocked_down:
-                    # During knockdown: large reaction, then recovery
-                    if self.react_recovery_timer > 30:
-                        # Initial knockdown: large reaction
-                        if action_magnitude > 0.7:
-                            reward += 2.0
-                    else:
-                        # Recovery phase: controlled movement
-                        if action_magnitude < 0.5:
-                            reward += 1.5
-
-                # 4. Recovery speed bonus
-                if self.react_recovery_timer <= 0 and self.react_hit_type != "none":
-                    # Just recovered
-                    recovery_bonus = max(0, 50 - self.step_count) * 0.1  # Faster recovery = more reward
-                    reward += recovery_bonus
-                    self.react_hit_intensity = 0.0
-                    self.react_hit_type = "none"
+        # Check for attack (first action component as attack trigger)
+        attack_triggered = action[0] > 0.5 and self.combat_attack_cooldown == 0 and self.combat_stamina > 0.2
+        if attack_triggered:
+            self.combat_attack_cooldown = 30  # 0.6s cooldown
+            self.combat_stamina -= 0.15
+            # Check hit (based on distance and facing)
+            facing_target = self._is_facing_target()
+            if self.combat_target_distance < 2.5 and facing_target:
+                self.combat_last_hit_time = self.step_count
+                self.combat_hit_streak += 1
             else:
-                # No active hit: maintain ready pose, be responsive
-                # Small action magnitude (ready stance)
-                action_magnitude = np.mean(action ** 2)
-                reward += 0.5 * math.exp(-action_magnitude * 5)
-            
-                # Smoothness
-                action_delta = np.mean((action - self.prev_action) ** 2)
-                reward -= 0.3 * action_delta
+                self.combat_hit_streak = 0
 
-            return reward
+        # Move target occasionally
+        if self.step_count % 300 == 0:
+            self._reset_combat_state()
 
-        def _compute_interact_reward(self, action: np.ndarray) -> float:
-            """Interact policy reward: pose accuracy, naturalness, timing, object alignment."""
-            reward = 0.0
+    def _update_react_state(self, action: np.ndarray):
+        """Update react-specific state."""
+        # Recovery timer
+        if self.react_recovery_timer > 0:
+            self.react_recovery_timer -= 1
 
-            # Distance to interaction target
-            to_target = self.interact_target_pos - self.chain.root_pos
-            dist = np.linalg.norm(to_target[::2])
+        # State transitions
+        if self.react_is_knocked_down:
+            if self.react_recovery_timer <= 0:
+                self.react_is_knocked_down = False
+                self.react_recovery_timer = 20  # Getting up time
+        elif self.react_is_stunned:
+            if self.react_recovery_timer <= 0:
+                self.react_is_stunned = False
 
-            # 1. Approach phase reward
-            if self.interact_phase == 0.0:
-                # Move towards target
-                velocity = self.chain.root_vel.copy()
-                velocity[1] = 0
-                if np.linalg.norm(velocity) > 0.1:
-                    velocity = velocity / np.linalg.norm(velocity)
-                    target_dir = to_target[::2] / max(dist, 1e-6)
-                    alignment = np.dot(velocity, target_dir)
-                    reward += 2.0 * max(0.0, alignment)
-                # Distance penalty
-                reward -= 0.5 * dist
+        # Randomly trigger hits during episode
+        if self.react_hit_intensity == 0.0 and np.random.random() < 0.005:
+            self._trigger_react_hit()
 
-            # 2. Align phase reward
-            elif self.interact_phase == 1.0:
-                # Face the target precisely
-                facing = self._is_facing_interact_target()
-                if facing:
-                    reward += 3.0
-                    # Stability bonus (low movement while aligning)
-                    action_magnitude = np.mean(action ** 2)
-                    reward += 1.0 * math.exp(-action_magnitude * 10)
-                else:
-                    reward -= 1.0
+    def _trigger_react_hit(self):
+        """Trigger a hit reaction."""
+        hit_type = np.random.choice(["light", "heavy", "launch", "stun", "knockdown"],
+                                     p=[0.4, 0.25, 0.1, 0.15, 0.1])
+        self.react_hit_type = hit_type
 
-            # 3. Interact phase reward
-            elif self.interact_phase == 2.0:
-                # Maintain precise pose for interaction
-                facing = self._is_facing_interact_target()
-                if facing:
-                    reward += 4.0
-                    # Specific pose for interaction type
-                    pose_reward = self._compute_interact_pose_reward(action)
-                    reward += 3.0 * pose_reward
-                else:
-                    reward -= 2.0
+        if hit_type == "light":
+            self.react_hit_intensity = np.random.uniform(0.3, 0.6)
+            self.react_recovery_timer = np.random.randint(10, 20)
+        elif hit_type == "heavy":
+            self.react_hit_intensity = np.random.uniform(0.6, 0.9)
+            self.react_recovery_timer = np.random.randint(20, 40)
+        elif hit_type == "launch":
+            self.react_hit_intensity = np.random.uniform(0.8, 1.0)
+            self.react_recovery_timer = np.random.randint(40, 60)
+        elif hit_type == "stun":
+            self.react_hit_intensity = np.random.uniform(0.5, 0.8)
+            self.react_is_stunned = True
+            self.react_recovery_timer = np.random.randint(30, 50)
+        elif hit_type == "knockdown":
+            self.react_hit_intensity = 1.0
+            self.react_is_knocked_down = True
+            self.react_recovery_timer = np.random.randint(60, 100)
 
-                # Interaction timing bonus
-                if 10 < self.interact_timer < 40:
-                    reward += 1.0  # Good timing
+        # Random hit direction (from front/side/back)
+        angle = np.random.uniform(0, 2 * np.pi)
+        self.react_hit_direction = np.array([math.cos(angle), 0.0, math.sin(angle)], dtype=np.float32)
 
-            # 4. Retreat phase reward
-            elif self.interact_phase == 3.0:
-                # Move away naturally
-                if dist > 1.5:
-                    reward += 1.0
-                if self.interact_success:
-                    reward += 5.0  # Successful interaction bonus
+    def _update_interact_state(self, action: np.ndarray):
+        """Update interact-specific state."""
+        self.interact_timer += 1
 
-            # 5. General smoothness and energy
-            action_magnitude = np.mean(action ** 2)
-            reward -= 0.2 * action_magnitude
-            action_delta = np.mean((action - self.prev_action) ** 2)
-            reward -= 0.2 * action_delta
+        # Distance to interaction target
+        to_target = self.interact_target_pos - self.chain.root_pos
+        dist = np.linalg.norm(to_target[::2])  # XZ distance
 
-            return reward
+        # Phase progression
+        if self.interact_phase == 0.0:  # Approach
+            if dist < 1.5:
+                self.interact_phase = 1.0  # Align
+                self.interact_timer = 0
+        elif self.interact_phase == 1.0:  # Align
+            facing_target = self._is_facing_interact_target()
+            if facing_target and self.interact_timer > 10:
+                self.interact_phase = 2.0  # Interact
+                self.interact_timer = 0
+        elif self.interact_phase == 2.0:  # Interact
+            if self.interact_timer > 30:  # Interaction duration
+                self.interact_success = True
+                self.interact_phase = 3.0  # Retreat
+                self.interact_timer = 0
+        elif self.interact_phase == 3.0:  # Retreat
+            if dist > 3.0 or self.interact_timer > 50:
+                # Reset for next interaction
+                self._reset_interact_state()
 
-        def _compute_interact_pose_reward(self, action: np.ndarray) -> float:
-            """Compute pose-specific reward for different interaction types."""
-            # Simplified: reward specific joint configurations for each interaction type
-            # In practice, this would check specific joint angles
-        
-            # For now, reward low action magnitude (stable pose) with slight variation for naturalness
-            action_magnitude = np.mean(action ** 2)
-            if self.interact_object_type == "gather":
-                # Gather: reach down, stable base
-                return math.exp(-action_magnitude * 5) * (1.0 + 0.1 * np.std(action))
-            elif self.interact_object_type == "craft":
-                # Craft: two-handed, precise movements
-                return math.exp(-action_magnitude * 8) * (1.0 + 0.05 * np.std(action))
-            elif self.interact_object_type == "door":
-                # Door: push/pull, weight transfer
-                return math.exp(-action_magnitude * 4) * (1.0 + 0.15 * np.std(action))
-            elif self.interact_object_type == "lever":
-                # Lever: rotational, one-handed
-                return math.exp(-action_magnitude * 6) * (1.0 + 0.1 * np.std(action))
-            return 0.5
+    def _is_facing_target(self) -> bool:
+        """Check if character is facing combat target."""
+        forward = np.array([math.sin(self.chain.root_rot[1]), 0.0, math.cos(self.chain.root_rot[1])], dtype=np.float32)
+        to_target = self.combat_target_pos - self.chain.root_pos
+        to_target[1] = 0
+        target_dist = np.linalg.norm(to_target)
+        if target_dist < 1e-6:
+            return True
+        to_target = to_target / target_dist
+        return np.dot(forward, to_target) > 0.7  # ~45 degree cone
 
-        # Direction from target
-        target_dir = self.target_velocity.copy()
-        target_norm = np.linalg.norm(target_dir)
-        if target_norm > 1e-6:
-            target_dir = target_dir / target_norm
-
-        # Apply noise
-        forward_vel += np.random.randn() * 0.02
-
-        return target_dir * forward_vel
+    def _is_facing_interact_target(self) -> bool:
+        """Check if character is facing interaction target."""
+        forward = np.array([math.sin(self.chain.root_rot[1]), 0.0, math.cos(self.chain.root_rot[1])], dtype=np.float32)
+        to_target = self.interact_target_pos - self.chain.root_pos
+        to_target[1] = 0
+        target_dist = np.linalg.norm(to_target)
+        if target_dist < 1e-6:
+            return True
+        to_target = to_target / target_dist
+        return np.dot(forward, to_target) > 0.85  # ~30 degree cone
 
     def _compute_reward(self, action: np.ndarray) -> float:
         """
-        Compute reward signal.
+        Compute reward signal based on policy type.
 
         Components:
-        1. Velocity tracking: match target velocity
-        2. Energy efficiency: penalize large joint movements
-        3. Smoothness: penalize jerky actions
-        4. Ground contact: simple foot contact reward
-        5. Pose consistency: stay near default pose
+        1. Locomotion: velocity tracking, energy efficiency, smoothness, ground contact, pose consistency
+        2. Combat: attack accuracy, damage, dodge, stamina management, target facing
+        3. React: hit reaction quality, knockback/stun/death animation quality, recovery speed
+        4. Interact: interaction pose accuracy, naturalness, timing, object alignment
         """
+        if self.policy_type == "locomotion":
+            return self._compute_locomotion_reward(action)
+        elif self.policy_type == "combat":
+            return self._compute_combat_reward(action)
+        elif self.policy_type == "react":
+            return self._compute_react_reward(action)
+        elif self.policy_type == "interact":
+            return self._compute_interact_reward(action)
+        return 0.0
+
+    def _compute_locomotion_reward(self, action: np.ndarray) -> float:
+        """Original locomotion reward."""
         reward = 0.0
 
         # 1. Velocity tracking reward
@@ -786,7 +537,6 @@ class SimpleAnimationEnv:
         reward += self.cfg.reward_smoothness_weight * smoothness_penalty
 
         # 4. Ground contact (simple: reward alternating foot contact)
-        # Simulate foot contact based on phase
         phase = (self.step_count % 30) / 30.0
         left_contact = 1.0 if phase < 0.5 else 0.0
         right_contact = 1.0 if phase >= 0.5 else 0.0
@@ -799,6 +549,251 @@ class SimpleAnimationEnv:
         reward += self.cfg.reward_pose_weight * pose_reward
 
         return reward
+
+    def _compute_combat_reward(self, action: np.ndarray) -> float:
+        """Combat policy reward: attack accuracy, damage, dodge, stamina management, target facing."""
+        reward = 0.0
+
+        # 1. Target facing reward (face the enemy)
+        facing_reward = 1.0 if self._is_facing_target() else -0.5
+        reward += 2.0 * facing_reward
+
+        # 2. Distance management (stay in optimal range 1.5-3.0)
+        optimal_dist = 2.0
+        dist_error = abs(self.combat_target_distance - optimal_dist)
+        dist_reward = math.exp(-dist_error * 0.8)
+        reward += 1.5 * dist_reward
+
+        # 3. Attack accuracy (hit when in range and facing)
+        attack_triggered = action[0] > 0.5
+        if attack_triggered and self.combat_attack_cooldown == 0:
+            if self.combat_target_distance < 2.5 and self._is_facing_target():
+                reward += 5.0  # Successful hit
+                if self.combat_hit_streak > 0:
+                    reward += 1.0 * min(self.combat_hit_streak, 5)  # Combo bonus
+            else:
+                reward -= 1.0  # Missed attack penalty
+
+        # 4. Stamina management
+        stamina_reward = self.combat_stamina * 0.5
+        reward += stamina_reward
+        if self.combat_stamina < 0.2:
+            reward -= 2.0  # Low stamina penalty
+
+        # 5. Dodge/evade (move perpendicular to target when close and not attacking)
+        if self.combat_target_distance < 3.0 and not attack_triggered:
+            to_target = self.combat_target_pos - self.chain.root_pos
+            to_target[1] = 0
+            if np.linalg.norm(to_target) > 1e-6:
+                to_target = to_target / np.linalg.norm(to_target)
+                # Check if moving sideways (dodge)
+                velocity = self.chain.root_vel
+                velocity[1] = 0
+                if np.linalg.norm(velocity) > 0.1:
+                    velocity = velocity / np.linalg.norm(velocity)
+                    dodge_alignment = abs(np.dot(velocity, to_target))
+                    if dodge_alignment < 0.3:  # Moving perpendicular
+                        reward += 1.0
+
+        # 6. Energy efficiency
+        action_magnitude = np.mean(action ** 2)
+        reward -= 0.3 * action_magnitude
+
+        # 7. Smoothness
+        action_delta = np.mean((action - self.prev_action) ** 2)
+        reward -= 0.2 * action_delta
+
+        return reward
+
+    def _compute_react_reward(self, action: np.ndarray) -> float:
+        """React policy reward: hit reaction quality, recovery speed, animation naturalness."""
+        reward = 0.0
+
+        if self.react_hit_intensity > 0.0:
+            # During hit reaction
+            hit_intensity = self.react_hit_intensity
+
+            # 1. Reaction magnitude matches hit intensity
+            action_magnitude = np.mean(np.abs(action))
+            target_magnitude = hit_intensity * 0.8  # Scale to action space
+            reaction_accuracy = 1.0 - abs(action_magnitude - target_magnitude)
+            reward += 3.0 * max(0.0, reaction_accuracy)
+
+            # 2. Directional reaction (react away from hit)
+            if np.linalg.norm(self.react_hit_direction) > 1e-6:
+                # Action should push away from hit direction
+                # Simplified: check if root velocity opposes hit direction
+                velocity = self.chain.root_vel.copy()
+                velocity[1] = 0
+                if np.linalg.norm(velocity) > 0.05:
+                    velocity = velocity / np.linalg.norm(velocity)
+                    opposite_alignment = -np.dot(velocity, self.react_hit_direction)
+                    if opposite_alignment > 0.3:
+                        reward += 2.0 * opposite_alignment
+
+            # 3. Stun/knockdown specific rewards
+            if self.react_is_stunned:
+                # During stun: minimal movement, character should be unstable
+                if action_magnitude < 0.2:
+                    reward += 1.0
+            elif self.react_is_knocked_down:
+                # During knockdown: large reaction, then recovery
+                if self.react_recovery_timer > 30:
+                    # Initial knockdown: large reaction
+                    if action_magnitude > 0.7:
+                        reward += 2.0
+                else:
+                    # Recovery phase: controlled movement
+                    if action_magnitude < 0.5:
+                        reward += 1.5
+
+            # 4. Recovery speed bonus
+            if self.react_recovery_timer <= 0 and self.react_hit_type != "none":
+                # Just recovered
+                recovery_bonus = max(0, 50 - self.step_count) * 0.1  # Faster recovery = more reward
+                reward += recovery_bonus
+                self.react_hit_intensity = 0.0
+                self.react_hit_type = "none"
+        else:
+            # No active hit: maintain ready pose, be responsive
+            # Small action magnitude (ready stance)
+            action_magnitude = np.mean(action ** 2)
+            reward += 0.5 * math.exp(-action_magnitude * 5)
+
+            # Smoothness
+            action_delta = np.mean((action - self.prev_action) ** 2)
+            reward -= 0.3 * action_delta
+
+        return reward
+
+    def _compute_interact_reward(self, action: np.ndarray) -> float:
+        """Interact policy reward: pose accuracy, naturalness, timing, object alignment."""
+        reward = 0.0
+
+        # Distance to interaction target
+        to_target = self.interact_target_pos - self.chain.root_pos
+        dist = np.linalg.norm(to_target[::2])
+
+        # 1. Approach phase reward
+        if self.interact_phase == 0.0:
+            # Move towards target
+            velocity = self.chain.root_vel.copy()
+            velocity[1] = 0
+            if np.linalg.norm(velocity) > 0.1:
+                velocity = velocity / np.linalg.norm(velocity)
+                target_dir = to_target[::2] / max(dist, 1e-6)
+                alignment = np.dot(velocity, target_dir)
+                reward += 2.0 * max(0.0, alignment)
+            # Distance penalty
+            reward -= 0.5 * dist
+
+        # 2. Align phase reward
+        elif self.interact_phase == 1.0:
+            # Face the target precisely
+            facing = self._is_facing_interact_target()
+            if facing:
+                reward += 3.0
+                # Stability bonus (low movement while aligning)
+                action_magnitude = np.mean(action ** 2)
+                reward += 1.0 * math.exp(-action_magnitude * 10)
+            else:
+                reward -= 1.0
+
+        # 3. Interact phase reward
+        elif self.interact_phase == 2.0:
+            # Maintain precise pose for interaction
+            facing = self._is_facing_interact_target()
+            if facing:
+                reward += 4.0
+                # Specific pose for interaction type
+                pose_reward = self._compute_interact_pose_reward(action)
+                reward += 3.0 * pose_reward
+            else:
+                reward -= 2.0
+
+            # Interaction timing bonus
+            if 10 < self.interact_timer < 40:
+                reward += 1.0  # Good timing
+
+        # 4. Retreat phase reward
+        elif self.interact_phase == 3.0:
+            # Move away naturally
+            if dist > 1.5:
+                reward += 1.0
+            if self.interact_success:
+                reward += 5.0  # Successful interaction bonus
+
+        # 5. General smoothness and energy
+        action_magnitude = np.mean(action ** 2)
+        reward -= 0.2 * action_magnitude
+        action_delta = np.mean((action - self.prev_action) ** 2)
+        reward -= 0.2 * action_delta
+
+        return reward
+
+    def _compute_interact_pose_reward(self, action: np.ndarray) -> float:
+        """Compute pose-specific reward for different interaction types."""
+        # Simplified: reward specific joint configurations for each interaction type
+
+        action_magnitude = np.mean(action ** 2)
+        if self.interact_object_type == "gather":
+            # Gather: reach down, stable base
+            return math.exp(-action_magnitude * 5) * (1.0 + 0.1 * np.std(action))
+        elif self.interact_object_type == "craft":
+            # Craft: two-handed, precise movements
+            return math.exp(-action_magnitude * 8) * (1.0 + 0.05 * np.std(action))
+        elif self.interact_object_type == "door":
+            # Door: push/pull, weight transfer
+            return math.exp(-action_magnitude * 4) * (1.0 + 0.15 * np.std(action))
+        elif self.interact_object_type == "lever":
+            # Lever: rotational, one-handed
+            return math.exp(-action_magnitude * 6) * (1.0 + 0.1 * np.std(action))
+        return 0.5
+
+    def _sample_target_velocity(self):
+        """Sample a new random target velocity for locomotion."""
+        # Random direction
+        angle = np.random.uniform(0, 2 * np.pi)
+        speed = np.random.uniform(*self.cfg.target_velocity_range)
+
+        # Smooth transition from current velocity
+        current_vel = self.target_velocity
+        target_vel = np.array([
+            math.cos(angle) * speed,
+            0.0,
+            math.sin(angle) * speed
+        ], dtype=np.float32)
+
+        # Smooth interpolation
+        self.target_velocity = current_vel * 0.5 + target_vel * 0.5
+        self.target_speed = speed
+
+    def _compute_root_velocity(self, action: np.ndarray) -> np.ndarray:
+        """Compute root velocity from action (simplified)."""
+        # Simplified: forward velocity proportional to leg joint motion
+        leg_joints = min(6, self.act_dim)  # Assume first 6 joints are legs
+        leg_motion = np.mean(np.abs(action[:leg_joints]))
+        forward_vel = leg_motion * 2.0
+
+        # Direction from target
+        target_dir = self.target_velocity.copy()
+        target_norm = np.linalg.norm(target_dir)
+        if target_norm > 1e-6:
+            target_dir = target_dir / target_norm
+
+        # Apply noise
+        forward_vel += np.random.randn() * 0.02
+
+        return target_dir * forward_vel
+
+    def _generate_terrain(self):
+        """Generate a simple terrain heightmap."""
+        for i in range(self.terrain_resolution):
+            for j in range(self.terrain_resolution):
+                x = (i - self.terrain_resolution / 2) * 0.5
+                z = (j - self.terrain_resolution / 2) * 0.5
+                height = 0.1 * math.sin(x * 0.5) * math.cos(z * 0.5)
+                self._terrain_map[i, j] = height
 
     def _encode_observation(self) -> np.ndarray:
         """
@@ -832,13 +827,10 @@ class SimpleAnimationEnv:
                 obs[idx] = angle / max(limit, 1e-6)  # normalized [-1, 1]
                 idx += 1
         # Pad remaining joint slots if act_dim < joint_count * 3 / 3
-        # (joint_count * 3 positions expected, but we have act_dim joints)
         joint_positions_end = min(self.joint_count * 3, self.obs_dim)
         idx = max(idx, 0)
-        # If we have fewer joints than expected, fill with zeros
         expected_joint_positions = self.joint_count * 3
         if idx < expected_joint_positions and idx < self.obs_dim:
-            # Pad with zeros for remaining joints
             pass  # already zeros
 
         # 2. Joint velocities
@@ -847,7 +839,7 @@ class SimpleAnimationEnv:
             if idx < self.obs_dim:
                 obs[idx] = self.chain.velocities[j] * 0.1  # scale down
                 idx += 1
-        # Pad (velocity values smaller than position block)
+        # Pad
         idx = max(idx, self.joint_count * 3 + self.act_dim)
 
         # 3. Root velocity
