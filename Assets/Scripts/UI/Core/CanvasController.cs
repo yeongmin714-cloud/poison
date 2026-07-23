@@ -1,5 +1,6 @@
 using UnityEngine;
-
+using System.Collections.Generic;
+using System.Collections;
 public class CanvasController : MonoBehaviour
 {
     private static CanvasController instance;

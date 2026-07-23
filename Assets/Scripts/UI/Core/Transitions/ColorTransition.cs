@@ -1,5 +1,6 @@
 using UnityEngine;
-
+using System.Collections.Generic;
+using System.Collections;
 public class ColorTransition : MonoBehaviour
 {
     public void StartColorTransition(Color from, Color to, float duration)
