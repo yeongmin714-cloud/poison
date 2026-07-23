@@ -211,6 +211,21 @@
 - [x] **Quick 테스트** — biped 10 epoch (~5초) 검증 완료
 - [x] **본 학습 biped** — `locomotion_biped_base.onnx` 50 epoch (~66초) 완료
 - [x] **본 학습 quadruped** — `locomotion_quadruped_base.onnx` 50 epoch (~80초) 완료
+- [x] **Combat/React/Interact 정책 학습** — biped/quadruped 각각 3종 = 총 6개 모델
 - [x] **ONNX 검증** — Input/Output name/shape, Opset 17, NHWC [1,1,1,N] 확인
 - [x] **Unity 호환성** — 기존 ONNXPolicy.cs 그대로 로드 가능 확인
-- [x] **Git commit + push** — `70c0737` (biped/quadruped ONNX + checkpoints 업데이트)
+- [x] **Git commit + push** — `af8344d` (8개 ONNX + checkpoints 업데이트)
+
+---
+
+### ✅ Phase 4.0.5 — ONNX 모델 8종 배포 + Unity 통합 완료 (2026-07-23)
+- [x] `locomotion_biped_base.onnx` (120obs/80act) — 69KB
+- [x] `locomotion_quadruped.onnx` (150obs/100act) — 82KB
+- [x] `combat_biped_base.onnx` (120obs/80act) — 68KB
+- [x] `combat_quadruped_base.onnx` (150obs/100act) — 80KB
+- [x] `react_biped_base.onnx` (120obs/80act) — 68KB
+- [x] `react_quadruped_base.onnx` (150obs/100act) — 80KB
+- [x] `interact_biped_base.onnx` (120obs/80act) — 68KB
+- [x] `interact_quadruped_base.onnx` (150obs/100act) — 80KB
+- [x] 기존 더미 ONNX `.bak` 백업 완료
+- [x] Unity Resources 배포 및 git push 완료
