@@ -15,36 +15,39 @@ namespace UI.Functions
         public string customizationType = "Character";
         public string currentColor = "Blue";
         public string currentShape = "Round";
-
+        
         private void Start()
         {
             InitializeCustomization();
         }
-
+        
         public void InitializeCustomization()
         {
             customizationTitle.text = $"{customizationType} Customization";
             // Initialize character preview based on current settings
+            Debug.Log("Customization system initialized");
         }
-
+        
         public void ChangeColor(string color)
         {
             currentColor = color;
             // Update character preview
+            Debug.Log("Color changed to: " + color);
         }
-
+        
         public void ChangeShape(string shape)
         {
             currentShape = shape;
             // Update character preview
+            Debug.Log("Shape changed to: " + shape);
         }
-
+        
         public void SaveCustomization()
         {
             // Save customization settings
-            // Debug.Log("Customization saved");
+            Debug.Log("Customization saved");
         }
-
+        
         public void CancelCustomization()
         {
             // Revert to previous settings

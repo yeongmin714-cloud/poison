@@ -8,7 +8,7 @@ public class LoadingUI : MonoBehaviour
     private void Start()
     {
         // Initialize loading UI
-
+        Debug.Log("Loading UI initialized");
     }
     
     public void ShowLoading(string message)
@@ -17,5 +17,6 @@ public class LoadingUI : MonoBehaviour
         loadingPanel.SetActive(true);
         if(loadingText != null)
             loadingText.text = message;
+        Debug.Log("Loading screen shown with message: " + message);
     }
 }

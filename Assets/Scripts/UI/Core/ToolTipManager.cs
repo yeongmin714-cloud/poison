@@ -31,6 +31,7 @@ public class ToolTipManager : MonoBehaviour
         
         GameObject tooltip = Instantiate(tooltipPrefab, tooltipParent);
         // Additional tooltip setup would go here
+        tooltip.transform.position = position;
     }
     
     public void HideTooltip()

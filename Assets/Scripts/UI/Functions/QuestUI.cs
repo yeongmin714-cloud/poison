@@ -8,12 +8,12 @@ public class QuestUI : MonoBehaviour
     private void Start()
     {
         // Initialize quests
-
+        Debug.Log("Quest UI initialized");
     }
     
     public void UpdateQuestList()
     {
         // Update quest display
-
+        Debug.Log("Quest list updated");
     }
 }

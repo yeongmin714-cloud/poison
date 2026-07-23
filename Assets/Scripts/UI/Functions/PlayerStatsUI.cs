@@ -11,11 +11,12 @@ public class PlayerStatsUI : MonoBehaviour
     {
         // Initialize player stats
         // TODO: Implement proper initialization
+        Debug.Log("Player stats UI initialized");
     }
     
     public void UpdateStats()
     {
         // Update stats display
-
+        Debug.Log("Player stats updated");
     }
 }

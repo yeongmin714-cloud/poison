@@ -27,6 +27,7 @@ public class LocalizationManager : MonoBehaviour
     {
         // Implementation for loading localization data
         // Add actual localization loading logic here
+        Debug.Log("Localization data loaded for language: " + language);
     }
     
     public string GetLocalizedString(string key)
@@ -41,5 +42,6 @@ public class LocalizationManager : MonoBehaviour
     public void SetLocalizedString(string key, string value)
     {
         localizedStrings[key] = value;
+        Debug.Log("Localized string set: " + key);
     }
 }

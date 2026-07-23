@@ -41,15 +41,35 @@ class AvatarSpec:
         )
 
     @classmethod
+    def fly(cls) -> "AvatarSpec":
+        """Flying creature spec (e.g., dragon, bird)."""
+        return cls(
+            observation_size=150,
+            action_size=100,
+            joint_count=24,
+            name="fly",
+        )
+
+    @classmethod
+    def swim(cls) -> "AvatarSpec":
+        """Swimming creature spec (e.g., fish, aquatic)."""
+        return cls(
+            observation_size=150,
+            action_size=100,
+            joint_count=24,
+            name="swim",
+        )
+
+    @classmethod
     def from_name(cls, name: str) -> "AvatarSpec":
         """Dispatch by avatar type name string."""
         name = name.strip().lower()
         if name in ("biped", "humanoid"):
             return cls.biped()
-        elif name in ("quadruped", "quad"):
+        elif name in ("quadruped", "quad", "fly", "swim"):
             return cls.quadruped()
         else:
-            raise ValueError(f"Unknown avatar type: {name}. Choose 'biped' or 'quadruped'.")
+            raise ValueError(f"Unknown avatar type: {name}. Choose 'biped' or 'quadruped' (or 'fly', 'swim').")
 
 
 # ──────────────────────────────────────────────────────────────────────────────

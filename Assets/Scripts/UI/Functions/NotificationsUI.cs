@@ -8,12 +8,12 @@ public class NotificationsUI : MonoBehaviour
     private void Start()
     {
         // Initialize notifications UI
-
+        Debug.Log("Notifications UI initialized");
     }
     
     public void AddNotification(string message)
     {
         // Add a notification
-
+        Debug.Log("Notification added: " + message);
     }
 }

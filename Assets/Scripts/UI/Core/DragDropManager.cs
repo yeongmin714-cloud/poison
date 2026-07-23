@@ -27,29 +27,34 @@ public class DragDropManager : MonoBehaviour
     {
         dragDropHandlers.Add(handler);
         // Add actual drag drop handler registration logic here
+        Debug.Log("DragDrop handler registered");
     }
     
     public void UnregisterDragDropHandler(IDragDropHandler handler)
     {
         dragDropHandlers.Remove(handler);
         // Add actual drag drop handler unregistration logic here
+        Debug.Log("DragDrop handler unregistered");
     }
     
     public void StartDrag(IDragDropHandler handler)
     {
         // Drag start implementation
         // Add actual drag start logic here
+        Debug.Log("Drag started");
     }
     
     public void UpdateDrag(IDragDropHandler handler, Vector2 position)
     {
         // Drag update implementation
         // Add actual drag update logic here
+        Debug.Log("Drag updated at position: " + position);
     }
     
     public void EndDrag(IDragDropHandler handler)
     {
         // Drag end implementation
         // Add actual drag end logic here
+        Debug.Log("Drag ended");
     }
 }

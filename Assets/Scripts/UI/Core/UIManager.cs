@@ -20,7 +20,6 @@ public class UIManager : MonoBehaviour
         }
     }
     
-    // Debug.Log for testing purposes
     public void ShowUI()
     {
         Debug.Log("UI Shown");

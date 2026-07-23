@@ -8,12 +8,13 @@ public class SkillUI : MonoBehaviour
     private void Start()
     {
         // Initialize skill UI
-
+        Debug.Log("Skill UI initialized");
     }
     
     public void UpdateSkills()
     {
         // Update skills display
         // TODO: Implementation
+        Debug.Log("Skills updated");
     }
 }

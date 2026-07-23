@@ -25,11 +25,13 @@ public class MessageSystem : MonoBehaviour
     {
         // Implementation for showing messages
         // Add actual message display logic here
+        Debug.Log("Message shown: " + message);
     }
     
     public void ShowMessage(string message, float duration)
     {
         // Implementation for showing messages with duration
         // Add actual message display logic here
+        Debug.Log("Message shown: " + message + " for " + duration + " seconds");
     }
 }

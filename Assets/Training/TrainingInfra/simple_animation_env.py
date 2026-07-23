@@ -152,9 +152,11 @@ class SimpleAnimationEnv:
     - "combat": Attack accuracy, damage, dodge, stamina management, target facing
     - "react": Hit reaction quality, knockback/stun/death animation quality, recovery speed
     - "interact": Interaction pose accuracy, naturalness, timing, object alignment
+    - "fly": Aerial maneuvering, altitude control, banking turns
+    - "swim": Underwater propulsion, buoyancy, streamlined motion
     """
 
-    def __init__(self, cfg: Config, policy_type: Literal["locomotion", "combat", "react", "interact"] = "locomotion"):
+    def __init__(self, cfg: Config, policy_type: Literal["locomotion", "combat", "react", "interact", "fly", "swim"] = "locomotion"):
         self.cfg = cfg.env
         self.avatar_spec = AvatarSpec.from_name(cfg.avatar)
         self.obs_dim = cfg.obs_dim
@@ -186,6 +188,10 @@ class SimpleAnimationEnv:
         # Style embedding placeholder
         self.style_embedding_size = 8
         self.style_embedding = np.zeros(self.style_embedding_size, dtype=np.float32)
+        
+        # Curriculum learning
+        self._curriculum_enabled = False
+        self._curriculum_phase = 0  # 0=easy, 1=medium, 2=hard
 
         # Combat-specific state
         self.combat_target_pos = np.zeros(3, dtype=np.float32)
@@ -296,6 +302,63 @@ class SimpleAnimationEnv:
         self.interact_timer = 0
         self.interact_object_type = np.random.choice(["gather", "craft", "door", "lever"])
         self.interact_success = False
+
+    # ═══════════════════════════════════════════════════════════════════════════════
+    #  Curriculum & Style API
+    # ═══════════════════════════════════════════════════════════════════════════════
+
+    def set_curriculum_enabled(self, enabled: bool):
+        """Enable/disable curriculum learning (easy -> medium -> hard terrain)."""
+        self._curriculum_enabled = enabled
+        if enabled:
+            self._curriculum_phase = 0  # Start at easy
+            self._generate_terrain()  # Regenerate with new difficulty
+
+    def set_curriculum_phase(self, phase: int):
+        """Set curriculum phase: 0=easy, 1=medium, 2=hard."""
+        if self._curriculum_enabled:
+            self._curriculum_phase = max(0, min(2, phase))
+            self._generate_terrain()  # Regenerate with new difficulty
+
+    def set_style_embedding(self, index: int):
+        """Set style embedding index: 0=walk, 1=run, 2=crouch, 3=custom."""
+        self.style_embedding = np.zeros(self.style_embedding_size, dtype=np.float32)
+        if 0 <= index < self.style_embedding_size:
+            self.style_embedding[index] = 1.0  # One-hot encoding
+
+    def seed(self, seed: int):
+        """Set random seed for reproducibility (Gymnasium compatibility)."""
+        np.random.seed(seed)
+
+    def _generate_terrain(self):
+        """Generate terrain heightmap based on curriculum phase."""
+        if not self._curriculum_enabled:
+            # Default flat terrain
+            for i in range(self.terrain_resolution):
+                for j in range(self.terrain_resolution):
+                    x = (i - self.terrain_resolution / 2) * 0.5
+                    z = (j - self.terrain_resolution / 2) * 0.5
+                    height = 0.1 * math.sin(x * 0.5) * math.cos(z * 0.5)
+                    self._terrain_map[i, j] = height
+            return
+
+        # Curriculum-based terrain
+        roughness = [0.1, 0.3, 0.6][self._curriculum_phase]  # easy, medium, hard
+        obstacle_density = [0.05, 0.15, 0.3][self._curriculum_phase]
+        
+        for i in range(self.terrain_resolution):
+            for j in range(self.terrain_resolution):
+                x = (i - self.terrain_resolution / 2) * 0.5
+                z = (j - self.terrain_resolution / 2) * 0.5
+                
+                # Base noise
+                height = roughness * math.sin(x * 0.5) * math.cos(z * 0.5)
+                
+                # Add obstacles
+                if np.random.random() < obstacle_density:
+                    height += np.random.uniform(0.2, 0.5)
+                
+                self._terrain_map[i, j] = height
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, dict]:
         """

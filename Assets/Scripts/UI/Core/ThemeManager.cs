@@ -28,6 +28,7 @@ public class ThemeManager : MonoBehaviour
         currentPalette = palette;
         // Apply theme to UI elements
         // Add actual theme application logic here
+        Debug.Log("Theme applied with palette: " + palette.name);
     }
     
     public ColorPalette GetCurrentPalette()
@@ -39,5 +40,6 @@ public class ThemeManager : MonoBehaviour
     {
         // Apply theme by name
         // Add actual theme application logic here
+        Debug.Log("Theme applied: " + themeName);
     }
 }

@@ -26,6 +26,7 @@ public class ScreenManager : MonoBehaviour
     public void RegisterScreen(string screenName, GameObject screen)
     {
         screens[screenName] = screen;
+        Debug.Log("Screen registered: " + screenName);
     }
     
     public void ShowScreen(string screenName)
@@ -33,6 +34,7 @@ public class ScreenManager : MonoBehaviour
         if (screens.TryGetValue(screenName, out GameObject screen))
         {
             screen.SetActive(true);
+            Debug.Log("Screen shown: " + screenName);
         }
     }
     
@@ -41,6 +43,7 @@ public class ScreenManager : MonoBehaviour
         if (screens.TryGetValue(screenName, out GameObject screen))
         {
             screen.SetActive(false);
+            Debug.Log("Screen hidden: " + screenName);
         }
     }
 }

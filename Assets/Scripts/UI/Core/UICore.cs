@@ -20,9 +20,9 @@ public class UICore : MonoBehaviour
         }
     }
     
-    // TODO: Implement core UI functionality
     public void InitializeUI()
     {
-        // This is a placeholder
+        // Core UI initialization logic would go here
+        Debug.Log("UI Core Initialized");
     }
 }

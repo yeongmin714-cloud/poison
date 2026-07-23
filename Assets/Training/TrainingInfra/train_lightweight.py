@@ -10,6 +10,8 @@ Entry point script that:
 Usage:
   python train_lightweight.py --avatar_type biped --quick
   python train_lightweight.py --avatar_type quadruped --epochs 50
+  python train_lightweight.py --avatar_type biped --policy_type combat --curriculum --tensorboard
+  python train_lightweight.py --avatar_type quadruped --policy_type fly --ensemble_seeds "42,123,456" --style_embedding 1
 """
 
 import os
@@ -57,16 +59,24 @@ def train(
     epochs: int = 50,
     quick: bool = False,
     verbose: bool = True,
+    curriculum: bool = False,
+    style_embedding: int = 0,
+    ensemble_seeds: str = "",
+    tensorboard_log: bool = False,
 ) -> str:
     """
     Train a policy using numpy PPO and export to ONNX.
 
     Args:
         avatar_type: "biped" or "quadruped".
-        policy_type: "locomotion", "combat", "react", "interact".
+        policy_type: "locomotion", "combat", "react", "interact", "fly", "swim".
         epochs: Number of training epochs.
         quick: If True, use 10 epochs and reduced steps.
         verbose: Print progress.
+        curriculum: Enable curriculum learning (easy -> medium -> hard terrain).
+        style_embedding: Style embedding index for conditional policy.
+        ensemble_seeds: Comma-separated seeds for ensemble training.
+        tensorboard_log: Enable TensorBoard logging.
 
     Returns:
         Path to the exported ONNX file.
@@ -94,13 +104,40 @@ def train(
         print(f"  Epochs:            {epochs}")
         print(f"  Hidden sizes:      [64, 64]")
         print(f"  Quick mode:        {quick}")
+        print(f"  Curriculum:        {curriculum}")
+        print(f"  Style embedding:   {style_embedding}")
+        print(f"  Ensemble seeds:    {ensemble_seeds if ensemble_seeds else 'none'}")
+        print(f"  TensorBoard:       {tensorboard_log}")
         print("=" * 60)
 
     # ── Environment ──
     env = SimpleAnimationEnv(cfg, policy_type=policy_type)
 
+    # Configure curriculum if enabled
+    if curriculum:
+        env.set_curriculum_enabled(True)
+        if verbose:
+            print("  [Curriculum] Enabled: Easy -> Medium -> Hard terrain progression")
+
+    # Configure style embedding if specified
+    if style_embedding > 0:
+        env.set_style_embedding(style_embedding)
+        if verbose:
+            print(f"  [Style] Conditional policy with embedding index: {style_embedding}")
+
+    # ── TensorBoard ──
+    tb_writer = None
+    if tensorboard_log and verbose:
+        try:
+            from torch.utils.tensorboard import SummaryWriter
+            tb_writer = SummaryWriter(f"runs/{policy_type}_{avatar_type}_{int(time.time())}")
+            if verbose:
+                print(f"  [TensorBoard] Logging to runs/")
+        except ImportError:
+            if verbose:
+                print("  [TensorBoard] torch not available, skipping")
+
     # ── Trainer ──
-    # Use reduced steps for quick mode
     n_steps = 1024 if quick else 2048
     mini_epochs = 5 if quick else 10
 
@@ -130,6 +167,15 @@ def train(
     for epoch in range(1, epochs + 1):
         progress = (epoch - 1) / max(epochs - 1, 1)
 
+        # Update curriculum phase based on progress
+        if curriculum:
+            if progress < 0.33:
+                env.set_curriculum_phase(0)  # Easy
+            elif progress < 0.66:
+                env.set_curriculum_phase(1)  # Medium
+            else:
+                env.set_curriculum_phase(2)  # Hard
+
         epoch_start = time.time()
         metrics = trainer.train_epoch(env, progress)
         epoch_time = time.time() - epoch_start
@@ -145,6 +191,14 @@ def train(
         # Track best reward
         if avg_reward > best_reward:
             best_reward = avg_reward
+
+        # TensorBoard logging
+        if tb_writer:
+            tb_writer.add_scalar("Reward/avg", avg_reward, epoch)
+            tb_writer.add_scalar("Loss/policy", policy_loss, epoch)
+            tb_writer.add_scalar("Loss/value", value_loss, epoch)
+            tb_writer.add_scalar("Entropy", entropy, epoch)
+            tb_writer.add_scalar("KL", approx_kl, epoch)
 
         if verbose:
             elapsed = time.time() - start_time
@@ -167,47 +221,99 @@ def train(
         print(f"  Best avg reward: {best_reward:.2f}")
         print("=" * 60)
 
-    # ── Save checkpoint ──
-    os.makedirs(CHECKPOINT_DIR, exist_ok=True)
-    checkpoint_path = os.path.join(CHECKPOINT_DIR, f"{avatar_type}_{policy_type}_policy.npz")
-    trainer.save(checkpoint_path)
+    # Close TensorBoard
+    if tb_writer:
+        tb_writer.close()
 
-    if verbose:
-        print(f"  [Checkpoint] Saved to: {checkpoint_path}")
+    # ── Ensemble Training (if seeds provided) ──
+    if ensemble_seeds:
+        if verbose:
+            print(f"\n  [Ensemble] Training with seeds: {ensemble_seeds}")
+        seed_list = [int(s.strip()) for s in ensemble_seeds.split(",")]
+        ensemble_weights = []
 
-    # ── Export to ONNX ──
-    if verbose:
-        print(f"\n  Exporting to ONNX...")
+        for seed in seed_list:
+            if verbose:
+                print(f"  [Ensemble] Training seed {seed}...")
+            np.random.seed(seed)
+            env.seed(seed)
 
-    actor_weights = trainer.model.get_actor_weights()
+            # Retrain from scratch with different seed
+            ensemble_trainer = PPOTrainer(
+                obs_dim=obs_dim,
+                act_dim=act_dim,
+                hidden_sizes=(64, 64),
+                actor_lr=3e-4,
+                critic_lr=3e-4,
+                clip_epsilon=0.2,
+                entropy_coef=0.01,
+                value_loss_coef=0.5,
+                gamma=0.99,
+                gae_lambda=0.95,
+                n_steps=n_steps,
+                batch_size=64,
+                mini_epochs=mini_epochs,
+                normalize_advantages=True,
+                max_grad_norm=0.5,
+                target_kl=0.02,
+            )
 
-    # Ensure output dir exists
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+            # Quick training for ensemble member
+            for e in range(epochs):
+                ensemble_trainer.train_epoch(env, progress)
 
-    onnx_filename = f"{policy_type}_{avatar_type}_base.onnx"
-    onnx_path = os.path.join(OUTPUT_DIR, onnx_filename)
+            ensemble_weights.append(ensemble_trainer.model.get_actor_weights())
 
-    export_policy_to_onnx(
-        weights=actor_weights,
-        obs_dim=obs_dim,
-        act_dim=act_dim,
-        output_path=onnx_path,
-        verbose=verbose,
-    )
+        # Average ensemble weights
+        if verbose:
+            print(f"  [Ensemble] Averaging {len(ensemble_weights)} models...")
+        avg_weights = {}
+        for key in ensemble_weights[0].keys():
+            avg_weights[key] = np.mean([w[key] for w in ensemble_weights], axis=0)
 
-    # ── Validate ──
-    if verbose:
-        print(f"\n  Validating ONNX model...")
+        actor_weights = avg_weights
+    else:
+        # ── Save checkpoint ──
+        os.makedirs(CHECKPOINT_DIR, exist_ok=True)
+        checkpoint_path = os.path.join(CHECKPOINT_DIR, f"{avatar_type}_{policy_type}_policy.npz")
+        trainer.save(checkpoint_path)
 
-    valid = validate_onnx(onnx_path, obs_dim, act_dim, verbose=verbose)
+        if verbose:
+            print(f"  [Checkpoint] Saved to: {checkpoint_path}")
 
-    if verbose:
-        if valid:
-            print(f"  ✓ ONNX model is valid: {onnx_path}")
-        else:
-            print(f"  ✗ ONNX model validation failed!")
+        # ── Export to ONNX ──
+        if verbose:
+            print(f"\n  Exporting to ONNX...")
 
-    return onnx_path
+        actor_weights = trainer.model.get_actor_weights()
+
+        # Ensure output dir exists
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+        onnx_filename = f"{policy_type}_{avatar_type}_base.onnx"
+        onnx_path = os.path.join(OUTPUT_DIR, onnx_filename)
+
+        export_policy_to_onnx(
+            weights=actor_weights,
+            obs_dim=obs_dim,
+            act_dim=act_dim,
+            output_path=onnx_path,
+            verbose=verbose,
+        )
+
+        # ── Validate ──
+        if verbose:
+            print(f"\n  Validating ONNX model...")
+
+        valid = validate_onnx(onnx_path, obs_dim, act_dim, verbose=verbose)
+
+        if verbose:
+            if valid:
+                print(f"  ✓ ONNX model is valid: {onnx_path}")
+            else:
+                print(f"  ✗ ONNX model validation failed!")
+
+        return onnx_path
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -230,8 +336,8 @@ def main():
         "--policy_type", "-p",
         type=str,
         default="locomotion",
-        choices=["locomotion", "combat", "react", "interact"],
-        help="Policy type: locomotion, combat, react, interact (default: locomotion)",
+        choices=["locomotion", "combat", "react", "interact", "fly", "swim"],
+        help="Policy type: locomotion, combat, react, interact, fly, swim (default: locomotion)",
     )
     parser.add_argument(
         "--epochs", "-e",
@@ -243,6 +349,28 @@ def main():
         "--quick", "-q",
         action="store_true",
         help="Quick training: 10 epochs with reduced steps (for testing)",
+    )
+    parser.add_argument(
+        "--curriculum", "-c",
+        action="store_true",
+        help="Enable curriculum learning: easy -> medium -> hard terrain progression",
+    )
+    parser.add_argument(
+        "--style_embedding", "-s",
+        type=int,
+        default=0,
+        help="Style embedding index (0=walk, 1=run, 2=crouch, 3=custom). Adds conditional input to policy.",
+    )
+    parser.add_argument(
+        "--ensemble_seeds", "-es",
+        type=str,
+        default="",
+        help="Comma-separated seeds for ensemble training (e.g., '42,123,456'). Trains multiple models and averages weights.",
+    )
+    parser.add_argument(
+        "--tensorboard", "-tb",
+        action="store_true",
+        help="Enable TensorBoard logging for training curves",
     )
     parser.add_argument(
         "--verbose", "-v",
@@ -267,6 +395,10 @@ def main():
         epochs=args.epochs,
         quick=args.quick,
         verbose=args.verbose,
+        curriculum=args.curriculum,
+        style_embedding=args.style_embedding,
+        ensemble_seeds=args.ensemble_seeds,
+        tensorboard_log=args.tensorboard,
     )
 
     if args.verbose:

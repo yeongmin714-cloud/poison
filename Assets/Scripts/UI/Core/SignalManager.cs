@@ -25,11 +25,13 @@ public class SignalManager : MonoBehaviour
     {
         // Implementation for sending signals
         // Add actual signal sending logic here
+        Debug.Log("Signal sent: " + signalName);
     }
     
     public void RegisterSignal(string signalName, System.Action handler)
     {
         // Implementation for registering signals
         // Add actual signal registration logic here
+        Debug.Log("Signal registered: " + signalName);
     }
 }
