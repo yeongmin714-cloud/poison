@@ -153,10 +153,10 @@
 
 ## 🔄 Phase 4.6: Migration from Procedural → Neural (점진적 마이그레이션)
 
-### 4.6.1 — Hybrid Controller (Phase 3.9 → 4.0 Bridge)
-- [ ] **HybridAnimationController.cs** — Procedural + Neural 동시 실행, 가중 블렌딩
-- [ ] **Policy Override System:** 특정 상태(Combat/React)에서만 Neural, 나머지는 Procedural
-- [ ] **A/B Test Framework:** 동일 아바타에 Procedural vs Neural 할당 → 메트릭 비교
+### 4.6.1 — Hybrid Controller (Phase 3.9 → 4.0 Bridge) ✅
+- [x] **HybridAnimationController.cs** — Procedural + Neural 동시 실행, 가중 블렌딩
+- [x] **Policy Override System:** 특정 상태(Combat/React/Fly/Swim)에서만 Neural, 나머지는 Procedural
+- [x] **A/B Test Framework:** 동일 아바타에 Procedural vs Neural 할당 → 메트릭 비교
 
 ### 4.6.2 — Progressive Rollout
 | Phase | Scope | Policy | Fallback |

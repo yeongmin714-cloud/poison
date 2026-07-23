@@ -24,6 +24,24 @@
 
 ---
 
+### Phase 4.6.1 — Hybrid Animation Controller (Bridge) ✅ **2026-07-23**
+
+| # | 파일 | 설명 | 라인 | 상태 |
+|---|------|------|:----:|:----:|
+| 1 | `HybridAnimationController.cs` | Procedural + Neural 브리지, 가중 블렌딩, Policy Override, LOD | 716 | ✅ 컴파일 |
+| 2 | `PolicySelector.cs` | 정책 선택, 우선순위, Latent Space 보간, TransitionConfig | 1,070 | ✅ 컴파일 |
+| 3 | `ProceduralBoneMap.cs` | `GetAllBones()` 추가 (Neural Hybrid 호환) | 84 | ✅ |
+
+**기능:**
+- `proceduralWeight + neuralWeight = 1.0` enforced
+- SetPolicyOverride(PolicyType, bool) — Combat/React/Fly/Swim은 Neural 전용
+- LOD 통합: 거리 초과 시 neural weight 감소, procedural 증가
+- PolicySelector.SelectPolicy(): Combat > React > Fly/Swim > Mount > Climb > Locomotion > Interact
+- Latent space interpolation, TransitionConfig (blendDuration, curves)
+- NeuralAnimationController.RequestPolicySwitch() static event
+
+---
+
 ## 🎬 프로시저럴 애니메이션 시스템 (Full Procedural Animation) — 2026-07-18 ✅ **구축 완료**
 
 > **상태: 1~6단계 모두 99% 완료**
