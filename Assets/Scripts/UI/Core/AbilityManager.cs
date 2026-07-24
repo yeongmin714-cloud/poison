@@ -24,13 +24,13 @@ public class AbilityManager : MonoBehaviour
     public void UseAbility(string abilityName)
     {
         // Implementation for using abilities
-        Debug.Log("Ability used: " + abilityName);
+
     }
     
     public bool CanUseAbility(string abilityName)
     {
         // Implementation for checking if ability can be used
-        Debug.Log("Checking if ability can be used: " + abilityName);
+
         return true;
     }
 }
