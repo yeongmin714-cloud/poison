@@ -1,0 +1,74 @@
+{
+    "Assets/Scripts/UI/Core/UICore.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/UIManager.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/ToolTipManager.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/ThemeManager.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/SignalManager.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/ScreenManager.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/MessageSystem.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/LocalizationManager.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/IUIComponent.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/IDragDropHandler.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/ICanvasComponent.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/GameEventSystem.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/EventSystemManager.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/DragDropManager.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/ComponentManager.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/ColorPalette.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/CanvasController.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/AbilityManager.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/Transitions/TransitionManager.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/Transitions/ColorTransition.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/Transitions/PanelTransition.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/Transitions/TransitionType.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/Transitions/Transition.cs": {
+        "breaking_issues": []
+    },
+    "Assets/Scripts/UI/Core/Transitions/AnimatedPanel.cs": {
+        "breaking_issues": []
+    }
+}
