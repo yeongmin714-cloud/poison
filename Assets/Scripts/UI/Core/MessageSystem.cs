@@ -1,37 +1,26 @@
-using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
-using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class MessageSystem : MonoBehaviour
 {
-    private static MessageSystem instance;
-    public static MessageSystem Instance => instance;
-    
+    public static MessageSystem Instance { get; private set; }
+
     private void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
+            Instance = this;
+            DontDestroyOnLoad(this);
         }
         else
         {
             Destroy(gameObject);
         }
     }
-    
-    public void ShowMessage(string message)
+
+    public void SendMessage(string message)
     {
-        // Implementation for showing messages
-        // Add actual message display logic here
-        Debug.Log("Message shown: " + message);
-    }
-    
-    public void ShowMessage(string message, float duration)
-    {
-        // Implementation for showing messages with duration
-        // Add actual message display logic here
-        Debug.Log("Message shown: " + message + " for " + duration + " seconds");
+        // Implementation would go here
     }
 }

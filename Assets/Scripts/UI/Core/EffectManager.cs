@@ -1,38 +1,26 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
-namespace UI.Core
+public class EffectManager : MonoBehaviour
 {
-    public class EffectManager : MonoBehaviour
+    public static EffectManager Instance { get; private set; }
+
+    private void Awake()
     {
-        public static EffectManager Instance { get; private set; }
-
-        private void Awake()
+        if (Instance == null)
         {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            Instance = this;
+            DontDestroyOnLoad(this);
         }
-
-        public void PlayEffect(string effectName, Transform target)
+        else
         {
-            // Implementation for playing effects
+            Destroy(gameObject);
         }
+    }
 
-        public void PlayEffect(string effectName, Vector3 position)
-        {
-            // Implementation for playing effects at position
-        }
-
-        public void StopEffect(string effectName)
-        {
-            // Implementation for stopping effects
-        }
+    public void PlayEffect(string effectName)
+    {
+        // Implementation would go here
     }
 }

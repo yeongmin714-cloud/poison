@@ -1,13 +1,16 @@
-using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
-[System.Serializable]
-public class ColorPalette
+public class ColorPalette : MonoBehaviour
 {
     public Color primaryColor;
     public Color secondaryColor;
     public Color accentColor;
-    public Color backgroundColor;
-    public Color textColor;
+
+    public Color GetColor(string colorName)
+    {
+        // Implementation would go here
+        return Color.white;
+    }
 }

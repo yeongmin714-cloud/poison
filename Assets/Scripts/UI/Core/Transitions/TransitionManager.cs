@@ -1,34 +1,26 @@
-using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class TransitionManager : MonoBehaviour
 {
-    private static TransitionManager instance;
-    public static TransitionManager Instance => instance;
-    
+    public static TransitionManager Instance { get; private set; }
+
     private void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
+            Instance = this;
+            DontDestroyOnLoad(this);
         }
         else
         {
             Destroy(gameObject);
         }
     }
-    
-    public void PlayTransition(TransitionType type, float duration)
+
+    public void StartTransition(TransitionType type, float duration)
     {
-        // Implementation for playing transitions
-        Debug.Log("Playing transition: " + type + " for " + duration + " seconds");
-    }
-    
-    public void PlayTransition(Transition transition, float duration)
-    {
-        // Implementation for playing custom transitions
-        Debug.Log("Playing custom transition for " + duration + " seconds");
+        // Implementation would go here
     }
 }

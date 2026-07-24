@@ -1,47 +1,27 @@
-using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
-using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class LocalizationManager : MonoBehaviour
 {
-    private static LocalizationManager instance;
-    public static LocalizationManager Instance => instance;
-    
-    private Dictionary<string, string> localizedStrings = new Dictionary<string, string>();
-    
+    public static LocalizationManager Instance { get; private set; }
+
     private void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
+            Instance = this;
+            DontDestroyOnLoad(this);
         }
         else
         {
             Destroy(gameObject);
         }
     }
-    
-    public void LoadLocalizationData(string language)
-    {
-        // Implementation for loading localization data
-        // Add actual localization loading logic here
-        Debug.Log("Localization data loaded for language: " + language);
-    }
-    
+
     public string GetLocalizedString(string key)
     {
-        if (localizedStrings.TryGetValue(key, out string value))
-        {
-            return value;
-        }
-        return key;
-    }
-    
-    public void SetLocalizedString(string key, string value)
-    {
-        localizedStrings[key] = value;
-        Debug.Log("Localized string set: " + key);
+        // Implementation would go here
+        return "";
     }
 }

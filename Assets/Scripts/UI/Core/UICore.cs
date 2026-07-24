@@ -1,28 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class UICore : MonoBehaviour
 {
     public static UICore Instance { get; private set; }
-    
+
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            DontDestroyOnLoad(this);
         }
         else
         {
             Destroy(gameObject);
         }
-    }
-    
-    public void InitializeUI()
-    {
-        // Core UI initialization logic would go here
-        Debug.Log("UI Core Initialized");
     }
 }

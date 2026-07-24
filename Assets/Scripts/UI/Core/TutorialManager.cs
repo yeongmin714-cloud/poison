@@ -1,63 +1,26 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-namespace UI.Core
+public class TutorialManager : MonoBehaviour
 {
-    public class TutorialManager : MonoBehaviour
+    public static TutorialManager Instance { get; private set; }
+
+    private void Awake()
     {
-        public static TutorialManager Instance { get; private set; }
-
-        private Dictionary<string, TutorialStep> _tutorials = new Dictionary<string, TutorialStep>();
-
-        private void Awake()
+        if (Instance == null)
         {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            Instance = this;
+            DontDestroyOnLoad(this);
         }
-
-        public void StartTutorial(string tutorialName)
+        else
         {
-            if (_tutorials.TryGetValue(tutorialName, out TutorialStep tutorial))
-            {
-                tutorial.Start();
-            }
-        }
-
-        public void CompleteTutorial(string tutorialName)
-        {
-            if (_tutorials.TryGetValue(tutorialName, out TutorialStep tutorial))
-            {
-                tutorial.Complete();
-            }
-        }
-
-        public void RegisterTutorial(string name, TutorialStep tutorial)
-        {
-            _tutorials.Add(name, tutorial);
+            Destroy(gameObject);
         }
     }
 
-    public class TutorialStep
+    public void StartTutorial(string tutorialName)
     {
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public bool IsCompleted { get; private set; }
-
-        public void Start()
-        {
-            // Implementation for starting the tutorial step
-        }
-
-        public void Complete()
-        {
-            IsCompleted = true;
-        }
+        // Implementation would go here
     }
 }

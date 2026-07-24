@@ -1,48 +1,27 @@
-using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
-using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class ComponentManager : MonoBehaviour
 {
-    private static ComponentManager instance;
-    public static ComponentManager Instance => instance;
-    
-    private Dictionary<string, MonoBehaviour> components = new Dictionary<string, MonoBehaviour>();
-    
+    public static ComponentManager Instance { get; private set; }
+
     private void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
+            Instance = this;
+            DontDestroyOnLoad(this);
         }
         else
         {
             Destroy(gameObject);
         }
     }
-    
-    public void RegisterComponent(string name, MonoBehaviour component)
+
+    public T GetComponent<T>() where T : MonoBehaviour
     {
-        components[name] = component;
-        // Add actual component registration logic here
-        Debug.Log("Component registered: " + name);
-    }
-    
-    public T GetComponent<T>(string name) where T : MonoBehaviour
-    {
-        if (components.TryGetValue(name, out MonoBehaviour component))
-        {
-            return component as T;
-        }
+        // Implementation would go here
         return null;
-    }
-    
-    public void UnregisterComponent(string name)
-    {
-        components.Remove(name);
-        // Add actual component unregistration logic here
-        Debug.Log("Component unregistered: " + name);
     }
 }

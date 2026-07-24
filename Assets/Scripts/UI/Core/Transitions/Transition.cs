@@ -1,12 +1,11 @@
-using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class Transition : MonoBehaviour
 {
-    public virtual void Play(float duration)
+    public virtual void Play()
     {
-        // Base transition implementation
-        Debug.Log("Playing base transition for " + duration + " seconds");
+        // Base implementation
     }
 }

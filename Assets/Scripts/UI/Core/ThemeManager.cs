@@ -1,45 +1,26 @@
-using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
-using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class ThemeManager : MonoBehaviour
 {
-    private static ThemeManager instance;
-    public static ThemeManager Instance => instance;
-    
-    [SerializeField] private ColorPalette currentPalette;
-    
+    public static ThemeManager Instance { get; private set; }
+
     private void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
+            Instance = this;
+            DontDestroyOnLoad(this);
         }
         else
         {
             Destroy(gameObject);
         }
     }
-    
-    public void ApplyTheme(ColorPalette palette)
-    {
-        currentPalette = palette;
-        // Apply theme to UI elements
-        // Add actual theme application logic here
-        Debug.Log("Theme applied with palette: " + palette.name);
-    }
-    
-    public ColorPalette GetCurrentPalette()
-    {
-        return currentPalette;
-    }
-    
+
     public void ApplyTheme(string themeName)
     {
-        // Apply theme by name
-        // Add actual theme application logic here
-        Debug.Log("Theme applied: " + themeName);
+        // Implementation would go here
     }
 }

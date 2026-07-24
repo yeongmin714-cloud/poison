@@ -1,55 +1,27 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-namespace UI.Core
+public class Utils : MonoBehaviour
 {
-    public class Utils : MonoBehaviour
+    public static Utils Instance { get; private set; }
+
+    private void Awake()
     {
-        public static Utils Instance { get; private set; }
-
-        private void Awake()
+        if (Instance == null)
         {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            Instance = this;
+            DontDestroyOnLoad(this);
         }
-
-        public static T GetOrAddComponent<T>(GameObject go) where T : Component
+        else
         {
-            T component = go.GetComponent<T>();
-            if (component == null)
-            {
-                component = go.AddComponent<T>();
-            }
-            return component;
+            Destroy(gameObject);
         }
+    }
 
-        public static T GetComponentInHierarchy<T>(GameObject go) where T : Component
-        {
-            T component = go.GetComponent<T>();
-            if (component == null)
-            {
-                component = go.GetComponentInChildren<T>();
-            }
-            return component;
-        }
-
-        public static void DestroyImmediate(GameObject go)
-        {
-            if (Application.isPlaying)
-            {
-                Destroy(go);
-            }
-            else
-            {
-                DestroyImmediate(go);
-            }
-        }
+    public static Vector3 ClampVector3(Vector3 vector, float min, float max)
+    {
+        // Implementation would go here
+        return vector;
     }
 }

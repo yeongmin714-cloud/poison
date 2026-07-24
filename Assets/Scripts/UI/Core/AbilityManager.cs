@@ -1,36 +1,26 @@
-using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
-using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class AbilityManager : MonoBehaviour
 {
-    private static AbilityManager instance;
-    public static AbilityManager Instance => instance;
-    
+    public static AbilityManager Instance { get; private set; }
+
     private void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
+            Instance = this;
+            DontDestroyOnLoad(this);
         }
         else
         {
             Destroy(gameObject);
         }
     }
-    
+
     public void UseAbility(string abilityName)
     {
-        // Implementation for using abilities
-
-    }
-    
-    public bool CanUseAbility(string abilityName)
-    {
-        // Implementation for checking if ability can be used
-
-        return true;
+        // Implementation would go here
     }
 }

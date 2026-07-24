@@ -1,44 +1,26 @@
-using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
-using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class CanvasController : MonoBehaviour
 {
-    private static CanvasController instance;
-    public static CanvasController Instance => instance;
-    
-    private List<RectTransform> canvases = new List<RectTransform>();
-    
+    public static CanvasController Instance { get; private set; }
+
     private void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
+            Instance = this;
+            DontDestroyOnLoad(this);
         }
         else
         {
             Destroy(gameObject);
         }
     }
-    
-    public void RegisterCanvas(RectTransform canvas)
-    {
-        canvases.Add(canvas);
 
-    }
-    
-    public void UnregisterCanvas(RectTransform canvas)
+    public void SetCanvasActive(Canvas canvas, bool active)
     {
-        canvases.Remove(canvas);
-
-    }
-    
-    public void SetCanvasActive(RectTransform canvas, bool active)
-    {
-        // Implementation for setting canvas active
-        // Add actual canvas activation logic here
-
+        // Implementation would go here
     }
 }

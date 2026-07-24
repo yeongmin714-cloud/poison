@@ -1,37 +1,26 @@
-using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
-using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class SignalManager : MonoBehaviour
 {
-    private static SignalManager instance;
-    public static SignalManager Instance => instance;
-    
+    public static SignalManager Instance { get; private set; }
+
     private void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
+            Instance = this;
+            DontDestroyOnLoad(this);
         }
         else
         {
             Destroy(gameObject);
         }
     }
-    
-    public void SendSignal(string signalName)
+
+    public void SendSignal(string signal)
     {
-        // Implementation for sending signals
-        // Add actual signal sending logic here
-        Debug.Log("Signal sent: " + signalName);
-    }
-    
-    public void RegisterSignal(string signalName, System.Action handler)
-    {
-        // Implementation for registering signals
-        // Add actual signal registration logic here
-        Debug.Log("Signal registered: " + signalName);
+        // Implementation would go here
     }
 }

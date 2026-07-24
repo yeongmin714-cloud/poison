@@ -1,12 +1,16 @@
-using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class AnimatedPanel : MonoBehaviour
 {
-    public void AnimatePanel(float duration)
+    public void ShowPanel()
     {
-        // Implementation for animated panels
-        Debug.Log("Animating panel for " + duration + " seconds");
+        // Implementation would go here
+    }
+    
+    public void HidePanel()
+    {
+        // Implementation would go here
     }
 }
