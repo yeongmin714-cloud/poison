@@ -55,7 +55,7 @@ unity_cleanup() {
 # Function to get allowed basenames from ModelMapping.cs
 # Fixed version as suggested in the skill
 get_allowed_basenames() {
-    grep -o '{\"[^"]*' "$MODEL_MAPPING_CS" |
+    grep -o '{\"[^\"]*' "$MODEL_MAPPING_CS" |
         sed 's/{\"//' |
         tr '[:upper:]' '[:lower:]' |
         sort | uniq
@@ -94,7 +94,7 @@ main() {
     
     # Step 2: Get list of GLB files in UserProvided
     user_provided_dir="/mnt/c/Unity/code/Assets/Resources/Models/UserProvided"
-    mapfile -t glb_files < <(find "$user_provided_dir" -maxdepth 1 -name '*.glb' -type f)
+    mapfile -t glb_files < <(find "$user_provided_dir" -name '*.glb' -type f)
     log "Found ${#glb_files[@]} GLB file(s) in UserProvided."
     
     if [[ ${#glb_files[@]} -eq 0 ]]; then
@@ -138,12 +138,14 @@ main() {
         "$UNITY_EDITOR" -quit -batchmode -projectPath "$PROJECT_PATH_WIN" -executeMethod TestCompile.CompileTest -logFile "$COMPILE_LOG_WIN" || true
         compile_exit=$?
         
-        # Check compile log for errors
-        if grep -i "error cs" "$COMPILE_LOG" >/dev/null 2>&1; then
-            log "  -> Compiler errors found in $COMPILE_LOG. Skipping swap."
-            # Continue to next file
-            continue
-        fi
+        # Check compile log for errors (including Unity instance conflicts)
+                if grep -i "error cs" "$COMPILE_LOG" >/dev/null 2>&1 ||
+                   grep -i "another unity instance is running" "$COMPILE_LOG" >/dev/null 2>&1 ||
+                   grep -i "failed to acquire global mutex" "$COMPILE_LOG" >/dev/null 2>&1; then
+                    log "  -> Compiler errors or Unity conflicts found in $COMPILE_LOG. Skipping swap."
+                    # Continue to next file
+                    continue
+                fi
         
         # If we get here, compile test passed (no error CS and no Unity conflicts)
         log "  -> Compile test passed (no error CS)."
@@ -158,6 +160,7 @@ main() {
             # Additionally, ensure no Unity errors
             if ! grep -i "another unity instance is running" "$SWAP_LOG" >/dev/null 2>&1 && ! grep -i "failed to acquire global mutex" "$SWAP_LOG" >/dev/null 2>&1; then
                 log "  -> Swap successful."
+                # Add to state file
                 add_to_state "$basename_lower"
                 ((processed_count++))
             else
