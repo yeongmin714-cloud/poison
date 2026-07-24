@@ -20,8 +20,18 @@ from typing import Dict, Any, List, Tuple
 try:
     import onnx
     from onnx import helper, TensorProto
-    import onnx.mapping as onnx_mapping
-    NP_TYPE_TO_TENSOR_TYPE = onnx_mapping.NP_TYPE_TO_TENSOR_TYPE
+    import onnx.numpy_helper as np_helper
+    # NP_TYPE_TO_TENSOR_TYPE is in helper in newer onnx versions
+    try:
+        from onnx.helper import np_dtype_to_tensor_dtype
+        def _dtype_lookup(d):
+            result = np_dtype_to_tensor_dtype(d)
+            if result is not None:
+                return result
+            return TensorProto.FLOAT
+    except ImportError:
+        def _dtype_lookup(d):
+            return TensorProto.FLOAT
     HAS_ONNX = True
 except ImportError:
     HAS_ONNX = False
@@ -29,7 +39,7 @@ except ImportError:
 
 def _make_tensor(name: str, data: np.ndarray) -> TensorProto:
     """Create an ONNX TensorProto from a numpy array."""
-    dtype = NP_TYPE_TO_TENSOR_TYPE[data.dtype]
+    dtype = _dtype_lookup(data.dtype)
     dims = list(data.shape)
     return helper.make_tensor(name, dtype, dims, data.tobytes(), raw=True)
 
@@ -121,8 +131,9 @@ def export_onnx_manual(
     # ── Hidden layers ────────────────────────────────────────────────────
     current_input = "flat_input"
     for i, (h_in, h_out) in enumerate(zip([obs_dim] + hidden_sizes[:-1], hidden_sizes)):
-        w_key = f"trunk.{i}.weight"
-        b_key = f"trunk.{i}.bias"
+        idx = i * 2  # trunk.0, trunk.2, trunk.4 (Tanh layers take trunk.1, trunk.3, trunk.5)
+        w_key = f"trunk.{idx}.weight"
+        b_key = f"trunk.{idx}.bias"
 
         w = weights[w_key]  # shape: [h_out, h_in]
         b = weights[b_key]  # shape: [h_out]
@@ -149,11 +160,19 @@ def export_onnx_manual(
     w_mean = weights["mean_head.weight"]  # shape: [act_dim, h3]
     b_mean = weights["mean_head.bias"]    # shape: [act_dim]
 
-    mean_node, w_mean_t, b_mean_t, mean_out = _make_gemm_node(
-        "gemm_mean", current_input, w_mean, b_mean, trans_b=True
+    # Last Gemm outputs directly to "action" (matches output name)
+    w_mean_t = _make_tensor("gemm_mean_w", w_mean)
+    b_mean_t = _make_tensor("gemm_mean_b", b_mean)
+    tensors.extend([w_mean_t, b_mean_t])
+
+    mean_node = helper.make_node(
+        "Gemm",
+        inputs=[current_input, "gemm_mean_w", "gemm_mean_b"],
+        outputs=["action"],
+        name="gemm_mean",
+        alpha=1.0, beta=1.0, transB=1
     )
     nodes.append(mean_node)
-    tensors.extend([w_mean_t, b_mean_t])
 
     # Output: "action" shape [1, act_dim]
     action_type = helper.make_tensor_value_info("action", TensorProto.FLOAT,
@@ -173,7 +192,7 @@ def export_onnx_manual(
     model = helper.make_model(graph, opset_imports=[
         helper.make_opsetid("", opset_version)
     ])
-    model.ir_version = onnx.IR_VERSION_2023_05  # Latest stable
+    model.ir_version = onnx.IR_VERSION
 
     # ── Save ─────────────────────────────────────────────────────────────
     onnx.save(model, output_path)
