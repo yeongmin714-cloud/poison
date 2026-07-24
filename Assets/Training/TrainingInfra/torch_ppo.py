@@ -285,7 +285,7 @@ class RolloutBuffer:
         self.observations[idx] = torch.from_numpy(obs.astype(np.float32)).to(self.device)
         self.actions[idx] = torch.from_numpy(action.astype(np.float32)).to(self.device)
         self.log_probs[idx] = log_prob
-        self.rewards[idx] = reward
+        self.rewards[idx] = float(reward)
         self.dones[idx] = 1.0 if done else 0.0
         self.values[idx] = value
         self.pos += 1
