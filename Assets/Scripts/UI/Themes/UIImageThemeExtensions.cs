@@ -51,7 +51,7 @@ namespace ProjectName.UI
                 theme.name = "MedievalTheme_Generated";
                 window.ApplyTheme(theme);
                 // Debug.Log($"[UIImageThemeExtensions] Created temporary UIDesignTheme for {window.name}. " +
-                          "Consider assigning a theme in the Inspector for persistent configuration.");
+                          // "Consider assigning a theme in the Inspector for persistent configuration.");
             }
 
             // Store medieval config on the theme
@@ -59,7 +59,7 @@ namespace ProjectName.UI
             theme.SetMedievalBackgroundTexture(bgType);
 
             // Debug.Log($"[UIImageThemeExtensions] Applied medieval theme to '{window.name}': " +
-                  $"panelType={panelType}, bgType={bgType}");
+                  // $"panelType={panelType}, bgType={bgType}");
         }
     }
 }
