@@ -23,4 +23,9 @@ public class TransitionManager : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void StopTransition()
+    {
+        // Implementation would go here
+    }
 }

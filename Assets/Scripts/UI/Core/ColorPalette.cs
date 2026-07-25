@@ -13,4 +13,9 @@ public class ColorPalette : MonoBehaviour
         // Implementation would go here
         return Color.white;
     }
+    
+    public void SetColor(string colorName, Color color)
+    {
+        // Implementation would go here
+    }
 }

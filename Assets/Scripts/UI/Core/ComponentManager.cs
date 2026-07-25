@@ -24,4 +24,9 @@ public class ComponentManager : MonoBehaviour
         // Implementation would go here
         return null;
     }
+    
+    public void AddComponent<T>(T component) where T : MonoBehaviour
+    {
+        // Implementation would go here
+    }
 }

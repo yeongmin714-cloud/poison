@@ -8,4 +8,9 @@ public class Transition : MonoBehaviour
     {
         // Base implementation
     }
+    
+    public virtual void Stop()
+    {
+        // Base implementation
+    }
 }

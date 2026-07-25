@@ -23,4 +23,9 @@ public class EventSystemManager : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void UnregisterEvent(string eventName, System.Action callback)
+    {
+        // Implementation would go here
+    }
 }

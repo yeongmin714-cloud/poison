@@ -8,4 +8,9 @@ public class PanelTransition : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void AnimatePanelWithEase(Transform panel, Vector3 startPosition, Vector3 endPosition, float duration, AnimationCurve curve)
+    {
+        // Implementation would go here
+    }
 }

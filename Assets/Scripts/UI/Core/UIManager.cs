@@ -23,4 +23,14 @@ public class UIManager : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void ShowUI(string uiName)
+    {
+        // Implementation would go here
+    }
+    
+    public void HideUI(string uiName)
+    {
+        // Implementation would go here
+    }
 }

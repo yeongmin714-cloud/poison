@@ -23,4 +23,9 @@ public class EffectManager : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void StopEffect(string effectName)
+    {
+        // Implementation would go here
+    }
 }

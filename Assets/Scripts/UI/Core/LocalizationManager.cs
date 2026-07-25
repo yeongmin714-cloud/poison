@@ -24,4 +24,9 @@ public class LocalizationManager : MonoBehaviour
         // Implementation would go here
         return "";
     }
+    
+    public void LoadLocalization(string language)
+    {
+        // Implementation would go here
+    }
 }

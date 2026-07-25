@@ -13,4 +13,14 @@ public class AnimatedPanel : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void FadeIn(float duration)
+    {
+        // Implementation would go here
+    }
+    
+    public void FadeOut(float duration)
+    {
+        // Implementation would go here
+    }
 }

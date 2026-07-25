@@ -18,4 +18,9 @@ public class UICore : MonoBehaviour
             Destroy(gameObject);
         }
     }
+    
+    public void Initialize()
+    {
+        // Initialization logic here
+    }
 }

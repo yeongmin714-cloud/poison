@@ -23,4 +23,9 @@ public class GameEventSystem : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void SubscribeEvent(string eventName, System.Action callback)
+    {
+        // Implementation would go here
+    }
 }

@@ -23,4 +23,9 @@ public class SignalManager : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void RegisterSignal(string signal, System.Action callback)
+    {
+        // Implementation would go here
+    }
 }

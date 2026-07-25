@@ -8,4 +8,9 @@ public class ColorTransition : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void FadeToColor(Color targetColor, float duration)
+    {
+        // Implementation would go here
+    }
 }

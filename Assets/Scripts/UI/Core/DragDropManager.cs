@@ -23,4 +23,9 @@ public class DragDropManager : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void EndDrag()
+    {
+        // Implementation would go here
+    }
 }

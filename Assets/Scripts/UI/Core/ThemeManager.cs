@@ -23,4 +23,9 @@ public class ThemeManager : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void LoadTheme(string themePath)
+    {
+        // Implementation would go here
+    }
 }

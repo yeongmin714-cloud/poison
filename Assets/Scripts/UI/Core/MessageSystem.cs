@@ -23,4 +23,9 @@ public class MessageSystem : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void BroadcastMessage(string message)
+    {
+        // Implementation would go here
+    }
 }

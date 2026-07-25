@@ -24,4 +24,10 @@ public class Utils : MonoBehaviour
         // Implementation would go here
         return vector;
     }
+    
+    public static float Clamp(float value, float min, float max)
+    {
+        // Implementation would go here
+        return value;
+    }
 }

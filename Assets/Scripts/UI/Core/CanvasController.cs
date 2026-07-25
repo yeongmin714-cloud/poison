@@ -23,4 +23,9 @@ public class CanvasController : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void SetCanvasSortingOrder(Canvas canvas, int sortingOrder)
+    {
+        // Implementation would go here
+    }
 }

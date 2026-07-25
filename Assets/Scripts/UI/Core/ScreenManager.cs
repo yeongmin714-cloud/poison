@@ -23,4 +23,9 @@ public class ScreenManager : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void SwitchScreen(string fromScreen, string toScreen)
+    {
+        // Implementation would go here
+    }
 }

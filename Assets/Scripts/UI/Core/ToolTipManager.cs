@@ -23,4 +23,9 @@ public class ToolTipManager : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void HideToolTip()
+    {
+        // Implementation would go here
+    }
 }

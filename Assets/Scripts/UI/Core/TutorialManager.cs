@@ -23,4 +23,9 @@ public class TutorialManager : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void SkipTutorial()
+    {
+        // Implementation would go here
+    }
 }

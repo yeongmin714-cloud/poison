@@ -23,4 +23,9 @@ public class AbilityManager : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    public void UnlockAbility(string abilityName)
+    {
+        // Implementation would go here
+    }
 }
