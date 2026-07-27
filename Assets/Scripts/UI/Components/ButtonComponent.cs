@@ -20,4 +20,12 @@ public class ButtonComponent : MonoBehaviour, IUIComponent
     {
         // Button click implementation
     }
+    
+    /// <summary>
+    /// Sets button interactivity state
+    /// </summary>
+    public void SetInteractable(bool interactable)
+    {
+        // Implementation would go here
+    }
 }

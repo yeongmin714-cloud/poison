@@ -5,7 +5,7 @@ using UnityEngine;
 public class LocalizationManager : MonoBehaviour
 {
     public static LocalizationManager Instance { get; private set; }
-
+    
     private void Awake()
     {
         if (Instance == null)
@@ -18,7 +18,7 @@ public class LocalizationManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
+    
     public string GetLocalizedString(string key)
     {
         // Implementation would go here
@@ -28,5 +28,14 @@ public class LocalizationManager : MonoBehaviour
     public void LoadLocalization(string language)
     {
         // Implementation would go here
+    }
+    
+    /// <summary>
+    /// Gets current language
+    /// </summary>
+    public string GetCurrentLanguage()
+    {
+        // Implementation would go here
+        return string.Empty;
     }
 }

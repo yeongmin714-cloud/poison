@@ -8,7 +8,7 @@ using UnityEngine;
 public class TransitionManager : MonoBehaviour
 {
     public static TransitionManager Instance { get; private set; }
-
+    
     private void Awake()
     {
         if (Instance == null)
@@ -21,7 +21,7 @@ public class TransitionManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
+    
     /// <summary>
     /// Starts a transition with the specified type and duration
     /// </summary>
@@ -36,6 +36,14 @@ public class TransitionManager : MonoBehaviour
     /// Stops the current transition
     /// </summary>
     public void StopTransition()
+    {
+        // Implementation would go here
+    }
+    
+    /// <summary>
+    /// Pauses the current transition
+    /// </summary>
+    public void PauseTransition()
     {
         // Implementation would go here
     }

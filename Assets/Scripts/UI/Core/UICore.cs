@@ -8,7 +8,7 @@ using UnityEngine;
 public class UICore : MonoBehaviour
 {
     public static UICore Instance { get; private set; }
-
+    
     private void Awake()
     {
         if (Instance == null)
@@ -28,5 +28,13 @@ public class UICore : MonoBehaviour
     public void Initialize()
     {
         // Initialization logic here
+    }
+    
+    /// <summary>
+    /// Cleans up the UI core system
+    /// </summary>
+    public void Cleanup()
+    {
+        // Cleanup logic here
     }
 }

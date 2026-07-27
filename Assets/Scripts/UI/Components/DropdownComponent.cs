@@ -20,4 +20,12 @@ public class DropdownComponent : MonoBehaviour, IUIComponent
     {
         // Dropdown value changed implementation
     }
+    
+    /// <summary>
+    /// Sets dropdown options
+    /// </summary>
+    public void SetOptions(string[] options)
+    {
+        // Implementation would go here
+    }
 }

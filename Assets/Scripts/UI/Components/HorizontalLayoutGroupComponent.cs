@@ -15,4 +15,12 @@ public class HorizontalLayoutGroupComponent : MonoBehaviour, IUIComponent
     {
         // Cleanup logic
     }
+    
+    /// <summary>
+    /// Sets spacing between elements
+    /// </summary>
+    public void SetSpacing(float spacing)
+    {
+        // Implementation would go here
+    }
 }

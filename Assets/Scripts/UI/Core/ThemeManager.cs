@@ -5,7 +5,7 @@ using UnityEngine;
 public class ThemeManager : MonoBehaviour
 {
     public static ThemeManager Instance { get; private set; }
-
+    
     private void Awake()
     {
         if (Instance == null)
@@ -18,13 +18,21 @@ public class ThemeManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
+    
     public void ApplyTheme(string themeName)
     {
         // Implementation would go here
     }
     
     public void LoadTheme(string themePath)
+    {
+        // Implementation would go here
+    }
+    
+    /// <summary>
+    /// Saves current theme settings
+    /// </summary>
+    public void SaveThemeSettings()
     {
         // Implementation would go here
     }

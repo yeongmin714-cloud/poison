@@ -20,4 +20,12 @@ public class InputFieldComponent : MonoBehaviour, IUIComponent
     {
         // Input field value changed implementation
     }
+    
+    /// <summary>
+    /// Sets input field text
+    /// </summary>
+    public void SetText(string text)
+    {
+        // Implementation would go here
+    }
 }

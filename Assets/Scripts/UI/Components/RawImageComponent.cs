@@ -20,4 +20,12 @@ public class RawImageComponent : MonoBehaviour, IUIComponent
     {
         // Set texture implementation
     }
+    
+    /// <summary>
+    /// Sets raw image color
+    /// </summary>
+    public void SetColor(Color color)
+    {
+        // Implementation would go here
+    }
 }

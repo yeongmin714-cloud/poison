@@ -16,4 +16,9 @@ public interface IUIComponent
     /// Cleans up the UI component
     /// </summary>
     void Cleanup();
+    
+    /// <summary>
+    /// Updates the UI component
+    /// </summary>
+    void UpdateComponent();
 }

@@ -25,4 +25,12 @@ public class TooltipTriggerComponent : MonoBehaviour, IUIComponent
     {
         // Pointer exit implementation
     }
+    
+    /// <summary>
+    /// Sets tooltip text
+    /// </summary>
+    public void SetTooltipText(string text)
+    {
+        // Implementation would go here
+    }
 }

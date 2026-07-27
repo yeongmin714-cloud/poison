@@ -20,4 +20,12 @@ public class ImageComponent : MonoBehaviour, IUIComponent
     {
         // Set image implementation
     }
+    
+    /// <summary>
+    /// Sets image color
+    /// </summary>
+    public void SetColor(Color color)
+    {
+        // Implementation would go here
+    }
 }

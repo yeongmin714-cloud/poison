@@ -5,7 +5,7 @@ using UnityEngine;
 public class DragDropManager : MonoBehaviour
 {
     public static DragDropManager Instance { get; private set; }
-
+    
     private void Awake()
     {
         if (Instance == null)
@@ -18,13 +18,21 @@ public class DragDropManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
+    
     public void StartDrag(GameObject draggedObject)
     {
         // Implementation would go here
     }
     
     public void EndDrag()
+    {
+        // Implementation would go here
+    }
+    
+    /// <summary>
+    /// Cancels current drag operation
+    /// </summary>
+    public void CancelDrag()
     {
         // Implementation would go here
     }

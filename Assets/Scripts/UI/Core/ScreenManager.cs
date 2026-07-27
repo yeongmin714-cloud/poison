@@ -5,7 +5,7 @@ using UnityEngine;
 public class ScreenManager : MonoBehaviour
 {
     public static ScreenManager Instance { get; private set; }
-
+    
     private void Awake()
     {
         if (Instance == null)
@@ -18,7 +18,7 @@ public class ScreenManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
+    
     public void SetScreen(string screenName)
     {
         // Implementation would go here
@@ -27,5 +27,14 @@ public class ScreenManager : MonoBehaviour
     public void SwitchScreen(string fromScreen, string toScreen)
     {
         // Implementation would go here
+    }
+    
+    /// <summary>
+    /// Gets current screen name
+    /// </summary>
+    public string GetCurrentScreen()
+    {
+        // Implementation would go here
+        return string.Empty;
     }
 }

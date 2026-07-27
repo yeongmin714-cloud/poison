@@ -7,7 +7,7 @@ public class ColorPalette : MonoBehaviour
     public Color primaryColor;
     public Color secondaryColor;
     public Color accentColor;
-
+    
     public Color GetColor(string colorName)
     {
         // Implementation would go here
@@ -17,5 +17,14 @@ public class ColorPalette : MonoBehaviour
     public void SetColor(string colorName, Color color)
     {
         // Implementation would go here
+    }
+    
+    /// <summary>
+    /// Gets all colors in palette
+    /// </summary>
+    public Dictionary<string, Color> GetAllColors()
+    {
+        // Implementation would go here
+        return new Dictionary<string, Color>();
     }
 }

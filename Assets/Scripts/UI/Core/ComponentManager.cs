@@ -5,7 +5,7 @@ using UnityEngine;
 public class ComponentManager : MonoBehaviour
 {
     public static ComponentManager Instance { get; private set; }
-
+    
     private void Awake()
     {
         if (Instance == null)
@@ -18,7 +18,7 @@ public class ComponentManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
+    
     public T GetComponent<T>() where T : MonoBehaviour
     {
         // Implementation would go here
@@ -26,6 +26,14 @@ public class ComponentManager : MonoBehaviour
     }
     
     public void AddComponent<T>(T component) where T : MonoBehaviour
+    {
+        // Implementation would go here
+    }
+    
+    /// <summary>
+    /// Removes a component
+    /// </summary>
+    public void RemoveComponent<T>(T component) where T : MonoBehaviour
     {
         // Implementation would go here
     }

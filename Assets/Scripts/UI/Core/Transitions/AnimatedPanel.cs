@@ -23,4 +23,12 @@ public class AnimatedPanel : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    /// <summary>
+    /// Animates panel rotation
+    /// </summary>
+    public void AnimatePanelRotation(Transform panel, Quaternion startRotation, Quaternion endRotation, float duration)
+    {
+        // Implementation would go here
+    }
 }

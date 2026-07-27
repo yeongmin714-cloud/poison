@@ -13,4 +13,12 @@ public class ColorTransition : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    /// <summary>
+    /// Fades to transparent
+    /// </summary>
+    public void FadeToTransparent(float duration)
+    {
+        // Implementation would go here
+    }
 }

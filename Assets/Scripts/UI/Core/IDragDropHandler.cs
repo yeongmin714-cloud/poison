@@ -6,4 +6,9 @@ public interface IDragDropHandler
 {
     void OnDragStart();
     void OnDragEnd();
+    
+    /// <summary>
+    /// Handles drag drop event
+    /// </summary>
+    void OnDrop();
 }

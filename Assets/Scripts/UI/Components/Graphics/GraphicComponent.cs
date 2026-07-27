@@ -15,4 +15,12 @@ public class GraphicComponent : MonoBehaviour, IUIComponent
     {
         // Cleanup logic
     }
+    
+    /// <summary>
+    /// Sets graphic color
+    /// </summary>
+    public void SetColor(Color color)
+    {
+        // Implementation would go here
+    }
 }

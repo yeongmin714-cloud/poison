@@ -20,4 +20,12 @@ public class ButtonClickComponent : MonoBehaviour, IUIComponent
     {
         // Click implementation
     }
+    
+    /// <summary>
+    /// Sets button color
+    /// </summary>
+    public void SetButtonColor(Color color)
+    {
+        // Implementation would go here
+    }
 }

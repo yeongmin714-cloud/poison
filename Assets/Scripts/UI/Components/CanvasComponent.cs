@@ -15,4 +15,12 @@ public class CanvasComponent : MonoBehaviour, IUIComponent
     {
         // Cleanup logic
     }
+    
+    /// <summary>
+    /// Sets canvas render mode
+    /// </summary>
+    public void SetRenderMode(CanvasRenderMode renderMode)
+    {
+        // Implementation would go here
+    }
 }

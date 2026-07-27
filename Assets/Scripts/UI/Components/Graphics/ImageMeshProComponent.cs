@@ -15,4 +15,12 @@ public class ImageMeshProComponent : MonoBehaviour, IUIComponent
     {
         // Cleanup logic
     }
+    
+    /// <summary>
+    /// Sets text content
+    /// </summary>
+    public void SetText(string text)
+    {
+        // Implementation would go here
+    }
 }

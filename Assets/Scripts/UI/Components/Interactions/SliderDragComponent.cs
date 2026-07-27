@@ -30,4 +30,12 @@ public class SliderDragComponent : MonoBehaviour, IUIComponent
     {
         // Drag ended implementation
     }
+    
+    /// <summary>
+    /// Sets slider value
+    /// </summary>
+    public void SetValue(float value)
+    {
+        // Implementation would go here
+    }
 }

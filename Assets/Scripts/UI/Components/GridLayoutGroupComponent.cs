@@ -15,4 +15,12 @@ public class GridLayoutGroupComponent : MonoBehaviour, IUIComponent
     {
         // Cleanup logic
     }
+    
+    /// <summary>
+    /// Sets grid cell size
+    /// </summary>
+    public void SetCellSize(Vector2 size)
+    {
+        // Implementation would go here
+    }
 }

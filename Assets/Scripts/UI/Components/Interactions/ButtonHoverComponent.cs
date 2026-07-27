@@ -27,4 +27,12 @@ public class ButtonHoverComponent : MonoBehaviour, IUIComponent
     {
         // Hover exit implementation
     }
+    
+    /// <summary>
+    /// Sets button colors
+    /// </summary>
+    public void SetColors(Color normal, Color hover)
+    {
+        // Implementation would go here
+    }
 }

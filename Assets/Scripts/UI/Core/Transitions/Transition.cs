@@ -13,4 +13,12 @@ public class Transition : MonoBehaviour
     {
         // Base implementation
     }
+    
+    /// <summary>
+    /// Updates transition state
+    /// </summary>
+    public virtual void UpdateTransition()
+    {
+        // Base implementation
+    }
 }

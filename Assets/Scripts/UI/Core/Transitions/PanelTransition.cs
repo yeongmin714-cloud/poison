@@ -13,4 +13,12 @@ public class PanelTransition : MonoBehaviour
     {
         // Implementation would go here
     }
+    
+    /// <summary>
+    /// Animates panel scale
+    /// </summary>
+    public void AnimatePanelScale(Transform panel, Vector3 startScale, Vector3 endScale, float duration)
+    {
+        // Implementation would go here
+    }
 }

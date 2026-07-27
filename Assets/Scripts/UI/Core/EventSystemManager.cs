@@ -5,7 +5,7 @@ using UnityEngine;
 public class EventSystemManager : MonoBehaviour
 {
     public static EventSystemManager Instance { get; private set; }
-
+    
     private void Awake()
     {
         if (Instance == null)
@@ -18,13 +18,21 @@ public class EventSystemManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
+    
     public void RegisterEvent(string eventName, System.Action callback)
     {
         // Implementation would go here
     }
     
     public void UnregisterEvent(string eventName, System.Action callback)
+    {
+        // Implementation would go here
+    }
+    
+    /// <summary>
+    /// Clears all registered events
+    /// </summary>
+    public void ClearEvents()
     {
         // Implementation would go here
     }

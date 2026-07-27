@@ -5,7 +5,7 @@ using UnityEngine;
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance { get; private set; }
-
+    
     private void Awake()
     {
         if (Instance == null)
@@ -18,7 +18,7 @@ public class UIManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
+    
     public void InitializeUI()
     {
         // Implementation would go here
@@ -30,6 +30,14 @@ public class UIManager : MonoBehaviour
     }
     
     public void HideUI(string uiName)
+    {
+        // Implementation would go here
+    }
+    
+    /// <summary>
+    /// Hides all UI elements
+    /// </summary>
+    public void HideAllUI()
     {
         // Implementation would go here
     }

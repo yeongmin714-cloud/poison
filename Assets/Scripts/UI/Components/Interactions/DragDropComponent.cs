@@ -30,4 +30,12 @@ public class DragDropComponent : MonoBehaviour, IUIComponent, IDragDropHandler
     {
         // Drag end implementation
     }
+    
+    /// <summary>
+    /// Sets drag constraints
+    /// </summary>
+    public void SetConstraints(Vector2 minPos, Vector2 maxPos)
+    {
+        // Implementation would go here
+    }
 }
