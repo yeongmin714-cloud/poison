@@ -6,13 +6,30 @@ namespace Game.UI.Utils
 {
     public static class ColorUtils
     {
-        public static Color IntToColor(int colorInt)
+        public static Color GetRandomColor()
         {
-            return new Color(
-                ((colorInt >> 16) & 0xFF) / 255f,
-                ((colorInt >> 8) & 0xFF) / 255f,
-                (colorInt & 0xFF) / 255f
-            );
+            return new Color(Random.value, Random.value, Random.value);
+        }
+        
+        public static Color GetColorFromHex(string hexCode)
+        {
+            if(hexCode.StartsWith("#"))
+                hexCode = hexCode.Substring(1);
+                
+            if(ColorUtility.TryParseHtmlString("#" + hexCode, out Color color))
+            {
+                return color;
+            }
+            
+            return Color.white;
+        }
+        
+        public static Color GetColorWithAlpha(Color baseColor, float alpha)
+        {
+            return new Color(baseColor.r, baseColor.g, baseColor.b, alpha);
+        }
+    }
+}
         }
     }
 }

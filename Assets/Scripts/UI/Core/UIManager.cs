@@ -10,9 +10,17 @@ namespace Game.UI.Core
         
         public void Initialize()
         {
-            foreach(var element in uiElements)
+            if(uiElements != null)
             {
-                element.SetActive(true);
+                foreach(var element in uiElements)
+                {
+                    if(element != null)
+                        element.SetActive(true);
+                }
+            }
+            else
+            {
+                Debug.LogWarning("UIElements list is null in UIManager");
             }
         }
     }

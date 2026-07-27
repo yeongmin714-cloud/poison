@@ -7,10 +7,27 @@ namespace Game.UI.Core
     public class ToolTipManager : MonoBehaviour
     {
         [SerializeField] private GameObject tooltipPrefab;
+        private Dictionary<string, GameObject> tooltips;
         
-        public void ShowTooltip(string text)
+        public void Initialize()
         {
-            // Implementation would instantiate tooltip
+            tooltips = new Dictionary<string, GameObject>();
+        }
+        
+        public void ShowTooltip(string tooltipId)
+        {
+            if(tooltips.ContainsKey(tooltipId))
+            {
+                tooltips[tooltipId].SetActive(true);
+            }
+        }
+        
+        public void HideTooltip(string tooltipId)
+        {
+            if(tooltips.ContainsKey(tooltipId))
+            {
+                tooltips[tooltipId].SetActive(false);
+            }
         }
     }
 }

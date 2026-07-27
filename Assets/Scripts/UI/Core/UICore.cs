@@ -10,7 +10,14 @@ namespace Game.UI.Core
         
         public void Initialize()
         {
-            uiManager.Initialize();
+            if (uiManager != null)
+            {
+                uiManager.Initialize();
+            }
+            else
+            {
+                Debug.LogError("UIManager reference is missing in UICore");
+            }
         }
     }
 }

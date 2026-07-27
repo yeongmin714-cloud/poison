@@ -8,10 +8,23 @@ namespace Game.UI.Effects
     {
         [SerializeField] private AudioClip audioClip;
         [SerializeField] private AudioSource audioSource;
+        [SerializeField] private bool loopSound = false;
         
         public override void ApplyEffect()
         {
-            audioSource.PlayOneShot(audioClip);
+            if(audioSource != null && audioClip != null)
+            {
+                audioSource.loop = loopSound;
+                audioSource.PlayOneShot(audioClip);
+            }
+        }
+        
+        public void StopEffect()
+        {
+            if(audioSource != null)
+            {
+                audioSource.Stop();
+            }
         }
     }
 }
