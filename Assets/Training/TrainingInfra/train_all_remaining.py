@@ -63,7 +63,7 @@ def send_telegram(message: str):
     except Exception as e:
         print(f"Failed to send telegram: {e}")
 
-def find_latest_checkpoint(avatar_type: str, policy_type: str) -> str:
+def find_latest_checkpoint(avatar_type: str, policy_type: str) -> str | None:
     """Find the latest checkpoint for a model."""
     prefix = f"{avatar_type}_{policy_type}_policy"
     checkpoints = list(Path(CHECKPOINT_DIR).glob(f"{prefix}_epoch*.pt"))
@@ -137,9 +137,11 @@ def train_model(avatar_type: str, policy_type: str, target_epochs: int, current_
             return False
             
     except subprocess.TimeoutExpired:
+        elapsed = time.time() - start_time
         print(f"  ✗ TIMEOUT after {elapsed/60:.1f} minutes")
         return False
     except Exception as e:
+        elapsed = time.time() - start_time if 'start_time' in locals() else 0
         print(f"  ✗ ERROR: {e}")
         return False
 
