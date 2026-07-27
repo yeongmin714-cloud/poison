@@ -9,6 +9,10 @@ namespace Game.UI.Core.Transitions
         public void PlayTransition(Transition transition)
         {
             // Implementation would play transitions
+            if (transition != null)
+            {
+                transition.PerformTransition();
+            }
         }
     }
 }

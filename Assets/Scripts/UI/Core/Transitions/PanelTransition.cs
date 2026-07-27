@@ -11,6 +11,7 @@ namespace Game.UI.Core.Transitions
         public override void PerformTransition()
         {
             // Implementation for panel transition
+            Debug.Log("Performing panel transition");
         }
     }
 }

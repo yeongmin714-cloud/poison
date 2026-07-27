@@ -12,6 +12,11 @@ namespace Game.UI.Core.Transitions
         public void AnimateOpen()
         {
             // Implementation for animated open
+            if (rectTransform != null)
+            {
+                // Add animation logic here
+                rectTransform.gameObject.SetActive(true);
+            }
         }
     }
 }

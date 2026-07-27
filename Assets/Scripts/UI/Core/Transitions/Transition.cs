@@ -10,5 +10,10 @@ namespace Game.UI.Core.Transitions
         [SerializeField] private float duration;
         
         public abstract void PerformTransition();
+        
+        protected virtual void Start()
+        {
+            // Base initialization if needed
+        }
     }
 }

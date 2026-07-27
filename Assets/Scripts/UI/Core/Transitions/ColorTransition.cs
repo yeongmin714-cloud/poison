@@ -11,6 +11,7 @@ namespace Game.UI.Core.Transitions
         public override void PerformTransition()
         {
             // Implementation for color transition
+            Debug.Log("Performing color transition to: " + targetColor);
         }
     }
 }
