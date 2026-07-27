@@ -1,0 +1,148 @@
+{
+  "timestamp": "2026-07-28T02:34:41.564635",
+  "total_time_hours": 15.97145801729626,
+  "successful": 18,
+  "total": 20,
+  "results": [
+    {
+      "avatar_type": "biped",
+      "policy_type": "locomotion",
+      "target_epochs": 1000,
+      "current_epoch": 500,
+      "success": true
+    },
+    {
+      "avatar_type": "biped",
+      "policy_type": "combat",
+      "target_epochs": 1000,
+      "current_epoch": 500,
+      "success": true
+    },
+    {
+      "avatar_type": "biped",
+      "policy_type": "react",
+      "target_epochs": 1000,
+      "current_epoch": 500,
+      "success": true
+    },
+    {
+      "avatar_type": "biped",
+      "policy_type": "interact",
+      "target_epochs": 1000,
+      "current_epoch": 500,
+      "success": true
+    },
+    {
+      "avatar_type": "biped",
+      "policy_type": "fly",
+      "target_epochs": 500,
+      "current_epoch": 500,
+      "success": true
+    },
+    {
+      "avatar_type": "biped",
+      "policy_type": "swim",
+      "target_epochs": 500,
+      "current_epoch": 500,
+      "success": true
+    },
+    {
+      "avatar_type": "biped",
+      "policy_type": "mount",
+      "target_epochs": 500,
+      "current_epoch": 500,
+      "success": true
+    },
+    {
+      "avatar_type": "biped",
+      "policy_type": "climb",
+      "target_epochs": 500,
+      "current_epoch": 500,
+      "success": true
+    },
+    {
+      "avatar_type": "biped",
+      "policy_type": "run",
+      "target_epochs": 500,
+      "current_epoch": 500,
+      "success": true
+    },
+    {
+      "avatar_type": "biped",
+      "policy_type": "crouch",
+      "target_epochs": 500,
+      "current_epoch": 500,
+      "success": true
+    },
+    {
+      "avatar_type": "quadruped",
+      "policy_type": "locomotion",
+      "target_epochs": 1000,
+      "current_epoch": 475,
+      "success": true
+    },
+    {
+      "avatar_type": "quadruped",
+      "policy_type": "combat",
+      "target_epochs": 1000,
+      "current_epoch": 475,
+      "success": true
+    },
+    {
+      "avatar_type": "quadruped",
+      "policy_type": "react",
+      "target_epochs": 1000,
+      "current_epoch": 25,
+      "success": false
+    },
+    {
+      "avatar_type": "quadruped",
+      "policy_type": "interact",
+      "target_epochs": 1000,
+      "current_epoch": 25,
+      "success": false
+    },
+    {
+      "avatar_type": "quadruped",
+      "policy_type": "fly",
+      "target_epochs": 500,
+      "current_epoch": 75,
+      "success": true
+    },
+    {
+      "avatar_type": "quadruped",
+      "policy_type": "swim",
+      "target_epochs": 500,
+      "current_epoch": 75,
+      "success": true
+    },
+    {
+      "avatar_type": "quadruped",
+      "policy_type": "mount",
+      "target_epochs": 500,
+      "current_epoch": 75,
+      "success": true
+    },
+    {
+      "avatar_type": "quadruped",
+      "policy_type": "large_monster",
+      "target_epochs": 500,
+      "current_epoch": 75,
+      "success": true
+    },
+    {
+      "avatar_type": "quadruped",
+      "policy_type": "run",
+      "target_epochs": 500,
+      "current_epoch": 75,
+      "success": true
+    },
+    {
+      "avatar_type": "quadruped",
+      "policy_type": "crouch",
+      "target_epochs": 500,
+      "current_epoch": 75,
+      "success": true
+    }
+  ]
+}
