@@ -2,13 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface IDragDropHandler
+namespace Game.UI.Core
 {
-    void OnDragStart();
-    void OnDragEnd();
-    
-    /// <summary>
-    /// Handles drag drop event
-    /// </summary>
-    void OnDrop();
+    public interface IDragDropHandler
+    {
+        void OnDragStart(PointerEventData eventData);
+        void OnDrag(PointerEventData eventData);
+        void OnDragEnd(PointerEventData eventData);
+    }
 }

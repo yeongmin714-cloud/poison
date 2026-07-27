@@ -1,17 +1,14 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class StringUtils : MonoBehaviour
+namespace Game.UI.Utils
 {
-    public static string Truncate(string text, int maxLength)
+    public static class StringUtils
     {
-        if (text.Length <= maxLength)
-            return text;
-        return text.Substring(0, maxLength) + "...";
-    }
-    
-    public static bool IsNullOrEmpty(string text)
-    {
-        return string.IsNullOrEmpty(text);
+        public static bool IsNullOrEmpty(string str)
+        {
+            return string.IsNullOrEmpty(str);
+        }
     }
 }

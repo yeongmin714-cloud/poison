@@ -1,19 +1,16 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class UITutorialManager : MonoBehaviour
+namespace Game.UI.Tutorial
 {
-    public GameObject tutorialPanel;
-    public TMPro.TextMeshProUGUI tutorialText;
-    
-    private void Start()
+    public class UITutorialManager : MonoBehaviour
     {
-        // Initialize tutorial
-        // // Debug.Log("UI Tutorial Manager initialized");
-    }
-    
-    public void ShowTutorialStep(int step)
-    {
-        // Show tutorial step
-        Debug.Log($"Showing tutorial step {step}");
+        [SerializeField] private TutorialManager tutorialManager;
+        
+        public void StartTutorial(string tutorialName)
+        {
+            tutorialManager.StartTutorial(tutorialName);
+        }
     }
 }

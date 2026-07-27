@@ -1,11 +1,17 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class SoundEffect : Effect
+namespace Game.UI.Effects
 {
-    [SerializeField] private AudioSource audioSource;
-    
-    public override void Play(Vector3 position)
+    public class SoundEffect : Effect
     {
-        // Sound effect play implementation
+        [SerializeField] private AudioClip audioClip;
+        [SerializeField] private AudioSource audioSource;
+        
+        public override void ApplyEffect()
+        {
+            audioSource.PlayOneShot(audioClip);
+        }
     }
 }

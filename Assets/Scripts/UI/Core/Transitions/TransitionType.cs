@@ -1,7 +1,14 @@
-public enum TransitionType
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Game.UI.Core.Transitions
 {
-    Fade,
-    Slide,
-    Zoom,
-    Shake
+    public enum TransitionType
+    {
+        Fade,
+        Slide,
+        Scale,
+        Rotate
+    }
 }

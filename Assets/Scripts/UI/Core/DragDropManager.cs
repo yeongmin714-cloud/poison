@@ -2,38 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DragDropManager : MonoBehaviour
+namespace Game.UI.Core
 {
-    public static DragDropManager Instance { get; private set; }
-    
-    private void Awake()
+    public class DragDropManager : MonoBehaviour
     {
-        if (Instance == null)
+        public void StartDrag(GameObject draggedItem)
         {
-            Instance = this;
-            DontDestroyOnLoad(this);
+            // Implementation would start drag operation
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    public void StartDrag(GameObject draggedObject)
-    {
-        // Implementation would go here
-    }
-    
-    public void EndDrag()
-    {
-        // Implementation would go here
-    }
-    
-    /// <summary>
-    /// Cancels current drag operation
-    /// </summary>
-    public void CancelDrag()
-    {
-        // Implementation would go here
     }
 }

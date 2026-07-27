@@ -2,49 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Manages UI transitions including color and panel animations
-/// </summary>
-public class TransitionManager : MonoBehaviour
+namespace Game.UI.Core.Transitions
 {
-    public static TransitionManager Instance { get; private set; }
-    
-    private void Awake()
+    public class TransitionManager : MonoBehaviour
     {
-        if (Instance == null)
+        public void PlayTransition(Transition transition)
         {
-            Instance = this;
-            DontDestroyOnLoad(this);
+            // Implementation would play transitions
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    /// <summary>
-    /// Starts a transition with the specified type and duration
-    /// </summary>
-    /// <param name="type">The type of transition to perform</param>
-    /// <param name="duration">Duration of the transition in seconds</param>
-    public void StartTransition(TransitionType type, float duration)
-    {
-        // Implementation would go here
-    }
-    
-    /// <summary>
-    /// Stops the current transition
-    /// </summary>
-    public void StopTransition()
-    {
-        // Implementation would go here
-    }
-    
-    /// <summary>
-    /// Pauses the current transition
-    /// </summary>
-    public void PauseTransition()
-    {
-        // Implementation would go here
     }
 }

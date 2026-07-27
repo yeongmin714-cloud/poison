@@ -1,12 +1,16 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class ParticleEffect : Effect
+namespace Game.UI.Effects
 {
-    [SerializeField] private ParticleSystem particleSystem;
-    
-    public override void Play(Vector3 position)
+    public class ParticleEffect : Effect
     {
-        // Particle effect play implementation
+        [SerializeField] private ParticleSystem particleSystem;
+        
+        public override void ApplyEffect()
+        {
+            particleSystem.Play();
+        }
     }
 }

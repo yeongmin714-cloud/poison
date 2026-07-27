@@ -2,39 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ScreenManager : MonoBehaviour
+namespace Game.UI.Core
 {
-    public static ScreenManager Instance { get; private set; }
-    
-    private void Awake()
+    public class ScreenManager : MonoBehaviour
     {
-        if (Instance == null)
+        public Vector2Int GetScreenSize()
         {
-            Instance = this;
-            DontDestroyOnLoad(this);
+            return new Vector2Int(Screen.width, Screen.height);
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    public void SetScreen(string screenName)
-    {
-        // Implementation would go here
-    }
-    
-    public void SwitchScreen(string fromScreen, string toScreen)
-    {
-        // Implementation would go here
-    }
-    
-    /// <summary>
-    /// Gets current screen name
-    /// </summary>
-    public string GetCurrentScreen()
-    {
-        // Implementation would go here
-        return string.Empty;
     }
 }

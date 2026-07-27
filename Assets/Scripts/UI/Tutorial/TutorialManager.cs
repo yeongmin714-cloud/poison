@@ -1,31 +1,20 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class TutorialManager : MonoBehaviour
+namespace Game.UI.Tutorial
 {
-    private static TutorialManager instance;
-    public static TutorialManager Instance => instance;
-    
-    private void Awake()
+    public class TutorialManager : MonoBehaviour
     {
-        if (instance == null)
+        [SerializeField] private List<TutorialLordSequence> sequences;
+        
+        public void StartTutorial(string tutorialName)
         {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
+            foreach (var sequence in sequences)
+            {
+                // Implementation would select specific sequence based on tutorialName
+                sequence.StartSequence();
+            }
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    public void StartTutorial(string tutorialId)
-    {
-        // Implementation for starting tutorial
-    }
-    
-    public void CompleteTutorial(string tutorialId)
-    {
-        // Implementation for completing tutorial
     }
 }

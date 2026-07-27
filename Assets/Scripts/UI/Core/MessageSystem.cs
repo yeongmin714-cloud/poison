@@ -2,38 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MessageSystem : MonoBehaviour
+namespace Game.UI.Core
 {
-    public static MessageSystem Instance { get; private set; }
-    
-    private void Awake()
+    public class MessageSystem : MonoBehaviour
     {
-        if (Instance == null)
+        public void SendMessage(string message)
         {
-            Instance = this;
-            DontDestroyOnLoad(this);
+            Debug.Log(message);
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    public void SendMessage(string message)
-    {
-        // Implementation would go here
-    }
-    
-    public void BroadcastMessage(string message)
-    {
-        // Implementation would go here
-    }
-    
-    /// <summary>
-    /// Clears all messages
-    /// </summary>
-    public void ClearMessages()
-    {
-        // Implementation would go here
     }
 }

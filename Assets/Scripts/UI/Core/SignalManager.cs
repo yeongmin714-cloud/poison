@@ -2,38 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SignalManager : MonoBehaviour
+namespace Game.UI.Core
 {
-    public static SignalManager Instance { get; private set; }
-    
-    private void Awake()
+    public class SignalManager : MonoBehaviour
     {
-        if (Instance == null)
+        public void SendSignal(string signalName)
         {
-            Instance = this;
-            DontDestroyOnLoad(this);
+            // Implementation would send signal
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    public void SendSignal(string signal)
-    {
-        // Implementation would go here
-    }
-    
-    public void RegisterSignal(string signal, System.Action callback)
-    {
-        // Implementation would go here
-    }
-    
-    /// <summary>
-    /// Unregisters a signal handler
-    /// </summary>
-    public void UnregisterSignal(string signal)
-    {
-        // Implementation would go here
     }
 }

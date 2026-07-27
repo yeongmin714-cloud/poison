@@ -2,23 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Interface for UI components that need initialization and cleanup
-/// </summary>
-public interface IUIComponent
+namespace Game.UI.Core
 {
-    /// <summary>
-    /// Initializes the UI component
-    /// </summary>
-    void Initialize();
-    
-    /// <summary>
-    /// Cleans up the UI component
-    /// </summary>
-    void Cleanup();
-    
-    /// <summary>
-    /// Updates the UI component
-    /// </summary>
-    void UpdateComponent();
+    public interface IUIComponent
+    {
+        void Initialize();
+    }
 }

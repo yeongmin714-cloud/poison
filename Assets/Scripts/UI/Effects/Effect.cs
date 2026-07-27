@@ -1,14 +1,17 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class Effect : MonoBehaviour
+namespace Game.UI.Effects
 {
-    public string effectName;
-    public AnimationClip animationClip;
-    public AudioClip soundClip;
-    
-    public virtual void Play(Vector3 position)
+    public class Effect : MonoBehaviour
     {
-        // Base effect play implementation
+        [SerializeField] private string effectName;
+        [SerializeField] private float duration;
+        
+        public virtual void ApplyEffect()
+        {
+            // Base implementation
+        }
     }
 }

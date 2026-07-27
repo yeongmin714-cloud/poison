@@ -2,40 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LocalizationManager : MonoBehaviour
+namespace Game.UI.Core
 {
-    public static LocalizationManager Instance { get; private set; }
-    
-    private void Awake()
+    public class LocalizationManager : MonoBehaviour
     {
-        if (Instance == null)
+        public string GetLocalizedString(string key)
         {
-            Instance = this;
-            DontDestroyOnLoad(this);
+            return key;
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    public string GetLocalizedString(string key)
-    {
-        // Implementation would go here
-        return "";
-    }
-    
-    public void LoadLocalization(string language)
-    {
-        // Implementation would go here
-    }
-    
-    /// <summary>
-    /// Gets current language
-    /// </summary>
-    public string GetCurrentLanguage()
-    {
-        // Implementation would go here
-        return string.Empty;
     }
 }

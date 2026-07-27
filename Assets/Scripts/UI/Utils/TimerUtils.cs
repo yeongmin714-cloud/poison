@@ -1,15 +1,14 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class TimerUtils : MonoBehaviour
+namespace Game.UI.Utils
 {
-    public static void Delay(float seconds, System.Action action)
+    public static class TimerUtils
     {
-        // Delay implementation
-    }
-    
-    public static void Repeat(float interval, System.Action action, int repeatCount)
-    {
-        // Repeat implementation
+        public static void StartTimer(float duration, System.Action onComplete)
+        {
+            // Implementation would start a timer in Unity
+        }
     }
 }

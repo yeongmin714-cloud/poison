@@ -1,20 +1,18 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class ColorUtils : MonoBehaviour
+namespace Game.UI.Utils
 {
-    public static Color HexToColor(string hex)
+    public static class ColorUtils
     {
-        Color color;
-        if (ColorUtility.TryParseHtmlString(hex, out color))
+        public static Color IntToColor(int colorInt)
         {
-            return color;
+            return new Color(
+                ((colorInt >> 16) & 0xFF) / 255f,
+                ((colorInt >> 8) & 0xFF) / 255f,
+                (colorInt & 0xFF) / 255f
+            );
         }
-        return Color.white;
-    }
-    
-    public static string ColorToHex(Color color)
-    {
-        return ColorUtility.ToHtmlStringRGBA(color);
     }
 }

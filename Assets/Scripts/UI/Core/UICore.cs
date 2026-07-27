@@ -2,39 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Core manager for UI systems
-/// </summary>
-public class UICore : MonoBehaviour
+namespace Game.UI.Core
 {
-    public static UICore Instance { get; private set; }
-    
-    private void Awake()
+    public class UICore : MonoBehaviour
     {
-        if (Instance == null)
+        [SerializeField] private UIManager uiManager;
+        
+        public void Initialize()
         {
-            Instance = this;
-            DontDestroyOnLoad(this);
+            uiManager.Initialize();
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    /// <summary>
-    /// Initializes the UI core system
-    /// </summary>
-    public void Initialize()
-    {
-        // Initialization logic here
-    }
-    
-    /// <summary>
-    /// Cleans up the UI core system
-    /// </summary>
-    public void Cleanup()
-    {
-        // Cleanup logic here
     }
 }

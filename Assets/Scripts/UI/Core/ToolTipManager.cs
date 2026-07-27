@@ -2,38 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ToolTipManager : MonoBehaviour
+namespace Game.UI.Core
 {
-    public static ToolTipManager Instance { get; private set; }
-    
-    private void Awake()
+    public class ToolTipManager : MonoBehaviour
     {
-        if (Instance == null)
+        [SerializeField] private GameObject tooltipPrefab;
+        
+        public void ShowTooltip(string text)
         {
-            Instance = this;
-            DontDestroyOnLoad(this);
+            // Implementation would instantiate tooltip
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    public void ShowToolTip(string message)
-    {
-        // Implementation would go here
-    }
-    
-    public void HideToolTip()
-    {
-        // Implementation would go here
-    }
-    
-    /// <summary>
-    /// Updates tooltip position
-    /// </summary>
-    public void UpdateToolTipPosition(Vector2 position)
-    {
-        // Implementation would go here
     }
 }

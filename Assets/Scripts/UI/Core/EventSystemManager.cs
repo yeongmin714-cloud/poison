@@ -2,38 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EventSystemManager : MonoBehaviour
+namespace Game.UI.Core
 {
-    public static EventSystemManager Instance { get; private set; }
-    
-    private void Awake()
+    public class EventSystemManager : MonoBehaviour
     {
-        if (Instance == null)
+        public void RegisterEvent(string eventName, System.Action callback)
         {
-            Instance = this;
-            DontDestroyOnLoad(this);
+            // Implementation would register events
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    public void RegisterEvent(string eventName, System.Action callback)
-    {
-        // Implementation would go here
-    }
-    
-    public void UnregisterEvent(string eventName, System.Action callback)
-    {
-        // Implementation would go here
-    }
-    
-    /// <summary>
-    /// Clears all registered events
-    /// </summary>
-    public void ClearEvents()
-    {
-        // Implementation would go here
     }
 }

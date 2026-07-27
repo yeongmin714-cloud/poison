@@ -1,16 +1,14 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.UI;
+using UnityEngine;
 
-public class AnimationUtils : MonoBehaviour
+namespace Game.UI.Utils
 {
-    public static void AnimateColor(Graphic graphic, Color targetColor, float duration)
+    public static class AnimationUtils
     {
-        // Color animation implementation
-    }
-
-    public static void AnimatePosition(RectTransform rectTransform, Vector2 targetPosition, float duration)
-    {
-        // Position animation implementation
+        public static void PlayAnimation(Animator animator, string animationName)
+        {
+            animator.Play(animationName);
+        }
     }
 }

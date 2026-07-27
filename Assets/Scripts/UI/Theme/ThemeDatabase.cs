@@ -1,12 +1,22 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class ThemeDatabase : ScriptableObject
+namespace Game.UI.Theme
 {
-    public List<Theme> themes;
-    
-    public Theme GetTheme(string themeName)
+    public class ThemeDatabase : MonoBehaviour
     {
-        return themes.Find(t => t.themeName == themeName);
+        [SerializeField] private List<Theme> themes;
+
+        public Theme GetTheme(string themeName)
+        {
+            foreach (var theme in themes)
+            {
+                if (theme.name == themeName)
+                    return theme;
+            }
+            
+            return null;
+        }
     }
 }

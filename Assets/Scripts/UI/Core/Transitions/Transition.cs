@@ -2,23 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Transition : MonoBehaviour
+namespace Game.UI.Core.Transitions
 {
-    public virtual void Play()
+    public abstract class Transition : MonoBehaviour
     {
-        // Base implementation
-    }
-    
-    public virtual void Stop()
-    {
-        // Base implementation
-    }
-    
-    /// <summary>
-    /// Updates transition state
-    /// </summary>
-    public virtual void UpdateTransition()
-    {
-        // Base implementation
+        [SerializeField] private TransitionType type;
+        [SerializeField] private float duration;
+        
+        public abstract void PerformTransition();
     }
 }

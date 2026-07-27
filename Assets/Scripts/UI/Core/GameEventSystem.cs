@@ -2,38 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameEventSystem : MonoBehaviour
+namespace Game.UI.Core
 {
-    public static GameEventSystem Instance { get; private set; }
-    
-    private void Awake()
+    public class GameEventSystem : MonoBehaviour
     {
-        if (Instance == null)
+        public void TriggerEvent(string eventName)
         {
-            Instance = this;
-            DontDestroyOnLoad(this);
+            // Implementation would trigger game events
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    public void TriggerEvent(string eventName)
-    {
-        // Implementation would go here
-    }
-    
-    public void SubscribeEvent(string eventName, System.Action callback)
-    {
-        // Implementation would go here
-    }
-    
-    /// <summary>
-    /// Unsubscribes from an event
-    /// </summary>
-    public void UnsubscribeEvent(string eventName, System.Action callback)
-    {
-        // Implementation would go here
     }
 }

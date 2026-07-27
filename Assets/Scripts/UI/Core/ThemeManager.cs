@@ -2,38 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ThemeManager : MonoBehaviour
+namespace Game.UI.Core
 {
-    public static ThemeManager Instance { get; private set; }
-    
-    private void Awake()
+    public class ThemeManager : MonoBehaviour
     {
-        if (Instance == null)
+        [SerializeField] private Theme activeTheme;
+        
+        public Theme ActiveTheme => activeTheme;
+        
+        public void SetTheme(Theme theme)
         {
-            Instance = this;
-            DontDestroyOnLoad(this);
+            activeTheme = theme;
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    public void ApplyTheme(string themeName)
-    {
-        // Implementation would go here
-    }
-    
-    public void LoadTheme(string themePath)
-    {
-        // Implementation would go here
-    }
-    
-    /// <summary>
-    /// Saves current theme settings
-    /// </summary>
-    public void SaveThemeSettings()
-    {
-        // Implementation would go here
     }
 }

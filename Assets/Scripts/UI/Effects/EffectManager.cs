@@ -1,25 +1,23 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class EffectManager : MonoBehaviour
+namespace Game.UI.Effects
 {
-    private static EffectManager instance;
-    public static EffectManager Instance => instance;
-    
-    private void Awake()
+    public class EffectManager : MonoBehaviour
     {
-        if (instance == null)
+        [SerializeField] private List<Effect> effects;
+        
+        public void ApplyEffect(string effectName)
         {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
+            foreach (var effect in effects)
+            {
+                if (effect.name == effectName)
+                {
+                    effect.ApplyEffect();
+                    break;
+                }
+            }
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    public void PlayEffect(string effectName, Vector3 position)
-    {
-        // Implementation for playing effects
     }
 }

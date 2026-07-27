@@ -1,10 +1,15 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-[System.Serializable]
-public class Theme
+namespace Game.UI.Theme
 {
-    public string themeName;
-    public ColorPalette palette;
-    public List<GameObject> themeElements;
+    public class Theme : MonoBehaviour
+    {
+        [SerializeField] private Color primaryColor;
+        [SerializeField] private Color secondaryColor;
+
+        public Color PrimaryColor => primaryColor;
+        public Color SecondaryColor => secondaryColor;
+    }
 }

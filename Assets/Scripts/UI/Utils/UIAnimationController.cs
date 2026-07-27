@@ -1,36 +1,16 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-namespace ProjectName.UI.Utils
+namespace Game.UI.Utils
 {
     public class UIAnimationController : MonoBehaviour
     {
-        [Header("Animation Settings")]
-        public Animator animator;
-        public string animationName = "Idle";
-
-        public void PlayAnimation(string animName)
+        [SerializeField] private Animator animator;
+        
+        public void PlayAnimation(string animationName)
         {
-            // Play specific animation
-            if (animator != null)
-            {
-                animator.Play(animName);
-            }
-        }
-
-        public void SetAnimation(string animName)
-        {
-            // Set animation clip
-            animationName = animName;
-            // // Debug.Log($"Animation set to: {animName}");
-        }
-
-        public new void StopAnimation()
-        {
-            // Stop current animation
-            if (animator != null)
-            {
-                animator.enabled = false;
-            }
+            animator.Play(animationName);
         }
     }
 }

@@ -2,39 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CanvasController : MonoBehaviour
+namespace Game.UI.Core
 {
-    public static CanvasController Instance { get; private set; }
-    
-    private void Awake()
+    public class CanvasController : MonoBehaviour
     {
-        if (Instance == null)
+        [SerializeField] private Canvas canvas;
+        
+        public void SetCanvasActive(bool active)
         {
-            Instance = this;
-            DontDestroyOnLoad(this);
+            canvas.enabled = active;
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    public void SetCanvasActive(Canvas canvas, bool active)
-    {
-        // Implementation would go here
-    }
-    
-    public void SetCanvasSortingOrder(Canvas canvas, int sortingOrder)
-    {
-        // Implementation would go here
-    }
-    
-    /// <summary>
-    /// Gets canvas world camera
-    /// </summary>
-    public Camera GetCanvasWorldCamera(Canvas canvas)
-    {
-        // Implementation would go here
-        return null;
     }
 }

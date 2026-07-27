@@ -2,43 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UIManager : MonoBehaviour
+namespace Game.UI.Core
 {
-    public static UIManager Instance { get; private set; }
-    
-    private void Awake()
+    public class UIManager : MonoBehaviour
     {
-        if (Instance == null)
+        [SerializeField] private List<GameObject> uiElements;
+        
+        public void Initialize()
         {
-            Instance = this;
-            DontDestroyOnLoad(this);
+            foreach(var element in uiElements)
+            {
+                element.SetActive(true);
+            }
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    
-    public void InitializeUI()
-    {
-        // Implementation would go here
-    }
-    
-    public void ShowUI(string uiName)
-    {
-        // Implementation would go here
-    }
-    
-    public void HideUI(string uiName)
-    {
-        // Implementation would go here
-    }
-    
-    /// <summary>
-    /// Hides all UI elements
-    /// </summary>
-    public void HideAllUI()
-    {
-        // Implementation would go here
     }
 }

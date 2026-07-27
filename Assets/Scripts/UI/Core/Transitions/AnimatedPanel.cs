@@ -2,33 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AnimatedPanel : MonoBehaviour
+namespace Game.UI.Core.Transitions
 {
-    public void ShowPanel()
+    public class AnimatedPanel : MonoBehaviour
     {
-        // Implementation would go here
-    }
-    
-    public void HidePanel()
-    {
-        // Implementation would go here
-    }
-    
-    public void FadeIn(float duration)
-    {
-        // Implementation would go here
-    }
-    
-    public void FadeOut(float duration)
-    {
-        // Implementation would go here
-    }
-    
-    /// <summary>
-    /// Animates panel rotation
-    /// </summary>
-    public void AnimatePanelRotation(Transform panel, Quaternion startRotation, Quaternion endRotation, float duration)
-    {
-        // Implementation would go here
+        [SerializeField] private RectTransform rectTransform;
+        [SerializeField] private CanvasGroup canvasGroup;
+        
+        public void AnimateOpen()
+        {
+            // Implementation for animated open
+        }
     }
 }
