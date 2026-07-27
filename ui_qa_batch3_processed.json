@@ -1,0 +1,38 @@
+{
+  "task_id": "ui-qa-batch3",
+  "status": "completed",
+  "goal": "UI theme/Tutorial/Effects/Utils QA - 23 files",
+  "files": [
+    "Assets/Scripts/UI/Core/UICore.cs",
+    "Assets/Scripts/UI/Core/UIManager.cs",
+    "Assets/Scripts/UI/Core/ToolTipManager.cs",
+    "Assets/Scripts/UI/Core/ThemeManager.cs",
+    "Assets/Scripts/UI/Core/SignalManager.cs",
+    "Assets/Scripts/UI/Core/ScreenManager.cs",
+    "Assets/Scripts/UI/Core/MessageSystem.cs",
+    "Assets/Scripts/UI/Core/LocalizationManager.cs",
+    "Assets/Scripts/UI/Core/IUIComponent.cs",
+    "Assets/Scripts/UI/Core/IDragDropHandler.cs",
+    "Assets/Scripts/UI/Core/ICanvasComponent.cs",
+    "Assets/Scripts/UI/Core/GameEventSystem.cs",
+    "Assets/Scripts/UI/Core/EventSystemManager.cs",
+    "Assets/Scripts/UI/Core/DragDropManager.cs",
+    "Assets/Scripts/UI/Core/ComponentManager.cs",
+    "Assets/Scripts/UI/Core/ColorPalette.cs",
+    "Assets/Scripts/UI/Core/CanvasController.cs",
+    "Assets/Scripts/UI/Core/AbilityManager.cs",
+    "Assets/Scripts/UI/Core/Transitions/TransitionManager.cs",
+    "Assets/Scripts/UI/Core/Transitions/ColorTransition.cs",
+    "Assets/Scripts/UI/Core/Transitions/PanelTransition.cs",
+    "Assets/Scripts/UI/Core/Transitions/TransitionType.cs",
+    "Assets/Scripts/UI/Core/Transitions/Transition.cs",
+    "Assets/Scripts/UI/Core/Transitions/AnimatedPanel.cs"
+  ],
+  "results": {
+    "total_files": 23,
+    "errors": [],
+    "warnings": [],
+    "refactorings": [],
+    "breaking_changes": []
+  }
+}

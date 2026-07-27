@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Core manager for UI systems
+/// </summary>
 public class UICore : MonoBehaviour
 {
     public static UICore Instance { get; private set; }
@@ -19,6 +22,9 @@ public class UICore : MonoBehaviour
         }
     }
     
+    /// <summary>
+    /// Initializes the UI core system
+    /// </summary>
     public void Initialize()
     {
         // Initialization logic here
