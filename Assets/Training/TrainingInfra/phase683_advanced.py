@@ -125,24 +125,45 @@ class ProceduralTeacher:
         
     def get_action(self, obs: np.ndarray, env) -> np.ndarray:
         """Generate procedural action from observation."""
-        # Extract key info from observation
-        # obs layout: joint_pos(3*j) | joint_vel(3*j) | root_vel(3) | root_ang_vel(3) | contacts(4) | target_dir(3) | target_speed(1) | terrain(121) | style(8)
+        # Actual obs layout from _encode_observation:
+        # joint_pos(3*j) | joint_vel(3*j) | root_vel(3) | root_ang_vel(3) | contacts(4) | target_dir(3) | target_speed(1) | terrain(121) | style(8)
+        # All truncated at obs_dim (120 biped / 150 quadruped)
         
         if self.avatar_type == "biped":
             joint_count = 18
+            act_dim = 80
         else:
             joint_count = 24
+            act_dim = 100
         
-        # Target velocity from obs
-        target_dir = obs[joint_count*6 + 6:joint_count*6 + 9]
-        target_speed = obs[joint_count*6 + 9]
+        obs_len = len(obs)
+        
+        # Compute where each section starts
+        joint_data_end = joint_count * 6  # joint_pos(3*j) + joint_vel(3*j)
+        root_vel_start = min(joint_data_end, obs_len)
+        root_vel_end = min(root_vel_start + 3, obs_len)
+        root_ang_start = min(root_vel_end, obs_len)
+        root_ang_end = min(root_ang_start + 3, obs_len)
+        contact_start = min(root_ang_end, obs_len)
+        contact_end = min(contact_start + 4, obs_len)
+        target_dir_start = min(contact_end, obs_len)
+        target_dir_end = min(target_dir_start + 3, obs_len)
+        target_speed_idx = min(target_dir_end, obs_len)
+        
+        # Default values if truncated
+        target_dir = np.array([1.0, 0.0, 0.0])  # forward
+        target_speed = 1.0  # walking speed
+        
+        if target_dir_end > target_dir_start:
+            target_dir = obs[target_dir_start:target_dir_end]
+        if target_speed_idx > target_dir_end and target_speed_idx <= obs_len:
+            target_speed = obs[target_speed_idx - 1]
         
         # Generate procedural gait
         self.gait_phase += self.gait_freq * 0.02  # dt = 0.02
         phase = self.gait_phase % (2 * math.pi)
         
-        # Simple biped walk pattern
-        action = np.zeros(80 if self.avatar_type == "biped" else 100, dtype=np.float32)
+        action = np.zeros(act_dim, dtype=np.float32)
         
         if self.avatar_type == "biped":
             # Left leg (joints 14, 15) - alternate with right
@@ -155,8 +176,27 @@ class ProceduralTeacher:
             action[17*3] = math.sin(right_phase) * 0.8  # RightUpLeg pitch
             action[18*3] = -math.sin(right_phase) * 0.6 # RightLeg pitch
             
-            # Scale by target speed
-            action *= min(target_speed / 2.0, 1.5)
+            # Scale by target speed (cap at 1.5x)
+            speed_scale = min(abs(target_speed) * 2.0, 1.5)
+            action *= speed_scale
+        else:
+            # Quadruped: 4 legs (LeftFront, RightFront, LeftHind, RightHind)
+            # Joint indices: 0-5=LF, 6-11=RF, 12-17=LH, 18-23=RH
+            # Each leg: up/down, forward/back, rotate
+            lf_phase = phase
+            rf_phase = phase + math.pi
+            lh_phase = phase + math.pi * 0.5
+            rh_phase = phase + math.pi * 1.5
+            
+            # Trot pattern: diagonal pairs move together
+            # LF & RH move together, RF & LH move together
+            for leg_idx, leg_phase in [(0, lf_phase), (6, rf_phase), (12, lh_phase), (18, rh_phase)]:
+                action[leg_idx * 3] = math.sin(leg_phase) * 0.6       # Hip pitch
+                action[leg_idx * 3 + 1] = math.cos(leg_phase) * 0.3  # Hip up/down
+                action[leg_idx * 3 + 2] = math.sin(leg_phase * 0.5) * 0.2  # Knee
+            
+            speed_scale = min(abs(target_speed) * 1.5, 1.2)
+            action *= speed_scale
         
         self.step_count += 1
         return np.clip(action, -1.0, 1.0)
