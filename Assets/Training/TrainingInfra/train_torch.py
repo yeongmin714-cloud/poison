@@ -49,6 +49,7 @@ def _cpu_post_init(self):
 Config.__post_init__ = _cpu_post_init
 
 from simple_animation_env import SimpleAnimationEnv
+from simple_animation_env_v2 import SimpleAnimationEnvV2
 from torch_ppo import PPOTrainer, validate_onnx
 from torch_to_onnx import export_from_checkpoint, export_onnx_manual
 
@@ -80,6 +81,7 @@ def train(
     export_only: bool = False,
     checkpoint_path: Optional[str] = None,
     opset_version: int = 17,
+    env_version: int = 1,
 ) -> str:
     """
     Train a PyTorch PPO policy and export to ONNX.
@@ -136,7 +138,10 @@ def train(
         print("=" * 60)
 
     # ── Environment ──
-    env = SimpleAnimationEnv(cfg, policy_type=policy_type)
+    if env_version == 2:
+        env = SimpleAnimationEnvV2(cfg, policy_type=policy_type)
+    else:
+        env = SimpleAnimationEnv(cfg, policy_type=policy_type)
 
     # Configure curriculum if enabled
     if curriculum:
@@ -498,6 +503,13 @@ Examples:
         help="Enable curriculum learning: easy -> medium -> hard terrain progression"
     )
     parser.add_argument(
+        "--env_version", "-ev",
+        type=int,
+        choices=[1, 2],
+        default=1,
+        help="Environment version: 1=legacy 2D kinematic, 2=3D physics with terrain (default: 1)"
+    )
+    parser.add_argument(
         "--style_embedding", "-s",
         type=int,
         default=0,
@@ -584,6 +596,7 @@ Examples:
             export_only=args.export_only,
             checkpoint_path=args.checkpoint if args.checkpoint else None,
             opset_version=args.opset,
+            env_version=args.env_version,
         )
 
         if args.verbose:

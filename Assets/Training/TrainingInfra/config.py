@@ -165,15 +165,25 @@ class EnvConfig:
     """Simulated animation environment settings."""
     dt: float = 0.02  # 50 Hz simulation step
     physics_steps: int = 2
-    reward_velocity_weight: float = 1.0
-    reward_energy_weight: float = 0.1
-    reward_smoothness_weight: float = 0.05
-    reward_pose_weight: float = 0.3
-    reward_contact_weight: float = 0.1
+    
+    # Reward weights (Phase 68.0.4 - 8 reward components)
+    reward_velocity_weight: float = 1.0      # Velocity tracking
+    reward_heading_weight: float = 0.8       # Heading tracking
+    reward_energy_weight: float = 0.1        # Energy penalty (torque^2)
+    reward_contact_weight: float = 0.5       # Foot contact pattern
+    reward_joint_limit_weight: float = 0.3   # Joint limit penalty
+    reward_smoothness_weight: float = 0.2    # Action smoothness
+    reward_terrain_weight: float = 0.4       # Terrain adaptation
+    reward_pose_weight: float = 0.3          # Pose regularization
+    
     max_episode_length: int = 1000
     observation_noise: float = 0.01
     action_noise: float = 0.0
     target_velocity_range: Tuple[float, float] = (0.5, 5.0)  # m/s
+
+    # Curriculum learning
+    curriculum_enabled: bool = False
+    curriculum_phase: int = 0  # 0=easy, 1=medium, 2=hard, 3=expert, 4=master
 
 
 # ──────────────────────────────────────────────────────────────────────────────

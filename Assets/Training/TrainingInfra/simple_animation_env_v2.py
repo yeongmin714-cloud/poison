@@ -884,42 +884,45 @@ class SimpleAnimationEnvV2:
             target_dir = target_vel / target_norm
             current_dir = current_vel / max(np.linalg.norm(current_vel), 1e-6)
             heading_reward = max(0.0, np.dot(target_dir, current_dir))
-            reward += 0.8 * heading_reward
+            reward += self.cfg.reward_heading_weight * heading_reward
 
-        # 3. Energy penalty
-        action_mag = np.mean(action ** 2)
-        reward += self.cfg.reward_energy_weight * (-action_mag)
+        # 3. Energy penalty (torque^2)
+        energy_penalty = 0.0
+        for joint in self.chain.joints:
+            energy_penalty += np.sum(joint.torque ** 2)
+        reward += self.cfg.reward_energy_weight * (-energy_penalty * 0.01)
 
-        # 4. Smoothness
-        action_delta = np.mean((action - self.prev_action) ** 2)
-        reward += self.cfg.reward_smoothness_weight * (-action_delta)
-
-        # 5. Foot contact pattern (alternating)
+        # 4. Foot contact pattern (alternating gait)
         phase = (self.step_count % 30) / 30.0
         expected_left = 1.0 if phase < 0.5 else 0.0
         expected_right = 1.0 if phase >= 0.5 else 0.0
-        # Biped: [0]=LeftFoot, [1]=RightFoot
         contact_reward = -abs(self.chain.contact_flags[0] - expected_left) - abs(self.chain.contact_flags[1] - expected_right)
         reward += self.cfg.reward_contact_weight * contact_reward
 
-        # 6. Pose consistency
+        # 5. Joint limit penalty
+        limit_penalty = 0.0
+        for joint in self.chain.joints:
+            limit_penalty += np.sum(np.maximum(np.abs(joint.angle) - joint.limits * 0.9, 0.0))
+        reward += self.cfg.reward_joint_limit_weight * (-limit_penalty)
+
+        # 6. Smoothness (action delta)
+        action_delta = np.mean((action - self.prev_action) ** 2)
+        reward += self.cfg.reward_smoothness_weight * (-action_delta)
+
+        # 7. Terrain adaptation (foot height matching)
+        foot_heights = self.chain.get_foot_heights()
+        valid_heights = foot_heights[foot_heights < 999]
+        if len(valid_heights) > 0:
+            terrain_penalty = np.mean(np.abs(valid_heights))
+            reward += self.cfg.reward_terrain_weight * (-terrain_penalty)
+
+        # 8. Pose regularization (stay near default pose)
         pose_error = 0.0
         for i, joint in enumerate(self.chain.joints):
             default = self.chain.default_angles[i]
             pose_error += np.mean((joint.angle - default) ** 2)
         pose_reward = math.exp(-pose_error)
         reward += self.cfg.reward_pose_weight * pose_reward
-
-        # 7. Terrain adaptation (foot height matching)
-        foot_heights = self.chain.get_foot_heights()
-        terrain_penalty = np.mean(np.abs(foot_heights[foot_heights < 999]))
-        reward += -0.3 * terrain_penalty
-
-        # 8. Joint limit penalty
-        limit_penalty = 0.0
-        for joint in self.chain.joints:
-            limit_penalty += np.sum(np.maximum(np.abs(joint.angle) - joint.limits * 0.9, 0.0))
-        reward += -0.1 * limit_penalty
 
         return reward
 
