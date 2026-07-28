@@ -65,7 +65,7 @@ get_allowed_basenames() {
 update_state_file() {
     local basenames=("$@")
     # Write each basename on a new line
-    printf '%s\\n' "${basenames[@]}" > "$STATE_FILE"
+    printf '%s\n' "${baselines[@]}" > "$STATE_FILE"
 }
 
 # Function to check if a basename is already processed
@@ -139,14 +139,14 @@ main() {
         compile_exit=$?
         
         # Check compile log for errors (including Unity instance conflicts)
-                if grep -i "error cs" "$COMPILE_LOG" >/dev/null 2>&1 ||
-                   grep -i "another unity instance is running" "$COMPILE_LOG" >/dev/null 2>&1 ||
+                if grep -i "error cs" "$COMPILE_LOG" >/dev/null 2>&1 || \
+                   grep -i "another unity instance is running" "$COMPILE_LOG" >/dev/null 2>&1 || \
                    grep -i "failed to acquire global mutex" "$COMPILE_LOG" >/dev/null 2>&1; then
                     log "  -> Compiler errors or Unity conflicts found in $COMPILE_LOG. Skipping swap."
                     # Continue to next file
                     continue
                 fi
-        
+                # If we get here, compile test passed (no error CS and no Unity conflicts)
         # If we get here, compile test passed (no error CS and no Unity conflicts)
         log "  -> Compile test passed (no error CS)."
         
