@@ -778,7 +778,7 @@ def generate_lod_models(
             def forward(self, x):
                 batch_size = x.shape[0]
                 x = x.reshape(batch_size, obs_dim)
-                action_mean, _, _ = actor_critic.forward(x)
+                action_mean, _, _ = self.actor_critic.forward(x)
                 return action_mean
         
         wrapper = ActorWrapper(model)
