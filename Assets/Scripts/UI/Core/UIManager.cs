@@ -7,7 +7,7 @@ namespace Game.UI.Core
     public class UIManager : MonoBehaviour
     {
         [SerializeField] private List<GameObject> uiElements;
-        
+
         public void Initialize()
         {
             if(uiElements != null)

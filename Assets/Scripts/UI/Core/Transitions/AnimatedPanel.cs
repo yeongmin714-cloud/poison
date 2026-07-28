@@ -8,7 +8,7 @@ namespace Game.UI.Core.Transitions
     {
         [SerializeField] private RectTransform rectTransform;
         [SerializeField] private CanvasGroup canvasGroup;
-        
+
         public void AnimateOpen()
         {
             // Implementation for animated open

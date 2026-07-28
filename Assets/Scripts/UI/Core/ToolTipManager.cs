@@ -8,12 +8,12 @@ namespace Game.UI.Core
     {
         [SerializeField] private GameObject tooltipPrefab;
         private Dictionary<string, GameObject> tooltips;
-        
+
         public void Initialize()
         {
             tooltips = new Dictionary<string, GameObject>();
         }
-        
+
         public void ShowTooltip(string tooltipId)
         {
             if(tooltips.ContainsKey(tooltipId))
@@ -21,7 +21,7 @@ namespace Game.UI.Core
                 tooltips[tooltipId].SetActive(true);
             }
         }
-        
+
         public void HideTooltip(string tooltipId)
         {
             if(tooltips.ContainsKey(tooltipId))

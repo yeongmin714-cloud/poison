@@ -8,7 +8,7 @@ namespace Game.UI.Core
     {
         [SerializeField] private Color primaryColor;
         [SerializeField] private Color secondaryColor;
-        
+
         public Color PrimaryColor => primaryColor;
         public Color SecondaryColor => secondaryColor;
     }

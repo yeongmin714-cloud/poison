@@ -8,12 +8,12 @@ namespace Game.UI.Core
     {
         private GameObject currentlyDragging;
         private Vector3 offset;
-        
+
         public void Initialize()
         {
             currentlyDragging = null;
         }
-        
+
         public void StartDrag(GameObject draggedItem)
         {
             if(draggedItem != null)
@@ -23,7 +23,7 @@ namespace Game.UI.Core
                 offset = draggedItem.transform.position - Input.mousePosition;
             }
         }
-        
+
         public void UpdateDrag()
         {
             if(currentlyDragging != null)
@@ -33,7 +33,7 @@ namespace Game.UI.Core
                 currentlyDragging.transform.position = mousePosition + offset;
             }
         }
-        
+
         public void EndDrag()
         {
             currentlyDragging = null;

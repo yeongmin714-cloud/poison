@@ -10,12 +10,12 @@ namespace Game.UI.Core
         {
             return new Vector2Int(Screen.width, Screen.height);
         }
-        
+
         public void SetFullscreen(bool fullscreen)
         {
             Screen.fullScreen = fullscreen;
         }
-        
+
         public bool IsFullscreen()
         {
             return Screen.fullScreen;

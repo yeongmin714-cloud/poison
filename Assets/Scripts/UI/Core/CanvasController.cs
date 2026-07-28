@@ -8,16 +8,16 @@ namespace Game.UI.Core
     {
         [SerializeField] private Canvas canvas;
         [SerializeField] private CanvasScaler canvasScaler;
-        
+
         public void Initialize()
         {
             if(canvas == null)
                 canvas = GetComponent<Canvas>();
-                
+
             if(canvasScaler == null)
                 canvasScaler = GetComponent<CanvasScaler>();
         }
-        
+
         public void SetCanvasActive(bool active)
         {
             if(canvas != null)
@@ -25,7 +25,7 @@ namespace Game.UI.Core
             else
                 Debug.LogError("Canvas reference is missing in CanvasController");
         }
-        
+
         public void SetCanvasScale(float scale)
         {
             if(canvasScaler != null)

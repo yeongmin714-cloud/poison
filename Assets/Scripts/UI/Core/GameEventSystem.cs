@@ -7,12 +7,12 @@ namespace Game.UI.Core
     public class GameEventSystem : MonoBehaviour
     {
         private Dictionary<string, System.Action> eventHandlers;
-        
+
         public void Initialize()
         {
             eventHandlers = new Dictionary<string, System.Action>();
         }
-        
+
         public void TriggerEvent(string eventName)
         {
             if(eventHandlers.ContainsKey(eventName))
@@ -20,7 +20,7 @@ namespace Game.UI.Core
                 eventHandlers[eventName]();
             }
         }
-        
+
         public void RegisterEventHandler(string eventName, System.Action handler)
         {
             if(!eventHandlers.ContainsKey(eventName))

@@ -8,13 +8,13 @@ namespace Game.UI.Core
     {
         [SerializeField] private Material[] themes;
         private int currentThemeIndex = 0;
-        
+
         public void Initialize()
         {
             if(themes.Length > 0)
                 currentThemeIndex = 0;
         }
-        
+
         public void ApplyTheme(int themeIndex)
         {
             if(themeIndex >= 0 && themeIndex < themes.Length)
@@ -23,7 +23,7 @@ namespace Game.UI.Core
                 // Logic to apply theme
             }
         }
-        
+
         public Material GetCurrentTheme()
         {
             if(themes.Length > 0)

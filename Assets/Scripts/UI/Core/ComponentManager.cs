@@ -7,12 +7,12 @@ namespace Game.UI.Core
     public class ComponentManager : MonoBehaviour
     {
         private Dictionary<string, IUIComponent> registeredComponents;
-        
+
         public void Initialize()
         {
             registeredComponents = new Dictionary<string, IUIComponent>();
         }
-        
+
         public void RegisterComponent(string id, IUIComponent component)
         {
             if(component != null)
@@ -24,7 +24,7 @@ namespace Game.UI.Core
                 }
             }
         }
-        
+
         public T GetComponent<T>(string id) where T : IUIComponent
         {
             if(registeredComponents.ContainsKey(id))
@@ -33,7 +33,7 @@ namespace Game.UI.Core
             }
             return default(T);
         }
-        
+
         public void UnregisterComponent(string id)
         {
             if(registeredComponents.ContainsKey(id))
