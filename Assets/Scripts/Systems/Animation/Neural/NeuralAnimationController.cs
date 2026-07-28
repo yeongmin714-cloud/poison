@@ -739,78 +739,77 @@ namespace ProjectName.Systems.Animation.Neural
         // ──────────────────────────────────────────────
 
         void RunPolicyInference()
-        {
-#if UNITY_SENTIS
-            if (!_sentisAvailable) return;
-
-            PolicyType activePolicy = _isBlending ? _targetPolicy : _currentPolicy;
-
-            // Blending 중이면 두 정책 모두 추론 후 보간
-            if (_isBlending)
-            {
-                RunBlendedInference();
-                return;
-            }
-
-            // Try batch inference first
-            if (BatchInferenceManager.Instance != null && 
-                BatchInferenceManager.Instance.TryRequestBatchInference(
-                    activePolicy,
-                    _policyModels.GetValueOrDefault(activePolicy),
-                    _backendType,
-                    _nativeObservation,
-                    _actionBuffer,
-                    _observationDim,
-                    _actionDim,
-                    this))
-            {
-                // Batched inference requested successfully
-                return;
-            }
-
-            // Fallback to single inference
-            if (!_policyModels.TryGetValue(activePolicy, out Model model))
-            {
-                Debug.LogWarning($"[NeuralAnimationController] No model loaded for {activePolicy}");
-                return;
-            }
-
-            try
-            {
-                // Worker 풀링: 기존 worker 재사용 (동일 모델인 경우)
-                if (_workerPool.TryGetValue(activePolicy, out Worker pooledWorker))
                 {
-                    _worker = pooledWorker;
-                }
-                else
-                {
-                    _worker = WorkerFactory.CreateWorker(_backendType, model);
-                    _workerPool[activePolicy] = _worker;
-                }
+        #if UNITY_SENTIS
+                    if (!_sentisAvailable) return;
 
-                // FP16 최적화: input tensor를 FP16으로 생성 (BackendType.GPUCompute에서만 유효)
-                using (var input = new TensorFloat(new TensorShape(1, 1, 1, _observationDim), _observationBuffer))
-                {
-                    _worker.Execute(input);
-                    _outputTensor = _worker.PeekOutput() as TensorFloat;
+                    PolicyType activePolicy = _isBlending ? _targetPolicy : _currentPolicy;
+
+                    // Blending 중이면 두 정책 모두 추론 후 보간
+                    if (_isBlending)
+                    {
+                        RunBlendedInference();
+                        return;
+                    }
+
+                    if (!_policyModels.TryGetValue(activePolicy, out Model model))
+                    {
+                        Debug.LogWarning($"[NeuralAnimationController] No model loaded for {activePolicy}");
+                        return;
+                    }
+
+                    // Try batch inference first (Phase 68.4)
+                    if (BatchInferenceManager.Instance != null && 
+                        BatchInferenceManager.Instance.RequestBatchInference(
+                            activePolicy,
+                            model,
+                            _backendType,
+                            _nativeObservation,
+                            _actionBuffer,
+                            _observationDim,
+                            _actionDim,
+                            this))
+                    {
+                        // Successfully queued for batch inference
+                        return;
+                    }
+
+                    try
+                    {
+                        // Worker 풀링: 기존 worker 재사용 (동일 모델인 경우)
+                        if (_workerPool.TryGetValue(activePolicy, out Worker pooledWorker))
+                        {
+                            _worker = pooledWorker;
+                        }
+                        else
+                        {
+                            _worker = WorkerFactory.CreateWorker(_backendType, model);
+                            _workerPool[activePolicy] = _worker;
+                        }
+
+                        // FP16 최적화: input tensor를 FP16으로 생성 (BackendType.GPUCompute에서만 유효)
+                        using (var input = new TensorFloat(new TensorShape(1, 1, 1, _observationDim), _observationBuffer))
+                        {
+                            _worker.Execute(input);
+                            _outputTensor = _worker.PeekOutput() as TensorFloat;
+                        }
+
+                        int outputCount = _outputTensor.shape.length;
+                        int readCount = math.min(outputCount, _actionDim);
+
+                        for (int i = 0; i < readCount; i++)
+                            _actionBuffer[i] = _outputTensor[i];
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogWarning($"[NeuralAnimationController] Inference error: {e.Message}");
+                        HeuristicFallbackInference();
+                    }
+        #else
+                    // No Sentis: fallback — use procedural heuristics derived from observation
+                    HeuristicFallbackInference();
+        #endif
                 }
-
-                int outputCount = _outputTensor.shape.length;
-                int readCount = math.min(outputCount, _actionDim);
-
-                for (int i = 0; i < readCount; i++)
-                    _actionBuffer[i] = _outputTensor[i];
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning($"[NeuralAnimationController] Inference error: {e.Message}");
-                HeuristicFallbackInference();
-            }
-#else
-            // No Sentis: fallback — use procedural heuristics derived from observation
-            HeuristicFallbackInference();
-#endif
-        }
 
         /// <summary>
         /// Policy blending: 두 정책을 동시에 추론하고 액션을 보간합니다.
