@@ -261,6 +261,86 @@ namespace ProjectName.Systems.Animation.Neural
         public int CurrentLODLevel => _currentLODLevel;
 
         // ──────────────────────────────────────────────
+        // Batch Inference Integration (Phase 68.4)
+        // ──────────────────────────────────────────────
+
+        /// <summary>
+        /// Try to get the loaded policy model for batch inference.
+        /// </summary>
+        public bool TryGetPolicyModel(PolicyType policy, out Model model)
+        {
+            return _policyModels.TryGetValue(policy, out model) && model != null;
+        }
+
+        /// <summary>
+        /// Callback from BatchInferenceManager when batched inference completes.
+        /// </summary>
+        public void OnBatchInferenceComplete(PolicyType policy)
+        {
+            // Inference result is already in _actionBuffer via BatchInferenceManager
+            // Mark that we have fresh inference results
+            _inferenceTimer = 0f;
+        }
+
+        /// <summary>
+        /// Fallback single inference when batch is not available or failed.
+        /// </summary>
+        public void RunSingleInference(PolicyType policy)
+        {
+            if (!_sentisAvailable) 
+            {
+                HeuristicFallbackInference();
+                return;
+            }
+
+            if (!_policyModels.TryGetValue(policy, out Model model) || model == null)
+            {
+                HeuristicFallbackInference();
+                return;
+            }
+
+            try
+            {
+                var worker = GetOrCreateWorker(policy, model);
+                if (worker == null) return;
+
+                using (var input = new TensorFloat(new TensorShape(1, 1, 1, _observationDim), _observationBuffer))
+                {
+                    worker.Execute(input);
+                    _outputTensor = worker.PeekOutput() as TensorFloat;
+
+                    int outputCount = _outputTensor.shape.length;
+                    int readCount = math.min(outputCount, _actionDim);
+
+                    for (int i = 0; i < readCount; i++)
+                        _actionBuffer[i] = _outputTensor[i];
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[NeuralAnimationController] Single inference error: {e.Message}");
+                HeuristicFallbackInference();
+            }
+        }
+
+        /// <summary>
+        /// Get or create worker for policy (uses pooling)
+        /// </summary>
+        Worker GetOrCreateWorker(PolicyType policy, Model model)
+        {
+#if UNITY_SENTIS
+            if (_workerPool.TryGetValue(policy, out Worker existing))
+                return existing;
+
+            var worker = WorkerFactory.CreateWorker(_backendType, model);
+            _workerPool[policy] = worker;
+            return worker;
+#else
+            return null;
+#endif
+        }
+
+        // ──────────────────────────────────────────────
         // Unity Lifecycle
         // ──────────────────────────────────────────────
 
@@ -672,6 +752,23 @@ namespace ProjectName.Systems.Animation.Neural
                 return;
             }
 
+            // Try batch inference first
+            if (BatchInferenceManager.Instance != null && 
+                BatchInferenceManager.Instance.TryRequestBatchInference(
+                    activePolicy,
+                    _policyModels.GetValueOrDefault(activePolicy),
+                    _backendType,
+                    _nativeObservation,
+                    _actionBuffer,
+                    _observationDim,
+                    _actionDim,
+                    this))
+            {
+                // Batched inference requested successfully
+                return;
+            }
+
+            // Fallback to single inference
             if (!_policyModels.TryGetValue(activePolicy, out Model model))
             {
                 Debug.LogWarning($"[NeuralAnimationController] No model loaded for {activePolicy}");
