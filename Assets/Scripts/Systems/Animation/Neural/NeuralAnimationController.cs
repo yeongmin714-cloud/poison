@@ -77,6 +77,14 @@ namespace ProjectName.Systems.Animation.Neural
         [SerializeField] float _lod2Distance = 50f;
         [SerializeField, Range(0, 10)] int _lodUpdateIntervalFrames = 2;
 
+        [Header("LOD Auto-Tuning (Phase 68.4)")]
+        [SerializeField] bool _enableLODAutoTune = true;
+        [SerializeField, Range(0.5f, 2f)] float _lodDistanceScale = 1f;
+        [SerializeField, Range(10f, 120f)] float _targetFPS = 60f;
+        [SerializeField, Range(0.1f, 0.5f)] float _fpsTolerance = 0.1f;
+        [SerializeField, Range(0.01f, 0.1f)] float _lodScaleAdjustSpeed = 0.05f;
+        [SerializeField] bool _showLODDistanceGizmos = true;
+
         [Header("Ground Check")]
         [SerializeField] LayerMask _groundMask = ~0;
         [SerializeField, Range(0.5f, 2f)] float _groundCheckDistance = 1.0f;
@@ -206,6 +214,21 @@ namespace ProjectName.Systems.Animation.Neural
         float _lodInferenceRateMultiplier = 1f;
 
         // ──────────────────────────────────────────────
+        // LOD Auto-Tune State
+        // ──────────────────────────────────────────────
+
+        [Header("LOD Auto-Tune")]
+        [SerializeField] bool _enableLODAutoTune = true;
+        [SerializeField] float _targetFPS = 55f;
+        [SerializeField, Range(0.05f, 0.2f)] float _fpsTolerance = 0.1f;
+        [SerializeField, Range(0.01f, 0.1f)] float _lodScaleAdjustSpeed = 0.02f;
+        [SerializeField, Range(0.5f, 2f)] float _lodDistanceScale = 1f;
+        
+        float _lodDistanceScale = 1f;
+        List<float> _fpsHistory = new List<float>(60);
+        float _avgFPS;
+
+        // ──────────────────────────────────────────────
         // Public API
         // ──────────────────────────────────────────────
 
@@ -238,9 +261,21 @@ namespace ProjectName.Systems.Animation.Neural
                 return;
             }
 
+            // Unregister old policy from BatchInferenceManager
+            if (BatchInferenceManager.Instance != null)
+            {
+                BatchInferenceManager.Instance.UnregisterActivePolicy(_currentPolicy);
+            }
+
             _targetPolicy = policy;
             _blendTimer = 0f;
             _isBlending = true;
+
+            // Register new policy
+            if (BatchInferenceManager.Instance != null)
+            {
+                BatchInferenceManager.Instance.RegisterActivePolicy(policy, _currentLODLevel);
+            }
         }
 
         /// <summary>
@@ -368,10 +403,40 @@ namespace ProjectName.Systems.Animation.Neural
         void Start()
         {
             InitializeIKTargets();
+            
+            // Register active policy with BatchInferenceManager for worker pool management
+            if (BatchInferenceManager.Instance != null)
+            {
+                BatchInferenceManager.Instance.RegisterActivePolicy(_currentPolicy, _currentLODLevel);
+            }
+        }
+
+        void OnEnable()
+        {
+            // Re-register when re-enabled
+            if (BatchInferenceManager.Instance != null)
+            {
+                BatchInferenceManager.Instance.RegisterActivePolicy(_currentPolicy, _currentLODLevel);
+            }
+        }
+
+        void OnDisable()
+        {
+            // Unregister when disabled
+            if (BatchInferenceManager.Instance != null)
+            {
+                BatchInferenceManager.Instance.UnregisterActivePolicy(_currentPolicy);
+            }
         }
 
         void OnDestroy()
         {
+            // Unregister from BatchInferenceManager
+            if (BatchInferenceManager.Instance != null)
+            {
+                BatchInferenceManager.Instance.UnregisterActivePolicy(_currentPolicy);
+            }
+            
             JobHandle.ScheduleBatchedJobs();
             _ikJobHandle.Complete();
 
@@ -1028,6 +1093,12 @@ namespace ProjectName.Systems.Animation.Neural
                 _currentPolicy = _targetPolicy;
                 _isBlending = false;
                 Debug.Log($"[NeuralAnimationController] Switched to {_currentPolicy}");
+                
+                // Register the newly active policy with BatchInferenceManager
+                if (BatchInferenceManager.Instance != null)
+                {
+                    BatchInferenceManager.Instance.RegisterActivePolicy(_currentPolicy, _currentLODLevel);
+                }
             }
 
             // During blend, decode both policies and interpolate
@@ -1131,26 +1202,64 @@ namespace ProjectName.Systems.Animation.Neural
             if (_lodFrameCounter % _lodUpdateIntervalFrames != 0)
                 return;
 
+            // FPS tracking for auto-tuning
+            float currentFPS = 1f / Time.unscaledDeltaTime;
+            _fpsHistory.Add(currentFPS);
+            if (_fpsHistory.Count > 60) _fpsHistory.RemoveAt(0);
+            float avgFPS = 0f;
+            foreach (float fps in _fpsHistory) avgFPS += fps;
+            avgFPS /= Mathf.Max(1, _fpsHistory.Count);
+
+            // Auto-tune LOD distance scale based on FPS
+            if (_enableLODAutoTune)
+            {
+                float fpsDiff = avgFPS - _targetFPS;
+                float tolerance = _targetFPS * _fpsTolerance;
+                
+                if (Mathf.Abs(fpsDiff) > tolerance)
+                {
+                    // If FPS too low, increase LOD distances (reduce quality, increase performance)
+                    // If FPS too high, decrease LOD distances (increase quality)
+                    float adjust = fpsDiff > 0 ? -_lodScaleAdjustSpeed : _lodScaleAdjustSpeed;
+                    _lodDistanceScale = Mathf.Clamp(_lodDistanceScale + adjust, 0.5f, 2f);
+                }
+            }
+
             Camera mainCamera = Camera.main;
             if (mainCamera == null) return;
+
+            // Apply auto-tuned scale to LOD distances
+            float scaledLOD0 = _lod0Distance * _lodDistanceScale;
+            float scaledLOD1 = _lod1Distance * _lodDistanceScale;
+            float scaledLOD2 = _lod2Distance * _lodDistanceScale;
 
             float dist = Vector3.Distance(transform.position, mainCamera.transform.position);
             int newLOD = 0;
 
-            if (dist >= _lod2Distance) newLOD = 3;     // Culled
-            else if (dist >= _lod1Distance) newLOD = 2; // Low
-            else if (dist >= _lod0Distance) newLOD = 1; // Medium
-            else newLOD = 0;                            // Full
+            if (dist >= scaledLOD2) newLOD = 3;     // Culled
+            else if (dist >= scaledLOD1) newLOD = 2; // Low
+            else if (dist >= scaledLOD0) newLOD = 1; // Medium
+            else newLOD = 0;                          // Full
 
             if (newLOD != _currentLODLevel)
             {
                 _currentLODLevel = newLOD;
                 ApplyLODSettings(newLOD);
             }
+
+            // Log auto-tune status periodically
+            if (_logBatchStats && _lodFrameCounter % 300 == 0)
+            {
+                Debug.Log($"[LOD AutoTune] FPS: {avgFPS:F1}, Scale: {_lodDistanceScale:F2}, Distances: {scaledLOD0:F1}/{scaledLOD1:F1}/{scaledLOD2:F1}");
+            }
         }
 
         void ApplyLODSettings(int lod)
         {
+            // Track previous LOD for BatchInferenceManager
+            int prevLOD = _currentLODLevel;
+            _currentLODLevel = lod;
+
             switch (lod)
             {
                 case 0: // Full
@@ -1177,6 +1286,19 @@ namespace ProjectName.Systems.Animation.Neural
                     _lodIKIterations = 0;
                     _lodInferenceRateMultiplier = 0f;
                     break;
+            }
+
+            // Register/unregister with BatchInferenceManager based on LOD
+            if (BatchInferenceManager.Instance != null)
+            {
+                // Register active policy at current LOD
+                BatchInferenceManager.Instance.RegisterActivePolicy(_currentPolicy, lod);
+
+                // If culled (LOD 3+), unregister to allow worker unload
+                if (lod >= 3)
+                {
+                    BatchInferenceManager.Instance.UnregisterActivePolicy(_currentPolicy);
+                }
             }
         }
 
@@ -1665,6 +1787,14 @@ namespace ProjectName.Systems.Animation.Neural
             UnityEditor.Handles.Label(transform.position + Vector3.up * 2.5f,
                 $"[Neural] Policy: {_currentPolicy} | LOD: {_currentLODLevel} | Blend: {(_isBlending ? $"{_blendTimer:F2}s" : "None")}");
 
+            // Draw FPS and LOD auto-tune info
+            if (_enableLODAutoTune)
+            {
+                float currentFPS = 1f / Time.unscaledDeltaTime;
+                UnityEditor.Handles.Label(transform.position + Vector3.up * 2.2f,
+                    $"FPS: {currentFPS:F1} | LOD Scale: {_lodDistanceScale:F2} | Target: {_targetFPS}");
+            }
+
             // Draw IK targets
             Gizmos.color = Color.green;
             if (_leftFootGrounded) Gizmos.DrawWireSphere(_leftFootTarget[0], 0.1f);
@@ -1678,13 +1808,26 @@ namespace ProjectName.Systems.Animation.Neural
             Gizmos.color = Color.cyan;
             Gizmos.DrawRay(transform.position + Vector3.up, _currentVelocity * 0.5f);
 
-            // Draw LOD distance rings
-            if (_currentLODLevel > 0)
+            // Draw LOD distance rings (with auto-tuned scale)
+            if (_showLODDistanceGizmos)
             {
+                float scaledLOD0 = _lod0Distance * _lodDistanceScale;
+                float scaledLOD1 = _lod1Distance * _lodDistanceScale;
+                float scaledLOD2 = _lod2Distance * _lodDistanceScale;
+                
                 Gizmos.color = new Color(1f, 0.5f, 0f, 0.15f);
-                Gizmos.DrawWireSphere(transform.position, _lod0Distance);
-                Gizmos.DrawWireSphere(transform.position, _lod1Distance);
-                Gizmos.DrawWireSphere(transform.position, _lod2Distance);
+                Gizmos.DrawWireSphere(transform.position, scaledLOD0);
+                Gizmos.DrawWireSphere(transform.position, scaledLOD1);
+                Gizmos.DrawWireSphere(transform.position, scaledLOD2);
+                
+                // Current distance marker
+                Camera mainCam = Camera.main;
+                if (mainCam != null)
+                {
+                    float dist = Vector3.Distance(transform.position, mainCam.transform.position);
+                    Gizmos.color = dist > _lod2Distance * _lodDistanceScale ? Color.red : Color.green;
+                    Gizmos.DrawWireSphere(transform.position, dist);
+                }
             }
 #endif
         }
