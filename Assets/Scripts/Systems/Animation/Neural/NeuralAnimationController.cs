@@ -217,14 +217,8 @@ namespace ProjectName.Systems.Animation.Neural
         // LOD Auto-Tune State
         // ──────────────────────────────────────────────
 
-        [Header("LOD Auto-Tune")]
-        [SerializeField] bool _enableLODAutoTune = true;
-        [SerializeField] float _targetFPS = 55f;
-        [SerializeField, Range(0.05f, 0.2f)] float _fpsTolerance = 0.1f;
-        [SerializeField, Range(0.01f, 0.1f)] float _lodScaleAdjustSpeed = 0.02f;
-        [SerializeField, Range(0.5f, 2f)] float _lodDistanceScale = 1f;
-        
-        float _lodDistanceScale = 1f;
+        [Header("LOD Auto-Tune State")]
+        [SerializeField] bool _logBatchStats = false;
         List<float> _fpsHistory = new List<float>(60);
         float _avgFPS;
 
