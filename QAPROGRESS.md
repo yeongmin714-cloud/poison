@@ -325,3 +325,18 @@
 - [x] **Phase 67.4.4** — MountSystem → SwitchPolicy(Mount) 탑승/하차 연동
 - [x] **Phase 67.4.5** — LOD 거리 기반 품질 검증 (HybridAnimationController.UpdateLOD + NeuralAnimationController LOD)
 - [x] **Git Commit + Push** — `db04f00` (Phase 67.4 완료 🎉)
+
+---
+
+### 2026-07-29: Phase 68.5 완료 ✅
+
+**BatchInferenceManager.cs** — 버그 3개 수정:
+- `list[0].controller._backendType` (private field) → `list[0].controller.BackendType` (public property)
+- `TelegramNotifier.Instance` (미존재 클래스) → `Debug.Log` 대체
+- `math.min` → `Mathf.Min` (Unity.Mathematics 제거)
+
+**NeuralAnimationController.cs** — 수정 2건:
+- `BackendType` public property 추가 (`public BackendType BackendType => _backendType;`)
+- 중복 `_logBatchStats` 필드 제거 (LOD Auto-Tune State 섹션)
+
+**Git:** `cffd99b` — Phase 68.5: BatchInferenceManager/NeuralAnimationController 성능 버그 수정 ✅
