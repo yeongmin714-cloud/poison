@@ -10,6 +10,7 @@ public class UIAnimationController : MonoBehaviour
     }
     {
         [SerializeField] private Animator animator;
+        [SerializeField] private Animator animator;
         
         public void PlayAnimation(string animationName)
         {

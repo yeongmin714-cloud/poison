@@ -1,11 +1,12 @@
 using UnityEngine;
-using UnityEngine;
 using System.Collections.Generic;
 
 public class UICustomizationSystem : MonoBehaviour
 {
     private void Awake()
     {
+        // Initialize customization system
+    }
         // Initialize customization system
     }
         public Text customizationTitle;
