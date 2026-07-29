@@ -1,9 +1,12 @@
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine;
 
-namespace UI.Utils
+public class UITutorialManager : MonoBehaviour
 {
-    public class UITutorialManager : MonoBehaviour
+    private void Awake()
+    {
+        // Initialize tutorial manager
+    }
     {
         [Header("UI References")]
         public Text tutorialTitle;

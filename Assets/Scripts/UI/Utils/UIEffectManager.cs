@@ -1,9 +1,12 @@
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine;
 
-namespace UI.Utils
+public class UIEffectManager : MonoBehaviour
 {
-    public class UIEffectManager : MonoBehaviour
+    private void Awake()
+    {
+        // Initialize effect manager
+    }
     {
         [Header("UI References")]
         public Image effectImage;

@@ -1,9 +1,12 @@
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine;
 
-namespace UI.Utils
+public class UIAnimationUtils : MonoBehaviour
 {
-    public class UIAnimationUtils : MonoBehaviour
+    private void Awake()
+    {
+        // Initialize animation utils
+    }
     {
         [Header("Animation Settings")]
         public float animationDuration = 1.0f;

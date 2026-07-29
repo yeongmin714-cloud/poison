@@ -1,9 +1,12 @@
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine;
 
-namespace UI.Utils
+public class UIEffectUtils : MonoBehaviour
 {
-    public class UIEffectUtils : MonoBehaviour
+    private void Awake()
+    {
+        // Initialize effect utils
+    }
     {
         [Header("Effect Settings")]
         public float effectDuration = 1.0f;

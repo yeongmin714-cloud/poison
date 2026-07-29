@@ -1,9 +1,12 @@
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine;
 
-namespace UI.Utils
+public class UIThemeManager : MonoBehaviour
 {
-    public class UIThemeManager : MonoBehaviour
+    private void Awake()
+    {
+        // Initialize theme manager
+    }
     {
         [Header("UI References")]
         public Canvas canvas;

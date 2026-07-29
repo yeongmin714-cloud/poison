@@ -2,9 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Game.UI.Utils
+public class UIAnimationController : MonoBehaviour
 {
-    public class UIAnimationController : MonoBehaviour
+    private void Awake()
+    {
+        // Initialize animation controller
+    }
     {
         [SerializeField] private Animator animator;
         

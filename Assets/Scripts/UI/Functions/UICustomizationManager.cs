@@ -1,13 +1,13 @@
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine;
 using System.Collections.Generic;
 
-namespace UI.Functions
+public class UICustomizationManager : MonoBehaviour
 {
-    public class UICustomizationManager : MonoBehaviour
+    private void Awake()
     {
-        [Header("UI References")]
-        public Image characterPreview;
+        // Initialize customization manager
+    }
         public Text customizationTitle;
         public Button saveButton;
         public Button cancelButton;

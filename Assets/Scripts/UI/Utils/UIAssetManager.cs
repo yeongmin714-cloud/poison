@@ -1,9 +1,12 @@
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine;
 
-namespace UI.Utils
+public class UIAssetManager : MonoBehaviour
 {
-    public class UIAssetManager : MonoBehaviour
+    private void Awake()
+    {
+        // Initialize asset manager
+    }
     {
         [Header("Asset Settings")]
         public string assetPath = "Assets/UI/";
