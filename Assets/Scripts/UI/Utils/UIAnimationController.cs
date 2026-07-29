@@ -8,14 +8,12 @@ public class UIAnimationController : MonoBehaviour
     {
         // Initialize animation controller
     }
+    
+    [SerializeField] private Animator animator;
+    
+    public void PlayAnimation(string animationName)
     {
-        [SerializeField] private Animator animator;
-        [SerializeField] private Animator animator;
-        
-        public void PlayAnimation(string animationName)
-        {
-            if (animator != null)
-                animator.Play(animationName);
-        }
+        if (animator != null)
+            animator.Play(animationName);
     }
 }
