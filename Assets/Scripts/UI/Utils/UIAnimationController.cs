@@ -10,7 +10,8 @@ namespace Game.UI.Utils
         
         public void PlayAnimation(string animationName)
         {
-            animator.Play(animationName);
+            if (animator != null)
+                animator.Play(animationName);
         }
     }
 }

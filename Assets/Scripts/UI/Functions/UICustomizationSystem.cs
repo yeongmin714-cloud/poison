@@ -59,7 +59,8 @@ namespace UI.Functions
             {
                 currentColor = color;
                 // Update character preview
-                characterPreview.color = availableColors[color];
+                if (characterPreview != null)
+                    characterPreview.color = availableColors[color];
                 Debug.Log("Color changed to: " + color);
             }
             else

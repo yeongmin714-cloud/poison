@@ -22,9 +22,13 @@ namespace UI.Utils
         public void SetThemeColor(Color color)
         {
             // Set theme color for all graphics
-            foreach(Graphic graphic in graphics)
+            if (graphics != null)
             {
-                graphic.color = color;
+                foreach(Graphic graphic in graphics)
+                {
+                    if (graphic != null)
+                        graphic.color = color;
+                }
             }
         }
     }
