@@ -30,6 +30,8 @@ namespace ProjectName.UI
         [SerializeField] private Color _backColor = new Color(0.6f, 0.2f, 0.2f, 0.9f);
         [SerializeField] private Color _labelColor = new Color(0.8f, 0.8f, 0.8f, 1f);
 
+        private UIDesignTheme _settingsTheme;
+
         // ===== 탭 종류 =====
         private enum SettingsTab { Graphics, Audio, KeyBindings, Accessibility }
         private SettingsTab _currentTab = SettingsTab.Graphics;
@@ -215,6 +217,9 @@ namespace ProjectName.UI
         {
             _isVisible = true;
             _currentTab = SettingsTab.Graphics;
+
+            if (_settingsTheme == null)
+                _settingsTheme = Phase33_Themes.SettingsTheme();
         }
 
         public void Hide()

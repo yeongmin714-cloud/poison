@@ -433,5 +433,189 @@ namespace ProjectName.UI.Themes
             theme.SetAnimationType(UIDesignTheme.AnimationType.FadeSlide);
             return theme;
         }
+
+        // ================================================================
+        // 추가 테마 팩토리 메서드 (Phase 33 확장)
+        // ================================================================
+
+        public static UIDesignTheme DeathScreenTheme()
+        {
+            var theme = ScriptableObject.CreateInstance<UIDesignTheme>();
+            theme.name = "Death Screen Theme";
+            theme.SetColorSet(
+                new Color(0.05f, 0.05f, 0.05f, 0.95f),    // BgColor - 잿빛
+                new Color(0.2f, 0.2f, 0.2f, 0.9f),         // BorderColor
+                new Color(0.6f, 0.1f, 0.1f, 1f),           // TitleColor - 어두운 적색
+                new Color(0.5f, 0.5f, 0.5f, 1f),           // TextColor
+                new Color(0.35f, 0.35f, 0.35f, 1f),        // SubTextColor
+                new Color(0.7f, 0.2f, 0.2f, 1f)            // AccentColor
+            );
+            theme.SetPatternType(UIDesignTheme.PatternType.Stone);
+            theme.SetBorderType(UIDesignTheme.BorderType.None);
+            theme.SetAnimationType(UIDesignTheme.AnimationType.Fade);
+            return theme;
+        }
+
+        public static UIDesignTheme EscMenuTheme()
+        {
+            var theme = ScriptableObject.CreateInstance<UIDesignTheme>();
+            theme.name = "Esc Menu Theme";
+            theme.SetColorSet(
+                new Color(0f, 0f, 0f, 0.68f),              // BgColor - Glassmorphism
+                new Color(0.3f, 0.3f, 0.35f, 0.5f),        // BorderColor
+                new Color(0.9f, 0.9f, 0.95f, 1f),          // TitleColor
+                new Color(0.85f, 0.85f, 0.9f, 1f),         // TextColor
+                new Color(0.65f, 0.65f, 0.7f, 1f),         // SubTextColor
+                new Color(0.5f, 0.7f, 0.9f, 1f)            // AccentColor
+            );
+            theme.SetPatternType(UIDesignTheme.PatternType.Glass);
+            theme.SetBorderType(UIDesignTheme.BorderType.None);
+            theme.SetAnimationType(UIDesignTheme.AnimationType.Fade);
+            return theme;
+        }
+
+        public static UIDesignTheme MainMenuTheme()
+        {
+            var theme = ScriptableObject.CreateInstance<UIDesignTheme>();
+            theme.name = "Main Menu Theme";
+            theme.SetColorSet(
+                new Color(0.04f, 0.04f, 0.04f, 0.95f),     // BgColor - 진한 블랙
+                new Color(0.6f, 0.5f, 0.2f, 0.9f),         // BorderColor - 골드
+                new Color(0.95f, 0.85f, 0.3f, 1f),         // TitleColor - 골드
+                new Color(0.9f, 0.85f, 0.7f, 1f),          // TextColor
+                new Color(0.75f, 0.7f, 0.55f, 1f),         // SubTextColor
+                new Color(1f, 0.85f, 0.2f, 1f)             // AccentColor - 밝은 골드
+            );
+            theme.SetPatternType(UIDesignTheme.PatternType.Metal);
+            theme.SetBorderType(UIDesignTheme.BorderType.Filigree);
+            theme.SetAnimationType(UIDesignTheme.AnimationType.Pulse);
+            return theme;
+        }
+
+        public static UIDesignTheme AchievementTheme()
+        {
+            var theme = ScriptableObject.CreateInstance<UIDesignTheme>();
+            theme.name = "Achievement Theme";
+            theme.SetColorSet(
+                new Color(0.5f, 0.4f, 0f, 0.95f),          // BgColor - 골드메달
+                new Color(0.7f, 0.6f, 0.2f, 0.9f),         // BorderColor
+                new Color(1f, 0.9f, 0.3f, 1f),             // TitleColor - 밝은 골드
+                new Color(0.95f, 0.85f, 0.5f, 1f),         // TextColor
+                new Color(0.8f, 0.7f, 0.3f, 1f),           // SubTextColor
+                new Color(1f, 0.8f, 0f, 1f)                // AccentColor
+            );
+            theme.SetPatternType(UIDesignTheme.PatternType.Metal);
+            theme.SetBorderType(UIDesignTheme.BorderType.Shield);
+            theme.SetAnimationType(UIDesignTheme.AnimationType.Scale);
+            return theme;
+        }
+
+        public static UIDesignTheme TutorialTheme()
+        {
+            var theme = ScriptableObject.CreateInstance<UIDesignTheme>();
+            theme.name = "Tutorial Theme";
+            theme.SetColorSet(
+                new Color(1f, 0.99f, 0.9f, 0.95f),         // BgColor - 깔끔한 양피지
+                new Color(0.5f, 0.4f, 0.3f, 0.9f),         // BorderColor
+                new Color(0.2f, 0.15f, 0.1f, 1f),          // TitleColor - 진한 갈색
+                new Color(0.3f, 0.25f, 0.2f, 1f),          // TextColor
+                new Color(0.4f, 0.35f, 0.3f, 1f),          // SubTextColor
+                new Color(0.6f, 0.45f, 0.25f, 1f)          // AccentColor
+            );
+            theme.SetPatternType(UIDesignTheme.PatternType.Parchment);
+            theme.SetBorderType(UIDesignTheme.BorderType.Filigree);
+            theme.SetAnimationType(UIDesignTheme.AnimationType.FadeSlide);
+            return theme;
+        }
+
+        public static UIDesignTheme GuardInfoTheme()
+        {
+            var theme = ScriptableObject.CreateInstance<UIDesignTheme>();
+            theme.name = "Guard Info Theme";
+            theme.SetColorSet(
+                new Color(0.24f, 0.29f, 0.18f, 0.95f),     // BgColor - 카키 군복
+                new Color(0.35f, 0.4f, 0.25f, 0.9f),       // BorderColor
+                new Color(0.7f, 0.75f, 0.5f, 1f),          // TitleColor
+                new Color(0.8f, 0.85f, 0.7f, 1f),          // TextColor
+                new Color(0.6f, 0.65f, 0.5f, 1f),          // SubTextColor
+                new Color(0.55f, 0.6f, 0.35f, 1f)          // AccentColor
+            );
+            theme.SetPatternType(UIDesignTheme.PatternType.Fabric);
+            theme.SetBorderType(UIDesignTheme.BorderType.Chain);
+            theme.SetAnimationType(UIDesignTheme.AnimationType.Fade);
+            return theme;
+        }
+
+        public static UIDesignTheme LoadingScreenTheme()
+        {
+            var theme = ScriptableObject.CreateInstance<UIDesignTheme>();
+            theme.name = "Loading Screen Theme";
+            theme.SetColorSet(
+                new Color(0.05f, 0.05f, 0.1f, 0.95f),      // BgColor - 나침반
+                new Color(0.3f, 0.3f, 0.4f, 0.9f),         // BorderColor
+                new Color(0.7f, 0.8f, 1f, 1f),             // TitleColor - 푸른빛
+                new Color(0.8f, 0.85f, 0.95f, 1f),         // TextColor
+                new Color(0.6f, 0.65f, 0.75f, 1f),         // SubTextColor
+                new Color(0.4f, 0.6f, 0.9f, 1f)            // AccentColor
+            );
+            theme.SetPatternType(UIDesignTheme.PatternType.Glass);
+            theme.SetBorderType(UIDesignTheme.BorderType.Rune);
+            theme.SetAnimationType(UIDesignTheme.AnimationType.Fade);
+            return theme;
+        }
+
+        public static UIDesignTheme HerbRespawnTheme()
+        {
+            var theme = ScriptableObject.CreateInstance<UIDesignTheme>();
+            theme.name = "Herb Respawn Theme";
+            theme.SetColorSet(
+                new Color(0f, 0.2f, 0f, 0.95f),            // BgColor - 녹색원형
+                new Color(0.1f, 0.4f, 0.1f, 0.9f),         // BorderColor
+                new Color(0.3f, 0.9f, 0.3f, 1f),           // TitleColor - 밝은 녹색
+                new Color(0.5f, 0.95f, 0.5f, 1f),          // TextColor
+                new Color(0.35f, 0.8f, 0.35f, 1f),         // SubTextColor
+                new Color(0.2f, 1f, 0.2f, 1f)              // AccentColor
+            );
+            theme.SetPatternType(UIDesignTheme.PatternType.Nature);
+            theme.SetBorderType(UIDesignTheme.BorderType.None);
+            theme.SetAnimationType(UIDesignTheme.AnimationType.Pulse);
+            return theme;
+        }
+
+        public static UIDesignTheme MonsterLevelTheme()
+        {
+            var theme = ScriptableObject.CreateInstance<UIDesignTheme>();
+            theme.name = "Monster Level Theme";
+            theme.SetColorSet(
+                new Color(0.1f, 0.08f, 0.05f, 0.95f),      // BgColor - 티어별
+                new Color(0.4f, 0.3f, 0.2f, 0.9f),         // BorderColor
+                new Color(0.9f, 0.6f, 0.3f, 1f),           // TitleColor - 주황빛
+                new Color(0.85f, 0.75f, 0.6f, 1f),         // TextColor
+                new Color(0.7f, 0.6f, 0.5f, 1f),           // SubTextColor
+                new Color(0.95f, 0.5f, 0.2f, 1f)           // AccentColor
+            );
+            theme.SetPatternType(UIDesignTheme.PatternType.Leather);
+            theme.SetBorderType(UIDesignTheme.BorderType.Thorn);
+            theme.SetAnimationType(UIDesignTheme.AnimationType.Fade);
+            return theme;
+        }
+
+        public static UIDesignTheme GuardHUDTheme()
+        {
+            var theme = ScriptableObject.CreateInstance<UIDesignTheme>();
+            theme.name = "Guard HUD Theme";
+            theme.SetColorSet(
+                new Color(0.15f, 0.2f, 0.22f, 0.95f),      // BgColor - 전술격자
+                new Color(0.3f, 0.4f, 0.45f, 0.9f),        // BorderColor
+                new Color(0.5f, 0.8f, 0.9f, 1f),           // TitleColor - 시안
+                new Color(0.7f, 0.9f, 0.95f, 1f),          // TextColor
+                new Color(0.5f, 0.7f, 0.75f, 1f),          // SubTextColor
+                new Color(0.3f, 0.9f, 1f, 1f)              // AccentColor - 밝은 시안
+            );
+            theme.SetPatternType(UIDesignTheme.PatternType.Metal);
+            theme.SetBorderType(UIDesignTheme.BorderType.Chain);
+            theme.SetAnimationType(UIDesignTheme.AnimationType.Fade);
+            return theme;
+        }
     }
 }

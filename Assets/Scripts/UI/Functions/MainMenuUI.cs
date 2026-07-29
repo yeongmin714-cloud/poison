@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using ProjectName.Core;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI.Functions
 {
@@ -10,6 +11,7 @@ namespace ProjectName.UI.Functions
     public class MainMenuUI : UIWindow
     {
         public GameObject mainMenuPanel;
+        private UIDesignTheme _mainMenuTheme;
 
         protected override void Awake()
         {
@@ -20,6 +22,10 @@ namespace ProjectName.UI.Functions
         {
             if (mainMenuPanel != null)
                 mainMenuPanel.SetActive(true);
+
+            if (_mainMenuTheme == null)
+                _mainMenuTheme = Phase33_Themes.MainMenuTheme();
+            ApplyTheme(_mainMenuTheme);
         }
 
         public override void Hide()

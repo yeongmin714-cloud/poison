@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -65,12 +66,22 @@ namespace ProjectName.UI
 
         private const string PREFS_KEY = "Achievement_";
 
+        private UIDesignTheme _theme;
+        private bool _themeInitialized;
+
         private void Awake()
         {
             if (Instance != null) { Destroy(gameObject); return; }
             Instance = this;
             DontDestroyOnLoad(gameObject);
             LoadAll();
+
+            // Theme integration
+            if (_theme == null)
+            {
+                _theme = Phase33_Themes.AchievementTheme();
+                _themeInitialized = true;
+            }
         }
 
         // ===== 저장/로드 =====
@@ -137,16 +148,22 @@ namespace ProjectName.UI
         private void InitStyles()
         {
             if (_stylesInit) return;
-            _popupBgStyle = new GUIStyle { normal = { background = UIStyleManager.MakeTexture(1, 1, _popupBgColor) } };
+            
+            // Apply theme colors if available
+            Color bgColor = _themeInitialized && _theme != null ? _theme.BgColor : _popupBgColor;
+            Color titleColor = _themeInitialized && _theme != null ? _theme.TitleColor : _popupTitleColor;
+            Color textColor = _themeInitialized && _theme != null ? _theme.TextColor : _popupTextColor;
+
+            _popupBgStyle = new GUIStyle { normal = { background = UIStyleManager.MakeTexture(1, 1, bgColor) } };
             _popupTitleStyle = new GUIStyle
             {
                 fontSize = 28, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = _popupTitleColor }
+                normal = { textColor = titleColor }
             };
             _popupDescStyle = new GUIStyle
             {
                 fontSize = 22, fontStyle = FontStyle.Normal, alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = _popupTextColor }
+                normal = { textColor = textColor }
             };
             _popupIconStyle = new GUIStyle { fontSize = 38, alignment = TextAnchor.MiddleCenter };
             _stylesInit = true;

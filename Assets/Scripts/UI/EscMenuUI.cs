@@ -1,8 +1,8 @@
 using ProjectName.Core;
 using ProjectName.Systems;
-
 using UnityEngine;
 using UnityEngine.InputSystem;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -12,6 +12,8 @@ namespace ProjectName.UI
     /// </summary>
     public class EscMenuUI : MonoBehaviour
     {
+        private UIDesignTheme _escMenuTheme;
+
         public static EscMenuUI Instance { get; private set; }
 
         [SerializeField] private int _windowWidth = 1012;
@@ -68,6 +70,9 @@ namespace ProjectName.UI
         {
             _isOpen = true;
             Time.timeScale = 0f;
+
+            if (_escMenuTheme == null)
+                _escMenuTheme = Phase33_Themes.EscMenuTheme();
         }
 
         public void Resume()

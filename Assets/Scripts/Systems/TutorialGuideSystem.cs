@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.Systems
 {
@@ -79,15 +80,19 @@ namespace ProjectName.Systems
         [SerializeField] private float _guideDuration = 5f;
 
         // 캐시된 GUIStyle 인스턴스 (프레임당 할당 방지)
-        private GUIStyle _titleStyle;
-        private GUIStyle _descStyle;
-        private GUIStyle _closeStyle;
-        private bool _stylesInitialized;
+                private GUIStyle _titleStyle;
+                private GUIStyle _descStyle;
+                private GUIStyle _closeStyle;
+                private bool _stylesInitialized;
 
-        /// <summary>가이드가 표시/숨김될 때 발생하는 이벤트</summary>
-        public Action<string, bool> OnGuideProcessed;
+                // Theme integration
+                private UIDesignTheme _theme;
+                private bool _themeInitialized;
+
+                /// <summary>가이드가 표시/숨김될 때 발생하는 이벤트</summary>
+                public Action<string, bool> OnGuideProcessed;
         
-        /// <summary>해당 가이드가 이미 PlayerPrefs에 기록되었는지 (과거에 본 적이 있는지) 확인</summary>
+                private void Awake()
         public bool HasGuideBeenShown(string guideId)
         {
             return PlayerPrefs.HasKey($"guide_{guideId}");

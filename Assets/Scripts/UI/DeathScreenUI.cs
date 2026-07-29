@@ -1,6 +1,7 @@
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -10,6 +11,8 @@ namespace ProjectName.UI
     /// </summary>
     public class DeathScreenUI : MonoBehaviour
     {
+        private UIDesignTheme _deathScreenTheme;
+
         public static DeathScreenUI Instance { get; private set; }
 
         [SerializeField] private float _fadeDuration = 1.5f;
@@ -65,6 +68,9 @@ namespace ProjectName.UI
             _isFading = true;
             _fadeTimer = 0f;
             Time.timeScale = 0f;
+
+            if (_deathScreenTheme == null)
+                _deathScreenTheme = Phase33_Themes.DeathScreenTheme();
         }
 
         public void Hide()
