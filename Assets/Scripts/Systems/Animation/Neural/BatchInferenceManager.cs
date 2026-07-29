@@ -97,7 +97,7 @@ namespace ProjectName.Systems.Animation.Neural
                     // Need to get model from one of the controllers
                     if (list[0].controller != null && list[0].controller.TryGetPolicyModel(policy, out Model model))
                     {
-                        ExecuteBatch(policy, model, list[0].controller._backendType);
+                        ExecuteBatch(policy, model, list[0].controller.BackendType);
                     }
                 }
             }
@@ -190,7 +190,7 @@ namespace ProjectName.Systems.Animation.Neural
                     if (_policyMaxLOD.TryGetValue(policy, out int maxLOD) && maxLOD >= 3)
                     {
                         shouldUnload = true;
-                        reason = $"LOD3 culled";
+                        reason = "LOD3 culled";
                     }
                 }
 
@@ -242,7 +242,6 @@ namespace ProjectName.Systems.Animation.Neural
             {
                 float memMB = memoryFreedBytes / (1024f * 1024f);
                 Debug.Log($"[BatchInferenceManager] Memory cleanup: unloaded {workersUnloaded} workers, freed ~{memMB:F1} MB");
-                SendTelegramMemoryNotification(workersUnloaded, memMB);
             }
         }
 
@@ -252,18 +251,6 @@ namespace ProjectName.Systems.Animation.Neural
             // Typical ONNX model ~300KB, worker overhead ~50MB
             return 50 * 1024 * 1024; // ~50MB per worker
         }
-
-        void SendTelegramMemoryNotification(int workersUnloaded, float memFreedMB)
-        {
-            // Send notification via existing telegram system
-            // This would need integration with the telegram notification system
-            if (TelegramNotifier.Instance != null)
-            {
-                TelegramNotifier.Instance.Send($"🧠 Worker Pool Cleanup: {workersUnloaded} workers unloaded, ~{memFreedMB:F1} MB freed");
-            }
-        }
-
-        // ... rest of existing methods ...
 
         void ExecuteBatch(NeuralAnimationController.PolicyType policy, Model model, BackendType backend)
         {
@@ -303,7 +290,7 @@ namespace ProjectName.Systems.Animation.Neural
                     using (var outputTensor = worker.PeekOutput() as TensorFloat)
                     {
                         // Distribute results
-                        int outputCount = math.min(outputTensor.shape.length, actDim);
+                        int outputCount = Mathf.Min(outputTensor.shape.length, actDim);
                         for (int i = 0; i < batchSize; i++)
                         {
                             var req = list[i];
@@ -353,10 +340,10 @@ namespace ProjectName.Systems.Animation.Neural
             {
                 if (_pendingBatches.TryGetValue(policy, out var list) && list.Count > 0)
                 {
-                    if (list[0].controller != null && 
+                    if (list[0].controller != null &&
                         list[0].controller.TryGetPolicyModel(policy, out Model model))
                     {
-                        ExecuteBatch(policy, model, list[0].controller._backendType);
+                        ExecuteBatch(policy, model, list[0].controller.BackendType);
                     }
                 }
             }

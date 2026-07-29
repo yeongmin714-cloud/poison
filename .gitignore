@@ -39,3 +39,4 @@ C:temptest.bat
 # Python cache
 __pycache__/
 *.pyc
+compile_verify_latest.txt

@@ -55,6 +55,11 @@ namespace ProjectName.Systems.Animation.Neural
         [SerializeField] bool _asyncInference = true;
         [SerializeField] BackendType _backendType = BackendType.GPUCompute;
 
+        /// <summary>
+        /// Public property to access the backend type for batch inference.
+        /// </summary>
+        public BackendType BackendType => _backendType;
+
         [Header("Policy Blending")]
         [SerializeField, Range(0.1f, 2f)] float _policyBlendDuration = 0.3f;
         [SerializeField] AnimationCurve _policyBlendCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
@@ -217,8 +222,6 @@ namespace ProjectName.Systems.Animation.Neural
         // LOD Auto-Tune State
         // ──────────────────────────────────────────────
 
-        [Header("LOD Auto-Tune State")]
-        [SerializeField] bool _logBatchStats = false;
         List<float> _fpsHistory = new List<float>(60);
         float _avgFPS;
 
