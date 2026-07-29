@@ -1,6 +1,7 @@
 using ProjectName.Core;
 using ProjectName.Systems;
 using UnityEngine;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -46,6 +47,10 @@ namespace ProjectName.UI
         private bool _styleInitialized = false;
         private bool _isInRange;
 
+        // ===== Theme Integration =====
+        private UIDesignTheme _theme;
+        private bool _themeInitialized;
+
         public int CurrentLevel => _level;
 
         private void Start()
@@ -67,6 +72,12 @@ namespace ProjectName.UI
 
             _level = _ai.Level;
             UpdateLevelDisplay();
+
+            // Theme integration
+            if (!_themeInitialized) {
+                if (_theme == null) _theme = Phase33_Themes.MonsterLevelTheme();
+                _themeInitialized = true;
+            }
         }
 
         private void Update()

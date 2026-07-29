@@ -1,4 +1,5 @@
 using ProjectName.Core;
+using ProjectName.UI.Themes;
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -60,6 +61,10 @@ namespace ProjectName.Systems
         private string _tipText2;
         private TipCategory _tipCat2;
 
+        // ===== Theme Integration =====
+        private UIDesignTheme _theme;
+        private bool _themeInitialized;
+
         // ===== 스타일 =====
         private GUIStyle _styleLogo;
         private GUIStyle _styleSubtitle;
@@ -79,6 +84,12 @@ namespace ProjectName.Systems
                 _manager = FindAnyObjectByType<LoadingManager>();
 
             DontDestroyOnLoad(gameObject);
+
+            // Theme integration
+            if (!_themeInitialized) {
+                if (_theme == null) _theme = Phase33_Themes.LoadingScreenTheme();
+                _themeInitialized = true;
+            }
         }
 
         private void OnDestroy()

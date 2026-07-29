@@ -3,6 +3,7 @@ using ProjectName.Core;
 using ProjectName.Systems;
 using UnityEngine;
 using ProjectName.Core.Data;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -42,6 +43,10 @@ namespace ProjectName.UI
         private GUIStyle _styleBuffLabel;
         private GUIStyle _styleHeader;
 
+        // ===== Theme Integration =====
+        private UIDesignTheme _theme;
+        private bool _themeInitialized;
+
         // ===== 캐시된 스타일 (GC 방지: 매 프레임 new GUIStyle() 지양) =====
         private GUIStyle _styleBuffPositive;
         private GUIStyle _styleBuffNegative;
@@ -74,6 +79,12 @@ namespace ProjectName.UI
             }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            // Theme integration
+            if (!_themeInitialized) {
+                if (_theme == null) _theme = Phase33_Themes.GuardInfoTheme();
+                _themeInitialized = true;
+            }
         }
 
         private void Update()

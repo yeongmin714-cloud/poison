@@ -1,6 +1,7 @@
 using System.Text;
 using ProjectName.Systems;
 using UnityEngine;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -45,6 +46,10 @@ namespace ProjectName.UI
         private GUIStyle _bgStyle;
         private float _herbSearchTimer;
 
+        // ===== Theme Integration =====
+        private UIDesignTheme _theme;
+        private bool _themeInitialized;
+
         private void Awake()
         {
             if (_instance != null && _instance != this)
@@ -53,6 +58,12 @@ namespace ProjectName.UI
                 return;
             }
             _instance = this;
+
+            // Theme integration
+            if (!_themeInitialized) {
+                if (_theme == null) _theme = Phase33_Themes.HerbRespawnTheme();
+                _themeInitialized = true;
+            }
         }
 
         private void Start()

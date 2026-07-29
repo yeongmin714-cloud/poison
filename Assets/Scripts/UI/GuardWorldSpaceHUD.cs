@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Systems;
 using UnityEngine;
+using ProjectName.UI.Themes;
 
 namespace ProjectName.UI
 {
@@ -48,6 +49,10 @@ namespace ProjectName.UI
         // ===== 싱글톤 =====
         public static GuardWorldSpaceHUD Instance { get; private set; }
 
+        // ===== Theme integration =====
+        private UIDesignTheme _theme;
+        private bool _themeInitialized;
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -57,6 +62,12 @@ namespace ProjectName.UI
             }
             Instance = this;
             CacheReferences();
+
+            // Theme integration
+            if (!_themeInitialized) {
+                if (_theme == null) _theme = Phase33_Themes.GuardHUDTheme();
+                _themeInitialized = true;
+            }
         }
 
         private void OnEnable()
