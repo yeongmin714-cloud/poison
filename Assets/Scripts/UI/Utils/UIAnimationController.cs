@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,9 +7,9 @@ public class UIAnimationController : MonoBehaviour
     {
         // Initialize animation controller
     }
-    
+
     [SerializeField] private Animator animator;
-    
+
     public void PlayAnimation(string animationName)
     {
         if (animator != null)
