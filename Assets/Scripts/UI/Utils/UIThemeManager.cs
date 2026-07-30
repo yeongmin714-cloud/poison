@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIThemeManager : MonoBehaviour
 {
@@ -32,5 +33,6 @@ public class UIThemeManager : MonoBehaviour
                     graphic.color = color;
             }
         }
+        Debug.Log("Theme color set to: " + color);
     }
 }

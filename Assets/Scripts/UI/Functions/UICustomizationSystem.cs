@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class UICustomizationSystem : MonoBehaviour
 {
@@ -11,6 +12,7 @@ public class UICustomizationSystem : MonoBehaviour
     public Text customizationTitle;
     public Button saveButton;
     public Button cancelButton;
+    public Image characterPreview;
     
     [Header("Customization Data")]
     public string customizationType = "Character";

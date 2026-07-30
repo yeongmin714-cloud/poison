@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIAnimationController : MonoBehaviour
 {
@@ -15,5 +16,7 @@ public class UIAnimationController : MonoBehaviour
     {
         if (animator != null)
             animator.Play(animationName);
+        else
+            Debug.LogWarning("No animator component found for animation: " + animationName);
     }
 }

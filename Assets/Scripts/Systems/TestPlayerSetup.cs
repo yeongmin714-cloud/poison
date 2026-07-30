@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Systems.Animation.Procedural;
 using ProjectName.Systems.Animation.Procedural.Bones;
+using ProjectName.Systems.Animation.Neural;
 
 namespace ProjectName.Systems
 {
@@ -20,6 +21,9 @@ public class TestPlayerSetup : MonoBehaviour
     [Header("Camera Settings")]
     [SerializeField] private float _orbitRadius = 15f;
     [SerializeField] private float _defaultPitch = 45f;
+
+    private NeuralAnimationController _neuralAnim;
+    private HybridAnimationController _hybridAnim;
 
     private void Awake()
     {
@@ -89,6 +93,20 @@ public class TestPlayerSetup : MonoBehaviour
         {
             player.AddComponent<ProceduralAnimationController>();
         }
+
+        // NeuralAnimationController — ONNX 정책 추론 (같은 GameObject)
+        _neuralAnim = player.GetComponent<NeuralAnimationController>();
+        if (_neuralAnim == null)
+            _neuralAnim = player.AddComponent<NeuralAnimationController>();
+
+        // HybridAnimationController — Procedural + Neural 브리지 (같은 GameObject)
+        _hybridAnim = player.GetComponent<HybridAnimationController>();
+        if (_hybridAnim == null)
+            _hybridAnim = player.AddComponent<HybridAnimationController>();
+
+        // ProgressiveRolloutManager에 등록
+        if (ProgressiveRolloutManager.Instance != null)
+            ProgressiveRolloutManager.Instance.ConfigureHybridController(_hybridAnim);
 
         // PlayerPlaceholder: RuntimeModelLoader → Player_Rigged GLB 로드
         // ProceduralAnimationController가 본 구조를 자동 감지하므로 PlayerPlaceholder는 유지

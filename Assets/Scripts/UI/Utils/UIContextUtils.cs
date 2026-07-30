@@ -21,6 +21,7 @@ namespace UI.Utils
         public void UpdateContext()
         {
             // Update context-specific logic
+            Debug.Log("Updating context: " + context);
         }
     }
 }

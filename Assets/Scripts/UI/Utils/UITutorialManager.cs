@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UITutorialManager : MonoBehaviour
 {
@@ -34,6 +35,7 @@ public class UITutorialManager : MonoBehaviour
             prevButton.onClick.AddListener(PrevStep);
         if (skipButton != null)
             skipButton.onClick.AddListener(SkipTutorial);
+        Debug.Log("Tutorial initialized");
     }
     
     public void NextStep()
@@ -44,6 +46,7 @@ public class UITutorialManager : MonoBehaviour
             if (tutorialDescription != null)
                 tutorialDescription.text = tutorialSteps[currentStep];
         }
+        Debug.Log("Moved to next step: " + currentStep);
     }
     
     public void PrevStep()
@@ -54,6 +57,7 @@ public class UITutorialManager : MonoBehaviour
             if (tutorialDescription != null)
                 tutorialDescription.text = tutorialSteps[currentStep];
         }
+        Debug.Log("Moved to previous step: " + currentStep);
     }
     
     public void SkipTutorial()
