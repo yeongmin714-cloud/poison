@@ -1,4 +1,6 @@
 using UnityEngine;
+using Game.UI.Core;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class TextComponent : MonoBehaviour, IUIComponent

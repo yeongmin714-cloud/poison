@@ -97,4 +97,3 @@ public class UICustomizationSystem : MonoBehaviour
         Debug.Log("Customization cancelled");
     }
 }
-}

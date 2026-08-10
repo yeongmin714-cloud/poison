@@ -1,5 +1,5 @@
 #nullable disable
-using ProjectName.UI.Themes;
+using ProjectName.Core.Themes;
 using UnityEngine;
 
 namespace ProjectName.UI

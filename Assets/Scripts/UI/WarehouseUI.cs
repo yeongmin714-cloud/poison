@@ -2,9 +2,11 @@ using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.Core.Data;
-using ProjectName.UI.Themes;
+using ProjectName.Core.Themes;
 using System.Linq;
 using UnityEngine;
+using ProjectName.UI.Themes;
+using Game.UI.Core;
 
 namespace ProjectName.UI
 {

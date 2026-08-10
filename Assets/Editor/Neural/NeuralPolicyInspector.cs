@@ -1,5 +1,7 @@
+using System.IO;
 using UnityEditor;
 using UnityEngine;
+using Unity.InferenceEngine;
 using System.Collections.Generic;
 using System.Text;
 
@@ -65,7 +67,7 @@ namespace ProjectName.Editor.Neural
                 DrawHybridInfo(hybridCtrl);
 
             if (neuralCtrl != null)
-                DrawNeuralInfo(neuralCtrl);
+                DrawNeuralInfo(neuralCtrl, selected);
 
             DrawModelInventory();
 
@@ -101,7 +103,7 @@ namespace ProjectName.Editor.Neural
             EditorGUILayout.Space();
         }
 
-        void DrawNeuralInfo(Systems.Animation.Neural.NeuralAnimationController ctrl)
+        void DrawNeuralInfo(Systems.Animation.Neural.NeuralAnimationController ctrl, GameObject selected)
         {
             _showModelInfo = EditorGUILayout.Foldout(_showModelInfo, "Neural Controller State", true);
             if (!_showModelInfo) return;
@@ -148,10 +150,9 @@ namespace ProjectName.Editor.Neural
                 {
                     string path = AssetDatabase.GUIDToAssetPath(guid);
                     var model = AssetDatabase.LoadAssetAtPath<ModelAsset>(path);
-                    if (model != null && model.OnnxModel != null)
+                    if (model != null)
                     {
-                        float sizeKb = model.OnnxModel.bytes.Length / 1024f;
-                        EditorGUILayout.LabelField(Path.GetFileName(path), $"{sizeKb:F1} KB");
+                        EditorGUILayout.LabelField(System.IO.Path.GetFileName(path), "Loaded");
                     }
                 }
                 EditorGUI.indentLevel--;

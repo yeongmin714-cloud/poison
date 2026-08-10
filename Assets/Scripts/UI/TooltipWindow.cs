@@ -1,8 +1,9 @@
 using UnityEngine;
+using ProjectName.UI.Themes;
 using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.Core.Data;
-using ProjectName.UI.Themes;
+using ProjectName.Core.Themes;
 
 namespace ProjectName.UI
 {

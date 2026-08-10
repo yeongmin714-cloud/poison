@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using ProjectName.UI.Themes;
+using UnityEngine.UI;
+using ProjectName.Core.Themes;
 
 namespace ProjectName.UI.Utils
 {

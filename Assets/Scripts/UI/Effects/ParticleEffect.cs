@@ -4,12 +4,14 @@ using UnityEngine;
 
 namespace Game.UI.Effects
 {
-    public class ParticleEffect : Effect
+    public class ParticleEffect : MonoBehaviour
     {
         [SerializeField] private ParticleSystem particleSystem;
         [SerializeField] private bool autoDestroy = true;
         
-        public override void ApplyEffect()
+        public float Duration { get; set; } = 1f;
+        
+        public virtual void ApplyEffect()
         {
             if(particleSystem != null)
             {

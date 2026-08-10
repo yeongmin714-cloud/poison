@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEngine;
 using System.IO;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace ProjectName.Editor.Neural
 {
@@ -21,7 +22,7 @@ namespace ProjectName.Editor.Neural
         //  State
         // ──────────────────────────────────────────────
         // Training config
-        string _pythonPath = "python3";
+        string _pythonPath = "wsl python3";
         string _trainingScriptPath = "Assets/Training/TrainingInfra/train_lightweight.py";
         string _avatarType = "biped";
         int _epochs = 50;
@@ -164,7 +165,7 @@ namespace ProjectName.Editor.Neural
 
         void StartTraining()
         {
-            string scriptPath = Path.Combine(Application.dataPath, "..", _trainingScriptPath);
+            string scriptPath = Path.GetFullPath(Path.Combine(Application.dataPath, "..", _trainingScriptPath));
             if (!File.Exists(scriptPath))
             {
                 UnityEngine.Debug.LogError($"[NeuralTrainingDashboard] Script not found: {scriptPath}");
@@ -182,15 +183,21 @@ namespace ProjectName.Editor.Neural
             if (!string.IsNullOrEmpty(_ensembleSeeds)) args += $" --ensemble_seeds \"{_ensembleSeeds}\"";
             if (_fp16) args += " --fp16";
 
+            // Convert Windows paths to WSL paths for wsl.exe execution
+            // Use GetFullPath to resolve any .. or . in the path first
+            string wslScriptPath = ToWslPath(scriptPath);
+            string winWorkingDir = Path.GetDirectoryName(scriptPath);  // Windows path for WorkingDirectory
+
+            // Use wsl.exe directly with proper arguments
             var startInfo = new ProcessStartInfo
             {
-                FileName = _pythonPath,
-                Arguments = $"{scriptPath} {args}",
+                FileName = "wsl.exe",
+                Arguments = $"python3 \"{wslScriptPath}\" {args}",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
-                WorkingDirectory = Path.GetDirectoryName(scriptPath)
+                WorkingDirectory = winWorkingDir
             };
 
             try
@@ -238,7 +245,10 @@ namespace ProjectName.Editor.Neural
         {
             try
             {
-                _trainingProcess?.Kill();
+                if (_trainingProcess != null && !_trainingProcess.HasExited)
+                {
+                    _trainingProcess.Kill();
+                }
                 _trainingProcess?.Dispose();
                 _trainingProcess = null;
                 _isTraining = false;
@@ -258,6 +268,7 @@ namespace ProjectName.Editor.Neural
         {
             string logDir = Path.Combine(Application.dataPath, "..", "Assets/Training/TrainingInfra/tensorboard_logs");
             Directory.CreateDirectory(logDir);
+            string wslLogDir = ToWslPath(logDir);
 
             try
             {
@@ -265,8 +276,8 @@ namespace ProjectName.Editor.Neural
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = _pythonPath,
-                        Arguments = $"-m tensorboard.main --logdir={logDir} --port=6006",
+                        FileName = "wsl.exe",
+                        Arguments = $"-m tensorboard.main --logdir={wslLogDir} --port=6006",
                         UseShellExecute = false,
                         CreateNoWindow = true
                     }
@@ -311,6 +322,33 @@ namespace ProjectName.Editor.Neural
         {
             StopTraining();
             StopTensorBoard();
+        }
+
+        // ──────────────────────────────────────────────
+        //  Helpers
+        // ──────────────────────────────────────────────
+
+        /// <summary>
+        /// Convert Windows path (C:\path\to\file) to WSL path (/mnt/c/path/to/file)
+        /// </summary>
+        static string ToWslPath(string windowsPath)
+        {
+            if (string.IsNullOrEmpty(windowsPath)) return windowsPath;
+            
+            // Normalize path separators
+            windowsPath = windowsPath.Replace('\\', '/');
+            
+            // Match Windows drive letter pattern (C:/..., D:/..., etc.)
+            var match = Regex.Match(windowsPath, @"^([A-Za-z]):/(.*)$");
+            if (match.Success)
+            {
+                string drive = match.Groups[1].Value.ToLower();
+                string path = match.Groups[2].Value;
+                return $"/mnt/{drive}/{path}";
+            }
+            
+            // Already a Unix-style path or UNC path
+            return windowsPath;
         }
     }
 }

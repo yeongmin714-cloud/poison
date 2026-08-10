@@ -136,7 +136,30 @@ namespace ProjectName.Systems
             }
             else
             {
-                Debug.LogError("[PlayerMovement] 씬에 MainCamera 태그가 있는 카메라가 없습니다!");
+                // Try to find any camera
+                var anyCamera = FindFirstObjectByType<Camera>();
+                if (anyCamera != null)
+                {
+                    _cameraTransform = anyCamera.transform;
+                    _camera = anyCamera;
+                    _defaultFOV = _camera.fieldOfView;
+                    _cameraOriginalLocalPosition = _cameraTransform.localPosition;
+                    anyCamera.tag = "MainCamera"; // Tag it for future use
+                    Debug.LogWarning("[PlayerMovement] No MainCamera tagged camera found, using first available camera and tagging it.");
+                }
+                else
+                {
+                    Debug.LogError("[PlayerMovement] 씬에 카메라가 없습니다! 카메라를 생성합니다.");
+                    // Create a default camera
+                    var camGO = new GameObject("Main Camera");
+                    camGO.tag = "MainCamera";
+                    _camera = camGO.AddComponent<Camera>();
+                    _cameraTransform = _camera.transform;
+                    _defaultFOV = _camera.fieldOfView;
+                    _cameraOriginalLocalPosition = _cameraTransform.localPosition;
+                    camGO.AddComponent<AudioListener>();
+                    Debug.Log("[PlayerMovement] Created default Main Camera.");
+                }
             }
 
             _keyboard = Keyboard.current;

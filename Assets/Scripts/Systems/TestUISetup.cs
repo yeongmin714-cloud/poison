@@ -2,7 +2,7 @@
 using UnityEngine;
 using ProjectName.UI;
 using ProjectName.Core;
-using ProjectName.UI.Themes;
+using ProjectName.Core.Themes;
 using ProjectName.Core.Data;
 
 namespace ProjectName.Systems

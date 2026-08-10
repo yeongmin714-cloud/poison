@@ -270,7 +270,7 @@ namespace ProjectName.Systems.Animation.Procedural
 
         void ApplyJumpImpulse()
         {
-            if (_rigidbody != null && _animController != null)
+            if (_rigidbody != null && _animController != null && !_rigidbody.isKinematic)
             {
                 float jumpVel = Mathf.Sqrt(-2f * _animController.GetJumpGravity() * _animController.GetJumpHeight());
                 _rigidbody.linearVelocity = new Vector3(_rigidbody.linearVelocity.x, jumpVel, _rigidbody.linearVelocity.z);
@@ -279,7 +279,7 @@ namespace ProjectName.Systems.Animation.Procedural
 
         void ApplyRollImpulse()
         {
-            if (_rigidbody != null)
+            if (_rigidbody != null && !_rigidbody.isKinematic)
             {
                 Vector3 rollDir = _currentVelocity.magnitude > 0.1f ? _currentVelocity.normalized : transform.forward;
                 _rigidbody.AddForce(rollDir * 15f, ForceMode.VelocityChange);

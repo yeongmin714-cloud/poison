@@ -1,5 +1,7 @@
+using System.IO;
 using UnityEditor;
 using UnityEngine;
+using Unity.InferenceEngine;
 using System.Collections.Generic;
 
 namespace ProjectName.Editor.Neural
@@ -34,9 +36,6 @@ namespace ProjectName.Editor.Neural
         // Preview
         bool _showPreview;
         float _previewTime;
-
-        // Test duration
-        float _testDuration = 3f;
 
         readonly string[] _policies = { "Locomotion", "Combat", "React", "Interact", "Fly", "Swim" };
 
@@ -173,17 +172,16 @@ namespace ProjectName.Editor.Neural
 
         void CreatePreset()
         {
-            var preset = new Systems.Animation.Neural.PolicySelector.TransitionConfig
+            var preset = new ProjectName.Systems.Animation.Neural.TransitionConfig
             {
                 blendDuration = _blendDuration,
                 useLatentBlend = _useLatentBlend,
                 transitionCooldown = _transitionCooldown,
+                fallbackPolicy = ProjectName.Systems.Animation.Neural.AnimationPolicy.Locomotion,
+                blendCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f),
+                crossFadeLatent = true,
+                latentBlendCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f)
             };
-
-            // Convert fallback string to AnimationPolicy
-            var policyType = Systems.Animation.Neural.PolicySelector.PolicyTypeFromAnimationPolicy(
-                Systems.Animation.Neural.PolicySelector.AnimationPolicyFromPolicyType(
-                    Systems.Animation.Neural.NeuralAnimationController.PolicyType.Locomotion));
 
             Debug.Log($"[NeuralTransitionDesigner] Transition config created: {_blendDuration}s, latent={_useLatentBlend}, cooldown={_transitionCooldown}");
         }
@@ -197,7 +195,7 @@ namespace ProjectName.Editor.Neural
                 return;
             }
 
-            var neuralCtrl = selected.GetComponent<Systems.Animation.Neural.NeuralAnimationController>();
+            var neuralCtrl = selected.GetComponent<ProjectName.Systems.Animation.Neural.NeuralAnimationController>();
             if (neuralCtrl == null)
             {
                 Debug.LogWarning("[NeuralTransitionDesigner] Selected object has no NeuralAnimationController");
@@ -205,14 +203,14 @@ namespace ProjectName.Editor.Neural
             }
 
             // Parse target policy
-            var policyMap = new Dictionary<string, Systems.Animation.Neural.NeuralAnimationController.PolicyType>
+            var policyMap = new Dictionary<string, ProjectName.Systems.Animation.Neural.NeuralAnimationController.PolicyType>
             {
-                ["Locomotion"] = Systems.Animation.Neural.NeuralAnimationController.PolicyType.Locomotion,
-                ["Combat"] = Systems.Animation.Neural.NeuralAnimationController.PolicyType.Combat,
-                ["React"] = Systems.Animation.Neural.NeuralAnimationController.PolicyType.React,
-                ["Interact"] = Systems.Animation.Neural.NeuralAnimationController.PolicyType.Interact,
-                ["Fly"] = Systems.Animation.Neural.NeuralAnimationController.PolicyType.Fly,
-                ["Swim"] = Systems.Animation.Neural.NeuralAnimationController.PolicyType.Swim,
+                ["Locomotion"] = ProjectName.Systems.Animation.Neural.NeuralAnimationController.PolicyType.Locomotion,
+                ["Combat"] = ProjectName.Systems.Animation.Neural.NeuralAnimationController.PolicyType.Combat,
+                ["React"] = ProjectName.Systems.Animation.Neural.NeuralAnimationController.PolicyType.React,
+                ["Interact"] = ProjectName.Systems.Animation.Neural.NeuralAnimationController.PolicyType.Interact,
+                ["Fly"] = ProjectName.Systems.Animation.Neural.NeuralAnimationController.PolicyType.Fly,
+                ["Swim"] = ProjectName.Systems.Animation.Neural.NeuralAnimationController.PolicyType.Swim,
             };
 
             if (policyMap.TryGetValue(_targetPolicy, out var policy))

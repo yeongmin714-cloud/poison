@@ -1,6 +1,9 @@
+using System.IO;
 using UnityEditor;
 using UnityEngine;
+using Unity.InferenceEngine;
 using System.Collections.Generic;
+using System.Text;
 
 namespace ProjectName.Editor.Neural
 {
@@ -148,7 +151,7 @@ namespace ProjectName.Editor.Neural
                 return;
             }
 
-            var neuralCtrl = selected.GetComponent<Systems.Animation.Neural.NeuralAnimationController>();
+            var neuralCtrl = selected.GetComponent<ProjectName.Systems.Animation.Neural.NeuralAnimationController>();
             if (neuralCtrl == null)
             {
                 Debug.LogWarning("[NeuralStyleEditor] Selected object has no NeuralAnimationController");

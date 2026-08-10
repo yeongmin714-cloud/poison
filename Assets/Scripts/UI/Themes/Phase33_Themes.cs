@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using ProjectName.UI.Themes;
+using ProjectName.Core.Themes;
 
 namespace ProjectName.UI.Themes
 {
@@ -576,7 +578,7 @@ namespace ProjectName.UI.Themes
                 new Color(0.35f, 0.8f, 0.35f, 1f),         // SubTextColor
                 new Color(0.2f, 1f, 0.2f, 1f)              // AccentColor
             );
-            theme.SetPatternType(UIDesignTheme.PatternType.Nature);
+            theme.SetPatternType(UIDesignTheme.PatternType.Wood);
             theme.SetBorderType(UIDesignTheme.BorderType.None);
             theme.SetAnimationType(UIDesignTheme.AnimationType.Pulse);
             return theme;

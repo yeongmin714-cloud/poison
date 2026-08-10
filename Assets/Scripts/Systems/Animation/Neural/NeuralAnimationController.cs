@@ -133,6 +133,9 @@ namespace ProjectName.Systems.Animation.Neural
         Tensor<float> _outputTensor;
         bool _sentisAvailable;
 
+        // Debug stats
+        bool _logBatchStats = false;
+
         // Worker 풀링 (정책별 worker 캐싱)
         Dictionary<PolicyType, Worker> _workerPool = new Dictionary<PolicyType, Worker>();
 
@@ -319,7 +322,7 @@ namespace ProjectName.Systems.Animation.Neural
         /// </summary>
         public void RunSingleInference(PolicyType policy)
         {
-            if (!_sentisAvailable) 
+            if (!_sentisAvailable)
             {
                 HeuristicFallbackInference();
                 return;
@@ -336,10 +339,10 @@ namespace ProjectName.Systems.Animation.Neural
                 var worker = GetOrCreateWorker(policy, model);
                 if (worker == null) return;
 
-                using (var input = new TensorFloat(new TensorShape(1, 1, 1, _observationDim), _observationBuffer))
+                using (var input = new Tensor<float>(new TensorShape(1, 1, 1, _observationDim), _observationBuffer))
                 {
-                    worker.Execute(input);
-                    _outputTensor = worker.PeekOutput() as TensorFloat;
+                    worker.Schedule(input);
+                    _outputTensor = worker.PeekOutput() as Tensor<float>;
 
                     int outputCount = _outputTensor.shape.length;
                     int readCount = math.min(outputCount, _actionDim);
@@ -349,11 +352,11 @@ namespace ProjectName.Systems.Animation.Neural
                 }
             }
             catch (Exception e)
-            {
-                Debug.LogWarning($"[NeuralAnimationController] Single inference error: {e.Message}");
-                HeuristicFallbackInference();
-            }
-        }
+                    {
+                        Debug.LogWarning($"[NeuralAnimationController] Single inference error: {e.Message}");
+                        HeuristicFallbackInference();
+                    }
+                }
 
         /// <summary>
         /// Get or create worker for policy (uses pooling)
@@ -364,7 +367,7 @@ namespace ProjectName.Systems.Animation.Neural
             if (_workerPool.TryGetValue(policy, out Worker existing))
                 return existing;
 
-            var worker = WorkerFactory.CreateWorker(_backendType, model);
+            var worker = new Worker(model, _backendType);
             _workerPool[policy] = worker;
             return worker;
 #else
@@ -845,15 +848,15 @@ namespace ProjectName.Systems.Animation.Neural
                         }
                         else
                         {
-                            _worker = WorkerFactory.CreateWorker(_backendType, model);
+                            _worker = new Worker(model, _backendType);
                             _workerPool[activePolicy] = _worker;
                         }
 
                         // FP16 최적화: input tensor를 FP16으로 생성 (BackendType.GPUCompute에서만 유효)
-                        using (var input = new TensorFloat(new TensorShape(1, 1, 1, _observationDim), _observationBuffer))
+                        using (var input = new Tensor<float>(new TensorShape(1, 1, 1, _observationDim), _observationBuffer))
                         {
-                            _worker.Execute(input);
-                            _outputTensor = _worker.PeekOutput() as TensorFloat;
+                            _worker.Schedule(input);
+                            _outputTensor = _worker.PeekOutput() as Tensor<float>;
                         }
 
                         int outputCount = _outputTensor.shape.length;
@@ -891,19 +894,19 @@ namespace ProjectName.Systems.Animation.Neural
             {
                 // 현재 정책 추론
                 var workerA = GetOrCreateWorker(_currentPolicy, modelA);
-                using (var input = new TensorFloat(new TensorShape(1, 1, 1, _observationDim), _observationBuffer))
+                using (var input = new Tensor<float>(new TensorShape(1, 1, 1, _observationDim), _observationBuffer))
                 {
-                    workerA.Execute(input);
-                    var outputA = workerA.PeekOutput() as TensorFloat;
+                    workerA.Schedule(input);
+                    var outputA = workerA.PeekOutput() as Tensor<float>;
                     CopyOutputToBuffer(outputA, _actionBufferA);
                 }
 
                 // 타겟 정책 추론
                 var workerB = GetOrCreateWorker(_targetPolicy, modelB);
-                using (var input = new TensorFloat(new TensorShape(1, 1, 1, _observationDim), _observationBuffer))
+                using (var input = new Tensor<float>(new TensorShape(1, 1, 1, _observationDim), _observationBuffer))
                 {
-                    workerB.Execute(input);
-                    var outputB = workerB.PeekOutput() as TensorFloat;
+                    workerB.Schedule(input);
+                    var outputB = workerB.PeekOutput() as Tensor<float>;
                     CopyOutputToBuffer(outputB, _actionBufferB);
                 }
 
@@ -922,25 +925,8 @@ namespace ProjectName.Systems.Animation.Neural
 #endif
         }
 
-        /// <summary>
-        /// Worker 풀에서 worker를 가져오거나 새로 생성합니다.
-        /// </summary>
-        Worker GetOrCreateWorker(PolicyType policy, Model model)
-        {
 #if UNITY_SENTIS
-            if (_workerPool.TryGetValue(policy, out Worker existing))
-                return existing;
-
-            var worker = WorkerFactory.CreateWorker(_backendType, model);
-            _workerPool[policy] = worker;
-            return worker;
-#else
-            return null;
-#endif
-        }
-
-        #if UNITY_SENTIS
-        void CopyOutputToBuffer(TensorFloat output, float[] buffer)
+        void CopyOutputToBuffer(Tensor<float> output, float[] buffer)
         {
             if (output == null) return;
             int count = math.min(output.shape.length, buffer.Length);

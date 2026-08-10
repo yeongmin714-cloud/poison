@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using ProjectName.Core;
 using ProjectName.Core.Data;
-using ProjectName.UI.Themes;
+using ProjectName.Core.Themes;
 
 namespace ProjectName.Systems
 {
@@ -90,10 +91,9 @@ namespace ProjectName.Systems
                 private bool _themeInitialized;
 
                 /// <summary>가이드가 표시/숨김될 때 발생하는 이벤트</summary>
-                public Action<string, bool> OnGuideProcessed;
-        
-                private void Awake()
-        public bool HasGuideBeenShown(string guideId)
+                        public Action<string, bool> OnGuideProcessed;
+
+                        public bool HasGuideBeenShown(string guideId)
         {
             return PlayerPrefs.HasKey($"guide_{guideId}");
         }

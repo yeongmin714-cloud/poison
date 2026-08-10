@@ -4,7 +4,6 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using ProjectName.Systems;
-using ProjectName.Editor;
 
 /// <summary>
 /// UserProvided/ 폴더에서 GLB 파일을 찾아 Placeholder를 자동 교체합니다.
@@ -285,7 +284,7 @@ public static class ModelSwapper
             Debug.Log($"[ModelSwapper] Tiered Swap: '{kvp.Key}' → Placeholder: '{placeholderName}' (씬에 {(target != null ? "있음" : "없음")})");
 
             // 사용 가능한 티어 목록 표시
-            string[] availableTiers = ModelMapping.GetAvailableTiers(kvp.Key);
+            string[] availableTiers = ModelMapping.GetAvailableTiers();
             var foundTiers = new System.Collections.Generic.HashSet<string>();
             foreach (var (suffix, _) in kvp.Value)
                 foundTiers.Add(suffix);

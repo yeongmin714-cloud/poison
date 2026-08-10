@@ -484,6 +484,7 @@ def build_policy_onnx(
     obs_dim: int,
     act_dim: int,
     model_name: str = "neural_animation_policy",
+    verbose: bool = True,
 ) -> bytes:
     """
     Build a complete ONNX model for the policy network.
@@ -507,6 +508,68 @@ def build_policy_onnx(
         Serialized ONNX model as bytes.
     """
     ONNXProtoBuilder.get("ModelProto")  # Ensure built
+
+    # ─── Name Validation Helper ───
+    def _validate_unique_names(nodes, initializers, graph_inputs, graph_outputs, graph_value_info, verbose=False):
+        """Validate all names in the graph are unique."""
+        name_sources = {}
+        
+        # Collect node names
+        for node in nodes:
+            name = node.name
+            if name in name_sources:
+                raise ValueError(f"Duplicate node name: '{name}' (first in {name_sources[name]}, now in node)")
+            name_sources[name] = "node"
+            
+            # Collect node output names
+            for output in node.output:
+                if output in name_sources:
+                    existing = name_sources[output]
+                    if existing not in ("graph_output", "graph_value_info"):
+                        raise ValueError(f"Node output '{output}' conflicts with {existing}")
+                name_sources[output] = "node_output"
+            
+            # Collect node input names
+            for input_name in node.input:
+                pass  # Inputs can reference existing tensors
+        
+        # Collect initializer names
+        for init in initializers:
+            name = init.name
+            if name in name_sources:
+                existing = name_sources[name]
+                raise ValueError(f"Initializer name '{name}' conflicts with {existing}")
+            name_sources[name] = "initializer"
+        
+        # Collect graph input names
+        for vi in graph_inputs:
+            name = vi.name
+            if name in name_sources:
+                existing = name_sources[name]
+                raise ValueError(f"Graph input name '{name}' conflicts with {existing}")
+            name_sources[name] = "graph_input"
+        
+        # Collect graph output names
+        for vi in graph_outputs:
+            name = vi.name
+            if name in name_sources:
+                existing = name_sources[name]
+                if existing not in ("node_output", "graph_output"):
+                    raise ValueError(f"Graph output name '{name}' conflicts with {existing}")
+            name_sources[name] = "graph_output"
+        
+        # Collect graph value_info names
+        for vi in graph_value_info:
+            name = vi.name
+            if name in name_sources:
+                existing = name_sources[name]
+                if existing not in ("node_output", "graph_value_info"):
+                    raise ValueError(f"Graph value_info name '{name}' conflicts with {existing}")
+            name_sources[name] = "graph_value_info"
+        
+        if verbose:
+            total = len(name_sources)
+            print(f"  [ONNX Build] Name validation passed: {total} unique names")
 
     # Unpack weights
     # NOTE: numpy stores weights as [in_dim, out_dim] (h @ W + b)
@@ -570,18 +633,24 @@ def build_policy_onnx(
     nodes.append(_make_tanh_node("tanh2", h2_name, h2_act_name))
 
     # 6. Gemm3 (mean_head): [1, 64] -> [1, act_dim]
-    nodes.append(_make_gemm_node("gemm3", h2_act_name, "gemm_w2", "gemm_b2", out_name))
-
-    # Output is "action"
-    # We alias out_name -> ACTION_NAME via identity or just use ACTION_NAME as output of gemm3
-    # Actually, let's make gemm3 output directly to ACTION_NAME
-    # Update: rebuild gemm3 with output=ACTION_NAME
-    nodes.pop()  # Remove gemm3
+    # Output directly to ACTION_NAME to avoid extra tensor
     nodes.append(_make_gemm_node("gemm3", h2_act_name, "gemm_w2", "gemm_b2", ACTION_NAME))
 
-    # ── Graph inputs/outputs ──
+    # ── Graph inputs/outputs/value_info ──
     graph_inputs = [_make_value_info(OBS_NAME, [1, 1, 1, obs_dim])]
     graph_outputs = [_make_value_info(ACTION_NAME, [1, act_dim])]
+    
+    # ValueInfo for intermediate tensors (required by Unity Inference Engine)
+    graph_value_info = [
+        _make_value_info(flat_name, [1, obs_dim]),
+        _make_value_info(h1_name, [1, 64]),
+        _make_value_info(h1_act_name, [1, 64]),
+        _make_value_info(h2_name, [1, 64]),
+        _make_value_info(h2_act_name, [1, 64]),
+    ]
+
+    # ─── Validate unique names ───
+    _validate_unique_names(nodes, initializers, graph_inputs, graph_outputs, graph_value_info, verbose)
 
     # ── Build Graph ──
     GraphProto = ONNXProtoBuilder.get("GraphProto")
@@ -591,6 +660,8 @@ def build_policy_onnx(
         graph.input.append(vi)
     for vi in graph_outputs:
         graph.output.append(vi)
+    for vi in graph_value_info:
+        graph.value_info.append(vi)
     for node in nodes:
         graph.node.append(node)
     for init in initializers:
@@ -643,7 +714,7 @@ def export_policy_to_onnx(
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
     # Build model
-    model_bytes = build_policy_onnx(weights, obs_dim, act_dim)
+    model_bytes = build_policy_onnx(weights, obs_dim, act_dim, verbose=verbose)
 
     # Write to file
     with open(output_path, "wb") as f:

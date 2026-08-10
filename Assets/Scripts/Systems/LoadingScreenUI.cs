@@ -1,5 +1,7 @@
 using ProjectName.Core;
-using ProjectName.UI.Themes;
+using ProjectName.Core.Themes;
+using System;
+using System.Reflection;
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -87,7 +89,7 @@ namespace ProjectName.Systems
 
             // Theme integration
             if (!_themeInitialized) {
-                if (_theme == null) _theme = Phase33_Themes.LoadingScreenTheme();
+                if (_theme == null) _theme = GetPhase33LoadingScreenTheme();
                 _themeInitialized = true;
             }
         }
@@ -342,6 +344,27 @@ namespace ProjectName.Systems
             }
             tex.Apply();
             return tex;
+        }
+
+        /// <summary>리플렉션으로 Phase33_Themes.LoadingScreenTheme() 호출 (UI 어셈블리 순환 참조 방지)</summary>
+        private UIDesignTheme GetPhase33LoadingScreenTheme()
+        {
+            try
+            {
+                var uiAssembly = Assembly.Load("ProjectName.UI");
+                var themesType = uiAssembly.GetType("ProjectName.UI.Themes.Phase33_Themes");
+                if (themesType != null)
+                {
+                    var method = themesType.GetMethod("LoadingScreenTheme", BindingFlags.Public | BindingFlags.Static);
+                    if (method != null)
+                        return method.Invoke(null, null) as UIDesignTheme;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[LoadingScreenUI] Phase33_Themes 리플렉션 실패: {e.Message}");
+            }
+            return null;
         }
     }
 }

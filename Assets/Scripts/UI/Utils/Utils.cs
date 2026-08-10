@@ -1,24 +1,27 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public class Utils : MonoBehaviour
+namespace ProjectName.UI.Utils
 {
-    public static T GetOrAddComponent<T>(GameObject go) where T : Component
+    public static class Utils
     {
-        T component = go.GetComponent<T>();
-        if (component == null)
+        public static T GetOrAddComponent<T>(GameObject go) where T : Component
         {
-            component = go.AddComponent<T>();
+            T component = go.GetComponent<T>();
+            if (component == null)
+            {
+                component = go.AddComponent<T>();
+            }
+            return component;
         }
-        return component;
-    }
-    
-    public static void SetActiveRecursively(GameObject go, bool active)
-    {
-        go.SetActive(active);
-        foreach (Transform child in go.transform)
+        
+        public static void SetActiveRecursively(GameObject go, bool active)
         {
-            SetActiveRecursively(child.gameObject, active);
+            go.SetActive(active);
+            foreach (Transform child in go.transform)
+            {
+                SetActiveRecursively(child.gameObject, active);
+            }
         }
     }
 }

@@ -1,10 +1,12 @@
 using UnityEngine;
+using ProjectName.UI.Themes;
+using Game.UI.Core;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Core.Utils;
-using ProjectName.UI.Themes;
+using ProjectName.Core.Themes;
 using ProjectName.Core;
 
 namespace ProjectName.UI

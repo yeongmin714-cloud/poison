@@ -1,6 +1,7 @@
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using Unity.InferenceEngine;
 
 namespace ProjectName.Editor.Neural
 {
@@ -71,13 +72,13 @@ namespace ProjectName.Editor.Neural
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 var model = AssetDatabase.LoadAssetAtPath<ModelAsset>(path);
-                if (model != null && model.OnnxModel != null)
+                if (model != null)
                 {
-                    Debug.Log($"  ✅ {path} ({model.OnnxModel.bytes.Length / 1024} KB)");
+                    Debug.Log($"  ✅ {path} (ModelAsset loaded successfully)");
                 }
                 else
                 {
-                    Debug.LogWarning($"  ❌ {path} (missing or invalid)");
+                    Debug.LogWarning($"  ❌ {path} (failed to load ModelAsset)");
                 }
             }
         }

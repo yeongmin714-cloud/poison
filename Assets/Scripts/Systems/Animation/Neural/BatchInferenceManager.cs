@@ -266,14 +266,14 @@ namespace ProjectName.Systems.Animation.Neural
             // Get or create worker
             if (!_workerCache.TryGetValue(policy, out Worker worker) || worker == null)
             {
-                worker = WorkerFactory.CreateWorker(backend, model);
+                worker = new Worker(model, backend);
                 _workerCache[policy] = worker;
             }
 
             try
             {
                 // Prepare batched input tensor: [batch, 1, 1, obsDim]
-                using (var inputTensor = new TensorFloat(new TensorShape(batchSize, 1, 1, obsDim)))
+                using (var inputTensor = new Tensor<float>(new TensorShape(batchSize, 1, 1, obsDim)))
                 {
                     // Fill batch
                     for (int i = 0; i < batchSize; i++)
@@ -286,9 +286,9 @@ namespace ProjectName.Systems.Animation.Neural
                     }
 
                     // Execute batch inference
-                    worker.Execute(inputTensor);
-                    using (var outputTensor = worker.PeekOutput() as TensorFloat)
-                    {
+                                    worker.Schedule(inputTensor);
+                                    using (var outputTensor = worker.PeekOutput() as Tensor<float>)
+                                    {
                         // Distribute results
                         int outputCount = Mathf.Min(outputTensor.shape.length, actDim);
                         for (int i = 0; i < batchSize; i++)
@@ -357,7 +357,7 @@ namespace ProjectName.Systems.Animation.Neural
             if (_workerCache.TryGetValue(policy, out var worker) && worker != null)
                 return worker;
 
-            worker = WorkerFactory.CreateWorker(backend, model);
+            worker = new Worker(model, backend);
             _workerCache[policy] = worker;
             return worker;
         }

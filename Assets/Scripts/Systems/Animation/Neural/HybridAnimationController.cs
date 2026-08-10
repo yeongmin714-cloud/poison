@@ -233,11 +233,11 @@ namespace ProjectName.Systems.Animation.Neural
             if (_neuralController == null)
                 _neuralController = GetComponent<NeuralAnimationController>();
 
-            // Validate
+            // Fallback: try again in Start if not found
             if (_proceduralController == null)
-                Debug.LogError("[HybridAnimationController] ProceduralAnimationController not found!");
+                Debug.LogWarning("[HybridAnimationController] ProceduralAnimationController not found in Awake, will retry in Start");
             if (_neuralController == null)
-                Debug.LogError("[HybridAnimationController] NeuralAnimationController not found!");
+                Debug.LogWarning("[HybridAnimationController] NeuralAnimationController not found in Awake, will retry in Start");
 
             // Setup animator
             _animator.applyRootMotion = false;
@@ -265,6 +265,12 @@ namespace ProjectName.Systems.Animation.Neural
 
         void Start()
         {
+            // Retry finding components if not found in Awake
+            if (_proceduralController == null)
+                _proceduralController = GetComponent<ProceduralAnimationController>();
+            if (_neuralController == null)
+                _neuralController = GetComponent<NeuralAnimationController>();
+
             _lastKnownPolicy = _neuralController?.ActivePolicy ?? NeuralAnimationController.PolicyType.Locomotion;
         }
 

@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
+using ProjectName.UI.Themes;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Systems;
-using ProjectName.UI.Themes;
+using ProjectName.Core.Themes;
 
 namespace ProjectName.UI
 {

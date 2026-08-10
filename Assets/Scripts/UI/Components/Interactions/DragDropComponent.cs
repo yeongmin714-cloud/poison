@@ -1,4 +1,6 @@
 using UnityEngine;
+using Game.UI.Core;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class DragDropComponent : MonoBehaviour, IUIComponent, IDragDropHandler
@@ -16,17 +18,17 @@ public class DragDropComponent : MonoBehaviour, IUIComponent, IDragDropHandler
         // Cleanup logic
     }
     
-    public void OnDragStart()
+    public void OnDragStart(PointerEventData eventData)
     {
         // Drag start implementation
     }
     
-    public void OnDrag()
+    public void OnDrag(PointerEventData eventData)
     {
         // Drag implementation
     }
     
-    public void OnDragEnd()
+    public void OnDragEnd(PointerEventData eventData)
     {
         // Drag end implementation
     }

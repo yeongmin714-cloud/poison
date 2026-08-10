@@ -1,7 +1,8 @@
 using UnityEngine;
+using ProjectName.UI.Themes;
 using ProjectName.Core;
 using ProjectName.Core.Data;
-using ProjectName.UI.Themes;
+using ProjectName.Core.Themes;
 #pragma warning disable 0414
 
 namespace ProjectName.UI

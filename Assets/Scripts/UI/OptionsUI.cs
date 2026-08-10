@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using ProjectName.UI.Themes;
+using Game.UI.Core;
 using UnityEngine.UI;
 using ProjectName.Core;
-using ProjectName.UI.Themes;
+using ProjectName.Core.Themes;
 #pragma warning disable 0414
 
 namespace ProjectName.UI

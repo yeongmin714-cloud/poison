@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using ProjectName.Systems.Animation.Procedural;
 using ProjectName.Systems.Animation.Procedural.Bones;
 using ProjectName.Systems.Animation.Neural;
+using ProjectName.Systems; // for PlayerMovement, IVelocityProvider
 
 namespace ProjectName.Systems
 {
@@ -62,71 +63,84 @@ public class TestPlayerSetup : MonoBehaviour
             cc.radius = 0.5f;
         }
 
-        // PlayerInput (Input System 활성화용)
-        if (player.GetComponent<PlayerInput>() == null)
-        {
-            var pi = player.AddComponent<PlayerInput>();
-            pi.defaultActionMap = "Player";
-            pi.notificationBehavior = PlayerNotifications.InvokeUnityEvents;
-        }
-
         // Animator (ProceduralAnimationController가 필요)
-        if (player.GetComponent<Animator>() == null)
-        {
-            player.AddComponent<Animator>();
-        }
+                if (player.GetComponent<Animator>() == null)
+                {
+                    player.AddComponent<Animator>();
+                }
 
-        // ProceduralBoneMap — 본 자동 매핑
-        if (player.GetComponent<ProceduralBoneMap>() == null)
-        {
-            player.AddComponent<ProceduralBoneMap>();
-        }
+                // ProceduralAnimationController — 완전 프로시저럴 애니메이션 (Hybrid보다 먼저 추가)
+                if (player.GetComponent<ProceduralAnimationController>() == null)
+                {
+                    player.AddComponent<ProceduralAnimationController>();
+                }
 
-        // ProceduralAnimStateMachine — 상태 머신
-        if (player.GetComponent<ProceduralAnimStateMachine>() == null)
-        {
-            player.AddComponent<ProceduralAnimStateMachine>();
-        }
+                // ProceduralAnimStateMachine — 상태 머신
+                if (player.GetComponent<ProceduralAnimStateMachine>() == null)
+                {
+                    player.AddComponent<ProceduralAnimStateMachine>();
+                }
 
-        // ProceduralAnimationController — 완전 프로시저럴 애니메이션
-        if (player.GetComponent<ProceduralAnimationController>() == null)
-        {
-            player.AddComponent<ProceduralAnimationController>();
-        }
+                // ProceduralBoneMap — 본 자동 매핑
+                if (player.GetComponent<ProceduralBoneMap>() == null)
+                {
+                    player.AddComponent<ProceduralBoneMap>();
+                }
 
-        // NeuralAnimationController — ONNX 정책 추론 (같은 GameObject)
-        _neuralAnim = player.GetComponent<NeuralAnimationController>();
-        if (_neuralAnim == null)
-            _neuralAnim = player.AddComponent<NeuralAnimationController>();
+                // NeuralAnimationController — ONNX 정책 추론 (같은 GameObject)
+                _neuralAnim = player.GetComponent<NeuralAnimationController>();
+                if (_neuralAnim == null)
+                    _neuralAnim = player.AddComponent<NeuralAnimationController>();
 
-        // HybridAnimationController — Procedural + Neural 브리지 (같은 GameObject)
-        _hybridAnim = player.GetComponent<HybridAnimationController>();
-        if (_hybridAnim == null)
-            _hybridAnim = player.AddComponent<HybridAnimationController>();
+                // HybridAnimationController — Procedural + Neural 브리지 (같은 GameObject, 마지막에 추가)
+                _hybridAnim = player.GetComponent<HybridAnimationController>();
+                if (_hybridAnim == null)
+                    _hybridAnim = player.AddComponent<HybridAnimationController>();
 
-        // ProgressiveRolloutManager에 등록
-        if (ProgressiveRolloutManager.Instance != null)
-            ProgressiveRolloutManager.Instance.ConfigureHybridController(_hybridAnim);
+                // ProgressiveRolloutManager에 등록
+                if (ProgressiveRolloutManager.Instance != null)
+                    ProgressiveRolloutManager.Instance.ConfigureHybridController(_hybridAnim);
 
-        // PlayerPlaceholder: RuntimeModelLoader → Player_Rigged GLB 로드
-        // ProceduralAnimationController가 본 구조를 자동 감지하므로 PlayerPlaceholder는 유지
-        if (player.GetComponent<PlayerPlaceholder>() == null)
-        {
-            player.AddComponent<PlayerPlaceholder>();
-            Debug.Log("[TestPlayerSetup] ✅ PlayerPlaceholder 부착됨 (RuntimeModelLoader가 GLB 모델 로드)");
-        }
+                // PlayerPlaceholder: RuntimeModelLoader → Player_Rigged GLB 로드
+                // ProceduralAnimationController가 본 구조를 자동 감지하므로 PlayerPlaceholder는 유지
+                if (player.GetComponent<PlayerPlaceholder>() == null)
+                {
+                    player.AddComponent<PlayerPlaceholder>();
+                    Debug.Log("[TestPlayerSetup] ✅ PlayerPlaceholder 부착됨 (RuntimeModelLoader가 GLB 모델 로드)");
+                }
 
-        // PlayerMovement 제거 (ProceduralAnimationController로 대체)
-        var pm = player.GetComponent<PlayerMovement>();
-        if (pm != null)
-            DestroyImmediate(pm);
+                // PlayerMovement — 이동 제어 + IVelocityProvider (NeuralAnimationController 연동용)
+                var playerMovement = player.GetComponent<PlayerMovement>();
+                if (playerMovement == null)
+                {
+                    playerMovement = player.AddComponent<PlayerMovement>();
+                    // TestPlayerSetup용 설정 (public property 사용)
+                    var pmType = typeof(PlayerMovement);
+                    pmType.GetProperty("WalkSpeed")?.SetValue(playerMovement, _walkSpeed);
+                    pmType.GetProperty("RunSpeed")?.SetValue(playerMovement, _runSpeed);
+                    pmType.GetProperty("JumpHeight")?.SetValue(playerMovement, _jumpHeight);
+                }
 
-        // RigAnimationController 제거 (ProceduralAnimStateMachine으로 대체)
-        var rac = player.GetComponent<RigAnimationController>();
-        if (rac != null)
-            DestroyImmediate(rac);
+                // NeuralAnimationController에 velocity provider 설정
+                if (_neuralAnim != null)
+                {
+                    _neuralAnim.SetVelocityProvider(playerMovement);
+                }
 
-        player.transform.position = Vector3.zero;
+                // ProceduralAnimationController에도 velocity provider 설정
+                var procAnim = player.GetComponent<ProceduralAnimationController>();
+                if (procAnim != null)
+                {
+                    procAnim.SetVelocityProvider(playerMovement);
+                }
+
+                // HybridAnimationController에도 velocity provider 설정
+                if (_hybridAnim != null)
+                {
+                    _hybridAnim.SetVelocityProvider(playerMovement);
+                }
+
+                // PlayerPlaceholder: RuntimeModelLoader → Player_Rigged GLB 로드
         Debug.Log("[TestPlayerSetup] ✅ Player 설정 완료 (ProceduralAnimationController)");
     }
 
@@ -161,27 +175,45 @@ public class TestPlayerSetup : MonoBehaviour
     }
 
     private void SetupGround()
-    {
-        if (GameObject.Find("Ground") == null)
         {
-            var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            ground.name = "Ground";
-            ground.transform.position = new Vector3(0, -0.5f, 0);
-            ground.transform.localScale = Vector3.one * 50f;
-        
-            // URP Lit 머티리얼 적용 (초록색 잔디)
-            var renderer = ground.GetComponent<MeshRenderer>();
-            if (renderer != null)
+            if (GameObject.Find("Ground") == null)
             {
-                var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                mat.color = new Color(0.2f, 0.5f, 0.2f, 1f);
-                mat.SetFloat("_Smoothness", 0f);
-                renderer.material = mat;
+                var ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                ground.name = "Ground";
+                ground.transform.position = new Vector3(0, -1f, 0);
+                ground.transform.localScale = new Vector3(100f, 1f, 100f);
+            
+                // Remove the default BoxCollider and add a proper one
+                var collider = ground.GetComponent<BoxCollider>();
+                if (collider == null)
+                {
+                    collider = ground.AddComponent<BoxCollider>();
+                }
+                collider.isTrigger = false;
+            
+                // URP Lit 머티리얼 적용 (초록색 잔디)
+                var renderer = ground.GetComponent<MeshRenderer>();
+                if (renderer != null)
+                {
+                    var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                    mat.color = new Color(0.2f, 0.5f, 0.2f, 1f);
+                    mat.SetFloat("_Smoothness", 0f);
+                    renderer.material = mat;
+                }
+            
+                // Remove the default Cube mesh filter/renderer if we want a plane look
+                // But keep it as a thick floor for reliable collision
             }
         
-            Debug.Log("[TestPlayerSetup] ✅ Ground 생성 (URP Lit 머티리얼 적용)");
+            // Ensure player starts above ground
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                player.transform.position = new Vector3(0, 1f, 0);
+            }
+        
+            Debug.Log("[TestPlayerSetup] ✅ Ground 생성 (두꺼운 바닥으로 확실한 충돌)");
         }
-    }
 
     private void SetupLight()
     {

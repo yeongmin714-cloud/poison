@@ -1,4 +1,6 @@
 using UnityEngine;
+using Game.UI.Core;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class CanvasComponent : MonoBehaviour, IUIComponent
@@ -19,7 +21,7 @@ public class CanvasComponent : MonoBehaviour, IUIComponent
     /// <summary>
     /// Sets canvas render mode
     /// </summary>
-    public void SetRenderMode(CanvasRenderMode renderMode)
+    public void SetRenderMode(RenderMode renderMode)
     {
         // Implementation would go here
     }

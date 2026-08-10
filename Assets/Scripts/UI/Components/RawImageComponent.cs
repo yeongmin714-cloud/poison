@@ -1,4 +1,6 @@
 using UnityEngine;
+using Game.UI.Core;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class RawImageComponent : MonoBehaviour, IUIComponent

@@ -27,6 +27,39 @@ from typing import Optional, Dict, Any, List, Tuple, Literal
 
 import numpy as np
 
+# ─── WSL Detection & Path Conversion ───
+def is_wsl():
+    """Check if running inside WSL."""
+    try:
+        with open("/proc/version", "r") as f:
+            return "microsoft" in f.read().lower() or "wsl" in f.read().lower()
+    except:
+        return False
+
+def to_wsl_path(windows_path: str) -> str:
+    """Convert Windows path (C:/...) to WSL path (/mnt/c/...)."""
+    if not windows_path:
+        return windows_path
+    windows_path = windows_path.replace("\\", "/")
+    import re
+    match = re.match(r"^([A-Za-z]):/(.*)$", windows_path)
+    if match:
+        drive = match.group(1).lower()
+        path = match.group(2)
+        return f"/mnt/{drive}/{path}"
+    return windows_path
+
+def to_universal_path(path: str) -> str:
+    """Convert to path that works in current environment (WSL or Windows)."""
+    if is_wsl():
+        return to_wsl_path(path)
+    return path.replace("\\", "/")
+
+# ─── Project Path ───
+# Use absolute Windows path; will be converted to WSL path if needed
+PROJECT_PATH_WIN = "C:/Unity/code"
+PROJECT_PATH = to_universal_path(PROJECT_PATH_WIN)
+
 # Import torch after path setup to avoid CUDA issues
 try:
     import torch
@@ -36,7 +69,6 @@ except ImportError:
     torch = None
 
 # Add project path
-PROJECT_PATH = "/mnt/c/Unity/code"
 sys.path.insert(0, os.path.join(PROJECT_PATH, "Assets/Training/TrainingInfra"))
 
 # Import config (force CPU before torch import in config)

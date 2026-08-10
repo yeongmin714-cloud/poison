@@ -4,6 +4,7 @@ using ProjectName.Core.Data;
 using ProjectName.Systems;
 using UnityEngine;
 using ProjectName.UI.Themes;
+using ProjectName.Core.Themes;
 #pragma warning disable 0414 // envoyer fields - all assigned for lifecycle clarity
 
 namespace ProjectName.UI

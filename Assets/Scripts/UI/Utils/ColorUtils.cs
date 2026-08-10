@@ -30,6 +30,3 @@ namespace Game.UI.Utils
         }
     }
 }
-        }
-    }
-}

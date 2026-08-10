@@ -1,33 +1,36 @@
+namespace ProjectName.UI.Core
+{
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Utils : MonoBehaviour
 {
-    public static Utils Instance { get; private set; }
+   public static Utils Instance { get; private set; }
 
-    private void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(this);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
+   private void Awake()
+   {
+       if (Instance == null)
+       {
+           Instance = this;
+           DontDestroyOnLoad(this);
+       }
+       else
+       {
+           Destroy(gameObject);
+       }
+   }
 
-    public static Vector3 ClampVector3(Vector3 vector, float min, float max)
-    {
-        // Implementation would go here
-        return vector;
-    }
-    
-    public static float Clamp(float value, float min, float max)
-    {
-        // Implementation would go here
-        return value;
-    }
+   public static Vector3 ClampVector3(Vector3 vector, float min, float max)
+   {
+       // Implementation would go here
+       return vector;
+   }
+   
+   public static float Clamp(float value, float min, float max)
+   {
+       // Implementation would go here
+       return value;
+   }
+}
 }
