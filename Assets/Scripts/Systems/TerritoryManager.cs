@@ -72,6 +72,99 @@ namespace ProjectName.Systems
             }
         }
 
+        private void Start()
+        {
+            SpawnTerritoryNPCs();
+        }
+
+        /// <summary>
+        /// 영지 초기화 시 NPC를 스폰합니다.
+        /// TerritoryNPCSpawner(UI 어셈블리)를 리플렉션으로 호출 (Systems→UI 직접 참조 불가, 순환 참조 방지).
+        /// </summary>
+        private void SpawnTerritoryNPCs()
+        {
+            var def = CurrentDefinition;
+            if (def.id.nation == NationType.None)
+            {
+                Debug.LogWarning("[TerritoryManager] 영지 정의가 없어 NPC 스폰을 건너뜁니다.");
+                return;
+            }
+
+            var spawnerType = FindTypeInAssemblies("TerritoryNPCSpawner");
+            if (spawnerType == null)
+            {
+                Debug.LogWarning("[TerritoryManager] TerritoryNPCSpawner 타입을 찾을 수 없습니다.");
+                return;
+            }
+
+            string territoryId = CurrentTerritoryId.ToString();
+            int tier = (int)def.difficulty + 1;
+            Vector3 center = GetTerritoryCenter();
+
+            try
+            {
+                var generateMethod = spawnerType.GetMethod("GenerateNPCs",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                var getSpawnPosMethod = spawnerType.GetMethod("GetSpawnPosition",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                var spawnMethod = spawnerType.GetMethod("SpawnNPC",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+
+                if (generateMethod == null || getSpawnPosMethod == null || spawnMethod == null)
+                {
+                    Debug.LogWarning("[TerritoryManager] TerritoryNPCSpawner 메서드를 찾을 수 없습니다.");
+                    return;
+                }
+
+                var npcsResult = generateMethod.Invoke(null, new object[] { territoryId, tier });
+                if (npcsResult is System.Collections.IEnumerable npcs)
+                {
+                    int count = 0;
+                    foreach (var npc in npcs)
+                    {
+                        int npcIndex = GetNpcIndex(npc);
+                        Vector3 pos = (Vector3)getSpawnPosMethod.Invoke(null, new object[] { territoryId, npcIndex, center });
+                        spawnMethod.Invoke(null, new object[] { npc, pos });
+                        count++;
+                    }
+                    Debug.Log($"[TerritoryManager] NPC {count}명 스폰 완료 ({territoryId}, tier {tier})");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[TerritoryManager] NPC 스폰 실패: {e.Message}");
+            }
+        }
+
+        /// <summary>NPCInstance struct의 NpcIndex 필드/속성을 읽습니다.</summary>
+        private static int GetNpcIndex(object npc)
+        {
+            if (npc == null) return 0;
+            var t = npc.GetType();
+
+            var field = t.GetField("NpcIndex");
+            if (field != null && field.GetValue(npc) is int idx) return idx;
+
+            var prop = t.GetProperty("NpcIndex");
+            if (prop != null && prop.GetValue(npc) is int pIdx) return pIdx;
+
+            return 0;
+        }
+
+        /// <summary>여러 네임스페이스/어셈블리에서 타입을 검색합니다.</summary>
+        private static System.Type FindTypeInAssemblies(string typeName)
+        {
+            foreach (var ns in new[] { "", "ProjectName.UI.", "ProjectName.Systems.", "ProjectName.Core." })
+            {
+                foreach (var asm in System.AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    var type = asm.GetType(ns + typeName);
+                    if (type != null) return type;
+                }
+            }
+            return null;
+        }
+
         /// <summary>
         /// 씬에서 특정 타입의 컴포넌트를 모두 찾아 딕셔너리에 등록합니다.
         /// Unity 6000+ FindObjectsByType 사용.

@@ -27,17 +27,48 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             { "leftuplexg", BoneRole.L_Hip },
             { "rightuplexg", BoneRole.R_Hip },
 
-            // Spine chain
+            // Spine chain - standard Humanoid
             { "spine", BoneRole.Spine0 },
-            { "spine1", BoneRole.Spine0 },
-            { "spine2", BoneRole.Spine1 },
-            { "spine3", BoneRole.Spine2 },
+            { "spine0", BoneRole.Spine0 },
+            { "spine1", BoneRole.Spine1 },
+            { "spine2", BoneRole.Spine2 },
+            { "spine3", BoneRole.Spine3 },
             { "spine4", BoneRole.Spine3 },
             { "chest", BoneRole.Spine2 },
             { "upperchest", BoneRole.Spine3 },
             { "neck", BoneRole.Neck },
             { "neck1", BoneRole.Neck },
             { "head", BoneRole.Head },
+
+            // Additional common GLB/Blender/Mixamo bone names
+            { "spine_0", BoneRole.Spine0 },
+            { "spine_1", BoneRole.Spine1 },
+            { "spine_2", BoneRole.Spine2 },
+            { "spine_3", BoneRole.Spine3 },
+            { "spine_01", BoneRole.Spine0 },
+            { "spine_02", BoneRole.Spine1 },
+            { "spine_03", BoneRole.Spine2 },
+            { "spine_04", BoneRole.Spine3 },
+            { "back", BoneRole.Spine0 },
+            { "back1", BoneRole.Spine0 },
+            { "back2", BoneRole.Spine1 },
+            { "back3", BoneRole.Spine2 },
+            { "back4", BoneRole.Spine3 },
+            { "torso", BoneRole.Spine0 },
+            { "torso1", BoneRole.Spine1 },
+            { "torso2", BoneRole.Spine2 },
+            { "torso3", BoneRole.Spine3 },
+            { "abdomen", BoneRole.Spine0 },
+            { "abdomen1", BoneRole.Spine0 },
+            { "abdomen2", BoneRole.Spine1 },
+            { "chest1", BoneRole.Spine2 },
+            { "chest2", BoneRole.Spine2 },
+            { "chest3", BoneRole.Spine3 },
+            { "upper_chest", BoneRole.Spine3 },
+            { "neck_01", BoneRole.Neck },
+            { "neck_02", BoneRole.Neck },
+            { "head_01", BoneRole.Head },
+            { "head_end", BoneRole.Head },
 
             // Left Arm
             { "clavicle.l", BoneRole.L_Clavicle },
@@ -128,6 +159,16 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             { "foot_r", BoneRole.R_Foot },
             { "toes.r", BoneRole.R_Toes },
             { "toes_r", BoneRole.R_Toes },
+
+            // Additional common leg bone names
+            { "thigh_01", BoneRole.L_Hip },
+            { "thigh_02", BoneRole.R_Hip },
+            { "calf_01", BoneRole.L_Knee },
+            { "calf_02", BoneRole.R_Knee },
+            { "foot_01", BoneRole.L_Foot },
+            { "foot_02", BoneRole.R_Foot },
+            { "toes_01", BoneRole.L_Toes },
+            { "toes_02", BoneRole.R_Toes },
         };
 
         // ──────────────────────────────────────────────
@@ -354,14 +395,8 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
 
         static void ValidateCriticalBones(Dictionary<BoneRole, Transform> map, Transform animatorRoot)
         {
-            var critical = new[] { BoneRole.Root, BoneRole.Spine0, BoneRole.Head };
-            foreach (var role in critical)
-            {
-                if (map[role] == null)
-                    UnityEngine.Debug.LogWarning($"[ProceduralBoneUtility] Critical bone missing: {role}. Animator: {animatorRoot.name} - falling back to heuristic mapping");
-            }
-            
-            // Fallback: if Spine0 missing but we have Spine1/Spine2/Neck, use the first available spine bone
+            // Apply fallbacks FIRST to avoid false warnings
+            // Fallback: if Spine0 missing but we have Spine1/Spine2/Spine3/Neck, use the first available spine bone
             if (map[BoneRole.Spine0] == null)
             {
                 if (map[BoneRole.Spine1] != null) map[BoneRole.Spine0] = map[BoneRole.Spine1];
@@ -369,17 +404,25 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
                 else if (map[BoneRole.Spine3] != null) map[BoneRole.Spine0] = map[BoneRole.Spine3];
                 else if (map[BoneRole.Neck] != null) map[BoneRole.Spine0] = map[BoneRole.Neck];
             }
-            
+
             // Fallback: if Head missing but we have Neck, use Neck
             if (map[BoneRole.Head] == null && map[BoneRole.Neck] != null)
             {
                 map[BoneRole.Head] = map[BoneRole.Neck];
             }
-            
+
             // Fallback: if still no Spine0, use Root as last resort
             if (map[BoneRole.Spine0] == null && map[BoneRole.Root] != null)
             {
                 map[BoneRole.Spine0] = map[BoneRole.Root];
+            }
+
+            // NOW validate critical bones (after fallbacks applied)
+            var critical = new[] { BoneRole.Root, BoneRole.Spine0, BoneRole.Head };
+            foreach (var role in critical)
+            {
+                if (map[role] == null)
+                    UnityEngine.Debug.LogWarning($"[ProceduralBoneUtility] Critical bone missing: {role}. Animator: {animatorRoot.name} - falling back to heuristic mapping");
             }
         }
     }

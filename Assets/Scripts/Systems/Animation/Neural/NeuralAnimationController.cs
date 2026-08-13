@@ -519,25 +519,25 @@ namespace ProjectName.Systems.Animation.Neural
                 _policyAssets[PolicyType.Swim] = _swimPolicy;
 
         #if UNITY_SENTIS
-                if (!_sentisAvailable) return;
+                        if (!_sentisAvailable) return;
 
-                foreach (PolicyType type in Enum.GetValues(typeof(PolicyType)))
-                {
-                    var asset = _policyAssets[type];
-                    if (asset == null || asset.OnnxModel == null) continue;
+                        foreach (PolicyType type in Enum.GetValues(typeof(PolicyType)))
+                        {
+                            var asset = _policyAssets[type];
+                            if (asset == null) continue;
 
-                    try
-                    {
-                        Model model = ModelLoader.Load(asset.OnnxModel.bytes);
-                        _policyModels[type] = model;
-                        Debug.Log($"[NeuralAnimationController] Loaded {type} policy model");
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogWarning($"[NeuralAnimationController] Failed to load {type} policy: {e.Message}");
-                    }
-                }
-        #endif
+                            try
+                            {
+                                Model model = ModelLoader.Load(asset);
+                                _policyModels[type] = model;
+                                Debug.Log($"[NeuralAnimationController] Loaded {type} policy model");
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.LogWarning($"[NeuralAnimationController] Failed to load {type} policy: {e.Message}");
+                            }
+                        }
+                #endif
             }
 
         void AllocateObservationBuffer()
@@ -559,7 +559,7 @@ namespace ProjectName.Systems.Animation.Neural
             _outputTensor?.Dispose();
 
             foreach (var model in _policyModels.Values)
-                model?.Dispose();
+                ; // Model does not implement IDisposable in newer Sentis; Worker/Tensor do
 
             // Worker 풀 정리
             foreach (var worker in _workerPool.Values)
@@ -1718,18 +1718,22 @@ namespace ProjectName.Systems.Animation.Neural
             _policyAssets[policy] = asset;
 
 #if UNITY_SENTIS
-            if (_sentisAvailable && asset.OnnxModel != null)
+            if (_sentisAvailable && asset != null)
             {
                 try
                 {
-                    Model model = ModelLoader.Load(asset.OnnxModel.bytes);
+                    Model model = ModelLoader.Load(asset);
                     _policyModels[policy] = model;
-                    Debug.Log($"[NeuralAnimationController] Async loaded {policy} from {path}");
+                    Debug.Log($"[NeuralAnimationController] ✅ Async loaded {policy} from {path}");
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning($"[NeuralAnimationController] Async load failed {policy}: {e.Message}");
+                    Debug.LogWarning($"[NeuralAnimationController] ❌ Async load failed {policy}: {e.Message}");
                 }
+            }
+            else
+            {
+                Debug.LogWarning($"[NeuralAnimationController] ⚠️ Asset null or Sentis unavailable for {policy} at {path}");
             }
 #endif
         }
@@ -1742,7 +1746,7 @@ namespace ProjectName.Systems.Animation.Neural
 #if UNITY_SENTIS
             if (_policyModels.TryGetValue(policy, out Model model))
             {
-                model?.Dispose();
+                ; // Model does not implement IDisposable
                 _policyModels.Remove(policy);
             }
 

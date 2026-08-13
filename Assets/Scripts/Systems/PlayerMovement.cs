@@ -569,11 +569,27 @@ namespace ProjectName.Systems
         {
             if (_controller == null) return;
 
+            // Use CharacterController's isGrounded as primary
             _isGrounded = _controller.isGrounded;
+
+            // Fallback: Manual raycast ground check if CC isn't grounded (handles edge cases)
+            if (!_isGrounded)
+            {
+                float rayDistance = _controller.height * 0.5f + _controller.skinWidth + 0.1f;
+                _isGrounded = Physics.SphereCast(
+                    transform.position + Vector3.up * _controller.skinWidth,
+                    _controller.radius * 0.9f,
+                    Vector3.down,
+                    out _,
+                    rayDistance,
+                    ~0, // All layers
+                    QueryTriggerInteraction.Ignore
+                );
+            }
 
             if (_isGrounded && _verticalVelocity < 0)
             {
-                _verticalVelocity = -2f;
+                _verticalVelocity = -2f; // Small downward force to keep grounded
             }
 
             _verticalVelocity += _gravity * Time.deltaTime;

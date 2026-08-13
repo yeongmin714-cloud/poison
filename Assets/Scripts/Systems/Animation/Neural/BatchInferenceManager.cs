@@ -380,6 +380,55 @@ namespace ProjectName.Systems.Animation.Neural
                 _workerCache.Remove(policy);
         }
 
+        /// <summary>
+        /// Request batch inference for a single controller.
+        /// Returns true if successfully queued, false if batch inference is disabled or controller is null.
+        /// The controller will receive callback via OnBatchInferenceComplete when done.
+        /// </summary>
+        public bool RequestBatchInference(
+            NeuralAnimationController.PolicyType policy,
+            Model model,
+            BackendType backendType,
+            NativeArray<float> observation,
+            float[] actionOutput,
+            int observationDim,
+            int actionDim,
+            NeuralAnimationController controller)
+        {
+            if (!_enableBatchInference || controller == null)
+                return false;
+
+            if (!_pendingBatches.TryGetValue(policy, out var list))
+            {
+                list = new List<BatchRequest>();
+                _pendingBatches[policy] = list;
+                _batchStartTime[policy] = Time.realtimeSinceStartup;
+            }
+
+            var req = new BatchRequest
+            {
+                observation = observation,
+                actionOutput = actionOutput,
+                observationDim = observationDim,
+                actionDim = actionDim,
+                controller = controller,
+                policy = policy
+            };
+
+            list.Add(req);
+
+            // If batch is full, execute immediately
+            if (list.Count >= _maxBatchSize)
+            {
+                if (controller.TryGetPolicyModel(policy, out Model m))
+                {
+                    ExecuteBatch(policy, m, backendType);
+                }
+            }
+
+            return true;
+        }
+
         public struct BatchRequest
         {
             public NativeArray<float> observation;

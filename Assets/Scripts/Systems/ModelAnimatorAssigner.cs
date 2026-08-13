@@ -1,6 +1,7 @@
 using UnityEngine;
 using ProjectName.Systems.Animation.Procedural;
 using ProjectName.Systems.Animation.Procedural.Bones;
+using ProjectName.Systems.Animation.Neural;
 using ProjectName.Core.Data;
 namespace ProjectName.Systems
 {
@@ -98,60 +99,80 @@ namespace ProjectName.Systems
                 animator.SetInteger(ParamState, StateIdle);
             }
 
-            // 프로시저럴 애니메이션용 필수 컴포넌트 추가 (Rigidbody + BoneMap)
-            // 모델 인스턴스(자식)는 kinematic Rigidbody를 가져 부모의 이동과 분리되어 로컬 애니메이션만 수행
-            Rigidbody modelRb = model.GetComponent<Rigidbody>();
-            if (modelRb == null)
-            {
-                modelRb = model.AddComponent<Rigidbody>();
-                modelRb.isKinematic = true;
-                modelRb.useGravity = false;
-                modelRb.constraints = RigidbodyConstraints.FreezeAll;
-            }
+            // Check if this is the main player model (parent has CharacterController + animation controllers)
+            bool isMainPlayer = model.transform.parent != null && 
+                model.transform.parent.GetComponent<CharacterController>() != null &&
+                model.transform.parent.GetComponent<ProceduralAnimationController>() != null &&
+                model.transform.parent.GetComponent<NeuralAnimationController>() != null;
 
-            // ProceduralBoneMap 추가 (Animator 하위 본들을 자동 매핑)
-            ProceduralBoneMap boneMap = model.GetComponent<ProceduralBoneMap>();
-            if (boneMap == null)
+            if (!isMainPlayer)
             {
-                boneMap = model.AddComponent<ProceduralBoneMap>();
-                boneMap.Initialize(animator);
-            }
-
-            // 프로시저럴 포즈 보정 — 모델 타입에 따라 2족/4족 컨트롤러 분기 부착 (중복 방지)
-            bool isQuadruped = false;
-            if (RuntimeModelLoader.TryGetModelMetadata(modelName, out var meta))
-                isQuadruped = meta.ModelType == ModelType.RiggedQuadruped;
-
-            if (isQuadruped)
-            {
-                if (model.GetComponent<QuadrupedPoseController>() == null)
+                // 프로시저럴 애니메이션용 필수 컴포넌트 추가 (Rigidbody + BoneMap)
+                // 모델 인스턴스(자식)는 kinematic Rigidbody를 가져 부모의 이동과 분리되어 로컬 애니메이션만 수행
+                Rigidbody modelRb = model.GetComponent<Rigidbody>();
+                if (modelRb == null)
                 {
-                    var qpc = model.AddComponent<QuadrupedPoseController>();
-                    qpc.SetBoneMap(boneMap);
+                    modelRb = model.AddComponent<Rigidbody>();
+                    modelRb.isKinematic = true;
+                    modelRb.useGravity = false;
+                    modelRb.constraints = RigidbodyConstraints.FreezeAll;
+                }
+
+                // ProceduralBoneMap 추가 (Animator 하위 본들을 자동 매핑)
+                ProceduralBoneMap boneMap = model.GetComponent<ProceduralBoneMap>();
+                if (boneMap == null)
+                {
+                    boneMap = model.AddComponent<ProceduralBoneMap>();
+                    boneMap.Initialize(animator);
+                }
+
+                // 프로시저럴 포즈 보정 — 모델 타입에 따라 2족/4족 컨트롤러 분기 부착 (중복 방지)
+                bool isQuadruped = false;
+                if (RuntimeModelLoader.TryGetModelMetadata(modelName, out var meta))
+                    isQuadruped = meta.ModelType == ModelType.RiggedQuadruped;
+
+                if (isQuadruped)
+                {
+                    if (model.GetComponent<QuadrupedPoseController>() == null)
+                    {
+                        var qpc = model.AddComponent<QuadrupedPoseController>();
+                        qpc.SetBoneMap(boneMap);
+                    }
+                }
+                else
+                {
+                    if (model.GetComponent<ProceduralAnimationController>() == null)
+                    {
+                        var pac = model.AddComponent<ProceduralAnimationController>();
+                        pac.SetBoneMap(boneMap);
+                        // 부모(이동 주체)에서 속도 읽기 위해 설정
+                        var parent = model.transform.parent;
+                        var playerMovement = parent?.GetComponent<PlayerMovement>();
+                        if (playerMovement != null)
+                        {
+                            pac.SetVelocityProvider(playerMovement);
+                        }
+                        else if (parent != null)
+                        {
+                            // PlayerMovement 없으면 ParentVelocityProvider로 부모 위치 델타 계산
+                            var pvp = model.GetComponent<ParentVelocityProvider>();
+                            if (pvp == null)
+                                pvp = model.AddComponent<ParentVelocityProvider>();
+                            pac.SetVelocityProvider(pvp);
+                        }
+                    }
                 }
             }
             else
             {
-                if (model.GetComponent<ProceduralAnimationController>() == null)
+                // Main player: only add ProceduralBoneMap for bone reference
+                ProceduralBoneMap boneMap = model.GetComponent<ProceduralBoneMap>();
+                if (boneMap == null)
                 {
-                    var pac = model.AddComponent<ProceduralAnimationController>();
-                    pac.SetBoneMap(boneMap);
-                    // 부모(이동 주체)에서 속도 읽기 위해 설정
-                    var parent = model.transform.parent;
-                    var playerMovement = parent?.GetComponent<PlayerMovement>();
-                    if (playerMovement != null)
-                    {
-                        pac.SetVelocityProvider(playerMovement);
-                    }
-                    else if (parent != null)
-                    {
-                        // PlayerMovement 없으면 ParentVelocityProvider로 부모 위치 델타 계산
-                        var pvp = model.GetComponent<ParentVelocityProvider>();
-                        if (pvp == null)
-                            pvp = model.AddComponent<ParentVelocityProvider>();
-                        pac.SetVelocityProvider(pvp);
-                    }
+                    boneMap = model.AddComponent<ProceduralBoneMap>();
+                    boneMap.Initialize(animator);
                 }
+                Debug.Log("[ModelAnimatorAssigner] Main player model detected — skipping Rigidbody/ProceduralAnimationController (parent handles animation)");
             }
         }
 

@@ -47,6 +47,27 @@ public static class NeuralModelAutoSetup
             "Run_Biped_Style", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
         ["crouch_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
             "Crouch_Biped_Style", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+        // ── Biped with bc_ prefix (Behavior Cloning models) ──
+        ["bc_locomotion_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Locomotion_Biped_Base", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+        ["bc_combat_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Combat_Biped", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+        ["bc_react_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "React_Biped", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+        ["bc_interact_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Interact_Biped", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+        ["bc_fly_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Fly_Biped", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+        ["bc_swim_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Swim_Biped", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+        ["bc_mount_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Mount_Biped", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+        ["bc_climb_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Climb_Biped", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+        ["bc_run_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Run_Biped_Style", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+        ["bc_crouch_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Crouch_Biped_Style", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
 
         // ── Quadruped (obs=150, act=100, joints=24, Quadruped) ──
         ["locomotion_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
@@ -69,6 +90,29 @@ public static class NeuralModelAutoSetup
             "Run_Quadruped_Style", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
         ["crouch_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
             "Crouch_Quadruped_Style", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+
+        // ── Quadruped with bc_ prefix (Behavior Cloning models) ──
+        ["bc_locomotion_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "Locomotion_Quadruped_Base", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["bc_combat_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "Combat_Quadruped", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["bc_react_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "React_Quadruped", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["bc_interact_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "Interact_Quadruped", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["bc_fly_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "Fly_Quadruped", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["bc_swim_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "Swim_Quadruped", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["bc_mount_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "Mount_Quadruped", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["bc_large_monster_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "LargeMonster_Quadruped", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["bc_run_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "Run_Quadruped_Style", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+        ["bc_crouch_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
+            "Crouch_Quadruped_Style", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
+
     };
 
     // Policy type mapping: file prefix → PolicyType
@@ -86,6 +130,18 @@ public static class NeuralModelAutoSetup
         ["run_biped_base"] = NeuralAnimationController.PolicyType.Run,
         ["crouch_biped_base"] = NeuralAnimationController.PolicyType.Crouch,
 
+        // ── Biped with bc_ prefix (Behavior Cloning models) ──
+        ["bc_locomotion_biped_base"] = NeuralAnimationController.PolicyType.Locomotion,
+        ["bc_combat_biped_base"] = NeuralAnimationController.PolicyType.Combat,
+        ["bc_react_biped_base"] = NeuralAnimationController.PolicyType.React,
+        ["bc_interact_biped_base"] = NeuralAnimationController.PolicyType.Interact,
+        ["bc_fly_biped_base"] = NeuralAnimationController.PolicyType.Fly,
+        ["bc_swim_biped_base"] = NeuralAnimationController.PolicyType.Swim,
+        ["bc_mount_biped_base"] = NeuralAnimationController.PolicyType.Mount,
+        ["bc_climb_biped_base"] = NeuralAnimationController.PolicyType.Climb,
+        ["bc_run_biped_base"] = NeuralAnimationController.PolicyType.Run,
+        ["bc_crouch_biped_base"] = NeuralAnimationController.PolicyType.Crouch,
+
         // ── Quadruped ──
         ["locomotion_quadruped_base"] = NeuralAnimationController.PolicyType.Locomotion,
         ["combat_quadruped_base"] = NeuralAnimationController.PolicyType.Combat,
@@ -97,6 +153,18 @@ public static class NeuralModelAutoSetup
         ["large_monster_quadruped_base"] = NeuralAnimationController.PolicyType.LargeMonster,
         ["run_quadruped_base"] = NeuralAnimationController.PolicyType.Run,
         ["crouch_quadruped_base"] = NeuralAnimationController.PolicyType.Crouch,
+
+        // ── Quadruped with bc_ prefix (Behavior Cloning models) ──
+        ["bc_locomotion_quadruped_base"] = NeuralAnimationController.PolicyType.Locomotion,
+        ["bc_combat_quadruped_base"] = NeuralAnimationController.PolicyType.Combat,
+        ["bc_react_quadruped_base"] = NeuralAnimationController.PolicyType.React,
+        ["bc_interact_quadruped_base"] = NeuralAnimationController.PolicyType.Interact,
+        ["bc_fly_quadruped_base"] = NeuralAnimationController.PolicyType.Fly,
+        ["bc_swim_quadruped_base"] = NeuralAnimationController.PolicyType.Swim,
+        ["bc_mount_quadruped_base"] = NeuralAnimationController.PolicyType.Mount,
+        ["bc_large_monster_quadruped_base"] = NeuralAnimationController.PolicyType.LargeMonster,
+        ["bc_run_quadruped_base"] = NeuralAnimationController.PolicyType.Run,
+        ["bc_crouch_quadruped_base"] = NeuralAnimationController.PolicyType.Crouch,
     };
 
     // ──────────────────────────────────────────────
@@ -149,11 +217,41 @@ public static class NeuralModelAutoSetup
 
         Debug.Log($"[NeuralModelAutoSetup] Found {onnxFiles.Count} ONNX model(s).");
 
-        // 3. Build policy entries
+        // 3. Filter to only bc_ prefix files (Behavior Cloning models) — 20 policies
+        var bcFiles = onnxFiles
+            .Where(path => Path.GetFileNameWithoutExtension(path).StartsWith("bc_"))
+            .ToList();
+
+        // 3b. Exclude INT8 quantized models (unsupported operators: DynamicQuantizeLinear, MatMulInteger)
+        var nonInt8Files = bcFiles
+            .Where(path => !Path.GetFileNameWithoutExtension(path).EndsWith("_int8"))
+            .ToList();
+
+        if (nonInt8Files.Count == 0)
+        {
+            Debug.LogWarning("[NeuralModelAutoSetup] No non-INT8 bc_ models found. Falling back to all bc_ files.");
+            nonInt8Files = bcFiles;
+        }
+        else
+        {
+            Debug.Log($"[NeuralModelAutoSetup] Excluded {bcFiles.Count - nonInt8Files.Count} INT8 models. Using {nonInt8Files.Count} non-INT8 bc_ models.");
+        }
+
+        if (nonInt8Files.Count == 0)
+        {
+            Debug.LogWarning("[NeuralModelAutoSetup] No bc_ prefix models found. Falling back to all ONNX files.");
+            nonInt8Files = onnxFiles;
+        }
+        else
+        {
+            Debug.Log($"[NeuralModelAutoSetup] Using {nonInt8Files.Count} bc_ prefix models (Behavior Cloning, non-INT8).");
+        }
+
+        // 4. Build policy entries
         var entries = new List<NeuralModelDatabase.PolicyEntry>();
         int matched = 0, unmatched = 0;
 
-        foreach (string filePath in onnxFiles)
+        foreach (string filePath in nonInt8Files)
         {
             string fileName = Path.GetFileNameWithoutExtension(filePath);
             // Handle .onnx.bytes extension

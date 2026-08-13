@@ -88,6 +88,25 @@ namespace ProjectName.Systems
                 Destroy(_rightLeg);
                 _body = _head = _leftArm = _rightArm = _leftLeg = _rightLeg = null;
 
+                // Main player model: GLB 자식의 콜라이더/리지드바디 제거 (부모 CharacterController가 처리)
+                var colliders = playerInstance.GetComponentsInChildren<Collider>(true);
+                foreach (var col in colliders)
+                {
+                    if (col != null)
+                        DestroyImmediate(col);
+                }
+                var rb = playerInstance.GetComponent<Rigidbody>();
+                if (rb != null)
+                    DestroyImmediate(rb);
+
+                // 별도 레이어로 이동 (부모와 충돌 방지)
+                int ignoreLayer = LayerMask.NameToLayer("Ignore Raycast");
+                playerInstance.layer = ignoreLayer;
+                foreach (Transform child in playerInstance.GetComponentsInChildren<Transform>(true))
+                {
+                    child.gameObject.layer = ignoreLayer;
+                }
+
                 return true;
             }
 
