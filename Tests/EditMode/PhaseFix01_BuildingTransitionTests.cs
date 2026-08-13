@@ -13,8 +13,17 @@ namespace ProjectName.Tests.EditMode
         [TearDown]
         public void TearDown()
         {
+            // _FIX01_TestRoot 정리
             var go = GameObject.Find("_FIX01_TestRoot");
             if (go != null) Object.DestroyImmediate(go);
+
+            // TerritoryBuilder가 생성한 Territory_* 부모 오브젝트 정리 (82개 영지)
+            var allTransforms = Object.FindObjectsOfType<Transform>();
+            foreach (var t in allTransforms)
+            {
+                if (t.name.StartsWith("Territory_"))
+                    Object.DestroyImmediate(t.gameObject);
+            }
         }
 
         // ══════════════════════════════════════════════════════════════════
@@ -76,7 +85,7 @@ namespace ProjectName.Tests.EditMode
             method?.Invoke(tb, null);
 
             // Find the Shop building
-            var buildings = root.GetComponentsInChildren<BuildingPlaceholder>();
+            var buildings = Object.FindObjectsOfType<BuildingPlaceholder>();
             BuildingPlaceholder shop = null;
             foreach (var b in buildings)
             {
@@ -105,7 +114,7 @@ namespace ProjectName.Tests.EditMode
                 System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
             method?.Invoke(tb, null);
 
-            var buildings = root.GetComponentsInChildren<BuildingPlaceholder>();
+            var buildings = Object.FindObjectsOfType<BuildingPlaceholder>();
             BuildingPlaceholder craft = null;
             foreach (var b in buildings)
             {
@@ -129,7 +138,7 @@ namespace ProjectName.Tests.EditMode
                 System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
             method?.Invoke(tb, null);
 
-            var buildings = root.GetComponentsInChildren<BuildingPlaceholder>();
+            var buildings = Object.FindObjectsOfType<BuildingPlaceholder>();
             BuildingPlaceholder church = null;
             foreach (var b in buildings)
             {
@@ -153,7 +162,7 @@ namespace ProjectName.Tests.EditMode
                 System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
             method?.Invoke(tb, null);
 
-            var houses = root.GetComponentsInChildren<BuildingPlaceholder>();
+            var houses = Object.FindObjectsOfType<BuildingPlaceholder>();
             int npcHouseCount = 0;
             foreach (var h in houses)
             {

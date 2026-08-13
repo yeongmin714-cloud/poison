@@ -191,6 +191,8 @@ namespace ProjectName.Core.Data
                 {
                     TerritoryDifficulty difficulty = (TerritoryDifficulty)ring;
                     int baseGuardCount = GetGuardCount(nation, difficulty);
+                    float ringDistance = GetRingDistance(difficulty);
+                    float nationBaseAngle = GetNationBaseAngle(nation);
 
                     for (int t = 0; t < 5; t++)
                     {
@@ -199,12 +201,17 @@ namespace ProjectName.Core.Data
                         LordInfo lord = GenerateLordInfo(nation, difficulty, index);
                         string desc = GenerateDescription(nation, difficulty, index);
 
-                        AddDefinition(nation, index, name, nation, difficulty, baseGuardCount, lord, desc);
+                        // Calculate world position for this territory
+                        float angleDeg = nationBaseAngle - 45f + (t * 18f) + 9f; // centered in each 18° slice
+                        float angleRad = angleDeg * Mathf.Deg2Rad;
+                        Vector3 worldPos = new Vector3(Mathf.Cos(angleRad) * ringDistance, 0f, Mathf.Sin(angleRad) * ringDistance);
+
+                        AddDefinition(nation, index, name, nation, difficulty, baseGuardCount, lord, desc, worldPos);
                     }
                 }
             }
 
-            // 황제국 (인덱스 1, Ring = Empire, 병사 50명)
+            // 황제국 (인덱스 1, Ring = Empire, 병사 50명) - 중심 (0, 0, 0)
             {
                 var rng = new System.Random(GetDeterministicHash("Empire_1"));
                 string[] empireNames = {
@@ -214,7 +221,7 @@ namespace ProjectName.Core.Data
                     "황제국 은빛 분수대"
                 };
                 string name = empireNames[rng.Next(empireNames.Length)];
-                
+
                 var lord = new LordInfo
                 {
                     lordName = "아우구스투스 황제",
@@ -227,10 +234,11 @@ namespace ProjectName.Core.Data
                 string description = "모든 영지의 중심, 황제가 다스리는 최후의 요새. 50명의 정예 친위대가 수호한다.";
 
                 AddDefinition(NationType.Empire, 1, name, NationType.Empire,
-                    TerritoryDifficulty.Empire, 50, lord, description);
+                    TerritoryDifficulty.Empire, 50, lord, description, Vector3.zero);
             }
 
             // 드라큘라 영지 (Night Dracula, 인덱스 1, Ring4 난이도, 병사 10명)
+            // 1350m North-North-East direction (angle ~60° from North = 150° from East)
             {
                 var draculaLord = new LordInfo
                 {
@@ -243,9 +251,43 @@ namespace ProjectName.Core.Data
 
                 string draculaDescription = "밤에만 출현하는 저주받은 성. 드라큘라 백작과 그의 스켈레톤 군대가 지키고 있다.";
 
+                float draculaAngleDeg = 150f; // 150° from East (positive X) = 60° from North
+                float draculaAngleRad = draculaAngleDeg * Mathf.Deg2Rad;
+                Vector3 draculaPos = new Vector3(Mathf.Cos(draculaAngleRad) * 1350f, 0f, Mathf.Sin(draculaAngleRad) * 1350f);
+
                 AddDefinition(NationType.Dracula, 1, "드라큘라의 성", NationType.Dracula,
-                    TerritoryDifficulty.Ring4, 10, draculaLord, draculaDescription, isNightOnly: true);
+                    TerritoryDifficulty.Ring4, 10, draculaLord, draculaDescription, draculaPos, isNightOnly: true);
             }
+        }
+
+        /// <summary>
+        /// 링별 거리 반환 (미터 단위)
+        /// </summary>
+        private static float GetRingDistance(TerritoryDifficulty difficulty)
+        {
+            return difficulty switch
+            {
+                TerritoryDifficulty.Ring1 => 1450f,
+                TerritoryDifficulty.Ring2 => 1000f,
+                TerritoryDifficulty.Ring3 => 550f,
+                TerritoryDifficulty.Ring4 => 150f,
+                _ => 0f
+            };
+        }
+
+        /// <summary>
+        /// 국가별 기본 각도 반환 (도 단위, East=0°, North=90°, West=180°, South=270°)
+        /// </summary>
+        private static float GetNationBaseAngle(NationType nation)
+        {
+            return nation switch
+            {
+                NationType.East => 0f,
+                NationType.North => 90f,
+                NationType.West => 180f,
+                NationType.South => 270f,
+                _ => 0f
+            };
         }
 
         /// <summary>
@@ -434,7 +476,7 @@ namespace ProjectName.Core.Data
         }
 
         private void AddDefinition(NationType nation, int index, string name, NationType nationType,
-            TerritoryDifficulty difficulty, int guardCount, LordInfo lord, string description, bool isNightOnly = false)
+            TerritoryDifficulty difficulty, int guardCount, LordInfo lord, string description, Vector3 worldPosition, bool isNightOnly = false)
         {
             var id = new TerritoryId(nation, index);
             var def = new TerritoryDefinition
@@ -446,9 +488,19 @@ namespace ProjectName.Core.Data
                 guardCount = guardCount,
                 lord = lord,
                 description = description,
-                isNightOnly = isNightOnly
+                isNightOnly = isNightOnly,
+                worldPosition = worldPosition
             };
             _definitions[id.ToString()] = def;
+        }
+
+        /// <summary>
+        /// 국가와 인덱스로 월드 위치 조회
+        /// </summary>
+        public Vector3 GetWorldPosition(NationType nation, int index)
+        {
+            var def = GetDefinition(nation, index);
+            return def.worldPosition;
         }
     }
 }

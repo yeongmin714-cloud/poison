@@ -108,6 +108,7 @@ namespace ProjectName.Core.Data
         [field: SerializeField] public LordInfo lord { get; set; }                    // 영주 정보
         [field: SerializeField] public string description { get; set; }               // 영지 설명
         [field: SerializeField] public bool isNightOnly { get; set; }                 // 야간에만 활성화되는 영지 (ND-01)
+        [field: SerializeField] public Vector3 worldPosition { get; set; }            // 월드 위치
     }
 
     /// <summary>
