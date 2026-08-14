@@ -4,7 +4,35 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-07-20
+> **최종 갱신:** 2026-08-14
+
+---
+
+## 2026-08-14: P0-P2 대량 런타임 오류 수정 (commit dcd2493)
+
+### P0 — 크리티컬
+| # | 문제 | 파일 | 수정 |
+|:-:|:-----|:-----|:------|
+| 1 | KeyNotFoundException 'Mount' | NeuralAnimationController.cs:526 | `_policyAssets[type]` → `TryGetValue(type, out var asset)` |
+| 2 | SnakeSlitherMotion/MotionDetector on Player | MainScene.unity | Player YAML에서 2개 컴포넌트 블록 제거 (13→11개) |
+| 3 | UIManager 미싱 스크립트 | MainScene.unity | GUID 497067ce... → 851e5112... 교체 |
+
+### P1 — 중요
+| # | 문제 | 파일 | 수정 |
+|:-:|:-----|:-----|:------|
+| 4 | ProceduralController 없음 경고 스팸 | HybridAnimationController.cs | `_proceduralOnly` 모드 추가, Neural-only weight 1.0 |
+| 5 | MonsterLevelData 없음 경고 | MonsterLevelManager.cs:73 | Debug.LogWarning → Debug.Log |
+| 6 | NationTerrainController MeshRenderer 없음 | GameSetup.cs | NationTerrainController를 Ground_Inner에 부착 |
+| 7 | Rigidbody 충돌 | MainScene.unity | m_UseGravity:0, m_IsKinematic:1 |
+
+### P2 — 개선
+| # | 문제 | 파일 | 수정 |
+|:-:|:-----|:-----|:------|
+| 8 | BuildingTrigger Player 태그 null | BuildingTrigger.cs, BuildingPlaceholder.cs | FindWithTag 실패 시 PlayerMovement.FindAnyObjectByType 폴백 |
+
+### 남은 문제
+- Head bone missing (GLB 모델 임포트 설정 — Editor 확인 필요)
+- JobTempAlloc leak (Job NativeArray Dispose — 분석 필요)
 
 ---
 
