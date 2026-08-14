@@ -4,6 +4,7 @@ using ProjectName.Systems.Animation.Procedural;
 using ProjectName.Systems.Animation.Procedural.Bones;
 using ProjectName.Systems.Animation.Neural;
 using ProjectName.Systems; // for PlayerMovement, IVelocityProvider
+using ProjectName.Core;
 
 namespace ProjectName.Systems
 {
@@ -47,7 +48,7 @@ public class TestPlayerSetup : MonoBehaviour
         }
 
         // 플레이어를 바닥 위에 배치 (CharacterController height=2, center=0,1,0 고려)
-        player.transform.position = new Vector3(0, 1.1f, 0);
+        player.transform.position = new Vector3(PlayerSpawnConfig.SpawnPosition.x, 1.1f, PlayerSpawnConfig.SpawnPosition.z);
 
         // Rigidbody (ProceduralAnimationController가 필요) — Kinematic으로 설정해 CharacterController와 충돌 방지
         if (player.GetComponent<Rigidbody>() == null)
@@ -238,7 +239,7 @@ public class TestPlayerSetup : MonoBehaviour
                 // skinWidth(0.08) 고려해서 약간 위에 배치
                 var cc = player.GetComponent<CharacterController>();
                 float targetY = cc != null ? 1f + cc.radius + cc.skinWidth + 0.05f : 1.05f;
-                player.transform.position = new Vector3(0, targetY, 0);
+                player.transform.position = new Vector3(PlayerSpawnConfig.SpawnPosition.x, targetY, PlayerSpawnConfig.SpawnPosition.z);
 
                 // Ground check raycast로 실제 바닥 높이 검증
                 if (Physics.Raycast(player.transform.position + Vector3.up * 0.1f, Vector3.down, out RaycastHit hit, 2f, ~0, QueryTriggerInteraction.Ignore))
@@ -247,7 +248,7 @@ public class TestPlayerSetup : MonoBehaviour
                     float ccBottom = player.transform.position.y - (cc != null ? cc.height * 0.5f - cc.center.y : 1f);
                     if (ccBottom < groundY + 0.01f)
                     {
-                        player.transform.position = new Vector3(0, groundY + (cc != null ? cc.height * 0.5f - cc.center.y : 1f) + 0.02f, 0);
+                        player.transform.position = new Vector3(PlayerSpawnConfig.SpawnPosition.x, groundY + (cc != null ? cc.height * 0.5f - cc.center.y : 1f) + 0.02f, PlayerSpawnConfig.SpawnPosition.z);
                         Debug.Log($"[TestPlayerSetup] Ground raycast corrected player Y: {player.transform.position.y:F3} (ground at {groundY:F3})");
                     }
                 }

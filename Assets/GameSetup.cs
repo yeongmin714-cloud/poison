@@ -185,9 +185,18 @@ public class GameSetup : MonoBehaviour
         // NationTerrainController
         if (FindAnyObjectByType<NationTerrainController>() == null)
         {
-            var ntcGO = new GameObject("NationTerrainController");
-            ntcGO.AddComponent<NationTerrainController>();
-            Debug.Log("[GameSetup] ✅ NationTerrainController 생성");
+            var ground = GameObject.Find("Ground_Inner");
+            if (ground != null && ground.GetComponent<NationTerrainController>() == null)
+            {
+                ground.AddComponent<NationTerrainController>();
+                Debug.Log("[GameSetup] ✅ NationTerrainController → Ground_Inner에 추가");
+            }
+            else
+            {
+                var ntcGO = new GameObject("NationTerrainController");
+                ntcGO.AddComponent<NationTerrainController>();
+                Debug.Log("[GameSetup] ✅ NationTerrainController 생성 (Ground 없음, 별도 오브젝트)");
+            }
         }
 
         // LoadingManager

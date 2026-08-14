@@ -35,7 +35,14 @@ namespace ProjectName.Systems
         {
             _player = GameObject.FindGameObjectWithTag("Player")?.transform;
             if (_player == null)
-                Debug.LogWarning("[BuildingPlaceholder] Player 태그 오브젝트 없음");
+            {
+                // Fallback: PlayerMovement 컴포넌트에서 Player 찾기
+                var pm = FindAnyObjectByType<PlayerMovement>();
+                if (pm != null)
+                    _player = pm.transform;
+                else
+                    Debug.LogWarning("[BuildingPlaceholder] Player 태그 오브젝트 없음");
+            }
 
             _mainCamera = Camera.main;
 

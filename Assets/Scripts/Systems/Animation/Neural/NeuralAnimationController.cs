@@ -523,8 +523,7 @@ namespace ProjectName.Systems.Animation.Neural
 
                         foreach (PolicyType type in Enum.GetValues(typeof(PolicyType)))
                         {
-                            var asset = _policyAssets[type];
-                            if (asset == null) continue;
+                            if (!_policyAssets.TryGetValue(type, out var asset) || asset == null) continue;
 
                             try
                             {

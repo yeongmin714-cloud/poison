@@ -27,6 +27,9 @@ namespace ProjectName.Systems.Animation.Neural
         [SerializeField] ProceduralAnimationController _proceduralController;
         [SerializeField] NeuralAnimationController _neuralController;
 
+        // Neural-only mode: ProceduralAnimationController가 없을 때 true
+        bool _proceduralOnly;
+
         [Header("Blending Weights")]
         [SerializeField, Range(0f, 1f)] float _baseProceduralWeight = 0.5f;
         [SerializeField, Range(0f, 1f)] float _baseNeuralWeight = 0.5f;
@@ -233,9 +236,16 @@ namespace ProjectName.Systems.Animation.Neural
             if (_neuralController == null)
                 _neuralController = GetComponent<NeuralAnimationController>();
 
-            // Fallback: try again in Start if not found
-            if (_proceduralController == null)
+            // Neural-only mode: ProceduralAnimationController 없이도 동작 (경고 스팸 방지)
+            if (_proceduralController == null && _neuralController != null)
+            {
+                _proceduralOnly = true;
+                Debug.Log("[HybridAnimationController] Neural-only mode (no ProceduralAnimationController).");
+            }
+            else if (_proceduralController == null)
+            {
                 Debug.LogWarning("[HybridAnimationController] ProceduralAnimationController not found in Awake, will retry in Start");
+            }
             if (_neuralController == null)
                 Debug.LogWarning("[HybridAnimationController] NeuralAnimationController not found in Awake, will retry in Start");
 
@@ -271,7 +281,30 @@ namespace ProjectName.Systems.Animation.Neural
             if (_neuralController == null)
                 _neuralController = GetComponent<NeuralAnimationController>();
 
+            // Neural-only mode 확인 (Start에서도 없으면 확정)
+            if (_proceduralController == null && !_proceduralOnly)
+            {
+                if (_neuralController != null)
+                {
+                    _proceduralOnly = true;
+                    Debug.Log("[HybridAnimationController] Neural-only mode confirmed (ProceduralAnimationController not available).");
+                }
+                else
+                {
+                    Debug.LogError("[HybridAnimationController] Neither Procedural nor Neural controller available!");
+                }
+            }
+
             _lastKnownPolicy = _neuralController?.ActivePolicy ?? NeuralAnimationController.PolicyType.Locomotion;
+
+            // Neural-only: weight 강제
+            if (_proceduralOnly)
+            {
+                _baseProceduralWeight = 0f;
+                _baseNeuralWeight = 1f;
+                _currentProceduralWeight = 0f;
+                _currentNeuralWeight = 1f;
+            }
         }
 
         void OnDestroy()
