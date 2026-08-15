@@ -8,7 +8,14 @@
 
 ---
 
-## 2026-08-15: P3 대량 런타임 경고/오류 수정 (Player 미동작 문제 해결)
+## 2026-08-15: P3 대량 런타임 경고/오류 수정 + Neural 포맷 불일치 발견 및 수정
+
+### 🔴 Neural 관찰/액션 포맷 불일치 (Player 미동작 근본 원인)
+- **문제:** `synthetic_data_generator.py`(Python 학습)와 `EncodeObservation()`(C# 런타임)의 observation/action 포맷이 완전히 달라서, ONNX 모델에 쓰레기 입력이 들어가 쓰레기 출력이 나옴
+- **수정:** `EncodeObservation()`과 `DecodeActions()`를 Python 포맷과 일치하도록 재작성 (git a11802e)
+  - 관찰: joint positions(54) → joint rotations quaternion(72) + foot positions + terrain heightmap 4x4
+  - 액션: root velocity + turn angle → root motion delta + quaternion rotation delta + joint euler angles 54
+- **재학습 필요:** `python3 train.py --avatar_type biped --epochs 1000` 실행 후 ONNX를 Resources/NeuralModels/에 복사
 
 ### 🔴 Player 미동작 원인 및 수정
 
