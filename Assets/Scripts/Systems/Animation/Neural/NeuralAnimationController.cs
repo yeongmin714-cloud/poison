@@ -563,55 +563,108 @@ namespace ProjectName.Systems.Animation.Neural
         #if UNITY_SENTIS
                     if (!_sentisAvailable) return;
 
-                    // Map PolicyType to resource names
-                    var resourceNames = new Dictionary<PolicyType, string>
+                    // Try NeuralModelDatabase first (populated by Auto Setup)
+                    NeuralModelDatabase db = null;
+                    try { db = Resources.Load<NeuralModelDatabase>("NeuralModelDatabase"); } catch { }
+                    bool useDatabase = db != null && db.Count > 0;
+
+                    if (useDatabase)
                     {
-                        { PolicyType.Locomotion, _isQuadruped ? "NeuralModels/bc_locomotion_quadruped_base" : "NeuralModels/bc_locomotion_biped_base" },
-                        { PolicyType.Combat, "NeuralModels/bc_combat_biped_base" },
-                        { PolicyType.React, "NeuralModels/bc_react_biped_base" },
-                        { PolicyType.Interact, "NeuralModels/bc_interact_biped_base" },
-                        { PolicyType.Fly, "NeuralModels/bc_fly_biped_base" },
-                        { PolicyType.Swim, "NeuralModels/bc_swim_biped_base" },
-                        { PolicyType.Mount, "NeuralModels/bc_mount_biped_base" },
-                        { PolicyType.Climb, "NeuralModels/bc_climb_biped_base" }
-                    };
-
-                    foreach (var kvp in resourceNames)
-                    {
-                        PolicyType type = kvp.Key;
-                        string resourcePath = kvp.Value;
-
-                        // Skip if already loaded from serialized field
-                        if (_policyModels.ContainsKey(type) && _policyModels[type] != null)
-                            continue;
-
-                        try
+                        foreach (PolicyType type in Enum.GetValues(typeof(PolicyType)))
                         {
-                            ModelAsset asset = Resources.Load<ModelAsset>(resourcePath);
-                            if (asset == null)
+                            // Skip if already loaded from serialized field
+                            if (_policyModels.ContainsKey(type) && _policyModels[type] != null)
+                                continue;
+
+                            string resourcePath = db.GetModelPath(type);
+                            if (string.IsNullOrEmpty(resourcePath)) continue;
+
+                            try
                             {
-                                // Only log warning once per policy type
+                                ModelAsset asset = Resources.Load<ModelAsset>(resourcePath);
+                                if (asset == null)
+                                {
+                                    if (!_warnedPolicyTypes.Contains(type))
+                                    {
+                                        Debug.Log($"[NeuralAnimationController] ModelAsset not found at Resources/{resourcePath} for {type} (database entry exists but file missing).");
+                                        _warnedPolicyTypes.Add(type);
+                                    }
+                                    continue;
+                                }
+
+                                Model model = ModelLoader.Load(asset);
+                                _policyModels[type] = model;
+                                _policyAssets[type] = asset;
+                                Debug.Log($"[NeuralAnimationController] Loaded {type} from NeuralModelDatabase: {resourcePath}");
+                            }
+                            catch (Exception e)
+                            {
                                 if (!_warnedPolicyTypes.Contains(type))
                                 {
-                                    Debug.LogWarning($"[NeuralAnimationController] ModelAsset not found at Resources/{resourcePath} for {type}. Policy will use heuristic fallback.");
+                                    Debug.LogWarning($"[NeuralAnimationController] Failed to load {type} from database: {e.Message}");
                                     _warnedPolicyTypes.Add(type);
                                 }
-                                continue;
                             }
-
-                            Model model = ModelLoader.Load(asset);
-                            _policyModels[type] = model;
-                            _policyAssets[type] = asset; // Cache the asset too
-                            Debug.Log($"[NeuralAnimationController] Loaded {type} policy model from Resources/{resourcePath}");
                         }
-                        catch (Exception e)
+                    }
+                    else
+                    {
+                        // Fallback: hardcoded resource paths (no database found)
+                        // Map PolicyType to resource names
+                        var resourceNames = new Dictionary<PolicyType, string>
                         {
-                            if (!_warnedPolicyTypes.Contains(type))
+                            { PolicyType.Locomotion, _isQuadruped ? "NeuralModels/bc_locomotion_quadruped_base" : "NeuralModels/bc_locomotion_biped_base" },
+                            { PolicyType.Combat, _isQuadruped ? "NeuralModels/bc_combat_quadruped_base" : "NeuralModels/bc_combat_biped_base" },
+                            { PolicyType.React, _isQuadruped ? "NeuralModels/bc_react_quadruped_base" : "NeuralModels/bc_react_biped_base" },
+                            { PolicyType.Interact, _isQuadruped ? "NeuralModels/bc_interact_quadruped_base" : "NeuralModels/bc_interact_biped_base" },
+                            { PolicyType.Fly, _isQuadruped ? "NeuralModels/bc_fly_quadruped_base" : "NeuralModels/bc_fly_biped_base" },
+                            { PolicyType.Swim, _isQuadruped ? "NeuralModels/bc_swim_quadruped_base" : "NeuralModels/bc_swim_biped_base" },
+                            { PolicyType.Mount, _isQuadruped ? "NeuralModels/bc_mount_quadruped_base" : "NeuralModels/bc_mount_biped_base" },
+                            { PolicyType.Climb, _isQuadruped ? "NeuralModels/bc_climb_quadruped_base" : "NeuralModels/bc_climb_biped_base" }
+                        };
+
+                        foreach (var kvp in resourceNames)
+                        {
+                            PolicyType type = kvp.Key;
+                            string resourcePath = kvp.Value;
+
+                            // Skip if already loaded from serialized field
+                            if (_policyModels.ContainsKey(type) && _policyModels[type] != null)
+                                continue;
+
+                            try
                             {
-                                Debug.LogWarning($"[NeuralAnimationController] Failed to load {type} policy from Resources/{resourcePath}: {e.Message}");
-                                _warnedPolicyTypes.Add(type);
+                                ModelAsset asset = Resources.Load<ModelAsset>(resourcePath);
+                                if (asset == null)
+                                {
+                                    if (!_warnedPolicyTypes.Contains(type))
+                                    {
+                                        Debug.Log($"[NeuralAnimationController] ModelAsset not found at Resources/{resourcePath} for {type}.");
+                                        _warnedPolicyTypes.Add(type);
+                                    }
+                                    continue;
+                                }
+
+                                Model model = ModelLoader.Load(asset);
+                                _policyModels[type] = model;
+                                _policyAssets[type] = asset;
+                                Debug.Log($"[NeuralAnimationController] Loaded {type} from Resources/{resourcePath}");
+                            }
+                            catch (Exception e)
+                            {
+                                if (!_warnedPolicyTypes.Contains(type))
+                                {
+                                    Debug.LogWarning($"[NeuralAnimationController] Failed to load {type} from Resources/{resourcePath}: {e.Message}");
+                                    _warnedPolicyTypes.Add(type);
+                                }
                             }
                         }
+                    }
+
+                    // Check if any models were loaded at all
+                    if (_policyModels.Count == 0)
+                    {
+                        Debug.Log("[NeuralAnimationController] No policy models loaded. Animation will use heuristic fallback.");
                     }
         #endif
                 }
