@@ -101,9 +101,13 @@ public class TestPlayerSetup : MonoBehaviour
         }
 
         // 4순위: NeuralAnimationController — ONNX 정책 추론
+        // === CRITICAL: Neural 모델 관찰/액션 포맷 불일치로 Procedural-only 모드 ===
+        // synthetic_data_generator.py의 observation layout이 C# EncodeObservation()과 다름.
+        // NeuralAnimationController를 추가하지만 비활성화 — ProceduralAnimationController만 사용.
         _neuralAnim = player.GetComponent<NeuralAnimationController>();
         if (_neuralAnim == null)
             _neuralAnim = player.AddComponent<NeuralAnimationController>();
+        _neuralAnim.enabled = false; // Neural 모델 포맷 불일치로 비활성화
 
         // 5순위: HybridAnimationController — Procedural + Neural 브리지 (마지막에 추가, ProcAnim 참조 가능)
         _hybridAnim = player.GetComponent<HybridAnimationController>();

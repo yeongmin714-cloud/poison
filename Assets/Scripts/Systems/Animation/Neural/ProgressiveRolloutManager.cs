@@ -91,7 +91,16 @@ namespace ProjectName.Systems.Animation.Neural
                 Debug.Log($"[ProgressiveRolloutManager] Configuring {controller.name} for {config.phaseName}");
 
             // Set base blend weights
-            controller.SetBaseWeights(1f - config.neuralWeight, config.neuralWeight);
+            // Check if neural controller actually has models loaded
+            bool neuralHasModels = false;
+            var neuralCtrl = controller.GetComponent<NeuralAnimationController>();
+            if (neuralCtrl != null) neuralHasModels = neuralCtrl.HasAnyModel();
+            
+            float effectiveNeuralWeight = neuralHasModels ? config.neuralWeight : 0f;
+            if (!neuralHasModels && config.neuralWeight > 0f && _verboseLogging)
+                Debug.Log($"[ProgressiveRolloutManager] Neural controller has no models — forcing neural weight to 0 for {controller.name}");
+            
+            controller.SetBaseWeights(1f - effectiveNeuralWeight, effectiveNeuralWeight);
 
             // Clear all overrides first
             controller.ClearAllPolicyOverrides();
