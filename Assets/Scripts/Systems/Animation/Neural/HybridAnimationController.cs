@@ -30,13 +30,9 @@ namespace ProjectName.Systems.Animation.Neural
         // Neural-only mode: ProceduralAnimationController가 없을 때 true
         bool _proceduralOnly;
 
-        // === CRITICAL: Neural 모델 관찰/액션 포맷 불일치 — Procedural-only 모드 ===
-        // synthetic_data_generator.py vs C# EncodeObservation() 포맷이 다름.
-        // Neural 모델 출력이 쓰레기값이므로 ProceduralAnimationController만 사용.
-        // 모델 재학습 또는 C# 인코딩 수정 전까지 Neural 완전 비활성화.
         [Header("Blending Weights")]
-        [SerializeField, Range(0f, 1f)] float _baseProceduralWeight = 1.0f;
-        [SerializeField, Range(0f, 1f)] float _baseNeuralWeight = 0.0f;
+        [SerializeField, Range(0f, 1f)] float _baseProceduralWeight = 0.5f;
+        [SerializeField, Range(0f, 1f)] float _baseNeuralWeight = 0.5f;
 
         [Header("Policy Override System")]
         [SerializeField] bool _enablePolicyOverrides = true;

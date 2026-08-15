@@ -790,102 +790,117 @@ namespace ProjectName.Systems.Animation.Neural
 
         void EncodeObservation()
         {
-            // Build observation vector of exactly _observationDim values.
-            // Layout (120 for biped, 150 for quadruped):
-            //   [0-2]   Local velocity xyz (3)
-            //   [3-5]   Forward direction (3)
-            //   [6-8]   Ground normal (3)
-            //   [9]     IsGrounded (1)
-            //   [10]    Terrain height ahead (1)
-            //   [11-13] Target direction local (3)
-            //   [14]    Target distance (1)
-            //   [15-16] Body lean (2)
-            //   [17-20] Policy one-hot (4)
-            //   [21-28] Style embedding (8)
-            //   [29-82] Joint positions: up to 18 joints × 3 = 54 (biped)
-            //   [83-86] Foot contact flags (4)
-            //   [87-88] Gait phase sin/cos (2)
-            //   [89-119] Padding to _observationDim
+            // Build observation vector matching Python training format (120 dims for biped):
+            //   [0-2]     Current velocity (local xyz)
+            //   [3-5]     Target velocity direction (desired movement direction)
+            //   [6]       Current speed (scalar)
+            //   [7-9]     Body lean offset (pitch, roll, yaw)
+            //   [10-81]   Joint rotations (18 joints × 4 quaternions = 72)
+            //   [82-83]   Foot ground contact (2 floats: left, right)
+            //   [84-89]   Foot positions relative to root (3x2 = 6: L_pos, R_pos)
+            //   [90-92]   Head look target direction (xyz)
+            //   [93-95]   Action target (xyz)
+            //   [96-103]  Style embedding (8 floats)
+            //   [104-119] Terrain heightmap (4x4 = 16 floats, sampled around character)
 
             Vector3 localVel = transform.InverseTransformDirection(_currentVelocity);
-            Vector3 forward = transform.forward;
-            Vector3 groundNormal = GetGroundNormal();
-            float isGrounded = IsGrounded ? 1f : 0f;
-            float terrainHeight = SampleTerrainHeight(transform.position + forward * 1.5f);
-            Vector3 toTarget = (_actionTarget - transform.position);
-            float targetDist = math.length(toTarget);
-            Vector3 targetDir = targetDist > 0.01f ? transform.InverseTransformDirection(toTarget / targetDist) : Vector3.zero;
+            float currentSpeed = _currentSpeed;
+            Vector3 targetVelDir = currentSpeed > 0.01f
+                ? transform.InverseTransformDirection(_currentVelocity.normalized)
+                : Vector3.zero;
 
             int idx = 0;
             float[] obs = _observationBuffer;
 
-            // Velocity (3)
+            // [0-2] Current velocity (local xyz)
             obs[idx++] = localVel.x;
             obs[idx++] = localVel.y;
             obs[idx++] = localVel.z;
 
-            // Forward (3)
-            obs[idx++] = forward.x;
-            obs[idx++] = forward.y;
-            obs[idx++] = forward.z;
+            // [3-5] Target velocity direction
+            obs[idx++] = targetVelDir.x;
+            obs[idx++] = targetVelDir.y;
+            obs[idx++] = targetVelDir.z;
 
-            // Ground normal (3)
-            obs[idx++] = groundNormal.x;
-            obs[idx++] = groundNormal.y;
-            obs[idx++] = groundNormal.z;
+            // [6] Current speed (scalar)
+            obs[idx++] = currentSpeed;
 
-            // Grounded / terrain (2)
-            obs[idx++] = isGrounded;
-            obs[idx++] = terrainHeight;
-
-            // Target direction (3) + distance (1)
-            obs[idx++] = targetDir.x;
-            obs[idx++] = targetDir.y;
-            obs[idx++] = targetDir.z;
-            obs[idx++] = targetDist;
-
-            // Body lean (2)
+            // [7-9] Body lean offset (pitch, roll, yaw)
             obs[idx++] = _bodyLeanOffset.x;
             obs[idx++] = _bodyLeanOffset.y;
+            obs[idx++] = _bodyLeanOffset.z;
 
-            // Policy one-hot (4)
-            int policyIdx = (int)_currentPolicy;
-            for (int i = 0; i < 4; i++)
-                obs[idx++] = (i == policyIdx) ? 1f : 0f;
+            // [10-81] Joint rotations (18 joints × 4 quaternions = 72)
+            var bones = _boneMap.GetAllBones();
+            int jointCount = math.min(bones?.Length ?? 0, 18);
+            for (int i = 0; i < jointCount && idx + 4 <= _observationDim; i++)
+            {
+                var t = bones[i].Transform;
+                if (t != null)
+                {
+                    Quaternion localRot = t.localRotation;
+                    obs[idx++] = localRot.x;
+                    obs[idx++] = localRot.y;
+                    obs[idx++] = localRot.z;
+                    obs[idx++] = localRot.w;
+                }
+                else
+                {
+                    obs[idx++] = 0f;
+                    obs[idx++] = 0f;
+                    obs[idx++] = 0f;
+                    obs[idx++] = 1f;
+                }
+            }
+            // Pad remaining joint slots (identity quaternion)
+            int maxJointSlots = 18 * 4;
+            int jointsWritten = math.min(jointCount, 18) * 4;
+            for (int i = jointsWritten; i < maxJointSlots && idx < _observationDim; i += 4)
+            {
+                obs[idx++] = 0f;
+                obs[idx++] = 0f;
+                obs[idx++] = 0f;
+                obs[idx++] = 1f;
+            }
 
-            // Style embedding (8) — placeholder for now
+            // [82-83] Foot ground contact (2 floats: left, right)
+            obs[idx++] = _leftFootGrounded ? 1f : 0f;
+            obs[idx++] = _rightFootGrounded ? 1f : 0f;
+
+            // [84-89] Foot positions relative to root (3x2 = 6: L_pos, R_pos)
+            var lFoot = _boneMap.Get(BoneRole.L_Foot);
+            var rFoot = _boneMap.Get(BoneRole.R_Foot);
+            Vector3 lFootLocal = lFoot != null
+                ? transform.InverseTransformPoint(lFoot.position)
+                : new Vector3(-0.15f, -0.9f, 0f);
+            Vector3 rFootLocal = rFoot != null
+                ? transform.InverseTransformPoint(rFoot.position)
+                : new Vector3(0.15f, -0.9f, 0f);
+            obs[idx++] = lFootLocal.x;
+            obs[idx++] = lFootLocal.y;
+            obs[idx++] = lFootLocal.z;
+            obs[idx++] = rFootLocal.x;
+            obs[idx++] = rFootLocal.y;
+            obs[idx++] = rFootLocal.z;
+
+            // [90-92] Head look target direction (xyz)
+            Vector3 headLookDir = transform.InverseTransformDirection((_headLookTarget - transform.position).normalized);
+            obs[idx++] = headLookDir.x;
+            obs[idx++] = headLookDir.y;
+            obs[idx++] = headLookDir.z;
+
+            // [93-95] Action target (xyz) - relative to character
+            Vector3 actionTargetLocal = transform.InverseTransformPoint(_actionTarget);
+            obs[idx++] = actionTargetLocal.x;
+            obs[idx++] = actionTargetLocal.y;
+            obs[idx++] = actionTargetLocal.z;
+
+            // [96-103] Style embedding (8 floats) - placeholder, will be filled by policy
             for (int i = 0; i < 8; i++)
                 obs[idx++] = 0f;
 
-            // Joint positions (up to 18 joints × 3 = 54)
-            var bones = _boneMap.GetAllBones();
-            int jointCount = math.min(bones?.Length ?? 0, 18);
-            for (int i = 0; i < jointCount && idx + 3 <= _observationDim; i++)
-            {
-                var t = bones[i].Transform;
-                Vector3 localPos = t != null
-                    ? transform.InverseTransformPoint(t.position)
-                    : Vector3.zero;
-                obs[idx++] = localPos.x;
-                obs[idx++] = localPos.y;
-                obs[idx++] = localPos.z;
-            }
-            // Pad remaining joint slots
-            int maxJointSlots = 18 * 3;
-            int jointsWritten = math.min(jointCount, 18) * 3;
-            for (int i = jointsWritten; i < maxJointSlots && idx < _observationDim; i++)
-                obs[idx++] = 0f;
-
-            // Foot contact flags (4)
-            obs[idx++] = _leftFootGrounded ? 1f : 0f;
-            obs[idx++] = _rightFootGrounded ? 1f : 0f;
-            obs[idx++] = 0f; // LH placeholder
-            obs[idx++] = 0f; // RH placeholder
-
-            // Gait phase sin/cos (2)
-            float gaitPhase = (_inferenceTimer * 2f) % 1f;
-            obs[idx++] = math.sin(gaitPhase * 2f * math.PI);
-            obs[idx++] = math.cos(gaitPhase * 2f * math.PI);
+            // [104-119] Terrain heightmap (4x4 = 16 floats, sampled around character)
+            SampleTerrainHeightmap(obs, ref idx);
 
             // Normalize if enabled (only meaningful features, not padding)
             if (_normalizeObservations && idx > 0)
@@ -902,6 +917,32 @@ namespace ProjectName.Systems.Animation.Neural
             // Copy to native array for job system
             for (int i = 0; i < _observationDim; i++)
                 _nativeObservation[i] = obs[i];
+        }
+
+        void SampleTerrainHeightmap(float[] obs, ref int idx)
+        {
+            const int gridSize = 4;
+            const float cellSize = 0.5f; // 0.5m per cell = 2m total grid
+            Vector3 origin = transform.position + Vector3.up * 2f;
+            Vector3 forward = transform.forward;
+            Vector3 right = transform.right;
+
+            for (int z = 0; z < gridSize; z++)
+            {
+                for (int x = 0; x < gridSize; x++)
+                {
+                    Vector3 samplePos = origin
+                        + forward * ((z - gridSize * 0.5f + 0.5f) * cellSize)
+                        + right * ((x - gridSize * 0.5f + 0.5f) * cellSize);
+
+                    float height = 0f;
+                    if (Physics.Raycast(samplePos, Vector3.down, out RaycastHit hit, 4f, _groundMask))
+                    {
+                        height = samplePos.y - hit.point.y; // positive = ground below
+                    }
+                    obs[idx++] = height;
+                }
+            }
         }
 
         static float MeanSquared(float[] arr, int count)
@@ -1084,37 +1125,59 @@ namespace ProjectName.Systems.Animation.Neural
             for (int i = 0; i < _actionDim; i++)
                 _actionBuffer[i] = 0f;
 
-            // Action layout (heuristic, fills first 16 of 80):
-            // [0]   = forward velocity (local x)
-            // [1]   = lateral velocity (local z)
-            // [2]   = vertical velocity
-            // [3]   = turn angle (degrees)
-            // [4-7] = left leg: hip_x, hip_z, knee, ankle
-            // [8-11] = right leg: hip_x, hip_z, knee, ankle
-            // [12-13] = spine: bend, twist
-            // [14-15] = head look: x, y
-            // [16-79] = zero (bone rotations not filled in heuristic mode)
+            // Action layout matching Python training format (80 dims):
+            // [0-2]     Root motion delta (x, y, z displacement per frame)
+            // [3-6]     Root rotation delta (quaternion: x, y, z, w)
+            // [7-60]    Joint target rotations (18 joints × 3 euler angles = 54)
+            // [61-68]   Style embedding output (8 floats)
+            // [69-79]   Reserved / padding
 
-            _actionBuffer[0] = speedRatio * 0.8f;
-            _actionBuffer[3] = _turnInput * 30f;
+            // Root motion delta: forward displacement based on speed
+            float dt = Time.fixedDeltaTime;
+            _actionBuffer[0] = speedRatio * 0.8f * dt;  // forward displacement
+            _actionBuffer[1] = 0f;                       // vertical displacement
+            _actionBuffer[2] = 0f;                       // lateral displacement
 
-            // Leg swing from speed
-            float legCycle = math.sin(_inferenceTimer * 6f * speedRatio) * 0.3f * speedRatio;
-            _actionBuffer[4] = legCycle;  // L hip x
-            _actionBuffer[8] = -legCycle; // R hip x
+            // Root rotation delta: quaternion for yaw turn
+            float turnAngleDeg = _turnInput * 30f * dt; // degrees per frame
+            Quaternion turnQuat = Quaternion.Euler(0f, turnAngleDeg, 0f);
+            _actionBuffer[3] = turnQuat.x;
+            _actionBuffer[4] = turnQuat.y;
+            _actionBuffer[5] = turnQuat.z;
+            _actionBuffer[6] = turnQuat.w;
 
-            // Knee bend from speed
-            float kneeBend = (1f - speedRatio) * 0.2f;
-            _actionBuffer[6] = kneeBend;
-            _actionBuffer[10] = kneeBend;
+            // Joint target rotations (euler angles in degrees)
+            const int jointRotStart = 7;
+            float legCycle = math.sin(_inferenceTimer * 6f * speedRatio) * 30f * speedRatio; // degrees
+            float kneeBend = (1f - speedRatio) * 20f; // degrees
 
-            // Spine counter-rotation at speed
-            _actionBuffer[12] = _turnInput * 5f * speedRatio;
-            _actionBuffer[13] = speedRatio * 2f;
+            // Apply to first 18 joints (simplified biped pattern)
+            for (int i = 0; i < 18 && jointRotStart + i * 3 + 2 < _actionDim; i++)
+            {
+                int bufIdx = jointRotStart + i * 3;
+                if (i == 0 || i == 3) // Hip joints (simplified indices)
+                {
+                    _actionBuffer[bufIdx + 0] = (i % 2 == 0 ? 1f : -1f) * legCycle; // hip swing
+                    _actionBuffer[bufIdx + 1] = 0f;
+                    _actionBuffer[bufIdx + 2] = 0f;
+                }
+                else if (i == 1 || i == 4) // Knee joints
+                {
+                    _actionBuffer[bufIdx + 0] = kneeBend;
+                    _actionBuffer[bufIdx + 1] = 0f;
+                    _actionBuffer[bufIdx + 2] = 0f;
+                }
+                else
+                {
+                    _actionBuffer[bufIdx + 0] = 0f;
+                    _actionBuffer[bufIdx + 1] = 0f;
+                    _actionBuffer[bufIdx + 2] = 0f;
+                }
+            }
 
-            // Head look
-            _actionBuffer[14] = _headLookTarget.x * 0.01f;
-            _actionBuffer[15] = _headLookTarget.y * 0.01f;
+            // Style embedding output (placeholder)
+            for (int i = 0; i < 8 && 61 + i < _actionDim; i++)
+                _actionBuffer[61 + i] = 0f;
         }
 
         // ──────────────────────────────────────────────
@@ -1124,56 +1187,71 @@ namespace ProjectName.Systems.Animation.Neural
         void DecodeActions()
         {
             // Decode action buffer into root motion and bone rotations.
-            // Layout (80 for biped, 100 for quadruped):
-            //   [0-2]   Root velocity (local xyz)
-            //   [3]     Turn angle (degrees)
-            //   [4-75]  Joint rotations: 18 joints × 4 quaternions (72) for biped
-            //   [76-79] Reserved (4)
+            // Layout matching Python training format (80 for biped):
+            //   [0-2]     Root motion delta (x, y, z displacement per frame)
+            //   [3-6]     Root rotation delta (quaternion: x, y, z, w)
+            //   [7-60]    Joint target rotations (18 joints × 3 euler angles = 54)
+            //   [61-68]   Style embedding output (8 floats)
+            //   [69-79]   Reserved / padding
 
-            if (_actionBuffer == null || _actionBuffer.Length < 4) return;
+            if (_actionBuffer == null || _actionBuffer.Length < 7) return;
 
-            // Root velocity (local space → world)
-            Vector3 localRootVel = new Vector3(
-                _actionBuffer[0] * 5f,
-                _actionBuffer[2] * 2f,
-                _actionBuffer[1] * 5f
+            // [0-2] Root motion delta (local space displacement per frame)
+            Vector3 localRootDelta = new Vector3(
+                _actionBuffer[0],
+                _actionBuffer[1],
+                _actionBuffer[2]
             );
 
-            _decodedRootVelocity = transform.TransformDirection(localRootVel);
-            _decodedRootMotionDelta = _decodedRootVelocity * Time.fixedDeltaTime;
+            // Convert displacement to velocity: delta / fixedDeltaTime
+            _decodedRootVelocity = transform.TransformDirection(localRootDelta) / Time.fixedDeltaTime;
+            _decodedRootMotionDelta = localRootDelta;
 
-            // Turn angle
-            _decodedTurnAngle = _actionBuffer[3];
-            _decodedRootRotationDelta = Quaternion.Euler(0f, _decodedTurnAngle * Time.fixedDeltaTime, 0f);
-            // Apply bone rotations from action buffer
-            // For biped (80): 18 joints × 4 quaternions starting at index 4
-            // For quadruped (100): 24 joints × 4 quaternions starting at index 4
-            int boneRotStart = 4;
-            int boneRotCount = (_actionDim - boneRotStart - 4) / 4; // -4 reserved
-            if (boneRotCount > 0 && _actionBuffer.Length >= boneRotStart + boneRotCount * 4)
+            // [3-6] Root rotation delta (quaternion)
+            Quaternion rootRotDelta = new Quaternion(
+                _actionBuffer[3],
+                _actionBuffer[4],
+                _actionBuffer[5],
+                _actionBuffer[6]
+            );
+            _decodedRootRotationDelta = rootRotDelta;
+
+            // [7-60] Joint target rotations (18 joints × 3 euler angles = 54)
+            const int jointRotStart = 7;
+            const int jointsPerBone = 3; // euler angles (x, y, z)
+            const int maxJoints = 18;
+            int boneRotCount = math.min(maxJoints, (_actionBuffer.Length - jointRotStart) / jointsPerBone);
+
+            if (boneRotCount > 0)
             {
                 var bones = _boneMap.GetAllBones();
                 int applyCount = math.min(bones?.Length ?? 0, boneRotCount);
 
                 for (int i = 0; i < applyCount; i++)
                 {
-                    int bufIdx = boneRotStart + i * 4;
-                    if (bufIdx + 4 > _actionBuffer.Length) break;
+                    int bufIdx = jointRotStart + i * jointsPerBone;
+                    if (bufIdx + jointsPerBone > _actionBuffer.Length) break;
+
                     var t = bones[i].Transform;
                     if (t == null) continue;
-                    quaternion targetRot = new quaternion(
-                        _actionBuffer[bufIdx + 0],
-                        _actionBuffer[bufIdx + 1],
-                        _actionBuffer[bufIdx + 2],
-                        _actionBuffer[bufIdx + 3]
-                    );
+
+                    // Convert euler angles (degrees) to quaternion
+                    float eulerX = _actionBuffer[bufIdx + 0];
+                    float eulerY = _actionBuffer[bufIdx + 1];
+                    float eulerZ = _actionBuffer[bufIdx + 2];
+
+                    Quaternion targetRot = Quaternion.Euler(eulerX, eulerY, eulerZ);
+
                     t.localRotation = Quaternion.Slerp(
                         t.localRotation,
-                        new Quaternion(targetRot.value.x, targetRot.value.y, targetRot.value.z, targetRot.value.w),
+                        targetRot,
                         Time.deltaTime * 15f
                     );
                 }
             }
+
+            // [61-68] Style embedding output - could be used for policy blending/analysis
+            // Currently not used directly but available in buffer
         }
 
         void ApplyBoneRotationFromAction(BoneRole role, float eulerX, float eulerY, float eulerZ)
