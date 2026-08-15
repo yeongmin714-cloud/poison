@@ -533,7 +533,7 @@ namespace ProjectName.Systems.Animation.Neural
                     _policyAssets[PolicyType.Swim] = _swimPolicy;
 
         #if UNITY_SENTIS
-                            if (!_sentisAvailable) return;
+                    if (!_sentisAvailable) return;
 
                             // First pass: load from serialized fields
                             foreach (PolicyType type in Enum.GetValues(typeof(PolicyType)))
