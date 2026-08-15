@@ -44,6 +44,9 @@ namespace ProjectName.Systems.Animation.Neural
         [SerializeField] ModelAsset _flyPolicy;
         [SerializeField] ModelAsset _swimPolicy;
 
+        [Header("Model Loading")]
+        [SerializeField] bool _isQuadruped = false;
+
         [Header("Observation Encoding")]
         [SerializeField, Range(1, 256)] int _observationDim = 120;
         [SerializeField, Range(1, 128)] int _actionDim = 80;
@@ -162,6 +165,9 @@ namespace ProjectName.Systems.Animation.Neural
 
         Dictionary<PolicyType, Model> _policyModels = new Dictionary<PolicyType, Model>();
         Dictionary<PolicyType, ModelAsset> _policyAssets = new Dictionary<PolicyType, ModelAsset>();
+
+        // Track which policy types have already logged a warning (to avoid spam)
+        HashSet<PolicyType> _warnedPolicyTypes = new HashSet<PolicyType>();
 
         // ──────────────────────────────────────────────
         // Root Motion Decoded from Policy
@@ -294,6 +300,7 @@ namespace ProjectName.Systems.Animation.Neural
         public bool IsGrounded => _velocityProvider?.IsGrounded ?? (_leftFootGrounded || _rightFootGrounded);
         public PolicyType ActivePolicy => _currentPolicy;
         public int CurrentLODLevel => _currentLODLevel;
+        public bool HasAnyModel() => _policyModels != null && _policyModels.Count > 0;
 
         // ──────────────────────────────────────────────
         // Batch Inference Integration (Phase 68.4)
@@ -396,6 +403,13 @@ namespace ProjectName.Systems.Animation.Neural
             InitializeSentis();
             InitializePolicyAssets();
             AllocateObservationBuffer();
+
+            // If no policy models were loaded at all, silently disable inference
+            if (_policyModels.Count == 0)
+            {
+                _lodInferenceEnabled = false;
+                Debug.Log("[NeuralAnimationController] No policy models loaded. Inference disabled; using heuristic fallback only.");
+            }
 
             _inferenceInterval = 1f / _inferenceRateHz;
         }
@@ -510,34 +524,97 @@ namespace ProjectName.Systems.Animation.Neural
         }
 
         void InitializePolicyAssets()
-            {
-                _policyAssets[PolicyType.Locomotion] = _locomotionPolicy;
-                _policyAssets[PolicyType.Combat] = _combatPolicy;
-                _policyAssets[PolicyType.React] = _reactPolicy;
-                _policyAssets[PolicyType.Interact] = _interactPolicy;
-                _policyAssets[PolicyType.Fly] = _flyPolicy;
-                _policyAssets[PolicyType.Swim] = _swimPolicy;
+                {
+                    _policyAssets[PolicyType.Locomotion] = _locomotionPolicy;
+                    _policyAssets[PolicyType.Combat] = _combatPolicy;
+                    _policyAssets[PolicyType.React] = _reactPolicy;
+                    _policyAssets[PolicyType.Interact] = _interactPolicy;
+                    _policyAssets[PolicyType.Fly] = _flyPolicy;
+                    _policyAssets[PolicyType.Swim] = _swimPolicy;
 
         #if UNITY_SENTIS
-                        if (!_sentisAvailable) return;
+                            if (!_sentisAvailable) return;
 
-                        foreach (PolicyType type in Enum.GetValues(typeof(PolicyType)))
-                        {
-                            if (!_policyAssets.TryGetValue(type, out var asset) || asset == null) continue;
-
-                            try
+                            // First pass: load from serialized fields
+                            foreach (PolicyType type in Enum.GetValues(typeof(PolicyType)))
                             {
-                                Model model = ModelLoader.Load(asset);
-                                _policyModels[type] = model;
-                                Debug.Log($"[NeuralAnimationController] Loaded {type} policy model");
+                                if (!_policyAssets.TryGetValue(type, out var asset) || asset == null) continue;
+
+                                try
+                                {
+                                    Model model = ModelLoader.Load(asset);
+                                    _policyModels[type] = model;
+                                    Debug.Log($"[NeuralAnimationController] Loaded {type} policy model from serialized field");
+                                }
+                                catch (Exception e)
+                                {
+                                    Debug.LogWarning($"[NeuralAnimationController] Failed to load {type} policy: {e.Message}");
+                                }
                             }
-                            catch (Exception e)
+
+                            // Second pass: fallback to Resources/NeuralModels/ for any policy types not loaded
+                            _warnedPolicyTypes.Clear();
+                            LoadModelsFromResources();
+        #endif
+                    }
+
+                void LoadModelsFromResources()
+                {
+        #if UNITY_SENTIS
+                    if (!_sentisAvailable) return;
+
+                    // Map PolicyType to resource names
+                    var resourceNames = new Dictionary<PolicyType, string>
+                    {
+                        { PolicyType.Locomotion, _isQuadruped ? "NeuralModels/bc_locomotion_quadruped_base" : "NeuralModels/bc_locomotion_biped_base" },
+                        { PolicyType.Combat, "NeuralModels/bc_combat_biped_base" },
+                        { PolicyType.React, "NeuralModels/bc_react_biped_base" },
+                        { PolicyType.Interact, "NeuralModels/bc_interact_biped_base" },
+                        { PolicyType.Fly, "NeuralModels/bc_fly_biped_base" },
+                        { PolicyType.Swim, "NeuralModels/bc_swim_biped_base" },
+                        { PolicyType.Mount, "NeuralModels/bc_mount_biped_base" },
+                        { PolicyType.Climb, "NeuralModels/bc_climb_biped_base" }
+                    };
+
+                    foreach (var kvp in resourceNames)
+                    {
+                        PolicyType type = kvp.Key;
+                        string resourcePath = kvp.Value;
+
+                        // Skip if already loaded from serialized field
+                        if (_policyModels.ContainsKey(type) && _policyModels[type] != null)
+                            continue;
+
+                        try
+                        {
+                            ModelAsset asset = Resources.Load<ModelAsset>(resourcePath);
+                            if (asset == null)
                             {
-                                Debug.LogWarning($"[NeuralAnimationController] Failed to load {type} policy: {e.Message}");
+                                // Only log warning once per policy type
+                                if (!_warnedPolicyTypes.Contains(type))
+                                {
+                                    Debug.LogWarning($"[NeuralAnimationController] ModelAsset not found at Resources/{resourcePath} for {type}. Policy will use heuristic fallback.");
+                                    _warnedPolicyTypes.Add(type);
+                                }
+                                continue;
+                            }
+
+                            Model model = ModelLoader.Load(asset);
+                            _policyModels[type] = model;
+                            _policyAssets[type] = asset; // Cache the asset too
+                            Debug.Log($"[NeuralAnimationController] Loaded {type} policy model from Resources/{resourcePath}");
+                        }
+                        catch (Exception e)
+                        {
+                            if (!_warnedPolicyTypes.Contains(type))
+                            {
+                                Debug.LogWarning($"[NeuralAnimationController] Failed to load {type} policy from Resources/{resourcePath}: {e.Message}");
+                                _warnedPolicyTypes.Add(type);
                             }
                         }
-                #endif
-            }
+                    }
+        #endif
+                }
 
         void AllocateObservationBuffer()
         {
@@ -818,7 +895,13 @@ namespace ProjectName.Systems.Animation.Neural
 
                     if (!_policyModels.TryGetValue(activePolicy, out Model model))
                     {
-                        Debug.LogWarning($"[NeuralAnimationController] No model loaded for {activePolicy}");
+                        // Only log warning once per policy type
+                        if (!_warnedPolicyTypes.Contains(activePolicy))
+                        {
+                            Debug.LogWarning($"[NeuralAnimationController] No model loaded for {activePolicy}. Using heuristic fallback.");
+                            _warnedPolicyTypes.Add(activePolicy);
+                        }
+                        HeuristicFallbackInference();
                         return;
                     }
 

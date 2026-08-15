@@ -4,9 +4,30 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-08-14
+> **최종 갱신:** 2026-08-15
 
 ---
+
+## 2026-08-15: P3 대량 런타임 경고/오류 수정 (Player 미동작 문제 해결)
+
+### 🔴 Player 미동작 원인 및 수정
+
+| # | 문제 | 파일 | 수정 |
+|:-:|:-----|:-----|:------|
+| 1 | NeuralAnimationController ONNX 모델 미할당 → `_policyModels` 비어있음 → FixedUpdate마다 경고 스팸 + 0 모션 출력 | `NeuralAnimationController.cs` | `LoadModelsFromResources()` 추가 — SerializeField null 시 Resources/NeuralModels/에서 자동 로드 + `HasAnyModel()` public 메서드 추가 + 모든 모델 로드 실패 시 `_lodInferenceEnabled = false` |
+| 2 | HybridAnimationController `_proceduralOnly=true` 시 neural weight=1.0 강제 → Neural 모델 없어도 weight 1.0 유지 → 출력 0 | `HybridAnimationController.cs` | Start()에서 `neuralHasModels` 체크 추가, Neural 모델 없으면 procedural로 fallback |
+| 3 | Head bone missing on ALL models (Player, 몬스터, NPC 전부) | `ProceduralBoneUtility.cs` | `_nameToRole`에 head 변형 10종 추가 (headtop, cc_base_head, mixamorig:head, 머리 등) + `IsSmallCreature()` 헬퍼로 소형 생물 Head non-critical + 번호 본 heuristic에서 Head 자동 추론 (spineChain[4]) |
+
+### 🟡 기타 경고/오류 수정
+
+| # | 문제 | 파일 | 수정 |
+|:-:|:-----|:-----|:------|
+| 4 | BuildingTrigger/BuildingPlaceholder Player 태그 오브젝트 없음 (1,000+회 스팸) | `BuildingTrigger.cs`, `BuildingPlaceholder.cs` | 60프레임 간격 재시도 로직 추가, 첫 실패 시 Debug.Log로 변경 |
+| 5 | GameManager UIManager 타입 못 찾음 | `GameManager.cs` | FindTypeAnyNamespace()에 추가 네임스페이스 검색 (ProjectName., UI., Systems., Core.) |
+| 6 | CookingDatabase unknown ingredient '밴시 눈물', '약초 꽃가루' | `CookingDatabase.cs` | Debug.LogWarning → Debug.Log (예상된 시나리오) |
+| 7 | NationTerrainController east_grass1 texture not readable | `NationTerrainController.cs` | IsTextureReadable() 체크 추가, non-readable 시 단일 Debug.Log 후 skip |
+| 8 | TerrainTextureApplier Dracula 텍스처 없음 | `TerrainTextureApplier.cs` | Dracula 건너뛸 때 경고 없이 조용히 skip |
+| 9 | JobTempAlloc leak (추가 분석 필요) | NeuralJob 시스템 | 추후 분석 필요 — NativeArray Dispose 확인 |
 
 ## 2026-08-14: P0-P2 대량 런타임 오류 수정 (commit dcd2493)
 

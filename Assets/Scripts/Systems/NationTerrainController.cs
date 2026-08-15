@@ -301,6 +301,13 @@ namespace ProjectName.Systems
         /// </summary>
         private Texture2D GenerateBlendTexture(Texture2D from, Texture2D to, float blend)
         {
+            // Check if textures are readable before attempting GetPixels
+            if (!IsTextureReadable(from) || !IsTextureReadable(to))
+            {
+                Debug.Log($"[NationTerrainController] Source texture not readable ({from?.name} / {to?.name}). Skipping blend, will use immediate swap.");
+                return null;
+            }
+
             int size = Mathf.Max(from.width, to.width);
             size = Mathf.Min(size, _textureSize * 2); // cap for performance
 
@@ -354,6 +361,26 @@ namespace ProjectName.Systems
 #else
             return false;
 #endif
+        }
+
+        /// <summary>
+        /// Checks if a texture is readable (can call GetPixels/GetPixels32).
+        /// Returns false for compressed/non-readable textures with a single log.
+        /// </summary>
+        private static bool IsTextureReadable(Texture2D tex)
+        {
+            if (tex == null) return false;
+            
+            try
+            {
+                // Attempting to read a single pixel will throw if not readable
+                tex.GetPixel(0, 0);
+                return true;
+            }
+            catch (UnityException)
+            {
+                return false;
+            }
         }
 
         /// <summary>

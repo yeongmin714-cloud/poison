@@ -387,7 +387,18 @@ namespace ProjectName.Core
         /// </summary>
         private static System.Type FindTypeAnyNamespace(string typeName)
         {
-            foreach (var ns in new[] { "", "ProjectName.Systems.", "ProjectName.Core.", "ProjectName.UI." })
+            // Extended namespace list to include common Unity/project namespaces
+            foreach (var ns in new[] 
+            { 
+                "", 
+                "ProjectName.Systems.", 
+                "ProjectName.Core.", 
+                "ProjectName.UI.",
+                "ProjectName.",           // Fallback for root namespace
+                "UI.",                    // Common UI namespace
+                "Systems.",               // Common Systems namespace
+                "Core.",                  // Common Core namespace
+            })
             {
                 foreach (var asm in System.AppDomain.CurrentDomain.GetAssemblies())
                 {

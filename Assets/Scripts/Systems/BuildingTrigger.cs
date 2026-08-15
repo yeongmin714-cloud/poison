@@ -21,6 +21,8 @@ namespace ProjectName.Systems
         private Transform _player;
         private bool _playerNearby;
         private Camera _mainCamera;
+        private bool _playerNotFound;
+        private int _playerFindFrameCounter;
 
         [Header("건물 추가 설정")]
         [SerializeField] private string _nationStyle;
@@ -56,7 +58,10 @@ namespace ProjectName.Systems
                 if (pm != null)
                     _player = pm.transform;
                 else
-                    Debug.LogWarning($"[BuildingTrigger] {_buildingType}: Player 태그 오브젝트 없음");
+                {
+                    _playerNotFound = true;
+                    Debug.Log($"[BuildingTrigger] {_buildingType}: Player 태그 오브젝트 없음 (나중에 생성될 예정)");
+                }
             }
 
             _mainCamera = Camera.main;
@@ -66,6 +71,25 @@ namespace ProjectName.Systems
 
         private void Update()
         {
+            // Player가 아직 없으면 주기적으로 재시도 (60프레임 ≈ 1초마다)
+            if (_playerNotFound)
+            {
+                _playerFindFrameCounter++;
+                if (_playerFindFrameCounter >= 60)
+                {
+                    _playerFindFrameCounter = 0;
+                    _player = GameObject.FindGameObjectWithTag("Player")?.transform;
+                    if (_player == null)
+                    {
+                        var pm = FindAnyObjectByType<PlayerMovement>();
+                        if (pm != null)
+                            _player = pm.transform;
+                    }
+                    if (_player != null)
+                        _playerNotFound = false;
+                }
+            }
+
             if (_player == null) return;
 
             float dist = Vector3.Distance(transform.position, _player.position);

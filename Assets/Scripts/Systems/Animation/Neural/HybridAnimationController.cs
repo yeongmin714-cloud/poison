@@ -300,10 +300,25 @@ namespace ProjectName.Systems.Animation.Neural
             // Neural-only: weight 강제
             if (_proceduralOnly)
             {
-                _baseProceduralWeight = 0f;
-                _baseNeuralWeight = 1f;
-                _currentProceduralWeight = 0f;
-                _currentNeuralWeight = 1f;
+                // Neural 컨트롤러에 로드된 모델이 있는지 확인
+                bool neuralHasModels = _neuralController != null && _neuralController.HasAnyModel();
+                if (!neuralHasModels)
+                {
+                    // Neural에 모델이 없으면 procedural weight 유지 (fallback)
+                    _proceduralOnly = false;
+                    _baseProceduralWeight = 1f;
+                    _baseNeuralWeight = 0f;
+                    _currentProceduralWeight = 1f;
+                    _currentNeuralWeight = 0f;
+                    Debug.Log("[HybridAnimationController] Neural has no models — falling back to procedural-only mode.");
+                }
+                else
+                {
+                    _baseProceduralWeight = 0f;
+                    _baseNeuralWeight = 1f;
+                    _currentProceduralWeight = 0f;
+                    _currentNeuralWeight = 1f;
+                }
             }
         }
 

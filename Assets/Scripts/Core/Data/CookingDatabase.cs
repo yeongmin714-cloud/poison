@@ -125,7 +125,9 @@ namespace ProjectName.Core.Data
                         var herbInfo = HerbDatabase.GetHerbInfoByDisplayName(herb);
                         if (string.IsNullOrEmpty(herbInfo.id))
                         {
-                            Debug.LogWarning($"[CookingDatabase] Unknown ingredient '{herb}' in recipe #{index} '{dishName}' (non-herb ingredient). Recipe will still be added.");
+                            // Non-herb ingredients (e.g., '밴시 눈물', '약초 꽃가루') are expected in some recipes.
+                            // Use Debug.Log instead of Warning since this is not an error condition.
+                            Debug.Log($"[CookingDatabase] Non-herb ingredient '{herb}' in recipe #{index} '{dishName}'. Recipe will still be added.");
                         }
 
                         string key = MakeKey(meat, herb);

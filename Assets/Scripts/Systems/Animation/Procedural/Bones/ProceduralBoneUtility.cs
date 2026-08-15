@@ -45,10 +45,13 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             { "spine_1", BoneRole.Spine1 },
             { "spine_2", BoneRole.Spine2 },
             { "spine_3", BoneRole.Spine3 },
+            { "spine_4", BoneRole.Spine3 },
+            { "spine_5", BoneRole.Spine3 },
             { "spine_01", BoneRole.Spine0 },
             { "spine_02", BoneRole.Spine1 },
             { "spine_03", BoneRole.Spine2 },
-            { "spine_04", BoneRole.Spine3 },
+            { "spine_04", BoneRole.Neck },
+            { "spine_05", BoneRole.Neck },
             { "back", BoneRole.Spine0 },
             { "back1", BoneRole.Spine0 },
             { "back2", BoneRole.Spine1 },
@@ -69,6 +72,16 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             { "neck_02", BoneRole.Neck },
             { "head_01", BoneRole.Head },
             { "head_end", BoneRole.Head },
+
+            // More head variants (requested)
+            { "headtop", BoneRole.Head },
+            { "head_tip", BoneRole.Head },
+            { "head_mid", BoneRole.Head },
+            { "cc_base_head", BoneRole.Head },
+            { "mixamorig:head", BoneRole.Head },
+            { "머리", BoneRole.Head },
+            { "head1", BoneRole.Head },
+            { "head2", BoneRole.Head },
 
             // Left Arm
             { "clavicle.l", BoneRole.L_Clavicle },
@@ -395,6 +408,9 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
 
         static void ValidateCriticalBones(Dictionary<BoneRole, Transform> map, Transform animatorRoot)
         {
+            // Check if this is a small creature that doesn't need a Head bone
+            bool isSmallCreature = IsSmallCreature(animatorRoot, map);
+
             // Apply fallbacks FIRST to avoid false warnings
             // Fallback: if Spine0 missing but we have Spine1/Spine2/Spine3/Neck, use the first available spine bone
             if (map[BoneRole.Spine0] == null)
@@ -418,12 +434,44 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             }
 
             // NOW validate critical bones (after fallbacks applied)
-            var critical = new[] { BoneRole.Root, BoneRole.Spine0, BoneRole.Head };
+            var critical = new[] { BoneRole.Root, BoneRole.Spine0 };
+            
+            // Head is critical only for non-small creatures
+            if (!isSmallCreature)
+            {
+                critical = new[] { BoneRole.Root, BoneRole.Spine0, BoneRole.Head };
+            }
+
             foreach (var role in critical)
             {
                 if (map[role] == null)
                     UnityEngine.Debug.LogWarning($"[ProceduralBoneUtility] Critical bone missing: {role}. Animator: {animatorRoot.name} - falling back to heuristic mapping");
             }
+
+            // For small creatures, Head is optional - only warn if completely missing (not even fallback)
+            if (isSmallCreature && map[BoneRole.Head] == null)
+            {
+                UnityEngine.Debug.LogWarning($"[ProceduralBoneUtility] Head bone missing (expected for small creature): {animatorRoot.name} - continuing without Head");
+            }
+        }
+
+        static bool IsSmallCreature(Transform animatorRoot, Dictionary<BoneRole, Transform> map)
+        {
+            // Check model name for small creature keywords
+            string modelName = animatorRoot.name.ToLowerInvariant();
+            if (modelName.Contains("snake") || modelName.Contains("slime") || 
+                modelName.Contains("rat") || modelName.Contains("crow") || 
+                modelName.Contains("bat") || modelName.Contains("spider") ||
+                modelName.Contains("worm") || modelName.Contains("fish") ||
+                modelName.Contains("insect") || modelName.Contains("bug"))
+                return true;
+
+            // Check total bone count (small creatures have fewer bones)
+            int boneCount = map.Count;
+            if (boneCount < 15)
+                return true;
+
+            return false;
         }
     }
 }

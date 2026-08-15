@@ -30,6 +30,8 @@ namespace ProjectName.Systems
         private Transform _player;
         private Camera _mainCamera;
         private GUIStyle _labelStyle;
+        private bool _playerNotFound;
+        private int _playerFindFrameCounter;
 
         private void Start()
         {
@@ -41,7 +43,10 @@ namespace ProjectName.Systems
                 if (pm != null)
                     _player = pm.transform;
                 else
-                    Debug.LogWarning("[BuildingPlaceholder] Player 태그 오브젝트 없음");
+                {
+                    _playerNotFound = true;
+                    Debug.Log("[BuildingPlaceholder] Player 태그 오브젝트 없음 (나중에 생성될 예정)");
+                }
             }
 
             _mainCamera = Camera.main;
@@ -53,6 +58,28 @@ namespace ProjectName.Systems
 
         // 상호작용은 BuildingTrigger 컴포넌트가 처리하므로,
         // BuildingPlaceholder는 시각적 Placeholder 역할만 수행합니다.
+
+        private void Update()
+        {
+            // Player가 아직 없으면 주기적으로 재시도 (60프레임 ≈ 1초마다)
+            if (_playerNotFound)
+            {
+                _playerFindFrameCounter++;
+                if (_playerFindFrameCounter >= 60)
+                {
+                    _playerFindFrameCounter = 0;
+                    _player = GameObject.FindGameObjectWithTag("Player")?.transform;
+                    if (_player == null)
+                    {
+                        var pm = FindAnyObjectByType<PlayerMovement>();
+                        if (pm != null)
+                            _player = pm.transform;
+                    }
+                    if (_player != null)
+                        _playerNotFound = false;
+                }
+            }
+        }
 
         // 건물별 기본 색상
         private Color GetDefaultColor()

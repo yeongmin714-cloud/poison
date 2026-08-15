@@ -199,7 +199,11 @@ namespace ProjectName.Systems
             {
                 if (!_nationTextures.ContainsKey(nation) || _nationTextures[nation].Count == 0)
                 {
-                    Debug.LogWarning($"[TerrainTextureApplier] No textures for {nation}. Skipping material.");
+                    // Skip Dracula silently (expected if no dracula_ textures provided)
+                    if (nation != NationType.Dracula)
+                    {
+                        Debug.LogWarning($"[TerrainTextureApplier] No textures for {nation}. Skipping material.");
+                    }
                     continue;
                 }
 
