@@ -8,6 +8,20 @@
 
 ---
 
+## Phase 68: Neural Animation 재학습 완료 (2026-08-15)
+
+**상태:** ✅ 완료
+**모델:** Neural PPO — biped (120obs → 80act)
+**네트워크:** (256, 128, 64) tanh
+**학습:** 1000 epochs, CPU, ~3h 42m
+**최고 보상:** 1204.09
+**ONNX:** `Assets/Resources/NeuralModels/neural_biped_base.onnx` (311KB, inline)
+**수정사항:**
+- `ppo_trainer.py` 버퍼 store에서 numpy→tensor 타입 변환 버그 수정 (line 314)
+- `train.py` — `--policy_type neural` → `train.py` (policy_type 불필요)
+
+**다음 단계:** Unity에서 Tools → Re-run Auto Setup 실행
+
 ## 2026-08-15: P3 대량 런타임 경고/오류 수정 + Neural 포맷 불일치 발견 및 수정
 
 ### 🔴 Neural 관찰/액션 포맷 불일치 (Player 미동작 근본 원인)

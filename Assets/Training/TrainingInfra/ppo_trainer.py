@@ -311,9 +311,9 @@ class RolloutBuffer:
         self.observations[idx] = torch.from_numpy(obs).to(self.device)
         self.actions[idx] = torch.from_numpy(action).to(self.device)
         self.log_probs[idx] = log_prob
-        self.rewards[idx] = reward
+        self.rewards[idx] = torch.tensor(reward, dtype=torch.float32, device=self.device)
         self.dones[idx] = 1.0 if done else 0.0
-        self.values[idx] = value
+        self.values[idx] = torch.tensor(value, dtype=torch.float32, device=self.device)
         self.pos += 1
         if self.pos >= self.buffer_size:
             self.full = True
