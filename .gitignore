@@ -40,3 +40,4 @@ C:temptest.bat
 __pycache__/
 *.pyc
 compile_verify_latest.txt
+models/

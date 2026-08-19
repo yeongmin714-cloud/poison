@@ -69,6 +69,10 @@ public static class NeuralModelAutoSetup
         ["bc_crouch_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
             "Crouch_Biped_Style", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
 
+        // ── Neural PPO models (end-to-end PPO trained) ──
+        ["neural_biped_base"] = new ModelSpec(120, 80, 18, AvatarType.Humanoid,
+            "Neural_PPO_Biped_Base", "1.0.0", QuantizationFormat.INT8, 11, 2.0f, 8),
+
         // ── Quadruped (obs=150, act=100, joints=24, Quadruped) ──
         ["locomotion_quadruped_base"] = new ModelSpec(150, 100, 24, AvatarType.Quadruped,
             "Locomotion_Quadruped_Base", "1.0.0", QuantizationFormat.INT8, 11, 3.0f, 8),
@@ -141,6 +145,9 @@ public static class NeuralModelAutoSetup
         ["bc_climb_biped_base"] = NeuralAnimationController.PolicyType.Climb,
         ["bc_run_biped_base"] = NeuralAnimationController.PolicyType.Run,
         ["bc_crouch_biped_base"] = NeuralAnimationController.PolicyType.Crouch,
+
+        // ── Neural PPO models ──
+        ["neural_biped_base"] = NeuralAnimationController.PolicyType.Locomotion,
 
         // ── Quadruped ──
         ["locomotion_quadruped_base"] = NeuralAnimationController.PolicyType.Locomotion,
@@ -217,9 +224,13 @@ public static class NeuralModelAutoSetup
 
         Debug.Log($"[NeuralModelAutoSetup] Found {onnxFiles.Count} ONNX model(s).");
 
-        // 3. Filter to only bc_ prefix files (Behavior Cloning models) — 20 policies
+        // 3. Filter to bc_ and neural_ prefix files (Behavior Cloning + Neural PPO models)
         var bcFiles = onnxFiles
-            .Where(path => Path.GetFileNameWithoutExtension(path).StartsWith("bc_"))
+            .Where(path =>
+            {
+                string name = Path.GetFileNameWithoutExtension(path);
+                return name.StartsWith("bc_") || name.StartsWith("neural_");
+            })
             .ToList();
 
         // 3b. Exclude INT8 quantized models (unsupported operators: DynamicQuantizeLinear, MatMulInteger)

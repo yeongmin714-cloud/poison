@@ -19,8 +19,10 @@
 **수정사항:**
 - `ppo_trainer.py` 버퍼 store에서 numpy→tensor 타입 변환 버그 수정 (line 314)
 - `train.py` — `--policy_type neural` → `train.py` (policy_type 불필요)
+- `NeuralModelAutoSetup.cs` — KnownSpecs/PolicTypeMap에 `neural_biped_base` 추가, 파일 필터에 `neural_` prefix 포함
+- `neural_biped_base.onnx` → NeuralModelDatabase에 Locomotion 정책으로 등록됨
 
-**다음 단계:** Unity에서 Tools → Re-run Auto Setup 실행
+**완료 조건 (수동):** Unity Editor 실행 후 **Tools → Neural → Auto-Setup Model Database** 실행 필요 (batchmode 불가 — venv 폴더 임포트 충돌로 인해)
 
 ## 2026-08-15: P3 대량 런타임 경고/오류 수정 + Neural 포맷 불일치 발견 및 수정
 
