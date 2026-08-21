@@ -141,8 +141,23 @@ namespace ProjectName.Systems
             var renderer = GetComponent<MeshRenderer>();
             if (renderer == null)
             {
-                Debug.LogWarning("[NationTerrainController] No MeshRenderer found on Ground.");
-                return;
+                Debug.Log("[NationTerrainController] Adding MeshRenderer to Ground.");
+                renderer = gameObject.AddComponent<MeshRenderer>();
+            }
+
+            // Ensure MeshFilter exists for MeshRenderer to work
+            var filter = GetComponent<MeshFilter>();
+            if (filter == null)
+            {
+                Debug.Log("[NationTerrainController] Adding MeshFilter to Ground.");
+                filter = gameObject.AddComponent<MeshFilter>();
+            }
+
+            // Assign default Plane mesh if no mesh assigned
+            if (filter.sharedMesh == null)
+            {
+                filter.sharedMesh = Resources.GetBuiltinResource<Mesh>("Plane.fbx") ?? Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+                Debug.Log("[NationTerrainController] Assigned default Plane mesh to Ground.");
             }
 
             _terrainMaterial = renderer.sharedMaterial;

@@ -1,0 +1,229 @@
+{
+  "name": "PlayerControls",
+  "type": "InputActionAsset",
+  "actionMaps": [
+    {
+      "name": "Player",
+      "id": "player_map_1",
+      "actions": [
+        {
+          "name": "Move",
+          "id": "move_1",
+          "type": "Value",
+          "expectedControlType": "Vector2",
+          "processors": "",
+          "interactions": "",
+          "bindings": [
+            {
+              "name": "",
+              "id": "move_kb_up",
+              "path": "<Keyboard>/w",
+              "interactions": "",
+              "processors": "",
+              "groups": "",
+              "action": "Move",
+              "isComposite": false,
+              "isPartOfComposite": false
+            },
+            {
+              "name": "",
+              "id": "move_kb_down",
+              "path": "<Keyboard>/s",
+              "interactions": "",
+              "processors": "",
+              "groups": "",
+              "action": "Move",
+              "isComposite": false,
+              "isPartOfComposite": false
+            },
+            {
+              "name": "",
+              "id": "move_kb_left",
+              "path": "<Keyboard>/a",
+              "interactions": "",
+              "processors": "",
+              "groups": "",
+              "action": "Move",
+              "isComposite": false,
+              "isPartOfComposite": false
+            },
+            {
+              "name": "",
+              "id": "move_kb_right",
+              "path": "<Keyboard>/d",
+              "interactions": "",
+              "processors": "",
+              "groups": "",
+              "action": "Move",
+              "isComposite": false,
+              "isPartOfComposite": false
+            },
+            {
+              "name": "",
+              "id": "move_gamepad",
+              "path": "<Gamepad>/leftStick",
+              "interactions": "",
+              "processors": "",
+              "groups": "",
+              "action": "Move",
+              "isComposite": false,
+              "isPartOfComposite": false
+            }
+          ]
+        },
+        {
+          "name": "Jump",
+          "id": "jump_1",
+          "type": "Button",
+          "expectedControlType": "Button",
+          "processors": "",
+          "interactions": "",
+          "bindings": [
+            {
+              "name": "",
+              "id": "jump_kb",
+              "path": "<Keyboard>/space",
+              "interactions": "",
+              "processors": "",
+              "groups": "",
+              "action": "Jump",
+              "isComposite": false,
+              "isPartOfComposite": false
+            },
+            {
+              "name": "",
+              "id": "jump_gp",
+              "path": "<Gamepad>/buttonSouth",
+              "interactions": "",
+              "processors": "",
+              "groups": "",
+              "action": "Jump",
+              "isComposite": false,
+              "isPartOfComposite": false
+            }
+          ]
+        },
+        {
+          "name": "Attack",
+          "id": "attack_1",
+          "type": "Button",
+          "expectedControlType": "Button",
+          "processors": "",
+          "interactions": "",
+          "bindings": [
+            {
+              "name": "",
+              "id": "attack_mouse",
+              "path": "<Mouse>/leftButton",
+              "interactions": "",
+              "processors": "",
+              "groups": "",
+              "action": "Attack",
+              "isComposite": false,
+              "isPartOfComposite": false
+            },
+            {
+              "name": "",
+              "id": "attack_gp",
+              "path": "<Gamepad>/rightTrigger",
+              "interactions": "",
+              "processors": "",
+              "groups": "",
+              "action": "Attack",
+              "isComposite": false,
+              "isPartOfComposite": false
+            }
+          ]
+        },
+        {
+          "name": "Dash",
+          "id": "dash_1",
+          "type": "Button",
+          "expectedControlType": "Button",
+          "processors": "",
+          "interactions": "",
+          "bindings": [
+            {
+              "name": "",
+              "id": "dash_kb",
+              "path": "<Keyboard>/leftShift",
+              "interactions": "",
+              "processors": "",
+              "groups": "",
+              "action": "Dash",
+              "isComposite": false,
+              "isPartOfComposite": false
+            },
+            {
+              "name": "",
+              "id": "dash_gp",
+              "path": "<Gamepad>/leftShoulder",
+              "interactions": "",
+              "processors": "",
+              "groups": "",
+              "action": "Dash",
+              "isComposite": false,
+              "isPartOfComposite": false
+            }
+          ]
+        },
+        {
+          "name": "Interact",
+          "id": "interact_1",
+          "type": "Button",
+          "expectedControlType": "Button",
+          "processors": "",
+          "interactions": "",
+          "bindings": [
+            {
+              "name": "",
+              "id": "interact_kb",
+              "path": "<Keyboard>/e",
+              "interactions": "",
+              "processors": "",
+              "groups": "",
+              "action": "Interact",
+              "isComposite": false,
+              "isPartOfComposite": false
+            },
+            {
+              "name": "",
+              "id": "interact_gp",
+              "path": "<Gamepad>/buttonWest",
+              "interactions": "",
+              "processors": "",
+              "groups": "",
+              "action": "Interact",
+              "isComposite": false,
+              "isPartOfComposite": false
+            }
+          ]
+        }
+      ],
+      "bindings": []
+    }
+  ],
+  "controlSchemes": [
+    {
+      "name": "Keyboard&Mouse",
+      "bindingGroup": "",
+      "requiredDeviceList": [
+        {
+          "devicePath": "<Keyboard>"
+        },
+        {
+          "devicePath": "<Mouse>"
+        }
+      ]
+    },
+    {
+      "name": "Gamepad",
+      "bindingGroup": "",
+      "requiredDeviceList": [
+        {
+          "devicePath": "<Gamepad>"
+        }
+      ]
+    }
+  ]
+}

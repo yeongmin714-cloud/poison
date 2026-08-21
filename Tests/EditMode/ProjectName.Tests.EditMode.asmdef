@@ -5,8 +5,7 @@
     "ProjectName.Core",
     "ProjectName.Systems",
     "ProjectName.UI",
-    "Assembly-CSharp-Editor",
-    "ProjectName.Editor"
+    "Assembly-CSharp-Editor"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

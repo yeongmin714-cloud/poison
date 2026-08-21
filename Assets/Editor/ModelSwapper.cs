@@ -153,6 +153,9 @@ public static class ModelSwapper
         glbInstance.transform.localPosition = Vector3.zero;
         glbInstance.transform.localRotation = Quaternion.identity;
         glbInstance.transform.localScale = Vector3.one;
+
+        // Animator Controller 및 Avatar 할당 (ModelAnimatorAssigner 사용)
+        ModelAnimatorAssigner.AssignController(glbInstance, "player");
     }
 
     /// <summary>

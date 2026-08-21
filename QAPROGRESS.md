@@ -412,3 +412,30 @@
 - 중복 `_logBatchStats` 필드 제거 (LOD Auto-Tune State 섹션)
 
 **Git:** `cffd99b` — Phase 68.5: BatchInferenceManager/NeuralAnimationController 성능 버그 수정 ✅
+
+---
+
+### 2026-08-21: BotW 스타일 HUD 리디자인 ✅
+
+**변경 파일:**
+- `Assets/Scripts/UI/HUD.cs` — 대규모 수정
+- `Assets/Scripts/UI/MinimapUI.cs` — 위치 변경
+
+**상세:**
+
+1. **HUD.cs — HP바 → 하트 시스템 (BotW 스타일)**
+   - 기존 좌하단 HP바(700x70) → **좌상단 하트 컨테이너**
+   - 하트 1개 = 20HP, MaxHP 100 = 5개 하트 (5열×1줄)
+   - 3상태: Full(빨강), Half(반투명), Empty(회색) — HeartState enum
+   - 데미지 시 0.5초간 Mathf.Sin 흔들림 애니메이션
+   - 임시 하트(노랑, 버프 초과 체력) 지원
+   - `DrawHPBar()`/`DrawTierLegend()` 제거 → `DrawHearts()` 추가
+   - 버프 아이콘 → **우상단** (Screen.width 기준)
+   - 은신 HUD: 하트 아래 동적 배치
+
+2. **MinimapUI.cs — 우상단 → 우하단**
+   - `_marginTop` → `_marginBottom`
+
+3. **컴파일 검증**: ✅ CS 에러 0 (Unity 6000.4.10f1 batchmode)
+
+**Git:** 커밋 예정

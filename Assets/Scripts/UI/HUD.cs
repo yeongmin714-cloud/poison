@@ -5,40 +5,42 @@ using System.Collections.Generic;
 namespace ProjectName.UI
 {
     /// <summary>
-    /// 플레이어 체력바 HUD (IMGUI 기반)
-    /// - 좌측 상단 HP 바 (녹색→노랑→빨강 그라데이션)
-    /// - HP 수치 텍스트
-    /// - 사망 시 "사망" 표시
-    /// - 버프 아이콘 표시 (우측에 HP 바 옆)
-    /// - 가스 분사기 타이머 (장착 시 분사 가능 시간 프로그레스바 + 숫자)
-    /// - Phase 34: 은신 상태 아이콘 + 발각 게이지
+    /// 플레이어 HUD (IMGUI 기반) - BotW 스타일 하트 시스템
+    /// - 좌측 상단 하트 시스템 (BotW 스타일)
+    ///   * 하트 1개 = 20HP, MaxHP 100 = 5개 하트
+    ///   * Full(빨강), Half(반만 빨강), Empty(회색) 상태
+    ///   * 데미지 시 흔들림 애니메이션
+    ///   * 임시 하트(노랑, 버프 초과 체력) 지원
+    /// - 우상단 버프 아이콘 표시
+    /// - 사망 시 "사망" 오버레이 표시
+    /// - 가스 분사기 타이머 (상단 중앙)
+    /// - Phase 34: 은신 상태 아이콘 + 발각 게이지 (하트 아래 배치)
     /// </summary>
     public class HUD : MonoBehaviour
     {
-        [Header("HP Bar")]
-        [SerializeField] private int _barWidth = 2800;   // 700 * 4
-        [SerializeField] private int _barHeight = 280;   // 70 * 4
-        [SerializeField] private int _barX = 40;
-        private int _barY; // 동적 계산: 좌하단
-        [SerializeField] private GUISkin _customSkin;
+        [Header("Hearts (BotW Style)")]
+            [SerializeField] private int _heartSize = 40;
+            [SerializeField] private int _heartSpacing = 6;
+            [SerializeField] private int _heartsPerRow = 10;
+            [SerializeField] private int _heartStartX = 20;
+            [SerializeField] private int _heartStartY = 20;
+            [SerializeField] private float _hpPerHeart = 20f;
+            [SerializeField] private GUISkin _customSkin;
 
-        [Header("Colors")]
-        [SerializeField] private Color _highColor = Color.green;
-        [SerializeField] private Color _midColor = Color.yellow;
-        [SerializeField] private Color _lowColor = Color.red;
+            [Header("Heart Colors")]
+            [SerializeField] private Color _heartFullColor = new Color(0.9f, 0.15f, 0.15f, 1f);   // 빨강
+            [SerializeField] private Color _heartHalfColor = new Color(0.9f, 0.15f, 0.15f, 0.5f); // 반투명 빨강
+            [SerializeField] private Color _heartEmptyColor = new Color(0.3f, 0.3f, 0.3f, 0.6f);  // 회색
+            [SerializeField] private Color _heartTempColor = new Color(1f, 0.85f, 0.1f, 1f);      // 노랑 (임시/버프 체력)
 
-        [Header("Text")]
-        [SerializeField] private int _fontSize = 192;    // 48 * 4
-        [SerializeField] private Color _textColor = Color.white;
+            [Header("Death Overlay")]
+            [SerializeField] private Color _deathOverlayColor = new Color(0.5f, 0f, 0f, 0.4f);
 
-        [Header("Death Overlay")]
-        [SerializeField] private Color _deathOverlayColor = new Color(0.5f, 0f, 0f, 0.4f);
-
-        [Header("Buff Icons")]
-        [SerializeField] private int _iconSize = 240;    // 60 * 4
-        [SerializeField] private int _iconSpacing = 40;  // 10 * 4
-        [SerializeField] private int _iconOffsetX = 2840; // 760 * 4 - HP 바 4배니까
-        private int _iconOffsetY; // 동적 계산: 좌하단 기준
+            [Header("Buff Icons")]
+            [SerializeField] private int _iconSize = 60;
+            [SerializeField] private int _iconSpacing = 10;
+            [SerializeField] private int _iconOffsetX = -200; // 우상단 기준 오프셋 (음수 = 우측에서 왼쪽으로)
+            private int _iconOffsetY; // 동적 계산: 우상단
         private static readonly Dictionary<string, Color> _buffColors = new Dictionary<string, Color>
         {
             { "AttackUp", Color.red },
@@ -59,12 +61,11 @@ namespace ProjectName.UI
         private float _currentHP;
         private float _maxHP = 100f;
         private bool _isDead = false;
-        private string _lastHpText; // GC: 이전 HP 텍스트 캐싱 (변경 시에만 재할당)
-        private bool _hpTextDirty = true; // HP 텍스트 갱신 필요 플래그
+        private float _lastDamageTime = float.NegativeInfinity; // 데미지 애니메이션용
+        private float _tempMaxHP = 0f; // 임시 최대 체력 (버프로 인한 초과 체력)
 
         // GC: 캐싱된 GUIStyle — OnGUI에서 new GUIStyle() 방지
         private GUIStyle _cachedLabelStyle;
-        private GUIStyle _cachedLegendStyle;
         private GUIStyle _cachedDeathStyle;
         private GUIStyle _cachedRespawnStyle;
         private GUIStyle _cachedBuffTimerStyle;
@@ -75,14 +76,9 @@ namespace ProjectName.UI
         private GUIStyle _cachedDetectionLabelStyle;
 
         // GC: 캐싱된 Rect — OnGUI에서 new Rect() 방지 (구조체지만 스택 할당 최적화)
-        private Rect _rectBg;
-        private Rect _rectHp;
         private Rect _rectDeathOverlay;
         private Rect _rectDeathLabel;
         private Rect _rectRespawnLabel;
-        private Rect _rectLegendGreen;
-        private Rect _rectLegendYellow;
-        private Rect _rectLegendRed;
 
         // 버프 아이콘용 재사용 Rect
         private Rect _rectBuffBg;
@@ -92,6 +88,10 @@ namespace ProjectName.UI
         private Rect _rectGasBarBg;
         private Rect _rectGasBarFill;
         private Rect _rectGasLabel;
+
+        // 하트용 재사용 Rect
+        private Rect _rectHeart;
+        private Rect _rectHeartInner;
 
         // 가스 분사기 상태 캐시
         private bool _gasSprayerEquipped;
@@ -145,7 +145,6 @@ namespace ProjectName.UI
                 PlayerHealth.Instance.OnHPChanged += OnHealthChanged;
                 _currentHP = PlayerHealth.Instance.CurrentHP;
                 _maxHP = PlayerHealth.Instance.MaxHP;
-                _hpTextDirty = true; // 초기 텍스트 생성
             }
 
             // Phase 34: StealthSystem 이벤트 구독
@@ -173,14 +172,9 @@ namespace ProjectName.UI
             // 모든 GUIStyle을 미리 캐싱 (OnGUI에서 new GUIStyle() 호출 금지)
             _cachedLabelStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = _fontSize,
+                fontSize = 24,
                 alignment = TextAnchor.MiddleCenter,
                 fontStyle = FontStyle.Bold
-            };
-
-            _cachedLegendStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 24
             };
 
             _cachedDeathStyle = new GUIStyle(GUI.skin.label)
@@ -229,33 +223,20 @@ namespace ProjectName.UI
 
         private void CacheStaticRects()
         {
-            _rectLegendGreen = new Rect(0, 0, 120, 40);
-            _rectLegendYellow = new Rect(140, 0, 120, 40);
-            _rectLegendRed = new Rect(280, 0, 120, 40);
+            // 하트용 Rect 초기화
+            _rectHeart = new Rect(0, 0, _heartSize, _heartSize);
+            _rectHeartInner = new Rect(0, 0, _heartSize - 4, _heartSize - 4);
         }
 
         private void UpdateStaticRectPositions()
         {
-            // 바 위치 업데이트
-            _barY = Screen.height - _barHeight - 60;
-            _iconOffsetY = _barY;
-
-            _rectBg = new Rect(_barX, _barY, _barWidth, _barHeight);
-            _rectHp = new Rect(_barX + 1, _barY + 1, _barWidth - 2, _barHeight - 2);
-
-            // 티어 범례 위치
-            int legendY = _barY + _barHeight + 20;
-            _rectLegendGreen.x = _barX;
-            _rectLegendGreen.y = legendY;
-            _rectLegendYellow.x = _barX + 140;
-            _rectLegendYellow.y = legendY;
-            _rectLegendRed.x = _barX + 280;
-            _rectLegendRed.y = legendY;
-
             // 사망 오버레이 위치 (매 프레임 Screen 크기로 갱신)
             _rectDeathOverlay = new Rect(0, 0, Screen.width, Screen.height);
             _rectDeathLabel = new Rect(0, Screen.height * 0.35f, Screen.width, 120);
             _rectRespawnLabel = new Rect(0, Screen.height * 0.35f + 120, Screen.width, 60);
+
+            // 버프 아이콘 위치: 우상단
+            _iconOffsetY = 20; // 상단 여백
 
             // 가스 분사기 타이머 위치 (상단 중앙)
             float gasX = (Screen.width - _gasTimerWidth) / 2;
@@ -292,10 +273,21 @@ namespace ProjectName.UI
 
         private void OnHealthChanged(float current, float max)
         {
+            // 데미지 감지 (체력이 감소했을 때)
+            if (current < _currentHP)
+            {
+                _lastDamageTime = Time.time;
+            }
+            
             _currentHP = current;
             _maxHP = max;
             _isDead = current <= 0;
-            _hpTextDirty = true; // GC: HP 변경 시에만 텍스트 재생성
+            
+            // 임시 최대 체력 업데이트 (버프로 인한 초과 체력)
+            if (max > 100f)
+                _tempMaxHP = max;
+            else
+                _tempMaxHP = 0f;
         }
 
         private void OnGUI()
@@ -310,7 +302,7 @@ namespace ProjectName.UI
 
             UpdateStaticRectPositions();
 
-            DrawHPBar();
+            DrawHearts();
             DrawBuffIcons();
             DrawDeathOverlay();
             DrawGasSprayerTimer();
@@ -326,7 +318,7 @@ namespace ProjectName.UI
         // ===== Phase 34: 은신 HUD =====
 
         /// <summary>
-        /// 은신 상태 아이콘 + 발각 게이지 표시
+        /// 은신 상태 아이콘 + 발각 게이지 표시 (하트 아래 배치)
         /// </summary>
         private void DrawStealthHUD()
         {
@@ -339,10 +331,14 @@ namespace ProjectName.UI
             if (!isStealthed && detectionGauge <= 0f)
                 return;
 
-            // Rect 위치 계산
+            // Rect 위치 계산: 하트 영역 아래 (하트 시작 Y + 하트 크기 * 줄 수 + 여백)
+            int totalHearts = Mathf.CeilToInt(_maxHP / _hpPerHeart);
+            int rows = Mathf.CeilToInt((float)totalHearts / _heartsPerRow);
+            float heartsBottomY = _heartStartY + rows * (_heartSize + _heartSpacing) + 10;
+            
             float iconSize = _stealthIconSize;
             float iconX = _stealthIconX;
-            float iconY = _stealthIconY;
+            float iconY = heartsBottomY;
 
             _rectStealthIcon = new Rect(iconX, iconY, iconSize, iconSize);
 
@@ -496,57 +492,118 @@ namespace ProjectName.UI
             GUI.color = Color.white;
         }
 
-        private void DrawHPBar()
+        /// <summary>
+        /// BotW 스타일 하트 시스템으로 HP 표시
+        /// - 하트 1개 = 20HP (_hpPerHeart)
+        /// - Full(빨강), Half(반 빨강), Empty(회색) 상태 지원
+        /// - 데미지 시 흔들림 애니메이션
+        /// - 임시 하트(노랑, 버프 초과 체력) 지원
+        /// </summary>
+        private void DrawHearts()
         {
-            float ratio = _maxHP > 0 ? Mathf.Clamp01(_currentHP / _maxHP) : 0f;
+            // 최대 체력 기준 전체 하트 수 계산
+            int totalHearts = Mathf.CeilToInt(_maxHP / _hpPerHeart);
+            if (totalHearts <= 0) totalHearts = 1;
 
-            // 배경 (어두운 회색)
-            GUI.Box(_rectBg, "");
-
-            // HP 바 (색상 그라데이션)
-            Color barColor = ratio > 0.5f
-                ? Color.Lerp(_midColor, _highColor, (ratio - 0.5f) * 2f)
-                : Color.Lerp(_lowColor, _midColor, ratio * 2f);
-
-            GUI.color = barColor;
-            _rectHp.width = (_barWidth - 2) * ratio;
-            GUI.Box(_rectHp, "");
-
-            // 테두리
-            GUI.color = Color.white;
-            GUI.Box(_rectBg, "");
-
-            // HP 텍스트 — Dirty Flag 패턴: 변경 시에만 문자열 할당
-            if (_hpTextDirty)
+            // 임시 하트 수 (버프로 인한 초과 체력)
+            int tempHearts = 0;
+            if (_tempMaxHP > _maxHP)
             {
-                _lastHpText = _isDead ? "💀 사망" : $"❤️ HP: {Mathf.Ceil(_currentHP)} / {_maxHP}";
-                _hpTextDirty = false;
+                tempHearts = Mathf.CeilToInt((_tempMaxHP - _maxHP) / _hpPerHeart);
             }
-            GUI.color = _textColor;
-            GUI.Label(_rectBg, _lastHpText, _cachedLabelStyle);
 
-            // 티어 정보 표시 (MonsterTier 범례)
-            DrawTierLegend();
+            int displayHearts = totalHearts + tempHearts;
+
+            // 데미지 흔들림 효과 (최근 0.5초 내 피격 시)
+            float shakeOffset = 0f;
+            if (Time.time - _lastDamageTime < 0.5f)
+            {
+                shakeOffset = Mathf.Sin(Time.time * 10f) * 2f;
+            }
+
+            float startX = _heartStartX + shakeOffset;
+            float startY = _heartStartY;
+
+            for (int i = 0; i < displayHearts; i++)
+            {
+                int row = i / _heartsPerRow;
+                int col = i % _heartsPerRow;
+
+                float heartX = startX + col * (_heartSize + _heartSpacing);
+                float heartY = startY + row * (_heartSize + _heartSpacing);
+
+                _rectHeart.x = heartX;
+                _rectHeart.y = heartY;
+                _rectHeartInner.x = heartX + 2;
+                _rectHeartInner.y = heartY + 2;
+
+                float heartHPThreshold = (i + 1) * _hpPerHeart;
+                bool isTempHeart = i >= totalHearts;
+
+                if (isTempHeart)
+                {
+                    // 임시 하트 (노랑) - 버프로 인한 초과 체력
+                    DrawHeart(_rectHeart, _rectHeartInner, _heartTempColor, HeartState.Full);
+                }
+                else if (_currentHP >= heartHPThreshold)
+                {
+                    // 풀 하트 (빨강)
+                    DrawHeart(_rectHeart, _rectHeartInner, _heartFullColor, HeartState.Full);
+                }
+                else if (_currentHP >= heartHPThreshold - _hpPerHeart * 0.5f)
+                {
+                    // 반 하트 (반만 빨강)
+                    DrawHeart(_rectHeart, _rectHeartInner, _heartHalfColor, HeartState.Half);
+                }
+                else
+                {
+                    // 빈 하트 (회색)
+                    DrawHeart(_rectHeart, _rectHeartInner, _heartEmptyColor, HeartState.Empty);
+                }
+            }
         }
 
         /// <summary>
-        /// 몬스터 티어 색상 범례
+        /// 하트 상태 열거형
         /// </summary>
-        private void DrawTierLegend()
+        private enum HeartState
         {
-            // 초반 🟢
-            GUI.color = Color.green;
-            GUI.Label(_rectLegendGreen, "🟢 초급", _cachedLegendStyle);
+            Empty,
+            Half,
+            Full
+        }
 
-            // 중반 🟡
-            GUI.color = Color.yellow;
-            GUI.Label(_rectLegendYellow, "🟡 중급", _cachedLegendStyle);
+        /// <summary>
+        /// 단일 하트 그리기 (GUI.Box로 하트 모양 근사)
+        /// </summary>
+        private void DrawHeart(Rect outerRect, Rect innerRect, Color color, HeartState state)
+        {
+            // 배경 (빈 하트 베이스)
+            GUI.color = _heartEmptyColor;
+            GUI.Box(outerRect, "");
 
-            // 후반 🔴
-            GUI.color = Color.red;
-            GUI.Label(_rectLegendRed, "🔴 고급", _cachedLegendStyle);
+            if (state != HeartState.Empty)
+            {
+                // 채워진 하트 영역
+                GUI.color = color;
+                
+                if (state == HeartState.Full)
+                {
+                    // 풀 하트: 전체 내부 영역 채우기
+                    GUI.Box(innerRect, "");
+                }
+                else // Half
+                {
+                    // 반 하트: 왼쪽 절반만 채우기
+                    Rect halfRect = innerRect;
+                    halfRect.width = innerRect.width * 0.5f;
+                    GUI.Box(halfRect, "");
+                }
+            }
 
+            // 테두리
             GUI.color = Color.white;
+            GUI.Box(outerRect, "");
         }
 
         private void DrawBuffIcons()
@@ -555,7 +612,9 @@ namespace ProjectName.UI
 
             var activeBuffs = BuffManager.Instance.GetActiveBuffs();
             if (activeBuffs == null) return;
-            float x = _iconOffsetX;
+            
+            // 우상단에서 시작 (Screen.width - 200에서 왼쪽으로)
+            float x = Screen.width + _iconOffsetX; // _iconOffsetX는 음수 (예: -200)
             float y = _iconOffsetY;
             float size = _iconSize;
             float spacing = _iconSpacing;
@@ -598,7 +657,7 @@ namespace ProjectName.UI
                     GUI.Label(_rectBuffBg, buff.BuffId, _cachedBuffIdStyle);
                 }
 
-                x += size + spacing;
+                x -= size + spacing; // 왼쪽으로 이동
             }
         }
 

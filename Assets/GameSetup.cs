@@ -159,8 +159,9 @@ public class GameSetup : MonoBehaviour
         {
             var esGO = new GameObject("EventSystem");
             esGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
-            esGO.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
-            Debug.Log("[GameSetup] ✅ EventSystem 생성");
+            // Input System 패키지용 UI Input Module 사용 (StandaloneInputModule은 구 Input System용)
+            esGO.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+            Debug.Log("[GameSetup] ✅ EventSystem 생성 (InputSystemUIInputModule)");
         }
 
         // MinimapUI

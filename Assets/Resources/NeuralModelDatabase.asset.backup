@@ -1,0 +1,380 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cbe5b1779b36914a873983ddffc03f4, type: 3}
+  m_Name: NeuralModelDatabase
+  m_EditorClassIdentifier: ProjectName.Systems::ProjectName.Systems.Animation.Neural.NeuralModelDatabase
+  _policies:
+  - policyType: 7
+    modelPath: NeuralModels/climb_biped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: Climb_Biped
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/climb_biped_base_int8
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 1
+    modelPath: NeuralModels/combat_biped_base
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: Combat_Biped
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/combat_biped_base
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 1
+    modelPath: NeuralModels/combat_biped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: Combat_Biped
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/combat_biped_base_int8
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 1
+    modelPath: NeuralModels/combat_quadruped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 1
+      PolicyName: Combat_Quadruped
+      ObservationSize: 150
+      ActionSize: 100
+      JointCount: 24
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/combat_quadruped_base_int8
+      ExpectedLatencyMs: 3
+      StyleEmbeddingSize: 8
+  - policyType: 9
+    modelPath: NeuralModels/crouch_biped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: Crouch_Biped_Style
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/crouch_biped_base_int8
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 9
+    modelPath: NeuralModels/crouch_quadruped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 1
+      PolicyName: Crouch_Quadruped_Style
+      ObservationSize: 150
+      ActionSize: 100
+      JointCount: 24
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/crouch_quadruped_base_int8
+      ExpectedLatencyMs: 3
+      StyleEmbeddingSize: 8
+  - policyType: 4
+    modelPath: NeuralModels/fly_biped_base
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: Fly_Biped
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/fly_biped_base
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 4
+    modelPath: NeuralModels/fly_biped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: Fly_Biped
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/fly_biped_base_int8
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 4
+    modelPath: NeuralModels/fly_quadruped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 1
+      PolicyName: Fly_Quadruped
+      ObservationSize: 150
+      ActionSize: 100
+      JointCount: 24
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/fly_quadruped_base_int8
+      ExpectedLatencyMs: 3
+      StyleEmbeddingSize: 8
+  - policyType: 3
+    modelPath: NeuralModels/interact_biped_base
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: Interact_Biped
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/interact_biped_base
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 3
+    modelPath: NeuralModels/interact_biped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: Interact_Biped
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/interact_biped_base_int8
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 3
+    modelPath: NeuralModels/interact_quadruped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 1
+      PolicyName: Interact_Quadruped
+      ObservationSize: 150
+      ActionSize: 100
+      JointCount: 24
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/interact_quadruped_base_int8
+      ExpectedLatencyMs: 3
+      StyleEmbeddingSize: 8
+  - policyType: 10
+    modelPath: NeuralModels/large_monster_quadruped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 1
+      PolicyName: LargeMonster_Quadruped
+      ObservationSize: 150
+      ActionSize: 100
+      JointCount: 24
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/large_monster_quadruped_base_int8
+      ExpectedLatencyMs: 3
+      StyleEmbeddingSize: 8
+  - policyType: 0
+    modelPath: NeuralModels/locomotion_biped_base
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: Locomotion_Biped_Base
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/locomotion_biped_base
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 0
+    modelPath: NeuralModels/locomotion_biped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: Locomotion_Biped_Base
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/locomotion_biped_base_int8
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 0
+    modelPath: NeuralModels/locomotion_quadruped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 1
+      PolicyName: Locomotion_Quadruped_Base
+      ObservationSize: 150
+      ActionSize: 100
+      JointCount: 24
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/locomotion_quadruped_base_int8
+      ExpectedLatencyMs: 3
+      StyleEmbeddingSize: 8
+  - policyType: 6
+    modelPath: NeuralModels/mount_biped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: Mount_Biped
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/mount_biped_base_int8
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 6
+    modelPath: NeuralModels/mount_quadruped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 1
+      PolicyName: Mount_Quadruped
+      ObservationSize: 150
+      ActionSize: 100
+      JointCount: 24
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/mount_quadruped_base_int8
+      ExpectedLatencyMs: 3
+      StyleEmbeddingSize: 8
+  - policyType: 2
+    modelPath: NeuralModels/react_biped_base
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: React_Biped
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/react_biped_base
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 2
+    modelPath: NeuralModels/react_biped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: React_Biped
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/react_biped_base_int8
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 2
+    modelPath: NeuralModels/react_quadruped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 1
+      PolicyName: React_Quadruped
+      ObservationSize: 150
+      ActionSize: 100
+      JointCount: 24
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/react_quadruped_base_int8
+      ExpectedLatencyMs: 3
+      StyleEmbeddingSize: 8
+  - policyType: 8
+    modelPath: NeuralModels/run_biped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: Run_Biped_Style
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/run_biped_base_int8
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 8
+    modelPath: NeuralModels/run_quadruped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 1
+      PolicyName: Run_Quadruped_Style
+      ObservationSize: 150
+      ActionSize: 100
+      JointCount: 24
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/run_quadruped_base_int8
+      ExpectedLatencyMs: 3
+      StyleEmbeddingSize: 8
+  - policyType: 5
+    modelPath: NeuralModels/swim_biped_base
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: Swim_Biped
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/swim_biped_base
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 5
+    modelPath: NeuralModels/swim_biped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 0
+      PolicyName: Swim_Biped
+      ObservationSize: 120
+      ActionSize: 80
+      JointCount: 18
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/swim_biped_base_int8
+      ExpectedLatencyMs: 2
+      StyleEmbeddingSize: 8
+  - policyType: 5
+    modelPath: NeuralModels/swim_quadruped_base_int8
+    metadata:
+      ModelVersion: 1.0.0
+      AvatarType: 1
+      PolicyName: Swim_Quadruped
+      ObservationSize: 150
+      ActionSize: 100
+      JointCount: 24
+      TerrainHeightmapResolution: 11
+      Quantization: 2
+      ModelPath: NeuralModels/swim_quadruped_base_int8
+      ExpectedLatencyMs: 3
+      StyleEmbeddingSize: 8
+  _defaultAvatarType: 0

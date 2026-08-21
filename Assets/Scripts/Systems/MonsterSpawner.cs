@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.Systems.Animation.Neural;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -406,6 +407,13 @@ namespace ProjectName.Systems
 
             // [5.3.5] 몬스터 레벨 적용
             ApplyMonsterLevel(ai);
+
+            // Set NeuralAnimationController IsQuadruped based on MonsterDef
+            NeuralAnimationController nac = go.GetComponent<NeuralAnimationController>();
+            if (nac != null)
+            {
+                nac.IsQuadruped = def.isQuadruped;
+            }
 
             // C18-04: 밤눈 이펙트 적용
             if (_addNightEyeEffect && IsNightTime())

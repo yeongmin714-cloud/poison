@@ -86,6 +86,7 @@ public static class EditorAutoSetup
             RunStep("Skybox 설정", SetupSkybox);
             RunStep("Post-processing 설정", SetupPostProcessing);
             RunStep("Sway Controller 부착", InstallSwayControllers);
+            RunStep("Ground Plane 생성", CreateGroundPlane);
             RunStep("Sound System 설정", SetupSoundSystem);
             RunStep("Drop Table 생성", Phase1C_CreateDropTables.AutoCreateDropTables);
             RunStep("Phase 4 Recipe Assets 생성", Phase4_GenerateRecipeAssets.GenerateAllRecipes);
@@ -388,6 +389,59 @@ public static class EditorAutoSetup
         }
 
         AssetDatabase.SaveAssets();
+    }
+
+    // ================================================================
+    //  Ground Plane 생성 (필수 - Terrain 시스템의 기반)
+    // ================================================================
+
+    private static void CreateGroundPlane()
+    {
+        var ground = GameObject.Find("Ground_Inner");
+        if (ground == null)
+        {
+            ground = new GameObject("Ground_Inner");
+            ground.transform.position = new Vector3(500f, 0f, 500f); // 맵 중앙 (1000x1000)
+            
+            // MeshFilter + MeshRenderer 추가
+            var filter = ground.AddComponent<MeshFilter>();
+            var renderer = ground.AddComponent<MeshRenderer>();
+            
+            // 기본 Plane 메시 할당 (1000x1000 크기로 스케일)
+            var planeMesh = Resources.GetBuiltinResource<Mesh>("Plane.fbx") ?? Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+            if (planeMesh != null)
+            {
+                filter.sharedMesh = planeMesh;
+                // Plane.fbx는 10x10 단위이므로 100배 스케일로 1000x1000 만들기
+                ground.transform.localScale = new Vector3(100f, 1f, 100f);
+            }
+            else
+            {
+                // Fallback: Cube로 큰 평면 만들기
+                var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                cube.transform.parent = ground.transform;
+                cube.transform.localPosition = Vector3.zero;
+                cube.transform.localScale = new Vector3(1000f, 1f, 1000f);
+                Object.DestroyImmediate(cube.GetComponent<BoxCollider>());
+                filter.sharedMesh = cube.GetComponent<MeshFilter>().sharedMesh;
+                renderer.sharedMaterial = cube.GetComponent<MeshRenderer>().sharedMaterial;
+                Object.DestroyImmediate(cube);
+            }
+            
+            // Collider 추가 (플레이어/몬스터 지형 충돌용)
+            var collider = ground.AddComponent<BoxCollider>();
+            collider.size = new Vector3(1000f, 1f, 1000f);
+            collider.center = new Vector3(0f, 0.5f, 0f);
+            
+            // Ground 레이어 설정
+            ground.layer = LayerMask.NameToLayer("Ground");
+            
+            Debug.Log("[AutoSetup] Ground_Inner 평면 생성 완료 (1000x1000, 중앙 500,500)");
+        }
+        else
+        {
+            Debug.Log("[AutoSetup] Ground_Inner 이미 존재함");
+        }
     }
 
     // ================================================================

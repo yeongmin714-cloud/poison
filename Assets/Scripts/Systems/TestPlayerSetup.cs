@@ -127,11 +127,11 @@ public class TestPlayerSetup : MonoBehaviour
         if (playerMovement == null)
         {
             playerMovement = player.AddComponent<PlayerMovement>();
-            // TestPlayerSetup용 설정 (public property 사용)
+            // TestPlayerSetup용 설정 (private field 직접 설정)
             var pmType = typeof(PlayerMovement);
-            pmType.GetProperty("WalkSpeed")?.SetValue(playerMovement, _walkSpeed);
-            pmType.GetProperty("RunSpeed")?.SetValue(playerMovement, _runSpeed);
-            pmType.GetProperty("JumpHeight")?.SetValue(playerMovement, _jumpHeight);
+            pmType.GetField("_walkSpeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(playerMovement, _walkSpeed);
+            pmType.GetField("_runSpeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(playerMovement, _runSpeed);
+            pmType.GetField("_jumpHeight", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(playerMovement, _jumpHeight);
         }
 
         // VelocityProvider 설정 (모든 컨트롤러에)

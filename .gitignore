@@ -41,3 +41,6 @@ __pycache__/
 *.pyc
 compile_verify_latest.txt
 models/
+
+# Training infrastructure (venv, checkpoints, runs - large, regenerated)
+/Assets/Training/

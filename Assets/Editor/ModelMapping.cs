@@ -103,7 +103,23 @@ public static class ModelMapping
         {"wood_spear", ("WoodSpear", "replace")},
         {"wood_sword", ("WoodSword", "replace")},
         {"wooden_forest_spirit", ("WoodenForestSpirit", "replace")},
-        {"yakitori_skewer", ("YakitoriSkewer", "replace")}
+        {"yakitori_skewer", ("YakitoriSkewer", "replace")},
+        {"player_rigged", ("Player", "child")},
+        {"Player_Rigged", ("Player", "child")},
+        {"east_flag", ("EastFlag", "replace")},
+        {"west_flag", ("WestFlag", "replace")},
+        {"north_flag", ("NorthFlag", "replace")},
+        {"south_flag", ("SouthFlag", "replace")},
+        {"kingdom_flag", ("KingdomFlag", "replace")},
+        {"player_flag_1", ("PlayerFlag1", "replace")},
+        {"player_flag_2", ("PlayerFlag2", "replace")},
+        {"player_flag_3", ("PlayerFlag3", "replace")},
+        {"player_flag_4", ("PlayerFlag4", "replace")},
+        {"green_castle", ("GreenCastle", "replace")},
+        {"purple_castle", ("PurpleCastle", "replace")},
+        {"red_castle", ("RedCastle", "replace")},
+        {"hut", ("Hut", "replace")},
+        {"shop", ("Shop", "replace")}
     };
 
     private static readonly Regex TierRegex = new Regex(@"^(.+?)_(tier\d+)$", RegexOptions.IgnoreCase);

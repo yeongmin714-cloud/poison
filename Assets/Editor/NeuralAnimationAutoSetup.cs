@@ -80,12 +80,12 @@ public static class NeuralAnimationAutoSetup
         
         var models = new (string fieldName, string assetName)[]
         {
-            ("_locomotionPolicy", "locomotion_biped_base.onnx"),
-            ("_combatPolicy", "combat_biped_base.onnx"),
-            ("_reactPolicy", "react_biped_base.onnx"),
-            ("_interactPolicy", "interact_biped_base.onnx"),
-            ("_flyPolicy", "fly_biped_base.onnx"),
-            ("_swimPolicy", "swim_biped_base.onnx"),
+            ("_locomotionPolicy", "locomotion_biped_base_fp32.onnx"),
+            ("_combatPolicy", "combat_biped_base_fp32.onnx"),
+            ("_reactPolicy", "react_biped_base_fp32.onnx"),
+            ("_interactPolicy", "interact_biped_base_fp32.onnx"),
+            ("_flyPolicy", "fly_biped_base_fp32.onnx"),
+            ("_swimPolicy", "swim_biped_base_fp32.onnx"),
         };
 
         foreach (var (fieldName, assetName) in models)
@@ -117,8 +117,8 @@ public static class NeuralAnimationAutoSetup
     private static void ConfigurePlayerMovement(PlayerMovement pm)
     {
         var pmType = typeof(PlayerMovement);
-        pmType.GetProperty("WalkSpeed")?.SetValue(pm, 5f);
-        pmType.GetProperty("RunSpeed")?.SetValue(pm, 10f);
-        pmType.GetProperty("JumpHeight")?.SetValue(pm, 2f);
+        pmType.GetField("_walkSpeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(pm, 5f);
+        pmType.GetField("_runSpeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(pm, 10f);
+        pmType.GetField("_jumpHeight", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(pm, 2f);
     }
 }

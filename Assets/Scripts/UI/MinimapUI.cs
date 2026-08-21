@@ -10,10 +10,10 @@ using ProjectName.UI.Themes;
 namespace ProjectName.UI
 {
     /// <summary>
-    /// G2-09: 미니맵 UI — 항상 표시되는 우측 상단 원형 미니맵.
+    /// G2-09: 미니맵 UI — 항상 표시되는 우측 하단 원형 미니맵.
     /// 
     /// [개요]
-    /// IMGUI OnGUI 기반으로 화면 우측 상단에 200×200 원형 미니맵을 렌더링합니다.
+    /// IMGUI OnGUI 기반으로 화면 우측 하단에 200×200 원형 미니맵을 렌더링합니다.
     /// 플레이어를 중앙에 고정하고 카메라 방향으로 회전하며,
     /// 주변 영지 아이콘(국가별 점/텍스트)을 표시합니다.
     /// 마우스 휠로 0.5×~3× 확대/축소할 수 있고,
@@ -34,7 +34,7 @@ namespace ProjectName.UI
         [Header("Minimap Layout")]
         [SerializeField] private float _minimapSize = 400f;
         [SerializeField] private float _marginRight = 40f;
-        [SerializeField] private float _marginTop = 40f;
+        [SerializeField] private float _marginBottom = 40f;
 
         [Header("Zoom")]
         [SerializeField] private float _minZoom = 0.5f;
@@ -186,7 +186,7 @@ namespace ProjectName.UI
         /// <summary>현재 미니맵 사각 영역 (Screen 좌표)</summary>
         public Rect MinimapRect => new Rect(
             Screen.width - _minimapSize - _marginRight,
-            _marginTop,
+            Screen.height - _minimapSize - _marginBottom,
             _minimapSize,
             _minimapSize
         );
@@ -194,7 +194,7 @@ namespace ProjectName.UI
         /// <summary>미니맵 중심 (Screen 좌표, 픽셀)</summary>
         public Vector2 MinimapCenter => new Vector2(
             Screen.width - _marginRight - _minimapSize * 0.5f,
-            _marginTop + _minimapSize * 0.5f
+            Screen.height - _marginBottom - _minimapSize * 0.5f
         );
 
         /// <summary>미니맵 반지름 (픽셀)</summary>
@@ -314,7 +314,7 @@ namespace ProjectName.UI
             // ---------- Handle mouse wheel zoom ----------
             Vector2 mousePos = Event.current.mousePosition;
             float rectX = Screen.width - _minimapSize - _marginRight;
-            float rectY = _marginTop;
+            float rectY = Screen.height - _minimapSize - _marginBottom;
             if (mousePos.x >= rectX && mousePos.x <= rectX + _minimapSize &&
                 mousePos.y >= rectY && mousePos.y <= rectY + _minimapSize)
             {

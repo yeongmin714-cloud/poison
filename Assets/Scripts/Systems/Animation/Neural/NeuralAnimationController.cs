@@ -47,6 +47,16 @@ namespace ProjectName.Systems.Animation.Neural
         [Header("Model Loading")]
         [SerializeField] bool _isQuadruped = false;
 
+        /// <summary>
+        /// Whether this character uses quadruped (4-legged) animation policies.
+        /// Determines which ONNX models are loaded (biped vs quadruped).
+        /// </summary>
+        public bool IsQuadruped
+        {
+            get => _isQuadruped;
+            set => _isQuadruped = value;
+        }
+
         [Header("Observation Encoding")]
         [SerializeField, Range(1, 256)] int _observationDim = 120;
         [SerializeField, Range(1, 128)] int _actionDim = 80;
@@ -350,6 +360,7 @@ namespace ProjectName.Systems.Animation.Neural
                 {
                     worker.Schedule(input);
                     _outputTensor = worker.PeekOutput() as Tensor<float>;
+                    _outputTensor = _outputTensor.ReadbackAndClone();
 
                     int outputCount = _outputTensor.shape.length;
                     int readCount = math.min(outputCount, _actionDim);
@@ -1033,6 +1044,7 @@ namespace ProjectName.Systems.Animation.Neural
                         {
                             _worker.Schedule(input);
                             _outputTensor = _worker.PeekOutput() as Tensor<float>;
+                            _outputTensor = _outputTensor.ReadbackAndClone();
                         }
 
                         int outputCount = _outputTensor.shape.length;
@@ -1074,6 +1086,7 @@ namespace ProjectName.Systems.Animation.Neural
                 {
                     workerA.Schedule(input);
                     var outputA = workerA.PeekOutput() as Tensor<float>;
+                    outputA = outputA.ReadbackAndClone();
                     CopyOutputToBuffer(outputA, _actionBufferA);
                 }
 
@@ -1083,6 +1096,7 @@ namespace ProjectName.Systems.Animation.Neural
                 {
                     workerB.Schedule(input);
                     var outputB = workerB.PeekOutput() as Tensor<float>;
+                    outputB = outputB.ReadbackAndClone();
                     CopyOutputToBuffer(outputB, _actionBufferB);
                 }
 

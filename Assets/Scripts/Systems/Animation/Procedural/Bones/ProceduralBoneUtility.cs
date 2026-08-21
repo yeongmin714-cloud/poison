@@ -83,6 +83,33 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             { "head1", BoneRole.Head },
             { "head2", BoneRole.Head },
 
+            // Blender metarig / Rigify bone names (Player_Rigged.glb)
+            { "spine.005", BoneRole.Head },
+            { "spine.004", BoneRole.Neck },
+            { "spine.003", BoneRole.Spine3 },
+            { "spine.002", BoneRole.Spine2 },
+            { "spine.001", BoneRole.Spine1 },
+            { "shoulder.L", BoneRole.L_Clavicle },
+            { "shoulder.R", BoneRole.R_Clavicle },
+            { "upper_arm.L", BoneRole.L_Shoulder },
+            { "upper_arm.R", BoneRole.R_Shoulder },
+            { "forearm.L", BoneRole.L_Elbow },
+            { "forearm.R", BoneRole.R_Elbow },
+            { "hand.L", BoneRole.L_Hand },
+            { "hand.R", BoneRole.R_Hand },
+            { "thigh.L", BoneRole.L_Hip },
+            { "thigh.R", BoneRole.R_Hip },
+            { "shin.L", BoneRole.L_Knee },
+            { "shin.R", BoneRole.R_Knee },
+            { "foot.L", BoneRole.L_Foot },
+            { "foot.R", BoneRole.R_Foot },
+            { "toe.L", BoneRole.L_Toes },
+            { "toe.R", BoneRole.R_Toes },
+            { "pelvis.L", BoneRole.L_Hip },
+            { "pelvis.R", BoneRole.R_Hip },
+            { "breast.L", BoneRole.Spine3 },
+            { "breast.R", BoneRole.Spine3 },
+
             // Left Arm
             { "clavicle.l", BoneRole.L_Clavicle },
             { "clavicle_l", BoneRole.L_Clavicle },
@@ -434,26 +461,23 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             }
 
             // NOW validate critical bones (after fallbacks applied)
-            var critical = new[] { BoneRole.Root, BoneRole.Spine0 };
+                        var critical = new[] { BoneRole.Root, BoneRole.Spine0 };
             
-            // Head is critical only for non-small creatures
-            if (!isSmallCreature)
-            {
-                critical = new[] { BoneRole.Root, BoneRole.Spine0, BoneRole.Head };
-            }
-
-            foreach (var role in critical)
-            {
-                if (map[role] == null)
-                    UnityEngine.Debug.LogWarning($"[ProceduralBoneUtility] Critical bone missing: {role}. Animator: {animatorRoot.name} - falling back to heuristic mapping");
-            }
-
-            // For small creatures, Head is optional - only warn if completely missing (not even fallback)
-            if (isSmallCreature && map[BoneRole.Head] == null)
-            {
-                UnityEngine.Debug.LogWarning($"[ProceduralBoneUtility] Head bone missing (expected for small creature): {animatorRoot.name} - continuing without Head");
-            }
-        }
+                        // Head is NOT critical for any creature - many GLB models don't have proper head bones
+                        // The heuristic will try to assign it from spine chain index 4, but it's optional
+            
+                        foreach (var role in critical)
+                        {
+                            if (map[role] == null)
+                                UnityEngine.Debug.LogWarning($"[ProceduralBoneUtility] Critical bone missing: {role}. Animator: {animatorRoot.name} - falling back to heuristic mapping");
+                        }
+            
+                        // Head is optional for all creatures - only log as info if missing
+                        if (map[BoneRole.Head] == null)
+                        {
+                            UnityEngine.Debug.Log($"[ProceduralBoneUtility] Head bone not found for {animatorRoot.name} - using heuristic fallback (spine chain index 4). This is normal for many GLB models.");
+                        }
+                    }
 
         static bool IsSmallCreature(Transform animatorRoot, Dictionary<BoneRole, Transform> map)
         {
