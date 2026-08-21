@@ -6,7 +6,9 @@ using ProjectName.Systems;
 /// <summary>
 /// 씬 시작 시 핵심 시스템 강제 초기화
 /// GameManager reflection 실패 대비 보장용
+/// Edit 모드에서도 실행되어 씬 열자마자 시스템 초기화
 /// </summary>
+[ExecuteInEditMode]
 public class CoreSystemsBootstrap : MonoBehaviour
 {
     [Header("초기화 설정")]

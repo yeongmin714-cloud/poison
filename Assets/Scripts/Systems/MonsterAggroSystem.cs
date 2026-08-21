@@ -53,6 +53,7 @@ namespace ProjectName.Systems
                 return;
             }
             _instance = this;
+            _showDebugUI = false;
         }
 
         /// <summary>몬스터 등록</summary>
@@ -127,6 +128,9 @@ namespace ProjectName.Systems
             return agg?.MonsterType;
         }
 
+        // Debug UI 토글
+        private static bool _showDebugUI = false;
+
         private void Update()
         {
             // 각 몬스터의 어그로 타이머 업데이트
@@ -147,13 +151,22 @@ namespace ProjectName.Systems
 
             foreach (var m in _toRemoveCache)
                 _monsterMap.Remove(m);
+
+            #if UNITY_EDITOR
+            if (Input.GetKeyDown(KeyCode.F12))
+            {
+                _showDebugUI = !_showDebugUI;
+            }
+            #endif
         }
 
         #if UNITY_EDITOR
         private void OnGUI()
         {
+            if (!_showDebugUI) return;
+
             GUILayout.BeginArea(new Rect(10, 10, 300, 600));
-            GUILayout.Label("[ MonsterAggroSystem ]", GUI.skin.box);
+            GUILayout.Label("[ MonsterAggroSystem ] (F12 토글)", GUI.skin.box);
             GUILayout.Label($"Monsters: {_monsterMap.Count}");
 
             foreach (var kvp in _monsterMap)
