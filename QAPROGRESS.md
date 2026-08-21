@@ -442,18 +442,25 @@
 
 ---
 
-### 2026-08-21: MainScene 시각적 렌더링 버그 수정 ✅
+### 2026-08-21: MainScene 시각적 렌더링 완전 수정 ✅
 
 **문제:** MainScene 실행 시 플레이어와 지형이 화면에 안 보임
 
-**원인 3가지:**
-1. **Directional Light 없음** — URP Lit 셰이더가 검게 렌더링
-2. **Player에 MeshRenderer 없음** — 시각적 모델 0
-3. **PlayerHealth._currentHP: 0** — 플레이어가 죽은 상태로 시작
+**발견된 4가지 원인:**
+
+| # | 원인 | 증상 |
+|:-:|------|------|
+| 1 | **URP Pipeline 미할당** | `GraphicsSettings.CustomRenderPipeline`가 null. URP 셰이더가 built-in으로 폴백 → 검은색 렌더링 |
+| 2 | **Ground_Inner mesh = Sphere** | fileID 10207은 Sphere 메시. 구체 1개를 2000x1x2000으로 스케일 → 비정상적 평면 |
+| 3 | **Player MeshFilter null** | YAML에 추가한 {fileID: 10202} Cube 참조가 Unity 6에서 유효하지 않음 |
+| 4 | **PlayerHealth._currentHP: 0** | 플레이어 사망 상태로 시작 |
 
 **수정:**
-- Directional Light 추가 (warm tint, intensity=1.5f, shadow=0.5f, 50° 각도)
-- Player에 MeshFilter(Cube) + MeshRenderer 추가 (프록시 메시)
-- PlayerHealth._currentHP: 0 → 100
+1. `QualitySettings.renderPipeline` + `GraphicsSettings.defaultRenderPipeline`에 `New Universal Render Pipeline Asset` 할당
+2. Ground_Inner: Sphere → **procedural plane mesh** (20×20 segments, 2000×2000) + `Ground_Grass_Mat` 적용
+3. Player: **procedural Cube mesh** (1.8m 높이) + 파란색 URP Lit 머티리얼
+4. PlayerHealth._currentHP: 0 → 100
+5. Player Animator 비활성화 (avatar/controller 없음)
+6. Directional Light 추가 (warm tint, intensity 1.5)
 
 **컴파일 검증:** ✅ Unity 6000.4.10f1 batchmode 씬 로드 정상
