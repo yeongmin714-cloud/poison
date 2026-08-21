@@ -439,3 +439,21 @@
 3. **컴파일 검증**: ✅ CS 에러 0 (Unity 6000.4.10f1 batchmode)
 
 **Git:** 커밋 예정
+
+---
+
+### 2026-08-21: MainScene 시각적 렌더링 버그 수정 ✅
+
+**문제:** MainScene 실행 시 플레이어와 지형이 화면에 안 보임
+
+**원인 3가지:**
+1. **Directional Light 없음** — URP Lit 셰이더가 검게 렌더링
+2. **Player에 MeshRenderer 없음** — 시각적 모델 0
+3. **PlayerHealth._currentHP: 0** — 플레이어가 죽은 상태로 시작
+
+**수정:**
+- Directional Light 추가 (warm tint, intensity=1.5f, shadow=0.5f, 50° 각도)
+- Player에 MeshFilter(Cube) + MeshRenderer 추가 (프록시 메시)
+- PlayerHealth._currentHP: 0 → 100
+
+**컴파일 검증:** ✅ Unity 6000.4.10f1 batchmode 씬 로드 정상
