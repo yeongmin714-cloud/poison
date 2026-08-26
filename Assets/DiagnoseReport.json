@@ -1,0 +1,20 @@
+{
+    "keys": [
+        "CameraSystem",
+        "TerrainSystem",
+        "PlayerModelSystem",
+        "PostProcessingSystem",
+        "LightingFogSystem",
+        "HUDSystem",
+        "URPSystem"
+    ],
+    "values": [
+        "System.Collections.Generic.Dictionary`2[System.String,System.Object]",
+        "System.Collections.Generic.Dictionary`2[System.String,System.Object]",
+        "System.Collections.Generic.Dictionary`2[System.String,System.Object]",
+        "System.Collections.Generic.Dictionary`2[System.String,System.Object]",
+        "System.Collections.Generic.Dictionary`2[System.String,System.Object]",
+        "System.Collections.Generic.Dictionary`2[System.String,System.Object]",
+        "System.Collections.Generic.Dictionary`2[System.String,System.Object]"
+    ]
+}

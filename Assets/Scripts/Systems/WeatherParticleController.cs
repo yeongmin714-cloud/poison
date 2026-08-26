@@ -137,6 +137,7 @@ namespace ProjectName.Systems
             var velocity = _rainSystem.velocityOverLifetime;
             velocity.enabled = true;
             velocity.x = new ParticleSystem.MinMaxCurve(-3f, 3f);
+            velocity.y = new ParticleSystem.MinMaxCurve(0f, 0f);
             velocity.z = new ParticleSystem.MinMaxCurve(-3f, 3f);
 
             // Renderer
@@ -174,6 +175,7 @@ namespace ProjectName.Systems
             var velocity = _snowSystem.velocityOverLifetime;
             velocity.enabled = true;
             velocity.x = new ParticleSystem.MinMaxCurve(-_snowSwayAmount, _snowSwayAmount);
+            velocity.y = new ParticleSystem.MinMaxCurve(0f, 0f);
             velocity.z = new ParticleSystem.MinMaxCurve(-_snowSwayAmount, _snowSwayAmount);
             velocity.space = ParticleSystemSimulationSpace.World;
 

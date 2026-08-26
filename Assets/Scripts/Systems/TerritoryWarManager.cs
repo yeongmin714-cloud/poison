@@ -170,11 +170,13 @@ namespace ProjectName.Systems
                 return;
 
             var expiredKeys = new List<string>();
-            foreach (var kvp in _conquestBoostTimers)
+            // Create a list of keys to avoid modifying dictionary during enumeration
+            var keys = new List<string>(_conquestBoostTimers.Keys);
+            foreach (var key in keys)
             {
-                _conquestBoostTimers[kvp.Key] = kvp.Value - Time.deltaTime;
-                if (_conquestBoostTimers[kvp.Key] <= 0f)
-                    expiredKeys.Add(kvp.Key);
+                _conquestBoostTimers[key] = _conquestBoostTimers[key] - Time.deltaTime;
+                if (_conquestBoostTimers[key] <= 0f)
+                    expiredKeys.Add(key);
             }
 
             foreach (var key in expiredKeys)

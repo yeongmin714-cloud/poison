@@ -345,6 +345,7 @@ namespace ProjectName.Systems
             var velocity = _leavesSystem.velocityOverLifetime;
             velocity.enabled = true;
             velocity.x = new ParticleSystem.MinMaxCurve(-0.5f, 0.5f);
+            velocity.y = new ParticleSystem.MinMaxCurve(0f, 0f);
             velocity.z = new ParticleSystem.MinMaxCurve(-0.5f, 0.5f);
 
             // Rotate leaves
@@ -379,6 +380,7 @@ namespace ProjectName.Systems
             var velocity = _dustSystem.velocityOverLifetime;
             velocity.enabled = true;
             velocity.x = new ParticleSystem.MinMaxCurve(-0.3f, 0.3f);
+            velocity.y = new ParticleSystem.MinMaxCurve(0f, 0f);
             velocity.z = new ParticleSystem.MinMaxCurve(-0.3f, 0.3f);
 
             // Unity 6: assign procedural texture via renderer material instead of startTexture

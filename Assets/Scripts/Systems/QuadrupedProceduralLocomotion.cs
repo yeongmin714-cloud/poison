@@ -74,6 +74,10 @@ namespace ProjectName.Systems
         private void Awake()
         {
             _procAnim = GetComponent<QuadrupedProceduralAnimation>();
+            if (_procAnim == null)
+            {
+                _procAnim = gameObject.AddComponent<QuadrupedProceduralAnimation>();
+            }
             _animator = GetComponent<Animator>();
             _boneMap = GetComponent<ProceduralBoneMap>();
             _rigidbody = GetComponent<Rigidbody>();

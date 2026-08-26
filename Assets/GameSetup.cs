@@ -2,6 +2,7 @@ using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.UI;
+using Unity.Cinemachine;
 
 /// <summary>
 /// 게임 시작 시 MonsterSpawner, PlayerHealth, HUD를 자동 설정.
@@ -37,28 +38,35 @@ public class GameSetup : MonoBehaviour
             return;
         }
 
-        // ── Player Camera 활성화 및 Camera 컴포넌트 추가 ─────────────
+        // ── Player Camera (Cinemachine Virtual Camera) 검증 ──────────
+        // Player Camera는 Cinemachine VC이므로 Camera 컴포넌트 불필요
+        // Main Camera(CinemachineBrain)가 유일한 렌더링 카메라
         var playerCamGO = GameObject.Find("Player Camera");
         if (playerCamGO != null)
         {
             if (!playerCamGO.activeSelf)
             {
-                // Main Camera 비활성화 (충돌 방지)
-                var mainCam = GameObject.FindGameObjectWithTag("MainCamera");
-                if (mainCam != null && mainCam != playerCamGO)
-                    mainCam.SetActive(false);
-
                 playerCamGO.SetActive(true);
-                Debug.Log("[GameSetup] ✅ Player Camera 활성화 (Main Camera 비활성화)");
+                Debug.Log("[GameSetup] ✅ Player Camera(Cinemachine VC) 활성화");
             }
-            if (playerCamGO.GetComponent<Camera>() == null)
+            // Camera 컴포넌트가 있으면 제거 (Cinemachine VC는 Camera가 없어야 함)
+            var cam = playerCamGO.GetComponent<Camera>();
+            if (cam != null)
             {
-                var cam = playerCamGO.AddComponent<Camera>();
-                cam.clearFlags = CameraClearFlags.Depth;
-                cam.cullingMask = -1;
-                cam.depth = 0;
-                Debug.Log("[GameSetup] ✅ Player Camera에 Camera 컴포넌트 추가");
+                DestroyImmediate(cam);
+                Debug.Log("[GameSetup] ✅ Player Camera에서 불필요한 Camera 컴포넌트 제거");
             }
+        }
+
+        // ── Main Camera (CinemachineBrain) 검증 ─────────────────────
+        var mainCam = GameObject.FindGameObjectWithTag("MainCamera");
+        if (mainCam != null)
+        {
+            var cam = mainCam.GetComponent<Camera>();
+            if (cam == null) cam = mainCam.AddComponent<Camera>();
+            var brain = mainCam.GetComponent<CinemachineBrain>();
+            if (brain == null) brain = mainCam.AddComponent<CinemachineBrain>();
+            Debug.Log("[GameSetup] ✅ Main Camera(CinemachineBrain) 검증 완료");
         }
 
         // ── PlayerHealth ───────────────────────────────────────────────
@@ -112,9 +120,23 @@ public class GameSetup : MonoBehaviour
         if (player.GetComponent<UnityEngine.InputSystem.PlayerInput>() == null)
         {
             var pi = player.AddComponent<UnityEngine.InputSystem.PlayerInput>();
-            pi.defaultActionMap = "Player";
-            pi.notificationBehavior = UnityEngine.InputSystem.PlayerNotifications.InvokeUnityEvents;
-            Debug.Log("[GameSetup] ✅ PlayerInput → Player에 추가");
+            pi.enabled = false; // OnEnable 전 actions 할당 위해 비활성화
+
+            // Resources에서 InputActionAsset 로드 (런타임)
+            var inputActions = Resources.Load<UnityEngine.InputSystem.InputActionAsset>("Input/PlayerControls");
+            if (inputActions != null)
+            {
+                pi.actions = inputActions;
+                pi.defaultActionMap = "Player";
+                pi.notificationBehavior = UnityEngine.InputSystem.PlayerNotifications.InvokeUnityEvents;
+                pi.enabled = true; // 할당 후 활성화
+                Debug.Log("[GameSetup] ✅ PlayerInput → Player에 추가 (actions 할당됨)");
+            }
+            else
+            {
+                Debug.LogError("[GameSetup] PlayerControls.inputactions not found in Resources!");
+                pi.enabled = true;
+            }
         }
 
         // ── BuffManager ───────────────────────────────────────────────
