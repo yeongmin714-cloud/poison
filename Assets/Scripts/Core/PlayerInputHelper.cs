@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Linq;
 
 /// <summary>
 /// PlayerInput 안전 설정 헬퍼 - OnEnable 전 actions 할당 보장
@@ -16,6 +17,14 @@ public static class PlayerInputHelper
         if (actions == null) 
         {
             Debug.LogError("[PlayerInputHelper] InputActionAsset is null!");
+            return null;
+        }
+
+        // Verify action map exists
+        var actionMap = actions.FindActionMap(defaultActionMap);
+        if (actionMap == null)
+        {
+            Debug.LogError($"[PlayerInputHelper] Action map '{defaultActionMap}' not found in {actions.name}. Available maps: {string.Join(", ", actions.actionMaps.Select(m => m.name))}");
             return null;
         }
 
