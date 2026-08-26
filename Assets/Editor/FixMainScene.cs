@@ -17,6 +17,11 @@ public static class FixMainScene
         scene.name = "MainScene";
 
         // ================================================================
+        // 0. Ensure "Player" layer exists (Critical for camera culling/physics)
+        // ================================================================
+        EnsurePlayerLayerExists();
+
+        // ================================================================
         // 1. URP Pipeline Setup - create proper URP asset with renderer
         // ================================================================
         var urpAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>("Assets/URP/URPAsset.asset");
@@ -334,6 +339,7 @@ public static class FixMainScene
     {
         var player = new GameObject("Player");
         player.tag = "Player";
+        player.layer = LayerMask.NameToLayer("Player"); // Ensure Player layer
         player.transform.position = new Vector3(0, 2, 0);
 
         var controller = player.AddComponent<CharacterController>();
@@ -403,10 +409,12 @@ public static class FixMainScene
         var modelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Models/UserProvided/Player_Rigged.glb");
         if (modelPrefab != null)
         {
-            var modelInstance = (GameObject)PrefabUtility.InstantiatePrefab(modelPrefab, player.transform);
+            var modelInstance = (GameObject)Object.Instantiate(modelPrefab, player.transform);
             modelInstance.name = "PlayerModel";
             modelInstance.transform.localPosition = new Vector3(0, 0.9f, 0);
             modelInstance.transform.localScale = Vector3.one;
+            modelInstance.layer = LayerMask.NameToLayer("Player"); // Ensure Player layer
+            Debug.Log($"[FixMainScene] Created PlayerModel: {modelInstance.name}, parent: {modelInstance.transform.parent?.name}, active: {modelInstance.activeInHierarchy}");
 
             // Remove Rigidbody/Animator from GLB
             var rbs = modelInstance.GetComponentsInChildren<Rigidbody>();
@@ -418,6 +426,7 @@ public static class FixMainScene
             var assigner = modelInstance.AddComponent<ProjectName.Systems.Animation.ModelAnimatorAssigner>();
             // Call public Setup method after adding
             assigner.SetupAnimationSystem();
+            Debug.Log($"[FixMainScene] PlayerModel setup complete");
         }
         else
         {
@@ -427,6 +436,7 @@ public static class FixMainScene
             cube.transform.SetParent(player.transform);
             cube.transform.localPosition = new Vector3(0, 0.9f, 0);
             cube.transform.localScale = new Vector3(0.8f, 1.8f, 0.8f);
+            cube.layer = LayerMask.NameToLayer("Player"); // Ensure Player layer
             var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
             mat.color = Color.blue;
             cube.GetComponent<MeshRenderer>().sharedMaterial = mat;
@@ -801,7 +811,45 @@ namespace ProjectName.Systems.Animation.Procedural
         else
             Debug.LogWarning("NeuralModelDatabase not found!");
 
+        // Save the scene
+        EditorSceneManager.SaveScene(scene, "Assets/Scenes/MainScene.unity");
+        AssetDatabase.SaveAssets();
+        Debug.Log("[FixMainScene] Scene saved successfully!");
+
         EditorApplication.Exit(0);
+    }
+
+    // ================================================================
+    // 0. Ensure "Player" layer exists (Critical for camera culling/physics)
+    // ================================================================
+    static void EnsurePlayerLayerExists()
+    {
+        int playerLayer = LayerMask.NameToLayer("Player");
+        if (playerLayer == -1)
+        {
+            // Find first empty layer slot (8-31)
+            var tagManager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0];
+            var so = new SerializedObject(tagManager);
+            var layers = so.FindProperty("layers");
+            
+            for (int i = 8; i < 32; i++)
+            {
+                var layerProp = layers.GetArrayElementAtIndex(i);
+                if (string.IsNullOrEmpty(layerProp.stringValue))
+                {
+                    layerProp.stringValue = "Player";
+                    so.ApplyModifiedProperties();
+                    AssetDatabase.SaveAssets();
+                    Debug.Log($"[FixMainScene] Created 'Player' layer at index {i}");
+                    return;
+                }
+            }
+            Debug.LogError("[FixMainScene] No empty layer slot available for 'Player' layer!");
+        }
+        else
+        {
+            Debug.Log($"[FixMainScene] 'Player' layer already exists at index {playerLayer}");
+        }
     }
 }
 
