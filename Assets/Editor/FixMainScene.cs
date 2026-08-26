@@ -339,30 +339,32 @@ public static class FixMainScene
         player.AddComponent<ProjectName.Core.BuffManager>();
 
         // PlayerInput with PlayerControls asset - assign actions BEFORE component is enabled
-                // Disable first to prevent OnEnable firing before actions assignment
-                var playerInput = player.AddComponent<UnityEngine.InputSystem.PlayerInput>();
-                playerInput.enabled = false;
+        // Use SetActive(false) pattern to prevent OnEnable before actions assignment
+        bool playerWasActive = player.activeSelf;
+        if (playerWasActive) player.SetActive(false);
 
-                // Load InputActionAsset (try Resources first for runtime, then AssetDatabase for editor)
-                var inputActions = Resources.Load<UnityEngine.InputSystem.InputActionAsset>("Input/PlayerControls");
-                if (inputActions == null)
-                {
-                    inputActions = AssetDatabase.LoadAssetAtPath<UnityEngine.InputSystem.InputActionAsset>("Assets/Resources/Input/PlayerControls.inputactions");
-                }
+        var playerInput = player.AddComponent<UnityEngine.InputSystem.PlayerInput>();
 
-                if (inputActions != null)
-                {
-                    playerInput.actions = inputActions;
-                    playerInput.defaultActionMap = "Player";
-                    playerInput.notificationBehavior = UnityEngine.InputSystem.PlayerNotifications.InvokeUnityEvents;
-                    playerInput.enabled = true; // Enable after actions assigned
-                    Debug.Log("[FixMainScene] ✅ PlayerInput configured with actions");
-                }
-                else
-                {
-                    Debug.LogError("[FixMainScene] PlayerControls.inputactions not found! Player input will not work.");
-                    playerInput.enabled = true; // Still enable to avoid disabled component
-                }
+        // Load InputActionAsset (AssetDatabase for editor)
+        var inputActions = AssetDatabase.LoadAssetAtPath<UnityEngine.InputSystem.InputActionAsset>("Assets/Resources/Input/PlayerControls.inputactions");
+        if (inputActions == null)
+        {
+            inputActions = Resources.Load<UnityEngine.InputSystem.InputActionAsset>("Input/PlayerControls");
+        }
+
+        if (inputActions != null)
+        {
+            playerInput.actions = inputActions;
+            playerInput.defaultActionMap = "Player";
+            playerInput.notificationBehavior = UnityEngine.InputSystem.PlayerNotifications.InvokeUnityEvents;
+            Debug.Log("[FixMainScene] ✅ PlayerInput configured with actions");
+        }
+        else
+        {
+            Debug.LogError("[FixMainScene] PlayerControls.inputactions not found! Player input will not work.");
+        }
+
+        if (playerWasActive) player.SetActive(true); // Now OnEnable fires with actions already assigned
 
         // Player GLB Model
         var modelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Models/UserProvided/Player_Rigged.glb");

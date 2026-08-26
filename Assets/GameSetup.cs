@@ -3,6 +3,7 @@ using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.UI;
 using Unity.Cinemachine;
+using ProjectName.Core; // PlayerInputHelper namespace
 
 /// <summary>
 /// 게임 시작 시 MonsterSpawner, PlayerHealth, HUD를 자동 설정.
@@ -119,24 +120,7 @@ public class GameSetup : MonoBehaviour
         // ── PlayerInput (Input System) ────────────────────────────────
         if (player.GetComponent<UnityEngine.InputSystem.PlayerInput>() == null)
         {
-            var pi = player.AddComponent<UnityEngine.InputSystem.PlayerInput>();
-            pi.enabled = false; // OnEnable 전 actions 할당 위해 비활성화
-
-            // Resources에서 InputActionAsset 로드 (런타임)
-            var inputActions = Resources.Load<UnityEngine.InputSystem.InputActionAsset>("Input/PlayerControls");
-            if (inputActions != null)
-            {
-                pi.actions = inputActions;
-                pi.defaultActionMap = "Player";
-                pi.notificationBehavior = UnityEngine.InputSystem.PlayerNotifications.InvokeUnityEvents;
-                pi.enabled = true; // 할당 후 활성화
-                Debug.Log("[GameSetup] ✅ PlayerInput → Player에 추가 (actions 할당됨)");
-            }
-            else
-            {
-                Debug.LogError("[GameSetup] PlayerControls.inputactions not found in Resources!");
-                pi.enabled = true;
-            }
+            PlayerInputHelper.SetupPlayerInputFromResources(player);
         }
 
         // ── BuffManager ───────────────────────────────────────────────

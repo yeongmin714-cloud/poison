@@ -20,11 +20,36 @@ namespace ProjectName.Systems
     public class SoundManagerEnhanced : MonoBehaviour
     {
         // ================================================================
-        // Singleton
+        // Singleton — 4중 방어 패턴
         // ================================================================
 
         private static SoundManagerEnhanced _instance;
         private static bool _instanceQuitting;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void EnsureInstanceBeforeSceneLoad()
+        {
+            if (_instance == null && !_instanceQuitting)
+            {
+                var go = new GameObject("[SoundManagerEnhanced]");
+                _instance = go.AddComponent<SoundManagerEnhanced>();
+                DontDestroyOnLoad(go);
+            }
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        static void EnsureInstanceAfterSceneLoad()
+        {
+            if (_instance == null && !_instanceQuitting)
+            {
+                var go = new GameObject("[SoundManagerEnhanced]");
+                _instance = go.AddComponent<SoundManagerEnhanced>();
+                DontDestroyOnLoad(go);
+            }
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatic() => _instance = null;
 
         public static SoundManagerEnhanced Instance
         {
@@ -35,12 +60,18 @@ namespace ProjectName.Systems
 
                 if (_instance == null)
                 {
-                    var go = new GameObject("SoundManagerEnhanced");
+                    var go = new GameObject("[SoundManagerEnhanced]");
                     _instance = go.AddComponent<SoundManagerEnhanced>();
                     DontDestroyOnLoad(go);
                 }
                 return _instance;
             }
+        }
+
+        public static SoundManagerEnhanced GetOrCreate()
+        {
+            if (_instance == null && !_instanceQuitting) EnsureInstanceBeforeSceneLoad();
+            return _instance;
         }
 
         // ================================================================

@@ -180,14 +180,14 @@ namespace ProjectName.Systems
                 }
             }
 
-            // TimeManager null 체크
-            if (TimeManager.Instance == null)
+            // TimeManager null 체크 — GetOrCreate로 안전 접근
+            if (TimeManager.GetOrCreate() == null)
             {
                 Debug.LogWarning("[RegionBGMController] TimeManager.Instance가 null입니다. 야간 BGM 전환이 동작하지 않습니다.");
             }
 
-            // TerritoryManager null 체크 (경고만)
-            if (TerritoryManager.Instance == null)
+            // TerritoryManager null 체크 — GetOrCreate로 안전 접근
+            if (TerritoryManager.GetOrCreate() == null)
             {
                 Debug.LogWarning("[RegionBGMController] TerritoryManager.Instance가 null입니다. 지역별 BGM 전환이 동작하지 않습니다.");
             }
@@ -378,10 +378,11 @@ namespace ProjectName.Systems
         /// </summary>
         private NationType GetCurrentNation()
         {
-            // TerritoryManager 우선 사용
-            if (TerritoryManager.Instance != null)
+            // TerritoryManager 우선 사용 — GetOrCreate로 안전 접근
+            var territoryManager = TerritoryManager.GetOrCreate();
+            if (territoryManager != null)
             {
-                return TerritoryManager.Instance.CurrentTerritoryId.nation;
+                return territoryManager.CurrentTerritoryId.nation;
             }
 
             // 폴백: TerritoryBiomeMapper를 직접 사용할 수 없으므로 None 반환
@@ -393,10 +394,11 @@ namespace ProjectName.Systems
         /// </summary>
         private bool IsNightTime()
         {
-            if (TimeManager.Instance == null)
+            var timeManager = TimeManager.GetOrCreate();
+            if (timeManager == null)
                 return false;
 
-            return TimeManager.Instance.IsNight;
+            return timeManager.IsNight;
         }
 
         /// <summary>

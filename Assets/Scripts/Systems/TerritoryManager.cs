@@ -14,10 +14,42 @@ namespace ProjectName.Systems
     /// 사용법:
     ///   TerritoryManager.Instance.CurrentTerritoryId  // 현재 영지 ID
     ///   TerritoryManager.Instance.TerritoryDatabase    // TerritoryDatabase 인스턴스
-    /// </summary>
+    /// 4중 방어 패턴: BeforeSceneLoad + AfterSceneLoad + SubsystemRegistration + Getter
     public class TerritoryManager : MonoBehaviour
     {
         public static TerritoryManager Instance { get; private set; }
+        static bool _isQuitting = false;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void EnsureInstanceBeforeSceneLoad()
+        {
+            if (Instance == null && !_isQuitting)
+            {
+                var go = new GameObject("[TerritoryManager]");
+                Instance = go.AddComponent<TerritoryManager>();
+                DontDestroyOnLoad(go);
+            }
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        static void EnsureInstanceAfterSceneLoad()
+        {
+            if (Instance == null && !_isQuitting)
+            {
+                var go = new GameObject("[TerritoryManager]");
+                Instance = go.AddComponent<TerritoryManager>();
+                DontDestroyOnLoad(go);
+            }
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatic() => Instance = null;
+
+        public static TerritoryManager GetOrCreate()
+        {
+            if (Instance == null && !_isQuitting) EnsureInstanceBeforeSceneLoad();
+            return Instance;
+        }
 
         [Header("영지 설정")]
         [SerializeField] private NationType _currentNation = NationType.East;
@@ -71,6 +103,8 @@ namespace ProjectName.Systems
                           $"건물: {_buildings.Count}개, 병사: {_guards.Count}명");
             }
         }
+
+        private void OnApplicationQuit() => _isQuitting = true;
 
         private void Start()
         {

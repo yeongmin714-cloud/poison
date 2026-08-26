@@ -35,8 +35,8 @@ namespace ProjectName.Systems
 
         private void Awake()
         {
-            // 싱글톤 Instance를 통해 TimeManager 참조 획득
-            _timeManager = TimeManager.Instance;
+            // 싱글톤 Instance를 통해 TimeManager 참조 획득 — GetOrCreate로 안전 접근
+            _timeManager = TimeManager.GetOrCreate();
             if (_timeManager == null)
             {
                 Debug.LogWarning("[StarField] TimeManager.Instance가 없습니다.");
