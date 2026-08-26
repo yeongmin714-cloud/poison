@@ -24,7 +24,8 @@ public static class PlayerInputHelper
         var actionMap = actions.FindActionMap(defaultActionMap);
         if (actionMap == null)
         {
-            Debug.LogError($"[PlayerInputHelper] Action map '{defaultActionMap}' not found in {actions.name}. Available maps: {string.Join(", ", actions.actionMaps.Select(m => m.name))}");
+            var availableMaps = actions.actionMaps.Select(m => m.name).ToArray();
+            Debug.LogError($"[PlayerInputHelper] Action map '{defaultActionMap}' not found in {actions.name}. Available maps: [{string.Join(", ", availableMaps)}]");
             return null;
         }
 
@@ -38,21 +39,51 @@ public static class PlayerInputHelper
 
         if (wasActive) player.SetActive(true);   // 이제 OnEnable 호출 - actions 이미 할당됨
 
-        Debug.Log($"[PlayerInputHelper] ✅ PlayerInput 설정 완료: actions={actions.name}, defaultMap={defaultActionMap}");
+        Debug.Log($"[PlayerInputHelper] ✅ PlayerInput 설정 완료: actions={actions.name}, defaultMap={defaultActionMap}, maps=[{string.Join(", ", actions.actionMaps.Select(m => m.name))}]");
         return pi;
     }
 
     /// <summary>
-    /// Resources에서 PlayerControls 로드 후 설정
+    /// Resources에서 PlayerControls 로드 후 설정 (다중 폴백 전략)
     /// </summary>
     public static PlayerInput SetupPlayerInputFromResources(GameObject player, string resourcePath = "Input/PlayerControls", string defaultActionMap = "Player")
     {
+        // Strategy 1: Resources.Load with exact path
         var actions = Resources.Load<InputActionAsset>(resourcePath);
+        
+        // Strategy 2: Try alternative paths
         if (actions == null)
         {
-            Debug.LogError($"[PlayerInputHelper] InputActionAsset not found at Resources/{resourcePath}");
+            var altPaths = new[] { "PlayerControls", "Input/PlayerControls", "Controls/PlayerControls" };
+            foreach (var path in altPaths)
+            {
+                actions = Resources.Load<InputActionAsset>(path);
+                if (actions != null)
+                {
+                    Debug.Log($"[PlayerInputHelper] Loaded from alternative path: {path}");
+                    break;
+                }
+            }
+        }
+
+        // Strategy 3: Load all and find by name
+        if (actions == null)
+        {
+            var allActions = Resources.LoadAll<InputActionAsset>("");
+            actions = allActions.FirstOrDefault(a => a.name == "PlayerControls");
+            if (actions != null)
+            {
+                Debug.Log($"[PlayerInputHelper] Found by name search: {actions.name}");
+            }
+        }
+
+        if (actions == null)
+        {
+            var available = string.Join(", ", Resources.LoadAll<InputActionAsset>("").Select(a => a.name));
+            Debug.LogError($"[PlayerInputHelper] InputActionAsset 'PlayerControls' not found in Resources! Searched: {resourcePath} + alternatives. Available in Resources: [{available}]");
             return null;
         }
+
         return SetupPlayerInput(player, actions, defaultActionMap);
     }
 }
