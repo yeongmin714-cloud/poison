@@ -338,6 +338,21 @@ public static class FixMainScene
         player.AddComponent<ProjectName.Systems.BombThrower>();
         player.AddComponent<ProjectName.Core.BuffManager>();
 
+        // PlayerInput (Editor-time) - use helper for safe actions assignment
+        System.Type helperType = System.Type.GetType("ProjectName.Core.PlayerInputHelper, ProjectName.Core");
+        if (helperType != null)
+        {
+            var setupMethod = helperType.GetMethod("SetupPlayerInput", new[] { typeof(GameObject), typeof(UnityEngine.InputSystem.InputActionAsset) });
+            if (setupMethod != null)
+            {
+                setupMethod.Invoke(null, new object[] { player, AssetDatabase.LoadAssetAtPath<UnityEngine.InputSystem.InputActionAsset>("Assets/Resources/Input/PlayerControls.inputactions") });
+            }
+        }
+        else
+        {
+            Debug.LogError("[FixMainScene] PlayerInputHelper not found!");
+        }
+
         // Player GLB Model
         var modelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Models/UserProvided/Player_Rigged.glb");
         if (modelPrefab != null)
@@ -391,19 +406,22 @@ public static class FixMainScene
         var anims = player.GetComponents<Animator>();
         foreach (var anim in anims) UnityEngine.Object.DestroyImmediate(anim);
 
-        // Ensure PlayerInput has actions
+        // Ensure PlayerInput has actions using helper via reflection
         var input = player.GetComponent<UnityEngine.InputSystem.PlayerInput>();
         if (input != null && input.actions == null)
         {
-            var inputActions = Resources.Load<UnityEngine.InputSystem.InputActionAsset>("Input/PlayerControls");
-            if (inputActions == null)
+            System.Type helperType = System.Type.GetType("ProjectName.Core.PlayerInputHelper, ProjectName.Core");
+            if (helperType != null)
             {
-                inputActions = AssetDatabase.LoadAssetAtPath<UnityEngine.InputSystem.InputActionAsset>("Assets/Resources/Input/PlayerControls.inputactions");
+                var setupMethod = helperType.GetMethod("SetupPlayerInput", new[] { typeof(GameObject), typeof(UnityEngine.InputSystem.InputActionAsset) });
+                if (setupMethod != null)
+                {
+                    setupMethod.Invoke(null, new object[] { input.gameObject, AssetDatabase.LoadAssetAtPath<UnityEngine.InputSystem.InputActionAsset>("Assets/Resources/Input/PlayerControls.inputactions") });
+                }
             }
-            if (inputActions != null)
+            else
             {
-                input.actions = inputActions;
-                input.defaultActionMap = "Player";
+                Debug.LogError("[FixMainScene] PlayerInputHelper not found!");
             }
         }
     }
