@@ -91,9 +91,12 @@ namespace ProjectName.Systems
 
             _particleSystem = _particleGo.AddComponent<ParticleSystem>();
 
+            // 1. 먼저 Stop으로 완전 초기화 (duration 변경 전 필요)
+            _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
             var main = _particleSystem.main;
             main.loop = true;
-            main.playOnAwake = true;
+            main.playOnAwake = false; // 수동 Play로 제어
             main.maxParticles = _starCount;
             main.duration = 864000f; // 10 game-days = loop 중 burst 재발사 방지를 위해 충분히 큰 값
             main.startLifetime = new ParticleSystem.MinMaxCurve(

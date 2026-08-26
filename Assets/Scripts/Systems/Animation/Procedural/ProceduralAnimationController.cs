@@ -121,6 +121,13 @@ namespace ProjectName.Systems.Animation.Procedural
         JobHandle _locomotionJobHandle;
         JobHandle _ikJobHandle;
 
+        // TempJob array tracking for proper disposal
+        List<NativeArray<float3>> _locomotionFloat3Arrays = new List<NativeArray<float3>>();
+        List<NativeArray<quaternion>> _locomotionQuaternionArrays = new List<NativeArray<quaternion>>();
+        List<NativeArray<float>> _locomotionFloatArrays = new List<NativeArray<float>>();
+        List<NativeArray<bool>> _locomotionBoolArrays = new List<NativeArray<bool>>();
+        List<NativeArray<int>> _locomotionIntArrays = new List<NativeArray<int>>();
+
         // ──────────────────────────────────────────────
         // 런타임 상태
         // ──────────────────────────────────────────────
@@ -477,6 +484,7 @@ namespace ProjectName.Systems.Animation.Procedural
         void LateUpdate()
         {
             _locomotionJobHandle.Complete();
+            DisposeLocomotionTempArrays();
             UpdateGroundDetection();
             ScheduleIKJobs();
             ApplyProceduralPose();
@@ -778,6 +786,9 @@ namespace ProjectName.Systems.Animation.Procedural
 
         void ScheduleLocomotionJobs()
         {
+            // Clear previous frame's locomotion TempJob arrays
+            DisposeLocomotionTempArrays();
+
             JobHandle dependency = default;
 
             bool computeHipShift = _lodHipShiftEnabled;
@@ -787,23 +798,23 @@ namespace ProjectName.Systems.Animation.Procedural
             // --- Foot Planner (IJobParallelFor, size 1) ---
             var footPlanner = new FootPlannerJob
             {
-                BodyPositions = new NativeArray<float3>(1, Allocator.TempJob) { [0] = transform.position },
-                BodyRotations = new NativeArray<quaternion>(1, Allocator.TempJob) { [0] = transform.rotation },
-                BodyVelocities = new NativeArray<float3>(1, Allocator.TempJob) { [0] = _currentVelocity },
-                BodyAngularVelocities = new NativeArray<float3>(1, Allocator.TempJob) { [0] = _rigidbody.angularVelocity },
-                DeltaTimes = new NativeArray<float>(1, Allocator.TempJob) { [0] = Time.deltaTime },
-                StepLengths = new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.6f },
-                StepWidths = new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.15f },
-                MaxStepHeights = new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.25f },
-                GroundCheckDistances = new NativeArray<float>(1, Allocator.TempJob) { [0] = groundCheckDistance },
-                LeftFootCurrents = new NativeArray<float3>(1, Allocator.TempJob) { [0] = _leftFootTarget[0] },
-                RightFootCurrents = new NativeArray<float3>(1, Allocator.TempJob) { [0] = _rightFootTarget[0] },
-                LeftFootGroundedFlags = new NativeArray<bool>(1, Allocator.TempJob) { [0] = _leftFootGrounded },
-                RightFootGroundedFlags = new NativeArray<bool>(1, Allocator.TempJob) { [0] = _rightFootGrounded },
-                LeftPhases = new NativeArray<float>(1, Allocator.TempJob) { [0] = _leftLegPhase },
-                RightPhases = new NativeArray<float>(1, Allocator.TempJob) { [0] = _rightLegPhase },
-                DutyCycles = new NativeArray<float>(1, Allocator.TempJob) { [0] = _dutyCycle },
-                Speeds = new NativeArray<float>(1, Allocator.TempJob) { [0] = _currentSpeed },
+                BodyPositions = Track(new NativeArray<float3>(1, Allocator.TempJob) { [0] = transform.position }),
+                BodyRotations = Track(new NativeArray<quaternion>(1, Allocator.TempJob) { [0] = transform.rotation }),
+                BodyVelocities = Track(new NativeArray<float3>(1, Allocator.TempJob) { [0] = _currentVelocity }),
+                BodyAngularVelocities = Track(new NativeArray<float3>(1, Allocator.TempJob) { [0] = _rigidbody.angularVelocity }),
+                DeltaTimes = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = Time.deltaTime }),
+                StepLengths = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.6f }),
+                StepWidths = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.15f }),
+                MaxStepHeights = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.25f }),
+                GroundCheckDistances = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = groundCheckDistance }),
+                LeftFootCurrents = Track(new NativeArray<float3>(1, Allocator.TempJob) { [0] = _leftFootTarget[0] }),
+                RightFootCurrents = Track(new NativeArray<float3>(1, Allocator.TempJob) { [0] = _rightFootTarget[0] }),
+                LeftFootGroundedFlags = Track(new NativeArray<bool>(1, Allocator.TempJob) { [0] = _leftFootGrounded }),
+                RightFootGroundedFlags = Track(new NativeArray<bool>(1, Allocator.TempJob) { [0] = _rightFootGrounded }),
+                LeftPhases = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = _leftLegPhase }),
+                RightPhases = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = _rightLegPhase }),
+                DutyCycles = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = _dutyCycle }),
+                Speeds = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = _currentSpeed }),
 
                 OutLeftTargets = _leftFootTarget,
                 OutRightTargets = _rightFootTarget,
@@ -811,8 +822,8 @@ namespace ProjectName.Systems.Animation.Procedural
                 OutRightHints = _rightFootHint,
                 OutLeftGroundPositions = _leftFootPos,
                 OutRightGroundPositions = _rightFootPos,
-                OutLeftCanStepFlags = new NativeArray<bool>(1, Allocator.TempJob),
-                OutRightCanStepFlags = new NativeArray<bool>(1, Allocator.TempJob),
+                OutLeftCanStepFlags = Track(new NativeArray<bool>(1, Allocator.TempJob)),
+                OutRightCanStepFlags = Track(new NativeArray<bool>(1, Allocator.TempJob)),
             };
             dependency = footPlanner.Schedule(1, 1, dependency);
 
@@ -821,19 +832,19 @@ namespace ProjectName.Systems.Animation.Procedural
             {
                 var hipShift = new HipShiftJob
                 {
-                    LeftPhases = new NativeArray<float>(1, Allocator.TempJob) { [0] = _leftLegPhase },
-                    RightPhases = new NativeArray<float>(1, Allocator.TempJob) { [0] = _rightLegPhase },
-                    DutyCycles = new NativeArray<float>(1, Allocator.TempJob) { [0] = _dutyCycle },
-                    LeftWeights = new NativeArray<float>(1, Allocator.TempJob) { [0] = _leftFootGrounded ? 1f : 0f },
-                    RightWeights = new NativeArray<float>(1, Allocator.TempJob) { [0] = _rightFootGrounded ? 1f : 0f },
-                    MaxLateralShifts = new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.1f },
-                    MaxVerticalShifts = new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.05f },
-                    Speeds = new NativeArray<float>(1, Allocator.TempJob) { [0] = _currentSpeed },
-                    TurnAmounts = new NativeArray<float>(1, Allocator.TempJob) { [0] = _turnInput },
+                    LeftPhases = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = _leftLegPhase }),
+                    RightPhases = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = _rightLegPhase }),
+                    DutyCycles = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = _dutyCycle }),
+                    LeftWeights = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = _leftFootGrounded ? 1f : 0f }),
+                    RightWeights = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = _rightFootGrounded ? 1f : 0f }),
+                    MaxLateralShifts = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.1f }),
+                    MaxVerticalShifts = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = 0.05f }),
+                    Speeds = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = _currentSpeed }),
+                    TurnAmounts = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = _turnInput }),
 
                     OutHipOffsets = _hipOffset,
                     OutHipHeightOffsets = _hipHeightOffset,
-                    OutHipRotations = new NativeArray<quaternion>(1, Allocator.TempJob),
+                    OutHipRotations = Track(new NativeArray<quaternion>(1, Allocator.TempJob)),
                 };
                 dependency = hipShift.Schedule(1, 1, dependency);
             }
@@ -843,13 +854,13 @@ namespace ProjectName.Systems.Animation.Procedural
             {
                 var spineCounter = new SpineCounterRotationJob
                 {
-                    LeftPhases = new NativeArray<float>(1, Allocator.TempJob) { [0] = _leftLegPhase },
-                    RightPhases = new NativeArray<float>(1, Allocator.TempJob) { [0] = _rightLegPhase },
-                    DutyCycles = new NativeArray<float>(1, Allocator.TempJob) { [0] = _dutyCycle },
-                    MaxCounterRotations = new NativeArray<float>(1, Allocator.TempJob) { [0] = 8f },
-                    BodyVelocities = new NativeArray<float3>(1, Allocator.TempJob) { [0] = _currentVelocity },
-                    BodyRotations = new NativeArray<quaternion>(1, Allocator.TempJob) { [0] = transform.rotation },
-                    SpineSegmentCounts = new NativeArray<int>(1, Allocator.TempJob) { [0] = 3 },
+                    LeftPhases = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = _leftLegPhase }),
+                    RightPhases = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = _rightLegPhase }),
+                    DutyCycles = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = _dutyCycle }),
+                    MaxCounterRotations = Track(new NativeArray<float>(1, Allocator.TempJob) { [0] = 8f }),
+                    BodyVelocities = Track(new NativeArray<float3>(1, Allocator.TempJob) { [0] = _currentVelocity }),
+                    BodyRotations = Track(new NativeArray<quaternion>(1, Allocator.TempJob) { [0] = transform.rotation }),
+                    SpineSegmentCounts = Track(new NativeArray<int>(1, Allocator.TempJob) { [0] = 3 }),
                     OutSpineRotations = _spineRotations,
                     MaxSpineSegments = 3,
                 };
@@ -1026,6 +1037,38 @@ namespace ProjectName.Systems.Animation.Procedural
 
             _leftFootGroundedArr[0] = _leftFootGrounded;
             _rightFootGroundedArr[0] = _rightFootGrounded;
+        }
+
+        // ──────────────────────────────────────────────
+        // TempJob Array Tracking & Disposal
+        // ──────────────────────────────────────────────
+
+        T Track<T>(T array) where T : struct, System.IDisposable
+        {
+            if (array is NativeArray<float3> f3) _locomotionFloat3Arrays.Add(f3);
+            else if (array is NativeArray<quaternion> q) _locomotionQuaternionArrays.Add(q);
+            else if (array is NativeArray<float> f) _locomotionFloatArrays.Add(f);
+            else if (array is NativeArray<bool> b) _locomotionBoolArrays.Add(b);
+            else if (array is NativeArray<int> i) _locomotionIntArrays.Add(i);
+            return array;
+        }
+
+        void DisposeLocomotionTempArrays()
+        {
+            foreach (var arr in _locomotionFloat3Arrays) if (arr.IsCreated) arr.Dispose();
+            _locomotionFloat3Arrays.Clear();
+
+            foreach (var arr in _locomotionQuaternionArrays) if (arr.IsCreated) arr.Dispose();
+            _locomotionQuaternionArrays.Clear();
+
+            foreach (var arr in _locomotionFloatArrays) if (arr.IsCreated) arr.Dispose();
+            _locomotionFloatArrays.Clear();
+
+            foreach (var arr in _locomotionBoolArrays) if (arr.IsCreated) arr.Dispose();
+            _locomotionBoolArrays.Clear();
+
+            foreach (var arr in _locomotionIntArrays) if (arr.IsCreated) arr.Dispose();
+            _locomotionIntArrays.Clear();
         }
 
         // ──────────────────────────────────────────────

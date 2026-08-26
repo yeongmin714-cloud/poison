@@ -338,34 +338,6 @@ public static class FixMainScene
         player.AddComponent<ProjectName.Systems.BombThrower>();
         player.AddComponent<ProjectName.Core.BuffManager>();
 
-        // PlayerInput with PlayerControls asset - assign actions BEFORE component is enabled
-        // Use SetActive(false) pattern to prevent OnEnable before actions assignment
-        bool playerWasActive = player.activeSelf;
-        if (playerWasActive) player.SetActive(false);
-
-        var playerInput = player.AddComponent<UnityEngine.InputSystem.PlayerInput>();
-
-        // Load InputActionAsset (AssetDatabase for editor)
-        var inputActions = AssetDatabase.LoadAssetAtPath<UnityEngine.InputSystem.InputActionAsset>("Assets/Resources/Input/PlayerControls.inputactions");
-        if (inputActions == null)
-        {
-            inputActions = Resources.Load<UnityEngine.InputSystem.InputActionAsset>("Input/PlayerControls");
-        }
-
-        if (inputActions != null)
-        {
-            playerInput.actions = inputActions;
-            playerInput.defaultActionMap = "Player";
-            playerInput.notificationBehavior = UnityEngine.InputSystem.PlayerNotifications.InvokeUnityEvents;
-            Debug.Log("[FixMainScene] ✅ PlayerInput configured with actions");
-        }
-        else
-        {
-            Debug.LogError("[FixMainScene] PlayerControls.inputactions not found! Player input will not work.");
-        }
-
-        if (playerWasActive) player.SetActive(true); // Now OnEnable fires with actions already assigned
-
         // Player GLB Model
         var modelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Models/UserProvided/Player_Rigged.glb");
         if (modelPrefab != null)
