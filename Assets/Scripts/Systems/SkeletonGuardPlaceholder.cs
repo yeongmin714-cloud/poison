@@ -73,7 +73,9 @@ namespace ProjectName.Systems
                 if (myRenderer != null) Destroy(myRenderer);
                 var myFilter = GetComponent<MeshFilter>();
                 if (myFilter != null) Destroy(myFilter);
-                ModelAnimatorAssigner.AssignController(instance, "soldier");
+                // NEW: ModelAnimatorAssigner 부착 (ForceBiped)
+                var assigner = instance.AddComponent<ProjectName.Systems.Animation.ModelAnimatorAssigner>();
+                assigner.ForceBiped(true);
                 return; // Skip CreatePlaceholderVisual
             }
 

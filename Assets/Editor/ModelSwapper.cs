@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using ProjectName.Systems;
+using ProjectName.Systems.Animation;
 
 /// <summary>
 /// UserProvided/ 폴더에서 GLB 파일을 찾아 Placeholder를 자동 교체합니다.
@@ -154,8 +155,9 @@ public static class ModelSwapper
         glbInstance.transform.localRotation = Quaternion.identity;
         glbInstance.transform.localScale = Vector3.one;
 
-        // Animator Controller 및 Avatar 할당 (ModelAnimatorAssigner 사용)
-        ModelAnimatorAssigner.AssignController(glbInstance, "player");
+        // NEW: ModelAnimatorAssigner 부착 (ForceBiped)
+        var assigner = glbInstance.AddComponent<ProjectName.Systems.Animation.ModelAnimatorAssigner>();
+        assigner.ForceBiped(true);
     }
 
     /// <summary>

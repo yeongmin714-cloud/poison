@@ -3,6 +3,8 @@ using System.Linq;
 using ProjectName.Core.Data;
 using UnityEngine;
 using ProjectName.Core;
+using ProjectName.Systems.Animation;
+using ProjectName.Systems.Animation.Neural;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -10,8 +12,11 @@ namespace ProjectName.Systems
     /// <summary>
     /// Phase 27: 영지별 병사 목록 관리자.
     /// - 병사 사망 시 목록에서 제거
-    /// - 영지 재충원: 시간 경과 시 신규 병사 생성 (새 이름/레벨)
+    /// - 영지 재충원: 시간 경과 시 신규 병사 생성 (레벨별 GLB + 장비 파츠 + ModelAnimatorAssigner)
     /// - 플레이어 사망 시 병사 퇴각/귀환
+    /// - 병사 레벨: RingDifficultyData.GetGuardLevelRange() 기반 (Lv1-50)
+    /// - 병사 GLB: Soldier_Lv1-20 / Lv20-40 / Lv40-50_Rigged.glb
+    /// - 장비 파츠: wood→steel→crystal→stone (레벨별)
     /// </summary>
     public class GuardManager : MonoBehaviour
     {
@@ -276,24 +281,68 @@ namespace ProjectName.Systems
 
             // 확률 체크
             if (Random.value > _refillChance) return;
-
             TerritoryId id = ParseTerritoryKey(key);
 
-            // 새 병사 생성
+            // 새 병사 생성 (GLB 레벨별 + 장비 파츠 + ModelAnimatorAssigner)
             string newName = GenerateGuardName();
             GameObject guardGO = new GameObject(newName);
             guardGO.transform.position = GetRandomSpawnPosition(id);
-            var guard = guardGO.AddComponent<GuardPlaceholder>();
 
-            // 새 병사 정보 설정
-            int newLevel = Random.Range(1, 4);
+            // 레벨 결정: RingDifficultyData.GetGuardLevelRange()
+            var territoryDef = TerritoryDatabase.Instance?.GetDefinition(id);
+            TerritoryDifficulty diff = territoryDef?.difficulty ?? TerritoryDifficulty.Ring1;
+            var levelRange = RingDifficultyData.GetGuardLevelRange(diff);
+            int newLevel = Random.Range(levelRange.x, levelRange.y + 1);
+
+            // GLB 모델 로드 (레벨별)
+            string modelPath = GetSoldierModelPath(newLevel);
+            GameObject modelPrefab = null;
+            if (!string.IsNullOrEmpty(modelPath))
+            {
+                modelPrefab = Resources.Load<GameObject>($"Models/UserProvided/{modelPath}");
+            }
+
+            GameObject guardModel;
+            if (modelPrefab != null)
+            {
+                guardModel = Object.Instantiate(modelPrefab, guardGO.transform);
+                guardModel.name = "GuardModel";
+                guardModel.transform.localPosition = new Vector3(0, 0.9f, 0);
+                guardModel.transform.localScale = Vector3.one;
+                // Soldier 모델도 Player 레이어로
+                SetLayerRecursive(guardModel, LayerMask.NameToLayer("Player"));
+            }
+            else
+            {
+                // 폴백: Cube 프록시
+                var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                cube.name = "GuardModel";
+                cube.transform.SetParent(guardGO.transform);
+                cube.transform.localPosition = new Vector3(0, 0.9f, 0);
+                cube.transform.localScale = new Vector3(0.6f, 1.8f, 0.6f);
+                Object.DestroyImmediate(cube.GetComponent<BoxCollider>());
+                var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                mat.color = Color.cyan;
+                cube.GetComponent<MeshRenderer>().sharedMaterial = mat;
+                cube.layer = LayerMask.NameToLayer("Player");
+                guardModel = cube;
+            }
+
+            var guard = guardGO.AddComponent<GuardPlaceholder>();
             guard.SetGuardInfo(newName, newLevel, id.nation);
             guard.SetRecruited(true);
+
+            // ModelAnimatorAssigner 부착 (ForceBiped)
+            var assigner = guardModel.AddComponent<ModelAnimatorAssigner>();
+            assigner.ForceBiped(true);
+
+            // 장비 파츠 장착 (레벨별 wood→steel→crystal→stone)
+            EquipSoldierParts(guardModel, newLevel);
 
             // 생성된 병사를 현재 영지에 등록
             guards.Add(guard);
 
-            Debug.Log($"[GuardManager] 🆕 신규 병사 생성: {newName} (Lv.{newLevel}) → {key}");
+            Debug.Log($"[GuardManager] 🆕 신규 병사 생성: {newName} (Lv.{newLevel}) → {key} | Model: {modelPath}");
             OnGuardSpawned?.Invoke(id, guard);
         }
 
@@ -477,6 +526,57 @@ namespace ProjectName.Systems
             if (_territoryGuards.TryGetValue(key, out var guards))
                 return guards.Count;
             return 0;
+        }
+
+        // ================================================================
+        // 헬퍼: 병사 GLB 모델 경로 (레벨별)
+        // ================================================================
+        private string GetSoldierModelPath(int level)
+        {
+            if (level <= 20) return "Soldier_Lv1-20_Rigged.glb";
+            if (level <= 40) return "Soldier_Lv20-40_Rigged.glb";
+            return "Soldier_Lv40-50_Rigged.glb";
+        }
+
+        // ================================================================
+        // 헬퍼: 병사 장비 파츠 장착 (레벨별 wood→steel→crystal→stone)
+        // ================================================================
+        private void EquipSoldierParts(GameObject model, int level)
+        {
+            // 파츠 타입 결정
+            string tier;
+            if (level <= 10) tier = "wood";
+            else if (level <= 25) tier = "steel";
+            else if (level <= 40) tier = "crystal";
+            else tier = "stone";
+
+            string[] partNames = { "armor", "helmet", "boots_left", "boots_right", "gloves_left", "gloves_right", "sword", "shield" };
+
+            foreach (string part in partNames)
+            {
+                string partPath = $"{tier}_{part}.glb";
+                var partPrefab = Resources.Load<GameObject>($"Models/UserProvided/{partPath}");
+                if (partPrefab != null)
+                {
+                    var partInstance = Object.Instantiate(partPrefab, model.transform);
+                    partInstance.name = part;
+                    partInstance.transform.localPosition = Vector3.zero;
+                    partInstance.transform.localScale = Vector3.one;
+                    partInstance.layer = LayerMask.NameToLayer("Player");
+                }
+            }
+        }
+
+        // ================================================================
+        // 헬퍼: 재귀적으로 레이어 설정
+        // ================================================================
+        private static void SetLayerRecursive(GameObject obj, int layer)
+        {
+            obj.layer = layer;
+            foreach (Transform child in obj.transform)
+            {
+                SetLayerRecursive(child.gameObject, layer);
+            }
         }
     }
 }

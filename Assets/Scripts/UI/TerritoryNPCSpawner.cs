@@ -3,6 +3,7 @@ using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Systems;
 using ProjectName.Core.Utils;
+using ProjectName.Systems.Animation;
 using UnityEngine;
 
 namespace ProjectName.UI
@@ -113,7 +114,9 @@ namespace ProjectName.UI
                 var instance = Object.Instantiate(npcModel, npcGO.transform);
                 instance.transform.localPosition = Vector3.zero;
                 instance.transform.localRotation = Quaternion.identity;
-                ModelAnimatorAssigner.AssignController(instance, npcKey);
+                // NEW: ModelAnimatorAssigner 부착 (ForceBiped)
+                var assigner = instance.AddComponent<ProjectName.Systems.Animation.ModelAnimatorAssigner>();
+                assigner.ForceBiped(true);
                 return npcGO;
             }
 

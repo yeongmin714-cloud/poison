@@ -135,59 +135,100 @@ public static class FixMainScene
     }
 
     // ================================================================
-    // Post-Processing Volume (BotW Style)
-    // ================================================================
-    static void CreatePostProcessingVolume()
-    {
-        var volumeObj = new GameObject("GlobalVolume");
-        var volume = volumeObj.AddComponent<Volume>();
-        volume.isGlobal = true;
-        volume.priority = 100;
+        // Post-Processing Volume (BotW Style)
+        // ================================================================
+        static void CreatePostProcessingVolume()
+        {
+            var volumeObj = new GameObject("GlobalVolume");
+            var volume = volumeObj.AddComponent<Volume>();
+            volume.isGlobal = true;
+            volume.priority = 100;
 
-        // Create and save profile asset FIRST, then load and assign
-        System.IO.Directory.CreateDirectory("Assets/URP");
-        string profilePath = "Assets/URP/GlobalVolumeProfile.asset";
-        
-        var profile = ScriptableObject.CreateInstance<VolumeProfile>();
-        AssetDatabase.CreateAsset(profile, profilePath);
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
-        
-        // Reload from asset database to get proper instance ID
-        profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(profilePath);
-        
-        volume.profile = profile;
-        volume.sharedProfile = profile; // Ensure both are set
+            // Create and save profile asset FIRST, then load and assign
+            System.IO.Directory.CreateDirectory("Assets/URP");
+            string profilePath = "Assets/URP/GlobalVolumeProfile.asset";
 
-        // Bloom (BotW style: soft glow)
-        var bloom = profile.Add<Bloom>();
-        bloom.active = true;
-        bloom.intensity.Override(0.3f);
-        bloom.threshold.Override(1.0f);
-        bloom.scatter.Override(0.7f);
-        bloom.tint.Override(new Color(1f, 0.95f, 0.85f));
+            var profile = ScriptableObject.CreateInstance<VolumeProfile>();
+            AssetDatabase.CreateAsset(profile, profilePath);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
 
-        // Color Grading (BotW style: warm, slightly saturated)
-        var colorAdjustments = profile.Add<ColorAdjustments>();
-        colorAdjustments.active = true;
-        colorAdjustments.postExposure.Override(0.2f);
-        colorAdjustments.contrast.Override(10f);
-        colorAdjustments.colorFilter.Override(new Color(1f, 0.95f, 0.85f));
-        colorAdjustments.hueShift.Override(0f);
-        colorAdjustments.saturation.Override(15f);
+            // Reload from asset database to get proper instance ID
+            profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(profilePath);
 
-        // Tonemapping
-        var tonemapping = profile.Add<Tonemapping>();
-        tonemapping.active = true;
-        tonemapping.mode.Override(TonemappingMode.ACES);
+            volume.profile = profile;
+            volume.sharedProfile = profile; // Ensure both are set
 
-        // Note: Fog VolumeOverride was removed in Unity 6 URP 17
-        // Use RenderSettings.fog instead (set in CreateLightingSystem)
+            // Create all components as sub-assets and add to profile via SerializedObject
+            var so = new SerializedObject(profile);
+            var componentsProp = so.FindProperty("components");
 
-        EditorUtility.SetDirty(volumeObj);
-        EditorUtility.SetDirty(profile);
-        AssetDatabase.SaveAssets();
-    }
+            // Create all components first
+            var bloom = ScriptableObject.CreateInstance<Bloom>();
+            bloom.name = "Bloom";
+            bloom.active = true;
+            bloom.intensity.Override(0.3f);
+            bloom.threshold.Override(1.0f);
+            bloom.scatter.Override(0.7f);
+            bloom.tint.Override(new Color(1f, 0.95f, 0.85f));
+            AssetDatabase.AddObjectToAsset(bloom, profile);
+
+            var colorAdjustments = ScriptableObject.CreateInstance<ColorAdjustments>();
+            colorAdjustments.name = "ColorAdjustments";
+            colorAdjustments.active = true;
+            colorAdjustments.postExposure.Override(0.2f);
+            colorAdjustments.contrast.Override(10f);
+            colorAdjustments.colorFilter.Override(new Color(1f, 0.95f, 0.85f));
+            colorAdjustments.hueShift.Override(0f);
+            colorAdjustments.saturation.Override(15f);
+            AssetDatabase.AddObjectToAsset(colorAdjustments, profile);
+
+            var tonemapping = ScriptableObject.CreateInstance<Tonemapping>();
+            tonemapping.name = "Tonemapping";
+            tonemapping.active = true;
+            tonemapping.mode.Override(TonemappingMode.ACES);
+            AssetDatabase.AddObjectToAsset(tonemapping, profile);
+
+            var vignette = ScriptableObject.CreateInstance<Vignette>();
+            vignette.name = "Vignette";
+            vignette.active = true;
+            vignette.intensity.Override(0.15f);
+            vignette.smoothness.Override(0.4f);
+            AssetDatabase.AddObjectToAsset(vignette, profile);
+
+            var liftGammaGain = ScriptableObject.CreateInstance<LiftGammaGain>();
+            liftGammaGain.name = "LiftGammaGain";
+            liftGammaGain.active = true;
+            liftGammaGain.gamma.Override(new Vector4(1.05f, 1.02f, 0.98f, 1f));
+            AssetDatabase.AddObjectToAsset(liftGammaGain, profile);
+
+            // Now add them to the components array
+            componentsProp.arraySize = 5;
+            componentsProp.GetArrayElementAtIndex(0).objectReferenceValue = bloom;
+            componentsProp.GetArrayElementAtIndex(1).objectReferenceValue = colorAdjustments;
+            componentsProp.GetArrayElementAtIndex(2).objectReferenceValue = tonemapping;
+            componentsProp.GetArrayElementAtIndex(3).objectReferenceValue = vignette;
+            componentsProp.GetArrayElementAtIndex(4).objectReferenceValue = liftGammaGain;
+
+            // Apply modified properties to ensure components are serialized
+            so.ApplyModifiedProperties();
+
+            // Force save the profile with components
+            EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            // Reload profile to ensure components are loaded
+            profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>("Assets/URP/GlobalVolumeProfile.asset");
+
+            volume.profile = profile;
+            volume.sharedProfile = profile;
+
+            EditorUtility.SetDirty(volumeObj);
+            EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
 
     // ================================================================
     // Heightmap Terrain (2000x2000, seed=42)
@@ -204,10 +245,64 @@ public static class FixMainScene
         mf.sharedMesh = terrainMesh;
 
         var mr = ground.AddComponent<MeshRenderer>();
-        var groundMat = new Material(Shader.Find("Universal Render Pipeline/Terrain/Lit"));
-        if (groundMat == null) groundMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-        groundMat.name = "Ground_Grass_Mat";
-        mr.sharedMaterial = groundMat;
+
+        // CRITICAL: Create and assign procedural textures so terrain is visible in Editor/PlayMode
+                // before NationTerrainController generates runtime textures
+                // Step 1: Create and save textures FIRST
+                var controlMap = CreateProceduralControlMap(256);
+                var grassTex = CreateProceduralGrassTexture(256);
+                var dirtTex = CreateProceduralDirtTexture(256);
+                var normalTex = CreateProceduralNormalTexture(256);
+
+                AssetDatabase.CreateAsset(controlMap, "Assets/URP/Terrain_ControlMap.asset");
+                AssetDatabase.CreateAsset(grassTex, "Assets/URP/Terrain_Grass.asset");
+                AssetDatabase.CreateAsset(dirtTex, "Assets/URP/Terrain_Dirt.asset");
+                AssetDatabase.CreateAsset(normalTex, "Assets/URP/Terrain_Normal.asset");
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+
+                // Step 2: Reload textures from asset database
+                controlMap = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_ControlMap.asset");
+                grassTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_Grass.asset");
+                dirtTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_Dirt.asset");
+                normalTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_Normal.asset");
+
+                // Step 3: Create material and assign textures
+                var groundMat = new Material(Shader.Find("Universal Render Pipeline/Terrain/Lit"));
+                if (groundMat == null) groundMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                groundMat.name = "Ground_Grass_Mat";
+
+                groundMat.SetTexture("_Control", controlMap);
+                groundMat.SetTexture("_Splat0", grassTex);
+                groundMat.SetTexture("_Splat1", dirtTex);
+                groundMat.SetTexture("_Normal0", normalTex);
+                groundMat.SetFloat("_Splat0TileSize", 10f);
+                groundMat.SetFloat("_Splat1TileSize", 10f);
+                groundMat.SetFloat("_NumLayersCount", 2f); // 2 layers: grass + dirt
+
+                // Save material as asset for proper keyword persistence
+                        AssetDatabase.CreateAsset(groundMat, "Assets/URP/Ground_Grass_Mat.mat");
+                        AssetDatabase.SaveAssets();
+                        groundMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/URP/Ground_Grass_Mat.mat");
+
+                        // Force keyword persistence - use shaderKeywords API (works in Unity 2021+)
+                        var keywords = new List<string>(groundMat.shaderKeywords);
+                        if (!keywords.Contains("_TERRAIN_NORMAL_MAP"))
+                        {
+                            keywords.Add("_TERRAIN_NORMAL_MAP");
+                            groundMat.shaderKeywords = keywords.ToArray();
+                        }
+                        groundMat.EnableKeyword("_TERRAIN_NORMAL_MAP");
+                        EditorUtility.SetDirty(groundMat);
+                        AssetDatabase.SaveAssetIfDirty(groundMat);
+                        AssetDatabase.SaveAssets();
+                        AssetDatabase.Refresh();
+        
+                        // Force reimport to ensure keyword serialization
+                        AssetDatabase.ImportAsset("Assets/URP/Ground_Grass_Mat.mat", ImportAssetOptions.ForceUpdate);
+
+                mr.sharedMaterial = groundMat;
+                EditorUtility.SetDirty(groundMat);
 
         // MeshCollider for physics
         var mc = ground.AddComponent<MeshCollider>();
@@ -236,6 +331,12 @@ public static class FixMainScene
         // TerrainTextureApplier + NationTerrainController
         ground.AddComponent<ProjectName.Systems.TerrainTextureApplier>();
         ground.AddComponent<ProjectName.Systems.NationTerrainController>();
+
+        // NEW: TerrainModelPlacer로 GLB 환경 모델 배치 (GPU Instancing + 3링 + 국가별)
+        ProjectName.Systems.TerrainModelPlacer.Place(ground);
+
+        // NEW: 물 시스템 연동 (LakeGenerator + WaterBody) - 저지대 자동 물 메시 생성
+        CreateWaterSystem(ground);
 
         return ground;
     }
@@ -409,24 +510,56 @@ public static class FixMainScene
         var modelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Models/UserProvided/Player_Rigged.glb");
         if (modelPrefab != null)
         {
+            // GLB is a Model Asset (not Prefab), use Object.Instantiate and ensure scene persistence
             var modelInstance = (GameObject)Object.Instantiate(modelPrefab, player.transform);
             modelInstance.name = "PlayerModel";
             modelInstance.transform.localPosition = new Vector3(0, 0.9f, 0);
             modelInstance.transform.localScale = Vector3.one;
-            modelInstance.layer = LayerMask.NameToLayer("Player"); // Ensure Player layer
+            
+            // CRITICAL: Set PlayerModel AND all children to Player layer (8) for camera culling
+            SetLayerRecursive(modelInstance, LayerMask.NameToLayer("Player"));
+            
+            // CRITICAL: Mark as dirty for scene persistence (since not a Prefab)
+            EditorUtility.SetDirty(modelInstance);
+            foreach (Transform child in modelInstance.transform)
+            {
+                EditorUtility.SetDirty(child.gameObject);
+            }
+            
             Debug.Log($"[FixMainScene] Created PlayerModel: {modelInstance.name}, parent: {modelInstance.transform.parent?.name}, active: {modelInstance.activeInHierarchy}");
 
-            // Remove Rigidbody/Animator from GLB
+            // Remove Rigidbody/Animator from GLB (duplicate components cause issues)
             var rbs = modelInstance.GetComponentsInChildren<Rigidbody>();
             foreach (var rb in rbs) UnityEngine.Object.DestroyImmediate(rb);
             var anims = modelInstance.GetComponentsInChildren<Animator>();
             foreach (var anim in anims) UnityEngine.Object.DestroyImmediate(anim);
 
+            // CRITICAL: Force SkinnedMeshRenderer bounds recalculation (zero AABB causes culling)
+            var skinnedRenderers = modelInstance.GetComponentsInChildren<SkinnedMeshRenderer>();
+            foreach (var smr in skinnedRenderers)
+            {
+                smr.enabled = true;
+                smr.updateWhenOffscreen = true;
+                // Force bounds recalculation
+                smr.localBounds = new Bounds(Vector3.zero, new Vector3(2f, 4f, 2f));
+            }
+
+            // Also ensure MeshRenderers are enabled
+            var meshRenderers = modelInstance.GetComponentsInChildren<MeshRenderer>();
+            foreach (var mr in meshRenderers)
+            {
+                mr.enabled = true;
+                mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+                mr.receiveShadows = true;
+            }
+
             // Add ModelAnimatorAssigner for full animation stack
             var assigner = modelInstance.AddComponent<ProjectName.Systems.Animation.ModelAnimatorAssigner>();
-            // Call public Setup method after adding
-            assigner.SetupAnimationSystem();
-            Debug.Log($"[FixMainScene] PlayerModel setup complete");
+            // FORCE BIPED for Player (GLB may import as Generic initially)
+            assigner.ForceBiped(true);
+            // Call public Setup method after adding (ForceBiped already calls SetupAnimationSystem)
+            // assigner.SetupAnimationSystem();
+            Debug.Log($"[FixMainScene] PlayerModel setup complete with {skinnedRenderers.Length} skinned renderers, {meshRenderers.Length} mesh renderers");
         }
         else
         {
@@ -483,51 +616,49 @@ public static class FixMainScene
     }
 
     // ================================================================
-    // Camera System - Cinemachine 3.x (Shoulder View + Mouse Wheel Zoom)
-    // ================================================================
-    static void CreateCameraSystem(GameObject player)
-    {
-        // Main Camera (rendering camera) with CinemachineBrain
-        var mainCamObj = new GameObject("Main Camera");
-        mainCamObj.tag = "MainCamera";
-        var mainCam = mainCamObj.AddComponent<Camera>();
-        mainCam.clearFlags = CameraClearFlags.Skybox;
-        mainCam.nearClipPlane = 0.1f;
-        mainCam.farClipPlane = 1000f;
-        var cmBrain = mainCamObj.AddComponent<CinemachineBrain>();
+        static void CreateCameraSystem(GameObject player)
+        {
+            // Main Camera (rendering camera) with CinemachineBrain
+            var mainCamObj = new GameObject("Main Camera");
+            mainCamObj.tag = "MainCamera";
+            var mainCam = mainCamObj.AddComponent<Camera>();
+            mainCam.clearFlags = CameraClearFlags.Skybox;
+            mainCam.nearClipPlane = 0.1f;
+            mainCam.farClipPlane = 1000f;
+            mainCam.cullingMask = -1; // Render all layers
+            var cmBrain = mainCamObj.AddComponent<CinemachineBrain>();
+            cmBrain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.Cut, 0f);
 
-        // AudioListener on Main Camera
-        mainCamObj.AddComponent<AudioListener>();
+            // AudioListener on Main Camera
+            mainCamObj.AddComponent<AudioListener>();
 
-        // Player Camera (Virtual Camera) - child of Main Camera, NO Camera component
-        var vcamObj = new GameObject("Player Camera");
-        vcamObj.transform.SetParent(mainCamObj.transform);
-        vcamObj.transform.localPosition = Vector3.zero;
-        vcamObj.transform.localRotation = Quaternion.identity;
+            // Player Camera (Virtual Camera) - SEPARATE GameObject, NOT child of Main Camera or Player
+            var vcamObj = new GameObject("Player Camera");
+            // Ensure it's a root object (no parent)
+            vcamObj.transform.SetParent(null);
+            // Position at player shoulder level initially
+            vcamObj.transform.position = player.transform.position + new Vector3(2.5f, 3f, -5f);
+            vcamObj.transform.rotation = Quaternion.Euler(15, 0, 0);
 
-        var cmCam = vcamObj.AddComponent<CinemachineCamera>();
-        cmCam.Follow = player.transform;
-        cmCam.LookAt = player.transform;
-        cmCam.Priority = 100;
+            var cmCam = vcamObj.AddComponent<CinemachineCamera>();
+            cmCam.Follow = player.transform;
+            cmCam.LookAt = player.transform;
+            cmCam.Priority = 100;
 
-        // Third Person Follow (Cinemachine 3.x)
-        var tpFollow = vcamObj.AddComponent<CinemachineThirdPersonFollow>();
-        tpFollow.CameraDistance = 25f;
-        tpFollow.VerticalArmLength = 8f;
-        tpFollow.ShoulderOffset = new Vector3(1.5f, 0f, 0f);
-        tpFollow.CameraSide = 1;
-        tpFollow.Damping = new Vector3(0.3f, 0.5f, 0.2f);
+            // Third Person Follow (Cinemachine 3.x) - BotW style shoulder camera
+            var tpFollow = vcamObj.AddComponent<CinemachineThirdPersonFollow>();
+            tpFollow.CameraDistance = 25f;        // 25m distance as requested
+            tpFollow.VerticalArmLength = 8f;      // Height offset
+            tpFollow.ShoulderOffset = new Vector3(2.5f, 0f, 0f); // Right shoulder
+            tpFollow.CameraSide = 1;              // Right side (1 = right, -1 = left)
+            tpFollow.Damping = new Vector3(1f, 0.5f, 1f); // X, Y, Z damping
 
-        // Input Axis Controller (Cinemachine 3.x uses InputActionProperty)
-        var inputAxis = vcamObj.AddComponent<CinemachineInputAxisController>();
+            // Input Axis Controller for mouse orbit (Cinemachine 3.x) - uses legacy input by default
+            var inputAxis = vcamObj.AddComponent<CinemachineInputAxisController>();
 
-        // Zoom control via script (mouse wheel)
-        var zoomController = vcamObj.AddComponent<CameraZoomController>();
-        zoomController.minDistance = 15f;
-        zoomController.maxDistance = 40f;
-        zoomController.zoomSpeed = 5f;
-        zoomController.targetFollow = tpFollow;
-    }
+            // Add runtime zoom controller (not Editor-only)
+            vcamObj.AddComponent<ProjectName.Systems.CameraZoomControllerRuntime>();
+        }
 
     // ================================================================
     // Lighting System (Directional Light + Moon Light)
@@ -849,6 +980,166 @@ namespace ProjectName.Systems.Animation.Procedural
         else
         {
             Debug.Log($"[FixMainScene] 'Player' layer already exists at index {playerLayer}");
+        }
+    }
+
+    // ================================================================
+    // Helper: Recursively set layer on GameObject and all children
+    // ================================================================
+    static void SetLayerRecursive(GameObject obj, int layer)
+    {
+        obj.layer = layer;
+        foreach (Transform child in obj.transform)
+        {
+            SetLayerRecursive(child.gameObject, layer);
+        }
+    }
+
+    // ================================================================
+    // Helper: Procedural texture generation for terrain
+    // ================================================================
+    static Texture2D CreateProceduralControlMap(int size)
+    {
+        var tex = new Texture2D(size, size, TextureFormat.RGBA32, false, true);
+        tex.name = "Terrain_ControlMap";
+        var pixels = new Color[size * size];
+        // R channel = Splat0 (grass), G channel = Splat1 (dirt)
+        // Fill with grass (R=1) mostly, some dirt (G=1) at edges
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float nx = x / (float)size;
+                float ny = y / (float)size;
+                // Center is grass, edges have some dirt
+                float distFromCenter = Mathf.Max(Mathf.Abs(nx - 0.5f), Mathf.Abs(ny - 0.5f)) * 2f;
+                float grass = Mathf.Clamp01(1f - distFromCenter * 0.5f);
+                float dirt = 1f - grass;
+                pixels[y * size + x] = new Color(grass, dirt, 0, 0);
+            }
+        }
+        tex.SetPixels(pixels);
+        tex.Apply();
+        tex.wrapMode = TextureWrapMode.Clamp;
+        return tex;
+    }
+
+    static Texture2D CreateProceduralGrassTexture(int size)
+    {
+        var tex = new Texture2D(size, size, TextureFormat.RGBA32, false, true);
+        tex.name = "Terrain_Grass";
+        var pixels = new Color[size * size];
+        System.Random rng = new System.Random(42);
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            // Green grass with variation
+            float v = 0.3f + (float)rng.NextDouble() * 0.15f;
+            pixels[i] = new Color(v * 0.6f, v, v * 0.4f, 1f);
+        }
+        tex.SetPixels(pixels);
+        tex.Apply();
+        tex.wrapMode = TextureWrapMode.Repeat;
+        tex.filterMode = FilterMode.Bilinear;
+        return tex;
+    }
+
+    static Texture2D CreateProceduralDirtTexture(int size)
+    {
+        var tex = new Texture2D(size, size, TextureFormat.RGBA32, false, true);
+        tex.name = "Terrain_Dirt";
+        var pixels = new Color[size * size];
+        System.Random rng = new System.Random(43);
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            // Brown dirt with variation
+            float v = 0.25f + (float)rng.NextDouble() * 0.1f;
+            pixels[i] = new Color(v * 1.2f, v * 0.9f, v * 0.6f, 1f);
+        }
+        tex.SetPixels(pixels);
+        tex.Apply();
+        tex.wrapMode = TextureWrapMode.Repeat;
+        tex.filterMode = FilterMode.Bilinear;
+        return tex;
+    }
+
+    static Texture2D CreateProceduralNormalTexture(int size)
+    {
+        var tex = new Texture2D(size, size, TextureFormat.RGBA32, false, true);
+        tex.name = "Terrain_Normal";
+        var pixels = new Color[size * size];
+        // Flat normal (pointing up)
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            pixels[i] = new Color(0.5f, 0.5f, 1f, 1f); // Normal map: (0,0,1) in tangent space
+        }
+        tex.SetPixels(pixels);
+        tex.Apply();
+        tex.wrapMode = TextureWrapMode.Repeat;
+        tex.filterMode = FilterMode.Bilinear;
+        return tex;
+    }
+
+    // ================================================================
+    // NEW: Water System (LakeGenerator + WaterBody) - 저지대 자동 물 메시 생성
+    // ================================================================
+    static void CreateWaterSystem(GameObject ground)
+    {
+        var lakeGenType = System.Type.GetType("ProjectName.Systems.LakeGenerator, Assembly-CSharp");
+        if (lakeGenType != null)
+        {
+            var lakeGen = ground.AddComponent(lakeGenType);
+            var genMethod = lakeGenType.GetMethod("GenerateLakes");
+            if (genMethod != null)
+            {
+                genMethod.Invoke(lakeGen, new object[] { ground });
+                Debug.Log("[FixMainScene] LakeGenerator.GenerateLakes() invoked");
+            }
+        }
+        else
+        {
+            // Fallback: Simple water planes at low elevation
+            CreateSimpleWaterPlanes(ground);
+        }
+    }
+
+    static void CreateSimpleWaterPlanes(GameObject ground)
+    {
+        var groundCollider = ground.GetComponent<MeshCollider>();
+        if (groundCollider == null) return;
+
+        var waterParent = new GameObject("WaterBodies");
+        waterParent.transform.SetParent(ground.transform);
+
+        var waterMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+        waterMat.color = new Color(0.1f, 0.3f, 0.6f, 0.5f);
+        waterMat.SetFloat("_Surface", 1.0f);
+        waterMat.SetFloat("_Blend", 0.0f);
+        waterMat.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+        waterMat.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
+        waterMat.SetInt("_ZWrite", 0);
+        waterMat.renderQueue = 3000;
+        waterMat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+
+        // 낮은 고도 지점들에 물 평면 생성 (y < 5m)
+        for (int i = 0; i < 10; i++)
+        {
+            float x = Random.Range(-500f, 500f);
+            float z = Random.Range(-500f, 500f);
+            var ray = new Ray(new Vector3(x, 100f, z), Vector3.down);
+            if (groundCollider.Raycast(ray, out var hit, 200f))
+            {
+                if (hit.point.y < 5f) // 낮은 지대만
+                {
+                    var waterPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                    waterPlane.name = $"WaterPlane_{i}";
+                    waterPlane.transform.SetParent(waterParent.transform);
+                    waterPlane.transform.position = new Vector3(x, hit.point.y + 0.1f, z);
+                    waterPlane.transform.localScale = Vector3.one * Random.Range(5f, 20f);
+                    Object.DestroyImmediate(waterPlane.GetComponent<MeshCollider>());
+                    var mr = waterPlane.GetComponent<MeshRenderer>();
+                    mr.sharedMaterial = waterMat;
+                }
+            }
         }
     }
 }

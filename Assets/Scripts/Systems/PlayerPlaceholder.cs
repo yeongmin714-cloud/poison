@@ -76,8 +76,9 @@ namespace ProjectName.Systems
                 playerInstance.transform.localRotation = Quaternion.identity;
                 playerInstance.transform.localScale = Vector3.one;
 
-                // GLB 인스턴스에 Animator + Generic Avatar + AnimatorController + 프로시저럴 보정 부착
-                ModelAnimatorAssigner.AssignController(playerInstance, "player");
+                // NEW: ModelAnimatorAssigner 부착 (ForceBiped)
+                var assigner = playerInstance.AddComponent<ProjectName.Systems.Animation.ModelAnimatorAssigner>();
+                assigner.ForceBiped(true);
 
                 // 기존 도형들 제거
                 Destroy(_body);
