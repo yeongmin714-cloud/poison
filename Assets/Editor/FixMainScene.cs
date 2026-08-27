@@ -6,9 +6,148 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using Unity.Cinemachine;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Linq;
 
 public static class FixMainScene
 {
+    // ================================================================
+    // 0. Purge All DontDestroyOnLoad + Singletons + AutoCreates
+    // ================================================================
+    static void PurgeAllDontDestroyOnLoadAndSingletons()
+    {
+        var flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+        // 1. DontDestroyOnLoad 씬 직접 파괴
+        var ddoScene = SceneManager.GetSceneByName("DontDestroyOnLoad");
+        if (ddoScene.IsValid())
+        {
+            foreach (var go in ddoScene.GetRootGameObjects())
+                if (go != null) DestroyImmediate(go);
+        }
+
+        // 2. HideFlags.DontSave / DontDestroyOnLoad 플래그 가진 모든 오브젝트 파괴
+        foreach (var go in Resources.FindObjectsOfTypeAll<GameObject>())
+        {
+            if (go != null && ((go.hideFlags & HideFlags.DontSave) != 0 || go.scene.name == "DontDestroyOnLoad"))
+                DestroyImmediate(go);
+        }
+
+        // 3. 모든 알려진 싱글톤 정적 필드 강제 null (리플렉션)
+        string[] singletonTypes = new[]
+        {
+            // Core
+            "ProjectName.Core.GameManager",
+            "ProjectName.Core.PlayerHealth",
+            "ProjectName.Core.PlayerStats",
+            "ProjectName.Core.PlayerInventory",
+            "ProjectName.Core.PersistentManager",
+            "ProjectName.Core.BuffManager",
+            "ProjectName.Core.CameraShake",
+            "ProjectName.Core.SoundManager",
+            "ProjectName.Core.SoundManagerEnhanced",
+            "ProjectName.Core.QuestManager",
+            "ProjectName.Core.DropTableManager",
+            "ProjectName.Core.TelegramNotifier",
+            // Systems
+            "ProjectName.Systems.TerritoryManager",
+            "ProjectName.Systems.GuardManager",
+            "ProjectName.Systems.MonsterSpawner",
+            "ProjectName.Systems.DayNightCycle",
+            "ProjectName.Systems.WeatherManager",
+            "ProjectName.Systems.AmbientEffectManager",
+            "ProjectName.Systems.AmbientDialogueManager",
+            "ProjectName.Systems.EnvironmentParticleController",
+            "ProjectName.Systems.DecalSpawner",
+            "ProjectName.Systems.EmblemManager",
+            "ProjectName.Systems.EncyclopediaManager",
+            "ProjectName.Systems.EquipmentManager",
+            "ProjectName.Systems.FadeManager",
+            "ProjectName.Systems.BackgroundMusicManager",
+            "ProjectName.Systems.BardBuffManager",
+            "ProjectName.Systems.BackSlotSystem",
+            "ProjectName.Systems.ControllerSupport",
+            "ProjectName.Systems.CraftPresetManager",
+            "ProjectName.Systems.AutoMissionManager",
+            "ProjectName.Systems.ArenaSystem",
+            "ProjectName.Systems.AssassinationCutscene",
+            "ProjectName.Systems.Animation.Neural.BatchInferenceManager",
+            "ProjectName.Systems.Animation.Neural.MLRuntimeManager",
+            "ProjectName.Systems.Animation.Neural.ProgressiveRolloutManager",
+            // UI
+            "ProjectName.UI.UIManager",
+            "ProjectName.UI.AchievementSystem",
+            "ProjectName.UI.SettingsMenuUI",
+            "ProjectName.UI.EscMenuUI",
+            "ProjectName.UI.DeathScreenUI",
+            "ProjectName.UI.LoadingScreenUI",
+            "ProjectName.UI.MinimapUI",
+            // Effects
+            "ProjectName.Systems.DeathEffects",
+            "ProjectName.Systems.PoisonVFX"
+        };
+
+        foreach (var typeName in singletonTypes)
+        {
+            foreach (var asm in assemblies)
+            {
+                var type = asm.GetType(typeName);
+                if (type != null)
+                {
+                    var instField = type.GetField("Instance", flags);
+                    if (instField != null) { instField.SetValue(null, null); continue; }
+                    var privField = type.GetField("_instance", flags);
+                    if (privField != null) { privField.SetValue(null, null); continue; }
+                    var quitField = type.GetField("_instanceQuitting", flags);
+                    if (quitField != null) { quitField.SetValue(null, false); }
+                }
+            }
+        }
+
+        // 4. RuntimeInitializeOnLoadMethod가 생성한 AutoCreate 즉시 파괴
+        var autoNames = new[] { "PlayerHealth", "PlayerStats", "PlayerInventory" };
+        foreach (var name in autoNames)
+        {
+            var go = GameObject.Find(name);
+            if (go != null && go.scene.name == "DontDestroyOnLoad")
+                DestroyImmediate(go);
+        }
+
+        Debug.Log("[FixMainScene] 🧹 Complete purge: DontDestroyOnLoad + Singletons + AutoCreates");
+    }
+
+    // ================================================================
+    // Helper: Force register Player singletons to NEW instances
+    // ================================================================
+    static void ForceRegisterPlayerSingletons(GameObject player)
+    {
+        var flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+
+        var health = player.GetComponent<PlayerHealth>();
+        if (health != null)
+        {
+            var field = typeof(PlayerHealth).GetField("Instance", flags);
+            field?.SetValue(null, health);
+        }
+
+        var stats = player.GetComponent<PlayerStats>();
+        if (stats != null)
+        {
+            var field = typeof(PlayerStats).GetField("Instance", flags);
+            field?.SetValue(null, stats);
+        }
+
+        var inv = player.GetComponent<PlayerInventory>();
+        if (inv != null)
+        {
+            var field = typeof(PlayerInventory).GetField("Instance", flags);
+            field?.SetValue(null, inv);
+        }
+
+        Debug.Log("[FixMainScene] ✅ Player singletons force-registered to NEW instances");
+    }
+
     [MenuItem("Tools/Poison/Fix MainScene")]
     public static void Fix()
     {
