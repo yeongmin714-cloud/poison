@@ -770,52 +770,57 @@ public static class FixMainScene
                 Debug.LogError("[FixMainScene] PlayerInputHelper not found!");
             }
         }
-    }
-
     // ================================================================
-        static void CreateCameraSystem(GameObject player)
-        {
-            // Main Camera (rendering camera) with CinemachineBrain
-            var mainCamObj = new GameObject("Main Camera");
-            mainCamObj.tag = "MainCamera";
-            var mainCam = mainCamObj.AddComponent<Camera>();
-            mainCam.clearFlags = CameraClearFlags.Skybox;
-            mainCam.nearClipPlane = 0.1f;
-            mainCam.farClipPlane = 1000f;
-            mainCam.cullingMask = -1; // Render all layers
-            var cmBrain = mainCamObj.AddComponent<CinemachineBrain>();
-            cmBrain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.Cut, 0f);
+            // Camera System - CORRECT Cinemachine 3.x (Shoulder View + Zoom)
+            // ================================================================
+            static void CreateCameraSystem(GameObject player)
+            {
+                // Calculate initial camera position (matches VCam initial position)
+                Vector3 initialCamPos = player.transform.position + new Vector3(2.5f, 5f, -5f);
+                Quaternion initialCamRot = Quaternion.Euler(15, 0, 0);
 
-            // AudioListener on Main Camera
-            mainCamObj.AddComponent<AudioListener>();
+                // Main Camera (rendering camera) with CinemachineBrain
+                var mainCamObj = new GameObject("Main Camera");
+                mainCamObj.tag = "MainCamera";
+                mainCamObj.transform.position = initialCamPos;
+                mainCamObj.transform.rotation = initialCamRot;
+                var mainCam = mainCamObj.AddComponent<Camera>();
+                mainCam.clearFlags = CameraClearFlags.Skybox;
+                mainCam.nearClipPlane = 0.1f;
+                mainCam.farClipPlane = 1000f;
+                mainCam.cullingMask = -1; // Render all layers
+                var cmBrain = mainCamObj.AddComponent<CinemachineBrain>();
+                cmBrain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.Cut, 0f);
 
-            // Player Camera (Virtual Camera) - SEPARATE GameObject, NOT child of Main Camera or Player
-            var vcamObj = new GameObject("Player Camera");
-            // Ensure it's a root object (no parent)
-            vcamObj.transform.SetParent(null);
-            // Position at player shoulder level initially
-            vcamObj.transform.position = player.transform.position + new Vector3(2.5f, 3f, -5f);
-            vcamObj.transform.rotation = Quaternion.Euler(15, 0, 0);
+                // REMOVED: AudioListener from Main Camera (Player already has one from CreatePlayer)
 
-            var cmCam = vcamObj.AddComponent<CinemachineCamera>();
-            cmCam.Follow = player.transform;
-            cmCam.LookAt = player.transform;
-            cmCam.Priority = 100;
+                // Player Camera (Virtual Camera) - SEPARATE GameObject, NOT child of Main Camera or Player
+                var vcamObj = new GameObject("Player Camera");
+                // Ensure it's a root object (no parent)
+                vcamObj.transform.SetParent(null);
+                // Position at player shoulder level initially
+                vcamObj.transform.position = player.transform.position + new Vector3(2.5f, 5f, -5f);
+                vcamObj.transform.rotation = Quaternion.Euler(15, 0, 0);
 
-            // Third Person Follow (Cinemachine 3.x) - BotW style shoulder camera
-            var tpFollow = vcamObj.AddComponent<CinemachineThirdPersonFollow>();
-            tpFollow.CameraDistance = 25f;        // 25m distance as requested
-            tpFollow.VerticalArmLength = 8f;      // Height offset
-            tpFollow.ShoulderOffset = new Vector3(2.5f, 0f, 0f); // Right shoulder
-            tpFollow.CameraSide = 1;              // Right side (1 = right, -1 = left)
-            tpFollow.Damping = new Vector3(1f, 0.5f, 1f); // X, Y, Z damping
+                var cmCam = vcamObj.AddComponent<CinemachineCamera>();
+                cmCam.Follow = player.transform;
+                cmCam.LookAt = player.transform;
+                cmCam.Priority = 100;
 
-            // Input Axis Controller for mouse orbit (Cinemachine 3.x) - uses legacy input by default
-            var inputAxis = vcamObj.AddComponent<CinemachineInputAxisController>();
+                // Third Person Follow (Cinemachine 3.x) - BotW style shoulder camera
+                var tpFollow = vcamObj.AddComponent<CinemachineThirdPersonFollow>();
+                tpFollow.CameraDistance = 25f;        // 25m distance as requested
+                tpFollow.VerticalArmLength = 8f;      // Height offset
+                tpFollow.ShoulderOffset = new Vector3(2.5f, 0f, 0f); // Right shoulder
+                tpFollow.CameraSide = 1;              // Right side (1 = right, -1 = left)
+                tpFollow.Damping = new Vector3(1f, 0.5f, 1f); // X, Y, Z damping
 
-            // Add runtime zoom controller (not Editor-only)
-            vcamObj.AddComponent<ProjectName.Systems.CameraZoomControllerRuntime>();
-        }
+                // Input Axis Controller for mouse orbit (Cinemachine 3.x) - uses legacy input by default
+                var inputAxis = vcamObj.AddComponent<CinemachineInputAxisController>();
+
+                // Add runtime zoom controller (not Editor-only)
+                vcamObj.AddComponent<ProjectName.Systems.CameraZoomControllerRuntime>();
+            }
 
     // ================================================================
     // Lighting System (Directional Light + Moon Light)
