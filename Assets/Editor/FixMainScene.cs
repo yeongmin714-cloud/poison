@@ -822,6 +822,9 @@ public static class FixMainScene
                 cmCam.LookAt = player.transform;
                 cmCam.Priority = 100;
 
+                // CRITICAL: Mark VCam dirty so Follow/LookAt serialize properly
+                EditorUtility.SetDirty(vcamObj);
+
                 // Third Person Follow (Cinemachine 3.x) - BotW style shoulder camera
                 var tpFollow = vcamObj.AddComponent<CinemachineThirdPersonFollow>();
                 tpFollow.CameraDistance = 25f;        // 25m distance as requested
