@@ -181,10 +181,7 @@ namespace ProjectName.Core
             // 15. LoadingScreenUI + LoadingManager (same GameObject)
             CreateLoadingScreenSystemIfMissing();
 
-            // 16. PlayerStats — player experience, gold, and stats singleton
-            CreateSystemIfMissing("PlayerStats");
-
-            // 17. UIManager — UI window management (singleton with FindOrCreate fallback)
+            // 16. UIManager — UI window management (singleton with FindOrCreate fallback)
             CreateSystemIfMissing("UIManager");
 
             // 18. RevengeListIntegration — 복수명부 이벤트 구독 초기화 (정적 클래스, reflection)

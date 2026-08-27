@@ -15,28 +15,6 @@ namespace ProjectName.Core
     {
         public static PlayerStats Instance { get; private set; }
 
-        /// <summary>
-        /// [RuntimeInitializeOnLoadMethod] 폴백: 씬에 PlayerStats가 없으면 자동 생성.
-        /// GameManager.InitializeSystems()보다 먼저 실행되어 Awake() 타이밍 문제를 방지합니다.
-        /// </summary>
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void AutoCreateFallback()
-        {
-            if (Instance != null) return;
-
-            var existing = UnityEngine.Object.FindAnyObjectByType<PlayerStats>();
-            if (existing != null)
-            {
-                Instance = existing;
-                return;
-            }
-
-            var go = new GameObject("PlayerStats");
-            go.AddComponent<PlayerStats>();
-            UnityEngine.Object.DontDestroyOnLoad(go);
-            Debug.Log("[PlayerStats] Auto-created via RuntimeInitializeOnLoadMethod fallback.");
-        }
-
         [Header("Experience Settings")]
         [SerializeField] private int _currentEXP = 0;
         [SerializeField] private int _level = 1;
@@ -124,19 +102,11 @@ namespace ProjectName.Core
 
         private void Awake()
         {
-            // === 장면 전환 안전화: 다른 씬의 기존 인스턴스면 교체 ===
+            // === 단순화: 첫 번째가 주인 ===
             if (Instance != null && Instance != this)
             {
-                if (Instance.gameObject.scene != gameObject.scene)
-                {
-                    // 이전 씬 잔여 인스턴스 파괴
-                    Destroy(Instance.gameObject);
-                }
-                else
-                {
-                    Destroy(gameObject);
-                    return;
-                }
+                Destroy(gameObject);
+                return;
             }
             Instance = this;
             DontDestroyOnLoad(gameObject);

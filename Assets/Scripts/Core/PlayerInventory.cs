@@ -54,19 +54,11 @@ namespace ProjectName.Core
 
         private void Awake()
         {
-            // === 장면 전환 안전화: 다른 씬의 기존 인스턴스면 교체 ===
+            // === 단순화: 첫 번째가 주인 ===
             if (Instance != null && Instance != this)
             {
-                if (Instance.gameObject.scene != gameObject.scene)
-                {
-                    // 이전 씬 잔여 인스턴스 파괴
-                    Destroy(Instance.gameObject);
-                }
-                else
-                {
-                    Destroy(gameObject);
-                    return;
-                }
+                Destroy(gameObject);
+                return;
             }
             Instance = this;
             DontDestroyOnLoad(gameObject);
