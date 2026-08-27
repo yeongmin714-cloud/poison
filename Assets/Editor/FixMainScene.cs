@@ -770,11 +770,13 @@ public static class FixMainScene
                 Debug.LogError("[FixMainScene] PlayerInputHelper not found!");
             }
         }
+    }
+
     // ================================================================
-            // Camera System - CORRECT Cinemachine 3.x (Shoulder View + Zoom)
-            // ================================================================
-            static void CreateCameraSystem(GameObject player)
-            {
+    // Camera System - CORRECT Cinemachine 3.x (Shoulder View + Zoom)
+    // ================================================================
+    static void CreateCameraSystem(GameObject player)
+    {
                 // Calculate initial camera position (matches VCam initial position)
                 Vector3 initialCamPos = player.transform.position + new Vector3(2.5f, 5f, -5f);
                 Quaternion initialCamRot = Quaternion.Euler(15, 0, 0);
