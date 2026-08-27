@@ -8,7 +8,6 @@ using Unity.Cinemachine;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
-using System;
 using ProjectName.Core;
 
 public static class FixMainScene
@@ -113,7 +112,7 @@ public static class FixMainScene
         {
             var go = GameObject.Find(name);
             if (go != null && go.scene.name == "DontDestroyOnLoad")
-                DestroyImmediate(go);
+                UnityEngine.Object.DestroyImmediate(go);
         }
 
         Debug.Log("[FixMainScene] 🧹 Complete purge: DontDestroyOnLoad + Singletons + AutoCreates");
