@@ -607,7 +607,9 @@ public static class FixMainScene
 
         // Core components
         player.AddComponent<ProjectName.Systems.PlayerMovement>();
-        player.AddComponent<ProjectName.Core.PlayerHealth>();
+        var health = player.AddComponent<ProjectName.Core.PlayerHealth>();
+        // CRITICAL: Initialize HP so scene serializes _currentHP=100 (not 0)
+        health.Heal(100f); // _currentHP was 0, _maxHP=100 → becomes 100
         player.AddComponent<ProjectName.Core.PlayerStats>();
         player.AddComponent<ProjectName.Core.PlayerInventory>();
         player.AddComponent<ProjectName.Systems.PlayerCombat>();

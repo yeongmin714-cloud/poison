@@ -16,6 +16,11 @@ public class GameSetup : MonoBehaviour
 
     private void Start()
     {
+        // CRITICAL: Purge any leftover DontDestroyOnLoad singletons from previous Play sessions
+        // Other systems (SoundManagerEnhanced, TerritoryManager, TimeManager) use RuntimeInitializeOnLoadMethod
+        // which creates persistent objects that survive across Play mode sessions
+        PurgeRuntimeSingletons();
+
         if (!_autoSetup) return;
 
         // ── 메인 씬 모드 ────────────────────────
@@ -23,6 +28,61 @@ public class GameSetup : MonoBehaviour
         SetupWorldComponents();
 
         _autoSetup = false; // 한 번만 실행
+    }
+
+    /// <summary>
+    /// Removes stale DontDestroyOnLoad singleton instances that persist across Play mode sessions.
+    /// These are created by RuntimeInitializeOnLoadMethod in systems like SoundManagerEnhanced, TerritoryManager, TimeManager.
+    /// </summary>
+    private void PurgeRuntimeSingletons()
+    {
+        // Core singletons that might conflict with scene-loaded instances
+        var typesToPurge = new System.Type[]
+        {
+            typeof(ProjectName.Core.PlayerHealth),
+            typeof(ProjectName.Core.PlayerStats),
+            typeof(ProjectName.Core.PlayerInventory),
+            typeof(ProjectName.Systems.PlayerCombat),
+            typeof(ProjectName.Core.BuffManager),
+            typeof(ProjectName.Systems.SoundManagerEnhanced),
+            typeof(ProjectName.Systems.TerritoryManager),
+            typeof(ProjectName.Systems.TimeManager),
+        };
+
+        foreach (var type in typesToPurge)
+        {
+            // Use reflection to access static Instance property and DontDestroyOnLoad objects
+            var instanceProp = type.GetProperty("Instance", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            if (instanceProp != null)
+            {
+                var instance = instanceProp.GetValue(null);
+                if (instance != null)
+                {
+                    var monoBehaviour = instance as MonoBehaviour;
+                    if (monoBehaviour != null && monoBehaviour.gameObject != null)
+                    {
+                        // Only destroy if it's a DontDestroyOnLoad object from a different scene
+                        if (monoBehaviour.gameObject.scene.name == "DontDestroyOnLoad" || monoBehaviour.gameObject.scene.name == null)
+                        {
+                            Debug.Log($"[GameSetup] Purging stale singleton: {type.Name}");
+                            DestroyImmediate(monoBehaviour.gameObject);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Also purge any DontDestroyOnLoad objects with known names
+        var staleNames = new string[] { "PlayerHealth", "PlayerStats", "PlayerInventory", "PlayerCombat", "BuffManager", "SoundManagerEnhanced", "TerritoryManager", "TimeManager", "GameManager" };
+        foreach (var name in staleNames)
+        {
+            var obj = GameObject.Find(name);
+            if (obj != null && (obj.scene.name == "DontDestroyOnLoad" || obj.scene.name == null))
+            {
+                Debug.Log($"[GameSetup] Purging stale DontDestroyOnLoad object: {name}");
+                DestroyImmediate(obj);
+            }
+        }
     }
 
     /// <summary>
