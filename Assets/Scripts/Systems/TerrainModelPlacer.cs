@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
+using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
 {
@@ -55,48 +56,67 @@ namespace ProjectName.Systems
             var rockModels = Resources.LoadAll<GameObject>("Models/UserProvided/terrain/rocks");
             var treeModels = Resources.LoadAll<GameObject>("Models/UserProvided/terrain/trees");
 
-            if (grassModels.Length == 0 || rockModels.Length == 0 || treeModels.Length == 0)
-            {
-                Debug.LogWarning("[TerrainModelPlacer] GLB terrain models not found in Resources/Models/UserProvided/terrain/");
-                return;
-            }
-
             // 국가별 텍스처 컨트롤러 가져오기
-            var nationController = ground.GetComponent<ProjectName.Systems.NationTerrainController>();
-            string currentNation = nationController != null ? nationController.CurrentNation.ToString() : "East";
+                        var nationController = ground.GetComponent<ProjectName.Systems.NationTerrainController>();
+                        string currentNation = nationController != null ? nationController.CurrentNation.ToString() : "East";
 
-            // 링별 배치
-            foreach (var ring in RingConfigs)
-            {
-                PlaceModelsInRing(envParent, groundCollider, grassModels, rockModels, treeModels, ring, currentNation);
-            }
+                        // 현재 바이옴 가져오기 (지형 생성에 사용된 것과 동일)
+                        var biome = ProjectName.Core.Data.BiomeType.Plains;
+                        int terrainSeed = 42;
 
-            // 국가 경계 블렌딩 존 (선택적 - NationTerrainController가 처리)
+                        // DEBUG: Log loaded models
+                        Debug.Log($"[TerrainModelPlacer] grassModels: {grassModels.Length}, rockModels: {rockModels.Length}, treeModels: {treeModels.Length}");
+                        for (int i = 0; i < grassModels.Length; i++) Debug.Log($"  grass[{i}]: {grassModels[i].name}");
+                        for (int i = 0; i < rockModels.Length; i++) Debug.Log($"  rock[{i}]: {rockModels[i].name}");
+                        for (int i = 0; i < treeModels.Length; i++) Debug.Log($"  tree[{i}]: {treeModels[i].name}");
 
-            // GPU Instancing 활성화
-            EnableGPUInstancing(envParent);
+                        if (grassModels.Length == 0 || rockModels.Length == 0 || treeModels.Length == 0)
+                        {
+                            Debug.LogError("[TerrainModelPlacer] GLB terrain models not found in Resources/Models/UserProvided/terrain/");
+                            return;
+                        }
 
-            Debug.Log($"[TerrainModelPlacer] Environment placement complete. Children: {envParent.transform.childCount}");
+                        Debug.Log($"[TerrainModelPlacer] Current nation: {currentNation}, Biome: {biome}, Seed: {terrainSeed}");
+
+                        // 링별 배치
+                        int totalPlaced = 0;
+                        foreach (var ring in RingConfigs)
+                        {
+                            int placed = PlaceModelsInRing(envParent, groundCollider, grassModels, rockModels, treeModels, ring, currentNation, biome, terrainSeed);
+                            totalPlaced += placed;
+                        }
+
+                        Debug.Log($"[TerrainModelPlacer] Total models placed: {totalPlaced}, Environment children: {envParent.transform.childCount}");
+
+                        // 국가 경계 블렌딩 존 (선택적 - NationTerrainController가 처리)
+
+                        // GPU Instancing 활성화
+                        EnableGPUInstancing(envParent);
+
+                        Debug.Log($"[TerrainModelPlacer] Environment placement complete. Children: {envParent.transform.childCount}");
         }
 
-        static void PlaceModelsInRing(GameObject parent, MeshCollider groundCollider,
+        static int PlaceModelsInRing(GameObject parent, MeshCollider groundCollider,
             GameObject[] grassModels, GameObject[] rockModels, GameObject[] treeModels,
-            RingConfig ring, string nation)
+            RingConfig ring, string nation, BiomeType biome, int seed)
         {
+            int placed = 0;
             // 국가별 잔디 모델 필터링
             var nationGrass = FilterModelsByNation(grassModels, nation, "grass");
 
             // 잔디 배치
-            PlaceModelsInstanced(parent, groundCollider, nationGrass.Length > 0 ? nationGrass : grassModels,
-                ring.innerRadius, ring.outerRadius, ring.grassCount, 0.05f, 0.2f, ring.grassScale);
+            placed += PlaceModelsInstanced(parent, nationGrass.Length > 0 ? nationGrass : grassModels,
+                ring.innerRadius, ring.outerRadius, ring.grassCount, 0.05f, 0.2f, ring.grassScale, biome, seed);
 
             // 나무 배치
-            PlaceModelsInstanced(parent, groundCollider, treeModels,
-                ring.innerRadius, ring.outerRadius, ring.treeCount, 0f, 0f, ring.treeScale);
+            placed += PlaceModelsInstanced(parent, treeModels,
+                ring.innerRadius, ring.outerRadius, ring.treeCount, 0f, 0f, ring.treeScale, biome, seed);
 
             // 바위 배치
-            PlaceModelsInstanced(parent, groundCollider, rockModels,
-                ring.innerRadius, ring.outerRadius, ring.rockCount, 0f, 0.1f, ring.rockScale);
+            placed += PlaceModelsInstanced(parent, rockModels,
+                ring.innerRadius, ring.outerRadius, ring.rockCount, 0f, 0.1f, ring.rockScale, biome, seed);
+
+            return placed;
         }
 
         static GameObject[] FilterModelsByNation(GameObject[] models, string nation, string type)
@@ -122,10 +142,11 @@ namespace ProjectName.Systems
             return filtered.Count > 0 ? filtered.ToArray() : models;
         }
 
-        static void PlaceModelsInstanced(GameObject parent, MeshCollider groundCollider,
+        static int PlaceModelsInstanced(GameObject parent,
             GameObject[] models, float innerR, float outerR, int count,
-            float yMinOffset, float yMaxOffset, float baseScale)
+            float yMinOffset, float yMaxOffset, float baseScale, BiomeType biome, int seed)
         {
+            int placed = 0;
             for (int i = 0; i < count; i++)
             {
                 for (int attempts = 0; attempts < 5; attempts++)
@@ -135,30 +156,33 @@ namespace ProjectName.Systems
                     float x = Mathf.Cos(angle) * radius;
                     float z = Mathf.Sin(angle) * radius;
 
-                    var ray = new Ray(new Vector3(x, 1000f, z), Vector3.down);
-                    if (groundCollider.Raycast(ray, out var hit, 2000f))
+                    // Perlin Noise로 높이 직접 샘플링 (Raycast 대신)
+                    float height = ProjectName.Systems.TerrainGenerator.GetHeightAt(x, z, biome, seed);
+                    float y = height + Random.Range(yMinOffset, yMaxOffset);
+
+                    var model = models[Random.Range(0, models.Length)];
+                    var go = Object.Instantiate(model, parent.transform);
+                    go.transform.position = new Vector3(x, y, z);
+                    go.transform.rotation = Quaternion.Euler(0, Random.Range(0f, 360f), 0);
+                    go.transform.localScale *= Random.Range(baseScale * 0.8f, baseScale * 1.2f);
+
+                    // LODGroup 추가 (거리별 컬링)
+                    var lodGroup = go.AddComponent<LODGroup>();
+                    var renderers = go.GetComponentsInChildren<Renderer>();
+                    var lods = new LOD[]
                     {
-                        var model = models[Random.Range(0, models.Length)];
-                        var go = Object.Instantiate(model, parent.transform);
-                        go.transform.position = new Vector3(x, hit.point.y + Random.Range(yMinOffset, yMaxOffset), z);
-                        go.transform.rotation = Quaternion.Euler(0, Random.Range(0f, 360f), 0);
-                        go.transform.localScale *= Random.Range(baseScale * 0.8f, baseScale * 1.2f);
+                        new LOD(0.6f, renderers), // 0-60% 거리: 고품질
+                        new LOD(0.3f, new Renderer[0]), // 60-30%: 중간
+                        new LOD(0.0f, new Renderer[0])  // 30%+: 컬링
+                    };
+                    lodGroup.SetLODs(lods);
+                    lodGroup.RecalculateBounds();
 
-                        // LODGroup 추가 (거리별 컬링)
-                        var lodGroup = go.AddComponent<LODGroup>();
-                        var lods = new LOD[]
-                        {
-                            new LOD(0.6f, go.GetComponentsInChildren<Renderer>()), // 0-60% 거리: 고품질
-                            new LOD(0.3f, new Renderer[0]), // 60-30%: 중간
-                            new LOD(0.0f, new Renderer[0])  // 30%+: 컬링
-                        };
-                        lodGroup.SetLODs(lods);
-                        lodGroup.RecalculateBounds();
-
-                        return;
-                    }
+                    placed++;
+                    break;
                 }
             }
+            return placed;
         }
 
         static void EnableGPUInstancing(GameObject parent)

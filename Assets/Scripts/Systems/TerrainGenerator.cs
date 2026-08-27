@@ -12,6 +12,37 @@ namespace ProjectName.Systems
     public static class TerrainGenerator
     {
         /// <summary>
+        /// 주어진 월드 좌표에서 지형 높이 반환 (Perlin Noise 기반)
+        /// TerrainModelPlacer 등에서 Raycast 없이 높이 샘플링용
+        /// </summary>
+        public static float GetHeightAt(float worldX, float worldZ, BiomeType biome, int seed = 42)
+        {
+            BiomeDefinition def = BiomeData.GetDefinition(biome);
+            return GetHeightAtWithDefinition(worldX, worldZ, def, seed);
+        }
+
+        /// <summary>
+        /// BiomeDefinition으로 높이 샘플링
+        /// </summary>
+        public static float GetHeightAtWithDefinition(float worldX, float worldZ, BiomeDefinition def, int seed = 42)
+        {
+            float freq = def.noiseFrequency;
+            float amp = def.noiseAmplitude;
+            
+            float noiseX = worldX * freq + seed;
+            float noiseZ = worldZ * freq + seed;
+            float noise = Mathf.PerlinNoise(noiseX, noiseZ);
+            float height = noise * amp;
+            
+            // waterThreshold가 있으면 물 높이로 클램프
+            if (def.waterThreshold > 0f && height < def.waterThreshold)
+            {
+                height = def.waterThreshold;
+            }
+            
+            return height;
+        }
+        /// <summary>
         /// Perlin Noise로 지형 메시 + 물 메시 생성
         /// </summary>
         /// <param name="biome">생성할 Biome 타입</param>

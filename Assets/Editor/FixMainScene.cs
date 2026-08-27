@@ -65,7 +65,8 @@ public static class FixMainScene
         // ================================================================
         // 4. Terrain GLB Models Placement (GPU Instancing, 3 Rings)
         // ================================================================
-        PlaceTerrainModels(ground);
+        // NEW: TerrainModelPlacer.Place() is now called inside CreateHeightmapTerrain()
+        // PlaceTerrainModels(ground); // OLD - REMOVED: duplicate Environment creation
 
         // ================================================================
         // 5. Player Setup (Player_Rigged.glb + Full Animation Stack)
