@@ -495,6 +495,17 @@ public static class FixMainScene
         // NEW: 물 시스템 연동 (LakeGenerator + WaterBody) - 저지대 자동 물 메시 생성
         CreateWaterSystem(ground);
 
+        // CRITICAL: Add invisible collision floor to prevent CharacterController falling through procedural mesh
+        // Procedural MeshCollider can have gaps/holes that CharacterController slips through
+        var floorObj = new GameObject("CollisionFloor");
+        floorObj.transform.SetParent(ground.transform);
+        floorObj.transform.localPosition = new Vector3(0, -0.1f, 0); // Slightly below terrain surface
+        var floorCollider = floorObj.AddComponent<BoxCollider>();
+        floorCollider.size = new Vector3(2000f, 1f, 2000f); // Matches terrain size
+        floorCollider.isTrigger = false;
+        floorObj.layer = LayerMask.NameToLayer("Ground");
+        Debug.Log("[FixMainScene] Added CollisionFloor to prevent falling through terrain");
+
         return ground;
     }
 
