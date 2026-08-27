@@ -8,6 +8,8 @@ using Unity.Cinemachine;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
+using System;
+using ProjectName.Core;
 
 public static class FixMainScene
 {
@@ -17,21 +19,21 @@ public static class FixMainScene
     static void PurgeAllDontDestroyOnLoadAndSingletons()
     {
         var flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        var assemblies = System.AppDomain.CurrentDomain.GetAssemblies();
 
         // 1. DontDestroyOnLoad 씬 직접 파괴
         var ddoScene = SceneManager.GetSceneByName("DontDestroyOnLoad");
         if (ddoScene.IsValid())
         {
             foreach (var go in ddoScene.GetRootGameObjects())
-                if (go != null) DestroyImmediate(go);
+                if (go != null) UnityEngine.Object.DestroyImmediate(go);
         }
 
         // 2. HideFlags.DontSave / DontDestroyOnLoad 플래그 가진 모든 오브젝트 파괴
         foreach (var go in Resources.FindObjectsOfTypeAll<GameObject>())
         {
             if (go != null && ((go.hideFlags & HideFlags.DontSave) != 0 || go.scene.name == "DontDestroyOnLoad"))
-                DestroyImmediate(go);
+                UnityEngine.Object.DestroyImmediate(go);
         }
 
         // 3. 모든 알려진 싱글톤 정적 필드 강제 null (리플렉션)
@@ -151,6 +153,9 @@ public static class FixMainScene
     [MenuItem("Tools/Poison/Fix MainScene")]
     public static void Fix()
     {
+        // === 0단계: 기존 DontDestroyOnLoad + 싱글톤 + AutoCreate 완전 정화 ===
+        PurgeAllDontDestroyOnLoadAndSingletons();
+
         // Create new scene
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         scene.name = "MainScene";
@@ -212,6 +217,9 @@ public static class FixMainScene
         // ================================================================
         var player = CreatePlayer();
 
+        // === 핵심: Player 싱글톤 강제 재등록 ===
+        ForceRegisterPlayerSingletons(player);
+
         // ================================================================
         // 6. Camera System - CORRECT Cinemachine 3.x (Shoulder View + Zoom)
         // ================================================================
@@ -270,6 +278,16 @@ public static class FixMainScene
         // ================================================================
         EditorSceneManager.SaveScene(scene, "Assets/Scenes/MainScene.unity");
         AssetDatabase.SaveAssets();
+
+        // === Editor 강제 리로드 (배치모드 아닐 때만) ===
+#if UNITY_EDITOR
+        if (!Application.isBatchMode)
+        {
+            EditorSceneManager.OpenScene("Assets/Scenes/MainScene.unity", OpenSceneMode.Single);
+            EditorApplication.RepaintHierarchyWindow();
+            Debug.Log("[FixMainScene] 🔁 Editor scene force-reloaded");
+        }
+#endif
 
         Debug.Log("MainScene fixed and saved with BotW-style setup!");
     }

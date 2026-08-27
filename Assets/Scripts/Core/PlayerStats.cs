@@ -124,13 +124,34 @@ namespace ProjectName.Core
 
         private void Awake()
         {
+            // === 장면 전환 안전화: 다른 씬의 기존 인스턴스면 교체 ===
             if (Instance != null && Instance != this)
             {
-                Destroy(gameObject);
-                return;
+                if (Instance.gameObject.scene != gameObject.scene)
+                {
+                    // 이전 씬 잔여 인스턴스 파괴
+                    Destroy(Instance.gameObject);
+                }
+                else
+                {
+                    Destroy(gameObject);
+                    return;
+                }
             }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+        }
+
+        /// <summary>
+        /// 강제 인스턴스 리셋 (씬 전환 시 안전하게 재초기화용)
+        /// </summary>
+        public static void ResetInstance()
+        {
+            if (Instance != null)
+            {
+                DestroyImmediate(Instance.gameObject);
+                Instance = null;
+            }
         }
 
         private void Start()

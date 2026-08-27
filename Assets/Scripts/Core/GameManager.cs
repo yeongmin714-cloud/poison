@@ -17,14 +17,23 @@ namespace ProjectName.Core
 
         private void Awake()
         {
+            // === 장면 전환 안전화: 다른 씬의 기존 인스턴스면 교체 ===
             if (Instance != null && Instance != this)
             {
-                Destroy(gameObject);
-                return;
+                if (Instance.gameObject.scene != gameObject.scene)
+                {
+                    // 이전 씬 잔여 인스턴스 파괴
+                    Destroy(Instance.gameObject);
+                }
+                else
+                {
+                    Destroy(gameObject);
+                    return;
+                }
             }
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            
+
             Application.targetFrameRate = 60;
 #if UNITY_EDITOR
             // Editor 전용 디버그/테스트 컴포넌트 (Play 모드에서도 데이터 검증용)
@@ -36,13 +45,24 @@ namespace ProjectName.Core
             gameObject.AddComponent<BuffManager>();
         }
 
+        /// <summary>
+        /// 강제 인스턴스 리셋 (씬 전환 시 안전하게 재초기화용)
+        /// </summary>
+        public static void ResetInstance()
+        {
+            if (Instance != null)
+            {
+                DestroyImmediate(Instance.gameObject);
+                Instance = null;
+            }
+        }
+
         private void Start()
         {
             if (_debugMode)
                 Debug.Log("[GameManager] Game initialized in debug mode");
             else
                 Debug.Log("[GameManager] Game initialized");
-
             InitializeSystems();
             EnsureTerritoryManager();
         }
@@ -388,11 +408,11 @@ namespace ProjectName.Core
         private static System.Type FindTypeAnyNamespace(string typeName)
         {
             // Extended namespace list to include common Unity/project namespaces
-            foreach (var ns in new[] 
-            { 
-                "", 
-                "ProjectName.Systems.", 
-                "ProjectName.Core.", 
+            foreach (var ns in new[]
+            {
+                "",
+                "ProjectName.Systems.",
+                "ProjectName.Core.",
                 "ProjectName.UI.",
                 "ProjectName.",           // Fallback for root namespace
                 "UI.",                    // Common UI namespace
