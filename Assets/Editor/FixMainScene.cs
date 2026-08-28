@@ -708,10 +708,17 @@ public static class FixMainScene
                             // Hide GLB renderers initially (use capsule as primary visual)
                             foreach (var smr in skinnedRenderers) smr.enabled = false;
                             foreach (var mr in meshRenderers) mr.enabled = false;
-                            
+
                             Debug.Log($"[FixMainScene] GLB stripped to render-only, parented to capsule");
                         }
-        
+
+                        // Add runtime component to ensure GLB renderers stay disabled
+                        if (modelInstance != null)
+                        {
+                            var disabler = modelInstance.AddComponent<DisableGLBRenderers>();
+                            disabler.glbRenderers = skinnedRenderers.Cast<Renderer>().Concat(meshRenderers.Cast<Renderer>()).ToArray();
+                        }
+
                         Debug.Log($"[FixMainScene] PlayerModel created: visual capsule at localPos {visualCapsule.transform.localPosition}, GLB loaded: {modelInstance != null}");
 
         // Cleanup duplicate components on player root
@@ -721,6 +728,26 @@ public static class FixMainScene
         player.AddComponent<AudioListener>();
 
         return player;
+    }
+
+    /// <summary>
+    /// Runtime component to keep GLB renderers disabled (capsule is the visual representation)
+    /// </summary>
+    private class DisableGLBRenderers : MonoBehaviour
+    {
+        public Renderer[] glbRenderers;
+
+        private void Awake()
+        {
+            foreach (var r in glbRenderers)
+                if (r != null) r.enabled = false;
+        }
+
+        private void OnEnable()
+        {
+            foreach (var r in glbRenderers)
+                if (r != null) r.enabled = false;
+        }
     }
 
     static void CleanupDuplicateComponents(GameObject player)
@@ -785,8 +812,10 @@ public static class FixMainScene
                 tpFollow.CameraSide = 1;              // Right side (1 = right, -1 = left)
                 tpFollow.Damping = new Vector3(1f, 0.5f, 1f); // X, Y, Z damping
 
-                // Input Axis Controller for mouse orbit (Cinemachine 3.x) - uses legacy input by default
+                // Input Axis Controller for mouse orbit (Cinemachine 3.x) - auto-configures with default input axes
                 var inputAxis = vcamObj.AddComponent<CinemachineInputAxisController>();
+                // The component auto-configures with default Mouse X/Y axes for orbit
+                Debug.Log("[FixMainScene] CinemachineInputAxisController added for mouse orbit");
 
                 // Add runtime zoom controller (not Editor-only)
                 vcamObj.AddComponent<ProjectName.Systems.CameraZoomControllerRuntime>();
