@@ -616,128 +616,106 @@ public static class FixMainScene
     // Player with GLB + Full Animation Stack (Neural + Procedural + Hybrid)
     // ================================================================
     static GameObject CreatePlayer()
+{
+    var player = new GameObject("Player");
+    player.tag = "Player";
+    player.layer = LayerMask.NameToLayer("Player");
+    player.transform.position = new Vector3(0, 1.1f, 0); // Spawn at y=1.1 (center), feet at y=0.1 on ground
+
+    var controller = player.AddComponent<CharacterController>();
+    controller.height = 2.0f;
+    controller.radius = 0.4f;
+    controller.center = new Vector3(0, 1.0f, 0); // center=1.0, height=2.0 -> bottom at y=0.1
+    controller.skinWidth = 0.08f;
+
+    // Core components
+    player.AddComponent<ProjectName.Systems.PlayerMovement>();
+    var health = player.AddComponent<ProjectName.Core.PlayerHealth>();
+    health.Heal(100f);
+    player.AddComponent<ProjectName.Core.PlayerStats>();
+    player.AddComponent<ProjectName.Core.PlayerInventory>();
+    player.AddComponent<ProjectName.Systems.PlayerCombat>();
+    player.AddComponent<ProjectName.Systems.BombThrower>();
+    player.AddComponent<ProjectName.Core.BuffManager>();
+
+    // NOTE: PlayerInput added at runtime by GameSetup
+
+    // Player GLB Model
+    var modelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Models/UserProvided/Player_Rigged.glb");
+    GameObject modelInstance = null;
+    var skinnedRenderers = new SkinnedMeshRenderer[0];
+    var meshRenderers = new MeshRenderer[0];
+
+    if (modelPrefab != null)
     {
-        var player = new GameObject("Player");
-        player.tag = "Player";
-        player.layer = LayerMask.NameToLayer("Player"); // Ensure Player layer
-        player.transform.position = new Vector3(0, 2, 0); // Spawn at y=2 (center), feet at y=1 (ground level)
+        modelInstance = (GameObject)Object.Instantiate(modelPrefab, player.transform);
+        modelInstance.name = "PlayerModel_GLB";
+        modelInstance.transform.localPosition = Vector3.zero;
+        modelInstance.transform.localScale = Vector3.one;
 
-        var controller = player.AddComponent<CharacterController>();
-        controller.height = 2.0f;
-        controller.radius = 0.4f;
-        controller.center = new Vector3(0, 1.0f, 0); // center=1.0, height=2.0 → bottom at y=0 when on ground y=1
-        controller.skinWidth = 0.08f; // Increased skinWidth to prevent tunneling through thin colliders
+        SetLayerRecursive(modelInstance, LayerMask.NameToLayer("Player"));
+        EditorUtility.SetDirty(modelInstance);
+        foreach (Transform child in modelInstance.transform)
+        {
+            EditorUtility.SetDirty(child.gameObject);
+        }
 
-        // Core components
-                player.AddComponent<ProjectName.Systems.PlayerMovement>();
-                var health = player.AddComponent<ProjectName.Core.PlayerHealth>();
-                // CRITICAL: Initialize HP so scene serializes _currentHP=100 (not 0)
-                health.Heal(100f); // _currentHP was 0, _maxHP=100 → becomes 100
-                player.AddComponent<ProjectName.Core.PlayerStats>();
-                player.AddComponent<ProjectName.Core.PlayerInventory>();
-                player.AddComponent<ProjectName.Systems.PlayerCombat>();
-                player.AddComponent<ProjectName.Systems.BombThrower>();
-                player.AddComponent<ProjectName.Core.BuffManager>();
+        // CRITICAL: Strip ALL components from GLB AND ALL CHILDREN recursively
+        var allComponents = modelInstance.GetComponentsInChildren<Component>(true); // include inactive
+        foreach (var comp in allComponents)
+        {
+            if (comp is Transform) continue;
+            if (comp is SkinnedMeshRenderer || comp is MeshRenderer) continue;
+            UnityEngine.Object.DestroyImmediate(comp);
+        }
 
-                // NOTE: PlayerInput is NOT added here - it will be added at runtime by GameSetup
-                // This avoids batchmode serialization issues with InputActionAsset action maps
-                // GameSetup.Start() -> SetupPlayerComponents() -> PlayerInputHelper.SetupPlayerInputFromResources()
+        skinnedRenderers = modelInstance.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+        meshRenderers = modelInstance.GetComponentsInChildren<MeshRenderer>(true);
 
-                // Player GLB Model
-                        var modelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Models/UserProvided/Player_Rigged.glb");
-                        GameObject modelInstance = null;
-                        var skinnedRenderers = new SkinnedMeshRenderer[0];
-                        var meshRenderers = new MeshRenderer[0];
-        
-                        if (modelPrefab != null)
-                        {
-                            // GLB is a Model Asset (not Prefab), use Object.Instantiate and ensure scene persistence
-                            modelInstance = (GameObject)Object.Instantiate(modelPrefab, player.transform);
-                            modelInstance.name = "PlayerModel_GLB";
-                            modelInstance.transform.localPosition = new Vector3(0, -0.1f, 0);
-                            modelInstance.transform.localScale = Vector3.one;
-            
-                            SetLayerRecursive(modelInstance, LayerMask.NameToLayer("Player"));
-                            EditorUtility.SetDirty(modelInstance);
-                            foreach (Transform child in modelInstance.transform)
-                            {
-                                EditorUtility.SetDirty(child.gameObject);
-                            }
-            
-                            // Remove Rigidbody/Animator from GLB (duplicate components cause issues)
-                            var rbs = modelInstance.GetComponentsInChildren<Rigidbody>();
-                            foreach (var rb in rbs) UnityEngine.Object.DestroyImmediate(rb);
-                            var anims = modelInstance.GetComponentsInChildren<Animator>();
-                            foreach (var anim in anims) UnityEngine.Object.DestroyImmediate(anim);
-            
-                            skinnedRenderers = modelInstance.GetComponentsInChildren<SkinnedMeshRenderer>();
-                            meshRenderers = modelInstance.GetComponentsInChildren<MeshRenderer>();
-            
-                            Debug.Log($"[FixMainScene] GLB loaded: {modelInstance.name}, skinnedRenderers={skinnedRenderers.Length}, meshRenderers={meshRenderers.Length}");
-                        }
-        
-                        // ALWAYS create a visible fallback capsule (guaranteed visible, correct size)
-                        var visualCapsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-                        visualCapsule.name = "PlayerModel";
-                        visualCapsule.transform.SetParent(player.transform);
-                        visualCapsule.transform.localPosition = new Vector3(0, 1.0f, 0); // Center at y=1 (feet at y=0, top at y=2)
-                        visualCapsule.transform.localScale = new Vector3(0.5f, 1.0f, 0.5f); // radius 0.25, height 2
-                        visualCapsule.layer = LayerMask.NameToLayer("Player");
-                        var visualMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                        visualMat.color = new Color(0.2f, 0.6f, 1f, 1f); // Blue color
-                        visualCapsule.GetComponent<MeshRenderer>().sharedMaterial = visualMat;
-                        UnityEngine.Object.DestroyImmediate(visualCapsule.GetComponent<CapsuleCollider>());
-        
-                        // If GLB loaded, make it a child of the visual capsule for animation, but keep visual as primary
-                        if (modelInstance != null)
-                        {
-                            modelInstance.transform.SetParent(visualCapsule.transform);
-                            modelInstance.transform.localPosition = Vector3.zero;
-                            modelInstance.transform.localScale = Vector3.one;
-            
-                            // CRITICAL: Strip ALL components except Transform and renderers to prevent independent movement
-                            var allComponents = modelInstance.GetComponentsInChildren<Component>();
-                            foreach (var comp in allComponents)
-                            {
-                                if (comp is Transform) continue;
-                                if (comp is SkinnedMeshRenderer || comp is MeshRenderer) continue;
-                                // Remove animation controllers, physics, etc. that could move GLB independently
-                                UnityEngine.Object.DestroyImmediate(comp);
-                            }
-            
-                            // Hide GLB renderers initially (use capsule as primary visual)
-                            foreach (var smr in skinnedRenderers) smr.enabled = false;
-                            foreach (var mr in meshRenderers) mr.enabled = false;
+        // Disable GLB renderers immediately (editor) + add runtime disabler
+        foreach (var smr in skinnedRenderers) smr.enabled = false;
+        foreach (var mr in meshRenderers) mr.enabled = false;
 
-                            Debug.Log($"[FixMainScene] GLB stripped to render-only, parented to capsule");
-                        }
+        var disablerType = System.Type.GetType("ProjectName.Core.DisableGLBRenderers, Assembly-CSharp");
+        if (disablerType != null)
+        {
+            var disabler = modelInstance.AddComponent(disablerType);
+            var renderers = skinnedRenderers.Cast<Renderer>().Concat(meshRenderers.Cast<Renderer>()).ToArray();
+            disablerType.GetField("glbRenderers").SetValue(disabler, renderers);
+        }
+        else
+        {
+            Debug.LogWarning("[FixMainScene] DisableGLBRenderers type not found");
+        }
 
-                        // Add runtime component to ensure GLB renderers stay disabled
-                        if (modelInstance != null)
-                        {
-                            // Use reflection since Editor assembly can't reference runtime assembly directly
-                            var disablerType = System.Type.GetType("ProjectName.Core.DisableGLBRenderers, Assembly-CSharp");
-                            if (disablerType != null)
-                            {
-                                var disabler = modelInstance.AddComponent(disablerType);
-                                var renderers = skinnedRenderers.Cast<Renderer>().Concat(meshRenderers.Cast<Renderer>()).ToArray();
-                                disablerType.GetField("glbRenderers").SetValue(disabler, renderers);
-                            }
-                            else
-                            {
-                                Debug.LogWarning("[FixMainScene] DisableGLBRenderers type not found in Assembly-CSharp");
-                            }
-                        }
+        Debug.Log($"[FixMainScene] GLB loaded & stripped: {skinnedRenderers.Length} skinned, {meshRenderers.Length} mesh renderers disabled");
+    }
 
-                        Debug.Log($"[FixMainScene] PlayerModel created: visual capsule at localPos {visualCapsule.transform.localPosition}, GLB loaded: {modelInstance != null}");
+    // ALWAYS create visible capsule (guaranteed visible, correct size)
+    var visualCapsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+    visualCapsule.name = "PlayerModel";
+    visualCapsule.transform.SetParent(player.transform);
+    visualCapsule.transform.localPosition = new Vector3(0, -0.9f, 0); // Center at y=0.2, feet at y=0.1 (on ground)
+    visualCapsule.transform.localScale = new Vector3(0.5f, 1.0f, 0.5f); // radius 0.25, height 2
+    visualCapsule.layer = LayerMask.NameToLayer("Player");
+    var visualMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+    visualMat.color = new Color(0.2f, 0.6f, 1f, 1f); // Blue color
+    visualCapsule.GetComponent<MeshRenderer>().sharedMaterial = visualMat;
+    UnityEngine.Object.DestroyImmediate(visualCapsule.GetComponent<CapsuleCollider>());
 
-        // Cleanup duplicate components on player root
-        CleanupDuplicateComponents(player);
+    if (modelInstance != null)
+    {
+        modelInstance.transform.SetParent(visualCapsule.transform);
+        modelInstance.transform.localPosition = Vector3.zero;
+        modelInstance.transform.localScale = Vector3.one;
+    }
 
-        // AudioListener on player
-        player.AddComponent<AudioListener>();
+    Debug.Log($"[FixMainScene] PlayerModel: capsule at localPos {visualCapsule.transform.localPosition}, GLB loaded: {modelInstance != null}");
 
-        return player;
+    CleanupDuplicateComponents(player);
+    player.AddComponent<AudioListener>();
+    return player;
+}
     }
 
     static void CleanupDuplicateComponents(GameObject player)
