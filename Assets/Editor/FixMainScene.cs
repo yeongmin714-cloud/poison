@@ -658,7 +658,9 @@ public static class FixMainScene
             // GLB is a Model Asset (not Prefab), use Object.Instantiate and ensure scene persistence
             var modelInstance = (GameObject)Object.Instantiate(modelPrefab, player.transform);
             modelInstance.name = "PlayerModel";
-            modelInstance.transform.localPosition = new Vector3(0, 0.9f, 0);
+            // Align model feet with CharacterController bottom (y=0 when CC center=1.0, height=2.0)
+            // Model pivot is typically at hip center; adjust so feet align with ground
+            modelInstance.transform.localPosition = new Vector3(0, -0.1f, 0); // Feet at y=0
             modelInstance.transform.localScale = Vector3.one;
             
             // CRITICAL: Set PlayerModel AND all children to Player layer (8) for camera culling
@@ -671,7 +673,7 @@ public static class FixMainScene
                 EditorUtility.SetDirty(child.gameObject);
             }
             
-            Debug.Log($"[FixMainScene] Created PlayerModel: {modelInstance.name}, parent: {modelInstance.transform.parent?.name}, active: {modelInstance.activeInHierarchy}");
+            Debug.Log($"[FixMainScene] Created PlayerModel: {modelInstance.name}, parent: {modelInstance.transform.parent?.name}, active: {modelInstance.activeInHierarchy}, localPos: {modelInstance.transform.localPosition}");
 
             // Remove Rigidbody/Animator from GLB (duplicate components cause issues)
             var rbs = modelInstance.GetComponentsInChildren<Rigidbody>();
