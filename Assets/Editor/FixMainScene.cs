@@ -457,6 +457,14 @@ public static class FixMainScene
                             groundMat.shaderKeywords = keywords.ToArray();
                         }
                         groundMat.EnableKeyword("_TERRAIN_NORMAL_MAP");
+                        
+                        // CRITICAL: Ensure all terrain keywords are enabled
+                        if (!keywords.Contains("_TERRAIN_BLEND_HEIGHT")) keywords.Add("_TERRAIN_BLEND_HEIGHT");
+                        if (!keywords.Contains("_TERRAIN_BLEND_NORMAL")) keywords.Add("_TERRAIN_BLEND_NORMAL");
+                        if (!keywords.Contains("_TERRAIN_HOLES")) keywords.Add("_TERRAIN_HOLES");
+                        groundMat.shaderKeywords = keywords.ToArray();
+                        foreach (var kw in keywords) groundMat.EnableKeyword(kw);
+                        
                         EditorUtility.SetDirty(groundMat);
                         AssetDatabase.SaveAssetIfDirty(groundMat);
                         AssetDatabase.SaveAssets();
@@ -703,9 +711,21 @@ public static class FixMainScene
                             modelInstance.transform.localPosition = Vector3.zero;
                             modelInstance.transform.localScale = Vector3.one;
             
+                            // CRITICAL: Strip ALL components except Transform and renderers to prevent independent movement
+                            var allComponents = modelInstance.GetComponentsInChildren<Component>();
+                            foreach (var comp in allComponents)
+                            {
+                                if (comp is Transform) continue;
+                                if (comp is SkinnedMeshRenderer || comp is MeshRenderer) continue;
+                                // Remove animation controllers, physics, etc. that could move GLB independently
+                                UnityEngine.Object.DestroyImmediate(comp);
+                            }
+            
                             // Hide GLB renderers initially (use capsule as primary visual)
                             foreach (var smr in skinnedRenderers) smr.enabled = false;
                             foreach (var mr in meshRenderers) mr.enabled = false;
+                            
+                            Debug.Log($"[FixMainScene] GLB stripped to render-only, parented to capsule");
                         }
         
                         Debug.Log($"[FixMainScene] PlayerModel created: visual capsule at localPos {visualCapsule.transform.localPosition}, GLB loaded: {modelInstance != null}");
