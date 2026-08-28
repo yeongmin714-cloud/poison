@@ -715,8 +715,18 @@ public static class FixMainScene
                         // Add runtime component to ensure GLB renderers stay disabled
                         if (modelInstance != null)
                         {
-                            var disabler = modelInstance.AddComponent<DisableGLBRenderers>();
-                            disabler.glbRenderers = skinnedRenderers.Cast<Renderer>().Concat(meshRenderers.Cast<Renderer>()).ToArray();
+                            // Use reflection since Editor assembly can't reference runtime assembly directly
+                            var disablerType = System.Type.GetType("ProjectName.Core.DisableGLBRenderers, Assembly-CSharp");
+                            if (disablerType != null)
+                            {
+                                var disabler = modelInstance.AddComponent(disablerType);
+                                var renderers = skinnedRenderers.Cast<Renderer>().Concat(meshRenderers.Cast<Renderer>()).ToArray();
+                                disablerType.GetField("glbRenderers").SetValue(disabler, renderers);
+                            }
+                            else
+                            {
+                                Debug.LogWarning("[FixMainScene] DisableGLBRenderers type not found in Assembly-CSharp");
+                            }
                         }
 
                         Debug.Log($"[FixMainScene] PlayerModel created: visual capsule at localPos {visualCapsule.transform.localPosition}, GLB loaded: {modelInstance != null}");
@@ -728,26 +738,6 @@ public static class FixMainScene
         player.AddComponent<AudioListener>();
 
         return player;
-    }
-
-    /// <summary>
-    /// Runtime component to keep GLB renderers disabled (capsule is the visual representation)
-    /// </summary>
-    private class DisableGLBRenderers : MonoBehaviour
-    {
-        public Renderer[] glbRenderers;
-
-        private void Awake()
-        {
-            foreach (var r in glbRenderers)
-                if (r != null) r.enabled = false;
-        }
-
-        private void OnEnable()
-        {
-            foreach (var r in glbRenderers)
-                if (r != null) r.enabled = false;
-        }
     }
 
     static void CleanupDuplicateComponents(GameObject player)
