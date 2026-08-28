@@ -727,6 +727,13 @@ public static class FixMainScene
                 foreach (var smr in skinnedRenderers) smr.enabled = false;
                 foreach (var mr in meshRenderers) mr.enabled = false;
 
+                // Force save the disabled renderers state to scene
+                foreach (var smr in skinnedRenderers) EditorUtility.SetDirty(smr);
+                foreach (var mr in meshRenderers) EditorUtility.SetDirty(mr);
+                EditorUtility.SetDirty(modelInstance);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+
                 // Add runtime disabler component for safety
                 var disablerType = System.Type.GetType("ProjectName.Core.DisableGLBRenderers, Assembly-CSharp");
                 if (disablerType != null)
@@ -740,17 +747,12 @@ public static class FixMainScene
                     Debug.LogWarning("[FixMainScene] DisableGLBRenderers type not found");
                 }
 
-                // Force save the disabled renderers state to scene
-                foreach (var smr in skinnedRenderers) EditorUtility.SetDirty(smr);
-                foreach (var mr in meshRenderers) EditorUtility.SetDirty(mr);
-                EditorUtility.SetDirty(modelInstance);
-
                 Debug.Log($"[FixMainScene] GLB loaded & stripped: {skinnedRenderers.Length} skinned, {meshRenderers.Length} mesh renderers disabled");
             }
 
             Debug.Log($"[FixMainScene] PlayerModel: capsule at localPos {visualCapsule.transform.localPosition}, GLB loaded: {modelInstance != null}");
 
-    CleanupDuplicateComponents(player);
+        CleanupDuplicateComponents(player);CleanupDuplicateComponents(player);
     player.AddComponent<AudioListener>();
     return player;
 }
