@@ -165,6 +165,11 @@ public static class FixMainScene
         EnsurePlayerLayerExists();
 
         // ================================================================
+        // 0. Ensure "Ground" layer exists (Critical for terrain physics/collision)
+        // ================================================================
+        EnsureGroundLayerExists();
+
+        // ================================================================
         // 1. URP Pipeline Setup - create proper URP asset with renderer
         // ================================================================
         var urpAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>("Assets/URP/URPAsset.asset");
@@ -1130,6 +1135,39 @@ namespace ProjectName.Systems.Animation.Procedural
         else
         {
             Debug.Log($"[FixMainScene] 'Player' layer already exists at index {playerLayer}");
+        }
+    }
+
+    // ================================================================
+    // 0. Ensure "Ground" layer exists (Critical for terrain physics/collision)
+    // ================================================================
+    static void EnsureGroundLayerExists()
+    {
+        int groundLayer = LayerMask.NameToLayer("Ground");
+        if (groundLayer == -1)
+        {
+            // Find first empty layer slot (8-31)
+            var tagManager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0];
+            var so = new SerializedObject(tagManager);
+            var layers = so.FindProperty("layers");
+            
+            for (int i = 8; i < 32; i++)
+            {
+                var layerProp = layers.GetArrayElementAtIndex(i);
+                if (string.IsNullOrEmpty(layerProp.stringValue))
+                {
+                    layerProp.stringValue = "Ground";
+                    so.ApplyModifiedProperties();
+                    AssetDatabase.SaveAssets();
+                    Debug.Log($"[FixMainScene] Created 'Ground' layer at index {i}");
+                    return;
+                }
+            }
+            Debug.LogError("[FixMainScene] No empty layer slot available for 'Ground' layer!");
+        }
+        else
+        {
+            Debug.Log($"[FixMainScene] 'Ground' layer already exists at index {groundLayer}");
         }
     }
 

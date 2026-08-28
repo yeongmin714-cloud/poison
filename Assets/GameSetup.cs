@@ -38,12 +38,15 @@ public class GameSetup : MonoBehaviour
     /// <summary>
     /// Ensures Player and Ground layers are set to collide in Physics settings.
     /// This is critical for CharacterController collision detection.
+    /// Also creates Ground layer if it doesn't exist.
     /// </summary>
     private void EnsureLayerCollisionMatrix()
     {
         int playerLayer = LayerMask.NameToLayer("Player");
         int groundLayer = LayerMask.NameToLayer("Ground");
         
+        // If Ground layer doesn't exist, we can't create it at runtime (Editor only)
+        // But we can ensure collision matrix for existing layers
         if (playerLayer >= 0 && groundLayer >= 0)
         {
             // Ensure Player collides with Ground (and vice versa)
@@ -57,7 +60,14 @@ public class GameSetup : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[GameSetup] Could not find Player or Ground layer. Player={playerLayer}, Ground={groundLayer}");
+            Debug.LogWarning($"[GameSetup] Could not find Player or Ground layer. Player={playerLayer}, Ground={groundLayer}. Ground layer must be created in Edit > Project Settings > Tags and Layers.");
+            
+            // Fallback: If Ground layer is missing, ensure Player collides with Default layer
+            if (playerLayer >= 0)
+            {
+                Physics.IgnoreLayerCollision(playerLayer, 0, false);
+                Debug.Log($"[GameSetup] Fallback: Player({playerLayer}) <-> Default(0) = collide");
+            }
         }
     }
 
@@ -318,7 +328,8 @@ public class GameSetup : MonoBehaviour
     /// </summary>
     private PlayerInput CreateFallbackPlayerInput(GameObject player)
     {
-        var actions = new InputActionAsset();
+        // FIX: InputActionAsset must be created via ScriptableObject.CreateInstance, not 'new'
+        var actions = ScriptableObject.CreateInstance<InputActionAsset>();
         actions.name = "PlayerControls_Fallback";
 
         // Create Player action map
