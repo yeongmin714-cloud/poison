@@ -652,76 +652,63 @@ public static class FixMainScene
                 // GameSetup.Start() -> SetupPlayerComponents() -> PlayerInputHelper.SetupPlayerInputFromResources()
 
                 // Player GLB Model
-        var modelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Models/UserProvided/Player_Rigged.glb");
-        if (modelPrefab != null)
-        {
-            // GLB is a Model Asset (not Prefab), use Object.Instantiate and ensure scene persistence
-            var modelInstance = (GameObject)Object.Instantiate(modelPrefab, player.transform);
-            modelInstance.name = "PlayerModel";
-            // Align model feet with CharacterController bottom (y=0 when CC center=1.0, height=2.0)
-            // Model pivot is typically at hip center; adjust so feet align with ground
-            modelInstance.transform.localPosition = new Vector3(0, -0.1f, 0); // Feet at y=0
-            modelInstance.transform.localScale = Vector3.one;
+                        var modelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Models/UserProvided/Player_Rigged.glb");
+                        GameObject modelInstance = null;
+                        var skinnedRenderers = new SkinnedMeshRenderer[0];
+                        var meshRenderers = new MeshRenderer[0];
+        
+                        if (modelPrefab != null)
+                        {
+                            // GLB is a Model Asset (not Prefab), use Object.Instantiate and ensure scene persistence
+                            modelInstance = (GameObject)Object.Instantiate(modelPrefab, player.transform);
+                            modelInstance.name = "PlayerModel_GLB";
+                            modelInstance.transform.localPosition = new Vector3(0, -0.1f, 0);
+                            modelInstance.transform.localScale = Vector3.one;
             
-            // CRITICAL: Set PlayerModel AND all children to Player layer (8) for camera culling
-            SetLayerRecursive(modelInstance, LayerMask.NameToLayer("Player"));
+                            SetLayerRecursive(modelInstance, LayerMask.NameToLayer("Player"));
+                            EditorUtility.SetDirty(modelInstance);
+                            foreach (Transform child in modelInstance.transform)
+                            {
+                                EditorUtility.SetDirty(child.gameObject);
+                            }
             
-            // CRITICAL: Mark as dirty for scene persistence (since not a Prefab)
-            EditorUtility.SetDirty(modelInstance);
-            foreach (Transform child in modelInstance.transform)
-            {
-                EditorUtility.SetDirty(child.gameObject);
-            }
+                            // Remove Rigidbody/Animator from GLB (duplicate components cause issues)
+                            var rbs = modelInstance.GetComponentsInChildren<Rigidbody>();
+                            foreach (var rb in rbs) UnityEngine.Object.DestroyImmediate(rb);
+                            var anims = modelInstance.GetComponentsInChildren<Animator>();
+                            foreach (var anim in anims) UnityEngine.Object.DestroyImmediate(anim);
             
-            Debug.Log($"[FixMainScene] Created PlayerModel: {modelInstance.name}, parent: {modelInstance.transform.parent?.name}, active: {modelInstance.activeInHierarchy}, localPos: {modelInstance.transform.localPosition}");
-
-            // Remove Rigidbody/Animator from GLB (duplicate components cause issues)
-            var rbs = modelInstance.GetComponentsInChildren<Rigidbody>();
-            foreach (var rb in rbs) UnityEngine.Object.DestroyImmediate(rb);
-            var anims = modelInstance.GetComponentsInChildren<Animator>();
-            foreach (var anim in anims) UnityEngine.Object.DestroyImmediate(anim);
-
-            // CRITICAL: Force SkinnedMeshRenderer bounds recalculation (zero AABB causes culling)
-            var skinnedRenderers = modelInstance.GetComponentsInChildren<SkinnedMeshRenderer>();
-            foreach (var smr in skinnedRenderers)
-            {
-                smr.enabled = true;
-                smr.updateWhenOffscreen = true;
-                // Force bounds recalculation
-                smr.localBounds = new Bounds(Vector3.zero, new Vector3(2f, 4f, 2f));
-            }
-
-            // Also ensure MeshRenderers are enabled
-            var meshRenderers = modelInstance.GetComponentsInChildren<MeshRenderer>();
-            foreach (var mr in meshRenderers)
-            {
-                mr.enabled = true;
-                mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
-                mr.receiveShadows = true;
-            }
-
-            // Add ModelAnimatorAssigner for full animation stack
-            var assigner = modelInstance.AddComponent<ProjectName.Systems.Animation.ModelAnimatorAssigner>();
-            // FORCE BIPED for Player (GLB may import as Generic initially)
-            assigner.ForceBiped(true);
-            // Call public Setup method after adding (ForceBiped already calls SetupAnimationSystem)
-            // assigner.SetupAnimationSystem();
-            Debug.Log($"[FixMainScene] PlayerModel setup complete with {skinnedRenderers.Length} skinned renderers, {meshRenderers.Length} mesh renderers");
-        }
-        else
-        {
-            Debug.LogWarning("[FixMainScene] Player_Rigged.glb not found, using cube proxy");
-            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            cube.name = "PlayerModel";
-            cube.transform.SetParent(player.transform);
-            cube.transform.localPosition = new Vector3(0, 0.9f, 0);
-            cube.transform.localScale = new Vector3(0.8f, 1.8f, 0.8f);
-            cube.layer = LayerMask.NameToLayer("Player"); // Ensure Player layer
-            var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            mat.color = Color.blue;
-            cube.GetComponent<MeshRenderer>().sharedMaterial = mat;
-            UnityEngine.Object.DestroyImmediate(cube.GetComponent<BoxCollider>());
-        }
+                            skinnedRenderers = modelInstance.GetComponentsInChildren<SkinnedMeshRenderer>();
+                            meshRenderers = modelInstance.GetComponentsInChildren<MeshRenderer>();
+            
+                            Debug.Log($"[FixMainScene] GLB loaded: {modelInstance.name}, skinnedRenderers={skinnedRenderers.Length}, meshRenderers={meshRenderers.Length}");
+                        }
+        
+                        // ALWAYS create a visible fallback capsule (guaranteed visible, correct size)
+                        var visualCapsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                        visualCapsule.name = "PlayerModel";
+                        visualCapsule.transform.SetParent(player.transform);
+                        visualCapsule.transform.localPosition = new Vector3(0, 1.0f, 0); // Center at y=1 (feet at y=0, top at y=2)
+                        visualCapsule.transform.localScale = new Vector3(0.5f, 1.0f, 0.5f); // radius 0.25, height 2
+                        visualCapsule.layer = LayerMask.NameToLayer("Player");
+                        var visualMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                        visualMat.color = new Color(0.2f, 0.6f, 1f, 1f); // Blue color
+                        visualCapsule.GetComponent<MeshRenderer>().sharedMaterial = visualMat;
+                        UnityEngine.Object.DestroyImmediate(visualCapsule.GetComponent<CapsuleCollider>());
+        
+                        // If GLB loaded, make it a child of the visual capsule for animation, but keep visual as primary
+                        if (modelInstance != null)
+                        {
+                            modelInstance.transform.SetParent(visualCapsule.transform);
+                            modelInstance.transform.localPosition = Vector3.zero;
+                            modelInstance.transform.localScale = Vector3.one;
+            
+                            // Hide GLB renderers initially (use capsule as primary visual)
+                            foreach (var smr in skinnedRenderers) smr.enabled = false;
+                            foreach (var mr in meshRenderers) mr.enabled = false;
+                        }
+        
+                        Debug.Log($"[FixMainScene] PlayerModel created: visual capsule at localPos {visualCapsule.transform.localPosition}, GLB loaded: {modelInstance != null}");
 
         // Cleanup duplicate components on player root
         CleanupDuplicateComponents(player);
