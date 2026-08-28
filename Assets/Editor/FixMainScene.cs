@@ -816,10 +816,24 @@ public static class FixMainScene
         var dnc = Object.FindFirstObjectByType<ProjectName.Systems.DayNightCycle>();
         if (dnc != null)
         {
+            // Use reflection for reliable field assignment in batchmode
+            var dncType = dnc.GetType();
+            var sunField = dncType.GetField("_sunLight", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var moonField = dncType.GetField("_moonLight", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            
+            if (sunField != null) sunField.SetValue(dnc, sun);
+            if (moonField != null) moonField.SetValue(dnc, moon);
+            
+            // Also try SerializedObject as fallback
             var so = new SerializedObject(dnc);
             so.FindProperty("_sunLight").objectReferenceValue = sun;
             so.FindProperty("_moonLight").objectReferenceValue = moon;
             so.ApplyModifiedProperties();
+            
+            // Mark dirty to ensure serialization
+            EditorUtility.SetDirty(dnc);
+            
+            Debug.Log($"[FixMainScene] DayNightCycle connected: Sun={sun != null}, Moon={moon != null}");
         }
 
         // Skybox

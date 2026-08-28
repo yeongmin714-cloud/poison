@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.UI;
@@ -178,7 +179,14 @@ public class GameSetup : MonoBehaviour
         // ── PlayerInput (Input System) ────────────────────────────────
         if (player.GetComponent<UnityEngine.InputSystem.PlayerInput>() == null)
         {
-            PlayerInputHelper.SetupPlayerInputFromResources(player);
+            var pi = PlayerInputHelper.SetupPlayerInputFromResources(player);
+            
+            // FALLBACK: If PlayerInputHelper fails (e.g., empty actionMaps), create basic actions programmatically
+            if (pi == null)
+            {
+                Debug.LogWarning("[GameSetup] PlayerInputHelper failed, creating fallback InputActionAsset programmatically");
+                pi = CreateFallbackPlayerInput(player);
+            }
         }
 
         // ── BuffManager ───────────────────────────────────────────────
@@ -271,5 +279,68 @@ public class GameSetup : MonoBehaviour
             loadGO.AddComponent<LoadingManager>();
             Debug.Log("[GameSetup] ✅ LoadingManager 생성");
         }
+    }
+
+    /// <summary>
+    /// Fallback: Create basic InputActionAsset programmatically when Resources.Load fails to deserialize actionMaps
+    /// </summary>
+    private PlayerInput CreateFallbackPlayerInput(GameObject player)
+    {
+        var actions = new InputActionAsset();
+        actions.name = "PlayerControls_Fallback";
+
+        // Create Player action map
+        var playerMap = actions.AddActionMap("Player");
+
+        // Move action (Vector2)
+        var moveAction = playerMap.AddAction("Move", InputActionType.Value);
+        moveAction.AddBinding("<Keyboard>/w").WithGroup("Keyboard");
+        moveAction.AddBinding("<Keyboard>/s").WithGroup("Keyboard");
+        moveAction.AddBinding("<Keyboard>/a").WithGroup("Keyboard");
+        moveAction.AddBinding("<Keyboard>/d").WithGroup("Keyboard");
+        moveAction.AddBinding("<Gamepad>/leftStick").WithGroup("Gamepad");
+        moveAction.expectedControlType = "Vector2";
+
+        // Jump action (Button)
+        var jumpAction = playerMap.AddAction("Jump", InputActionType.Button);
+        jumpAction.AddBinding("<Keyboard>/space");
+        jumpAction.AddBinding("<Gamepad>/buttonSouth");
+
+        // Attack action (Button)
+        var attackAction = playerMap.AddAction("Attack", InputActionType.Button);
+        attackAction.AddBinding("<Mouse>/leftButton");
+        attackAction.AddBinding("<Gamepad>/rightTrigger");
+
+        // Dash action (Button)
+        var dashAction = playerMap.AddAction("Dash", InputActionType.Button);
+        dashAction.AddBinding("<Keyboard>/leftShift");
+        dashAction.AddBinding("<Gamepad>/leftShoulder");
+
+        // Interact action (Button)
+        var interactAction = playerMap.AddAction("Interact", InputActionType.Button);
+        interactAction.AddBinding("<Keyboard>/e");
+        interactAction.AddBinding("<Gamepad>/buttonWest");
+
+        // Roll action (Button) - for C21-02
+        var rollAction = playerMap.AddAction("Roll", InputActionType.Button);
+        rollAction.AddBinding("<Keyboard>/q");
+        rollAction.AddBinding("<Gamepad>/buttonEast");
+
+        // Control schemes are optional - skip for fallback to avoid API compatibility issues
+        // The Input System will auto-detect based on bindings
+
+        // Now add PlayerInput component with proper initialization order
+        bool wasActive = player.activeInHierarchy;
+        if (wasActive) player.SetActive(false);
+
+        var pi = player.AddComponent<PlayerInput>();
+        pi.actions = actions;
+        pi.defaultActionMap = "Player";
+        pi.notificationBehavior = PlayerNotifications.InvokeUnityEvents;
+
+        if (wasActive) player.SetActive(true);
+
+        Debug.Log($"[GameSetup] ✅ Fallback PlayerInput created with action map 'Player' ({playerMap.actions.Count} actions)");
+        return pi;
     }
 }
