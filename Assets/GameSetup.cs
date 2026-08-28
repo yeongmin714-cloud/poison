@@ -17,6 +17,10 @@ public class GameSetup : MonoBehaviour
 
     private void Start()
     {
+        // CRITICAL: Ensure Physics layer collision matrix is correct
+        // Player layer (8) and Ground layer must collide for CharacterController to work
+        EnsureLayerCollisionMatrix();
+
         // CRITICAL: Purge any leftover DontDestroyOnLoad singletons from previous Play sessions
         // Other systems (SoundManagerEnhanced, TerritoryManager, TimeManager) use RuntimeInitializeOnLoadMethod
         // which creates persistent objects that survive across Play mode sessions
@@ -29,6 +33,32 @@ public class GameSetup : MonoBehaviour
         SetupWorldComponents();
 
         _autoSetup = false; // 한 번만 실행
+    }
+
+    /// <summary>
+    /// Ensures Player and Ground layers are set to collide in Physics settings.
+    /// This is critical for CharacterController collision detection.
+    /// </summary>
+    private void EnsureLayerCollisionMatrix()
+    {
+        int playerLayer = LayerMask.NameToLayer("Player");
+        int groundLayer = LayerMask.NameToLayer("Ground");
+        
+        if (playerLayer >= 0 && groundLayer >= 0)
+        {
+            // Ensure Player collides with Ground (and vice versa)
+            Physics.IgnoreLayerCollision(playerLayer, groundLayer, false);
+            Physics.IgnoreLayerCollision(groundLayer, playerLayer, false);
+            
+            // Also ensure Player collides with Default (0) and other common layers
+            Physics.IgnoreLayerCollision(playerLayer, 0, false); // Default layer
+            
+            Debug.Log($"[GameSetup] Physics layer collision matrix verified: Player({playerLayer}) <-> Ground({groundLayer}) = collide");
+        }
+        else
+        {
+            Debug.LogWarning($"[GameSetup] Could not find Player or Ground layer. Player={playerLayer}, Ground={groundLayer}");
+        }
     }
 
     /// <summary>
@@ -189,12 +219,14 @@ public class GameSetup : MonoBehaviour
             }
         }
 
-        // ── BuffManager ───────────────────────────────────────────────
-        if (player.GetComponent<BuffManager>() == null)
+        // ── CollisionDebugger (진단용) ──────────────────────────────────
+        #if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (player.GetComponent<ProjectName.Diagnostics.CollisionDebugger>() == null)
         {
-            player.AddComponent<BuffManager>();
-            Debug.Log("[GameSetup] ✅ BuffManager → Player에 추가");
+            player.AddComponent<ProjectName.Diagnostics.CollisionDebugger>();
+            Debug.Log("[GameSetup] ✅ CollisionDebugger → Player에 추가");
         }
+        #endif
     }
 
     /// <summary>
