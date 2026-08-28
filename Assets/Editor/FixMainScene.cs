@@ -497,9 +497,11 @@ public static class FixMainScene
 
         // CRITICAL: Add invisible collision floor to prevent CharacterController falling through procedural mesh
         // Procedural MeshCollider can have gaps/holes that CharacterController slips through
+        // Player spawns at y=2, CC bottom at y=1.1 (center=0.9, height=1.8)
+        // Floor must have top at >= y=0 (terrain surface) to catch player
         var floorObj = new GameObject("CollisionFloor");
         floorObj.transform.SetParent(ground.transform);
-        floorObj.transform.localPosition = new Vector3(0, -0.1f, 0); // Slightly below terrain surface
+        floorObj.transform.localPosition = new Vector3(0, 0.5f, 0); // BoxCollider center at 0.5, top at 1.0, bottom at 0.0
         var floorCollider = floorObj.AddComponent<BoxCollider>();
         floorCollider.size = new Vector3(2000f, 1f, 2000f); // Matches terrain size
         floorCollider.isTrigger = false;
