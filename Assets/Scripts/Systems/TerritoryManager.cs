@@ -14,40 +14,23 @@ namespace ProjectName.Systems
     /// 사용법:
     ///   TerritoryManager.Instance.CurrentTerritoryId  // 현재 영지 ID
     ///   TerritoryManager.Instance.TerritoryDatabase    // TerritoryDatabase 인스턴스
-    /// 4중 방어 패턴: BeforeSceneLoad + AfterSceneLoad + SubsystemRegistration + Getter
+    /// 씬 기반 싱글톤 (FixMainScene에서 생성)
     public class TerritoryManager : MonoBehaviour
     {
         public static TerritoryManager Instance { get; private set; }
         static bool _isQuitting = false;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        static void EnsureInstanceBeforeSceneLoad()
-        {
-            if (Instance == null && !_isQuitting)
-            {
-                var go = new GameObject("[TerritoryManager]");
-                Instance = go.AddComponent<TerritoryManager>();
-                DontDestroyOnLoad(go);
-            }
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        static void EnsureInstanceAfterSceneLoad()
-        {
-            if (Instance == null && !_isQuitting)
-            {
-                var go = new GameObject("[TerritoryManager]");
-                Instance = go.AddComponent<TerritoryManager>();
-                DontDestroyOnLoad(go);
-            }
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatic() => Instance = null;
+        // NOTE: RuntimeInitializeOnLoadMethod 제거 - FixMainScene에서 씬에 생성하므로 불필요
+        // 4중 방어 패턴 불필요 (씬 기반으로 단순화)
 
         public static TerritoryManager GetOrCreate()
         {
-            if (Instance == null && !_isQuitting) EnsureInstanceBeforeSceneLoad();
+            if (Instance == null && !_isQuitting)
+            {
+                var go = new GameObject("[TerritoryManager]");
+                Instance = go.AddComponent<TerritoryManager>();
+                DontDestroyOnLoad(go);
+            }
             return Instance;
         }
 

@@ -8,41 +8,24 @@ namespace ProjectName.Systems
     /// <summary>
     /// C13-01: 게임 시간 관리 싱글톤.
     /// 현실 시간을 게임 시간으로 변환하고, 시/분/주야 상태를 제공합니다.
-    /// 4중 방어 패턴: BeforeSceneLoad + AfterSceneLoad + SubsystemRegistration + Getter
+    /// 씬 기반 싱글톤 (FixMainScene에서 생성)
     /// </summary>
     public class TimeManager : MonoBehaviour
     {
         public static TimeManager Instance { get; private set; }
         static bool _isQuitting = false;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        static void EnsureInstanceBeforeSceneLoad()
-        {
-            if (Instance == null && !_isQuitting)
-            {
-                var go = new GameObject("[TimeManager]");
-                Instance = go.AddComponent<TimeManager>();
-                DontDestroyOnLoad(go);
-            }
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        static void EnsureInstanceAfterSceneLoad()
-        {
-            if (Instance == null && !_isQuitting)
-            {
-                var go = new GameObject("[TimeManager]");
-                Instance = go.AddComponent<TimeManager>();
-                DontDestroyOnLoad(go);
-            }
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatic() => Instance = null;
+        // NOTE: RuntimeInitializeOnLoadMethod 제거 - FixMainScene에서 씬에 생성하므로 불필요
+        // 4중 방어 패턴 불필요 (씬 기반으로 단순화)
 
         public static TimeManager GetOrCreate()
         {
-            if (Instance == null && !_isQuitting) EnsureInstanceBeforeSceneLoad();
+            if (Instance == null && !_isQuitting)
+            {
+                var go = new GameObject("[TimeManager]");
+                Instance = go.AddComponent<TimeManager>();
+                DontDestroyOnLoad(go);
+            }
             return Instance;
         }
 

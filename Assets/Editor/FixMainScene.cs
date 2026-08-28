@@ -617,64 +617,19 @@ public static class FixMainScene
         controller.center = new Vector3(0, 0.9f, 0);
 
         // Core components
-        player.AddComponent<ProjectName.Systems.PlayerMovement>();
-        var health = player.AddComponent<ProjectName.Core.PlayerHealth>();
-        // CRITICAL: Initialize HP so scene serializes _currentHP=100 (not 0)
-        health.Heal(100f); // _currentHP was 0, _maxHP=100 → becomes 100
-        player.AddComponent<ProjectName.Core.PlayerStats>();
-        player.AddComponent<ProjectName.Core.PlayerInventory>();
-        player.AddComponent<ProjectName.Systems.PlayerCombat>();
-        player.AddComponent<ProjectName.Systems.BombThrower>();
-        player.AddComponent<ProjectName.Core.BuffManager>();
+                player.AddComponent<ProjectName.Systems.PlayerMovement>();
+                var health = player.AddComponent<ProjectName.Core.PlayerHealth>();
+                // CRITICAL: Initialize HP so scene serializes _currentHP=100 (not 0)
+                health.Heal(100f); // _currentHP was 0, _maxHP=100 → becomes 100
+                player.AddComponent<ProjectName.Core.PlayerStats>();
+                player.AddComponent<ProjectName.Core.PlayerInventory>();
+                player.AddComponent<ProjectName.Systems.PlayerCombat>();
+                player.AddComponent<ProjectName.Systems.BombThrower>();
+                player.AddComponent<ProjectName.Core.BuffManager>();
 
-                // PlayerInput (Editor-time) - use helper for safe actions assignment
-                var inputActions = AssetDatabase.LoadAssetAtPath<UnityEngine.InputSystem.InputActionAsset>("Assets/Resources/Input/PlayerControls.inputactions");
-                if (inputActions == null)
-                {
-                    Debug.LogError("[FixMainScene] Input actions asset not found!");
-                }
-                else
-                {
-                    // Try helper first
-                    System.Type helperType = System.Type.GetType("ProjectName.Core.PlayerInputHelper, ProjectName.Core");
-                    if (helperType == null)
-                    {
-                        foreach (var asm in System.AppDomain.CurrentDomain.GetAssemblies())
-                        {
-                            helperType = asm.GetType("ProjectName.Core.PlayerInputHelper");
-                            if (helperType != null) break;
-                        }
-                    }
-
-                    bool setupDone = false;
-                    if (helperType != null)
-                    {
-                        var setupMethod = helperType.GetMethod("SetupPlayerInput", new[] { typeof(GameObject), typeof(UnityEngine.InputSystem.InputActionAsset) });
-                        if (setupMethod != null)
-                        {
-                            try
-                            {
-                                setupMethod.Invoke(null, new object[] { player, inputActions });
-                                setupDone = true;
-                                Debug.Log($"[FixMainScene] PlayerInput setup invoked successfully");
-                            }
-                            catch (System.Exception e)
-                            {
-                                Debug.LogError($"[FixMainScene] PlayerInput setup failed: {e}");
-                            }
-                        }
-                    }
-
-                    // Fallback: Ensure PlayerInput component exists
-                    if (!setupDone)
-                    {
-                        var pi = player.GetComponent<UnityEngine.InputSystem.PlayerInput>() ?? player.AddComponent<UnityEngine.InputSystem.PlayerInput>();
-                        pi.actions = inputActions;
-                        pi.defaultActionMap = "Player";
-                        pi.notificationBehavior = UnityEngine.InputSystem.PlayerNotifications.InvokeUnityEvents;
-                        Debug.Log("[FixMainScene] PlayerInput added via fallback");
-                    }
-                }
+                // NOTE: PlayerInput is NOT added here - it will be added at runtime by GameSetup
+                // This avoids batchmode serialization issues with InputActionAsset action maps
+                // GameSetup.Start() -> SetupPlayerComponents() -> PlayerInputHelper.SetupPlayerInputFromResources()
 
                 // Player GLB Model
         var modelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Models/UserProvided/Player_Rigged.glb");
@@ -765,24 +720,8 @@ public static class FixMainScene
         var anims = player.GetComponents<Animator>();
         foreach (var anim in anims) UnityEngine.Object.DestroyImmediate(anim);
 
-        // Ensure PlayerInput has actions using helper via reflection
-        var input = player.GetComponent<UnityEngine.InputSystem.PlayerInput>();
-        if (input != null && input.actions == null)
-        {
-            System.Type helperType = System.Type.GetType("ProjectName.Core.PlayerInputHelper, ProjectName.Core");
-            if (helperType != null)
-            {
-                var setupMethod = helperType.GetMethod("SetupPlayerInput", new[] { typeof(GameObject), typeof(UnityEngine.InputSystem.InputActionAsset) });
-                if (setupMethod != null)
-                {
-                    setupMethod.Invoke(null, new object[] { input.gameObject, AssetDatabase.LoadAssetAtPath<UnityEngine.InputSystem.InputActionAsset>("Assets/Resources/Input/PlayerControls.inputactions") });
-                }
-            }
-            else
-            {
-                Debug.LogError("[FixMainScene] PlayerInputHelper not found!");
-            }
-        }
+        // NOTE: PlayerInput is intentionally NOT added in FixMainScene (batchmode)
+        // It will be added at runtime by GameSetup via PlayerInputHelper.SetupPlayerInputFromResources()
     }
 
     // ================================================================

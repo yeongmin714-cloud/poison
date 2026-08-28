@@ -16,40 +16,19 @@ namespace ProjectName.Systems
     ///
     /// DontDestroyOnLoad 자동 설정, SceneManager.sceneLoaded 이벤트를 통해
     /// 씬 전환 시 BGM 자동 전환을 지원합니다.
+    /// 씬 기반 싱글톤 (FixMainScene에서 생성)
     /// </summary>
     public class SoundManagerEnhanced : MonoBehaviour
     {
         // ================================================================
-        // Singleton — 4중 방어 패턴
+        // Singleton — 씬 기반 단순화
         // ================================================================
 
         private static SoundManagerEnhanced _instance;
         private static bool _instanceQuitting;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        static void EnsureInstanceBeforeSceneLoad()
-        {
-            if (_instance == null && !_instanceQuitting)
-            {
-                var go = new GameObject("[SoundManagerEnhanced]");
-                _instance = go.AddComponent<SoundManagerEnhanced>();
-                DontDestroyOnLoad(go);
-            }
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        static void EnsureInstanceAfterSceneLoad()
-        {
-            if (_instance == null && !_instanceQuitting)
-            {
-                var go = new GameObject("[SoundManagerEnhanced]");
-                _instance = go.AddComponent<SoundManagerEnhanced>();
-                DontDestroyOnLoad(go);
-            }
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatic() => _instance = null;
+        // NOTE: RuntimeInitializeOnLoadMethod 제거 - FixMainScene에서 씬에 생성하므로 불필요
+        // 4중 방어 패턴 불필요 (씬 기반으로 단순화)
 
         public static SoundManagerEnhanced Instance
         {
@@ -70,7 +49,12 @@ namespace ProjectName.Systems
 
         public static SoundManagerEnhanced GetOrCreate()
         {
-            if (_instance == null && !_instanceQuitting) EnsureInstanceBeforeSceneLoad();
+            if (_instance == null && !_instanceQuitting)
+            {
+                var go = new GameObject("[SoundManagerEnhanced]");
+                _instance = go.AddComponent<SoundManagerEnhanced>();
+                DontDestroyOnLoad(go);
+            }
             return _instance;
         }
 
