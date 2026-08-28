@@ -704,13 +704,51 @@ public static class FixMainScene
     UnityEngine.Object.DestroyImmediate(visualCapsule.GetComponent<CapsuleCollider>());
 
     if (modelInstance != null)
-    {
-        modelInstance.transform.SetParent(visualCapsule.transform);
-        modelInstance.transform.localPosition = Vector3.zero;
-        modelInstance.transform.localScale = Vector3.one;
-    }
+            {
+                modelInstance.transform.SetParent(visualCapsule.transform);
+                modelInstance.transform.localPosition = Vector3.zero;
+                modelInstance.transform.localScale = Vector3.one;
 
-    Debug.Log($"[FixMainScene] PlayerModel: capsule at localPos {visualCapsule.transform.localPosition}, GLB loaded: {modelInstance != null}");
+                // CRITICAL: Strip ALL components from GLB AND ALL CHILDREN recursively
+                var allComponents = modelInstance.GetComponentsInChildren<Component>(true); // include inactive
+                foreach (var comp in allComponents)
+                {
+                    if (comp is Transform) continue;
+                    if (comp is SkinnedMeshRenderer || comp is MeshRenderer) continue;
+                    // Remove animation controllers, physics, etc. that could move GLB independently
+                    UnityEngine.Object.DestroyImmediate(comp);
+                }
+
+                // Get all renderers (including children) after stripping
+                skinnedRenderers = modelInstance.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                meshRenderers = modelInstance.GetComponentsInChildren<MeshRenderer>(true);
+
+                // Disable GLB renderers immediately in editor scene
+                foreach (var smr in skinnedRenderers) smr.enabled = false;
+                foreach (var mr in meshRenderers) mr.enabled = false;
+
+                // Add runtime disabler component for safety
+                var disablerType = System.Type.GetType("ProjectName.Core.DisableGLBRenderers, Assembly-CSharp");
+                if (disablerType != null)
+                {
+                    var disabler = modelInstance.AddComponent(disablerType);
+                    var renderers = skinnedRenderers.Cast<Renderer>().Concat(meshRenderers.Cast<Renderer>()).ToArray();
+                    disablerType.GetField("glbRenderers").SetValue(disabler, renderers);
+                }
+                else
+                {
+                    Debug.LogWarning("[FixMainScene] DisableGLBRenderers type not found");
+                }
+
+                // Force save the disabled renderers state to scene
+                foreach (var smr in skinnedRenderers) EditorUtility.SetDirty(smr);
+                foreach (var mr in meshRenderers) EditorUtility.SetDirty(mr);
+                EditorUtility.SetDirty(modelInstance);
+
+                Debug.Log($"[FixMainScene] GLB loaded & stripped: {skinnedRenderers.Length} skinned, {meshRenderers.Length} mesh renderers disabled");
+            }
+
+            Debug.Log($"[FixMainScene] PlayerModel: capsule at localPos {visualCapsule.transform.localPosition}, GLB loaded: {modelInstance != null}");
 
     CleanupDuplicateComponents(player);
     player.AddComponent<AudioListener>();
@@ -779,46 +817,70 @@ public static class FixMainScene
                 tpFollow.CameraSide = 1;              // Right side (1 = right, -1 = left)
                 tpFollow.Damping = new Vector3(1f, 0.5f, 1f); // X, Y, Z damping
 
-                // Input Axis Controller for mouse orbit (Cinemachine 3.x)
-                var inputAxis = vcamObj.AddComponent<CinemachineInputAxisController>();
-                // Configure mouse X (horizontal) and Y (vertical) axes for orbit using reflection
-                var inputAxisType = inputAxis.GetType();
-                
-                // Create X axis (Mouse X -> horizontal rotation)
-                var axisXType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
-                if (axisXType != null)
-                {
-                    var axisX = System.Activator.CreateInstance(axisXType);
-                    axisXType.GetProperty("ValueRange").SetValue(axisX, new Vector2(-180, 180));
-                    axisXType.GetProperty("Wrap").SetValue(axisX, true);
-                    axisXType.GetProperty("Speed").SetValue(axisX, 180f);
-                    axisXType.GetProperty("AccelTime").SetValue(axisX, 0.1f);
-                    axisXType.GetProperty("DecelTime").SetValue(axisX, 0.1f);
-                    axisXType.GetProperty("InputAxisName").SetValue(axisX, "Mouse X");
-                    axisXType.GetProperty("InputAxisValue").SetValue(axisX, 0f);
-                    var xAxisField = inputAxisType.GetField("XAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                    if (xAxisField != null) xAxisField.SetValue(inputAxis, axisX);
-                }
-                
-                // Create Y axis (Mouse Y -> vertical rotation)
-                var axisYType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
-                if (axisYType != null)
-                {
-                    var axisY = System.Activator.CreateInstance(axisYType);
-                    axisYType.GetProperty("ValueRange").SetValue(axisY, new Vector2(-80, 80));
-                    axisYType.GetProperty("Wrap").SetValue(axisY, false);
-                    axisYType.GetProperty("Speed").SetValue(axisY, 180f);
-                    axisYType.GetProperty("AccelTime").SetValue(axisY, 0.1f);
-                    axisYType.GetProperty("DecelTime").SetValue(axisY, 0.1f);
-                    axisYType.GetProperty("InputAxisName").SetValue(axisY, "Mouse Y");
-                    axisYType.GetProperty("InputAxisValue").SetValue(axisY, 0f);
-                    var yAxisField = inputAxisType.GetField("YAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                    if (yAxisField != null) yAxisField.SetValue(inputAxis, axisY);
-                }
-                
-                Debug.Log("[FixMainScene] CinemachineInputAxisController configured for mouse orbit");
+                                // Input Axis Controller for mouse orbit (Cinemachine 3.x)
+                                var inputAxis = vcamObj.AddComponent<CinemachineInputAxisController>();
+                                // Configure mouse X (horizontal) and Y (vertical) axes for orbit using reflection
+                                var inputAxisType = inputAxis.GetType();
 
-                // Add runtime zoom controller (not Editor-only)
+                                // Declare axisX and axisY outside if blocks for scope
+                                object axisX = null;
+                                object axisY = null;
+
+                                // Create X axis (Mouse X -> horizontal rotation)
+                                var axisXType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
+                                if (axisXType != null)
+                                {
+                                    axisX = System.Activator.CreateInstance(axisXType);
+                                    axisXType.GetProperty("ValueRange").SetValue(axisX, new Vector2(-180, 180));
+                                    axisXType.GetProperty("Wrap").SetValue(axisX, true);
+                                    axisXType.GetProperty("Speed").SetValue(axisX, 180f);
+                                    axisXType.GetProperty("AccelTime").SetValue(axisX, 0.1f);
+                                    axisXType.GetProperty("DecelTime").SetValue(axisX, 0.1f);
+                                    axisXType.GetProperty("InputAxisName").SetValue(axisX, "Mouse X");
+                                    axisXType.GetProperty("InputAxisValue").SetValue(axisX, 0f);
+                                    var xAxisField = inputAxisType.GetField("XAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                                    if (xAxisField != null) xAxisField.SetValue(inputAxis, axisX);
+                                }
+
+                                // Create Y axis (Mouse Y -> vertical rotation)
+                                var axisYType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
+                                if (axisYType != null)
+                                {
+                                    axisY = System.Activator.CreateInstance(axisYType);
+                                    axisYType.GetProperty("ValueRange").SetValue(axisY, new Vector2(-80, 80));
+                                    axisYType.GetProperty("Wrap").SetValue(axisY, false);
+                                    axisYType.GetProperty("Speed").SetValue(axisY, 180f);
+                                    axisYType.GetProperty("AccelTime").SetValue(axisY, 0.1f);
+                                    axisYType.GetProperty("DecelTime").SetValue(axisY, 0.1f);
+                                    axisYType.GetProperty("InputAxisName").SetValue(axisY, "Mouse Y");
+                                    axisYType.GetProperty("InputAxisValue").SetValue(axisY, 0f);
+                                    var yAxisField = inputAxisType.GetField("YAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                                    if (yAxisField != null) yAxisField.SetValue(inputAxis, axisY);
+                                }
+
+                                // Also set the controller manager's axes
+                                var controllerManager = inputAxisType.GetProperty("ControllerManager");
+                                if (controllerManager != null)
+                                {
+                                    var cm = controllerManager.GetValue(inputAxis);
+                                    if (cm != null)
+                                    {
+                                        var cmType = cm.GetType();
+                                        var controllersField = cmType.GetField("Controllers", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                                        if (controllersField != null)
+                                        {
+                                            // Create default controller setup
+                                            var axisStateType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
+                                            var controllerArray = System.Array.CreateInstance(axisStateType, 2);
+                                            controllerArray.SetValue(axisX, 0);
+                                            controllerArray.SetValue(axisY, 1);
+                                            controllersField.SetValue(cm, controllerArray);
+                                        }
+                                    }
+                                }
+
+                                Debug.Log("[FixMainScene] CinemachineInputAxisController configured for mouse orbit");
+                
                 vcamObj.AddComponent<ProjectName.Systems.CameraZoomControllerRuntime>();
             }
 
