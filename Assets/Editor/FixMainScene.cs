@@ -432,49 +432,33 @@ public static class FixMainScene
                 normalTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_Normal.asset");
 
                 // Step 3: Create material and assign textures
-                var groundMat = new Material(Shader.Find("Universal Render Pipeline/Terrain/Lit"));
-                if (groundMat == null) groundMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                groundMat.name = "Ground_Grass_Mat";
-
-                groundMat.SetTexture("_Control", controlMap);
-                groundMat.SetTexture("_Splat0", grassTex);
-                groundMat.SetTexture("_Splat1", dirtTex);
-                groundMat.SetTexture("_Normal0", normalTex);
-                groundMat.SetFloat("_Splat0TileSize", 10f);
-                groundMat.SetFloat("_Splat1TileSize", 10f);
-                groundMat.SetFloat("_NumLayersCount", 2f); // 2 layers: grass + dirt
-
-                // Save material as asset for proper keyword persistence
-                        AssetDatabase.CreateAsset(groundMat, "Assets/URP/Ground_Grass_Mat.mat");
-                        AssetDatabase.SaveAssets();
-                        groundMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/URP/Ground_Grass_Mat.mat");
-
-                        // Force keyword persistence - use shaderKeywords API (works in Unity 2021+)
-                        var keywords = new List<string>(groundMat.shaderKeywords);
-                        if (!keywords.Contains("_TERRAIN_NORMAL_MAP"))
-                        {
-                            keywords.Add("_TERRAIN_NORMAL_MAP");
-                            groundMat.shaderKeywords = keywords.ToArray();
-                        }
-                        groundMat.EnableKeyword("_TERRAIN_NORMAL_MAP");
-                        
-                        // CRITICAL: Ensure all terrain keywords are enabled
-                        if (!keywords.Contains("_TERRAIN_BLEND_HEIGHT")) keywords.Add("_TERRAIN_BLEND_HEIGHT");
-                        if (!keywords.Contains("_TERRAIN_BLEND_NORMAL")) keywords.Add("_TERRAIN_BLEND_NORMAL");
-                        if (!keywords.Contains("_TERRAIN_HOLES")) keywords.Add("_TERRAIN_HOLES");
-                        groundMat.shaderKeywords = keywords.ToArray();
-                        foreach (var kw in keywords) groundMat.EnableKeyword(kw);
-                        
-                        EditorUtility.SetDirty(groundMat);
-                        AssetDatabase.SaveAssetIfDirty(groundMat);
-                        AssetDatabase.SaveAssets();
-                        AssetDatabase.Refresh();
-        
-                        // Force reimport to ensure keyword serialization
-                        AssetDatabase.ImportAsset("Assets/URP/Ground_Grass_Mat.mat", ImportAssetOptions.ForceUpdate);
-
-                mr.sharedMaterial = groundMat;
-                EditorUtility.SetDirty(groundMat);
+                                // Use URP/Lit instead of Terrain/Lit for reliable rendering in batchmode
+                                var groundMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                                if (groundMat == null) groundMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                                groundMat.name = "Ground_Grass_Mat";
+                
+                                // Configure as terrain-like material
+                                groundMat.SetTexture("_BaseMap", grassTex);
+                                groundMat.SetTexture("_BumpMap", normalTex);
+                                groundMat.SetFloat("_Smoothness", 0.1f);
+                                groundMat.SetFloat("_Metallic", 0f);
+                                groundMat.SetColor("_BaseColor", new Color(0.4f, 0.6f, 0.3f, 1f)); // Grass green tint
+                
+                                // Enable GPU instancing for performance
+                                groundMat.enableInstancing = true;
+                
+                                // Save material as asset
+                                AssetDatabase.CreateAsset(groundMat, "Assets/URP/Ground_Grass_Mat.mat");
+                                AssetDatabase.SaveAssets();
+                                groundMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/URP/Ground_Grass_Mat.mat");
+                
+                                EditorUtility.SetDirty(groundMat);
+                                AssetDatabase.SaveAssetIfDirty(groundMat);
+                                AssetDatabase.SaveAssets();
+                                AssetDatabase.Refresh();
+                
+                                mr.sharedMaterial = groundMat;
+                                EditorUtility.SetDirty(groundMat);
 
         // MeshCollider for physics
         var mc = ground.AddComponent<MeshCollider>();
