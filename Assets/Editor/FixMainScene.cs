@@ -220,32 +220,34 @@ public static class FixMainScene
         ForceRegisterPlayerSingletons(player);
 
         // ================================================================
-        // 6. Camera System - CORRECT Cinemachine 3.x (Shoulder View + Zoom)
+        // 7. Camera System - CORRECT Cinemachine 3.x (Shoulder View + Zoom)
         // ================================================================
         CreateCameraSystem(player);
 
         // ================================================================
-        // 7. Lighting System (Directional Light + Moon Light)
-        // ================================================================
-        CreateLightingSystem();
-
-        // ================================================================
-        // 8. HUD (BotW Hearts), MinimapUI
-        // ================================================================
-        CreateHUDSystem();
-
-        // ================================================================
-        // 9. EventSystem (InputSystemUIInputModule)
-        // ================================================================
-        CreateEventSystem();
-
-        // ================================================================
-        // 10. Core Game Systems
+        // 8. Core Game Systems (includes DayNightCycle, TimeManager)
+        // MUST run before LightingSystem so DayNightCycle exists for connection
         // ================================================================
         CreateCoreGameSystems();
 
         // ================================================================
-        // 11. Environment Systems
+        // 9. Lighting System (Directional Light + Moon Light)
+        // Connects to DayNightCycle created in CreateCoreGameSystems
+        // ================================================================
+        CreateLightingSystem();
+
+        // ================================================================
+        // 10. HUD (BotW Hearts), MinimapUI
+        // ================================================================
+        CreateHUDSystem();
+
+        // ================================================================
+        // 11. EventSystem (InputSystemUIInputModule)
+        // ================================================================
+        CreateEventSystem();
+
+        // ================================================================
+        // 12. Environment Systems
         // ================================================================
         InitializeEnvironmentSystems();
 
@@ -832,6 +834,7 @@ public static class FixMainScene
             
             // Mark dirty to ensure serialization
             EditorUtility.SetDirty(dnc);
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             
             Debug.Log($"[FixMainScene] DayNightCycle connected: Sun={sun != null}, Moon={moon != null}");
         }
