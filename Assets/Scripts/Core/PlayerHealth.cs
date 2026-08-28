@@ -67,7 +67,8 @@ namespace ProjectName.Core
                 return;
             }
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            // NOTE: Player 오브젝트는 씬에 있어야 함. DontDestroyOnLoad 제거 (Player가 DontDestroyOnLoad 씬으로 이동하면 GameSetup Purge에서 파괴됨)
+            // DontDestroyOnLoad(gameObject);
             _movement = GetComponent("PlayerMovement"); // C21-02: 구르기 무적 체크용 (reflection-safe)
         }
 

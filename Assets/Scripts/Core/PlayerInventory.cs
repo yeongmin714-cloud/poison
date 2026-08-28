@@ -61,7 +61,8 @@ namespace ProjectName.Core
                 return;
             }
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            // NOTE: Player 오브젝트는 씬에 있어야 함. DontDestroyOnLoad 제거
+            // DontDestroyOnLoad(gameObject);
             _slots = new ItemSlot[_maxSlots];
         }
 

@@ -33,17 +33,15 @@ public class GameSetup : MonoBehaviour
     /// <summary>
     /// Removes stale DontDestroyOnLoad singleton instances that persist across Play mode sessions.
     /// These are created by RuntimeInitializeOnLoadMethod in systems like SoundManagerEnhanced, TerritoryManager, TimeManager.
+    /// NOTE: PlayerHealth, PlayerStats, PlayerInventory, PlayerCombat, BuffManager are scene-based (attached to Player)
+    /// and should NOT be purged - they move with the Player GameObject.
     /// </summary>
     private void PurgeRuntimeSingletons()
     {
         // Core singletons that might conflict with scene-loaded instances
+        // ONLY purge systems that use RuntimeInitializeOnLoadMethod and create their own DontDestroyOnLoad objects
         var typesToPurge = new System.Type[]
         {
-            typeof(ProjectName.Core.PlayerHealth),
-            typeof(ProjectName.Core.PlayerStats),
-            typeof(ProjectName.Core.PlayerInventory),
-            typeof(ProjectName.Systems.PlayerCombat),
-            typeof(ProjectName.Core.BuffManager),
             typeof(ProjectName.Systems.SoundManagerEnhanced),
             typeof(ProjectName.Systems.TerritoryManager),
             typeof(ProjectName.Systems.TimeManager),
@@ -72,8 +70,8 @@ public class GameSetup : MonoBehaviour
             }
         }
 
-        // Also purge any DontDestroyOnLoad objects with known names
-        var staleNames = new string[] { "PlayerHealth", "PlayerStats", "PlayerInventory", "PlayerCombat", "BuffManager", "SoundManagerEnhanced", "TerritoryManager", "TimeManager", "GameManager" };
+        // Also purge any DontDestroyOnLoad objects with known names (systems only, NOT Player components)
+        var staleNames = new string[] { "SoundManagerEnhanced", "TerritoryManager", "TimeManager", "GameManager" };
         foreach (var name in staleNames)
         {
             var obj = GameObject.Find(name);
