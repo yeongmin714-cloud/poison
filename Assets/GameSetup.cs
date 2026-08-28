@@ -227,21 +227,68 @@ public class GameSetup : MonoBehaviour
                 Debug.LogWarning("[GameSetup] PlayerInputHelper failed, creating fallback InputActionAsset programmatically");
                 pi = CreateFallbackPlayerInput(player);
             }
-        }
-
         // ── CollisionDebugger (진단용) ──────────────────────────────────
-        #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (player.GetComponent<ProjectName.Diagnostics.CollisionDebugger>() == null)
-        {
-            player.AddComponent<ProjectName.Diagnostics.CollisionDebugger>();
-            Debug.Log("[GameSetup] ✅ CollisionDebugger → Player에 추가");
-        }
-        #endif
-    }
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
+                if (player.GetComponent<ProjectName.Diagnostics.CollisionDebugger>() == null)
+                {
+                    player.AddComponent<ProjectName.Diagnostics.CollisionDebugger>();
+                    Debug.Log("[GameSetup] ✅ CollisionDebugger → Player에 추가");
+                }
+                #endif
 
-    /// <summary>
-    /// 씬에 MonsterSpawner, HUD, BuffManager가 없으면 생성합니다.
-    /// </summary>
+                // ── Disable GLB Renderers (런타임에 GLB 렌더러 비활성화) ──────────────
+                // GLB 모델은 PlayerModel의 자식으로, 렌더러를 비활성화해야 함
+                var glbModel = player.transform.Find("PlayerModel/PlayerModel_GLB");
+                if (glbModel != null)
+                {
+                    var disableType = System.Type.GetType("ProjectName.Core.DisableGLBRenderers, Assembly-CSharp");
+                    if (disableType != null)
+                    {
+                        var disabler = glbModel.gameObject.GetComponent(disableType) ?? glbModel.gameObject.AddComponent(disableType);
+                        // GLB 및 자식들의 모든 렌더러 수집
+                        var renderers = glbModel.GetComponentsInChildren<Renderer>(true);
+                        disableType.GetField("glbRenderers").SetValue(disabler, renderers);
+                        Debug.Log($"[GameSetup] ✅ DisableGLBRenderers → GLB 모델에 추가 ({renderers.Length}개 렌더러)");
+                    }
+                                }
+
+                                // ── CollisionDebugger (진단용) ──────────────────────────────────
+                                #if UNITY_EDITOR || DEVELOPMENT_BUILD
+                                if (player.GetComponent<ProjectName.Diagnostics.CollisionDebugger>() == null)
+                                {
+                                    player.AddComponent<ProjectName.Diagnostics.CollisionDebugger>();
+                                    Debug.Log("[GameSetup] ✅ CollisionDebugger → Player에 추가");
+                                }
+                                #endif
+
+                                // ── Disable GLB Renderers (런타임에 GLB 렌더러 비활성화) ──────────────
+                                // GLB 모델은 PlayerModel의 자식으로, 렌더러를 비활성화해야 함
+                                var glbModel = player.transform.Find("PlayerModel/PlayerModel_GLB");
+                                if (glbModel != null)
+                                {
+                                    var disableType = System.Type.GetType("ProjectName.Core.DisableGLBRenderers, Assembly-CSharp");
+                                    if (disableType != null)
+                                    {
+                                        var disabler = glbModel.gameObject.GetComponent(disableType) ?? glbModel.gameObject.AddComponent(disableType);
+                                        // GLB 및 자식들의 모든 렌더러 수집
+                                        var renderers = glbModel.GetComponentsInChildren<Renderer>(true);
+                                        disableType.GetField("glbRenderers").SetValue(disabler, renderers);
+                                        Debug.Log($"[GameSetup] ✅ DisableGLBRenderers → GLB 모델에 추가 ({renderers.Length}개 렌더러)");
+                                    }
+                                    else
+                                    {
+                                        Debug.LogWarning("[GameSetup] DisableGLBRenderers type not found");
+                                    }
+                                }
+                                else
+                                {
+                                    Debug.LogWarning("[GameSetup] GLB 모델(PlayerModel_GLB)을 찾을 수 없음");
+                                }
+                            }
+
+                        /// <summary>
+                        /// 씬에 MonsterSpawner, HUD, BuffManager가 없으면 생성합니다.
+                        /// </summary>
     private void SetupWorldComponents()
     {
         // MonsterSpawner (원점)

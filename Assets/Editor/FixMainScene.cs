@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
+using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using Unity.Cinemachine;
@@ -724,15 +725,17 @@ public static class FixMainScene
                 meshRenderers = modelInstance.GetComponentsInChildren<MeshRenderer>(true);
 
                 // Disable GLB renderers immediately in editor scene
-                foreach (var smr in skinnedRenderers) smr.enabled = false;
-                foreach (var mr in meshRenderers) mr.enabled = false;
+                                                            foreach (var smr in skinnedRenderers) smr.enabled = false;
+                                                            foreach (var mr in meshRenderers) mr.enabled = false;
 
-                // Force save the disabled renderers state to scene
-                foreach (var smr in skinnedRenderers) EditorUtility.SetDirty(smr);
-                foreach (var mr in meshRenderers) EditorUtility.SetDirty(mr);
-                EditorUtility.SetDirty(modelInstance);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
+                                                            // Force save the disabled renderers state to scene
+                                                            foreach (var smr in skinnedRenderers) EditorUtility.SetDirty(smr);
+                                                            foreach (var mr in meshRenderers) EditorUtility.SetDirty(mr);
+                                                            EditorUtility.SetDirty(modelInstance);
+                                                            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+                                                            EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+                                                            AssetDatabase.SaveAssets();
+                                                            AssetDatabase.Refresh();
 
                 // Add runtime disabler component for safety
                 var disablerType = System.Type.GetType("ProjectName.Core.DisableGLBRenderers, Assembly-CSharp");
