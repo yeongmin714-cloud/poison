@@ -716,7 +716,6 @@ public static class FixMainScene
     player.AddComponent<AudioListener>();
     return player;
 }
-    }
 
     static void CleanupDuplicateComponents(GameObject player)
     {
@@ -780,10 +779,44 @@ public static class FixMainScene
                 tpFollow.CameraSide = 1;              // Right side (1 = right, -1 = left)
                 tpFollow.Damping = new Vector3(1f, 0.5f, 1f); // X, Y, Z damping
 
-                // Input Axis Controller for mouse orbit (Cinemachine 3.x) - auto-configures with default input axes
+                // Input Axis Controller for mouse orbit (Cinemachine 3.x)
                 var inputAxis = vcamObj.AddComponent<CinemachineInputAxisController>();
-                // The component auto-configures with default Mouse X/Y axes for orbit
-                Debug.Log("[FixMainScene] CinemachineInputAxisController added for mouse orbit");
+                // Configure mouse X (horizontal) and Y (vertical) axes for orbit using reflection
+                var inputAxisType = inputAxis.GetType();
+                
+                // Create X axis (Mouse X -> horizontal rotation)
+                var axisXType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
+                if (axisXType != null)
+                {
+                    var axisX = System.Activator.CreateInstance(axisXType);
+                    axisXType.GetProperty("ValueRange").SetValue(axisX, new Vector2(-180, 180));
+                    axisXType.GetProperty("Wrap").SetValue(axisX, true);
+                    axisXType.GetProperty("Speed").SetValue(axisX, 180f);
+                    axisXType.GetProperty("AccelTime").SetValue(axisX, 0.1f);
+                    axisXType.GetProperty("DecelTime").SetValue(axisX, 0.1f);
+                    axisXType.GetProperty("InputAxisName").SetValue(axisX, "Mouse X");
+                    axisXType.GetProperty("InputAxisValue").SetValue(axisX, 0f);
+                    var xAxisField = inputAxisType.GetField("XAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                    if (xAxisField != null) xAxisField.SetValue(inputAxis, axisX);
+                }
+                
+                // Create Y axis (Mouse Y -> vertical rotation)
+                var axisYType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
+                if (axisYType != null)
+                {
+                    var axisY = System.Activator.CreateInstance(axisYType);
+                    axisYType.GetProperty("ValueRange").SetValue(axisY, new Vector2(-80, 80));
+                    axisYType.GetProperty("Wrap").SetValue(axisY, false);
+                    axisYType.GetProperty("Speed").SetValue(axisY, 180f);
+                    axisYType.GetProperty("AccelTime").SetValue(axisY, 0.1f);
+                    axisYType.GetProperty("DecelTime").SetValue(axisY, 0.1f);
+                    axisYType.GetProperty("InputAxisName").SetValue(axisY, "Mouse Y");
+                    axisYType.GetProperty("InputAxisValue").SetValue(axisY, 0f);
+                    var yAxisField = inputAxisType.GetField("YAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                    if (yAxisField != null) yAxisField.SetValue(inputAxis, axisY);
+                }
+                
+                Debug.Log("[FixMainScene] CinemachineInputAxisController configured for mouse orbit");
 
                 // Add runtime zoom controller (not Editor-only)
                 vcamObj.AddComponent<ProjectName.Systems.CameraZoomControllerRuntime>();
