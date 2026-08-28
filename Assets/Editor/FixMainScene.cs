@@ -502,18 +502,17 @@ public static class FixMainScene
         // NEW: 물 시스템 연동 (LakeGenerator + WaterBody) - 저지대 자동 물 메시 생성
         CreateWaterSystem(ground);
 
-        // CRITICAL: Add invisible collision floor at terrain surface to prevent CharacterController falling through procedural mesh
-        // Procedural MeshCollider can have gaps/holes that CharacterController slips through
-        // Terrain height range: y=0 to y=0.5 (Plains biome noiseAmplitude=0.5)
-        // Floor at surface level: center y=0.25, size y=0.5 (spans y=0 to y=0.5)
+        // CRITICAL: Add invisible collision floor at GROUND LEVEL (y=1) for CharacterController
+        // CharacterController: center=1.0, height=2.0 → bottom at y=0 when standing on ground at y=1
+        // Floor at y=1: center y=1.05, size y=0.1 (spans y=1.0 to y=1.1)
         var floorObj = new GameObject("CollisionFloor");
         floorObj.transform.SetParent(ground.transform);
-        floorObj.transform.localPosition = new Vector3(0, 0.25f, 0); // BoxCollider center at 0.25, top at 0.5, bottom at 0.0
+        floorObj.transform.localPosition = new Vector3(0, 1.05f, 0); // BoxCollider center at 1.05, top at 1.1, bottom at 1.0
         var floorCollider = floorObj.AddComponent<BoxCollider>();
-        floorCollider.size = new Vector3(2000f, 0.5f, 2000f); // Thin at surface level
+        floorCollider.size = new Vector3(2000f, 0.1f, 2000f); // Thin at ground level
         floorCollider.isTrigger = false;
         floorObj.layer = LayerMask.NameToLayer("Ground");
-        Debug.Log("[FixMainScene] Added CollisionFloor at terrain surface (y=0 to y=0.5)");
+        Debug.Log("[FixMainScene] Added CollisionFloor at ground level y=1.0");
 
         // SAFETY NET: Add deep safety floor at y=-50 as last resort
         // If everything else fails, this catches the player before infinite fall
@@ -629,12 +628,12 @@ public static class FixMainScene
         var player = new GameObject("Player");
         player.tag = "Player";
         player.layer = LayerMask.NameToLayer("Player"); // Ensure Player layer
-        player.transform.position = new Vector3(0, 5, 0); // Higher spawn (y=5) to fall onto collision floor at y=0.5
+        player.transform.position = new Vector3(0, 2, 0); // Spawn at y=2 (center), feet at y=1 (ground level)
 
         var controller = player.AddComponent<CharacterController>();
-        controller.height = 1.8f;
+        controller.height = 2.0f;
         controller.radius = 0.4f;
-        controller.center = new Vector3(0, 0.9f, 0);
+        controller.center = new Vector3(0, 1.0f, 0); // center=1.0, height=2.0 → bottom at y=0 when on ground y=1
         controller.skinWidth = 0.08f; // Increased skinWidth to prevent tunneling through thin colliders
 
         // Core components
