@@ -499,16 +499,27 @@ public static class FixMainScene
 
         // CRITICAL: Add invisible collision floor to prevent CharacterController falling through procedural mesh
         // Procedural MeshCollider can have gaps/holes that CharacterController slips through
-        // Player spawns at y=2, CC bottom at y=1.1 (center=0.9, height=1.8)
-        // Floor must have top at >= y=0 (terrain surface) to catch player
+        // Player spawns at y=3, CC bottom at y=2.1 (center=0.9, height=1.8)
+        // Floor must be thick enough to prevent tunneling at high velocity
         var floorObj = new GameObject("CollisionFloor");
         floorObj.transform.SetParent(ground.transform);
-        floorObj.transform.localPosition = new Vector3(0, 0.5f, 0); // BoxCollider center at 0.5, top at 1.0, bottom at 0.0
+        floorObj.transform.localPosition = new Vector3(0, 2.5f, 0); // BoxCollider center at 2.5, top at 5.0, bottom at 0.0
         var floorCollider = floorObj.AddComponent<BoxCollider>();
-        floorCollider.size = new Vector3(2000f, 1f, 2000f); // Matches terrain size
+        floorCollider.size = new Vector3(2000f, 5f, 2000f); // Thick floor (y=5) to prevent tunneling
         floorCollider.isTrigger = false;
         floorObj.layer = LayerMask.NameToLayer("Ground");
-        Debug.Log("[FixMainScene] Added CollisionFloor to prevent falling through terrain");
+        Debug.Log("[FixMainScene] Added CollisionFloor (thick) to prevent falling through terrain");
+
+        // SAFETY NET: Add deep safety floor at y=-50 as last resort
+        // If everything else fails, this catches the player before infinite fall
+        var safetyFloor = new GameObject("SafetyFloor");
+        safetyFloor.transform.SetParent(ground.transform);
+        safetyFloor.transform.localPosition = new Vector3(0, -50f, 0);
+        var safetyCollider = safetyFloor.AddComponent<BoxCollider>();
+        safetyCollider.size = new Vector3(5000f, 10f, 5000f); // Very large
+        safetyCollider.isTrigger = false;
+        safetyFloor.layer = LayerMask.NameToLayer("Ground");
+        Debug.Log("[FixMainScene] Added SafetyFloor at y=-50 as last resort");
 
         return ground;
     }
@@ -613,12 +624,13 @@ public static class FixMainScene
         var player = new GameObject("Player");
         player.tag = "Player";
         player.layer = LayerMask.NameToLayer("Player"); // Ensure Player layer
-        player.transform.position = new Vector3(0, 2, 0);
+        player.transform.position = new Vector3(0, 3, 0); // Higher spawn (y=3) to clear terrain + collision floor
 
         var controller = player.AddComponent<CharacterController>();
         controller.height = 1.8f;
         controller.radius = 0.4f;
         controller.center = new Vector3(0, 0.9f, 0);
+        controller.skinWidth = 0.08f; // Increased skinWidth to prevent tunneling through thin colliders
 
         // Core components
                 player.AddComponent<ProjectName.Systems.PlayerMovement>();
