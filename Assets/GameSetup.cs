@@ -169,6 +169,80 @@ public class GameSetup : MonoBehaviour
             Debug.Log("[GameSetup] ✅ Main Camera(CinemachineBrain) 검증 완료");
         }
 
+        // ── CinemachineInputAxisController 런타임 구성 (마우스 오비트) ──────────────
+        var vcam = GameObject.Find("Player Camera");
+        if (vcam != null)
+        {
+            var inputAxis = vcam.GetComponent<CinemachineInputAxisController>();
+            if (inputAxis == null)
+            {
+                inputAxis = vcam.AddComponent<CinemachineInputAxisController>();
+            }
+            
+            // Configure axes using reflection (SerializedObject not available at runtime)
+            var inputAxisType = inputAxis.GetType();
+            
+            // Create X axis (Mouse X -> horizontal rotation)
+            var axisXType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
+            if (axisXType != null)
+            {
+                var axisX = System.Activator.CreateInstance(axisXType);
+                axisXType.GetProperty("ValueRange").SetValue(axisX, new Vector2(-180, 180));
+                axisXType.GetProperty("Wrap").SetValue(axisX, true);
+                axisXType.GetProperty("Speed").SetValue(axisX, 180f);
+                axisXType.GetProperty("AccelTime").SetValue(axisX, 0.1f);
+                axisXType.GetProperty("DecelTime").SetValue(axisX, 0.1f);
+                axisXType.GetProperty("InputAxisName").SetValue(axisX, "Mouse X");
+                axisXType.GetProperty("InputAxisValue").SetValue(axisX, 0f);
+                
+                var xAxisField = inputAxisType.GetField("XAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (xAxisField != null) xAxisField.SetValue(inputAxis, axisX);
+            }
+            
+            // Create Y axis (Mouse Y -> vertical rotation)
+            var axisYType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
+            if (axisYType != null)
+            {
+                var axisY = System.Activator.CreateInstance(axisYType);
+                axisYType.GetProperty("ValueRange").SetValue(axisY, new Vector2(-80, 80));
+                axisYType.GetProperty("Wrap").SetValue(axisY, false);
+                axisYType.GetProperty("Speed").SetValue(axisY, 180f);
+                axisYType.GetProperty("AccelTime").SetValue(axisY, 0.1f);
+                axisYType.GetProperty("DecelTime").SetValue(axisY, 0.1f);
+                axisYType.GetProperty("InputAxisName").SetValue(axisY, "Mouse Y");
+                axisYType.GetProperty("InputAxisValue").SetValue(axisY, 0f);
+                
+                var yAxisField = inputAxisType.GetField("YAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (yAxisField != null) yAxisField.SetValue(inputAxis, axisY);
+            }
+            
+            // Also set the controller manager's axes
+            var controllerManager = inputAxisType.GetProperty("ControllerManager");
+            if (controllerManager != null)
+            {
+                var cm = controllerManager.GetValue(inputAxis);
+                if (cm != null)
+                {
+                    var cmType = cm.GetType();
+                    var controllersField = cmType.GetField("Controllers", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                    if (controllersField != null)
+                    {
+                        var axisStateType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
+                        var controllerArray = System.Array.CreateInstance(axisStateType, 2);
+                        
+                        var xAxisField = inputAxisType.GetField("XAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                        var yAxisField = inputAxisType.GetField("YAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                        if (xAxisField != null) controllerArray.SetValue(xAxisField.GetValue(inputAxis), 0);
+                        if (yAxisField != null) controllerArray.SetValue(yAxisField.GetValue(inputAxis), 1);
+                        
+                        controllersField.SetValue(cm, controllerArray);
+                    }
+                }
+            }
+            
+            Debug.Log("[GameSetup] ✅ CinemachineInputAxisController configured for mouse orbit at runtime");
+        }
+
         // ── PlayerHealth ───────────────────────────────────────────────
         // PlayerHealth는 [RuntimeInitializeOnLoadMethod]로 자동 생성될 수 있음.
         // Instance가 이미 있으면 AddComponent하지 않고 Instance를 설정.
