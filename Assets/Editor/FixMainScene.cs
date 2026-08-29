@@ -886,7 +886,11 @@ public static class FixMainScene
 
                                 Debug.Log("[FixMainScene] CinemachineInputAxisController configured for mouse orbit");
                 
-                vcamObj.AddComponent<ProjectName.Systems.CameraZoomControllerRuntime>();
+                                                // CRITICAL: Mark as dirty so the axis configuration serializes in batchmode
+                                                EditorUtility.SetDirty(inputAxis);
+                                                EditorUtility.SetDirty(vcamObj);
+               
+                                                vcamObj.AddComponent<ProjectName.Systems.CameraZoomControllerRuntime>();
             }
 
     // ================================================================
