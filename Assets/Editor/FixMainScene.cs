@@ -447,9 +447,17 @@ public static class FixMainScene
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            // DO NOT assign any material here - it causes inline material in scene
-            // GameSetup will apply the Ground_Grass_Mat asset at runtime
-            // Leave MeshRenderer with no material (shows pink in editor, proper at runtime)
+            // CRITICAL: Also copy to Resources for GameSetup runtime loading
+            AssetDatabase.CopyAsset("Assets/URP/Ground_Grass_Mat.mat", "Assets/Resources/URP/Ground_Grass_Mat.mat");
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            // Assign material asset to scene for EDITOR visibility
+            // This ensures terrain shows correctly in both Editor and Play Mode
+            var groundMatAsset = AssetDatabase.LoadAssetAtPath<Material>("Assets/URP/Ground_Grass_Mat.mat");
+            mr.sharedMaterial = groundMatAsset;
+            EditorUtility.SetDirty(mr);
+            EditorUtility.SetDirty(groundMatAsset);
 
         // MeshCollider for physics
         var mc = ground.AddComponent<MeshCollider>();
@@ -666,7 +674,7 @@ public static class FixMainScene
     var visualCapsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
     visualCapsule.name = "PlayerModel";
     visualCapsule.transform.SetParent(player.transform);
-    visualCapsule.transform.localPosition = new Vector3(0, -0.5f, 0); // Center at y=0.6, bottom at y=0.1 (matches CC bottom)
+    visualCapsule.transform.localPosition = new Vector3(0, 0f, 0); // Center at y=1.1 (matches Player), bottom at y=0.1 (matches CC bottom)
     visualCapsule.transform.localScale = new Vector3(0.5f, 1.0f, 0.5f); // radius 0.25, height 2
     visualCapsule.layer = LayerMask.NameToLayer("Player");
     var visualMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
