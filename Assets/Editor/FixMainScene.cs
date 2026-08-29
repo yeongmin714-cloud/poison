@@ -818,79 +818,65 @@ public static class FixMainScene
                 var tpFollow = vcamObj.AddComponent<CinemachineThirdPersonFollow>();
                 tpFollow.CameraDistance = 25f;        // 25m distance as requested
                 tpFollow.VerticalArmLength = 8f;      // Height offset
-                tpFollow.ShoulderOffset = new Vector3(2.5f, 0f, 0f); // Right shoulder
-                tpFollow.CameraSide = 1;              // Right side (1 = right, -1 = left)
-                tpFollow.Damping = new Vector3(1f, 0.5f, 1f); // X, Y, Z damping
+                                tpFollow.ShoulderOffset = new Vector3(2.5f, 0f, 0f); // Right shoulder
+                                tpFollow.CameraSide = 1;              // Right side (1 = right, -1 = left)
+                                tpFollow.Damping = new Vector3(1f, 0.5f, 1f); // X, Y, Z damping
 
-                                // Input Axis Controller for mouse orbit (Cinemachine 3.x)
-                                var inputAxis = vcamObj.AddComponent<CinemachineInputAxisController>();
-                                // Configure mouse X (horizontal) and Y (vertical) axes for orbit using reflection
-                                var inputAxisType = inputAxis.GetType();
-
-                                // Declare axisX and axisY outside if blocks for scope
-                                object axisX = null;
-                                object axisY = null;
-
-                                // Create X axis (Mouse X -> horizontal rotation)
-                                var axisXType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
-                                if (axisXType != null)
-                                {
-                                    axisX = System.Activator.CreateInstance(axisXType);
-                                    axisXType.GetProperty("ValueRange").SetValue(axisX, new Vector2(-180, 180));
-                                    axisXType.GetProperty("Wrap").SetValue(axisX, true);
-                                    axisXType.GetProperty("Speed").SetValue(axisX, 180f);
-                                    axisXType.GetProperty("AccelTime").SetValue(axisX, 0.1f);
-                                    axisXType.GetProperty("DecelTime").SetValue(axisX, 0.1f);
-                                    axisXType.GetProperty("InputAxisName").SetValue(axisX, "Mouse X");
-                                    axisXType.GetProperty("InputAxisValue").SetValue(axisX, 0f);
-                                    var xAxisField = inputAxisType.GetField("XAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                                    if (xAxisField != null) xAxisField.SetValue(inputAxis, axisX);
-                                }
-
-                                // Create Y axis (Mouse Y -> vertical rotation)
-                                var axisYType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
-                                if (axisYType != null)
-                                {
-                                    axisY = System.Activator.CreateInstance(axisYType);
-                                    axisYType.GetProperty("ValueRange").SetValue(axisY, new Vector2(-80, 80));
-                                    axisYType.GetProperty("Wrap").SetValue(axisY, false);
-                                    axisYType.GetProperty("Speed").SetValue(axisY, 180f);
-                                    axisYType.GetProperty("AccelTime").SetValue(axisY, 0.1f);
-                                    axisYType.GetProperty("DecelTime").SetValue(axisY, 0.1f);
-                                    axisYType.GetProperty("InputAxisName").SetValue(axisY, "Mouse Y");
-                                    axisYType.GetProperty("InputAxisValue").SetValue(axisY, 0f);
-                                    var yAxisField = inputAxisType.GetField("YAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                                    if (yAxisField != null) yAxisField.SetValue(inputAxis, axisY);
-                                }
-
-                                // Also set the controller manager's axes
-                                var controllerManager = inputAxisType.GetProperty("ControllerManager");
-                                if (controllerManager != null)
-                                {
-                                    var cm = controllerManager.GetValue(inputAxis);
-                                    if (cm != null)
-                                    {
-                                        var cmType = cm.GetType();
-                                        var controllersField = cmType.GetField("Controllers", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                                        if (controllersField != null)
-                                        {
-                                            // Create default controller setup
-                                            var axisStateType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
-                                            var controllerArray = System.Array.CreateInstance(axisStateType, 2);
-                                            controllerArray.SetValue(axisX, 0);
-                                            controllerArray.SetValue(axisY, 1);
-                                            controllersField.SetValue(cm, controllerArray);
-                                        }
-                                    }
-                                }
-
-                                Debug.Log("[FixMainScene] CinemachineInputAxisController configured for mouse orbit");
-                
-                                                // CRITICAL: Mark as dirty so the axis configuration serializes in batchmode
-                                                EditorUtility.SetDirty(inputAxis);
-                                                EditorUtility.SetDirty(vcamObj);
+                                                // Input Axis Controller for mouse orbit (Cinemachine 3.x)
+                                                var inputAxis = vcamObj.AddComponent<CinemachineInputAxisController>();
+                                
+                                                // Use SerializedObject for proper serialization in batchmode
+                                                var so = new SerializedObject(inputAxis);
+                                
+                                                // Configure X axis (Mouse X -> horizontal rotation)
+                                                var xAxis = so.FindProperty("XAxis");
+                                                if (xAxis != null)
+                                                {
+                                                    xAxis.FindPropertyRelative("ValueRange").vector2Value = new Vector2(-180, 180);
+                                                    xAxis.FindPropertyRelative("Wrap").boolValue = true;
+                                                    xAxis.FindPropertyRelative("Speed").floatValue = 180f;
+                                                    xAxis.FindPropertyRelative("AccelTime").floatValue = 0.1f;
+                                                    xAxis.FindPropertyRelative("DecelTime").floatValue = 0.1f;
+                                                    xAxis.FindPropertyRelative("InputAxisName").stringValue = "Mouse X";
+                                                    xAxis.FindPropertyRelative("InputAxisValue").floatValue = 0f;
+                                                }
+                                
+                                                // Configure Y axis (Mouse Y -> vertical rotation)
+                                                var yAxis = so.FindProperty("YAxis");
+                                                if (yAxis != null)
+                                                {
+                                                    yAxis.FindPropertyRelative("ValueRange").vector2Value = new Vector2(-80, 80);
+                                                    yAxis.FindPropertyRelative("Wrap").boolValue = false;
+                                                    yAxis.FindPropertyRelative("Speed").floatValue = 180f;
+                                                    yAxis.FindPropertyRelative("AccelTime").floatValue = 0.1f;
+                                                    yAxis.FindPropertyRelative("DecelTime").floatValue = 0.1f;
+                                                    yAxis.FindPropertyRelative("InputAxisName").stringValue = "Mouse Y";
+                                                    yAxis.FindPropertyRelative("InputAxisValue").floatValue = 0f;
+                                                }
+                                
+                                                // Configure ControllerManager's Controllers array
+                                                var controllerManager = so.FindProperty("ControllerManager");
+                                                if (controllerManager != null)
+                                                {
+                                                    var controllers = controllerManager.FindPropertyRelative("Controllers");
+                                                    if (controllers != null && controllers.isArray)
+                                                    {
+                                                        controllers.arraySize = 2;
+                                                        // Copy XAxis and YAxis to Controllers array
+                                                        controllers.GetArrayElementAtIndex(0).managedReferenceValue = xAxis.managedReferenceValue;
+                                                        controllers.GetArrayElementAtIndex(1).managedReferenceValue = yAxis.managedReferenceValue;
+                                                    }
+                                                }
+                                
+                                                so.ApplyModifiedProperties();
+                                
+                                                Debug.Log("[FixMainScene] CinemachineInputAxisController configured for mouse orbit");
                
-                                                vcamObj.AddComponent<ProjectName.Systems.CameraZoomControllerRuntime>();
+                                                                // CRITICAL: Mark as dirty so the axis configuration serializes in batchmode
+                                                                EditorUtility.SetDirty(inputAxis);
+                                                                EditorUtility.SetDirty(vcamObj);
+              
+                                                                vcamObj.AddComponent<ProjectName.Systems.CameraZoomControllerRuntime>();
             }
 
     // ================================================================
