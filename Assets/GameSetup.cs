@@ -380,6 +380,27 @@ public class GameSetup : MonoBehaviour
     /// </summary>
     private void SetupWorldComponents()
     {
+        // ── 지형 머티리얼 적용 (런타임) ──────────────────────────────
+        // FixMainScene에서 생성한 머티리얼 에셋을 로드하여 적용
+        var groundObj = GameObject.Find("Ground_Inner");
+        if (groundObj != null)
+        {
+            var mr = groundObj.GetComponent<MeshRenderer>();
+            if (mr != null)
+            {
+                var groundMat = Resources.Load<Material>("URP/Ground_Grass_Mat");
+                if (groundMat != null)
+                {
+                    mr.sharedMaterial = groundMat;
+                    Debug.Log("[GameSetup] ✅ 지형 머티리얼 적용 완료 (Ground_Grass_Mat)");
+                }
+                else
+                {
+                    Debug.LogWarning("[GameSetup] Ground_Grass_Mat 머티리얼을 찾을 수 없음");
+                }
+            }
+        }
+
         // MonsterSpawner (원점)
         if (FindAnyObjectByType<MonsterSpawner>() == null)
         {

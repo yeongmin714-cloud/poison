@@ -399,52 +399,61 @@ public static class FixMainScene
     // Heightmap Terrain (2000x2000, seed=42)
     // ================================================================
     static GameObject CreateHeightmapTerrain()
-    {
-        var biome = ProjectName.Core.Data.BiomeType.Plains;
-        var (terrainMesh, waterMesh) = ProjectName.Systems.TerrainGenerator.GenerateTerrain(biome, 42, 100, 2000f);
+        {
+            var biome = ProjectName.Core.Data.BiomeType.Plains;
+            var (terrainMesh, waterMesh) = ProjectName.Systems.TerrainGenerator.GenerateTerrain(biome, 42, 100, 2000f);
 
-        var ground = new GameObject("Ground_Inner");
-        ground.layer = LayerMask.NameToLayer("Ground");
+            var ground = new GameObject("Ground_Inner");
+            ground.layer = LayerMask.NameToLayer("Ground");
 
-        var mf = ground.AddComponent<MeshFilter>();
-        mf.sharedMesh = terrainMesh;
+            var mf = ground.AddComponent<MeshFilter>();
+            mf.sharedMesh = terrainMesh;
 
-        var mr = ground.AddComponent<MeshRenderer>();
+            var mr = ground.AddComponent<MeshRenderer>();
 
-                // CRITICAL: Create material asset FIRST, then load and assign
-                // This ensures the scene references the asset, not an inline copy
-                var groundMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                groundMat.name = "Ground_Grass_Mat";
-        
-                AssetDatabase.CreateAsset(groundMat, "Assets/URP/Ground_Grass_Mat.mat");
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-        
-                // Reload from asset database to get proper asset reference
-                groundMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/URP/Ground_Grass_Mat.mat");
-        
-                // NOW configure the material (after it's an asset)
-                groundMat.SetTexture("_BaseMap", grassTex);
-                groundMat.SetTexture("_BumpMap", normalTex);
-                groundMat.SetFloat("_Smoothness", 0.1f);
-                groundMat.SetFloat("_Metallic", 0f);
-                groundMat.SetColor("_BaseColor", new Color(0.4f, 0.6f, 0.3f, 1f));
-                groundMat.enableInstancing = true;
-                groundMat.SetTextureScale("_BaseMap", new Vector2(200f, 200f));
-                groundMat.SetTextureScale("_BumpMap", new Vector2(200f, 200f));
-        
-                EditorUtility.SetDirty(groundMat);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-        
-                mr.sharedMaterial = groundMat;
-                EditorUtility.SetDirty(mr);
-                EditorUtility.SetDirty(groundMat);
-        
-                // Force save scene to ensure material asset reference is used
-                EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
+            // Step 1: Create and save procedural textures FIRST
+            var controlMap = CreateProceduralControlMap(256);
+            var grassTex = CreateProceduralGrassTexture(256);
+            var dirtTex = CreateProceduralDirtTexture(256);
+            var normalTex = CreateProceduralNormalTexture(256);
+
+            AssetDatabase.CreateAsset(controlMap, "Assets/URP/Terrain_ControlMap.asset");
+            AssetDatabase.CreateAsset(grassTex, "Assets/URP/Terrain_Grass.asset");
+            AssetDatabase.CreateAsset(dirtTex, "Assets/URP/Terrain_Dirt.asset");
+            AssetDatabase.CreateAsset(normalTex, "Assets/URP/Terrain_Normal.asset");
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            // Reload textures from asset database
+            controlMap = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_ControlMap.asset");
+            grassTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_Grass.asset");
+            dirtTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_Dirt.asset");
+            normalTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_Normal.asset");
+
+            // CRITICAL: Create material asset with correct settings
+            // This asset will be referenced by GameSetup at runtime
+            var groundMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            groundMat.name = "Ground_Grass_Mat";
+            groundMat.SetTexture("_BaseMap", grassTex);
+            groundMat.SetTexture("_BumpMap", normalTex);
+            groundMat.SetFloat("_Smoothness", 0.1f);
+            groundMat.SetFloat("_Metallic", 0f);
+            groundMat.SetColor("_BaseColor", new Color(0.4f, 0.6f, 0.3f, 1f));
+            groundMat.enableInstancing = true;
+            groundMat.SetTextureScale("_BaseMap", new Vector2(200f, 200f));
+            groundMat.SetTextureScale("_BumpMap", new Vector2(200f, 200f));
+
+            AssetDatabase.CreateAsset(groundMat, "Assets/URP/Ground_Grass_Mat.mat");
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            // Assign a simple fallback material for editor visibility
+            // GameSetup will apply the full material at runtime
+            var fallbackMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            fallbackMat.color = new Color(0.4f, 0.6f, 0.3f, 1f);
+            fallbackMat.enableInstancing = true;
+            mr.sharedMaterial = fallbackMat;
+            EditorUtility.SetDirty(mr);
 
         // MeshCollider for physics
         var mc = ground.AddComponent<MeshCollider>();
