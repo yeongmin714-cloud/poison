@@ -411,60 +411,40 @@ public static class FixMainScene
 
         var mr = ground.AddComponent<MeshRenderer>();
 
-        // CRITICAL: Create and assign procedural textures so terrain is visible in Editor/PlayMode
-                // before NationTerrainController generates runtime textures
-                // Step 1: Create and save textures FIRST
-                var controlMap = CreateProceduralControlMap(256);
-                var grassTex = CreateProceduralGrassTexture(256);
-                var dirtTex = CreateProceduralDirtTexture(256);
-                var normalTex = CreateProceduralNormalTexture(256);
-
-                AssetDatabase.CreateAsset(controlMap, "Assets/URP/Terrain_ControlMap.asset");
-                AssetDatabase.CreateAsset(grassTex, "Assets/URP/Terrain_Grass.asset");
-                AssetDatabase.CreateAsset(dirtTex, "Assets/URP/Terrain_Dirt.asset");
-                AssetDatabase.CreateAsset(normalTex, "Assets/URP/Terrain_Normal.asset");
+                // CRITICAL: Create material asset FIRST, then load and assign
+                // This ensures the scene references the asset, not an inline copy
+                var groundMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                groundMat.name = "Ground_Grass_Mat";
+        
+                AssetDatabase.CreateAsset(groundMat, "Assets/URP/Ground_Grass_Mat.mat");
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
-
-                // Step 2: Reload textures from asset database
-                controlMap = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_ControlMap.asset");
-                grassTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_Grass.asset");
-                dirtTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_Dirt.asset");
-                normalTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_Normal.asset");
-
-                // Step 3: Create material and assign textures
-                                // Use URP/Lit instead of Terrain/Lit for reliable rendering in batchmode
-                                var groundMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                                if (groundMat == null) groundMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                                groundMat.name = "Ground_Grass_Mat";
-                
-                                // Configure as terrain-like material
-                                groundMat.SetTexture("_BaseMap", grassTex);
-                                groundMat.SetTexture("_BumpMap", normalTex);
-                                groundMat.SetFloat("_Smoothness", 0.1f);
-                                groundMat.SetFloat("_Metallic", 0f);
-                                groundMat.SetColor("_BaseColor", new Color(0.4f, 0.6f, 0.3f, 1f)); // Grass green tint
-
-                                                                // Enable GPU instancing for performance
-                                                                groundMat.enableInstancing = true;
-
-                                                                // CRITICAL: Set tiling for large terrain (2000x2000)
-                                                                groundMat.SetTextureScale("_BaseMap", new Vector2(200f, 200f));
-                                                                groundMat.SetTextureScale("_BumpMap", new Vector2(200f, 200f));
-
-                                                                // Save material as asset
-                                                                AssetDatabase.CreateAsset(groundMat, "Assets/URP/Ground_Grass_Mat.mat");
-                                                                AssetDatabase.SaveAssets();
-                                                                groundMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/URP/Ground_Grass_Mat.mat");
-
-                                                                EditorUtility.SetDirty(groundMat);
-                                                                AssetDatabase.SaveAssetIfDirty(groundMat);
-                                                                AssetDatabase.SaveAssets();
-                                                                AssetDatabase.Refresh();
-
-                                                                mr.sharedMaterial = groundMat;
-                                                                EditorUtility.SetDirty(mr);
-                                                                EditorUtility.SetDirty(groundMat);
+        
+                // Reload from asset database to get proper asset reference
+                groundMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/URP/Ground_Grass_Mat.mat");
+        
+                // NOW configure the material (after it's an asset)
+                groundMat.SetTexture("_BaseMap", grassTex);
+                groundMat.SetTexture("_BumpMap", normalTex);
+                groundMat.SetFloat("_Smoothness", 0.1f);
+                groundMat.SetFloat("_Metallic", 0f);
+                groundMat.SetColor("_BaseColor", new Color(0.4f, 0.6f, 0.3f, 1f));
+                groundMat.enableInstancing = true;
+                groundMat.SetTextureScale("_BaseMap", new Vector2(200f, 200f));
+                groundMat.SetTextureScale("_BumpMap", new Vector2(200f, 200f));
+        
+                EditorUtility.SetDirty(groundMat);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+        
+                mr.sharedMaterial = groundMat;
+                EditorUtility.SetDirty(mr);
+                EditorUtility.SetDirty(groundMat);
+        
+                // Force save scene to ensure material asset reference is used
+                EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
 
         // MeshCollider for physics
         var mc = ground.AddComponent<MeshCollider>();
