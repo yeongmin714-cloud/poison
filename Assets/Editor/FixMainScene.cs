@@ -495,59 +495,36 @@ public static class FixMainScene
         // NEW: 물 시스템 연동 (LakeGenerator + WaterBody) - 저지대 자동 물 메시 생성
         CreateWaterSystem(ground);
 
-        // CRITICAL: Add invisible collision floor at GROUND LEVEL (y=1) for CharacterController
-        // CharacterController: center=1.0, height=2.0 → bottom at y=0 when standing on ground at y=1
-        // Floor at y=1: center y=1.05, size y=0.1 (spans y=1.0 to y=1.1)
+        // CRITICAL: Add invisible collision floor at GROUND LEVEL (y=0) for CharacterController
+        // CharacterController: center=1.0, height=2.0 → bottom at y=0.1 when standing on ground at y=0
+        // Floor at y=0: center y=0.05, size y=0.1 (spans y=0.0 to y=0.1)
         var floorObj = new GameObject("CollisionFloor");
         floorObj.transform.SetParent(ground.transform);
-        floorObj.transform.localPosition = new Vector3(0, 1.05f, 0); // BoxCollider center at 1.05, top at 1.1, bottom at 1.0
+        floorObj.transform.localPosition = new Vector3(0, 0.05f, 0); // BoxCollider center at 0.05, top at 0.1, bottom at 0.0
         var floorCollider = floorObj.AddComponent<BoxCollider>();
         floorCollider.size = new Vector3(2000f, 0.1f, 2000f); // Thin at ground level
         floorCollider.isTrigger = false;
         floorObj.layer = LayerMask.NameToLayer("Ground");
-        Debug.Log("[FixMainScene] Added CollisionFloor at ground level y=1.0");
+        Debug.Log("[FixMainScene] Added CollisionFloor at ground level y=0.0");
 
-        // SAFETY NET: Add deep safety floor at y=-50 as last resort
+        // SAFETY NET: Add deep safety floor at y=-100 as last resort (debugging only)
         // If everything else fails, this catches the player before infinite fall
         var safetyFloor = new GameObject("SafetyFloor");
         safetyFloor.transform.SetParent(ground.transform);
-        safetyFloor.transform.localPosition = new Vector3(0, -50f, 0);
+        safetyFloor.transform.localPosition = new Vector3(0, -100f, 0);
         var safetyCollider = safetyFloor.AddComponent<BoxCollider>();
         safetyCollider.size = new Vector3(5000f, 10f, 5000f); // Very large
         safetyCollider.isTrigger = false;
         safetyFloor.layer = LayerMask.NameToLayer("Ground");
-        Debug.Log("[FixMainScene] Added SafetyFloor at y=-50 as last resort");
+        Debug.Log("[FixMainScene] Added SafetyFloor at y=-100 as last resort (debug)");
 
         return ground;
-    }
-
-    // ================================================================
-    // Terrain GLB Models Placement (GPU Instancing, 3 Rings)
-    // ================================================================
-    static void PlaceTerrainModels(GameObject ground)
-    {
-        var envParent = new GameObject("Environment");
-        envParent.transform.SetParent(ground.transform);
-
-        // Try GPU Instancing placer first
-        var placerType = System.Type.GetType("ProjectName.Systems.EnvironmentModelPlacer, Assembly-CSharp");
-        if (placerType != null)
-        {
-            var placer = envParent.AddComponent(placerType);
-            var setupMethod = placerType.GetMethod("SetupAndPlace");
-            if (setupMethod != null)
-            {
-                setupMethod.Invoke(placer, new object[] { ground });
             }
-        }
-        else
-        {
-            // Fallback: Simple instancing placement
-            PlaceModelsWithInstancing(envParent, ground);
-        }
-    }
 
-    static void PlaceModelsWithInstancing(GameObject parent, GameObject ground)
+            // ================================================================
+            // Terrain GLB Models Placement (GPU Instancing, 3 Rings)
+            // ================================================================
+            static void PlaceTerrainModels(GameObject ground)
     {
         // Load GLB models from Resources
         var grassModels = Resources.LoadAll<GameObject>("Models/UserProvided/terrain/grass");
@@ -696,7 +673,7 @@ public static class FixMainScene
     var visualCapsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
     visualCapsule.name = "PlayerModel";
     visualCapsule.transform.SetParent(player.transform);
-    visualCapsule.transform.localPosition = new Vector3(0, -0.9f, 0); // Center at y=0.2, feet at y=0.1 (on ground)
+    visualCapsule.transform.localPosition = new Vector3(0, -0.5f, 0); // Center at y=0.6, bottom at y=0.1 (matches CC bottom)
     visualCapsule.transform.localScale = new Vector3(0.5f, 1.0f, 0.5f); // radius 0.25, height 2
     visualCapsule.layer = LayerMask.NameToLayer("Player");
     var visualMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));

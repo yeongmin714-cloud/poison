@@ -15,17 +15,20 @@ public class GameSetup : MonoBehaviour
     [Header("Auto Setup")]
     [SerializeField] private bool _autoSetup = true;
 
+    private void Awake()
+    {
+        // CRITICAL: Set up Physics layer collision matrix BEFORE first physics step
+        // Disable autoSimulation, configure collision matrix, then re-enable
+        Physics.autoSimulation = false;
+        EnsureLayerCollisionMatrix();
+        Physics.autoSimulation = true;
+        
+        // CRITICAL: Purge any leftover DontDestroyOnLoad singletons from previous Play sessions
+        PurgeRuntimeSingletons();
+    }
+
     private void Start()
     {
-        // CRITICAL: Ensure Physics layer collision matrix is correct
-        // Player layer (8) and Ground layer must collide for CharacterController to work
-        EnsureLayerCollisionMatrix();
-
-        // CRITICAL: Purge any leftover DontDestroyOnLoad singletons from previous Play sessions
-        // Other systems (SoundManagerEnhanced, TerritoryManager, TimeManager) use RuntimeInitializeOnLoadMethod
-        // which creates persistent objects that survive across Play mode sessions
-        PurgeRuntimeSingletons();
-
         if (!_autoSetup) return;
 
         // ── 메인 씬 모드 ────────────────────────
@@ -333,6 +336,25 @@ public class GameSetup : MonoBehaviour
             else
             {
                 Debug.LogWarning("[GameSetup] GLB 모델(PlayerModel_GLB)을 찾을 수 없음");
+            }
+
+            // ── GLB 물리/애니메이션 컴포넌트 완전 제거 (런타임) ─────────────────
+            // 에디터 타임에 제거했지만, 누락된 Rigidbody/Animator/Joint 등이 GLB를 독립적으로 움직이게 할 수 있음
+            var glbModelCleanup = player.transform.Find("PlayerModel/PlayerModel_GLB");
+            if (glbModelCleanup != null)
+            {
+                var componentsToRemove = glbModelCleanup.GetComponentsInChildren<Component>(true);
+                int removedCount = 0;
+                foreach (var comp in componentsToRemove)
+                {
+                    if (comp is Transform) continue;
+                    if (comp is Renderer) continue; // 렌더러는 DisableGLBRenderers가 관리
+                    if (comp is DisableGLBRenderers) continue; // 우리 디세이블러는 유지
+                    UnityEngine.Object.Destroy(comp);
+                    removedCount++;
+                }
+                if (removedCount > 0)
+                    Debug.Log($"[GameSetup] ✅ GLB 잔존 컴포넌트 {removedCount}개 제거 (Rigidbody/Animator/Joint 등)");
             }
         }
     }

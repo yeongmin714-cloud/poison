@@ -109,91 +109,98 @@ namespace ProjectName.Systems
         private float _originalControllerHeight = 2f;
 
         private void Awake()
-        {
-            _controller = GetComponent<CharacterController>();
-            if (_controller == null)
-            {
-                Debug.LogError("[PlayerMovement] CharacterController가 필요합니다!");
-                return; // CharacterController 없이 진행 불가
-            }
-            _originalControllerHeight = _controller.height;
-
-            // RigAnimationController 찾기 (PlayerPlaceholder에서 Awake로 이미 추가됨)
-            _rigAnim = GetComponent<RigAnimationController>();
-            if (_rigAnim == null)
-            {
-                Animator anim = GetComponent<Animator>();
-                if (anim != null && anim.runtimeAnimatorController != null)
-                    _rigAnim = gameObject.AddComponent<RigAnimationController>();
-            }
-
-            // 메인 카메라 찾기
-            if (Camera.main != null)
-            {
-                _cameraTransform = Camera.main.transform;
-                _camera = Camera.main;
-                _defaultFOV = _camera.fieldOfView;
-                _cameraOriginalLocalPosition = _cameraTransform.localPosition;
-            }
-            else
-            {
-                // Try to find any camera
-                var anyCamera = FindFirstObjectByType<Camera>();
-                if (anyCamera != null)
                 {
-                    _cameraTransform = anyCamera.transform;
-                    _camera = anyCamera;
-                    _defaultFOV = _camera.fieldOfView;
-                    _cameraOriginalLocalPosition = _cameraTransform.localPosition;
-                    anyCamera.tag = "MainCamera"; // Tag it for future use
-                    Debug.LogWarning("[PlayerMovement] No MainCamera tagged camera found, using first available camera and tagging it.");
+                    _controller = GetComponent<CharacterController>();
+                    if (_controller == null)
+                    {
+                        Debug.LogError("[PlayerMovement] CharacterController가 필요합니다!");
+                        return; // CharacterController 없이 진행 불가
+                    }
+            
+                    // CRITICAL: Disable CC first to prevent falling before position is locked
+                    _controller.enabled = false;
+            
+                    _originalControllerHeight = _controller.height;
+
+                    // RigAnimationController 찾기 (PlayerPlaceholder에서 Awake로 이미 추가됨)
+                    _rigAnim = GetComponent<RigAnimationController>();
+                    if (_rigAnim == null)
+                    {
+                        Animator anim = GetComponent<Animator>();
+                        if (anim != null && anim.runtimeAnimatorController != null)
+                            _rigAnim = gameObject.AddComponent<RigAnimationController>();
+                    }
+
+                    // 메인 카메라 찾기
+                    if (Camera.main != null)
+                    {
+                        _cameraTransform = Camera.main.transform;
+                        _camera = Camera.main;
+                        _defaultFOV = _camera.fieldOfView;
+                        _cameraOriginalLocalPosition = _cameraTransform.localPosition;
+                    }
+                    else
+                    {
+                        // Try to find any camera
+                        var anyCamera = FindFirstObjectByType<Camera>();
+                        if (anyCamera != null)
+                        {
+                            _cameraTransform = anyCamera.transform;
+                            _camera = anyCamera;
+                            _defaultFOV = _camera.fieldOfView;
+                            _cameraOriginalLocalPosition = _cameraTransform.localPosition;
+                            anyCamera.tag = "MainCamera"; // Tag it for future use
+                            Debug.LogWarning("[PlayerMovement] No MainCamera tagged camera found, using first available camera and tagging it.");
+                        }
+                        else
+                        {
+                            Debug.LogError("[PlayerMovement] 씬에 카메라가 없습니다! 카메라를 생성합니다.");
+                            // Create a default camera
+                            var camGO = new GameObject("Main Camera");
+                            camGO.tag = "MainCamera";
+                            _camera = camGO.AddComponent<Camera>();
+                            _cameraTransform = _camera.transform;
+                            _defaultFOV = _camera.fieldOfView;
+                            _cameraOriginalLocalPosition = _cameraTransform.localPosition;
+                            camGO.AddComponent<AudioListener>();
+                            Debug.Log("[PlayerMovement] Created default Main Camera.");
+                        }
+                    }
+
+                    _keyboard = Keyboard.current;
+                    _stamina = _maxStamina;
+
+                    // PlayerModel 자식에서 ProceduralAnimationController 찾기
+                    _proceduralAnim = GetComponentInChildren<ProceduralAnimationController>();
+                    if (_proceduralAnim == null)
+                    {
+                        Transform model = transform.Find("PlayerModel");
+                        if (model != null)
+                            _proceduralAnim = model.GetComponent<ProceduralAnimationController>();
+                    }
+
+                    // NeuralAnimationController 설정 (같은 GameObject)
+                    _neuralAnim = GetComponent<NeuralAnimationController>();
+                    if (_neuralAnim == null)
+                        _neuralAnim = gameObject.AddComponent<NeuralAnimationController>();
+                    _neuralAnim.SetVelocityProvider(this);
+
+                    // HybridAnimationController 설정 (같은 GameObject)
+                    _hybridAnim = GetComponent<HybridAnimationController>();
+                    if (_hybridAnim == null)
+                        _hybridAnim = gameObject.AddComponent<HybridAnimationController>();
+
+                    // ProgressiveRolloutManager에 등록 (Phase 4.6.2)
+                    if (ProgressiveRolloutManager.Instance != null)
+                        ProgressiveRolloutManager.Instance.ConfigureHybridController(_hybridAnim);
+
+                    // 스폰 위치 적용 (PlayerSpawnConfig에서 읽어옴 — 테스트씬과 MainScene 동기화)
+                    Vector3 spawnPos = PlayerSpawnConfig.SpawnPosition;
+                    transform.position = new Vector3(spawnPos.x, transform.position.y, spawnPos.z);
+            
+                    // CRITICAL: Re-enable CC after position is finalized
+                    _controller.enabled = true;
                 }
-                else
-                {
-                    Debug.LogError("[PlayerMovement] 씬에 카메라가 없습니다! 카메라를 생성합니다.");
-                    // Create a default camera
-                    var camGO = new GameObject("Main Camera");
-                    camGO.tag = "MainCamera";
-                    _camera = camGO.AddComponent<Camera>();
-                    _cameraTransform = _camera.transform;
-                    _defaultFOV = _camera.fieldOfView;
-                    _cameraOriginalLocalPosition = _cameraTransform.localPosition;
-                    camGO.AddComponent<AudioListener>();
-                    Debug.Log("[PlayerMovement] Created default Main Camera.");
-                }
-            }
-
-            _keyboard = Keyboard.current;
-            _stamina = _maxStamina;
-
-            // PlayerModel 자식에서 ProceduralAnimationController 찾기
-            _proceduralAnim = GetComponentInChildren<ProceduralAnimationController>();
-            if (_proceduralAnim == null)
-            {
-                Transform model = transform.Find("PlayerModel");
-                if (model != null)
-                    _proceduralAnim = model.GetComponent<ProceduralAnimationController>();
-            }
-
-            // NeuralAnimationController 설정 (같은 GameObject)
-            _neuralAnim = GetComponent<NeuralAnimationController>();
-            if (_neuralAnim == null)
-                _neuralAnim = gameObject.AddComponent<NeuralAnimationController>();
-            _neuralAnim.SetVelocityProvider(this);
-
-            // HybridAnimationController 설정 (같은 GameObject)
-            _hybridAnim = GetComponent<HybridAnimationController>();
-            if (_hybridAnim == null)
-                _hybridAnim = gameObject.AddComponent<HybridAnimationController>();
-
-            // ProgressiveRolloutManager에 등록 (Phase 4.6.2)
-            if (ProgressiveRolloutManager.Instance != null)
-                ProgressiveRolloutManager.Instance.ConfigureHybridController(_hybridAnim);
-
-            // 스폰 위치 적용 (PlayerSpawnConfig에서 읽어옴 — 테스트씬과 MainScene 동기화)
-            Vector3 spawnPos = PlayerSpawnConfig.SpawnPosition;
-            transform.position = new Vector3(spawnPos.x, transform.position.y, spawnPos.z);
-        }
 
         private void Update()
         {
