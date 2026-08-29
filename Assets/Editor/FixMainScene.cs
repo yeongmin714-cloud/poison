@@ -453,8 +453,20 @@ public static class FixMainScene
             AssetDatabase.Refresh();
 
             // Assign material asset to scene for EDITOR visibility
-            // This ensures terrain shows correctly in both Editor and Play Mode
             var groundMatAsset = AssetDatabase.LoadAssetAtPath<Material>("Assets/URP/Ground_Grass_Mat.mat");
+            
+            // CRITICAL: Re-apply textures AFTER loading from disk (serialization fix)
+            groundMatAsset.SetTexture("_BaseMap", grassTex);
+            groundMatAsset.SetTexture("_BumpMap", normalTex);
+            groundMatAsset.SetTexture("_MainTex", grassTex); // URP fallback
+            groundMatAsset.SetTextureScale("_BaseMap", new Vector2(200f, 200f));
+            groundMatAsset.SetTextureScale("_BumpMap", new Vector2(200f, 200f));
+            groundMatAsset.SetTextureScale("_MainTex", new Vector2(200f, 200f));
+            
+            EditorUtility.SetDirty(groundMatAsset);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            
             mr.sharedMaterial = groundMatAsset;
             EditorUtility.SetDirty(mr);
             EditorUtility.SetDirty(groundMatAsset);
