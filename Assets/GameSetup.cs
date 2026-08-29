@@ -356,6 +356,22 @@ public class GameSetup : MonoBehaviour
                 if (removedCount > 0)
                     Debug.Log($"[GameSetup] ✅ GLB 잔존 컴포넌트 {removedCount}개 제거 (Rigidbody/Animator/Joint 등)");
             }
+
+            // ── GLB를 visualCapsule(=PlayerModel) 자식으로 강제 부착 ──────────────────
+            // 씬에서는 붙어있지만 런타임에 분리될 수 있음
+            var visualCapsule = player.transform.Find("PlayerModel");
+            // glbModel 변수는 이미 위에서 선언됨 (line 319)
+            if (visualCapsule != null && glbModel != null && glbModel.parent != visualCapsule)
+            {
+                glbModel.SetParent(visualCapsule);
+                glbModel.localPosition = Vector3.zero;
+                glbModel.localScale = Vector3.one;
+                Debug.Log("[GameSetup] ✅ GLB 모델을 PlayerModel(visualCapsule) 자식으로 재부착");
+            }
+            else if (visualCapsule == null)
+            {
+                Debug.LogWarning("[GameSetup] PlayerModel(visualCapsule)을 찾을 수 없음");
+            }
         }
     }
 

@@ -444,22 +444,27 @@ public static class FixMainScene
                                 groundMat.SetFloat("_Smoothness", 0.1f);
                                 groundMat.SetFloat("_Metallic", 0f);
                                 groundMat.SetColor("_BaseColor", new Color(0.4f, 0.6f, 0.3f, 1f)); // Grass green tint
-                
-                                // Enable GPU instancing for performance
-                                groundMat.enableInstancing = true;
-                
-                                // Save material as asset
-                                AssetDatabase.CreateAsset(groundMat, "Assets/URP/Ground_Grass_Mat.mat");
-                                AssetDatabase.SaveAssets();
-                                groundMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/URP/Ground_Grass_Mat.mat");
-                
-                                EditorUtility.SetDirty(groundMat);
-                                AssetDatabase.SaveAssetIfDirty(groundMat);
-                                AssetDatabase.SaveAssets();
-                                AssetDatabase.Refresh();
-                
-                                mr.sharedMaterial = groundMat;
-                                EditorUtility.SetDirty(groundMat);
+
+                                                                // Enable GPU instancing for performance
+                                                                groundMat.enableInstancing = true;
+
+                                                                // CRITICAL: Set tiling for large terrain (2000x2000)
+                                                                groundMat.SetTextureScale("_BaseMap", new Vector2(200f, 200f));
+                                                                groundMat.SetTextureScale("_BumpMap", new Vector2(200f, 200f));
+
+                                                                // Save material as asset
+                                                                AssetDatabase.CreateAsset(groundMat, "Assets/URP/Ground_Grass_Mat.mat");
+                                                                AssetDatabase.SaveAssets();
+                                                                groundMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/URP/Ground_Grass_Mat.mat");
+
+                                                                EditorUtility.SetDirty(groundMat);
+                                                                AssetDatabase.SaveAssetIfDirty(groundMat);
+                                                                AssetDatabase.SaveAssets();
+                                                                AssetDatabase.Refresh();
+
+                                                                mr.sharedMaterial = groundMat;
+                                                                EditorUtility.SetDirty(mr);
+                                                                EditorUtility.SetDirty(groundMat);
 
         // MeshCollider for physics
         var mc = ground.AddComponent<MeshCollider>();
@@ -764,40 +769,40 @@ public static class FixMainScene
                 Quaternion initialCamRot = Quaternion.Euler(15, 0, 0);
 
                 // Main Camera (rendering camera) with CinemachineBrain
-                var mainCamObj = new GameObject("Main Camera");
-                mainCamObj.tag = "MainCamera";
-                mainCamObj.transform.position = initialCamPos;
-                mainCamObj.transform.rotation = initialCamRot;
-                var mainCam = mainCamObj.AddComponent<Camera>();
-                mainCam.clearFlags = CameraClearFlags.Skybox;
-                mainCam.nearClipPlane = 0.1f;
-                mainCam.farClipPlane = 1000f;
-                mainCam.cullingMask = -1; // Render all layers
-                var cmBrain = mainCamObj.AddComponent<CinemachineBrain>();
-                cmBrain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.Cut, 0f);
+                                var mainCamObj = new GameObject("Main Camera");
+                                mainCamObj.tag = "MainCamera";
+                                mainCamObj.transform.position = initialCamPos;
+                                mainCamObj.transform.rotation = initialCamRot;
+                                var mainCam = mainCamObj.AddComponent<Camera>();
+                                mainCam.clearFlags = CameraClearFlags.Skybox;
+                                mainCam.nearClipPlane = 0.1f;
+                                mainCam.farClipPlane = 5000f; // Increased for 2000x2000 terrain
+                                mainCam.cullingMask = -1; // Render all layers
+                                var cmBrain = mainCamObj.AddComponent<CinemachineBrain>();
+                                cmBrain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.Cut, 0f);
 
-                // REMOVED: AudioListener from Main Camera (Player already has one from CreatePlayer)
+                                // REMOVED: AudioListener from Main Camera (Player already has one from CreatePlayer)
 
-                // Player Camera (Virtual Camera) - SEPARATE GameObject, NOT child of Main Camera or Player
-                var vcamObj = new GameObject("Player Camera");
-                // Ensure it's a root object (no parent)
-                vcamObj.transform.SetParent(null);
-                // Position at player shoulder level initially
-                vcamObj.transform.position = player.transform.position + new Vector3(2.5f, 5f, -5f);
-                vcamObj.transform.rotation = Quaternion.Euler(15, 0, 0);
+                                // Player Camera (Virtual Camera) - SEPARATE GameObject, NOT child of Main Camera or Player
+                                var vcamObj = new GameObject("Player Camera");
+                                // Ensure it's a root object (no parent)
+                                vcamObj.transform.SetParent(null);
+                                // Position at player shoulder level initially
+                                vcamObj.transform.position = player.transform.position + new Vector3(2.5f, 5f, -5f);
+                                vcamObj.transform.rotation = Quaternion.Euler(15, 0, 0);
 
-                var cmCam = vcamObj.AddComponent<CinemachineCamera>();
-                cmCam.Follow = player.transform;
-                cmCam.LookAt = player.transform;
-                cmCam.Priority = 100;
+                                var cmCam = vcamObj.AddComponent<CinemachineCamera>();
+                                cmCam.Follow = player.transform;
+                                cmCam.LookAt = player.transform;
+                                cmCam.Priority = 100;
 
-                // CRITICAL: Mark VCam dirty so Follow/LookAt serialize properly
-                EditorUtility.SetDirty(vcamObj);
+                                // CRITICAL: Mark VCam dirty so Follow/LookAt serialize properly
+                                EditorUtility.SetDirty(vcamObj);
 
-                // Third Person Follow (Cinemachine 3.x) - BotW style shoulder camera
-                var tpFollow = vcamObj.AddComponent<CinemachineThirdPersonFollow>();
-                tpFollow.CameraDistance = 25f;        // 25m distance as requested
-                tpFollow.VerticalArmLength = 8f;      // Height offset
+                                // Third Person Follow (Cinemachine 3.x) - BotW style shoulder camera
+                                var tpFollow = vcamObj.AddComponent<CinemachineThirdPersonFollow>();
+                                tpFollow.CameraDistance = 30f;        // Increased from 25m for better terrain view
+                                tpFollow.VerticalArmLength = 10f;     // Increased from 8m for higher angle
                                 tpFollow.ShoulderOffset = new Vector3(2.5f, 0f, 0f); // Right shoulder
                                 tpFollow.CameraSide = 1;              // Right side (1 = right, -1 = left)
                                 tpFollow.Damping = new Vector3(1f, 0.5f, 1f); // X, Y, Z damping
