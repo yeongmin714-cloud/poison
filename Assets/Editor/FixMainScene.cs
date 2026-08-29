@@ -526,6 +526,9 @@ public static class FixMainScene
             // ================================================================
             static void PlaceTerrainModels(GameObject ground)
     {
+        var envParent = new GameObject("Environment");
+        envParent.transform.SetParent(ground.transform);
+        
         // Load GLB models from Resources
         var grassModels = Resources.LoadAll<GameObject>("Models/UserProvided/terrain/grass");
         var rockModels = Resources.LoadAll<GameObject>("Models/UserProvided/terrain/rocks");
@@ -541,18 +544,18 @@ public static class FixMainScene
         if (groundCollider == null) return;
 
         // Ring 1 (0-50m): Dense grass + small rocks
-        PlaceModelsInRingInstanced(parent, groundCollider, grassModels, 0f, 50f, 500, 0.05f, 0.2f);
-        PlaceModelsInRingInstanced(parent, groundCollider, rockModels, 0f, 50f, 100, 0f, 0.1f);
+        PlaceModelsInRingInstanced(envParent, groundCollider, grassModels, 0f, 50f, 500, 0.05f, 0.2f);
+        PlaceModelsInRingInstanced(envParent, groundCollider, rockModels, 0f, 50f, 100, 0f, 0.1f);
 
         // Ring 2 (50-150m): Grass + trees + rocks
-        PlaceModelsInRingInstanced(parent, groundCollider, grassModels, 50f, 150f, 300, 0.05f, 0.2f);
-        PlaceModelsInRingInstanced(parent, groundCollider, treeModels, 50f, 150f, 80, 0f, 0f);
-        PlaceModelsInRingInstanced(parent, groundCollider, rockModels, 50f, 150f, 60, 0f, 0.1f);
+        PlaceModelsInRingInstanced(envParent, groundCollider, grassModels, 50f, 150f, 300, 0.05f, 0.2f);
+        PlaceModelsInRingInstanced(envParent, groundCollider, treeModels, 50f, 150f, 80, 0f, 0f);
+        PlaceModelsInRingInstanced(envParent, groundCollider, rockModels, 50f, 150f, 60, 0f, 0.1f);
 
         // Ring 3 (150-300m): Sparse grass + large trees + large rocks
-        PlaceModelsInRingInstanced(parent, groundCollider, grassModels, 150f, 300f, 150, 0.05f, 0.2f);
-        PlaceModelsInRingInstanced(parent, groundCollider, treeModels, 150f, 300f, 50, 0f, 0f);
-        PlaceModelsInRingInstanced(parent, groundCollider, rockModels, 150f, 300f, 40, 0f, 0.1f);
+        PlaceModelsInRingInstanced(envParent, groundCollider, grassModels, 150f, 300f, 150, 0.05f, 0.2f);
+        PlaceModelsInRingInstanced(envParent, groundCollider, treeModels, 150f, 300f, 50, 0f, 0f);
+        PlaceModelsInRingInstanced(envParent, groundCollider, rockModels, 150f, 300f, 40, 0f, 0.1f);
     }
 
     static void PlaceModelsInRingInstanced(GameObject parent, MeshCollider groundCollider, GameObject[] models,
