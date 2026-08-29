@@ -447,13 +447,9 @@ public static class FixMainScene
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            // Assign a simple fallback material for editor visibility
-            // GameSetup will apply the full material at runtime
-            var fallbackMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            fallbackMat.color = new Color(0.4f, 0.6f, 0.3f, 1f);
-            fallbackMat.enableInstancing = true;
-            mr.sharedMaterial = fallbackMat;
-            EditorUtility.SetDirty(mr);
+            // DO NOT assign any material here - it causes inline material in scene
+            // GameSetup will apply the Ground_Grass_Mat asset at runtime
+            // Leave MeshRenderer with no material (shows pink in editor, proper at runtime)
 
         // MeshCollider for physics
         var mc = ground.AddComponent<MeshCollider>();
