@@ -172,78 +172,54 @@ public class GameSetup : MonoBehaviour
             Debug.Log("[GameSetup] ✅ Main Camera(CinemachineBrain) 검증 완료");
         }
 
-        // ── CinemachineInputAxisController 런타임 구성 (마우스 오비트) ──────────────
+        // ── CinemachineInputAxisController 런타임 구성 (마우스 오비트, Input System) ──
+        // Unity Input System(신형)이 활성화된 환경에서는 Cinemachine 기본 레거시
+        // 'Mouse X'/'Mouse Y' 축이 동작하지 않는다. 따라서:
+        //   A) PlayerInput의 'Look' 액션을 찾아 CinemachineInputAxisController.Controllers에 bind.
+        //   B) 이중 안전장치로, 'Look'(마우스 델타)로 CinemachineOrbitalTransposer 축을 직접
+        //      회전시키는 RuntimeCinemachineOrbitInput 드라이버를 추가(PlayerInput 기반).
         var vcam = GameObject.Find("Player Camera");
+        var playerInputForLook = player.GetComponent<UnityEngine.InputSystem.PlayerInput>();
         if (vcam != null)
         {
-            var inputAxis = vcam.GetComponent<CinemachineInputAxisController>();
-            if (inputAxis == null)
+            // A) PlayerInput/입력 에셋에서 'Look' 액션을 찾는다.
+            UnityEngine.InputSystem.InputAction lookAction = playerInputForLook?.actions != null
+                ? playerInputForLook.actions.FindAction("Look", throwIfNotFound: false) : null;
+            if (lookAction == null && playerInputForLook?.actions != null)
             {
-                inputAxis = vcam.AddComponent<CinemachineInputAxisController>();
-            }
-            
-            // Configure axes using reflection (SerializedObject not available at runtime)
-            var inputAxisType = inputAxis.GetType();
-            
-            // Create X axis (Mouse X -> horizontal rotation)
-            var axisXType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
-            if (axisXType != null)
-            {
-                var axisX = System.Activator.CreateInstance(axisXType);
-                axisXType.GetProperty("ValueRange").SetValue(axisX, new Vector2(-180, 180));
-                axisXType.GetProperty("Wrap").SetValue(axisX, true);
-                axisXType.GetProperty("Speed").SetValue(axisX, 180f);
-                axisXType.GetProperty("AccelTime").SetValue(axisX, 0.1f);
-                axisXType.GetProperty("DecelTime").SetValue(axisX, 0.1f);
-                axisXType.GetProperty("InputAxisName").SetValue(axisX, "Mouse X");
-                axisXType.GetProperty("InputAxisValue").SetValue(axisX, 0f);
-                
-                var xAxisField = inputAxisType.GetField("XAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                if (xAxisField != null) xAxisField.SetValue(inputAxis, axisX);
-            }
-            
-            // Create Y axis (Mouse Y -> vertical rotation)
-            var axisYType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
-            if (axisYType != null)
-            {
-                var axisY = System.Activator.CreateInstance(axisYType);
-                axisYType.GetProperty("ValueRange").SetValue(axisY, new Vector2(-80, 80));
-                axisYType.GetProperty("Wrap").SetValue(axisY, false);
-                axisYType.GetProperty("Speed").SetValue(axisY, 180f);
-                axisYType.GetProperty("AccelTime").SetValue(axisY, 0.1f);
-                axisYType.GetProperty("DecelTime").SetValue(axisY, 0.1f);
-                axisYType.GetProperty("InputAxisName").SetValue(axisY, "Mouse Y");
-                axisYType.GetProperty("InputAxisValue").SetValue(axisY, 0f);
-                
-                var yAxisField = inputAxisType.GetField("YAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                if (yAxisField != null) yAxisField.SetValue(inputAxis, axisY);
-            }
-            
-            // Also set the controller manager's axes
-            var controllerManager = inputAxisType.GetProperty("ControllerManager");
-            if (controllerManager != null)
-            {
-                var cm = controllerManager.GetValue(inputAxis);
-                if (cm != null)
+                // 맵 순회로 대소문자 구분 없이 재탐색
+                foreach (var am in playerInputForLook.actions.actionMaps)
                 {
-                    var cmType = cm.GetType();
-                    var controllersField = cmType.GetField("Controllers", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                    if (controllersField != null)
+                    foreach (var act in am.actions)
                     {
-                        var axisStateType = System.Type.GetType("Unity.Cinemachine.CinemachineInputAxisController+AxisState, Unity.Cinemachine");
-                        var controllerArray = System.Array.CreateInstance(axisStateType, 2);
-                        
-                        var xAxisField = inputAxisType.GetField("XAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                        var yAxisField = inputAxisType.GetField("YAxis", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                        if (xAxisField != null) controllerArray.SetValue(xAxisField.GetValue(inputAxis), 0);
-                        if (yAxisField != null) controllerArray.SetValue(yAxisField.GetValue(inputAxis), 1);
-                        
-                        controllersField.SetValue(cm, controllerArray);
+                        if (act.name.Equals("Look", System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            lookAction = act;
+                            break;
+                        }
                     }
+                    if (lookAction != null) break;
                 }
             }
-            
-            Debug.Log("[GameSetup] ✅ CinemachineInputAxisController configured for mouse orbit at runtime");
+
+            var inputAxis = vcam.GetComponent<CinemachineInputAxisController>();
+            if (inputAxis == null) inputAxis = vcam.AddComponent<CinemachineInputAxisController>();
+
+            // A-2) Cinemachine 3.x: Controllers를 동기화(빈 배열이 아니라 IInputAxisOwner 축별로 채움),
+            //      Look 액션을 Input System으로 바인딩한다. (레거시 'Mouse X/Y' 아님)
+            int axesConfigured = PopulateCinemachineAxisControllers(inputAxis, lookAction);
+
+            // B) 폴백 드라이버: 내장 축 컨트롤러가 IInputAxisOwner 축을 발견하지 못한 경우에만
+            //    (비표준/레거시 Body 등) PlayerInput의 Look 델타로 직접 회전시킨다.
+            if (axesConfigured == 0)
+            {
+                var driver = vcam.GetComponent<RuntimeCinemachineOrbitInput>();
+                if (driver == null) driver = vcam.AddComponent<RuntimeCinemachineOrbitInput>();
+                driver.player = player;
+                driver.lookActionName = (lookAction != null) ? lookAction.name : "Look";
+                Debug.Log($"[GameSetup] ⚠️ 내장 축 컨트롤러 백업용 RuntimeCinemachineOrbitInput 드라이버 사용 (Look='{driver.lookActionName}')");
+            }
+            Debug.Log($"[GameSetup] ✅ CinemachineInputAxisController configured (Look axes bound = {axesConfigured})");
         }
 
         // ── PlayerHealth ───────────────────────────────────────────────
@@ -338,11 +314,28 @@ public class GameSetup : MonoBehaviour
                 Debug.LogWarning("[GameSetup] GLB 모델(PlayerModel_GLB)을 찾을 수 없음");
             }
 
-            // ── GLB 물리/애니메이션 컴포넌트 완전 제거 (런타임) ─────────────────
-            // 에디터 타임에 제거했지만, 누락된 Rigidbody/Animator/Joint 등이 GLB를 독립적으로 움직이게 할 수 있음
+            // ── GLB 물리/애니메이션 컴포넌트 즉시 무력화 후 제거 (런타임) ─────────────────
+            // 에디터 타임에 제거했지만, 누락된 Rigidbody/Animator/Joint 등이 GLB를 독립적으로 움직이게 할 수 있음.
+            // ⚠️ UnityEngine.Object.Destroy()는 프레임 끝까지 지연되므로 그 사이 물리 시뮬레이션이
+            //    돌며 GLB가 아래로 낙하할 수 있다. 따라서 제거 직전에 물리/애니메이션을 즉시 무력화한다.
             var glbModelCleanup = player.transform.Find("PlayerModel/PlayerModel_GLB");
             if (glbModelCleanup != null)
             {
+                // 0) 모든 자식 Rigidbody를 즉시 정지(kinematic + 중력 off) -> Destroy 지연 구간의 낙하 방지
+                foreach (var childRb in glbModelCleanup.GetComponentsInChildren<Rigidbody>(true))
+                {
+                    childRb.isKinematic = true;
+                    childRb.useGravity = false;
+                    childRb.interpolation = RigidbodyInterpolation.None;
+                }
+                var rootRb = glbModelCleanup.GetComponent<Rigidbody>();
+                if (rootRb != null)
+                {
+                    rootRb.isKinematic = true;
+                    rootRb.useGravity = false;
+                    rootRb.interpolation = RigidbodyInterpolation.None;
+                }
+
                 var componentsToRemove = glbModelCleanup.GetComponentsInChildren<Component>(true);
                 int removedCount = 0;
                 foreach (var comp in componentsToRemove)
@@ -350,23 +343,46 @@ public class GameSetup : MonoBehaviour
                     if (comp is Transform) continue;
                     if (comp is Renderer) continue; // 렌더러는 DisableGLBRenderers가 관리
                     if (comp is DisableGLBRenderers) continue; // 우리 디세이블러는 유지
+
+                    // Animator는 제거되기 전까지 계속 실행되므로 먼저 비활성화
+                    if (comp is Animator anim) { anim.enabled = false; anim.applyRootMotion = false; }
+                    // Rigidbody는 Destroy가 지연되는 동안 물리/낙하가 걸리지 않도록 즉시 정지
+                    else if (comp is Rigidbody rigidBody)
+                    {
+                        rigidBody.isKinematic = true;
+                        rigidBody.useGravity = false;
+                    }
+                    // Collider가 남아 물리가 관여하지 않도록 즉시 비활성화
+                    else if (comp is Collider coll)
+                    {
+                        coll.enabled = false;
+                    }
+
                     UnityEngine.Object.Destroy(comp);
                     removedCount++;
                 }
                 if (removedCount > 0)
-                    Debug.Log($"[GameSetup] ✅ GLB 잔존 컴포넌트 {removedCount}개 제거 (Rigidbody/Animator/Joint 등)");
+                    Debug.Log($"[GameSetup] ✅ GLB 잔존 컴포넌트 {removedCount}개 즉시 무력화 후 제거 (Rigidbody/Animator/Joint/Collider 등)");
             }
 
-            // ── GLB를 visualCapsule(=PlayerModel) 자식으로 강제 부착 ──────────────────
-            // 씬에서는 붙어있지만 런타임에 분리될 수 있음
+            // ── GLB를 visualCapsule(=PlayerModel) 자식으로 강제 부착 + 월드 위치 일치 ──
+            // 씬에서는 붙어있지만 런타임에 분리될 수 있음.
+            // SetParent 직후 월드 위치를 플레이어와 일치시켜 Destroy 지연 구간 및
+            // CollisionFloor(바닥)가 설정되기 전에 GLB가 낙하/이탈하지 않도록 고정한다.
             var visualCapsule = player.transform.Find("PlayerModel");
             // glbModel 변수는 이미 위에서 선언됨 (line 319)
-            if (visualCapsule != null && glbModel != null && glbModel.parent != visualCapsule)
+            if (visualCapsule != null && glbModel != null)
             {
-                glbModel.SetParent(visualCapsule);
-                glbModel.localPosition = Vector3.zero;
-                glbModel.localScale = Vector3.one;
-                Debug.Log("[GameSetup] ✅ GLB 모델을 PlayerModel(visualCapsule) 자식으로 재부착");
+                if (glbModel.parent != visualCapsule)
+                {
+                    glbModel.SetParent(visualCapsule);
+                    glbModel.localScale = Vector3.one;
+                    Debug.Log("[GameSetup] ✅ GLB 모델을 PlayerModel(visualCapsule) 자식으로 재부착");
+                }
+                // SetParent 직후 월드 위치를 플레이어와 일치시켜 물리/오프셋 이탈 방지
+                glbModel.position = player.transform.position;
+                glbModel.rotation = player.transform.rotation;
+                Debug.Log("[GameSetup] ✅ GLB 모델 월드 위치/회전을 플레이어와 일치 (낙하 방지)");
             }
             else if (visualCapsule == null)
             {
@@ -480,6 +496,58 @@ public class GameSetup : MonoBehaviour
         }
     }
 
+    #region Cinemachine 3.x axis helpers (Input System binding)
+
+    /// <summary>
+    /// Cinemachine 3.x의 CinemachineInputAxisController.Controllers를 Instrument System 축 액션이
+    /// (IInputAxisOwner, 예: CinemachineOrbitalFollow의 'Look Orbit X/Y')에 맞춰 동기화해서 채우고,
+    /// 각 로테이션 컨트롤러의 Reader.InputAction에 PlayerControls.inputactions의 'Look' 액션
+    /// (InputActionReference)을 바인딩한다.
+    /// Cinemachine의 Reader는 Vector2 'Look'을 힌트(X/Y)에 따라 자동으로 분리해 준다.
+    /// </summary>
+    private int PopulateCinemachineAxisControllers(CinemachineInputAxisController inputAxis, UnityEngine.InputSystem.InputAction lookAction)
+    {
+        try
+        {
+            // 빈 Controllers 리스트를 vcam이 가진 IInputAxisOwner 축 목록으로 실제로 채운다.
+            inputAxis.SynchronizeControllers();
+
+            var lookRef = (lookAction != null)
+                ? UnityEngine.InputSystem.InputActionReference.Create(lookAction)
+                : null;
+
+            int bound = 0;
+            foreach (var c in inputAxis.Controllers)
+            {
+                if (c == null || c.Input == null)
+                    continue;
+
+                c.Enabled = true;
+                c.Input.Gain = 1f;
+                // 마우스 델타는 프레임 시간 의존이므로 Cinemachine이 deltaTime으로 다시 스케일하지 않게 함
+                c.Input.CancelDeltaTime = true;
+                // 미사용 시 레거시 경로가 잡히지 않도록 초기화
+                c.Input.LegacyInput = "";
+
+                // 회전 축('Look Orbit X'/'Look Orbit Y')에만 Look 바인딩.
+                // 'Orbit Scale' 등 다른 축은 바인딩하지 않아 마우스 Y로 줌이 되지 않게 한다.
+                if (c.Name != null && c.Name.StartsWith("Look Orbit") && lookRef != null)
+                {
+                    c.Input.InputAction = lookRef;
+                    bound++;
+                }
+            }
+            return bound;
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogWarning($"[GameSetup] Cinemachine 입력 축 구성 실패: {ex.Message}");
+            return 0;
+        }
+    }
+
+    #endregion
+
     /// <summary>
     /// Fallback: Create basic InputActionAsset programmatically when Resources.Load fails to deserialize actionMaps
     /// </summary>
@@ -542,5 +610,67 @@ public class GameSetup : MonoBehaviour
 
         Debug.Log($"[GameSetup] ✅ Fallback PlayerInput created with action map 'Player' ({playerMap.actions.Count} actions)");
         return pi;
+    }
+}
+
+/// <summary>
+/// Cinemachine 3.x 오비트 카메라(CinemachineOrbitalFollow)를 Unity Input System의
+/// 'Look'(마우스 델타) 액션으로 직접 회전시키는 폴백 드라이버.
+/// (GameSetup가 내장 CinemachineInputAxisController가 IInputAxisOwner 축을 못 찾은 경우에만 추가)
+/// 신형 Input System이 활성화되면 Cinemachine 기본 축 공급이 동작하지 않을 수 있으므로,
+/// PlayerInput의 Look 액션을 1프레임씩 읽어 HorizontalAxis/VerticalAxis 값에 직접 반영한다.
+/// </summary>
+public class RuntimeCinemachineOrbitInput : MonoBehaviour
+{
+    [Tooltip("PlayerInput을 보유한 Player 오브젝트 (보통 태그 'Player')")]
+    public GameObject player;
+    [Tooltip("찾을 Look 액션 이름 (PlayerControls.inputactions)")]
+    public string lookActionName = "Look";
+    [Tooltip("회전 감도")]
+    public float lookSensitivity = 1f;
+    [Tooltip("수직 회전 방향 반전")]
+    public bool invertY = false;
+
+    private CinemachineOrbitalFollow m_Orbital;
+    private UnityEngine.InputSystem.InputAction m_LookAction;
+
+    private void OnEnable() => BindReferences();
+
+    private void Start() => BindReferences();
+
+    private void BindReferences()
+    {
+        if (m_Orbital == null)
+        {
+            m_Orbital = GetComponent<CinemachineOrbitalFollow>();
+            if (m_Orbital == null) m_Orbital = GetComponentInChildren<CinemachineOrbitalFollow>(true);
+        }
+        if (m_LookAction == null && player != null)
+        {
+            var pi = player.GetComponent<UnityEngine.InputSystem.PlayerInput>();
+            if (pi != null && pi.actions != null)
+            {
+                m_LookAction = pi.actions.FindAction(lookActionName, throwIfNotFound: false)
+                            ?? pi.actions.FindAction("Look", throwIfNotFound: false);
+            }
+        }
+    }
+
+    private void Update()
+    {
+        if (m_Orbital == null) { BindReferences(); return; }
+        if (m_LookAction == null) { BindReferences(); if (m_LookAction == null) return; }
+
+        var delta = m_LookAction.ReadValue<Vector2>();
+        if (delta.sqrMagnitude < 0.0001f) return;
+
+        // 가로 회전 (마우스 X) — InputAxis.ClampValue가 범위/래핑을 처리
+        m_Orbital.HorizontalAxis.Value =
+            m_Orbital.HorizontalAxis.ClampValue(m_Orbital.HorizontalAxis.Value + delta.x * lookSensitivity * Time.deltaTime);
+
+        // 세로 회전 (마우스 Y) + 범위 제한
+        float vs = (invertY ? -delta.y : delta.y) * lookSensitivity * Time.deltaTime;
+        m_Orbital.VerticalAxis.Value =
+            m_Orbital.VerticalAxis.ClampValue(m_Orbital.VerticalAxis.Value + vs);
     }
 }
