@@ -31,6 +31,23 @@
 
 ---
 
+## 2026-08-30: 절차적 지형 FBM + 고원(plateau) 업그레이드
+
+**상태:** ✅ EditMode 테스트 통과 + FixMainScene 배치모드 성공 + 컴파일 에러 0건
+
+- **기존:** `TerrainGenerator.cs`가 단일 `Mathf.PerlinNoise` × `noiseAmplitude`로 높이 생성 → 단조롭고 인공적인 패턴.
+- **업그레이드:** `TerrainGenerator.cs`에 FBM(Fractal Brownian Motion) 다중 옥타브 노이즈 + 고원(plateau) 구역 도입.
+  - `ComputeBaseHeight(x, z, def, seed)` 공통 높이 계산 헬퍼 신설
+  - `FbmNoise(x, z, octaves, lacunarity, gain, seed)` — 옥타브 4, lacunarity 2.0, gain 0.5, 옥타브별 seed 오프셋(x*0.371, z*0.713), amplitude 합 정규화로 0~1 유지
+  - `ApplyPlateau(t)` — t>0.55 구간을 (t-0.55)*0.2로 평탄화해 고원/대지 모양
+  - 두 호출부(높이 샘플링 + 메시 루프)가 동일 헬퍼 사용으로 일관성 확보
+  - 메시 루프엔 waterThreshold 클램프 미적용(물 메시 판별 유지), `GetHeightAtWithDefinition`의 waterThreshold 클램프는 보존
+- 공개 API 시그니처 전부 유지 (`GetHeightAt`, `GetHeightAtWithDefinition`, `GenerateTerrain`, `GenerateTerrainWithDefinition`, `ApplyTerrainToGameObject`)
+- **참고:** FBM 정규화로 분포가 더 완만해져, 필요 시 Biome의 `waterThreshold`/`noiseAmplitude` 비율 재조정 가능.
+- **검증:** EditMode tests passed + FixMainScene.Fix exit 0 (`d936e86`)
+
+---
+
 ## Phase 68: Neural Animation 재학습 완료 (2026-08-15)
 
 **상태:** ✅ 완료
