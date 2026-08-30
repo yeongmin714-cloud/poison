@@ -6,13 +6,25 @@ using ProjectName.Core.Data;
 namespace ProjectName.Systems
 {
     /// <summary>
-    /// Perlin Noise 기반 절차적 지형 생성기
+    /// Perlin Noise 기반 절차적 지형 생성기 (FBM 다중 옥타브 노이즈 + 고원 구역)
     /// BiomeDefinition의 파라미터를 사용해 높이맵 생성 → Mesh 변환
     /// </summary>
     public static class TerrainGenerator
     {
+        // === FBM (Fractal Brownian Motion) 하드코딩 상수 ===
+        // 노이즈 옥타브 수 — 클수록 디테일이 증가 (표준 4)
+        private const int FBM_OCTAVES = 4;
+        // 주파수 배율 — 옥타브가 올라갈 때마다 주파수가 이 배율만큼 증가
+        private const float FBM_LACUNARITY = 2.0f;
+        // 진폭 감쇠 — 옥타브가 올라갈 때마다 진폭이 이 배율만큼 감소
+        private const float FBM_GAIN = 0.5f;
+        // 고원(plateau) 평탄화 시작 임계값
+        private const float PLATEAU_THRESHOLD = 0.55f;
+        // 고원 평탄화 감쇠 계수
+        private const float PLATEAU_SLOPE = 0.2f;
+
         /// <summary>
-        /// 주어진 월드 좌표에서 지형 높이 반환 (Perlin Noise 기반)
+        /// 주어진 월드 좌표에서 지형 높이 반환 (FBM + 고원 기반)
         /// TerrainModelPlacer 등에서 Raycast 없이 높이 샘플링용
         /// </summary>
         public static float GetHeightAt(float worldX, float worldZ, BiomeType biome, int seed = 42)
@@ -26,21 +38,79 @@ namespace ProjectName.Systems
         /// </summary>
         public static float GetHeightAtWithDefinition(float worldX, float worldZ, BiomeDefinition def, int seed = 42)
         {
-            float freq = def.noiseFrequency;
-            float amp = def.noiseAmplitude;
-            
-            float noiseX = worldX * freq + seed;
-            float noiseZ = worldZ * freq + seed;
-            float noise = Mathf.PerlinNoise(noiseX, noiseZ);
-            float height = noise * amp;
-            
-            // waterThreshold가 있으면 물 높이로 클램프
+            float height = ComputeBaseHeight(worldX, worldZ, def, seed);
+
+            // waterThreshold가 있으면 물 높이로 클램프 (물 로직 유지)
             if (def.waterThreshold > 0f && height < def.waterThreshold)
             {
                 height = def.waterThreshold;
             }
             
             return height;
+        }
+
+        /// <summary>
+        /// 공통 높이 계산 헬퍼 — FBM 노이즈(0~1) → 고원 변환 → def.noiseAmplitude 곱
+        /// </summary>
+        private static float ComputeBaseHeight(float x, float z, BiomeDefinition def, int seed)
+        {
+            // FBM 다중 옥타브 노이즈 (0~1 정규화)
+            float fbm = FbmNoise(
+                x * def.noiseFrequency,
+                z * def.noiseFrequency,
+                FBM_OCTAVES,
+                FBM_LACUNARITY,
+                FBM_GAIN,
+                seed);
+
+            // 고원(plateau) 변환으로 상위 높이 구간 평탄화
+            float plateau = ApplyPlateau(fbm);
+
+            // 최종 높이 = 평탄화된 노이즈 × 진폭
+            return plateau * def.noiseAmplitude;
+        }
+
+        /// <summary>
+        /// FBM (Fractal Brownian Motion) — 다중 옥타브 Perlin 노이즈를 누적해 더 자연스러운 지형 생성.
+        /// 각 옥타브에 seed 기반 오프셋을 섞어 옥타브마다 서로 다른 패턴이 나오게 하고,
+        /// amplitude 합으로 정규화해 결과를 0~1 범위로 유지한다.
+        /// </summary>
+        private static float FbmNoise(float x, float z, int octaves, float lacunarity, float gain, int seed)
+        {
+            float total = 0f;
+            float amplitude = 1f;
+            float frequency = 1f;
+            float amplitudeSum = 0f;
+
+            for (int o = 0; o < octaves; o++)
+            {
+                // seed 기반 옥타브별 오프셋 — 옥타브마다 다른 패턴 유도
+                float noiseX = x * frequency + seed * 0.371f;
+                float noiseZ = z * frequency + seed * 0.713f;
+
+                total += Mathf.PerlinNoise(noiseX, noiseZ) * amplitude;
+                amplitudeSum += amplitude;
+
+                frequency *= lacunarity;
+                amplitude *= gain;
+            }
+
+            // amplitude 합으로 정규화 → 0~1 유지
+            return amplitudeSum > 0f ? total / amplitudeSum : 0f;
+        }
+
+        /// <summary>
+        /// 고원(plateau) 변환 — 상위 높이 구간(t>0.55)을 평탄화해 대지/고원 모양 생성.
+        /// 임계값을 초과한 만큼의 일부(0.2배)만 치우쳐 높이가 빠르게 올라가지 않도록 억제.
+        /// </summary>
+        private static float ApplyPlateau(float t)
+        {
+            if (t > PLATEAU_THRESHOLD)
+            {
+                // 임계값 초과분의 0.2배만 반영 — 완만한 고원 평면 유도
+                return PLATEAU_THRESHOLD + (t - PLATEAU_THRESHOLD) * PLATEAU_SLOPE;
+            }
+            return t;
         }
         /// <summary>
         /// Perlin Noise로 지형 메시 + 물 메시 생성
@@ -89,11 +159,9 @@ namespace ProjectName.Systems
             Vector3[] normals = new Vector3[vertexCount];
             int[] triangles = new int[triangleCount * 3];
 
-            float freq = def.noiseFrequency;
-            float amp = def.noiseAmplitude;
             float waterThreshold = def.waterThreshold;
 
-            // === 1. Perlin Noise 높이맵 생성 ===
+            // === 1. FBM + 고원 높이맵 생성 ===
             for (int z = 0; z < resolution; z++)
             {
                 for (int x = 0; x < resolution; x++)
@@ -109,11 +177,9 @@ namespace ProjectName.Systems
                     float wx = -halfSize + x * step;
                     float wz = -halfSize + z * step;
 
-                    // Perlin Noise 높이 (월드 좌표 사용 — 해상도 변화에 일관된 결과)
-                    float noiseX = wx * freq + seed;
-                    float noiseZ = wz * freq + seed;
-                    float noise = Mathf.PerlinNoise(noiseX, noiseZ);
-                    float height = noise * amp;
+                    // FBM + 고원 높이 (월드 좌표 사용 — 해상도 변화에 일관된 결과)
+                    // waterThreshold 클램프는 하지 않음 (물 메시가 threshold 이하 삼각형 판별 담당)
+                    float height = ComputeBaseHeight(wx, wz, def, seed);
 
                     vertices[index] = new Vector3(wx, height, wz);
                 }
