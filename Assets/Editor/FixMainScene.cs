@@ -633,7 +633,7 @@ public static class FixMainScene
     var controller = player.AddComponent<CharacterController>();
     controller.height = 2.0f;
     controller.radius = 0.4f;
-    controller.center = new Vector3(0, 1.0f, 0); // center=1.0, height=2.0 -> bottom at y=1.1 (matches ground surface)
+    controller.center = new Vector3(0, 0f, 0); // center=0, height=2.0 -> bottom at y=1.1 when player at y=2.1 (matches ground surface)
     controller.skinWidth = 0.08f;
 
     // Core components
