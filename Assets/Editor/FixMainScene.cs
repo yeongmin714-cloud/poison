@@ -405,6 +405,9 @@ public static class FixMainScene
 
             var ground = new GameObject("Ground_Inner");
             ground.layer = LayerMask.NameToLayer("Ground");
+            
+            // CRITICAL: Position ground at y=1 so terrain surface is at y=1 (matching CC setup)
+            ground.transform.position = new Vector3(0, 1f, 0);
 
             var mf = ground.AddComponent<MeshFilter>();
             mf.sharedMesh = terrainMesh;
@@ -442,6 +445,19 @@ public static class FixMainScene
             groundMat.enableInstancing = true;
             groundMat.SetTextureScale("_BaseMap", new Vector2(200f, 200f));
             groundMat.SetTextureScale("_BumpMap", new Vector2(200f, 200f));
+
+            // CRITICAL: URP material properties for proper terrain rendering
+            groundMat.SetFloat("_Surface", 0f); // Opaque
+            groundMat.SetFloat("_ZWrite", 1f);
+            groundMat.SetFloat("_AlphaClip", 0f);
+            groundMat.SetFloat("_Cull", 2f); // Back face culling
+            groundMat.SetFloat("_SrcBlend", 1f);
+            groundMat.SetFloat("_DstBlend", 0f);
+            groundMat.SetInt("_Blend", 0);
+            groundMat.EnableKeyword("_SURFACE_TYPE_OPAQUE");
+            groundMat.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            groundMat.DisableKeyword("_SURFACE_TYPE_TRANSPARENT_PREMULTIPLY");
+            groundMat.renderQueue = 2000; // Geometry queue
 
             AssetDatabase.CreateAsset(groundMat, "Assets/URP/Ground_Grass_Mat.mat");
             AssetDatabase.SaveAssets();
@@ -505,23 +521,24 @@ public static class FixMainScene
         // NEW: 물 시스템 연동 (LakeGenerator + WaterBody) - 저지대 자동 물 메시 생성
         CreateWaterSystem(ground);
 
-        // CRITICAL: Add invisible collision floor at GROUND LEVEL (y=0) for CharacterController
-        // CharacterController: center=1.0, height=2.0 → bottom at y=0.1 when standing on ground at y=0
-        // Floor at y=0: center y=0.05, size y=0.1 (spans y=0.0 to y=0.1)
+        // CRITICAL: Add invisible collision floor at GROUND LEVEL (y=1.1) for CharacterController
+        // Ground is at y=1, terrain surface at y=1.1 (center y=0.226 + extent y=0.268 ≈ 0.49, but we want surface at 1.1)
+        // CharacterController: center=1.0, height=2.0 → bottom at y=1.1 when standing on ground at y=1.1
+        // Floor at y=1.1: center y=1.15, size y=0.1 (spans y=1.1 to y=1.2)
         var floorObj = new GameObject("CollisionFloor");
         floorObj.transform.SetParent(ground.transform);
-        floorObj.transform.localPosition = new Vector3(0, 0.05f, 0); // BoxCollider center at 0.05, top at 0.1, bottom at 0.0
+        floorObj.transform.localPosition = new Vector3(0, 0.15f, 0); // BoxCollider center at 1.15 (ground y=1 + 0.15), top at 1.2, bottom at 1.1
         var floorCollider = floorObj.AddComponent<BoxCollider>();
         floorCollider.size = new Vector3(2000f, 0.1f, 2000f); // Thin at ground level
         floorCollider.isTrigger = false;
         floorObj.layer = LayerMask.NameToLayer("Ground");
-        Debug.Log("[FixMainScene] Added CollisionFloor at ground level y=0.0");
+        Debug.Log("[FixMainScene] Added CollisionFloor at ground level y=1.1");
 
         // SAFETY NET: Add deep safety floor at y=-100 as last resort (debugging only)
         // If everything else fails, this catches the player before infinite fall
         var safetyFloor = new GameObject("SafetyFloor");
         safetyFloor.transform.SetParent(ground.transform);
-        safetyFloor.transform.localPosition = new Vector3(0, -100f, 0);
+        safetyFloor.transform.localPosition = new Vector3(0, -101f, 0); // ground at y=1, so safety at y=-100
         var safetyCollider = safetyFloor.AddComponent<BoxCollider>();
         safetyCollider.size = new Vector3(5000f, 10f, 5000f); // Very large
         safetyCollider.isTrigger = false;
@@ -611,12 +628,12 @@ public static class FixMainScene
     var player = new GameObject("Player");
     player.tag = "Player";
     player.layer = LayerMask.NameToLayer("Player");
-    player.transform.position = new Vector3(0, 1.1f, 0); // Spawn at y=1.1 (center), feet at y=0.1 on ground
+    player.transform.position = new Vector3(0, 2.1f, 0); // Spawn at y=2.1 (center), CC bottom at y=1.1 on ground surface (y=1.1)
 
     var controller = player.AddComponent<CharacterController>();
     controller.height = 2.0f;
     controller.radius = 0.4f;
-    controller.center = new Vector3(0, 1.0f, 0); // center=1.0, height=2.0 -> bottom at y=0.1
+    controller.center = new Vector3(0, 1.0f, 0); // center=1.0, height=2.0 -> bottom at y=1.1 (matches ground surface)
     controller.skinWidth = 0.08f;
 
     // Core components
@@ -686,7 +703,7 @@ public static class FixMainScene
     var visualCapsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
     visualCapsule.name = "PlayerModel";
     visualCapsule.transform.SetParent(player.transform);
-    visualCapsule.transform.localPosition = new Vector3(0, 0f, 0); // Center at y=1.1 (matches Player), bottom at y=0.1 (matches CC bottom)
+    visualCapsule.transform.localPosition = new Vector3(0, 0f, 0); // Center at y=2.1 (matches Player y=2.1), bottom at y=1.1 (matches CC bottom)
     visualCapsule.transform.localScale = new Vector3(0.5f, 1.0f, 0.5f); // radius 0.25, height 2
     visualCapsule.layer = LayerMask.NameToLayer("Player");
     var visualMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
