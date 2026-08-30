@@ -442,6 +442,47 @@
 
 ---
 
+### 2026-08-29: Phase B - MainScene 높이 정렬 + 물리/렌더링 완전 수정 (진행 중)
+
+**문제 (아직 해결 안 됨):**
+1. **지형 잔디 텍스처 안 보임** — Ground_Inner 머티리얼에 `_BaseMap`(잔디 텍스처)이 할당 안 됨. 에셋 저장 후 로드 시 텍스처 할당이 직렬화 안 됨. `_BaseMap: {fileID: 0}` 상태로 씬에 저장됨.
+2. **GLB 모델 아래로 떨어짐** — PlayerModel 자식으로 붙어있으나 Rigidbody/Animator 등 잔존 컴포넌트가 독립적으로 물리 시뮬레이션 실행. GameSetup에서 정리 로직 추가했으나 여전히 분리되어 낙하.
+3. **파란 캡슐(visualCapsule) 지형 아래로 떨어짐** — 높이 불일치:
+   - Ground_Inner y=1, 지형 표면 y≈1.1 (bounds center 0.226 + extent 0.268)
+   - Player 스폰 y=2.1, CharacterController center=0, height=2 → CC 바닥 y=1.1 (지면과 일치하도록 수정함)
+   - visualCapsule localPos (0,0,0) → 월드 y=2.1, 캡슐 바닥 y=1.1 (CC와 일치)
+   - CollisionFloor localPos y=0.15 (월드 y=1.15) → CC 바닥 y=1.1과 정확히 맞춤
+   - SafetyFloor y=-100 (디버깅용)
+3. **카메라 마우스 회전 안 됨** — CinemachineInputAxisController의 `Controllers` 배열이 빈 배열 `[]`로 저장됨. 배치모드에서 SerializedObject로 설정해도 직렬화 안 됨. 런타임(GameSetup)에서 리플렉션으로 구성 필요.
+
+**원인 분석:**
+- Ground_Inner를 y=1에 배치했으나 지형 메시 bounds가 y=0.226±0.268로 실제 표면이 y=1.1 근방
+- CharacterController center를 y=1에서 y=0으로 수정 (Player y=2.1일 때 CC 바닥 y=1.1)
+- CollisionFloor를 y=1.15(로컬 y=0.15)에 배치해 CC 바닥 y=1.1과 정확히 맞춤
+- 머티리얼 직렬화 문제: AssetDatabase.CreateAsset 후 LoadAssetAtPath로 로드할 때 텍스처 할당 사라짐 → 로드 후 재적용 로직 추가함
+- CinemachineInputAxisController: 배치모드에서 SerializedObject/리플렉션으로 Controllers 배열 채워도 씬에 빈 채로 저장됨 → GameSetup Awake에서 런타임 구성 필요
+
+**해결 진행 사항 (완료/진행):**
+- FixMainScene.cs: Ground y=1, Player y=2.1, CC center=0, CollisionFloor localPos y=0.15, visualCapsule localPos (0,0,0)
+- URP 머티리얼: `_Surface=Opaque`, `_ZWrite=1`, `renderQueue=2000`, 텍스처 재적용 로직 추가 (로드 후 SetTexture 재호출)
+- Ground_Grass_Mat 에셋에 텍스처 정상 할당됨 (`_BaseMap` 잔디, `_BumpMap` 노말맵, 200x200 타일링)
+- GameSetup.cs: Awake에서 Physics.autoSimulation=false → 레이어 충돌 매트릭스 설정 → true, GLB 잔존 컴포넌트 제거 + 강제 재부착, 머티리얼 런타임 적용
+- CharacterController center y=1 → y=0 수정 완료
+- 머티리얼 Assets/URP/와 Assets/Resources/URP/ 양쪽에 복사
+
+**아직 남은 문제 (Play Mode 확인 필요):**
+- ❌ 지형 잔디 텍스처가 Play Mode에서 안 보임 (에디터에선 머티리얼 정상인데 런타임에 안 적용될 가능성)
+- ❌ GLB 모델이 여전히 아래로 떨어짐 (GameSetup 정리 로직이 실행 안 되거나 Rigidbody가 즉시 생성됨)
+- ❌ 카메라 마우스 회전 안 됨 (CinemachineInputAxisController Controllers 빈 상태)
+
+**다음 단계:**
+1. Unity Editor Play Mode 직접 실행하여 시각적 확인
+2. Ground_Inner MeshRenderer의 sharedMaterial이 Ground_Grass_Mat 참조하는지 확인
+3. GLB에 Rigidbody/Animator가 즉시 생성되는지 확인 (Awake vs Start 타이밍)
+3. CinemachineInputAxisController 런타임 구성 로직 GameSetup Awake로 이동 및 검증
+
+---
+
 ### 2026-08-21: MainScene 시각적 렌더링 완전 수정 ✅
 
 **문제:** MainScene 실행 시 플레이어와 지형이 화면에 안 보임
