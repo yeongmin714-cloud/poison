@@ -4,7 +4,30 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-08-15
+> **최종 갱신:** 2026-08-30
+
+---
+
+## 2026-08-30: MainScene 미해결 3대 이슈 전부 해결 (Phase B 완료)
+
+**상태:** ✅ EditMode 테스트 통과 + FixMainScene 배치모드 성공 + 컴파일 에러 0건
+
+### 이슈 1 — 지형 잔디 텍스처 미표시 (해결)
+- **근본 원인:** 씬 `Ground_Inner`가 참조하는 `Assets/URP/Ground_Grass_Mat.mat`(GUID `f02019bb`)의 `_BaseMap`이 `{fileID: 0}` (미할당). 정상 버전 `Assets/Resources/URP/`(GUID `2751788c`)와 파일이 분리돼 있었음.
+- **수정:** `Assets/URP/Ground_Grass_Mat.mat`의 `_BaseMap`에 `Terrain_Grass`(guid `22d5b6573cf5c1a48a72542c8f8d9314`), `_BumpMap`에 노멀맵(guid `eb8bd0ef34208914eaaf3995d46dd1cc`) 할당 → 단일 소스로 통일. 씬 참조(f02019bb)는 이미 유효해 GUID 통일 완료.
+
+### 이슈 2 — GLB 플레이어 모델 낙하 (해결)
+- **근본 원인:** `GameSetup.cs`의 `UnityEngine.Object.Destroy()`는 프레임 끝까지 지연되어, 그 사이 물리가 먼저 시뮬레이션되며 GLB가 낙하.
+- **수정:** `GameSetup.cs` — 제거 전에 모든 자식·루트 Rigidbody를 즉시 `isKinematic=true + useGravity=false + interpolation=None`, Animator는 `enabled=false/applyRootMotion=false` 먼저, Collider는 `enabled=false`. `SetParent` 직후 월드 위치를 플레이어와 일치시켜 CollisionFloor 설정 전 낙하 방지.
+
+### 이슈 3 — 카메라 마우스 회전 불가 (해결)
+- **근본 원인:** `GameSetup.cs`의 리플렉션이 존재하지 않는 `ControllerManager`/`XAxis`/`YAxis`/`AxisState`를 참조해 `Controllers[]`가 빈 채 + Input System 활성 시 레거시 `Mouse X/Y` 미동작.
+- **수정:** `GameSetup.cs` — `CinemachineInputAxisController.SynchronizeControllers()` 호출로 `Controllers`에 `IInputAxisOwner` 축 컨트롤러 실제로 채움. 각 로테이션 컨트롤러의 `Reader.InputAction`에 `PlayerControls.inputactions`의 **`Look` 액션**(Vector2 → 힌트 X/Y 분리) 바인딩, `Gain=1/CancelDeltaTime=true`. 비회전 축(Orbit Scale)은 제외. 비표준 Body용 폴백 드라이버 `RuntimeCinemachineOrbitInput`(`CinemachineOrbitalFollow` 축 직접 갱신) 추가 — 중복 처리 방지.
+
+### 검증
+- `./run_tests.sh editmode` → ✅ EditMode tests passed
+- `FixMainScene.Fix` 배치모드 → exit 0, "MainScene fixed and saved with BotW-style setup!", Exiting batchmode successfully
+- 씬 Ground_Inner가 GUID `f02019bb` 참조 확인, _BaseMap `22d5b657` 할당 확인
 
 ---
 

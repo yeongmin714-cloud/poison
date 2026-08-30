@@ -1,0 +1,1523 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.4/staging' branch; Version is '6000.4.10f1 (feeafc12a938) revision 16706300'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Channel LicenseClient-korea doesn't exist
+OS: 'Windows 10  (10.0.19045) 64bit Core' Language: 'ko' Physical Memory: 7880 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-08-30T01:42:46Z
+[Licensing::Module] Successfully launched the LicensingClient (PId: 6808)
+
+COMMAND LINE ARGUMENTS:
+Unity.exe
+-batchmode
+-projectPath
+C:/Unity/code
+-executeMethod
+FixMainScene.Fix
+-quit
+-logFile
+C:/Unity/code/buildlog_fix.txt
+Successfully changed project path to: C:/Unity/code
+C:/Unity/code
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+Player connection [4996]  Target information:
+
+Player connection [4996]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 180386782 [EditorId] 180386782 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [4996]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 180386782 [EditorId] 180386782 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [4996] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [4996] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-1524" after 0.2 seconds.
+[Licensing::Module] Licensing is not yet initialized.
+Starting IPC server.
+Waiting for clients to connect on \\.\pipe\Unity-LicenseClient-korea, press Ctrl-C to exit.
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-08-30T01:42:47.357052Z"
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 6808, path: "C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.1+9fbee8e
+  Session Id:              68f800292caf419999216f8b5f6d3eae
+  Correlation Id:          d7741b8483066822299d18b25be48e42
+  External correlation Id: 8292904408778387372
+  Machine Id:              5cJWr0XiXK4/b2/xsaHUUO6HAA8=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-korea" (connect: 1.29s, validation: 0.52s, handshake: 0.42s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-08-30T01:42:48.2970027Z"
+[Licensing::Module] Connected to LicensingClient (PId: 6808, launch time: 0.01, total connection time: 2.23s)
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 14569764733855-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Licensing Background thread has ended after 2.33s
+[Licensing::Module] Licensing is initialized (took 1.50s).
+[Licensing::Client] Successfully resolved entitlement details
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Initialize engine version: 6000.4.10f1 (feeafc12a938)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path C:/Unity/code/Assets
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+d3d12: failed to query info queue interface (0x80004002).
+Direct3D:
+    Version:         Direct3D 12 [level 12.1]
+    Renderer:        Intel(R) HD Graphics 530 (ID=0x1912)
+    Vendor:          Intel
+    VRAM:            3940 MB
+    App VRAM Budget: 3546 MB
+    Driver:          25.20.100.6577
+    Unified Memory Architecture
+    Cache Coherent UMA
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56524
+CodeReloadManager initialized
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.016616 seconds.
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+Package Manager log level set to [2]
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.918 seconds
+Domain Reload Profiling: 2059ms
+	BeginReloadAssembly (381ms)
+		CreateAndSetChildDomain (14ms)
+	RebuildCommonClasses (146ms)
+	RebuildNativeTypeToScriptingClass (28ms)
+	initialDomainReloadingComplete (159ms)
+	LoadAllAssembliesAndSetupDomain (424ms)
+		LoadAssemblies (373ms)
+		AnalyzeDomain (400ms)
+			TypeCache.Refresh (396ms)
+				TypeCache.ScanAssembly (366ms)
+			ResolveRequiredComponents (3ms)
+	FinalizeReload (921ms)
+		SetupLoadedEditorAssemblies (0ms)
+			InitializePlatformSupportModulesInManaged (101ms)
+			BeforeProcessingInitializeOnLoad (157ms)
+			ProcessInitializeOnLoadAttributes (224ms)
+			ProcessInitializeOnLoadMethodAttributes (328ms)
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 70 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.animation.rigging@1.4.1 (location: C:\Unity\code\Library\PackageCache\com.unity.animation.rigging@ae5f251e1ed4)
+    com.unity.cinemachine@3.1.3 (location: C:\Unity\code\Library\PackageCache\com.unity.cinemachine@624f919d8cdd)
+    com.unity.cloud.gltfast@6.9.1 (location: C:\Unity\code\Library\PackageCache\com.unity.cloud.gltfast@161e8e5e9cfb)
+    com.unity.collab-proxy@2.12.4 (location: C:\Unity\code\Library\PackageCache\com.unity.collab-proxy@0b1559bcd34e)
+    com.unity.inputsystem@1.19.0 (location: C:\Unity\code\Library\PackageCache\com.unity.inputsystem@21a28c3a6c83)
+    com.unity.localization@1.5.3 (location: C:\Unity\code\Library\PackageCache\com.unity.localization@aa064bb50234)
+    com.unity.timeline@1.8.12 (location: C:\Unity\code\Library\PackageCache\com.unity.timeline@8cd8509afae5)
+    com.unity.visualscripting@1.9.11 (location: C:\Unity\code\Library\PackageCache\com.unity.visualscripting@8bed5ad90189)
+    com.unity.addressables@2.9.1 (location: C:\Unity\code\Library\PackageCache\com.unity.addressables@8460f1c9c927)
+    com.unity.nuget.newtonsoft-json@3.2.2 (location: C:\Unity\code\Library\PackageCache\com.unity.nuget.newtonsoft-json@4dfd81071c64)
+    com.unity.ide.visualstudio@2.0.27 (location: C:\Unity\code\Library\PackageCache\com.unity.ide.visualstudio@dc1ddd4f09b6)
+    com.unity.ide.rider@3.0.40 (location: C:\Unity\code\Library\PackageCache\com.unity.ide.rider@e4950c6d131b)
+    com.unity.editorcoroutines@1.1.0 (location: C:\Unity\code\Library\PackageCache\com.unity.editorcoroutines@87a15ed012c2)
+    com.unity.performance.profile-analyzer@1.3.4 (location: C:\Unity\code\Library\PackageCache\com.unity.performance.profile-analyzer@418130329099)
+    com.unity.testtools.codecoverage@1.3.0 (location: C:\Unity\code\Library\PackageCache\com.unity.testtools.codecoverage@19a841221620)
+    com.unity.burst@1.8.29 (location: C:\Unity\code\Library\PackageCache\com.unity.burst@6bb9aca3ef38)
+    com.unity.mathematics@1.3.3 (location: C:\Unity\code\Library\PackageCache\com.unity.mathematics@19a9377c4ffa)
+    com.unity.ai.inference@2.6.1 (location: C:\Unity\code\Library\PackageCache\com.unity.ai.inference@9a123aee5df7)
+    com.unity.splines@2.8.4 (location: C:\Unity\code\Library\PackageCache\com.unity.splines@9b00833aca09)
+    com.unity.searcher@4.9.4 (location: C:\Unity\code\Library\PackageCache\com.unity.searcher@d45a78918735)
+    com.unity.profiling.core@1.0.3 (location: C:\Unity\code\Library\PackageCache\com.unity.profiling.core@8a49f7027d06)
+    com.unity.scriptablebuildpipeline@2.6.1 (location: C:\Unity\code\Library\PackageCache\com.unity.scriptablebuildpipeline@36e3b5898ee2)
+    com.unity.settings-manager@2.1.1 (location: C:\Unity\code\Library\PackageCache\com.unity.settings-manager@0b8638c5ce86)
+    com.unity.nuget.mono-cecil@1.11.6 (location: C:\Unity\code\Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff)
+    com.unity.test-framework.performance@3.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.test-framework.performance@aa81a99c4a75)
+    com.unity.dt.app-ui@2.1.1 (location: C:\Unity\code\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d)
+  Built-in packages:
+    com.unity.sentis@2.2.0 (location: C:\Unity\code\Library\PackageCache\com.unity.sentis@eef1e5173b44)
+    com.unity.feature.development@1.0.2 (location: C:\Unity\code\Library\PackageCache\com.unity.feature.development@767aadbc6eb7)
+    com.unity.render-pipelines.universal@17.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.render-pipelines.universal@cdf909593d80)
+    com.unity.test-framework@1.6.0 (location: C:\Unity\code\Library\PackageCache\com.unity.test-framework@996f223345ba)
+    com.unity.textmeshpro@5.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.textmeshpro@53f43edfd2e0)
+    com.unity.ugui@2.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.ugui@1f2d1ab0d950)
+    com.unity.modules.ai@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.modules.screencapture@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vehicles@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.video)
+    com.unity.modules.vr@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.vr)
+    com.unity.modules.wind@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.hierarchycore)
+    com.unity.ext.nunit@2.0.5 (location: C:\Unity\code\Library\PackageCache\com.unity.ext.nunit@d8c07649098d)
+    com.unity.render-pipelines.core@17.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.render-pipelines.core@5aab14b68499)
+    com.unity.shadergraph@17.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.shadergraph@93ee0fdc6ad8)
+    com.unity.render-pipelines.universal-config@17.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.render-pipelines.universal-config@0db4263b9e6b)
+    com.unity.collections@6.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.collections@5b6ebd78ccc0)
+[Package Manager] com.unity.textmeshpro is deprecated: This package is no longer supported. TextMeshPro functionalities are now included in the com.unity.ugui package. To continue using them, consider adding it to your project dependencies.
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.06 seconds
+Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
+Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:80
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: C:\Unity\code
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 67.6126ms
+Starting: C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: C:/Unity/code
+DisplayProgressbar: Compiling Scripts
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.runtime.interopservices.windowsruntime has duplicate hint path. Ignoring "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Runtime.InteropServices.WindowsRuntime.dll" in favor of "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\NetStandard\Extensions\2.0.0\System.Runtime.InteropServices.WindowsRuntime.dll"
+warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.componentmodel.composition has duplicate hint path. Ignoring "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\System.ComponentModel.Composition.dll" in favor of "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\NetStandard\compat\2.1.0\shims\netfx\System.ComponentModel.Composition.dll"
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Burst.Cecil, Version=0.11.6.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@6bb9aca3ef38\Unity.Burst.CodeGen\Unity.Burst.Cecil.dll
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Mono.Cecil, Version=0.11.5.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff\Mono.Cecil.dll
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 169.8656ms
+ExitCode: 0 Duration: 2s595ms
+[ 747/1401  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+*** Tundra build success (2.51 seconds), 1 items updated, 1401 evaluated
+AssetDatabase: script compilation time: 3.831336s
+Begin MonoManager ReloadAssembly
+Assembly Assembly-CSharp-Editor-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-Editor-firstpass.dll not valid. Loading of assembly skipped.
+Assembly Assembly-CSharp-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll not valid. Loading of assembly skipped.
+Assembly DocCodeExamples.dll at Library/ScriptAssemblies/DocCodeExamples.dll not valid. Loading of assembly skipped.
+Assembly TestNewCustomAssembly.dll at Library/ScriptAssemblies/TestNewCustomAssembly.dll not valid. Loading of assembly skipped.
+Assembly Unity.Addressables.Editor.Tests.dll at Library/ScriptAssemblies/Unity.Addressables.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Addressables.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.Addressables.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.AppUI.Editor.Tests.dll at Library/ScriptAssemblies/Unity.AppUI.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.AppUI.Tests.dll at Library/ScriptAssemblies/Unity.AppUI.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.BurstCompatibilityGen.dll at Library/ScriptAssemblies/Unity.Collections.BurstCompatibilityGen.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.DocCodeSamples.dll at Library/ScriptAssemblies/Unity.Collections.DocCodeSamples.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.PerformanceTests.dll at Library/ScriptAssemblies/Unity.Collections.PerformanceTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.Tests.dll at Library/ScriptAssemblies/Unity.Collections.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.Tests.Playmode.dll at Library/ScriptAssemblies/Unity.Collections.Tests.Playmode.dll not valid. Loading of assembly skipped.
+Assembly Unity.InputSystem.IntegrationTests.dll at Library/ScriptAssemblies/Unity.InputSystem.IntegrationTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Localization.DocCodeSamples.dll at Library/ScriptAssemblies/Unity.Localization.DocCodeSamples.dll not valid. Loading of assembly skipped.
+Assembly Unity.Mathematics.Tests.dll at Library/ScriptAssemblies/Unity.Mathematics.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Nuget.Mono-Cecil.dll at Library/ScriptAssemblies/Unity.Nuget.Mono-Cecil.dll not valid. Loading of assembly skipped.
+Assembly Unity.PathTracing.Editor.Tests.dll at Library/ScriptAssemblies/Unity.PathTracing.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.PathTracing.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.PathTracing.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Performance.Profile-Analyzer.EditorTests.dll at Library/ScriptAssemblies/Unity.Performance.Profile-Analyzer.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Core.Editor.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Core.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Core.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Core.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Universal.Config.Editor.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Config.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Universal.Editor.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Universal.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ResourceManager.Tests.dll at Library/ScriptAssemblies/Unity.ResourceManager.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ScriptableBuildPipeline.Editor.Tests.dll at Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ScriptableBuildPipeline.Tests.dll at Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ScriptableBuildPipelineTests.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.ScriptableBuildPipelineTests.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Searcher.EditorTests.dll at Library/ScriptAssemblies/Unity.Searcher.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Settings.Tests.dll at Library/ScriptAssemblies/Unity.Settings.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ShaderGraph.Editor.Tests.dll at Library/ScriptAssemblies/Unity.ShaderGraph.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.TestTools.CodeCoverage.Editor.Compatibility.dll at Library/ScriptAssemblies/Unity.TestTools.CodeCoverage.Editor.Compatibility.dll not valid. Loading of assembly skipped.
+Assembly Unity.TextMeshPro.Editor.Tests.dll at Library/ScriptAssemblies/Unity.TextMeshPro.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.TextMeshPro.Tests.dll at Library/ScriptAssemblies/Unity.TextMeshPro.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.UnifiedRayTracing.Editor.Tests.dll at Library/ScriptAssemblies/Unity.UnifiedRayTracing.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly UnityEditor.UI.Common.Tests.dll at Library/ScriptAssemblies/UnityEditor.UI.Common.Tests.dll not valid. Loading of assembly skipped.
+Assembly UnityEditor.UI.EditorTests.dll at Library/ScriptAssemblies/UnityEditor.UI.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly UnityEngine.UI.Tests.dll at Library/ScriptAssemblies/UnityEngine.UI.Tests.dll not valid. Loading of assembly skipped.
+Symbol file LoadedFromMemory is not a mono symbol file
+Symbol file LoadedFromMemory is not a mono symbol file
+'Packages/com.unity.cinemachine/Editor/Editors/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Packages/com.unity.cinemachine/Editor/Obsolete/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+Refreshing native plugins compatible for Editor in 25.90 ms, found 5 plugins.
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
+Refreshing native plugins compatible for Editor in 7.19 ms, found 5 plugins.
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-포이즌
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  6.251 seconds
+Domain Reload Profiling: 9038ms
+	BeginReloadAssembly (462ms)
+		DisableScriptedObjects (32ms)
+		CreateAndSetChildDomain (175ms)
+	RebuildCommonClasses (53ms)
+	RebuildNativeTypeToScriptingClass (19ms)
+	initialDomainReloadingComplete (497ms)
+	LoadAllAssembliesAndSetupDomain (1755ms)
+		LoadAssemblies (1271ms)
+		AnalyzeDomain (650ms)
+			TypeCache.Refresh (491ms)
+				TypeCache.ScanAssembly (465ms)
+			BuildScriptInfoCaches (120ms)
+			ResolveRequiredComponents (36ms)
+	FinalizeReload (6252ms)
+		SetupLoadedEditorAssemblies (0ms)
+			InitializePlatformSupportModulesInManaged (35ms)
+			BeforeProcessingInitializeOnLoad (490ms)
+			ProcessInitializeOnLoadAttributes (4528ms)
+			ProcessInitializeOnLoadMethodAttributes (779ms)
+			AfterProcessingInitializeOnLoad (15ms)
+		AwakeInstancesAfterBackupRestoration (43ms)
+(Values over 0.050ms)
+Asset Pipeline Refresh (id=d4368989b3db0fb4aa6e82e904532704): Total: 18.245 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=11185 ms
+		Asset DB Callback time: managed=112 ms, native=71 ms
+		Scripting: domain reloads=1, domain reload time=2799 ms, compile time=3834 ms, other=240 ms
+		Project Asset Count: scripts=2214, non-scripts=5527
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokePackagesCallback: 74.870ms
+	ApplyChangesToAssetFolders: 1.546ms
+	Scan: 3279.123ms
+	CategorizeScriptCompilationAssets: 534.380ms
+	ProcessAssetsWithTransientArtifactChanges: 201.430ms
+	CategorizeAssets: 144.288ms
+	CompileScripts: 3833.708ms
+	ImportOutOfDateAssets: 6310.860ms (6302.421ms without children)
+		UnloadImportedAssets: 3.560ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.261ms
+		OnDemandSchedulerStart: 2.562ms
+	PostProcessAllAssets: 112.992ms
+		MonoPostProcessAllAssets: 112.895ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 27.008ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 15.152ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 2.973ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 1.295ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.627ms
+			CinemachineSettings.OnPostprocessAllAssets 0.606ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.485ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.374ms
+			SyncVS.PostprocessSyncProject 0.289ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.235ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.180ms
+	UnloadStreamsBegin: 2.439ms
+	PersistCurrentRevisions: 0.406ms
+	GenerateScriptTypeHashes: 6.508ms
+	GenerateScriptTypeSerializationHashes: 13.303ms
+	Untracked: 3740.234ms
+
+Application.AssetDatabase Initial Refresh End
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.02 seconds
+Scanning for USB devices : 6.131ms
+Initializing Unity extensions:
+Unloading 198 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 10772 unused Assets / (38.6 MB). Loaded Objects now: 11411.
+Memory consumption went from 289.9 MB to 251.4 MB.
+Total: 43.615500 ms (FindLiveObjects: 3.030900 ms CreateObjectMapping: 5.233400 ms MarkObjects: 11.961500 ms  DeleteObjects: 23.385100 ms)
+
+Destroying object "InternalIdentityTransform" is not allowed at this time.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.Object:DestroyImmediate (UnityEngine.Object,bool)
+UnityEngine.Object:DestroyImmediate (UnityEngine.Object)
+FixMainScene:PurgeAllDontDestroyOnLoadAndSingletons () (at Assets/Editor/FixMainScene.cs:36)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:157)
+
+[Assets/Editor/FixMainScene.cs line 36]
+
+[FixMainScene] 🧹 Complete purge: DontDestroyOnLoad + Singletons + AutoCreates
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+FixMainScene:PurgeAllDontDestroyOnLoadAndSingletons () (at Assets/Editor/FixMainScene.cs:119)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:157)
+
+(Filename: Assets/Editor/FixMainScene.cs Line: 119)
+
+Unloading 2 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 1 unused Assets / (4.9 KB). Loaded Objects now: 11410.
+Memory consumption went from 213.8 MB to 213.8 MB.
+Total: 12.721300 ms (FindLiveObjects: 0.824400 ms CreateObjectMapping: 0.959600 ms MarkObjects: 10.881100 ms  DeleteObjects: 0.054500 ms)
+
+[FixMainScene] 'Player' layer already exists at index 8
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+FixMainScene:EnsurePlayerLayerExists () (at Assets/Editor/FixMainScene.cs:1223)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:166)
+
+(Filename: Assets/Editor/FixMainScene.cs Line: 1223)
+
+[FixMainScene] 'Ground' layer already exists at index 9
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+FixMainScene:EnsureGroundLayerExists () (at Assets/Editor/FixMainScene.cs:1256)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:171)
+
+(Filename: Assets/Editor/FixMainScene.cs Line: 1256)
+
+Start importing Assets/URP/GlobalVolumeProfile.asset using Guid(698d0a10dc721674d858addfe274a9b8) (NativeFormatImporter) -> (Import Result ID: '5392583830e345e3c33b1f0a8c76e5bf') in 0.0155407 seconds [static dependencies only]. Details - ImportResultOutputID=318e4172a1177efa4580d5e1debcfef1 DependenciesID=ad50430ba79bf0f175a7f53a41d874ac StaticDependenciesID=be7f047d62afec64e961c55f4603ab04 
+Refreshing native plugins compatible for Editor in 7.74 ms, found 5 plugins.
+(Values over 0.050ms)
+Asset Pipeline Refresh (id=c7ed059d7460d664ab3a438f0e17eb67): Total: 0.464 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+	Summary:
+		Imports: total=1 (actual=1, local cache=0, cache server=0)
+		Asset DB Process Time: managed=3 ms, native=158 ms
+		Asset DB Callback time: managed=282 ms, native=19 ms
+		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
+		Project Asset Count: scripts=2214, non-scripts=5527
+		Asset File Changes: new=0, changed=1, moved=0, deleted=0
+		Scan Filter Count: 3
+	ApplyChangesToAssetFolders: 0.200ms
+	Scan: 40.270ms
+	OnSourceAssetsModified: 1.340ms
+	ProcessAssetsWithTransientArtifactChanges: 0.451ms
+	CategorizeAssets: 81.523ms
+	ImportOutOfDateAssets: 21.307ms (0.657ms without children)
+		ImportManagerImport: 18.221ms (1.776ms without children)
+		UnloadImportedAssets: 0.239ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.152ms
+		OnDemandSchedulerStart: 0.992ms
+	PostProcessAllAssets: 290.475ms
+		XRBuildSystem.XRAssetImported 10.439ms
+		MonoPostProcessAllAssets: 279.409ms
+			AssetPostprocessor.OnPostprocessAllAssets 210.866ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 41.185ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 9.380ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 1.851ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 1.739ms
+			LocalizationAssetPostProcessor.OnPostprocessAllAssets 1.643ms
+			AssetChangedListener.OnPostprocessAllAssets 1.600ms
+			AddressablesAssetPostProcessor.OnPostprocessAllAssets 1.481ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 1.072ms
+			AssetPathToTypes.OnPostprocessAllAssets 0.699ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.661ms
+			MaterialPostprocessor.OnPostprocessAllAssets 0.644ms
+			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.611ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.460ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 0.449ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.364ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.343ms
+			PostProcessor.OnPostprocessAllAssets 0.337ms
+			AssetEvents.OnPostprocessAllAssets 0.328ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.259ms
+			ConfigAssetsTracker.OnPostprocessAllAssets 0.247ms
+			SamplePostprocessor.OnPostprocessAllAssets 0.179ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.170ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.159ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.113ms
+			SyncVS.PostprocessSyncProject 0.111ms
+			AudioContainerPostProcessor.OnPostprocessAllAssets 0.091ms
+	PostAssetChangesProfiler: 9.794ms
+	GatherAllCurrentPrimaryImportResultRevisions: 0.654ms
+	PersistCurrentRevisions: 0.511ms
+	Untracked: 11.711ms
+
+Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.0190552 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
+Start importing ProjectSettings/GraphicsSettings.asset using Guid(00000000000000006100000000000000) (LibraryAssetImporter) -> (Import Result ID: '2e0370b90037bfca6cd9b6396f00c63d') in 0.003048 seconds [static dependencies only]. Details - ImportResultOutputID=5bd38efc7568c0c855c21a11ad435b27 DependenciesID=6ebf37a5e2f43d582b4b8605f3fc133a StaticDependenciesID=4613d8c13f9a105590ca6afac05afa81 
+Refreshing native plugins compatible for Editor in 6.69 ms, found 5 plugins.
+Asset Pipeline Refresh (id=6173ddd1eb3f9844bb0b392dd1b0fb7a): Total: 0.089 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=aef042c6d33d4fe4db7cd73c53c435ff): Total: 0.019 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Start importing Assets/URP/GlobalVolumeProfile.asset using Guid(698d0a10dc721674d858addfe274a9b8) (NativeFormatImporter) -> (Import Result ID: '2665add63bfbf2349aab18589a06d71f') in 0.1560842 seconds [static dependencies only]. Details - ImportResultOutputID=9a8d0551906a2e188a60fcab24b9e752 DependenciesID=95aa9fffc288c67c916b8382c7216721 StaticDependenciesID=156d6e859fecadad7a20a1491be8dcd2 
+Refreshing native plugins compatible for Editor in 11.07 ms, found 5 plugins.
+Asset Pipeline Refresh (id=5405f7345c9f3cb44bc0cc5b5e673a5b): Total: 0.287 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=b9736e092334bb14fac30a5b0f8b5eed): Total: 0.031 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Start importing Assets/URP/GlobalVolumeProfile.asset using Guid(698d0a10dc721674d858addfe274a9b8) (NativeFormatImporter) -> (Import Result ID: '2665add63bfbf2349aab18589a06d71f') in 0.0028596 seconds [static dependencies only]. Details - ImportResultOutputID=9a8d0551906a2e188a60fcab24b9e752 DependenciesID=95aa9fffc288c67c916b8382c7216721 StaticDependenciesID=156d6e859fecadad7a20a1491be8dcd2 
+Refreshing native plugins compatible for Editor in 6.60 ms, found 5 plugins.
+Asset Pipeline Refresh (id=d724881aeb7fb574ab32421537f27cde): Total: 0.045 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=2b665bafa7d72eb4da093d0a10433208): Total: 0.018 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=e65632e823cb52a468a3d2f46bd09865): Total: 0.027 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=4d50573b11bb3244483b5dbda9b73068): Total: 0.031 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=108c9304bf5f2af4f9ac3675f69745fe): Total: 0.038 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=f5691fa3319b1904587e16e1b9285175): Total: 0.032 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=2c8910445d186394c8630a3a3ad03cca): Total: 0.018 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Start importing Assets/URP/Ground_Grass_Mat.mat using Guid(f02019bb5d805ae4e8bbd3a4bbc78c0e) (NativeFormatImporter) -> (Import Result ID: 'a772fd1fcb208f9e6fe68794354a84a4') in 0.0029309 seconds [static dependencies only]. Details - ImportResultOutputID=eb556160d860b54c038776025d45e2fc DependenciesID=6a280e1f8f5cded4e71854fc03216c43 StaticDependenciesID=7238b2004abb32e1eddeab9a68bb9cfa 
+Refreshing native plugins compatible for Editor in 6.38 ms, found 5 plugins.
+Asset Pipeline Refresh (id=14e4a659521b6c049b93afdb779f0496): Total: 0.105 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/URP/Ground_Grass_Mat.mat using Guid(f02019bb5d805ae4e8bbd3a4bbc78c0e) (NativeFormatImporter) -> (Import Result ID: '3dfb5a63881afab603f0606d523a84c4') in 0.0102715 seconds [static dependencies only]. Details - ImportResultOutputID=eb556160d860b54c038776025d45e2fc DependenciesID=f43bd12f7ba2b25b846def335e7c2220 StaticDependenciesID=430f5b146437ede11a8a932baf3ebe6f 
+Refreshing native plugins compatible for Editor in 6.55 ms, found 5 plugins.
+Asset Pipeline Refresh (id=64dbf2a95ce3bec4899f5b4a8c9e8808): Total: 0.133 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=1efa3b6f5a9ba5b45a3ac5d6744e7498): Total: 0.026 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Refreshing native plugins compatible for Editor in 6.61 ms, found 5 plugins.
+Asset Pipeline Refresh (id=2963c3c18d5d2774cb49bc513549836c): Total: 0.080 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/Resources/URP/Ground_Grass_Mat.mat using Guid(d60b6807fd94d4d45b5be2a3244bea7f) (NativeFormatImporter) -> (Import Result ID: '409b541918032c711364f556e2f72125') in 0.003994 seconds [static dependencies only]. Details - ImportResultOutputID=d878ccdfa4a80329e1d65e4ac6d12f0f DependenciesID=e518d9dc03648f17fb2f7a1bda554b46 StaticDependenciesID=bfdbfc84c951c31e86d164279fa4aa40 
+Refreshing native plugins compatible for Editor in 5.69 ms, found 5 plugins.
+Asset Pipeline Refresh (id=a3b040fd2dc89ad4f8247dddf74cfb85): Total: 0.110 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=ab4192ddef7f18a45af4e3fe1ac4c7f6): Total: 0.018 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Start importing Assets/URP/Ground_Grass_Mat.mat using Guid(f02019bb5d805ae4e8bbd3a4bbc78c0e) (NativeFormatImporter) -> (Import Result ID: '3dfb5a63881afab603f0606d523a84c4') in 0.0032214 seconds [static dependencies only]. Details - ImportResultOutputID=eb556160d860b54c038776025d45e2fc DependenciesID=f43bd12f7ba2b25b846def335e7c2220 StaticDependenciesID=430f5b146437ede11a8a932baf3ebe6f 
+Refreshing native plugins compatible for Editor in 5.86 ms, found 5 plugins.
+Asset Pipeline Refresh (id=6a23c6e5ecc1fb24692643ad981602bd): Total: 0.068 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=b304a6fb0be04dd43ba77b1fc793eae1): Total: 0.018 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+[TerrainModelPlacer] grassModels: 7, rockModels: 5, treeModels: 6
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:68)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 68)
+
+  grass[0]: grass 2
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:69)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 69)
+
+  grass[1]: grass 3
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:69)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 69)
+
+  grass[2]: grass 4
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:69)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 69)
+
+  grass[3]: grass 5
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:69)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 69)
+
+  grass[4]: grass 6
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:69)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 69)
+
+  grass[5]: grass 7
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:69)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 69)
+
+  grass[6]: grass1
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:69)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 69)
+
+  rock[0]: rock 1
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:70)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 70)
+
+  rock[1]: rock 2
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:70)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 70)
+
+  rock[2]: rock 3
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:70)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 70)
+
+  rock[3]: rock 4
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:70)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 70)
+
+  rock[4]: rock 5
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:70)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 70)
+
+  tree[0]: tree 1
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:71)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 71)
+
+  tree[1]: tree 2
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:71)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 71)
+
+  tree[2]: tree 3
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:71)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 71)
+
+  tree[3]: tree 4
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:71)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 71)
+
+  tree[4]: tree 6
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:71)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 71)
+
+  tree[5]: tree5
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:71)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 71)
+
+[TerrainModelPlacer] Current nation: Empire, Biome: Plains, Seed: 42
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:79)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 79)
+
+[TerrainModelPlacer] Total models placed: 1310, Environment children: 1310
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:89)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 89)
+
+[TerrainModelPlacer] Environment placement complete. Children: 1310
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Systems.TerrainModelPlacer:Place (UnityEngine.GameObject) (at Assets/Scripts/Systems/TerrainModelPlacer.cs:96)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:519)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Scripts/Systems/TerrainModelPlacer.cs Line: 96)
+
+[FixMainScene] Added CollisionFloor at ground level y=1.1
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:535)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Editor/FixMainScene.cs Line: 535)
+
+[FixMainScene] Added SafetyFloor at y=-100 as last resort (debug)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+FixMainScene:CreateHeightmapTerrain () (at Assets/Editor/FixMainScene.cs:546)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:212)
+
+(Filename: Assets/Editor/FixMainScene.cs Line: 546)
+
+[PlayerHealth] 💚 100 회복! HP: 100/100
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Core.PlayerHealth:Heal (single) (at Assets/Scripts/Core/PlayerHealth.cs:186)
+FixMainScene:CreatePlayer () (at Assets/Editor/FixMainScene.cs:642)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:223)
+
+(Filename: Assets/Scripts/Core/PlayerHealth.cs Line: 186)
+
+[CombatLog] HP 100 회복
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.Core.PlayerHealth:Heal (single) (at Assets/Scripts/Core/PlayerHealth.cs:188)
+FixMainScene:CreatePlayer () (at Assets/Editor/FixMainScene.cs:642)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:223)
+
+(Filename: Assets/Scripts/Core/PlayerHealth.cs Line: 188)
+
+[FixMainScene] DisableGLBRenderers type not found
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogWarning (object)
+FixMainScene:CreatePlayer () (at Assets/Editor/FixMainScene.cs:696)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:223)
+
+(Filename: Assets/Editor/FixMainScene.cs Line: 696)
+
+[FixMainScene] GLB loaded & stripped: 1 skinned, 0 mesh renderers disabled
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+FixMainScene:CreatePlayer () (at Assets/Editor/FixMainScene.cs:699)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:223)
+
+(Filename: Assets/Editor/FixMainScene.cs Line: 699)
+
+Cancelling FileDialog: Save Scene
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEditor.SceneManagement.EditorSceneManager:SaveSceneInternal (UnityEngine.SceneManagement.Scene,string,bool)
+UnityEditor.SceneManagement.EditorSceneManager:SaveScene (UnityEngine.SceneManagement.Scene,string,bool)
+UnityEditor.SceneManagement.EditorSceneManager:SaveScene (UnityEngine.SceneManagement.Scene)
+FixMainScene:CreatePlayer () (at Assets/Editor/FixMainScene.cs:743)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:223)
+
+[Assets/Editor/FixMainScene.cs line 743]
+
+Start importing Assets/URP/Ground_Grass_Mat.mat using Guid(f02019bb5d805ae4e8bbd3a4bbc78c0e) (NativeFormatImporter) -> (Import Result ID: '3dfb5a63881afab603f0606d523a84c4') in 0.0979696 seconds [static dependencies only]. Details - ImportResultOutputID=eb556160d860b54c038776025d45e2fc DependenciesID=f43bd12f7ba2b25b846def335e7c2220 StaticDependenciesID=430f5b146437ede11a8a932baf3ebe6f 
+Refreshing native plugins compatible for Editor in 47.13 ms, found 5 plugins.
+Preloading 1 native plugins for Editor in 3.09 ms.
+(Values over 0.050ms)
+Asset Pipeline Refresh (id=8189086c4627595488ff9b558da7a061): Total: 0.728 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+	Summary:
+		Imports: total=1 (actual=1, local cache=0, cache server=0)
+		Asset DB Process Time: managed=2 ms, native=351 ms
+		Asset DB Callback time: managed=16 ms, native=84 ms
+		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
+		Project Asset Count: scripts=2214, non-scripts=5527
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 3
+	InvokeCustomDependenciesCallbacks: 1.298ms
+	InvokePackagesCallback: 1.009ms
+	ApplyChangesToAssetFolders: 0.199ms
+	Scan: 134.894ms
+	ProcessAssetsWithTransientArtifactChanges: 1.002ms
+	CategorizeAssets: 4.307ms
+	ImportOutOfDateAssets: 123.321ms (1.633ms without children)
+		ImportManagerImport: 113.351ms (9.210ms without children)
+		ReloadNativeAssets: 0.872ms
+		UnloadImportedAssets: 4.974ms
+		ReloadImportedAssets: 2.040ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.498ms
+		OnDemandSchedulerStart: 0.967ms
+	PostProcessAllAssets: 33.673ms
+		XRBuildSystem.XRAssetImported 4.170ms
+		AssemblyValidation.PostprocessAllAssets 0.925ms
+		BlockShaderImporter.PostprocessAllAssets 0.779ms
+		MonoPostProcessAllAssets: 16.675ms
+			AssetChangedListener.OnPostprocessAllAssets 4.190ms
+			MaterialPostprocessor.OnPostprocessAllAssets 2.919ms
+			AssetPostprocessor.OnPostprocessAllAssets 1.926ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 1.294ms
+			ModelAssetProcessor.OnPostprocessAllAssets 1.181ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 1.165ms
+			AddressablesAssetPostProcessor.OnPostprocessAllAssets 0.963ms
+			SyncVS.PostprocessSyncProject 0.940ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.115ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.055ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.051ms
+			LocalizationAssetPostProcessor.OnPostprocessAllAssets 0.051ms
+	PostAssetChangesProfiler: 63.757ms
+	GatherAllCurrentPrimaryImportResultRevisions: 1.717ms
+	UnloadStreamsBegin: 0.717ms
+	PersistCurrentRevisions: 0.386ms
+	UnloadStreamsEnd: 0.077ms
+	Untracked: 361.057ms
+
+Asset Pipeline Refresh (id=922e3d86c3e97f64d870977e483a819f): Total: 0.022 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+[FixMainScene] DisableGLBRenderers type not found
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogWarning (object)
+FixMainScene:CreatePlayer () (at Assets/Editor/FixMainScene.cs:757)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:223)
+
+(Filename: Assets/Editor/FixMainScene.cs Line: 757)
+
+[FixMainScene] GLB loaded & stripped: 1 skinned, 0 mesh renderers disabled
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+FixMainScene:CreatePlayer () (at Assets/Editor/FixMainScene.cs:760)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:223)
+
+(Filename: Assets/Editor/FixMainScene.cs Line: 760)
+
+[FixMainScene] PlayerModel: capsule at localPos (0.00, 0.00, 0.00), GLB loaded: True
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+FixMainScene:CreatePlayer () (at Assets/Editor/FixMainScene.cs:763)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:223)
+
+(Filename: Assets/Editor/FixMainScene.cs Line: 763)
+
+[FixMainScene] ✅ Player singletons force-registered to NEW instances
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+FixMainScene:ForceRegisterPlayerSingletons (UnityEngine.GameObject) (at Assets/Editor/FixMainScene.cs:150)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:226)
+
+(Filename: Assets/Editor/FixMainScene.cs Line: 150)
+
+[FixMainScene] CinemachineInputAxisController configured for mouse orbit
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+FixMainScene:CreateCameraSystem (UnityEngine.GameObject) (at Assets/Editor/FixMainScene.cs:880)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:231)
+
+(Filename: Assets/Editor/FixMainScene.cs Line: 880)
+
+Light.shadowResolution is compatible only with the Built-In Render Pipeline.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogWarning (object)
+UnityEngine.Light:LogWarningOnlyBuiltIn (string)
+UnityEngine.Light:set_shadowResolution (UnityEngine.Rendering.LightShadowResolution)
+FixMainScene:CreateLightingSystem () (at Assets/Editor/FixMainScene.cs:902)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:243)
+
+(Filename: Assets/Editor/FixMainScene.cs Line: 902)
+
+Light.shadowResolution is compatible only with the Built-In Render Pipeline.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogWarning (object)
+UnityEngine.Light:LogWarningOnlyBuiltIn (string)
+UnityEngine.Light:set_shadowResolution (UnityEngine.Rendering.LightShadowResolution)
+FixMainScene:CreateLightingSystem () (at Assets/Editor/FixMainScene.cs:916)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:243)
+
+(Filename: Assets/Editor/FixMainScene.cs Line: 916)
+
+[NeuralModelAutoSetup] Found 26 ONNX model(s).
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:225)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 225)
+
+[NeuralModelAutoSetup] No non-INT8 bc_ models found. Falling back to all bc_ files.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogWarning (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:243)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 243)
+
+[NeuralModelAutoSetup] No bc_ prefix models found. Falling back to all ONNX files.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogWarning (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:253)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 253)
+
+[NeuralModelAutoSetup]  ✓ Climb: NeuralModels/climb_biped_base_int8 (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Combat: NeuralModels/combat_biped_base (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Combat: NeuralModels/combat_biped_base_int8 (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Combat: NeuralModels/combat_quadruped_base_int8 (obs=150, act=100, joints=24)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Crouch: NeuralModels/crouch_biped_base_int8 (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Crouch: NeuralModels/crouch_quadruped_base_int8 (obs=150, act=100, joints=24)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Fly: NeuralModels/fly_biped_base (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Fly: NeuralModels/fly_biped_base_int8 (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Fly: NeuralModels/fly_quadruped_base_int8 (obs=150, act=100, joints=24)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Interact: NeuralModels/interact_biped_base (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Interact: NeuralModels/interact_biped_base_int8 (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Interact: NeuralModels/interact_quadruped_base_int8 (obs=150, act=100, joints=24)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ LargeMonster: NeuralModels/large_monster_quadruped_base_int8 (obs=150, act=100, joints=24)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Locomotion: NeuralModels/locomotion_biped_base (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Locomotion: NeuralModels/locomotion_biped_base_int8 (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Locomotion: NeuralModels/locomotion_quadruped_base_int8 (obs=150, act=100, joints=24)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Mount: NeuralModels/mount_biped_base_int8 (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Mount: NeuralModels/mount_quadruped_base_int8 (obs=150, act=100, joints=24)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ React: NeuralModels/react_biped_base (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ React: NeuralModels/react_biped_base_int8 (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ React: NeuralModels/react_quadruped_base_int8 (obs=150, act=100, joints=24)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Run: NeuralModels/run_biped_base_int8 (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Run: NeuralModels/run_quadruped_base_int8 (obs=150, act=100, joints=24)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Swim: NeuralModels/swim_biped_base (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Swim: NeuralModels/swim_biped_base_int8 (obs=120, act=80, joints=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+[NeuralModelAutoSetup]  ✓ Swim: NeuralModels/swim_quadruped_base_int8 (obs=150, act=100, joints=24)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:315)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 315)
+
+Start importing Assets/Resources/NeuralModelDatabase.asset using Guid(0fe58613e3edbb84d88cb406b3fd6335) (NativeFormatImporter) -> (Import Result ID: '936a3677a01c11d8fa82fa3ba96a80e1') in 0.1609191 seconds [static dependencies only]. Details - ImportResultOutputID=b43cfd795176ff62e7a4498b168b2a9d DependenciesID=ab6cecfafef018f7aa54a179183e727e StaticDependenciesID=d110c0728a3d7d9a89f018b26410c6f0 
+Refreshing native plugins compatible for Editor in 6.48 ms, found 5 plugins.
+Asset Pipeline Refresh (id=99fa25cf57927f04e81866020fd3653c): Total: 0.215 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[NeuralModelAutoSetup] Auto-Setup complete! |  |   • Models found: 26 |   • Matched: 26 |   • Skipped (unknown): 0 |   • Database: Assets/Resources/NeuralModelDatabase.asset |  | Entries: |   [Climb] NeuralModels/climb_biped_base_int8 |   [Combat] NeuralModels/combat_biped_base |   [Combat] NeuralModels/combat_biped_base_int8 |   [Combat] NeuralModels/combat_quadruped_base_int8 |   [Crouch] NeuralModels/crouch_biped_base_int8 |   [Crouch] NeuralModels/crouch_quadruped_base_int8 |   [Fly] NeuralModels/fly_biped_base |   [Fly] NeuralModels/fly_biped_base_int8 |   [Fly] NeuralModels/fly_quadruped_base_int8 |   [Interact] NeuralModels/interact_biped_base |   [Interact] NeuralModels/interact_biped_base_int8 |   [Interact] NeuralModels/interact_quadruped_base_int8 |   [LargeMonster] NeuralModels/large_monster_quadruped_base_int8 |   [Locomotion] NeuralModels/locomotion_biped_base |   [Locomotion] NeuralModels/locomotion_biped_base_int8 |   [Locomotion] NeuralModels/locomotion_quadruped_base_int8 |   [Mount] NeuralModels/mount_biped_base_int8 |   [Mount] NeuralModels/mount_quadruped_base_int8 |   [React] NeuralModels/react_biped_base |   [React] NeuralModels/react_biped_base_int8 |   [React] NeuralModels/react_quadruped_base_int8 |   [Run] NeuralModels/run_biped_base_int8 |   [Run] NeuralModels/run_quadruped_base_int8 |   [Swim] NeuralModels/swim_biped_base |   [Swim] NeuralModels/swim_biped_base_int8 |   [Swim] NeuralModels/swim_quadruped_base_int8 | 
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:347)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+(Filename: Assets/Editor/NeuralModelAutoSetup.cs Line: 347)
+
+# Neural Model Auto-Setup
+
+Auto-Setup complete!
+
+  • Models found: 26
+  • Matched: 26
+  • Skipped (unknown): 0
+  • Database: Assets/Resources/NeuralModelDatabase.asset
+
+Entries:
+  [Climb] NeuralModels/climb_biped_base_int8
+  [Combat] NeuralModels/combat_biped_base
+  [Combat] NeuralModels/combat_biped_base_int8
+  [Combat] NeuralModels/combat_quadruped_base_int8
+  [Crouch] NeuralModels/crouch_biped_base_int8
+  [Crouch] NeuralModels/crouch_quadruped_base_int8
+  [Fly] NeuralModels/fly_biped_base
+  [Fly] NeuralModels/fly_biped_base_int8
+  [Fly] NeuralModels/fly_quadruped_base_int8
+  [Interact] NeuralModels/interact_biped_base
+  [Interact] NeuralModels/interact_biped_base_int8
+  [Interact] NeuralModels/interact_quadruped_base_int8
+  [LargeMonster] NeuralModels/large_monster_quadruped_base_int8
+  [Locomotion] NeuralModels/locomotion_biped_base
+  [Locomotion] NeuralModels/locomotion_biped_base_int8
+  [Locomotion] NeuralModels/locomotion_quadruped_base_int8
+  [Mount] NeuralModels/mount_biped_base_int8
+  [Mount] NeuralModels/mount_quadruped_base_int8
+  [React] NeuralModels/react_biped_base
+  [React] NeuralModels/react_biped_base_int8
+  [React] NeuralModels/react_quadruped_base_int8
+  [Run] NeuralModels/run_biped_base_int8
+  [Run] NeuralModels/run_quadruped_base_int8
+  [Swim] NeuralModels/swim_biped_base
+  [Swim] NeuralModels/swim_biped_base_int8
+  [Swim] NeuralModels/swim_quadruped_base_int8
+
+| OK |
+DisplayDialog: Neural Model Auto-Setup Auto-Setup complete!
+
+  • Models found: 26
+  • Matched: 26
+  • Skipped (unknown): 0
+  • Database: Assets/Resources/NeuralModelDatabase.asset
+
+Entries:
+  [Climb] NeuralModels/climb_biped_base_int8
+  [Combat] NeuralModels/combat_biped_base
+  [Combat] NeuralModels/combat_biped_base_int8
+  [Combat] NeuralModels/combat_quadruped_base_int8
+  [Crouch] NeuralModels/crouch_biped_base_int8
+  [Crouch] NeuralModels/crouch_quadruped_base_int8
+  [Fly] NeuralModels/fly_...
+
+(For the full message, see the editor log file)
+
+This should not be called in batch mode.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEditor.EditorDialog:DisplayAlertDialogNative (string,UnityEditor.DialogIconType,string,string)
+UnityEditor.EditorDialog:DisplayAlertDialog (string,string,string,UnityEditor.DialogIconType)
+UnityEditor.EditorUtility:DisplayDialog (string,string,string)
+NeuralModelAutoSetup:AutoSetupModelDatabase () (at Assets/Editor/NeuralModelAutoSetup.cs:348)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:276)
+
+[Assets/Editor/NeuralModelAutoSetup.cs line 348]
+
+Start importing Assets/Scenes/MainScene.unity using Guid(c266a9e408ce7eb458fcea0ec033e047) (DefaultImporter) -> (Import Result ID: '267d44132792d39aa555786ac0fb8aa7') in 0.0038628 seconds [static dependencies only]. Details - ImportResultOutputID=91a3945df7227496fae8b15ec7b55345 DependenciesID=e561ee3c021fd4012a7f1787f6b0d527 StaticDependenciesID=213686a508fe5e41f5660d40a7526abd 
+Refreshing native plugins compatible for Editor in 7.08 ms, found 5 plugins.
+Asset Pipeline Refresh (id=de65cd04fcee3a24db43c77cdd075980): Total: 0.135 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+MainScene fixed and saved with BotW-style setup!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+FixMainScene:Fix () (at Assets/Editor/FixMainScene.cs:299)
+
+(Filename: Assets/Editor/FixMainScene.cs Line: 299)
+
+Batchmode quit successfully invoked - shutting down!
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input Polling Thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-korea-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-korea channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+Shut down.
+Cleanup mono
+CodeReloadManager destroyed
+abort_threads: Failed aborting id: 000000000000111C, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 0000000000001F70, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 000000000000111C, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 0000000000001F70, mono_thread_manage will ignore it
+
+debugger-agent: Unable to listen on 3148
+Exiting batchmode successfully now!
+Exiting without the bug reporter. Application will terminate with return code 0
