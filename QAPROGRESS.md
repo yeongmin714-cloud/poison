@@ -48,6 +48,27 @@
 
 ---
 
+## 2026-08-30: 방위별 테마 지형 구현 (Phase 14)
+
+**상태:** ✅ EditMode 테스트 통과 + FixMainScene 배치모드 성공 + 컴파일 에러 0건
+
+- **컨셉:** 동/서/남/북 방위마다 지형 높이·굴곡(FBM)이 다르고, 구역 경계는 부드러운 크로스페이드로 어색함 없이 전환.
+- **핵심 구현** (`TerrainGenerator.cs`, 422→673줄):
+  - `ComputeTerrainHeight(x, z, biome, seed)` — `NationTerrainController.GetNationFromPosition`으로 방위 판정 → 방위별 고유 파라미터로 높이 계산.
+  - `NationTerrainParams` 구조체 + `GetNationParams(NationType)` — 방위별 Biome/진폭/빈도/plateau/시드:
+    - **East** → Plains, amp 0.5, freq 2.5, plateau 0
+    - **South** → Desert, amp 0.8, freq 2.0, plateau 0 (평탄 사막)
+    - **North** → Tundra, amp 4.0, freq 1.5, plateau 1.0 (험준한 설산)
+    - **West** → Volcanic, amp 2.0, freq 2.5, plateau 0.5 (화산/갈대 굴곡)
+    - **Empire** → Empire, amp 0.2, freq 1.0, plateau 1.0 (평탄 대리석)
+  - 경계 크로스페이드: `TRANSITION_WIDTH=120f`, 각도 경계(45/135/225/315°)에서 `BlendBoundary`로 이웃 방위 높이 Lerp. Empire(중앙 50m)는 방사형 `[50-width, 50+width]` 구간 이웃과 혼합.
+  - `ComputeNationHeight` — 기존 `FbmNoise`+`ApplyPlateau` 재사용, plateau 강도는 `Mathf.Lerp(fbm, plateau, strength)`로 제어.
+- **호출부 교체:** 메시 루프 + `GetHeightAtWithDefinition`이 `ComputeTerrainHeight` 사용. waterThreshold 물로직 보존.
+- 공개 API 시그니처 5개 모두 유지, FixMainScene `GenerateTerrain(biome,42,100,2000f)` 호출 불변.
+- **검증:** EditMode tests passed + FixMainScene.Fix exit 0
+
+---
+
 ## Phase 68: Neural Animation 재학습 완료 (2026-08-15)
 
 **상태:** ✅ 완료
