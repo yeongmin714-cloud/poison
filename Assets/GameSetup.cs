@@ -176,7 +176,7 @@ public class GameSetup : MonoBehaviour
         // Unity Input System(신형)이 활성화된 환경에서는 Cinemachine 기본 레거시
         // 'Mouse X'/'Mouse Y' 축이 동작하지 않는다. 따라서:
         //   A) PlayerInput의 'Look' 액션을 찾아 CinemachineInputAxisController.Controllers에 bind.
-        //   B) 이중 안전장치로, 'Look'(마우스 델타)로 CinemachineOrbitalTransposer 축을 직접
+        //   B) 폴백: 'Look'(마우스 델타)로 CinemachineOrbitalFollow 축을 직접
         //      회전시키는 RuntimeCinemachineOrbitInput 드라이버를 추가(PlayerInput 기반).
         var vcam = GameObject.Find("Player Camera");
         var playerInputForLook = player.GetComponent<UnityEngine.InputSystem.PlayerInput>();
@@ -526,8 +526,6 @@ public class GameSetup : MonoBehaviour
                 c.Input.Gain = 1f;
                 // 마우스 델타는 프레임 시간 의존이므로 Cinemachine이 deltaTime으로 다시 스케일하지 않게 함
                 c.Input.CancelDeltaTime = true;
-                // 미사용 시 레거시 경로가 잡히지 않도록 초기화
-                c.Input.LegacyInput = "";
 
                 // 회전 축('Look Orbit X'/'Look Orbit Y')에만 Look 바인딩.
                 // 'Orbit Scale' 등 다른 축은 바인딩하지 않아 마우스 Y로 줌이 되지 않게 한다.
