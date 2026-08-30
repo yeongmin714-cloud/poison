@@ -1656,3 +1656,31 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 - 필요한 경우 Hermes memory/skill 저장
 
 ---
+
+## Phase 14: 🧭 방위별 테마 지형 (진행 중)
+
+> 컨셉: 동/서/남/북 방위마다 지형의 **높이·굴곡(FBM) + 텍스처**가 다르고, 구역 경계는 자연스럽게 크로스페이드되어 어색함(절벽/단차)이 없다.
+
+### 배경
+- 방위→국가 판정: `NationTerrainController.GetNationFromPosition()` (동=0°/북=90°/서=180°/남=270°, 중심 50m=Empire)
+- 방위별 텍스처: `east_grass`, `north_snow`, `south_red`, `west_sand`, `empire_marble` (기존, TerrainTextureApplier로 적용됨)
+- 현재 지형 **높이**는 모든 구역이 동일 Biome(`Grassland`, seed 42)으로 생성 → 방위별 높이·굴곡이 동일함
+
+### 목표
+- [ ] 각 방위 구역을 **고유 Biome 파라미터(FBM 진폭/빈도/고원) + 고유 시드**로 생성
+  - 동(East): 낮고 완만한 초원 (진폭 0.5, 저빈도)
+  - 남(South): 평탄한 사막 (낮은 진폭)
+  - 북(North): 높고 험준한 설산 (높은 진폭 + plateau)
+  - 서(West): 화산/갈대 혼합 굴곡
+  - 중심(Empire): 평탄 대리석
+- [ ] 구역 경계에서 **부드러운 크로스페이드** (TerrainTransitionManager 기반, 경계 ±전환 폭)
+- [ ] 텍스처가 굴곡 위를 타일링으로 자연스럽게 따라가도록 유지
+- [ ] EditMode 테스트 통과 + FixMainScene 배치모드 컴파일 성공
+- [ ] Play Mode에서 방위별 굴곡 + 실크 스무스 전환 눈으로 확인
+
+### 구현 핵심
+- `TerrainGenerator.ComputeBaseHeight`를 "방위 판정 → 방위별 BiomeDefinition/시드 → 경계 블렌딩"으로 확장 (공개 API 시그니처 유지)
+- `TerrainTransitionManager.SampleBiomeHeight`를 FBM으로 통일
+- 구역 경계 각도 기반 블렌드 계수 추가 (position 기반)
+
+---

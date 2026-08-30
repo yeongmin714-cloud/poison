@@ -22,6 +22,11 @@ namespace ProjectName.Systems
         private const float PLATEAU_THRESHOLD = 0.55f;
         // 고원 평탄화 감쇠 계수
         private const float PLATEAU_SLOPE = 0.2f;
+        // === 방위별 지형 블렌딩 상수 ===
+        // 국경 전환 폭 (size=2000f 기준 약 size*0.06 ≈ 120m) — 각도 경계 근처에서 이웃 방위와 크로스페이드
+        private const float TRANSITION_WIDTH = 120f;
+        // 황제국 중앙 영역 반경 (NationTerrainController.GetNationFromPosition 기준 50m)
+        private const float EMPIRE_RADIUS = 50f;
 
         /// <summary>
         /// 주어진 월드 좌표에서 지형 높이 반환 (FBM + 고원 기반)
@@ -38,7 +43,7 @@ namespace ProjectName.Systems
         /// </summary>
         public static float GetHeightAtWithDefinition(float worldX, float worldZ, BiomeDefinition def, int seed = 42)
         {
-            float height = ComputeBaseHeight(worldX, worldZ, def, seed);
+            float height = ComputeTerrainHeight(worldX, worldZ, def.type, seed);
 
             // waterThreshold가 있으면 물 높이로 클램프 (물 로직 유지)
             if (def.waterThreshold > 0f && height < def.waterThreshold)
@@ -112,6 +117,186 @@ namespace ProjectName.Systems
             }
             return t;
         }
+
+        /// <summary>
+        /// 방위별 지형 파라미터 (NationType → BiomeType + 부가 계수 + 고유 시드 오프셋).
+        /// 각 방위는 고유한 높이 시드(base+offset)와 FBM 계수 셋(진폭/빈도/plateau 강도)을 가진다.
+        /// </summary>
+        private struct NationTerrainParams
+        {
+            public BiomeType biome;          // 방위 대표 Biome
+            public float amplitude;          // 노이즈 진폭
+            public float frequency;          // 노이즈 빈도
+            public float plateauStrength;    // 고원 평탄화 강도 (0=없음, 1=완전)
+            public int seedOffset;           // 고유 시드 오프셋 (base + offset)
+        }
+
+        /// <summary>
+        /// 방위별 고유 파라미터 반환.
+        ///   East   → Plains(낮고 완만한 초원)
+        ///   South  → Desert(평탄 사막)
+        ///   North  → Tundra(높고 험준한 설산, plateau)
+        ///   West   → Volcanic(화산 굴곡, 약간 plateau)
+        ///   Empire → Empire(평탄 대리석/황실, plateau)
+        /// </summary>
+        private static NationTerrainParams GetNationParams(NationType nation)
+        {
+            switch (nation)
+            {
+                case NationType.East:
+                    return new NationTerrainParams { biome = BiomeType.Plains, amplitude = 0.5f, frequency = 2.5f, plateauStrength = 0.0f, seedOffset = 10 };
+                case NationType.South:
+                    return new NationTerrainParams { biome = BiomeType.Desert, amplitude = 0.8f, frequency = 2.0f, plateauStrength = 0.0f, seedOffset = 20 };
+                case NationType.North:
+                    return new NationTerrainParams { biome = BiomeType.Tundra, amplitude = 4.0f, frequency = 1.5f, plateauStrength = 1.0f, seedOffset = 30 };
+                case NationType.West:
+                    return new NationTerrainParams { biome = BiomeType.Volcanic, amplitude = 2.0f, frequency = 2.5f, plateauStrength = 0.5f, seedOffset = 40 };
+                case NationType.Empire:
+                    return new NationTerrainParams { biome = BiomeType.Empire, amplitude = 0.2f, frequency = 1.0f, plateauStrength = 1.0f, seedOffset = 50 };
+                default:
+                    // 미소속(None/Dracula) — East(Plains) 기본값
+                    return new NationTerrainParams { biome = BiomeType.Plains, amplitude = 0.5f, frequency = 2.5f, plateauStrength = 0.0f, seedOffset = 10 };
+            }
+        }
+
+        /// <summary>
+        /// 단일 방위 기준 높이 계산. ComputeBaseHeight/FbmNoise/ApplyPlateau 재사용.
+        /// 방위별 BiomeDefinition(진폭·빈도 오버라이드)과 고유 시드를 사용해 높이 산출.
+        /// </summary>
+        private static float ComputeNationHeight(float x, float z, NationType nation, int seed)
+        {
+            NationTerrainParams p = GetNationParams(nation);
+            BiomeDefinition def = BiomeData.GetDefinition(p.biome);
+
+            // 방위별 진폭/빈도 반영 (구조체 복사본이므로 안전)
+            def.noiseAmplitude = p.amplitude;
+            def.noiseFrequency = p.frequency;
+
+            int nationSeed = seed + p.seedOffset;
+
+            // FBM 다중 옥타브 → 고원 변환 (plateauStrength로 블렌드)
+            float fbm = FbmNoise(
+                x * def.noiseFrequency,
+                z * def.noiseFrequency,
+                FBM_OCTAVES, FBM_LACUNARITY, FBM_GAIN, nationSeed);
+
+            float plateau = ApplyPlateau(fbm);
+            float shaped = Mathf.Lerp(fbm, plateau, p.plateauStrength);
+
+            return shaped * def.noiseAmplitude;
+        }
+
+        /// <summary>
+        /// 각도(방위, 황제국 제외)만으로 방향성 국가 판정.
+        /// GetNationFromPosition과 동일한 각도 경계를 사용하되 중앙 Empire 판정을 제외.
+        /// </summary>
+        private static NationType GetDirectionalNation(float angle)
+        {
+            // angle은 [0, 360)
+            if (angle < 45f || angle >= 315f)
+                return NationType.East;
+            if (angle < 135f)
+                return NationType.North;
+            if (angle < 225f)
+                return NationType.West;
+            return NationType.South;
+        }
+
+        /// <summary>
+        /// 방위별 절차적 지형 높이 계산.
+        /// 월드 좌표 (x, z) → NationType 판정 → 방위별 고유 FBM 파라미터/시드로 높이 산출.
+        /// 국경(내각 경계 각도 근처) 및 황제국 경계에서는 이웃 방위와 부드럽게 크로스페이드해
+        /// 급격한 절벽/단차가 생기지 않도록 한다.
+        /// </summary>
+        /// <param name="x">월드 X 좌표</param>
+        /// <param name="z">월드 Z 좌표</param>
+        /// <param name="biome">기본 Biome (방위 판정이 우선함)</param>
+        /// <param name="seed">기저 시드</param>
+        private static float ComputeTerrainHeight(float x, float z, BiomeType biome, int seed)
+        {
+            float dist = Mathf.Sqrt(x * x + z * z);
+
+            // 각도 계산 (0~360)
+            float angle = Mathf.Atan2(z, x) * Mathf.Rad2Deg;
+            if (angle < 0f) angle += 360f;
+
+            NationType nation = NationTerrainController.GetNationFromPosition(new Vector3(x, 0f, z));
+
+            float h = ComputeNationHeight(x, z, nation, seed);
+
+            // === 1) 방향성 국가 간 각도 경계 크로스페이드 ===
+            // 내각 경계 각도: 45°(동-북), 135°(북-서), 225°(서-남), 315°(남-동)
+            // 경계 광선(ray)에 대한 수직 거리를 블렌드 계수로 사용.
+            // 각 경계는 (음측 국가 nA, 양측 국가 nB, 광선 성분 ux, uz)로 정의.
+            float halfWidth = TRANSITION_WIDTH;
+
+            // 동-북 경계 (45°)
+            BlendBoundary(
+                ref h, x, z, seed,
+                NationType.East, NationType.North,
+                0.70710678f, 0.70710678f, halfWidth);
+
+            // 북-서 경계 (135°)
+            BlendBoundary(
+                ref h, x, z, seed,
+                NationType.North, NationType.West,
+                -0.70710678f, 0.70710678f, halfWidth);
+
+            // 서-남 경계 (225°)
+            BlendBoundary(
+                ref h, x, z, seed,
+                NationType.West, NationType.South,
+                -0.70710678f, -0.70710678f, halfWidth);
+
+            // 남-동 경계 (315°)
+            BlendBoundary(
+                ref h, x, z, seed,
+                NationType.South, NationType.East,
+                0.70710678f, -0.70710678f, halfWidth);
+
+            // === 2) 황제국 방사형 경계 크로스페이드 ===
+            // 중앙(반경 50m)은 황제국 평탄 지형, 바깥은 방향성 국가 지형.
+            // 전환 구간 [EMPIRE_RADIUS - width, EMPIRE_RADIUS + width]에서 부드럽게 혼합.
+            float empireT = Mathf.Clamp01((dist - (EMPIRE_RADIUS - TRANSITION_WIDTH)) / (2f * TRANSITION_WIDTH));
+            if (empireT < 1f)
+            {
+                float empireH = ComputeNationHeight(x, z, NationType.Empire, seed);
+                float dirH = ComputeNationHeight(x, z, GetDirectionalNation(angle), seed);
+                h = Mathf.Lerp(empireH, dirH, empireT);
+            }
+
+            return h;
+        }
+
+        /// <summary>
+        /// 단일 각도 경계에 대한 크로스페이드 헬퍼.
+        /// 점의 경계 광선 수직 거리가 전환 폭 안에 들어오면 이웃 국가 높이와 Lerp.
+        /// </summary>
+        private static void BlendBoundary(
+            ref float height, float x, float z, int seed,
+            NationType negNation, NationType posNation,
+            float ux, float uz, float halfWidth)
+        {
+            NationType nation = NationTerrainController.GetNationFromPosition(new Vector3(x, 0f, z));
+
+            // 점이 해당 경계에 인접한 방향성 국가가 아니면 무시
+            if (nation != negNation && nation != posNation)
+                return;
+
+            // 광선(u)에 대한 점 p=(x,z)의 수직(부호) 거리: cross = u.x * p.z - u.z * p.x
+            float cross = ux * z - uz * x;
+
+            // 블렌드 계수: cross가 [-width, width]일 때 0(음측)~1(양측)
+            float t = Mathf.Clamp01(cross / (2f * halfWidth) + 0.5f);
+
+            // 전환 구간 내에서만 실제 블렌딩 (바깥은 클램프로 무의미 → 생략)
+            if (t > 0f && t < 1f)
+            {
+                float hNeg = ComputeNationHeight(x, z, negNation, seed);
+                float hPos = ComputeNationHeight(x, z, posNation, seed);
+                height = Mathf.Lerp(hNeg, hPos, t);
+            }
+        }
         /// <summary>
         /// Perlin Noise로 지형 메시 + 물 메시 생성
         /// </summary>
@@ -177,9 +362,9 @@ namespace ProjectName.Systems
                     float wx = -halfSize + x * step;
                     float wz = -halfSize + z * step;
 
-                    // FBM + 고원 높이 (월드 좌표 사용 — 해상도 변화에 일관된 결과)
+                    // 방위별 FBM + 고원 높이 (월드 좌표 사용 — 해상도 변화에 일관된 결과)
                     // waterThreshold 클램프는 하지 않음 (물 메시가 threshold 이하 삼각형 판별 담당)
-                    float height = ComputeBaseHeight(wx, wz, def, seed);
+                    float height = ComputeTerrainHeight(wx, wz, def.type, seed);
 
                     vertices[index] = new Vector3(wx, height, wz);
                 }
