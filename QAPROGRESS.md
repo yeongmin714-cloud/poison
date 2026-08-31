@@ -8,6 +8,25 @@
 
 ---
 
+## 2026-08-31 (2차): 지형 안 보임 — 真正 원인은 안개(Fog) 밀도 과다
+
+**문제:** 1차 수정(`_BaseMap` 재할당) 후에도 지형이 여전히 안 보임. 스크린샷 15 분석 → 지형이 초록이 아니라 **회백색/웜그레이**로 보임.
+
+**진단 (스크린샷 픽셀 분석):** 캡슐 바로 아래 근경(카메라에서 수m)까지 초록이 전혀 없고 (R95,G88,B85) 회백색. 파란 캡슐·노란 큐브·UI는 선명 → **텍스처/조명 문제가 아니라 지형 표면이 안개에 묻혀 있음.** Exponential 안개가 지형 초록 픽셀을 전부 안개색으로 치환.
+
+**근본 원인:**
+- RenderSettings fog ON (`m_Fog:1`) + Exponential (`m_FogMode:2`)
+- `WeatherManager._clearFogDensity = 0.008f`, `_foggyFogDensity = 0.02f` → **통과 기준(0.0006)의 13~33배** 짙음 → 2000×2000m 지형 전체를 회백색 안개로 덮음
+- `WeatherManager._directionalLight: {fileID:0}` (null 직렬화) → 조명 강도 설정이 불확실
+
+**수정:**
+1. `WeatherManager.cs`: `_clearFogDensity 0.008→0.0006`, `_foggyFogDensity 0.02→0.003`
+2. `MainScene.unity` WeatherManager 직렬화: `_clearFogDensity 0.0006`, `_foggyFogDensity 0.003`, `_directionalLight → Sun(770833919)` 연결
+
+**검증:** Unity 6000.4.10f1 배치모드 exit 0, 컴파일 에러 0건. (Play Mode 시각 확인은 사용자 확인 필요)
+
+→ **ROADMAP/파라미터 메모:** 안개 밀도는 Expo 0.0006 수준이어야 지형이 보임. WeatherManager 기본값이 0.008로 높아 재발 위험 → 값 낮춤.
+
 ## 2026-08-31: 지형 안 보임 — Ground_Grass_Mat._BaseMap 재발 수정 + 가드 추가
 
 **문제:** Play Mode에서 지형이 여전히 안 보임 ("뭔가 변화한 것 같지만 지형이 안 보임")

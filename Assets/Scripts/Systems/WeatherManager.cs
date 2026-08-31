@@ -75,8 +75,8 @@ namespace ProjectName.Systems
         [SerializeField] private Light _directionalLight;
 
         [Header("Fog")]
-        [SerializeField] private float _clearFogDensity = 0.008f;
-        [SerializeField] private float _foggyFogDensity = 0.02f;
+        [SerializeField] private float _clearFogDensity = 0.0006f;
+        [SerializeField] private float _foggyFogDensity = 0.003f;
 
         [Header("Lighting")]
         [SerializeField] private float _clearLightIntensity = 1.5f;
