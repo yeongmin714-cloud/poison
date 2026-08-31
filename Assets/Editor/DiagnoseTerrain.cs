@@ -1,0 +1,58 @@
+using UnityEngine;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
+using UnityEngine.Rendering;
+
+public static class DiagnoseTerrain
+{
+    [MenuItem("Tools/Debug/Diagnose Terrain Rendering")]
+    public static void Run()
+    {
+        var scene = EditorSceneManager.OpenScene("Assets/Scenes/MainScene.unity");
+        Debug.Log("=== DIAGNOSE TERRAIN START ===");
+
+        // 1. RenderSettings fog
+        Debug.Log($"[Diag] RenderSettings.fog={RenderSettings.fog} mode={(RenderSettings.fog ? RenderSettings.fogMode.ToString() : "off")} density={RenderSettings.fogDensity} color={RenderSettings.fogColor}");
+
+        // 2. Lights
+        foreach (var l in Object.FindObjectsByType<Light>(FindObjectsSortMode.None))
+        {
+            Debug.Log($"[Diag] Light name={l.gameObject.name} type={l.type} enabled={l.enabled} intensity={l.intensity} color={l.color}");
+        }
+
+        // 3. Ground_Inner material
+        var ground = GameObject.Find("Ground_Inner");
+        if (ground == null) { Debug.LogError("[Diag] Ground_Inner NOT FOUND"); return; }
+        var mr = ground.GetComponent<MeshRenderer>();
+        if (mr == null) { Debug.LogError("[Diag] Ground_Inner has no MeshRenderer"); return; }
+        var mat = mr.sharedMaterial;
+        Debug.Log("[Diag] Ground_Inner MeshRenderer enabled=" + mr.enabled + " shadows=" + mr.shadowCastingMode);
+        Debug.Log("[Diag] Ground_Inner sharedMaterial name=" + (mat?.name ?? "NULL") + " shader=" + (mat?.shader?.name ?? "NULL") + " _BaseColor=" + (mat != null ? mat.GetColor("_BaseColor").ToString() : "NULL"));
+        Debug.Log("[Diag] Ground_Inner _BaseMap=" + (mat?.GetTexture("_BaseMap")?.name ?? "NULL") + " _BaseMapNull=" + (mat?.GetTexture("_BaseMap") == null));
+                Debug.Log("[Diag] Ground_Inner _MainTex=" + (mat?.GetTexture("_MainTex")?.name ?? "NULL"));
+
+        // 4. Which material file does the scene reference? (asset path)
+        string path = AssetDatabase.GetAssetPath(mat);
+        Debug.Log($"[Diag] Ground_Inner references material asset at: '{path}'");
+        var matRef = AssetDatabase.LoadAssetAtPath<Material>("Assets/URP/Ground_Grass_Mat.mat");
+        Debug.Log("[Diag] Assets/URP/Ground_Grass_Mat.mat _BaseMap=" + (matRef != null && matRef.GetTexture("_BaseMap") != null ? matRef.GetTexture("_BaseMap").name : "NULL") + " shader=" + (matRef?.shader?.name ?? "NULL"));
+
+        // 5. URP asset & renderer data
+        var urpAsset = GraphicsSettings.renderPipelineAsset;
+        Debug.Log("[Diag] GraphicsSettings.renderPipelineAsset=" + (urpAsset != null ? urpAsset.name : "NULL"));
+        Debug.Log("[Diag] QualitySettings.renderPipeline=" + (QualitySettings.renderPipeline != null ? QualitySettings.renderPipeline.name : "NULL"));
+
+        // 6. TerrainTextureApplier on ground
+        var applier = ground.GetComponent<ProjectName.Systems.TerrainTextureApplier>();
+        if (applier != null)
+        {
+            Debug.Log($"[Diag] TerrainTextureApplier found: CurrentNation={applier.CurrentNation}");
+            Debug.Log($"[Diag]   nationTextureCount East={applier.NationTextureCount(ProjectName.Core.Data.NationType.East)} West={applier.NationTextureCount(ProjectName.Core.Data.NationType.West)} North={applier.NationTextureCount(ProjectName.Core.Data.NationType.North)} South={applier.NationTextureCount(ProjectName.Core.Data.NationType.South)} Empire={applier.NationTextureCount(ProjectName.Core.Data.NationType.Empire)}");
+        }
+        else Debug.LogError("[Diag] TerrainTextureApplier NOT on Ground_Inner");
+
+        Debug.Log("=== DIAGNOSE TERRAIN END ===");
+        EditorSceneManager.SaveScene(scene);
+    }
+}
