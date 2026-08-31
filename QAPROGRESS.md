@@ -4,9 +4,29 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-08-30
+> **최종 갱신:** 2026-08-31
 
 ---
+
+## 2026-08-31: 지형 안 보임 — Ground_Grass_Mat._BaseMap 재발 수정 + 가드 추가
+
+**문제:** Play Mode에서 지형이 여전히 안 보임 ("뭔가 변화한 것 같지만 지형이 안 보임")
+
+**근본 원인:** 씬의 `Ground_Inner` MeshRenderer가 참조하는 재질 `Assets/URP/Ground_Grass_Mat.mat`(GUID `f02019bb`)의 **`_BaseMap`(diffuse 슬롯)이 `{fileID: 0}`으로 비워져 있었음.** URP/Lit는 알베도를 `_BaseMap`에서만 읽으므로, 비어 있으면 `_BaseColor × 검정(0)` = 알베도 검정 → 지표 재질이 배경과 구분 안 됨. (8/31 18:37 커밋 `c4a88e0`이 과거 할당했던 `Terrain_Grass` GUID를 `{fileID: 0}`으로 되돌려 놓음 — 한 달 전 해결했던 "MainScene 3대 이슈" (1)항목의 재발)
+
+**배제된 원인:** 지형 프로시저럴 메시 자체는 정상(씬에 `Terrain_초원_100x100`, 100×100 정점 10000, 2000×2000m 굽혀짐), `Terrain_Grass.asset`(guid `22d5b657...`) 존재·유효(참조 깨짐 아님, 슬롯만 비었을 뿐).
+
+### 수정 내역
+1. **`Assets/URP/Ground_Grass_Mat.mat` `_BaseMap`에 `Terrain_Grass`(guid `22d5b6573cf5c1a48a72542c8f8d9314`) 재할당** — 이제 `Assets/Resources/URP/Ground_Grass_Mat.mat` 사본과 일치.
+2. **새 `Assets/Editor/TerrainBaseMapFixer.cs` 추가** (`[InitializeOnLoad]` 가드): MainScene 열릴 때 / 에디터 로드 시, 장면용·Resources 사본 모두 `_BaseMap`이 비면 `Terrain_Grass` 자동 재할당 + 경고 로그. 배치모드/자동 실행이 또 지워도 **Editor 타임에 자동 복구** → 재발 방지. (기존 `DayNightCycleReferenceFixer`와 동일 패턴)
+
+### 컴파일/검증
+- ✅ Unity 6000.4.10f1 배치모드 씬 로드 — exit 0, `Exiting batchmode successfully`, 컴파일 에러 0건
+- ✅ 커밋 `6e9964f`(가드 스크립트+meta) 포함됨
+
+### 다음 단계 (시각 확인)
+- Unity Editor에서 MainScene Play Mode 진입 → 지형 초록 잔디 텍스처 표시 확인
+- verify: `Ground_Inner` sharedMaterial의 `_BaseMap` 사용 여부
 
 ## 2026-08-30: MainScene 미해결 3대 이슈 전부 해결 (Phase B 완료)
 
