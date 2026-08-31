@@ -44,3 +44,6 @@ models/
 
 # Training infrastructure (venv, checkpoints, runs - large, regenerated)
 /Assets/Training/
+
+# Unity batchmode build logs
+buildlog*.txt
