@@ -47,3 +47,4 @@ models/
 
 # Unity batchmode build logs
 buildlog*.txt
+run_batch.bat
