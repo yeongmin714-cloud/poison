@@ -14,7 +14,7 @@ namespace ProjectName.Core
         /// ⚠ 지형은 2000×2000(±1000 범위). x가 1000을 넘으면 지형 밖으로 추락함.
         ///    따라서 경계 안(±1000 미만) 중 초원 외각인 ring≈900 지점 사용.
         /// Empire(중앙 50m)에 스폰되지 않도록 충분히 멀리 떨어뜨림.
-        public static readonly Vector3 SpawnPosition = new Vector3(728f, 0.25f, -529f);
+        public static readonly Vector3 SpawnPosition = new Vector3(728f, 3f, -529f);
         /// <summary>초기 회전값</summary>
         public static readonly Vector3 SpawnEulerAngles = Vector3.zero;
     }

@@ -533,9 +533,19 @@ public static class FixMainScene
         // NEW: 물 시스템 연동 (LakeGenerator + WaterBody) - 저지대 자동 물 메시 생성
         CreateWaterSystem(ground);
 
-        // NOTE: CollisionFloor 제거 — 지형 Ground_Inner에 이미 MeshCollider가 있어(이하에 추가됨)
-        // 플레이어가 지형 표면 위에 직접 설 수 있음. CollisionFloor(y=1.20)가 지형표면(y≈1.24)보다
-        // 낮아 플레이어를 지형 아래에 걸리게 하는 역효과였음. 지형 콜라이더가 낙하를 자연히 막는다.
+        // NOTE: CollisionFloor 복원(지형-충돌체 미연결 문제에 대한 실용 해법).
+        //   지형(Ground_Inner) 메시는 렌더되지만 CharacterController와 충돌하지 않아 플레이어가 추락함.
+        //   원인(지형 신규 생성 시 콜라이더 미연결 등)이 근본 해결될 때까지,
+        //   렌더 없는 투명 콜라이더 바닥을 지형 표면보다 위(y=3)에 깔아 플레이어가 항상 서게 한다.
+        //   CollisionFloor는 MeshRenderer가 없어 시야엔 안 보이고, 아래 초록 지형이 그대로 보인다.
+        var floorObjCF = new GameObject("CollisionFloor");
+        floorObjCF.transform.SetParent(ground.transform);
+        floorObjCF.transform.localPosition = new Vector3(0, 2f, 0); // 지형 표면(1~1.5)보다 위
+        var floorColliderCF = floorObjCF.AddComponent<BoxCollider>();
+        floorColliderCF.size = new Vector3(2000f, 0.1f, 2000f);
+        floorColliderCF.isTrigger = false;
+        floorObjCF.layer = LayerMask.NameToLayer("Ground");
+        Debug.Log("[FixMainScene] CollisionFloor(투명) 지형 위 y=3에 복원 — 추락 방지");
 
         // SAFETY NET: 지형 바깥쪽 추락 방지용 깊은 안전평면(y테르 -100) 유지 (지형 위에선 안 닿음)
         var safetyFloor = new GameObject("SafetyFloor");
