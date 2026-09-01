@@ -656,7 +656,9 @@ namespace ProjectName.Systems
             ClampToGroundByHeight();
         }
 
-        /// <summary>메인 카메라를 플레이어 뒤-위에서 플레이어를 내려다보게 강제 (발밑 지형이 보이도록).</summary>
+        /// <summary>메인 카메라를 플레이어 뒤-위에서 "플레이어 발밑 지형"을 내려다보게 강제 (지형이 화면에 잡히도록).
+        /// 이전 버전은 카메라를 플레이어(3,4,-6)에 너무 붙이고 플레이어를 lookAt해 화면이 플레이어만 차지하고
+        /// 지형이 안 보였음(디버그 CamProbe로 확정). 카메라를 더 멀리 위로 올리고, lookAt을 발밑 지면으로.</summary>
         private void FixCameraToPlayer()
         {
             if (_cameraTransform == null)
@@ -666,12 +668,13 @@ namespace ProjectName.Systems
             }
 
             Transform playerT = transform;
-            // 플레이어 뒤쪽 위(살짝 뒤+위)에 카메라 배치 → 플레이어(발밑 지형 포한)를 lookAt
-            Vector3 desiredPos = playerT.position + new Vector3(3f, 4f, -6f);
+            // 카메라를 플레이어 뒤쪽 높이(더 멀리)에 배치 → 플레이어와 주변 지형이 함께 화면에 들어오게
+            Vector3 desiredPos = playerT.position + new Vector3(4f, 8f, -11f);
             _cameraTransform.position = desiredPos;
 
-            // 플레이어 발밑(지면 위 0.5m)을 lookAt — 아래 초록 지형이 화면에 잡힌다
-            Vector3 lookTarget = playerT.position + new Vector3(0f, 0.5f, 0f);
+            // 플레이어 발밑 지표면(y=0.5)을 lookAt — 화면 하단에 초록 지형이 잡힌다.
+            // Player 오브젝트 자신이 아니라 그 아래 지면을 바라보므로 캐슐이 화면을 막지 않는다.
+            Vector3 lookTarget = new Vector3(playerT.position.x, 0.5f, playerT.position.z);
             _cameraTransform.rotation = Quaternion.LookRotation(lookTarget - _cameraTransform.position);
         }
 
