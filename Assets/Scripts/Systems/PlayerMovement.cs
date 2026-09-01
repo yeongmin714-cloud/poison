@@ -196,11 +196,17 @@ namespace ProjectName.Systems
 
                     // 스폰 위치 적용 (PlayerSpawnConfig에서 읽어옴 — 테스트씬과 MainScene 동기화)
                     Vector3 spawnPos = PlayerSpawnConfig.SpawnPosition;
-                    // CollisionFloor(투명 콜라이더 바닥)가 지형 표면(y=1.3)에 깔려 있음.
-                    // 플레이어를 그 CollisionFloor 위(1.5)에 스폰시켜 추락을 영구 방지.
-                    // CollisionFloor는 렌더가 없어 아래/주변 초록 지형이 그대로 보인다.
-                    const float collisionFloorY = 1.5f; // FixMainScene CollisionFloor(세계 y=1.3) 위 0.2m
-                    transform.position = new Vector3(spawnPos.x, collisionFloorY, spawnPos.z);
+                    // 지형(Ground_Inner) 표면 위에 스폰. TerrainGenerator로 실제 지표면 높이 계산.
+                    // CollisionFloor 없이 지형 MeshCollider(+ClampToGround)가 플레이어를 고정한다.
+                    float spawnGroundY = spawnPos.y;
+                    try
+                    {
+                        // 지형 높이(세계 y). Ground y=1 + 지형 굴곡(GetHeightAt은 0~0.5)
+                        spawnGroundY = ProjectName.Systems.TerrainGenerator.GetHeightAt(spawnPos.x, spawnPos.z, ProjectName.Core.Data.BiomeType.Plains, 42) + 1f;
+                    }
+                    catch (System.Exception) { /* 기본값 유지 */ }
+                    // 지형 표면 위 0.4m에 스폰 → 잠깐 아래로 내려가 지형 MeshCollider에 안착 (추락 아님)
+                    transform.position = new Vector3(spawnPos.x, spawnGroundY + 0.4f, spawnPos.z);
             
                     // CRITICAL: Re-enable CC after position is finalized
                     _controller.enabled = true;
