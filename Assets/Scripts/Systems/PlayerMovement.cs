@@ -204,8 +204,9 @@ namespace ProjectName.Systems
             
                     // CRITICAL: Re-enable CC after position is finalized
                     _controller.enabled = true;
-                    // CC를 스폰 직후 CollisionFloor와 확실히 접촉시키도록 짧게 아래로 정렬
-                    _controller.Move(Vector3.down * 0.2f);
+                    // NOTE: _controller.Move(down*0.2f)는 스폰 직후 플레이어를 CollisionFloor 표면보다
+                    //       아래(2.80 < 3.0)로 밀어 CharacterController가 바닥을 통과해 SafetyFloor로
+                    //       추락하게 만드는 범인이었음. 제거한다. ClampToGround가 표면을 유지한다.
 
                     // 스폰 직후 지면 콜라이더 존재 + Raycast 감지 여부를 로그 (추락 원인 파악)
                     bool cfGrab = Physics.Raycast(transform.position + Vector3.up * 0.3f, Vector3.down,
