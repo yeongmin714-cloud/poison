@@ -699,3 +699,19 @@ Cross(Edge1, Edge2) = (0, -dx·dz, 0) = **법선이 아래(-Y)를 향함**.
 - ✅ **배치컴파일 통과 (2회)** — Unity 6000.4.10f1, `Exiting batchmode successfully`, error CS 0 (T1-T5 통합 후 + G항목 수리 후).
 - ⏳ **Play 시각검증 대기** — 프롭/잔디/흙길/호수 실제 렌더링 + y좌표 정렬 + 와인딩(지형이 위에서 보임+충돌정상) 눈 확인 필요.
  콘솔 확인 로그: `[GameSetup][TerrainDeco]` 4줄(호수/프롭/길/잔디), `[LakeGenerator] GenerateAllLakes: 6 lakes 확정`, `[DiagP1]` raycast 지형 검출.
+
+## 2026-09-01 Play 피드백 버그 수정 (지형 개선 후속)
+
+**사용자 Play 콘솔 피드백 5건 → 전부 수리:**
+
+| # | 증상 | 원인 | 수리 |
+|:-:|------|------|------|
+| 1 | `Tag: Water is not defined` ×6 (호수마다) | 프로젝트에 Water 태그 미정의 | TagManager.asset에 Water 태그 추가 + set_tag try-catch 방어 |
+| 2 | GrassRenderer.Update ArgumentOutOfRangeException (582행) | variant 경계에서 batchIdx 미진행 → 배치 인덱스 폭주 | variant 시작 시 batchIdx++ + mid-variant 1023 경계 진행 복원 + 배치 크기 방어 가드 |
+| 3 | `진입로 vertices를 감지하지 못했습니다` | 메시 정점 간격 ~20m vs 마킹 반경 2.5m → 매칭 0개 | 마킹 반경 max(2.5, 10m)=10m 확장 (시각 길 폭 ≈20m) |
+| 4 | `[DiagP1] 전방지면 아래 20m에 콜라이더 없음` | 지형 증폭으로 표면 상승 → 프로브(y=8, 20m)가 지하에서 시작하는 오탐 | 프로브를 계산 표면+30m에서 60m 캐스트로 변경 |
+| 5 | 잔디 과다 (사용자 피드백) | 밀도 상수 과다 | eastPerCell 6→3, northPerCell 2→1, cellRadius 8→6, MaxInstances 3000→1500 |
+
+**참고:** PlayerSpawnConfig.SpawnPosition.y=0.24는 구값이나 PlayerMovement.ClampToGroundByHeight가 GetHeightAt로 즉시 보정 → 게임플레이 영향 없음.
+
+**검증:** 배치컴파일 통과 (error CS 0).
