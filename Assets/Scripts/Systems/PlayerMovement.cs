@@ -196,10 +196,10 @@ namespace ProjectName.Systems
 
                     // 스폰 위치 적용 (PlayerSpawnConfig에서 읽어옴 — 테스트씬과 MainScene 동기화)
                     Vector3 spawnPos = PlayerSpawnConfig.SpawnPosition;
-                    // CollisionFloor(투명 콜라이더 바닥)가 지형 위 y=3에 깔려 있음.
-                    // 플레이어를 그 CollisionFloor(CollisionFloor y=3) 위에 스폰시켜 추락을 영구 방지.
-                    // CollisionFloor는 렌더가 없어 아래 초록 지형이 그대로 보인다.
-                    const float collisionFloorY = 3f; // FixMainScene CollisionFloor와 동일값
+                    // CollisionFloor(투명 콜라이더 바닥)가 지형 표면(y=1.3)에 깔려 있음.
+                    // 플레이어를 그 CollisionFloor 위(1.5)에 스폰시켜 추락을 영구 방지.
+                    // CollisionFloor는 렌더가 없어 아래/주변 초록 지형이 그대로 보인다.
+                    const float collisionFloorY = 1.5f; // FixMainScene CollisionFloor(세계 y=1.3) 위 0.2m
                     transform.position = new Vector3(spawnPos.x, collisionFloorY, spawnPos.z);
             
                     // CRITICAL: Re-enable CC after position is finalized

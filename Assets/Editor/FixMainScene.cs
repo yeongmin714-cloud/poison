@@ -540,12 +540,12 @@ public static class FixMainScene
         //   CollisionFloor는 MeshRenderer가 없어 시야엔 안 보이고, 아래 초록 지형이 그대로 보인다.
         var floorObjCF = new GameObject("CollisionFloor");
         floorObjCF.transform.SetParent(ground.transform);
-        floorObjCF.transform.localPosition = new Vector3(0, 2f, 0); // 지형 표면(1~1.5)보다 위
+        floorObjCF.transform.localPosition = new Vector3(0, 0.3f, 0); // 세계 y=1+0.3=1.3 = 지형 표면 높이와 일치
         var floorColliderCF = floorObjCF.AddComponent<BoxCollider>();
         floorColliderCF.size = new Vector3(2000f, 0.1f, 2000f);
         floorColliderCF.isTrigger = false;
         floorObjCF.layer = LayerMask.NameToLayer("Ground");
-        Debug.Log("[FixMainScene] CollisionFloor(투명) 지형 위 y=3에 복원 — 추락 방지");
+        Debug.Log("[FixMainScene] CollisionFloor(투명) 지형 표면(y=1.3)에 배치 — 추락 방지 + 지형 위 착지");
 
         // SAFETY NET: 지형 바깥쪽 추락 방지용 깊은 안전평면(y테르 -100) 유지 (지형 위에선 안 닿음)
         var safetyFloor = new GameObject("SafetyFloor");
