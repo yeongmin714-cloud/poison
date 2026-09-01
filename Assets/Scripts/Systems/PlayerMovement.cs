@@ -690,7 +690,18 @@ namespace ProjectName.Systems
             Vector3 o = _cameraTransform.position + _cameraTransform.forward * 1f;
             bool hit = Physics.Raycast(o, _cameraTransform.forward, out RaycastHit h, 40f, ~0, QueryTriggerInteraction.Ignore);
             _camProbeCount++;
-            Debug.Log($"[CamProbe#{_camProbeCount}] 카메라방향(정면40m)={hit} 대상={(hit ? h.collider?.gameObject.name + " y=" + h.point.y.ToString("F2") + " 재질=" + (h.collider?.gameObject.GetComponent<MeshRenderer>()?.sharedMaterial?.name ?? "-") : "없음(허공)")}");
+
+            string matName = "-";
+            if (hit && h.collider != null)
+            {
+                var mrTmp = h.collider.GetComponent<MeshRenderer>();
+                if (mrTmp != null && mrTmp.sharedMaterial != null)
+                    matName = mrTmp.sharedMaterial.name;
+                else
+                    matName = "(재질없음:" + h.collider.gameObject.name + ")";
+            }
+
+            Debug.Log($"[CamProbe#{_camProbeCount}] 카메라방향(정면40m)={hit} 대상={(hit && h.collider != null ? h.collider?.gameObject.name + " y=" + h.point.y.ToString("F2") : "없음(허공)")} 재질={matName}");
             Debug.Log($"[CamProbe#{_camProbeCount}] camPos=({_cameraTransform.position.x:F1},{_cameraTransform.position.y:F1},{_cameraTransform.position.z:F1}) fwd=({_cameraTransform.forward.x:F2},{_cameraTransform.forward.y:F2},{_cameraTransform.forward.z:F2})");
         }
 
