@@ -196,7 +196,8 @@ namespace ProjectName.Systems
 
                     // 스폰 위치 적용 (PlayerSpawnConfig에서 읽어옴 — 테스트씬과 MainScene 동기화)
                     Vector3 spawnPos = PlayerSpawnConfig.SpawnPosition;
-                    transform.position = new Vector3(spawnPos.x, transform.position.y, spawnPos.z);
+                    // y도 함께 적용: 지형 밑으로 추락하지 않도록 (지형 높이 위 2m)
+                    transform.position = new Vector3(spawnPos.x, spawnPos.y + 2f, spawnPos.z);
             
                     // CRITICAL: Re-enable CC after position is finalized
                     _controller.enabled = true;
