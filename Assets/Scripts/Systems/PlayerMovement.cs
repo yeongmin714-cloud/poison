@@ -225,7 +225,7 @@ namespace ProjectName.Systems
             // 카메라 보정: 메인 카메라가 항상 플레이어를 내려다보게 강제 (3인칭 시점).
             // Cinemachine vcam의 Follow/LookAt이 배치/런타임에 제대로 안 먹혀 카메라가 수평(0,0,0)으로
             // 떠 있어 발밑 지형이 안 보이던 원인 해결. 매 프레임 플레이어를 lookAt한다.
-            UpdateMouseCameraOrbit();
+            HandleCameraInput();
             CamForwardProbe();
             WatchAndFixGround();
 
@@ -249,6 +249,12 @@ namespace ProjectName.Systems
 
             // Phase 34: 은신 중 암살 가능 체크 (StealthSystem으로 위임)
             // Phase 34: 은신 상태에서 속도 제한은 HandleMovement()에서 직접 적용 (_walkSpeed * 0.5f)
+        }
+
+        /// <summary>LateUpdate: 모든 스크립트/Cinemachine 이후에 카메라를 최종 적용 — 플레이어 추적 보장.</summary>
+        private void LateUpdate()
+        {
+            ApplyFollowCamera();
         }
 
         /// <summary>
@@ -657,18 +663,37 @@ namespace ProjectName.Systems
             ClampToGroundByHeight();
         }
 
-        /// <summary>마우스 이동에 따라 회전하는 탑다운(3/4 뷰) 카메라. CinemachineBrain이 매프레임
-        /// 카메라를 덮어쓰므로 1회 비활성 후 수동 궤도(요우/피치)로 제어한다.
-        /// 피치 기본 65°(탑다운에 가까움)로 플레이어가 항상 화면에 보인다.</summary>
+        /// <summary>탑다운(3/4 뷰) 카메라: 마우스 회전 + 휠 줌 + 플레이어 추적.
+        /// Cinemachine vcam의 Follow가 배치에서 직렬화 안 돼 카메라가 고정되던 문제는
+        /// vcam/Brain을 완전 비활성하고 LateUpdate에서 강제 적용하는 것으로 차단한다.</summary>
         private float _camYaw = 0f;
         private float _camPitch = 65f;
-        private const float CamDistance = 11f;
+        private float _camDistance = 11f;
+        private const float CamDistanceMin = 4f;
+        private const float CamDistanceMax = 30f;
+        private const float ZoomStepPerNotch = 1.5f;
         private const float MouseSensitivity = 0.12f;
         private const float PitchMin = 30f;   // 탑다운 유지 (너무 수평 안 되게)
         private const float PitchMax = 82f;   // 거의 수직 탑다운까지
-        private bool _cinemachineBrainDisabled = false;
+        private bool _cinemachineDisabled = false;
 
-        private void UpdateMouseCameraOrbit()
+        /// <summary>Update: 마우스 델타/휠 입력만 처리 (카메라 적용은 LateUpdate).</summary>
+        private void HandleCameraInput()
+        {
+            var mouse = UnityEngine.InputSystem.Mouse.current;
+            if (mouse == null) return;
+
+            Vector2 delta = mouse.delta.ReadValue();
+            _camYaw += delta.x * MouseSensitivity;
+            _camPitch = Mathf.Clamp(_camPitch - delta.y * MouseSensitivity, PitchMin, PitchMax);
+
+            float scroll = mouse.scroll.ReadValue().y;
+            if (Mathf.Abs(scroll) > 0.001f)
+                _camDistance = Mathf.Clamp(_camDistance - Mathf.Sign(scroll) * ZoomStepPerNotch, CamDistanceMin, CamDistanceMax);
+        }
+
+        /// <summary>LateUpdate: 모든 스크립트/Cinemachine 이후에 카메라를 최종 적용 — 플레이어 추적 보장.</summary>
+        private void ApplyFollowCamera()
         {
             if (_cameraTransform == null)
             {
@@ -676,46 +701,39 @@ namespace ProjectName.Systems
                 else return;
             }
 
-            // Cinemachine 완전 차단 (1회) — vcam의 Follow/LookAt이 배치에서 직렬화 안 돼
-            // 카메라가 초기 위치에 고정되는 원인. vcam 오브젝트 비활성 + Brain 비활성.
-            if (!_cinemachineBrainDisabled && _camera != null)
+            // Cinemachine 완전 차단 (1회): vcam 비활성 + Brain 비활성(문자열/순회 이중화)
+            if (!_cinemachineDisabled)
             {
-                var vcam = GameObject.Find("Player Camera");
-                if (vcam != null && vcam != gameObject) vcam.SetActive(false);
+                _cinemachineDisabled = true;
 
-                var brain = _camera.GetComponent("CinemachineBrain") as Behaviour;
-                if (brain == null)
+                var vcam = GameObject.Find("Player Camera");
+                if (vcam != null && vcam != gameObject)
                 {
-                    // 문자열 검색 실패 대비: 타입 이름으로 재시도
+                    vcam.SetActive(false);
+                    Debug.Log("[PlayerMovement] vcam('Player Camera') 비활성 — Follow null로 카메라 고정되던 원인 차단");
+                }
+
+                bool brainFound = false;
+                var brain = _camera.GetComponent("CinemachineBrain") as Behaviour;
+                if (brain != null) { brain.enabled = false; brainFound = true; }
+                if (!brainFound)
+                {
                     foreach (var comp in _camera.GetComponents<Component>())
                     {
                         if (comp != null && comp.GetType().Name == "CinemachineBrain")
                         {
                             ((Behaviour)comp).enabled = false;
+                            brainFound = true;
                             break;
                         }
                     }
                 }
-                else if (brain.enabled)
-                {
-                    brain.enabled = false;
-                }
-                _cinemachineBrainDisabled = true;
-                Debug.Log("[PlayerMovement] Cinemachine(vcam+Brain) 비활성 → 마우스 궤도 카메라가 플레이어 추적");
-            }
-
-            // 마우스 이동 → 시점 회전 (우클릭 불필요, 이동 즉시 반영)
-            var mouse = UnityEngine.InputSystem.Mouse.current;
-            if (mouse != null)
-            {
-                Vector2 delta = mouse.delta.ReadValue();
-                _camYaw += delta.x * MouseSensitivity;
-                _camPitch = Mathf.Clamp(_camPitch - delta.y * MouseSensitivity, PitchMin, PitchMax);
+                Debug.Log($"[PlayerMovement] CinemachineBrain 비활성={brainFound} → 탑다운 카메라가 플레이어 추적");
             }
 
             Transform playerT = transform;
             Quaternion orbitRot = Quaternion.Euler(_camPitch, _camYaw, 0f);
-            Vector3 camPos = playerT.position + new Vector3(0f, 1.4f, 0f) + orbitRot * new Vector3(0f, 0f, -CamDistance);
+            Vector3 camPos = playerT.position + new Vector3(0f, 1.4f, 0f) + orbitRot * new Vector3(0f, 0f, -_camDistance);
 
             // 카메라가 지형 밑으로 못 가게 지표면 위 0.6m 유지
             try
