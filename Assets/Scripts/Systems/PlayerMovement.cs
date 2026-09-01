@@ -686,7 +686,6 @@ namespace ProjectName.Systems
                     _verticalVelocity = 0f;
                     _isGrounded = true;
                 }
-                }
             }
         }
 
