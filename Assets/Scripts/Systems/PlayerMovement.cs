@@ -631,6 +631,49 @@ namespace ProjectName.Systems
             Vector3 motion = _moveDirection * _currentSpeed * _speedModifier;
             motion.y = _verticalVelocity;
             _controller.Move(motion * Time.deltaTime);
+
+            // === 지면 클램프 (추락 영구 방지) ===
+            // CharacterController가 콜라이더를 뚫어도, 쿼리(Raycast)로 지면을 읽어 항상 표면 위에 고정한다.
+            // 쿼리는 물리 시뮬레이션과 무관하게 동작하므로 SafetyFloor까지 추락하는 것을 방지한다.
+            ClampToGround();
+        }
+
+        /// <summary>
+        /// 아래로 Raycast/SphereCast 해 지면 표면을 찾고,
+        /// 플레이어 발이 지면보다 아래로 내려가면 그 표면 바로 위(0.05m)로 y를 강제로 교정한다.
+        /// 물리 시뮬레이션 충돌(shrl)에 의존하지 않아 CharacterController가 뚫어도 항상 작동한다.
+        /// 아래 지면이 없으면(낭떠러지) 하늘로 안 올리고 그대로 둔다.
+        /// </summary>
+        private void ClampToGround()
+        {
+            if (_controller == null) return;
+
+            // 플레이어의 "발" 위치 = 각지 아래로 0.05f (CC 바닥 근처)
+            float footY = transform.position.y;
+            const float searchDistance = 3f;     // 아래로 3m까지 지면 탐색 (추락 시 캐치)
+            float originY = transform.position.y + 0.5f;
+
+            if (Physics.Raycast(
+                    new Vector3(transform.position.x, originY, transform.position.z),
+                    Vector3.down,
+                    out RaycastHit hit,
+                    searchDistance,
+                    ~0,
+                    QueryTriggerInteraction.Ignore))
+            {
+                // 지면이 발(현재 y)보다 아래에 있고, 그 지면이 충분히 가깝다면 표면 위로 올린다.
+                if (hit.collider != null && transform.position.y < hit.point.y + 0.05f + 0.3f)
+                {
+                    float targetY = hit.point.y + 0.05f;
+                    if (transform.position.y < targetY - 0.1f)
+                    {
+                        // 표면보다 아래로 내려갔으면 표면 바로 위로 교정
+                        transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
+                        _verticalVelocity = 0f;
+                        _isGrounded = true;
+                    }
+                }
+            }
         }
 
         /// <summary>
