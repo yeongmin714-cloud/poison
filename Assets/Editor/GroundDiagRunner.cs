@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine.Rendering;
+using ProjectName.Systems;
+using ProjectName.Core.Data;
 
 /// <summary>
 /// 배치 모드(-executeMethod GroundDiagRunner.Run)에서 MainScene을 연 뒤
@@ -37,6 +39,9 @@ public static class GroundDiagRunner
         EmitDiagnostics(ground);
 
         Debug.Log("[DiagRunner] 진단 완료. Exiting.");
+        // 스폰 지점(1173,-852)의 실제 지형 높이 계산 — 정확한 플레이어 y 결정
+        float gh = TerrainGenerator.GetHeightAt(1173f, -852f, BiomeType.Plains, 42);
+        Debug.Log($"[DiagPlan0] 스폰 지점(1173,-852) 지형 높이 y = {gh:F2}  → 추천 플레이어 y = {gh + 2f:F2}");
         EditorApplication.Exit(0);
     }
 
