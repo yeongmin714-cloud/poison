@@ -407,6 +407,26 @@ public class GameSetup : MonoBehaviour
                 var groundMat = Resources.Load<Material>("URP/Ground_Grass_Mat");
                 if (groundMat != null)
                 {
+                    // 자기치유: 직렬화 누락 등으로 _BaseMap이 비어 있으면
+                    // Resources 복사본(UAssets/Resources/URP)의 Terrain_Grass로 복구.
+                    // 에셋 상태와 무관하게 Play 모드에서 초록 지형이 보이도록 보장한다.
+                    if (groundMat.GetTexture("_BaseMap") == null)
+                    {
+                        var terrainGrass = Resources.Load<Texture2D>("URP/Terrain_Grass");
+                        if (terrainGrass != null)
+                        {
+                            groundMat.SetTexture("_BaseMap", terrainGrass);
+                            groundMat.SetTextureScale("_BaseMap", new Vector2(200f, 200f));
+                            Debug.Log("[GameSetup] ⚠️ _BaseMap이 비어 있어 Resources의 Terrain_Grass로 자기치유 완료");
+                        }
+                        else
+                        {
+                            Debug.LogWarning("[GameSetup] _BaseMap이 비어 있고 Resources/URP/Terrain_Grass도 없어 치유 생략");
+                        }
+                    }
+
+                    // 렌더러에 실제 반영: sharedMaterial을 재지정하여 dirty 상태로 만들어
+                    // 다음 프레임에 재렌더되도록 한다.
                     mr.sharedMaterial = groundMat;
                     Debug.Log("[GameSetup] ✅ 지형 머티리얼 적용 완료 (Ground_Grass_Mat)");
                 }

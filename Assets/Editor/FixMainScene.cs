@@ -414,75 +414,87 @@ public static class FixMainScene
 
             var mr = ground.AddComponent<MeshRenderer>();
 
-            // Step 1: Create and save procedural textures FIRST
-            var controlMap = CreateProceduralControlMap(256);
-            var grassTex = CreateProceduralGrassTexture(256);
-            var dirtTex = CreateProceduralDirtTexture(256);
-            var normalTex = CreateProceduralNormalTexture(256);
+            // Step 1: Create/save procedural textures FIRST (재실행 시 이미 있으면 재사용,
+            // 없는 경우에만 신규 생성 → CreateAsset 덮어쓰기 실패로 인한 직렬화 누락 방지)
+            string controlMapPath = "Assets/URP/Terrain_ControlMap.asset";
+            string grassTexPath   = "Assets/URP/Terrain_Grass.asset";
+            string dirtTexPath    = "Assets/URP/Terrain_Dirt.asset";
+            string normalTexPath  = "Assets/URP/Terrain_Normal.asset";
 
-            AssetDatabase.CreateAsset(controlMap, "Assets/URP/Terrain_ControlMap.asset");
-            AssetDatabase.CreateAsset(grassTex, "Assets/URP/Terrain_Grass.asset");
-            AssetDatabase.CreateAsset(dirtTex, "Assets/URP/Terrain_Dirt.asset");
-            AssetDatabase.CreateAsset(normalTex, "Assets/URP/Terrain_Normal.asset");
+            var controlMap = AssetDatabase.LoadAssetAtPath<Texture2D>(controlMapPath);
+            if (controlMap == null) { controlMap = CreateProceduralControlMap(256); AssetDatabase.CreateAsset(controlMap, controlMapPath); }
+            var grassTex = AssetDatabase.LoadAssetAtPath<Texture2D>(grassTexPath);
+            if (grassTex == null) { grassTex = CreateProceduralGrassTexture(256); AssetDatabase.CreateAsset(grassTex, grassTexPath); }
+            var dirtTex = AssetDatabase.LoadAssetAtPath<Texture2D>(dirtTexPath);
+            if (dirtTex == null) { dirtTex = CreateProceduralDirtTexture(256); AssetDatabase.CreateAsset(dirtTex, dirtTexPath); }
+            var normalTex = AssetDatabase.LoadAssetAtPath<Texture2D>(normalTexPath);
+            if (normalTex == null) { normalTex = CreateProceduralNormalTexture(256); AssetDatabase.CreateAsset(normalTex, normalTexPath); }
+            AssetDatabase.SaveAssets();
+
+            // CRITICAL: Resources 복사본도 "이미 있으면 재사용, 없으면 생성" (런타임 Resources.Load용)
+            // → GameSetup 자기치유가 유일한 유효 경로 "URP/Terrain_Grass"를 항상 찾을 수 있게 보장.
+            EnsureProceduralTextureCopy("Assets/Resources/URP/Terrain_ControlMap.asset", controlMapPath);
+            EnsureProceduralTextureCopy("Assets/Resources/URP/Terrain_Grass.asset", grassTexPath);
+            EnsureProceduralTextureCopy("Assets/Resources/URP/Terrain_Dirt.asset", dirtTexPath);
+            EnsureProceduralTextureCopy("Assets/Resources/URP/Terrain_Normal.asset", normalTexPath);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
             // Reload textures from asset database
-            controlMap = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_ControlMap.asset");
-            grassTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_Grass.asset");
-            dirtTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_Dirt.asset");
-            normalTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/URP/Terrain_Normal.asset");
+            controlMap = AssetDatabase.LoadAssetAtPath<Texture2D>(controlMapPath);
+            grassTex = AssetDatabase.LoadAssetAtPath<Texture2D>(grassTexPath);
+            dirtTex = AssetDatabase.LoadAssetAtPath<Texture2D>(dirtTexPath);
+            normalTex = AssetDatabase.LoadAssetAtPath<Texture2D>(normalTexPath);
 
-            // CRITICAL: Create material asset with correct settings
-            // This asset will be referenced by GameSetup at runtime
-            var groundMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            groundMat.name = "Ground_Grass_Mat";
-            groundMat.SetTexture("_BaseMap", grassTex);
-            groundMat.SetTexture("_BumpMap", normalTex);
-            groundMat.SetFloat("_Smoothness", 0.1f);
-            groundMat.SetFloat("_Metallic", 0f);
-            groundMat.SetColor("_BaseColor", new Color(0.4f, 0.6f, 0.3f, 1f));
-            groundMat.enableInstancing = true;
-            groundMat.SetTextureScale("_BaseMap", new Vector2(200f, 200f));
-            groundMat.SetTextureScale("_BumpMap", new Vector2(200f, 200f));
+            // CRITICAL: Create material asset with correct settings.
+            // 이 에셋은 GameSetup이 런타임에 참조한다.
+            // 재실행 시 에셋이 이미 존재하면 신규 CreateAsset(CreateAsset은 덮어쓰기 불가로 실패)
+            // 하지 않고 기존 에셋에 파라미터를 재적용해 직렬화 누락(_BaseMap 비움)을 방지한다.
+            const string groundMatPath = "Assets/URP/Ground_Grass_Mat.mat";
+            var groundMat = AssetDatabase.LoadAssetAtPath<Material>(groundMatPath);
+            if (groundMat == null)
+            {
+                groundMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                groundMat.name = "Ground_Grass_Mat";
+                AssetDatabase.CreateAsset(groundMat, groundMatPath);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+            }
 
-            // CRITICAL: URP material properties for proper terrain rendering
-            groundMat.SetFloat("_Surface", 0f); // Opaque
-            groundMat.SetFloat("_ZWrite", 1f);
-            groundMat.SetFloat("_AlphaClip", 0f);
-            groundMat.SetFloat("_Cull", 2f); // Back face culling
-            groundMat.SetFloat("_SrcBlend", 1f);
-            groundMat.SetFloat("_DstBlend", 0f);
-            groundMat.SetInt("_Blend", 0);
-            groundMat.EnableKeyword("_SURFACE_TYPE_OPAQUE");
-            groundMat.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            groundMat.DisableKeyword("_SURFACE_TYPE_TRANSPARENT_PREMULTIPLY");
-            groundMat.renderQueue = 2000; // Geometry queue
-
-            AssetDatabase.CreateAsset(groundMat, "Assets/URP/Ground_Grass_Mat.mat");
+            // 항상 재적용 → 텍스처(_BaseMap=Terrain_Grass)와 URP 설정이 디스크 직렬화에 남음
+            ApplyGroundMaterialParams(groundMat, grassTex, normalTex);
+            EditorUtility.SetDirty(groundMat);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            // CRITICAL: Also copy to Resources for GameSetup runtime loading
-            AssetDatabase.CopyAsset("Assets/URP/Ground_Grass_Mat.mat", "Assets/Resources/URP/Ground_Grass_Mat.mat");
+            // CRITICAL: Resources 복사본도 동기화. CopyAsset은 기존 경로를 덮어쓰지 못하므로
+            // 이미 존재하면 재사용 후 파라미터 재적용으로 _BaseMap을 다시 세팅한다.
+            const string groundMatResPath = "Assets/Resources/URP/Ground_Grass_Mat.mat";
+            var groundMatRes = AssetDatabase.LoadAssetAtPath<Material>(groundMatResPath);
+            if (groundMatRes == null)
+            {
+                AssetDatabase.CopyAsset(groundMatPath, groundMatResPath);
+                AssetDatabase.SaveAssets();
+                groundMatRes = AssetDatabase.LoadAssetAtPath<Material>(groundMatResPath);
+            }
+            if (groundMatRes != null)
+            {
+                ApplyGroundMaterialParams(groundMatRes, grassTex, normalTex);
+                EditorUtility.SetDirty(groundMatRes);
+            }
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
             // Assign material asset to scene for EDITOR visibility
-            var groundMatAsset = AssetDatabase.LoadAssetAtPath<Material>("Assets/URP/Ground_Grass_Mat.mat");
-            
+            var groundMatAsset = AssetDatabase.LoadAssetAtPath<Material>(groundMatPath);
+
             // CRITICAL: Re-apply textures AFTER loading from disk (serialization fix)
-            groundMatAsset.SetTexture("_BaseMap", grassTex);
-            groundMatAsset.SetTexture("_BumpMap", normalTex);
-            groundMatAsset.SetTexture("_MainTex", grassTex); // URP fallback
-            groundMatAsset.SetTextureScale("_BaseMap", new Vector2(200f, 200f));
-            groundMatAsset.SetTextureScale("_BumpMap", new Vector2(200f, 200f));
-            groundMatAsset.SetTextureScale("_MainTex", new Vector2(200f, 200f));
-            
+            // URP 복사본이 항상 _BaseMap=Terrain_Grass를 유지하도록 마지막 보강
+            ApplyGroundMaterialParams(groundMatAsset, grassTex, normalTex);
             EditorUtility.SetDirty(groundMatAsset);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            
+
             mr.sharedMaterial = groundMatAsset;
             EditorUtility.SetDirty(mr);
             EditorUtility.SetDirty(groundMatAsset);
@@ -1351,6 +1363,54 @@ namespace ProjectName.Systems.Animation.Procedural
         tex.wrapMode = TextureWrapMode.Repeat;
         tex.filterMode = FilterMode.Bilinear;
         return tex;
+    }
+
+    // ================================================================
+    // Helper: Ground_Grass_Mat 파라미터 재적용 (URP + Resources 복사본 공용)
+    // _BaseMap=Terrain_Grass(변경 불가)를 항상 디스크 직렬화에 남기기 위해 사용.
+    // ================================================================
+    static void ApplyGroundMaterialParams(Material m, Texture2D grassTex, Texture2D normalTex)
+    {
+        if (m == null || grassTex == null)
+        {
+            Debug.LogWarning("[FixMainScene] ApplyGroundMaterialParams: 머티리얼 또는 grassTex null로 건너뜀");
+            return;
+        }
+        m.SetTexture("_BaseMap", grassTex);
+        m.SetTexture("_BumpMap", normalTex);
+        m.SetTexture("_MainTex", grassTex); // URP fallback
+        m.SetFloat("_Smoothness", 0.1f);
+        m.SetFloat("_Metallic", 0f);
+        m.SetColor("_BaseColor", new Color(0.4f, 0.6f, 0.3f, 1f));
+        m.enableInstancing = true;
+        m.SetTextureScale("_BaseMap", new Vector2(200f, 200f));
+        m.SetTextureScale("_BumpMap", new Vector2(200f, 200f));
+        m.SetTextureScale("_MainTex", new Vector2(200f, 200f));
+
+        // CRITICAL: URP material properties for proper terrain rendering
+        m.SetFloat("_Surface", 0f); // Opaque
+        m.SetFloat("_ZWrite", 1f);
+        m.SetFloat("_AlphaClip", 0f);
+        m.SetFloat("_Cull", 2f); // Back face culling
+        m.SetFloat("_SrcBlend", 1f);
+        m.SetFloat("_DstBlend", 0f);
+        m.SetInt("_Blend", 0);
+        m.EnableKeyword("_SURFACE_TYPE_OPAQUE");
+        m.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        m.DisableKeyword("_SURFACE_TYPE_TRANSPARENT_PREMULTIPLY");
+        m.renderQueue = 2000; // Geometry queue
+    }
+
+    // ================================================================
+    // Helper: 프로시저 텍스처의 Resources 복사본 "이미 있으면 재사용, 없으면 생성"
+    // ================================================================
+    static void EnsureProceduralTextureCopy(string destPath, string srcPath)
+    {
+        if (AssetDatabase.LoadAssetAtPath<Texture2D>(destPath) != null)
+            return; // 이미 존재 → 재생성(덮어쓰기 실패)하지 않고 유지
+        AssetDatabase.CopyAsset(srcPath, destPath);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
     }
 
     // ================================================================
