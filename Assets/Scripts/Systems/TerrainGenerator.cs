@@ -12,8 +12,8 @@ namespace ProjectName.Systems
     public static class TerrainGenerator
     {
         // === FBM (Fractal Brownian Motion) 하드코딩 상수 ===
-        // 노이즈 옥타브 수 — 클수록 디테일이 증가 (표준 4 → 5)
-        private const int FBM_OCTAVES = 5;
+        // 노이즈 옥타브 수 — 클수록 디테일이 증가 (20m 정점 간격 한계상 4옥타브가 적정: 5옥타브는 10m 파장으로 앨리어싱)
+        private const int FBM_OCTAVES = 4;
         // 주파수 배율 — 옥타브가 올라갈 때마다 주파수가 이 배율만큼 증가
         private const float FBM_LACUNARITY = 2.0f;
         // 진폭 감쇠 — 옥타브가 올라갈 때마다 진폭이 이 배율만큼 감소 (0.5 → 0.55, 고주파 디테일 유지)
@@ -167,18 +167,20 @@ namespace ProjectName.Systems
             switch (nation)
             {
                 case NationType.East:
-                    return new NationTerrainParams { biome = BiomeType.Plains, amplitude = 7.0f, frequency = 2.5f, plateauStrength = 0.0f, seedOffset = 10 };
+                    // 주파수 단위: Perlin 1주기=1입력 → 파장=1/freq. 0.0065 → 파장 ~154m (롤링 힐)
+                    // (구값 2.5는 파장 0.4m — 20m 정점 간격에서 앨리어싱되어 평지로 보였음)
+                    return new NationTerrainParams { biome = BiomeType.Plains, amplitude = 12.0f, frequency = 0.0065f, plateauStrength = 0.0f, seedOffset = 10 };
                 case NationType.South:
-                    return new NationTerrainParams { biome = BiomeType.Desert, amplitude = 3.5f, frequency = 2.0f, plateauStrength = 0.0f, seedOffset = 20 };
+                    return new NationTerrainParams { biome = BiomeType.Desert, amplitude = 8.0f, frequency = 0.0045f, plateauStrength = 0.0f, seedOffset = 20 };
                 case NationType.North:
-                    return new NationTerrainParams { biome = BiomeType.Tundra, amplitude = 10.0f, frequency = 1.5f, plateauStrength = 1.0f, seedOffset = 30 };
+                    return new NationTerrainParams { biome = BiomeType.Tundra, amplitude = 16.0f, frequency = 0.0035f, plateauStrength = 1.0f, seedOffset = 30 };
                 case NationType.West:
-                    return new NationTerrainParams { biome = BiomeType.Volcanic, amplitude = 7.0f, frequency = 2.5f, plateauStrength = 0.5f, seedOffset = 40 };
+                    return new NationTerrainParams { biome = BiomeType.Volcanic, amplitude = 12.0f, frequency = 0.006f, plateauStrength = 0.5f, seedOffset = 40 };
                 case NationType.Empire:
-                    return new NationTerrainParams { biome = BiomeType.Empire, amplitude = 0.2f, frequency = 1.0f, plateauStrength = 1.0f, seedOffset = 50 };
+                    return new NationTerrainParams { biome = BiomeType.Empire, amplitude = 0.2f, frequency = 0.004f, plateauStrength = 1.0f, seedOffset = 50 };
                 default:
                     // 미소속(None/Dracula) — East(Plains) 기본값
-                    return new NationTerrainParams { biome = BiomeType.Plains, amplitude = 7.0f, frequency = 2.5f, plateauStrength = 0.0f, seedOffset = 10 };
+                    return new NationTerrainParams { biome = BiomeType.Plains, amplitude = 12.0f, frequency = 0.0065f, plateauStrength = 0.0f, seedOffset = 10 };
             }
         }
 

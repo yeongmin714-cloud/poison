@@ -715,3 +715,23 @@ Cross(Edge1, Edge2) = (0, -dx·dz, 0) = **법선이 아래(-Y)를 향함**.
 **참고:** PlayerSpawnConfig.SpawnPosition.y=0.24는 구값이나 PlayerMovement.ClampToGroundByHeight가 GetHeightAt로 즉시 보정 → 게임플레이 영향 없음.
 
 **검증:** 배치컴파일 통과 (error CS 0).
+
+## 2026-09-01 지형이 평지로 보이는 근본 원인 수리 (주파수 단위 버그)
+
+**증상:** 플레이어는 클램프 수학 높이를 따라 오르내리지만(흔들리는 모션), 눈에 보이는 지형은 평지.
+
+**근본 원인:** FBM 노이즈 주파수 단위 오류 — `FbmNoise(x * 2.5)`는 Perlin 1주기=1입력이라 **파장 0.4m** 노이즈.
+메시 정점 간격 ~20m로 샘플링 → 앨리어싱되어 ±1m 미세 요철만 렌더(눈엔 평지).
+반면 ClampToGroundByHeight는 같은 수학 높이를 따라가므로 모션만 존재.
+
+**수리 (TerrainGenerator):**
+- 주파수 → 지리적 스케일: East 0.0065(파장~154m), South 0.0045(사구), North 0.0035(대륙지형), West 0.006, Empire 0.004
+- 진폭 상향: East 12, South 8, North 16(plateau 평탄화 상쇄), West 12 (Empire 0.2 유지)
+- FBM_OCTAVES 5→4 (5옥타브=10m 파장, 20m 정점 간격 앨리어싱 제어)
+
+**잔디:** 사용자 결정으로 제거 — GameSetup.BootstrapTerrainDeco에서 GrassRenderer.Bootstrap 주석 처리(코드 보존, 복원 가능).
+
+**참고:** 런타임 재표본(TerrainTextureApplier.Start)이 새 수학으로 전체 정점 재계산 → 씬 재베이크 불필요.
+스폰 y(1.5)는 구값이나 클램프가 즉시 보정(스폰 시 살짝 팝 가능).
+
+**검증:** 배치컴파일 통과 (error CS 0). Play 시각검증 대기 — 동쪽 롤링 힐 확인 필수.

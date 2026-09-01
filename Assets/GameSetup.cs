@@ -102,17 +102,14 @@ public class GameSetup : MonoBehaviour
             Debug.LogError("[GameSetup][TerrainDeco] ❌ 흙길 생성 실패 (게임 계속): " + e.ToString());
         }
 
-        // ── 잔디 렌더러 (플레이어 따라다님, 가장 무거움 — 마지막) ──────
-        var player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            GrassRenderer.Bootstrap(player.transform, decoGO.transform);
-            Debug.Log("[GameSetup][TerrainDeco] ✅ GrassRenderer.Bootstrap 완료 (잔디 렌더러)");
-        }
-        else
-        {
-            Debug.LogWarning("[GameSetup][TerrainDeco] ⚠️ 플레이어를 찾을 수 없어 잔디 생성 생략");
-        }
+        // ── 잔디 렌더러 — 사용자 결정(09-01): 잔디 제거. 복원 시 아래 주석 해제 ──────
+        // var player = GameObject.FindGameObjectWithTag("Player");
+        // if (player != null)
+        // {
+        //     GrassRenderer.Bootstrap(player.transform, decoGO.transform);
+        //     Debug.Log("[GameSetup][TerrainDeco] ✅ GrassRenderer.Bootstrap 완료 (잔디 렌더러)");
+        // }
+        Debug.Log("[GameSetup][TerrainDeco] 잔디는 사용자 요청으로 비활성화됨 (GrassRenderer 코드 보존)");
     }
 
     /// <summary>
