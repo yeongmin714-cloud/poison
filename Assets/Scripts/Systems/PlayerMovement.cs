@@ -660,38 +660,45 @@ namespace ProjectName.Systems
         {
             if (_controller == null) return;
 
-            // 플레이어의 "발" 위치 = 각지 아래로 0.05f (CC 바닥 근처)
-            float footY = transform.position.y;
-            const float searchDistance = 3f;     // 아래로 3m까지 지면 탐색 (추락 시 캐치)
-            float originY = transform.position.y + 0.5f;
+            // 오리진을 발 아래가 아니라 살짝 위에서 시작해, 그 아래 지면(RaycastAll)을 찾는다.
+            // 플레이어 자신(CharacterController/Collider)의 콜라이더는 지면이 아니므로 반드시 무시한다.
+            const float searchDistance = 4f;
+            Vector3 origin = new Vector3(transform.position.x, transform.position.y + 0.3f, transform.position.z);
 
-            if (Physics.Raycast(
-                    new Vector3(transform.position.x, originY, transform.position.z),
-                    Vector3.down,
-                    out RaycastHit hit,
-                    searchDistance,
-                    ~0,
-                    QueryTriggerInteraction.Ignore))
+            RaycastHit[] hits = Physics.RaycastAll(origin, Vector3.down, searchDistance, ~0, QueryTriggerInteraction.Ignore);
+            if (hits == null || hits.Length == 0) return;
+
+            // 자기 자신이 아닌 가장 가까운 지면 hit를 찾는다.
+            // (RaycastAll 결과는 거리순이 아니므로, 자기 자신을 제외한 최근접을 선택)
+            RaycastHit groundHit = default;
+            bool found = false;
+            float best = float.MaxValue;
+            foreach (var h in hits)
             {
-                // Raycast가 지면을 아래로 잡은 경우
-                float surfaceY = hit.point.y + 0.05f;   // 발이 지면 위 0.05m
-                float playerFootY = transform.position.y;
-
-                // 점프 중이 아닐 때만 강제로 표면에 붙인다.
-                // NOTE: 이전에 _verticalVelocity <= 0f 조건을 걸어 점프를 제외했는데,
-                //       중력으로 _verticalVelocity가 매 프레임 커져 항상 양수가 되어
-                //       클램프가 영영 실행되지 않아 플레이어가 SafetyFloor까지 추락했음.
-                //       점프는 별도 상태(_isJumping/HandleJump)로 처리되므로, 지면 클램프에선
-                //       발이 지면과 가까우면(아래거나 바로 위) 무조건 표면에 고정한다.
-                bool belowOrNear = playerFootY < surfaceY + 0.15f;
-                bool airborne = transform.position.y > surfaceY + 0.5f; // 지면 위 0.5m 이상은 점프/낙하로 간주(강제 안함)
-                if (hit.collider != null && belowOrNear && !airborne)
+                if (h.collider == null) continue;
+                // 자기 자신(이 GameObject 또는 자식)은 건너뜀
+                if (h.collider.transform.IsChildOf(transform) || h.collider.transform == transform)
+                    continue;
+                if (h.distance < best)
                 {
-                    // 표면 바로 위로 교정 (항상 유지) — 미끄러져 내려가는 것 방지
-                    transform.position = new Vector3(transform.position.x, surfaceY, transform.position.z);
-                    _verticalVelocity = 0f;
-                    _isGrounded = true;
+                    best = h.distance;
+                    groundHit = h;
+                    found = true;
                 }
+            }
+            if (!found) return;
+
+            float surfaceY = groundHit.point.y + 0.05f;   // 발이 지면 위 0.05m
+            float playerFootY = transform.position.y;
+
+            // 점프/낙하가 아닐 때, 발이 지면과 가까우면(아래거나 바로 위 0.15m) 표면에 고정.
+            bool belowOrNear = playerFootY < surfaceY + 0.15f;
+            bool airborne = playerFootY > surfaceY + 0.5f; // 지면 위 0.5m 이상은 강제 안함
+            if (belowOrNear && !airborne)
+            {
+                transform.position = new Vector3(transform.position.x, surfaceY, transform.position.z);
+                _verticalVelocity = 0f;
+                _isGrounded = true;
             }
         }
 
