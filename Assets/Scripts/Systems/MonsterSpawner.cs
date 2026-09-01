@@ -82,6 +82,7 @@ namespace ProjectName.Systems
 
         [Header("Spawned Monsters")]
         [SerializeField] private List<GameObject> _spawnedMonsters = new List<GameObject>();
+        private Transform _playerT; // 플레이어 주변 스폰용 캐시
 
         // ===== C18-02: 시간대별 확률 =====
         [Header("Time-Aware Spawning (C18)")]
