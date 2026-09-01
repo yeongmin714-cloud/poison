@@ -122,10 +122,33 @@ namespace ProjectName.Systems
             float h = ProjectName.Systems.TerrainGenerator.GetHeightAt(spawn.x, spawn.z, ProjectName.Core.Data.BiomeType.Plains, 42);
             Debug.Log($"[DiagP1] 스폰({spawn.x:F0},{spawn.z:F0}) 지형높이={h:F2} +Ground1={h+1f:F2}");
 
-            // 3) 스폰 지점 아래 Raycast → 뭘 맞췄나
+            // 3) 스폰 지점 아래 RaycastAll → 지형 콜라이더가 물리 세계에 있는지 전체 나열
             Vector3 o = new Vector3(spawn.x, spawn.y + 5f, spawn.z);
-            bool rc = Physics.Raycast(o, Vector3.down, out RaycastHit hit, 20f, ~0, QueryTriggerInteraction.Ignore);
-            Debug.Log($"[DiagP1] 스폰Raycast(아래20m)={rc} 대상={(rc ? hit.collider?.gameObject.name + " y=" + hit.point.y.ToString("F2") : "없음")}");
+            RaycastHit[] allHits = Physics.RaycastAll(o, Vector3.down, 20f, ~0, QueryTriggerInteraction.Ignore);
+            Debug.Log($"[DiagP1] 스폰상공 RaycastAll(20m) 히트수={allHits.Length}");
+            bool terrainColliderFound = false;
+            foreach (var hh in allHits)
+            {
+                if (hh.collider == null) continue;
+                bool isTerrain = hh.collider.gameObject.name.Contains("Ground");
+                if (isTerrain) terrainColliderFound = true;
+                Debug.Log($"[DiagP1]   ↓ hit: {hh.collider.gameObject.name} y={hh.point.y:F2} layer={hh.collider.gameObject.layer}");
+            }
+            Debug.Log($"[DiagP1] ★ 지형콜라이더(Ground*) 존재={terrainColliderFound}  (False면 지형 콜라이더 파손 → Phase B)");
+
+            // 3-2) 플레이어 앞 지면 지점(화면에 보이는 회색 지면)에 뭐가 있는지
+            Vector3 probePoint = new Vector3(spawn.x + 6f, 8f, spawn.z + 6f);
+            bool rc2 = Physics.Raycast(probePoint, Vector3.down, out RaycastHit hit2, 20f, ~0, QueryTriggerInteraction.Ignore);
+            if (rc2)
+            {
+                var mrAt = hit2.collider != null ? hit2.collider.GetComponent<MeshRenderer>() : null;
+                string matAt = mrAt != null && mrAt.sharedMaterial != null ? mrAt.sharedMaterial.name : "(재질없음)";
+                Debug.Log($"[DiagP1] 전방지면({spawn.x + 6f:F0},{spawn.z + 6f:F0}) 아래 hit: {hit2.collider?.gameObject.name} y={hit2.point.y:F2} 재질={matAt}");
+            }
+            else
+            {
+                Debug.LogWarning("[DiagP1] 전방지면 아래 20m에 콜라이더 없음 → 회색은 배경/허공");
+            }
 
             // 4) 지형 위 서기 체크용 — 지형 표면 상대
             Debug.Log($"[DiagP1] 지형 표면 세계y={h+1f:F2} (스폰플레이어y={spawn.y:F2})");
