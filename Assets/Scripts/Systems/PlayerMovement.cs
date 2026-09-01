@@ -672,15 +672,20 @@ namespace ProjectName.Systems
                 float playerFootY = transform.position.y;
 
                 // 점프 중이 아닐 때만 강제로 표면에 붙인다.
-                // 발이 표면보다 아래이거나, 표면 바로 위(0.15m 이내)면 표면에 고정한다.
-                // (= CharacterController가 약간 밀려 지면을 통과하는 것을 항상 보정)
+                // NOTE: 이전에 _verticalVelocity <= 0f 조건을 걸어 점프를 제외했는데,
+                //       중력으로 _verticalVelocity가 매 프레임 커져 항상 양수가 되어
+                //       클램프가 영영 실행되지 않아 플레이어가 SafetyFloor까지 추락했음.
+                //       점프는 별도 상태(_isJumping/HandleJump)로 처리되므로, 지면 클램프에선
+                //       발이 지면과 가까우면(아래거나 바로 위) 무조건 표면에 고정한다.
                 bool belowOrNear = playerFootY < surfaceY + 0.15f;
-                if (hit.collider != null && belowOrNear && _verticalVelocity <= 0f)
+                bool airborne = transform.position.y > surfaceY + 0.5f; // 지면 위 0.5m 이상은 점프/낙하로 간주(강제 안함)
+                if (hit.collider != null && belowOrNear && !airborne)
                 {
                     // 표면 바로 위로 교정 (항상 유지) — 미끄러져 내려가는 것 방지
                     transform.position = new Vector3(transform.position.x, surfaceY, transform.position.z);
                     _verticalVelocity = 0f;
                     _isGrounded = true;
+                }
                 }
             }
         }
