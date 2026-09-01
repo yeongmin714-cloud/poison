@@ -1,351 +1,172 @@
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
+using System.Collections.Generic;
+using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
 {
     /// <summary>
-    /// GLB 3D 모델을 지형에 랜덤 배치하는 시스템.
-    /// Resources/Models/UserProvided/terrain/ 에서 나무(trees/), 바위(rocks/), 풀(grass/) GLB를 로드하여
-    /// 전 국가 영역에 분산 배치한다.
-    /// GLB 로드 실패 시 Primitive 폴백을 사용한다.
+    /// 스폰지 인근에 콜라이더 포함 개별 프롭(나무/바위) 배치.
+    /// 몬스터 스폰 raycast는 Ground|Terrain 마스크만 쏘므로 Default 레이어 프롭 콜라이더는 자동 무시된다.
+    /// GLB 로드 실패 시 Primitive 폴백 사용.
+    /// 정적 엔트리포인트: PlaceAllIfNeeded(Transform parent) — 상위(FixMainScene)가 통합 페이즈에서 호출.
     /// </summary>
-    public class TerrainPropPlacer : MonoBehaviour
+    public static class TerrainPropPlacer
     {
-        [Header("Resources")]
-        [SerializeField] private string _resourcesPath = "Models/UserProvided/terrain/";
-
-        [Header("Placement Settings")]
-        [SerializeField] private int _seed = 100;
-        [SerializeField] private float _spawnExclusionRadius = 30f;
-        [SerializeField] private float _terrainSize = 1000f;
-
-        [Header("Tree Settings")]
-        [SerializeField] private int _treeMin = 50;
-        [SerializeField] private int _treeMax = 80;
-        [SerializeField] private float _treeScaleMin = 0.8f;
-        [SerializeField] private float _treeScaleMax = 1.5f;
-
-        [Header("Rock Settings")]
-        [SerializeField] private int _rockMin = 60;
-        [SerializeField] private int _rockMax = 100;
-        [SerializeField] private float _rockScaleMin = 0.5f;
-        [SerializeField] private float _rockScaleMax = 2.0f;
-
-        [Header("Grass Settings")]
-        [SerializeField] private int _grassMin = 100;
-        [SerializeField] private int _grassMax = 200;
-        [SerializeField] private float _grassScaleMin = 0.3f;
-        [SerializeField] private float _grassScaleMax = 0.8f;
-
-        [Header("Runtime")]
-        [SerializeField] private Transform _propsParent;
-
-        // Cached prefabs
-        private List<GameObject> _treePrefabs;
-        private List<GameObject> _rockPrefabs;
-        private List<GameObject> _grassPrefabs;
-
-        // Primitive fallbacks
-        private GameObject _treeFallback;
-        private GameObject _rockFallback;
-        private GameObject _grassFallback;
-
-        // Placed instances
-        private List<GameObject> _placedProps;
-
-        /// <summary>All placed prop instances (readonly for tests).</summary>
-        public IReadOnlyList<GameObject> PlacedProps => _placedProps;
-
-        /// <summary>Tree prefabs loaded (readonly for tests).</summary>
-        public IReadOnlyList<GameObject> TreePrefabs => _treePrefabs;
-
-        /// <summary>Rock prefabs loaded (readonly for tests).</summary>
-        public IReadOnlyList<GameObject> RockPrefabs => _rockPrefabs;
-
-        /// <summary>Grass prefabs loaded (readonly for tests).</summary>
-        public IReadOnlyList<GameObject> GrassPrefabs => _grassPrefabs;
-
-        /// <summary>Tree fallback object (readonly for tests).</summary>
-        public GameObject TreeFallback => _treeFallback;
-
-        /// <summary>Rock fallback object (readonly for tests).</summary>
-        public GameObject RockFallback => _rockFallback;
-
-        /// <summary>Grass fallback object (readonly for tests).</summary>
-        public GameObject GrassFallback => _grassFallback;
-
-        // ================================================================
-        //  Unity Lifecycle
-        // ================================================================
-
-        private void Awake()
-        {
-            LoadGLBs();
-            CreateFallbacks();
-            PlaceProps();
-        }
-
-        // ================================================================
-        //  GLB Loading
-        // ================================================================
+        // === 배치 상수 ===
+        const string MARKER_NAME = "TerrainPropPlacer_Marker";
+        const float SPAWN_X = 728f;
+        const float SPAWN_Z = -529f;
+        const float MIN_RADIUS = 30f;   // 스폰지에서 최소 거리
+        const float MAX_RADIUS = 150f;  // 스폰지에서 최대 거리
+        const int TREE_COUNT = 12;      // 나무 개수
+        const int ROCK_COUNT = 10;      // 바위 개수
+        const long PROP_SEED = 20260901L; // 고정 시드
+        const float GROUND_BASE = 1f;   // Ground_Inner 월드 y 기저
 
         /// <summary>
-        /// Loads all GLB prefabs from the resources subdirectories.
+        /// 진입점. parent 하위에 이미 배치 마커가 있으면 스킵(중복 실행 가드).
+        /// (728,-529) 반경 30~150m에 나무 12 + 바위 10, 콜라이더 포함(Default 레이어).
         /// </summary>
-        public void LoadGLBs()
+        public static void PlaceAllIfNeeded(Transform parent)
         {
-            // Load trees
-            _treePrefabs = LoadPrefabsFromFolder(_resourcesPath + "trees/", "tree");
-            Debug.Log($"[TerrainPropPlacer] Loaded {_treePrefabs.Count} tree prefabs.");
+            if (parent == null) return;
 
-            // Load rocks
-            _rockPrefabs = LoadPrefabsFromFolder(_resourcesPath + "rocks/", "rock");
-            Debug.Log($"[TerrainPropPlacer] Loaded {_rockPrefabs.Count} rock prefabs.");
-
-            // Load grass
-            _grassPrefabs = LoadPrefabsFromFolder(_resourcesPath + "grass/", "grass");
-            Debug.Log($"[TerrainPropPlacer] Loaded {_grassPrefabs.Count} grass prefabs.");
-        }
-
-        private List<GameObject> LoadPrefabsFromFolder(string folderPath, string debugPrefix)
-        {
-            List<GameObject> prefabs = new List<GameObject>();
-            GameObject[] allPrefabs = Resources.LoadAll<GameObject>(folderPath);
-            if (allPrefabs != null)
+            // 중복 실행 가드
+            if (FindChild(parent, MARKER_NAME) != null)
             {
-                prefabs.AddRange(allPrefabs.Where(p => p != null));
-            }
-            return prefabs;
-        }
-
-        // ================================================================
-        //  Primitive Fallbacks
-        // ================================================================
-
-        /// <summary>
-        /// Creates primitive fallback objects for when GLB loading fails.
-        /// Tree = green cylinder, Rock = gray box, Grass = green sphere.
-        /// </summary>
-        public void CreateFallbacks()
-        {
-            // Tree fallback: green cylinder
-            _treeFallback = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            _treeFallback.name = "Tree_Fallback";
-            _treeFallback.GetComponent<Renderer>().material.color = new Color(0.2f, 0.6f, 0.1f);
-            _treeFallback.transform.localScale = new Vector3(0.5f, 1f, 0.5f);
-            Object.DestroyImmediate(_treeFallback.GetComponent<CapsuleCollider>());
-            _treeFallback.SetActive(false);
-
-            // Rock fallback: gray box
-            _rockFallback = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            _rockFallback.name = "Rock_Fallback";
-            _rockFallback.GetComponent<Renderer>().material.color = new Color(0.4f, 0.4f, 0.4f);
-            _rockFallback.transform.localScale = new Vector3(0.8f, 0.6f, 0.8f);
-            Object.DestroyImmediate(_rockFallback.GetComponent<BoxCollider>());
-            _rockFallback.SetActive(false);
-
-            // Grass fallback: green sphere
-            _grassFallback = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            _grassFallback.name = "Grass_Fallback";
-            _grassFallback.GetComponent<Renderer>().material.color = new Color(0.2f, 0.8f, 0.2f);
-            _grassFallback.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
-            Object.DestroyImmediate(_grassFallback.GetComponent<SphereCollider>());
-            _grassFallback.SetActive(false);
-        }
-
-        // ================================================================
-        //  Prop Placement
-        // ================================================================
-
-        /// <summary>
-        /// Places props across all nation territories with the configured
-        /// random distribution. Excludes center area (player spawn).
-        /// </summary>
-        public void PlaceProps()
-        {
-            // Ensure parent object
-            if (_propsParent == null)
-            {
-                GameObject parentGO = new GameObject("TerrainProps");
-                parentGO.transform.SetParent(transform);
-                _propsParent = parentGO.transform;
-            }
-
-            // Clear previous props if any
-            ClearProps();
-
-            _placedProps = new List<GameObject>();
-            System.Random rng = new System.Random(_seed);
-
-            // Place trees
-            int treeCount = rng.Next(_treeMin, _treeMax + 1);
-            for (int i = 0; i < treeCount; i++)
-            {
-                Vector3 position = GetRandomPosition(rng);
-                float scale = RandomRange(rng, _treeScaleMin, _treeScaleMax);
-                float rotationY = RandomRange(rng, 0f, 360f);
-
-                if (_treePrefabs.Count > 0)
-                {
-                    GameObject prefab = _treePrefabs[rng.Next(_treePrefabs.Count)];
-                    PlaceProp(prefab, position, scale, rotationY);
-                }
-                else
-                {
-                    PlaceFallback(_treeFallback, position, scale, rotationY);
-                }
-            }
-
-            // Place rocks
-            int rockCount = rng.Next(_rockMin, _rockMax + 1);
-            for (int i = 0; i < rockCount; i++)
-            {
-                Vector3 position = GetRandomPosition(rng);
-                float scale = RandomRange(rng, _rockScaleMin, _rockScaleMax);
-                float rotationY = RandomRange(rng, 0f, 360f);
-
-                if (_rockPrefabs.Count > 0)
-                {
-                    GameObject prefab = _rockPrefabs[rng.Next(_rockPrefabs.Count)];
-                    PlaceProp(prefab, position, scale, rotationY);
-                }
-                else
-                {
-                    PlaceFallback(_rockFallback, position, scale, rotationY);
-                }
-            }
-
-            // Place grass
-            int grassCount = rng.Next(_grassMin, _grassMax + 1);
-            for (int i = 0; i < grassCount; i++)
-            {
-                Vector3 position = GetRandomPosition(rng);
-                float scale = RandomRange(rng, _grassScaleMin, _grassScaleMax);
-                float rotationY = RandomRange(rng, 0f, 360f);
-
-                if (_grassPrefabs.Count > 0)
-                {
-                    GameObject prefab = _grassPrefabs[rng.Next(_grassPrefabs.Count)];
-                    PlaceProp(prefab, position, scale, rotationY);
-                }
-                else
-                {
-                    PlaceFallback(_grassFallback, position, scale, rotationY);
-                }
-            }
-
-            Debug.Log($"[TerrainPropPlacer] Placed {_placedProps.Count} props total " +
-                      $"(trees: {treeCount}, rocks: {rockCount}, grass: {grassCount}).");
-        }
-
-        private void PlaceProp(GameObject prefab, Vector3 position, float scale, float rotationY)
-        {
-            GameObject instance = Instantiate(prefab, position, Quaternion.identity, _propsParent);
-            instance.transform.localScale = Vector3.one * scale;
-            instance.transform.rotation = Quaternion.Euler(0f, rotationY, 0f);
-            instance.SetActive(true);
-            _placedProps.Add(instance);
-        }
-
-        private void PlaceFallback(GameObject fallback, Vector3 position, float scale, float rotationY)
-        {
-            if (fallback == null)
-            {
-                Debug.LogError("[TerrainPropPlacer] Fallback object is null! Skipping placement.");
+                Debug.Log("[TerrainPropPlacer] Already placed — skipping.");
                 return;
             }
-            PlaceProp(fallback, position, scale, rotationY);
-        }
 
-        // ================================================================
-        //  Position Generation
-        // ================================================================
+            // GLB 모델 로드
+            var treeModels = Resources.LoadAll<GameObject>("Models/UserProvided/terrain/trees");
+            var rockModels = Resources.LoadAll<GameObject>("Models/UserProvided/terrain/rocks");
 
-        /// <summary>
-        /// Generates a random world position on the terrain, excluding the
-        /// center spawn area (within spawnExclusionRadius).
-        /// Ensures distribution across all nation territories.
-        /// </summary>
-        private Vector3 GetRandomPosition(System.Random rng)
-        {
-            float halfSize = _terrainSize / 2f;
-            float exclusionRadiusSqr = _spawnExclusionRadius * _spawnExclusionRadius;
+            var propsParent = new GameObject("SpawnProps");
+            propsParent.transform.SetParent(parent, false);
+            propsParent.layer = 0; // Default
 
-            for (int attempt = 0; attempt < 100; attempt++)
+            var rng = new System.Random(PROP_SEED);
+
+            // 나무 배치 (GLB 실패 시 Primitive 폴백)
+            if (treeModels.Length > 0)
             {
-                float x = RandomRange(rng, -halfSize, halfSize);
-                float z = RandomRange(rng, -halfSize, halfSize);
-
-                // Exclude center spawn area (comparison against sqrMagnitude)
-                if (x * x + z * z < exclusionRadiusSqr)
-                    continue;
-
-                return new Vector3(x, 0f, z);
+                for (int i = 0; i < TREE_COUNT; i++)
+                {
+                    GameObject instance = PlaceInstance(treeModels[rng.Next(treeModels.Length)], propsParent.transform, rng, 0.8f, 1.5f);
+                    AddTreeCollider(instance);
+                }
+            }
+            else
+            {
+                GameObject fallback = CreateTreeFallback(propsParent.transform);
+                for (int i = 0; i < TREE_COUNT; i++)
+                {
+                    GameObject instance = PlaceInstance(fallback, propsParent.transform, rng, 0.8f, 1.5f);
+                    AddTreeCollider(instance);
+                }
+                Debug.LogWarning("[TerrainPropPlacer] tree GLB empty — primitive fallback used.");
             }
 
-            // Absolute last resort: place at edge of exclusion zone
-            Debug.LogWarning("[TerrainPropPlacer] Could not find valid spawn position after 100 attempts. " +
-                             "Check that terrainSize > spawnExclusionRadius.");
-            float edgeDist = _spawnExclusionRadius + 1f;
-            return new Vector3(edgeDist, 0f, 0f);
+            // 바위 배치 (GLB 실패 시 Primitive 폴백)
+            if (rockModels.Length > 0)
+            {
+                for (int i = 0; i < ROCK_COUNT; i++)
+                {
+                    GameObject instance = PlaceInstance(rockModels[rng.Next(rockModels.Length)], propsParent.transform, rng, 0.8f, 2.0f);
+                    AddRockCollider(instance);
+                }
+            }
+            else
+            {
+                GameObject fallback = CreateRockFallback(propsParent.transform);
+                for (int i = 0; i < ROCK_COUNT; i++)
+                {
+                    GameObject instance = PlaceInstance(fallback, propsParent.transform, rng, 0.8f, 2.0f);
+                    AddRockCollider(instance);
+                }
+                Debug.LogWarning("[TerrainPropPlacer] rock GLB empty — primitive fallback used.");
+            }
+
+            // 배치 마커 (중복 실행 방지)
+            var marker = new GameObject(MARKER_NAME);
+            marker.transform.SetParent(parent, false);
+            marker.SetActive(false);
+
+            Debug.Log($"[TerrainPropPlacer] Placed trees: {TREE_COUNT}, rocks: {ROCK_COUNT}. SpawnProps children: {propsParent.transform.childCount}");
         }
 
-        // ================================================================
-        //  Utility
-        // ================================================================
+        /// <summary>
+        /// 스폰 반경 30~150m 내 랜덤 위치에 프롭 배치. y = 기저 1f + 지형 높이.
+        /// </summary>
+        static GameObject PlaceInstance(GameObject prefab, Transform parent, System.Random rng, float scaleMin, float scaleMax)
+        {
+            float angle = RandomRange(rng, 0f, 360f) * Mathf.Deg2Rad;
+            float radius = RandomRange(rng, MIN_RADIUS, MAX_RADIUS);
+            float x = SPAWN_X + Mathf.Cos(angle) * radius;
+            float z = SPAWN_Z + Mathf.Sin(angle) * radius;
 
-        private static float RandomRange(System.Random rng, float min, float max)
+            // y = 기저 1f + 지형 높이 (Mesh 로컬)
+            float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42);
+
+            var go = Object.Instantiate(prefab, parent);
+            go.layer = 0; // Default
+            go.transform.position = new Vector3(x, y, z);
+            go.transform.rotation = Quaternion.Euler(0f, RandomRange(rng, 0f, 360f), 0f);
+            go.transform.localScale = Vector3.one * RandomRange(rng, scaleMin, scaleMax);
+            return go;
+        }
+
+        // === 콜라이더 근사 (Default 레이어 → 몬스터 스폰 raycast 무시) ===
+        static void AddTreeCollider(GameObject go)
+        {
+            if (go.GetComponent<CapsuleCollider>() != null) return;
+            float s = go.transform.localScale.x;
+            var cc = go.AddComponent<CapsuleCollider>();
+            cc.radius = 0.4f * s;
+            cc.halfHeight = 1.2f * s;
+        }
+
+        static void AddRockCollider(GameObject go)
+        {
+            if (go.GetComponent<BoxCollider>() != null) return;
+            float s = go.transform.localScale.x;
+            var bc = go.AddComponent<BoxCollider>();
+            bc.size = new Vector3(1.2f * s, 0.8f * s, 1.2f * s);
+        }
+
+        // === Primitive 폴백 ===
+        static GameObject CreateTreeFallback(Transform parent)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            go.name = "Tree_Fallback";
+            go.transform.SetParent(parent, false);
+            go.GetComponent<Renderer>().material.color = new Color(0.2f, 0.6f, 0.1f);
+            return go;
+        }
+
+        static GameObject CreateRockFallback(Transform parent)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = "Rock_Fallback";
+            go.transform.SetParent(parent, false);
+            go.GetComponent<Renderer>().material.color = new Color(0.4f, 0.4f, 0.4f);
+            return go;
+        }
+
+        static GameObject FindChild(Transform parent, string name)
+        {
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                var c = parent.GetChild(i);
+                if (c != null && c.gameObject.name == name) return c.gameObject;
+            }
+            return null;
+        }
+
+        static float RandomRange(System.Random rng, float min, float max)
         {
             return (float)(rng.NextDouble() * (max - min) + min);
-        }
-
-        /// <summary>
-        /// Clears all placed props from the scene.
-        /// </summary>
-        public void ClearProps()
-        {
-            if (_placedProps == null)
-            {
-                _placedProps = new List<GameObject>();
-                return;
-            }
-
-            for (int i = _placedProps.Count - 1; i >= 0; i--)
-            {
-                if (_placedProps[i] != null)
-                {
-                    if (Application.isPlaying)
-                        Destroy(_placedProps[i]);
-                    else
-                        DestroyImmediate(_placedProps[i]);
-                }
-            }
-            _placedProps.Clear();
-
-            // Also clear any children of the parent
-            if (_propsParent != null)
-            {
-                for (int i = _propsParent.childCount - 1; i >= 0; i--)
-                {
-                    if (Application.isPlaying)
-                        Destroy(_propsParent.GetChild(i).gameObject);
-                    else
-                        DestroyImmediate(_propsParent.GetChild(i).gameObject);
-                }
-            }
-        }
-
-        /// <summary>Total number of placed props.</summary>
-        public int PropCount => _placedProps?.Count ?? 0;
-
-        /// <summary>
-        /// Sets the parent transform for all placed props.
-        /// Call before PlaceProps() to override the default parent.
-        /// </summary>
-        public void SetPropsParent(Transform parent)
-        {
-            _propsParent = parent;
         }
     }
 }

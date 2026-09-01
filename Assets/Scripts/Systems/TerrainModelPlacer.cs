@@ -6,183 +6,182 @@ using ProjectName.Core.Data;
 namespace ProjectName.Systems
 {
     /// <summary>
-    /// Heightmap 지형에 UserProvided GLB 환경 모델을 GPU Instancing으로 배치
-    /// 3링(거리 기반) + 국가별 텍스처 구역 + 국가 경계 블렌딩 존 지원
+    /// Heightmap 지형에 UserProvided GLB 환경 모델(나무/바위)을 GPU Instancing으로 대량 배치.
+    /// 바이옴(방위)별 분포 + 제외존(엠파이어 중앙, 호수, 스폰, 지도 경계) 적용.
+    /// 월드 지표면 y = 1f + TerrainGenerator.GetHeightAt(...) (Ground_Inner 기저 1f 포함).
+    /// 정적 엔트리포인트: PlaceAllIfNeeded(Transform parent) — 상위(FixMainScene)가 통합 페이즈에서 호출.
     /// </summary>
     public static class TerrainModelPlacer
     {
-        // Ring 정의: 거리 범위 + 모델 개수 + 스케일 범위
-        static readonly RingConfig[] RingConfigs = new RingConfig[]
-        {
-            new RingConfig { innerRadius = 0f,   outerRadius = 350f,  grassCount = 500, treeCount = 80, rockCount = 100, grassScale = 0.8f, treeScale = 1f, rockScale = 1.2f },
-            new RingConfig { innerRadius = 350f, outerRadius = 700f,  grassCount = 300, treeCount = 50, rockCount = 60,  grassScale = 0.9f, treeScale = 1.1f, rockScale = 1.3f },
-            new RingConfig { innerRadius = 700f, outerRadius = 1000f, grassCount = 150, treeCount = 30, rockCount = 40,  grassScale = 1f,   treeScale = 1.2f, rockScale = 1.5f },
-        };
+        // === 배치 상수 ===
+        const string MARKER_NAME = "TerrainModelPlacer_Marker";
+        const int TREE_ATTEMPTS = 1050;  // 나무 배치 시도 수 (바이옴 수락 확률 반영 시 최종 ≈500)
+        const int ROCK_ATTEMPTS = 595;   // 바위 배치 시도 수 (바이옴 수락 확률 반영 시 최종 ≈400)
+        const float BOUND_MAX = 950f;    // 지도 경계 (±950m 밖 제외)
+        const float EMPIRE_EXCLUDE = 120f;   // 엠파이어 중앙(0,0,0) 제외 반경
+        const float SPAWN_X = 728f;
+        const float SPAWN_Z = -529f;
+        const float SPAWN_EXCLUDE = 5f;      // 스폰지 제외 반경
+        const float LAKE_MARGIN_FACTOR = 1.15f; // 호수 해안 여백 (radius*이값 밖)
+        const long PROP_SEED = 20260901L;    // 고정 시드 (UnityEngine.Random 언시드 금지)
+        const float GROUND_BASE = 1f;        // Ground_Inner 월드 y 기저
 
-        struct RingConfig
+        // === 바이옴별 수락 확률 ===
+        // East(초원)=나무 다수+바위 소량 / North(설산)=나무 중간+큰 바위
+        // West(화산)=바위 다수+나무 아주 적음 / South(사막)=바위 위주+나무 거의 없음
+        // Empire(중앙 120m)=제외 (0)
+        static float TreeAcceptance(NationType n)
         {
-            public float innerRadius;
-            public float outerRadius;
-            public int grassCount;
-            public int treeCount;
-            public int rockCount;
-            public float grassScale;
-            public float treeScale;
-            public float rockScale;
+            switch (n)
+            {
+                case NationType.East:  return 1.0f;   // 다수
+                case NationType.North: return 0.7f;   // 중간
+                case NationType.West:  return 0.15f;  // 아주 적음
+                case NationType.South: return 0.05f;  // 거의 없음
+                default:               return 0f;     // Empire 등 → 미배치
+            }
         }
 
-        // 국가별 모델 프리픽스 매핑
-        static readonly Dictionary<string, string[]> NationGrassPrefix = new()
+        static float RockAcceptance(NationType n)
         {
-            { "East",  new[] { "east_grass" } },
-            { "West",  new[] { "west_grass" } },
-            { "South", new[] { "south_grass" } },
-            { "North", new[] { "north_grass" } },
-            { "Empire", new[] { "empire_grass" } }
-        };
+            switch (n)
+            {
+                case NationType.East:  return 0.2f;   // 소량
+                case NationType.North: return 0.5f;   // 바위 활용, 큰 바위 강조
+                case NationType.West:  return 1.0f;   // 다수
+                case NationType.South: return 1.0f;   // 위주
+                default:               return 0f;     // Empire 등 → 미배치
+            }
+        }
 
-        public static void Place(GameObject ground)
+        /// <summary>
+        /// 진입점. parent 하위에 이미 배치 마커가 있으면 스킵(중복 실행 가드).
+        /// 나무 ~500 + 바위 ~400 (바이옴 분포 반영, 제외존 적용).
+        /// </summary>
+        public static void PlaceAllIfNeeded(Transform parent)
         {
-            if (ground == null) return;
+            if (parent == null) return;
 
-            var groundCollider = ground.GetComponent<MeshCollider>();
-            if (groundCollider == null) return;
-
-            var envParent = new GameObject("Environment");
-            envParent.transform.SetParent(ground.transform);
+            // 중복 실행 가드
+            if (FindChild(parent, MARKER_NAME) != null)
+            {
+                Debug.Log("[TerrainModelPlacer] Already placed — skipping.");
+                return;
+            }
 
             // GLB 모델 로드
-            var grassModels = Resources.LoadAll<GameObject>("Models/UserProvided/terrain/grass");
-            var rockModels = Resources.LoadAll<GameObject>("Models/UserProvided/terrain/rocks");
             var treeModels = Resources.LoadAll<GameObject>("Models/UserProvided/terrain/trees");
+            var rockModels = Resources.LoadAll<GameObject>("Models/UserProvided/terrain/rocks");
+            if (treeModels.Length == 0 || rockModels.Length == 0)
+            {
+                Debug.LogError("[TerrainModelPlacer] GLB terrain models not found in Resources/Models/UserProvided/terrain/ — skip placement.");
+                return;
+            }
 
-            // 국가별 텍스처 컨트롤러 가져오기
-                        var nationController = ground.GetComponent<ProjectName.Systems.NationTerrainController>();
-                        string currentNation = nationController != null ? nationController.CurrentNation.ToString() : "East";
+            var envParent = new GameObject("EnvironmentModels");
+            envParent.transform.SetParent(parent, false);
+            envParent.layer = 0; // Default — 몬스터 스폰 raycast(Ground|Terrain 마스크)에서 자동 무시
 
-                        // 현재 바이옴 가져오기 (지형 생성에 사용된 것과 동일)
-                        var biome = ProjectName.Core.Data.BiomeType.Plains;
-                        int terrainSeed = 42;
+            var rng = new System.Random(PROP_SEED);
 
-                        // DEBUG: Log loaded models
-                        Debug.Log($"[TerrainModelPlacer] grassModels: {grassModels.Length}, rockModels: {rockModels.Length}, treeModels: {treeModels.Length}");
-                        for (int i = 0; i < grassModels.Length; i++) Debug.Log($"  grass[{i}]: {grassModels[i].name}");
-                        for (int i = 0; i < rockModels.Length; i++) Debug.Log($"  rock[{i}]: {rockModels[i].name}");
-                        for (int i = 0; i < treeModels.Length; i++) Debug.Log($"  tree[{i}]: {treeModels[i].name}");
+            int treePlaced = PlaceType(envParent.transform, treeModels, TREE_ATTEMPTS, TreeAcceptance, 0.8f, 1.8f, false, rng);
+            int rockPlaced = PlaceType(envParent.transform, rockModels, ROCK_ATTEMPTS, RockAcceptance, 0.8f, 2.0f, true, rng);
 
-                        if (grassModels.Length == 0 || rockModels.Length == 0 || treeModels.Length == 0)
-                        {
-                            Debug.LogError("[TerrainModelPlacer] GLB terrain models not found in Resources/Models/UserProvided/terrain/");
-                            return;
-                        }
+            // GPU Instancing 활성화 (기존 구조 유지 — 공유 머티리얼 enableInstancing)
+            EnableGPUInstancing(envParent);
 
-                        Debug.Log($"[TerrainModelPlacer] Current nation: {currentNation}, Biome: {biome}, Seed: {terrainSeed}");
+            // 배치 마커 (중복 실행 방지)
+            var marker = new GameObject(MARKER_NAME);
+            marker.transform.SetParent(parent, false);
+            marker.SetActive(false);
 
-                        // 링별 배치
-                        int totalPlaced = 0;
-                        foreach (var ring in RingConfigs)
-                        {
-                            int placed = PlaceModelsInRing(envParent, groundCollider, grassModels, rockModels, treeModels, ring, currentNation, biome, terrainSeed);
-                            totalPlaced += placed;
-                        }
-
-                        Debug.Log($"[TerrainModelPlacer] Total models placed: {totalPlaced}, Environment children: {envParent.transform.childCount}");
-
-                        // 국가 경계 블렌딩 존 (선택적 - NationTerrainController가 처리)
-
-                        // GPU Instancing 활성화
-                        EnableGPUInstancing(envParent);
-
-                        Debug.Log($"[TerrainModelPlacer] Environment placement complete. Children: {envParent.transform.childCount}");
+            Debug.Log($"[TerrainModelPlacer] Placed trees: {treePlaced}, rocks: {rockPlaced}. Environment children: {envParent.transform.childCount}");
         }
 
-        static int PlaceModelsInRing(GameObject parent, MeshCollider groundCollider,
-            GameObject[] grassModels, GameObject[] rockModels, GameObject[] treeModels,
-            RingConfig ring, string nation, BiomeType biome, int seed)
+        /// <summary>
+        /// 특정 유형(나무/바위)을 attempts만큼 시도해 제외존·바이옴 수락 확률을 통과한 경우 배치.
+        /// 제외존: 엠파이어(0,0,0 반경120m), 호수(radius*1.15), 스폰(728,-529 반경5m), 지도 경계(±950 샘플링).
+        /// </summary>
+        static int PlaceType(Transform parent, GameObject[] models, int attempts,
+            System.Func<NationType, float> acceptance, float scaleMin, float scaleMax,
+            bool boostScaleForColdVolcanic, System.Random rng)
         {
             int placed = 0;
-            // 국가별 잔디 모델 필터링
-            var nationGrass = FilterModelsByNation(grassModels, nation, "grass");
+            for (int i = 0; i < attempts; i++)
+            {
+                // ±950 경계 내 랜덤 위치
+                float x = RandomRange(rng, -BOUND_MAX, BOUND_MAX);
+                float z = RandomRange(rng, -BOUND_MAX, BOUND_MAX);
 
-            // 잔디 배치
-            placed += PlaceModelsInstanced(parent, nationGrass.Length > 0 ? nationGrass : grassModels,
-                ring.innerRadius, ring.outerRadius, ring.grassCount, 0.05f, 0.2f, ring.grassScale, biome, seed);
+                // === 제외존 ===
+                if (Mathf.Sqrt(x * x + z * z) < EMPIRE_EXCLUDE) continue;          // 엠파이어 중앙
+                if (IsInLakeExclusion(x, z)) continue;                             // 호수 (해안 여백 포함)
+                if (IsInSpawnExclusion(x, z)) continue;                            // 스폰지
 
-            // 나무 배치
-            placed += PlaceModelsInstanced(parent, treeModels,
-                ring.innerRadius, ring.outerRadius, ring.treeCount, 0f, 0f, ring.treeScale, biome, seed);
+                // === 바이옴 수락 ===
+                NationType nation = NationTerrainController.GetNationFromPosition(new Vector3(x, 0f, z));
+                if (nation == NationType.None || nation == NationType.Dracula) continue;
+                if (RandomRange(rng, 0f, 1f) >= acceptance(nation)) continue;
 
-            // 바위 배치
-            placed += PlaceModelsInstanced(parent, rockModels,
-                ring.innerRadius, ring.outerRadius, ring.rockCount, 0f, 0.1f, ring.rockScale, biome, seed);
+                // === y = 기저 1f + 지형 높이 (Mesh 로컬) ===
+                float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42);
 
+                var model = models[rng.Next(models.Length)];
+                var go = Object.Instantiate(model, parent);
+                go.layer = 0; // Default
+                go.transform.position = new Vector3(x, y, z);
+                go.transform.rotation = Quaternion.Euler(0f, RandomRange(rng, 0f, 360f), 0f);
+
+                // 스케일 — North/West 큰 바위 강조(설산 침엽/화산 느낌)
+                float sMin = scaleMin;
+                float sMax = scaleMax;
+                if (boostScaleForColdVolcanic && (nation == NationType.North || nation == NationType.West))
+                {
+                    sMin += 0.4f;
+                    sMax += 0.3f;
+                }
+                go.transform.localScale = Vector3.one * RandomRange(rng, sMin, sMax);
+
+                placed++;
+            }
             return placed;
         }
 
-        static GameObject[] FilterModelsByNation(GameObject[] models, string nation, string type)
+        static bool IsInLakeExclusion(float x, float z)
         {
-            var prefixList = new List<string>();
-            if (NationGrassPrefix.TryGetValue(nation, out var prefixes))
+            var lakes = TerrainGenerator.Lakes;
+            for (int i = 0; i < lakes.Count; i++)
             {
-                prefixList.AddRange(prefixes);
+                var lake = lakes[i];
+                float dx = x - lake.center.x;
+                float dz = z - lake.center.z;
+                float dist = Mathf.Sqrt(dx * dx + dz * dz);
+                if (dist < lake.radius * LAKE_MARGIN_FACTOR)
+                    return true;
             }
-
-            var filtered = new List<GameObject>();
-            foreach (var m in models)
-            {
-                foreach (var prefix in prefixList)
-                {
-                    if (m.name.StartsWith(prefix))
-                    {
-                        filtered.Add(m);
-                        break;
-                    }
-                }
-            }
-            return filtered.Count > 0 ? filtered.ToArray() : models;
+            return false;
         }
 
-        static int PlaceModelsInstanced(GameObject parent,
-            GameObject[] models, float innerR, float outerR, int count,
-            float yMinOffset, float yMaxOffset, float baseScale, BiomeType biome, int seed)
+        static bool IsInSpawnExclusion(float x, float z)
         {
-            int placed = 0;
-            for (int i = 0; i < count; i++)
+            float dx = x - SPAWN_X;
+            float dz = z - SPAWN_Z;
+            return (dx * dx + dz * dz) < (SPAWN_EXCLUDE * SPAWN_EXCLUDE);
+        }
+
+        static GameObject FindChild(Transform parent, string name)
+        {
+            for (int i = 0; i < parent.childCount; i++)
             {
-                for (int attempts = 0; attempts < 5; attempts++)
-                {
-                    float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-                    float radius = Random.Range(innerR, outerR);
-                    float x = Mathf.Cos(angle) * radius;
-                    float z = Mathf.Sin(angle) * radius;
-
-                    // Perlin Noise로 높이 직접 샘플링 (Raycast 대신)
-                    float height = ProjectName.Systems.TerrainGenerator.GetHeightAt(x, z, biome, seed);
-                    float y = height + Random.Range(yMinOffset, yMaxOffset);
-
-                    var model = models[Random.Range(0, models.Length)];
-                    var go = Object.Instantiate(model, parent.transform);
-                    go.transform.position = new Vector3(x, y, z);
-                    go.transform.rotation = Quaternion.Euler(0, Random.Range(0f, 360f), 0);
-                    go.transform.localScale *= Random.Range(baseScale * 0.8f, baseScale * 1.2f);
-
-                    // LODGroup 추가 (거리별 컬링)
-                    var lodGroup = go.AddComponent<LODGroup>();
-                    var renderers = go.GetComponentsInChildren<Renderer>();
-                    var lods = new LOD[]
-                    {
-                        new LOD(0.6f, renderers), // 0-60% 거리: 고품질
-                        new LOD(0.3f, new Renderer[0]), // 60-30%: 중간
-                        new LOD(0.0f, new Renderer[0])  // 30%+: 컬링
-                    };
-                    lodGroup.SetLODs(lods);
-                    lodGroup.RecalculateBounds();
-
-                    placed++;
-                    break;
-                }
+                var c = parent.GetChild(i);
+                if (c != null && c.gameObject.name == name) return c.gameObject;
             }
-            return placed;
+            return null;
+        }
+
+        static float RandomRange(System.Random rng, float min, float max)
+        {
+            return (float)(rng.NextDouble() * (max - min) + min);
         }
 
         static void EnableGPUInstancing(GameObject parent)
@@ -207,7 +206,7 @@ namespace ProjectName.Systems
             var ground = GameObject.Find("Ground_Inner");
             if (ground != null)
             {
-                Place(ground);
+                PlaceAllIfNeeded(ground.transform);
                 UnityEditor.EditorUtility.SetDirty(ground);
             }
         }
