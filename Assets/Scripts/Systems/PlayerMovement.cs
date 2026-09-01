@@ -226,6 +226,7 @@ namespace ProjectName.Systems
             // Cinemachine vcam의 Follow/LookAt이 배치/런타임에 제대로 안 먹혀 카메라가 수평(0,0,0)으로
             // 떠 있어 발밑 지형이 안 보이던 원인 해결. 매 프레임 플레이어를 lookAt한다.
             FixCameraToPlayer();
+            CamForwardProbe();
 
             // ApplyGravity()를 먼저 호출하여 _isGrounded를 최신 상태로 유지
             ApplyGravity();
@@ -672,6 +673,25 @@ namespace ProjectName.Systems
             // 플레이어 발밑(지면 위 0.5m)을 lookAt — 아래 초록 지형이 화면에 잡힌다
             Vector3 lookTarget = playerT.position + new Vector3(0f, 0.5f, 0f);
             _cameraTransform.rotation = Quaternion.LookRotation(lookTarget - _cameraTransform.position);
+        }
+
+        // 캐디거 지형 로그: 카메라 전방 raycast로 화면이 실제 뭘 보는지 수회 확정
+        private int _camProbeCount = 0;
+        private float _camProbeTimer = 0f;
+        private void CamForwardProbe()
+        {
+            if (_cameraTransform == null) return;
+            // 처음 5회만, 0.3초 간격으로 로그
+            if (_camProbeCount >= 5) return;
+            _camProbeTimer += Time.deltaTime;
+            if (_camProbeTimer < 0.3f) return;
+            _camProbeTimer = 0f;
+
+            Vector3 o = _cameraTransform.position + _cameraTransform.forward * 1f;
+            bool hit = Physics.Raycast(o, _cameraTransform.forward, out RaycastHit h, 40f, ~0, QueryTriggerInteraction.Ignore);
+            _camProbeCount++;
+            Debug.Log($"[CamProbe#{_camProbeCount}] 카메라방향(정면40m)={hit} 대상={(hit ? h.collider?.gameObject.name + " y=" + h.point.y.ToString("F2") + " 재질=" + (h.collider?.gameObject.GetComponent<MeshRenderer>()?.sharedMaterial?.name ?? "-") : "없음(허공)")}");
+            Debug.Log($"[CamProbe#{_camProbeCount}] camPos=({_cameraTransform.position.x:F1},{_cameraTransform.position.y:F1},{_cameraTransform.position.z:F1}) fwd=({_cameraTransform.forward.x:F2},{_cameraTransform.forward.y:F2},{_cameraTransform.forward.z:F2})");
         }
 
 
