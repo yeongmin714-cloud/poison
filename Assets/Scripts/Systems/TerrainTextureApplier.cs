@@ -172,41 +172,41 @@ namespace ProjectName.Systems
             {
                 Debug.Log($"[DiagP1] Player at ({player.transform.position.x:F1},{player.transform.position.y:F1},{player.transform.position.z:F1})");
             }
-            // === Phase B: 지형 콜라이더 강제 재등록 (raycast에 안 잡히는 문제 해결) ===
+            // === Phase B: 지형 와인딩 반전 (진짜 근본 원인 — 삼각형이 아래를 향해 위에서 안 보이고 충돌 안 됨) ===
+            // 씬에 저장된 메시는 구(舊) 와인딩(아래 -Y)으로 구워져 있음. 런타임에 인덱스를 뒤집어
+            // 위(+Y)를 향하게 하고 노멀 재계산 + MeshCollider 재동기화. (TerrainGenerator 원인도 수정됨)
             var mcFix = ground.GetComponent<MeshCollider>();
             var mfFix = ground.GetComponent<MeshFilter>();
-            if (mcFix != null && mfFix != null)
+            if (mfFix != null && mfFix.sharedMesh != null && mfFix.sharedMesh.isReadable)
             {
-                // MeshCollider가 MeshFilter와 같은 메시를 참조하게 강제 동기화
-                if (mcFix.sharedMesh != mfFix.sharedMesh)
+                var meshFix = mfFix.sharedMesh;
+                var tris = meshFix.triangles;
+                for (int i = 0; i < tris.Length; i += 3)
                 {
-                    Debug.LogWarning($"[DiagP1] MeshCollider.sharedMesh({(mcFix.sharedMesh != null ? mcFix.sharedMesh.name : "NULL")}) != MeshFilter({mfName}) → 동기화");
-                    mcFix.sharedMesh = mfFix.sharedMesh;
+                    (tris[i + 1], tris[i + 2]) = (tris[i + 2], tris[i + 1]); // 마지막 두 인덱스 교환 = 와인딩 반전
                 }
-                // enable 토글로 물리 세계에 강제 재등록
-                mcFix.enabled = false;
-                mcFix.enabled = true;
+                meshFix.triangles = tris;
+                meshFix.RecalculateNormals();
+                meshFix.RecalculateBounds();
+
+                // MeshCollider 재동기화 (파괴된 메시/구 와인딩 쿠킹 해제)
+                if (mcFix != null)
+                {
+                    mcFix.sharedMesh = null;
+                    mcFix.sharedMesh = meshFix;
+                    mcFix.enabled = false;
+                    mcFix.enabled = true;
+                }
                 Physics.SyncTransforms();
 
-                // 재등록 검증: 지형 위에서 아래로 raycast
+                // 검증: 지형 위에서 아래로 raycast → 이제 Ground_Inner가 잡혀야 함
                 Vector3 testO = new Vector3(spawn.x, 10f, spawn.z);
                 bool reHit = Physics.Raycast(testO, Vector3.down, out RaycastHit reH, 20f, ~0, QueryTriggerInteraction.Ignore);
-                Debug.Log($"[DiagP1] 콜라이더 재등록 후 raycast={reHit} 대상={(reHit ? reH.collider?.gameObject.name : "여전히 없음!")}");
+                Debug.Log($"[DiagP1] ★ 와인딩 반전 후 raycast={reHit} 대상={(reHit ? reH.collider?.gameObject.name : "여전히 없음")} y={(reHit ? reH.point.y.ToString("F2") : "-")}");
             }
             else
             {
-                Debug.LogWarning($"[DiagP1] MeshCollider={(mcFix != null ? "있음" : "없음!")} MeshFilter={(mfFix != null ? "있음" : "없음!")}");
-            }
-
-            // === 마젠타 렌더 테스트: 화면의 회색이 Ground_Inner인지 확정 ===
-            // 지형을 순수 마젠타(텍스처 제거)로 렌더 → 화면이 보라색이면 지형 렌더 정상(재질 문제),
-            // 회색 그대로면 지형이 화면에 없는 것(오브젝트/위치 문제). 확인 후 원복 예정.
-            var mrMag = ground.GetComponent<MeshRenderer>();
-            if (mrMag != null && mrMag.sharedMaterial != null)
-            {
-                mrMag.sharedMaterial.SetColor("_BaseColor", Color.magenta);
-                mrMag.sharedMaterial.SetTexture("_BaseMap", null);
-                Debug.Log("[DiagP1] ★ 마젠타 렌더 테스트 시작 — 화면이 보라색이면 지형 렌더 정상, 회색 그대로면 지형이 시야에 없음");
+                Debug.LogWarning($"[DiagP1] 와인딩 픽스 스킵: mesh readable={mfFix?.sharedMesh?.isReadable} mfFix={mfFix != null}");
             }
 
             Debug.Log("[DiagP1] ===== 진단 끝 =====");

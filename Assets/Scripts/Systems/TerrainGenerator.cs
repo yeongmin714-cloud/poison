@@ -381,15 +381,15 @@ namespace ProjectName.Systems
                     int bottomLeft = (z + 1) * resolution + x;
                     int bottomRight = bottomLeft + 1;
 
-                    // Triangle 1: topLeft - topRight - bottomLeft
+                    // Triangle 1: topLeft - bottomLeft - topRight (와인딩 위쪽 +Y 향함 — 뒤집히면 지형이 위에서 안 보임)
                     triangles[triIndex++] = topLeft;
-                    triangles[triIndex++] = topRight;
                     triangles[triIndex++] = bottomLeft;
+                    triangles[triIndex++] = topRight;
 
-                    // Triangle 2: topRight - bottomRight - bottomLeft
+                    // Triangle 2: topRight - bottomLeft - bottomRight
                     triangles[triIndex++] = topRight;
-                    triangles[triIndex++] = bottomRight;
                     triangles[triIndex++] = bottomLeft;
+                    triangles[triIndex++] = bottomRight;
                 }
             }
 
