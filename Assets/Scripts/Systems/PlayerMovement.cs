@@ -225,7 +225,7 @@ namespace ProjectName.Systems
             // 카메라 보정: 메인 카메라가 항상 플레이어를 내려다보게 강제 (3인칭 시점).
             // Cinemachine vcam의 Follow/LookAt이 배치/런타임에 제대로 안 먹혀 카메라가 수평(0,0,0)으로
             // 떠 있어 발밑 지형이 안 보이던 원인 해결. 매 프레임 플레이어를 lookAt한다.
-            FixCameraToPlayer();
+            UpdateMouseCameraOrbit();
             CamForwardProbe();
             WatchAndFixGround();
 
@@ -657,26 +657,61 @@ namespace ProjectName.Systems
             ClampToGroundByHeight();
         }
 
-        /// <summary>메인 카메라를 플레이어 뒤-위에서 "플레이어 발밑 지형"을 내려다보게 강제 (지형이 화면에 잡히도록).
-        /// 이전 버전은 카메라를 플레이어(3,4,-6)에 너무 붙이고 플레이어를 lookAt해 화면이 플레이어만 차지하고
-        /// 지형이 안 보였음(디버그 CamProbe로 확정). 카메라를 더 멀리 위로 올리고, lookAt을 발밑 지면으로.</summary>
-        private void FixCameraToPlayer()
+        /// <summary>마우스 이동에 따라 회전하는 3인칭 궤도 카메라. CinemachineBrain이 매프레임
+        /// 카메라를 덮어쓰므로 1회 비활성 후 수동 궤도(요우/피치)로 제어한다.</summary>
+        private float _camYaw = 0f;
+        private float _camPitch = 22f;
+        private const float CamDistance = 7.5f;
+        private const float MouseSensitivity = 0.12f;
+        private const float PitchMin = -40f;
+        private const float PitchMax = 75f;
+        private bool _cinemachineBrainDisabled = false;
+
+        private void UpdateMouseCameraOrbit()
         {
             if (_cameraTransform == null)
             {
-                if (Camera.main != null) _cameraTransform = Camera.main.transform;
+                if (Camera.main != null) { _cameraTransform = Camera.main.transform; _camera = Camera.main; }
                 else return;
             }
 
-            Transform playerT = transform;
-            // 카메라를 플레이어 뒤쪽 높이(더 멀리)에 배치 → 플레이어와 주변 지형이 함께 화면에 들어오게
-            Vector3 desiredPos = playerT.position + new Vector3(4f, 8f, -11f);
-            _cameraTransform.position = desiredPos;
+            // CinemachineBrain 비활성 (1회) — 안 끄면 LateUpdate마다 vcam 위치로 덮어써짐
+            if (!_cinemachineBrainDisabled && _camera != null)
+            {
+                var brain = _camera.GetComponent("CinemachineBrain") as Behaviour;
+                if (brain != null && brain.enabled)
+                {
+                    brain.enabled = false;
+                    Debug.Log("[PlayerMovement] CinemachineBrain 비활성 → 마우스 궤도 카메라 사용");
+                }
+                _cinemachineBrainDisabled = true;
+            }
 
-            // 플레이어 발밑 지표면(y=0.5)을 lookAt — 화면 하단에 초록 지형이 잡힌다.
-            // Player 오브젝트 자신이 아니라 그 아래 지면을 바라보므로 캐슐이 화면을 막지 않는다.
-            Vector3 lookTarget = new Vector3(playerT.position.x, 0.5f, playerT.position.z);
-            _cameraTransform.rotation = Quaternion.LookRotation(lookTarget - _cameraTransform.position);
+            // 마우스 이동 → 시점 회전 (우클릭 불필요, 이동 즉시 반영)
+            var mouse = UnityEngine.InputSystem.Mouse.current;
+            if (mouse != null)
+            {
+                Vector2 delta = mouse.delta.ReadValue();
+                _camYaw += delta.x * MouseSensitivity;
+                _camPitch = Mathf.Clamp(_camPitch - delta.y * MouseSensitivity, PitchMin, PitchMax);
+            }
+
+            Transform playerT = transform;
+            Quaternion orbitRot = Quaternion.Euler(_camPitch, _camYaw, 0f);
+            Vector3 camPos = playerT.position + new Vector3(0f, 1.4f, 0f) + orbitRot * new Vector3(0f, 0f, -CamDistance);
+
+            // 카메라가 지형 밑으로 못 가게 지표면 위 0.6m 유지
+            try
+            {
+                float gY = 1f + ProjectName.Systems.TerrainGenerator.GetHeightAt(
+                    camPos.x, camPos.z, ProjectName.Core.Data.BiomeType.Plains, 42);
+                if (camPos.y < gY + 0.6f) camPos.y = gY + 0.6f;
+            }
+            catch (System.Exception) { }
+
+            _cameraTransform.position = camPos;
+            Vector3 lookTarget = playerT.position + new Vector3(0f, 1.2f, 0f);
+            _cameraTransform.rotation = Quaternion.LookRotation(lookTarget - camPos);
         }
 
         // 캐디거 지형 로그: 카메라 전방 raycast로 화면이 실제 뭘 보는지 수회 확정
@@ -711,9 +746,12 @@ namespace ProjectName.Systems
 
         // 지형 상태 지속 감시 + 자동 복구: Ground_Inner가 언제/왜 안 보이게 되는지 포착
         private string _lastGroundState = "";
+        private GameObject _groundWatchCache;
         private void WatchAndFixGround()
         {
-            var g = GameObject.Find("Ground_Inner");
+            if (_groundWatchCache == null)
+                _groundWatchCache = GameObject.Find("Ground_Inner");
+            var g = _groundWatchCache;
             if (g == null)
             {
                 if (_lastGroundState != "GONE")
