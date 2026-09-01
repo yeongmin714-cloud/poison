@@ -227,6 +227,7 @@ namespace ProjectName.Systems
             // 떠 있어 발밑 지형이 안 보이던 원인 해결. 매 프레임 플레이어를 lookAt한다.
             FixCameraToPlayer();
             CamForwardProbe();
+            WatchAndFixGround();
 
             // ApplyGravity()를 먼저 호출하여 _isGrounded를 최신 상태로 유지
             ApplyGravity();
@@ -706,6 +707,41 @@ namespace ProjectName.Systems
 
             Debug.Log($"[CamProbe#{_camProbeCount}] 카메라방향(정면40m)={hit} 대상={(hit && h.collider != null ? h.collider?.gameObject.name + " y=" + h.point.y.ToString("F2") : "없음(허공)")} 재질={matName}");
             Debug.Log($"[CamProbe#{_camProbeCount}] camPos=({_cameraTransform.position.x:F1},{_cameraTransform.position.y:F1},{_cameraTransform.position.z:F1}) fwd=({_cameraTransform.forward.x:F2},{_cameraTransform.forward.y:F2},{_cameraTransform.forward.z:F2})");
+        }
+
+        // 지형 상태 지속 감시 + 자동 복구: Ground_Inner가 언제/왜 안 보이게 되는지 포착
+        private string _lastGroundState = "";
+        private void WatchAndFixGround()
+        {
+            var g = GameObject.Find("Ground_Inner");
+            if (g == null)
+            {
+                if (_lastGroundState != "GONE")
+                {
+                    Debug.LogWarning("[GroundWatch] Ground_Inner가 씬에서 사라짐!");
+                    _lastGroundState = "GONE";
+                }
+                return;
+            }
+
+            var mrW = g.GetComponent<MeshRenderer>();
+            var mfW = g.GetComponent<MeshFilter>();
+            string state = $"active={g.activeInHierarchy} mrEnabled={(mrW != null ? mrW.enabled.ToString() : "noMR")} mesh={(mfW != null && mfW.sharedMesh != null ? mfW.sharedMesh.name : "NULL")} vtx={(mfW != null && mfW.sharedMesh != null ? mfW.sharedMesh.vertexCount : 0)}";
+
+            if (state != _lastGroundState)
+            {
+                Debug.Log($"[GroundWatch] 상태변화: {state}");
+                _lastGroundState = state;
+            }
+
+            // 자동 복구: 비활성/렌더러꺼짐/메시없음이면 즉시 복구
+            bool broken = !g.activeInHierarchy || (mrW != null && !mrW.enabled) || (mfW == null || mfW.sharedMesh == null);
+            if (broken)
+            {
+                if (!g.activeSelf) g.SetActive(true);
+                if (mrW != null && !mrW.enabled) mrW.enabled = true;
+                Debug.LogWarning($"[GroundWatch] 지형 상태 이상 감지 → 자동 복구 시도: {state}");
+            }
         }
 
 
