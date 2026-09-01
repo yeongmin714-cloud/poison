@@ -533,21 +533,11 @@ public static class FixMainScene
         // NEW: 물 시스템 연동 (LakeGenerator + WaterBody) - 저지대 자동 물 메시 생성
         CreateWaterSystem(ground);
 
-        // CRITICAL: Add invisible collision floor at GROUND LEVEL (y=1.1) for CharacterController
-        // Ground is at y=1, terrain surface at y=1.1 (center y=0.226 + extent y=0.268 ≈ 0.49, but we want surface at 1.1)
-        // CharacterController: center=1.0, height=2.0 → bottom at y=1.1 when standing on ground at y=1.1
-        // Floor at y=1.1: center y=1.15, size y=0.1 (spans y=1.1 to y=1.2)
-        var floorObj = new GameObject("CollisionFloor");
-        floorObj.transform.SetParent(ground.transform);
-        floorObj.transform.localPosition = new Vector3(0, 0.15f, 0); // BoxCollider center at 1.15 (ground y=1 + 0.15), top at 1.2, bottom at 1.1
-        var floorCollider = floorObj.AddComponent<BoxCollider>();
-        floorCollider.size = new Vector3(2000f, 0.1f, 2000f); // Thin at ground level
-        floorCollider.isTrigger = false;
-        floorObj.layer = LayerMask.NameToLayer("Ground");
-        Debug.Log("[FixMainScene] Added CollisionFloor at ground level y=1.1");
+        // NOTE: CollisionFloor 제거 — 지형 Ground_Inner에 이미 MeshCollider가 있어(이하에 추가됨)
+        // 플레이어가 지형 표면 위에 직접 설 수 있음. CollisionFloor(y=1.20)가 지형표면(y≈1.24)보다
+        // 낮아 플레이어를 지형 아래에 걸리게 하는 역효과였음. 지형 콜라이더가 낙하를 자연히 막는다.
 
-        // SAFETY NET: Add deep safety floor at y=-100 as last resort (debugging only)
-        // If everything else fails, this catches the player before infinite fall
+        // SAFETY NET: 지형 바깥쪽 추락 방지용 깊은 안전평면(y테르 -100) 유지 (지형 위에선 안 닿음)
         var safetyFloor = new GameObject("SafetyFloor");
         safetyFloor.transform.SetParent(ground.transform);
         safetyFloor.transform.localPosition = new Vector3(0, -101f, 0); // ground at y=1, so safety at y=-100
