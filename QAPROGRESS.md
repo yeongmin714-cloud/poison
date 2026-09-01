@@ -4,7 +4,42 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-08-31
+> **최종 갱신:** 2026-09-01
+
+---
+
+## 2026-09-01: 지형 렌더링·스폰·추락·카메라 종합 디버깅 (진행 중)
+
+**상태:** 🔄 진행 중 — 위 7가지 원인을 순차 해결했으나 "지면이 회색 단색으로만 보임" 문제가 **재발 중** (픽셀 (105,98,92)).
+
+### 이번 세션에서 확정·해결한 것들 (로그 기반)
+
+1. **스폰이 지형 경계 밖** — 지형 2000×2000(±1000). 처음 스폰 `x=1173`>경계 → 지형 밖 허공. → 경계 안 초원 외각 `(728,-529)`(East Ring1 방향)로 이동.
+2. **플레이어 추락 (SafetyFloor y=-95 반복)** — 지형 MeshCollider가 CharacterController를 못 받았음. 원인 다각도:
+   - `Physics.autoSimulation=true/false` 토글이 스폰 직후 물리 세계 리셋 → **제거**
+   - 스폰 직후 `_controller.Move(down*0.2f)`가 플레이어를 바닥 아래로 밀어 통과 → **제거**
+   - `ClampToGround`의 `_verticalVelocity<=0` 조건이 중력(항상 양수)으로 영영 false → **조건 제거**
+   - `ClampToGround` Raycast가 **플레이어 자신(Player 콜라이더)을 지면으로 오인** → **RaycastAll + 자기자신(transform/자식) 무시**
+   - 최종: **`ClampToGroundByHeight()` 도입** — 물리·Raycast 의존 없이 `TerrainGenerator.GetHeightAt(현재x,z)`로 지표면 세계y(1+높이)를 수학 도출해 점프 외엔 항상 표면 위 0.05m 고정. 추락 구조적 차단.
+
+3. **지면 회색 단색의 근본 후보 — `_BaseMap` null 재발**:
+   - 씬 GridInner가 쓰는 **`Ground_Grass_Mat(f02019bb)`의 `_BaseMap`이 `{fileID:0}`(null)** 로 반복적으로 지워짐 (git 히스토리 7+회).
+   - URP/Lit은 알베도를 `_BaseMap`에서만 읽음. `_MainTex`(east_grass1)는 무시.
+   - `_BaseMap` null이면 URP/Lit이 텍스처 못 읽고 **회갈색(105,98,92) 단색 폴백**.
+   - → `_BaseMap`에 `east_grass1(caaecd65, 150,201,8)` 재할당.
+   - ⚠️ **재발 확인**: 재할당 직후에도 자동 프로세스가 `_BaseMap`을 `{fileID:0}`으로 되돌림. **근본 방지 필요** (FixMainScene 재실행/자동 커밋이 덮어쓰는 듯).
+
+4. **카메라가 지형을 안 보고 Player 본인을 봄** — 진단(CamProbe)으로 카메라 fwd이 Player(y=1.93) 정면. `FixCameraToPlayer()`가 카메라를 플레이어(3,4,-6)에 붙이고 플레이어를 lookAt → 화면이 캐슐+배경(회색)만. **→ 카메라를 (4,8,-11)로 옮기고 lookAt을 발밑 지표면(y=0.5)**으로 변경. (CinemachineBrain이 Main Camera를 덮어써서 매프레임 보정이 우선인지 재확인 필요)
+
+5. **진단 도구 (유지)**:
+   - `TerrainTextureApplier.Start()`의 `DiagnoseGroundState()` — 지형 메시/콜라이더/재질/알베도/카메라/플레이어 상태 로그(`[DiagP1]`)
+   - `PlayerMovement` `CamForwardProbe()` — 카메라 전방 40m raycast로 화면이 실제 보는 것 확정(`[CamProbe#]`)
+   - `GroundDiagRunner`(Editor 배치) — 스폰 지점 높이 계산
+
+### 다음 단계 (미해결)
+- **회색 재발 근본 차단**: `_BaseMap`이 왜 자꾸 `{fileID:0}`이 되는지 (FixMainScene 생성분기/자동 커밋 추정) 찾아, TerrainBaseMapFixer 가드를 배치(Editor)에서도 확실히 동작게 하거나 생성 재현금지를 강화.
+- **CinemachineBrain**이 Main Camera를 매프레임 덮어써 내 `FixCameraToPlayer` 보정을 무효화하는지 — 필요 시 vcam/Brain 비활성 or 카메라 고정 모드.
+- 최종: Play에서 **초록 지면 픽셀** 확인.
 
 ---
 
