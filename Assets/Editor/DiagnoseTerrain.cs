@@ -39,7 +39,7 @@ public static class DiagnoseTerrain
         Debug.Log("[Diag] Assets/URP/Ground_Grass_Mat.mat _BaseMap=" + (matRef != null && matRef.GetTexture("_BaseMap") != null ? matRef.GetTexture("_BaseMap").name : "NULL") + " shader=" + (matRef?.shader?.name ?? "NULL"));
 
         // 5. URP asset & renderer data
-        var urpAsset = GraphicsSettings.renderPipelineAsset;
+        var urpAsset = GraphicsSettings.defaultRenderPipeline;
         Debug.Log("[Diag] GraphicsSettings.renderPipelineAsset=" + (urpAsset != null ? urpAsset.name : "NULL"));
         Debug.Log("[Diag] QualitySettings.renderPipeline=" + (QualitySettings.renderPipeline != null ? QualitySettings.renderPipeline.name : "NULL"));
 
