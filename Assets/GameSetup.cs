@@ -18,10 +18,10 @@ public class GameSetup : MonoBehaviour
     private void Awake()
     {
         // CRITICAL: Set up Physics layer collision matrix BEFORE first physics step
-        // Disable autoSimulation, configure collision matrix, then re-enable
-        Physics.autoSimulation = false;
+        // NOTE: Physics.autoSimulation을 끄고 켜는 건 스폰 직후 물리 세계(콜라이더 등록/시뮬레이션)를
+        //       리셋하여 CharacterController가 초기 콜라이더를 못 잡고 뚫는 원인이 될 수 있어 제거.
+        //       레이어 충돌 설정만 유지.
         EnsureLayerCollisionMatrix();
-        Physics.autoSimulation = true;
         
         // CRITICAL: Purge any leftover DontDestroyOnLoad singletons from previous Play sessions
         PurgeRuntimeSingletons();

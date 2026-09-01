@@ -206,7 +206,12 @@ namespace ProjectName.Systems
                     _controller.enabled = true;
                     // CC를 스폰 직후 CollisionFloor와 확실히 접촉시키도록 짧게 아래로 정렬
                     _controller.Move(Vector3.down * 0.2f);
-                }
+
+                    // 스폰 직후 지면 콜라이더 존재 + Raycast 감지 여부를 로그 (추락 원인 파악)
+                    bool cfGrab = Physics.Raycast(transform.position + Vector3.up * 0.3f, Vector3.down,
+                        out RaycastHit _cHit, 5f, ~0, QueryTriggerInteraction.Ignore);
+                    Debug.Log($"[PlayerMovement] 스폰 후 지면 Raycast 존재={cfGrab} 대상={(cfGrab ? _cHit.collider?.gameObject.name : "없음")} 플레이어y={transform.position.y:F2}");
+        }
 
         private void Update()
         {
@@ -661,17 +666,20 @@ namespace ProjectName.Systems
                     ~0,
                     QueryTriggerInteraction.Ignore))
             {
-                // 지면이 발(현재 y)보다 아래에 있고, 그 지면이 충분히 가깝다면 표면 위로 올린다.
-                if (hit.collider != null && transform.position.y < hit.point.y + 0.05f + 0.3f)
+                // Raycast가 지면을 아래로 잡은 경우
+                float surfaceY = hit.point.y + 0.05f;   // 발이 지면 위 0.05m
+                float playerFootY = transform.position.y;
+
+                // 점프 중이 아닐 때만 강제로 표면에 붙인다.
+                // 발이 표면보다 아래이거나, 표면 바로 위(0.15m 이내)면 표면에 고정한다.
+                // (= CharacterController가 약간 밀려 지면을 통과하는 것을 항상 보정)
+                bool belowOrNear = playerFootY < surfaceY + 0.15f;
+                if (hit.collider != null && belowOrNear && _verticalVelocity <= 0f)
                 {
-                    float targetY = hit.point.y + 0.05f;
-                    if (transform.position.y < targetY - 0.1f)
-                    {
-                        // 표면보다 아래로 내려갔으면 표면 바로 위로 교정
-                        transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
-                        _verticalVelocity = 0f;
-                        _isGrounded = true;
-                    }
+                    // 표면 바로 위로 교정 (항상 유지) — 미끄러져 내려가는 것 방지
+                    transform.position = new Vector3(transform.position.x, surfaceY, transform.position.z);
+                    _verticalVelocity = 0f;
+                    _isGrounded = true;
                 }
             }
         }
