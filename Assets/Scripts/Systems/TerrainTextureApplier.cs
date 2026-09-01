@@ -172,21 +172,53 @@ namespace ProjectName.Systems
             {
                 Debug.Log($"[DiagP1] Player at ({player.transform.position.x:F1},{player.transform.position.y:F1},{player.transform.position.z:F1})");
             }
-            // === Phase B: 지형 와인딩 반전 (진짜 근본 원인 — 삼각형이 아래를 향해 위에서 안 보이고 충돌 안 됨) ===
-            // 씬에 저장된 메시는 구(舊) 와인딩(아래 -Y)으로 구워져 있음. 런타임에 인덱스를 뒤집어
-            // 위(+Y)를 향하게 하고 노멀 재계산 + MeshCollider 재동기화. (TerrainGenerator 원인도 수정됨)
+            // === Phase B: 지형 메시 재표본 + 조건부 와인딩 반전 ===
+            // 씬에 베이크된 Ground_Inner 메시는 진폭 증폭/호수 분지 카브 이전에 구워져 굴곡이 빠져 있다.
+            // 모든 정점 높이를 TerrainGenerator.GetHeightAt으로 재표본해 굴곡+호수 분지를 반영하고,
+            // 첫 삼각형 법선이 아래(-Y)일 때만 인덱스를 뒤집어 +Y로 세운다.
             var mcFix = ground.GetComponent<MeshCollider>();
             var mfFix = ground.GetComponent<MeshFilter>();
             if (mfFix != null && mfFix.sharedMesh != null && mfFix.sharedMesh.isReadable)
             {
                 var meshFix = mfFix.sharedMesh;
-                var tris = meshFix.triangles;
-                for (int i = 0; i < tris.Length; i += 3)
+                Vector3 groundPos = ground.transform.position;
+
+                // 1) 정점 재표본 — 메시는 월드 XZ 좌표(중심 0)로 베이크되어 있고 Ground가 (0,?,0)에
+                //    있으므로 월드 = 로컬 + 오브젝트 위치. GetHeightAt은 월드 원점 기준 0-높이를
+                //    반환하므로 로컬 y = GetHeightAt + 1 - groundPos.y 로 세계 표면(=GetHeightAt+1)과 일치.
+                var verts = meshFix.vertices;
+                for (int i = 0; i < verts.Length; i++)
                 {
-                    (tris[i + 1], tris[i + 2]) = (tris[i + 2], tris[i + 1]); // 마지막 두 인덱스 교환 = 와인딩 반전
+                    float worldX = verts[i].x + groundPos.x;
+                    float worldZ = verts[i].z + groundPos.z;
+                    verts[i].y = ProjectName.Systems.TerrainGenerator.GetHeightAt(
+                        worldX, worldZ, ProjectName.Core.Data.BiomeType.Plains, 42) + 1f - groundPos.y;
                 }
-                meshFix.triangles = tris;
+                meshFix.vertices = verts;
                 meshFix.RecalculateNormals();
+
+                // 2) 조건부 와인딩: 첫 삼각형 법선 Dot(normal, Vector3.up) < 0 일 때만 인덱스 반전
+                //    (무조건 반전은 TerrainGenerator가 이미 +Y 와인딩으로 구우면 이중 반전 버그를 일으킴)
+                var tris = meshFix.triangles;
+                bool needsFlip = false;
+                if (tris.Length >= 3)
+                {
+                    Vector3 a = verts[tris[0]];
+                    Vector3 b = verts[tris[1]];
+                    Vector3 c = verts[tris[2]];
+                    Vector3 nrm = Vector3.Cross(b - a, c - a);
+                    needsFlip = Vector3.Dot(nrm, Vector3.up) < 0f;
+                    if (needsFlip)
+                    {
+                        for (int i = 0; i < tris.Length; i += 3)
+                        {
+                            (tris[i + 1], tris[i + 2]) = (tris[i + 2], tris[i + 1]); // 마지막 두 인덱스 교환 = 와인딩 반전
+                        }
+                        meshFix.triangles = tris;
+                        meshFix.RecalculateNormals();
+                    }
+                    Debug.Log($"[DiagP1] 재표본+와인딩: vtx={verts.Length} flip={needsFlip}");
+                }
                 meshFix.RecalculateBounds();
 
                 // MeshCollider 재동기화 (파괴된 메시/구 와인딩 쿠킹 해제)
@@ -202,11 +234,11 @@ namespace ProjectName.Systems
                 // 검증: 지형 위에서 아래로 raycast → 이제 Ground_Inner가 잡혀야 함
                 Vector3 testO = new Vector3(spawn.x, 10f, spawn.z);
                 bool reHit = Physics.Raycast(testO, Vector3.down, out RaycastHit reH, 20f, ~0, QueryTriggerInteraction.Ignore);
-                Debug.Log($"[DiagP1] ★ 와인딩 반전 후 raycast={reHit} 대상={(reHit ? reH.collider?.gameObject.name : "여전히 없음")} y={(reHit ? reH.point.y.ToString("F2") : "-")}");
+                Debug.Log($"[DiagP1] ★ 재표본+와인딩 후 raycast={reHit} 대상={(reHit ? reH.collider?.gameObject.name : "여전히 없음")} y={(reHit ? reH.point.y.ToString("F2") : "-")}");
             }
             else
             {
-                Debug.LogWarning($"[DiagP1] 와인딩 픽스 스킵: mesh readable={mfFix?.sharedMesh?.isReadable} mfFix={mfFix != null}");
+                Debug.LogWarning($"[DiagP1] 재표본 픽스 스킵: mesh readable={mfFix?.sharedMesh?.isReadable} mfFix={mfFix != null}");
             }
 
             Debug.Log("[DiagP1] ===== 진단 끝 =====");

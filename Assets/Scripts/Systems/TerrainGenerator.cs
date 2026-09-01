@@ -339,534 +339,535 @@ namespace ProjectName.Systems
                 height = Mathf.Lerp(hNeg, hPos, t);
             }
 
-            // ================================================================
-            // 호수(분지) 시스템
-            // ================================================================
+        }
+        // ================================================================
+        // 호수(분지) 시스템
+        // ================================================================
 
-            /// <summary>
-            /// 호수(분지) 정의.
-            /// center: 호수 중심 월드 좌표 / radius: 분지 반경 / depth: 분지 파내는 깊이
-            /// waterLevel: 분지 바닥(카브 전 기저 높이 - depth) 위 LAKE_WATER_OFFSET만큼의 물 표면 y
-            /// </summary>
-            public struct TerrainLakeDef
+        /// <summary>
+        /// 호수(분지) 정의.
+        /// center: 호수 중심 월드 좌표 / radius: 분지 반경 / depth: 분지 파내는 깊이
+        /// waterLevel: 분지 바닥(카브 전 기저 높이 - depth) 위 LAKE_WATER_OFFSET만큼의 물 표면 y
+        /// </summary>
+        public struct TerrainLakeDef
+        {
+            public Vector3 center;
+            public float radius;
+            public float depth;
+            public float waterLevel;
+        }
+
+        private static System.Collections.Generic.IReadOnlyList<TerrainLakeDef> _lakes = null;
+
+        /// <summary>
+        /// 고정 시드 결정론적 호수 목록 (지연 초기화, 6개).
+        /// 배치 규칙: 황제국 중앙(0,0,0) 반경 120m 배제, 호수 간 최소 250m,
+        /// 지도 경계(±1000)에서 150m 여백, 동쪽(양수 x, 플레이어 시작 (728,-529) 인근) 1~2개,
+        /// 반경 40~70m, depth 3~5m. waterLevel은 호수마다 하나의 평면 y.
+        /// </summary>
+        public static System.Collections.Generic.IReadOnlyList<TerrainLakeDef> Lakes
+        {
+            get
             {
-                public Vector3 center;
-                public float radius;
-                public float depth;
-                public float waterLevel;
-            }
-
-            private static System.Collections.Generic.IReadOnlyList<TerrainLakeDef> _lakes = null;
-
-            /// <summary>
-            /// 고정 시드 결정론적 호수 목록 (지연 초기화, 6개).
-            /// 배치 규칙: 황제국 중앙(0,0,0) 반경 120m 배제, 호수 간 최소 250m,
-            /// 지도 경계(±1000)에서 150m 여백, 동쪽(양수 x, 플레이어 시작 (728,-529) 인근) 1~2개,
-            /// 반경 40~70m, depth 3~5m. waterLevel은 호수마다 하나의 평면 y.
-            /// </summary>
-            public static System.Collections.Generic.IReadOnlyList<TerrainLakeDef> Lakes
-            {
-                get
+                if (_lakes == null)
                 {
-                    if (_lakes == null)
-                    {
-                        _lakes = GenerateLakes();
-                    }
-                    return _lakes;
+                    _lakes = GenerateLakes();
                 }
+                return _lakes;
+            }
+        }
+
+        /// <summary>
+        /// 결정론적 호수 생성 — 인라인 LCG(고정 시드) PRNG로 위치/반경/깊이 산출.
+        /// Mathf.PerlinNoise 또는 전역 UnityEngine.Random 시드를 사용하지 않아
+        /// 플랫폼/호출 순서와 무관하게 항상 같은 결과를 보장한다 (Random 언시드 금지 준수).
+        /// </summary>
+        private static System.Collections.Generic.IReadOnlyList<TerrainLakeDef> GenerateLakes()
+        {
+            // 기본 앵커 — [동쪽-시작 인근, 동쪽, 북쪽, 북쪽, 서쪽, 남쪽] 순
+            // 동쪽 첫 호수는 플레이어 시작 (728,-529) 인근이되, 스폰지 평탄화(반경 15m)와
+            // 카브 영향(반경≤91m)이 겹치지 않도록 충분히 떨어뜨려 배치.
+            Vector3[] anchors =
+            {
+                new Vector3(600f, 0f, -460f),   // 동쪽 — 시작 인근 (카브/스폰지 평탄화 비중첩)
+                new Vector3(400f, 0f, 100f),    // 동쪽
+                new Vector3(-400f, 0f, 600f),   // 북쪽
+                new Vector3(-150f, 0f, 720f),   // 북쪽
+                new Vector3(-700f, 0f, -300f),  // 서쪽
+                new Vector3(300f, 0f, -750f),   // 남쪽
+            };
+
+            List<TerrainLakeDef> lakes = new List<TerrainLakeDef>();
+            for (int i = 0; i < LAKE_COUNT; i++)
+            {
+                float jx = (LakeRand(i * 4 + 0) - 0.5f) * 50f;
+                float jz = (LakeRand(i * 4 + 1) - 0.5f) * 50f;
+                float radius = Mathf.Lerp(LAKE_RADIUS_MIN, LAKE_RADIUS_MAX, LakeRand(i * 4 + 2));
+                float depth = Mathf.Lerp(LAKE_DEPTH_MIN, LAKE_DEPTH_MAX, LakeRand(i * 4 + 3));
+
+                TerrainLakeDef lake = new TerrainLakeDef();
+                lake.center = new Vector3(anchors[i].x + jx, 0f, anchors[i].z + jz);
+                lake.radius = radius;
+                lake.depth = depth;
+
+                // waterLevel = 분지 바닥(카브 전 기저 높이 - depth) + LAKE_WATER_OFFSET.
+                // 주의: ComputeTerrainHeight를 호출하면 카브가 재적용되어 재귀하므로,
+                // 카브 전 기저 높이는 ComputeNationHeight(카브 미적용 경로)로 직접 산출한다.
+                float baseH = ComputeNationHeight(
+                    lake.center.x, lake.center.z, GetNationFromCoord(lake.center.x, lake.center.z), 42);
+                lake.waterLevel = baseH - depth + LAKE_WATER_OFFSET;
+
+                lakes.Add(lake);
             }
 
-            /// <summary>
-            /// 결정론적 호수 생성 — 인라인 LCG(고정 시드) PRNG로 위치/반경/깊이 산출.
-            /// Mathf.PerlinNoise 또는 전역 UnityEngine.Random 시드를 사용하지 않아
-            /// 플랫폼/호출 순서와 무관하게 항상 같은 결과를 보장한다 (Random 언시드 금지 준수).
-            /// </summary>
-            private static System.Collections.Generic.IReadOnlyList<TerrainLakeDef> GenerateLakes()
+            return lakes;
+        }
+
+        /// <summary>
+        /// 위치 → 방향성 국가 판정 (황제국 제외). 호수 waterLevel 산출용 기저 높이 경로.
+        /// </summary>
+        private static NationType GetNationFromCoord(float x, float z)
+        {
+            float angle = Mathf.Atan2(z, x) * Mathf.Rad2Deg;
+            if (angle < 0f) angle += 360f;
+            return GetDirectionalNation(angle);
+        }
+
+        /// <summary>
+        /// 고정 시드 인라인 LCG PRNG — [0,1] 반환 (플랫폼 독립, 결정론적).
+        /// </summary>
+        private static float LakeRand(int stateIndex)
+        {
+            long state = LAKE_LCG_SEED;
+            for (int i = 0; i <= stateIndex; i++)
             {
-                // 기본 앵커 — [동쪽-시작 인근, 동쪽, 북쪽, 북쪽, 서쪽, 남쪽] 순
-                // 동쪽 첫 호수는 플레이어 시작 (728,-529) 인근이되, 스폰지 평탄화(반경 15m)와
-                // 카브 영향(반경≤91m)이 겹치지 않도록 충분히 떨어뜨려 배치.
-                Vector3[] anchors =
-                {
-                    new Vector3(600f, 0f, -460f),   // 동쪽 — 시작 인근 (카브/스폰지 평탄화 비중첩)
-                    new Vector3(400f, 0f, 100f),    // 동쪽
-                    new Vector3(-400f, 0f, 600f),   // 북쪽
-                    new Vector3(-150f, 0f, 720f),   // 북쪽
-                    new Vector3(-700f, 0f, -300f),  // 서쪽
-                    new Vector3(300f, 0f, -750f),   // 남쪽
-                };
-
-                List<TerrainLakeDef> lakes = new List<TerrainLakeDef>();
-                for (int i = 0; i < LAKE_COUNT; i++)
-                {
-                    float jx = (LakeRand(i * 4 + 0) - 0.5f) * 50f;
-                    float jz = (LakeRand(i * 4 + 1) - 0.5f) * 50f;
-                    float radius = Mathf.Lerp(LAKE_RADIUS_MIN, LAKE_RADIUS_MAX, LakeRand(i * 4 + 2));
-                    float depth = Mathf.Lerp(LAKE_DEPTH_MIN, LAKE_DEPTH_MAX, LakeRand(i * 4 + 3));
-
-                    TerrainLakeDef lake = new TerrainLakeDef();
-                    lake.center = new Vector3(anchors[i].x + jx, 0f, anchors[i].z + jz);
-                    lake.radius = radius;
-                    lake.depth = depth;
-
-                    // waterLevel = 분지 바닥(카브 전 기저 높이 - depth) + LAKE_WATER_OFFSET.
-                    // 주의: ComputeTerrainHeight를 호출하면 카브가 재적용되어 재귀하므로,
-                    // 카브 전 기저 높이는 ComputeNationHeight(카브 미적용 경로)로 직접 산출한다.
-                    float baseH = ComputeNationHeight(
-                        lake.center.x, lake.center.z, GetNationFromCoord(lake.center.x, lake.center.z), 42);
-                    lake.waterLevel = baseH - depth + LAKE_WATER_OFFSET;
-
-                    lakes.Add(lake);
-                }
-
-                return lakes;
+                state = (state * 1103515245L + 12345L) & 0x7FFFFFFF;
             }
+            return (float)(state % 1000) / 999f;
+        }
 
-            /// <summary>
-            /// 위치 → 방향성 국가 판정 (황제국 제외). 호수 waterLevel 산출용 기저 높이 경로.
-            /// </summary>
-            private static NationType GetNationFromCoord(float x, float z)
+        /// <summary>
+        /// 호수 분지 카브 — lake.center에서 radius 이내를 부드럽게 파낸다.
+        /// smoothstep 팔오프로 중심(최대 depth) → radius*LAKE_SHORE_FACTOR(영향 없음),
+        /// radius..radius*1.3 구간은 경사 완만한 해안(쇼어라인).
+        /// 호수 간 최소 250m 및 카브 영향 반경(최대 70*1.3=91m)끼리 겹치지 않는다.
+        /// </summary>
+        private static float ApplyLakeBasins(float x, float z, float height)
+        {
+            var lakes = Lakes;
+            for (int i = 0; i < lakes.Count; i++)
             {
-                float angle = Mathf.Atan2(z, x) * Mathf.Rad2Deg;
-                if (angle < 0f) angle += 360f;
-                return GetDirectionalNation(angle);
-            }
-
-            /// <summary>
-            /// 고정 시드 인라인 LCG PRNG — [0,1] 반환 (플랫폼 독립, 결정론적).
-            /// </summary>
-            private static float LakeRand(int stateIndex)
-            {
-                long state = LAKE_LCG_SEED;
-                for (int i = 0; i <= stateIndex; i++)
-                {
-                    state = (state * 1103515245L + 12345L) & 0x7FFFFFFF;
-                }
-                return (float)(state % 1000) / 999f;
-            }
-
-            /// <summary>
-            /// 호수 분지 카브 — lake.center에서 radius 이내를 부드럽게 파낸다.
-            /// smoothstep 팔오프로 중심(최대 depth) → radius*LAKE_SHORE_FACTOR(영향 없음),
-            /// radius..radius*1.3 구간은 경사 완만한 해안(쇼어라인).
-            /// 호수 간 최소 250m 및 카브 영향 반경(최대 70*1.3=91m)끼리 겹치지 않는다.
-            /// </summary>
-            private static float ApplyLakeBasins(float x, float z, float height)
-            {
-                var lakes = Lakes;
-                for (int i = 0; i < lakes.Count; i++)
-                {
-                    TerrainLakeDef lake = lakes[i];
-                    float dx = x - lake.center.x;
-                    float dz = z - lake.center.z;
-                    float dist = Mathf.Sqrt(dx * dx + dz * dz);
-
-                    float carveRadius = lake.radius * LAKE_SHORE_FACTOR;
-                    if (dist >= carveRadius)
-                        continue;
-
-                    // 0(경계) → 1(중심) smoothstep 팔오프 — 중심에서 최대 depth만큼 파냄
-                    float t = 1f - Mathf.Clamp01(dist / carveRadius);
-                    float s = t * t * (3f - 2f * t);
-
-                    height -= lake.depth * s;
-                }
-                return height;
-            }
-
-            /// <summary>
-            /// 스폰지 평탄화 — (SPAWN_X, SPAWN_Z)=(728,-529) 반경 15m 이내 고주파 디테일 감쇠.
-            /// 저옥타브(저주파만)로 재계산한 높이로 블렌드해 경사 완만, 플레이어 시작지 부근 평탄 유지.
-            /// 반경 밖은 원래 높이 그대로 (smoothstep 페이드아웃).
-            /// </summary>
-            private static float ApplySpawnFlattening(float x, float z, float height, NationType nation, int seed)
-            {
-                float dx = x - SPAWN_X;
-                float dz = z - SPAWN_Z;
+                TerrainLakeDef lake = lakes[i];
+                float dx = x - lake.center.x;
+                float dz = z - lake.center.z;
                 float dist = Mathf.Sqrt(dx * dx + dz * dz);
-                if (dist >= SPAWN_FLATTEN_RADIUS)
-                    return height;
 
-                // 0(중심, 완전 평탄) → 1(경계, 원래 높이) smoothstep
-                float t = Mathf.Clamp01(dist / SPAWN_FLATTEN_RADIUS);
-                float blend = t * t * (3f - 2f * t);
+                float carveRadius = lake.radius * LAKE_SHORE_FACTOR;
+                if (dist >= carveRadius)
+                    continue;
 
-                float lowFreqH = ComputeNationHeight(x, z, nation, seed, SPAWN_LOW_FREQ_OCTAVES);
-                return Mathf.Lerp(lowFreqH, height, blend);
+                // 0(경계) → 1(중심) smoothstep 팔오프 — 중심에서 최대 depth만큼 파냄
+                float t = 1f - Mathf.Clamp01(dist / carveRadius);
+                float s = t * t * (3f - 2f * t);
+
+                height -= lake.depth * s;
             }
-
-            /// <summary>
-            /// Perlin Noise로 지형 메시 + 물 메시 생성
-            /// </summary>
-        /// <param name="biome">생성할 Biome 타입</param>
-        /// <param name="seed">랜덤 시드 (결정론적 생성용)</param>
-        /// <param name="resolution">그리드 해상도 (N×N vertices)</param>
-        /// <param name="size">지형 크기 (월드 유닛)</param>
-        /// <returns>(terrainMesh, waterMesh) — waterMesh는 waterThreshold<=0이면 null</returns>
-        public static (Mesh terrainMesh, Mesh waterMesh) GenerateTerrain(
-            BiomeType biome, int seed, int resolution = 50, float size = 100f)
-        {
-            BiomeDefinition def = BiomeData.GetDefinition(biome);
-            return GenerateTerrainWithDefinition(def, seed, resolution, size);
+            return height;
         }
 
         /// <summary>
-        /// BiomeDefinition을 직접 전달받아 지형 생성
+        /// 스폰지 평탄화 — (SPAWN_X, SPAWN_Z)=(728,-529) 반경 15m 이내 고주파 디테일 감쇠.
+        /// 저옥타브(저주파만)로 재계산한 높이로 블렌드해 경사 완만, 플레이어 시작지 부근 평탄 유지.
+        /// 반경 밖은 원래 높이 그대로 (smoothstep 페이드아웃).
         /// </summary>
-        public static (Mesh terrainMesh, Mesh waterMesh) GenerateTerrainWithDefinition(
-            BiomeDefinition def, int seed, int resolution = 50, float size = 100f)
+        private static float ApplySpawnFlattening(float x, float z, float height, NationType nation, int seed)
         {
-            if (resolution < 2)
-            {
-                Debug.LogError("[TerrainGenerator] Resolution must be >= 2");
-                resolution = 2;
-            }
+            float dx = x - SPAWN_X;
+            float dz = z - SPAWN_Z;
+            float dist = Mathf.Sqrt(dx * dx + dz * dz);
+            if (dist >= SPAWN_FLATTEN_RADIUS)
+                return height;
 
-            if (size <= 0f)
-            {
-                Debug.LogError("[TerrainGenerator] Size must be > 0");
-                size = 100f;
-            }
+            // 0(중심, 완전 평탄) → 1(경계, 원래 높이) smoothstep
+            float t = Mathf.Clamp01(dist / SPAWN_FLATTEN_RADIUS);
+            float blend = t * t * (3f - 2f * t);
 
-            int vertexCount = resolution * resolution;
-            int quadCount = (resolution - 1) * (resolution - 1);
-            int triangleCount = quadCount * 2;
-
-            // Offset to center the terrain
-            float halfSize = size * 0.5f;
-            float step = size / (resolution - 1);
-
-            // Vertex arrays
-            Vector3[] vertices = new Vector3[vertexCount];
-            Vector2[] uv = new Vector2[vertexCount];
-            Vector3[] normals = new Vector3[vertexCount];
-            int[] triangles = new int[triangleCount * 3];
-
-            float waterThreshold = def.waterThreshold;
-
-            // === 1. FBM + 고원 높이맵 생성 ===
-            for (int z = 0; z < resolution; z++)
-            {
-                for (int x = 0; x < resolution; x++)
-                {
-                    int index = z * resolution + x;
-
-                    // UV (0~1)
-                    float u = (float)x / (resolution - 1);
-                    float v = (float)z / (resolution - 1);
-                    uv[index] = new Vector2(u, v);
-
-                    // 월드 좌표
-                    float wx = -halfSize + x * step;
-                    float wz = -halfSize + z * step;
-
-                    // 방위별 FBM + 고원 높이 (월드 좌표 사용 — 해상도 변화에 일관된 결과)
-                    // waterThreshold 클램프는 하지 않음 (물 메시가 threshold 이하 삼각형 판별 담당)
-                    float height = ComputeTerrainHeight(wx, wz, def.type, seed);
-
-                    vertices[index] = new Vector3(wx, height, wz);
-                }
-            }
-
-            // === 2. Triangle 인덱스 생성 ===
-            int triIndex = 0;
-            for (int z = 0; z < resolution - 1; z++)
-            {
-                for (int x = 0; x < resolution - 1; x++)
-                {
-                    int topLeft = z * resolution + x;
-                    int topRight = topLeft + 1;
-                    int bottomLeft = (z + 1) * resolution + x;
-                    int bottomRight = bottomLeft + 1;
-
-                    // Triangle 1: topLeft - bottomLeft - topRight (와인딩 위쪽 +Y 향함 — 뒤집히면 지형이 위에서 안 보임)
-                    triangles[triIndex++] = topLeft;
-                    triangles[triIndex++] = bottomLeft;
-                    triangles[triIndex++] = topRight;
-
-                    // Triangle 2: topRight - bottomLeft - bottomRight
-                    triangles[triIndex++] = topRight;
-                    triangles[triIndex++] = bottomLeft;
-                    triangles[triIndex++] = bottomRight;
-                }
-            }
-
-            // === 3. 노멀 계산 (flat shading) ===
-            Vector3[] calculatedNormals = new Vector3[vertexCount];
-
-            for (int i = 0; i < triangleCount; i++)
-            {
-                int triStart = i * 3;
-                int i1 = triangles[triStart];
-                int i2 = triangles[triStart + 1];
-                int i3 = triangles[triStart + 2];
-
-                Vector3 v1 = vertices[i1];
-                Vector3 v2 = vertices[i2];
-                Vector3 v3 = vertices[i3];
-
-                Vector3 edge1 = v2 - v1;
-                Vector3 edge2 = v3 - v1;
-                Vector3 normal = Vector3.Cross(edge1, edge2);
-
-                // Degenerate triangle 방어
-                if (normal.sqrMagnitude > 0f)
-                    normal.Normalize();
-
-                calculatedNormals[i1] += normal;
-                calculatedNormals[i2] += normal;
-                calculatedNormals[i3] += normal;
-            }
-
-            // 노멀 정규화 (제로벡터 방어)
-            for (int i = 0; i < vertexCount; i++)
-            {
-                Vector3 n = calculatedNormals[i];
-                normals[i] = n.sqrMagnitude > 0f ? n.normalized : Vector3.up;
-            }
-
-            // === 4. 지형 메시 생성 ===
-            Mesh terrainMesh = new Mesh();
-            terrainMesh.indexFormat = vertexCount > 65535 ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16;
-            terrainMesh.vertices = vertices;
-            terrainMesh.triangles = triangles;
-            terrainMesh.uv = uv;
-            terrainMesh.normals = normals;
-            terrainMesh.RecalculateBounds();
-            terrainMesh.name = $"Terrain_{def.displayName}_{resolution}x{resolution}";
-
-            // === 5. 물 메시 생성 (waterThreshold > 0) ===
-            Mesh waterMesh = null;
-            if (waterThreshold > 0f)
-            {
-                waterMesh = GenerateWaterMesh(vertices, triangles, resolution, step, halfSize, size, waterThreshold, def.waterColor);
-            }
-
-            return (terrainMesh, waterMesh);
+            float lowFreqH = ComputeNationHeight(x, z, nation, seed, SPAWN_LOW_FREQ_OCTAVES);
+            return Mathf.Lerp(lowFreqH, height, blend);
         }
 
         /// <summary>
-        /// 물 메시 생성 — waterThreshold 이하 영역만 물로 처리
+        /// Perlin Noise로 지형 메시 + 물 메시 생성
         /// </summary>
-        private static Mesh GenerateWaterMesh(
-            Vector3[] terrainVertices, int[] terrainTriangles,
-            int resolution, float step, float halfSize, float size,
-            float waterThreshold, Color waterColor)
+    /// <param name="biome">생성할 Biome 타입</param>
+    /// <param name="seed">랜덤 시드 (결정론적 생성용)</param>
+    /// <param name="resolution">그리드 해상도 (N×N vertices)</param>
+    /// <param name="size">지형 크기 (월드 유닛)</param>
+    /// <returns>(terrainMesh, waterMesh) — waterMesh는 waterThreshold<=0이면 null</returns>
+    public static (Mesh terrainMesh, Mesh waterMesh) GenerateTerrain(
+        BiomeType biome, int seed, int resolution = 50, float size = 100f)
+    {
+        BiomeDefinition def = BiomeData.GetDefinition(biome);
+        return GenerateTerrainWithDefinition(def, seed, resolution, size);
+    }
+
+    /// <summary>
+    /// BiomeDefinition을 직접 전달받아 지형 생성
+    /// </summary>
+    public static (Mesh terrainMesh, Mesh waterMesh) GenerateTerrainWithDefinition(
+        BiomeDefinition def, int seed, int resolution = 50, float size = 100f)
+    {
+        if (resolution < 2)
         {
-            // 물 높이: threshold의 절반 정도로 설정하여 지형보다 약간 낮게
-            float waterLevel = waterThreshold * 0.5f;
+            Debug.LogError("[TerrainGenerator] Resolution must be >= 2");
+            resolution = 2;
+        }
 
-            // waterThreshold 이하인 vertex 판별, 물 메시용 vertex/triangle 수집
-            List<Vector3> waterVerts = new List<Vector3>();
-            List<int> waterTris = new List<int>();
-            Dictionary<int, int> vertexMap = new Dictionary<int, int>(); // terrain vert index → water vert index
+        if (size <= 0f)
+        {
+            Debug.LogError("[TerrainGenerator] Size must be > 0");
+            size = 100f;
+        }
 
-            int triCount = terrainTriangles.Length / 3;
+        int vertexCount = resolution * resolution;
+        int quadCount = (resolution - 1) * (resolution - 1);
+        int triangleCount = quadCount * 2;
 
-            for (int t = 0; t < triCount; t++)
+        // Offset to center the terrain
+        float halfSize = size * 0.5f;
+        float step = size / (resolution - 1);
+
+        // Vertex arrays
+        Vector3[] vertices = new Vector3[vertexCount];
+        Vector2[] uv = new Vector2[vertexCount];
+        Vector3[] normals = new Vector3[vertexCount];
+        int[] triangles = new int[triangleCount * 3];
+
+        float waterThreshold = def.waterThreshold;
+
+        // === 1. FBM + 고원 높이맵 생성 ===
+        for (int z = 0; z < resolution; z++)
+        {
+            for (int x = 0; x < resolution; x++)
             {
-                int i1 = terrainTriangles[t * 3];
-                int i2 = terrainTriangles[t * 3 + 1];
-                int i3 = terrainTriangles[t * 3 + 2];
+                int index = z * resolution + x;
 
-                // 세 vertex 모두 waterThreshold 이하인 triangle만 물로
-                if (terrainVertices[i1].y <= waterThreshold &&
-                    terrainVertices[i2].y <= waterThreshold &&
-                    terrainVertices[i3].y <= waterThreshold)
+                // UV (0~1)
+                float u = (float)x / (resolution - 1);
+                float v = (float)z / (resolution - 1);
+                uv[index] = new Vector2(u, v);
+
+                // 월드 좌표
+                float wx = -halfSize + x * step;
+                float wz = -halfSize + z * step;
+
+                // 방위별 FBM + 고원 높이 (월드 좌표 사용 — 해상도 변화에 일관된 결과)
+                // waterThreshold 클램프는 하지 않음 (물 메시가 threshold 이하 삼각형 판별 담당)
+                float height = ComputeTerrainHeight(wx, wz, def.type, seed);
+
+                vertices[index] = new Vector3(wx, height, wz);
+            }
+        }
+
+        // === 2. Triangle 인덱스 생성 ===
+        int triIndex = 0;
+        for (int z = 0; z < resolution - 1; z++)
+        {
+            for (int x = 0; x < resolution - 1; x++)
+            {
+                int topLeft = z * resolution + x;
+                int topRight = topLeft + 1;
+                int bottomLeft = (z + 1) * resolution + x;
+                int bottomRight = bottomLeft + 1;
+
+                // Triangle 1: topLeft - bottomLeft - topRight (와인딩 위쪽 +Y 향함 — 뒤집히면 지형이 위에서 안 보임)
+                triangles[triIndex++] = topLeft;
+                triangles[triIndex++] = bottomLeft;
+                triangles[triIndex++] = topRight;
+
+                // Triangle 2: topRight - bottomLeft - bottomRight
+                triangles[triIndex++] = topRight;
+                triangles[triIndex++] = bottomLeft;
+                triangles[triIndex++] = bottomRight;
+            }
+        }
+
+        // === 3. 노멀 계산 (flat shading) ===
+        Vector3[] calculatedNormals = new Vector3[vertexCount];
+
+        for (int i = 0; i < triangleCount; i++)
+        {
+            int triStart = i * 3;
+            int i1 = triangles[triStart];
+            int i2 = triangles[triStart + 1];
+            int i3 = triangles[triStart + 2];
+
+            Vector3 v1 = vertices[i1];
+            Vector3 v2 = vertices[i2];
+            Vector3 v3 = vertices[i3];
+
+            Vector3 edge1 = v2 - v1;
+            Vector3 edge2 = v3 - v1;
+            Vector3 normal = Vector3.Cross(edge1, edge2);
+
+            // Degenerate triangle 방어
+            if (normal.sqrMagnitude > 0f)
+                normal.Normalize();
+
+            calculatedNormals[i1] += normal;
+            calculatedNormals[i2] += normal;
+            calculatedNormals[i3] += normal;
+        }
+
+        // 노멀 정규화 (제로벡터 방어)
+        for (int i = 0; i < vertexCount; i++)
+        {
+            Vector3 n = calculatedNormals[i];
+            normals[i] = n.sqrMagnitude > 0f ? n.normalized : Vector3.up;
+        }
+
+        // === 4. 지형 메시 생성 ===
+        Mesh terrainMesh = new Mesh();
+        terrainMesh.indexFormat = vertexCount > 65535 ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16;
+        terrainMesh.vertices = vertices;
+        terrainMesh.triangles = triangles;
+        terrainMesh.uv = uv;
+        terrainMesh.normals = normals;
+        terrainMesh.RecalculateBounds();
+        terrainMesh.name = $"Terrain_{def.displayName}_{resolution}x{resolution}";
+
+        // === 5. 물 메시 생성 (waterThreshold > 0) ===
+        Mesh waterMesh = null;
+        if (waterThreshold > 0f)
+        {
+            waterMesh = GenerateWaterMesh(vertices, triangles, resolution, step, halfSize, size, waterThreshold, def.waterColor);
+        }
+
+        return (terrainMesh, waterMesh);
+    }
+
+    /// <summary>
+    /// 물 메시 생성 — waterThreshold 이하 영역만 물로 처리
+    /// </summary>
+    private static Mesh GenerateWaterMesh(
+        Vector3[] terrainVertices, int[] terrainTriangles,
+        int resolution, float step, float halfSize, float size,
+        float waterThreshold, Color waterColor)
+    {
+        // 물 높이: threshold의 절반 정도로 설정하여 지형보다 약간 낮게
+        float waterLevel = waterThreshold * 0.5f;
+
+        // waterThreshold 이하인 vertex 판별, 물 메시용 vertex/triangle 수집
+        List<Vector3> waterVerts = new List<Vector3>();
+        List<int> waterTris = new List<int>();
+        Dictionary<int, int> vertexMap = new Dictionary<int, int>(); // terrain vert index → water vert index
+
+        int triCount = terrainTriangles.Length / 3;
+
+        for (int t = 0; t < triCount; t++)
+        {
+            int i1 = terrainTriangles[t * 3];
+            int i2 = terrainTriangles[t * 3 + 1];
+            int i3 = terrainTriangles[t * 3 + 2];
+
+            // 세 vertex 모두 waterThreshold 이하인 triangle만 물로
+            if (terrainVertices[i1].y <= waterThreshold &&
+                terrainVertices[i2].y <= waterThreshold &&
+                terrainVertices[i3].y <= waterThreshold)
+            {
+                int wi1 = GetOrAddWaterVertex(waterVerts, vertexMap, i1, terrainVertices, waterLevel);
+                int wi2 = GetOrAddWaterVertex(waterVerts, vertexMap, i2, terrainVertices, waterLevel);
+                int wi3 = GetOrAddWaterVertex(waterVerts, vertexMap, i3, terrainVertices, waterLevel);
+
+                waterTris.Add(wi1);
+                waterTris.Add(wi2);
+                waterTris.Add(wi3);
+            }
+        }
+
+        if (waterVerts.Count < 3)
+            return null;
+
+        Mesh waterMesh = new Mesh();
+        waterMesh.indexFormat = waterVerts.Count > 65535 ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16;
+        waterMesh.vertices = waterVerts.ToArray();
+        waterMesh.triangles = waterTris.ToArray();
+
+        // 물 UV — 평면 투영
+        Vector2[] waterUV = new Vector2[waterVerts.Count];
+        for (int i = 0; i < waterVerts.Count; i++)
+        {
+            Vector3 wv = waterVerts[i];
+            waterUV[i] = new Vector2(wv.x / size + 0.5f, wv.z / size + 0.5f);
+        }
+        waterMesh.uv = waterUV;
+
+        // 물 노멀은 항상 위쪽
+        Vector3[] waterNormals = new Vector3[waterVerts.Count];
+        for (int i = 0; i < waterVerts.Count; i++)
+            waterNormals[i] = Vector3.up;
+
+        waterMesh.normals = waterNormals;
+        waterMesh.name = $"Water_{resolution}x{resolution}";
+
+        return waterMesh;
+    }
+
+    private static int GetOrAddWaterVertex(
+        List<Vector3> waterVerts, Dictionary<int, int> vertexMap,
+        int terrainIndex, Vector3[] terrainVertices, float waterLevel)
+    {
+        if (vertexMap.TryGetValue(terrainIndex, out int existing))
+            return existing;
+
+        Vector3 src = terrainVertices[terrainIndex];
+        Vector3 waterVertex = new Vector3(src.x, waterLevel, src.z);
+        int newIndex = waterVerts.Count;
+        waterVerts.Add(waterVertex);
+        vertexMap[terrainIndex] = newIndex;
+        return newIndex;
+    }
+
+    /// <summary>
+    /// 기존 GameObject의 MeshFilter/MeshRenderer를 업데이트
+    /// </summary>
+    /// <param name="groundObject">적용할 GameObject (MeshFilter 보유)</param>
+    /// <param name="biome">Biome 타입</param>
+    /// <param name="seed">랜덤 시드</param>
+    /// <param name="pathCenter">진입로 중심 월드 좌표 (null이면 진입로 미생성)</param>
+    /// <param name="pathWidth">진입로 폭 (월드 유닛, 기본 5m)</param>
+    /// <param name="pathLength">진입로 길이 (월드 유닛, 기본 40m)</param>
+    public static void ApplyTerrainToGameObject(
+        GameObject groundObject, BiomeType biome, int seed,
+        Vector3? pathCenter = null, float pathWidth = 5f, float pathLength = 40f)
+    {
+        BiomeDefinition def = BiomeData.GetDefinition(biome);
+
+        // Mesh 생성
+        var (terrainMesh, waterMesh) = GenerateTerrainWithDefinition(def, seed);
+
+        // MeshFilter에 지형 메시 할당
+        MeshFilter mf = groundObject.GetComponent<MeshFilter>();
+        if (mf == null)
+        {
+            mf = groundObject.AddComponent<MeshFilter>();
+        }
+        else if (mf.sharedMesh != null)
+        {
+            // 이전 메시 해제 (메모리 누수 방지)
+            Object.Destroy(mf.sharedMesh);
+        }
+        mf.sharedMesh = terrainMesh;
+
+        // MeshRenderer에 Biome 색상 Material 적용
+        MeshRenderer mr = groundObject.GetComponent<MeshRenderer>();
+        if (mr == null)
+        {
+            mr = groundObject.AddComponent<MeshRenderer>();
+        }
+
+        // 기본 URP/Lit Material 생성 및 색상 설정
+        Material mat = mr.sharedMaterial;
+        if (mat == null)
+        {
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+            if (shader != null)
+            {
+                mat = new Material(shader);
+            }
+            else
+            {
+                mat = new Material(Shader.Find("Standard"));
+            }
+            mr.sharedMaterial = mat;
+        }
+
+        mat.color = def.surfaceColor;
+        mat.name = $"Mat_{def.displayName}";
+
+        // === 진입로 (Path) Vertex 색상 적용 ===
+        if (pathCenter.HasValue)
+        {
+            Mesh mesh = mf.sharedMesh;
+            if (mesh != null)
+            {
+                Vector3[] vertices = mesh.vertices;
+                int[] pathIndices = TerrainPathGenerator.GetPathVertexIndices(
+                    vertices, pathCenter.Value, pathWidth, pathLength);
+
+                if (pathIndices.Length > 0)
                 {
-                    int wi1 = GetOrAddWaterVertex(waterVerts, vertexMap, i1, terrainVertices, waterLevel);
-                    int wi2 = GetOrAddWaterVertex(waterVerts, vertexMap, i2, terrainVertices, waterLevel);
-                    int wi3 = GetOrAddWaterVertex(waterVerts, vertexMap, i3, terrainVertices, waterLevel);
-
-                    waterTris.Add(wi1);
-                    waterTris.Add(wi2);
-                    waterTris.Add(wi3);
+                    Color[] vertexColors = TerrainPathGenerator.ApplyPathVertexColors(
+                        vertices.Length, pathIndices, biome);
+                    mesh.colors = vertexColors;
                 }
             }
-
-            if (waterVerts.Count < 3)
-                return null;
-
-            Mesh waterMesh = new Mesh();
-            waterMesh.indexFormat = waterVerts.Count > 65535 ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16;
-            waterMesh.vertices = waterVerts.ToArray();
-            waterMesh.triangles = waterTris.ToArray();
-
-            // 물 UV — 평면 투영
-            Vector2[] waterUV = new Vector2[waterVerts.Count];
-            for (int i = 0; i < waterVerts.Count; i++)
-            {
-                Vector3 wv = waterVerts[i];
-                waterUV[i] = new Vector2(wv.x / size + 0.5f, wv.z / size + 0.5f);
-            }
-            waterMesh.uv = waterUV;
-
-            // 물 노멀은 항상 위쪽
-            Vector3[] waterNormals = new Vector3[waterVerts.Count];
-            for (int i = 0; i < waterVerts.Count; i++)
-                waterNormals[i] = Vector3.up;
-
-            waterMesh.normals = waterNormals;
-            waterMesh.name = $"Water_{resolution}x{resolution}";
-
-            return waterMesh;
         }
 
-        private static int GetOrAddWaterVertex(
-            List<Vector3> waterVerts, Dictionary<int, int> vertexMap,
-            int terrainIndex, Vector3[] terrainVertices, float waterLevel)
+        // === 물 메시가 있으면 자식 GameObject로 추가 ===
+        if (waterMesh != null)
         {
-            if (vertexMap.TryGetValue(terrainIndex, out int existing))
-                return existing;
-
-            Vector3 src = terrainVertices[terrainIndex];
-            Vector3 waterVertex = new Vector3(src.x, waterLevel, src.z);
-            int newIndex = waterVerts.Count;
-            waterVerts.Add(waterVertex);
-            vertexMap[terrainIndex] = newIndex;
-            return newIndex;
-        }
-
-        /// <summary>
-        /// 기존 GameObject의 MeshFilter/MeshRenderer를 업데이트
-        /// </summary>
-        /// <param name="groundObject">적용할 GameObject (MeshFilter 보유)</param>
-        /// <param name="biome">Biome 타입</param>
-        /// <param name="seed">랜덤 시드</param>
-        /// <param name="pathCenter">진입로 중심 월드 좌표 (null이면 진입로 미생성)</param>
-        /// <param name="pathWidth">진입로 폭 (월드 유닛, 기본 5m)</param>
-        /// <param name="pathLength">진입로 길이 (월드 유닛, 기본 40m)</param>
-        public static void ApplyTerrainToGameObject(
-            GameObject groundObject, BiomeType biome, int seed,
-            Vector3? pathCenter = null, float pathWidth = 5f, float pathLength = 40f)
-        {
-            BiomeDefinition def = BiomeData.GetDefinition(biome);
-
-            // Mesh 생성
-            var (terrainMesh, waterMesh) = GenerateTerrainWithDefinition(def, seed);
-
-            // MeshFilter에 지형 메시 할당
-            MeshFilter mf = groundObject.GetComponent<MeshFilter>();
-            if (mf == null)
+            Transform waterTransform = groundObject.transform.Find("Water");
+            GameObject waterObj;
+            if (waterTransform == null)
             {
-                mf = groundObject.AddComponent<MeshFilter>();
+                waterObj = new GameObject("Water");
+                waterObj.transform.SetParent(groundObject.transform);
+                waterObj.transform.localPosition = Vector3.zero;
             }
-            else if (mf.sharedMesh != null)
+            else
             {
-                // 이전 메시 해제 (메모리 누수 방지)
-                Object.Destroy(mf.sharedMesh);
-            }
-            mf.sharedMesh = terrainMesh;
-
-            // MeshRenderer에 Biome 색상 Material 적용
-            MeshRenderer mr = groundObject.GetComponent<MeshRenderer>();
-            if (mr == null)
-            {
-                mr = groundObject.AddComponent<MeshRenderer>();
+                waterObj = waterTransform.gameObject;
             }
 
-            // 기본 URP/Lit Material 생성 및 색상 설정
-            Material mat = mr.sharedMaterial;
-            if (mat == null)
+            MeshFilter waterMf = waterObj.GetComponent<MeshFilter>();
+            if (waterMf == null)
+                waterMf = waterObj.AddComponent<MeshFilter>();
+            else if (waterMf.sharedMesh != null)
+                Object.Destroy(waterMf.sharedMesh);
+            waterMf.sharedMesh = waterMesh;
+
+            MeshRenderer waterMr = waterObj.GetComponent<MeshRenderer>();
+            if (waterMr == null)
+                waterMr = waterObj.AddComponent<MeshRenderer>();
+
+            if (waterMr.sharedMaterial == null)
             {
                 Shader shader = Shader.Find("Universal Render Pipeline/Lit");
                 if (shader != null)
                 {
-                    mat = new Material(shader);
+                    Material waterMat = new Material(shader);
+                    waterMat.color = def.waterColor;
+
+                    // 반투명 설정
+                    waterMat.SetFloat("_Surface", 1.0f);  // Transparent
+                    waterMat.SetFloat("_Blend", 0.0f);    // Alpha
+                    waterMat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    waterMat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    waterMat.SetInt("_ZWrite", 0);
+                    waterMat.renderQueue = 3000;
+                    waterMat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+
+                    waterMr.sharedMaterial = waterMat;
                 }
                 else
                 {
-                    mat = new Material(Shader.Find("Standard"));
-                }
-                mr.sharedMaterial = mat;
-            }
-
-            mat.color = def.surfaceColor;
-            mat.name = $"Mat_{def.displayName}";
-
-            // === 진입로 (Path) Vertex 색상 적용 ===
-            if (pathCenter.HasValue)
-            {
-                Mesh mesh = mf.sharedMesh;
-                if (mesh != null)
-                {
-                    Vector3[] vertices = mesh.vertices;
-                    int[] pathIndices = TerrainPathGenerator.GetPathVertexIndices(
-                        vertices, pathCenter.Value, pathWidth, pathLength);
-
-                    if (pathIndices.Length > 0)
+                    waterMr.sharedMaterial = new Material(Shader.Find("Standard"))
                     {
-                        Color[] vertexColors = TerrainPathGenerator.ApplyPathVertexColors(
-                            vertices.Length, pathIndices, biome);
-                        mesh.colors = vertexColors;
-                    }
-                }
-            }
-
-            // === 물 메시가 있으면 자식 GameObject로 추가 ===
-            if (waterMesh != null)
-            {
-                Transform waterTransform = groundObject.transform.Find("Water");
-                GameObject waterObj;
-                if (waterTransform == null)
-                {
-                    waterObj = new GameObject("Water");
-                    waterObj.transform.SetParent(groundObject.transform);
-                    waterObj.transform.localPosition = Vector3.zero;
-                }
-                else
-                {
-                    waterObj = waterTransform.gameObject;
-                }
-
-                MeshFilter waterMf = waterObj.GetComponent<MeshFilter>();
-                if (waterMf == null)
-                    waterMf = waterObj.AddComponent<MeshFilter>();
-                else if (waterMf.sharedMesh != null)
-                    Object.Destroy(waterMf.sharedMesh);
-                waterMf.sharedMesh = waterMesh;
-
-                MeshRenderer waterMr = waterObj.GetComponent<MeshRenderer>();
-                if (waterMr == null)
-                    waterMr = waterObj.AddComponent<MeshRenderer>();
-
-                if (waterMr.sharedMaterial == null)
-                {
-                    Shader shader = Shader.Find("Universal Render Pipeline/Lit");
-                    if (shader != null)
-                    {
-                        Material waterMat = new Material(shader);
-                        waterMat.color = def.waterColor;
-
-                        // 반투명 설정
-                        waterMat.SetFloat("_Surface", 1.0f);  // Transparent
-                        waterMat.SetFloat("_Blend", 0.0f);    // Alpha
-                        waterMat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                        waterMat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                        waterMat.SetInt("_ZWrite", 0);
-                        waterMat.renderQueue = 3000;
-                        waterMat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-
-                        waterMr.sharedMaterial = waterMat;
-                    }
-                    else
-                    {
-                        waterMr.sharedMaterial = new Material(Shader.Find("Standard"))
-                        {
-                            color = def.waterColor
-                        };
-                    }
-                }
-            }
-            else
-            {
-                // 기존 Water 자식 제거 (biome이 물 없는 타입으로 바뀐 경우)
-                Transform existingWater = groundObject.transform.Find("Water");
-                if (existingWater != null)
-                {
-                    Object.Destroy(existingWater.gameObject);
+                        color = def.waterColor
+                    };
                 }
             }
         }
+        else
+        {
+            // 기존 Water 자식 제거 (biome이 물 없는 타입으로 바뀐 경우)
+            Transform existingWater = groundObject.transform.Find("Water");
+            if (existingWater != null)
+            {
+                Object.Destroy(existingWater.gameObject);
+            }
+        }
     }
+}
 }

@@ -40,6 +40,9 @@ namespace ProjectName.Systems
         private Material _surfaceMaterial;
         private float _baseY;
         private bool _constructed;
+        private bool _configured;
+        private Vector3 _center;
+        private static TerrainGenerator.TerrainLakeDef? _pendingDef = null; // nullable struct (구조체 null 배정 컴파일 에러 방지)
 
         // Cached entry speeds per Rigidbody to prevent exponential velocity decay (same as WaterBody)
         private readonly Dictionary<Rigidbody, float> _entrySpeeds = new Dictionary<Rigidbody, float>();
@@ -63,6 +66,79 @@ namespace ProjectName.Systems
         public float NoiseThreshold => _noiseThreshold;
 
         /// <summary>
+        /// TerrainGenerator.Lakes(6개 호수) 정의를 순회하며 각 호수 GameObject를 생성하고
+        /// LakeGenerator를 부착 + 파라미터 설정 + ConstructLake를 실행한다.
+        /// Awake 자기실행 경로가 올바른 파라미터를 쓰도록 AddComponent 직전에
+        /// _pendingDef를 세팅한다. waterLevel y에 물 표면이 놓인다.
+        /// Random 언시드 없음 — 결정론적, 고정 시드 사용(호수별 위치 기반 파생).
+        /// </summary>
+        public static void GenerateAllLakes(Transform parent)
+        {
+            var lakes = TerrainGenerator.Lakes;
+            if (lakes == null || lakes.Count == 0)
+            {
+                Debug.LogWarning("[LakeGenerator] TerrainGenerator.Lakes가 비어 있음 — 호수 생성 스킵");
+                return;
+            }
+            for (int i = 0; i < lakes.Count; i++)
+            {
+                var def = lakes[i];
+                var go = new GameObject($"Lake_{i}");
+                if (parent != null)
+                    go.transform.SetParent(parent, false);
+                // ConstructLake가 transform.position.y를 _surfaceY(= waterLevel)로 맞춤
+                go.transform.position = new Vector3(def.center.x, def.waterLevel, def.center.z);
+                _pendingDef = def;
+                go.AddComponent<LakeGenerator>();
+                _pendingDef = null; // 소비 완료
+            }
+            Debug.Log($"[LakeGenerator] GenerateAllLakes: {lakes.Count} lakes 확정");
+        }
+
+        /// <summary>
+        /// TerrainGenerator.TerrainLakeDef 정의를 이 컴포넌트 파라미터에 적용한다.
+        /// 팩토리(GenerateAllLakes)가 AddComponent 직전에 _pendingDef를 세팅하면 Awake가
+        /// 이 메서드로 소비해 기본값(반경 5m 등)으로 잡다한 호수를 만들지 않는다.
+        /// 호수별 고정 시드 파생(UnityEngine.Random 미사용, 결정론적)으로 모양이 다양하다.
+        /// </summary>
+        private void ApplyDef(TerrainGenerator.TerrainLakeDef def)
+        {
+            _center = def.center;
+            _radius = def.radius;
+            _depth = def.depth;
+            _surfaceY = def.waterLevel;
+            _configured = true;
+            // 호수마다 고정 시드 — 위치 기반 파생 (재실행 시 항상 동일)
+            _noiseSeed = 1000 + (int)(def.center.x * 0.41f + def.center.z * 0.73f);
+        }
+
+        /// <summary>
+        /// TerrainLakeDef 기반 파라미터 설정 후 ConstructLake 실행 (재구성/테스트용).
+        /// 이미 구성됐으면 기존 자식(표면/바닥/콜라이더/재질)을 파괴 후 재구성한다.
+        /// GenerateAllLakes는 AddComponent 직전 _pendingDef 경로로 (Awake에서) 동일하게
+        /// 설정하므로 보통 직접 호출은 테스트/재구성 용도다.
+        /// </summary>
+        public void ConfigureLake(TerrainGenerator.TerrainLakeDef def)
+        {
+            if (_constructed)
+            {
+                DestroyConstructedChildren();
+                _constructed = false;
+            }
+            ApplyDef(def);
+            ConstructLake();
+        }
+
+        /// <summary>생성된 자식 오브젝트(표면/바닥/콜라이더)와 표면 재질을 파괴한다.</summary>
+        private void DestroyConstructedChildren()
+        {
+            if (_surfaceMaterial != null) { Destroy(_surfaceMaterial); _surfaceMaterial = null; }
+            if (_waterSurface != null) { Destroy(_waterSurface); _waterSurface = null; }
+            if (_lakeBed != null) { Destroy(_lakeBed); _lakeBed = null; }
+            if (_collisionVolume != null) { Destroy(_collisionVolume); _collisionVolume = null; }
+        }
+
+        /// <summary>
         /// Upgrades the water surface material with reflection probe keywords,
         /// metallic=0.0, and smoothness=0.8 for high-quality reflections.
         /// Called by Phase G1-03 editor tooling.
@@ -80,7 +156,21 @@ namespace ProjectName.Systems
 
         private void Awake()
         {
-            ConstructLake();
+            // 팩토리(GenerateAllLakes)가 AddComponent 직전에 _pendingDef를 세팅하면
+            // 여기서 소비해 올바른 파라미터로 자기실행 ConstructLake를 수행한다
+            // (기본값 반경 5m의 잡다한 호수를 만들지 않음).
+            if (_pendingDef != null)
+            {
+                ApplyDef(_pendingDef.Value);
+                _pendingDef = null;
+            }
+            // 파라미터가 설정된 경우에만 ConstructLake.
+            // 미설정 컴포넌트(레거시 CreateWaterSystem이 Ground에 첨부하는 기본값 LakeGenerator)는
+            // 접촉 방지 — 잡다한 호수를 만들지 않도록 스킵.
+            if (_configured || _radius != 5f || _depth != 0.5f || _surfaceY != 0f)
+            {
+                ConstructLake();
+            }
         }
 
         private void ConstructLake()

@@ -212,6 +212,21 @@ public static class FixMainScene
         var ground = CreateHeightmapTerrain();
 
         // ================================================================
+        // 3.5. TERRAIN-LAKES: TerrainGenerator.Lakes 정의 호수 → LakeGenerator 연동 생성
+        // ================================================================
+        // WaterBodies 빈 오브젝트를 부모로 사용 (없으면 생성 — 기존 패턴).
+        var waterBodies = GameObject.Find("WaterBodies");
+        if (waterBodies == null)
+        {
+            waterBodies = new GameObject("WaterBodies");
+            waterBodies.transform.SetParent(ground.transform);
+            EditorUtility.SetDirty(waterBodies);
+        }
+        ProjectName.Systems.LakeGenerator.GenerateAllLakes(waterBodies.transform);
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("[FixMainScene] TERRAIN-LAKES: LakeGenerator.GenerateAllLakes() invoked");
+
+        // ================================================================
         // 4. Terrain GLB Models Placement (GPU Instancing, 3 Rings)
         // ================================================================
         // NEW: TerrainModelPlacer.Place() is now called inside CreateHeightmapTerrain()
