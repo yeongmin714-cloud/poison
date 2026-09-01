@@ -17,8 +17,9 @@ public static class GroundDiagRunner
         var candidates = new (string name, float x, float z)[]
         {
             ("Empire중심", 0f, 0f),
-            ("East외곽(현재스폰)", 1173f, -852f),
+            ("East현재스폰", 728f, -529f),
             ("East_Ring1첫영지", 1173.42f, -852.12f),
+            ("East경계안900m", 728f, -529f),
             ("East 500m", 500f, 0f),
             ("동쪽 초원", 300f, 100f),
         };
