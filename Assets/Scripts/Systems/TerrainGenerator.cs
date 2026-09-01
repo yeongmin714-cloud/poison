@@ -12,12 +12,12 @@ namespace ProjectName.Systems
     public static class TerrainGenerator
     {
         // === FBM (Fractal Brownian Motion) 하드코딩 상수 ===
-        // 노이즈 옥타브 수 — 클수록 디테일이 증가 (표준 4)
-        private const int FBM_OCTAVES = 4;
+        // 노이즈 옥타브 수 — 클수록 디테일이 증가 (표준 4 → 5)
+        private const int FBM_OCTAVES = 5;
         // 주파수 배율 — 옥타브가 올라갈 때마다 주파수가 이 배율만큼 증가
         private const float FBM_LACUNARITY = 2.0f;
-        // 진폭 감쇠 — 옥타브가 올라갈 때마다 진폭이 이 배율만큼 감소
-        private const float FBM_GAIN = 0.5f;
+        // 진폭 감쇠 — 옥타브가 올라갈 때마다 진폭이 이 배율만큼 감소 (0.5 → 0.55, 고주파 디테일 유지)
+        private const float FBM_GAIN = 0.55f;
         // 고원(plateau) 평탄화 시작 임계값
         private const float PLATEAU_THRESHOLD = 0.55f;
         // 고원 평탄화 감쇠 계수
@@ -27,6 +27,29 @@ namespace ProjectName.Systems
         private const float TRANSITION_WIDTH = 120f;
         // 황제국 중앙 영역 반경 (NationTerrainController.GetNationFromPosition 기준 50m)
         private const float EMPIRE_RADIUS = 50f;
+
+        // === 호수 시스템 상수 ===
+        // 소품/청동 오브젝트 배치용 고정 시드 결정론적 호수 목록 (Random 언시드 금지)
+        private const int LAKE_COUNT = 6;
+        private const long LAKE_LCG_SEED = 1234567891L;     // 결정론적 LCG 시드
+        private const float LAKE_MIN_DIST = 250f;          // 호수 간 최소 거리
+        private const float LAKE_EDGE_MARGIN = 150f;       // 지도 경계(±1000) 여백
+        private const float LAKE_EMPIRE_EXCLUDE = 120f;    // 황제국 중앙(0,0,0) 배제 반경
+        private const float LAKE_RADIUS_MIN = 40f;
+        private const float LAKE_RADIUS_MAX = 70f;
+        private const float LAKE_DEPTH_MIN = 3f;
+        private const float LAKE_DEPTH_MAX = 5f;
+        private const float LAKE_WATER_OFFSET = 1.5f;      // 분지 바닥 위 물 표면 높이
+        private const float LAKE_SHORE_FACTOR = 1.3f;      // 경사 완만한 해안 확장 배율 (카브 영향 반경 = radius*이값)
+
+        // === 스폰지 평탄화 상수 ===
+        private const float SPAWN_X = 728f;
+        private const float SPAWN_Z = -529f;
+        private const float SPAWN_FLATTEN_RADIUS = 15f;
+        private const int SPAWN_LOW_FREQ_OCTAVES = 2;      // 고주파 옥타브를 줄여 저주파만 남김 (경사 완만)
+
+        // === Tundra ridged 믹스 ===
+        private const float RIDGED_MIX = 0.3f;
 
         /// <summary>
         /// 주어진 월드 좌표에서 지형 높이 반환 (FBM + 고원 기반)
@@ -144,18 +167,18 @@ namespace ProjectName.Systems
             switch (nation)
             {
                 case NationType.East:
-                    return new NationTerrainParams { biome = BiomeType.Plains, amplitude = 0.5f, frequency = 2.5f, plateauStrength = 0.0f, seedOffset = 10 };
+                    return new NationTerrainParams { biome = BiomeType.Plains, amplitude = 7.0f, frequency = 2.5f, plateauStrength = 0.0f, seedOffset = 10 };
                 case NationType.South:
-                    return new NationTerrainParams { biome = BiomeType.Desert, amplitude = 0.8f, frequency = 2.0f, plateauStrength = 0.0f, seedOffset = 20 };
+                    return new NationTerrainParams { biome = BiomeType.Desert, amplitude = 3.5f, frequency = 2.0f, plateauStrength = 0.0f, seedOffset = 20 };
                 case NationType.North:
-                    return new NationTerrainParams { biome = BiomeType.Tundra, amplitude = 4.0f, frequency = 1.5f, plateauStrength = 1.0f, seedOffset = 30 };
+                    return new NationTerrainParams { biome = BiomeType.Tundra, amplitude = 10.0f, frequency = 1.5f, plateauStrength = 1.0f, seedOffset = 30 };
                 case NationType.West:
-                    return new NationTerrainParams { biome = BiomeType.Volcanic, amplitude = 2.0f, frequency = 2.5f, plateauStrength = 0.5f, seedOffset = 40 };
+                    return new NationTerrainParams { biome = BiomeType.Volcanic, amplitude = 7.0f, frequency = 2.5f, plateauStrength = 0.5f, seedOffset = 40 };
                 case NationType.Empire:
                     return new NationTerrainParams { biome = BiomeType.Empire, amplitude = 0.2f, frequency = 1.0f, plateauStrength = 1.0f, seedOffset = 50 };
                 default:
                     // 미소속(None/Dracula) — East(Plains) 기본값
-                    return new NationTerrainParams { biome = BiomeType.Plains, amplitude = 0.5f, frequency = 2.5f, plateauStrength = 0.0f, seedOffset = 10 };
+                    return new NationTerrainParams { biome = BiomeType.Plains, amplitude = 7.0f, frequency = 2.5f, plateauStrength = 0.0f, seedOffset = 10 };
             }
         }
 
@@ -163,7 +186,7 @@ namespace ProjectName.Systems
         /// 단일 방위 기준 높이 계산. ComputeBaseHeight/FbmNoise/ApplyPlateau 재사용.
         /// 방위별 BiomeDefinition(진폭·빈도 오버라이드)과 고유 시드를 사용해 높이 산출.
         /// </summary>
-        private static float ComputeNationHeight(float x, float z, NationType nation, int seed)
+        private static float ComputeNationHeight(float x, float z, NationType nation, int seed, int octaves = FBM_OCTAVES)
         {
             NationTerrainParams p = GetNationParams(nation);
             BiomeDefinition def = BiomeData.GetDefinition(p.biome);
@@ -178,7 +201,15 @@ namespace ProjectName.Systems
             float fbm = FbmNoise(
                 x * def.noiseFrequency,
                 z * def.noiseFrequency,
-                FBM_OCTAVES, FBM_LACUNARITY, FBM_GAIN, nationSeed);
+                octaves, FBM_LACUNARITY, FBM_GAIN, nationSeed);
+
+            // Tundra ridged 믹스 — 대표 ridge(1-|2t-1|)를 살짝 섞어 설산 능선/절벽 느낌
+            // (저옥타브 스폰지 평탄화 경로에서는 생략 — 평탄 유지)
+            if (octaves >= 2 && p.biome == BiomeType.Tundra)
+            {
+                float ridged = 1f - Mathf.Abs(fbm * 2f - 1f);
+                fbm = Mathf.Lerp(fbm, ridged, RIDGED_MIX);
+            }
 
             float plateau = ApplyPlateau(fbm);
             float shaped = Mathf.Lerp(fbm, plateau, p.plateauStrength);
@@ -265,6 +296,17 @@ namespace ProjectName.Systems
                 h = Mathf.Lerp(empireH, dirH, empireT);
             }
 
+            // === 3) 호수 분지 카브 ===
+            // Lake.center에서 radius 이내를 부드럽게 파낸다 (smoothstep 팔오프, 최대 depth).
+            // radius..radius*LAKE_SHORE_FACTOR 구간은 경사 완만한 해안(쇼어라인).
+            // GetHeightAt / GetHeightAtWithDefinition / 메시 생성을 모두 지나는
+            // 공통 관통 경로(ComputeTerrainHeight)에 위치해 모든 경로에 적용된다.
+            h = ApplyLakeBasins(x, z, h);
+
+            // === 4) 스폰지 평탄화 ===
+            // (SPAWN_X, SPAWN_Z) 반경 15m 이내 고주파 디테일 감쇠 → 경사 완만
+            h = ApplySpawnFlattening(x, z, h, nation, seed);
+
             return h;
         }
 
@@ -296,10 +338,166 @@ namespace ProjectName.Systems
                 float hPos = ComputeNationHeight(x, z, posNation, seed);
                 height = Mathf.Lerp(hNeg, hPos, t);
             }
-        }
-        /// <summary>
-        /// Perlin Noise로 지형 메시 + 물 메시 생성
-        /// </summary>
+
+            // ================================================================
+            // 호수(분지) 시스템
+            // ================================================================
+
+            /// <summary>
+            /// 호수(분지) 정의.
+            /// center: 호수 중심 월드 좌표 / radius: 분지 반경 / depth: 분지 파내는 깊이
+            /// waterLevel: 분지 바닥(카브 전 기저 높이 - depth) 위 LAKE_WATER_OFFSET만큼의 물 표면 y
+            /// </summary>
+            public struct TerrainLakeDef
+            {
+                public Vector3 center;
+                public float radius;
+                public float depth;
+                public float waterLevel;
+            }
+
+            private static System.Collections.Generic.IReadOnlyList<TerrainLakeDef> _lakes = null;
+
+            /// <summary>
+            /// 고정 시드 결정론적 호수 목록 (지연 초기화, 6개).
+            /// 배치 규칙: 황제국 중앙(0,0,0) 반경 120m 배제, 호수 간 최소 250m,
+            /// 지도 경계(±1000)에서 150m 여백, 동쪽(양수 x, 플레이어 시작 (728,-529) 인근) 1~2개,
+            /// 반경 40~70m, depth 3~5m. waterLevel은 호수마다 하나의 평면 y.
+            /// </summary>
+            public static System.Collections.Generic.IReadOnlyList<TerrainLakeDef> Lakes
+            {
+                get
+                {
+                    if (_lakes == null)
+                    {
+                        _lakes = GenerateLakes();
+                    }
+                    return _lakes;
+                }
+            }
+
+            /// <summary>
+            /// 결정론적 호수 생성 — 인라인 LCG(고정 시드) PRNG로 위치/반경/깊이 산출.
+            /// Mathf.PerlinNoise 또는 전역 UnityEngine.Random 시드를 사용하지 않아
+            /// 플랫폼/호출 순서와 무관하게 항상 같은 결과를 보장한다 (Random 언시드 금지 준수).
+            /// </summary>
+            private static System.Collections.Generic.IReadOnlyList<TerrainLakeDef> GenerateLakes()
+            {
+                // 기본 앵커 — [동쪽-시작 인근, 동쪽, 북쪽, 북쪽, 서쪽, 남쪽] 순
+                // 동쪽 첫 호수는 플레이어 시작 (728,-529) 인근이되, 스폰지 평탄화(반경 15m)와
+                // 카브 영향(반경≤91m)이 겹치지 않도록 충분히 떨어뜨려 배치.
+                Vector3[] anchors =
+                {
+                    new Vector3(600f, 0f, -460f),   // 동쪽 — 시작 인근 (카브/스폰지 평탄화 비중첩)
+                    new Vector3(400f, 0f, 100f),    // 동쪽
+                    new Vector3(-400f, 0f, 600f),   // 북쪽
+                    new Vector3(-150f, 0f, 720f),   // 북쪽
+                    new Vector3(-700f, 0f, -300f),  // 서쪽
+                    new Vector3(300f, 0f, -750f),   // 남쪽
+                };
+
+                List<TerrainLakeDef> lakes = new List<TerrainLakeDef>();
+                for (int i = 0; i < LAKE_COUNT; i++)
+                {
+                    float jx = (LakeRand(i * 4 + 0) - 0.5f) * 50f;
+                    float jz = (LakeRand(i * 4 + 1) - 0.5f) * 50f;
+                    float radius = Mathf.Lerp(LAKE_RADIUS_MIN, LAKE_RADIUS_MAX, LakeRand(i * 4 + 2));
+                    float depth = Mathf.Lerp(LAKE_DEPTH_MIN, LAKE_DEPTH_MAX, LakeRand(i * 4 + 3));
+
+                    TerrainLakeDef lake = new TerrainLakeDef();
+                    lake.center = new Vector3(anchors[i].x + jx, 0f, anchors[i].z + jz);
+                    lake.radius = radius;
+                    lake.depth = depth;
+
+                    // waterLevel = 분지 바닥(카브 전 기저 높이 - depth) + LAKE_WATER_OFFSET.
+                    // 주의: ComputeTerrainHeight를 호출하면 카브가 재적용되어 재귀하므로,
+                    // 카브 전 기저 높이는 ComputeNationHeight(카브 미적용 경로)로 직접 산출한다.
+                    float baseH = ComputeNationHeight(
+                        lake.center.x, lake.center.z, GetNationFromCoord(lake.center.x, lake.center.z), 42);
+                    lake.waterLevel = baseH - depth + LAKE_WATER_OFFSET;
+
+                    lakes.Add(lake);
+                }
+
+                return lakes;
+            }
+
+            /// <summary>
+            /// 위치 → 방향성 국가 판정 (황제국 제외). 호수 waterLevel 산출용 기저 높이 경로.
+            /// </summary>
+            private static NationType GetNationFromCoord(float x, float z)
+            {
+                float angle = Mathf.Atan2(z, x) * Mathf.Rad2Deg;
+                if (angle < 0f) angle += 360f;
+                return GetDirectionalNation(angle);
+            }
+
+            /// <summary>
+            /// 고정 시드 인라인 LCG PRNG — [0,1] 반환 (플랫폼 독립, 결정론적).
+            /// </summary>
+            private static float LakeRand(int stateIndex)
+            {
+                long state = LAKE_LCG_SEED;
+                for (int i = 0; i <= stateIndex; i++)
+                {
+                    state = (state * 1103515245L + 12345L) & 0x7FFFFFFF;
+                }
+                return (float)(state % 1000) / 999f;
+            }
+
+            /// <summary>
+            /// 호수 분지 카브 — lake.center에서 radius 이내를 부드럽게 파낸다.
+            /// smoothstep 팔오프로 중심(최대 depth) → radius*LAKE_SHORE_FACTOR(영향 없음),
+            /// radius..radius*1.3 구간은 경사 완만한 해안(쇼어라인).
+            /// 호수 간 최소 250m 및 카브 영향 반경(최대 70*1.3=91m)끼리 겹치지 않는다.
+            /// </summary>
+            private static float ApplyLakeBasins(float x, float z, float height)
+            {
+                var lakes = Lakes;
+                for (int i = 0; i < lakes.Count; i++)
+                {
+                    TerrainLakeDef lake = lakes[i];
+                    float dx = x - lake.center.x;
+                    float dz = z - lake.center.z;
+                    float dist = Mathf.Sqrt(dx * dx + dz * dz);
+
+                    float carveRadius = lake.radius * LAKE_SHORE_FACTOR;
+                    if (dist >= carveRadius)
+                        continue;
+
+                    // 0(경계) → 1(중심) smoothstep 팔오프 — 중심에서 최대 depth만큼 파냄
+                    float t = 1f - Mathf.Clamp01(dist / carveRadius);
+                    float s = t * t * (3f - 2f * t);
+
+                    height -= lake.depth * s;
+                }
+                return height;
+            }
+
+            /// <summary>
+            /// 스폰지 평탄화 — (SPAWN_X, SPAWN_Z)=(728,-529) 반경 15m 이내 고주파 디테일 감쇠.
+            /// 저옥타브(저주파만)로 재계산한 높이로 블렌드해 경사 완만, 플레이어 시작지 부근 평탄 유지.
+            /// 반경 밖은 원래 높이 그대로 (smoothstep 페이드아웃).
+            /// </summary>
+            private static float ApplySpawnFlattening(float x, float z, float height, NationType nation, int seed)
+            {
+                float dx = x - SPAWN_X;
+                float dz = z - SPAWN_Z;
+                float dist = Mathf.Sqrt(dx * dx + dz * dz);
+                if (dist >= SPAWN_FLATTEN_RADIUS)
+                    return height;
+
+                // 0(중심, 완전 평탄) → 1(경계, 원래 높이) smoothstep
+                float t = Mathf.Clamp01(dist / SPAWN_FLATTEN_RADIUS);
+                float blend = t * t * (3f - 2f * t);
+
+                float lowFreqH = ComputeNationHeight(x, z, nation, seed, SPAWN_LOW_FREQ_OCTAVES);
+                return Mathf.Lerp(lowFreqH, height, blend);
+            }
+
+            /// <summary>
+            /// Perlin Noise로 지형 메시 + 물 메시 생성
+            /// </summary>
         /// <param name="biome">생성할 Biome 타입</param>
         /// <param name="seed">랜덤 시드 (결정론적 생성용)</param>
         /// <param name="resolution">그리드 해상도 (N×N vertices)</param>
