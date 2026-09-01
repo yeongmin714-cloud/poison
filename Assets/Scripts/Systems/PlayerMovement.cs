@@ -196,11 +196,25 @@ namespace ProjectName.Systems
 
                     // 스폰 위치 적용 (PlayerSpawnConfig에서 읽어옴 — 테스트씬과 MainScene 동기화)
                     Vector3 spawnPos = PlayerSpawnConfig.SpawnPosition;
-                    // y도 함께 적용: 지형 밑으로 추락하지 않도록 (지형 높이 위 2m)
-                    transform.position = new Vector3(spawnPos.x, spawnPos.y + 2f, spawnPos.z);
+                    // 지형 표면 높이를 정확히 계산해 그 바로 위(0.1m)에 착지시킨다.
+                    // (spawnPos.y는 지표면 기준 상대값. 실제 지형 높이로 raycast/계산해 위치 보정)
+                    float groundY = 0f;
+                    try
+                    {
+                        // 지형 높이 계산 (East 초원 Biome 기준, seed 42)
+                        groundY = ProjectName.Systems.TerrainGenerator.GetHeightAt(spawnPos.x, spawnPos.z, ProjectName.Core.Data.BiomeType.Plains, 42) + 1f; // Ground y=1
+                    }
+                    catch (System.Exception)
+                    {
+                        groundY = spawnPos.y; // 계산 실패 시 설정값 사용
+                    }
+                    // 지형 표면 바로 위 0.1m에 스폰 → 긴 낙하 없이 안전 착지, 추락 방지
+                    transform.position = new Vector3(spawnPos.x, groundY + 0.1f, spawnPos.z);
             
                     // CRITICAL: Re-enable CC after position is finalized
                     _controller.enabled = true;
+                    // CC를 스폰 직후 지형과 확실히 접촉시키도록 짧게 아래로 정렬
+                    _controller.Move(Vector3.down * 0.2f);
                 }
 
         private void Update()
