@@ -644,10 +644,46 @@ namespace ProjectName.Systems
             motion.y = _verticalVelocity;
             _controller.Move(motion * Time.deltaTime);
 
-            // === 지면 클램프 (추락 영구 방지) ===
-            // CharacterController가 콜라이더를 뚫어도, 쿼리(Raycast)로 지면을 읽어 항상 표면 위에 고정한다.
-            // 쿼리는 물리 시뮬레이션과 무관하게 동작하므로 SafetyFloor까지 추락하는 것을 방지한다.
-            ClampToGround();
+            // === 지면 고정 (추락 영구 방지 / 지형 위 안착) ===
+            // 물리 충돌·Raycast에 의존하지 않고, 지형을 만든 TerrainGenerator.GetHeightAt으로
+            // 현재 x,z의 지표면 높이를 수학적으로 도출해 그 위에 붙인다. 지형 생성과 같은 함수이므로
+            // 어떤 물리/카메라/콜라이더 문제와 무관하게 항상 지표면과 일치한다.
+            ClampToGroundByHeight();
+        }
+
+        /// <summary>
+        /// 지형 높이 함수(GetHeightAt)로 현재 x,z의 지표면 세계 y를 계산해,
+        /// 점프 중이 아닐 때 플레이어를 지표면(세계 y=1+높이) 바로 위에 강제로 붙인다.
+        /// Raycast/물리 시뮬레이션과 무관 — 구조적으로 추락·통과가 불가능하다.
+        /// </summary>
+        private void ClampToGroundByHeight()
+        {
+            if (_controller == null) return;
+
+            // 점프 중이면 지표면 고정하지 않음 (점프 상승)
+            if (_isJumping) return;
+
+            float groundWorldY;
+            try
+            {
+                groundWorldY = 1f + ProjectName.Systems.TerrainGenerator.GetHeightAt(
+                    transform.position.x, transform.position.z,
+                    ProjectName.Core.Data.BiomeType.Plains, 42);
+            }
+            catch (System.Exception) { return; }
+
+            // 발이 지표면보다 살짝 아래거나 가까우면(0.3m 이내) 지표면 위 0.05로 고정
+            float playerFootY = transform.position.y;
+            if (playerFootY < groundWorldY + 0.3f)
+            {
+                float targetY = groundWorldY + 0.05f;
+                if (Mathf.Abs(transform.position.y - targetY) > 0.001f)
+                {
+                    transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
+                    _verticalVelocity = 0f;
+                    _isGrounded = true;
+                }
+            }
         }
 
         /// <summary>

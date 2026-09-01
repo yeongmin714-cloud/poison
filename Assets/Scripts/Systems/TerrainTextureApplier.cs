@@ -115,6 +115,26 @@ namespace ProjectName.Systems
 
             // 4) 지형 위 서기 체크용 — 지형 표면 상대
             Debug.Log($"[DiagP1] 지형 표면 세계y={h+1f:F2} (스폰플레이어y={spawn.y:F2})");
+
+            // 5) 카메라 위치/회전 — 지형이 "위"에 보이는지(카메라가 지형 아래에서 위를 보는지) 판별
+            var cam = Camera.main;
+            if (cam != null)
+            {
+                Debug.Log($"[DiagP1] Camera '{cam.name}' worldPos=({cam.transform.position.x:F1},{cam.transform.position.y:F1},{cam.transform.position.z:F1}) euler=({cam.transform.eulerAngles.x:F1},{cam.transform.eulerAngles.y:F1},{cam.transform.eulerAngles.z:F1})");
+                // 지형 표면(1+g)보다 카메라가 아래인지
+                Debug.Log($"[DiagP1] 카메라가 지형표면({h+1f:F2})보다 {(cam.transform.position.y < h+1f ? "아래 → 위를 봄(지형이 천장)" : "위 → 아래를 봄(정상)")}");
+            }
+            else
+            {
+                Debug.LogWarning("[DiagP1] Main Camera 없음");
+            }
+
+            // 6) 플레이어 오브젝트 위치 (캐슬을 찾아)
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                Debug.Log($"[DiagP1] Player at ({player.transform.position.x:F1},{player.transform.position.y:F1},{player.transform.position.z:F1})");
+            }
             Debug.Log("[DiagP1] ===== 진단 끝 =====");
         }
  
