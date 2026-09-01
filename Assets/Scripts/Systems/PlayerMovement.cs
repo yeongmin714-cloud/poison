@@ -676,16 +676,32 @@ namespace ProjectName.Systems
                 else return;
             }
 
-            // CinemachineBrain 비활성 (1회) — 안 끄면 LateUpdate마다 vcam 위치로 덮어써짐
+            // Cinemachine 완전 차단 (1회) — vcam의 Follow/LookAt이 배치에서 직렬화 안 돼
+            // 카메라가 초기 위치에 고정되는 원인. vcam 오브젝트 비활성 + Brain 비활성.
             if (!_cinemachineBrainDisabled && _camera != null)
             {
+                var vcam = GameObject.Find("Player Camera");
+                if (vcam != null && vcam != gameObject) vcam.SetActive(false);
+
                 var brain = _camera.GetComponent("CinemachineBrain") as Behaviour;
-                if (brain != null && brain.enabled)
+                if (brain == null)
+                {
+                    // 문자열 검색 실패 대비: 타입 이름으로 재시도
+                    foreach (var comp in _camera.GetComponents<Component>())
+                    {
+                        if (comp != null && comp.GetType().Name == "CinemachineBrain")
+                        {
+                            ((Behaviour)comp).enabled = false;
+                            break;
+                        }
+                    }
+                }
+                else if (brain.enabled)
                 {
                     brain.enabled = false;
-                    Debug.Log("[PlayerMovement] CinemachineBrain 비활성 → 마우스 궤도 카메라 사용");
                 }
                 _cinemachineBrainDisabled = true;
+                Debug.Log("[PlayerMovement] Cinemachine(vcam+Brain) 비활성 → 마우스 궤도 카메라가 플레이어 추적");
             }
 
             // 마우스 이동 → 시점 회전 (우클릭 불필요, 이동 즉시 반영)
