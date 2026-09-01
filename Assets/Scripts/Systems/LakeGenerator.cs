@@ -74,6 +74,13 @@ namespace ProjectName.Systems
         /// </summary>
         public static void GenerateAllLakes(Transform parent)
         {
+            // 중복 가드: 이미 Lake_* 오브젝트가 있으면 스킵 (에디터 생성 + 런타임 호출 이중 방지)
+            if (parent != null && parent.Find("Lake_0") != null)
+            {
+                Debug.Log("[LakeGenerator] GenerateAllLakes: 기존 Lake_* 존재 — 스킵");
+                return;
+            }
+
             var lakes = TerrainGenerator.Lakes;
             if (lakes == null || lakes.Count == 0)
             {
@@ -88,9 +95,10 @@ namespace ProjectName.Systems
                     go.transform.SetParent(parent, false);
                 // ConstructLake가 transform.position.y를 _surfaceY(= waterLevel)로 맞춤
                 go.transform.position = new Vector3(def.center.x, def.waterLevel, def.center.z);
-                _pendingDef = def;
-                go.AddComponent<LakeGenerator>();
-                _pendingDef = null; // 소비 완료
+                var gen = go.AddComponent<LakeGenerator>();
+                // _pendingDef static 경로는 에디터(AddComponent 시 Awake 미호출)에서 유실되므로
+                // ConfigureLake로 직접 구성 — 에디터/런타임 양쪽 모두 확실.
+                gen.ConfigureLake(def);
             }
             Debug.Log($"[LakeGenerator] GenerateAllLakes: {lakes.Count} lakes 확정");
         }

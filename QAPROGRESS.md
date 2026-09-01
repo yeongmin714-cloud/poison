@@ -652,3 +652,50 @@ Cross(Edge1, Edge2) = (0, -dx·dz, 0) = **법선이 아래(-Y)를 향함**.
 6. Directional Light 추가 (warm tint, intensity 1.5)
 
 **컴파일 검증:** ✅ Unity 6000.4.10f1 batchmode 씬 로드 정상
+
+---
+
+## 2026-09-01 지형 현실감 개선 (Phase T1-T5)
+
+**상태:** ✅ 코드 QA 리뷰 완료 + 배치컴파일 통과 ("Exiting batchmode successfully", error CS 0) — **Play 시각검증 대기**.
+
+### 변경 요약
+
+| Phase | 내용 | 핵심 구현 |
+|:----|:-----|:--------|
+| **T1** | 방위별 진폭 증폭 | TerrainGenerator.GetNationParams: 초원(Plains) 7.0 / 사막(Desert) 3.5 / 설산(Tundra, plateau+ridged) 10.0 / 화산(Volcanic, plateau) 7.0 / 엠파이어(Empire, plateau 1.0) 0.2 유지. ridged 믹스(RIDGED_MIX 0.3)는 Tundra만 적용 |
+| **T2** | 결정론적 호수 6개 | 인라인 LCG(고정 시드 `1234567891L` 정도, UnityEngine.Random 미사용)로 위치/반경/depth 산출 → `ComputeTerrainHeight`를 공통 관통하는 `ApplyLakeBasins`(smoothstep 카브, radius*1.3 해안) + `ApplySpawnFlattening`(LOW_FREQ_OCTAVES=2, 반경15m). `TerrainLakeDef` struct + `Lakes` 지연초기화 IReadOnlyList API. 제외존: 엠파이어 반경120m, 경계±(1000-150m)여백, 호수간≥250m |
+| **T3** | GLB 프롭 ~900 배치 | TerrainModelPlacer.PlaceAllIfNeeded: 나무 ~500(시도1050, East 수락1.0)+바위 ~400(시도595, West/South 수락1.0), 바이옴 수락확률(TreeAcceptance/RockAcceptance), 제외존(엠파이어120m, 호수radius*1.15, 스폰5m, 경계±950), y=1f+GetHeightAt, **Default 레이어**, 고정시드 System.Random(20260901) |
+| **T4** | 잔디 최대 3000 상한 | GrassRenderer.Bootstrap(followTarget, parent) 싱글톤+마커 가드, GLB 잔디 7종 로드(폴백 quad), 바이옴 밀도(East 6/셀, North 2/셀, 남서 0, Empire 120m 배제), MaxInstances 3000 상한, 셀 5m 이동 시에만 재배치(조건부, 프레임당 전체 재구축 아님)， 호수 waterLevel 아래/해안 5m 제외 |
+| **T5** | 4방위 흙길 4개 | TerrainPathGenerator.ApplyPathsToTerrain(mesh, groundTransform): 황제국 반경60m 가장자리→4방위(E/N/W/S) 700m 흙길, 지형 메시 정점색(Color.Lerp 블렌드, URP Lit _BaseColor 지원), 호수 겹치면 radius*1.4 원호 우회(BuildRoadWithLakeDetour) |
+
+### 코드 QA (체크리스트 A~I)
+
+| 항목 | 결과 | 비고 |
+|:----|:---:|:-----|
+| A. API 일치 | ✅ OK | GameSetup 4개 호출 시그니처 전부 일치(TerrainPropPlacer/TerrainModelPlacer `PlaceAllIfNeeded(Transform)`, `ApplyPathsToTerrain(Mesh, Transform)`, `GrassRenderer.Bootstrap(Transform, Transform>). FixMainScene `PlaceAllIfNeeded(ground.transform` — 인자 Transform 정상. |
+| B. 중복 실행 가드 | ✅ OK | PlaceAllIfNeeded 마커 로직 2종 존재, GrassRenderer `_activeInstance` 싱글톤+`FindAnyObjectByType` 폴백, LakeGenerator `_constructed` 가드 존재. |
+| C. y 좌표 관례 일관 | ✅ OK | 프롭(TerrainModelPlacer GROUND_BASE=1f+GetHeightAt, TerrainPropPlacer 동일), 잔디(GrassRenderer `1f+GetHeightAt`) 모두 world y = Ground 기저 1f + 높이 일치. |
+| D. 레이어 안전 | ✅ OK | 프롭 2종 모두 `layer=0(Default`. MonsterSpawner.cs:317 스폰 raycast가 `LayerMask.GetMask("Ground","Terrain")`만 사용 → Default 프롭 콜라이더 자동 무시 확인. |
+| E. 결정론성 | ✅ OK(사소한 관찰 1건) | 5개 파일 모두 `UnityEngine.Random` / 무시드 `new Random(` / `Random.Range` 사용 없음: TerrainGenerator=자체 LCG(LakeRand), TerrainModelPlacer/TerrainPropPlacer=`System.Random(고정 시드)`, GrassRenderer.RefreshCells=`System.Random(20260821`, TerrainPathGenerator=사용 없음.**관찰:** GrassRenderer `PlaceBlades`(레거시, 비 T4 경로)의 폴백이 `gameObject.GetHashCode()`를 시드로 씀. T4 부트스트랩 경로와 무관해 미수정(보고만`. |
+| F. 와인딩 | ✅ OK | TerrainTextureApplier: 첫 삼각형 법선 `Cross(b-a, c-a)` — 재표본된 verts로 계산, `Dot(normal, Vector3.up)<0`일 때만 `(i+1,i+2)` 인덱스 교환 → 와인딩 반전, 이후 `meshFix.RecalculateBounds()` 호출 확인. 이중 반전 없음(조건부). Ground가 (0,1,0) identity라 로컬 +Y=월드 up 유효. |
+| G. LakeGenerator Awake 게이팅 | ⚠️ **문제 발견 (보고)** | 기본값 스킵 조건(`_configured || _radius≠5 || _depth≠0.5 || _surfaceY≠0`)은 정상. 그러나 `GenerateAllLakes`는 **픽스트 타임(FixMainScene, Editor)에서만 호출**되는데, Editor AddComponent는 Awake를 즉시 호출하지 않으므로 `_pendingDef`(static, AddComponent 직전 세팅→직후 null)가 **Awake에서 소비되지 않고 버려짐** → Play 진입 시 모든 LakeGenerator가 기본값 상태→ 게이팅으로 ConstructLake 스킵 → **호수가 나타나지 않는 잠재 결함.** (게임 런타임에서 GenerateAllLakes를 부르면 정상 동작. 수정은 설계 결정 필요 — 권장: `GenerateAllLakes`가 `AddComponent<LakeGenerator>().ConfigureLake(def)`로 직접 구성 or 픽스트 타임 Awake 타이밍 보장. **코드 미변경(보고만)**. |
+| H. 성능 상식 | ✅ OK | GrassRenderer 셀 재배치는 `Update`에서 스냅된 셀 좌표가 바뀔 때만 `RefreshCells`(조건부, 프레임당 전체 재구축 아님). TerrainModelPlacer 배치 루프에 `Physics.Raycast` 없음(GetHeightAt 수학 샘플링.). |
+| I. 사소한 수정 | — | 문서 · 코드 큰 재작성 없음. 아래 "발견·수정한 버그" 목록 + G항목 결함(보고) 만 기록. |
+
+### QA 중 점검·확인·(기존) 발견·수정한 버그 목록
+
+| # | 버그 | 영향/수정 위치 |
+|:-:|:----|:----------|
+| 1 | **중괄호 누락** | 블록/루프 스코프 오류 → 수정 |
+| 2 | **nullable struct** | `TerrainGenerator.TerrainLakeDef?` — 구조체에 null 배정하면 컴파일 에러(CS) → `_pendingDef`를 nullable struct로 선언해 해결 |
+| 3 | **long→int 캐스팅** | LCG 시드 연산(1103515245L×…)에서 int 축약 오버플로/정밀도 손실 위험 → `long` 유지, `(int)` 명시 캐스팅은 필요한 곳만 |
+| 4 | **CapsuleCollider.height** | `AddTreeCollider`에서 `height = 2.4f * s` — CapsuleCollider는 height(반지름 기준 아님) 필드 사용 확정 |
+| 5 | **Place→PlaceAllIfNeeded 교체** | FixMainScene이 기존 `Place()`(중복 `Environment` 생성 리스크)를 제거하고 `TerrainModelPlacer.PlaceAllIfNeeded(ground.transform)`(마커 가드)으로 호출 교체 — 씬 재생성 시에도 중복 배치 안전 |
+| 6 | **(신규 발견, G항목)** `_pendingDef` 흐름 — Editor 픽스트 타임에서 static pendingDef가 Awake 미소비로 소실 → 호수 6개가 Play에 안 나타날 수 있음 | **수리 완료**: GenerateAllLakes가 `AddComponent 후 ConfigureLake(def) 직접 호출`로 변경(Awake 타이밍 무관) + `Lake_0` 존재 시 스킵 중복 가드 + GameSetup.BootstrapTerrainDeco에 런타임 GenerateAllLakes 호출 추가(WaterBodies 부모). 현재 씬/재생성 씬 양쪽 커버. 재컴파일 통과 |
+
+### 검증 상태
+
+- ✅ **배치컴파일 통과 (2회)** — Unity 6000.4.10f1, `Exiting batchmode successfully`, error CS 0 (T1-T5 통합 후 + G항목 수리 후).
+- ⏳ **Play 시각검증 대기** — 프롭/잔디/흙길/호수 실제 렌더링 + y좌표 정렬 + 와인딩(지형이 위에서 보임+충돌정상) 눈 확인 필요.
+ 콘솔 확인 로그: `[GameSetup][TerrainDeco]` 4줄(호수/프롭/길/잔디), `[LakeGenerator] GenerateAllLakes: 6 lakes 확정`, `[DiagP1]` raycast 지형 검출.

@@ -58,6 +58,12 @@ public class GameSetup : MonoBehaviour
             Debug.Log("[GameSetup][TerrainDeco] ✅ TerrainDeco 오브젝트 생성");
         }
 
+        // ── 호수 생성 (Phase T2 — WaterBodies 부모, 중복 가드 내장) ──────
+        var waterBodies = GameObject.Find("WaterBodies");
+        ProjectName.Systems.LakeGenerator.GenerateAllLakes(
+            waterBodies != null ? waterBodies.transform : decoGO.transform);
+        Debug.Log("[GameSetup][TerrainDeco] ✅ LakeGenerator.GenerateAllLakes 완료");
+
         // ── 프롭 배치 (스폰지 인근 개별 프롭, 콜라이더) ───────────────
         TerrainPropPlacer.PlaceAllIfNeeded(decoGO.transform);
         Debug.Log("[GameSetup][TerrainDeco] ✅ TerrainPropPlacer.PlaceAllIfNeeded 완료");
