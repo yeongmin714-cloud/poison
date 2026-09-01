@@ -205,8 +205,8 @@ namespace ProjectName.Systems
                         spawnGroundY = ProjectName.Systems.TerrainGenerator.GetHeightAt(spawnPos.x, spawnPos.z, ProjectName.Core.Data.BiomeType.Plains, 42) + 1f;
                     }
                     catch (System.Exception) { /* 기본값 유지 */ }
-                    // 지형 표면 위 0.4m에 스폰 → 잠깐 아래로 내려가 지형 MeshCollider에 안착 (추락 아님)
-                    transform.position = new Vector3(spawnPos.x, spawnGroundY + 0.4f, spawnPos.z);
+                    // 지형 표면 위에 캡슐 중심(height/2=1.0)을 두어 바닥이 지면에 닿게 스폰
+                    transform.position = new Vector3(spawnPos.x, spawnGroundY + 1.0f, spawnPos.z);
             
                     // CRITICAL: Re-enable CC after position is finalized
                     _controller.enabled = true;
@@ -657,14 +657,15 @@ namespace ProjectName.Systems
             ClampToGroundByHeight();
         }
 
-        /// <summary>마우스 이동에 따라 회전하는 3인칭 궤도 카메라. CinemachineBrain이 매프레임
-        /// 카메라를 덮어쓰므로 1회 비활성 후 수동 궤도(요우/피치)로 제어한다.</summary>
+        /// <summary>마우스 이동에 따라 회전하는 탑다운(3/4 뷰) 카메라. CinemachineBrain이 매프레임
+        /// 카메라를 덮어쓰므로 1회 비활성 후 수동 궤도(요우/피치)로 제어한다.
+        /// 피치 기본 65°(탑다운에 가까움)로 플레이어가 항상 화면에 보인다.</summary>
         private float _camYaw = 0f;
-        private float _camPitch = 22f;
-        private const float CamDistance = 7.5f;
+        private float _camPitch = 65f;
+        private const float CamDistance = 11f;
         private const float MouseSensitivity = 0.12f;
-        private const float PitchMin = -40f;
-        private const float PitchMax = 75f;
+        private const float PitchMin = 30f;   // 탑다운 유지 (너무 수평 안 되게)
+        private const float PitchMax = 82f;   // 거의 수직 탑다운까지
         private bool _cinemachineBrainDisabled = false;
 
         private void UpdateMouseCameraOrbit()
@@ -785,8 +786,10 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 지형 높이 함수(GetHeightAt)로 현재 x,z의 지표면 세계 y를 계산해,
-        /// 점프 중이 아닐 때 플레이어를 지표면(세계 y=1+높이) 바로 위에 강제로 붙인다.
-        /// Raycast/물리 시뮬레이션과 무관 — 구조적으로 추락·통과가 불가능하다.
+        /// 점프 중이 아닐 때 플레이어를 지표면 위에 "온전히 서게" 고정한다.
+        /// NOTE: CharacterController position = 캡슐 중심(height 2)이므로
+        ///       position.y = 표면 + height/2 여야 캡슐 바닥이 지면에 닿는다.
+        ///       (이전 표면+0.05는 캡슐 하단 1m가 지형에 파묻혀 위에서 안 보였음)
         /// </summary>
         private void ClampToGroundByHeight()
         {
@@ -795,26 +798,35 @@ namespace ProjectName.Systems
             // 점프 중이면 지표면 고정하지 않음 (점프 상승)
             if (_isJumping) return;
 
-            float groundWorldY;
+            // 1) 실제 지형 콜라이더 raycast (와인딩 픽스로 이제 위에서 맞음) — Ground 레이어만
+            float surfaceY = float.MinValue;
+            RaycastHit[] gHits = Physics.RaycastAll(
+                new Vector3(transform.position.x, transform.position.y + 30f, transform.position.z),
+                Vector3.down, 120f, 1 << 9, QueryTriggerInteraction.Ignore);
+            foreach (var gh in gHits)
+            {
+                if (gh.collider == null || gh.collider.transform.IsChildOf(transform)) continue;
+                if (gh.point.y > surfaceY) surfaceY = gh.point.y; // 가장 높은 지면 = 실제 표면
+            }
+
+            // 2) 수식 fallback/하한 (Ground y=1 + 지형 높이) — raycast 실패 시에도 안전
+            float formulaY;
             try
             {
-                groundWorldY = 1f + ProjectName.Systems.TerrainGenerator.GetHeightAt(
+                formulaY = 1f + ProjectName.Systems.TerrainGenerator.GetHeightAt(
                     transform.position.x, transform.position.z,
                     ProjectName.Core.Data.BiomeType.Plains, 42);
             }
-            catch (System.Exception) { return; }
+            catch (System.Exception) { formulaY = 1.24f; }
+            if (surfaceY < formulaY) surfaceY = formulaY;
 
-            // 발이 지표면보다 살짝 아래거나 가까우면(0.3m 이내) 지표면 위 0.05로 고정
-            float playerFootY = transform.position.y;
-            if (playerFootY < groundWorldY + 0.3f)
+            // 3) 캡슐 중심 = 표면 + height/2 → 바닥이 지면에 닿음 (파묻힘 해소)
+            float targetY = surfaceY + _controller.height * 0.5f + 0.02f;
+            if (Mathf.Abs(transform.position.y - targetY) > 0.001f)
             {
-                float targetY = groundWorldY + 0.05f;
-                if (Mathf.Abs(transform.position.y - targetY) > 0.001f)
-                {
-                    transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
-                    _verticalVelocity = 0f;
-                    _isGrounded = true;
-                }
+                transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
+                _verticalVelocity = 0f;
+                _isGrounded = true;
             }
         }
 
