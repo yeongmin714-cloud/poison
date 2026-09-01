@@ -24,7 +24,7 @@ namespace ProjectName.Core
         [Header("Respawn")]
         [SerializeField] private float _respawnHPPercent = 0.1f; // 최대체력의 10%로 부활
         [SerializeField] private float _respawnDelay = 3f;
-        [SerializeField] private Vector3 _defaultRespawnPosition = Vector3.zero;
+        [SerializeField] private Vector3 _defaultRespawnPosition = new Vector3(1173f, 0f, -852f);
         [Tooltip("true: 가장 가까운 플레이어 소유 영지에서 부활, false: _defaultRespawnPosition")]
         [SerializeField] private bool _respawnAtNearestTerritory = true;
 
