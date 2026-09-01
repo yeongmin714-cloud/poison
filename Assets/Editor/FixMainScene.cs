@@ -461,7 +461,7 @@ public static class FixMainScene
                 AssetDatabase.Refresh();
             }
 
-            // 항상 재적용 → 텍스처(_BaseMap=Terrain_Grass)와 URP 설정이 디스크 직렬화에 남음
+            // 항상 재적용 → 텍스처(_BaseMap=east_grass1, 폴백=Terrain_Grass)와 URP 설정이 디스크 직렬화에 남음
             ApplyGroundMaterialParams(groundMat, grassTex, normalTex);
             EditorUtility.SetDirty(groundMat);
             AssetDatabase.SaveAssets();
@@ -1367,18 +1367,29 @@ namespace ProjectName.Systems.Animation.Procedural
 
     // ================================================================
     // Helper: Ground_Grass_Mat 파라미터 재적용 (URP + Resources 복사본 공용)
-    // _BaseMap=Terrain_Grass(변경 불가)를 항상 디스크 직렬화에 남기기 위해 사용.
+    // _BaseMap=east_grass1(실제 초록 PNG, guid caaecd65a5efab84a8ec7eacc2b077a6)를 항상
+    // 디스크 직렬화에 남기기 위해 사용. 절차 텍스처는 대체 폴백.
     // ================================================================
     static void ApplyGroundMaterialParams(Material m, Texture2D grassTex, Texture2D normalTex)
     {
-        if (m == null || grassTex == null)
+        if (m == null)
         {
-            Debug.LogWarning("[FixMainScene] ApplyGroundMaterialParams: 머티리얼 또는 grassTex null로 건너뜀");
+            Debug.LogWarning("[FixMainScene] ApplyGroundMaterialParams: 머티리얼 null로 건너뜀");
             return;
         }
-        m.SetTexture("_BaseMap", grassTex);
+
+        // 실제 초록 PNG east_grass1 우선, 없으면 절차 생성 Terrain_Grass로 대체.
+        var baseTex = LoadBaseMapTexture();
+        if (baseTex == null) baseTex = grassTex;
+        if (baseTex == null)
+        {
+            Debug.LogWarning("[FixMainScene] ApplyGroundMaterialParams: baseTex(east_grass1/grassTex) null로 건너뜀");
+            return;
+        }
+
+        m.SetTexture("_BaseMap", baseTex);
         m.SetTexture("_BumpMap", normalTex);
-        m.SetTexture("_MainTex", grassTex); // URP fallback
+        m.SetTexture("_MainTex", baseTex); // URP fallback
         m.SetFloat("_Smoothness", 0.1f);
         m.SetFloat("_Metallic", 0f);
         m.SetColor("_BaseColor", new Color(0.4f, 0.6f, 0.3f, 1f));
@@ -1399,6 +1410,15 @@ namespace ProjectName.Systems.Animation.Procedural
         m.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
         m.DisableKeyword("_SURFACE_TYPE_TRANSPARENT_PREMULTIPLY");
         m.renderQueue = 2000; // Geometry queue
+    }
+
+    // 실제 초록 초본 PNG east_grass1(guid caaecd65a5efab84a8ec7eacc2b077a6)을 로드.
+    // 없으면 null 반환(호출부에서 절차 텍스처로 대체).
+    static Texture2D LoadBaseMapTexture()
+    {
+        string path = AssetDatabase.GUIDToAssetPath("caaecd65a5efab84a8ec7eacc2b077a6");
+        if (string.IsNullOrEmpty(path)) return null;
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
     }
 
     // ================================================================

@@ -397,7 +397,12 @@ public class GameSetup : MonoBehaviour
     private void SetupWorldComponents()
     {
         // ── 지형 머티리얼 적용 (런타임) ──────────────────────────────
-        // FixMainScene에서 생성한 머티리얼 에셋을 로드하여 적용
+        // [비활성화] TerrainTextureApplier가 생성한 실제 초록 PNG(east_grass1) 기반의
+        // URP/Lit 재질(Terrain_East_Mat)을 유지하기 위해 아래의 덮어쓰기 코드를 제거함.
+        // 이 블록이 Ground_Inner의 MeshRenderer 재질을 Resources/URP/Ground_Grass_Mat로
+        // 강제로 덮어써서 지형이 안 보이는 근본 원인이었기 때문.
+        // (MonsterSpawner/HUD 등 아래의 다른 시스템 생성 로직과는 무관함.)
+        /*
         var groundObj = GameObject.Find("Ground_Inner");
         if (groundObj != null)
         {
@@ -407,9 +412,6 @@ public class GameSetup : MonoBehaviour
                 var groundMat = Resources.Load<Material>("URP/Ground_Grass_Mat");
                 if (groundMat != null)
                 {
-                    // 자기치유: 직렬화 누락 등으로 _BaseMap이 비어 있으면
-                    // Resources 복사본(UAssets/Resources/URP)의 Terrain_Grass로 복구.
-                    // 에셋 상태와 무관하게 Play 모드에서 초록 지형이 보이도록 보장한다.
                     if (groundMat.GetTexture("_BaseMap") == null)
                     {
                         var terrainGrass = Resources.Load<Texture2D>("URP/Terrain_Grass");
@@ -425,8 +427,6 @@ public class GameSetup : MonoBehaviour
                         }
                     }
 
-                    // 렌더러에 실제 반영: sharedMaterial을 재지정하여 dirty 상태로 만들어
-                    // 다음 프레임에 재렌더되도록 한다.
                     mr.sharedMaterial = groundMat;
                     Debug.Log("[GameSetup] ✅ 지형 머티리얼 적용 완료 (Ground_Grass_Mat)");
                 }
@@ -436,6 +436,7 @@ public class GameSetup : MonoBehaviour
                 }
             }
         }
+        */
 
         // MonsterSpawner (원점)
         if (FindAnyObjectByType<MonsterSpawner>() == null)
