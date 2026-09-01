@@ -35,7 +35,78 @@ public class GameSetup : MonoBehaviour
         SetupPlayerComponents();
         SetupWorldComponents();
 
+        // ── TERRAIN DECO BOOTSTRAP (Phase T3-T5) ──────────────────────
+        // 프롭/길/잔디 런타임 부트스트랩. 각 API 내부에 중복 가드가 있어
+        // 씬 로드/씬 재생성(FixMainScene) 양쪽에서 안전하게 호출된다.
+        BootstrapTerrainDeco();
+
         _autoSetup = false; // 한 번만 실행
+    }
+
+    /// <summary>
+    /// 지형 데코 런타임 부트스트랩 (Phase T3-T5).
+    /// 순서: 프롭 → 길 → 잔디(잔디가 가장 무거움).
+    /// 각 단계에서 실패해도 게임은 계속된다(로그만).
+    /// </summary>
+    private void BootstrapTerrainDeco()
+    {
+        // ── 데코 부모 오브젝트 확보 ──────────────────────────────────
+        var decoGO = GameObject.Find("TerrainDeco");
+        if (decoGO == null)
+        {
+            decoGO = new GameObject("TerrainDeco");
+            Debug.Log("[GameSetup][TerrainDeco] ✅ TerrainDeco 오브젝트 생성");
+        }
+
+        // ── 프롭 배치 (스폰지 인근 개별 프롭, 콜라이더) ───────────────
+        TerrainPropPlacer.PlaceAllIfNeeded(decoGO.transform);
+        Debug.Log("[GameSetup][TerrainDeco] ✅ TerrainPropPlacer.PlaceAllIfNeeded 완료");
+
+        // ── GLB 모델 배치 (나무~500/바위~400) ────────────────────────
+        TerrainModelPlacer.PlaceAllIfNeeded(decoGO.transform);
+        Debug.Log("[GameSetup][TerrainDeco] ✅ TerrainModelPlacer.PlaceAllIfNeeded 완료");
+
+        // ── 흙길 4개 (지형 메시 정점색, T5) ──────────────────────────
+        // Ground_Inner의 MeshFilter.sharedMesh에서 Mesh를 얻어 ApplyPathsToTerrain 호출.
+        // TerrainTextureApplier가 런타임 Start에서 메시 높이만 재표본하므로(정점 위치만 변경,
+        // 색상 유지) 흙길 색상과 충돌하지 않는다.
+        try
+        {
+            var groundInner = GameObject.Find("Ground_Inner");
+            if (groundInner != null)
+            {
+                var mf = groundInner.GetComponent<MeshFilter>();
+                if (mf != null && mf.sharedMesh != null)
+                {
+                    TerrainPathGenerator.ApplyPathsToTerrain(mf.sharedMesh, groundInner.transform);
+                    Debug.Log("[GameSetup][TerrainDeco] ✅ TerrainPathGenerator.ApplyPathsToTerrain 완료 (흙길 4개)");
+                }
+                else
+                {
+                    Debug.LogWarning("[GameSetup][TerrainDeco] ⚠️ Ground_Inner의 MeshFilter/sharedMesh가 없어 흙길 생성 생략");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[GameSetup][TerrainDeco] ⚠️ Ground_Inner 오브젝트를 찾을 수 없어 흙길 생성 생략");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("[GameSetup][TerrainDeco] ❌ 흙길 생성 실패 (게임 계속): " + e.ToString());
+        }
+
+        // ── 잔디 렌더러 (플레이어 따라다님, 가장 무거움 — 마지막) ──────
+        var player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            GrassRenderer.Bootstrap(player.transform, decoGO.transform);
+            Debug.Log("[GameSetup][TerrainDeco] ✅ GrassRenderer.Bootstrap 완료 (잔디 렌더러)");
+        }
+        else
+        {
+            Debug.LogWarning("[GameSetup][TerrainDeco] ⚠️ 플레이어를 찾을 수 없어 잔디 생성 생략");
+        }
     }
 
     /// <summary>

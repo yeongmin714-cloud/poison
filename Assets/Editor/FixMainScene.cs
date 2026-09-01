@@ -542,8 +542,9 @@ public static class FixMainScene
         ground.AddComponent<ProjectName.Systems.TerrainTextureApplier>();
         ground.AddComponent<ProjectName.Systems.NationTerrainController>();
 
-        // NEW: TerrainModelPlacer로 GLB 환경 모델 배치 (GPU Instancing + 3링 + 국가별)
-        ProjectName.Systems.TerrainModelPlacer.Place(ground);
+        // NEW: TerrainModelPlacer로 GLB 환경 모델 배치 (GPU Instancing + 바이옴별 분포)
+        // (런타임 GameSetup.BootstrapTerrainDeco에서도 호출되지만 내부 마커 가드로 중복 안전)
+        ProjectName.Systems.TerrainModelPlacer.PlaceAllIfNeeded(ground.transform);
 
         // NEW: 물 시스템 연동 (LakeGenerator + WaterBody) - 저지대 자동 물 메시 생성
         CreateWaterSystem(ground);

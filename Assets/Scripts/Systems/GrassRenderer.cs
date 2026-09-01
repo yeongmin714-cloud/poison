@@ -1,16 +1,30 @@
 using UnityEngine;
 using System.Collections.Generic;
+using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
 {
     /// <summary>
-    /// Phase G1-04: GPU Instancing grass renderer.
-    /// Renders thousands of grass blades with wind animation, 30m distance culling,
-    /// and biome color variation using Graphics.DrawMeshInstanced.
+    /// Phase G1-04 + T4: GPU Instancing grass renderer with static bootstrap.
+    /// Renders thousands of grass blades with wind animation, 30~45m culling,
+    /// biome/nation density rules (East=dense, North=low, South/West=none,
+    /// Empire 120m excluded, lake shore excluded) using Graphics.DrawMeshInstanced.
+    ///
+    /// T4 additions:
+    ///   - public static GrassRenderer Bootstrap(Transform followTarget, Transform parent)
+    ///     static bootstrapping entry point that follows the player and places grass
+    ///     around them with cell-based relocation on movement.
+    ///   - GLB grass loading from Resources/Models/UserProvided/terrain/grass (7 prefabs).
+    ///     Mesh extracted from GLB prefab; falls back to a procedural quad if none found.
+    ///   - Max instance cap (MaxInstances) enforced during placement.
     /// </summary>
     public class GrassRenderer : MonoBehaviour
     {
         private const int MaxBatchSize = 1023;
+        private const int MaxInstances = 3000;
+
+        // Singleton guard for Bootstrap duplicate protection.
+        private static GrassRenderer _activeInstance;
 
         [Header("Meshes")]
         [SerializeField] private Mesh _grassBladeStraight;
@@ -26,11 +40,22 @@ namespace ProjectName.Systems
         [SerializeField, Range(0f, 15f)] private float _windAmount = 5f;
 
         [Header("Performance")]
-        [SerializeField] private float _cullDistance = 30f;
+        [SerializeField] private float _cullDistance = 45f;
 
         [Header("Biome")]
         [SerializeField] private Color _baseColor = new Color(0.2f, 0.7f, 0.15f);
         [SerializeField, Range(0f, 0.3f)] private float _colorVariation = 0.1f;
+
+        // GLB grass meshes (loaded from Resources, 7 variants expected)
+        private List<Mesh> _grassMeshes = new List<Mesh>();
+
+        // Cell-follow system
+        [Header("Placement (T4)")]
+        [SerializeField] private float _cellSize = 5f;
+        [SerializeField] private int _cellRadius = 8;          // grid radius in cells around follow target
+        [SerializeField] private int _eastPerCell = 6;         // dense (초원)
+        [SerializeField] private int _northPerCell = 2;        // low (설산)
+        private Transform _followTarget;
 
         // Instance data storage
         private struct GrassBladeInstance
@@ -38,7 +63,7 @@ namespace ProjectName.Systems
             public Vector3 position;
             public Quaternion rotation;
             public Vector3 scale;
-            public int meshVariant; // 0=straight, 1=bent left, 2=bent right
+            public int meshVariant; // index into _grassMeshes
             public float windOffset;
         }
 
@@ -70,19 +95,72 @@ namespace ProjectName.Systems
         public float ColorVariation => _colorVariation;
         public int InstanceCount => _instances != null ? _instances.Count : 0;
         public int BatchCount => _batches != null ? _batches.Count : 0;
+        public int LoadedGrassMeshCount => _grassMeshes != null ? _grassMeshes.Count : 0;
+        public static GrassRenderer ActiveInstance => _activeInstance;
+
+        // ================================================================
+        // T4 Static Bootstrap
+        // ================================================================
+
+        /// <summary>
+        /// Static bootstrapping entry point. Creates (or returns existing) a GrassRenderer
+        /// that follows <paramref name="followTarget"/> (typically the player) and places
+        /// grass around it with cell-based relocation. Duplicate-instance guarded.
+        /// </summary>
+        /// <param name="followTarget">Transform the grass grid follows (player).</param>
+        /// <param name="parent">Optional parent transform (e.g. a Systems root). May be null.</param>
+        /// <returns>The active GrassRenderer component.</returns>
+        public static GrassRenderer Bootstrap(Transform followTarget, Transform parent)
+        {
+            if (_activeInstance != null)
+            {
+                // Re-point follow target and ensure it is active.
+                _activeInstance.SetFollowTarget(followTarget);
+                _activeInstance.gameObject.SetActive(true);
+                return _activeInstance;
+            }
+
+            // Fallback: find an existing component in the scene if singleton got lost.
+            GrassRenderer existing = FindAnyObjectByType<GrassRenderer>();
+            if (existing != null && existing != _activeInstance)
+            {
+                _activeInstance = existing;
+                existing.SetFollowTarget(followTarget);
+                return existing;
+            }
+
+            GameObject go = new GameObject("GrassRenderer");
+            go.layer = LayerMask.NameToLayer("Ground");
+            if (parent != null)
+                go.transform.SetParent(parent, false);
+
+            GrassRenderer renderer = go.AddComponent<GrassRenderer>();
+            renderer.SetFollowTarget(followTarget);
+            _activeInstance = renderer;
+            return renderer;
+        }
+
+        /// <summary>Assigns the follow target and rebuilds the surrounding grass cells.</summary>
+        public void SetFollowTarget(Transform target)
+        {
+            _followTarget = target;
+            if (_followTarget != null)
+                RefreshCells(_followTarget.position);
+        }
 
         // ================================================================
         // Public Methods
         // ================================================================
 
         /// <summary>
-        /// Sets the meshes used for the three grass blade variants.
+        /// Sets the meshes used for the three grass blade variants (legacy API).
         /// </summary>
         public void SetMeshes(Mesh straight, Mesh bentLeft, Mesh bentRight)
         {
             _grassBladeStraight = straight;
             _grassBladeBentLeft = bentLeft;
             _grassBladeBentRight = bentRight;
+            SyncLegacyMeshesIntoVariantPool();
         }
 
         /// <summary>
@@ -135,7 +213,43 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// Clears all instances and rebuilds placement from a list of positions.
+        /// Loads GLB grass meshes from Resources/Models/UserProvided/terrain/grass.
+        /// Falls back to legacy blade meshes / procedural quad if none found.
+        /// </summary>
+        public void LoadGrassMeshes()
+        {
+            _grassMeshes = new List<Mesh>();
+
+            GameObject[] grassPrefabs = Resources.LoadAll<GameObject>("Models/UserProvided/terrain/grass");
+            foreach (var prefab in grassPrefabs)
+            {
+                if (prefab == null) continue;
+                MeshFilter mf = prefab.GetComponentInChildren<MeshFilter>();
+                if (mf != null && mf.sharedMesh != null)
+                {
+                    _grassMeshes.Add(mf.sharedMesh);
+
+                    // Try to pull a usable material from the GLB prefab.
+                    if (_material == null)
+                    {
+                        Renderer r = prefab.GetComponentInChildren<Renderer>();
+                        if (r != null && r.sharedMaterial != null)
+                            _material = r.sharedMaterial;
+                    }
+                }
+            }
+
+            // Ensure at least one mesh: fall back to legacy blade meshes, then procedural quad.
+            SyncLegacyMeshesIntoVariantPool();
+            if (_grassMeshes.Count == 0)
+            {
+                _grassMeshes.Add(CreateFallbackQuadMesh());
+                Debug.LogWarning("[GrassRenderer] No GLB grass found; using procedural quad fallback.");
+            }
+        }
+
+        /// <summary>
+        /// Clears all instances and rebuilds placement from a list of positions (legacy API).
         /// </summary>
         public void PlaceBlades(List<Vector3> positions, int seed = 0)
         {
@@ -156,11 +270,11 @@ namespace ProjectName.Systems
                     position = pos,
                     rotation = Quaternion.Euler(0f, (float)(rng.NextDouble() * 360f), 0f),
                     scale = new Vector3(
-                        0.8f + (float)(rng.NextDouble() * 0.4f), // 0.8~1.2 width
-                        0.8f + (float)(rng.NextDouble() * 0.4f), // 0.8~1.2 height
+                        0.8f + (float)(rng.NextDouble() * 0.4f),
+                        0.8f + (float)(rng.NextDouble() * 0.4f),
                         1f
                     ),
-                    meshVariant = rng.Next(0, 3),
+                    meshVariant = RandomMeshIndex(rng),
                     windOffset = (float)(rng.NextDouble() * Mathf.PI * 2f)
                 };
                 _instances.Add(inst);
@@ -168,6 +282,136 @@ namespace ProjectName.Systems
 
             RebuildBatches();
         }
+
+        // ================================================================
+        // Cell-based placement (T4 follow system)
+        // ================================================================
+
+        private int RandomMeshIndex(System.Random rng)
+        {
+            if (_grassMeshes == null || _grassMeshes.Count == 0) return 0;
+            return rng.Next(0, _grassMeshes.Count);
+        }
+
+        /// <summary>
+        /// Rebuilds grass around a world anchor by iterating a square cell grid with
+        /// nation/hydrology density rules. Enforces MaxInstances cap.
+        /// </summary>
+        public void RefreshCells(Vector3 anchor)
+        {
+            if (_grassMeshes == null || _grassMeshes.Count == 0)
+                LoadGrassMeshes();
+
+            System.Random rng = new System.Random(20260821); // fixed deterministic seed (no UnityEngine.Random)
+
+            _instances = new List<GrassBladeInstance>(MaxInstances);
+
+            int radiusCells = Mathf.Max(1, _cellRadius);
+            float half = _cellSize * 0.5f;
+
+            for (int cz = -radiusCells; cz <= radiusCells; cz++)
+            {
+                for (int cx = -radiusCells; cx <= radiusCells; cx++)
+                {
+                    if (_instances.Count >= MaxInstances) break;
+
+                    float cellCenterX = anchor.x + cx * _cellSize;
+                    float cellCenterZ = anchor.z + cz * _cellSize;
+
+                    int budget = GetGrassBudgetForCell(cellCenterX, cellCenterZ);
+                    if (budget <= 0) continue;
+
+                    for (int k = 0; k < budget; k++)
+                    {
+                        if (_instances.Count >= MaxInstances) break;
+
+                        float wx = cellCenterX + ((float)(rng.NextDouble() * 2.0 - 1.0) * half);
+                        float wz = cellCenterZ + ((float)(rng.NextDouble() * 2.0 - 1.0) * half);
+
+                        if (!IsGrassAllowed(wx, wz)) continue;
+
+                        // 월드 지표면 y = 1f + GetHeightAt(...) (기저 1f).
+                        float height = 1f + TerrainGenerator.GetHeightAt(wx, wz, BiomeType.Plains, 42);
+
+                        GrassBladeInstance inst = new GrassBladeInstance
+                        {
+                            position = new Vector3(wx, height, wz),
+                            rotation = Quaternion.Euler(0f, (float)(rng.NextDouble() * 360f), 0f),
+                            scale = new Vector3(
+                                0.8f + (float)(rng.NextDouble() * 0.4f),
+                                0.8f + (float)(rng.NextDouble() * 0.4f),
+                                1f
+                            ),
+                            meshVariant = RandomMeshIndex(rng),
+                            windOffset = (float)(rng.NextDouble() * Mathf.PI * 2f)
+                        };
+                        _instances.Add(inst);
+                    }
+                }
+            }
+
+            RebuildBatches();
+        }
+
+        /// <summary>
+        /// Density rule per nation: East=high 초원, North=low 설산,
+        /// South(사막)/West(화산)=0, Empire 120m=0. Returns blades per cell.
+        /// </summary>
+        private int GetGrassBudgetForCell(float x, float z)
+        {
+            Vector3 pos = new Vector3(x, 0f, z);
+
+            // Empire central 120m excluded.
+            if (pos.magnitude < 120f)
+                return 0;
+
+            NationType nation = NationTerrainController.GetNationFromPosition(pos);
+            switch (nation)
+            {
+                case NationType.East:
+                    return Mathf.Max(1, _eastPerCell);
+                case NationType.North:
+                    return Mathf.Max(1, _northPerCell);
+                case NationType.South:
+                case NationType.West:
+                default:
+                    return 0;
+            }
+        }
+
+        /// <summary>
+        /// Disqualifies positions over/too-close to lake water (호수 waterLevel 위/해안 5m 제외).
+        /// </summary>
+        private bool IsGrassAllowed(float x, float z)
+        {
+            float height = 1f + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42);
+
+            var lakes = TerrainGenerator.Lakes;
+            if (lakes != null)
+            {
+                for (int i = 0; i < lakes.Count; i++)
+                {
+                    var lake = lakes[i];
+                    float dx = x - lake.center.x;
+                    float dz = z - lake.center.z;
+                    float distSq = dx * dx + dz * dz;
+
+                    // 해안 반경 5m 확장 제외 (호수 본체 + shore margin).
+                    float exclusionRadius = lake.radius * 1.3f + 5f;
+                    if (distSq <= exclusionRadius * exclusionRadius)
+                        return false;
+
+                    // 물 표면 아래(수중) 제외.
+                    if (height <= lake.waterLevel)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        // ================================================================
+        // Batch building / rendering
+        // ================================================================
 
         /// <summary>
         /// Rebuilds all GPU instance batches from current instance list.
@@ -180,21 +424,26 @@ namespace ProjectName.Systems
                 return;
             }
 
+            if (_grassMeshes == null || _grassMeshes.Count == 0)
+                LoadGrassMeshes();
+
             _batches = new List<MeshBatch>();
 
             // Group by mesh variant
-            for (int variant = 0; variant < 3; variant++)
+            for (int variant = 0; variant < _grassMeshes.Count; variant++)
             {
-                Mesh variantMesh = GetMeshForVariant(variant);
+                Mesh variantMesh = _grassMeshes[variant];
                 if (variantMesh == null) continue;
 
-                List<Matrix4x4> variantMatrices = new List<Matrix4x4>(_instances.Count / 3 + 1);
+                List<Matrix4x4> variantMatrices = new List<Matrix4x4>(_instances.Count / _grassMeshes.Count + 1);
 
                 foreach (var inst in _instances)
                 {
                     if (inst.meshVariant != variant) continue;
                     variantMatrices.Add(Matrix4x4.TRS(inst.position, inst.rotation, inst.scale));
                 }
+
+                if (variantMatrices.Count == 0) continue;
 
                 // Split into batches of MaxBatchSize (1023)
                 for (int i = 0; i < variantMatrices.Count; i += MaxBatchSize)
@@ -220,10 +469,17 @@ namespace ProjectName.Systems
             _mainCamera = Camera.main;
             _windZone = FindAnyObjectByType<WindZone>();
 
-            if (_material != null)
-            {
-                CreateInstancedMaterial();
-            }
+            LoadGrassMeshes();
+            CreateInstancedMaterial();
+
+            if (_followTarget != null)
+                RefreshCells(_followTarget.position);
+        }
+
+        private void OnEnable()
+        {
+            LoadGrassMeshes();
+            CreateInstancedMaterial();
         }
 
         private void Update()
@@ -242,7 +498,26 @@ namespace ProjectName.Systems
             if (_windZone == null)
                 _windZone = FindAnyObjectByType<WindZone>();
 
-            // Get wind strength
+            // Cell-follow relocation: rebuild when follow target moved past a cell boundary.
+            if (_followTarget != null)
+            {
+                Vector3 anchor = _followTarget.position;
+                float snappedX = Mathf.Floor(anchor.x / _cellSize) * _cellSize;
+                float snappedZ = Mathf.Floor(anchor.z / _cellSize) * _cellSize;
+                _pendingCell = new Vector2(snappedX, snappedZ);
+
+                if (_pendingCell != _lastCell || _lastFollowWasNull)
+                {
+                    RefreshCells(anchor);
+                    _lastCell = _pendingCell;
+                    _lastFollowWasNull = false;
+                }
+            }
+            else
+            {
+                _lastFollowWasNull = true;
+            }
+
             float windStrength = 1f;
             Vector3 windDirection = Vector3.forward;
             if (_windZone != null)
@@ -267,11 +542,11 @@ namespace ProjectName.Systems
 
             float cullSq = _cullDistance * _cullDistance;
 
-            // Rebuild matrices from scratch each frame for correctness
+            // Cull based on camera distance and apply wind animation via matrix rebuild.
             int batchIdx = 0;
-            for (int variant = 0; variant < 3; variant++)
+            for (int variant = 0; variant < _grassMeshes.Count; variant++)
             {
-                Mesh variantMesh = GetMeshForVariant(variant);
+                Mesh variantMesh = _grassMeshes[variant];
                 if (variantMesh == null) continue;
 
                 int idxInVariant = 0;
@@ -283,6 +558,9 @@ namespace ProjectName.Systems
                     int localIndex = idxInVariant % MaxBatchSize;
                     if (localIndex == 0 && idxInVariant > 0)
                         batchIdx++;
+
+                    if (batchIdx >= _batches.Count)
+                        break;
 
                     bool culled = _mainCamera != null &&
                         (inst.position - _mainCamera.transform.position).sqrMagnitude > cullSq;
@@ -317,6 +595,10 @@ namespace ProjectName.Systems
             if (_instancedMaterial == null)
                 return;
 
+            // Keep mat instancing always on
+            if (!_instancedMaterial.enableInstancing)
+                _instancedMaterial.enableInstancing = true;
+
             // Draw all batches
             foreach (var batch in _batches)
             {
@@ -338,12 +620,40 @@ namespace ProjectName.Systems
             }
         }
 
+        private void OnDestroy()
+        {
+            if (_activeInstance == this)
+                _activeInstance = null;
+        }
+
         // ================================================================
         // Helpers
         // ================================================================
 
+        private Vector2 _pendingCell;
+        private Vector2 _lastCell = new Vector2(float.MinValue, float.MinValue);
+        private bool _lastFollowWasNull = true;
+
+        private void SyncLegacyMeshesIntoVariantPool()
+        {
+            if (_grassMeshes == null)
+                _grassMeshes = new List<Mesh>();
+            // Avoid duplicates of the same reference.
+            if (_grassBladeStraight != null && !_grassMeshes.Contains(_grassBladeStraight))
+                _grassMeshes.Add(_grassBladeStraight);
+            if (_grassBladeBentLeft != null && !_grassMeshes.Contains(_grassBladeBentLeft))
+                _grassMeshes.Add(_grassBladeBentLeft);
+            if (_grassBladeBentRight != null && !_grassMeshes.Contains(_grassBladeBentRight))
+                _grassMeshes.Add(_grassBladeBentRight);
+        }
+
         private void CreateInstancedMaterial()
         {
+            if (_material == null)
+            {
+                // Runtime fallback: build a URP/Lit instanced material.
+                _material = CreateRuntimeGrassMaterial();
+            }
             if (_material == null)
             {
                 _instancedMaterial = null;
@@ -355,14 +665,31 @@ namespace ProjectName.Systems
 
             _instancedMaterial = new Material(_material);
             _instancedMaterial.enableInstancing = true;
+            _instancedMaterial.color = _baseColor;
 
 #if UNITY_EDITOR
             _instancedMaterial.hideFlags = HideFlags.HideAndDontSave;
 #endif
         }
 
+        private static Material CreateRuntimeGrassMaterial()
+        {
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+            if (shader == null)
+                shader = Shader.Find("Standard");
+            if (shader == null)
+                return null;
+
+            Material mat = new Material(shader);
+            mat.enableInstancing = true;
+            mat.name = "Mat_GrassRuntime";
+            return mat;
+        }
+
         private Mesh GetMeshForVariant(int variant)
         {
+            if (_grassMeshes != null && variant >= 0 && variant < _grassMeshes.Count)
+                return _grassMeshes[variant];
             switch (variant)
             {
                 case 0: return _grassBladeStraight;
@@ -370,6 +697,33 @@ namespace ProjectName.Systems
                 case 2: return _grassBladeBentRight;
                 default: return _grassBladeStraight;
             }
+        }
+
+        /// <summary>
+        /// Procedural single-triangle-pair grass blade (1x1 quad) fallback mesh.
+        /// </summary>
+        private static Mesh CreateFallbackQuadMesh()
+        {
+            Mesh mesh = new Mesh();
+            mesh.name = "FallbackGrassQuad";
+            mesh.vertices = new[]
+            {
+                new Vector3(-0.25f, 0f, 0f),
+                new Vector3(0.25f, 0f, 0f),
+                new Vector3(-0.25f, 0.9f, 0f),
+                new Vector3(0.25f, 0.9f, 0f),
+            };
+            mesh.uv = new[]
+            {
+                new Vector2(0f, 0f),
+                new Vector2(1f, 0f),
+                new Vector2(0f, 1f),
+                new Vector2(1f, 1f),
+            };
+            mesh.triangles = new[] { 0, 1, 2, 1, 3, 2 };
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            return mesh;
         }
 
         /// <summary>

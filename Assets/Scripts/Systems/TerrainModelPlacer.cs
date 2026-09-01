@@ -23,7 +23,7 @@ namespace ProjectName.Systems
         const float SPAWN_Z = -529f;
         const float SPAWN_EXCLUDE = 5f;      // 스폰지 제외 반경
         const float LAKE_MARGIN_FACTOR = 1.15f; // 호수 해안 여백 (radius*이값 밖)
-        const long PROP_SEED = 20260901L;    // 고정 시드 (UnityEngine.Random 언시드 금지)
+        const int PROP_SEED = 20260901;    // 고정 시드 (UnityEngine.Random 언시드 금지)
         const float GROUND_BASE = 1f;        // Ground_Inner 월드 y 기저
 
         // === 바이옴별 수락 확률 ===

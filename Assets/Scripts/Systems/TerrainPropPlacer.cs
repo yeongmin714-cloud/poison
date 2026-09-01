@@ -20,7 +20,7 @@ namespace ProjectName.Systems
         const float MAX_RADIUS = 150f;  // 스폰지에서 최대 거리
         const int TREE_COUNT = 12;      // 나무 개수
         const int ROCK_COUNT = 10;      // 바위 개수
-        const long PROP_SEED = 20260901L; // 고정 시드
+        const int PROP_SEED = 20260901; // 고정 시드
         const float GROUND_BASE = 1f;   // Ground_Inner 월드 y 기저
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace ProjectName.Systems
             float s = go.transform.localScale.x;
             var cc = go.AddComponent<CapsuleCollider>();
             cc.radius = 0.4f * s;
-            cc.halfHeight = 1.2f * s;
+            cc.height = 2.4f * s; // CapsuleCollider는 height 사용 (halfHeight 아님)
         }
 
         static void AddRockCollider(GameObject go)
