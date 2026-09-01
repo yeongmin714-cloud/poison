@@ -271,6 +271,10 @@ namespace ProjectName.Systems
             dirt = Color.Lerp(dirt, Color.black, 0.25f);
 
             float halfW2 = PathHalfWidth * PathHalfWidth;
+            // 메시 정점 간격(~20m)이 흙길 폭(5m)보다 넓어 정점이 경로 폭 안에 없을 수 있음
+            // → 마킹 반경은 정점 간격 절반(10m) 이상으로 확장 (시각적 길 폭 ≈ 20m)
+            float markRadius = Mathf.Max(PathHalfWidth, 10f);
+            float markRadius2 = markRadius * markRadius;
             int marked = 0;
 
             for (int i = 0; i < vertices.Length; i++)
@@ -290,7 +294,7 @@ namespace ProjectName.Systems
                     }
                 }
 
-                if (bestDistSq <= halfW2)
+                if (bestDistSq <= markRadius2)
                 {
                     colors[i] = Color.Lerp(colors[i], dirt, BlendFactor);
                     marked++;

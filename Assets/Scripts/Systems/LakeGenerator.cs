@@ -356,8 +356,8 @@ namespace ProjectName.Systems
             collider.size = new Vector3(volumeSize, volumeHeight, volumeSize);
             collider.center = new Vector3(0f, -volumeHeight * 0.5f, 0f);
 
-            _collisionVolume.tag = "Water";
-
+            try { _collisionVolume.tag = "Water"; }
+            catch (UnityException) { Debug.LogWarning("[LakeGenerator] 'Water' 태그 미정의 — Untagged 유지 (TagManager에 Water 태그 추가 권장)"); }
             // --- Step 5: Position parent at the desired surface Y ---
             _baseY = _surfaceY;
             transform.position = new Vector3(transform.position.x, _baseY, transform.position.z);

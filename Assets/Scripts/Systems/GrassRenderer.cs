@@ -21,7 +21,7 @@ namespace ProjectName.Systems
     public class GrassRenderer : MonoBehaviour
     {
         private const int MaxBatchSize = 1023;
-        private const int MaxInstances = 3000;
+        private const int MaxInstances = 1500;
 
         // Singleton guard for Bootstrap duplicate protection.
         private static GrassRenderer _activeInstance;
@@ -52,9 +52,9 @@ namespace ProjectName.Systems
         // Cell-follow system
         [Header("Placement (T4)")]
         [SerializeField] private float _cellSize = 5f;
-        [SerializeField] private int _cellRadius = 8;          // grid radius in cells around follow target
-        [SerializeField] private int _eastPerCell = 6;         // dense (초원)
-        [SerializeField] private int _northPerCell = 2;        // low (설산)
+        [SerializeField] private int _cellRadius = 6;          // grid radius in cells around follow target
+        [SerializeField] private int _eastPerCell = 3;         // dense (초원) — 사용자 요청으로 6→3 축소
+        [SerializeField] private int _northPerCell = 1;        // low (설산)
         private Transform _followTarget;
 
         // Instance data storage
@@ -556,11 +556,21 @@ namespace ProjectName.Systems
 
                     // Advance to next batch when crossing boundary
                     int localIndex = idxInVariant % MaxBatchSize;
-                    if (localIndex == 0 && idxInVariant > 0)
+                    // variant 경계에서 다음 배치로 진행 (RebuildBatches는 variant 순서로 배치를 쌓음)
+                    if (idxInVariant == 0 && variant > 0)
+                        batchIdx++;
+                    // variant 내 1023 경계에서 다음 배치로 진행
+                    else if (localIndex == 0 && idxInVariant > 0)
                         batchIdx++;
 
                     if (batchIdx >= _batches.Count)
                         break;
+                    // 방어: 배치 크기 초과 시 기록 생략 (크래시 방지)
+                    if (localIndex >= _batches[batchIdx].matrices.Count)
+                    {
+                        idxInVariant++;
+                        continue;
+                    }
 
                     bool culled = _mainCamera != null &&
                         (inst.position - _mainCamera.transform.position).sqrMagnitude > cullSq;

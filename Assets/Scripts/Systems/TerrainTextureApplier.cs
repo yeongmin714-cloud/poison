@@ -123,9 +123,10 @@ namespace ProjectName.Systems
             Debug.Log($"[DiagP1] 스폰({spawn.x:F0},{spawn.z:F0}) 지형높이={h:F2} +Ground1={h+1f:F2}");
 
             // 3) 스폰 지점 아래 RaycastAll → 지형 콜라이더가 물리 세계에 있는지 전체 나열
-            Vector3 o = new Vector3(spawn.x, spawn.y + 5f, spawn.z);
-            RaycastHit[] allHits = Physics.RaycastAll(o, Vector3.down, 20f, ~0, QueryTriggerInteraction.Ignore);
-            Debug.Log($"[DiagP1] 스폰상공 RaycastAll(20m) 히트수={allHits.Length}");
+            // (지형 증폭으로 표면이 높아졌으므로 계산된 표면 위 30m에서 60m 하향 캐스트)
+            Vector3 o = new Vector3(spawn.x, h + 1f + 30f, spawn.z);
+            RaycastHit[] allHits = Physics.RaycastAll(o, Vector3.down, 60f, ~0, QueryTriggerInteraction.Ignore);
+            Debug.Log($"[DiagP1] 스폰상공 RaycastAll(60m, 표면+30m에서) 히트수={allHits.Length}");
             bool terrainColliderFound = false;
             foreach (var hh in allHits)
             {
@@ -137,8 +138,9 @@ namespace ProjectName.Systems
             Debug.Log($"[DiagP1] ★ 지형콜라이더(Ground*) 존재={terrainColliderFound}  (False면 지형 콜라이더 파손 → Phase B)");
 
             // 3-2) 플레이어 앞 지면 지점(화면에 보이는 회색 지면)에 뭐가 있는지
-            Vector3 probePoint = new Vector3(spawn.x + 6f, 8f, spawn.z + 6f);
-            bool rc2 = Physics.Raycast(probePoint, Vector3.down, out RaycastHit hit2, 20f, ~0, QueryTriggerInteraction.Ignore);
+            // (표면 위 30m에서 시작 — 증폭 지형에서도 항상 지형 위에서 시작 보장)
+            Vector3 probePoint = new Vector3(spawn.x + 6f, h + 1f + 30f, spawn.z + 6f);
+            bool rc2 = Physics.Raycast(probePoint, Vector3.down, out RaycastHit hit2, 60f, ~0, QueryTriggerInteraction.Ignore);
             if (rc2)
             {
                 var mrAt = hit2.collider != null ? hit2.collider.GetComponent<MeshRenderer>() : null;
