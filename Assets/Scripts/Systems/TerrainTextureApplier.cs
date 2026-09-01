@@ -96,6 +96,20 @@ namespace ProjectName.Systems
             var mc = ground.GetComponent<Collider>();
 
             Debug.Log("[DiagP1] ===== 지형 상태 진단 ===== ");
+            // 0) 실제 렌더 재질/알베도 — 지면이 회색인 원인 확정
+            var mrr = ground.GetComponent<MeshRenderer>();
+            if (mrr != null && mrr.sharedMaterial != null)
+            {
+                var mm = mrr.sharedMaterial;
+                Texture2D albedo = null;
+                try { albedo = mm.HasProperty("_BaseMap") ? (Texture2D)mm.GetTexture("_BaseMap") : null; }
+                catch { albedo = null; }
+                Debug.Log($"[DiagP1] 실제재질='{mm.name}' shader='{mm.shader?.name}' _BaseMap={(albedo != null ? albedo.name : "NULL")}");
+            }
+            else
+            {
+                Debug.Log($"[DiagP1] MeshRenderer/Material 없음 (mr={(mrr != null ? "있음" : "없음")})");
+            }
             // 1) 메시/콜라이더 일치 여부
             string mfName = mf != null && mf.sharedMesh != null ? mf.sharedMesh.name : "NULL";
             string mcMesh = mc is MeshCollider mmc && mmc.sharedMesh != null ? mmc.sharedMesh.name : (mc != null ? mc.GetType().Name+"(noMesh)" : "NULL");
