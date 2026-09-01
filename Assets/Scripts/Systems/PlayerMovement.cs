@@ -222,6 +222,11 @@ namespace ProjectName.Systems
 
         private void Update()
         {
+            // 카메라 보정: 메인 카메라가 항상 플레이어를 내려다보게 강제 (3인칭 시점).
+            // Cinemachine vcam의 Follow/LookAt이 배치/런타임에 제대로 안 먹혀 카메라가 수평(0,0,0)으로
+            // 떠 있어 발밑 지형이 안 보이던 원인 해결. 매 프레임 플레이어를 lookAt한다.
+            FixCameraToPlayer();
+
             // ApplyGravity()를 먼저 호출하여 _isGrounded를 최신 상태로 유지
             ApplyGravity();
 
@@ -646,10 +651,29 @@ namespace ProjectName.Systems
 
             // === 지면 고정 (추락 영구 방지 / 지형 위 안착) ===
             // 물리 충돌·Raycast에 의존하지 않고, 지형을 만든 TerrainGenerator.GetHeightAt으로
-            // 현재 x,z의 지표면 높이를 수학적으로 도출해 그 위에 붙인다. 지형 생성과 같은 함수이므로
-            // 어떤 물리/카메라/콜라이더 문제와 무관하게 항상 지표면과 일치한다.
+            // 현재 x,z의 지표면 높이를 수학적으로 도출해 그 위에 붙인다.
             ClampToGroundByHeight();
         }
+
+        /// <summary>메인 카메라를 플레이어 뒤-위에서 플레이어를 내려다보게 강제 (발밑 지형이 보이도록).</summary>
+        private void FixCameraToPlayer()
+        {
+            if (_cameraTransform == null)
+            {
+                if (Camera.main != null) _cameraTransform = Camera.main.transform;
+                else return;
+            }
+
+            Transform playerT = transform;
+            // 플레이어 뒤쪽 위(살짝 뒤+위)에 카메라 배치 → 플레이어(발밑 지형 포한)를 lookAt
+            Vector3 desiredPos = playerT.position + new Vector3(3f, 4f, -6f);
+            _cameraTransform.position = desiredPos;
+
+            // 플레이어 발밑(지면 위 0.5m)을 lookAt — 아래 초록 지형이 화면에 잡힌다
+            Vector3 lookTarget = playerT.position + new Vector3(0f, 0.5f, 0f);
+            _cameraTransform.rotation = Quaternion.LookRotation(lookTarget - _cameraTransform.position);
+        }
+
 
         /// <summary>
         /// 지형 높이 함수(GetHeightAt)로 현재 x,z의 지표면 세계 y를 계산해,
