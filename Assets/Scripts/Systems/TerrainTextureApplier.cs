@@ -82,8 +82,42 @@ namespace ProjectName.Systems
             {
                 ApplyMaterialForNation(_currentNation);
             }
+
+            // === Phase 1 진단: 지형/콜라이더/착지 실제 상태 숫자로 확정 ===
+            DiagnoseGroundState();
         }
 
+        /// <summary>지형 메시/콜라이더/스폰 지점 충돌 상태를 로그로 출력해 근본 원인 확정.</summary>
+        private void DiagnoseGroundState()
+        {
+            GameObject ground = gameObject;
+            var mf = ground.GetComponent<MeshFilter>();
+            var mr = ground.GetComponent<MeshRenderer>();
+            var mc = ground.GetComponent<Collider>();
+
+            Debug.Log("[DiagP1] ===== 지형 상태 진단 ===== ");
+            // 1) 메시/콜라이더 일치 여부
+            string mfName = mf != null && mf.sharedMesh != null ? mf.sharedMesh.name : "NULL";
+            string mcMesh = mc is MeshCollider mmc && mmc.sharedMesh != null ? mmc.sharedMesh.name : (mc != null ? mc.GetType().Name+"(noMesh)" : "NULL");
+            int mfVerts = mf != null && mf.sharedMesh != null ? mf.sharedMesh.vertexCount : -1;
+            Debug.Log($"[DiagP1] MeshFilter={mfName} vtx={mfVerts} bounds={(mf?.sharedMesh != null ? mf.sharedMesh.bounds.ToString() : "NULL")}");
+            Debug.Log($"[DiagP1] Collider={mc?.GetType().Name} enabled={mc?.enabled} sharedMesh={mcMesh}");
+
+            // 2) 지형 높이 (스폰 지점)
+            Vector3 spawn = ProjectName.Core.PlayerSpawnConfig.SpawnPosition;
+            float h = ProjectName.Systems.TerrainGenerator.GetHeightAt(spawn.x, spawn.z, ProjectName.Core.Data.BiomeType.Plains, 42);
+            Debug.Log($"[DiagP1] 스폰({spawn.x:F0},{spawn.z:F0}) 지형높이={h:F2} +Ground1={h+1f:F2}");
+
+            // 3) 스폰 지점 아래 Raycast → 뭘 맞췄나
+            Vector3 o = new Vector3(spawn.x, spawn.y + 5f, spawn.z);
+            bool rc = Physics.Raycast(o, Vector3.down, out RaycastHit hit, 20f, ~0, QueryTriggerInteraction.Ignore);
+            Debug.Log($"[DiagP1] 스폰Raycast(아래20m)={rc} 대상={(rc ? hit.collider?.gameObject.name + " y=" + hit.point.y.ToString("F2") : "없음")}");
+
+            // 4) 지형 위 서기 체크용 — 지형 표면 상대
+            Debug.Log($"[DiagP1] 지형 표면 세계y={h+1f:F2} (스폰플레이어y={spawn.y:F2})");
+            Debug.Log("[DiagP1] ===== 진단 끝 =====");
+        }
+ 
         private void OnDestroy()
         {
             // Cleanup created materials to prevent memory leaks
