@@ -234,6 +234,44 @@ public class GameSetup : MonoBehaviour
             return;
         }
 
+        // ── Player GLB 비주얼 부착 (Player_Rigged + 절차적 애니메이션) ──
+        // 기존 procedural Cube 렌더러는 숨기고 GLB를 자식으로 부착.
+        // CharacterController(콜라이더)는 그대로 — GLB는 비주얼 전용 자식.
+        if (RuntimeModelLoader.TryGetModel("player", out var playerModelPrefab))
+        {
+            var oldRenderer = player.GetComponentInChildren<MeshRenderer>();
+            if (oldRenderer != null) oldRenderer.enabled = false;
+
+            var body = Object.Instantiate(playerModelPrefab, player.transform);
+            body.name = "PlayerBody";
+
+            // 높이 1.8m 정규화 + 발을 CC 바닥(로컬 -1m)에 정렬
+            var rends = body.GetComponentsInChildren<Renderer>();
+            if (rends.Length > 0)
+            {
+                var b = rends[0].bounds;
+                foreach (var r in rends) b.Encapsulate(r.bounds);
+                float h = b.size.y;
+                if (h > 0.01f)
+                {
+                    float s = 1.8f / h;
+                    body.transform.localScale = body.transform.localScale * s;
+                }
+                // 재측정 후 발 정렬: bounds 최저점을 player 로컬 -1m(바닥)에
+                var b2 = rends[0].bounds;
+                foreach (var r in rends) b2.Encapsulate(r.bounds);
+                float floorWorldY = player.transform.position.y - 1f;
+                body.transform.position += new Vector3(0f, floorWorldY - b2.min.y, 0f);
+            }
+
+            body.AddComponent<PlayerCharacterAnimator>();
+            Debug.Log("[GameSetup] ✅ 플레이어 GLB(Player_Rigged) 부착 + 절차적 애니메이션 적용");
+        }
+        else
+        {
+            Debug.LogWarning("[GameSetup] ⚠️ 'player' GLB 로드 실패 — 기존 Cube 비주얼 유지");
+        }
+
         // ── Player Camera (Cinemachine Virtual Camera) 검증 ──────────
         // Player Camera는 Cinemachine VC이므로 Camera 컴포넌트 불필요
         // Main Camera(CinemachineBrain)가 유일한 렌더링 카메라

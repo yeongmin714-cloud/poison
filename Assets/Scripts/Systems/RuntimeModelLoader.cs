@@ -79,7 +79,7 @@ namespace ProjectName.Systems
             _modelMetadata = new Dictionary<string, ModelMetadata>();
             _aliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                { "player", "player_rigged" },
+                { "player", "Player_Rigged" },
                 { "soldier", "soldier_lv1-20_rigged" },
                 { "soldier_lv1", "soldier_lv1-20_rigged" },
                 { "soldier_lv20", "soldier_lv20-40_rigged" },
