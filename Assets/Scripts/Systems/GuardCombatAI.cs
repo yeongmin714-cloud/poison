@@ -77,6 +77,12 @@ namespace ProjectName.Systems
                     else
                     {
                         guard.ResetCombatTimer();
+                        // 공격 명령 + 타겟 근접 → 공격 모션 트리거 (SoldierIdlePose 내부 쿨다운 1.2s)
+                        if (guard.IsAttackCommand && distToTarget <= 2.5f)
+                        {
+                            var pose = guard.GetComponent<SoldierIdlePose>();
+                            if (pose != null) pose.TriggerAttack();
+                        }
                     }
                 }
                 return;

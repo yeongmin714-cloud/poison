@@ -357,15 +357,43 @@ namespace ProjectName.Systems
 
                 _moveDirection = (forward * vertical + right * horizontal).normalized;
 
-                // 캐릭터가 이동 방향을 바라보게 회전
+                // 캐릭터가 이동 방향을 바라보게 회전 (스무딩 — 즉시 스냅 제거)
                 if (_moveDirection != Vector3.zero)
                 {
-                    transform.rotation = Quaternion.LookRotation(_moveDirection);
+                    var moveRot = Quaternion.LookRotation(_moveDirection);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, moveRot, TurnSpeed * Time.deltaTime);
                 }
             }
             else
             {
                 _moveDirection = Vector3.zero;
+            }
+
+            // ── 마우스 커서 조준: 정지 중엔 커서가 가리키는 지면 지점을 바라봄 (탑다운 조준) ──
+            if (_moveDirection == Vector3.zero)
+            {
+                var aimMouse = UnityEngine.InputSystem.Mouse.current;
+                var aimCamSource = _cameraTransform != null ? _cameraTransform : (Camera.main != null ? Camera.main.transform : null);
+                if (aimMouse != null && aimCamSource != null)
+                {
+                    var aimCam = aimCamSource.GetComponent<Camera>();
+                    if (aimCam != null)
+                    {
+                        var aimRay = aimCam.ScreenPointToRay(aimMouse.position.ReadValue());
+                        var groundPlane = new Plane(Vector3.up, new Vector3(0f, transform.position.y, 0f));
+                        if (groundPlane.Raycast(aimRay, out float aimEnter))
+                        {
+                            Vector3 aimPoint = aimRay.GetPoint(aimEnter);
+                            Vector3 aimDir = aimPoint - transform.position;
+                            aimDir.y = 0f;
+                            if (aimDir.sqrMagnitude > 0.25f)
+                            {
+                                var aimRot = Quaternion.LookRotation(aimDir.normalized, Vector3.up);
+                                transform.rotation = Quaternion.Slerp(transform.rotation, aimRot, CursorTurnSpeed * Time.deltaTime);
+                            }
+                        }
+                    }
+                }
             }
 
             // 걷기/달리기/대쉬
@@ -673,6 +701,9 @@ namespace ProjectName.Systems
         private const float CamDistanceMax = 30f;
         private const float ZoomStepPerNotch = 1.5f;
         private const float MouseSensitivity = 0.12f;
+        // 몸 회전 속도 (Slerp 계수/초) — 이동 방향/커서 조준 공용
+        private const float TurnSpeed = 12f;
+        private const float CursorTurnSpeed = 10f;
         private const float PitchMin = 30f;   // 탑다운 유지 (너무 수평 안 되게)
         private const float PitchMax = 82f;   // 거의 수직 탑다운까지
         private bool _cinemachineDisabled = false;
