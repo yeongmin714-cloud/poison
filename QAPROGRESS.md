@@ -4,7 +4,30 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-01
+> **최종 갱신:** 2026-09-02
+
+---
+
+## 2026-09-02: 지형 고급화 — 멀티레이어 스플랫 + 근거리 질감 (T-G1~T-G3)
+
+**목표:** "단일 텍스처 전면 반복" ⇒ 높이/경사/노이즈 기반 레이어 블렌드 + 근거리 미세 질감.
+기존 국가별 1024×1024 JPEG(동 5/북 5/남 7/서 5/엠파이어 1)를 그대로 재사용, 신규 이미지 불필요.
+
+### 파일 (신규 3 + 수정 1)
+| 파일 | 내용 |
+|:----|:----|
+| `TerrainLayerDef.cs` (신규) | 국가당 4종 레이어(저지대/중지대/고지대바위/느슨흙) 정의, 텍스처 부족 시 재사용 안전 |
+| `TerrainSplatBaker.cs` (신규) | 높이·경사·노이즈 가중치로 알베도 블렌드해 단일 스플랫 맵 생성. 결정론적 시드. API: BakeSplatMap/ComputeLayerColor/ComputeWeights/EstimateSlopeDegrees |
+| `TerrainSplatBakerTests.cs` (신규) | 가중치 합=1(50포인트), 결정론, 레이어 생성, 스플랫 맵, 경사각 7건 |
+| `TerrainTextureApplier.cs` (수정) | CreateMaterials가 국가별 스플랫 맵을 `_BaseMap`에 적용(성공), 실패 시 단일 텍스처 폴백. `MakeReadableCopy`(RenderTexture 복사), `IsTextureReadable`. ApplyMaterialForNation scale 조건분기(Splat_면 1, 아니면 tiling200). 스플랫 해상도 1024 + `_DetailAlbedoMap`(국가별 2번째 JPEG, `_DETAIL_MULX2`) 근거리 질감 복원 |
+
+### 검증
+- ✅ Unity 배치컴파일 (배치모드 라이선스 'Access token unavailable' 한계로 테스트 XML 미생성 — 환경 이슈, 코드 아님)
+- ⚠️ **Play 시각검증 대기**: 콘솔 확인 로그 `[TerrainTextureApplier] {nation} 스플랫 맵 적용: Splat_{nation}_1024 + 디테일알베도(...)`. 동초원/다른 국가 지형 + 근거리 질감 눈 확인 필요.
+
+### 설계 메모
+- 지형 메시는 `TerrainTextureApplier.Start`가 전 정점을 **Plains/42**로 재표본(전 세계 기준) → 스플랫도 Plains/42 샘플링이 일관적. 국가별 바이옴 불일치 아님(QA 오판). E/N/W/S/엠파이어 FBM 진폭 차이는 실제 렌더 메시엔 반영 안 됨(전부 Plains).
+- 스플랫 저해상도(2000m@1024, ~2m/px)의 근거리 뭉개짐은 `_DetailAlbedoMap`(타일 60m)으로 보완. 추가로 원한다면 URP 커스텀 스플랫 셰이더(제어맵+고해상 알베도 4장)가 정석이나 Play 검증 없는 픽스백 리스크로 보류.
 
 ---
 
