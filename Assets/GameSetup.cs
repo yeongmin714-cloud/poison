@@ -40,7 +40,26 @@ public class GameSetup : MonoBehaviour
         // 씬 로드/씬 재생성(FixMainScene) 양쪽에서 안전하게 호출된다.
         BootstrapTerrainDeco();
 
+        // ── TERRITORY BUILDER 보장 (Phase S1 후속) ────────────────────
+        // GameManager가 씬에 없어 EnsureTerritoryManager가 실행되지 않던 문제 수리.
+        // TerritoryManager 존재 여부와 무관하게 TerritoryBuilder가 없으면 추가.
+        EnsureTerritoryBuilder();
+
         _autoSetup = false; // 한 번만 실행
+    }
+
+    /// <summary>
+    /// TerritoryBuilder가 씬에 없으면 추가 (영지 82개 자동 스폰 트리거).
+    /// GameManager(씬에 없음)의 EnsureTerritoryManager와 동일 목적의 런타임 경로.
+    /// </summary>
+    private void EnsureTerritoryBuilder()
+    {
+        if (FindAnyObjectByType<TerritoryBuilder>() != null) return;
+
+        var host = GameObject.Find("TerritoryManager");
+        if (host == null) host = new GameObject("TerritoryBuilder");
+        host.AddComponent<TerritoryBuilder>();
+        Debug.Log($"[GameSetup] TerritoryBuilder 추가됨 (host: {host.name}) → 영지 자동 생성 시작");
     }
 
     /// <summary>

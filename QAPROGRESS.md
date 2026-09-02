@@ -748,3 +748,5 @@ Cross(Edge1, Edge2) = (0, -dx·dz, 0) = **법선이 아래(-Y)를 향함**.
 3. TerritoryManager: public RefreshRegistrations() 추가 (씬 재스캔) — 빌더 완료 후 호출, 건물/병사 등록 보장
 
 **검증:** 배치컴파일 통과 (error CS 0). Play 시각검증 대기 — "[TerritoryBuilder] 전체 영지 Placeholder 생성 완료! 총 82개" + "[TerritoryManager] 영지 재등록" 로그 확인 필수.
+
+**S1 후속 수리 (2026-09-02):** GameManager 오브젝트가 씬에 없어 EnsureTerritoryManager가 실행되지 않았던 것 발견 → GameSetup(씬 존재, Start 실행 확인됨)에 EnsureTerritoryBuilder() 추가 — TerritoryBuilder 없으면 TerritoryManager GO에 AddComponent. 배치컴파일 통과.
