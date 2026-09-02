@@ -774,3 +774,17 @@ Cross(Edge1, Edge2) = (0, -dx·dz, 0) = **법선이 아래(-Y)를 향함**.
 2. 스크린샷 35의 "원형 성들" = GLB 문제 아님 — 세계 지도(82영지 각각 성 1개, 링 150/550/1000/1450m), 중앙 = Empire 영지. GLB 분석: blue_castle.glb는 노드 1개(성 1개)로 정상
 3. castle.glb(잘못 저장, 사용자 삭제) → Empire/Dracula도 blue_castle 사용으로 변경
 4. 내부 씬 전환 방식(씬 스위칭)은 사용자가 내부 씬 재제작 예정 → 현재 파이프라인 유지, 재제작 후 연결 예정
+
+## 2026-09-02 R3 완료 (전쟁 주둔군 연동 + T-pose 해결)
+
+**R3-2 전쟁 시 주둔군 출격:**
+- AIWarSystem.StartAIWar: 전쟁 시작 시 양측 영지에서 TerritoryBuilder.SpawnGarrison(def, worldPos) 호출 — guardCount명이 성 주변 반경 10~20m 원형으로 출격
+- _warGarrisons 딕셔너리(warId → 병사 리스트)로 추적, UpdateAIWars에서 전쟁 완료 시 DespawnWarGarrison으로 해제
+- SpawnGarrison 반환형 void → List<GameObject>, CreateGuard void → GameObject
+
+**R3-4 T-pose 절차적 해결 (새 파일 SoldierIdlePose.cs):**
+- soldier GLB는 애니메이션 클립 0개(리깅만) — 클립 재생 불가 → 절차적 해결
+- 팔 내림: 어깨→손 world 방향을 FromToRotation으로 아래로(0.85 강도, A-pose) — 본 로컬축 관례 무관
+- 전완 살짝 굽힘 + idle bob(상하 4.5cm) + 좌우 미세 roll, 위상은 GetInstanceID 기반 결정론
+- CreateGuard에서 모든 병사에 자동 부착, 본 없는 폴백은 bob만
+**검증:** 배치컴파일 통과 (error CS 0).

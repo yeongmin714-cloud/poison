@@ -72,6 +72,8 @@ namespace ProjectName.Systems
         private static readonly Queue<AIWarData> _completedWars = new Queue<AIWarData>();
         private static readonly Dictionary<string, int> _warCooldowns = new Dictionary<string, int>(); // territoryKey → last war day
         private static int _nextWarId = 1;
+        // R3-2: 전쟁별 주둔군 오브젝트 추적 (warId → 병사들) — 전쟁 종료 시 해제
+        private static readonly System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<GameObject>> _warGarrisons = new System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<GameObject>>();
         private static int _lastCheckDay = -1;
 
         /// <summary>
@@ -161,6 +163,13 @@ namespace ProjectName.Systems
 
             OnWarStarted?.Invoke(warData);
 
+            // R3-2: 전쟁 시작 시 양측 영지에서 주둔군이 성 내부→외부로 출격
+            var attackerGarrison = TerritoryBuilder.SpawnGarrison(defAttacker, defAttacker.worldPosition);
+            var defenderGarrison = TerritoryBuilder.SpawnGarrison(defDefender, defDefender.worldPosition);
+            var all = new System.Collections.Generic.List<GameObject>(attackerGarrison);
+            all.AddRange(defenderGarrison);
+            _warGarrisons[warData.warId] = all;
+
             return true;
         }
 
@@ -170,9 +179,12 @@ namespace ProjectName.Systems
         /// </summary>
         public static void UpdateAIWars()
         {
-            // 완료된 전쟁 제거
+            // 완료된 전쟁 제거 + 주둔군 해제
+            var completedWars = _activeWars.FindAll(w => w.isCompleted);
             int removed = _activeWars.RemoveAll(w => w.isCompleted);
             if (removed > 0) _activeWarsReadOnly = null; // 캐시 무효화
+            foreach (var endedWar in completedWars)
+                DespawnWarGarrison(endedWar.warId);
 
             for (int i = 0; i < _activeWars.Count; i++)
             {
@@ -444,5 +456,20 @@ namespace ProjectName.Systems
         {
             return $"{attacker}_{defender}";
         }
-    }
+    
+        /// <summary>R3-2: 전쟁 종료 시 해당 전쟁의 주둔군 병사 오브젝트를 해제합니다.</summary>
+        private static void DespawnWarGarrison(int warId)
+        {
+            if (_warGarrisons.TryGetValue(warId, out var soldiers))
+            {
+                foreach (var soldier in soldiers)
+                {
+                    if (soldier != null)
+                        Object.Destroy(soldier);
+                }
+                _warGarrisons.Remove(warId);
+                Debug.Log($"[AIWarSystem] 주둔군 해제: warId={warId} ({soldiers.Count}명)");
+            }
+        }
+}
 }

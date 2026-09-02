@@ -450,9 +450,10 @@ namespace ProjectName.Systems
         /// 전쟁 시 주둔군 스폰 API — def.guardCount명 병사를 center 주변 반경 10~20m 원형으로 배치.
         /// 평시에는 문지기만 스폰되며, 이 API는 전쟁 시스템(TerritoryWarManager 등)이 호출할 목적으로 제공.
         /// </summary>
-        public static void SpawnGarrison(TerritoryDefinition? def, Vector3 center)
+        public static System.Collections.Generic.List<GameObject> SpawnGarrison(TerritoryDefinition? def, Vector3 center)
         {
-            if (def == null) return;
+            var spawned = new System.Collections.Generic.List<GameObject>();
+            if (def == null) return spawned;
             var rng = new System.Random(def.Value.id.index + 7777); // 영지 인덱스 기반 고정 시드 (결정론)
             int count = Mathf.Max(1, def.Value.guardCount);
             for (int i = 0; i < count; i++)
@@ -460,13 +461,15 @@ namespace ProjectName.Systems
                 float angle = (i / (float)count) * Mathf.PI * 2f + (float)(rng.NextDouble() * 0.4 - 0.2);
                 float radius = 10f + (float)rng.NextDouble() * 10f;
                 Vector3 pos = center + new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
-                CreateGuard($"Garrison_{def.Value.nation}_{def.Value.id.index}_{i + 1}", pos,
+                var soldier = CreateGuard($"Garrison_{def.Value.nation}_{def.Value.id.index}_{i + 1}", pos,
                     GetGuardName(def.Value.nation), GetBaseGuardLevel(def.Value.difficulty) + (i % 3), def.Value.nation);
+                if (soldier != null) spawned.Add(soldier);
             }
             Debug.Log($"[TerritoryBuilder] 주둔군 스폰: {def.Value.territoryName} {count}명");
+            return spawned;
         }
 
-        private static void CreateGuard(string name, Vector3 position, string guardName, int level, NationType nation, Transform parent = null, Vector3 forward = default)
+        private static GameObject CreateGuard(string name, Vector3 position, string guardName, int level, NationType nation, Transform parent = null, Vector3 forward = default)
         {
             var go = TrySpawnModelOrPlaceholder("soldier", name, position,
                 Vector3.one, new Color(0.2f, 0.4f, 0.8f), PrimitiveType.Capsule);
@@ -479,6 +482,8 @@ namespace ProjectName.Systems
                 go.transform.SetParent(parent);
 
             var placeholder = go.AddComponent<GuardPlaceholder>();
+            // T-pose 절차적 해결 (팔 내림 + idle bob) — 본 없는 폴백은 bob만 적용
+            go.AddComponent<SoldierIdlePose>();
             placeholder.SetGuardInfo(guardName, level, nation);
 
             // 라벨
@@ -491,6 +496,8 @@ namespace ProjectName.Systems
             textMesh.characterSize = 0.07f;
             textMesh.color = Color.white;
             textMesh.fontSize = 20;
+
+            return go;
         }
 
         /// <summary>
