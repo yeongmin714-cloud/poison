@@ -193,6 +193,84 @@ namespace ProjectName.Systems
                 center.x + gateDir.x * radius * 0.6f,
                 groundY,
                 center.z + gateDir.z * radius * 0.6f);
+
+            // 성문 앞 BuildingTrigger (외부 → 성 내부 진입). nationStyle을 전달해 내부 등장에 사용.
+            string castleNationStyle = GetNationStyle(nation);
+            IndoorTransitionSetup.CreateBuildingTrigger(
+                gate.transform.position,
+                IndoorTransitionSetup.TYPE_CASTLE,
+                IndoorTransitionSetup.CASTLE_INTERACT_RANGE,
+                castleRoot.transform,
+                castleNationStyle);
+            Debug.Log($"[TerritoryBuilder] {parent.name}: 성문 Castle BuildingTrigger 생성 (nationStyle: {castleNationStyle})");
+        }
+
+        /// <summary>
+        /// NationType → 건물 인테리어 국가 스타일 문자열 매핑.
+        /// (CastleInteriorBuilder/IndoorSceneTransition의 nationStyle 파라미터 형식)
+        /// </summary>
+        private static string GetNationStyle(NationType nation)
+        {
+            return nation switch
+            {
+                NationType.East => "Eastern",
+                NationType.West => "Western",
+                NationType.South => "Southern",
+                NationType.North => "Northern",
+                _ => "Empire" // None / Empire / Dracula / 기타
+            };
+        }
+
+        /// <summary>
+        /// 성 내부(R2)에 상점과 크래프트하우스를 배치합니다.
+        /// IndoorSceneTransition의 castle 케이스에서 BuildCastleInterior() 후 호출됩니다.
+        /// </summary>
+        /// <param name="roomCenter">성 내부 방 중심 (BuildCastleInterior 반환 GameObject.transform.position)</param>
+        /// <param name="nationStyle">국가 스타일 (Eastern, Western, Southern, Northern, Empire)</param>
+        public static void SpawnInteriorFixtures(Vector3 roomCenter, string nationStyle)
+        {
+            //── 상점 (roomCenter 좌측 5m) ──
+            Vector3 shopPos = new Vector3(roomCenter.x - 5f, roomCenter.y, roomCenter.z);
+            Vector3 shopScale = new Vector3(2.5f, 2f, 2.5f);
+            GameObject shop = TrySpawnModelOrPlaceholder("hut", "Interior_Shop", shopPos, shopScale,
+                new Color(0.8f, 0.6f, 0.2f), PrimitiveType.Cube);
+            if (shop != null)
+            {
+                PlaceOnIndoorFloor(shop, roomCenter.y); // y를 실내 바닥 기준으로 고정
+                var ph = shop.AddComponent<BuildingPlaceholder>();
+                ph.buildingType = BuildingPlaceholder.BuildingType.Shop;
+                ph.buildingName = "상점";
+                IndoorTransitionSetup.CreateBuildingTrigger(shopPos, IndoorTransitionSetup.TYPE_SHOP,
+                    IndoorTransitionSetup.DEFAULT_INTERACT_RANGE, shop.transform);
+                Debug.Log($"[TerritoryBuilder] 성 내부 상점 배치 (style: {nationStyle})");
+            }
+
+            //── 크래프트하우스 (roomCenter 우측 5m) ──
+            Vector3 craftPos = new Vector3(roomCenter.x + 5f, roomCenter.y, roomCenter.z);
+            Vector3 craftScale = new Vector3(2.5f, 2f, 2.5f);
+            GameObject craft = TrySpawnModelOrPlaceholder("craft_blend", "Interior_CraftHouse", craftPos, craftScale,
+                new Color(0.6f, 0.8f, 0.2f), PrimitiveType.Cube);
+            if (craft != null)
+            {
+                PlaceOnIndoorFloor(craft, roomCenter.y); // y를 실내 바닥 기준으로 고정
+                var ph = craft.AddComponent<BuildingPlaceholder>();
+                ph.buildingType = BuildingPlaceholder.BuildingType.CraftHouse;
+                ph.buildingName = "크래프트하우스";
+                IndoorTransitionSetup.CreateBuildingTrigger(craftPos, IndoorTransitionSetup.TYPE_CRAFT_HOUSE,
+                    IndoorTransitionSetup.DEFAULT_INTERACT_RANGE, craft.transform);
+                Debug.Log($"[TerritoryBuilder] 성 내부 크래프트하우스 배치 (style: {nationStyle})");
+            }
+        }
+
+        /// <summary>
+        /// 실내 배치 오브젝트의 Y좌표를 실내 바닥(roomCenter.y) 기준으로 고정합니다.
+        /// TrySpawnModelOrPlaceholder는 월드 지형 높이(GetHeightAt)로 보정하므로,
+        /// 실내 씬에서 사용할 땐 이 메서드로 재보정합니다.
+        /// </summary>
+        private static void PlaceOnIndoorFloor(GameObject go, float floorY)
+        {
+            var pos = go.transform.position;
+            go.transform.position = new Vector3(pos.x, floorY, pos.z);
         }
 
         /// <summary>
@@ -291,7 +369,7 @@ namespace ProjectName.Systems
         }
 
         /// <summary>난이도별 기본 병사 레벨 반환</summary>
-        private int GetBaseGuardLevel(TerritoryDifficulty difficulty)
+        private static int GetBaseGuardLevel(TerritoryDifficulty difficulty)
         {
             return difficulty switch
             {
@@ -305,7 +383,7 @@ namespace ProjectName.Systems
         }
 
         /// <summary>국가별 병사 이름 접두사</summary>
-        private string GetGuardName(NationType nation)
+        private static string GetGuardName(NationType nation)
         {
             return nation switch
             {
@@ -366,7 +444,27 @@ namespace ProjectName.Systems
         /// <summary>
         /// 병사 Placeholder 생성 (GLB "soldier" 우선, 없으면 Primitive Capsule) - 부모 지정 가능
         /// </summary>
-        private void CreateGuard(string name, Vector3 position, string guardName, int level, NationType nation, Transform parent = null, Vector3 forward = default)
+        /// <summary>
+        /// 전쟁 시 주둔군 스폰 API — def.guardCount명 병사를 center 주변 반경 10~20m 원형으로 배치.
+        /// 평시에는 문지기만 스폰되며, 이 API는 전쟁 시스템(TerritoryWarManager 등)이 호출할 목적으로 제공.
+        /// </summary>
+        public static void SpawnGarrison(TerritoryDefinition def, Vector3 center)
+        {
+            if (def == null) return;
+            var rng = new System.Random(def.id.index + 7777); // 영지 인덱스 기반 고정 시드 (결정론)
+            int count = Mathf.Max(1, def.guardCount);
+            for (int i = 0; i < count; i++)
+            {
+                float angle = (i / (float)count) * Mathf.PI * 2f + (float)(rng.NextDouble() * 0.4 - 0.2);
+                float radius = 10f + (float)rng.NextDouble() * 10f;
+                Vector3 pos = center + new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
+                CreateGuard($"Garrison_{def.nation}_{def.id.index}_{i + 1}", pos,
+                    GetGuardName(def.nation), GetBaseGuardLevel(def.difficulty) + (i % 3), def.nation);
+            }
+            Debug.Log($"[TerritoryBuilder] 주둔군 스폰: {def.territoryName} {count}명");
+        }
+
+        private static void CreateGuard(string name, Vector3 position, string guardName, int level, NationType nation, Transform parent = null, Vector3 forward = default)
         {
             var go = TrySpawnModelOrPlaceholder("soldier", name, position,
                 Vector3.one, new Color(0.2f, 0.4f, 0.8f), PrimitiveType.Capsule);

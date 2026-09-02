@@ -26,8 +26,9 @@ namespace ProjectName.Systems
         /// <param name="buildingType">건물 유형 (House, Shop, CraftHouse, Church, Castle)</param>
         /// <param name="interactRange">상호작용 범위 (기본 3f)</param>
         /// <param name="parent">부모 Transform (선택사항)</param>
+        /// <param name="nationStyle">국가 스타일 (Castle 전용: Eastern, Western, Southern, Northern, Empire) (선택사항)</param>
         /// <returns>생성된 BuildingTrigger GameObject</returns>
-        public static GameObject CreateBuildingTrigger(Vector3 position, string buildingType, float interactRange = DEFAULT_INTERACT_RANGE, Transform parent = null)
+        public static GameObject CreateBuildingTrigger(Vector3 position, string buildingType, float interactRange = DEFAULT_INTERACT_RANGE, Transform parent = null, string nationStyle = null)
         {
             if (string.IsNullOrWhiteSpace(buildingType))
             {
@@ -44,8 +45,10 @@ namespace ProjectName.Systems
             var trigger = triggerGo.AddComponent<BuildingTrigger>();
             trigger.BuildingType = buildingType;
             trigger.InteractRange = interactRange;
+            if (!string.IsNullOrEmpty(nationStyle))
+                trigger.NationStyle = nationStyle;
 
-            Debug.Log($"[IndoorTransitionSetup] {buildingType} BuildingTrigger 생성 완료 at {position}");
+            Debug.Log($"[IndoorTransitionSetup] {buildingType} BuildingTrigger 생성 완료 at {position} (nationStyle: {nationStyle ?? \"null\"})");
             return triggerGo;
         }
 

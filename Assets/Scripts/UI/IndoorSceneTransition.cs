@@ -129,7 +129,9 @@ namespace ProjectName.UI
                     break;
                 case "castle":
                     string nation = _pendingNationStyle ?? "Empire";
-                    CastleInteriorBuilder.BuildCastleInterior(nation);
+                    var interior = CastleInteriorBuilder.BuildCastleInterior(nation);
+                    if (interior != null)
+                        TerritoryBuilder.SpawnInteriorFixtures(interior.transform.position, nation);
                     break;
                 case "barn":
                     BarnInteriorBuilder.BuildBarnInterior();
