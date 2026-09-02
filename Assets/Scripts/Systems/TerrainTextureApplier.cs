@@ -26,7 +26,7 @@ namespace ProjectName.Systems
 
         [Header("Splatting (T-G2)")]
         [SerializeField] private bool _useSplatting = true;
-        [SerializeField] private int _splatResolution = 1024;
+        [SerializeField] private int _splatResolution = 2048;   // T-G4: 1024→2048 (격자 2m/px 뭉개짐 완화)
         [SerializeField] private int _splatSeed = 20260902;
 
         [Header("Runtime State")]
@@ -380,11 +380,12 @@ namespace ProjectName.Systems
                         var natList = _nationTextures[nation];
                         Texture2D detailTex = natList.Count > 1 ? natList[1] : natList[0];
                         mat.SetTexture("_DetailAlbedoMap", detailTex);
-                        mat.SetTextureScale("_DetailAlbedoMap", Vector2.one * 60f);
+                        mat.SetTextureScale("_DetailAlbedoMap", Vector2.one * 45f);   // T-G4: 60→45 (디테일 빈도 감소, 2048 스플랫과 균형)
                         mat.SetTextureOffset("_DetailAlbedoMap", Vector2.zero);
                         mat.EnableKeyword("_DETAIL_MULX2");
                         mat.SetFloat("_DetailNormalMapScale", 1f);
-                        Debug.Log($"[TerrainTextureApplier] {nation} 스플랫 맵 적용: {splat.name} + 디테일알베도({detailTex.name})");
+                        bool detailOK = mat.GetTexture("_DetailAlbedoMap") != null && mat.IsKeywordEnabled("_DETAIL_MULX2");
+                        Debug.Log($"[TerrainTextureApplier] {nation} 스플랫 맵 적용: {splat.name} + 디테일알베도({detailTex.name}) | detailOK={detailOK} (detailTex={mat.GetTexture("_DetailAlbedoMap") != null}, kw={mat.IsKeywordEnabled("_DETAIL_MULX2")})");
                     }
                     else
                     {
