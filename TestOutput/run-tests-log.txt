@@ -317,3 +317,165 @@ Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInter
 Refreshing native plugins compatible for Editor in 7.06 ms, found 5 plugins.
 [MODES] ModeService[none].Initialize
 [MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-포이즌
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  6.716 seconds
+Domain Reload Profiling: 9181ms
+	BeginReloadAssembly (550ms)
+		DisableScriptedObjects (36ms)
+		CreateAndSetChildDomain (226ms)
+	RebuildCommonClasses (69ms)
+	RebuildNativeTypeToScriptingClass (25ms)
+	initialDomainReloadingComplete (248ms)
+	LoadAllAssembliesAndSetupDomain (1572ms)
+		LoadAssemblies (1002ms)
+		AnalyzeDomain (782ms)
+			TypeCache.Refresh (593ms)
+				TypeCache.ScanAssembly (560ms)
+			BuildScriptInfoCaches (154ms)
+			ResolveRequiredComponents (31ms)
+	FinalizeReload (6717ms)
+		SetupLoadedEditorAssemblies (0ms)
+			InitializePlatformSupportModulesInManaged (43ms)
+			BeforeProcessingInitializeOnLoad (546ms)
+			ProcessInitializeOnLoadAttributes (4871ms)
+			ProcessInitializeOnLoadMethodAttributes (758ms)
+			AfterProcessingInitializeOnLoad (17ms)
+		AwakeInstancesAfterBackupRestoration (46ms)
+(Values over 0.050ms)
+Asset Pipeline Refresh (id=5a1a2dc1c3fc81f46a212ae7180f44ee): Total: 12.908 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=8158 ms
+		Asset DB Callback time: managed=45 ms, native=43 ms
+		Scripting: domain reloads=1, domain reload time=2476 ms, compile time=1887 ms, other=295 ms
+		Project Asset Count: scripts=2214, non-scripts=5533
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokePackagesCallback: 47.142ms
+	ApplyChangesToAssetFolders: 1.204ms
+	Scan: 372.522ms
+	CategorizeScriptCompilationAssets: 131.185ms
+	ProcessAssetsWithTransientArtifactChanges: 258.156ms
+	CategorizeAssets: 171.754ms
+	CompileScripts: 1887.201ms
+	ImportOutOfDateAssets: 6761.784ms (6753.146ms without children)
+		UnloadImportedAssets: 3.553ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.833ms
+		OnDemandSchedulerStart: 2.198ms
+	PostProcessAllAssets: 45.808ms
+		MonoPostProcessAllAssets: 45.642ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 18.511ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 3.491ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 3.180ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 1.125ms
+			CinemachineSettings.OnPostprocessAllAssets 0.776ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.698ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.640ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.348ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.333ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.248ms
+			SyncVS.PostprocessSyncProject 0.242ms
+	UnloadStreamsBegin: 2.872ms
+	PersistCurrentRevisions: 0.404ms
+	GenerateScriptTypeHashes: 7.490ms
+	GenerateScriptTypeSerializationHashes: 13.356ms
+	Untracked: 3220.322ms
+
+Application.AssetDatabase Initial Refresh End
+Shader Hidden/ChartRasterizerHardware is not supported: GPU does not support conservative rasterization
+Shader Hidden/ChartRasterizerHardware is not supported: GPU does not support conservative rasterization
+Scanning for USB devices : 3.043ms
+Initializing Unity extensions:
+Unloading 198 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 10781 unused Assets / (18.9 MB). Loaded Objects now: 11420.
+Memory consumption went from 267.2 MB to 248.3 MB.
+Total: 41.658100 ms (FindLiveObjects: 5.888900 ms CreateObjectMapping: 7.995600 ms MarkObjects: 12.188300 ms  DeleteObjects: 15.578000 ms)
+
+Batchmode quit successfully invoked - shutting down!
+Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.0260592 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
+Refreshing native plugins compatible for Editor in 6.88 ms, found 5 plugins.
+(Values over 0.050ms)
+Asset Pipeline Refresh (id=64c7a8f235448be49b1bf1b6c379cd34): Total: 0.560 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+	Summary:
+		Imports: total=1 (actual=1, local cache=0, cache server=0)
+		Asset DB Process Time: managed=7 ms, native=185 ms
+		Asset DB Callback time: managed=348 ms, native=18 ms
+		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
+		Project Asset Count: scripts=2214, non-scripts=5533
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 1
+	ApplyChangesToAssetFolders: 0.128ms
+	Scan: 40.027ms
+	CategorizeScriptCompilationAssets: 0.091ms
+	ProcessAssetsWithTransientArtifactChanges: 0.537ms
+	CategorizeAssets: 103.051ms
+	ImportOutOfDateAssets: 32.706ms (0.803ms without children)
+		ImportManagerImport: 28.909ms (2.265ms without children)
+		UnloadImportedAssets: 0.365ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.661ms
+		OnDemandSchedulerStart: 0.925ms
+	PostProcessAllAssets: 359.828ms
+		XRBuildSystem.XRAssetImported 10.078ms
+		PostProcessCallbackCreateDeferredMaterials 0.058ms
+		MonoPostProcessAllAssets: 348.496ms
+			AssetPostprocessor.OnPostprocessAllAssets 227.626ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 62.555ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 32.819ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 2.565ms
+			AssetChangedListener.OnPostprocessAllAssets 2.150ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 2.036ms
+			LocalizationAssetPostProcessor.OnPostprocessAllAssets 2.015ms
+			AddressablesAssetPostProcessor.OnPostprocessAllAssets 1.642ms
+			MaterialPostprocessor.OnPostprocessAllAssets 1.245ms
+			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.970ms
+			AssetPathToTypes.OnPostprocessAllAssets 0.855ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.750ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.660ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.632ms
+			PostProcessor.OnPostprocessAllAssets 0.554ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.475ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.474ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.471ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 0.444ms
+			ConfigAssetsTracker.OnPostprocessAllAssets 0.382ms
+			AssetEvents.OnPostprocessAllAssets 0.356ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.267ms
+			SyncVS.PostprocessSyncProject 0.260ms
+			SamplePostprocessor.OnPostprocessAllAssets 0.239ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.155ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.140ms
+			AudioContainerPostProcessor.OnPostprocessAllAssets 0.138ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 0.072ms
+	PostAssetChangesProfiler: 7.300ms
+	GatherAllCurrentPrimaryImportResultRevisions: 0.692ms
+	UnloadStreamsBegin: 0.068ms
+	PersistCurrentRevisions: 0.481ms
+	Untracked: 15.446ms
+
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input Polling Thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-korea-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-korea channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+CodeReloadManager destroyed
+abort_threads: Failed aborting id: 00000000000031E8, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 00000000000012DC, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 000000000000281C, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 00000000000031E8, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 00000000000012DC, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 000000000000281C, mono_thread_manage will ignore it
+
+debugger-agent: Unable to listen on 2940
+Exiting batchmode successfully now!
+Exiting without the bug reporter. Application will terminate with return code 0
