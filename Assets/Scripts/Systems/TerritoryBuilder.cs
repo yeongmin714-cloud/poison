@@ -31,7 +31,8 @@ namespace ProjectName.Systems
         {
             if (_autoBuildOnStart)
             {
-                BuildAllTerritories();
+                // 82개 영지를 1프레임당 1개씩 분산 생성 (프리징 방지)
+                StartCoroutine(BuildAllCoroutine());
             }
         }
 
@@ -66,7 +67,45 @@ namespace ProjectName.Systems
             }
 
             _hasBuilt = true;
+            RefreshRegistrations();
             Debug.Log($"[TerritoryBuilder] 전체 영지 Placeholder 생성 완료! 총 {builtCount}개 영지 신규 생성");
+        }
+
+        /// <summary>
+        /// BuildAllTerritories와 동일한 루프를 영지 1개당 1프레임씩 분산 실행합니다 (프리징 방지).
+        /// Start()에서 자동 호출됩니다.
+        /// </summary>
+        private System.Collections.IEnumerator BuildAllCoroutine()
+        {
+            if (_hasBuilt) yield break;
+
+            var definitions = TerritoryDatabase.Instance.GetAllDefinitions();
+            int builtCount = 0;
+
+            foreach (var def in definitions)
+            {
+                if (IsTerritoryAlreadyBuilt(def))
+                {
+                    continue;
+                }
+
+                BuildSingleTerritory(def);
+                builtCount++;
+
+                // 영지 1개당 1프레임 분산 → 82프레임에 걸쳐 생성
+                yield return null;
+            }
+
+            _hasBuilt = true;
+            RefreshRegistrations();
+            Debug.Log($"[TerritoryBuilder] 전체 영지 Placeholder 생성 완료 (분산)! 총 {builtCount}개 영지 신규 생성");
+        }
+
+        /// <summary>TerritoryManager에 건물/병사 재등록 요청 (빌드 완료 후 스캔)</summary>
+        private void RefreshRegistrations()
+        {
+            if (TerritoryManager.Instance != null)
+                TerritoryManager.Instance.RefreshRegistrations();
         }
 
         /// <summary>단일 영지 생성</summary>
@@ -74,6 +113,17 @@ namespace ProjectName.Systems
         {
             Vector3 center = def.worldPosition;
             string parentName = $"Territory_{def.nation}_{def.id.index:D2}";
+
+            // 호수 겹침 경고 (경고만 — 이동/스킵 안 함. TerrainGenerator shore 배율 1.3f와 동일 기준)
+            foreach (var lake in TerrainGenerator.Lakes)
+            {
+                float dist = Vector3.Distance(new Vector3(center.x, 0f, center.z), new Vector3(lake.center.x, 0f, lake.center.z));
+                if (dist < lake.radius * 1.3f)
+                {
+                    Debug.LogWarning($"[TerritoryBuilder] 영지 '{parentName}'이(가) 호수(중심 {lake.center}, 반경 {lake.radius:F1}m) 인근에 위치 — 지형/물 겹침 가능 (경고만).");
+                    break; // 영지당 한 줄 경고
+                }
+            }
 
             // 부모 컨테이너 생성
             var parentGo = new GameObject(parentName);
@@ -190,22 +240,32 @@ namespace ProjectName.Systems
         private static GameObject TrySpawnModelOrPlaceholder(string modelKey, string name,
             Vector3 position, Vector3 scale, Color fallbackColor, PrimitiveType fallbackType)
         {
+            // 지형 기저 y 보정: 월드 지표면 = GetHeightAt + 1f (Ground_Inner 월드 y=1 기저)
+            float groundY = TerrainGenerator.GetHeightAt(position.x, position.z, BiomeType.Plains, 42) + 1f;
+
             // GLB 모델이 있는지 확인
             if (!string.IsNullOrEmpty(modelKey) && RuntimeModelLoader.TryGetModel(modelKey, out var modelPrefab))
             {
                 GameObject modelGo = Object.Instantiate(modelPrefab);
                 modelGo.name = name;
-                modelGo.transform.position = position;
+                // GLB 피벗은 바닥 기준 가정 → 약간 띄워 지면 겹침/징파이팅 방지
+                modelGo.transform.position = new Vector3(position.x, groundY + 0.05f, position.z);
                 modelGo.transform.localScale = scale;
 
                 Debug.Log($"[TerritoryBuilder] GLB 모델 '{modelKey}'로 '{name}' 생성");
                 return modelGo;
             }
 
-            // GLB가 없으면 Primitive Placeholder 생성
+            // GLB가 없으면 Primitive Placeholder 생성 — 프리미티브 기저 보정 (지면 위 바닥 정착)
+            float baseOffsetY = fallbackType switch
+            {
+                PrimitiveType.Capsule => scale.y,          // 기본 캡슐 높이 2 × scale.y → 반높이 = scale.y
+                PrimitiveType.Sphere => scale.y * 0.5f,
+                _ => scale.y * 0.5f,                       // Cube(기본) 등
+            };
             var go = GameObject.CreatePrimitive(fallbackType);
             go.name = name;
-            go.transform.position = position;
+            go.transform.position = new Vector3(position.x, groundY + baseOffsetY, position.z);
             go.transform.localScale = scale;
             go.tag = "Untagged";
 

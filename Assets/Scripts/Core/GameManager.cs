@@ -112,6 +112,27 @@ namespace ProjectName.Core
 
                 Debug.Log("[GameManager] TerritoryManager 자동 생성됨");
             }
+
+            // === TerritoryBuilder 보장 ===
+            // 씬에 TerritoryManager 오브젝트가 이미 존재(Instance 설정)했더라도,
+            // TerritoryBuilder가 없으면 빌더를 추가해 영지 자동 생성(BuildAllTerritories)이 동작하게 한다.
+            // (기존 instance==null 블록과는 별개의 추가 블록 — 기존 동작 파괴 없음)
+            if (tmType != null)
+            {
+                var tbType2 = System.Type.GetType("ProjectName.Systems.TerritoryBuilder");
+                if (tbType2 == null)
+                    tbType2 = FindTypeInAssemblies("TerritoryBuilder");
+
+                if (tbType2 != null && UnityEngine.Object.FindAnyObjectByType(tbType2) == null)
+                {
+                    // 기존 TerritoryManager GO (없으면 새로 생성)
+                    var mgrGo = GameObject.Find("TerritoryManager");
+                    if (mgrGo == null)
+                        mgrGo = new GameObject("TerritoryManager");
+                    mgrGo.AddComponent(tbType2);
+                    Debug.Log("[GameManager] TerritoryBuilder 추가됨");
+                }
+            }
         }
 
         private static System.Type FindTypeInAssemblies(string typeName)

@@ -203,6 +203,20 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
+        /// 씬 스캔을 다시 수행해 건물/병사를 딕셔너리에 재등록합니다.
+        /// TerritoryBuilder가 영지 오브젝트를 Awake 이후(분산 코루틴)에 생성하므로,
+        /// 빌드 완료 후 이 메서드를 호출해야 등록이 반영됩니다.
+        /// </summary>
+        public void RefreshRegistrations()
+        {
+            _buildings.Clear();
+            _guards.Clear();
+            FindAndRegisterAll<BuildingPlaceholder>(_buildings, "건물");
+            FindAndRegisterAll<GuardPlaceholder>(_guards, "병사");
+            Debug.Log($"[TerritoryManager] 영지 재등록: 건물 {_buildings.Count}개, 병사 {_guards.Count}명");
+        }
+
+        /// <summary>
         /// 건물 이름으로 건물 객체 찾기
         /// </summary>
         public BuildingPlaceholder GetBuilding(string name)

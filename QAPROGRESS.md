@@ -735,3 +735,16 @@ Cross(Edge1, Edge2) = (0, -dx·dz, 0) = **법선이 아래(-Y)를 향함**.
 스폰 y(1.5)는 구값이나 클램프가 즉시 보정(스폰 시 살짝 팝 가능).
 
 **검증:** 배치컴파일 통과 (error CS 0). Play 시각검증 대기 — 동쪽 롤링 힐 확인 필수.
+
+## 2026-09-02 영지 스폰 수리 (Phase S1)
+
+**증상:** 영지가 스폰되지 않음.
+
+**근본 원인:** 씬에 TerritoryManager 오브젝트가 이미 존재(Instance 설정) → GameManager.EnsureTerritoryManager()가 "instance==null일 때만" TerritoryBuilder를 AddComponent하는 구조 → TerritoryBuilder가 영원히 생성되지 않아 BuildAllTerritories() 미호출 → 영지 0개.
+
+**수리 (3개 파일, +99줄):**
+1. GameManager: instance 유무와 무관하게 TerritoryBuilder 없으면 무조건 AddComponent (씬 재생성 대응, 리플렉션 경로)
+2. TerritoryBuilder: TrySpawnModelOrPlaceholder에 지형 y 보정(1+GetHeightAt, GLB=바닥+0.05, Cube/Sphere=scale.y/2, Capsule=scale.y) + BuildAllCoroutine(영지당 1프레임 분산, 82프레임) + 호수 겹침 경고
+3. TerritoryManager: public RefreshRegistrations() 추가 (씬 재스캔) — 빌더 완료 후 호출, 건물/병사 등록 보장
+
+**검증:** 배치컴파일 통과 (error CS 0). Play 시각검증 대기 — "[TerritoryBuilder] 전체 영지 Placeholder 생성 완료! 총 82개" + "[TerritoryManager] 영지 재등록" 로그 확인 필수.
