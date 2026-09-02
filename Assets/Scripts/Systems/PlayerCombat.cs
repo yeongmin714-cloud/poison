@@ -49,6 +49,8 @@ namespace ProjectName.Systems
 
         /// <summary>남은 쿨다운 시간 (0 이하이면 공격 가능)</summary>
         public float RemainingCooldown => Mathf.Max(0f, (_lastAttackTime + _currentWeapon?.attackSpeed ?? 1f) - Time.time);
+        // 애니메이션 폴링용: 마지막 공격 시각 (변화 감지로 공격 모션 트리거)
+        public float LastAttackTime => _lastAttackTime;
 
         /// <summary>무기와 플레이어 레벨을 기반으로 데미지를 계산합니다.</summary>
         private float CalculateDamage()

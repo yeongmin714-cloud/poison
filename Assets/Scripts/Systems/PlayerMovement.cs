@@ -1072,6 +1072,7 @@ namespace ProjectName.Systems
         // --- 속도 수정자 ---
         public float SpeedModifier { get => _speedModifier; set => _speedModifier = Mathf.Max(0.1f, value); }
 
+
         // --- 구르기 속성 ---
         public bool IsRolling => _isRolling;
         public float RollTimer => _rollTimer;

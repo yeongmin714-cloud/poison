@@ -3,45 +3,68 @@ using UnityEngine;
 namespace ProjectName.Systems
 {
     /// <summary>
-    /// 플레이어 GLB(Player_Rigged, 27본 Rigify형 리그, 클립 0개)를 위한 절차적 애니메이터.
-    /// - 정지: 호흡 bob + 팔 내림 유지
-    /// - 이동: 다리 스윙(thigh) + 무릎 굽힘(shin) + 팔 반대 스윙 + 체중 bob
+    /// 플레이어 GLB(Player_Rigged, 27본 리그, 클립 0개)를 위한 절차적 애니메이터.
+    /// 모션: Idle(호흡) / Walk / Run(스프린트) / Attack(우수 오버헤드 슬래시) / Roll(앞구르기 전회) / Jump(다리 턱)
     /// - 이동 감지: 부모 Player의 CharacterController.velocity
-    /// - 회전: Player 루트가 LookRotation으로 이미 선회하므로 본은 world-delta 방식
-    ///   (bone.rotation = AngleAxis(angle, playerRight) * parentRot * baseLocal — 부모 회전 추종)
+    /// - 구르기/점프: PlayerMovement.IsRolling/IsJumping 폴링
+    /// - 공격: PlayerCombat.LastAttackTime 변화 감지
+    /// - 본 회전은 world-delta 방식(bone.rotation = AngleAxis(angle, playerRight) * parentRot * baseLocal)
+    ///   → 플레이어 선회 추종 + 부모 회전 영향 정상 반영
     /// </summary>
     public class PlayerCharacterAnimator : MonoBehaviour
     {
-        [Header("걷기 파라미터")]
-        [SerializeField] private float _strideSpeed = 1.9f;      // 보폭 위상 속도 계수 (phase += speed * 이값)
-        [SerializeField] private float _legSwingDeg = 30f;       // 허벅지 스윙 각도
+        [Header("걷기/달리기")]
+        [SerializeField] private float _strideSpeed = 1.9f;      // 보폭 위상 계수 (phase += speed × 이값)
+        [SerializeField] private float _walkSpeed = 4.5f;        // 걷기 풀 블렌드 속도 (m/s)
+        [SerializeField] private float _runSpeed = 8f;           // 달리기 풀 블렌드 속도 (m/s)
+        [SerializeField] private float _legSwingDeg = 30f;       // 걷기 허벅지 스윙
+        [SerializeField] private float _runLegSwingDeg = 46f;    // 달리기 허벅지 스윙
         [SerializeField] private float _kneeBendDeg = 22f;       // 무릎 굽힘
-        [SerializeField] private float _armSwingDeg = 16f;       // 팔 반대 스윙
-        [SerializeField] private float _bobAmplitude = 0.055f;   // 걷기 체중 bob (m)
+        [SerializeField] private float _armSwingDeg = 16f;       // 걷기 팔 스윙
+        [SerializeField] private float _runArmSwingDeg = 30f;    // 달리기 팔 스윙
+        [SerializeField] private float _bobAmplitude = 0.055f;   // 걷기 bob (m)
+        [SerializeField] private float _runBobAmplitude = 0.09f;
         [SerializeField] private float _idleBobAmplitude = 0.012f;
-        [SerializeField] private float _walkBlendSpeed = 4.5f;   // 이 속도(m/s)에서 walkBlend=1
+
+        [Header("공격/구르기/점프")]
+        [SerializeField] private float _attackDuration = 0.45f;  // 공격 모션 길이 (s)
+        [SerializeField] private bool _invertAttackSwing = false;// 스윙 방향 반전 (모델 정면 기준 조정용)
+        [SerializeField] private bool _invertRollFlip = false;   // 구르기 전회 방향 반전
+        [SerializeField] private float _jumpTuckBlend = 0.6f;    // 점프 다리 턱 강도 (0~1)
 
         private CharacterController _cc;
+        private PlayerMovement _movement;
+        private PlayerCombat _combat;
         private Transform _thighL, _thighR, _shinL, _shinR;
         private Transform _upperArmL, _upperArmR, _forearmL, _forearmR;
         private Quaternion _thighLBase, _thighRBase, _shinLBase, _shinRBase;
-        private Quaternion _armLBase, _armRBase; // 팔 내림 포즈 적용 후의 base local
-        private float _phase;
-        private float _walkBlend;
-        private bool _poseApplied;
+        private Quaternion _armLBase, _armRBase;
+        private Quaternion _bodyBaseLocalRot;
         private Vector3 _bodyBaseLocal;
+        private float _phase;
+        private float _walkBlend, _runBlend;
+        private bool _poseApplied;
+        private bool _prevRolling;
+        private float _rollT = -1f;            // -1 = 구르기 아님
+        private float _attackT = 999f;         // >= _attackDuration = 공격 아님
+        private float _prevCombatAttackTime = -999f;
 
         private void Start()
         {
             _cc = GetComponentInParent<CharacterController>();
             _bodyBaseLocal = transform.localPosition;
+            _bodyBaseLocalRot = transform.localRotation;
             CacheBones();
-            ApplyArmsDown();          // T-pose → A-pose (1회)
-            CachePoseBases();         // 팔 내림 후 base local 저장
+            ApplyArmsDown();
+            CachePoseBases();
         }
 
         private void Update()
         {
+            // 상위 시스템 참조 (지연 캐시)
+            if (_movement == null) _movement = GetComponentInParent<PlayerMovement>();
+            if (_combat == null) _combat = GetComponentInParent<PlayerCombat>();
+
             float speed = 0f;
             if (_cc != null)
             {
@@ -49,21 +72,60 @@ namespace ProjectName.Systems
                 v.y = 0f;
                 speed = v.magnitude;
             }
-            _walkBlend = Mathf.Clamp01(speed / _walkBlendSpeed);
+            _walkBlend = Mathf.Clamp01(speed / Mathf.Max(0.1f, _walkSpeed));
+            _runBlend = Mathf.Clamp01((speed - _walkSpeed) / Mathf.Max(0.1f, _runSpeed - _walkSpeed));
             _phase += speed * _strideSpeed * Time.deltaTime;
 
+            // ── 트리거 감지 ──
+            bool rolling = _movement != null && _movement.IsRolling;
+            if (rolling && !_prevRolling) _rollT = 0f;          // 구르기 시작
+            if (!rolling) _rollT = -1f;                          // 구르기 종료
+            _prevRolling = rolling;
+
+            if (_combat != null)
+            {
+                float lat = _combat.LastAttackTime;
+                if (!Mathf.Approximately(lat, _prevCombatAttackTime))
+                {
+                    _prevCombatAttackTime = lat;
+                    _attackT = 0f;                                // 공격 모션 시작
+                }
+            }
+            bool attacking = _attackT < _attackDuration;
+            if (attacking) _attackT += Time.deltaTime;
+
+            bool jumping = _movement != null && _movement.IsJumping;
+
             var player = transform.parent != null ? transform.parent : transform;
-            Vector3 rightAxis = player.right; // 스윙 축: 플레이어 좌우축 (전후 스윙)
+            Vector3 rightAxis = player.right; // 스윙 축: 플레이어 좌우축
+
+            // ── 우선순위: Roll > Attack > Jump > Walk/Run/Idle ──
+            if (rolling && _rollT >= 0f)
+            {
+                // 구르기: GLB 전체가 앞방향으로 360° 전회 (몸통 플립 — 본 개별 제어 불필요)
+                float dur = _movement != null ? Mathf.Max(0.05f, _movement.RollDuration) : 0.5f;
+                float t01 = Mathf.Clamp01(_rollT / dur);
+                float flip = (t01 * 2f - 1f) * (t01 * 2f - 1f); // ease-in-out
+                float dir = _invertRollFlip ? -1f : 1f;
+                transform.localRotation = _bodyBaseLocalRot * Quaternion.Euler(dir * flip * 360f, 0f, 0f);
+                transform.localPosition = _bodyBaseLocal; // bob 무시 (회전 중심 고정)
+                return;
+            }
+
+            // 구르기 종료 후 자세 복원
+            transform.localRotation = _bodyBaseLocalRot;
+
+            float legSwing = Mathf.Lerp(_legSwingDeg, _runLegSwingDeg, _runBlend);
+            float armSwing = Mathf.Lerp(_armSwingDeg, _runArmSwingDeg, _runBlend);
 
             if (_thighL != null && _thighR != null)
             {
-                float s = Mathf.Sin(_phase) * _legSwingDeg * _walkBlend;
+                float s = Mathf.Sin(_phase) * legSwing * _walkBlend;
                 SwingBone(_thighL, _thighLBase, rightAxis, s);
                 SwingBone(_thighR, _thighRBase, rightAxis, -s);
 
                 if (_shinL != null && _shinR != null)
                 {
-                    // 무릎: 다리가 뒤로 갈 때(스윙 음수 구간) 굽힘
                     float bend = Mathf.Max(0f, -Mathf.Sin(_phase)) * _kneeBendDeg * _walkBlend;
                     SwingBone(_shinL, _shinLBase, rightAxis, -bend);
                     SwingBone(_shinR, _shinRBase, rightAxis, bend);
@@ -72,27 +134,48 @@ namespace ProjectName.Systems
 
             if (_upperArmL != null && _upperArmR != null)
             {
-                // 팔은 다리와 반대 위상
-                float s = Mathf.Sin(_phase) * _armSwingDeg * _walkBlend;
-                SwingBone(_upperArmL, _armLBase, rightAxis, -s * 0.8f);
-                SwingBone(_upperArmR, _armRBase, rightAxis, s * 0.8f);
+                if (attacking)
+                {
+                    // 공격: 우팔 오버헤드 슬래시 (위→앞아래), 좌팔 반동
+                    float t01 = Mathf.Clamp01(_attackT / _attackDuration);
+                    float eased = Mathf.SmoothStep(0f, 1f, t01);
+                    float swing = Mathf.Lerp(-115f, 75f, eased) * (_invertAttackSwing ? -1f : 1f);
+                    SwingBone(_upperArmR, _armRBase, rightAxis, swing);
+                    SwingBone(_upperArmL, _armLBase, rightAxis, -swing * 0.25f);
+                }
+                else
+                {
+                    // 걷기/달리기: 다리와 반대 위상 팔 스윙
+                    float s = Mathf.Sin(_phase) * armSwing * _walkBlend;
+                    SwingBone(_upperArmL, _armLBase, rightAxis, -s * 0.8f);
+                    SwingBone(_upperArmR, _armRBase, rightAxis, s * 0.8f);
+                }
             }
 
-            // 체중 bob: 걷기 2배 주파수, 정지 시 호흡
+            // 점프: 공중에서 다리 턱 (구르기/공격보다 낮은 우선순위 — 위 블록에서 이미 스윙됐으면 소폭 블렌드)
+            if (jumping && !attacking && _thighL != null && _thighR != null)
+            {
+                float tuck = _jumpTuckBlend * 70f;
+                SwingBone(_thighL, _thighLBase, rightAxis, -tuck * 0.5f);
+                SwingBone(_thighR, _thighRBase, rightAxis, tuck * 0.5f);
+            }
+
+            // 체중 bob: 걷기 2배 주파수 / 달리기 증폭 / 정지 호흡
+            float bobAmp = Mathf.Lerp(_bobAmplitude, _runBobAmplitude, _runBlend);
             float bob = Mathf.Lerp(
                 Mathf.Sin(Time.time * 1.5f) * _idleBobAmplitude,
-                -Mathf.Abs(Mathf.Sin(_phase)) * _bobAmplitude,
+                -Mathf.Abs(Mathf.Sin(_phase)) * bobAmp,
                 _walkBlend);
             var lp = _bodyBaseLocal;
             lp.y += bob;
             transform.localPosition = lp;
         }
 
-        /// <summary>본 회전: worldAngleAxis(angle, axis) * parentWorldRot * baseLocal
+        /// <summary>본 회전: AngleAxis(angle, axis) * parentWorldRot * baseLocal
         /// — 부모(플레이어 루트)가 회전해도 스윙 축이 따라가고 base 자세가 유지된다.</summary>
         private static void SwingBone(Transform bone, Quaternion baseLocal, Vector3 axis, float angleDeg)
         {
-            if (bone == null || Mathf.Approximately(angleDeg, 0f)) return;
+            if (bone == null) return;
             var parentRot = bone.parent != null ? bone.parent.rotation : Quaternion.identity;
             bone.rotation = Quaternion.AngleAxis(angleDeg, axis) * parentRot * baseLocal;
         }

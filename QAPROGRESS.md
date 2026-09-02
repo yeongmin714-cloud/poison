@@ -800,3 +800,17 @@ Cross(Edge1, Edge2) = (0, -dx·dz, 0) = **법선이 아래(-Y)를 향함**.
   - 정지: 호흡 bob — 본 회전은 world-delta 방식(AngleAxis × parentRot × baseLocal)으로 플레이어 선회 추종
 - RuntimeModelLoader: "player" 키 대소문자 교정(player_rigged → Player_Rigged, Linux 빌드 대비)
 **검증:** 배치컴파일 통과 (error CS 0). Play 시각검증 대기 — 걷기 스윙 방향/크기 확인 필수.
+
+## 2026-09-02 플레이어 모션 확장 (Run/Attack/Roll/Jump)
+
+- PlayerMovement: 기존 public 프로퍼티(IsRolling/IsJumping/RollDuration) 사용 — 중복 정의 1회 발생 제거
+- PlayerCombat: LastAttackTime 프로퍼티 추가 (공격 모션 트리거 폴링용)
+- PlayerCharacterAnimator 확장:
+  - Run: speed 4.5→8m/s 구간 블렌드, 스윙 30°→46°/팔 16°→30°/bob 증폭
+  - Attack: PlayerCombat.LastAttackTime 변화 감지 → 우팔 오버헤드 슬래시(0.45s, -115°→+75° 스윙) + 좌팔 반동
+    (모델 정면 기준 방향 반전용 _invertAttackSwing 플래그)
+  - Roll: PlayerMovement.IsRolling 감지 → GLB 전체 앞구르기 360° 전회(0.5s, ease-in-out)
+    몸통 플립 방식이라 본 개별 제어 불필요, 방향 반전용 _invertRollFlip 플래그
+  - Jump: IsJumping 감지 → 다리 턱(0.6 블렌드)
+  - 우선순위: Roll > Attack > Jump > Walk/Run/Idle
+**검증:** 배치컴파일 통과 (error CS 0). Play 시각검증 대기 — 걷기/스프린트/공격/구르기(Q키)/점프 모션 확인.
