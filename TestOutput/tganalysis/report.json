@@ -1,0 +1,3485 @@
+[
+ {
+  "file": "Action Idle To Fight Idle.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   31.0
+  ],
+  "duration_s": 1.0,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightHandRing2",
+    96.8
+   ],
+   [
+    "mixamorig:LeftHandRing2",
+    94.5
+   ],
+   [
+    "mixamorig:RightHandPinky3",
+    87.6
+   ],
+   [
+    "mixamorig:LeftHandPinky3",
+    84.6
+   ],
+   [
+    "mixamorig:RightHandIndex2",
+    82.6
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    81.9
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Action_Idle_To_Fight_Idle_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Action_Idle_To_Fight_Idle_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Action_Idle_To_Fight_Idle_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Action_Idle_To_Fight_Idle_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Climbing Ladder.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   24.0
+  ],
+  "duration_s": 0.77,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightHand",
+    79.2
+   ],
+   [
+    "mixamorig:RightLeg",
+    72.5
+   ],
+   [
+    "mixamorig:LeftHand",
+    65.0
+   ],
+   [
+    "mixamorig:RightHandPinky2",
+    63.5
+   ],
+   [
+    "mixamorig:RightHandRing2",
+    63.4
+   ],
+   [
+    "mixamorig:LeftLeg",
+    60.9
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Climbing_Ladder_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Climbing_Ladder_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Climbing_Ladder_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Climbing_Ladder_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Crouch Idle.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   51.0
+  ],
+  "duration_s": 1.67,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftHand",
+    12.7
+   ],
+   [
+    "mixamorig:LeftArm",
+    9.6
+   ],
+   [
+    "mixamorig:LeftShoulder",
+    8.5
+   ],
+   [
+    "mixamorig:Neck",
+    7.5
+   ],
+   [
+    "mixamorig:RightHand",
+    7.4
+   ],
+   [
+    "mixamorig:LeftHandRing1",
+    7.3
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Idle_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Idle_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Idle_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Idle_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Crouch Walk Back.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   42.0
+  ],
+  "duration_s": 1.37,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftToeBase",
+    52.0
+   ],
+   [
+    "mixamorig:LeftLeg",
+    47.3
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    46.4
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    45.3
+   ],
+   [
+    "mixamorig:RightLeg",
+    39.3
+   ],
+   [
+    "mixamorig:LeftFoot",
+    32.8
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Walk_Back_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Walk_Back_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Walk_Back_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Walk_Back_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Crouch Walk Right.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   34.0
+  ],
+  "duration_s": 1.1,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftLeg",
+    53.4
+   ],
+   [
+    "mixamorig:RightToeBase",
+    52.9
+   ],
+   [
+    "mixamorig:RightFoot",
+    49.3
+   ],
+   [
+    "mixamorig:RightLeg",
+    45.1
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    37.2
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    36.3
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Walk_Right_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Walk_Right_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Walk_Right_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Walk_Right_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Crouch Walk.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   91.0
+  ],
+  "duration_s": 3.0,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightArm",
+    95.8
+   ],
+   [
+    "mixamorig:LeftArm",
+    93.9
+   ],
+   [
+    "mixamorig:RightLeg",
+    81.9
+   ],
+   [
+    "mixamorig:LeftLeg",
+    69.0
+   ],
+   [
+    "mixamorig:LeftHandRing1",
+    67.7
+   ],
+   [
+    "mixamorig:LeftHandMiddle1",
+    65.0
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Walk_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Walk_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Walk_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouch_Walk_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Crouched Sneaking Right.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   34.0
+  ],
+  "duration_s": 1.1,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightToeBase",
+    74.2
+   ],
+   [
+    "mixamorig:RightFoot",
+    44.7
+   ],
+   [
+    "mixamorig:RightLeg",
+    41.7
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    33.1
+   ],
+   [
+    "mixamorig:LeftToeBase",
+    32.0
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    28.1
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouched_Sneaking_Right_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouched_Sneaking_Right_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouched_Sneaking_Right_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Crouched_Sneaking_Right_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Death From Right.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   100.0
+  ],
+  "duration_s": 3.3,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftForeArm",
+    113.0
+   ],
+   [
+    "mixamorig:LeftArm",
+    93.4
+   ],
+   [
+    "mixamorig:Hips",
+    82.2
+   ],
+   [
+    "mixamorig:RightForeArm",
+    72.0
+   ],
+   [
+    "mixamorig:LeftHandRing2",
+    69.1
+   ],
+   [
+    "mixamorig:LeftHand",
+    69.0
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Death_From_Right_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Death_From_Right_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Death_From_Right_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Death_From_Right_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Draw Sword 1.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   16.0
+  ],
+  "duration_s": 0.5,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightForeArm",
+    101.3
+   ],
+   [
+    "mixamorig:RightHandThumb3",
+    95.7
+   ],
+   [
+    "mixamorig:RightArm",
+    92.7
+   ],
+   [
+    "mixamorig:LeftHandIndex1",
+    90.3
+   ],
+   [
+    "mixamorig:LeftHandMiddle1",
+    90.1
+   ],
+   [
+    "mixamorig:LeftHandRing1",
+    87.2
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Draw_Sword_1_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Draw_Sword_1_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Draw_Sword_1_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Draw_Sword_1_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Dwarf Idle.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   201.0
+  ],
+  "duration_s": 6.67,
+  "top_bones_deg": [
+   [
+    "mixamorig:Neck",
+    10.5
+   ],
+   [
+    "mixamorig:Head",
+    6.8
+   ],
+   [
+    "mixamorig:RightForeArm",
+    3.7
+   ],
+   [
+    "mixamorig:LeftHand",
+    2.8
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    2.7
+   ],
+   [
+    "mixamorig:RightHand",
+    2.5
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Dwarf_Idle_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Dwarf_Idle_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Dwarf_Idle_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Dwarf_Idle_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Dwarf Walk.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   36.0
+  ],
+  "duration_s": 1.17,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftLeg",
+    44.4
+   ],
+   [
+    "mixamorig:RightToeBase",
+    42.5
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    38.4
+   ],
+   [
+    "mixamorig:RightLeg",
+    34.7
+   ],
+   [
+    "mixamorig:LeftHand",
+    31.0
+   ],
+   [
+    "mixamorig:RightFoot",
+    30.5
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Dwarf_Walk_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Dwarf_Walk_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Dwarf_Walk_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Dwarf_Walk_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Dying.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   174.0
+  ],
+  "duration_s": 5.77,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightLeg",
+    123.4
+   ],
+   [
+    "mixamorig:LeftLeg",
+    119.3
+   ],
+   [
+    "mixamorig:RightArm",
+    106.0
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    101.4
+   ],
+   [
+    "mixamorig:Hips",
+    94.4
+   ],
+   [
+    "mixamorig:LeftArm",
+    88.4
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Dying_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Dying_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Dying_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Dying_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Falling Back Death.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   79.0
+  ],
+  "duration_s": 2.6,
+  "top_bones_deg": [
+   [
+    "mixamorig:Hips",
+    139.4
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    94.6
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    86.0
+   ],
+   [
+    "mixamorig:RightLeg",
+    85.4
+   ],
+   [
+    "mixamorig:LeftHandMiddle1",
+    82.2
+   ],
+   [
+    "mixamorig:LeftArm",
+    81.5
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Falling_Back_Death_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Falling_Back_Death_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Falling_Back_Death_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Falling_Back_Death_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Falling To Roll.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   55.0
+  ],
+  "duration_s": 1.8,
+  "top_bones_deg": [
+   [
+    "mixamorig:Hips",
+    341.7
+   ],
+   [
+    "mixamorig:RightArm",
+    118.2
+   ],
+   [
+    "mixamorig:RightLeg",
+    93.9
+   ],
+   [
+    "mixamorig:LeftLeg",
+    86.2
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    84.8
+   ],
+   [
+    "mixamorig:LeftArm",
+    80.4
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Falling_To_Roll_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Falling_To_Roll_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Falling_To_Roll_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Falling_To_Roll_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Fight Idle To Standing Idle.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   33.0
+  ],
+  "duration_s": 1.07,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftForeArm",
+    106.3
+   ],
+   [
+    "mixamorig:LeftHandPinky3",
+    102.7
+   ],
+   [
+    "mixamorig:RightHandPinky3",
+    102.7
+   ],
+   [
+    "mixamorig:RightForeArm",
+    99.3
+   ],
+   [
+    "mixamorig:LeftHandRing2",
+    92.4
+   ],
+   [
+    "mixamorig:RightHandRing2",
+    92.4
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Fight_Idle_To_Standing_Idle_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Fight_Idle_To_Standing_Idle_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Fight_Idle_To_Standing_Idle_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Fight_Idle_To_Standing_Idle_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Great Sword Blocking.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   16.0
+  ],
+  "duration_s": 0.5,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftArm",
+    69.1
+   ],
+   [
+    "mixamorig:RightLeg",
+    64.0
+   ],
+   [
+    "mixamorig:Hips",
+    63.1
+   ],
+   [
+    "mixamorig:RightHand",
+    57.0
+   ],
+   [
+    "mixamorig:RightArm",
+    56.8
+   ],
+   [
+    "mixamorig:LeftLeg",
+    51.7
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Blocking_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Blocking_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Blocking_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Blocking_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Great Sword Crouching.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   22.0
+  ],
+  "duration_s": 0.7,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightLeg",
+    103.9
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    84.7
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    81.5
+   ],
+   [
+    "mixamorig:LeftHandThumb2",
+    78.6
+   ],
+   [
+    "mixamorig:LeftHandThumb3",
+    73.1
+   ],
+   [
+    "mixamorig:LeftLeg",
+    61.3
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Crouching_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Crouching_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Crouching_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Crouching_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Great Sword Impact.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   39.0
+  ],
+  "duration_s": 1.27,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftHandPinky2",
+    78.7
+   ],
+   [
+    "mixamorig:LeftHandIndex3",
+    77.5
+   ],
+   [
+    "mixamorig:LeftHandMiddle1",
+    76.4
+   ],
+   [
+    "mixamorig:LeftHandThumb3",
+    75.6
+   ],
+   [
+    "mixamorig:LeftHandRing1",
+    74.9
+   ],
+   [
+    "mixamorig:LeftHandIndex1",
+    66.4
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Impact_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Impact_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Impact_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Impact_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Great Sword Run.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   19.0
+  ],
+  "duration_s": 0.6,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftLeg",
+    80.3
+   ],
+   [
+    "mixamorig:RightLeg",
+    74.5
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    59.1
+   ],
+   [
+    "mixamorig:RightFoot",
+    52.6
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    50.1
+   ],
+   [
+    "mixamorig:LeftFoot",
+    47.7
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Run_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Run_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Run_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Run_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Great Sword Slash (1).fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   39.0
+  ],
+  "duration_s": 1.27,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightHand",
+    113.7
+   ],
+   [
+    "mixamorig:LeftArm",
+    104.8
+   ],
+   [
+    "mixamorig:RightForeArm",
+    89.9
+   ],
+   [
+    "mixamorig:RightArm",
+    86.8
+   ],
+   [
+    "mixamorig:LeftHand",
+    86.6
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    63.2
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Slash__1__0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Slash__1__1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Slash__1__2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Slash__1__3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Great Sword Slash.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   56.0
+  ],
+  "duration_s": 1.83,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightArm",
+    121.6
+   ],
+   [
+    "mixamorig:RightHand",
+    115.4
+   ],
+   [
+    "mixamorig:Hips",
+    114.6
+   ],
+   [
+    "mixamorig:LeftHand",
+    99.6
+   ],
+   [
+    "mixamorig:LeftArm",
+    91.6
+   ],
+   [
+    "mixamorig:RightForeArm",
+    85.5
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Slash_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Slash_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Slash_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Slash_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Great Sword Strafe.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   36.0
+  ],
+  "duration_s": 1.17,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightUpLeg",
+    50.4
+   ],
+   [
+    "mixamorig:LeftLeg",
+    37.8
+   ],
+   [
+    "mixamorig:RightToeBase",
+    35.8
+   ],
+   [
+    "mixamorig:RightLeg",
+    35.7
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    34.1
+   ],
+   [
+    "mixamorig:LeftFoot",
+    33.3
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Strafe_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Strafe_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Strafe_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Great_Sword_Strafe_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Holding Down.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   58.0
+  ],
+  "duration_s": 1.9,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftForeArm",
+    80.9
+   ],
+   [
+    "mixamorig:LeftArm",
+    79.7
+   ],
+   [
+    "mixamorig:LeftHand",
+    59.2
+   ],
+   [
+    "mixamorig:RightHand",
+    54.6
+   ],
+   [
+    "mixamorig:RightArm",
+    48.2
+   ],
+   [
+    "mixamorig:RightForeArm",
+    46.9
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Holding_Down_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Holding_Down_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Holding_Down_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Holding_Down_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Idle (1).fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   121.0
+  ],
+  "duration_s": 4.0,
+  "top_bones_deg": [
+   [
+    "mixamorig:Head",
+    70.7
+   ],
+   [
+    "mixamorig:RightHandRing2",
+    64.0
+   ],
+   [
+    "mixamorig:RightHandMiddle2",
+    63.9
+   ],
+   [
+    "mixamorig:RightHandPinky2",
+    63.9
+   ],
+   [
+    "mixamorig:LeftHandRing2",
+    59.5
+   ],
+   [
+    "mixamorig:LeftHandIndex2",
+    59.3
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Idle__1__0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Idle__1__1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Idle__1__2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Idle__1__3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Idle.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   251.0
+  ],
+  "duration_s": 8.33,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftUpLeg",
+    1.8
+   ],
+   [
+    "mixamorig:LeftHand",
+    1.6
+   ],
+   [
+    "mixamorig:Head",
+    1.4
+   ],
+   [
+    "mixamorig:RightFoot",
+    1.4
+   ],
+   [
+    "mixamorig:LeftLeg",
+    1.4
+   ],
+   [
+    "mixamorig:LeftArm",
+    1.3
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Idle_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Idle_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Idle_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Idle_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Jumping Down.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   93.0
+  ],
+  "duration_s": 3.07,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftHand",
+    127.2
+   ],
+   [
+    "mixamorig:LeftArm",
+    106.5
+   ],
+   [
+    "mixamorig:RightArm",
+    80.6
+   ],
+   [
+    "mixamorig:LeftLeg",
+    73.7
+   ],
+   [
+    "mixamorig:LeftHandIndex2",
+    70.8
+   ],
+   [
+    "mixamorig:Hips",
+    69.3
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Jumping_Down_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Jumping_Down_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Jumping_Down_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Jumping_Down_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Looking Behind.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   122.0
+  ],
+  "duration_s": 4.03,
+  "top_bones_deg": [
+   [
+    "mixamorig:Head",
+    68.8
+   ],
+   [
+    "mixamorig:RightFoot",
+    64.0
+   ],
+   [
+    "mixamorig:Hips",
+    52.1
+   ],
+   [
+    "mixamorig:LeftFoot",
+    30.3
+   ],
+   [
+    "mixamorig:RightHandRing2",
+    24.8
+   ],
+   [
+    "mixamorig:RightHandMiddle2",
+    23.2
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Looking_Behind_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Looking_Behind_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Looking_Behind_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Looking_Behind_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Moving Object.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   179.0
+  ],
+  "duration_s": 5.93,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftHand",
+    97.2
+   ],
+   [
+    "mixamorig:RightHand",
+    94.2
+   ],
+   [
+    "mixamorig:LeftArm",
+    73.9
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    65.6
+   ],
+   [
+    "mixamorig:RightLeg",
+    64.4
+   ],
+   [
+    "mixamorig:LeftLeg",
+    61.9
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Moving_Object_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Moving_Object_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Moving_Object_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Moving_Object_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "One Hand Sword Combo.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   137.0
+  ],
+  "duration_s": 4.53,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightHand",
+    120.8
+   ],
+   [
+    "mixamorig:RightArm",
+    112.0
+   ],
+   [
+    "mixamorig:Hips",
+    105.0
+   ],
+   [
+    "mixamorig:LeftArm",
+    92.1
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    84.1
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    77.7
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\One_Hand_Sword_Combo_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\One_Hand_Sword_Combo_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\One_Hand_Sword_Combo_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\One_Hand_Sword_Combo_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Orc Idle.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   161.0
+  ],
+  "duration_s": 5.33,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightForeArm",
+    21.0
+   ],
+   [
+    "mixamorig:LeftHand",
+    20.8
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    19.3
+   ],
+   [
+    "mixamorig:LeftHandIndex2",
+    17.5
+   ],
+   [
+    "mixamorig:LeftHandIndex3",
+    17.5
+   ],
+   [
+    "mixamorig:LeftHandMiddle2",
+    17.5
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Orc_Idle_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Orc_Idle_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Orc_Idle_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Orc_Idle_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Push Stop.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   79.0
+  ],
+  "duration_s": 2.6,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftHandIndex2",
+    104.2
+   ],
+   [
+    "mixamorig:RightArm",
+    92.5
+   ],
+   [
+    "mixamorig:RightHandIndex2",
+    91.4
+   ],
+   [
+    "mixamorig:RightHand",
+    88.1
+   ],
+   [
+    "mixamorig:LeftHandMiddle2",
+    87.2
+   ],
+   [
+    "mixamorig:LeftHand",
+    82.8
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Push_Stop_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Push_Stop_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Push_Stop_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Push_Stop_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Pushing.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   81.0
+  ],
+  "duration_s": 2.67,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftToeBase",
+    77.6
+   ],
+   [
+    "mixamorig:RightFoot",
+    52.2
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    49.2
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    44.3
+   ],
+   [
+    "mixamorig:RightToeBase",
+    43.0
+   ],
+   [
+    "mixamorig:LeftLeg",
+    40.1
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Pushing_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Pushing_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Pushing_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Pushing_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Quick Roll To Run.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   43.0
+  ],
+  "duration_s": 1.4,
+  "top_bones_deg": [
+   [
+    "mixamorig:Hips",
+    353.4
+   ],
+   [
+    "mixamorig:LeftHandIndex1",
+    132.4
+   ],
+   [
+    "mixamorig:RightArm",
+    122.7
+   ],
+   [
+    "mixamorig:LeftHandRing1",
+    118.8
+   ],
+   [
+    "mixamorig:LeftHandMiddle1",
+    117.0
+   ],
+   [
+    "mixamorig:LeftHandIndex3",
+    112.9
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Quick_Roll_To_Run_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Quick_Roll_To_Run_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Quick_Roll_To_Run_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Quick_Roll_To_Run_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Run To Rolling.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   74.0
+  ],
+  "duration_s": 2.43,
+  "top_bones_deg": [
+   [
+    "mixamorig:Hips",
+    337.9
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    129.1
+   ],
+   [
+    "mixamorig:LeftHand",
+    126.5
+   ],
+   [
+    "mixamorig:LeftHandMiddle1",
+    115.9
+   ],
+   [
+    "mixamorig:LeftHandIndex1",
+    114.1
+   ],
+   [
+    "mixamorig:LeftHandRing1",
+    113.4
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Run_To_Rolling_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Run_To_Rolling_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Run_To_Rolling_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Run_To_Rolling_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Running.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   22.0
+  ],
+  "duration_s": 0.7,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftLeg",
+    88.7
+   ],
+   [
+    "mixamorig:RightLeg",
+    59.9
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    58.8
+   ],
+   [
+    "mixamorig:RightFoot",
+    50.6
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    47.8
+   ],
+   [
+    "mixamorig:LeftArm",
+    34.8
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Running_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Running_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Running_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Running_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Sneaking Forward (1).fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   51.0
+  ],
+  "duration_s": 1.67,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftLeg",
+    72.9
+   ],
+   [
+    "mixamorig:RightLeg",
+    54.7
+   ],
+   [
+    "mixamorig:LeftToeBase",
+    45.0
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    42.1
+   ],
+   [
+    "mixamorig:LeftFoot",
+    41.2
+   ],
+   [
+    "mixamorig:RightFoot",
+    40.1
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sneaking_Forward__1__0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sneaking_Forward__1__1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sneaking_Forward__1__2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sneaking_Forward__1__3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Sneaking Forward.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   51.0
+  ],
+  "duration_s": 1.67,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftLeg",
+    72.9
+   ],
+   [
+    "mixamorig:RightLeg",
+    54.7
+   ],
+   [
+    "mixamorig:LeftToeBase",
+    45.0
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    42.1
+   ],
+   [
+    "mixamorig:LeftFoot",
+    41.2
+   ],
+   [
+    "mixamorig:RightFoot",
+    40.1
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sneaking_Forward_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sneaking_Forward_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sneaking_Forward_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sneaking_Forward_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Stand To Roll.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   72.0
+  ],
+  "duration_s": 2.37,
+  "top_bones_deg": [
+   [
+    "mixamorig:Hips",
+    360.0
+   ],
+   [
+    "mixamorig:RightArm",
+    120.4
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    107.7
+   ],
+   [
+    "mixamorig:RightLeg",
+    96.8
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    96.4
+   ],
+   [
+    "mixamorig:LeftArm",
+    94.5
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Stand_To_Roll_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Stand_To_Roll_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Stand_To_Roll_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Stand_To_Roll_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing 1H Cast Spell 01.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   69.0
+  ],
+  "duration_s": 2.27,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightForeArm",
+    120.1
+   ],
+   [
+    "mixamorig:RightArm",
+    62.1
+   ],
+   [
+    "mixamorig:RightHand",
+    61.7
+   ],
+   [
+    "mixamorig:RightHandRing1",
+    53.8
+   ],
+   [
+    "mixamorig:RightHandMiddle1",
+    53.3
+   ],
+   [
+    "mixamorig:Neck",
+    53.0
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_1H_Cast_Spell_01_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_1H_Cast_Spell_01_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_1H_Cast_Spell_01_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_1H_Cast_Spell_01_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Aim Idle 02 Looking.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   151.0
+  ],
+  "duration_s": 5.0,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightArm",
+    124.6
+   ],
+   [
+    "mixamorig:RightHand",
+    82.3
+   ],
+   [
+    "mixamorig:LeftArm",
+    68.3
+   ],
+   [
+    "mixamorig:Hips",
+    65.7
+   ],
+   [
+    "mixamorig:RightLeg",
+    58.3
+   ],
+   [
+    "mixamorig:RightShoulder",
+    53.3
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Idle_02_Looking_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Idle_02_Looking_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Idle_02_Looking_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Idle_02_Looking_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Aim Overdraw.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   114.0
+  ],
+  "duration_s": 3.77,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightArm",
+    36.5
+   ],
+   [
+    "mixamorig:RightHand",
+    34.6
+   ],
+   [
+    "mixamorig:Head",
+    19.0
+   ],
+   [
+    "mixamorig:RightLeg",
+    12.6
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    12.1
+   ],
+   [
+    "mixamorig:Hips",
+    11.8
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Overdraw_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Overdraw_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Overdraw_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Overdraw_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Aim Walk Forward.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   37.0
+  ],
+  "duration_s": 1.2,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftLeg",
+    48.9
+   ],
+   [
+    "mixamorig:RightFoot",
+    43.5
+   ],
+   [
+    "mixamorig:LeftFoot",
+    36.4
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    34.0
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    32.5
+   ],
+   [
+    "mixamorig:RightLeg",
+    28.2
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Walk_Forward_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Walk_Forward_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Walk_Forward_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Walk_Forward_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Aim Walk Left.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   37.0
+  ],
+  "duration_s": 1.2,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftLeg",
+    65.2
+   ],
+   [
+    "mixamorig:RightLeg",
+    53.4
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    42.2
+   ],
+   [
+    "mixamorig:RightToeBase",
+    37.4
+   ],
+   [
+    "mixamorig:LeftFoot",
+    37.2
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    35.9
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Walk_Left_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Walk_Left_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Walk_Left_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Aim_Walk_Left_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Block Idle.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   56.0
+  ],
+  "duration_s": 1.83,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightArm",
+    19.4
+   ],
+   [
+    "mixamorig:LeftArm",
+    18.6
+   ],
+   [
+    "mixamorig:RightForeArm",
+    14.6
+   ],
+   [
+    "mixamorig:Neck",
+    12.7
+   ],
+   [
+    "mixamorig:RightLeg",
+    8.8
+   ],
+   [
+    "mixamorig:LeftHand",
+    8.5
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Block_Idle_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Block_Idle_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Block_Idle_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Block_Idle_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Death Backward 01.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   94.0
+  ],
+  "duration_s": 3.1,
+  "top_bones_deg": [
+   [
+    "mixamorig:Hips",
+    110.4
+   ],
+   [
+    "mixamorig:RightArm",
+    90.7
+   ],
+   [
+    "mixamorig:LeftArm",
+    84.6
+   ],
+   [
+    "mixamorig:RightHand",
+    82.6
+   ],
+   [
+    "mixamorig:RightLeg",
+    73.8
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    62.5
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Death_Backward_01_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Death_Backward_01_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Death_Backward_01_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Death_Backward_01_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Death Forward 01.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   96.0
+  ],
+  "duration_s": 3.17,
+  "top_bones_deg": [
+   [
+    "mixamorig:Hips",
+    124.6
+   ],
+   [
+    "mixamorig:RightLeg",
+    95.3
+   ],
+   [
+    "mixamorig:LeftLeg",
+    94.3
+   ],
+   [
+    "mixamorig:RightArm",
+    82.7
+   ],
+   [
+    "mixamorig:RightHand",
+    78.8
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    64.6
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Death_Forward_01_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Death_Forward_01_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Death_Forward_01_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Death_Forward_01_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Dive Forward.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   50.0
+  ],
+  "duration_s": 1.63,
+  "top_bones_deg": [
+   [
+    "mixamorig:Hips",
+    360.0
+   ],
+   [
+    "mixamorig:RightHand",
+    161.1
+   ],
+   [
+    "mixamorig:RightArm",
+    106.3
+   ],
+   [
+    "mixamorig:RightLeg",
+    99.1
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    86.8
+   ],
+   [
+    "mixamorig:LeftArm",
+    82.8
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Dive_Forward_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Dive_Forward_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Dive_Forward_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Dive_Forward_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Dodge Right.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   30.0
+  ],
+  "duration_s": 0.97,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftFoot",
+    53.1
+   ],
+   [
+    "mixamorig:RightFoot",
+    47.5
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    46.7
+   ],
+   [
+    "mixamorig:LeftLeg",
+    42.8
+   ],
+   [
+    "mixamorig:RightArm",
+    40.5
+   ],
+   [
+    "mixamorig:RightLeg",
+    40.0
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Dodge_Right_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Dodge_Right_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Dodge_Right_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Dodge_Right_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Draw Arrow.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   32.0
+  ],
+  "duration_s": 1.03,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightForeArm",
+    103.7
+   ],
+   [
+    "mixamorig:RightArm",
+    102.0
+   ],
+   [
+    "mixamorig:RightHandIndex2",
+    96.6
+   ],
+   [
+    "mixamorig:RightHandPinky2",
+    93.7
+   ],
+   [
+    "mixamorig:RightHandMiddle3",
+    90.0
+   ],
+   [
+    "mixamorig:RightHandRing3",
+    77.7
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Draw_Arrow_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Draw_Arrow_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Draw_Arrow_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Draw_Arrow_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Equip Bow.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   28.0
+  ],
+  "duration_s": 0.9,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftForeArm",
+    105.7
+   ],
+   [
+    "mixamorig:LeftHand",
+    99.0
+   ],
+   [
+    "mixamorig:LeftArm",
+    75.5
+   ],
+   [
+    "mixamorig:RightHandPinky1",
+    72.6
+   ],
+   [
+    "mixamorig:Hips",
+    71.7
+   ],
+   [
+    "mixamorig:LeftHandIndex2",
+    71.1
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Equip_Bow_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Equip_Bow_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Equip_Bow_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Equip_Bow_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Jump.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   45.0
+  ],
+  "duration_s": 1.47,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightLeg",
+    89.9
+   ],
+   [
+    "mixamorig:LeftLeg",
+    80.8
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    72.9
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    71.4
+   ],
+   [
+    "mixamorig:RightArm",
+    48.4
+   ],
+   [
+    "mixamorig:RightFoot",
+    36.1
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Jump_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Jump_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Jump_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Jump_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Melee Attack Horizontal.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   73.0
+  ],
+  "duration_s": 2.4,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightArm",
+    133.6
+   ],
+   [
+    "mixamorig:RightForeArm",
+    120.6
+   ],
+   [
+    "mixamorig:Hips",
+    112.8
+   ],
+   [
+    "mixamorig:RightHand",
+    76.7
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    68.3
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    63.8
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Attack_Horizontal_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Attack_Horizontal_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Attack_Horizontal_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Attack_Horizontal_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Melee Combo Attack Ver. 1.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   141.0
+  ],
+  "duration_s": 4.67,
+  "top_bones_deg": [
+   [
+    "mixamorig:Hips",
+    156.9
+   ],
+   [
+    "mixamorig:RightArm",
+    131.7
+   ],
+   [
+    "mixamorig:RightHand",
+    96.6
+   ],
+   [
+    "mixamorig:LeftHand",
+    90.7
+   ],
+   [
+    "mixamorig:RightForeArm",
+    90.4
+   ],
+   [
+    "mixamorig:LeftArm",
+    84.8
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Combo_Attack_Ver__1_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Combo_Attack_Ver__1_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Combo_Attack_Ver__1_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Combo_Attack_Ver__1_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Melee Combo Attack Ver. 2.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   127.0
+  ],
+  "duration_s": 4.2,
+  "top_bones_deg": [
+   [
+    "mixamorig:Hips",
+    118.8
+   ],
+   [
+    "mixamorig:RightArm",
+    95.8
+   ],
+   [
+    "mixamorig:RightHand",
+    94.0
+   ],
+   [
+    "mixamorig:LeftArm",
+    91.8
+   ],
+   [
+    "mixamorig:RightForeArm",
+    90.3
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    87.9
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Combo_Attack_Ver__2_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Combo_Attack_Ver__2_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Combo_Attack_Ver__2_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Combo_Attack_Ver__2_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Melee Run Jump Attack.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   111.0
+  ],
+  "duration_s": 3.67,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftHand",
+    117.4
+   ],
+   [
+    "mixamorig:RightArm",
+    111.7
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    97.0
+   ],
+   [
+    "mixamorig:LeftLeg",
+    95.6
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    88.7
+   ],
+   [
+    "mixamorig:RightForeArm",
+    78.6
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Run_Jump_Attack_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Run_Jump_Attack_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Run_Jump_Attack_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Melee_Run_Jump_Attack_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing React Large From Right.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   31.0
+  ],
+  "duration_s": 1.0,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightArm",
+    75.7
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    45.1
+   ],
+   [
+    "mixamorig:Neck",
+    44.6
+   ],
+   [
+    "mixamorig:Head",
+    38.8
+   ],
+   [
+    "mixamorig:RightLeg",
+    34.0
+   ],
+   [
+    "mixamorig:RightToeBase",
+    32.1
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_React_Large_From_Right_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_React_Large_From_Right_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_React_Large_From_Right_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_React_Large_From_Right_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing React Small From Right.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   24.0
+  ],
+  "duration_s": 0.77,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightHand",
+    58.7
+   ],
+   [
+    "mixamorig:RightArm",
+    58.4
+   ],
+   [
+    "mixamorig:Neck",
+    46.1
+   ],
+   [
+    "mixamorig:LeftHand",
+    33.5
+   ],
+   [
+    "mixamorig:Head",
+    28.0
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    26.5
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_React_Small_From_Right_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_React_Small_From_Right_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_React_Small_From_Right_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_React_Small_From_Right_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Run Forward.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   23.0
+  ],
+  "duration_s": 0.73,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftLeg",
+    73.0
+   ],
+   [
+    "mixamorig:RightFoot",
+    50.6
+   ],
+   [
+    "mixamorig:LeftFoot",
+    46.9
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    32.8
+   ],
+   [
+    "mixamorig:RightToeBase",
+    31.5
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    28.0
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Run_Forward_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Run_Forward_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Run_Forward_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Run_Forward_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Run Left.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   21.0
+  ],
+  "duration_s": 0.67,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftLeg",
+    60.2
+   ],
+   [
+    "mixamorig:RightFoot",
+    58.7
+   ],
+   [
+    "mixamorig:RightHandMiddle3",
+    54.6
+   ],
+   [
+    "mixamorig:RightLeg",
+    46.6
+   ],
+   [
+    "mixamorig:RightHand",
+    45.2
+   ],
+   [
+    "mixamorig:RightHandIndex3",
+    39.4
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Run_Left_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Run_Left_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Run_Left_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Run_Left_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Run Right.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   24.0
+  ],
+  "duration_s": 0.77,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightHandPinky3",
+    63.4
+   ],
+   [
+    "mixamorig:LeftLeg",
+    61.0
+   ],
+   [
+    "mixamorig:RightFoot",
+    57.9
+   ],
+   [
+    "mixamorig:RightHandRing3",
+    54.4
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    50.2
+   ],
+   [
+    "mixamorig:RightHandPinky2",
+    50.1
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Run_Right_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Run_Right_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Run_Right_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Run_Right_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Turn 90 Left.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   39.0
+  ],
+  "duration_s": 1.27,
+  "top_bones_deg": [
+   [
+    "mixamorig:Hips",
+    90.1
+   ],
+   [
+    "mixamorig:LeftFoot",
+    38.6
+   ],
+   [
+    "mixamorig:RightFoot",
+    34.5
+   ],
+   [
+    "mixamorig:RightLeg",
+    33.2
+   ],
+   [
+    "mixamorig:RightHandPinky2",
+    32.9
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    25.9
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Turn_90_Left_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Turn_90_Left_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Turn_90_Left_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Turn_90_Left_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Walk Back.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   45.0
+  ],
+  "duration_s": 1.47,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftLeg",
+    43.1
+   ],
+   [
+    "mixamorig:RightFoot",
+    40.1
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    34.0
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    32.6
+   ],
+   [
+    "mixamorig:LeftFoot",
+    32.4
+   ],
+   [
+    "mixamorig:RightLeg",
+    25.1
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Walk_Back_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Walk_Back_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Walk_Back_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Walk_Back_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Standing Walk Left.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   38.0
+  ],
+  "duration_s": 1.23,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightToeBase",
+    40.0
+   ],
+   [
+    "mixamorig:LeftLeg",
+    35.5
+   ],
+   [
+    "mixamorig:LeftToeBase",
+    31.8
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    25.9
+   ],
+   [
+    "mixamorig:LeftFoot",
+    25.9
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    24.7
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Walk_Left_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Walk_Left_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Walk_Left_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Standing_Walk_Left_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Start Walking.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   89.0
+  ],
+  "duration_s": 2.93,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftLeg",
+    62.2
+   ],
+   [
+    "mixamorig:RightLeg",
+    56.2
+   ],
+   [
+    "mixamorig:LeftHand",
+    51.6
+   ],
+   [
+    "mixamorig:RightHandMiddle2",
+    45.2
+   ],
+   [
+    "mixamorig:RightHandRing2",
+    44.1
+   ],
+   [
+    "mixamorig:RightForeArm",
+    41.8
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Start_Walking_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Start_Walking_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Start_Walking_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Start_Walking_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Stop Walking.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   91.0
+  ],
+  "duration_s": 3.0,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftLeg",
+    54.4
+   ],
+   [
+    "mixamorig:RightLeg",
+    40.6
+   ],
+   [
+    "mixamorig:RightHandMiddle2",
+    39.6
+   ],
+   [
+    "mixamorig:RightHandRing2",
+    38.0
+   ],
+   [
+    "mixamorig:RightHandPinky2",
+    33.6
+   ],
+   [
+    "mixamorig:RightForeArm",
+    29.4
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Stop_Walking_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Stop_Walking_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Stop_Walking_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Stop_Walking_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Swimming.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   137.0
+  ],
+  "duration_s": 4.53,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightForeArm",
+    89.5
+   ],
+   [
+    "mixamorig:LeftArm",
+    74.0
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    69.5
+   ],
+   [
+    "mixamorig:RightHand",
+    69.0
+   ],
+   [
+    "mixamorig:RightArm",
+    67.3
+   ],
+   [
+    "mixamorig:RightLeg",
+    62.9
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Swimming_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Swimming_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Swimming_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Swimming_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Sword And Shield Block Idle.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   43.0
+  ],
+  "duration_s": 1.4,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightHandRing3",
+    2.7
+   ],
+   [
+    "mixamorig:LeftHandMiddle1",
+    2.7
+   ],
+   [
+    "mixamorig:RightForeArm",
+    2.1
+   ],
+   [
+    "mixamorig:RightHandPinky3",
+    2.1
+   ],
+   [
+    "mixamorig:LeftHandIndex1",
+    2.0
+   ],
+   [
+    "mixamorig:RightLeg",
+    1.9
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Block_Idle_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Block_Idle_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Block_Idle_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Block_Idle_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Sword And Shield Block.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   18.0
+  ],
+  "duration_s": 0.57,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightForeArm",
+    67.3
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    60.9
+   ],
+   [
+    "mixamorig:LeftArm",
+    42.8
+   ],
+   [
+    "mixamorig:RightArm",
+    32.7
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    31.6
+   ],
+   [
+    "mixamorig:LeftLeg",
+    31.5
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Block_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Block_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Block_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Block_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Sword And Shield Death.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   118.0
+  ],
+  "duration_s": 3.9,
+  "top_bones_deg": [
+   [
+    "mixamorig:Hips",
+    110.8
+   ],
+   [
+    "mixamorig:LeftArm",
+    110.2
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    109.0
+   ],
+   [
+    "mixamorig:RightForeArm",
+    101.0
+   ],
+   [
+    "mixamorig:LeftLeg",
+    80.8
+   ],
+   [
+    "mixamorig:RightHand",
+    76.8
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Death_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Death_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Death_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Death_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Sword And Shield Impact.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   30.0
+  ],
+  "duration_s": 0.97,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftForeArm",
+    48.1
+   ],
+   [
+    "mixamorig:Head",
+    46.2
+   ],
+   [
+    "mixamorig:LeftArm",
+    41.2
+   ],
+   [
+    "mixamorig:RightShoulder",
+    41.0
+   ],
+   [
+    "mixamorig:RightForeArm",
+    40.6
+   ],
+   [
+    "mixamorig:RightArm",
+    34.9
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Impact_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Impact_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Impact_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Impact_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Sword And Shield Run.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   17.0
+  ],
+  "duration_s": 0.53,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftLeg",
+    62.8
+   ],
+   [
+    "mixamorig:RightFoot",
+    58.9
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    58.8
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    43.9
+   ],
+   [
+    "mixamorig:LeftArm",
+    37.9
+   ],
+   [
+    "mixamorig:RightLeg",
+    36.1
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Run_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Run_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Run_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Run_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Sword And Shield Slash (1).fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   51.0
+  ],
+  "duration_s": 1.67,
+  "top_bones_deg": [
+   [
+    "mixamorig:Hips",
+    106.9
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    95.2
+   ],
+   [
+    "mixamorig:RightArm",
+    93.7
+   ],
+   [
+    "mixamorig:Head",
+    92.1
+   ],
+   [
+    "mixamorig:RightHand",
+    87.9
+   ],
+   [
+    "mixamorig:RightForeArm",
+    85.0
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Slash__1__0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Slash__1__1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Slash__1__2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Slash__1__3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Sword And Shield Slash.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   46.0
+  ],
+  "duration_s": 1.5,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightArm",
+    97.7
+   ],
+   [
+    "mixamorig:RightForeArm",
+    96.7
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    93.7
+   ],
+   [
+    "mixamorig:RightHand",
+    91.2
+   ],
+   [
+    "mixamorig:Hips",
+    79.5
+   ],
+   [
+    "mixamorig:RightToeBase",
+    64.9
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Slash_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Slash_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Slash_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Slash_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Sword And Shield Strafe.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   22.0
+  ],
+  "duration_s": 0.7,
+  "top_bones_deg": [
+   [
+    "mixamorig:LeftLeg",
+    64.0
+   ],
+   [
+    "mixamorig:RightLeg",
+    53.1
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    48.3
+   ],
+   [
+    "mixamorig:RightFoot",
+    37.9
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    36.1
+   ],
+   [
+    "mixamorig:LeftFoot",
+    32.8
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Strafe_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Strafe_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Strafe_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Sword_And_Shield_Strafe_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Taking Item.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   142.0
+  ],
+  "duration_s": 4.7,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightArm",
+    107.1
+   ],
+   [
+    "mixamorig:RightForeArm",
+    92.2
+   ],
+   [
+    "mixamorig:RightHand",
+    85.7
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    84.4
+   ],
+   [
+    "mixamorig:LeftArm",
+    82.2
+   ],
+   [
+    "mixamorig:LeftHand",
+    64.3
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Taking_Item_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Taking_Item_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Taking_Item_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Taking_Item_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Throw In.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   84.0
+  ],
+  "duration_s": 2.77,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightArm",
+    107.3
+   ],
+   [
+    "mixamorig:LeftArm",
+    106.9
+   ],
+   [
+    "mixamorig:RightHand",
+    93.3
+   ],
+   [
+    "mixamorig:LeftHand",
+    91.1
+   ],
+   [
+    "mixamorig:RightShoulder",
+    71.6
+   ],
+   [
+    "mixamorig:LeftShoulder",
+    66.5
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Throw_In_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Throw_In_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Throw_In_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Throw_In_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Treading Water.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   91.0
+  ],
+  "duration_s": 3.0,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightHand",
+    60.8
+   ],
+   [
+    "mixamorig:LeftHand",
+    48.5
+   ],
+   [
+    "mixamorig:LeftUpLeg",
+    47.7
+   ],
+   [
+    "mixamorig:LeftFoot",
+    36.0
+   ],
+   [
+    "mixamorig:RightUpLeg",
+    35.7
+   ],
+   [
+    "mixamorig:RightArm",
+    35.0
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Treading_Water_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Treading_Water_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Treading_Water_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Treading_Water_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Two Hand Sword Combo.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   99.0
+  ],
+  "duration_s": 3.27,
+  "top_bones_deg": [
+   [
+    "mixamorig:Hips",
+    161.5
+   ],
+   [
+    "mixamorig:LeftForeArm",
+    139.2
+   ],
+   [
+    "mixamorig:RightArm",
+    109.9
+   ],
+   [
+    "mixamorig:RightForeArm",
+    99.3
+   ],
+   [
+    "mixamorig:LeftArm",
+    97.9
+   ],
+   [
+    "mixamorig:LeftHand",
+    84.4
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Two_Hand_Sword_Combo_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Two_Hand_Sword_Combo_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Two_Hand_Sword_Combo_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Two_Hand_Sword_Combo_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Two Handed Sword Death.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   73.0
+  ],
+  "duration_s": 2.4,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightHand",
+    142.9
+   ],
+   [
+    "mixamorig:LeftHandIndex1",
+    118.9
+   ],
+   [
+    "mixamorig:Hips",
+    116.5
+   ],
+   [
+    "mixamorig:LeftHandMiddle1",
+    107.4
+   ],
+   [
+    "mixamorig:RightLeg",
+    104.0
+   ],
+   [
+    "mixamorig:LeftArm",
+    101.6
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Two_Handed_Sword_Death_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Two_Handed_Sword_Death_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Two_Handed_Sword_Death_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Two_Handed_Sword_Death_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Walking Turn 180.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   31.0
+  ],
+  "duration_s": 1.0,
+  "top_bones_deg": [
+   [
+    "mixamorig:Hips",
+    180.0
+   ],
+   [
+    "mixamorig:LeftHandMiddle2",
+    63.0
+   ],
+   [
+    "mixamorig:RightLeg",
+    43.0
+   ],
+   [
+    "mixamorig:Head",
+    41.1
+   ],
+   [
+    "mixamorig:LeftHandIndex2",
+    39.9
+   ],
+   [
+    "mixamorig:LeftLeg",
+    39.1
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Walking_Turn_180_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Walking_Turn_180_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Walking_Turn_180_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Walking_Turn_180_3.png"
+  ],
+  "ok": true
+ },
+ {
+  "file": "Withdrawing Sword.fbx",
+  "bones": 65,
+  "clip": "Armature|mixamo.com|Layer0",
+  "frames": [
+   1.0,
+   46.0
+  ],
+  "duration_s": 1.5,
+  "top_bones_deg": [
+   [
+    "mixamorig:RightArm",
+    116.7
+   ],
+   [
+    "mixamorig:RightHand",
+    85.6
+   ],
+   [
+    "mixamorig:LeftHandPinky2",
+    81.1
+   ],
+   [
+    "mixamorig:RightHandPinky2",
+    73.9
+   ],
+   [
+    "mixamorig:RightHandRing2",
+    71.2
+   ],
+   [
+    "mixamorig:RightHandMiddle2",
+    66.6
+   ]
+  ],
+  "preview": [
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Withdrawing_Sword_0.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Withdrawing_Sword_1.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Withdrawing_Sword_2.png",
+   "C:\\Unity\\code\\TestOutput\\tganalysis\\prev\\Withdrawing_Sword_3.png"
+  ],
+  "ok": true
+ }
+]

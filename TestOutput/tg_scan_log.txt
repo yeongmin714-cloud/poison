@@ -1,0 +1,492 @@
+00:06.140  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Action_Idle_To_Fight_Idle_0.png'
+00:06.171  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Action_Idle_To_Fight_Idle_1.png'
+00:06.203  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Action_Idle_To_Fight_Idle_2.png'
+00:06.234  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Action_Idle_To_Fight_Idle_3.png'
+00:06.343  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Climbing_Ladder_0.png'
+00:06.375  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Climbing_Ladder_1.png'
+00:06.390  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Climbing_Ladder_2.png'
+00:06.421  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Climbing_Ladder_3.png'
+00:06.531  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Idle_0.png'
+00:06.562  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Idle_1.png'
+00:06.593  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Idle_2.png'
+00:06.625  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Idle_3.png'
+00:06.734  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Walk_Back_0.png'
+00:06.765  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Walk_Back_1.png'
+00:06.796  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Walk_Back_2.png'
+00:06.812  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Walk_Back_3.png'
+00:06.921  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Walk_Right_0.png'
+00:06.953  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Walk_Right_1.png'
+00:06.984  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Walk_Right_2.png'
+00:07.000  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Walk_Right_3.png'
+00:07.140  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Walk_0.png'
+00:07.171  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Walk_1.png'
+00:07.203  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Walk_2.png'
+00:07.234  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouch_Walk_3.png'
+00:07.343  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouched_Sneaking_Right_0.png'
+00:07.375  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouched_Sneaking_Right_1.png'
+00:07.390  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouched_Sneaking_Right_2.png'
+00:07.421  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Crouched_Sneaking_Right_3.png'
+00:07.546  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Death_From_Right_0.png'
+00:07.578  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Death_From_Right_1.png'
+00:07.609  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Death_From_Right_2.png'
+00:07.640  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Death_From_Right_3.png'
+00:07.734  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Draw_Sword_1_0.png'
+00:07.765  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Draw_Sword_1_1.png'
+00:07.796  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Draw_Sword_1_2.png'
+00:07.812  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Draw_Sword_1_3.png'
+00:08.000  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Dwarf_Idle_0.png'
+00:08.031  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Dwarf_Idle_1.png'
+00:08.062  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Dwarf_Idle_2.png'
+00:08.078  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Dwarf_Idle_3.png'
+00:08.203  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Dwarf_Walk_0.png'
+00:08.234  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Dwarf_Walk_1.png'
+00:08.250  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Dwarf_Walk_2.png'
+00:08.281  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Dwarf_Walk_3.png'
+00:08.484  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Dying_0.png'
+00:08.515  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Dying_1.png'
+00:08.546  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Dying_2.png'
+00:08.562  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Dying_3.png'
+00:08.703  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Falling_Back_Death_0.png'
+00:08.718  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Falling_Back_Death_1.png'
+00:08.750  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Falling_Back_Death_2.png'
+00:08.781  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Falling_Back_Death_3.png'
+00:08.906  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Falling_To_Roll_0.png'
+00:08.921  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Falling_To_Roll_1.png'
+00:08.953  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Falling_To_Roll_2.png'
+00:08.968  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Falling_To_Roll_3.png'
+00:09.093  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Fight_Idle_To_Standing_Idle_0.png'
+00:09.125  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Fight_Idle_To_Standing_Idle_1.png'
+00:09.140  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Fight_Idle_To_Standing_Idle_2.png'
+00:09.171  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Fight_Idle_To_Standing_Idle_3.png'
+00:09.281  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Blocking_0.png'
+00:09.312  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Blocking_1.png'
+00:09.328  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Blocking_2.png'
+00:09.359  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Blocking_3.png'
+00:09.468  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Crouching_0.png'
+00:09.484  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Crouching_1.png'
+00:09.515  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Crouching_2.png'
+00:09.531  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Crouching_3.png'
+00:09.656  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Impact_0.png'
+00:09.687  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Impact_1.png'
+00:09.703  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Impact_2.png'
+00:09.734  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Impact_3.png'
+00:09.843  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Run_0.png'
+00:09.875  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Run_1.png'
+00:09.890  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Run_2.png'
+00:09.921  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Run_3.png'
+00:10.031  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Slash__1__0.png'
+00:10.062  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Slash__1__1.png'
+00:10.093  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Slash__1__2.png'
+00:10.109  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Slash__1__3.png'
+00:10.234  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Slash_0.png'
+00:10.250  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Slash_1.png'
+00:10.281  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Slash_2.png'
+00:10.296  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Slash_3.png'
+00:10.421  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Strafe_0.png'
+00:10.437  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Strafe_1.png'
+00:10.468  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Strafe_2.png'
+00:10.484  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Great_Sword_Strafe_3.png'
+00:10.625  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Holding_Down_0.png'
+00:10.656  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Holding_Down_1.png'
+00:10.687  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Holding_Down_2.png'
+00:10.703  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Holding_Down_3.png'
+00:10.843  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Idle__1__0.png'
+00:10.875  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Idle__1__1.png'
+00:10.890  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Idle__1__2.png'
+00:10.921  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Idle__1__3.png'
+00:11.093  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Idle_0.png'
+00:11.125  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Idle_1.png'
+00:11.156  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Idle_2.png'
+00:11.171  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Idle_3.png'
+00:11.343  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Jumping_Down_0.png'
+00:11.375  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Jumping_Down_1.png'
+00:11.390  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Jumping_Down_2.png'
+00:11.437  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Jumping_Down_3.png'
+00:11.562  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Looking_Behind_0.png'
+00:11.578  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Looking_Behind_1.png'
+00:11.609  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Looking_Behind_2.png'
+00:11.640  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Looking_Behind_3.png'
+00:11.828  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Moving_Object_0.png'
+00:11.859  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Moving_Object_1.png'
+00:11.875  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Moving_Object_2.png'
+00:11.906  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Moving_Object_3.png'
+00:12.078  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\One_Hand_Sword_Combo_0.png'
+00:12.093  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\One_Hand_Sword_Combo_1.png'
+00:12.125  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\One_Hand_Sword_Combo_2.png'
+00:12.156  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\One_Hand_Sword_Combo_3.png'
+00:12.328  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Orc_Idle_0.png'
+00:12.359  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Orc_Idle_1.png'
+00:12.390  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Orc_Idle_2.png'
+00:12.406  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Orc_Idle_3.png'
+00:12.546  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Push_Stop_0.png'
+00:12.562  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Push_Stop_1.png'
+00:12.593  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Push_Stop_2.png'
+00:12.625  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Push_Stop_3.png'
+00:12.750  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Pushing_0.png'
+00:12.765  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Pushing_1.png'
+00:12.796  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Pushing_2.png'
+00:12.828  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Pushing_3.png'
+00:12.953  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Quick_Roll_To_Run_0.png'
+00:12.968  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Quick_Roll_To_Run_1.png'
+00:13.000  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Quick_Roll_To_Run_2.png'
+00:13.031  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Quick_Roll_To_Run_3.png'
+00:13.171  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Run_To_Rolling_0.png'
+00:13.187  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Run_To_Rolling_1.png'
+00:13.218  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Run_To_Rolling_2.png'
+00:13.250  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Run_To_Rolling_3.png'
+00:13.359  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Running_0.png'
+00:13.390  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Running_1.png'
+00:13.406  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Running_2.png'
+00:13.437  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Running_3.png'
+00:13.562  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sneaking_Forward__1__0.png'
+00:13.578  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sneaking_Forward__1__1.png'
+00:13.609  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sneaking_Forward__1__2.png'
+00:13.640  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sneaking_Forward__1__3.png'
+00:13.750  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sneaking_Forward_0.png'
+00:13.781  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sneaking_Forward_1.png'
+00:13.796  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sneaking_Forward_2.png'
+00:13.828  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sneaking_Forward_3.png'
+00:13.953  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Stand_To_Roll_0.png'
+00:13.984  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Stand_To_Roll_1.png'
+00:14.015  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Stand_To_Roll_2.png'
+00:14.046  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Stand_To_Roll_3.png'
+00:14.171  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_1H_Cast_Spell_01_0.png'
+00:14.203  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_1H_Cast_Spell_01_1.png'
+00:14.234  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_1H_Cast_Spell_01_2.png'
+00:14.250  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_1H_Cast_Spell_01_3.png'
+00:14.421  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Idle_02_Looking_0.png'
+00:14.437  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Idle_02_Looking_1.png'
+00:14.468  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Idle_02_Looking_2.png'
+00:14.500  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Idle_02_Looking_3.png'
+00:14.609  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Overdraw_0.png'
+00:14.640  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Overdraw_1.png'
+00:14.671  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Overdraw_2.png'
+00:14.687  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Overdraw_3.png'
+00:14.796  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Walk_Forward_0.png'
+00:14.828  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Walk_Forward_1.png'
+00:14.859  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Walk_Forward_2.png'
+00:14.890  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Walk_Forward_3.png'
+00:15.031  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Walk_Left_0.png'
+00:15.046  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Walk_Left_1.png'
+00:15.078  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Walk_Left_2.png'
+00:15.093  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Aim_Walk_Left_3.png'
+00:15.218  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Block_Idle_0.png'
+00:15.250  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Block_Idle_1.png'
+00:15.265  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Block_Idle_2.png'
+00:15.296  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Block_Idle_3.png'
+00:15.421  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Death_Backward_01_0.png'
+00:15.453  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Death_Backward_01_1.png'
+00:15.484  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Death_Backward_01_2.png'
+00:15.500  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Death_Backward_01_3.png'
+00:15.640  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Death_Forward_01_0.png'
+00:15.671  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Death_Forward_01_1.png'
+00:15.703  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Death_Forward_01_2.png'
+00:15.718  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Death_Forward_01_3.png'
+00:15.843  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Dive_Forward_0.png'
+00:15.875  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Dive_Forward_1.png'
+00:15.890  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Dive_Forward_2.png'
+00:15.921  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Dive_Forward_3.png'
+00:16.031  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Dodge_Right_0.png'
+00:16.062  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Dodge_Right_1.png'
+00:16.078  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Dodge_Right_2.png'
+00:16.109  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Dodge_Right_3.png'
+00:16.218  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Draw_Arrow_0.png'
+00:16.250  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Draw_Arrow_1.png'
+00:16.265  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Draw_Arrow_2.png'
+00:16.296  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Draw_Arrow_3.png'
+00:16.421  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Equip_Bow_0.png'
+00:16.437  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Equip_Bow_1.png'
+00:16.468  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Equip_Bow_2.png'
+00:16.500  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Equip_Bow_3.png'
+00:16.609  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Jump_0.png'
+00:16.640  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Jump_1.png'
+00:16.671  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Jump_2.png'
+00:16.703  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Jump_3.png'
+00:16.828  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Attack_Horizontal_0.png'
+00:16.859  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Attack_Horizontal_1.png'
+00:16.875  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Attack_Horizontal_2.png'
+00:16.906  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Attack_Horizontal_3.png'
+00:17.078  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Combo_Attack_Ver__1_0.png'
+00:17.109  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Combo_Attack_Ver__1_1.png'
+00:17.140  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Combo_Attack_Ver__1_2.png'
+00:17.156  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Combo_Attack_Ver__1_3.png'
+00:17.312  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Combo_Attack_Ver__2_0.png'
+00:17.328  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Combo_Attack_Ver__2_1.png'
+00:17.359  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Combo_Attack_Ver__2_2.png'
+00:17.375  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Combo_Attack_Ver__2_3.png'
+00:17.531  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Run_Jump_Attack_0.png'
+00:17.562  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Run_Jump_Attack_1.png'
+00:17.578  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Run_Jump_Attack_2.png'
+00:17.609  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Melee_Run_Jump_Attack_3.png'
+BlenderMCP addon registered
+Reloading external rigs...
+Reloading external metarigs...
+FBX version: 7700
+[SCAN] Action Idle To Fight Idle.fbx: ok [('mixamorig:RightHandRing2', 96.8), ('mixamorig:LeftHandRing2', 94.5), ('mixamorig:RightHandPinky3', 87.6)]
+FBX version: 7700
+[SCAN] Climbing Ladder.fbx: ok [('mixamorig:RightHand', 79.2), ('mixamorig:RightLeg', 72.5), ('mixamorig:LeftHand', 65.0)]
+FBX version: 7700
+[SCAN] Crouch Idle.fbx: ok [('mixamorig:LeftHand', 12.7), ('mixamorig:LeftArm', 9.6), ('mixamorig:LeftShoulder', 8.5)]
+FBX version: 7700
+[SCAN] Crouch Walk Back.fbx: ok [('mixamorig:LeftToeBase', 52.0), ('mixamorig:LeftLeg', 47.3), ('mixamorig:RightUpLeg', 46.4)]
+FBX version: 7700
+[SCAN] Crouch Walk Right.fbx: ok [('mixamorig:LeftLeg', 53.4), ('mixamorig:RightToeBase', 52.9), ('mixamorig:RightFoot', 49.3)]
+FBX version: 7700
+[SCAN] Crouch Walk.fbx: ok [('mixamorig:RightArm', 95.8), ('mixamorig:LeftArm', 93.9), ('mixamorig:RightLeg', 81.9)]
+FBX version: 7700
+[SCAN] Crouched Sneaking Right.fbx: ok [('mixamorig:RightToeBase', 74.2), ('mixamorig:RightFoot', 44.7), ('mixamorig:RightLeg', 41.7)]
+FBX version: 7700
+[SCAN] Death From Right.fbx: ok [('mixamorig:LeftForeArm', 113.0), ('mixamorig:LeftArm', 93.4), ('mixamorig:Hips', 82.2)]
+FBX version: 7700
+[SCAN] Draw Sword 1.fbx: ok [('mixamorig:RightForeArm', 101.3), ('mixamorig:RightHandThumb3', 95.7), ('mixamorig:RightArm', 92.7)]
+FBX version: 7700
+[SCAN] Dwarf Idle.fbx: ok [('mixamorig:Neck', 10.5), ('mixamorig:Head', 6.8), ('mixamorig:RightForeArm', 3.7)]
+FBX version: 7700
+[SCAN] Dwarf Walk.fbx: ok [('mixamorig:LeftLeg', 44.4), ('mixamorig:RightToeBase', 42.5), ('mixamorig:LeftUpLeg', 38.4)]
+FBX version: 7700
+[SCAN] Dying.fbx: ok [('mixamorig:RightLeg', 123.4), ('mixamorig:LeftLeg', 119.3), ('mixamorig:RightArm', 106.0)]
+FBX version: 7700
+[SCAN] Falling Back Death.fbx: ok [('mixamorig:Hips', 139.4), ('mixamorig:RightUpLeg', 94.6), ('mixamorig:LeftForeArm', 86.0)]
+FBX version: 7700
+[SCAN] Falling To Roll.fbx: ok [('mixamorig:Hips', 341.7), ('mixamorig:RightArm', 118.2), ('mixamorig:RightLeg', 93.9)]
+FBX version: 7700
+[SCAN] Fight Idle To Standing Idle.fbx: ok [('mixamorig:LeftForeArm', 106.3), ('mixamorig:LeftHandPinky3', 102.7), ('mixamorig:RightHandPinky3', 102.7)]
+FBX version: 7700
+[SCAN] Great Sword Blocking.fbx: ok [('mixamorig:LeftArm', 69.1), ('mixamorig:RightLeg', 64.0), ('mixamorig:Hips', 63.1)]
+FBX version: 7700
+[SCAN] Great Sword Crouching.fbx: ok [('mixamorig:RightLeg', 103.9), ('mixamorig:LeftUpLeg', 84.7), ('mixamorig:RightUpLeg', 81.5)]
+FBX version: 7700
+[SCAN] Great Sword Impact.fbx: ok [('mixamorig:LeftHandPinky2', 78.7), ('mixamorig:LeftHandIndex3', 77.5), ('mixamorig:LeftHandMiddle1', 76.4)]
+FBX version: 7700
+[SCAN] Great Sword Run.fbx: ok [('mixamorig:LeftLeg', 80.3), ('mixamorig:RightLeg', 74.5), ('mixamorig:RightUpLeg', 59.1)]
+FBX version: 7700
+[SCAN] Great Sword Slash (1).fbx: ok [('mixamorig:RightHand', 113.7), ('mixamorig:LeftArm', 104.8), ('mixamorig:RightForeArm', 89.9)]
+FBX version: 7700
+[SCAN] Great Sword Slash.fbx: ok [('mixamorig:RightArm', 121.6), ('mixamorig:RightHand', 115.4), ('mixamorig:Hips', 114.6)]
+FBX version: 7700
+[SCAN] Great Sword Strafe.fbx: ok [('mixamorig:RightUpLeg', 50.4), ('mixamorig:LeftLeg', 37.8), ('mixamorig:RightToeBase', 35.8)]
+FBX version: 7700
+[SCAN] Holding Down.fbx: ok [('mixamorig:LeftForeArm', 80.9), ('mixamorig:LeftArm', 79.7), ('mixamorig:LeftHand', 59.2)]
+FBX version: 7700
+[SCAN] Idle (1).fbx: ok [('mixamorig:Head', 70.7), ('mixamorig:RightHandRing2', 64.0), ('mixamorig:RightHandMiddle2', 63.9)]
+FBX version: 7700
+[SCAN] Idle.fbx: ok [('mixamorig:LeftUpLeg', 1.8), ('mixamorig:LeftHand', 1.6), ('mixamorig:Head', 1.4)]
+FBX version: 7700
+[SCAN] Jumping Down.fbx: ok [('mixamorig:LeftHand', 127.2), ('mixamorig:LeftArm', 106.5), ('mixamorig:RightArm', 80.6)]
+FBX version: 7700
+[SCAN] Looking Behind.fbx: ok [('mixamorig:Head', 68.8), ('mixamorig:RightFoot', 64.0), ('mixamorig:Hips', 52.1)]
+FBX version: 7700
+[SCAN] Moving Object.fbx: ok [('mixamorig:LeftHand', 97.2), ('mixamorig:RightHand', 94.2), ('mixamorig:LeftArm', 73.9)]
+FBX version: 7700
+[SCAN] One Hand Sword Combo.fbx: ok [('mixamorig:RightHand', 120.8), ('mixamorig:RightArm', 112.0), ('mixamorig:Hips', 105.0)]
+FBX version: 7700
+[SCAN] Orc Idle.fbx: ok [('mixamorig:RightForeArm', 21.0), ('mixamorig:LeftHand', 20.8), ('mixamorig:LeftForeArm', 19.3)]
+FBX version: 7700
+[SCAN] Push Stop.fbx: ok [('mixamorig:LeftHandIndex2', 104.2), ('mixamorig:RightArm', 92.5), ('mixamorig:RightHandIndex2', 91.4)]
+FBX version: 7700
+[SCAN] Pushing.fbx: ok [('mixamorig:LeftToeBase', 77.6), ('mixamorig:RightFoot', 52.2), ('mixamorig:RightUpLeg', 49.2)]
+FBX version: 7700
+[SCAN] Quick Roll To Run.fbx: ok [('mixamorig:Hips', 353.4), ('mixamorig:LeftHandIndex1', 132.4), ('mixamorig:RightArm', 122.7)]
+FBX version: 7700
+[SCAN] Run To Rolling.fbx: ok [('mixamorig:Hips', 337.9), ('mixamorig:LeftUpLeg', 129.1), ('mixamorig:LeftHand', 126.5)]
+FBX version: 7700
+[SCAN] Running.fbx: ok [('mixamorig:LeftLeg', 88.7), ('mixamorig:RightLeg', 59.9), ('mixamorig:LeftUpLeg', 58.8)]
+FBX version: 7700
+[SCAN] Sneaking Forward (1).fbx: ok [('mixamorig:LeftLeg', 72.9), ('mixamorig:RightLeg', 54.7), ('mixamorig:LeftToeBase', 45.0)]
+FBX version: 7700
+[SCAN] Sneaking Forward.fbx: ok [('mixamorig:LeftLeg', 72.9), ('mixamorig:RightLeg', 54.7), ('mixamorig:LeftToeBase', 45.0)]
+FBX version: 7700
+[SCAN] Stand To Roll.fbx: ok [('mixamorig:Hips', 360.0), ('mixamorig:RightArm', 120.4), ('mixamorig:RightUpLeg', 107.7)]
+FBX version: 7700
+[SCAN] Standing 1H Cast Spell 01.fbx: ok [('mixamorig:RightForeArm', 120.1), ('mixamorig:RightArm', 62.1), ('mixamorig:RightHand', 61.7)]
+FBX version: 7700
+[SCAN] Standing Aim Idle 02 Looking.fbx: ok [('mixamorig:RightArm', 124.6), ('mixamorig:RightHand', 82.3), ('mixamorig:LeftArm', 68.3)]
+FBX version: 7700
+[SCAN] Standing Aim Overdraw.fbx: ok [('mixamorig:RightArm', 36.5), ('mixamorig:RightHand', 34.6), ('mixamorig:Head', 19.0)]
+FBX version: 7700
+[SCAN] Standing Aim Walk Forward.fbx: ok [('mixamorig:LeftLeg', 48.9), ('mixamorig:RightFoot', 43.5), ('mixamorig:LeftFoot', 36.4)]
+FBX version: 7700
+[SCAN] Standing Aim Walk Left.fbx: ok [('mixamorig:LeftLeg', 65.2), ('mixamorig:RightLeg', 53.4), ('mixamorig:LeftUpLeg', 42.2)]
+FBX version: 7700
+[SCAN] Standing Block Idle.fbx: ok [('mixamorig:RightArm', 19.4), ('mixamorig:LeftArm', 18.6), ('mixamorig:RightForeArm', 14.6)]
+FBX version: 7700
+[SCAN] Standing Death Backward 01.fbx: ok [('mixamorig:Hips', 110.4), ('mixamorig:RightArm', 90.7), ('mixamorig:LeftArm', 84.6)]
+FBX version: 7700
+[SCAN] Standing Death Forward 01.fbx: ok [('mixamorig:Hips', 124.6), ('mixamorig:RightLeg', 95.3), ('mixamorig:LeftLeg', 94.3)]
+FBX version: 7700
+[SCAN] Standing Dive Forward.fbx: ok [('mixamorig:Hips', 360.0), ('mixamorig:RightHand', 161.1), ('mixamorig:RightArm', 106.3)]
+FBX version: 7700
+[SCAN] Standing Dodge Right.fbx: ok [('mixamorig:LeftFoot', 53.1), ('mixamorig:RightFoot', 47.5), ('mixamorig:RightUpLeg', 46.7)]
+FBX version: 7700
+[SCAN] Standing Draw Arrow.fbx: ok [('mixamorig:RightForeArm', 103.7), ('mixamorig:RightArm', 102.0), ('mixamorig:RightHandIndex2', 96.6)]
+FBX version: 7700
+[SCAN] Standing Equip Bow.fbx: ok [('mixamorig:LeftForeArm', 105.7), ('mixamorig:LeftHand', 99.0), ('mixamorig:LeftArm', 75.5)]
+FBX version: 7700
+[SCAN] Standing Jump.fbx: ok [('mixamorig:RightLeg', 89.9), ('mixamorig:LeftLeg', 80.8), ('mixamorig:RightUpLeg', 72.9)]
+FBX version: 7700
+[SCAN] Standing Melee Attack Horizontal.fbx: ok [('mixamorig:RightArm', 133.6), ('mixamorig:RightForeArm', 120.6), ('mixamorig:Hips', 112.8)]
+FBX version: 7700
+[SCAN] Standing Melee Combo Attack Ver. 1.fbx: ok [('mixamorig:Hips', 156.9), ('mixamorig:RightArm', 131.7), ('mixamorig:RightHand', 96.6)]
+FBX version: 7700
+[SCAN] Standing Melee Combo Attack Ver. 2.fbx: ok [('mixamorig:Hips', 118.8), ('mixamorig:RightArm', 95.8), ('mixamorig:RightHand', 94.0)]
+FBX version: 7700
+[SCAN] Standing Melee Run Jump Attack.fbx: ok [('mixamorig:LeftHand', 117.4), ('mixamorig:RightArm', 111.7), ('mixamorig:LeftUpLeg', 97.0)]
+00:17.734  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_React_Large_From_Right_0.png'
+00:17.750  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_React_Large_From_Right_1.png'
+00:17.781  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_React_Large_From_Right_2.png'
+00:17.796  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_React_Large_From_Right_3.png'
+00:17.921  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_React_Small_From_Right_0.png'
+00:17.937  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_React_Small_From_Right_1.png'
+00:17.968  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_React_Small_From_Right_2.png'
+00:17.984  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_React_Small_From_Right_3.png'
+00:18.109  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Run_Forward_0.png'
+00:18.125  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Run_Forward_1.png'
+00:18.156  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Run_Forward_2.png'
+00:18.171  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Run_Forward_3.png'
+00:18.328  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Run_Left_0.png'
+00:18.343  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Run_Left_1.png'
+00:18.375  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Run_Left_2.png'
+00:18.390  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Run_Left_3.png'
+00:18.515  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Run_Right_0.png'
+00:18.531  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Run_Right_1.png'
+00:18.562  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Run_Right_2.png'
+00:18.578  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Run_Right_3.png'
+00:18.703  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Turn_90_Left_0.png'
+00:18.734  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Turn_90_Left_1.png'
+00:18.750  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Turn_90_Left_2.png'
+00:18.781  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Turn_90_Left_3.png'
+00:18.906  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Walk_Back_0.png'
+00:18.921  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Walk_Back_1.png'
+00:18.953  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Walk_Back_2.png'
+00:18.984  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Walk_Back_3.png'
+00:19.093  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Walk_Left_0.png'
+00:19.125  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Walk_Left_1.png'
+00:19.140  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Walk_Left_2.png'
+00:19.171  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Standing_Walk_Left_3.png'
+00:19.312  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Start_Walking_0.png'
+00:19.328  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Start_Walking_1.png'
+00:19.359  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Start_Walking_2.png'
+00:19.390  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Start_Walking_3.png'
+00:19.515  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Stop_Walking_0.png'
+00:19.546  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Stop_Walking_1.png'
+00:19.578  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Stop_Walking_2.png'
+00:19.593  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Stop_Walking_3.png'
+00:19.765  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Swimming_0.png'
+00:19.796  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Swimming_1.png'
+00:19.812  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Swimming_2.png'
+00:19.859  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Swimming_3.png'
+00:19.984  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Block_Idle_0.png'
+00:20.015  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Block_Idle_1.png'
+00:20.031  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Block_Idle_2.png'
+00:20.062  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Block_Idle_3.png'
+00:20.171  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Block_0.png'
+00:20.203  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Block_1.png'
+00:20.234  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Block_2.png'
+00:20.250  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Block_3.png'
+00:20.375  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Death_0.png'
+00:20.406  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Death_1.png'
+00:20.421  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Death_2.png'
+00:20.453  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Death_3.png'
+00:20.578  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Impact_0.png'
+00:20.609  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Impact_1.png'
+00:20.640  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Impact_2.png'
+00:20.671  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Impact_3.png'
+00:20.765  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Run_0.png'
+00:20.796  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Run_1.png'
+00:20.812  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Run_2.png'
+00:20.843  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Run_3.png'
+00:20.953  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Slash__1__0.png'
+00:20.984  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Slash__1__1.png'
+00:21.000  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Slash__1__2.png'
+00:21.031  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Slash__1__3.png'
+00:21.156  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Slash_0.png'
+00:21.171  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Slash_1.png'
+00:21.203  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Slash_2.png'
+00:21.218  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Slash_3.png'
+00:21.328  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Strafe_0.png'
+00:21.359  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Strafe_1.png'
+00:21.375  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Strafe_2.png'
+00:21.406  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Sword_And_Shield_Strafe_3.png'
+00:21.562  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Taking_Item_0.png'
+00:21.593  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Taking_Item_1.png'
+00:21.625  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Taking_Item_2.png'
+00:21.656  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Taking_Item_3.png'
+00:21.828  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Throw_In_0.png'
+00:21.859  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Throw_In_1.png'
+00:21.890  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Throw_In_2.png'
+00:21.906  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Throw_In_3.png'
+00:22.046  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Treading_Water_0.png'
+00:22.062  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Treading_Water_1.png'
+00:22.093  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Treading_Water_2.png'
+00:22.125  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Treading_Water_3.png'
+00:22.250  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Two_Hand_Sword_Combo_0.png'
+00:22.281  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Two_Hand_Sword_Combo_1.png'
+00:22.296  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Two_Hand_Sword_Combo_2.png'
+00:22.328  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Two_Hand_Sword_Combo_3.png'
+00:22.453  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Two_Handed_Sword_Death_0.png'
+00:22.484  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Two_Handed_Sword_Death_1.png'
+00:22.500  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Two_Handed_Sword_Death_2.png'
+00:22.531  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Two_Handed_Sword_Death_3.png'
+00:22.640  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Walking_Turn_180_0.png'
+00:22.671  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Walking_Turn_180_1.png'
+00:22.687  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Walking_Turn_180_2.png'
+00:22.718  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Walking_Turn_180_3.png'
+00:22.843  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Withdrawing_Sword_0.png'
+00:22.875  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Withdrawing_Sword_1.png'
+00:22.890  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Withdrawing_Sword_2.png'
+00:22.921  render           | Saved: 'C:\Unity\code\TestOutput\tganalysis\prev\Withdrawing_Sword_3.png'
+FBX version: 7700
+[SCAN] Standing React Large From Right.fbx: ok [('mixamorig:RightArm', 75.7), ('mixamorig:RightUpLeg', 45.1), ('mixamorig:Neck', 44.6)]
+FBX version: 7700
+[SCAN] Standing React Small From Right.fbx: ok [('mixamorig:RightHand', 58.7), ('mixamorig:RightArm', 58.4), ('mixamorig:Neck', 46.1)]
+FBX version: 7700
+[SCAN] Standing Run Forward.fbx: ok [('mixamorig:LeftLeg', 73.0), ('mixamorig:RightFoot', 50.6), ('mixamorig:LeftFoot', 46.9)]
+FBX version: 7700
+[SCAN] Standing Run Left.fbx: ok [('mixamorig:LeftLeg', 60.2), ('mixamorig:RightFoot', 58.7), ('mixamorig:RightHandMiddle3', 54.6)]
+FBX version: 7700
+[SCAN] Standing Run Right.fbx: ok [('mixamorig:RightHandPinky3', 63.4), ('mixamorig:LeftLeg', 61.0), ('mixamorig:RightFoot', 57.9)]
+FBX version: 7700
+[SCAN] Standing Turn 90 Left.fbx: ok [('mixamorig:Hips', 90.1), ('mixamorig:LeftFoot', 38.6), ('mixamorig:RightFoot', 34.5)]
+FBX version: 7700
+[SCAN] Standing Walk Back.fbx: ok [('mixamorig:LeftLeg', 43.1), ('mixamorig:RightFoot', 40.1), ('mixamorig:RightUpLeg', 34.0)]
+FBX version: 7700
+[SCAN] Standing Walk Left.fbx: ok [('mixamorig:RightToeBase', 40.0), ('mixamorig:LeftLeg', 35.5), ('mixamorig:LeftToeBase', 31.8)]
+FBX version: 7700
+[SCAN] Start Walking.fbx: ok [('mixamorig:LeftLeg', 62.2), ('mixamorig:RightLeg', 56.2), ('mixamorig:LeftHand', 51.6)]
+FBX version: 7700
+[SCAN] Stop Walking.fbx: ok [('mixamorig:LeftLeg', 54.4), ('mixamorig:RightLeg', 40.6), ('mixamorig:RightHandMiddle2', 39.6)]
+FBX version: 7700
+[SCAN] Swimming.fbx: ok [('mixamorig:RightForeArm', 89.5), ('mixamorig:LeftArm', 74.0), ('mixamorig:LeftForeArm', 69.5)]
+FBX version: 7700
+[SCAN] Sword And Shield Block Idle.fbx: ok [('mixamorig:RightHandRing3', 2.7), ('mixamorig:LeftHandMiddle1', 2.7), ('mixamorig:RightForeArm', 2.1)]
+FBX version: 7700
+[SCAN] Sword And Shield Block.fbx: ok [('mixamorig:RightForeArm', 67.3), ('mixamorig:LeftForeArm', 60.9), ('mixamorig:LeftArm', 42.8)]
+FBX version: 7700
+[SCAN] Sword And Shield Death.fbx: ok [('mixamorig:Hips', 110.8), ('mixamorig:LeftArm', 110.2), ('mixamorig:LeftForeArm', 109.0)]
+FBX version: 7700
+[SCAN] Sword And Shield Impact.fbx: ok [('mixamorig:LeftForeArm', 48.1), ('mixamorig:Head', 46.2), ('mixamorig:LeftArm', 41.2)]
+FBX version: 7700
+[SCAN] Sword And Shield Run.fbx: ok [('mixamorig:LeftLeg', 62.8), ('mixamorig:RightFoot', 58.9), ('mixamorig:LeftUpLeg', 58.8)]
+FBX version: 7700
+[SCAN] Sword And Shield Slash (1).fbx: ok [('mixamorig:Hips', 106.9), ('mixamorig:LeftForeArm', 95.2), ('mixamorig:RightArm', 93.7)]
+FBX version: 7700
+[SCAN] Sword And Shield Slash.fbx: ok [('mixamorig:RightArm', 97.7), ('mixamorig:RightForeArm', 96.7), ('mixamorig:LeftForeArm', 93.7)]
+FBX version: 7700
+[SCAN] Sword And Shield Strafe.fbx: ok [('mixamorig:LeftLeg', 64.0), ('mixamorig:RightLeg', 53.1), ('mixamorig:LeftUpLeg', 48.3)]
+FBX version: 7700
+[SCAN] Taking Item.fbx: ok [('mixamorig:RightArm', 107.1), ('mixamorig:RightForeArm', 92.2), ('mixamorig:RightHand', 85.7)]
+FBX version: 7700
+[SCAN] Throw In.fbx: ok [('mixamorig:RightArm', 107.3), ('mixamorig:LeftArm', 106.9), ('mixamorig:RightHand', 93.3)]
+FBX version: 7700
+[SCAN] Treading Water.fbx: ok [('mixamorig:RightHand', 60.8), ('mixamorig:LeftHand', 48.5), ('mixamorig:LeftUpLeg', 47.7)]
+FBX version: 7700
+[SCAN] Two Hand Sword Combo.fbx: ok [('mixamorig:Hips', 161.5), ('mixamorig:LeftForeArm', 139.2), ('mixamorig:RightArm', 109.9)]
+FBX version: 7700
+[SCAN] Two Handed Sword Death.fbx: ok [('mixamorig:RightHand', 142.9), ('mixamorig:LeftHandIndex1', 118.9), ('mixamorig:Hips', 116.5)]
+FBX version: 7700
+[SCAN] Walking Turn 180.fbx: ok [('mixamorig:Hips', 180.0), ('mixamorig:LeftHandMiddle2', 63.0), ('mixamorig:RightLeg', 43.0)]
+FBX version: 7700
+[SCAN] Withdrawing Sword.fbx: ok [('mixamorig:RightArm', 116.7), ('mixamorig:RightHand', 85.6), ('mixamorig:LeftHandPinky2', 81.1)]
+[SCAN] DONE: 81 files -> report.json
+BlenderMCP addon unregistered
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:37:34)
