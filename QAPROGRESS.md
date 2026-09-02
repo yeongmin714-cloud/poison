@@ -788,3 +788,15 @@ Cross(Edge1, Edge2) = (0, -dx·dz, 0) = **법선이 아래(-Y)를 향함**.
 - 전완 살짝 굽힘 + idle bob(상하 4.5cm) + 좌우 미세 roll, 위상은 GetInstanceID 기반 결정론
 - CreateGuard에서 모든 병사에 자동 부착, 본 없는 폴백은 bob만
 **검증:** 배치컴파일 통과 (error CS 0).
+
+## 2026-09-02 플레이어 GLB 부착 + 절차적 애니메이션 (신규)
+
+- Player_Rigged.glb(27본 리그, 클립 0개)를 플레이어에 부착 — RuntimeModelLoader "player" 키 사용
+- 기존 procedural Cube 렌더러 비활성(GLB 자식이 비주얼 대체), CharacterController 콜라이더는 유지
+- 높이 1.8m 바운즈 정규화 + 발을 CC 바닥(로컬 -1m)에 정렬
+- 신규 PlayerCharacterAnimator.cs: 절차적 idle/walk 애니메이션
+  - 이동 감지: CharacterController.velocity → walkBlend(4.5m/s 기준)
+  - 걷기: thigh 좌우 반대 스윙(30°) + shin 굽힘(22°) + 팔 반대 스윙(16°) + 체중 bob
+  - 정지: 호흡 bob — 본 회전은 world-delta 방식(AngleAxis × parentRot × baseLocal)으로 플레이어 선회 추종
+- RuntimeModelLoader: "player" 키 대소문자 교정(player_rigged → Player_Rigged, Linux 빌드 대비)
+**검증:** 배치컴파일 통과 (error CS 0). Play 시각검증 대기 — 걷기 스윙 방향/크기 확인 필수.
