@@ -105,9 +105,10 @@ namespace ProjectName.Systems
                 // 구르기: GLB 전체가 앞방향으로 360° 전회 (몸통 플립 — 본 개별 제어 불필요)
                 float dur = _movement != null ? Mathf.Max(0.05f, _movement.RollDuration) : 0.5f;
                 float t01 = Mathf.Clamp01(_rollT / dur);
-                float flip = (t01 * 2f - 1f) * (t01 * 2f - 1f); // ease-in-out
+                // 단조 smoothstep (0→1) — 이전 (2t-1)² 공식은 t=0에서 1로 시작해 "숙였다 일어나는"처럼 보였던 버그
+                float eased = t01 * t01 * (3f - 2f * t01);
                 float dir = _invertRollFlip ? -1f : 1f;
-                transform.localRotation = _bodyBaseLocalRot * Quaternion.Euler(dir * flip * 360f, 0f, 0f);
+                transform.localRotation = _bodyBaseLocalRot * Quaternion.Euler(dir * eased * 360f, 0f, 0f);
                 transform.localPosition = _bodyBaseLocal; // bob 무시 (회전 중심 고정)
                 return;
             }
