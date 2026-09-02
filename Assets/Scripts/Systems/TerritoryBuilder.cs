@@ -129,10 +129,10 @@ namespace ProjectName.Systems
             var parentGo = new GameObject(parentName);
             parentGo.transform.position = center;
 
-            // 건물들 생성 (중앙 광장 + 상점 + 크래프트하우스 + 교회 + NPC 주택 4채)
+            // 성(castle) 생성 (국가별 GLB 중심)
             BuildBuildingsAt(parentGo.transform, center, def.nation);
 
-            // 병사들 생성 (guardCount만큼, 영지 주변 원형 배치)
+            // 문지기 생성 (성문 앞 2~4명, guardCount는 전쟁 페이즈 데이터로 유지)
             BuildGuardsAt(parentGo.transform, center, def.guardCount, def.difficulty, def.nation);
         }
 
@@ -143,46 +143,150 @@ namespace ProjectName.Systems
             return GameObject.Find(parentName) != null;
         }
 
+        /// <summary>
+        /// 성(building) 중심 영지 생성 — 국가별 castle GLB(또는 폴백 Cube)를 배치하고 성문(GateAnchor)을 생성합니다.
+        /// 외부 건물(광장/상점/크래프트하우스/교회/NPC주택)은 더 이상 배치하지 않습니다 (R2 내부 등장용).
+        /// 성 자체는 상호작용 대상이 아니므로 BuildingPlaceholder를 붙이지 않습니다.
+        /// </summary>
         private void BuildBuildingsAt(Transform parent, Vector3 center, NationType nation)
         {
-            // 광장 (중앙)
-            CreateBuilding("TownSquare", BuildingPlaceholder.BuildingType.Other,
-                center, _squareSize, new Color(0.6f, 0.5f, 0.3f), parent);
+            string castleKey = GetCastleModelKey(nation);
+            float groundY = TerrainGenerator.GetHeightAt(center.x, center.z, BiomeType.Plains, 42) + 1f;
 
-            // 상점 (왼쪽)
-            CreateBuilding("Shop", BuildingPlaceholder.BuildingType.Shop,
-                center + new Vector3(-8, 0, 0), _buildingSize, Color.yellow, parent);
+            // 성 루트 (코드 배치용 컨테이너)
+            var castleRoot = new GameObject("Castle");
+            castleRoot.transform.position = new Vector3(center.x, groundY, center.z);
 
-            // 크래프트하우스 (오른쪽)
-            CreateBuilding("CraftHouse", BuildingPlaceholder.BuildingType.CraftHouse,
-                center + new Vector3(8, 0, 0), _buildingSize, Color.cyan, parent);
+            // GLB 모델 로드 → 바운즈 기반 균일 스케일 정규화 (XZ 최대 반경 → 25m)
+            if (RuntimeModelLoader.TryGetModel(castleKey, out var modelPrefab))
+            {
+                GameObject inst = Object.Instantiate(modelPrefab, castleRoot.transform, false);
+                inst.name = "CastleModel";
+                inst.transform.localPosition = Vector3.zero;
+                NormalizeCastleScale(inst);
+                Debug.Log($"[TerritoryBuilder] {parent.name}: castle '{castleKey}' 로드, 반경 {GetCastleRadius(castleRoot):F1}m");
+            }
+            else
+            {
+                // 폴백: 국가색 Cube (30x15x30)
+                var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                cube.name = "CastleFallback";
+                cube.transform.SetParent(castleRoot.transform, false);
+                cube.transform.localPosition = Vector3.zero;
+                cube.transform.localScale = new Vector3(30, 15, 30);
+                cube.tag = "Untagged";
+                var renderer = cube.GetComponent<MeshRenderer>();
+                if (renderer != null)
+                    renderer.material = MaterialHelper.CreateLitMaterial(GetCastleFallbackColor(nation), "Castle_Mat");
+                Debug.Log($"[TerritoryBuilder] {parent.name}: castle '{castleKey}' GLB 로드 실패 — Cube 폴백");
+            }
 
-            // 교회 (뒤쪽)
-            CreateBuilding("Church", BuildingPlaceholder.BuildingType.Church,
-                center + new Vector3(0, 0, -8), _buildingSize, Color.white, parent);
+            castleRoot.transform.SetParent(parent);
 
-            // NPC 주택 4채 (모서리들)
-            CreateBuilding("NPCHouse1", BuildingPlaceholder.BuildingType.NPCHouse,
-                center + new Vector3(-8, 0, -8), _houseSize, Color.gray, parent);
-            CreateBuilding("NPCHouse2", BuildingPlaceholder.BuildingType.NPCHouse,
-                center + new Vector3(8, 0, -8), _houseSize, Color.gray, parent);
-            CreateBuilding("NPCHouse3", BuildingPlaceholder.BuildingType.NPCHouse,
-                center + new Vector3(-8, 0, 8), _houseSize, Color.gray, parent);
-            CreateBuilding("NPCHouse4", BuildingPlaceholder.BuildingType.NPCHouse,
-                center + new Vector3(8, 0, 8), _houseSize, Color.gray, parent);
+            // 성문(GateAnchor): center에서 Empire 중심(0,0,0) 반대(바깥) 방향으로 castle 반경 60% 지점
+            Vector3 c2 = new Vector3(center.x, 0, center.z);
+            Vector3 gateDir = c2.sqrMagnitude < 0.0001f ? Vector3.back : Vector3.Normalize(c2);
+            float radius = Mathf.Max(GetCastleRadius(castleRoot), 1f);
+            var gate = new GameObject("GateAnchor");
+            gate.transform.SetParent(castleRoot.transform);
+            gate.transform.position = new Vector3(
+                center.x + gateDir.x * radius * 0.6f,
+                groundY,
+                center.z + gateDir.z * radius * 0.6f);
         }
 
+        /// <summary>
+        /// 국가별 성문(castle) GLB 모델 키를 반환합니다.
+        /// </summary>
+        private static string GetCastleModelKey(NationType nation)
+        {
+            return nation switch
+            {
+                NationType.East => "blue_castle",
+                NationType.West => "green_castle",
+                NationType.South => "red_castle",
+                NationType.North => "purple_castle",
+                _ => "castle" // Empire / Dracula / 기타
+            };
+        }
+
+        /// <summary>
+        /// castle GLB 폴백(프리미티브 Cube)용 국가별 색상을 반환합니다.
+        /// </summary>
+        private static Color GetCastleFallbackColor(NationType nation)
+        {
+            return nation switch
+            {
+                NationType.East => new Color(0.25f, 0.45f, 0.9f),
+                NationType.West => new Color(0.2f, 0.75f, 0.3f),
+                NationType.South => new Color(0.85f, 0.2f, 0.15f),
+                NationType.North => new Color(0.6f, 0.3f, 0.8f),
+                _ => new Color(0.85f, 0.83f, 0.8f) // Empire / Dracula / 기타
+            };
+        }
+
+        /// <summary>
+        /// 렌더러 바운즈의 XZ 최대 반경(절반 폭)을 반환합니다. 렌더러가 없으면 0.
+        /// </summary>
+        private static float GetCastleRadius(GameObject castleGo)
+        {
+            var renderers = castleGo.GetComponentsInChildren<Renderer>(true);
+            if (renderers == null || renderers.Length == 0) return 0f;
+            var b = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++) b.Encapsulate(renderers[i].bounds);
+            return Mathf.Max(b.extents.x, b.extents.z);
+        }
+
+        /// <summary>
+        /// castle GLB를 바운즈 기반 균일 스케일 정규화 — XZ 최대 반경을 목표 반경 25m로 맞춥니다.
+        /// </summary>
+        private static void NormalizeCastleScale(GameObject castleModel)
+        {
+            float sourceRadius = GetCastleRadius(castleModel);
+            if (sourceRadius <= 0.01f) return;
+            float factor = 25f / sourceRadius; // 목표 반경 25m
+            castleModel.transform.localScale *= factor;
+        }
+
+        /// <summary>
+        /// 성문(GateAnchor) 앞에 문지기 2~4명을 배치합니다.
+        /// (guardCount는 전체 주둔군 수 — 전쟁 페이즈에서 사용하도록 그대로 유지하며 여기서는 문지기만 배치)
+        /// </summary>
         private void BuildGuardsAt(Transform parent, Vector3 center, int guardCount, TerritoryDifficulty difficulty, NationType nation)
         {
-            int count = Mathf.Max(1, guardCount);
             int baseLevel = GetBaseGuardLevel(difficulty);
 
-            for (int i = 0; i < count; i++)
+            // 성문 방향 (Empire 중심 0,0,0 기준 바깥쪽)
+            Vector3 c2 = new Vector3(center.x, 0, center.z);
+            Vector3 gateDir = c2.sqrMagnitude < 0.0001f ? Vector3.back : Vector3.Normalize(c2);
+
+            // 문지기 수: Ring1/Ring2=2, Ring3=3, Ring4=4
+            int gatekeeperCount = difficulty switch
             {
-                float angle = (i / (float)count) * Mathf.PI * 2f;
-                Vector3 offset = new Vector3(Mathf.Sin(angle) * _guardCircleRadius, 0, Mathf.Cos(angle) * _guardCircleRadius);
-                int level = baseLevel + (i % 3); // 레벨 분산
-                CreateGuard($"Guard_{i + 1}", center + offset, GetGuardName(nation), level, nation, parent);
+                TerritoryDifficulty.Ring3 => 3,
+                TerritoryDifficulty.Ring4 => 4,
+                TerritoryDifficulty.Empire => 4,
+                _ => 2, // Ring1 / Ring2 / Dracula
+            };
+
+            // GateAnchor 월드 위치 (Castle 아래)
+            Transform gateAnchor = null;
+            var castle = parent.Find("Castle");
+            if (castle != null) gateAnchor = castle.Find("GateAnchor");
+            Vector3 gatePos = gateAnchor != null ? gateAnchor.position : center + gateDir * 3f;
+
+            // 문 좌우 방향 (gateDir에 수직인 단위벡터)
+            Vector3 right = new Vector3(-gateDir.z, 0f, gateDir.x);
+
+            for (int i = 0; i < gatekeeperCount; i++)
+            {
+                float sign = (i % 2 == 0) ? 1f : -1f;
+                int tier = i / 2;
+                float lateral = 2f + tier * 2f;          // 2, 2, 4, 4 (문에서 ±2m, ±4m)
+                Vector3 p = gatePos + right * (sign * lateral);
+                int level = baseLevel + (i % 3);          // 레벨 분산
+                // 성을 등지고 바깥(성문 바깥, 접근하는 전투원 방향)을 향함
+                CreateGuard($"GateGuard_{i + 1}", p, GetGuardName(nation), level, nation, parent, gateDir);
             }
         }
 
@@ -213,25 +317,6 @@ namespace ProjectName.Systems
                 NationType.Dracula => "스켈레톤 병졸",
                 _ => "병사"
             };
-        }
-
-        /// <summary>
-        /// 건물 타입에 대응하는 GLB 모델 키를 반환합니다.
-        /// </summary>
-        private static string GetModelKeyForBuilding(BuildingPlaceholder.BuildingType type)
-        {
-            switch (type)
-            {
-                case BuildingPlaceholder.BuildingType.Shop:
-                    return "hut";
-                case BuildingPlaceholder.BuildingType.CraftHouse:
-                    return "craft_blend";
-                case BuildingPlaceholder.BuildingType.NPCHouse:
-                    return "hut";
-                case BuildingPlaceholder.BuildingType.Church:
-                default:
-                    return null; // 해당 GLB 모델 없음 → Placeholder 유지
-            }
         }
 
         /// <summary>
@@ -279,48 +364,16 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 건물 Placeholder 생성 (GLB 우선, 없으면 Primitive Cube) - 부모 지정 가능
-        /// </summary>
-        private void CreateBuilding(string name, BuildingPlaceholder.BuildingType type, Vector3 position, Vector3 scale, Color color, Transform parent = null)
-        {
-            string modelKey = GetModelKeyForBuilding(type);
-            var go = TrySpawnModelOrPlaceholder(modelKey, name, position, scale, color, PrimitiveType.Cube);
-
-            if (parent != null)
-                go.transform.SetParent(parent);
-
-            var placeholder = go.AddComponent<BuildingPlaceholder>();
-            placeholder.buildingType = type;
-            placeholder.buildingName = name;
-
-            // BuildingTrigger 컴포넌트 추가 (E키 상호작용용)
-            var trigger = go.AddComponent<BuildingTrigger>();
-            trigger.BuildingType = type.ToString();
-            trigger.InteractRange = 3f;
-
-            // 콜라이더는 끄지 않음 (물리적 블로킹)
-            var col = go.GetComponent<Collider>();
-            if (col != null) col.isTrigger = false;
-
-            // TextMesh 라벨
-            var labelGo = new GameObject($"{name}_Label");
-            labelGo.transform.SetParent(go.transform);
-            labelGo.transform.localPosition = new Vector3(0, scale.y * 0.5f + 0.5f, 0);
-            var textMesh = labelGo.AddComponent<TextMesh>();
-            textMesh.text = name;
-            textMesh.anchor = TextAnchor.MiddleCenter;
-            textMesh.characterSize = 0.08f;
-            textMesh.color = Color.white;
-            textMesh.fontSize = 24;
-        }
-
-        /// <summary>
         /// 병사 Placeholder 생성 (GLB "soldier" 우선, 없으면 Primitive Capsule) - 부모 지정 가능
         /// </summary>
-        private void CreateGuard(string name, Vector3 position, string guardName, int level, NationType nation, Transform parent = null)
+        private void CreateGuard(string name, Vector3 position, string guardName, int level, NationType nation, Transform parent = null, Vector3 forward = default)
         {
             var go = TrySpawnModelOrPlaceholder("soldier", name, position,
-                new Vector3(1.5f, 2f, 1.5f), new Color(0.2f, 0.4f, 0.8f), PrimitiveType.Capsule);
+                Vector3.one, new Color(0.2f, 0.4f, 0.8f), PrimitiveType.Capsule);
+
+            // 성문/진영 방향 정면 설정 (바깥을 향함). 기본값이 아니면 적용
+            if (forward != Vector3.zero)
+                go.transform.rotation = Quaternion.LookRotation(forward, Vector3.up);
 
             if (parent != null)
                 go.transform.SetParent(parent);
