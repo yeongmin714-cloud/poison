@@ -26,7 +26,7 @@ namespace ProjectName.Systems
 
         [Header("Splatting (T-G2)")]
         [SerializeField] private bool _useSplatting = true;
-        [SerializeField] private int _splatResolution = 512;
+        [SerializeField] private int _splatResolution = 1024;
         [SerializeField] private int _splatSeed = 20260902;
 
         [Header("Runtime State")]
@@ -375,7 +375,16 @@ namespace ProjectName.Systems
                         mat.mainTexture = splat;
                         mat.mainTextureScale = Vector2.one;   // 스플랫 맵은 전 세계 매핑(타일 1)
                         mat.mainTextureOffset = Vector2.zero;
-                        Debug.Log($"[TerrainTextureApplier] {nation} 스플랫 맵 적용: {splat.name}");
+
+                        // 근거리 미세 텍스처 복원: 스플랫 저해상도 뭉개짐을 URP DetailAlbedoMap으로 보완
+                        var natList = _nationTextures[nation];
+                        Texture2D detailTex = natList.Count > 1 ? natList[1] : natList[0];
+                        mat.SetTexture("_DetailAlbedoMap", detailTex);
+                        mat.SetTextureScale("_DetailAlbedoMap", Vector2.one * 60f);
+                        mat.SetTextureOffset("_DetailAlbedoMap", Vector2.zero);
+                        mat.EnableKeyword("_DETAIL_MULX2");
+                        mat.SetFloat("_DetailNormalMapScale", 1f);
+                        Debug.Log($"[TerrainTextureApplier] {nation} 스플랫 맵 적용: {splat.name} + 디테일알베도({detailTex.name})");
                     }
                     else
                     {
