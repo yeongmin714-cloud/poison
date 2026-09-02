@@ -750,3 +750,21 @@ Cross(Edge1, Edge2) = (0, -dx·dz, 0) = **법선이 아래(-Y)를 향함**.
 **검증:** 배치컴파일 통과 (error CS 0). Play 시각검증 대기 — "[TerritoryBuilder] 전체 영지 Placeholder 생성 완료! 총 82개" + "[TerritoryManager] 영지 재등록" 로그 확인 필수.
 
 **S1 후속 수리 (2026-09-02):** GameManager 오브젝트가 씬에 없어 EnsureTerritoryManager가 실행되지 않았던 것 발견 → GameSetup(씬 존재, Start 실행 확인됨)에 EnsureTerritoryBuilder() 추가 — TerritoryBuilder 없으면 TerritoryManager GO에 AddComponent. 배치컴파일 통과.
+
+## 2026-09-02 영지 재구축 R1+R2 완료 (성 중심 구조)
+
+**R1 — 성 중심 영지:**
+- hut 건물군(광장/상점/크래프트/교회/주택) 제거 → 국가별 castle GLB 1개 (반경 25m 바운즈 정규화)
+- 색상 매핑: East=blue_castle, West=green_castle, South=red_castle, North=purple_castle, Empire=castle (NationFlagVisualData 규칙)
+- GateAnchor(성문, Empire 반대 방향 바깥) + 문지기 2~4명(Ring별)만 외부 배치, guardCount는 데이터 유지
+- 병사 scale (1.5,2,1.5)→(1,1,1) — 세로 2배 거대 버그 교정
+- GLB 실패 시 국가색 Cube(30x15x30) 폴백
+
+**R2 — 성 진입 시 내부 등장:**
+- 성문에 BuildingTrigger("Castle", nationStyle 매핑: East→Eastern 등) — 기존 파이프라인 연결: E키 → BuildingEvents → IndoorSceneTransition → CastleInteriorBuilder(내부 생성)
+- 성 내부에 상점(좌 5m)/크래프트하우스(우 5m) 배치 + 각각 E키 트리거 — 기존 상점/크래프트 상호작용 재사용
+- SpawnInteriorFixtures(정적) + PlaceOnIndoorFloor(실내 y 재보정 — GetHeightAt 오버라이드 방지)
+- SpawnGarrison(def, center) API 추가 — 전쟁 시스템이 호출할 주둔군 스폰(고정시드), 평시 미호출
+
+**수리한 컴파일 에러:** 문자열 이스케이프(?? \\"null\\"), nullable struct(TerritoryDefinition? + .Value)
+**검증:** 배치컴파일 통과. Play 시각검증 대기 — 파란 성(East) 크기/문지기 2명/E키 진입→내부 상점 확인.

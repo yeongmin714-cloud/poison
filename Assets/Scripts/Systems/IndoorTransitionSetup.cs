@@ -48,7 +48,7 @@ namespace ProjectName.Systems
             if (!string.IsNullOrEmpty(nationStyle))
                 trigger.NationStyle = nationStyle;
 
-            Debug.Log($"[IndoorTransitionSetup] {buildingType} BuildingTrigger 생성 완료 at {position} (nationStyle: {nationStyle ?? \"null\"})");
+            Debug.Log($"[IndoorTransitionSetup] {buildingType} BuildingTrigger 생성 완료 at {position} (nationStyle: {nationStyle ?? "null"})");
             return triggerGo;
         }
 

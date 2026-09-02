@@ -448,20 +448,20 @@ namespace ProjectName.Systems
         /// 전쟁 시 주둔군 스폰 API — def.guardCount명 병사를 center 주변 반경 10~20m 원형으로 배치.
         /// 평시에는 문지기만 스폰되며, 이 API는 전쟁 시스템(TerritoryWarManager 등)이 호출할 목적으로 제공.
         /// </summary>
-        public static void SpawnGarrison(TerritoryDefinition def, Vector3 center)
+        public static void SpawnGarrison(TerritoryDefinition? def, Vector3 center)
         {
             if (def == null) return;
-            var rng = new System.Random(def.id.index + 7777); // 영지 인덱스 기반 고정 시드 (결정론)
-            int count = Mathf.Max(1, def.guardCount);
+            var rng = new System.Random(def.Value.id.index + 7777); // 영지 인덱스 기반 고정 시드 (결정론)
+            int count = Mathf.Max(1, def.Value.guardCount);
             for (int i = 0; i < count; i++)
             {
                 float angle = (i / (float)count) * Mathf.PI * 2f + (float)(rng.NextDouble() * 0.4 - 0.2);
                 float radius = 10f + (float)rng.NextDouble() * 10f;
                 Vector3 pos = center + new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
-                CreateGuard($"Garrison_{def.nation}_{def.id.index}_{i + 1}", pos,
-                    GetGuardName(def.nation), GetBaseGuardLevel(def.difficulty) + (i % 3), def.nation);
+                CreateGuard($"Garrison_{def.Value.nation}_{def.Value.id.index}_{i + 1}", pos,
+                    GetGuardName(def.Value.nation), GetBaseGuardLevel(def.Value.difficulty) + (i % 3), def.Value.nation);
             }
-            Debug.Log($"[TerritoryBuilder] 주둔군 스폰: {def.territoryName} {count}명");
+            Debug.Log($"[TerritoryBuilder] 주둔군 스폰: {def.Value.territoryName} {count}명");
         }
 
         private static void CreateGuard(string name, Vector3 position, string guardName, int level, NationType nation, Transform parent = null, Vector3 forward = default)
