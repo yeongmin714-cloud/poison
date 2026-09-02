@@ -356,21 +356,14 @@ namespace ProjectName.Systems
                 right.Normalize();
 
                 _moveDirection = (forward * vertical + right * horizontal).normalized;
-
-                // 캐릭터가 이동 방향을 바라보게 회전 (스무딩 — 즉시 스냅 제거)
-                if (_moveDirection != Vector3.zero)
-                {
-                    var moveRot = Quaternion.LookRotation(_moveDirection);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, moveRot, TurnSpeed * Time.deltaTime);
-                }
             }
             else
             {
                 _moveDirection = Vector3.zero;
             }
 
-            // ── 마우스 커서 조준: 정지 중엔 커서가 가리키는 지면 지점을 바라봄 (탑다운 조준) ──
-            if (_moveDirection == Vector3.zero)
+            // ── 마우스 커서 조준: 항상 커서가 가리키는 지면 지점을 바라봄 (탑다운 스트레이프 — Diablo/Hades 방식) ──
+            // 이동 중에도 커서 방향 유지 → 걷기 애니와 독립적으로 몸이 커서를 따라 회전
             {
                 var aimMouse = UnityEngine.InputSystem.Mouse.current;
                 var aimCamSource = _cameraTransform != null ? _cameraTransform : (Camera.main != null ? Camera.main.transform : null);
