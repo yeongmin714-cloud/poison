@@ -24,6 +24,11 @@ namespace ProjectName.Systems
         [SerializeField] private float _smoothness = 0.1f;
         [SerializeField] private float _textureTiling = 200f;
 
+        [Header("Splatting (T-G2)")]
+        [SerializeField] private bool _useSplatting = true;
+        [SerializeField] private int _splatResolution = 512;
+        [SerializeField] private int _splatSeed = 20260902;
+
         [Header("Runtime State")]
         [SerializeField] private NationType _currentNation = NationType.East;
 
@@ -333,35 +338,23 @@ namespace ProjectName.Systems
         /// <summary>
         /// Creates URP Lit materials for each nation using loaded textures.
         /// Material naming: "Terrain_{nation}_Mat"
-        /// Extra textures are applied as secondary/blend textures:
-        ///   extra1 (red) → south
-        ///   extra2 (gray) → north
-        ///   extra3 (yellow) → west, empire
-        /// Dracula uses only its base texture (no extra blend).
-        /// NOTE: _DetailAlbedoMap is a single slot — nations that would need
-        /// multiple extras (e.g. Empire) use only the last-applied extra.
+        /// T-G2: 멀티레이어 스플랫 — 국가별 텍스처 목록으로 높이/경사/노이즈 기반
+        /// 스플랫 맵을 베이크하여 _BaseMap에 적용. 베이크 실패 시 기존 단일 텍스처 폴백.
         /// </summary>
         public void CreateMaterials()
         {
             _nationMaterials = new Dictionary<NationType, Material>();
 
-            // Guard: LoadTextures() must be called first
             if (_nationTextures == null)
             {
                 Debug.LogError("[TerrainTextureApplier] _nationTextures is null. Call LoadTextures() first.");
                 return;
             }
 
-            // Map extra textures by index
-            Texture2D extra1 = _extraTextures.Count > 0 ? _extraTextures[0] : null;
-            Texture2D extra2 = _extraTextures.Count > 1 ? _extraTextures[1] : null;
-            Texture2D extra3 = _extraTextures.Count > 2 ? _extraTextures[2] : null;
-
             foreach (NationType nation in new[] { NationType.East, NationType.West, NationType.South, NationType.North, NationType.Empire, NationType.Dracula })
             {
                 if (!_nationTextures.ContainsKey(nation) || _nationTextures[nation].Count == 0)
                 {
-                    // Skip Dracula silently (expected if no dracula_ textures provided)
                     if (nation != NationType.Dracula)
                     {
                         Debug.LogWarning($"[TerrainTextureApplier] No textures for {nation}. Skipping material.");
@@ -369,29 +362,75 @@ namespace ProjectName.Systems
                     continue;
                 }
 
-                Material mat = CreateLitMaterial($"Terrain_{nation}_Mat", _nationTextures[nation][0]);
+                Texture2D mainTex = _nationTextures[nation][0];
+                Material mat = CreateLitMaterial($"Terrain_{nation}_Mat", mainTex);
 
-                // Apply extra textures for specific nations.
-                // NOTE: _DetailAlbedoMap is a single slot — nations with multiple extras
-                // (e.g. Empire originally had extra1+extra3) use only the last-applied.
-                // Empire uses extra3 (yellow/golden) to match its theme.
-                if (nation == NationType.South)
+                // === 멀티레이어 스플랫 (T-G2): 단일 텍스처 → 높이/경사/노이즈 블렌드 스플랫 맵 ===
+                if (_useSplatting)
                 {
-                    ApplyExtraTexture(mat, extra1, 0.3f, "extra1(red)");
-                }
-                if (nation == NationType.North)
-                {
-                    ApplyExtraTexture(mat, extra2, 0.3f, "extra2(gray)");
-                }
-                if (nation == NationType.West || nation == NationType.Empire)
-                {
-                    ApplyExtraTexture(mat, extra3, 0.3f, "extra3(yellow)");
+                    Texture2D splat = TryBakeSplat(nation, _nationTextures[nation]);
+                    if (splat != null)
+                    {
+                        mat.SetTexture("_BaseMap", splat);
+                        mat.mainTexture = splat;
+                        mat.mainTextureScale = Vector2.one;   // 스플랫 맵은 전 세계 매핑(타일 1)
+                        mat.mainTextureOffset = Vector2.zero;
+                        Debug.Log($"[TerrainTextureApplier] {nation} 스플랫 맵 적용: {splat.name}");
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[TerrainTextureApplier] {nation} 스플랫 실패 → 단일 텍스처 폴백.");
+                    }
                 }
 
                 _nationMaterials[nation] = mat;
             }
 
             Debug.Log($"[TerrainTextureApplier] Created {_nationMaterials.Count} nation materials.");
+        }
+
+        /// <summary>스플랫 맵 베이크 시도 — 실패 시 null 반환(기존 단일 텍스처 폴백 트리거).</summary>
+        private Texture2D TryBakeSplat(NationType nation, List<Texture2D> textures)
+        {
+            try
+            {
+                var readable = new List<Texture2D>();
+                foreach (Texture2D t in textures)
+                {
+                    if (t == null) continue;
+                    readable.Add(IsTextureReadable(t) ? t : MakeReadableCopy(t));
+                }
+                if (readable.Count == 0) return null;
+                return TerrainSplatBaker.BakeSplatMap(nation, readable, _splatResolution, _splatSeed);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[TerrainTextureApplier] Splat bake exception for {nation}: {e.Message}");
+                return null;
+            }
+        }
+
+        private static bool IsTextureReadable(Texture2D t)
+        {
+            if (t == null) return false;
+            try { t.GetPixel(0, 0); return true; } catch { return false; }
+        }
+
+        /// <summary>비읽기 텍스처를 RenderTexture 경유로 읽기 가능한 RGBA32 복사본으로 변환.</summary>
+        private Texture2D MakeReadableCopy(Texture2D src)
+        {
+            RenderTexture rt = RenderTexture.GetTemporary(src.width, src.height, 0, RenderTextureFormat.ARGB32);
+            Graphics.Blit(src, rt);
+            RenderTexture prev = RenderTexture.active;
+            RenderTexture.active = rt;
+            Texture2D copy = new Texture2D(src.width, src.height, TextureFormat.RGBA32, false);
+            copy.ReadPixels(new Rect(0, 0, src.width, src.height), 0, 0);
+            copy.Apply();
+            RenderTexture.active = prev;
+            RenderTexture.ReleaseTemporary(rt);
+            copy.wrapMode = TextureWrapMode.Repeat;
+            copy.name = src.name + "_readable";
+            return copy;
         }
 
         private Material CreateLitMaterial(string name, Texture2D mainTex)
@@ -495,7 +534,17 @@ namespace ProjectName.Systems
             _currentNation = nation;
             Material mat = _nationMaterials[nation];
             _meshRenderer.sharedMaterial = mat;
-            mat.mainTextureScale = Vector2.one * _textureTiling;
+            // 멀티레이어 스플랫 맵(TerrainTextureApplier 생성, 이름 'Splat_...')이면 전 세계 매핑(타일1) 유지.
+            // 폴백한 단일 텍스처는 기존처럼 200 타일링.
+            if (_useSplatting && mat.mainTexture != null && mat.mainTexture.name.StartsWith("Splat_"))
+            {
+                mat.mainTextureScale = Vector2.one;
+                mat.mainTextureOffset = Vector2.zero;
+            }
+            else
+            {
+                mat.mainTextureScale = Vector2.one * _textureTiling;
+            }
 
             Debug.Log($"[TerrainTextureApplier] Applied material '{mat.name}' for {nation}.");
         }
