@@ -183,16 +183,17 @@ namespace ProjectName.Systems
 
             castleRoot.transform.SetParent(parent);
 
-            // 성문(GateAnchor): center에서 Empire 중심(0,0,0) 반대(바깥) 방향으로 castle 반경 60% 지점
+            // 성문(GateAnchor): center에서 Empire 중심(0,0,0) 반대(바깥) 방향, castle 성벽 바로 밖(반경 108%)
+            // (기존 60%는 성벽 안쪽이라 문지기가 성 메시에 파묻혀 안 보였음)
             Vector3 c2 = new Vector3(center.x, 0, center.z);
             Vector3 gateDir = c2.sqrMagnitude < 0.0001f ? Vector3.back : Vector3.Normalize(c2);
             float radius = Mathf.Max(GetCastleRadius(castleRoot), 1f);
             var gate = new GameObject("GateAnchor");
             gate.transform.SetParent(castleRoot.transform);
             gate.transform.position = new Vector3(
-                center.x + gateDir.x * radius * 0.6f,
+                center.x + gateDir.x * radius * 1.08f,
                 groundY,
-                center.z + gateDir.z * radius * 0.6f);
+                center.z + gateDir.z * radius * 1.08f);
 
             // 성문 앞 BuildingTrigger (외부 → 성 내부 진입). nationStyle을 전달해 내부 등장에 사용.
             string castleNationStyle = GetNationStyle(nation);
@@ -284,7 +285,8 @@ namespace ProjectName.Systems
                 NationType.West => "green_castle",
                 NationType.South => "red_castle",
                 NationType.North => "purple_castle",
-                _ => "castle" // Empire / Dracula / 기타
+                // castle.glb는 잘못 저장된 파일로 삭제됨(사용자) → Empire/Dracula도 blue_castle 사용
+                _ => "blue_castle"
             };
         }
 
