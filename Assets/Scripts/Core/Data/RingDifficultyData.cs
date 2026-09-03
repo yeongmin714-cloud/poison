@@ -293,12 +293,12 @@ namespace ProjectName.Core.Data
         {
             return difficulty switch
             {
-                TerritoryDifficulty.Ring1  => new[] { MonsterTier.Beginner },
+                TerritoryDifficulty.Ring1  => new[] { MonsterTier.Beginner, MonsterTier.Intermediate },
                 TerritoryDifficulty.Ring2  => new[] { MonsterTier.Beginner, MonsterTier.Intermediate },
-                TerritoryDifficulty.Ring3  => new[] { MonsterTier.Intermediate },
+                TerritoryDifficulty.Ring3  => new[] { MonsterTier.Intermediate, MonsterTier.Advanced },
                 TerritoryDifficulty.Ring4  => new[] { MonsterTier.Intermediate, MonsterTier.Advanced },
-                TerritoryDifficulty.Empire => new[] { MonsterTier.Advanced },
-                _                         => new[] { MonsterTier.Beginner }
+                TerritoryDifficulty.Empire => new[] { MonsterTier.Intermediate, MonsterTier.Advanced },
+                _                         => new[] { MonsterTier.Beginner, MonsterTier.Intermediate }
             };
         }
 
@@ -310,12 +310,12 @@ namespace ProjectName.Core.Data
         {
             return difficulty switch
             {
-                TerritoryDifficulty.Ring1  => new Vector2Int(3, 4),
-                TerritoryDifficulty.Ring2  => new Vector2Int(4, 5),
-                TerritoryDifficulty.Ring3  => new Vector2Int(3, 5),
-                TerritoryDifficulty.Ring4  => new Vector2Int(4, 6),
-                TerritoryDifficulty.Empire => new Vector2Int(8, 12),
-                _                         => new Vector2Int(3, 4)
+                TerritoryDifficulty.Ring1  => new Vector2Int(6, 10),
+                TerritoryDifficulty.Ring2  => new Vector2Int(5, 8),
+                TerritoryDifficulty.Ring3  => new Vector2Int(4, 6),
+                TerritoryDifficulty.Ring4  => new Vector2Int(3, 5),
+                TerritoryDifficulty.Empire => new Vector2Int(5, 8),
+                _                         => new Vector2Int(6, 10)
             };
         }
 

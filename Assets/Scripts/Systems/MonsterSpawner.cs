@@ -86,13 +86,14 @@ namespace ProjectName.Systems
 
         // ===== C18-02: 시간대별 확률 =====
         [Header("Time-Aware Spawning (C18)")]
-        [SerializeField] private SpawnProbabilities _dayProb = new SpawnProbabilities(0.80f, 0.15f, 0.05f);
-        [SerializeField] private SpawnProbabilities _eveningProb = new SpawnProbabilities(0.50f, 0.40f, 0.10f);
-        [SerializeField] private SpawnProbabilities _nightProb = new SpawnProbabilities(0.20f, 0.60f, 0.20f);
+        // P-3: 모든 시간대 초보(common) 위주 유지 + 밤에도 초보 과반 (강한 종은 소량)
+        [SerializeField] private SpawnProbabilities _dayProb = new SpawnProbabilities(0.75f, 0.22f, 0.03f);
+        [SerializeField] private SpawnProbabilities _eveningProb = new SpawnProbabilities(0.65f, 0.30f, 0.05f);
+        [SerializeField] private SpawnProbabilities _nightProb = new SpawnProbabilities(0.55f, 0.35f, 0.10f);
 
         // ===== C18-03: 밤 리스폰 =====
         [Header("Night Respawn (C18-03)")]
-        [SerializeField] private float _nightRespawnRateMultiplier = 1.5f;
+        [SerializeField] private float _nightRespawnRateMultiplier = 2.0f;
         [SerializeField] private RespawnThreshold _respawnThreshold = new RespawnThreshold();
         private float _lastRespawnCheck;
 
@@ -236,19 +237,8 @@ namespace ProjectName.Systems
         /// </summary>
         private void SpawnTierByDifficulty(MonsterTier tier, SpawnProbabilities prob, Vector2Int countRange, TerritoryDifficulty difficulty)
         {
-            ActiveTime filterTime = CurrentPeriod switch
-            {
-                TimePeriod.Night => ActiveTime.Night,
-                TimePeriod.Evening => ActiveTime.Both,
-                _ => ActiveTime.Day
-            };
-
-            var tierPool = new List<MonsterDef>();
-
-            foreach (var def in MonsterDatabase.GetByActiveTime(filterTime))
-            {
-                if (def.tier == tier) tierPool.Add(def);
-            }
+            // 시간대 필터 제거: 모든 시간대에 티어 전체 종을 풀로 사용 (시간대는 수 배수에만 반영)
+            var tierPool = MonsterDatabase.GetByTier(tier);
 
             if (tierPool.Count == 0) return;
 
@@ -346,13 +336,20 @@ namespace ProjectName.Systems
                 var def = tm.CurrentDefinition;
                 if (def.id.nation != NationType.None) return def.difficulty;
             }
-            return DetermineTerritoryDifficulty(transform.position);
+            // P-4: 스포너 원점이 아닌 플레이어 위치 기준으로 판정
+            if (_playerT == null)
+            {
+                var player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null) _playerT = player.transform;
+            }
+            return DetermineTerritoryDifficulty(_playerT != null ? _playerT.position : transform.position);
         }
 
         // ===== 기존 메서드들 (호환성 유지) =====
-        private TerritoryDifficulty DetermineTerritoryDifficulty(Vector3 monsterPos)
+        private TerritoryDifficulty DetermineTerritoryDifficulty(Vector3 pos)
         {
-            float dist = Vector3.Distance(transform.position, monsterPos);
+            // P-4: 맵 중심(원점) 기준 거리로 Ring 판정 (멀수록 강한 링)
+            float dist = Vector3.Distance(Vector3.zero, pos);
             if (dist < 600f) return TerritoryDifficulty.Ring1;
             if (dist < 1200f) return TerritoryDifficulty.Ring2;
             if (dist < 1800f) return TerritoryDifficulty.Ring3;
@@ -465,7 +462,7 @@ namespace ProjectName.Systems
                 return;
             }
 
-            // 영지 난이도 결정 (스포너 위치 기준)
+            // 영지 난이도 결정 (맵 중심 원점 기준 — P-4)
             TerritoryDifficulty difficulty = DetermineTerritoryDifficulty(ai.transform.position);
 
             // 레벨 생성 및 적용
@@ -697,20 +694,8 @@ namespace ProjectName.Systems
 
             int deficit = minCount - currentCount;
 
-            ActiveTime filterTime = CurrentPeriod switch
-            {
-                TimePeriod.Night => ActiveTime.Night,
-                TimePeriod.Evening => ActiveTime.Both,
-                _ => ActiveTime.Day
-            };
-
-            var activePool = MonsterDatabase.GetByActiveTime(filterTime);
-            var tierPool = new List<MonsterDef>();
-
-            foreach (var def in activePool)
-            {
-                if (def.tier == tier) tierPool.Add(def);
-            }
+            // 시간대 필터 제거: 모든 시간대에 티어 전체 종을 풀로 사용 (시간대는 수 배수에만 반영)
+            var tierPool = MonsterDatabase.GetByTier(tier);
 
             if (tierPool.Count == 0) return;
 
