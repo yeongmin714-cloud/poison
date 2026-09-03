@@ -25,6 +25,10 @@ namespace ProjectName.Systems
         [SerializeField] private float _waveSpeed = 1.2f;
         [SerializeField] private float _waveAmplitude = 0.03f;
 
+        [Header("Idyllic Water Texture Flow")]
+        [SerializeField] private float _flowSpeedX = 0.02f;   // UV units/sec along U
+        [SerializeField] private float _flowSpeedZ = 0.012f;  // UV units/sec along V
+
         [Header("Visuals")]
         [SerializeField] private Color _waterColor = new Color(0.2f, 0.5f, 0.8f, 0.6f);
         [SerializeField] private Color _lakeBedColor = new Color(0.35f, 0.25f, 0.15f);
@@ -38,6 +42,7 @@ namespace ProjectName.Systems
         private GameObject _collisionVolume;
         private MeshRenderer _surfaceRenderer;
         private Material _surfaceMaterial;
+        private Vector2 _flowBaseOffset;
         private float _baseY;
         private bool _constructed;
         private bool _configured;
@@ -324,24 +329,21 @@ namespace ProjectName.Systems
             _surfaceRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             _surfaceRenderer.receiveShadows = false;
 
-            _surfaceMaterial = MaterialHelper.CreateLitMaterial(_waterColor, $"{gameObject.name}_LakeMat");
+            // P-3: 반투명 판타지 물 재질 — Idyllic Water 텍스처 + UV 흐름 + 반투명.
+            // Water.shadergraph 사용 가능 시 그래프 재질, 실패 시 URP Lit 반투명 폴백.
+            // 이전 호수색(_waterColor)을 유지하되 FantasyLakeColor 쪽으로 절반 밝게 블렌드.
+            Color brightLakeColor = Color.Lerp(_waterColor, WaterMaterialUpgrader.FantasyLakeColor, 0.5f);
+            brightLakeColor.a = _waterColor.a;
+            _surfaceMaterial = WaterMaterialUpgrader.CreateFantasyWaterMaterial(
+                $"{gameObject.name}_LakeMat", brightLakeColor, 0.65f);
             if (_surfaceMaterial != null)
             {
-                _surfaceMaterial.SetFloat("_Surface", 1f);
-                _surfaceMaterial.SetFloat("_BlendMode", 0f);
-                _surfaceMaterial.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                _surfaceMaterial.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                _surfaceMaterial.SetFloat("_ZWrite", 0f);
-                _surfaceMaterial.SetFloat("_AlphaClip", 0f);
-                _surfaceMaterial.renderQueue = 3000;
-                _surfaceMaterial.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                _surfaceMaterial.EnableKeyword("_BLENDMODE_ALPHA");
-
-                Color c = _surfaceMaterial.color;
-                c.a = _waterColor.a;
-                _surfaceMaterial.color = c;
-
                 _surfaceRenderer.material = _surfaceMaterial;
+
+                // 호수마다 고정된 UV 흐름 위상(위치 기반 파생) — 흐름 방향이 균일하지 않게
+                _flowBaseOffset = new Vector2(
+                    Mathf.Repeat(_center.x * 0.37f, 1f),
+                    Mathf.Repeat(_center.z * 0.53f, 1f));
             }
 
             // --- Step 4: Create collision volume ---
@@ -372,6 +374,15 @@ namespace ProjectName.Systems
             Vector3 pos = _waterSurface.transform.localPosition;
             pos.y = waveOffset;
             _waterSurface.transform.localPosition = pos;
+
+            // P-3: Idyllic 물 텍스처 UV 흐름 — _BaseMap ST 오프셋을 시간에 따라 이동.
+            // (material.mainTextureOffset과 동일 속성. waveAmplitude/법선 애니에는 영향 없음.
+            //  shadergraph 재질은 그래프 자체 애니를 쓰므로 _BaseMap이 없어 자동 스킵됨.)
+            if (_surfaceMaterial != null)
+            {
+                WaterMaterialUpgrader.AnimateWaterFlow(
+                    _surfaceMaterial, _flowBaseOffset, Time.time, _flowSpeedX, _flowSpeedZ);
+            }
         }
 
         private void OnTriggerEnter(Collider other)

@@ -39,6 +39,7 @@ public class GameSetup : MonoBehaviour
         // 프롭/길/잔디 런타임 부트스트랩. 각 API 내부에 중복 가드가 있어
         // 씬 로드/씬 재생성(FixMainScene) 양쪽에서 안전하게 호출된다.
         BootstrapTerrainDeco();
+        gameObject.AddComponent<AmbianceBrightener>(); // P-2: 밝은 판타지 자연 분위기 (안개/앰비언트/조명)
 
         // ── TERRITORY BUILDER 보장 (Phase S1 후속) ────────────────────
         // GameManager가 씬에 없어 EnsureTerritoryManager가 실행되지 않던 문제 수리.
