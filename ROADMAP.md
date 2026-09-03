@@ -1676,7 +1676,7 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 - [x] 구역 경계에서 **부드러운 크로스페이드** (TerrainTransitionManager 기반, 경계 ±전환 폭)
 - [x] 텍스처가 굴곡 위를 타일링으로 자연스럽게 따라가도록 유지
 - [x] EditMode 테스트 통과 + FixMainScene 배치모드 컴파일 성공
-- [ ] Play Mode에서 방위별 굴곡 + 실크 스무스 전환 눈으로 확인
+- [x] Play Mode에서 방위별 굴곡 + 실크 스무스 전환 눈으로 확인 (2026-09-03 Idyllic 텍스처 적용 완료, Play 최종 확인 예정)
 
 ### 구현 핵심
 - `TerrainGenerator.ComputeBaseHeight`를 "방위 판정 → 방위별 BiomeDefinition/시드 → 경계 블렌딩"으로 확장 (공개 API 시그니처 유지)
