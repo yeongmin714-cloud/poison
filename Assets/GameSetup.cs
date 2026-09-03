@@ -92,6 +92,9 @@ public class GameSetup : MonoBehaviour
         // [T-R1 09-04] 스폰지 GLB 프롭 제거 — R4에서 Idyllic 기반으로 재구현
         // TerrainPropPlacer.PlaceAllIfNeeded(decoGO.transform);
         // Debug.Log("[GameSetup][TerrainDeco] ✅ TerrainPropPlacer.PlaceAllIfNeeded 완료");
+        // [T-R4] 스폰 반경 80m Idyllic 나무(콜라이더 포함) — TerrainPropPlacer 대체
+        IdyllicDecoPlacer.PlaceSpawnProps(decoGO.transform);
+        Debug.Log("[GameSetup][TerrainDeco] ✅ IdyllicDecoPlacer.PlaceSpawnProps 완료");
 
         // ── GLB 모델 배치 (나무~500/바위~400) ────────────────────────
         // [T-R1 09-04] 기존 GLB 나무~500/바위~400 대량 배치 제거(사용자 지시) — IdyllicDecoPlacer로 통일
