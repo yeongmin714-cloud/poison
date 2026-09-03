@@ -1,0 +1,40 @@
+BlenderMCP addon registered
+Reloading external rigs...
+Reloading external metarigs...
+08:55:20 | INFO: Data are loaded, start creating Blender stuff
+08:55:20 | INFO: Blender create Mesh node input
+08:55:20 | INFO: glTF import finished in 0.15s
+
+FBX export starting... 'C:\\Unity\\code\\Assets\\Resources\\Models\\UserProvided\\fbx\\Player_Rigged.fbx'
+(bpy.data.armatures['metarig'], 'POSE')
+export finished in 0.0732 sec.
+[CONVERT] Player_Rigged.glb -> Player_Rigged.fbx (311KB)
+08:55:20 | INFO: Data are loaded, start creating Blender stuff
+08:55:20 | INFO: Blender create Mesh node input
+08:55:20 | INFO: glTF import finished in 0.04s
+
+FBX export starting... 'C:\\Unity\\code\\Assets\\Resources\\Models\\UserProvided\\fbx\\soldier_lv1-20_rigged.fbx'
+(bpy.data.armatures['metarig'], 'POSE')
+export finished in 0.0617 sec.
+[CONVERT] soldier_lv1-20_rigged.glb -> soldier_lv1-20_rigged.fbx (302KB)
+08:55:20 | INFO: Data are loaded, start creating Blender stuff
+08:55:20 | INFO: Blender create Mesh node input
+08:55:20 | INFO: glTF import finished in 0.05s
+
+FBX export starting... 'C:\\Unity\\code\\Assets\\Resources\\Models\\UserProvided\\fbx\\soldier_lv20-40_rigged.fbx'
+(bpy.data.armatures['metarig'], 'POSE')
+export finished in 0.0483 sec.
+[CONVERT] soldier_lv20-40_rigged.glb -> soldier_lv20-40_rigged.fbx (311KB)
+08:55:20 | INFO: Data are loaded, start creating Blender stuff
+08:55:20 | INFO: Blender create Mesh node input
+08:55:21 | INFO: glTF import finished in 0.05s
+
+FBX export starting... 'C:\\Unity\\code\\Assets\\Resources\\Models\\UserProvided\\fbx\\soldier_lv40-50_rigged.fbx'
+(bpy.data.armatures['metarig'], 'POSE')
+export finished in 0.0480 sec.
+[CONVERT] soldier_lv40-50_rigged.glb -> soldier_lv40-50_rigged.fbx (308KB)
+[CONVERT] DONE
+BlenderMCP addon unregistered
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:37:34)
+
+Blender quit
