@@ -1030,3 +1030,11 @@ OneHand_Up_Idle=1b267cb3..., Walk_B=ba58acae..., Run_B=282509bf..., Attack_1=ec2
 - `DetermineTerritoryDifficulty` 반전: dist<600=Ring4(강)/<1200=Ring3/<1800=Ring2/else=Ring1(약).
 - ∴ 맵 중심(왕실) = 강한 몬스터(Ring4/Advanced 일부 + Int), 바깥으로 갈수록 약(초보 다수).
 - RingDifficultyData 티어/마리수 테이블은 그대로(Ring1=약/많이, Ring4=강/적게 — 이미 정방향).
+
+### 수정 (09-03 보정2): 링 반경 맵(±1000m) 기준 재설정 + 면적 기반 마리수 + 중앙 레벨 강화
+- 사용자 정정: 맵 반경이 ±1000m인데 기존 Ring 매핑이 1800m까지 써서 Ring1(약)이 사실상 비었음. 플레이어 시작점(728,-529)≈원점 900m.
+- **링 반경 재설정** (DetermineTerritoryDifficulty): Ring4<250m(중앙·강)/Ring3 250~500/Ring2 500~800/Ring1 800~1000+(바깥·약). 플레이어 시작 900m→Ring1(초보 다수). GetTerritoryRadius·SpawnConfig도 동기.
+- **링당 마리수 = 면적 × 밀도 10/km²** (과포화 방지): Ring1=11, Ring2=12, Ring3=6, Ring4=2, Empire=2~4 (x==y 고정, 종별 누적 제거). 밤 ×2.0.
+- **티어/종 분배**: SpawnAll→DistributeCountByWeight()로 링 토탈을 티어 가중치(시간대 확률)로 정수 분배(합계 일치+티어당 최소1). SpawnTierByDifficulty는 티어 몫을 종에 균등분배. 구 종별 곱셈 누적(과포화) 제거. CheckAndRespawn도 링 토탈 기준으로 재작성.
+- **중앙 레벨 강화**: ApplyMonsterLevel에 _centerLevelBonusMax=5·_mapRadius=1000. distBonus=round(5×(1−dist/1000)) — 0m=+5, 500m=+3, 1000m=+0. 기존 Ring보너스와 합산, MaxLevel 클램프. 중심 Beginner=14~18, 시작점=2~6 (같은 종도 중앙이 연속적으로 강함).
+- 검증: 균형 PASS 2파일, 구시 참조(1800/1200/600) 0건, 분배 시뮬레이션(Ring1=9+2=11, Ring4=1+1=2, 밤×2) 통과. 커밋 679226ab.
