@@ -40,6 +40,11 @@ public class GameSetup : MonoBehaviour
         // 씬 로드/씬 재생성(FixMainScene) 양쪽에서 안전하게 호출된다.
         BootstrapTerrainDeco();
         gameObject.AddComponent<AmbianceBrightener>(); // P-2: 밝은 판타지 자연 분위기 (안개/앰비언트/조명)
+        // [T-R6] 하늘/빛/분위기: 런타임 컬러그레이딩(채도/콘트라스트) + god rays 빌보드 광기둥.
+        if (GetComponent<MoodProfileSetup>() == null)
+            gameObject.AddComponent<MoodProfileSetup>();
+        if (GetComponent<LightShaftBillboard>() == null)
+            gameObject.AddComponent<LightShaftBillboard>();
 
         // ── TERRITORY BUILDER 보장 (Phase S1 후속) ────────────────────
         // GameManager가 씬에 없어 EnsureTerritoryManager가 실행되지 않던 문제 수리.
