@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -25,6 +27,33 @@ namespace ProjectName.Systems
 
         /// <summary>Render queue for transparent materials.</summary>
         private const int TransparentQueue = 3000;
+
+        // ─────────────────────────────────────────────────────────────────
+        // P-3: Idyllic fantasy water (translucent lake surface)
+        // ─────────────────────────────────────────────────────────────────
+
+        /// <summary>Bright, clear fantasy lake color (semi-transparent).</summary>
+        public static readonly Color FantasyLakeColor = new Color(0.3f, 0.6f, 0.75f, 0.55f);
+
+        /// <summary>Default UV flow speed along U (UV units per second).</summary>
+        public const float DefaultFlowSpeedX = 0.02f;
+
+        /// <summary>Default UV flow speed along V (UV units per second).</summary>
+        public const float DefaultFlowSpeedZ = 0.012f;
+
+        /// <summary>Default tiling of the water base map on the lake surface plane.</summary>
+        public static readonly Vector2 WaterTextureTiling = new Vector2(3f, 3f);
+
+        private const string IdyllicTextureSourceDir = "Assets/Idyllic Fantasy Nature/Textures/Water";
+        private const string IdyllicTextureResourceDir = "Assets/Resources/Water";
+        private const string IdyllicMainTextureResource = "Water/Water_Normal_01";
+
+        private static bool _resourcesEnsured;
+        private static Texture2D _idyllicWaterTexture;
+        private static Texture2D _tintedWaterTexture;
+        private static Color _tintedWaterCacheColor = new Color(0f, 0f, 0f, 0f);
+        private static bool _pipelineFlagsEnsured;
+        private static bool _idyllicShaderUnavailableLogged;
 
         /// <summary>
         /// Creates a URP Lit water material configured for reflection probes,
@@ -79,11 +108,13 @@ namespace ProjectName.Systems
             // Transparent surface type (URP Lit manages blend state internally via _Blend)
             mat.SetFloat("_Surface", 1f);
             mat.SetFloat("_Blend", 0f);         // 0 = Alpha blending
+            mat.SetFloat("_BlendMode", 0f);     // legacy blend alias (no-op on URP Lit, kept for tooling)
             mat.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
             mat.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
             mat.SetFloat("_ZWrite", 0f);
             mat.SetFloat("_AlphaClip", 0f);
             mat.renderQueue = TransparentQueue;
+            mat.SetOverrideTag("RenderType", "Transparent");
             mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
 
             return mat;
@@ -127,11 +158,13 @@ namespace ProjectName.Systems
             // Simple transparent setup without reflection keywords (URP Lit manages blend state via _Blend)
             mat.SetFloat("_Surface", 1f);
             mat.SetFloat("_Blend", 0f);         // 0 = Alpha blending
+            mat.SetFloat("_BlendMode", 0f);     // legacy blend alias (no-op on URP Lit, kept for tooling)
             mat.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
             mat.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
             mat.SetFloat("_ZWrite", 0f);
             mat.SetFloat("_AlphaClip", 0f);
             mat.renderQueue = TransparentQueue;
+            mat.SetOverrideTag("RenderType", "Transparent");
             mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
 
             // Disable reflection probe keywords
@@ -248,6 +281,399 @@ namespace ProjectName.Systems
             bool hasMetallic = Mathf.Abs(metallic - TargetMetallic) < 0.01f;
 
             return hasReflectionBlending && isTransparent && hasCorrectQueue && hasSmoothness && hasMetallic;
+        }
+
+        // ─────────────────────────────────────────────────────────────────
+        // P-3: Idyllic fantasy water implementation
+        // ─────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Creates the translucent fantasy lake water material (P-3).
+        /// 1) Tries the Idyllic "Water.shadergraph" via Shader.Find (depth fade, waves,
+        ///    translucent coast opacity). 2) Falls back to a robust translucent URP Lit
+        ///    material with the Idyllic water texture on _BaseMap and animated UV flow.
+        /// Lake path only (GenerateAllLakes) — rivers/seas keep their own materials.
+        /// </summary>
+        /// <param name="materialName">Name for the new material.</param>
+        /// <param name="waterColor">Bright water color (alpha = translucency).</param>
+        /// <param name="shallowWeight">Blend weight toward shallow color (URP Lit fallback).</param>
+        /// <returns>Fantasy water material (shadergraph or URP Lit fallback), or null if creation failed.</returns>
+        public static Material CreateFantasyWaterMaterial(string materialName, Color waterColor, float shallowWeight = 0.5f)
+        {
+            // Preferred path: Idyllic Water shadergraph (if compiled and reachable by name)
+            Material graphMat = TryCreateIdyllicShaderGraphMaterial(materialName, waterColor);
+            if (graphMat != null)
+                return graphMat;
+
+            // Robust fallback: translucent URP Lit + Idyllic water texture + UV flow
+            Material mat = CreateUpgradedWaterMaterial(materialName, shallowWeight);
+            if (mat == null)
+                return null;
+
+            Color color = waterColor;
+            color.a = Mathf.Clamp(waterColor.a, 0.35f, 0.85f);
+
+            Texture2D waterTex = GetOrCreateTintedWaterTexture(color);
+            if (waterTex != null)
+            {
+                // Texture carries the water color; base color modulates only translucency
+                mat.SetTexture("_BaseMap", waterTex);
+                if (mat.HasProperty("_MainTex"))
+                    mat.SetTexture("_MainTex", waterTex);
+                if (mat.HasProperty("_BaseMap"))
+                    mat.SetTextureScale("_BaseMap", WaterTextureTiling);
+                if (mat.HasProperty("_MainTex"))
+                    mat.SetTextureScale("_MainTex", WaterTextureTiling);
+
+                Color whiteTint = new Color(1f, 1f, 1f, color.a);
+                mat.SetColor("_BaseColor", whiteTint);
+                if (mat.HasProperty("_Color"))
+                    mat.SetColor("_Color", whiteTint);
+            }
+            else
+            {
+                // Texture unavailable — keep the plain translucent water color
+                mat.SetColor("_BaseColor", color);
+                if (mat.HasProperty("_Color"))
+                    mat.SetColor("_Color", color);
+            }
+
+            mat.SetFloat("_Surface", 1f);
+            mat.SetFloat("_Blend", 0f);
+            mat.SetFloat("_BlendMode", 0f);
+            mat.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+            mat.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+            mat.SetFloat("_ZWrite", 0f);
+            mat.SetFloat("_AlphaClip", 0f);
+            mat.renderQueue = TransparentQueue;
+            mat.SetOverrideTag("RenderType", "Transparent");
+            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+
+            return mat;
+        }
+
+        /// <summary>
+        /// Attempts to build a material from the Idyllic "Water.shadergraph"
+        /// (shader name "Shader Graphs/Water"). Returns null (no exception) when the
+        /// shader cannot be found/supported — the caller then uses the URP Lit fallback.
+        /// </summary>
+        private static Material TryCreateIdyllicShaderGraphMaterial(string materialName, Color waterColor)
+        {
+            Shader graphShader = null;
+            string[] candidates =
+            {
+                "Shader Graphs/Water",
+                "Idyllic Fantasy Nature/Water",
+                "Shader Graphs/Water.shadergraph"
+            };
+            foreach (string candidate in candidates)
+            {
+                graphShader = Shader.Find(candidate);
+                if (graphShader != null)
+                    break;
+            }
+
+            if (graphShader == null)
+            {
+                if (!_idyllicShaderUnavailableLogged)
+                {
+                    _idyllicShaderUnavailableLogged = true;
+                    Debug.Log("[WaterMaterialUpgrader] Idyllic Water shadergraph unavailable at runtime — URP Lit 반투명 폴백 사용");
+                }
+                return null;
+            }
+
+            try
+            {
+                if (!graphShader.isSupported)
+                {
+                    Debug.Log("[WaterMaterialUpgrader] Idyllic Water shadergraph not supported on this pipeline — URP Lit 폴백 사용");
+                    return null;
+                }
+
+                Material mat = new Material(graphShader);
+                mat.name = string.IsNullOrEmpty(materialName) ? "Idyllic_FantasyWater_Mat" : materialName;
+
+                // Graph exposes: _Shallow_Color, _Deep_Color, _Water_Speed, _Normal_Strength,
+                // _Smoothness, _Refraction_Normal, _Second_Refraction_Normal, foam/coast props.
+                Color shallow = Color.Lerp(waterColor, Color.white, 0.15f); shallow.a = 1f;
+                Color deep = Color.Lerp(waterColor, new Color(0.0f, 0.15f, 0.3f), 0.55f); deep.a = 1f;
+                SetColorIfPresent(mat, "_Shallow_Color", shallow);
+                SetColorIfPresent(mat, "_Deep_Color", deep);
+                SetFloatIfPresent(mat, "_Water_Speed", 0.35f);
+                SetFloatIfPresent(mat, "_Normal_Strength", 0.6f);
+                SetFloatIfPresent(mat, "_Smoothness", 0.85f);
+                // NOTE: graph normal-map texture properties are left unassigned — the graph's
+                // procedural Gradient Noise waves render correctly with flat default normals,
+                // while raw runtime-loaded textures would break UnpackNormal swizzling.
+
+                mat.renderQueue = TransparentQueue;
+                mat.SetOverrideTag("RenderType", "Transparent");
+                EnsureUrpDepthAndOpaqueTextures();
+
+                Debug.Log($"[WaterMaterialUpgrader] '{mat.name}' → Idyllic Water shadergraph 재질 생성");
+                return mat;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[WaterMaterialUpgrader] Idyllic shadergraph material creation failed — URP Lit 폴백: " + e.Message);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// The shadergraph uses Scene Depth/Scene Color (depth fade + refraction);
+        /// make sure the URP asset samples depth and the opaque texture.
+        /// </summary>
+        private static void EnsureUrpDepthAndOpaqueTextures()
+        {
+            if (_pipelineFlagsEnsured) return;
+            _pipelineFlagsEnsured = true;
+            try
+            {
+                if (GraphicsSettings.defaultRenderPipeline is UniversalRenderPipelineAsset urp)
+                {
+                    if (!urp.supportsCameraDepthTexture)
+                    {
+                        urp.supportsCameraDepthTexture = true;
+                        Debug.Log("[WaterMaterialUpgrader] URP asset: Depth Texture 활성화 (Idyllic water depth fade용)");
+                    }
+                    if (!urp.supportsCameraOpaqueTexture)
+                    {
+                        urp.supportsCameraOpaqueTexture = true;
+                        Debug.Log("[WaterMaterialUpgrader] URP asset: Opaque Texture 활성화 (Idyllic water refraction용)");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[WaterMaterialUpgrader] URP depth/opaque texture 설정 실패: " + e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Copies the Idyllic water textures into Assets/Resources/Water (editor only) so that
+        /// Resources.Load works in builds. Import .meta files are generated by Unity automatically.
+        /// </summary>
+        public static void EnsureWaterTextureResources()
+        {
+            if (_resourcesEnsured) return;
+            _resourcesEnsured = true;
+#if UNITY_EDITOR
+            try
+            {
+                if (!Directory.Exists(IdyllicTextureSourceDir))
+                    return;
+                if (!Directory.Exists(IdyllicTextureResourceDir))
+                    Directory.CreateDirectory(IdyllicTextureResourceDir);
+
+                string[] fileNames = { "Water_Normal_01.png", "Water_Normal_02.png" };
+                bool copied = false;
+                foreach (string fileName in fileNames)
+                {
+                    string source = Path.Combine(IdyllicTextureSourceDir, fileName);
+                    string destination = Path.Combine(IdyllicTextureResourceDir, fileName);
+                    if (File.Exists(source) && !File.Exists(destination))
+                    {
+                        File.Copy(source, destination, false);
+                        copied = true;
+                    }
+                }
+                if (copied)
+                    Debug.Log("[WaterMaterialUpgrader] Idyllic water textures copied to Assets/Resources/Water (Resources.Load 용)");
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[WaterMaterialUpgrader] Water texture copy failed: " + e.Message);
+            }
+#endif
+        }
+
+        /// <summary>
+        /// Loads the Idyllic water texture: Resources.Load first (build-safe), then a direct
+        /// disk read fallback (editor, works before the imported copy is indexed).
+        /// Returns null when unavailable — materials then stay plain-colored.
+        /// </summary>
+        public static Texture2D LoadIdyllicWaterTexture()
+        {
+            if (_idyllicWaterTexture != null)
+                return _idyllicWaterTexture;
+
+            EnsureWaterTextureResources();
+
+            _idyllicWaterTexture = Resources.Load<Texture2D>(IdyllicMainTextureResource);
+            if (_idyllicWaterTexture != null)
+                return _idyllicWaterTexture;
+
+            try
+            {
+                string path = Path.Combine(IdyllicTextureSourceDir, "Water_Normal_01.png");
+                if (!File.Exists(path))
+                    return null;
+
+                byte[] bytes = File.ReadAllBytes(path);
+                var tex = new Texture2D(2, 2, TextureFormat.RGBA32, true, false);
+                if (tex.LoadImage(bytes))
+                {
+                    tex.name = "Idyllic_Water_Normal_01_Runtime";
+                    tex.wrapMode = TextureWrapMode.Repeat;
+                    _idyllicWaterTexture = tex;
+                    Debug.Log("[WaterMaterialUpgrader] Idyllic water texture loaded from disk (Resources 인덱싱 전 임시 경로)");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[WaterMaterialUpgrader] Water texture disk load failed: " + e.Message);
+            }
+
+            return _idyllicWaterTexture;
+        }
+
+        /// <summary>
+        /// Creates a readable copy of a non-readable texture via RenderTexture blit,
+        /// enabling GetPixelBilinear-based processing at runtime.
+        /// </summary>
+        public static Texture2D MakeReadableCopy(Texture2D source)
+        {
+            if (source == null) return null;
+            try
+            {
+                int width = source.width;
+                int height = source.height;
+                RenderTexture rt = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+                Graphics.Blit(source, rt);
+                RenderTexture previous = RenderTexture.active;
+                RenderTexture.active = rt;
+                var readable = new Texture2D(width, height, TextureFormat.RGBA32, true, false);
+                readable.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                readable.Apply(false, false);
+                RenderTexture.active = previous;
+                RenderTexture.ReleaseTemporary(rt);
+                readable.name = source.name + "_Readable";
+                readable.wrapMode = TextureWrapMode.Repeat;
+                return readable;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[WaterMaterialUpgrader] MakeReadableCopy failed: " + e.Message);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Tints the Idyllic water (normal map) texture toward the lake color using its
+        /// luminance as a wave-detail ramp. Returns null when the source is unavailable.
+        /// </summary>
+        public static Texture2D TintWaterTexture(Texture2D source, Color waterColor, int outputSize = 256)
+        {
+            if (source == null) return null;
+            if (!source.isReadable)
+            {
+                source = MakeReadableCopy(source);
+                if (source == null) return null;
+            }
+
+            try
+            {
+                int size = Mathf.Clamp(outputSize, 32, 1024);
+                var tinted = new Texture2D(size, size, TextureFormat.RGBA32, true, false);
+                tinted.name = "Idyllic_Water_Tinted";
+                tinted.wrapMode = TextureWrapMode.Repeat;
+
+                Color dark = Color.Lerp(waterColor, Color.black, 0.35f);
+                Color bright = Color.Lerp(waterColor, Color.white, 0.3f);
+                Color32[] pixels = new Color32[size * size];
+                for (int y = 0; y < size; y++)
+                {
+                    float v = (y + 0.5f) / size;
+                    for (int x = 0; x < size; x++)
+                    {
+                        float u = (x + 0.5f) / size;
+                        Color sample = source.GetPixelBilinear(u, v);
+                        // Normal-map pixels wobble around (0.5, 0.5) — use that as wave detail
+                        float detail = (sample.r + sample.g) * 0.5f;
+                        float t = Mathf.Clamp01((detail - 0.25f) * 2f);
+                        Color c = Color.Lerp(dark, bright, t);
+                        pixels[y * size + x] = new Color32(
+                            (byte)(Mathf.Clamp01(c.r) * 255f),
+                            (byte)(Mathf.Clamp01(c.g) * 255f),
+                            (byte)(Mathf.Clamp01(c.b) * 255f),
+                            255);
+                    }
+                }
+
+                tinted.SetPixels32(pixels);
+                tinted.Apply(true, false);
+                return tinted;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[WaterMaterialUpgrader] TintWaterTexture failed: " + e.Message);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Cached tinted water texture (shared by all lakes with the same color).
+        /// </summary>
+        public static Texture2D GetOrCreateTintedWaterTexture(Color waterColor, int size = 256)
+        {
+            Color cacheKey = waterColor;
+            cacheKey.a = 1f;
+            float diff = Mathf.Abs(cacheKey.r - _tintedWaterCacheColor.r)
+                       + Mathf.Abs(cacheKey.g - _tintedWaterCacheColor.g)
+                       + Mathf.Abs(cacheKey.b - _tintedWaterCacheColor.b);
+            if (_tintedWaterTexture != null && diff < 0.02f)
+                return _tintedWaterTexture;
+
+            Texture2D source = LoadIdyllicWaterTexture();
+            Texture2D tinted = TintWaterTexture(source, waterColor, size);
+            if (tinted == null)
+                return null;
+
+            _tintedWaterTexture = tinted;
+            _tintedWaterCacheColor = cacheKey;
+            return tinted;
+        }
+
+        /// <summary>
+        /// Computes the current UV flow offset from a base offset and time.
+        /// Stateless (safe per-frame): offset = Repeat(base + time * speed, 1).
+        /// </summary>
+        public static Vector2 ComputeWaterFlow(Vector2 baseOffset, float time, float speedX, float speedZ)
+        {
+            return new Vector2(
+                Mathf.Repeat(baseOffset.x + time * speedX, 1f),
+                Mathf.Repeat(baseOffset.y + time * speedZ, 1f));
+        }
+
+        /// <summary>
+        /// Applies the UV flow offset to the material's main texture
+        /// (URP Lit: [MainTexture] _BaseMap — same property material.mainTextureOffset resolves to).
+        /// Materials without a base map (e.g. Idyllic shadergraph with its own animation) are ignored.
+        /// </summary>
+        public static void AnimateWaterFlow(Material mat, Vector2 baseOffset, float time, float speedX, float speedZ)
+        {
+            if (mat == null) return;
+            if (!mat.HasProperty("_BaseMap") && !mat.HasProperty("_MainTex")) return;
+
+            Vector2 offset = ComputeWaterFlow(baseOffset, time, speedX, speedZ);
+            if (mat.HasProperty("_BaseMap"))
+                mat.SetTextureOffset("_BaseMap", offset);
+            if (mat.HasProperty("_MainTex"))
+                mat.SetTextureOffset("_MainTex", offset);
+        }
+
+        private static void SetColorIfPresent(Material mat, string propertyName, Color value)
+        {
+            if (mat.HasProperty(propertyName))
+                mat.SetColor(propertyName, value);
+        }
+
+        private static void SetFloatIfPresent(Material mat, string propertyName, float value)
+        {
+            if (mat.HasProperty(propertyName))
+                mat.SetFloat(propertyName, value);
         }
     }
 }
