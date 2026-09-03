@@ -43,17 +43,33 @@ namespace ProjectName.Systems
         private const float LAKE_SHORE_FACTOR = 1.3f;      // 경사 완만한 해안 확장 배율 (카브 영향 반경 = radius*이값)
 
         // === 스폰지 평탄화 상수 ===
-        private const float SPAWN_X = 728f;
-        private const float SPAWN_Z = -529f;
-        private const float SPAWN_FLATTEN_RADIUS = 15f;
-        private const int SPAWN_LOW_FREQ_OCTAVES = 2;      // 고주파 옥타브를 줄여 저주파만 남김 (경사 완만)
+        // (SPAWN_X, SPAWN_Z) 대신 PlayerSpawnConfig.SpawnPosition을 사용 (단일 소스).
+        // T-R2: 스폰 반경 30m 절대 평탄(Test c 통과 목표) + 30..45m는 원래 지형으로 스무스 페이드.
+        private const float SPAWN_FLATTEN_RADIUS = 30f;   // 반경 30m 내 완전 평탄 (상수 고도)
+        private const float SPAWN_FLATTEN_FADE = 20f;     // 30..50m 구간 원래 지형으로 부드럽게 복귀
+
+        // === 절벽 보호 구역 상수 (스폰/성/호수/경계) ===
+        // 스폰·성·호수 반경 PROTECT_CLIFF_RADIUS 내 절벽 마스크 0 강제 (통행 방지,
+        // 계획 리스크 매트릭스 "스폰/성/호수 반경 40m는 절벽 금지"). PROTECT_FADE는 복귀 페이드폭.
+        private const float PROTECT_CLIFF_RADIUS = 40f;
+        private const float PROTECT_CLIFF_FADE = 15f;
+        // 방위 경계선(45/135/225/315°) 반경 BOUNDARY_CLIFF_BAN 안 절벽 금지 —
+        // 경계 크로스페이드 구간을 평탄한 구릉으로 유지해 |Δh|<0.5m 연속성 보증 (Test b).
+        private const float BOUNDARY_CLIFF_BAN = 35f;
+        private const float BOUNDARY_CLIFF_FADE = 20f;
 
         // === Tundra ridged 믹스 ===
         private const float RIDGED_MIX = 0.3f;
 
         /// <summary>
-        /// 주어진 월드 좌표에서 지형 높이 반환 (FBM + 고원 기반)
-        /// TerrainModelPlacer 등에서 Raycast 없이 높이 샘플링용
+        /// 주어진 월드 좌표에서 지형 높이 반환 (T-R2 방위별 스타일라이즈드 형태).
+        ///
+        /// ⚠ biome 인자는 레거시 호환용이며 이 구현에서 무시된다.
+        /// 실제 높이는 위치(x,z) 기반 NationTerrainController.GetNationFromPosition 판정의
+        /// 방위별 파라미터(동/서/남/북/황제국) + 경계 결과 보간으로 결정된다.
+        /// 시그니처 유지 — 호출부(PlayerMovement/데코/호수/영지 등)는 코드 수정 없이
+        /// 자동으로 방위별 지형을 따르게 된다 (계획 §5.3 호환성 핵심).
+        /// TerrainModelPlacer 등에서 Raycast 없이 높이 샘플링용.
         /// </summary>
         public static float GetHeightAt(float worldX, float worldZ, BiomeType biome, int seed = 42)
         {
@@ -142,81 +158,18 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 방위별 지형 파라미터 (NationType → BiomeType + 부가 계수 + 고유 시드 오프셋).
-        /// 각 방위는 고유한 높이 시드(base+offset)와 FBM 계수 셋(진폭/빈도/plateau 강도)을 가진다.
+        /// 단일 방위 기준 높이 계산 (T-R2).
+        /// TerrainShape.NationHeight(FBM base + ridged 절벽 + 도메인워핑 + terrace + 계곡)를
+        /// 호출하고, 스폰/호수/성/방위경계 보호 절벽 억제(cliffSuppression)를 주입한다.
         /// </summary>
-        private struct NationTerrainParams
+        /// <param name="x">월드 X</param>
+        /// <param name="z">월드 Z</param>
+        /// <param name="nation">방위</param>
+        /// <param name="seed">기저 시드</param>
+        /// <param name="cliffSuppression">[0,1] 절벽 억제 마스크 (기본 1=허용)</param>
+        private static float ComputeNationHeight(float x, float z, NationType nation, int seed, float cliffSuppression = 1f)
         {
-            public BiomeType biome;          // 방위 대표 Biome
-            public float amplitude;          // 노이즈 진폭
-            public float frequency;          // 노이즈 빈도
-            public float plateauStrength;    // 고원 평탄화 강도 (0=없음, 1=완전)
-            public int seedOffset;           // 고유 시드 오프셋 (base + offset)
-        }
-
-        /// <summary>
-        /// 방위별 고유 파라미터 반환.
-        ///   East   → Plains(낮고 완만한 초원)
-        ///   South  → Desert(평탄 사막)
-        ///   North  → Tundra(높고 험준한 설산, plateau)
-        ///   West   → Volcanic(화산 굴곡, 약간 plateau)
-        ///   Empire → Empire(평탄 대리석/황실, plateau)
-        /// </summary>
-        private static NationTerrainParams GetNationParams(NationType nation)
-        {
-            switch (nation)
-            {
-                case NationType.East:
-                    // 주파수 단위: Perlin 1주기=1입력 → 파장=1/freq. 0.0065 → 파장 ~154m (롤링 힐)
-                    // (구값 2.5는 파장 0.4m — 20m 정점 간격에서 앨리어싱되어 평지로 보였음)
-                    return new NationTerrainParams { biome = BiomeType.Plains, amplitude = 12.0f, frequency = 0.0065f, plateauStrength = 0.0f, seedOffset = 10 };
-                case NationType.South:
-                    return new NationTerrainParams { biome = BiomeType.Desert, amplitude = 8.0f, frequency = 0.0045f, plateauStrength = 0.0f, seedOffset = 20 };
-                case NationType.North:
-                    return new NationTerrainParams { biome = BiomeType.Tundra, amplitude = 16.0f, frequency = 0.0035f, plateauStrength = 1.0f, seedOffset = 30 };
-                case NationType.West:
-                    return new NationTerrainParams { biome = BiomeType.Volcanic, amplitude = 12.0f, frequency = 0.006f, plateauStrength = 0.5f, seedOffset = 40 };
-                case NationType.Empire:
-                    return new NationTerrainParams { biome = BiomeType.Empire, amplitude = 0.2f, frequency = 0.004f, plateauStrength = 1.0f, seedOffset = 50 };
-                default:
-                    // 미소속(None/Dracula) — East(Plains) 기본값
-                    return new NationTerrainParams { biome = BiomeType.Plains, amplitude = 12.0f, frequency = 0.0065f, plateauStrength = 0.0f, seedOffset = 10 };
-            }
-        }
-
-        /// <summary>
-        /// 단일 방위 기준 높이 계산. ComputeBaseHeight/FbmNoise/ApplyPlateau 재사용.
-        /// 방위별 BiomeDefinition(진폭·빈도 오버라이드)과 고유 시드를 사용해 높이 산출.
-        /// </summary>
-        private static float ComputeNationHeight(float x, float z, NationType nation, int seed, int octaves = FBM_OCTAVES)
-        {
-            NationTerrainParams p = GetNationParams(nation);
-            BiomeDefinition def = BiomeData.GetDefinition(p.biome);
-
-            // 방위별 진폭/빈도 반영 (구조체 복사본이므로 안전)
-            def.noiseAmplitude = p.amplitude;
-            def.noiseFrequency = p.frequency;
-
-            int nationSeed = seed + p.seedOffset;
-
-            // FBM 다중 옥타브 → 고원 변환 (plateauStrength로 블렌드)
-            float fbm = FbmNoise(
-                x * def.noiseFrequency,
-                z * def.noiseFrequency,
-                octaves, FBM_LACUNARITY, FBM_GAIN, nationSeed);
-
-            // Tundra ridged 믹스 — 대표 ridge(1-|2t-1|)를 살짝 섞어 설산 능선/절벽 느낌
-            // (저옥타브 스폰지 평탄화 경로에서는 생략 — 평탄 유지)
-            if (octaves >= 2 && p.biome == BiomeType.Tundra)
-            {
-                float ridged = 1f - Mathf.Abs(fbm * 2f - 1f);
-                fbm = Mathf.Lerp(fbm, ridged, RIDGED_MIX);
-            }
-
-            float plateau = ApplyPlateau(fbm);
-            float shaped = Mathf.Lerp(fbm, plateau, p.plateauStrength);
-
-            return shaped * def.noiseAmplitude;
+            return TerrainShape.NationHeight(x, z, nation, seed, cliffSuppression);
         }
 
         /// <summary>
@@ -255,35 +208,40 @@ namespace ProjectName.Systems
 
             NationType nation = NationTerrainController.GetNationFromPosition(new Vector3(x, 0f, z));
 
-            float h = ComputeNationHeight(x, z, nation, seed);
+            // 절벽 억제 마스크 (스폰/성/호수/방위경계 보호) — 위치 전용, 방위 무관.
+            // ComputeTerrainHeight 최상단에서 1회 계산해 모든 ComputeNationHeight 호출에 주입
+            // (결과 보간 Lerp 시 두 국가 동일 마스크 유지).
+            float suppression = ComputeCliffSuppression(x, z);
 
-            // === 1) 방향성 국가 간 각도 경계 크로스페이드 ===
+            float h = ComputeNationHeight(x, z, nation, seed, suppression);
+
+            // === 1) 방향성 국가 간 각도 경계 크로스페이드 (T-R2: 두 결과의 보간) ===
             // 내각 경계 각도: 45°(동-북), 135°(북-서), 225°(서-남), 315°(남-동)
-            // 경계 광선(ray)에 대한 수직 거리를 블렌드 계수로 사용.
-            // 각 경계는 (음측 국가 nA, 양측 국가 nB, 광선 성분 ux, uz)로 정의.
+            // w = 경계 광선 수직 거리 기반 (경계선에서 w=0.5, 전환폭 ±120m에서 0/1).
+            // H = Lerp(H_A, H_B, w) — 파라미터 보간이 아니라 "두 결과의 보간" (위상 뒤틀림 방지).
             float halfWidth = TRANSITION_WIDTH;
 
             // 동-북 경계 (45°)
             BlendBoundary(
-                ref h, x, z, seed,
+                ref h, x, z, seed, suppression,
                 NationType.East, NationType.North,
                 0.70710678f, 0.70710678f, halfWidth);
 
             // 북-서 경계 (135°)
             BlendBoundary(
-                ref h, x, z, seed,
+                ref h, x, z, seed, suppression,
                 NationType.North, NationType.West,
                 -0.70710678f, 0.70710678f, halfWidth);
 
             // 서-남 경계 (225°)
             BlendBoundary(
-                ref h, x, z, seed,
+                ref h, x, z, seed, suppression,
                 NationType.West, NationType.South,
                 -0.70710678f, -0.70710678f, halfWidth);
 
             // 남-동 경계 (315°)
             BlendBoundary(
-                ref h, x, z, seed,
+                ref h, x, z, seed, suppression,
                 NationType.South, NationType.East,
                 0.70710678f, -0.70710678f, halfWidth);
 
@@ -293,8 +251,8 @@ namespace ProjectName.Systems
             float empireT = Mathf.Clamp01((dist - (EMPIRE_RADIUS - TRANSITION_WIDTH)) / (2f * TRANSITION_WIDTH));
             if (empireT < 1f)
             {
-                float empireH = ComputeNationHeight(x, z, NationType.Empire, seed);
-                float dirH = ComputeNationHeight(x, z, GetDirectionalNation(angle), seed);
+                float empireH = ComputeNationHeight(x, z, NationType.Empire, seed, suppression);
+                float dirH = ComputeNationHeight(x, z, GetDirectionalNation(angle), seed, suppression);
                 h = Mathf.Lerp(empireH, dirH, empireT);
             }
 
@@ -303,21 +261,24 @@ namespace ProjectName.Systems
             // radius..radius*LAKE_SHORE_FACTOR 구간은 경사 완만한 해안(쇼어라인).
             // GetHeightAt / GetHeightAtWithDefinition / 메시 생성을 모두 지나는
             // 공통 관통 경로(ComputeTerrainHeight)에 위치해 모든 경로에 적용된다.
+            // (절벽은 ApplyLakeBasins 이전 ComputeNationHeight에서 이미 억제됨 — 호수 중심 반경
+            //  40m 절벽 금지로 수면 위 절벽/해안 단차 재발 방지.)
             h = ApplyLakeBasins(x, z, h);
 
             // === 4) 스폰지 평탄화 ===
-            // (SPAWN_X, SPAWN_Z) 반경 15m 이내 고주파 디테일 감쇠 → 경사 완만
-            h = ApplySpawnFlattening(x, z, h, nation, seed);
+            // PlayerSpawnConfig.SpawnPosition 반경 30m 절대 평탄 (상수 고도), 그 밖은 원래 지형.
+            h = ApplySpawnFlattening(x, z, h, seed, suppression);
 
             return h;
         }
 
         /// <summary>
-        /// 단일 각도 경계에 대한 크로스페이드 헬퍼.
+        /// 단일 각도 경계에 대한 크로스페이드 헬퍼 (T-R2 결과 보간).
         /// 점의 경계 광선 수직 거리가 전환 폭 안에 들어오면 이웃 국가 높이와 Lerp.
+        /// 두 인접 국가의 absolute height를 각각 계산해 "결과 보간"한다.
         /// </summary>
         private static void BlendBoundary(
-            ref float height, float x, float z, int seed,
+            ref float height, float x, float z, int seed, float cliffSuppression,
             NationType negNation, NationType posNation,
             float ux, float uz, float halfWidth)
         {
@@ -336,8 +297,8 @@ namespace ProjectName.Systems
             // 전환 구간 내에서만 실제 블렌딩 (바깥은 클램프로 무의미 → 생략)
             if (t > 0f && t < 1f)
             {
-                float hNeg = ComputeNationHeight(x, z, negNation, seed);
-                float hPos = ComputeNationHeight(x, z, posNation, seed);
+                float hNeg = ComputeNationHeight(x, z, negNation, seed, cliffSuppression);
+                float hPos = ComputeNationHeight(x, z, posNation, seed, cliffSuppression);
                 height = Mathf.Lerp(hNeg, hPos, t);
             }
 
@@ -478,24 +439,145 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 스폰지 평탄화 — (SPAWN_X, SPAWN_Z)=(728,-529) 반경 15m 이내 고주파 디테일 감쇠.
-        /// 저옥타브(저주파만)로 재계산한 높이로 블렌드해 경사 완만, 플레이어 시작지 부근 평탄 유지.
-        /// 반경 밖은 원래 높이 그대로 (smoothstep 페이드아웃).
+        /// 스폰지 평탄화 (T-R2) — PlayerSpawnConfig.SpawnPosition 반경 30m 절대 평탄.
+        /// 반경 내는 상수 고도(스폰 중심의 방위 높이)로 고정해 Test c(반경 30m 편차<0.3m) 통과.
+        /// 30m 이후 SPAWN_FLATTEN_FADE(20m) 구간에서 원래 지형으로 부드럽게 복귀.
+        /// 스폰이 호수 분지 밖이므로(≈139m 이격) 상수 고도가 호수를 덮지 않는다.
         /// </summary>
-        private static float ApplySpawnFlattening(float x, float z, float height, NationType nation, int seed)
+        private static float ApplySpawnFlattening(float x, float z, float height, int seed, float cliffSuppression)
         {
-            float dx = x - SPAWN_X;
-            float dz = z - SPAWN_Z;
+            float dx = x - PlayerSpawnConfig.SpawnPosition.x;
+            float dz = z - PlayerSpawnConfig.SpawnPosition.z;
             float dist = Mathf.Sqrt(dx * dx + dz * dz);
-            if (dist >= SPAWN_FLATTEN_RADIUS)
+
+            float radius = SPAWN_FLATTEN_RADIUS;               // 30m
+            float outer = radius + SPAWN_FLATTEN_FADE;         // 50m
+            if (dist >= outer)
                 return height;
 
-            // 0(중심, 완전 평탄) → 1(경계, 원래 높이) smoothstep
-            float t = Mathf.Clamp01(dist / SPAWN_FLATTEN_RADIUS);
-            float blend = t * t * (3f - 2f * t);
+            float target = GetSpawnFlatHeight(seed);           // 스폰 중심 상수 고도 (캐시)
 
-            float lowFreqH = ComputeNationHeight(x, z, nation, seed, SPAWN_LOW_FREQ_OCTAVES);
-            return Mathf.Lerp(lowFreqH, height, blend);
+            if (dist <= radius)
+                return target;                                 // 완전 평탄
+
+            // 30..50m — 원래 지형으로 smoothstep 복귀
+            float t = (dist - radius) / (outer - radius);
+            float blend = t * t * (3f - 2f * t);
+            return Mathf.Lerp(target, height, blend);
+        }
+
+        // 캐시된 스폰 평탄 상수 고도 (시드별 1회 계산 — 결정론, 성능)
+        private static float _spawnFlatTarget;
+        private static int _spawnFlatSeed = int.MinValue;
+
+        private static float GetSpawnFlatHeight(int seed)
+        {
+            if (_spawnFlatSeed != seed)
+            {
+                var s = PlayerSpawnConfig.SpawnPosition;
+                // 스폰은 보호 앵커라 절벽 억제됨 — 상수 고도는 절벽 없는 base+계곡만 사용.
+                _spawnFlatTarget = ComputeNationHeight(s.x, s.z, NationType.East, seed, 0f);
+                _spawnFlatSeed = seed;
+            }
+            return _spawnFlatTarget;
+        }
+
+        // ================================================================
+        // 절벽 보호 (스폰/성/호수/방위경계) — 절벽 마스크 0 강제
+        // 리스크 완화(계획 §6): "스폰/성/호수 반경 40m는 절벽 금지" + 경계 연속성(|Δh|<0.5)
+        // ================================================================
+
+        /// <summary>
+        /// 위치 (x,z)의 절벽 억제 마스크 [0,1].
+        ///   ·  스폰 / 각 호수 / 각 성(영지) / 황제국 성 반경 40m        → 0 (절벽 금지)
+        ///   ·  40..55m 페이드                                            → 0..1
+        ///   ·  방위 경계선(45/135/225/315°) 반경 35m                    → 0 (경계 단차 차단)
+        ///   ·  35..55m 페이드                                            → 0..1
+        ///   ·  그 외                                                      → 1 (절벽 허용)
+        /// ComputeNationHeight 내부의 ridge 마스크 m에 곱해져 절벽 낙차를 없앤다.
+        /// </summary>
+        private static float ComputeCliffSuppression(float x, float z)
+        {
+            // 1) 보호 앵커(스폰/성/호수/황제국 성) 반경 내 절벽 금지
+            float anchorFactor = 1f;
+            var anchors = ProtectionAnchors;
+            for (int i = 0; i < anchors.Count; i++)
+            {
+                Vector3 a = anchors[i];
+                float dx = x - a.x;
+                float dz = z - a.z;
+                float d = Mathf.Sqrt(dx * dx + dz * dz);
+                if (d < PROTECT_CLIFF_RADIUS)
+                    return 0f;                                     // 완전 금지
+                if (d < PROTECT_CLIFF_RADIUS + PROTECT_CLIFF_FADE)
+                {
+                    float t = (d - PROTECT_CLIFF_RADIUS) / PROTECT_CLIFF_FADE;
+                    anchorFactor = Mathf.Min(anchorFactor, t * t * (3f - 2f * t));
+                }
+            }
+
+            // 2) 방위 경계선 반경 내 절벽 금지 (경계 크로스페이드 연속성 보증)
+            //    대각 경계 광선 4개에 대한 수직 거리 = 0.707·|z±x| (대칭으로 2개로 충분).
+            float d1 = Mathf.Abs(z - x) * 0.70710678f;   // 45°/225° 경계 (z=x, z=-x의 ±)
+            float d2 = Mathf.Abs(x + z) * 0.70710678f;   // 135°/315° 경계
+            float dBoundary = Mathf.Min(d1, d2);
+            float boundaryFactor = 1f;
+            if (dBoundary < BOUNDARY_CLIFF_BAN)
+                return 0f;                                     // 경계 선상 완전 금지
+            if (dBoundary < BOUNDARY_CLIFF_BAN + BOUNDARY_CLIFF_FADE)
+            {
+                float t = (dBoundary - BOUNDARY_CLIFF_BAN) / BOUNDARY_CLIFF_FADE;
+                boundaryFactor = t * t * (3f - 2f * t);
+            }
+
+            return Mathf.Min(anchorFactor, boundaryFactor);
+        }
+
+        // 절벽 금지 앵커(스폰/성/황제국/호수) — 결정론 정적 캐시 (지연 1회 구축).
+        private static List<Vector3> _protectionAnchors;
+        private static bool _protectionBuilt = false;
+
+        private static List<Vector3> ProtectionAnchors
+        {
+            get
+            {
+                if (_protectionBuilt)
+                    return _protectionAnchors;
+
+                _protectionBuilt = true;
+                _protectionAnchors = new List<Vector3>();
+
+                try
+                {
+                    // 스폰지
+                    _protectionAnchors.Add(PlayerSpawnConfig.SpawnPosition);
+
+                    // 황제국 중앙 성
+                    _protectionAnchors.Add(Vector3.zero);
+
+                    // 성/영지 (TerritoryDatabase worldPosition) — 결정론, null 안전
+                    if (ProjectName.Core.Data.TerritoryDatabase.Instance != null)
+                    {
+                        foreach (var def in ProjectName.Core.Data.TerritoryDatabase.Instance.GetAllDefinitions())
+                        {
+                            Vector3 p = def.worldPosition;
+                            if (p.sqrMagnitude > 0.001f)
+                                _protectionAnchors.Add(p);
+                        }
+                    }
+
+                    // 호수 6개 (LCG 시드 유지 — 위치 불변 원칙)
+                    foreach (var lake in Lakes)
+                        _protectionAnchors.Add(lake.center);
+                }
+                catch (System.Exception e)
+                {
+                    // EditMode/테스트 등 씬 미구성 시에도 지형 생성은 안전해야 함
+                    Debug.LogWarning("[TerrainGenerator] 절벽 보호 앵커 구축 실패 (성 등 생략): " + e.Message);
+                }
+
+                return _protectionAnchors;
+            }
         }
 
         /// <summary>
