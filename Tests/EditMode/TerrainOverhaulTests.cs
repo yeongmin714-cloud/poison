@@ -1,0 +1,135 @@
+using NUnit.Framework;
+using ProjectName.Core;
+using ProjectName.Core.Data;
+using ProjectName.Systems;
+using UnityEngine;
+
+namespace ProjectName.Tests.EditMode
+{
+    /// <summary>
+    /// 🌄 지형 개편 4방위 스타일라이즈드 (2026-09-04, Phase T-R0) 기준선 골격 테스트.
+    ///
+    /// 이 파일은 Phase T-R2~R4 구현 후 완성되는 테스트 골격이며,
+    /// "현재 동작으로 즉시 통과 가능한 것"은 골격 단계에서도 통과해야 한다.
+    ///   a) GetHeightAt 결정론          → 현재도 통과 (동일 좌표 = 동일 값)
+    ///   b) 경계 블렌드 연속성          → 기존 4방위 크로스페이드만으로 이미 통과(1m당 |Δh|<0.5m)
+    ///                                    R2에서 방위별 고도 재설계 후에도 유지되어야 함
+    ///   c) 스폰 평탄 (반경 30m <0.3m)  → R2에서 스폰 반경 30m 평탄 보장 시 통과 목표
+    ///                                    (현재 스폰 평탄화는 저주파 완만화라 절대 평탄이 아님 → 기준선에선 실패 예상)
+    ///   d) 방위별 진폭 분포 (std>0)    → 현재도 통과 (방위별 고유 진폭/시드)
+    /// </summary>
+    public class TerrainOverhaulTests
+    {
+        const int SEED = 42;
+        const float GROUND_BASE = 1f; // Ground_Inner 월드 y 기저 (GetHeightAt + 1f)
+
+        // ── a) 결정론: 같은 좌표 2회 샘플 = 동일 값 (현재 통과) ──────────────
+        [Test]
+        public void GetHeightAt_Deterministic_SameCoordSameValue()
+        {
+            for (int i = 0; i < 20; i++)
+            {
+                float x = -900f + i * 90f;
+                float z = 700f - i * 60f;
+                float h1 = TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, SEED);
+                float h2 = TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, SEED);
+                Assert.AreEqual(h1, h2, 0.00001f, $"결정론 위반 @ ({x:F1},{z:F1})");
+            }
+        }
+
+        // ── b) 경계 블렌드 연속성 ────────────────────────────────────────────
+        // 4방위 중심각: 동=0°/북=90°/서=180°/남=270°. 그 사이 각도 경계는 45/135/225/315°.
+        // 반경 300m 지점에서 경계를 가로지르며 1m(호) 간격 샘플 → 인접 샘플 |Δh| < 0.5m.
+        // (기존 TRANSITION_WIDTH=120m 크로스페이드 + R2 결과 보간으로 단차 없음 보증)
+        [Test]
+        public void BoundaryBlend_Continuous_Across4AzimuthBoundaries()
+        {
+            const float radius = 300f;
+            const float arcSpanDeg = 4f;      // 경계 중심 양옆 2° 스캔 (경계 양쪽 국가 교차)
+            float stepRad = 1f / radius;      // 1m 호(arc) 간격
+
+            float[] boundaryAngles = { 45f, 135f, 225f, 315f };
+            foreach (float theta in boundaryAngles)
+            {
+                float startDeg = theta - arcSpanDeg / 2f;
+                float endDeg = theta + arcSpanDeg / 2f;
+                bool first = true;
+                float prev = 0f;
+                float maxDelta = 0f;
+                for (float aDeg = startDeg; aDeg <= endDeg; aDeg += stepRad * Mathf.Rad2Deg)
+                {
+                    float a = aDeg * Mathf.Deg2Rad;
+                    float x = radius * Mathf.Cos(a);
+                    float z = radius * Mathf.Sin(a);
+                    float h = TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, SEED) + GROUND_BASE;
+                    if (!first)
+                        maxDelta = Mathf.Max(maxDelta, Mathf.Abs(h - prev));
+                    prev = h;
+                    first = false;
+                }
+                Assert.Less(maxDelta, 0.5f, $"경계 {theta}°(반경 {radius}m) 인접 샘플 최대 |Δh| = {maxDelta:F3}m");
+            }
+        }
+
+        // ── c) 스폰 평탄: 전역 스폰 좌표 반경 30m 내 5샘플 편차 < 0.3m ─────────
+        // 전역 스폰 = PlayerSpawnConfig.SpawnPosition (728, 0.24, -529).
+        // T-R2에서 스폰 반경 30m 평탄(절대 평탄) 보장 시 통과 목표.
+        [Test]
+        public void SpawnArea_Flat_Within30m()
+        {
+            Vector3 spawn = PlayerSpawnConfig.SpawnPosition;
+            Vector3[] samples =
+            {
+                spawn,
+                spawn + new Vector3(30f, 0f, 0f),
+                spawn + new Vector3(-30f, 0f, 0f),
+                spawn + new Vector3(0f, 0f, 30f),
+                spawn + new Vector3(0f, 0f, -30f),
+            };
+
+            float minH = float.MaxValue;
+            float maxH = float.MinValue;
+            foreach (var p in samples)
+            {
+                float h = TerrainGenerator.GetHeightAt(p.x, p.z, BiomeType.Plains, SEED);
+                minH = Mathf.Min(minH, h);
+                maxH = Mathf.Max(maxH, h);
+            }
+            Assert.Less(maxH - minH, 0.3f,
+                $"스폰({spawn.x:F0},{spawn.z:F0}) 반경 30m 내 고도 편차 = {maxH - minH:F3}m (R2 스폰 30m 평탄 목표)");
+        }
+
+        // ── d) 방위별 진폭 분포: 각 방위 50샘플 std>0 ─────────────────────────
+        // 각 방위(동0/북90/서180/남270) 중심 부근에서 시드 결정론 오프셋 50샘플의 표준편차.
+        // 현재도 방위별 고유 진폭/시드로 std>0 보장. R2에서 방위별 차별화가 의미 완성.
+        [Test]
+        public void AzimuthHeights_NonZeroSpread_AllDirections()
+        {
+            const float radius = 700f;
+            float[] centers = { 0f, 90f, 180f, 270f };
+            foreach (float theta in centers)
+            {
+                float[] hs = new float[50];
+                for (int i = 0; i < 50; i++)
+                {
+                    float a = (theta + (i - 25f) * 1.2f) * Mathf.Deg2Rad; // 반원 ~60° 스캔
+                    float x = radius * Mathf.Cos(a);
+                    float z = radius * Mathf.Sin(a);
+                    hs[i] = TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, SEED);
+                }
+                float std = StdDev(hs);
+                Assert.Greater(std, 0f, $"방위 {theta}° {radius}m 50샘플 표준편차 = {std:F4}");
+            }
+        }
+
+        static float StdDev(float[] vals)
+        {
+            float mean = 0f;
+            foreach (var v in vals) mean += v;
+            mean /= vals.Length;
+            float acc = 0f;
+            foreach (var v in vals) { float d = v - mean; acc += d * d; }
+            return Mathf.Sqrt(acc / vals.Length);
+        }
+    }
+}

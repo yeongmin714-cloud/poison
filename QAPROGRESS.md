@@ -1073,3 +1073,40 @@ OneHand_Up_Idle=1b267cb3..., Walk_B=ba58acae..., Run_B=282509bf..., Attack_1=ec2
 - YAML 파싱 입증: 3/3 GUID 일치, m_TexEnvs 14항목 오염 없음, _BaseColor/scale 보존
 - 가드: #if UNITY_EDITOR 내 AssetDatabase(빌드 안전), 예외 누출 없음, Start 순서 안전
 - Play 확인 대기: 스크린샷 41 — 지면에 잔디 텍스처 보이는지 + 밝기 적정 여부
+
+## 2026-09-04 지형 개편 T-R0 시작 (기준선)
+
+### 계획
+- 계획 파일: `.hermes/plans/2026-09-04_003435-terrain-4direction-stylized-overhaul.md`
+- 목표: 현재 지형(기존 GLB 프롭 + 단일 방위 크로스페이드)의 회귀 기준선을 만들어, 이후
+  T-R2(방위별 고도 재설계)~T-R4(Idyllic 데코 국가별 변주)가 "제대로 됐다"를 수치로 판정 가능하게 한다.
+
+### Play 기준선 스크린샷 — 사용자 Play 대기 (41~44번 예약)
+- 41: 밝기/지면 텍스처 (화이트아웃 수리 후속)
+- 42: 기준선 진행 상황 (지형 개편 전 현재 모습, 예: 동쪽 뷰)
+- 43: 기준선 동/서 방위 (또는 남/북 대조)
+- 44: 기준선 남/북 방위 (또는 데코 전체 거리뷰)
+- ⏳ 아직 캡처 대기 — 사용자가 Play 실행 시 확정 후 기록 예정.
+
+### 테스트 골격 생성 (T-R0, 코드 완료)
+- 신규 `Tests/EditMode/TerrainOverhaulTests.cs` (어셈블리: ProjectName.Tests.EditMode, 기존
+  TerrainSplatBakerTests.cs와 동일 — asmdef 기존 재사용, 신규 어셈블리 생성 안 함)
+- 테스트 4종 (T-R2~R4 구현 후 완성될 골격 + 현재 즉시 통과 가능 분리):
+  1. `GetHeightAt_Deterministic_SameCoordSameValue` — 결정론 (현재 즉시 통과)
+  2. `BoundaryBlend_Continuous_Across4AzimuthBoundaries` — 경계 블렌드 연속성, 반경 300m
+     각도 경계(45/135/225/315°) 1m간격 |Δh|<0.5m (기존 크로스페이드로 현재 통과)
+  3. `SpawnArea_Flat_Within30m` — 스폰(PlayerSpawnConfig.SpawnPosition) 반경 30m 5샘플
+     편차<0.3m → **R2에서 스폰 30m 평탄 보장 시 통과 목표** (기준선에선 실패 예상 정상)
+  4. `AzimuthHeights_NonZeroSpread_AllDirections` — 방위별 50샘플 std>0 (현재도 통과)
+- 정적 검증: 중괄호 균형 PASS (아래). 배치컴파일 불가(에디터 개방) → 에디터 포커스 재컴파일 대기.
+
+### T-R1 코드 완료 (기준선과 동일 세션 병행)
+- `Assets/GameSetup.cs` `BootstrapTerrainDeco()`:
+  - `TerrainPropPlacer.PlaceAllIfNeeded` / `TerrainModelPlacer.PlaceAllIfNeeded` 호출 주석 처리
+    (소스 보존 — IdyllicDecoPlacer로 통일, R4에서 스폰지 Idyllic 재구현 예정)
+  - `CleanupLegacyDeco()` 신규 메서드 추가 — `TerrainModelPlacer_Marker`/`EnvironmentModels`/
+    `TerrainPropPlacer_Marker`/`SpawnProps` 잔재 1회성 파괴 (이전 Play 세션 남은 GLB ~900 걷어냄)
+  - Idyllic 배치 후 총 프리팹 수 검증 로그 추가 (`IdyllicDeco 총 프리팹 수`)
+- 기대 로그(Play): `[GameSetup][TerrainDeco] 🧹 레거시 GLB 프롭 정리: N개 제거`
+- 기대 로그(Play): `[GameSetup][TerrainDeco] ✅ IdyllicDeco 총 프리팹 수: M개`
+- Temporarily note: 커밋/푸시는 지형 개편 계획 게이트에 따라 수행 (본 세션은 커밋/푸시 금지).

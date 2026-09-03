@@ -70,6 +70,10 @@ public class GameSetup : MonoBehaviour
     /// </summary>
     private void BootstrapTerrainDeco()
     {
+        // [T-R1 09-04] 기존 GLB 프롭(이전 실행 잔재 마커/컨테이너) 1회 정리 — 배치 호출 제거 전에 먼저.
+        // 순서: CleanupLegacyDeco(제거) → 호수 → IdyllicDecoPlacer(통일 데코) → 흙길.
+        CleanupLegacyDeco();
+
         // ── 데코 부모 오브젝트 확보 ──────────────────────────────────
         var decoGO = GameObject.Find("TerrainDeco");
         if (decoGO == null)
@@ -85,18 +89,26 @@ public class GameSetup : MonoBehaviour
         Debug.Log("[GameSetup][TerrainDeco] ✅ LakeGenerator.GenerateAllLakes 완료");
 
         // ── 프롭 배치 (스폰지 인근 개별 프롭, 콜라이더) ───────────────
-        TerrainPropPlacer.PlaceAllIfNeeded(decoGO.transform);
-        Debug.Log("[GameSetup][TerrainDeco] ✅ TerrainPropPlacer.PlaceAllIfNeeded 완료");
+        // [T-R1 09-04] 스폰지 GLB 프롭 제거 — R4에서 Idyllic 기반으로 재구현
+        // TerrainPropPlacer.PlaceAllIfNeeded(decoGO.transform);
+        // Debug.Log("[GameSetup][TerrainDeco] ✅ TerrainPropPlacer.PlaceAllIfNeeded 완료");
 
         // ── GLB 모델 배치 (나무~500/바위~400) ────────────────────────
-        TerrainModelPlacer.PlaceAllIfNeeded(decoGO.transform);
-        Debug.Log("[GameSetup][TerrainDeco] ✅ TerrainModelPlacer.PlaceAllIfNeeded 완료");
+        // [T-R1 09-04] 기존 GLB 나무~500/바위~400 대량 배치 제거(사용자 지시) — IdyllicDecoPlacer로 통일
+        // TerrainModelPlacer.PlaceAllIfNeeded(decoGO.transform);
+        // Debug.Log("[GameSetup][TerrainDeco] ✅ TerrainModelPlacer.PlaceAllIfNeeded 완료");
 
         // ── Idyllic 프리팹 국가별 테마 배치 (P-4) ─────────────────────
         // Resources/IdyllicPrefabs(나무/바위/꽃/갈대)를 국가별 테마로 절차 배치.
         // 별도 부모 'IdyllicDeco' 아래 배치(기존 GLB 데코 유지), 결정론 시드 + 최소 간격.
         IdyllicDecoPlacer.PlaceAll(decoGO.transform, decoGO.transform);
         Debug.Log("[GameSetup][TerrainDeco] ✅ IdyllicDecoPlacer.PlaceAll 완료");
+        // [T-R1 09-04] Idyllic 총 프리팹 수 검증 로그 (배치 완료 후)
+        var idyllicRoot = GameObject.Find("IdyllicDeco");
+        if (idyllicRoot != null)
+            Debug.Log($"[GameSetup][TerrainDeco] ✅ IdyllicDeco 총 프리팹 수: {idyllicRoot.transform.childCount}개");
+        else
+            Debug.LogWarning("[GameSetup][TerrainDeco] ⚠️ IdyllicDeco 루트를 찾지 못함 — 프리팹 배치 확인 필요");
 
         // ── 흙길 4개 (지형 메시 정점색, T5) ──────────────────────────
         // Ground_Inner의 MeshFilter.sharedMesh에서 Mesh를 얻어 ApplyPathsToTerrain 호출.
@@ -136,6 +148,55 @@ public class GameSetup : MonoBehaviour
         //     Debug.Log("[GameSetup][TerrainDeco] ✅ GrassRenderer.Bootstrap 완료 (잔디 렌더러)");
         // }
         Debug.Log("[GameSetup][TerrainDeco] 잔디는 사용자 요청으로 비활성화됨 (GrassRenderer 코드 보존)");
+    }
+
+    /// <summary>
+    /// [T-R1 09-04] 기존 GLB 프롭 배치가 남긴 마커/컨테이너 1회성 정리 (완전 제거).
+    /// TerrainModelPlacer/TerrainPropPlacer 파일은 보존(롤백 가능)하되 배치 호출을 제거했으므로,
+    /// 이전 Play 세션/씬에 남아있던 GLB 프롭 컨테이너를 파괴해 나무~500/바위~400/SpawnProps를 걷어낸다.
+    /// 대상 이름(소스 const와 일치):
+    ///   - TerrainModelPlacer_Marker  (TerrainModelPlacer.cs MARKER_NAME)
+    ///   - EnvironmentModels          (TerrainModelPlacer.cs 배치 컨테이너 — GLB 나무/바위)
+    ///   - TerrainPropPlacer_Marker   (TerrainPropPlacer.cs MARKER_NAME)
+    ///   - SpawnProps                 (TerrainPropPlacer.cs 배치 컨테이너 — 스폰지 프롭)
+    /// 실패해도 게임은 계속된다 (try-catch). static placer라 MonoBehaviour 콜백이 없으며,
+    /// 이 GameObject들은 순수 씬/런타임 오브젝트이므로 파괴만 하면 된다.
+    /// </summary>
+    private void CleanupLegacyDeco()
+    {
+        try
+        {
+            string[] legacyNames =
+            {
+                "TerrainModelPlacer_Marker",   // TerrainModelPlacer.cs MARKER_NAME
+                "EnvironmentModels",           // TerrainModelPlacer.cs 배치 컨테이너 (GLB 나무~500/바위~400)
+                "TerrainPropPlacer_Marker",    // TerrainPropPlacer.cs MARKER_NAME
+                "SpawnProps",                  // TerrainPropPlacer.cs 배치 컨테이너 (스폰지 프롭)
+            };
+
+            int destroyed = 0;
+            var all = UnityEngine.Object.FindObjectsByType<GameObject>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (var go in all)
+            {
+                if (go == null) continue;
+                foreach (var legacy in legacyNames)
+                {
+                    if (go.name.Contains(legacy))
+                    {
+                        GameObject.Destroy(go); // ~ 프레임 끝 파괴 (자식 프롭 포함)
+                        destroyed++;
+                        break;
+                    }
+                }
+            }
+
+            Debug.Log($"[GameSetup][TerrainDeco] 🧹 레거시 GLB 프롭 정리: {destroyed}개 제거");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("[GameSetup][TerrainDeco] ❌ CleanupLegacyDeco 실패 (게임 계속): " + e.ToString());
+        }
     }
 
     /// <summary>
