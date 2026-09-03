@@ -140,7 +140,14 @@ namespace ProjectName.Systems
         ///   [0,1] 절벽 억제 마스크 (0=절벽 금지 구역, 1=허용).
         ///   스폰/호수/성/경계선 보호 — TerrainGenerator가 주입한다.
         /// </param>
-        public static float NationHeight(float x, float z, NationType nation, int seed, float cliffSuppression = 1f)
+        /// <param name="baseDetail">
+        ///   [0,1] Base/Valley의 디테일(진폭·옥타브) 계수. 0에 가까울수록 저주파·저진폭으로
+        ///   완만해져 경계 크로스페이드 연속성(|Δh|&lt;0.5m, Test b)을 보증한다.
+        ///   1 = 원본 방위별 디테일. 경계선/보호 앵커 인근에서 TerrainGenerator가 낮춰 주입.
+        /// </param>
+        public static float NationHeight(
+            float x, float z, NationType nation, int seed,
+            float cliffSuppression = 1f, float baseDetail = 1f)
         {
             NationParams p = GetNationParams(nation);
             int nseed = seed + NationSeedOffset(nation);
@@ -151,9 +158,15 @@ namespace ProjectName.Systems
             float wx = x + WARP_AMOUNT * (warpX - 0.5f) * 2f;
             float wz = z + WARP_AMOUNT * (warpZ - 0.5f) * 2f;
 
-            // ── 2) Base: 완만한 구릉 (F1) ──
-            float baseFbm = Fbm(wx * p.freq0, wz * p.freq0, OCTAVES, LACUNARITY, GAIN, nseed);
-            float baseH = (baseFbm - 0.5f) * 2f * p.amplitudeA;   // ±A
+            float detail = Mathf.Clamp01(baseDetail);
+
+            // ── 2) Base: 완만한 구릉 (F1)
+            //      baseDetail<1 → 저옥타브(2옥)와 저진폭으로 블렌드해 경계부 구릉을 완만화 ──
+            float fbmFull = Fbm(wx * p.freq0, wz * p.freq0, OCTAVES, LACUNARITY, GAIN, nseed);
+            float fbmSmooth = Fbm(wx * p.freq0, wz * p.freq0, 2, LACUNARITY, GAIN, nseed);
+            float baseFbm = Mathf.Lerp(fbmSmooth, fbmFull, detail);
+            float baseA = p.amplitudeA * Mathf.Lerp(LOW_DETAIL_AMP_FACTOR, 1f, detail);
+            float baseH = (baseFbm - 0.5f) * 2f * baseA;   // ±baseA
 
             // ── 3) Cliff: ridged 능선 마스크 + 낙차 (F2) ──
             float ridgedNoise = Ridge(Fbm(
@@ -178,9 +191,13 @@ namespace ProjectName.Systems
                 wx * p.freq0 * VALLEY_FREQ_SCALE,
                 wz * p.freq0 * VALLEY_FREQ_SCALE,
                 OCTAVES, LACUNARITY, GAIN, nseed + 3456);
-            h += -p.amplitudeA * VALLEY_AMP_RATIO * Smoothstep(VALLEY_LO, VALLEY_HI, valleyNoise);
+            float valleyA = p.amplitudeA * VALLEY_AMP_RATIO * Mathf.Lerp(LOW_DETAIL_AMP_FACTOR, 1f, detail);
+            h += -valleyA * Smoothstep(VALLEY_LO, VALLEY_HI, valleyNoise);
 
             return h;
         }
+
+        // 경계/보호 구역의 저스트디테일 진폭 계수 (0.35 = ~36% 진폭 → 완만 경사 보증)
+        public const float LOW_DETAIL_AMP_FACTOR = 0.35f;
     }
 }

@@ -13,8 +13,10 @@ namespace ProjectName.Systems
     public class TerrainHeightApplier : MonoBehaviour
     {
         [Header("Terrain Settings")]
-        [SerializeField] private int _resolution = 50;
-        [SerializeField] private float _size = 1000f;
+        // T-R2: 메시 해상도 상향 — 정점간격 20m → 10m (2000m 맵 → 201×201 ≈ 4만 정점, 안전권).
+        // FBM 주파수 제약도 완화(10m 간격 허용 0.04) — 방위별 설계(f0≤0.006, warp 0.008)는 내부 허용.
+        [SerializeField] private int _resolution = 201;
+        [SerializeField] private float _size = 2000f;
         [SerializeField] private float _maxHeight = 40f;
         [SerializeField] private float _noiseFrequency = 0.15f;
         [SerializeField] private int _seed = 1337;

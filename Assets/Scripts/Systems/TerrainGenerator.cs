@@ -160,16 +160,19 @@ namespace ProjectName.Systems
         /// <summary>
         /// 단일 방위 기준 높이 계산 (T-R2).
         /// TerrainShape.NationHeight(FBM base + ridged 절벽 + 도메인워핑 + terrace + 계곡)를
-        /// 호출하고, 스폰/호수/성/방위경계 보호 절벽 억제(cliffSuppression)를 주입한다.
+        /// 호출하고, 스폰/호수/성/방위경계 보호 절벽 억제(cliffSuppression)와
+        /// 경계부 Base 완만화(baseDetail)를 주입한다.
         /// </summary>
         /// <param name="x">월드 X</param>
         /// <param name="z">월드 Z</param>
         /// <param name="nation">방위</param>
         /// <param name="seed">기저 시드</param>
         /// <param name="cliffSuppression">[0,1] 절벽 억제 마스크 (기본 1=허용)</param>
-        private static float ComputeNationHeight(float x, float z, NationType nation, int seed, float cliffSuppression = 1f)
+        /// <param name="baseDetail">[0,1] Base/Valley 디테일 계수 (기본 1=원본)</param>
+        private static float ComputeNationHeight(float x, float z, NationType nation, int seed,
+            float cliffSuppression = 1f, float baseDetail = 1f)
         {
-            return TerrainShape.NationHeight(x, z, nation, seed, cliffSuppression);
+            return TerrainShape.NationHeight(x, z, nation, seed, cliffSuppression, baseDetail);
         }
 
         /// <summary>
@@ -208,12 +211,13 @@ namespace ProjectName.Systems
 
             NationType nation = NationTerrainController.GetNationFromPosition(new Vector3(x, 0f, z));
 
-            // 절벽 억제 마스크 (스폰/성/호수/방위경계 보호) — 위치 전용, 방위 무관.
+            // 절벽 억제 마스크 + Base 완만화 (스폰/성/호수/방위경계 보호) — 위치 전용, 방위 무관.
             // ComputeTerrainHeight 최상단에서 1회 계산해 모든 ComputeNationHeight 호출에 주입
-            // (결과 보간 Lerp 시 두 국가 동일 마스크 유지).
+            // (결과 보간 Lerp 시 두 국가 동일 마스크 유지 → 경계 연속성 |Δh|<0.5 보증).
             float suppression = ComputeCliffSuppression(x, z);
+            float baseDetail = ComputeBaseDetail(x, z);
 
-            float h = ComputeNationHeight(x, z, nation, seed, suppression);
+            float h = ComputeNationHeight(x, z, nation, seed, suppression, baseDetail);
 
             // === 1) 방향성 국가 간 각도 경계 크로스페이드 (T-R2: 두 결과의 보간) ===
             // 내각 경계 각도: 45°(동-북), 135°(북-서), 225°(서-남), 315°(남-동)
@@ -223,25 +227,25 @@ namespace ProjectName.Systems
 
             // 동-북 경계 (45°)
             BlendBoundary(
-                ref h, x, z, seed, suppression,
+                ref h, x, z, seed, suppression, baseDetail,
                 NationType.East, NationType.North,
                 0.70710678f, 0.70710678f, halfWidth);
 
             // 북-서 경계 (135°)
             BlendBoundary(
-                ref h, x, z, seed, suppression,
+                ref h, x, z, seed, suppression, baseDetail,
                 NationType.North, NationType.West,
                 -0.70710678f, 0.70710678f, halfWidth);
 
             // 서-남 경계 (225°)
             BlendBoundary(
-                ref h, x, z, seed, suppression,
+                ref h, x, z, seed, suppression, baseDetail,
                 NationType.West, NationType.South,
                 -0.70710678f, -0.70710678f, halfWidth);
 
             // 남-동 경계 (315°)
             BlendBoundary(
-                ref h, x, z, seed, suppression,
+                ref h, x, z, seed, suppression, baseDetail,
                 NationType.South, NationType.East,
                 0.70710678f, -0.70710678f, halfWidth);
 
@@ -251,8 +255,8 @@ namespace ProjectName.Systems
             float empireT = Mathf.Clamp01((dist - (EMPIRE_RADIUS - TRANSITION_WIDTH)) / (2f * TRANSITION_WIDTH));
             if (empireT < 1f)
             {
-                float empireH = ComputeNationHeight(x, z, NationType.Empire, seed, suppression);
-                float dirH = ComputeNationHeight(x, z, GetDirectionalNation(angle), seed, suppression);
+                float empireH = ComputeNationHeight(x, z, NationType.Empire, seed, suppression, baseDetail);
+                float dirH = ComputeNationHeight(x, z, GetDirectionalNation(angle), seed, suppression, baseDetail);
                 h = Mathf.Lerp(empireH, dirH, empireT);
             }
 
@@ -278,7 +282,7 @@ namespace ProjectName.Systems
         /// 두 인접 국가의 absolute height를 각각 계산해 "결과 보간"한다.
         /// </summary>
         private static void BlendBoundary(
-            ref float height, float x, float z, int seed, float cliffSuppression,
+            ref float height, float x, float z, int seed, float cliffSuppression, float baseDetail,
             NationType negNation, NationType posNation,
             float ux, float uz, float halfWidth)
         {
@@ -297,8 +301,8 @@ namespace ProjectName.Systems
             // 전환 구간 내에서만 실제 블렌딩 (바깥은 클램프로 무의미 → 생략)
             if (t > 0f && t < 1f)
             {
-                float hNeg = ComputeNationHeight(x, z, negNation, seed, cliffSuppression);
-                float hPos = ComputeNationHeight(x, z, posNation, seed, cliffSuppression);
+                float hNeg = ComputeNationHeight(x, z, negNation, seed, cliffSuppression, baseDetail);
+                float hPos = ComputeNationHeight(x, z, posNation, seed, cliffSuppression, baseDetail);
                 height = Mathf.Lerp(hNeg, hPos, t);
             }
 
@@ -524,6 +528,54 @@ namespace ProjectName.Systems
             float boundaryFactor = 1f;
             if (dBoundary < BOUNDARY_CLIFF_BAN)
                 return 0f;                                     // 경계 선상 완전 금지
+            if (dBoundary < BOUNDARY_CLIFF_BAN + BOUNDARY_CLIFF_FADE)
+            {
+                float t = (dBoundary - BOUNDARY_CLIFF_BAN) / BOUNDARY_CLIFF_FADE;
+                boundaryFactor = t * t * (3f - 2f * t);
+            }
+
+            return Mathf.Min(anchorFactor, boundaryFactor);
+        }
+
+        /// <summary>
+        /// 위치 (x,z)의 Base/Valley 완만화 디테일 계수 [0,1] (T-R2).
+        /// 경계 크로스페이드 연속성(|Δh|&lt;0.5, Test b)과 보호 앵커(스폰/성/호수/황제국)
+        /// 주변의 완만한 구릉을 보증한다.
+        ///   ·  절벽 금지 앵커 반경 40m                      → 0 (최저옥타브·저진폭 구릉만)
+        ///   ·  40..55m 페이드                               → 0..1
+        ///   ·  방위 경계선(45/135/225/315°) 반경 35m       → 0 (경계부 평탄한 구릉 유지)
+        ///   ·  35..55m 페이드                               → 0..1
+        ///   ·  그 외                                          → 1 (원본 방위 디테일)
+        /// ComputeCliffSuppression과 동일한 위치 마스크를 사용해 절벽 억제와 Base 완만화가
+        /// 같은 구역에서 함께 작동한다 (형태·색 정합성과 경계 연속성 동시 보증).
+        /// </summary>
+        private static float ComputeBaseDetail(float x, float z)
+        {
+            // 1) 보호 앵커(스폰/성/호수/황제국 성) 반경 내 Base 완만화
+            float anchorFactor = 1f;
+            var anchors = ProtectionAnchors;
+            for (int i = 0; i < anchors.Count; i++)
+            {
+                Vector3 a = anchors[i];
+                float dx = x - a.x;
+                float dz = z - a.z;
+                float d = Mathf.Sqrt(dx * dx + dz * dz);
+                if (d < PROTECT_CLIFF_RADIUS)
+                    return 0f;
+                if (d < PROTECT_CLIFF_RADIUS + PROTECT_CLIFF_FADE)
+                {
+                    float t = (d - PROTECT_CLIFF_RADIUS) / PROTECT_CLIFF_FADE;
+                    anchorFactor = Mathf.Min(anchorFactor, t * t * (3f - 2f * t));
+                }
+            }
+
+            // 2) 방위 경계선 반경 내 Base 완만화 (경계 크로스페이드 연속성)
+            float d1 = Mathf.Abs(z - x) * 0.70710678f;   // 45°/225° 경계
+            float d2 = Mathf.Abs(x + z) * 0.70710678f;   // 135°/315° 경계
+            float dBoundary = Mathf.Min(d1, d2);
+            float boundaryFactor = 1f;
+            if (dBoundary < BOUNDARY_CLIFF_BAN)
+                return 0f;
             if (dBoundary < BOUNDARY_CLIFF_BAN + BOUNDARY_CLIFF_FADE)
             {
                 float t = (dBoundary - BOUNDARY_CLIFF_BAN) / BOUNDARY_CLIFF_FADE;
