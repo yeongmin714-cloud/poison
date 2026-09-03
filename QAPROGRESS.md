@@ -996,3 +996,30 @@ OneHand_Up_Idle=1b267cb3..., Walk_B=ba58acae..., Run_B=282509bf..., Attack_1=ec2
 - 무결성: 교체 guid 전부 해당 .anim.meta 존재 확인, 유지(Death/Roll) 무손상, YAML 구조 보존, 빌더 중괄호 균형 OK.
 - **적용 제외**: 몬스터(절차적 특수생물, Humanoid 아님 → Enemy_Attack 리타겟 불가) / NPC Dialogue(적용 대상 NPC 불명확).
 - ⏳ Play 확인: 플레이어/병사 걷기·달리기·공격·피격이 RPG팩 모션으로, 구르기/사망은 기존 유지.
+
+---
+
+## 2026-09-03: 몬스터 스폰 밸런스 개편 (밤에↑ / 낮에 존재 / Ring별 강도)
+
+**사용자 요구:** 밤에 몬스터 수가 늘어나고, 낮에도 몬스터가 존재. Ring1~4 난이도 유지하되 Ring1 종류·수 증가, 약한 몬스터 많이·강한 몬스터 적게, Ring1엔 강한 종 없음.
+
+### 진단 (왜 2종만?): 필터 3중
+1. 시간대 `GetByActiveTime(Night)` → 밤에 Day종 전멸 (종 수 급감)
+2. 티어 Ring1=Beginner만
+3. 확률 nightProb.common=0.2 → 초보 수 급감
++ 난이도가 스포너 원점(0,0,0) 기준이라 항상 Ring1
+
+### 수정 (P-1~P-4, MonsterSpawner.cs + RingDifficultyData.cs)
+- **P-1**: 시간대 필터(GetByActiveTime) 제거 → `GetByTier(tier)`로 난이도 티어 전체 풀 사용. 시간대는 수 배수에만 반영. `_nightRespawnRateMultiplier` 1.5→**2.0** (밤에 수 2배). → 낮에도 모든 종 존재 + 밤에 수 증가.
+  - SpawnTierByDifficulty + CheckAndRespawnTier 둘 다.
+- **P-2**: Ring별 티어·마리수 재설정 (RingDifficultyData):
+  - 티어: Ring1=Beginner+Int(Advanced 제외), Ring2=Beginner+Int, Ring3/4/Empire=Int+Adv
+  - 마리수: Ring1=6~10(증), Ring2=5~8, Ring3=4~6, Ring4=3~5(강할수록 적게), Empire=5~8
+- **P-3**: 확률 재조정 (초보를 main 유지, 강할수록 적게):
+  - day(0.75/0.22/0.03), evening(0.65/0.30/0.05), night(0.55/0.35/0.10) ← 밤에도 초보 55%
+- **P-4**: 난이도 판정을 **플레이어 위치 기준**으로 — `DetermineTerritoryDifficulty(pos)`를 원점(0,0,0)~pos 거리로(Ring1<600/Ring2<1200/Ring3<1800/Ring4). GetCurrentTerritoryDifficulty는 _playerT.position 전달. → 플레이어가 멀리 갈수록 강한 링.
+
+### 검증
+- 중괄호/괄호 균형: MonsterSpawner 0/0/0, RingDifficultyData 0/0/0. GetByActiveTime 잔재 0, GetByTier 2곳, nightMultiplier=2.0, nightProb 0.55/0.35/0.10 확인.
+- 커밋 24863c0f (자동커밋). QAPROGRESS 추가 기록 예정.
+- ⏳ Play 확인: 밤에 몬스터 수 증가 + 낮에도 존재, Ring1에 초보 다수/강한 종 없음, 멀리 갈수록 강해짐.
