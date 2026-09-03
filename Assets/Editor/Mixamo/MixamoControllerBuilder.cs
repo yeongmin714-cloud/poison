@@ -86,8 +86,9 @@ namespace ProjectName.EditorTools
             // 이동: Idle ↔ Walk ↔ Run (Speed 기반)
             T(sm, idle, walk, "Speed", AnimatorConditionMode.Greater, 0.5f);
             T(sm, walk, idle, "Speed", AnimatorConditionMode.Less, 0.1f);
-            T(sm, walk, run, "Speed", AnimatorConditionMode.Greater, 6f);
-            T(sm, run, walk, "Speed", AnimatorConditionMode.Less, 5f);
+            T(sm, walk, run, "Speed", AnimatorConditionMode.Greater, 5.5f);
+            // Run→Walk 임계를 4.0으로 낮춰 히스테리시스 확대 — 스프린트 중 상태 플리커(갑자기 멈춤) 방지
+            T(sm, run, walk, "Speed", AnimatorConditionMode.Less, 4f);
 
             // 트리거 상태: Any State → 상태 (canTransitionToSelf=false) → Idle 복귀(exit time)
             AnyState(sm, roll, "Roll");

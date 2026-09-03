@@ -723,6 +723,15 @@ namespace ProjectName.Systems
                 _camYaw += Mathf.Sign(nx) * edge * 90f * Time.deltaTime;
             }
 
+            // ── 커서 상하 위치 → 카메라 피치 소프트 팬 ──
+            // 위쪽 = 시야 앞쪽(40°, 카메라 낮아짐) / 아래쪽 = 수직 탑다운(80°, 카메라 높아짐)
+            float ny = camPixel.y > 1f ? (cursorPos.y / camPixel.y) * 2f - 1f : 0f; // -1(위) ~ +1(아래)
+            if (Mathf.Abs(ny) > 0.35f)
+            {
+                float edgeY = (Mathf.Abs(ny) - 0.35f) / 0.65f;
+                _camPitch = Mathf.Clamp(_camPitch + Mathf.Sign(ny) * edgeY * 50f * Time.deltaTime, 40f, 80f);
+            }
+
             // 줌은 항상 휠
             float scroll = mouse.scroll.ReadValue().y;
             if (Mathf.Abs(scroll) > 0.001f)
