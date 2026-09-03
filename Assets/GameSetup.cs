@@ -91,6 +91,12 @@ public class GameSetup : MonoBehaviour
         TerrainModelPlacer.PlaceAllIfNeeded(decoGO.transform);
         Debug.Log("[GameSetup][TerrainDeco] ✅ TerrainModelPlacer.PlaceAllIfNeeded 완료");
 
+        // ── Idyllic 프리팹 국가별 테마 배치 (P-4) ─────────────────────
+        // Resources/IdyllicPrefabs(나무/바위/꽃/갈대)를 국가별 테마로 절차 배치.
+        // 별도 부모 'IdyllicDeco' 아래 배치(기존 GLB 데코 유지), 결정론 시드 + 최소 간격.
+        IdyllicDecoPlacer.PlaceAll(decoGO.transform, decoGO.transform);
+        Debug.Log("[GameSetup][TerrainDeco] ✅ IdyllicDecoPlacer.PlaceAll 완료");
+
         // ── 흙길 4개 (지형 메시 정점색, T5) ──────────────────────────
         // Ground_Inner의 MeshFilter.sharedMesh에서 Mesh를 얻어 ApplyPathsToTerrain 호출.
         // TerrainTextureApplier가 런타임 Start에서 메시 높이만 재표본하므로(정점 위치만 변경,
