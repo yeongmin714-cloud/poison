@@ -945,3 +945,33 @@ Cross(Edge1, Edge2) = (0, -dx·dz, 0) = **법선이 아래(-Y)를 향함**.
 ### 검증
 - 정적: 중괄호 균형 5파일 PASS, YAML 4전환 값 검증 PASS(에디터 개방 중 배치컴파일 불가)
 - Play 확인 필요: 커서 위/아래 피치 팬, 걷기 연속성, 정지→재출발 딜레이 0
+
+---
+
+## 2026-09-03: Idyllic Fantasy Nature 에셋 전면 적용 — 지형 텍스처 + 분위기 + 숲 + 호수 (P-1~P-4)
+
+**목표:** 유니티 애셋스토어 'Idyllic Fantasy Nature'로 기존 지형의 톤을 밝은 판타지 자연으로 전환. 방위별 테마(동초록/남붉은사막/북설원/서사막/중심대리석) 유지.
+
+### P-1 지형 텍스처 교체 + colorTint 방위 테마
+- **텍스처**: Idyllic Ground/Grass/Cliff/Moss에서 국가 접두사로 21개 PNG 복사 → `Assets/Resources/Models/UserProvided/terrain/textures_idyllic/` (기존 jpg 폴더는 회귀 폴백용으로 유지)
+  - east(5): grass1~3/meadow/moss / south(4): dirt/dirt2/dirtstone/rock / north(4): cliff/forest/grass/moss / west(4): dirt/dirtstone/rock/sand / empire(4): cliff/cobble/dirtstone/rock
+- **TerrainTextureApplier**: `_textureResourcesPath` 기본값 textures_idyllic로 변경 + **씬 MainScene 직렬화값도 동일하게 수정**(코드 기본값만 바꾸면 씬 직렬화가 이김 — 핵심 발견). 접두사 분류 로직 유지.
+- **colorTint 추가**: TerrainLayerDef에 `Color colorTint` 필드 + CreateForNation 국가별 switch(East 0.95,1.05,0.90 / South 1.10,0.78,0.70 / North 0.96,0.99,1.05 / West 1.08,0.90,0.72 / Empire 0.95,0.97,1.00). TerrainSplatBaker.ComputeLayerColor가 합산 후 1회 곱(결정론 유지).
+
+### P-2 분위기 밝기 전환 — AmbianceBrightener 신규 + DayNightCycle 충돌 해결
+- 신규 `AmbianceBrightener.cs`: 밝은 fog(0.85,0.88,0.95/밀도0.00025) + Trilight 앰비언트 + Sun 1.2/Moon 0.05.
+- GameSetup.BootstrapTerrainDeco 후 AddComponent 연결.
+- **충돌 해결**: DayNightCycle이 매 프레임 RenderSettings를 Lerp 재설정해 1회 밝기를 덮어씀 → `DayNightCycle.ApplyBrightDayPalette()` 공개 메서드 추가, AmbianceBrightener가 이를 호출해 `_day*` 파라미터를 밝게 교체 → 주야간 사이클 유지하면서 낮만 밝게(근본).
+
+### P-3 호수 → 반투명 판타지 물
+- `WaterMaterialUpgrader` +~430줄: 경로A Idyllic Water.shadergraph(Shader.Find "Shader Graphs/Water", queue3000 Transparent, depth fade), 경로B URP Lit 폴백(반투명 _Surface=1 + Idyllic Water_Normal 명도로 틴트 알베도 _BaseMap + UV 흐름).
+- `LakeGenerator`: 수면 재질 경로 교체 + Update에서 _BaseMap UV flow 애니(U 0.02/V 0.012). WaterNormal 2개를 Resources/Water/에 배치. 강/바다(WaterBody) 과적용 방지.
+
+### P-4 국가별 숲/바위/꽃 배치 — IdyllicDecoPlacer 신규
+- Idyllic 프리팹 69개 → `Assets/Resources/IdyllicPrefabs/`(Trees/Rocks/Bushes/Shore/Water/Flowers/Meadows) 사본, .meta는 에디터가 생성.
+- 신규 `IdyllicDecoPlacer.cs`(791줄): 별도 부모 'IdyllicDeco' 아래 절차 배치. 국가별 테마(동 활엽+블로섬 / 북 침엽+흰꽃 / 서·남 사막 관목+바위 / 중심 나무0+화분식). 호수 주변 갈대+수련+물가나무.
+- 오버밀도 방지: 지터그리드+공간해시 최소간격(나무9m/평균14m, 바위7m, 부시6m, 꽃3.5m, 갈대2.2m) + 국가별 상한(전체 나무≤430). 기존 GLB 데코 위치 해시 선점으로 중첩 방지. 시드 20260902 고정 결정론. 착지 `GetHeightAt+1f`.
+
+### 검증
+- 9개 .cs 중괄호/괄호/대괄호 균형 일괄 OK. 씬 직렬화 경로 확인. 삭제 파일 0건.
+- ⏳ **Play 확인 필요**: 지형 텍스처(밝아졌는지+방위별 색 구분), 분위기(낮 톤), 숲 배치(오버밀도 없이 국가별), 호수(반투명 물+흐름).
