@@ -1023,3 +1023,10 @@ OneHand_Up_Idle=1b267cb3..., Walk_B=ba58acae..., Run_B=282509bf..., Attack_1=ec2
 - 중괄호/괄호 균형: MonsterSpawner 0/0/0, RingDifficultyData 0/0/0. GetByActiveTime 잔재 0, GetByTier 2곳, nightMultiplier=2.0, nightProb 0.55/0.35/0.10 확인.
 - 커밋 24863c0f (자동커밋). QAPROGRESS 추가 기록 예정.
 - ⏳ Play 확인: 밤에 몬스터 수 증가 + 낮에도 존재, Ring1에 초보 다수/강한 종 없음, 멀리 갈수록 강해짐.
+
+### 수정 (09-03 보정): 몬스터 난이도 방향 반전
+- 사용자 정정: **왕실 중심(0,0,0)에서 멀수록 약, 중심부로 갈수록 강**이 되어야 함.
+- 이전 P-4가 반대로(중심=Ring1 약, 바깥=Ring4 강) 매핑했음을 교정.
+- `DetermineTerritoryDifficulty` 반전: dist<600=Ring4(강)/<1200=Ring3/<1800=Ring2/else=Ring1(약).
+- ∴ 맵 중심(왕실) = 강한 몬스터(Ring4/Advanced 일부 + Int), 바깥으로 갈수록 약(초보 다수).
+- RingDifficultyData 티어/마리수 테이블은 그대로(Ring1=약/많이, Ring4=강/적게 — 이미 정방향).
