@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core.Utils;
+using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
 {
@@ -329,13 +330,11 @@ namespace ProjectName.Systems
             _surfaceRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             _surfaceRenderer.receiveShadows = false;
 
-            // P-3: 반투명 판타지 물 재질 — Idyllic Water 텍스처 + UV 흐름 + 반투명.
+            // P-3/T-R5: 반투명 판타지 물 재질 — Idyllic Water 텍스처 + UV 흐름 + 반투명.
+            // T-R5: 호수 중심 위치 기준 국가별 터쿼이즈/에메랄드 틴트 그라데이션.
             // Water.shadergraph 사용 가능 시 그래프 재질, 실패 시 URP Lit 반투명 폴백.
-            // 이전 호수색(_waterColor)을 유지하되 FantasyLakeColor 쪽으로 절반 밝게 블렌드.
-            Color brightLakeColor = Color.Lerp(_waterColor, WaterMaterialUpgrader.FantasyLakeColor, 0.5f);
-            brightLakeColor.a = _waterColor.a;
-            _surfaceMaterial = WaterMaterialUpgrader.CreateFantasyWaterMaterial(
-                $"{gameObject.name}_LakeMat", brightLakeColor, 0.65f);
+            _surfaceMaterial = WaterMaterialUpgrader.CreateNationTintedWaterMaterial(
+                $"{gameObject.name}_LakeMat", _center, 0.65f);
             if (_surfaceMaterial != null)
             {
                 _surfaceRenderer.material = _surfaceMaterial;
@@ -345,6 +344,11 @@ namespace ProjectName.Systems
                     Mathf.Repeat(_center.x * 0.37f, 1f),
                     Mathf.Repeat(_center.z * 0.53f, 1f));
             }
+
+            // T-R5 안전(역전 금지): 호수 중심 반경 내 지형이 수면 아래로 유지되도록 보강.
+            // ApplyLakeBasins(카브) + PROTECT_CLIFF_RADIUS(호수 40m 절벽 금지)가 대부분 처리하지만,
+            // 만반의 안전망으로 중심 지형이 수면 위로 솟으면 표면을 살짝 들어 올린다.
+            EnforceSurfaceAboveTerrain();
 
             // --- Step 4: Create collision volume ---
             _collisionVolume = new GameObject($"{gameObject.name}_LakeVolume");
@@ -362,6 +366,48 @@ namespace ProjectName.Systems
             catch (UnityException) { Debug.LogWarning("[LakeGenerator] 'Water' 태그 미정의 — Untagged 유지 (TagManager에 Water 태그 추가 권장)"); }
             // --- Step 5: Position parent at the desired surface Y ---
             _baseY = _surfaceY;
+            transform.position = new Vector3(transform.position.x, _baseY, transform.position.z);
+        }
+
+        /// <summary>
+        /// T-R5 안전망: 호수 중심 반경 내 지형이 수면 아래로 유지되도록 보강한다 (역전 금지).
+        /// ApplyLakeBasins(분지 카브)와 호수 PROTECT_CLIFF_RADIUS(40m 절벽 억제)가 대부분 보장하지만,
+        /// 만반의 안전망으로 중심 + 방사형 4방향의 지형 높이를 샘플링해 지형이 수면보다 솟아 있으면
+        /// 표면을 살짝 들어올려 절벽/해안 단차(수면 위 뾰족한 지형)를 막는다.
+        /// 정상 케이스(카브가 수면을 충분히 아래로)에서는 아무 변경도 하지 않는다 — 결정론 유지.
+        /// </summary>
+        private void EnforceSurfaceAboveTerrain()
+        {
+            if (_center == default) return;
+
+            float maxTerrain = _surfaceY;
+            int samples = 4;
+            for (int i = 0; i < samples; i++)
+            {
+                float ang = (Mathf.PI * 2f * i) / samples + 0.7853981f; // 22.5° 회전 — 축 정렬 방향 반복 방지
+                float wx = _center.x + Mathf.Cos(ang) * _radius * 0.9f;
+                float wz = _center.z + Mathf.Sin(ang) * _radius * 0.9f;
+                float h = TerrainGenerator.GetHeightAt(wx, wz, BiomeType.Plains, 42);
+                if (h > maxTerrain) maxTerrain = h;
+            }
+
+            // 호수 중심 (가장 깊은 카브 지점)도 확인
+            float centerH = TerrainGenerator.GetHeightAt(_center.x, _center.z, BiomeType.Plains, 42);
+            if (centerH > maxTerrain) maxTerrain = centerH;
+
+            if (maxTerrain <= _surfaceY)
+                return; // 정상 — 지형이 수면 아래, 변경 없음
+
+            // 지형이 수면 위로 솟음 — 표면을 지형 + 여유 높이로 올려 역전 방지
+            float newSurfaceY = maxTerrain + 0.15f;
+            Debug.LogWarning(
+                $"[LakeGenerator] '{gameObject.name}' 지형이 수면 위 솟음(역전) 감지 — " +
+                $"surface {_surfaceY:F2} → {newSurfaceY:F2} (maxTerrain {maxTerrain:F2}, 반경 갱신). " +
+                "호수 위치/시드는 변경하지 않음 (안전망 상향만 적용).");
+
+            _surfaceY = newSurfaceY;
+            _baseY = _surfaceY;
+            _collisionVolume.transform.localPosition = Vector3.zero;
             transform.position = new Vector3(transform.position.x, _baseY, transform.position.z);
         }
 

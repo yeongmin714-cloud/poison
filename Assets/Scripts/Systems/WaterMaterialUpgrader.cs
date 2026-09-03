@@ -264,12 +264,6 @@ namespace ProjectName.Systems
             return clone;
         }
 
-        /// <summary>
-        /// Returns true if the given material has all the upgraded water material properties.
-        /// </summary>
-        /// <summary>
-        /// Returns true if the given material has all the upgraded water material properties.
-        /// </summary>
         // ─────────────────────────────────────────────────────────────────
         // T-R5: turquoise/emerald lake palette + nation tint
         // ─────────────────────────────────────────────────────────────────
