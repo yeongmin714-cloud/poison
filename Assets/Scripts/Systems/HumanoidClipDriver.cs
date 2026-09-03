@@ -56,6 +56,15 @@ namespace ProjectName.Systems
             }
 
             if (_anim != null) _anim.SetFloat("Speed", 0f);
+
+            // 진단: 아바타/컨트롤러 상태 (T-pose 원인 판별용)
+            var avatarInfo = (_anim != null && _anim.avatar != null)
+                ? $"{_anim.avatar.name}:isValid={_anim.avatar.isValid}"
+                : "NULL";
+            var ctrlInfo = (_anim != null && _anim.runtimeAnimatorController != null)
+                ? _anim.runtimeAnimatorController.name
+                : "NULL";
+            Debug.Log($"[HumanoidClipDriver] anim=OK avatar={avatarInfo} controller={ctrlInfo} mode={mode}");
         }
 
         private void Update()
@@ -125,6 +134,52 @@ namespace ProjectName.Systems
             float speed = dt > 0.0001f ? delta.magnitude / dt : 0f;
             _anim.SetFloat("Speed", speed);
             _lastPos = transform.position;
+        }
+
+
+        // ───────────────────── 머티리얼 유틸 ─────────────────────
+        /// <summary>
+        /// 원본 GLB(텍스처 정상)의 머티리얼을 Humanoid FBX 본체로 복사한다.
+        /// Blender FBX export는 텍스처를 유실하므로 흰색으로 보이는 문제의 해결책.
+        /// URP Lit 재생성 + GLB의 _BaseMap 텍스처 이식.
+        /// </summary>
+        public static void CopyMaterialsFromGlb(GameObject fbxBody, string glbResourcePath)
+        {
+            var glbPrefab = Resources.Load<GameObject>(glbResourcePath);
+            if (glbPrefab == null)
+            {
+                Debug.LogWarning($"[HumanoidClipDriver] GLB 원본 없음: {glbResourcePath}");
+                return;
+            }
+            var temp = Object.Instantiate(glbPrefab);
+            temp.SetActive(false);
+            try
+            {
+                var srcRends = temp.GetComponentsInChildren<Renderer>(true);
+                var dstRends = fbxBody.GetComponentsInChildren<Renderer>(true);
+                if (srcRends.Length == 0 || dstRends.Length == 0)
+                {
+                    Debug.LogWarning("[HumanoidClipDriver] 머티리얼 복사 대상 렌더러 없음");
+                    return;
+                }
+                var src = srcRends[0].sharedMaterial;
+                Texture baseTex = src != null && src.HasProperty("_BaseMap")
+                    ? src.GetTexture("_BaseMap") : (src != null ? src.mainTexture : null);
+                Color baseCol = src != null && src.HasProperty("_BaseColor")
+                    ? src.GetColor("_BaseColor") : Color.white;
+
+                var urpLit = Shader.Find("Universal Render Pipeline/Lit");
+                var mat = new Material(urpLit);
+                if (baseTex != null) mat.SetTexture("_BaseMap", baseTex);
+                mat.SetColor("_BaseColor", baseCol);
+                foreach (var r in dstRends)
+                    if (r != null) r.sharedMaterial = mat;
+                Debug.Log($"[HumanoidClipDriver] 머티리얼 복사 완료: 대상 {dstRends.Length}개, 텍스처={(baseTex != null ? baseTex.name : "없음")}");
+            }
+            finally
+            {
+                Object.Destroy(temp);
+            }
         }
 
         // ───────────────────── 외부 트리거 ─────────────────────

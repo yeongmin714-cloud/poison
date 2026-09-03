@@ -265,6 +265,7 @@ public class GameSetup : MonoBehaviour
                 Debug.LogWarning("[GameSetup] Player_AC 미생성 — Tools > Anim > Build Mixamo Controllers 실행 필요");
             var drvF = bodyF.AddComponent<HumanoidClipDriver>();
             drvF.mode = HumanoidClipDriver.DriveMode.Player;
+            HumanoidClipDriver.CopyMaterialsFromGlb(bodyF, "Models/UserProvided/Player_Rigged");
             if (rendsF.Length > 0)
                 Debug.Log($"[GameSetup] ✅ 플레이어 Humanoid FBX 적용: 렌더러 {rendsF.Length}개, 최종 bounds={rendsF[0].bounds.size:F2}");
             else

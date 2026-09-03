@@ -886,3 +886,17 @@ Cross(Edge1, Edge2) = (0, -dx·dz, 0) = **법선이 아래(-Y)를 향함**.
 7. GuardCombatAI: 공격 트리거 → HumanoidClipDriver
 
 **검증:** 배치컴파일 통과, Humanoid 4종 isValid=True, 컨트롤러 4개 생성. Play 시각검증 대기.
+
+## 2026-09-02 플레이어 GLB 흰색/무애니 수리 (믹사모 파이프라인 완성)
+
+**증상:** Humanoid FBX로 캐릭터 형상은 보이나 흰색+뭉개짐+애니메이션 미구동.
+
+**원인 2건:**
+1. 믹사모 클립 FBX 82개가 **Generic 리그**로 임포트됨 → Humanoid 아바타에 Generic 클립은 리타겟 불가 → T-pose 정지
+2. Blender FBX export가 **텍스처를 유실** → 머티리얼 없음 → 흰색
+
+**수리:**
+- MixamoClipRigSetup.cs (신규): 믹사모 클립 전체 Humanoid 전환 (82/82 완료, mixamorig 본 자동매핑)
+- HumanoidClipDriver: CopyMaterialsFromGlb 유틸 — 원본 GLB의 _BaseMap 텍스처를 URP Lit 머티리얼로 재생성해 FBX 본체에 이식 (플레이어+병사 전부 적용)
+- HumanoidClipDriver Start 진단 로그: avatar/isValid/controller 상태 출력
+**검증:** 배치컴파일 통과 (executeMethod, error CS 0). Play 시각검증 대기.

@@ -530,6 +530,8 @@ namespace ProjectName.Systems
                     Resources.Load<RuntimeAnimatorController>($"Animation/Controllers/Soldier{classKey}_AC");
                 var driver = go.AddComponent<HumanoidClipDriver>();
                 driver.mode = HumanoidClipDriver.DriveMode.Soldier;
+                var glbKey = fbxKey.Replace("/fbx/", "/");
+                HumanoidClipDriver.CopyMaterialsFromGlb(go, glbKey);
             }
             placeholder.SetGuardInfo(guardName, level, nation);
 
