@@ -4,16 +4,47 @@ namespace ProjectName.Systems
 {
     /// <summary>
     /// P-2: 밝은 판타지 자연 분위기 전환 (런타임).
-    /// Start()에서 안개 색/밀도, Trilight 앰비언트, Directional Light 강도를 밝게 설정한다.
     /// GameSetup.Start() → BootstrapTerrainDeco() 이후 AddComponent로 부착됨.
+    ///
+    /// [P-2 QA 충돌 해결] DayNightCycle이 활성인 씬에서는 이 컴포넌트의 1회성
+    /// RenderSettings 설정이 DNC.Update()의 매 프레임 Lerp로 무효화된다.
+    /// → DNC를 감지하면 RenderSettings를 직접 쓰지 않고, DNC의 낮(day) 팔레트를
+    ///   밝은 값으로 교체(ApplyBrightDayPalette)한다. 그러면 DNC이 밝은 낮 기준으로
+    ///   매 프레임 Lerp하므로 밝기가 유지되고, 야간 어둡기 사이클도 그대로 유지된다.
+    /// → DNC가 없거나 비활성이면 기존대로 Start에서 1회 직접 적용한다.
     /// </summary>
     public class AmbianceBrightener : MonoBehaviour
     {
+        // DNC 연동 시 DNC의 day 팔레트에 적용할 밝은 값 (정적 경로와 동일 톤).
+        private static readonly Color BrightDayAmbient = new Color(0.75f, 0.80f, 0.88f);
+        private static readonly Color BrightFogColor = new Color(0.85f, 0.88f, 0.95f);
+        private const float BrightFogDensity = 0.00025f;
+        private const float BrightNoonIntensity = 1.2f;
+
         private void Start()
         {
+            // ── 우선 경로: DayNightCycle 활성 시 day 팔레트 오버라이드 ──
+            // 같은 네임스페이스(ProjectName.Systems)이므로 직접 참조 (리플렉션 불필요).
+            var dnc = FindAnyObjectByType<DayNightCycle>();
+            if (dnc != null && dnc.isActiveAndEnabled)
+            {
+                dnc.ApplyBrightDayPalette(BrightDayAmbient, BrightFogColor, BrightFogDensity, BrightNoonIntensity);
+                Debug.Log("[AmbianceBrightener] ✅ DayNightCycle 활성 감지 — 낮 팔레트를 밝은 값으로 오버라이드 " +
+                          $"(ambient={BrightDayAmbient}, fog={BrightFogColor}, density={BrightFogDensity}, noonI={BrightNoonIntensity}). " +
+                          "RenderSettings 직접 쓰기는 DNC에 위임 (매 프레임 덮어쓰기 충돌 제거).");
+                return;
+            }
+
+            // ── DNC 부재/비활성: 기존 1회 정적 적용 ──────────────────────
+            ApplyStaticBrightAmbiance();
+        }
+
+        /// <summary>DayNightCycle이 없을 때의 1회성 밝은 분위기 적용 (Trilight 앰비언트).</summary>
+        private void ApplyStaticBrightAmbiance()
+        {
             // ── 안개: fog 플래그는 유지, 색/밀도만 밝고 옅게 ──────────────
-            RenderSettings.fogColor = new Color(0.85f, 0.88f, 0.95f);
-            RenderSettings.fogDensity = 0.00025f;
+            RenderSettings.fogColor = BrightFogColor;
+            RenderSettings.fogDensity = BrightFogDensity;
 
             // ── 앰비언트: Trilight (하늘/적도/지면 3단 보간) ──────────────
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
@@ -57,13 +88,13 @@ namespace ProjectName.Systems
                     }
                     else
                     {
-                        light.intensity = 1.2f;
+                        light.intensity = BrightNoonIntensity;
                         sunCount++;
                     }
                 }
             }
 
-            Debug.Log($"[AmbianceBrightener] ✅ 밝은 판타지 분위기 적용: fog=밝은 하늘색(0.00025), Trilight 앰비언트, Sun {sunCount}개→1.2 / Moon {moonCount}개→0.05");
+            Debug.Log($"[AmbianceBrightener] ✅ 밝은 판타지 분위기 적용(정적): fog=밝은 하늘색({BrightFogDensity}), Trilight 앰비언트, Sun {sunCount}개→{BrightNoonIntensity} / Moon {moonCount}개→0.05");
         }
     }
 }

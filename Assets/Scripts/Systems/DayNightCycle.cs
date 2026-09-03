@@ -439,6 +439,33 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
+        // P-2 QA: 밝은 판타지 낮 팔레트 오버라이드 (AmbianceBrightener 연동)
+        // ================================================================
+
+        /// <summary>
+        /// [P-2 QA] 외부(AmbianceBrightener)가 낮(day) 팔레트를 밝은 값으로 교체할 때 호출한다.
+        /// _dayAmbient/_dayFogColor/_dayFogDensity/_noonIntensity를 교체하므로
+        /// 이후 Update()/ApplyImmediate()의 Lerp가 밝은 낮 기준으로 수행된다.
+        /// → AmbianceBrightener의 1회성 RenderSettings 설정이 이 컴포넌트의
+        ///   매 프레임 덮어쓰기로 무효화되는 충돌을, 단일 작성자(DayNightCycle)의
+        ///   파라미터 교체로 근본 해결한다. 야간(_night*) 값은 그대로 유지되어
+        ///   주야간 사이클도 유지된다.
+        /// </summary>
+        public void ApplyBrightDayPalette(Color dayAmbient, Color dayFogColor, float dayFogDensity, float noonIntensity)
+        {
+            _dayAmbient = dayAmbient;
+            _dayFogColor = dayFogColor;
+            _dayFogDensity = Mathf.Max(0.00001f, dayFogDensity);
+            if (noonIntensity > 0f)
+                _noonIntensity = noonIntensity;
+
+            // 이미 Start가 지난 뒤라면 즉시 재적용(호출 순서 무관하게 밝기 보장).
+            // Start 전이면 _timeManager가 null — 이후 Start()/Update()가 교체된 값을 사용.
+            if (_timeManager != null)
+                ApplyImmediate();
+        }
+
+        // ================================================================
         // 참조 해결
         // ================================================================
 
