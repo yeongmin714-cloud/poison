@@ -538,6 +538,14 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
+        /// Phase T-R3: 절벽 억제 마스크 공개 접근자. 지형 "형태"(ComputeNationHeight)와
+        /// 색 "스플랫"(TerrainSplatBaker)이 같은 suppression을 써서 스폰/성/호수/경계 근처
+        /// 절벽이 형태와 함께 색상(L3 바위)도 억제되도록 단일 소스로 노출한다.
+        /// 기존 ComputeCliffSuppression 동작은 그대로 (추가 전용, 회귀 없음).
+        /// </summary>
+        public static float SampleCliffSuppression(float x, float z) => ComputeCliffSuppression(x, z);
+
+        /// <summary>
         /// 위치 (x,z)의 Base/Valley 완만화 디테일 계수 [0,1] (T-R2).
         /// 경계 크로스페이드 연속성(|Δh|&lt;0.5, Test b)과 보호 앵커(스폰/성/호수/황제국)
         /// 주변의 완만한 구릉을 보증한다.

@@ -445,5 +445,38 @@ namespace ProjectName.Systems
             float rx = px - cx, rz = pz - cz;
             return rx * rx + rz * rz;
         }
+
+        // ================================================================
+        // Phase T-R3: 흙길 스플랫 L4 마스크 (동일 좌표계 공유)
+        // ================================================================
+
+        /// <summary>
+        /// 흙길(진입로) 스플랫 L4 마스크 [0,1] — Phase T-R3 §2.
+        /// ApplyPathsToTerrain과 동일한 좌표계/도로(4방위: 황제국 가장자리 60m → 반경 700m)를
+        /// 사용한다. 도로 중심 0 → 가장자리(10m)에서 0으로 부드럽게 페이드되는 흙길 밴드.
+        /// 결정론적 (Geom 방법 — Unity 랜덤 미사용).
+        /// </summary>
+        public const float DirtRoadHalfWidth = 10f;   // 시각적 흙길 폭(마킹 반경)과 정렬
+
+        public static float DirtRoadMask(float x, float z)
+        {
+            Vector3[] dirs =
+            {
+                Vector3.right,   // East  (+x)
+                Vector3.forward, // North (+z)
+                Vector3.left,    // West  (-x)
+                Vector3.back     // South (-z)
+            };
+            float bestSq = float.MaxValue;
+            for (int i = 0; i < dirs.Length; i++)
+            {
+                Vector3 start = dirs[i] * EmpireEdgeRadius;   // 60m (황제국 가장자리)
+                Vector3 end = dirs[i] * RoadLengthMeters;     // 700m (반경)
+                float d = DistToSegmentSq(x, z, start, end);
+                if (d < bestSq) bestSq = d;
+            }
+            float dist = Mathf.Sqrt(bestSq);
+            return 1f - Mathf.Clamp01(dist / DirtRoadHalfWidth);
+        }
     }
 }

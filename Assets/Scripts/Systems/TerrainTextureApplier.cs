@@ -450,15 +450,20 @@ namespace ProjectName.Systems
                         mat.mainTextureOffset = Vector2.zero;
 
                         // 근거리 미세 텍스처 복원: 스플랫 저해상도 뭉개짐을 URP DetailAlbedoMap으로 보완
+                        // (Phase T-R3: 5레이어 팔레트에서 대표 잔디/초원/숲 텍스처를 우선 선택)
                         var natList = _nationTextures[nation];
-                        Texture2D detailTex = natList.Count > 1 ? natList[1] : natList[0];
-                        mat.SetTexture("_DetailAlbedoMap", detailTex);
-                        mat.SetTextureScale("_DetailAlbedoMap", Vector2.one * 45f);   // T-G4: 60→45 (디테일 빈도 감소, 2048 스플랫과 균형)
-                        mat.SetTextureOffset("_DetailAlbedoMap", Vector2.zero);
-                        mat.EnableKeyword("_DETAIL_MULX2");
-                        mat.SetFloat("_DetailNormalMapScale", 1f);
+                        Texture2D detailTex = PickDetailTexture(natList);
+                        if (detailTex == null) detailTex = natList.Count > 0 ? natList[0] : null;
+                        if (detailTex != null)
+                        {
+                            mat.SetTexture("_DetailAlbedoMap", detailTex);
+                            mat.SetTextureScale("_DetailAlbedoMap", Vector2.one * 45f);   // T-G4: 60→45 (디테일 빈도 감소, 2048 스플랫과 균형)
+                            mat.SetTextureOffset("_DetailAlbedoMap", Vector2.zero);
+                            mat.EnableKeyword("_DETAIL_MULX2");
+                            mat.SetFloat("_DetailNormalMapScale", 1f);
+                        }
                         bool detailOK = mat.GetTexture("_DetailAlbedoMap") != null && mat.IsKeywordEnabled("_DETAIL_MULX2");
-                        Debug.Log($"[TerrainTextureApplier] {nation} 스플랫 맵 적용: {splat.name} + 디테일알베도({detailTex.name}) | detailOK={detailOK} (detailTex={mat.GetTexture("_DetailAlbedoMap") != null}, kw={mat.IsKeywordEnabled("_DETAIL_MULX2")})");
+                        Debug.Log($"[TerrainTextureApplier] {nation} 스플랫 맵 적용: {splat.name} + 디테일알베도({(detailTex != null ? detailTex.name : "NULL")}) | detailOK={detailOK} (detailTex={mat.GetTexture("_DetailAlbedoMap") != null}, kw={mat.IsKeywordEnabled("_DETAIL_MULX2")})");
                     }
                     else
                     {
@@ -497,6 +502,24 @@ namespace ProjectName.Systems
         {
             if (t == null) return false;
             try { t.GetPixel(0, 0); return true; } catch { return false; }
+        }
+
+        /// <summary>
+        /// Phase T-R3: 5레이어 팔레트에서 근거리 디테일 알베도로 쓸 대표 지면 텍스처 선택.
+        /// 잔디/초원/숲(저지대·중지대) 이름을 우선해 평지 대표 질감을 복원한다.
+        /// </summary>
+        private static Texture2D PickDetailTexture(List<Texture2D> list)
+        {
+            if (list == null || list.Count == 0) return null;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var t = list[i];
+                if (t == null || string.IsNullOrEmpty(t.name)) continue;
+                string ln = t.name.ToLowerInvariant();
+                if (ln.Contains("grass") || ln.Contains("meadow") || ln.Contains("forest"))
+                    return t;
+            }
+            return list.Count > 1 ? list[1] : list[0];
         }
 
         /// <summary>비읽기 텍스처를 RenderTexture 경유로 읽기 가능한 RGBA32 복사본으로 변환.</summary>

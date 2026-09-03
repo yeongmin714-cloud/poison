@@ -88,37 +88,82 @@ namespace ProjectName.Systems
             return acc;
         }
 
-        /// <summary>정규화된 레이어 가중치(합=1) 반환 (순수 함수).</summary>
+        /// <summary>
+        /// 정규화된 레이어 가중치(합=1) 반환 (순수 함수, 결정론적).
+        ///
+        /// Phase T-R3 가중치 재설계 — 형상과 색이 같은 데이터에서 나옴:
+        ///   · L3 바위·절벽 = TerrainShape.CliffMask (절벽 ridge 게이트 m, 고도 R2와 동일 단일 소스)
+        ///   · L5 이끼·수변 = 호수 반경 +8m 밴드 (TerrainGenerator.Lakes LCG 앵커 재사용, 시드 불변)
+        ///   · L4 흙길 = TerrainPathGenerator.DirtRoadMask (동일 좌표계)
+        ///   · L1/L2 = 고도 3분위 (저지대/중지대), 위 마스크 영역 제외
+        /// </summary>
         public static float[] ComputeWeights(float wx, float wz, List<TerrainLayerDef> layers, int seed)
         {
             int n = layers.Count;
             float[] w = new float[n];
             if (n == 0) return w;
 
+            NationType nation = layers[0].nation;
             float h = TerrainGenerator.GetHeightAt(wx, wz, BiomeType.Plains, 42);
             float nh = Mathf.Clamp01(h / HEIGHT_NORMALIZE);
-            float slope = EstimateSlopeDegrees(wx, wz);
-            float sn = Mathf.Clamp01(slope / 45f);
-            float noise = Mathf.PerlinNoise(wx * 0.002f + seed * 0.371f, wz * 0.002f + seed * 0.713f);
 
-            float sum = 0f;
+            // ── 공유 마스크 (형태-색 정합성의 핵심) ──
+            float cliff = TerrainShape.CliffMask(wx, wz, nation, seed, TerrainGenerator.SampleCliffSuppression(wx, wz));
+            float water = LakeBand(wx, wz);
+            float path  = TerrainPathGenerator.DirtRoadMask(wx, wz);
+
+            // L1/L2 아래 허용도 — 절벽/수변/흙길 우세 영역 제외
+            float unobstructed = Mathf.Clamp01(1f - Mathf.Max(cliff, water, path * 0.9f));
+
+            // 고도 3분위 → L1 저지대 / L2 중지대 (여기선 2층으로 세분, 상한 낮을수록 저지대)
+            float lowW = Mathf.Clamp01(1f - nh / 0.5f);          // 저지대 (nh 낮음 → 우세)
+            float midW = WeightFromCenter(nh, 0.55f, 0.35f);     // 중지대 (피크 ~0.55)
+
+            float[] raw = new float[n];
             for (int i = 0; i < n; i++)
             {
-                var L = layers[i];
-                float hw = WeightFromCenter(nh, L.heightBlendCenter, L.heightBlendWidth);
-                float sw = Mathf.Max(0f, 1f + L.slopePreference * sn);
-                float nw = 0.7f + 0.6f * noise;
-                w[i] = Mathf.Max(0f, hw * sw * L.strength * nw);
-                sum += w[i];
+                float v = 0f;
+                string nm = layers[i].layerName.ToLowerInvariant();
+                if (nm.Contains("lowland"))        v = lowW * unobstructed;
+                else if (nm.Contains("midland"))   v = midW * unobstructed;
+                else if (nm.Contains("rock"))      v = cliff;                                   // L3 절벽
+                else if (nm.Contains("dirt"))      v = path * (1f - Mathf.Clamp01(water));      // L4 흙길 (수변 우선)
+                else if (nm.Contains("moss"))      v = water;                                   // L5 이끼·수변
+                raw[i] = Mathf.Max(0f, v);
             }
+
+            float sum = 0f;
+            for (int i = 0; i < n; i++) sum += raw[i];
             if (sum <= 0.0001f)
             {
                 w[0] = 1f;
                 for (int i = 1; i < n; i++) w[i] = 0f;
                 return w;
             }
-            for (int i = 0; i < n; i++) w[i] /= sum;
+            for (int i = 0; i < n; i++) w[i] = raw[i] / sum;
             return w;
+        }
+
+        /// <summary>
+        /// 수면 인접(호수) 밴드 [0,1] — 호수 반경 안(1, 수면·진흙) → 반경 +8m(0, 일반 지면)로 페이드.
+        /// TerrainGenerator.Lakes(기존 LCG 앵커, 시드 불변)를 그대로 사용한다.
+        /// </summary>
+        static float LakeBand(float wx, float wz)
+        {
+            var lakes = TerrainGenerator.Lakes;
+            if (lakes == null || lakes.Count == 0) return 0f;
+            float best = 0f;
+            const float SHORE_BAND = 8f;   // 호수 반경 +8m 수변 밴드
+            for (int i = 0; i < lakes.Count; i++)
+            {
+                float dx = wx - lakes[i].center.x;
+                float dz = wz - lakes[i].center.z;
+                float d = Mathf.Sqrt(dx * dx + dz * dz);
+                float r = lakes[i].radius;
+                float band = 1f - Mathf.SmoothStep(r, r + SHORE_BAND, d);
+                if (band > best) best = band;
+            }
+            return Mathf.Clamp01(best);
         }
 
         /// <summary>값을 정규 높이로 보고 중심에서 떨어진 정도에 따라 1→0 선형 감쇠. 1=중심, 0=벗어남.</summary>
