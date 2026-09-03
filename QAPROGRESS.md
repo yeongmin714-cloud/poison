@@ -927,3 +927,21 @@ Cross(Edge1, Edge2) = (0, -dx·dz, 0) = **법선이 아래(-Y)를 향함**.
 - 달리기 끊김 방지: Walk→Run 6→5.5 / Run→Walk 5→4로 히스테리시스 확대 (스프린트 중 상태 플리커 제거)
 - 컨트롤러 재빌드 완료 + 배치컴파일 통과
 - 커서 조준(몸 방향)은 항상 활성 상태 유지 확인
+
+## 2026-09-03 카메라 피치 불동작 + 걷기/달리기 끊김 근본 수리
+
+### 원인 (2개 독립 버그 + 1개 잠재 버그)
+1. 카메라 피치: 씬 Main Camera에 구버전 TopDownCameraController 활성 — PlayerMovement.ApplyFollowCamera와 LateUpdate 충돌, 매 프레임 덮어씀(피치 ±10°라 정지로 보임) + 피치 팬 부호 반대(Input System y=0이 화면 아래)
+2. 걷기 끊김/멈춤 모션: HumanoidClipDriver가 CC.velocity 원시값을 Speed로 전달 → 지형 충돌로 속도 순간 0 근처 → Idle 플리커. Idle 진입 0.1/복귀 0.5 히스테리시스 부재 + 전환 0.12~0.15s 딜레이
+3. (잠재) 이중 본 구동: ProceduralAnimationController가 LateUpdate 무조건 포즈 덮어씀
+
+### 수리
+- PlayerMovement: 피치 팬 부호 수정(커서 위=40° 전방/아래=80° 탑다운), 90°/s, TopDownCameraController 런타임 파괴(1회) — 단일 카메라 권한
+- HumanoidClipDriver: Speed 지수 평활(k=1-exp(-10dt)) + 3프레임 정지 스냅 → Idle 플리커 원천 차단
+- Player_AC_AC.controller: Idle 진입<0.35/복귀>0.55 히스테리시스, 이동 전환 0.05s(딜레이 제거)
+- MixamoControllerBuilder 동기화(재빌드 대비) — 병사 컨트롤러 전환도 0.05로(의도됨)
+- ProceduralAnimationController/StateMachine: HumanoidClipDriver 존재 시 포즈 스킵 가드 (InParent||InChildren — QA에서 InParent 단독의 방향 결함 발견→수정)
+
+### 검증
+- 정적: 중괄호 균형 5파일 PASS, YAML 4전환 값 검증 PASS(에디터 개방 중 배치컴파일 불가)
+- Play 확인 필요: 커서 위/아래 피치 팬, 걷기 연속성, 정지→재출발 딜레이 0
