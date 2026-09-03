@@ -5,7 +5,9 @@ using UnityEngine;
 namespace ProjectName.EditorTools
 {
     /// <summary>
-    /// 믹사모 FBX 클립으로 4개 Animator Controller를 생성한다.
+    /// DoubleL RPG팩(Assets/DoubleL/Demo/Anim) Humanoid 클립으로 4개 Animator Controller를 생성한다.
+    /// 이 팩에 있는 애니(Idle/Walk/Run/Attack/Jump/Hit)는 pack: 프리픽스로 팩 클립을 사용하고,
+    /// 이 팩에 없는 애니(Death, Roll, 활 Attack 등)는 믹사모 FBX 클립을 유지한다.
     /// Tools > Anim > Build Mixamo Controllers
     /// 출력: Assets/Resources/Animation/Controllers/*.controller (런타임 Resources.Load 가능)
     /// 파라미터 계약: Speed(float) / 트리거 Attack, AttackCombo, Hit, Death (+Player_AC: Roll, Jump)
@@ -13,6 +15,7 @@ namespace ProjectName.EditorTools
     public static class MixamoControllerBuilder
     {
         const string MixamoDir = "Assets/Animations/Mixamo";
+        const string PackDir = "Assets/DoubleL/Demo/Anim"; // DoubleL RPG팩 .anim 폴더 (전부 Humanoid 리그라 자동 리타겟)
         const string OutDir = "Assets/Resources/Animation/Controllers";
 
         [MenuItem("Tools/Anim/Build Mixamo Controllers")]
@@ -22,27 +25,27 @@ namespace ProjectName.EditorTools
             BuildPlayer();
             BuildSoldier("SoldierShield", new[]
             {
-                ("Idle", "Sword And Shield Block Idle.fbx"),
-                ("Move", "Sword And Shield Run.fbx"),
-                ("Attack", "Sword And Shield Slash.fbx"),
-                ("Hit", "Sword And Shield Impact.fbx"),
-                ("Death", "Sword And Shield Death.fbx"),
+                ("Idle", "pack:OneHand_Up_Idle"),
+                ("Move", "pack:OneHand_Up_Run_B"),
+                ("Attack", "pack:OneHand_Up_Attack_1"),
+                ("Hit", "pack:Hit_F_1"),
+                ("Death", "Sword And Shield Death.fbx"), // 팩에 Death 없음 → 믹사모 유지
             }, player: false);
             BuildSoldier("SoldierGreatSword", new[]
             {
-                ("Idle", "Sword And Shield Block Idle.fbx"),   // 대검 전용 Idle 미다운로드 → 공용
-                ("Move", "Great Sword Run.fbx"),
-                ("Attack", "Great Sword Slash.fbx"),
-                ("Hit", "Great Sword Impact.fbx"),
-                ("Death", "Two Handed Sword Death.fbx"),
+                ("Idle", "pack:OneHand_Up_Idle"),   // 대검 전용 클립 없음 → 한손검 계열 통일
+                ("Move", "pack:OneHand_Up_Run_B"),
+                ("Attack", "pack:OneHand_Up_Attack_1"),
+                ("Hit", "pack:Hit_F_1"),
+                ("Death", "Two Handed Sword Death.fbx"), // 팩에 Death 없음 → 믹사모 유지
             }, player: false);
             BuildSoldier("SoldierArcher", new[]
             {
-                ("Idle", "Standing Aim Idle 02 Looking.fbx"),
-                ("Move", "Standing Aim Walk Forward.fbx"),
-                ("Attack", "Standing Draw Arrow.fbx"),
-                ("Hit", "Standing React Small From Right.fbx"),
-                ("Death", "Standing Death Backward 01.fbx"),
+                ("Idle", "pack:OneHand_Up_Idle"),   // 활 전용 .anim 부재 → 사람형 Idle은 OneHand 계열
+                ("Move", "pack:OneHand_Up_Walk_B"),
+                ("Attack", "Standing Draw Arrow.fbx"), // 활 Attack은 .anim 부재 → 믹사모 유지
+                ("Hit", "pack:Hit_F_1"),
+                ("Death", "Standing Death Backward 01.fbx"), // 팩에 Death 없음 → 믹사모 유지
             }, player: false);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -51,6 +54,15 @@ namespace ProjectName.EditorTools
 
         static AnimationClip Clip(string fileName)
         {
+            // "pack:<이름>" → DoubleL RPG팩 .anim 클립 (guid 지도와 동일 에셋)
+            if (fileName.StartsWith("pack:"))
+            {
+                var packPath = $"{PackDir}/{fileName.Substring(5)}.anim";
+                var pc = AssetDatabase.LoadAssetAtPath<AnimationClip>(packPath);
+                if (pc == null)
+                    Debug.LogWarning($"[MixamoControllers] 클립 없음: {packPath}");
+                return pc;
+            }
             var path = $"{MixamoDir}/{fileName}";
             var clips = AssetDatabase.LoadAllAssetsAtPath(path);
             foreach (var a in clips)
@@ -73,15 +85,15 @@ namespace ProjectName.EditorTools
                 ("Death", AnimatorControllerParameterType.Trigger),
             });
             var sm = ac.layers[0].stateMachine;
-            var idle = AddState(sm, "Idle", Clip("Idle.fbx"), true);
-            var walk = AddState(sm, "Walk", Clip("Walking.fbx"));
-            var run = AddState(sm, "Run", Clip("Running.fbx"));
-            var roll = AddState(sm, "Roll", Clip("Quick Roll To Run.fbx"));
-            var attack = AddState(sm, "Attack", Clip("Standing Melee Attack Horizontal.fbx"));
-            var combo = AddState(sm, "AttackCombo", Clip("One Hand Sword Combo.fbx"));
-            var jump = AddState(sm, "Jump", Clip("Standing Jump.fbx"));
-            var hit = AddState(sm, "Hit", Clip("Standing React Small From Right.fbx"));
-            var death = AddState(sm, "Death", Clip("Standing Death Backward 01.fbx"));
+            var idle = AddState(sm, "Idle", Clip("pack:OneHand_Up_Idle"), true);
+            var walk = AddState(sm, "Walk", Clip("pack:OneHand_Up_Walk_B"));
+            var run = AddState(sm, "Run", Clip("pack:OneHand_Up_Run_B"));
+            var roll = AddState(sm, "Roll", Clip("Quick Roll To Run.fbx")); // 팩에 구르기 없음 → 믹사모 유지
+            var attack = AddState(sm, "Attack", Clip("pack:OneHand_Up_Attack_1"));
+            var combo = AddState(sm, "AttackCombo", Clip("pack:OneHand_Up_Attack_1"));
+            var jump = AddState(sm, "Jump", Clip("pack:OneHand_Up_Jump_B"));
+            var hit = AddState(sm, "Hit", Clip("pack:Hit_F_1"));
+            var death = AddState(sm, "Death", Clip("Standing Death Backward 01.fbx")); // 팩에 Death 없음 → 믹사모 유지
 
             // 이동: Idle ↔ Walk ↔ Run (Speed 기반) — 히스테리시스: Idle→Walk는 0.55, Walk→Idle은 0.35로 분리
             // (지형/경사로 속도가 0 근처로 순간 떨어질 때 Idle로 떨어졌다 복귀하는 "끊김+멈춤" 방지)
