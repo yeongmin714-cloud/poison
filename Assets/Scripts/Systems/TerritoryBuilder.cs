@@ -528,6 +528,8 @@ namespace ProjectName.Systems
                 if (anim == null) anim = go.AddComponent<Animator>();
                 anim.runtimeAnimatorController =
                     Resources.Load<RuntimeAnimatorController>($"Animation/Controllers/Soldier{classKey}_AC");
+                // 루트 모션 비활성 (병사 이동도 위치 델타/커맨드가 제어)
+                anim.applyRootMotion = false;
                 var driver = go.AddComponent<HumanoidClipDriver>();
                 driver.mode = HumanoidClipDriver.DriveMode.Soldier;
                 var glbKey = fbxKey.Replace("/fbx/", "/");

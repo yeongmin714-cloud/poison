@@ -261,6 +261,10 @@ public class GameSetup : MonoBehaviour
             var animF = bodyF.GetComponent<Animator>();
             if (animF == null) animF = bodyF.AddComponent<Animator>();
             animF.runtimeAnimatorController = Resources.Load<RuntimeAnimatorController>("Animation/Controllers/Player_AC");
+            // ★ 루트 모션 비활성: 믹사모 걷기/달리기 클립에 이동이 베이크되어 있어
+            //   Apply Root Motion이 켜지면 몸(자식)이 캐릭터 컨트롤러에서 벗어나 걸어 나감.
+            //   이동은 CharacterController.Move가 전담 → 애니는 제자리 동작만.
+            animF.applyRootMotion = false;
             if (animF.runtimeAnimatorController == null)
                 Debug.LogWarning("[GameSetup] Player_AC 미생성 — Tools > Anim > Build Mixamo Controllers 실행 필요");
             var drvF = bodyF.AddComponent<HumanoidClipDriver>();
