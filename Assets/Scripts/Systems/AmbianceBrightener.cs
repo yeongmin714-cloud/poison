@@ -12,14 +12,15 @@ namespace ProjectName.Systems
     ///   밝은 값으로 교체(ApplyBrightDayPalette)한다. 그러면 DNC이 밝은 낮 기준으로
     ///   매 프레임 Lerp하므로 밝기가 유지되고, 야간 어둡기 사이클도 그대로 유지된다.
     /// → DNC가 없거나 비활성이면 기존대로 Start에서 1회 직접 적용한다.
+    /// 2026-09-03: 과노출 화이트아웃 수정(스크린샷 39) — 앰비언트/Sun 하향
     /// </summary>
     public class AmbianceBrightener : MonoBehaviour
     {
         // DNC 연동 시 DNC의 day 팔레트에 적용할 밝은 값 (정적 경로와 동일 톤).
-        private static readonly Color BrightDayAmbient = new Color(0.75f, 0.80f, 0.88f);
-        private static readonly Color BrightFogColor = new Color(0.85f, 0.88f, 0.95f);
+        private static readonly Color BrightDayAmbient = new Color(0.52f, 0.58f, 0.68f);
+        private static readonly Color BrightFogColor = new Color(0.72f, 0.78f, 0.88f);
         private const float BrightFogDensity = 0.00025f;
-        private const float BrightNoonIntensity = 1.2f;
+        private const float BrightNoonIntensity = 0.95f;
 
         private void Start()
         {
@@ -48,14 +49,14 @@ namespace ProjectName.Systems
 
             // ── 앰비언트: Trilight (하늘/적도/지면 3단 보간) ──────────────
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.92f, 0.95f, 1f);
-            RenderSettings.ambientEquatorColor = new Color(0.7f, 0.8f, 0.9f);
-            RenderSettings.ambientGroundColor = new Color(0.5f, 0.55f, 0.6f);
+            RenderSettings.ambientSkyColor = new Color(0.62f, 0.68f, 0.78f);
+            RenderSettings.ambientEquatorColor = new Color(0.50f, 0.56f, 0.65f);
+            RenderSettings.ambientGroundColor = new Color(0.38f, 0.42f, 0.48f);
 
             // ── Directional Light 강도 조정 ──────────────────────────────
             // "Directional Light" 태그 우선 (미등록 태그 예외 대비 try-catch),
             // 실패 시 이름 "Directional Light (Sun)" 폴백.
-            // 이름에 "Moon" 포함 시 0.05로 낮추고, 그 외(Sun)는 1.2로 밝힘.
+            // 이름에 "Moon" 포함 시 0.05로 낮추고, 그 외(Sun)는 BrightNoonIntensity로 밝힘.
             GameObject[] dirLights = null;
             try
             {

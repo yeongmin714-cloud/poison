@@ -111,6 +111,19 @@ namespace ProjectName.Systems
         [SerializeField] private float _nightEyeIntensity = 1.5f;
         private float _lastEyeUpdate;
 
+        // ===== 스폰 일시중지 스위치 (2026-09-03) =====
+        // 사용자 지시: "지형을 고칠 때까지 몬스터 스폰 잠시 중단" — 렉 원인 차단을 위해 완전 차단.
+        // 지형 고도화 완료 후 false로 변경 (또는 SetPaused(false) 호출).
+        public static bool SpawningPaused = true;
+
+        /// <summary>런타임에서 스폰 일시중지/재개를 토글한다. 값이 실제 변경될 때만 로그를 남긴다.</summary>
+        public static void SetPaused(bool paused)
+        {
+            if (SpawningPaused == paused) return;
+            SpawningPaused = paused;
+            Debug.Log($"[MonsterSpawner] 스폰 일시중지 {(paused ? "설정(중단)" : "해제(재개)")} — SpawningPaused={paused}");
+        }
+
         /// <summary>생성된 몬스터 수</summary>
         public int TotalSpawned => _spawnedMonsters.Count;
 
@@ -123,6 +136,11 @@ namespace ProjectName.Systems
         // ===== 생명주기 =====
         private void Start()
         {
+            if (SpawningPaused)
+            {
+                Debug.Log("[MonsterSpawner] 지형 고도화 전까지 스폰 일시중지 (SpawningPaused=true)");
+                return;
+            }
             SpawnAll();
         }
 
@@ -146,6 +164,9 @@ namespace ProjectName.Systems
 
         private void Update()
         {
+            // 스폰 일시중지 중에는 스폰·리스폰·밤눈 이펙트 등 모든 몬스터 조작 차단.
+            if (SpawningPaused) return;
+
             if (TimeManager.Instance != null)
             {
                 TimePeriod actual = GetTimePeriod(TimeManager.Instance.Hour);
@@ -178,10 +199,16 @@ namespace ProjectName.Systems
             return TimePeriod.Night;
         }
 
-        private void OnDayNightChanged(bool isDay) => RefreshSpawn();
+        private void OnDayNightChanged(bool isDay)
+        {
+            if (SpawningPaused) return;
+            RefreshSpawn();
+        }
 
         private void OnTimeChanged(int hour, int minute)
         {
+            if (SpawningPaused) return;
+
             TimePeriod newPeriod = GetTimePeriod(hour);
             if (newPeriod != CurrentPeriod)
             {
@@ -195,6 +222,7 @@ namespace ProjectName.Systems
         /// </summary>
         public void RefreshSpawn()
         {
+            if (SpawningPaused) return;
             ClearAll();
             SpawnAll();
         }
@@ -202,6 +230,7 @@ namespace ProjectName.Systems
         // ===== 영지 난이도 기반 스폰 (핵심 수정) =====
         public void SpawnAll()
         {
+            if (SpawningPaused) return;
             ClearAll();
             Random.InitState(_randomSeed);
 
@@ -847,6 +876,7 @@ namespace ProjectName.Systems
         /// </summary>
         public void RespawnAll()
         {
+            if (SpawningPaused) return;
             ClearAll();
             SpawnAll();
         }

@@ -1038,3 +1038,21 @@ OneHand_Up_Idle=1b267cb3..., Walk_B=ba58acae..., Run_B=282509bf..., Attack_1=ec2
 - **티어/종 분배**: SpawnAll→DistributeCountByWeight()로 링 토탈을 티어 가중치(시간대 확률)로 정수 분배(합계 일치+티어당 최소1). SpawnTierByDifficulty는 티어 몫을 종에 균등분배. 구 종별 곱셈 누적(과포화) 제거. CheckAndRespawn도 링 토탈 기준으로 재작성.
 - **중앙 레벨 강화**: ApplyMonsterLevel에 _centerLevelBonusMax=5·_mapRadius=1000. distBonus=round(5×(1−dist/1000)) — 0m=+5, 500m=+3, 1000m=+0. 기존 Ring보너스와 합산, MaxLevel 클램프. 중심 Beginner=14~18, 시작점=2~6 (같은 종도 중앙이 연속적으로 강함).
 - 검증: 균형 PASS 2파일, 구시 참조(1800/1200/600) 0건, 분배 시뮬레이션(Ring1=9+2=11, Ring4=1+1=2, 밤×2) 통과. 커밋 679226ab.
+
+## 2026-09-03 조명 과노출 수리 + 몬스터 스폰 일시중지 (스크린샷 39)
+
+### 1) 조명 화이트아웃
+- 원인: AmbianceBrightener 값 과다 — 알베도 0.5 지면 × (앰비언트 하늘 0.92 + Sun 1.2) ≈ 1.05 → 1.0 클리핑(화면 90% 백색). DNC 미부착이라 정적 경로가 전권
+- 수리: 앰비언트 sky 0.92/eq 0.70/ground 0.50 → 0.62/0.50/0.38, BrightDayAmbient 0.75→0.52, Sun 1.2→0.95, 포그색 하향. 최대 확산광 0.87/0.82 (<1.0)
+- Moon 0.05/포그밀도 0.00025 유지. 정적+DNC 팔레트 양쪽 경로 동시 적용
+
+### 2) 몬스터 스폰 일시중지
+- 사용자 지시: 지형 고도화 전까지 스폰 중단(렉 원인)
+- MonsterSpawner.SpawningPaused=true 정적 스위치 + SetPaused(bool) 토글
+- 가드 7곳: Start/Update/OnDayNightChanged/OnTimeChanged/SpawnAll/RefreshSpawn/RespawnAll (ClearAll 제외 — 수동 정리용)
+- 스폰/리스폰/밤눈/시간대 리프레시 전부 차단. 외부 호출자 없음(QA 확인)
+- 재개 방법: MonsterSpawner.SpawningPaused = false (또는 SetPaused(false))
+
+### 검증
+- 정적: 중괄호 균형 2파일 PASS, 확산광 재계산 PASS, 가드 7진입점 라인번호 확인, 외부 호출자 grep 무해
+- Play 확인 대기: 스크린샷 40으로 밝기 확인 + 콘솔 "[MonsterSpawner] 일시중지" 로그
