@@ -17,10 +17,10 @@ namespace ProjectName.Systems
     public class AmbianceBrightener : MonoBehaviour
     {
         // DNC 연동 시 DNC의 day 팔레트에 적용할 밝은 값 (정적 경로와 동일 톤).
-        private static readonly Color BrightDayAmbient = new Color(0.52f, 0.58f, 0.68f);
-        private static readonly Color BrightFogColor = new Color(0.72f, 0.78f, 0.88f);
+        private static readonly Color BrightDayAmbient = new Color(0.44f, 0.50f, 0.60f);
+        private static readonly Color BrightFogColor = new Color(0.66f, 0.72f, 0.82f);
         private const float BrightFogDensity = 0.00025f;
-        private const float BrightNoonIntensity = 0.95f;
+        private const float BrightNoonIntensity = 0.8f;
 
         private void Start()
         {
@@ -49,9 +49,9 @@ namespace ProjectName.Systems
 
             // ── 앰비언트: Trilight (하늘/적도/지면 3단 보간) ──────────────
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.62f, 0.68f, 0.78f);
-            RenderSettings.ambientEquatorColor = new Color(0.50f, 0.56f, 0.65f);
-            RenderSettings.ambientGroundColor = new Color(0.38f, 0.42f, 0.48f);
+            RenderSettings.ambientSkyColor = new Color(0.52f, 0.58f, 0.68f);
+            RenderSettings.ambientEquatorColor = new Color(0.42f, 0.47f, 0.55f);
+            RenderSettings.ambientGroundColor = new Color(0.30f, 0.34f, 0.40f);
 
             // ── Directional Light 강도 조정 ──────────────────────────────
             // "Directional Light" 태그 우선 (미등록 태그 예외 대비 try-catch),

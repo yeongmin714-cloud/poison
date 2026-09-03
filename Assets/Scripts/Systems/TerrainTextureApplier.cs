@@ -54,6 +54,72 @@ namespace ProjectName.Systems
         public IReadOnlyDictionary<NationType, Material> NationMaterials => _nationMaterials;
 
         // ================================================================
+        //  T-G5: Ground_Grass_Mat._BaseMap 재발 방지 가드
+        // ================================================================
+
+        /// <summary>
+        /// 에디터가 머티리얼을 재저장하며 _BaseMap을 null로 되돌리는 사고(09-02~03 4회)를
+        /// 차단하기 위한 런타임/에디터 가드. Ground_Grass_Mat 3개 사본의 _BaseMap이 null이
+        /// 면 Idyllic 잔디 알베도(east_grass1_albedo)를 자동 재할당한다.
+        /// GameSetup 등에서도 재사용 가능하도록 public static.
+        /// </summary>
+        public static int EnsureGroundGrassBaseMap()
+        {
+            const string TX_PATH = "Models/UserProvided/terrain/textures_idyllic/east_grass1_albedo";
+            const string MAT_RES_PATH = "URP/Ground_Grass_Mat";
+            int restored = 0;
+
+            Texture2D grass = null;
+            try { grass = Resources.Load<Texture2D>(TX_PATH); }
+            catch { grass = null; }
+            if (grass == null)
+            {
+                // Resources 로드 실패 시 조용히 skip (예외 없음).
+                return 0;
+            }
+
+            // 1) 런타임 접근 가능한 사본: Resources/URP/Ground_Grass_Mat
+            Material resMat = Resources.Load<Material>(MAT_RES_PATH);
+            if (resMat != null && resMat.GetTexture("_BaseMap") == null)
+            {
+                resMat.SetTexture("_BaseMap", grass);
+                restored++;
+            }
+
+#if UNITY_EDITOR
+            // 2) Resources 밖 사본들: 에디터 전용 AssetDatabase 경유 (실패 시 예외 없이 skip)
+            string[] assetPaths =
+            {
+                "Assets/Materials/Ground_Grass_Mat.mat",
+                "Assets/URP/Ground_Grass_Mat.mat",
+            };
+            foreach (string path in assetPaths)
+            {
+                try
+                {
+                    var editorMat = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>(path);
+                    if (editorMat != null && editorMat.GetTexture("_BaseMap") == null)
+                    {
+                        editorMat.SetTexture("_BaseMap", grass);
+                        UnityEditor.EditorUtility.SetDirty(editorMat);
+                        restored++;
+                    }
+                }
+                catch (System.Exception)
+                {
+                    // 실패해도 예외 없이 skip
+                }
+            }
+#endif
+
+            if (restored > 0)
+            {
+                Debug.LogWarning($"[TerrainTextureApplier] ⚠️ Ground_Grass_Mat._BaseMap null 감지 → east_grass1_albedo 자동 복구 ({restored}개)");
+            }
+            return restored;
+        }
+
+        // ================================================================
         //  Unity Lifecycle
         // ================================================================
 
@@ -84,6 +150,9 @@ namespace ProjectName.Systems
 
         private void Start()
         {
+            // T-G5: 에디터가 머티리얼 재저장하며 _BaseMap을 null로 되돌리는 사고(09-02~03 4회)를 영구 차단.
+            EnsureGroundGrassBaseMap();
+
             // Start에서 텍스처 로드 — Awake 블로킹 방지
             LoadTextures();
             CreateMaterials();

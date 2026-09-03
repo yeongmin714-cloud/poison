@@ -1056,3 +1056,20 @@ OneHand_Up_Idle=1b267cb3..., Walk_B=ba58acae..., Run_B=282509bf..., Attack_1=ec2
 ### 검증
 - 정적: 중괄호 균형 2파일 PASS, 확산광 재계산 PASS, 가드 7진입점 라인번호 확인, 외부 호출자 grep 무해
 - Play 확인 대기: 스크린샷 40으로 밝기 확인 + 콘솔 "[MonsterSpawner] 일시중지" 로그
+
+## 2026-09-03 화이트아웃 진짜 원인 수리 (스크린샷 40) — 지면 _BaseMap
+
+### 원인 재판정
+- 40번도 80~85% 클리핑 → 조명 하향(0.95) 효과 미미 → 주범은 조명이 아니라 **지면 머티리얼**
+- **Ground_Grass_Mat 3개 사본(Assets/Materials, Assets/URP, Assets/Resources/URP) 전부 _BaseMap null** (흰색 알베도 1.0 × (앰비언트+Sun) → 클리핑). 에디터 재저장 사고 4번째 재발
+- 하늘로 보인 흰 영역 = 흰 지면이 원거리까지 이어진 것(하늘박스 노출 0.5로 어두움, 포그 꺼짐)
+
+### 수리
+1. 3개 사본 _BaseMap → east_grass1_albedo.png (Idyllic, guid 149c0bc0...) 직접 할당 (YAML m_Texture 한 줄, scale/offset 보존)
+2. **재발 방지 런타임 가드**: TerrainTextureApplier.EnsureGroundGrassBaseMap() (public static) — Start 최상단 실행, null 감지 시 Resources 텍스처 자동 복구+경고 로그. 에디터 사본은 #if UNITY_EDITOR로 처리, 빌드 안전
+3. 조명 추가 하향(사용자 요청): Sun 0.95→0.8, 앰비언트 sky 0.62→0.52/eq 0.50→0.42/gnd 0.38→0.30, BrightDayAmbient→0.44, 포그색→0.66/0.72/0.82
+
+### 검증
+- YAML 파싱 입증: 3/3 GUID 일치, m_TexEnvs 14항목 오염 없음, _BaseColor/scale 보존
+- 가드: #if UNITY_EDITOR 내 AssetDatabase(빌드 안전), 예외 누출 없음, Start 순서 안전
+- Play 확인 대기: 스크린샷 41 — 지면에 잔디 텍스처 보이는지 + 밝기 적정 여부
