@@ -533,37 +533,38 @@ namespace ProjectName.Tests.EditMode
         }
 
         // ========================================================
-        // 13. GetMonsterCountRange (ROADMAP 3.6 몬스터 배치 표)
+        // 13. GetMonsterCountRange (링당 총 마리수: 면적 × 밀도 10마리/km²)
+        //     밤 ×2.0 배수는 MonsterSpawner가 별도 적용하므로 낮 기준 원값 검증
         // ========================================================
 
         [Test]
-        public void GetMonsterCountRange_Ring1_Returns3to4()
+        public void GetMonsterCountRange_Ring1_Returns11()
         {
-            Assert.AreEqual(new Vector2Int(3, 4), RingDifficultyData.GetMonsterCountRange(TerritoryDifficulty.Ring1));
+            Assert.AreEqual(new Vector2Int(11, 11), RingDifficultyData.GetMonsterCountRange(TerritoryDifficulty.Ring1));
         }
 
         [Test]
-        public void GetMonsterCountRange_Ring2_Returns4to5()
+        public void GetMonsterCountRange_Ring2_Returns12()
         {
-            Assert.AreEqual(new Vector2Int(4, 5), RingDifficultyData.GetMonsterCountRange(TerritoryDifficulty.Ring2));
+            Assert.AreEqual(new Vector2Int(12, 12), RingDifficultyData.GetMonsterCountRange(TerritoryDifficulty.Ring2));
         }
 
         [Test]
-        public void GetMonsterCountRange_Ring3_Returns3to5()
+        public void GetMonsterCountRange_Ring3_Returns6()
         {
-            Assert.AreEqual(new Vector2Int(3, 5), RingDifficultyData.GetMonsterCountRange(TerritoryDifficulty.Ring3));
+            Assert.AreEqual(new Vector2Int(6, 6), RingDifficultyData.GetMonsterCountRange(TerritoryDifficulty.Ring3));
         }
 
         [Test]
-        public void GetMonsterCountRange_Ring4_Returns4to6()
+        public void GetMonsterCountRange_Ring4_Returns2()
         {
-            Assert.AreEqual(new Vector2Int(4, 6), RingDifficultyData.GetMonsterCountRange(TerritoryDifficulty.Ring4));
+            Assert.AreEqual(new Vector2Int(2, 2), RingDifficultyData.GetMonsterCountRange(TerritoryDifficulty.Ring4));
         }
 
         [Test]
-        public void GetMonsterCountRange_Empire_Returns8to12()
+        public void GetMonsterCountRange_Empire_Returns2to4()
         {
-            Assert.AreEqual(new Vector2Int(8, 12), RingDifficultyData.GetMonsterCountRange(TerritoryDifficulty.Empire));
+            Assert.AreEqual(new Vector2Int(2, 4), RingDifficultyData.GetMonsterCountRange(TerritoryDifficulty.Empire));
         }
 
         // ========================================================
