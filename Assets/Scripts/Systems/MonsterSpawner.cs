@@ -12,14 +12,17 @@ namespace ProjectName.Systems
     /// <summary>
     /// MonsterSpawner — 영지 난이도(RingDifficultyData) 기반으로 몬스터 22종을 자동 배치.
     /// 
-    /// 배치 규칙 (ROADMAP 3.6):
-    ///   Ring 1 (최외곽, 쉬움)     : 🟢 초반 몬스터 (Beginner)           3~4마리
-    ///   Ring 2 (중간 바깥, 보통)   : 🟢 초반 + 일부 🟡 중반              4~5마리
-    ///   Ring 3 (중간 안쪽, 어려움)  : 🟡 중반 몬스터 (Intermediate)       3~5마리
-    ///   Ring 4 (황제국 인접, 매우어려움): 🟡 중반 + 일부 🔴 후반          4~6마리
-    ///   황제국 (최종)             : 🔴 후반 최상위                       8~12마리
+    /// 배치 규칙 (맵 반경 1000m, 왕실 중심(0,0,0)=강, 멀수록 약):
+    ///   Ring 4 (중앙 0~250m, 매우 어려움) : Intermediate + Advanced        총 2마리 (밤 4)
+    ///   Ring 3 (250~500m, 어려움)         : Intermediate + Advanced        총 6마리 (밤 12)
+    ///   Ring 2 (500~800m, 보통)           : Beginner + Intermediate       총 12마리 (밤 24)
+    ///   Ring 1 (800~1000m, 쉬움)          : Beginner + Intermediate(약세)  총 11마리 (밤 22)
+    ///   황제국 (최종)                     : Intermediate + Advanced        2~4마리
     ///   
-    /// 각 종류당 마리수, Fixed seed로 재현 가능.
+    /// 링당 총 마리수 = 면적 × 밀도상수(10마리/km²) — 종별 누적 없음.
+    /// 링 총 마리수를 티어 가중치(시간대 확률)로 분배 후, 티어 내 종에 균등 분배.
+    /// 밤: 총 마리수 ×2.0. 중앙으로 갈수록 레벨 보너스 증가(연속).
+    /// Fixed seed로 재현 가능.
     /// 
     /// C18-02: 시간대별 스폰 (Day/Evening/Night)
     /// C18-03: 밤 리스폰 속도 증가
@@ -31,14 +34,14 @@ namespace ProjectName.Systems
         [System.Serializable]
         public class SpawnConfig
         {
-            [Header("Spawn Ring Zones (meters from center)")]
-            public float safeRadius = 200f;
-            public float beginnerInner = 200f;
-            public float beginnerOuter = 600f;
-            public float intermediateInner = 600f;
-            public float intermediateOuter = 1200f;
-            public float advancedInner = 1200f;
-            public float advancedOuter = 1800f;  // 맵 반경 1800m
+            [Header("Spawn Ring Zones (meters from center — 맵 반경 1000m)")]
+            public float safeRadius = 250f;          // Ring4 중심부 경계
+            public float advancedInner = 0f;         // 🔴 중앙 0~250m (강한 종)
+            public float advancedOuter = 250f;
+            public float intermediateInner = 250f;   // 🟡 250~800m
+            public float intermediateOuter = 800f;
+            public float beginnerInner = 800f;       // 🟢 800~1000m (가장 약함)
+            public float beginnerOuter = 1000f;      // 맵 반경 1000m
         }
 
         // ===== C18-02: 시간대 열거형 =====
@@ -76,6 +79,10 @@ namespace ProjectName.Systems
         [Header("Spawn Configuration")]
         [SerializeField] private SpawnConfig _config = new SpawnConfig();
         [SerializeField] private int _randomSeed = 42;
+
+        [Header("Center Level Boost (중앙 레벨 강화)")]
+        [SerializeField] private float _centerLevelBonusMax = 5f; // 원점(0m) 최대 레벨 보너스
+        [SerializeField] private float _mapRadius = 1000f;        // 보너스가 0이 되는 거리(맵 반경)
 
         [Header("Visual Prefab")]
         [SerializeField] private GameObject _monsterPrefab; // null이면 GLB 로드
@@ -208,12 +215,17 @@ namespace ProjectName.Systems
             MonsterTier[] tiers = RingDifficultyData.GetMonsterTiersForDifficulty(difficulty);
             Vector2Int countRange = RingDifficultyData.GetMonsterCountRange(difficulty);
 
-            Debug.Log($"[MonsterSpawner] Territory Difficulty: {difficulty}, Tiers: {string.Join(",", tiers)}, Count Range: {countRange.x}-{countRange.y}");
+            // 밤 배수(×2.0): 링당 총 마리수에 적용
+            float nightMult = (CurrentPeriod == TimePeriod.Night) ? _nightRespawnRateMultiplier : 1f;
+            int totalCount = Mathf.Max(1, Mathf.RoundToInt(Random.Range(countRange.x, countRange.y + 1) * nightMult));
 
-            // 각 티어별 스폰
-            foreach (var tier in tiers)
+            Debug.Log($"[MonsterSpawner] Territory Difficulty: {difficulty}, Tiers: {string.Join(",", tiers)}, Ring Total: {totalCount}마리 (밤배수 x{nightMult:0.#})");
+
+            // 링당 총 마리수 → 티어 가중치 분배 (종별 누적 없음)
+            int[] tierShares = DistributeCountByWeight(totalCount, tiers, prob);
+            for (int i = 0; i < tiers.Length; i++)
             {
-                SpawnTierByDifficulty(tier, prob, countRange, difficulty);
+                SpawnTierByDifficulty(tiers[i], tierShares[i]);
             }
 
             Debug.Log($"[MonsterSpawner] ✅ 총 {_spawnedMonsters.Count}마리 배치 완료! (초반={CountByTier(MonsterTier.Beginner)}, 중반={CountByTier(MonsterTier.Intermediate)}, 후반={CountByTier(MonsterTier.Advanced)}) [기간={CurrentPeriod}]");
@@ -233,29 +245,85 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 영지 난이도별 티어 스폰 (기존 SpawnTier 대체)
+        /// 링 총 마리수를 티어 가중치(시간대 확률) 비율로 정수 분배한다.
+        /// 합계가 정확히 total이 되도록 보정하며, total >= 티어 수면 티어당 최소 1마리 보장.
         /// </summary>
-        private void SpawnTierByDifficulty(MonsterTier tier, SpawnProbabilities prob, Vector2Int countRange, TerritoryDifficulty difficulty)
+        private int[] DistributeCountByWeight(int total, MonsterTier[] tiers, SpawnProbabilities prob)
         {
-            // 시간대 필터 제거: 모든 시간대에 티어 전체 종을 풀로 사용 (시간대는 수 배수에만 반영)
-            var tierPool = MonsterDatabase.GetByTier(tier);
+            int n = tiers.Length;
+            int[] shares = new int[n];
+            if (n == 0 || total <= 0) return shares;
 
+            float[] weights = new float[n];
+            float weightSum = 0f;
+            for (int i = 0; i < n; i++)
+            {
+                weights[i] = Mathf.Max(0.01f, GetSpawnWeight(tiers[i], prob));
+                weightSum += weights[i];
+            }
+
+            int allocated = 0;
+            for (int i = 0; i < n; i++)
+            {
+                shares[i] = Mathf.RoundToInt(total * weights[i] / weightSum);
+                allocated += shares[i];
+            }
+
+            // 최소 1마리 보장 (총 마리수가 티어 수 이상일 때)
+            if (total >= n)
+            {
+                for (int i = 0; i < n; i++)
+                {
+                    if (shares[i] < 1) { shares[i] = 1; allocated++; }
+                }
+            }
+
+            // 합계 보정 — 정확히 total이 되도록
+            while (allocated > total)
+            {
+                int idx = -1, maxVal = 0;
+                for (int i = 0; i < n; i++)
+                    if (shares[i] > maxVal) { maxVal = shares[i]; idx = i; }
+                if (idx < 0) break;
+                if (maxVal <= 1 && total >= n) break; // 티어당 최소 1마리 유지
+                shares[idx]--; allocated--;
+            }
+            while (allocated < total)
+            {
+                int idx = -1; float bestW = -1f;
+                for (int i = 0; i < n; i++)
+                    if (weights[i] > bestW) { bestW = weights[i]; idx = i; }
+                if (idx < 0) break;
+                shares[idx]++; allocated++;
+            }
+
+            return shares;
+        }
+
+        /// <summary>
+        /// 티어 스폰 — 티어 몫(tierShare)을 티어 내 종 수에 균등 분배 (종별 누적 없음).
+        /// 종 수가 티어 몫보다 크면 일부 종만 스폰하여 중복 스폰을 최소화한다.
+        /// </summary>
+        private void SpawnTierByDifficulty(MonsterTier tier, int tierShare)
+        {
+            if (tierShare <= 0) return;
+
+            var tierPool = MonsterDatabase.GetByTier(tier);
             if (tierPool.Count == 0) return;
 
-            float countMultiplier = (CurrentPeriod == TimePeriod.Night) ? _nightRespawnRateMultiplier : 1f;
+            int speciesCount = tierPool.Count;
+            int perSpecies = tierShare / speciesCount;
+            int remainder = tierShare % speciesCount; // 남은 몫은 앞쪽 종에 1마리씩
 
-            Vector2Int countRangeAdjusted = RingDifficultyData.GetMonsterCountRange(GetCurrentTerritoryDifficulty());
-            int baseCount = Mathf.RoundToInt(Random.Range(countRangeAdjusted.x, countRangeAdjusted.y + 1) * countMultiplier);
-
-            foreach (var def in tierPool)
+            for (int s = 0; s < speciesCount; s++)
             {
-                float weight = GetSpawnWeight(def.tier, prob);
-                int weightedCount = Mathf.Max(1, Mathf.RoundToInt(baseCount * weight));
+                int count = perSpecies + (s < remainder ? 1 : 0);
+                if (count <= 0) continue; // 몫 < 종 수 → 일부 종만 스폰
 
-                for (int i = 0; i < weightedCount; i++)
+                for (int i = 0; i < count; i++)
                 {
-                    Vector3 pos = RandomPositionInTerritory(def);
-                    GameObject go = CreateMonster(def, pos);
+                    Vector3 pos = RandomPositionInTerritory(tierPool[s]);
+                    GameObject go = CreateMonster(tierPool[s], pos);
                     if (go != null) _spawnedMonsters.Add(go);
                 }
             }
@@ -314,13 +382,14 @@ namespace ProjectName.Systems
 
         private float GetTerritoryRadius(TerritoryDifficulty diff)
         {
+            // 링 대역폭(새 맵 반경 1000m 기준) — 스폰 산포 반경용
             return diff switch
             {
-                TerritoryDifficulty.Ring1 => 200f,
-                TerritoryDifficulty.Ring2 => 400f,
-                TerritoryDifficulty.Ring3 => 600f,
-                TerritoryDifficulty.Ring4 => 800f,
-                TerritoryDifficulty.Empire => 1000f,
+                TerritoryDifficulty.Ring1 => 200f,   // 800~1000m
+                TerritoryDifficulty.Ring2 => 300f,   // 500~800m
+                TerritoryDifficulty.Ring3 => 250f,   // 250~500m
+                TerritoryDifficulty.Ring4 => 250f,   // 0~250m
+                TerritoryDifficulty.Empire => 250f,
                 _ => 200f
             };
         }
@@ -349,10 +418,11 @@ namespace ProjectName.Systems
         private TerritoryDifficulty DetermineTerritoryDifficulty(Vector3 pos)
         {
             // P-4: 맵 중심(왕실 원점) 기준 거리로 Ring 판정 (중심에 가까울수록 강한 링)
+            // 맵 반경 1000m 기준: Ring4 <250m, Ring3 250~500m, Ring2 500~800m, Ring1 800m+
             float dist = Vector3.Distance(Vector3.zero, pos);
-            if (dist < 600f) return TerritoryDifficulty.Ring4;
-            if (dist < 1200f) return TerritoryDifficulty.Ring3;
-            if (dist < 1800f) return TerritoryDifficulty.Ring2;
+            if (dist < 250f) return TerritoryDifficulty.Ring4;
+            if (dist < 500f) return TerritoryDifficulty.Ring3;
+            if (dist < 800f) return TerritoryDifficulty.Ring2;
             return TerritoryDifficulty.Ring1;
         }
 
@@ -467,6 +537,15 @@ namespace ProjectName.Systems
 
             // 레벨 생성 및 적용
             int level = lvlMgr.GetMonsterLevel(difficulty, ai.Tier);
+
+            // 중앙 레벨 강화: 원점(왕실 중심 0,0,0)에서 가까울수록 레벨 보너스 증가 (링 안에서도 연속)
+            // distBonus = round(MaxBonus × (1 - dist/mapRadius)) — 중심(0m)=+Max, 맵 가장자리(1000m)=+0
+            // 기존 Ring 보너스(GetMonsterLevel 내 적용)와 합산, 최대 MaxLevel로 클램프.
+            float distFromCenter = Vector3.Distance(Vector3.zero, ai.transform.position);
+            float centerT = Mathf.Clamp01(1f - distFromCenter / Mathf.Max(1f, _mapRadius));
+            int distBonus = Mathf.RoundToInt(_centerLevelBonusMax * centerT);
+            int maxLevel = (lvlMgr.Data != null) ? lvlMgr.Data.MaxLevel : 50;
+            level = Mathf.Clamp(level + distBonus, 1, maxLevel);
             ai.SetLevel(level);
 
             // MonsterLevelLabel 추가 — LabelFactory 통해 생성 (Systems→UI 의존성 제거)
@@ -482,7 +561,7 @@ namespace ProjectName.Systems
                     label.SetLevel(level);
             }
 
-            Debug.Log($"[MonsterSpawner] {ai.MonsterId} Lv.{level} ({difficulty})");
+            Debug.Log($"[MonsterSpawner] {ai.MonsterId} Lv.{level} ({difficulty}, dist {distFromCenter:0}m, 중심보너스 +{distBonus})");
         }
 
         /// <summary>
@@ -671,44 +750,41 @@ namespace ProjectName.Systems
             _spawnedMonsters.Clear();
         }
 
+        /// <summary>
+        /// 링당 총 마리수 기준 리스폰 — 부족분을 티어 가중치로 분배해 보충 (종 랜덤 선택).
+        /// 밤에는 목표 마리수도 ×_nightRespawnRateMultiplier(2.0).
+        /// </summary>
         private void CheckAndRespawn()
         {
             if (TimeManager.Instance == null) return;
 
             _spawnedMonsters.RemoveAll(go => go == null);
 
-            bool isNight = TimeManager.Instance.IsNight;
-            int minPerTier = _respawnThreshold.minMonstersPerTier;
-            if (isNight) minPerTier = Mathf.RoundToInt(minPerTier * _nightRespawnRateMultiplier);
+            TerritoryDifficulty difficulty = GetCurrentTerritoryDifficulty();
+            Vector2Int countRange = RingDifficultyData.GetMonsterCountRange(difficulty);
+            float nightMult = IsNightTime() ? _nightRespawnRateMultiplier : 1f;
+            int targetTotal = Mathf.RoundToInt(countRange.y * nightMult);
+            targetTotal = Mathf.Max(targetTotal, _respawnThreshold.minMonstersPerTier);
 
-            CheckAndRespawnTier(MonsterTier.Beginner, minPerTier);
-            CheckAndRespawnTier(MonsterTier.Intermediate, minPerTier);
-            CheckAndRespawnTier(MonsterTier.Advanced, minPerTier);
-        }
-
-        // ===== Updated CheckAndRespawnTier for Territory Difficulty =====
-        private void CheckAndRespawnTier(MonsterTier tier, int minCount)
-        {
-            int currentCount = CountByTier(tier);
-            if (currentCount >= minCount) return;
-
-            int deficit = minCount - currentCount;
-
-            // 시간대 필터 제거: 모든 시간대에 티어 전체 종을 풀로 사용 (시간대는 수 배수에만 반영)
-            var tierPool = MonsterDatabase.GetByTier(tier);
-
-            if (tierPool.Count == 0) return;
+            int deficit = targetTotal - _spawnedMonsters.Count;
+            if (deficit <= 0) return;
 
             SpawnProbabilities prob = GetCurrentProbabilities();
-            float weight = GetSpawnWeight(tier, prob);
-            int toSpawn = Mathf.Max(1, Mathf.RoundToInt(deficit * weight));
+            MonsterTier[] tiers = RingDifficultyData.GetMonsterTiersForDifficulty(difficulty);
+            int[] shares = DistributeCountByWeight(deficit, tiers, prob);
 
-            for (int i = 0; i < toSpawn; i++)
+            for (int i = 0; i < tiers.Length; i++)
             {
-                var def = tierPool[Random.Range(0, tierPool.Count)];
-                Vector3 pos = RandomPositionInTerritory(def);
-                GameObject go = CreateMonster(def, pos);
-                if (go != null) _spawnedMonsters.Add(go);
+                var tierPool = MonsterDatabase.GetByTier(tiers[i]);
+                if (tierPool.Count == 0) continue;
+
+                for (int j = 0; j < shares[i]; j++)
+                {
+                    var def = tierPool[Random.Range(0, tierPool.Count)];
+                    Vector3 pos = RandomPositionInTerritory(def);
+                    GameObject go = CreateMonster(def, pos);
+                    if (go != null) _spawnedMonsters.Add(go);
+                }
             }
         }
 
