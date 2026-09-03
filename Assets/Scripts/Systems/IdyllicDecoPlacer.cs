@@ -78,12 +78,12 @@ namespace ProjectName.Systems
         internal class NationDecoProfile
         {
             public NationType nation;
-            public List<WPrefab> trees;
-            public List<WPrefab> bushes;
-            public List<WPrefab> rocks;
-            public List<WPrefab> flowers;
-            public List<WPrefab> fantasyTrees;
-            public List<WPrefab> meadows;
+            public List<WPrefab> trees = new List<WPrefab>();
+            public List<WPrefab> bushes = new List<WPrefab>();
+            public List<WPrefab> rocks = new List<WPrefab>();
+            public List<WPrefab> flowers = new List<WPrefab>();
+            public List<WPrefab> fantasyTrees = new List<WPrefab>();
+            public List<WPrefab> meadows = new List<WPrefab>();
             public float treeSpacing = TREE_SPACING;
             public int treeCap, rockCap, bushCap, flowerCap, meadowCap;
         }

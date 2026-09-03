@@ -1110,3 +1110,31 @@ OneHand_Up_Idle=1b267cb3..., Walk_B=ba58acae..., Run_B=282509bf..., Attack_1=ec2
 - 기대 로그(Play): `[GameSetup][TerrainDeco] 🧹 레거시 GLB 프롭 정리: N개 제거`
 - 기대 로그(Play): `[GameSetup][TerrainDeco] ✅ IdyllicDeco 총 프리팹 수: M개`
 - Temporarily note: 커밋/푸시는 지형 개편 계획 게이트에 따라 수행 (본 세션은 커밋/푸시 금지).
+
+## 2026-09-04 지형 전면 개편 T-R0~R7 완료 (예시 스타일 4방위 스타일라이즈드)
+
+### 계획/실행
+- 계획: .hermes/plans/2026-09-04_003435-terrain-4direction-stylized-overhaul.md (예시 13장 vision 분석 기반)
+- T-R0 테스트 골격(결정론/경계연속성/스폰평탄/방위분포) ✅ R1 GLB프롭 제거(CleanupLegacyDeco) ✅
+- T-R2 고도 재설계 ✅: TerrainShape(구릉FBM+ridged절벽+도메인워핑40m+계곡+terrace),
+  국가별 파라미터(East 7m/완만 → North 13m+9m절벽/험준 → Empire 3m/평탄),
+  국가 경계 결과보간(±120m), GetHeightAt 시그니처 무변화(호출부 0수정),
+  메시 20m→10m(201×201=4만정점), 스폰30m 평탄/호수·성 40m 절벽금지 가드
+- T-R3 스플랫 ✅: 5레이어(L1저지/L2중지/L3절벽/L4흙길/L5수변) — 절벽 마스크를 고도와 공유
+  (RidgeCliffMask 단일소스 → 형태-색 정합), 흙길/수변밴드/꽃밭(8%)/판타지서브존 마스크
+- T-R4 데코 ✅: NationDecoProfile 5국가(가중치 프리팹: 동=버드나무40%…, 북=침엽70%, 중앙=벚꽃50%),
+  국가 시드 20260904+nation×1000 결정론, 나무1/900㎡·바위1/2500㎡+클러스터10%,
+  cap(나무1150/바위520/꽃4200/메도우220), 수변 갈대·연꽃, 스폰프롭 대체, 결정론 해시 로그
+- T-R5 수면 ✅: 터쿼이즈/에메랄드 그라데이션 + 국가별 틴트(남=따뜻/북=차가움),
+  EnforceSurfaceAboveTerrain(수면-지형 역전 금지), 호수 시드 불변
+- T-R6 분위기 ✅: LightShaftBillboard(god rays 근사, 보수적 알파0.3),
+  MoodProfileSetup(채도+12/콘트라스트+5 런타임 볼륨), 스카이박스 노출 0.5→0.75+파스텔 틴트,
+  국가별 태양/앰비언트 색 틴트(±4% 이하 — 밝기 불변, 화이트아웃 방지)
+- T-R7 통합 QA ✅: 심볼/asmdef/부트순서 전수 검증, 결정론(UnityEngine.Random 0건),
+  회귀(SpawningPaused 유지/가드 유지/시그니처 무변화/호수시드 불변),
+  **치명 1건 수정: NationDecoProfile List 미초기화 NRE → 기본값 부여**
+
+### Play 확인 대기 (사용자)
+- 에디터 포커스→재컴파일→Play: ①4방위 고도/절벽 형태 ②국가별 색·식생 차이
+  ③수면 터쿼이즈+수변 ④god rays/하늘 톤 ⑤콘솔 에러 0 ⑥프레임타임
+- 확인 후 몬스터 스폰 재개: MonsterSpawner.SetPaused(false)
