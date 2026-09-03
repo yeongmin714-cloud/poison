@@ -900,3 +900,11 @@ Cross(Edge1, Edge2) = (0, -dx·dz, 0) = **법선이 아래(-Y)를 향함**.
 - HumanoidClipDriver: CopyMaterialsFromGlb 유틸 — 원본 GLB의 _BaseMap 텍스처를 URP Lit 머티리얼로 재생성해 FBX 본체에 이식 (플레이어+병사 전부 적용)
 - HumanoidClipDriver Start 진단 로그: avatar/isValid/controller 상태 출력
 **검증:** 배치컴파일 통과 (executeMethod, error CS 0). Play 시각검증 대기.
+
+## 2026-09-02 카메라 오빗/커서 조준 충돌 수리
+
+**증상:** "카메라가 갑자기 변해서 플레이어를 따라가지 않음" — 마우스를 움직일 때마다 카메라가 빙빙 돎.
+
+**원인:** 마우스 이동이 두 가지를 동시에 유발 — ①커서 조준(몸 회전, 신규) ②카메라 오빗 회전(기존 delta 기반). 조준을 위해 마우스를 움직이면 카메라가 함께 회전해 시선이 계속 틀어짐.
+
+**수리:** 카메라 오빗 회전을 **오른쪽 버튼 드래그로만** 격리 (커서 조준=그냥 마우스 이동, 카메라 회전=RMB 드래그, 줌=휠). 플레이어 위치 추적은 LateUpdate ApplyFollowCamera로 유지.

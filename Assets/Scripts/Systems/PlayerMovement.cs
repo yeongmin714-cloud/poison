@@ -707,10 +707,17 @@ namespace ProjectName.Systems
             var mouse = UnityEngine.InputSystem.Mouse.current;
             if (mouse == null) return;
 
-            Vector2 delta = mouse.delta.ReadValue();
-            _camYaw += delta.x * MouseSensitivity;
-            _camPitch = Mathf.Clamp(_camPitch - delta.y * MouseSensitivity, PitchMin, PitchMax);
+            // 카메라 오빗 회전: 오른쪽 버튼 드래그로만 (커서 조준과 충돌 제거)
+            // 이전: 마우스 이동 자체가 오빗을 돌려 커서 조준(몸 회전)과 동시에 발동 →
+            //       마우스를 움직일 때마다 카메라가 빙빙 돌아 "추적 안 함"처럼 보였음
+            if (mouse.rightButton.isPressed)
+            {
+                Vector2 delta = mouse.delta.ReadValue();
+                _camYaw += delta.x * MouseSensitivity;
+                _camPitch = Mathf.Clamp(_camPitch - delta.y * MouseSensitivity, PitchMin, PitchMax);
+            }
 
+            // 줌은 항상 휠
             float scroll = mouse.scroll.ReadValue().y;
             if (Mathf.Abs(scroll) > 0.001f)
                 _camDistance = Mathf.Clamp(_camDistance - Mathf.Sign(scroll) * ZoomStepPerNotch, CamDistanceMin, CamDistanceMax);
