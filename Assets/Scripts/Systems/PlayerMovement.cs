@@ -697,6 +697,8 @@ namespace ProjectName.Systems
         // 몸 회전 속도 (Slerp 계수/초) — 이동 방향/커서 조준 공용
         private const float TurnSpeed = 12f;
         private const float CursorTurnSpeed = 10f;
+        private float _followProbeTimer = 0f;
+        private int _followProbeCount = 0;
         private const float PitchMin = 30f;   // 탑다운 유지 (너무 수평 안 되게)
         private const float PitchMax = 82f;   // 거의 수직 탑다운까지
         private bool _cinemachineDisabled = false;
@@ -728,12 +730,23 @@ namespace ProjectName.Systems
         }
 
         /// <summary>LateUpdate: 모든 스크립트/Cinemachine 이후에 카메라를 최종 적용 — 플레이어 추적 보장.</summary>
+        private bool _cameraUnparented = false;
+
         private void ApplyFollowCamera()
         {
             if (_cameraTransform == null)
             {
                 if (Camera.main != null) { _cameraTransform = Camera.main.transform; _camera = Camera.main; }
                 else return;
+            }
+
+            // ── 카메라가 본/프롭의 자식으로 저장돼 있으면 분리 (과거 세션 잔재) ──
+            // 부모가 본이면 애니메이션/이동에 카메라가 끌려가 추적이 깨진다. 루트로 분리 후 월드 추적.
+            if (!_cameraUnparented && _cameraTransform.parent != null)
+            {
+                _cameraTransform.SetParent(null, true); // worldPositionStays
+                _cameraUnparented = true;
+                Debug.LogWarning($"[PlayerMovement] 카메라 부모 분리: '{_cameraTransform.parent?.name}'에서 루트로 (본 부착 잔해 제거)");
             }
 
             // Cinemachine 완전 차단 (1회): vcam 비활성 + Brain 비활성(문자열/순회 이중화)
@@ -782,6 +795,15 @@ namespace ProjectName.Systems
             _cameraTransform.position = camPos;
             Vector3 lookTarget = playerT.position + new Vector3(0f, 1.2f, 0f);
             _cameraTransform.rotation = Quaternion.LookRotation(lookTarget - camPos);
+
+            // 추적 진단 (처음 10회, 2초 간격): 카메라가 실제로 플레이어를 따라가는지 수치 확인
+            _followProbeTimer += Time.deltaTime;
+            if (_followProbeTimer >= 2f && _followProbeCount < 10)
+            {
+                _followProbeTimer = 0f;
+                _followProbeCount++;
+                Debug.Log($"[FollowProbe#{_followProbeCount}] camPos={camPos:F1} playerPos={playerT.position:F1} dist={Vector3.Distance(camPos, playerT.position):F1}m");
+            }
         }
 
         // 캐디거 지형 로그: 카메라 전방 raycast로 화면이 실제 뭘 보는지 수회 확정
