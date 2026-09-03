@@ -469,10 +469,49 @@ namespace ProjectName.Systems
             return spawned;
         }
 
+        /// <summary>병사 클래스 랜덤 (레벨 무관): 40% 방패 / 30% 대검 / 30% 궁수</summary>
+        private static string ClassRoll()
+        {
+            double r = UnityEngine.Random.value;
+            if (r < 0.4) return "Shield";
+            if (r < 0.7) return "GreatSword";
+            return "Archer";
+        }
+
+        /// <summary>레벨 구간별 Humanoid FBX Resources 경로</summary>
+        private static string SoldierFbxKeyForLevel(int level)
+        {
+            if (level <= 20) return "Models/UserProvided/fbx/soldier_lv1-20";
+            if (level <= 40) return "Models/UserProvided/fbx/soldier_lv20-40";
+            return "Models/UserProvided/fbx/soldier_lv40-50";
+        }
+
         private static GameObject CreateGuard(string name, Vector3 position, string guardName, int level, NationType nation, Transform parent = null, Vector3 forward = default)
         {
-            var go = TrySpawnModelOrPlaceholder("soldier", name, position,
-                Vector3.one, new Color(0.2f, 0.4f, 0.8f), PrimitiveType.Capsule);
+            // ── 병사 클래스 랜덤 배치 (레벨 무관): 40% 방패 / 30% 대검 / 30% 궁수 ──
+            string classKey = ClassRoll();
+
+            // ── 레벨 구간별 Humanoid FBX 비주얼 (GLB "soldier" 대체) ──
+            string fbxKey = SoldierFbxKeyForLevel(level);
+            var modelPrefab = Resources.Load<GameObject>(fbxKey);
+
+            GameObject go;
+            if (modelPrefab == null)
+            {
+                // FBX 로드 실패 시 기존 GLB/Primitive Capsule 폴백 유지
+                go = TrySpawnModelOrPlaceholder("soldier", name, position,
+                    Vector3.one, new Color(0.2f, 0.4f, 0.8f), PrimitiveType.Capsule);
+            }
+            else
+            {
+                go = Object.Instantiate(modelPrefab);
+                go.name = name;
+                // 피벗은 바닥 기준 가정 → 약간 띄워 지면 겹침 방지
+                float groundY = TerrainGenerator.GetHeightAt(position.x, position.z, BiomeType.Plains, 42) + 1f;
+                go.transform.position = new Vector3(position.x, groundY + 0.05f, position.z);
+                go.transform.localScale = Vector3.one;
+                Debug.Log($"[TerritoryBuilder] Humanoid FBX '{fbxKey}'로 '{name}' 생성 (클래스: {classKey}, Lv.{level})");
+            }
 
             // 성문/진영 방향 정면 설정 (바깥을 향함). 기본값이 아니면 적용
             if (forward != Vector3.zero)
@@ -482,8 +521,16 @@ namespace ProjectName.Systems
                 go.transform.SetParent(parent);
 
             var placeholder = go.AddComponent<GuardPlaceholder>();
-            // T-pose 절차적 해결 (팔 내림 + idle bob) — 본 없는 폴백은 bob만 적용
-            go.AddComponent<SoldierIdlePose>();
+            // ── Animator + 믹사모 컨트롤러 + 드라이버 (병사 모드) ──
+            if (modelPrefab != null)
+            {
+                var anim = go.GetComponent<Animator>();
+                if (anim == null) anim = go.AddComponent<Animator>();
+                anim.runtimeAnimatorController =
+                    Resources.Load<RuntimeAnimatorController>($"Animation/Controllers/Soldier{classKey}_AC");
+                var driver = go.AddComponent<HumanoidClipDriver>();
+                driver.mode = HumanoidClipDriver.DriveMode.Soldier;
+            }
             placeholder.SetGuardInfo(guardName, level, nation);
 
             // 라벨

@@ -234,10 +234,40 @@ public class GameSetup : MonoBehaviour
             return;
         }
 
-        // ── Player GLB 비주얼 부착 (Player_Rigged + 절차적 애니메이션) ──
+        // ── Player 비주얼 1순위: Humanoid FBX (믹사모 클립 리타겟) ──
+        var humanoidFbx = Resources.Load<GameObject>("Models/UserProvided/fbx/Player_Rigged");
+        if (humanoidFbx != null)
+        {
+            var cubeRenderer0 = player.GetComponentInChildren<MeshRenderer>();
+            if (cubeRenderer0 != null) cubeRenderer0.enabled = false;
+
+            var bodyF = Object.Instantiate(humanoidFbx, player.transform);
+            bodyF.name = "PlayerBody";
+
+            var rendsF = bodyF.GetComponentsInChildren<Renderer>();
+            if (rendsF.Length > 0)
+            {
+                var bF = rendsF[0].bounds;
+                foreach (var r in rendsF) bF.Encapsulate(r.bounds);
+                float hF = bF.size.y;
+                if (hF > 0.01f) bodyF.transform.localScale = bodyF.transform.localScale * (1.8f / hF);
+                var bF2 = rendsF[0].bounds;
+                foreach (var r in rendsF) bF2.Encapsulate(r.bounds);
+                float floorWorldY = player.transform.position.y - 1f;
+                bodyF.transform.position += new Vector3(0f, floorWorldY - bF2.min.y, 0f);
+            }
+
+            var animF = bodyF.AddComponent<Animator>();
+            animF.runtimeAnimatorController = Resources.Load<RuntimeAnimatorController>("Animation/Controllers/Player_AC");
+            if (animF.runtimeAnimatorController == null)
+                Debug.LogWarning("[GameSetup] Player_AC 미생성 — Tools > Anim > Build Mixamo Controllers 실행 필요");
+            var drvF = bodyF.AddComponent<HumanoidClipDriver>();
+            drvF.mode = HumanoidClipDriver.DriveMode.Player;
+            Debug.Log("[GameSetup] ✅ 플레이어 Humanoid FBX + 믹사모 애니메이션 적용");
+        }
+        else if (RuntimeModelLoader.TryGetModel("player", out var playerModelPrefab))
         // 기존 procedural Cube 렌더러는 숨기고 GLB를 자식으로 부착.
         // CharacterController(콜라이더)는 그대로 — GLB는 비주얼 전용 자식.
-        if (RuntimeModelLoader.TryGetModel("player", out var playerModelPrefab))
         {
             var oldRenderer = player.GetComponentInChildren<MeshRenderer>();
             if (oldRenderer != null) oldRenderer.enabled = false;
