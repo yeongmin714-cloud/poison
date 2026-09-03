@@ -83,9 +83,10 @@ namespace ProjectName.EditorTools
             var hit = AddState(sm, "Hit", Clip("Standing React Small From Right.fbx"));
             var death = AddState(sm, "Death", Clip("Standing Death Backward 01.fbx"));
 
-            // 이동: Idle ↔ Walk ↔ Run (Speed 기반)
-            T(sm, idle, walk, "Speed", AnimatorConditionMode.Greater, 0.5f);
-            T(sm, walk, idle, "Speed", AnimatorConditionMode.Less, 0.1f);
+            // 이동: Idle ↔ Walk ↔ Run (Speed 기반) — 히스테리시스: Idle→Walk는 0.55, Walk→Idle은 0.35로 분리
+            // (지형/경사로 속도가 0 근처로 순간 떨어질 때 Idle로 떨어졌다 복귀하는 "끊김+멈춤" 방지)
+            T(sm, idle, walk, "Speed", AnimatorConditionMode.Greater, 0.55f);
+            T(sm, walk, idle, "Speed", AnimatorConditionMode.Less, 0.35f);
             T(sm, walk, run, "Speed", AnimatorConditionMode.Greater, 5.5f);
             // Run→Walk 임계를 4.0으로 낮춰 히스테리시스 확대 — 스프린트 중 상태 플리커(갑자기 멈춤) 방지
             T(sm, run, walk, "Speed", AnimatorConditionMode.Less, 4f);
@@ -164,7 +165,7 @@ namespace ProjectName.EditorTools
         {
             var t = from.AddTransition(to);
             t.hasExitTime = false;
-            t.duration = 0.15f;
+            t.duration = 0.05f; // 이동 전환은 빠르게(0.15→0.05) — 멈춤/출발 모션 지연 감소
             t.AddCondition(mode, threshold, param);
         }
 

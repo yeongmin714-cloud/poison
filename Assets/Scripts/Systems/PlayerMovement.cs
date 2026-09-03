@@ -729,7 +729,9 @@ namespace ProjectName.Systems
             if (Mathf.Abs(ny) > 0.35f)
             {
                 float edgeY = (Mathf.Abs(ny) - 0.35f) / 0.65f;
-                _camPitch = Mathf.Clamp(_camPitch + Mathf.Sign(ny) * edgeY * 50f * Time.deltaTime, 40f, 80f);
+                // 부호 반전: 커서 위(ny=+1) = 피치 감소(40°, 전방 시야) / 커서 아래(ny=-1) = 피치 증가(80°, 탑다운)
+                // Input System은 y축 원점이 화면 하단 → ny=+1이 "위". 90°/s로 부드럽게.
+                _camPitch = Mathf.Clamp(_camPitch - Mathf.Sign(ny) * edgeY * 90f * Time.deltaTime, 40f, 80f);
             }
 
             // 줌은 항상 휠
@@ -786,6 +788,15 @@ namespace ProjectName.Systems
                     }
                 }
                 Debug.Log($"[PlayerMovement] CinemachineBrain 비활성={brainFound} → 탑다운 카메라가 플레이어 추적");
+
+                // 구버전 TopDownCameraController가 LateUpdate에서 transform을 덮어써
+                // 피치가 ±10°로 고정(사실상 정지)되는 원인 — 제거한다. (같은 namespace 참조)
+                var tdc = _camera.GetComponent<TopDownCameraController>();
+                if (tdc != null)
+                {
+                    Object.Destroy(tdc);
+                    Debug.Log("[PlayerMovement] 구버전 TopDownCameraController 제거 — 피치가 덮어써져 정지하던 원인 차단");
+                }
             }
 
             Transform playerT = transform;

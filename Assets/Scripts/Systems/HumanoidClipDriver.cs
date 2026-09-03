@@ -37,6 +37,11 @@ namespace ProjectName.Systems
         private bool _prevRolling, _prevJumping;
         private bool _deathFired;
 
+        // Speed 지수 평활 + 멈춤 스냅 (지형/경사 충돌로 속도가 0 근처로 순간 떨어질 때
+        // Idle로 떨어졌다 복귀하는 "끊김 + 멈춤 모션"을 방지)
+        private float _smoothedSpeed;
+        private int _stopFrames;
+
         private void Start()
         {
             _anim = GetComponentInChildren<Animator>();
@@ -85,15 +90,26 @@ namespace ProjectName.Systems
         // ───────────────────── Player 모드 ─────────────────────
         private void UpdatePlayer()
         {
-            // Speed — CharacterController 수평 속도 크기
-            float speed = 0f;
+            // Speed — CharacterController 수평 속도 크기 (지수 평활로 끊김 제거)
+            float raw = 0f;
             if (_cc != null)
             {
                 var v = _cc.velocity;
                 v.y = 0f;
-                speed = v.magnitude;
+                raw = v.magnitude;
             }
-            _anim.SetFloat("Speed", speed);
+            float k = 1f - Mathf.Exp(-10f * Time.deltaTime);
+            _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, raw, k);
+            if (raw < 0.05f)
+            {
+                // 연속 3프레임 거의 정지면 즉시 0으로 스냅 → Idle 진입 지연 방지
+                if (++_stopFrames >= 3) _smoothedSpeed = 0f;
+            }
+            else
+            {
+                _stopFrames = 0;
+            }
+            _anim.SetFloat("Speed", _smoothedSpeed);
 
             // 공격 감지 — LastAttackTime 변화 시 트리거 (2타 내 콤보)
             if (_combat != null)

@@ -11,6 +11,7 @@ using ProjectName.Systems.Animation.Procedural.Locomotion.Biped;
 using ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped;
 using ProjectName.Systems.Animation.Procedural.Actions;
 using ProjectName.Systems.Animation.Procedural.LOD;
+using ProjectName.Systems;
 using ProjectName.Systems.Animation.Procedural.IK;
 using static ProjectName.Systems.Animation.Procedural.IK.LimbIKSolver;
 
@@ -1077,6 +1078,14 @@ namespace ProjectName.Systems.Animation.Procedural
 
         void ApplyProceduralPose()
         {
+            // 플레이어는 HumanoidClipDriver(클립 애니메이션)가 같은 골격을 구동 → 여기가 매 프레임
+            // 이 프로시저럴 포즈를 덮어쓰면 두 시스템이 충돌해 끊긴다. 클립 드라이버가 있으면 스킵.
+            // (병사/몬스터처럼 HumanoidClipDriver가 없는 객체는 프로시저럴 동작 그대로 유지)
+            // HumanoidClipDriver는 플레이어 루트가 아닌 자식 PlayerBody에 붙으므로(Assets/GameSetup.cs),
+            // InParent(자기+조상)만으론 자기 자신/자식의 드라이버를 못 찾는다. InChildren 병행으로 커버.
+            if (GetComponentInParent<HumanoidClipDriver>() != null ||
+                GetComponentInChildren<HumanoidClipDriver>() != null) return;
+
             ApplyFootIK();
             ApplySpineIK();
             ApplyHeadLook();
