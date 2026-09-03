@@ -867,3 +867,22 @@ Cross(Edge1, Edge2) = (0, -dx·dz, 0) = **법선이 아래(-Y)를 향함**.
 - 공격: TriggerAttack() 공개 API(내부 쿨다운 1.2s) — GuardCombatAI가 공격 명령+타겟 2.5m 근접 시 호출
 - idle: 팔 내림 + 호흡 유지
 **검증:** 사용자 에디터 개방 중 배치 불가 → 중괄호 균형 대체 검증 4파일 OK. 에디터 재컴파일 후 Play 확인 필요.
+
+## 2026-09-02 믹사모 애니메이션 시스템 (Humanoid 리타겟 + 컨트롤러)
+
+**사용자가 믹사모에서 81개 FBX 다운로드 → 전수 분석 후 배치:**
+- Blender 5.1 배치 스캔: 클립 메타데이터 + 본 움직임 시그니처(Hips 회전각) + 324프레임 렌더 시각검증
+- 구르기 5종 Hips 340~360° 전회 확인, 라벨-동작 전부 일치 (몽타주 시각검증)
+
+**구현:**
+1. Blender GLB→FBX 변환: Player_Rigged + soldier 3종 → Assets/Resources/Models/UserProvided/fbx/ (Humanoid 리타겟용, GLB는 ScriptedImporter라 변환 불가)
+2. MixamoRetargetSetup.cs (Tools/Anim/Apply Humanoid Rigs): ModelImporter Humanoid + 본 매핑(Root→Hips, spine.001→Chest, upper_arm.L→LeftUpperArm 등 22본) — **Unity 6.4 주의: enum 멤버가 Humanoid→Human으로 개명됨**
+3. MixamoControllerBuilder.cs (Tools/Anim/Build Mixamo Controllers): 4개 컨트롤러 생성
+   - Player_AC: Idle/Walk/Run + Attack(단발)/AttackCombo(연속)/Roll/Jump/Hit/Death
+   - SoldierShield_AC, SoldierGreatSword_AC, SoldierArcher_AC: Idle/Move/Attack/Hit/Death
+4. HumanoidClipDriver.cs: Speed/트리거 구동 (Player=CC.velocity+IsRolling/IsJumping 폴링, Soldier=위치 델타)
+5. TerritoryBuilder: 병사 클래스 랜덤 배치(레벨 무관) — 방패 40%/대검 30%/궁수 30%, Humanoid FBX 비주얼
+6. GameSetup: 플레이어 1순위 Humanoid FBX+Player_AC, 폴백 GLB+절차적 애니
+7. GuardCombatAI: 공격 트리거 → HumanoidClipDriver
+
+**검증:** 배치컴파일 통과, Humanoid 4종 isValid=True, 컨트롤러 4개 생성. Play 시각검증 대기.

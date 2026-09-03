@@ -72,7 +72,7 @@ namespace ProjectName.Editor
                 upperLegTwist = 0.5f,
             };
 
-            importer.animationType = ModelImporterAnimationType.Humanoid;
+            importer.animationType = ModelImporterAnimationType.Human; // Unity 6.4: Humanoid → Human으로 개명됨
             importer.humanDescription = desc;
             importer.SaveAndReimport();
 
