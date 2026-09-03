@@ -348,12 +348,12 @@ namespace ProjectName.Systems
         // ===== 기존 메서드들 (호환성 유지) =====
         private TerritoryDifficulty DetermineTerritoryDifficulty(Vector3 pos)
         {
-            // P-4: 맵 중심(원점) 기준 거리로 Ring 판정 (멀수록 강한 링)
+            // P-4: 맵 중심(왕실 원점) 기준 거리로 Ring 판정 (중심에 가까울수록 강한 링)
             float dist = Vector3.Distance(Vector3.zero, pos);
-            if (dist < 600f) return TerritoryDifficulty.Ring1;
-            if (dist < 1200f) return TerritoryDifficulty.Ring2;
-            if (dist < 1800f) return TerritoryDifficulty.Ring3;
-            return TerritoryDifficulty.Ring4;
+            if (dist < 600f) return TerritoryDifficulty.Ring4;
+            if (dist < 1200f) return TerritoryDifficulty.Ring3;
+            if (dist < 1800f) return TerritoryDifficulty.Ring2;
+            return TerritoryDifficulty.Ring1;
         }
 
         private Vector3 RandomPositionInRing(float innerR, float outerR)
