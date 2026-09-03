@@ -975,3 +975,24 @@ Cross(Edge1, Edge2) = (0, -dx·dz, 0) = **법선이 아래(-Y)를 향함**.
 ### 검증
 - 9개 .cs 중괄호/괄호/대괄호 균형 일괄 OK. 씬 직렬화 경로 확인. 삭제 파일 0건.
 - ⏳ **Play 확인 필요**: 지형 텍스처(밝아졌는지+방위별 색 구분), 분위기(낮 톤), 숲 배치(오버밀도 없이 국가별), 호수(반투명 물+흐름).
+
+---
+
+## 2026-09-03: RPG_Animations_Pack(DoubleL) 애니 교체 — 플레이어+병사 (믹사모 전용 유지)
+
+**원칙(사용자 지시):** "이 팩에 있는 애니는 이 팩 클립으로, 이 팩에 없는(믹사모 전용)은 그대로."
+
+### 적용 내역 (Humanoid 리타겟 — 자동)
+- **Player_AC_AC**: Idle→OneHand_Up_Idle / Walk→Walk_B / Run→Run_B / Attack(+Combo)→Attack_1 / Jump→Jump_B / Hit→Hit_F_1.
+  **유지(믹사모)**: Death, Roll(구르기).
+- **병사 3종**: 방패·대검·궁수 모두 Idle→OneHand_Up_Idle, Move→(궁수 Walk_B/방패·대검 Run_B), Attack→Attack_1, Hit→Hit_F_1. Death 유지. 궁수 Attack(활)은 팩에 활 .anim 부재 → 기존 유지.
+- **MixamoControllerBuilder 동기화**: PackDir=Assets/DoubleL/Demo/Anim + clip()에 pack: 프리픽스 분기. 리빌드 시에도 이 팩 클립 유지, Death/Roll은 믹사모 유지.
+- applyRootMotion=false 일관 유지(리타겟 root motion 회피).
+
+### 클립 guid (DoubleL .anim.meta)
+OneHand_Up_Idle=1b267cb3..., Walk_B=ba58acae..., Run_B=282509bf..., Attack_1=ec209946..., Jump_B=298642d3..., Hit_F_1=9d67aee6...
+
+### 검증
+- 무결성: 교체 guid 전부 해당 .anim.meta 존재 확인, 유지(Death/Roll) 무손상, YAML 구조 보존, 빌더 중괄호 균형 OK.
+- **적용 제외**: 몬스터(절차적 특수생물, Humanoid 아님 → Enemy_Attack 리타겟 불가) / NPC Dialogue(적용 대상 NPC 불명확).
+- ⏳ Play 확인: 플레이어/병사 걷기·달리기·공격·피격이 RPG팩 모션으로, 구르기/사망은 기존 유지.
