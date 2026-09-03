@@ -8,16 +8,20 @@ namespace ProjectName.Systems
 {
     /// <summary>
     /// PNG 텍스처 기반 국가별 지형 텍스처 적용 시스템.
-    /// Resources/Models/UserProvided/terrain/textures/ 에서 PNG를 로드하여
+    /// Resources/Models/UserProvided/terrain/textures_idyllic/ 에서 PNG를 로드하여
     /// URP Lit Material로 변환, Ground MeshRenderer에 적용한다.
     /// NationTerrainController를 대체하여 동작한다.
     ///
     /// 지원 국가 접두사: east_, west_, south_, north_, empire_, dracula_, extra_
+    /// (기존 textures/ 폴더는 회귀 폴백용으로 유지 — _textureResourcesPath 기본값 참고)
     /// </summary>
     public class TerrainTextureApplier : MonoBehaviour
     {
         [Header("Texture Resources")]
-        [SerializeField] private string _textureResourcesPath = "Models/UserProvided/terrain/textures/";
+        // 2026-09: Idyllic Fantasy Nature PNG 텍스처 세트로 교체.
+        // 기존 jpg 폴더(Models/UserProvided/terrain/textures/)는 회귀 시 폴백용으로 유지 —
+        // 이 기본값을 되돌리면 기존 텍스처 세트로 복귀 가능. 국가 접두사 분류 로직은 동일 동작.
+        [SerializeField] private string _textureResourcesPath = "Models/UserProvided/terrain/textures_idyllic/";
 
         [Header("Material Settings")]
         [SerializeField] private float _metallic = 0f;

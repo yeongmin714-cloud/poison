@@ -59,7 +59,11 @@ namespace ProjectName.Systems
             return tex;
         }
 
-        /// <summary>레이어 알베도 스플랫 블렌드 색 반환 (순수 함수).</summary>
+        /// <summary>
+        /// 레이어 알베도 스플랫 블렌드 색 반환 (순수 함수).
+        /// 합산 후 레이어 대표 colorTint(layers[0], 국가별 방위 테마 색조)를 한 번 곱해
+        /// Idyllic 밝은 톤 텍스처에서도 방위 테마 색을 유지한다. 결정론적(같은 시드 → 같은 결과).
+        /// </summary>
         public static Color ComputeLayerColor(NationType nation, float wx, float wz, List<TerrainLayerDef> layers, int seed)
         {
             if (layers == null || layers.Count == 0) return new Color(0.4f, 0.5f, 0.3f);
@@ -72,6 +76,14 @@ namespace ProjectName.Systems
                 Color c = SampleAlbedo(L.albedo, wx, wz, L.tiling);
                 acc += c * w[i];
             }
+
+            // 국가별 colorTint 적용 — layers는 국가별로 구성되므로 대표 tint를 합산 후 단일 곱.
+            // (모든 레이어가 같은 tint이므로 레이어별 누적 곱과 결과 동일. RGBA32 기록 시 1 이상은 자동 클램프.)
+            Color tint = layers[0].colorTint;
+            acc.r *= tint.r;
+            acc.g *= tint.g;
+            acc.b *= tint.b;
+
             acc.a = 1f;
             return acc;
         }
