@@ -341,7 +341,7 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 몬스터 스폰 위치: 플레이어 주변 30~70m 링 (어디를 탐험하든 조우 가능).
+        /// 몬스터 스폰 위치: 플레이어 주변 30~220m 링 (10배 마리수 분산 — 어디를 탐험하든 조우 가능).
         /// (기존: TerritoryManager 중심=원점 기반이라 스폰 지점에서 900m 밖에 생성돼 안 보였음)
         /// y는 지형 콜라이더 raycast(와인딩 픽스로 정상 동작)로 표면에 배치.
         /// </summary>
@@ -361,9 +361,9 @@ namespace ProjectName.Systems
             TerritoryDifficulty diff = GetCurrentTerritoryDifficulty();
             float radius = GetTerritoryRadius(diff);
 
-            // 플레이어 중심 스폰: 화면 밖 30m ~ 조우 거리 70m 링
+            // 플레이어 중심 스폰: 화면 밖 30m ~ 조우 거리 220m 링 (10배 마리수 분산)
             float minR = _playerT != null ? 30f : 0f;
-            float maxR = _playerT != null ? Mathf.Clamp(radius * 0.9f, 40f, 70f) : radius * 0.9f;
+            float maxR = _playerT != null ? Mathf.Clamp(radius * 0.9f, 40f, 220f) : radius * 0.9f;
 
             float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
             float offset = Random.Range(minR, maxR);

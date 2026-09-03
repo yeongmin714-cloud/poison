@@ -308,26 +308,26 @@ namespace ProjectName.Core.Data
         }
 
         /// <summary>
-        /// 영지 난이도(링)별 몬스터 "링당 총 마리수" — 면적 × 밀도상수(10마리/km²).
+        /// 영지 난이도(링)별 몬스터 "링당 총 마리수" — 배치 반경 확대에 따라 10배 상향.
         /// 맵 반경 1000m 기준 (종별 누적 금지 — 이 값은 링 전체 총합):
-        ///   Ring1 (800~1000m): 면적 1.13km² → 11마리
-        ///   Ring2 (500~800m) : 면적 1.23km² → 12마리
-        ///   Ring3 (250~500m) : 면적 0.59km² → 6마리
-        ///   Ring4 (0~250m)   : 면적 0.20km² → 2마리 (강한 몬스터 소수)
-        ///   Empire           : 2~4마리
-        /// 밤에는 MonsterSpawner에서 ×2.0 배수 적용 (Ring1=22, Ring4=4).
+        ///   Ring1 (800~1000m): 110마리
+        ///   Ring2 (500~800m) : 120마리
+        ///   Ring3 (250~500m) : 60마리
+        ///   Ring4 (0~250m)   : 20마리 (강한 몬스터)
+        ///   Empire           : 20~40마리
+        /// 밤에는 MonsterSpawner에서 ×2.0 배수 적용 (Ring1=220, Ring4=40).
         /// x==y는 고정값(랜덤 변동 없음).
         /// </summary>
         public static Vector2Int GetMonsterCountRange(TerritoryDifficulty difficulty)
         {
             return difficulty switch
             {
-                TerritoryDifficulty.Ring1  => new Vector2Int(11, 11),
-                TerritoryDifficulty.Ring2  => new Vector2Int(12, 12),
-                TerritoryDifficulty.Ring3  => new Vector2Int(6, 6),
-                TerritoryDifficulty.Ring4  => new Vector2Int(2, 2),
-                TerritoryDifficulty.Empire => new Vector2Int(2, 4),
-                _                         => new Vector2Int(11, 11)
+                TerritoryDifficulty.Ring1  => new Vector2Int(110, 110),
+                TerritoryDifficulty.Ring2  => new Vector2Int(120, 120),
+                TerritoryDifficulty.Ring3  => new Vector2Int(60, 60),
+                TerritoryDifficulty.Ring4  => new Vector2Int(20, 20),
+                TerritoryDifficulty.Empire => new Vector2Int(20, 40),
+                _                         => new Vector2Int(110, 110)
             };
         }
 
