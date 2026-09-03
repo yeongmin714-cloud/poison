@@ -356,7 +356,7 @@ namespace ProjectName.Systems
         /// <returns>Fantasy water material (shadergraph or URP Lit fallback), or null if creation failed.</returns>
         public static Material CreateFantasyWaterMaterial(string materialName, Color waterColor, float shallowWeight = 0.5f)
         {
-            return CreateFantasyWaterMaterial(materialName, waterColor, Color.Lerp(waterColor, Color.white, 0.15f),
+            return CreateFantasyWaterMaterial(materialName, Color.Lerp(waterColor, Color.white, 0.15f),
                 Color.Lerp(waterColor, new Color(0f, 0.15f, 0.3f), 0.55f), shallowWeight);
         }
 
