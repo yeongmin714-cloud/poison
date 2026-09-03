@@ -257,12 +257,18 @@ public class GameSetup : MonoBehaviour
                 bodyF.transform.position += new Vector3(0f, floorWorldY - bF2.min.y, 0f);
             }
 
-            var animF = bodyF.AddComponent<Animator>();
+            // FBX 프리팹 루트에 Animator가 이미 있음 → AddComponent 대신 Get으로 획득
+            var animF = bodyF.GetComponent<Animator>();
+            if (animF == null) animF = bodyF.AddComponent<Animator>();
             animF.runtimeAnimatorController = Resources.Load<RuntimeAnimatorController>("Animation/Controllers/Player_AC");
             if (animF.runtimeAnimatorController == null)
                 Debug.LogWarning("[GameSetup] Player_AC 미생성 — Tools > Anim > Build Mixamo Controllers 실행 필요");
             var drvF = bodyF.AddComponent<HumanoidClipDriver>();
             drvF.mode = HumanoidClipDriver.DriveMode.Player;
+            if (rendsF.Length > 0)
+                Debug.Log($"[GameSetup] ✅ 플레이어 Humanoid FBX 적용: 렌더러 {rendsF.Length}개, 최종 bounds={rendsF[0].bounds.size:F2}");
+            else
+                Debug.LogWarning("[GameSetup] ⚠️ 플레이어 FBX에 렌더러 없음 — 메시 임포트 확인 필요");
             Debug.Log("[GameSetup] ✅ 플레이어 Humanoid FBX + 믹사모 애니메이션 적용");
         }
         else if (RuntimeModelLoader.TryGetModel("player", out var playerModelPrefab))

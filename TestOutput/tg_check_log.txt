@@ -1,0 +1,10 @@
+BlenderMCP addon registered
+Reloading external rigs...
+Reloading external metarigs...
+FBX version: 7400
+[CHECK] MESH input verts= 3740 parent= metarig modifiers= ['ARMATURE']
+[CHECK] ARMATURE metarig bones= 27 scale= (1.0, 1.0, 1.0)
+BlenderMCP addon unregistered
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:37:34)
+
+Blender quit
