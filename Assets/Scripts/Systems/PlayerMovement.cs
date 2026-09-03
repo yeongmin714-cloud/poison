@@ -707,14 +707,18 @@ namespace ProjectName.Systems
             var mouse = UnityEngine.InputSystem.Mouse.current;
             if (mouse == null) return;
 
-            // 카메라 오빗 회전: 오른쪽 버튼 드래그로만 (커서 조준과 충돌 제거)
-            // 이전: 마우스 이동 자체가 오빗을 돌려 커서 조준(몸 회전)과 동시에 발동 →
-            //       마우스를 움직일 때마다 카메라가 빙빙 돌아 "추적 안 함"처럼 보였음
-            if (mouse.rightButton.isPressed)
+            // ── 커서 좌우 위치 → 카메라 요(yaw) 소프트 패닝 ──
+            // 커서가 화면 중앙 35% 데드존 안이면 유지, 좌우 가장자리로 갈수록
+            // 최대 90°/s로 카메라가 해당 방향으로 회전 (RTS식 소프트 팬)
+            var cursorPos = mouse.position.ReadValue();
+            var camPixel = Camera.main != null
+                ? new Vector2(Camera.main.pixelWidth, Camera.main.pixelHeight)
+                : new Vector2(1920f, 1080f);
+            float nx = camPixel.x > 1f ? (cursorPos.x / camPixel.x) * 2f - 1f : 0f; // -1(좌) ~ +1(우)
+            if (Mathf.Abs(nx) > 0.35f)
             {
-                Vector2 delta = mouse.delta.ReadValue();
-                _camYaw += delta.x * MouseSensitivity;
-                _camPitch = Mathf.Clamp(_camPitch - delta.y * MouseSensitivity, PitchMin, PitchMax);
+                float edge = (Mathf.Abs(nx) - 0.35f) / 0.65f;          // 0(데드존 끝) ~ 1(가장자리)
+                _camYaw += Mathf.Sign(nx) * edge * 90f * Time.deltaTime;
             }
 
             // 줌은 항상 휠
