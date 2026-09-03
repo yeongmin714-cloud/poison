@@ -3,6 +3,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
 {
@@ -266,6 +267,67 @@ namespace ProjectName.Systems
         /// <summary>
         /// Returns true if the given material has all the upgraded water material properties.
         /// </summary>
+        /// <summary>
+        /// Returns true if the given material has all the upgraded water material properties.
+        /// </summary>
+        // ─────────────────────────────────────────────────────────────────
+        // T-R5: turquoise/emerald lake palette + nation tint
+        // ─────────────────────────────────────────────────────────────────
+
+        /// <summary>표준 터쿼이즈 색 (그 외 국가 — 동/서/황제국).</summary>
+        public static readonly Color TurquoiseShallow = new Color(0.30f, 0.74f, 0.66f, 0.60f);
+        /// <summary>에메랄드 deep 그라데이션 끝 (표준).</summary>
+        public static readonly Color EmeraldDeep = new Color(0.05f, 0.42f, 0.32f, 0.85f);
+
+        /// <summary>남쪽 = 따뜻한 청록 (r/g 상향, b 소폭 낮음).</summary>
+        public static readonly Color SouthTurquoiseShallow = new Color(0.38f, 0.76f, 0.60f, 0.60f);
+        /// <summary>남쪽 deep — 따뜻한 에메랄드.</summary>
+        public static readonly Color SouthEmeraldDeep = new Color(0.12f, 0.47f, 0.30f, 0.85f);
+
+        /// <summary>북쪽 = 차가운 청색 (b 상향, g/r 낮음).</summary>
+        public static readonly Color NorthCoolShallow = new Color(0.26f, 0.66f, 0.80f, 0.60f);
+        /// <summary>북쪽 deep — 차가운 심청.</summary>
+        public static readonly Color NorthCoolDeep = new Color(0.03f, 0.32f, 0.52f, 0.85f);
+
+        /// <summary>
+        /// 호수 중심 위치에 따라 국가별 터쿼이즈/에메랄드 틴트를 반환한다.
+        /// - 남(South, z-) = 따뜻한 청록 / - 북(North, z+) = 차가운 청색 / - 그 외 = 표준 터쿼이즈.
+        /// 판정은 NationTerrainController.GetNationFromPosition (Empire 포함 시 표준 팔레트).
+        /// </summary>
+        public static void GetNationWaterGradient(Vector3 center, out Color shallow, out Color deep)
+        {
+            NationType nation = NationTerrainController.GetNationFromPosition(center);
+            switch (nation)
+            {
+                case NationType.South:
+                    shallow = SouthTurquoiseShallow;
+                    deep = SouthEmeraldDeep;
+                    break;
+                case NationType.North:
+                    shallow = NorthCoolShallow;
+                    deep = NorthCoolDeep;
+                    break;
+                default: // East / West / Empire / None → 표준 터쿼이즈
+                    shallow = TurquoiseShallow;
+                    deep = EmeraldDeep;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 호수 중심 위치 기준 국가별 틴트를 입힌 판타지 물 재질을 생성한다 (T-R5).
+        /// GetNationWaterGradient로 shallow/deep 두 끝을 구하고 CreateFantasyWaterMaterial로
+        /// shadergraph 또는 URP Lit 반투명 폴백 중 하나를 만든다.
+        /// </summary>
+        public static Material CreateNationTintedWaterMaterial(string materialName, Vector3 center, float shallowWeight = 0.65f)
+        {
+            GetNationWaterGradient(center, out Color shallow, out Color deep);
+            return CreateFantasyWaterMaterial(materialName, shallow, deep, shallowWeight);
+        }
+
+        /// <summary>
+        /// Returns true if the given material has all the upgraded water material properties.
+        /// </summary>
         public static bool IsUpgradedWaterMaterial(Material mat)
         {
             if (mat == null) return false;
@@ -300,8 +362,24 @@ namespace ProjectName.Systems
         /// <returns>Fantasy water material (shadergraph or URP Lit fallback), or null if creation failed.</returns>
         public static Material CreateFantasyWaterMaterial(string materialName, Color waterColor, float shallowWeight = 0.5f)
         {
+            return CreateFantasyWaterMaterial(materialName, waterColor, Color.Lerp(waterColor, Color.white, 0.15f),
+                Color.Lerp(waterColor, new Color(0f, 0.15f, 0.3f), 0.55f), shallowWeight);
+        }
+
+        /// <summary>
+        /// Creates a fantasy water material with an explicit shallow→deep gradient. Used by the
+        /// T-R5 turquoise/emerald lake palette so the shadergraph (and fallback) get per-nation
+        /// tinted shallow and deep ends instead of deriving both from a single input color.
+        /// </summary>
+        /// <param name="materialName">Name for the new material.</param>
+        /// <param name="shallowColor">Bright shallow/turquoise base color.</param>
+        /// <param name="deepColor">Emerald/deep water gradient end.</param>
+        /// <param name="shallowWeight">Blend weight toward shallow color (URP Lit fallback only).</param>
+        public static Material CreateFantasyWaterMaterial(string materialName, Color shallowColor, Color deepColor, float shallowWeight = 0.65f)
+        {
+            Color waterColor = shallowColor; // kept for texture tinting / translucency fallback
             // Preferred path: Idyllic Water shadergraph (if compiled and reachable by name)
-            Material graphMat = TryCreateIdyllicShaderGraphMaterial(materialName, waterColor);
+            Material graphMat = TryCreateIdyllicShaderGraphMaterial(materialName, shallowColor, deepColor);
             if (graphMat != null)
                 return graphMat;
 
@@ -310,8 +388,8 @@ namespace ProjectName.Systems
             if (mat == null)
                 return null;
 
-            Color color = waterColor;
-            color.a = Mathf.Clamp(waterColor.a, 0.35f, 0.85f);
+            Color color = shallowColor;
+            color.a = Mathf.Clamp(shallowColor.a, 0.35f, 0.85f);
 
             Texture2D waterTex = GetOrCreateTintedWaterTexture(color);
             if (waterTex != null)
@@ -359,6 +437,17 @@ namespace ProjectName.Systems
         /// </summary>
         private static Material TryCreateIdyllicShaderGraphMaterial(string materialName, Color waterColor)
         {
+            return TryCreateIdyllicShaderGraphMaterial(materialName, waterColor,
+                Color.Lerp(waterColor, new Color(0f, 0.15f, 0.3f), 0.55f));
+        }
+
+        /// <summary>
+        /// Attempts to build a material from the Idyllic "Water.shadergraph"
+        /// (shader name "Shader Graphs/Water"). Returns null (no exception) when the
+        /// shader cannot be found/supported — the caller then uses the URP Lit fallback.
+        /// </summary>
+        private static Material TryCreateIdyllicShaderGraphMaterial(string materialName, Color baseColor, Color deepColor)
+        {
             Shader graphShader = null;
             string[] candidates =
             {
@@ -396,8 +485,9 @@ namespace ProjectName.Systems
 
                 // Graph exposes: _Shallow_Color, _Deep_Color, _Water_Speed, _Normal_Strength,
                 // _Smoothness, _Refraction_Normal, _Second_Refraction_Normal, foam/coast props.
-                Color shallow = Color.Lerp(waterColor, Color.white, 0.15f); shallow.a = 1f;
-                Color deep = Color.Lerp(waterColor, new Color(0.0f, 0.15f, 0.3f), 0.55f); deep.a = 1f;
+                // 여기서 waterColor(단일) 대신 nation 틴트 shallow→deep 그라데이션 두 끝을 주입.
+                Color shallow = baseColor; shallow.a = 1f;
+                Color deep = deepColor; deep.a = 1f;
                 SetColorIfPresent(mat, "_Shallow_Color", shallow);
                 SetColorIfPresent(mat, "_Deep_Color", deep);
                 SetFloatIfPresent(mat, "_Water_Speed", 0.35f);
