@@ -1,0 +1,72 @@
+BlenderMCP addon registered
+Reloading external rigs...
+Reloading external metarigs...
+FBX version: 7700
+{
+ "armature": "Armature",
+ "bones": 65,
+ "bone_names": [
+  "mixamorig:Hips",
+  "mixamorig:Spine",
+  "mixamorig:Spine1",
+  "mixamorig:Spine2",
+  "mixamorig:Neck",
+  "mixamorig:Head",
+  "mixamorig:HeadTop_End",
+  "mixamorig:RightShoulder",
+  "mixamorig:RightArm",
+  "mixamorig:RightForeArm",
+  "mixamorig:RightHand",
+  "mixamorig:RightHandThumb1",
+  "mixamorig:RightHandThumb2",
+  "mixamorig:RightHandThumb3"
+ ],
+ "root_candidates": [
+  "mixamorig:Hips",
+  "mixamorig:RightToeBase",
+  "mixamorig:LeftToeBase"
+ ],
+ "action": "Armature|mixamo.com|Layer0",
+ "frame_range": [
+  1.0,
+  43.0
+ ],
+ "frames": 42.0,
+ "duration_s": 1.4,
+ "top_animated_bones": [
+  [
+   155.11593197568573,
+   "mixamorig:Hips"
+  ],
+  [
+   73.32067372111786,
+   "mixamorig:LeftHandThumb2"
+  ],
+  [
+   72.02400328832596,
+   "mixamorig:RightArm"
+  ],
+  [
+   64.7603703135842,
+   "mixamorig:LeftHandMiddle2"
+  ],
+  [
+   61.53445830820883,
+   "mixamorig:LeftHandIndex3"
+  ],
+  [
+   59.64727021034514,
+   "mixamorig:RightForeArm"
+  ]
+ ],
+ "yaw_test": {
+  "bone": "mixamorig:Hips",
+  "angle_between_world_fwd": 0.0
+ },
+ "yaw_ok": false
+}
+[PROBE] DONE
+BlenderMCP addon unregistered
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:37:34)
+
+Blender quit
