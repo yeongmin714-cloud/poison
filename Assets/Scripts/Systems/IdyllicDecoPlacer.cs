@@ -785,7 +785,9 @@ namespace ProjectName.Systems
         /// <summary>타깃 밀도(1/900㎡ 나무, 1/38² 관목, 1/2500㎡ 바위, 4.5² 꽃) 기준 방위 기본 상한.</summary>
         static void DefaultCaps(NationDecoProfile p)
         {
-            p.treeCap = 1150;
+            // treeCap=1900: Z4 숲 군락 ×4 밀도(군락 내 4/900㎡) 반영 — 전국가(1/900㎡≈1000)+
+            // 숲 밴드 3~5개(반경 100~180m, ≈820 추가) 합계 ≈1820가 cap=1150에 잘리지 않도록 여유 상향.
+            p.treeCap = 1900;
             p.rockCap = 400;
             p.bushCap = 650;
             p.flowerCap = 4200;
