@@ -44,6 +44,7 @@ namespace ProjectName.Systems
         // 수역(0~1.0r)은 depth 카브, 수변 밴드(1.0r~1.45r)는 waterLevel-0.4m로 수렴,
         // 분지 안전가드로 전 구역 수면 아래 유지. TerrainSplatBaker L5(이끼·수변)와 동기화.
         public const float LAKE_SHORE_BAND_FACTOR = 1.45f;      // 수변 수렴 완료 반경 배율 (1.0r~1.45r)
+        public const float LAKE_SHORE_FADE_FACTOR = 1.7f;       // 수변 페이드 완료 반경 배율 (1.45r~1.7r — 원 지형 복귀, 경계 단차 제거)
         private const float LAKE_SHORE_CONVERGE_MARGIN = 0.4f;  // 수변 목표 = waterLevel - 이값
         private const float LAKE_BASIN_GUARD_MARGIN = 0.2f;     // 분지 안 지형이 수면보다 반드시 낮게 유지할 여유
         private const float LAKE_LEVEL_RING_FACTOR = 1.5f;      // waterLevel 보정 링 반경 배율
@@ -469,7 +470,8 @@ namespace ProjectName.Systems
 
                 float waterRadius = lake.radius;                          // 1.0r 수역 경계
                 float shoreOuter = lake.radius * LAKE_SHORE_BAND_FACTOR;  // 1.45r 수변 수렴 끝
-                if (dist >= shoreOuter)
+                float fadeOuter = lake.radius * LAKE_SHORE_FADE_FACTOR;   // 1.7r 페이드 끝 (1.45r 경계 단차 제거)
+                if (dist >= fadeOuter)
                     continue;
 
                 // ── 1단 수역 (0 ~ 1.0r): 기존 depth 카브 (중심 최대, 수역 경계에서 0) ──
@@ -479,7 +481,7 @@ namespace ProjectName.Systems
                     float s = t * t * (3f - 2f * t);
                     height -= lake.depth * s;
                 }
-                else
+                else if (dist < shoreOuter)
                 {
                     // ── 2단 수변 밴드 (1.0r ~ 1.45r): waterLevel - 0.4m 로 smoothstep 수렴 ──
                     float t2 = Mathf.Clamp01((dist - waterRadius) / (shoreOuter - waterRadius));
@@ -487,10 +489,22 @@ namespace ProjectName.Systems
                     float shoreTarget = lake.waterLevel - LAKE_SHORE_CONVERGE_MARGIN;
                     height = Mathf.Lerp(height, shoreTarget, s2);
                 }
+                else
+                {
+                    // ── 3단 페이드 (1.45r ~ 1.7r): 수변 끝(waterLevel-0.4) → 원래 지형 부드러운 복귀 ──
+                    // 1.45r 경계에서의 하드 단차(원 지형이 waterLevel-0.4보다 높을 때 ~1m 점프) 제거.
+                    float t3 = Mathf.Clamp01((dist - shoreOuter) / (fadeOuter - shoreOuter));
+                    float s3 = t3 * t3 * (3f - 2f * t3);
+                    float shoreTarget = lake.waterLevel - LAKE_SHORE_CONVERGE_MARGIN;
+                    height = Mathf.Lerp(shoreTarget, height, s3);
+                }
 
                 // ── 분지 안전가드: 지형이 수면보다 반드시 아래 (min=낮추기만, 절대 올리지 않음) ──
                 // 수면 원판(1.0r) 바깥 수변/해안이 솟아 물을 관통하는 것을 근본 차단.
-                height = Mathf.Min(height, lake.waterLevel - LAKE_BASIN_GUARD_MARGIN);
+                // 가드 적용 범위는 수면 원반(1.0r) 인접부(≤1.45r)까지만 — 1.45~1.7r 페이드는
+                // 원 지형 복귀 구간이므로 가드를 적용하면 1.7r 경계에 새 단차가 생김.
+                if (dist <= shoreOuter)
+                    height = Mathf.Min(height, lake.waterLevel - LAKE_BASIN_GUARD_MARGIN);
             }
             return height;
         }
