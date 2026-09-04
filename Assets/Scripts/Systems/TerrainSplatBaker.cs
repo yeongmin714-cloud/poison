@@ -138,6 +138,12 @@ namespace ProjectName.Systems
                         c.g *= 1.06f;
                         c.b *= 1.06f;
                     }
+                    // CC2: 호수 분지(물밑) 픽셀을 깊이 비례 어두운 물색으로 강제 —
+                    // 투명 수면 아래 분지 바닥 면패션(사각 박스) 시야 차단 + 깊이감.
+                    // t = 1 - dist/r (중심=1 → 완전 심수색, 수변=0 → 원색 유지).
+                    float lk = LakeDepthAt(wx, wz);
+                    if (lk > 0f)
+                        c = Color.Lerp(c, new Color(0.06f, 0.14f, 0.20f), lk);
                     px[row + x] = c;
                 }
                 if (y % progressEvery == 0 && y > 0)
@@ -311,18 +317,21 @@ namespace ProjectName.Systems
             // 고도 3분위 → L1 저지대 / L2 중지대 (여기선 2층으로 세분, 상한 낮을수록 저지대)
             float lowW = Mathf.Clamp01(1f - nh / 0.5f);          // 저지대 (nh 낮음 → 우세)
             float midW = WeightFromCenter(nh, 0.55f, 0.35f);     // 중지대 (피크 ~0.55)
-            // Z2 북 설산화: 고지대 우세 설원 밴드 (nh 높음 → 우세) — 북 L1(설)에 사용.
-            float highW = Mathf.Clamp01(nh / 0.5f);
-            // 북은 L1(설·lowland) = 고지대, L2(청록잔디·midland) = 저지대 로 반전 ("설산" 실루엣).
+            // CC2b: 북 설원 기본 지배 (고지대 전용 → 전역 설원으로 반전).
+            //   snowW = 0.7 + nh*0.3 — 저지에서 0.7, 능선에서 1.0 (완전 설).
+            //   grassNW = 1 - snowW — 최대 0.3, 저지대 포인트만 청록 잔디가 보인다.
+            //   다른 국가는 기존 고도 3분위(lowW/midW) 불변.
             bool northSnow = (nation == NationType.North);
+            float snowW = northSnow ? Mathf.Lerp(0.7f, 1.0f, nh) : Mathf.Clamp01(nh / 0.5f);
+            float grassNW = northSnow ? Mathf.Clamp01(1f - snowW) : midW;
 
             float[] raw = new float[n];
             for (int i = 0; i < n; i++)
             {
                 float v = 0f;
                 string nm = layers[i].layerName.ToLowerInvariant();
-                if (nm.Contains("lowland"))        v = (northSnow ? highW : lowW) * unobstructed;
-                else if (nm.Contains("midland"))   v = (northSnow ? lowW : midW) * unobstructed;
+                if (nm.Contains("lowland"))        v = (northSnow ? snowW : lowW) * unobstructed;
+                else if (nm.Contains("midland"))   v = (northSnow ? grassNW : midW) * unobstructed;
                 else if (nm.Contains("rock"))      v = cliff;                                   // L3 절벽
                 else if (nm.Contains("dirt"))      v = path * (1f - Mathf.Clamp01(water));      // L4 흙길 (수변 우선)
                 else if (nm.Contains("moss"))      v = water;                                   // L5 이끼·수변
@@ -363,6 +372,26 @@ namespace ProjectName.Systems
                 if (band > best) best = band;
             }
             return Mathf.Clamp01(best);
+        }
+
+        /// <summary>
+        /// 호수 분지 내부 깊이 [0,1] — 중심(1) → 수변(0), 반경 밖(0).
+        /// TerrainGenerator.Lakes(LCG 앵커, 시드 불변)를 그대로 사용한다. CC2 물밑 음영용.
+        /// </summary>
+        static float LakeDepthAt(float wx, float wz)
+        {
+            var lakes = TerrainGenerator.Lakes;
+            if (lakes == null || lakes.Count == 0) return 0f;
+            float best = 0f;
+            for (int i = 0; i < lakes.Count; i++)
+            {
+                float dx = wx - lakes[i].center.x;
+                float dz = wz - lakes[i].center.z;
+                float d = Mathf.Sqrt(dx * dx + dz * dz);
+                float r = lakes[i].radius;
+                if (d < r) { float t = 1f - d / r; if (t > best) best = t; }
+            }
+            return best;
         }
 
         /// <summary>값을 정규 높이로 보고 중심에서 떨어진 정도에 따라 1→0 선형 감쇠. 1=중심, 0=벗어남.</summary>

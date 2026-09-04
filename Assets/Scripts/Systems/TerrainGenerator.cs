@@ -440,6 +440,64 @@ namespace ProjectName.Systems
                 lakes.Add(lake);
             }
 
+            // CC2: 북쪽 호수 보장 — 방위각 45~135°(북=z+ 영역) 호수가 3개 미만이면 북쪽 편향
+            // 후보로 추가 배치를 시도한다. 규칙(성/스폰 150m 배제·호수간 250m·경계 여백) 유지.
+            // 동일 LCG라 결정론적 — 2부트 같은 결과.
+            const int NORTH_TARGET = 3;
+            int northCount = 0;
+            for (int j = 0; j < lakes.Count; j++)
+            {
+                float ang = Mathf.Atan2(lakes[j].center.z, lakes[j].center.x) * Mathf.Rad2Deg;
+                if (ang < 0f) ang += 360f;
+                if (ang >= 45f && ang <= 135f) northCount++;
+            }
+            if (northCount < NORTH_TARGET)
+            {
+                int baseSt = LAKE_COUNT * 1000 + 900;
+                for (int i = 0; i < NORTH_TARGET - northCount; i++)
+                {
+                    bool placedN = false;
+                    for (int a = 0; a < ATTEMPTS && !placedN; a++)
+                    {
+                        int st = baseSt + i * 500 + a * 4;
+                        float cz = Mathf.Lerp(0f, bound, LakeRand(st + 1));   // 북(z+) 편향
+                        float cx = Mathf.Lerp(-cz, cz, LakeRand(st + 0));     // azimuth 45~135° 유지
+                        Vector3 c = new Vector3(cx, 0f, cz);
+                        if (Vector3.Distance(c, Vector3.zero) < LAKE_SPAWN_EXCLUDE) continue;
+                        if (Vector3.Distance(c, spawn) < LAKE_SPAWN_EXCLUDE) continue;
+                        bool near = false;
+                        for (int j2 = 0; j2 < lakes.Count; j2++)
+                            if (Vector3.Distance(c, lakes[j2].center) < LAKE_MIN_DIST) { near = true; break; }
+                        if (near) continue;
+                        TerrainLakeDef nl = new TerrainLakeDef();
+                        nl.center = c;
+                        nl.radius = Mathf.Lerp(LAKE_RADIUS_MIN, LAKE_RADIUS_MAX, LakeRand(st + 2));
+                        nl.depth = Mathf.Lerp(LAKE_DEPTH_MIN, LAKE_DEPTH_MAX, LakeRand(st + 3));
+                        float baseH = ComputeNationHeight(nl.center.x, nl.center.z,
+                            GetNationFromCoord(nl.center.x, nl.center.z), 42);
+                        nl.waterLevel = baseH - nl.depth + LAKE_WATER_OFFSET;
+                        // 수면-지형 정합 보정 (주 루프와 동일 규칙 — 구릉 위 호수 깊이 재조정)
+                        float ringR = nl.radius * LAKE_LEVEL_RING_FACTOR;
+                        float maxRing = float.MinValue;
+                        for (int k = 0; k < LAKE_LEVEL_RING_SAMPLES; k++)
+                        {
+                            float a2 = (Mathf.PI * 2f * k) / LAKE_LEVEL_RING_SAMPLES;
+                            float rx = nl.center.x + Mathf.Cos(a2) * ringR;
+                            float rz = nl.center.z + Mathf.Sin(a2) * ringR;
+                            float rh = ComputeNationHeight(rx, rz, GetNationFromCoord(rx, rz), 42);
+                            if (rh > maxRing) maxRing = rh;
+                        }
+                        nl.waterLevel = Mathf.Max(baseH - nl.depth,
+                            Mathf.Min(nl.waterLevel, maxRing - nl.depth * LAKE_LEVEL_RING_REDUCE));
+                        lakes.Add(nl);
+                        placedN = true;
+                        Debug.Log($"[TerrainGenerator] CC2 북 호수 추가: center=({nl.center.x:F0},{nl.center.z:F0}) r={nl.radius:F0} wl={nl.waterLevel:F2}");
+                    }
+                    if (!placedN)
+                        Debug.LogWarning($"[TerrainGenerator] CC2 북 호수 {i}번 배치 실패 — 규칙 유지 위해 건너뜀.");
+                }
+            }
+
             Debug.Log($"[TerrainGenerator] 호수 배치 완료: {lakes.Count}/{LAKE_COUNT} 개 (AA2 시드 {LAKE_LCG_SEED})");
             return lakes;
         }

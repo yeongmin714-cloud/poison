@@ -798,10 +798,47 @@ namespace ProjectName.Systems
             Debug.Log($"[TerrainTextureApplier] Phase Y1: 통합 월드 스플랫 적용 완료 — {worldSplat.name}, 총 {dt:F0}ms");
         }
 
-        /// <summary>AA4: 디스크 캐시 경로. 시드+해상도를 파일명에 포함 → 시드 변경 시 자동 무효화.</summary>
+        /// <summary>AA4: 디스크 캐시 경로. 시드 + 텍스처 내용 해시를 파일명에 포함 → 시드 또는 텍스처 교체 시 자동 무효화.</summary>
         private string WorldSplatCachePath()
         {
-            return System.IO.Path.Combine(Application.persistentDataPath, $"WorldSplat_{_splatResolution}_seed{_splatSeed}.png");
+            string hash = ComputeTextureContentHash();
+            return System.IO.Path.Combine(Application.persistentDataPath,
+                $"WorldSplat_{_splatResolution}_seed{_splatSeed}_v{hash}.png");
+        }
+
+        /// <summary>
+        /// CC2b: 캐시 무효화 개선 — 각 국가 L1 알베도의 GetPixel(0,0)(r+g+b+a) 합산 int × 국가 수 +
+        /// 텍스처 총수를 절인 결정론 해시. 텍스처 파일을 교체하면 값이 달라져 캐시 파일명이
+        /// 바뀌어 다음 Play에서 자동 재베이크된다 (텍스처는 바뀌는데 캐시가 구색을 남긴 사고 재발 방지).
+        /// 비읽기/예외 시 텍스처 이름 길이 기반 폴백 — 그래도 시드/해상도와 함께 키로 작동해 결정론 유지.
+        /// </summary>
+        private string ComputeTextureContentHash()
+        {
+            long h = 17;
+            int texCount = 0;
+            if (_nationTextures != null)
+            {
+                foreach (var kvp in _nationTextures)
+                {
+                    if (kvp.Value == null || kvp.Value.Count == 0) continue;
+                    Texture2D albedo = kvp.Value[0];
+                    if (albedo == null) continue;
+                    texCount++;
+                    long v;
+                    try
+                    {
+                        Color c = albedo.GetPixel(0, 0);
+                        v = (long)(c.r + c.g + c.b + c.a);   // 각 ~[0,1], 합산 int
+                    }
+                    catch
+                    {
+                        v = albedo.name != null ? albedo.name.Length : 0;
+                    }
+                    h = (h * 31 + v) & 0x7FFFFFFF;
+                }
+            }
+            h = (h * 31 + texCount) & 0x7FFFFFFF;
+            return ((uint)h).ToString("X8");
         }
 
         /// <summary>

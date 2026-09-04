@@ -37,6 +37,10 @@ namespace ProjectName.Systems
         private bool _prevRolling, _prevJumping;
         private bool _deathFired;
 
+        // DD1: 애니 상태 진단 타임라인 (최초 12초, 2초 간격 6회)
+        private float _diagStart = -1f;
+        private float _nextDiagTime = 0f;
+
         // Speed 지수 평활 + 멈춤 스냅 (지형/경사 충돌로 속도가 0 근처로 순간 떨어질 때
         // Idle로 떨어졌다 복귀하는 "끊김 + 멈춤 모션"을 방지)
         private float _smoothedSpeed;
@@ -70,6 +74,19 @@ namespace ProjectName.Systems
                 ? _anim.runtimeAnimatorController.name
                 : "NULL";
             Debug.Log($"[HumanoidClipDriver] anim=OK avatar={avatarInfo} controller={ctrlInfo} mode={mode}");
+
+            // DD1: 이중 Animator 감지 (1회) — 오작동/모션 미표시 원인 후보 파악
+            var allAnims = GetComponentsInChildren<Animator>(true);
+            if (allAnims != null && allAnims.Length > 0)
+            {
+                var sb = new System.Text.StringBuilder();
+                for (int i = 0; i < allAnims.Length; i++)
+                {
+                    if (i > 0) sb.Append(", ");
+                    sb.Append(allAnims[i].gameObject.name);
+                }
+                Debug.Log($"[HumanoidClipDriver][Diag] 애니메이터 개수={allAnims.Length} → [{sb}]");
+            }
         }
 
         private void Update()
@@ -90,6 +107,14 @@ namespace ProjectName.Systems
         // ───────────────────── Player 모드 ─────────────────────
         private void UpdatePlayer()
         {
+            // DD1: 최초 12초간 2초 간격 6회 — 실제 재생 상태(state/normT/speed)와 컨트롤러 속도 진단
+            if (_diagStart < 0f) _diagStart = Time.time;
+            if (Time.time - _diagStart <= 12f && Time.time >= _nextDiagTime)
+            {
+                _nextDiagTime = Time.time + 2f;
+                LogAnimDiagnostic();
+            }
+
             // Speed — CharacterController 수평 속도 크기 (지수 평활로 끊김 제거)
             float raw = 0f;
             if (_cc != null)
@@ -140,6 +165,27 @@ namespace ProjectName.Systems
             bool jumping = _movement != null && _movement.IsJumping;
             if (jumping && !_prevJumping) _anim.SetTrigger("Jump");
             _prevJumping = jumping;
+        }
+
+        /// <summary>DD1: 현재 애니 상태/진행도/속도 로그 (state는 shortNameHash→이름 매핑).</summary>
+        private void LogAnimDiagnostic()
+        {
+            if (_anim == null) return;
+            var sinfo = _anim.GetCurrentAnimatorStateInfo(0);
+            string stateName = "?";
+            if (_anim.IsName("Idle")) stateName = "Idle";
+            else if (_anim.IsName("Walk")) stateName = "Walk";
+            else if (_anim.IsName("Run")) stateName = "Run";
+            else if (_anim.IsName("Attack")) stateName = "Attack";
+            else if (_anim.IsName("AttackCombo")) stateName = "AttackCombo";
+            else if (_anim.IsName("Roll")) stateName = "Roll";
+            else if (_anim.IsName("Jump")) stateName = "Jump";
+            else if (_anim.IsName("Death")) stateName = "Death";
+            else stateName = sinfo.shortNameHash.ToString("X8");
+            float speed = 0f;
+            try { speed = _anim.GetFloat("Speed"); } catch { }
+            float ccVel = _cc != null ? _cc.velocity.magnitude : -1f;
+            Debug.Log($"[HumanoidClipDriver][Diag] t={Time.time:F1}s state={stateName} normT={sinfo.normalizedTime:F2} speed={speed:F2} ccVel={ccVel:F2} animEnabled={_anim.enabled} culling={_anim.cullingMode}");
         }
 
         // ───────────────────── Soldier 모드 ─────────────────────

@@ -926,9 +926,17 @@ namespace ProjectName.Systems
             if (_nationTintCache.TryGetValue(key, out cached) && cached != null) return cached;
             Material clone = new Material(original);
             clone.name = original.name + "_Tint" + nation;
-            if (clone.HasProperty("_Custom_Color")) clone.SetFloat("_Custom_Color", 1f);
-            if (clone.HasProperty("_Color")) clone.SetColor("_Color", tint);
-            if (clone.HasProperty("_BaseColor")) clone.SetColor("_BaseColor", tint);
+            // CC3: 팩 Vegetation 셰이더는 _Custom_Color(잎 혼합) 우선, 없으면 URP Lit _Color/_BaseColor.
+            // 셋 다 없으면 스킵(원본 유지) + 로그 — 틴트 가능한 재료만 복제한다.
+            if (clone.HasProperty("_Custom_Color")) clone.SetColor("_Custom_Color", tint);
+            else if (clone.HasProperty("_Color")) clone.SetColor("_Color", tint);
+            else if (clone.HasProperty("_BaseColor")) clone.SetColor("_BaseColor", tint);
+            else
+            {
+                Debug.LogWarning($"[IdyllicDecoPlacer] 틴트 속성(_Custom_Color/_Color/_BaseColor) 없음 → 원본 유지: {original.name}");
+                Object.Destroy(clone);
+                return original;
+            }
             _nationTintCache[key] = clone;
             return clone;
         }

@@ -15,10 +15,10 @@ namespace ProjectName.Systems
     public static class WaterMaterialUpgrader
     {
         /// <summary>Shallow water base color.</summary>
-        public static readonly Color ShallowColor = new Color(0.1f, 0.4f, 0.7f, 0.6f);
+        public static readonly Color ShallowColor = new Color(0.1f, 0.4f, 0.7f, 0.85f);
 
         /// <summary>Deep water base color.</summary>
-        public static readonly Color DeepColor = new Color(0.0f, 0.1f, 0.3f, 0.8f);
+        public static readonly Color DeepColor = new Color(0.0f, 0.1f, 0.3f, 0.85f);
 
         /// <summary>Target smoothness for reflection clarity.</summary>
         private const float TargetSmoothness = 0.8f;
@@ -33,8 +33,8 @@ namespace ProjectName.Systems
         // P-3: Idyllic fantasy water (translucent lake surface)
         // ─────────────────────────────────────────────────────────────────
 
-        /// <summary>Bright, clear fantasy lake color (semi-transparent).</summary>
-        public static readonly Color FantasyLakeColor = new Color(0.3f, 0.6f, 0.75f, 0.55f);
+        /// <summary>Bright, clear fantasy lake color (semi-transparent). CC2: 불투명도 0.85 — 바닥 은폐.</summary>
+        public static readonly Color FantasyLakeColor = new Color(0.3f, 0.6f, 0.75f, 0.85f);
 
         /// <summary>Default UV flow speed along U (UV units per second).</summary>
         public const float DefaultFlowSpeedX = 0.02f;
@@ -268,18 +268,18 @@ namespace ProjectName.Systems
         // T-R5: turquoise/emerald lake palette + nation tint
         // ─────────────────────────────────────────────────────────────────
 
-        /// <summary>표준 터쿼이즈 색 (그 외 국가 — 동/서/황제국).</summary>
-        public static readonly Color TurquoiseShallow = new Color(0.30f, 0.74f, 0.66f, 0.60f);
+        /// <summary>표준 터쿼이즈 색 (그 외 국가 — 동/서/황제국). CC2: 알파 0.85 — 바닥 은폐.</summary>
+        public static readonly Color TurquoiseShallow = new Color(0.30f, 0.74f, 0.66f, 0.85f);
         /// <summary>에메랄드 deep 그라데이션 끝 (표준).</summary>
         public static readonly Color EmeraldDeep = new Color(0.05f, 0.42f, 0.32f, 0.85f);
 
-        /// <summary>남쪽 = 따뜻한 청록 (r/g 상향, b 소폭 낮음).</summary>
-        public static readonly Color SouthTurquoiseShallow = new Color(0.38f, 0.76f, 0.60f, 0.60f);
+        /// <summary>남쪽 = 따뜻한 청록 (r/g 상향, b 소폭 낮음). CC2: 알파 0.85.</summary>
+        public static readonly Color SouthTurquoiseShallow = new Color(0.38f, 0.76f, 0.60f, 0.85f);
         /// <summary>남쪽 deep — 따뜻한 에메랄드.</summary>
         public static readonly Color SouthEmeraldDeep = new Color(0.12f, 0.47f, 0.30f, 0.85f);
 
-        /// <summary>북쪽 = 차가운 청색 (b 상향, g/r 낮음).</summary>
-        public static readonly Color NorthCoolShallow = new Color(0.26f, 0.66f, 0.80f, 0.60f);
+        /// <summary>북쪽 = 차가운 청색 (b 상향, g/r 낮음). CC2: 알파 0.85.</summary>
+        public static readonly Color NorthCoolShallow = new Color(0.26f, 0.66f, 0.80f, 0.85f);
         /// <summary>북쪽 deep — 차가운 심청.</summary>
         public static readonly Color NorthCoolDeep = new Color(0.03f, 0.32f, 0.52f, 0.85f);
 
@@ -469,8 +469,8 @@ namespace ProjectName.Systems
                 // Graph exposes: _Shallow_Color, _Deep_Color, _Water_Speed, _Normal_Strength,
                 // _Smoothness, _Refraction_Normal, _Second_Refraction_Normal, foam/coast props.
                 // 여기서 waterColor(단일) 대신 nation 틴트 shallow→deep 그라데이션 두 끝을 주입.
-                Color shallow = baseColor; shallow.a = 1f;
-                Color deep = deepColor; deep.a = 1f;
+                Color shallow = baseColor; shallow.a = 0.85f; // CC2: 수면 불투명도 0.85 — 바닥 면패션 은폐
+                Color deep = deepColor; deep.a = 0.85f;
                 SetColorIfPresent(mat, "_Shallow_Color", shallow);
                 SetColorIfPresent(mat, "_Deep_Color", deep);
                 SetFloatIfPresent(mat, "_Water_Speed", 0.35f);
