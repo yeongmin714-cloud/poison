@@ -12,10 +12,10 @@ namespace ProjectName.Systems
     /// </summary>
     public class BlobShadow : MonoBehaviour
     {
-        const float RADIUS = 0.6f;
+        const float RADIUS = 0.8f;   // AA3 09-04: 0.6→0.8 (접지감 그림자 강화)
         const float GROUND_BASE = 1f;      // 지형 메시 기저 (Ground_Inner)
         const int TEX_SIZE = 64;
-        const float ALPHA = 0.25f;
+        const float ALPHA = 0.35f;   // AA3 09-04: 0.25→0.35
 
         MeshRenderer _renderer;
 
@@ -106,7 +106,7 @@ namespace ProjectName.Systems
             _renderer.transform.position = new Vector3(p.x, groundY + 0.05f, p.z);
             _renderer.transform.rotation = Quaternion.identity;
 
-            Debug.Log("[BlobShadow] ✅ 블롭 섀도우 생성 (64x64 그라디언트, 반경 0.6m, 알파 0.25)");
+            Debug.Log("[BlobShadow] ✅ 블롭 섀도우 생성 (64x64 그라디언트, 반경 0.8m, 알파 0.35 — AA3 09-04)");
         }
     }
 }

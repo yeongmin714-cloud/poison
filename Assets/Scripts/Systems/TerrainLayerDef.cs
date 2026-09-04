@@ -58,7 +58,7 @@ namespace ProjectName.Systems
             {
                 case NationType.East:   tint = new Color(0.95f, 1.05f, 0.90f); break; // 초록 초원 강조
                 case NationType.South:  tint = new Color(1.10f, 0.78f, 0.70f); break; // 붉은 사막
-                case NationType.North:  tint = new Color(0.96f, 0.99f, 1.05f); break; // 연청/설원
+                case NationType.North:  tint = new Color(0.98f, 1.00f, 1.08f); break; // 연청/설원 (AA3 09-04 미세 상향)
                 case NationType.West:   tint = new Color(1.08f, 0.90f, 0.72f); break; // 황갈 사막
                 case NationType.Empire: tint = new Color(0.95f, 0.97f, 1.00f); break; // 회백 대리석
                 default:                tint = Color.white;                    break; // None/Dracula

@@ -391,30 +391,13 @@ namespace ProjectName.Systems
             Color color = shallowColor;
             color.a = Mathf.Clamp(shallowColor.a, 0.35f, 0.85f);
 
-            Texture2D waterTex = GetOrCreateTintedWaterTexture(color);
-            if (waterTex != null)
-            {
-                // Texture carries the water color; base color modulates only translucency
-                mat.SetTexture("_BaseMap", waterTex);
-                if (mat.HasProperty("_MainTex"))
-                    mat.SetTexture("_MainTex", waterTex);
-                if (mat.HasProperty("_BaseMap"))
-                    mat.SetTextureScale("_BaseMap", WaterTextureTiling);
-                if (mat.HasProperty("_MainTex"))
-                    mat.SetTextureScale("_MainTex", WaterTextureTiling);
-
-                Color whiteTint = new Color(1f, 1f, 1f, color.a);
-                mat.SetColor("_BaseColor", whiteTint);
-                if (mat.HasProperty("_Color"))
-                    mat.SetColor("_Color", whiteTint);
-            }
-            else
-            {
-                // Texture unavailable — keep the plain translucent water color
-                mat.SetColor("_BaseColor", color);
-                if (mat.HasProperty("_Color"))
-                    mat.SetColor("_Color", color);
-            }
+            // AA1 09-04: Water_Normal_01(노멀맵)을 알베도(_BaseMap/_MainTex)로 쓰면 타일 3×3 파랑
+            // 사각 박스 격자가 렌더됨(50번 증상). 노멀맵은 알베도로 쓸 수 없다 — 셰이더 그래프의
+            // shallow/deep 색 그라데이션만 사용한다(URP Lit 폴백은 순수 반투명 색).
+            // GetOrCreateTintedWaterTexture/LoadIdyllicWaterTexture 경로는 제거(메서드는 보존).
+            mat.SetColor("_BaseColor", color);
+            if (mat.HasProperty("_Color"))
+                mat.SetColor("_Color", color);
 
             mat.SetFloat("_Surface", 1f);
             mat.SetFloat("_Blend", 0f);
@@ -496,6 +479,8 @@ namespace ProjectName.Systems
                 // NOTE: graph normal-map texture properties are left unassigned — the graph's
                 // procedural Gradient Noise waves render correctly with flat default normals,
                 // while raw runtime-loaded textures would break UnpackNormal swizzling.
+                // AA1 09-04: _BaseMap/_MainTex에 노멀맵(Water_Normal_01)을 절대 할당하지 않는다 —
+                // 알베도 오용 시 타일 3×3 사각 박스 격자가 렌더됨(50번). 색 그라데이션만 사용.
 
                 mat.renderQueue = TransparentQueue;
                 mat.SetOverrideTag("RenderType", "Transparent");

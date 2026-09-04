@@ -786,7 +786,9 @@ namespace ProjectName.Systems
             ApplyWorldSplatMaterial(worldSplat);
 
             float dt = (UnityEngine.Time.realtimeSinceStartup - tLog0) * 1000f;
-            Debug.Log($"[TerrainTextureApplier] Phase Y1: 통합 월드 스플랫 적용 완료 — {worldSplat.name} 총 {dt:F0}ms");
+            // AA3 09-04: BakeWorldSplat는 매 Play Start의 Start()에서 1회 재베이크(캐시 없음) —
+            // 북 tint/AO/디테일 변경을 항상 최신 텍스처로 반영한다.
+            Debug.Log($"[TerrainTextureApplier] Phase Y1: 통합 월드 스플랫 적용 완료 — 재베이크(캐시 없음) 최신 텍스처 반영, {worldSplat.name} 총 {dt:F0}ms");
         }
 
         /// <summary>베이크된 월드 스플랫을 World_Splat_Mat 런타임 인스턴스로 감싸 지형 메시에 적용.</summary>
@@ -810,7 +812,7 @@ namespace ProjectName.Systems
             mat.mainTextureOffset = Vector2.zero;
 
             // 근거리 미세 텍스처 복원: 월드 스플랫 저해상도 뭉개짐을 URP DetailAlbedoMap으로 보완.
-            // Y1은 동 대표 잔디 유지(타일 45). Y2: 타일 18로 축소 — 풀잎 과대확대 해소(릴리프 가독성).
+            // AA3 09-04: 타일 18→12 — 텍스처가 언덕을 따라가는 디테일(릴리프 가독성) 강화.
             Texture2D detail = null;
             if (_nationTextures.ContainsKey(NationType.East))
                 detail = PickDetailTexture(_nationTextures[NationType.East]);
@@ -818,18 +820,18 @@ namespace ProjectName.Systems
             if (detail != null)
             {
                 mat.SetTexture("_DetailAlbedoMap", detail);
-                mat.SetTextureScale("_DetailAlbedoMap", Vector2.one * 18f); // Y2: 45→18 (풀잎 과대확대 해소)
+                mat.SetTextureScale("_DetailAlbedoMap", Vector2.one * 12f); // AA3: 18→12 (언덕 따라가는 디테일)
                 mat.SetTextureOffset("_DetailAlbedoMap", Vector2.zero);
                 mat.EnableKeyword("_DETAIL_MULX2");
 
-                // Y2: 동 대표 Idyllic 실물 노멀맵(Grass_Normal)을 _DetailNormalMap에 할당 —
+                // AA3: 대표 Idyllic 실물 노멀맵(Grass_Normal)을 _DetailNormalMap에 할당 —
                 // 단일 월드 스플랫 머티리얼 구조이므로 대표 노멀 1장을 전역에 적용.
                 // _DetailNormalMapScale 0.6 — 과하게 튀지 않게 완만한 언덕 음영 디테일.
                 Texture2D detailNormal = GetGroundNormalTexture();
                 if (detailNormal != null)
                 {
                     mat.SetTexture("_DetailNormalMap", detailNormal);
-                    mat.SetTextureScale("_DetailNormalMap", Vector2.one * 18f); // 디테일 알베도와 동일 타일 일치
+                    mat.SetTextureScale("_DetailNormalMap", Vector2.one * 12f); // 디테일 알베도와 동일 타일 일치 (AA3: 18→12)
                     mat.SetTextureOffset("_DetailNormalMap", Vector2.zero);
                     mat.SetFloat("_DetailNormalMapScale", 0.6f);
                     mat.EnableKeyword("_DETAIL_NORMALMAP"); // URP Lit 디테일 노멀 키워드

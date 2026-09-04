@@ -30,9 +30,9 @@ namespace ProjectName.Systems
 
         // === 호수 시스템 상수 ===
         // 소품/청동 오브젝트 배치용 고정 시드 결정론적 호수 목록 (Random 언시드 금지)
-        // Z4: 6→10개 + LCG 시드 교체(20260904L) — 스폰/성 반경 150m 배제 + 호수간 최소 250m 유지.
-        private const int LAKE_COUNT = 10;
-        private const long LAKE_LCG_SEED = 20260904L;     // 결정론적 LCG 시드 (Z4 교체)
+        // AA2 09-04: 10→14개 + LCG 시드 교체(20260914L) — 스폰/성 반경 150m 배제 + 호수간 최소 250m 유지.
+        private const int LAKE_COUNT = 14;
+        private const long LAKE_LCG_SEED = 20260914L;     // 결정론적 LCG 시드 (AA2 교체)
         private const float LAKE_MIN_DIST = 250f;          // 호수 간 최소 거리
         private const float LAKE_EDGE_MARGIN = 150f;       // 지도 경계(±1000) 여백
         private const float LAKE_SPAWN_EXCLUDE = 150f;     // 스폰/황제국 성(0,0) 배제 반경
@@ -338,7 +338,7 @@ namespace ProjectName.Systems
         private static System.Collections.Generic.IReadOnlyList<TerrainLakeDef> _lakes = null;
 
         /// <summary>
-        /// 고정 시드 결정론적 호수 목록 (지연 초기화, 6개).
+        /// 고정 시드 결정론적 호수 목록 (지연 초기화, 14개 — AA2 09-04).
         /// 배치 규칙: 황제국 중앙(0,0,0) 반경 120m 배제, 호수 간 최소 250m,
         /// 지도 경계(±1000)에서 150m 여백, 동쪽(양수 x, 플레이어 시작 (728,-529) 인근) 1~2개,
         /// 반경 40~70m, depth 3~5m. waterLevel은 호수마다 하나의 평면 y.
@@ -399,13 +399,10 @@ namespace ProjectName.Systems
                 }
                 if (!placed)
                 {
-                    // relax: 호수간 최소거리 배제 폴백만이라도 배치 (대부분 이 경로 무참)
-                    lake.center = new Vector3(
-                        Mathf.Lerp(-bound, bound, LakeRand(i * 50 + 400 + 0)),
-                        0f,
-                        Mathf.Lerp(-bound, bound, LakeRand(i * 50 + 400 + 1)));
-                    lake.radius = 45f;
-                    lake.depth = 4f;
+                    // AA2 09-04: 자리를 못 찾으면 강제 배치하지 않고 얻은 만큼만 사용(개수 로그).
+                    // 경계/스폰/호수간 거리 규칙 위반을 방치하기보다 부족 배치가 낫다.
+                    Debug.LogWarning($"[TerrainGenerator] Lake_{i}: 후보가 없어 배치 실패 — 건너뜀 (얻은 만큼만 사용).");
+                    continue;
                 }
 
                 // waterLevel = 분지 바닥(카브 전 기저 높이 - depth) + LAKE_WATER_OFFSET.
@@ -443,6 +440,7 @@ namespace ProjectName.Systems
                 lakes.Add(lake);
             }
 
+            Debug.Log($"[TerrainGenerator] 호수 배치 완료: {lakes.Count}/{LAKE_COUNT} 개 (AA2 시드 {LAKE_LCG_SEED})");
             return lakes;
         }
 

@@ -243,14 +243,16 @@ namespace ProjectName.Systems
 
         // ── 야생화 패치 (예시의 꽃 들판) ──────────────────────────────────────
         // Z4: 야생화 커버리지 8%→14% (FLOWER_LO 하향 — Smoothstep 통과점을 저주파쪽으로 내림)
-        const float FLOWER_FREQ = 0.02f;        // 주파수 0.02 (패치 크기 ~50m)
+        const float FLOWER_FREQ = 0.012f;       // AA4: 주파수 0.012 (패치 크기 ~83m — 넓은 단색 꽃밭, 커버리지 14% 유지)
         const float FLOWER_OX = 3.7f;           // 패치 분포 오프셋 (전 세계 균일, 국가 무관)
         const float FLOWER_OZ = 11.3f;
         const float FLOWER_LO = 0.78f;          // 커버리지 ~14% (Smoothstep(0.78,0.90,n) 통과점 n≈0.85)
         const float FLOWER_HI = 0.90f;
 
         /// <summary>
-        /// 야생화 패치 마스크 [0,1] — 주파수 0.02, 커버리지 약 8% (Phase T-R3 §3).
+        /// 야생화 패치 마스크 [0,1] — 주파수 0.012, 커버리지 약 14% (Phase T-R3 §3 / AA4 확대).
+        /// 주파수를 낮춰 패치당 면적(반경 ~83m)을 넓히되, Perlin 값 분포는 주파수 스케일에
+        /// 무관하므로 커버리지(≈14%)는 그대로 유지된다 → 넓은 단색 꽃밭 연출.
         /// R4가 이 마스크로 Idyllic Flowers 프리팹을 고밀도 배치에 사용한다.
         /// 무국가/전 세계 균일 (결정론 — PerlinNoise 고정 빈도).
         /// </summary>
@@ -325,15 +327,15 @@ namespace ProjectName.Systems
         }
 
         // ── Z4: 숲 군락 (Forest Patches) ─────────────────────────────────────
-        const float FOREST_RADIUS_MIN   = 100f;   // 군락(클러스터) 반경 100~180m
-        const float FOREST_RADIUS_MAX   = 180f;
+        const float FOREST_RADIUS_MIN   = 120f;   // AA4: 군락(클러스터) 반경 120~220m (숲 확대)
+        const float FOREST_RADIUS_MAX   = 220f;
         const float FOREST_CENTER_MIN   = 150f;   // 성(0,0)에서 군락 중심 거리 150~500m
         const float FOREST_CENTER_MAX   = 500f;
         const float FOREST_EXCLUDE_DIST = 150f;   // 스폰/성/호수 반경 150m 밖
         const float FOREST_EDGE_SOFT    = 25f;    // 군락 가장자리 부드러운 페이드
 
         /// <summary>
-        /// Z4: 국가별 숲 군락 마스크 [0,1] — 국가당 3~5개(결정론), 군락 반경 100~180m,
+        /// Z4/AA4: 국가별 숲 군락 마스크 [0,1] — 국가당 3~5개(결정론), 군락 반경 120~220m,
         /// 스폰/성/호수 반경 150m 밖 배치. IdyllicDecoPlacer가 이 마스크 내 나무 밀도 ×4(1/225㎡)를 적용.
         /// 시드 = 국가 시드(seed + NationSeedOffset(nation)) + 5. 군락 각도는 국가 방위 중심으로 바이어스.
         /// </summary>

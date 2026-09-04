@@ -323,7 +323,10 @@ namespace ProjectName.Systems
                 (sub > FANTASY_MASK_HI && p.fantasyTrees != null && p.fantasyTrees.Count > 0)
                     ? p.fantasyTrees : p.trees, rng);
             float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42);
-            GameObject go = Place(entry.prefab, x, y, z, RandomRange(rng, entry.scaleMin, entry.scaleMax), rng, parent);
+            // AA4: 위치 기반 해시 스케일 변주 ×0.8~1.3 (프리팹 원본 스케일에 곱 — 수목 크기 다양화)
+            float base = RandomRange(rng, entry.scaleMin, entry.scaleMax);
+            float scale = base * ScaleVariation(x, z, 0xAA41, 0.8f, 1.3f);
+            GameObject go = Place(entry.prefab, x, y, z, scale, rng, parent);
             if (entry.collider) AddTreeCollider(go);
             treeHash.Insert(p2);
             treeCnt[(int)nation]++;
@@ -353,7 +356,10 @@ namespace ProjectName.Systems
                     if (!propHash.IsFree(p2, ROCK_MIN_DIST)) continue;
                     WPrefab entry = PickWeighted(p.rocks, rng);
                     float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42);
-                    GameObject go = Place(entry.prefab, x, y, z, RandomRange(rng, entry.scaleMin, entry.scaleMax), rng, parent);
+                    // AA4: 위치 기반 해시 스케일 변주 ×0.85~1.25 (프리팹 원본 스케일에 곱 — 바위 크기 다양화)
+                    float scale = RandomRange(rng, entry.scaleMin, entry.scaleMax)
+                        * ScaleVariation(x, z, 0xAA42, 0.85f, 1.25f);
+                    GameObject go = Place(entry.prefab, x, y, z, scale, rng, parent);
                     if (entry.collider) AddRockCollider(go);
                     propHash.Insert(p2);
                     rockCnt[(int)nation]++;
@@ -633,6 +639,22 @@ namespace ProjectName.Systems
         static float RandomRange(System.Random rng, float min, float max)
         {
             return (float)(rng.NextDouble() * (max - min) + min);
+        }
+
+        /// <summary>
+        /// AA4: (x,z) 위치 기반 결정론 해시 스케일 변주 [min,max] — 프리팹 원본 스케일에 곱한다.
+        /// UnityEngine.Random을 호출하지 않아 rng 시퀀스와 배치 결정론을 바꾸지 않는다 (같은 위치→같은 변주).
+        /// </summary>
+        static float ScaleVariation(float x, float z, int salt, float min, float max)
+        {
+            uint hx = System.BitConverter.ToUInt32(System.BitConverter.GetBytes(x), 0);
+            uint hz = System.BitConverter.ToUInt32(System.BitConverter.GetBytes(z), 0);
+            uint h = hx ^ (hz * 0x9E3779B9u) ^ ((uint)salt * 0x85EBCA6Bu);
+            h = (h ^ (h >> 16)) * 0x85EBCA6Bu;
+            h = (h ^ (h >> 13)) * 0xC2B2AE35u;
+            h ^= h >> 16;
+            float t = (h & 0xFFFFFF) / 16777216f;
+            return min + t * (max - min);
         }
 
         static GameObject FindDirectChild(Transform parent, string name)
