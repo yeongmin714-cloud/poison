@@ -52,6 +52,22 @@ namespace ProjectName.Systems
         const float FLOWER_MASK_HI = 0.60f;
         const float FANTASY_MASK_HI = 0.50f;
 
+        // AA5: 잔디 커버 + FlowerMeadow 꽃밭 패치 셋업 (예시 8 — 지형에 잔디가 깔리고 중간중간 꽃)
+        const float GRASS_SPACING = 10f;     // 일반 지면 1/100㎡ (cap 제약으로 0.5/㎡ 대신 낮춤)
+        const float GRASS_JITTER = 3f;
+        const float GRASS_MIN_DIST = 1.5f;    // 잔디는 완화된 최소간격
+        const float GRASS_TILT_DEG = 8f;      // 기울기 ±8°
+        const int   GRASS_NATION_CAP = 4500;  // 국가당 4500, 4국 + 숲/꽃밭 고밀도 → 총 15000~20000 (컬링 전제)
+        const float GRASS_MASK_HI = 0.50f;    // 꽃밭/숲 마스크 고밀도 임계
+        const float GRASS_DENSE_SUB = 3f;     // 마스크 내부 3×3 서브그리드 (2~3/㎡ 근사)
+
+        const float FM_SPACING = 26f;         // FlowerMeadow 패치 마스크 스캔 격자
+        const float FM_JITTER = 6f;
+        const float FM_MIN_DIST = 20f;        // 패치간 최소간격
+        const float FM_MASK_HI = 0.62f;       // 패치 중심으로 쓸 마스크 임계
+        const float FM_SCALE_MIN = 6f, FM_SCALE_MAX = 12f;
+        const int   FM_CAP = 110;             // 전체 패치 상한
+
         const float LAKE_TREE_MARGIN = 1.2f;
         const float LAKE_SHORE_IN = 0.97f;
         const float LAKE_SHORE_OUT = 1.20f;
@@ -96,6 +112,7 @@ namespace ProjectName.Systems
             public List<GameObject> cattail, reeds, lilyPads, waterLily;
             public List<GameObject> flowerYellow, flowerWhite, flowerRed, flowerPurple, flowerPink, flowerBlue;
             public List<GameObject> meadowWhite, meadowRed, meadowRedOrange, meadowPurple, meadowPink, meadowBlue;
+            public List<GameObject> grass;   // AA5: 잔디 풋 (Grass_01/02/03)
         }
 
         static int NationSeed(NationType n) { return T_R4_BASE + (int)n * 1000; }
@@ -126,6 +143,8 @@ namespace ProjectName.Systems
             var meadowsT = NewChild(root, "Meadows");
             var shoreT = NewChild(root, "Lakeshore");
             var waterT = NewChild(root, "WaterPlants");
+            var grassT = NewChild(root, "Grass");       // AA5: 잔디 풋 커버
+            var fmPatchT = NewChild(root, "FlowerMeadow"); // AA5: 꽃밭 패치
 
             Vector3 origin = center != null ? center.position : Vector3.zero;
             var treeHash = new SpatialHash(TREE_MIN_DIST);
@@ -153,6 +172,8 @@ namespace ProjectName.Systems
 
             int[] treeCnt = new int[8], rockCnt = new int[8], bushCnt = new int[8];
             int[] flowerCnt = new int[8], meadowCnt = new int[8];
+            var grassHash = new SpatialHash(GRASS_MIN_DIST);  // AA5
+            var fmHash = new SpatialHash(FM_MIN_DIST);        // AA5
             for (int i = 0; i < profiles.Length; i++)
             {
                 PlaceNation(profiles[i], cat, origin,
@@ -160,10 +181,24 @@ namespace ProjectName.Systems
                     treeHash, propHash, treeCnt, rockCnt, bushCnt, flowerCnt, meadowCnt);
             }
 
+            // AA5: 잔디 커버 + FlowerMeadow 꽃밭 패치 (국가별, 결정론 시드 +7)
+            int grassCnt = 0, fmPatchCnt = 0;
+            for (int i = 0; i < profiles.Length; i++)
+            {
+                grassCnt += PlaceGrassCover(profiles[i], cat, origin, grassT, grassHash,
+                    treeHash, propHash, new System.Random(NationSeed(profiles[i].nation) + 7));
+                fmPatchCnt += PlaceFlowerMeadowPatches(profiles[i], cat, origin, fmPatchT, fmHash,
+                    new System.Random(NationSeed(profiles[i].nation) + 11));
+            }
+
             var empireRng = new System.Random(NationSeed(NationType.Empire));
             int empirePlaced = PlaceEmpireGarden(origin, cat, forestT, bushesT, treeHash, propHash, empireRng);
 
             EnableGPUInstancing(root);
+
+            // AA5: 잔디/꽃밭 컬링 — 플레이어 반경 60m 외 SetActive(false) (Update 0.5초 주기)
+            var culler = grassT.gameObject.AddComponent<IdyllicGrassCuller>();
+            culler.Configure(grassT, fmPatchT);
 
             DensityLog("East", treeCnt, rockCnt, bushCnt, flowerCnt, meadowCnt, east.treeCap, east.rockCap);
             DensityLog("West", treeCnt, rockCnt, bushCnt, flowerCnt, meadowCnt, west.treeCap, west.rockCap);
@@ -176,8 +211,13 @@ namespace ProjectName.Systems
                 "ShoreReeds={6}||WaterLilies={7}||LakeTrees={8}||LayoutHash={9:X8}",
                 Sum(treeCnt), Sum(rockCnt), Sum(bushCnt), Sum(flowerCnt), Sum(meadowCnt),
                 empirePlaced, reedsPlaced, lilyPlaced, lakeTreePlaced, layoutHash));
+            Debug.Log(string.Format(
+                "[IdyllicDecoPlacer][AA5] GrassTusks={0}||FlowerMeadowPatches={1}||GrassCap={2}/nation||" +
+                "EstDrawCalls={3} (GPU instancing on: 1 mesh per 1 draw-call batch)",
+                grassCnt, fmPatchCnt, GRASS_NATION_CAP, grassCnt + fmPatchCnt));
             Debug.Log("[IdyllicDecoPlacer][T-R4] Deterministic seed = 20260904+nationId*1000. LayoutHash for 2-boot compare (same seed->same hash).");
             Debug.Log("[IdyllicDecoPlacer][T-R4] Culling radii (no existing group - log only): tree 150m / rock 200m / grass-flower-bush 60m.");
+            Debug.Log("[IdyllicDecoPlacer][AA5] Culling = simple distance check(Update 0.5s) player radius 60m -> grass/FlowerMeadow SetActive(false) outside.");
         }
 
         static int PlaceLakeshoreReeds(TerrainGenerator.TerrainLakeDef lake,
@@ -271,6 +311,150 @@ namespace ProjectName.Systems
             PlaceNationBushes(p, cat, origin, bushesT, treeHash, propHash, bushCnt, rng);
             PlaceNationFlowers(p, cat, origin, flowersT, treeHash, propHash, flowerCnt, rng);
             PlaceFantasyMeadows(p, cat, origin, meadowsT, treeHash, propHash, meadowCnt, rng);
+        }
+
+        // ================================================================
+        // AA5: 잔디 커버 (GPU Instancing 다량 배치) + FlowerMeadow 꽃밭 패치
+        // ================================================================
+
+        /// <summary>
+        /// AA5: 국가별 지면 잔디 풋 커버 — 결정론 그리드(시드 +7) + 꽃밭/숲 마스크 내부 3×3 고밀도.
+        /// 스폰/성/호수 수변/경사 30° 제외, 최소간격 1.5m(완화), 스케일 0.7~1.3 × 위치해시, 기울기 ±8°.
+        /// </summary>
+        static int PlaceGrassCover(NationDecoProfile p, CategoriesR4 cat, Vector3 origin,
+            Transform parent, SpatialHash grassHash, SpatialHash treeHash, SpatialHash propHash, System.Random rng)
+        {
+            if (cat.grass == null || cat.grass.Count == 0)
+            {
+                Debug.LogWarning("[IdyllicDecoPlacer][AA5] No Grass prefabs in IdyllicPrefabs/Grass - grass cover skipped.");
+                return 0;
+            }
+            int placed = 0;
+            float lim = BOUND_MAX - GRASS_JITTER;
+            for (float gx = -lim; gx <= lim && placed < GRASS_NATION_CAP; gx += GRASS_SPACING)
+            {
+                for (float gz = -lim; gz <= lim && placed < GRASS_NATION_CAP; gz += GRASS_SPACING)
+                {
+                    if (!InBounds(gx, gz, origin)) continue;
+                    if (IsInSpawnExclusion(gx, gz)) continue;
+                    var nation = NationTerrainController.GetNationFromPosition(new Vector3(gx, 0f, gz));
+                    if (nation != p.nation) continue;
+                    float fx = gx, fz = gz;
+                    bool dense = TerrainShape.GetFlowerPatchMask(fx, fz) > GRASS_MASK_HI
+                        || TerrainShape.GetForestPatchMask(fx, fz, p.nation, T_R4_BASE) > GRASS_MASK_HI;
+                    int subs = dense ? (int)GRASS_DENSE_SUB : 1;
+                    for (int si = 0; si < subs * subs && placed < GRASS_NATION_CAP; si++)
+                    {
+                        int sx = si % subs, sz = si / subs;
+                        float off = GRASS_SPACING / (subs + 1f);
+                        float x = gx + (sx + 1 - (subs + 1f) * 0.5f) * off + RandomRange(rng, -GRASS_JITTER * 0.4f, GRASS_JITTER * 0.4f);
+                        float z = gz + (sz + 1 - (subs + 1f) * 0.5f) * off + RandomRange(rng, -GRASS_JITTER * 0.4f, GRASS_JITTER * 0.4f);
+                        if (TryPlaceGrass(cat, origin, parent, grassHash, treeHash, propHash, rng, x, z))
+                            placed++;
+                    }
+                }
+            }
+            return placed;
+        }
+
+        /// <summary>AA5: 잔디 단일 배치 (국가/호수/경사/최소간격 검사 후). 참조용 트리/프롭 최소간격은 완화 적용.</summary>
+        static bool TryPlaceGrass(CategoriesR4 cat, Vector3 origin,
+            Transform parent, SpatialHash grassHash, SpatialHash treeHash, SpatialHash propHash, System.Random rng, float x, float z)
+        {
+            if (!InBounds(x, z, origin)) return false;
+            var p2 = new Vector2(x, z);
+            if (!grassHash.IsFree(p2, GRASS_MIN_DIST)) return false;
+            if (!treeHash.IsFree(p2, TRUNK_CLEAR * 0.5f)) return false;
+            if (!propHash.IsFree(p2, GRASS_MIN_DIST)) return false;
+            if (IsNearLakeWater(x, z, 1.02f)) return false;
+            // Z3 계승: 경사 30° 초과 지점 잔디 스킵 (절벽 위 잔디 금지)
+            if (TerrainSplatBaker.EstimateSlopeDegrees(x, z) > 30f) return false;
+            float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42) + 0.04f;
+            GameObject model = cat.grass[rng.Next(cat.grass.Count)];
+            float scale = RandomRange(rng, 0.7f, 1.3f) * ScaleVariation(x, z, 0xAA51, 0.9f, 1.1f);
+            PlaceGrass(model, x, y, z, scale, rng, parent);
+            grassHash.Insert(p2);
+            return true;
+        }
+
+        /// <summary>AA5: 잔디 배치는 yaw 랜덤 + 기울기 ±8°를 준다.</summary>
+        static GameObject PlaceGrass(GameObject model, float x, float y, float z, float scale, System.Random rng, Transform parent)
+        {
+            var go = Object.Instantiate(model, parent);
+            go.layer = 0;
+            go.transform.position = new Vector3(x, y, z);
+            go.transform.rotation = Quaternion.Euler(
+                RandomRange(rng, -GRASS_TILT_DEG, GRASS_TILT_DEG),
+                (float)rng.NextDouble() * 360f,
+                RandomRange(rng, -GRASS_TILT_DEG, GRASS_TILT_DEG));
+            go.transform.localScale = Vector3.one * scale;
+            return go;
+        }
+
+        /// <summary>
+        /// AA5: FlowerMeadow 꽃밭 패치 — 꽃 마스크(GetFlowerPatchMask) 격자 스캔 후 고밀도 클러스터의 중심에
+        /// 국가 선호 색 패치 1개 배치(스케일 6~12m). 확인된 Resources/IdyllicPrefabs/Meadows 8색.
+        /// 국가 선호: 동=혼합, 북=보라, 남=빨강, 서=노랑(Orange).
+        /// </summary>
+        static int PlaceFlowerMeadowPatches(NationDecoProfile p, CategoriesR4 cat, Vector3 origin,
+            Transform parent, SpatialHash fmHash, System.Random rng)
+        {
+            if (p.meadows == null || p.meadows.Count == 0) return 0;
+            var meadows = LoadSet("IdyllicPrefabs/Meadows");
+            // 국가 선호 프리팹 선정 (부재 시 p.meadows 기본)
+            var prefPool = p.meadows;
+            switch (p.nation)
+            {
+                case NationType.North:
+                    prefPool = Filter(meadows, "FlowerMeadow", "Purple").Count > 0
+                        ? Filter(meadows, "FlowerMeadow", "Purple") : p.meadows;
+                    break;
+                case NationType.South:
+                    prefPool = Filter(meadows, "FlowerMeadow", "Red").Count > 0
+                        ? Filter(meadows, "FlowerMeadow", "Red") : p.meadows;
+                    break;
+                case NationType.West:
+                    prefPool = Filter(meadows, "FlowerMeadow", "Orange").Count > 0
+                        ? Filter(meadows, "FlowerMeadow", "Orange") : p.meadows;
+                    break;
+                case NationType.East:
+                default:
+                    var mixed = Filter(meadows, "FlowerMeadow", "OrangePinkRedPurpleBlue");
+                    prefPool = mixed.Count > 0 ? mixed : p.meadows;
+                    break;
+            }
+            int placed = 0;
+            float lim = BOUND_MAX - FM_JITTER;
+            for (float gx = -lim; gx <= lim && placed < FM_CAP; gx += FM_SPACING)
+            {
+                for (float gz = -lim; gz <= lim && placed < FM_CAP; gz += FM_SPACING)
+                {
+                    if (!InBounds(gx, gz, origin)) continue;
+                    if (IsInSpawnExclusion(gx, gz)) continue;
+                    var nation = NationTerrainController.GetNationFromPosition(new Vector3(gx, 0f, gz));
+                    if (nation != p.nation) continue;
+                    // 패치 중심 = 마스크 피크 격자 셀 (주변 4방향보다 마스크 높은 곳)
+                    float m = TerrainShape.GetFlowerPatchMask(gx, gz);
+                    if (m < FM_MASK_HI) continue;
+                    if (m < TerrainShape.GetFlowerPatchMask(gx + FM_SPACING, gz)
+                        || m < TerrainShape.GetFlowerPatchMask(gx - FM_SPACING, gz)
+                        || m < TerrainShape.GetFlowerPatchMask(gx, gz + FM_SPACING)
+                        || m < TerrainShape.GetFlowerPatchMask(gx, gz - FM_SPACING)) continue;
+                    if (IsNearLakeWater(gx, gz, 1.05f)) continue;
+                    if (TerrainSplatBaker.EstimateSlopeDegrees(gx, gz) > 30f) continue;
+                    var p2 = new Vector2(gx, gz);
+                    if (!fmHash.IsFree(p2, FM_MIN_DIST)) continue;
+                    float x = gx + RandomRange(rng, -FM_JITTER, FM_JITTER);
+                    float z = gz + RandomRange(rng, -FM_JITTER, FM_JITTER);
+                    float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42) + 0.05f;
+                    WPrefab entry = PickWeighted(prefPool, rng);
+                    float scale = RandomRange(rng, FM_SCALE_MIN, FM_SCALE_MAX) * ScaleVariation(x, z, 0xAA52, 0.85f, 1.1f);
+                    Place(entry.prefab, x, y, z, scale, rng, parent);
+                    fmHash.Insert(p2);
+                    placed++;
+                }
+            }
+            return placed;
         }
 
         static void PlaceNationTrees(NationDecoProfile p, CategoriesR4 cat, Vector3 origin,
@@ -745,6 +929,7 @@ namespace ProjectName.Systems
             var water = LoadSet("IdyllicPrefabs/Water");
             var flowers = LoadSet("IdyllicPrefabs/Flowers");
             var meadows = LoadSet("IdyllicPrefabs/Meadows");
+            var grass = LoadSet("IdyllicPrefabs/Grass");   // AA5
 
             c.willow = Filter(trees, "WillowTree", null);
             c.broadGreen = Filter(trees, "BroadleafTree", "Green");
@@ -776,6 +961,7 @@ namespace ProjectName.Systems
             c.meadowPurple = Filter(meadows, "FlowerMeadow", "Purple");
             c.meadowPink = Filter(meadows, "FlowerMeadow", "Pink");
             c.meadowBlue = Filter(meadows, "FlowerMeadow", "Blue");
+            c.grass = grass;   // AA5: Grass_01/02/03 전부
             return c;
         }
 
