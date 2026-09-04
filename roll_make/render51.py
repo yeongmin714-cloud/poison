@@ -6,7 +6,7 @@ PREV = os.path.join(SRC, "prev51")
 os.makedirs(PREV, exist_ok=True)
 FPS = 30.0
 
-files = ["Quick Roll To Run.fbx", "Roll_Left.fbx", "Roll_Right.fbx", "Roll_Back.fbx"]
+files = [r"C:\Unity\code\Assets\Animations\Mixamo\Quick Roll To Run.fbx", "Roll_Left.fbx", "Roll_Right.fbx", "Roll_Back.fbx"]
 flags = ["base", "Roll_Left", "Roll_Right", "Roll_Back"]
 
 def clear_scene():
@@ -28,8 +28,9 @@ def add_cam(scene, center, size):
     direction = (center - cam.location).to_track_quat('-Z','Y').to_euler()
     cam.rotation_euler = direction
     scene.camera = cam
-    li = bpy.data.objects.new("L", bpy.data.lights.new("L", type='SUN'))
-    li.energy = 3.0
+    ld = bpy.data.lights.new("L", type='SUN')
+    ld.energy = 3.0
+    li = bpy.data.objects.new("L", ld)
     li.rotation_euler = (math.radians(50),0,math.radians(30))
     scene.collection.objects.link(li)
 

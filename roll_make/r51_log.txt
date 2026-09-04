@@ -1,0 +1,26 @@
+00:06.875  render           | Saved: 'C:\Unity\code\roll_make\prev51\base_0.png'
+00:06.906  render           | Saved: 'C:\Unity\code\roll_make\prev51\base_1.png'
+00:06.953  render           | Saved: 'C:\Unity\code\roll_make\prev51\base_2.png'
+00:07.141  render           | Saved: 'C:\Unity\code\roll_make\prev51\Roll_Left_0.png'
+00:07.188  render           | Saved: 'C:\Unity\code\roll_make\prev51\Roll_Left_1.png'
+00:07.219  render           | Saved: 'C:\Unity\code\roll_make\prev51\Roll_Left_2.png'
+00:07.422  render           | Saved: 'C:\Unity\code\roll_make\prev51\Roll_Right_0.png'
+00:07.453  render           | Saved: 'C:\Unity\code\roll_make\prev51\Roll_Right_1.png'
+00:07.484  render           | Saved: 'C:\Unity\code\roll_make\prev51\Roll_Right_2.png'
+00:07.688  render           | Saved: 'C:\Unity\code\roll_make\prev51\Roll_Back_0.png'
+00:07.719  render           | Saved: 'C:\Unity\code\roll_make\prev51\Roll_Back_1.png'
+00:07.750  render           | Saved: 'C:\Unity\code\roll_make\prev51\Roll_Back_2.png'
+BlenderMCP addon registered
+Reloading external rigs...
+Reloading external metarigs...
+FBX version: 7700
+[R] base done
+FBX version: 7400
+[R] Roll_Left done
+FBX version: 7400
+[R] Roll_Right done
+FBX version: 7400
+[R] Roll_Back done
+[R5.1] DONE
+BlenderMCP addon unregistered
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:37:34)

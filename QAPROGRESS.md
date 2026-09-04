@@ -8,6 +8,26 @@
 
 ---
 
+## 2026-09-04: 플레이어 구르기 — 전방 구르기로 측면/후방 구르기 합성 (Blender 3.6) ✅ 합성 완료
+
+**요청:** 전방 구르기(Quick Roll To Run) 기반으로 왼/오/뒤 구르기 애니메이션 생성. (팩=DoulbleL에 구르기 없음, 죽음과 함께 믹사모 유지 예정이었음.)
+
+**방법 (yaw-bake):** 전방 구르기 = 몸통이 좌우축(X) 기준 전방 회전. 루트 본(Hips)의 `rotation_quaternion` fcurve에 **yaw 사전곱(pre-multiply)** 하면 계층적 본계에 의해 온몸이 yaw만큼 돌면서 상대 포즈는 유지됨 → 회전축이 바뀌어 읽힘.
+- Roll_Left = Hips에 -90° / Roll_Right = +90° / Roll_Back = 180°
+
+**배치 도구:** Linux Blender **3.6.0**(클래식 `act.fcurves` API) 사용. **Blender 5.1은 새 layered Action 시스템으로 `act.fcurves`가 없어(→ `layers[0].strips[0].channelbags`) fcurve 수정 불가.** 합성 후 `export_scene.fbx(bake_anim=True)`로 43프레임(1.4s) 애니를 유지해 내보냄. Mixamo lig bone 이름 그대로 존지 → Unity Humanoid 리타겟 호환.
+
+**검증 (숫자):** 재임포트 후 Hips 세계 전방벡터의 수평각을 베이스 대비 측정 → Roll_Left +89.8° / Roll_Right -90.0° / Roll_Back +179.8°. **yaw 실제 반영 확인.** (주의: Linux headless 렌더는 EGL_BAD_MATCH로 검정만 남음 → 시각/GL 렌더 대신 숫자 검증이 결정적.)
+
+**산출물:** `roll_make/Roll_{Left,Right,Back}.fbx` + `synth36.py` + `verify36.py`.
+
+**다음 단계(미완): 게임 통합** — ① FBX를 `Assets/Animations/Mixamo/`로 이동, ② Unity 임포트 + Humanoid 클립 전환(MixamoClipRigSetup), ③ Player_AC에 RollLeft/RollRight/RollBack 상태+트리거 추가, ④ HumanoidClipDriver가 이동/조준 방향 기반 트리거 발화, ⑤ Play 눈검증.
+**⚠️ 통합 선행 블로커 (2026-09-04): 배치 컴파일이 아래 기존 에러로 막힘(애니와 무관):**
+- `IdyllicGrassCuller.cs(65,66)`: `Transform.activeSelf/SetActive` → `gameObject.SetActive` 필요
+- `IdyllicDecoPlacer.cs(410~423)`: `List<GameObject>` ↔ `List<WPrefab>` 암시변환 불가 (4곳)
+
+---
+
 ## 2026-09-04: 플레이어 애니메이션 — 팩 클립 교체 미적용 버그 (Player_AC 컨트롤러) ✅ 해결
 
 **증상:** RPG팩(DoubleL)으로 Idle/Walk/Run/Attack/Jump/Hit 교체 결정했는데, 게임 속 플레이어에 여전히 믹사모 클립이 보임. (병사는 정상, 플레이어만.)

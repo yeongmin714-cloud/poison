@@ -1,0 +1,35 @@
+{
+ "base_mid": 22,
+ "base_fwd": [
+  0.571,
+  -0.791,
+  0.219
+ ],
+ "Roll_Left": {
+  "mid_frame": 22,
+  "fwd": [
+   -0.789,
+   -0.574,
+   0.221
+  ],
+  "signed_horiz_angle_deg": 89.8
+ },
+ "Roll_Right": {
+  "mid_frame": 22,
+  "fwd": [
+   0.789,
+   0.568,
+   0.236
+  ],
+  "signed_horiz_angle_deg": -90.0
+ },
+ "Roll_Back": {
+  "mid_frame": 22,
+  "fwd": [
+   -0.571,
+   0.786,
+   0.239
+  ],
+  "signed_horiz_angle_deg": 179.8
+ }
+}
