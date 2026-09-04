@@ -376,8 +376,10 @@ namespace ProjectName.Systems
             try
             {
                 if (albedo == null || !albedo.isReadable) return new Color(0.4f, 0.45f, 0.5f);
-                float u = wx / tiling;
-                float v = wz / tiling;
+                // [FIX 09-04] UV 래핑: wx/wz가 ±1000 등 tiling을 초과해 GetPixelBilinear([0,1] 밖 클램프)가
+                // 가장자리 픽셀만 반복 샘플 → 스플랫이 평색 지역으로 뭉침. Mathf.Repeat로 [0,1) 래핑(음수도 정확).
+                float u = Mathf.Repeat(wx / tiling, 1f);
+                float v = Mathf.Repeat(wz / tiling, 1f);
                 return albedo.GetPixelBilinear(u, v);
             }
             catch

@@ -813,6 +813,7 @@ namespace ProjectName.Systems
 
             // 근거리 미세 텍스처 복원: 월드 스플랫 저해상도 뭉개짐을 URP DetailAlbedoMap으로 보완.
             // AA3 09-04: 타일 18→12 — 텍스처가 언덕을 따라가는 디테일(릴리프 가독성) 강화.
+            // [FIX 09-04] 지면 잔디 미표시: 타일 12(167m/반복)는 지면 레벨에서 거대 블러 → 45(44m/반복) 복원.
             Texture2D detail = null;
             if (_nationTextures.ContainsKey(NationType.East))
                 detail = PickDetailTexture(_nationTextures[NationType.East]);
@@ -820,7 +821,7 @@ namespace ProjectName.Systems
             if (detail != null)
             {
                 mat.SetTexture("_DetailAlbedoMap", detail);
-                mat.SetTextureScale("_DetailAlbedoMap", Vector2.one * 12f); // AA3: 18→12 (언덕 따라가는 디테일)
+                mat.SetTextureScale("_DetailAlbedoMap", Vector2.one * 45f); // [FIX 09-04] 12→45: 지면 잔디 무늬 복원 (44m/반복)
                 mat.SetTextureOffset("_DetailAlbedoMap", Vector2.zero);
                 mat.EnableKeyword("_DETAIL_MULX2");
 
@@ -831,7 +832,7 @@ namespace ProjectName.Systems
                 if (detailNormal != null)
                 {
                     mat.SetTexture("_DetailNormalMap", detailNormal);
-                    mat.SetTextureScale("_DetailNormalMap", Vector2.one * 12f); // 디테일 알베도와 동일 타일 일치 (AA3: 18→12)
+                    mat.SetTextureScale("_DetailNormalMap", Vector2.one * 45f); // [FIX 09-04] 12→45: 디테일 알베도와 동일 타일 일치 (잔디 노멀 복원)
                     mat.SetTextureOffset("_DetailNormalMap", Vector2.zero);
                     mat.SetFloat("_DetailNormalMapScale", 0.6f);
                     mat.EnableKeyword("_DETAIL_NORMALMAP"); // URP Lit 디테일 노멀 키워드
