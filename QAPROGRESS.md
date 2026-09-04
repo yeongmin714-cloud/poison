@@ -1331,3 +1331,20 @@ OneHand_Up_Idle=1b267cb3..., Walk_B=ba58acae..., Run_B=282509bf..., Attack_1=ec2
 ### 잔여 과제
 1. BakeWorldSplat 소요 390초 — 캐싱 필요(다음 작업)
 2. 북쪽 설산/릴리프/잔디 밀도는 54번 스크린샷으로 시각 재판정
+
+## 2026-09-04 BB1~BB3 + 베이크 캐싱
+
+### BB1 잔디 밀도 상향
+- GRASS_NATION_CAP 4500→8000, GRASS_SPACING 10→6.5(일반 1.2/㎡), 서브그리드 3→4(마스크 내 4/㎡)
+
+### BB2 북 더 하얗게
+- north_snow 재생성(채도 −95%/밝기 +160% = 순백), 북 tint (1.02,1.02,1.12)
+- ComputeWeights 확인: 북 L1(설)=고지대/L2(청록)=저지대 반전 매핑 정상
+
+### 베이크 캐싱 (Play마다 390초 스톨 제거)
+- BakeWorldSplat 결과를 persistentDataPath/WorldSplat_{res}_seed{seed}.png로 저장
+- 2회차부터 캐시 로드(수십 ms) — 시드/해상도 변경 시 자동 무효화, IO 실패 시 폴백
+
+### 검증: 5항목 PASS. Play 확인 대기 (스크린샷 54)
+- 첫 Play: 신규 베이크+캐시 저장(~390s) / 2회차부터: 캐시 로드(수십 ms)
+- 시각: 잔디 밀도↑, 북쪽 순백 설산
