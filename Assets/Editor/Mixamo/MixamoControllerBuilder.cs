@@ -157,7 +157,20 @@ namespace ProjectName.EditorTools
 
         static AnimatorController Create(string name, (string, AnimatorControllerParameterType)[] pars)
         {
-            var ac = AnimatorController.CreateAnimatorControllerAtPath($"{OutDir}/{name}_AC.controller");
+            var path = $"{OutDir}/{name}_AC.controller";
+            // ★ 덮어쓰기 보장: CreateAnimatorControllerAtPath는 기존 에셋이 있으면
+            //   덮어쓰지 않고 "Player_AC_AC" 같은 중복을 새로 만들어 버린다.
+            //   (09-03 사고: 팩 클립 컨트롤러가 Player_AC_AC.controller로 저장돼
+            //    GameSetup이 로드하는 Player_AC.controller엔 믹사모 클립이 남음)
+            //   → 기존 컨트롤러를 먼저 삭제하고 항상 단일 Player_AC.controller로 재생성.
+            var existing = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
+            if (existing != null)
+            {
+                AssetDatabase.DeleteAsset(path);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+            }
+            var ac = AnimatorController.CreateAnimatorControllerAtPath(path);
             foreach (var (p, t) in pars)
                 ac.AddParameter(p, t);
             return ac;
