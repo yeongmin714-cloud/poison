@@ -40,7 +40,15 @@ namespace ProjectName.Systems
         private const float LAKE_DEPTH_MIN = 3f;
         private const float LAKE_DEPTH_MAX = 5f;
         private const float LAKE_WATER_OFFSET = 1.5f;      // 분지 바닥 위 물 표면 높이
-        private const float LAKE_SHORE_FACTOR = 1.3f;      // 경사 완만한 해안 확장 배율 (카브 영향 반경 = radius*이값)
+        // Phase W1 (수면-지형 정합 재설계): 지형이 물에 맞춘다 — 수면(원판, 지름=2r)은 고정.
+        // 수역(0~1.0r)은 depth 카브, 수변 밴드(1.0r~1.45r)는 waterLevel-0.4m로 수렴,
+        // 분지 안전가드로 전 구역 수면 아래 유지. TerrainSplatBaker L5(이끼·수변)와 동기화.
+        public const float LAKE_SHORE_BAND_FACTOR = 1.45f;      // 수변 수렴 완료 반경 배율 (1.0r~1.45r)
+        private const float LAKE_SHORE_CONVERGE_MARGIN = 0.4f;  // 수변 목표 = waterLevel - 이값
+        private const float LAKE_BASIN_GUARD_MARGIN = 0.2f;     // 분지 안 지형이 수면보다 반드시 낮게 유지할 여유
+        private const float LAKE_LEVEL_RING_FACTOR = 1.5f;      // waterLevel 보정 링 반경 배율
+        private const int   LAKE_LEVEL_RING_SAMPLES = 8;        // 보정 링 8방위
+        private const float LAKE_LEVEL_RING_REDUCE = 0.35f;     // maxRing 기반 waterLevel 낮춤 계수
 
         // === 스폰지 평탄화 상수 ===
         // (SPAWN_X, SPAWN_Z) 대신 PlayerSpawnConfig.SpawnPosition을 사용 (단일 소스).
@@ -261,12 +269,13 @@ namespace ProjectName.Systems
             }
 
             // === 3) 호수 분지 카브 ===
-            // Lake.center에서 radius 이내를 부드럽게 파낸다 (smoothstep 팔오프, 최대 depth).
-            // radius..radius*LAKE_SHORE_FACTOR 구간은 경사 완만한 해안(쇼어라인).
+            // Phase W1 2단 구조: 수역(0~1.0r) depth 카브 + 수변 밴드(1.0r~1.45r) waterLevel-0.4m 수렴
+            // + 분지 안전가드(수면 아래 보장). 물과 지형의 교차를 지형 쪽에서 물리적으로 차단한다
+            // (Enforce=물 올리기 대신, 지형을 수면에 눌러 담는 원리 — 계획 §66).
             // GetHeightAt / GetHeightAtWithDefinition / 메시 생성을 모두 지나는
             // 공통 관통 경로(ComputeTerrainHeight)에 위치해 모든 경로에 적용된다.
             // (절벽은 ApplyLakeBasins 이전 ComputeNationHeight에서 이미 억제됨 — 호수 중심 반경
-            //  40m 절벽 금지로 수면 위 절벽/해안 단차 재발 방지.)
+            //  40m 절벽 금지로 수면 위 절벽/해안 단차 재발 방지. 마스크 순서: 절벽 억제 → 카브 → 수변 수렴.)
             h = ApplyLakeBasins(x, z, h);
 
             // === 4) 스폰지 평탄화 ===
@@ -384,6 +393,31 @@ namespace ProjectName.Systems
                     lake.center.x, lake.center.z, GetNationFromCoord(lake.center.x, lake.center.z), 42);
                 lake.waterLevel = baseH - depth + LAKE_WATER_OFFSET;
 
+                // ── Phase W1 수면-지형 정합 보정 (결정론) ──
+                // 구릉(파장 200m, 진폭 7~13m) 위 호수는 중심 1점 기저만으로 수면을 정하면
+                // 호숫가(1.0r~1.45r) 지형이 수면 위로 솟는다. 호수 주변 링(1.5r) 8방위의
+                // 기저 높이 최댓값 maxRing을 구해 `min(원 waterLevel, maxRing - depth*0.35)`로
+                // 재조정하면 구릉 위 호수가 자연스럽게 더 깊어져 물-지형 교차가 사라진다.
+                // 하한은 중심 카브 바닥(baseH - depth)보다 낮지 않게 클램프.
+                {
+                    float ringR = lake.radius * LAKE_LEVEL_RING_FACTOR;
+                    float maxRing = float.MinValue;
+                    for (int k = 0; k < LAKE_LEVEL_RING_SAMPLES; k++)
+                    {
+                        float ang = (Mathf.PI * 2f * k) / LAKE_LEVEL_RING_SAMPLES;
+                        float rx = lake.center.x + Mathf.Cos(ang) * ringR;
+                        float rz = lake.center.z + Mathf.Sin(ang) * ringR;
+                        float rh = ComputeNationHeight(rx, rz, GetNationFromCoord(rx, rz), 42);
+                        if (rh > maxRing) maxRing = rh;
+                    }
+                    float basinFloor = baseH - depth;                    // 중심 카브 바닥 하한
+                    float ringAdjusted = Mathf.Min(lake.waterLevel,
+                        maxRing - depth * LAKE_LEVEL_RING_REDUCE);
+                    lake.waterLevel = Mathf.Max(basinFloor, ringAdjusted);
+                    Debug.Log($"[TerrainGenerator] Lake_{i}: baseH={baseH:F2} depth={depth:F2} " +
+                              $"ringMax={maxRing:F2} waterLevel→{lake.waterLevel:F2}");
+                }
+
                 lakes.Add(lake);
             }
 
@@ -414,10 +448,14 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 호수 분지 카브 — lake.center에서 radius 이내를 부드럽게 파낸다.
-        /// smoothstep 팔오프로 중심(최대 depth) → radius*LAKE_SHORE_FACTOR(영향 없음),
-        /// radius..radius*1.3 구간은 경사 완만한 해안(쇼어라인).
-        /// 호수 간 최소 250m 및 카브 영향 반경(최대 70*1.3=91m)끼리 겹치지 않는다.
+        /// 호수 분지 카브 — Phase W1 2단 구조 (지형이 물에 맞춘다).
+        ///   · 수역(0 ~ 1.0r): 수면 원판(지름 2r)이 정확히 덮는 범위 — depth smoothstep 카브.
+        ///   · 수변 밴드(1.0r ~ 1.45r): 지형을 waterLevel - LAKE_SHORE_CONVERGE_MARGIN 로
+        ///     smoothstep 수렴 (밴드 시작=기존 지형, 끝=수면 아래 0.4m → 연속).
+        ///   · 분지 안전가드: 전 구역 지형을 waterLevel - guard 여유로 클램프 (절대 올리지 않음) —
+        ///     물-지형 교차를 지형 쪽에서 물리적으로 차단 (Enforce=물 올리기가 더는 발동하지 않게).
+        /// 밖(>1.45r)은 원래 지형 — 수변 수렴이 smoothstep 연속이므로 별도 크로스페이드 불필요.
+        /// 호수 간 최소 250m 및 카브 영향 반경(최대 70*1.45=101m)끼리 겹치지 않는다.
         /// </summary>
         private static float ApplyLakeBasins(float x, float z, float height)
         {
@@ -429,15 +467,30 @@ namespace ProjectName.Systems
                 float dz = z - lake.center.z;
                 float dist = Mathf.Sqrt(dx * dx + dz * dz);
 
-                float carveRadius = lake.radius * LAKE_SHORE_FACTOR;
-                if (dist >= carveRadius)
+                float waterRadius = lake.radius;                          // 1.0r 수역 경계
+                float shoreOuter = lake.radius * LAKE_SHORE_BAND_FACTOR;  // 1.45r 수변 수렴 끝
+                if (dist >= shoreOuter)
                     continue;
 
-                // 0(경계) → 1(중심) smoothstep 팔오프 — 중심에서 최대 depth만큼 파냄
-                float t = 1f - Mathf.Clamp01(dist / carveRadius);
-                float s = t * t * (3f - 2f * t);
+                // ── 1단 수역 (0 ~ 1.0r): 기존 depth 카브 (중심 최대, 수역 경계에서 0) ──
+                if (dist < waterRadius)
+                {
+                    float t = 1f - Mathf.Clamp01(dist / waterRadius);
+                    float s = t * t * (3f - 2f * t);
+                    height -= lake.depth * s;
+                }
+                else
+                {
+                    // ── 2단 수변 밴드 (1.0r ~ 1.45r): waterLevel - 0.4m 로 smoothstep 수렴 ──
+                    float t2 = Mathf.Clamp01((dist - waterRadius) / (shoreOuter - waterRadius));
+                    float s2 = t2 * t2 * (3f - 2f * t2);
+                    float shoreTarget = lake.waterLevel - LAKE_SHORE_CONVERGE_MARGIN;
+                    height = Mathf.Lerp(height, shoreTarget, s2);
+                }
 
-                height -= lake.depth * s;
+                // ── 분지 안전가드: 지형이 수면보다 반드시 아래 (min=낮추기만, 절대 올리지 않음) ──
+                // 수면 원판(1.0r) 바깥 수변/해안이 솟아 물을 관통하는 것을 근본 차단.
+                height = Mathf.Min(height, lake.waterLevel - LAKE_BASIN_GUARD_MARGIN);
             }
             return height;
         }

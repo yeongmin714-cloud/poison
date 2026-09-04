@@ -153,14 +153,16 @@ namespace ProjectName.Systems
             var lakes = TerrainGenerator.Lakes;
             if (lakes == null || lakes.Count == 0) return 0f;
             float best = 0f;
-            const float SHORE_BAND = 8f;   // 호수 반경 +8m 수변 밴드
             for (int i = 0; i < lakes.Count; i++)
             {
                 float dx = wx - lakes[i].center.x;
                 float dz = wz - lakes[i].center.z;
                 float d = Mathf.Sqrt(dx * dx + dz * dz);
                 float r = lakes[i].radius;
-                float band = 1f - Mathf.SmoothStep(r, r + SHORE_BAND, d);
+                // Phase W1: L5 이끼·수변 밴드를 새 수변 밴드(1.0r~1.45r)와 동기화 —
+                // TerrainGenerator.LAKE_SHORE_BAND_FACTOR(=1.45) 배율로 페이드.
+                float bandOuter = r * TerrainGenerator.LAKE_SHORE_BAND_FACTOR;
+                float band = 1f - Mathf.SmoothStep(r, bandOuter, d);
                 if (band > best) best = band;
             }
             return Mathf.Clamp01(best);

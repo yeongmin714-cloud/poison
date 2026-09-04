@@ -120,6 +120,136 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
+        //  T-G5-W2: 런타임 인스턴스 복제 가드 (에디터 재저장 사고 근본 차단)
+        // ================================================================
+        // 에셋 파일을 고치지 않고 씬의 MeshRenderer에 INSTANCE(런타임 복제) 머티리얼을
+        // 직접 심어 에디터가 나중에 에셋을 재저장하며 _BaseMap을 null로 되돌려도
+        // 렌더에 영향이 없도록 한다. (에디터는 런타임 인스턴스에 손대지 못함)
+        private const string GROUND_GRASS_TEX_PATH = "Models/UserProvided/terrain/textures_idyllic/east_grass1_albedo";
+        private static Texture2D _cachedGroundGrassTex;
+
+        /// <summary>east_grass1 알베도를 캐시하여 반환. 실패 시 null.</summary>
+        private static Texture2D GetGroundGrassTexture()
+        {
+            if (_cachedGroundGrassTex == null)
+            {
+                try { _cachedGroundGrassTex = Resources.Load<Texture2D>(GROUND_GRASS_TEX_PATH); }
+                catch { _cachedGroundGrassTex = null; }
+            }
+            return _cachedGroundGrassTex;
+        }
+
+        /// <summary>머티리얼 명에 담긴 국가 접두사에 맞는 대표 지면 텍스처 경로(스플랫 폴백용).</summary>
+        private static string GetNationRepTexturePath(string matName)
+        {
+            string n = matName ?? "";
+            if (n.IndexOf("West", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                return "Models/UserProvided/terrain/textures_idyllic/west_dirt_albedo";
+            if (n.IndexOf("North", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                return "Models/UserProvided/terrain/textures_idyllic/north_grass_albedo";
+            if (n.IndexOf("South", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                return "Models/UserProvided/terrain/textures_idyllic/south_dirt_albedo";
+            if (n.IndexOf("Empire", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                return "Models/UserProvided/terrain/textures_idyllic/empire_cobble_albedo";
+            if (n.IndexOf("Dracula", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                return "Models/UserProvided/terrain/textures_idyllic/east_grass2_albedo";
+            return GROUND_GRASS_TEX_PATH;   // default 국가 대표 잔디
+        }
+
+        /// <summary>머티리얼의 _BaseMap이 파손(null 또는 빌트인 흰색/Default-Diffuse)인지 판별.</summary>
+        private static bool IsBaseMapBroken(Material m)
+        {
+            if (m == null) return false;
+            Texture tex = null;
+            try { tex = m.GetTexture("_BaseMap"); } catch { tex = null; }
+            if (tex == null) return true;
+            string name = tex.name;
+            return string.IsNullOrEmpty(name)
+                   || name.IndexOf("White", System.StringComparison.OrdinalIgnoreCase) >= 0
+                   || name.IndexOf("Default-Diffuse", System.StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        /// <summary>
+        /// 씬 내 모든 MeshRenderer의 지면 머티리얼(Ground_Grass* / 외곽 Ground 평면 / Terrain_*_Mat)을
+        /// 런타임 INSTANCE로 복제해 _BaseMap이 파손됐으면 알베도를 재할당한다.
+        /// 에셋 파일은 절대 수정하지 않으므로 에디터 재저장과 무관하게 렌더가 보장된다.
+        /// </summary>
+        public static int FixGroundMaterialsRuntime()
+        {
+            Texture2D grass = GetGroundGrassTexture();
+            if (grass == null) return 0;   // Resources 로드 실패 시 조용히 skip
+
+            int repaired = 0;
+            MeshRenderer[] renderers;
+            try { renderers = Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None); }
+            catch { renderers = null; }
+            if (renderers == null || renderers.Length == 0) return 0;
+
+            foreach (MeshRenderer r in renderers)
+            {
+                if (r == null) continue;
+                MeshRenderer rm = r;   // 로컬 참조 (런타임 스트립트 무결성 유지용)
+                Material[] shared = rm.sharedMaterials;
+                if (shared == null || shared.Length == 0) continue;
+
+                for (int i = 0; i < shared.Length; i++)
+                {
+                    Material m = shared[i];
+                    if (m == null) continue;
+                    string name = m.name == null ? "" : m.name;
+
+                    // 대상 판별: (a) Ground_Grass* 머티리얼, (b) 메시 없는 외곽 Ground 평면,
+                    // (c) Terrain_*_Mat 스플랫 머티리얼
+                    bool isGroundGrass = name.IndexOf("Ground_Grass", System.StringComparison.OrdinalIgnoreCase) >= 0;
+                    bool isOuterPlane = name.IndexOf("Ground", System.StringComparison.OrdinalIgnoreCase) >= 0 && rm.sharedMesh == null;
+                    bool isSplatMat = name.IndexOf("Terrain_", System.StringComparison.OrdinalIgnoreCase) >= 0;
+
+                    if (!isGroundGrass && !isOuterPlane && !isSplatMat) continue;
+                    if (!IsBaseMapBroken(m)) continue;
+
+                    Texture2D fallbackTex = isSplatMat
+                        ? (Resources.Load<Texture2D>(GetNationRepTexturePath(name)) ?? grass)
+                        : grass;
+                    if (fallbackTex == null) continue;
+
+                    // ── 런타임 INSTANCE 복제 (에셋 파일 미수정) ──
+                    Material clone = null;
+                    try
+                    {
+                        Shader shader = m.shader != null ? m.shader : Shader.Find("Universal Render Pipeline/Lit");
+                        clone = new Material(shader != null ? shader : Shader.Find("Standard"));
+                        clone.name = name + "_Runtime";
+                        clone.CopyPropertiesFromMaterial(m);       // _BaseColor(원본 녹색) 등 보존
+                        clone.SetTexture("_BaseMap", fallbackTex);
+                        if (clone.HasProperty("_MainTex")) clone.SetTexture("_MainTex", fallbackTex);
+                        // 스플랫은 전 세계 매핑, 일반 지면은 원본 타일링 유지
+                        if (isSplatMat)
+                        {
+                            clone.mainTextureScale = Vector2.one;
+                            clone.mainTextureOffset = Vector2.zero;
+                        }
+                    }
+                    catch (System.Exception)
+                    {
+                        if (clone != null) Object.Destroy(clone);
+                        continue;
+                    }
+                    if (clone == null) continue;
+
+                    // 해당 슬롯만 인스턴스로 교체 (다른 슬롯/에셋 무관)
+                    try { rm.materials[i] = clone; } catch { Object.Destroy(clone); continue; }
+                    repaired++;
+                }
+            }
+
+            if (repaired > 0)
+            {
+                Debug.LogWarning($"[TerrainTextureApplier] 🔧 런타임 지면 머티리얼 복구: {repaired}개 (인스턴스 방식)");
+            }
+            return repaired;
+        }
+
+        // ================================================================
         //  Unity Lifecycle
         // ================================================================
 
