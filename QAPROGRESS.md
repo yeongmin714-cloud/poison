@@ -1348,3 +1348,29 @@ OneHand_Up_Idle=1b267cb3..., Walk_B=ba58acae..., Run_B=282509bf..., Attack_1=ec2
 ### 검증: 5항목 PASS. Play 확인 대기 (스크린샷 54)
 - 첫 Play: 신규 베이크+캐시 저장(~390s) / 2회차부터: 캐시 로드(수십 ms)
 - 시각: 잔디 밀도↑, 북쪽 순백 설산
+
+## 2026-09-04 CC1~CC3+DD1 (동적 잔디/북 전역 설원/호수 바닥 음영/나무 방위색/애니 진단기)
+
+### CC1 동적 잔디 커버 (잔디 미보임 근본 수리)
+- 정적 32,000 흩뿌리기(1개/125㎡ — 보이지 않을 수밖에 없는 밀도) → IdyllicGrassCover.cs 신규:
+  플레이어 반경 45m에 2.5/㎡(활성 ~6,300), 10m 청크 관리, 프레임당 생성 예산 50, 꽃밭/숲 ×3
+- 기존 정적 잔디 cap 8000→2000(개활지 포인트), IdyllicGrassCuller 유지
+
+### CC2b 북 전역 설원 + 캐시 해시
+- ComputeWeights 북: 설원 기본 지배(snowW=0.7+nh×0.3 — 저지 0.7/능선 1.0), 잔디 포인트만(≤0.3)
+- 캐시 키에 텍스처 내용 해시(WorldSplat_2048_seed{seed}_v{hash}.png) — 텍스처 교체 시 자동 재베이크(오래된 색 유지 사고 차단)
+
+### CC2 호수 마무리
+- BakeWorldSplat: 호수 분지 내부 픽셀 깊이 비례 어두운 물색 강제(물밑 갈색 면패션=사각박스 차단+깊이감)
+- 수면 알베도 불투명도 0.85(6종 상수), ShoreReeds 호수당 85(14개≈1190), 호수당 나무 10
+- 북쪽 호수 보장: 방위각 45~135° 3개 미만 시 북편향 추가 배치
+
+### CC3 나무 방위색 + 데코 섀도우
+- 팩 Vegetation 셰이더그래프 _Custom_Color — 국가별 머티리얼 인스턴스 복제(동 라임/서 올리브/남 짙녹/북 설빙, 중앙 벚꽃 원본)
+- BlobShadow.AttachStatic(정적 1회 배치) — 나무(1.2m/0.3)/바위(0.9m) 전체 부착
+
+### DD1 애니 진단기
+- HumanoidClipDriver 최초 12�간 6회 로그: state/normT/Speed/ccVel/animEnabled/culling
+- 이중 Animator 감지(GetComponentsInChildren<Animator> 개수 로그)
+
+### 정적 검증: 12파일 균형+이중이스케이프 0. 첫 Play 재베이크(캐시 해시 변경) 1회 소요
