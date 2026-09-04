@@ -1160,3 +1160,22 @@ OneHand_Up_Idle=1b267cb3..., Walk_B=ba58acae..., Run_B=282509bf..., Attack_1=ec2
 ### Play 확인
 - 콘솔에 NRE 0 + [GameSetup][TerrainDeco] 로그 체인 완주 + 조명/데코/영지 부트 로그
 - 화면: 지형 굴곡+절벽+스플랫 색+데코 보이는지 (42번)
+
+## 2026-09-04 지면 색+호수 치솟음 근본 수리 (W1~W3, 스크린샷 42)
+
+### 완벽 분석 결과 (소스 수식+시뮬+로그 입증)
+1. **호수 치솟음**: waterLevel이 호수 중심 1점 기저만으로 결정 — 구릉 지형(파장 200m)에서 호수 직경 내 지형 2~4m 변동 → 수면이 호숫가 관통 → Enforce가 수면 들어올림 → "치솟은 판" (Lake_0: 1.14→2.17)
+2. **지면 색 이상**: Assets/URP/Ground_Grass_Mat _BaseMap 다시 null(에디터 재저장 사고 5번째) — 외곽 Ground 2000m 평면이 이 NULL 머티리얼 사용
+3. **굴곡 미보임**: Ground_Inner 메시가 구형 100×100(1만 정점) — R2의 TerrainHeightApplier(201×201)가 씬/부트에 없었음
+
+### 수리 (W1~W3)
+- **W1 호수 정합 3단 재구성**: 수역(<1.0r) 카브 → 수변(1.0~1.45r) waterLevel−0.4 수렴 → 페이드(1.45~1.7r) 원지형 복귀. 분지 가드 ≤1.45r 한정(페이드 구간 가드 시 새 단차). waterLevel 링 보정(1.5r 8방위 maxRing, 하한 클램프). 시뮬: 최대경사 0.48m/m(하드단차 없음), 역전 0
+- **W2 머티리얼**: FixGroundMaterialsRuntime — 런타임 인스턴스 복제로 에디터 재저장과 무관하게 렌더 보장 (외곽 Ground 포함, 스플랫 폴백 가드)
+- **W3 메시**: EnsureTerrainHeightApplier 부트 배선 — Ground_Inner 201×201(4만 정점) 교체, MeshCollider 갱신, 머티리얼 비개입
+- **테스트**: LakeBasins_NoInversion 54샘플(호수6×거리5×방위2) 추가 — 역전 100% 차단
+- EnforceSurfaceAboveTerrain WARN→INFO (정상 경로 미발동)
+
+### Play 확인 대기 (사용자, 스크린샷 43~45)
+- 전체 맵: 호수 6개가 지면에 누워 보이는지, 지면 색 정상(잔디)인지
+- 근접: 절벽/계곡/구릉 굴곡이 20m급이 아니라 부드럽게 보이는지(메시 교체 효과)
+- 콘솔: [TerrainHeightApplier] 201x201 + vtx=40401 + 역전 경고 없음
