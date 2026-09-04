@@ -107,6 +107,25 @@ namespace ProjectName.Systems
             _terrainMesh = terrainMesh;
             _terrainMesh.name = $"Terrain_Heightmap_{_resolution}x{_resolution}";
 
+            // Phase W3: 좌표계 정합 보장. GenerateTerrainWithDefinition이 만든 정점은 월드 XZ 중심(0) 기준으로
+            // 베이크된다(기존 FixMainScene 구형 메시와 동일 좌표계). Ground_Inner가 (0,?,0)이 아닌 로컬 XZ오프셋을
+            // 갖는 경우, 해당 오프셋만큼 정점을 이동시켜 월드 XZ 중심을 그대로 유지한다.
+            // (Transform이 (0,1,0)이면 오프셋 0 — 아무 변화 없음. 이후 TerrainTextureApplier.Start 재표본도
+            //  로컬X+오브젝트X = 월드X 공식을 그대로 만족시키므로 중복보정이 없다.)
+            {
+                Vector3 gp = transform.position;
+                if (Mathf.Abs(gp.x) > 0.001f || Mathf.Abs(gp.z) > 0.001f)
+                {
+                    Vector3[] verts2 = _terrainMesh.vertices;
+                    Vector3 offsetXZ = new Vector3(-gp.x, 0f, -gp.z);
+                    for (int i = 0; i < verts2.Length; i++)
+                        verts2[i] += offsetXZ;
+                    _terrainMesh.vertices = verts2;
+                    _terrainMesh.RecalculateNormals();
+                    Debug.Log($"[TerrainHeightApplier] Ground_Inner 위치 ({gp.x:F2},{gp.y:F2},{gp.z:F2}) ≠ 원점 → 정점 XZ {offsetXZ} 만큼 오프셋 (월드 XZ 중심 보존)");
+                }
+            }
+
             // Apply mesh to this GameObject
             MeshFilter mf = GetComponent<MeshFilter>();
             if (mf == null)
@@ -118,7 +137,9 @@ namespace ProjectName.Systems
             if (mr == null)
                 mr = gameObject.AddComponent<MeshRenderer>();
 
-            // Assign a default material if none set
+            // Phase W3 (머티리얼 비개입): 스플랫 머티리얼(Terrain_*_Mat)은 TerrainTextureApplier가
+            // 할당/소유한다. 여기서는 sharedMaterial이 NULL일 때만 최소 폴백으로 생성하며,
+            // 이미 할당된 스플랫 머티리얼은 절대 덮어쓰지 않는다(메시만 교체, 렌더러 머티리얼 무간섭).
             if (mr.sharedMaterial == null)
             {
                 Shader shader = Shader.Find("Universal Render Pipeline/Lit");
@@ -130,12 +151,13 @@ namespace ProjectName.Systems
                 };
             }
 
-            // Update collider
+            // Phase W3: MeshCollider 갱신 — 구형 100×100 콜라이더가 남지 않도록 새 201×201 메시 재할당.
             MeshCollider mc = GetComponent<MeshCollider>();
             if (mc == null)
                 mc = gameObject.AddComponent<MeshCollider>();
             mc.sharedMesh = _terrainMesh;
             mc.convex = false;
+            Debug.Log($"[TerrainHeightApplier] MeshCollider 갱신: {_terrainMesh.name} (vtx={_terrainMesh.vertexCount})");
 
             // Build cached height map
             BuildHeightMap();

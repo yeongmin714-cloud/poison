@@ -35,6 +35,11 @@ public class GameSetup : MonoBehaviour
         SetupPlayerComponents();
         SetupWorldComponents();
 
+        // ── TERRAIN HEIGHT APPLIER (Phase W3): 지형 메시 201×201 런타임 교체 ──
+        // BootstrapTerrainDeco보다 반드시 먼저 — 메시 교체(TerrainHeightApplier.Awake)를 먼저 실행해
+        // TerrainTextureApplier.Start(재표본)가 4만 정점 굴곡을 살리도록 순서를 보장한다.
+        EnsureTerrainHeightApplier();
+
         // ── TERRAIN DECO BOOTSTRAP (Phase T3-T5) ──────────────────────
         // 프롭/길/잔디 런타임 부트스트랩. 각 API 내부에 중복 가드가 있어
         // 씬 로드/씬 재생성(FixMainScene) 양쪽에서 안전하게 호출된다.
@@ -70,6 +75,21 @@ public class GameSetup : MonoBehaviour
         if (host == null) host = new GameObject("TerritoryBuilder");
         host.AddComponent<TerritoryBuilder>();
         Debug.Log($"[GameSetup] TerritoryBuilder 추가됨 (host: {host.name}) → 영지 자동 생성 시작");
+    }
+
+    /// <summary>
+    /// Phase W3: Ground_Inner 지형 메시를 201×201로 런타임 교체.
+    /// TerrainHeightApplier가 없으면 부착 → Awake에서 GenerateAndApplyTerrain(201×201, 새 GetHeightAt 경로)가
+    /// 메시와 MeshCollider를 함께 교체. 지면 머티리얼(스플랫)은 전혀 건드리지 않는다.
+    /// </summary>
+    private void EnsureTerrainHeightApplier()
+    {
+        var gi = GameObject.Find("Ground_Inner");
+        if (gi != null && gi.GetComponent<ProjectName.Systems.TerrainHeightApplier>() == null)
+        {
+            gi.AddComponent<ProjectName.Systems.TerrainHeightApplier>();
+            Debug.Log("[GameSetup] ✅ TerrainHeightApplier 부착 (201×201 메시 교체)");
+        }
     }
 
     /// <summary>
