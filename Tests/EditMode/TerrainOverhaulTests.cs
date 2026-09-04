@@ -168,6 +168,50 @@ namespace ProjectName.Tests.EditMode
                 $"호수 수면 역전 {violations}/{total} (계획 요구 0).\n{worst}");
         }
 
+        // ── X2) 흰 알파 마스크 감지 가드 ─────────────────────────────────
+        // Idyllic 잔디 카드 마스크(RGB 흰색+0/255 이분형 알파)가 알베도로 유입되어
+        // 지면이 순백이 된 사고(스크린샷 43) 재발 방지용 IsWhiteAlphaMask 검증.
+        // 임의 생성한 흰색+이분형 알파 텍스처는 true, 실물 색 알베도(Grass)는 false여야 함.
+        [Test]
+        public void WhiteMaskDetection_IdentifiesMasks()
+        {
+            // ── 1) 흰색 RGB + 0/255 이분형 알파 체커보드 → 마스크로 판정 (true) ──
+            var mask = new Texture2D(64, 64, TextureFormat.RGBA32, false);
+            for (int y = 0; y < 64; y++)
+            {
+                for (int x = 0; x < 64; x++)
+                {
+                    bool full = ((x + y) % 2) == 0;
+                    mask.SetPixel(x, y, new Color(1f, 1f, 1f, full ? 1f : 0f));
+                }
+            }
+            mask.Apply();
+            Assert.IsTrue(TerrainTextureApplier.IsWhiteAlphaMask(mask),
+                "순백 RGB + 0/255 이분형 알파 텍스처는 알파 마스크로 판정되어야 한다.");
+
+            // ── 2) 실물 색 알베도 → false (마스크 오판 금지) ──
+            // X1으로 실물 알베도로 교체된 동/북 잔디를 Resources 로드 경유로 검증.
+            // (EditMode에서 Resources 폴더 밖 Idyllic 원본 Grass_Albedo는 직접 로드 불가 →
+            //   Resources 하위 real albedo로 검증, 실패 시 색 합성 텍스처로 폴백)
+            Texture2D albedo = Resources.Load<Texture2D>("Models/UserProvided/terrain/textures_idyllic/north_grass_albedo");
+            if (albedo != null)
+            {
+                Assert.IsFalse(TerrainTextureApplier.IsWhiteAlphaMask(albedo),
+                    $"실물 색 알베도({albedo.name})는 알파 마스크로 오판해서는 안 된다.");
+            }
+            else
+            {
+                // Resources 로드 불가 시 색 있는 합성 텍스처로 폴백 검증 (알파 전부 255 → 비이분형)
+                var fallback = new Texture2D(64, 64, TextureFormat.RGBA32, false);
+                for (int y = 0; y < 64; y++)
+                    for (int x = 0; x < 64; x++)
+                        fallback.SetPixel(x, y, new Color(0.3f, 0.6f, 0.2f, 1f));
+                fallback.Apply();
+                Assert.IsFalse(TerrainTextureApplier.IsWhiteAlphaMask(fallback),
+                    "색 있는 알베도는 알파 마스크로 오판해서는 안 된다.");
+            }
+        }
+
         static float StdDev(float[] vals)
         {
             float mean = 0f;

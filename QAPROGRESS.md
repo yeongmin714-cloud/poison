@@ -1179,3 +1179,21 @@ OneHand_Up_Idle=1b267cb3..., Walk_B=ba58acae..., Run_B=282509bf..., Attack_1=ec2
 - 전체 맵: 호수 6개가 지면에 누워 보이는지, 지면 색 정상(잔디)인지
 - 근접: 절벽/계곡/구릉 굴곡이 20m급이 아니라 부드럽게 보이는지(메시 교체 효과)
 - 콘솔: [TerrainHeightApplier] 201x201 + vtx=40401 + 역전 경고 없음
+
+## 2026-09-04 지면 화이트아웃 진짜 원인 수리 (X1~X2, 스크린샷 43/44)
+
+### 완벽 분석 (픽셀 단위 입증)
+- **east_grass1/2/3_albedo.png + north_grass_albedo.png 4장이 RGB 100% 순백 + 알파 이분형** — 알베도가 아니라 Idyllic 팩의 잔디 카드용 알파 마스크(원본 2023-10)
+- 동(East) L1/L2 + 북(North) L1이 이 마스크를 알베도로 사용 → 스플랫이 흰색으로 베이크 → 게임뷰 순백 94.9%(픽셀 카운트 실측)
+- 진짜 알베도는 팩 내부에 존재: Idyllic Fantasy Nature/Textures/Ground/Grass/Grass_Albedo.png (라임그린 185,188,41)
+- **호수 치솟음 재판정: W1 이미 작동(역전 경고 0건) — 흰 지면과의 명암 대비 부재로 지각된 문제.** 44에서 굴곡 보임 = W3 메시 201×201 성공 입증
+
+### 수리
+- **X1 텍스처 교체 4종**: east_grass1←Grass_Albedo 원본(라임그린), east_grass2←채도+8%/밝기−5% 변주, east_grass3←황록 시프트(예시 lime+yellow 조합), north_grass←청록 시프트(북 컨셉). 경로 불변 — TerrainLayerDef/Ground_Grass_Mat 가드 전부 자동 획득
+- **X2 재발 방지 가드**: TerrainTextureApplier.IsWhiteAlphaMask(static, 32×32 샘플 — 순백 RGB+알파 이분형 판정) + LoadTextures에서 감지 시 LogError+스플랫 베이크 제외
+- 테스트: WhiteMaskDetection_IdentifiesMasks 추가
+
+### Play 확인 대기 (스크린샷 45)
+- 게임뷰: 동쪽 지면 라임그린 잔디, 화이트아웃 해소(순백 <10%)
+- 씬뷰: 국가별 색 구분 + 호수 6개 "물"로 식별
+- 콘솔: 마스크 경고 0건(가드 미발동=교체 성공), NRE 0

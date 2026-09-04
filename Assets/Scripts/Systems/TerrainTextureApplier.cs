@@ -504,6 +504,17 @@ namespace ProjectName.Systems
             {
                 if (tex == null) continue;
 
+                // === X2 (09-04) 흰 알파 마스크 감지 가드 ===
+                // Idyllic 잔디 카드 마스크(RGB 흰색+알파)가 알베도로 유입되어 동쪽 지면이
+                // 순백이 된 사고(스크린샷 43) 재발 방지. 마스크로 판정되면 LogError + 목록 제외
+                // (스플랫 베이크 오염 방지). 대체 텍스처 자동 스왑은 하지 않음 — 사용자가 X1처럼
+                // 원인 파일을 실물 알베도로 교체하는 것이 근본 대응.
+                if (IsWhiteAlphaMask(tex))
+                {
+                    Debug.LogError($"[TerrainTextureApplier] ⚠️ {tex.name}은(는) 알파 마스크로 추정(순백 RGB+이분형 알파) — 알베도 부적합. 교체 필요: {_textureResourcesPath}{tex.name}");
+                    continue;   // 해당 텍스처를 리스트에서 제외 (스플랫 베이크 오염 방지)
+                }
+
                 string lowerName = tex.name.ToLowerInvariant();
 
                 if (lowerName.StartsWith("east_"))
@@ -660,7 +671,7 @@ namespace ProjectName.Systems
         }
 
         /// <summary>비읽기 텍스처를 RenderTexture 경유로 읽기 가능한 RGBA32 복사본으로 변환.</summary>
-        private Texture2D MakeReadableCopy(Texture2D src)
+        private static Texture2D MakeReadableCopy(Texture2D src)
         {
             RenderTexture rt = RenderTexture.GetTemporary(src.width, src.height, 0, RenderTextureFormat.ARGB32);
             Graphics.Blit(src, rt);
@@ -674,6 +685,73 @@ namespace ProjectName.Systems
             copy.wrapMode = TextureWrapMode.Repeat;
             copy.name = src.name + "_readable";
             return copy;
+        }
+
+        // ================================================================
+        //  X2 (09-04): 흰 색 알파 마스크 감지 가드
+        // ================================================================
+        // Idyllic 팩의 잔디 카드 마스크(RGB 흰색 + 알파)가 알베도로 유입되어
+        // 동쪽 지면이 순백이 된 사고(스크린샷 43) 재발 방지.
+        /// <summary>
+        /// 텍스처가 "순백 RGB + 0/255 이분형 알파" 인 알파 마스크인지 판별.
+        /// (a) 32×32 다운샘플 픽셀 전부 min(R,G,B) > 230 (사실상 흰색) 이면서
+        /// (b) 알파 채널이 0/255 이분형(중간값 비율 &lt; 10%) 이면 true.
+        /// 비읽기 텍스처는 MakeReadableCopy 로 읽기 사본 후 판정.
+        /// 예외 시 보수적으로 false 반환 (알베도 오판정으로 인한 데이터 누락 방지).
+        /// </summary>
+        public static bool IsWhiteAlphaMask(Texture2D t)
+        {
+            try
+            {
+                if (t == null) return false;
+
+                Texture2D readable = t;
+                if (!t.isReadable)
+                    readable = MakeReadableCopy(t);
+                if (readable == null) return false;
+
+                int w = readable.width;
+                int h = readable.height;
+                if (w <= 0 || h <= 0) return false;
+
+                Color32[] px = readable.GetPixels32();
+                if (px == null || px.Length == 0) return false;
+
+                // 32×32 다운샘플 (0~31 인덱스로 전 영역 고르게 샘플)
+                const int STEP = 32;
+                int total = STEP * STEP;
+                int midAlpha = 0;       // 0<alpha<255 중간값 개수
+                int whitePx = 0;        // min(R,G,B) > 230 흰 픽셀 개수
+                bool hasZeroAlpha = false;
+                bool hasFullAlpha = false;
+
+                for (int sy = 0; sy < STEP; sy++)
+                {
+                    int py = Mathf.Clamp(sy * h / STEP, 0, h - 1);
+                    for (int sx = 0; sx < STEP; sx++)
+                    {
+                        int pxIdx = py * w + Mathf.Clamp(sx * w / STEP, 0, w - 1);
+                        Color32 c = px[pxIdx];
+                        if (c.r > 230 && c.g > 230 && c.b > 230) whitePx++;
+                        if (c.a == 0) hasZeroAlpha = true;
+                        else if (c.a == 255) hasFullAlpha = true;
+                        else midAlpha++;
+                    }
+                }
+
+                // (a) 전 픽셀 사실상 흰색
+                bool allWhite = whitePx == total;
+                // (b) 알파 이분형: 중간값 비율 < 10% (0/255 두 값만 존재)
+                bool bimodalAlpha = (midAlpha * 100) < (total * 10)
+                                    && hasZeroAlpha && hasFullAlpha;
+
+                return allWhite && bimodalAlpha;
+            }
+            catch (System.Exception)
+            {
+                // 예외 시 보수적 false — 알베도로 취급(오판정으로 데이터 손실 방지)
+                return false;
+            }
         }
 
         private Material CreateLitMaterial(string name, Texture2D mainTex)
