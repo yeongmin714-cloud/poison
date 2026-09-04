@@ -320,7 +320,9 @@ namespace ProjectName.Systems
             _waterSurface = GameObject.CreatePrimitive(PrimitiveType.Plane);
             _waterSurface.name = $"{gameObject.name}_LakeSurface";
             _waterSurface.transform.SetParent(transform, false);
-            _waterSurface.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
+            // [Z1 09-04] Plane 프리미티브는 원래 수평(법선 +Y) — Euler(-90,0,0)을 더하면 수직 벽이 됨.
+            // 호수가 수직으로 서 있던 확정 버그(스크린샷 48)의 원인. 항등 회전으로 수평 유지.
+            _waterSurface.transform.localRotation = Quaternion.identity;
             _waterSurface.transform.localPosition = Vector3.zero;
 
             float scale = _radius * 2f / 10f;
