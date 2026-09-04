@@ -17,6 +17,10 @@ namespace ProjectName.Systems
         [SerializeField] private float _depth = 0.5f;
         [SerializeField] private float _surfaceY = 0f;
 
+        // Y3: 수면 하강 오프셋 — 물 표면을 waterLevel보다 0.15m 낮춰 지형 선반(wl-0.2)과
+        // 0.05m 차이로 "박힌 호수" 느낌을 준다. _surfaceY/_baseY/Enforce 상향 모두 이 상수 사용(일관화).
+        private const float WATER_SURFACE_RECESS = 0.15f;
+
         [Header("Noise Settings")]
         [SerializeField] private float _noiseScale = 3f;
         [SerializeField] private float _noiseThreshold = 0.45f;
@@ -99,8 +103,8 @@ namespace ProjectName.Systems
                 var go = new GameObject($"Lake_{i}");
                 if (parent != null)
                     go.transform.SetParent(parent, false);
-                // ConstructLake가 transform.position.y를 _surfaceY(= waterLevel)로 맞춤
-                go.transform.position = new Vector3(def.center.x, def.waterLevel, def.center.z);
+                // ConstructLake가 transform.position.y를 _surfaceY(= waterLevel - recess)로 맞춤
+                go.transform.position = new Vector3(def.center.x, def.waterLevel - WATER_SURFACE_RECESS, def.center.z);
                 var gen = go.AddComponent<LakeGenerator>();
                 // _pendingDef static 경로는 에디터(AddComponent 시 Awake 미호출)에서 유실되므로
                 // ConfigureLake로 직접 구성 — 에디터/런타임 양쪽 모두 확실.
@@ -120,7 +124,8 @@ namespace ProjectName.Systems
             _center = def.center;
             _radius = def.radius;
             _depth = def.depth;
-            _surfaceY = def.waterLevel;
+            // Y3: 수면 하강 — waterLevel보다 0.15m 낮춰 지형 선반(wl-0.2)에 "박힌" 호수로.
+            _surfaceY = def.waterLevel - WATER_SURFACE_RECESS;
             _configured = true;
             // 호수마다 고정 시드 — 위치 기반 파생 (재실행 시 항상 동일)
             _noiseSeed = 1000 + (int)(def.center.x * 0.41f + def.center.z * 0.73f);
@@ -406,7 +411,9 @@ namespace ProjectName.Systems
             // Phase W1: 지형-수면 정합 재설계(호수 2단 수변 수렴 + waterLevel 링 보정)로
             // 정상 경로에선 이 안전망이 발동하지 않아야 한다. 발동 시 강등 로그(INFO)로 남기되
             // 수변 밴드(1.0r~1.45r) 재확인 필요를 명시한다.
-            float newSurfaceY = maxTerrain + 0.15f;
+            // Y3: 수면 하강 오프셋(ref.waterLevel - WATER_SURFACE_RECESS)과 일관화하도록
+            // 상향 값에도 동일한 recess(수면이 지형 위 +0.15 여유에서 다시 -0.15 눌러 들어감)를 적용.
+            float newSurfaceY = maxTerrain + 0.15f - WATER_SURFACE_RECESS;
             Debug.Log(
                 $"[LakeGenerator] '{gameObject.name}' 지형이 수면 위 솟음(역전) 감지 — " +
                 $"surface {_surfaceY:F2} → {newSurfaceY:F2} (maxTerrain {maxTerrain:F2}, 반경 갱신). " +

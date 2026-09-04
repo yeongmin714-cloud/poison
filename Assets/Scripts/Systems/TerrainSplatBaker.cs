@@ -121,7 +121,18 @@ namespace ProjectName.Systems
                 {
                     float u = (float)x / r;
                     float wx = (u - 0.5f) * WORLD_SIZE;
-                    px[row + x] = BlendNationColor(wx, wz, layersByNation, seed);
+                    Color c = BlendNationColor(wx, wz, layersByNation, seed);
+                    // Y2.3: 골짜기 AO 근사 — 고도 하위 25% 픽셀에 살짝 어두운 틴트(×0.92).
+                    // (정점 컬러 AO 대신 높이를 직접 샘플해 베이크에 반영 — 계획 Y2.3)
+                    float hv = TerrainGenerator.GetHeightAt(wx, wz, BiomeType.Plains, 42);
+                    float nh = Mathf.Clamp01(hv / HEIGHT_NORMALIZE);
+                    if (nh < 0.25f)   // 고도 하위 25% = 골짜기
+                    {
+                        c.r *= 0.92f;
+                        c.g *= 0.92f;
+                        c.b *= 0.92f;
+                    }
+                    px[row + x] = c;
                 }
                 if (y % progressEvery == 0 && y > 0)
                 {

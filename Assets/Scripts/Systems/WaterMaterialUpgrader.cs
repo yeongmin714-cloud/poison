@@ -306,6 +306,12 @@ namespace ProjectName.Systems
                     deep = EmeraldDeep;
                     break;
             }
+
+            // Y3: 수면 알베도 채도 소폭 하향(×0.9) — 밝은 터쿼이즈가 주변 지형 색과 어우러지도록.
+            // 불투명도(alpha)는 유지한다. (수변 데코/갈대와의 정합은 유지 — 수면만 하강했으므로 데코가
+            // 살짝 높아 보이는 것은 시각 문제 없음 확인용 주석)
+            shallow.r *= 0.9f; shallow.g *= 0.9f; shallow.b *= 0.9f;
+            deep.r   *= 0.9f; deep.g   *= 0.9f; deep.b   *= 0.9f;
         }
 
         /// <summary>
