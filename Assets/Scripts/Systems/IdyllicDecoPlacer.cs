@@ -54,11 +54,13 @@ namespace ProjectName.Systems
 
         // AA5: 잔디 커버 + FlowerMeadow 꽃밭 패치 셋업 (예시 8 — 지형에 잔디가 깔리고 중간중간 꽃)
         // AA6 09-05: BB1 밀도 상향 — GRASS_SPACING 10→6.5(일반 1/42.25㎡), 대량 배치를 위해 cap 4500→8000.
+        // CC1 09-05: 동적 잔디 커버(IdyllicGrassCover)가 플레이어 반경 45m를 밀집 커버하므로
+        //   정적 잔디는 멀리 떨어진 개활지 포인트만 유지한다 — cap 8000→2000 (먼 곳 개활지 포인트).
         const float GRASS_SPACING = 6.5f;    // 일반 지면 1/42.25㎡ (GRASS_MIN_DIST 1.5m 물리 제약 하 최대 가용)
         const float GRASS_JITTER = 3f;
         const float GRASS_MIN_DIST = 1.5f;    // 잔디는 완화된 최소간격
         const float GRASS_TILT_DEG = 8f;      // 기울기 ±8°
-        const int   GRASS_NATION_CAP = 8000;  // 국가당 8000, 4국 + 숲/꽃밭 고밀도 → 총 25000~32000 (컬링 전제)
+        const int   GRASS_NATION_CAP = 2000;  // CC1: 8000→2000 (먼 곳 개활지 포인트, 동적 커버와 분담)
         const float GRASS_MASK_HI = 0.50f;    // 꽃밭/숲 마스크 고밀도 임계
         const float GRASS_DENSE_SUB = 4f;     // 마스크 내부 4×4 서브그리드 (GRASS_SPACING 6.5m 셀 어디서든 최대 포장 — 4/㎡ 근사)
 
@@ -76,9 +78,9 @@ namespace ProjectName.Systems
         const float LAKE_LILY_OUT = 0.80f;
         const float LAKE_TREE_IN = 1.24f;
         const float LAKE_TREE_OUT = 1.75f;
-        const int REEDS_PER_LAKE = 46;
+        const int REEDS_PER_LAKE = 85;      // CC2: 46→85 (호수 14개 × ~85 ≈ 1200 수변 갈대)
         const int LILIES_PER_LAKE = 8;
-        const int LAKE_TREES_PER_LAKE = 7;
+        const int LAKE_TREES_PER_LAKE = 10; // CC2: 7→10 (호수 인근 나무 밀도 ×1.5)
 
         static readonly float SPAWN_POS_X = ProjectName.Core.PlayerSpawnConfig.SpawnPosition.x;
         static readonly float SPAWN_POS_Z = ProjectName.Core.PlayerSpawnConfig.SpawnPosition.z;
@@ -514,6 +516,11 @@ namespace ProjectName.Systems
             float scale = baseScale * ScaleVariation(x, z, 0xAA41, 0.8f, 1.3f);
             GameObject go = Place(entry.prefab, x, y, z, scale, rng, parent);
             if (entry.collider) AddTreeCollider(go);
+            // CC3: 국가 방위색 틴트 (잎사귀 재료 복제 — 공유 금지, instancing은 유지)
+            ApplyNationTreeTint(go, p.nation, entry.prefab);
+            // CC3: 30% 나무 블롭 섀도우 (결정론 선별 — 반경 1.2m)
+            if (ShouldShadow(x, z, 0xCC31, 0.30f))
+                BlobShadow.AttachStatic(go, 1.2f);
             treeHash.Insert(p2);
             treeCnt[(int)nation]++;
             return true;
@@ -546,7 +553,7 @@ namespace ProjectName.Systems
                     float scale = RandomRange(rng, entry.scaleMin, entry.scaleMax)
                         * ScaleVariation(x, z, 0xAA42, 0.85f, 1.25f);
                     GameObject go = Place(entry.prefab, x, y, z, scale, rng, parent);
-                    if (entry.collider) AddRockCollider(go);
+                    if (entry.collider) { AddRockCollider(go); BlobShadow.AttachStatic(go, 0.9f); } // CC3: 대형 바위 블롭 섀도우
                     propHash.Insert(p2);
                     rockCnt[(int)nation]++;
                     placed++;
@@ -856,6 +863,80 @@ namespace ProjectName.Systems
             h ^= h >> 16;
             float t = (h & 0xFFFFFF) / 16777216f;
             return min + t * (max - min);
+        }
+
+        // ================================================================
+        // CC3: 나무 방위색 틴트 + 데코 블롭 섀도우
+        // ================================================================
+
+        /// <summary>원본 머티리얼×(국가) 키 → 틴트 복제 캐시. 같은 원본+색은 1클론 공유 → instancing 유지.</summary>
+        static readonly Dictionary<int, Material> _nationTintCache = new Dictionary<int, Material>();
+
+        /// <summary>
+        /// CC3: 국가별 나무 잎사귀 틴트. 팩 Vegetation 셰이더(_Custom_Color/_Color)를 쓰는 재료를
+        /// 복제(공유 금지) 후 해당 국가 색 세팅 → 해당 나무 renderer에 할당.
+        /// 색: 동 라임그린 / 서 올리브 / 남 짙은 녹(붉은 프리팹은 포인트 유지) / 북 설빙. 중앙(황제국)은 프리팹 원본.
+        /// </summary>
+        static void ApplyNationTreeTint(GameObject go, NationType nation, GameObject prefab)
+        {
+            if (nation != NationType.East && nation != NationType.West
+                && nation != NationType.South && nation != NationType.North) return;
+
+            Color col;
+            switch (nation)
+            {
+                case NationType.East:  col = new Color(0.55f, 0.85f, 0.25f); break; // 라임그린
+                case NationType.West:  col = new Color(0.55f, 0.65f, 0.28f); break; // 올리브
+                case NationType.South: col = new Color(0.25f, 0.55f, 0.20f); break; // 짙은 녹
+                default:               col = new Color(0.88f, 0.94f, 1.00f); break; // 북 설빙
+            }
+
+            // 남: 기존 붉은 나무 프리팹(Broadleaf*Red)은 붉은 포인트로 유지 — 틴트 스킵
+            if (nation == NationType.South && prefab != null
+                && prefab.name.IndexOf("Red", System.StringComparison.OrdinalIgnoreCase) >= 0) return;
+
+            var renderers = go.GetComponentsInChildren<Renderer>();
+            foreach (var r in renderers)
+            {
+                var mats = r.sharedMaterials;
+                if (mats == null) continue;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    var m = mats[i];
+                    if (m == null || m.shader == null) continue;
+                    if (!m.HasProperty("_Custom_Color") && !m.HasProperty("_Color")) continue;
+                    string mn = m.name == null ? "" : m.name;
+                    // 줄기/가지/뿌리는 색 유지 — 잎사귀만 틴트
+                    if (mn.IndexOf("Bark", System.StringComparison.OrdinalIgnoreCase) >= 0
+                        || mn.IndexOf("Branch", System.StringComparison.OrdinalIgnoreCase) >= 0
+                        || mn.IndexOf("Trunk", System.StringComparison.OrdinalIgnoreCase) >= 0
+                        || mn.IndexOf("Wood", System.StringComparison.OrdinalIgnoreCase) >= 0) continue;
+                    var clone = GetNationTintClone(m, col, nation);
+                    var arr = (Material[])mats.Clone();
+                    if (i < arr.Length) arr[i] = clone;
+                    r.sharedMaterials = arr;
+                }
+            }
+        }
+
+        static Material GetNationTintClone(Material original, Color tint, NationType nation)
+        {
+            int key = original.GetInstanceID() * 31 + (int)nation;
+            Material cached;
+            if (_nationTintCache.TryGetValue(key, out cached) && cached != null) return cached;
+            Material clone = new Material(original);
+            clone.name = original.name + "_Tint" + nation;
+            if (clone.HasProperty("_Custom_Color")) clone.SetFloat("_Custom_Color", 1f);
+            if (clone.HasProperty("_Color")) clone.SetColor("_Color", tint);
+            if (clone.HasProperty("_BaseColor")) clone.SetColor("_BaseColor", tint);
+            _nationTintCache[key] = clone;
+            return clone;
+        }
+
+        /// <summary>위치 기반 결정론 [0,1) 샘플이 chance 미만이면 true (데코 섀도우 선별용).</summary>
+        static bool ShouldShadow(float x, float z, int salt, float chance)
+        {
+            return ScaleVariation(x, z, salt, 0f, 1f) < chance;
         }
 
         static GameObject FindDirectChild(Transform parent, string name)
