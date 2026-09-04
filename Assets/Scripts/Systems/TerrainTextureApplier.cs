@@ -847,7 +847,7 @@ namespace ProjectName.Systems
 
             _worldSplatMaterial = mat;
             _meshRenderer.sharedMaterial = mat;
-            Debug.Log($"[TerrainTextureApplier] 통합 월드 스플랫 '{worldSplat.name}' 적용 → World_Splat_Mat (detail={(detail != null ? detail.name : \"NULL\")})");
+            Debug.Log($"[TerrainTextureApplier] 통합 월드 스플랫 '{worldSplat.name}' 적용 → World_Splat_Mat (detail={(detail != null ? detail.name : "NULL")})");
         }
 
         // ================================================================
