@@ -53,13 +53,14 @@ namespace ProjectName.Systems
         const float FANTASY_MASK_HI = 0.50f;
 
         // AA5: 잔디 커버 + FlowerMeadow 꽃밭 패치 셋업 (예시 8 — 지형에 잔디가 깔리고 중간중간 꽃)
-        const float GRASS_SPACING = 10f;     // 일반 지면 1/100㎡ (cap 제약으로 0.5/㎡ 대신 낮춤)
+        // AA6 09-05: BB1 밀도 상향 — GRASS_SPACING 10→6.5(일반 1/42.25㎡), 대량 배치를 위해 cap 4500→8000.
+        const float GRASS_SPACING = 6.5f;    // 일반 지면 1/42.25㎡ (GRASS_MIN_DIST 1.5m 물리 제약 하 최대 가용)
         const float GRASS_JITTER = 3f;
         const float GRASS_MIN_DIST = 1.5f;    // 잔디는 완화된 최소간격
         const float GRASS_TILT_DEG = 8f;      // 기울기 ±8°
-        const int   GRASS_NATION_CAP = 4500;  // 국가당 4500, 4국 + 숲/꽃밭 고밀도 → 총 15000~20000 (컬링 전제)
+        const int   GRASS_NATION_CAP = 8000;  // 국가당 8000, 4국 + 숲/꽃밭 고밀도 → 총 25000~32000 (컬링 전제)
         const float GRASS_MASK_HI = 0.50f;    // 꽃밭/숲 마스크 고밀도 임계
-        const float GRASS_DENSE_SUB = 3f;     // 마스크 내부 3×3 서브그리드 (2~3/㎡ 근사)
+        const float GRASS_DENSE_SUB = 4f;     // 마스크 내부 4×4 서브그리드 (GRASS_SPACING 6.5m 셀 어디서든 최대 포장 — 4/㎡ 근사)
 
         const float FM_SPACING = 26f;         // FlowerMeadow 패치 마스크 스캔 격자
         const float FM_JITTER = 6f;
@@ -318,7 +319,7 @@ namespace ProjectName.Systems
         // ================================================================
 
         /// <summary>
-        /// AA5: 국가별 지면 잔디 풋 커버 — 결정론 그리드(시드 +7) + 꽃밭/숲 마스크 내부 3×3 고밀도.
+        /// AA5: 국가별 지면 잔디 풋 커버 — 결정론 그리드(시드 +7) + 꽃밭/숲 마스크 내부 4×4 고밀도.
         /// 스폰/성/호수 수변/경사 30° 제외, 최소간격 1.5m(완화), 스케일 0.7~1.3 × 위치해시, 기울기 ±8°.
         /// </summary>
         static int PlaceGrassCover(NationDecoProfile p, CategoriesR4 cat, Vector3 origin,

@@ -754,41 +754,98 @@ namespace ProjectName.Systems
                 return;
             }
 
-            Debug.Log($"[TerrainTextureApplier] Phase Y1: 통합 월드 스플랫 베이크 시작 ({_splatResolution}x{_splatResolution}, 시드={_splatSeed}) ...");
+            Debug.Log($"[TerrainTextureApplier] Phase Y1: 통합 월드 스플랫 처리 ({_splatResolution}x{_splatResolution}, 시드={_splatSeed}) ...");
             float tLog0 = UnityEngine.Time.realtimeSinceStartup;
 
-            // 읽기 가능 국가 텍스처 사본 구축 (BakeWorldSplat에 전달 — 비읽기 텍스처 안전)
-            var readableByNation = new Dictionary<NationType, List<Texture2D>>();
-            foreach (NationType nation in new[] { NationType.East, NationType.West, NationType.South, NationType.North, NationType.Empire, NationType.Dracula })
-            {
-                if (!_nationTextures.ContainsKey(nation) || _nationTextures[nation].Count == 0) continue;
-                var readable = new List<Texture2D>();
-                foreach (Texture2D t in _nationTextures[nation])
-                {
-                    if (t == null) continue;
-                    readable.Add(IsTextureReadable(t) ? t : MakeReadableCopy(t));
-                }
-                if (readable.Count > 0) readableByNation[nation] = readable;
-            }
-            if (readableByNation.Count == 0)
-            {
-                Debug.LogWarning("[TerrainTextureApplier] ApplyWorldSplatToGround: 읽기 가능 국가 텍스처 없음 → 스킵.");
-                return;
-            }
-
-            Texture2D worldSplat = TerrainSplatBaker.BakeWorldSplat(_splatResolution, _splatSeed, readableByNation);
+            // === AA4 09-05: 디스크 캐시 — Play마다 ~390초 베이크 스톨 제거 ===
+            // 캐시 파일명에 시드+해상도가 포함되므로 시드가 바뀌면 자동으로 다른 파일(무효화).
+            // 수동 무효화: persistentDataPath 의 WorldSplat_{res}_seed{seed}.png 파일을 삭제하면 다음 Play가 재베이크한다.
+            string cachePath = WorldSplatCachePath();
+            Texture2D worldSplat = LoadWorldSplatCache(cachePath, tLog0);
             if (worldSplat == null)
             {
-                Debug.LogError("[TerrainTextureApplier] BakeWorldSplat 실패 (null) → 월드 스플랫 적용 불가.");
-                return;
+                // 읽기 가능 국가 텍스처 사본 구축 (BakeWorldSplat에 전달 — 비읽기 텍스처 안전)
+                var readableByNation = new Dictionary<NationType, List<Texture2D>>();
+                foreach (NationType nation in new[] { NationType.East, NationType.West, NationType.South, NationType.North, NationType.Empire, NationType.Dracula })
+                {
+                    if (!_nationTextures.ContainsKey(nation) || _nationTextures[nation].Count == 0) continue;
+                    var readable = new List<Texture2D>();
+                    foreach (Texture2D t in _nationTextures[nation])
+                    {
+                        if (t == null) continue;
+                        readable.Add(IsTextureReadable(t) ? t : MakeReadableCopy(t));
+                    }
+                    if (readable.Count > 0) readableByNation[nation] = readable;
+                }
+                if (readableByNation.Count == 0)
+                {
+                    Debug.LogWarning("[TerrainTextureApplier] ApplyWorldSplatToGround: 읽기 가능 국가 텍스처 없음 → 스킵.");
+                    return;
+                }
+
+                worldSplat = TerrainSplatBaker.BakeWorldSplat(_splatResolution, _splatSeed, readableByNation);
+                if (worldSplat == null)
+                {
+                    Debug.LogError("[TerrainTextureApplier] BakeWorldSplat 실패 (null) → 월드 스플랫 적용 불가.");
+                    return;
+                }
+                SaveWorldSplatCache(cachePath, worldSplat);
             }
 
             ApplyWorldSplatMaterial(worldSplat);
 
             float dt = (UnityEngine.Time.realtimeSinceStartup - tLog0) * 1000f;
-            // AA3 09-04: BakeWorldSplat는 매 Play Start의 Start()에서 1회 재베이크(캐시 없음) —
-            // 북 tint/AO/디테일 변경을 항상 최신 텍스처로 반영한다.
-            Debug.Log($"[TerrainTextureApplier] Phase Y1: 통합 월드 스플랫 적용 완료 — 재베이크(캐시 없음) 최신 텍스처 반영, {worldSplat.name} 총 {dt:F0}ms");
+            Debug.Log($"[TerrainTextureApplier] Phase Y1: 통합 월드 스플랫 적용 완료 — {worldSplat.name}, 총 {dt:F0}ms");
+        }
+
+        /// <summary>AA4: 디스크 캐시 경로. 시드+해상도를 파일명에 포함 → 시드 변경 시 자동 무효화.</summary>
+        private string WorldSplatCachePath()
+        {
+            return System.IO.Path.Combine(Application.persistentDataPath, $"WorldSplat_{_splatResolution}_seed{_splatSeed}.png");
+        }
+
+        /// <summary>
+        /// AA4: 캐시 파일이 있으면 읽어 읽기 가능 Texture2D(2048×2048 RGBA32)로 복원해 반환.
+        /// 파일 없음/크기 0/IO 실패/디코드 실패 시 null → 호출부가 기존 베이크 경로로 진행.
+        /// </summary>
+        private Texture2D LoadWorldSplatCache(string cachePath, float t0)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(cachePath)) return null;
+                byte[] bytes = System.IO.File.ReadAllBytes(cachePath); // 파일 없으면 예외 → catch로 null
+                if (bytes == null || bytes.Length == 0) return null;    // 크기>0 확인
+                var tex = new Texture2D(_splatResolution, _splatResolution, TextureFormat.RGBA32, false);
+                tex.name = $"WorldSplat_{_splatResolution}_seed{_splatSeed}";
+                if (!tex.LoadImage(bytes))
+                {
+                    Object.Destroy(tex);
+                    return null;
+                }
+                float dt = (UnityEngine.Time.realtimeSinceStartup - t0) * 1000f;
+                Debug.Log($"[TerrainTextureApplier] ✅ 월드 스플랫 캐시 로드 ({dt:F0}ms) — 베이크 스킵 ({cachePath})");
+                return tex;
+            }
+            catch (System.Exception)
+            {
+                return null; // IO 실패 시 조용히 기존 베이크 경로로
+            }
+        }
+
+        /// <summary>AA4: 신규 베이크 결과를 디스크에 PNG로 저장. IO 실패 시 조용히 무시(다음 Play에서 재베이크).</summary>
+        private void SaveWorldSplatCache(string cachePath, Texture2D tex)
+        {
+            try
+            {
+                if (tex == null || string.IsNullOrEmpty(cachePath)) return;
+                byte[] png = tex.EncodeToPNG();
+                System.IO.File.WriteAllBytes(cachePath, png);
+                Debug.Log($"[TerrainTextureApplier] 월드 스플랫 신규 베이크+캐시 저장 → {cachePath} ({png.Length} bytes)");
+            }
+            catch (System.Exception)
+            {
+                Debug.LogWarning("[TerrainTextureApplier] 월드 스플랫 캐시 저장 실패 (IO) — 다음 Play에서 재베이크.");
+            }
         }
 
         /// <summary>베이크된 월드 스플랫을 World_Splat_Mat 런타임 인스턴스로 감싸 지형 메시에 적용.</summary>
