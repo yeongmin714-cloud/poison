@@ -212,6 +212,91 @@ namespace ProjectName.Tests.EditMode
             }
         }
 
+        // ================================================================
+        //  Phase Y1: 통합 월드 스플랫 — 국가 경계 그라데이션 (BlendNationColor)
+        //  사용자 요구: 4방위 색을 하드 컷이 아닌 그라데이션(가중 평균)으로 구분.
+        // ================================================================
+
+        /// <summary>5개 국(동/서/남/북/황제국) 레이어 캐시 딕셔너리 생성 (회색 텍스처 — tint가 색을 구분).</summary>
+        static Dictionary<NationType, List<TerrainLayerDef>> MakeWorldLayerDict()
+        {
+            var dict = new Dictionary<NationType, List<TerrainLayerDef>>();
+            foreach (NationType nation in new[] { NationType.East, NationType.West, NationType.South, NationType.North, NationType.Empire })
+            {
+                var list = new List<Texture2D>();
+                for (int i = 0; i < 5; i++)
+                {
+                    var t = new Texture2D(16, 16, TextureFormat.RGBA32, false);
+                    Color[] c = new Color[256];
+                    float g = 0.35f + i * 0.12f;
+                    for (int j = 0; j < c.Length; j++) c[j] = new Color(g, g, g);
+                    t.SetPixels(c); t.Apply();
+                    list.Add(t);
+                }
+                dict[nation] = TerrainLayerDef.CreateForNation(nation, list);
+            }
+            return dict;
+        }
+
+        [Test]
+        public void BlendNationColor_Deterministic_SameCoordSameColor()
+        {
+            var dict = MakeWorldLayerDict();
+            // 경계 위(45° 방위각, 반경 600m) 좌표
+            float r = 600f, a = 45f * Mathf.Deg2Rad;
+            float wx = r * Mathf.Cos(a), wz = r * Mathf.Sin(a);
+            Color c1 = TerrainSplatBaker.BlendNationColor(wx, wz, dict, SEED);
+            Color c2 = TerrainSplatBaker.BlendNationColor(wx, wz, dict, SEED);
+            Assert.AreEqual(0f, TerrainSplatBaker.ColorDistance(c1, c2), 0.00001f,
+                "같은 좌표 2회 베이크는 결정론적으로 동일 색이어야 한다 (경계 그라데이션 포함).");
+        }
+
+        [Test]
+        public void BlendNationColor_Interior_IsPureNationColor()
+        {
+            var dict = MakeWorldLayerDict();
+            // 황제국/경계에서 500m+ 떨어진 동쪽 내부 (각도 0°, 반경 800m)
+            float wx = 800f, wz = 0f;
+            Color blended = TerrainSplatBaker.BlendNationColor(wx, wz, dict, SEED);
+            Color pure = TerrainSplatBaker.ComputeLayerColor(NationType.East, wx, wz, dict[NationType.East], SEED);
+            Assert.Less(TerrainSplatBaker.ColorDistance(blended, pure), 0.001f,
+                "국가 내부(경계 500m+)는 순수 국가색이어야 함 (경계 외부 블렌드 0).");
+        }
+
+        [Test]
+        public void BlendNationColor_BoundarySamples_CloserThanInteriorSamples()
+        {
+            var dict = MakeWorldLayerDict();
+            // 45°(동-북) 경계선 위 반경 600m 두 점, 경계 ±1m (수직 이동)
+            float r = 600f, a = 45f * Mathf.Deg2Rad;
+            float bx = r * Mathf.Cos(a), bz = r * Mathf.Sin(a);
+            // 경계 광선(0.7071,0.7071)에 수직인 단위 벡터 (0.7071,-0.7071)
+            float nx = 0.70710678f, nz = -0.70710678f;
+            Vector2 p1 = new Vector2(bx + nx, bz + nz);   // 동쪽 +1m
+            Vector2 p2 = new Vector2(bx - nx, bz - nz);   // 북쪽 -1m
+            Color c1 = TerrainSplatBaker.BlendNationColor(p1.x, p1.y, dict, SEED);
+            Color c2 = TerrainSplatBaker.BlendNationColor(p2.x, p2.y, dict, SEED);
+            float boundaryDist = TerrainSplatBaker.ColorDistance(c1, c2);
+
+            // 내부 두 지점: 동(0°,800m) vs 북(90°,800m) — 국가색 차이
+            Color east = TerrainSplatBaker.BlendNationColor(800f, 0f, dict, SEED);
+            Color north = TerrainSplatBaker.BlendNationColor(0f, 800f, dict, SEED);
+            float interiorDist = TerrainSplatBaker.ColorDistance(east, north);
+
+            UnityEngine.Debug.Log($"[Y1] 경계±1m 색차={boundaryDist:F4} vs 내부(동 vs 북) 색차={interiorDist:F4}");
+            Assert.Less(boundaryDist, interiorDist,
+                "경계선 ±1m 두 점의 색차가 내부 지점 색차보다 작아야 함 (그라데이션 = 부드러운 전이).");
+
+            // 추가: 경계선에서 두 국가색이 거의 반반 블렌딩 (w≈0.5 → 두 색의 중간 근처)
+            Color boundaryMid = TerrainSplatBaker.BlendNationColor(bx, bz, dict, SEED);
+            Color midExpected = Color.Lerp(
+                TerrainSplatBaker.ComputeLayerColor(NationType.East, bx, bz, dict[NationType.East], SEED),
+                TerrainSplatBaker.ComputeLayerColor(NationType.North, bx, bz, dict[NationType.North], SEED),
+                0.5f);
+            Assert.Less(TerrainSplatBaker.ColorDistance(boundaryMid, midExpected), 0.02f,
+                "경계선(45°)에서 동/북 색이 0.5:0.5로 블렌딩되어야 함 (하드 컷 아님).");
+        }
+
         static float StdDev(float[] vals)
         {
             float mean = 0f;

@@ -33,6 +33,13 @@ namespace ProjectName.Systems
         [SerializeField] private int _splatResolution = 2048;   // T-G4: 1024→2048 (격자 2m/px 뭉개짐 완화)
         [SerializeField] private int _splatSeed = 20260902;
 
+        [Header("Phase Y1: 통합 월드 스플랫 (5국가 합성 단일 맵)")]
+        // 사용자 요구 "4방위를 나눌 때 너무 지역이 나눠지지 않게 그라데이션으로 색 구분" →
+        // 국가별 머티리얼 대신 전체 메시 1장에 5국가가 경계 그라데이션으로 합성된 마스터 스플랫을 적용.
+        // true: 지형 메시에 BakeWorldSplat 결과(World_Splat_Mat) 적용 — 기존 국가별 머티리얼 경로는 중단(코드 보존).
+        // false로 되돌리면 기존 ApplyMaterialForNation(_currentNation) 단일 국가 경로로 롤백.
+        [SerializeField] private bool _useWorldSplat = true;
+
         [Header("Runtime State")]
         [SerializeField] private NationType _currentNation = NationType.East;
 
@@ -42,6 +49,9 @@ namespace ProjectName.Systems
 
         // Created materials keyed by nation
         private Dictionary<NationType, Material> _nationMaterials;
+
+        // Phase Y1: 통합 월드 스플랫 머티리얼 (전체 메시에 적용되는 단일 마스터 맵)
+        private Material _worldSplatMaterial;
 
         // Cached references
         private MeshRenderer _meshRenderer;
@@ -292,10 +302,22 @@ namespace ProjectName.Systems
 
             // Start에서 텍스처 로드 — Awake 블로킹 방지
             LoadTextures();
-            CreateMaterials();
-            if (_nationMaterials.Count > 0)
+            // === Phase Y1: 통합 월드 스플랫 ===
+            // 국가별 머티리얼 경로 대신, 전체 메시 1장에 5국가(동서남북+황제국)가 경계 그라데이션으로
+            // 합성된 마스터 스플랫을 적용. (사용자 요구: 4방위 색을 하드 컷이 아닌 그라데이션으로)
+            // 기존 CreateMaterials/ApplyMaterialForNation 국가별 경로는 _useWorldSplat=false 시
+            // 롤백 가능하도록 코드 그대로 보존(호출만 분기).
+            if (_useWorldSplat)
             {
-                ApplyMaterialForNation(_currentNation);
+                ApplyWorldSplatToGround();
+            }
+            else
+            {
+                CreateMaterials();
+                if (_nationMaterials.Count > 0)
+                {
+                    ApplyMaterialForNation(_currentNation);
+                }
             }
 
             // === Phase 1 진단: 지형/콜라이더/착지 실제 상태 숫자로 확정 ===
@@ -464,6 +486,14 @@ namespace ProjectName.Systems
         private void OnDestroy()
         {
             // Cleanup created materials to prevent memory leaks
+            if (_worldSplatMaterial != null)
+            {
+                if (Application.isPlaying)
+                    Destroy(_worldSplatMaterial);
+                else
+                    DestroyImmediate(_worldSplatMaterial);
+                _worldSplatMaterial = null;
+            }
             if (_nationMaterials != null)
             {
                 foreach (var kvp in _nationMaterials)
@@ -685,6 +715,107 @@ namespace ProjectName.Systems
             copy.wrapMode = TextureWrapMode.Repeat;
             copy.name = src.name + "_readable";
             return copy;
+        }
+
+        // ================================================================
+        //  Phase Y1: 통합 월드 스플랫 (5국가 경계 그라데이션 단일 마스터 맵)
+        // ================================================================
+
+        /// <summary>
+        /// Phase Y1: 전체 지형 메시에 5국가가 경계 그라데이션으로 합성된 단일 마스터 스플랫을 베이크해
+        /// World_Splat_Mat 머티리얼로 적용한다. (사용자 요구: 4방위를 그라데이션으로, 하드 컷 금지)
+        /// 국가별 읽기 가능 텍스처 사본을 BakeWorldSplat에 전달한다. 결정론적(같은 시드 → 같은 결과).
+        /// </summary>
+        public void ApplyWorldSplatToGround()
+        {
+            if (_meshRenderer == null)
+            {
+                Debug.LogError("[TerrainTextureApplier] ApplyWorldSplatToGround: MeshRenderer 없음.");
+                return;
+            }
+            if (_nationTextures == null || _nationTextures.Count == 0)
+            {
+                Debug.LogWarning("[TerrainTextureApplier] ApplyWorldSplatToGround: 로드된 국가 텍스처 없음 → 스킵.");
+                return;
+            }
+
+            Debug.Log($"[TerrainTextureApplier] Phase Y1: 통합 월드 스플랫 베이크 시작 ({_splatResolution}x{_splatResolution}, 시드={_splatSeed}) ...");
+            float tLog0 = UnityEngine.Time.realtimeSinceStartup;
+
+            // 읽기 가능 국가 텍스처 사본 구축 (BakeWorldSplat에 전달 — 비읽기 텍스처 안전)
+            var readableByNation = new Dictionary<NationType, List<Texture2D>>();
+            foreach (NationType nation in new[] { NationType.East, NationType.West, NationType.South, NationType.North, NationType.Empire, NationType.Dracula })
+            {
+                if (!_nationTextures.ContainsKey(nation) || _nationTextures[nation].Count == 0) continue;
+                var readable = new List<Texture2D>();
+                foreach (Texture2D t in _nationTextures[nation])
+                {
+                    if (t == null) continue;
+                    readable.Add(IsTextureReadable(t) ? t : MakeReadableCopy(t));
+                }
+                if (readable.Count > 0) readableByNation[nation] = readable;
+            }
+            if (readableByNation.Count == 0)
+            {
+                Debug.LogWarning("[TerrainTextureApplier] ApplyWorldSplatToGround: 읽기 가능 국가 텍스처 없음 → 스킵.");
+                return;
+            }
+
+            Texture2D worldSplat = TerrainSplatBaker.BakeWorldSplat(_splatResolution, _splatSeed, readableByNation);
+            if (worldSplat == null)
+            {
+                Debug.LogError("[TerrainTextureApplier] BakeWorldSplat 실패 (null) → 월드 스플랫 적용 불가.");
+                return;
+            }
+
+            ApplyWorldSplatMaterial(worldSplat);
+
+            float dt = (UnityEngine.Time.realtimeSinceStartup - tLog0) * 1000f;
+            Debug.Log($"[TerrainTextureApplier] Phase Y1: 통합 월드 스플랫 적용 완료 — {worldSplat.name} 총 {dt:F0}ms");
+        }
+
+        /// <summary>베이크된 월드 스플랫을 World_Splat_Mat 런타임 인스턴스로 감싸 지형 메시에 적용.</summary>
+        private void ApplyWorldSplatMaterial(Texture2D worldSplat)
+        {
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+            if (shader == null)
+            {
+                shader = Shader.Find("Standard");
+                Debug.LogWarning("[TerrainTextureApplier] World_Splat: URP Lit shader 없음 → Standard 폴백.");
+            }
+
+            Material mat = new Material(shader);
+            mat.name = "World_Splat_Mat";
+            mat.SetTexture("_BaseMap", worldSplat);
+            mat.SetColor("_BaseColor", Color.white);
+            mat.SetFloat("_Metallic", _metallic);
+            mat.SetFloat("_Smoothness", _smoothness);
+            mat.mainTexture = worldSplat;
+            mat.mainTextureScale = Vector2.one;    // 월드 스플랫은 전 세계 매핑(타일 1)
+            mat.mainTextureOffset = Vector2.zero;
+
+            // 근거리 미세 텍스처 복원: 월드 스플랫 저해상도 뭉개짐을 URP DetailAlbedoMap으로 보완.
+            // Y1은 동 대표 잔디 유지(타일 45). Y2에서 타일 18로 축소 예고.
+            Texture2D detail = null;
+            if (_nationTextures.ContainsKey(NationType.East))
+                detail = PickDetailTexture(_nationTextures[NationType.East]);
+            if (detail == null) detail = GetGroundGrassTexture();
+            if (detail != null)
+            {
+                mat.SetTexture("_DetailAlbedoMap", detail);
+                mat.SetTextureScale("_DetailAlbedoMap", Vector2.one * 45f); // T-G4 규격 유지 (Y2에서 18로 축소)
+                mat.SetTextureOffset("_DetailAlbedoMap", Vector2.zero);
+                mat.EnableKeyword("_DETAIL_MULX2");
+                mat.SetFloat("_DetailNormalMapScale", 1f);
+            }
+            else
+            {
+                Debug.LogWarning("[TerrainTextureApplier] World_Splat: 디테일 알베도 없음 → 베이스맵만 적용.");
+            }
+
+            _worldSplatMaterial = mat;
+            _meshRenderer.sharedMaterial = mat;
+            Debug.Log($"[TerrainTextureApplier] 통합 월드 스플랫 '{worldSplat.name}' 적용 → World_Splat_Mat (detail={(detail != null ? detail.name : \"NULL\")})");
         }
 
         // ================================================================
