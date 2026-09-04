@@ -210,13 +210,65 @@ namespace ProjectName.Systems
             public List<Vector3> points;
         }
 
-        private const float PathWidth = 5f;            // 흙길 폭 5m
-        private const float PathHalfWidth = 2.5f;
+        private const float PathWidth = 8f;            // 흙길 폭 8m (Z4)
+        private const float PathHalfWidth = 4f;
         private const float EmpireEdgeRadius = 60f;    // 황제국 가장자리
         private const float RoadLengthMeters = 700f;   // 반경 ~700m 까지
         private const float SampleStep = 8f;           // 경로 샘플 간격 (m)
         private const float BlendFactor = 0.6f;        // 흙길 블렌드 강도
         private const float ArcStepDeg = 8f;           // 원호 보간 각도 간격(도)
+
+        // Z4 곡선 도로 — 동일 좌표계(중앙 성→4방위)를 공유하는 결정론 사인 곡선 폴리라인 캐시.
+        private static List<List<Vector3>> _curvedRoads = null;
+        private static bool _curvedRoadsBuilt = false;
+
+        /// <summary>
+        /// Z4: 중앙(0,0) → 4방위(E/N/W/S) 곡선 도로 폴리라인 (결정론, 사인 곡선).
+        /// 시작/끝은 방위 광선 위(횡방향 0)에서 출발하고, 중간 구간에서 사인으로 크게 굽는다.
+        /// ApplyPathsToTerrain(메시 버텍스 색)과 DirtRoadMask(스플랫 L4)가 동일 좌표계를 공유한다.
+        /// </summary>
+        private static List<List<Vector3>> CurvedRoads()
+        {
+            if (_curvedRoadsBuilt) return _curvedRoads;
+            _curvedRoadsBuilt = true;
+            _curvedRoads = new List<List<Vector3>>();
+
+            Vector3[] dirs =
+            {
+                Vector3.right,   // East  (+x)  idx0
+                Vector3.forward, // North (+z)  idx1
+                Vector3.left,    // West  (-x)  idx2
+                Vector3.back     // South (-z)  idx3
+            };
+
+            for (int i = 0; i < dirs.Length; i++)
+            {
+                Vector3 d = dirs[i];
+                Vector3 start = d * EmpireEdgeRadius;
+                Vector3 end = d * RoadLengthMeters;
+                // 방위에 수직인 XY 횡방향 (XZ에서 법선) — 사인 옵셋 축.
+                Vector3 perp = new Vector3(-d.z, 0f, d.x).normalized;
+                // 방위별 결정론 곡선 파라미터 (모든 도로가 같은 모양 안 되게)
+                float amp = 95f + i * 14f;
+                float phase = 0.7f + i * 0.63f;
+
+                float len = RoadLengthMeters - EmpireEdgeRadius;
+                List<Vector3> pts = new List<Vector3>();
+                for (float t = 0f; t <= len + 0.001f; t += SampleStep)
+                {
+                    float frac = Mathf.Min(1f, t / len);
+                    // start/end에서 0(방위 광선 위), 중간에서 사인으로 굽는 포락선.
+                    float lat = amp
+                        * Mathf.Sin(frac * Mathf.PI)              // 양끝 0 봉투
+                        * Mathf.Sin(frac * Mathf.PI * 2f + phase) // 사행
+                        * (i % 2 == 0 ? 1f : -1f);
+                    pts.Add(start + d * t + perp * lat);
+                }
+                pts.Add(end);
+                _curvedRoads.Add(pts);
+            }
+            return _curvedRoads;
+        }
 
         /// <summary>
         /// T5 대표 진입점 — 지형 메시 버텍스 색상에 황제국 4방위 흙길을 그린다.
@@ -241,21 +293,8 @@ namespace ProjectName.Systems
             float gx = groundTransform != null ? groundTransform.position.x : 0f;
             float gz = groundTransform != null ? groundTransform.position.z : 0f;
 
-            // 4방위 진입로
-            Vector3[] dirs =
-            {
-                Vector3.right,   // East  (+x)
-                Vector3.forward, // North (+z)
-                Vector3.left,    // West  (-x)
-                Vector3.back     // South (-z)
-            };
-            List<List<Vector3>> roads = new List<List<Vector3>>();
-            for (int i = 0; i < dirs.Length; i++)
-            {
-                Vector3 start = dirs[i] * EmpireEdgeRadius;
-                Vector3 end = dirs[i] * RoadLengthMeters;
-                roads.Add(BuildRoadWithLakeDetour(start, end, dirs[i]));
-            }
+            // Z4: 중앙 성→4방위 곡선 도로망 (결정론, 8m) — ApplyPathsToTerrain/DirtRoadMask 공유.
+            List<List<Vector3>> roads = CurvedRoads();
 
             // 기존 버텍스 컬러 보존 (없으면 흰색)
             Color[] colors = terrainMesh.colors;
@@ -456,24 +495,20 @@ namespace ProjectName.Systems
         /// 사용한다. 도로 중심 0 → 가장자리(10m)에서 0으로 부드럽게 페이드되는 흙길 밴드.
         /// 결정론적 (Geom 방법 — Unity 랜덤 미사용).
         /// </summary>
-        public const float DirtRoadHalfWidth = 10f;   // 시각적 흙길 폭(마킹 반경)과 정렬
+        public const float DirtRoadHalfWidth = 4f;   // 시각적 흙길 폭 8m (Z4 — 기존 10m 반경에서 절반)
 
         public static float DirtRoadMask(float x, float z)
         {
-            Vector3[] dirs =
-            {
-                Vector3.right,   // East  (+x)
-                Vector3.forward, // North (+z)
-                Vector3.left,    // West  (-x)
-                Vector3.back     // South (-z)
-            };
+            var roads = CurvedRoads();
             float bestSq = float.MaxValue;
-            for (int i = 0; i < dirs.Length; i++)
+            for (int r = 0; r < roads.Count; r++)
             {
-                Vector3 start = dirs[i] * EmpireEdgeRadius;   // 60m (황제국 가장자리)
-                Vector3 end = dirs[i] * RoadLengthMeters;     // 700m (반경)
-                float d = DistToSegmentSq(x, z, start, end);
-                if (d < bestSq) bestSq = d;
+                var pts = roads[r];
+                for (int s = 0; s < pts.Count - 1; s++)
+                {
+                    float d = DistToSegmentSq(x, z, pts[s], pts[s + 1]);
+                    if (d < bestSq) bestSq = d;
+                }
             }
             float dist = Mathf.Sqrt(bestSq);
             return 1f - Mathf.Clamp01(dist / DirtRoadHalfWidth);

@@ -661,6 +661,15 @@ public class GameSetup : MonoBehaviour
                 Debug.LogWarning("[GameSetup] PlayerModel(visualCapsule)을 찾을 수 없음");
             }
         }
+
+        // ── BlobShadow (Z3.4): 플레이어 접지감용 반투명 원형 그림자 ──
+        // Unity 표준 그림자를 보조해 탑다운에서 공중부양 착시를 완화한다.
+        // 예외 발생 시 BlobShadow 내부에서 조용히 비활성화된다.
+        if (player.GetComponent<BlobShadow>() == null)
+        {
+            player.AddComponent<BlobShadow>();
+            Debug.Log("[GameSetup] ✅ BlobShadow → Player에 추가 (접지감 반투명 그림자)");
+        }
     }
 
     /// <summary>

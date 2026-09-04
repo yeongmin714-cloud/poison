@@ -283,30 +283,51 @@ namespace ProjectName.Systems
             {
                 for (float gz = -lim; gz <= lim; gz += p.treeSpacing)
                 {
-                    float x = gx + RandomRange(rng, -TREE_JITTER, TREE_JITTER);
-                    float z = gz + RandomRange(rng, -TREE_JITTER, TREE_JITTER);
-                    if (!InBounds(x, z, origin)) continue;
-                    float dx = x - origin.x, dz = z - origin.z;
-                    if (dx * dx + dz * dz < EMPIRE_GARDEN_RADIUS * EMPIRE_GARDEN_RADIUS) continue;
-                    if (IsInSpawnExclusion(x, z)) continue;
-                    var nation = NationTerrainController.GetNationFromPosition(new Vector3(x, 0f, z));
-                    if (nation != p.nation) continue;
-                    if (treeCnt[(int)nation] >= p.treeCap) continue;
-                    if (IsNearLakeWater(x, z, LAKE_TREE_MARGIN)) continue;
-                    var p2 = new Vector2(x, z);
-                    if (!treeHash.IsFree(p2, TREE_MIN_DIST)) continue;
-                    float sub = TerrainShape.GetFantasySubzoneMask(x, z, p.nation, T_R4_BASE);
-                    WPrefab entry = PickWeighted(
-                        (sub > FANTASY_MASK_HI && p.fantasyTrees != null && p.fantasyTrees.Count > 0)
-                            ? p.fantasyTrees : p.trees, rng);
-                    float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42);
-                    GameObject go = Place(entry.prefab, x, y, z, RandomRange(rng, entry.scaleMin, entry.scaleMax), rng, parent);
-                    if (entry.collider) AddTreeCollider(go);
-                    treeHash.Insert(p2);
-                    treeCnt[(int)nation]++;
-                    placed++;
+                    // Z4: 숲 군락 여부 (군락 내 나무 밀도 ×4 = 2×2 서브그리드)
+                    float fx = gx, fz = gz;
+                    bool forest = TerrainShape.GetForestPatchMask(fx, fz, p.nation, T_R4_BASE) > 0.50f;
+                    int subs = forest ? 2 : 1;
+                    for (int si = 0; si < subs * subs && placed < p.treeCap; si++)
+                    {
+                        int sx = si % subs, sz = si / subs;
+                        float ox = (subs == 2) ? ((sx == 0 ? -1f : 1f) * p.treeSpacing * 0.25f) : 0f;
+                        float oz = (subs == 2) ? ((sz == 0 ? -1f : 1f) * p.treeSpacing * 0.25f) : 0f;
+                        float jit = forest ? TREE_JITTER * 0.5f : TREE_JITTER;
+                        float x = gx + ox + RandomRange(rng, -jit, jit);
+                        float z = gz + oz + RandomRange(rng, -jit, jit);
+                        if (TryPlaceTree(p, cat, origin, parent, treeHash, treeCnt, rng, x, z))
+                            placed++;
+                    }
                 }
             }
+        }
+
+        /// <summary>나무 단일 배치 (국가/상한/호수/최소간격/경사 검사 후). true = 배치됨.</summary>
+        static bool TryPlaceTree(NationDecoProfile p, CategoriesR4 cat, Vector3 origin,
+            Transform parent, SpatialHash treeHash, int[] treeCnt, System.Random rng, float x, float z)
+        {
+            if (!InBounds(x, z, origin)) return false;
+            float dx = x - origin.x, dz = z - origin.z;
+            if (dx * dx + dz * dz < EMPIRE_GARDEN_RADIUS * EMPIRE_GARDEN_RADIUS) return false;
+            if (IsInSpawnExclusion(x, z)) return false;
+            var nation = NationTerrainController.GetNationFromPosition(new Vector3(x, 0f, z));
+            if (nation != p.nation) return false;
+            if (treeCnt[(int)nation] >= p.treeCap) return false;
+            if (IsNearLakeWater(x, z, LAKE_TREE_MARGIN)) return false;
+            // Z3: 경사 30° 초과 지점 데코 배치 스킵 (절벽 위 나무 금지 — 자연 지면 스냅 유지)
+            if (TerrainSplatBaker.EstimateSlopeDegrees(x, z) > 30f) return false;
+            var p2 = new Vector2(x, z);
+            if (!treeHash.IsFree(p2, TREE_MIN_DIST)) return false;
+            float sub = TerrainShape.GetFantasySubzoneMask(x, z, p.nation, T_R4_BASE);
+            WPrefab entry = PickWeighted(
+                (sub > FANTASY_MASK_HI && p.fantasyTrees != null && p.fantasyTrees.Count > 0)
+                    ? p.fantasyTrees : p.trees, rng);
+            float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42);
+            GameObject go = Place(entry.prefab, x, y, z, RandomRange(rng, entry.scaleMin, entry.scaleMax), rng, parent);
+            if (entry.collider) AddTreeCollider(go);
+            treeHash.Insert(p2);
+            treeCnt[(int)nation]++;
+            return true;
         }
 
         static void PlaceNationRocks(NationDecoProfile p, CategoriesR4 cat, Vector3 origin,

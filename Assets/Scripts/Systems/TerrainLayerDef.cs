@@ -95,7 +95,10 @@ namespace ProjectName.Systems
                 case NationType.West:
                     return new[] { "east_grass1_albedo", "east_grass2_albedo", "west_rock_albedo", "west_dirt_albedo", "west_sand_albedo" };
                 case NationType.North:
-                    return new[] { "north_grass_albedo", "north_forest_albedo", "north_cliff_albedo", "empire_dirtstone_albedo", "north_moss_albedo" };
+                    // Z2: L1=north_snow(설원, 고지대 우세), L2=north_grass(청록 잔디, 저지대),
+                    //     L3=north_cliff(설빙 바위 유지), L4=empire_dirtstone, L5=north_moss.
+                    // ComputeWeights가 북 전용으로 L1=고지대/L2=저지대를 반전 배정한다.
+                    return new[] { "north_snow_albedo", "north_grass_albedo", "north_cliff_albedo", "empire_dirtstone_albedo", "north_moss_albedo" };
                 case NationType.Empire:
                     return new[] { "east_grass1_albedo", "east_meadow_albedo", "empire_cliff_albedo", "empire_dirtstone_albedo", "empire_cobble_albedo" };
                 default:

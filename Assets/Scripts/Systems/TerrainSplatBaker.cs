@@ -122,15 +122,21 @@ namespace ProjectName.Systems
                     float u = (float)x / r;
                     float wx = (u - 0.5f) * WORLD_SIZE;
                     Color c = BlendNationColor(wx, wz, layersByNation, seed);
-                    // Y2.3: 골짜기 AO 근사 — 고도 하위 25% 픽셀에 살짝 어두운 틴트(×0.92).
-                    // (정점 컬러 AO 대신 높이를 직접 샘플해 베이크에 반영 — 계획 Y2.3)
+                    // Z3 릴리프 대비 강화: 골짜기(고도 하위 30%) ×0.85 어둡게 + 능선(상위 10%) ×1.06 밝게.
+                    // (파형 200→160m + 진폭 ↑ 과 함께 파형 가독성을 높인다 — 정점 컬러 AO)
                     float hv = TerrainGenerator.GetHeightAt(wx, wz, BiomeType.Plains, 42);
                     float nh = Mathf.Clamp01(hv / HEIGHT_NORMALIZE);
-                    if (nh < 0.25f)   // 고도 하위 25% = 골짜기
+                    if (nh < 0.30f)   // 골짜기 (고도 하위 30%)
                     {
-                        c.r *= 0.92f;
-                        c.g *= 0.92f;
-                        c.b *= 0.92f;
+                        c.r *= 0.85f;
+                        c.g *= 0.85f;
+                        c.b *= 0.85f;
+                    }
+                    else if (nh > 0.90f)   // 능선 (고도 상위 10%)
+                    {
+                        c.r *= 1.06f;
+                        c.g *= 1.06f;
+                        c.b *= 1.06f;
                     }
                     px[row + x] = c;
                 }
@@ -305,14 +311,18 @@ namespace ProjectName.Systems
             // 고도 3분위 → L1 저지대 / L2 중지대 (여기선 2층으로 세분, 상한 낮을수록 저지대)
             float lowW = Mathf.Clamp01(1f - nh / 0.5f);          // 저지대 (nh 낮음 → 우세)
             float midW = WeightFromCenter(nh, 0.55f, 0.35f);     // 중지대 (피크 ~0.55)
+            // Z2 북 설산화: 고지대 우세 설원 밴드 (nh 높음 → 우세) — 북 L1(설)에 사용.
+            float highW = Mathf.Clamp01(nh / 0.5f);
+            // 북은 L1(설·lowland) = 고지대, L2(청록잔디·midland) = 저지대 로 반전 ("설산" 실루엣).
+            bool northSnow = (nation == NationType.North);
 
             float[] raw = new float[n];
             for (int i = 0; i < n; i++)
             {
                 float v = 0f;
                 string nm = layers[i].layerName.ToLowerInvariant();
-                if (nm.Contains("lowland"))        v = lowW * unobstructed;
-                else if (nm.Contains("midland"))   v = midW * unobstructed;
+                if (nm.Contains("lowland"))        v = (northSnow ? highW : lowW) * unobstructed;
+                else if (nm.Contains("midland"))   v = (northSnow ? lowW : midW) * unobstructed;
                 else if (nm.Contains("rock"))      v = cliff;                                   // L3 절벽
                 else if (nm.Contains("dirt"))      v = path * (1f - Mathf.Clamp01(water));      // L4 흙길 (수변 우선)
                 else if (nm.Contains("moss"))      v = water;                                   // L5 이끼·수변

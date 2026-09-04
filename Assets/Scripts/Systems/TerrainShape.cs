@@ -66,9 +66,11 @@ namespace ProjectName.Systems
         {
             switch (nation)
             {
-                case NationType.East:   return new NationParams { nation = nation, amplitudeA = 7f,  freq0 = 0.004f, cliffDropC = 4f, ridgeGate = 0.65f, terraceStep = 0f   };
-                case NationType.West:   return new NationParams { nation = nation, amplitudeA = 9f,  freq0 = 0.005f, cliffDropC = 6f, ridgeGate = 0.62f, terraceStep = 2.5f };
-                case NationType.South:  return new NationParams { nation = nation, amplitudeA = 8f,  freq0 = 0.004f, cliffDropC = 5f, ridgeGate = 0.60f, terraceStep = 3f   };
+                // Z3: 진폭 증폭(East 7→10, West 9→11, South 8→10; North 13/절벽낙차·Empire 3 유지)
+                //     + 파장 밀도 증가(freq0 ↑, 파장 200→160m) — 탑다운 "구릉" 가독 확보.
+                case NationType.East:   return new NationParams { nation = nation, amplitudeA = 10f, freq0 = 0.005f, cliffDropC = 4f, ridgeGate = 0.65f, terraceStep = 0f   };
+                case NationType.West:   return new NationParams { nation = nation, amplitudeA = 11f, freq0 = 0.006f, cliffDropC = 6f, ridgeGate = 0.62f, terraceStep = 2.5f };
+                case NationType.South:  return new NationParams { nation = nation, amplitudeA = 10f, freq0 = 0.005f, cliffDropC = 5f, ridgeGate = 0.60f, terraceStep = 3f   };
                 case NationType.North:  return new NationParams { nation = nation, amplitudeA = 13f, freq0 = 0.006f, cliffDropC = 9f, ridgeGate = 0.58f, terraceStep = 3f   };
                 case NationType.Empire: return new NationParams { nation = nation, amplitudeA = 3f,  freq0 = 0.003f, cliffDropC = 2f, ridgeGate = 0.75f, terraceStep = 2f   };
                 default:
@@ -240,11 +242,12 @@ namespace ProjectName.Systems
         // ====================================================================
 
         // ── 야생화 패치 (예시의 꽃 들판) ──────────────────────────────────────
+        // Z4: 야생화 커버리지 8%→14% (FLOWER_LO 하향 — Smoothstep 통과점을 저주파쪽으로 내림)
         const float FLOWER_FREQ = 0.02f;        // 주파수 0.02 (패치 크기 ~50m)
         const float FLOWER_OX = 3.7f;           // 패치 분포 오프셋 (전 세계 균일, 국가 무관)
         const float FLOWER_OZ = 11.3f;
-        const float FLOWER_LO = 0.90f;          // 커버리지 ~8% (1-0.92) 되도록 상한 하단을 0.90~0.96
-        const float FLOWER_HI = 0.96f;
+        const float FLOWER_LO = 0.78f;          // 커버리지 ~14% (Smoothstep(0.78,0.90,n) 통과점 n≈0.85)
+        const float FLOWER_HI = 0.90f;
 
         /// <summary>
         /// 야생화 패치 마스크 [0,1] — 주파수 0.02, 커버리지 약 8% (Phase T-R3 §3).
@@ -316,6 +319,65 @@ namespace ProjectName.Systems
                 float radius = FANTASY_RADIUS_MIN + H01(nseed, 30 + k) * (FANTASY_RADIUS_MAX - FANTASY_RADIUS_MIN);
                 float d = Vector3.Distance(new Vector3(x, 0f, z), c);
                 float m = 1f - Smoothstep(radius - FANTASY_EDGE_SOFT, radius, d);
+                if (m > best) best = m;
+            }
+            return Mathf.Clamp01(best);
+        }
+
+        // ── Z4: 숲 군락 (Forest Patches) ─────────────────────────────────────
+        const float FOREST_RADIUS_MIN   = 100f;   // 군락(클러스터) 반경 100~180m
+        const float FOREST_RADIUS_MAX   = 180f;
+        const float FOREST_CENTER_MIN   = 150f;   // 성(0,0)에서 군락 중심 거리 150~500m
+        const float FOREST_CENTER_MAX   = 500f;
+        const float FOREST_EXCLUDE_DIST = 150f;   // 스폰/성/호수 반경 150m 밖
+        const float FOREST_EDGE_SOFT    = 25f;    // 군락 가장자리 부드러운 페이드
+
+        /// <summary>
+        /// Z4: 국가별 숲 군락 마스크 [0,1] — 국가당 3~5개(결정론), 군락 반경 100~180m,
+        /// 스폰/성/호수 반경 150m 밖 배치. IdyllicDecoPlacer가 이 마스크 내 나무 밀도 ×4(1/225㎡)를 적용.
+        /// 시드 = 국가 시드(seed + NationSeedOffset(nation)) + 5. 군락 각도는 국가 방위 중심으로 바이어스.
+        /// </summary>
+        public static float GetForestPatchMask(float x, float z, NationType nation, int seed)
+        {
+            int nseed = seed + NationSeedOffset(nation) + 5;
+            int count = 3 + (int)(H01(nseed, 0) * 3f);   // 3..5개 (H01 ∈ [0,1))
+            Vector3 spawn = ProjectName.Core.PlayerSpawnConfig.SpawnPosition;
+            var lakes = TerrainGenerator.Lakes;
+
+            float baseAng;
+            switch (nation)
+            {
+                case NationType.North: baseAng = 90f;  break;
+                case NationType.West:  baseAng = 180f; break;
+                case NationType.South: baseAng = 270f; break;
+                default:               baseAng = 0f;   break; // East
+            }
+
+            float best = 0f;
+            for (int k = 0; k < count; k++)
+            {
+                // 방위 중심 ±40° 안에서 결정론 각도 → 성에서 dist 만큼의 군락 중심
+                float ang = (baseAng + (H01(nseed, 10 + k) - 0.5f) * 80f) * Mathf.Deg2Rad;
+                float dist = FOREST_CENTER_MIN + H01(nseed, 20 + k) * (FOREST_CENTER_MAX - FOREST_CENTER_MIN);
+                Vector3 c = new Vector3(Mathf.Cos(ang) * dist, 0f, Mathf.Sin(ang) * dist);
+
+                // 스폰/성/호수 반경 150m 밖이어야 함 — 위반 시 이 군락 스킵
+                if (Vector3.Distance(c, spawn) < FOREST_EXCLUDE_DIST) continue;
+                if (Vector3.Distance(c, Vector3.zero) < FOREST_EXCLUDE_DIST) continue;
+                bool nearLake = false;
+                if (lakes != null)
+                {
+                    for (int i = 0; i < lakes.Count; i++)
+                    {
+                        Vector3 lc = new Vector3(lakes[i].center.x, 0f, lakes[i].center.z);
+                        if (Vector3.Distance(c, lc) < FOREST_EXCLUDE_DIST) { nearLake = true; break; }
+                    }
+                }
+                if (nearLake) continue;
+
+                float radius = FOREST_RADIUS_MIN + H01(nseed, 30 + k) * (FOREST_RADIUS_MAX - FOREST_RADIUS_MIN);
+                float d = Vector3.Distance(new Vector3(x, 0f, z), c);
+                float m = 1f - Smoothstep(radius - FOREST_EDGE_SOFT, radius, d);
                 if (m > best) best = m;
             }
             return Mathf.Clamp01(best);

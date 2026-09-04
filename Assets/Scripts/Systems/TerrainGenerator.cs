@@ -30,11 +30,12 @@ namespace ProjectName.Systems
 
         // === 호수 시스템 상수 ===
         // 소품/청동 오브젝트 배치용 고정 시드 결정론적 호수 목록 (Random 언시드 금지)
-        private const int LAKE_COUNT = 6;
-        private const long LAKE_LCG_SEED = 1234567891L;     // 결정론적 LCG 시드
+        // Z4: 6→10개 + LCG 시드 교체(20260904L) — 스폰/성 반경 150m 배제 + 호수간 최소 250m 유지.
+        private const int LAKE_COUNT = 10;
+        private const long LAKE_LCG_SEED = 20260904L;     // 결정론적 LCG 시드 (Z4 교체)
         private const float LAKE_MIN_DIST = 250f;          // 호수 간 최소 거리
         private const float LAKE_EDGE_MARGIN = 150f;       // 지도 경계(±1000) 여백
-        private const float LAKE_EMPIRE_EXCLUDE = 120f;    // 황제국 중앙(0,0,0) 배제 반경
+        private const float LAKE_SPAWN_EXCLUDE = 150f;     // 스폰/황제국 성(0,0) 배제 반경
         private const float LAKE_RADIUS_MIN = 40f;
         private const float LAKE_RADIUS_MAX = 70f;
         private const float LAKE_DEPTH_MIN = 3f;
@@ -361,41 +362,61 @@ namespace ProjectName.Systems
         /// </summary>
         private static System.Collections.Generic.IReadOnlyList<TerrainLakeDef> GenerateLakes()
         {
-            // 기본 앵커 — [동쪽-시작 인근, 동쪽, 북쪽, 북쪽, 서쪽, 남쪽] 순
-            // 동쪽 첫 호수는 플레이어 시작 (728,-529) 인근이되, 스폰지 평탄화(반경 15m)와
-            // 카브 영향(반경≤91m)이 겹치지 않도록 충분히 떨어뜨려 배치.
-            Vector3[] anchors =
-            {
-                new Vector3(600f, 0f, -460f),   // 동쪽 — 시작 인근 (카브/스폰지 평탄화 비중첩)
-                new Vector3(400f, 0f, 100f),    // 동쪽
-                new Vector3(-400f, 0f, 600f),   // 북쪽
-                new Vector3(-150f, 0f, 720f),   // 북쪽
-                new Vector3(-700f, 0f, -300f),  // 서쪽
-                new Vector3(300f, 0f, -750f),   // 남쪽
-            };
-
+            // Z4: reject sampling — LCG(고정 시드 20260904L)로 10개 호수 위치/반경/깊이 산출.
+            // 규칙: 지도 경계(±1000)에서 LAKE_EDGE_MARGIN 여백, 스폰/황제국 성(0,0) 반경
+            // LAKE_SPAWN_EXCLUDE(150m) 밖, 호수 간 최소 LAKE_MIN_DIST(250m). waterLevel은
+            // 호수별 링(1.5r) 8방위 보정이 그대로 자동 적용된다.
             List<TerrainLakeDef> lakes = new List<TerrainLakeDef>();
+            Vector3 spawn = ProjectName.Core.PlayerSpawnConfig.SpawnPosition;
+            float bound = 1000f - LAKE_EDGE_MARGIN;
+            const int ATTEMPTS = 240;
+
             for (int i = 0; i < LAKE_COUNT; i++)
             {
-                float jx = (LakeRand(i * 4 + 0) - 0.5f) * 50f;
-                float jz = (LakeRand(i * 4 + 1) - 0.5f) * 50f;
-                float radius = Mathf.Lerp(LAKE_RADIUS_MIN, LAKE_RADIUS_MAX, LakeRand(i * 4 + 2));
-                float depth = Mathf.Lerp(LAKE_DEPTH_MIN, LAKE_DEPTH_MAX, LakeRand(i * 4 + 3));
-
                 TerrainLakeDef lake = new TerrainLakeDef();
-                lake.center = new Vector3(anchors[i].x + jx, 0f, anchors[i].z + jz);
-                lake.radius = radius;
-                lake.depth = depth;
+                bool placed = false;
+                for (int a = 0; a < ATTEMPTS; a++)
+                {
+                    int st = i * 50 + a * 4;   // 호수·시도별 고유 LCG 상태 인덱스 (결정론)
+                    float cx = Mathf.Lerp(-bound, bound, LakeRand(st + 0));
+                    float cz = Mathf.Lerp(-bound, bound, LakeRand(st + 1));
+                    Vector3 c = new Vector3(cx, 0f, cz);
+
+                    if (Vector3.Distance(c, Vector3.zero) < LAKE_SPAWN_EXCLUDE) continue; // 성(0,0)
+                    if (Vector3.Distance(c, spawn) < LAKE_SPAWN_EXCLUDE) continue;         // 스폰
+                    bool nearLake = false;
+                    for (int j = 0; j < lakes.Count; j++)
+                    {
+                        if (Vector3.Distance(c, lakes[j].center) < LAKE_MIN_DIST) { nearLake = true; break; }
+                    }
+                    if (nearLake) continue;
+
+                    lake.center = c;
+                    lake.radius = Mathf.Lerp(LAKE_RADIUS_MIN, LAKE_RADIUS_MAX, LakeRand(st + 2));
+                    lake.depth = Mathf.Lerp(LAKE_DEPTH_MIN, LAKE_DEPTH_MAX, LakeRand(st + 3));
+                    placed = true;
+                    break;
+                }
+                if (!placed)
+                {
+                    // relax: 호수간 최소거리 배제 폴백만이라도 배치 (대부분 이 경로 무참)
+                    lake.center = new Vector3(
+                        Mathf.Lerp(-bound, bound, LakeRand(i * 50 + 400 + 0)),
+                        0f,
+                        Mathf.Lerp(-bound, bound, LakeRand(i * 50 + 400 + 1)));
+                    lake.radius = 45f;
+                    lake.depth = 4f;
+                }
 
                 // waterLevel = 분지 바닥(카브 전 기저 높이 - depth) + LAKE_WATER_OFFSET.
                 // 주의: ComputeTerrainHeight를 호출하면 카브가 재적용되어 재귀하므로,
                 // 카브 전 기저 높이는 ComputeNationHeight(카브 미적용 경로)로 직접 산출한다.
                 float baseH = ComputeNationHeight(
                     lake.center.x, lake.center.z, GetNationFromCoord(lake.center.x, lake.center.z), 42);
-                lake.waterLevel = baseH - depth + LAKE_WATER_OFFSET;
+                lake.waterLevel = baseH - lake.depth + LAKE_WATER_OFFSET;
 
                 // ── Phase W1 수면-지형 정합 보정 (결정론) ──
-                // 구릉(파장 200m, 진폭 7~13m) 위 호수는 중심 1점 기저만으로 수면을 정하면
+                // 구릉(파장 160m, 진폭 7~13m) 위 호수는 중심 1점 기저만으로 수면을 정하면
                 // 호숫가(1.0r~1.45r) 지형이 수면 위로 솟는다. 호수 주변 링(1.5r) 8방위의
                 // 기저 높이 최댓값 maxRing을 구해 `min(원 waterLevel, maxRing - depth*0.35)`로
                 // 재조정하면 구릉 위 호수가 자연스럽게 더 깊어져 물-지형 교차가 사라진다.
@@ -411,11 +432,11 @@ namespace ProjectName.Systems
                         float rh = ComputeNationHeight(rx, rz, GetNationFromCoord(rx, rz), 42);
                         if (rh > maxRing) maxRing = rh;
                     }
-                    float basinFloor = baseH - depth;                    // 중심 카브 바닥 하한
+                    float basinFloor = baseH - lake.depth;                // 중심 카브 바닥 하한
                     float ringAdjusted = Mathf.Min(lake.waterLevel,
-                        maxRing - depth * LAKE_LEVEL_RING_REDUCE);
+                        maxRing - lake.depth * LAKE_LEVEL_RING_REDUCE);
                     lake.waterLevel = Mathf.Max(basinFloor, ringAdjusted);
-                    Debug.Log($"[TerrainGenerator] Lake_{i}: baseH={baseH:F2} depth={depth:F2} " +
+                    Debug.Log($"[TerrainGenerator] Lake_{i}: center=({lake.center.x:F0},{lake.center.z:F0}) r={lake.radius:F0} baseH={baseH:F2} depth={lake.depth:F2} " +
                               $"ringMax={maxRing:F2} waterLevel→{lake.waterLevel:F2}");
                 }
 
@@ -693,7 +714,7 @@ namespace ProjectName.Systems
                         }
                     }
 
-                    // 호수 6개 (LCG 시드 유지 — 위치 불변 원칙)
+                    // 호수 10개 (LCG 시드 유지 — 위치 불변 원칙)
                     foreach (var lake in Lakes)
                         _protectionAnchors.Add(lake.center);
                 }
