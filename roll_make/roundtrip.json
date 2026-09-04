@@ -1,0 +1,23 @@
+{
+ "src_mid_fwd": [
+  0.571,
+  -0.791,
+  0.219
+ ],
+ "src_action": "Armature|mixamo.com|Layer0",
+ "90": {
+  "has_action": true,
+  "ibs": 65,
+  "hip_fwd_angle_vs_src": 0.0
+ },
+ "-90": {
+  "has_action": true,
+  "ibs": 65,
+  "hip_fwd_angle_vs_src": 0.0
+ },
+ "180": {
+  "has_action": true,
+  "ibs": 65,
+  "hip_fwd_angle_vs_src": 0.0
+ }
+}

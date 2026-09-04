@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "C:\Unity\code\roll_make\angle_test.py", line 58, in <module>
+    _, f = import_and_midfwd(outp)
+           ~~~~~~~~~~~~~~~~~^^^^^^
+BlenderMCP addon registered
+Reloading external rigs...
+Reloading external metarigs...
+FBX version: 7700
+FBX version: 7700
+
+FBX export starting... 'C:\\Unity\\code\\roll_make\\t_90_nb.fbx'
+export finished in 0.0240 sec.
+FBX version: 7400
+  File "C:\Unity\code\roll_make\angle_test.py", line 24, in import_and_midfwd
+    return arm_mid_forward()
+  File "C:\Unity\code\roll_make\angle_test.py", line 16, in arm_mid_forward
+    act = arm.animation_data.action
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'action'
+BlenderMCP addon unregistered
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:37:34)
+
+Blender quit

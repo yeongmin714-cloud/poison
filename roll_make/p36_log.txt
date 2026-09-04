@@ -1,0 +1,66 @@
+Failed to open dir (No such file or directory): /run/user/1000/gvfs/
+FBX version: 7700
+{
+ "arm": "Armature",
+ "action": "Armature|mixamo.com|Layer0",
+ "has_fcurves": true,
+ "n_fcurves": 520,
+ "hips_rot_channels": [
+  [
+   "pose.bones[\"mixamorig:Hips\"].rotation_quaternion",
+   0,
+   43,
+   [
+    1.0,
+    2.0,
+    3.0,
+    4.0,
+    5.0
+   ]
+  ],
+  [
+   "pose.bones[\"mixamorig:Hips\"].rotation_quaternion",
+   1,
+   43,
+   [
+    1.0,
+    2.0,
+    3.0,
+    4.0,
+    5.0
+   ]
+  ],
+  [
+   "pose.bones[\"mixamorig:Hips\"].rotation_quaternion",
+   2,
+   43,
+   [
+    1.0,
+    2.0,
+    3.0,
+    4.0,
+    5.0
+   ]
+  ],
+  [
+   "pose.bones[\"mixamorig:Hips\"].rotation_quaternion",
+   3,
+   43,
+   [
+    1.0,
+    2.0,
+    3.0,
+    4.0,
+    5.0
+   ]
+  ]
+ ],
+ "frame_range": [
+  1.0,
+  43.0
+ ]
+}
+[P36] DONE
+Blender 3.6.0 (hash c7fc78b81ecb built 2023-06-27 08:23:50)
+
+Blender quit

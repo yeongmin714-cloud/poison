@@ -1,0 +1,32 @@
+{
+ "Roll_Left": {
+  "yaw": -90,
+  "frames_modified": 43,
+  "total_frames": 43,
+  "reimport_has_action": true,
+  "frame_range": [
+   1.0,
+   43.0
+  ]
+ },
+ "Roll_Right": {
+  "yaw": 90,
+  "frames_modified": 43,
+  "total_frames": 43,
+  "reimport_has_action": true,
+  "frame_range": [
+   1.0,
+   43.0
+  ]
+ },
+ "Roll_Back": {
+  "yaw": 180,
+  "frames_modified": 43,
+  "total_frames": 43,
+  "reimport_has_action": true,
+  "frame_range": [
+   1.0,
+   43.0
+  ]
+ }
+}
