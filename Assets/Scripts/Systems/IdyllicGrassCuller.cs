@@ -57,7 +57,7 @@ namespace ProjectName.Systems
             float r2 = CULL_RADIUS * CULL_RADIUS;
             for (int i = 0; i < root.childCount; i++)
             {
-                var go = root.GetChild(i);
+                var go = root.GetChild(i).gameObject;
                 if (go == null) continue;
                 Vector3 p = go.transform.position;
                 float dx = p.x - playerPos.x, dz = p.z - playerPos.z;

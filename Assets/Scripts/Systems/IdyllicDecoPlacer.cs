@@ -402,24 +402,25 @@ namespace ProjectName.Systems
             if (p.meadows == null || p.meadows.Count == 0) return 0;
             var meadows = LoadSet("IdyllicPrefabs/Meadows");
             // 국가 선호 프리팹 선정 (부재 시 p.meadows 기본)
+            // p.meadows는 List<WPrefab>, Filter는 List<GameObject> 반환 → WPrefab으로 변환해 사용 (PickWeighted 필요).
             var prefPool = p.meadows;
             switch (p.nation)
             {
                 case NationType.North:
-                    prefPool = Filter(meadows, "FlowerMeadow", "Purple").Count > 0
-                        ? Filter(meadows, "FlowerMeadow", "Purple") : p.meadows;
+                    var northPool = FilterPrefabs(meadows, "FlowerMeadow", "Purple");
+                    prefPool = northPool.Count > 0 ? northPool : p.meadows;
                     break;
                 case NationType.South:
-                    prefPool = Filter(meadows, "FlowerMeadow", "Red").Count > 0
-                        ? Filter(meadows, "FlowerMeadow", "Red") : p.meadows;
+                    var southPool = FilterPrefabs(meadows, "FlowerMeadow", "Red");
+                    prefPool = southPool.Count > 0 ? southPool : p.meadows;
                     break;
                 case NationType.West:
-                    prefPool = Filter(meadows, "FlowerMeadow", "Orange").Count > 0
-                        ? Filter(meadows, "FlowerMeadow", "Orange") : p.meadows;
+                    var westPool = FilterPrefabs(meadows, "FlowerMeadow", "Orange");
+                    prefPool = westPool.Count > 0 ? westPool : p.meadows;
                     break;
                 case NationType.East:
                 default:
-                    var mixed = Filter(meadows, "FlowerMeadow", "OrangePinkRedPurpleBlue");
+                    var mixed = FilterPrefabs(meadows, "FlowerMeadow", "OrangePinkRedPurpleBlue");
                     prefPool = mixed.Count > 0 ? mixed : p.meadows;
                     break;
             }
@@ -816,6 +817,21 @@ namespace ProjectName.Systems
                 if (prefix != null && !n.Contains(prefix)) continue;
                 if (suffix != null && !n.EndsWith(suffix)) continue;
                 list.Add(g);
+            }
+            return list;
+        }
+
+        /// <summary>Filter 결과(List<GameObject>)를 PickWeighted가 요구하는 List<WPrefab>로 변환.</summary>
+        static List<WPrefab> FilterPrefabs(List<GameObject> src, string prefix, string suffix)
+        {
+            var list = new List<WPrefab>();
+            foreach (var g in src)
+            {
+                if (g == null) continue;
+                var n = g.name;
+                if (prefix != null && !n.Contains(prefix)) continue;
+                if (suffix != null && !n.EndsWith(suffix)) continue;
+                list.Add(new WPrefab { prefab = g, weight = 1f, scaleMin = 1f, scaleMax = 1f });
             }
             return list;
         }
