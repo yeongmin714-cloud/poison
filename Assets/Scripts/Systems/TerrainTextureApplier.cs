@@ -188,8 +188,11 @@ namespace ProjectName.Systems
             foreach (MeshRenderer r in renderers)
             {
                 if (r == null) continue;
-                MeshRenderer rm = r;   // 로컬 참조 (런타임 스트립트 무결성 유지용)
-                Material[] shared = rm.sharedMaterials;
+                // (W2) 외곽 Ground 평면 판별에 필요한 메시 정보는 MeshFilter(같은 GO)에서 얻는다 —
+                // MeshRenderer에 sharedMesh는 없음(CS1061).
+                var mf = r.GetComponent<MeshFilter>();
+                Mesh meshOfRenderer = mf != null ? mf.sharedMesh : null;
+                Material[] shared = r.sharedMaterials;
                 if (shared == null || shared.Length == 0) continue;
 
                 for (int i = 0; i < shared.Length; i++)
@@ -201,7 +204,7 @@ namespace ProjectName.Systems
                     // 대상 판별: (a) Ground_Grass* 머티리얼, (b) 메시 없는 외곽 Ground 평면,
                     // (c) Terrain_*_Mat 스플랫 머티리얼
                     bool isGroundGrass = name.IndexOf("Ground_Grass", System.StringComparison.OrdinalIgnoreCase) >= 0;
-                    bool isOuterPlane = name.IndexOf("Ground", System.StringComparison.OrdinalIgnoreCase) >= 0 && rm.sharedMesh == null;
+                    bool isOuterPlane = name.IndexOf("Ground", System.StringComparison.OrdinalIgnoreCase) >= 0 && meshOfRenderer == null;
                     bool isSplatMat = name.IndexOf("Terrain_", System.StringComparison.OrdinalIgnoreCase) >= 0;
 
                     if (!isGroundGrass && !isOuterPlane && !isSplatMat) continue;
@@ -237,7 +240,7 @@ namespace ProjectName.Systems
                     if (clone == null) continue;
 
                     // 해당 슬롯만 인스턴스로 교체 (다른 슬롯/에셋 무관)
-                    try { rm.materials[i] = clone; } catch { Object.Destroy(clone); continue; }
+                    try { r.materials[i] = clone; } catch { Object.Destroy(clone); continue; }
                     repaired++;
                 }
             }
