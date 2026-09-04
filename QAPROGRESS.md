@@ -8,6 +8,28 @@
 
 ---
 
+## 2026-09-04: 플레이어 애니메이션 — 팩 클립 교체 미적용 버그 (Player_AC 컨트롤러) ✅ 해결
+
+**증상:** RPG팩(DoubleL)으로 Idle/Walk/Run/Attack/Jump/Hit 교체 결정했는데, 게임 속 플레이어에 여전히 믹사모 클립이 보임. (병사는 정상, 플레이어만.)
+
+**근본 원인:** 
+- 09-03 18:38에 `MixamoControllerBuilder.BuildAll()`이 팩 클립 컨트롤러를 생성할 때, 기존 `Player_AC.controller`(09-03 09:32 생성, 전부 믹사모 클립)가 이미 존재 → `AnimatorController.CreateAnimatorControllerAtPath`는 덮어쓰지 못하고 **`Player_AC_AC.controller`로 중복 생성**.
+- 병사 3종(SoldierShield/GreatSword/Archer)은 기존 컨트롤러가 없어 팩 클립으로 정상 생성됨. 플레이어만 구 컨트롤러가 `Resources.Load("Animation/Controllers/Player_AC")`(GameSetup.cs:363)에 그대로 잡혀 믹사모 클립 사용.
+- 그래서 "병사는 팩인데 플레이어만 믹사모"로 보였음.
+
+**수정:**
+- `Player_AC.controller`를 팩 클립 판과 동일하게 교체: Idle/Walk/Run/Attack/AttackCombo/Jump/Hit = `DoubleL/Demo/Anim` 팩(.anim), **Death/Roll = 팩에 없어 믹사모 유지** (의도대로).
+- 중복 생성된 `Player_AC_AC.controller(+meta)` 삭제.
+- `MixamoControllerBuilder.Create()`에 **기존 컨트롤러 삭제 후 재생성** 로직 추가 → 재빌드 시 `_AC` 이중생성 방지 (근본 예방).
+
+**검증:** Player_AC.controller 상태 매핑 = pack .anim 7개 / mixamo .fbx 2개(Death,Roll). 커밋 `3c9c39e6`.
+
+**참고(별도 이슈):** 배치컴파일이 아래 **기존 컴파일 에러**로 막힘(애니와 무관, 미수정 — 별도 처리 필요):
+- `IdyllicGrassCuller.cs(65,66)`: `Transform`에 `activeSelf`/`SetActive` 없음 (→ `gameObject.SetActive` 사용)
+- `IdyllicDecoPlacer.cs(410~423)`: `List<GameObject>` ↔ `List<WPrefab>` 암시 변환 불가 (4곳)
+
+---
+
 ## 2026-09-02: 지형 고급화 — 멀티레이어 스플랫 + 근거리 질감 (T-G1~T-G3)
 
 **목표:** "단일 텍스처 전면 반복" ⇒ 높이/경사/노이즈 기반 레이어 블렌드 + 근거리 미세 질감.
