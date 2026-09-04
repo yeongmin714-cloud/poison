@@ -508,8 +508,8 @@ namespace ProjectName.Systems
                     ? p.fantasyTrees : p.trees, rng);
             float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42);
             // AA4: 위치 기반 해시 스케일 변주 ×0.8~1.3 (프리팹 원본 스케일에 곱 — 수목 크기 다양화)
-            float base = RandomRange(rng, entry.scaleMin, entry.scaleMax);
-            float scale = base * ScaleVariation(x, z, 0xAA41, 0.8f, 1.3f);
+            float baseScale = RandomRange(rng, entry.scaleMin, entry.scaleMax);
+            float scale = baseScale * ScaleVariation(x, z, 0xAA41, 0.8f, 1.3f);
             GameObject go = Place(entry.prefab, x, y, z, scale, rng, parent);
             if (entry.collider) AddTreeCollider(go);
             treeHash.Insert(p2);
