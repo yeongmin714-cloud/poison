@@ -345,11 +345,6 @@ namespace ProjectName.Systems
                     Mathf.Repeat(_center.z * 0.53f, 1f));
             }
 
-            // T-R5 안전(역전 금지): 호수 중심 반경 내 지형이 수면 아래로 유지되도록 보강.
-            // ApplyLakeBasins(카브) + PROTECT_CLIFF_RADIUS(호수 40m 절벽 금지)가 대부분 처리하지만,
-            // 만반의 안전망으로 중심 지형이 수면 위로 솟으면 표면을 살짝 들어 올린다.
-            EnforceSurfaceAboveTerrain();
-
             // --- Step 4: Create collision volume ---
             _collisionVolume = new GameObject($"{gameObject.name}_LakeVolume");
             _collisionVolume.transform.SetParent(transform, false);
@@ -367,6 +362,15 @@ namespace ProjectName.Systems
             // --- Step 5: Position parent at the desired surface Y ---
             _baseY = _surfaceY;
             transform.position = new Vector3(transform.position.x, _baseY, transform.position.z);
+
+            // T-R5 안전(역전 금지): 호수 중심 반경 내 지형이 수면 아래로 유지되도록 보강.
+            // ★ 호출 순서 수정(스크린샷 41 화이트아웃 근본 원인): 이 호출은 Step 4의 collision volume
+            //   생성(_collisionVolume 할당) 이후로 이동했다. 기존엔 collision volume 생성 전에 호출되어
+            //   EnforceSurfaceAboveTerrain() 내 _collisionVolume.transform 접근이 null → NullReferenceException
+            //   → GameSetup.Start가 42행 이후(조명/데코/영지) 전부 중단되는 연쇄 장애를 일으켰다.
+            //   ApplyLakeBasins(카브) + PROTECT_CLIFF_RADIUS(호수 40m 절벽 금지)가 대부분 처리하지만,
+            //   만반의 안전망으로 중심 지형이 수면 위로 솟으면 표면을 살짝 들어 올린다.
+            EnforceSurfaceAboveTerrain();
         }
 
         /// <summary>
@@ -407,7 +411,11 @@ namespace ProjectName.Systems
 
             _surfaceY = newSurfaceY;
             _baseY = _surfaceY;
-            _collisionVolume.transform.localPosition = Vector3.zero;
+            // NRE 방어(스크린샷 41 방지): collision volume가 아직 생성되지 않았다면 위치 갱신만 건너뜀.
+            // 정상 생성 순서(ConstructLake Step 4 이후 호출)에서는 항상 non-null이지만,
+            // 외부/초기화 경로에서 이 메서드가 먼저 불려도 예외를 던지지 않는다.
+            if (_collisionVolume != null)
+                _collisionVolume.transform.localPosition = Vector3.zero;
             transform.position = new Vector3(transform.position.x, _baseY, transform.position.z);
         }
 

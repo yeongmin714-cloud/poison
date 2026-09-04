@@ -38,7 +38,11 @@ public class GameSetup : MonoBehaviour
         // ── TERRAIN DECO BOOTSTRAP (Phase T3-T5) ──────────────────────
         // 프롭/길/잔디 런타임 부트스트랩. 각 API 내부에 중복 가드가 있어
         // 씬 로드/씬 재생성(FixMainScene) 양쪽에서 안전하게 호출된다.
-        BootstrapTerrainDeco();
+        // ★ 2차 방어(스크린샷 41 화이트아웃): BootstrapTerrainDeco가 내부에서 예외를 던져도
+        //   GameSetup.Start가 이후 라인(조명 AmbianceBrightener/컬러그레이딩/데코/영지)까지
+        //   반드시 실행되도록 try-catch로 격리한다. 단일 실패점 제거.
+        try { BootstrapTerrainDeco(); }
+        catch (System.Exception e) { Debug.LogError("[GameSetup] ⚠️ TerrainDeco 부트 실패 — 나머지 부트 계속: " + e); }
         gameObject.AddComponent<AmbianceBrightener>(); // P-2: 밝은 판타지 자연 분위기 (안개/앰비언트/조명)
         // [T-R6] 하늘/빛/분위기: 런타임 컬러그레이딩(채도/콘트라스트) + god rays 빌보드 광기둥.
         if (GetComponent<MoodProfileSetup>() == null)
