@@ -27,8 +27,48 @@ namespace ProjectName.Systems
 
         private bool _hasBuilt = false;
 
+        /// <summary>
+        /// 영지/병사 배치 일시중단 스위치.
+        /// 지형 Play 검증 중 렉 원인(성 GLB 로드 + 문지기 병사 FBX/애니 부착 82개 영지)을 차단한다 — 2026-09-04 사용자 지시.
+        /// 검증이 끝나면 false로 변경하거나 SetPaused(false)를 호출해 재개한다.
+        /// </summary>
+        public static bool BuildPaused = true;
+
+        /// <summary>
+        /// 영지/병사 배치 일시중단 여부를 토글합니다. 값이 실제로 바뀔 때만 로그를 남깁니다.
+        /// false로 전환 시 _hasBuilt를 리셋하고, 현재 씬에 builder가 살아 있으면 코루틴을 재시작합니다.
+        /// </summary>
+        public static void SetPaused(bool paused)
+        {
+            if (BuildPaused == paused) return;
+
+            BuildPaused = paused;
+            Debug.Log($"[TerritoryBuilder] 영지/병사 배치 {(paused ? "일시중지" : "재개")}");
+
+            if (!paused)
+            {
+                // 재개 시 중단된 상태(_hasBuilt=false)에서 배치가 동작하도록 리셋 + 재시작 여지 제공
+                var builder = FindAnyObjectByType<TerritoryBuilder>();
+                if (builder != null)
+                {
+                    builder._hasBuilt = false;
+                    if (builder.isActiveAndEnabled)
+                    {
+                        // Start()가 이미 끝났다면 명시적으로 코루틴 재개
+                        builder.StartCoroutine(builder.BuildAllCoroutine());
+                    }
+                }
+            }
+        }
+
         private void Start()
         {
+            if (BuildPaused)
+            {
+                Debug.Log("[TerritoryBuilder] 지형 검증 중 영지/병사 배치 일시중지 (BuildPaused=true)");
+                return;
+            }
+
             if (_autoBuildOnStart)
             {
                 // 82개 영지를 1프레임당 1개씩 분산 생성 (프리징 방지)
@@ -39,12 +79,14 @@ namespace ProjectName.Systems
         /// <summary>Backward-compatible: BuildTerritory() = BuildAllTerritories()  (테스트 호환)</summary>
         public void BuildTerritory()
         {
+            if (BuildPaused) return; // 지형 검증 중 일시중단 — 조용히 무시
             BuildAllTerritories();
         }
 
         /// <summary>전체 82개 영지 건물과 병사 생성 (중복 방지)</summary>
         public void BuildAllTerritories()
         {
+            if (BuildPaused) return; // 지형 검증 중 일시중단 — 조용히 무시
             if (_hasBuilt) return;
 
             var definitions = TerritoryDatabase.Instance.GetAllDefinitions();
@@ -81,9 +123,21 @@ namespace ProjectName.Systems
 
             var definitions = TerritoryDatabase.Instance.GetAllDefinitions();
             int builtCount = 0;
+            bool pauseLogged = false; // 순회 중 일시중단 시 로그 1회만
 
             foreach (var def in definitions)
             {
+                // 런타임 토글 대응: 순회 중 BuildPaused로 바뀌면 중단 (_hasBuilt=false 유지 → 재개 가능)
+                if (BuildPaused)
+                {
+                    if (!pauseLogged)
+                    {
+                        Debug.Log($"[TerritoryBuilder] 순회 중 일시중단 → 배치 중단 (현재 {builtCount}개 생성됨, BuildPaused=true)");
+                        pauseLogged = true;
+                    }
+                    yield break;
+                }
+
                 if (IsTerritoryAlreadyBuilt(def))
                 {
                     continue;
