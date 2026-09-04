@@ -48,3 +48,5 @@ models/
 # Unity batchmode build logs
 buildlog*.txt
 run_batch.bat
+roll_make/*.log
+roll_make/prev*/
