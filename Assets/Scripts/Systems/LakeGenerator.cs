@@ -403,11 +403,14 @@ namespace ProjectName.Systems
                 return; // 정상 — 지형이 수면 아래, 변경 없음
 
             // 지형이 수면 위로 솟음 — 표면을 지형 + 여유 높이로 올려 역전 방지
+            // Phase W1: 지형-수면 정합 재설계(호수 2단 수변 수렴 + waterLevel 링 보정)로
+            // 정상 경로에선 이 안전망이 발동하지 않아야 한다. 발동 시 강등 로그(INFO)로 남기되
+            // 수변 밴드(1.0r~1.45r) 재확인 필요를 명시한다.
             float newSurfaceY = maxTerrain + 0.15f;
-            Debug.LogWarning(
+            Debug.Log(
                 $"[LakeGenerator] '{gameObject.name}' 지형이 수면 위 솟음(역전) 감지 — " +
                 $"surface {_surfaceY:F2} → {newSurfaceY:F2} (maxTerrain {maxTerrain:F2}, 반경 갱신). " +
-                "호수 위치/시드는 변경하지 않음 (안전망 상향만 적용).");
+                "호수 위치/시드는 변경하지 않음 (안전망 상향만 적용). 수변 정합 확인 요망.");
 
             _surfaceY = newSurfaceY;
             _baseY = _surfaceY;

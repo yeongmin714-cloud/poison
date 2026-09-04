@@ -122,6 +122,52 @@ namespace ProjectName.Tests.EditMode
             }
         }
 
+        // ── W1) 호수 수면-지형 정합: 수변 밴드 포함 전 구역 역전 0 ──────────
+        // Phase W1 (지형이 물에 맞춘다): 수역(0~1.0r) depth 카브 + 수변 밴드(1.0r~1.45r)
+        // waterLevel-0.4m smoothstep 수렴 + 분지 안전가드(≤ waterLevel-0.2).
+        // 호수 6개 × {중심, 0.5r, 0.9r, 1.2r, 1.4r} × 2방위 샘플에서 지형 < waterLevel 100%.
+        // 역전(수면 위 솟는 지형)이 있으면 Enforce=물 올리기가 발동해 "치솟은 판"이 재발한다.
+        [Test]
+        public void LakeBasins_NoInversion_AtShoreRing()
+        {
+            var lakes = TerrainGenerator.Lakes;
+            Assert.GreaterOrEqual(lakes.Count, 6, "호수 6개 이상 필요");
+
+            float[] fractions = { 0f, 0.5f, 0.9f, 1.2f, 1.4f };   // 중심 + 수역 2 + 수변 밴드 2
+            float[] angles = { 0f, 90f * Mathf.Deg2Rad };          // 두 방위로 구릉 방향성 커버
+            int total = 0;
+            int violations = 0;
+            string worst = "";
+
+            for (int i = 0; i < lakes.Count; i++)
+            {
+                var lake = lakes[i];
+                float wl = lake.waterLevel;
+                foreach (float frac in fractions)
+                {
+                    if (frac <= 0f)
+                    {
+                        // 중심 — 가장 깊은 카브 지점
+                        total++;
+                        float h = TerrainGenerator.GetHeightAt(lake.center.x, lake.center.z, BiomeType.Plains, SEED);
+                        if (!(h < wl)) { violations++; worst += $"  L{i} 중심 h={h:F3} ≥ wl={wl:F3}\n"; }
+                        continue;
+                    }
+                    foreach (float ang in angles)
+                    {
+                        float x = lake.center.x + Mathf.Cos(ang) * lake.radius * frac;
+                        float z = lake.center.z + Mathf.Sin(ang) * lake.radius * frac;
+                        total++;
+                        float h = TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, SEED);
+                        if (!(h < wl)) { violations++; worst += $"  L{i} {frac:F1}r h={h:F3} ≥ wl={wl:F3}\n"; }
+                    }
+                }
+            }
+
+            Assert.Zero(violations,
+                $"호수 수면 역전 {violations}/{total} (계획 요구 0).\n{worst}");
+        }
+
         static float StdDev(float[] vals)
         {
             float mean = 0f;

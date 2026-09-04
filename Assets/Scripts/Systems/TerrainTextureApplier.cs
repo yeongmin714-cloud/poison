@@ -280,8 +280,12 @@ namespace ProjectName.Systems
 
         private void Start()
         {
-            // T-G5: 에디터가 머티리얼 재저장하며 _BaseMap을 null로 되돌리는 사고(09-02~03 4회)를 영구 차단.
+            // T-G5: 에디터가 머티리얼 재저장하며 _BaseMap을 null로 되돌리는 사고(09-02~03 4회)를 차단.
+            // 1) 에셋(Resources/에디터 AssetDatabase) 사본 복구
             EnsureGroundGrassBaseMap();
+            // 2) T-G5-W2: 씬 모든 지면 MeshRenderer를 런타임 INSTANCE 복제로 보장 —
+            //    에셋 파일을 건드리지 않으므로 에디터가 이후 재저장해도 렌더에 영향 없음(근본 차단).
+            FixGroundMaterialsRuntime();
 
             // Start에서 텍스처 로드 — Awake 블로킹 방지
             LoadTextures();
