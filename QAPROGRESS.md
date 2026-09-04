@@ -1138,3 +1138,25 @@ OneHand_Up_Idle=1b267cb3..., Walk_B=ba58acae..., Run_B=282509bf..., Attack_1=ec2
 - 에디터 포커스→재컴파일→Play: ①4방위 고도/절벽 형태 ②국가별 색·식생 차이
   ③수면 터쿼이즈+수변 ④god rays/하늘 톤 ⑤콘솔 에러 0 ⑥프레임타임
 - 확인 후 몬스터 스폰 재개: MonsterSpawner.SetPaused(false)
+
+## 2026-09-04 화이트아웃(41) 근본 수리 — NRE 연쇄 장애
+
+### 원인 (Editor.log 입증)
+- LakeGenerator.EnforceSurfaceAboveTerrain:410이 _collisionVolume 생성(354행) **전**에 호출 → NRE
+- NRE가 GameSetup.Start:92에서 전파 → **Start 42행 이후 전부 중단** →
+  AmbianceBrightener(조명보정)/MoodProfileSetup/LightShaftBillboard/EnsureTerritoryBuilder 미부착
+- 결과: 씬 라이트 1.5 그대로 + 컬러그레이딩 0 + Idyllic 데코 0 + 흙길 0 → 98% 클리핑
+- (보조) 메시는 구형 100×100(1만 정점) 유지 — TerrainHeightApplier는 씬에 없음. 재표본은 새 GetHeightAt 따름(형태 반영, 저해상도) → 후속 과제
+
+### 수리 (3파일)
+1. LakeGenerator: Enforce 호출을 collision volume 생성 후로 이동 + 내부 null 가드 (이중 안전, 시뮬로 NRE 재현 불가 확인)
+2. GameSetup: BootstrapTerrainDeco try-catch 격리 — 단일 실패점 제거(이후 조명/데코/영지 부트 보장)
+3. TopDownScene: Light m_Intensity 1.5→0.8 (부트가 깨져도 기본 안전)
+
+### 회귀/기타
+- 호수 시드 불변, ApplyLakeBasins 순서 유지, IdyllicDecoPlacer 호출 보존
+- 후속: Ground_Inner 201×201 메시 교체는 별도 세션 권장(씬 메시 직접 교체는 위험)
+
+### Play 확인
+- 콘솔에 NRE 0 + [GameSetup][TerrainDeco] 로그 체인 완주 + 조명/데코/영지 부트 로그
+- 화면: 지형 굴곡+절벽+스플랫 색+데코 보이는지 (42번)
