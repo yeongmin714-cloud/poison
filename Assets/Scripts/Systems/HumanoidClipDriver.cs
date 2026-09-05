@@ -172,16 +172,15 @@ namespace ProjectName.Systems
         {
             if (_anim == null) return;
             var sinfo = _anim.GetCurrentAnimatorStateInfo(0);
-            string stateName = "?";
-            if (_anim.IsName("Idle")) stateName = "Idle";
-            else if (_anim.IsName("Walk")) stateName = "Walk";
-            else if (_anim.IsName("Run")) stateName = "Run";
-            else if (_anim.IsName("Attack")) stateName = "Attack";
-            else if (_anim.IsName("AttackCombo")) stateName = "AttackCombo";
-            else if (_anim.IsName("Roll")) stateName = "Roll";
-            else if (_anim.IsName("Jump")) stateName = "Jump";
-            else if (_anim.IsName("Death")) stateName = "Death";
-            else stateName = sinfo.shortNameHash.ToString("X8");
+            string stateName = sinfo.shortNameHash.ToString("X8");
+            if (sinfo.IsName("Idle")) stateName = "Idle";
+            else if (sinfo.IsName("Walk")) stateName = "Walk";
+            else if (sinfo.IsName("Run")) stateName = "Run";
+            else if (sinfo.IsName("Attack")) stateName = "Attack";
+            else if (sinfo.IsName("AttackCombo")) stateName = "AttackCombo";
+            else if (sinfo.IsName("Roll")) stateName = "Roll";
+            else if (sinfo.IsName("Jump")) stateName = "Jump";
+            else if (sinfo.IsName("Death")) stateName = "Death";
             float speed = 0f;
             try { speed = _anim.GetFloat("Speed"); } catch { }
             float ccVel = _cc != null ? _cc.velocity.magnitude : -1f;
