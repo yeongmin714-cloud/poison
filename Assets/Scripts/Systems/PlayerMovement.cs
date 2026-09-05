@@ -105,6 +105,9 @@ namespace ProjectName.Systems
         private NeuralAnimationController _neuralAnim;
         private HybridAnimationController _hybridAnim;
 
+        // AA3: 접지감용 동적 블롭 섀도우 (Start에서 1회 GetOrAdd 부착)
+        private BlobShadow _blobShadow;
+
         // 저장된 CharacterController 초기 높이 (구르기 복원용)
         private float _originalControllerHeight = 2f;
 
@@ -203,6 +206,35 @@ namespace ProjectName.Systems
                     bool cfGrab = Physics.Raycast(transform.position + Vector3.up * 0.3f, Vector3.down,
                         out RaycastHit _cHit, 5f, ~0, QueryTriggerInteraction.Ignore);
                     Debug.Log($"[PlayerMovement] 스폰 후 지면 Raycast 존재={cfGrab} 대상={(cfGrab ? _cHit.collider?.gameObject.name : "없음")} 플레이어y={transform.position.y:F2}");
+        }
+
+        /// <summary>
+        /// AA3: 플레이어 동적 접촉 그림자(BlobShadow) 1회 부착(GetOrAdd).
+        /// BlobShadow(같은 폴더 Assets/Scripts/Systems/BlobShadow.cs)는 자체 Start에서
+        /// 런타임 생성되고 LateUpdate에서 GetHeightAt + GROUND_BASE(1f)로 지면을 추적하므로
+        /// 플레이어 GameObject에만 부착하면 발밑에 고정 접지 그림자가 따라다닌다.
+        /// 크기/알파는 컴포넌트 내장 상수(반경 0.8m, 알파 0.35)를 사용한다 — 외부 API 없음.
+        /// 부착 실패 시 경고 1회만 남기고 Play를 중단하지 않는다(회귀 방지).
+        /// </summary>
+        private void Start()
+        {
+            try
+            {
+                _blobShadow = GetComponent<BlobShadow>();          // GetOrAdd — 중복 부착 방지
+                if (_blobShadow == null)
+                    _blobShadow = gameObject.AddComponent<BlobShadow>();
+                if (_blobShadow != null)
+                {
+                    _blobShadow.enabled = true;
+                    Debug.Log("[PlayerMovement] ✅ BlobShadow 동적 부착 완료 (발밑 접지 그림자, 내장 r=0.8/α=0.35)");
+                }
+            }
+            catch (System.Exception e)
+            {
+                // 그림자 부재는 치명적이지 않다 — 경고 후 그림자 없이 계속 진행
+                Debug.LogWarning($"[PlayerMovement] BlobShadow 부착 실패 — 그림자 없이 계속: {e.Message}");
+                _blobShadow = null;
+            }
         }
 
         private void Update()
@@ -649,6 +681,20 @@ namespace ProjectName.Systems
 
             _verticalVelocity += _gravity * Time.deltaTime;
 
+            // AA3: 물리 접촉 복구 — CC.isGrounded=false인데 아래 raycast(SphereCast)로
+            // 지면이 확인되면 소량 하강 Move를 1회 실행해 CC가 실제로 지면과 충돌하게 만든다.
+            // (ClampToGroundByHeight의 위치 고정이 CC 충돌 판정을 무력화해 isGrounded가
+            //  false로 지속되던 문제의 보완. 점프 상승(vv>0)·구르기 중에는 개입하지 않는다.)
+            if (!_controller.isGrounded && _isGrounded && _verticalVelocity < 0f && !_isRolling)
+            {
+                _controller.Move(Vector3.down * 0.02f);
+                if (_controller.isGrounded)
+                {
+                    _verticalVelocity = -2f;   // 접지 규약 유지 (적은 하강속도로 접지 유지)
+                    _isGrounded = true;
+                }
+            }
+
             if (!_isRolling)
             {
                 _moveDirection.y = _verticalVelocity;
@@ -924,12 +970,51 @@ namespace ProjectName.Systems
 
             // 3) 캡슐 중심 = 표면 + height/2 → 바닥이 지면에 닿음 (파묻힘 해소)
             float targetY = surfaceY + _controller.height * 0.5f + 0.02f;
-            if (Mathf.Abs(transform.position.y - targetY) > 0.001f)
+            float dy = targetY - transform.position.y;
+
+            // AA3: 0.001 이하 오차는 무시 — 불필요한 상태 교란(접지 끊김) 방지
+            if (Mathf.Abs(dy) <= 0.001f) return;
+
+            if (_controller.isGrounded)
             {
+                // CC 접지 상태: 기존 동작 유지 — 0.001 초과 어긋남만 수학 스냅 1회로 정렬.
+                // (스냅 후 다음 프레임 Move에서 CC가 지면과 재충돌하므 isGrounded가 유지된다)
                 transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
                 _verticalVelocity = 0f;
                 _isGrounded = true;
             }
+            else if (dy > 0f)
+            {
+                // 파묻힘(지면 아래): 텔레포트 대신 CC.Move로 소량씩 밀어 올려
+                // 실 충돌 판정을 유지한 채 복귀한다(수식기반 접촉).
+                // NOTE: 유산 ClampToGround()는 transform.position.y를 '발'로 가정하지만
+                // 현재 규약은 '캡슐 중심'이므로 호출 시 오히려 파묻힘 — 의도적으로 미호출.
+                float lift = Mathf.Min(dy, 0.05f);
+                _controller.Move(Vector3.up * lift);
+                if (_controller.isGrounded)
+                {
+                    _verticalVelocity = -2f;
+                    _isGrounded = true;
+                }
+                else if (dy > 0.5f)
+                {
+                    // 0.5m 초과 파묻힘 + 물리 복귀 실패 → 최후 방어 1회 스냅(추락 방지)
+                    transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
+                    _verticalVelocity = 0f;
+                    _isGrounded = true;
+                }
+            }
+            else if (dy < -0.5f)
+            {
+                // 0.5m 초과 이탈 + 미접지: 레거시 추락 방지 최후 방어.
+                // (지형 콜라이더 유실 등 물리 착지가 불가능한 케이스도 여기서 잡는다)
+                transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
+                _verticalVelocity = 0f;
+                _isGrounded = true;
+            }
+            // 그 외(지면 위 0.5m 이내 미접지): 개입하지 않는다 —
+            // ApplyGravity의 물리 접촉 유도 + 중력 낙하로 CC가 스스로 착지하며
+            // _controller.isGrounded=true가 회복된다(접지감 개선의 핵심).
         }
 
         /// <summary>
