@@ -1684,3 +1684,13 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 - 구역 경계 각도 기반 블렌드 계수 추가 (position 기반)
 
 ---
+
+## 🔧 2026-09-05: 플레이어 애니 Run 미진입 수리 (✅)
+
+| 항목 | 내용 | 상태 |
+|:---|:---|:---:|
+| DD판정 종결 | 애니 시스템 정상(H2/H3/H5 배제) — 원인 = Walk→Run 임계 5.5 > 이동속도 5.0 → Run 진입 0회 | ✅ |
+| 수리 | MixamoControllerBuilder 5.5f→4.5f + Player_AC.controller YAML 동기 수정, QA 독립검증 PASS | ✅ |
+| Play 확인 대기 | 이동 시 Walk→Run 전환 + Run 클립 시각 확인 (스크린샷 판정) | ⬜ |
+
+---

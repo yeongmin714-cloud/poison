@@ -99,7 +99,8 @@ namespace ProjectName.EditorTools
             // (지형/경사로 속도가 0 근처로 순간 떨어질 때 Idle로 떨어졌다 복귀하는 "끊김+멈춤" 방지)
             T(sm, idle, walk, "Speed", AnimatorConditionMode.Greater, 0.55f);
             T(sm, walk, idle, "Speed", AnimatorConditionMode.Less, 0.35f);
-            T(sm, walk, run, "Speed", AnimatorConditionMode.Greater, 5.5f);
+            // Walk→Run 임계 4.5 — 플레이어 일반 이동속도 5.0이므로 5.5였으면 Run 진입 불가(2026-09-05 DD판정). Run→Walk 4.0과 히스테리시스 0.5 유지
+            T(sm, walk, run, "Speed", AnimatorConditionMode.Greater, 4.5f);
             // Run→Walk 임계를 4.0으로 낮춰 히스테리시스 확대 — 스프린트 중 상태 플리커(갑자기 멈춤) 방지
             T(sm, run, walk, "Speed", AnimatorConditionMode.Less, 4f);
 

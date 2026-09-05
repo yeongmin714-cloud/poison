@@ -8,6 +8,35 @@
 
 ---
 
+## 2026-09-05: 플레이어 애니 "안 보임" 판정 확정 + Walk→Run 임계 수리 (DD판정 종결) ✅
+
+**증상:** RPG팩 클립 교체 후에도 플레이어 애니가 "시각적으로 안 보임"
+
+**DD1 진단기 90초 로그 판정 (H1~H5 종결):**
+- H3 이중 Animator ❌ — `애니메이터 개수=1` (PlayerBody)
+- H5 컬링/비활성 ❌ — normT 0→77.62 연속 증가(재생 정상), animEnabled=True, CullUpdateTransforms
+- H2 Speed 세팅 ❌ — 이동 중 `speed=4.99 rawSpd=5.00 ccVel=5.01` 완전 전달
+- 중간 구간의 Idle↔Walk "진동"도 전부 실정지 이벤트(rawSpd=0 동반) + 저FPS 감지지연(스무딩 지수평활 t≈0.3프레임 값과 재계산 일치)으로 정상 판정
+
+**진짜 원인:** Player_AC의 **Walk→Run 진입 임계 5.5 > 플레이어 일반 이동속도 5.0** → Run 상태 진입 0회(사실상 죽은 코드) → 5m/s 주행에 느린 Walk 클립(OneHand_Up_Walk_B)만 재생 = 발 미끄러짐 + 느린 다리놀림 = "안 보임"의 정체. (달리기 10.0은 Run이어야 하나 진입 자체가 불가했음.)
+
+**YAML mode 판독 노트:** 이 프로젝트 .controller 직렬화에서 `m_ConditionMode 3=Greater, 4=Less` (병사 3종 컨트롤러와 동일 패턴 교차검증으로 확정 — NotEqual 오독 정정). 컨트롤러 원문은 빌더 의도(히스테리시스 포함) 그대로였음.
+
+**수리 (2파일, git diff +3/-2):**
+- `MixamoControllerBuilder.cs`: walk→run 임계 5.5f→**4.5f** + 근거 주석 (재빌드 시 유지)
+- `Player_AC.controller`: 전이 &4279716241458502024 `m_EventTreshold: 5.5→4.5` 직접 수정 (배치 재빌드=라이선스 간헐실패 회피 경로)
+- 히스테리시스 유지: Run↔Walk 4.0~4.5(0.5), Idle↔Walk 0.35~0.55(0.2)
+
+**QA 독립검증 PASS:** 26개 YAML 문서 전수 재판정 — 변경 문서 1개/라인 1줄, m_Motion guid 9개 HEAD 동일, 파라미터 7개 동일, 빌더 T() 나머지 임계(0.55/0.35/4.0/0.5/0.1) 미변조, 제3파일 오염 0.
+
+**잔여 (다음):**
+1. Play 확인: 이동 시 `Idle→Walk→Run` 전환 로그 + Run 클립 시각 판정
+2. (옵션) 달리기 10m/s에서 Run 클립 슬라이딩 보이면 state speed 정규화(m_SpeedParameter) — DD2 잔여
+3. 스크린샷 54 재판정(잔디/설산/호수) → 중단 스위치 2개(SpawningPaused/BuildPaused) 해제
+4. 구르기 FBX 게임 통합 (roll_make/Roll_{L,R,Back}.fbx)
+
+---
+
 ## 2026-09-04: 플레이어 구르기 — 전방 구르기로 측면/후방 구르기 합성 (Blender 3.6) ✅ 합성 완료
 
 **요청:** 전방 구르기(Quick Roll To Run) 기반으로 왼/오/뒤 구르기 애니메이션 생성. (팩=DoulbleL에 구르기 없음, 죽음과 함께 믹사모 유지 예정이었음.)
