@@ -49,6 +49,10 @@ namespace ProjectName.Systems
         private Vector3 _hipsPosRef;         // 직전 주기의 Hips 위치
         private Quaternion _hipsRotRef;      // 직전 주기의 Hips 회전
         private bool _hipsRefValid;          // 첫 주기는 기준점 저장만 (Δ 계산 스킵)
+        // DD3-2: 사지 뼈 변위 — LeftHand/LeftFoot의 Hips 기준 상대벡터(world) 스냅샷 비교
+        private Vector3 _lhRelRef;           // 직전 주기 LeftHand의 Hips 기준 상대벡터
+        private Vector3 _lfRelRef;           // 직전 주기 LeftFoot의 Hips 기준 상대벡터
+        private bool _limbRefValid;          // 첫 주기는 기준 저장만 (Δ 계산 스킵)
 
         // Speed 지수 평활 + 멈춤 스냅 (지형/경사 충돌로 속도가 0 근처로 순간 떨어질 때
         // Idle로 떨어졌다 복귀하는 "끊김 + 멈춤 모션"을 방지)
@@ -116,6 +120,27 @@ namespace ProjectName.Systems
                     smDetail = $"{sm0.gameObject.name}: rootBone={(sm0.rootBone != null ? sm0.rootBone.name : "NULL")}, bones={(sm0.bones != null ? sm0.bones.Length : 0)}, mesh={(sm0.sharedMesh != null ? sm0.sharedMesh.name : "NULL")}";
                     foreach (var s in skinned)
                         if (s != null && s.enabled) smEnabled++;
+                    // DD3-3: SMR 본 동일성(1회) — sm0.bones 중 이 Animator(_anim.transform)의 자손이 아닌 본이
+                    // 있으면 스키닝이 다른 골격을 따라가 애니 결과가 렌더에 반영되지 않는 원인이 된다.
+                    int foreignBones = 0;
+                    var sbF = new System.Text.StringBuilder();
+                    if (sm0.bones != null)
+                    {
+                        for (int i = 0; i < sm0.bones.Length; i++)
+                        {
+                            var bb = sm0.bones[i];
+                            if (bb == null || !bb.IsChildOf(_anim.transform))
+                            {
+                                foreignBones++;
+                                if (foreignBones <= 3)
+                                {
+                                    if (foreignBones > 1) sbF.Append(", ");
+                                    sbF.Append(bb != null ? bb.name : "NULL");
+                                }
+                            }
+                        }
+                    }
+                    Debug.Log($"[HumanoidClipDriver][DD3-3] SMR본 외부골격={foreignBones}/{(sm0.bones != null ? sm0.bones.Length : 0)} 처음3개=[{sbF}]");
                 }
                 int mrEnabled = 0;
                 foreach (var mr in meshRend)
@@ -140,6 +165,42 @@ namespace ProjectName.Systems
                         sbA.Append(rootAnims[i].gameObject.name);
                     }
                 Debug.Log($"[HumanoidClipDriver][DD2] 루트 컴포넌트: Neural={hasNeural} Hybrid={hasHybrid} Procedural={hasProc} BoneMap={hasBoneMap} RigAnim={hasRigAnim} Animator(루트포함전체)=[{sbA}]");
+            }
+            // DD3-1: 아바타 매핑 덤프(1회) — humanDescription.human 비어있음 가설 검증.
+            // 매핑 본수=0이면 휴머노이드 리타깃이 전혀 안 되어 클립 재생(normT 진행)과 무관하게 포즈가 동결한다.
+            if (_anim != null && _anim.avatar != null)
+            {
+                try
+                {
+                    var humanMap = _anim.avatar.humanDescription.human;
+                    var sbM = new System.Text.StringBuilder();
+                    for (int i = 0; i < humanMap.Length; i++)
+                    {
+                        if (i > 0) sbM.Append(", ");
+                        sbM.Append($"{humanMap[i].boneName}→{humanMap[i].humanName}");
+                    }
+                    Debug.Log($"[HumanoidClipDriver][DD3-1] 매핑 본수={humanMap.Length} [{sbM}]");
+                }
+                catch (System.Exception mapEx)
+                {
+                    Debug.Log($"[HumanoidClipDriver][DD3-1] humanDescription 접근 실패: {mapEx.GetType().Name}: {mapEx.Message}");
+                }
+                // 둘 다 확정: HumanBodyBones 0~54를 GetBoneTransform으로 훑어 non-null 개수 확인
+                try
+                {
+                    int mappedCount = 0;
+                    for (int b = 0; b < (int)HumanBodyBones.LastBone; b++)
+                        if (_anim.GetBoneTransform((HumanBodyBones)b) != null) mappedCount++;
+                    Debug.Log($"[HumanoidClipDriver][DD3-1] 실질매핑={mappedCount}/55");
+                }
+                catch (System.Exception boneEx)
+                {
+                    Debug.Log($"[HumanoidClipDriver][DD3-1] GetBoneTransform 스캔 실패: {boneEx.GetType().Name}: {boneEx.Message}");
+                }
+            }
+            else
+            {
+                Debug.Log("[HumanoidClipDriver][DD3-1] avatar=NULL — 매핑 덤프 불가");
             }
         }
 
@@ -268,6 +329,34 @@ namespace ProjectName.Systems
                     _hipsPosRef = hips.position;
                     _hipsRotRef = hips.rotation;
                     _hipsRefValid = true;
+                    // DD3-2: 사지 변위 — LeftHand/LeftFoot의 Hips 기준 상대벡터(world)를 같은 2초 주기로 스냅샷 비교.
+                    // Hips는 이동으로 움직여도 사지 포즈가 얼어있으면 상대벡터 불변 → 매핑/드라이브 실패 분리 확정.
+                    // 첫 주기는 기준 저장만. 매핑 누락(GetBoneTransform=null) 시 해당 필드 UNMAPPED 표시.
+                    var lh = _anim.GetBoneTransform(HumanBodyBones.LeftHand);
+                    var lf = _anim.GetBoneTransform(HumanBodyBones.LeftFoot);
+                    var limbSb = new System.Text.StringBuilder();
+                    if (lh != null)
+                    {
+                        var lhRel = lh.position - hips.position;
+                        if (_limbRefValid) limbSb.Append($" LHandΔ={Vector3.Distance(lhRel, _lhRelRef):F3}");
+                        _lhRelRef = lhRel;
+                    }
+                    else
+                    {
+                        limbSb.Append(" LHand=UNMAPPED");
+                    }
+                    if (lf != null)
+                    {
+                        var lfRel = lf.position - hips.position;
+                        if (_limbRefValid) limbSb.Append($" LFootΔ={Vector3.Distance(lfRel, _lfRelRef):F3}");
+                        _lfRelRef = lfRel;
+                    }
+                    else
+                    {
+                        limbSb.Append(" LFoot=UNMAPPED");
+                    }
+                    if (lh != null || lf != null) _limbRefValid = true;
+                    hipsDelta += limbSb.ToString();
                 }
             }
 

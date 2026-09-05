@@ -572,6 +572,12 @@ namespace ProjectName.Systems
             if (MountSystem.Instance != null && MountSystem.Instance.IsMounted)
                 return;
 
+            // [JumpProbe] 점프 무반응 원인 분리 — Space 입력 순간 판정 변수 스냅샷(진단 로그 전용, 동작 변경 없음)
+            if (_keyboard.spaceKey.wasPressedThisFrame)
+            {
+                Debug.Log($"[JumpProbe] Space입력: grounded={_isGrounded} rolling={_isRolling} mountBlocked={(MountSystem.Instance != null && MountSystem.Instance.IsMounted)} vv={_verticalVelocity:F2}");
+            }
+
             if (_keyboard.spaceKey.wasPressedThisFrame && _isGrounded)
             {
                 _verticalVelocity = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
