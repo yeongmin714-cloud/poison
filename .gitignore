@@ -50,3 +50,7 @@ buildlog*.txt
 run_batch.bat
 roll_make/*.log
 roll_make/prev*/
+
+# 로컬 컴파일 검증 로그 (히스토리 오염 방지)
+compile_check.log
+qa_compile.log

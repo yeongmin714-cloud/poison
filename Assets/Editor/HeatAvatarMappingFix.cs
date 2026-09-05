@@ -81,10 +81,10 @@ namespace ProjectName.EditorTools
 
             HumanDescription description = importer.humanDescription;
 
-            var bones = new List<HumanDescriptionBone>(HumanBones.Length);
+            var bones = new List<HumanBone>(HumanBones.Length);
             foreach (string bone in HumanBones)
             {
-                bones.Add(new HumanDescriptionBone
+                bones.Add(new HumanBone
                 {
                     boneName = bone,
                     humanName = bone,
@@ -116,7 +116,7 @@ namespace ProjectName.EditorTools
                 return;
 
             HumanDescription description = importer.humanDescription;
-            HumanDescriptionBone[] human = description.human;
+            HumanBone[] human = description.human;
 
             var sb = new StringBuilder();
             sb.AppendLine(
@@ -161,10 +161,7 @@ namespace ProjectName.EditorTools
             {
                 useDefaultValues = true,
                 min = Vector3.zero,
-                max = Vector3.zero,
-                value = Vector3.zero,
-                length = 0f,
-                modified = false
+                max = Vector3.zero
             };
         }
     }
