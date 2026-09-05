@@ -335,7 +335,7 @@ public class GameSetup : MonoBehaviour
         }
 
         // ── Player 비주얼 1순위: Humanoid FBX (믹사모 클립 리타겟) ──
-        var humanoidFbx = Resources.Load<GameObject>("Models/UserProvided/fbx/Player_Rigged");
+        var humanoidFbx = Resources.Load<GameObject>("Models/UserProvided/fbx/Player_Rigged_Heat");
         if (humanoidFbx != null)
         {
             var cubeRenderer0 = player.GetComponentInChildren<MeshRenderer>();
