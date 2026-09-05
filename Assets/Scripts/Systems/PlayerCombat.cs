@@ -90,19 +90,22 @@ namespace ProjectName.Systems
                     _impulseSource = _mainCamera.gameObject.AddComponent<CinemachineImpulseSource>();
             }
 
-            // RigAnimationController 획득
+            // RigAnimationController 획득 — 기존 것만 사용, 자동 부착 금지
+            // (RequireComponent(Animator)가 플레이어 루트에 빈 Animator를 생성해 Player_AC 재생을 깨는 원인)
             _rigAnim = GetComponent<RigAnimationController>();
-            if (_rigAnim == null)
-            {
-                Animator anim = GetComponent<Animator>();
-                if (anim != null)
-                    _rigAnim = gameObject.AddComponent<RigAnimationController>();
-            }
 
-            // NeuralAnimationController 획득 (같은 GameObject)
+            // NeuralAnimationController 획득 (같은 GameObject) — 모델 있을 때만 유지
             _neuralAnim = GetComponent<NeuralAnimationController>();
             if (_neuralAnim == null)
+            {
+                // AddComponent는 Awake에서 Resources에서 모델 로드 시도 → 즉시 HasAnyModel 판정 가능
                 _neuralAnim = gameObject.AddComponent<NeuralAnimationController>();
+                if (!_neuralAnim.HasAnyModel())
+                {
+                    Destroy(_neuralAnim);   // 모델 없는 인스턴스는 뼈 기록 위험 → 제거
+                    _neuralAnim = null;
+                }
+            }
         }
 
         private void Update()

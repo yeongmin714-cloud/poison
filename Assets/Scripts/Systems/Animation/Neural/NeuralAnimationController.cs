@@ -495,13 +495,18 @@ namespace ProjectName.Systems.Animation.Neural
                 DecodeActions();
             }
 
-            ApplyRootMotion();
-            ScheduleIKJobs();
+            // 모델 없으면 뼈 기록 완전 금지 (Player_AC 재생 보호)
+            if (HasAnyModel())
+            {
+                ApplyRootMotion();
+                ScheduleIKJobs();
+            }
         }
 
         void LateUpdate()
         {
             _ikJobHandle.Complete();
+            if (!HasAnyModel()) return; // 모델 없으면 뼈 기록 완전 금지 (Player_AC 재생 보호)
             UpdateGroundDetection();
             ApplyProceduralPose();
         }

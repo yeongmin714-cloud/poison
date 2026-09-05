@@ -179,16 +179,29 @@ namespace ProjectName.Systems
                             _proceduralAnim = model.GetComponent<ProceduralAnimationController>();
                     }
 
-                    // NeuralAnimationController 설정 (같은 GameObject)
+                    // NeuralAnimationController 설정 (같은 GameObject) — 모델 있을 때만 부착 유지.
+                    // 모델 없는 Neural은 LateUpdate에서 뼈 localRotation을 덮어써 Player_AC를 얼림 → 제거.
                     _neuralAnim = GetComponent<NeuralAnimationController>();
                     if (_neuralAnim == null)
+                    {
+                        // AddComponent는 Awake에서 Resources에서 모델 로드 시도 → 즉시 HasAnyModel 판정 가능
                         _neuralAnim = gameObject.AddComponent<NeuralAnimationController>();
-                    _neuralAnim.SetVelocityProvider(this);
+                        if (!_neuralAnim.HasAnyModel())
+                        {
+                            Destroy(_neuralAnim);   // 모델 없는 인스턴스는 뼈 기록 위험 → 제거
+                            _neuralAnim = null;
+                            Debug.Log("[PlayerMovement] Neural 모델 없음 → NeuralAnimationController 미부착 (Player_AC 재생 보호)");
+                        }
+                    }
+                    if (_neuralAnim != null && _neuralAnim.HasAnyModel())
+                    {
+                        _neuralAnim.SetVelocityProvider(this);
+                    }
 
                     // HybridAnimationController 설정 (같은 GameObject) — 신경 모델이 존재할 때만 부착.
                     // 모델 없는 Hybrid는 LateUpdate에서 뼈 localRotation을 zero-quaternion으로 덮어써
                     // Player_AC 애니메이션을 얼려버림(뼈 미작동 원인). 미부착으로 원천 차단.
-                    if (_neuralAnim.HasAnyModel())
+                    if (_neuralAnim != null && _neuralAnim.HasAnyModel())
                     {
                         _hybridAnim = GetComponent<HybridAnimationController>();
                         if (_hybridAnim == null)
