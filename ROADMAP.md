@@ -1695,3 +1695,15 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | Play 확인 대기 | 이동 시 Walk→Run 전환 + Run 클립 시각 확인 (스크린샷 판정) | ⬜ |
 
 ---
+
+## 🔧 2026-09-05: 애니 8차 — 아바타 매핑 명시 주입 (RPG팩·믹사모 동결 근본 수리)
+
+| 항목 | 내용 | 상태 |
+|:---|:---|:---:|
+| 원인 확정 | Heat 메타 `human: []` 매핑 0개 — 사지 미매핑 → 근육값 행선지 없음 → 걷기 자세 동결(56.PNG). isHuman=True·hipsΔ가 판정을 오도 | ✅ |
+| 수리 | 메타 22개 표준 매핑 명시 기록(+177/−1) + `Tools/Anim` 매핑 적용·덤프 메뉴(HeatAvatarMappingFix.cs) | ✅ |
+| 진단기 | DD3(매핑 덤프/실질매핑 n/55/사지 상대Δ LHand·LFoot/SMR 외부골격) + JumpProbe(grounded/rolling/mount) | ✅ |
+| QA | PASS 4/4 (누락 .meta 생성 포함) | ✅ |
+| Play 판정 대기 | ① DD3 매핑=22·실질매핑≥17 ② 이동 중 LHandΔ/LFootΔ>0 ③ 보행 스윙 ④ Space→JumpProbe 값 (로그 0건=구르기/탑승 잔존) | ⬜ |
+
+---
