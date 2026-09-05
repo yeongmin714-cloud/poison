@@ -8,6 +8,32 @@
 
 ---
 
+## 2026-09-05: 플레이어 애니 "전혀 안 먹어" 근본 원인 확정 + 구 GLB 껍데기 미비활성 수리 ✅
+
+**사용자 가설 검증 (팩↔GLB 호환성):** **기각 — 둘 다 Humanoid라 호환됨.**
+- 팩 클립(OneHand_Up_{Idle,Walk_B,Run_B}.anim) YAML 바인딩 전수: **typeID 95(Humanoid 근육 커브)**, path 0 — Generic 본경로 커브 0건 → 리타겟 가능
+- Player_Rigged.fbx.meta: `animationType: 3`(Humanoid) + `avatarSetup: 1` + optimizeGameObjects 0, 런타임 `Player_RiggedAvatar:isValid=True`
+- 근거 보강: 병사 3종 = 같은 팩 클립 + Humanoid FBX 조합으로 정상 작동
+
+**진짜 원인 (에디터 로그 체인으로 확정):**
+1. 씬에 구 GLB 몸 잔존: MainScene.unity:60826 `PlayerModel_GLB` (렌더러 켜진 상태)
+2. GameSetup이 FBX(PlayerBody)를 겹쳐 입히고 FBX Animator는 정상 재생 (normT 증가 — DD1 로그로 입증됨)
+3. GLB 렌더러 비활성 부착이 실패: GameSetup.cs:570이 `Type.GetType("ProjectName.Core.DisableGLBRenderers, Assembly-CSharp")` → **null** (실제 클래스는 전역 네임스페이스) → Editor.log "DisableGLBRenderers type not found". Editor.log에 성공 로그("GLB 모델에 추가") 역사상 0회. FixMainScene.cs:715/776도 동일한 죽은 문자열. 씬 YAML에 컴포넌트 0건.
+4. 클린업 루프(GameSetup 616행)는 Renderer를 DisableGLBRenderers에 위임하고 건너뜀 → 위임 실패 → GLB SkinnedMeshRenderer 켜진 채
+5. 같은 소스 모델 + CopyMaterialsFromGlb로 텍스처까지 동일 → **정지 GLB 껍데기가 화면 차지, 안쪽 FBX만 재생 중** = "전혀 안 먹어"
+
+**수리 (2파일 4사이트, +21/-36):**
+- GameSetup.cs:570 — 리플렉션 문자열 → `typeof(DisableGLBRenderers)` 직접 참조 + `disabler.glbRenderers = renderers` 직접 대입 + 부착 직후 전체 렌더러 enabled=false 즉시 루프
+- GameSetup.cs:616 클린업 루프 — `comp is Renderer glbRend { glbRend.enabled=false; continue }` 이중 차단
+- FixMainScene.cs:715/776 — 동일 패턴 2블록 (기존 skinned+mesh 렌더러 수집 로직 유지)
+- DisableGLBRenderers.cs는 미수정(전역 네임스페이스 유지)
+
+**QA 독립검증 PASS:** 문자열 리플렉션 0건 / typeof 참조 6곳 / 중괄호 균형 0/0 / diff 2파일만 / 주변 로직(네체크, 재부착, SetDirty/SaveScene) 무손상 / FixMainScene LakeGenerator 리플렉션은 범위 외 유지
+
+**잔여:** Play 눈검증 — 걷기/달리기 시 보이는 몸이 직접 Idle→Walk→Run 전환 (임계 4.5 수리와 합쳐 완성). 씬의 PlayerModel_GLB 오브젝트 자체는 유지(비활성 방식) — B안(씬에서 삭제)은 파급 검토 후 별도.
+
+---
+
 ## 2026-09-05: 플레이어 애니 "안 보임" 판정 확정 + Walk→Run 임계 수리 (DD판정 종결) ✅
 
 **증상:** RPG팩 클립 교체 후에도 플레이어 애니가 "시각적으로 안 보임"
