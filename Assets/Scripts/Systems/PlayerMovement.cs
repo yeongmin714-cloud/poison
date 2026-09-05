@@ -943,21 +943,27 @@ namespace ProjectName.Systems
         {
             if (_controller == null) return;
 
-            // 점프 중이면 지표면 고정하지 않음 (점프 상승)
+            // 점프 중에는 지표면 고정하지 않음 (점프 상승)
             if (_isJumping) return;
 
-            // 1) 실제 지형 콜라이더 raycast (와인딩 픽스로 이제 위에서 맞음) — Ground 레이어만
-            float surfaceY = float.MinValue;
-            RaycastHit[] gHits = Physics.RaycastAll(
-                new Vector3(transform.position.x, transform.position.y + 30f, transform.position.z),
-                Vector3.down, 120f, 1 << 9, QueryTriggerInteraction.Ignore);
-            foreach (var gh in gHits)
+            // ── 1) 물리 접촉 우선 ──
+            // CC가 아직 접지 안 됐고 중력 하강 중이면 소량 하강 Move로 지형/데코/건물 콜라이더와
+            // 실제 충돌하도록 유도. 데코 위에 서 있으면 여기서 자연 접지된다.
+            if (!_controller.isGrounded && _verticalVelocity <= 0f && !_isRolling)
             {
-                if (gh.collider == null || gh.collider.transform.IsChildOf(transform)) continue;
-                if (gh.point.y > surfaceY) surfaceY = gh.point.y; // 가장 높은 지면 = 실제 표면
+                _controller.Move(Vector3.down * 0.05f);
+                if (_controller.isGrounded)
+                {
+                    _verticalVelocity = -2f;   // 접지 규약 (적은 하강속도로 접지 유지)
+                    _isGrounded = true;
+                    return;                    // 물리 접지 성공 — 수식 개입 없음
+                }
             }
 
-            // 2) 수식 fallback/하한 (Ground y=1 + 지형 높이) — raycast 실패 시에도 안전
+            // ── 2) 이탈/추락 안전망 (수식, GetHeightAt = 지형 표면 함수) ──
+            // 지형 메시는 TerrainTextureApplier가 GetHeightAt으로 재표본되므로 GetHeightAt은
+            // 지형 표면과 정확히 일치. 물리 접지가 실패했을 때만 수식으로 구제한다.
+            // (데코/건물 콜라이더 위에 서 있으면 feetY > formulaY라 여기 본문에 안 걸림 → 자연 유지)
             float formulaY;
             try
             {
@@ -966,55 +972,31 @@ namespace ProjectName.Systems
                     ProjectName.Core.Data.BiomeType.Plains, 42);
             }
             catch (System.Exception) { formulaY = 1.24f; }
-            if (surfaceY < formulaY) surfaceY = formulaY;
 
-            // 3) 캡슐 중심 = 표면 + height/2 → 바닥이 지면에 닿음 (파묻힘 해소)
-            float targetY = surfaceY + _controller.height * 0.5f + 0.02f;
-            float dy = targetY - transform.position.y;
+            // 캡슐 바닥(feet) = center - height/2
+            float feetY = transform.position.y - _controller.height * 0.5f;
 
-            // AA3: 0.001 이하 오차는 무시 — 불필요한 상태 교란(접지 끊김) 방지
-            if (Mathf.Abs(dy) <= 0.001f) return;
-
-            if (_controller.isGrounded)
+            if (feetY < formulaY - 0.5f)
             {
-                // CC 접지 상태: 기존 동작 유지 — 0.001 초과 어긋남만 수학 스냅 1회로 정렬.
-                // (스냅 후 다음 프레임 Move에서 CC가 지면과 재충돌하므 isGrounded가 유지된다)
-                transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
+                // 지표면보다 0.5m+ 아래 = 지형 콜라이더 유실 등 낙하 위험 → 수식으로 복귀
+                transform.position = new Vector3(
+                    transform.position.x,
+                    formulaY + _controller.height * 0.5f + 0.02f,
+                    transform.position.z);
                 _verticalVelocity = 0f;
                 _isGrounded = true;
             }
-            else if (dy > 0f)
+            else if (feetY < formulaY + 0.02f)
             {
-                // 파묻힘(지면 아래): 텔레포트 대신 CC.Move로 소량씩 밀어 올려
-                // 실 충돌 판정을 유지한 채 복귀한다(수식기반 접촉).
-                // NOTE: 유산 ClampToGround()는 transform.position.y를 '발'로 가정하지만
-                // 현재 규약은 '캡슐 중심'이므로 호출 시 오히려 파묻힘 — 의도적으로 미호출.
-                float lift = Mathf.Min(dy, 0.05f);
-                _controller.Move(Vector3.up * lift);
-                if (_controller.isGrounded)
-                {
-                    _verticalVelocity = -2f;
-                    _isGrounded = true;
-                }
-                else if (dy > 0.5f)
-                {
-                    // 0.5m 초과 파묻힘 + 물리 복귀 실패 → 최후 방어 1회 스냅(추락 방지)
-                    transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
-                    _verticalVelocity = 0f;
-                    _isGrounded = true;
-                }
-            }
-            else if (dy < -0.5f)
-            {
-                // 0.5m 초과 이탈 + 미접지: 레거시 추락 방지 최후 방어.
-                // (지형 콜라이더 유실 등 물리 착지가 불가능한 케이스도 여기서 잡는다)
-                transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
-                _verticalVelocity = 0f;
+                // 소량 파묻힘(캡슐 바닥이 지표면 살짝 아래) → 표면 위로 정렬
+                transform.position = new Vector3(
+                    transform.position.x,
+                    formulaY + _controller.height * 0.5f + 0.02f,
+                    transform.position.z);
+                _verticalVelocity = -2f;
                 _isGrounded = true;
             }
-            // 그 외(지면 위 0.5m 이내 미접지): 개입하지 않는다 —
-            // ApplyGravity의 물리 접촉 유도 + 중력 낙하로 CC가 스스로 착지하며
-            // _controller.isGrounded=true가 회복된다(접지감 개선의 핵심).
+            // feetY ≥ formulaY+0.02 (데코 위, 구릉 정상 등) → 개입 안 함 — CC가 물리 접지 유지
         }
 
         /// <summary>
