@@ -8,6 +8,23 @@
 
 ---
 
+## 2026-09-05: 애니 5차 수리(정책 반영) — Neural/Hybrid 자동부착 완전 제거, Player_AC 단일 경로 확정 ✅
+
+**사용자 지정:** "Neural은 보류. RPG팩 참고해서 직접 부착하기로 한 것 아니냐" → 3·4차의 조건부 부착도 반쪽짜리였음을 인정, Phase 67 유산 자동부착 경로를 통째로 제거.
+
+**수리 (2파일, +5/-53):**
+- PlayerMovement — Neural/Hybrid 부착 블록(AddComponent/Destroy/SetVelocityProvider/ProgressiveRollout 등록) 전면 삭제 → GetComponent만(씬 명시 배치분만). 구 리그(RigAnimationController) AddComponent 폴백도 제거(PlaceHolder가 이미 붙임)
+- PlayerCombat — Neural 부착 블록 삭제 → GetComponent만. _rigAnim GetComponent 유지
+- 필드 잔존 이유: 씬 명시 배치 대비 GetComponent 획득 구조 유지 (사용처 전부 null-safe/미사용)
+
+**이후 아키텍처:** 플레이어 애니 = PlayerBody(FBX Humanoid) + Player_AC(RPG팩 클립) + HumanoidClipDriver(Speed/트리거 드라이브) **단일 경로**. Neural/Hybrid/Procedural/Rig은 플레이어에서 미개입(방어막 가드는 NPC 보호용으로 유지).
+
+**QA PASS:** AddComponent 잔존 0 / 사용처 null-safe 전수 / 괄호 균형 / 2파일만 / NPC 방어막 미변경. 경고(비차단): MainScene엔 PlayerPlaceholder가 없어 _rigAnim=null(가드로 스킵, 무해) + TopDownScene Awake 순서 경합은 구조적 유산.
+
+**판정 기대 (다음 Play):** DD2에서 Neural=0 Hybrid=0, 이동 시 몸이 직접 Idle→Walk→Run, hipsΔ>0. 베이크 캐시 무관.
+
+---
+
 ## 2026-09-05: 애니 4차 수리 — Neural 무모델 완전 불활성화 (뼈 기록 금지) ✅
 
 **DD2 판정 근거:** isHuman=True(아바타 정상), SMR 정상(27 bones), Hybrid=0 차단 확인 → **남은 뼈 기록자 = NeuralAnimationController(루트, 무모델)**. ApplyBodyLean이 BoneRole.Root 뼈 localRotation을 매 LateUpdate identity 상수로 절대 덮어씀(1843행) — ProceduralBoneUtility 이름 휴리스틱이 PlayerBody 내부 뼈를 매핑하므로 실기록됨. PlayerBody Animator가 Update에 쓴 포즈를 Neural이 LateUpdate로 덮어씀 = **몸이 얼어붙음**.

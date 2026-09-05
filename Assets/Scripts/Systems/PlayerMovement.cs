@@ -123,13 +123,8 @@ namespace ProjectName.Systems
                     _originalControllerHeight = _controller.height;
 
                     // RigAnimationController 찾기 (PlayerPlaceholder에서 Awake로 이미 추가됨)
+                    // 자동 부착 금지(2026-09-05 정책) — 씬에 명시 배치된 경우만 사용
                     _rigAnim = GetComponent<RigAnimationController>();
-                    if (_rigAnim == null)
-                    {
-                        Animator anim = GetComponent<Animator>();
-                        if (anim != null && anim.runtimeAnimatorController != null)
-                            _rigAnim = gameObject.AddComponent<RigAnimationController>();
-                    }
 
                     // 메인 카메라 찾기
                     if (Camera.main != null)
@@ -179,43 +174,10 @@ namespace ProjectName.Systems
                             _proceduralAnim = model.GetComponent<ProceduralAnimationController>();
                     }
 
-                    // NeuralAnimationController 설정 (같은 GameObject) — 모델 있을 때만 부착 유지.
-                    // 모델 없는 Neural은 LateUpdate에서 뼈 localRotation을 덮어써 Player_AC를 얼림 → 제거.
+                    // 애니 정책(2026-09-05): Neural/Hybrid 보류 — Player_AC(HumanoidClipDriver) 단일 경로.
+                    // Phase 67 유산 자동부착 제거. _neuralAnim/_hybridAnim은 씬에 명시 배치된 경우에만 GetComponent로 획득.
                     _neuralAnim = GetComponent<NeuralAnimationController>();
-                    if (_neuralAnim == null)
-                    {
-                        // AddComponent는 Awake에서 Resources에서 모델 로드 시도 → 즉시 HasAnyModel 판정 가능
-                        _neuralAnim = gameObject.AddComponent<NeuralAnimationController>();
-                        if (!_neuralAnim.HasAnyModel())
-                        {
-                            Destroy(_neuralAnim);   // 모델 없는 인스턴스는 뼈 기록 위험 → 제거
-                            _neuralAnim = null;
-                            Debug.Log("[PlayerMovement] Neural 모델 없음 → NeuralAnimationController 미부착 (Player_AC 재생 보호)");
-                        }
-                    }
-                    if (_neuralAnim != null && _neuralAnim.HasAnyModel())
-                    {
-                        _neuralAnim.SetVelocityProvider(this);
-                    }
-
-                    // HybridAnimationController 설정 (같은 GameObject) — 신경 모델이 존재할 때만 부착.
-                    // 모델 없는 Hybrid는 LateUpdate에서 뼈 localRotation을 zero-quaternion으로 덮어써
-                    // Player_AC 애니메이션을 얼려버림(뼈 미작동 원인). 미부착으로 원천 차단.
-                    if (_neuralAnim != null && _neuralAnim.HasAnyModel())
-                    {
-                        _hybridAnim = GetComponent<HybridAnimationController>();
-                        if (_hybridAnim == null)
-                            _hybridAnim = gameObject.AddComponent<HybridAnimationController>();
-
-                        // ProgressiveRolloutManager에 등록 (Phase 4.6.2)
-                        if (ProgressiveRolloutManager.Instance != null)
-                            ProgressiveRolloutManager.Instance.ConfigureHybridController(_hybridAnim);
-                    }
-                    else
-                    {
-                        _hybridAnim = null;
-                        Debug.Log("[PlayerMovement] Neural 모델 없음 → HybridAnimationController 미부착 (Player_AC 재생 보호)");
-                    }
+                    _hybridAnim = GetComponent<HybridAnimationController>();
 
                     // 스폰 위치 적용 (PlayerSpawnConfig에서 읽어옴 — 테스트씬과 MainScene 동기화)
                     Vector3 spawnPos = PlayerSpawnConfig.SpawnPosition;
