@@ -712,17 +712,12 @@ public static class FixMainScene
         foreach (var smr in skinnedRenderers) smr.enabled = false;
         foreach (var mr in meshRenderers) mr.enabled = false;
 
-        var disablerType = System.Type.GetType("ProjectName.Core.DisableGLBRenderers, Assembly-CSharp");
-        if (disablerType != null)
-        {
-            var disabler = modelInstance.AddComponent(disablerType);
-            var renderers = skinnedRenderers.Cast<Renderer>().Concat(meshRenderers.Cast<Renderer>()).ToArray();
-            disablerType.GetField("glbRenderers").SetValue(disabler, renderers);
-        }
-        else
-        {
-            Debug.LogWarning("[FixMainScene] DisableGLBRenderers type not found");
-        }
+        var disabler = modelInstance.GetComponent(typeof(DisableGLBRenderers)) as DisableGLBRenderers
+                       ?? modelInstance.AddComponent(typeof(DisableGLBRenderers)) as DisableGLBRenderers;
+        var renderers = skinnedRenderers.Cast<Renderer>().Concat(meshRenderers.Cast<Renderer>()).ToArray();
+        disabler.glbRenderers = renderers;
+        // 즉시 1회 비활성 (씬 저장/런타임 진입 전에도 꺼진 상태 보장)
+        foreach (var r in renderers) if (r != null) r.enabled = false;
 
         Debug.Log($"[FixMainScene] GLB loaded & stripped: {skinnedRenderers.Length} skinned, {meshRenderers.Length} mesh renderers disabled");
     }
@@ -773,17 +768,12 @@ public static class FixMainScene
                                                             AssetDatabase.Refresh();
 
                 // Add runtime disabler component for safety
-                var disablerType = System.Type.GetType("ProjectName.Core.DisableGLBRenderers, Assembly-CSharp");
-                if (disablerType != null)
-                {
-                    var disabler = modelInstance.AddComponent(disablerType);
-                    var renderers = skinnedRenderers.Cast<Renderer>().Concat(meshRenderers.Cast<Renderer>()).ToArray();
-                    disablerType.GetField("glbRenderers").SetValue(disabler, renderers);
-                }
-                else
-                {
-                    Debug.LogWarning("[FixMainScene] DisableGLBRenderers type not found");
-                }
+                var disabler = modelInstance.GetComponent(typeof(DisableGLBRenderers)) as DisableGLBRenderers
+                               ?? modelInstance.AddComponent(typeof(DisableGLBRenderers)) as DisableGLBRenderers;
+                var renderers = skinnedRenderers.Cast<Renderer>().Concat(meshRenderers.Cast<Renderer>()).ToArray();
+                disabler.glbRenderers = renderers;
+                // 즉시 1회 비활성 (씬 저장/런타임 진입 전에도 꺼진 상태 보장)
+                foreach (var r in renderers) if (r != null) r.enabled = false;
 
                 Debug.Log($"[FixMainScene] GLB loaded & stripped: {skinnedRenderers.Length} skinned, {meshRenderers.Length} mesh renderers disabled");
             }

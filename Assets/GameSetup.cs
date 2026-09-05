@@ -567,19 +567,14 @@ public class GameSetup : MonoBehaviour
             var glbModel = player.transform.Find("PlayerModel/PlayerModel_GLB");
             if (glbModel != null)
             {
-                var disableType = System.Type.GetType("ProjectName.Core.DisableGLBRenderers, Assembly-CSharp");
-                if (disableType != null)
-                {
-                    var disabler = glbModel.gameObject.GetComponent(disableType) ?? glbModel.gameObject.AddComponent(disableType);
-                    // GLB 및 자식들의 모든 렌더러 수집
-                    var renderers = glbModel.GetComponentsInChildren<Renderer>(true);
-                    disableType.GetField("glbRenderers").SetValue(disabler, renderers);
-                    Debug.Log($"[GameSetup] ✅ DisableGLBRenderers → GLB 모델에 추가 ({renderers.Length}개 렌더러)");
-                }
-                else
-                {
-                    Debug.LogWarning("[GameSetup] DisableGLBRenderers type not found");
-                }
+                var disabler = glbModel.gameObject.GetComponent(typeof(DisableGLBRenderers)) as DisableGLBRenderers
+                               ?? glbModel.gameObject.AddComponent(typeof(DisableGLBRenderers)) as DisableGLBRenderers;
+                // GLB 및 자식들의 모든 렌더러 수집
+                var renderers = glbModel.GetComponentsInChildren<Renderer>(true);
+                disabler.glbRenderers = renderers;
+                // 즉시 1회 비활성 (컴포넌트 Awake/OnEnable 전에도 꺼진 상태 보장)
+                foreach (var r in renderers) { if (r != null) r.enabled = false; }
+                Debug.Log($"[GameSetup] ✅ DisableGLBRenderers → GLB 모델에 추가 ({renderers.Length}개 렌더러)");
             }
             else
             {
@@ -613,7 +608,7 @@ public class GameSetup : MonoBehaviour
                 foreach (var comp in componentsToRemove)
                 {
                     if (comp is Transform) continue;
-                    if (comp is Renderer) continue; // 렌더러는 DisableGLBRenderers가 관리
+                    if (comp is Renderer glbRend) { glbRend.enabled = false; continue; } // 껍데기 이중 차단 (위임 실패 대비)
                     if (comp is DisableGLBRenderers) continue; // 우리 디세이블러는 유지
 
                     // Animator는 제거되기 전까지 계속 실행되므로 먼저 비활성화
