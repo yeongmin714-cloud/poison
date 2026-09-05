@@ -246,19 +246,29 @@ namespace ProjectName.Systems
 
             // DD2: 뼈 변위 (Hips 기준) — 2초 전 스냅샷과 비교. 뼈가 실제 움직이는지 수치 확정.
             // 첫 주기는 기준점 저장만 하고 Δ는 생략. Δ=0이 지속되면 뼈가 얼어있음(골격 덮어쓰기/드라이브 실패).
+            // 휴머노이드 아바타가 유효할 때만 GetBoneTransform 호출 (non-humanoid InvalidOperationException 예방).
+            var av = _anim.avatar;
+            bool canHuman = av != null && av.isValid && av.isHuman;
             string hipsDelta = " hips=NULL";
-            var hips = _anim.GetBoneTransform(HumanBodyBones.Hips);
-            if (hips != null)
+            if (!canHuman)
             {
-                if (_hipsRefValid)
+                hipsDelta = " hips=N/A(nonhumanoid)";
+            }
+            else
+            {
+                var hips = _anim.GetBoneTransform(HumanBodyBones.Hips);
+                if (hips != null)
                 {
-                    float posD = Vector3.Distance(hips.position, _hipsPosRef);
-                    float rotD = Quaternion.Angle(hips.rotation, _hipsRotRef);
-                    hipsDelta = $" hipsΔ={posD:F4}m rotΔ={rotD:F2}°";
+                    if (_hipsRefValid)
+                    {
+                        float posD = Vector3.Distance(hips.position, _hipsPosRef);
+                        float rotD = Quaternion.Angle(hips.rotation, _hipsRotRef);
+                        hipsDelta = $" hipsΔ={posD:F4}m rotΔ={rotD:F2}°";
+                    }
+                    _hipsPosRef = hips.position;
+                    _hipsRotRef = hips.rotation;
+                    _hipsRefValid = true;
                 }
-                _hipsPosRef = hips.position;
-                _hipsRotRef = hips.rotation;
-                _hipsRefValid = true;
             }
 
             Debug.Log($"[HumanoidClipDriver][Diag] t={Time.time:F1}s state={stateName} normT={sinfo.normalizedTime:F2} speed={speed:F2} rawSpd={_diagRawSpeed:F2} ccVel={ccVel:F2} animEnabled={_anim.enabled} culling={_anim.cullingMode}{hipsDelta}");

@@ -933,8 +933,13 @@ namespace ProjectName.Systems
             if (clone.HasProperty("_Custom_Color"))
             {
                 var idx = clone.shader != null ? clone.shader.FindPropertyIndex("_Custom_Color") : -1;
-                var ptype = idx >= 0 ? clone.shader.GetPropertyType(idx) : UnityEngine.Rendering.ShaderPropertyType.Color;
-                if (ptype == UnityEngine.Rendering.ShaderPropertyType.Vector)
+                if (idx < 0)
+                {
+                    // 셰이더가 속성을 노출하지 않으면(직렬화 잔존) SetColor 스팸 없이 _Color로 폴백
+                    if (clone.HasProperty("_Color")) clone.SetColor("_Color", tint);
+                    else if (clone.HasProperty("_BaseColor")) clone.SetColor("_BaseColor", tint);
+                }
+                else if (clone.shader.GetPropertyType(idx) == UnityEngine.Rendering.ShaderPropertyType.Vector)
                     clone.SetVector("_Custom_Color", (Vector4)tint);
                 else
                     clone.SetColor("_Custom_Color", tint);
