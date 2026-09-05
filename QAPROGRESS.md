@@ -8,6 +8,26 @@
 
 ---
 
+## 2026-09-05: 애니 3차 수리 — Hybrid 골격 덮어쓰기 차단 + DD2 뼈 진단기 ✅
+
+**새 증거:** GLB 껍데기 비활성 성공(로그 "GLB 모델에 추가 (1개 렌더러)")에도 **여전히 뼈가 안 움직임** → Animator 출력이 뼈에 닿지 않는 단계로 국소화.
+
+**진짜 용의자 (최유력):** PlayerMovement.cs:183-191이 플레이어 루트에 **무조건** NeuralAnimationController+HybridAnimationController AddComponent → Hybrid.LateUpdate→ApplyBlendedPose가 뼈 localRotation을 직접 기록(678행). CaptureProceduralBoneRotations는 _proceduralController==null 시 조기 리턴 → 버퍼가 zero-quaternion → slerp 결과 NaN/garbage 회전을 뼈에 기록 → **몸이 얼어붙음**. 병사는 이 스택이 없어 정상 = 정황 완전 일치.
+
+**수리 (6파일, +126/-11):**
+1. DisableGLBRenderers — Awake/OnEnable null 가드 (우리 수리가 유발한 NRE 차단)
+2. IdyllicDecoPlacer.GetNationTintClone — `_Custom_Color` Vector형 판별 후 SetVector (property type 경고 스팸 차단)
+3. NeuralAnimationController.SwitchPolicy — `!HasAnyModel()` 조기 리턴 (Combat 스팸 차단)
+4. HybridAnimationController 3중 방어 — ①Animator/BoneMap null 시 자가 비활성 ②LateUpdate에서 컨트롤러 둘 다 없으면 뼈 기록 스킵 ③ApplyBlendedPose NaN(isfinite) 가드
+5. PlayerMovement — **HasAnyModel() true일 때만 Hybrid 부착** (Neural 모델 없는 현재 환경 = 미부착 = Player_AC 재생 보호)
+6. HumanoidClipDriver — DD2 진단기: avatar isHuman / 렌더러 인벤토리(SMR rootBone·bones·mesh) / 루트 컴포넌트 구성(Neural/Hybrid/Procedural/BoneMap/RigAnim/Animator) / hipsΔ(2초간 위치·회전 변위) — 다음 원인 자동 특정용
+
+**QA 독립검증 PASS:** 6파일 괄호 균형 0/0, 심볼 사용 적법(완전수명/using), Hybrid 가드 순서 정확, _hybridAnim NRE 위험 0, 90초 진단 구조 미손상.
+
+**판정 기대:** Play 시 (a) 이동 시 몸이 직접 움직이면 종결 (b) 여전히 정지면 DD2 로그의 hipsΔ/컴포넌트 구성/렌더러 인벤토리로 다음 용의자(아바타 Generic/스킨 바인딩/제3 bone-writer) 수치 특정.
+
+---
+
 ## 2026-09-05: 플레이어 애니 "전혀 안 먹어" 근본 원인 확정 + 구 GLB 껍데기 미비활성 수리 ✅
 
 **사용자 가설 검증 (팩↔GLB 호환성):** **기각 — 둘 다 Humanoid라 호환됨.**
