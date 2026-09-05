@@ -8,6 +8,23 @@
 
 ---
 
+## 2026-09-05: 애니 4차 수리 — Neural 무모델 완전 불활성화 (뼈 기록 금지) ✅
+
+**DD2 판정 근거:** isHuman=True(아바타 정상), SMR 정상(27 bones), Hybrid=0 차단 확인 → **남은 뼈 기록자 = NeuralAnimationController(루트, 무모델)**. ApplyBodyLean이 BoneRole.Root 뼈 localRotation을 매 LateUpdate identity 상수로 절대 덮어씀(1843행) — ProceduralBoneUtility 이름 휴리스틱이 PlayerBody 내부 뼈를 매핑하므로 실기록됨. PlayerBody Animator가 Update에 쓴 포즈를 Neural이 LateUpdate로 덮어씀 = **몸이 얼어붙음**.
+
+**수리 (3파일, +34/-13):**
+1. NeuralAnimationController — LateUpdate `!HasAnyModel() return` (ApplyProceduralPose 도달 불가), FixedUpdate ApplyRootMotion/ScheduleIKJobs 모델 가드. transform 기록 16곳 전수 스캔 → 무모델 도달 불가 입증(DecodeActions는 _lodInferenceEnabled=false, ApplyBoneRotationFromAction은 데드코드)
+2. PlayerCombat — RigAnimationController 자동부착 제거(빈 Animator 생성 원인 차단, GetComponent만), Neural 무모델 시 Destroy+null
+3. PlayerMovement — Neural 조건부 부착(Destroy+null+로그), SetVelocityProvider 조건 호출, Hybrid 분기 null 가드 보강
+
+**효과 범위:** Player만 아니라 NPC(TerritoryNPCSpawner가 무모델 Neural을 붙여놓은 대상들)도 동일 경로 보호 — 무모델 Neural은 전부 완전 불활성.
+
+**QA 독립검증 PASS:** 뼈 기록 16곳 전부 무모델 도달 불가 입증 / NRE 경로 0 / 3파일만 변경 / 괄호 균형 완벽.
+
+**판정 기대 (다음 Play):** 이동 시 `[PlayerMovement] Neural 모델 없음 → NeuralAnimationController 미부착` 로그 + 몸이 직접 Idle→Walk→Run 전환 + `hipsΔ>0`. 여전히 정지면 hipsΔ/컴포넌트 구성으로 잔존 원인 특정 (스킨 바인딩/아바타 재생성 후보).
+
+---
+
 ## 2026-09-05: 애니 3차 수리 — Hybrid 골격 덮어쓰기 차단 + DD2 뼈 진단기 ✅
 
 **새 증거:** GLB 껍데기 비활성 성공(로그 "GLB 모델에 추가 (1개 렌더러)")에도 **여전히 뼈가 안 움직임** → Animator 출력이 뼈에 닿지 않는 단계로 국소화.
