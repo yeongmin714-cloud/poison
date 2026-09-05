@@ -228,7 +228,21 @@ namespace ProjectName.Systems.Animation.Neural
         void Awake()
         {
             _animator = GetComponent<Animator>();
+            // 방어 1: Animator 없으면 골격 덮어쓰기 컨트롤러로서 쓸모없음 → 비활성화 (253행 NRE 예방)
+            if (_animator == null)
+            {
+                Debug.LogWarning("[HybridAnimationController] Animator 없음 — 비활성화 (골격 덮어쓰기 방지)");
+                enabled = false;
+                return;
+            }
             _boneMap = GetComponent<ProceduralBoneMap>();
+            // 방어 2: ProceduralBoneMap 없으면 bone 버퍼 구성 불가 → 비활성화 (258행 NRE 예방)
+            if (_boneMap == null)
+            {
+                Debug.LogWarning("[HybridAnimationController] ProceduralBoneMap 없음 — 비활성화 (골격 덮어쓰기 방지)");
+                enabled = false;
+                return;
+            }
 
             // Auto-find controllers if not assigned
             if (_proceduralController == null)
@@ -354,6 +368,11 @@ namespace ProjectName.Systems.Animation.Neural
 
         void LateUpdate()
         {
+            // 방어 3: 컨트롤러 없는 하이브리드가 zero-quaternion 버퍼를 뼈에 쓰는 것을 원천 차단.
+            // CaptureProceduralBoneRotations는 _proceduralController==null이면 조기 리턴 → 버퍼가
+            // zero-quaternion으로 남고, ApplyBlendedPose가 그대로 뼈 localRotation에 기록 → 몸 얼어붙음.
+            if (_boneCount == 0) return;
+            if (_proceduralController == null && _neuralController == null) return;
             _blendJobHandle.Complete();
             ApplyBlendedPose();
         }
@@ -675,7 +694,10 @@ namespace ProjectName.Systems.Animation.Neural
                 var t = bones[i].Transform;
                 if (t != null)
                 {
-                    t.localRotation = _blendedBoneRotations[i];
+                    // 방어 4: NaN/zero-quaternion(무효 캡처 결과)을 뼈에 기록하지 않음 — 프레임 스킵
+                    var q = _blendedBoneRotations[i];
+                    if (!Unity.Mathematics.math.all(Unity.Mathematics.math.isfinite(q.value))) continue;
+                    t.localRotation = q;
                 }
             }
         }

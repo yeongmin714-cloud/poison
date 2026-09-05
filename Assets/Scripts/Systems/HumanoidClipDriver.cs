@@ -45,6 +45,11 @@ namespace ProjectName.Systems
         private bool _diagEndLogged;         // 90초 종료 로그 1회 여부
         private float _diagRawSpeed;         // 진단용 raw(스무딩 전) 속도
 
+        // DD2: 뼈 변위 진단 — 2초 주기 스냅샷 비교로 뼈가 실제 움직이는지 수치 확정
+        private Vector3 _hipsPosRef;         // 직전 주기의 Hips 위치
+        private Quaternion _hipsRotRef;      // 직전 주기의 Hips 회전
+        private bool _hipsRefValid;          // 첫 주기는 기준점 저장만 (Δ 계산 스킵)
+
         // Speed 지수 평활 + 멈춤 스냅 (지형/경사 충돌로 속도가 0 근처로 순간 떨어질 때
         // Idle로 떨어졌다 복귀하는 "끊김 + 멈춤 모션"을 방지)
         private float _smoothedSpeed;
@@ -90,6 +95,51 @@ namespace ProjectName.Systems
                     sb.Append(allAnims[i].gameObject.name);
                 }
                 Debug.Log($"[HumanoidClipDriver][Diag] 애니메이터 개수={allAnims.Length} → [{sb}]");
+            }
+
+            // DD2: 뼈 진단 — 아바타 유효성 / 렌더러(스키닝) 상태 / 루트 컴포넌트 구성
+            // (Player_AC 재생 정상 + 뼈 무응답 원인 판별: 스키닝 렌더러 누락, 골격 덮어쓰기 컨트롤러 부착 여부 등)
+            if (_anim != null)
+            {
+                bool avValid = _anim.avatar != null && _anim.avatar.isValid;
+                bool avHuman = _anim.avatar != null && _anim.avatar.isHuman;
+                Debug.Log($"[HumanoidClipDriver][DD2] avatar={(_anim.avatar != null ? _anim.avatar.name : "NULL")} isValid={avValid} isHuman={avHuman}");
+
+                // PlayerBody(드라이버 자신=bodyF) 하위의 렌더러 수집 — SkinnedMesh가 뼈 스키닝의 최종 표현체
+                var skinned = GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                var meshRend = GetComponentsInChildren<MeshRenderer>(true);
+                int smEnabled = 0;
+                string smDetail = "없음";
+                if (skinned != null && skinned.Length > 0)
+                {
+                    var sm0 = skinned[0];
+                    smDetail = $"{sm0.gameObject.name}: rootBone={(sm0.rootBone != null ? sm0.rootBone.name : "NULL")}, bones={(sm0.bones != null ? sm0.bones.Length : 0)}, mesh={(sm0.sharedMesh != null ? sm0.sharedMesh.name : "NULL")}";
+                    foreach (var s in skinned)
+                        if (s != null && s.enabled) smEnabled++;
+                }
+                int mrEnabled = 0;
+                foreach (var mr in meshRend)
+                    if (mr != null && mr.enabled) mrEnabled++;
+                int smCount = skinned != null ? skinned.Length : 0;
+                int mrCount = meshRend != null ? meshRend.Length : 0;
+                Debug.Log($"[HumanoidClipDriver][DD2] PlayerBody 렌더러: SkinnedMesh={smCount}(enabled={smEnabled}, {smDetail}), Mesh={mrCount}(enabled={mrEnabled})");
+
+                // 루트(Player)에 붙은 골격 개입 컴포넌트 존재 여부 — Hybrid 골격 덮어쓰기 용의 판별
+                var root = _anim.transform.root;
+                int hasNeural = root.GetComponent<ProjectName.Systems.Animation.Neural.NeuralAnimationController>() != null ? 1 : 0;
+                int hasHybrid = root.GetComponent<ProjectName.Systems.Animation.Neural.HybridAnimationController>() != null ? 1 : 0;
+                int hasProc = root.GetComponent<ProjectName.Systems.Animation.Procedural.ProceduralAnimationController>() != null ? 1 : 0;
+                int hasBoneMap = root.GetComponent<ProjectName.Systems.Animation.Procedural.Bones.ProceduralBoneMap>() != null ? 1 : 0;
+                int hasRigAnim = root.GetComponent<RigAnimationController>() != null ? 1 : 0;
+                var rootAnims = root.GetComponentsInChildren<Animator>(true);
+                var sbA = new System.Text.StringBuilder();
+                if (rootAnims != null)
+                    for (int i = 0; i < rootAnims.Length; i++)
+                    {
+                        if (i > 0) sbA.Append(", ");
+                        sbA.Append(rootAnims[i].gameObject.name);
+                    }
+                Debug.Log($"[HumanoidClipDriver][DD2] 루트 컴포넌트: Neural={hasNeural} Hybrid={hasHybrid} Procedural={hasProc} BoneMap={hasBoneMap} RigAnim={hasRigAnim} Animator(루트포함전체)=[{sbA}]");
             }
         }
 

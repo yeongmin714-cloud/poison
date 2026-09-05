@@ -270,6 +270,8 @@ namespace ProjectName.Systems.Animation.Neural
         /// </summary>
         public void SwitchPolicy(PolicyType policy)
         {
+            // 모델이 하나도 없으면 정책 전환 자체가 무의미 — 조용히 무시 (경고 스팸 차단)
+            if (!HasAnyModel()) return;
             if (policy == _currentPolicy && !_isBlending) return;
             if (!_policyAssets.ContainsKey(policy) || _policyAssets[policy] == null)
             {

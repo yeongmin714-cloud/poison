@@ -185,14 +185,24 @@ namespace ProjectName.Systems
                         _neuralAnim = gameObject.AddComponent<NeuralAnimationController>();
                     _neuralAnim.SetVelocityProvider(this);
 
-                    // HybridAnimationController 설정 (같은 GameObject)
-                    _hybridAnim = GetComponent<HybridAnimationController>();
-                    if (_hybridAnim == null)
-                        _hybridAnim = gameObject.AddComponent<HybridAnimationController>();
+                    // HybridAnimationController 설정 (같은 GameObject) — 신경 모델이 존재할 때만 부착.
+                    // 모델 없는 Hybrid는 LateUpdate에서 뼈 localRotation을 zero-quaternion으로 덮어써
+                    // Player_AC 애니메이션을 얼려버림(뼈 미작동 원인). 미부착으로 원천 차단.
+                    if (_neuralAnim.HasAnyModel())
+                    {
+                        _hybridAnim = GetComponent<HybridAnimationController>();
+                        if (_hybridAnim == null)
+                            _hybridAnim = gameObject.AddComponent<HybridAnimationController>();
 
-                    // ProgressiveRolloutManager에 등록 (Phase 4.6.2)
-                    if (ProgressiveRolloutManager.Instance != null)
-                        ProgressiveRolloutManager.Instance.ConfigureHybridController(_hybridAnim);
+                        // ProgressiveRolloutManager에 등록 (Phase 4.6.2)
+                        if (ProgressiveRolloutManager.Instance != null)
+                            ProgressiveRolloutManager.Instance.ConfigureHybridController(_hybridAnim);
+                    }
+                    else
+                    {
+                        _hybridAnim = null;
+                        Debug.Log("[PlayerMovement] Neural 모델 없음 → HybridAnimationController 미부착 (Player_AC 재생 보호)");
+                    }
 
                     // 스폰 위치 적용 (PlayerSpawnConfig에서 읽어옴 — 테스트씬과 MainScene 동기화)
                     Vector3 spawnPos = PlayerSpawnConfig.SpawnPosition;

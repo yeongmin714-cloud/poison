@@ -928,7 +928,17 @@ namespace ProjectName.Systems
             clone.name = original.name + "_Tint" + nation;
             // CC3: 팩 Vegetation 셰이더는 _Custom_Color(잎 혼합) 우선, 없으면 URP Lit _Color/_BaseColor.
             // 셋 다 없으면 스킵(원본 유지) + 로그 — 틴트 가능한 재료만 복제한다.
-            if (clone.HasProperty("_Custom_Color")) clone.SetColor("_Custom_Color", tint);
+            // 경고 스팸("Property _Custom_Color already exists ... different type: 0") 방지:
+            // 셰이더그래프 속성이 Vector형(0)일 때 SetColor는 실패+스팸 → 타입 확인 후 맞는 API 사용.
+            if (clone.HasProperty("_Custom_Color"))
+            {
+                var idx = clone.shader != null ? clone.shader.FindPropertyIndex("_Custom_Color") : -1;
+                var ptype = idx >= 0 ? clone.shader.GetPropertyType(idx) : UnityEngine.Rendering.ShaderPropertyType.Color;
+                if (ptype == UnityEngine.Rendering.ShaderPropertyType.Vector)
+                    clone.SetVector("_Custom_Color", (Vector4)tint);
+                else
+                    clone.SetColor("_Custom_Color", tint);
+            }
             else if (clone.HasProperty("_Color")) clone.SetColor("_Color", tint);
             else if (clone.HasProperty("_BaseColor")) clone.SetColor("_BaseColor", tint);
             else
