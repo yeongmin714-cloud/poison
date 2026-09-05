@@ -37,9 +37,13 @@ namespace ProjectName.Systems
         private bool _prevRolling, _prevJumping;
         private bool _deathFired;
 
-        // DD1: 애니 상태 진단 타임라인 (최초 12초, 2초 간격 6회)
+        // DD1: 애니 상태 진단 타임라인 (최초 90초, 주기 로그 + 상태 전환 즉시 로그)
         private float _diagStart = -1f;
         private float _nextDiagTime = 0f;
+        private int _prevStateHash = -1;     // 직전 프레임 상태 hash (전환 감지용)
+        private string _prevStateName = "?"; // 직전 상태 이름 (전환 로그 출력용)
+        private bool _diagEndLogged;         // 90초 종료 로그 1회 여부
+        private float _diagRawSpeed;         // 진단용 raw(스무딩 전) 속도
 
         // Speed 지수 평활 + 멈춤 스냅 (지형/경사 충돌로 속도가 0 근처로 순간 떨어질 때
         // Idle로 떨어졌다 복귀하는 "끊김 + 멈춤 모션"을 방지)
@@ -107,13 +111,8 @@ namespace ProjectName.Systems
         // ───────────────────── Player 모드 ─────────────────────
         private void UpdatePlayer()
         {
-            // DD1: 최초 12초간 2초 간격 6회 — 실제 재생 상태(state/normT/speed)와 컨트롤러 속도 진단
             if (_diagStart < 0f) _diagStart = Time.time;
-            if (Time.time - _diagStart <= 12f && Time.time >= _nextDiagTime)
-            {
-                _nextDiagTime = Time.time + 2f;
-                LogAnimDiagnostic();
-            }
+            bool diagActive = Time.time - _diagStart <= 90f;
 
             // Speed — CharacterController 수평 속도 크기 (지수 평활로 끊김 제거)
             float raw = 0f;
@@ -123,6 +122,7 @@ namespace ProjectName.Systems
                 v.y = 0f;
                 raw = v.magnitude;
             }
+            _diagRawSpeed = raw; // DD1: 스무딩 전 속도 — 스냅 로직 오작동 구분용
             float k = 1f - Mathf.Exp(-10f * Time.deltaTime);
             _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, raw, k);
             if (raw < 0.05f)
@@ -135,6 +135,23 @@ namespace ProjectName.Systems
                 _stopFrames = 0;
             }
             _anim.SetFloat("Speed", _smoothedSpeed);
+
+            // DD1: 상태 전환 즉시 로그 — Idle ↔ Walk(걷기) 전환 발생 여부 결정적 증거
+            if (diagActive) LogStateTransition();
+
+            // DD1: 90초간 2초 간격 주기 — 실제 재생 상태(state/normT/speed)와 컨트롤러 속도 진단
+            if (diagActive && Time.time >= _nextDiagTime)
+            {
+                _nextDiagTime = Time.time + 2f;
+                LogAnimDiagnostic();
+            }
+
+            // DD1: 진단 기간 종료 — 스팸 방지를 위해 주기/전환 로그 중단
+            if (!diagActive && !_diagEndLogged)
+            {
+                _diagEndLogged = true;
+                Debug.Log($"[HumanoidClipDriver][Diag] 진단 기간 90초 종료 — 주기/전환 로그 중단 (state={ResolveStateName(_anim.GetCurrentAnimatorStateInfo(0))})");
+            }
 
             // 공격 감지 — LastAttackTime 변화 시 트리거 (2타 내 콤보)
             if (_combat != null)
@@ -172,19 +189,40 @@ namespace ProjectName.Systems
         {
             if (_anim == null) return;
             var sinfo = _anim.GetCurrentAnimatorStateInfo(0);
-            string stateName = sinfo.shortNameHash.ToString("X8");
-            if (sinfo.IsName("Idle")) stateName = "Idle";
-            else if (sinfo.IsName("Walk")) stateName = "Walk";
-            else if (sinfo.IsName("Run")) stateName = "Run";
-            else if (sinfo.IsName("Attack")) stateName = "Attack";
-            else if (sinfo.IsName("AttackCombo")) stateName = "AttackCombo";
-            else if (sinfo.IsName("Roll")) stateName = "Roll";
-            else if (sinfo.IsName("Jump")) stateName = "Jump";
-            else if (sinfo.IsName("Death")) stateName = "Death";
+            string stateName = ResolveStateName(sinfo);
             float speed = 0f;
             try { speed = _anim.GetFloat("Speed"); } catch { }
             float ccVel = _cc != null ? _cc.velocity.magnitude : -1f;
-            Debug.Log($"[HumanoidClipDriver][Diag] t={Time.time:F1}s state={stateName} normT={sinfo.normalizedTime:F2} speed={speed:F2} ccVel={ccVel:F2} animEnabled={_anim.enabled} culling={_anim.cullingMode}");
+            Debug.Log($"[HumanoidClipDriver][Diag] t={Time.time:F1}s state={stateName} normT={sinfo.normalizedTime:F2} speed={speed:F2} rawSpd={_diagRawSpeed:F2} ccVel={ccVel:F2} animEnabled={_anim.enabled} culling={_anim.cullingMode}");
+        }
+
+        /// <summary>DD1: 상태 shortNameHash를 이름으로 매핑 (매핑 실패 시 hex hash 반환).</summary>
+        private string ResolveStateName(AnimatorStateInfo sinfo)
+        {
+            if (sinfo.IsName("Idle")) return "Idle";
+            if (sinfo.IsName("Walk")) return "Walk";
+            if (sinfo.IsName("Run")) return "Run";
+            if (sinfo.IsName("Attack")) return "Attack";
+            if (sinfo.IsName("AttackCombo")) return "AttackCombo";
+            if (sinfo.IsName("Roll")) return "Roll";
+            if (sinfo.IsName("Jump")) return "Jump";
+            if (sinfo.IsName("Death")) return "Death";
+            return sinfo.shortNameHash.ToString("X8");
+        }
+
+        /// <summary>DD1: 현재 상태 hash가 직전 프레임과 다르면 전환 즉시 1회 로그.</summary>
+        private void LogStateTransition()
+        {
+            if (_anim == null) return;
+            var sinfo = _anim.GetCurrentAnimatorStateInfo(0);
+            int hash = sinfo.fullPathHash;
+            if (hash == _prevStateHash) return;
+            string curName = ResolveStateName(sinfo);
+            float speed = 0f;
+            try { speed = _anim.GetFloat("Speed"); } catch { }
+            Debug.Log($"[HumanoidClipDriver][State] {_prevStateName} → {curName} (speed={speed:F2} rawSpd={_diagRawSpeed:F2} normT={sinfo.normalizedTime:F2})");
+            _prevStateHash = hash;
+            _prevStateName = curName;
         }
 
         // ───────────────────── Soldier 모드 ─────────────────────
