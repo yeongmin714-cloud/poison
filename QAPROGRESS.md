@@ -38,7 +38,18 @@
 
 **QA PASS:** 위향 수학/청크 경계 봉합(−1200 일치)/GetHeightAt 시그니처/UV 폴백=실규약 일치/null 가드/균형 검증. 훅이 try-catch 격리 밖이던 것을 QA가 직접 격리 수정. (커밋 7b614ec7, c86d4f9a)
 
-**판정 대기 (Play):** ① `[TerrainChunks] 완료: 64청크` 로그 ② `Ground_Inner 렌더러/콜라이더 비활성` 로그 ③ 스폰→Ring1 방향 1450m 직진 중 회색 허공 소멸 + grounded=True 연속 + 점프/구르기 성공 ④ Ring1 영지 스크린샷 ⑤ 애니 지표 유지(clip= 팩 클립, LULegRotΔ>10°).
+**판정 대기 (Play):** ① `[TerrainChunks] 완료: 64청크` 로그 ② `Ground_Inner 렌더러/콜라이더 비활성` 로그 ③ 스폰→Ring1 방향 1450m 직진 중 회색 허공 소멸 + grounded=True 연속 + 점프/구르기 성공 ④ Ring1 영지 스크린샷 ⑤ 애니 지표 유지(clip= 팩 클립, LULegRotΔ>10°). **T1 Play 검증 완료(26일 21시대): 64청크 생성 확인(37.0초, 정점 640k).**
+
+---
+
+## 2026-09-06: 지형 T2/T3 — 데코 전체 확장 + 머티리얼 전파 + 월드 경계 ✅ (판정 대기)
+
+**T2:** ① IdyllicDecoPlacer `BOUND_MAX 950→1550` — 데코(트리/바위/덤불/꽃/초지)가 청크 지형 전체(±1550m)에 배치, 캡(트리 1900/국가)이 자연 스로틀 → 총 오브젝트 ~9.9k→~14k 예상(컬링 150/200m 유지) ② RuntimeTerrainChunkManager 머티리얼을 `Object.Instantiate` 복제 → **원본 sharedMaterial 직접 공유**로 변경 — NationTerrainController의 국가별 mainTexture 교체가 64청크 전체에 전파. 원본 파괴/스왑 없음 확인(NationTerrainController 171행은 null 분기 한정).
+**T3:** PlayerMovement `WorldBound=1590` + `ClampToWorldBounds()` 헬퍼 — MovePlayer/HandleRoll의 Move 직후 호출(위치 XZ만 클램프, 상태 무변경; 이후 ClampToGroundByHeight가 최종 XZ 기준 Y 정합 — 순서 정합).
+
+**QA:** 자체 라인별 검증 완료(위 3파일), QA 에이전트 타임아웃으로 컴팩트 자체 검증으로 대체 — 머티리얼 파괴/스왑 부재·클램프 순서·균형 확인.
+
+**판정 대기 (Play):** ① 국경(Ring2↔Ring1 방위) 넘어갈 때 청크 텍스처 변화 눈확인 ② 지형 밖(±1600m) 이동 차단(걷기로 못 나감) ③ 배치 수 로그(트리 총합 ~7k 수준) ④ 프레임 저하 없음.
 
 ---
 
