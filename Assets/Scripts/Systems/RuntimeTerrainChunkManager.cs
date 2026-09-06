@@ -83,12 +83,14 @@ namespace ProjectName.Systems
                 var innerMf = inner.GetComponent<MeshFilter>();
                 if (innerMf != null && innerMf.sharedMesh != null && innerMf.sharedMesh.isReadable)
                 {
-                    TryReadUvMapping(innerMf.sharedMesh, inner.transform.position,
-                        out _uScale, out _uOffset, out _vScale, out _vOffset);
+                    // T-B2 09-06: 결합 텍스처가 ±1600m 월드를 uv 0..1에 1:1 매핑하도록 변경됨
+                    // (NationTerrainController — 방위 고정 색). Ground_Inner의 구 uv는 ±1000m 기준이라
+                    // 역산하면 ±1600m 청크에서 uv 범위 초과(래핑/클램프 오색) → 역산 폐기, 고정 매핑 사용.
+                    Debug.Log("[TerrainChunks] UV 고정 매핑 사용: worldXZ/3200+0.5 (결합 텍스처 ±1600 1:1 정합)");
                 }
                 else
                 {
-                    Debug.LogWarning("[TerrainChunks] Ground_Inner 메시 UV 미확보(isReadable=false?) → 폴백 매핑 사용");
+                    Debug.LogWarning("[TerrainChunks] Ground_Inner 메시 UV 미확보(isReadable=false?) → 고정 매핑 사용");
                 }
             }
             else
