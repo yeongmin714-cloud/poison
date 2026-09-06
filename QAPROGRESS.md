@@ -40,6 +40,16 @@
 
 ---
 
+## 2026-09-06: 애니 9차 — FBX 골격 위계 수리 (매핑 시프트의 근본 원인) ✅
+
+**문제:** 8차 매핑 주입 후에도 동결 지속. DD3-1이 결정 증거 포착 — 아바타 매핑이 `Spine→Hips, Chest→Spine, UpperChest→Chest, Chest2→UpperChest`로 **강제 시프트**되고 정작 Hips 본 탈락. Blender hier_probe로 파일 진단 → **다리(Left/RightUpperLeg)가 Hips가 아닌 Spine의 자식** + 목/어깨/breast가 비표준 Chest2 아래. Unity 휴머노이드 위상규칙(다리=Hips 직계) 위반 → Unity가 어떤 메타 매핑이든 임포트 시 강제 재배치 → 근육값이 어긋난 뼈에 기록 → 동결. (8차까지의 "매핑 비어있음/자동매핑" 가설은 모두 이 위계 문제의 하위 현상이었음)
+
+**수리 (Blender 5.1 headless, roll_make/fix_hierarchy_v2.py):** edit 모드에서 `use_connect=False` + parent 재할당만 (행렬 복원 코드는 오히려 본을 밈 — 제거): 다리 2개→Hips, Neck/LeftShoulder/RightShoulder/breast.L/R→UpperChest, pelvis.L/R은 Spine 아래 유지. **검증: 전 본 head/tail 무손상(identical), 버텍스그룹 불변, roundtrip 재임포트로 위계/본수 27 확인.** 백업: roll_make/Player_Rigged_Heat_backup_before_reparent.fbx. 신규 지식: **원본부터 Hips 본은 메시 가중치가 없음(26/27) — rootBone 앵커 역할만 하므로 무해(스파인/다리 가중치로 움직임 전달).** 8차 메타 매핑(22개)은 이제 위상검증 통과 — Unity가 더 이상 시프트하지 않아야 함.
+
+**판정 대기 (Play):** ① DD3-1 매핑에 `Hips→Hips` 포함 + 시프트 소멸(Spine→Spine, Chest→Chest...) ② 직선 이동 중 LFootΔ/LHandΔ가 회전 설명치 초과(주의: DD3-2 상대Δ는 루트 회전에 오염됨 — 직선 보행 기준 판정) ③ 보행 스윙 눈확인(56.PNG와 다른 포즈) ④ `[JumpProbe] grounded=` 값.
+
+---
+
 ## 2026-09-05: 애니 8차 — 아바타 매핑 명시 주입 (RPG팩·믹사모 동결의 근본 수리) ✅
 
 **문제 확정:** RPG팩/믹사모 무관하게 몸이 "걷기 한 프레임" 자세에서 동결(56.PNG). Animator 상태 전환·normT 진행·SMR·아바타 isHuman 전부 정상으로 보였으나 **Heat 메타의 `humanDescription.human`이 `[]` (매핑 0개)**. 7차에서 "자동매핑 유도" 목적으로 비운 것이 원인 — 사지(Limb)가 미매핑되면 Run/Walk 클립의 근육값이 행선지가 없어 몸은 임포트 시점 자세(bake_anim=False → export 시 자세)에 영원히 동결.
