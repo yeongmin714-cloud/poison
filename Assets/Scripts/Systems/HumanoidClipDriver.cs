@@ -64,7 +64,7 @@ namespace ProjectName.Systems
         // Idle로 떨어졌다 복귀하는 "끊김 + 멈춤 모션"을 방지)
         private float _smoothedSpeed;
         private float _stallTime;        // 정지 판정 홀드 타이머 — 0.25초 연속 정체 시에만 스냅
-        private float _lastTarget;       // 직전 프레임 의도 기반 목표 속도 — 미세 정체 홀드 중 유지값
+        private float _lastTarget;       // 직전 프레임 목표 속도 — 미세 정체 홀드 중 유지값
 
         private void Start()
         {
@@ -242,13 +242,13 @@ namespace ProjectName.Systems
             }
             _diagRawSpeed = raw; // DD1: 스무딩 전 속도 — 스냅 로직 오작동 구분용
 
-            // 의도 기반 목표 속도 — 측정 속도는 지형 경사로 진동하므로 Walk↔Run 임계(4.5/4.0)를
-            // 오가는 진동이 발생. 의도(대시 여부)로 목표를 정하고 측정값은 정지 감지에만 사용.
+            // 측정 속도 추적(실측 확정: 일반 이동 5.0 / 대시 15.0) — raw를 그대로 목표로 사용하면
+            // Run 클립이 실제 이동속도와 매칭된다(발 미끄러짐 방지는 Run 상태 speed 스케일링 0.2 담당).
             float target;
             if (raw > 0.05f)
             {
                 _stallTime = 0f;
-                target = (_movement != null && _movement.IsDashing) ? 5f : 2.5f;
+                target = raw;                       // 실측 속도 추적 — Run 클립이 실제 이동속도와 매칭
             }
             else
             {

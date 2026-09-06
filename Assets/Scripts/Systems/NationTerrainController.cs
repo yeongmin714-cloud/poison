@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using UnityEngine;
@@ -471,6 +472,9 @@ namespace ProjectName.Systems
                 }
             }
 
+            // 흙길 네트워크 오버레이 — 기존 방위/링 색 로직 위에 블렌드만 수행(시각 전용, 높이 평탄화 없음).
+            PaintDirtPaths(pixels, size, 1600f);
+
             tex.SetPixels(pixels);
             tex.Apply();
             return tex;
@@ -513,6 +517,179 @@ namespace ProjectName.Systems
             tex.SetPixels(pixels);
             tex.Apply();
             return tex;
+        }
+
+        // ================================================================
+        //  Dirt Path Network (흙길 네트워크 — 결합 텍스처 오버레이)
+        // ================================================================
+
+        /// <summary>흙길 색 (머드 로드 — 예시 이미지 컨셉).</summary>
+        private static readonly Color DirtPathColor = new Color(0.52f, 0.40f, 0.28f);
+
+        /// <summary>도로 반폭 (m) — 중심선에서 이 거리까지 페인트(전체 폭 10m).</summary>
+        private const float DirtPathHalfWidth = 5f;
+
+        /// <summary>중심선에서의 최대 블렌드 강도 (가장자리로 갈수록 0%로 페이드).</summary>
+        private const float DirtPathMaxAlpha = 0.85f;
+
+        /// <summary>
+        /// 결정론적 흙길 네트워크 세그먼트(월드 XZ, static 캐시 — 재생성 시 항상 동일):
+        ///  - 4개 방사형 스포크: 각 방위(East 0°/North 90°/West 180°/South 270°, atan2(z,x) 체계)로
+        ///    원점에서 반경 100m → 1500m까지 직선 세그먼트
+        ///  - 링 도로 2개: 반경 550m(Ring3), 1000m(Ring2) — 각 방위 스포크 끝단을 잇는
+        ///    원호를 15° 간격 폴리라인으로 근사(링당 24 세그먼트)
+        ///  - 스폰 연결: PlayerSpawnConfig.SpawnPosition(약 (728, -529))에서 가장 가까운
+        ///    스포크의 수선 발 지점까지 1개 세그먼트
+        /// </summary>
+        private static readonly PathSegment[] DirtPathSegments = BuildDirtPathSegments();
+
+        /// <summary>월드 XZ 평면 위 선분. AABB는 픽셀 루프 사전 필터링용(반폭 여유 포함).</summary>
+        private struct PathSegment
+        {
+            public float X0, Z0, X1, Z1;         // 끝점 (월드 XZ)
+            public float MinX, MaxX, MinZ, MaxZ; // AABB (+반폭 여유)
+
+            public PathSegment(float x0, float z0, float x1, float z1)
+            {
+                X0 = x0; Z0 = z0; X1 = x1; Z1 = z1;
+                MinX = Mathf.Min(x0, x1) - DirtPathHalfWidth;
+                MaxX = Mathf.Max(x0, x1) + DirtPathHalfWidth;
+                MinZ = Mathf.Min(z0, z1) - DirtPathHalfWidth;
+                MaxZ = Mathf.Max(z0, z1) + DirtPathHalfWidth;
+            }
+        }
+
+        private static PathSegment[] BuildDirtPathSegments()
+        {
+            var list = new List<PathSegment>(64);
+
+            const float spokeInner = 100f;
+            const float spokeOuter = 1500f;
+            const float ring3Radius = 550f;
+            const float ring2Radius = 1000f;
+            const float ringStepDeg = 15f;
+
+            // 1) 방사형 스포크 — East 0° / North 90° / West 180° / South 270°
+            //    (GetNationFromPosition과 동일한 atan2(z, x) 각도 체계)
+            var spokes = new PathSegment[4];
+            for (int i = 0; i < 4; i++)
+            {
+                float rad = (i * 90f) * Mathf.Deg2Rad;
+                float cx = Mathf.Cos(rad);
+                float cz = Mathf.Sin(rad);
+                spokes[i] = new PathSegment(
+                    cx * spokeInner, cz * spokeInner,
+                    cx * spokeOuter, cz * spokeOuter);
+                list.Add(spokes[i]);
+            }
+
+            // 2) 링 도로 — Ring3(550m) / Ring2(1000m), 15° 간격 폴리라인 원호 근사
+            AppendRing(list, ring3Radius, ringStepDeg);
+            AppendRing(list, ring2Radius, ringStepDeg);
+
+            // 3) 스폰 연결 — 스폰에서 가장 가까운 스포크의 수선 발 지점까지 1개 세그먼트
+            Vector3 spawn = PlayerSpawnConfig.SpawnPosition;
+            int bestSpoke = -1;
+            float bestDist = float.MaxValue;
+            Vector2 bestFoot = Vector2.zero;
+            for (int i = 0; i < spokes.Length; i++)
+            {
+                Vector2 foot = ClosestPointOnSegment(spawn.x, spawn.z, spokes[i]);
+                float d = Mathf.Sqrt((foot.x - spawn.x) * (foot.x - spawn.x)
+                                   + (foot.y - spawn.z) * (foot.y - spawn.z));
+                if (d < bestDist)
+                {
+                    bestDist = d;
+                    bestSpoke = i;
+                    bestFoot = foot;
+                }
+            }
+            if (bestSpoke >= 0 && bestDist > 0.5f)
+            {
+                list.Add(new PathSegment(spawn.x, spawn.z, bestFoot.x, bestFoot.y));
+            }
+
+            return list.ToArray();
+        }
+
+        /// <summary>원호를 반경 radius, stepDeg 간격 폴리라인으로 근사해 세그먼트를 추가한다.</summary>
+        private static void AppendRing(List<PathSegment> list, float radius, float stepDeg)
+        {
+            int count = Mathf.RoundToInt(360f / stepDeg);
+            for (int i = 0; i < count; i++)
+            {
+                float a0 = i * stepDeg * Mathf.Deg2Rad;
+                float a1 = ((i + 1) % count) * stepDeg * Mathf.Deg2Rad;
+                list.Add(new PathSegment(
+                    Mathf.Cos(a0) * radius, Mathf.Sin(a0) * radius,
+                    Mathf.Cos(a1) * radius, Mathf.Sin(a1) * radius));
+            }
+        }
+
+        /// <summary>점 (px, pz)에서 세그먼트까지의 최단 거리 (월드 m).</summary>
+        private static float DistanceToSegment(float px, float pz, PathSegment s)
+        {
+            float dx = s.X1 - s.X0;
+            float dz = s.Z1 - s.Z0;
+            float lenSq = dx * dx + dz * dz;
+            float t = lenSq > 1e-6f ? ((px - s.X0) * dx + (pz - s.Z0) * dz) / lenSq : 0f;
+            t = Mathf.Clamp01(t);
+            float cx = s.X0 + t * dx - px;
+            float cz = s.Z0 + t * dz - pz;
+            return Mathf.Sqrt(cx * cx + cz * cz);
+        }
+
+        /// <summary>점 (px, pz)에서 세그먼트 위 최근접 지점 (월드 XZ).</summary>
+        private static Vector2 ClosestPointOnSegment(float px, float pz, PathSegment s)
+        {
+            float dx = s.X1 - s.X0;
+            float dz = s.Z1 - s.Z0;
+            float lenSq = dx * dx + dz * dz;
+            float t = lenSq > 1e-6f ? ((px - s.X0) * dx + (pz - s.Z0) * dz) / lenSq : 0f;
+            t = Mathf.Clamp01(t);
+            return new Vector2(s.X0 + t * dx, s.Z0 + t * dz);
+        }
+
+        /// <summary>
+        /// 결합 텍스처 픽셀에 흙길 네트워크를 오버레이 페인트한다.
+        /// 픽셀↔월드 매핑은 GenerateCombinedTexture의 u=x/size, wx=(u-0.5)*worldHalf*2와
+        /// 동일(+z → +y 픽셀). 세그먼트 AABB 사전 필터링으로 대부분의 픽셀×세그먼트 조합을
+        /// 조기 스킵하므로 256²~1024² 모두 허용 가능.
+        /// </summary>
+        private void PaintDirtPaths(Color[] pixels, int size, float worldHalf)
+        {
+            float worldSize = worldHalf * 2f;
+            float halfWidth = DirtPathHalfWidth;
+            Color dirt = DirtPathColor;
+            PathSegment[] segments = DirtPathSegments;
+
+            for (int y = 0; y < size; y++)
+            {
+                float wz = ((float)y / size - 0.5f) * worldSize;
+                int row = y * size;
+                for (int x = 0; x < size; x++)
+                {
+                    float wx = ((float)x / size - 0.5f) * worldSize;
+
+                    // 최근접 세그먼트 거리 (AABB 사전 필터링)
+                    float best = float.MaxValue;
+                    for (int i = 0; i < segments.Length; i++)
+                    {
+                        PathSegment s = segments[i];
+                        if (wx < s.MinX || wx > s.MaxX || wz < s.MinZ || wz > s.MaxZ)
+                            continue;
+                        float d = DistanceToSegment(wx, wz, s);
+                        if (d < best) best = d;
+                    }
+                    if (best >= halfWidth) continue;
+
+                    // 중심선(d=0)에서 85% → 가장자리(d=반폭)에서 0%로 부드럽게 페이드
+                    float t = best / halfWidth;
+                    float alpha = DirtPathMaxAlpha * Mathf.SmoothStep(1f, 0f, t);
+                    int idx = row + x;
+                    pixels[idx] = Color.Lerp(pixels[idx], dirt, alpha);
+                }
+            }
         }
 
         // ================================================================

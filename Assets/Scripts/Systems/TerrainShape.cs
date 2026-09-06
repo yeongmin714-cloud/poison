@@ -292,16 +292,16 @@ namespace ProjectName.Systems
 
         // ── 야생화 패치 (예시의 꽃 들판) ──────────────────────────────────────
         // Z4: 야생화 커버리지 8%→14% (FLOWER_LO 하향 — Smoothstep 통과점을 저주파쪽으로 내림)
-        // 현재: FLOWER_LO 0.78→0.70 추가 하향 — 커버리지 ~14%→~22% 상향 (꽃밭 커버리지 확대, FLOWER_HI 0.90 유지)
-        const float FLOWER_FREQ = 0.012f;       // AA4: 주파수 0.012 (패치 크기 ~83m — 넓은 단색 꽃밭)
+        // 현재: FLOWER_FREQ 0.012→0.009 — 패치 반경 ~83m→~110m 확대 (FLOWER_LO 0.70 / FLOWER_HI 0.90 유지)
+        const float FLOWER_FREQ = 0.009f;       // Z5: 주파수 0.009 (패치 반경 ~110m — 더 넓은 단색 꽃밭)
         const float FLOWER_OX = 3.7f;           // 패치 분포 오프셋 (전 세계 균일, 국가 무관)
         const float FLOWER_OZ = 11.3f;
         const float FLOWER_LO = 0.70f;          // 커버리지 ~22% (Smoothstep(0.70,0.90,n) — 0.78/~14%→0.70/~22% 상향)
         const float FLOWER_HI = 0.90f;
 
         /// <summary>
-        /// 야생화 패치 마스크 [0,1] — 주파수 0.012, 커버리지 약 22% (T-R3 §3 / AA4 / FLOWER_LO 0.70 상향).
-        /// 주파수를 낮춰 패치당 면적(반경 ~83m)을 넓히고, FLOWER_LO 0.78→0.70 하향으로
+        /// 야생화 패치 마스크 [0,1] — 주파수 0.009, 커버리지 약 22% (T-R3 §3 / AA4 / Z5 주파수 0.012→0.009).
+        /// 주파수를 낮춰 패치당 면적(반경 ~110m)을 넓히고, FLOWER_LO 0.78→0.70 하향으로
         /// 커버리지를 ≈14%→≈22%로 높였다 → 넓은 단색 꽃밭 연출.
         /// R4가 이 마스크로 Idyllic Flowers 프리팹을 고밀도 배치에 사용한다.
         /// 무국가/전 세계 균일 (결정론 — PerlinNoise 고정 빈도).

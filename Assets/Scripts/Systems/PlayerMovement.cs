@@ -102,10 +102,10 @@ namespace ProjectName.Systems
         // 게임 시작 직후 첫 키 입력이 더블탭으로 오인되지 않도록 음수로 초기화
         private float[] _lastKeyTime = new float[] { -10f, -10f, -10f, -10f };
 
-        // ── DD5: WASD 입력 상태 에지 프로브 (Play 시작 30초 진단 창, 에지에서만 로그) ──
+        // ── DD5: WASD 입력 상태 에지 프로브 (Play 시작 120초 진단 창, 에지에서만 로그) ──
         // W키 간헐 드랍 검증용. isPressed를 순수 폴링해 상승/하강 에지에서만 1줄 출력
         // (홀드 중엔 무출력 → 스팸 방지). try-catch 없음, 동작 변경 없음.
-        private const float InputProbeDuration = 30f;
+        private const float InputProbeDuration = 120f;
         private float _inputProbeStartTime = -1f;
         private bool _inputProbeActive = false;
         private readonly bool[] _probePrevWASD = new bool[4];          // 이전 프레임 W/A/S/D 상태
@@ -273,7 +273,7 @@ namespace ProjectName.Systems
 
         private void Update()
         {
-            // DD5: WASD 입력 에지 프로브 (Play 시작 30초 동안만 — 진단 전용, 동작 변경 없음)
+            // DD5: WASD 입력 에지 프로브 (Play 시작 120초 동안만 — 진단 전용, 동작 변경 없음)
             UpdateInputProbe();
 
             // 카메라 보정: 메인 카메라가 항상 플레이어를 내려다보게 강제 (3인칭 시점).
@@ -306,10 +306,10 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// DD5: WASD 입력 상태 에지 프로브 — Play 시작 30초 동안만 활성.
+        /// DD5: WASD 입력 상태 에지 프로브 — Play 시작 120초 동안만 활성.
         /// 매 프레임 isPressed를 폴링해 상승/하강 에지에서만 1줄 로그 (홀드 중엔 무출력).
         /// 형식: [InputProbe] t=12.3s W=down (전체상태 W=1 A=0 S=0 D=0)
-        /// 30초 경과 후 키별 down/up 횟수와 최대 홀드 시간 요약 1줄 출력 후 종료.
+        /// 120초 경과 후 키별 down/up 횟수와 최대 홀드 시간 요약 1줄 출력 후 종료.
         /// </summary>
         private void UpdateInputProbe()
         {
@@ -318,7 +318,7 @@ namespace ProjectName.Systems
             {
                 _inputProbeStartTime = Time.time;
                 _inputProbeActive = true;
-                Debug.Log("[InputProbe] 시작 — 30초간 WASD 에지 로깅 (down/up 순간에만 출력)");
+                Debug.Log("[InputProbe] 시작 — 120초간 WASD 에지 로깅 (down/up 순간에만 출력)");
             }
 
             float t = Time.time - _inputProbeStartTime;
@@ -329,7 +329,7 @@ namespace ProjectName.Systems
                 if (_inputProbeActive)
                 {
                     _inputProbeActive = false;
-                    // 30초 시점에 아직 홀드 중인 키의 홀드 시간도 최대값에 반영
+                    // 120초 시점에 아직 홀드 중인 키의 홀드 시간도 최대값에 반영
                     for (int i = 0; i < 4; i++)
                     {
                         if (_probePrevWASD[i])

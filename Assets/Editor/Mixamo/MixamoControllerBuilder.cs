@@ -88,6 +88,10 @@ namespace ProjectName.EditorTools
             var idle = AddState(sm, "Idle", Clip("pack:OneHand_Up_Idle"), true);
             var walk = AddState(sm, "Walk", Clip("pack:OneHand_Up_Walk_B"));
             var run = AddState(sm, "Run", Clip("pack:OneHand_Up_Run_B"));
+            // Run 클립 재생속도 = Speed×0.2 → 5m/s서 1배속, 대시 15m/s서 3배속 — 발 미끄러짐 방지. walk/idle은 미바인딩
+            run.speedParameter = "Speed";
+            run.speedParameterActive = true; // 미활성화 시 Speed 파라미터 바인딩 무시(고정 0.2배속) → 반드시 활성
+            run.speed = 0.2f;
             var roll = AddState(sm, "Roll", Clip("Quick Roll To Run.fbx")); // 팩에 구르기 없음 → 믹사모 유지
             var attack = AddState(sm, "Attack", Clip("pack:OneHand_Up_Attack_1"));
             var combo = AddState(sm, "AttackCombo", Clip("pack:OneHand_Up_Attack_1"));
@@ -99,10 +103,10 @@ namespace ProjectName.EditorTools
             // (지형/경사로 속도가 0 근처로 순간 떨어질 때 Idle로 떨어졌다 복귀하는 "끊김+멈춤" 방지)
             T(sm, idle, walk, "Speed", AnimatorConditionMode.Greater, 0.55f);
             T(sm, walk, idle, "Speed", AnimatorConditionMode.Less, 0.35f);
-            // Walk→Run 임계 4.5 — 플레이어 일반 이동속도 5.0이므로 5.5였으면 Run 진입 불가(2026-09-05 DD판정). Run→Walk 4.0과 히스테리시스 0.5 유지
+            // Walk→Run 임계 4.5 — 플레이어 일반 이동속도 5.0이므로 5.5였으면 Run 진입 불가(2026-09-05 DD판정). Run→Walk 2.0과 히스테리시스 유지
             T(sm, walk, run, "Speed", AnimatorConditionMode.Greater, 4.5f);
-            // Run→Walk 임계를 4.0으로 낮춰 히스테리시스 확대 — 스프린트 중 상태 플리커(갑자기 멈춤) 방지
-            T(sm, run, walk, "Speed", AnimatorConditionMode.Less, 4f);
+            // Run→Walk 임계 2.0 — 일반 이동 5.0의 경사 딥(3.5~4.8)이 임계(기존 4.0)와 겹쳐 진동 — 실제 정지(2.0 이하)만 Walk 복귀
+            T(sm, run, walk, "Speed", AnimatorConditionMode.Less, 2f);
 
             // 트리거 상태: Any State → 상태 (canTransitionToSelf=false) → Idle 복귀(exit time)
             AnyState(sm, roll, "Roll");

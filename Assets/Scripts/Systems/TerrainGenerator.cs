@@ -338,7 +338,7 @@ namespace ProjectName.Systems
         private static System.Collections.Generic.IReadOnlyList<TerrainLakeDef> _lakes = null;
 
         /// <summary>
-        /// 고정 시드 결정론적 호수 목록 (지연 초기화, 14개 — AA2 09-04).
+        /// 고정 시드 결정론적 호수 목록 (지연 초기화, 절차적 14개 + 수동 정의 대형 2개 — AA2 09-04 / Z5).
         /// 배치 규칙: 황제국 중앙(0,0,0) 반경 120m 배제, 호수 간 최소 250m,
         /// 지도 경계(±1000)에서 150m 여백, 동쪽(양수 x, 플레이어 시작 (728,-529) 인근) 1~2개,
         /// 반경 40~70m, depth 3~5m. waterLevel은 호수마다 하나의 평면 y.
@@ -370,6 +370,14 @@ namespace ProjectName.Systems
             Vector3 spawn = ProjectName.Core.PlayerSpawnConfig.SpawnPosition;
             float bound = 1500f - LAKE_EDGE_MARGIN;   // ±1000→±1500 확장 (호수 증설 — 데코 BOUND_MAX 1550과 정합)
             const int ATTEMPTS = 240;
+
+            // Z5: 결정론적 대형 호수 2개 — reject sampling 루프 전에 먼저 추가해
+            // 이후 루프의 LAKE_MIN_DIST(250m)/스폰·성 배제 규칙이 대형 호수 주변에 자동 적용되게 한다.
+            // 위치 검증(LCG 시드 20260914 재현 시뮬레이션): 성(0,0) 500m/764m,
+            // 스폰(728,-529) 892m/1288m (LAKE_SPAWN_EXCLUDE 150m 및 요구 300m+ 충족), 서로 1263m,
+            // 절차적 호수 전체와 센터 250m+ · 카브 밴드(1.7r) 무겹침 → 총 17개 배치.
+            AddHandPlacedLake(lakes, new Vector3(400f, 0f, 300f), 180f, 5.0f);
+            AddHandPlacedLake(lakes, new Vector3(-560f, 0f, -520f), 150f, 4.5f);
 
             for (int i = 0; i < LAKE_COUNT; i++)
             {
@@ -498,8 +506,44 @@ namespace ProjectName.Systems
                 }
             }
 
-            Debug.Log($"[TerrainGenerator] 호수 배치 완료: {lakes.Count}/{LAKE_COUNT} 개 (AA2 시드 {LAKE_LCG_SEED})");
+            Debug.Log($"[TerrainGenerator] 호수 배치 완료: {lakes.Count}개 (절차적 {LAKE_COUNT}목표 + 대형 2, AA2 시드 {LAKE_LCG_SEED})");
             return lakes;
+        }
+
+        /// <summary>
+        /// Z5: 수동 정의 대형 호수 추가 — waterLevel 규약은 reject sampling 루프와 동일:
+        /// 카브 전 기저 높이(ComputeNationHeight) - depth + LAKE_WATER_OFFSET 후,
+        /// 링(1.5r) 8방위 최대 높이 기반 수면-지형 정합 보정(W1)을 그대로 적용한다.
+        /// </summary>
+        private static void AddHandPlacedLake(List<TerrainLakeDef> lakes, Vector3 center, float radius, float depth)
+        {
+            TerrainLakeDef lake = new TerrainLakeDef
+            {
+                center = center,
+                radius = radius,
+                depth = depth,
+            };
+
+            float baseH = ComputeNationHeight(center.x, center.z, GetNationFromCoord(center.x, center.z), 42);
+            lake.waterLevel = baseH - lake.depth + LAKE_WATER_OFFSET;
+
+            float ringR = lake.radius * LAKE_LEVEL_RING_FACTOR;
+            float maxRing = float.MinValue;
+            for (int k = 0; k < LAKE_LEVEL_RING_SAMPLES; k++)
+            {
+                float ang = (Mathf.PI * 2f * k) / LAKE_LEVEL_RING_SAMPLES;
+                float rx = lake.center.x + Mathf.Cos(ang) * ringR;
+                float rz = lake.center.z + Mathf.Sin(ang) * ringR;
+                float rh = ComputeNationHeight(rx, rz, GetNationFromCoord(rx, rz), 42);
+                if (rh > maxRing) maxRing = rh;
+            }
+            float basinFloor = baseH - lake.depth;                // 중심 카브 바닥 하한
+            float ringAdjusted = Mathf.Min(lake.waterLevel,
+                maxRing - lake.depth * LAKE_LEVEL_RING_REDUCE);
+            lake.waterLevel = Mathf.Max(basinFloor, ringAdjusted);
+
+            lakes.Add(lake);
+            Debug.Log($"[TerrainGenerator] 대형 호수 추가: center=({center.x:F0},{center.z:F0}) r={radius:F0} depth={depth:F1} waterLevel={lake.waterLevel:F2}");
         }
 
         /// <summary>
@@ -533,7 +577,9 @@ namespace ProjectName.Systems
         ///   · 분지 안전가드: 전 구역 지형을 waterLevel - guard 여유로 클램프 (절대 올리지 않음) —
         ///     물-지형 교차를 지형 쪽에서 물리적으로 차단 (Enforce=물 올리기가 더는 발동하지 않게).
         /// 밖(>1.45r)은 원래 지형 — 수변 수렴이 smoothstep 연속이므로 별도 크로스페이드 불필요.
-        /// 호수 간 최소 250m 및 카브 영향 반경(최대 70*1.45=101m)끼리 겹치지 않는다.
+        /// 호수 간 센터 최소 250m. 절차적 호수(최대 r=70)끼리는 카브 영향 반경(70*1.45=101m)끼리
+        /// 겹치지 않는다. Z5 대형 호수(r=180/150, 카브 최대 1.7r=306m)는 LCG 재현 시뮬레이션으로
+        /// 전 호수와 센터 250m+ · 밴드(1.7r 합) 무겹침을 검증했다 (GenerateLakes 주석 참조).
         /// </summary>
         private static float ApplyLakeBasins(float x, float z, float height)
         {
