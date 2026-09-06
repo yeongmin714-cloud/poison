@@ -37,12 +37,12 @@ namespace ProjectName.Systems
         private bool _prevRolling, _prevJumping;
         private bool _deathFired;
 
-        // DD1: 애니 상태 진단 타임라인 (최초 90초, 주기 로그 + 상태 전환 즉시 로그)
+        // DD1: 애니 상태 진단 타임라인 (최초 600초, 주기 로그 + 상태 전환 즉시 로그)
         private float _diagStart = -1f;
         private float _nextDiagTime = 0f;
         private int _prevStateHash = -1;     // 직전 프레임 상태 hash (전환 감지용)
         private string _prevStateName = "?"; // 직전 상태 이름 (전환 로그 출력용)
-        private bool _diagEndLogged;         // 90초 종료 로그 1회 여부
+        private bool _diagEndLogged;         // 600초 종료 로그 1회 여부
         private float _diagRawSpeed;         // 진단용 raw(스무딩 전) 속도
 
         // DD2: 뼈 변위 진단 — 2초 주기 스냅샷 비교로 뼈가 실제 움직이는지 수치 확정
@@ -53,6 +53,12 @@ namespace ProjectName.Systems
         private Vector3 _lhRelRef;           // 직전 주기 LeftHand의 Hips 기준 상대벡터
         private Vector3 _lfRelRef;           // 직전 주기 LeftFoot의 Hips 기준 상대벡터
         private bool _limbRefValid;          // 첫 주기는 기준 저장만 (Δ 계산 스킵)
+
+        // DD4: 사지 로컬회전 Δ — localRotation 스냅샷 비교. 루트 모션/루트 회전에 완전 면역
+        // (DD3-2의 world 상대벡터는 캐릭터가 회전만 해도 Δ가 발생하는 오염이 있음).
+        private Quaternion _lfaLocalRef;     // 직전 주기 LeftLowerArm localRotation
+        private Quaternion _lulLocalRef;     // 직전 주기 LeftUpperLeg localRotation
+        private bool _limbLocalValid;        // 첫 주기는 기준 저장만 (Δ 계산 스킵)
 
         // Speed 지수 평활 + 멈춤 스냅 (지형/경사 충돌로 속도가 0 근처로 순간 떨어질 때
         // Idle로 떨어졌다 복귀하는 "끊김 + 멈춤 모션"을 방지)
@@ -223,7 +229,7 @@ namespace ProjectName.Systems
         private void UpdatePlayer()
         {
             if (_diagStart < 0f) _diagStart = Time.time;
-            bool diagActive = Time.time - _diagStart <= 90f;
+            bool diagActive = Time.time - _diagStart <= 600f;
 
             // Speed — CharacterController 수평 속도 크기 (지수 평활로 끊김 제거)
             float raw = 0f;
@@ -250,7 +256,7 @@ namespace ProjectName.Systems
             // DD1: 상태 전환 즉시 로그 — Idle ↔ Walk(걷기) 전환 발생 여부 결정적 증거
             if (diagActive) LogStateTransition();
 
-            // DD1: 90초간 2초 간격 주기 — 실제 재생 상태(state/normT/speed)와 컨트롤러 속도 진단
+            // DD1: 600초간 2초 간격 주기 — 실제 재생 상태(state/normT/speed)와 컨트롤러 속도 진단
             if (diagActive && Time.time >= _nextDiagTime)
             {
                 _nextDiagTime = Time.time + 2f;
@@ -261,7 +267,7 @@ namespace ProjectName.Systems
             if (!diagActive && !_diagEndLogged)
             {
                 _diagEndLogged = true;
-                Debug.Log($"[HumanoidClipDriver][Diag] 진단 기간 90초 종료 — 주기/전환 로그 중단 (state={ResolveStateName(_anim.GetCurrentAnimatorStateInfo(0))})");
+                Debug.Log($"[HumanoidClipDriver][Diag] 진단 기간 600초 종료 — 주기/전환 로그 중단 (state={ResolveStateName(_anim.GetCurrentAnimatorStateInfo(0))})");
             }
 
             // 공격 감지 — LastAttackTime 변화 시 트리거 (2타 내 콤보)
@@ -360,7 +366,51 @@ namespace ProjectName.Systems
                 }
             }
 
-            Debug.Log($"[HumanoidClipDriver][Diag] t={Time.time:F1}s state={stateName} normT={sinfo.normalizedTime:F2} speed={speed:F2} rawSpd={_diagRawSpeed:F2} ccVel={ccVel:F2} animEnabled={_anim.enabled} culling={_anim.cullingMode}{hipsDelta}");
+            // DD4: 실제 재생 클립명 — 상태(Walk)가 재생 중이어도 클립이 안 붙었으면 뼈에 아무 것도 쓰이지 않는다.
+            string clipInfo = "NONE";
+            try
+            {
+                var clips = _anim.GetCurrentAnimatorClipInfo(0);
+                clipInfo = clips != null && clips.Length > 0
+                    ? clips[0].clip.name + "(human=" + clips[0].clip.humanMotion + ",len=" + clips[0].clip.length.ToString("F2") + "s)"
+                    : "NONE";
+            }
+            catch (System.Exception clipEx)
+            {
+                clipInfo = "ERR:" + clipEx.GetType().Name;
+            }
+
+            // DD4: 사지 로컬회전 Δ — localRotation 스냅샷 비교. 루트 모션/루트 회전에 완전 면역
+            // (world 상대벡터 지표와 달리 캐릭터 회전만으로는 Δ가 생기지 않음). Δ=0 지속이면 사지 포즈 동결 확정.
+            string limbLocal = "";
+            if (canHuman)
+            {
+                var lfa = _anim.GetBoneTransform(HumanBodyBones.LeftLowerArm);
+                var lul = _anim.GetBoneTransform(HumanBodyBones.LeftUpperLeg);
+                var llSb = new System.Text.StringBuilder();
+                if (lfa != null)
+                {
+                    if (_limbLocalValid) llSb.Append($" LFArmRotΔ={Quaternion.Angle(lfa.localRotation, _lfaLocalRef):F2}°");
+                    _lfaLocalRef = lfa.localRotation;
+                }
+                else
+                {
+                    llSb.Append(" LFArmRot=UNMAPPED");
+                }
+                if (lul != null)
+                {
+                    if (_limbLocalValid) llSb.Append($" LULegRotΔ={Quaternion.Angle(lul.localRotation, _lulLocalRef):F2}°");
+                    _lulLocalRef = lul.localRotation;
+                }
+                else
+                {
+                    llSb.Append(" LULegRot=UNMAPPED");
+                }
+                if (lfa != null || lul != null) _limbLocalValid = true;
+                limbLocal = llSb.ToString();
+            }
+
+            Debug.Log($"[HumanoidClipDriver][Diag] t={Time.time:F1}s state={stateName} normT={sinfo.normalizedTime:F2} speed={speed:F2} rawSpd={_diagRawSpeed:F2} ccVel={ccVel:F2} animEnabled={_anim.enabled} culling={_anim.cullingMode}{hipsDelta} clip={clipInfo}{limbLocal}");
         }
 
         /// <summary>DD1: 상태 shortNameHash를 이름으로 매핑 (매핑 실패 시 hex hash 반환).</summary>
