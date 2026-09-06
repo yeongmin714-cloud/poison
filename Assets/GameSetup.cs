@@ -47,7 +47,9 @@ public class GameSetup : MonoBehaviour
         //   GameSetup.Start가 이후 라인(조명 AmbianceBrightener/컬러그레이딩/데코/영지)까지
         //   반드시 실행되도록 try-catch로 격리한다. 단일 실패점 제거.
         // ── RUNTIME TERRAIN CHUNKS: 청크 지형 생성 — Ring1 1450m 커버 (±1600m, 400m 청크 8×8) ──
-        gameObject.AddComponent<RuntimeTerrainChunkManager>();
+        // BootstrapTerrainDeco와 동일하게 try-catch 격리 — AddComponent 실패 시에도 이후 부트 계속.
+        try { gameObject.AddComponent<RuntimeTerrainChunkManager>(); }
+        catch (System.Exception e) { Debug.LogError("[GameSetup] ⚠️ TerrainChunk 매니저 부착 실패 — 나머지 부트 계속: " + e); }
 
         try { BootstrapTerrainDeco(); }
         catch (System.Exception e) { Debug.LogError("[GameSetup] ⚠️ TerrainDeco 부트 실패 — 나머지 부트 계속: " + e); }
