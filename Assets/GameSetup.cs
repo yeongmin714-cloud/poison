@@ -33,6 +33,20 @@ public class GameSetup : MonoBehaviour
 
         // ── 메인 씬 모드 ────────────────────────
         SetupPlayerComponents();
+
+        // ── 동적 잔디 커버: 플레이어 추적 밀집 잔디 (CC1 09-05 시스템 — Configure 누락 복원) ──
+        try
+        {
+            var grassCover = gameObject.AddComponent<IdyllicGrassCover>();
+            var playerT = GameObject.FindGameObjectWithTag("Player");
+            if (playerT != null) grassCover.Configure(playerT.transform);
+            else Debug.LogWarning("[GameSetup] Player 미발견 — 동적 잔디 Configure 스킵");
+        }
+        catch (System.Exception grassEx)
+        {
+            Debug.LogError($"[GameSetup] 동적 잔디 초기화 실패: {grassEx.Message}");
+        }
+
         SetupWorldComponents();
 
         // ── TERRAIN HEIGHT APPLIER (Phase W3): 지형 메시 201×201 런타임 교체 ──

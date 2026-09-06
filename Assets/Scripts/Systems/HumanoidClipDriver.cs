@@ -64,6 +64,7 @@ namespace ProjectName.Systems
         // Idle로 떨어졌다 복귀하는 "끊김 + 멈춤 모션"을 방지)
         private float _smoothedSpeed;
         private float _stallTime;        // 정지 판정 홀드 타이머 — 0.25초 연속 정체 시에만 스냅
+        private float _lastTarget;       // 직전 프레임 의도 기반 목표 속도 — 미세 정체 홀드 중 유지값
 
         private void Start()
         {
@@ -240,20 +241,23 @@ namespace ProjectName.Systems
                 raw = v.magnitude;
             }
             _diagRawSpeed = raw; // DD1: 스무딩 전 속도 — 스냅 로직 오작동 구분용
-            float k = 1f - Mathf.Exp(-10f * Time.deltaTime);
-            _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, raw, k);
-            // 정지 판정 홀드: raw<0.05가 0.25초 연속 유지될 때만 0으로 스냅.
-            // (구 프레임 카운터 3프레임=50ms는 걷기 중 미세 정체(청크 이음새/구릉 접촉)마다
-            //  즉시 Idle로 떨어뜨려 Run→Walk→Idle→Walk→Run 전환 진동과 클립 재시작(끊김)을 유발)
-            if (raw < 0.05f)
+
+            // 의도 기반 목표 속도 — 측정 속도는 지형 경사로 진동하므로 Walk↔Run 임계(4.5/4.0)를
+            // 오가는 진동이 발생. 의도(대시 여부)로 목표를 정하고 측정값은 정지 감지에만 사용.
+            float target;
+            if (raw > 0.05f)
             {
-                _stallTime += Time.deltaTime;
-                if (_stallTime >= 0.25f) _smoothedSpeed = 0f;   // 진짜 정지(0.25초)만 즉시 Idle
+                _stallTime = 0f;
+                target = (_movement != null && _movement.IsDashing) ? 5f : 2.5f;
             }
             else
             {
-                _stallTime = 0f;
+                _stallTime += Time.deltaTime;
+                target = _stallTime >= 0.25f ? 0f : _lastTarget; // 미세 정체 홀드
             }
+            _lastTarget = target;
+            float k = 1f - Mathf.Exp(-10f * Time.deltaTime);
+            _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, target, k);
             _anim.SetFloat("Speed", _smoothedSpeed);
 
             // DD1: 상태 전환 즉시 로그 — Idle ↔ Walk(걷기) 전환 발생 여부 결정적 증거
