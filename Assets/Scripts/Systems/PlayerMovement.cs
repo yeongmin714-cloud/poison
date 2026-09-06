@@ -111,6 +111,9 @@ namespace ProjectName.Systems
         // 저장된 CharacterController 초기 높이 (구르기 복원용)
         private float _originalControllerHeight = 2f;
 
+        // --- 월드 경계 클램프 (지형 ±1600m 확장, 안쪽 10m 마진) ---
+        private const float WorldBound = 1590f;
+
         private void Awake()
                 {
                     _controller = GetComponent<CharacterController>();
@@ -547,6 +550,7 @@ namespace ProjectName.Systems
                 Vector3 rollMotion = _rollDirection * (_walkSpeed * _rollSpeedMultiplier);
                 rollMotion.y = _verticalVelocity; // 중력 유지
                 _controller.Move(rollMotion * Time.deltaTime);
+                ClampToWorldBounds(); // 구르기 이동도 월드 경계 안으로 클램프
 
                 // 구르기 중 플레이어 높이 약간 낮춤 (스케일을 일시적으로 줄임)
                 // 간단히 CharacterController의 height를 조정 (대신 transform scale 사용)
@@ -714,11 +718,29 @@ namespace ProjectName.Systems
             Vector3 motion = _moveDirection * _currentSpeed * _speedModifier;
             motion.y = _verticalVelocity;
             _controller.Move(motion * Time.deltaTime);
+            ClampToWorldBounds(); // 월드 경계 클램프 — 지형 밖(±1600m 초과) 이동 차단
 
             // === 지면 고정 (추락 영구 방지 / 지형 위 안착) ===
             // 물리 충돌·Raycast에 의존하지 않고, 지형을 만든 TerrainGenerator.GetHeightAt으로
             // 현재 x,z의 지표면 높이를 수학적으로 도출해 그 위에 붙인다.
             ClampToGroundByHeight();
+        }
+
+        /// <summary>
+        /// 월드 경계 클램프: XZ 위치를 ±WorldBound(1590m)로 강제 — 지형(±1600m) 밖 이동 차단.
+        /// 위치만 보정하고 속도/상태(_verticalVelocity, _moveDirection 등)는 건드리지 않는다.
+        /// </summary>
+        private void ClampToWorldBounds()
+        {
+            var p = transform.position;
+            float nx = Mathf.Clamp(p.x, -WorldBound, WorldBound);
+            float nz = Mathf.Clamp(p.z, -WorldBound, WorldBound);
+            if (nx != p.x || nz != p.z)
+            {
+                p.x = nx;
+                p.z = nz;
+                transform.position = p;
+            }
         }
 
         /// <summary>탑다운(3/4 뷰) 카메라: 마우스 회전 + 휠 줌 + 플레이어 추적.

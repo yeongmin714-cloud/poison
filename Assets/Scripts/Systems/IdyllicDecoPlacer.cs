@@ -23,7 +23,8 @@ namespace ProjectName.Systems
         const int SEED = 20260902;
         const int T_R4_BASE = 20260904;
         const float GROUND_BASE = 1f;
-        const float BOUND_MAX = 950f;
+        // 청크 지형 ±1600m 커버에 맞춘 데코 배치 범위 확장 (950 → 1550)
+        const float BOUND_MAX = 1550f;
         const float EMPIRE_GARDEN_RADIUS = 120f;
         const float EMPIRE_CORE_EXCLUDE = 8f;
         const float EMPIRE_GARDEN_CAP = 90;

@@ -73,8 +73,10 @@ namespace ProjectName.Systems
                 var innerMr = inner.GetComponent<MeshRenderer>();
                 if (innerMr != null && innerMr.sharedMaterial != null)
                 {
-                    // 1회만 복제해 전 청크가 공유 (청크 64개 × 머티리얼 인스턴스 난립 방지)
-                    _sharedMaterial = Object.Instantiate(innerMr.sharedMaterial);
+                    // 원본 머티리얼을 공유 (복제하지 않음) — NationTerrainController의 국가별
+                    // mainTexture 교체 / TerrainTextureApplier 변형이 전 청크에 그대로 전파되도록.
+                    // 메시는 공유 금지(청크별 자체 메시 유지), 머티리얼만 원본 공유.
+                    _sharedMaterial = innerMr.sharedMaterial;
                 }
 
                 var innerMf = inner.GetComponent<MeshFilter>();
