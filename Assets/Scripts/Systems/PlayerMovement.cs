@@ -61,9 +61,6 @@ namespace ProjectName.Systems
         // --- 대쉬 관련 ---
         private bool _isDashing = false;
 
-        /// <summary>대시(달리기) 의도 상태 — 애니 의도 기반 속도 판정용.</summary>
-        public bool IsDashing => _isDashing;
-
         // --- 속도 수정자 (BiomeEffectController 등에서 설정) ---
         private float _speedModifier = 1f;
 
