@@ -65,6 +65,20 @@
 
 ---
 
+## 2026-09-06: 입력 신뢰성 + 방위색 고정 + 지형 밀도 상향 ✅ (판정 대기)
+
+**A. 입력(W키 드랍) 수리:** PlayerMovement가 `Keyboard.current`를 1회 캐시 — 디바이스 재열거 시 stale 참조로 isPressed false 고정(간헐 W 드랍 → 이동 정지 → Idle 전환 = "애니 끊김"으로 보임). 수리: 캐시 제거 → 매 사용 `CurrentKeyboard` 즉시 조회 + null 시 InputSystem.devices 재열거 1회. 사용부 10곳 교체. **DD5 입력 프로브** 추가(Play 30초, WASD 에지 로그 + 요약) — W 홀드 중 드랍을 숫자로 확정.
+
+**B. 방위색 고정 표시(북=흰색):** NationTerrainController의 `UpdateForCurrentNation`(플레이어 현재 국가 기준 결합 맵 통째로 재생성)이 방위 고정색을 파괴 → **Start에서 호출 제거**(함수 보존). 결합 텍스처를 **±1600m 1:1 매핑**으로 변경(구 _textureTiling=200 반복 타일 폐기), 북쪽 설원 백색 강화(_northTint 0.93/0.95/0.98 + 북방위 색 고정 강화). 청크 UV도 Ground_Inner 구 uv(±1000 기준) 역산 경로 폐기 → **worldXZ/3200+0.5 고정 매핑**(외곽 래핑 오색 방지). Awake ApplyNationTerrainTexture는 유지(부팅 시 결합 텍스처 적용).
+
+**C. 밀도/다양성 상향:** 메사 셀 15%→25%(예시2 단차 증빈) / 꽃밭 커버리지 14%→22%(FLOWER_LO 0.78→0.70) / **숲 군락화**(forestMask Fbm>0.55 밀집·0.40~0.55 정상·<0.40 개활지 70% 스킵 — 숲 덩어리/개활지 분리) / 호수 배치 bound ±1000→±1500(LAKE_COUNT는 AA2에서 이미 14).
+
+**QA:** 파일별 균형 검증(6파일 braces 0), UpdateForCurrentNation 외부 호출부 0건 확인, ApplyNationTerrainTexture(Awake) 유지 확인, UV 고정 매핑 정합 검증. QA 에이전트 1회 타임아웃 → 컴팩트 자체 검증 대체(머티리얼 파괴/스왑·호출부·스코프 직접 확인).
+
+**판정 대기 (Play):** ① 걷기/달리기 끊김 소멸([InputProbe] 요약 + [State] 진동) ② 4방위 이동 시 방위색 고정(특히 북=흰색) ③ 숲 군락/꽃밭/메사/호수 스크린샷 ④ 성/영지/데코 신지형 부착 확인.
+
+---
+
 ## 2026-09-06: 애니 끊김 수리 — 정지 스냅 홀드 타이머 ✅ (판정 대기)
 
 **증상:** 전 지형에서 애니는 작동하나 걷기/달리기 중 애니가 "자꾸 끊겨서 재생".
