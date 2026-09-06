@@ -404,6 +404,16 @@ namespace ProjectName.Systems
                 Debug.LogWarning("[DiagP1] 전방지면 아래 20m에 콜라이더 없음 → 회색은 배경/허공");
             }
 
+            // 3-3) 전방 5지점 probe — x방향 5m 간격, 지형 구멍(백페이스 삼각형) 분포 가시화용 요약
+            string probe5Summary = "";
+            for (int pi = 0; pi < 5; pi++)
+            {
+                Vector3 p5 = new Vector3(spawn.x + 6f + pi * 5f, h + 1f + 30f, spawn.z + 6f);
+                bool hit5 = Physics.Raycast(p5, Vector3.down, out _, 60f, ~0, QueryTriggerInteraction.Ignore);
+                probe5Summary += (hit5 ? "hit" : "VOID") + (pi < 4 ? "," : "");
+            }
+            Debug.Log($"[DiagP1] 전방5지점: {probe5Summary}");
+
             // 4) 지형 위 서기 체크용 — 지형 표면 상대
             Debug.Log($"[DiagP1] 지형 표면 세계y={h+1f:F2} (스폰플레이어y={spawn.y:F2})");
 
@@ -429,7 +439,7 @@ namespace ProjectName.Systems
             // === Phase B: 지형 메시 재표본 + 조건부 와인딩 반전 ===
             // 씬에 베이크된 Ground_Inner 메시는 진폭 증폭/호수 분지 카브 이전에 구워져 굴곡이 빠져 있다.
             // 모든 정점 높이를 TerrainGenerator.GetHeightAt으로 재표본해 굴곡+호수 분지를 반영하고,
-            // 첫 삼각형 법선이 아래(-Y)일 때만 인덱스를 뒤집어 +Y로 세운다.
+            // 각 삼각형 법선이 아래(-Y)면 개별로 뒤집어 전부 +Y로 세운다(삼각형 단위 전수 검사).
             var mcFix = ground.GetComponent<MeshCollider>();
             var mfFix = ground.GetComponent<MeshFilter>();
             if (mfFix != null && mfFix.sharedMesh != null && mfFix.sharedMesh.isReadable)
@@ -451,27 +461,32 @@ namespace ProjectName.Systems
                 meshFix.vertices = verts;
                 meshFix.RecalculateNormals();
 
-                // 2) 조건부 와인딩: 첫 삼각형 법선 Dot(normal, Vector3.up) < 0 일 때만 인덱스 반전
-                //    (무조건 반전은 TerrainGenerator가 이미 +Y 와인딩으로 구우면 이중 반전 버그를 일으킴)
+                // 2) 와인딩 반전 — 삼각형 단위 전수 검사.
+                //    원본 메시는 와인딩이 섞여 있어(일부 삼각형 아래향) 첫 삼각형만 검사하면
+                //    아래향 삼각형이 남아 백페이스 미히트(지형 구멍) → grounded 실패가 발생한다.
+                //    각 삼각형 법선이 -Y(Dot<0)일 때만 개별 반전해 전부 +Y로 세운다.
                 var tris = meshFix.triangles;
-                bool needsFlip = false;
+                int flippedCount = 0;
                 if (tris.Length >= 3)
                 {
-                    Vector3 a = verts[tris[0]];
-                    Vector3 b = verts[tris[1]];
-                    Vector3 c = verts[tris[2]];
-                    Vector3 nrm = Vector3.Cross(b - a, c - a);
-                    needsFlip = Vector3.Dot(nrm, Vector3.up) < 0f;
-                    if (needsFlip)
+                    for (int i = 0; i < tris.Length; i += 3)
                     {
-                        for (int i = 0; i < tris.Length; i += 3)
+                        Vector3 a = verts[tris[i]];
+                        Vector3 b = verts[tris[i + 1]];
+                        Vector3 c = verts[tris[i + 2]];
+                        Vector3 n = Vector3.Cross(b - a, c - a);
+                        if (Vector3.Dot(n, Vector3.up) < 0f)
                         {
                             (tris[i + 1], tris[i + 2]) = (tris[i + 2], tris[i + 1]); // 마지막 두 인덱스 교환 = 와인딩 반전
+                            flippedCount++;
                         }
+                    }
+                    if (flippedCount > 0)
+                    {
                         meshFix.triangles = tris;
                         meshFix.RecalculateNormals();
                     }
-                    Debug.Log($"[DiagP1] 재표본+와인딩: vtx={verts.Length} flip={needsFlip}");
+                    Debug.Log($"[DiagP1] 재표본+와인딩: vtx={verts.Length} flip={flippedCount}/{tris.Length / 3} 삼각형");
                 }
                 meshFix.RecalculateBounds();
 
