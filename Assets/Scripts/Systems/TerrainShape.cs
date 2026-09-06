@@ -66,13 +66,15 @@ namespace ProjectName.Systems
         {
             switch (nation)
             {
-                // Z3: 진폭 증폭(East 7→10, West 9→11, South 8→10; North 13/절벽낙차·Empire 3 유지)
-                //     + 파장 밀도 증가(freq0 ↑, 파장 200→160m) — 탑다운 "구릉" 가독 확보.
-                case NationType.East:   return new NationParams { nation = nation, amplitudeA = 10f, freq0 = 0.005f, cliffDropC = 4f, ridgeGate = 0.65f, terraceStep = 0f   };
-                case NationType.West:   return new NationParams { nation = nation, amplitudeA = 11f, freq0 = 0.006f, cliffDropC = 6f, ridgeGate = 0.62f, terraceStep = 2.5f };
-                case NationType.South:  return new NationParams { nation = nation, amplitudeA = 10f, freq0 = 0.005f, cliffDropC = 5f, ridgeGate = 0.60f, terraceStep = 3f   };
-                case NationType.North:  return new NationParams { nation = nation, amplitudeA = 13f, freq0 = 0.006f, cliffDropC = 9f, ridgeGate = 0.58f, terraceStep = 3f   };
-                case NationType.Empire: return new NationParams { nation = nation, amplitudeA = 3f,  freq0 = 0.003f, cliffDropC = 2f, ridgeGate = 0.75f, terraceStep = 2f   };
+                // T-B1 09-06: 지형 드라마 강화 (예시2~13 컨셉) — 진폭/절벽 낙차 상향 + 방위별 격차 확대.
+                //   East=구릉 초원 / West=절벽 협곡 / South=평탄 적토 / North=험준 설산 / Empire=평탄 정원.
+                //   구릉 최대경사는 CC slopeLimit(45°) 이하 유지(amp×freq×2π ≈ 0.6→31°), 절벽은 의도적 등반 불가
+                //   (스폰/성/호수/경계는 기존 cliffSuppression이 보호). 메사(대지) 레이어는 NationHeight 참조.
+                case NationType.East:   return new NationParams { nation = nation, amplitudeA = 13f, freq0 = 0.005f, cliffDropC = 8f,  ridgeGate = 0.60f, terraceStep = 2f   };
+                case NationType.West:   return new NationParams { nation = nation, amplitudeA = 14f, freq0 = 0.006f, cliffDropC = 14f, ridgeGate = 0.55f, terraceStep = 3f   };
+                case NationType.South:  return new NationParams { nation = nation, amplitudeA = 7f,  freq0 = 0.005f, cliffDropC = 4f,  ridgeGate = 0.62f, terraceStep = 2.5f };
+                case NationType.North:  return new NationParams { nation = nation, amplitudeA = 16f, freq0 = 0.006f, cliffDropC = 16f, ridgeGate = 0.54f, terraceStep = 3.5f };
+                case NationType.Empire: return new NationParams { nation = nation, amplitudeA = 2.5f, freq0 = 0.003f, cliffDropC = 1.5f, ridgeGate = 0.78f, terraceStep = 0f   };
                 default:
                     // 미소속(None)/Dracula — East(시작지) 기본값 계승
                     return GetNationParams(NationType.East);
@@ -231,7 +233,54 @@ namespace ProjectName.Systems
             float valleyA = p.amplitudeA * VALLEY_AMP_RATIO * Mathf.Lerp(LOW_DETAIL_AMP_FACTOR, 1f, detail);
             h += -valleyA * Smoothstep(VALLEY_LO, VALLEY_HI, valleyNoise);
 
+            // ── 5) Mesa/대지 (예시2 단차): 셀 기반 평탄 대지 — 가장자리는 급경사 절벽 느낌 ──
+            //      cliffSuppression을 곱해 스폰/성/호수/경계 보호 구역에는 생성 금지.
+            h += MesaLift(wx, wz, nseed) * MESA_HEIGHT * cliffSuppression;
+
             return h;
+        }
+
+        // ── Mesa/대지 파라미터 (예시2: 평탄한 대지 + 절벽 가장자리) ──
+        const float MESA_HEIGHT = 6f;    // 대지 융기 (m)
+        const float MESA_CELL = 140f;    // 셀 크기 (m) — 평균 간격
+        const float MESA_CHANCE = 0.15f; // 셀당 메사 생성 확률
+        const float MESA_RADIUS = 50f;   // 대지 반경 (m)
+        const float MESA_EDGE = 6f;      // 가장자리 전환 폭 (m) — 6m/6m ≈ 급경사
+
+        /// <summary>
+        /// 메사(대지) 마스크 [0,1] — 140m 셀 그리드에서 15% 확률로 평탄 대지 생성.
+        /// 내부는 완전 평탄(1.0), 가장자리 6m에서 급강하(절벽 느낌). 결정론적 해시.
+        /// </summary>
+        static float MesaLift(float wx, float wz, int nseed)
+        {
+            int cx = Mathf.FloorToInt(wx / MESA_CELL);
+            int cz = Mathf.FloorToInt(wz / MESA_CELL);
+            // 주변 1셀까지 검사(셀 경계 걸침 대응)
+            float best = 0f;
+            for (int dz = -1; dz <= 1; dz++)
+            {
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    int cellX = cx + dx, cellZ = cz + dz;
+                    if (Hash2(cellX, cellZ, nseed) > MESA_CHANCE) continue;
+                    // 셀 중심 + 지터(±40m) — 격자 느낌 제거
+                    float centerX = cellX * MESA_CELL + MESA_CELL * 0.5f + (Hash2(cellX, cellZ, nseed + 11) - 0.5f) * 40f;
+                    float centerZ = cellZ * MESA_CELL + MESA_CELL * 0.5f + (Hash2(cellX, cellZ, nseed + 17) - 0.5f) * 40f;
+                    float d = Mathf.Sqrt((wx - centerX) * (wx - centerX) + (wz - centerZ) * (wz - centerZ));
+                    float m = 1f - Smoothstep(MESA_RADIUS - MESA_EDGE, MESA_RADIUS, d);
+                    if (m > best) best = m;
+                }
+            }
+            return best;
+        }
+
+        /// <summary>결정론적 2D 해시 [0,1] — 좌표+시드 기반 (메사 셀 선택/지터용).</summary>
+        static float Hash2(int x, int z, int s)
+        {
+            uint h = (uint)(x * 374761393 + z * 668265263 + s * 1274126177);
+            h = (h ^ (h >> 13)) * 1274126177u;
+            h = h ^ (h >> 16);
+            return h / (float)uint.MaxValue;
         }
 
         // 경계/보호 구역의 저스트디테일 진폭 계수 (0.35 = ~36% 진폭 → 완만 경사 보증)
