@@ -871,6 +871,8 @@ namespace ProjectName.Systems
 
         /// <summary>원본 머티리얼×(국가) 키 → 틴트 복제 캐시. 같은 원본+색은 1클론 공유 → instancing 유지.</summary>
         static readonly Dictionary<int, Material> _nationTintCache = new Dictionary<int, Material>();
+        // _Custom_Color 타입 불일치 경고 1회 출력용 플래그(재질마다 반복 출력되는 경고 스팸 방지)
+        static bool _customColorTypeMismatchWarned;
 
         /// <summary>
         /// CC3: 국가별 나무 잎사귀 틴트. 팩 Vegetation 셰이더(_Custom_Color/_Color)를 쓰는 재료를
@@ -929,20 +931,27 @@ namespace ProjectName.Systems
             // CC3: 팩 Vegetation 셰이더는 _Custom_Color(잎 혼합) 우선, 없으면 URP Lit _Color/_BaseColor.
             // 셋 다 없으면 스킵(원본 유지) + 로그 — 틴트 가능한 재료만 복제한다.
             // 경고 스팸("Property _Custom_Color already exists ... different type: 0") 방지:
-            // 셰이더그래프 속성이 Vector형(0)일 때 SetColor는 실패+스팸 → 타입 확인 후 맞는 API 사용.
+            // 셰이더가 _Custom_Color를 Color형으로 노출할 때만 SetColor. idx 미노출 또는
+            // 타입 불일치(Vector/Float 등)면 SetColor가 매 호출 실패+스팸 → 기존 폴백(_Color→_BaseColor).
             if (clone.HasProperty("_Custom_Color"))
             {
                 var idx = clone.shader != null ? clone.shader.FindPropertyIndex("_Custom_Color") : -1;
-                if (idx < 0)
+                if (idx < 0 || clone.shader.GetPropertyType(idx) != UnityEngine.Rendering.ShaderPropertyType.Color)
                 {
-                    // 셰이더가 속성을 노출하지 않으면(직렬화 잔존) SetColor 스팸 없이 _Color로 폴백
+                    // 셰이더가 속성을 노출하지 않거나(직렬화 잔존) Color형이 아니면
+                    // SetColor 스팸 없이 _Color/_BaseColor로 폴백. 타입 불일치 경고는 1회만.
+                    if (idx >= 0 && !_customColorTypeMismatchWarned)
+                    {
+                        _customColorTypeMismatchWarned = true;
+                        Debug.LogWarning($"[IdyllicDecoPlacer] _Custom_Color가 Color형 아님({clone.shader.GetPropertyType(idx)}) → _Color/_BaseColor 폴백(이 경고는 1회만 출력): {clone.shader.name}");
+                    }
                     if (clone.HasProperty("_Color")) clone.SetColor("_Color", tint);
                     else if (clone.HasProperty("_BaseColor")) clone.SetColor("_BaseColor", tint);
                 }
-                else if (clone.shader.GetPropertyType(idx) == UnityEngine.Rendering.ShaderPropertyType.Vector)
-                    clone.SetVector("_Custom_Color", (Vector4)tint);
                 else
+                {
                     clone.SetColor("_Custom_Color", tint);
+                }
             }
             else if (clone.HasProperty("_Color")) clone.SetColor("_Color", tint);
             else if (clone.HasProperty("_BaseColor")) clone.SetColor("_BaseColor", tint);

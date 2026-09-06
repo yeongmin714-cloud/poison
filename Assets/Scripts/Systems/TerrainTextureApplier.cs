@@ -404,16 +404,6 @@ namespace ProjectName.Systems
                 Debug.LogWarning("[DiagP1] 전방지면 아래 20m에 콜라이더 없음 → 회색은 배경/허공");
             }
 
-            // 3-3) 전방 5지점 probe — x방향 5m 간격, 지형 구멍(백페이스 삼각형) 분포 가시화용 요약
-            string probe5Summary = "";
-            for (int pi = 0; pi < 5; pi++)
-            {
-                Vector3 p5 = new Vector3(spawn.x + 6f + pi * 5f, h + 1f + 30f, spawn.z + 6f);
-                bool hit5 = Physics.Raycast(p5, Vector3.down, out _, 60f, ~0, QueryTriggerInteraction.Ignore);
-                probe5Summary += (hit5 ? "hit" : "VOID") + (pi < 4 ? "," : "");
-            }
-            Debug.Log($"[DiagP1] 전방5지점: {probe5Summary}");
-
             // 4) 지형 위 서기 체크용 — 지형 표면 상대
             Debug.Log($"[DiagP1] 지형 표면 세계y={h+1f:F2} (스폰플레이어y={spawn.y:F2})");
 
@@ -504,6 +494,17 @@ namespace ProjectName.Systems
                 Vector3 testO = new Vector3(spawn.x, 10f, spawn.z);
                 bool reHit = Physics.Raycast(testO, Vector3.down, out RaycastHit reH, 20f, ~0, QueryTriggerInteraction.Ignore);
                 Debug.Log($"[DiagP1] ★ 재표본+와인딩 후 raycast={reHit} 대상={(reHit ? reH.collider?.gameObject.name : "여전히 없음")} y={(reHit ? reH.point.y.ToString("F2") : "-")}");
+
+                // 3-3) 전방 5지점 probe — Phase B(재표본+와인딩+콜라이더 재베이크) 완료·검증 raycast 뒤로 이동.
+                //      x방향 5m 간격, 픽스 후 지형 구멍(백페이스 삼각형) 잔존 여부 재확인용.
+                string probe5Summary = "";
+                for (int pi = 0; pi < 5; pi++)
+                {
+                    Vector3 p5 = new Vector3(spawn.x + 6f + pi * 5f, h + 1f + 30f, spawn.z + 6f);
+                    bool hit5 = Physics.Raycast(p5, Vector3.down, out _, 60f, ~0, QueryTriggerInteraction.Ignore);
+                    probe5Summary += (hit5 ? "hit" : "VOID") + (pi < 4 ? "," : "");
+                }
+                Debug.Log($"[DiagP1] 전방5지점: {probe5Summary}");
             }
             else
             {

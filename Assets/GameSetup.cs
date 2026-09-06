@@ -46,6 +46,9 @@ public class GameSetup : MonoBehaviour
         // ★ 2차 방어(스크린샷 41 화이트아웃): BootstrapTerrainDeco가 내부에서 예외를 던져도
         //   GameSetup.Start가 이후 라인(조명 AmbianceBrightener/컬러그레이딩/데코/영지)까지
         //   반드시 실행되도록 try-catch로 격리한다. 단일 실패점 제거.
+        // ── RUNTIME TERRAIN CHUNKS: 청크 지형 생성 — Ring1 1450m 커버 (±1600m, 400m 청크 8×8) ──
+        gameObject.AddComponent<RuntimeTerrainChunkManager>();
+
         try { BootstrapTerrainDeco(); }
         catch (System.Exception e) { Debug.LogError("[GameSetup] ⚠️ TerrainDeco 부트 실패 — 나머지 부트 계속: " + e); }
         gameObject.AddComponent<AmbianceBrightener>(); // P-2: 밝은 판타지 자연 분위기 (안개/앰비언트/조명)
