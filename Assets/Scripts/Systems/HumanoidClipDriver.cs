@@ -63,7 +63,7 @@ namespace ProjectName.Systems
         // Speed 지수 평활 + 멈춤 스냅 (지형/경사 충돌로 속도가 0 근처로 순간 떨어질 때
         // Idle로 떨어졌다 복귀하는 "끊김 + 멈춤 모션"을 방지)
         private float _smoothedSpeed;
-        private int _stopFrames;
+        private float _stallTime;        // 정지 판정 홀드 타이머 — 0.25초 연속 정체 시에만 스냅
 
         private void Start()
         {
@@ -242,14 +242,17 @@ namespace ProjectName.Systems
             _diagRawSpeed = raw; // DD1: 스무딩 전 속도 — 스냅 로직 오작동 구분용
             float k = 1f - Mathf.Exp(-10f * Time.deltaTime);
             _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, raw, k);
+            // 정지 판정 홀드: raw<0.05가 0.25초 연속 유지될 때만 0으로 스냅.
+            // (구 프레임 카운터 3프레임=50ms는 걷기 중 미세 정체(청크 이음새/구릉 접촉)마다
+            //  즉시 Idle로 떨어뜨려 Run→Walk→Idle→Walk→Run 전환 진동과 클립 재시작(끊김)을 유발)
             if (raw < 0.05f)
             {
-                // 연속 3프레임 거의 정지면 즉시 0으로 스냅 → Idle 진입 지연 방지
-                if (++_stopFrames >= 3) _smoothedSpeed = 0f;
+                _stallTime += Time.deltaTime;
+                if (_stallTime >= 0.25f) _smoothedSpeed = 0f;   // 진짜 정지(0.25초)만 즉시 Idle
             }
             else
             {
-                _stopFrames = 0;
+                _stallTime = 0f;
             }
             _anim.SetFloat("Speed", _smoothedSpeed);
 
