@@ -33,8 +33,8 @@ namespace ProjectName.Systems
         // AA2 09-04: 10→14개 + LCG 시드 교체(20260914L) — 스폰/성 반경 150m 배제 + 호수간 최소 250m 유지.
         private const int LAKE_COUNT = 14;
         private const long LAKE_LCG_SEED = 20260914L;     // 결정론적 LCG 시드 (AA2 교체)
-        private const float LAKE_MIN_DIST = 250f;          // 호수 간 최소 거리
-        private const float LAKE_EDGE_MARGIN = 150f;       // 지도 경계(±1000) 여백
+        private const float LAKE_MIN_DIST = 250f;          // 호수 간 최소 거리 (유지)
+        private const float LAKE_EDGE_MARGIN = 150f;       // 지도 경계(±1500) 여백
         private const float LAKE_SPAWN_EXCLUDE = 150f;     // 스폰/황제국 성(0,0) 배제 반경
         private const float LAKE_RADIUS_MIN = 40f;
         private const float LAKE_RADIUS_MAX = 70f;
@@ -362,13 +362,13 @@ namespace ProjectName.Systems
         /// </summary>
         private static System.Collections.Generic.IReadOnlyList<TerrainLakeDef> GenerateLakes()
         {
-            // Z4: reject sampling — LCG(고정 시드 20260904L)로 10개 호수 위치/반경/깊이 산출.
-            // 규칙: 지도 경계(±1000)에서 LAKE_EDGE_MARGIN 여백, 스폰/황제국 성(0,0) 반경
+            // Z4: reject sampling — LCG(고정 시드)로 호수 위치/반경/깊이 산출 (LAKE_COUNT=14개).
+            // 규칙: 지도 경계(±1500)에서 LAKE_EDGE_MARGIN 여백, 스폰/황제국 성(0,0) 반경
             // LAKE_SPAWN_EXCLUDE(150m) 밖, 호수 간 최소 LAKE_MIN_DIST(250m). waterLevel은
             // 호수별 링(1.5r) 8방위 보정이 그대로 자동 적용된다.
             List<TerrainLakeDef> lakes = new List<TerrainLakeDef>();
             Vector3 spawn = ProjectName.Core.PlayerSpawnConfig.SpawnPosition;
-            float bound = 1000f - LAKE_EDGE_MARGIN;
+            float bound = 1500f - LAKE_EDGE_MARGIN;   // ±1000→±1500 확장 (호수 증설 — 데코 BOUND_MAX 1550과 정합)
             const int ATTEMPTS = 240;
 
             for (int i = 0; i < LAKE_COUNT; i++)

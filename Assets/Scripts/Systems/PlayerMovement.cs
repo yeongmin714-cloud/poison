@@ -51,8 +51,26 @@ namespace ProjectName.Systems
         private float _currentSpeed;
         private bool _isGrounded;
 
-        // Input System 캐싱
-        private Keyboard _keyboard;
+        // ── Input System 키보드 참조 (W키 간헐 드랍 수정: 캐시 금지, 매 접근 즉시 조회) ──
+        // 과거 `_keyboard = Keyboard.current`를 1회 캐시하면 Input System이 디바이스를
+        // 재열거(장치 재연결/포커스 복귀 등)할 때 캐시 참조가 stale이 되어 isPressed가
+        // 계속 false로 읽히는 클래식 이슈(걷다가 W가 안 들림 → 이동 정지 → Idle 전환)가 발생했다.
+        // 캐시 없이 매번 Keyboard.current를 새로 읽는다. AddDevice 등 무리한 재생성은 하지 않는다.
+        private static Keyboard CurrentKeyboard
+        {
+            get
+            {
+                var kb = Keyboard.current;
+                if (kb != null) return kb;
+                // 1회 재시도: 디바이스 목록을 직접 재열거해 Keyboard를 다시 찾는다 (재연결 직후 대비)
+                var devices = InputSystem.devices;
+                for (int i = 0; i < devices.Count; i++)
+                {
+                    if (devices[i] is Keyboard enumerated) return enumerated;
+                }
+                return null;
+            }
+        }
 
         // --- 스태미나 관련 ---
         private float _stamina;
@@ -83,6 +101,19 @@ namespace ProjectName.Systems
         private enum KeyDirection { Up, Down, Left, Right }
         // 게임 시작 직후 첫 키 입력이 더블탭으로 오인되지 않도록 음수로 초기화
         private float[] _lastKeyTime = new float[] { -10f, -10f, -10f, -10f };
+
+        // ── DD5: WASD 입력 상태 에지 프로브 (Play 시작 30초 진단 창, 에지에서만 로그) ──
+        // W키 간헐 드랍 검증용. isPressed를 순수 폴링해 상승/하강 에지에서만 1줄 출력
+        // (홀드 중엔 무출력 → 스팸 방지). try-catch 없음, 동작 변경 없음.
+        private const float InputProbeDuration = 30f;
+        private float _inputProbeStartTime = -1f;
+        private bool _inputProbeActive = false;
+        private readonly bool[] _probePrevWASD = new bool[4];          // 이전 프레임 W/A/S/D 상태
+        private readonly int[] _probeDownCount = new int[4];           // 상승 에지(down) 횟수
+        private readonly int[] _probeUpCount = new int[4];             // 하강 에지(up) 횟수
+        private readonly float[] _probePressStartTime = new float[4];  // 현재 홀드 시작 시각
+        private readonly float[] _probeMaxHold = new float[4];         // 최대 홀드 시간(초)
+        private static readonly string[] ProbeKeyNames = { "W", "A", "S", "D" };
 
         // --- 은신 관련 (Phase 34) ---
         private bool _stealthToggleHeld = false; // Ctrl 키 홀드 상태 추적
@@ -168,7 +199,7 @@ namespace ProjectName.Systems
                         }
                     }
 
-                    _keyboard = Keyboard.current;
+                    // W키 드랍 수정: 키보드 참조 캐시 제거 — 모든 접근은 CurrentKeyboard 즉시 조회로 대체
                     _stamina = _maxStamina;
 
                     // PlayerModel 자식에서 ProceduralAnimationController 찾기
@@ -242,6 +273,9 @@ namespace ProjectName.Systems
 
         private void Update()
         {
+            // DD5: WASD 입력 에지 프로브 (Play 시작 30초 동안만 — 진단 전용, 동작 변경 없음)
+            UpdateInputProbe();
+
             // 카메라 보정: 메인 카메라가 항상 플레이어를 내려다보게 강제 (3인칭 시점).
             // Cinemachine vcam의 Follow/LookAt이 배치/런타임에 제대로 안 먹혀 카메라가 수평(0,0,0)으로
             // 떠 있어 발밑 지형이 안 보이던 원인 해결. 매 프레임 플레이어를 lookAt한다.
@@ -271,6 +305,77 @@ namespace ProjectName.Systems
             // Phase 34: 은신 상태에서 속도 제한은 HandleMovement()에서 직접 적용 (_walkSpeed * 0.5f)
         }
 
+        /// <summary>
+        /// DD5: WASD 입력 상태 에지 프로브 — Play 시작 30초 동안만 활성.
+        /// 매 프레임 isPressed를 폴링해 상승/하강 에지에서만 1줄 로그 (홀드 중엔 무출력).
+        /// 형식: [InputProbe] t=12.3s W=down (전체상태 W=1 A=0 S=0 D=0)
+        /// 30초 경과 후 키별 down/up 횟수와 최대 홀드 시간 요약 1줄 출력 후 종료.
+        /// </summary>
+        private void UpdateInputProbe()
+        {
+            // 최초 호출에서 진단 창 시작 시각 기록
+            if (_inputProbeStartTime < 0f)
+            {
+                _inputProbeStartTime = Time.time;
+                _inputProbeActive = true;
+                Debug.Log("[InputProbe] 시작 — 30초간 WASD 에지 로깅 (down/up 순간에만 출력)");
+            }
+
+            float t = Time.time - _inputProbeStartTime;
+
+            // 진단 창 종료 → 요약 1줄 출력 후 영구 비활성
+            if (t > InputProbeDuration)
+            {
+                if (_inputProbeActive)
+                {
+                    _inputProbeActive = false;
+                    // 30초 시점에 아직 홀드 중인 키의 홀드 시간도 최대값에 반영
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (_probePrevWASD[i])
+                        {
+                            float hold = Time.time - _probePressStartTime[i];
+                            if (hold > _probeMaxHold[i]) _probeMaxHold[i] = hold;
+                        }
+                    }
+                    Debug.Log($"[InputProbe] 종료 — W down={_probeDownCount[0]}/up={_probeUpCount[0]} 최대홀드={_probeMaxHold[0]:F2}s, " +
+                              $"A down={_probeDownCount[1]}/up={_probeUpCount[1]} 최대홀드={_probeMaxHold[1]:F2}s, " +
+                              $"S down={_probeDownCount[2]}/up={_probeUpCount[2]} 최대홀드={_probeMaxHold[2]:F2}s, " +
+                              $"D down={_probeDownCount[3]}/up={_probeUpCount[3]} 최대홀드={_probeMaxHold[3]:F2}s");
+                }
+                return;
+            }
+
+            var kb = CurrentKeyboard;
+            if (kb == null) return;
+
+            bool wNow = kb.wKey.isPressed;
+            bool aNow = kb.aKey.isPressed;
+            bool sNow = kb.sKey.isPressed;
+            bool dNow = kb.dKey.isPressed;
+            bool[] now = { wNow, aNow, sNow, dNow };
+
+            for (int i = 0; i < 4; i++)
+            {
+                if (now[i] && !_probePrevWASD[i])
+                {
+                    // 상승 에지 (down)
+                    _probeDownCount[i]++;
+                    _probePressStartTime[i] = Time.time;
+                    Debug.Log($"[InputProbe] t={t:F1}s {ProbeKeyNames[i]}=down (전체상태 W={(wNow ? 1 : 0)} A={(aNow ? 1 : 0)} S={(sNow ? 1 : 0)} D={(dNow ? 1 : 0)})");
+                }
+                else if (!now[i] && _probePrevWASD[i])
+                {
+                    // 하강 에지 (up)
+                    _probeUpCount[i]++;
+                    float hold = Time.time - _probePressStartTime[i];
+                    if (hold > _probeMaxHold[i]) _probeMaxHold[i] = hold;
+                    Debug.Log($"[InputProbe] t={t:F1}s {ProbeKeyNames[i]}=up (전체상태 W={(wNow ? 1 : 0)} A={(aNow ? 1 : 0)} S={(sNow ? 1 : 0)} D={(dNow ? 1 : 0)})");
+                }
+                _probePrevWASD[i] = now[i];
+            }
+        }
+
         /// <summary>LateUpdate: 모든 스크립트/Cinemachine 이후에 카메라를 최종 적용 — 플레이어 추적 보장.</summary>
         private void LateUpdate()
         {
@@ -282,10 +387,11 @@ namespace ProjectName.Systems
         /// </summary>
         private void HandleStealthInput()
         {
-            if (_keyboard == null) return;
+            var kb = CurrentKeyboard;
+            if (kb == null) return;
 
             // Ctrl 키 누름/뗌 토글
-            bool ctrlPressed = _keyboard.ctrlKey.isPressed;
+            bool ctrlPressed = kb.ctrlKey.isPressed;
 
             if (ctrlPressed && !_stealthToggleHeld)
             {
@@ -304,10 +410,11 @@ namespace ProjectName.Systems
         /// </summary>
         private void HandleInteraction()
         {
-            if (_keyboard == null) return;
+            var kb = CurrentKeyboard;
+            if (kb == null) return;
 
             // E 키 (wasPressedThisFrame: 눌린 순간만 반응)
-            if (_keyboard.eKey.wasPressedThisFrame)
+            if (kb.eKey.wasPressedThisFrame)
             {
                 // 탑승 중에는 상호작용 무시 (MountSystem에서 하차 처리)
                 if (MountSystem.Instance != null && MountSystem.Instance.IsMounted)
@@ -330,8 +437,14 @@ namespace ProjectName.Systems
 
         private void HandleMovement()
         {
-            if (_keyboard == null) _keyboard = Keyboard.current;
-            if (_keyboard == null) return;
+            // W키 드랍 수정: 캐시된 _keyboard 대신 매 프레임 즉시 조회 (stale 참조 차단)
+            var kb = CurrentKeyboard;
+            if (kb == null)
+            {
+                // 디바이스 부재 → 이동 입력 0 처리 (기존 null 가드 유지 + 관성 이동 방지)
+                _moveDirection = Vector3.zero;
+                return;
+            }
 
             // 구르기 중에는 이동 입력을 새로운 방향으로 변경하지 않음
             if (_isRolling) return;
@@ -339,10 +452,10 @@ namespace ProjectName.Systems
             float horizontal = 0;
             float vertical = 0;
 
-            bool wPressed = _keyboard.wKey.isPressed || _keyboard.upArrowKey.isPressed;
-            bool sPressed = _keyboard.sKey.isPressed || _keyboard.downArrowKey.isPressed;
-            bool aPressed = _keyboard.aKey.isPressed || _keyboard.leftArrowKey.isPressed;
-            bool dPressed = _keyboard.dKey.isPressed || _keyboard.rightArrowKey.isPressed;
+            bool wPressed = kb.wKey.isPressed || kb.upArrowKey.isPressed;
+            bool sPressed = kb.sKey.isPressed || kb.downArrowKey.isPressed;
+            bool aPressed = kb.aKey.isPressed || kb.leftArrowKey.isPressed;
+            bool dPressed = kb.dKey.isPressed || kb.rightArrowKey.isPressed;
 
             if (wPressed) vertical += 1;
             if (sPressed) vertical -= 1;
@@ -410,7 +523,7 @@ namespace ProjectName.Systems
             }
 
             // 걷기/달리기/대쉬
-            bool sprintKey = _keyboard != null && _keyboard.leftShiftKey.isPressed;
+            bool sprintKey = kb.leftShiftKey.isPressed; // kb는 위 가드에서 null 아님 보장
             bool hasStamina = _stamina > 0f;
             bool isMoving = _moveDirection.magnitude > 0.1f;
 
@@ -474,16 +587,17 @@ namespace ProjectName.Systems
         /// </summary>
         private void DetectDoubleTap()
         {
-            if (_keyboard == null) return;
+            var kb = CurrentKeyboard;
+            if (kb == null) return;
 
             // 각 키의 wasPressedThisFrame 확인
-            if (_keyboard.wKey.wasPressedThisFrame || _keyboard.upArrowKey.wasPressedThisFrame)
+            if (kb.wKey.wasPressedThisFrame || kb.upArrowKey.wasPressedThisFrame)
                 CheckDoubleTap(KeyDirection.Up);
-            if (_keyboard.sKey.wasPressedThisFrame || _keyboard.downArrowKey.wasPressedThisFrame)
+            if (kb.sKey.wasPressedThisFrame || kb.downArrowKey.wasPressedThisFrame)
                 CheckDoubleTap(KeyDirection.Down);
-            if (_keyboard.aKey.wasPressedThisFrame || _keyboard.leftArrowKey.wasPressedThisFrame)
+            if (kb.aKey.wasPressedThisFrame || kb.leftArrowKey.wasPressedThisFrame)
                 CheckDoubleTap(KeyDirection.Left);
-            if (_keyboard.dKey.wasPressedThisFrame || _keyboard.rightArrowKey.wasPressedThisFrame)
+            if (kb.dKey.wasPressedThisFrame || kb.rightArrowKey.wasPressedThisFrame)
                 CheckDoubleTap(KeyDirection.Right);
         }
 
@@ -530,10 +644,11 @@ namespace ProjectName.Systems
 
         private void HandleRoll()
         {
-            if (_keyboard == null || _controller == null) return;
+            var kb = CurrentKeyboard;
+            if (kb == null || _controller == null) return;
 
             // Q 키 구르기 + 더블탭 구르기 조건
-            if (_keyboard.qKey.wasPressedThisFrame && !_isRolling && 
+            if (kb.qKey.wasPressedThisFrame && !_isRolling && 
                 Time.time - _lastRollTime > _rollCooldown && _isGrounded)
             {
                 // 방향: 현재 이동 방향 또는 캐릭터 정면
@@ -599,7 +714,8 @@ namespace ProjectName.Systems
 
         private void HandleJump()
         {
-            if (_keyboard == null) return;
+            var kb = CurrentKeyboard;
+            if (kb == null) return;
 
             // 구르기 중 점프 불가
             if (_isRolling) return;
@@ -609,12 +725,12 @@ namespace ProjectName.Systems
                 return;
 
             // [JumpProbe] 점프 무반응 원인 분리 — Space 입력 순간 판정 변수 스냅샷(진단 로그 전용, 동작 변경 없음)
-            if (_keyboard.spaceKey.wasPressedThisFrame)
+            if (kb.spaceKey.wasPressedThisFrame)
             {
                 Debug.Log($"[JumpProbe] Space입력: grounded={_isGrounded} rolling={_isRolling} mountBlocked={(MountSystem.Instance != null && MountSystem.Instance.IsMounted)} vv={_verticalVelocity:F2}");
             }
 
-            if (_keyboard.spaceKey.wasPressedThisFrame && _isGrounded)
+            if (kb.spaceKey.wasPressedThisFrame && _isGrounded)
             {
                 _verticalVelocity = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
                 _isJumping = true;
@@ -1213,7 +1329,14 @@ namespace ProjectName.Systems
         public float RunSpeed => _runSpeed;
         public float DashSpeed => _dashSpeed;
         public float JumpHeight => _jumpHeight;
-        public bool IsSprinting => _keyboard != null && _keyboard.leftShiftKey.isPressed && _moveDirection.magnitude > 0.1f;
+        public bool IsSprinting
+        {
+            get
+            {
+                var kb = CurrentKeyboard; // 캐시 없이 즉시 조회 (W키 드랍 수정)
+                return kb != null && kb.leftShiftKey.isPressed && _moveDirection.magnitude > 0.1f;
+            }
+        }
         public bool IsDashing => _isDashing;
         public bool IsJumping => _isJumping;
         public Vector3 Velocity => _controller != null ? _controller.velocity : Vector3.zero;

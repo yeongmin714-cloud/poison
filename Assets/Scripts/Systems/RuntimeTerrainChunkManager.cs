@@ -13,7 +13,8 @@ namespace ProjectName.Systems
     /// — Ground_Inner/TerritoryBuilder/PlayerMovement와 동일 규약이라 봉합면 높이 오차 없음.
     ///
     /// UV: Ground_Inner 메시의 uv를 런타임에 읽어 동일 스케일/오프셋의 affine 매핑
-    /// (u = s*worldX + o)으로 월드 연속을 보장. 읽기 실패 시 worldXZ/2000+0.5 폴백.
+    /// (u = s*worldX + o)으로 월드 연속을 보장. 읽기 실패 시 worldXZ/3200+0.5 폴백
+    /// (±1600m 청크 전체 폭 = NationTerrainController 결합 방위 텍스처 스팬과 정합).
     ///
     /// 전 청크 완료(또는 플레이어가 서 있는 청크 완료 직후) Ground_Inner의
     /// MeshRenderer+MeshCollider만 비활성(z-fighting/이중 물리 방지) —
@@ -39,8 +40,8 @@ namespace ProjectName.Systems
         private int _groundLayer;
         private string _groundTag = "Untagged";
         private Material _sharedMaterial;
-        private float _uScale = 1f / 2000f, _uOffset = 0.5f;   // 폴백: worldX/2000 + 0.5
-        private float _vScale = 1f / 2000f, _vOffset = 0.5f;
+        private float _uScale = 1f / 3200f, _uOffset = 0.5f;   // 폴백: worldX/3200 + 0.5 (±1600m 정합)
+        private float _vScale = 1f / 3200f, _vOffset = 0.5f;
 
         private void Start()
         {
@@ -237,13 +238,13 @@ namespace ProjectName.Systems
         /// <summary>
         /// Ground_Inner 메시의 uv에서 affine 매핑(worldXZ → uv)을 역산한다.
         /// 로컬X + 오브젝트X = 월드X 규약(TerrainTextureApplier Phase B와 동일) 사용.
-        /// 실패 시 out 값에 폴백(worldXZ/2000+0.5)을 유지하고 false 반환.
+        /// 실패 시 out 값에 폴백(worldXZ/3200+0.5)을 유지하고 false 반환.
         /// </summary>
         private static bool TryReadUvMapping(Mesh mesh, Vector3 groundPos,
             out float uScale, out float uOffset, out float vScale, out float vOffset)
         {
-            uScale = 1f / 2000f; uOffset = 0.5f;
-            vScale = 1f / 2000f; vOffset = 0.5f;
+            uScale = 1f / 3200f; uOffset = 0.5f;
+            vScale = 1f / 3200f; vOffset = 0.5f;
 
             var verts = mesh.vertices;
             var uvs = mesh.uv;

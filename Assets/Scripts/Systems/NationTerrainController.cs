@@ -25,13 +25,17 @@ namespace ProjectName.Systems
     ///   East   = x+ (green grassland)
     ///   West   = x- (yellow desert)
     ///   South  = z- (red volcanic)
-    ///   North  = z+ (gray tundra)
+    ///   North  = z+ (SNOW WHITE — 설원 고정 강화)
     ///   Empire = center region (golden)
     ///
     /// The texture is a single 256x256 procedurally generated map that
     /// composites ring zone coloring with nation-specific tint at each
-    /// pixel. UV coordinates are mapped to world-space positions on the
-    /// 1000x1000 terrain plane.
+    /// pixel. UV coordinates are mapped to world-space positions across the
+    /// full ±1600m chunk world (3200x3200m, 64 chunks — uv = world/3200 + 0.5).
+    ///
+    /// 2026-09 (방위색 고정 표시): UpdateForCurrentNation()의 전역 재생성은
+    /// 호출부 제거로 비활성 — 결합(방위 고정) 텍스처가 항상 유지된다.
+    /// 함수 자체는 C22-09 스무스 전환 API로 보존.
     /// </summary>
     public class NationTerrainController : MonoBehaviour
     {
@@ -48,13 +52,17 @@ namespace ProjectName.Systems
         [SerializeField] private Color _eastTint = new Color(0.20f, 0.55f, 0.15f);   // green grassland
         [SerializeField] private Color _westTint = new Color(0.75f, 0.65f, 0.20f);  // yellow desert
         [SerializeField] private Color _southTint = new Color(0.55f, 0.15f, 0.10f); // red volcanic
-        [SerializeField] private Color _northTint = new Color(0.50f, 0.50f, 0.55f); // gray tundra
+        [SerializeField] private Color _northTint = new Color(0.93f, 0.95f, 0.98f); // north snow — 설원 백색(강화)
         [SerializeField] private Color _empireTint = new Color(0.85f, 0.72f, 0.18f); // golden
         [SerializeField] private Color _draculaTint = new Color(0.25f, 0.05f, 0.05f); // dark red/black
 
         [Header("Nation Overlay")]
         [SerializeField, Range(0f, 1f)] private float _baseTintStrength = 0.35f;
         [SerializeField, Range(0f, 1f)] private float _tintNoiseVariation = 0.25f;
+
+        [Header("North Snow Fix (설원 고정 강화)")]
+        // 북쪽 픽셀만 tint 강도를 이 값으로 수렴시켜 방위색이 링 베이스에 묻히지 않게 한다.
+        [SerializeField, Range(0f, 1f)] private float _northTintStrength = 0.9f;
 
         [Header("C22-09: Smooth Transition")]
         [SerializeField] private float _transitionDuration = 2.0f;
@@ -123,14 +131,9 @@ namespace ProjectName.Systems
             ApplyNationTerrainTexture();
         }
 
-        private void Start()
-        {
-            // Optionally update if TerritoryManager becomes available later
-            if (TerritoryManager.Instance != null)
-            {
-                UpdateForCurrentNation(TerritoryManager.Instance.CurrentTerritoryId.nation);
-            }
-        }
+        // Start() 제거(2026-09): TerritoryManager 기반 UpdateForCurrentNation 전역 재생성은
+        // 플레이어 현재 국가 텍스처로 결합 맵을 통째로 덮어써 방위 고정 색을 파괴했다.
+        // 방위색은 플레이어 위치와 무관하게 방위별로 고정 표시되어야 하므로 호출부를 제거했다.
 
         /// <summary>
         /// Applies a combined ring-zone + nation-specific procedural texture
@@ -174,7 +177,11 @@ namespace ProjectName.Systems
             // Create procedural texture
             Texture2D tex = GenerateCombinedTexture();
             _terrainMaterial.mainTexture = tex;
-            _terrainMaterial.mainTextureScale = Vector2.one * _textureTiling;
+            // 결합 텍스처는 ±1600m 월드 전체를 1장으로 커버하는 방위 고정 맵 —
+            // uv 0..1에 1:1 매핑되어야 방위색이 지역별로 고정된다.
+            // (구 _textureTiling=200은 16m 주기 반복 타일이라 방위색이 반복되어 고정 불가)
+            _terrainMaterial.mainTextureScale = Vector2.one;
+            _terrainMaterial.mainTextureOffset = Vector2.zero;
             _terrainMaterial.SetFloat("_Metallic", 0f);
             _terrainMaterial.SetFloat("_Smoothness", 0.1f);
 
@@ -190,6 +197,9 @@ namespace ProjectName.Systems
         /// smooth transition from the previous nation's texture.
         /// Transition blends over _transitionDuration seconds (default 2s).
         /// </summary>
+        /// NOTE(2026-09): 현재 프로젝트 어디에서도 호출하지 않는다(구 Start 호출부 제거).
+        /// 호출 시 GenerateCombinedTexture의 방위 고정 결합 텍스처를 국가 집중
+        /// 텍스처로 덮어쓰므로, 재사용 전에 그 영향을 감안할 것.
         /// <param name="nation">Target nation type</param>
         public void UpdateForCurrentNation(NationType nation)
         {
@@ -442,17 +452,21 @@ namespace ProjectName.Systems
                     float u = (float)x / size;
                     float v = (float)y / size;
 
-                    // Map UV to world position (terrain centered at origin, 1000x1000)
-                    float wx = (u - 0.5f) * 1000f;
-                    float wz = (v - 0.5f) * 1000f;
+                    // Map UV to world position (±1600m 청크 월드, 3200x3200 — 청크 UV 폴백 1/3200+0.5와 정합)
+                    float wx = (u - 0.5f) * 3200f;
+                    float wz = (v - 0.5f) * 3200f;
                     float dist = Mathf.Sqrt(wx * wx + wz * wz);
 
                     // Determine nation from position
                     NationType nation = GetNationFromPosition(new Vector3(wx, 0f, wz));
                     Color nationTint = GetNationTint(nation);
 
+                    // 북쪽(설원)은 방위색을 강하게 고정 — 기본 강도(0.35±노이즈)로는
+                    // 흰색이 링 베이스색에 묻히므로 목표 강도로 수렴시킨다.
+                    float tintOverride = (nation == NationType.North) ? _northTintStrength : -1f;
+
                     // Compute pixel color
-                    Color pixelColor = ComputePixelColor(wx, wz, dist, nationTint, x, y, size);
+                    Color pixelColor = ComputePixelColor(wx, wz, dist, nationTint, x, y, size, tintOverride);
                     pixels[y * size + x] = pixelColor;
                 }
             }
@@ -484,8 +498,8 @@ namespace ProjectName.Systems
                     float u = (float)x / size;
                     float v = (float)y / size;
 
-                    float wx = (u - 0.5f) * 1000f;
-                    float wz = (v - 0.5f) * 1000f;
+                    float wx = (u - 0.5f) * 3200f;
+                    float wz = (v - 0.5f) * 3200f;
                     float dist = Mathf.Sqrt(wx * wx + wz * wz);
 
                     NationType nation = GetNationFromPosition(new Vector3(wx, 0f, wz));
@@ -509,7 +523,8 @@ namespace ProjectName.Systems
         /// Computes a single pixel color by blending ring-zone base color
         /// with Perlin noise variation and nation-specific tint.
         /// </summary>
-        private Color ComputePixelColor(float wx, float wz, float dist, Color nationTint, int px, int py, int size)
+        private Color ComputePixelColor(float wx, float wz, float dist, Color nationTint, int px, int py, int size,
+            float tintStrengthOverride = -1f)
         {
             const int seed = 42;
 
@@ -546,8 +561,14 @@ namespace ProjectName.Systems
 
             // --- Nation tint overlay ---
             float tintStrength = _baseTintStrength + n3 * _tintNoiseVariation;
-            float distFactor = Mathf.Clamp01(dist / 1000f);
+            float distFactor = Mathf.Clamp01(dist / 1600f);   // ±1600m 월드 기준
             tintStrength *= (0.7f + distFactor * 0.3f);
+
+            // 설원(북쪽) 고정 강화: override 지정 시 노이즈 변동 10%만 남기고 목표 강도로 수렴
+            if (tintStrengthOverride >= 0f)
+            {
+                tintStrength = Mathf.Clamp01(Mathf.Lerp(tintStrength, tintStrengthOverride, 0.9f));
+            }
 
             Color finalColor = Color.Lerp(noisyBase, nationTint, tintStrength);
 

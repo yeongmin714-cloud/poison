@@ -472,10 +472,19 @@ namespace ProjectName.Systems
             {
                 for (float gz = -lim; gz <= lim; gz += p.treeSpacing)
                 {
+                    // 숲 군락/개활지 분리(예시 컨셉): 트리 후보 위치마다 Fbm 숲 마스크 노이즈 게이트
+                    // (TerrainShape.Fbm은 public — 결정론 3옥타브 FBM, 시드 7777 고정).
+                    //   forestMask > 0.55     밀집 숲 — 배치 간격 절반(2×2 서브그리드 강제)
+                    //   0.40 ~ 0.55           정상 간격
+                    //   forestMask < 0.40     개활지 — 70% 확률로 스킵
+                    float forestMask = TerrainShape.Fbm(gx * 0.008f, gz * 0.008f, 3, 2f, 0.5f, 7777);
+                    if (forestMask < 0.40f && rng.NextDouble() < 0.70) continue;   // 개활지 스킵
+                    bool denseForest = forestMask > 0.55f;                         // 밀집 숲 → 간격 절반
+
                     // Z4: 숲 군락 여부 (군락 내 나무 밀도 ×4 = 2×2 서브그리드)
                     float fx = gx, fz = gz;
                     bool forest = TerrainShape.GetForestPatchMask(fx, fz, p.nation, T_R4_BASE) > 0.50f;
-                    int subs = forest ? 2 : 1;
+                    int subs = (forest || denseForest) ? 2 : 1;
                     for (int si = 0; si < subs * subs && placed < p.treeCap; si++)
                     {
                         int sx = si % subs, sz = si / subs;
