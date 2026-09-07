@@ -51,6 +51,10 @@ namespace ProjectName.Systems
         private float _currentSpeed;
         private bool _isGrounded;
 
+        // 이동 가속/감속 평활 속도 — 0↔5m/s 즉발 전환 제거(Idle↔Walk↔Run 애니 사이클 급전환·클립 재시작 방지).
+        // 가속 12m/s², 감속 18m/s²로 평면 속도만 램프 (방향은 즉시 반영 — 조작감 유지).
+        private float _smoothedPlanarSpeed;
+
         // ── Input System 키보드 참조 (W키 간헐 드랍 수정: 캐시 금지, 매 접근 즉시 조회) ──
         // 과거 `_keyboard = Keyboard.current`를 1회 캐시하면 Input System이 디바이스를
         // 재열거(장치 재연결/포커스 복귀 등)할 때 캐시 참조가 stale이 되어 isPressed가
@@ -831,7 +835,19 @@ namespace ProjectName.Systems
                 return;
             }
 
-            Vector3 motion = _moveDirection * _currentSpeed * _speedModifier;
+            // ── 이동 가속/감속 스무딩: 목표 속도 = 입력 있음 ? 기존 속도값(_currentSpeed × _speedModifier) : 0 ──
+            // 방향은 즉시 반영(조작감 유지), 평면 속도만 램프: 가속 12m/s², 감속 18m/s².
+            // 대시는 _currentSpeed=15로 target이 자동 상향되고, 구르기는 별도 경로(HandleRoll)라 무영향.
+            // 주의: ApplyGravity()가 _moveDirection.y에 _verticalVelocity를 기록하므로 y 오염을 제거한
+            //       평면 성분(x,z)만 판정/정규화에 사용한다 — 그대로 쓰면 정지 시 sqrMagnitude≈4로
+            //       "입력 있음" 오판, 이동 시 크기 sqrt(1+vv²)로 나뉘어 실제 평면 속도가 절반 이하로 감소.
+            Vector3 planarDir = new Vector3(_moveDirection.x, 0f, _moveDirection.z);
+            bool hasInput = planarDir.sqrMagnitude > 0.01f;
+            float targetSpeed = hasInput ? _currentSpeed * _speedModifier : 0f;
+            _smoothedPlanarSpeed = Mathf.MoveTowards(
+                _smoothedPlanarSpeed, targetSpeed,
+                (targetSpeed > _smoothedPlanarSpeed ? 12f : 18f) * Time.deltaTime);
+            Vector3 motion = planarDir.normalized * _smoothedPlanarSpeed;
             motion.y = _verticalVelocity;
             _controller.Move(motion * Time.deltaTime);
             ClampToWorldBounds(); // 월드 경계 클램프 — 지형 밖(±1600m 초과) 이동 차단

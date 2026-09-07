@@ -49,6 +49,8 @@ namespace ProjectName.Systems
         const float MEADOW_JITTER = 8f;
         const float MEADOW_MIN_DIST = 22f;
         const float TRUNK_CLEAR = 2.5f;
+        // 길 확보: 흙길(반폭 3.5m) 중심선에서 이 반경 이내 나무/바위 배치 제외
+        const float DIRT_PATH_CLEAR = 7f;
 
         const float FLOWER_MASK_HI = 0.60f;
         const float FANTASY_MASK_HI = 0.50f;
@@ -474,14 +476,15 @@ namespace ProjectName.Systems
                 {
                     // 숲 군락/개활지 분리(예시 컨셉): 트리 후보 위치마다 Fbm 숲 마스크 노이즈 게이트
                     // (TerrainShape.Fbm은 public — 결정론 3옥타브 FBM, 시드 7777 고정).
-                    // Z5: 게이트 하향(0.55→0.48, 0.40→0.35) + 스킵 완화(70%→50%) —
-                    // 숲 지역 커버리지 확대, 개활지에도 나무 일부 유지.
-                    //   forestMask > 0.48     밀집 숲 — 배치 간격 절반(2×2 서브그리드 강제)
-                    //   0.35 ~ 0.48           정상 간격
-                    //   forestMask < 0.35     개활지 — 50% 확률로 스킵
-                    float forestMask = TerrainShape.Fbm(gx * 0.008f, gz * 0.008f, 3, 2f, 0.5f, 7777);
-                    if (forestMask < 0.35f && rng.NextDouble() < 0.50) continue;   // 개활지 스킵
-                    bool denseForest = forestMask > 0.48f;                         // 밀집 숲 → 간격 절반
+                    // Z5: 게이트 하향(0.55→0.48, 0.40→0.35) + 스킵 완화(70%→50%).
+                    // Z6: 숲 커버리지/덩어리 상향 — 밀집 임계 0.48→0.42, 마스크 주파수 0.008→0.005
+                    // (숲 덩어리 특성 길이 ~125m→200m 대형화), 개활지 스킵 50%→30%.
+                    //   forestMask > 0.42     밀집 숲 — 배치 간격 절반(2×2 서브그리드 강제)
+                    //   0.35 ~ 0.42           정상 간격
+                    //   forestMask < 0.35     개활지 — 30% 확률로 스킵
+                    float forestMask = TerrainShape.Fbm(gx * 0.005f, gz * 0.005f, 3, 2f, 0.5f, 7777);
+                    if (forestMask < 0.35f && rng.NextDouble() < 0.30) continue;   // 개활지 스킵
+                    bool denseForest = forestMask > 0.42f;                         // 밀집 숲 → 간격 절반
 
                     // Z4: 숲 군락 여부 (군락 내 나무 밀도 ×4 = 2×2 서브그리드)
                     float fx = gx, fz = gz;
@@ -513,6 +516,8 @@ namespace ProjectName.Systems
             var nation = NationTerrainController.GetNationFromPosition(new Vector3(x, 0f, z));
             if (nation != p.nation) return false;
             if (treeCnt[(int)nation] >= p.treeCap) return false;
+            // 길 확보: 흙길(중심선 반경 7m) 위 나무 배치 제외
+            if (IsNearDirtPath(x, z, DIRT_PATH_CLEAR)) return false;
             if (IsNearLakeWater(x, z, LAKE_TREE_MARGIN)) return false;
             // Z3: 경사 30° 초과 지점 데코 배치 스킵 (절벽 위 나무 금지 — 자연 지면 스냅 유지)
             if (TerrainSplatBaker.EstimateSlopeDegrees(x, z) > 30f) return false;
@@ -556,6 +561,8 @@ namespace ProjectName.Systems
                     if (nation != p.nation) continue;
                     if (rockCnt[(int)nation] >= p.rockCap) continue;
                     if (IsNearLakeWater(x, z, 1.1f)) continue;
+                    // 길 확보: 흙길(중심선 반경 7m) 위 바위 배치 제외
+                    if (IsNearDirtPath(x, z, DIRT_PATH_CLEAR)) continue;
                     var p2 = new Vector2(x, z);
                     if (!treeHash.IsFree(p2, TRUNK_CLEAR)) continue;
                     if (!propHash.IsFree(p2, ROCK_MIN_DIST)) continue;
@@ -580,6 +587,7 @@ namespace ProjectName.Systems
                             if (!InBounds(cx, cz, origin)) continue;
                             if (IsInSpawnExclusion(cx, cz)) continue;
                             var cp = new Vector2(cx, cz);
+                            if (IsNearDirtPath(cx, cz, DIRT_PATH_CLEAR)) continue; // 길 확보
                             if (!propHash.IsFree(cp, ROCK_MIN_DIST)) continue;
                             if (!treeHash.IsFree(cp, TRUNK_CLEAR)) continue;
                             float cy = GROUND_BASE + TerrainGenerator.GetHeightAt(cx, cz, BiomeType.Plains, 42);
@@ -795,6 +803,36 @@ namespace ProjectName.Systems
                 float m = lake.radius * marginFactor;
                 if (dx * dx + dz * dz < m * m)
                     return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 흙길 위 배치 금지 판정 — 세그먼트 AABB 사전 필터(반경 여유 포함) 후 점-선분 최단거리 검사.
+        /// NationTerrainController.DirtPaths (결정론 캐시, 스포크 4 + 링 48 + 스폰 1 = 53 세그먼트).
+        /// 배치 시점에 1회 호출이라 O(후보×53) 허용.
+        /// </summary>
+        static bool IsNearDirtPath(float x, float z, float radius)
+        {
+            var paths = NationTerrainController.DirtPaths;
+            if (paths == null || paths.Count == 0) return false;
+            int count = paths.Count;
+            float r2 = radius * radius;
+            for (int i = 0; i < count; i++)
+            {
+                var s = paths[i];
+                // 1차 필터: 세그먼트 AABB(+반폭 여유) + 반경 — 벗어나면 즉시 스킵
+                if (x < s.MinX - radius || x > s.MaxX + radius
+                    || z < s.MinZ - radius || z > s.MaxZ + radius)
+                    continue;
+                // 2차: 점-선분 최단거리 제곱 < 반경 제곱이면 길 위
+                float vx = s.X1 - s.X0, vz = s.Z1 - s.Z0;
+                float wx = x - s.X0, wz = z - s.Z0;
+                float len2 = vx * vx + vz * vz;
+                float t = len2 > 0f ? Mathf.Clamp01((wx * vx + wz * vz) / len2) : 0f;
+                float dx = s.X0 + vx * t - x;
+                float dz = s.Z0 + vz * t - z;
+                if (dx * dx + dz * dz < r2) return true;
             }
             return false;
         }

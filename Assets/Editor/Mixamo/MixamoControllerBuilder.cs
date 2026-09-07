@@ -245,7 +245,7 @@ namespace ProjectName.EditorTools
         {
             var t = from.AddTransition(to);
             t.hasExitTime = false;
-            t.duration = 0.05f; // 이동 전환은 빠르게(0.15→0.05) — 멈춤/출발 모션 지연 감소
+            t.duration = 0.12f; // 로코모션 전환 블렌드 0.12s — Idle↔Walk↔Run 클립 전환 끊김 완화(즉발 0.05는 애니 팝 유발)
             t.AddCondition(mode, threshold, param);
         }
 

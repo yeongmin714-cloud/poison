@@ -543,8 +543,11 @@ namespace ProjectName.Systems
         /// </summary>
         private static readonly PathSegment[] DirtPathSegments = BuildDirtPathSegments();
 
+        /// <summary>흙길 세그먼트 읽기 전용 뷰 — 데코 배치 길 확보(IdyllicDecoPlacer 등) 외부 소비용.</summary>
+        public static System.Collections.Generic.IReadOnlyList<PathSegment> DirtPaths => DirtPathSegments;
+
         /// <summary>월드 XZ 평면 위 선분. AABB는 픽셀 루프 사전 필터링용(반폭 여유 포함).</summary>
-        private struct PathSegment
+        public struct PathSegment
         {
             public float X0, Z0, X1, Z1;         // 끝점 (월드 XZ)
             public float MinX, MaxX, MinZ, MaxZ; // AABB (+반폭 여유)
