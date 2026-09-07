@@ -206,6 +206,16 @@ namespace ProjectName.Systems
                     new System.Random(NationSeed(profiles[i].nation) + 11));
             }
 
+            // B4: 흙길 가장자리 소형 데코 (자갈/허브/들꽃) — 국가별 결정론 시드 +13,
+            //     최소간격 PATH_EDGE_KEEP(2m) SpatialHash, 국가당 상한 PATH_EDGE_CAP(150).
+            int pathEdgeCnt = 0;
+            for (int i = 0; i < profiles.Length; i++)
+            {
+                pathEdgeCnt += PlacePathEdgeDeco(profiles[i], cat, origin, flowersT, grassT, rocksT,
+                    new SpatialHash(PATH_EDGE_KEEP),
+                    new System.Random(NationSeed(profiles[i].nation) + 13));
+            }
+
             var empireRng = new System.Random(NationSeed(NationType.Empire));
             int empirePlaced = PlaceEmpireGarden(origin, cat, forestT, bushesT, treeHash, propHash, empireRng);
 
@@ -230,6 +240,10 @@ namespace ProjectName.Systems
                 "[IdyllicDecoPlacer][AA5] GrassTusks={0}||FlowerMeadowPatches={1}||GrassCap={2}/nation||" +
                 "EstDrawCalls={3} (GPU instancing on: 1 mesh per 1 draw-call batch)",
                 grassCnt, fmPatchCnt, GRASS_NATION_CAP, grassCnt + fmPatchCnt));
+            // B4: 흙길 가장자리 데코 배치 합계 (AA5 로그와 동일한 || 구분 형식)
+            Debug.Log(string.Format(
+                "[IdyllicDecoPlacer][B4] PathEdgeDeco={0}||Cap={1}/nation||Keep={2}m||Band={3}~{4}m||Mix=rock40/grass30/flower30",
+                pathEdgeCnt, PATH_EDGE_CAP, PATH_EDGE_KEEP, PATH_EDGE_INNER, PATH_EDGE_OUTER));
             Debug.Log("[IdyllicDecoPlacer][T-R4] Deterministic seed = 20260904+nationId*1000. LayoutHash for 2-boot compare (same seed->same hash).");
             Debug.Log("[IdyllicDecoPlacer][T-R4] Culling radii (no existing group - log only): tree 150m / rock 200m / grass-flower-bush 60m.");
             Debug.Log("[IdyllicDecoPlacer][AA5] Culling = simple distance check(Update 0.5s) player radius 60m -> grass/FlowerMeadow SetActive(false) outside.");
@@ -682,6 +696,88 @@ namespace ProjectName.Systems
                     placed++;
                 }
             }
+        }
+
+        /// <summary>
+        /// B4: 흙길 가장자리 소형 데코 — 흙길 세그먼트를 PATH_EDGE_STEP(7m) 간격으로 걷으며
+        /// 세그먼트 법선 좌우 랜덤측, 길 중심선에서 7~9m(PATH_EDGE_INNER~OUTER, 7m 금지 벨트 바로 바깥)에
+        /// 자갈(rockSmall 0.3~0.6) 40% / 허브 역할 잔디 풋(0.8~1.1) 30% / 들꽃(0.7~1.0) 30% 배치.
+        /// 들꽃은 PlaceNationFlowers 방식(국가 선호색 p.flowers 가중 랜덤) 재사용.
+        /// 최소간격 PATH_EDGE_KEEP(2m) SpatialHash + 국가당 상한 PATH_EDGE_CAP(150).
+        /// 경계: ±1550m 클램프 스킵 / 스폰 지점 제외 / 타 세그먼트 7m 접점 스킵(이중 방어).
+        /// 호수 마진은 미검사(자갈/잔디/꽃 모두 육지 프리팹). 결정론 rng만 사용.
+        /// </summary>
+        static int PlacePathEdgeDeco(NationDecoProfile p, CategoriesR4 cat, Vector3 origin,
+            Transform flowersT, Transform grassT, Transform rocksT, SpatialHash hash, System.Random rng)
+        {
+            var paths = NationTerrainController.DirtPaths;
+            if (paths == null || paths.Count == 0) return 0;
+            if ((cat.rockSmall == null || cat.rockSmall.Count == 0)
+                && (cat.grass == null || cat.grass.Count == 0)
+                && (p.flowers == null || p.flowers.Count == 0)) return 0;
+
+            int placed = 0;
+            for (int i = 0; i < paths.Count && placed < PATH_EDGE_CAP; i++)
+            {
+                var s = paths[i];
+                float vx = s.X1 - s.X0, vz = s.Z1 - s.Z0;
+                float len = Mathf.Sqrt(vx * vx + vz * vz);
+                if (len <= 0.01f) continue;
+                float nx = -vz / len, nz = vx / len;   // 세그먼트 법선(길 직진 방향의 좌우)
+                int steps = Mathf.Max(1, Mathf.FloorToInt(len / PATH_EDGE_STEP));
+                for (int k = 0; k < steps && placed < PATH_EDGE_CAP; k++)
+                {
+                    // 등간격 중간점 샘플 — 인접 세그먼트 끝점과의 겹침 방지
+                    float t = (k + 0.5f) / steps;
+                    float cx = s.X0 + vx * t;
+                    float cz = s.Z0 + vz * t;
+                    // 좌우 중 랜덤 한쪽, 길 중심선에서 7~9m 지점
+                    float side = rng.Next(2) == 0 ? -1f : 1f;
+                    float d = RandomRange(rng, PATH_EDGE_INNER, PATH_EDGE_OUTER);
+                    float x = cx + nx * side * d;
+                    float z = cz + nz * side * d;
+
+                    if (!InBounds(x, z, origin)) continue;               // origin ±1550m 경계 스킵
+                    if (IsInSpawnExclusion(x, z)) continue;              // 스폰 지점 확보
+                    var nation = NationTerrainController.GetNationFromPosition(new Vector3(x, 0f, z));
+                    if (nation != p.nation) continue;                    // 국가 영역 밖 스킵(프로필별 1회)
+                    if (IsNearDirtPath(x, z, PATH_EDGE_INNER)) continue; // 이중 방어 — 다른 세그먼트 7m 이내 스킵
+                    var p2 = new Vector2(x, z);
+                    if (!hash.IsFree(p2, PATH_EDGE_KEEP)) continue;      // 가장자리 데코 최소간격 2m
+
+                    float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42);
+                    // 종류 추첨: 자갈 40% / 허브(잔디 풋) 30% / 들꽃 30% (부재 시 순차 폴백)
+                    float roll = (float)rng.NextDouble();
+                    if (roll < 0.40f && cat.rockSmall.Count > 0)
+                    {
+                        // 자갈: rockSmall 0.3~0.6 — 소형 프리팹(충돌체/섀도우 없음, 통행 방해 없음)
+                        Place(cat.rockSmall[rng.Next(cat.rockSmall.Count)], x, y, z,
+                            RandomRange(rng, 0.3f, 0.6f), rng, rocksT);
+                    }
+                    else if (roll < 0.70f && cat.grass != null && cat.grass.Count > 0)
+                    {
+                        // 허브 역할: 잔디 풋 0.8~1.1 (PlaceGrass = yaw 랜덤 + ±8° 기울기)
+                        PlaceGrass(cat.grass[rng.Next(cat.grass.Count)], x, y + 0.04f, z,
+                            RandomRange(rng, 0.8f, 1.1f), rng, grassT);
+                    }
+                    else if (p.flowers != null && p.flowers.Count > 0)
+                    {
+                        // 들꽃: PlaceNationFlowers 방식 — 국가 선호색 꽃 가중 랜덤, 0.7~1.0
+                        WPrefab entry = PickWeighted(p.flowers, rng);
+                        Place(entry.prefab, x, y + 0.05f, z, RandomRange(rng, 0.7f, 1.0f), rng, flowersT);
+                    }
+                    else if (cat.rockSmall.Count > 0)
+                    {
+                        Place(cat.rockSmall[rng.Next(cat.rockSmall.Count)], x, y, z,
+                            RandomRange(rng, 0.3f, 0.6f), rng, rocksT);
+                    }
+                    else continue;
+
+                    hash.Insert(p2);
+                    placed++;
+                }
+            }
+            return placed;
         }
 
         static void PlaceFantasyMeadows(NationDecoProfile p, CategoriesR4 cat, Vector3 origin,
