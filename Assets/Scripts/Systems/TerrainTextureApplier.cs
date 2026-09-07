@@ -336,6 +336,17 @@ namespace ProjectName.Systems
             }
 
             // === Phase 1 진단: 지형/콜라이더/착지 실제 상태 숫자로 확정 ===
+            // Start 시점엔 RuntimeTerrainChunkManager가 청크를 아직 못 지었으므로 즉시 진단은
+            // 항상 "콜라이더 없음" 거짓 경고가 나온다 → 90초 지연 후 1회 실측.
+            StartCoroutine(DiagnoseGroundStateDelayed());
+        }
+
+        /// <summary>DiagP1 진단을 90초 지연 후 1회 실행 — 청크 빌드 완료 후 실측하기 위함.</summary>
+        private System.Collections.IEnumerator DiagnoseGroundStateDelayed()
+        {
+            const float chunkBuildWaitSeconds = 90f;
+            yield return new WaitForSeconds(chunkBuildWaitSeconds);
+            Debug.Log($"[DiagP1] 지연 진단 시작 — Start 후 {chunkBuildWaitSeconds:F0}초 경과 (청크 빌드 완료 후 실측)");
             DiagnoseGroundState();
         }
 
@@ -401,7 +412,7 @@ namespace ProjectName.Systems
             }
             else
             {
-                Debug.LogWarning("[DiagP1] 전방지면 아래 20m에 콜라이더 없음 → 회색은 배경/허공");
+                Debug.LogWarning("[DiagP1] 전방지면 아래 콜라이더 없음 → 회색은 배경/허공이거나 Ground_Chunk_* 미빌드 상태일 수 있음 (청크 빌드 진행/완료 여부 확인)");
             }
 
             // 4) 지형 위 서기 체크용 — 지형 표면 상대

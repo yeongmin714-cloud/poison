@@ -1101,6 +1101,9 @@ namespace ProjectName.Systems
         }
 
         // 지형 상태 지속 감시 + 자동 복구: Ground_Inner가 언제/왜 안 보이게 되는지 포착
+        // 감시 대상은 Ground_Inner 전용(GameObject.Find). 주의: 청크 완료 시 renderer 비활성은
+        // RuntimeTerrainChunkManager의 정상 동작이므로 복구하지 않는다(오판 시 구/신 지형 이중 렌더).
+        // 활성(activeInHierarchy)·메시 파손만 감시/복구한다.
         private string _lastGroundState = "";
         private GameObject _groundWatchCache;
         private void WatchAndFixGround()
@@ -1128,12 +1131,12 @@ namespace ProjectName.Systems
                 _lastGroundState = state;
             }
 
-            // 자동 복구: 비활성/렌더러꺼짐/메시없음이면 즉시 복구
-            bool broken = !g.activeInHierarchy || (mrW != null && !mrW.enabled) || (mfW == null || mfW.sharedMesh == null);
+            // 자동 복구: 비활성/메시없음이면 즉시 복구.
+            // renderer 비활성(mrW.enabled==false)은 청크 매니저의 정상 완료 동작이므로 broken에 넣지 않음.
+            bool broken = !g.activeInHierarchy || (mfW == null || mfW.sharedMesh == null);
             if (broken)
             {
                 if (!g.activeSelf) g.SetActive(true);
-                if (mrW != null && !mrW.enabled) mrW.enabled = true;
                 Debug.LogWarning($"[GroundWatch] 지형 상태 이상 감지 → 자동 복구 시도: {state}");
             }
         }

@@ -10,6 +10,11 @@ namespace ProjectName.Diagnostics
     {
     private CharacterController _controller;
     private int _collisionCount = 0;
+    // 동일 히트 중복 로그 억제 (로그 스팸/히치 방지): 마지막 로그 좌표+오브젝트 캐시,
+    // 동일 오브젝트·0.01m 이내 동일 좌표면 1초에 1회만 출력.
+    private Vector3 _lastHitPoint;
+    private string _lastHitName;
+    private float _lastHitLogTime = -999f;
     
     private void Awake()
     {
@@ -22,7 +27,15 @@ namespace ProjectName.Diagnostics
         _collisionCount++;
         if (_collisionCount % 10 == 1 || hit.gameObject.name.Contains("Floor") || hit.gameObject.name.Contains("Ground"))
         {
+            bool sameHit = hit.gameObject.name == _lastHitName
+                && (hit.point - _lastHitPoint).sqrMagnitude <= 0.01f * 0.01f; // epsilon 0.01m
+            if (sameHit && Time.time - _lastHitLogTime < 1f)
+                return; // 동일 히트는 1초에 1회만
+
             Debug.Log($"[CollisionDebugger] HIT: {hit.gameObject.name} (layer={hit.gameObject.layer} [{LayerMask.LayerToName(hit.gameObject.layer)}]) at {hit.point}, normal={hit.normal}, moveDir={hit.moveDirection}");
+            _lastHitPoint = hit.point;
+            _lastHitName = hit.gameObject.name;
+            _lastHitLogTime = Time.time;
         }
     }
     

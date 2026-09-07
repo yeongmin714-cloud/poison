@@ -265,6 +265,8 @@ namespace ProjectName.Systems
         /// <summary>프리팹 공유 머티리얼의 기본 색(읽기 전용) 캐시 — 인스턴스 복제 없이 원본 보존.</summary>
         Color GetPrefabBaseColor(GameObject go)
         {
+            if (go == null) return Color.white; // 파괴된 오브젝트 가드 (NRE 원천 차단)
+
             Color c;
             if (_baseColorCache.TryGetValue(go.name, out c))
                 return c;
