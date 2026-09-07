@@ -690,6 +690,88 @@ namespace ProjectName.UI
             }
         }
 
+        // ===================================================================
+        // 무기 슬롯 섹션 (장착/해제) — WeaponEquipManager 연동
+        // "무기" 라벨 + 강철검/크리스탈검/돌검/나무검/해제 버튼 5개.
+        // 현재 장착 중인 검 버튼은 배경색(황금색 강조) 하이라이트.
+        // ===================================================================
+        private void DrawWeaponSection(float panelX, float sectionY)
+        {
+            DrawColoredRect(new Rect(panelX, sectionY, WINDOW_WIDTH, WEAPON_SECTION_HEIGHT), ColorBg);
+            DrawColoredRect(new Rect(panelX, sectionY, WINDOW_WIDTH, 1), ColorBorder);
+
+            // 좌측 "무기" 라벨
+            float labelWidth = 150f;
+            GUI.Label(new Rect(panelX + 16f, sectionY + 18f, labelWidth, WEAPON_SECTION_HEIGHT - 32f),
+                "무기", _styleItemName);
+
+            // 버튼 정의: id (null = 해제 버튼)
+            string[] weaponIds   = { "steel", "crystal", "stone", "wood", null };
+            string[] weaponLabels = { "강철검", "크리스탈검", "돌검", "나무검", "해제" };
+
+            float btnAreaX = panelX + 16f + labelWidth;
+            float btnAreaWidth = WINDOW_WIDTH - 32f - labelWidth;
+            float btnGap = 8f;
+            float btnWidth = (btnAreaWidth - btnGap * (weaponIds.Length - 1)) / weaponIds.Length;
+            float btnY = sectionY + 14f;
+            float btnHeight = WEAPON_SECTION_HEIGHT - 28f;
+
+            // 플레이어 트랜스폰 (캐시) — Equip에 전달
+            Transform playerT = GetPlayerTransform();
+
+            string equippedId = WeaponEquipManager.CurrentId;
+            for (int i = 0; i < weaponIds.Length; i++)
+            {
+                string id = weaponIds[i];
+                bool isEquippedThis = id != null && equippedId == id;
+                string label = isEquippedThis ? $"✔ {weaponLabels[i]}" : weaponLabels[i];
+
+                Rect btnRect = new Rect(btnAreaX + i * (btnWidth + btnGap), btnY, btnWidth, btnHeight);
+
+                // 현재 장착 중인 검 버튼 하이라이트 (배경색 변경)
+                Color prevBg = GUI.backgroundColor;
+                if (isEquippedThis) GUI.backgroundColor = ColorAccent;
+                if (GUI.Button(btnRect, label))
+                {
+                    if (id != null)
+                    {
+                        if (playerT != null)
+                            WeaponEquipManager.Equip(id, playerT);
+                    }
+                    else
+                    {
+                        WeaponEquipManager.Unequip();
+                    }
+                }
+                GUI.backgroundColor = prevBg;
+            }
+        }
+
+        // 플레이어 트랜스폰 캐시 (무기 슬롯용)
+        private Transform _cachedPlayerT;
+        private float _playerCacheTime;
+
+        /// <summary>
+        /// 플레이어 트랜스폰 획득 — PlayerMovement(InChildren Animator 보유) 우선,
+        /// 실패 시 Player 태그 폴백. IMGUI 프레임 호출 스팸 방지를 위해 1초 캐시.
+        /// </summary>
+        private Transform GetPlayerTransform()
+        {
+            if (_cachedPlayerT != null && Time.unscaledTime - _playerCacheTime < 1f)
+                return _cachedPlayerT;
+
+            _cachedPlayerT = null;
+            var pm = FindFirstObjectByType<PlayerMovement>();
+            if (pm != null) _cachedPlayerT = pm.transform;
+            if (_cachedPlayerT == null)
+            {
+                var tagged = GameObject.FindGameObjectWithTag("Player");
+                if (tagged != null) _cachedPlayerT = tagged.transform;
+            }
+            _playerCacheTime = Time.unscaledTime;
+            return _cachedPlayerT;
+        }
+
         // ===== 인벤토리 정렬 =====
         private void SortInventory()
         {
