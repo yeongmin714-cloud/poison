@@ -105,6 +105,16 @@
 
 ---
 
+## 2026-09-07: Phase 1~3 검증 완료 + 최종 컨트롤러 확정 ✅
+
+**컨트롤러 바인딩 최종 확인(guid 대조):** Player_AC = Walk→`Walking.fbx` / Run→`Running.fbx` / Idle→`Idle.fbx` / Jump→`Standing Jump.fbx` / Roll→`Quick Roll To Run` / Death→`Standing Death Backward 01` / Hit→팩 `Hit_F_1` / Attack·Combo→팩 `OneHand_Up_Attack_1` + `m_Speed: 0.28`(Run 재생속도) + `m_EventTreshold: 2`(Run→Walk) — **설계 의도 100% 반영 확인**. Player_AC_AC 잔재 삭제 완료(디스크 4파일만 존재).
+
+**구현 완료:** ① 빌더 파일 레벨 스왑(+AssetDatabase.Refresh — DB stale 중복 차단) ② 로코모션 믹사모 전환(병사는 팩 유지) ③ Run 재생속도 0.28 ④ 검 부착(steel_sword→RightHand) ⑤ 정적 병합 잔디(4m 간격 10,000터프/청크, 1.6×1.1m, 호수 제외, 1드로우콜) + 동적 예산 100 ⑥ 잔디 텍스처 디테일 노이즈(고빈도+패치 이중 변조) ⑦ 흙길 폭 7m/알파 0.92 ⑧ 텍스처 1024(씬 직렬화 수정 포함) ⑨ 메사 35% ⑩ 꽃밭 140m ⑪ 호수 대형 2개 추가 ⑫ **WeaponEquipManager + 인벤토리 무기 슬롯**(4종 검 장착/해제, 장착 하이라이트, GameSetup 기본 steel 이관).
+
+**판정 대기 (Play):** ① 컴파일 에러 0 ② 검 든 믹사모 로코모션 자연스러움 ③ 잔디 전체 커버(정적+텍스처 디테일) ④ 흙길/메사/꽃밭/호수/숲 스크린샷 ⑤ I키 무기 장착/해제 동작 ⑥ [State] 진동 0 + [InputProbe] 120s 요약 ⑦ 프레임 수치.
+
+---
+
 ## 2026-09-06: 애니 끊김 수리 — 정지 스냅 홀드 타이머 ✅ (판정 대기)
 
 **증상:** 전 지형에서 애니는 작동하나 걷기/달리기 중 애니가 "자꾸 끊겨서 재생".
