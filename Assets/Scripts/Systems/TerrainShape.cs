@@ -233,6 +233,15 @@ namespace ProjectName.Systems
             float valleyA = p.amplitudeA * VALLEY_AMP_RATIO * Mathf.Lerp(LOW_DETAIL_AMP_FACTOR, 1f, detail);
             h += -valleyA * Smoothstep(VALLEY_LO, VALLEY_HI, valleyNoise);
 
+            // ── 4.5) 협곡 강화: 서(험준 협곡)·남(화산 협곡) 절벽 낙차 추가 — cliffSuppression 보호 유지 ──
+            //      m(RidgeCliffMask)은 보호 구역(cliffSuppression=0)에서 0이므로 스폰/성/호수/경계에 자동 무해.
+            //      저주파(0.5×freq0) Fbm으로 협곡 깊이에 공간 변주 — 시드 고정(nseed+777)으로 결정론 보장.
+            if (nation == NationType.West || nation == NationType.South)
+            {
+                float canyonBoost = (nation == NationType.West) ? 4f : 2.5f;
+                h += canyonBoost * m * (0.5f + 0.5f * Fbm(wx * p.freq0 * 0.5f, wz * p.freq0 * 0.5f, 2, LACUNARITY, GAIN, nseed + 777)) * cliffSuppression;
+            }
+
             // ── 5) Mesa/대지 (예시2 단차): 셀 기반 평탄 대지 — 가장자리는 급경사 절벽 느낌 ──
             //      cliffSuppression을 곱해 스폰/성/호수/경계 보호 구역에는 생성 금지.
             h += MesaLift(wx, wz, nseed) * MESA_HEIGHT * cliffSuppression;
@@ -249,7 +258,7 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 메사(대지) 마스크 [0,1] — 140m 셀 그리드에서 35% 확률로 평탄 대지 생성 (MESA_CHANCE 0.15→0.25→0.35 증빈).
-        /// 내부는 완전 평탄(1.0), 가장자리 6m에서 급강하(절벽 느낌). 결정론적 해시.
+        /// 내부는 층상 단차(StratifyMesa, 중심 1.0 유지), 가장자리 6m에서 급강하(절벽 느낌). 결정론적 해시.
         /// </summary>
         static float MesaLift(float wx, float wz, int nseed)
         {
@@ -271,7 +280,23 @@ namespace ProjectName.Systems
                     if (m > best) best = m;
                 }
             }
+            // 층상 단차(stratification): 중심부를 계단식 층으로 — 가장자리(m≈0)는 첫 층 램프로 통과
+            best = StratifyMesa(best);
             return best;
+        }
+
+        // 메사 중심부를 층상 단차로 (stratification) — 가장자리 급경사 + 내부 계단
+        const float MESA_STRATA_COUNT = 14f;   // 층 수
+
+        /// <summary>메사 마스크 [0,1]을 계단식 층으로 양자화 — 내부 층단 대지, 층 경계는 미세 램프(하드 컷 방지).</summary>
+        static float StratifyMesa(float m)
+        {
+            if (m <= 0f) return 0f;
+            // m (0~1): 0=가장자리, 1=중심. 층 경계마다 m을 잘라 계단 만든다.
+            float strata = Mathf.Floor(m * MESA_STRATA_COUNT) / MESA_STRATA_COUNT;
+            // 층과 층 사이 미세 램프 (하드 컷 방지) — 각 층 내에서 m의 잔차로 부드럽게
+            float frac = (m - strata) / (1f / MESA_STRATA_COUNT);
+            return Mathf.Lerp(strata, strata + (1f / MESA_STRATA_COUNT), frac * 0.15f);
         }
 
         /// <summary>결정론적 2D 해시 [0,1] — 좌표+시드 기반 (메사 셀 선택/지터용).</summary>
