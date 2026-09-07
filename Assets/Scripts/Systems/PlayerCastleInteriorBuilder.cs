@@ -1,5 +1,4 @@
 using ProjectName.Core;
-using ProjectName.UI;
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -247,9 +246,8 @@ namespace ProjectName.Systems
 
             // Phase B: 저장고 상호작용 — StorageShelf_2 기준점에 TerritoryWarehouse 부착.
             // E키 근접 상호작용으로 창고 UI를 열며, 실제 데이터는 WarehouseSystem(영지 키)에 위임.
-            // 런타임 AddComponent이므로 Configure로 private 필드(영지 키/슬롯 수)를 설정.
-            var warehouse = storageShelf2.AddComponent<TerritoryWarehouse>();
-            warehouse.Configure(territoryKey); // 기본 20슬롯, 영지 키만 설정
+            // Systems asmdef는 UI asmdef를 참조할 수 없으므로(순환 참조) 리플렉션으로 부착.
+            AttachUiComponent(storageShelf2, TerritoryWarehouseTypeName, territoryKey);
 
             // 창고 상자 더미 (큐브 프리미티브)
             CreateBoxPrimitive(room, "StorageCrate_1", new Vector3(0.7f, 0.7f, 0.7f),
@@ -313,8 +311,8 @@ namespace ProjectName.Systems
             // NameplateDisplay("🛠️ 작업대")는 유지. 프로젝트 ProjectSettings의 activeInputHandler가
             // 2(Both)로 확인되어 InputSystem(Keyboard.current) 기반 상호작용 동작 가능.
             // 참고: CraftingUI 프리팹이 씬/UIManager에 없으면 창이 열리지 않음(기존 인프라 동작, 범위 밖).
-            var craftingStation = workbench.AddComponent<TerritoryCraftingStation>();
-            craftingStation.Configure(territoryKey, "영지 작업대");
+            // Systems asmdef는 UI asmdef를 참조할 수 없으므로(순환 참조) 리플렉션으로 부착.
+            AttachUiComponent(workbench, TerritoryCraftingStationTypeName, territoryKey, "영지 작업대");
 
             // 작업대 위 도구들 (모루 + 공구)
             CreateBoxPrimitive(room, "WorkbenchAnvil", new Vector3(0.5f, 0.25f, 0.35f),
@@ -453,6 +451,81 @@ namespace ProjectName.Systems
         // ===================================================================
         // 프라이빗 헬퍼 (기존 빌더 클래스에는 손대지 않음 — 이 클래스 내부 전용)
         // ===================================================================
+
+        /// <summary>ProjectName.UI 어셈블리 상호작용 컴포넌트의 어셈블리 정식 타입 이름 (리플렉션 전용).</summary>
+        private const string TerritoryCraftingStationTypeName =
+            "ProjectName.UI.TerritoryCraftingStation, ProjectName.UI";
+        private const string TerritoryWarehouseTypeName =
+            "ProjectName.UI.TerritoryWarehouse, ProjectName.UI";
+
+        /// <summary>
+        /// 어셈블리 경계(ProjectName.UI)를 넘어 상호작용 컴포넌트를 리플렉션으로 부착한다.
+        /// Systems asmdef가 UI asmdef를 참조하면 순환 참조(UI → Systems)가 되어 불가능하므로,
+        /// 컴파일 타임 참조 없이 어셈블리 정식 타입 이름으로 타입을 찾아 AddComponent(Type) 후
+        /// Configure를 호출한다. 타입/메서드를 못 찾으면 경고만 남기고 컴포넌트 없이 진행.
+        /// </summary>
+        /// <param name="target">컴포넌트를 부착할 GameObject</param>
+        /// <param name="assemblyQualifiedTypeName">
+        /// 예: "ProjectName.UI.TerritoryWarehouse, ProjectName.UI" (asmdef name과 정확히 일치)
+        /// </param>
+        /// <param name="configureArgs">Configure에 전달할 앞쪽 인자들 (나머지는 선언된 기본값 사용)</param>
+        private static void AttachUiComponent(GameObject target, string assemblyQualifiedTypeName,
+            params object[] configureArgs)
+        {
+            if (target == null) return;
+
+            System.Type uiType = System.Type.GetType(assemblyQualifiedTypeName);
+            if (uiType == null)
+            {
+                Debug.LogWarning($"[PlayerCastleInteriorBuilder] '{assemblyQualifiedTypeName}' 타입을 찾지 못함 (ProjectName.UI 어셈블리 미로드?). 상호작용 컴포넌트 없이 진행.");
+                return;
+            }
+
+            Component component = target.AddComponent(uiType);
+            if (component == null)
+            {
+                Debug.LogWarning($"[PlayerCastleInteriorBuilder] '{uiType.Name}' AddComponent 실패. 상호작용 컴포넌트 없이 진행.");
+                return;
+            }
+
+            System.Reflection.MethodInfo configure = uiType.GetMethod("Configure");
+            if (configure == null)
+            {
+                Debug.LogWarning($"[PlayerCastleInteriorBuilder] '{uiType.Name}'.Configure 메서드를 찾지 못함 — 기본값 상태로 부착만 진행.");
+                return;
+            }
+
+            // MethodInfo.Invoke는 C# 선택적 매개변수 기본값을 채워주지 않으므로
+            // 전달되지 않은 뒤쪽 인자를 선언된 기본값(예: maxSlots=20, interactRange=null)으로 채운다.
+            System.Reflection.ParameterInfo[] parameters = configure.GetParameters();
+            var invokeArgs = new object[parameters.Length];
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                if (i < configureArgs.Length && configureArgs[i] != null)
+                {
+                    invokeArgs[i] = configureArgs[i];
+                }
+                else if (parameters[i].HasDefaultValue)
+                {
+                    invokeArgs[i] = parameters[i].DefaultValue;
+                }
+                else
+                {
+                    invokeArgs[i] = parameters[i].ParameterType.IsValueType
+                        ? System.Activator.CreateInstance(parameters[i].ParameterType)
+                        : null;
+                }
+            }
+
+            try
+            {
+                configure.Invoke(component, invokeArgs);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"[PlayerCastleInteriorBuilder] '{uiType.Name}'.Configure 호출 실패: {ex.Message}");
+            }
+        }
 
         /// <summary>
         /// 국가 스타일 → 영지 고유 키 매핑 (작업대/저장고 상호작용 설정용).
