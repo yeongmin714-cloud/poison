@@ -48,30 +48,34 @@ namespace ProjectName.UI
         private SortMode _sortMode = SortMode.None;
         private string[] _sortModeLabels = { "정렬 안함", "카테고리순", "이름순", "등급순", "수량순" };
 
-        // ===== 레퍼런스 스타일 상수 =====
+        // ===== 레퍼런스 스타일 상수 (젤다 토탈코딩 스타일) =====
         private const float WINDOW_WIDTH = 1000f;
         private const float WINDOW_HEIGHT = 1000f;
         private const float TITLE_BAR_HEIGHT = 90f;
         private const float TAB_BAR_HEIGHT = 81f;
         private const float INFO_PANEL_HEIGHT = 240f;
         private const float WEAPON_SECTION_HEIGHT = 96f;   // 무기 슬롯 섹션 (장착/해제 버튼 행)
-        private const int GRID_COLUMNS = 3;
-        private const float SLOT_MARGIN = 12f;
+        private const int GRID_COLUMNS = 5;                // 젤다 스타일 5열 그리드
+        private const float SLOT_MARGIN = 6f;              // 슬롯 간격
+        private const float SLOT_ICON_SIZE = 96f;          // 슬롯 내 아이콘 크기
 
-        // ===== 다크 테마 색상 =====
-        private static readonly Color ColorBg = new Color(0.18f, 0.13f, 0.16f, 0.92f);        // 전체 배경 (어두운 보라빛 회색)
-        private static readonly Color ColorTitleBar = new Color(0.12f, 0.09f, 0.11f, 1f);      // 타이틀 바 (더 어두움)
-        private static readonly Color ColorTabActive = new Color(0.35f, 0.25f, 0.20f, 1f);     // 활성 탭 (갈색빛)
-        private static readonly Color ColorTabInactive = new Color(0.20f, 0.16f, 0.14f, 1f);   // 비활성 탭
-        private static readonly Color ColorSlotBg = new Color(0.22f, 0.17f, 0.14f, 0.9f);      // 슬롯 배경
-        private static readonly Color ColorSlotHover = new Color(0.35f, 0.25f, 0.18f, 0.9f);   // 슬롯 호버
-        private static readonly Color ColorSlotSelected = new Color(0.40f, 0.28f, 0.20f, 1f);  // 슬롯 선택
-        private static readonly Color ColorInfoBg = new Color(0.15f, 0.11f, 0.13f, 0.95f);     // 정보 패널 배경
-        private static readonly Color ColorTextPrimary = new Color(0.92f, 0.88f, 0.80f, 1f);   // 기본 텍스트
-        private static readonly Color ColorTextSecondary = new Color(0.70f, 0.65f, 0.60f, 1f); // 보조 텍스트
-        private static readonly Color ColorTextDim = new Color(0.50f, 0.45f, 0.40f, 1f);       // 흐린 텍스트
-        private static readonly Color ColorAccent = new Color(0.80f, 0.60f, 0.20f, 1f);        // 강조 (황금색)
-        private static readonly Color ColorBorder = new Color(0.12f, 0.09f, 0.11f, 1f);        // 테두리
+        // ===== 다크 테마 색상 (반투명 다크 패널 + 금색 강조) =====
+        private static readonly Color ColorBg = new Color(0.08f, 0.08f, 0.10f, 0.88f);         // 전체 배경 (반투명 다크)
+        private static readonly Color ColorTitleBar = new Color(0.10f, 0.10f, 0.13f, 0.95f);   // 타이틀 바 (더 어두움)
+        private static readonly Color ColorTabActive = new Color(0.80f, 0.60f, 0.20f, 1f);     // 활성 탭 (금색 배경)
+        private static readonly Color ColorTabInactive = new Color(0.16f, 0.16f, 0.20f, 0.95f);// 비활성 탭 (다크)
+        private static readonly Color ColorSlotBg = new Color(0.13f, 0.13f, 0.16f, 0.95f);     // 슬롯 배경 (다크 박스)
+        private static readonly Color ColorSlotHover = new Color(0.22f, 0.20f, 0.16f, 0.95f);  // 슬롯 호버
+        private static readonly Color ColorSlotSelected = new Color(0.38f, 0.30f, 0.10f, 1f);  // 슬롯 선택 (금색 틴트)
+        private static readonly Color ColorInfoBg = new Color(0.08f, 0.08f, 0.10f, 0.88f);     // 정보 패널 배경
+        private static readonly Color ColorTextPrimary = new Color(1f, 1f, 1f, 1f);            // 기본 텍스트 (흰색)
+        private static readonly Color ColorTextSecondary = new Color(0.85f, 0.85f, 0.85f, 1f); // 보조 텍스트
+        private static readonly Color ColorTextDim = new Color(0.75f, 0.75f, 0.75f, 1f);       // 흐린 텍스트 (가독성 유지)
+        private static readonly Color ColorAccent = new Color(0.85f, 0.65f, 0.20f, 1f);        // 강조 (금색)
+        private static readonly Color ColorBorder = new Color(0.80f, 0.60f, 0.20f, 1f);        // 테두리 (얇은 금색)
+        private static readonly Color ColorBtnBg = new Color(0.15f, 0.15f, 0.18f, 1f);         // 버튼 배경 (다크)
+        private static readonly Color ColorBtnHover = new Color(0.26f, 0.24f, 0.18f, 1f);      // 버튼 호버
+        private static readonly Color ColorBtnEquippedBg = new Color(0.28f, 0.22f, 0.06f, 1f); // 장착 중 버튼 배경
 
         // ===== 커스텀 GUIStyle 캐시 =====
         private GUIStyle _styleTitle;
@@ -87,8 +91,17 @@ namespace ProjectName.UI
         private GUIStyle _styleInfoLabel;
         private GUIStyle _styleEmptyText;
         private GUIStyle _stylePanelBox;
+        private GUIStyle _styleButton;          // 공용 버튼 (정렬/수리/사용 — 흰색 굵은 텍스트)
+        private GUIStyle _styleWeaponBtn;       // 무기 장착 버튼 (다크 배경 + 흰 테두리)
+        private GUIStyle _styleWeaponBtnEquipped; // 장착 중 버튼 (금색 테두리)
         private bool _stylesInitialized;
         private Texture2D _texWhite;
+        private Texture2D _texSlotBg;           // 슬롯 배경 (다크 + 흰 테두리)
+        private Texture2D _texSlotBgHover;      // 슬롯 호버 배경
+        private Texture2D _texSlotBgSelected;   // 슬롯 선택 배경 (금색 테두리)
+        private Texture2D _texBtnBg;            // 버튼 배경 (다크 + 밝은 테두리)
+        private Texture2D _texBtnBgHover;       // 버튼 호버 배경
+        private Texture2D _texBtnBgEquipped;    // 장착 중 버튼 배경 (금색 테두리)
 
         protected override void Awake()
         {
@@ -104,6 +117,12 @@ namespace ProjectName.UI
                 Destroy(_texWhite);
                 _texWhite = null;
             }
+            if (_texSlotBg != null) { Destroy(_texSlotBg); _texSlotBg = null; }
+            if (_texSlotBgHover != null) { Destroy(_texSlotBgHover); _texSlotBgHover = null; }
+            if (_texSlotBgSelected != null) { Destroy(_texSlotBgSelected); _texSlotBgSelected = null; }
+            if (_texBtnBg != null) { Destroy(_texBtnBg); _texBtnBg = null; }
+            if (_texBtnBgHover != null) { Destroy(_texBtnBgHover); _texBtnBgHover = null; }
+            if (_texBtnBgEquipped != null) { Destroy(_texBtnBgEquipped); _texBtnBgEquipped = null; }
         }
 
         protected override void OnShow()
@@ -119,7 +138,8 @@ namespace ProjectName.UI
         }
 
         /// <summary>
-        /// 스타일 초기화 (OnGUI에서 최초 1회)
+        /// 스타일 초기화 (OnGUI에서 최초 1회) — 젤다 토탈코딩 스타일:
+        /// 반투명 다크 패널 / 흰색 굵은 텍스트 / 금색 선택 하이라이트 / 흰 테두리 슬롯
         /// </summary>
         private void InitStyles()
         {
@@ -127,7 +147,15 @@ namespace ProjectName.UI
 
             _texWhite = MakeTexture(1, 1, Color.white);
 
-            // 타이틀
+            // 테두리 텍스처 (8×8, 가장자리 2px)
+            _texSlotBg        = MakeBorderedTexture(8, 8, ColorSlotBg,     new Color(0.80f, 0.80f, 0.82f, 0.95f), 1); // 다크 + 흰 테두리
+            _texSlotBgHover   = MakeBorderedTexture(8, 8, ColorSlotHover,  new Color(0.90f, 0.90f, 0.92f, 1f),    1);
+            _texSlotBgSelected= MakeBorderedTexture(8, 8, ColorSlotSelected, ColorAccent,                       1); // 금색 테두리
+            _texBtnBg         = MakeBorderedTexture(8, 8, ColorBtnBg,      new Color(0.72f, 0.72f, 0.75f, 1f),    1);
+            _texBtnBgHover    = MakeBorderedTexture(8, 8, ColorBtnHover,   new Color(0.85f, 0.85f, 0.88f, 1f),    1);
+            _texBtnBgEquipped = MakeBorderedTexture(8, 8, ColorBtnEquippedBg, ColorAccent,                       1); // 장착 중 = 금색 테두리
+
+            // 타이틀 — 크고 굵은 흰색
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
                 fontSize = 72,
@@ -137,87 +165,87 @@ namespace ProjectName.UI
                 padding = new RectOffset(21, 4, 0, 0)
             };
 
-            // 탭 (비활성)
+            // 탭 (비활성) — 다크 배경 + 흰 텍스트, 잘림 방지를 위해 폰트 축소
             _styleTab = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 48,
+                fontSize = 24,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleCenter,
-                padding = new RectOffset(6, 6, 4, 4),
-                normal = { textColor = ColorTextSecondary, background = MakeTexture(1, 1, ColorTabInactive) },
-                hover = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorSlotHover) },
+                padding = new RectOffset(2, 2, 4, 4),
+                normal = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorTabInactive) },
+                hover = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorBtnHover) },
                 active = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorTabActive) },
                 border = new RectOffset(0, 0, 0, 0),
                 margin = new RectOffset(1, 1, 2, 2)
             };
 
-            // 탭 (활성)
+            // 탭 (활성) — 금색 배경 + 흰색 굵게
             _styleTabActive = new GUIStyle(_styleTab)
             {
                 normal = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorTabActive) },
                 fontStyle = FontStyle.Bold
             };
 
-            // 슬롯 배경
+            // 슬롯 배경 — 다크 박스 + 흰 테두리
             _styleSlot = new GUIStyle(GUI.skin.box)
             {
-                normal = { background = MakeTexture(1, 1, ColorSlotBg), textColor = ColorTextPrimary },
-                hover = { background = MakeTexture(1, 1, ColorSlotHover), textColor = ColorTextPrimary },
+                normal = { background = _texSlotBg, textColor = ColorTextPrimary },
+                hover = { background = _texSlotBgHover, textColor = ColorTextPrimary },
                 border = new RectOffset(2, 2, 2, 2),
                 padding = new RectOffset(4, 4, 4, 4),
-                margin = new RectOffset(2, 2, 2, 2),
-                fontSize = 48,
+                margin = new RectOffset(0, 0, 0, 0),
+                fontSize = 30,
                 alignment = TextAnchor.MiddleCenter
             };
 
-            // 선택된 슬롯 배경
+            // 선택된 슬롯 배경 — 금색 테두리 하이라이트
             _styleSlotSelected = new GUIStyle(_styleSlot)
             {
-                normal = { background = MakeTexture(1, 1, ColorSlotSelected), textColor = ColorTextPrimary }
+                normal = { background = _texSlotBgSelected, textColor = ColorTextPrimary }
             };
 
-            // 슬롯 라벨 (이름)
+            // 슬롯 라벨 (아이템 이름) — 흰색 굵게
             _styleSlotLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 44,
-                fontStyle = FontStyle.Normal,
+                fontSize = 30,
+                fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary },
-                wordWrap = true
+                wordWrap = false
             };
 
-            // 아이템 이름 (목록형)
+            // 아이템 이름 (목록형 / 무기 섹션 라벨) — 흰색 굵게
             _styleItemName = new GUIStyle(GUI.skin.label)
             {
                 fontSize = 48,
-                fontStyle = FontStyle.Normal,
+                fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary }
             };
 
-            // 아이템 개수
+            // 아이템 개수 — 작게
             _styleItemCount = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 44,
+                fontSize = 22,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleRight,
                 normal = { textColor = ColorAccent }
             };
 
-            // 정보 패널 - 이름
+            // 정보 패널 - 이름 (흰색 굵게, 크게)
             _styleInfoName = new GUIStyle(GUI.skin.label)
             {
                 fontSize = 60,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = ColorAccent },
+                normal = { textColor = ColorTextPrimary },
                 padding = new RectOffset(0, 0, 2, 0)
             };
 
-            // 정보 패널 - 설명
+            // 정보 패널 - 설명 (밝은 회색, 가독성 상향)
             _styleInfoDesc = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 48,
+                fontSize = 44,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.UpperLeft,
                 normal = { textColor = ColorTextSecondary },
@@ -225,31 +253,54 @@ namespace ProjectName.UI
                 padding = new RectOffset(0, 0, 2, 0)
             };
 
-            // 정보 패널 - 레이블
+            // 정보 패널 - 레이블 (이탤릭 제거 + 밝은 텍스트)
             _styleInfoLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 44,
-                fontStyle = FontStyle.Italic,
+                fontSize = 40,
+                fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = ColorTextDim }
+                normal = { textColor = ColorTextSecondary }
             };
 
-            // 빈 목록 텍스트
+            // 빈 목록 텍스트 (이탤릭 제거 + 흰색)
             _styleEmptyText = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 52,
-                fontStyle = FontStyle.Italic,
+                fontSize = 44,
+                fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = ColorTextDim }
+                normal = { textColor = ColorTextPrimary }
             };
 
-            // 패널 외곽 박스
+            // 패널 외곽 박스 (반투명 다크)
             _stylePanelBox = new GUIStyle(GUI.skin.box)
             {
                 normal = { background = MakeTexture(1, 1, ColorBg), textColor = ColorTextPrimary },
                 border = new RectOffset(2, 2, 2, 2),
                 padding = new RectOffset(0, 0, 0, 0),
                 margin = new RectOffset(0, 0, 0, 0)
+            };
+
+            // 공용 버튼 (정렬/수리/사용) — 다크 배경 + 흰색 굵은 텍스트
+            _styleButton = new GUIStyle(GUI.skin.button)
+            {
+                fontSize = 30,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = ColorTextPrimary, background = _texBtnBg },
+                hover = { textColor = ColorTextPrimary, background = _texBtnBgHover },
+                active = { textColor = ColorTextPrimary, background = _texBtnBgHover },
+                border = new RectOffset(2, 2, 2, 2)
+            };
+
+            // 무기 장착 버튼 — 다크 배경 + 밝은 테두리, 흰색 굵은 텍스트
+            _styleWeaponBtn = new GUIStyle(_styleButton);
+
+            // 무기 장착 중 버튼 — 금색 테두리
+            _styleWeaponBtnEquipped = new GUIStyle(_styleButton)
+            {
+                normal = { textColor = ColorTextPrimary, background = _texBtnBgEquipped },
+                hover = { textColor = ColorTextPrimary, background = _texBtnBgEquipped },
+                active = { textColor = ColorTextPrimary, background = _texBtnBgEquipped }
             };
 
             _stylesInitialized = true;
@@ -282,19 +333,22 @@ namespace ProjectName.UI
             // === 배경 + 외곽 박스 ===
             GUI.Box(new Rect(x, y, WINDOW_WIDTH, WINDOW_HEIGHT), "", _stylePanelBox);
 
-            // === 상단 테두리 라인 ===
+            // === 얇은 금색 외곽 테두리 (4면) ===
             DrawColoredRect(new Rect(x, y, WINDOW_WIDTH, 2), ColorBorder);
+            DrawColoredRect(new Rect(x, y + WINDOW_HEIGHT - 2, WINDOW_WIDTH, 2), ColorBorder);
+            DrawColoredRect(new Rect(x, y, 2, WINDOW_HEIGHT), ColorBorder);
+            DrawColoredRect(new Rect(x + WINDOW_WIDTH - 2, y, 2, WINDOW_HEIGHT), ColorBorder);
 
             // === 타이틀 바 ===
-            DrawColoredRect(new Rect(x, y + 2, WINDOW_WIDTH, TITLE_BAR_HEIGHT), ColorTitleBar);
+            DrawColoredRect(new Rect(x + 2, y + 2, WINDOW_WIDTH - 4, TITLE_BAR_HEIGHT), ColorTitleBar);
             GUI.Label(new Rect(x, y + 2, WINDOW_WIDTH, TITLE_BAR_HEIGHT), "  📦 인벤토리", _styleTitle);
 
-            // 정렬 버튼 (타이틀 바 우측)
+            // 정렬 버튼 (타이틀 바 우측) — 다크 배경 + 흰색 굵은 텍스트
             float sortBtnWidth = 280f;
             float sortBtnHeight = 66f;
             float sortBtnX = x + WINDOW_WIDTH - sortBtnWidth - 12f;
             float sortBtnY = y + 12f;
-            if (GUI.Button(new Rect(sortBtnX, sortBtnY, sortBtnWidth, sortBtnHeight), $"📊 {_sortModeLabels[(int)_sortMode]}"))
+            if (GUI.Button(new Rect(sortBtnX, sortBtnY, sortBtnWidth, sortBtnHeight), $"📊 {_sortModeLabels[(int)_sortMode]}", _styleButton))
             {
                 _sortMode = (SortMode)(((int)_sortMode + 1) % 5);
                 if (_sortMode != SortMode.None)
@@ -383,10 +437,10 @@ namespace ProjectName.UI
             float innerY = gridY + 2;
             float innerWidth = WINDOW_WIDTH - 8;
 
-            // 스크롤 뷰
+            // 스크롤 뷰 — 젤다 스타일 5열 정사각 슬롯 (간격 6px)
             float slotTotalWidth = innerWidth;
             float slotWidth = (slotTotalWidth - SLOT_MARGIN * (GRID_COLUMNS + 1)) / GRID_COLUMNS;
-            float slotHeight = 162;
+            float slotHeight = slotWidth;   // 정사각형 슬롯
             float rowHeight = slotHeight + SLOT_MARGIN;
 
             int totalSlots = _currentSlots != null ? _currentSlots.Length : 0;
@@ -405,7 +459,7 @@ namespace ProjectName.UI
 
             if (_currentSlots == null || _currentSlots.Length == 0)
             {
-                GUI.Label(new Rect(0, 20, innerWidth - 20, 45), "(이 카테고리에 아이템이 없습니다)", _styleEmptyText);
+                GUI.Label(new Rect(0, 24, innerWidth - 20, 60), "(이 카테고리에 아이템이 없습니다)", _styleEmptyText);
             }
             else
             {
@@ -427,30 +481,33 @@ namespace ProjectName.UI
                     var slotStyle = isSelected ? _styleSlotSelected : _styleSlot;
                     GUI.Box(slotRect, "", slotStyle);
 
-                    // 아이콘 (ItemIconDatabase 사용 — 64×64 생성, 슬롯에 맞게 40×40 표시)
+                    // 아이콘 — 슬롯 상단 중앙 (SLOT_ICON_SIZE)
+                    float iconSize = SLOT_ICON_SIZE;
+                    float iconX = sx + (slotWidth - iconSize) * 0.5f;
+                    float iconY = sy + 12f;
                     Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(slot.item);
                     if (iconTex != null)
                     {
-                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 90, 90), iconTex);
+                        GUI.DrawTexture(new Rect(iconX, iconY, iconSize, iconSize), iconTex);
                     }
                     else
                     {
                         // 폴백: 카테고리 색상 사각형
                         Color iconColor = GetCategoryColor(slot.item.category);
                         GUI.color = iconColor;
-                        GUI.DrawTexture(new Rect(sx + 6, sy + 4, 90, 90), _texWhite);
+                        GUI.DrawTexture(new Rect(iconX, iconY, iconSize, iconSize), _texWhite);
                         GUI.color = Color.white;
                     }
 
-                    // 아이템 이름
-                    float nameY = sy + 38;
-                    float nameWidth = slotWidth - 12;
-                    GUI.Label(new Rect(sx + 6, nameY, nameWidth, 24),
+                    // 아이템 이름 — 흰색 굵게, 슬롯 하단부 중앙
+                    float nameY = iconY + iconSize + 6f;
+                    float nameWidth = slotWidth - 12f;
+                    GUI.Label(new Rect(sx + 6, nameY, nameWidth, 34),
                         TruncateText(slot.item.displayName, nameWidth, _styleSlotLabel),
                         _styleSlotLabel);
 
-                    // 개수
-                    GUI.Label(new Rect(sx + 6, nameY + 14, nameWidth, 21),
+                    // 개수 — 작게, 우하단
+                    GUI.Label(new Rect(sx + 6, sy + slotHeight - 32f, nameWidth, 26),
                         $"x{slot.count}",
                         _styleItemCount);
 
