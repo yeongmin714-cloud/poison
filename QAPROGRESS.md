@@ -85,6 +85,39 @@ TRACK1 유지 + **TRACK3-P3D 프리뷰 RenderTexture(3D 캐릭터)** + TRACK2-P3
 ---
 
 
+## 🏰 영지 내부 2종 분리 (INTERIOR_SCENES_PLAN) ✅ (2026-09-07)
+
+> 요구: 영지(성) 진입 시 소유 상태에 따라 **두 개의 별도 내부씬**. 점령 후 자신 소유=기능적 기지, 점령 전 타 영주 소유=웅장한 왕좌실.
+> 참고 문서: docs/INTERIOR_SCENES_PLAN.md
+
+### 신규 PlayerCastleInteriorBuilder.cs (자신 소유 — 기능적 내부) ✅
+- `BuildPlayerCastleInterior(string nationStyle)` (426줄): 방 22×6×16(기존보다 확장).
+- 지휘 책상(CreateTable)+의자+관리용 책상, 중앙 작전 테이블+의자2, **플레이어 환영 배너**(깃대2+청색 깃천+금장 트림).
+- 저장고(왼쪽 벽 CreateShelf×2+상자5+통), 무기고(벽 오른쪽 무기스탠드×3+벽걸이 검4), 작업대(앞벽 CreateCounter+모루).
+- 조명: ambient 0.30/0.28/0.25 @1.15(타영주용 0.08보다 밝음, flicker=false) + 천장/책상/작업대/저장고/무기고 5개 점등 — 실용적·환영 분위기.
+- 잠금문 없음(이미 내 소유) → 대신 NameplateDisplay 6개(🪑지휘책상/📜관리사무소/🚩플레이어영지/🎒저장고/⚔️무기고/🛠️작업대).
+- 국가별 텍스처(동/서/남/북/황제국) 재사용, URP Lit→Standard fallback, CreateRoom null 가드.
+- 기존 CastleInteriorBuilder.cs **미변경**(타 영주용 유지).
+
+### 소유 분기 연결 (5파일) ✅
+- **BuildingEvents.cs**: OnEnterBuildingRequest `Action<string,string>`→`Action<string,string,bool>`, RequestEnterBuilding에 isPlayerOwned 인자.
+- **BuildingTrigger.cs**: `TerritoryKey` 필드+프로퍼티 추가. castle E입력 시 `TerritoryDatabase.Instance.GetState(territoryKey)` → `ownership==PlayerOwned` 판정(ProjectName.Core.Data using 추가).
+- **IndoorSceneTransition.cs**: `_pendingIsPlayerOwned` 필드, EnterBuilding 3인자, case "castle"에서 `_pendingIsPlayerOwned ? PlayerCastleInteriorBuilder.BuildPlayerCastleInterior(nation) : CastleInteriorBuilder.BuildCastleInterior(nation)`. (실제 위치 UI/ — ProjectName.UI 확인)
+- **IndoorTransitionSetup.cs**: CreateBuildingTrigger에 `territoryKey` 파라미터.
+- **TerritoryBuilder.cs**: 성문 트리거 생성 시 `parent.name`의 "Territory_" 제거한 키("East_01") 전달 — TerritoryDatabase dict 키와 정확히 일치(폴백이 아닌 hit 보장).
+
+### 검증 ✅
+- 6파일 브레이스 균형 0 (BuildingEvents 5/5, BuildingTrigger 24/24, IndoorTransitionSetup 14/14, TerritoryBuilder 101/101, IndoorSceneTransition 19/19, PlayerCastleInteriorBuilder 39/39).
+- **배치컴파일 성공 (18:26 Systems.dll+UI.dll 갱신, error CS=0)**.
+- 자동커밋: 5a6deabf(빌더), e39bca52(분기), 70dcfa26(계획).
+- .meta 미커밋(Untracked) ~ 커밋 필요.
+
+### Play 판정 대기
+① 타 영주 영지(점령 전, LordOwned) 성문 E → **웅장한 왕좌실**(기존 CastleInteriorBuilder) ② 자신 소유 영지(점령 후, PlayerOwned) 성문 E → **기능적 내부**(지휘책상/저장고/무기고/작업대+환영배너) ③ 국가별 텍스처 유지 ④ 상점/크래프트 트리거 여전히 동작.
+
+---
+
+
 ## 🗺️ 젤다 품질 업그레이드 — Batch 3 (2026-09-07)
 
 > Batch1(지형/애니/인벤). Batch2(지형 릴리프) 완료. Batch3에서 조명 + Idyllic 방위색 + 3D 프리뷰 완성.
