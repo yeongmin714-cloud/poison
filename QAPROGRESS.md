@@ -54,6 +54,36 @@ TRACK1-P1B(지형 드라마 릴리프/메사 stratification·협곡) + TRACK2-P2
 
 ---
 
+
+## 🗺️ 젤다 품질 업그레이드 — Batch 2 (2026-09-07)
+
+> Batch1의 지형/애니/인벤토리 기반에 이어, Batch2는 지형 릴리프 드라마를 최우선 완료 + 나머지 분리.
+
+### Batch2 TRACK1-P1B: 지형 드라마 릴리프 (TerrainShape.cs) ✅
+**파일:** Assets/Scripts/Systems/TerrainShape.cs (437→462행, patch 최소)
+**A. 메사 stratification(층상 단차):** `StratifyMesa(float m)` 신규 — `Floor(m*14)/14` 양자화 + 층 내 잔차 `frac*0.15` 램프(하드 컷 완화). MesaLift return 직전 `best = StratifyMesa(best)`. **중심 m=1 → Floor(14)/14=1 유지(내부 완전 평탄 규약 불변)**, 가장자리 m→0은 층 시작 램프(급경사 절벽 유지).
+**B. 협곡/*을 강화(서·남 방위):** NationHeight의 Valley/Mesa 사이에 방위 부스트 — West `+4m`, South `+2.5m`, `× m × cliffSuppression`(m=216행 RidgeCliffMask 결과 재사용). 저주파 Fbm(0.5×freq0, 2옥타브, 시드 nseed+777)으로 협곡 깊이 변동. 보호 구역(cliffSuppression=0)에선 m=0 → 자동 무해.
+**규약 보존:** GetHeightAt 시그니처/반환 불변, 결정론(고정 시드), 순수 float, slopeLimit 45° 내, 기존 terrace/valley/서브바이옴과 회귀 없음. **브레이스 o=38 c=38 균형 0.**
+
+**Batch1 검증(앞서 완료):** 4방위 서브바이옴 + 애니 자연화(방향vSlerp/경사정렬/착지흡수) + 인벤토리(빈슬롯그리드/민트포커스/프리뷰틀). Bridge 0.
+
+### TRACK2-P2D 병사 미러 / TRACK3-P3D RenderTexture: Batch3 분리
+- **병사 미러**: 이미 `HumanoidClipDriver.UpdateSoldier`(Speed 공급) + 팩 OneHand 컨트롤러로 **플레이어와 동일한 단일드라이버 구조** 확인 → 로코모션 일관성 충족. 병사 3종(Walk↔Run 임계 2.0/재생속도 0.28) 동일 적용 여부는 빌더 확인 후 Batch3에서 확정.
+- **프리뷰 RenderTexture(3D 캐릭터)**: 리소스/성능 리스크 높아 Batch3로 분리 — "🧝 캐릭터" placeholder + 장착 무기 표시는 Batch1(틀)에서 이미 표시됨.
+
+### Batch2 검증 ✅
+- TerrainShape 브레이스 균형 0.
+- **배치컴파일 성공**: 16:39 ProjectName.Systems.dll 갱신(여지형 코드 포함), error CS=0.
+- 자동커밋 데몬: ffbdd447(TerrainShape).
+
+### Play 판정 대기 (다음 단계)
+① 4방위 주행 시 지형 형태 차이 체감(동 초월/서 협곡·절벽/남 사막·소메사/북 첨부/황제국 평탄) ② **메사(대지) 단차가 계단식 층+절벽**으로 보이는지(예시2 스타일) ③ 서·남 협곡 깊이/절벽 벽 감마 ④ 방향전환 시 부드러운 턴 + 경사 기울임 + 점프→착지 자연 ⑤ I키 인벤토리: 빈 슬롯 그리드/민트 포커스/우측 프리뷰 패널+장착 무기.
+
+### ⏭️ 다음 (Batch 3 종합)
+TRACK1 유지 + **TRACK3-P3D 프리뷰 RenderTexture(3D 캐릭터)** + TRACK2-P3D 병사 3종 임계 확정 + TRACK1-P1C 조명(탑뷰) + P1D(Idyllic 잔디/데코 방위색). Play 판정 선행 후 진행 권장.
+
+---
+
 ---
 
 ## 2026-09-06: 애니 10차 — 컨트롤러 모션 참조 전량 깨짐 교체 ✅ (판정 대기)
