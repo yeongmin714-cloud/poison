@@ -177,6 +177,10 @@ namespace ProjectName.EditorTools
             {
                 System.IO.File.Delete(fp + ".meta");
             }
+            // ★ 결정적: 파일 삭제 후 Refresh 없이 CreateAnimatorControllerAtPath를 호출하면
+            //   에셋DB가 여전히 구 에셋을 "존재한다"고 판단해 Player_AC_AC 중복을 다시 만든다
+            //   (09-07 10:04 사고 — 파일 삭제했음에도 재발). Refresh로 DB를 디스크와 동기화 필수.
+            AssetDatabase.Refresh();
             var ac = AnimatorController.CreateAnimatorControllerAtPath(path);
             AssetDatabase.ImportAsset(path);
             foreach (var (p, t) in pars)
