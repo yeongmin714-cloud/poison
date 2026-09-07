@@ -115,6 +115,20 @@
 
 ---
 
+## 2026-09-07: 애니 동결(Loop Time) + I키 배선 복구 ✅ (판정 대기)
+
+**1. 애니 동결(56 포즈) 근본 원인 확정:** 믹사모 클립의 **Loop Time 미설정** — animationType: 3(Humanoid)은 정상이나 loopTime=false 기본값 → Idle/Walk/Run이 0.7~8.3초 1회 재생 후 **마지막 프레임에 동결**(DD4 증거: state=Run normT=2.31 클립길이 0.70s = 끝에서 클램프). "잠깐 재생되다 멈춤"의 정확한 메커니즘.
+
+**수리:** MixamoControllerBuilder.BuildAll()에 `ConfigureMixamoClipLoop()` 추가 — Idle/Walking/Running/Standing Jump FBX의 clipAnimations loopTime=true 설정 후 SaveAndReimport(결정론, dirty 시에만). Roll/Death는 1회성이라 제외. **빌더 재실행 시 자동 적용.**
+
+**2. I키 미개방 원인 확정:** **씬에 UI 윈도우가 0개** — InventoryWindow/UIManager 인스턴스가 런타임에 존재하지 않음(테스트 셋업만 존재, I키 배선 부재). 수리: ① GameSetup.Start에 **InventoryWindow 런타임 생성**(GameObject+AddComponent, 중복 가드) ② **UIInventoryHotkey**(신규) — I키 상승 에지 → Toggle() 배선(Keyboard.current 즉시 조회) ③ 시작 시 Hide(안전).
+
+**검증:** 균형 3파일 0, OnGUI _isOpen 게이트 확인(신규 윈도우 무 draw), Hide 신규 호출 무해 확인.
+
+**판정 대기 (Play):** ① `[MixamoControllers] 믹사모 클립 Loop Time 설정: N개 재임포트` ② 걷기/달리기 무한 루프(동결 소멸) ③ **I키 → 인벤토리 개방 + 무기 슬롯 장착/해제** ④ 검 든 믹사모 이동 스크린샷.
+
+---
+
 ## 2026-09-06: 애니 끊김 수리 — 정지 스냅 홀드 타이머 ✅ (판정 대기)
 
 **증상:** 전 지형에서 애니는 작동하나 걷기/달리기 중 애니가 "자꾸 끊겨서 재생".
