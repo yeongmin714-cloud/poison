@@ -79,6 +79,23 @@ namespace ProjectName.UI
             return PlayerStats.Instance.Level >= _minLevel;
         }
 
+        /// <summary>
+        /// 런타임 AddComponent 후 외부 초기화용 (예: PlayerCastleInteriorBuilder).
+        /// private [SerializeField] 필드만 설정하며, 기존 Inspector 직렬화 기본 경로는 그대로 유지됩니다.
+        /// </summary>
+        /// <param name="territoryId">영지 고유 키 (예: "East_01")</param>
+        /// <param name="stationName">표시용 이름 (null/빈 문자열이면 기존 값 유지)</param>
+        /// <param name="interactRange">상호작용 반경 (null이면 기존 값 유지)</param>
+        public void Configure(string territoryId, string stationName = null, float? interactRange = null)
+        {
+            if (!string.IsNullOrEmpty(territoryId))
+                _territoryId = territoryId;
+            if (!string.IsNullOrEmpty(stationName))
+                _stationName = stationName;
+            if (interactRange.HasValue && interactRange.Value > 0f)
+                _interactRange = interactRange.Value;
+        }
+
         private void OnGUI()
         {
             if (!_isPlayerNearby || _player == null) return;

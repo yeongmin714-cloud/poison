@@ -59,6 +59,34 @@ namespace ProjectName.UI
             SyncFromWarehouseSystem();
         }
 
+        /// <summary>
+        /// 런타임 AddComponent 후 외부 초기화용 (예: PlayerCastleInteriorBuilder).
+        /// private [SerializeField] 필드만 설정하며, 기존 Inspector 직렬화 기본 경로는 그대로 유지됩니다.
+        /// AddComponent 시점에 Awake가 이미 실행되어 슬롯 캐시가 만들어진 경우 새 _maxSlots에 맞춰 재조정합니다.
+        /// </summary>
+        /// <param name="territoryId">영지 고유 키 (예: "East_01")</param>
+        /// <param name="maxSlots">최대 슬롯 수 (기본 20)</param>
+        /// <param name="interactRange">상호작용 반경 (null이면 기존 값 유지)</param>
+        public void Configure(string territoryId, int maxSlots = 20, float? interactRange = null)
+        {
+            if (!string.IsNullOrEmpty(territoryId))
+                _territoryId = territoryId;
+            if (interactRange.HasValue && interactRange.Value > 0f)
+                _interactRange = interactRange.Value;
+
+            if (maxSlots > 0 && maxSlots != _maxSlots)
+            {
+                _maxSlots = maxSlots;
+                if (_slots.Count > 0 && _slots.Count != _maxSlots)
+                {
+                    _slots.Clear();
+                    for (int i = 0; i < _maxSlots; i++)
+                        _slots.Add(new WarehouseSlot());
+                    _guiDirty = true;
+                }
+            }
+        }
+
         private void Update()
         {
             if (_player == null)

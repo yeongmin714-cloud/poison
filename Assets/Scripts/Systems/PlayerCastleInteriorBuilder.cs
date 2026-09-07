@@ -1,4 +1,5 @@
 using ProjectName.Core;
+using ProjectName.UI;
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -30,6 +31,9 @@ namespace ProjectName.Systems
             const float roomWidth = 22f;
             const float roomHeight = 6f;
             const float roomDepth = 16f;
+
+            // 영지 고유 키 (작업대/저장고 상호작용 컴포넌트 설정용 — 국가 스타일 기반 매핑)
+            string territoryKey = GetTerritoryKeyForNationStyle(nationStyle);
 
             // ===== 국가별 텍스처 생성 (CastleInteriorBuilder와 동일) =====
             Texture2D floorTex;
@@ -241,6 +245,12 @@ namespace ProjectName.Systems
             storageShelf2.transform.localPosition = new Vector3(-roomWidth * 0.5f + 0.4f, 0f, -1.5f);
             storageShelf2.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
 
+            // Phase B: 저장고 상호작용 — StorageShelf_2 기준점에 TerritoryWarehouse 부착.
+            // E키 근접 상호작용으로 창고 UI를 열며, 실제 데이터는 WarehouseSystem(영지 키)에 위임.
+            // 런타임 AddComponent이므로 Configure로 private 필드(영지 키/슬롯 수)를 설정.
+            var warehouse = storageShelf2.AddComponent<TerritoryWarehouse>();
+            warehouse.Configure(territoryKey); // 기본 20슬롯, 영지 키만 설정
+
             // 창고 상자 더미 (큐브 프리미티브)
             CreateBoxPrimitive(room, "StorageCrate_1", new Vector3(0.7f, 0.7f, 0.7f),
                 new Vector3(-9.6f, 0.35f, 4.2f), crateMat);
@@ -298,6 +308,13 @@ namespace ProjectName.Systems
             workbench.transform.SetParent(room.transform);
             workbench.transform.localPosition = new Vector3(-5f, 0f, -roomDepth * 0.5f + 0.6f);
             AddNameplate(workbench, "🛠️ 작업대");
+
+            // Phase A: 작업대 상호작용 — TerritoryCraftingStation 부착 (E키 → CraftingUI).
+            // NameplateDisplay("🛠️ 작업대")는 유지. 프로젝트 ProjectSettings의 activeInputHandler가
+            // 2(Both)로 확인되어 InputSystem(Keyboard.current) 기반 상호작용 동작 가능.
+            // 참고: CraftingUI 프리팹이 씬/UIManager에 없으면 창이 열리지 않음(기존 인프라 동작, 범위 밖).
+            var craftingStation = workbench.AddComponent<TerritoryCraftingStation>();
+            craftingStation.Configure(territoryKey, "영지 작업대");
 
             // 작업대 위 도구들 (모루 + 공구)
             CreateBoxPrimitive(room, "WorkbenchAnvil", new Vector3(0.5f, 0.25f, 0.35f),
@@ -436,6 +453,23 @@ namespace ProjectName.Systems
         // ===================================================================
         // 프라이빗 헬퍼 (기존 빌더 클래스에는 손대지 않음 — 이 클래스 내부 전용)
         // ===================================================================
+
+        /// <summary>
+        /// 국가 스타일 → 영지 고유 키 매핑 (작업대/저장고 상호작용 설정용).
+        /// 알 수 없는 스타일은 빌더 본문 switch에서 이미 경고하므로 여기서는 조용히 기본값 사용.
+        /// </summary>
+        private static string GetTerritoryKeyForNationStyle(string nationStyle)
+        {
+            switch (nationStyle?.ToLower())
+            {
+                case "eastern": return "East_01";
+                case "western": return "West_01";
+                case "southern": return "South_01";
+                case "northern": return "North_01";
+                case "empire": return "Empire_01";
+                default: return "Empire_01";
+            }
+        }
 
         /// <summary>Cube 프리미티브 생성 + 재질 적용.</summary>
         private static GameObject CreateBoxPrimitive(GameObject parent, string name, Vector3 size,
