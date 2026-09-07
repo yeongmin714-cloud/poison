@@ -16,6 +16,44 @@
 - **입력**: Keyboard.current 캐시 제거(W 스테일 드랍 수리) + InputProbe 120s + DD5
 - **미해결/다음**: ONNX int8 임포트 실패 노이즈(신경망 미사용, 무영향), ProceduralAnimationController CS0618 마이그레이션, 청크 생성 71초 최적화, 흙길 높이 평탄화(2단계)
 
+
+## 🗺️ 젤다 품질 업그레이드 (ZELDA_UPGRADE_PLAN) — Batch 1 ✅ (2026-09-07)
+
+> 목표: ①젤다풍 지형 다양화(방위별) ②끊김 없는 애니 ③고품질 인벤토리(TotK). 방위별 컨셉(동초원/서사막/남화산/북설원/중앙황금)을 최상위 유지 + 탑다운뷰(하늘/God Rays 제외). 색=방위tint(변경X), 형태/데코/릴리프=방위 바이옴(신규).
+
+### TRACK1-P1A: 방위 내 서브 바이옴 변동 (TerrainGenerator.cs) ✅
+**핵심 발견:** GetHeightAt의 biome 인자는 레거시(무시), 높이는 이미 NationTerrainController.GetNationFromPosition 기반 방위 파라미터로 결정 → 방위별 형태는 이미 존재. 남은 것은 방위 내 소규모 변동.
+**구현:** ComputeNationHeight가 TerrainShape.NationHeight 결과에 ComputeSubBiomeVariation 델타 가산.
+- 동(East)=롤링힐(170m)+숲 완구릉 돔(220m, 노이즈 게이트) / 서(West)=험준 잔능선+골짜기 절삭 / 남(South)=평탄+사구 물결+소메사(90m 셀 22%, 3m) / 북(North)=고지 게이트 첨봉 / 황제국=미세 기복
+- 결정론(FbmNoise 고정 시드+nation 오프셋), cliffSuppression 곱 → 스폰/성/호수/방위경계 보호(45° slopeLimit 유지), 최대 경사 ~21° 이내.
+- GetHeightAt 시그니처/반환 규약(y=1f+) 불변 → 다른 시스템 호환.
+
+### TRACK2-P2A~C: 애니 자연화 (PlayerMovement.cs + HumanoidClipDriver.cs) ✅
+- **T2B-1 방향 전환 스무딩**: 조준 회전(기존 Slerp, 529행)이 실행 안 된 프레임+이동 중+비구르기일 때만 _moveDirection 방향으로 Slerp(MoveTurnSpeed=9 rad/s). 조준 스트레이프 100% 보존, 중복회전/진동 없음.
+- **T2B-2 경사 정렬(가벼움)**: ApplySlopeAlignment() — 접지+이동 시 GetHeightAt 인접 표본(±0.5m, 결정론) 법선 추정 → 피치/롤 ±6° 클램프 Slerp(계수 6/s). 데코/건물 위·준평지·공중·구르기 미개입(직립 복귀). 요(yaw) 무접촉.
+- **T2B-3 착지 흡수**: 공중→접지 전환 감지(_wasAirborne/_airPeakFallSpeed) → 착지 0.2s 가속 램프 40% 완화 + 낙하>8m/s 강착지만 카메라 흔들림. 위치 스냅/텔레포트 없음(물리접촉 접지 보존).
+- HumanoidClipDriver: 실제 클립 블렌드는 RigAnimationController+컨트롤러 담당 → 코드 블렌드 상수 박지 않음. Jump 하강 에지 0.22s Speed 상한(+1.5)으로 복귀 팝 완화. [State]진동/DD 로그 무영향.
+
+### TRACK3-P3A~C: 인벤토리 고품질화 (InventoryWindow.cs) ✅
+- **폰트/텍스트 수리(선행)**: 타이틀 72→52, 탭 24→18, TextClipping.Clip — 인벤토리.PNG 한글 반잘림/겹침 수리.
+- **T3B-1 빈 슬롯 그리드 가이드 시각화**: MakeRoundedBorderedTexture 라운드 SDF 가이드 셀(48px, 다크+그리드라인 보더), GRID_MIN_ROWS=2만큼 항상 표시(아이템 없어도 슬롯 틀 보임).
+- **T3C-2 포커스 하이라이트**: 선택 슬롯 = ColorMintGlow 배경(민트 글로우)+금색 테두리(ColorAccent). 우하단 x{count} + 무기는 공격수치 ⚔.
+- **T3B-2 우측 프리뷰 패널 틀**: PREVIEW_PANEL_WIDTH=340 + 좌측 금색 구분선 + "🧝 캐릭터" 헤더 + 3D 프리뷰 placeholder + 장착 무기 표시(WeaponEquipManager.CurrentId→강철/크리스탈/돌/나무검). 그리드 660px로 축소 — 무기/정보 패널 하단에 겹침 없음.
+- WeaponEquipManager 로직 무변경, IMGUI 유지.
+
+### 검증 ✅
+- 4개 파일 중괄호 균형 0 (TerrainGenerator 136/136, PlayerMovement 211/211, HumanoidClipDriver 125/125, InventoryWindow 182/182)
+- **배치컴파일 성공**: 14:58 ProjectName.Systems.dll + ProjectName.UI.dll + Assembly-CSharp(Editor 포함) 4종 DLL 갱신 = error CS=0
+- 자동커밋 데몬 커밋: 67eff47b(TerrainGenerator), 4cf318b6(HC/Player/Inventory), d83e4703(PlayerMovement 중간).
+
+### Play 판정 대기
+① 4방위 주행 시 지형 형태 차이(동 초원/서 협곡/남 사막·소메사/북 첨봉/황제국 평탄 골든) ② 방향전환 시 부드러운 턴 ③ 경사 오를 때 몸 기울임 ④ 점프→착지 자연스러움 ⑤ **I키 인벤토리: 빈 슬롯 그리드/민트 포커스/우측 프리뷰 패널+장착 무기** ⑥ [State] 진동 0 + [InputProbe] 120s.
+
+### ⏭️ 다음 (Batch 2)
+TRACK1-P1B(지형 드라마 릴리프/메사 stratification·협곡) + TRACK2-P2D(병사 미러) + TRACK3-P3D(프리뷰 RenderTexture 3D) — Play 판정 선행 후 진행 권장.
+
+---
+
 ---
 
 ## 2026-09-06: 애니 10차 — 컨트롤러 모션 참조 전량 깨짐 교체 ✅ (판정 대기)
