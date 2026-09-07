@@ -24,7 +24,7 @@ namespace ProjectName.Systems
     {
         const float CELL_SIZE = 10f;
         const float RADIUS = 45f;
-        const int   BUDGET_PER_FRAME = 50;      // 프레임당 잔디 생성 예산 (스파이크 방지)
+        const int   BUDGET_PER_FRAME = 100;     // 프레임당 잔디 생성 예산 (근접 밀집 강화 — 정적 병합 잔디와 역할 분리)
         const int   BASE_PER_CELL = 90;          // 셀(10×10m=100㎡)당 개수 ≈ ~6300/45m 원
         const int   DENSE_MULT = 3;              // 꽃밭/숲 마스크 내부 밀도 배수
         const float MASK_HI = 0.5f;

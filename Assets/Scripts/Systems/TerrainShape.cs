@@ -243,12 +243,12 @@ namespace ProjectName.Systems
         // ── Mesa/대지 파라미터 (예시2: 평탄한 대지 + 절벽 가장자리) ──
         const float MESA_HEIGHT = 6f;    // 대지 융기 (m)
         const float MESA_CELL = 140f;    // 셀 크기 (m) — 평균 간격
-        const float MESA_CHANCE = 0.25f; // 셀당 메사 생성 확률 (0.15→0.25 증빈 — 메사/대지 밀도 상향)
+        const float MESA_CHANCE = 0.35f; // 셀당 메사 생성 확률 (0.15→0.25→0.35 증빈 — 메사/대지 밀도 상향)
         const float MESA_RADIUS = 50f;   // 대지 반경 (m)
         const float MESA_EDGE = 6f;      // 가장자리 전환 폭 (m) — 6m/6m ≈ 급경사
 
         /// <summary>
-        /// 메사(대지) 마스크 [0,1] — 140m 셀 그리드에서 25% 확률로 평탄 대지 생성 (MESA_CHANCE 0.15→0.25 증빈).
+        /// 메사(대지) 마스크 [0,1] — 140m 셀 그리드에서 35% 확률로 평탄 대지 생성 (MESA_CHANCE 0.15→0.25→0.35 증빈).
         /// 내부는 완전 평탄(1.0), 가장자리 6m에서 급강하(절벽 느낌). 결정론적 해시.
         /// </summary>
         static float MesaLift(float wx, float wz, int nseed)
@@ -292,8 +292,8 @@ namespace ProjectName.Systems
 
         // ── 야생화 패치 (예시의 꽃 들판) ──────────────────────────────────────
         // Z4: 야생화 커버리지 8%→14% (FLOWER_LO 하향 — Smoothstep 통과점을 저주파쪽으로 내림)
-        // 현재: FLOWER_FREQ 0.012→0.009 — 패치 반경 ~83m→~110m 확대 (FLOWER_LO 0.70 / FLOWER_HI 0.90 유지)
-        const float FLOWER_FREQ = 0.009f;       // Z5: 주파수 0.009 (패치 반경 ~110m — 더 넓은 단색 꽃밭)
+        // 현재: FLOWER_FREQ 0.012→0.009→0.007 — 패치 반경 ~83m→~110m→~140m 확대 (FLOWER_LO 0.70 / FLOWER_HI 0.90 유지)
+        const float FLOWER_FREQ = 0.007f;       // Z5: 주파수 0.007 (패치 반경 ~140m — 더 넓은 단색 꽃밭)
         const float FLOWER_OX = 3.7f;           // 패치 분포 오프셋 (전 세계 균일, 국가 무관)
         const float FLOWER_OZ = 11.3f;
         const float FLOWER_LO = 0.70f;          // 커버리지 ~22% (Smoothstep(0.70,0.90,n) — 0.78/~14%→0.70/~22% 상향)

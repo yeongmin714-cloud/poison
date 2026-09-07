@@ -27,11 +27,20 @@ namespace ProjectName.Systems
         [SerializeField] private int vertsPerSide = 100;   // 청크 변 정점 수 (100×100 → 4m/쿼드)
         [SerializeField] private float worldHalf = 1600f;  // 월드 반경 → 8×8 = 64청크 (±1600m 커버)
 
+        [Header("Static Grass (청크당 1드로우콜 병합 잔디)")]
+        [SerializeField] private float grassSpacing = 4f;   // 잔디 그리드 간격(m) — 4f → 정점 격자 2칸 간격(50×50=2500지점/청크)
+        [SerializeField] private float grassHeight = 0.6f;  // 터프 기본 높이 (실제 0.5~0.7m 랜덤 변동)
+        [SerializeField] private float grassWidth = 0.8f;   // 터프 쿼드 폭
+
         private const float GroundBase = 1f;   // 지표면 기저 y (GetHeightAt + 1f)
         private const int Seed = 42;
 
         // 재진입 방지 플래그 (정적 — 중복 AddComponent/재Start 모두 차단)
         private static bool _builtOnce;
+
+        // 정적 잔디 공유 머티리얼 캐시 (전 청크 1개 공유) + 청크당 터프 수 최초 1회 로그 플래그
+        private static Material _grassMaterial;
+        private static bool _grassLoggedOnce;
 
         private Transform _chunkRoot;
         private bool _innerDisabled;
@@ -235,6 +244,145 @@ namespace ProjectName.Systems
             mr.sharedMaterial = _sharedMaterial;
             var mc = go.AddComponent<MeshCollider>();
             mc.sharedMesh = mesh;
+
+            // 정적 병합 잔디 (청크당 1드로우콜, 전 지형 커버) — 지형 메시/콜라이더 로직 무변경
+            AddStaticGrass(go, ix, iz, verts);
+        }
+
+        /// <summary>
+        /// 청크 전면 정적 병합 잔디 (청크당 1드로우콜, 전 지형 커버).
+        /// 청크 메시 정점 격자를 grassSpacing 기반 보간으로 샘플(기본: 정점 2칸 간격 = 50×50 = 2500지점/청크)하고,
+        /// 지점당 교차 쿼드 2개(45° 차, 폭 grassWidth, 높이 0.5~0.7m 랜덤, Y회전 랜덤) 터프를
+        /// 청크 로컬 좌표로 누적해 단일 병합 메시로 생성한다 (터프당 8정점/8트라이앵글).
+        /// 호수 수면(lake.radius × 1.05) 영역은 제외. 콜라이더 없음, 그림자 off, 머티리얼 공유.
+        /// System.Random(청크인덱스 기반 시드) 사용 — 실행마다 동일 결과(결정론).
+        /// </summary>
+        private void AddStaticGrass(GameObject chunkGO, int ix, int iz, Vector3[] chunkVerts)
+        {
+            int vps = vertsPerSide;
+            float step = chunkSize / (vps - 1);
+
+            // 잔디 격자 간격: grassSpacing=4f → 정점 격자 2칸 간격(≈8m) = 50×50 = 2500지점/청크
+            int stride = Mathf.Max(1, Mathf.RoundToInt(grassSpacing / step * 2f));
+            int gridN = (vps - 1) / stride + 1; // 100 정점 / stride 2 → 50
+
+            var lakes = TerrainGenerator.Lakes; // public IReadOnlyList<TerrainLakeDef> (center/radius)
+
+            var gVerts = new List<Vector3>(gridN * gridN * 8);
+            var gUv = new List<Vector2>(gridN * gridN * 8);
+            var gTris = new List<int>(gridN * gridN * 24);
+
+            var rand = new System.Random(ix * 7919 + iz * 104729 + 1); // 청크인덱스 기반 결정론 시드
+            float halfW = grassWidth * 0.5f;
+            float rot45 = Mathf.PI * 0.25f; // 교차 쿼드 45° 차
+            int tufts = 0;
+
+            for (int j = 0; j < vps; j += stride)
+            {
+                for (int i = 0; i < vps; i += stride)
+                {
+                    Vector3 p = chunkVerts[j * vps + i]; // 청크 로컬 (GO.y=0 규약 → y = 월드높이)
+
+                    // 호수 제외: 지점 월드XZ가 lake 중심으로부터 radius × 1.05 이내면 스킵
+                    float wx = chunkGO.transform.position.x + p.x;
+                    float wz = chunkGO.transform.position.z + p.z;
+                    bool inLake = false;
+                    for (int l = 0; l < lakes.Count; l++)
+                    {
+                        float rr = lakes[l].radius * 1.05f;
+                        float dx = wx - lakes[l].center.x;
+                        float dz = wz - lakes[l].center.z;
+                        if (dx * dx + dz * dz < rr * rr) { inLake = true; break; }
+                    }
+                    if (inLake) continue;
+
+                    float baseY = p.y + 0.05f; // 지면 살짝 위 (묻힘/z-fighting 방지)
+                    float h = grassHeight + (float)(rand.NextDouble() - 0.5) * 0.2f; // 0.5~0.7m
+                    float rot = (float)rand.NextDouble() * Mathf.PI; // 랜덤 Y회전 (쿼드 좌우 대칭 → π 주기)
+
+                    // 교차 쿼드 2개 (45° 차) — 각 쿼드: 폭 grassWidth, 높이 h, 정점 4 + 삼각형 2
+                    for (int q = 0; q < 2; q++)
+                    {
+                        float ang = rot + q * rot45;
+                        float cos = Mathf.Cos(ang) * halfW;
+                        float sin = Mathf.Sin(ang) * halfW;
+                        int vBase = gVerts.Count;
+
+                        gVerts.Add(new Vector3(-cos, baseY, -sin));
+                        gVerts.Add(new Vector3(cos, baseY, sin));
+                        gVerts.Add(new Vector3(cos, baseY + h, sin));
+                        gVerts.Add(new Vector3(-cos, baseY + h, -sin));
+
+                        gUv.Add(new Vector2(0f, 0f));
+                        gUv.Add(new Vector2(1f, 0f));
+                        gUv.Add(new Vector2(1f, 1f));
+                        gUv.Add(new Vector2(0f, 1f));
+
+                        gTris.Add(vBase); gTris.Add(vBase + 1); gTris.Add(vBase + 2);
+                        gTris.Add(vBase); gTris.Add(vBase + 2); gTris.Add(vBase + 3);
+                    }
+                    tufts++;
+                }
+            }
+
+            if (gVerts.Count == 0) return; // 전 지점 제외(호수) 등 — 빈 메시 방지
+
+            var grassMesh = new Mesh
+            {
+                name = $"Ground_Chunk_{ix}_{iz}_GrassMesh",
+                indexFormat = gVerts.Count > 65535
+                    ? UnityEngine.Rendering.IndexFormat.UInt32
+                    : UnityEngine.Rendering.IndexFormat.UInt16
+            };
+            grassMesh.vertices = gVerts.ToArray();
+            grassMesh.uv = gUv.ToArray();
+            grassMesh.triangles = gTris.ToArray();
+            grassMesh.RecalculateBounds(); // Unlit — 법선 재계산 불필요
+
+            // 잔디 오브젝트: 청크 자식, 콜라이더 없음, 그림자 off (청크당 1드로우콜)
+            var grassGO = new GameObject($"Ground_Chunk_{ix}_{iz}_Grass");
+            grassGO.layer = chunkGO.layer;
+            grassGO.transform.SetParent(chunkGO.transform, false);
+
+            var gmf = grassGO.AddComponent<MeshFilter>();
+            gmf.sharedMesh = grassMesh;
+            var gmr = grassGO.AddComponent<MeshRenderer>();
+            gmr.sharedMaterial = GetGrassMaterial();
+            gmr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+            if (!_grassLoggedOnce)
+            {
+                _grassLoggedOnce = true;
+                int gridCount = Mathf.Max(1, Mathf.RoundToInt(worldHalf * 2f / chunkSize));
+                long totalTufts = (long)tufts * gridCount * gridCount;
+                Debug.Log($"[TerrainChunks] 정적 잔디: 청크당 터프 {tufts:N0}개 / 정점 {gVerts.Count:N0}개 " +
+                          $"(전체 {gridCount * gridCount}청크 ≈ 터프 {totalTufts:N0} / 정점 {totalTufts * 8:N0}, 1드로우콜/청크)");
+            }
+        }
+
+        /// <summary>
+        /// 정적 잔디 공유 머티리얼 (전 청크 1개 — 1회 생성 캐시).
+        /// URP/Unlit + _Cull=0(양면 — 교차 쿼드 뒷면 렌더) / 실패 시 Sprites/Default 폴백.
+        /// </summary>
+        private static Material GetGrassMaterial()
+        {
+            if (_grassMaterial != null) return _grassMaterial;
+
+            Color grass = new Color(0.32f, 0.52f, 0.22f);
+            Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
+            if (shader != null)
+            {
+                _grassMaterial = new Material(shader) { color = grass };
+                _grassMaterial.SetFloat("_Cull", 0f); // 0=Off(양면)
+                return _grassMaterial;
+            }
+
+            shader = Shader.Find("Sprites/Default");
+            if (shader == null) shader = Shader.Find("Unlit/Color");
+            if (shader == null) shader = Shader.Find("Universal Render Pipeline/Lit");
+            _grassMaterial = new Material(shader) { color = grass };
+            Debug.LogWarning("[TerrainChunks] URP/Unlit 없음 — 잔디 머티리얼 폴백 사용");
+            return _grassMaterial;
         }
 
         /// <summary>

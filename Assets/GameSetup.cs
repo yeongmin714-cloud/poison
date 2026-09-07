@@ -394,6 +394,32 @@ public class GameSetup : MonoBehaviour
             else
                 Debug.LogWarning("[GameSetup] ⚠️ 플레이어 FBX에 렌더러 없음 — 메시 임포트 확인 필요");
             Debug.Log("[GameSetup] ✅ 플레이어 Humanoid FBX + 믹사모 애니메이션 적용");
+
+            // ── 검 부착: 팩 OneHand 공격 클립 정합(오른손) ──
+            try
+            {
+                var swordPrefab = Resources.Load<GameObject>("Models/UserProvided/steel_sword");
+                var handBone = animF.GetBoneTransform(HumanBodyBones.RightHand);
+                if (swordPrefab != null && handBone != null)
+                {
+                    var sword = Object.Instantiate(swordPrefab, handBone);
+                    sword.name = "SteelSword";
+                    // 대략 정합(스크린샷 튜닝 전제): 손 아래로 검신이 나가도록
+                    sword.transform.localPosition = new Vector3(0f, 0.12f, 0.02f);
+                    sword.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+                    // 스케일 정규화 — 렌더러 bounds 기준 총길이 ~0.9m
+                    var sRends = sword.GetComponentsInChildren<Renderer>();
+                    if (sRends.Length > 0)
+                    {
+                        var sb = sRends[0].bounds;
+                        foreach (var r in sRends) sb.Encapsulate(r.bounds);
+                        float len = Mathf.Max(sb.size.x, Mathf.Max(sb.size.y, sb.size.z));
+                        if (len > 0.01f) sword.transform.localScale *= 0.9f / len;
+                    }
+                }
+                else Debug.LogWarning($"[GameSetup] 검 부착 스킵: prefab={(swordPrefab != null)} hand={(handBone != null)}");
+            }
+            catch (System.Exception swordEx) { Debug.LogError($"[GameSetup] 검 부착 실패: {swordEx.Message}"); }
         }
         else if (RuntimeModelLoader.TryGetModel("player", out var playerModelPrefab))
         // 기존 procedural Cube 렌더러는 숨기고 GLB를 자식으로 부착.

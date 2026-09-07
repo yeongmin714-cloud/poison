@@ -5,9 +5,9 @@ using UnityEngine;
 namespace ProjectName.EditorTools
 {
     /// <summary>
-    /// DoubleL RPG팩(Assets/DoubleL/Demo/Anim) Humanoid 클립으로 4개 Animator Controller를 생성한다.
-    /// 이 팩에 있는 애니(Idle/Walk/Run/Attack/Jump/Hit)는 pack: 프리픽스로 팩 클립을 사용하고,
-    /// 이 팩에 없는 애니(Death, Roll, 활 Attack 등)는 믹사모 FBX 클립을 유지한다.
+    /// DoubleL RPG팩(Assets/DoubleL/Demo/Anim) Humanoid 클립 + 믹사모 FBX 클립으로 4개 Animator Controller를 생성한다.
+    /// 플레이어: 로코모션=믹사모(자연 이동), 전투=팩 OneHand(검 부착 전제).
+    /// 병사: 검 든 유닛이므로 팩 OneHand 유지(Death, Roll, 활 Attack 등 팩에 없는 애니만 믹사모 유지).
     /// Tools > Anim > Build Mixamo Controllers
     /// 출력: Assets/Resources/Animation/Controllers/*.controller (런타임 Resources.Load 가능)
     /// 파라미터 계약: Speed(float) / 트리거 Attack, AttackCombo, Hit, Death (+Player_AC: Roll, Jump)
@@ -85,17 +85,18 @@ namespace ProjectName.EditorTools
                 ("Death", AnimatorControllerParameterType.Trigger),
             });
             var sm = ac.layers[0].stateMachine;
-            var idle = AddState(sm, "Idle", Clip("pack:OneHand_Up_Idle"), true);
-            var walk = AddState(sm, "Walk", Clip("pack:OneHand_Up_Walk_B"));
-            var run = AddState(sm, "Run", Clip("pack:OneHand_Up_Run_B"));
-            // Run 클립 재생속도 = Speed×0.2 → 5m/s서 1배속, 대시 15m/s서 3배속 — 발 미끄러짐 방지. walk/idle은 미바인딩
+            // 로코모션=믹사모(자연 이동), 전투=팩 OneHand(검 부착 전제)
+            var idle = AddState(sm, "Idle", Clip("Idle.fbx"), true);
+            var walk = AddState(sm, "Walk", Clip("Walking.fbx"));
+            var run = AddState(sm, "Run", Clip("Running.fbx"));
+            // Run 클립 재생속도 = Speed×0.28 — 믹사모 Running 자연 페이스 ~3.5m/s이므로 5m/s서 1.4배속(발 미끄러짐 방지). walk/idle은 미바인딩
             run.speedParameter = "Speed";
-            run.speedParameterActive = true; // 미활성화 시 Speed 파라미터 바인딩 무시(고정 0.2배속) → 반드시 활성
-            run.speed = 0.2f;
+            run.speedParameterActive = true; // 미활성화 시 Speed 파라미터 바인딩 무시(고정 0.28배속) → 반드시 활성
+            run.speed = 0.28f;
             var roll = AddState(sm, "Roll", Clip("Quick Roll To Run.fbx")); // 팩에 구르기 없음 → 믹사모 유지
             var attack = AddState(sm, "Attack", Clip("pack:OneHand_Up_Attack_1"));
             var combo = AddState(sm, "AttackCombo", Clip("pack:OneHand_Up_Attack_1"));
-            var jump = AddState(sm, "Jump", Clip("pack:OneHand_Up_Jump_B"));
+            var jump = AddState(sm, "Jump", Clip("Standing Jump.fbx"));
             var hit = AddState(sm, "Hit", Clip("pack:Hit_F_1"));
             var death = AddState(sm, "Death", Clip("Standing Death Backward 01.fbx")); // 팩에 Death 없음 → 믹사모 유지
 
@@ -163,19 +164,21 @@ namespace ProjectName.EditorTools
         static AnimatorController Create(string name, (string, AnimatorControllerParameterType)[] pars)
         {
             var path = $"{OutDir}/{name}_AC.controller";
-            // ★ 덮어쓰기 보장: CreateAnimatorControllerAtPath는 기존 에셋이 있으면
+            // ★ 덮어쓰기 보장(파일 레벨 스왑): CreateAnimatorControllerAtPath는 기존 에셋이 있으면
             //   덮어쓰지 않고 "Player_AC_AC" 같은 중복을 새로 만들어 버린다.
-            //   (09-03 사고: 팩 클립 컨트롤러가 Player_AC_AC.controller로 저장돼
-            //    GameSetup이 로드하는 Player_AC.controller엔 믹사모 클립이 남음)
-            //   → 기존 컨트롤러를 먼저 삭제하고 항상 단일 Player_AC.controller로 재생성.
-            var existing = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
-            if (existing != null)
+            //   AssetDatabase.DeleteAsset은 조용히 실패해 중복이 반복됨(09-03/09-07 사고)
+            //   → 에셋DB 의존 제거: 파일+meta를 직접 삭제한 뒤 항상 단일 Player_AC.controller로 재생성.
+            string fp = path;
+            if (System.IO.File.Exists(fp))
             {
-                AssetDatabase.DeleteAsset(path);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
+                System.IO.File.Delete(fp);
+            }
+            if (System.IO.File.Exists(fp + ".meta"))
+            {
+                System.IO.File.Delete(fp + ".meta");
             }
             var ac = AnimatorController.CreateAnimatorControllerAtPath(path);
+            AssetDatabase.ImportAsset(path);
             foreach (var (p, t) in pars)
                 ac.AddParameter(p, t);
             return ac;

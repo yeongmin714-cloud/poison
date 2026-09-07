@@ -41,7 +41,7 @@ namespace ProjectName.Systems
     public class NationTerrainController : MonoBehaviour
     {
         [Header("Texture Settings")]
-        [SerializeField] private int _textureSize = 256;
+        [SerializeField] private int _textureSize = 1024; // 흙길 5m 가시화 — 3200m/1024px ≈ 3.1m/px
         [SerializeField] private float _textureTiling = 200f;
 
         [Header("Ring Zone Colors")]
