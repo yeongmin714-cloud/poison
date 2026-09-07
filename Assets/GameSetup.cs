@@ -400,6 +400,20 @@ public class GameSetup : MonoBehaviour
             // WeaponEquipManager.Equip 내부에서 처리 (인벤토리 UI 무기 슬롯과 상태 공유).
             try { WeaponEquipManager.Equip("steel", player.transform); }
             catch (System.Exception swordEx) { Debug.LogError($"[GameSetup] 검 부착 실패: {swordEx.Message}"); }
+
+            // ── 인벤토리 윈도우 런타임 생성 + I키 토글 배선 (씬에 UI 미존재 대응, 09-07) ──
+            try
+            {
+                if (FindAnyObjectByType<ProjectName.UI.InventoryWindow>() == null)
+                {
+                    var invGo = new GameObject("InventoryWindow", typeof(RectTransform));
+                    var inv = invGo.AddComponent<ProjectName.UI.InventoryWindow>();
+                    inv.Hide();   // 시작 시 숨김(기본 _isOpen=false — 안전 확인)
+                    gameObject.AddComponent<UIInventoryHotkey>().Bind(inv);
+                    Debug.Log("[GameSetup] ✅ InventoryWindow 런타임 생성 + I키 토글 배선");
+                }
+            }
+            catch (System.Exception uiEx) { Debug.LogError($"[GameSetup] 인벤토리 UI 부트 실패: {uiEx.Message}"); }
         }
         else if (RuntimeModelLoader.TryGetModel("player", out var playerModelPrefab))
         // 기존 procedural Cube 렌더러는 숨기고 GLB를 자식으로 부착.

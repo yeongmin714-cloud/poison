@@ -22,6 +22,7 @@ namespace ProjectName.EditorTools
         public static void BuildAll()
         {
             System.IO.Directory.CreateDirectory(OutDir);
+            ConfigureMixamoClipLoop();   // 믹사모 클립 Loop Time 활성(비루프 클립은 1회 재생 후 마지막 프레임 동결)
             BuildPlayer();
             BuildSoldier("SoldierShield", new[]
             {
@@ -159,6 +160,48 @@ namespace ProjectName.EditorTools
             foreach (var (slot, file) in slots)
                 if (slot == slotName) return file;
             return slots[0].file;
+        }
+
+        /// <summary>
+        /// 믹사모 FBX 클립의 Loop Time을 활성화한다.
+        /// Mixamo FBX 임포트 기본값은 loopTime=false → Idle/Walk/Run이 1회 재생 후
+        /// 마지막 프레임에 동결(56 포즈 증상). Roll/Death는 1회성 모션이므로 제외.
+        /// </summary>
+        static void ConfigureMixamoClipLoop()
+        {
+            string[] loopClips =
+            {
+                "Idle.fbx", "Walking.fbx", "Running.fbx", "Standing Jump.fbx",
+            };
+            int changed = 0;
+            foreach (var f in loopClips)
+            {
+                string p = $"{MixamoDir}/{f}";
+                var imp = AssetImporter.GetAtPath(p) as ModelImporter;
+                if (imp == null)
+                {
+                    Debug.LogWarning($"[MixamoControllers] 임포터 없음: {p}");
+                    continue;
+                }
+                var clips = imp.clipAnimations;
+                if (clips == null || clips.Length == 0)
+                {
+                    Debug.LogWarning($"[MixamoControllers] 클립 없음: {p}");
+                    continue;
+                }
+                bool dirty = false;
+                foreach (var c in clips)
+                {
+                    if (!c.loopTime) { c.loopTime = true; dirty = true; }
+                }
+                if (dirty)
+                {
+                    imp.clipAnimations = clips;
+                    imp.SaveAndReimport();
+                    changed++;
+                }
+            }
+            Debug.Log($"[MixamoControllers] 믹사모 클립 Loop Time 설정: {changed}개 FBX 재임포트");
         }
 
         static AnimatorController Create(string name, (string, AnimatorControllerParameterType)[] pars)
