@@ -65,6 +65,10 @@ namespace ProjectName.Systems
         private float _smoothedSpeed;
         private float _stallTime;        // 정지 판정 홀드 타이머 — 0.25초 연속 정체 시에만 스냅
         private float _lastTarget;       // 직전 프레임 목표 속도 — 미세 정체 홀드 중 유지값
+        // T2B-3(애니 측): 점프→착지 하강 에지 직후 Speed 목표 상승을 잠시 제한 —
+        // Jump 종료 후 Walk/Run 복귀 시 클립 팝(급가속) 체감 완화. 블렌드 시간은
+        // 애니메이터 컨트롤러(에셋)가 담당하므로 여기서는 속도 파라미터 램프만 완화한다.
+        private float _landingSoftTimer;
 
         private void Start()
         {
@@ -256,6 +260,14 @@ namespace ProjectName.Systems
                 target = _stallTime >= 0.25f ? 0f : _lastTarget; // 미세 정체 홀드
             }
             _lastTarget = target;
+            // T2B-3: 착지 직후 0.22초간 Speed 목표를 "현재 평활값 + 1.5" 이하로 제한 —
+            // Walk/Run 클립 복귀 시 파라미터 급등에 의한 클립 팝을 완화 (지수 평활과 합쳐 자연 흡수)
+            if (_landingSoftTimer > 0f)
+            {
+                _landingSoftTimer -= Time.deltaTime;
+                target = Mathf.Min(target, _smoothedSpeed + 1.5f);
+                _lastTarget = target;
+            }
             float k = 1f - Mathf.Exp(-10f * Time.deltaTime);
             _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, target, k);
             _anim.SetFloat("Speed", _smoothedSpeed);
@@ -305,6 +317,8 @@ namespace ProjectName.Systems
             // 점프 — 상승엣지 1회
             bool jumping = _movement != null && _movement.IsJumping;
             if (jumping && !_prevJumping) _anim.SetTrigger("Jump");
+            // T2B-3: 착지(하강 에지) 직후 짧은 흡수 창 — Speed 급상승 제한은 아래 목표 계산에서 적용
+            if (!jumping && _prevJumping) _landingSoftTimer = 0.22f;
             _prevJumping = jumping;
         }
 

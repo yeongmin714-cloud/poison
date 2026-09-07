@@ -865,9 +865,32 @@ namespace ProjectName.Systems
             Vector3 planarDir = new Vector3(_moveDirection.x, 0f, _moveDirection.z);
             bool hasInput = planarDir.sqrMagnitude > 0.01f;
             float targetSpeed = hasInput ? _currentSpeed * _speedModifier : 0f;
+
+            // T2B-3: 착지 흡수 — 공중(점프/추락)→접지 전환 프레임에 가속 램프를 잠시 완화해
+            // 착지 후 급출발/클립 팝 체감을 줄인다. 위치는 건드리지 않는다(하드 텔레포트 금지 —
+            // ClampToGroundByHeight의 기존 접지 수리는 그대로 유지).
+            bool airborneNow = !_isGrounded || _isJumping;
+            if (airborneNow)
+            {
+                _airPeakFallSpeed = Mathf.Max(_airPeakFallSpeed, -_verticalVelocity); // 낙하 강도 추적
+            }
+            else if (_wasAirborne)
+            {
+                // 착지 프레임 — 강착지(낙하속도 > HardLandingSpeed)일 때만 짧고 약한 카메라 흔들림
+                if (_airPeakFallSpeed > HardLandingSpeed)
+                    TriggerCameraShake(0.1f, 0.08f);
+                _landingDampTimer = LandingDampTime;
+                _airPeakFallSpeed = 0f;
+            }
+            _wasAirborne = airborneNow;
+            if (_landingDampTimer > 0f) _landingDampTimer -= Time.deltaTime;
+
+            // 가속/감속 램프 — 착지 직후(_landingDampTimer > 0)만 가속 계수를 40%로 완화
+            float accel = targetSpeed > _smoothedPlanarSpeed ? 12f : 18f;
+            if (_landingDampTimer > 0f) accel *= 0.4f;
             _smoothedPlanarSpeed = Mathf.MoveTowards(
                 _smoothedPlanarSpeed, targetSpeed,
-                (targetSpeed > _smoothedPlanarSpeed ? 12f : 18f) * Time.deltaTime);
+                accel * Time.deltaTime);
             Vector3 motion = planarDir.normalized * _smoothedPlanarSpeed;
             motion.y = _verticalVelocity;
             _controller.Move(motion * Time.deltaTime);
@@ -877,6 +900,7 @@ namespace ProjectName.Systems
             // 물리 충돌·Raycast에 의존하지 않고, 지형을 만든 TerrainGenerator.GetHeightAt으로
             // 현재 x,z의 지표면 높이를 수학적으로 도출해 그 위에 붙인다.
             ClampToGroundByHeight();
+            ApplySlopeAlignment(); // T2B-2: 경사 정렬(가벼운 개선) — 접지 수리 이후에만 미세 기울임
         }
 
         /// <summary>
@@ -1180,6 +1204,71 @@ namespace ProjectName.Systems
                 _isGrounded = true;
             }
             // feetY ≥ formulaY+0.02 (데코 위, 구릉 정상 등) → 개입 안 함 — CC가 물리 접지 유지
+        }
+
+        /// <summary>
+        /// T2B-2 경사 정렬(가벼운 개선): 접지 + 이동 중일 때 지형 경사 방향으로 몸을 최대 ±6°까지만 기울인다.
+        /// 법선은 ClampToGroundByHeight와 동일한 TerrainGenerator.GetHeightAt 인접 표본(±0.5m)으로
+        /// 수학적으로 추정 — 물리 쿼리 없음, 결정론적, 추가 콜라이더 비용 없음.
+        /// 데코/건물 위(feetY가 지형 표면과 1m 이상 괴리)에서는 개입하지 않고, Slerp로 서서히
+        /// 들어가고 나오므로 조준/이동의 요(yaw) 회전과 충돌하지 않는다(피치/롤만 미세 보정).
+        /// </summary>
+        private void ApplySlopeAlignment()
+        {
+            if (_controller == null || _isRolling) return;
+
+            // 개입 조건(접지+이동 중) 벗어남 → 기울임을 서서히 해제(요 회전은 조준/이동 로직 소관)
+            if (_isJumping || !_isGrounded || _smoothedPlanarSpeed < 0.1f)
+            {
+                transform.rotation = Quaternion.Slerp(
+                    transform.rotation,
+                    Quaternion.Euler(0f, transform.eulerAngles.y, 0f),
+                    SlopeAlignSpeed * Time.deltaTime);
+                return;
+            }
+
+            float hC, hX, hZ;
+            try
+            {
+                hC = ProjectName.Systems.TerrainGenerator.GetHeightAt(
+                    transform.position.x, transform.position.z,
+                    ProjectName.Core.Data.BiomeType.Plains, 42);
+                hX = ProjectName.Systems.TerrainGenerator.GetHeightAt(
+                    transform.position.x + 0.5f, transform.position.z,
+                    ProjectName.Core.Data.BiomeType.Plains, 42);
+                hZ = ProjectName.Systems.TerrainGenerator.GetHeightAt(
+                    transform.position.x, transform.position.z + 0.5f,
+                    ProjectName.Core.Data.BiomeType.Plains, 42);
+            }
+            catch (System.Exception) { return; }
+
+            // 지형이 아닌 곳(데코/건물 위)은 높이 함수 기울기가 무의미 → 건너뜀
+            float formulaY = 1f + hC;
+            float feetY = transform.position.y - _controller.height * 0.5f;
+            if (Mathf.Abs(feetY - formulaY) > 1f) return;
+
+            // 표면 법선 추정: n = (-dh/dx, 1, -dh/dz)
+            const float sample = 0.5f;
+            Vector3 normal = new Vector3(-(hX - hC) / sample, 1f, -(hZ - hC) / sample).normalized;
+
+            // 요(yaw)는 현재값 유지, 경사 성분만 피치/롤로 미세 반영 (각 ±6° 클램프 — 과한 기울기 방지)
+            float yaw = transform.eulerAngles.y;
+            Quaternion yawOnly = Quaternion.Euler(0f, yaw, 0f);
+            Vector3 fwd = yawOnly * Vector3.forward;
+            Vector3 rgt = yawOnly * Vector3.right;
+            float pitchDeg = Mathf.Atan2(Vector3.Dot(fwd, normal), normal.y) * Mathf.Rad2Deg; // + = 전방 내리막
+            float rollDeg = Mathf.Atan2(Vector3.Dot(rgt, normal), normal.y) * Mathf.Rad2Deg;  // + = 우측 내리막
+            if (Mathf.Abs(pitchDeg) < 1.5f && Mathf.Abs(rollDeg) < 1.5f)
+            {
+                // 준평지 — 기울임 없이 서서히 직립 복귀
+                transform.rotation = Quaternion.Slerp(transform.rotation, yawOnly, SlopeAlignSpeed * Time.deltaTime);
+                return;
+            }
+            pitchDeg = Mathf.Clamp(pitchDeg, -SlopeTiltMaxDeg, SlopeTiltMaxDeg);
+            rollDeg = Mathf.Clamp(rollDeg, -SlopeTiltMaxDeg, SlopeTiltMaxDeg);
+
+            Quaternion tiltTarget = Quaternion.Euler(pitchDeg, yaw, -rollDeg);
+            transform.rotation = Quaternion.Slerp(transform.rotation, tiltTarget, SlopeAlignSpeed * Time.deltaTime);
         }
 
         /// <summary>

@@ -112,6 +112,7 @@ namespace ProjectName.UI
         private Texture2D _texBtnBg;            // 버튼 배경 (다크 + 밝은 테두리)
         private Texture2D _texBtnBgHover;       // 버튼 호버 배경
         private Texture2D _texBtnBgEquipped;    // 장착 중 버튼 배경 (금색 테두리)
+        private Texture2D _texSlotEmptyGuide;   // T3B-1: 빈 슬롯 가이드 셀 (라운드 다크 셀 + 그리드라인 보더)
 
         protected override void Awake()
         {
@@ -133,6 +134,7 @@ namespace ProjectName.UI
             if (_texBtnBg != null) { Destroy(_texBtnBg); _texBtnBg = null; }
             if (_texBtnBgHover != null) { Destroy(_texBtnBgHover); _texBtnBgHover = null; }
             if (_texBtnBgEquipped != null) { Destroy(_texBtnBgEquipped); _texBtnBgEquipped = null; }
+            if (_texSlotEmptyGuide != null) { Destroy(_texSlotEmptyGuide); _texSlotEmptyGuide = null; }
         }
 
         protected override void OnShow()
@@ -160,10 +162,14 @@ namespace ProjectName.UI
             // 테두리 텍스처 (8×8, 가장자리 2px)
             _texSlotBg        = MakeBorderedTexture(8, 8, ColorSlotBg,     new Color(0.80f, 0.80f, 0.82f, 0.95f), 1); // 다크 + 흰 테두리
             _texSlotBgHover   = MakeBorderedTexture(8, 8, ColorSlotHover,  new Color(0.90f, 0.90f, 0.92f, 1f),    1);
-            _texSlotBgSelected= MakeBorderedTexture(8, 8, ColorSlotSelected, ColorAccent,                       1); // 금색 테두리
+            // T3C-2: 포커스 슬롯 — 민트 글로우 배경 + 금색 테두리 (투명 민트가 가이드 셀 위에서 글로우로 보임)
+            _texSlotBgSelected= MakeBorderedTexture(8, 8, ColorMintGlow, ColorAccent,                       1);
             _texBtnBg         = MakeBorderedTexture(8, 8, ColorBtnBg,      new Color(0.72f, 0.72f, 0.75f, 1f),    1);
             _texBtnBgHover    = MakeBorderedTexture(8, 8, ColorBtnHover,   new Color(0.85f, 0.85f, 0.88f, 1f),    1);
             _texBtnBgEquipped = MakeBorderedTexture(8, 8, ColorBtnEquippedBg, ColorAccent,                       1); // 장착 중 = 금색 테두리
+
+            // T3B-1: 빈 슬롯 가이드 셀 — 라운드 사각 (다크 셀 + 그리드라인 보더)
+            _texSlotEmptyGuide = MakeRoundedBorderedTexture(48, 48, ColorSlotEmptyCell, ColorGridLine, 1, 10);
 
             // 타이틀 — 크고 굵은 흰색 (TITLE_BAR 90px에 맞춰 크기 보정: 72→52로 잘림 수리)
             _styleTitle = new GUIStyle(GUI.skin.label)
@@ -388,6 +394,9 @@ namespace ProjectName.UI
             float gridHeight = WINDOW_HEIGHT - (gridY - y) - WEAPON_SECTION_HEIGHT - INFO_PANEL_HEIGHT - 8;
             DrawItemGrid(x, gridY, gridHeight);
 
+            // === 우측 캐릭터 프리뷰 패널 틀 (T3B-2: 2분할 레이아웃, 그리드 영역과 같은 높이) ===
+            DrawPreviewPanel(x + GRID_AREA_WIDTH, gridY, gridHeight);
+
             // === 무기 슬롯 섹션 (장착/해제) ===
             float weaponY = gridY + gridHeight + 2;
             DrawWeaponSection(x, weaponY);
@@ -447,7 +456,7 @@ namespace ProjectName.UI
         {
             float innerX = panelX + 4;
             float innerY = gridY + 2;
-            float innerWidth = WINDOW_WIDTH - 8;
+            float innerWidth = GRID_AREA_WIDTH - 8;   // T3B-2: 우측 프리뷰 패널을 제외한 좌측 그리드 영역
 
             // 스크롤 뷰 — 젤다 스타일 5열 정사각 슬롯 (간격 6px)
             float slotTotalWidth = innerWidth;
@@ -457,17 +466,29 @@ namespace ProjectName.UI
 
             int totalSlots = _currentSlots != null ? _currentSlots.Length : 0;
             int totalRows = Mathf.Max(1, Mathf.CeilToInt((float)totalSlots / GRID_COLUMNS));
-            float contentHeight = totalRows * rowHeight + SLOT_MARGIN;
+            int guideRows = Mathf.Max(totalRows, GRID_MIN_ROWS);   // T3B-1: 빈 상태에서도 최소 행수 가이드 표시
+            float contentHeight = guideRows * rowHeight + SLOT_MARGIN;
             float viewHeight = gridHeight - 4;
 
-            // 배경
-            DrawColoredRect(new Rect(panelX, gridY, WINDOW_WIDTH, gridHeight), ColorBg);
+            // 배경 (좌측 그리드 영역만 — 우측은 캐릭터 프리뷰 패널)
+            DrawColoredRect(new Rect(panelX, gridY, GRID_AREA_WIDTH, gridHeight), ColorBg);
 
             _scrollPosition = GUI.BeginScrollView(
                 new Rect(innerX, innerY, innerWidth, viewHeight),
                 _scrollPosition,
                 new Rect(0, 0, innerWidth - 20, contentHeight)
             );
+
+            // === T3B-1: 빈 슬롯 가이드 그리드 — 라운드 셀 가이드를 항상 표시 (아이템 슬롯은 그 위에 그려짐) ===
+            int guideCells = guideRows * GRID_COLUMNS;
+            for (int g = 0; g < guideCells; g++)
+            {
+                int gCol = g % GRID_COLUMNS;
+                int gRow = g / GRID_COLUMNS;
+                float gx = SLOT_MARGIN + gCol * (slotWidth + SLOT_MARGIN);
+                float gy = SLOT_MARGIN + gRow * rowHeight;
+                GUI.DrawTexture(new Rect(gx, gy, slotWidth, slotHeight), _texSlotEmptyGuide);
+            }
 
             if (_currentSlots == null || _currentSlots.Length == 0)
             {
@@ -489,7 +510,7 @@ namespace ProjectName.UI
                     Rect slotRect = new Rect(sx, sy, slotWidth, slotHeight);
                     bool isSelected = (i == _selectedSlotIndex);
 
-                    // 슬롯 배경
+                    // 슬롯 배경 — T3C-2: 선택 슬롯은 민트 글로우 배경 + 금색 테두리(_styleSlotSelected)
                     var slotStyle = isSelected ? _styleSlotSelected : _styleSlot;
                     GUI.Box(slotRect, "", slotStyle);
 
@@ -518,9 +539,15 @@ namespace ProjectName.UI
                         TruncateText(slot.item.displayName, nameWidth, _styleSlotLabel),
                         _styleSlotLabel);
 
-                    // 개수 — 작게, 우하단
+                    // 수치 — 우하단 (수량 / 무기는 공격력 수치 함께 표시)
+                    string valueText = $"x{slot.count}";
+                    if (slot.item.category == PlayerInventory.ItemCategory.Weapon)
+                    {
+                        string atk = ExtractFirstNumber(slot.item.effects);
+                        if (!string.IsNullOrEmpty(atk)) valueText = $"x{slot.count}  ⚔{atk}";
+                    }
                     GUI.Label(new Rect(sx + 6, sy + slotHeight - 32f, nameWidth, 26),
-                        $"x{slot.count}",
+                        valueText,
                         _styleItemCount);
 
                     // C9-18: 내구도 표시 (장비 아이템만)
@@ -816,6 +843,77 @@ namespace ProjectName.UI
             }
         }
 
+        // ===================================================================
+        // 우측 캐릭터 프리뷰 패널 틀 (T3B-2) — 2분할 레이아웃의 우측 영역.
+        // 이번 단계는 패널 골자만: 배경 + 헤더 + 3D 프리뷰 자리(플레이스홀더) + 장착 무기 표시.
+        // 실제 3D 프리뷰(RenderTexture)는 다음 단계에서 previewRect 자리에 연결.
+        // ===================================================================
+        private void DrawPreviewPanel(float panelX, float panelY, float panelHeight)
+        {
+            // 패널 배경
+            DrawColoredRect(new Rect(panelX, panelY, PREVIEW_PANEL_WIDTH, panelHeight), ColorTitleBar);
+            // 좌측 구분선 (그리드 영역과의 경계 — 얇은 금색)
+            DrawColoredRect(new Rect(panelX, panelY, 1, panelHeight), ColorBorder);
+
+            float pad = 16f;
+            float innerW = PREVIEW_PANEL_WIDTH - pad * 2;
+
+            // 헤더 라벨
+            GUI.Label(new Rect(panelX + pad, panelY + 8f, innerW, 58f), "🧝 캐릭터", _styleItemName);
+            DrawColoredRect(new Rect(panelX + pad, panelY + 72f, innerW, 1), ColorGridLine);
+
+            // 3D 프리뷰 자리 (플레이스홀더 — 다음 단계에서 RenderTexture로 교체)
+            float previewTop = panelY + 88f;
+            float previewHeight = panelHeight - 88f - 150f;
+            Rect previewRect = new Rect(panelX + pad, previewTop, innerW, Mathf.Max(60f, previewHeight));
+            DrawColoredRect(previewRect, ColorSlotEmptyCell);
+            DrawRectBorder(previewRect, ColorGridLine, 1f);
+            GUI.Label(new Rect(previewRect.x, previewRect.y + previewRect.height * 0.5f - 22f, previewRect.width, 44f),
+                "캐릭터 프리뷰", _styleEmptyText);
+
+            // 장착 무기 표시
+            float equipY = panelY + panelHeight - 140f;
+            GUI.Label(new Rect(panelX + pad, equipY, innerW, 30f), "장착 무기", _styleInfoLabel);
+            string equippedId = WeaponEquipManager.CurrentId;
+            bool hasEquipped = !string.IsNullOrEmpty(equippedId);
+            var oldColor = GUI.color;
+            GUI.color = hasEquipped ? ColorMintEdge : ColorTextSecondary;
+            GUI.Label(new Rect(panelX + pad, equipY + 38f, innerW, 58f),
+                hasEquipped ? TruncateText(GetEquippedWeaponDisplayName(equippedId), innerW, _styleItemName) : "장착하지 않음",
+                _styleItemName);
+            GUI.color = oldColor;
+        }
+
+        /// <summary>WeaponEquipManager 무기 ID → 표시 이름 (DrawWeaponSection 버튼과 동일 매핑).</summary>
+        private string GetEquippedWeaponDisplayName(string id)
+        {
+            switch (id)
+            {
+                case "steel": return "강철검";
+                case "crystal": return "크리스탈검";
+                case "stone": return "돌검";
+                case "wood": return "나무검";
+                default: return id;
+            }
+        }
+
+        /// <summary>문자열에서 첫 번째 연속 숫자 추출 (무기 공격력 수치 표시용). 없으면 null.</summary>
+        private string ExtractFirstNumber(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return null;
+            int start = -1, end = -1;
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (char.IsDigit(text[i]))
+                {
+                    if (start < 0) start = i;
+                    end = i;
+                }
+                else if (start >= 0) break;
+            }
+            return start >= 0 ? text.Substring(start, end - start + 1) : null;
+        }
+
         // 플레이어 트랜스폰 캐시 (무기 슬롯용)
         private Transform _cachedPlayerT;
         private float _playerCacheTime;
@@ -1002,6 +1100,30 @@ namespace ProjectName.UI
             return tex;
         }
 
+        /// <summary>라운드 코너 + 테두리 텍스처 생성 (T3B-1 빈 슬롯 가이드 셀용 — 라운드 사각 SDF).</summary>
+        private Texture2D MakeRoundedBorderedTexture(int w, int h, Color background, Color border, int borderPx, int corner)
+        {
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            float halfW = (w - 1) * 0.5f, halfH = (h - 1) * 0.5f;
+            float radW = halfW - corner, radH = halfH - corner;
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    float qx = Mathf.Abs(x - halfW) - radW;
+                    float qy = Mathf.Abs(y - halfH) - radH;
+                    float ox = Mathf.Max(qx, 0f);
+                    float oy = Mathf.Max(qy, 0f);
+                    float dist = Mathf.Sqrt(ox * ox + oy * oy) + Mathf.Min(Mathf.Max(qx, qy), 0f) - corner;
+                    if (dist > 0.5f) tex.SetPixel(x, y, Color.clear);                  // 라운드 밖 — 투명
+                    else if (dist > -borderPx - 0.5f) tex.SetPixel(x, y, border);      // 테두리
+                    else tex.SetPixel(x, y, background);                               // 내부
+                }
+            }
+            tex.Apply();
+            return tex;
+        }
+
         /// <summary>필터링된 카테고리 인덱스를 전역 슬롯 인덱스로 변환</summary>
         private int GetGlobalSlotIndex(PlayerInventory.ItemCategory category, int filteredIndex)
         {
@@ -1086,6 +1208,15 @@ namespace ProjectName.UI
             GUI.color = color;
             GUI.DrawTexture(rect, _texWhite);
             GUI.color = oldColor;
+        }
+
+        /// <summary>사각형 테두리만 그리기 (4면 얇은 스트립 — 포커스 금테/가이드 보더용)</summary>
+        private void DrawRectBorder(Rect rect, Color color, float thickness)
+        {
+            DrawColoredRect(new Rect(rect.x, rect.y, rect.width, thickness), color);
+            DrawColoredRect(new Rect(rect.x, rect.yMax - thickness, rect.width, thickness), color);
+            DrawColoredRect(new Rect(rect.x, rect.y, thickness, rect.height), color);
+            DrawColoredRect(new Rect(rect.xMax - thickness, rect.y, thickness, rect.height), color);
         }
 
         /// <summary>텍스트 길이 제한</summary>
