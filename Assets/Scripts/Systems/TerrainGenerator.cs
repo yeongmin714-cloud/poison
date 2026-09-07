@@ -168,10 +168,13 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 단일 방위 기준 높이 계산 (T-R2).
+        /// 단일 방위 기준 높이 계산 (T-R2 + S-B 서브 바이옴).
         /// TerrainShape.NationHeight(FBM base + ridged 절벽 + 도메인워핑 + terrace + 계곡)를
         /// 호출하고, 스폰/호수/성/방위경계 보호 절벽 억제(cliffSuppression)와
-        /// 경계부 Base 완만화(baseDetail)를 주입한다.
+        /// 경계부 Base 완만화(baseDetail)를 주입한 뒤, 방위 내 서브 바이옴 변동
+        /// (ComputeSubBiomeVariation — 초원/숲/사막/협곡/설산 소규모 노이즈)을 가산한다.
+        /// 이 관문에서 델타를 얹기 때문에 BlendBoundary/황제국 크로스페이드의
+        /// "결과 보간"이 서브 바이옴 변동까지 연속 보간한다 (경계 연속성 유지).
         /// </summary>
         /// <param name="x">월드 X</param>
         /// <param name="z">월드 Z</param>
@@ -182,7 +185,139 @@ namespace ProjectName.Systems
         private static float ComputeNationHeight(float x, float z, NationType nation, int seed,
             float cliffSuppression = 1f, float baseDetail = 1f)
         {
-            return TerrainShape.NationHeight(x, z, nation, seed, cliffSuppression, baseDetail);
+            float h = TerrainShape.NationHeight(x, z, nation, seed, cliffSuppression, baseDetail);
+            // Phase S-B: 방위 내 서브 바이옴 변동 — 기존 방위별 형태는 그대로, 델타 가산만 수행 (회귀 없음)
+            h += ComputeSubBiomeVariation(x, z, nation, seed, h, cliffSuppression);
+            return h;
+        }
+
+        // ================================================================
+        // Phase S-B: 방위 내 서브 바이옴 변동 (노이즈 기반, 결정론)
+        // ================================================================
+        // TerritoryBiomeMapper의 방위별 바이옴 분포에 대응하는 소규모 지형 변동:
+        //   East(초원/숲)=롤링힐+완구릉 / West(갈대·암석·늪)=험준 잔능선·골짜기 /
+        //   South(사막/화산)=사구 물결+소메사 / North(툰드라/설산)=고지 첨봉 / Empire=미세 기복.
+        // 규약:
+        //   · 기존 방위별 파라미터(TerrainShape.NationHeight)는 그대로 — 델타 가산만 수행
+        //   · cliffSuppression을 곱해 스폰/성/호수/방위경계 보호 구역에서는 0
+        //     (기존 절벽 억제 마스크 재사용 → CC slopeLimit(45°) 초과 급경사 재발 방지)
+        //   · Mathf.PerlinNoise 기반 순수 float 연산, 객체 생성 없음, 고정 시드 → 결정론
+        //   · 각 레이어 최대 경사 ≈ amp×2π×freq×1.5 ≤ ~18° (메사 가장자리 ~21° — 모두 45° 이내)
+
+        private const float SUB_ROLL_FREQ   = 0.006f;   // 동·롤링힐 파장 ~170m
+        private const float SUB_ROLL_AMP    = 2.6f;
+        private const float SUB_FOREST_FREQ = 0.0045f;  // 동·숲 완구릉 파장 ~220m
+        private const float SUB_FOREST_AMP  = 1.8f;
+        private const float SUB_RIDGE_FREQ  = 0.014f;   // 서·잔능선 파장 ~70m
+        private const float SUB_RIDGE_AMP   = 2.2f;
+        private const float SUB_GULLY_FREQ  = 0.008f;   // 서·골짜기 절삭 파장 ~125m
+        private const float SUB_GULLY_AMP   = 1.6f;
+        private const float SUB_DUNE_FREQ   = 0.02f;    // 남·사구 물결 파장 ~50m
+        private const float SUB_DUNE_AMP    = 0.5f;
+        private const float SUB_PEAK_FREQ   = 0.009f;   // 북·첨봉 파장 ~110m
+        private const float SUB_PEAK_AMP    = 3.5f;
+        private const float SUB_GARDEN_FREQ = 0.005f;   // 황제국·미세 기복 파장 ~200m
+        private const float SUB_GARDEN_AMP  = 0.8f;
+        // 남·소메사 — TerrainShape.MesaLift(6m/140m 셀)와 별개의 소형 메사 레이어
+        private const float SUB_MESA_CELL   = 90f;
+        private const float SUB_MESA_CHANCE = 0.22f;
+        private const float SUB_MESA_RADIUS = 30f;
+        private const float SUB_MESA_EDGE   = 8f;       // 3m/8m ≈ 21° 가장자리 (45° 이내)
+        private const float SUB_MESA_HEIGHT = 3f;
+
+        /// <summary>
+        /// 방위 내 서브 바이옴 델타 (m). [S-B]
+        /// baseH: 방위별 기저 높이(고도 게이트용 — 북 첨봉은 고지에서만 발달).
+        /// cliffSuppression: 보호 구역(스폰/성/호수/방위경계)에서 델타 0 강제.
+        /// </summary>
+        private static float ComputeSubBiomeVariation(float x, float z, NationType nation, int seed,
+            float baseH, float cliffSuppression)
+        {
+            if (cliffSuppression <= 0f) return 0f;      // 보호 구역 조기 종료 (성능+안전)
+
+            int nOff = (int)nation * 977;               // 방위별 서브 시드 오프셋 (결정론)
+
+            float d;
+            switch (nation)
+            {
+                case NationType.West:
+                {
+                    // 협곡=험준: ridged 잔능선 융기 + 노이즈 게이트 골짜기 절삭
+                    float r = FbmNoise(x * SUB_RIDGE_FREQ, z * SUB_RIDGE_FREQ, 3, 2f, 0.5f, seed + nOff + 733);
+                    float ridge = 1f - Mathf.Abs(r * 2f - 1f);
+                    float gn = FbmNoise(x * SUB_GULLY_FREQ + 41.3f, z * SUB_GULLY_FREQ + 17.9f, 2, 2f, 0.5f, seed + nOff + 389);
+                    d = (ridge - 0.45f) * 2f * SUB_RIDGE_AMP - TerrainShape.Smoothstep(0.60f, 0.82f, gn) * SUB_GULLY_AMP;
+                    break;
+                }
+                case NationType.South:
+                {
+                    // 사막=평탄(미세 사구 물결) + 소메사(평탄 정상) — 기저는 사실상 무변동으로 평탄 유지
+                    float dune = (FbmNoise(x * SUB_DUNE_FREQ, z * SUB_DUNE_FREQ, 2, 2f, 0.5f, seed + nOff + 571) - 0.5f) * 2f;
+                    d = dune * SUB_DUNE_AMP + ComputeSubMesa(x, z, seed + nOff) * SUB_MESA_HEIGHT;
+                    break;
+                }
+                case NationType.North:
+                {
+                    // 설산=첨봉: ridged 봉우리가 고지대(baseH 게이트)에서만 자람
+                    float p = FbmNoise(x * SUB_PEAK_FREQ, z * SUB_PEAK_FREQ, 3, 2f, 0.5f, seed + nOff + 821);
+                    float ridge = 1f - Mathf.Abs(p * 2f - 1f);
+                    float elevGate = TerrainShape.Smoothstep(2f, 7f, baseH);
+                    d = ridge * SUB_PEAK_AMP * elevGate;
+                    break;
+                }
+                case NationType.Empire:
+                {
+                    // 황제국=평탄 정원: 아주 미세한 기복만
+                    float g = (FbmNoise(x * SUB_GARDEN_FREQ, z * SUB_GARDEN_FREQ, 2, 2f, 0.5f, seed + nOff + 457) - 0.5f) * 2f;
+                    d = g * SUB_GARDEN_AMP;
+                    break;
+                }
+                default:
+                {
+                    // East + 미소속(None/Dracula — GetNationParams 기본값 계승)
+                    // 초원=롤링힐(전역) + 숲 패치=완구릉(노이즈 게이트, 완만한 돔)
+                    float roll = (FbmNoise(x * SUB_ROLL_FREQ, z * SUB_ROLL_FREQ, 2, 2f, 0.5f, seed + nOff + 613) - 0.5f) * 2f;
+                    float forestN = FbmNoise(x * SUB_FOREST_FREQ + 3.7f, z * SUB_FOREST_FREQ + 11.3f, 2, 2f, 0.5f, seed + nOff + 941);
+                    float patch = TerrainShape.Smoothstep(0.60f, 0.78f, forestN);
+                    float dome = (FbmNoise(x * SUB_FOREST_FREQ + 23.1f, z * SUB_FOREST_FREQ + 5.9f, 2, 2f, 0.5f, seed + nOff + 77) - 0.45f) * 2f;
+                    d = roll * SUB_ROLL_AMP + patch * dome * SUB_FOREST_AMP;
+                    break;
+                }
+            }
+
+            return d * cliffSuppression;
+        }
+
+        /// <summary>소메사 마스크 [0,1] — 90m 셀 그리드 22% 확률, 평탄 정상 + 8m 가장자리 전환. [S-B]</summary>
+        private static float ComputeSubMesa(float x, float z, int subSeed)
+        {
+            int cx = Mathf.FloorToInt(x / SUB_MESA_CELL);
+            int cz = Mathf.FloorToInt(z / SUB_MESA_CELL);
+            float best = 0f;
+            for (int dz = -1; dz <= 1; dz++)
+            {
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    int cellX = cx + dx, cellZ = cz + dz;
+                    if (SubHash(cellX, cellZ, subSeed) > SUB_MESA_CHANCE) continue;
+                    // 셀 중심 + 지터(±15m) — 격자 느낌 제거
+                    float centerX = cellX * SUB_MESA_CELL + SUB_MESA_CELL * 0.5f + (SubHash(cellX, cellZ, subSeed + 11) - 0.5f) * 30f;
+                    float centerZ = cellZ * SUB_MESA_CELL + SUB_MESA_CELL * 0.5f + (SubHash(cellX, cellZ, subSeed + 17) - 0.5f) * 30f;
+                    float dist = Mathf.Sqrt((x - centerX) * (x - centerX) + (z - centerZ) * (z - centerZ));
+                    float m = 1f - TerrainShape.Smoothstep(SUB_MESA_RADIUS - SUB_MESA_EDGE, SUB_MESA_RADIUS, dist);
+                    if (m > best) best = m;
+                }
+            }
+            return best;
+        }
+
+        /// <summary>결정론적 2D 정수 해시 [0,1] (소메사 셀 선택/지터용 — TerrainShape.Hash2와 동일 규격). [S-B]</summary>
+        private static float SubHash(int x, int z, int s)
+        {
+            uint h = (uint)(x * 374761393 + z * 668265263 + s * 1274126177);
+            h = (h ^ (h >> 13)) * 1274126177u;
+            h = h ^ (h >> 16);
+            return h / (float)uint.MaxValue;
         }
 
         /// <summary>
