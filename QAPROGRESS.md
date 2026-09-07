@@ -84,6 +84,41 @@ TRACK1 유지 + **TRACK3-P3D 프리뷰 RenderTexture(3D 캐릭터)** + TRACK2-P3
 
 ---
 
+
+## 🗺️ 젤다 품질 업그레이드 — Batch 3 (2026-09-07)
+
+> Batch1(지형/애니/인벤). Batch2(지형 릴리프) 완료. Batch3에서 조명 + Idyllic 방위색 + 3D 프리뷰 완성.
+
+### TRACK1-P1C: 탑뷰 조명 BotW 파스텔 (DayNightCycle.cs) ✅
+낮(Day) 4개 파라미터만 보정, 낮/밤 전환 로직 무변경:
+- _noonColor (1,0.95,0.8)→(1,0.97,0.87) / _noonIntensity 1.0→**1.3** / _noonShadowStrength 1.0→0.85(파스텔 톤) / _dayAmbient (0.6,0.6,0.6)→(0.68,0.74,0.82 밝은 연청)
+- **Contact Shadows: URP 미지원 확인**(HDRP 전용) → skip하고 보고. URP 대안=Soft Shadows+Shadow Distance 튜닝(범위 밖).
+- 중괄호 42/42 균형 0. 해紅/달 로직 무접촉.
+
+### TRACK1-P1D: Idyllic 잔디 방위별 틴트 (IdyllicGrassCover.cs) ✅
+- `IdyllicDecoPlacer`는 이미 방위 데코 프로파일 지원(건드리지 않음). `IdyllicGrassCover`에 **방위별 잔디 틴트 팔레트** 추가(±5~10% 미세):
+  - 동=기본(1,1,1) / 서=황토빛(1,0.94,0.86) / 남=따뜻(1,0.90,0.85) / 북=서리빛(0.88,0.95,1) / 황제국=금빛(1,0.97,0.90)
+- **MaterialPropertyBlock** 사용 → 공유 머티리얼 무복제(원본 훼손 없음), 청크별 GetNationFromPosition 재사용(플레이어 이동 시 결정론 전환). _BaseColor+_Color 동시 설정(셰이더 호환).
+- Configure/부트 로직 무변경. 중괄호 36/36 균형 0.
+
+### TRACK3-P3D: 인벤토리 3D 캐릭터 프리뷰 (InventoryWindow.cs) ✅
+- `DrawPreviewPanel` previewRect에 **RenderTexture 512×640 + 전용 카메라**로 플레이어 3D 프리뷰. 월드 플레이어와 별개 fresh 인스턴스(Resources.Load Player_Rigged_Heat).
+- 전용 카메라(커스텀 배경, far20/30° FOV) → 개체만 촬영, `_previewCamera.Render()`로 스냅샷 표시(정지 프리뷰).
+- **장착 무기 attach**(Resources.Load `<id>_sword`), `HumanoidClipDriver.CopyMaterialsFromGlb`로 원본 머티리얼 이식.
+- **ReleasePreview()**: 인벤토리 닫을 때/OnDestroy에서 RT+카메라+개체 해제(메모리 누수 방지). 실패 시 기존 "캐릭터 프리뷰" 플레이스홀더 폴백(크래시 없음).
+- 중괄호 205/205 균형 0.
+
+### Batch3 검증 ✅
+- 3파일 브레이스 균형 0 / **배치컴파일 성공(17:24 Systems.dll+UI.dll 갱신, error CS=0)** / 자동커밋 2ef6c73c.
+
+### Play 판정 대기 (통합)
+① **탑뷰 밝고 파스텔한 조명**(낮 채도) ② 4방위 관영 잔디 틴트 미세 전환 ③ **I키 인벤토리 우측 3D 캐릭터 프리뷰(RenderTexture)+장착 무기** ④ 이전 배치: 메사 층상단차/서·남 협곡/방위서브바이옴/애니자연화 확인.
+
+### ⏭️ 다음 (Batch 4+)
+TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3종 임계 확정 + TRACK1 성능(데코 컬링/프레임 수치) + 통합 Play 최종 판정.
+
+---
+
 ---
 
 ## 2026-09-06: 애니 10차 — 컨트롤러 모션 참조 전량 깨짐 교체 ✅ (판정 대기)
