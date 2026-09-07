@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ProjectName.Systems
+namespace ProjectName.UI
 {
     /// <summary>
     /// 인벤토리 윈도우 I키 토글 핸들러.

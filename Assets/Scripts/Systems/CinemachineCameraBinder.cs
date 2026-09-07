@@ -40,19 +40,19 @@ public class CinemachineCameraBinder : MonoBehaviour
     CinemachineCamera _vcam;
     CinemachineThirdPersonFollow _tpf;
     CinemachineInputAxisController _inputAxis;
-    CinemachineCollider _collider;
+    CinemachineDeoccluder _collider;
 
     void Awake()
     {
         _vcam = GetComponent<CinemachineCamera>();
         _tpf = GetComponent<CinemachineThirdPersonFollow>();
         _inputAxis = GetComponent<CinemachineInputAxisController>();
-        _collider = GetComponent<CinemachineCollider>();
+        _collider = GetComponent<CinemachineDeoccluder>();
 
         // 컴포넌트 자동 추가 (없는 경우)
         if (_tpf == null) _tpf = gameObject.AddComponent<CinemachineThirdPersonFollow>();
         if (_inputAxis == null) _inputAxis = gameObject.AddComponent<CinemachineInputAxisController>();
-        if (_collider == null) _collider = gameObject.AddComponent<CinemachineCollider>();
+        if (_collider == null) _collider = gameObject.AddComponent<CinemachineDeoccluder>();
 
         BindCamera();
     }

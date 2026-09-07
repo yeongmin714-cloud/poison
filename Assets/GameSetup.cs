@@ -409,7 +409,7 @@ public class GameSetup : MonoBehaviour
                     var invGo = new GameObject("InventoryWindow", typeof(RectTransform));
                     var inv = invGo.AddComponent<ProjectName.UI.InventoryWindow>();
                     inv.Hide();   // 시작 시 숨김(기본 _isOpen=false — 안전 확인)
-                    gameObject.AddComponent<UIInventoryHotkey>().Bind(inv);
+                    gameObject.AddComponent<ProjectName.UI.UIInventoryHotkey>().Bind(inv);
                     Debug.Log("[GameSetup] ✅ InventoryWindow 런타임 생성 + I키 토글 배선");
                 }
             }
