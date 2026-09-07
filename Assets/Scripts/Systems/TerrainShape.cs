@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
@@ -455,6 +456,364 @@ namespace ProjectName.Systems
                 float radius = FOREST_RADIUS_MIN + H01(nseed, 30 + k) * (FOREST_RADIUS_MAX - FOREST_RADIUS_MIN);
                 float d = Vector3.Distance(new Vector3(x, 0f, z), c);
                 float m = 1f - Smoothstep(radius - FOREST_EDGE_SOFT, radius, d);
+                if (m > best) best = m;
+            }
+            return Mathf.Clamp01(best);
+        }
+
+        // ====================================================================
+        // Phase T-D2 (09-08): 지형 다양화 2차 — 노출 암반 / 대형 분지 / 서쪽 천연 아치 /
+        // 대형 꽃 융단 마스크 (예시2~13 Gap G1/G2/G5/G7 충전).
+        //   · 모든 위치는 결정론 해시(H01/Hash2) — UnityEngine.Random 미사용
+        //   · 높이 델타 적용은 TerrainGenerator.ComputeSubBiomeVariation이 담당
+        //     (cliffSuppression 보호 구역 = 스폰/성/호수/경계 자동 무해)
+        //   · 마스크 자체는 억제를 모르는 순수 형태 함수 — 텍스처(T2)/데코(T3)에서
+        //     TerrainGenerator.SampleCliffSuppression으로 자체 필터링
+        // ====================================================================
+
+        // ── 노출 암반 (outcrop — 예시2/4/6/8/9/12/13 전체의 암돔 실루엣) ──
+        const float OUTCROP_CELL = 320f;   // 셀 크기 — 메사(140m)보다 성긴 랜드마크 간격
+
+        /// <summary>아웃크롭 사이트 (T3 데코 위성 바위 군집 배치용).</summary>
+        public struct OutcropSite
+        {
+            public Vector2 center;
+            public float radius;
+        }
+
+        /// <summary>방위별 아웃크롭 파라미터 (셀 확률/반경/층수) — South(사막)는 낮고 작게, Empire 아주 드물게.</summary>
+        static void OutcropParams(NationType nation, out float chance, out float radMin, out float radMax, out float strata)
+        {
+            switch (nation)
+            {
+                case NationType.East:   chance = 0.50f; radMin = 26f; radMax = 44f; strata = 6f; break;
+                case NationType.West:   chance = 0.40f; radMin = 28f; radMax = 48f; strata = 5f; break;
+                case NationType.South:  chance = 0.22f; radMin = 20f; radMax = 34f; strata = 6f; break;
+                case NationType.North:  chance = 0.45f; radMin = 24f; radMax = 42f; strata = 6f; break;
+                case NationType.Empire: chance = 0.12f; radMin = 18f; radMax = 28f; strata = 7f; break;
+                default:                chance = 0.50f; radMin = 26f; radMax = 44f; strata = 6f; break;
+            }
+        }
+
+        /// <summary>
+        /// 노출 암반 마스크 [0,1] — 320m 셀 해시 배치 + ±60m 지터, 부드러운 암돔.
+        /// 중심부는 층단(5~7층 — StratifyMesa 축소판, 하드 컷 방지 램프 유지 → 예시9 "층 진 단면").
+        /// West는 천연 아치(GetWestArchPosition) 받침 바위 2개를 강제 포함.
+        /// 높이 반영은 ComputeSubBiomeVariation(×cliffSuppression) — 이 함수는 순수 형태만 반환.
+        /// </summary>
+        public static float GetOutcropMask(float x, float z, NationType nation, int seed)
+        {
+            int nseed = seed + NationSeedOffset(nation) + 9001;
+            OutcropParams(nation, out float chance, out float radMin, out float radMax, out float strata);
+
+            int cx = Mathf.FloorToInt(x / OUTCROP_CELL);
+            int cz = Mathf.FloorToInt(z / OUTCROP_CELL);
+            float best = 0f;
+            for (int dz = -1; dz <= 1; dz++)
+            {
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    int cellX = cx + dx, cellZ = cz + dz;
+                    if (Hash2(cellX, cellZ, nseed) > chance) continue;
+                    float centerX = cellX * OUTCROP_CELL + OUTCROP_CELL * 0.5f + (Hash2(cellX, cellZ, nseed + 11) - 0.5f) * 120f;
+                    float centerZ = cellZ * OUTCROP_CELL + OUTCROP_CELL * 0.5f + (Hash2(cellX, cellZ, nseed + 17) - 0.5f) * 120f;
+                    float radius = Mathf.Lerp(radMin, radMax, Hash2(cellX, cellZ, nseed + 23));
+                    float edge = radius * 0.45f;
+                    float dd = Mathf.Sqrt((x - centerX) * (x - centerX) + (z - centerZ) * (z - centerZ));
+                    if (dd >= radius) continue;
+                    float m = 1f - Smoothstep(radius - edge, radius, dd);
+                    if (m > best) best = m;
+                }
+            }
+
+            // West 아치 받침 바위 2개 (아치 중심 ±15m 수직방향 — 강제 아웃크롭)
+            if (nation == NationType.West)
+            {
+                Vector3 arch = GetWestArchPosition(seed);
+                Vector2 arch2 = new Vector2(arch.x, arch.z);
+                Vector2 dir = arch2.normalized;            // 원점→아치 방향
+                Vector2 perp = new Vector2(-dir.y, dir.x);
+                for (int p = 0; p < 2; p++)
+                {
+                    float side = (p == 0) ? 1f : -1f;
+                    Vector2 pc = arch2 + perp * (15f * side);
+                    float dd = Mathf.Sqrt((x - pc.x) * (x - pc.x) + (z - pc.y) * (z - pc.y));
+                    if (dd < 12f)
+                    {
+                        float m = 1f - Smoothstep(7f, 12f, dd);
+                        if (m > best) best = m;
+                    }
+                }
+            }
+            if (best <= 0f) return 0f;
+
+            // 층단 (예시9 "층 진 바위 단면") — StratifyMesa 축소판 (층수 5~7)
+            float stratum = Mathf.Floor(best * strata) / strata;
+            float frac = (best - stratum) / (1f / strata);
+            return Mathf.Lerp(stratum, stratum + (1f / strata), frac * 0.15f);
+        }
+
+        /// <summary>
+        /// 아웃크롭 중심 열거 (T3 위성 바위 군집용) — GetOutcropMask와 동일 배치 수식+시드.
+        /// 방위 부채꼴(baseAng ±42°) 내, 스폰/성(0,0) 250m+ · 호수 300m+ 이격. Empire는 원점 250~500m 링.
+        /// </summary>
+        public static List<OutcropSite> GetOutcropCenters(NationType nation, int seed)
+        {
+            var result = new List<OutcropSite>();
+            int nseed = seed + NationSeedOffset(nation) + 9001;
+            OutcropParams(nation, out float chance, out float radMin, out float radMax, out float _);
+
+            Vector3 spawn = ProjectName.Core.PlayerSpawnConfig.SpawnPosition;
+            var lakes = TerrainGenerator.Lakes;
+            float baseAng = NationBaseAngle(nation);
+
+            int half = Mathf.CeilToInt(1600f / OUTCROP_CELL) + 1;
+            for (int cz2 = -half; cz2 <= half; cz2++)
+            {
+                for (int cx2 = -half; cx2 <= half; cx2++)
+                {
+                    if (Hash2(cx2, cz2, nseed) > chance) continue;
+                    float centerX = cx2 * OUTCROP_CELL + OUTCROP_CELL * 0.5f + (Hash2(cx2, cz2, nseed + 11) - 0.5f) * 120f;
+                    float centerZ = cz2 * OUTCROP_CELL + OUTCROP_CELL * 0.5f + (Hash2(cx2, cz2, nseed + 17) - 0.5f) * 120f;
+                    float dist0 = Mathf.Sqrt(centerX * centerX + centerZ * centerZ);
+                    if (dist0 > 1500f) continue;
+
+                    if (nation == NationType.Empire)
+                    {
+                        if (dist0 < 250f || dist0 > 500f) continue;
+                    }
+                    else
+                    {
+                        float ang = Mathf.Atan2(centerZ, centerX) * Mathf.Rad2Deg;
+                        if (Mathf.Abs(Mathf.DeltaAngle(ang, baseAng)) > 42f) continue;
+                    }
+                    if (Vector2.Distance(new Vector2(centerX, centerZ), new Vector2(spawn.x, spawn.z)) < 250f) continue;
+                    if (dist0 < 250f) continue;
+                    bool nearLake = false;
+                    if (lakes != null)
+                    {
+                        for (int i = 0; i < lakes.Count; i++)
+                        {
+                            float dx2 = centerX - lakes[i].center.x, dz2 = centerZ - lakes[i].center.z;
+                            if (dx2 * dx2 + dz2 * dz2 < 300f * 300f) { nearLake = true; break; }
+                        }
+                    }
+                    if (nearLake) continue;
+                    result.Add(new OutcropSite { center = new Vector2(centerX, centerZ), radius = Mathf.Lerp(radMin, radMax, Hash2(cx2, cz2, nseed + 23)) });
+                }
+            }
+            return result;
+        }
+
+        // ── 대형 분지 (예시9: 병풍 절벽 둘러싼 분지) ──
+        public const float BASIN_RADIUS_MIN = 90f;
+        public const float BASIN_RADIUS_MAX = 130f;
+        public const float BASIN_EXCLUDE = 300f;   // 스폰/성/호수 이격 (대형 카브 밴드 대비)
+
+        // 수동 정의 대형 호수 테이블 — TerrainGenerator.GenerateLakes의 AddHandPlacedLake 3개와 동기화.
+        // (재귀 가드: GenerateLakes의 waterLevel 계산 중엔 TerrainGenerator.LakesOrNull이 null이므로
+        //  이 고정 테이블로만 배제 — 부팅 단계와 무관하게 동일 배제 결과 = 결정론 유지)
+        static readonly Vector3[] HandLakeTable =
+        {
+            new Vector3(400f, 0f, 300f),     // r180
+            new Vector3(-560f, 0f, -520f),   // r150
+            new Vector3(423f, 0f, 906f),     // r130 (T-D2)
+        };
+        static readonly float[] HandLakeRadius = { 180f, 150f, 130f };
+
+        /// <summary>수동 대형 호수 3개 + (가능 시) 절차적 호수 전체에 대한 이격 검사. [T-D2]</summary>
+        static bool IsTooCloseToLake(Vector2 c, float dist, System.Collections.Generic.IReadOnlyList<TerrainGenerator.TerrainLakeDef> lakes)
+        {
+            for (int i = 0; i < HandLakeTable.Length; i++)
+            {
+                float dx = c.x - HandLakeTable[i].x, dz = c.y - HandLakeTable[i].z;
+                float need = dist + HandLakeRadius[i];
+                if (dx * dx + dz * dz < need * need) return true;
+            }
+            if (lakes != null)
+            {
+                for (int i = 0; i < lakes.Count; i++)
+                {
+                    float dx = c.x - lakes[i].center.x, dz = c.y - lakes[i].center.z;
+                    if (dx * dx + dz * dz < dist * dist) return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>분지 정보 (높이 경로 O(1)화 — 캐시 필수, 매 샘플 해시 루프 금지).</summary>
+        public struct BasinInfo
+        {
+            public Vector2 center;
+            public float radius;
+            public float wallAngleRad;
+            public bool valid;
+        }
+
+        static Dictionary<int, BasinInfo> _basinCache;
+        static int _basinCacheSeed = int.MinValue;
+
+        /// <summary>방위 중심 각도(도) — GetForestPatchMask와 동일 규약 (동0/북90/서180/남270).</summary>
+        static float NationBaseAngle(NationType nation)
+        {
+            switch (nation)
+            {
+                case NationType.North: return 90f;
+                case NationType.West:  return 180f;
+                case NationType.South: return 270f;
+                default:               return 0f;   // East
+            }
+        }
+
+        /// <summary>
+        /// 방위당 1개 대형 분지 중심 (결정론 + (nation,seed) 캐시) — 반경 90~130m,
+        /// 스폰/성/호수 300m+ 이격. 8회 결정론 재시도 후 실패 시 valid=false (분지 없음 — 회귀 없음).
+        /// 병풍 절벽(wallAngle)은 분지 바깥쪽(원점 반대편 = baseAng 방향) 부채꼴.
+        /// </summary>
+        public static BasinInfo GetBasinCenter(NationType nation, int seed)
+        {
+            if (_basinCache == null || _basinCacheSeed != seed)
+            {
+                _basinCache = new Dictionary<int, BasinInfo>();
+                _basinCacheSeed = seed;
+            }
+            if (_basinCache.TryGetValue((int)nation, out BasinInfo cached)) return cached;
+
+            BasinInfo info = default;
+            int nseed = seed + NationSeedOffset(nation) + 9203;
+            float baseAng;
+            float distMin, distMax;
+            if (nation == NationType.Empire) { baseAng = 45f; distMin = 250f; distMax = 380f; }
+            else { baseAng = NationBaseAngle(nation); distMin = 500f; distMax = 1100f; }
+
+            Vector3 spawn = ProjectName.Core.PlayerSpawnConfig.SpawnPosition;
+            var lakes = TerrainGenerator.Lakes;
+
+            for (int k = 0; k < 8; k++)
+            {
+                float ang = baseAng + (H01(nseed, 10 + k) - 0.5f) * 70f;
+                float dist = distMin + H01(nseed, 30 + k) * (distMax - distMin);
+                Vector2 c = new Vector2(Mathf.Cos(ang * Mathf.Deg2Rad) * dist, Mathf.Sin(ang * Mathf.Deg2Rad) * dist);
+                if (Vector2.Distance(c, new Vector2(spawn.x, spawn.z)) < BASIN_EXCLUDE) continue;
+                if (c.magnitude < BASIN_EXCLUDE) continue;   // 성(0,0)
+                bool nearLake = false;
+                if (lakes != null)
+                {
+                    for (int i = 0; i < lakes.Count; i++)
+                    {
+                        float dx = c.x - lakes[i].center.x, dz = c.y - lakes[i].center.z;
+                        if (dx * dx + dz * dz < BASIN_EXCLUDE * BASIN_EXCLUDE) { nearLake = true; break; }
+                    }
+                }
+                if (nearLake) continue;
+                info.center = c;
+                info.radius = BASIN_RADIUS_MIN + H01(nseed, 50) * (BASIN_RADIUS_MAX - BASIN_RADIUS_MIN);
+                info.wallAngleRad = baseAng * Mathf.Deg2Rad;
+                info.valid = true;
+                break;
+            }
+            _basinCache[(int)nation] = info;
+            return info;
+        }
+
+        /// <summary>분지 내부 마스크 [0,1] — 중심 1, 가장자리 35m 페이드 (T2 분지 바닥 텍스처용 공개).</summary>
+        public static float GetBasinMask(float x, float z, NationType nation, int seed)
+        {
+            BasinInfo b = GetBasinCenter(nation, seed);
+            if (!b.valid) return 0f;
+            float d = Vector2.Distance(new Vector2(x, z), b.center);
+            return 1f - Smoothstep(b.radius - 35f, b.radius, d);
+        }
+
+        // ── 서쪽 천연 아치 (예시5) — 받침 지형 위치. 실제 아치 메시 배치는 T3 데코 담당 ──
+        static Vector3? _westArchCache;
+        static int _westArchCacheSeed = int.MinValue;
+
+        /// <summary>
+        /// 서쪽 천연 아치 설치 위치 (결정론 + 캐시) — West 부채꼴 150~210°, 원점 600~900m,
+        /// 스폰/성 250m+ · 호수 300m+ 이격. 12회 시도 후 실패 시 (-700,0) fallback.
+        /// GetOutcropMask가 이 위치 ±15m에 받침 바위(지형)를 강제 생성한다.
+        /// </summary>
+        public static Vector3 GetWestArchPosition(int seed)
+        {
+            if (_westArchCache.HasValue && _westArchCacheSeed == seed) return _westArchCache.Value;
+            int nseed = seed + NationSeedOffset(NationType.West) + 9307;
+            Vector3 spawn = ProjectName.Core.PlayerSpawnConfig.SpawnPosition;
+            var lakes = TerrainGenerator.Lakes;
+            Vector3 result = new Vector3(-700f, 0f, 0f);   // fallback
+            for (int k = 0; k < 12; k++)
+            {
+                float ang = 180f + (H01(nseed, k) - 0.5f) * 60f;          // 서 부채꼴 150~210°
+                float dist = 600f + H01(nseed, 20 + k) * 300f;            // 600~900m
+                Vector3 c = new Vector3(Mathf.Cos(ang * Mathf.Deg2Rad) * dist, 0f, Mathf.Sin(ang * Mathf.Deg2Rad) * dist);
+                if (Vector3.Distance(c, spawn) < 250f) continue;
+                if (Vector3.Distance(c, Vector3.zero) < 250f) continue;
+                bool nearLake = false;
+                if (lakes != null)
+                {
+                    for (int i = 0; i < lakes.Count; i++)
+                    {
+                        if (Vector3.Distance(c, lakes[i].center) < 300f) { nearLake = true; break; }
+                    }
+                }
+                if (nearLake) continue;
+                result = c;
+                break;
+            }
+            _westArchCache = result;
+            _westArchCacheSeed = seed;
+            return result;
+        }
+
+        // ── 대형 꽃 융단 (예시12/13: 핑크/마젠타 카펫 — Empire/East 중심) ──
+        const float MEGA_FLOWER_RADIUS_MIN = 160f;
+        const float MEGA_FLOWER_RADIUS_MAX = 200f;
+        const float MEGA_FLOWER_EDGE_SOFT  = 30f;
+
+        /// <summary>
+        /// 대형 꽃 융단 마스크 [0,1] — 방위당 0~3개 패치(반경 160~200m, 가장자리 30m 페이드).
+        /// Empire 3개 / East 2개 / 타 방위 50% 확률 0~1개. 스폰/성/호수 250m+ 이격.
+        /// T2(텍스처 핑크 블롯) + T3(꽃 밀도 ×2)가 함께 사용 — GetFlowerPatchMask와 별개(합산 아님).
+        /// </summary>
+        public static float GetMegaFlowerPatchMask(float x, float z, NationType nation, int seed)
+        {
+            int nseed = seed + NationSeedOffset(nation) + 9503;
+            int count;
+            switch (nation)
+            {
+                case NationType.Empire: count = 3; break;
+                case NationType.East:   count = 2; break;
+                default:                count = H01(nseed, 0) < 0.5f ? 0 : 1; break;
+            }
+            if (count == 0) return 0f;
+
+            Vector3 spawn = ProjectName.Core.PlayerSpawnConfig.SpawnPosition;
+            var lakes = TerrainGenerator.Lakes;
+            float baseAng = (nation == NationType.Empire) ? 45f : NationBaseAngle(nation);
+            float distMin = (nation == NationType.Empire) ? 250f : 350f;
+            float distMax = (nation == NationType.Empire) ? 450f : 1250f;
+
+            float best = 0f;
+            for (int k = 0; k < count; k++)
+            {
+                float ang = baseAng + (H01(nseed, 10 + k) - 0.5f) * 84f;
+                float dist = distMin + H01(nseed, 30 + k) * (distMax - distMin);
+                Vector2 c = new Vector2(Mathf.Cos(ang * Mathf.Deg2Rad) * dist, Mathf.Sin(ang * Mathf.Deg2Rad) * dist);
+                if (Vector2.Distance(c, new Vector2(spawn.x, spawn.z)) < 250f) continue;
+                if (c.magnitude < 250f) continue;
+                bool nearLake = false;
+                if (lakes != null)
+                {
+                    for (int i = 0; i < lakes.Count; i++)
+                    {
+                        float dx = c.x - lakes[i].center.x, dz = c.y - lakes[i].center.z;
+                        if (dx * dx + dz * dz < 250f * 250f) { nearLake = true; break; }
+                    }
+                }
+                if (nearLake) continue;
+                float radius = MEGA_FLOWER_RADIUS_MIN + H01(nseed, 60 + k) * (MEGA_FLOWER_RADIUS_MAX - MEGA_FLOWER_RADIUS_MIN);
+                float dd = Vector2.Distance(new Vector2(x, z), c);
+                float m = 1f - Smoothstep(radius - MEGA_FLOWER_EDGE_SOFT, radius, dd);
                 if (m > best) best = m;
             }
             return Mathf.Clamp01(best);

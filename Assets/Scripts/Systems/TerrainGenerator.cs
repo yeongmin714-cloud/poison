@@ -224,6 +224,9 @@ namespace ProjectName.Systems
         private const float SUB_MESA_RADIUS = 30f;
         private const float SUB_MESA_EDGE   = 8f;       // 3m/8m ≈ 21° 가장자리 (45° 이내)
         private const float SUB_MESA_HEIGHT = 3f;
+        // T-D2 (09-08): 대형 분지 파라미터 — bowl 깊이 + 병풍 절벽 융기 (예시9)
+        private const float BASIN_DEPTH = 9f;
+        private const float BASIN_WALL_HEIGHT = 9f;
 
         /// <summary>
         /// 방위 내 서브 바이옴 델타 (m). [S-B]
@@ -285,7 +288,41 @@ namespace ProjectName.Systems
                 }
             }
 
+            // ── Phase T-D2 (09-08): 노출 암반 + 대형 분지 (예시2~13 Gap G1/G7 — 델타 가산) ──
+            //  outcrop: 320m 셀 해시 암돔 (층단 포함) × 방위별 진폭
+            d += TerrainShape.GetOutcropMask(x, z, nation, seed) * OutcropAmp(nation);
+
+            //  basin: 방위당 1개 대형 분지 — 바닥 파임(bowl) + 바깥쪽 병풍 절벽(링 밴드 × wedge)
+            TerrainShape.BasinInfo basin = TerrainShape.GetBasinCenter(nation, seed);
+            if (basin.valid)
+            {
+                float bdx = x - basin.center.x;
+                float bdz = z - basin.center.z;
+                float bdist = Mathf.Sqrt(bdx * bdx + bdz * bdz);
+                float bowl = TerrainShape.GetBasinMask(x, z, nation, seed);
+                d -= BASIN_DEPTH * bowl;
+                float cosDiff = Mathf.Cos(Mathf.Atan2(bdz, bdx) - basin.wallAngleRad);
+                float wedge = TerrainShape.Smoothstep(0.30f, 0.75f, cosDiff);
+                float ring = TerrainShape.Smoothstep(basin.radius - 18f, basin.radius - 8f, bdist)
+                           * (1f - TerrainShape.Smoothstep(basin.radius - 4f, basin.radius + 2f, bdist));
+                d += BASIN_WALL_HEIGHT * ring * wedge;
+            }
+
             return d * cliffSuppression;
+        }
+
+        /// <summary>방위별 노출 암반 융기 진폭 (m) — T-D2 09-08. South 낮게, Empire 미미하게.</summary>
+        private static float OutcropAmp(NationType nation)
+        {
+            switch (nation)
+            {
+                case NationType.East:   return 8f;
+                case NationType.West:   return 10f;
+                case NationType.South:  return 6f;
+                case NationType.North:  return 9f;
+                case NationType.Empire: return 4f;
+                default:                return 8f;
+            }
         }
 
         /// <summary>소메사 마스크 [0,1] — 90m 셀 그리드 22% 확률, 평탄 정상 + 8m 가장자리 전환. [S-B]</summary>
@@ -490,6 +527,14 @@ namespace ProjectName.Systems
             }
         }
 
+        // T-D2 재귀 가드: GenerateLakes의 waterLevel 계산은 ComputeNationHeight → ComputeSubBiomeVariation →
+        // TerrainShape 마스크 → Lakes getter 로 재진입한다. 생성 중엔 캐시를 건네주지 않는다(무한 재귀 차단).
+        /// <summary>호수 캐시가 이미 완성됐는지 (재귀 안전 접근용). 생성 중 false.</summary>
+        public static bool LakesReady => _lakes != null;
+
+        /// <summary>생성 트리거 없이 캐시만 조회 (null = 아직 생성 전/중). TerrainShape 마스크 전용.</summary>
+        public static System.Collections.Generic.IReadOnlyList<TerrainLakeDef> LakesOrNull => _lakes;
+
         /// <summary>
         /// 결정론적 호수 생성 — 인라인 LCG(고정 시드) PRNG로 위치/반경/깊이 산출.
         /// Mathf.PerlinNoise 또는 전역 UnityEngine.Random 시드를 사용하지 않아
@@ -513,6 +558,9 @@ namespace ProjectName.Systems
             // 절차적 호수 전체와 센터 250m+ · 카브 밴드(1.7r) 무겹침 → 총 17개 배치.
             AddHandPlacedLake(lakes, new Vector3(400f, 0f, 300f), 180f, 5.0f);
             AddHandPlacedLake(lakes, new Vector3(-560f, 0f, -520f), 150f, 4.5f);
+            // T-D2 09-08: 대형 호수 #3 — 북쪽 얼음호수(예시3 수변/수면 데코 대상). LCG 재현 시뮬레이션으로
+            // 전 호수와 1.7r 밴드 무겹침 검증 (최근접: (1339,250) 1.7r 합 525 < 거리 1039).
+            AddHandPlacedLake(lakes, new Vector3(423f, 0f, 906f), 130f, 5.5f);
 
             for (int i = 0; i < LAKE_COUNT; i++)
             {
@@ -641,9 +689,61 @@ namespace ProjectName.Systems
                 }
             }
 
-            Debug.Log($"[TerrainGenerator] 호수 배치 완료: {lakes.Count}개 (절차적 {LAKE_COUNT}목표 + 대형 2, AA2 시드 {LAKE_LCG_SEED})");
+            // ── T-D2 (09-08): 중형 호수 3개 대형 승격 (예시3/10 대형 수면 실루엣) ──
+            //  규칙: 반경 90m 미만만, 대형(r≥90) 호수와 560m+ · 일반과 420m+ 이격(1.7r 밴드 무겹침),
+            //  스폰/성(0,0) 300m+ 이격. 결정론 LakeRand 시드 — 부팅마다 동일.
+            int promotedCount = 0;
+            for (int i = 0; i < lakes.Count && promotedCount < 3; i++)
+            {
+                if (lakes[i].radius >= 90f) continue;
+                TerrainLakeDef cand = lakes[i];
+                if (Vector3.Distance(cand.center, spawn) < 300f) continue;
+                if (Vector3.Distance(cand.center, Vector3.zero) < 300f) continue;
+                bool tooClose = false;
+                for (int j = 0; j < lakes.Count; j++)
+                {
+                    if (j == i) continue;
+                    float need = (lakes[j].radius >= 90f) ? 560f : 420f;
+                    if (Vector3.Distance(cand.center, lakes[j].center) < need) { tooClose = true; break; }
+                }
+                if (tooClose) continue;
+                cand.radius = 100f + LakeRand(9100 + i * 7) * 20f;   // 100~120m
+                cand.depth = 4.5f + LakeRand(9101 + i * 7) * 1.5f;   // 4.5~6m
+                cand.waterLevel = ComputeLakeWaterLevel(cand);
+                lakes[i] = cand;
+                promotedCount++;
+                Debug.Log($"[TerrainGenerator] T-D2 호수 승격: center=({cand.center.x:F0},{cand.center.z:F0}) r={cand.radius:F0} depth={cand.depth:F1} wl={cand.waterLevel:F2}");
+            }
+
+            Debug.Log($"[TerrainGenerator] 호수 배치 완료: {lakes.Count}개 (절차적 {LAKE_COUNT}목표 + 대형 3, 승격 {promotedCount}, AA2 시드 {LAKE_LCG_SEED})");
             return lakes;
         }
+
+        /// <summary>
+        /// T-D2: waterLevel 산출 헬퍼 (승격 후 재계산용) — 기존 인라인 로직과 동일 규칙:
+        /// 카브 전 기저(ComputeNationHeight) - depth + LAKE_WATER_OFFSET 후 링(1.5r) 8방위 보정.
+        /// </summary>
+        private static float ComputeLakeWaterLevel(TerrainLakeDef lake)
+        {
+            float baseH = ComputeNationHeight(lake.center.x, lake.center.z, GetNationFromCoord(lake.center.x, lake.center.z), 42);
+            float wl = baseH - lake.depth + LAKE_WATER_OFFSET;
+            float ringR = lake.radius * LAKE_LEVEL_RING_FACTOR;
+            float maxRing = float.MinValue;
+            for (int k = 0; k < LAKE_LEVEL_RING_SAMPLES; k++)
+            {
+                float ang = (Mathf.PI * 2f * k) / LAKE_LEVEL_RING_SAMPLES;
+                float rx = lake.center.x + Mathf.Cos(ang) * ringR;
+                float rz = lake.center.z + Mathf.Sin(ang) * ringR;
+                float rh = ComputeNationHeight(rx, rz, GetNationFromCoord(rx, rz), 42);
+                if (rh > maxRing) maxRing = rh;
+            }
+            float basinFloor = baseH - lake.depth;
+            float ringAdjusted = Mathf.Min(wl, maxRing - lake.depth * LAKE_LEVEL_RING_REDUCE);
+            return Mathf.Max(basinFloor, ringAdjusted);
+        }
+
+        /// <summary>T3 데코용 — 서쪽 천연 아치 설치 위치 (결정론 캐시, TerrainShape 위임). T-D2 09-08.</summary>
+        public static Vector3 GetWestArchPosition(int seed = 42) => TerrainShape.GetWestArchPosition(seed);
 
         /// <summary>
         /// Z5: 수동 정의 대형 호수 추가 — waterLevel 규약은 reject sampling 루프와 동일:
