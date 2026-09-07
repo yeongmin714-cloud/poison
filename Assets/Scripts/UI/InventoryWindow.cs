@@ -50,11 +50,11 @@ namespace ProjectName.UI
 
         // ===== 레퍼런스 스타일 상수 (젤다 토탈코딩 스타일) =====
         private const float WINDOW_WIDTH = 1180f;
-        private const float WINDOW_HEIGHT = 1160f;
+        private const float WINDOW_HEIGHT = 1040f;   // C-UP: 1080p 전체화면 기준 상하 클리핑 방지 (1160→1040)
         private const float TITLE_BAR_HEIGHT = 108f;
         private const float TAB_BAR_HEIGHT = 96f;
-        private const float INFO_PANEL_HEIGHT = 290f;
-        private const float WEAPON_SECTION_HEIGHT = 116f;  // 무기 슬롯 섹션 (장착/해제 버튼 행)
+        private const float INFO_PANEL_HEIGHT = 272f;
+        private const float WEAPON_SECTION_HEIGHT = 112f;  // 무기 슬롯 섹션 (장착/해제 버튼 행)
         private const int GRID_COLUMNS = 5;                // 젤다 스타일 5열 그리드
         private const float SLOT_MARGIN = 6f;              // 슬롯 간격
         private const float SLOT_ICON_SIZE = 96f;          // 슬롯 내 아이콘 크기 (레거시, 동적 크기 사용 권장)
@@ -549,7 +549,7 @@ namespace ProjectName.UI
                         TruncateText(slot.item.displayName, nameWidth, _styleSlotLabel),
                         _styleSlotLabel);
 
-                    // 수치 — 우하단 (수량 / 무기는 공격력 수치 함께 표시)
+                    // 수치 — 우상단 코너 (수량 / 무기는 공격력 수치 함께 표시; 젤다식 코너 오버레이)
                     string valueText = $"x{slot.count}";
                     if (slot.item.category == PlayerInventory.ItemCategory.Weapon)
                     {
