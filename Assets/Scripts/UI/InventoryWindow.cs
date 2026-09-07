@@ -974,6 +974,22 @@ namespace ProjectName.UI
             return tex;
         }
 
+        /// <summary>테두리가 있는 단색 텍스처 생성 (슬롯/버튼 배경용 — 젤다 스타일 흰 테두리 박스).</summary>
+        private Texture2D MakeBorderedTexture(int w, int h, Color background, Color border, int borderPx)
+        {
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    bool isBorder = x < borderPx || y < borderPx || x >= w - borderPx || y >= h - borderPx;
+                    tex.SetPixel(x, y, isBorder ? border : background);
+                }
+            }
+            tex.Apply();
+            return tex;
+        }
+
         /// <summary>필터링된 카테고리 인덱스를 전역 슬롯 인덱스로 변환</summary>
         private int GetGlobalSlotIndex(PlayerInventory.ItemCategory category, int filteredIndex)
         {
