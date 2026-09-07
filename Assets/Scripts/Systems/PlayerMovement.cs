@@ -101,6 +101,11 @@ namespace ProjectName.Systems
         // --- 점프 관련 (로컬 추적 — RigAnimationController의 CurrentState 타이밍 이슈 해결) ---
         private bool _isJumping = false;
 
+        // --- T2B-3 착지 흡수 (공중→접지 전환 체감 완화 — 하드 텔레포트/위치 스냅 없이) ---
+        private bool _wasAirborne = false;        // 직전 프레임 공중 여부 (_isJumping || !_isGrounded)
+        private float _airPeakFallSpeed = 0f;     // 공중 중 최대 낙하속도(m/s) — 강착지 판정용
+        private float _landingDampTimer = 0f;     // 착지 직후 가속 램프 완화 지속시간
+
         // --- 더블탭 구르기 관련 ---
         private enum KeyDirection { Up, Down, Left, Right }
         // 게임 시작 직후 첫 키 입력이 더블탭으로 오인되지 않도록 음수로 초기화
@@ -501,6 +506,8 @@ namespace ProjectName.Systems
 
             // ── 마우스 커서 조준: 항상 커서가 가리키는 지면 지점을 바라봄 (탑다운 스트레이프 — Diablo/Hades 방식) ──
             // 이동 중에도 커서 방향 유지 → 걷기 애니와 독립적으로 몸이 커서를 따라 회전
+            // T2B-1: 조준 회전이 실제로 개입한 프레임만 표시 — 개입 시 아래 이동 방향 회전은 건너뜀(충돌 방지)
+            bool aimRotationApplied = false;
             {
                 var aimMouse = UnityEngine.InputSystem.Mouse.current;
                 var aimCamSource = _cameraTransform != null ? _cameraTransform : (Camera.main != null ? Camera.main.transform : null);
@@ -520,6 +527,7 @@ namespace ProjectName.Systems
                             {
                                 var aimRot = Quaternion.LookRotation(aimDir.normalized, Vector3.up);
                                 transform.rotation = Quaternion.Slerp(transform.rotation, aimRot, CursorTurnSpeed * Time.deltaTime);
+                                aimRotationApplied = true; // 조준 회전 개입 — 이동 방향 회전 생략 (기존 조준 동작 보존)
                             }
                         }
                     }
@@ -530,6 +538,19 @@ namespace ProjectName.Systems
             bool sprintKey = kb.leftShiftKey.isPressed; // kb는 위 가드에서 null 아님 보장
             bool hasStamina = _stamina > 0f;
             bool isMoving = _moveDirection.magnitude > 0.1f;
+
+            // T2B-1: 방향 전환 스무딩 — 조준 회전이 개입하지 않은 프레임에서만,
+            // 이동 중 루트가 _moveDirection 방향으로 급격히 돌지 않고 부드럽게 회전하도록 Slerp.
+            // (조준 중이면 위 커서 조준 Slerp가 우선 — 중복 회전/진동 방지. 구르기 중은 HandleRoll 소관.)
+            if (!aimRotationApplied && isMoving && !_isRolling)
+            {
+                Vector3 moveDir = new Vector3(_moveDirection.x, 0f, _moveDirection.z); // y는 ApplyGravity의 vv — 제외
+                if (moveDir.sqrMagnitude > 0.01f)
+                {
+                    var moveRot = Quaternion.LookRotation(moveDir.normalized, Vector3.up);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, moveRot, MoveTurnSpeed * Time.deltaTime);
+                }
+            }
 
             if (sprintKey && hasStamina && isMoving)
             {
@@ -888,6 +909,14 @@ namespace ProjectName.Systems
         // 몸 회전 속도 (Slerp 계수/초) — 이동 방향/커서 조준 공용
         private const float TurnSpeed = 12f;
         private const float CursorTurnSpeed = 10f;
+        // T2B-1: 이동 방향 회전 (조준 회전이 개입하지 않는 프레임에만 사용 — CursorTurnSpeed와 독립)
+        private const float MoveTurnSpeed = 9f;      // Slerp 계수/초 — 8~10 rad/s 대역, 급회전 방지
+        // T2B-2: 경사 정렬 (가벼운 개선 — 과한 기울기 방지 상한)
+        private const float SlopeTiltMaxDeg = 6f;    // 기울임 각도 상한
+        private const float SlopeAlignSpeed = 6f;    // 정렬 Slerp 계수/초 — 서서히 들어가고 나옴
+        // T2B-3: 착지 흡수
+        private const float LandingDampTime = 0.2f;  // 착지 직후 가속 완화 지속시간
+        private const float HardLandingSpeed = 8f;   // 낙하속도 이상이면 강착지 판정(카메라 흔들림)
         private float _followProbeTimer = 0f;
         private int _followProbeCount = 0;
         private const float PitchMin = 30f;   // 탑다운 유지 (너무 수평 안 되게)
