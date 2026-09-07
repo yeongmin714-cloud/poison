@@ -114,6 +114,14 @@ namespace ProjectName.UI
         private Texture2D _texBtnBgEquipped;    // 장착 중 버튼 배경 (금색 테두리)
         private Texture2D _texSlotEmptyGuide;   // T3B-1: 빈 슬롯 가이드 셀 (라운드 다크 셀 + 그리드라인 보더)
 
+        // ===== 3D 캐릭터 프리뷰 (RenderTexture) — 월드 플레이어와 별개의 fresh 인스턴스 =====
+        private GameObject _previewModel;       // 프리뷰 전용 플레이어 모델 인스턴스 (원격 위치, 월드 플레이어 무영향)
+        private Camera _previewCamera;          // 프리뷰 전용 카메라
+        private RenderTexture _previewRT;       // 프리뷰 전용 RenderTexture (null = 프리뷰 없음 → 플레이스홀더 유지)
+        private GameObject _previewWeapon;      // 프리뷰 손에 부착한 검 인스턴스
+        private string _previewWeaponId;        // 프리뷰에 부착된 검 id (중복 부착 방지)
+        private bool _previewSetupTried;        // 이번 열림에서 생성 시도 완료 플래그 (실패 재시도 스팸 방지)
+
         protected override void Awake()
         {
             base.Awake();
@@ -135,10 +143,12 @@ namespace ProjectName.UI
             if (_texBtnBgHover != null) { Destroy(_texBtnBgHover); _texBtnBgHover = null; }
             if (_texBtnBgEquipped != null) { Destroy(_texBtnBgEquipped); _texBtnBgEquipped = null; }
             if (_texSlotEmptyGuide != null) { Destroy(_texSlotEmptyGuide); _texSlotEmptyGuide = null; }
+            ReleasePreview();   // 3D 프리뷰 자원 정리 (RT/카메라 누수 방지)
         }
 
         protected override void OnShow()
         {
+            EnsurePreviewSetup();   // 3D 캐릭터 프리뷰 리소스 생성 (인벤토리 열 때만 활성)
 
             _selectedSlotIndex = -1;
             RefreshInventory();
@@ -146,7 +156,7 @@ namespace ProjectName.UI
 
         protected override void OnHide()
         {
-
+            ReleasePreview();       // 3D 캐릭터 프리뷰 리소스 정리 (RT/카메라/개체 해제 — 메모리 누수 방지)
         }
 
         /// <summary>
@@ -862,14 +872,23 @@ namespace ProjectName.UI
             GUI.Label(new Rect(panelX + pad, panelY + 8f, innerW, 58f), "🧝 캐릭터", _styleItemName);
             DrawColoredRect(new Rect(panelX + pad, panelY + 72f, innerW, 1), ColorGridLine);
 
-            // 3D 프리뷰 자리 (플레이스홀더 — 다음 단계에서 RenderTexture로 교체)
+            // 3D 프리뷰 (RenderTexture) — 준비 실패 시 기존 "캐릭터 프리뷰" 플레이스홀더 유지
             float previewTop = panelY + 88f;
             float previewHeight = panelHeight - 88f - 150f;
             Rect previewRect = new Rect(panelX + pad, previewTop, innerW, Mathf.Max(60f, previewHeight));
             DrawColoredRect(previewRect, ColorSlotEmptyCell);
             DrawRectBorder(previewRect, ColorGridLine, 1f);
-            GUI.Label(new Rect(previewRect.x, previewRect.y + previewRect.height * 0.5f - 22f, previewRect.width, 44f),
-                "캐릭터 프리뷰", _styleEmptyText);
+            EnsurePreviewSetup();   // OnShow 누락 대비 지연 생성 (이미 준비됐거나 실패했으면 no-op)
+            if (_previewRT != null)
+            {
+                RefreshPreviewWeapon();   // 장착 무기 변경 즉시 반영 (내부 가드로 중복 부착 방지)
+                GUI.DrawTexture(previewRect, _previewRT, ScaleMode.ScaleToFit);
+            }
+            else
+            {
+                GUI.Label(new Rect(previewRect.x, previewRect.y + previewRect.height * 0.5f - 22f, previewRect.width, 44f),
+                    "캐릭터 프리뷰", _styleEmptyText);
+            }
 
             // 장착 무기 표시
             float equipY = panelY + panelHeight - 140f;
@@ -882,6 +901,161 @@ namespace ProjectName.UI
                 hasEquipped ? TruncateText(GetEquippedWeaponDisplayName(equippedId), innerW, _styleItemName) : "장착하지 않음",
                 _styleItemName);
             GUI.color = oldColor;
+        }
+
+        // ===================================================================
+        // 3D 캐릭터 프리뷰 (RenderTexture) — 인벤토리 열 때(OnShow) 생성,
+        // 닫을 때(OnHide)/파괴 시(OnDestroy) 정리. 월드 플레이어 인스턴스에는
+        // 영향 없음(fresh clone + 원격 위치 + 전용 카메라가 개체만 비춤).
+        // ===================================================================
+
+        /// <summary>프리뷰 개체/카메라/RT 생성. 실패 시 자원 정리 후 플레이스홀더 폴백(크래시 없음).</summary>
+        private void EnsurePreviewSetup()
+        {
+            if (_previewRT != null) return;   // 이미 성공
+            if (_previewSetupTried) return;   // 이번 열림에서 실패한 적 있음 → 재시도 없음(스팸 방지)
+            _previewSetupTried = true;
+
+            try
+            {
+                // ① 플레이어 모델 fresh instance (월드 플레이어와 별개)
+                var prefab = Resources.Load<GameObject>("Models/UserProvided/fbx/Player_Rigged_Heat");
+                if (prefab == null)
+                {
+                    Debug.LogWarning("[InventoryWindow] 프리뷰 플레이어 모델 로드 실패 — 플레이스홀더 유지");
+                    return;
+                }
+                _previewModel = Instantiate(prefab);
+                _previewModel.name = "InventoryPreviewBody";
+                // 씬 물체와 겹치지 않는 원격 위치 (전용 카메라가 개체만 비추도록 far clip과 조합)
+                Vector3 remotePos = new Vector3(10000f, 1000f, 10000f);
+                _previewModel.transform.position = remotePos;
+
+                // 스케일 정규화 (GameSetup과 동일: 키 ~1.8m) + 원격 위치 바닥 기준 정렬
+                var rends = _previewModel.GetComponentsInChildren<Renderer>();
+                if (rends.Length > 0)
+                {
+                    var b = rends[0].bounds;
+                    foreach (var r in rends) b.Encapsulate(r.bounds);
+                    float h = b.size.y;
+                    if (h > 0.01f) _previewModel.transform.localScale *= 1.8f / h;
+                    var b2 = rends[0].bounds;
+                    foreach (var r in rends) b2.Encapsulate(r.bounds);
+                    _previewModel.transform.position += new Vector3(0f, remotePos.y - b2.min.y, 0f);
+                }
+
+                // 머티리얼 복사(월드 플레이어와 동일 외형) + 애니 컨트롤러(실패 시 스태틱 포즈 허용)
+                try { HumanoidClipDriver.CopyMaterialsFromGlb(_previewModel, "Models/UserProvided/Player_Rigged"); }
+                catch (System.Exception matEx) { Debug.LogWarning("[InventoryWindow] 프리뷰 머티리얼 복사 실패(무시): " + matEx.Message); }
+                var anim = _previewModel.GetComponent<Animator>();
+                if (anim == null) anim = _previewModel.AddComponent<Animator>();
+                var ctrl = Resources.Load<RuntimeAnimatorController>("Animation/Controllers/Player_AC");
+                if (ctrl != null)
+                {
+                    anim.runtimeAnimatorController = ctrl;
+                    anim.applyRootMotion = false;
+                    anim.updateMode = AnimatorUpdateMode.UnscaledTime;   // 일시정지 중에도 프리뷰 애니 유지
+                }
+
+                // ② RenderTexture + 전용 카메라 (원격 위치 + 짧은 far clip → 프리뷰 개체만 촬영)
+                _previewRT = new RenderTexture(512, 640, 24, RenderTextureFormat.ARGB32);
+                _previewRT.name = "InventoryPreviewRT";
+                _previewRT.Create();
+
+                var camGo = new GameObject("InventoryPreviewCamera");
+                _previewCamera = camGo.AddComponent<Camera>();
+                _previewCamera.clearFlags = CameraClearFlags.SolidColor;
+                _previewCamera.backgroundColor = new Color(0.06f, 0.06f, 0.09f, 1f);
+                _previewCamera.cullingMask = ~0;
+                _previewCamera.nearClipPlane = 0.1f;
+                _previewCamera.farClipPlane = 20f;
+                _previewCamera.fieldOfView = 30f;
+                _previewCamera.targetTexture = _previewRT;
+
+                // 프레이밍: 렌더러 bounds 중심을 살짝 사선에서 바라보도록 카메라 배치
+                var rb = rends[0].bounds;
+                foreach (var r in rends) rb.Encapsulate(r.bounds);
+                Vector3 center = rb.center;
+                float halfH = Mathf.Max(0.5f, rb.extents.y * 1.25f);
+                float dist = halfH / Mathf.Tan(_previewCamera.fieldOfView * 0.5f * Mathf.Deg2Rad);
+                _previewCamera.transform.position = center + new Vector3(dist * 0.35f, 0f, -dist);
+                _previewCamera.transform.LookAt(center);
+
+                // ③ 장착 무기 반영 (실패 시 무시)
+                RefreshPreviewWeapon();
+
+                // 첫 프레임 내용 보장 (이후에는 카메라 자동 렌더로 idle 애니 반영)
+                try { _previewCamera.Render(); }
+                catch { /* 첫 렌더 실패 무시 — 자동 렌더가 이어서 처리 */ }
+
+                Debug.Log("[InventoryWindow] ✅ 3D 캐릭터 프리뷰 준비 완료 (RenderTexture 512×640)");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[InventoryWindow] 3D 프리뷰 생성 실패 — 플레이스홀더 유지: " + e.Message);
+                ReleasePreview();
+            }
+        }
+
+        /// <summary>프리뷰 개체 손에 현재 장착 무기 부착 (WeaponEquipManager와 별개 인스턴스, 실패 시 무시).</summary>
+        private void RefreshPreviewWeapon()
+        {
+            if (_previewModel == null) return;
+            string id = WeaponEquipManager.CurrentId;
+            // 동일 id + (부착 완료 또는 비장착)면 no-op — 매 프레임 호출 안전
+            if (id == _previewWeaponId && (_previewWeapon != null || string.IsNullOrEmpty(id))) return;
+
+            // 기존 프리뷰 검 제거
+            if (_previewWeapon != null) { Destroy(_previewWeapon); _previewWeapon = null; }
+            _previewWeaponId = id;
+
+            if (string.IsNullOrEmpty(id)) return;
+
+            try
+            {
+                var prefab = Resources.Load<GameObject>("Models/UserProvided/" + id + "_sword");
+                if (prefab == null) return;   // 무기 프리팹 없음 — 스킵 (규격 준수)
+
+                var animator = _previewModel.GetComponentInChildren<Animator>();
+                var handBone = animator != null ? animator.GetBoneTransform(HumanBodyBones.RightHand) : null;
+                if (handBone == null) return;
+
+                _previewWeapon = Instantiate(prefab, handBone);
+                _previewWeapon.name = "Preview_" + id + "_sword";
+                // 부착 규격: WeaponEquipManager와 동일 튜닝 값
+                _previewWeapon.transform.localPosition = new Vector3(0f, 0.12f, 0.02f);
+                _previewWeapon.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+
+                var wRends = _previewWeapon.GetComponentsInChildren<Renderer>();
+                if (wRends.Length > 0)
+                {
+                    var wb = wRends[0].bounds;
+                    foreach (var r in wRends) wb.Encapsulate(r.bounds);
+                    float len = Mathf.Max(wb.size.x, Mathf.Max(wb.size.y, wb.size.z));
+                    if (len > 0.01f) _previewWeapon.transform.localScale *= 0.9f / len;
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[InventoryWindow] 프리뷰 무기 부착 실패(무시): " + e.Message);
+                if (_previewWeapon != null) { Destroy(_previewWeapon); _previewWeapon = null; }
+            }
+        }
+
+        /// <summary>프리뷰 자원 정리 (OnHide/OnDestroy에서 호출 — RT/카메라/개체 파괴, 다음 열림에서 재시도 가능).</summary>
+        private void ReleasePreview()
+        {
+            _previewSetupTried = false;
+            if (_previewWeapon != null) { Destroy(_previewWeapon); _previewWeapon = null; }
+            _previewWeaponId = null;
+            if (_previewModel != null) { Destroy(_previewModel); _previewModel = null; }
+            if (_previewCamera != null) { Destroy(_previewCamera.gameObject); _previewCamera = null; }
+            if (_previewRT != null)
+            {
+                _previewRT.Release();
+                Destroy(_previewRT);
+                _previewRT = null;
+            }
         }
 
         /// <summary>WeaponEquipManager 무기 ID → 표시 이름 (DrawWeaponSection 버튼과 동일 매핑).</summary>

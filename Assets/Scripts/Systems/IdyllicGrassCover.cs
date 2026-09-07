@@ -37,6 +37,17 @@ namespace ProjectName.Systems
         const int   MAX_POOL = 16000;            // 풀 상한 (활성 ~6300 + 여유)
         const int   FANTASY_SEED = 20260904;     // 숲 마스크 시드 (IdyllicDecoPlacer와 동일)
 
+        // 방위별 잔디 틴트 팔레트 — 지형색(NationTerrainController)과 충돌하지 않는 아주 미세한 배수 보정.
+        // 동쪽 초원은 무변경(1,1,1). 청크 단위로 적용되어 경계에서 자연스럽게 전환된다.
+        static readonly Color GrassTintEast    = new Color(1.00f, 1.00f, 1.00f); // 동 — 초원, 기본
+        static readonly Color GrassTintWest    = new Color(1.00f, 0.94f, 0.86f); // 서 — 황사막, 살짝 황토빛
+        static readonly Color GrassTintSouth   = new Color(1.00f, 0.90f, 0.85f); // 남 — 붉은 화산, 살짝 따뜻
+        static readonly Color GrassTintNorth   = new Color(0.88f, 0.95f, 1.00f); // 북 — 설원, 서리빛 차가움
+        static readonly Color GrassTintEmpire  = new Color(1.00f, 0.97f, 0.90f); // 황제국 — 황금 초원, 살짝 금빛
+        static readonly Color GrassTintDracula = new Color(0.90f, 0.85f, 0.92f); // 드라큘라 — 흐리고 창백
+        static readonly int   TintPropertyId   = Shader.PropertyToID("_BaseColor");
+        static readonly int   TintPropertyIdAlt = Shader.PropertyToID("_Color");
+
         Transform _player;
         readonly List<GameObject> _prefabs = new List<GameObject>();
         readonly Dictionary<long, Chunk> _chunks = new Dictionary<long, Chunk>();
@@ -46,6 +57,8 @@ namespace ProjectName.Systems
         Vector2Int _lastPlayerCell;
         bool _initialized;
         int _budgetUsedThisFrame;
+        readonly MaterialPropertyBlock _tintBlock = new MaterialPropertyBlock();
+        readonly Dictionary<string, Color> _baseColorCache = new Dictionary<string, Color>();
 
         class Chunk
         {
@@ -181,6 +194,7 @@ namespace ProjectName.Systems
                     Hash01(seedKey, k, 6) * 360f,
                     (Hash01(seedKey, k, 7) * 2f - 1f) * GRASS_TILT_DEG);
                 go.transform.localScale = Vector3.one * scale;
+                ApplyNationTint(go, nation);
                 c.items.Add(go);
                 _budgetUsedThisFrame++;
             }
@@ -199,6 +213,57 @@ namespace ProjectName.Systems
             var fresh = Object.Instantiate(model, _parent);
             fresh.layer = 0;
             return fresh;
+        }
+
+        /// <summary>방위별 미세 틴트를 잔디 렌더러에 적용. 공유 머티리얼은 건드리지 않고 PropertyBlock만 사용.</summary>
+        void ApplyNationTint(GameObject go, NationType nation)
+        {
+            Color factor;
+            switch (nation)
+            {
+                case NationType.West:    factor = GrassTintWest;    break;
+                case NationType.South:   factor = GrassTintSouth;   break;
+                case NationType.North:   factor = GrassTintNorth;   break;
+                case NationType.Empire:  factor = GrassTintEmpire;  break;
+                case NationType.Dracula: factor = GrassTintDracula; break;
+                default:                 factor = GrassTintEast;    break;
+            }
+
+            Color baseColor = GetPrefabBaseColor(go);
+            Color tint = new Color(
+                baseColor.r * factor.r,
+                baseColor.g * factor.g,
+                baseColor.b * factor.b,
+                baseColor.a);
+
+            var renderers = go.GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                var r = renderers[i];
+                if (r == null) continue;
+                r.GetPropertyBlock(_tintBlock);
+                _tintBlock.SetColor(TintPropertyId, tint);
+                _tintBlock.SetColor(TintPropertyIdAlt, tint);
+                r.SetPropertyBlock(_tintBlock);
+            }
+        }
+
+        /// <summary>프리팹 공유 머티리얼의 기본 색(읽기 전용) 캐시 — 인스턴스 복제 없이 원본 보존.</summary>
+        Color GetPrefabBaseColor(GameObject go)
+        {
+            Color c;
+            if (_baseColorCache.TryGetValue(go.name, out c))
+                return c;
+            c = Color.white;
+            var r = go.GetComponentInChildren<Renderer>();
+            var mat = r != null ? r.sharedMaterial : null;
+            if (mat != null)
+            {
+                if (mat.HasProperty(TintPropertyId)) c = mat.GetColor(TintPropertyId);
+                else if (mat.HasProperty(TintPropertyIdAlt)) c = mat.GetColor(TintPropertyIdAlt);
+            }
+            _baseColorCache[go.name] = c;
+            return c;
         }
 
         void SetChunkActive(Chunk c, bool active)

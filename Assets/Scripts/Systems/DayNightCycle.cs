@@ -27,17 +27,20 @@ namespace ProjectName.Systems
         [SerializeField] private float _longitude = 30f;
 
         [Header("Sun Colors")]
-        [SerializeField] private Color _noonColor = new Color(1f, 0.95f, 0.8f);
+        // [BotW 파스텔] 낮: 따뜻하고 밝은 흰~연노랑 태양
+        [SerializeField] private Color _noonColor = new Color(1f, 0.97f, 0.87f);
         [SerializeField] private Color _eveningColor = new Color(1f, 0.5f, 0.2f);
         [SerializeField] private Color _nightColor = new Color(0.1f, 0.1f, 0.3f);
 
         [Header("Sun Intensity")]
-        [SerializeField] private float _noonIntensity = 1f;
+        // [BotW 파스텔] 낮 태양 강도 상향 (지형/캐릭터 채도 활성화)
+        [SerializeField] private float _noonIntensity = 1.3f;
         [SerializeField] private float _eveningIntensity = 0.3f;
         [SerializeField] private float _nightIntensity = 0f;
 
         [Header("Shadow Strength")]
-        [SerializeField] private float _noonShadowStrength = 1f;
+        // [BotW 파스텔] 그림자를 살짝 연하게 (하드 섀도 완화, 파스텔 톤 유지)
+        [SerializeField] private float _noonShadowStrength = 0.85f;
         [SerializeField] private float _nightShadowStrength = 0f;
 
         // ================================================================
@@ -55,7 +58,8 @@ namespace ProjectName.Systems
         // ================================================================
 
         [Header("Ambient Light")]
-        [SerializeField] private Color _dayAmbient = new Color(0.6f, 0.6f, 0.6f);
+        // [BotW 파스텔] 낮 ambient: 밝은 연청(하늘 반사광)으로 미세 상향
+        [SerializeField] private Color _dayAmbient = new Color(0.68f, 0.74f, 0.82f);
         [SerializeField] private Color _nightAmbient = new Color(0.05f, 0.05f, 0.1f);
 
         [Header("Fog Settings")]
