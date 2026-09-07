@@ -57,7 +57,17 @@ namespace ProjectName.UI
         private const float WEAPON_SECTION_HEIGHT = 96f;   // 무기 슬롯 섹션 (장착/해제 버튼 행)
         private const int GRID_COLUMNS = 5;                // 젤다 스타일 5열 그리드
         private const float SLOT_MARGIN = 6f;              // 슬롯 간격
-        private const float SLOT_ICON_SIZE = 96f;          // 슬롯 내 아이콘 크기
+        private const float SLOT_ICON_SIZE = 96f;          // 슬롯 내 아이콘 크기 (레거시, 동적 크기 사용 권장)
+        private const int GRID_MIN_ROWS = 2;               // 빈 상태에서도 보이는 최소 그리드 행 수
+        // 2분할 레이아웃: 좌측 그리드 + 우측 캐릭터 프리뷰 패널
+        private const float PREVIEW_PANEL_WIDTH = 340f;    // 우측 프리뷰 패널 폭
+        private const float GRID_AREA_WIDTH = WINDOW_WIDTH - PREVIEW_PANEL_WIDTH; // 좌측 그리드 영역 폭 (660)
+
+        // 포커스/강조 색상 (민트 글로우 + 황금 테두리)
+        private static readonly Color ColorMintGlow = new Color(0.30f, 1f, 0.75f, 0.28f);
+        private static readonly Color ColorMintEdge = new Color(0.45f, 1f, 0.80f, 0.9f);
+        private static readonly Color ColorSlotEmptyCell = new Color(0.10f, 0.10f, 0.13f, 0.55f); // 빈 슬롯 가이드 셀
+        private static readonly Color ColorGridLine = new Color(0.30f, 0.30f, 0.34f, 0.5f);       // 그리드 가이드라인
 
         // ===== 다크 테마 색상 (반투명 다크 패널 + 금색 강조) =====
         private static readonly Color ColorBg = new Color(0.08f, 0.08f, 0.10f, 0.88f);         // 전체 배경 (반투명 다크)
@@ -155,22 +165,24 @@ namespace ProjectName.UI
             _texBtnBgHover    = MakeBorderedTexture(8, 8, ColorBtnHover,   new Color(0.85f, 0.85f, 0.88f, 1f),    1);
             _texBtnBgEquipped = MakeBorderedTexture(8, 8, ColorBtnEquippedBg, ColorAccent,                       1); // 장착 중 = 금색 테두리
 
-            // 타이틀 — 크고 굵은 흰색
+            // 타이틀 — 크고 굵은 흰색 (TITLE_BAR 90px에 맞춰 크기 보정: 72→52로 잘림 수리)
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 72,
+                fontSize = 52,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
+                clipping = TextClipping.Clip,
                 normal = { textColor = ColorTextPrimary },
                 padding = new RectOffset(21, 4, 0, 0)
             };
 
-            // 탭 (비활성) — 다크 배경 + 흰 텍스트, 잘림 방지를 위해 폰트 축소
+            // 탭 (비활성) — 다크 배경 + 흰 텍스트 (9개 탭 폭 ~73px: 24→18로 반잘림 수리 + Clip)
             _styleTab = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 24,
+                fontSize = 18,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleCenter,
+                clipping = TextClipping.Clip,
                 padding = new RectOffset(2, 2, 4, 4),
                 normal = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorTabInactive) },
                 hover = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorBtnHover) },
