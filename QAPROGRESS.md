@@ -413,3 +413,26 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 ---
 
 ## 2026-09-05: 애니 5차 수리(정책 반영) — Neural/Hybrid 자동부착 완전 제거, Player_AC 단일 경로 확정 ✅
+
+---
+
+## 2026-09-07: 플레이어 소유 성 내부 — 중세 판타지 + 저장고/무기고/작업대 상호작용 ✅
+
+**파일:** `Systems/PlayerCastleInteriorBuilder.cs`, `UI/TerritoryCraftingStation.cs`, `UI/TerritoryWarehouse.cs`
+
+**배경/결정:** 예시 사진은 구조만 참고 — **내부는 중세 판타지 톤**으로 재작성. 자신 소유 영지 성 내부(PlayerCastleInteriorBuilder)를 기능 기지 → 중세 대전당(석재 기둥 2열/화로·토치 주황 점멸/문장 방패/붉은 러그/촛불 조명)으로 변환.
+
+**상호작용(신규):**
+- **Phase A 작업대** — `TerritoryCraftingStation` 부착: E키→`CraftingUI`, R키→`RepairStationUI`. 레벨 제한 옵션 유지.
+- **Phase B 저장고** — `TerritoryWarehouse` 부착: E키→창고 UI, 영지 키 기반 창고(20슬롯).
+- **Phase C 무기고** — `TerritoryWarehouse` 부착: **무기고 전용 키(territoryKey+"_armory")**로 저장고와 슬롯 분리.
+
+**어셈블리 경계(핵심 트러블샷):** `Systems asmdef`가 `UI asmdef`를 참조하면 **순환 참조**(UI가 이미 Systems 참조) → `using ProjectName.UI;`는 `CS0234` 발생. 해결 = `AttachUiComponent(GameObject, string typeName, params object[])` **리플렉션 헬퍼**(`Type.GetType("ProjectName.UI.X, ProjectName.UI")` → `AddComponent(Type)` → `GetMethod("Configure")` → `Invoke`, 선택적 매개변수 기본값 채움). 아키텍처에 박아두기.
+
+**Configure API 추가(기존 동작 보존):**
+- `TerritoryCraftingStation.Configure(string territoryId, string stationName=null, float? interactRange=null)`
+- `TerritoryWarehouse.Configure(string territoryId, int maxSlots=20, float? interactRange=null)`
+
+**검증:** 배치모드 error CS=0 (Systems.dll 20:08) + 파일별 중괄호 균형 PASS.
+
+**Play 판정 대기:** 점령 후 내 영지 성문 E → 대전당, 각 시설 근접 시 `[E]` 표시 → 창고/크래프트/수리 UI 정상 열림. (CraftingUI/RepairStationUI 프리팹이 UIManager/씬 시 실제 열림 확인 필요)

@@ -1707,3 +1707,20 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | Play 판정 대기 | ① DD3 매핑=22·실질매핑≥17 ② 이동 중 LHandΔ/LFootΔ>0 ③ 보행 스윙 ④ Space→JumpProbe 값 (로그 0건=구르기/탑승 잔존) | ⬜ |
 
 ---
+
+## 🔧 2026-09-07: 플레이어 소유 성 내부 — 중세 판타지 강화 + 저장고/무기고/작업대 상호작용 (✅)
+
+> 예시 사진은 구조만 참고, **내부는 중세 판타지 톤**으로 재작성. 자신 소유 영지 성 내부(PlayerCastleInteriorBuilder)를 기능 기지 → 중세 대전당으로 바꾸고, 시설 3종을 상호작용 가능하게 연결.
+
+| 항목 | 내용 | 상태 |
+|:---|:---|:---:|
+| 중세 판타지 강화 | 석재 기둥 2열 + 화로 2기/토치(주황 점멸) + 문장 방패 + 붉은 러그 + 촛불 조명 톤 | ✅ |
+| Phase A — 작업대 | `TerritoryCraftingStation` 부착 (E키→CraftingUI + R키→RepairStationUI), Nameplate "🛠️ 작업대" 유지 | ✅ |
+| Phase B — 저장고 | `TerritoryWarehouse` 부착 (E키→창고 UI), 영지 키 기반 창고 | ✅ |
+| Phase C — 무기고 | `TerritoryWarehouse` 부착, **무기고 전용 키(territoryKey+"_armory")**로 저장고와 슬롯 분리 | ✅ |
+| 어셈블리 경계 | Systems asmdef는 UI 참조 불가(순환) → `AttachUiComponent` 리플렉션 헬퍼로 부착 (CS0234 해결) | ✅ |
+| Configure API | `TerritoryCraftingStation.Configure(territoryId, stationName, interactRange)` + `TerritoryWarehouse.Configure(territoryId, maxSlots, interactRange)` 추가 (기존 기본 경로 보존) | ✅ |
+| 컴파일 | 배치모드 error CS=0 (20:08 Systems.dll) | ✅ |
+| Play 확인 대기 | 점령 후 내 영지 성문 E → 왕좌/대전당, 저장고·무기고·작업대 UI 열림 | ⬜ |
+
+---
