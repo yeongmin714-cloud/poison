@@ -526,11 +526,11 @@ namespace ProjectName.Systems
         /// <summary>흙길 색 (머드 로드 — 예시 이미지 컨셉).</summary>
         private static readonly Color DirtPathColor = new Color(0.52f, 0.40f, 0.28f);
 
-        /// <summary>도로 반폭 (m) — 중심선에서 이 거리까지 페인트(전체 폭 10m).</summary>
-        private const float DirtPathHalfWidth = 5f;
+        /// <summary>도로 반폭 (m) — 중심선에서 이 거리까지 페인트(전체 폭 7m).</summary>
+        private const float DirtPathHalfWidth = 3.5f;
 
         /// <summary>중심선에서의 최대 블렌드 강도 (가장자리로 갈수록 0%로 페이드).</summary>
-        private const float DirtPathMaxAlpha = 0.85f;
+        private const float DirtPathMaxAlpha = 0.92f;
 
         /// <summary>
         /// 결정론적 흙길 네트워크 세그먼트(월드 XZ, static 캐시 — 재생성 시 항상 동일):
@@ -683,7 +683,7 @@ namespace ProjectName.Systems
                     }
                     if (best >= halfWidth) continue;
 
-                    // 중심선(d=0)에서 85% → 가장자리(d=반폭)에서 0%로 부드럽게 페이드
+                    // 중심선(d=0)에서 92% → 가장자리(d=반폭)에서 0%로 부드럽게 페이드
                     float t = best / halfWidth;
                     float alpha = DirtPathMaxAlpha * Mathf.SmoothStep(1f, 0f, t);
                     int idx = row + x;
@@ -755,6 +755,17 @@ namespace ProjectName.Systems
                 float centerDarken = 1f - (1f - dist / 50f) * 0.15f;
                 finalColor *= centerDarken;
             }
+
+            // 잔디 디테일: 고빈도 노이즈로 지면 전체에 잔디 질감(명암) 부여 — 전체 커버 핵심.
+            // ComputePixelColor 말미에 적용되므로 GenerateCombinedTexture에서
+            // 픽셀 색 계산 → 잔디 디테일 → PaintDirtPaths(흙길 오버레이) 순서가 보장되고,
+            // 흙길 페인트가 위에 덮여 흙길 위에는 잔디 노이즈가 남지 않는다.
+            // 승수 변조라 기존 방위색/링/설원 색의 상대성은 유지된다.
+            float detailN = Mathf.PerlinNoise(wx * 2.5f, wz * 2.5f);          // ~0.4m 디테일
+            float patchN = Mathf.PerlinNoise(wx * 0.35f, wz * 0.35f);         // ~3m 풀 패치
+            float grassMod = Mathf.Lerp(0.82f, 1.12f, detailN) * Mathf.Lerp(0.9f, 1.08f, patchN);
+            finalColor = new Color(finalColor.r * grassMod, finalColor.g * grassMod,
+                finalColor.b * grassMod * Mathf.Lerp(1.05f, 0.95f, patchN), finalColor.a);
 
             return finalColor;
         }

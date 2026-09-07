@@ -54,6 +54,7 @@ namespace ProjectName.UI
         private const float TITLE_BAR_HEIGHT = 90f;
         private const float TAB_BAR_HEIGHT = 81f;
         private const float INFO_PANEL_HEIGHT = 240f;
+        private const float WEAPON_SECTION_HEIGHT = 96f;   // 무기 슬롯 섹션 (장착/해제 버튼 행)
         private const int GRID_COLUMNS = 3;
         private const float SLOT_MARGIN = 12f;
 
@@ -318,11 +319,15 @@ namespace ProjectName.UI
 
             // === 아이템 슬롯 그리드 (스크롤 가능) ===
             float gridY = tabY + TAB_BAR_HEIGHT + 1;
-            float gridHeight = WINDOW_HEIGHT - (gridY - y) - INFO_PANEL_HEIGHT - 4;
+            float gridHeight = WINDOW_HEIGHT - (gridY - y) - WEAPON_SECTION_HEIGHT - INFO_PANEL_HEIGHT - 8;
             DrawItemGrid(x, gridY, gridHeight);
 
+            // === 무기 슬롯 섹션 (장착/해제) ===
+            float weaponY = gridY + gridHeight + 2;
+            DrawWeaponSection(x, weaponY);
+
             // === 하단 정보 패널 ===
-            float infoY = gridY + gridHeight + 2;
+            float infoY = weaponY + WEAPON_SECTION_HEIGHT + 2;
             DrawInfoPanel(x, infoY);
 
             // === 🗺️ 오토루트 컨텍스트 메뉴 ===

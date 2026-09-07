@@ -28,9 +28,9 @@ namespace ProjectName.Systems
         [SerializeField] private float worldHalf = 1600f;  // 월드 반경 → 8×8 = 64청크 (±1600m 커버)
 
         [Header("Static Grass (청크당 1드로우콜 병합 잔디)")]
-        [SerializeField] private float grassSpacing = 4f;   // 잔디 그리드 간격(m) — 4f → 정점 격자 2칸 간격(50×50=2500지점/청크)
-        [SerializeField] private float grassHeight = 0.6f;  // 터프 기본 높이 (실제 0.5~0.7m 랜덤 변동)
-        [SerializeField] private float grassWidth = 0.8f;   // 터프 쿼드 폭
+        [SerializeField] private float grassSpacing = 4f;   // 잔디 그리드 간격(m) — 4f → 정점 전체 샘플(100×100=10000지점/청크)
+        [SerializeField] private float grassHeight = 1.1f;  // 터프 기본 높이 (실제 1.0~1.2m 랜덤 변동)
+        [SerializeField] private float grassWidth = 1.6f;   // 터프 쿼드 폭
 
         private const float GroundBase = 1f;   // 지표면 기저 y (GetHeightAt + 1f)
         private const int Seed = 42;
@@ -251,8 +251,8 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 청크 전면 정적 병합 잔디 (청크당 1드로우콜, 전 지형 커버).
-        /// 청크 메시 정점 격자를 grassSpacing 기반 보간으로 샘플(기본: 정점 2칸 간격 = 50×50 = 2500지점/청크)하고,
-        /// 지점당 교차 쿼드 2개(45° 차, 폭 grassWidth, 높이 0.5~0.7m 랜덤, Y회전 랜덤) 터프를
+        /// 청크 메시 정점 격자를 grassSpacing 기반 간격으로 샘플(기본: 정점 전체 = 100×100 = 10000지점/청크)하고,
+        /// 지점당 교차 쿼드 2개(45° 차, 폭 grassWidth, 높이 1.0~1.2m 랜덤, Y회전 랜덤) 터프를
         /// 청크 로컬 좌표로 누적해 단일 병합 메시로 생성한다 (터프당 8정점/8트라이앵글).
         /// 호수 수면(lake.radius × 1.05) 영역은 제외. 콜라이더 없음, 그림자 off, 머티리얼 공유.
         /// System.Random(청크인덱스 기반 시드) 사용 — 실행마다 동일 결과(결정론).
@@ -262,9 +262,9 @@ namespace ProjectName.Systems
             int vps = vertsPerSide;
             float step = chunkSize / (vps - 1);
 
-            // 잔디 격자 간격: grassSpacing=4f → 정점 격자 2칸 간격(≈8m) = 50×50 = 2500지점/청크
-            int stride = Mathf.Max(1, Mathf.RoundToInt(grassSpacing / step * 2f));
-            int gridN = (vps - 1) / stride + 1; // 100 정점 / stride 2 → 50
+            // 잔디 격자 간격: grassSpacing=4f → stride 1(정점 전부, ≈4m 간격) = 100×100 = 10000지점/청크
+            int stride = Mathf.Max(1, Mathf.RoundToInt(grassSpacing / step));
+            int gridN = (vps - 1) / stride + 1; // 100 정점 / stride 1 → 100
 
             var lakes = TerrainGenerator.Lakes; // public IReadOnlyList<TerrainLakeDef> (center/radius)
 
@@ -297,7 +297,7 @@ namespace ProjectName.Systems
                     if (inLake) continue;
 
                     float baseY = p.y + 0.05f; // 지면 살짝 위 (묻힘/z-fighting 방지)
-                    float h = grassHeight + (float)(rand.NextDouble() - 0.5) * 0.2f; // 0.5~0.7m
+                    float h = grassHeight + (float)(rand.NextDouble() - 0.5) * 0.2f; // 1.0~1.2m
                     float rot = (float)rand.NextDouble() * Mathf.PI; // 랜덤 Y회전 (쿼드 좌우 대칭 → π 주기)
 
                     // 교차 쿼드 2개 (45° 차) — 각 쿼드: 폭 grassWidth, 높이 h, 정점 4 + 삼각형 2
