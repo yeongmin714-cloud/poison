@@ -280,6 +280,16 @@ namespace ProjectName.Systems
                     new Vector3(roomWidth * 0.5f - 0.6f, 0f, zPos), -90f, standMat, bladeMat);
             }
 
+            // Phase C: 무기고 상호작용 기준점 — WeaponStand_0 (첫 번째 무기 스탠드, z=3.0,
+            // 오른쪽 벽에서 0.6m 안쪽)이 가장 접근성이 좋으므로 부착 앵커로 사용.
+            // CreateWeaponStand는 void 반환이라 생성 시점에 참조를 받을 수 없어,
+            // room의 직계 자식 이름으로 조회한다 (시각 배치 코드는 변경 없음).
+            GameObject armoryAnchor = room.transform.Find("WeaponStand_0")?.gameObject;
+            if (armoryAnchor == null)
+            {
+                Debug.LogWarning("[PlayerCastleInteriorBuilder] WeaponStand_0 을 찾지 못해 무기고 상호작용 부착을 건너뜁니다.");
+            }
+
             // 벽걸이 무기고 (오른쪽 벽 앞쪽)
             GameObject wallRack = CreateBoxPrimitive(room, "WeaponWallRack", new Vector3(0.08f, 1.8f, 2.0f),
                 new Vector3(roomWidth * 0.5f - 0.15f, 1.6f, -5.5f), standMat);
@@ -297,6 +307,13 @@ namespace ProjectName.Systems
             GameObject armorySign = CreateBoxPrimitive(room, "ArmorySign", new Vector3(0.05f, 0.7f, 2.4f),
                 new Vector3(roomWidth * 0.5f - 0.1f, 2.6f, 0f), bannerMat);
             AddNameplate(armorySign, "⚔️ 무기고");
+
+            // Phase C: 무기고 상호작용 — WeaponStand_0에 TerritoryWarehouse 부착 (무기고 전용 창고).
+            // 영지 키에 "_armory" 접미사(예: "East_01_armory")를 붙여 저장고(territoryKey)와
+            // 슬롯이 분리된 독립 창고로 동작. E키 근접 상호작용으로 창고 UI를 열며,
+            // 실제 데이터는 WarehouseSystem(무기고 전용 영지 키)에 위임.
+            // Systems asmdef는 UI asmdef를 참조할 수 없으므로(순환 참조) 리플렉션으로 부착.
+            AttachUiComponent(armoryAnchor, TerritoryWarehouseTypeName, territoryKey + "_armory");
 
             // ===================================================================
             // 5. 작업대 (앞벽 왼쪽 — 제작/수리 공간)
