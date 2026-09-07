@@ -281,8 +281,17 @@ namespace ProjectName.Systems
         //  Unity Lifecycle
         // ================================================================
 
+        // ── B1: 텍스처 준비 플래그 (RuntimeTerrainChunkManager 머티리얼 수집 동기화) ──
+        // Awake에서 false 리셋 → Start에서 텍스처 로드+월드 스플랫/국가 머티리얼 적용 완료 후 true.
+        // 청크 매니저는 이 플래그가 true가 된 뒤 Ground_Inner 머티리얼을 수집해야 방위색/흙길이
+        // 청크에 누락되지 않는다 (Start 실행순서 미보장에 대한 방어).
+        public static bool GroundTexturesReady { get; private set; }
+
         private void Awake()
         {
+            // B1: 플레이 세션마다 리셋 (도메인 리로드 비활성 환경의 static 잔존 방지)
+            GroundTexturesReady = false;
+
             // Disable NationTerrainController if present
             _nationController = GetComponent<NationTerrainController>();
             if (_nationController != null)
@@ -334,6 +343,9 @@ namespace ProjectName.Systems
                     ApplyMaterialForNation(_currentNation);
                 }
             }
+
+            // B1: 머티리얼 적용 완료 — 청크 매니저 머티리얼 수집 대기 해제
+            GroundTexturesReady = true;
 
             // === Phase 1 진단: 지형/콜라이더/착지 실제 상태 숫자로 확정 ===
             // Start 시점엔 RuntimeTerrainChunkManager가 청크를 아직 못 지었으므로 즉시 진단은

@@ -523,14 +523,17 @@ namespace ProjectName.Systems
         //  Dirt Path Network (흙길 네트워크 — 결합 텍스처 오버레이)
         // ================================================================
 
-        /// <summary>흙길 색 (머드 로드 — 예시 이미지 컨셉).</summary>
-        private static readonly Color DirtPathColor = new Color(0.52f, 0.40f, 0.28f);
+        /// <summary>흙길 색 (머드 로드 — 예시 이미지 컨셉). B4: 명도/채도를 낮춰 잔디 대비 강화.</summary>
+        private static readonly Color DirtPathColor = new Color(0.44f, 0.33f, 0.22f);
 
         /// <summary>도로 반폭 (m) — 중심선에서 이 거리까지 페인트(전체 폭 7m).</summary>
         private const float DirtPathHalfWidth = 3.5f;
 
-        /// <summary>중심선에서의 최대 블렌드 강도 (가장자리로 갈수록 0%로 페이드).</summary>
-        private const float DirtPathMaxAlpha = 0.92f;
+        /// <summary>중심선에서의 최대 블렌드 강도. B4: 0.92→0.96 — 알베도 혼합 강도 상향.</summary>
+        private const float DirtPathMaxAlpha = 0.96f;
+
+        /// <summary>B4: 부드러운 가장자리 스커트 배율 — 반폭×1.3(4.55m)까지 SmoothStep 페이드.</summary>
+        private const float DirtPathEdgeSkirt = 1.3f;
 
         /// <summary>
         /// 결정론적 흙길 네트워크 세그먼트(월드 XZ, static 캐시 — 재생성 시 항상 동일):
@@ -555,10 +558,12 @@ namespace ProjectName.Systems
             public PathSegment(float x0, float z0, float x1, float z1)
             {
                 X0 = x0; Z0 = z0; X1 = x1; Z1 = z1;
-                MinX = Mathf.Min(x0, x1) - DirtPathHalfWidth;
-                MaxX = Mathf.Max(x0, x1) + DirtPathHalfWidth;
-                MinZ = Mathf.Min(z0, z1) - DirtPathHalfWidth;
-                MaxZ = Mathf.Max(z0, z1) + DirtPathHalfWidth;
+                // B4: 스커트(반폭×1.3)까지 픽셀이 필터에서 살아남도록 AABB 여유 확장
+                float margin = DirtPathHalfWidth * DirtPathEdgeSkirt;
+                MinX = Mathf.Min(x0, x1) - margin;
+                MaxX = Mathf.Max(x0, x1) + margin;
+                MinZ = Mathf.Min(z0, z1) - margin;
+                MaxZ = Mathf.Max(z0, z1) + margin;
             }
         }
 
@@ -662,7 +667,7 @@ namespace ProjectName.Systems
         private void PaintDirtPaths(Color[] pixels, int size, float worldHalf)
         {
             float worldSize = worldHalf * 2f;
-            float halfWidth = DirtPathHalfWidth;
+            float softWidth = DirtPathHalfWidth * DirtPathEdgeSkirt;   // B4: 4.55m 스커트
             Color dirt = DirtPathColor;
             PathSegment[] segments = DirtPathSegments;
 
@@ -684,11 +689,14 @@ namespace ProjectName.Systems
                         float d = DistanceToSegment(wx, wz, s);
                         if (d < best) best = d;
                     }
-                    if (best >= halfWidth) continue;
+                    if (best >= softWidth) continue;
 
-                    // 중심선(d=0)에서 92% → 가장자리(d=반폭)에서 0%로 부드럽게 페이드
-                    float t = best / halfWidth;
-                    float alpha = DirtPathMaxAlpha * Mathf.SmoothStep(1f, 0f, t);
+                    // B4: 중심부 62%는 최대 알파 유지(대비 강화) → 바깥 SmoothStep 페이드.
+                    // ±5% 미세 노이즈로 기계적 균일함을 깨고 가장자리 전환을 자연스럽게.
+                    float t = best / softWidth;
+                    float fade = 1f - Mathf.SmoothStep(0.62f, 1f, t);
+                    float edgeNoise = Mathf.PerlinNoise(wx * 0.55f, wz * 0.55f);
+                    float alpha = DirtPathMaxAlpha * fade * (0.95f + 0.10f * edgeNoise);
                     int idx = row + x;
                     pixels[idx] = Color.Lerp(pixels[idx], dirt, alpha);
                 }

@@ -43,8 +43,8 @@ namespace ProjectName.Systems
         const float BUSH_SPACING = 38f;
         const float BUSH_JITTER = 10f;
         const float BUSH_MIN_DIST = 6f;
-        const float FLOWER_CELL = 4.5f;
-        const float FLOWER_MIN_DIST = 3.5f;
+        const float FLOWER_CELL = 3.6f;      // B2: 4.5→3.6m — 꽃밭 밀도 ×1.56 (최소간격 2.8m와 정합)
+        const float FLOWER_MIN_DIST = 2.8f;  // B2: 3.5→2.8m — 밀도 상향에 맞춘 완화
         const float MEADOW_SPACING = 26f;
         const float MEADOW_JITTER = 8f;
         const float MEADOW_MIN_DIST = 22f;
@@ -52,7 +52,16 @@ namespace ProjectName.Systems
         // 길 확보: 흙길(반폭 3.5m) 중심선에서 이 반경 이내 나무/바위 배치 제외
         const float DIRT_PATH_CLEAR = 7f;
 
-        const float FLOWER_MASK_HI = 0.60f;
+        // B4: 흙길 가장자리 소형 데코 — 7m 금지 벨트 바로 바깥(7~9m)에만 자갈/허브/들꽃 소량.
+        // 나무/대형 바위 금지 규칙은 그대로 유지(벨트는 7m 바깥이므로 길 통행 방해 없음).
+        const float PATH_EDGE_INNER = 7f;
+        const float PATH_EDGE_OUTER = 9f;
+        const float PATH_EDGE_STEP = 7f;      // 세그먼트 걷기 간격 (m)
+        const float PATH_EDGE_KEEP = 2.0f;    // 가장자리 데코 최소간격 (m)
+        const int   PATH_EDGE_CAP = 150;      // 국가당 상한 (소량)
+
+        const float FLOWER_MASK_HI = 0.55f;       // B2: 0.60→0.55 — 꽃밭 면적 확대
+        const float FLOWER_MASK_FOCUS = 0.52f;    // B2: 동/남 방위 집중 게이트 (면적 추가 확대)
         const float FANTASY_MASK_HI = 0.50f;
 
         // AA5: 잔디 커버 + FlowerMeadow 꽃밭 패치 셋업 (예시 8 — 지형에 잔디가 깔리고 중간중간 꽃)
@@ -70,9 +79,9 @@ namespace ProjectName.Systems
         const float FM_SPACING = 26f;         // FlowerMeadow 패치 마스크 스캔 격자
         const float FM_JITTER = 6f;
         const float FM_MIN_DIST = 20f;        // 패치간 최소간격
-        const float FM_MASK_HI = 0.62f;       // 패치 중심으로 쓸 마스크 임계
-        const float FM_SCALE_MIN = 6f, FM_SCALE_MAX = 12f;
-        const int   FM_CAP = 110;             // 전체 패치 상한
+        const float FM_MASK_HI = 0.58f;       // B2: 0.62→0.58 — 패치 후보 면적 확대
+        const float FM_SCALE_MIN = 7f, FM_SCALE_MAX = 13f; // B2: 6~12→7~13m — 패치 크기 상향
+        const int   FM_CAP = 160;             // B2: 110→160 — 패치 수 ×1.45
 
         const float LAKE_TREE_MARGIN = 1.2f;
         const float LAKE_SHORE_IN = 0.97f;
@@ -476,20 +485,26 @@ namespace ProjectName.Systems
                 {
                     // 숲 군락/개활지 분리(예시 컨셉): 트리 후보 위치마다 Fbm 숲 마스크 노이즈 게이트
                     // (TerrainShape.Fbm은 public — 결정론 3옥타브 FBM, 시드 7777 고정).
-                    // Z5: 게이트 하향(0.55→0.48, 0.40→0.35) + 스킵 완화(70%→50%).
-                    // Z6: 숲 커버리지/덩어리 상향 — 밀집 임계 0.48→0.42, 마스크 주파수 0.008→0.005
-                    // (숲 덩어리 특성 길이 ~125m→200m 대형화), 개활지 스킵 50%→30%.
-                    //   forestMask > 0.42     밀집 숲 — 배치 간격 절반(2×2 서브그리드 강제)
-                    //   0.35 ~ 0.42           정상 간격
-                    //   forestMask < 0.35     개활지 — 30% 확률로 스킵
+                    // Z6: 마스크 주파수 0.005 (숲 덩어리 특성 길이 ~200m) — B3에서도 유지(덩어리 보존).
+                    // B3: 밀집 게이트 완화(0.42→0.36) + 심부 밀집(0.48+) 3×3 서브그리드 — 군락 내 밀도 ×1.5~2.25.
+                    //   forestMask > 0.48     심부 밀집 — 3×3 서브그리드 (간격 ~10m)
+                    //   forestMask > 0.36     밀집 숲 — 2×2 서브그리드 (간격 절반)
+                    //   0.30 ~ 0.36           정상 간격
+                    //   forestMask < 0.35     개활지 — 30% 확률로 스킵 (유지)
                     float forestMask = TerrainShape.Fbm(gx * 0.005f, gz * 0.005f, 3, 2f, 0.5f, 7777);
                     if (forestMask < 0.35f && rng.NextDouble() < 0.30) continue;   // 개활지 스킵
-                    bool denseForest = forestMask > 0.42f;                         // 밀집 숲 → 간격 절반
+                    bool denseForest = forestMask > 0.36f;                         // B3: 0.42→0.36 완화
+                    bool coreForest = forestMask > 0.48f;                          // B3: 심부 밀집 신설
 
-                    // Z4: 숲 군락 여부 (군락 내 나무 밀도 ×4 = 2×2 서브그리드)
+                    // Z4: 숲 군락 여부 — B3: 내부 게이트 0.50→0.42 완화 + 가장자리(25m 페이드 밴드)
+                    // 밀도 감쇠(단일 간격 + 25% 스킵)로 숲→초원 자연 전환.
                     float fx = gx, fz = gz;
-                    bool forest = TerrainShape.GetForestPatchMask(fx, fz, p.nation, T_R4_BASE) > 0.50f;
-                    int subs = (forest || denseForest) ? 2 : 1;
+                    float fm = TerrainShape.GetForestPatchMask(fx, fz, p.nation, T_R4_BASE);
+                    bool forest = fm > 0.42f;
+                    bool forestEdge = fm > 0.06f && fm <= 0.42f;
+                    if (forestEdge && rng.NextDouble() < 0.25f) continue;   // B3: 가장자리 스킵
+                    int subs = coreForest ? 3 : ((forest || denseForest) ? 2 : 1);
+                    if (forestEdge && subs > 1) subs = 1;                   // B3: 가장자리 단일 간격
                     for (int si = 0; si < subs * subs && placed < p.treeCap; si++)
                     {
                         int sx = si % subs, sz = si / subs;
@@ -649,9 +664,13 @@ namespace ProjectName.Systems
                     if (IsInSpawnExclusion(x, z)) continue;
                     var nation = NationTerrainController.GetNationFromPosition(new Vector3(x, 0f, z));
                     if (nation != p.nation) continue;
-                    if (TerrainShape.GetFlowerPatchMask(x, z) < FLOWER_MASK_HI) continue;
+                    // B2: 동/남 방위 꽃밭 집중 — 집중 게이트(0.52), 나머지 0.55 (방위색 규칙 유지)
+                    float gate = (p.nation == NationType.East || p.nation == NationType.South)
+                        ? FLOWER_MASK_FOCUS : FLOWER_MASK_HI;
+                    if (TerrainShape.GetFlowerPatchMask(x, z) < gate) continue;
                     if (flowerCnt[(int)nation] >= p.flowerCap) continue;
                     if (IsNearLakeWater(x, z, 1.05f)) continue;
+                    if (TerrainSplatBaker.EstimateSlopeDegrees(x, z) > 30f) continue;  // B2: 급사면 화단 금지
                     var p2 = new Vector2(x, z);
                     if (!treeHash.IsFree(p2, TRUNK_CLEAR)) continue;
                     if (!propHash.IsFree(p2, FLOWER_MIN_DIST)) continue;
@@ -1175,11 +1194,13 @@ namespace ProjectName.Systems
         {
             // treeCap=1900: Z4 숲 군락 ×4 밀도(군락 내 4/900㎡) 반영 — 전국가(1/900㎡≈1000)+
             // 숲 밴드 3~5개(반경 100~180m, ≈820 추가) 합계 ≈1820가 cap=1150에 잘리지 않도록 여유 상향.
-            p.treeCap = 1900;
+            // B3: treeCap 1900→2600 — 숲 밀도 ×1.5(심부 3×3) 반영 상한.
+            // B2: flowerCap 4200→6800 (×1.62), meadowCap 220→280.
+            p.treeCap = 2600;
             p.rockCap = 400;
             p.bushCap = 650;
-            p.flowerCap = 4200;
-            p.meadowCap = 220;
+            p.flowerCap = 6800;
+            p.meadowCap = 280;
         }
 
         /// <summary>T-R4 국가별 NationDecoProfile (체크리스트 1).</summary>
@@ -1204,6 +1225,9 @@ namespace ProjectName.Systems
                     AddPool(p.flowers, cat.flowerYellow, 1f, 0.8f, 1.2f, false);
                     AddPool(p.flowers, cat.flowerWhite, 1f, 0.8f, 1.2f, false);
                     AddPool(p.flowers, cat.flowerBlue, 1f, 0.8f, 1.2f, false);
+                    // B2: 색 혼합 — 동 꽃밭에 핑크/레드 소량 추가 (화사한 혼합 화단)
+                    AddPool(p.flowers, cat.flowerPink, 0.5f, 0.8f, 1.2f, false);
+                    AddPool(p.flowers, cat.flowerRed, 0.35f, 0.8f, 1.2f, false);
                     AddPool(p.meadows, cat.meadowWhite, 1f, 0.9f, 1.3f, false);
                     AddPool(p.meadows, cat.meadowBlue, 1f, 0.9f, 1.3f, false);
                     break;
@@ -1238,8 +1262,10 @@ namespace ProjectName.Systems
                     AddPool(p.rocks, cat.rockMed, 3f, 0.8f, 1.1f, false);
                     AddPool(p.rocks, cat.rockSmall, 2f, 0.6f, 0.9f, false);
                     AddPool(p.flowers, cat.flowerRed, 2f, 0.8f, 1.2f, false);
-                    AddPool(p.flowers, cat.flowerPink, 1f, 0.8f, 1.2f, false);
+                    AddPool(p.flowers, cat.flowerPink, 1.5f, 0.8f, 1.2f, false);   // B2: 1→1.5
                     AddPool(p.flowers, cat.flowerWhite, 1f, 0.8f, 1.2f, false);
+                    // B2: 색 혼합 — 남 꽃밭에 퍼플 소량 추가
+                    AddPool(p.flowers, cat.flowerPurple, 0.6f, 0.8f, 1.2f, false);
                     AddPool(p.meadows, cat.meadowRed, 2f, 0.9f, 1.3f, false);
                     AddPool(p.meadows, cat.meadowRedOrange, 1f, 0.9f, 1.3f, false);
                     break;
@@ -1294,8 +1320,8 @@ namespace ProjectName.Systems
                 name, t, treeCap,
                 RockOf(rockCnt, name), rockCap,
                 BushOf(bushCnt, name), 650,
-                FlowerOf(flowerCnt, name), 4200,
-                MeadowOf(meadowCnt, name), 220));
+                FlowerOf(flowerCnt, name), 6800,
+                MeadowOf(meadowCnt, name), 280));
         }
 
         static int NameIdx(string name)

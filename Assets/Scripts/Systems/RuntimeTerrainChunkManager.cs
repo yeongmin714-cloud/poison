@@ -73,6 +73,22 @@ namespace ProjectName.Systems
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
+            // ── B1: 텍스처 준비 대기 (Phase B) ──
+            // Ground_Inner 머티리얼(결합텍스처/월드 스플랫 포함) 수집은 TerrainTextureApplier의
+            // Start(텍스처 로드+머티리얼 교체) 이후여야 방위색/흙길이 청크에 누락되지 않는다.
+            // Unity의 Start 실행순서는 문서상 미보장이므로, Applier가 씬에 있으면
+            // 준비 플래그가 설 때까지(최대 10초) 프레임 양보하며 대기한다.
+            var applier = FindAnyObjectByType<TerrainTextureApplier>();
+            if (applier != null && !TerrainTextureApplier.GroundTexturesReady)
+            {
+                Debug.Log("[TerrainChunks] TerrainTextureApplier 텍스처 적용 대기 중...");
+                for (int i = 0; i < 600 && applier != null && !TerrainTextureApplier.GroundTexturesReady; i++)
+                    yield return null;
+                Debug.Log(applier != null && TerrainTextureApplier.GroundTexturesReady
+                    ? "[TerrainChunks] ✅ 텍스처 준비 완료 — Ground_Inner 머티리얼 수집 진행"
+                    : "[TerrainChunks] ⚠️ 텍스처 준비 대기 시간 초과(10초) — 현재 머티리얼로 진행");
+            }
+
             // ── 0) Ground_Inner 기준 정보 수집 (레이어/태그/머티리얼/UV 매핑) ──
             GameObject inner = GameObject.Find("Ground_Inner");
             if (inner != null)
