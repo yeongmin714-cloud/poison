@@ -249,14 +249,17 @@ namespace ProjectName.Systems
                 groundY,
                 center.z + gateDir.z * radius * 1.08f);
 
-            // 성문 앞 BuildingTrigger (외부 → 성 내부 진입). nationStyle을 전달해 내부 등장에 사용.
+            // 성문 앞 BuildingTrigger (외부 → 성 내부 진입). nationStyle/territoryKey를 전달해 내부 등장·소유 판정에 사용.
             string castleNationStyle = GetNationStyle(nation);
+            // parent.name = "Territory_{nation}_{index:02}" → "Territory_" 제거로 "East_01" 형식 키 생성 (TerritoryId.ToString()과 동일)
+            string territoryKey = parent.name.StartsWith("Territory_") ? parent.name.Substring("Territory_".Length) : null;
             IndoorTransitionSetup.CreateBuildingTrigger(
                 gate.transform.position,
                 IndoorTransitionSetup.TYPE_CASTLE,
                 IndoorTransitionSetup.CASTLE_INTERACT_RANGE,
                 castleRoot.transform,
-                castleNationStyle);
+                castleNationStyle,
+                territoryKey);
             Debug.Log($"[TerritoryBuilder] {parent.name}: 성문 Castle BuildingTrigger 생성 (nationStyle: {castleNationStyle})");
         }
 

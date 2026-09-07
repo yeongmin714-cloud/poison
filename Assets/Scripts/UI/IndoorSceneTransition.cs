@@ -18,6 +18,7 @@ namespace ProjectName.UI
         private static string _previousSceneName;
         private static string _pendingBuildingType;
         private static string _pendingNationStyle;
+        private static bool _pendingIsPlayerOwned;
         private static bool _initialized;
 
         /// <summary>정적 생성자: BuildingEvents 구독 (중복 방지)</summary>
@@ -36,9 +37,9 @@ namespace ProjectName.UI
 
         }
 
-        private static void HandleEnterBuilding(string buildingType, string nationStyle)
+        private static void HandleEnterBuilding(string buildingType, string nationStyle, bool isPlayerOwned)
         {
-            EnterBuilding(buildingType, nationStyle);
+            EnterBuilding(buildingType, nationStyle, isPlayerOwned);
         }
 
         /// <summary>
@@ -53,12 +54,17 @@ namespace ProjectName.UI
         /// Castle 타입 진입 시 국가 스타일 (예: "Empire", "Eastern", "Western", "Southern", "Northern").
         /// 기본값 null.
         /// </param>
-        public static void EnterBuilding(string buildingType, string nationStyle = null)
+        /// <param name="isPlayerOwned">
+        /// Castle 타입 진입 시 플레이어 소유 성 여부 (true → PlayerCastleInteriorBuilder, false → CastleInteriorBuilder).
+        /// 기본값 false.
+        /// </param>
+        public static void EnterBuilding(string buildingType, string nationStyle = null, bool isPlayerOwned = false)
         {
             // 현재 씬 저장
             _previousSceneName = SceneManager.GetActiveScene().name;
             _pendingBuildingType = buildingType;
             _pendingNationStyle = nationStyle;
+            _pendingIsPlayerOwned = isPlayerOwned;
 
 
 
@@ -129,7 +135,10 @@ namespace ProjectName.UI
                     break;
                 case "castle":
                     string nation = _pendingNationStyle ?? "Empire";
-                    var interior = CastleInteriorBuilder.BuildCastleInterior(nation);
+                    // 소유 상태 분기: 플레이어 소유 성 → PlayerCastleInteriorBuilder, 영주 성 → CastleInteriorBuilder
+                    GameObject interior = _pendingIsPlayerOwned
+                        ? PlayerCastleInteriorBuilder.BuildPlayerCastleInterior(nation)
+                        : CastleInteriorBuilder.BuildCastleInterior(nation);
                     if (interior != null)
                         TerritoryBuilder.SpawnInteriorFixtures(interior.transform.position, nation);
                     break;
@@ -150,6 +159,7 @@ namespace ProjectName.UI
 
             _pendingBuildingType = null;
             _pendingNationStyle = null;
+            _pendingIsPlayerOwned = false;
 
         }
 

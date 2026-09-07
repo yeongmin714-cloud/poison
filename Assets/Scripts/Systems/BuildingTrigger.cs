@@ -1,4 +1,5 @@
 using ProjectName.Core;
+using ProjectName.Core.Data;
 using UnityEngine;
 #pragma warning disable 0414
 
@@ -27,6 +28,9 @@ namespace ProjectName.Systems
         [Header("건물 추가 설정")]
         [SerializeField] private string _nationStyle;
 
+        /// <summary>영지 키 (Castle 전용: "East_01" 형식 — TerritoryDatabase 소유 상태 조회용)</summary>
+        [SerializeField] private string _territoryKey;
+
         /// <summary>건물 유형 (House, Shop, CraftHouse, Church, Castle)</summary>
         public string BuildingType
         {
@@ -46,6 +50,13 @@ namespace ProjectName.Systems
         {
             get => _nationStyle;
             set => _nationStyle = value;
+        }
+
+        /// <summary>영지 키 (Castle 전용: "East_01" 형식 — TerritoryDatabase.GetState 조회용)</summary>
+        public string TerritoryKey
+        {
+            get => _territoryKey;
+            set => _territoryKey = value;
         }
 
         private void Start()
@@ -104,8 +115,16 @@ namespace ProjectName.Systems
                 }
                 else
                 {
-                    Debug.Log($"[BuildingTrigger] E키 입력 — {_buildingType} 진입 (nationStyle: {_nationStyle ?? "null"})");
-                    BuildingEvents.RequestEnterBuilding(_buildingType, _nationStyle);
+                    // Castle: 자기 영지 소유 상태 판정 → 내부 빌더 분기(플레이어 성 vs 영주 성)
+                    bool isPlayerOwned = false;
+                    if (string.Equals(_buildingType, "castle", System.StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(_territoryKey))
+                    {
+                        var state = TerritoryDatabase.Instance != null ? TerritoryDatabase.Instance.GetState(_territoryKey) : null;
+                        isPlayerOwned = state != null && state.ownership == TerritoryOwnership.PlayerOwned;
+                    }
+
+                    Debug.Log($"[BuildingTrigger] E키 입력 — {_buildingType} 진입 (nationStyle: {_nationStyle ?? "null"}, isPlayerOwned: {isPlayerOwned})");
+                    BuildingEvents.RequestEnterBuilding(_buildingType, _nationStyle, isPlayerOwned);
                 }
             }
         }
