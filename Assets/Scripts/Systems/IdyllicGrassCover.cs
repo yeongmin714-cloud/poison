@@ -57,7 +57,9 @@ namespace ProjectName.Systems
         Vector2Int _lastPlayerCell;
         bool _initialized;
         int _budgetUsedThisFrame;
-        readonly MaterialPropertyBlock _tintBlock = new MaterialPropertyBlock();
+        // 지연 생성 필드 — MonoBehaviour 필드 초기화자에서 UnityEngine 오브젝트를 new하면
+        // AddComponent 시점에 "CreateImpl not allowed from MonoBehaviour constructor" 폭발.
+        MaterialPropertyBlock _tintBlock;
         readonly Dictionary<string, Color> _baseColorCache = new Dictionary<string, Color>();
 
         class Chunk
@@ -173,7 +175,7 @@ namespace ProjectName.Systems
             int count = dense ? BASE_PER_CELL * DENSE_MULT : BASE_PER_CELL;
 
             c.items.Clear();
-            for (int k = 0; k < count && _budgetUsedThisFrame < BUDGET_PER_FRAME; k++)
+            for (int k = 0; k < count && _budgetUsedThisFrame < BUDGET_PER_FRAME && _prefabs.Count > 0; k++)
             {
                 float lx = Hash01(seedKey, k, 1) * CELL_SIZE;
                 float lz = Hash01(seedKey, k, 2) * CELL_SIZE;
@@ -184,9 +186,17 @@ namespace ProjectName.Systems
                 if (TerrainSplatBaker.EstimateSlopeDegrees(x, z) > SLOPE_MAX_DEG) continue;
                 float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42) + 0.04f;
                 var model = _prefabs[k % _prefabs.Count];
+                if (model == null)
+                {
+                    // 파괴된 프리팹 참조 — 목록에서 제거하고 이 자리는 스킵 (NRE 원천 차단)
+                    _prefabs.RemoveAt(k % _prefabs.Count);
+                    if (_prefabs.Count == 0) { Debug.LogWarning("[IdyllicGrassCover] 유효 잔디 프리팹 소진 — 빌드 중단"); break; }
+                    continue;
+                }
                 float scale = (SCALE_MIN + (SCALE_MAX - SCALE_MIN) * Hash01(seedKey, k, 3))
                               * (0.9f + 0.2f * Hash01(seedKey, k, 4));
                 var go = GetFromPool(model);
+                if (go == null) continue; // 풀/인스턴스 확보 실패 시 이 자리만 스킵
                 go.transform.SetParent(_parent, false);
                 go.transform.position = new Vector3(x, y, z);
                 go.transform.rotation = Quaternion.Euler(
@@ -218,6 +228,8 @@ namespace ProjectName.Systems
         /// <summary>방위별 미세 틴트를 잔디 렌더러에 적용. 공유 머티리얼은 건드리지 않고 PropertyBlock만 사용.</summary>
         void ApplyNationTint(GameObject go, NationType nation)
         {
+            if (go == null) return; // 파괴된 오브젝트 가드 (NRE 원천 차단)
+
             Color factor;
             switch (nation)
             {
@@ -237,6 +249,8 @@ namespace ProjectName.Systems
                 baseColor.a);
 
             var renderers = go.GetComponentsInChildren<Renderer>(true);
+            // MaterialPropertyBlock 지연 생성 — 사용 직전에 생성한다(생성자/필드 초기화자 금지).
+            if (_tintBlock == null) _tintBlock = new MaterialPropertyBlock();
             for (int i = 0; i < renderers.Length; i++)
             {
                 var r = renderers[i];
