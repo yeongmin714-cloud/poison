@@ -6,10 +6,11 @@ namespace ProjectName.Systems
     /// <summary>
     /// 플레이어 소유 영지의 성 내부 절차 생성 (C11 계열 확장).
     /// 기존 CastleInteriorBuilder(타 영주용, 잠긴 문 다수)와 달리
-    /// 플레이어가 점령한 "내 영지"이므로 기능적/실용적 내부 기지를 만든다:
+    /// 플레이어가 점령한 "내 영지"이므로 중세 판타지 성 대전당으로 만든다:
     ///   - 지휘 책상 + 관리용 책상/문서 (집무 공간)
     ///   - 저장고 (선반/상자), 무기고 (무기 스탠드), 작업대
-    ///   - 밝고 정돈된 조명 (점멸 없음), 플레이어 환영 배너
+    ///   - 중세 석재 기둥 2열 + 화로/토치 (따뜻한 주황빛 조명)
+    ///   - 문장 방패/붉은 러그 장식, 플레이어 환영 배너 (유지)
     ///   - 잠금문 없음 (이미 내 것이므로 접근 가능)
     ///   - NameplateDisplay 기능 안내 라벨
     /// 국가별 텍스처/방 생성 틀은 CastleInteriorBuilder와 동일한 API 사용.
@@ -17,7 +18,7 @@ namespace ProjectName.Systems
     public static class PlayerCastleInteriorBuilder
     {
         /// <summary>
-        /// 국가 스타일에 맞는 플레이어 소유 성 내부(기능적 기지) 생성.
+        /// 국가 스타일에 맞는 플레이어 소유 중세 판타지 성 내부 생성.
         /// </summary>
         /// <param name="nationStyle">
         /// "Eastern" (동부), "Western" (서부), "Southern" (남부),
@@ -119,6 +120,16 @@ namespace ProjectName.Systems
 
             Material paperMat = new Material(shader) { name = "PlayerCastle_PaperMat" };
             paperMat.color = new Color(0.92f, 0.90f, 0.82f); // 문서 용지
+
+            // 중세 판타지 장식 재질들 (석재 기둥/화로/러그)
+            Material pillarMat = new Material(shader) { name = "PlayerCastle_PillarMat" };
+            pillarMat.color = new Color(0.40f, 0.38f, 0.35f); // 회색 석재 기둥
+
+            Material hearthMat = new Material(shader) { name = "PlayerCastle_HearthMat" };
+            hearthMat.color = new Color(0.18f, 0.17f, 0.16f); // 화로 받침 짙은 회색
+
+            Material rugMat = new Material(shader) { name = "PlayerCastle_RugMat" };
+            rugMat.color = new Color(0.55f, 0.18f, 0.15f); // 붉은 카펫/문장 자수
 
             // ===== 방 생성 =====
             GameObject room = IndoorBuilder.CreateRoom(roomWidth, roomHeight, roomDepth,
@@ -302,20 +313,106 @@ namespace ProjectName.Systems
             AddNameplate(workbenchSign, "🛠️ 작업대");
 
             // ===================================================================
-            // 6. 조명 — 밝고 정돈된 분위기 (점멸 없음, 실용적/환영하는 톤)
+            // 6. 중세 석재 기둥 2열 (대전당 느낌 — 중앙 복도 양쪽)
+            //    x=±4 (벽 x=±11 안쪽), z=-5..5에 4개씩 — 가구와 겹치지 않게 배치
             // ===================================================================
-            Color ambient = new Color(0.30f, 0.28f, 0.25f); // 기존 영주 성(0.08)보다 훨씬 밝게
-            IndoorLighting.SetupIndoorLighting(room, ambient, 1.15f, false);
+            for (int side = -1; side <= 1; side += 2)
+            {
+                for (int pi = 0; pi < 4; pi++)
+                {
+                    float pillarZ = -5f + pi * (10f / 3f); // -5, -1.67, 1.67, 5
+                    GameObject pillarRoot = new GameObject($"StonePillar_{(side > 0 ? "R" : "L")}{pi}");
+                    pillarRoot.transform.SetParent(room.transform);
+                    pillarRoot.transform.localPosition = new Vector3(side * 4f, 0f, pillarZ);
 
-            // 천장 중앙 메인 조명 (따뜻한 백색광)
+                    // 기둥 받침 (석재 베이스)
+                    CreateBoxPrimitive(pillarRoot, "Base", new Vector3(1.0f, 0.3f, 1.0f),
+                        new Vector3(0f, 0.15f, 0f), pillarMat);
+                    // 몸통 (Cylinder)
+                    CreateCylinderPrimitive(pillarRoot, "Shaft", 0.35f, 5.4f,
+                        new Vector3(0f, 3.0f, 0f), pillarMat);
+                    // 머리 받침 (캐피털 — 천장 바로 아래)
+                    CreateBoxPrimitive(pillarRoot, "Capital", new Vector3(1.0f, 0.3f, 1.0f),
+                        new Vector3(0f, 5.75f, 0f), pillarMat);
+                }
+            }
+
+            // ===================================================================
+            // 7. 화로/토치 (입구 양쪽 벽 — 중세 성의 따스함)
+            // ===================================================================
+            for (int side = -1; side <= 1; side += 2)
+            {
+                GameObject hearthRoot = new GameObject($"Hearth_{(side > 0 ? "Right" : "Left")}");
+                hearthRoot.transform.SetParent(room.transform);
+                hearthRoot.transform.localPosition = new Vector3(side * 10.0f, 0f, -4.5f);
+
+                // 화로 받침 (짙은 회색 석재 통)
+                CreateCylinderPrimitive(hearthRoot, "BrazierBowl", 0.55f, 0.9f,
+                    new Vector3(0f, 0.45f, 0f), hearthMat);
+                // 붉은 숯 (불멍 느낌)
+                CreateCylinderPrimitive(hearthRoot, "BrazierCoals", 0.35f, 0.25f,
+                    new Vector3(0f, 0.95f, 0f), rugMat);
+                AddNameplate(hearthRoot, "🔥 화로");
+
+                // 화로 불빛 (따뜻한 주황빛)
+                IndoorLighting.AddPointLight(room,
+                    new Vector3(side * 10.0f, 1.5f, -4.5f),
+                    new Color(1f, 0.55f, 0.25f), 7f, 0.9f);
+            }
+
+            // 앞쪽 기둥 토치 빛 (입구 쪽, 기둥 옆 은은한 주황빛)
+            IndoorLighting.AddPointLight(room, new Vector3(-4.55f, 4.5f, -5f), new Color(1f, 0.6f, 0.3f), 6f, 0.7f);
+            IndoorLighting.AddPointLight(room, new Vector3(4.55f, 4.5f, -5f), new Color(1f, 0.6f, 0.3f), 6f, 0.7f);
+
+            // ===================================================================
+            // 8. 중세 장식 — 왕실 문장 방패 + 붉은 러그 (기존 청색 배너는 유지)
+            // ===================================================================
+            // 뒷벽 문장 방패 2개 (배너 양옆 — 왕실/영지 상징)
+            for (int sx = -1; sx <= 1; sx += 2)
+            {
+                string shieldSide = sx > 0 ? "R" : "L";
+                CreateBoxPrimitive(room, $"HeraldicShield_Back{shieldSide}",
+                    new Vector3(0.7f, 0.85f, 0.06f),
+                    new Vector3(sx * 4.5f, 3.0f, roomDepth * 0.5f - 0.04f), trimMat);
+                // 방패 안쪽 붉은 자수 문장
+                CreateBoxPrimitive(room, $"HeraldicEmblem_Back{shieldSide}",
+                    new Vector3(0.35f, 0.45f, 0.04f),
+                    new Vector3(sx * 4.5f, 3.0f, roomDepth * 0.5f - 0.10f), rugMat);
+            }
+
+            // 화로 위 좌/우벽 문장 방패 2개
+            for (int sx = -1; sx <= 1; sx += 2)
+            {
+                string shieldSide = sx > 0 ? "R" : "L";
+                CreateBoxPrimitive(room, $"HeraldicShield_Wall{shieldSide}",
+                    new Vector3(0.06f, 0.85f, 0.7f),
+                    new Vector3(sx * (roomWidth * 0.5f - 0.04f), 2.9f, -4.5f), trimMat);
+                CreateBoxPrimitive(room, $"HeraldicEmblem_Wall{shieldSide}",
+                    new Vector3(0.04f, 0.45f, 0.35f),
+                    new Vector3(sx * (roomWidth * 0.5f - 0.10f), 2.9f, -4.5f), rugMat);
+            }
+
+            // 바닥 러그 (붉은 카펫 — 바닥에서 0.005 위 부착, z-fighting 방지)
+            CreateBoxPrimitive(room, "Rug_CentralAisle", new Vector3(2.8f, 0.03f, 6.0f),
+                new Vector3(0f, 0.02f, -3.5f), rugMat);
+            CreateBoxPrimitive(room, "Rug_Throne", new Vector3(4.0f, 0.03f, 2.4f),
+                new Vector3(0f, 0.02f, 4.2f), rugMat);
+
+            // ===================================================================
+            // 9. 조명 — 중세 화로/토치의 따뜻한 주황빛 (촛불빛 톤, 은은한 점멸)
+            // ===================================================================
+            Color ambient = new Color(0.22f, 0.18f, 0.15f); // 살짝 어둡고 따뜻한 중세 톤
+            IndoorLighting.SetupIndoorLighting(room, ambient, 1.15f, true); // 화로 깜빡임(점멸) — 과하지 않게
+
+            // 천장 중앙 메인 조명 (촛불빛톤)
             IndoorLighting.AddPointLight(room,
                 new Vector3(0f, roomHeight - 0.6f, 0f),
-                new Color(1f, 0.95f, 0.85f), 18f, 1.2f);
+                new Color(1f, 0.9f, 0.7f), 18f, 1.2f);
 
-            // 지휘 책상 위 조명
+            // 지휘 책상 위 조명 (촛불톤)
             IndoorLighting.AddPointLight(room,
                 new Vector3(0f, 4.2f, roomDepth * 0.5f - 1.8f),
-                new Color(1f, 0.92f, 0.75f), 9f, 1.0f);
+                new Color(1f, 0.85f, 0.6f), 9f, 1.0f);
 
             // 작업대 위 조명
             IndoorLighting.AddPointLight(room,
@@ -325,14 +422,14 @@ namespace ProjectName.Systems
             // 저장고 조명
             IndoorLighting.AddPointLight(room,
                 new Vector3(-9.5f, 3.8f, 0.5f),
-                new Color(0.95f, 0.95f, 0.85f), 8f, 0.8f);
+                new Color(1f, 0.88f, 0.65f), 8f, 0.8f);
 
             // 무기고 조명
             IndoorLighting.AddPointLight(room,
                 new Vector3(9.5f, 3.8f, 0.5f),
-                new Color(0.95f, 0.95f, 0.9f), 8f, 0.8f);
+                new Color(1f, 0.88f, 0.65f), 8f, 0.8f);
 
-            Debug.Log($"[PlayerCastleInteriorBuilder] 플레이어 소유 성 내부(기능적 기지) 생성 완료! (스타일: {nationStyle})");
+            Debug.Log($"[PlayerCastleInteriorBuilder] 플레이어 소유 중세 판타지 성 내부 생성 완료! (스타일: {nationStyle}) — 석재 기둥 2열·화로 2기·문장 방패·러그 장식 포함");
             return room;
         }
 
