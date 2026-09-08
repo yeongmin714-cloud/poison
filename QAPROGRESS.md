@@ -8,6 +8,19 @@
 
 ---
 
+## 📌 세션 종합 스냅샷 (2026-09-08 8차 — 설원(North) 눈밭화 ✅)
+
+- **범위**: 사용자 "북쪽 지형이 여전히 연두빛, 설산 느낌으로" — 바닥 텍스처는 이미 흰색(`_northTint (0.93,0.95,0.98)`+`_northTintStrength 0.9`)인데 **그 위의 잔디 커버(IdyllicGrassCover)가 연두로 뒤덮던 게 원인** 진단
+- **핵심 원인**: `GrassTintNorth = (0.88,0.95,1.0)`이 **곱셈** 틴트라 연두 잔디 base(예 0.3,0.7,0.3)에 곱해도 최대 0.26 수준 — 수학적으로 흰색 불가. 텍스처 파일 교체 불필요, 절차 생성 코드만 수정
+- **G1 밀도 감소**: `NORTH_DENSITY_FACTOR=0.35f` 추가 — BuildChunk에서 nation==North면 셀당 잔디 35%로 감소(눈밭은 잔디 듬성듬성). 동/서/남/황제국 무영향
+- **G2 흰눈색 직접 치환**: ApplyNationTint에서 North만 곱셈을 버리고 `snow(0.95,0.97,1.0)`을 PropertyBlock으로 직접 주입 + return (연두 base를 흰눈으로). 나머지 방위는 기존 곱셈 로직 그대로
+- **컴파일 트러블**: CS0136 `renderers` 로컬 변수 스코프 충돌(North 블록 vs 메서드 레벨 동일명) → `snowRenderers`로 이름분리 해결
+- **검증**: 배치컴파일 error CS=0 (verify_compile_idyllic.bat → CMDEXIT=0, Exiting batchmode successfully)
+- **커밋**: 7f45635a (push 완료) — 1 file changed (IdyllicGrassCover.cs)
+- ⬜ **남음**: Play 판정(북쪽 설원 잔디 흰색화 + 밀도 감소 눈밭 확인)
+
+---
+
 ## 📌 세션 종합 스냅샷 (2026-09-08 7차 — 성 내부씬 8종 레이아웃 변형 ✅)
 
 - **범위**: 성 내부 2종(타영주/내영지) 각각 가구 배치 8종 변형 → 16개. 사용자 "두 종류 영지 내부씬 배치를 랜덤하게 8종씩 16개"

@@ -1677,6 +1677,7 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 - [x] 텍스처가 굴곡 위를 타일링으로 자연스럽게 따라가도록 유지
 - [x] EditMode 테스트 통과 + FixMainScene 배치모드 컴파일 성공
 - [x] Play Mode에서 방위별 굴곡 + 실크 스무스 전환 눈으로 확인 (2026-09-03 Idyllic 텍스처 적용 완료, Play 최종 확인 예정)
+- [x] **북쪽 설원 잔디 개선 (2026-09-08)**: 잔디 커버(IdyllicGrassCover)가 연두로 뒤덮던 문제 수정 — North만 흰눈색(0.95,0.97,1.0) 직접 치환 + 잔디 밀도 35% 감소 (곱셈 틴트 한계로 바닥 흰색이 잔디에 묻혔음). 배치컴파일 error CS=0, 커밋 7f45635a
 
 ### 구현 핵심
 - `TerrainGenerator.ComputeBaseHeight`를 "방위 판정 → 방위별 BiomeDefinition/시드 → 경계 블렌딩"으로 확장 (공개 API 시그니처 유지)
