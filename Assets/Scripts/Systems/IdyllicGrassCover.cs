@@ -242,11 +242,11 @@ namespace ProjectName.Systems
             if (nation == NationType.North)
             {
                 Color snow = new Color(0.95f, 0.97f, 1.00f, baseColor.a);
-                var renderers = go.GetComponentsInChildren<Renderer>(true);
+                var snowRenderers = go.GetComponentsInChildren<Renderer>(true);
                 if (_tintBlock == null) _tintBlock = new MaterialPropertyBlock();
-                for (int i = 0; i < renderers.Length; i++)
+                for (int i = 0; i < snowRenderers.Length; i++)
                 {
-                    var r = renderers[i];
+                    var r = snowRenderers[i];
                     if (r == null) continue;
                     r.GetPropertyBlock(_tintBlock);
                     _tintBlock.SetColor(TintPropertyId, snow);
