@@ -278,25 +278,33 @@ namespace ProjectName.EditorTools
         static AnimatorController Create(string name, (string, AnimatorControllerParameterType)[] pars)
         {
             var path = $"{OutDir}/{name}_AC.controller";
-            // ★ 덮어쓰기 보장(파일 레벨 스왑): CreateAnimatorControllerAtPath는 기존 에셋이 있으면
-            //   덮어쓰지 않고 "Player_AC_AC" 같은 중복을 새로 만들어 버린다.
-            //   AssetDatabase.DeleteAsset은 조용히 실패해 중복이 반복됨(09-03/09-07 사고)
-            //   → 에셋DB 의존 제거: 파일+meta를 직접 삭제한 뒤 항상 단일 Player_AC.controller로 재생성.
-            string fp = path;
-            if (System.IO.File.Exists(fp))
+            // ★ 덮어쓰기 보장: CreateAnimatorControllerAtPath는 기존 에셋이 있으면 덮어쓰지 않고
+            //   "Player_AC_AC" 같은 중복을 새로 만들어 버린다(09-03/09-07/09-08 사고).
+            // 09-08 배치모드 Player_AC_AC 중복 재발 수리: 파일삭제+Refresh 단독 불충분 → 잔존 검증 루프 + 최종 경로 검증 로깅
+            //   배치모드 R1에서 파일 삭제+Refresh 후에도 에셋DB가 구 에셋을 잔존 판정해 중복 생성됨
+            //   → 삭제 후 LoadMainAssetAtPath로 잔존 검증, 잔존 시 AssetDatabase.DeleteAsset로 강제 제거(최대 3회).
+            for (int attempt = 1; attempt <= 3; attempt++)
             {
-                System.IO.File.Delete(fp);
+                if (System.IO.File.Exists(path))
+                    System.IO.File.Delete(path);
+                if (System.IO.File.Exists(path + ".meta"))
+                    System.IO.File.Delete(path + ".meta");
+                AssetDatabase.Refresh();
+                var stale = AssetDatabase.LoadMainAssetAtPath(path);
+                if (stale == null)
+                    break;
+                Debug.LogWarning($"[MixamoControllers] 기존 에셋 잔존(시도 {attempt}) → AssetDatabase.DeleteAsset: {path}");
+                AssetDatabase.DeleteAsset(path);
+                AssetDatabase.Refresh();
             }
-            if (System.IO.File.Exists(fp + ".meta"))
-            {
-                System.IO.File.Delete(fp + ".meta");
-            }
-            // ★ 결정적: 파일 삭제 후 Refresh 없이 CreateAnimatorControllerAtPath를 호출하면
-            //   에셋DB가 여전히 구 에셋을 "존재한다"고 판단해 Player_AC_AC 중복을 다시 만든다
-            //   (09-07 10:04 사고 — 파일 삭제했음에도 재발). Refresh로 DB를 디스크와 동기화 필수.
-            AssetDatabase.Refresh();
             var ac = AnimatorController.CreateAnimatorControllerAtPath(path);
             AssetDatabase.ImportAsset(path);
+            // ★ 생성 직후 경로 검증: 중복 생성(Player_AC_AC 등)이 발생하면 즉시 로그로 확정
+            var finalPath = AssetDatabase.GetAssetPath(ac);
+            if (finalPath != path)
+                Debug.LogError($"[MixamoControllers] 컨트롤러 경로 불일치! expected={path} actual={finalPath} (중복 생성)");
+            else
+                Debug.Log($"[MixamoControllers] 컨트롤러 생성 경로 확인: {finalPath}");
             foreach (var (p, t) in pars)
                 ac.AddParameter(p, t);
             return ac;
