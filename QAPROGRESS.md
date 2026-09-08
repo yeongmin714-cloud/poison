@@ -595,6 +595,16 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 
 ---
 
+## 2026-09-08: 콤보 3·4단 확장 + 다운 상태 + 발화 연결 완료 ✅ (커밋 75d27e6b)
+
+- **콤보 확장**: HumanoidClipDriver 4분기 체인(≥4→AttackCombo3=Weapon_Combo_2, ≥3→AttackCombo2=Triple_Combo_Attack, ≥2→AttackCombo, else Attack) + Player_AC 상태/전이 추가
+- **다운(Knockdown)**: Shot_in_the_Back_and_Fall — 상태/파라미터/AnyState+ExitTo 추가
+- **발화 연결**: ①HerbPickup.Harvest() 2곳 → TriggerHarvest()(클립 Pull_Radish, 기존 프로시저 gather 병행) ②ProceduralAnimStateMachine.TakeDamage → 데미지 등급 발화(≥40 Knockdown / ≥25 Stun / else HitLight) — HumanoidClipDriver 퍼블릭 트리거 4종(TriggerHarvest/HitLight/Stun/Knockdown) 신설 경유
+- **검증**: 배치컴파일 error CS=0 ×2 + AttackCombo2/3·Knockdown 상태 + 3클립 GUID 등록 확인 + 커밋 푸시 + 텔레그램 알림(9471)
+- **누적 활성화**: 68클립 중 21개(로코4+이동변형9+전투5+상태3)
+
+---
+
 ## 2026-09-08: Meshy 신규 8종 추가 + 로코 4종 전량 Meshy 교체 + 상태 3종 등록 ✅
 
 **신규 FBX 8종**(유저 추가): Regular_Jump, Back_Jump, Idle_02, Collect_Object, Male_Bend_Over_Pick_Up, Pull_Radish, Slap_Reaction, Electrocution_Reaction → 동일 파이프라인(rerig_meshy skip-existing)으로 MeshyUser 68클립 완성
