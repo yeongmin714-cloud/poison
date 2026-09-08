@@ -60,6 +60,17 @@ namespace ProjectName.Systems
         const float PATH_EDGE_KEEP = 2.0f;    // 가장자리 데코 최소간격 (m)
         const int   PATH_EDGE_CAP = 150;      // 국가당 상한 (소량)
 
+        // T-D2 (09-08): 노출 암반 위성 바위 + 서쪽 천연 아치 + 대형 꽃 융단 데코 (예시2~13 Gap 충전)
+        const int   OUTCROP_BIG_MIN = 2, OUTCROP_BIG_MAX = 4;   // 사이트당 rockBig 개수 범위
+        const int   OUTCROP_MED_MIN = 4, OUTCROP_MED_MAX = 8;   // 사이트당 rockMed 개수 범위
+        const float OUTCROP_SCALE_BIG_MIN = 1.1f, OUTCROP_SCALE_BIG_MAX = 1.8f;
+        const float OUTCROP_SCALE_MED_MIN = 0.7f, OUTCROP_SCALE_MED_MAX = 1.2f;
+        const float ARCH_SCALE = 2.4f;          // 아치 랜드마크 스케일 (거대 실루엣)
+        const float MEGA_SCAN_CELL = 26f;       // 꽃 융단 마스크 스캔 격자 (FM_SPACING과 동일 규모)
+        const int   MEGA_CLUSTER_SUB = 4;       // 히트 셀 내 4×4 밀집 클러스터
+        const float MEGA_CLUSTER_STEP = 1.8f;   // 클러스터 내 간격 (m)
+        const int   MEGA_CAP_PER_NATION = 220;  // 융단 데코 국가별 상한 (기존 flowerCap과 별도 가산)
+
         const float FLOWER_MASK_HI = 0.55f;       // B2: 0.60→0.55 — 꽃밭 면적 확대
         const float FLOWER_MASK_FOCUS = 0.52f;    // B2: 동/남 방위 집중 게이트 (면적 추가 확대)
         const float FANTASY_MASK_HI = 0.50f;
@@ -218,6 +229,11 @@ namespace ProjectName.Systems
 
             var empireRng = new System.Random(NationSeed(NationType.Empire));
             int empirePlaced = PlaceEmpireGarden(origin, cat, forestT, bushesT, treeHash, propHash, empireRng);
+
+            // T-D2 (09-08): 노출 암반 위성 바위 군집 + 서쪽 천연 아치 + 대형 꽃 융단 데코
+            int outcropRockCnt = PlaceOutcropRocks(cat, rocksT, treeHash, propHash);
+            int archCnt = PlaceWestArch(cat, rocksT);
+            int megaFlowerCnt = PlaceMegaFlowerPatches(cat, flowersT, treeHash, propHash);
 
             EnableGPUInstancing(root);
 
@@ -847,6 +863,149 @@ namespace ProjectName.Systems
                     placed++;
                 }
             }
+            return placed;
+        }
+
+        // ================================================================
+        // T-D2 (09-08): 노출 암반 위성 바위 군집 + 서쪽 천연 아치 + 대형 꽃 융단 데코
+        // ================================================================
+
+        /// <summary>
+        /// T-D2: 노출 암반(TerrainShape.GetOutcropCenters) 주위 위성 바위 군집 —
+        /// 사이트당 rockBig 2~4 + rockMed 4~8을 반경 0.3~1.1r에 결정론 배치 (예시2/4/8의 암돔+위성 바위).
+        /// 보호구역(SampleCliffSuppression&lt;0.5)/수면(1.15r)/흙길 7m/최소간격 검사. 기존 rockCap과 별도.
+        /// </summary>
+        static int PlaceOutcropRocks(CategoriesR4 cat, Transform rocksT, SpatialHash treeHash, SpatialHash propHash)
+        {
+            if (cat.rockBig.Count == 0 && cat.rockMed.Count == 0) return 0;
+            var nations = new NationType[] { NationType.East, NationType.West, NationType.South, NationType.North, NationType.Empire };
+            int total = 0;
+            for (int n = 0; n < nations.Length; n++)
+            {
+                var sites = TerrainShape.GetOutcropCenters(nations[n], 42);
+                if (sites == null || sites.Count == 0) continue;
+                var rng = new System.Random(NationSeed(nations[n]) + 17);
+                for (int s = 0; s < sites.Count; s++)
+                {
+                    var site = sites[s];
+                    int bigCount = OUTCROP_BIG_MIN + rng.Next(OUTCROP_BIG_MAX - OUTCROP_BIG_MIN + 1);
+                    int medCount = OUTCROP_MED_MIN + rng.Next(OUTCROP_MED_MAX - OUTCROP_MED_MIN + 1);
+                    int target = bigCount + medCount;
+                    int placed = 0;
+                    int attempts = target * 8;
+                    for (int a = 0; a < attempts && placed < target; a++)
+                    {
+                        float ang = (float)rng.NextDouble() * Mathf.PI * 2f;
+                        float rr = site.radius * Mathf.Lerp(0.3f, 1.1f, (float)rng.NextDouble());
+                        float x = site.center.x + Mathf.Cos(ang) * rr;
+                        float z = site.center.y + Mathf.Sin(ang) * rr;
+                        if (Mathf.Abs(x) > BOUND_MAX || Mathf.Abs(z) > BOUND_MAX) continue;
+                        if (TerrainGenerator.SampleCliffSuppression(x, z) < 0.5f) continue;
+                        if (IsNearLakeWater(x, z, 1.15f)) continue;
+                        if (IsNearDirtPath(x, z, DIRT_PATH_CLEAR)) continue;
+                        var p2 = new Vector2(x, z);
+                        if (!treeHash.IsFree(p2, TRUNK_CLEAR)) continue;
+                        if (!propHash.IsFree(p2, ROCK_MIN_DIST)) continue;
+                        bool big = placed < bigCount && cat.rockBig.Count > 0;
+                        var pool = big ? cat.rockBig : (cat.rockMed.Count > 0 ? cat.rockMed : cat.rockBig);
+                        if (pool.Count == 0) continue;
+                        float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42);
+                        float scale = big
+                            ? RandomRange(rng, OUTCROP_SCALE_BIG_MIN, OUTCROP_SCALE_BIG_MAX)
+                            : RandomRange(rng, OUTCROP_SCALE_MED_MIN, OUTCROP_SCALE_MED_MAX);
+                        Place(pool[rng.Next(pool.Count)], x, y, z, scale, rng, rocksT);
+                        propHash.Insert(p2);
+                        placed++; total++;
+                    }
+                }
+            }
+            Debug.Log($"[IdyllicDecoPlacer][T-D2] OutcropRocks={total} (암반 사이트 위성 군집)");
+            return total;
+        }
+
+        /// <summary>
+        /// T-D2: 서쪽 천연 아치(예시5) — GetWestArchPosition에 rockBig을 ARCH_SCALE로 배치.
+        /// 지형 쪽에 받침 암돔 2개(GetOutcropMask West 강제)가 이미 있어 함께 아치 실루엣을 이룬다.
+        /// 적합한 프리팹 부재/보호구역이면 스킵 (강제 금지).
+        /// </summary>
+        static int PlaceWestArch(CategoriesR4 cat, Transform rocksT)
+        {
+            if (cat.rockBig.Count == 0)
+            {
+                Debug.Log("[IdyllicDecoPlacer][T-D2] WestArch: rockBig 프리팹 없음 — 스킵.");
+                return 0;
+            }
+            Vector3 archPos = TerrainGenerator.GetWestArchPosition(42);
+            if (TerrainGenerator.SampleCliffSuppression(archPos.x, archPos.z) < 0.5f)
+            {
+                Debug.Log("[IdyllicDecoPlacer][T-D2] WestArch: 보호구역 — 스킵.");
+                return 0;
+            }
+            var rng = new System.Random(NationSeed(NationType.West) + 23);
+            float y = GROUND_BASE + TerrainGenerator.GetHeightAt(archPos.x, archPos.z, BiomeType.Plains, 42);
+            var go = Object.Instantiate(cat.rockBig[rng.Next(cat.rockBig.Count)], rocksT);
+            go.layer = 0;
+            go.transform.position = new Vector3(archPos.x, y, archPos.z);
+            // 원점→아치 방향에 수직인 yaw — 지형 받침 바위 2개(±15m 수직방향)와 나란히 정렬
+            float dirAng = Mathf.Atan2(archPos.z, archPos.x) * Mathf.Rad2Deg;
+            go.transform.rotation = Quaternion.Euler(0f, dirAng + 90f, 0f);
+            go.transform.localScale = Vector3.one * ARCH_SCALE;
+            Debug.Log($"[IdyllicDecoPlacer][T-D2] WestArch=({archPos.x:F0},{archPos.z:F0}) y={y:F1} scale={ARCH_SCALE}");
+            return 1;
+        }
+
+        /// <summary>
+        /// T-D2: 대형 꽃 융단(TerrainShape.GetMegaFlowerPatchMask, 예시12/13 핑크/마젠타 카펫) 내부
+        /// 밀집 꽃 데코 — MEGA_SCAN_CELL 격자로 마스크 히트 시 4×4 클러스터 배치.
+        /// 팔레트는 소유 방위와 무관하게 핑크+퍼플(융단 정체성). MEGA_CAP_PER_NATION 별도 상한.
+        /// 물(1.05r)/스폰/급사면/최소간격 검사. GetMegaFlowerPatchMask는 소유 방위 호출에 황제국 공유
+        /// 세트가 포함되므로 소유 방위 단일 스캔으로 전체 패치가 정확히 1회씩 커버된다.
+        /// </summary>
+        static int PlaceMegaFlowerPatches(CategoriesR4 cat, Transform flowersT, SpatialHash treeHash, SpatialHash propHash)
+        {
+            var palette = new List<GameObject>();
+            palette.AddRange(cat.flowerPink);
+            palette.AddRange(cat.flowerPurple);
+            if (palette.Count == 0) return 0;
+
+            int placed = 0;
+            int[] cnt = new int[8];
+            float lim = BOUND_MAX - MEGA_SCAN_CELL;
+            for (float gx = -lim; gx <= lim; gx += MEGA_SCAN_CELL)
+            {
+                for (float gz = -lim; gz <= lim; gz += MEGA_SCAN_CELL)
+                {
+                    if (cnt[0] + cnt[1] + cnt[2] + cnt[3] + cnt[4] >= MEGA_CAP_PER_NATION * 4) break;   // 전역 안전 밸브
+                    float x = gx + RandomRange(new System.Random((int)(gx * 31 + gz)), -MEGA_SCAN_CELL * 0.4f, MEGA_SCAN_CELL * 0.4f);
+                    float z = gz + RandomRange(new System.Random((int)(gx * 17 + gz * 7)), -MEGA_SCAN_CELL * 0.4f, MEGA_SCAN_CELL * 0.4f);
+                    var nat = NationTerrainController.GetNationFromPosition(new Vector3(x, 0f, z));
+                    int ni = (int)nat;
+                    if (ni < 0 || ni >= cnt.Length) continue;
+                    if (cnt[ni] >= MEGA_CAP_PER_NATION) continue;
+                    if (TerrainShape.GetMegaFlowerPatchMask(x, z, nat, 42) < 0.5f) continue;
+                    if (IsInSpawnExclusion(x, z)) continue;
+                    if (IsNearLakeWater(x, z, 1.05f)) continue;
+                    if (TerrainSplatBaker.EstimateSlopeDegrees(x, z) > 30f) continue;
+                    var rng = new System.Random(NationSeed(nat) + 29 + (int)(x * 3.1f) * 7 + (int)(z * 2.3f) * 13);
+                    for (int si = 0; si < MEGA_CLUSTER_SUB * MEGA_CLUSTER_SUB && cnt[ni] < MEGA_CAP_PER_NATION; si++)
+                    {
+                        int sx = si % MEGA_CLUSTER_SUB, sz = si / MEGA_CLUSTER_SUB;
+                        float fx = x + (sx + 1 - (MEGA_CLUSTER_SUB + 1) * 0.5f) * MEGA_CLUSTER_STEP + RandomRange(rng, -0.4f, 0.4f);
+                        float fz = z + (sz + 1 - (MEGA_CLUSTER_SUB + 1) * 0.5f) * MEGA_CLUSTER_STEP + RandomRange(rng, -0.4f, 0.4f);
+                        var p2 = new Vector2(fx, fz);
+                        if (!treeHash.IsFree(p2, TRUNK_CLEAR)) continue;
+                        if (!propHash.IsFree(p2, 1.2f)) continue;
+                        if (IsNearLakeWater(fx, fz, 1.02f)) continue;
+                        float y = GROUND_BASE + TerrainGenerator.GetHeightAt(fx, fz, BiomeType.Plains, 42) + 0.05f;
+                        Place(palette[rng.Next(palette.Count)], fx, y, fz, RandomRange(rng, 0.7f, 1.0f), rng, flowersT);
+                        propHash.Insert(p2);
+                        cnt[ni]++; placed++;
+                    }
+                }
+            }
+            int e = cnt[(int)NationType.East], w = cnt[(int)NationType.West], so = cnt[(int)NationType.South];
+            int no = cnt[(int)NationType.North], em = cnt[(int)NationType.Empire];
+            Debug.Log($"[IdyllicDecoPlacer][T-D2] MegaFlower Total={placed} (E{e}/W{w}/S{so}/N{no}/Emp{em}, cap {MEGA_CAP_PER_NATION}/nation)");
             return placed;
         }
 

@@ -752,10 +752,23 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 대형 꽃 융단 마스크 [0,1] — 방위당 0~3개 패치(반경 160~200m, 가장자리 30m 페이드).
-        /// Empire 3개 / East 2개 / 타 방위 50% 확률 0~1개. 스폰/성/호수 250m+ 이격.
-        /// T2(텍스처 핑크 블롯) + T3(꽃 밀도 ×2)가 함께 사용 — GetFlowerPatchMask와 별개(합산 아님).
+        /// East 2개 / 타 방위 0~1개 + [T-D2b] 황제국 공유 세트 3개(중앙 링 300~480m)를 모든 방위 평가에 포함
+        /// (Empire 영토는 중심 50m뿐이라 자체 세트만으로는 생성 불가 — 소유 방위와 무관하게 중앙 꽃융단 유지).
+        /// 스폰/성/호수 이격. T2(텍스처 핑크 블롯) + T3(꽃 밀도)가 함께 사용.
         /// </summary>
         public static float GetMegaFlowerPatchMask(float x, float z, NationType nation, int seed)
+        {
+            float best = EvaluateMegaFlowerSet(x, z, nation, seed);
+            if (nation != NationType.Empire)
+            {
+                float shared = EvaluateMegaFlowerSet(x, z, NationType.Empire, seed);
+                if (shared > best) best = shared;
+            }
+            return Mathf.Clamp01(best);
+        }
+
+        /// <summary>단일 방위 세트 평가 (GetMegaFlowerPatchMask 헬퍼 — Empire는 공유 세트로 전 방위에서 재평가됨).</summary>
+        static float EvaluateMegaFlowerSet(float x, float z, NationType nation, int seed)
         {
             int nseed = seed + NationSeedOffset(nation) + 9503;
             int count;
@@ -787,7 +800,7 @@ namespace ProjectName.Systems
                 float m = 1f - Smoothstep(radius - MEGA_FLOWER_EDGE_SOFT, radius, dd);
                 if (m > best) best = m;
             }
-            return Mathf.Clamp01(best);
+            return best;
         }
     }
 }

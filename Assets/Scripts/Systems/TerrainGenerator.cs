@@ -293,22 +293,28 @@ namespace ProjectName.Systems
             d += TerrainShape.GetOutcropMask(x, z, nation, seed) * OutcropAmp(nation);
 
             //  basin: 방위당 1개 대형 분지 — 바닥 파임(bowl) + 바깥쪽 병풍 절벽(링 밴드 × wedge)
-            TerrainShape.BasinInfo basin = TerrainShape.GetBasinCenter(nation, seed);
-            if (basin.valid)
-            {
-                float bdx = x - basin.center.x;
-                float bdz = z - basin.center.z;
-                float bdist = Mathf.Sqrt(bdx * bdx + bdz * bdz);
-                float bowl = TerrainShape.GetBasinMask(x, z, nation, seed);
-                d -= BASIN_DEPTH * bowl;
-                float cosDiff = Mathf.Cos(Mathf.Atan2(bdz, bdx) - basin.wallAngleRad);
-                float wedge = TerrainShape.Smoothstep(0.30f, 0.75f, cosDiff);
-                float ring = TerrainShape.Smoothstep(basin.radius - 18f, basin.radius - 8f, bdist)
-                           * (1f - TerrainShape.Smoothstep(basin.radius - 4f, basin.radius + 2f, bdist));
-                d += BASIN_WALL_HEIGHT * ring * wedge;
-            }
+            //  [T-D2b] 황제국 분지도 공유 평가(Empire 영토는 중심 50m뿐 — 소유 방위와 무관하게 유지)
+            d += BasinDelta(x, z, TerrainShape.GetBasinCenter(nation, seed));
+            if (nation != NationType.Empire)
+                d += BasinDelta(x, z, TerrainShape.GetBasinCenter(NationType.Empire, seed));
 
             return d * cliffSuppression;
+        }
+
+        /// <summary>분지 단일 델타 (bowl 파임 + 외벽 절벽) — T-D2. [T-D2b] 황제국 공유 평가로 분리.</summary>
+        private static float BasinDelta(float x, float z, TerrainShape.BasinInfo basin)
+        {
+            if (!basin.valid) return 0f;
+            float bdx = x - basin.center.x;
+            float bdz = z - basin.center.z;
+            float bdist = Mathf.Sqrt(bdx * bdx + bdz * bdz);
+            float bowl = 1f - TerrainShape.Smoothstep(basin.radius - 35f, basin.radius, bdist);
+            float d = -BASIN_DEPTH * bowl;
+            float cosDiff = Mathf.Cos(Mathf.Atan2(bdz, bdx) - basin.wallAngleRad);
+            float wedge = TerrainShape.Smoothstep(0.30f, 0.75f, cosDiff);
+            float ring = TerrainShape.Smoothstep(basin.radius - 18f, basin.radius - 8f, bdist)
+                       * (1f - TerrainShape.Smoothstep(basin.radius - 4f, basin.radius + 2f, bdist));
+            return d + BASIN_WALL_HEIGHT * ring * wedge;
         }
 
         /// <summary>방위별 노출 암반 융기 진폭 (m) — T-D2 09-08. South 낮게, Empire 미미하게.</summary>
