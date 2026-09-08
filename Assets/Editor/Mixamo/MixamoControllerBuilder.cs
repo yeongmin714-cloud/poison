@@ -110,12 +110,15 @@ namespace ProjectName.EditorTools
                 ("Jump", AnimatorControllerParameterType.Trigger),
                 ("Hit", AnimatorControllerParameterType.Trigger),
                 ("Death", AnimatorControllerParameterType.Trigger),
+                ("Harvest", AnimatorControllerParameterType.Trigger),
+                ("HitLight", AnimatorControllerParameterType.Trigger),
+                ("Stun", AnimatorControllerParameterType.Trigger),
             });
             var sm = ac.layers[0].stateMachine;
             // 로코모션=유저 제공 FBX(MixamoUser, Heat 동일 리그→표준 본명 리네임, 2026-09-08 시험 부착), 전투=팩 OneHand(검 부착 전제)
-            var idle = AddState(sm, "Idle", Clip("user:idle.fbx"), true);
-            var walk = AddState(sm, "Walk", Clip("user:walk.fbx"));
-            var run = AddState(sm, "Run", Clip("user:run.fbx"));
+            var idle = AddState(sm, "Idle", Clip("meshy:Idle_02.fbx"), true); // T-D3+: 로코 4종 전량 Meshy(구 믹사모 로코는 MixamoUser에 보존)
+            var walk = AddState(sm, "Walk", Clip("meshy:Walking.fbx"));
+            var run = AddState(sm, "Run", Clip("meshy:Running.fbx"));
             // Run 클립 재생속도 = Speed×0.28 — 믹사모 Running 자연 페이스 ~3.5m/s이므로 5m/s서 1.4배속(발 미끄러짐 방지). walk/idle은 미바인딩
             run.speedParameter = "Speed";
             run.speedParameterActive = true; // 미활성화 시 Speed 파라미터 바인딩 무시(고정 0.28배속) → 반드시 활성
@@ -123,9 +126,13 @@ namespace ProjectName.EditorTools
             var roll = AddState(sm, "Roll", Clip("meshy:Roll_Dodge.fbx")); // T-D3+: Meshy 전투 클립(기존 믹사모/팩 클립은 병사가 계속 사용)
             var attack = AddState(sm, "Attack", Clip("meshy:Right_Hand_Sword_Slash.fbx"));
             var combo = AddState(sm, "AttackCombo", Clip("meshy:Double_Combo_Attack.fbx"));
-            var jump = AddState(sm, "Jump", Clip("user:jump.fbx")); // Meshy 세트에 점프 부재 → 기존 믹사모 점프 유지
+            var jump = AddState(sm, "Jump", Clip("meshy:Regular_Jump.fbx")); // 신규 다운로드 Regular_Jump로 교체
             var hit = AddState(sm, "Hit", Clip("meshy:Hit_Reaction.fbx"));
             var death = AddState(sm, "Death", Clip("meshy:Dead.fbx"));
+            // T-D3+: 신규 등록 상태(클립 준비 완료) — 발화는 각 시스템에서 SetTrigger(채집 UI/경직 판정) 연결 필요
+            var harvest = AddState(sm, "Harvest", Clip("meshy:Pull_Radish.fbx"));
+            var hitLight = AddState(sm, "HitLight", Clip("meshy:Slap_Reaction.fbx"));
+            var stun = AddState(sm, "Stun", Clip("meshy:Electrocution_Reaction.fbx"));
 
             // 이동: Idle ↔ Walk ↔ Run (Speed 기반) — 히스테리시스: Idle→Walk는 0.55, Walk→Idle은 0.35로 분리
             // (지형/경사로 속도가 0 근처로 순간 떨어질 때 Idle로 떨어졌다 복귀하는 "끊김+멈춤" 방지)
@@ -148,6 +155,12 @@ namespace ProjectName.EditorTools
             AnyState(sm, combo, "AttackCombo");
             ExitTo(sm, combo, idle);
             AnyState(sm, death, "Death"); // 사망은 유지 (복귀 없음)
+            AnyState(sm, harvest, "Harvest");
+            ExitTo(sm, harvest, idle);
+            AnyState(sm, hitLight, "HitLight");
+            ExitTo(sm, hitLight, idle);
+            AnyState(sm, stun, "Stun");
+            ExitTo(sm, stun, idle);
 
             AssetDatabase.SaveAssets();
             Debug.Log("[MixamoControllers] Player_AC 생성 완료");
@@ -244,7 +257,7 @@ namespace ProjectName.EditorTools
         /// </summary>
         static void ConfigureMeshyImports()
         {
-            string[] loopKeys = { "walk", "run_", "running", "swim", "crawl", "carry", "sneaky", "spear", "idle_turn" };
+            string[] loopKeys = { "walk", "run_", "running", "swim", "crawl", "carry", "sneaky", "spear", "idle_turn", "idle" };
             string[] noLoopKeys = { "transition", "toss", "pitching" };
             int changed = 0, scanned = 0;
             foreach (var fp in System.IO.Directory.GetFiles(MeshyUserDir, "*.fbx"))

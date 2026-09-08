@@ -512,3 +512,15 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 - **검증**: error CS=0 + 전투 5 GUID refs=1/1/1/1/1 + 로코 4 GUID 유지 + loop 규칙(Walking=1, Sword_Slash=0) + 커밋 3b3b4a63
 
 **Play 판정 대기**: ①검 공격/콤보 모션 ②피격/사망/구르기 반응 ③로코 4종 기존 정상 ④전투 클립 페이스(발 미끄러짐 없음)
+
+---
+
+## 2026-09-08: Meshy 신규 8종 추가 + 로코 4종 전량 Meshy 교체 + 상태 3종 등록 ✅
+
+**신규 FBX 8종**(유저 추가): Regular_Jump, Back_Jump, Idle_02, Collect_Object, Male_Bend_Over_Pick_Up, Pull_Radish, Slap_Reaction, Electrocution_Reaction → 동일 파이프라인(rerig_meshy skip-existing)으로 MeshyUser 68클립 완성
+
+- **로코 4종 교체**: Idle=Idle_02 / Walk=Walking / Run=Running / Jump=Regular_Jump (구 믹사모 로코는 MixamoUser에 보존, GUID 9종 refs=1/1 검증)
+- **상태 3종 신규 등록**: Harvest=Pull_Radish(약초 뽑기) / HitLight=Slap_Reaction(경직) / Stun=Electrocution_Reaction(스턴) — 트리거 파라미터+AnyState/ExitTo 완비
+- **발화 연결 필요(다음 단계)**: Harvest→채집 UI 플로우(현재 채집은 병사 자동 임무 HerbGatheringMission+프로시저 GatherMotion) / HitLight·Stun→전투 데미지 등급 판정(경직=소데미지, 스턴=상태이상)
+- **시스템 미구현으로 보류(클립만 등록됨)**: Swim(수영 판정+수면 상태머신) / Crouch·Crawl(잠입 모드) / Parry(방어 판정) / Bow(활 조준·발사) / Ride(탈것) / Carry(운반) / Climb_Stairs·Ladder(기동) / open_door(문 상호작용) / Talk·victory(연출) / mage_cast(마법) — 각각 별도 설계 Phase 필요
+- **검증**: error CS=0 + 무해 경고만 존재(소멸한 구 믹사모 폴더 loop 보정 시도)
