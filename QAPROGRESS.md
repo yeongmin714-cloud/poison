@@ -498,3 +498,17 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 **검증**: 배치컴파일 error CS=0(unity_compile_td3_4) + QA agent PASS(중괄호 균형 5파일 0, GROUND_BASE+GetHeightAt 규약 17건 유지)
 
 **Play 판정 대기**: ①호수 만/수면 바위/연꽃 ②하천 흐름(낙차 0) ③수종 혼합(능선 침엽·수변 버들) ④꽃융단 확대+방위색 ⑤기존 요소 무손상
+
+---
+
+## 2026-09-08: Meshy 애니메이션 60클립 전량 등록 + 전투 5슬롯 교체 ✅
+
+**입력**: `Assets/플레이어 애니메이션/` Meshy_AI biped FBX 60개(withSkin, 폴더 전면 교체 — 구 Rigify 8종 소멸)
+
+- **파이프라인**: `roll_make/rerig_meshy.py` — Meshy biped 21본 MAP(LeftUpLeg→LeftUpperLeg, Spine01→Chest, Spine02→UpperChest, neck→Neck 등) 표준화 + 메시 제거 클립전용 → `Assets/Animations/MeshyUser/` 60개(필수 17본 전부 충족)
+- **임포트**: ConfigureMeshyImports 신설 — 60개 Human 강제 + loopTime 규칙(파일명 walk/run_/running/swim/crawl/carry/sneaky/spear/idle_turn=true, transition/toss/pitching=false) + defaultClipAnimations 폴백
+- **Player_AC 전투 5슬롯 교체**: Attack=Right_Hand_Sword_Slash, AttackCombo=Double_Combo_Attack, Hit=Hit_Reaction, Death=Dead, Roll=Roll_Dodge(팩 OneHand·구 믹사모 사망/구르기는 병사가 계속 사용). 로코 4종(idle/walk/run/jump)은 기존 MixamoUser 유지 — **Meshy 세트에 Idle·Jump 부재**
+- **트러블슈팅**: Blender 출력 파일명에 _withSkin 잔존 → 슬롯 참조 불일치("클립 없음" 5건) → 파일명 정규화+meta 재생성 후 R3/R4 해소
+- **검증**: error CS=0 + 전투 5 GUID refs=1/1/1/1/1 + 로코 4 GUID 유지 + loop 규칙(Walking=1, Sword_Slash=0) + 커밋 3b3b4a63
+
+**Play 판정 대기**: ①검 공격/콤보 모션 ②피격/사망/구르기 반응 ③로코 4종 기존 정상 ④전투 클립 페이스(발 미끄러짐 없음)
