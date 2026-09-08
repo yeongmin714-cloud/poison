@@ -127,6 +127,22 @@ namespace ProjectName.EditorTools
                 ("Talk", AnimatorControllerParameterType.Trigger),
                 ("Talk2", AnimatorControllerParameterType.Trigger),
                 ("Victory", AnimatorControllerParameterType.Trigger),
+                ("IsCrouch", AnimatorControllerParameterType.Bool),
+                ("IsSwimming", AnimatorControllerParameterType.Bool),
+                ("SitDown", AnimatorControllerParameterType.Trigger),
+                ("SitUp", AnimatorControllerParameterType.Trigger),
+                ("Toss", AnimatorControllerParameterType.Trigger),
+                ("Drink", AnimatorControllerParameterType.Trigger),
+                ("AttackThrust", AnimatorControllerParameterType.Trigger),
+                ("AttackBase", AnimatorControllerParameterType.Trigger),
+                ("ChargedAttack", AnimatorControllerParameterType.Trigger),
+                ("Parry", AnimatorControllerParameterType.Trigger),
+                ("Ladder", AnimatorControllerParameterType.Trigger),
+                ("ClimbStairs", AnimatorControllerParameterType.Trigger),
+                ("WallDown", AnimatorControllerParameterType.Trigger),
+                ("Throw", AnimatorControllerParameterType.Trigger),
+                ("Carry", AnimatorControllerParameterType.Trigger),
+                ("Cast", AnimatorControllerParameterType.Trigger),
             });
             var sm = ac.layers[0].stateMachine;
             // 로코모션=유저 제공 FBX(MixamoUser, Heat 동일 리그→표준 본명 리네임, 2026-09-08 시험 부착), 전투=팩 OneHand(검 부착 전제)
@@ -180,6 +196,87 @@ namespace ProjectName.EditorTools
             // Phase K: 사방 후퇴 주행
             var backLeftRun = AddState(sm, "BackLeftRun", Clip("meshy:BackLeft_run.fbx"));
             var backRightRun = AddState(sm, "BackRightRun", Clip("meshy:BackRight_Run.fbx"));
+
+            // Phase D/E/F/G/H/I/L: 시스템 연동 상태 일괄 등록
+            var sitDown = AddState(sm, "SitDown", Clip("meshy:Stand_to_Sit_Transition_M.fbx"));
+            var sitHold = AddState(sm, "SitHold", Clip("meshy:Sit_Lie_Bed.fbx"));
+            var sitUp = AddState(sm, "SitUp", Clip("meshy:Sit_to_Stand_Transition_M.fbx"));
+            var toss = AddState(sm, "Toss", Clip("meshy:Toss_and_Turn.fbx"));
+            var drink = AddState(sm, "Drink", Clip("meshy:Stand_and_Drink.fbx"));
+            var crouchF = AddState(sm, "CrouchF", Clip("meshy:Cautious_Crouch_Walk_Forward.fbx"));
+            var crouchB = AddState(sm, "CrouchB", Clip("meshy:Cautious_Crouch_Walk_Backward.fbx"));
+            var crouchL = AddState(sm, "CrouchL", Clip("meshy:Cautious_Crouch_Walk_Left.fbx"));
+            var crouchR = AddState(sm, "CrouchR", Clip("meshy:Cautious_Crouch_Walk_Right_inplace.fbx"));
+            var sneaky = AddState(sm, "Sneaky", Clip("meshy:Sneaky_Walk.fbx"));
+            var swimF = AddState(sm, "SwimF", Clip("meshy:Swim_Forward.fbx"));
+            var swimI = AddState(sm, "SwimI", Clip("meshy:Swim_Idle.fbx"));
+            var attackThrust = AddState(sm, "AttackThrust", Clip("meshy:Thrust_Slash.fbx"));
+            var attackBase = AddState(sm, "AttackBase", Clip("meshy:Attack.fbx"));
+            var charged = AddState(sm, "Charged", Clip("meshy:Charged_Upward_Slash.fbx"));
+            var parry = AddState(sm, "Parry", Clip("meshy:Sword_Parry_Backward_1.fbx"));
+            var ladderClimb = AddState(sm, "LadderClimb", Clip("meshy:Ladder_Climb_Finish.fbx"));
+            var climbStairs = AddState(sm, "ClimbStairs", Clip("meshy:Climb_Stairs.fbx"));
+            var wallDown = AddState(sm, "WallDown", Clip("meshy:climbing_down_wall.fbx"));
+            var throwObj = AddState(sm, "ThrowObj", Clip("meshy:Crouch_Pull_and_Throw.fbx"));
+            var carry = AddState(sm, "Carry", Clip("meshy:Carry_Heavy_Object_Walk.fbx"));
+            var cast = AddState(sm, "Cast", Clip("meshy:mage_soell_cast_4.fbx"));
+
+            // Phase D: 착석 플로우(앉기 전환→유지→일어나기, 침대 뒤척임)
+            AnyState(sm, sitDown, "SitDown");
+            ExitTo(sm, sitDown, sitHold);
+            AnyState(sm, sitUp, "SitUp");
+            ExitTo(sm, sitUp, idle);
+            AnyState(sm, toss, "Toss");
+            ExitTo(sm, toss, sitHold);
+            AnyState(sm, drink, "Drink");
+            ExitTo(sm, drink, idle);
+
+            // Phase E: 웅크림 — 진입(IsCrouch+이동), 방향 스왑, 해제
+            T2(sm, walk, crouchF, ("IsCrouch", AnimatorConditionMode.If, 0f), ("Speed", AnimatorConditionMode.Greater, 0.55f));
+            T(sm, crouchF, crouchB, "MoveY", AnimatorConditionMode.Less, -0.3f);
+            T(sm, crouchB, crouchF, "MoveY", AnimatorConditionMode.Greater, -0.15f);
+            T(sm, crouchF, crouchL, "MoveX", AnimatorConditionMode.Less, -0.5f);
+            T(sm, crouchL, crouchF, "MoveX", AnimatorConditionMode.Greater, -0.2f);
+            T(sm, crouchF, crouchR, "MoveX", AnimatorConditionMode.Greater, 0.5f);
+            T(sm, crouchR, crouchF, "MoveX", AnimatorConditionMode.Less, 0.2f);
+            T2(sm, crouchF, idle, ("IsCrouch", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Less, 0.35f));
+            T2(sm, crouchB, idle, ("IsCrouch", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Less, 0.35f));
+            T2(sm, crouchL, idle, ("IsCrouch", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Less, 0.35f));
+            T2(sm, crouchR, idle, ("IsCrouch", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Less, 0.35f));
+            T2(sm, crouchB, walk, ("IsCrouch", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Greater, 0.55f));
+            T2(sm, crouchL, walk, ("IsCrouch", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Greater, 0.55f));
+            T2(sm, crouchR, walk, ("IsCrouch", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Greater, 0.55f));
+
+            // Phase H: 수영 — 진입 트리거, 정지/이동 스왑, 해제
+            AnyState(sm, swimI, "SwimEnter");
+            T(sm, swimI, swimF, "Speed", AnimatorConditionMode.Greater, 0.5f);
+            T(sm, swimF, swimI, "Speed", AnimatorConditionMode.Less, 0.5f);
+            T2(sm, swimF, idle, ("IsSwimming", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Greater, 0.3f));
+            T2(sm, swimI, idle, ("IsSwimming", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Greater, 0.3f));
+
+            // Phase G: 공격 변형(찌르기/기본), 차지, 패리
+            AnyState(sm, attackThrust, "AttackThrust");
+            ExitTo(sm, attackThrust, idle);
+            AnyState(sm, attackBase, "AttackBase");
+            ExitTo(sm, attackBase, idle);
+            AnyState(sm, charged, "ChargedAttack");
+            ExitTo(sm, charged, idle);
+            AnyState(sm, parry, "Parry");
+            ExitTo(sm, parry, idle);
+
+            // Phase F/I/L: 기동·투척·운반·마법 (발화는 각 시스템/오브젝트에서)
+            AnyState(sm, ladderClimb, "Ladder");
+            ExitTo(sm, ladderClimb, idle);
+            AnyState(sm, climbStairs, "ClimbStairs");
+            ExitTo(sm, climbStairs, idle);
+            AnyState(sm, wallDown, "WallDown");
+            ExitTo(sm, wallDown, idle);
+            AnyState(sm, throwObj, "Throw");
+            ExitTo(sm, throwObj, idle);
+            AnyState(sm, carry, "Carry");
+            ExitTo(sm, carry, idle);
+            AnyState(sm, cast, "Cast");
+            ExitTo(sm, cast, idle);
 
             // 이동: Idle ↔ Walk ↔ Run (Speed 기반) — 히스테리시스: Idle→Walk는 0.55, Walk→Idle은 0.35로 분리
             // (지형/경사로 속도가 0 근처로 순간 떨어질 때 Idle로 떨어졌다 복귀하는 "끊김+멈춤" 방지)
