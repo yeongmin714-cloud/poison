@@ -306,7 +306,7 @@ namespace ProjectName.Systems
         {
             if (!basin.valid) return 0f;
             float bdx = x - basin.center.x;
-            float bdz = z - basin.center.z;
+            float bdz = z - basin.center.y;   // BasinInfo.center는 Vector2 (y=z축)
             float bdist = Mathf.Sqrt(bdx * bdx + bdz * bdz);
             float bowl = 1f - TerrainShape.Smoothstep(basin.radius - 35f, basin.radius, bdist);
             float d = -BASIN_DEPTH * bowl;
