@@ -675,6 +675,18 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 
 **최종 상태: 68클립 체제 완성(활성 67+여유 1), 무기/핫바/상호작용 시스템 전부 코드 완료. 남은 것: 에디터 오브젝트 배치(문/좌석/사다리) + Play 판정(키 조작 전반+수영+창 공격)**
 
+---
+
+## 2026-09-08: 실내 씬 전환 완성 + 내부 씬 미리보기 메뉴 ✅ (커밋 a218bf23)
+
+- **원인 진단**: 전환 체인은 존재(BuildingTrigger→BuildingEvents→UI/IndoorSceneTransition→IndoorScene Additive+빌더)하나 **플레이어 이동 로직 부재**(Additive 로드만 하고 플레이어는 메인 좌표 고정 → 화면 변화 없음이 "전환 안 됨"의 실체)
+- **보강**: EnterBuilding 시 진입 직전 위치 저장(_returnPosition) → 로드 완료 후 플레이어 (0, 0.1, 0) 텔레포트(INDOOR_FLOOR_Y=0 — IndoorBuilder.CreateRoom 바닥 y=0 확인) → ExitBuilding 시 원위 복귀
+- **영지 트리거**: 기존 존재 확인(TerritoryBuilder 252~263행 — 성문 GateAnchor 108% 바깥, territoryKey 포함, 상점/크래프트하우스 트리거도 존재) — 무수정
+- **내부 씬 단독 확인**: Assets/Editor/IndoorPreviewMenu.cs 신설 — Tools/Indoor/미리보기 13종(플레이어 성, 영주 성 5국가, 여관, 집, 헛간, 동굴, 상점, 교회, 크래프트하우스): 클릭 시 IndoorScene 단독 오픈+해당 빌더 즉시 생성(성은 SpawnInteriorFixtures 포함, 런타임과 동일)
+- **검증**: 배치컴파일 error CS=0 + 텔레그램 알림(9483)
+
+**Play 판정 대기**: ①성문 E → 내부 전환+플레이어 위치 ②Exit 트리거 → 원위 복귀 ③에디터 Tools/Indoor 미리보기 각 메뉴
+
 **시스템 배치 필요(에디터 작업)**: DoorInteractable(문+피벗), SeatInteractable(의자/침대), LadderInteractable(사다리) 오브젝트 부착
 
 **Play 판정 대기**: ①Ctrl 웅크림+4방향 ②호수/하천 수영 진입·부유 ③의자/침대 착석·일어남 ④문 개폐 ⑤채집 3종 랜덤 ⑥NPC 대화 Talk·승리 Victory
