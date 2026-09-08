@@ -617,6 +617,29 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 
 ---
 
+## 2026-09-08: 애니 시스템 전면 구현 — Phase A/K/B/C/D/E/F/G/H/I 완료 ✅ (59/68, 커밋 e51921e2→0324ec96)
+
+계획서: `.hermes/plans/2026-09-08_anim-systems-plan.md`. 신규 상태 30종, 상호작용 스크립트 3종 신설.
+
+- **A 줍기**: HerbPickup 채집 클립 3-way 랜덤(Pull_Radish/Collect_Object/Bend_Over_Pick_Up) — TriggerHarvest 계열 3종
+- **K 사방 후퇴**: BackLeft/Right_run — MoveY<-0.3 && |MoveX|>0.45 (T2 AND 게이트)
+- **B 문**: DoorInteractable.cs 신설 — 문 피벗+E키 토글 개폐(회전 코루틴)+플레이어 open_door 트리거(씬 배치 필요: 문 오브젝트에 부착+_doorPivot 할당)
+- **C 대화·승리**: TutorialQuestNPC.StartDialogue → Talk 2종 랜덤 / ArenaSystem fighterWon → Victory
+- **D 좌석/침대/음료**: SeatInteractable.cs 신설(E키 착석→SitHold 루프, 침대 모드 6초마다 Toss, 이탈/E재입력→SitUp) / Stand_and_Drink=소비 아이템 사용 훅(ConsumableSystem → BroadcastMessage 우회, asmdef 제약)
+- **E 웅크림**: PlayerMovement Ctrl 토글+속도 ×0.5+CrouchF/B/L/R 4방향 스왑(IsCrouch 게이트) — **주의: Ctrl이 은신(누름)과 웅크림(뗌) 공유 → 키 분리 권장(C키 등)**
+- **H 수영**: NearestWaterSurfaceY(호수+하천 마스크) 판정 → 수면 부유 보정+속도 ×0.6+SwimI/F 스왑, 수영 중 점프/구르기 차단
+- **F 기동**: LadderInteractable.cs 신설(E키 연출) — 실제 y 이동은 추후 / ClimbStairs·WallDown 상태 등록
+- **G 전투 변형**: AttackThrust/AttackBase/Charged/Parry 상태 등록(차지 홀드·패리 타이밍 판정은 전투 코드 연결 후속)
+- **검증**: 배치컴파일 error CS=0 ×2 + 신규 상태 전부 m_Name/GUID 확인
+
+**남은 미사용 9클립**: 활 5종(Archery_Shot, Draw_and_Shoot, Bow_walk 3종)+Spear_Walk(Phase J 활/창 무기 시스템 — 大), Crawl_Backward(기어 심화), baseball_pitching+Walk_Backward_with_Grenade(투척 시스템 — Phase I 잔여)
+
+**시스템 배치 필요(에디터 작업)**: DoorInteractable(문+피벗), SeatInteractable(의자/침대), LadderInteractable(사다리) 오브젝트 부착
+
+**Play 판정 대기**: ①Ctrl 웅크림+4방향 ②호수/하천 수영 진입·부유 ③의자/침대 착석·일어남 ④문 개폐 ⑤채집 3종 랜덤 ⑥NPC 대화 Talk·승리 Victory
+
+---
+
 ## 2026-09-08: Meshy 신규 8종 추가 + 로코 4종 전량 Meshy 교체 + 상태 3종 등록 ✅
 
 **신규 FBX 8종**(유저 추가): Regular_Jump, Back_Jump, Idle_02, Collect_Object, Male_Bend_Over_Pick_Up, Pull_Radish, Slap_Reaction, Electrocution_Reaction → 동일 파이프라인(rerig_meshy skip-existing)으로 MeshyUser 68클립 완성
