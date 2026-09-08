@@ -24,6 +24,11 @@ namespace ProjectName.Systems
         /// <summary>황제국 중앙 반경(미터) — NationTerrainController.GetNationFromPosition(50m)와 동일.</summary>
         public const float EMPIRE_RADIUS = 50f;
 
+        // ── MM-Terrain (09-08): 미니맵 지형 재사용용 공개 저장 ──
+        // BakeWorldSplat이 만든 최신 통합 월드 스플랫. MinimapUI 등 Systems 외부에서도
+        // 추가 베이크 없이 지형 텍스처를 읽는다. (캐시 로드 포함 항상 최신으로 갱신)
+        public static Texture2D LastWorldSplat = null;
+
         /// <summary>지정 좌표의 경사각(도). 0 이상 반환.</summary>
         public static float EstimateSlopeDegrees(float wx, float wz)
         {
@@ -157,6 +162,7 @@ namespace ProjectName.Systems
 
             float dt = (UnityEngine.Time.realtimeSinceStartup - t0) * 1000f;
             Debug.Log($"[TerrainSplatBaker] BakeWorldSplat 완료: {r}x{r} 소요={dt:F0}ms ({dt / (r * r):F6}ms/px)");
+            LastWorldSplat = tex;   // MM-Terrain: 미니맵 지형 재사용 등록 (항상 최신 유지)
             return tex;
         }
 

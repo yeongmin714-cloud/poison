@@ -831,6 +831,7 @@ namespace ProjectName.Systems
                 SaveWorldSplatCache(cachePath, worldSplat);
             }
 
+            TerrainSplatBaker.LastWorldSplat = worldSplat;   // MM-Terrain: 캐시 로드 경로에서도 미니맵용 최신 텍스처 등록
             ApplyWorldSplatMaterial(worldSplat);
 
             float dt = (UnityEngine.Time.realtimeSinceStartup - tLog0) * 1000f;

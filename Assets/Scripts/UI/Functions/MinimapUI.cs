@@ -91,7 +91,23 @@ namespace ProjectName.UI
             _soundSystem = SoundSystem.Instance;
             _timeWeatherSystem = TimeWeatherSystem.Instance;
 
+            // MM-Terrain (09-08): 지형 텍스처 주입 — BakeWorldSplat이 만든 통합 월드 스플랫을
+            // 그대로 재사용 (추가 베이크 없음, 게임 지형과 100% 일치). 아직 준비 안 됐으면
+            // LateStart/Update에서 지연 재시도한다.
+            TryApplyMapTexture();
+
             UpdateRectPositions();
+        }
+
+        private void TryApplyMapTexture()
+        {
+            if (_mapTexture != null) return;
+            var splat = TerrainSplatBaker.LastWorldSplat;
+            if (splat == null) return;
+            SetMapTexture(splat);
+            // 미니맵 지름(px)을 월드 폭(m)으로 나눈 축척 — 월드 원점(0,0)이 미니맵 중심.
+            SetMapScale(_minimapDiameter / TerrainSplatBaker.WORLD_SIZE);
+            Debug.Log("[MinimapUI] 지형 텍스처 주입 완료: " + splat.name + " (scale=" + _mapScale + ")");
         }
 
         private void CacheStyles()
@@ -120,6 +136,8 @@ namespace ProjectName.UI
 
         private void Update()
         {
+            // MM-Terrain: 부팅 중 스플랫 생성 전이면 지연 재시도 (준비되면 1회 주입)
+            TryApplyMapTexture();
             UpdateRectPositions();
             UpdateTemperature();
             UpdateSoundLevel();
