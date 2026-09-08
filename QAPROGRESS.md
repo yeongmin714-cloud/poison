@@ -595,6 +595,18 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 
 ---
 
+## 2026-09-08: 전투 모드 변형 4종 + RunToWalk 활성화 ✅ (커밋 c404de94)
+
+- **IsCombat 게이트**: WeaponEquipManager.IsEquipped(정적) → HumanoidClipDriver가 SetBool 전송. 일반 이동 전이에 IsCombat IfNot 게이트 추가(T2 헬퍼 신설 — 2조건 AND)
+- **전투 모드 변형 4종**: Walk_Backward_with_Sword(후진), ForwardLeft/Right_Run_Fight(측면 주행), Walk_Turn_Left_with_Weapon(선회) — 검 장착 시 자동 전환, 해제 시 일반 복귀
+- **RunToWalk**: Run_to_Walk_Transition — Speed 2.0 임계 하향 통과 시 드라이버가 1회 발화(_prevSpeedForTransition 엣지 감지)
+- **활성화 클립 +5**: Walk_Backward_with_Sword, ForwardLeft/Right_Run_Fight, Walk_Turn_Left_with_Weapon, Run_to_Walk_Transition → **누적 26/68**
+- **검증**: error CS=0 + 상태 5종/IsCombat 조건 12건/클립 GUID 5종 등록 확인
+- **비고**: WSL interop vsock 일시 장애로 Unity 배치 3회 실행 실패(accept4 timeout) 후 복구 — 파이프라인 exit 코드 마스킹 주의(tail 파이프 시 $? 무의미)
+- **남은 미사용 42클립**: 시스템 신설 그룹(Swim 2/Crouch 4/Sneaky/Crawl/Parry/Bow 6/Ride/Carry/Climb 3/Door/Talk 2/victory/mage/baseball/Pull_Throw) — 각각 별도 설계 Phase
+
+---
+
 ## 2026-09-08: 콤보 3·4단 확장 + 다운 상태 + 발화 연결 완료 ✅ (커밋 75d27e6b)
 
 - **콤보 확장**: HumanoidClipDriver 4분기 체인(≥4→AttackCombo3=Weapon_Combo_2, ≥3→AttackCombo2=Triple_Combo_Attack, ≥2→AttackCombo, else Attack) + Player_AC 상태/전이 추가
