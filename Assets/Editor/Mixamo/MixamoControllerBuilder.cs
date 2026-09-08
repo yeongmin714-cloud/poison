@@ -218,7 +218,7 @@ namespace ProjectName.EditorTools
         }
 
         /// <summary>
-        /// 유저 제공 로코모션 FBX(MixamoUser, Heat 동일 리그→표준 본명 리네임)의 임포트를 보정한다.
+        /// 유저 제공 로코모션 FBX(Heat 동일 리그→표준 본명 리네임 완료, 2026-09-08)의 임포트를 보정한다.
         /// 1) animationType이 Humanoid가 아니면 Humanoid로 강제 — 표준 본명(Hips/Spine/Head/LeftUpperLeg...)이므로 자동매핑 성공.
         /// 2) clipAnimations loopTime: idle/walk/run/back_run/back_walk/jump=true, 좌우 방향전환=false(1회성 모션).
         /// ConfigureMixamoClipLoop와 동일 구현 패턴.
@@ -247,9 +247,10 @@ namespace ProjectName.EditorTools
                     continue;
                 }
                 bool dirty = false;
-                if (imp.animationType != ModelImporterAnimationType.Humanoid)
+                // 주의: Unity 6000.4에서는 ModelImporterAnimationType.Humanoid가 Human으로 리네임됨(같은 의미)
+                if (imp.animationType != ModelImporterAnimationType.Human)
                 {
-                    imp.animationType = ModelImporterAnimationType.Humanoid;
+                    imp.animationType = ModelImporterAnimationType.Human;
                     dirty = true;
                 }
                 var clips = imp.clipAnimations;
