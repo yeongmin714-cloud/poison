@@ -789,17 +789,25 @@ namespace ProjectName.Systems
                 finalColor = Color.Lerp(finalColor, finalColor * 0.93f, basinW);
             }
 
-            // T2-③: 대형 꽃 융단 — megaFlower>0.3에서 핑크/마젠타 블롯 오버레이.
-            // 노이즈로 핑크↔마젠타 두 톤을 블롯처럼 섞어 카펫 질감(예시12/13).
-            // Empire/East는 채도 높은 강한 핑크, 타 방위는 부드러운 핑크.
+            // T2-③: 대형 꽃 융단 — megaFlower>0.3에서 방위별 팔레트 블롯 오버레이 (T-D3 T4-2).
+            // 동=흰/노랑 점묘+빨강 포인트 / 남=빨강 / 북=흰 설화 / 서=황토 관무 / 황제국=핑크·마젠타 카펫(예시12/13).
             float megaFlower = TerrainShape.GetMegaFlowerPatchMask(wx, wz, pixelNation, seed);
             if (megaFlower > 0.3f)
             {
-                bool strongPink = pixelNation == NationType.Empire || pixelNation == NationType.East;
-                Color pinkA = strongPink ? new Color(0.90f, 0.55f, 0.75f) : new Color(0.85f, 0.60f, 0.80f);
-                Color pinkB = strongPink ? new Color(0.80f, 0.38f, 0.66f) : new Color(0.78f, 0.45f, 0.70f);
+                Color blotA, blotB;
+                bool speckle = false;
+                switch (pixelNation)
+                {
+                    case NationType.East:   blotA = new Color(0.95f, 0.95f, 0.88f); blotB = new Color(0.93f, 0.85f, 0.45f); speckle = true; break;
+                    case NationType.South:  blotA = new Color(0.78f, 0.28f, 0.22f); blotB = new Color(0.62f, 0.18f, 0.15f); break;
+                    case NationType.North:  blotA = new Color(0.96f, 0.97f, 1.00f); blotB = new Color(0.88f, 0.90f, 0.94f); break;
+                    case NationType.West:   blotA = new Color(0.72f, 0.58f, 0.35f); blotB = new Color(0.60f, 0.52f, 0.32f); break;
+                    default:                blotA = new Color(0.90f, 0.55f, 0.75f); blotB = new Color(0.80f, 0.38f, 0.66f); break;
+                }
                 float blotN = Mathf.PerlinNoise(wx * 0.5f + 77.7f, wz * 0.5f + 33.3f);
-                Color blot = Color.Lerp(pinkA, pinkB, blotN);
+                Color blot = Color.Lerp(blotA, blotB, blotN);
+                if (speckle && Mathf.PerlinNoise(wx * 2.3f + 11.1f, wz * 2.3f + 5.5f) > 0.78f)
+                    blot = new Color(0.75f, 0.25f, 0.20f);   // 동: 빨강 포인트 ~10%
                 float flowerW = TerrainShape.Smoothstep(0.3f, 0.7f, megaFlower) * 0.85f;
                 finalColor = Color.Lerp(finalColor, blot, flowerW);
             }

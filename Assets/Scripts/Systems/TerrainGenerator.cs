@@ -458,6 +458,9 @@ namespace ProjectName.Systems
             //  40m 절벽 금지로 수면 위 절벽/해안 단차 재발 방지. 마스크 순서: 절벽 억제 → 카브 → 수변 수렴.)
             h = ApplyLakeBasins(x, z, h);
 
+            // === 3.5) 하천 골 carve (T-D3 T2-3) — min-only, 낙차 0, 호수/스폰 평탄화와 독립 ===
+            h = ApplyRiverCarve(x, z, h);
+
             // === 4) 스폰지 평탄화 ===
             // PlayerSpawnConfig.SpawnPosition 반경 30m 절대 평탄 (상수 고도), 그 밖은 원래 지형.
             h = ApplySpawnFlattening(x, z, h, seed, suppression);
@@ -822,6 +825,151 @@ namespace ProjectName.Systems
         /// 겹치지 않는다. Z5 대형 호수(r=180/150, 카브 최대 1.7r=306m)는 LCG 재현 시뮬레이션으로
         /// 전 호수와 센터 250m+ · 밴드(1.7r 합) 무겹침을 검증했다 (GenerateLakes 주석 참조).
         /// </summary>
+        // ================================================================
+        // 하천(시내) 시스템 — T-D3 T2-3 (09-08)
+        // 방위당 1개(최대 5, 절차 호수 기준), 호수 가장자리→외곽 완경사 S자 스플라인.
+        // carve는 min-only(낙차 0, 융기 없음). 재귀 가드: 호수 생성 중엔 빈 배열.
+        // 소비 계약: 흙길/분지/아웃크롭 마스크는 riverMask>0.5 시 억제 권장(소비 쪽 과제).
+        // ================================================================
+        public struct TerrainRiverDef
+        {
+            public Vector3[] pts;      // 중심선 제어점 5개 (P0=호수 가장자리)
+            public float width;        // 수면 폭 4~7m
+            public float depth;        // 골 깊이 0.8~1.4m
+            public float surfaceY0;    // 상류 수면(시작 호수 waterLevel)
+            public float surfaceY1;    // 하류 수면(surfaceY0-0.3, 실질 평수)
+        }
+
+        private static System.Collections.Generic.IReadOnlyList<TerrainRiverDef> _rivers = null;
+
+        /// <summary>하천 캐시(재귀 안전): 호수 생성 완료 전 null → 소비 쪽 0 취급.</summary>
+        public static System.Collections.Generic.IReadOnlyList<TerrainRiverDef> RiversOrNull => _rivers;
+
+        private static uint RiverHash(uint h)
+        {
+            h ^= h >> 16; h *= 0x7feb352dU; h ^= h >> 15; h *= 0x846ca68bU; h ^= h >> 16;
+            return h;
+        }
+
+        private static float RiverFrac(uint h, uint salt) => ((RiverHash(h * 1000003U + salt) >> 8) & 0xFFFF) / 65535f;
+
+        private static System.Collections.Generic.IReadOnlyList<TerrainRiverDef> GenerateRivers()
+        {
+            var lakes = Lakes;
+            var list = new System.Collections.Generic.List<TerrainRiverDef>();
+            int[] sectorPick = { -1, -1, -1, -1, -1 };   // N(+z), E(+x), S(-z), W(-x), Empire
+            float[] sectorBest = { -1f, -1f, -1f, -1f, -1f };
+            for (int i = 0; i < lakes.Count; i++)
+            {
+                var lk = lakes[i];
+                if (lk.radius > 100f) continue;          // 대형 수동 호수 제외
+                float ang = Mathf.Atan2(lk.center.z, lk.center.x) * Mathf.Rad2Deg;
+                int sec = ang >= 45f && ang < 135f ? 0 : ang >= -45f && ang < 45f ? 1 : ang >= -135f && ang < -45f ? 2 : 3;
+                if (lk.radius > sectorBest[sec]) { sectorBest[sec] = lk.radius; sectorPick[sec] = i; }
+            }
+            int empIdx = -1; float empBest = float.MaxValue;   // Empire: 중심 최근접 절차 호수(방위 중복 제외)
+            for (int i = 0; i < lakes.Count; i++)
+            {
+                var lk = lakes[i];
+                if (lk.radius > 100f) continue;
+                if (System.Array.IndexOf(sectorPick, i) >= 0) continue;
+                float d = lk.center.x * lk.center.x + lk.center.z * lk.center.z;
+                if (d < empBest) { empBest = d; empIdx = i; }
+            }
+            for (int sec = 0; sec < 5; sec++)
+            {
+                int idx = sec < 4 ? sectorPick[sec] : empIdx;
+                if (idx < 0) continue;
+                var lk = lakes[idx];
+                uint h = (uint)(idx * 7919 + sec * 104729);
+                Vector3 outDir = new Vector3(lk.center.x, 0f, lk.center.z);
+                outDir /= Mathf.Max(1f, outDir.magnitude);
+                float len = 150f + RiverFrac(h, 1) * 200f;       // 150~350m
+                float width = 4f + RiverFrac(h, 2) * 3f;         // 4~7m
+                float depth = 0.8f + RiverFrac(h, 3) * 0.6f;     // 0.8~1.4m
+                var pts = new Vector3[5];
+                Vector3 side = new Vector3(-outDir.z, 0f, outDir.x);
+                float latAmp = 20f + RiverFrac(h, 4) * 20f;
+                for (int k = 0; k < 5; k++)
+                {
+                    float t = k / 4f;
+                    float along = lk.radius * 0.9f + len * t;
+                    float lat = Mathf.Sin(t * Mathf.PI * 2f) * latAmp * (k == 0 || k == 4 ? 0.3f : 1f);
+                    pts[k] = new Vector3(lk.center.x + outDir.x * along + side.x * lat, 0f, lk.center.z + outDir.z * along + side.z * lat);
+                }
+                list.Add(new TerrainRiverDef { pts = pts, width = width, depth = depth, surfaceY0 = lk.waterLevel, surfaceY1 = lk.waterLevel - 0.3f });
+            }
+            return list;
+        }
+
+        /// <summary>하천 캐시 초기화(호수 준비 후 1회). 재귀 가드: GenerateLakes waterLevel 계산 중엔 채우지 않음.</summary>
+        private static void EnsureRivers()
+        {
+            if (_rivers != null) return;
+            if (!LakesReady) return;
+            _rivers = GenerateRivers();
+        }
+
+        /// <summary>하천 최근점: 거리/하천/세그먼트 t. 하천 없으면 dist=float.MaxValue.</summary>
+        private static void RiverClosest(float x, float z, out float bestDist, out TerrainRiverDef bestRiver, out float bestT)
+        {
+            bestDist = float.MaxValue; bestRiver = default; bestT = 0f;
+            var rivers = RiversOrNull;
+            if (rivers == null) return;
+            for (int r = 0; r < rivers.Count; r++)
+            {
+                var rd = rivers[r];
+                for (int s = 0; s < rd.pts.Length - 1; s++)
+                {
+                    Vector3 a = rd.pts[s], b = rd.pts[s + 1];
+                    float abx = b.x - a.x, abz = b.z - a.z;
+                    float ab2 = abx * abx + abz * abz;
+                    if (ab2 <= 0.0001f) continue;
+                    float t = Mathf.Clamp01(((x - a.x) * abx + (z - a.z) * abz) / ab2);
+                    float ddx = x - (a.x + abx * t), ddz = z - (a.z + abz * t);
+                    float d = Mathf.Sqrt(ddx * ddx + ddz * ddz);
+                    if (d < bestDist) { bestDist = d; bestRiver = rd; bestT = (s + t) / (rd.pts.Length - 1); }
+                }
+            }
+        }
+
+        /// <summary>하천 마스크(0~1: 중심선 1, 둑 3m smoothstep 감쇠). 하천 없으면 0.</summary>
+        public static float GetRiverMask(float x, float z)
+        {
+            RiverClosest(x, z, out float d, out var rd, out _);
+            if (rd.pts == null || d >= rd.width * 0.5f + 3f) return 0f;
+            float t = Mathf.Clamp01((d - rd.width * 0.5f) / 3f);
+            return 1f - t * t * (3f - 2f * t);
+        }
+
+        /// <summary>하천 골 carve 델타(음수 — min-only, 낙차 0). 하천 없으면 0.</summary>
+        public static float GetRiverCarveDelta(float x, float z)
+        {
+            RiverClosest(x, z, out float d, out var rd, out _);
+            if (rd.pts == null || d >= rd.width * 0.5f + 3f) return 0f;
+            float t = Mathf.Clamp01((d - rd.width * 0.5f) / 3f);
+            float s = 1f - t * t * (3f - 2f * t);
+            return -rd.depth * s;
+        }
+
+        /// <summary>하천 수면 y(마스크 0이면 float.MinValue). 상류→하류 총 0.3m 미세 하강.</summary>
+        public static float GetRiverSurfaceY(float x, float z)
+        {
+            RiverClosest(x, z, out _, out var rd, out float t);
+            if (rd.pts == null) return float.MinValue;
+            return Mathf.Lerp(rd.surfaceY0, rd.surfaceY1, t);
+        }
+
+        /// <summary>ComputeTerrainHeight 파이프라인용 하천 carve 적용.</summary>
+        private static float ApplyRiverCarve(float x, float z, float h)
+        {
+            EnsureRivers();
+            var rivers = RiversOrNull;
+            if (rivers == null || rivers.Count == 0) return h;
+            float delta = GetRiverCarveDelta(x, z);
+            return delta < 0f ? h + delta : h;
+        }
+
         private static float ApplyLakeBasins(float x, float z, float height)
         {
             var lakes = Lakes;
@@ -832,9 +980,14 @@ namespace ProjectName.Systems
                 float dz = z - lake.center.z;
                 float dist = Mathf.Sqrt(dx * dx + dz * dz);
 
-                float waterRadius = lake.radius;                          // 1.0r 수역 경계
-                float shoreOuter = lake.radius * LAKE_SHORE_BAND_FACTOR;  // 1.45r 수변 수렴 끝
-                float fadeOuter = lake.radius * LAKE_SHORE_FADE_FACTOR;   // 1.7r 페이드 끝 (1.45r 경계 단차 제거)
+                // T-D3 T1-3 호수 만(cove): 방향각 저주파 노이즈 반경 축소-only 변조(최대 -8%).
+                // 안전 근거: 밴드가 안쪽으로만 당겨짐 → 1.7r 이격 감소 없음(호수 간 무겹침 유지).
+                float coveAng = Mathf.Atan2(dz, dx);
+                float coveN = 0.5f + 0.3f * Mathf.Sin(coveAng * 3.1f + i * 17.3f) + 0.2f * Mathf.Sin(coveAng * 5.7f + i * 31.7f);
+                float rMod = 1f - 0.08f * Mathf.Clamp01(coveN);
+                float waterRadius = lake.radius * rMod;                          // 1.0r 수역 경계(만 변조)
+                float shoreOuter = waterRadius * LAKE_SHORE_BAND_FACTOR;         // 1.45r 수변 수렴 끝
+                float fadeOuter = waterRadius * LAKE_SHORE_FADE_FACTOR;          // 1.7r 페이드 끝 (1.45r 경계 단차 제거)
                 if (dist >= fadeOuter)
                     continue;
 
