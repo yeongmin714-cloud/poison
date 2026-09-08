@@ -67,11 +67,15 @@ for fname in files:
         if ob.type == 'MESH':
             bpy.data.objects.remove(ob, do_unlink=True)
     ad = arm.animation_data
+    ncurves = 0
     if ad and ad.action:
         ad.action.name = stem
-        ncurves = len(ad.action.fcurves)
-    else:
-        ncurves = 0
+        try:
+            ncurves = len(ad.action.fcurves)
+        except AttributeError:
+            ncurves = -1  # Blender 5.x slotted action — 액션 존재 자체가 애니 존재 증거
+    if ad is None or ad.action is None:
+        print("[FAIL] no action:", fname); ok_all = False; continue
 
     # 검증
     names = [b.name for b in arm.data.bones]

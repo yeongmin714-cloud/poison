@@ -6,7 +6,7 @@ namespace ProjectName.EditorTools
 {
     /// <summary>
     /// DoubleL RPG팩(Assets/DoubleL/Demo/Anim) Humanoid 클립 + 믹사모 FBX 클립으로 4개 Animator Controller를 생성한다.
-    /// 플레이어: 로코모션=믹사모(자연 이동), 전투=팩 OneHand(검 부착 전제).
+    /// 플레이어: 로코모션=유저 제공 FBX(MixamoUser, Heat 동일 리그→표준 본명 리네임, 2026-09-08 시험 부착), 전투=팩 OneHand(검 부착 전제).
     /// 병사: 검 든 유닛이므로 팩 OneHand 유지(Death, Roll, 활 Attack 등 팩에 없는 애니만 믹사모 유지).
     /// Tools > Anim > Build Mixamo Controllers
     /// 출력: Assets/Resources/Animation/Controllers/*.controller (런타임 Resources.Load 가능)
@@ -15,6 +15,7 @@ namespace ProjectName.EditorTools
     public static class MixamoControllerBuilder
     {
         const string MixamoDir = "Assets/Animations/Mixamo";
+        const string UserAnimDir = "Assets/Animations/MixamoUser"; // 유저 제공 로코모션 FBX(표준 Humanoid 본명 리네임 완료)
         const string PackDir = "Assets/DoubleL/Demo/Anim"; // DoubleL RPG팩 .anim 폴더 (전부 Humanoid 리그라 자동 리타겟)
         const string OutDir = "Assets/Resources/Animation/Controllers";
 
@@ -23,6 +24,7 @@ namespace ProjectName.EditorTools
         {
             System.IO.Directory.CreateDirectory(OutDir);
             ConfigureMixamoClipLoop();   // 믹사모 클립 Loop Time 활성(비루프 클립은 1회 재생 후 마지막 프레임 동결)
+            ConfigureUserAnimImports();  // 유저 제공 로코모션 FBX(MixamoUser) Humanoid 임포트 + Loop Time 보정
             BuildPlayer();
             BuildSoldier("SoldierShield", new[]
             {
@@ -64,6 +66,17 @@ namespace ProjectName.EditorTools
                     Debug.LogWarning($"[MixamoControllers] 클립 없음: {packPath}");
                 return pc;
             }
+            // "user:<파일>" → 유저 제공 FBX(MixamoUser) 내장 클립(표준 본명 리네임 완료) — 기존 믹사모 분기와 동일 패턴
+            if (fileName.StartsWith("user:"))
+            {
+                var upath = $"{UserAnimDir}/{fileName.Substring(5)}";
+                var uclips = AssetDatabase.LoadAllAssetsAtPath(upath);
+                foreach (var a in uclips)
+                    if (a is AnimationClip uc && !uc.name.StartsWith("__"))
+                        return uc;
+                Debug.LogWarning($"[MixamoControllers] 클립 없음: {upath}");
+                return null;
+            }
             var path = $"{MixamoDir}/{fileName}";
             var clips = AssetDatabase.LoadAllAssetsAtPath(path);
             foreach (var a in clips)
@@ -86,10 +99,10 @@ namespace ProjectName.EditorTools
                 ("Death", AnimatorControllerParameterType.Trigger),
             });
             var sm = ac.layers[0].stateMachine;
-            // 로코모션=믹사모(자연 이동), 전투=팩 OneHand(검 부착 전제)
-            var idle = AddState(sm, "Idle", Clip("Idle.fbx"), true);
-            var walk = AddState(sm, "Walk", Clip("Walking.fbx"));
-            var run = AddState(sm, "Run", Clip("Running.fbx"));
+            // 로코모션=유저 제공 FBX(MixamoUser, Heat 동일 리그→표준 본명 리네임, 2026-09-08 시험 부착), 전투=팩 OneHand(검 부착 전제)
+            var idle = AddState(sm, "Idle", Clip("user:idle.fbx"), true);
+            var walk = AddState(sm, "Walk", Clip("user:walk.fbx"));
+            var run = AddState(sm, "Run", Clip("user:run.fbx"));
             // Run 클립 재생속도 = Speed×0.28 — 믹사모 Running 자연 페이스 ~3.5m/s이므로 5m/s서 1.4배속(발 미끄러짐 방지). walk/idle은 미바인딩
             run.speedParameter = "Speed";
             run.speedParameterActive = true; // 미활성화 시 Speed 파라미터 바인딩 무시(고정 0.28배속) → 반드시 활성
@@ -97,7 +110,7 @@ namespace ProjectName.EditorTools
             var roll = AddState(sm, "Roll", Clip("Quick Roll To Run.fbx")); // 팩에 구르기 없음 → 믹사모 유지
             var attack = AddState(sm, "Attack", Clip("pack:OneHand_Up_Attack_1"));
             var combo = AddState(sm, "AttackCombo", Clip("pack:OneHand_Up_Attack_1"));
-            var jump = AddState(sm, "Jump", Clip("Standing Jump.fbx"));
+            var jump = AddState(sm, "Jump", Clip("user:jump.fbx")); // 로코모션 계열 슬롯 → 유저 제공 FBX로 교체
             var hit = AddState(sm, "Hit", Clip("pack:Hit_F_1"));
             var death = AddState(sm, "Death", Clip("Standing Death Backward 01.fbx")); // 팩에 Death 없음 → 믹사모 유지
 
@@ -202,6 +215,61 @@ namespace ProjectName.EditorTools
                 }
             }
             Debug.Log($"[MixamoControllers] 믹사모 클립 Loop Time 설정: {changed}개 FBX 재임포트");
+        }
+
+        /// <summary>
+        /// 유저 제공 로코모션 FBX(MixamoUser, Heat 동일 리그→표준 본명 리네임)의 임포트를 보정한다.
+        /// 1) animationType이 Humanoid가 아니면 Humanoid로 강제 — 표준 본명(Hips/Spine/Head/LeftUpperLeg...)이므로 자동매핑 성공.
+        /// 2) clipAnimations loopTime: idle/walk/run/back_run/back_walk/jump=true, 좌우 방향전환=false(1회성 모션).
+        /// ConfigureMixamoClipLoop와 동일 구현 패턴.
+        /// </summary>
+        static void ConfigureUserAnimImports()
+        {
+            (string fbx, bool loop)[] userClips =
+            {
+                ("idle.fbx", true),
+                ("walk.fbx", true),
+                ("run.fbx", true),
+                ("back_run.fbx", true),
+                ("back_walk.fbx", true),
+                ("jump.fbx", true),
+                ("left_change_direction.fbx", false),
+                ("right_change_direction.fbx", false),
+            };
+            int changed = 0;
+            foreach (var (fbx, loop) in userClips)
+            {
+                string p = $"{UserAnimDir}/{fbx}";
+                var imp = AssetImporter.GetAtPath(p) as ModelImporter;
+                if (imp == null)
+                {
+                    Debug.LogWarning($"[MixamoControllers] 임포터 없음: {p}");
+                    continue;
+                }
+                bool dirty = false;
+                if (imp.animationType != ModelImporterAnimationType.Humanoid)
+                {
+                    imp.animationType = ModelImporterAnimationType.Humanoid;
+                    dirty = true;
+                }
+                var clips = imp.clipAnimations;
+                if (clips == null || clips.Length == 0)
+                {
+                    Debug.LogWarning($"[MixamoControllers] 클립 없음: {p}");
+                    continue;
+                }
+                foreach (var c in clips)
+                {
+                    if (c.loopTime != loop) { c.loopTime = loop; dirty = true; }
+                }
+                if (dirty)
+                {
+                    imp.clipAnimations = clips;
+                    imp.SaveAndReimport();
+                    changed++;
+                }
+            }
+            Debug.Log($"[MixamoControllers] 유저 FBX(MixamoUser) 임포트 보정: {changed}개 재임포트");
         }
 
         static AnimatorController Create(string name, (string, AnimatorControllerParameterType)[] pars)
