@@ -651,6 +651,20 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 
 **Play 판정 대기**: ①C 은신/Ctrl 웅크림 분리 동작 ②B 활 모드 이동+우클릭 발사 ③V 창 걷기 ④G 투척 모드+좌클릭 던지기 ⑤웅크림 후진 기어 ⑥검 콤보 1단 랜덤 3종
 
+---
+
+## 2026-09-08: 무기/핫바 정식 시스템 M1/M2/M3/M4 완료 ✅ (커밋 fcdc3211)
+
+계획서: `.hermes/plans/2026-09-08_weapon-hotbar-plan.md` (장비 예시.PNG 8슬롯 스펙). **모델 전부 존재 확인**(crystal_bow.glb, 창 4종 glb, bomb.glb, Resources/Bombs/ 프리팹 4종, arrow 3종) — M6 외부 의존 해소.
+
+- **M1 핫바**: HotbarUI.cs 신설(8슬롯, Alpha1~8, 선택 흰 테두리, 스택 수량 표시) — 슬롯: 1 검(steel)/2 활(crystal)/3 창(wood)/4 폭탄/5~8 확장. WeaponEquipManager 직접 호출(UI→Systems 허용)
+- **M2 장착 연동**: WeaponEquipManager.Equip(id, player, WeaponType) 타입 대응(프리팹 경로 {id}_sword/_bow/_spear — **id는 "steel" 같은 기본명, suffix 자동 조합**)+CurrentType 노출+Unequip 시 Fist 리셋+PlayerCombat.SetWeapon() 헬퍼 신설(장착 무기 데미지/사거리 반영). 드라이버 게이트를 CurrentType 기반으로 교체(IsCombat=≠Fist, IsBow/IsSpear=타입 일치), **PlayerMovement 임시 B/V/G 토글 완전 제거**
+- **M3 활 데미지**: 우클릭 → ArcheryShot + `ArrowProjectile.Spawn(origin, forward, 22f, WeaponData.Bow.damage=8, color)` — 화살 데미지 연동 완료
+- **M4 폭탄**: 핫바 4 선택 → PlayerWeaponModeBridge.ThrowSelected(신설 정적 브리지 — UI↔드라이버 asmdef 우회) → 드라이버 ThrowEnter(GrenadeBack) → 좌클릭 Throw/ThrowPitch 랜덤 + Resources/Bombs/Bomb_Explosive 스폰+Rigidbody 포물선(기존 퓨즈·폭발 시스템 작동), 1회 투척 후 ThrowSelected 자동 해제
+- **검증**: 배치컴파일 error CS=0 ×2 + 상태/파라미터/브리지 확인
+- **규약 신설**: Equip id는 "steel"/"crystal" 같은 기본명(접미사 _sword/_bow/_spear 자동 조합) — 풀네임 전달 시 경로 깨짐
+- **남은 것**: M5 창 공격(Thrust 연결), 착석/문/사다리 오브젝트 에디터 배치, 활 프리팹 시각 확인
+
 **시스템 배치 필요(에디터 작업)**: DoorInteractable(문+피벗), SeatInteractable(의자/침대), LadderInteractable(사다리) 오브젝트 부착
 
 **Play 판정 대기**: ①Ctrl 웅크림+4방향 ②호수/하천 수영 진입·부유 ③의자/침대 착석·일어남 ④문 개폐 ⑤채집 3종 랜덤 ⑥NPC 대화 Talk·승리 Victory
