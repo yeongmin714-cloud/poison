@@ -26,6 +26,36 @@ namespace ProjectName.Systems
         /// </param>
         public static GameObject BuildPlayerCastleInterior(string nationStyle)
         {
+            // 기존 1인자 호출 100% 보존: variant 0 = 기존 배치
+            return BuildPlayerCastleInterior(nationStyle, 0);
+        }
+
+        /// <summary>
+        /// 국가 스타일 + 레이아웃 변형(0~7)에 맞는 플레이어 소유 중세 판타지 성 내부 생성.
+        /// 결정론: layoutVariant 정수만으로 모든 배치가 고정됨 (Random/전역 상태 없음).
+        /// 모든 variant에서 작업대/저장고/무기고 상호작용 앵커가 존재하며
+        /// (이름 기반 조회되는 WeaponStand_0, AttachUiComponent로 부착되는 workbench/
+        ///  storageShelf2 — 위치만 variant에 따라 변경) Nameplate 라벨도 유지됨.
+        /// </summary>
+        /// <param name="nationStyle">"Eastern"/"Western"/"Southern"/"Northern"/"Empire"</param>
+        /// <param name="layoutVariant">0~7 (범위 밖 값은 8로 나눈 나머지로 정규화)</param>
+        public static GameObject BuildPlayerCastleInterior(string nationStyle, int layoutVariant)
+        {
+            const int variantCount = 8;
+            layoutVariant = ((layoutVariant % variantCount) + variantCount) % variantCount;
+
+            // ===== 레이아웃 변형 파라미터 (결정론 테이블) =====
+            // mirrorX: 가구 구역 좌우 대칭 (+,-x 스왑 — 단 상호작용 앵커 이름/참조는 유지)
+            // pillarPerSide: 기둥 2열 개수(각 3~5), pillarXFac: 기둥 x 위치 계수(±3.5~±4.5)
+            // hearthZ: 화로 z 시프트, commandZX: 지휘책상 x 시프트(±)
+            // meetingZ: 작전회의테이블 z 시프트, extraDecor: 추가 장식가구 유무
+            GetLayoutVariantParams(layoutVariant,
+                out bool mirrorX, out int pillarPerSide, out float pillarXFac,
+                out float hearthZ, out float commandZX, out float meetingZ, out bool extraDecor);
+
+            // 좌우 대칭 부호 (variant 0 = -1 기존: 작업대/저장고 왼쪽, 무기고 오른쪽)
+            float mx = mirrorX ? 1f : -1f;
+
             // ===== 방 크기 (기존 20x6x15보다 약간 넓게) =====
             const float roomWidth = 22f;
             const float roomHeight = 6f;
@@ -153,50 +183,50 @@ namespace ProjectName.Systems
             GameObject commandDesk = IndoorFurniturePlacer.CreateTable(3.2f, 1.2f, 1.1f, deskMat);
             commandDesk.name = "CommandDesk";
             commandDesk.transform.SetParent(room.transform);
-            commandDesk.transform.localPosition = new Vector3(0f, 0f, roomDepth * 0.5f - 1.8f);
+            commandDesk.transform.localPosition = new Vector3(commandZX, 0f, roomDepth * 0.5f - 1.8f);
             AddNameplate(commandDesk, "🪑 지휘 책상");
 
             // 지휘관 의자 (책상 뒤에서 방 중앙을 향함)
             GameObject commandChair = IndoorFurniturePlacer.CreateChair(1.1f, deskMat);
             commandChair.name = "CommandChair";
             commandChair.transform.SetParent(room.transform);
-            commandChair.transform.localPosition = new Vector3(0f, 0f, roomDepth * 0.5f - 2.9f);
+            commandChair.transform.localPosition = new Vector3(commandZX, 0f, roomDepth * 0.5f - 2.9f);
 
-            // 책상 위 문서들
+            // 책상 위 문서들 (책상 x 시프트 추종)
             CreateBoxPrimitive(room, "DeskDocument_1", new Vector3(0.35f, 0.02f, 0.25f),
-                new Vector3(-0.8f, 1.12f, roomDepth * 0.5f - 1.7f), paperMat);
+                new Vector3(commandZX - 0.8f, 1.12f, roomDepth * 0.5f - 1.7f), paperMat);
             CreateBoxPrimitive(room, "DeskDocument_2", new Vector3(0.35f, 0.02f, 0.25f),
-                new Vector3(-0.4f, 1.12f, roomDepth * 0.5f - 1.5f), paperMat);
+                new Vector3(commandZX - 0.4f, 1.12f, roomDepth * 0.5f - 1.5f), paperMat);
             CreateBoxPrimitive(room, "DeskInkwell", new Vector3(0.08f, 0.12f, 0.08f),
-                new Vector3(0.9f, 1.17f, roomDepth * 0.5f - 1.6f), standMat);
+                new Vector3(commandZX + 0.9f, 1.17f, roomDepth * 0.5f - 1.6f), standMat);
 
-            // 관리용 사이드 책상 (집무실 보조) + 문서 더미
+            // 관리용 사이드 책상 (집무실 보조) + 문서 더미 — 좌우 대칭(mx) 적용
             GameObject adminDesk = IndoorFurniturePlacer.CreateTable(1.8f, 0.9f, 1.0f, deskMat);
             adminDesk.name = "AdminDesk";
             adminDesk.transform.SetParent(room.transform);
-            adminDesk.transform.localPosition = new Vector3(3.2f, 0f, roomDepth * 0.5f - 1.6f);
+            adminDesk.transform.localPosition = new Vector3(mx * 3.2f, 0f, roomDepth * 0.5f - 1.6f);
             AddNameplate(adminDesk, "📜 관리 사무소");
 
             CreateBoxPrimitive(room, "AdminPaperStack_1", new Vector3(0.30f, 0.06f, 0.22f),
-                new Vector3(2.9f, 1.04f, roomDepth * 0.5f - 1.5f), paperMat);
+                new Vector3(mx * 2.9f, 1.04f, roomDepth * 0.5f - 1.5f), paperMat);
             CreateBoxPrimitive(room, "AdminPaperStack_2", new Vector3(0.30f, 0.06f, 0.22f),
-                new Vector3(3.5f, 1.04f, roomDepth * 0.5f - 1.7f), paperMat);
+                new Vector3(mx * 3.5f, 1.04f, roomDepth * 0.5f - 1.7f), paperMat);
 
             // 중앙 작전 회의 테이블 + 의자 2개
             GameObject planningTable = IndoorFurniturePlacer.CreateTable(3.0f, 1.6f, 1.0f, deskMat);
             planningTable.name = "PlanningTable";
             planningTable.transform.SetParent(room.transform);
-            planningTable.transform.localPosition = new Vector3(0f, 0f, 0.5f);
+            planningTable.transform.localPosition = new Vector3(0f, 0f, meetingZ);
 
             CreateBoxPrimitive(room, "PlanningMap", new Vector3(0.8f, 0.02f, 0.6f),
-                new Vector3(0f, 1.02f, 0.5f), bannerMat); // 작전 지도
+                new Vector3(0f, 1.02f, meetingZ), bannerMat); // 작전 지도
 
             for (int side = -1; side <= 1; side += 2)
             {
                 GameObject planChair = IndoorFurniturePlacer.CreateChair(1.0f, deskMat);
                 planChair.name = $"PlanningChair_{side}";
                 planChair.transform.SetParent(room.transform);
-                planChair.transform.localPosition = new Vector3(side * 1.0f, 0f, 0.5f);
+                planChair.transform.localPosition = new Vector3(side * 1.0f, 0f, meetingZ);
                 // 테이블 중앙을 향하도록 회전
                 planChair.transform.localRotation = Quaternion.Euler(0f, side > 0 ? -90f : 90f, 0f);
             }
@@ -235,13 +265,13 @@ namespace ProjectName.Systems
             GameObject storageShelf1 = IndoorFurniturePlacer.CreateShelf(2.2f, 2.2f, 0.6f, shelfMat, 3);
             storageShelf1.name = "StorageShelf_1";
             storageShelf1.transform.SetParent(room.transform);
-            storageShelf1.transform.localPosition = new Vector3(-roomWidth * 0.5f + 0.4f, 0f, 2.0f);
+            storageShelf1.transform.localPosition = new Vector3(mx * (-roomWidth * 0.5f + 0.4f), 0f, 2.0f);
             storageShelf1.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
 
             GameObject storageShelf2 = IndoorFurniturePlacer.CreateShelf(2.2f, 2.2f, 0.6f, shelfMat, 3);
             storageShelf2.name = "StorageShelf_2";
             storageShelf2.transform.SetParent(room.transform);
-            storageShelf2.transform.localPosition = new Vector3(-roomWidth * 0.5f + 0.4f, 0f, -1.5f);
+            storageShelf2.transform.localPosition = new Vector3(mx * (-roomWidth * 0.5f + 0.4f), 0f, -1.5f);
             storageShelf2.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
 
             // Phase B: 저장고 상호작용 — StorageShelf_2 기준점에 TerritoryWarehouse 부착.
@@ -249,35 +279,35 @@ namespace ProjectName.Systems
             // Systems asmdef는 UI asmdef를 참조할 수 없으므로(순환 참조) 리플렉션으로 부착.
             AttachUiComponent(storageShelf2, TerritoryWarehouseTypeName, territoryKey);
 
-            // 창고 상자 더미 (큐브 프리미티브)
+            // 창고 상자 더미 (큐브 프리미티브) — 좌우 대칭(mx) 적용
             CreateBoxPrimitive(room, "StorageCrate_1", new Vector3(0.7f, 0.7f, 0.7f),
-                new Vector3(-9.6f, 0.35f, 4.2f), crateMat);
+                new Vector3(mx * -9.6f, 0.35f, 4.2f), crateMat);
             CreateBoxPrimitive(room, "StorageCrate_2", new Vector3(0.7f, 0.7f, 0.7f),
-                new Vector3(-9.6f, 0.35f, 5.1f), crateMat);
+                new Vector3(mx * -9.6f, 0.35f, 5.1f), crateMat);
             CreateBoxPrimitive(room, "StorageCrate_3", new Vector3(0.7f, 0.7f, 0.7f),
-                new Vector3(-9.6f, 1.05f, 4.65f), crateMat);
+                new Vector3(mx * -9.6f, 1.05f, 4.65f), crateMat);
             CreateBoxPrimitive(room, "StorageCrate_4", new Vector3(0.9f, 0.9f, 0.9f),
-                new Vector3(-8.7f, 0.45f, 5.8f), crateMat);
+                new Vector3(mx * -8.7f, 0.45f, 5.8f), crateMat);
             CreateBoxPrimitive(room, "StorageCrate_5", new Vector3(0.5f, 0.5f, 0.5f),
-                new Vector3(-9.7f, 0.25f, 6.3f), crateMat);
+                new Vector3(mx * -9.7f, 0.25f, 6.3f), crateMat);
 
             // 저장고 통 (Cylinder)
             CreateCylinderPrimitive(room, "StorageBarrel", 0.4f, 1.0f,
-                new Vector3(-8.9f, 0.5f, 3.0f), crateMat);
+                new Vector3(mx * -8.9f, 0.5f, 3.0f), crateMat);
 
-            // 저장고 안내 팻말 (왼쪽 벽)
+            // 저장고 안내 팻말 (벽)
             GameObject storageSign = CreateBoxPrimitive(room, "StorageSign", new Vector3(0.05f, 0.7f, 2.4f),
-                new Vector3(-roomWidth * 0.5f + 0.1f, 2.5f, 0.25f), bannerMat);
+                new Vector3(mx * (-roomWidth * 0.5f + 0.1f), 2.5f, 0.25f), bannerMat);
             AddNameplate(storageSign, "🎒 저장고");
 
             // ===================================================================
-            // 4. 무기고 (오른쪽 벽 — 무기 스탠드 3개 + 벽걸이 무기고)
+            // 4. 무기고 (오른쪽 벽 — 무기 스탠드 3개 + 벽걸이 무기고) — 좌우 대칭(mx) 적용
             // ===================================================================
             for (int i = 0; i < 3; i++)
             {
                 float zPos = 3.0f - i * 3.0f;
                 CreateWeaponStand(room, $"WeaponStand_{i}",
-                    new Vector3(roomWidth * 0.5f - 0.6f, 0f, zPos), -90f, standMat, bladeMat);
+                    new Vector3(mx * (roomWidth * 0.5f - 0.6f), 0f, zPos), mirrorX ? 90f : -90f, standMat, bladeMat);
             }
 
             // Phase C: 무기고 상호작용 기준점 — WeaponStand_0 (첫 번째 무기 스탠드, z=3.0,
@@ -290,22 +320,22 @@ namespace ProjectName.Systems
                 Debug.LogWarning("[PlayerCastleInteriorBuilder] WeaponStand_0 을 찾지 못해 무기고 상호작용 부착을 건너뜁니다.");
             }
 
-            // 벽걸이 무기고 (오른쪽 벽 앞쪽)
+            // 벽걸이 무기고 (벽 앞쪽) — 좌우 대칭(mx) 적용
             GameObject wallRack = CreateBoxPrimitive(room, "WeaponWallRack", new Vector3(0.08f, 1.8f, 2.0f),
-                new Vector3(roomWidth * 0.5f - 0.15f, 1.6f, -5.5f), standMat);
+                new Vector3(mx * (roomWidth * 0.5f - 0.15f), 1.6f, -5.5f), standMat);
             if (wallRack != null)
             {
                 for (int i = 0; i < 4; i++)
                 {
                     float bladeZ = -6.1f + i * 0.4f;
                     CreateBoxPrimitive(room, $"WallWeapon_{i}", new Vector3(0.05f, 1.2f, 0.14f),
-                        new Vector3(roomWidth * 0.5f - 0.22f, 1.5f, bladeZ), bladeMat);
+                        new Vector3(mx * (roomWidth * 0.5f - 0.22f), 1.5f, bladeZ), bladeMat);
                 }
             }
 
-            // 무기고 안내 팻말 (오른쪽 벽)
+            // 무기고 안내 팻말 (벽) — 좌우 대칭(mx) 적용
             GameObject armorySign = CreateBoxPrimitive(room, "ArmorySign", new Vector3(0.05f, 0.7f, 2.4f),
-                new Vector3(roomWidth * 0.5f - 0.1f, 2.6f, 0f), bannerMat);
+                new Vector3(mx * (roomWidth * 0.5f - 0.1f), 2.6f, 0f), bannerMat);
             AddNameplate(armorySign, "⚔️ 무기고");
 
             // Phase C: 무기고 상호작용 — WeaponStand_0에 TerritoryWarehouse 부착 (무기고 전용 창고).
@@ -321,7 +351,7 @@ namespace ProjectName.Systems
             GameObject workbench = IndoorFurniturePlacer.CreateCounter(2.6f, 1.0f, 1.0f, workbenchMat);
             workbench.name = "Workbench";
             workbench.transform.SetParent(room.transform);
-            workbench.transform.localPosition = new Vector3(-5f, 0f, -roomDepth * 0.5f + 0.6f);
+            workbench.transform.localPosition = new Vector3(mx * -5f, 0f, -roomDepth * 0.5f + 0.6f);
             AddNameplate(workbench, "🛠️ 작업대");
 
             // Phase A: 작업대 상호작용 — TerritoryCraftingStation 부착 (E키 → CraftingUI).
@@ -331,31 +361,32 @@ namespace ProjectName.Systems
             // Systems asmdef는 UI asmdef를 참조할 수 없으므로(순환 참조) 리플렉션으로 부착.
             AttachUiComponent(workbench, TerritoryCraftingStationTypeName, territoryKey, "영지 작업대");
 
-            // 작업대 위 도구들 (모루 + 공구)
+            // 작업대 위 도구들 (모루 + 공구) — 좌우 대칭(mx) 적용
             CreateBoxPrimitive(room, "WorkbenchAnvil", new Vector3(0.5f, 0.25f, 0.35f),
-                new Vector3(-5.6f, 1.13f, -roomDepth * 0.5f + 0.6f), bladeMat);
+                new Vector3(mx * -5.6f, 1.13f, -roomDepth * 0.5f + 0.6f), bladeMat);
             CreateBoxPrimitive(room, "WorkbenchTool_1", new Vector3(0.12f, 0.12f, 0.30f),
-                new Vector3(-4.5f, 1.07f, -roomDepth * 0.5f + 0.45f), standMat);
+                new Vector3(mx * -4.5f, 1.07f, -roomDepth * 0.5f + 0.45f), standMat);
             CreateBoxPrimitive(room, "WorkbenchTool_2", new Vector3(0.12f, 0.12f, 0.30f),
-                new Vector3(-4.3f, 1.07f, -roomDepth * 0.5f + 0.75f), standMat);
+                new Vector3(mx * -4.3f, 1.07f, -roomDepth * 0.5f + 0.75f), standMat);
 
-            // 작업대 안내 팻말 (앞벽)
+            // 작업대 안내 팻말 (앞벽) — 좌우 대칭(mx) 적용
             GameObject workbenchSign = CreateBoxPrimitive(room, "WorkbenchSign", new Vector3(1.6f, 0.6f, 0.05f),
-                new Vector3(-5f, 2.4f, -roomDepth * 0.5f + 0.1f), bannerMat);
+                new Vector3(mx * -5f, 2.4f, -roomDepth * 0.5f + 0.1f), bannerMat);
             AddNameplate(workbenchSign, "🛠️ 작업대");
 
             // ===================================================================
             // 6. 중세 석재 기둥 2열 (대전당 느낌 — 중앙 복도 양쪽)
-            //    x=±4 (벽 x=±11 안쪽), z=-5..5에 4개씩 — 가구와 겹치지 않게 배치
+            //    x=±pillarX(3.5~4.5), z=-5..5에 pillarPerSide개씩 — 가구와 겹치지 않게 배치
             // ===================================================================
+            float pillarX = 3f + pillarXFac;   // 3.5~4.5 (variant 0: 4f)
             for (int side = -1; side <= 1; side += 2)
             {
-                for (int pi = 0; pi < 4; pi++)
+                for (int pi = 0; pi < pillarPerSide; pi++)
                 {
-                    float pillarZ = -5f + pi * (10f / 3f); // -5, -1.67, 1.67, 5
+                    float pillarZ = -5f + pi * (10f / Mathf.Max(1, pillarPerSide - 1)); // -5..5 균등
                     GameObject pillarRoot = new GameObject($"StonePillar_{(side > 0 ? "R" : "L")}{pi}");
                     pillarRoot.transform.SetParent(room.transform);
-                    pillarRoot.transform.localPosition = new Vector3(side * 4f, 0f, pillarZ);
+                    pillarRoot.transform.localPosition = new Vector3(side * pillarX, 0f, pillarZ);
 
                     // 기둥 받침 (석재 베이스)
                     CreateBoxPrimitive(pillarRoot, "Base", new Vector3(1.0f, 0.3f, 1.0f),
@@ -376,7 +407,7 @@ namespace ProjectName.Systems
             {
                 GameObject hearthRoot = new GameObject($"Hearth_{(side > 0 ? "Right" : "Left")}");
                 hearthRoot.transform.SetParent(room.transform);
-                hearthRoot.transform.localPosition = new Vector3(side * 10.0f, 0f, -4.5f);
+                hearthRoot.transform.localPosition = new Vector3(side * 10.0f, 0f, hearthZ);
 
                 // 화로 받침 (짙은 회색 석재 통)
                 CreateCylinderPrimitive(hearthRoot, "BrazierBowl", 0.55f, 0.9f,
@@ -386,15 +417,15 @@ namespace ProjectName.Systems
                     new Vector3(0f, 0.95f, 0f), rugMat);
                 AddNameplate(hearthRoot, "🔥 화로");
 
-                // 화로 불빛 (따뜻한 주황빛)
+                // 화로 불빛 (따뜻한 주황빛) — z 시프트 추종
                 IndoorLighting.AddPointLight(room,
-                    new Vector3(side * 10.0f, 1.5f, -4.5f),
+                    new Vector3(side * 10.0f, 1.5f, hearthZ),
                     new Color(1f, 0.55f, 0.25f), 7f, 0.9f);
             }
 
-            // 앞쪽 기둥 토치 빛 (입구 쪽, 기둥 옆 은은한 주황빛)
-            IndoorLighting.AddPointLight(room, new Vector3(-4.55f, 4.5f, -5f), new Color(1f, 0.6f, 0.3f), 6f, 0.7f);
-            IndoorLighting.AddPointLight(room, new Vector3(4.55f, 4.5f, -5f), new Color(1f, 0.6f, 0.3f), 6f, 0.7f);
+            // 앞쪽 기둥 토치 빛 — 기둥 x 시프트 추종
+            IndoorLighting.AddPointLight(room, new Vector3(-pillarX - 0.55f, 4.5f, -5f), new Color(1f, 0.6f, 0.3f), 6f, 0.7f);
+            IndoorLighting.AddPointLight(room, new Vector3(pillarX + 0.55f, 4.5f, -5f), new Color(1f, 0.6f, 0.3f), 6f, 0.7f);
 
             // ===================================================================
             // 8. 중세 장식 — 왕실 문장 방패 + 붉은 러그 (기존 청색 배너는 유지)
@@ -431,6 +462,26 @@ namespace ProjectName.Systems
                 new Vector3(0f, 0.02f, 4.2f), rugMat);
 
             // ===================================================================
+            // 8b. 추가 장식 가구 (variant별 — 측벽 공백/복도 모서리 고정 좌표)
+            // ===================================================================
+            if (extraDecor)
+            {
+                // 꽃병 받침대 (Cylinder 화분) — 뒷벽 코너 공백
+                CreateCylinderPrimitive(room, "PottedPlant_BackL", 0.45f, 0.9f,
+                    new Vector3(mx * -7.5f, 0.45f, roomDepth * 0.5f - 0.6f), crateMat);
+                CreateCylinderPrimitive(room, "PottedPlant_BackR", 0.45f, 0.9f,
+                    new Vector3(-mx * 7.5f, 0.45f, roomDepth * 0.5f - 0.6f), crateMat);
+                // 장식 탁자 (전면벽 중앙 공백 — 작업대 반대편)
+                GameObject decorTable = IndoorFurniturePlacer.CreateCounter(1.6f, 0.9f, 0.7f, deskMat);
+                decorTable.name = "DecorativeTable";
+                decorTable.transform.SetParent(room.transform);
+                decorTable.transform.localPosition = new Vector3(mx * 5f, 0f, -roomDepth * 0.5f + 0.6f);
+                // 표주 잔 (데코)
+                CreateCylinderPrimitive(decorTable, "Goblet", 0.12f, 0.25f,
+                    new Vector3(0f, 0.55f, 0f), trimMat);
+            }
+
+            // ===================================================================
             // 9. 조명 — 중세 화로/토치의 따뜻한 주황빛 (촛불빛 톤, 은은한 점멸)
             // ===================================================================
             Color ambient = new Color(0.22f, 0.18f, 0.15f); // 살짝 어둡고 따뜻한 중세 톤
@@ -441,28 +492,86 @@ namespace ProjectName.Systems
                 new Vector3(0f, roomHeight - 0.6f, 0f),
                 new Color(1f, 0.9f, 0.7f), 18f, 1.2f);
 
-            // 지휘 책상 위 조명 (촛불톤)
+            // 지휘 책상 위 조명 (촛불톤) — 책상 x 시프트 추종
             IndoorLighting.AddPointLight(room,
-                new Vector3(0f, 4.2f, roomDepth * 0.5f - 1.8f),
+                new Vector3(commandZX, 4.2f, roomDepth * 0.5f - 1.8f),
                 new Color(1f, 0.85f, 0.6f), 9f, 1.0f);
 
             // 작업대 위 조명
             IndoorLighting.AddPointLight(room,
-                new Vector3(-5f, 3.8f, -roomDepth * 0.5f + 0.8f),
+                new Vector3(mx * -5f, 3.8f, -roomDepth * 0.5f + 0.8f),
                 new Color(1f, 0.9f, 0.7f), 7f, 0.9f);
 
             // 저장고 조명
             IndoorLighting.AddPointLight(room,
-                new Vector3(-9.5f, 3.8f, 0.5f),
+                new Vector3(mx * -9.5f, 3.8f, 0.5f),
                 new Color(1f, 0.88f, 0.65f), 8f, 0.8f);
 
             // 무기고 조명
             IndoorLighting.AddPointLight(room,
-                new Vector3(9.5f, 3.8f, 0.5f),
+                new Vector3(mx * 9.5f, 3.8f, 0.5f),
                 new Color(1f, 0.88f, 0.65f), 8f, 0.8f);
 
-            Debug.Log($"[PlayerCastleInteriorBuilder] 플레이어 소유 중세 판타지 성 내부 생성 완료! (스타일: {nationStyle}) — 석재 기둥 2열·화로 2기·문장 방패·러그 장식 포함");
+            Debug.Log($"[PlayerCastleInteriorBuilder] 플레이어 소유 중세 판타지 성 내부 생성 완료! (스타일: {nationStyle}, 레이아웃 변형: {layoutVariant}) — 석재 기둥 2열·화로 2기·문장 방패·러그 장식 포함");
             return room;
+        }
+
+        /// <summary>
+        /// 레이아웃 변형(0~7)별 결정론 파라미터 테이블.
+        /// Random/전역 상태 없음 — layoutVariant 정수만으로 배치가 완전히 결정됨.
+        /// variant 0 = 기존 배치와 정확히 동일 (회귀 방지).
+        /// 모든 variant에서 작업대/저장고/무기고 앵커가 존재 (이름/참조 유지).
+        /// </summary>
+        private static void GetLayoutVariantParams(int variant,
+            out bool mirrorX, out int pillarPerSide, out float pillarXFac,
+            out float hearthZ, out float commandZX, out float meetingZ, out bool extraDecor)
+        {
+            //           mirror pillar xFac  hearthZ cmdZX  meetZ  extra
+            // 0(기본):  no    4     1.0    -4.5   0     0.5    no     (모두 기존값)
+            // 1(플립):  yes   4     1.0    -4.5   0     0.5    no
+            // 2(소형):  no    3     0.0    -6.0   0.8   1.0    yes
+            // 3(촘촘):  yes   5     1.5    -3.0  -0.8  -0.5   yes
+            // 4(넓은):  no    3     0.5    -5.0   0.6   1.5    no
+            // 5(외곽):  yes   4     1.5    -4.0  -0.6   0.0    yes
+            // 6(대형):  no    5     0.5    -4.5   0     0.5    yes
+            // 7(소플립):yes   3     1.0    -6.5   0.8  -1.0   no
+            switch (variant)
+            {
+                case 1:
+                    mirrorX = true;  pillarPerSide = 4; pillarXFac = 1.0f;
+                    hearthZ = -4.5f; commandZX = 0f; meetingZ = 0.5f; extraDecor = false;
+                    break;
+                case 2:
+                    mirrorX = false; pillarPerSide = 3; pillarXFac = 0.0f;
+                    hearthZ = -6.0f; commandZX = 0.8f; meetingZ = 1.0f; extraDecor = true;
+                    break;
+                case 3:
+                    mirrorX = true;  pillarPerSide = 5; pillarXFac = 1.5f;
+                    hearthZ = -3.0f; commandZX = -0.8f; meetingZ = -0.5f; extraDecor = true;
+                    break;
+                case 4:
+                    mirrorX = false; pillarPerSide = 3; pillarXFac = 0.5f;
+                    hearthZ = -5.0f; commandZX = 0.6f; meetingZ = 1.5f; extraDecor = false;
+                    break;
+                case 5:
+                    mirrorX = true;  pillarPerSide = 4; pillarXFac = 1.5f;
+                    hearthZ = -4.0f; commandZX = -0.6f; meetingZ = 0.0f; extraDecor = true;
+                    break;
+                case 6:
+                    mirrorX = false; pillarPerSide = 5; pillarXFac = 0.5f;
+                    hearthZ = -4.5f; commandZX = 0f; meetingZ = 0.5f; extraDecor = true;
+                    break;
+                case 7:
+                    mirrorX = true;  pillarPerSide = 3; pillarXFac = 1.0f;
+                    hearthZ = -6.5f; commandZX = 0.8f; meetingZ = -1.0f; extraDecor = false;
+                    break;
+                case 0:
+                default:
+                    // 기존 배치와 정확히 동일 (기둥 ±4·4개, 화로 z=-4.5, 지휘책상 x=0, 작전테이블 z=0.5, 장식 없음)
+                    mirrorX = false; pillarPerSide = 4; pillarXFac = 1.0f;
+                    hearthZ = -4.5f; commandZX = 0f; meetingZ = 0.5f; extraDecor = false;
+                    break;
+            }
         }
 
         // ===================================================================
