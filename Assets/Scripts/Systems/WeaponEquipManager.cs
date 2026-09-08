@@ -1,10 +1,11 @@
 using UnityEngine;
+using ProjectName.Core;
 
 namespace ProjectName.Systems
 {
     /// <summary>
     /// 무기 장착/해제 정적 유틸 (싱글턴 아님).
-    /// 검 4종 GLB(Assets/Resources/Models/UserProvided/{steel,crystal,stone,wood}_sword.glb)를
+    /// 검/창/활 GLB(Assets/Resources/Models/UserProvided/{id}_sword|_spear|_bow.glb)를
     /// 플레이어 Animator의 RightHand 본에 부착/제거한다.
     /// - GameSetup.Start: 기본 장착(steel) — 기존 인라인 검 부착 블록에서 이관
     /// - InventoryWindow 무기 슬롯: 사용자 장착/해제
@@ -20,14 +21,28 @@ namespace ProjectName.Systems
         /// <summary>현재 장착 중인 검 id (steel/crystal/stone/wood). null = 비장착.</summary>
         public static string CurrentId { get; private set; }
 
+        /// <summary>
+        /// 현재 장착 타입 (비장착 = Fist).
+        /// 모델 프리팹 로드 실패 시에도 세팅을 유지 — 모델 없이 클립(애니메이션) 모드만으로 타입 전환 가능.
+        /// </summary>
+        public static WeaponType CurrentType { get; private set; } = WeaponType.Fist;
+
         /// <summary>검이 장착 중인지 여부.</summary>
         public static bool IsEquipped => _current != null;
 
-        /// <summary>
-        /// 검 장착. 기존 검이 있으면 먼저 제거 후 새 검을 RightHand에 부착.
-        /// id는 "steel" / "crystal" / "stone" / "wood" (GLB 파일명 접미사 _sword와 결합).
-        /// </summary>
+        /// <summary>검 장착 (하위 호환 오버로드 — WeaponType.Sword로 위임).</summary>
         public static void Equip(string id, Transform player)
+        {
+            Equip(id, player, WeaponType.Sword);
+        }
+
+        /// <summary>
+        /// 무기 장착. 기존 무기가 있으면 먼저 제거 후 새 무기를 RightHand에 부착.
+        /// id는 "steel" / "crystal" / "stone" / "wood" (타입별 GLB 접미사 _sword/_spear/_bow와 결합).
+        /// 프리팹 로드 실패 시 경고 후 모델 부착만 스킵 — CurrentType/PlayerCombat 반영은 유지되어
+        /// 클립(애니메이션) 모드만으로 타입 전환이 동작한다.
+        /// </summary>
+        public static void Equip(string id, Transform player, WeaponType type)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -40,10 +55,14 @@ namespace ProjectName.Systems
                 return;
             }
 
-            // ① 기존 검 제거 (중복 장착 방지)
+            // ① 기존 무기 제거 (중복 장착 방지)
             UnequipInternal(logOnDestroy: false);
 
-            // ② 플레이어 자식 중 Animator → RightHand 본 획득
+            // ② 타입 반영 — 모델 유무와 무관하게 먼저 세팅 (로드 실패 시 클립 모드만 전환)
+            CurrentType = type;
+            SyncPlayerCombat(type);
+
+            // ③ 플레이어 자식 중 Animator → RightHand 본 획득
             var animator = player.GetComponentInChildren<Animator>();
             var handBone = animator != null
                 ? animator.GetBoneTransform(HumanBodyBones.RightHand)
@@ -54,17 +73,18 @@ namespace ProjectName.Systems
                 return;
             }
 
-            // ③ GLB 프리팹 로드 + 인스턴스화
-            var prefab = Resources.Load<GameObject>("Models/UserProvided/" + id + "_sword");
+            // ④ GLB 프리팹 로드 + 인스턴스화 (타입별 파일명 접미사 분기)
+            string suffix = type == WeaponType.Bow ? "_bow" : type == WeaponType.Spear ? "_spear" : "_sword";
+            var prefab = Resources.Load<GameObject>("Models/UserProvided/" + id + suffix);
             if (prefab == null)
             {
-                Debug.LogWarning($"[WeaponEquipManager] 검 프리팹 로드 실패: Models/UserProvided/{id}_sword");
+                Debug.LogWarning($"[WeaponEquipManager] 무기 프리팹 로드 실패: Models/UserProvided/{id}{suffix} — 모델 없이 클립 모드만 전환");
                 return;
             }
             var sword = Object.Instantiate(prefab, handBone);
-            sword.name = id + "_sword";
+            sword.name = id + suffix;
 
-            // ④ 부착 규격: 위치/회전 (손 아래로 검신이 나가도록 — 스크린샷 튜닝 전제)
+            // ⑤ 부착 규격: 위치/회전 (손 아래로 검신이 나가도록 — 스크린샷 튜닝 전제)
             sword.transform.localPosition = new Vector3(0f, 0.12f, 0.02f);
             sword.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
 
@@ -78,10 +98,10 @@ namespace ProjectName.Systems
                 if (len > 0.01f) sword.transform.localScale *= 0.9f / len;
             }
 
-            // ⑤ 상태 갱신 + 로그
+            // ⑥ 상태 갱신 + 로그
             _current = sword;
             CurrentId = id;
-            Debug.Log($"[WeaponEquipManager] ✅ 검 장착: {id} → RightHand({handBone.name})");
+            Debug.Log($"[WeaponEquipManager] ✅ 무기 장착: {id}{suffix} (type={type}) → RightHand({handBone.name})");
         }
 
         /// <summary>검 해제. 장착된 검이 있으면 파괴하고 상태를 초기화.</summary>
@@ -105,6 +125,17 @@ namespace ProjectName.Systems
             }
             _current = null;
             CurrentId = null;
+            CurrentType = WeaponType.Fist;
+        }
+
+        /// <summary>PlayerCombat에 해당 타입의 WeaponData 정적 인스턴스를 반영 (전투 스탯/클립 모드 동기화).</summary>
+        static void SyncPlayerCombat(WeaponType type)
+        {
+            if (PlayerCombat.Instance == null) return;
+            var data = type == WeaponType.Bow ? WeaponData.Bow
+                     : type == WeaponType.Spear ? WeaponData.Spear
+                     : WeaponData.Sword;
+            PlayerCombat.Instance.SetWeapon(data);
         }
     }
 }
