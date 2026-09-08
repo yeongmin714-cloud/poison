@@ -113,6 +113,9 @@ namespace ProjectName.EditorTools
                 ("Harvest", AnimatorControllerParameterType.Trigger),
                 ("HitLight", AnimatorControllerParameterType.Trigger),
                 ("Stun", AnimatorControllerParameterType.Trigger),
+                ("MoveX", AnimatorControllerParameterType.Float),
+                ("MoveY", AnimatorControllerParameterType.Float),
+                ("JumpBack", AnimatorControllerParameterType.Trigger),
             });
             var sm = ac.layers[0].stateMachine;
             // 로코모션=유저 제공 FBX(MixamoUser, Heat 동일 리그→표준 본명 리네임, 2026-09-08 시험 부착), 전투=팩 OneHand(검 부착 전제)
@@ -134,6 +137,17 @@ namespace ProjectName.EditorTools
             var hitLight = AddState(sm, "HitLight", Clip("meshy:Slap_Reaction.fbx"));
             var stun = AddState(sm, "Stun", Clip("meshy:Electrocution_Reaction.fbx"));
 
+            // T-D3 이동 파라미터 확장: 후진/선회/점프변형 클립 9종 (MoveX/MoveY 기반)
+            var walkBack = AddState(sm, "WalkBack", Clip("meshy:Walk_Backward.fbx"));
+            var jumpBack = AddState(sm, "JumpBack", Clip("meshy:Back_Jump.fbx"));
+            var walkTurnL = AddState(sm, "WalkTurnL", Clip("meshy:Walk_Turn_Left.fbx"));
+            var walkTurnR = AddState(sm, "WalkTurnR", Clip("meshy:Walk_Turn_Right.fbx"));
+            var runTurnL = AddState(sm, "RunTurnL", Clip("meshy:Run_Turn_Left.fbx"));
+            var runTurnR = AddState(sm, "RunTurnR", Clip("meshy:Run_Turn_Right.fbx"));
+            var runSharpR = AddState(sm, "RunSharpTurnR", Clip("meshy:Run_Sharp_Turn_Right.fbx"));
+            var idleTurnL = AddState(sm, "IdleTurnL", Clip("meshy:Idle_Turn_Left.fbx"));
+            var idleTurnR = AddState(sm, "IdleTurnR", Clip("meshy:Idle_Turn_Right.fbx"));
+
             // 이동: Idle ↔ Walk ↔ Run (Speed 기반) — 히스테리시스: Idle→Walk는 0.55, Walk→Idle은 0.35로 분리
             // (지형/경사로 속도가 0 근처로 순간 떨어질 때 Idle로 떨어졌다 복귀하는 "끊김+멈춤" 방지)
             T(sm, idle, walk, "Speed", AnimatorConditionMode.Greater, 0.55f);
@@ -143,10 +157,36 @@ namespace ProjectName.EditorTools
             // Run→Walk 임계 2.0 — 일반 이동 5.0의 경사 딥(3.5~4.8)이 임계(기존 4.0)와 겹쳐 진동 — 실제 정지(2.0 이하)만 Walk 복귀
             T(sm, run, walk, "Speed", AnimatorConditionMode.Less, 2f);
 
+            // T-D3 이동 확장: 후진(WalkBack) — 전후 입력(MoveY) 기반, Run에서도 S 입력 시 WalkBack
+            T(sm, walk, walkBack, "MoveY", AnimatorConditionMode.Less, -0.3f);
+            T(sm, run, walkBack, "MoveY", AnimatorConditionMode.Less, -0.3f);
+            T(sm, walkBack, walk, "MoveY", AnimatorConditionMode.Greater, -0.15f);
+            T(sm, walkBack, idle, "Speed", AnimatorConditionMode.Less, 0.35f);
+
+            // 선회(WalkTurn/RunTurn) — 측면 입력(MoveX) 우위, 복귀는 중립
+            T(sm, walk, walkTurnL, "MoveX", AnimatorConditionMode.Less, -0.6f);
+            T(sm, walk, walkTurnR, "MoveX", AnimatorConditionMode.Greater, 0.6f);
+            T(sm, walkTurnL, walk, "MoveX", AnimatorConditionMode.Greater, -0.15f);
+            T(sm, walkTurnR, walk, "MoveX", AnimatorConditionMode.Less, 0.15f);
+            T(sm, run, runTurnL, "MoveX", AnimatorConditionMode.Less, -0.6f);
+            T(sm, run, runTurnR, "MoveX", AnimatorConditionMode.Greater, 0.6f);
+            T(sm, runTurnL, run, "MoveX", AnimatorConditionMode.Greater, -0.15f);
+            T(sm, runTurnR, run, "MoveX", AnimatorConditionMode.Less, 0.15f);
+            T(sm, run, runSharpR, "MoveX", AnimatorConditionMode.Greater, 0.9f);
+            T(sm, runSharpR, run, "MoveX", AnimatorConditionMode.Less, 0.3f);
+
+            // 정지 선회(IdleTurn) — 정지 + 측면 입력
+            T(sm, idle, idleTurnL, "MoveX", AnimatorConditionMode.Less, -0.6f);
+            T(sm, idle, idleTurnR, "MoveX", AnimatorConditionMode.Greater, 0.6f);
+            T(sm, idleTurnL, idle, "MoveX", AnimatorConditionMode.Greater, -0.2f);
+            T(sm, idleTurnR, idle, "MoveX", AnimatorConditionMode.Less, 0.2f);
+
             // 트리거 상태: Any State → 상태 (canTransitionToSelf=false) → Idle 복귀(exit time)
             AnyState(sm, roll, "Roll");
             ExitTo(sm, roll, idle);
             AnyState(sm, jump, "Jump");
+            AnyState(sm, jumpBack, "JumpBack");
+            ExitTo(sm, jumpBack, idle);
             ExitTo(sm, jump, idle);
             AnyState(sm, hit, "Hit");
             ExitTo(sm, hit, idle);

@@ -1476,6 +1476,17 @@ namespace ProjectName.Systems
         }
         public bool IsDashing => _isDashing;
         public bool IsJumping => _isJumping;
+
+        /// <summary>T-D3 이동 파라미터 확장: 로컬(캐릭터 기준) 이동 벡터(X=측면, Z=전후). 입력 없으면 zero.</summary>
+        public Vector3 LocalMoveDirection
+        {
+            get
+            {
+                if (_moveDirection.sqrMagnitude < 0.0001f) return Vector3.zero;
+                Vector3 local = transform.InverseTransformDirection(new Vector3(_moveDirection.x, 0f, _moveDirection.z));
+                return new Vector3(Mathf.Clamp(local.x, -1f, 1f), 0f, Mathf.Clamp(local.z, -1f, 1f));
+            }
+        }
         public Vector3 Velocity => _controller != null ? _controller.velocity : Vector3.zero;
 
         public float InteractionRadius => _interactionRadius;

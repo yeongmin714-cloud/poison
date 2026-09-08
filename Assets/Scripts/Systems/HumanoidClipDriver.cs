@@ -271,6 +271,13 @@ namespace ProjectName.Systems
             float k = 1f - Mathf.Exp(-10f * Time.deltaTime);
             _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, target, k);
             _anim.SetFloat("Speed", _smoothedSpeed);
+            // T-D3 이동 파라미터 확장: 로컬 이동 벡터 → MoveX(측면)/MoveY(전후) — 후진/선회 상태 전환용
+            if (_movement != null)
+            {
+                Vector3 lmv = _movement.LocalMoveDirection;
+                _anim.SetFloat("MoveX", lmv.x);
+                _anim.SetFloat("MoveY", lmv.z);
+            }
 
             // DD1: 상태 전환 즉시 로그 — Idle ↔ Walk(걷기) 전환 발생 여부 결정적 증거
             if (diagActive) LogStateTransition();
@@ -314,9 +321,13 @@ namespace ProjectName.Systems
             if (rolling && !_prevRolling) _anim.SetTrigger("Roll");
             _prevRolling = rolling;
 
-            // 점프 — 상승엣지 1회
+            // 점프 — 상승엣지 1회 (후진 입력 중 점프면 Back_Jump)
             bool jumping = _movement != null && _movement.IsJumping;
-            if (jumping && !_prevJumping) _anim.SetTrigger("Jump");
+            if (jumping && !_prevJumping)
+            {
+                bool backJump = _movement.LocalMoveDirection.z < -0.2f;
+                _anim.SetTrigger(backJump ? "JumpBack" : "Jump");
+            }
             // T2B-3: 착지(하강 에지) 직후 짧은 흡수 창 — Speed 급상승 제한은 아래 목표 계산에서 적용
             if (!jumping && _prevJumping) _landingSoftTimer = 0.22f;
             _prevJumping = jumping;
