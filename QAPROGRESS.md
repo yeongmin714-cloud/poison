@@ -515,6 +515,16 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 
 ---
 
+## 2026-09-08: 이동 파라미터 확장 — 변형 클립 9종 활성화 ✅ (커밋 118a92e0)
+
+- PlayerMovement.LocalMoveDirection 신설(로컬 이동 벡터 X=측면/Z=전후, clamp) → HumanoidClipDriver가 MoveX/MoveY 실시간 전송 + 점프 시 MoveY<-0.2면 JumpBack 트리거
+- Player_AC: 파라미터 3종(MoveX/MoveY Float, JumpBack Trigger) + 상태 9종(WalkBack/JumpBack/WalkTurnL·R/RunTurnL·R/RunSharpTurnR/IdleTurnL·R) + 전이 20건 추가
+- 활성화 클립 9개: Walk_Backward, Back_Jump, Walk_Turn_L/R, Run_Turn_L/R, Run_Sharp_Turn_Right, Idle_Turn_L/R
+- 검증: 배치컴파일 error CS=0 ×2 + 상태 m_Name/클립 GUID 등록 확인(9종 전부)
+- **미완(후속)**: 전투 모드 변형 4종(Walk_Backward_with_Sword, ForwardLeft/Right_Run_Fight, Walk_Turn_Left_with_Weapon — WeaponEquipManager 훅 필요) / Run_to_Walk_Transition / Harvest·HitLight·Stun 발화 연결 / 콤보 3단(Triple_Combo, Weapon_Combo_2)
+
+---
+
 ## 2026-09-08: Meshy 신규 8종 추가 + 로코 4종 전량 Meshy 교체 + 상태 3종 등록 ✅
 
 **신규 FBX 8종**(유저 추가): Regular_Jump, Back_Jump, Idle_02, Collect_Object, Male_Bend_Over_Pick_Up, Pull_Radish, Slap_Reaction, Electrocution_Reaction → 동일 파이프라인(rerig_meshy skip-existing)으로 MeshyUser 68클립 완성
