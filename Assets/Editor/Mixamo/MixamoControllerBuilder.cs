@@ -255,6 +255,8 @@ namespace ProjectName.EditorTools
                 }
                 var clips = imp.clipAnimations;
                 if (clips == null || clips.Length == 0)
+                    clips = imp.defaultClipAnimations;   // 테이크 자동 생성 정의로 폴백(서브에셋 클립은 존재함 — 09-08 진단)
+                if (clips == null || clips.Length == 0)
                 {
                     Debug.LogWarning($"[MixamoControllers] 클립 없음: {p}");
                     continue;
