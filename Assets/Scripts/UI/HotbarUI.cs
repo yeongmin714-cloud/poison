@@ -21,10 +21,10 @@ namespace ProjectName.UI
     /// - 라운드 코너: 9-Slice용 라운드 스프라이트를 코드로 프로시저럴 생성 (에셋 의존성 0).
     ///
     /// [v1 슬롯 구성 (고정)]
-    ///   [0] 검  steel_sword  → WeaponEquipManager.Equip("steel", player) / 재입력 시 Unequip
-    ///   [1] 활  crystal_bow  → WeaponEquipManager는 {id}_sword GLB만 지원 → v1 로그 전용 (Phase M4)
-    ///   [2] 창  wood_spear   → 동일 (v1 로그 전용, Phase M4)
-    ///   [3] 폭탄 bomb(소비)   → 인벤 수량 확인 후 사용 로그 전용 (투척 연결은 Phase M4)
+    ///   [0] 검  steel_sword  → WeaponEquipManager.Equip("steel", player, Sword) / 재입력 시 Unequip
+    ///   [1] 활  crystal_bow  → WeaponEquipManager.Equip("crystal", player, Bow) / 재입력 시 Unequip (M4)
+    ///   [2] 창  wood_spear   → WeaponEquipManager.Equip("wood", player, Spear) / 재입력 시 Unequip (M4)
+    ///   [3] 폭탄 bomb(소비)   → 인벤 수량 확인 후 투척 모드 진입 — PlayerWeaponModeBridge.ThrowSelected (M4)
     ///   [4~7] 빈 슬롯 (확장 예약)
     ///
     /// [소유권 주의] WeaponEquipManager는 타 에이전트 소유 — 본 파일은 호출만 수행(수정 금지).
@@ -58,14 +58,15 @@ namespace ProjectName.UI
             public string specId;    // 스펙상 아이템 id (예: steel_sword)
             public string label;     // 슬롯 중앙 표시 텍스트 (v1: 아이콘 미구현 → 글자 대체)
             public string equipId;   // WeaponEquipManager.Equip에 넘길 id (검만: {id}_sword GLB)
+            public WeaponType weaponType; // M4: 장착 타입 — 매니저가 타입별 GLB 접미사(_sword/_bow/_spear) 결정
         }
 
         private static readonly SlotDef[] SlotDefs = new SlotDef[8]
         {
-            new SlotDef{ kind = SlotKind.Weapon,     specId = "steel_sword", label = "검", equipId = "steel"  },
-            new SlotDef{ kind = SlotKind.Weapon,     specId = "crystal_bow", label = "활", equipId = null     }, // TODO(M4): 활 장착 경로
-            new SlotDef{ kind = SlotKind.Weapon,     specId = "wood_spear",  label = "창", equipId = null     }, // TODO(M4): 창 장착 경로
-            new SlotDef{ kind = SlotKind.Consumable, specId = "bomb",        label = "폭", equipId = null     }, // TODO(M4): BombThrower 투척 연결
+            new SlotDef{ kind = SlotKind.Weapon,     specId = "steel_sword", label = "검", equipId = "steel",   weaponType = WeaponType.Sword },
+            new SlotDef{ kind = SlotKind.Weapon,     specId = "crystal_bow", label = "활", equipId = "crystal", weaponType = WeaponType.Bow   }, // M4: {crystal}_bow GLB
+            new SlotDef{ kind = SlotKind.Weapon,     specId = "wood_spear",  label = "창", equipId = "wood",    weaponType = WeaponType.Spear }, // M4: {wood}_spear GLB
+            new SlotDef{ kind = SlotKind.Consumable, specId = "bomb",        label = "폭", equipId = null     }, // M4: 투척 모드 — PlayerWeaponModeBridge 연결
             new SlotDef{ kind = SlotKind.Empty }, // [4] 확장 예약
             new SlotDef{ kind = SlotKind.Empty }, // [5] 확장 예약
             new SlotDef{ kind = SlotKind.Empty }, // [6] 확장 예약
@@ -174,18 +175,19 @@ namespace ProjectName.UI
         }
 
         /// <summary>
-        /// 장비 슬롯 — WeaponEquipManager.Equip(equipId, player) 호출, 다시 누르면 Unequip(토글).
-        /// WeaponEquipManager는 "Models/UserProvided/{id}_sword" GLB만 로드하므로
-        /// 검(id→steel)만 직접 장착 가능. 활/창은 v1 로그 전용 (Phase M4에서 장착 경로 확장).
+        /// 장비 슬롯 — WeaponEquipManager.Equip(equipId, player, weaponType) 호출, 다시 누르면 Unequip(토글).
+        /// equipId는 GLB 경로 결합용 기본 이름(steel/crystal/wood) — 매니저가 타입별 접미사 _sword/_bow/_spear를 붙임.
         /// </summary>
         private void ActivateWeaponSlot(int index, SlotDef def)
         {
             if (string.IsNullOrEmpty(def.equipId))
             {
-                // TODO(M4): 활(crystal_bow)/창(wood_spear) 장착 시스템 연결
-                Debug.Log($"[HotbarUI] 슬롯 {index + 1} '{def.specId}': WeaponEquipManager는 검({{id}}_sword GLB)만 장착 지원 — 활/창 연결은 Phase M4 예정");
+                Debug.Log($"[HotbarUI] 슬롯 {index + 1} '{def.specId}': 장착 id 미정 — 스킵");
                 return;
             }
+
+            // M4: 무기 장착 시 투척 모드 해제 (모드 상호배타)
+            ProjectName.Systems.PlayerWeaponModeBridge.ThrowSelected = false;
 
             // 토글: 같은 무기가 이미 장착 중이면 해제
             if (WeaponEquipManager.CurrentId == def.equipId && WeaponEquipManager.IsEquipped)
@@ -203,7 +205,7 @@ namespace ProjectName.UI
                 return;
             }
 
-            WeaponEquipManager.Equip(def.equipId, playerT);
+            WeaponEquipManager.Equip(def.equipId, playerT, def.weaponType);
             SyncSelectionHighlight();
         }
 
@@ -223,8 +225,10 @@ namespace ProjectName.UI
                 return;
             }
 
-            // v1: 소비하지 않고 로그만 남김 (수량 차감 없음 — Phase M4에서 연결)
-            Debug.Log($"[HotbarUI] 슬롯 {index + 1} '{def.specId}': 사용/투척 준비 (보유 x{count}) — v1 로그 전용, Phase M4에서 BombThrower 연결");
+            // M4: 폭탄 투척 모드 진입 — 폭탄 소모는 발사 시점에 처리 예정
+            ProjectName.Systems.PlayerWeaponModeBridge.ThrowSelected = true;
+            ProjectName.Systems.WeaponEquipManager.Unequip(); // 다른 무기 해제(모드 상호배타)
+            Debug.Log($"[HotbarUI] 슬롯 {index + 1} '{def.specId}': 투척 모드 진입 (보유 x{count}) — 폭탄 소모는 발사 시점에 처리 예정");
         }
 
         // ===== 장착 상태 ↔ 하이라이트 동기화 =====
