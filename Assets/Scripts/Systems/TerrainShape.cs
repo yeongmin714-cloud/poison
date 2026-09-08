@@ -596,6 +596,100 @@ namespace ProjectName.Systems
             return result;
         }
 
+        // ── T-D3 T1-1: 층절벽 블록 위치 마스크 (320m 셀 해시 + Empire 공유세트 패턴 변형) ──
+
+        /// <summary>
+        /// 층절벽(terrace block) 위치 마스크 [0,1] — 320m 셀 해시 배치, 방위(국가)당 셀당 2~3개 블록,
+        /// 블록 반경 40~80m(해시 지터). 중심 1 → 가장자리 smoothstep 0, 반경 밖 0.
+        /// 순수 위치 마스크 — 생성/억제 게이트는 여기서 하지 않는다 (국소 변수만 사용, 재귀 호출 없음).
+        /// 소비 계약: Generator가 ridge 상위 8~12% + 경사 게이트 조합 후 3~4단 테라스 carve에 사용(T-D3 T1-1).
+        /// GetOutcropCenters 셀 해시 + MegaFlower Empire 공유세트 패턴 복사 변형 (결정론 — Random 미사용).
+        /// </summary>
+        public static float GetTerraceBlockMask(float x, float z, NationType nation, int seed)
+        {
+            float best = TerraceBlockSetMask(x, z, seed + NationSeedOffset(nation) + 7201);
+            if (nation != NationType.Empire)
+            {
+                // Empire 공유세트: Empire 영토는 중심 50m뿐 — 소유 방위와 무관하게 중앙 블록 세트 유지
+                float shared = TerraceBlockSetMask(x, z, seed + NationSeedOffset(NationType.Empire) + 7201);
+                if (shared > best) best = shared;
+            }
+            return Mathf.Clamp01(best);
+        }
+
+        /// <summary>단일 방위 세트 평가 (GetTerraceBlockMask 헬퍼 — EvaluateMegaFlowerSet와 동일 패턴).</summary>
+        static float TerraceBlockSetMask(float x, float z, int nseed)
+        {
+            const float CELL = 320f;
+            int cx = Mathf.FloorToInt(x / CELL);
+            int cz = Mathf.FloorToInt(z / CELL);
+            float best = 0f;
+            for (int dz = -1; dz <= 1; dz++)
+            {
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    int cellX = cx + dx, cellZ = cz + dz;
+                    int blocks = 2 + (Hash2(cellX, cellZ, nseed) < 0.5f ? 0 : 1);   // 셀당 2~3개 블록
+                    for (int b = 0; b < blocks; b++)
+                    {
+                        float centerX = (cellX + Hash2(cellX, cellZ, nseed + 11 + b * 7)) * CELL;
+                        float centerZ = (cellZ + Hash2(cellX, cellZ, nseed + 17 + b * 7)) * CELL;
+                        float radius = Mathf.Lerp(40f, 80f, Hash2(cellX, cellZ, nseed + 23 + b * 7));
+                        float dd = Mathf.Sqrt((x - centerX) * (x - centerX) + (z - centerZ) * (z - centerZ));
+                        if (dd >= radius) continue;
+                        float edge = radius * 0.45f;
+                        float m = 1f - Smoothstep(radius - edge, radius, dd);
+                        if (m > best) best = m;
+                    }
+                }
+            }
+            return best;
+        }
+
+        // ── T-D3 T1-2: 능선 부스트 위치 마스크 (선형 세그먼트 셀 해시) ──
+
+        /// <summary>
+        /// 능선 부스트 위치 마스크 [0,1] — 640m 셀 해시, 방위(국가)당 셀당 1~2개 선형 세그먼트,
+        /// 길이 200~400m(해시 지터), 폭 60m 감쇠(중심 1 → 30m부터 smoothstep 0),
+        /// 세그먼트 방향은 방위 축(NationBaseAngle) ±45°. 순수 위치 마스크 — 게이트 없음, 재귀 없음.
+        /// 소비 계약: Generator가 ridge 진폭 +30% 델타에 사용(T-D3 T1-2).
+        /// </summary>
+        public static float GetRidgeBoostMask(float x, float z, NationType nation, int seed)
+        {
+            int nseed = seed + NationSeedOffset(nation) + 7303;
+            const float CELL = 640f;
+            int cx = Mathf.FloorToInt(x / CELL);
+            int cz = Mathf.FloorToInt(z / CELL);
+            float baseAng = (nation == NationType.Empire) ? 45f : NationBaseAngle(nation);
+            float best = 0f;
+            for (int dz = -1; dz <= 1; dz++)
+            {
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    int cellX = cx + dx, cellZ = cz + dz;
+                    int segs = 1 + (Hash2(cellX, cellZ, nseed) < 0.5f ? 0 : 1);   // 셀당 1~2개 세그먼트
+                    for (int s = 0; s < segs; s++)
+                    {
+                        float sx = (cellX + Hash2(cellX, cellZ, nseed + 11 + s * 7)) * CELL;
+                        float sz = (cellZ + Hash2(cellX, cellZ, nseed + 17 + s * 7)) * CELL;
+                        float len = Mathf.Lerp(200f, 400f, Hash2(cellX, cellZ, nseed + 23 + s * 7));
+                        float ang = (baseAng + (Hash2(cellX, cellZ, nseed + 29 + s * 7) - 0.5f) * 90f) * Mathf.Deg2Rad;
+                        float dirX = Mathf.Cos(ang), dirZ = Mathf.Sin(ang);
+                        float half = len * 0.5f;
+                        float rx = x - sx, rz = z - sz;
+                        float t = Mathf.Clamp(rx * dirX + rz * dirZ, -half, half);
+                        float ex = sx + dirX * t - x;   // 세그먼트 최근접점 → 입력점 벡터
+                        float ez = sz + dirZ * t - z;
+                        float dd = Mathf.Sqrt(ex * ex + ez * ez);
+                        if (dd >= 60f) continue;
+                        float m = 1f - Smoothstep(30f, 60f, dd);
+                        if (m > best) best = m;
+                    }
+                }
+            }
+            return best;
+        }
+
         // ── 대형 분지 (예시9: 병풍 절벽 둘러싼 분지) ──
         public const float BASIN_RADIUS_MIN = 90f;
         public const float BASIN_RADIUS_MAX = 130f;
@@ -756,12 +850,12 @@ namespace ProjectName.Systems
         }
 
         // ── 대형 꽃 융단 (예시12/13: 핑크/마젠타 카펫 — Empire/East 중심) ──
-        const float MEGA_FLOWER_RADIUS_MIN = 160f;
-        const float MEGA_FLOWER_RADIUS_MAX = 200f;
-        const float MEGA_FLOWER_EDGE_SOFT  = 30f;
+        const float MEGA_FLOWER_RADIUS_MIN = 352f;   // T4-1: 160→352 (~2.2× 확대)
+        const float MEGA_FLOWER_RADIUS_MAX = 440f;   // T4-1: 200→440 (~2.2× 확대)
+        const float MEGA_FLOWER_EDGE_SOFT  = 66f;    // T4-1: 30→66 (크기 비례 감쇠)
 
         /// <summary>
-        /// 대형 꽃 융단 마스크 [0,1] — 방위당 0~3개 패치(반경 160~200m, 가장자리 30m 페이드).
+        /// 대형 꽃 융단 마스크 [0,1] — 방위당 0~3개 패치(반경 352~440m, 가장자리 66m 페이드 — T4-1 ~2.2× 확대).
         /// East 2개 / 타 방위 0~1개 + [T-D2b] 황제국 공유 세트 3개(중앙 링 300~480m)를 모든 방위 평가에 포함
         /// (Empire 영토는 중심 50m뿐이라 자체 세트만으로는 생성 불가 — 소유 방위와 무관하게 중앙 꽃융단 유지).
         /// 스폰/성/호수 이격. T2(텍스처 핑크 블롯) + T3(꽃 밀도)가 함께 사용.
