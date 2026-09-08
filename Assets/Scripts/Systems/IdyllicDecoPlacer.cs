@@ -12,6 +12,8 @@ namespace ProjectName.Systems
     /// Fantasy subzone (TerrainShape.GetFantasySubzoneMask) -> Meadows + pink/purple trees.
     /// Empire: symmetric garden grid within 120m (cherry50/garden30/bush20).
     /// Lake +8m shore band (reeds/lilies) uses TerrainGenerator.Lakes (LCG anchors).
+    /// T-D3 B2 (09-08): lake surface rocks (y=waterLevel-0.6, 1.5~3.0x) / lily pad colonies (1~3/lake) /
+    /// shore willow arc (r~r+8m, 20~30% arc, Pink=Empire only) / mega flower spread 18~30m equiv (cap 60~80/nation).
     /// Colliders: tree trunk + big rocks only. SpawnAreaDeco (PlaceSpawnProps) replaces TerrainPropPlacer.
     /// Culling radii (tree150/rock200) logged only (no existing culling group).
     /// Uses System.Random only (deterministic); y = GROUND_BASE + GetHeightAt.
@@ -69,7 +71,12 @@ namespace ProjectName.Systems
         const float MEGA_SCAN_CELL = 26f;       // 꽃 융단 마스크 스캔 격자 (FM_SPACING과 동일 규모)
         const int   MEGA_CLUSTER_SUB = 4;       // 히트 셀 내 4×4 밀집 클러스터
         const float MEGA_CLUSTER_STEP = 1.8f;   // 클러스터 내 간격 (m)
-        const int   MEGA_CAP_PER_NATION = 220;  // 융단 데코 국가별 상한 (기존 flowerCap과 별도 가산)
+        // T-D3 B2 (09-08): 꽃 융단 — 클러스터 산포 확대(체감 지름 18~30m 등가) + 국가당 개수 220→60~80
+        //   (패치 대형화로 총면적 유지·증가, 과밀 방지). 마스크 자체 스케일업은 TerrainShape 스트림 담당.
+        const float MEGA_SPREAD_MIN = 9f, MEGA_SPREAD_MAX = 15f;  // 위성 소군집 산포 반경 9~15m (체감 지름 18~30m 등가)
+        const int   MEGA_SAT_MIN = 2, MEGA_SAT_MAX = 3;           // 중심 4×4 클러스터 외 위성 3×3 소군집 수
+        const int   MEGA_CAP_MIN = 60, MEGA_CAP_MAX = 80;         // 국가당 융단 데코 상한 (MegaCapFor 결정론 해시로 60~80 배정)
+        const int   MEGA_GLOBAL_VALVE = MEGA_CAP_MAX * 5;         // 전역 안전 밸브 (5국가 합산 상한)
 
         const float FLOWER_MASK_HI = 0.55f;       // B2: 0.60→0.55 — 꽃밭 면적 확대
         const float FLOWER_MASK_FOCUS = 0.52f;    // B2: 동/남 방위 집중 게이트 (면적 추가 확대)
@@ -101,9 +108,22 @@ namespace ProjectName.Systems
         const float LAKE_LILY_OUT = 0.80f;
         const float LAKE_TREE_IN = 1.24f;
         const float LAKE_TREE_OUT = 1.75f;
-        const int REEDS_PER_LAKE = 85;      // CC2: 46→85 (호수 14개 × ~85 ≈ 1200 수변 갈대)
+        const int REEDS_PER_LAKE = 128;     // CC2: 46→85 → T-D3 B2: 85→128 (1.5배 상한, Cattail_01~03 혼입 유지)
         const int LILIES_PER_LAKE = 8;
         const int LAKE_TREES_PER_LAKE = 10; // CC2: 7→10 (호수 인근 나무 밀도 ×1.5)
+
+        // T-D3 B2 (09-08): 수면 바위(T2-1) / 연잎·연꽃 군집(T2-2) / 수변 수양버들 밴드(T2-4)
+        const float LAKE_ROCK_IN = 0.30f, LAKE_ROCK_OUT = 0.70f;      // 수면 바위 반경 위치 (호수 중심 0.3~0.7r)
+        const float LAKE_ROCK_SINK = 0.6f;                            // y = waterLevel - 0.6 — 수면 기준 배치(규약 예외, 함수 주석 참조)
+        const float LAKE_ROCK_SCALE_MIN = 1.5f, LAKE_ROCK_SCALE_MAX = 3.0f; // rockBig 스케일 변형
+        const int   LILY_PER_CLUSTER_MIN = 5, LILY_PER_CLUSTER_MAX = 10;    // 군집당 연잎 개수
+        const int   WATERLILY_PER_CLUSTER_MIN = 1, WATERLILY_PER_CLUSTER_MAX = 2; // 군집당 연꽃 개수
+        const float LILY_SCATTER_MIN = 3f, LILY_SCATTER_MAX = 7f;     // 군집 산점 반경 (m)
+        const float LILY_CENTER_IN = 0.60f, LILY_CENTER_OUT = 0.95f;  // 군집 중심: 가장자리~0.6r (랜덤각, 만 의존 없음)
+        const float WILLOW_BAND_WIDTH = 8f;                           // 수변 버들 밴드 폭: r ~ r+8m
+        const float WILLOW_ARC_MIN = 0.20f, WILLOW_ARC_MAX = 0.30f;   // 둘레의 20~30% 호 구간 (랜덤 시작각)
+        const int   WILLOW_MIN = 4, WILLOW_MAX = 8;                   // 호수당 수양버들 그루 수
+        const float WILLOW_PINK_RATIO = 0.20f;                        // Pink 비율 20% (황제국 호수만, Green 기본)
 
         static readonly float SPAWN_POS_X = ProjectName.Core.PlayerSpawnConfig.SpawnPosition.x;
         static readonly float SPAWN_POS_Z = ProjectName.Core.PlayerSpawnConfig.SpawnPosition.z;
@@ -133,6 +153,7 @@ namespace ProjectName.Systems
         internal class CategoriesR4
         {
             public List<GameObject> willow, broadGreen, broadPurple, broadRed, fir, blossom;
+            public List<GameObject> willowGreen, willowPink;   // T-D3 B2: 수변 수양버들 색 분리 (Pink=황제국 전용)
             public List<GameObject> bushes;
             public List<GameObject> rockBig, rockMed, rockSmall;
             public List<GameObject> cattail, reeds, lilyPads, waterLily;
@@ -142,6 +163,15 @@ namespace ProjectName.Systems
         }
 
         static int NationSeed(NationType n) { return T_R4_BASE + (int)n * 1000; }
+
+        /// <summary>T-D3 B2: 국가당 꽃 융단 상한 60~80 — NationSeed 기반 결정론 해시 (UnityEngine.Random 미사용).</summary>
+        static int MegaCapFor(NationType nat)
+        {
+            uint h = (uint)(NationSeed(nat) * 31 + 17);
+            h ^= (h >> 16) * 0x45d9f3bu;
+            h ^= (h >> 13) * 0x45d9f3bu;
+            return MEGA_CAP_MIN + (int)(h % (uint)(MEGA_CAP_MAX - MEGA_CAP_MIN + 1));
+        }
 
         public static void PlaceAll(Transform center, Transform parent)
         {
@@ -169,6 +199,7 @@ namespace ProjectName.Systems
             var meadowsT = NewChild(root, "Meadows");
             var shoreT = NewChild(root, "Lakeshore");
             var waterT = NewChild(root, "WaterPlants");
+            var waterRockT = NewChild(root, "WaterRocks");   // T-D3 B2: 수면 바위 전용 계층
             var grassT = NewChild(root, "Grass");       // AA5: 잔디 풋 커버
             var fmPatchT = NewChild(root, "FlowerMeadow"); // AA5: 꽃밭 패치
 
@@ -184,6 +215,7 @@ namespace ProjectName.Systems
 
             var lakeRng = new System.Random(SEED);
             int reedsPlaced = 0, lilyPlaced = 0, lakeTreePlaced = 0;
+            int surfaceRockPlaced = 0, lilyClusterPlaced = 0, willowPlaced = 0;   // T-D3 B2
             var lakes = TerrainGenerator.Lakes;
             if (lakes != null)
             {
@@ -193,6 +225,11 @@ namespace ProjectName.Systems
                     reedsPlaced += PlaceLakeshoreReeds(lk, cat, shoreT, treeHash, lakeRng);
                     lilyPlaced += PlaceLakeshoreLilies(lk, cat, waterT, lakeRng);
                     lakeTreePlaced += PlaceLakeshoreTrees(lk, cat, forestT, treeHash, propHash, lakeRng);
+                    // T-D3 B2: 수면/수변 추가 데코 — 기존 lakeRng 스트림 소비 순서를 보존하기 위해
+                    // 호수 인덱스 고정 시드의 별도 rng를 사용 (기존 배치 결과 불변, 결정론 유지)
+                    surfaceRockPlaced += PlaceLakeSurfaceRocks(lk, cat, waterRockT, new System.Random(SEED + 41 + i * 7));
+                    lilyClusterPlaced += PlaceLilyClusters(lk, cat, waterT, new System.Random(SEED + 53 + i * 7));
+                    willowPlaced += PlaceLakeshoreWillows(lk, cat, forestT, treeHash, propHash, new System.Random(SEED + 67 + i * 7));
                 }
             }
 
@@ -260,6 +297,11 @@ namespace ProjectName.Systems
             Debug.Log(string.Format(
                 "[IdyllicDecoPlacer][B4] PathEdgeDeco={0}||Cap={1}/nation||Keep={2}m||Band={3}~{4}m||Mix=rock40/grass30/flower30",
                 pathEdgeCnt, PATH_EDGE_CAP, PATH_EDGE_KEEP, PATH_EDGE_INNER, PATH_EDGE_OUTER));
+            // T-D3 B2: 수면/수변 데코 배치 합계 (호수 전체 — TerrainGenerator.Lakes 캐시 기준)
+            Debug.Log(string.Format(
+                "[IdyllicDecoPlacer][T-D3] LakeSurfaceRocks={0}||LilyColonies={1}||ShoreWillows={2}||ReedsCapPerLake={3}(x1.5)||" +
+                "MegaSpreadDiam=18~30m||MegaCapNation={4}~{5}",
+                surfaceRockPlaced, lilyClusterPlaced, willowPlaced, REEDS_PER_LAKE, MEGA_CAP_MIN, MEGA_CAP_MAX));
             Debug.Log("[IdyllicDecoPlacer][T-R4] Deterministic seed = 20260904+nationId*1000. LayoutHash for 2-boot compare (same seed->same hash).");
             Debug.Log("[IdyllicDecoPlacer][T-R4] Culling radii (no existing group - log only): tree 150m / rock 200m / grass-flower-bush 60m.");
             Debug.Log("[IdyllicDecoPlacer][AA5] Culling = simple distance check(Update 0.5s) player radius 60m -> grass/FlowerMeadow SetActive(false) outside.");
@@ -345,6 +387,127 @@ namespace ProjectName.Systems
             }
             return placed;
         }
+
+        /// <summary>
+        /// T-D3 B2 (T2-1): 호수 수면 바위 — rockBig 스케일 변형(1.5~3.0×)을 호수 중심 0.3~0.7r 수면에 배치.
+        /// [규약 예외] 기존 y = GROUND_BASE + GetHeightAt 대신 수면 기준 배치: y = waterLevel - 0.6m.
+        /// 바위 하단은 침수(바닥 잠김), 프리팹 높이에 따라 수면 위 0.3~0.6m 노출되는 의도.
+        /// 개수: 대형 호수(r≥90m, T-D2 승격 100~120m 포함) 10~12, 중형(40~70m) 6~8. 18개 호수 전체 적용.
+        /// 수면 바위는 수심 게이트 불필요(항상 물 안) — 나무/암반 데코와는 밴드가 겹치지 않는다.
+        /// </summary>
+        static int PlaceLakeSurfaceRocks(TerrainGenerator.TerrainLakeDef lake,
+            CategoriesR4 cat, Transform parent, System.Random rng)
+        {
+            var pool = cat.rockBig.Count > 0 ? cat.rockBig : cat.rockMed;
+            if (pool.Count == 0) return 0;
+            int target = lake.radius >= 90f ? 10 + rng.Next(3) : 6 + rng.Next(3);
+            int placed = 0;
+            int attempts = target * 8;
+            for (int a = 0; a < attempts && placed < target; a++)
+            {
+                float ang = (float)rng.NextDouble() * Mathf.PI * 2f;
+                float d = lake.radius * RandomRange(rng, LAKE_ROCK_IN, LAKE_ROCK_OUT);
+                float x = lake.center.x + Mathf.Cos(ang) * d;
+                float z = lake.center.z + Mathf.Sin(ang) * d;
+                // 수면 기준 배치 (위 규약 예외 주석 참조) — GROUND_BASE/GetHeightAt 미사용
+                Place(pool[rng.Next(pool.Count)], x, lake.waterLevel - LAKE_ROCK_SINK, z,
+                    RandomRange(rng, LAKE_ROCK_SCALE_MIN, LAKE_ROCK_SCALE_MAX), rng, parent);
+                placed++;
+            }
+            return placed;
+        }
+
+        /// <summary>
+        /// T-D3 B2 (T2-2): 연잎/연꽃 군집 — 호수당 1~3개 (수면 데코 총면적 ≤20% 제한을 면적 비례 캡으로 충족:
+        /// 대형 r≥90m → 3, 중형 r≥55m → 2, 소형 → 1. 군집 3개 × (연잎 10 × ~2.5㎡ + 산점) ≈ ≤200㎡로
+        /// 소형 호수(r=40m, 5,024㎡)의 20%(1,004㎡) 이하). 군집 중심 = 가장자리~0.6r 랜덤각
+        /// (만(bay) 좌표 의존성 없는 순수 랜덤 산포). 군집당 LilyPads_01~03 랜덤 5~10개(산점 3~7m,
+        /// y = waterLevel + 0.02) + Waterlily 1~2개(군집 중심 근처 0.5~3m).
+        /// </summary>
+        static int PlaceLilyClusters(TerrainGenerator.TerrainLakeDef lake,
+            CategoriesR4 cat, Transform parent, System.Random rng)
+        {
+            if (cat.lilyPads.Count == 0) return 0;
+            int clusters = lake.radius >= 90f ? 3 : (lake.radius >= 55f ? 2 : 1);
+            int placed = 0;
+            var padHash = new SpatialHash(2f);
+            for (int c = 0; c < clusters; c++)
+            {
+                float cang = (float)rng.NextDouble() * Mathf.PI * 2f;
+                float cd = lake.radius * RandomRange(rng, LILY_CENTER_IN, LILY_CENTER_OUT);
+                float cx = lake.center.x + Mathf.Cos(cang) * cd;
+                float cz = lake.center.z + Mathf.Sin(cang) * cd;
+                float terrainY = GROUND_BASE + TerrainGenerator.GetHeightAt(cx, cz, BiomeType.Plains, 42);
+                if (terrainY > lake.waterLevel - 0.25f) continue;   // 기존 lilies 수심 게이트와 동일
+                if (IsInSpawnExclusion(cx, cz)) continue;
+                int padCnt = LILY_PER_CLUSTER_MIN + rng.Next(LILY_PER_CLUSTER_MAX - LILY_PER_CLUSTER_MIN + 1);
+                for (int p = 0; p < padCnt; p++)
+                {
+                    float ang = (float)rng.NextDouble() * Mathf.PI * 2f;
+                    float d = RandomRange(rng, LILY_SCATTER_MIN, LILY_SCATTER_MAX);
+                    float x = cx + Mathf.Cos(ang) * d;
+                    float z = cz + Mathf.Sin(ang) * d;
+                    var pv = new Vector2(x, z);
+                    if (!padHash.IsFree(pv, 1.8f)) continue;
+                    Place(cat.lilyPads[rng.Next(cat.lilyPads.Count)], x, lake.waterLevel + 0.02f, z,
+                        RandomRange(rng, 0.85f, 1.2f), rng, parent);
+                    padHash.Insert(pv);
+                    placed++;
+                }
+                if (cat.waterLily.Count == 0) continue;
+                int wlCnt = WATERLILY_PER_CLUSTER_MIN + rng.Next(WATERLILY_PER_CLUSTER_MAX - WATERLILY_PER_CLUSTER_MIN + 1);
+                for (int w = 0; w < wlCnt; w++)
+                {
+                    float wang = (float)rng.NextDouble() * Mathf.PI * 2f;
+                    float wd = RandomRange(rng, 0.5f, LILY_SCATTER_MIN);
+                    Place(cat.waterLily[rng.Next(cat.waterLily.Count)], cx + Mathf.Cos(wang) * wd, lake.waterLevel + 0.02f,
+                        cz + Mathf.Sin(wang) * wd, RandomRange(rng, 0.85f, 1.2f), rng, parent);
+                    placed++;
+                }
+            }
+            return placed;
+        }
+
+        /// <summary>
+        /// T-D3 B2 (T2-4): 수변 수양버들 — 호수 둘레 밴드(r ~ r+8m)의 20~30% 호 구간(랜덤 시작각)에 4~8그루.
+        /// WillowTree Green 위주, 20%는 Pink — 국가 색 규칙상 황제국(Empire) 호수만 Pink 허용(Green 기본).
+        /// 참고: Resources/IdyllicPrefabs/Trees는 현재 WillowTree_01~05_Green만 포함 — Pink 프리팹이
+        /// Resources 세트에 추가되면 willowPink 필터에 자동 반영되고, 없으면 Green으로 폴백한다.
+        /// 지면 게이트 y > waterLevel + 0.3m (수변 습지 대응 — 기존 lake tree +0.8m보다 완화).
+        /// </summary>
+        static int PlaceLakeshoreWillows(TerrainGenerator.TerrainLakeDef lake,
+            CategoriesR4 cat, Transform parent, SpatialHash treeHash, SpatialHash propHash, System.Random rng)
+        {
+            if (cat.willowGreen.Count == 0 && cat.willow.Count == 0) return 0;
+            int target = WILLOW_MIN + rng.Next(WILLOW_MAX - WILLOW_MIN + 1);
+            float startAng = (float)rng.NextDouble() * Mathf.PI * 2f;
+            float arcSpan = RandomRange(rng, WILLOW_ARC_MIN, WILLOW_ARC_MAX) * Mathf.PI * 2f;
+            int placed = 0;
+            int attempts = target * 12;
+            for (int a = 0; a < attempts && placed < target; a++)
+            {
+                float ang = startAng + (float)rng.NextDouble() * arcSpan;
+                float d = lake.radius + RandomRange(rng, 0f, WILLOW_BAND_WIDTH);
+                float x = lake.center.x + Mathf.Cos(ang) * d;
+                float z = lake.center.z + Mathf.Sin(ang) * d;
+                if (Mathf.Abs(x) > BOUND_MAX || Mathf.Abs(z) > BOUND_MAX) continue;
+                if (IsInSpawnExclusion(x, z)) continue;
+                float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42);
+                if (y < lake.waterLevel + 0.3f) continue;
+                var p = new Vector2(x, z);
+                if (!treeHash.IsFree(p, TREE_MIN_DIST)) continue;
+                if (!propHash.IsFree(p, ROCK_MIN_DIST)) continue;
+                var nat = NationTerrainController.GetNationFromPosition(new Vector3(x, 0f, z));
+                var pool = (nat == NationType.Empire && cat.willowPink.Count > 0 && rng.NextDouble() < WILLOW_PINK_RATIO)
+                    ? cat.willowPink : cat.willowGreen;
+                if (pool.Count == 0) pool = cat.willow;   // Green 필터 실패 시 기존 willow 풀 폴백
+                Place(pool[rng.Next(pool.Count)], x, y, z, RandomRange(rng, 0.9f, 1.2f), rng, parent);
+                treeHash.Insert(p);
+                placed++;
+            }
+            return placed;
+        }
+
         static void PlaceNation(NationDecoProfile p, CategoriesR4 cat, Vector3 origin,
             Transform forestT, Transform rocksT, Transform bushesT, Transform flowersT, Transform meadowsT,
             SpatialHash treeHash, SpatialHash propHash,
