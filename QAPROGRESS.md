@@ -8,6 +8,18 @@
 
 ---
 
+## 📌 세션 종합 스냅샷 (2026-09-08 5차 — 지형 다양화 T-D5: 호수 주변 꾸미기 ✅)
+
+- **범위**: IdyllicDecoPlacer에 호수 주변 데코 3종 추가 (사용자 "호수도 지형/주변 꾸며주는 걸 추가" 지시)
+- **L1 수변 관목** `PlaceLakeshoreShrubs`: 밴드 1.02~1.55r, `cat.bushes`, 대형(r≥100)=8~12/소형=4~6, 게이트 y>waterLevel+0.5
+- **L2 수변 바위·자갈** `PlaceLakeshoreRocks`: 밴드 1.02~1.70r, rockBig(대형 1/3 혼입)/Med/Small, 5~10개, y>waterLevel+0.4
+- **L3 습지 습초지** `PlaceLakeshoreWetlandClusters`: 밴드 0.95~1.12r, 호수당 5클러스터×3~6포인트(반경 0~5m 산점), 갈대(1.3~2.0m)+관목(0.8~1.1m) 2:1 혼합, −0.1<y<waterLevel+1.2
+- **통합**: 호수 루프(L244~246)에 별도 rng(SEED+79/83/89+i*7)로 3줄 추가 → **기존 lakeRng 스트림 소비 순서 보존**(결정론 회귀 없음). 기존 6개 호수 데코 함수·상수 무수정
+- **검증**: 배치컴파일 error CS=0 (buildlog_lake.txt, CompileScripts 15.3s, Exiting batchmode successfully)
+- ⬜ **남음**: Play 판정(수변 관목/바위 자갈/습지 습초지 체감·기존 무손상)
+
+---
+
 ## 📌 세션 종합 스냅샷 (2026-09-08 4차 — 지형 다양화 T-D3 후속: T5 능선길+호수연장 ✅)
 
 - **범위**: DirtRoadMask 경로 시스템에 능선길 2개(T5-1) + 호수 수변 연장 2개(T5-2) 추가
