@@ -143,6 +143,15 @@ namespace ProjectName.EditorTools
                 ("Throw", AnimatorControllerParameterType.Trigger),
                 ("Carry", AnimatorControllerParameterType.Trigger),
                 ("Cast", AnimatorControllerParameterType.Trigger),
+                ("IsBow", AnimatorControllerParameterType.Bool),
+                ("IsSpear", AnimatorControllerParameterType.Bool),
+                ("IsThrowing", AnimatorControllerParameterType.Bool),
+                ("BowEnter", AnimatorControllerParameterType.Trigger),
+                ("SpearEnter", AnimatorControllerParameterType.Trigger),
+                ("ThrowEnter", AnimatorControllerParameterType.Trigger),
+                ("ArcheryShot", AnimatorControllerParameterType.Trigger),
+                ("DrawShoot", AnimatorControllerParameterType.Trigger),
+                ("ThrowPitch", AnimatorControllerParameterType.Trigger),
             });
             var sm = ac.layers[0].stateMachine;
             // 로코모션=유저 제공 FBX(MixamoUser, Heat 동일 리그→표준 본명 리네임, 2026-09-08 시험 부착), 전투=팩 OneHand(검 부착 전제)
@@ -221,6 +230,20 @@ namespace ProjectName.EditorTools
             var carry = AddState(sm, "Carry", Clip("meshy:Carry_Heavy_Object_Walk.fbx"));
             var cast = AddState(sm, "Cast", Clip("meshy:mage_soell_cast_4.fbx"));
 
+            // Phase J/I: 활/창/투척 (모드 진입=트리거, 이탈=모드 bool 해제)
+            var bowAimedF = AddState(sm, "BowAimedF", Clip("meshy:Walk_Forward_with_Bow_Aimed.fbx"));
+            var bowBack1 = AddState(sm, "BowBack1", Clip("meshy:Walk_Backward_with_Bow_1.fbx"));
+            var bowBackAimed = AddState(sm, "BowBackAimed", Clip("meshy:Walk_Backward_with_Bow_Aimed.fbx"));
+            var archeryShot = AddState(sm, "ArcheryShot", Clip("meshy:Archery_Shot.fbx"));
+            var drawShoot = AddState(sm, "DrawShoot", Clip("meshy:Draw_and_Shoot_from_Back_1.fbx"));
+            var spearWalk = AddState(sm, "SpearWalk", Clip("meshy:Spear_Walk.fbx"));
+            var throwPrep = AddState(sm, "ThrowPrep", Clip("meshy:Crouch_Pull_and_Throw.fbx"));
+            var throwPitch = AddState(sm, "ThrowPitch", Clip("meshy:baseball_pitching.fbx"));
+            var grenadeBack = AddState(sm, "GrenadeBack", Clip("meshy:Walk_Backward_with_Grenade.fbx"));
+
+            // 기어: 웅크림 후진 클립을 Crawl_Backward로 스왑(후진 웅크림=기어가기)
+            crouchB.motion = Clip("meshy:Crawl_Backward.fbx");
+
             // Phase D: 착석 플로우(앉기 전환→유지→일어나기, 침대 뒤척임)
             AnyState(sm, sitDown, "SitDown");
             ExitTo(sm, sitDown, sitHold);
@@ -277,6 +300,34 @@ namespace ProjectName.EditorTools
             ExitTo(sm, carry, idle);
             AnyState(sm, cast, "Cast");
             ExitTo(sm, cast, idle);
+
+            // Phase J: 활 — 진입(드라이버가 BowEnter 발화), 이동 스왑, 발사/장전, 해제
+            AnyState(sm, bowAimedF, "BowEnter");
+            T2(sm, bowAimedF, bowBackAimed, ("IsBow", AnimatorConditionMode.If, 0f), ("MoveY", AnimatorConditionMode.Less, -0.3f));
+            T2(sm, bowAimedF, bowBack1, ("IsBow", AnimatorConditionMode.If, 0f), ("MoveY", AnimatorConditionMode.Less, -0.3f));
+            T2(sm, bowBackAimed, bowAimedF, ("IsBow", AnimatorConditionMode.If, 0f), ("MoveY", AnimatorConditionMode.Greater, -0.15f));
+            T2(sm, bowBack1, bowAimedF, ("IsBow", AnimatorConditionMode.If, 0f), ("MoveY", AnimatorConditionMode.Greater, -0.15f));
+            T2(sm, bowAimedF, idle, ("IsBow", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Less, 0.35f));
+            T2(sm, bowBackAimed, idle, ("IsBow", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Less, 0.35f));
+            T2(sm, bowBack1, idle, ("IsBow", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Less, 0.35f));
+            T2(sm, bowAimedF, walk, ("IsBow", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Greater, 0.55f));
+            AnyState(sm, archeryShot, "ArcheryShot");
+            ExitTo(sm, archeryShot, bowAimedF);
+            AnyState(sm, drawShoot, "DrawShoot");
+            ExitTo(sm, drawShoot, bowAimedF);
+
+            // Phase J: 창 — 진입/유지/해제
+            AnyState(sm, spearWalk, "SpearEnter");
+            T2(sm, spearWalk, idle, ("IsSpear", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Less, 0.35f));
+
+            // Phase I: 투척 — 진입, 던지기 2종(드라이버 랜덤), 후진 스왑, 해제
+            AnyState(sm, grenadeBack, "ThrowEnter");
+            AnyState(sm, throwPrep, "Throw");
+            ExitTo(sm, throwPrep, grenadeBack);
+            AnyState(sm, throwPitch, "ThrowPitch");
+            ExitTo(sm, throwPitch, grenadeBack);
+            T2(sm, grenadeBack, idle, ("IsThrowing", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Less, 0.35f));
+            T2(sm, grenadeBack, walk, ("IsThrowing", AnimatorConditionMode.IfNot, 0f), ("Speed", AnimatorConditionMode.Greater, 0.55f));
 
             // 이동: Idle ↔ Walk ↔ Run (Speed 기반) — 히스테리시스: Idle→Walk는 0.55, Walk→Idle은 0.35로 분리
             // (지형/경사로 속도가 0 근처로 순간 떨어질 때 Idle로 떨어졌다 복귀하는 "끊김+멈춤" 방지)

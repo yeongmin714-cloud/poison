@@ -125,12 +125,27 @@ namespace ProjectName.Systems
         private static readonly string[] ProbeKeyNames = { "W", "A", "S", "D" };
 
         // --- 은신 관련 (Phase 34) ---
-        private bool _stealthToggleHeld = false; // Ctrl 키 홀드 상태 추적
+        private bool _stealthToggleHeld = false; // C 키 홀드 상태 추적
 
-        // 웅크림(Ctrl 토글) / 수영(수면 근처 부유) 상태
+        // 웅크림(LeftCtrl 토글) / 수영(수면 근처 부유) 상태
         private bool _isCrouching = false;
-        private bool _crouchToggleHeld = false;  // LeftCtrl 하강엣지 추적
+        private bool _crouchToggleHeld = false;  // LeftCtrl 상승엣지 추적
         private bool _isSwimming = false;        // 수면 근처 부유 상태
+
+        // --- 무기 모드 토글 (B/V/G, 상호 배타) ---
+        private bool _isBowMode = false;        // 활 모드
+        private bool _isSpearMode = false;      // 창 모드
+        private bool _isThrowingMode = false;   // 투척 모드
+        private bool _bowToggleHeld = false;      // B키 하강엣지 추적
+        private bool _spearToggleHeld = false;    // V키 하강엣지 추적
+        private bool _throwingToggleHeld = false; // G키 하강엣지 추적
+
+        /// <summary>활 모드 여부 (B 토글, 상호 배타).</summary>
+        public bool IsBowMode => _isBowMode;
+        /// <summary>창 모드 여부 (V 토글, 상호 배타).</summary>
+        public bool IsSpearMode => _isSpearMode;
+        /// <summary>투척 모드 여부 (G 토글, 상호 배타).</summary>
+        public bool IsThrowingMode => _isThrowingMode;
 
         // --- 카메라 효과 관련 ---
         private float _defaultFOV;
@@ -316,8 +331,11 @@ namespace ProjectName.Systems
             // Phase 34: 은신 입력 처리
             HandleStealthInput();
 
-            // 웅크림 입력 처리 (LeftCtrl 하강엣지 토글)
+            // 웅크림 입력 처리 (LeftCtrl 상승엣지 토글)
             HandleCrouchInput();
+
+            // 무기 모드 토글 입력 처리 (B/V/G 하강엣지, 상호 배타)
+            HandleModeToggleInput();
 
             // Phase 34: 은신 중 암살 가능 체크 (StealthSystem으로 위임)
             // Phase 34: 은신 상태에서 속도 제한은 HandleMovement()에서 직접 적용 (_walkSpeed * 0.5f)
@@ -401,31 +419,31 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// Phase 34: Ctrl 키 입력 → StealthSystem.ToggleStealth() 호출
+        /// Phase 34: C 키 입력 → StealthSystem.ToggleStealth() 호출
         /// </summary>
         private void HandleStealthInput()
         {
             var kb = CurrentKeyboard;
             if (kb == null) return;
 
-            // Ctrl 키 누름/뗌 토글
-            bool ctrlPressed = kb.ctrlKey.isPressed;
+            // C 키 누름/뗌 토글 (상승엣지)
+            bool cPressed = kb.cKey.isPressed;
 
-            if (ctrlPressed && !_stealthToggleHeld)
+            if (cPressed && !_stealthToggleHeld)
             {
                 _stealthToggleHeld = true;
                 if (StealthSystem.Instance != null)
                     StealthSystem.Instance.ToggleStealth();
             }
-            else if (!ctrlPressed && _stealthToggleHeld)
+            else if (!cPressed && _stealthToggleHeld)
             {
                 _stealthToggleHeld = false;
             }
         }
 
         /// <summary>
-        /// 웅크림 입력: LeftCtrl 하강엣지(키를 뗀 순간) → 웅크림 토글.
-        /// 은신(HandleStealthInput)이 Ctrl 상승엣지를 사용하므로 하강엣지로 분리한다.
+        /// 웅크림 입력: LeftCtrl 상승엣지(누를 때) → 웅크림 토글.
+        /// 은신(HandleStealthInput)이 C 키 상승엣지를 사용하므로 키 충돌 없음.
         /// </summary>
         private void HandleCrouchInput()
         {
@@ -433,15 +451,52 @@ namespace ProjectName.Systems
             if (kb == null) return;
 
             bool leftCtrlPressed = kb.leftCtrlKey.isPressed;
-            if (leftCtrlPressed)
+            if (leftCtrlPressed && !_crouchToggleHeld)
             {
                 _crouchToggleHeld = true;
-            }
-            else if (_crouchToggleHeld)
-            {
-                _crouchToggleHeld = false;
                 _isCrouching = !_isCrouching;
             }
+            else if (!leftCtrlPressed && _crouchToggleHeld)
+            {
+                _crouchToggleHeld = false;
+            }
+        }
+
+        /// <summary>
+        /// 무기 모드 토글 입력: B(활)/V(창)/G(투척) 하강엣지(키를 뗀 순간) → 각 모드 토글.
+        /// 상호 배타: 하나를 켜면 나머지는 강제 off. 은신/웅크림과 독립 동작.
+        /// </summary>
+        private void HandleModeToggleInput()
+        {
+            var kb = CurrentKeyboard;
+            if (kb == null) return;
+
+            // B키 하강엣지 → 활 모드 토글
+            bool bPressed = kb.bKey.isPressed;
+            if (!bPressed && _bowToggleHeld)
+            {
+                _isBowMode = !_isBowMode;
+                if (_isBowMode) { _isSpearMode = false; _isThrowingMode = false; }
+            }
+            _bowToggleHeld = bPressed;
+
+            // V키 하강엣지 → 창 모드 토글
+            bool vPressed = kb.vKey.isPressed;
+            if (!vPressed && _spearToggleHeld)
+            {
+                _isSpearMode = !_isSpearMode;
+                if (_isSpearMode) { _isBowMode = false; _isThrowingMode = false; }
+            }
+            _spearToggleHeld = vPressed;
+
+            // G키 하강엣지 → 투척 모드 토글
+            bool gPressed = kb.gKey.isPressed;
+            if (!gPressed && _throwingToggleHeld)
+            {
+                _isThrowingMode = !_isThrowingMode;
+                if (_isThrowingMode) { _isBowMode = false; _isSpearMode = false; }
+            }
+            _throwingToggleHeld = gPressed;
         }
 
         /// <summary>

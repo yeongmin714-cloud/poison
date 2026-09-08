@@ -36,6 +36,7 @@ namespace ProjectName.Systems
         private float _lastAttackAt = -999f;       // 마지막 공격 시각 (Time.time)
         private bool _prevRolling, _prevJumping;
         private float _prevSpeedForTransition = -999f;   // T-D3: Run→Walk 전환 연출용 직전 프레임 속도
+        private bool _prevBow, _prevSpear, _prevThrow;   // T-D3: 무기 모드 엣지 감지
         private bool _deathFired;
 
         /// <summary>T-D3+: 외부 시스템 발화용 퍼블릭 트리거(채집/경직/스턴/다운).</summary>
@@ -305,6 +306,19 @@ namespace ProjectName.Systems
             // T-D3 전투 모드: 검 장착 여부(IsEquipped) → 전투 이동 변형 클립 활성
             _anim.SetBool("IsCombat", WeaponEquipManager.IsEquipped);
 
+            // T-D3 무기 모드: 활/창/투척 — 모드 진입 시 드라이버가 진입 트리거 1회 발화
+            if (_movement != null)
+            {
+                bool bow = _movement.IsBowMode, spear = _movement.IsSpearMode, thr = _movement.IsThrowingMode;
+                if (bow && !_prevBow) _anim.SetTrigger("BowEnter");
+                if (spear && !_prevSpear) _anim.SetTrigger("SpearEnter");
+                if (thr && !_prevThrow) _anim.SetTrigger("ThrowEnter");
+                _prevBow = bow; _prevSpear = spear; _prevThrow = thr;
+                _anim.SetBool("IsBow", bow);
+                _anim.SetBool("IsSpear", spear);
+                _anim.SetBool("IsThrowing", thr);
+            }
+
             // DD1: 상태 전환 즉시 로그 — Idle ↔ Walk(걷기) 전환 발생 여부 결정적 증거
             if (diagActive) LogStateTransition();
 
@@ -340,7 +354,11 @@ namespace ProjectName.Systems
                     if (_comboCount >= 4) _anim.SetTrigger("AttackCombo3");
                     else if (_comboCount >= 3) _anim.SetTrigger("AttackCombo2");
                     else if (_comboCount >= 2) _anim.SetTrigger("AttackCombo");
-                    else _anim.SetTrigger("Attack");
+                    else
+                    {
+                        int r = Random.Range(0, 3);
+                        _anim.SetTrigger(r == 0 ? "Attack" : r == 1 ? "AttackThrust" : "AttackBase");
+                    }
                 }
             }
 
@@ -356,6 +374,22 @@ namespace ProjectName.Systems
                 bool backJump = _movement.LocalMoveDirection.z < -0.2f;
                 _anim.SetTrigger(backJump ? "JumpBack" : "Jump");
             }
+
+            // T-D3: 무기 모드 입력 — 활 모드 우클릭=발사, 투척 모드 좌클릭=던지기
+            if (_movement != null && _anim != null)
+            {
+                if (_movement.IsBowMode && Input.GetMouseButtonDown(1))
+                {
+                    _anim.SetTrigger("ArcheryShot");
+                    SpawnProjectile("arrow");
+                }
+                if (_movement.IsThrowingMode && Input.GetMouseButtonDown(0))
+                {
+                    bool pitch = Random.Range(0, 2) == 0;
+                    _anim.SetTrigger(pitch ? "ThrowPitch" : "Throw");
+                    SpawnProjectile("thrown");
+                }
+            }
             // T2B-3: 착지(하강 에지) 직후 짧은 흡수 창 — Speed 급상승 제한은 아래 목표 계산에서 적용
             if (!jumping && _prevJumping) _landingSoftTimer = 0.22f;
             _prevJumping = jumping;
@@ -364,6 +398,21 @@ namespace ProjectName.Systems
             if (_prevSpeedForTransition > 2f && _smoothedSpeed <= 2f && _anim != null)
                 _anim.SetTrigger("RunToWalk");
             _prevSpeedForTransition = _smoothedSpeed;
+        }
+
+        /// <summary>T-D3: 활 화살/투척물 연출 스폰(전방 포물선). 데미지 연동은 무기 시스템 후속.</summary>
+        private void SpawnProjectile(string kind)
+        {
+            if (_anim == null) return;
+            var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            go.name = kind == "arrow" ? "Arrow_Visual" : "Thrown_Visual";
+            go.transform.localScale = Vector3.one * (kind == "arrow" ? 0.15f : 0.3f);
+            var rb = go.AddComponent<Rigidbody>();
+            var origin = _anim.transform.position + Vector3.up * 1.5f;
+            go.transform.position = origin;
+            var forward = _anim.transform.forward;
+            rb.linearVelocity = forward * 18f + Vector3.up * (kind == "arrow" ? 2f : 5f);
+            Object.Destroy(go, 3f);
         }
 
         /// <summary>DD1: 현재 애니 상태/진행도/속도 로그 (state는 shortNameHash→이름 매핑).</summary>
