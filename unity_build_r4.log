@@ -1,0 +1,810 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.4/staging' branch; Version is '6000.4.10f1 (feeafc12a938) revision 16706300'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-09-08T02:37:52.5857832Z"
+OS: 'Windows 10  (10.0.19045) 64bit Core' Language: 'ko' Physical Memory: 7880 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-09-08T02:37:52Z
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 7704, path: "C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.1+9fbee8e
+  Session Id:              166b4a45938847daa35985365c564165
+  Correlation Id:          66307c5700fd91d1fa8a0db60c70a5f0
+  External correlation Id: 1615649798765024047
+  Machine Id:              5cJWr0XiXK4/b2/xsaHUUO6HAA8=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-korea" (connect: 0.00s, validation: 0.00s, handshake: 0.15s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-09-08T02:37:52.7346783Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 14569764733855-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.02
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Licensing Background thread has ended after 0.18s
+
+COMMAND LINE ARGUMENTS:
+Unity.exe
+-quit
+-batchmode
+-projectPath
+C:/Unity/code
+-executeMethod
+ProjectName.EditorTools.MixamoControllerBuilder.BuildAll
+-logFile
+C:/Unity/code/unity_build_r4.log
+Successfully changed project path to: C:/Unity/code
+C:/Unity/code
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+Player connection [428]  Target information:
+
+Player connection [428]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 2724456079 [EditorId] 2724456079 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [428]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 2724456079 [EditorId] 2724456079 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [428] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [428] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-11292" after 0.4 seconds.
+[Licensing::Client] Successfully resolved entitlement details
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Artifact Garbage Collection - Removed 1 unused hashed content files
+Refreshing native plugins compatible for Editor in 2.08 ms, found 0 plugins.
+Initialize engine version: 6000.4.10f1 (feeafc12a938)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path C:/Unity/code/Assets
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+d3d12: failed to query info queue interface (0x80004002).
+Direct3D:
+    Version:         Direct3D 12 [level 12.1]
+    Renderer:        Intel(R) HD Graphics 530 (ID=0x1912)
+    Vendor:          Intel
+    VRAM:            3940 MB
+    App VRAM Budget: 3546 MB
+    Driver:          25.20.100.6577
+    Unified Memory Architecture
+    Cache Coherent UMA
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56292
+CodeReloadManager initialized
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.013329 seconds.
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+Package Manager log level set to [2]
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.726 seconds
+Domain Reload Profiling: 1545ms
+	BeginReloadAssembly (254ms)
+		CreateAndSetChildDomain (15ms)
+	RebuildCommonClasses (60ms)
+	RebuildNativeTypeToScriptingClass (21ms)
+	initialDomainReloadingComplete (126ms)
+	LoadAllAssembliesAndSetupDomain (356ms)
+		LoadAssemblies (237ms)
+		AnalyzeDomain (339ms)
+			TypeCache.Refresh (338ms)
+				TypeCache.ScanAssembly (316ms)
+	FinalizeReload (728ms)
+		SetupLoadedEditorAssemblies (0ms)
+			InitializePlatformSupportModulesInManaged (79ms)
+			BeforeProcessingInitializeOnLoad (121ms)
+			ProcessInitializeOnLoadAttributes (178ms)
+			ProcessInitializeOnLoadMethodAttributes (250ms)
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 70 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.animation.rigging@1.4.1 (location: C:\Unity\code\Library\PackageCache\com.unity.animation.rigging@ae5f251e1ed4)
+    com.unity.cinemachine@3.1.3 (location: C:\Unity\code\Library\PackageCache\com.unity.cinemachine@624f919d8cdd)
+    com.unity.cloud.gltfast@6.9.1 (location: C:\Unity\code\Library\PackageCache\com.unity.cloud.gltfast@161e8e5e9cfb)
+    com.unity.collab-proxy@2.12.4 (location: C:\Unity\code\Library\PackageCache\com.unity.collab-proxy@0b1559bcd34e)
+    com.unity.inputsystem@1.19.0 (location: C:\Unity\code\Library\PackageCache\com.unity.inputsystem@21a28c3a6c83)
+    com.unity.localization@1.5.3 (location: C:\Unity\code\Library\PackageCache\com.unity.localization@aa064bb50234)
+    com.unity.timeline@1.8.12 (location: C:\Unity\code\Library\PackageCache\com.unity.timeline@8cd8509afae5)
+    com.unity.visualscripting@1.9.11 (location: C:\Unity\code\Library\PackageCache\com.unity.visualscripting@8bed5ad90189)
+    com.unity.addressables@2.9.1 (location: C:\Unity\code\Library\PackageCache\com.unity.addressables@8460f1c9c927)
+    com.unity.nuget.newtonsoft-json@3.2.2 (location: C:\Unity\code\Library\PackageCache\com.unity.nuget.newtonsoft-json@4dfd81071c64)
+    com.unity.ide.visualstudio@2.0.27 (location: C:\Unity\code\Library\PackageCache\com.unity.ide.visualstudio@dc1ddd4f09b6)
+    com.unity.ide.rider@3.0.40 (location: C:\Unity\code\Library\PackageCache\com.unity.ide.rider@e4950c6d131b)
+    com.unity.editorcoroutines@1.1.0 (location: C:\Unity\code\Library\PackageCache\com.unity.editorcoroutines@87a15ed012c2)
+    com.unity.performance.profile-analyzer@1.3.4 (location: C:\Unity\code\Library\PackageCache\com.unity.performance.profile-analyzer@418130329099)
+    com.unity.testtools.codecoverage@1.3.0 (location: C:\Unity\code\Library\PackageCache\com.unity.testtools.codecoverage@19a841221620)
+    com.unity.burst@1.8.29 (location: C:\Unity\code\Library\PackageCache\com.unity.burst@6bb9aca3ef38)
+    com.unity.mathematics@1.3.3 (location: C:\Unity\code\Library\PackageCache\com.unity.mathematics@19a9377c4ffa)
+    com.unity.ai.inference@2.6.1 (location: C:\Unity\code\Library\PackageCache\com.unity.ai.inference@9a123aee5df7)
+    com.unity.splines@2.8.4 (location: C:\Unity\code\Library\PackageCache\com.unity.splines@9b00833aca09)
+    com.unity.searcher@4.9.4 (location: C:\Unity\code\Library\PackageCache\com.unity.searcher@d45a78918735)
+    com.unity.profiling.core@1.0.3 (location: C:\Unity\code\Library\PackageCache\com.unity.profiling.core@8a49f7027d06)
+    com.unity.scriptablebuildpipeline@2.6.1 (location: C:\Unity\code\Library\PackageCache\com.unity.scriptablebuildpipeline@36e3b5898ee2)
+    com.unity.settings-manager@2.1.1 (location: C:\Unity\code\Library\PackageCache\com.unity.settings-manager@0b8638c5ce86)
+    com.unity.nuget.mono-cecil@1.11.6 (location: C:\Unity\code\Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff)
+    com.unity.test-framework.performance@3.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.test-framework.performance@aa81a99c4a75)
+    com.unity.dt.app-ui@2.1.1 (location: C:\Unity\code\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d)
+  Built-in packages:
+    com.unity.sentis@2.2.0 (location: C:\Unity\code\Library\PackageCache\com.unity.sentis@eef1e5173b44)
+    com.unity.feature.development@1.0.2 (location: C:\Unity\code\Library\PackageCache\com.unity.feature.development@767aadbc6eb7)
+    com.unity.render-pipelines.universal@17.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.render-pipelines.universal@cdf909593d80)
+    com.unity.test-framework@1.6.0 (location: C:\Unity\code\Library\PackageCache\com.unity.test-framework@996f223345ba)
+    com.unity.textmeshpro@5.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.textmeshpro@53f43edfd2e0)
+    com.unity.ugui@2.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.ugui@1f2d1ab0d950)
+    com.unity.modules.ai@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.modules.screencapture@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vehicles@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.video)
+    com.unity.modules.vr@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.vr)
+    com.unity.modules.wind@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: C:\Unity\code\Library\PackageCache\com.unity.modules.hierarchycore)
+    com.unity.ext.nunit@2.0.5 (location: C:\Unity\code\Library\PackageCache\com.unity.ext.nunit@d8c07649098d)
+    com.unity.render-pipelines.core@17.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.render-pipelines.core@5aab14b68499)
+    com.unity.shadergraph@17.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.shadergraph@93ee0fdc6ad8)
+    com.unity.render-pipelines.universal-config@17.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.render-pipelines.universal-config@0db4263b9e6b)
+    com.unity.collections@6.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.collections@5b6ebd78ccc0)
+[Package Manager] com.unity.textmeshpro is deprecated: This package is no longer supported. TextMeshPro functionalities are now included in the com.unity.ugui package. To continue using them, consider adding it to your project dependencies.
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.03 seconds
+Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
+Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
+[ScriptCompilation] Requested script compilation because: AssetDatabase observed changes in script compilation related files
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:80
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: C:\Unity\code
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 62.6525ms
+Starting: C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: C:/Unity/code
+DisplayProgressbar: Compiling Scripts
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.runtime.interopservices.windowsruntime has duplicate hint path. Ignoring "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Runtime.InteropServices.WindowsRuntime.dll" in favor of "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\NetStandard\Extensions\2.0.0\System.Runtime.InteropServices.WindowsRuntime.dll"
+warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.componentmodel.composition has duplicate hint path. Ignoring "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\System.ComponentModel.Composition.dll" in favor of "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\NetStandard\compat\2.1.0\shims\netfx\System.ComponentModel.Composition.dll"
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Burst.Cecil, Version=0.11.6.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@6bb9aca3ef38\Unity.Burst.CodeGen\Unity.Burst.Cecil.dll
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Mono.Cecil, Version=0.11.5.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff\Mono.Cecil.dll
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 194.0664ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 381 references
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with Library\Bee\artifacts\1900b0aE.dag\Unity.Collections.dll
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved UnityEditor.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Managed\UnityEngine\UnityEditor.CoreModule.dll
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Burst.Cecil.Rocks, Version=0.11.6.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@6bb9aca3ef38\Unity.Burst.CodeGen\Unity.Burst.Cecil.Rocks.dll
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 712.4500ms
+ExitCode: 0 Duration: 5s274ms
+[ 866/1401  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[1397/1401  0s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
+Assets\Editor\FixMainScene.cs(5,7): warning CS0105: The using directive for 'UnityEngine.SceneManagement' appeared previously in this namespace
+
+Assets\Editor\DayNightCycleReferenceFixer.cs(24,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\CapturePlayFrame.cs(19,57): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Editor\CapturePlayFrame.cs(19,24): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\DiagnoseTerrain.cs(19,59): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Editor\DiagnoseTerrain.cs(19,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixAllCriticalIssues.cs(207,27): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixAllCriticalIssues.cs(216,32): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixAllCriticalIssues.cs(225,28): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixFinal_Complete.cs(86,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+
+Assets\Editor\FixFinal_Complete.cs(87,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+
+Assets\Editor\FixFinal_Complete.cs(93,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+
+Assets\Editor\FixAllCriticalIssues.cs(242,25): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+
+Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+
+Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+
+Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+
+Assets\Editor\FixMainScene.cs(939,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+[1398/1401  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 381 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1399/1401  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
+[1400/1401  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
+*** Tundra build success (5.20 seconds), 5 items updated, 1401 evaluated
+Assets\Editor\FixMainScene.cs(5,7): warning CS0105: The using directive for 'UnityEngine.SceneManagement' appeared previously in this namespace
+Assets\Editor\DayNightCycleReferenceFixer.cs(24,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\CapturePlayFrame.cs(19,57): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Editor\CapturePlayFrame.cs(19,24): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\DiagnoseTerrain.cs(19,59): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Editor\DiagnoseTerrain.cs(19,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixAllCriticalIssues.cs(207,27): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixAllCriticalIssues.cs(216,32): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixAllCriticalIssues.cs(225,28): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixFinal_Complete.cs(86,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\FixFinal_Complete.cs(87,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\FixFinal_Complete.cs(93,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\FixAllCriticalIssues.cs(242,25): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets\Editor\FixMainScene.cs(939,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+AssetDatabase: script compilation time: 6.257524s
+Begin MonoManager ReloadAssembly
+Assembly Assembly-CSharp-Editor-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-Editor-firstpass.dll not valid. Loading of assembly skipped.
+Assembly Assembly-CSharp-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll not valid. Loading of assembly skipped.
+Assembly DocCodeExamples.dll at Library/ScriptAssemblies/DocCodeExamples.dll not valid. Loading of assembly skipped.
+Assembly TestNewCustomAssembly.dll at Library/ScriptAssemblies/TestNewCustomAssembly.dll not valid. Loading of assembly skipped.
+Assembly Unity.Addressables.Editor.Tests.dll at Library/ScriptAssemblies/Unity.Addressables.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Addressables.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.Addressables.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.AppUI.Editor.Tests.dll at Library/ScriptAssemblies/Unity.AppUI.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.AppUI.Tests.dll at Library/ScriptAssemblies/Unity.AppUI.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.BurstCompatibilityGen.dll at Library/ScriptAssemblies/Unity.Collections.BurstCompatibilityGen.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.DocCodeSamples.dll at Library/ScriptAssemblies/Unity.Collections.DocCodeSamples.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.PerformanceTests.dll at Library/ScriptAssemblies/Unity.Collections.PerformanceTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.Tests.dll at Library/ScriptAssemblies/Unity.Collections.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.Tests.Playmode.dll at Library/ScriptAssemblies/Unity.Collections.Tests.Playmode.dll not valid. Loading of assembly skipped.
+Assembly Unity.InputSystem.IntegrationTests.dll at Library/ScriptAssemblies/Unity.InputSystem.IntegrationTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Localization.DocCodeSamples.dll at Library/ScriptAssemblies/Unity.Localization.DocCodeSamples.dll not valid. Loading of assembly skipped.
+Assembly Unity.Mathematics.Tests.dll at Library/ScriptAssemblies/Unity.Mathematics.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Nuget.Mono-Cecil.dll at Library/ScriptAssemblies/Unity.Nuget.Mono-Cecil.dll not valid. Loading of assembly skipped.
+Assembly Unity.PathTracing.Editor.Tests.dll at Library/ScriptAssemblies/Unity.PathTracing.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.PathTracing.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.PathTracing.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Performance.Profile-Analyzer.EditorTests.dll at Library/ScriptAssemblies/Unity.Performance.Profile-Analyzer.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Core.Editor.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Core.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Core.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Core.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Universal.Config.Editor.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Config.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Universal.Editor.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Universal.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ResourceManager.Tests.dll at Library/ScriptAssemblies/Unity.ResourceManager.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ScriptableBuildPipeline.Editor.Tests.dll at Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ScriptableBuildPipeline.Tests.dll at Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ScriptableBuildPipelineTests.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.ScriptableBuildPipelineTests.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Searcher.EditorTests.dll at Library/ScriptAssemblies/Unity.Searcher.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Settings.Tests.dll at Library/ScriptAssemblies/Unity.Settings.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ShaderGraph.Editor.Tests.dll at Library/ScriptAssemblies/Unity.ShaderGraph.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.TestTools.CodeCoverage.Editor.Compatibility.dll at Library/ScriptAssemblies/Unity.TestTools.CodeCoverage.Editor.Compatibility.dll not valid. Loading of assembly skipped.
+Assembly Unity.TextMeshPro.Editor.Tests.dll at Library/ScriptAssemblies/Unity.TextMeshPro.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.TextMeshPro.Tests.dll at Library/ScriptAssemblies/Unity.TextMeshPro.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.UnifiedRayTracing.Editor.Tests.dll at Library/ScriptAssemblies/Unity.UnifiedRayTracing.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly UnityEditor.UI.Common.Tests.dll at Library/ScriptAssemblies/UnityEditor.UI.Common.Tests.dll not valid. Loading of assembly skipped.
+Assembly UnityEditor.UI.EditorTests.dll at Library/ScriptAssemblies/UnityEditor.UI.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly UnityEngine.UI.Tests.dll at Library/ScriptAssemblies/UnityEngine.UI.Tests.dll not valid. Loading of assembly skipped.
+Symbol file LoadedFromMemory is not a mono symbol file
+Symbol file LoadedFromMemory is not a mono symbol file
+'Packages/com.unity.cinemachine/Editor/Editors/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Packages/com.unity.cinemachine/Editor/Obsolete/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+Refreshing native plugins compatible for Editor in 7.94 ms, found 5 plugins.
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
+Refreshing native plugins compatible for Editor in 6.66 ms, found 5 plugins.
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-포이즌
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  6.357 seconds
+Domain Reload Profiling: 9757ms
+	BeginReloadAssembly (457ms)
+		DisableScriptedObjects (34ms)
+		CreateAndSetChildDomain (171ms)
+	RebuildCommonClasses (50ms)
+	RebuildNativeTypeToScriptingClass (19ms)
+	initialDomainReloadingComplete (1215ms)
+	LoadAllAssembliesAndSetupDomain (1658ms)
+		LoadAssemblies (1175ms)
+		AnalyzeDomain (662ms)
+			TypeCache.Refresh (498ms)
+				TypeCache.ScanAssembly (469ms)
+			BuildScriptInfoCaches (131ms)
+			ResolveRequiredComponents (29ms)
+	FinalizeReload (6358ms)
+		SetupLoadedEditorAssemblies (0ms)
+			InitializePlatformSupportModulesInManaged (46ms)
+			BeforeProcessingInitializeOnLoad (485ms)
+			ProcessInitializeOnLoadAttributes (4630ms)
+			ProcessInitializeOnLoadMethodAttributes (779ms)
+			AfterProcessingInitializeOnLoad (15ms)
+		AwakeInstancesAfterBackupRestoration (44ms)
+Refreshing native plugins compatible for Editor in 6.76 ms, found 5 plugins.
+(Values over 0.050ms)
+Asset Pipeline Refresh (id=6ea5572a06325034eb622492070aef4a): Total: 20.480 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=10072 ms
+		Asset DB Callback time: managed=407 ms, native=71 ms
+		Scripting: domain reloads=1, domain reload time=3413 ms, compile time=6261 ms, other=251 ms
+		Project Asset Count: scripts=2388, non-scripts=6445
+		Asset File Changes: new=0, changed=1, moved=0, deleted=1
+		Scan Filter Count: 0
+	InvokePackagesCallback: 48.983ms
+	ApplyChangesToAssetFolders: 1.081ms
+	Scan: 2059.985ms
+	OnSourceAssetsModified: 1.268ms
+	CategorizeScriptCompilationAssets: 734.529ms
+	ProcessAssetsWithTransientArtifactChanges: 206.793ms
+	CategorizeAssets: 158.891ms
+	CompileScripts: 6261.026ms
+	ImportOutOfDateAssets: 6399.600ms (6390.042ms without children)
+		ReloadNativeAssets: 0.052ms
+		UnloadImportedAssets: 4.412ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.983ms
+		OnDemandSchedulerStart: 2.101ms
+	PostProcessAllAssets: 408.429ms
+		XRBuildSystem.XRAssetImported 3.069ms
+		VCAutoAddAssetPostprocess 1.676ms
+		MonoPostProcessAllAssets: 402.860ms
+			AssetPostprocessor.OnPostprocessAllAssets 283.994ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 38.668ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 17.507ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 10.205ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 5.571ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 4.414ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 3.222ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 2.028ms
+			AssetChangedListener.OnPostprocessAllAssets 1.992ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 1.690ms
+			AddressablesAssetPostProcessor.OnPostprocessAllAssets 1.549ms
+			LocalizationAssetPostProcessor.OnPostprocessAllAssets 1.475ms
+			MaterialPostprocessor.OnPostprocessAllAssets 1.368ms
+			AssetPathToTypes.OnPostprocessAllAssets 1.358ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.746ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.705ms
+			PostProcessor.OnPostprocessAllAssets 0.673ms
+			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.661ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.654ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.613ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.597ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.566ms
+			CinemachineSettings.OnPostprocessAllAssets 0.462ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.457ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 0.412ms
+			SamplePostprocessor.OnPostprocessAllAssets 0.404ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.397ms
+			AssetEvents.OnPostprocessAllAssets 0.326ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.283ms
+			ConfigAssetsTracker.OnPostprocessAllAssets 0.248ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.234ms
+			SyncVS.PostprocessSyncProject 0.203ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.199ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.167ms
+			AudioContainerPostProcessor.OnPostprocessAllAssets 0.097ms
+	PostAssetChangesProfiler: 27.276ms
+	UnloadStreamsBegin: 2.855ms
+	PersistCurrentRevisions: 0.611ms
+	GenerateScriptTypeHashes: 6.450ms
+	GenerateScriptTypeSerializationHashes: 13.210ms
+	Untracked: 4159.714ms
+
+Application.AssetDatabase Initial Refresh End
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.07 seconds
+Scanning for USB devices : 5.464ms
+Initializing Unity extensions:
+Unloading 197 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 10806 unused Assets / (29.4 MB). Loaded Objects now: 11451.
+Memory consumption went from 308.7 MB to 279.2 MB.
+Total: 49.405000 ms (FindLiveObjects: 1.858500 ms CreateObjectMapping: 5.082300 ms MarkObjects: 17.941500 ms  DeleteObjects: 23.825700 ms)
+
+[MixamoControllers] 클립 없음: Assets/Animations/Mixamo/Idle.fbx
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogWarning (object)
+ProjectName.EditorTools.MixamoControllerBuilder:ConfigureMixamoClipLoop () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:202)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildAll () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:26)
+
+(Filename: Assets/Editor/Mixamo/MixamoControllerBuilder.cs Line: 202)
+
+[MixamoControllers] 클립 없음: Assets/Animations/Mixamo/Walking.fbx
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogWarning (object)
+ProjectName.EditorTools.MixamoControllerBuilder:ConfigureMixamoClipLoop () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:202)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildAll () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:26)
+
+(Filename: Assets/Editor/Mixamo/MixamoControllerBuilder.cs Line: 202)
+
+[MixamoControllers] 클립 없음: Assets/Animations/Mixamo/Running.fbx
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogWarning (object)
+ProjectName.EditorTools.MixamoControllerBuilder:ConfigureMixamoClipLoop () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:202)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildAll () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:26)
+
+(Filename: Assets/Editor/Mixamo/MixamoControllerBuilder.cs Line: 202)
+
+[MixamoControllers] 클립 없음: Assets/Animations/Mixamo/Standing Jump.fbx
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogWarning (object)
+ProjectName.EditorTools.MixamoControllerBuilder:ConfigureMixamoClipLoop () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:202)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildAll () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:26)
+
+(Filename: Assets/Editor/Mixamo/MixamoControllerBuilder.cs Line: 202)
+
+[MixamoControllers] 믹사모 클립 Loop Time 설정: 0개 FBX 재임포트
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.EditorTools.MixamoControllerBuilder:ConfigureMixamoClipLoop () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:217)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildAll () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:26)
+
+(Filename: Assets/Editor/Mixamo/MixamoControllerBuilder.cs Line: 217)
+
+[MixamoControllers] 유저 FBX(MixamoUser) 임포트 보정: 0개 재임포트
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.EditorTools.MixamoControllerBuilder:ConfigureUserAnimImports () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:275)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildAll () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:27)
+
+(Filename: Assets/Editor/Mixamo/MixamoControllerBuilder.cs Line: 275)
+
+Asset Pipeline Refresh (id=4b81fa0408f27ea458fe8e9ad25c946f): Total: 0.158 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Start importing Assets/Resources/Animation/Controllers/Player_AC.controller using Guid(6cf1ce959034c0c438a0dc0d8889cea6) (NativeFormatImporter) -> (Import Result ID: 'b7fb7d7d53ce04fa9aaa82c4a7faad8c') in 0.0210435 seconds [static dependencies only]. Details - ImportResultOutputID=6a3e187a8e7ecf1e72c79f7099ed5e61 DependenciesID=b23a986e1f987c8c545276e3b296385d StaticDependenciesID=4f19acabb71f9aeb275b897bca5e0e60 
+Refreshing native plugins compatible for Editor in 6.08 ms, found 5 plugins.
+(Values over 0.050ms)
+Asset Pipeline Refresh (id=92e9b8adc4bda474f9e142b64c2bcfb2): Total: 0.334 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+	Summary:
+		Imports: total=1 (actual=1, local cache=0, cache server=0)
+		Asset DB Process Time: managed=3 ms, native=303 ms
+		Asset DB Callback time: managed=4 ms, native=21 ms
+		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
+		Project Asset Count: scripts=2388, non-scripts=6446
+		Asset File Changes: new=1, changed=1, moved=0, deleted=0
+		Scan Filter Count: 5
+	ApplyChangesToAssetFolders: 0.161ms
+	Scan: 210.426ms
+	OnSourceAssetsModified: 1.015ms
+	ProcessAssetsWithTransientArtifactChanges: 0.266ms
+	CategorizeAssets: 46.262ms
+	ImportOutOfDateAssets: 40.377ms (2.946ms without children)
+		ImportManagerImport: 33.960ms (2.102ms without children)
+		ReloadNativeAssets: 0.181ms
+		UnloadImportedAssets: 0.336ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.903ms
+		InitializingProgressBar: 0.069ms
+		OnDemandSchedulerStart: 0.979ms
+	PostProcessAllAssets: 18.488ms
+		XRBuildSystem.XRAssetImported 14.825ms
+		VersionControlSettings.HiddenFilePostprocess 0.056ms
+		MonoPostProcessAllAssets: 3.429ms
+			AssetPostprocessor.OnPostprocessAllAssets 2.482ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.140ms
+			SyncVS.PostprocessSyncProject 0.116ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.079ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.069ms
+	PostAssetChangesProfiler: 6.876ms
+	GatherAllCurrentPrimaryImportResultRevisions: 0.831ms
+	PersistCurrentRevisions: 0.521ms
+	Untracked: 9.111ms
+
+Start importing Assets/Resources/Animation/Controllers/Player_AC.controller using Guid(6cf1ce959034c0c438a0dc0d8889cea6) (NativeFormatImporter) -> (Import Result ID: 'b7fb7d7d53ce04fa9aaa82c4a7faad8c') in 0.0230593 seconds [static dependencies only]. Details - ImportResultOutputID=6a3e187a8e7ecf1e72c79f7099ed5e61 DependenciesID=b23a986e1f987c8c545276e3b296385d StaticDependenciesID=4f19acabb71f9aeb275b897bca5e0e60 
+Refreshing native plugins compatible for Editor in 5.56 ms, found 5 plugins.
+Asset Pipeline Refresh (id=13dafae77da12ea478900df30b3a8192): Total: 0.068 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[MixamoControllers] 컨트롤러 생성 경로 확인: Assets/Resources/Animation/Controllers/Player_AC.controller
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.EditorTools.MixamoControllerBuilder:Create (string,System.ValueTuple`2<string, UnityEngine.AnimatorControllerParameterType>[]) (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:307)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildPlayer () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:91)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildAll () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:28)
+
+(Filename: Assets/Editor/Mixamo/MixamoControllerBuilder.cs Line: 307)
+
+Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.0051437 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
+Start importing Assets/Resources/Animation/Controllers/Player_AC.controller using Guid(6cf1ce959034c0c438a0dc0d8889cea6) (NativeFormatImporter) -> (Import Result ID: '79d2c8f2bf70f3f5d43301bb697209b4') in 0.0037708 seconds [static dependencies only]. Details - ImportResultOutputID=6a3e187a8e7ecf1e72c79f7099ed5e61 DependenciesID=b41202cfc66ffff98fda4d3b496bf019 StaticDependenciesID=22dfa35592602c6c9479a070070be841 
+Refreshing native plugins compatible for Editor in 6.58 ms, found 5 plugins.
+Asset Pipeline Refresh (id=603c5971062b71241a12fad4d55c4649): Total: 0.154 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[MixamoControllers] Player_AC 생성 완료
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildPlayer () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:140)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildAll () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:28)
+
+(Filename: Assets/Editor/Mixamo/MixamoControllerBuilder.cs Line: 140)
+
+Refreshing native plugins compatible for Editor in 8.78 ms, found 5 plugins.
+Asset Pipeline Refresh (id=2dd55fc512320dc409c8c646889c8e21): Total: 0.125 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Start importing Assets/Resources/Animation/Controllers/SoldierShield_AC.controller using Guid(33c53deb233edc94a9e10f90b96746f3) (NativeFormatImporter) -> (Import Result ID: 'fe7dc9c4209c3f73b0c3782b0f037bf1') in 0.0039811 seconds [static dependencies only]. Details - ImportResultOutputID=bdcef7ff3081daebd0e9f79265eb8163 DependenciesID=d1007b6b2eeea0001a8257d6ffb339ba StaticDependenciesID=89c20d0eec5eae2179252255c2de3a5e 
+Refreshing native plugins compatible for Editor in 6.77 ms, found 5 plugins.
+Asset Pipeline Refresh (id=3c337e12ec885b041b911feae5ce0bc4): Total: 0.144 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/Resources/Animation/Controllers/SoldierShield_AC.controller using Guid(33c53deb233edc94a9e10f90b96746f3) (NativeFormatImporter) -> (Import Result ID: 'fe7dc9c4209c3f73b0c3782b0f037bf1') in 0.0035013 seconds [static dependencies only]. Details - ImportResultOutputID=bdcef7ff3081daebd0e9f79265eb8163 DependenciesID=d1007b6b2eeea0001a8257d6ffb339ba StaticDependenciesID=89c20d0eec5eae2179252255c2de3a5e 
+Refreshing native plugins compatible for Editor in 6.99 ms, found 5 plugins.
+Asset Pipeline Refresh (id=3caadd750c0db134ab6bb19f13663b76): Total: 0.060 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[MixamoControllers] 컨트롤러 생성 경로 확인: Assets/Resources/Animation/Controllers/SoldierShield_AC.controller
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.EditorTools.MixamoControllerBuilder:Create (string,System.ValueTuple`2<string, UnityEngine.AnimatorControllerParameterType>[]) (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:307)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildSoldier (string,System.ValueTuple`2<string, string>[],bool) (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:145)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildAll () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:29)
+
+(Filename: Assets/Editor/Mixamo/MixamoControllerBuilder.cs Line: 307)
+
+Start importing Assets/Resources/Animation/Controllers/SoldierShield_AC.controller using Guid(33c53deb233edc94a9e10f90b96746f3) (NativeFormatImporter) -> (Import Result ID: '7878999ba5eb14f528849ec924604245') in 0.0043283 seconds [static dependencies only]. Details - ImportResultOutputID=bdcef7ff3081daebd0e9f79265eb8163 DependenciesID=30a2331c504daa41bb6a443187e8e6b8 StaticDependenciesID=cb5e48ed74928e20112a6457e8dcc69f 
+Refreshing native plugins compatible for Editor in 8.19 ms, found 5 plugins.
+Asset Pipeline Refresh (id=a0d9c1bc013590d4eb160d03970f4c78): Total: 0.125 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[MixamoControllers] SoldierShield_AC 생성 완료
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildSoldier (string,System.ValueTuple`2<string, string>[],bool) (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:168)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildAll () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:29)
+
+(Filename: Assets/Editor/Mixamo/MixamoControllerBuilder.cs Line: 168)
+
+Refreshing native plugins compatible for Editor in 5.98 ms, found 5 plugins.
+Asset Pipeline Refresh (id=736d02d7d82ab7945a6607f31492272a): Total: 0.102 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Start importing Assets/Resources/Animation/Controllers/SoldierGreatSword_AC.controller using Guid(0117915a15039c44aa45f42f8e0f7d8f) (NativeFormatImporter) -> (Import Result ID: 'c899ab456fc8838c897597c3e1cedbb3') in 0.002847 seconds [static dependencies only]. Details - ImportResultOutputID=b5cc455a367914de4fce6cc222061829 DependenciesID=5d4ad2e64c65e0cdf6045794b9d61884 StaticDependenciesID=4c2990064285faeedf42451161035590 
+Refreshing native plugins compatible for Editor in 6.38 ms, found 5 plugins.
+Asset Pipeline Refresh (id=1ae0e4159a6ff834eaff2df84d09a9b6): Total: 0.115 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/Resources/Animation/Controllers/SoldierGreatSword_AC.controller using Guid(0117915a15039c44aa45f42f8e0f7d8f) (NativeFormatImporter) -> (Import Result ID: 'c899ab456fc8838c897597c3e1cedbb3') in 0.0028285 seconds [static dependencies only]. Details - ImportResultOutputID=b5cc455a367914de4fce6cc222061829 DependenciesID=5d4ad2e64c65e0cdf6045794b9d61884 StaticDependenciesID=4c2990064285faeedf42451161035590 
+Refreshing native plugins compatible for Editor in 6.35 ms, found 5 plugins.
+Asset Pipeline Refresh (id=22db20ceb910782419244f77aadc64cd): Total: 0.043 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[MixamoControllers] 컨트롤러 생성 경로 확인: Assets/Resources/Animation/Controllers/SoldierGreatSword_AC.controller
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.EditorTools.MixamoControllerBuilder:Create (string,System.ValueTuple`2<string, UnityEngine.AnimatorControllerParameterType>[]) (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:307)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildSoldier (string,System.ValueTuple`2<string, string>[],bool) (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:145)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildAll () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:37)
+
+(Filename: Assets/Editor/Mixamo/MixamoControllerBuilder.cs Line: 307)
+
+Start importing Assets/Resources/Animation/Controllers/SoldierGreatSword_AC.controller using Guid(0117915a15039c44aa45f42f8e0f7d8f) (NativeFormatImporter) -> (Import Result ID: '9d4b2fcbc5368bb686d83bde01c00596') in 0.0028819 seconds [static dependencies only]. Details - ImportResultOutputID=b5cc455a367914de4fce6cc222061829 DependenciesID=d93265356904ff9d905c22d74689d69f StaticDependenciesID=ea1468ff80f6dc80ea644ab5a19c7159 
+Refreshing native plugins compatible for Editor in 9.32 ms, found 5 plugins.
+Asset Pipeline Refresh (id=d44d313300ac67f4aaabb89d1eb199f0): Total: 0.092 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[MixamoControllers] SoldierGreatSword_AC 생성 완료
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildSoldier (string,System.ValueTuple`2<string, string>[],bool) (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:168)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildAll () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:37)
+
+(Filename: Assets/Editor/Mixamo/MixamoControllerBuilder.cs Line: 168)
+
+Refreshing native plugins compatible for Editor in 6.75 ms, found 5 plugins.
+Asset Pipeline Refresh (id=a7fcbbb65984cfa479468c5ae051a153): Total: 0.084 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Start importing Assets/Resources/Animation/Controllers/SoldierArcher_AC.controller using Guid(ff3f16662c52f8749a100287d8ddd5af) (NativeFormatImporter) -> (Import Result ID: 'f1daaae525f4cef7029f38b50d62a4b3') in 0.0031646 seconds [static dependencies only]. Details - ImportResultOutputID=0eba9c8b969e299b60d8f183f44c9a52 DependenciesID=11a7814896967888f0498c2a35deea13 StaticDependenciesID=f6b72abab1f11c76a70fea8ef2471ea3 
+Refreshing native plugins compatible for Editor in 6.10 ms, found 5 plugins.
+Asset Pipeline Refresh (id=1257ef79f8a7ed049af11573566268ea): Total: 0.124 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/Resources/Animation/Controllers/SoldierArcher_AC.controller using Guid(ff3f16662c52f8749a100287d8ddd5af) (NativeFormatImporter) -> (Import Result ID: 'f1daaae525f4cef7029f38b50d62a4b3') in 0.0035239 seconds [static dependencies only]. Details - ImportResultOutputID=0eba9c8b969e299b60d8f183f44c9a52 DependenciesID=11a7814896967888f0498c2a35deea13 StaticDependenciesID=f6b72abab1f11c76a70fea8ef2471ea3 
+Refreshing native plugins compatible for Editor in 6.60 ms, found 5 plugins.
+Asset Pipeline Refresh (id=c0a2f361355a8d740b68c9484b20d5eb): Total: 0.053 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[MixamoControllers] 컨트롤러 생성 경로 확인: Assets/Resources/Animation/Controllers/SoldierArcher_AC.controller
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.EditorTools.MixamoControllerBuilder:Create (string,System.ValueTuple`2<string, UnityEngine.AnimatorControllerParameterType>[]) (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:307)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildSoldier (string,System.ValueTuple`2<string, string>[],bool) (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:145)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildAll () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:45)
+
+(Filename: Assets/Editor/Mixamo/MixamoControllerBuilder.cs Line: 307)
+
+Start importing Assets/Resources/Animation/Controllers/SoldierArcher_AC.controller using Guid(ff3f16662c52f8749a100287d8ddd5af) (NativeFormatImporter) -> (Import Result ID: '675c534c748c804cebbaa00561887948') in 0.0028268 seconds [static dependencies only]. Details - ImportResultOutputID=0eba9c8b969e299b60d8f183f44c9a52 DependenciesID=de75d34b0de8161b743b95b62f7ae916 StaticDependenciesID=89a4ddf5afb848684d51511d6cdf3708 
+Refreshing native plugins compatible for Editor in 7.09 ms, found 5 plugins.
+Asset Pipeline Refresh (id=238122eee5f4b2448bc2d63c2779f65f): Total: 0.100 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[MixamoControllers] SoldierArcher_AC 생성 완료
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildSoldier (string,System.ValueTuple`2<string, string>[],bool) (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:168)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildAll () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:45)
+
+(Filename: Assets/Editor/Mixamo/MixamoControllerBuilder.cs Line: 168)
+
+Asset Pipeline Refresh (id=2c97a79a37e619a4bbac76953d230fdc): Total: 0.020 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+[MixamoControllers] 4개 컨트롤러 생성 완료 → Assets/Resources/Animation/Controllers
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ProjectName.EditorTools.MixamoControllerBuilder:BuildAll () (at Assets/Editor/Mixamo/MixamoControllerBuilder.cs:55)
+
+(Filename: Assets/Editor/Mixamo/MixamoControllerBuilder.cs Line: 55)
+
+Batchmode quit successfully invoked - shutting down!
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input Polling Thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-korea-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-korea channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+CodeReloadManager destroyed
+abort_threads: Failed aborting id: 0000000000000DB4, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 0000000000000FA8, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 0000000000000DB4, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 0000000000000FA8, mono_thread_manage will ignore it
+
+debugger-agent: Unable to listen on 3148
+Exiting batchmode successfully now!
+Exiting without the bug reporter. Application will terminate with return code 0

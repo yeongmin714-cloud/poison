@@ -88,7 +88,7 @@ namespace ProjectName.EditorTools
 
         static void BuildPlayer()
         {
-            var ac = Create("Player_AC", new[]
+            var ac = Create("Player", new[]
             {
                 ("Speed", AnimatorControllerParameterType.Float),
                 ("Attack", AnimatorControllerParameterType.Trigger),
