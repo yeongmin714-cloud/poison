@@ -222,6 +222,14 @@ namespace ProjectName.Systems
         private static List<List<Vector3>> _curvedRoads = null;
         private static bool _curvedRoadsBuilt = false;
 
+        // T-D3 T5: 능선길 2개 + 호수 연장 세그먼트 — DirtRoadMask 경로 집합 확장분 캐시.
+        // 스플랫 픽셀마다 호출되므로 1회 빌드 후 캐시에서만 읽는다 (CurvedRoads 패턴 동일).
+        private static List<List<Vector3>> _extraPaths = null;
+        private static bool _extraPathsBuilt = false;
+        private const int RidgePathSeed = 42;               // T5-1 능선길 고정 시드 (결정론)
+        private const int LakeExtensionRoads = 2;           // T5-2 연장 대상 곡선도로 수
+        private const float LakeExtensionMaxMeters = 600f;  // 호수 연장 거리 상한 (과원거리 연장 방지)
+
         /// <summary>
         /// Z4: 중앙(0,0) → 4방위(E/N/W/S) 곡선 도로 폴리라인 (결정론, 사인 곡선).
         /// 시작/끝은 방위 광선 위(횡방향 0)에서 출발하고, 중간 구간에서 사인으로 크게 굽는다.
@@ -483,6 +491,148 @@ namespace ProjectName.Systems
             float cx = ax + dx * t, cz = az + dz * t;
             float rx = px - cx, rz = pz - cz;
             return rx * rx + rz * rz;
+        }
+
+        // ================================================================
+        // Phase T-D3 T5: 능선길 2개 + 호수 연장 세그먼트 (DirtRoadMask 경로 집합 확장)
+        // ================================================================
+
+        /// <summary>
+        /// DirtRoadMask 추가 경로 폴리라인 집합 (캐시, 1회 빌드 — 결정론).
+        ///   · T5-1: 능선 crest 중심선 2개 — TerrainShape.GetRidgeCrestSegments(42)
+        ///     (GetRidgeBoostMask와 동일 셀 해시 배치 로직의 중심선, 시드 42 고정).
+        ///   · T5-2: 곡선도로 4개 중 끝점이 호수 수변에 가장 가까운 2개의 직선 연장 폴리라인.
+        /// </summary>
+        private static List<List<Vector3>> ExtraPaths()
+        {
+            if (_extraPathsBuilt) return _extraPaths;
+            _extraPathsBuilt = true;
+            _extraPaths = new List<List<Vector3>>();
+
+            // ── T5-1: 능선 crest 중심선 2개 → SampleStep 간격 샘플 폴리라인 ──
+            Vector3[] crest = TerrainShape.GetRidgeCrestSegments(RidgePathSeed);
+            for (int i = 0; i + 1 < crest.Length; i += 2)
+            {
+                List<Vector3> poly = SampleStraight(crest[i], crest[i + 1]);
+                if (poly.Count >= 2) _extraPaths.Add(poly);
+            }
+
+            // ── T5-2: 곡선도로 끝점 → 가장 가까운 호수 수변 직선 연장 2개 ──
+            AppendLakeExtensions(_extraPaths);
+
+            return _extraPaths;
+        }
+
+        /// <summary>직선 a→b를 SampleStep 간격으로 샘플링한 폴리라인 (빌드 시 1회 사용).</summary>
+        private static List<Vector3> SampleStraight(Vector3 a, Vector3 b)
+        {
+            List<Vector3> pts = new List<Vector3>();
+            float len = Vector3.Distance(a, b);
+            if (len < 0.001f) return pts;
+            int steps = Mathf.Max(1, Mathf.CeilToInt(len / SampleStep));
+            for (int k = 0; k <= steps; k++)
+                pts.Add(Vector3.Lerp(a, b, (float)k / steps));
+            return pts;
+        }
+
+        /// <summary>곡선도로 ↔ 호수 연장 후보 (결정론 정렬용).</summary>
+        private struct LakeLinkCandidate
+        {
+            public int roadIdx;
+            public int lakeIdx;
+            public float shoreDist;   // 도로 끝점 → 수변까지 남은 거리
+        }
+
+        /// <summary>
+        /// T5-2: 각 곡선도로 끝점(반경 700m)에서 가장 가까운 호수를 찾아 수변까지 직선 연장
+        /// 폴리라인을 output에 추가한다. 결정론 선택(수변까지 가까운 순, 동률 시 도로/호수 인덱스 순)으로
+        /// 서로 다른 도로 2개에 대해 1개씩 연장. 끝점이 이미 호수 내부거나 상한 초과면 기각.
+        /// 연장 직선이 다른 호수를 가로지르는 후보도 기각한다 (DetourArc 우회 아님 — 단순 연장 세그먼트).
+        /// </summary>
+        private static void AppendLakeExtensions(List<List<Vector3>> output)
+        {
+            var lakes = TerrainGenerator.Lakes;
+            if (lakes == null || lakes.Count == 0) return;
+            var roads = CurvedRoads();
+
+            var cands = new List<LakeLinkCandidate>();
+            for (int r = 0; r < roads.Count; r++)
+            {
+                var pts = roads[r];
+                Vector3 end = pts[pts.Count - 1];
+                for (int l = 0; l < lakes.Count; l++)
+                {
+                    float dx = end.x - lakes[l].center.x;
+                    float dz = end.z - lakes[l].center.z;
+                    float shore = Mathf.Sqrt(dx * dx + dz * dz) - lakes[l].radius;
+                    if (shore <= 0f) continue;                     // 끝점이 이미 호수 내부 — 연장 불필요
+                    if (shore > LakeExtensionMaxMeters) continue;  // 과원거리 — 연장 생략
+                    cands.Add(new LakeLinkCandidate { roadIdx = r, lakeIdx = l, shoreDist = shore });
+                }
+            }
+            if (cands.Count == 0) return;
+
+            // 결정론: 수변까지 가까운 순 → 도로 인덱스 순 → 호수 인덱스 순.
+            // 도로별 최근접 호수가 항상 먼저 오므로 roadUsed로 도로당 1회 연장을 보장한다.
+            cands.Sort((a, b) =>
+            {
+                int byDist = a.shoreDist.CompareTo(b.shoreDist);
+                if (byDist != 0) return byDist;
+                if (a.roadIdx != b.roadIdx) return a.roadIdx.CompareTo(b.roadIdx);
+                return a.lakeIdx.CompareTo(b.lakeIdx);
+            });
+
+            bool[] roadUsed = new bool[roads.Count];
+            int linked = 0;
+            for (int i = 0; i < cands.Count && linked < LakeExtensionRoads; i++)
+            {
+                var c = cands[i];
+                if (roadUsed[c.roadIdx]) continue;
+
+                var road = roads[c.roadIdx];
+                Vector3 end = road[road.Count - 1];
+                Vector3 center = lakes[c.lakeIdx].center;
+                float radius = lakes[c.lakeIdx].radius;
+
+                // 수변 도달점 — 끝점→호수 중심 직선과 수면 원(반경 radius)의 교점 (중심 도달 시 종단)
+                Vector3 toEnd = new Vector3(end.x - center.x, 0f, end.z - center.z);
+                float dLen = Mathf.Sqrt(toEnd.x * toEnd.x + toEnd.z * toEnd.z);
+                if (dLen < 0.001f) continue;
+                Vector3 shorePt = new Vector3(
+                    center.x + toEnd.x / dLen * radius,
+                    end.y,
+                    center.z + toEnd.z / dLen * radius);
+
+                // 정합 가드: 연장 직선이 '다른' 호수 원 내부를 통과하면 기각
+                if (CrossesOtherLake(end, shorePt, c.lakeIdx)) continue;
+
+                List<Vector3> poly = SampleStraight(end, shorePt);
+                if (poly.Count < 2) continue;
+
+                output.Add(poly);
+                roadUsed[c.roadIdx] = true;
+                linked++;
+            }
+        }
+
+        /// <summary>세그먼트 a→b가 lakes[skipIdx] 이외의 호수 원 내부를 통과하는지 (SampleStep 보간 검사).</summary>
+        private static bool CrossesOtherLake(Vector3 a, Vector3 b, int skipIdx)
+        {
+            var lakes = TerrainGenerator.Lakes;
+            if (lakes == null) return false;
+            float len = Vector3.Distance(a, b);
+            int steps = Mathf.Max(1, Mathf.CeilToInt(len / SampleStep));
+            for (int k = 0; k <= steps; k++)
+            {
+                Vector3 p = Vector3.Lerp(a, b, (float)k / steps);
+                for (int l = 0; l < lakes.Count; l++)
+                {
+                    if (l == skipIdx) continue;
+                    float dx = p.x - lakes[l].center.x, dz = p.z - lakes[l].center.z;
+                    if (dx * dx + dz * dz < lakes[l].radius * lakes[l].radius) return true;
+                }
+            }
+            return false;
         }
 
         // ================================================================

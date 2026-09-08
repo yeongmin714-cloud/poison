@@ -690,6 +690,93 @@ namespace ProjectName.Systems
             return best;
         }
 
+        // ── T-D3 T5-1: 능선 crest 중심선 세그먼트 (흙길용 — GetRidgeBoostMask 동일 배치 로직 재사용) ──
+
+        /// <summary>능선 crest 후보 (GetRidgeBoostMask 셀 해시 배치식과 동일한 파라미터 세트).</summary>
+        private struct RidgeCrestCandidate
+        {
+            public float sx, sz;      // 세그먼트 중심 (셀 내부 해시 배치)
+            public float len;         // 세그먼트 길이 (200~400m)
+            public int cellX, cellZ, s;
+        }
+
+        /// <summary>
+        /// 능선 crest 중심선 세그먼트 2개를 [start0, end0, start1, end1] 플랫 배열로 반환 — T-D3 T5-1.
+        /// GetRidgeBoostMask와 동일한 셀/시드/구성 방정식(CELL=640, nseed=seed+NationSeedOffset+7303,
+        /// 길이 200~400m 해시 지터, 방향 base±45°)을 그대로 재사용해, 중앙(0,0) 반경 1200m 이내
+        /// 후보 세그먼트 중 결정론적으로 가장 긴 2개(동률 시 셀/서브인덱스 순, 상호 300m 이격 우선)를 고른다.
+        /// 국가 무관 — Empire 배치 규약(baseAng=45°) 고정으로 전 방위 고른 분포.
+        /// GetRidgeBoostMask 자체는 수정하지 않는 순수 추가 메서드 (결정론 — Random 미사용, 재귀 없음).
+        /// </summary>
+        public static Vector3[] GetRidgeCrestSegments(int seed)
+        {
+            const int Wanted = 2;
+            const float CELL = 640f;
+            const float RANGE = 1200f;
+            const float MinSpacing = 300f;
+            int nseed = seed + NationSeedOffset(NationType.Empire) + 7303;   // GetRidgeBoostMask와 동일 구성식
+            const float baseAngDeg = 45f;                                    // Empire 규약 (GetRidgeBoostMask 내 baseAng와 동일)
+
+            var cands = new List<RidgeCrestCandidate>(16);
+            // 세그먼트 중심은 셀 내부 해시 배치 — 중앙 ±RANGE 원판을 덮는 셀 범위 전수 순회(결정론).
+            // |sx|,|sz| <= RANGE 인 점은 셀 인덱스 [-2, 1] 에만 존재한다 (CELL=640).
+            int minC = Mathf.FloorToInt(-RANGE / CELL);   // -2
+            int maxC = Mathf.FloorToInt(RANGE / CELL);    //  1
+            for (int cellZ = minC; cellZ <= maxC; cellZ++)
+            {
+                for (int cellX = minC; cellX <= maxC; cellX++)
+                {
+                    int segs = 1 + (Hash2(cellX, cellZ, nseed) < 0.5f ? 0 : 1);   // 셀당 1~2개 (동일식)
+                    for (int s = 0; s < segs; s++)
+                    {
+                        float sx = (cellX + Hash2(cellX, cellZ, nseed + 11 + s * 7)) * CELL;
+                        float sz = (cellZ + Hash2(cellX, cellZ, nseed + 17 + s * 7)) * CELL;
+                        if (Mathf.Sqrt(sx * sx + sz * sz) > RANGE) continue;   // 중앙 1200m 이내 한정
+                        float len = Mathf.Lerp(200f, 400f, Hash2(cellX, cellZ, nseed + 23 + s * 7));
+                        cands.Add(new RidgeCrestCandidate
+                        {
+                            sx = sx, sz = sz, len = len, cellX = cellX, cellZ = cellZ, s = s
+                        });
+                    }
+                }
+            }
+            if (cands.Count == 0) return System.Array.Empty<Vector3>();
+
+            // 결정론 정렬: 길이 내림차순 → 셀/서브인덱스 오름차순 (동률 제거)
+            cands.Sort((a, b) =>
+            {
+                int byLen = b.len.CompareTo(a.len);
+                if (byLen != 0) return byLen;
+                if (a.cellX != b.cellX) return a.cellX.CompareTo(b.cellX);
+                if (a.cellZ != b.cellZ) return a.cellZ.CompareTo(b.cellZ);
+                return a.s.CompareTo(b.s);
+            });
+
+            RidgeCrestCandidate first = cands[0];
+            RidgeCrestCandidate second = cands.Count > 1 ? cands[1] : first;
+            for (int i = 1; i < cands.Count; i++)
+            {
+                // 두 능선길이 겹치지 않도록 중심 상호 이격 우선 (없으면 그냥 차장자)
+                float dx = cands[i].sx - first.sx, dz = cands[i].sz - first.sz;
+                if (dx * dx + dz * dz >= MinSpacing * MinSpacing) { second = cands[i]; break; }
+            }
+
+            var outSegs = new List<Vector3>(Wanted * 2);
+            AppendCrestSegment(outSegs, first, baseAngDeg, nseed);
+            AppendCrestSegment(outSegs, second, baseAngDeg, nseed);
+            return outSegs.ToArray();
+        }
+
+        /// <summary>후보 → 시작/끝 점 2개 변환 (GetRidgeBoostMask 방향식과 동일: base±45° 해시).</summary>
+        static void AppendCrestSegment(List<Vector3> output, RidgeCrestCandidate c, float baseAngDeg, int nseed)
+        {
+            float ang = (baseAngDeg + (Hash2(c.cellX, c.cellZ, nseed + 29 + c.s * 7) - 0.5f) * 90f) * Mathf.Deg2Rad;
+            float dirX = Mathf.Cos(ang), dirZ = Mathf.Sin(ang);
+            float half = c.len * 0.5f;
+            output.Add(new Vector3(c.sx - dirX * half, 0f, c.sz - dirZ * half));
+            output.Add(new Vector3(c.sx + dirX * half, 0f, c.sz + dirZ * half));
+        }
+
         // ── 대형 분지 (예시9: 병풍 절벽 둘러싼 분지) ──
         public const float BASIN_RADIUS_MIN = 90f;
         public const float BASIN_RADIUS_MAX = 130f;
