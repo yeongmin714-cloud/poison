@@ -27,6 +27,7 @@ namespace ProjectName.Systems
         const int   BUDGET_PER_FRAME = 100;     // 프레임당 잔디 생성 예산 (근접 밀집 강화 — 정적 병합 잔디와 역할 분리)
         const int   BASE_PER_CELL = 90;          // 셀(10×10m=100㎡)당 개수 ≈ ~6300/45m 원
         const int   DENSE_MULT = 3;              // 꽃밭/숲 마스크 내부 밀도 배수
+        const float NORTH_DENSITY_FACTOR = 0.35f; // 설원(North): 잔디 밀도 35%로 감소 — 눈밭은 잔디가 듬성듬성
         const float MASK_HI = 0.5f;
         const float GROUND_BASE = 1f;
         const float GRASS_TILT_DEG = 8f;
@@ -172,7 +173,11 @@ namespace ProjectName.Systems
             var nation = NationTerrainController.GetNationFromPosition(new Vector3(wx, 0f, wz));
             bool dense = TerrainShape.GetFlowerPatchMask(wx, wz) > MASK_HI
                 || TerrainShape.GetForestPatchMask(wx, wz, nation, FANTASY_SEED) > MASK_HI;
-            int count = dense ? BASE_PER_CELL * DENSE_MULT : BASE_PER_CELL;
+            int baseCount = dense ? BASE_PER_CELL * DENSE_MULT : BASE_PER_CELL;
+            // 설원(North): 잔디 밀도 감소 — 눈밭에서 연두 잔디가 뒤덮지 않게
+            if (nation == NationType.North)
+                baseCount = Mathf.RoundToInt(baseCount * NORTH_DENSITY_FACTOR);
+            int count = Mathf.Max(4, baseCount);
 
             c.items.Clear();
             for (int k = 0; k < count && _budgetUsedThisFrame < BUDGET_PER_FRAME && _prefabs.Count > 0; k++)
@@ -230,18 +235,36 @@ namespace ProjectName.Systems
         {
             if (go == null) return; // 파괴된 오브젝트 가드 (NRE 원천 차단)
 
+            Color baseColor = GetPrefabBaseColor(go);
+
+            // 설원(North): 곱셈 틴트로는 연두 base를 흰색으로 못 만든다(최대 0.3×0.88≈0.26).
+            // 흰눈색으로 직접 치환해 잔디 오브젝트를 눈밭 색으로 바꾼다. 동/서/남/황제국은 기존 곱셈 유지.
+            if (nation == NationType.North)
+            {
+                Color snow = new Color(0.95f, 0.97f, 1.00f, baseColor.a);
+                var renderers = go.GetComponentsInChildren<Renderer>(true);
+                if (_tintBlock == null) _tintBlock = new MaterialPropertyBlock();
+                for (int i = 0; i < renderers.Length; i++)
+                {
+                    var r = renderers[i];
+                    if (r == null) continue;
+                    r.GetPropertyBlock(_tintBlock);
+                    _tintBlock.SetColor(TintPropertyId, snow);
+                    _tintBlock.SetColor(TintPropertyIdAlt, snow);
+                    r.SetPropertyBlock(_tintBlock);
+                }
+                return;
+            }
+
             Color factor;
             switch (nation)
             {
                 case NationType.West:    factor = GrassTintWest;    break;
                 case NationType.South:   factor = GrassTintSouth;   break;
-                case NationType.North:   factor = GrassTintNorth;   break;
                 case NationType.Empire:  factor = GrassTintEmpire;  break;
                 case NationType.Dracula: factor = GrassTintDracula; break;
                 default:                 factor = GrassTintEast;    break;
             }
-
-            Color baseColor = GetPrefabBaseColor(go);
             Color tint = new Color(
                 baseColor.r * factor.r,
                 baseColor.g * factor.g,
