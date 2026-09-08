@@ -35,6 +35,7 @@ namespace ProjectName.Systems
         private int _comboCount;
         private float _lastAttackAt = -999f;       // 마지막 공격 시각 (Time.time)
         private bool _prevRolling, _prevJumping;
+        private float _prevSpeedForTransition = -999f;   // T-D3: Run→Walk 전환 연출용 직전 프레임 속도
         private bool _deathFired;
 
         /// <summary>T-D3+: 외부 시스템 발화용 퍼블릭 트리거(채집/경직/스턴/다운).</summary>
@@ -285,6 +286,9 @@ namespace ProjectName.Systems
                 _anim.SetFloat("MoveY", lmv.z);
             }
 
+            // T-D3 전투 모드: 검 장착 여부(IsEquipped) → 전투 이동 변형 클립 활성
+            _anim.SetBool("IsCombat", WeaponEquipManager.IsEquipped);
+
             // DD1: 상태 전환 즉시 로그 — Idle ↔ Walk(걷기) 전환 발생 여부 결정적 증거
             if (diagActive) LogStateTransition();
 
@@ -339,6 +343,11 @@ namespace ProjectName.Systems
             // T2B-3: 착지(하강 에지) 직후 짧은 흡수 창 — Speed 급상승 제한은 아래 목표 계산에서 적용
             if (!jumping && _prevJumping) _landingSoftTimer = 0.22f;
             _prevJumping = jumping;
+
+            // T-D3: Run→Walk 전환 연출 — Speed가 2.0 임계를 아래로 하향 통과할 때 1회
+            if (_prevSpeedForTransition > 2f && _smoothedSpeed <= 2f && _anim != null)
+                _anim.SetTrigger("RunToWalk");
+            _prevSpeedForTransition = _smoothedSpeed;
         }
 
         /// <summary>DD1: 현재 애니 상태/진행도/속도 로그 (state는 shortNameHash→이름 매핑).</summary>

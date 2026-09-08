@@ -119,6 +119,8 @@ namespace ProjectName.EditorTools
                 ("MoveX", AnimatorControllerParameterType.Float),
                 ("MoveY", AnimatorControllerParameterType.Float),
                 ("JumpBack", AnimatorControllerParameterType.Trigger),
+                ("IsCombat", AnimatorControllerParameterType.Bool),
+                ("RunToWalk", AnimatorControllerParameterType.Trigger),
             });
             var sm = ac.layers[0].stateMachine;
             // 로코모션=유저 제공 FBX(MixamoUser, Heat 동일 리그→표준 본명 리네임, 2026-09-08 시험 부착), 전투=팩 OneHand(검 부착 전제)
@@ -154,6 +156,13 @@ namespace ProjectName.EditorTools
             var idleTurnL = AddState(sm, "IdleTurnL", Clip("meshy:Idle_Turn_Left.fbx"));
             var idleTurnR = AddState(sm, "IdleTurnR", Clip("meshy:Idle_Turn_Right.fbx"));
 
+            // T-D3 전투 모드 변형 4종 + Run→Walk 전환 연출
+            var walkBackSword = AddState(sm, "WalkBackSword", Clip("meshy:Walk_Backward_with_Sword.fbx"));
+            var runFightL = AddState(sm, "RunFightL", Clip("meshy:ForwardLeft_Run_Fight.fbx"));
+            var runFightR = AddState(sm, "RunFightR", Clip("meshy:ForwardRight_Run_Fight.fbx"));
+            var walkTurnLWeapon = AddState(sm, "WalkTurnLWeapon", Clip("meshy:Walk_Turn_Left_with_Weapon.fbx"));
+            var runToWalk = AddState(sm, "RunToWalk", Clip("meshy:Run_to_Walk_Transition.fbx"));
+
             // 이동: Idle ↔ Walk ↔ Run (Speed 기반) — 히스테리시스: Idle→Walk는 0.55, Walk→Idle은 0.35로 분리
             // (지형/경사로 속도가 0 근처로 순간 떨어질 때 Idle로 떨어졌다 복귀하는 "끊김+멈춤" 방지)
             T(sm, idle, walk, "Speed", AnimatorConditionMode.Greater, 0.55f);
@@ -163,22 +172,22 @@ namespace ProjectName.EditorTools
             // Run→Walk 임계 2.0 — 일반 이동 5.0의 경사 딥(3.5~4.8)이 임계(기존 4.0)와 겹쳐 진동 — 실제 정지(2.0 이하)만 Walk 복귀
             T(sm, run, walk, "Speed", AnimatorConditionMode.Less, 2f);
 
-            // T-D3 이동 확장: 후진(WalkBack) — 전후 입력(MoveY) 기반, Run에서도 S 입력 시 WalkBack
-            T(sm, walk, walkBack, "MoveY", AnimatorConditionMode.Less, -0.3f);
-            T(sm, run, walkBack, "MoveY", AnimatorConditionMode.Less, -0.3f);
+            // T-D3 이동 확장: 후진(WalkBack) — 일반 모드(IsCombat=false) 전용
+            T2(sm, walk, walkBack, ("IsCombat", AnimatorConditionMode.IfNot, 0f), ("MoveY", AnimatorConditionMode.Less, -0.3f));
+            T2(sm, run, walkBack, ("IsCombat", AnimatorConditionMode.IfNot, 0f), ("MoveY", AnimatorConditionMode.Less, -0.3f));
             T(sm, walkBack, walk, "MoveY", AnimatorConditionMode.Greater, -0.15f);
             T(sm, walkBack, idle, "Speed", AnimatorConditionMode.Less, 0.35f);
 
-            // 선회(WalkTurn/RunTurn) — 측면 입력(MoveX) 우위, 복귀는 중립
-            T(sm, walk, walkTurnL, "MoveX", AnimatorConditionMode.Less, -0.6f);
-            T(sm, walk, walkTurnR, "MoveX", AnimatorConditionMode.Greater, 0.6f);
+            // 선회(WalkTurn/RunTurn) — 일반 모드
+            T2(sm, walk, walkTurnL, ("IsCombat", AnimatorConditionMode.IfNot, 0f), ("MoveX", AnimatorConditionMode.Less, -0.6f));
+            T2(sm, walk, walkTurnR, ("IsCombat", AnimatorConditionMode.IfNot, 0f), ("MoveX", AnimatorConditionMode.Greater, 0.6f));
             T(sm, walkTurnL, walk, "MoveX", AnimatorConditionMode.Greater, -0.15f);
             T(sm, walkTurnR, walk, "MoveX", AnimatorConditionMode.Less, 0.15f);
-            T(sm, run, runTurnL, "MoveX", AnimatorConditionMode.Less, -0.6f);
-            T(sm, run, runTurnR, "MoveX", AnimatorConditionMode.Greater, 0.6f);
+            T2(sm, run, runTurnL, ("IsCombat", AnimatorConditionMode.IfNot, 0f), ("MoveX", AnimatorConditionMode.Less, -0.6f));
+            T2(sm, run, runTurnR, ("IsCombat", AnimatorConditionMode.IfNot, 0f), ("MoveX", AnimatorConditionMode.Greater, 0.6f));
             T(sm, runTurnL, run, "MoveX", AnimatorConditionMode.Greater, -0.15f);
             T(sm, runTurnR, run, "MoveX", AnimatorConditionMode.Less, 0.15f);
-            T(sm, run, runSharpR, "MoveX", AnimatorConditionMode.Greater, 0.9f);
+            T2(sm, run, runSharpR, ("IsCombat", AnimatorConditionMode.IfNot, 0f), ("MoveX", AnimatorConditionMode.Greater, 0.9f));
             T(sm, runSharpR, run, "MoveX", AnimatorConditionMode.Less, 0.3f);
 
             // 정지 선회(IdleTurn) — 정지 + 측면 입력
@@ -186,6 +195,20 @@ namespace ProjectName.EditorTools
             T(sm, idle, idleTurnR, "MoveX", AnimatorConditionMode.Greater, 0.6f);
             T(sm, idleTurnL, idle, "MoveX", AnimatorConditionMode.Greater, -0.2f);
             T(sm, idleTurnR, idle, "MoveX", AnimatorConditionMode.Less, 0.2f);
+
+            // T-D3 전투 모드(IsCombat=true): 검 든 이동 변형
+            T2(sm, walk, walkBackSword, ("IsCombat", AnimatorConditionMode.If, 0f), ("MoveY", AnimatorConditionMode.Less, -0.3f));
+            T(sm, walkBackSword, walk, "MoveY", AnimatorConditionMode.Greater, -0.15f);
+            T2(sm, run, runFightL, ("IsCombat", AnimatorConditionMode.If, 0f), ("MoveX", AnimatorConditionMode.Less, -0.45f));
+            T2(sm, run, runFightR, ("IsCombat", AnimatorConditionMode.If, 0f), ("MoveX", AnimatorConditionMode.Greater, 0.45f));
+            T(sm, runFightL, run, "MoveX", AnimatorConditionMode.Greater, -0.15f);
+            T(sm, runFightR, run, "MoveX", AnimatorConditionMode.Less, 0.15f);
+            T2(sm, walk, walkTurnLWeapon, ("IsCombat", AnimatorConditionMode.If, 0f), ("MoveX", AnimatorConditionMode.Less, -0.6f));
+            T(sm, walkTurnLWeapon, walk, "MoveX", AnimatorConditionMode.Greater, -0.15f);
+
+            // Run→Walk 전환 연출 — 2.0 임계 하향 통과 트리거(드라이버에서 발화)
+            AnyState(sm, runToWalk, "RunToWalk");
+            ExitTo(sm, runToWalk, walk);
 
             // 트리거 상태: Any State → 상태 (canTransitionToSelf=false) → Idle 복귀(exit time)
             AnyState(sm, roll, "Roll");
@@ -442,6 +465,18 @@ namespace ProjectName.EditorTools
             t.hasExitTime = false;
             t.duration = 0.12f; // 로코모션 전환 블렌드 0.12s — Idle↔Walk↔Run 클립 전환 끊김 완화(즉발 0.05는 애니 팝 유발)
             t.AddCondition(mode, threshold, param);
+        }
+
+        /// <summary>T-D3: 조건 2개(AND) 전이 — 전투 모드 게이트(IsCombat)용.</summary>
+        static void T2(AnimatorStateMachine sm, AnimatorState from, AnimatorState to,
+            (string param, AnimatorConditionMode mode, float threshold) c1,
+            (string param, AnimatorConditionMode mode, float threshold) c2)
+        {
+            var t = from.AddTransition(to);
+            t.hasExitTime = false;
+            t.duration = 0.12f;
+            t.AddCondition(c1.mode, c1.threshold, c1.param);
+            t.AddCondition(c2.mode, c2.threshold, c2.param);
         }
 
         static void AnyState(AnimatorStateMachine sm, AnimatorState to, string trigger)
