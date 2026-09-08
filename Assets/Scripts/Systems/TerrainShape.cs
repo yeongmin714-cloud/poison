@@ -647,6 +647,9 @@ namespace ProjectName.Systems
 
         static Dictionary<int, BasinInfo> _basinCache;
         static int _basinCacheSeed = int.MinValue;
+        // [T-D2 QA] 캐시가 호수 생성 완료 전(LakesOrNull==null) 계산됐으면, 호수 확정 후 1회 재평가한다.
+        // (생성 중 계산값은 핸드 호수 3개만 배제 — 절차적 호수 이격 누락된 값이 영구 캐시로 남는 것 방지)
+        static bool _basinCacheDuringGen = false;
 
         /// <summary>방위 중심 각도(도) — GetForestPatchMask와 동일 규약 (동0/북90/서180/남270).</summary>
         static float NationBaseAngle(NationType nation)
@@ -667,10 +670,12 @@ namespace ProjectName.Systems
         /// </summary>
         public static BasinInfo GetBasinCenter(NationType nation, int seed)
         {
-            if (_basinCache == null || _basinCacheSeed != seed)
+            bool lakesReady = TerrainGenerator.LakesReady;   // [T-D2 QA] 생성 전 캐시 무효화용
+            if (_basinCache == null || _basinCacheSeed != seed || (_basinCacheDuringGen && lakesReady))
             {
                 _basinCache = new Dictionary<int, BasinInfo>();
                 _basinCacheSeed = seed;
+                _basinCacheDuringGen = !lakesReady;
             }
             if (_basinCache.TryGetValue((int)nation, out BasinInfo cached)) return cached;
 
@@ -716,6 +721,8 @@ namespace ProjectName.Systems
         // ── 서쪽 천연 아치 (예시5) — 받침 지형 위치. 실제 아치 메시 배치는 T3 데코 담당 ──
         static Vector3? _westArchCache;
         static int _westArchCacheSeed = int.MinValue;
+        // [T-D2 QA] 호수 생성 완료 전 계산된 캐시는 절차적 호수 이격 검사가 누락됐으므로, 호수 확정 후 1회 재평가.
+        static bool _westArchDuringGen = false;
 
         /// <summary>
         /// 서쪽 천연 아치 설치 위치 (결정론 + 캐시) — West 부채꼴 150~210°, 원점 600~900m,
@@ -724,7 +731,9 @@ namespace ProjectName.Systems
         /// </summary>
         public static Vector3 GetWestArchPosition(int seed)
         {
-            if (_westArchCache.HasValue && _westArchCacheSeed == seed) return _westArchCache.Value;
+            bool lakesReady = TerrainGenerator.LakesReady;   // [T-D2 QA] 생성 전 캐시 무효화용
+            if (_westArchCache.HasValue && _westArchCacheSeed == seed && !(_westArchDuringGen && lakesReady))
+                return _westArchCache.Value;
             int nseed = seed + NationSeedOffset(NationType.West) + 9307;
             Vector3 spawn = ProjectName.Core.PlayerSpawnConfig.SpawnPosition;
             var lakes = TerrainGenerator.LakesOrNull;   // 재귀 가드: 호수 생성 중 null → 핸드 호수 테이블만 배제
@@ -742,6 +751,7 @@ namespace ProjectName.Systems
             }
             _westArchCache = result;
             _westArchCacheSeed = seed;
+            _westArchDuringGen = !lakesReady;
             return result;
         }
 
