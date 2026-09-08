@@ -125,6 +125,15 @@ namespace ProjectName.Systems
         const int   WILLOW_MIN = 4, WILLOW_MAX = 8;                   // 호수당 수양버들 그루 수
         const float WILLOW_PINK_RATIO = 0.20f;                        // Pink 비율 20% (황제국 호수만, Green 기본)
 
+        // T-D5 (09-08): 호수 주변 꾸미기 데코 3종 — 수변 관목/덤불 / 수변 바위·자갈 언덕 / 수변 습지 습초지 클러스터
+        // 기존 LAKE_ROCK_IN/OUT(수면 바위 0.30~0.70r)와 이름 충돌을 피하기 위해 LAKE_SHORE_ROCK_* 사용.
+        const float LAKE_SHRUB_IN = 1.02f, LAKE_SHRUB_OUT = 1.55f;    // 수변 관목 밴드 (호수 중심 배수)
+        const float LAKE_SHRUBS_PER_LAKE = 6;                          // 기본 목표 (대형 8~12 / 소형 4~6)
+        const float LAKE_SHORE_ROCK_IN = 1.02f, LAKE_SHORE_ROCK_OUT = 1.70f; // 수변 바위 밴드
+        const float LAKE_ROCKS_PER_LAKE = 7;                           // 기본 목표 (5~10)
+        const float LAKE_WET_IN = 0.95f, LAKE_WET_OUT = 1.12f;         // 습지 습초지 밴드 (수면 가장자리~얕은 습지)
+        const float LAKE_WET_CLUSTERS_PER_LAKE = 5;                    // 호수당 습초지 클러스터 수
+
         static readonly float SPAWN_POS_X = ProjectName.Core.PlayerSpawnConfig.SpawnPosition.x;
         static readonly float SPAWN_POS_Z = ProjectName.Core.PlayerSpawnConfig.SpawnPosition.z;
 
@@ -216,6 +225,7 @@ namespace ProjectName.Systems
             var lakeRng = new System.Random(SEED);
             int reedsPlaced = 0, lilyPlaced = 0, lakeTreePlaced = 0;
             int surfaceRockPlaced = 0, lilyClusterPlaced = 0, willowPlaced = 0;   // T-D3 B2
+            int shrubPlaced = 0, shoreRockPlaced = 0, wetClusterPlaced = 0;       // T-D5: 호수 주변 꾸미기 3종
             var lakes = TerrainGenerator.Lakes;
             if (lakes != null)
             {
@@ -230,6 +240,10 @@ namespace ProjectName.Systems
                     surfaceRockPlaced += PlaceLakeSurfaceRocks(lk, cat, waterRockT, new System.Random(SEED + 41 + i * 7));
                     lilyClusterPlaced += PlaceLilyClusters(lk, cat, waterT, new System.Random(SEED + 53 + i * 7));
                     willowPlaced += PlaceLakeshoreWillows(lk, cat, forestT, treeHash, propHash, new System.Random(SEED + 67 + i * 7));
+                    // T-D5: 호수 주변 꾸미기 3종 — 기존 스트림 보존 규약 동일 (호수 인덱스 고정 시드 별도 rng)
+                    shrubPlaced += PlaceLakeshoreShrubs(lk, cat, bushesT, treeHash, propHash, new System.Random(SEED + 79 + i * 7));
+                    shoreRockPlaced += PlaceLakeshoreRocks(lk, cat, rocksT, treeHash, propHash, new System.Random(SEED + 83 + i * 7));
+                    wetClusterPlaced += PlaceLakeshoreWetlandClusters(lk, cat, shoreT, treeHash, new System.Random(SEED + 89 + i * 7));
                 }
             }
 
@@ -302,6 +316,12 @@ namespace ProjectName.Systems
                 "[IdyllicDecoPlacer][T-D3] LakeSurfaceRocks={0}||LilyColonies={1}||ShoreWillows={2}||ReedsCapPerLake={3}(x1.5)||" +
                 "MegaSpreadDiam=18~30m||MegaCapNation={4}~{5}",
                 surfaceRockPlaced, lilyClusterPlaced, willowPlaced, REEDS_PER_LAKE, MEGA_CAP_MIN, MEGA_CAP_MAX));
+            // T-D5: 호수 주변 꾸미기 데코 3종 배치 합계 (호수 전체)
+            Debug.Log(string.Format(
+                "[IdyllicDecoPlacer][T-D5] LakeshoreShrubs={0}||LakeshoreRocks={1}||WetlandClusterPts={2}||" +
+                "Bands=shrub{3}~{4}r/rock{5}~{6}r/wet{7}~{8}r",
+                shrubPlaced, shoreRockPlaced, wetClusterPlaced,
+                LAKE_SHRUB_IN, LAKE_SHRUB_OUT, LAKE_SHORE_ROCK_IN, LAKE_SHORE_ROCK_OUT, LAKE_WET_IN, LAKE_WET_OUT));
             Debug.Log("[IdyllicDecoPlacer][T-R4] Deterministic seed = 20260904+nationId*1000. LayoutHash for 2-boot compare (same seed->same hash).");
             Debug.Log("[IdyllicDecoPlacer][T-R4] Culling radii (no existing group - log only): tree 150m / rock 200m / grass-flower-bush 60m.");
             Debug.Log("[IdyllicDecoPlacer][AA5] Culling = simple distance check(Update 0.5s) player radius 60m -> grass/FlowerMeadow SetActive(false) outside.");
@@ -504,6 +524,135 @@ namespace ProjectName.Systems
                 Place(pool[rng.Next(pool.Count)], x, y, z, RandomRange(rng, 0.9f, 1.2f), rng, parent);
                 treeHash.Insert(p);
                 placed++;
+            }
+            return placed;
+        }
+
+        /// <summary>
+        /// T-D5 (09-08): 호수 수변 관목/덤불 — 밴드 1.02~1.55r에 bushes 프리팹 배치.
+        /// 대형 호수(r≥100m) 8~12개, 소형 4~6개. 수면 게이트 y > waterLevel + 0.5m,
+        /// treeHash(TREE_MIN_DIST) + propHash(ROCK_MIN_DIST) 충돌 회피, 스케일 0.9~1.4.
+        /// </summary>
+        static int PlaceLakeshoreShrubs(TerrainGenerator.TerrainLakeDef lake,
+            CategoriesR4 cat, Transform parent, SpatialHash treeHash, SpatialHash propHash, System.Random rng)
+        {
+            if (cat.bushes == null || cat.bushes.Count == 0) return 0;
+            int target = lake.radius >= 100f ? 8 + rng.Next(5) : 4 + rng.Next(3);
+            int placed = 0;
+            var shrubHash = new SpatialHash(3f);
+            int attempts = target * 12;
+            for (int a = 0; a < attempts && placed < target; a++)
+            {
+                float ang = (float)rng.NextDouble() * Mathf.PI * 2f;
+                float d = lake.radius * Mathf.Lerp(LAKE_SHRUB_IN, LAKE_SHRUB_OUT, (float)rng.NextDouble());
+                float x = lake.center.x + Mathf.Cos(ang) * d;
+                float z = lake.center.z + Mathf.Sin(ang) * d;
+                if (Mathf.Abs(x) > BOUND_MAX || Mathf.Abs(z) > BOUND_MAX) continue;
+                if (IsInSpawnExclusion(x, z)) continue;
+                float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42);
+                if (y < lake.waterLevel + 0.5f) continue;
+                var p = new Vector2(x, z);
+                if (!shrubHash.IsFree(p, 3f)) continue;
+                if (!treeHash.IsFree(p, TREE_MIN_DIST)) continue;
+                if (!propHash.IsFree(p, ROCK_MIN_DIST)) continue;
+                Place(cat.bushes[rng.Next(cat.bushes.Count)], x, y, z, RandomRange(rng, 0.9f, 1.4f), rng, parent);
+                shrubHash.Insert(p);
+                placed++;
+            }
+            return placed;
+        }
+
+        /// <summary>
+        /// T-D5 (09-08): 호수 수변 바위·자갈 언덕 — 밴드 1.02~1.70r에 rock 계열 배치.
+        /// 대형 호수(r≥100m)는 rockBig 혼입, 소형은 rockMed/rockSmall 위주. 5~10개.
+        /// 수면 게이트 y > waterLevel + 0.4m, propHash 충돌 회피, 스케일 0.7~1.6.
+        /// </summary>
+        static int PlaceLakeshoreRocks(TerrainGenerator.TerrainLakeDef lake,
+            CategoriesR4 cat, Transform parent, SpatialHash treeHash, SpatialHash propHash, System.Random rng)
+        {
+            var med = cat.rockMed.Count > 0 ? cat.rockMed : cat.rockSmall;
+            if (med.Count == 0) return 0;
+            var small = cat.rockSmall.Count > 0 ? cat.rockSmall : med;
+            var big = cat.rockBig.Count > 0 ? cat.rockBig : med;
+            int target = 5 + rng.Next(6);   // 5~10
+            int placed = 0;
+            var rockHash = new SpatialHash(3f);
+            int attempts = target * 12;
+            for (int a = 0; a < attempts && placed < target; a++)
+            {
+                float ang = (float)rng.NextDouble() * Mathf.PI * 2f;
+                float d = lake.radius * Mathf.Lerp(LAKE_SHORE_ROCK_IN, LAKE_SHORE_ROCK_OUT, (float)rng.NextDouble());
+                float x = lake.center.x + Mathf.Cos(ang) * d;
+                float z = lake.center.z + Mathf.Sin(ang) * d;
+                if (Mathf.Abs(x) > BOUND_MAX || Mathf.Abs(z) > BOUND_MAX) continue;
+                if (IsInSpawnExclusion(x, z)) continue;
+                float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42);
+                if (y < lake.waterLevel + 0.4f) continue;
+                var p = new Vector2(x, z);
+                if (!rockHash.IsFree(p, 3f)) continue;
+                if (!treeHash.IsFree(p, 1.2f)) continue;
+                if (!propHash.IsFree(p, ROCK_MIN_DIST)) continue;
+                GameObject model;
+                if (lake.radius >= 100f && rng.Next(3) == 0) model = big[rng.Next(big.Count)];
+                else model = (rng.Next(2) == 0) ? med[rng.Next(med.Count)] : small[rng.Next(small.Count)];
+                Place(model, x, y, z, RandomRange(rng, 0.7f, 1.6f), rng, parent);
+                rockHash.Insert(p);
+                placed++;
+            }
+            return placed;
+        }
+
+        /// <summary>
+        /// T-D5 (09-08): 호수 수변 습지 습초지 클러스터 — 밴드 0.95~1.12r(수면 가장자리~얕은 습지)에
+        /// reeds/cattail(1.3~2.0m 스케일) + bushes(0.8~1.1m) 혼합 뭉치를 호수당 5개 클러스터,
+        /// 클러스터당 3~6 포인트 산점(반경 2~5m). 수면 게이트 -0.1 < y < waterLevel + 1.2,
+        /// treeHash 회피. SpatialHash 간격 3m로 과밀 방지.
+        /// </summary>
+        static int PlaceLakeshoreWetlandClusters(TerrainGenerator.TerrainLakeDef lake,
+            CategoriesR4 cat, Transform parent, SpatialHash treeHash, System.Random rng)
+        {
+            if ((cat.reeds == null || cat.reeds.Count == 0) && (cat.cattail == null || cat.cattail.Count == 0))
+                return 0;
+            int clusters = (int)LAKE_WET_CLUSTERS_PER_LAKE;
+            int placed = 0;
+            var wetHash = new SpatialHash(3f);
+            for (int c = 0; c < clusters; c++)
+            {
+                float cang = (float)rng.NextDouble() * Mathf.PI * 2f;
+                float cd = lake.radius * Mathf.Lerp(LAKE_WET_IN, LAKE_WET_OUT, (float)rng.NextDouble());
+                float cx = lake.center.x + Mathf.Cos(cang) * cd;
+                float cz = lake.center.z + Mathf.Sin(cang) * cd;
+                int pts = 3 + rng.Next(4);   // 클러스터당 3~6 포인트
+                for (int p = 0; p < pts; p++)
+                {
+                    float ang = (float)rng.NextDouble() * Mathf.PI * 2f;
+                    float dd = RandomRange(rng, 0f, 5f);
+                    float x = cx + Mathf.Cos(ang) * dd;
+                    float z = cz + Mathf.Sin(ang) * dd;
+                    if (Mathf.Abs(x) > BOUND_MAX || Mathf.Abs(z) > BOUND_MAX) continue;
+                    if (IsInSpawnExclusion(x, z)) continue;
+                    float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42);
+                    if (y < lake.waterLevel - 0.1f) continue;
+                    if (y > lake.waterLevel + 1.2f) continue;
+                    var pv = new Vector2(x, z);
+                    if (!wetHash.IsFree(pv, 3f)) continue;
+                    if (!treeHash.IsFree(pv, 1.2f)) continue;
+                    if (rng.Next(3) != 0 && cat.bushes != null && cat.bushes.Count > 0)
+                    {
+                        // 습초지 수풀: reeds/cattail 1.3~2.0m 스케일
+                        var rmodel = (rng.Next(2) == 0 && cat.cattail.Count > 0)
+                            ? cat.cattail[rng.Next(cat.cattail.Count)]
+                            : cat.reeds[rng.Next(cat.reeds.Count)];
+                        Place(rmodel, x, y, z, RandomRange(rng, 1.3f, 2.0f), rng, parent);
+                    }
+                    else
+                    {
+                        // 습지 덤불: bushes 0.8~1.1m 스케일
+                        Place(cat.bushes[rng.Next(cat.bushes.Count)], x, y, z, RandomRange(rng, 0.8f, 1.1f), rng, parent);
+                    }
+                    wetHash.Insert(pv);
+                    placed++;
+                }
             }
             return placed;
         }
