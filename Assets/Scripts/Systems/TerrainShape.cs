@@ -564,7 +564,7 @@ namespace ProjectName.Systems
             OutcropParams(nation, out float chance, out float radMin, out float radMax, out float _);
 
             Vector3 spawn = ProjectName.Core.PlayerSpawnConfig.SpawnPosition;
-            var lakes = TerrainGenerator.Lakes;
+            var lakes = TerrainGenerator.LakesOrNull;   // 데코 시점엔 캐시 완성 — 재귀 가드 겸용
             float baseAng = NationBaseAngle(nation);
 
             int half = Mathf.CeilToInt(1600f / OUTCROP_CELL) + 1;
@@ -589,16 +589,7 @@ namespace ProjectName.Systems
                     }
                     if (Vector2.Distance(new Vector2(centerX, centerZ), new Vector2(spawn.x, spawn.z)) < 250f) continue;
                     if (dist0 < 250f) continue;
-                    bool nearLake = false;
-                    if (lakes != null)
-                    {
-                        for (int i = 0; i < lakes.Count; i++)
-                        {
-                            float dx2 = centerX - lakes[i].center.x, dz2 = centerZ - lakes[i].center.z;
-                            if (dx2 * dx2 + dz2 * dz2 < 300f * 300f) { nearLake = true; break; }
-                        }
-                    }
-                    if (nearLake) continue;
+                    if (IsTooCloseToLake(new Vector2(centerX, centerZ), 250f, lakes)) continue;
                     result.Add(new OutcropSite { center = new Vector2(centerX, centerZ), radius = Mathf.Lerp(radMin, radMax, Hash2(cx2, cz2, nseed + 23)) });
                 }
             }
@@ -621,13 +612,16 @@ namespace ProjectName.Systems
         };
         static readonly float[] HandLakeRadius = { 180f, 150f, 130f };
 
-        /// <summary>수동 대형 호수 3개 + (가능 시) 절차적 호수 전체에 대한 이격 검사. [T-D2]</summary>
-        static bool IsTooCloseToLake(Vector2 c, float dist, System.Collections.Generic.IReadOnlyList<TerrainGenerator.TerrainLakeDef> lakes)
+        /// <summary>
+        /// 호수 이격 검사 — shoreMargin = 수변(수면 가장자리)으로부터의 최소 거리(m).
+        /// [T-D2] 수동 대형 호수 3개(고정 테이블) + 절차적 호수(가능 시 캐시) 전부에 적용.
+        /// </summary>
+        static bool IsTooCloseToLake(Vector2 c, float shoreMargin, System.Collections.Generic.IReadOnlyList<TerrainGenerator.TerrainLakeDef> lakes)
         {
             for (int i = 0; i < HandLakeTable.Length; i++)
             {
                 float dx = c.x - HandLakeTable[i].x, dz = c.y - HandLakeTable[i].z;
-                float need = dist + HandLakeRadius[i];
+                float need = shoreMargin + HandLakeRadius[i];
                 if (dx * dx + dz * dz < need * need) return true;
             }
             if (lakes != null)
@@ -635,7 +629,8 @@ namespace ProjectName.Systems
                 for (int i = 0; i < lakes.Count; i++)
                 {
                     float dx = c.x - lakes[i].center.x, dz = c.y - lakes[i].center.z;
-                    if (dx * dx + dz * dz < dist * dist) return true;
+                    float need = shoreMargin + lakes[i].radius;
+                    if (dx * dx + dz * dz < need * need) return true;
                 }
             }
             return false;
@@ -683,31 +678,24 @@ namespace ProjectName.Systems
             int nseed = seed + NationSeedOffset(nation) + 9203;
             float baseAng;
             float distMin, distMax;
-            if (nation == NationType.Empire) { baseAng = 45f; distMin = 250f; distMax = 380f; }
+            if (nation == NationType.Empire) { baseAng = 45f; distMin = 300f; distMax = 480f; }
+            else if (nation == NationType.East) { baseAng = 0f; distMin = 420f; distMax = 1100f; }   // 동은 호수 밀집 — 하한 확장
             else { baseAng = NationBaseAngle(nation); distMin = 500f; distMax = 1100f; }
 
             Vector3 spawn = ProjectName.Core.PlayerSpawnConfig.SpawnPosition;
-            var lakes = TerrainGenerator.Lakes;
+            var lakes = TerrainGenerator.LakesOrNull;   // 재귀 가드: 호수 생성 중 null → 핸드 호수 테이블만 배제
+            float basinR = BASIN_RADIUS_MIN + H01(nseed, 50) * (BASIN_RADIUS_MAX - BASIN_RADIUS_MIN);   // 분지 반경 선계산 — 외곽(외벽)까지 이격 검사
 
-            for (int k = 0; k < 8; k++)
+            for (int k = 0; k < 40; k++)
             {
-                float ang = baseAng + (H01(nseed, 10 + k) - 0.5f) * 70f;
+                float ang = baseAng + (H01(nseed, 10 + k) - 0.5f) * 110f;
                 float dist = distMin + H01(nseed, 30 + k) * (distMax - distMin);
                 Vector2 c = new Vector2(Mathf.Cos(ang * Mathf.Deg2Rad) * dist, Mathf.Sin(ang * Mathf.Deg2Rad) * dist);
-                if (Vector2.Distance(c, new Vector2(spawn.x, spawn.z)) < BASIN_EXCLUDE) continue;
-                if (c.magnitude < BASIN_EXCLUDE) continue;   // 성(0,0)
-                bool nearLake = false;
-                if (lakes != null)
-                {
-                    for (int i = 0; i < lakes.Count; i++)
-                    {
-                        float dx = c.x - lakes[i].center.x, dz = c.y - lakes[i].center.z;
-                        if (dx * dx + dz * dz < BASIN_EXCLUDE * BASIN_EXCLUDE) { nearLake = true; break; }
-                    }
-                }
-                if (nearLake) continue;
+                if (Vector2.Distance(c, new Vector2(spawn.x, spawn.z)) < BASIN_EXCLUDE + basinR) continue;
+                if (c.magnitude < BASIN_EXCLUDE + basinR) continue;   // 성(0,0) — 외벽까지 이격
+                if (IsTooCloseToLake(c, 60f + basinR, lakes)) continue;   // 수면 가장자리 + 60m 여유 + 분지 외곽
                 info.center = c;
-                info.radius = BASIN_RADIUS_MIN + H01(nseed, 50) * (BASIN_RADIUS_MAX - BASIN_RADIUS_MIN);
+                info.radius = basinR;
                 info.wallAngleRad = baseAng * Mathf.Deg2Rad;
                 info.valid = true;
                 break;
@@ -739,7 +727,7 @@ namespace ProjectName.Systems
             if (_westArchCache.HasValue && _westArchCacheSeed == seed) return _westArchCache.Value;
             int nseed = seed + NationSeedOffset(NationType.West) + 9307;
             Vector3 spawn = ProjectName.Core.PlayerSpawnConfig.SpawnPosition;
-            var lakes = TerrainGenerator.Lakes;
+            var lakes = TerrainGenerator.LakesOrNull;   // 재귀 가드: 호수 생성 중 null → 핸드 호수 테이블만 배제
             Vector3 result = new Vector3(-700f, 0f, 0f);   // fallback
             for (int k = 0; k < 12; k++)
             {
@@ -748,15 +736,7 @@ namespace ProjectName.Systems
                 Vector3 c = new Vector3(Mathf.Cos(ang * Mathf.Deg2Rad) * dist, 0f, Mathf.Sin(ang * Mathf.Deg2Rad) * dist);
                 if (Vector3.Distance(c, spawn) < 250f) continue;
                 if (Vector3.Distance(c, Vector3.zero) < 250f) continue;
-                bool nearLake = false;
-                if (lakes != null)
-                {
-                    for (int i = 0; i < lakes.Count; i++)
-                    {
-                        if (Vector3.Distance(c, lakes[i].center) < 300f) { nearLake = true; break; }
-                    }
-                }
-                if (nearLake) continue;
+                if (IsTooCloseToLake(new Vector2(c.x, c.z), 250f, lakes)) continue;
                 result = c;
                 break;
             }
@@ -788,10 +768,10 @@ namespace ProjectName.Systems
             if (count == 0) return 0f;
 
             Vector3 spawn = ProjectName.Core.PlayerSpawnConfig.SpawnPosition;
-            var lakes = TerrainGenerator.Lakes;
+            var lakes = TerrainGenerator.LakesOrNull;   // 재귀 가드: 호수 생성 중 null → 핸드 호수 테이블만 배제
             float baseAng = (nation == NationType.Empire) ? 45f : NationBaseAngle(nation);
-            float distMin = (nation == NationType.Empire) ? 250f : 350f;
-            float distMax = (nation == NationType.Empire) ? 450f : 1250f;
+            float distMin = (nation == NationType.Empire) ? 300f : 350f;
+            float distMax = (nation == NationType.Empire) ? 480f : 1250f;
 
             float best = 0f;
             for (int k = 0; k < count; k++)
@@ -801,16 +781,7 @@ namespace ProjectName.Systems
                 Vector2 c = new Vector2(Mathf.Cos(ang * Mathf.Deg2Rad) * dist, Mathf.Sin(ang * Mathf.Deg2Rad) * dist);
                 if (Vector2.Distance(c, new Vector2(spawn.x, spawn.z)) < 250f) continue;
                 if (c.magnitude < 250f) continue;
-                bool nearLake = false;
-                if (lakes != null)
-                {
-                    for (int i = 0; i < lakes.Count; i++)
-                    {
-                        float dx = c.x - lakes[i].center.x, dz = c.y - lakes[i].center.z;
-                        if (dx * dx + dz * dz < 250f * 250f) { nearLake = true; break; }
-                    }
-                }
-                if (nearLake) continue;
+                if (IsTooCloseToLake(c, 30f, lakes)) continue;
                 float radius = MEGA_FLOWER_RADIUS_MIN + H01(nseed, 60 + k) * (MEGA_FLOWER_RADIUS_MAX - MEGA_FLOWER_RADIUS_MIN);
                 float dd = Vector2.Distance(new Vector2(x, z), c);
                 float m = 1f - Smoothstep(radius - MEGA_FLOWER_EDGE_SOFT, radius, dd);
