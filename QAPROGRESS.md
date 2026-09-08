@@ -8,6 +8,18 @@
 
 ---
 
+## 📌 세션 종합 스냅샷 (2026-09-08 4차 — 지형 다양화 T-D3 후속: T5 능선길+호수연장 ✅)
+
+- **범위**: DirtRoadMask 경로 시스템에 능선길 2개(T5-1) + 호수 수변 연장 2개(T5-2) 추가
+- **T5-1 능선길**: TerrainShape.GetRidgeCrestSegments(42) — GetRidgeBoostMask와 **동일 셀/시드/구성방정식**(CELL=640, nationSeed+7303, 길이200~400m 해시지터, 방향 base±45°)으로 중앙 반경1200m 내 최장 2개 crest 중심선 반환 (GetRidgeBoostMask 자체는 무수정)
+- **T5-2 호수연장**: 곡선도로 4개 끝점(반경700m) → 가장 가까운 호수 수변(shorePt=반지름 교점)까지 직선 연장 2개. 결정론 정렬(수변거리→도로→호수 인덱스), 상한600m, 타 호수 원관통 기각(CrossesOtherLake)
+- **통합**: TerrainPathGenerator.ExtraPaths() 캐시(1회 빌드)가 이들을 폴리라인화 → **DirtRoadMask가 CurvedRoads+ExtraPaths 둘 다 순회**하도록 통합(L4 흙길 렌더)
+- **버그 수정**: 에이전트 1차 구현이 ExtraPaths 빌더만 만들고 DirtRoadMask에 통합 안 해서 렌더 미반영 → 부모가 통합 루프 추가로 수정 (커밋 14db2a81)
+- **검증**: 배치컴파일 error CS=0 (buildlog_td5.txt, CompileScripts 26.6s) · 결정론·불변(DirtRoadMask 시그니처/기존 도로/GetRidgeBoostMask 무수정)·재귀(스플랫 시점 Lakes 준비)·성능(폴리라인 캐시) 통과
+- ⬜ **남음**: Play 판정(능선길 상승감·호수 수변 연결·기존 무손상)
+
+---
+
 ## 📌 세션 종합 스냅샷 (2026-09-08 3차 — 지형 다양화 T-D3 후속: T1-1/T1-2 Generator 소비 ✅)
 
 - **범위**: T-D3의 위치 마스크 2종(테라스/능선부스트)을 TerrainGenerator.ComputeSubBiomeVariation에서 실제 소비(carve/델타)로 전환
