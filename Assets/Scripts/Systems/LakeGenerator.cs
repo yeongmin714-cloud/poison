@@ -111,6 +111,72 @@ namespace ProjectName.Systems
                 gen.ConfigureLake(def);
             }
             Debug.Log($"[LakeGenerator] GenerateAllLakes: {lakes.Count} lakes 확정");
+
+            // T-D3 T2-3: 하천 수면 스트립(호수 수면 재질 공유) — carve는 TerrainGenerator가 이미 적용.
+            GenerateAllRivers(parent);
+        }
+
+        /// <summary>
+        /// T-D3 T2-3: 하천 수면 스트립 — TerrainGenerator.RiversOrNull 순회, 중심선 폴리라인 따라
+        /// 폭=width 쿼드 스트립(y=GetRiverSurfaceY - 0.1, 호수 수면 recess 0.15과 톤 일치).
+        /// 재질은 기존 호수 WaterSurface의 sharedMaterial 공유(신규 생성 금지). 하천 없으면 무동작.
+        /// </summary>
+        public static void GenerateAllRivers(Transform parent)
+        {
+            var rivers = TerrainGenerator.RiversOrNull;
+            if (rivers == null || rivers.Count == 0) return;
+            Material mat = null;
+            for (int i = 0; i < lakes.Count && mat == null; i++)
+            {
+                var lakeGO = GameObject.Find($"Lake_{i}");
+                if (lakeGO == null) continue;
+                var mrs = lakeGO.GetComponentsInChildren<MeshRenderer>();
+                foreach (var mr in mrs)
+                {
+                    if (mr != null && mr.gameObject.name.ToLower().Contains("surface"))
+                    { mat = mr.sharedMaterial; break; }
+                }
+                if (mat == null && mrs.Length > 0) mat = mrs[mrs.Length - 1].sharedMaterial;
+            }
+            int built = 0;
+            for (int r = 0; r < rivers.Count; r++)
+            {
+                var rd = rivers[r];
+                if (rd.pts == null || rd.pts.Length < 2) continue;
+                var go = new GameObject($"River_{r}");
+                go.transform.SetParent(parent, false);
+                var mf = go.AddComponent<MeshFilter>();
+                var mrr = go.AddComponent<MeshRenderer>();
+                if (mat != null) mrr.sharedMaterial = mat;
+                var verts = new System.Collections.Generic.List<Vector3>();
+                var tris = new System.Collections.Generic.List<int>();
+                for (int s = 0; s < rd.pts.Length - 1; s++)
+                {
+                    Vector3 a = rd.pts[s], b = rd.pts[s + 1];
+                    Vector3 dir = b - a; dir.y = 0f;
+                    float len = dir.magnitude;
+                    if (len < 0.01f) continue;
+                    dir /= len;
+                    Vector3 side = new Vector3(-dir.z, 0f, dir.x);
+                    float t0 = (float)s / (rd.pts.Length - 1);
+                    float t1 = (float)(s + 1) / (rd.pts.Length - 1);
+                    float y0 = Mathf.Lerp(rd.surfaceY0, rd.surfaceY1, t0) - 0.1f;
+                    float y1 = Mathf.Lerp(rd.surfaceY0, rd.surfaceY1, t1) - 0.1f;
+                    float hw = rd.width * 0.5f;
+                    int bi = verts.Count;
+                    verts.Add(new Vector3(a.x - side.x * hw, y0, a.z - side.z * hw));
+                    verts.Add(new Vector3(a.x + side.x * hw, y0, a.z + side.z * hw));
+                    verts.Add(new Vector3(b.x - side.x * hw, y1, b.z - side.z * hw));
+                    verts.Add(new Vector3(b.x + side.x * hw, y1, b.z + side.z * hw));
+                    tris.Add(bi); tris.Add(bi + 2); tris.Add(bi + 1);
+                    tris.Add(bi + 1); tris.Add(bi + 2); tris.Add(bi + 3);
+                    built++;
+                }
+                var mesh = new Mesh { vertices = verts.ToArray(), triangles = tris.ToArray() };
+                mesh.RecalculateNormals();
+                mf.sharedMesh = mesh;
+            }
+            Debug.Log($"[LakeGenerator] GenerateAllRivers: {rivers.Count} rivers, {built} segments");
         }
 
         /// <summary>

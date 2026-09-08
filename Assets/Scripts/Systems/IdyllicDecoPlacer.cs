@@ -713,6 +713,48 @@ namespace ProjectName.Systems
             }
         }
 
+        /// <summary>최근접 호수 수면 가장자리까지 거리(T-D3 T3-1). 호수 없으면 float.MaxValue.</summary>
+        static float NearestLakeShoreDist(float x, float z)
+        {
+            var lakes = TerrainGenerator.LakesOrNull;   // 재귀 가드 패턴 준수(생성 중 null)
+            if (lakes == null) return float.MaxValue;
+            float best = float.MaxValue;
+            for (int i = 0; i < lakes.Count; i++)
+            {
+                var lk = lakes[i];
+                float ddx = x - lk.center.x, ddz = z - lk.center.z;
+                float d = Mathf.Sqrt(ddx * ddx + ddz * ddz) - lk.radius;
+                if (d < best) best = d;
+            }
+            return best;
+        }
+
+        static List<WPrefab> _firPool, _shorePool;   // T-D3 T3-1 수종 규칙 풀(지연 1회 구성)
+
+        /// <summary>능선 침엽 풀(침엽 80/활엽 20).</summary>
+        static List<WPrefab> FirPool(CategoriesR4 cat)
+        {
+            if (_firPool == null)
+            {
+                _firPool = new List<WPrefab>();
+                if (cat.fir != null) AddPool(_firPool, cat.fir, 80f, 0.8f, 1.1f, true);
+                if (cat.broadGreen != null) AddPool(_firPool, cat.broadGreen, 20f, 0.85f, 1.1f, true);
+            }
+            return _firPool;
+        }
+
+        /// <summary>수변 혼합 풀(수양버들 40/활엽 60 — 예시6 비율).</summary>
+        static List<WPrefab> ShorePool(CategoriesR4 cat)
+        {
+            if (_shorePool == null)
+            {
+                _shorePool = new List<WPrefab>();
+                if (cat.willow != null) AddPool(_shorePool, cat.willow, 40f, 0.85f, 1.2f, true);
+                if (cat.broadGreen != null) AddPool(_shorePool, cat.broadGreen, 60f, 0.9f, 1.2f, true);
+            }
+            return _shorePool;
+        }
+
         /// <summary>나무 단일 배치 (국가/상한/호수/최소간격/경사 검사 후). true = 배치됨.</summary>
         static bool TryPlaceTree(NationDecoProfile p, CategoriesR4 cat, Vector3 origin,
             Transform parent, SpatialHash treeHash, int[] treeCnt, System.Random rng, float x, float z)
@@ -732,9 +774,18 @@ namespace ProjectName.Systems
             var p2 = new Vector2(x, z);
             if (!treeHash.IsFree(p2, TREE_MIN_DIST)) return false;
             float sub = TerrainShape.GetFantasySubzoneMask(x, z, p.nation, T_R4_BASE);
-            WPrefab entry = PickWeighted(
-                (sub > FANTASY_MASK_HI && p.fantasyTrees != null && p.fantasyTrees.Count > 0)
-                    ? p.fantasyTrees : p.trees, rng);
+            // T-D3 T3-1 수종 규칙: 능선(리지부스트>0.4)=침엽 80/활엽 20, 호수 수변 인접(≤18m)=수양버들 40/활엽 60.
+            // fantasyTrees(이국 소군집) 우선순위는 기존 유지. 풀은 nation 무관(틴트는 ApplyNationTreeTint가 담당).
+            List<WPrefab> pickPool = (sub > FANTASY_MASK_HI && p.fantasyTrees != null && p.fantasyTrees.Count > 0)
+                ? p.fantasyTrees : p.trees;
+            if (pickPool == p.trees)
+            {
+                if (TerrainShape.GetRidgeBoostMask(x, z, p.nation, T_R4_BASE) > 0.4f && cat.fir != null && cat.fir.Count > 0)
+                    pickPool = FirPool(cat);
+                else if (NearestLakeShoreDist(x, z) <= 18f && cat.willow != null && cat.willow.Count > 0)
+                    pickPool = ShorePool(cat);
+            }
+            WPrefab entry = PickWeighted(pickPool, rng);
             float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42);
             // AA4: 위치 기반 해시 스케일 변주 ×0.8~1.3 (프리팹 원본 스케일에 곱 — 수목 크기 다양화)
             float baseScale = RandomRange(rng, entry.scaleMin, entry.scaleMax);
