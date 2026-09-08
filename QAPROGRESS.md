@@ -8,6 +8,17 @@
 
 ---
 
+## 📌 세션 종합 스냅샷 (2026-09-08 7차 — 성 내부씬 8종 레이아웃 변형 ✅)
+
+- **범위**: 성 내부 2종(타영주/내영지) 각각 가구 배치 8종 변형 → 16개. 사용자 "두 종류 영지 내부씬 배치를 랜덤하게 8종씩 16개"
+- **빌더**: CastleInteriorBuilder/PlayerCastleInteriorBuilder에 `BuildXxxInterior(nation, layoutVariant)` 오버로드 추가 (기존 1인자 = variant 0 위임 → 기존 배치 100% 보존). GetLayoutVariantParams 결정론 테이블: 좌우대칭(mx)·기둥 3~6개/x 3.5~4.5·왕좌/지휘/화로 z시프트·추가장식가구(화분/탁자). Random 금지·layoutVariant 정수만으로 결정
+- **기능 보존**: variant 0=기존배치. Castle 잠긴문 4개(집무실/무기고/금고실/문서고) + PlayerCastle 작업대/저장고/무기고 상호작용 앵커(WeaponStand_0/StorageShelf_2/workbench)는 **전 variant 존재**(위치만 변경). 조명도 좌우대칭/시프트 추종
+- **진입 체인**: BuildingEvents.OnEnterBuildingRequest/BuildingTrigger.RequestEnterBuilding/IndoorSceneTransition.EnterBuilding **4인자(territoryKey) 확장** + `ComputeLayoutVariant(territoryKey djb2%8, 폴백 nation+소유)` → castle 케이스 두 빌더에 layoutVariant 전달. **같은 영지 재방문 = 항상 동일 배치(결정론)**
+- **검증**: 배치컴파일 error CS=0 ×3회 (buildlog_interior.txt, CompileScripts 10.6s)
+- ⬜ **남음**: Play 판정(서로 다른 영지 2곳 배치 상이 + 재방문 동일 + 기능문 여전히 동작)
+
+---
+
 ## 📌 세션 종합 스냅샷 (2026-09-08 6차 — 미니맵 지형 렌더링 ✅)
 
 - **범위**: MinimapUI(현재 UI 프레임만)에 실제 지형을 넣기 — 사용자 "미니맵에 지형이 들어갈 수 있도록"

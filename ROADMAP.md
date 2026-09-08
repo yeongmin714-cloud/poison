@@ -1818,3 +1818,16 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | M3 마커 오버레이 | 영지 마커(검은 점, Ring별 거리)+활성 퀘스트 마커(색 점) — MinimapUI.DrawMarkerOverlay(커밋 d88bd90f) | ✅ |
 
 ---
+
+## 🏰 2026-09-08: 성 내부씬 8종 레이아웃 변형 (INTERIOR-VAR) — 커밋 58a24099/1bb02e46/3e24c7b3
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| Castle 빌더 | BuildCastleInterior(nation, layoutVariant) 오버로드 8종(좌우플립/기둥3~6/왕좌·회의z/장식) — variant0=기존 | ✅ |
+| PlayerCastle 빌더 | BuildPlayerCastleInterior(nation, layoutVariant) 8종(좌우대칭/기둥3~5/지휘·화로z/장식가구) | ✅ |
+| 기능 보존 | 잠긴문4 + 작업대/저장고/무기고 앵커 전 variant 존재, 조명 추종 | ✅ |
+| 진입 체인 | BuildingEvents/BuildingTrigger/EnterBuilding 4인자(territoryKey) + ComputeLayoutVariant(djb2%8) — 재방문=동일배치 | ✅ |
+| 검증 | 배치컴파일 error CS=0 ×3회 | ✅ |
+| Play 판정 대기 | 서로 다른 영지 배치 상이 + 재방문 동일 + 기능문 동작 | ⬜ |
+
+---
