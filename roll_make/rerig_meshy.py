@@ -44,9 +44,14 @@ print("[BATCH] files:", len(files))
 ok_all = True
 
 for fname in files:
-    stem = fname[len(PREFIX):-4]  # _withSkin 제거
+    stem = fname[len(PREFIX):-4]
+    if stem.endswith("_withSkin"):
+        stem = stem[:-len("_withSkin")]  # 접미사 제거(빌더 참조명 일치)
     src = os.path.join(SRC_DIR, fname)
     out = os.path.join(OUT_DIR, stem + ".fbx")
+    if os.path.exists(out):
+        print("[SKIP]", stem)
+        continue
 
     bpy.ops.wm.read_factory_settings(use_empty=True)
     try:
