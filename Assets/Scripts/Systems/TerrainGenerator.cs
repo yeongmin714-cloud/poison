@@ -227,6 +227,10 @@ namespace ProjectName.Systems
         // T-D2 (09-08): 대형 분지 파라미터 — bowl 깊이 + 병풍 절벽 융기 (예시9)
         private const float BASIN_DEPTH = 9f;
         private const float BASIN_WALL_HEIGHT = 9f;
+        // T-D3 T1-1 (09-08): 층절벽 테라스 — 절벽 블록 내부를 계단 단으로 양자화 (델타 가산 carve)
+        private const float TERRACE_BLOCK_THRESHOLD = 0.25f;  // 블록 내부 판정 임계값 (마스크 smoothstep 에지 이후)
+        private const float TERRACE_BLEND_END = 0.60f;        // 블렌드 완성 지점 — 내부 평탄, 가장자리 자연 블렌딩
+        private const float TERRACE_STEP_H = 3f;              // 계단 단 높이 (m) — 40~80m 블록에 3~4단 형성
 
         /// <summary>
         /// 방위 내 서브 바이옴 델타 (m). [S-B]
@@ -298,6 +302,21 @@ namespace ProjectName.Systems
             if (nation != NationType.Empire)
                 d += BasinDelta(x, z, TerrainShape.GetBasinCenter(NationType.Empire, seed));
 
+            // ── T-D3 T1-2 (09-08): 능선 부스트 — 선별 능선(640m 셀 세그먼트, 폭 60m)에 국소 진폭 델타 가산 ──
+            //  기준 진폭(ComputeBaseHeight plateau×noiseAmplitude)은 유지 — 국소 +30% 체감분만 절대값(m) 가산
+            d += TerrainShape.GetRidgeBoostMask(x, z, nation, seed) * RidgeBoostAmp(nation);
+
+            // ── T-D3 T1-1 (09-08): 층절벽 테라스 carve — 절벽 블록(320m 셀, 반경 40~80m) 내부를 계단 평면으로 양자화 ──
+            //  additive 델타: (양자화 단 레벨 − 현재 높이) × 블록 블렌드. 블록 가장자리(blend→0)에서 자연 블렌딩되고,
+            //  내부(blend→1)는 3m 단 계단 평면이 되어 단 수는 블록의 고도 범위에 따라 3~4단으로 형성된다.
+            float tb = TerrainShape.GetTerraceBlockMask(x, z, nation, seed);
+            if (tb > TERRACE_BLOCK_THRESHOLD)
+            {
+                float terraceBlend = TerrainShape.Smoothstep(TERRACE_BLOCK_THRESHOLD, TERRACE_BLEND_END, tb);
+                float terraceLevel = Mathf.Floor(baseH / TERRACE_STEP_H) * TERRACE_STEP_H;
+                d += (terraceLevel - baseH) * terraceBlend;
+            }
+
             return d * cliffSuppression;
         }
 
@@ -328,6 +347,20 @@ namespace ProjectName.Systems
                 case NationType.North:  return 9f;
                 case NationType.Empire: return 4f;
                 default:                return 8f;
+            }
+        }
+
+        /// <summary>방위별 능선 부스트 국소 진폭 델타 (m) — T-D3 T1-2 09-08. 능선 길이 방향 +30% 체감 (전체 진폭 불변).</summary>
+        private static float RidgeBoostAmp(NationType nation)
+        {
+            switch (nation)
+            {
+                case NationType.East:   return 3.5f;
+                case NationType.West:   return 4.5f;
+                case NationType.South:  return 3f;
+                case NationType.North:  return 5f;
+                case NationType.Empire: return 3f;
+                default:                return 3.5f;
             }
         }
 
