@@ -43,6 +43,16 @@ namespace ProjectName.Systems
         public void TriggerHitLight() { if (_anim != null) _anim.SetTrigger("HitLight"); }
         public void TriggerStun() { if (_anim != null) _anim.SetTrigger("Stun"); }
         public void TriggerKnockdown() { if (_anim != null) _anim.SetTrigger("Knockdown"); }
+        public void TriggerSitDown() { if (_anim != null) _anim.SetTrigger("SitDown"); }
+        public void TriggerSitUp() { if (_anim != null) _anim.SetTrigger("SitUp"); }
+        public void TriggerToss() { if (_anim != null) _anim.SetTrigger("Toss"); }
+        public void TriggerDrink() { if (_anim != null) _anim.SetTrigger("Drink"); }
+        public void TriggerLadder() { if (_anim != null) _anim.SetTrigger("Ladder"); }
+        public void TriggerClimbStairs() { if (_anim != null) _anim.SetTrigger("ClimbStairs"); }
+        public void TriggerWallDown() { if (_anim != null) _anim.SetTrigger("WallDown"); }
+        public void TriggerThrow() { if (_anim != null) _anim.SetTrigger("Throw"); }
+        public void TriggerCarry() { if (_anim != null) _anim.SetTrigger("Carry"); }
+        public void TriggerCast() { if (_anim != null) _anim.SetTrigger("Cast"); }
         public void TriggerHarvestObject() { if (_anim != null) _anim.SetTrigger("HarvestObject"); }
         public void TriggerHarvestPickUp() { if (_anim != null) _anim.SetTrigger("HarvestPickUp"); }
         public void TriggerOpenDoor() { if (_anim != null) _anim.SetTrigger("OpenDoor"); }

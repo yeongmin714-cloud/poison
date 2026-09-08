@@ -127,6 +127,11 @@ namespace ProjectName.Systems
         // --- 은신 관련 (Phase 34) ---
         private bool _stealthToggleHeld = false; // Ctrl 키 홀드 상태 추적
 
+        // 웅크림(Ctrl 토글) / 수영(수면 근처 부유) 상태
+        private bool _isCrouching = false;
+        private bool _crouchToggleHeld = false;  // LeftCtrl 하강엣지 추적
+        private bool _isSwimming = false;        // 수면 근처 부유 상태
+
         // --- 카메라 효과 관련 ---
         private float _defaultFOV;
         private float _dashFOVMultiplier = 1.1f; // 10% 줌아웃
@@ -300,6 +305,7 @@ namespace ProjectName.Systems
             HandleJump();
             HandleStamina();
             MovePlayer();
+            HandleSwimming(); // 수영 판정 + 부유 보정 (중력/이동/접지 적용 후)
             HandleInteraction(); // C16-02: E 키 상호작용
             HandleCameraShake();
             HandleDashCameraEffect();
@@ -309,6 +315,9 @@ namespace ProjectName.Systems
 
             // Phase 34: 은신 입력 처리
             HandleStealthInput();
+
+            // 웅크림 입력 처리 (LeftCtrl 하강엣지 토글)
+            HandleCrouchInput();
 
             // Phase 34: 은신 중 암살 가능 체크 (StealthSystem으로 위임)
             // Phase 34: 은신 상태에서 속도 제한은 HandleMovement()에서 직접 적용 (_walkSpeed * 0.5f)
@@ -412,6 +421,98 @@ namespace ProjectName.Systems
             {
                 _stealthToggleHeld = false;
             }
+        }
+
+        /// <summary>
+        /// 웅크림 입력: LeftCtrl 하강엣지(키를 뗀 순간) → 웅크림 토글.
+        /// 은신(HandleStealthInput)이 Ctrl 상승엣지를 사용하므로 하강엣지로 분리한다.
+        /// </summary>
+        private void HandleCrouchInput()
+        {
+            var kb = CurrentKeyboard;
+            if (kb == null) return;
+
+            bool leftCtrlPressed = kb.leftCtrlKey.isPressed;
+            if (leftCtrlPressed)
+            {
+                _crouchToggleHeld = true;
+            }
+            else if (_crouchToggleHeld)
+            {
+                _crouchToggleHeld = false;
+                _isCrouching = !_isCrouching;
+            }
+        }
+
+        /// <summary>
+        /// 수영 판정 + 부유 보정. Update 후반(중력/이동/접지 적용 후)에 호출.
+        /// 수면 근처(pos.y+0.4 < 수면 && pos.y+1.2 > 수면-1.5)에 몸이 잠기면 수영 상태로
+        /// 판정하고, 수면 아래 0.7m 높이에 떠 있도록 y를 보정한다(바닥이 더 높으면 바닥 우선).
+        /// </summary>
+        private void HandleSwimming()
+        {
+            if (_controller == null) return;
+
+            Vector3 pos = transform.position;
+            float surfaceY = NearestWaterSurfaceY(pos);
+
+            // 수영 판정: 수면 근처 밴드(수면 위로 튀지 않고, 수면 아래 1.5m+1.2m 이내)
+            _isSwimming = surfaceY != float.MinValue
+                && pos.y + 0.4f < surfaceY
+                && (pos.y + 1.2f) > surfaceY - 1.5f;
+
+            if (!_isSwimming) return;
+
+            // 부유 보정: y = Max(바닥, 수면 - 0.7) — 수면 위로 튀지 않게 하고 바닥 파묻힘도 방지
+            float bottomCenterY;
+            try
+            {
+                bottomCenterY = 1f + ProjectName.Systems.TerrainGenerator.GetHeightAt(
+                    pos.x, pos.z, ProjectName.Core.Data.BiomeType.Plains, 42)
+                    + _controller.height * 0.5f;
+            }
+            catch (System.Exception) { bottomCenterY = pos.y; }
+
+            float swimY = Mathf.Max(bottomCenterY, surfaceY - 0.7f);
+            if (!Mathf.Approximately(pos.y, swimY))
+            {
+                transform.position = new Vector3(pos.x, swimY, pos.z);
+                _verticalVelocity = -2f;         // 하강속도 누적 방지(출수 시 급강하 방지)
+                _moveDirection.y = _verticalVelocity;
+                _isGrounded = false;             // 부유 중 — 접지 상태 아님
+            }
+        }
+
+        /// <summary>
+        /// 주어진 위치에서 가장 가까운 물 표면 y 반환. 호수(중심 거리 < radius*1.05)와
+        /// 강(마스크 > 0.5)을 모두 검사하며, 물이 없으면 float.MinValue.
+        /// NOTE: TerrainGenerator.LakesOrNull은 재귀 가드 프로퍼티로 런타임(생성 완료 후) 읽기 안전.
+        /// </summary>
+        private float NearestWaterSurfaceY(Vector3 pos)
+        {
+            float best = float.MinValue;
+
+            var lakes = ProjectName.Systems.TerrainGenerator.LakesOrNull;
+            if (lakes != null)
+            {
+                for (int i = 0; i < lakes.Count; i++)
+                {
+                    var lake = lakes[i];
+                    float dx = pos.x - lake.center.x;
+                    float dz = pos.z - lake.center.z;
+                    float r = lake.radius * 1.05f;
+                    if (dx * dx + dz * dz < r * r && lake.waterLevel > best)
+                        best = lake.waterLevel;
+                }
+            }
+
+            if (ProjectName.Systems.TerrainGenerator.GetRiverMask(pos.x, pos.z) > 0.5f)
+            {
+                float riverY = ProjectName.Systems.TerrainGenerator.GetRiverSurfaceY(pos.x, pos.z);
+                if (riverY > best) best = riverY;
+            }
+
+            return best;
         }
 
         /// <summary>
@@ -575,6 +676,20 @@ namespace ProjectName.Systems
                 _isDashing = false; // 은신 중 대쉬 불가
             }
 
+            // 웅크림 중 속도 50% (은신과 동일 패턴)
+            if (_isCrouching)
+            {
+                _currentSpeed = _walkSpeed * 0.5f;
+                _isDashing = false; // 웅크림 중 대쉬 불가
+            }
+
+            // 수영 중 속도 60% (웅크림과 중첩 시 곱연산)
+            if (_isSwimming)
+            {
+                _currentSpeed *= 0.6f;
+                _isDashing = false; // 수영 중 대쉬 불가
+            }
+
             // 애니메이션 상태 업데이트
             if (_rigAnim != null)
             {
@@ -722,6 +837,8 @@ namespace ProjectName.Systems
 
         private void StartRoll(Vector3 direction)
         {
+            if (_isSwimming) return; // 수영 중 구르기 무시
+
             _isRolling = true;
             _rollTimer = 0f;
             _lastRollTime = Time.time;
@@ -745,6 +862,9 @@ namespace ProjectName.Systems
             // 구르기 중 점프 불가
             if (_isRolling) return;
 
+            // 수영 중 점프 무시 (부유 상태에서 수면 위로 튀어오름 방지)
+            if (_isSwimming) return;
+
             // 탑승 중 점프 불가 (MountSystem)
             if (MountSystem.Instance != null && MountSystem.Instance.IsMounted)
                 return;
@@ -759,6 +879,7 @@ namespace ProjectName.Systems
             {
                 _verticalVelocity = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
                 _isJumping = true;
+                _isCrouching = false; // 점프 시 웅크림 해제
                 if (_rigAnim != null) _rigAnim.SetState(AnimationState.Jump);
                 _proceduralAnim?.TriggerAction("jump");
             }
@@ -1503,6 +1624,10 @@ namespace ProjectName.Systems
 
         // --- 구르기 속성 ---
         public bool IsRolling => _isRolling;
+
+        // --- 웅크림/수영 속성 ---
+        public bool IsCrouching => _isCrouching;
+        public bool IsSwimming => _isSwimming;
         public float RollTimer => _rollTimer;
         public float RollDuration => _rollDuration;
         public float RollCooldown => _rollCooldown;

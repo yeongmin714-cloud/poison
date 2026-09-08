@@ -51,6 +51,7 @@ namespace ProjectName.Core.Data
 
             ApplyEffect(dish.Effect);
             Debug.Log($"[ConsumableSystem] Consumed {item.displayName}. Effect: {dish.Effect}");
+            PlayDrinkAnimation();
         }
 
         /// <summary>
@@ -63,6 +64,7 @@ namespace ProjectName.Core.Data
             string effect = item.effects ?? "";
 
             Debug.Log($"[ConsumableSystem] Consumed potion: {itemName}");
+            PlayDrinkAnimation();
 
             // 은신 물약: 10초 반투명 + 발소음 제로
             if (itemName.Contains("은신") || effect.Contains("은신"))
@@ -85,6 +87,16 @@ namespace ProjectName.Core.Data
             }
         }
 
+        /// <summary>
+        /// 음료 훅: 소비(Food/Potion/Drug) 성공 시 플레이어 Drink 클립 발화.
+        /// Core.Data → Systems 직접 참조 불가(asmdef) → BroadcastMessage로 우회.
+        /// </summary>
+        private static void PlayDrinkAnimation()
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null) return;
+            player.BroadcastMessage("TriggerDrink", SendMessageOptions.DontRequireReceiver);
+        }
 
         /// <summary>
         /// 은신 물약 효과: 10초 반투명 + 발소음 제로.
