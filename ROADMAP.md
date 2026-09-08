@@ -1745,3 +1745,28 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | Play 판정 대기 | ① NRE 0건+프레임 안정 ② 흙길 가장자리 데코/꽃밭/숲 체감 ③ 인벤폰트 잘림 0 ④ [State] 정상 유지 | ⬜ |
 
 ---
+
+## 🌄 2026-09-08: 지형 다양화 2차 — 예시2~13 Gap 충전 T-D2 (✅)
+
+> 유저 판정 "여전히 단조로움" → 예시 12장 vision 분석으로 Gap 9종(G1~G9) 추출. 단조로움 3원인: **노출 암반(outcrop) 부재**(예시 9/9장에 등장) / **텍스처 tint 위주**(모래·암반 전환 없음) / **랜드마크 희소**(아치·꽃융단·분지 없음). 계획서: `.hermes/plans/2026-09-08_terrain-diversity-2.md`
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| T1 형태 | TerrainShape 신규 마스크: GetOutcropMask/Centers(320m 셀, 방위별 밀도·5~7층단), GetBasinCenter/Mask(방위당 1개 분지 90~130m+외벽 병풍절벽, **5/5 배치 검증**), GetWestArchPosition(서쪽 아치 (-740,0), 받침 암돔 2개 지형 강제), GetMegaFlowerPatchMask | ✅ |
+| T1 호수 | 대형 호수 #3(423,906 r130 북 얼음호수, LCG 시뮬로 1.7r 밴드 무겹침 검증) + 중형 3개 승격(100~120m, 420/560m 이격 가드) — 총 18개 | ✅ |
+| T1 재귀가드 | **핵심 트러블**: GenerateLakes waterLevel→ComputeNationHeight→마스크→Lakes getter 재진입=무한재귀 → `LakesOrNull`(생성 중 null)+HandLakeTable(수동 호수 3개 고정) 배제 + QA 패치로 캐시 무효화(LakesReady 후 재평가) | ✅ |
+| T1 Empire 문제 | **발견**: Empire 영토=중심 50m뿐 → 분지/꽃융단 중앙링(300~480m)이 절대 생성 안 됨 → 공유 세트 방식(모든 방위 평가에 Empire 세트 포함)으로 수리 | ✅ |
+| T2 텍스처 | ComputePixelColor 4레이어: 암반색(방위별 회청·사암·석회암+tint 30% 혼입, suppression<0.3 억제) / 호수 모래사장(0.98~1.42r) / 꽃융단 핑크·마젠타 블롯 / 분지 바닥 명도 — (+120행) | ✅ |
+| T3 데코 | PlaceOutcropRocks(사이트당 rockBig2~4+rockMed4~8 위성군집), PlaceWestArch(rockBig ×2.4 아치), PlaceMegaFlowerPatches(핑크+퍼플 4×4 클러스터, 국가당 220) — (+143행) | ✅ |
+| T4 검증 | 배치컴파일 **error CS=0** (09:40/09:50 DLL 갱신) + QA agent: 치명 1건(캐시 고정) 패치 완료, A~F 전 항목 통과 | ✅ |
+
+| 시뮬레이션 검증 수치 | 값 |
+|:---|:---|
+| 아웃크롭 사이트 | 동6/서5/남6/북5 (셀 해시, ±60m 지터) |
+| 분지 5/5 | 동(932,492)r125 · 서(-787,-79)r92 · 남(22,-945)r112 · 북(-13,1097)r114 · 황제국(72,471)r111 |
+| 꽃 융단 | 동2/서1/남1/북1 + 황제국 공유 3 — 전부 배제 규칙 통과 |
+| 호수 | 18개 전체 1.7r 밴드 무겹침, 승격 후 waterLevel 재계산(ComputeLakeWaterLevel) |
+
+**다음**: 유저 Play 판정 (①노출암반 실루엣 ②호수 모래사장 ③서쪽 아치 ④중앙 꽃융단 ⑤분지 병풍절벽). 판정 통과 시 스폰/영지 빌더 재개(MonsterSpawner/TerritoryBuilder SetPaused(false)).
+
+---
