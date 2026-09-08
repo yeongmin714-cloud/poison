@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using ProjectName.Core;
+using ProjectName.Core.Data;
 using ProjectName.Systems;
 using WeatherType = ProjectName.Systems.TimeWeatherSystem.WeatherType;
 
@@ -344,7 +345,6 @@ namespace ProjectName.UI
         /// <summary>영지 정의 → 미니맵용 월드 위치 (QuestMarkerSystem과 동일 규칙).</summary>
         private Vector3 GetTerritoryWorldPosition(TerritoryDefinition def)
         {
-            if (def == null) return Vector3.zero;
             Vector3 dir;
             switch (def.nation)
             {
