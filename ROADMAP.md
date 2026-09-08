@@ -1770,3 +1770,19 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 **다음**: 유저 Play 판정 (①노출암반 실루엣 ②호수 모래사장 ③서쪽 아치 ④중앙 꽃융단 ⑤분지 병풍절벽). 판정 통과 시 스폰/영지 빌더 재개(MonsterSpawner/TerritoryBuilder SetPaused(false)).
 
 ---
+
+## 🏃 2026-09-08: 유저 제공 로코모션 FBX 8개 플레이어 부착 (✅)
+
+> 유저가 `Assets/플레이어 애니메이션/`에 넣은 애니 FBX 8개를 시험 부착. Blender 5.1 headless로 본명 표준화(Rigify 23본 → Humanoid) 후 클립전용 FBX 생성 → Player_AC 로코 4슬롯만 교체. 상세 로그: QAPROGRESS.md 09-08 항목.
+
+| 항목 | 내용 | 상태 |
+|:---|:---|:---:|
+| 리그 표준화 | roll_make/rerig_useranim.py — MAP 23본 리네임+메시 제거 → Assets/Animations/MixamoUser/ 8개 | ✅ |
+| 임포트 보정 | Human 타입(6000.4 리네임 반영) + loopTime 6개 + defaultClipAnimations 폴백 | ✅ |
+| 슬롯 교체 | Idle/Walk/Run/Jump → user:idle/walk/run/jump.fbx, Roll/Attack/Hit/Death 유지 | ✅ |
+| 근본수리 | Create("Player_AC")+{name}_AC 템플릿 이중 접미사 = Player_AC_AC 사고 진짜 원인 → Create("Player") 수리 + 잔존검증루프/경로로깅 | ✅ |
+| 미배선 | back walk/run·좌우 change direction 4개(후진/선회 파라미터 부재 — 후속) | ⬜ |
+| 검증 | 배치 error CS=0 + 컨트롤러 GUID refs 4/4 + loopTime 적용 + 중복 0 + QA 계약 유지 | ✅ |
+| Play 판정 대기 | 로코 4종 동작·loop 반복·발 미끄러짐·검 부착·기존 클립 정상 | ⬜ |
+
+---

@@ -454,3 +454,23 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 **검증:** 배치모드 error CS=0 (Systems.dll 20:08) + 파일별 중괄호 균형 PASS.
 
 **Play 판정 대기:** 점령 후 내 영지 성문 E → 대전당, 각 시설 근접 시 `[E]` 표시 → 창고/크래프트/수리 UI 정상 열림. (CraftingUI/RepairStationUI 프리팹이 UIManager/씬 시 실제 열림 확인 필요)
+
+---
+
+## 2026-09-08: 유저 제공 로코모션 FBX 8개 플레이어 부착 ✅
+
+**입력**: `Assets/플레이어 애니메이션/` FBX 8개(idle/walk/run/jump/back walk/back run/좌·우 change direction — Blender Rigify 리그, 메시+텍스처 임베디드)
+
+**파이프라인**: Blender 5.1 headless(`roll_make/rerig_useranim.py`) 본명 표준화(rerig_heat.py MAP 23본: Root→Hips~toe→Toes) + 메시 제거 클립전용 FBX → `Assets/Animations/MixamoUser/` (검증: 필수 17본 충족, AnimStack 존재)
+
+**임포트**: `ModelImporterAnimationType.Human`(Unity 6000.4에서 Humanoid→Human 리네임됨) + loopTime 6개(idle/walk/run/back_run/back_walk/jump=true, change_direction=false). **빈 clipAnimations → `defaultClipAnimations` 폴백 필수**(서브에셋 클립 존재해도 정의 배열은 0개)
+
+**컨트롤러**: Player_AC 로코 4슬롯 교체(idle/walk/run/jump), Roll/Attack/Hit/Death 유지, run.speed=0.28+Speed바인딩·T(0.12s)·히스테리시스(0.55/0.35, 4.5/2.0) 유지. back walk/run·change direction 4개는 미배선(후진/선회 파라미터 부재 — 후속 과제)
+
+**근본 원인 발견(중대)**: Player_AC_AC 중복 사고(09-03/09-07)의 **진짜 원인 = Create("Player_AC") + 템플릿 `{name}_AC.controller` 이중 접미사**(HEAD부터 존재한 버그 — 파일삭제+Refresh 패치는 표적을 잘못 짚었었음) → `Create("Player")` 1단어 수리 + Create에 3회 잔존검증루프·최종경로 LogError 로깅 경화
+
+**검증**: 배치컴파일 error CS=0(R4 로그) + Player_AC.controller 재생성 확인(경로 검증 로그) + 4클립 GUID 참조 refs=1/1/1/1 + loopTime=1 + Player_AC_AC 0. QA: 파라미터 계약·전환값 전부 유지, 병사 3개 무변경
+
+**운영 노트**: ①animationType 전환 직후 동일 배치 세션의 LoadAllAssetsAtPath 스테일 가능 → 임포트/빌드 세션 분리 ②유니티 배치는 에디터 닫힌 상태에서 WSL 직접 실행 가능(서브에이전트 600s 타임아웃 2회 발생 — Unity 장기작업은 부모가 백그라운드 실행하는 게 안전)
+
+**Play 판정 대기**: ①Idle/Walk/Run/Jump 동작 ②loop 반복 정상(동결 없음) ③발 미끄러짐(run 클립 페이스 튜닝 여지) ④검 부착 위치 유지 ⑤롤/전투/사망 기존 클립 정상
