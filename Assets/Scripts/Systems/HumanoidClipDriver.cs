@@ -305,6 +305,10 @@ namespace ProjectName.Systems
                 _anim.SetFloat("MoveY", lmv.z);
             }
 
+            // T-D3+: 웅크림/수영 상태 피드(QA 발견 누락 보강) — CrouchF/B/L/R·SwimI/F 진입 조건
+            _anim.SetBool("IsCrouch", _movement != null && _movement.IsCrouching);
+            _anim.SetBool("IsSwimming", _movement != null && _movement.IsSwimming);
+
             // M2 정식 장착 연동: CurrentType 기반 게이트(핫바 장착이 유일한 전환 경로)
             var wtype = WeaponEquipManager.CurrentType;
             bool throwing = PlayerWeaponModeBridge.ThrowSelected;
@@ -356,6 +360,7 @@ namespace ProjectName.Systems
                     if (_comboCount >= 4) _anim.SetTrigger("AttackCombo3");
                     else if (_comboCount >= 3) _anim.SetTrigger("AttackCombo2");
                     else if (_comboCount >= 2) _anim.SetTrigger("AttackCombo");
+                    else if (WeaponEquipManager.CurrentType == WeaponType.Spear) _anim.SetTrigger("AttackThrust"); // M5: 창=찌르기
                     else
                     {
                         int r = Random.Range(0, 3);
