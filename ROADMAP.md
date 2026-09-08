@@ -1793,7 +1793,7 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 | Phase | 내용 | 상태 |
 |:---|:---|:---:|
-| T1-1/T1-2 | 층절벽·능선부스트 마스크 신설(GetTerraceBlockMask/GetRidgeBoostMask — 소비 계약 주석, Generator carve는 다음 단계) | ✅ |
+| T1-1/T1-2 | 층절벽·능선부스트 마스크 신설(GetTerraceBlockMask/GetRidgeBoostMask) → **Generator 소비 완료**(ComputeSubBiomeVariation: 테라스 3m 단 carve + 능선 RidgeBoostAmp 3~5m 델타, 커밋 bb6cecb8) | ✅ |
 | T1-3 | 호수 만(cove) — 반경 축소-only 변조 -8%(1.7r 이격 안전) | ✅ |
 | T2 물 | 수면 바위(6~12/호수)·연잎연꽃 군집(≤20%)·하천 5개(min-only carve+수면 스트립)·수변 수양버들 | ✅ |
 | T3 숲 | 수종 규칙(능선=침엽80, 수변18m=버들40/활엽60) — 예시6 비율 | ✅ |

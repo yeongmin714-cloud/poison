@@ -8,6 +8,16 @@
 
 ---
 
+## 📌 세션 종합 스냅샷 (2026-09-08 3차 — 지형 다양화 T-D3 후속: T1-1/T1-2 Generator 소비 ✅)
+
+- **범위**: T-D3의 위치 마스크 2종(테라스/능선부스트)을 TerrainGenerator.ComputeSubBiomeVariation에서 실제 소비(carve/델타)로 전환
+- **T1-2 능선 부스트**: `GetRidgeBoostMask × RidgeBoostAmp(방위별 3~5m)` — 640m 셀 세그먼트·폭60m 능선에 국소 +30% 체감 진폭(전체 진폭/다른 델타 라인 무수정)
+- **T1-1 층절벽 테라스**: `GetTerraceBlockMask`(임계 0.25, 블록 반경 40~80m) 내부를 `baseH` 3m 단 양자화 → 계단 3~4단 carve. additive 델타(양자화 레벨−현재높이)×Smoothstep 블렌드로 가장자리 자연 블렌딩
+- **검증**: 배치컴파일 error CS=0 (buildlog_td3_t11_t12.txt, CompileScripts 23.4s) · 불변 제약 유지(델타 가산만, cliffSuppression=return에서 자동, 결정론, 재귀 없음)
+- ⬜ **남음**: T5 능선길 2개+호수 연장(별도 세션 예정), Play 판정(층절벽 실루엣·능선 상승감)
+
+---
+
 ## 📌 세션 종합 스냅샷 (2026-09-08 2차 — 지형 다양화 T-D2: 예시2~13 Gap 충전)
 
 - **진단**: 예시 12장 vision 분석 → 단조로움 3원인 확정 ①노출 암반 부재 ②텍스처 tint 위주(모래/암반 전환 없음) ③랜드마크 희소
