@@ -8,6 +8,17 @@
 
 ---
 
+## 📌 세션 종합 스냅샷 (2026-09-08 6차 — 미니맵 지형 렌더링 ✅)
+
+- **범위**: MinimapUI(현재 UI 프레임만)에 실제 지형을 넣기 — 사용자 "미니맵에 지형이 들어갈 수 있도록"
+- **M1 공개 저장**: `TerrainSplatBaker.LastWorldSplat`(public static Texture2D) 추가. `BakeWorldSplat` 끝 + `ApplyWorldSplatToGround`(캐시 로드 경로)에서 갱신
+- **M2 MinimapUI 렌더**: `TryApplyMapTexture()` — Start()+Update() 지연 재시도로 `LastWorldSplat`을 `SetMapTexture`로 주입, `SetMapScale(_minimapDiameter/WORLD_SIZE = 220/2000 = 0.11)` 좌표 정합. 월드 원점(0,0)=미니맵 중심, 기존 `WorldToMinimapLocal`(worldPos×scale)가 지형 위에 마커 정확 배치
+- **핵심**: BakeWorldSplat이 만든 **게임 지형 그대로(2048², 5국가 합성+릴리프+호수 심수색) 재사용 → 추가 베이크 0, 화면과 100% 일치**
+- **검증**: 배치컴파일 error CS=0 (buildlog_minimap.txt, CompileScripts 19.3s, Exiting batchmode successfully)
+- ⬜ **남음**: Play 판정(방위색·호수·흙길/절벽 미니맵 반영 + 마커 정합). M3(영지/퀘스트/랜드마크 마커)은 지형 확인 후 옵션.
+
+---
+
 ## 📌 세션 종합 스냅샷 (2026-09-08 5차 — 지형 다양화 T-D5: 호수 주변 꾸미기 ✅)
 
 - **범위**: IdyllicDecoPlacer에 호수 주변 데코 3종 추가 (사용자 "호수도 지형/주변 꾸며주는 걸 추가" 지시)

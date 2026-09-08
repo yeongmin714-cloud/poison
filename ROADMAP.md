@@ -1805,3 +1805,16 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 > **T-D5 호수 주변 꾸미기 (커밋 36b8fe50)**: 수변 관목(P1.02~1.55r)·수변 바위·자갈(1.02~1.70r)·습지 습초지(0.95~1.12r) — IdyllicDecoPlacer 호수 루프 별도 rng 통합, 배치컴파일 error CS=0.
 
 ---
+
+## 🗺️ 2026-09-08: 미니맵 지형 렌더링 (T-D6) — 커밋 a390134f
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| M1 공개 저장 | TerrainSplatBaker.LastWorldSplat(public static) — BakeWorldSplat 끝+ApplyWorldSplatToGround(캐시경로)에서 갱신 | ✅ |
+| M2 MinimapUI | TryApplyMapTexture(Start+Update 지연재시도) SetMapTexture 주입 + SetMapScale(220/2000=0.11) 좌표 정합 | ✅ |
+| 핵심 | BakeWorldSplat 게임지형(2048² 5국가+릴리프+호수심수색) 재사용 → 추가베이크 0, 화면 100% 일치 | ✅ |
+| 검증 | 배치컴파일 error CS=0 (buildlog_minimap.txt) | ✅ |
+| Play 판정 대기 | 방위색·호수·흙길/절벽 미니맵 반영 + 마커 정합 | ⬜ |
+| M3(옵션) | 영지/퀘스트/랜드마크 마커 겹침(QuestMarkerSystem 재사용) | ⬜ |
+
+---
