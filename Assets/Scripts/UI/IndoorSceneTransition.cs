@@ -170,6 +170,8 @@ namespace ProjectName.UI
 
             // 플레이어를 내부 원점으로 이동(카메라는 플레이어 추적 유지) — builders는 원점 부근에 내부 생성
             var indoorPlayer = GameObject.FindGameObjectWithTag("Player");
+            if (indoorPlayer == null)
+                indoorPlayer = FindAnyObjectByType<ProjectName.Systems.PlayerMovement>()?.gameObject;
             if (indoorPlayer != null)
                 indoorPlayer.transform.position = new Vector3(0f, INDOOR_FLOOR_Y + 0.1f, 0f);
 
@@ -212,6 +214,8 @@ namespace ProjectName.UI
 
             // 진입 직전 위치로 플레이어 복귀
             var exitingPlayer = GameObject.FindGameObjectWithTag("Player");
+            if (exitingPlayer == null)
+                exitingPlayer = FindAnyObjectByType<ProjectName.Systems.PlayerMovement>()?.gameObject;
             if (exitingPlayer != null && _returnPosition.HasValue)
                 exitingPlayer.transform.position = _returnPosition.Value;
             _returnPosition = null;

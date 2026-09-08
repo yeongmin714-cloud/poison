@@ -82,7 +82,7 @@ namespace ProjectName.UI
         private const float NumBoxGap      = 6f;    // 슬롯~숫자박스 간격
         private const float PanelPadTop    = 12f;
         private const float PanelPadBottom = 12f;
-        private const float BottomMargin   = 24f;   // 화면 하단에서 패널까지 거리
+        private const float BottomMargin   = 12f;   // 화면 하단에서 패널까지 거리
 
         private const float PanelWidth  = PanelPadX * 2f + SlotSize * SlotCount + SlotGap * (SlotCount - 1); // 866
         private const float PanelHeight = PanelPadTop + SlotSize + NumBoxGap + NumBoxHeight + PanelPadBottom; // 150
@@ -327,6 +327,7 @@ namespace ProjectName.UI
                 _canvas.transform, "HotbarPanel", _roundedSprite, ColorPanelBg,
                 new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
                 new Vector2(0f, BottomMargin), new Vector2(PanelWidth, PanelHeight));
+            panel.pivot = new Vector2(0.5f, 0f); // 하단 중앙 기준 (CreateImage 기본 pivot(0,0)은 좌하단 기준 → 좌측 절반이 화면 중앙 기준으로 밀림)
             panel.GetComponent<Image>().type = Image.Type.Sliced;
 
             float slotTop = PanelPadTop;

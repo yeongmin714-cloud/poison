@@ -75,9 +75,9 @@ namespace ProjectName.Systems
                 }
             }
 
-            _mainCamera = Camera.main;
+            _mainCamera = Camera.main != null ? Camera.main : FindFirstObjectByType<Camera>();
             if (_mainCamera == null)
-                Debug.LogWarning("[BuildingTrigger] MainCamera 태그 오브젝트 없음 — 말풍선 표시 불가");
+                Debug.LogWarning("[BuildingTrigger] 씬에 카메라 없음 — 말풍선 표시 불가");
         }
 
         private void Update()
