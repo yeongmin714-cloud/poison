@@ -115,6 +115,7 @@ namespace ProjectName.EditorTools
                 ("Harvest", AnimatorControllerParameterType.Trigger),
                 ("HitLight", AnimatorControllerParameterType.Trigger),
                 ("Stun", AnimatorControllerParameterType.Trigger),
+                ("Knockdown", AnimatorControllerParameterType.Trigger),
                 ("MoveX", AnimatorControllerParameterType.Float),
                 ("MoveY", AnimatorControllerParameterType.Float),
                 ("JumpBack", AnimatorControllerParameterType.Trigger),
@@ -140,6 +141,7 @@ namespace ProjectName.EditorTools
             var harvest = AddState(sm, "Harvest", Clip("meshy:Pull_Radish.fbx"));
             var hitLight = AddState(sm, "HitLight", Clip("meshy:Slap_Reaction.fbx"));
             var stun = AddState(sm, "Stun", Clip("meshy:Electrocution_Reaction.fbx"));
+            var knockdown = AddState(sm, "Knockdown", Clip("meshy:Shot_in_the_Back_and_Fall.fbx")); // 다운(Knockdown) — 대 데미지 발화
 
             // T-D3 이동 파라미터 확장: 후진/선회/점프변형 클립 9종 (MoveX/MoveY 기반)
             var walkBack = AddState(sm, "WalkBack", Clip("meshy:Walk_Backward.fbx"));
@@ -209,6 +211,8 @@ namespace ProjectName.EditorTools
             ExitTo(sm, hitLight, idle);
             AnyState(sm, stun, "Stun");
             ExitTo(sm, stun, idle);
+            AnyState(sm, knockdown, "Knockdown");
+            ExitTo(sm, knockdown, idle);
 
             AssetDatabase.SaveAssets();
             Debug.Log("[MixamoControllers] Player_AC 생성 완료");

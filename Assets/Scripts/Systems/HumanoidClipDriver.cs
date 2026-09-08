@@ -37,6 +37,12 @@ namespace ProjectName.Systems
         private bool _prevRolling, _prevJumping;
         private bool _deathFired;
 
+        /// <summary>T-D3+: 외부 시스템 발화용 퍼블릭 트리거(채집/경직/스턴/다운).</summary>
+        public void TriggerHarvest() { if (_anim != null) _anim.SetTrigger("Harvest"); }
+        public void TriggerHitLight() { if (_anim != null) _anim.SetTrigger("HitLight"); }
+        public void TriggerStun() { if (_anim != null) _anim.SetTrigger("Stun"); }
+        public void TriggerKnockdown() { if (_anim != null) _anim.SetTrigger("Knockdown"); }
+
         // DD1: 애니 상태 진단 타임라인 (최초 600초, 주기 로그 + 상태 전환 즉시 로그)
         private float _diagStart = -1f;
         private float _nextDiagTime = 0f;

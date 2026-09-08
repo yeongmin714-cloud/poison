@@ -155,6 +155,10 @@ namespace ProjectName.Systems
             if (_playerRigAnim != null) _playerRigAnim.SetState(AnimationState.Gather);
             _playerProceduralAnim?.TriggerAction("gather");
 
+            // T-D3+: 클립 기반 채집 모션(Harvest=Pull_Radish) — HumanoidClipDriver 트리거
+            var clipDriver = _player != null ? (_player.GetComponent<HumanoidClipDriver>() ?? _player.GetComponentInChildren<HumanoidClipDriver>()) : null;
+            if (clipDriver != null) clipDriver.TriggerHarvest();
+
             int yield = UnityEngine.Random.Range(_minYield, _maxYield + 1);
             var item = GetItemData();
 
@@ -210,6 +214,10 @@ namespace ProjectName.Systems
             // 플레이어 채집 애니메이션 (Gather)
             if (_playerRigAnim != null) _playerRigAnim.SetState(AnimationState.Gather);
             _playerProceduralAnim?.TriggerAction("gather");
+
+            // T-D3+: 클립 기반 채집 모션(Harvest=Pull_Radish) — HumanoidClipDriver 트리거
+            var clipDriver = _player != null ? (_player.GetComponent<HumanoidClipDriver>() ?? _player.GetComponentInChildren<HumanoidClipDriver>()) : null;
+            if (clipDriver != null) clipDriver.TriggerHarvest();
 
             item = GetItemData();
             yield = UnityEngine.Random.Range(_minYield, _maxYield + 1);

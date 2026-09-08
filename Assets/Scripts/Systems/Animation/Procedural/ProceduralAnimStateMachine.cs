@@ -199,6 +199,17 @@ namespace ProjectName.Systems.Animation.Procedural
             {
                 if (damage > 30f)
                     SetState(State.Stagger);
+
+                // T-D3+: 클립 히트 반응(경직/스턴/다운) — HumanoidClipDriver 경유(등급: 소/중/대)
+                var clipDriver = GetComponent<HumanoidClipDriver>()
+                    ?? GetComponentInParent<HumanoidClipDriver>()
+                    ?? GetComponentInChildren<HumanoidClipDriver>();
+                if (clipDriver != null)
+                {
+                    if (damage >= 40f) clipDriver.TriggerKnockdown();
+                    else if (damage >= 25f) clipDriver.TriggerStun();
+                    else clipDriver.TriggerHitLight();
+                }
             }
         }
 
