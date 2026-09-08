@@ -20,6 +20,8 @@ namespace ProjectName.UI
         private static string _pendingNationStyle;
         private static bool _pendingIsPlayerOwned;
         private static string _pendingTerritoryKey;   // INTERIOR-VAR: 레이아웃 변형 결정론 시드용
+        private static Vector3? _returnPosition;      // 진입 직전 플레이어 위치(퇴출 복귀용)
+        private const float INDOOR_FLOOR_Y = 0f;      // 실내 바닥 높이 (IndoorBuilder.CreateRoom: 바닥 XZ 평면 y=0)
         private static bool _initialized;
 
         /// <summary>정적 생성자: BuildingEvents 구독 (중복 방지)</summary>
@@ -67,6 +69,10 @@ namespace ProjectName.UI
             _pendingNationStyle = nationStyle;
             _pendingIsPlayerOwned = isPlayerOwned;
             _pendingTerritoryKey = territoryKey;
+
+            // 진입 직전 플레이어 위치 저장(퇴출 시 복귀)
+            var enteringPlayer = GameObject.FindGameObjectWithTag("Player");
+            _returnPosition = enteringPlayer != null ? (Vector3?)enteringPlayer.transform.position : null;
 
 
 
@@ -162,6 +168,11 @@ namespace ProjectName.UI
                     break;
             }
 
+            // 플레이어를 내부 원점으로 이동(카메라는 플레이어 추적 유지) — builders는 원점 부근에 내부 생성
+            var indoorPlayer = GameObject.FindGameObjectWithTag("Player");
+            if (indoorPlayer != null)
+                indoorPlayer.transform.position = new Vector3(0f, INDOOR_FLOOR_Y + 0.1f, 0f);
+
             _pendingBuildingType = null;
             _pendingNationStyle = null;
             _pendingIsPlayerOwned = false;
@@ -198,6 +209,12 @@ namespace ProjectName.UI
             {
                 Debug.LogWarning("[IndoorSceneTransition] 언로드할 IndoorScene이 없음.");
             }
+
+            // 진입 직전 위치로 플레이어 복귀
+            var exitingPlayer = GameObject.FindGameObjectWithTag("Player");
+            if (exitingPlayer != null && _returnPosition.HasValue)
+                exitingPlayer.transform.position = _returnPosition.Value;
+            _returnPosition = null;
 
             _previousSceneName = null;
         }
