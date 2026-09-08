@@ -221,6 +221,9 @@ namespace ProjectName.UI
             // 2. 미니맵 배경 (원형)
             DrawMinimapBackground();
 
+            // 3. 영지·퀘스트·랜드마크 마커 (지형 위)
+            DrawMarkerOverlay();
+
             // 3. 플레이어 마커
             DrawPlayerMarker();
 
@@ -285,6 +288,84 @@ namespace ProjectName.UI
             }
 
             GUI.color = Color.white;
+        }
+
+        /// <summary>
+        /// MM-Terrain M3: 지형 위에 영지(검은 점)·활성 퀘스트(퀘스트색 점) 마커를 겹친다.
+        /// 월드 위치 → 미니맵 로컬(함수 _mapScale) 동일 변환, 원형 클램프(플레이어 마커와 동일 규칙).
+        /// </summary>
+        private void DrawMarkerOverlay()
+        {
+            if (_mapTexture == null) return;   // 지형이 없으면 마커 오버레이도 안 그림 (지형 준비 후)
+
+            float radius = _minimapDiameter * 0.5f;
+            float centerX = _minimapRect.x + radius;
+            float centerY = _minimapRect.y + radius;
+            float maxDist = radius - 3f;   // 마커 반지름 고려 여유
+
+            // ── ① 영지 마커 (모두, 작은 검은 점) ──
+            var db = TerritoryDatabase.Instance;
+            if (db != null)
+            {
+                GUI.color = new Color(0f, 0f, 0f, 0.85f);
+                int mSize = 4;
+                bool any = false;
+                foreach (var def in db.GetAllDefinitions())
+                {
+                    Vector3 wp = GetTerritoryWorldPosition(def);
+                    if (wp == Vector3.zero) continue;
+                    Vector2 lp = WorldToMinimapLocal(wp);
+                    float dist = lp.magnitude;
+                    if (dist > maxDist - mSize) continue;   // 원 밖 스킵
+                    Rect r = new Rect(centerX + lp.x - mSize * 0.5f, centerY + lp.y - mSize * 0.5f, mSize, mSize);
+                    GUI.Box(r, "");
+                    any = true;
+                }
+                if (any) GUI.color = Color.white;
+            }
+
+            // ── ② 활성 퀘스트 마커 (QuestMarkerSystem — 퀘스트색 점, 더 큼) ──
+            if (QuestMarkerSystem.Instance != null)
+            {
+                foreach (var qm in QuestMarkerSystem.Instance.GetActiveQuestMarkers())
+                {
+                    Vector2 lp = WorldToMinimapLocal(qm.worldPos);
+                    float dist = lp.magnitude;
+                    if (dist > maxDist - 2f) continue;
+                    GUI.color = qm.markerColor;
+                    int qSize = 7;
+                    Rect r = new Rect(centerX + lp.x - qSize * 0.5f, centerY + lp.y - qSize * 0.5f, qSize, qSize);
+                    GUI.Box(r, "");
+                }
+                GUI.color = Color.white;
+            }
+        }
+
+        /// <summary>영지 정의 → 미니맵용 월드 위치 (QuestMarkerSystem과 동일 규칙).</summary>
+        private Vector3 GetTerritoryWorldPosition(TerritoryDefinition def)
+        {
+            if (def == null) return Vector3.zero;
+            Vector3 dir;
+            switch (def.nation)
+            {
+                case NationType.North: dir = new Vector3(0f, 0f, 1f); break;
+                case NationType.East:  dir = new Vector3(1f, 0f, 0f); break;
+                case NationType.South: dir = new Vector3(0f, 0f, -1f); break;
+                case NationType.West:  dir = new Vector3(-1f, 0f, 0f); break;
+                default: return Vector3.zero;   // Empire(중앙)은 플레이어 마커와 겹침 — 스킵
+            }
+            float distance = def.difficulty switch
+            {
+                TerritoryDifficulty.Ring1 => 15f,
+                TerritoryDifficulty.Ring2 => 30f,
+                TerritoryDifficulty.Ring3 => 45f,
+                TerritoryDifficulty.Ring4 => 60f,
+                _ => 20f,
+            };
+            float spreadAngle = (def.id.index % 5) * 18f;
+            Vector3 spread = Quaternion.Euler(0f, spreadAngle, 0f) * dir;
+            if (spread.sqrMagnitude < 0.01f) spread = dir;
+            return spread.normalized * distance;
         }
 
         private void DrawPlayerMarker()
