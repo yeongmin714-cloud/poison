@@ -446,6 +446,10 @@ namespace ProjectName.Systems
 
             Color[] pixels = new Color[size * size];
 
+            // T2: 픽셀 루프 전 호수 목록 1회 확정 — 루프 내 Lakes 프로퍼티 호출 금지 규약 +
+            // 호수 배치 검증(LakesOrNull)을 쓰는 T1 마스크의 결정론 보장(호수 선생성).
+            GetTextureLakes();
+
             for (int y = 0; y < size; y++)
             {
                 for (int x = 0; x < size; x++)
@@ -494,6 +498,10 @@ namespace ProjectName.Systems
 
             Color[] pixels = new Color[size * size];
             Color focusTint = GetNationTint(focusNation);
+
+            // T2: 픽셀 루프 전 호수 목록 1회 확정 — 루프 내 Lakes 프로퍼티 호출 금지 규약 +
+            // 호수 배치 검증(LakesOrNull)을 쓰는 T1 마스크의 결정론 보장(호수 선생성).
+            GetTextureLakes();
 
             for (int y = 0; y < size; y++)
             {
@@ -767,6 +775,73 @@ namespace ProjectName.Systems
                 finalColor *= centerDarken;
             }
 
+            // ── Phase T2: 4레이어 색 전환 (T1 형상 마스크 → 결합 텍스처 색) ──
+            // 적용 순서: ④분지 톤 → ③꽃 융단 → ①암반 → ②호수 모래(최상단).
+            // 호수 수변은 cliffSuppression≈0 보호구역이라 ①암반은 자동 억제되고 ②모래가
+            // 전환 없이 이긴다. ③④는 기존 tint/노이즈 위 오버레이.
+            NationType pixelNation = GetNationFromPosition(new Vector3(wx, 0f, wz));
+
+            // T2-④: 분지 바닥 미묘한 대비 — basinMask>0.4에서 약간 진한 톤(×0.93), 계수 상한 0.15.
+            float basinMask = TerrainShape.GetBasinMask(wx, wz, pixelNation, seed);
+            if (basinMask > 0.4f)
+            {
+                float basinW = TerrainShape.Smoothstep(0.4f, 0.8f, basinMask) * 0.15f;
+                finalColor = Color.Lerp(finalColor, finalColor * 0.93f, basinW);
+            }
+
+            // T2-③: 대형 꽃 융단 — megaFlower>0.3에서 핑크/마젠타 블롯 오버레이.
+            // 노이즈로 핑크↔마젠타 두 톤을 블롯처럼 섞어 카펫 질감(예시12/13).
+            // Empire/East는 채도 높은 강한 핑크, 타 방위는 부드러운 핑크.
+            float megaFlower = TerrainShape.GetMegaFlowerPatchMask(wx, wz, pixelNation, seed);
+            if (megaFlower > 0.3f)
+            {
+                bool strongPink = pixelNation == NationType.Empire || pixelNation == NationType.East;
+                Color pinkA = strongPink ? new Color(0.90f, 0.55f, 0.75f) : new Color(0.85f, 0.60f, 0.80f);
+                Color pinkB = strongPink ? new Color(0.80f, 0.38f, 0.66f) : new Color(0.78f, 0.45f, 0.70f);
+                float blotN = Mathf.PerlinNoise(wx * 0.5f + 77.7f, wz * 0.5f + 33.3f);
+                Color blot = Color.Lerp(pinkA, pinkB, blotN);
+                float flowerW = TerrainShape.Smoothstep(0.3f, 0.7f, megaFlower) * 0.85f;
+                finalColor = Color.Lerp(finalColor, blot, flowerW);
+            }
+
+            // T2-①: 노출 암반 바위색 — outcropMask>0.35에서 smoothstep(0.35,0.65) 블렌드.
+            // 보호구역(스폰/성/호수/경계 — SampleCliffSuppression<0.3)에서는 암반색 억제
+            // (0.3~0.5 램프로 게이트해 보호구역 경계 시임 방지).
+            float cliffSup = TerrainGenerator.SampleCliffSuppression(wx, wz);
+            float rockGate = TerrainShape.Smoothstep(0.3f, 0.5f, cliffSup);
+            if (rockGate > 0f)
+            {
+                float outcropMask = TerrainShape.GetOutcropMask(wx, wz, pixelNation, seed);
+                if (outcropMask > 0.35f)
+                {
+                    Color rock = ComputeOutcropRockColor(pixelNation, wx, wz);
+                    rock = Color.Lerp(rock, nationTint, 0.3f);   // 방위 tint 30%만 혼입(방위색 규약 유지)
+                    float rockW = TerrainShape.Smoothstep(0.35f, 0.65f, outcropMask) * rockGate;
+                    finalColor = Color.Lerp(finalColor, rock, rockW);
+                }
+            }
+
+            // T2-②: 호수 모래사장 — 반경 [0.98r, 1.42r] 밴드, 1.42r→0.98r 역방향 가장자리 페이드.
+            // 호수 주변은 이미 보호구역 — SampleCliffSuppression 무관(모래 항상 허용).
+            // Lakes는 루프 밖 1회 캐시(GetTextureLakes) — 픽셀당 프로퍼티 getter 호출 금지 규약.
+            var texLakes = GetTextureLakes();
+            if (texLakes != null)
+            {
+                Color sand = new Color(0.85f, 0.78f, 0.60f);
+                for (int i = 0; i < texLakes.Count; i++)
+                {
+                    TerrainGenerator.TerrainLakeDef lake = texLakes[i];
+                    float dx = wx - lake.center.x;
+                    float dz = wz - lake.center.z;
+                    float outer = lake.radius * 1.42f;
+                    if (dx * dx + dz * dz > outer * outer) continue;   // 제곱거리 조기 스킵
+                    float inner = lake.radius * 0.98f;
+                    float dd = Mathf.Sqrt(dx * dx + dz * dz);
+                    float sandW = TerrainShape.Smoothstep(outer, inner, dd);   // 역방향: 바깥 0 → 수변 1
+                    finalColor = Color.Lerp(finalColor, sand, sandW);
+                }
+            }
+
             // 잔디 디테일: 고빈도 노이즈로 지면 전체에 잔디 질감(명암) 부여 — 전체 커버 핵심.
             // ComputePixelColor 말미에 적용되므로 GenerateCombinedTexture에서
             // 픽셀 색 계산 → 잔디 디테일 → PaintDirtPaths(흙길 오버레이) 순서가 보장되고,
@@ -779,6 +854,51 @@ namespace ProjectName.Systems
                 finalColor.b * grassMod * Mathf.Lerp(1.05f, 0.95f, patchN), finalColor.a);
 
             return finalColor;
+        }
+
+        // ================================================================
+        //  T2: Texture Mask Layer Helpers (결합 텍스처 4레이어 색 전환)
+        // ================================================================
+
+        /// <summary>T2: 호수 목록 캐시 — 픽셀 루프 안에서 Lakes 프로퍼티 getter 재호출 방지(성능 규약).</summary>
+        private static IReadOnlyList<TerrainGenerator.TerrainLakeDef> _textureLakes;
+        private static bool _textureLakesResolved;
+
+        /// <summary>
+        /// T2: 결합 텍스처용 호수 목록 — 최초 1회만 해석(지연 생성 트리거 겸용).
+        /// GetMegaFlowerPatchMask/GetBasinCenter가 호수 배치 검증에 LakesOrNull을 쓰므로
+        /// 픽셀 루프 시작 전에 호수가 확정되어야 T1 마스크와 동일한 결정론 배치가 유지된다.
+        /// </summary>
+        private static IReadOnlyList<TerrainGenerator.TerrainLakeDef> GetTextureLakes()
+        {
+            if (!_textureLakesResolved)
+            {
+                _textureLakes = TerrainGenerator.Lakes;   // LCG 고정 시드 — 해석 시점 무관 동일 목록
+                _textureLakesResolved = true;
+            }
+            return _textureLakes;
+        }
+
+        /// <summary>
+        /// T2-①: 노출 암반 바위색(방위별) — 동·북=회청(0.45,0.47,0.50)+이끼 얼룩 /
+        /// 서·남=적갈 사암(0.62,0.42,0.28) / 황제국=밝은 석회암(0.72,0.70,0.64).
+        /// 방위 tint는 호출부(ComputePixelColor)에서 30%만 혼입 — 방위색 규약 유지.
+        /// </summary>
+        private static Color ComputeOutcropRockColor(NationType nation, float wx, float wz)
+        {
+            if (nation == NationType.Empire)
+            {
+                return new Color(0.72f, 0.70f, 0.64f);            // 밝은 석회암
+            }
+            if (nation == NationType.West || nation == NationType.South)
+            {
+                return new Color(0.62f, 0.42f, 0.28f);            // 적갈 사암
+            }
+            // 동·북(및 None/Dracula 기본): 회청 화강암 + 녹색 이끼 얼룩
+            Color rock = new Color(0.45f, 0.47f, 0.50f);
+            float moss = Mathf.PerlinNoise(wx * 0.22f + 131.7f, wz * 0.22f + 57.3f);
+            float mossW = TerrainShape.Smoothstep(0.52f, 0.78f, moss) * 0.45f;
+            return Color.Lerp(rock, new Color(0.32f, 0.44f, 0.26f), mossW);
         }
 
         // ================================================================
