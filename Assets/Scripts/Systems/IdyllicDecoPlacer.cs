@@ -1189,19 +1189,19 @@ namespace ProjectName.Systems
             {
                 for (float gz = -lim; gz <= lim; gz += MEGA_SCAN_CELL)
                 {
-                    if (cnt[0] + cnt[1] + cnt[2] + cnt[3] + cnt[4] >= MEGA_CAP_PER_NATION * 4) break;   // 전역 안전 밸브
+                    if (cnt[0] + cnt[1] + cnt[2] + cnt[3] + cnt[4] >= MegaCapFor(NationType.East) * 4) break;   // 전역 안전 밸브
                     float x = gx + RandomRange(new System.Random((int)(gx * 31 + gz)), -MEGA_SCAN_CELL * 0.4f, MEGA_SCAN_CELL * 0.4f);
                     float z = gz + RandomRange(new System.Random((int)(gx * 17 + gz * 7)), -MEGA_SCAN_CELL * 0.4f, MEGA_SCAN_CELL * 0.4f);
                     var nat = NationTerrainController.GetNationFromPosition(new Vector3(x, 0f, z));
                     int ni = (int)nat;
                     if (ni < 0 || ni >= cnt.Length) continue;
-                    if (cnt[ni] >= MEGA_CAP_PER_NATION) continue;
+                    if (cnt[ni] >= MegaCapFor(nat)) continue;
                     if (TerrainShape.GetMegaFlowerPatchMask(x, z, nat, 42) < 0.5f) continue;
                     if (IsInSpawnExclusion(x, z)) continue;
                     if (IsNearLakeWater(x, z, 1.05f)) continue;
                     if (TerrainSplatBaker.EstimateSlopeDegrees(x, z) > 30f) continue;
                     var rng = new System.Random(NationSeed(nat) + 29 + (int)(x * 3.1f) * 7 + (int)(z * 2.3f) * 13);
-                    for (int si = 0; si < MEGA_CLUSTER_SUB * MEGA_CLUSTER_SUB && cnt[ni] < MEGA_CAP_PER_NATION; si++)
+                    for (int si = 0; si < MEGA_CLUSTER_SUB * MEGA_CLUSTER_SUB && cnt[ni] < MegaCapFor(nat); si++)
                     {
                         int sx = si % MEGA_CLUSTER_SUB, sz = si / MEGA_CLUSTER_SUB;
                         float fx = x + (sx + 1 - (MEGA_CLUSTER_SUB + 1) * 0.5f) * MEGA_CLUSTER_STEP + RandomRange(rng, -0.4f, 0.4f);
@@ -1219,7 +1219,7 @@ namespace ProjectName.Systems
             }
             int e = cnt[(int)NationType.East], w = cnt[(int)NationType.West], so = cnt[(int)NationType.South];
             int no = cnt[(int)NationType.North], em = cnt[(int)NationType.Empire];
-            Debug.Log($"[IdyllicDecoPlacer][T-D2] MegaFlower Total={placed} (E{e}/W{w}/S{so}/N{no}/Emp{em}, cap {MEGA_CAP_PER_NATION}/nation)");
+            Debug.Log($"[IdyllicDecoPlacer][T-D2] MegaFlower Total={placed} (E{e}/W{w}/S{so}/N{no}/Emp{em}, cap 60~80/nation)");
             return placed;
         }
 

@@ -474,3 +474,27 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 **운영 노트**: ①animationType 전환 직후 동일 배치 세션의 LoadAllAssetsAtPath 스테일 가능 → 임포트/빌드 세션 분리 ②유니티 배치는 에디터 닫힌 상태에서 WSL 직접 실행 가능(서브에이전트 600s 타임아웃 2회 발생 — Unity 장기작업은 부모가 백그라운드 실행하는 게 안전)
 
 **Play 판정 대기**: ①Idle/Walk/Run/Jump 동작 ②loop 반복 정상(동결 없음) ③발 미끄러짐(run 클립 페이스 튜닝 여지) ④검 부착 위치 유지 ⑤롤/전투/사망 기존 클립 정상
+
+---
+
+## 2026-09-08: 지형 다양화 3차(T-D3) — 잔여 Gap 소거 ✅ (T5 능선길은 후속)
+
+**계획서**: `.hermes/plans/2026-09-08_terrain-diversity-3.md` (예시 6·3 재분석 수치 반영). 구현 6파일.
+
+- **T1-1/T1-2 마스크**: TerrainShape에 GetTerraceBlockMask(방위당 2~3블록 320m 셀, Empire 공유세트)·GetRidgeBoostMask 신설 — 소비 계약 주석 포함(Generator 테라스 carve/진폭 델타는 다음 단계)
+- **T1-3 호수 만(cove)**: ApplyLakeBasins 반경 **축소-only 변조(최대 -8%)** — 방향각 2옥타브 sin, 밴드가 안쪽으로만 당겨져 1.7r 이격 무겹침 유지(안전 근거 주석)
+- **T2-1 수면 바위**: PlaceLakeSurfaceRocks — 호수당 6~12, 0.3~0.7r, 수면 위 0.3~0.6m 노출(예시3 바위:수면 3:7 체감)
+- **T2-2 연잎/연꽃**: PlaceLilyClusters — 군집당 연잎 5~10+꽃 1~2, 호수 면적 비례 캡(수면 데코 ≤20%)
+- **T2-3 하천 5개**: TerrainRiverDef(방위별 절차 호수 기반, 5제어점 S자, 폭 4~7m·깊이 0.8~1.4m) + GetRiverMask/CarveDelta/SurfaceY + ApplyRiverCarve(**min-only, 낙차 0**) + GenerateAllRivers 수면 스트립(호수 수면 재질 공유)
+- **T2-4 수변 수양버들**: PlaceLakeshoreWillows — 둘레 20~30% 호, Pink=황제국 전용
+- **T3-1 수종 규칙**: TryPlaceTree 훅 — 능선(ridgeBoost>0.4)=침엽 80/활엽 20(FirPool), 수변 18m=버들 40/활엽 60(ShorePool, 예시6 비율)
+- **T4-1 꽃융단**: 마스크 반경 160/200→**352/440(2.2×)**, 배치 산포 18~30m 등가 + MegaCapFor 60~80/국가
+- **T4-2 방위별 색**(NationTerrainController): 동=흰/노랑+빨강 포인트, 남=빨강, 북=흰 설화, 서=황토, 황제=핑크·마젠타
+
+**미완(후속)**: T5 능선 타는 길(기존 53세그먼트 경로 시스템 정합 비용 — 별도 세션) / T1-1·T1-2의 Generator 소비(테라스 carve·진폭 델타) / T3-2·T3-3(기존 숲 마스크·빨간 수종이 커버)
+
+**트러블슈팅**: 서브에이전트 600s 타임아웃 6회(모델 응답 지연) → **단일 패치 위임 패턴**(부모가 코드 조립 후 정확한 old/new 제공, 에이전트는 적용+검증만) 전환 후 전부 성공. 컴파일러가 잡은 수리 2건: MegaCapFor 잔존 참조 4건, GenerateAllRivers lakes 스코프 오류.
+
+**검증**: 배치컴파일 error CS=0(unity_compile_td3_4) + QA agent PASS(중괄호 균형 5파일 0, GROUND_BASE+GetHeightAt 규약 17건 유지)
+
+**Play 판정 대기**: ①호수 만/수면 바위/연꽃 ②하천 흐름(낙차 0) ③수종 혼합(능선 침엽·수변 버들) ④꽃융단 확대+방위색 ⑤기존 요소 무손상

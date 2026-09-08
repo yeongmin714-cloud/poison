@@ -126,7 +126,7 @@ namespace ProjectName.Systems
             var rivers = TerrainGenerator.RiversOrNull;
             if (rivers == null || rivers.Count == 0) return;
             Material mat = null;
-            for (int i = 0; i < lakes.Count && mat == null; i++)
+            for (int i = 0; i < TerrainGenerator.Lakes.Count && mat == null; i++)
             {
                 var lakeGO = GameObject.Find($"Lake_{i}");
                 if (lakeGO == null) continue;
