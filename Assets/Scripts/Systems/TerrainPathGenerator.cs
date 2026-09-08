@@ -650,10 +650,22 @@ namespace ProjectName.Systems
         public static float DirtRoadMask(float x, float z)
         {
             var roads = CurvedRoads();
+            var extra = ExtraPaths();   // T-D3 T5: 능선길 2개 + 호수 연장 2개
+            int total = roads.Count + extra.Count;
+            if (total == 0) return 0f;
             float bestSq = float.MaxValue;
             for (int r = 0; r < roads.Count; r++)
             {
                 var pts = roads[r];
+                for (int s = 0; s < pts.Count - 1; s++)
+                {
+                    float d = DistToSegmentSq(x, z, pts[s], pts[s + 1]);
+                    if (d < bestSq) bestSq = d;
+                }
+            }
+            for (int r = 0; r < extra.Count; r++)
+            {
+                var pts = extra[r];
                 for (int s = 0; s < pts.Count - 1; s++)
                 {
                     float d = DistToSegmentSq(x, z, pts[s], pts[s + 1]);
