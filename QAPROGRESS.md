@@ -687,6 +687,17 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 
 **Play 판정 대기**: ①성문 E → 내부 전환+플레이어 위치 ②Exit 트리거 → 원위 복귀 ③에디터 Tools/Indoor 미리보기 각 메뉴
 
+---
+
+## 2026-09-08: 실내 전환 3이슈 수정 + 핫바 중앙 하단 ✅ (커밋 614bf960)
+
+- **유령 스크립트**: IndoorScene IndoorRoot에 무효 guid(0000…e000) MonoBehaviour → YAML 수술 제거(컴포넌트 엔트리+도큐먼트)
+- **내부 안 보임 원인**: 플레이어 텔레포트가 FindWithTag("Player") 의존(태그 부재 시 이동 안 함) → PlayerMovement 폴백 검색 추가(진입/복귀 2곳)
+- **MainCamera 경고**: Camera.main 폴백(FindFirstObjectByType<Camera>) 추가
+- **핫바 중앙 하단**: 원인=pivot (0,0) 고정(패널 좌하단이 중앙) → pivot (0.5,0), margin 12px
+- **트러블슈팅**: static class에서 FindAnyObjectByType 미해석(CS0103) → UnityEngine.Object. 정규화. `??`는 GameObject↔Transform 타입 불일치로 사용 불가 — if-대입형 필수
+- **검증**: 배치컴파일 error CS=0 ×2 + 텔레그램 알림(9493)
+
 **시스템 배치 필요(에디터 작업)**: DoorInteractable(문+피벗), SeatInteractable(의자/침대), LadderInteractable(사다리) 오브젝트 부착
 
 **Play 판정 대기**: ①Ctrl 웅크림+4방향 ②호수/하천 수영 진입·부유 ③의자/침대 착석·일어남 ④문 개폐 ⑤채집 3종 랜덤 ⑥NPC 대화 Talk·승리 Victory
