@@ -665,6 +665,16 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 - **규약 신설**: Equip id는 "steel"/"crystal" 같은 기본명(접미사 _sword/_bow/_spear 자동 조합) — 풀네임 전달 시 경로 깨짐
 - **남은 것**: M5 창 공격(Thrust 연결), 착석/문/사다리 오브젝트 에디터 배치, 활 프리팹 시각 확인
 
+---
+
+## 2026-09-08: M5 창 공격 + QA 보강 완료 ✅ (커밋 7422c09b)
+
+- **M5**: 창(WeaponType.Spear) 장착 시 콤보 1단 = Thrust_Slash(찌르기) 발화, 2단 이상 기존 체인 유지
+- **QA 발견 보강**: 웅크림/수영 bool 피드 누락(IsCrouch/IsSwimming SetBool이 드라이버에 없어 상태가 절대 발화 안 되던 버그) → HumanoidClipDriver에 SetBool 2줄 추가
+- **검증**: 배치컴파일 error CS=0 + Player_AC 재생성 확인 + 텔레그램 알림(9490)
+
+**최종 상태: 68클립 체제 완성(활성 67+여유 1), 무기/핫바/상호작용 시스템 전부 코드 완료. 남은 것: 에디터 오브젝트 배치(문/좌석/사다리) + Play 판정(키 조작 전반+수영+창 공격)**
+
 **시스템 배치 필요(에디터 작업)**: DoorInteractable(문+피벗), SeatInteractable(의자/침대), LadderInteractable(사다리) 오브젝트 부착
 
 **Play 판정 대기**: ①Ctrl 웅크림+4방향 ②호수/하천 수영 진입·부유 ③의자/침대 착석·일어남 ④문 개폐 ⑤채집 3종 랜덤 ⑥NPC 대화 Talk·승리 Victory
