@@ -634,6 +634,23 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 
 **남은 미사용 9클립**: 활 5종(Archery_Shot, Draw_and_Shoot, Bow_walk 3종)+Spear_Walk(Phase J 활/창 무기 시스템 — 大), Crawl_Backward(기어 심화), baseball_pitching+Walk_Backward_with_Grenade(투척 시스템 — Phase I 잔여)
 
+---
+
+## 2026-09-08: Phase J/I 완료 + 키 재배치 — 67/68 활성화 ✅ (커밋 73f1b975)
+
+- **키 재배치**: C=은신(상승엣지), Ctrl=웅크림(상승엣지) — 공유 문제 해소
+- **모드 토글 3종**(상호 배타, PlayerMovement): B=활 모드, V=창 모드, G=투척 모드 + IsBowMode/IsSpearMode/IsThrowingMode public
+- **Phase J 활**: BowEnter 트리거 진입 → BowAimedF(전진)↔BowBack1/BowBackAimed(후진) 스왑(IsBow 게이트) + 우클릭 ArcheryShot + DrawShoot 장전 + 화살 연출(SpawnProjectile — ArrowProjectile.Spawn API 확인, 데미지 연동은 후속)
+- **Phase J 창**: SpearEnter → SpearWalk(IsSpear 게이트 해제)
+- **Phase I 투척**: ThrowEnter → GrenadeBack(후진 스왑) + 좌클릭 Throw/ThrowPitch 랜덤(Crouch_Pull_and_Throw/baseball_pitching) + 투사체 연출
+- **기어**: 웅크림 후진 클립 Crawl_Backward 스왑
+- **콤보 1단 3종 랜덤**: Attack/AttackThrust/AttackBase
+- **검증**: error CS=0 ×2 + 신규 상태 10종 등록 확인
+- **결과**: **68클립 중 67개 활성화** — 유일 잔여 Cautious_Crouch_Walk_Backward(웅크림 후진을 Crawl로 스왑한 대체 여유본)
+- **임시 구현 주의**: 활/창/투척 모드는 B/V/G 임시 토글 — 정식 무기 시스템(모델+WeaponData+화살 데미지)은 별도 Phase. ArrowProjectile.Spawn(position, direction, speed, damage, trailColor) 공개 API 확인 완료
+
+**Play 판정 대기**: ①C 은신/Ctrl 웅크림 분리 동작 ②B 활 모드 이동+우클릭 발사 ③V 창 걷기 ④G 투척 모드+좌클릭 던지기 ⑤웅크림 후진 기어 ⑥검 콤보 1단 랜덤 3종
+
 **시스템 배치 필요(에디터 작업)**: DoorInteractable(문+피벗), SeatInteractable(의자/침대), LadderInteractable(사다리) 오브젝트 부착
 
 **Play 판정 대기**: ①Ctrl 웅크림+4방향 ②호수/하천 수영 진입·부유 ③의자/침대 착석·일어남 ④문 개폐 ⑤채집 3종 랜덤 ⑥NPC 대화 Talk·승리 Victory
