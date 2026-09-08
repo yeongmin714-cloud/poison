@@ -11,8 +11,8 @@ namespace ProjectName.Core
     /// </summary>
     public static class BuildingEvents
     {
-        /// <summary>건물 진입 요청 (buildingType, nationStyle, isPlayerOwned)</summary>
-        public static event Action<string, string, bool> OnEnterBuildingRequest;
+        /// <summary>건물 진입 요청 (buildingType, nationStyle, isPlayerOwned, territoryKey)</summary>
+        public static event Action<string, string, bool, string> OnEnterBuildingRequest;
 
         /// <summary>건물 퇴출 요청</summary>
         public static event Action OnExitBuildingRequest;
@@ -23,8 +23,9 @@ namespace ProjectName.Core
         /// <param name="buildingType">건물 유형 (예: "House", "Shop", "CraftHouse", "Church", "Castle")</param>
         /// <param name="nationStyle">국가 스타일 (Castle 전용, 기본값 null)</param>
         /// <param name="isPlayerOwned">플레이어 소유 성 여부 (Castle 전용, 기본값 false)</param>
+        /// <param name="territoryKey">영지 키 (Castle 전용 "East_01" 형식 — 레이아웃 변형 결정론 시드용, 기본값 null)</param>
         /// <exception cref="ArgumentException">buildingType이 null 또는 빈 문자열인 경우 발생</exception>
-        public static void RequestEnterBuilding(string buildingType, string nationStyle = null, bool isPlayerOwned = false)
+        public static void RequestEnterBuilding(string buildingType, string nationStyle = null, bool isPlayerOwned = false, string territoryKey = null)
         {
             if (string.IsNullOrEmpty(buildingType))
             {
@@ -32,7 +33,7 @@ namespace ProjectName.Core
                 return;
             }
 
-            OnEnterBuildingRequest?.Invoke(buildingType, nationStyle, isPlayerOwned);
+            OnEnterBuildingRequest?.Invoke(buildingType, nationStyle, isPlayerOwned, territoryKey);
         }
 
         /// <summary>

@@ -123,8 +123,8 @@ namespace ProjectName.Systems
                         isPlayerOwned = state != null && state.ownership == TerritoryOwnership.PlayerOwned;
                     }
 
-                    Debug.Log($"[BuildingTrigger] E키 입력 — {_buildingType} 진입 (nationStyle: {_nationStyle ?? "null"}, isPlayerOwned: {isPlayerOwned})");
-                    BuildingEvents.RequestEnterBuilding(_buildingType, _nationStyle, isPlayerOwned);
+                    Debug.Log($"[BuildingTrigger] E키 입력 — {_buildingType} 진입 (nationStyle: {_nationStyle ?? "null"}, isPlayerOwned: {isPlayerOwned}, territoryKey: {_territoryKey ?? "null"})");
+                    BuildingEvents.RequestEnterBuilding(_buildingType, _nationStyle, isPlayerOwned, _territoryKey);
                 }
             }
         }

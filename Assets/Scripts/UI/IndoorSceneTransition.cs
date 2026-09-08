@@ -19,6 +19,7 @@ namespace ProjectName.UI
         private static string _pendingBuildingType;
         private static string _pendingNationStyle;
         private static bool _pendingIsPlayerOwned;
+        private static string _pendingTerritoryKey;   // INTERIOR-VAR: 레이아웃 변형 결정론 시드용
         private static bool _initialized;
 
         /// <summary>정적 생성자: BuildingEvents 구독 (중복 방지)</summary>
@@ -37,9 +38,9 @@ namespace ProjectName.UI
 
         }
 
-        private static void HandleEnterBuilding(string buildingType, string nationStyle, bool isPlayerOwned)
+        private static void HandleEnterBuilding(string buildingType, string nationStyle, bool isPlayerOwned, string territoryKey)
         {
-            EnterBuilding(buildingType, nationStyle, isPlayerOwned);
+            EnterBuilding(buildingType, nationStyle, isPlayerOwned, territoryKey);
         }
 
         /// <summary>
@@ -58,13 +59,14 @@ namespace ProjectName.UI
         /// Castle 타입 진입 시 플레이어 소유 성 여부 (true → PlayerCastleInteriorBuilder, false → CastleInteriorBuilder).
         /// 기본값 false.
         /// </param>
-        public static void EnterBuilding(string buildingType, string nationStyle = null, bool isPlayerOwned = false)
+        public static void EnterBuilding(string buildingType, string nationStyle = null, bool isPlayerOwned = false, string territoryKey = null)
         {
             // 현재 씬 저장
             _previousSceneName = SceneManager.GetActiveScene().name;
             _pendingBuildingType = buildingType;
             _pendingNationStyle = nationStyle;
             _pendingIsPlayerOwned = isPlayerOwned;
+            _pendingTerritoryKey = territoryKey;
 
 
 
@@ -135,10 +137,13 @@ namespace ProjectName.UI
                     break;
                 case "castle":
                     string nation = _pendingNationStyle ?? "Empire";
+                    // INTERIOR-VAR: 영지 키(우선)/nation+소유로 결정론 해시 → 8종 레이아웃 변형.
+                    // 같은 영지 재방문 시 항상 같은 배치(결정론), 다른 영지는 다른 배치.
+                    int layoutVariant = ComputeLayoutVariant(_pendingTerritoryKey, nation, _pendingIsPlayerOwned);
                     // 소유 상태 분기: 플레이어 소유 성 → PlayerCastleInteriorBuilder, 영주 성 → CastleInteriorBuilder
                     GameObject interior = _pendingIsPlayerOwned
-                        ? PlayerCastleInteriorBuilder.BuildPlayerCastleInterior(nation)
-                        : CastleInteriorBuilder.BuildCastleInterior(nation);
+                        ? PlayerCastleInteriorBuilder.BuildPlayerCastleInterior(nation, layoutVariant)
+                        : CastleInteriorBuilder.BuildCastleInterior(nation, layoutVariant);
                     if (interior != null)
                         TerritoryBuilder.SpawnInteriorFixtures(interior.transform.position, nation);
                     break;
@@ -214,6 +219,32 @@ namespace ProjectName.UI
         {
             Scene scene = SceneManager.GetSceneByName(INDOOR_SCENE_NAME);
             return scene.isLoaded;
+        }
+
+        /// <summary>
+        /// 성 내부 8종 레이아웃 변형 결정론 시드 계산 (INTERIOR-VAR).
+        /// 영지 키(우선) 또는 nation+소유조로 djb2 문자열 해시 → 0..7.
+        /// Random/시간 미사용 — 같은 입력 → 항상 같은 variant (재방문 시 동일 배치).
+        /// </summary>
+        private static int ComputeLayoutVariant(string territoryKey, string nation, bool isPlayerOwned)
+        {
+            string seedStr;
+            if (!string.IsNullOrEmpty(territoryKey))
+            {
+                seedStr = territoryKey;
+            }
+            else
+            {
+                seedStr = (nation ?? "Empire") + (isPlayerOwned ? "_P" : "_L");
+            }
+
+            // djb2 해시 (결정론, GC 추가 할당 없음)
+            uint hash = 5381u;
+            foreach (char c in seedStr)
+            {
+                hash = ((hash << 5) + hash) + (uint)(c & 0x7F);
+            }
+            return (int)(hash % 8u);
         }
     }
 }
