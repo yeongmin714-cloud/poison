@@ -13,9 +13,10 @@
 - **범위**: MinimapUI(현재 UI 프레임만)에 실제 지형을 넣기 — 사용자 "미니맵에 지형이 들어갈 수 있도록"
 - **M1 공개 저장**: `TerrainSplatBaker.LastWorldSplat`(public static Texture2D) 추가. `BakeWorldSplat` 끝 + `ApplyWorldSplatToGround`(캐시 로드 경로)에서 갱신
 - **M2 MinimapUI 렌더**: `TryApplyMapTexture()` — Start()+Update() 지연 재시도로 `LastWorldSplat`을 `SetMapTexture`로 주입, `SetMapScale(_minimapDiameter/WORLD_SIZE = 220/2000 = 0.11)` 좌표 정합. 월드 원점(0,0)=미니맵 중심, 기존 `WorldToMinimapLocal`(worldPos×scale)가 지형 위에 마커 정확 배치
+- **M3 마커 오버레이**: `DrawMarkerOverlay()` — ①영지 마커(검은 점, TerritoryDatabase.GetAllDefinitions × Ring별 거리·퍼짐) ②활성 퀘스트 마커(색 점, QuestMarkerSystem.GetActiveQuestMarkers). `GetTerritoryWorldPosition`(QuestMarkerSystem과 동일 규칙). 컴파일 트러블: TerritoryDefinition이 **value 타입(struct)이라 null 비교 불가 → `==null` 가드 제거** (커밋 d88bd90f)
 - **핵심**: BakeWorldSplat이 만든 **게임 지형 그대로(2048², 5국가 합성+릴리프+호수 심수색) 재사용 → 추가 베이크 0, 화면과 100% 일치**
-- **검증**: 배치컴파일 error CS=0 (buildlog_minimap.txt, CompileScripts 19.3s, Exiting batchmode successfully)
-- ⬜ **남음**: Play 판정(방위색·호수·흙길/절벽 미니맵 반영 + 마커 정합). M3(영지/퀘스트/랜드마크 마커)은 지형 확인 후 옵션.
+- **검증**: 배치컴파일 error CS=0 ×2회 (buildlog_minimap.txt, CompileScripts 7.3s, Exiting batchmode successfully)
+- ⬜ **남음**: Play 판정(방위색·호수·흙길/절벽 + 영지/퀘스트 마커 + 마커 정합)
 
 ---
 

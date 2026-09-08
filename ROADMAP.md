@@ -1814,7 +1814,7 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | M2 MinimapUI | TryApplyMapTexture(Start+Update 지연재시도) SetMapTexture 주입 + SetMapScale(220/2000=0.11) 좌표 정합 | ✅ |
 | 핵심 | BakeWorldSplat 게임지형(2048² 5국가+릴리프+호수심수색) 재사용 → 추가베이크 0, 화면 100% 일치 | ✅ |
 | 검증 | 배치컴파일 error CS=0 (buildlog_minimap.txt) | ✅ |
-| Play 판정 대기 | 방위색·호수·흙길/절벽 미니맵 반영 + 마커 정합 | ⬜ |
-| M3(옵션) | 영지/퀘스트/랜드마크 마커 겹침(QuestMarkerSystem 재사용) | ⬜ |
+| Play 판정 대기 | 방위색·호수·흙길/절벽 미니맵 반영 + 영지/퀘스트 마커 + 마커 정합 | ⬜ |
+| M3 마커 오버레이 | 영지 마커(검은 점, Ring별 거리)+활성 퀘스트 마커(색 점) — MinimapUI.DrawMarkerOverlay(커밋 d88bd90f) | ✅ |
 
 ---
