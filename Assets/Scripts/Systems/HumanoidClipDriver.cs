@@ -43,6 +43,12 @@ namespace ProjectName.Systems
         public void TriggerHitLight() { if (_anim != null) _anim.SetTrigger("HitLight"); }
         public void TriggerStun() { if (_anim != null) _anim.SetTrigger("Stun"); }
         public void TriggerKnockdown() { if (_anim != null) _anim.SetTrigger("Knockdown"); }
+        public void TriggerHarvestObject() { if (_anim != null) _anim.SetTrigger("HarvestObject"); }
+        public void TriggerHarvestPickUp() { if (_anim != null) _anim.SetTrigger("HarvestPickUp"); }
+        public void TriggerOpenDoor() { if (_anim != null) _anim.SetTrigger("OpenDoor"); }
+        public void TriggerTalkA() { if (_anim != null) _anim.SetTrigger("Talk"); }
+        public void TriggerTalkB() { if (_anim != null) _anim.SetTrigger("Talk2"); }
+        public void TriggerVictory() { if (_anim != null) _anim.SetTrigger("Victory"); }
 
         // DD1: 애니 상태 진단 타임라인 (최초 600초, 주기 로그 + 상태 전환 즉시 로그)
         private float _diagStart = -1f;

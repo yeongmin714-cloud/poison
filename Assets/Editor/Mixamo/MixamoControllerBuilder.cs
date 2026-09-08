@@ -121,6 +121,12 @@ namespace ProjectName.EditorTools
                 ("JumpBack", AnimatorControllerParameterType.Trigger),
                 ("IsCombat", AnimatorControllerParameterType.Bool),
                 ("RunToWalk", AnimatorControllerParameterType.Trigger),
+                ("HarvestObject", AnimatorControllerParameterType.Trigger),
+                ("HarvestPickUp", AnimatorControllerParameterType.Trigger),
+                ("OpenDoor", AnimatorControllerParameterType.Trigger),
+                ("Talk", AnimatorControllerParameterType.Trigger),
+                ("Talk2", AnimatorControllerParameterType.Trigger),
+                ("Victory", AnimatorControllerParameterType.Trigger),
             });
             var sm = ac.layers[0].stateMachine;
             // 로코모션=유저 제공 FBX(MixamoUser, Heat 동일 리그→표준 본명 리네임, 2026-09-08 시험 부착), 전투=팩 OneHand(검 부착 전제)
@@ -162,6 +168,18 @@ namespace ProjectName.EditorTools
             var runFightR = AddState(sm, "RunFightR", Clip("meshy:ForwardRight_Run_Fight.fbx"));
             var walkTurnLWeapon = AddState(sm, "WalkTurnLWeapon", Clip("meshy:Walk_Turn_Left_with_Weapon.fbx"));
             var runToWalk = AddState(sm, "RunToWalk", Clip("meshy:Run_to_Walk_Transition.fbx"));
+
+            // Phase A/B/C: 상호작용·연출 상태
+            var harvestObject = AddState(sm, "HarvestObject", Clip("meshy:Collect_Object.fbx"));
+            var harvestPickUp = AddState(sm, "HarvestPickUp", Clip("meshy:Male_Bend_Over_Pick_Up.fbx"));
+            var openDoor = AddState(sm, "OpenDoor", Clip("meshy:open_door_3.fbx"));
+            var talkA = AddState(sm, "TalkA", Clip("meshy:Talk_Passionately.fbx"));
+            var talkB = AddState(sm, "TalkB", Clip("meshy:Talk_with_Hands_Open.fbx"));
+            var victory = AddState(sm, "Victory", Clip("meshy:victory.fbx"));
+
+            // Phase K: 사방 후퇴 주행
+            var backLeftRun = AddState(sm, "BackLeftRun", Clip("meshy:BackLeft_run.fbx"));
+            var backRightRun = AddState(sm, "BackRightRun", Clip("meshy:BackRight_Run.fbx"));
 
             // 이동: Idle ↔ Walk ↔ Run (Speed 기반) — 히스테리시스: Idle→Walk는 0.55, Walk→Idle은 0.35로 분리
             // (지형/경사로 속도가 0 근처로 순간 떨어질 때 Idle로 떨어졌다 복귀하는 "끊김+멈춤" 방지)
@@ -209,6 +227,28 @@ namespace ProjectName.EditorTools
             // Run→Walk 전환 연출 — 2.0 임계 하향 통과 트리거(드라이버에서 발화)
             AnyState(sm, runToWalk, "RunToWalk");
             ExitTo(sm, runToWalk, walk);
+
+            // Phase A/B/C: 상호작용·연출 트리거
+            AnyState(sm, harvestObject, "HarvestObject");
+            ExitTo(sm, harvestObject, idle);
+            AnyState(sm, harvestPickUp, "HarvestPickUp");
+            ExitTo(sm, harvestPickUp, idle);
+            AnyState(sm, openDoor, "OpenDoor");
+            ExitTo(sm, openDoor, idle);
+            AnyState(sm, talkA, "Talk");
+            ExitTo(sm, talkA, idle);
+            AnyState(sm, talkB, "Talk2");
+            ExitTo(sm, talkB, idle);
+            AnyState(sm, victory, "Victory");
+            ExitTo(sm, victory, idle);
+
+            // Phase K: 사방 후퇴 주행 — 후진+측면 동시 입력
+            T2(sm, walk, backLeftRun, ("MoveY", AnimatorConditionMode.Less, -0.3f), ("MoveX", AnimatorConditionMode.Less, -0.45f));
+            T2(sm, run, backLeftRun, ("MoveY", AnimatorConditionMode.Less, -0.3f), ("MoveX", AnimatorConditionMode.Less, -0.45f));
+            T(sm, backLeftRun, walk, "MoveX", AnimatorConditionMode.Greater, -0.15f);
+            T2(sm, walk, backRightRun, ("MoveY", AnimatorConditionMode.Less, -0.3f), ("MoveX", AnimatorConditionMode.Greater, 0.45f));
+            T2(sm, run, backRightRun, ("MoveY", AnimatorConditionMode.Less, -0.3f), ("MoveX", AnimatorConditionMode.Greater, 0.45f));
+            T(sm, backRightRun, walk, "MoveX", AnimatorConditionMode.Less, 0.15f);
 
             // 트리거 상태: Any State → 상태 (canTransitionToSelf=false) → Idle 복귀(exit time)
             AnyState(sm, roll, "Roll");
