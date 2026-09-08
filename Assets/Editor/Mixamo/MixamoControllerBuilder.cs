@@ -16,6 +16,7 @@ namespace ProjectName.EditorTools
     {
         const string MixamoDir = "Assets/Animations/Mixamo";
         const string UserAnimDir = "Assets/Animations/MixamoUser"; // 유저 제공 로코모션 FBX(표준 Humanoid 본명 리네임 완료)
+        const string MeshyUserDir = "Assets/Animations/MeshyUser"; // T-D3+: Meshy biped 60클립(표준 본명 리네임+클립 전용)
         const string PackDir = "Assets/DoubleL/Demo/Anim"; // DoubleL RPG팩 .anim 폴더 (전부 Humanoid 리그라 자동 리타겟)
         const string OutDir = "Assets/Resources/Animation/Controllers";
 
@@ -25,6 +26,7 @@ namespace ProjectName.EditorTools
             System.IO.Directory.CreateDirectory(OutDir);
             ConfigureMixamoClipLoop();   // 믹사모 클립 Loop Time 활성(비루프 클립은 1회 재생 후 마지막 프레임 동결)
             ConfigureUserAnimImports();  // 유저 제공 로코모션 FBX(MixamoUser) Humanoid 임포트 + Loop Time 보정
+            ConfigureMeshyImports();     // T-D3+: Meshy 60클립 Humanoid 임포트 + Loop Time(규칙 기반)
             BuildPlayer();
             BuildSoldier("SoldierShield", new[]
             {
@@ -77,6 +79,17 @@ namespace ProjectName.EditorTools
                 Debug.LogWarning($"[MixamoControllers] 클립 없음: {upath}");
                 return null;
             }
+            // "meshy:<파일>" → Meshy 유저 FBX(MeshyUser, biped→표준 본명 리네임, 클립 전용)
+            if (fileName.StartsWith("meshy:"))
+            {
+                var mpath = $"{MeshyUserDir}/{fileName.Substring(6)}";
+                var mclips = AssetDatabase.LoadAllAssetsAtPath(mpath);
+                foreach (var a in mclips)
+                    if (a is AnimationClip mc && !mc.name.StartsWith("__"))
+                        return mc;
+                Debug.LogWarning($"[MixamoControllers] 클립 없음: {mpath}");
+                return null;
+            }
             var path = $"{MixamoDir}/{fileName}";
             var clips = AssetDatabase.LoadAllAssetsAtPath(path);
             foreach (var a in clips)
@@ -107,12 +120,12 @@ namespace ProjectName.EditorTools
             run.speedParameter = "Speed";
             run.speedParameterActive = true; // 미활성화 시 Speed 파라미터 바인딩 무시(고정 0.28배속) → 반드시 활성
             run.speed = 0.28f;
-            var roll = AddState(sm, "Roll", Clip("Quick Roll To Run.fbx")); // 팩에 구르기 없음 → 믹사모 유지
-            var attack = AddState(sm, "Attack", Clip("pack:OneHand_Up_Attack_1"));
-            var combo = AddState(sm, "AttackCombo", Clip("pack:OneHand_Up_Attack_1"));
-            var jump = AddState(sm, "Jump", Clip("user:jump.fbx")); // 로코모션 계열 슬롯 → 유저 제공 FBX로 교체
-            var hit = AddState(sm, "Hit", Clip("pack:Hit_F_1"));
-            var death = AddState(sm, "Death", Clip("Standing Death Backward 01.fbx")); // 팩에 Death 없음 → 믹사모 유지
+            var roll = AddState(sm, "Roll", Clip("meshy:Roll_Dodge.fbx")); // T-D3+: Meshy 전투 클립(기존 믹사모/팩 클립은 병사가 계속 사용)
+            var attack = AddState(sm, "Attack", Clip("meshy:Right_Hand_Sword_Slash.fbx"));
+            var combo = AddState(sm, "AttackCombo", Clip("meshy:Double_Combo_Attack.fbx"));
+            var jump = AddState(sm, "Jump", Clip("user:jump.fbx")); // Meshy 세트에 점프 부재 → 기존 믹사모 점프 유지
+            var hit = AddState(sm, "Hit", Clip("meshy:Hit_Reaction.fbx"));
+            var death = AddState(sm, "Death", Clip("meshy:Dead.fbx"));
 
             // 이동: Idle ↔ Walk ↔ Run (Speed 기반) — 히스테리시스: Idle→Walk는 0.55, Walk→Idle은 0.35로 분리
             // (지형/경사로 속도가 0 근처로 순간 떨어질 때 Idle로 떨어졌다 복귀하는 "끊김+멈춤" 방지)
@@ -223,6 +236,44 @@ namespace ProjectName.EditorTools
         /// 2) clipAnimations loopTime: idle/walk/run/back_run/back_walk/jump=true, 좌우 방향전환=false(1회성 모션).
         /// ConfigureMixamoClipLoop와 동일 구현 패턴.
         /// </summary>
+        /// <summary>
+        /// T-D3+: Meshy 유저 FBX(MeshyUser, 60클립) 전량 Humanoid 임포트 + Loop Time 규칙 적용.
+        /// loop=true: 파일명에 walk/run_/running/swim/crawl/carry/sneaky/spear/idle_turn 포함(순환 동작).
+        /// loop=false: transition/toss/pitching 및 1회성 동작(공격/피격/사망/구르기/상호작용).
+        /// 빈 clipAnimations → defaultClipAnimations 폴백(ConfigureUserAnimImports와 동일 패턴).
+        /// </summary>
+        static void ConfigureMeshyImports()
+        {
+            string[] loopKeys = { "walk", "run_", "running", "swim", "crawl", "carry", "sneaky", "spear", "idle_turn" };
+            string[] noLoopKeys = { "transition", "toss", "pitching" };
+            int changed = 0, scanned = 0;
+            foreach (var fp in System.IO.Directory.GetFiles(MeshyUserDir, "*.fbx"))
+            {
+                string p = fp.Replace('\\', '/');
+                var imp = AssetImporter.GetAtPath(p) as ModelImporter;
+                if (imp == null) { Debug.LogWarning($"[MixamoControllers] 임포터 없음: {p}"); continue; }
+                scanned++;
+                bool dirty = false;
+                if (imp.animationType != ModelImporterAnimationType.Human)
+                {
+                    imp.animationType = ModelImporterAnimationType.Human;
+                    dirty = true;
+                }
+                var clips = imp.clipAnimations;
+                if (clips == null || clips.Length == 0)
+                    clips = imp.defaultClipAnimations;   // 테이크 자동 생성 정의 폴백
+                if (clips == null || clips.Length == 0) { Debug.LogWarning($"[MixamoControllers] 클립 없음: {p}"); continue; }
+                string low = System.IO.Path.GetFileName(p).ToLowerInvariant();
+                bool loop = false;
+                foreach (var k in loopKeys) if (low.Contains(k)) { loop = true; break; }
+                foreach (var k in noLoopKeys) if (low.Contains(k)) { loop = false; break; }
+                foreach (var c in clips)
+                    if (c.loopTime != loop) { c.loopTime = loop; dirty = true; }
+                if (dirty) { imp.clipAnimations = clips; imp.SaveAndReimport(); changed++; }
+            }
+            Debug.Log($"[MixamoControllers] Meshy 임포트 보정: {scanned}개 검사, {changed}개 재임포트");
+        }
+
         static void ConfigureUserAnimImports()
         {
             (string fbx, bool loop)[] userClips =
