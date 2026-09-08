@@ -126,6 +126,18 @@ namespace ProjectName.UI
             _dialogueIndex = 0;
             _dialogueDismissed = false;
             ShowDialogueLine();
+
+            // 대화 발화 훅: 플레이어 Talk 애니메이션 (TalkA/TalkB 랜덤)
+            if (_player != null)
+            {
+                var clipDriver = _player.GetComponent<ProjectName.Systems.HumanoidClipDriver>()
+                                 ?? _player.GetComponentInChildren<ProjectName.Systems.HumanoidClipDriver>();
+                if (clipDriver != null)
+                {
+                    if (UnityEngine.Random.Range(0, 2) == 0) clipDriver.TriggerTalkA();
+                    else clipDriver.TriggerTalkB();
+                }
+            }
         }
 
         private void AdvanceDialogue()

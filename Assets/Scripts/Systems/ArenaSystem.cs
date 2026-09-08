@@ -431,6 +431,15 @@ namespace ProjectName.Systems
             {
                 _currentWinStreak++;
                 _totalWins++;
+
+                // 승리 발화 훅: 플레이어 Victory 애니메이션 (아레나 승리 확정 시점)
+                var victoryPlayer = GameObject.FindGameObjectWithTag("Player");
+                if (victoryPlayer != null)
+                {
+                    var victoryDriver = victoryPlayer.GetComponent<ProjectName.Systems.HumanoidClipDriver>()
+                                        ?? victoryPlayer.GetComponentInChildren<ProjectName.Systems.HumanoidClipDriver>();
+                    if (victoryDriver != null) victoryDriver.TriggerVictory();
+                }
                 if (_currentWinStreak > _bestWinStreak)
                 {
                     _bestWinStreak = _currentWinStreak;
