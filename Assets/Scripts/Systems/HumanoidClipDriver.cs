@@ -311,7 +311,9 @@ namespace ProjectName.Systems
                     if (Time.time - prevAttackAt <= ComboWindow) _comboCount++;
                     else _comboCount = 1;
 
-                    if (_comboCount >= 2) _anim.SetTrigger("AttackCombo");
+                    if (_comboCount >= 4) _anim.SetTrigger("AttackCombo3");
+                    else if (_comboCount >= 3) _anim.SetTrigger("AttackCombo2");
+                    else if (_comboCount >= 2) _anim.SetTrigger("AttackCombo");
                     else _anim.SetTrigger("Attack");
                 }
             }

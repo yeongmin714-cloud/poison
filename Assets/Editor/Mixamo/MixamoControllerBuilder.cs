@@ -106,6 +106,8 @@ namespace ProjectName.EditorTools
                 ("Speed", AnimatorControllerParameterType.Float),
                 ("Attack", AnimatorControllerParameterType.Trigger),
                 ("AttackCombo", AnimatorControllerParameterType.Trigger),
+                ("AttackCombo2", AnimatorControllerParameterType.Trigger),
+                ("AttackCombo3", AnimatorControllerParameterType.Trigger),
                 ("Roll", AnimatorControllerParameterType.Trigger),
                 ("Jump", AnimatorControllerParameterType.Trigger),
                 ("Hit", AnimatorControllerParameterType.Trigger),
@@ -129,6 +131,8 @@ namespace ProjectName.EditorTools
             var roll = AddState(sm, "Roll", Clip("meshy:Roll_Dodge.fbx")); // T-D3+: Meshy 전투 클립(기존 믹사모/팩 클립은 병사가 계속 사용)
             var attack = AddState(sm, "Attack", Clip("meshy:Right_Hand_Sword_Slash.fbx"));
             var combo = AddState(sm, "AttackCombo", Clip("meshy:Double_Combo_Attack.fbx"));
+            var combo2 = AddState(sm, "AttackCombo2", Clip("meshy:Triple_Combo_Attack.fbx")); // 콤보 3단
+            var combo3 = AddState(sm, "AttackCombo3", Clip("meshy:Weapon_Combo_2.fbx")); // 콤보 4단
             var jump = AddState(sm, "Jump", Clip("meshy:Regular_Jump.fbx")); // 신규 다운로드 Regular_Jump로 교체
             var hit = AddState(sm, "Hit", Clip("meshy:Hit_Reaction.fbx"));
             var death = AddState(sm, "Death", Clip("meshy:Dead.fbx"));
@@ -194,6 +198,10 @@ namespace ProjectName.EditorTools
             ExitTo(sm, attack, idle);
             AnyState(sm, combo, "AttackCombo");
             ExitTo(sm, combo, idle);
+            AnyState(sm, combo2, "AttackCombo2");
+            ExitTo(sm, combo2, idle);
+            AnyState(sm, combo3, "AttackCombo3");
+            ExitTo(sm, combo3, idle);
             AnyState(sm, death, "Death"); // 사망은 유지 (복귀 없음)
             AnyState(sm, harvest, "Harvest");
             ExitTo(sm, harvest, idle);
