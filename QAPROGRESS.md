@@ -4,7 +4,40 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-09 (8차)
+> **최종 갱신:** 2026-09-09 (9차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-09 9차 — 전투 이펙트 고품격화: CombatFXGate + 공격/피격 VFX ✅)
+
+### 변경 사항
+**Phase 1 — 중앙 이펙트 게이트 `CombatFXGate`** (`Systems/CombatFXGate.cs` 신규)
+- 기존 VFX 3개(CombatVFXController/CombatCameraEffects/HitVFX)를 단일 API로 오케스트레이션.
+- `PlayHitFX(position|target, dir, type, isCrit, damage, numberColor)` — 스파크+유기체 출혈+데미지넘버+히트플래시+카메라(크리2×셰이크).
+- `CombatHitType` enum(Organic/Construct/None), **저사양 예산 캡(초당 12회)**.
+- 사망(PlayKill)은 호출자 위임.
+
+**Phase 2 — 플레이어 공격 보강** (`Systems/PlayerCombat.cs`)
+- `AttackTarget`에 게이트 연결: 백어택(isCrit) 감지 → `PlayHitFX(Organic, crit색 주황/일반 흰색)`.
+- 중복 HitVFX 블록 제거(게이트가 스파크/플래시/숫자/출혈 일괄 처리). 기존 카메라/로그/SFX 유지.
+
+**Phase 3 — 영주/병사 피격 대칭화**
+- `DraculaLord.cs` — `TakeDamage`에 `PlayHitFX(Organic, 흰색)` + `Die()`에 `PlayKill`, `Systems/GuardPlaceholder.cs` 동일.
+
+**운용 수정:**
+- 에디터가 저사양에서 파일 감시 멈춤(응답정지) → **강제 종료 후 BATCH MODE 컴파일**로 전환. 에디터 닫혀 있으면 배치 락 없음.
+- `run_batch_phase*` gitignore 추가(빌드 헬퍼 추적 제외).
+
+### 검증 ✅
+- Phase 1: `CombatFXGate` 심볼 DLL 확인, error CS 0.
+- Phase 2: `PlayerCombat` 게이트 연결, 배치 CS 0.
+- Phase 3: `DraculaLord`/`GuardPlaceholder` VFX+PlayKill, 배치 CS 0.
+- **최종 통합 배치: `ProjectName.Systems.dll` 20:56 재컴파일 + error CS 0.**
+
+### Play 판정 대기 (Test_10 씬)
+- 영지/병사/몬스터 각각 좌클릭 → 데미지 숫자+스파크+출혈+히트플래시+카메라셰이크.
+- 백어택(뒤에서 공격) → 주황 데미지숫자 + 크리티컬 셰이크 2×.
+- 사망 시 킬 슬로우모션.
 
 ---
 
