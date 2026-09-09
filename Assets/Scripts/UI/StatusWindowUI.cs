@@ -137,6 +137,11 @@ namespace ProjectName.UI
             if (_isOpen && Input.GetKeyDown(_closeKey))
                 Close();
 
+            // 씬 재로드 대비: PlayerStats는 DontDestroyOnLoad가 아니므로 씬 전환 시 인스턴스 교체.
+            // 창이 닫혀 있어도 새 인스턴스를 재구독해야 OnLevelChanged(레벨업 팝업)를 놓치지 않음.
+            // (ReferenceEquals 단락으로 매 프레임 비용 무시 가능)
+            EnsureLevelSubscription();
+
             // 열려있을 때 0.25초 폴링 갱신 (HP/EXP 변화는 이벤트가 없어 폴링으로 실시간 표시)
             if (!_isOpen) return;
             _refreshTimer += Time.unscaledDeltaTime;
