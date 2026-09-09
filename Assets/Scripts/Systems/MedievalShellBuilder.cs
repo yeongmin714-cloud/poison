@@ -8,15 +8,15 @@ namespace ProjectName.Systems
     /// </summary>
     public static class MedievalShellBuilder
     {
-        public const float W = 12f, D = 9f, H = 4f;
+        public const float W = 96f, D = 72f, H = 32f;  // 2026-09-09: 유저 요청 8배
 
         public static GameObject CreateShell(float w = W, float d = D, float h = H)
         {
             var root = new GameObject("MedievalShell");
 
-            var floorMat = Mat(TexFlagstone(), new Color(0.85f, 0.85f, 0.85f), 6f, 5f);
-            var stoneMat = Mat(TexStoneBrick(), new Color(0.8f, 0.8f, 0.8f), 6f, 2f);
-            var plasterMat = Mat(TexPlaster(), new Color(0.92f, 0.88f, 0.78f), 4f, 2f);
+            var floorMat = Mat(TexFlagstone(), new Color(0.85f, 0.85f, 0.85f), 48f, 40f);
+            var stoneMat = Mat(TexStoneBrick(), new Color(0.8f, 0.8f, 0.8f), 48f, 16f);
+            var plasterMat = Mat(TexPlaster(), new Color(0.92f, 0.88f, 0.78f), 32f, 16f);
             var woodMat = Mat(TexWood(), new Color(0.75f, 0.6f, 0.4f), 2f, 1f);
 
             // 바닥 (FIX: 빌더 자체 바닥 y=0과 z-파이팅 방지 → -0.02)
@@ -97,7 +97,7 @@ namespace ProjectName.Systems
                 go.transform.localScale = new Vector3(w, h, 1f);
                 go.GetComponent<Renderer>().sharedMaterial = mat;
             }
-            Object.Destroy(go.GetComponent<Collider>());
+            // 2026-09-09: Collider 유지 — 파괴 시 바닥 충돌 없어 플레이어가 낙하(실내 미표시 원인)
         }
 
         private static Material Mat(Texture2D tex, Color tint, float tileX, float tileY)
