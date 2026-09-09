@@ -1490,7 +1490,7 @@ namespace ProjectName.UI
             // 아이콘 (있으면)
             if (item.icon != null)
             {
-                GUI.DrawTexture(new Rect(dx + (DESC_PANEL_WIDTH - 128f) / 2f, cy, 128f, 128f), item.icon, ScaleMode.ScaleToFit);
+                GUI.DrawTexture(new Rect(dx + (DESC_PANEL_WIDTH - 128f) / 2f, cy, 128f, 128f), item.icon.texture, ScaleMode.ScaleToFit);
                 cy += 136f;
             }
 

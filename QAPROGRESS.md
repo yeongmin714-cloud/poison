@@ -4,7 +4,18 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-09 (2차)
+> **최종 갱신:** 2026-09-09 (3차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-09 3차 — 인벤 예시2/3 재구조화 + 은신애니 + 핫바 지정 ✅)
+
+- **범위**: 유저 요구 9건 — 핫바 글자 제거, 은신 애니 미발동, 인벤토리 예시2/3 재구조화(퀘스트탭·무기버튼·아바타·하단상세 제거 → [인벤][설명][컨텍스트]), 우클릭 장착, 설명창 핫바패드 드래그 지정, 전리품/창고/상점 우측패널, 스탯창 미표시. 계획서: 2026-09-09_inventory-rework-stealth-status-plan.md
+- **P0**: ①핫바 라벨(검/활/창/폭) 제거 ②은신: **Sneaky 상태가 고아**(전이 0개)가 원인 → HumanoidClipDriver에 IsStealthed 피드 추가 + 컨트롤러에 IsStealthed 파라미터/AnyState→Sneaky(최우선)/Sneaky→Default 전이 추가(YAML 수술, Backup/ 백업) ③스탯창 미표시: Awake try-catch+단계 로그, Open() 패널 null시 재빌드 자가복구
+- **P2 인벤 재구조화** (InventoryWindow): WINDOW 1180→820, **퀘스트탭/무기버튼섹션/캐릭터3D프리뷰/하단상세 제거**, 하단 장비슬롯6(우클릭 해제), **중앙 설명 패널**(이름/등급/아이콘/설명/효과 + 핫바 미니패드 1~8), **우클릭 장착**(무기=_weaponIdMap→WeaponEquipManager.Equip / 방어구=MapArmorSlot→EquipmentManager.EquipItem), **드래그→패드 드롭→HotbarUI.AssignItem**(PlayerPrefs 저장, 무기류 장착 연동)
+- **P3 배선**: 창고 상호작용(TerritoryWarehouse.OpenWarehouseUI) → InventoryWindow.SetContextMode(Warehouse)+인벤 동시 오픈. **전리품 상자는 기존 존재 확인**(AnimalAI.Die/GuardPlaceholder.Die → LootBasket.Create+DropTable.ApplyToBasket → E → LootWindow) — 신규 작성 불필요. ShopWindow(1440x1170 고정) 우측 이전은 후속(내부 width 상대 레이아웃이라 크기 조정 필요)
+- **검증**: 배치컴파일 error CS=0(중간 1회 CS1503 Sprite→Texture 수정), DLL 심볼 확인(AssignItem/DrawDescriptionPanel/SetContextMode), IsStealthed 3건(파라미터+전이2)
+- ⬜ **남음**: Play 판정(①핫바 글자 소멸 ②C키 은신 애니 ③I키 2패널+우클릭 장착 ④드래그→핫바 지정 ⑤창고 3패널 ⑥몬스터 처치→상자→전리품 ⑦P키 스탯창(안 뜨면 콘솔 로그 확인) ⑧상점 우측 이전은 후속 작업)
 
 ---
 
