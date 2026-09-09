@@ -175,6 +175,13 @@ namespace ProjectName.UI
             if (indoorPlayer != null)
                 indoorPlayer.transform.position = new Vector3(0f, INDOOR_FLOOR_Y + 0.1f, 0f);
 
+            // 2026-09-09(5차): 실내 카메라 스왑 — 메인 카메라 비활성 + IndoorCamera 활성
+            var mainCamGO = GameObject.FindGameObjectWithTag("MainCamera");
+            if (mainCamGO != null) mainCamGO.SetActive(false);
+            var indoorCam = GameObject.Find("IndoorCamera");
+            if (indoorCam != null) indoorCam.SetActive(true);
+            else Debug.LogWarning("[IndoorSceneTransition] IndoorCamera 없음 — 메인 카메라 추적 유지");
+
             _pendingBuildingType = null;
             _pendingNationStyle = null;
             _pendingIsPlayerOwned = false;
@@ -219,6 +226,12 @@ namespace ProjectName.UI
             if (exitingPlayer != null && _returnPosition.HasValue)
                 exitingPlayer.transform.position = _returnPosition.Value;
             _returnPosition = null;
+
+            // 2026-09-09(5차): 카메라 역스왑 — 실내 카메라 비활성 + 메인 카메라 복귀
+            var indoorCam = GameObject.Find("IndoorCamera");
+            if (indoorCam != null) indoorCam.SetActive(false);
+            var mainCamGO = GameObject.FindGameObjectWithTag("MainCamera");
+            if (mainCamGO != null) mainCamGO.SetActive(true);
 
             _previousSceneName = null;
         }

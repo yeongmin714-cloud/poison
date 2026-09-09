@@ -56,7 +56,7 @@ namespace ProjectName.Systems
                 light.intensity = 2.2f;
                 light.range = 8f;
                 light.shadows = LightShadows.Soft;
-                flame.AddComponent<TorchFlicker>();
+                flame.AddComponent<ShellTorchFlicker>();
             }
 
             return root;
@@ -166,7 +166,7 @@ namespace ProjectName.Systems
     }
 
     /// <summary>횃불 깜빡임 — 포인트라이트 강도 사인+노이즈 진동.</summary>
-    public class TorchFlicker : MonoBehaviour
+    public class ShellTorchFlicker : MonoBehaviour
     {
         private Light _light;
         private float _base, _t;

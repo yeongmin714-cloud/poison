@@ -1,0 +1,51 @@
+using UnityEngine;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using ProjectName.Systems;
+
+/// <summary>
+/// IndoorScene에 중세 기본 셸 + 실내 카메라를 영구 상주화 (2026-09-09 5차).
+/// Tools/Indoor/... 메뉴 또는 배치(-executeMethod IndoorShellMenu.RunForBatch)로 실행.
+/// </summary>
+public static class IndoorShellMenu
+{
+    [MenuItem("Tools/Indoor/중세 기본 셸 생성+저장")]
+    public static void BuildAndSaveFromMenu()
+    {
+        BuildAndSave();
+    }
+
+    /// <summary>배치 진입점: -executeMethod IndoorShellMenu.RunForBatch</summary>
+    public static void RunForBatch()
+    {
+        BuildAndSave();
+    }
+
+    private static void BuildAndSave()
+    {
+        var scene = EditorSceneManager.OpenScene("Assets/Scenes/IndoorScene.unity", OpenSceneMode.Single);
+
+        // 기존 셸 중복 방지
+        var old = GameObject.Find("MedievalShell");
+        if (old != null) Object.DestroyImmediate(old);
+        var oldCam = GameObject.Find("IndoorCamera");
+        if (oldCam != null) Object.DestroyImmediate(oldCam);
+
+        MedievalShellBuilder.CreateShell();
+
+        // 실내 카메라 (쿼터뷰 45°, 기본 비활성 — 전환 시 스왑)
+        var camGO = new GameObject("IndoorCamera", typeof(Camera));
+        camGO.transform.position = new Vector3(0f, 9.5f, -10.5f);
+        camGO.transform.rotation = Quaternion.Euler(40f, 0f, 0f);
+        var cam = camGO.GetComponent<Camera>();
+        cam.fieldOfView = 50f;
+        cam.nearClipPlane = 0.3f;
+        cam.farClipPlane = 80f;
+        cam.clearFlags = CameraClearFlags.Skybox;
+        camGO.SetActive(false); // EnterBuilding 시 활성 스왑
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[IndoorShellMenu] 중세 셸 + IndoorCamera 상주화 + 저장 완료 (셸 1루트, 카메라 1)");
+    }
+}

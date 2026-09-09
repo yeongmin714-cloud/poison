@@ -4,7 +4,19 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-09 (4차)
+> **최종 갱신:** 2026-09-09 (5차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-09 5차 — 내부씬 중세 기본 셸 상주화 + 실내 카메라 ✅)
+
+- **범위**: IndoorScene이 빈 루트 1개뿐(빌더 런타임 생성 방식) → **중세 기본 셸을 씬에 영구 상주** + 실내 카메라 부착. 계획서: 2026-09-09_interior-shell-camera-plan.md
+- **신규 MedievalShellBuilder.cs**: 절차 텍스처 4종(돌판 바닥/석벽 벽돌/회반죽/목재) + CreateShell(바닥 12x9 + 벽 4면 h4[하단 석벽+상단 회반죽+상단 목재 빔] + 남측 문틈 + 서까래 3 + 횃불 3[포인트라이트 오렌지 2.2/범위 8/소프트 섀도우]) + ShellTorchFlicker(강도 진동) — 씬 저장/런타임 겸용
+- **실내 카메라**: IndoorScene에 IndoorCamera 상주(쿼터뷰 45°/FOV50, 기본 비활성) — **IndoorSceneTransition 진입 시 메인 카메라 비활성+IndoorCamera 활성, Exit 역스왑**
+- **에디터/배치**: Tools/Indoor/중세 기본 셸 생성+저장 메뉴 + build_shell.bat(-executeMethod IndoorShellMenu.RunForBatch) — 배치 실행으로 **IndoorScene.unity에 43개 오브젝트 영구 저장 완료**(셸/바닥/벽/카메라 확인)
+- **트러블**: 기존 CaveInteriorBuilder의 TorchFlicker 클래스와 중복(CS0101) → ShellTorchFlicker로 개명
+- **검증**: 배치컴파일 error CS=0 ×2(개명 후 포함) + 씬 저장 확인
+- ⬜ **남음**: Play 판정(①씬 뷰에서 셸 보임 ②성문 E → 실내 카메라 스왑+중세 톤 렌더 ③횃불 깜빡임 ④Exit 복귀) — 빌더 8종 가구 재정렬(셸 표준화)은 차기
 
 ---
 
