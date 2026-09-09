@@ -257,6 +257,22 @@ namespace ProjectName.UI
                 { "spear", ("wood", WeaponType.Spear) },
             };
 
+        /// <summary>
+        /// 2026-09-09(3): 화면 좌표가 속한 핫바 슬롯 인덱스 반환 (인벤 드래그 드롭 판정용).
+        /// 오버레이 캔버스이므로 카메라 null. 미해당 시 -1.
+        /// </summary>
+        public static int GetSlotIndexAtScreenPoint(Vector2 screenPos)
+        {
+            if (_instance == null) return -1;
+            for (int i = 0; i < SlotCount; i++)
+            {
+                var bg = _instance._slotBgs[i];
+                if (bg != null && RectTransformUtility.RectangleContainsScreenPoint(bg.rectTransform(), screenPos, null))
+                    return i;
+            }
+            return -1;
+        }
+
         /// <summary>인벤토리 드래그로 슬롯에 아이템 지정 (InventoryWindow 설명 패널에서 호출). 무기류는 장착 연동, 그 외 표시 전용.</summary>
         public static void AssignItem(int index, string itemId, string displayName)
         {

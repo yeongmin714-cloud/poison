@@ -49,7 +49,7 @@ namespace ProjectName.UI
 
         // ===== 레이아웃 상수 (1080p 기준) =====
         private const float WinW = 1180f;
-        private const float WinH = 900f;
+        private const float WinH = 760f;   // FIX(63.PNG): 900→760 — 하단 퀵슬롯(top 918)과 비겹침
         private const float TitleH = 48f;
         private const float SlotSize = 92f;
         private const float StatRowH = 30f;
@@ -321,14 +321,14 @@ namespace ProjectName.UI
             SetRow(6, $"+{stats.SpeechAffinityBonus}");
             SetRow(7, $"{stats.Gold:N0} G");
 
-            SetBonusNote(0, $"힘 {stats.AllocatedStr} · 공격 보정 +{stats.AllocatedStr * 2f:F0}");
-            SetBonusNote(1, $"민첩 {stats.AllocatedAgi} — 치명 +{stats.AllocatedAgi * 0.5f:F1}% / 속도 +{stats.AllocatedAgi * 0.05f:F2}");
-            SetBonusNote(2, $"지능 {stats.AllocatedInt} — 연금·요리 +{stats.AllocatedInt * 0.5f:F1}%");
-            SetBonusNote(3, $"체력 {stats.AllocatedVit} — 최대HP +{stats.AllocatedVit * 10}");
-            SetBonusNote(4, $"장비 공격 +{EquipmentStatBonusApplier.GetAttackBonus():F0} / 방어 +{EquipmentStatBonusApplier.GetDefenseBonus():F0}");
-            SetBonusNote(5, $"장비 치명 +{EquipmentStatBonusApplier.GetCritBonus() * 100f:F1}% / 속도 +{EquipmentStatBonusApplier.GetSpeedBonus():F1}");
-            SetBonusNote(6, $"레벨 보정 — 공격 +{level * 0.5f:F1}, 방어 +{level * 0.2f:F1}, 치명 +{level * 0.5f:F1}%");
-            SetBonusNote(7, $"전투 보너스 +{stats.CombatDamageBonus * 100f:F0}% / 화술 +{stats.SpeechAffinityBonus}");
+            SetBonusNote(0, "힘 → 공격 +2/pt");
+            SetBonusNote(1, "민첩 → 치명/속도");
+            SetBonusNote(2, "지능 → 제조 성공");
+            SetBonusNote(3, "체력 → 최대HP");
+            SetBonusNote(4, $"장비 공+{EquipmentStatBonusApplier.GetAttackBonus():F0} 방+{EquipmentStatBonusApplier.GetDefenseBonus():F0}");
+            SetBonusNote(5, $"장비 치+{EquipmentStatBonusApplier.GetCritBonus() * 100f:F1}% 속+{EquipmentStatBonusApplier.GetSpeedBonus():F1}");
+            SetBonusNote(6, $"레벨 보정 공+{level * 0.5f:F0} 방+{level * 0.2f:F0}");
+            SetBonusNote(7, $"전투 보너스 +{stats.CombatDamageBonus * 100f:F0}%");
 
             // --- 장비슬롯 아이템명 ---
             var em = EquipmentManager.Instance;
@@ -365,7 +365,15 @@ namespace ProjectName.UI
         private void SetBonusNote(int i, string note)
         {
             if (i < 0 || i >= _statEquipBonusTexts.Length) return;
-            if (_statEquipBonusTexts[i] != null) _statEquipBonusTexts[i].text = note;
+            if (_statEquipBonusTexts[i] != null)
+            {
+                // FIX(63.PNG 넘침): 줄바꿈 활성 + 폭 내 자동 개행
+                var txt = _statEquipBonusTexts[i];
+                txt.text = note;
+                txt.horizontalOverflow = HorizontalWrapMode.Wrap;
+                txt.verticalOverflow = VerticalWrapMode.Overflow;
+                txt.alignment = TextAnchor.UpperLeft;
+            }
         }
 
         // =====================================================================
@@ -407,7 +415,8 @@ namespace ProjectName.UI
             cam.fieldOfView = 32f;
             cam.targetTexture = _previewRT;
             _previewCamGO.transform.position = new Vector3(0f, -1997.2f, -4.2f);
-            _previewCamGO.transform.rotation = Quaternion.Euler(8f, 0f, 0f);
+            // FIX(63.PNG 검은 화면): pitch 8°로는 클론(2.8m 하방)이 프레임 밖 — 클론 상단을 LookAt으로 확실히 응시
+            _previewCamGO.transform.LookAt(new Vector3(0f, -1998.6f, 0f));
 
             if (_viewportImage != null) _viewportImage.texture = _previewRT;
         }
@@ -656,9 +665,10 @@ namespace ProjectName.UI
             CreateImage(_panelRoot.transform, $"Equip_{slot}", _roundedSprite, ColorSlotBg,
                 new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(x, -topY), new Vector2(SlotSize, SlotSize), new Vector2(0f, 1f));
             CreateText(_panelRoot.transform, $"Equip_{slot}_Label", label, 14, ColorDim,
-                TextAnchor.MiddleCenter, new Vector2(x, -(topY + SlotSize + 2f)), new Vector2(SlotSize, 18f), new Vector2(0f, 1f), new Vector2(0f, 1f));
+                TextAnchor.MiddleCenter, new Vector2(x, -(topY + SlotSize + 4f)), new Vector2(SlotSize, 16f), new Vector2(0f, 1f), new Vector2(0f, 1f));
+            // FIX(63.PNG 라벨 겹침): 라벨(+4~20) / 아이템명(+26~) 간격 확대
             _equipSlotTexts[(int)slot] = CreateText(_panelRoot.transform, $"Equip_{slot}_Item", "—", 13, ColorValue,
-                TextAnchor.MiddleCenter, new Vector2(x - 6f, -(topY + SlotSize + 20f)), new Vector2(SlotSize + 12f, 18f), new Vector2(0f, 1f), new Vector2(0f, 1f)).GetComponent<Text>();
+                TextAnchor.MiddleCenter, new Vector2(x - 6f, -(topY + SlotSize + 26f)), new Vector2(SlotSize + 12f, 18f), new Vector2(0f, 1f), new Vector2(0f, 1f)).GetComponent<Text>();
         }
 
         /// <summary>게이지(배경+fill). fill의 sizeDelta.x = 폭*비율로 갱신.</summary>

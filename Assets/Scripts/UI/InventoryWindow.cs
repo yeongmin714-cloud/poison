@@ -51,9 +51,8 @@ namespace ProjectName.UI
         private ContextMode _contextMode = ContextMode.None;
 
         private PlayerInventory.ItemData _selectedItemData;   // 설명 패널 표시용
-        private bool _dragActive;                             // 그리드→핫바패드 드래그
+        private bool _dragActive;                             // 그리드→핫바 드래그
         private PlayerInventory.ItemData _dragItemData;
-        private readonly Rect[] _padRects = new Rect[8];      // 설명 패널 핫바 미니패드 화면 Rect
         private float _lastInvX;                              // 컨텍스트 창(상점)이 참조하는 인벤 좌측 x
 
         /// <summary>상점 등 컨텍스트 창의 x 좌표 — 제3구획(화면 우측 1/3) 시작점</summary>
@@ -79,6 +78,7 @@ namespace ProjectName.UI
         private const float INFO_PANEL_HEIGHT = 272f;   // (레거시 — 미사용)
         private const float WEAPON_SECTION_HEIGHT = 112f;  // (레거시 — 미사용)
         private const float EQUIP_ROW_HEIGHT = 268f;    // 장비창 5칸씩 2줄 (박스 86 + 라벨 44 × 2)
+        private const float DESC_PANEL_HEIGHT = 620f;   // 2026-09-09(3): 설명창 세로 축소 (드래그는 하단 실제 핫바로)
         private const float DESC_GAP = 12f;             // 구획 간 미세 여백
         private const int GRID_COLUMNS = 5;                // 가방 5칸씩 (6줄 + 스크롤)
         private const float SLOT_MARGIN = 6f;              // 슬롯 간격
@@ -1477,11 +1477,12 @@ namespace ProjectName.UI
         // ===================================================================
         private void DrawDescriptionPanel(float dx, float dy)
         {
-            Rect panelRect = new Rect(dx, dy, WINDOW_WIDTH, WINDOW_HEIGHT);
+            // 2026-09-09(3): 세로 축소(620) — 패드 제거, 드래그는 하단 실제 핫바로 직접 드롭
+            Rect panelRect = new Rect(dx, dy, WINDOW_WIDTH, DESC_PANEL_HEIGHT);
             GUI.Box(panelRect, "", _stylePanelBox);
             DrawColoredRect(new Rect(dx, dy, WINDOW_WIDTH, 2), ColorBorder);
-            DrawColoredRect(new Rect(dx, dy + WINDOW_HEIGHT - 2, WINDOW_WIDTH, 2), ColorBorder);
-            DrawColoredRect(new Rect(dx + WINDOW_WIDTH - 2, dy, 2, WINDOW_HEIGHT), ColorBorder);
+            DrawColoredRect(new Rect(dx, dy + DESC_PANEL_HEIGHT - 2, WINDOW_WIDTH, 2), ColorBorder);
+            DrawColoredRect(new Rect(dx + WINDOW_WIDTH - 2, dy, 2, DESC_PANEL_HEIGHT), ColorBorder);
             GUI.Label(new Rect(dx, dy + 2, WINDOW_WIDTH, TITLE_BAR_HEIGHT), "  📋 아이템 정보", _styleTitle);
             DrawColoredRect(new Rect(dx, dy + TITLE_BAR_HEIGHT + 2, WINDOW_WIDTH, 2), ColorBorder);
 
@@ -1489,8 +1490,7 @@ namespace ProjectName.UI
             if (_selectedItemData == null)
             {
                 GUI.Label(new Rect(dx + 16f, cy, WINDOW_WIDTH - 32f, 40f),
-                    "좌클릭: 아이템 선택\n우클릭: 장비 장착", _styleItemName);
-                DrawHotbarPads(dx, dy + WINDOW_HEIGHT - 150f, allowDrop: true);
+                    "좌클릭: 아이템 선택 / 드래그: 하단 핫바 지정\n우클릭: 장비 장착", _styleItemName);
                 return;
             }
 
@@ -1517,23 +1517,7 @@ namespace ProjectName.UI
             if (!string.IsNullOrEmpty(item.effects))
                 GUI.Label(new Rect(dx + 16f, cy, WINDOW_WIDTH - 32f, 60f), $"효과: {item.effects}", _styleItemName);
 
-            // 핫바 미니패드 — 드래그로 지정
-            DrawHotbarPads(dx, dy + WINDOW_HEIGHT - 150f, allowDrop: true);
-        }
-
-        /// <summary>설명 패널 하단 핫바 1~8 미니패드 (드래그 드롭 대상)</summary>
-        private void DrawHotbarPads(float dx, float py, bool allowDrop)
-        {
-            GUI.Label(new Rect(dx + 16f, py - 24f, WINDOW_WIDTH - 32f, 20f),
-                "아이템을 드래그해서 숫자패드에 놓으면 핫바에 등록됩니다", _styleSlotLabel);
-            float padSize = 44f;
-            float gap = 7f;
-            for (int i = 0; i < 8; i++)
-            {
-                float px = dx + 16f + i * (padSize + gap);
-                _padRects[i] = new Rect(px, py, padSize, padSize);
-                GUI.Box(_padRects[i], (i + 1).ToString(), _styleTab);
-            }
+            // 2026-09-09(3): 미니패드 제거 — 드래그 드롭은 하단 상시 핫바(HotbarUI.GetSlotIndexAtScreenPoint)로
         }
 
         /// <summary>드래그 고스트 표시 + MouseUp 시 패드 드롭 → HotbarUI 등록</summary>
@@ -1548,14 +1532,12 @@ namespace ProjectName.UI
             {
                 if (_dragActive)
                 {
-                    for (int i = 0; i < 8; i++)
+                    // 2026-09-09(3): 하단 상시 핫바 위 드롭 → 등록 (미니패드 폐지)
+                    int slot = HotbarUI.GetSlotIndexAtScreenPoint(Input.mousePosition);
+                    if (slot >= 0)
                     {
-                        if (_padRects[i].width > 0 && _padRects[i].Contains(Event.current.mousePosition))
-                        {
-                            HotbarUI.AssignItem(i, _dragItemData.id, _dragItemData.displayName);
-                            Debug.Log($"[InventoryWindow] 핫바 슬롯 {i + 1}에 '{_dragItemData.displayName}' 지정");
-                            break;
-                        }
+                        HotbarUI.AssignItem(slot, _dragItemData.id, _dragItemData.displayName);
+                        Debug.Log($"[InventoryWindow] 핫바 슬롯 {slot + 1}에 '{_dragItemData.displayName}' 지정");
                     }
                 }
                 _dragItemData = null;
