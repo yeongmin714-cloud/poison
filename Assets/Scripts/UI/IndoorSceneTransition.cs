@@ -185,7 +185,11 @@ namespace ProjectName.UI
             }
             else
             {
-                Debug.LogError($"[IndoorSceneTransition] 플레이어 이동 실패 — found: {indoorPlayer != null}, sceneLoaded: {scene.isLoaded}");
+                // 2026-09-09(7차 FIX): sceneLoaded 콜백 시점에 플레이어가 아직 없음(로딩 타이밍) →
+                // 지연 재시도 러너가 다음 프레임부터 플레이어를 찾아 IndoorScene 이동+스폰
+                Debug.LogError("[IndoorSceneTransition] 플레이어 미발견 — 지연 재시도 러너 가동");
+                var runnerGO = new GameObject("IndoorEnterRunner");
+                runnerGO.AddComponent<IndoorEnterRunner>().Init(scene);
             }
 
             // 2026-09-09(5차→6차 FIX): 셸은 씬에 상주하지만 구버전 씬/에디터 메모리 상태 대비 런타임 폴백 생성
