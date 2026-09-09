@@ -4,7 +4,37 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-09 (6차)
+> **최종 갱신:** 2026-09-09 (7차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-09 7차 — 실내 크래프팅(장비·요리·물약)+창고 배치 ✅)
+
+### 변경 사항
+**Phase 1 — 플레이어 성 요리/연금 추가** (`Systems/PlayerCastleInteriorBuilder.cs`)
+- 요리 카운터 `CookingTable` (+`CookingStation` 리플렉션) — mx*6.2, z=-6.3, `🍳 요리 테이블`
+- 연금 테이블 `AlchemyTable` (+`AlchemyStation` 리플렉션) — mx*6.2, z=+5.0, `🧪 연금술 테이블`
+- 8개 layout variant 전부에서 기둥(±3.5~4.5)/화로(±10)/작업대·장식탁자와 비겹침 (기존 장비 작업대 유지)
+
+**Phase 2 — 크래프트하우스 올인원 워크숍** (`UI/CraftHouseInteriorBuilder.cs`)
+- 요리 카운터(+`CookingStation`) — x=3.5, z=3.0, `🍳 요리 테이블`
+- 연금 테이블(+`AlchemyStation`) — x=-3.5, z=-3.2, `🧪 연금술 테이블`
+- 창고 선반 `CraftWarehouse` (+`TerritoryWarehouse.Configure("CraftHouse_01")`) — `📦 창고`
+- 직접 `AddComponent<T>` 사용 (같은 UI asmdef) + 기존 장비 `CraftingStation` 유지
+
+**Phase 3 — 창고 시각/라벨** (PlayerCastleInteriorBuilder, 기 구현 확인)
+- 저장고(`territoryKey`, 🎒저장고) + 무기고(`territoryKey_armory`, ⚔️무기고) `TerritoryWarehouse` 이미 부착 확인 — 추가 변경 불필요
+
+### 검증 ✅
+- Phase 1: `ProjectName.Systems.dll` 17:57 재컴파일 + `CookingStationTypeName`/`AlchemyStationTypeName` 심볼 확인, error CS 0
+- Phase 2: `ProjectName.UI.dll` 18:07 재컴파일 (수정 18:03 이후), error CS 0
+- 전체 에디터 로그 error CS = 0
+
+### Play 판정 대기 (F8 실내 진입으로)
+- 플레이어 성: F8 → 장비 작업대/요리 테이블/연금 테이블 E키 → 각 UI 열림 확인
+- 크래프트하우스: 진입 → 3종 스테이션 + 창고 상호작용 확인
+- 창고: 저장고/무기고/크래프트창고 → 아이템 입출고·Transfer → 인벤 반영
+- F8 재입력 → 월드 복귀
 
 ---
 
