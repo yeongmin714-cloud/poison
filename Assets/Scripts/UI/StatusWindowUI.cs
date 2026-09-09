@@ -309,8 +309,8 @@ namespace ProjectName.UI
             SetBonusNote(1, $"민첩 {stats.AllocatedAgi} — 치명 +{stats.AllocatedAgi * 0.5f:F1}% / 속도 +{stats.AllocatedAgi * 0.05f:F2}");
             SetBonusNote(2, $"지능 {stats.AllocatedInt} — 연금·요리 +{stats.AllocatedInt * 0.5f:F1}%");
             SetBonusNote(3, $"체력 {stats.AllocatedVit} — 최대HP +{stats.AllocatedVit * 10}");
-            SetBonusNote(4, $"장비 공격 +{EquipmentStatBonus.GetAttackBonus():F0} / 방어 +{EquipmentStatBonus.GetDefenseBonus():F0}");
-            SetBonusNote(5, $"장비 치명 +{EquipmentStatBonus.GetCritBonus() * 100f:F1}% / 속도 +{EquipmentStatBonus.GetSpeedBonus():F1}");
+            SetBonusNote(4, $"장비 공격 +{EquipmentStatBonusApplier.GetAttackBonus():F0} / 방어 +{EquipmentStatBonusApplier.GetDefenseBonus():F0}");
+            SetBonusNote(5, $"장비 치명 +{EquipmentStatBonusApplier.GetCritBonus() * 100f:F1}% / 속도 +{EquipmentStatBonusApplier.GetSpeedBonus():F1}");
             SetBonusNote(6, $"레벨 보정 — 공격 +{level * 0.5f:F1}, 방어 +{level * 0.2f:F1}, 치명 +{level * 0.5f:F1}%");
             SetBonusNote(7, $"전투 보너스 +{stats.CombatDamageBonus * 100f:F0}% / 화술 +{stats.SpeechAffinityBonus}");
 
@@ -325,13 +325,13 @@ namespace ProjectName.UI
                     var data = em.GetSlotData((EquipmentManager.EquipmentSlot)i);
                     if (data != null) itemId = data.itemId;
                 }
-                _equipSlotTexts[i].text = string.IsNullOrEmpty(itemId) ? "—" : EquipmentStatBonus.DisplayName(itemId);
+                _equipSlotTexts[i].text = string.IsNullOrEmpty(itemId) ? "—" : EquipmentStatBonusApplier.DisplayName(itemId);
             }
 
             // --- 장비 보너스 내역 ---
             if (_bonusListText != null)
             {
-                var labels = EquipmentStatBonus.GetActiveBonusLabels();
+                var labels = EquipmentStatBonusApplier.GetActiveBonusLabels();
                 _bonusListText.text = labels.Count > 0 ? string.Join("\n", labels) : "착용 장비 보너스 없음";
             }
 
@@ -509,7 +509,7 @@ namespace ProjectName.UI
             RectTransform panel = CreateImage(
                 _canvas.transform, "StatusPanel", _roundedSprite, ColorPanelBg,
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                Vector2.zero, new Vector2(WinW, WinH));
+                Vector2.zero, new Vector2(WinW, WinH), new Vector2(0.5f, 0.5f));
             panel.pivot = new Vector2(0.5f, 0.5f);
             var panelImg = panel.GetComponent<Image>();
             panelImg.type = Image.Type.Sliced;
@@ -613,7 +613,7 @@ namespace ProjectName.UI
                 TextAnchor.MiddleLeft, new Vector2(rx, -gy), new Vector2(110f, 22f), new Vector2(0f, 1f), new Vector2(0f, 0.5f));
             _hpValueText = CreateText(panel, "HPValue", "-", 15, ColorValue,
                 TextAnchor.MiddleRight, new Vector2(rx + 250f, -gy), new Vector2(120f, 22f), new Vector2(0f, 1f), new Vector2(1f, 0.5f)).GetComponent<Text>();
-            _hpGaugeFill = CreateGauge(panel, "HPGauge", ColorGaugeHP, rx, gy + 24f, 400f);
+            _hpGaugeFill = CreateGauge(panel, "HPGauge", ColorGaugeHP, rx, gy + 24f);
 
             CreateText(panel, "ExpLabel", "경험치", 16, ColorLabel,
                 TextAnchor.MiddleLeft, new Vector2(rx, -(gy + 36f)), new Vector2(110f, 22f), new Vector2(0f, 1f), new Vector2(0f, 0.5f));
@@ -638,7 +638,7 @@ namespace ProjectName.UI
         }
 
         /// <summary>게이지(배경+fill). fill의 sizeDelta.x = 폭*비율로 갱신.</summary>
-        private RectTransform CreateGauge(GameObject parent, string name, Color fillColor, float x, float topY)
+        private RectTransform CreateGauge(Transform parent, string name, Color fillColor, float x, float topY)
         {
             const float GaugeW = 380f, GaugeH = 10f;
             CreateImage(parent, name + "_Bg", _whiteSprite, ColorGaugeBg,
@@ -654,17 +654,17 @@ namespace ProjectName.UI
         //  버튼 헬퍼
         // =====================================================================
 
-        private Button CreateButton(GameObject parent, string name, string label, int fontSize,
+        private Button CreateButton(Transform parent, string name, string label, int fontSize,
             Color textColor, Color bgColor, Vector2 pos, Vector2 size, Vector2 pivotTopLeft)
         {
-            var rt = CreateImage(parent, name, _roundedSprite, ColorPlusOn,
+            var rt = CreateImage(parent, name, _roundedSprite, bgColor,
                 new Vector2(0f, 1f), new Vector2(0f, 1f), pos, size, pivotTopLeft);
             var btn = rt.gameObject.AddComponent<Button>();
             var colors = btn.colors;
             colors.disabledColor = ColorPlusOff;
             btn.colors = colors;
 
-            var textRt = CreateText(rt.gameObject, name + "_Text", label, fontSize, label != "X" ? Color.white : ColorLabel,
+            var textRt = CreateText(rt, name + "_Text", label, fontSize, label != "X" ? Color.white : ColorLabel,
                 TextAnchor.MiddleCenter, new Vector2(size.x * 0.5f, -size.y * 0.5f), size, new Vector2(0.5f, 1f), new Vector2(0.5f, 0.5f));
             textRt.GetComponent<Text>().raycastTarget = false;
             return btn;

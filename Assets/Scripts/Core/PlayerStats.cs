@@ -168,16 +168,32 @@ namespace ProjectName.Core
         public float GetCookingSuccessRate() => FinalCookingBonus;
 
         // Final stats that include base + level bonuses + buffs + 주스탯 할당 + 장비 보너스
+        // 장비 보너스는 Systems 측 EquipmentStatBonusApplier가 OnEquipmentChanged 때 푸시 (Core→Systems 역참조 회피)
         public float FinalAttackDamage => _attackDamageBase + (_level * 0.5f) + (_allocatedStr * 2f)
-                                          + Systems.EquipmentStatBonus.GetAttackBonus();   // 힘 +2 공격/pt
-        public float FinalDefense => _defenseBase + (_level * 0.2f)
-                                          + Systems.EquipmentStatBonus.GetDefenseBonus();
+                                          + _equipAttackBonus;   // 힘 +2 공격/pt
+        public float FinalDefense => _defenseBase + (_level * 0.2f) + _equipDefenseBonus;
         public float FinalMoveSpeed => _moveSpeedBase + (_level * 0.1f) + (_allocatedAgi * 0.05f)
-                                          + Systems.EquipmentStatBonus.GetSpeedBonus();    // 민첩 +0.05 속도/pt
+                                          + _equipSpeedBonus;  // 민첩 +0.05 속도/pt
         public float FinalAlchemyBonus => AlchemySuccessBonus + _alchemyTempBonus + (_allocatedInt * 0.005f); // 지능 +0.5%/pt
         public float FinalCookingBonus => CookingSuccessBonus + _cookingTempBonus + (_allocatedInt * 0.005f);
         public float FinalCritChance => _critChanceBase + (_level * 0.005f) + (_allocatedAgi * 0.005f)
-                                          + Systems.EquipmentStatBonus.GetCritBonus();     // 민첩 +0.5% 치명/pt
+                                          + _equipCritBonus;   // 민첩 +0.5% 치명/pt
+
+        // 장비 보너스 합산치 (EquipmentStatBonusApplier가 갱신 — 외부 직접 기록 금지, 공개는 디버그/표시용)
+        [Header("Equipment Bonus (auto)")]
+        [SerializeField] private float _equipAttackBonus = 0f;
+        [SerializeField] private float _equipDefenseBonus = 0f;
+        [SerializeField] private float _equipCritBonus = 0f;
+        [SerializeField] private float _equipSpeedBonus = 0f;
+
+        /// <summary>장비 보너스 푸시 (Systems 측 EquipmentStatBonusApplier 전용 경로)</summary>
+        public void SetEquipmentBonuses(float attack, float defense, float crit, float speed)
+        {
+            _equipAttackBonus = attack;
+            _equipDefenseBonus = defense;
+            _equipCritBonus = crit;
+            _equipSpeedBonus = speed;
+        }
 
         private void Awake()
         {

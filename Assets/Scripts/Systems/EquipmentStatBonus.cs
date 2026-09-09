@@ -4,21 +4,72 @@ using UnityEngine;
 namespace ProjectName.Systems
 {
     /// <summary>
-    /// 장비 → 스탯 보너스 집계 (2026-09-09, 계획서 P3).
+    /// 장비 → 스탯 보너스 적용기 (2026-09-09, 계획서 P3).
     ///
     /// [역할]
     /// - EquipmentManager의 6슬롯(Helmet/Armor/Weapon/Shoes/Gloves/Back)에 장착된 itemId를
-    ///   정적 보너스 테이블 + 키워드 폴백으로 합산해 공격/방어/치명/이속 보너스를 제공.
-    /// - PlayerStats.Final* 파생 스탯이 이 값을 직접 합산(상태 동기화 없음 — 읽기 시점 집계).
-    /// - StatusWindowUI가 GetActiveBonusLabels()로 장비 보너스 내역을 표시.
+    ///   정적 보너스 테이블 + 키워드 폴백으로 합산해 PlayerStats.SetEquipmentBonuses()로 푸시.
+    /// - Core→Systems 역참조 방지를 위해 "풀(pull)"이 아닌 "푸시(push)" 구조:
+    ///   OnEquipmentChanged 이벤트 때마다 재계산 → PlayerStats.Final*이 로컬 필드를 합산.
     ///
     /// [설계 규약]
     /// - EquipmentManager/WeaponEquipManager는 타 소유 — 본 파일은 읽기만 수행(수정 금지).
     /// - 무기 핫바(1~4키, WeaponEquipManager.Equip)는 EquipmentManager.Weapon 슬롯과 별계.
     ///   스탯 반영은 EquipmentManager 슬롯 기준(장비창 착용분) — 핫바 무기 전투력은 무기 시스템 자체 데미지로 반영됨.
     /// </summary>
-    public static class EquipmentStatBonus
+    public class EquipmentStatBonusApplier : MonoBehaviour
     {
+        private static EquipmentStatBonusApplier _instance;
+
+        /// <summary>씬 편집 없이 상시 적용기 부트 (HotbarUI 선례).</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void Bootstrap()
+        {
+            if (_instance != null) return;
+            var existing = Object.FindFirstObjectByType<EquipmentStatBonusApplier>();
+            if (existing != null) { _instance = existing; return; }
+
+            var go = new GameObject("EquipmentStatBonusApplier");
+            _instance = go.AddComponent<EquipmentStatBonusApplier>();
+        }
+
+        private EquipmentManager _subscribed;
+
+        private void OnDestroy()
+        {
+            if (_subscribed != null)
+            {
+                _subscribed.OnEquipmentChanged -= OnEquipmentChanged;
+                _subscribed = null;
+            }
+            if (_instance == this) _instance = null;
+        }
+
+        private void Update()
+        {
+            // 씬 전환 대비 재구독 (EquipmentManager가 씬 소속일 수 있음)
+            var em = EquipmentManager.Instance;
+            if (ReferenceEquals(_subscribed, em)) return;
+            if (_subscribed != null) _subscribed.OnEquipmentChanged -= OnEquipmentChanged;
+            _subscribed = em;
+            if (_subscribed != null)
+            {
+                _subscribed.OnEquipmentChanged += OnEquipmentChanged;
+                ApplyNow(); // 재구독 시점에도 현재 장착분 반영
+            }
+        }
+
+        private void OnEquipmentChanged(EquipmentManager.EquipmentSlot slot, string itemId) => ApplyNow();
+
+        private void ApplyNow()
+        {
+            var stats = ProjectName.Core.PlayerStats.Instance;
+            if (stats == null) return;
+            stats.SetEquipmentBonuses(Total(b => b.attack), Total(b => b.defense), Total(b => b.crit), Total(b => b.speed));
+        }
+
+        // ── 보너스 테이블 ──
+
         public struct Bonus
         {
             public float attack;
@@ -62,16 +113,16 @@ namespace ProjectName.Systems
         private static Bonus GetBonusFor(string itemId)
             => string.IsNullOrEmpty(itemId) ? default : (_table.TryGetValue(itemId, out var b) ? b : FromKeyword(itemId));
 
-        // ── 집계 API (PlayerStats.Final*에서 소비) ──
+        // ── 집계 API (UI 표시용 — PlayerStats 파생 스탯은 푸시 방식으로 반영됨) ──
 
-        public static float GetAttackBonus() => Sum((in Bonus b) => b.attack);
-        public static float GetDefenseBonus() => Sum((in Bonus b) => b.defense);
-        public static float GetCritBonus() => Sum((in Bonus b) => b.crit);
-        public static float GetSpeedBonus() => Sum((in Bonus b) => b.speed);
+        public static float GetAttackBonus() => Total(b => b.attack);
+        public static float GetDefenseBonus() => Total(b => b.defense);
+        public static float GetCritBonus() => Total(b => b.crit);
+        public static float GetSpeedBonus() => Total(b => b.speed);
 
-        private delegate float Selector(in Bonus b);
+        private delegate float Selector(Bonus b);
 
-        private static float Sum(Selector sel)
+        private static float Total(Selector sel)
         {
             var em = EquipmentManager.Instance;
             if (em == null) return 0f;

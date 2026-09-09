@@ -222,6 +222,15 @@ namespace ProjectName.UI
 
             UpdateRectPositions();
 
+            // 휠 줌: 미니맵 위에서 스크롤 → 80/120/200m 3단 순환
+            if (Event.current != null && Event.current.type == EventType.ScrollWheel
+                && _minimapRect.Contains(Event.current.mousePosition))
+            {
+                _zoomIndex = (_zoomIndex + (Event.current.delta.y > 0f ? 1 : _zoomRadii.Length - 1)) % _zoomRadii.Length;
+                _localRadius = _zoomRadii[_zoomIndex];
+                Event.current.Use();
+            }
+
             // 1. 시간/날씨 표시 (미니맵 위)
             DrawTimeWeather();
 
@@ -395,24 +404,14 @@ namespace ProjectName.UI
         {
             if (_playerTransform == null) return;
 
-            // 플레이어 월드 위치 → 미니맵 로컬 좌표 변환
-            Vector3 playerPos = _playerTransform.position;
-            Vector2 localPos = WorldToMinimapLocal(playerPos);
-
-            // 미니맵 원형 내부에 클램핑
+            // 로컬뷰(2026-09-09): 플레이어는 항상 미니맵 중앙, 이동방향 화살표 표시
             float radius = _minimapDiameter * 0.5f;
-            float maxDist = radius - _playerMarkerSize * 0.5f - 4;
-            float dist = localPos.magnitude;
-            if (dist > maxDist)
-                localPos = localPos.normalized * maxDist;
-
-            // 미니맵 중심 기준
             float centerX = _minimapRect.x + radius;
             float centerY = _minimapRect.y + radius;
 
-            Rect markerRect = new Rect(
-                centerX + localPos.x - _playerMarkerSize * 0.5f,
-                centerY + localPos.y - _playerMarkerSize * 0.5f,
+            var markerRect = new Rect(
+                centerX - _playerMarkerSize * 0.5f,
+                centerY - _playerMarkerSize * 0.5f,
                 _playerMarkerSize, _playerMarkerSize
             );
 
@@ -420,16 +419,13 @@ namespace ProjectName.UI
             GUI.color = _playerMarkerColor;
             GUI.Box(markerRect, "");
 
-            // 방향 화살표
-            float angle = _playerTransform.eulerAngles.y * Mathf.Deg2Rad;
-            float arrowLength = _playerMarkerSize * 0.7f;
-            Vector2 arrowEnd = new Vector2(
-                centerX + localPos.x + Mathf.Sin(angle) * arrowLength,
-                centerY + localPos.y + Mathf.Cos(angle) * arrowLength
-            );
-            
-            // 방향 선 그리기 (GUI.DrawTexture로 선 대체)
-            DrawLine(new Vector2(centerX + localPos.x, centerY + localPos.y), arrowEnd, _playerMarkerColor, 2f);
+            // 방향 화살표 — forward 기준, +z=북=화면 위 (GUI y 역방향 보정)
+            Vector3 fwd = _playerTransform.forward;
+            float guiAngle = Mathf.Atan2(fwd.x, fwd.z) * Mathf.Rad2Deg; // 0°=북(위), 시계방향+
+            float arrowLength = _playerMarkerSize * 1.1f;
+            Vector2 from = new Vector2(centerX, centerY);
+            Vector2 arrowEnd = from + new Vector2(Mathf.Sin(guiAngle * Mathf.Deg2Rad), -Mathf.Cos(guiAngle * Mathf.Deg2Rad)) * arrowLength;
+            DrawLine(from, arrowEnd, _playerMarkerColor, 3f);
 
             GUI.color = Color.white;
         }
