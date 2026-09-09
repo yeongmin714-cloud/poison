@@ -175,6 +175,10 @@ namespace ProjectName.UI
             if (indoorPlayer != null)
                 indoorPlayer.transform.position = new Vector3(0f, INDOOR_FLOOR_Y + 0.1f, 0f);
 
+            // 2026-09-09(6차): 플레이어 하이어라키를 IndoorScene으로 이동 — 계층 표시+활성 씬 정합
+            if (indoorPlayer != null && scene.isLoaded)
+                SceneManager.MoveGameObjectToScene(indoorPlayer, scene);
+
             // 2026-09-09(5차): 실내 카메라 스왑 — 메인 카메라만 비활성(IndoorCamera는 씬 상주·활성 상태로 로드됨)
             var mainCamGO = GameObject.FindGameObjectWithTag("MainCamera");
             if (mainCamGO != null) mainCamGO.SetActive(false);
@@ -228,6 +232,10 @@ namespace ProjectName.UI
             if (exitingPlayer != null && _returnPosition.HasValue)
                 exitingPlayer.transform.position = _returnPosition.Value;
             _returnPosition = null;
+
+            // 2026-09-09(6차): 플레이어를 다시 메인 씬으로 이동(하이어라키 복귀)
+            if (exitingPlayer != null && prevScene.isLoaded)
+                SceneManager.MoveGameObjectToScene(exitingPlayer, prevScene);
 
             // 2026-09-09(5차): 카메라 복귀 — 메인 카메라만 재활성(IndoorCamera는 씬 언로드로 자동 제거)
             var mainCamGO = GameObject.FindGameObjectWithTag("MainCamera");
