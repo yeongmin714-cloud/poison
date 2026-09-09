@@ -383,11 +383,12 @@ namespace ProjectName.UI
                     _countTexts[i] = count.GetComponent<Text>();
                 }
 
-                // ⑤ 하단 숫자 박스 (1~8)
+                // ⑤ 하단 숫자 박스 (1~8) — FIX: 앵커 (0,0)-(0.5,0)는 스트레치 모드라 sizeDelta가 앵커 rect 폭에 가산되어
+                // 박스가 비정상적으로 커지고 우측으로 밀려 패널 밖까지 이어진 '유령 선'의 원인. 슬롯 BG와 동일한 점앵커로 통일.
                 float numX = x + SlotSize * 0.5f;
                 RectTransform keyBox = CreateImage(
                     panel, $"Slot{i}_KeyBox", _roundedSprite, ColorKeyBox,
-                    new Vector2(0f, 0f), new Vector2(0.5f, 0f),
+                    new Vector2(0f, 0f), new Vector2(0f, 0f),
                     new Vector2(numX - 13f, numBoxY), new Vector2(26f, NumBoxHeight));
                 var keyBoxImg = keyBox.GetComponent<Image>();
                 keyBoxImg.type = Image.Type.Sliced;
