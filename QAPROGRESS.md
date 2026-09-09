@@ -4,7 +4,21 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-09
+> **최종 갱신:** 2026-09-09 (2차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-09 2차 — 런타임 오류 3종 수정 + 스탯창 v2 + 미니맵 로컬뷰 ✅)
+
+- **범위**: 유저 Play 보고(오류 3종+유령 선) + 요구 5건(스탯창 예시화/포인트분배/장비연동/미니맵 현재위치+로컬뷰/핫바 정리). 계획서: .hermes/plans/2026-09-09_status-v2-minimap-hotbar-fixes-plan.md
+- **P0 오류 수정**: ①IdyllicDecoPlacer willowGreen/willowPink 미할당 NRE → BuildCategoriesR4 할당 복원+전 필드 인라인 초기화(f986134d) ②Player_AC AnyState 고아 전이 SwimEnter(파라미터 부재 경고) → **IsSwimming 조건으로 재배선+출구 전이 보강**(수영 비주얼 진입 경로 복구, Backup/Player_AC_backup_swimfix.controller 백업, 3558fd74) ③PlayerControls.actionMaps 깨짐 → 중복 애셋 없음·JSON 정상 확인, 런타임 폴백 동작 중(유지)
+- **P1 진단(58.PNG 정밀 분석)**: ①"핫바 우측 유령 선" = **키박스(숫자1~8) 행의 앵커 버그** — CreateImage에 anchorMin(0,0)/anchorMax(0.5,0) 혼합 지정 → 스트레치 모드로 sizeDelta가 앵커 rect 폭에 가산, 박스가 패널 밖까지 이어짐(끝의 둥근 마감=라운드 키박스) ②좌하단 녹색 바 = GuardPlaceholder 병사 HP바(정상 기능, 무수정) ③미니맵 옆 슬라이더 = 온도 게이지(정상 기능) ④미니맵 플레이어 마커 미표시 = 전체맵 스케일 문제(Ring1 15m=1.6px → 중앙 겹침)
+- **P2 핫바 수정**: 키박스 앵커 (0,0)-(0.5,0)→(0,0)-(0,0) 점앵커 통일
+- **P3 스탯포인트+장비보너스**: PlayerStats에 PendingStatPoints(레벨업당 +5)·AllocateStat(힘+2공격/민첩+0.5%치명+0.05속도/지능+0.5%연금요리/체력+10HP)·PlayerPrefs 저장/복원. **Core→Systems 역참조 회피 위해 장비보너스는 푸시 구조**: EquipmentStatBonusApplier(신규, Systems)가 OnEquipmentChanged 때 테이블+키워드 폴백 집계 → PlayerStats.SetEquipmentBonuses() 푸시
+- **P4 스탯창 v2**: 인벤토리 위치(중앙 1180x900)로 이전, 예시 레이아웃 재현 — 좌측 3D 뷰포트(RT 256x320+전용카메라 레이어31, 플레이어 클론 스크립트 전면제거 y=-2000 격리, 드래그 회전, 닫으면 즉시 파괴) + ㄷ자 장비슬롯 6종 + 우측 주스탯[+]분배/전투스탯/정보(하늘색 수치·버건디 타이틀)
+- **P5 미니맵 로컬뷰**: 플레이어 중심 uvRect 크롭(규약 u=0.5+x/W, v=0.5+z/W — BakeWorldSplat 동일), 플레이어 중앙 고정+forward 화살표(+z=북=화면위), 영지/퀘스트 마커 로컬 반경 필터, 휠 줌 3단(80/120/200m), 플레이어 없으면 전체맵 폴백
+- **검증**: 배치컴파일 **error CS=0**(중간 3회 실패 모두 수정: CS1676 in-delegate/CS0103 클래스명/CS7036·CS1503 헬퍼 시그니처), DLL 3종에 신규 타입 포함 확인, guid 잔존 0
+- ⬜ **남음**: Play 판정(①콘솔 SwimEnter/NRE 경고 소멸 ②핫바 선 소멸 ③P키→중앙 캐릭터정보 창·3D회전·[+]분배·장비착용 시 스탯변동 ④미니맵 로컬뷰+방향화살표 ⑤레벨업 시 +5포인트 지급)
 
 ---
 
