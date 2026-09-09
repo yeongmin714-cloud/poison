@@ -49,19 +49,23 @@ namespace ProjectName.UI
         private string[] _sortModeLabels = { "정렬 안함", "카테고리순", "이름순", "등급순", "수량순" };
 
         // ===== 레퍼런스 스타일 상수 (젤다 토탈코딩 스타일) =====
-        private const float WINDOW_WIDTH = 1180f;
+        // 2026-09-09 재구조화: 캐릭터 프리뷰/무기버튼/하단상세 제거 → [인벤][설명][컨텍스트] 3패널
+        private const float WINDOW_WIDTH = 820f;
         private const float WINDOW_HEIGHT = 1040f;   // C-UP: 1080p 전체화면 기준 상하 클리핑 방지 (1160→1040)
         private const float TITLE_BAR_HEIGHT = 108f;
         private const float TAB_BAR_HEIGHT = 96f;
-        private const float INFO_PANEL_HEIGHT = 272f;
-        private const float WEAPON_SECTION_HEIGHT = 112f;  // 무기 슬롯 섹션 (장착/해제 버튼 행)
+        private const float INFO_PANEL_HEIGHT = 272f;   // (레거시 — 미사용)
+        private const float WEAPON_SECTION_HEIGHT = 112f;  // (레거시 — 미사용)
+        private const float EQUIP_ROW_HEIGHT = 130f;    // 하단 장비슬롯 6종 행
+        private const float DESC_PANEL_WIDTH = 430f;    // 중앙 아이템 설명 패널 폭
+        private const float DESC_GAP = 16f;             // 패널 간격
         private const int GRID_COLUMNS = 5;                // 젤다 스타일 5열 그리드
         private const float SLOT_MARGIN = 6f;              // 슬롯 간격
         private const float SLOT_ICON_SIZE = 96f;          // 슬롯 내 아이콘 크기 (레거시, 동적 크기 사용 권장)
         private const int GRID_MIN_ROWS = 2;               // 빈 상태에서도 보이는 최소 그리드 행 수
-        // 2분할 레이아웃: 좌측 그리드 + 우측 캐릭터 프리뷰 패널
-        private const float PREVIEW_PANEL_WIDTH = 400f;    // 우측 프리뷰 패널 폭
-        private const float GRID_AREA_WIDTH = WINDOW_WIDTH - PREVIEW_PANEL_WIDTH; // 좌측 그리드 영역 폭 (780)
+        // 2분할 레이아웃 (레거시): 프리뷰 폭 0 → 그리드가 전체 폭 사용
+        private const float PREVIEW_PANEL_WIDTH = 0f;    // 우측 프리뷰 패널 폭 (제거됨)
+        private const float GRID_AREA_WIDTH = WINDOW_WIDTH - PREVIEW_PANEL_WIDTH; // 좌측 그리드 영역 폭
 
         // 포커스/강조 색상 (민트 글로우 + 황금 테두리)
         private static readonly Color ColorMintGlow = new Color(0.30f, 1f, 0.75f, 0.28f);
@@ -148,7 +152,7 @@ namespace ProjectName.UI
 
         protected override void OnShow()
         {
-            EnsurePreviewSetup();   // 3D 캐릭터 프리뷰 리소스 생성 (인벤토리 열 때만 활성)
+            // 2026-09-09: 3D 캐릭터 프리뷰 제거 (아바타 구조 폐지 — 스탯창 v2가 담당)
 
             _selectedSlotIndex = -1;
             RefreshInventory();
@@ -156,7 +160,7 @@ namespace ProjectName.UI
 
         protected override void OnHide()
         {
-            ReleasePreview();       // 3D 캐릭터 프리뷰 리소스 정리 (RT/카메라/개체 해제 — 메모리 누수 방지)
+            // 2026-09-09: 프리뷰 제거로 정리 불필요 — OnDestroy의 ReleasePreview는 안전망으로 유지
         }
 
         /// <summary>
@@ -401,22 +405,21 @@ namespace ProjectName.UI
 
             // === 아이템 슬롯 그리드 (스크롤 가능) ===
             float gridY = tabY + TAB_BAR_HEIGHT + 1;
-            float gridHeight = WINDOW_HEIGHT - (gridY - y) - WEAPON_SECTION_HEIGHT - INFO_PANEL_HEIGHT - 8;
+            float gridHeight = WINDOW_HEIGHT - (gridY - y) - EQUIP_ROW_HEIGHT - 8;
             DrawItemGrid(x, gridY, gridHeight);
 
-            // === 우측 캐릭터 프리뷰 패널 틀 (T3B-2: 2분할 레이아웃, 그리드 영역과 같은 높이) ===
-            DrawPreviewPanel(x + GRID_AREA_WIDTH, gridY, gridHeight);
+            // === 하단 장비슬롯 6종 (2026-09-09: 무기버튼/프리뷰 대체, 우클릭 해제) ===
+            float equipY = gridY + gridHeight + 2;
+            DrawEquipRow(x, equipY);
 
-            // === 무기 슬롯 섹션 (장착/해제) ===
-            float weaponY = gridY + gridHeight + 2;
-            DrawWeaponSection(x, weaponY);
-
-            // === 하단 정보 패널 ===
-            float infoY = weaponY + WEAPON_SECTION_HEIGHT + 2;
-            DrawInfoPanel(x, infoY);
+            // === 중앙 아이템 설명 패널 (2026-09-09: 하단 상세박스 대체 — 설명 + 핫바 미니패드) ===
+            DrawDescriptionPanel(x + WINDOW_WIDTH + DESC_GAP, y);
 
             // === 🗺️ 오토루트 컨텍스트 메뉴 ===
             DrawRouteContextMenu();
+
+            // === 드래그 고스트 + 패드 드롭 판정 ===
+            ProcessDrag();
         }
 
         // ===================================================================
@@ -424,7 +427,7 @@ namespace ProjectName.UI
         // ===================================================================
         private void DrawCategoryTabs(float panelX, float tabY)
         {
-            string[] tabNames = { "🌿 약초", "🥩 고기", "🍲 요리", "🧪 약", "🧱 재료", "📜 퀘스트", "🗡️ 무기", "🛡️ 방어구", "🔧 도구" };
+            string[] tabNames = { "🌿 약초", "🥩 고기", "🍲 요리", "🧪 약", "🧱 재료", "🗡️ 무기", "🛡️ 방어구", "🔧 도구" };
             PlayerInventory.ItemCategory[] categories =
             {
                 PlayerInventory.ItemCategory.Herb,
@@ -432,7 +435,6 @@ namespace ProjectName.UI
                 PlayerInventory.ItemCategory.Food,
                 PlayerInventory.ItemCategory.Potion,
                 PlayerInventory.ItemCategory.Material,
-                PlayerInventory.ItemCategory.Quest,
                 PlayerInventory.ItemCategory.Weapon,
                 PlayerInventory.ItemCategory.Armor,
                 PlayerInventory.ItemCategory.Tool
