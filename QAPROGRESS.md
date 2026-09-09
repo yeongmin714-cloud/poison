@@ -4,7 +4,42 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-09 (9차)
+> **최종 갱신:** 2026-09-09 (10차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-09 10차 — 전투 액션감 고사양화 1차: ActionFeel+충격파링+플래시+킨매틱 넉백 ✅)
+
+> **스코프**: 테스트 씬(Test_10) 한정으로 감각 피드백을 고사양 강화. 코드는 공유라 메인도 동일 동작하되, `ActionFeel.Mode` 관통 토글로 Balanced(메인 기본)·HighSpec(테스트) 분리.
+
+### 변경 사항
+**1. `ActionFeel` 게이트 (`Systems/ActionFeel.cs` 신규)**
+- `enum ActionFeelMode { Balanced, HighSpec }` + static 클래스. `ActionFeel.HighSpec` 읽기 게이트, `SetMode()` 로깅. 저사양(Balanced)이 기본값(메인 보호).
+
+**2. 지면 충격파 링 (`Systems/ShockwaveRingFX.cs` 신규)**
+- `Spawn(worldPos, maxRadius, color, duration)` — 평탄 Cylinder 메시를 ease-out으로 0.2→maxRadius 확장+알파 페이드, Object.Destroy 자원해제, 투명 Lit 메터리얼. 임펙트·크리 땅울림.
+
+**3. 전화면 컬러 플래시 (`Systems/ScreenFlashFX.cs` 신규)**
+- `Flash(color, intensity, duration)` + White/Orange/Red 래퍼(HitColor·CritColor·KillColor). IMGUI 폴스크린 박스 알파 페이드. **단일 인스턴스**(연타 시 덮어씀, 스택 방지).
+
+**4. 킨매틱 넉백 (`Systems/HitReaction.cs` 보강)**
+- **허점 수정**: 기존 AddForce는 `!_rigidbody.isKinematic`일 때만 → 몬스터/병사/영주(절차 애니메이션 kinematic)에선 넉백 무시됨. 추가된 `KinematicJolt` 코루틴이 **Rigidbody 상태와 무관하게 Transform 짧은 플린치(0.06s 밀기→0.12s settle, y바이어스)**.
+- `ActionFeel.HighSpec` 시 절트 거리 2배 + 위로 홉(y+0.4). 기존 non-kinematic AddForce 경로는 유지(양쪽 일관).
+
+**5. 고사양 분기 통합 (`Systems/CombatFXGate.cs`)**
+- `PlayHitFXInternal`에 `if (ActionFeel.HighSpec)` 블록 추가: 크리/중타(damage≥40)만 충격파링(크리=주황 1.5m/0.5s, 중타=흰 1.0m/0.35s) + 크리=주황 플래시 0.3/0.2s, 일반=극미량 흰 0.05s. 기존 1~4단계(스파크/출혈/넘버/카메라)는 무영향.
+
+**6. 테스트 씬 활성화 (`Systems/TestTerritoryCombatSetup.cs`)**
+- `Awake()` 첫 줄 `ActionFeel.SetMode(ActionFeelMode.HighSpec)` — Test_10_TerritoryCombat 전용. 메인 씬은 Balanced 기본 유지.
+
+### 검증
+- **실제 Unity 배치컴파일** `run_batch.bat`(6000.4.10f1): CompileScripts 21155ms, **error CS = 0**, "Exiting batchmode successfully return code 0".
+- ScriptAssemblies DLL strings grep — `ActionFeel/ShockwaveRingFX/ScreenFlashFX/HitReaction/CombatFXGate` 심볼 전부 반영(3~4회 매치).
+- `.cs.meta` 3종 자동생성 확인.
+- 커밋 e0d4e251 push 완료.
+
+### Play 판정 대기 (Test_10)
+- 좌클릭 공격: 피격체가 짧게 밀려나는 플린치(monster/guard/lord 모두) / 크리·중타 지면 충격파링(주황) / 크리 전화면 주황 섬광 / 일반 타격 극미량 백색 플래시 / 대형 체감 확인.
 
 ---
 
