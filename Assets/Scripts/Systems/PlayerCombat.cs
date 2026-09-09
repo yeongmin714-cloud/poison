@@ -277,12 +277,14 @@ namespace ProjectName.Systems
             HapticFeedback.PlayPreset(HapticFeedback.RumblePreset.Light);
 
             // G2-04: 치명타/백어택 감지 → Shake 2배 + HitStop
+            bool isBackAttack = false;
             if (targetBehaviour != null)
             {
                 Vector3 dirToAttacker = (transform.position - targetBehaviour.transform.position).normalized;
                 float dot = Vector3.Dot(targetBehaviour.transform.forward, dirToAttacker);
                 if (dot > 0.5f) // 뒤에서 공격 (back attack)
                 {
+                    isBackAttack = true;
                     CombatCameraEffects.PlayCrit();
                     Debug.Log("[PlayerCombat] ★ 백어택! 치명타 카메라 이펙트");
                 }
@@ -301,15 +303,16 @@ namespace ProjectName.Systems
             // Phase 8.3: 적중 사운드
             SoundManager.Instance?.PlaySFX("attack_hit");
 
-            // Hit VFX: Sparks and Flash
+            // Phase 2 (COMBAT_VFX_UPGRADE_PLAN): 중앙 VFX 게이트로 히트 FX 통합.
+            // CombatFXGate.PlayHitFX(GameObject 오버로드)가 스파크, 유기체 출혈(Organic),
+            // 데미지 넘버, 히트 플래시, 카메라 Crit/Hit를 일괄 처리하므로
+            // 기존의 중복 HitVFX.PlayHitEffect/PlayHitFlash 블록은 제거함 (게이트가 대체).
+            // 백어택 = 치명타(isCrit) → 데미지 넘버 색: 주황, 일반 → 흰색.
             if (targetBehaviour != null)
             {
-                Renderer targetRenderer = targetBehaviour.GetComponent<Renderer>();
-                if (targetRenderer != null)
-                {
-                    HitVFX.PlayHitEffect(targetBehaviour.transform.position, hitDirection);
-                    HitVFX.PlayHitFlash(targetRenderer);
-                }
+                Color numberColor = isBackAttack ? new Color(1f, 0.6f, 0.1f) : Color.white;
+                CombatFXGate.PlayHitFX(targetBehaviour.gameObject, hitDirection, CombatHitType.Organic, isBackAttack, damage, numberColor);
+                Debug.Log($"[PlayerCombat] ✨ FX 게이트 호출: {targetName} (crit={isBackAttack}, dmg={damage})");
             }
 
             Debug.Log($"[PlayerCombat] 🎯 자동조준! {_currentWeapon?.weaponName ?? "Unknown"} → {target} 데미지: {damage}");

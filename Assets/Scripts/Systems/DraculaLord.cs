@@ -328,6 +328,10 @@ namespace ProjectName.Systems
 
             Debug.Log($"[DraculaLord] 💥 {amount} raw 데미지 → {actualDamage} 실제 데미지 (방어력 {_defense}) (HP: {Mathf.Max(0, _currentHP)}/{_maxHP})");
 
+            // ⚔️ 피격 VFX (스파크/피/데미지 넘버/히트플래시) — 게이트 경유
+            CombatFXGate.PlayHitFX(gameObject, hitDirection, CombatHitType.Organic, false, amount, Color.white);
+            Debug.Log($"[DraculaLord] 🎯 피격 FX 재생 (Organic, 데미지넘버 흰색, {amount})");
+
             OnLordDamaged?.Invoke(this);
 
             if (_currentHP <= 0)
@@ -345,6 +349,9 @@ namespace ProjectName.Systems
             _isDead = true;
 
             Debug.Log("[DraculaLord] 🧛 드라큘라 영주 처치!");
+
+            // ⚔️ 사망 카메라 이펙트 (PlayKill — 카메라 담당측에서 1회 호출)
+            CombatCameraEffects.PlayKill();
 
             // 사망 이벤트 발생 (static + instance)
             OnLordDefeated?.Invoke(this);
