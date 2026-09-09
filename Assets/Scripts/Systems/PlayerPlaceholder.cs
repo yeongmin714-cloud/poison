@@ -98,7 +98,15 @@ namespace ProjectName.Systems
                 }
                 var rb = playerInstance.GetComponent<Rigidbody>();
                 if (rb != null)
+                {
+                    // RequireComponent 의존성(ProceduralAnimationController, QuadrupedProceduralAnimation) 때문에
+                    // DestroyImmediate가 차단될 수 있으므로, 제거 시도 전에 무해한 관성 상태로 만든다.
+                    // (제거에 실패해도 중력 낙하로 모델이 땅 밖으로 떨어져 사라지는 것을 방지)
+                    rb.isKinematic = true;
+                    rb.useGravity = false;
+                    rb.detectCollisions = false;
                     DestroyImmediate(rb);
+                }
 
                 // 별도 레이어로 이동 (부모와 충돌 방지)
                 int ignoreLayer = LayerMask.NameToLayer("Ignore Raycast");

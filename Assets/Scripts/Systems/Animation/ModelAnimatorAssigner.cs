@@ -245,6 +245,11 @@ namespace ProjectName.Systems.Animation
             if (_hybridAnim != null) DestroyImmediate(_hybridAnim);
             if (_quadrupedLocomotion != null) DestroyImmediate(_quadrupedLocomotion);
             if (_specialCreatureAnim != null) DestroyImmediate(_specialCreatureAnim);
+            // 자동감지가 먼저 부착했다가 ForceBiped 재정렬 시 잔존하는 컴포넌트 정리.
+            // (위 필드로 추적되지 않는 타입 — RequireComponent(Rigidbody) 의존 때문에 rb 제거도 막는다)
+            // 네임스페이스가 다르므로(ProjectName.Systems) 정규화된 이름으로 참조.
+            foreach (var quadrupedAnim in GetComponents<ProjectName.Systems.QuadrupedProceduralAnimation>())
+                DestroyImmediate(quadrupedAnim);
         }
 
         public NeuralAnimationController NeuralController => _neuralAnim;
