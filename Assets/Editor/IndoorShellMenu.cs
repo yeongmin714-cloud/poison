@@ -33,7 +33,7 @@ public static class IndoorShellMenu
 
         MedievalShellBuilder.CreateShell();
 
-        // 실내 카메라 (쿼터뷰 45°, 기본 비활성 — 전환 시 스왑)
+        // 실내 카메라 (메인 씬과 동일 시점 3/4뷰, 활성 상태로 저장 — IndoorScene 로드 시에만 존재)
         var camGO = new GameObject("IndoorCamera", typeof(Camera));
         camGO.transform.position = new Vector3(0f, 9.5f, -10.5f);
         camGO.transform.rotation = Quaternion.Euler(40f, 0f, 0f);
@@ -42,7 +42,7 @@ public static class IndoorShellMenu
         cam.nearClipPlane = 0.3f;
         cam.farClipPlane = 80f;
         cam.clearFlags = CameraClearFlags.Skybox;
-        camGO.SetActive(false); // EnterBuilding 시 활성 스왑
+        camGO.AddComponent<ProjectName.Systems.IndoorCameraFollow>(); // 플레이어 추적(메인씬 동일 시점)
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
