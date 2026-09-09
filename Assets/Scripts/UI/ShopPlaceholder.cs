@@ -86,7 +86,10 @@ namespace ProjectName.UI
 
             // UIManager를 통해 열기/닫기 (윈도우 스택 관리)
             _uiManager.OpenWindow(_shopWindow);
-            
+
+            // 2026-09-09: [인벤][설명][상점] 3패널 — 상점 열림 시 인벤토리도 함께
+            InventoryWindow.SetContextMode(InventoryWindow.ContextMode.Shop);
+
             // Show/Hide에 따라 게임 오브젝트 활성화 상태 업데이트
             if (_shopWindow.IsOpen)
             {

@@ -212,10 +212,10 @@ namespace ProjectName.UI
             
             InitStyles();
             
-            float x = (Screen.width - 1440) / 2;
-            float y = (Screen.height - 1170) / 2;
-            float width = 1440;
-            float height = 1170;
+            float x = InventoryWindow.GetContextX(520f); // 2026-09-09: 축소+우측 배치 ([인벤][설명] 우측 or 화면 우측)
+            float y = (Screen.height - 940f) / 2;
+            float width = 520f;
+            float height = 940f;
             
             // === 배경 + 외곽 박스 ==
             Rect shopRect = new Rect(x, y, width, height);

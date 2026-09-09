@@ -54,6 +54,15 @@ namespace ProjectName.UI
         private bool _dragActive;                             // 그리드→핫바패드 드래그
         private PlayerInventory.ItemData _dragItemData;
         private readonly Rect[] _padRects = new Rect[8];      // 설명 패널 핫바 미니패드 화면 Rect
+        private float _lastInvX;                              // 컨텍스트 창(상점)이 참조하는 인벤 좌측 x
+
+        /// <summary>상점 등 컨텍스트 창의 x 좌표 — 인벤 열림 시 [인벤][설명] 우측, 아니면 화면 우측</summary>
+        public static float GetContextX(float contextWidth)
+        {
+            if (_instance != null && _instance.IsOpen)
+                return _instance._lastInvX + WINDOW_WIDTH + DESC_GAP + DESC_PANEL_WIDTH + DESC_GAP;
+            return Screen.width - contextWidth - 16f;
+        }
 
         // ===== 정렬 =====
         private enum SortMode { None, Category, Name, Rarity, Quantity }
@@ -382,7 +391,11 @@ namespace ProjectName.UI
 
             // G3-05: 통일 스타일 — 딤드 오버레이 + 배경 + 타이틀 + 닫기 버튼
             UIStyleManager.DrawDimOverlay();
-            float x = (Screen.width - WINDOW_WIDTH) / 2;
+            // 2026-09-09: 컨텍스트 모드에 따라 [인벤][설명][상점] 3패널이 화면에 맞게 배치
+            float layoutWidth = WINDOW_WIDTH + DESC_GAP + DESC_PANEL_WIDTH;
+            if (_contextMode == ContextMode.Shop) layoutWidth += DESC_GAP + 520f;
+            float x = (Screen.width - layoutWidth) / 2;
+            _lastInvX = x;
             float y = (Screen.height - WINDOW_HEIGHT) / 2;
             Rect winRect = new Rect(x, y, WINDOW_WIDTH, WINDOW_HEIGHT);
             UIStyleManager.DrawWindowBackground(winRect);
