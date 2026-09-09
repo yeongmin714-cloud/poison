@@ -119,6 +119,8 @@ namespace ProjectName.UI
         {
             if (scene.name != INDOOR_SCENE_NAME) return;
 
+            Debug.Log($"[IndoorSceneTransition] OnIndoorSceneLoaded 진입 — buildingType: {_pendingBuildingType}, owner: {_pendingIsPlayerOwned}");
+
             // 중복 실행 방지
             SceneManager.sceneLoaded -= OnIndoorSceneLoaded;
 
@@ -177,7 +179,14 @@ namespace ProjectName.UI
 
             // 2026-09-09(6차): 플레이어 하이어라키를 IndoorScene으로 이동 — 계층 표시+활성 씬 정합
             if (indoorPlayer != null && scene.isLoaded)
+            {
                 SceneManager.MoveGameObjectToScene(indoorPlayer, scene);
+                Debug.Log($"[IndoorSceneTransition] 플레이어 이동 완료 → 소속 씬: {indoorPlayer.scene.name} / pos: {indoorPlayer.transform.position}");
+            }
+            else
+            {
+                Debug.LogError($"[IndoorSceneTransition] 플레이어 이동 실패 — found: {indoorPlayer != null}, sceneLoaded: {scene.isLoaded}");
+            }
 
             // 2026-09-09(5차→6차 FIX): 셸은 씬에 상주하지만 구버전 씬/에디터 메모리 상태 대비 런타임 폴백 생성
             if (GameObject.Find("MedievalShell") == null)
