@@ -19,6 +19,9 @@ namespace ProjectName.Systems
 
         private void Awake()
         {
+            // Test_10_TerritoryCombat 전용: HighSpec 모드 강제 (메인 씬은 Balanced 기본값 유지)
+            ActionFeel.SetMode(ActionFeelMode.HighSpec);
+
             EnsureGameManager();
             SetupPlayer();
             SetupCamera();
