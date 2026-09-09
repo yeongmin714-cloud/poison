@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using ProjectName.Core;
@@ -123,6 +124,7 @@ namespace ProjectName.UI
 
             BuildCanvas();
             BuildPanel();
+            LoadAssignedItems(); // 2026-09-09: 저장된 핫바 지정 복원
 
             // 씬 전환에도 핫바 유지 (상시 UI)
             DontDestroyOnLoad(gameObject);
@@ -155,6 +157,15 @@ namespace ProjectName.UI
         public void ActivateSlot(int index)
         {
             if (index < 0 || index >= SlotCount) return;
+
+            // 2026-09-09: 인벤 드래그 지정 아이템 우선 (무기류는 장착 연동)
+            string assigned = _assignedIds[index];
+            if (!string.IsNullOrEmpty(assigned))
+            {
+                ActivateAssignedItem(index, assigned);
+                return;
+            }
+
             SlotDef def = SlotDefs[index];
 
             switch (def.kind)
@@ -229,6 +240,71 @@ namespace ProjectName.UI
             ProjectName.Systems.PlayerWeaponModeBridge.ThrowSelected = true;
             ProjectName.Systems.WeaponEquipManager.Unequip(); // 다른 무기 해제(모드 상호배타)
             Debug.Log($"[HotbarUI] 슬롯 {index + 1} '{def.specId}': 투척 모드 진입 (보유 x{count}) — 폭탄 소모는 발사 시점에 처리 예정");
+        }
+
+        // ===== 2026-09-09: 인벤 드래그 지정 슬롯 (설명 패널 미니패드 → AssignItem) =====
+        private static readonly string[] _assignedIds = new string[SlotCount];
+        private static readonly string[] _assignedNames = new string[SlotCount];
+        private Text[] _assignedTexts = new Text[SlotCount];
+        private static readonly Dictionary<string, (string equipId, WeaponType type)> _assignedWeaponMap =
+            new Dictionary<string, (string, WeaponType)>
+            {
+                { "steel_sword", ("steel", WeaponType.Sword) },
+                { "iron_sword", ("iron", WeaponType.Sword) },
+                { "crystal_bow", ("crystal", WeaponType.Bow) },
+                { "wood_bow", ("wood", WeaponType.Bow) },
+                { "wood_spear", ("wood", WeaponType.Spear) },
+                { "spear", ("wood", WeaponType.Spear) },
+            };
+
+        /// <summary>인벤토리 드래그로 슬롯에 아이템 지정 (InventoryWindow 설명 패널에서 호출). 무기류는 장착 연동, 그 외 표시 전용.</summary>
+        public static void AssignItem(int index, string itemId, string displayName)
+        {
+            if (index < 0 || index >= SlotCount || string.IsNullOrEmpty(itemId)) return;
+            _assignedIds[index] = itemId;
+            _assignedNames[index] = displayName ?? itemId;
+            PlayerPrefs.SetString($"poison_hotbar_{index}", itemId);
+            PlayerPrefs.SetString($"poison_hotbar_name_{index}", _assignedNames[index]);
+            PlayerPrefs.Save();
+            if (_instance != null) _instance.ApplyAssignedVisual(index);
+        }
+
+        private void ApplyAssignedVisual(int index)
+        {
+            if (_assignedTexts[index] != null)
+                _assignedTexts[index].text = _assignedNames[index] ?? string.Empty;
+        }
+
+        private void LoadAssignedItems()
+        {
+            for (int i = 0; i < SlotCount; i++)
+            {
+                _assignedIds[i] = PlayerPrefs.GetString($"poison_hotbar_{i}", null);
+                _assignedNames[i] = PlayerPrefs.GetString($"poison_hotbar_name_{i}", null);
+                ApplyAssignedVisual(i);
+            }
+        }
+
+        private void ActivateAssignedItem(int index, string itemId)
+        {
+            if (_assignedWeaponMap.TryGetValue(itemId, out var w))
+            {
+                // 무기: 기존 장착 경로와 동일 (토글)
+                ProjectName.Systems.PlayerWeaponModeBridge.ThrowSelected = false;
+                Transform playerT = GetPlayerTransform();
+                if (playerT == null)
+                {
+                    Debug.LogWarning("[HotbarUI] 플레이어를 찾지 못해 장착 스킵");
+                    return;
+                }
+                if (WeaponEquipManager.CurrentId == w.equipId && WeaponEquipManager.IsEquipped)
+                    WeaponEquipManager.Unequip();
+                else
+                    WeaponEquipManager.Equip(w.equipId, playerT, w.type);
+                SyncSelectionHighlight();
+                return;
+            }
+            Debug.Log($"[HotbarUI] 슬롯 {index + 1} '{itemId}': 소모품 사용 연결 예정 (표시 전용)");
         }
 
         // ===== 장착 상태 ↔ 하이라이트 동기화 =====
@@ -362,7 +438,14 @@ namespace ProjectName.UI
                 bgImg.raycastTarget = false;
                 _slotBgs[i] = bgImg;
 
-                // ③ 중앙 라벨 — 2026-09-09 제거(유저 요청): 슬롯 내 텍스트 표기 폐지, 아이콘/툴팁으로 대체 예정
+                // ③ 중앙 라벨 — 2026-09-09 제거(유저 요청): 슬롯 내 텍스트 표기 폐지
+                //    (지정 아이템명은 좌상단 소형 텍스트로 표시 — AssignItem 참조)
+                var assignedLabel = CreateText(
+                    bg, $"Slot{i}_Assigned", string.Empty, 15, ColorCount,
+                    TextAnchor.UpperLeft, new Vector2(6f, -4f),
+                    new Vector2(SlotSize - 12f, 20f));
+                assignedLabel.GetComponent<Text>().raycastTarget = false;
+                _assignedTexts[i] = assignedLabel.GetComponent<Text>();
 
                 // ④ 우상단 수량 (소비 아이템만 갱신됨)
                 if (def.kind == SlotKind.Consumable)

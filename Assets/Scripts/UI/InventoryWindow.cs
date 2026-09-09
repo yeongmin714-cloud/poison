@@ -43,6 +43,18 @@ namespace ProjectName.UI
         private string _routeContextTerritoryId = "";
         private PlayerInventory.ItemSlot _routeContextSlot;
 
+        // ===== 2026-09-09 재구조화: 싱글턴/컨텍스트/설명패널/드래그 =====
+        public enum ContextMode { None, Warehouse, Shop, Loot }
+        private static InventoryWindow _instance;
+        public static InventoryWindow Instance => _instance;
+        private static ContextMode _pendingContextMode = ContextMode.None;
+        private ContextMode _contextMode = ContextMode.None;
+
+        private PlayerInventory.ItemData _selectedItemData;   // 설명 패널 표시용
+        private bool _dragActive;                             // 그리드→핫바패드 드래그
+        private PlayerInventory.ItemData _dragItemData;
+        private readonly Rect[] _padRects = new Rect[8];      // 설명 패널 핫바 미니패드 화면 Rect
+
         // ===== 정렬 =====
         private enum SortMode { None, Category, Name, Rarity, Quantity }
         private SortMode _sortMode = SortMode.None;
@@ -130,6 +142,27 @@ namespace ProjectName.UI
         {
             base.Awake();
             ApplyTheme(Phase33_Themes.CreateInventoryTheme());
+            _instance = this;
+            // 대기 중 컨텍스트 모드 적용 (창고/상점/전리품이 인벤보다 먼저 연 경우)
+            if (_pendingContextMode != ContextMode.None)
+            {
+                _contextMode = _pendingContextMode;
+                _pendingContextMode = ContextMode.None;
+            }
+        }
+
+        /// <summary>컨텍스트 모드 지정 (창고/상점/전리품 상호작용 시 호출 — 인벤 창도 함께 열어줌)</summary>
+        public static void SetContextMode(ContextMode mode)
+        {
+            if (_instance != null)
+            {
+                _instance._contextMode = mode;
+                if (!_instance.IsOpen) _instance.Show();
+            }
+            else
+            {
+                _pendingContextMode = mode;
+            }
         }
 
         protected override void OnDestroy()
@@ -581,18 +614,25 @@ namespace ProjectName.UI
                     // 클릭 처리 (호버 영역) — 🗺️ 오토루트 우클릭 연동
                     if (Event.current.type == EventType.MouseDown && slotRect.Contains(Event.current.mousePosition))
                     {
-                        if (Event.current.button == 0) // 좌클릭 — 선택
+                        if (Event.current.button == 0) // 좌클릭 — 선택 + 드래그 준비 (설명 패널 표시)
                         {
                             _selectedSlotIndex = i;
                             _selectedItemName = slot.item.displayName;
                             _selectedItemDesc = slot.item.description;
                             _selectedItemCount = slot.count;
+                            _selectedItemData = slot.item;
+                            _dragItemData = slot.item;   // ProcessDrag: MouseUp에서 패드 위면 핫바 등록
+                            _dragActive = false;
                             Event.current.Use();
                         }
-                        else if (Event.current.button == 1) // 우클릭 — 🗺️ 오토루트 컨텍스트 메뉴
+                        else if (Event.current.button == 1) // 우클릭 — 장비면 장착, 아니면 오토루트 메뉴
                         {
-                            // 장비 아이템이 아닌 경우만 오토루트 표시
-                            if (!CompareTooltip.IsEquipmentCategory(slot.item.category))
+                            if (CompareTooltip.IsEquipmentCategory(slot.item.category))
+                            {
+                                // 2026-09-09: 무기 선택창 폐지 → 우클릭 장착으로 대체
+                                TryEquipItem(slot);
+                            }
+                            else if (AutoRouteSystem.Instance != null)
                             {
                                 // AutoRouteSystem에서 경로 조회
                                 if (AutoRouteSystem.Instance != null)
@@ -1378,6 +1418,205 @@ namespace ProjectName.UI
         private readonly GUIContent _truncateContent = new GUIContent();
 
         /// <summary>컬러 사각형 그리기</summary>
+        // ===================================================================
+        // 2026-09-09: 하단 장비슬롯 6종 (우클릭 해제)
+        // ===================================================================
+        private void DrawEquipRow(float panelX, float rowY)
+        {
+            var em = ProjectName.Systems.EquipmentManager.Instance;
+            string[] slotNames = { "투구", "상의", "무기", "신발", "장갑", "등" };
+            float boxSize = 92f;
+
+            for (int i = 0; i < 6; i++)
+            {
+                var slot = (ProjectName.Systems.EquipmentManager.EquipmentSlot)i;
+                float sx = panelX + 8f + i * (boxSize + 14f);
+                Rect boxRect = new Rect(sx, rowY + 4f, boxSize, boxSize);
+
+                string itemId = null;
+                if (em != null)
+                {
+                    var data = em.GetSlotData(slot);
+                    if (data != null) itemId = data.itemId;
+                }
+                bool has = !string.IsNullOrEmpty(itemId);
+
+                GUI.Box(boxRect, "", has ? _styleWeaponBtnEquipped : _styleSlot);
+                GUI.Label(new Rect(sx, rowY + 4f + boxSize + 2f, boxSize, 20f), slotNames[i], _styleSlotLabel);
+                if (has)
+                    GUI.Label(new Rect(sx - 8f, rowY + 4f + boxSize + 20f, boxSize + 16f, 20f),
+                        ProjectName.Systems.EquipmentStatBonusApplier.DisplayName(itemId), _styleItemName);
+
+                // 우클릭 해제
+                if (has && Event.current.type == EventType.MouseDown && Event.current.button == 1
+                    && boxRect.Contains(Event.current.mousePosition))
+                {
+                    em?.UnequipSlot(slot);
+                    Event.current.Use();
+                }
+            }
+        }
+
+        // ===================================================================
+        // 2026-09-09: 중앙 아이템 설명 패널 (설명 + 핫바 미니패드 드래그 지정)
+        // ===================================================================
+        private void DrawDescriptionPanel(float dx, float dy)
+        {
+            Rect panelRect = new Rect(dx, dy, DESC_PANEL_WIDTH, WINDOW_HEIGHT);
+            GUI.Box(panelRect, "", _stylePanelBox);
+            DrawColoredRect(new Rect(dx, dy, DESC_PANEL_WIDTH, 2), ColorBorder);
+            DrawColoredRect(new Rect(dx, dy + WINDOW_HEIGHT - 2, DESC_PANEL_WIDTH, 2), ColorBorder);
+            DrawColoredRect(new Rect(dx + DESC_PANEL_WIDTH - 2, dy, 2, WINDOW_HEIGHT), ColorBorder);
+            GUI.Label(new Rect(dx, dy + 2, DESC_PANEL_WIDTH, TITLE_BAR_HEIGHT), "  📋 아이템 정보", _styleTitle);
+            DrawColoredRect(new Rect(dx, dy + TITLE_BAR_HEIGHT + 2, DESC_PANEL_WIDTH, 2), ColorBorder);
+
+            float cy = dy + TITLE_BAR_HEIGHT + 16f;
+            if (_selectedItemData == null)
+            {
+                GUI.Label(new Rect(dx + 16f, cy, DESC_PANEL_WIDTH - 32f, 40f),
+                    "좌클릭: 아이템 선택\n우클릭: 장비 장착", _styleItemName);
+                DrawHotbarPads(dx, dy + WINDOW_HEIGHT - 150f, allowDrop: true);
+                return;
+            }
+
+            var item = _selectedItemData;
+            // 이름 + 등급
+            GUI.Label(new Rect(dx + 16f, cy, DESC_PANEL_WIDTH - 32f, 34f), item.displayName, _styleItemName);
+            cy += 40f;
+            GUI.Label(new Rect(dx + 16f, cy, DESC_PANEL_WIDTH - 32f, 24f),
+                $"[{item.category}]  수량: {_selectedItemCount}  등급: {item.rarity}", _styleSlotLabel);
+            cy += 30f;
+
+            // 아이콘 (있으면)
+            if (item.icon != null)
+            {
+                GUI.DrawTexture(new Rect(dx + (DESC_PANEL_WIDTH - 128f) / 2f, cy, 128f, 128f), item.icon, ScaleMode.ScaleToFit);
+                cy += 136f;
+            }
+
+            // 설명
+            GUI.Label(new Rect(dx + 16f, cy, DESC_PANEL_WIDTH - 32f, 120f), item.description ?? "", _styleSlotLabel);
+            cy += 128f;
+
+            // 효과 문자열 (있으면)
+            if (!string.IsNullOrEmpty(item.effects))
+                GUI.Label(new Rect(dx + 16f, cy, DESC_PANEL_WIDTH - 32f, 60f), $"효과: {item.effects}", _styleItemName);
+
+            // 핫바 미니패드 — 드래그로 지정
+            DrawHotbarPads(dx, dy + WINDOW_HEIGHT - 150f, allowDrop: true);
+        }
+
+        /// <summary>설명 패널 하단 핫바 1~8 미니패드 (드래그 드롭 대상)</summary>
+        private void DrawHotbarPads(float dx, float py, bool allowDrop)
+        {
+            GUI.Label(new Rect(dx + 16f, py - 24f, DESC_PANEL_WIDTH - 32f, 20f),
+                "아이템을 드래그해서 숫자패드에 놓으면 핫바에 등록됩니다", _styleSlotLabel);
+            float padSize = 44f;
+            float gap = 7f;
+            for (int i = 0; i < 8; i++)
+            {
+                float px = dx + 16f + i * (padSize + gap);
+                _padRects[i] = new Rect(px, py, padSize, padSize);
+                GUI.Box(_padRects[i], (i + 1).ToString(), _styleTab);
+            }
+        }
+
+        /// <summary>드래그 고스트 표시 + MouseUp 시 패드 드롭 → HotbarUI 등록</summary>
+        private void ProcessDrag()
+        {
+            if (_dragItemData == null) return;
+
+            if (Event.current.type == EventType.MouseDrag && _dragActive)
+                Event.current.Use();
+
+            if (Event.current.type == EventType.MouseUp)
+            {
+                if (_dragActive)
+                {
+                    for (int i = 0; i < 8; i++)
+                    {
+                        if (_padRects[i].width > 0 && _padRects[i].Contains(Event.current.mousePosition))
+                        {
+                            HotbarUI.AssignItem(i, _dragItemData.id, _dragItemData.displayName);
+                            Debug.Log($"[InventoryWindow] 핫바 슬롯 {i + 1}에 '{_dragItemData.displayName}' 지정");
+                            break;
+                        }
+                    }
+                }
+                _dragItemData = null;
+                _dragActive = false;
+                Event.current.Use();
+                return;
+            }
+
+            // 고스트
+            if (_dragActive)
+                GUI.Label(new Rect(Event.current.mousePosition.x + 12f, Event.current.mousePosition.y + 8f, 220f, 24f),
+                    $"🫳 {_dragItemData.displayName}", _styleItemName);
+        }
+
+        // ===================================================================
+        // 2026-09-09: 우클릭 장착/해제 (무기=WeaponEquipManager, 방어구=EquipmentManager)
+        // ===================================================================
+        private static readonly Dictionary<string, (string equipId, WeaponType type)> _weaponIdMap =
+            new Dictionary<string, (string, WeaponType)>
+            {
+                { "steel_sword", ("steel", WeaponType.Sword) },
+                { "iron_sword", ("iron", WeaponType.Sword) },
+                { "crystal_bow", ("crystal", WeaponType.Bow) },
+                { "wood_bow", ("wood", WeaponType.Bow) },
+                { "wood_spear", ("wood", WeaponType.Spear) },
+                { "spear", ("wood", WeaponType.Spear) },
+            };
+
+        private void TryEquipItem(PlayerInventory.ItemSlot slot)
+        {
+            if (slot?.item == null) return;
+            var item = slot.item;
+            var playerT = GameObject.FindWithTag("Player")?.transform;
+            if (playerT == null)
+            {
+                Debug.LogWarning("[InventoryWindow] Player 없음 — 장착 스킵");
+                return;
+            }
+
+            if (item.category == PlayerInventory.ItemCategory.Weapon)
+            {
+                if (_weaponIdMap.TryGetValue(item.id, out var w))
+                {
+                    ProjectName.Systems.WeaponEquipManager.Equip(w.equipId, playerT, w.type);
+                    Debug.Log($"[InventoryWindow] 무기 장착: {item.displayName}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[InventoryWindow] 무기 장착 매핑 없음: {item.id}");
+                }
+                return;
+            }
+
+            if (item.category == PlayerInventory.ItemCategory.Armor)
+            {
+                var em = ProjectName.Systems.EquipmentManager.Instance;
+                if (em == null) return;
+                var equipSlot = MapArmorSlot(item.id);
+                em.EquipItem(slot, equipSlot);
+                Debug.Log($"[InventoryWindow] 방어구 장착: {item.displayName} → {equipSlot}");
+                return;
+            }
+
+            Debug.Log($"[InventoryWindow] 장착 불가 카테고리: {item.category}");
+        }
+
+        private static ProjectName.Systems.EquipmentManager.EquipmentSlot MapArmorSlot(string id)
+        {
+            string s = (id ?? "").ToLowerInvariant();
+            if (s.Contains("helmet") || s.Contains("투구")) return ProjectName.Systems.EquipmentManager.EquipmentSlot.Helmet;
+            if (s.Contains("shoe") || s.Contains("boot") || s.Contains("신발")) return ProjectName.Systems.EquipmentManager.EquipmentSlot.Shoes;
+            if (s.Contains("glove") || s.Contains("장갑")) return ProjectName.Systems.EquipmentManager.EquipmentSlot.Gloves;
+            if (s.Contains("cape") || s.Contains("망토") || s.EndsWith("_back")) return ProjectName.Systems.EquipmentManager.EquipmentSlot.Back;
+            return ProjectName.Systems.EquipmentManager.EquipmentSlot.Armor;
+        }
+
         private void DrawColoredRect(Rect rect, Color color)
         {
             var oldColor = GUI.color;
