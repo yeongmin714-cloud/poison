@@ -41,9 +41,9 @@ namespace ProjectName.UI
         /// <summary>UIManager + 각 창 인스턴스 생성 (스테이션들이 OpenWindow(Type)으로 탐색)</summary>
         private void SetupUIManager()
         {
-            if (UIManager.Instance != null) return;
+            if (Game.UI.Core.UIManager.Instance != null) return;
             var go = new GameObject("UIManager");
-            var uim = go.AddComponent<UIManager>();
+            var uim = go.AddComponent<Game.UI.Core.UIManager>();
 
             uim.warehouseWindow = NewWindow<WarehouseUI>("WarehouseUI");
             uim.craftingWindow = NewWindow<CraftingUI>("CraftingUI");
