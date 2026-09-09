@@ -7,6 +7,8 @@ namespace ProjectName.UI
     /// <summary>
     /// C11-08: 크래프트하우스 실내 인테리어 빌더.
     /// 방(12x4x10) + 돌 바닥 + 석재 벽 + 제작대 2개 + 화덕 + 재료선반 2개.
+    /// Phase 2: 올인원 워크숍 — 장비 제작(CraftingStation) + 요리(CookingStation)
+    /// + 연금술(AlchemyStation) + 창고(TerritoryWarehouse)까지 한 방에 구비.
     /// </summary>
     public static class CraftHouseInteriorBuilder
     {
@@ -55,6 +57,12 @@ namespace ProjectName.UI
 
             Material forgeMat = new Material(shader) { name = "CraftHouse_ForgeMat" };
             forgeMat.color = new Color(0.30f, 0.25f, 0.20f); // 어두운 금속
+
+            Material cookingMat = new Material(shader) { name = "CraftHouse_CookingMat" };
+            cookingMat.color = new Color(0.55f, 0.32f, 0.18f); // 벽돌 느낌의 적갈색
+
+            Material alchemyMat = new Material(shader) { name = "CraftHouse_AlchemyMat" };
+            alchemyMat.color = new Color(0.42f, 0.28f, 0.55f); // 연금술 느낌의 보라색
 
             // ===== 방 생성 =====
             GameObject room = IndoorBuilder.CreateRoom(roomWidth, roomHeight, roomDepth,
@@ -115,6 +123,38 @@ namespace ProjectName.UI
                 shelfRight.transform.localPosition = new Vector3(roomWidth * 0.5f - shelfDepth * 0.5f - 0.3f, 0, -2.0f);
             }
 
+            // ===== Phase 2: 요리 카운터 (전면 우측, 제작대2/출구와 간격 확보) =====
+            GameObject cookingCounter = IndoorFurniturePlacer.CreateCounter(2.0f, 1.1f, 0.9f, cookingMat);
+            if (cookingCounter != null)
+            {
+                cookingCounter.name = "CookingStation";
+                cookingCounter.transform.SetParent(room.transform);
+                cookingCounter.transform.localPosition = new Vector3(3.5f, 0, 3.0f);
+                // 앞면 패널이 방 중앙(-z)을 향하도록 180도 회전
+                cookingCounter.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+            }
+
+            // ===== Phase 2: 연금술 테이블 (후면 좌측, 화덕/좌측 선반과 간격 확보) =====
+            GameObject alchemyTable = IndoorFurniturePlacer.CreateTable(1.2f, 1.2f, 1.0f, alchemyMat);
+            if (alchemyTable != null)
+            {
+                alchemyTable.name = "AlchemyStation";
+                alchemyTable.transform.SetParent(room.transform);
+                alchemyTable.transform.localPosition = new Vector3(-3.5f, 0, -3.2f);
+            }
+
+            // ===== Phase 2: 창고 선반 (좌측 벽 전면, 제작대1/재료선반과 간격 확보) =====
+            GameObject warehouseShelf = IndoorFurniturePlacer.CreateShelf(2.0f, 3.0f, 0.5f, furnitureMat, 4);
+            if (warehouseShelf != null)
+            {
+                warehouseShelf.name = "CraftWarehouse";
+                warehouseShelf.transform.SetParent(room.transform);
+                warehouseShelf.transform.localPosition = new Vector3(
+                    -roomWidth * 0.5f + shelfDepth * 0.5f + 0.3f, 0, 3.0f);
+                // 폭이 z축을 따라 가도록 90도 회전 (벽에 밀착)
+                warehouseShelf.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+            }
+
             // ===== 조명 설정 =====
             // 중간 밝기, 깜빡임 없음
             Color ambientMid = new Color(0.12f, 0.12f, 0.12f);
@@ -136,6 +176,34 @@ namespace ProjectName.UI
             var exitBt = exitTrigger.AddComponent<BuildingTrigger>();
             exitBt.BuildingType = "Exit";
             exitBt.InteractRange = 3f;
+
+            // ===== Phase 2: 요리 스테이션 (요리 카운터에 부착) =====
+            // CookingStation은 Configure가 없으며 기본 직렬화 값으로 Start()에서 자가 초기화.
+            // 카운터 자식에 MeshRenderer가 있어 플레이스홀더 큐브는 생성되지 않음.
+            if (cookingCounter != null)
+            {
+                cookingCounter.AddComponent<CookingStation>();
+                var cookingLabel = cookingCounter.AddComponent<NameplateDisplay>();
+                cookingLabel.DisplayName = "🍳 요리 테이블";
+            }
+
+            // ===== Phase 2: 연금술 스테이션 (연금술 테이블에 부착) =====
+            if (alchemyTable != null)
+            {
+                alchemyTable.AddComponent<AlchemyStation>();
+                var alchemyLabel = alchemyTable.AddComponent<NameplateDisplay>();
+                alchemyLabel.DisplayName = "🧪 연금술 테이블";
+            }
+
+            // ===== Phase 2: 창고 (창고 선반에 부착) =====
+            // TerritoryWarehouse.Configure로 크래프트하우스 전용 영지 키 지정.
+            if (warehouseShelf != null)
+            {
+                var warehouse = warehouseShelf.AddComponent<TerritoryWarehouse>();
+                warehouse.Configure("CraftHouse_01");
+                var warehouseLabel = warehouseShelf.AddComponent<NameplateDisplay>();
+                warehouseLabel.DisplayName = "📦 창고";
+            }
 
             return room;
         }
