@@ -15,6 +15,7 @@
 - **P2 인벤 재구조화** (InventoryWindow): WINDOW 1180→820, **퀘스트탭/무기버튼섹션/캐릭터3D프리뷰/하단상세 제거**, 하단 장비슬롯6(우클릭 해제), **중앙 설명 패널**(이름/등급/아이콘/설명/효과 + 핫바 미니패드 1~8), **우클릭 장착**(무기=_weaponIdMap→WeaponEquipManager.Equip / 방어구=MapArmorSlot→EquipmentManager.EquipItem), **드래그→패드 드롭→HotbarUI.AssignItem**(PlayerPrefs 저장, 무기류 장착 연동)
 - **P3 배선**: 창고 상호작용(TerritoryWarehouse.OpenWarehouseUI) → InventoryWindow.SetContextMode(Warehouse)+인벤 동시 오픈. **전리품 상자는 기존 존재 확인**(AnimalAI.Die/GuardPlaceholder.Die → LootBasket.Create+DropTable.ApplyToBasket → E → LootWindow) — 신규 작성 불필요. **ShopWindow 1440x1170→520x940 축소+우측 배치 완료**(GetContextX: 인벤 열림 시 [인벤][설명] 우측, 아니면 화면 우측; ShopPlaceholder.ToggleShop에서 SetContextMode(Shop)+인벤 동시 오픈)
 - **검증**: 배치컴파일 error CS=0(중간 1회 CS1503 Sprite→Texture 수정), DLL 심볼 확인(AssignItem/DrawDescriptionPanel/SetContextMode), IsStealthed 3건(파라미터+전이2)
+- **후속(1072bba6)**: ①스탯창 NRE 루트원인 확정 — 뷰포트 오브젝트에 Image 존재 상태에서 RawImage AddComponent → 유니티 거부 null 반환(진단 로깅이 즉시 특정) → RawImage 전용 오브젝트 생성으로 수정 ②인벤/설명/컨텍스트 **화면 정확히 삼분활**(패널=S/3-12, 하단 170px 핫바 전용) ③장비창 5칸씩 2줄(실6+예약4) ④가방 5칸씩 6줄 스크롤 ⑤상점창 삼분활 적용. 에디터 실행 중으로 배치컴파일 보류 — 포커스 시 자동컴파일(콘솔 확인 필요)
 - ⬜ **남음**: Play 판정(①핫바 글자 소멸 ②C키 은신 애니 ③I키 2패널+우클릭 장착 ④드래그→핫바 지정 ⑤창고 3패널 ⑥몬스터 처치→상자→전리품 ⑦P키 스탯창(안 뜨면 콘솔 로그 확인) ⑧상점 열면 [인벤][설명][상점 520폭] 우측 배치+구매/판매)
 
 ---
