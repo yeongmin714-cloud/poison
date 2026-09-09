@@ -27,6 +27,14 @@ namespace ProjectName.Systems
         [SerializeField] private float _killSlowDuration = 0.3f;
         [SerializeField] private float _killSlowRecoveryDuration = 0.4f;
 
+        // ================================================================
+        // HighSpec 전용 feel 튜닝 상수 (Balanced 동작에는 영향 없음)
+        // ================================================================
+        private const float HighSpecShakeMultiplier = 1.3f;     // 흔들림 강도 1.3배
+        private const float HighSpecDurationMultiplier = 1.15f; // HitStop/슬로우모션 지속시간 1.15배
+        private const float HighSpecHitStopTimeScale = 0.35f;   // HitStop: 0.5 → 0.35 (더 깊은 정지)
+        private const float HighSpecKillSlowTimeScale = 0.4f;   // 킬 슬로우모션: 0.5 → 0.4 (살짝 더 깊게)
+
         private Camera _mainCamera;
         private Vector3 _originalCamLocalPos;
         private Coroutine _activeShake;
@@ -91,6 +99,12 @@ namespace ProjectName.Systems
         {
             if (_activeShake != null)
                 StopCoroutine(_activeShake);
+
+            // HighSpec: 흔들림 강도 1.3배 (Balanced는 기본값 유지).
+            // PlayCritShake도 이 메서드를 경유하므로 치명타 흔들림도 함께 강해진다.
+            if (ActionFeel.HighSpec)
+                intensity *= HighSpecShakeMultiplier;
+
             _activeShake = StartCoroutine(ShakeRoutine(intensity, _hitShakeDuration));
         }
 
@@ -99,7 +113,20 @@ namespace ProjectName.Systems
         {
             if (_activeTimeScale != null)
                 StopCoroutine(_activeTimeScale);
-            _activeTimeScale = StartCoroutine(HitStopRoutine());
+
+            float timeScale = _hitStopTimeScale;
+            float holdDuration = _hitStopDuration;
+            float recoveryDuration = _hitStopRecoveryDuration;
+
+            // HighSpec: 더 깊게(0.35), 더 길게(1.15배) — 더 강한 타격감 (Balanced는 기본값 유지)
+            if (ActionFeel.HighSpec)
+            {
+                timeScale = HighSpecHitStopTimeScale;
+                holdDuration *= HighSpecDurationMultiplier;
+                recoveryDuration *= HighSpecDurationMultiplier;
+            }
+
+            _activeTimeScale = StartCoroutine(HitStopRoutine(timeScale, holdDuration, recoveryDuration));
         }
 
         /// <summary>Time.timeScale=0.5 (0.3s) → Lerp 복구</summary>
@@ -107,7 +134,20 @@ namespace ProjectName.Systems
         {
             if (_activeTimeScale != null)
                 StopCoroutine(_activeTimeScale);
-            _activeTimeScale = StartCoroutine(KillSlowMotionRoutine());
+
+            float timeScale = _killSlowTimeScale;
+            float holdDuration = _killSlowDuration;
+            float recoveryDuration = _killSlowRecoveryDuration;
+
+            // HighSpec: 킬 슬로우모션도 살짝 더 깊게(0.4), 더 길게(1.15배) (Balanced는 기본값 유지)
+            if (ActionFeel.HighSpec)
+            {
+                timeScale = HighSpecKillSlowTimeScale;
+                holdDuration *= HighSpecDurationMultiplier;
+                recoveryDuration *= HighSpecDurationMultiplier;
+            }
+
+            _activeTimeScale = StartCoroutine(KillSlowMotionRoutine(timeScale, holdDuration, recoveryDuration));
         }
 
         /// <summary>Shake 2배 + HitStop</summary>
@@ -151,7 +191,7 @@ namespace ProjectName.Systems
             _activeShake = null;
         }
 
-        private IEnumerator HitStopRoutine()
+        private IEnumerator HitStopRoutine(float timeScale, float holdDuration, float recoveryDuration)
         {
             // 최초 효과 시작 시에만 _baseTimeScale 저장 (중첩 호출 시 덮어쓰지 않음)
             if (!_isTimeScaleEffectRunning)
@@ -161,11 +201,11 @@ namespace ProjectName.Systems
             }
 
             // Immediate time scale drop
-            Time.timeScale = _hitStopTimeScale;
+            Time.timeScale = timeScale;
 
             // Hold at slow speed
             float elapsed = 0f;
-            while (elapsed < _hitStopDuration)
+            while (elapsed < holdDuration)
             {
                 elapsed += Time.unscaledDeltaTime;
                 yield return null;
@@ -174,9 +214,9 @@ namespace ProjectName.Systems
             // Lerp recovery back to _baseTimeScale (원본 값으로 복구)
             float recoveryElapsed = 0f;
             float startScale = Time.timeScale;
-            while (recoveryElapsed < _hitStopRecoveryDuration)
+            while (recoveryElapsed < recoveryDuration)
             {
-                float t = recoveryElapsed / _hitStopRecoveryDuration;
+                float t = recoveryElapsed / recoveryDuration;
                 Time.timeScale = Mathf.Lerp(startScale, _baseTimeScale, t);
                 recoveryElapsed += Time.unscaledDeltaTime;
                 yield return null;
@@ -187,7 +227,7 @@ namespace ProjectName.Systems
             _isTimeScaleEffectRunning = false;
         }
 
-        private IEnumerator KillSlowMotionRoutine()
+        private IEnumerator KillSlowMotionRoutine(float timeScale, float holdDuration, float recoveryDuration)
         {
             // 최초 효과 시작 시에만 _baseTimeScale 저장 (중첩 호출 시 덮어쓰지 않음)
             if (!_isTimeScaleEffectRunning)
@@ -197,11 +237,11 @@ namespace ProjectName.Systems
             }
 
             // Immediate time scale drop
-            Time.timeScale = _killSlowTimeScale;
+            Time.timeScale = timeScale;
 
             // Hold at slow speed
             float elapsed = 0f;
-            while (elapsed < _killSlowDuration)
+            while (elapsed < holdDuration)
             {
                 elapsed += Time.unscaledDeltaTime;
                 yield return null;
@@ -210,9 +250,9 @@ namespace ProjectName.Systems
             // Lerp recovery back to _baseTimeScale (원본 값으로 복구)
             float recoveryElapsed = 0f;
             float startScale = Time.timeScale;
-            while (recoveryElapsed < _killSlowRecoveryDuration)
+            while (recoveryElapsed < recoveryDuration)
             {
-                float t = recoveryElapsed / _killSlowRecoveryDuration;
+                float t = recoveryElapsed / recoveryDuration;
                 Time.timeScale = Mathf.Lerp(startScale, _baseTimeScale, t);
                 recoveryElapsed += Time.unscaledDeltaTime;
                 yield return null;
