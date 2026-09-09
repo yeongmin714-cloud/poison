@@ -965,6 +965,24 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 
 ## 2026-09-09 6차: 실내 플레이어 이동 + 조명 근본해결 ✅ (커밋 953b6db0)
 - IndoorCamera 중복 누적(GameObject.Find 비활성 미탐지) → 메뉴 멱등성 수정(비활성 포함 전수 정리+null 가드)
-- IndoorScene 상주 Directional Light(InteriorSun 따뜻톤 0.8) 추가 — 어둠 근본 해소
-- 플레이어 하이어라키 실내 이동: EnterBuilding → MoveGameObjectToScene(IndoorScene) / Exit → MainScene 복귀(계층 표시+상태 유지)
 - 셸 배치 재저장 성공(45오브젝트) + CS=0
+
+---
+
+## 2026-09-10: Test_10 플레이어 비가시 근본수정 + 크래프팅/요리 폰트 판독성 수리 ✅
+
+**이슈 1 — Test_10_TerritoryCombat 플레이어 미표시 (근본원인 3건, Editor.log 포렌식 확정)**
+- **핵심 원인(비가시의 직접원인)**: PlayerPlaceholder.TryLoadGLBModel이 GLB PlayerModel 자식에 부착된 Rigidbody 제거 시도 → **ModelAnimatorAssigner가 추가한 ProceduralAnimationController의 `[RequireComponent(typeof(Rigidbody))]` 의존으로 DestroyImmediate 차단**("Can't remove Rigidbody because QuadrupedProceduralAnimation, ProceduralAnimationController depends on it" — Editor.log 6792행 실증) → 콜라이더는 이미 전부 제거된 상태 + 기본 useGravity=true rb → **비주얼 모델이 중력 낙하로 1~2초 내 땅 밖 소실** (가드/몬스터/영주는 루트 rb+콜라이더로 착지해 보임 → "플레이어만 안 보임" 증상 정합)
+- **수정 A**: PlayerPlaceholder.cs — DestroyImmediate 시도 전 `rb.isKinematic=true / useGravity=false / detectCollisions=false` 선설정(제거 차단돼도 무해 관성 rb) (커밋 e42fabbf)
+- **수정 B**: ModelAnimatorAssigner.RemoveAllAnimationComponents에 `QuadrupedProceduralAnimation` 잔존 제거 추가 — 기존 루틴은 `_quadrupedLocomotion`(QuadrupedProceduralLocomotion)만 제거, 다른 클래스 QuadrupedProceduralAnimation이 ForceBiped 후에도 생존 → rb 의존 유지의 원인 (커밋 e42fabbf)
+- **수정 C**: TagManager.asset 커스텀 태그 결손 — 런타임 스캔으로 DraculaGuard/DraculaLord/Guard/Interactable 결손 확인 추가(Play마다 "Tag: X is not defined" 다수), QA 심층(CompareTag/FindWithTag)에서 **Enemy/Boss/Lord/Mount/Horse/Soldier/Workbench/CraftingStation 8종 추가 발견** 보강 — 미등록 시 CompareTag가 항상 false인 dead path (커밋 e42fabbf+후속)
+- 참고: Unity 6000.4에서 set_tag 미정의 태그는 **에러 로그 후 계속**(예외 abort 아님) — SpawnLord/SpawnGuard가 태그 에러 후에도 정상 생성된 로그로 확인
+
+**이슈 2 — CraftingUI 폰트 판독 불가 (1080p)**
+- 원인: 레시피명(Height 26)/효과(20)/프리셋 라벨·버튼/푸터/재료슬롯명/X버튼(24px)이 **스타일 없는 기본 스킨 폰트(≈13px)** 로 렌더링. 대형 스타일(72/48/52/44/40)은 존재했으나 미적용 지점 다수
+- **수정 D**: CraftingUI 신규 스타일 7종(preset 32/recipeName 36 Bold/effect 28/footer 28/slotItemName 28/smallButton 28) 적용 + 행높이 56/42/44/48/36, ★버튼 48², X버튼 36², 레시피 카드 Height 60→100(내용 98px 수용)
+- **수정 D**: 윈도우 1500×1305 → **1080p 세로 오버플로(1305>1080)** → OnGUI에서 `effW=min(W, Screen.width-40) / effH=min(H, Screen.height-40)` 클램프, winRect/availableWidth/gridHeight/cols 전부 eff 기반(CraftingUI+CookingUI 동일 적용 — 요리창은 QA 단계에서 동일 패턴 발견 보완)
+- **수정 E**: CookingUI 재료슬롯 라벨(27px)/아이템명(기본폰트) 동일 수리(_slotLabelStyle 32/_slotItemNameStyle 28)
+
+**검증**: 배치컴파일 2회 — error CS=0 ×2 ("Exiting batchmode successfully", buildlog_fix_player_ui.txt/_final.txt) + QA 에이전트 5항목 PASS/FIX 완료
+**Play 판정 대기**: ①Test_10 Play → 플레이어 모델(원점) 정상 표시 + 콘솔 태그 에러 0건 ②좌클릭 공격 → 영지/병사/몬스터 데미지 ③작업대 E → 크래프팅 창 텍스트 판독 가능 ④요리 창 동일 ⑤1080p에서 창 하단 버튼 잘림 0
