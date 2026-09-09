@@ -19,8 +19,8 @@ namespace ProjectName.Systems
             var plasterMat = Mat(TexPlaster(), new Color(0.92f, 0.88f, 0.78f), 4f, 2f);
             var woodMat = Mat(TexWood(), new Color(0.75f, 0.6f, 0.4f), 2f, 1f);
 
-            // 바닥
-            Quad(root.transform, "Floor", floorMat, new Vector3(0f, 0f, 0f), Quaternion.Euler(90f, 0f, 0f), w, d);
+            // 바닥 (FIX: 빌더 자체 바닥 y=0과 z-파이팅 방지 → -0.02)
+            Quad(root.transform, "Floor", floorMat, new Vector3(0f, -0.02f, 0f), Quaternion.Euler(90f, 0f, 0f), w, d);
 
             // 벽 4면: 북(z+), 서(x-), 동(x+) — 남측은 문틈(좌우 2분할)
             Wall(root.transform, "Wall_N", stoneMat, plasterMat, woodMat, w, h, new Vector3(0f, h / 2f, d / 2f), Quaternion.identity);
