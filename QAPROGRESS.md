@@ -789,3 +789,9 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 - **삭제**: PlayerStatsUI.cs·UIPlayerStats.cs(가짜 하드코딩 스탯)·PlayerStatusWindow.cs + Windows.meta — guid 잔존 0건
 - **검증**: 배치컴파일 error CS=0(에디터 락 시절엔 ScriptAssemblies DLL strings grep으로 대체 판정 — 컴파일 성공시에만 DLL 재생성되는 성질 이용)
 - **Play 판정 대기**: P토글 / 채집EXP / 레벨업 갱신+팝업 / 은신C 정상 / 한글 폰트
+
+## 2026-09-09 6차: 실내 플레이어 이동 + 조명 근본해결 ✅ (커밋 953b6db0)
+- IndoorCamera 중복 누적(GameObject.Find 비활성 미탐지) → 메뉴 멱등성 수정(비활성 포함 전수 정리+null 가드)
+- IndoorScene 상주 Directional Light(InteriorSun 따뜻톤 0.8) 추가 — 어둠 근본 해소
+- 플레이어 하이어라키 실내 이동: EnterBuilding → MoveGameObjectToScene(IndoorScene) / Exit → MainScene 복귀(계층 표시+상태 유지)
+- 셸 배치 재저장 성공(45오브젝트) + CS=0
