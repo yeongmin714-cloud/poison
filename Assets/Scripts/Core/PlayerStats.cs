@@ -73,10 +73,85 @@ namespace ProjectName.Core
         /// <summary>기본 치명타 확률 (읽기/쓰기)</summary>
         public float CritChanceBase { get => _critChanceBase; set => _critChanceBase = value; }
 
+        // ── 스탯 포인트 시스템 (2026-09-09: 레벨업당 5포인트 수동 분배) ──
+        public const int StatPointsPerLevel = 5;
+
+        /// <summary>분배 가능한 주스탯 종류</summary>
+        public enum StatKind { Str, Agi, Int, Vit }
+
+        private int _pendingStatPoints = 0;
+        private int _allocatedStr = 5;
+        private int _allocatedAgi = 5;
+        private int _allocatedInt = 5;
+        private int _allocatedVit = 5;
+
+        /// <summary>남은 미분배 스탯 포인트</summary>
+        public int PendingStatPoints => _pendingStatPoints;
+        public int AllocatedStr => _allocatedStr;
+        public int AllocatedAgi => _allocatedAgi;
+        public int AllocatedInt => _allocatedInt;
+        public int AllocatedVit => _allocatedVit;
+
+        /// <summary>지정 종류의 할당치 반환 (UI 표시용)</summary>
+        public int GetAllocatedStat(StatKind kind) => kind switch
+        {
+            StatKind.Str => _allocatedStr,
+            StatKind.Agi => _allocatedAgi,
+            StatKind.Int => _allocatedInt,
+            _ => _allocatedVit,
+        };
+
+        /// <summary>
+        /// 스탯 포인트 1점을 지정 종류에 분배한다. 남은 포인트가 없으면 false.
+        /// 분배 즉시 파생 스탯(Final*/HPBase)에 반영되며 VIT는 PlayerHealth 최대 HP도 갱신.
+        /// </summary>
+        public bool AllocateStat(StatKind kind)
+        {
+            if (_pendingStatPoints <= 0) return false;
+            switch (kind)
+            {
+                case StatKind.Str: _allocatedStr++; break;
+                case StatKind.Agi: _allocatedAgi++; break;
+                case StatKind.Int: _allocatedInt++; break;
+                case StatKind.Vit: _allocatedVit++; break;
+            }
+            _pendingStatPoints--;
+            SaveStatAllocation();
+            if (kind == StatKind.Vit) UpdatePlayerHealthMaxHP();
+            Debug.Log($"[PlayerStats] 스탯 분배: {kind} (+1) — 남은 포인트 {_pendingStatPoints}");
+            return true;
+        }
+
+        private const string PrefKeyPending = "poison_stat_pending";
+        private const string PrefKeyStr = "poison_stat_str";
+        private const string PrefKeyAgi = "poison_stat_agi";
+        private const string PrefKeyInt = "poison_stat_int";
+        private const string PrefKeyVit = "poison_stat_vit";
+
+        private void SaveStatAllocation()
+        {
+            PlayerPrefs.SetInt(PrefKeyPending, _pendingStatPoints);
+            PlayerPrefs.SetInt(PrefKeyStr, _allocatedStr);
+            PlayerPrefs.SetInt(PrefKeyAgi, _allocatedAgi);
+            PlayerPrefs.SetInt(PrefKeyInt, _allocatedInt);
+            PlayerPrefs.SetInt(PrefKeyVit, _allocatedVit);
+            PlayerPrefs.Save();
+        }
+
+        private void LoadStatAllocation()
+        {
+            _pendingStatPoints = PlayerPrefs.GetInt(PrefKeyPending, 0);
+            _allocatedStr = PlayerPrefs.GetInt(PrefKeyStr, 5);
+            _allocatedAgi = PlayerPrefs.GetInt(PrefKeyAgi, 5);
+            _allocatedInt = PlayerPrefs.GetInt(PrefKeyInt, 5);
+            _allocatedVit = PlayerPrefs.GetInt(PrefKeyVit, 5);
+        }
+
         // ── Computed Stat Bonuses ──────────────────────────────────────────
 
         // 스탯 계산 속성 (레벨에 따라 동적으로 계산)
-        public int HPBase => 100 + (_level - 1) * 5; // Lv1=100, Lv50=345
+        // 2026-09-09: 주스탯 할당(VIT/STR/AGI/INT) + 장비 보너스(EquipmentStatBonus) 합산 반영
+        public int HPBase => 100 + (_level - 1) * 5 + _allocatedVit * 10; // Lv1=100, Lv50=345 (+VIT)
         public float AlchemySuccessBonus => _level * 0.02f; // +2% per level
         public float CookingSuccessBonus => _level * 0.02f; // +2% per level
         public int SpeechAffinityBonus => _level; // +1 affinity modifier per level
@@ -92,13 +167,17 @@ namespace ProjectName.Core
         /// </summary>
         public float GetCookingSuccessRate() => FinalCookingBonus;
 
-        // Final stats that include base + level bonuses + buffs
-        public float FinalAttackDamage => _attackDamageBase + (_level * 0.5f); // 예: 레벨당 +0.5 공격력
-        public float FinalDefense => _defenseBase + (_level * 0.2f);           // 예: 레벨당 +0.2 방어력
-        public float FinalMoveSpeed => _moveSpeedBase + (_level * 0.1f);       // 예: 레벨당 +0.1 속도
-        public float FinalAlchemyBonus => AlchemySuccessBonus + _alchemyTempBonus;
-        public float FinalCookingBonus => CookingSuccessBonus + _cookingTempBonus;
-        public float FinalCritChance => _critChanceBase + (_level * 0.005f); // 예: 레벨당 +0.5% 치명타
+        // Final stats that include base + level bonuses + buffs + 주스탯 할당 + 장비 보너스
+        public float FinalAttackDamage => _attackDamageBase + (_level * 0.5f) + (_allocatedStr * 2f)
+                                          + Systems.EquipmentStatBonus.GetAttackBonus();   // 힘 +2 공격/pt
+        public float FinalDefense => _defenseBase + (_level * 0.2f)
+                                          + Systems.EquipmentStatBonus.GetDefenseBonus();
+        public float FinalMoveSpeed => _moveSpeedBase + (_level * 0.1f) + (_allocatedAgi * 0.05f)
+                                          + Systems.EquipmentStatBonus.GetSpeedBonus();    // 민첩 +0.05 속도/pt
+        public float FinalAlchemyBonus => AlchemySuccessBonus + _alchemyTempBonus + (_allocatedInt * 0.005f); // 지능 +0.5%/pt
+        public float FinalCookingBonus => CookingSuccessBonus + _cookingTempBonus + (_allocatedInt * 0.005f);
+        public float FinalCritChance => _critChanceBase + (_level * 0.005f) + (_allocatedAgi * 0.005f)
+                                          + Systems.EquipmentStatBonus.GetCritBonus();     // 민첩 +0.5% 치명/pt
 
         private void Awake()
         {
@@ -109,6 +188,7 @@ namespace ProjectName.Core
                 return;
             }
             Instance = this;
+            LoadStatAllocation(); // 저장된 스탯 분배 복원 (PlayerPrefs)
             // NOTE: Player 오브젝트는 씬에 있어야 함. DontDestroyOnLoad 제거
             // DontDestroyOnLoad(gameObject);
         }
@@ -158,6 +238,7 @@ namespace ProjectName.Core
             while (_level < MaxLevel && _currentEXP >= GetExpForLevel(_level + 1))
             {
                 _level++;
+                _pendingStatPoints += StatPointsPerLevel; // 레벨당 5 스탯 포인트 지급
             }
 
             if (_level > originalLevel)
