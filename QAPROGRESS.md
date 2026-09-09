@@ -4,7 +4,27 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-09 (5차)
+> **최종 갱신:** 2026-09-09 (6차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-09 6차 — 실내 검증 디버그 핫키 F8 ✅)
+
+### 변경 사항
+- **신규 `Assets/Scripts/UI/IndoorDebugEnterExit.cs`** — DEBUG-ONLY 런타임 핫키.
+  - Play 모드에서 **성 게이트까지 걸어가지 않고** 실내 전환(IndoorScene)을 즉시 검증.
+  - `[RuntimeInitializeOnLoadMethod]` + `DontDestroyOnLoad` 자가 부트 → 씬 편집/수동 배치 불필요(EquipmentStatBonusApplier/HotbarUI 선례).
+  - **F8 첫 입력(미로드):** `IndoorSceneTransition.EnterBuilding("castle","Empire",true,null)` → 실제 플레이어 성 진입 경로와 동일(원점 스폰/카메라 스왑/하이어라키 이동/셸·fixture).
+  - **F8 재입력(로드됨):** `IndoorSceneTransition.ExitBuilding()` → 월드 복귀. 상태는 `IsIndoorSceneLoaded()`로 토글.
+  - `try-catch` 격리(빌더 NRE가 Play 세션 전체를 크래시 못 하도록 — 호수 NRE 이력 반영).
+
+### 검증 ✅
+- Unity 에디터 실행 중(배치 락) → 에디터 자동 재컴파일로 판정.
+- `Library/ScriptAssemblies/ProjectName.UI.dll` 16:54 갱신 + `strings`로 `IndoorDebugEnterExit` 심볼 확인.
+- 에디터 로그 16:41 이후 **error CS 0건**. → CS=0 ✅
+
+### Play 판정 대기
+- Play → F8 → 플레이어 보임+셸+카메라 추적+계층 IndoorScene / F8 재입력 → 월드 복귀.
 
 ---
 
