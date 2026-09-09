@@ -35,7 +35,7 @@ namespace ProjectName.UI
         private static void Bootstrap()
         {
             if (_instance != null) return;
-            var existing = Object.FindFirstObjectByType<StatusWindowUI>();
+            var existing = Object.FindAnyObjectByType<StatusWindowUI>();
             if (existing != null) { _instance = existing; return; }
 
             var go = new GameObject("StatusWindowUI");
@@ -791,7 +791,7 @@ namespace ProjectName.UI
             catch { /* 폴백 */ }
             try { return Resources.GetBuiltinResource<Font>("Arial.ttf"); }
             catch { /* 최종 폴백: 씬 내 기존 Text의 폰트 */ }
-            var anyText = Object.FindFirstObjectByType<Text>();
+            var anyText = Object.FindAnyObjectByType<Text>();
             return anyText != null ? anyText.font : null;
         }
     }

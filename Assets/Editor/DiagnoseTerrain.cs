@@ -16,7 +16,7 @@ public static class DiagnoseTerrain
         Debug.Log($"[Diag] RenderSettings.fog={RenderSettings.fog} mode={(RenderSettings.fog ? RenderSettings.fogMode.ToString() : "off")} density={RenderSettings.fogDensity} color={RenderSettings.fogColor}");
 
         // 2. Lights
-        foreach (var l in Object.FindObjectsByType<Light>(FindObjectsSortMode.None))
+        foreach (var l in Object.FindObjectsByType<Light>())
         {
             Debug.Log($"[Diag] Light name={l.gameObject.name} type={l.type} enabled={l.enabled} intensity={l.intensity} color={l.color}");
         }

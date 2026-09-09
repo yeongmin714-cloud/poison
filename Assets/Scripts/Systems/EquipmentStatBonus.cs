@@ -26,7 +26,7 @@ namespace ProjectName.Systems
         private static void Bootstrap()
         {
             if (_instance != null) return;
-            var existing = Object.FindFirstObjectByType<EquipmentStatBonusApplier>();
+            var existing = Object.FindAnyObjectByType<EquipmentStatBonusApplier>();
             if (existing != null) { _instance = existing; return; }
 
             var go = new GameObject("EquipmentStatBonusApplier");

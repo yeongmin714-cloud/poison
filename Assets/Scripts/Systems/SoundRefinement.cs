@@ -288,7 +288,7 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 씬에서 IBiomeProvider 인터페이스를 구현한 컴포넌트를 찾습니다.
-        /// FindFirstObjectByType<IBiomeProvider>로 GC 할당 최소화.
+        /// FindAnyObjectByType<IBiomeProvider>로 GC 할당 최소화.
         /// </summary>
         private IBiomeProvider FindBiomeProvider()
         {

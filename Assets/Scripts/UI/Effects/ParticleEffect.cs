@@ -6,7 +6,7 @@ namespace Game.UI.Effects
 {
     public class ParticleEffect : MonoBehaviour
     {
-        [SerializeField] private ParticleSystem particleSystem;
+        [SerializeField] private new ParticleSystem particleSystem;
         [SerializeField] private bool autoDestroy = true;
         
         public float Duration { get; set; } = 1f;

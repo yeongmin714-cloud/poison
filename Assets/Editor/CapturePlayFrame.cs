@@ -16,7 +16,7 @@ public static class CapturePlayFrame
         if (cam == null)
         {
             // find any enabled camera
-            var cams = Object.FindObjectsByType<Camera>(FindObjectsSortMode.None);
+            var cams = Object.FindObjectsByType<Camera>();
             if (cams.Length == 0) { Debug.LogError("[Capture] No camera found"); return; }
             cam = cams[0];
         }

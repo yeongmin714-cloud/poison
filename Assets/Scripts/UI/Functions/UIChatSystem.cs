@@ -37,7 +37,7 @@ namespace ProjectName.UI.Functions
             SendMessage(messageInput.text);
         }
 
-        public void SendMessage(string message)
+        public new void SendMessage(string message)
         {
             if (!string.IsNullOrEmpty(message))
             {

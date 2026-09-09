@@ -188,7 +188,7 @@ namespace ProjectName.Systems
                     else
                     {
                         // Try to find any camera
-                        var anyCamera = FindFirstObjectByType<Camera>();
+                        var anyCamera = FindAnyObjectByType<Camera>();
                         if (anyCamera != null)
                         {
                             _cameraTransform = anyCamera.transform;

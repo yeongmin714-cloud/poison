@@ -1154,7 +1154,7 @@ namespace ProjectName.UI
                 return _cachedPlayerT;
 
             _cachedPlayerT = null;
-            var pm = FindFirstObjectByType<PlayerMovement>();
+            var pm = FindAnyObjectByType<PlayerMovement>();
             if (pm != null) _cachedPlayerT = pm.transform;
             if (_cachedPlayerT == null)
             {

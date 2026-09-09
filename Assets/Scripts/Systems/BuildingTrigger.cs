@@ -79,7 +79,7 @@ namespace ProjectName.Systems
             // Start 1회 체크+경고 대신 Update에서 재시도(플레이어 재탐색 패턴과 동일) — 경고 스팸 제거.
             if (_mainCamera == null)
             {
-                _mainCamera = Camera.main != null ? Camera.main : FindFirstObjectByType<Camera>();
+                _mainCamera = Camera.main != null ? Camera.main : FindAnyObjectByType<Camera>();
             }
         }
 
@@ -88,7 +88,7 @@ namespace ProjectName.Systems
             // 2026-09-09(3): 카메라 런타임 생성 대기 재시도 (GameSetup.Start 이후 생성됨)
             if (_mainCamera == null)
             {
-                _mainCamera = Camera.main != null ? Camera.main : FindFirstObjectByType<Camera>();
+                _mainCamera = Camera.main != null ? Camera.main : FindAnyObjectByType<Camera>();
             }
 
             // Player가 아직 없으면 주기적으로 재시도 (60프레임 ≈ 1초마다)

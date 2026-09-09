@@ -82,15 +82,15 @@ public class FixFinal_Complete
         SetProp(inputAxis, "AccelTime", 0.1f);
         SetProp(inputAxis, "DecelTime", 0.1f);
 
-        // CinemachineCollider
-        var collider = vcamGo.GetComponent<CinemachineCollider>();
-        if (collider == null) collider = vcamGo.AddComponent<CinemachineCollider>();
+        // CinemachineDeoccluder
+        var collider = vcamGo.GetComponent<CinemachineDeoccluder>();
+        if (collider == null) collider = vcamGo.AddComponent<CinemachineDeoccluder>();
         SetProp(collider, "MinimumDistanceFromTarget", 0.5f);
         SetProp(collider, "MaximumDistanceFromTarget", 40f);
         SetProp(collider, "Radius", 0.3f);
         SetProp(collider, "CollideAgainstLayers", ~LayerMask.GetMask("Player", "Ignore Raycast"));
         
-        var stratEnum = typeof(CinemachineCollider).GetNestedType("ResolutionStrategy", BindingFlags.Public);
+        var stratEnum = typeof(CinemachineDeoccluder).GetNestedType("ResolutionStrategy", BindingFlags.Public);
         if (stratEnum != null)
         {
             SetProp(collider, "Strategy", Enum.Parse(stratEnum, "PreserveCameraDistance"));

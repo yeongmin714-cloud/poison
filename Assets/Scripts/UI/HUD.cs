@@ -111,7 +111,6 @@ namespace ProjectName.UI
         [Header("Stealth HUD (Phase 34)")]
         [SerializeField] private int _stealthIconSize = 48;
         [SerializeField] private int _stealthIconX = 40;
-        [SerializeField] private int _stealthIconY = 20; // HP 바 위
         [SerializeField] private int _detectionBarWidth = 200;
         [SerializeField] private int _detectionBarHeight = 12;
         [SerializeField] private Color _stealthActiveColor = new Color(0.3f, 0.6f, 1f, 1f);

@@ -43,7 +43,7 @@ namespace ProjectName.UI
         private static void Bootstrap()
         {
             if (_instance != null) return;
-            var existing = Object.FindFirstObjectByType<HotbarUI>();
+            var existing = Object.FindAnyObjectByType<HotbarUI>();
             if (existing != null) { _instance = existing; return; }
 
             var go = new GameObject("HotbarUI");
@@ -267,7 +267,7 @@ namespace ProjectName.UI
             for (int i = 0; i < SlotCount; i++)
             {
                 var bg = _instance._slotBgs[i];
-                if (bg != null && RectTransformUtility.RectangleContainsScreenPoint(bg.rectTransform(), screenPos, null))
+                if (bg != null && RectTransformUtility.RectangleContainsScreenPoint(bg.rectTransform, screenPos, null))
                     return i;
             }
             return -1;
@@ -376,7 +376,7 @@ namespace ProjectName.UI
                 return _cachedPlayerT;
 
             _cachedPlayerT = null;
-            var pm = FindFirstObjectByType<PlayerMovement>();
+            var pm = FindAnyObjectByType<PlayerMovement>();
             if (pm != null) _cachedPlayerT = pm.transform;
             if (_cachedPlayerT == null)
             {

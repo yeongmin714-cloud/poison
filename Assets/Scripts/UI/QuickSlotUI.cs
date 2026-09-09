@@ -3,7 +3,6 @@ using ProjectName.UI.Themes;
 using Game.UI.Core;
 using ProjectName.Core;
 using ProjectName.Systems;
-using ProjectName.Core;
 #pragma warning disable 0414
 
 namespace ProjectName.UI

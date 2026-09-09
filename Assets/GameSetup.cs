@@ -4,7 +4,6 @@ using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.UI;
 using Unity.Cinemachine;
-using ProjectName.Core; // PlayerInputHelper namespace
 
 /// <summary>
 /// 게임 시작 시 MonsterSpawner, PlayerHealth, HUD를 자동 설정.
@@ -226,8 +225,7 @@ public class GameSetup : MonoBehaviour
             };
 
             int destroyed = 0;
-            var all = UnityEngine.Object.FindObjectsByType<GameObject>(
-                FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var all = UnityEngine.Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include);
             foreach (var go in all)
             {
                 if (go == null) continue;

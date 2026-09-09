@@ -14,7 +14,7 @@ namespace Game.UI.Core
             messageQueue = new Queue<string>();
         }
 
-        public void SendMessage(string message)
+        public new void SendMessage(string message)
         {
             if(messageQueue == null)
                 Initialize();
