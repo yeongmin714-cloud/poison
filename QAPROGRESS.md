@@ -4,7 +4,42 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-09 (10차)
+> **최종 갱신:** 2026-09-09 (11차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-09 11차 — 전투 액션감 고사양화 2차: 파티클 3겹+임팩트 사운드+카메라 튜닝 ✅)
+
+> **스코프**: 1차(10차)에 이어, 감각 피드백을 한층 더 고사양으로 강화. 모든 증강은 `ActionFeel.HighSpec` 게이트 뒤 — 메인(Balanced) 동작 불변.
+
+### 변경 사항
+**1. 파티클 3겹 재설계 (`Systems/CombatVFXController.cs` 보강)**
+- `SpawnHitDebris(position, dir, isCrit)` 신규 — **갈색/회색 파편 조각** 8개(크리 14) 저속을 지면 아래(Y-바이어스)로 + 밝은 스파크 잔흩 혼합. `EmitParams` 오버라이드.
+- `SpawnCritBurst(position)` 신규 — 크리 전용 종합: ①16스파크 방사링 ②12파편 낙하 ③8큰 붉은 스플래시 3겹 일괄.
+- HighSpec 스파크/출혈 증폭: 스파크 10→20(+위쪽 바이어스), 출혈 3→8(+방향 노이즈). 기존 저사양 개수는 Balanced 경로 그대로.
+- 두 신규 메서드는 `if(!ActionFeel.HighSpec) return;` 자체 게이트 — 호출자 무변경.
+
+**2. 임팩트 사운드 레이어 (`Systems/ImpactSoundFX.cs` 신규)**
+- `PlayHit(isCrit, isKill)` — `SoundManagerEnhanced.Instance.PlaySFX(id, vol)` 널세이프 다층 재생.
+- 등급별 레이어: 처치=`impact_kill`1.0+`impact_crit`0.55+`impact_rattle`0.45(3겹) / 크리=`impact_crit`0.9+`impact_thud`0.5+`impact_rattle`0.4 / 일반=`impact_thud`0.8+`impact_rattle`0.35(2겹).
+- HighSpec만 발화(Balanced는 완전 무음). 클립 미보유 시 PlaySFX가 플레이스홀더 로그 후 **안전 반환(크래시 없음)** — 영속 검증.
+
+**3. 카메라/타임스케일 하이스펙 튜닝 (`Systems/CombatCameraEffects.cs`)**
+- `_hitShakeIntensity` 1.3배 강화 / HitStop 타임스케일 0.5→0.35(더 깊은 정지)+지속 1.15배 / 킬 슬로우모션 0.5→0.4+1.15배.
+- 전부 `if(ActionFeel.HighSpec)` 가산 분기 — Balanced 시리얼라이즈드 값 그대로(영향 0). 공개 시그니처(PlayHit/PlayCrit/PlayKill/PlayHitShake) 불변.
+
+**4. 중앙 게이트 최종 통합 (`Systems/CombatFXGate.cs`)**
+- HighSpec 블록에 `SpawnHitDebris`(전 타격) + 크리 시 `SpawnCritBurst` + `ImpactSoundFX.PlayHit`(isKill:false) 연결. 기존 링/플래시 유지.
+
+### 검증
+- **실제 Unity 배치컴파일**(WSL에서 직접 Unity.exe 호출): CompileScripts 25339ms, **error CS = 0**, "Exiting batchmode successfully".
+- ScriptAssemblies DLL(22:16 재빌드) strings grep — ImpactSoundFX 신규 3회, 기존 7개 심볼 전부 반영.
+- `ImpactSoundFX.cs.meta` 자동생성.
+- 커밋 66e5ac1e·5c79e5b4 **push 완료**(1·2차 통합).
+
+### Play 판정 대기 (Test_10)
+- 타격 시: 파편 조각 3겹(흙날림)+스파크 잔흩 / 크리 시: 스파크링+파편+붉은 스플래시 종합 버스트 / 임팩트 사운드(일반 퉁·크리 강한 찰칵·처치 깊은 둔탁) / 히트스톱 더 깊고 오래 + 셰이크 강화.
+- **사운드**: `Resources/Sounds/SFX/` 비어 있어 현재는 플레이스홀더 무음 — 발성 감각 확인은 이후 clip 에셋 추가 시 유효.
 
 ---
 
