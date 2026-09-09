@@ -4,7 +4,19 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-08
+> **최종 갱신:** 2026-09-09
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-09 1차 — 레벨/스탯 창(P키) 신규 구현 + 스텁 정리 ✅)
+
+- **범위**: "로드맵 읽고 레벨 시스템과 스탯 창 구현 계획 → 진행". 조사 결과 **레벨 시스템(PlayerStats, Lv1~50 EXP테이블·파생스탯·OnLevelChanged)은 기존 완성+EXP획득원 7곳 연결** 상태 → 재구현 불필요. 실제 갭은 **스탯 창이 죽은 코드**(PlayerStatusWindow: 씬배치 0·인스턴스화 0·키 소비처 부재)
+- **신규 StatusWindowUI.cs** (Assets/Scripts/UI/, namespace ProjectName.UI): HotbarUI 선례의 `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]` 셀프부트(씬 의존 0) + 전용 StatusCanvas(sortingOrder 200 > 핫바 100) + 좌상단 패널(앵커 0,1/pivot 0,1/pos 12,-12, 438px). 표시: Lv·EXP게이지(누적식 정확)·HP·공격/방어/치명/이속(Final*)·연금/요리 보너스·화술·전투보너스·중독(DrugEffectSystem)·골드. **토글키 P**(전 프로젝트 KeyCode.P 사용 0건 검증) + ESC 닫기. OnLevelChanged 구독 → 즉시 RefreshDisplay + **LEVEL UP! 팝업**(static 진입, 2초 페이드, 연속 레벨업 정리 가드). Update에서 0.25s 폴링 갱신
+- **QA 발견 치명 1건 수정**: PlayerStats는 DontDestroyOnLoad 제거됨(PlayerStats.cs:112) → 창 닫힌 상태 씬 전환 시 새 인스턴스에 재구독 안 되어 레벨업 팝업 누락 → `Update()`에 `EnsureLevelSubscription()` 추가(ReferenceEquals 단락, 비용 무시)
+- **키 충돌 해소**: KeyBindings._statusKey C→P (은신=PlayerMovement cKey 충돌, 크래프팅 X 이동 전례 동일 조치). Settings/KeyBindings.asset도 P(112) 반영 확인. 키 점유 현황: 은신C/크래프팅X/RevengeListK/통계U/스탯P
+- **스텁 정리**: PlayerStatsUI.cs(21줄 TODO)·UIPlayerStats.cs(하드코딩 가짜 레벨업)·PlayerStatusWindow.cs 삭제(+meta, Windows.meta). 삭제 guid 4종 씬/프리팹 잔존 참조 0건 검증
+- **검증**: 에디터 실행 중이던 초반 batchmode는 락으로 exit 1(컴파일 오류 아님) → 에디터 자동재컴파일로 1차 판정(ProjectName.UI.dll에 StatusWindowUI 포함+삭제클래스 잔존 0), 에디터 종료 후 정식 배치컴파일 **UNITY_EXIT_CODE=0, error CS=0, Exiting batchmode successfully**
+- ⬜ **남음**: Play 판정(①P키 토글 ②채집+3EXP 게이지 ③레벨업 스탯갱신+팝업 ④은신C 무충돌 ⑤한글 폰트 렌더링 — LegacyRuntime.ttf 한글 글리프는 핫바와 동일 프로젝트 공통 이슈)
 
 ---
 
@@ -713,3 +725,14 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 - **발화 연결 필요(다음 단계)**: Harvest→채집 UI 플로우(현재 채집은 병사 자동 임무 HerbGatheringMission+프로시저 GatherMotion) / HitLight·Stun→전투 데미지 등급 판정(경직=소데미지, 스턴=상태이상)
 - **시스템 미구현으로 보류(클립만 등록됨)**: Swim(수영 판정+수면 상태머신) / Crouch·Crawl(잠입 모드) / Parry(방어 판정) / Bow(활 조준·발사) / Ride(탈것) / Carry(운반) / Climb_Stairs·Ladder(기동) / open_door(문 상호작용) / Talk·victory(연출) / mage_cast(마법) — 각각 별도 설계 Phase 필요
 - **검증**: error CS=0 + 무해 경고만 존재(소멸한 구 믹사모 폴더 loop 보정 시도)
+---
+
+## 2026-09-09: 레벨/스탯 창(P키) 신규 구현 + 스텁 정리 ✅ (계획: .hermes/plans/2026-09-09_level-stats-window-plan.md)
+
+- **진단**: 레벨 시스템은 기존 완성(PlayerStats Lv1~50, EXP획득원 7곳: 제작/퀘스트3종/사냥/채집). 갭=스탯 창 미연결(PlayerStatusWindow 죽은 코드, 키 소비처 부재, C키는 은신과 충돌)
+- **신규**: StatusWindowUI.cs — HotbarUI식 셀프부트(RuntimeInitializeOnLoadMethod), 자체 StatusCanvas(sort 200), 좌상단 패널, legacy Text 전용(혼합금지), Lv/EXP게이지/HP/공방치명이속/제작보너스/중독/골드 표시, OnLevelChanged→즉시갱신+LEVEL UP 팝업(2초 페이드)
+- **키**: _statusKey C→P (KeyBindings.cs+Settings asset). 은신C/크래프팅X/RevengeListK/통계U와 무충돌
+- **QA 수정 1건**: 씬 전환 후 PlayerStats 인스턴스 교체 시 재구독 누락(팝업 소실) → Update()에서 EnsureLevelSubscription() 상시 보장
+- **삭제**: PlayerStatsUI.cs·UIPlayerStats.cs(가짜 하드코딩 스탯)·PlayerStatusWindow.cs + Windows.meta — guid 잔존 0건
+- **검증**: 배치컴파일 error CS=0(에디터 락 시절엔 ScriptAssemblies DLL strings grep으로 대체 판정 — 컴파일 성공시에만 DLL 재생성되는 성질 이용)
+- **Play 판정 대기**: P토글 / 채집EXP / 레벨업 갱신+팝업 / 은신C 정상 / 한글 폰트

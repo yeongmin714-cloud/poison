@@ -537,7 +537,7 @@
 || 3.8d | 화술 스탯 (Speech) → SpeechAffinityBonus (+1/레벨) | ✅ |
 || 3.8e | 제작 성공/실패 시스템 → CraftSuccessSystem.cs (Alchemy/Cooking 보정) | ✅ |
 || 3.8f | 실패 결과 (재료보존/소멸/전소) → CraftResult 3종 | ✅ |
-|| 3.8g | 스테이터스 UI (C키) + 성공률 표시 → PlayerStatusWindow.cs | ✅ |
+|| 3.8g | 스테이터스 UI (P키, StatusWindowUI 런타임 생성 — 2026-09-09 C키 은신충돌로 P 이동, 구 PlayerStatusWindow 삭제) + 성공률 표시 | ✅ |
 || 3.8h | **플레이어 부활** — 사망 시 최대체력 10%, 가장 가까운 영지 부활 | ✅ |
 || 3.8i | **병사 부활** — GuardManager (Phase 27) | ✅ |
 
