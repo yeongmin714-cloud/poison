@@ -31,10 +31,31 @@ namespace ProjectName.UI
         private void Awake()
         {
             SetupGround();
+            SetupUIManager();   // 2026-09-09: 스테이션/창고/상점의 선행 요건
+            SetupCamera();      // PlayerMovement.Awake 전에 카메라 확보
             SetupPlayer();
-            SetupCamera();
             SetupStations();
             Debug.Log("[InteriorSystemsTest] 구성 완료 — E키로 각 스테이션/창고/상점 상호작용");
+        }
+
+        /// <summary>UIManager + 각 창 인스턴스 생성 (스테이션들이 OpenWindow(Type)으로 탐색)</summary>
+        private void SetupUIManager()
+        {
+            if (UIManager.Instance != null) return;
+            var go = new GameObject("UIManager");
+            var uim = go.AddComponent<UIManager>();
+
+            uim.warehouseWindow = NewWindow<WarehouseUI>("WarehouseUI");
+            uim.craftingWindow = NewWindow<CraftingUI>("CraftingUI");
+            NewWindow<CookingUI>("CookingUI");
+            NewWindow<AlchemyUI>("AlchemyUI");
+            NewWindow<InventoryWindow>("InventoryUI");
+        }
+
+        private static T NewWindow<T>(string name) where T : UIWindow
+        {
+            var go = new GameObject(name);
+            return go.AddComponent<T>();
         }
 
         private void SetupGround()
