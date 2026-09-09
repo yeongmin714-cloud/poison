@@ -154,6 +154,13 @@ namespace ProjectName.Systems
             Material paperMat = new Material(shader) { name = "PlayerCastle_PaperMat" };
             paperMat.color = new Color(0.92f, 0.90f, 0.82f); // 문서 용지
 
+            // 요리/연금 스테이션 재질 (Phase 1 — 기존 가구와 톤 구분)
+            Material cookingMat = new Material(shader) { name = "PlayerCastle_CookingMat" };
+            cookingMat.color = new Color(0.50f, 0.32f, 0.18f); // 요리 카운터 따뜻한 나무
+
+            Material alchemyMat = new Material(shader) { name = "PlayerCastle_AlchemyMat" };
+            alchemyMat.color = new Color(0.36f, 0.26f, 0.44f); // 연금 테이블 보라빛 나무
+
             // 중세 판타지 장식 재질들 (석재 기둥/화로/러그)
             Material pillarMat = new Material(shader) { name = "PlayerCastle_PillarMat" };
             pillarMat.color = new Color(0.40f, 0.38f, 0.35f); // 회색 석재 기둥
@@ -375,6 +382,43 @@ namespace ProjectName.Systems
             AddNameplate(workbenchSign, "🛠️ 작업대");
 
             // ===================================================================
+            // 5b. 요리/연금 스테이션 (CRAFTING_WAREHOUSE_PLAN Phase 1)
+            //     기존 장비 작업대(5번)에 더해 요리·연금 상호작용 앵커를 추가.
+            //     배치: mx 쪽 x=6.2 열(기둥 최외곽 베이스 x=±5.0보다 안쪽 여백 0.5m,
+            //     화로/저장고/무기고 벽면 x=±10보다 안쪽) — z=-6.3(앞) / z=+5.0(뒤).
+            //     작업대(앞벽 x=mx*-5)·장식탁자(extraDecor, x=mx*5, z=-7.4)는 반대편
+            //     또는 z 간격 0.3m 이상이라 8개 variant 전부에서 겹치지 않음.
+            //     참고: CookingStation/AlchemyStation에는 Configure 메서드가 없어
+            //     AttachUiComponent가 AddComponent 후 경고 1회를 남기고 정상 진행
+            //     (컴포넌트는 부착됨 — 기본 직렬화 값으로 E키 상호작용 동작).
+            // ===================================================================
+            GameObject cookingTable = IndoorFurniturePlacer.CreateCounter(1.4f, 0.95f, 0.9f, cookingMat);
+            cookingTable.name = "CookingTable";
+            cookingTable.transform.SetParent(room.transform);
+            cookingTable.transform.localPosition = new Vector3(mx * 6.2f, 0f, -6.3f);
+            AddNameplate(cookingTable, "🍳 요리 테이블");
+
+            // 요리 냄비 소품 (카운터 상판 위 — 시각 구분용)
+            CreateCylinderPrimitive(cookingTable, "CookingPot", 0.22f, 0.28f,
+                new Vector3(0f, 1.09f, 0f), hearthMat);
+
+            // Systems asmdef는 UI asmdef를 참조할 수 없으므로(순환 참조) 리플렉션으로 부착.
+            AttachUiComponent(cookingTable, CookingStationTypeName);
+
+            GameObject alchemyTable = IndoorFurniturePlacer.CreateTable(1.4f, 1.4f, 0.95f, alchemyMat);
+            alchemyTable.name = "AlchemyTable";
+            alchemyTable.transform.SetParent(room.transform);
+            alchemyTable.transform.localPosition = new Vector3(mx * 6.2f, 0f, 5.0f);
+            AddNameplate(alchemyTable, "🧪 연금술 테이블");
+
+            // 연금 플라스크 소품 (테이블 상판 위 — 시각 구분용)
+            CreateCylinderPrimitive(alchemyTable, "AlchemyFlask", 0.14f, 0.32f,
+                new Vector3(0.35f, 1.11f, 0.30f), trimMat);
+
+            // Systems asmdef는 UI asmdef를 참조할 수 없으므로(순환 참조) 리플렉션으로 부착.
+            AttachUiComponent(alchemyTable, AlchemyStationTypeName);
+
+            // ===================================================================
             // 6. 중세 석재 기둥 2열 (대전당 느낌 — 중앙 복도 양쪽)
             //    x=±pillarX(3.5~4.5), z=-5..5에 pillarPerSide개씩 — 가구와 겹치지 않게 배치
             // ===================================================================
@@ -583,6 +627,10 @@ namespace ProjectName.Systems
             "ProjectName.UI.TerritoryCraftingStation, ProjectName.UI";
         private const string TerritoryWarehouseTypeName =
             "ProjectName.UI.TerritoryWarehouse, ProjectName.UI";
+        private const string CookingStationTypeName =
+            "ProjectName.UI.CookingStation, ProjectName.UI";
+        private const string AlchemyStationTypeName =
+            "ProjectName.UI.AlchemyStation, ProjectName.UI";
 
         /// <summary>
         /// 어셈블리 경계(ProjectName.UI)를 넘어 상호작용 컴포넌트를 리플렉션으로 부착한다.
