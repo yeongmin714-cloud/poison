@@ -20,7 +20,13 @@ namespace ProjectName.UI
         [SerializeField] private int _minimapDiameter = 220;
         [SerializeField] private int _marginRight = 20;
         [SerializeField] private int _marginTop = 20;
-        [SerializeField] private float _mapScale = 0.001f; // 월드 단위 → 미니맵 픽셀
+        [SerializeField] private float _mapScale = 0.001f; // 월드 단위 → 미니맵 픽셀 (전체맵 폴백용)
+
+        [Header("Local View (2026-09-09)")]
+        [Tooltip("플레이어 중심 로컬뷰 반경(m) — 휠로 3단 조절")]
+        [SerializeField] private float _localRadius = 120f;
+        private static readonly float[] _zoomRadii = { 80f, 120f, 200f };
+        private int _zoomIndex = 1;
         [SerializeField] private Texture2D _mapTexture; // 미리 렌더된 맵 텍스처 (선택)
 
         [Header("Player Marker")]
@@ -280,29 +286,43 @@ namespace ProjectName.UI
             Rect borderRect = new Rect(_minimapRect.x - 2, _minimapRect.y - 2, _minimapRect.width + 4, _minimapRect.height + 4);
             GUI.Box(borderRect, "");
 
-            // 맵 텍스처가 있으면 그리기
+            // 맵 텍스처가 있으면 그리기 — 로컬뷰(플레이어 중심 크롭), 플레이어 없으면 전체맵 폴백
             if (_mapTexture != null)
             {
                 GUI.color = Color.white;
-                // 원형 마스크 적용을 위해 DrawTextureWithTexCoords 사용 (고급)
-                GUI.DrawTexture(_minimapRect, _mapTexture, ScaleMode.ScaleToFit, true);
+                if (_playerTransform != null)
+                {
+                    // 로컬뷰 uvRect 크롭 — 텍스처 매핑 규약: u=0.5+x/W, v=0.5+z/W (BakeWorldSplat 동일)
+                    Vector3 p = _playerTransform.position;
+                    float span = Mathf.Clamp01((_localRadius * 2f) / TerrainSplatBaker.WORLD_SIZE);
+                    float u = Mathf.Clamp01(0.5f + p.x / TerrainSplatBaker.WORLD_SIZE);
+                    float v = Mathf.Clamp01(0.5f + p.z / TerrainSplatBaker.WORLD_SIZE);
+                    float u0 = Mathf.Clamp(u - span * 0.5f, 0f, 1f - span);
+                    float v0 = Mathf.Clamp(v - span * 0.5f, 0f, 1f - span);
+                    GUI.DrawTextureWithTexCoords(_minimapRect, _mapTexture, new Rect(u0, v0, span, span), true);
+                }
+                else
+                {
+                    GUI.DrawTexture(_minimapRect, _mapTexture, ScaleMode.ScaleToFit, true);
+                }
             }
 
             GUI.color = Color.white;
         }
 
         /// <summary>
-        /// MM-Terrain M3: 지형 위에 영지(검은 점)·활성 퀘스트(퀘스트색 점) 마커를 겹친다.
-        /// 월드 위치 → 미니맵 로컬(함수 _mapScale) 동일 변환, 원형 클램프(플레이어 마커와 동일 규칙).
+        /// MM-Terrain M3 → 로컬뷰 개편(2026-09-09): 영지(검은 점)·활성 퀘스트(퀘스트색 점) 마커를
+        /// 플레이어 중심 로컬 좌표계로 겹친다. 반경 밖 마커는 스킵. 방위: +x=우, +z=상(북).
         /// </summary>
         private void DrawMarkerOverlay()
         {
-            if (_mapTexture == null) return;   // 지형이 없으면 마커 오버레이도 안 그림 (지형 준비 후)
+            if (_mapTexture == null || _playerTransform == null) return;   // 지형/플레이어 준비 전에는 스킵
 
             float radius = _minimapDiameter * 0.5f;
             float centerX = _minimapRect.x + radius;
             float centerY = _minimapRect.y + radius;
-            float maxDist = radius - 3f;   // 마커 반지름 고려 여유
+            float pxPerWorld = _minimapDiameter / (_localRadius * 2f);
+            Vector3 pp = _playerTransform.position;
 
             // ── ① 영지 마커 (모두, 작은 검은 점) ──
             var db = TerritoryDatabase.Instance;
@@ -310,36 +330,39 @@ namespace ProjectName.UI
             {
                 GUI.color = new Color(0f, 0f, 0f, 0.85f);
                 int mSize = 4;
-                bool any = false;
                 foreach (var def in db.GetAllDefinitions())
                 {
                     Vector3 wp = GetTerritoryWorldPosition(def);
                     if (wp == Vector3.zero) continue;
-                    Vector2 lp = WorldToMinimapLocal(wp);
-                    float dist = lp.magnitude;
-                    if (dist > maxDist - mSize) continue;   // 원 밖 스킵
-                    Rect r = new Rect(centerX + lp.x - mSize * 0.5f, centerY + lp.y - mSize * 0.5f, mSize, mSize);
+                    if (!TryLocalScreenPos(wp, pp, pxPerWorld, radius - mSize, centerX, centerY, mSize, out var r)) continue;
                     GUI.Box(r, "");
-                    any = true;
                 }
-                if (any) GUI.color = Color.white;
+                GUI.color = Color.white;
             }
 
             // ── ② 활성 퀘스트 마커 (QuestMarkerSystem — 퀘스트색 점, 더 큼) ──
             if (QuestMarkerSystem.Instance != null)
             {
+                int qSize = 7;
                 foreach (var qm in QuestMarkerSystem.Instance.GetActiveQuestMarkers())
                 {
-                    Vector2 lp = WorldToMinimapLocal(qm.worldPos);
-                    float dist = lp.magnitude;
-                    if (dist > maxDist - 2f) continue;
+                    if (!TryLocalScreenPos(qm.worldPos, pp, pxPerWorld, radius - 2f, centerX, centerY, qSize, out var r)) continue;
                     GUI.color = qm.markerColor;
-                    int qSize = 7;
-                    Rect r = new Rect(centerX + lp.x - qSize * 0.5f, centerY + lp.y - qSize * 0.5f, qSize, qSize);
                     GUI.Box(r, "");
                 }
                 GUI.color = Color.white;
             }
+        }
+
+        /// <summary>월드좌표 → 로컬뷰 화면 Rect. 반경 밖이면 false. (+z=북=화면 위, GUI y 역방향 보정)</summary>
+        private bool TryLocalScreenPos(Vector3 wp, Vector3 pp, float pxPerWorld, float maxDist, float cx, float cy, int size, out Rect rect)
+        {
+            float dx = (wp.x - pp.x) * pxPerWorld;
+            float dy = -(wp.z - pp.z) * pxPerWorld;
+            float distSq = dx * dx + dy * dy;
+            if (distSq > maxDist * maxDist) { rect = default; return false; }
+            rect = new Rect(cx + dx - size * 0.5f, cy + dy - size * 0.5f, size, size);
+            return true;
         }
 
         /// <summary>영지 정의 → 미니맵용 월드 위치 (QuestMarkerSystem과 동일 규칙).</summary>
