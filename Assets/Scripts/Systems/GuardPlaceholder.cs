@@ -404,6 +404,11 @@ namespace ProjectName.Systems
         {
             if (_isDead) return;
             _currentHP -= amount;
+
+            // Phase 3: 통합 피격 VFX (Organic, 흰색 데미지 숫자)
+            CombatFXGate.PlayHitFX(gameObject, hitDirection, CombatHitType.Organic, false, amount, Color.white);
+            Debug.Log($"[GuardPlaceholder] HitFX played (dmg={amount}, hp={_currentHP})");
+
             if (_currentHP <= 0) Die();
         }
 
@@ -418,6 +423,9 @@ namespace ProjectName.Systems
             // ⏱️ 전투 로그: 병사 처치 기록
             CombatLog.AddEntry($"{guardName} 처치!", LogType.Kill);
             _isDead = true;
+
+            // Phase 3: 사망 카메라 연출 (킬 이펙트)
+            CombatCameraEffects.PlayKill();
 
             // 사망 애니메이션 (Idle 즉시 적용)
             if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
