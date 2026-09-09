@@ -4,7 +4,27 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-09 (7차)
+> **최종 갱신:** 2026-09-09 (8차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-09 8차 — 경량 전투 테스트씬 + 공격시스템 점검용 ✅)
+
+### 변경 사항
+**신규 경량 전투 테스트 — `Test_10_TerritoryCombat`**
+- `Systems/TestTerritoryCombatSetup.cs` — 저사양(8GB) 공격시스템 집중 점검용 최소 구성.
+  - Player(AttackSystem 부착) + **타영주 영지(DraculaLord, IDamageable)** 1 + **병사(GuardPlaceholder, IDamageable)** 1 + **몬스터(slime)** 1
+  - 좌클릭 → AttackSystem(Raycast→IDamageable→거리→데미지→사망 드랍) 단독 검증
+  - 메인씬 확산 전 "공격시스템 통과 여부" 빠른 판정 목적
+- `Scenes/TestScenes/Test_10_TerritoryCombat.unity` — YAML 씬, 스크립트 오브젝트 연결(GUID 6e49b159...)
+
+### 검증 ✅
+- 초기 컴파일 에러 CS0119(GetComponent/AddComponent에 Type 직접 사용) 2건 → `var t = typeof(X); GetComponent(t)/AddComponent(t)` 패턴으로 수정(TestCombatSetup와 동일).
+- `ProjectName.Systems.dll` 18:50 재컴파일 + `TestTerritoryCombatSetup` 심볼 3건 확인.
+- 최신 컴파일 세션 error CS = 0.
+
+### Play 판정 대기
+- Test_10 씬 Play → 영지·병사·몬스터 렌더 확인 → **좌클릭**으로 각각 공격 → 데미지/드랍 로그 확인 → 통과 시 메인씬 확산 기준으로 사용.
 
 ---
 
