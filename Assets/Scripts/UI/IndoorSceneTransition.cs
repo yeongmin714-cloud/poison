@@ -173,15 +173,27 @@ namespace ProjectName.UI
             if (indoorPlayer == null)
                 indoorPlayer = UnityEngine.Object.FindAnyObjectByType<ProjectName.Systems.PlayerMovement>()?.gameObject;
             if (indoorPlayer != null)
-                indoorPlayer.transform.position = new Vector3(0f, INDOOR_FLOOR_Y + 0.1f, 0f);
+                indoorPlayer.transform.position = new Vector3(0f, INDOOR_FLOOR_Y + 0.5f, 0f); // 여유 높이(바닥 콜라이더 위)
 
             // 2026-09-09(6차): 플레이어 하이어라키를 IndoorScene으로 이동 — 계층 표시+활성 씬 정합
             if (indoorPlayer != null && scene.isLoaded)
                 SceneManager.MoveGameObjectToScene(indoorPlayer, scene);
 
-            // 2026-09-09(5차): 실내 카메라 스왑 — 메인 카메라만 비활성(IndoorCamera는 씬 상주·활성 상태로 로드됨)
+            // 2026-09-09(5차→6차 FIX): 셸은 씬에 상주하지만 구버전 씬/에디터 메모리 상태 대비 런타임 폴백 생성
+            if (GameObject.Find("MedievalShell") == null)
+                ProjectName.Systems.MedievalShellBuilder.CreateShell();
+
+            // 2026-09-09(6차 FIX): IndoorCamera가 존재할 때만 메인 카메라 비활성 — 없으면 메인 카메라(플레이어 추적) 유지
             var mainCamGO = GameObject.FindGameObjectWithTag("MainCamera");
-            if (mainCamGO != null) mainCamGO.SetActive(false);
+            var indoorCam = GameObject.Find("IndoorCamera");
+            if (indoorCam != null && indoorCam.activeInHierarchy)
+            {
+                if (mainCamGO != null) mainCamGO.SetActive(false);
+            }
+            else if (mainCamGO != null && !mainCamGO.activeSelf)
+            {
+                mainCamGO.SetActive(true); // 이전 진입 실패 복구
+            }
 
             // 2026-09-09(3차 FIX): 까만 화면 방지 — 실내 앰비언트를 따뜻한 플랫톤으로
             // (활성 씬이 IndoorScene이므로 RenderSettings는 실내 것만 적용, 복귀 시 자동 원복)
