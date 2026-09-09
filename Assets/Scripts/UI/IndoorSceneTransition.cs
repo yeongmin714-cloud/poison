@@ -179,6 +179,11 @@ namespace ProjectName.UI
             var mainCamGO = GameObject.FindGameObjectWithTag("MainCamera");
             if (mainCamGO != null) mainCamGO.SetActive(false);
 
+            // 2026-09-09(3차 FIX): 까만 화면 방지 — 실내 앰비언트를 따뜻한 플랫톤으로
+            // (활성 씬이 IndoorScene이므로 RenderSettings는 실내 것만 적용, 복귀 시 자동 원복)
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+            RenderSettings.ambientLight = new Color(0.45f, 0.38f, 0.30f);
+
             _pendingBuildingType = null;
             _pendingNationStyle = null;
             _pendingIsPlayerOwned = false;

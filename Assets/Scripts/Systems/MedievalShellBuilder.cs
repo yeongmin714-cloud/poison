@@ -53,8 +53,8 @@ namespace ProjectName.Systems
                 var light = flame.AddComponent<Light>();
                 light.type = LightType.Point;
                 light.color = new Color(1f, 0.63f, 0.25f);
-                light.intensity = 2.2f;
-                light.range = 8f;
+                light.intensity = 3.2f;   // 2026-09-09: 8배 셸 대응 — 사거리/강도 상향
+                light.range = 26f;
                 light.shadows = LightShadows.Soft;
                 flame.AddComponent<ShellTorchFlicker>();
             }
