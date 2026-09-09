@@ -1045,6 +1045,9 @@ namespace ProjectName.Systems
         /// Cinemachine vcam의 Follow가 배치에서 직렬화 안 돼 카메라가 고정되던 문제는
         /// vcam/Brain을 완전 비활성하고 LateUpdate에서 강제 적용하는 것으로 차단한다.</summary>
         private float _camYaw = 0f;
+        // 2026-09-09(3): 에지 팬 비활성 — 커서 조준+카메라 팬 이중 반응 루프 차단(고정 오빗). true로 재활용 가능.
+        private const bool CameraEdgePan = false;
+        private Vector3 _camSmoothPos;                    // 카메라 평활 위치(끊김 제거)
         private float _camPitch = 65f;
         private float _camDistance = 11f;
         private const float CamDistanceMin = 4f;
@@ -1082,7 +1085,10 @@ namespace ProjectName.Systems
                 ? new Vector2(Camera.main.pixelWidth, Camera.main.pixelHeight)
                 : new Vector2(1920f, 1080f);
             float nx = camPixel.x > 1f ? (cursorPos.x / camPixel.x) * 2f - 1f : 0f; // -1(좌) ~ +1(우)
-            if (Mathf.Abs(nx) > 0.35f)
+            // 2026-09-09(3) FIX: 커서 조준(플레이어 회전)과 카메라 팬의 이중 반응 루프가
+            // "카메라가 계속 도는/시선이 끊기는" 현상의 원인 — 에지 팬 비활성(고정 오빗, 휠 줌만 유지).
+            // 재활용하려면 아래 CameraEdgePan을 true로.
+            if (CameraEdgePan && Mathf.Abs(nx) > 0.35f)
             {
                 float edge = (Mathf.Abs(nx) - 0.35f) / 0.65f;          // 0(데드존 끝) ~ 1(가장자리)
                 _camYaw += Mathf.Sign(nx) * edge * 90f * Time.deltaTime;
@@ -1091,7 +1097,7 @@ namespace ProjectName.Systems
             // ── 커서 상하 위치 → 카메라 피치 소프트 팬 ──
             // 위쪽 = 시야 앞쪽(40°, 카메라 낮아짐) / 아래쪽 = 수직 탑다운(80°, 카메라 높아짐)
             float ny = camPixel.y > 1f ? (cursorPos.y / camPixel.y) * 2f - 1f : 0f; // -1(위) ~ +1(아래)
-            if (Mathf.Abs(ny) > 0.35f)
+            if (CameraEdgePan && Mathf.Abs(ny) > 0.35f)
             {
                 float edgeY = (Mathf.Abs(ny) - 0.35f) / 0.65f;
                 // 부호 반전: 커서 위(ny=+1) = 피치 감소(40°, 전방 시야) / 커서 아래(ny=-1) = 피치 증가(80°, 탑다운)
@@ -1169,17 +1175,28 @@ namespace ProjectName.Systems
             Vector3 camPos = playerT.position + new Vector3(0f, 1.4f, 0f) + orbitRot * new Vector3(0f, 0f, -_camDistance);
 
             // 카메라가 지형 밑으로 못 가게 지표면 위 0.6m 유지
+            // 2026-09-09(3) FIX: 실내 씬(IndoorScene) 활성 시 클램프 스킵 — 실내는 본 지형(y≈42) 아래 y=0에 있고,
+            // 클램프가 카메라를 지표 위로 밀어올려 지형 표면만 보이던 것이 "실내 렌더링 실패"의 원인.
+            // 지형 메시는 아래에서 보면 컬링되어 실내가 정상 렌더된다.
             try
             {
-                float gY = 1f + ProjectName.Systems.TerrainGenerator.GetHeightAt(
-                    camPos.x, camPos.z, ProjectName.Core.Data.BiomeType.Plains, 42);
-                if (camPos.y < gY + 0.6f) camPos.y = gY + 0.6f;
+                bool indoorActive = UnityEngine.SceneManagement.SceneManager.GetSceneByName("IndoorScene").isLoaded;
+                if (!indoorActive)
+                {
+                    float gY = 1f + ProjectName.Systems.TerrainGenerator.GetHeightAt(
+                        camPos.x, camPos.z, ProjectName.Core.Data.BiomeType.Plains, 42);
+                    if (camPos.y < gY + 0.6f) camPos.y = gY + 0.6f;
+                }
             }
             catch (System.Exception) { }
 
             _cameraTransform.position = camPos;
+            // 2026-09-09(3): 카메라 위치/시선 평활 — 직접 대입 스냅 제거(부드러운 추적)
+            if (_camSmoothPos.sqrMagnitude < 0.001f) _camSmoothPos = camPos;
+            _camSmoothPos = Vector3.Lerp(_camSmoothPos, camPos, 1f - Mathf.Exp(-14f * Time.deltaTime));
+            _cameraTransform.position = _camSmoothPos;
             Vector3 lookTarget = playerT.position + new Vector3(0f, 1.2f, 0f);
-            _cameraTransform.rotation = Quaternion.LookRotation(lookTarget - camPos);
+            _cameraTransform.rotation = Quaternion.LookRotation(lookTarget - _camSmoothPos);
 
             // 추적 진단 (처음 10회, 2초 간격): 카메라가 실제로 플레이어를 따라가는지 수치 확인
             _followProbeTimer += Time.deltaTime;

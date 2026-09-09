@@ -75,13 +75,22 @@ namespace ProjectName.Systems
                 }
             }
 
-            _mainCamera = Camera.main != null ? Camera.main : FindFirstObjectByType<Camera>();
+            // 2026-09-09(3) FIX: 카메라가 GameSetup.Start에서 런타임 생성되므로 Start 시점엔 없을 수 있음.
+            // Start 1회 체크+경고 대신 Update에서 재시도(플레이어 재탐색 패턴과 동일) — 경고 스팸 제거.
             if (_mainCamera == null)
-                Debug.LogWarning("[BuildingTrigger] 씬에 카메라 없음 — 말풍선 표시 불가");
+            {
+                _mainCamera = Camera.main != null ? Camera.main : FindFirstObjectByType<Camera>();
+            }
         }
 
         private void Update()
         {
+            // 2026-09-09(3): 카메라 런타임 생성 대기 재시도 (GameSetup.Start 이후 생성됨)
+            if (_mainCamera == null)
+            {
+                _mainCamera = Camera.main != null ? Camera.main : FindFirstObjectByType<Camera>();
+            }
+
             // Player가 아직 없으면 주기적으로 재시도 (60프레임 ≈ 1초마다)
             if (_playerNotFound)
             {

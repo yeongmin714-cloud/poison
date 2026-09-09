@@ -48,6 +48,11 @@ public static class TerrainBaseMapFixer
     // 비어있으면 복구한다. 이로써 자동 배치 재실행으로 _BaseMap이 다시 지워져도 즉시 살아난다.
     private static void FixIfNeeded()
     {
+        // 2026-09-09 FIX: 에디터 로드 초기(임포트 DB 준비 전)에는 GetTexture가 null을 반환하는 오탐이 있어
+        // 매 세션 "복구함" 경고가 발화했음 — 준비 완료까지 대기.
+        if (EditorApplication.isCompiling || EditorApplication.isUpdating)
+            return;
+
         bool allOk = true;
         allOk &= FixMaterial("Assets/URP/Ground_Grass_Mat.mat", "Assets/URP/Terrain_Grass.asset");
         allOk &= FixMaterial("Assets/Resources/URP/Ground_Grass_Mat.mat", "Assets/URP/Terrain_Grass.asset");

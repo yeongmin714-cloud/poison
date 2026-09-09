@@ -4,7 +4,22 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-09 (3차)
+> **최종 갱신:** 2026-09-09 (4차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-09 4차 — 스탯창 NRE/삼분활 후속 + 시선끊김 + 내부씬 렌더 ✅)
+
+- **스탯창 안 뜸 루트원인 확정**(유저 로그 559행): 뷰포트 오브젝트에 Image 존재 상태에서 RawImage AddComponent → 유니티 거부 null 반환 → RawImage 전용 GO 생성으로 수정. 뷰포트 검은화면 = RT 카메라 pitch 8° vs 클론 34° 하방 위치 미스 → LookAt 수정
+- **스탯창 UI 정비**(63.PNG): 텍스트 Wrap+축약(패널 밖 넘침 해소), 장비슬롯 라벨 간격 확대, WinH 900→760(퀵슬롯 비겹침)
+- **인벤**: 설명창 세로 620으로 축소, **미니패드 폐지 → 드래그를 하단 상시 핫바에 직접 드롭**(HotbarUI.GetSlotIndexAtScreenPoint — 오버레이 캔버스 RectangleContainsScreenPoint)
+- **시선 끊김 원인 확정**: ①카메라 드라이버 3중 경쟁(PlayerMovement 내장/ZoomController/CM-Binder — 전부 LateUpdate) ②**커서 조준+카메라 에지팬 이중 반응 루프**(커서가 데드존 밖이면 카메라 90°/s 팬 → 커서 지면점 이동 → 플레이어 재회전 무한). 수정: 에지팬 비활성(CameraEdgePan=false, 재활용 가능)+카메라 위치/시선 평활(Lerp 14/s)
+- **내부 씬 렌더 실패 원인 확정**: 실내가 본 지형(y≈42) 아래 y=0에 생성되고 **카메라 클램프가 카메라를 지표 위로 강제** → 지형 표면만 보임 → IndoorScene 활성 시 클램프 스킵(지형은 아래에서 보면 컬링됨)
+- **Unknown 스크립트 7건**: MainScene m_Script guid 전수 대조 → 7개 MonoBehaviour 블록+컴포넌트 참조 제거, 잔존 0
+- **BuildingTrigger 카메라 경고**: Start 1회 체크 → Update 재시도(카메라는 GameSetup.Start에서 런타임 생성)
+- **TerrainBaseMapFixer 재발**: 에디터 로드 초기 AssetDB 미준비 오탐 → isCompiling/isUpdating 게이트
+- **검증**: 에디터 실행 중으로 배치컴파일 보류 — 포커스 시 자동컴파일(콘솔 error CS 확인 필요), 중괄호 균형/전수 검증 완료
+- ⬜ **남음**: Play 판정(①P키 스탯창: 뷰포트 캐릭터 렌더+텍스트 정렬 ②인벤 설명창 축소+핫바 직접 드래그 ③시선 부드러움 ④성문 E → 실내 렌더 ⑤경고 3종 소멸)
 
 ---
 
