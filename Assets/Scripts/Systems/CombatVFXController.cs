@@ -7,6 +7,8 @@ namespace ProjectName.Systems
     /// <summary>
     /// G2-05: 전투 VFX 컨트롤러 (정적 클래스, 간소화).
     /// 히트플래시, 데미지 폰트, 스파크, 블러드 스플래터.
+    /// G2-06 HighSpec: 파편(디브리) 버스트, 크리티컬 버스트, 파티클 부스트.
+    /// 저사양(Balanced) 경로는 기존 동작 그대로 유지 — 강화는 모두 ActionFeel.HighSpec 게이트.
     /// </summary>
     public static class CombatVFXController
     {
@@ -55,6 +57,20 @@ namespace ProjectName.Systems
             main.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.15f);
             main.startColor = Color.yellow;
             ps.Emit(10);
+
+            // G2-06 HighSpec: 파티클 2배(10→20) + 미묘한 상향 바이어스.
+            // 저사양(Balanced) 경로는 위 Emit(10) 그대로 유지된다.
+            if (ActionFeel.HighSpec)
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    Vector3 vel = Random.insideUnitSphere.normalized * Random.Range(2f, 5f);
+                    vel.y = Mathf.Abs(vel.y) * 0.5f + 0.5f; // 상향 바이어스
+                    var ep = new ParticleSystem.EmitParams { velocity = vel };
+                    ps.Emit(ep, 1);
+                }
+            }
+
             Object.Destroy(go, 0.6f);
         }
 
@@ -79,6 +95,21 @@ namespace ProjectName.Systems
                 applyShapeToPosition = true
             };
             ps.Emit(emitParams, 3);
+
+            // G2-06 HighSpec: 파티클 증가(3→8) + 미묘한 상향 바이어스.
+            // 저사양(Balanced) 경로는 위 Emit(emitParams, 3) 그대로 유지된다.
+            if (ActionFeel.HighSpec)
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    Vector3 boostVel = direction.normalized * Random.Range(0.5f, 2.5f)
+                                     + Random.insideUnitSphere * 0.8f;
+                    boostVel.y = Mathf.Abs(boostVel.y) * 0.5f + 0.4f; // 상향 바이어스
+                    var ep = new ParticleSystem.EmitParams { velocity = boostVel };
+                    ps.Emit(ep, 1);
+                }
+            }
+
             Object.Destroy(go, 1f);
         }
 
@@ -118,6 +149,121 @@ namespace ProjectName.Systems
             Object.Destroy(bloodGo, 0.8f);
 
             Debug.Log($"[CombatVFXController] Assassination VFX at {position}");
+        }
+
+        // ================================================================
+        // 6. 파편 조각(디브리) 버스트 — 갈색/회색 샤드 + 밝은 플렉 (HighSpec 전용)
+        //    Balanced 모드에서는 즉시 반환 (저사양 스폰 없음, 기존 동작 불변)
+        // ================================================================
+        public static void SpawnHitDebris(Vector3 position, Vector3 direction, bool isCrit)
+        {
+            if (!ActionFeel.HighSpec) return; // HighSpec 전용 — 저사양(Balanced)은 스폰하지 않는다
+
+            int count = isCrit ? 14 : 8;
+
+            var go = new GameObject("HitDebris", typeof(ParticleSystem));
+            go.transform.position = position;
+            var ps = go.GetComponent<ParticleSystem>();
+            var main = ps.main;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.6f, 1.0f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(3f, 6f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.25f);
+            // 갈색/회색 파편 — Two-Color 랜덤 (다층 파편 레이어)
+            main.startColor = new ParticleSystem.MinMaxGradient(
+                new Color(0.45f, 0.32f, 0.18f, 1f),   // 갈색
+                new Color(0.55f, 0.55f, 0.55f, 1f));  // 회색
+
+            // 파편 샤드: 타격 방향 + 구면 산란, 하향(-Y) 중력 경향
+            for (int i = 0; i < count; i++)
+            {
+                Vector3 vel = direction.normalized * Random.Range(2f, 4f)
+                            + Random.insideUnitSphere * Random.Range(2f, 4f);
+                vel.y -= Random.Range(1f, 3f);
+                var ep = new ParticleSystem.EmitParams { velocity = vel };
+                ps.Emit(ep, 1);
+            }
+
+            // 밝은 스파크 플렉 2개(크리티컬 3개)를 파편 사이에 섞기
+            int flecks = isCrit ? 3 : 2;
+            for (int i = 0; i < flecks; i++)
+            {
+                var ep = new ParticleSystem.EmitParams
+                {
+                    velocity = Random.insideUnitSphere.normalized * Random.Range(3f, 6f),
+                    startColor = new Color(1f, 0.9f, 0.5f, 1f),
+                    startSize = Random.Range(0.04f, 0.08f)
+                };
+                ps.Emit(ep, 1);
+            }
+
+            Object.Destroy(go, 1.2f);
+        }
+
+        // ================================================================
+        // 7. 크리티컬 버스트 — 스파크 링 + 파편 + 스플래시 동시 발사 (HighSpec 전용)
+        //    단일 ParticleSystem에 3개 레이어를 EmitParams 오버라이드로 합성.
+        // ================================================================
+        public static void SpawnCritBurst(Vector3 position)
+        {
+            if (!ActionFeel.HighSpec) return; // HighSpec 전용 — 저사양(Balanced)은 스폰하지 않는다
+
+            var go = new GameObject("CritBurst", typeof(ParticleSystem));
+            go.transform.position = position;
+            var ps = go.GetComponent<ParticleSystem>();
+            var main = ps.main;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.5f, 1.0f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(3f, 6f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.25f);
+            main.startColor = new ParticleSystem.MinMaxGradient(
+                new Color(0.45f, 0.32f, 0.18f, 1f),   // 갈색 (파편 기본 레이어)
+                new Color(0.55f, 0.55f, 0.55f, 1f));  // 회색
+
+            // 레이어 1: 스파크 링 — 수평 원형 16방향으로 퍼지는 밝은 노란 스파크
+            const int ringCount = 16;
+            for (int i = 0; i < ringCount; i++)
+            {
+                float angle = (360f / ringCount) * i * Mathf.Deg2Rad + Random.Range(-0.15f, 0.15f);
+                Vector3 vel = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * Random.Range(4f, 6f);
+                vel.y = Random.Range(0.5f, 1.5f); // 링이 살짝 위로 번지게
+                var ep = new ParticleSystem.EmitParams
+                {
+                    velocity = vel,
+                    startColor = Color.yellow,
+                    startLifetime = Random.Range(0.4f, 0.6f),
+                    startSize = Random.Range(0.05f, 0.12f)
+                };
+                ps.Emit(ep, 1);
+            }
+
+            // 레이어 2: 파편 샤드 — 구면 산란 + 하향(-Y) 중력 경향 (main 갈색/회색 상속)
+            for (int i = 0; i < 12; i++)
+            {
+                Vector3 vel = Random.insideUnitSphere.normalized * Random.Range(3f, 6f);
+                vel.y -= Random.Range(1f, 3f);
+                var ep = new ParticleSystem.EmitParams
+                {
+                    velocity = vel,
+                    startLifetime = Random.Range(0.6f, 1.0f)
+                };
+                ps.Emit(ep, 1);
+            }
+
+            // 레이어 3: 붉은 스플래시 — 느리고 크게 퍼지는 액체 튀김
+            for (int i = 0; i < 8; i++)
+            {
+                Vector3 vel = Random.insideUnitSphere.normalized * Random.Range(1f, 2.5f);
+                vel.y = Mathf.Abs(vel.y) * 0.5f + 0.3f;
+                var ep = new ParticleSystem.EmitParams
+                {
+                    velocity = vel,
+                    startColor = Color.red,
+                    startLifetime = Random.Range(0.5f, 0.8f),
+                    startSize = Random.Range(0.15f, 0.3f)
+                };
+                ps.Emit(ep, 1);
+            }
+
+            Object.Destroy(go, 1.3f);
         }
 
         // ================================================================
