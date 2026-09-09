@@ -93,6 +93,33 @@ namespace ProjectName.Systems
             else
                 CombatCameraEffects.PlayHit();
 
+            // 5. 하이스펙 전용 추가 FX (ActionFeel.HighSpec일 때만 실행 — 저사양(Balanced) 기존 동작은 위 1~4 그대로 유지)
+            //    PlayHitFX 진입에서 이미 예산(TryConsumeBudget)을 소모했으므로 별도 예산 체크는 불필요.
+            if (ActionFeel.HighSpec)
+            {
+                // 지면 충격파 링: 스팸 방지 게이트 — 치명타 또는 중타 이상(damage >= 40)만 스폰
+                // (소프트 그레이즈/경미한 타격은 링 없음. 치명타=주황 강조, 일반 중타=흰색 중립)
+                if (isCrit || damage >= 40f)
+                {
+                    // 치명타: 크고 오래 지속(1.5m, 0.5s) + 주황 / 일반 중타: 작고 짧게(1.0m, 0.35s) + 흰색
+                    Color ringColor = isCrit
+                        ? ScreenFlashFX.CritColor                       // 주황 (치명타 강조)
+                        : new Color(1f, 1f, 1f, 0.6f);                  // 흰색 (일반 중타)
+                    ShockwaveRingFX.Spawn(position, isCrit ? 1.5f : 1.0f, ringColor, isCrit ? 0.5f : 0.35f);
+                }
+
+                // 화면 플래시: 세척(wash-out) 방지를 위해 값을 최소화.
+                // 결정: 치명타 -> 주황 0.3/0.2s (명확한 강조), 일반 타격 -> 극미량 흰색 0.05/0.05s
+                // (완전 OFF 대신 거의 보이지 않는 수준만 유지해 타격감 보존. ScreenFlashFX는 단일 인스턴스라
+                //  연속 타격 시 덮어써서 스택되지 않음)
+                if (isCrit)
+                    ScreenFlashFX.FlashOrange(0.3f, 0.2f);
+                else
+                    ScreenFlashFX.FlashWhite(0.05f, 0.05f);
+
+                Debug.Log($"[CombatFX-HS] ring+flash crit={(isCrit ? 1 : 0)} damage={damageInt} pos={position}");
+            }
+
             Debug.Log($"[CombatFX] crit={(isCrit ? 1 : 0)} type={type} pos={position} damage={damageInt}");
         }
 
