@@ -42,6 +42,8 @@ namespace ProjectName.UI
         private GUIStyle _categoryHeaderStyle;
         private GUIStyle _failResultStyle;
         private GUIStyle _foodSlotLabelStyle;
+        private GUIStyle _slotLabelStyle;
+        private GUIStyle _slotItemNameStyle;
         private bool _stylesInitialized;
 
         // ── 캐싱된 텍스처 (GC 방지) ──
@@ -139,6 +141,22 @@ namespace ProjectName.UI
                 normal = { textColor = Color.white }
             };
 
+            // 재료 슬롯 라벨 스타일 (기본 폰트 판독성 수정)
+            _slotLabelStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 32,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = Color.white }
+            };
+
+            // 재료 슬롯 아이템 이름 스타일 (캐싱)
+            _slotItemNameStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 28,
+                alignment = TextAnchor.UpperLeft,
+                normal = { textColor = Color.white }
+            };
+
             // ── 재료 슬롯 배경 텍스처 캐싱 ──
             _meatSlotBg = UIStyleManager.MakeTexture(1, 1, new Color(Color.green.r * 0.3f, Color.green.g * 0.3f, Color.green.b * 0.3f, 0.7f));
             _herbSlotBg = UIStyleManager.MakeTexture(1, 1, new Color(Color.cyan.r * 0.3f, Color.cyan.g * 0.3f, Color.cyan.b * 0.3f, 0.7f));
@@ -158,9 +176,12 @@ namespace ProjectName.UI
 
             // G3-05: 통일 스타일 — 딤드 오버레이 + 배경 + 타이틀 + 닫기 버튼
             UIStyleManager.DrawDimOverlay();
-            float winX = (Screen.width - _windowWidth) / 2f;
-            float winY = (Screen.height - _windowHeight) / 2f;
-            Rect winRect = new Rect(winX, winY, _windowWidth, _windowHeight);
+            // 1080p 등 저해상도 클램프: 창이 화면보다 크면 화면에 맞춤 (필드 원본은 유지)
+            float effW = Mathf.Min(_windowWidth, Screen.width - 40);
+            float effH = Mathf.Min(_windowHeight, Screen.height - 40);
+            float winX = (Screen.width - effW) / 2f;
+            float winY = (Screen.height - effH) / 2f;
+            Rect winRect = new Rect(winX, winY, effW, effH);
             UIStyleManager.DrawWindowBackground(winRect);
             UIStyleManager.DrawTitle(winRect, "  🍳 요리 테이블");
             if (UIStyleManager.DrawCloseButton(winRect))
@@ -222,9 +243,9 @@ namespace ProjectName.UI
             GUILayout.Label("─── 인벤토리 (고기) ───", _categoryHeaderStyle);
 
             // ── 고기 인벤토리 그리드 ──
-            float availableWidth = _windowWidth - 30;
+            float availableWidth = effW - 30;
             float itemSlotSize = Mathf.Min(80, (availableWidth - 3 * 6) / 4f);
-            float gridHeight = (_windowHeight - 340) / 2f;
+            float gridHeight = (effH - 340) / 2f;
             if (gridHeight < 60) gridHeight = 60;
 
             _meatScrollPos = GUILayout.BeginScrollView(_meatScrollPos, GUILayout.Height(gridHeight));
@@ -322,7 +343,7 @@ namespace ProjectName.UI
         {
             GUILayout.BeginVertical(GUILayout.Width(240), GUILayout.Height(120));
 
-            GUILayout.Label(label, GUILayout.Height(27));
+            GUILayout.Label(label, _slotLabelStyle, GUILayout.Height(48));
 
             Rect slotRect = GUILayoutUtility.GetRect(120, 54);
             Texture2D slotBg = isMeat ? _meatSlotBg : _herbSlotBg;
@@ -331,7 +352,7 @@ namespace ProjectName.UI
 
             if (slot != null)
             {
-                GUI.Label(new Rect(slotRect.x + 4, slotRect.y + 4, slotRect.width - 8, 30), slot.displayName);
+                GUI.Label(new Rect(slotRect.x + 4, slotRect.y + 4, slotRect.width - 8, 36), slot.displayName, _slotItemNameStyle);
 
                 // 우클릭 감지 → 슬롯 비우기
                 if (Event.current.type == EventType.MouseDown && Event.current.button == 1 && slotRect.Contains(Event.current.mousePosition))

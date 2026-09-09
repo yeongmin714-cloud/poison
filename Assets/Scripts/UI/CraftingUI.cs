@@ -53,6 +53,13 @@ namespace ProjectName.UI
         private GUIStyle _errorStyle;
         private GUIStyle _categoryHeaderStyle;
         private GUIStyle _inventoryLabelStyle;
+        private GUIStyle _presetLabelStyle;
+        private GUIStyle _presetButtonStyle;
+        private GUIStyle _recipeNameStyle;
+        private GUIStyle _recipeEffectStyle;
+        private GUIStyle _footerStyle;
+        private GUIStyle _slotItemNameStyle;
+        private GUIStyle _smallButtonStyle;
         private bool _stylesInitialized;
 
         // 추적: MakeTexture로 생성한 Texture2D (메모리 누수 방지)
@@ -173,6 +180,57 @@ namespace ProjectName.UI
                 normal = { textColor = new Color(0.7f, 0.7f, 0.7f), background = MakeTexture(1, 1, new Color(0.15f, 0.15f, 0.2f, 0.8f)) }
             };
 
+            // ── 소형 라벨/버튼 스타일 (기본 폰트 판독성 수정) ──
+            _presetLabelStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 32,
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = Color.white }
+            };
+
+            _presetButtonStyle = new GUIStyle(GUI.skin.button)
+            {
+                fontSize = 32,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = Color.white }
+            };
+
+            _recipeNameStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 36,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = Color.white }
+            };
+
+            _recipeEffectStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 28,
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = new Color(0.75f, 0.75f, 0.75f) } // 흐린 색 허용
+            };
+
+            _footerStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 28,
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = new Color(0.8f, 0.8f, 0.8f) }
+            };
+
+            _slotItemNameStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 28,
+                alignment = TextAnchor.UpperLeft,
+                normal = { textColor = Color.white }
+            };
+
+            _smallButtonStyle = new GUIStyle(GUI.skin.button)
+            {
+                fontSize = 28,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = Color.white }
+            };
+
             _stylesInitialized = true;
         }
 
@@ -209,9 +267,12 @@ namespace ProjectName.UI
 
             // G3-05: 통일 스타일 — 딤드 오버레이 + 배경 + 타이틀 + 닫기 버튼
             UIStyleManager.DrawDimOverlay();
-            float _winX = (Screen.width - _windowWidth) / 2f;
-            float _winY = (Screen.height - _windowHeight) / 2f;
-            Rect _winRect = new Rect(_winX, _winY, _windowWidth, _windowHeight);
+            // 1080p 등 저해상도 클램프: 창이 화면보다 크면 화면에 맞춤 (필드 원본은 유지)
+            float effW = Mathf.Min(_windowWidth, Screen.width - 40);
+            float effH = Mathf.Min(_windowHeight, Screen.height - 40);
+            float _winX = (Screen.width - effW) / 2f;
+            float _winY = (Screen.height - effH) / 2f;
+            Rect _winRect = new Rect(_winX, _winY, effW, effH);
             UIStyleManager.DrawWindowBackground(_winRect);
             UIStyleManager.DrawTitle(_winRect, "  🧪 크래프트 테이블");
             if (UIStyleManager.DrawCloseButton(_winRect))
@@ -298,7 +359,7 @@ namespace ProjectName.UI
 
             // ── 프리셋 불러오기 영역 ──
             GUILayout.BeginHorizontal();
-            GUILayout.Label("📂 프리셋:", GUILayout.Height(48), GUILayout.Width(160));
+            GUILayout.Label("📂 프리셋:", _presetLabelStyle, GUILayout.Height(48), GUILayout.Width(160));
 
             string[] presetNames = _presetNames;
             bool hasPresets = presetNames.Length > 0;
@@ -310,7 +371,7 @@ namespace ProjectName.UI
                     : "선택하세요")
                 : "저장된 프리셋 없음";
 
-            if (GUILayout.Button(currentLabel, GUILayout.Height(48), GUILayout.Width(280)))
+            if (GUILayout.Button(currentLabel, _presetButtonStyle, GUILayout.Height(48), GUILayout.Width(280)))
             {
                 // 클릭 시 토글 확장
                 _showPresetDropdown = !_showPresetDropdown;
@@ -357,9 +418,9 @@ namespace ProjectName.UI
             GUILayout.Label("─── 인벤토리 ───", _categoryHeaderStyle);
 
             // ── 인벤토리 그리드 (스크롤) ──
-            float availableWidth = _windowWidth - 30;
+            float availableWidth = effW - 30;
             float itemSlotSize = Mathf.Min(90, (availableWidth - 4 * 6) / 5f);
-            float gridHeight = _windowHeight - 280;
+            float gridHeight = effH - 280;
             if (gridHeight < 80) gridHeight = 80;
 
             _inventoryScrollPos = GUILayout.BeginScrollView(_inventoryScrollPos, GUILayout.Height(gridHeight));
@@ -453,7 +514,7 @@ namespace ProjectName.UI
 
             if (displayRecipes.Count > 0)
             {
-                int cols = Mathf.Max(1, (int)((_windowWidth - 30) / 340));
+                int cols = Mathf.Max(1, (int)((effW - 30) / 340));
                 int colIdx = 0;
 
                 GUILayout.BeginVertical();
@@ -467,23 +528,23 @@ namespace ProjectName.UI
                     bool isFav = CraftPresetManager.Instance.IsFavorite(recipeName);
 
                     // 레시피 카드
-                    GUILayout.BeginVertical(GUILayout.Width(330), GUILayout.Height(60));
+                    GUILayout.BeginVertical(GUILayout.Width(330), GUILayout.Height(100));
                     GUILayout.BeginHorizontal();
 
                     // 즐겨찾기 ★/☆ 버튼
                     string favLabel = isFav ? "★" : "☆";
                     GUI.color = isFav ? new Color(1f, 0.8f, 0f) : new Color(0.5f, 0.5f, 0.5f);
-                    if (GUILayout.Button(favLabel, GUILayout.Width(40), GUILayout.Height(40)))
+                    if (GUILayout.Button(favLabel, GUILayout.Width(48), GUILayout.Height(48)))
                     {
                         CraftPresetManager.Instance.ToggleFavorite(recipeName);
                     }
                     GUI.color = Color.white;
 
                     GUILayout.BeginVertical();
-                    GUILayout.Label(recipeName, GUILayout.Height(26));
+                    GUILayout.Label(recipeName, _recipeNameStyle, GUILayout.Height(56));
                     if (!string.IsNullOrEmpty(effect))
                     {
-                        GUILayout.Label($"효과: {effect}", GUILayout.Height(20));
+                        GUILayout.Label($"효과: {effect}", _recipeEffectStyle, GUILayout.Height(42));
                     }
                     GUILayout.EndVertical();
 
@@ -506,7 +567,7 @@ namespace ProjectName.UI
                 string emptyMsg = _showFavoritesOnly
                     ? "즐겨찾기한 레시피가 없습니다. ★을 눌러 추가하세요."
                     : "아직 발견한 레시피가 없습니다.";
-                GUILayout.Label(emptyMsg, GUILayout.Height(40));
+                GUILayout.Label(emptyMsg, _presetLabelStyle, GUILayout.Height(56));
             }
 
             GUILayout.EndScrollView();
@@ -515,7 +576,7 @@ namespace ProjectName.UI
             int favCount = _showFavoritesOnly
                 ? displayRecipes.Count
                 : CraftPresetManager.Instance.GetFavorites().Count;
-            GUILayout.Label($"발견된 조합: {discoveredCount:D2}/{totalCombos}  |  즐겨찾기: {favCount:D2}");
+            GUILayout.Label($"발견된 조합: {discoveredCount:D2}/{totalCombos}  |  즐겨찾기: {favCount:D2}", _footerStyle, GUILayout.Height(44));
 
             GUILayout.EndArea();
         }
@@ -527,7 +588,7 @@ namespace ProjectName.UI
         {
             GUILayout.BeginVertical(GUILayout.Width(240), GUILayout.Height(120));
 
-            GUILayout.Label(label, GUILayout.Height(27));
+            GUILayout.Label(label, _presetLabelStyle, GUILayout.Height(48));
 
             Rect slotRect = GUILayoutUtility.GetRect(120, 54);
             GUI.Box(slotRect, "", _slotStyle);
@@ -535,7 +596,7 @@ namespace ProjectName.UI
             if (slot != null)
             {
                 // 아이템 이름 표시
-                GUI.Label(new Rect(slotRect.x + 4, slotRect.y + 4, slotRect.width - 8, 30), slot.displayName);
+                GUI.Label(new Rect(slotRect.x + 4, slotRect.y + 4, slotRect.width - 8, 36), slot.displayName, _slotItemNameStyle);
 
                 // 우클릭 감지 → 슬롯 비우기
                 if (Event.current.type == EventType.MouseDown && Event.current.button == 1 && slotRect.Contains(Event.current.mousePosition))
@@ -547,7 +608,7 @@ namespace ProjectName.UI
                 }
 
                 // 작은 X 버튼
-                if (GUI.Button(new Rect(slotRect.xMax - 20, slotRect.y + 4, 24, 24), "X"))
+                if (GUI.Button(new Rect(slotRect.xMax - 40, slotRect.y + 4, 36, 36), "X", _smallButtonStyle))
                 {
                     slot = null;
                     _hasResult = false;
