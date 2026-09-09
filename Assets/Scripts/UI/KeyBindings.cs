@@ -26,7 +26,7 @@ namespace ProjectName.UI
         [SerializeField] private KeyCode _closeKey = KeyCode.Escape;
 
         [Header("Status Window")]
-        [SerializeField] private KeyCode _statusKey = KeyCode.C;
+        [SerializeField] private KeyCode _statusKey = KeyCode.P; // BUGFIX: KeyCode.C was conflicting with 은신(PlayerMovement cKey) → 미사용 키 P로 이동
 
         [Header("Revenge List")]
         [SerializeField] private KeyCode _revengeListKey = KeyCode.K;
