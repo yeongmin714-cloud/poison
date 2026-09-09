@@ -26,9 +26,12 @@ public static class IndoorShellMenu
         var scene = EditorSceneManager.OpenScene("Assets/Scenes/IndoorScene.unity", OpenSceneMode.Single);
 
         // 기존 셸/카메라 정리 — 비활성 포함 전수 제거(누적 버그 수정)
+        // FIX: 부모 파괴 시 자식도 파괴되어 열거 배열의 뒤 항목이 죽은 상태 → null 가드 후 이름 판정
         foreach (var go in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            if (go.name == "MedievalShell" || go.name == "IndoorCamera") Object.DestroyImmediate(go);
+            if (go == null) continue;
+            string n = go.name;
+            if (n == "MedievalShell" || n == "IndoorCamera") Object.DestroyImmediate(go);
         }
 
         MedievalShellBuilder.CreateShell();
