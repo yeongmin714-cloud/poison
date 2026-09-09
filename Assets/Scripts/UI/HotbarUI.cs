@@ -362,15 +362,7 @@ namespace ProjectName.UI
                 bgImg.raycastTarget = false;
                 _slotBgs[i] = bgImg;
 
-                // ③ 중앙 라벨 (v1: 아이콘 대체 텍스트)
-                if (!isEmpty)
-                {
-                    RectTransform label = CreateText(
-                        bg, $"Slot{i}_Label", def.label, 34, ColorText,
-                        TextAnchor.MiddleCenter, new Vector2(SlotSize * 0.5f, SlotSize * 0.5f),
-                        new Vector2(SlotSize, SlotSize));
-                    label.GetComponent<Text>().raycastTarget = false;
-                }
+                // ③ 중앙 라벨 — 2026-09-09 제거(유저 요청): 슬롯 내 텍스트 표기 폐지, 아이콘/툴팁으로 대체 예정
 
                 // ④ 우상단 수량 (소비 아이템만 갱신됨)
                 if (def.kind == SlotKind.Consumable)

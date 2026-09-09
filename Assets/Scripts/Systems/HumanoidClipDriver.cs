@@ -309,6 +309,10 @@ namespace ProjectName.Systems
             _anim.SetBool("IsCrouch", _movement != null && _movement.IsCrouching);
             _anim.SetBool("IsSwimming", _movement != null && _movement.IsSwimming);
 
+            // 2026-09-09: 은신 피드 추가 — 기존엔 Sneaky 상태로 가는 전이 조건이 전혀 공급되지 않아 은신 애니 미발동
+            var stealth = StealthSystem.Instance;
+            _anim.SetBool("IsStealthed", stealth != null && stealth.IsStealthed);
+
             // M2 정식 장착 연동: CurrentType 기반 게이트(핫바 장착이 유일한 전환 경로)
             var wtype = WeaponEquipManager.CurrentType;
             bool throwing = PlayerWeaponModeBridge.ThrowSelected;

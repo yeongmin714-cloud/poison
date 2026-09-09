@@ -121,8 +121,18 @@ namespace ProjectName.UI
             }
             _instance = this;
 
-            BuildCanvas();
-            BuildPanel();
+            try
+            {
+                BuildCanvas();
+                BuildPanel();
+                Debug.Log("[StatusWindowUI] 초기화 완료 — P키로 토글");
+            }
+            catch (System.Exception e)
+            {
+                // 원인 진단용: 예외가 나도 컴포넌트는 살려서 재시도 경로 확보
+                Debug.LogError($"[StatusWindowUI] 초기화 예외: {e}");
+                _panelRoot = null;
+            }
             DontDestroyOnLoad(gameObject);
         }
 
@@ -165,6 +175,12 @@ namespace ProjectName.UI
         {
             if (_isOpen) return;
             _isOpen = true;
+            // 자가 복구: 초기화 중 예외로 패널이 없으면 재빌드
+            if (_panelRoot == null)
+            {
+                Debug.LogWarning("[StatusWindowUI] 패널 미생성 — 재빌드 시도");
+                BuildPanel();
+            }
             _refreshTimer = 1f;
             if (_panelRoot != null) _panelRoot.SetActive(true);
             EnsureLevelSubscription();
