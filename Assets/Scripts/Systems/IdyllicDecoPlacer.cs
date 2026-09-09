@@ -161,14 +161,15 @@ namespace ProjectName.Systems
 
         internal class CategoriesR4
         {
-            public List<GameObject> willow, broadGreen, broadPurple, broadRed, fir, blossom;
-            public List<GameObject> willowGreen, willowPink;   // T-D3 B2: 수변 수양버들 색 분리 (Pink=황제국 전용)
-            public List<GameObject> bushes;
-            public List<GameObject> rockBig, rockMed, rockSmall;
-            public List<GameObject> cattail, reeds, lilyPads, waterLily;
-            public List<GameObject> flowerYellow, flowerWhite, flowerRed, flowerPurple, flowerPink, flowerBlue;
-            public List<GameObject> meadowWhite, meadowRed, meadowRedOrange, meadowPurple, meadowPink, meadowBlue;
-            public List<GameObject> grass;   // AA5: 잔디 풋 (Grass_01/02/03)
+            // NRE 방지: 전 필드 인라인 초기화 — BuildCategoriesR4 누락 할당이 있어도 항상 non-null 리스트.
+            public List<GameObject> willow = new List<GameObject>(), broadGreen = new List<GameObject>(), broadPurple = new List<GameObject>(), broadRed = new List<GameObject>(), fir = new List<GameObject>(), blossom = new List<GameObject>();
+            public List<GameObject> willowGreen = new List<GameObject>(), willowPink = new List<GameObject>();   // T-D3 B2: 수변 수양버들 색 분리 (Pink=황제국 전용)
+            public List<GameObject> bushes = new List<GameObject>();
+            public List<GameObject> rockBig = new List<GameObject>(), rockMed = new List<GameObject>(), rockSmall = new List<GameObject>();
+            public List<GameObject> cattail = new List<GameObject>(), reeds = new List<GameObject>(), lilyPads = new List<GameObject>(), waterLily = new List<GameObject>();
+            public List<GameObject> flowerYellow = new List<GameObject>(), flowerWhite = new List<GameObject>(), flowerRed = new List<GameObject>(), flowerPurple = new List<GameObject>(), flowerPink = new List<GameObject>(), flowerBlue = new List<GameObject>();
+            public List<GameObject> meadowWhite = new List<GameObject>(), meadowRed = new List<GameObject>(), meadowRedOrange = new List<GameObject>(), meadowPurple = new List<GameObject>(), meadowPink = new List<GameObject>(), meadowBlue = new List<GameObject>();
+            public List<GameObject> grass = new List<GameObject>();   // AA5: 잔디 풋 (Grass_01/02/03)
         }
 
         static int NationSeed(NationType n) { return T_R4_BASE + (int)n * 1000; }
@@ -1749,6 +1750,8 @@ namespace ProjectName.Systems
             var grass = LoadSet("IdyllicPrefabs/Grass");   // AA5
 
             c.willow = Filter(trees, "WillowTree", null);
+            c.willowGreen = Filter(trees, "WillowTree", "Green");   // T-D3 B2 수정: 누락 할당 복원 (WillowTree_*_Green) — 미할당 시 PlaceLakeshoreWillows NRE
+            c.willowPink = Filter(trees, "WillowTree", "Pink");     // T-D3 B2 수정: 황제국 전용 (프리팹 미도입 시 빈 리스트 → Green 폴백)
             c.broadGreen = Filter(trees, "BroadleafTree", "Green");
             c.broadPurple = Filter(trees, "BroadleafTree", "Purple");
             c.broadRed = Filter(trees, "BroadleafTree", "Red");
