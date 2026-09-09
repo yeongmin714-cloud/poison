@@ -552,13 +552,21 @@ namespace ProjectName.UI
             CreateImage(panel, "LeftZone", _whiteSprite, new Color(1f, 1f, 1f, 0.03f),
                 new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -y), new Vector2(442f, 640f), new Vector2(0f, 1f));
 
-            // --- 3D 뷰포트 ---
-            var viewport = CreateImage(panel, "Viewport", _whiteSprite, ColorViewport,
-                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(122f, -(y + 20f)), new Vector2(226f, 300f), new Vector2(0f, 1f));
-            _viewportImage = viewport.gameObject.AddComponent<RawImage>();
+            // --- 3D 뷰포트 (FIX: Image가 있는 오브젝트에 RawImage AddComponent → 유니티가 거부해 null 반환 = NRE 원인.
+            //     Graphic 2중 구성 금지 — RawImage 전용 오브젝트로 직접 생성) ---
+            var viewportGO = new GameObject("Viewport", typeof(RectTransform), typeof(RawImage));
+            viewportGO.transform.SetParent(panel, false);
+            var viewportRt = viewportGO.GetComponent<RectTransform>();
+            viewportRt.anchorMin = new Vector2(0f, 1f);
+            viewportRt.anchorMax = new Vector2(0f, 1f);
+            viewportRt.pivot = new Vector2(0f, 1f);
+            viewportRt.anchoredPosition = new Vector2(122f, -(y + 20f));
+            viewportRt.sizeDelta = new Vector2(226f, 300f);
+            _viewportImage = viewportGO.GetComponent<RawImage>();
             _viewportImage.texture = null;
+            _viewportImage.color = ColorViewport;
             _viewportImage.raycastTarget = true; // 드래그 대상
-            _viewportRect = viewport;
+            _viewportRect = viewportRt;
 
             CreateText(panel, "ViewportHint", "드래그: 회전", 14, ColorDim,
                 TextAnchor.MiddleCenter, new Vector2(122f, -(y + 330f)), new Vector2(226f, 20f), new Vector2(0f, 1f), new Vector2(0f, 1f));

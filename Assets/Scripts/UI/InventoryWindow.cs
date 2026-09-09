@@ -56,37 +56,36 @@ namespace ProjectName.UI
         private readonly Rect[] _padRects = new Rect[8];      // 설명 패널 핫바 미니패드 화면 Rect
         private float _lastInvX;                              // 컨텍스트 창(상점)이 참조하는 인벤 좌측 x
 
-        /// <summary>상점 등 컨텍스트 창의 x 좌표 — 인벤 열림 시 [인벤][설명] 우측, 아니면 화면 우측</summary>
+        /// <summary>상점 등 컨텍스트 창의 x 좌표 — 제3구획(화면 우측 1/3) 시작점</summary>
         public static float GetContextX(float contextWidth)
         {
-            if (_instance != null && _instance.IsOpen)
-                return _instance._lastInvX + WINDOW_WIDTH + DESC_GAP + DESC_PANEL_WIDTH + DESC_GAP;
-            return Screen.width - contextWidth - 16f;
+            return Screen.width * 2f / 3f + 6f;
         }
+
+        /// <summary>삼분활 패널 폭 (상점 등 컨텍스트 창이 사용)</summary>
+        public static float PanelWidth => Screen.width / 3f - 12f;
 
         // ===== 정렬 =====
         private enum SortMode { None, Category, Name, Rarity, Quantity }
         private SortMode _sortMode = SortMode.None;
         private string[] _sortModeLabels = { "정렬 안함", "카테고리순", "이름순", "등급순", "수량순" };
 
-        // ===== 레퍼런스 스타일 상수 (젤다 토탈코딩 스타일) =====
-        // 2026-09-09 재구조화: 캐릭터 프리뷰/무기버튼/하단상세 제거 → [인벤][설명][컨텍스트] 3패널
-        private const float WINDOW_WIDTH = 820f;
-        private const float WINDOW_HEIGHT = 1040f;   // C-UP: 1080p 전체화면 기준 상하 클리핑 방지 (1160→1040)
+        // ===== 레퍼런스 스타일 상수 =====
+        // 2026-09-09(2): 화면 정확히 삼분활 — 패널 폭 = Screen.width/3 - 12, 하단 핫바(150+12) 공간 확보
+        private static float WINDOW_WIDTH => Screen.width / 3f - 12f;
+        private static float WINDOW_HEIGHT => Screen.height - 180f;   // 상단 10 + 하단 핫바 170 여백
         private const float TITLE_BAR_HEIGHT = 108f;
         private const float TAB_BAR_HEIGHT = 96f;
         private const float INFO_PANEL_HEIGHT = 272f;   // (레거시 — 미사용)
         private const float WEAPON_SECTION_HEIGHT = 112f;  // (레거시 — 미사용)
-        private const float EQUIP_ROW_HEIGHT = 130f;    // 하단 장비슬롯 6종 행
-        private const float DESC_PANEL_WIDTH = 430f;    // 중앙 아이템 설명 패널 폭
-        private const float DESC_GAP = 16f;             // 패널 간격
-        private const int GRID_COLUMNS = 5;                // 젤다 스타일 5열 그리드
+        private const float EQUIP_ROW_HEIGHT = 268f;    // 장비창 5칸씩 2줄 (박스 86 + 라벨 44 × 2)
+        private const float DESC_GAP = 12f;             // 구획 간 미세 여백
+        private const int GRID_COLUMNS = 5;                // 가방 5칸씩 (6줄 + 스크롤)
         private const float SLOT_MARGIN = 6f;              // 슬롯 간격
         private const float SLOT_ICON_SIZE = 96f;          // 슬롯 내 아이콘 크기 (레거시, 동적 크기 사용 권장)
-        private const int GRID_MIN_ROWS = 2;               // 빈 상태에서도 보이는 최소 그리드 행 수
-        // 2분할 레이아웃 (레거시): 프리뷰 폭 0 → 그리드가 전체 폭 사용
-        private const float PREVIEW_PANEL_WIDTH = 0f;    // 우측 프리뷰 패널 폭 (제거됨)
-        private const float GRID_AREA_WIDTH = WINDOW_WIDTH - PREVIEW_PANEL_WIDTH; // 좌측 그리드 영역 폭
+        private const int GRID_MIN_ROWS = 6;               // 가방 가시 행 수 (6줄, 초과분 스크롤)
+        private const float PREVIEW_PANEL_WIDTH = 0f;    // (제거됨)
+        private static float GRID_AREA_WIDTH => WINDOW_WIDTH - PREVIEW_PANEL_WIDTH; // 그리드 영역 폭
 
         // 포커스/강조 색상 (민트 글로우 + 황금 테두리)
         private static readonly Color ColorMintGlow = new Color(0.30f, 1f, 0.75f, 0.28f);
@@ -391,12 +390,10 @@ namespace ProjectName.UI
 
             // G3-05: 통일 스타일 — 딤드 오버레이 + 배경 + 타이틀 + 닫기 버튼
             UIStyleManager.DrawDimOverlay();
-            // 2026-09-09: 컨텍스트 모드에 따라 [인벤][설명][상점] 3패널이 화면에 맞게 배치
-            float layoutWidth = WINDOW_WIDTH + DESC_GAP + DESC_PANEL_WIDTH;
-            if (_contextMode == ContextMode.Shop) layoutWidth += DESC_GAP + 520f;
-            float x = (Screen.width - layoutWidth) / 2;
+            // 2026-09-09(2): 화면 정확히 삼분활 — 제1구획=인벤(x=6), 제2=설명(S/3+6), 제3=컨텍스트(2S/3+6)
+            float x = 6f;
             _lastInvX = x;
-            float y = (Screen.height - WINDOW_HEIGHT) / 2;
+            float y = 10f;
             Rect winRect = new Rect(x, y, WINDOW_WIDTH, WINDOW_HEIGHT);
             UIStyleManager.DrawWindowBackground(winRect);
             UIStyleManager.DrawTitle(winRect, "  📦 인벤토리");
@@ -458,7 +455,7 @@ namespace ProjectName.UI
             float equipY = gridY + gridHeight + 2;
             DrawEquipRow(x, equipY);
 
-            // === 중앙 아이템 설명 패널 (2026-09-09: 하단 상세박스 대체 — 설명 + 핫바 미니패드) ===
+            // === 중앙 아이템 설명 패널 (2026-09-09(2): 제2구획 — 설명 + 핫바 미니패드) ===
             DrawDescriptionPanel(x + WINDOW_WIDTH + DESC_GAP, y);
 
             // === 🗺️ 오토루트 컨텍스트 메뉴 ===
@@ -1436,35 +1433,40 @@ namespace ProjectName.UI
         // ===================================================================
         private void DrawEquipRow(float panelX, float rowY)
         {
+            // 2026-09-09(2): 장비창 5칸씩 2줄 (예시2) — 실장비 6종 + 예약 4칸
             var em = ProjectName.Systems.EquipmentManager.Instance;
-            string[] slotNames = { "투구", "상의", "무기", "신발", "장갑", "등" };
-            float boxSize = 92f;
+            string[] slotNames = { "투구", "상의", "무기", "신발", "장갑", "등", "예약", "예약", "예약", "예약" };
+            float boxW = (WINDOW_WIDTH - 16f - 4f * 10f) / 5f;
+            float boxH = 86f;
 
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 10; i++)
             {
-                var slot = (ProjectName.Systems.EquipmentManager.EquipmentSlot)i;
-                float sx = panelX + 8f + i * (boxSize + 14f);
-                Rect boxRect = new Rect(sx, rowY + 4f, boxSize, boxSize);
+                int col = i % 5;
+                int row = i / 5;
+                bool reserved = i >= 6;
+                float sx = panelX + 8f + col * (boxW + 10f);
+                float sy = rowY + row * (boxH + 44f);
+                Rect boxRect = new Rect(sx, sy, boxW, boxH);
 
                 string itemId = null;
-                if (em != null)
+                if (!reserved && em != null)
                 {
-                    var data = em.GetSlotData(slot);
+                    var data = em.GetSlotData((ProjectName.Systems.EquipmentManager.EquipmentSlot)i);
                     if (data != null) itemId = data.itemId;
                 }
                 bool has = !string.IsNullOrEmpty(itemId);
 
-                GUI.Box(boxRect, "", has ? _styleWeaponBtnEquipped : _styleSlot);
-                GUI.Label(new Rect(sx, rowY + 4f + boxSize + 2f, boxSize, 20f), slotNames[i], _styleSlotLabel);
+                GUI.Box(boxRect, "", reserved ? _styleSlot : (has ? _styleWeaponBtnEquipped : _styleSlot));
+                GUI.Label(new Rect(sx, sy + boxH + 2f, boxW, 20f), slotNames[i], _styleSlotLabel);
                 if (has)
-                    GUI.Label(new Rect(sx - 8f, rowY + 4f + boxSize + 20f, boxSize + 16f, 20f),
+                    GUI.Label(new Rect(sx - 8f, sy + boxH + 20f, boxW + 16f, 20f),
                         ProjectName.Systems.EquipmentStatBonusApplier.DisplayName(itemId), _styleItemName);
 
-                // 우클릭 해제
-                if (has && Event.current.type == EventType.MouseDown && Event.current.button == 1
+                // 우클릭 해제 (실장비 슬롯만)
+                if (has && !reserved && Event.current.type == EventType.MouseDown && Event.current.button == 1
                     && boxRect.Contains(Event.current.mousePosition))
                 {
-                    em?.UnequipSlot(slot);
+                    em?.UnequipSlot((ProjectName.Systems.EquipmentManager.EquipmentSlot)i);
                     Event.current.Use();
                 }
             }
@@ -1475,18 +1477,18 @@ namespace ProjectName.UI
         // ===================================================================
         private void DrawDescriptionPanel(float dx, float dy)
         {
-            Rect panelRect = new Rect(dx, dy, DESC_PANEL_WIDTH, WINDOW_HEIGHT);
+            Rect panelRect = new Rect(dx, dy, WINDOW_WIDTH, WINDOW_HEIGHT);
             GUI.Box(panelRect, "", _stylePanelBox);
-            DrawColoredRect(new Rect(dx, dy, DESC_PANEL_WIDTH, 2), ColorBorder);
-            DrawColoredRect(new Rect(dx, dy + WINDOW_HEIGHT - 2, DESC_PANEL_WIDTH, 2), ColorBorder);
-            DrawColoredRect(new Rect(dx + DESC_PANEL_WIDTH - 2, dy, 2, WINDOW_HEIGHT), ColorBorder);
-            GUI.Label(new Rect(dx, dy + 2, DESC_PANEL_WIDTH, TITLE_BAR_HEIGHT), "  📋 아이템 정보", _styleTitle);
-            DrawColoredRect(new Rect(dx, dy + TITLE_BAR_HEIGHT + 2, DESC_PANEL_WIDTH, 2), ColorBorder);
+            DrawColoredRect(new Rect(dx, dy, WINDOW_WIDTH, 2), ColorBorder);
+            DrawColoredRect(new Rect(dx, dy + WINDOW_HEIGHT - 2, WINDOW_WIDTH, 2), ColorBorder);
+            DrawColoredRect(new Rect(dx + WINDOW_WIDTH - 2, dy, 2, WINDOW_HEIGHT), ColorBorder);
+            GUI.Label(new Rect(dx, dy + 2, WINDOW_WIDTH, TITLE_BAR_HEIGHT), "  📋 아이템 정보", _styleTitle);
+            DrawColoredRect(new Rect(dx, dy + TITLE_BAR_HEIGHT + 2, WINDOW_WIDTH, 2), ColorBorder);
 
             float cy = dy + TITLE_BAR_HEIGHT + 16f;
             if (_selectedItemData == null)
             {
-                GUI.Label(new Rect(dx + 16f, cy, DESC_PANEL_WIDTH - 32f, 40f),
+                GUI.Label(new Rect(dx + 16f, cy, WINDOW_WIDTH - 32f, 40f),
                     "좌클릭: 아이템 선택\n우클릭: 장비 장착", _styleItemName);
                 DrawHotbarPads(dx, dy + WINDOW_HEIGHT - 150f, allowDrop: true);
                 return;
@@ -1494,26 +1496,26 @@ namespace ProjectName.UI
 
             var item = _selectedItemData;
             // 이름 + 등급
-            GUI.Label(new Rect(dx + 16f, cy, DESC_PANEL_WIDTH - 32f, 34f), item.displayName, _styleItemName);
+            GUI.Label(new Rect(dx + 16f, cy, WINDOW_WIDTH - 32f, 34f), item.displayName, _styleItemName);
             cy += 40f;
-            GUI.Label(new Rect(dx + 16f, cy, DESC_PANEL_WIDTH - 32f, 24f),
+            GUI.Label(new Rect(dx + 16f, cy, WINDOW_WIDTH - 32f, 24f),
                 $"[{item.category}]  수량: {_selectedItemCount}  등급: {item.rarity}", _styleSlotLabel);
             cy += 30f;
 
             // 아이콘 (있으면)
             if (item.icon != null)
             {
-                GUI.DrawTexture(new Rect(dx + (DESC_PANEL_WIDTH - 128f) / 2f, cy, 128f, 128f), item.icon.texture, ScaleMode.ScaleToFit);
+                GUI.DrawTexture(new Rect(dx + (WINDOW_WIDTH - 128f) / 2f, cy, 128f, 128f), item.icon.texture, ScaleMode.ScaleToFit);
                 cy += 136f;
             }
 
             // 설명
-            GUI.Label(new Rect(dx + 16f, cy, DESC_PANEL_WIDTH - 32f, 120f), item.description ?? "", _styleSlotLabel);
+            GUI.Label(new Rect(dx + 16f, cy, WINDOW_WIDTH - 32f, 120f), item.description ?? "", _styleSlotLabel);
             cy += 128f;
 
             // 효과 문자열 (있으면)
             if (!string.IsNullOrEmpty(item.effects))
-                GUI.Label(new Rect(dx + 16f, cy, DESC_PANEL_WIDTH - 32f, 60f), $"효과: {item.effects}", _styleItemName);
+                GUI.Label(new Rect(dx + 16f, cy, WINDOW_WIDTH - 32f, 60f), $"효과: {item.effects}", _styleItemName);
 
             // 핫바 미니패드 — 드래그로 지정
             DrawHotbarPads(dx, dy + WINDOW_HEIGHT - 150f, allowDrop: true);
@@ -1522,7 +1524,7 @@ namespace ProjectName.UI
         /// <summary>설명 패널 하단 핫바 1~8 미니패드 (드래그 드롭 대상)</summary>
         private void DrawHotbarPads(float dx, float py, bool allowDrop)
         {
-            GUI.Label(new Rect(dx + 16f, py - 24f, DESC_PANEL_WIDTH - 32f, 20f),
+            GUI.Label(new Rect(dx + 16f, py - 24f, WINDOW_WIDTH - 32f, 20f),
                 "아이템을 드래그해서 숫자패드에 놓으면 핫바에 등록됩니다", _styleSlotLabel);
             float padSize = 44f;
             float gap = 7f;
