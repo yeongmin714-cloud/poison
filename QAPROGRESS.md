@@ -1331,6 +1331,24 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 
 ---
 
+## 2026-09-10 8차: Test_10 영지 가시성+병사 GLB+하트 HUD 이식+콤보 RunToWalk 인터럽트 근본원인 ✅ (커밋 445399e7/1e37a220)
+
+**사용자 보고**: 영지 안 보임/체력바(HUD) 없음/농경 확인 불가/병사가 GLB가 아님/콤보 애니 여전.
+
+**진단(로그)**: ①영지 성 큐브(z=±25)는 정상 배치 로그 실증 — 카메라가 플레이어(원점) 추적이라 성이 화면 밖/너무 멀어 미가시 ②하트 HUD는 Test_09(TestAllInOneSetup) 전용으로만 부착되고 Test_10에는 훅이 없었음 ③병사 CreateGuard는 캡슐 프리미티브 시각 — GLB(Soldier_Lv*.glb, Humanoid) 미부착 ④콤보: 내 Speed 홀드 이후에도 AttackCombo가 normT 4~6%에서 튕김 → **RunToWalk 트리거(AnyState)가 Attack 애니 중에도 발화되어 Run_to_Walk_Transition으로 인터럽트**하는 것을 근본원인 확정(_smoothedSpeed 하향 통과는 내 Speed 0 고정과 무관하게 발생).
+
+**수정 (TestTerritoryCombatSetup +64행, HumanoidClipDriver +4/-1)**:
+- 병사 GLB 부착: CreateGuard에 레벨 분기(level≥40→soldier_lv40/≥20→soldier_lv20/else soldier_lv1 — RuntimeModelLoader alias), GLB 부착+캡슐 Destroy+자식 콜라이더 전부 제거(루트 Box 유지=레이캐스트)+ModelAnimatorAssigner 제거(레거시 예방)
+- 하트 HUD 이식: EnsurePlayerHUD(Test_09 선례 — 리플렉션 ProjectName.UI.HUD, 중복 방지, try-catch 격리)
+- 영지 가시성: 위치 ±25→±32m(플레이어-성 간격 확대) + 성 10×8×10→**14×12×14 대형화**(원점 카메라에서 확실히 보이게)
+- 콤보: RunToWalk 트리거 발화에 `Time.time >= _attackHoldUntil` 게이트 — 공격 홀드 중 Run_to_Walk 인터럽트 억제(normT 5% 팝 근본 차단)
+
+**검증**: 배치컴파일 CS=0 ×2(중간 CS0246 1건 — Type→System.Type 정규화 후 통과, buildlog_territory_guard2/_vis). 중간 이슈: 유니티 프로세스 2개 락 → 확립 절차로 강제종료 후 재실행. braces 106/106 균형.
+
+**Play 판정 대기**: ①원점에서 앞(+z)에 파란 성(14×12×14)·뒤(-z)에 빨간 성 가시성 ②병사 6명 GLB 모델 표시(캡슐 아님) ③하트 HUD(하트 아이콘+숫자HP) 표시, 피격 시 감소 ④연타 콤보 normT 튕김 0(AttackCombo → Idle 로그가 0.9 이후에만) ⑤농경/전리품/하트 시각 검증
+
+---
+
 ## 2026-09-10 6차: Test_10 T포즈 근본해결(리그 교체)+슬라임 비행 차단+카메라 순서 — 콤보/피격 정상화 ✅
 
 **증상(테스트 영상3+콘솔)**: ①플레이어 T포즈 지속(애니 부재) ②콤보/피격 이상 ③슬라임이 날아가 파란 지형(스카이박스) 위로 이동 ④"씬에 카메라가 없습니다" 에러 ⑤MonsterAggroSystem 씬 정리 경고.
