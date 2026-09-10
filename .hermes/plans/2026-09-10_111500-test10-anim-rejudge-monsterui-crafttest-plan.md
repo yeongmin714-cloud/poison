@@ -54,3 +54,33 @@
 - 몬스터 HP바: IMGUI world→screen 변환은 프레임마다 카메라 조회 — Camera.main 캐시
 - 크래프트 테스트씬 지형 교체로 기존 실내 테스트 플로우 영향 0(바닥 높이만 계약 정합)
 - Test_10 플레이어가 "8초에 모델 소실"은 영상 프레임상 화면 밖 이동으로 추정 — Phase 1 침하 감시 로그(편차 0.435m=정상)가 이미 정상 입증
+
+---
+
+# 추가 Phase 5 — C드라이브 용량 정리 (2026-09-10 실측)
+
+## 실측 결과 (C:\Unity = 약 26.6GB)
+
+| 항목 | 크기 | 판정 |
+|---|---|---|
+| code/Library/Artifacts | **7.96GB** | 안전 삭제 — Unity 에디터 임포트 캐시, 재실행 시 자동 재생성(임포트 시간 소요) |
+| code/Training/TrainingInfra/venv | **4.95GB** | 파이썬 학습 가상환경 — 신경 애니 학습 보류 중(ROADMAP_TRAINING 상 보류) → 압축 보관 후 삭제 |
+| code_temp_compile | **2.47GB** | 옛 컴파일용 프로젝트 사본 — 완전 불필요(코드 동기화 안 됨) → 삭제 |
+| Library/PackageCache | 1.68GB | 에디터 필수 캐시 — 보존(삭제 시 재다운로드) |
+| buildlog*.txt 등 잡파일 109개 | 625MB | 로그/임시 산출물 → 개별 5MB 초과분만 선별 삭제(대부분 소량) |
+| code/Bee | 0.19GB | 재생성 캐시 — 보류(라운드트립 비용) |
+
+## 안전 절차 (삭제 3종)
+
+1. **사전 가드**: 유니티 에디터 닫힘 확인(프로세스 0) → 아니면 강제종료(확립 절차). Library 삭제 중 에디터 실행 금지.
+2. **venv 보존 삭제**: `Training/TrainingInfra/venv` → 7z/zip 압축(약 1.5~2GB) 후 `D:\UnityArchive\` 이동 보관 → 원본 삭제. requirements.txt 존재 확인 후 재구성 가능성 보장.
+3. **code_temp_compile 삭제**: 최근 수정 파일 있는지 mtime 확인 후 폴더 전체 삭제(2.47GB).
+4. **Artifacts 삭제**: 폴더만 삭제(에디터가 재생성). 삭제 후 첫 에디터 실행 시 리임포트 시간 안내.
+5. 삭제 후 재측정 → 확보량 보고(예상 약 14.5GB).
+
+## 리스크/비고
+
+- Artifacts 재생성 비용: 다음 에디터 실행 시 임포트 리빌드(저사양 PC에서 수 분) — 빌드/씬 데이터 무손상
+- venv 재필요 시: requirements.txt로 재구성(기록 유지)
+- MainScene LFS/Git 개체는 건드리지 않음(git size-pack 348MB — 보존)
+-Screenshots(28MB)/Screenshot 로그 txt(625MB, 109개) → 5MB 초과 로그만 선별 삭제

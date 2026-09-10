@@ -15,6 +15,7 @@ namespace ProjectName.Systems
     ///
     /// [동작] PlayerModel 발견(최대 5초 대기) → 레거시 컴포넌트 전부 Destroy → 루트 빈 Animator 제거 →
     /// PlayerModel에 Player_AC 부착 → Rigidbody 무해화 재확인 → 루트에 HumanoidClipDriver 부착 →
+    /// 아바타 감시(GLB 어바탓 지연 도착 시 Rebind+재생 재시작, 최대 5초) → 3초 후 애니 검증 로그 →
     /// 2초 후 침하 감시 1회. 전 구간 try-catch 격리 — 부트가 실패해도 Play는 계속된다.
     /// </summary>
     public class TestPlayerAnimatorBoot : MonoBehaviour
@@ -22,6 +23,9 @@ namespace ProjectName.Systems
         private const string ModelName = "PlayerModel";
         private const string PlayerAcPath = "Animation/Controllers/Player_AC";
         private const float FindTimeout = 5f;
+        private const float AvatarWatchTimeout = 5f;    // 10) 아바타 감시 총 대기
+        private const float AvatarPollInterval = 0.25f; // 10) 아바타 폴링 간격
+        private const float AnimationVerifyDelay = 3f;  // 11) 애니 검증 지연
 
         private void Start()
         {
