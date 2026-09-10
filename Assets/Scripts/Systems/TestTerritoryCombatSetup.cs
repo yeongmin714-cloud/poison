@@ -402,11 +402,13 @@ namespace ProjectName.Systems
                     mrb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
                     mrb.drag = 0f; mrb.angularDrag = 0.05f;
                 }
-                var hit = go.GetComponent<HitReaction>();
-                if (hit != null) hit.DisableKnockback();   // 넉백/절트 완전 오프 — 절차애니 몬스터는 HitReaction 넉백이 Transform을 유령처럼 이동시킴
+                // 넉백/절트 차단은 HitReaction 확정 '이후'에 적용 — GLB 프리팹은 HitReaction 미부착이므로
+                // 이전 순서(GetComponent→null→스킵 후 AddComponent)로는 신규 추가분에 스위치가
+                // 빠져 비행 증상이 재발한다 (2026-09-10 QA 순서 버그 수정)
             }
             if (go.GetComponent<HitReaction>() == null)
                 go.AddComponent<HitReaction>();
+            go.GetComponent<HitReaction>()?.DisableKnockback();   // 넉백/절트 완전 오프 — 절차애니 몬스터는 HitReaction 넉백이 Transform을 유령처럼 이동시킴
 
             // Test_10 Phase 2 훅: 몬스터 헤드 UI(이름/Lv/HP바) 부착 — 그 외 로직 무변경
             if (ai != null)

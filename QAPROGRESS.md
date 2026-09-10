@@ -1060,3 +1060,24 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 **Phase 5 — C드라이브 용량 정리 (7.4→23.2GB, +15.8GB 확보)**: venv 4.95GB(리눅스 심링크 venv — Windows Zip 불가 확정→requirements.txt 재구성 가능, 학습 보류 중이라 바로 삭제)/code_temp_compile 2.47GB(7/18 이후 미수정 사본)/Library/Artifacts 7.96GB(에디터 재생성 캐시)/buildlog_cap.txt 616MB. **주의: 다음 에디터 실행 시 리임포트(수 분) 발생 — 정상.**
 
 **Play 판정 대기**: ①Test_10 — 아바타 감시 로그+애니검증(clip=… playing=True)+T포즈 해소 ②슬라임 머리 이름/Lv/HP바(타격 시 실시간 감소·색 전환) ③[SlashVFX] 스윙 스폰 로그 ④크래프트 테스트씬 — 인벤 13종(전설 글로우)+핫바 3슬롯+미니맵/스탯/장비창 각 키 ⑤에디터 재실행 리임포트 완료 후 UI 정상
+
+---
+
+## 2026-09-10 6차: Test_10 T포즈 근본해결(리그 교체)+슬라임 비행 차단+카메라 순서 — 콤보/피격 정상화 ✅
+
+**증상(테스트 영상3+콘솔)**: ①플레이어 T포즈 지속(애니 부재) ②콤보/피격 이상 ③슬라임이 날아가 파란 지형(스카이박스) 위로 이동 ④"씬에 카메라가 없습니다" 에러 ⑤MonsterAggroSystem 씬 정리 경고.
+
+**근본원인 3건 확정(Editor.log+영상 몽타주 교차)**:
+1. **T포즈 = 리그 불일치**: RuntimeModelLoader가 Player_Rigged.glb를 **RiggedMonster(non-humanoid)** 로 판정("지연 로드: 'Player_Rigged' (RiggedMonster)" 로그) → GLB 인스턴스의 Animator.avatar가 null(휴머노이드 아님) → **Player_AC(휴머노이드 전용) 재생 불가**. 아바타 감시가 5초 대기했지만 어차피 안 도착함("avatar 미도착" 로그 실증). 반면 Player_Rigged_Heat.fbx는 Humanoid 임포트(animationType:3)로 imported avatar 보유 — InventoryWindow 프리뷰에서 정상 재생 실증.
+2. **슬라임 비행 = 3중 중첩**: ①GLB 프리팹에 절차애니 컴포넌트가 rb 자동부착(비관성) ②HitReaction 넉백(AddForce Impulse y+0.5) ③HighSpec 키네마틱 절트(Transform 직접 쓰기 — 물리 Freeze 무시, y+0.4 홉+거리 2배) → 타격 때마다 몬스터가 공중으로 유령 변위, 파란 스카이박스 영역으로 이동. 데미지 숫자는 데미지 텍스트가 IMGUI world→screen 변환 미탑재(기존 CombatVFX 파티클만) — 신규 이슈 아님.
+3. **카메라 에러**: TestTerritoryCombatSetup.Awake에서 SetupPlayer(→PlayerMovement.Awake)가 SetupCamera보다 먼저 실행.
+
+**수정**:
+- **리그 교체(TestPlayerAnimatorBoot)**: 부트 초기에 GLB PlayerModel을 **Player_Rigged_Heat.fbx(Humanoid, avatar 보유 — InventoryWindow 프리뷰 경로 실증)** 로 교체, 이름 "PlayerModel" 계승+oldModel Destroy. 이후 기존 전 로직(레거시 제거/Player_AC 부착/드라이버/감시) 그대로 통과 — T포즈 재발 경로 차단. FBX 없으면 GLB 경로 폴백.
+- **슬라임 비행 차단**: SpawnMonster에서 rb 관성화(FreezePositionX/Z+FreezeRotation — y만 접지, 수평은 AnimalAI Transform 제어와 무충돌) + 신규 HitReaction.DisableKnockback()(넉백/절트 오프, HitFlash+경직 유지). QA에서 **치명 순서 버그 발견·패치** — 기존엔 GetComponent<HitReaction>이 AddComponent보다 앞서 null→스킵→신규 AddComponent로 넉백 활성 유지되었음 → AddComponent 후에 확정 후 DisableKnockback 호출로 교정.
+- **카메라 순서**: SetupCamera를 SetupPlayer 앞으로 — "카메라 없음! 생성" 에러 방지.
+- MonsterAggroSystem 경고: DontDestroyOnLoad 미사용 런타임 자동생성 GO — 무해(씬 정리 시 사라짐), 코드 유지.
+
+**검증**: 배치컴파일 CS=0 ×2(수정 전후, buildlog_fix3_combo_flight/_final). QA 3항목 PASS+**치명 순서 버그 1건 발견·직접 패치**(DisableKnockback 호출이 AddComponent 뒤에 오도록). Player_AC 트리거(Attack/AttackCombo/Hit/Death)+콤보 로직(HumanoidClipDriver 361-364행) 정상 확인 — T포즈만 해소되면 콤보/피격은 기존 파이프라인 그대로 발화.
+
+**Play 판정 대기**: ①부팅 로그 "✅ 리그 소스 교체" ②애니검증 clip=… playing=True ③T포즈 해소+이동/공격 애니 ④좌클릭 연타 → AttackCombo 애니 ⑤슬라임 타격 시 제자리 경직(비행/벽 관통 0) ⑥카메라 에러 0건 ⑦모델 크기 적정(침하감시 bounds 로그) — 과대/과소 시 bounds 정규화 추가
