@@ -595,8 +595,17 @@ namespace ProjectName.UI
 
             if (slot != null)
             {
+                // GLB 베이크/절차 아이콘 (좌측) — 있으면 이름을 오른쪽으로 밀어 표시
+                Texture2D slotIcon = ItemIconDatabase.GetOrCreateIcon(slot);
+                float nameX = 4f;
+                if (slotIcon != null)
+                {
+                    GUI.DrawTexture(new Rect(slotRect.x + 4, slotRect.y + 9, 36, 36), slotIcon);
+                    nameX = 44f;
+                }
+
                 // 아이템 이름 표시
-                GUI.Label(new Rect(slotRect.x + 4, slotRect.y + 4, slotRect.width - 8, 36), slot.displayName, _slotItemNameStyle);
+                GUI.Label(new Rect(slotRect.x + nameX, slotRect.y + 4, slotRect.width - nameX - 8, 36), slot.displayName, _slotItemNameStyle);
 
                 // 우클릭 감지 → 슬롯 비우기
                 if (Event.current.type == EventType.MouseDown && Event.current.button == 1 && slotRect.Contains(Event.current.mousePosition))
@@ -664,11 +673,21 @@ namespace ProjectName.UI
             GUI.DrawTexture(rect, Texture2D.whiteTexture);
             GUI.color = Color.white;
 
-            // 아이콘 (색상 사각형 fallback)
-            Color iconColor = GetCategoryColor(item.category);
-            GUI.color = iconColor;
-            GUI.DrawTexture(new Rect(rect.x + 4, rect.y + 4, size - 8, size - 24), Texture2D.whiteTexture);
-            GUI.color = Color.white;
+            // 아이콘 — GLB 베이크/절차 아이콘 우선, 없으면 카테고리 색상 폴백
+            Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(item);
+            if (iconTex != null)
+            {
+                // 베이크/절차 아이콘 — 슬롯 안에 그리기
+                GUI.DrawTexture(new Rect(rect.x + 4, rect.y + 4, size - 8, size - 24), iconTex);
+            }
+            else
+            {
+                // 기존 카테고리 색상 폴백 (색상 사각형)
+                Color iconColor = GetCategoryColor(item.category);
+                GUI.color = iconColor;
+                GUI.DrawTexture(new Rect(rect.x + 4, rect.y + 4, size - 8, size - 24), Texture2D.whiteTexture);
+                GUI.color = Color.white;
+            }
 
             // 이름 + 개수 (캐시된 스타일 사용)
             GUI.Label(new Rect(rect.x + 2, rect.y + size - 22, rect.width - 4, 30), label, _inventoryLabelStyle);

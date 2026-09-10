@@ -19,6 +19,11 @@ namespace ProjectName.UI
         /// </summary>
         public static Texture2D GetOrCreateIcon(PlayerInventory.ItemData item)
         {
+            // GLB 아이콘 우선 (GblItemIconRenderer) — 베이크 전/모델 없으면 null → 절차 아이콘 폴백
+            var gbl = GblItemIconRenderer.GetOrCreateIcon(item);
+            if (gbl != null)
+                return gbl;
+
             if (item == null || string.IsNullOrEmpty(item.id))
                 return GetFallbackIcon();
 
