@@ -11,8 +11,8 @@ namespace ProjectName.Systems
     ///   (Player_AC에만 추가) Roll, Jump
     ///
     /// ■ Player 모드 — CharacterController.velocity(수평)를 Speed로, PlayerCombat.LastAttackTime
-    ///   변화를 공격 트리거(2타 내 콤보 감지), PlayerMovement.IsRolling/IsJumping 상승엣지를
-    ///   Roll/Jump 트리거로 변환한다.
+    ///   변화(클릭 엣지)를 WeaponCombo 콤보 스테이지 진행으로 변환(단일 테이크 슬라이스 + 플레이헤드 제어 B안),
+    ///   PlayerMovement.IsRolling/IsJumping 상승엣지를 Roll/Jump 트리거로 변환한다.
     /// ■ Soldier 모드 — transform 위치 델타로 Speed를 계산하고, 공격은 GuardCombatAI가
     ///   TriggerAttack()으로 호출한다.
     /// </summary>
@@ -23,8 +23,21 @@ namespace ProjectName.Systems
         [Header("드라이브 모드")]
         public DriveMode mode = DriveMode.Player;
 
-        // 콤보 창 (초). 마지막 공격 후 이 시간 안에 다음 공격이 들어오면 콤보로 취급.
-        private const float ComboWindow = 2f;
+        // ── WeaponCombo: 단일 테이크 슬라이스 콤보 (B안) ──
+        // 3연타 전체가 담긴 단일 클립(Weapon_Combo_2, 136f @30fps)을 WeaponCombo 상태 하나로 재생하고,
+        // 정규화 시간(normalizedTime)을 기준으로 스테이지 경계에서 플레이헤드를 홀드해 입력을 기다린다.
+        private const string ComboStateName = "WeaponCombo";
+        private const float ComboClipFrames = 136f;                    // Weapon_Combo_2 총 프레임(30fps)
+        private static readonly float[] ComboEndNormT = { 0.331f, 0.676f }; // 스테이지1/2 종료 경계(45f/92f). 3타는 클립 끝(1.0)
+        private static readonly float[] ComboImpactNormT = { 0.18f, 0.53f, 0.84f }; // 타별 타격 프레임(≈24f/72f/114f) — Play 판정 후 튜닝 상수
+        private const float ComboHoldGrace = 0.25f;                    // 경계 홀드 후 입력 대기 시간
+        private const float ComboExitBlend = 0.15f;
+        private int _comboStage;          // 0=비활성, 1..3 = 현재 스테이지(클릭 수)
+        private int _comboImpactFired;    // 마지막 발화 임팩트 인덱스(1..3)
+        private float _comboStartTime = -999f;
+        private float _comboPinGraceStart = -999f;
+        private int _legacyImpactFired;   // 레거시 Attack* 상태 1회 슬래시 플래그
+        private int _prevAttackStateHash = -1;
 
         private Animator _anim;
         private CharacterController _cc;
@@ -32,9 +45,7 @@ namespace ProjectName.Systems
         private PlayerCombat _combat;
 
         private Vector3 _lastPos;
-        private float _prevCombatAttack = -999f;   // 직전 프레임의 LastAttackTime
-        private int _comboCount;
-        private float _lastAttackAt = -999f;       // 마지막 공격 시각 (Time.time)
+        private float _prevCombatAttack = -999f;   // 직전 프레임의 LastAttackTime (클릭 엣지 감지)
         private bool _prevRolling, _prevJumping;
         private float _prevSpeedForTransition = -999f;   // T-D3: Run→Walk 전환 연출용 직전 프레임 속도
         private bool _prevBow, _prevSpear, _prevThrow;   // T-D3: 무기 모드 엣지 감지
@@ -351,25 +362,20 @@ namespace ProjectName.Systems
                 Debug.Log($"[HumanoidClipDriver][Diag] 진단 기간 600초 종료 — 주기/전환 로그 중단 (state={ResolveStateName(_anim.GetCurrentAnimatorStateInfo(0))})");
             }
 
-            // 공격 감지 — LastAttackTime 변화 시 트리거 (2타 내 콤보)
-            // 2026-09-10: 콤보 트리거는 드라이버 Update에서 1회성 발화하는 구조라 유효 —
-            // 문제는 컨트롤러 쪽 Attack* 상태 진입 후 즉시 Idle 복귀(AfterStateExit 판정)였다.
-            // Attack* 상태 유지 중 다음 콤보 트리거를 받으면 연타 콤보가 자연스럽게 이어지도록
-            // 공격 상태 감시 스위치(_attackHoldUntil)를 두고, 유지 시간 내엔 Speed→Idle 전이 조건이
-            // 사실상 불발되게 Speed를 잠시 0 근처로 고정한다(공격 중 이동 애니 인터럽트 방지).
-            // 공격 상태 감시 — Attack* 진입 중 Speed 0 고정(Idle/Walk 인터럽트 차단)
+            // 공격 상태 감시 — Attack*/WeaponCombo 진입 중 Speed 0 고정(Idle/Walk 인터럽트 차단)
             if (_anim != null)
             {
                 var stInfo = _anim.GetCurrentAnimatorStateInfo(0);
                 // ResolveStateName 미매핑 상태(AttackBase/AttackThrust/AttackCombo2/3)도 감지 — IsName 직접 비교
                 bool attackStateHold = stInfo.IsName("Attack") || stInfo.IsName("AttackBase") || stInfo.IsName("AttackThrust")
-                    || stInfo.IsName("AttackCombo") || stInfo.IsName("AttackCombo2") || stInfo.IsName("AttackCombo3");
+                    || stInfo.IsName("AttackCombo") || stInfo.IsName("AttackCombo2") || stInfo.IsName("AttackCombo3")
+                    || stInfo.IsName(ComboStateName);
                 if (attackStateHold)
                 {
                     // 공격 애니 재생 중: Speed 파라미터를 0으로 고정 — Idle/Walk로 가는 Speed 조건 전이 불발
                     _anim.SetFloat("Speed", 0f);
-                    // 콤보 창이 열려 있으면(마지막 공격 후 2초 내) 상태 유지 시간 연장
-                    if (_lastAttackAt > 0f && Time.time - _lastAttackAt < ComboWindow)
+                    // WeaponCombo 진행 중엔 상태 유지 시간 연장 — 경계 홀드/입력 대기 중에도 Idle/Walk 인터럽트 방지
+                    if (stInfo.IsName(ComboStateName) && _comboStage > 0)
                         _attackHoldUntil = Mathf.Max(_attackHoldUntil, Time.time + 0.35f);
                 }
             }
@@ -380,25 +386,100 @@ namespace ProjectName.Systems
                 {
                     _prevCombatAttack = lat;
 
-                    float prevAttackAt = _lastAttackAt;
-                    _lastAttackAt = Time.time;
-
-                    // 콤보 판정: 마지막 공격 후 콤보 창 내 연속 공격이면 카운트 증가, 아니면 초기화
-                    if (Time.time - prevAttackAt <= ComboWindow) _comboCount++;
-                    else _comboCount = 1;
-
-                    if (_comboCount >= 4) _anim.SetTrigger("AttackCombo3");
-                    else if (_comboCount >= 3) _anim.SetTrigger("AttackCombo2");
-                    else if (_comboCount >= 2) _anim.SetTrigger("AttackCombo");
-                    else if (WeaponEquipManager.CurrentType == WeaponType.Spear) _anim.SetTrigger("AttackThrust"); // M5: 창=찌르기
-                    else
+                    // WeaponCombo B안: 클릭 엣지 → 스테이지 진행/시작 (트리거 미사용, Play/CrossFade 직접 제어)
+                    var stInfo = _anim.GetCurrentAnimatorStateInfo(0);
+                    bool inCombo = stInfo.IsName(ComboStateName) && _comboStage > 0;
+                    if (inCombo && _comboStage < 3)
                     {
-                        int r = Random.Range(0, 3);
-                        _anim.SetTrigger(r == 0 ? "Attack" : r == 1 ? "AttackThrust" : "AttackBase");
+                        _comboStage++;
+                        _comboPinGraceStart = -999f;
+                        Debug.Log($"[Combo] 스테이지 {_comboStage} 진행 (플레이헤드 이어받기)");
                     }
-                    // 공격 상태 최소 유지 시작 — 연타 중 Idle 경유 팝 방지
-                    _attackHoldUntil = Time.time + 0.45f;
+                    else if (!inCombo)
+                    {
+                        _anim.Play(ComboStateName, 0, 0f);
+                        _comboStage = 1;
+                        _comboImpactFired = 0;
+                        _comboPinGraceStart = -999f;
+                        _comboStartTime = Time.time;
+                        Debug.Log("[Combo] WeaponCombo 1타 시작");
+                    }
+                    // 공격 상태 최소 유지 — 연타 중 Idle 경유 팝 방지
+                    _attackHoldUntil = Time.time + 0.6f;
                 }
+            }
+
+            // ── WeaponCombo per-frame 감시: 타별 임팩트 스윙 FX + 경계 플레이헤드 홀드 + 종료 ──
+            var st = _anim.GetCurrentAnimatorStateInfo(0);
+            if (st.IsName(ComboStateName) && _comboStage > 0)
+            {
+                float normT = st.normalizedTime; // 단발 클립: 0→1
+
+                // 타별 임팩트 프레임 도달 시 스윙 VFX 발화 (1.._comboStage 순차 — 스윙 방향 따름)
+                for (int sIdx = _comboImpactFired + 1; sIdx <= _comboStage && sIdx <= 3; sIdx++)
+                {
+                    if (normT >= ComboImpactNormT[sIdx - 1])
+                    {
+                        FireComboSlash(sIdx);
+                        _comboImpactFired = sIdx;
+                    }
+                }
+
+                if (_comboStage < 3)
+                {
+                    float endNorm = ComboEndNormT[_comboStage - 1];
+                    if (normT >= endNorm)
+                    {
+                        _anim.Play(ComboStateName, 0, endNorm);   // 플레이헤드 홀드(입력 대기)
+                        if (_comboPinGraceStart < 0f) _comboPinGraceStart = Time.time;
+                        else if (Time.time - _comboPinGraceStart > ComboHoldGrace) EndCombo("무입력");
+                    }
+                }
+                else if (normT >= 1f)
+                {
+                    EndCombo("만료");
+                }
+            }
+            else if (_comboStage > 0 && Time.time - _comboStartTime > 0.5f)
+            {
+                // WeaponCombo 상태가 아닌데 콤보 플래그만 남은 경우(Roll/Jump/Hit 등 인터럽트) — 유예 후 리셋
+                _comboStage = 0;
+                _comboImpactFired = 0;
+                _comboPinGraceStart = -999f;
+                Debug.Log("[Combo] 인터럽트 리셋");
+            }
+
+            // ── 레거시 Attack* 상태 보존(기존 경로: TriggerAttack/창 등) — 상태 진입 1회 전방 슬래시 ──
+            bool legacyAttack = st.IsName("Attack") || st.IsName("AttackBase") || st.IsName("AttackThrust")
+                || st.IsName("AttackCombo") || st.IsName("AttackCombo2") || st.IsName("AttackCombo3");
+            if (legacyAttack)
+            {
+                int atkHash = st.fullPathHash;
+                if (atkHash != _prevAttackStateHash)
+                {
+                    _prevAttackStateHash = atkHash;
+                    _legacyImpactFired = 0; // 상태 진입/전환 시 1회 플래그 리셋
+                }
+                if (_legacyImpactFired == 0 && st.normalizedTime >= 0.5f)
+                {
+                    _legacyImpactFired = 1;
+                    try
+                    {
+                        var lt = _anim.transform;
+                        Vector3 ldir = lt.forward;
+                        Vector3 lpos = lt.position + Vector3.up * 1.25f + ldir * 1.1f;
+                        SlashVFXRunner.PlaySlash(lpos, ldir, 0f);
+                        Debug.Log("[Combo] 레거시 Attack* 스윙 FX (전방)");
+                    }
+                    catch (System.Exception lfxEx)
+                    {
+                        Debug.LogWarning($"[Combo] 레거시 스윙 FX 실패(전투 계속): {lfxEx.Message}");
+                    }
+                }
+            }
+            else
+            {
+                _prevAttackStateHash = -1;
             }
 
             // 구르기 — 상승엣지 1회
@@ -448,6 +529,53 @@ namespace ProjectName.Systems
                 && Time.time >= _attackHoldUntil)
                 _anim.SetTrigger("RunToWalk");
             _prevSpeedForTransition = _smoothedSpeed;
+        }
+
+        /// <summary>WeaponCombo 종료 — Idle로 블렌드 아웃하고 콤보 상태 변수를 리셋.</summary>
+        private void EndCombo(string reason)
+        {
+            _anim.CrossFade("Idle", ComboExitBlend, 0);
+            _comboStage = 0;
+            _comboImpactFired = 0;
+            _comboPinGraceStart = -999f;
+            Debug.Log($"[Combo] 종료({reason})");
+        }
+
+        /// <summary>
+        /// 콤보 타별 임팩트 프레임 스윙 FX — 타마다 스윙 방향이 다른 Slash VFX를 발화한다.
+        /// 방향 각도(-30°/35°, roll -90°)와 위치/거리(up 1.25m, 전방 1.1m)는 Play 판정 후 조정하는 튜닝 상수.
+        /// try-catch 감싸기: FX 실패가 전투를 절대 방해하지 않게 함 (프로젝트 관례).
+        /// </summary>
+        private void FireComboSlash(int stage)
+        {
+            try
+            {
+                var t = _anim.transform;
+                Vector3 dir;
+                float roll;
+                switch (stage)
+                {
+                    case 2:
+                        dir = Quaternion.AngleAxis(35f, Vector3.up) * t.forward; // 2타: 우측 35° 스윙 방향
+                        roll = 0f;
+                        break;
+                    case 3:
+                        dir = t.forward;   // 3타: 전방 — roll -90으로 궤적 평면을 기울여 수직 하향 궤적
+                        roll = -90f;
+                        break;
+                    default:               // 1타: 좌측 -30° 스윙 방향
+                        dir = Quaternion.AngleAxis(-30f, Vector3.up) * t.forward;
+                        roll = 0f;
+                        break;
+                }
+                Vector3 pos = t.position + Vector3.up * 1.25f + dir * 1.1f;
+                SlashVFXRunner.PlaySlash(pos, dir, roll);
+                Debug.Log($"[Combo] 스윙 FX stage={stage}");
+            }
+            catch (System.Exception fxEx)
+            {
+                Debug.LogWarning($"[Combo] 스윙 FX 실패(전투 계속): {fxEx.Message}");
+            }
         }
 
         /// <summary>T-D3: 활 화살/투척물 연출 스폰(전방 포물선). 데미지 연동은 무기 시스템 후속.</summary>

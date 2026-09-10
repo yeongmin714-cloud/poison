@@ -54,7 +54,13 @@ namespace ProjectName.Systems
         /// 공격 스윙 FX. position: 플레이어 전방 스윙 지점, direction: 수평 스윙 방향.
         /// 로드 실패 시 1회 경고 후 조용히 반환 (전투 흐름 절대 방해 없음).
         /// </summary>
-        public static void PlaySlash(Vector3 position, Vector3 direction)
+        public static void PlaySlash(Vector3 position, Vector3 direction) => PlaySlash(position, direction, 0f);
+
+        /// <summary>
+        /// 공격 스윙 FX (궤적 기울임 포함). arcRollDegrees: 로컬 Z축 회전각(도) —
+        /// 0이면 기존 수평 스윙과 동일. 3타 수직 하향 궤적 등 궤적 평면 기울이기용.
+        /// </summary>
+        public static void PlaySlash(Vector3 position, Vector3 direction, float arcRollDegrees)
         {
             // 스팸 방지 (동일 스윙 이중 발화 흡수 — 임팩트와는 독립 쿨다운)
             if (Time.time - _lastSwingSpawnTime < MIN_SPAWN_INTERVAL) return;
@@ -65,7 +71,10 @@ namespace ProjectName.Systems
 
             Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
             GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(dir));
-            Debug.Log($"[SlashVFX] ✅ 스윙 FX 스폰 (pos={position}, 발화시각={Time.time:F2}s)");   // 1회성 검증 아님 — 좌클릭마다 1줄, 발화 증거
+            // 로컬 Z축 롤 = 스윙 궤적 평면 기울이기 (LookRotation은 방향만 정렬하므로 여기서 추가 회전)
+            if (Mathf.Abs(arcRollDegrees) > 0.01f)
+                instance.transform.Rotate(0f, 0f, arcRollDegrees, Space.Self);
+            Debug.Log($"[SlashVFX] ✅ 스윙 FX 스폰 (pos={position}, roll={arcRollDegrees:F0}°, 발화시각={Time.time:F2}s)");   // 1회성 검증 아님 — 좌클릭마다 1줄, 발화 증거
             instance.name = "SlashVFX_Swing";
 
             PlayAllParticleSystems(instance);

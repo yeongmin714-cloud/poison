@@ -169,21 +169,7 @@ namespace ProjectName.Systems
             // Phase 8.3: 공격 스윙 사운드
             SoundManager.Instance?.PlaySFX("attack_swing");
 
-            // 3단계 이펙트: Free Slash VFX 스윙 — 카메라 정면 수평 방향, 플레이어 전방 스윙 지점.
-            // try-catch 감싸기: FX 실패가 전투를 절대 중단시키지 않게 함.
-            try
-            {
-                var cam = Camera.main;
-                Vector3 dir = cam ? cam.transform.forward : transform.forward;
-                dir.y = 0f;
-                dir = dir.sqrMagnitude > 0.0001f ? dir.normalized : transform.forward;
-                Vector3 pos = transform.position + Vector3.up * 1.2f + dir * 1.2f;
-                SlashVFXRunner.PlaySlash(pos, dir);
-            }
-            catch (System.Exception swingEx)
-            {
-                Debug.LogWarning($"[PlayerCombat] 스윙 FX 실패(전투 계속): {swingEx.Message}");
-            }
+            // 스윙 VFX는 HumanoidClipDriver가 콤보 임팩트 프레임(1~3타)에서 스윙 방향에 맞춰 발화
 
             // 공격 애니메이션 트리거
             _rigAnim?.Attack();
