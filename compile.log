@@ -1,21 +1,21 @@
 [Licensing::Module] Trying to connect to existing licensing client channel...
 Built from '6000.4/staging' branch; Version is '6000.4.10f1 (feeafc12a938) revision 16706300'; Using compiler version '194234433'; Build Type 'Release'
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-09-10T16:05:55.1224256Z"
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-09-10T16:08:51.2407621Z"
 OS: 'Windows 10  (10.0.19045) 64bit Core' Language: 'ko' Physical Memory: 7880 MB
 BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
 System  architecture: x64
 Process architecture: x64
-Date: 2026-09-10T16:05:55Z
+Date: 2026-09-10T16:08:51Z
 [Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 6468, path: "C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
 [Licensing::Module] LicensingClient has failed validation; ignoring
 [Licensing::Client] Handshaking with LicensingClient:
   Version:                 1.18.1+9fbee8e
-  Session Id:              f9ee37199fb84b859d4dbbf35f9e78ac
+  Session Id:              2b0e112020494fb2a3d88c7010d02816
   Correlation Id:          1e631e93fa7d0c0ac9048d15a0e97291
-  External correlation Id: 2751115830700273312
+  External correlation Id: 5624276419742576259
   Machine Id:              5cJWr0XiXK4/b2/xsaHUUO6HAA8=
-[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-korea" (connect: 0.00s, validation: 0.00s, handshake: 0.17s)
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-09-10T16:05:55.2998117Z"
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-korea" (connect: 0.00s, validation: 0.00s, handshake: 0.13s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-09-10T16:08:51.3770221Z"
 [Licensing::Module] Error: Access token is unavailable; failed to update
 [Licensing::Client] Successfully resolved entitlement details
 [Licensing::Module] License group:
@@ -23,9 +23,9 @@ Date: 2026-09-10T16:05:55Z
   Product: Unity Personal
   Type: Assigned
   Expiration: Unlimited
-[Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
 [Licensing::Client] Successfully resolved entitlement details
-[Licensing::Module] Licensing Background thread has ended after 0.21s
+[Licensing::Module] Licensing Background thread has ended after 0.16s
 
 COMMAND LINE ARGUMENTS:
 Unity.exe
@@ -74,18 +74,18 @@ C:/Unity/code
     "memorysetup-job-temp-allocator-block-size=2097152"
     "memorysetup-job-temp-allocator-block-size-background=1048576"
     "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
-Player connection [1100]  Target information:
+Player connection [13956]  Target information:
 
-Player connection [1100]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 3708027847 [EditorId] 3708027847 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [13956]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 1566883169 [EditorId] 1566883169 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [1100]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 3708027847 [EditorId] 3708027847 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [13956]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 1566883169 [EditorId] 1566883169 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [1100] Host joined multi-casting on [225.0.0.222:54997]...
-Player connection [1100] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Player connection [13956] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [13956] Host joined alternative multi-casting on [225.0.0.222:34997]...
 Input System module state changed to: Initialized.
 [Physics::Module] Initialized fallback backend.
 [Physics::Module] Id: 0xdecafbad
-[Package Manager] Connected to IPC stream "Upm-11812" after 0.6 seconds.
+[Package Manager] Connected to IPC stream "Upm-11304" after 0.4 seconds.
 [Licensing::Client] Successfully resolved entitlement details
 Library Redirect Path: Library/
 [Physics::Module] Selected backend.
@@ -94,6 +94,7 @@ Library Redirect Path: Library/
 [Physics::Module] SDK Version: 4.1.2
 [Physics::Module] Integration Version: 1.0.0
 [Physics::Module] Threading Mode: Multi-Threaded
+Refreshing native plugins compatible for Editor in 2.61 ms, found 0 plugins.
 Initialize engine version: 6000.4.10f1 (feeafc12a938)
 [Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Resources/UnitySubsystems
 [Subsystems] Discovering subsystems at path C:/Unity/code/Assets
@@ -112,7 +113,7 @@ Initialize mono
 Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Managed'
 Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
 Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/etc'
-Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56812
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56304
 CodeReloadManager initialized
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
@@ -122,30 +123,30 @@ Begin MonoManager ReloadAssembly
 Registering precompiled unity dll's ...
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
-Registered in 0.006478 seconds.
+Registered in 0.010580 seconds.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 Package Manager log level set to [2]
 ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.947 seconds
-Domain Reload Profiling: 2054ms
-	BeginReloadAssembly (341ms)
+- Finished resetting the current domain, in  0.814 seconds
+Domain Reload Profiling: 1690ms
+	BeginReloadAssembly (302ms)
 		CreateAndSetChildDomain (15ms)
-	RebuildCommonClasses (76ms)
-	RebuildNativeTypeToScriptingClass (25ms)
-	initialDomainReloadingComplete (177ms)
-	LoadAllAssembliesAndSetupDomain (485ms)
-		LoadAssemblies (321ms)
-		AnalyzeDomain (470ms)
-			TypeCache.Refresh (468ms)
-				TypeCache.ScanAssembly (442ms)
-	FinalizeReload (951ms)
+	RebuildCommonClasses (61ms)
+	RebuildNativeTypeToScriptingClass (26ms)
+	initialDomainReloadingComplete (131ms)
+	LoadAllAssembliesAndSetupDomain (353ms)
+		LoadAssemblies (277ms)
+		AnalyzeDomain (335ms)
+			TypeCache.Refresh (333ms)
+				TypeCache.ScanAssembly (310ms)
+	FinalizeReload (817ms)
 		SetupLoadedEditorAssemblies (0ms)
-			InitializePlatformSupportModulesInManaged (100ms)
-			BeforeProcessingInitializeOnLoad (199ms)
-			ProcessInitializeOnLoadAttributes (227ms)
-			ProcessInitializeOnLoadMethodAttributes (303ms)
+			InitializePlatformSupportModulesInManaged (97ms)
+			BeforeProcessingInitializeOnLoad (145ms)
+			ProcessInitializeOnLoadAttributes (198ms)
+			ProcessInitializeOnLoadMethodAttributes (268ms)
 [Licensing::Client] Successfully resolved entitlement details
 Application.AssetDatabase Initial Refresh Start
 [Package Manager] Restoring resolved packages state from cache
@@ -225,7 +226,7 @@ Application.AssetDatabase Initial Refresh Start
     com.unity.collections@6.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.collections@5b6ebd78ccc0)
 [Package Manager] com.unity.textmeshpro is deprecated: This package is no longer supported. TextMeshPro functionalities are now included in the com.unity.ugui package. To continue using them, consider adding it to your project dependencies.
 [Subsystems] No new subsystems found in resolved package list.
-[Package Manager] Done registering packages in 0.05 seconds
+[Package Manager] Done registering packages in 0.04 seconds
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
 [ScriptCompilation] Requested script compilation because: AssetDatabase observed changes in script compilation related files
@@ -244,7 +245,7 @@ info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 57.5386ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 62.4573ms
 Starting: C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
 WorkingDir: C:/Unity/code
 DisplayProgressbar: Compiling Scripts
@@ -263,4 +264,1243 @@ info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 345.5549ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 167.4644ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 381 references
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with Library\Bee\artifacts\1900b0aE.dag\Unity.Collections.dll
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved UnityEditor.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Managed\UnityEngine\UnityEditor.CoreModule.dll
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Burst.Cecil.Rocks, Version=0.11.6.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@6bb9aca3ef38\Unity.Burst.CodeGen\Unity.Burst.Cecil.Rocks.dll
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 695.5617ms
+ExitCode: 0 Duration: 6s29ms
+[ 792/1401  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[1397/1401  1s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
+Assets\Editor\DayNightCycleReferenceFixer.cs(24,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixAllCriticalIssues.cs(207,27): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixAllCriticalIssues.cs(216,32): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixAllCriticalIssues.cs(225,28): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixAllCriticalIssues.cs(242,25): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+
+Assets\Editor\IndoorShellMenu.cs(30,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Editor\IndoorShellMenu.cs(30,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+
+Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+
+Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+
+Assets\Editor\FixMainScene.cs(938,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\VFXResourceInstaller.cs(275,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
+[1398/1401  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 381 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1399/1401  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
+[1400/1401  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
+*** Tundra build success (5.96 seconds), 5 items updated, 1401 evaluated
+Assets\Editor\DayNightCycleReferenceFixer.cs(24,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixAllCriticalIssues.cs(207,27): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixAllCriticalIssues.cs(216,32): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixAllCriticalIssues.cs(225,28): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixAllCriticalIssues.cs(242,25): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets\Editor\IndoorShellMenu.cs(30,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Editor\IndoorShellMenu.cs(30,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\FixMainScene.cs(938,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\VFXResourceInstaller.cs(275,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
+AssetDatabase: script compilation time: 7.707556s
+Begin MonoManager ReloadAssembly
+Assembly Assembly-CSharp-Editor-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-Editor-firstpass.dll not valid. Loading of assembly skipped.
+Assembly Assembly-CSharp-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll not valid. Loading of assembly skipped.
+Assembly DocCodeExamples.dll at Library/ScriptAssemblies/DocCodeExamples.dll not valid. Loading of assembly skipped.
+Assembly TestNewCustomAssembly.dll at Library/ScriptAssemblies/TestNewCustomAssembly.dll not valid. Loading of assembly skipped.
+Assembly Unity.Addressables.Editor.Tests.dll at Library/ScriptAssemblies/Unity.Addressables.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Addressables.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.Addressables.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.AppUI.Editor.Tests.dll at Library/ScriptAssemblies/Unity.AppUI.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.AppUI.Tests.dll at Library/ScriptAssemblies/Unity.AppUI.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.BurstCompatibilityGen.dll at Library/ScriptAssemblies/Unity.Collections.BurstCompatibilityGen.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.DocCodeSamples.dll at Library/ScriptAssemblies/Unity.Collections.DocCodeSamples.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.PerformanceTests.dll at Library/ScriptAssemblies/Unity.Collections.PerformanceTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.Tests.dll at Library/ScriptAssemblies/Unity.Collections.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.Tests.Playmode.dll at Library/ScriptAssemblies/Unity.Collections.Tests.Playmode.dll not valid. Loading of assembly skipped.
+Assembly Unity.InputSystem.IntegrationTests.dll at Library/ScriptAssemblies/Unity.InputSystem.IntegrationTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Localization.DocCodeSamples.dll at Library/ScriptAssemblies/Unity.Localization.DocCodeSamples.dll not valid. Loading of assembly skipped.
+Assembly Unity.Mathematics.Tests.dll at Library/ScriptAssemblies/Unity.Mathematics.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Nuget.Mono-Cecil.dll at Library/ScriptAssemblies/Unity.Nuget.Mono-Cecil.dll not valid. Loading of assembly skipped.
+Assembly Unity.PathTracing.Editor.Tests.dll at Library/ScriptAssemblies/Unity.PathTracing.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.PathTracing.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.PathTracing.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Performance.Profile-Analyzer.EditorTests.dll at Library/ScriptAssemblies/Unity.Performance.Profile-Analyzer.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Core.Editor.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Core.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Core.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Core.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Universal.Config.Editor.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Config.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Universal.Editor.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Universal.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ResourceManager.Tests.dll at Library/ScriptAssemblies/Unity.ResourceManager.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ScriptableBuildPipeline.Editor.Tests.dll at Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ScriptableBuildPipeline.Tests.dll at Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ScriptableBuildPipelineTests.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.ScriptableBuildPipelineTests.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Searcher.EditorTests.dll at Library/ScriptAssemblies/Unity.Searcher.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Settings.Tests.dll at Library/ScriptAssemblies/Unity.Settings.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ShaderGraph.Editor.Tests.dll at Library/ScriptAssemblies/Unity.ShaderGraph.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.TestTools.CodeCoverage.Editor.Compatibility.dll at Library/ScriptAssemblies/Unity.TestTools.CodeCoverage.Editor.Compatibility.dll not valid. Loading of assembly skipped.
+Assembly Unity.TextMeshPro.Editor.Tests.dll at Library/ScriptAssemblies/Unity.TextMeshPro.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.TextMeshPro.Tests.dll at Library/ScriptAssemblies/Unity.TextMeshPro.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.UnifiedRayTracing.Editor.Tests.dll at Library/ScriptAssemblies/Unity.UnifiedRayTracing.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly UnityEditor.UI.Common.Tests.dll at Library/ScriptAssemblies/UnityEditor.UI.Common.Tests.dll not valid. Loading of assembly skipped.
+Assembly UnityEditor.UI.EditorTests.dll at Library/ScriptAssemblies/UnityEditor.UI.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly UnityEngine.UI.Tests.dll at Library/ScriptAssemblies/UnityEngine.UI.Tests.dll not valid. Loading of assembly skipped.
+Symbol file LoadedFromMemory is not a mono symbol file
+Symbol file LoadedFromMemory is not a mono symbol file
+'Packages/com.unity.cinemachine/Editor/Editors/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Packages/com.unity.cinemachine/Editor/Obsolete/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+Refreshing native plugins compatible for Editor in 24.77 ms, found 5 plugins.
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
+Refreshing native plugins compatible for Editor in 7.21 ms, found 5 plugins.
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-포이즌
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  6.529 seconds
+Domain Reload Profiling: 10164ms
+	BeginReloadAssembly (524ms)
+		DisableScriptedObjects (36ms)
+		CreateAndSetChildDomain (206ms)
+	RebuildCommonClasses (58ms)
+	RebuildNativeTypeToScriptingClass (20ms)
+	initialDomainReloadingComplete (1302ms)
+	LoadAllAssembliesAndSetupDomain (1729ms)
+		LoadAssemblies (1254ms)
+		AnalyzeDomain (659ms)
+			TypeCache.Refresh (480ms)
+				TypeCache.ScanAssembly (454ms)
+			BuildScriptInfoCaches (143ms)
+			ResolveRequiredComponents (33ms)
+	FinalizeReload (6531ms)
+		SetupLoadedEditorAssemblies (0ms)
+			InitializePlatformSupportModulesInManaged (38ms)
+			BeforeProcessingInitializeOnLoad (507ms)
+			ProcessInitializeOnLoadAttributes (4904ms)
+			ProcessInitializeOnLoadMethodAttributes (667ms)
+			AfterProcessingInitializeOnLoad (13ms)
+		AwakeInstancesAfterBackupRestoration (42ms)
+Refreshing native plugins compatible for Editor in 6.29 ms, found 5 plugins.
+(Values over 0.050ms)
+Asset Pipeline Refresh (id=4018d1ff199717148955b2145d42ad63): Total: 23.644 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=11463 ms
+		Asset DB Callback time: managed=472 ms, native=94 ms
+		Scripting: domain reloads=1, domain reload time=3645 ms, compile time=7710 ms, other=256 ms
+		Project Asset Count: scripts=2450, non-scripts=6808
+		Asset File Changes: new=0, changed=1, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokePackagesCallback: 50.768ms
+	ApplyChangesToAssetFolders: 1.173ms
+	Scan: 3481.809ms
+	OnSourceAssetsModified: 1.781ms
+	CategorizeScriptCompilationAssets: 347.124ms
+	ProcessAssetsWithTransientArtifactChanges: 222.218ms
+	CategorizeAssets: 234.203ms
+	CompileScripts: 7709.648ms
+	ImportOutOfDateAssets: 6597.262ms (6587.150ms without children)
+		ReloadNativeAssets: 0.062ms
+		UnloadImportedAssets: 3.758ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.526ms
+		OnDemandSchedulerStart: 3.760ms
+	PostProcessAllAssets: 492.486ms
+		VCAutoAddAssetPostprocess 7.738ms
+		XRBuildSystem.XRAssetImported 3.784ms
+		ShaderAssetModifiedCallback 0.077ms
+		PostProcessCallbackCreateDeferredMaterials 0.073ms
+		MonoPostProcessAllAssets: 471.497ms
+			AssetPostprocessor.OnPostprocessAllAssets 335.318ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 42.271ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 25.689ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 10.416ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 9.123ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 2.881ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 2.736ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 2.728ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 2.625ms
+			AssetChangedListener.OnPostprocessAllAssets 2.173ms
+			LocalizationAssetPostProcessor.OnPostprocessAllAssets 1.791ms
+			AddressablesAssetPostProcessor.OnPostprocessAllAssets 1.753ms
+			MaterialPostprocessor.OnPostprocessAllAssets 1.164ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.803ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.775ms
+			AssetPathToTypes.OnPostprocessAllAssets 0.763ms
+			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.713ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.665ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.637ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.538ms
+			PostProcessor.OnPostprocessAllAssets 0.512ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 0.497ms
+			AssetEvents.OnPostprocessAllAssets 0.443ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.441ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.427ms
+			CinemachineSettings.OnPostprocessAllAssets 0.379ms
+			SyncVS.PostprocessSyncProject 0.315ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.302ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.281ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.244ms
+			ConfigAssetsTracker.OnPostprocessAllAssets 0.228ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.227ms
+			SamplePostprocessor.OnPostprocessAllAssets 0.196ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.182ms
+			AudioContainerPostProcessor.OnPostprocessAllAssets 0.108ms
+	PostAssetChangesProfiler: 26.867ms
+	UnloadStreamsBegin: 5.903ms
+	PersistCurrentRevisions: 0.456ms
+	GenerateScriptTypeHashes: 49.650ms
+	GenerateScriptTypeSerializationHashes: 53.932ms
+	Untracked: 4460.839ms
+
+Application.AssetDatabase Initial Refresh End
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.07 seconds
+Scanning for USB devices : 8.407ms
+Initializing Unity extensions:
+Unloading 70 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 10714 unused Assets / (22.5 MB). Loaded Objects now: 11630.
+Memory consumption went from 290.6 MB to 268.1 MB.
+Total: 37.010600 ms (FindLiveObjects: 1.699900 ms CreateObjectMapping: 3.667500 ms MarkObjects: 16.056200 ms  DeleteObjects: 14.941900 ms)
+
+[QA] Starting validation — report: .\qa_report_2026-09-11_01-09-23.txt
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:27)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 27)
+
+[QA] Checking compilation errors...
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckCompilationErrors () (at Assets/Editor/QaValidator.cs:51)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:31)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 51)
+
+Asset Pipeline Refresh (id=6424a124741b1ae4abc826bbc9d9a0aa): Total: 0.151 seconds - Initiated by RefreshV2(ForceUpdate)
+[QA] Checking scene integrity...
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:101)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 101)
+
+[QA] Opening scene: Assets/_Recovery/0 (1).unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/_Recovery/0 (1).unity'
+Unloading 0 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/_Recovery/0 (1).unity'
+	Deserialize:            99.630 ms
+	Integration:            898.493 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       4.290 ms
+	Total Operation Time:   1002.415 ms
+Unloading 2 unused Assets / (1.1 KB). Loaded Objects now: 11635.
+Memory consumption went from 248.1 MB to 248.1 MB.
+Total: 29.109000 ms (FindLiveObjects: 0.803000 ms CreateObjectMapping: 1.200000 ms MarkObjects: 26.988500 ms  DeleteObjects: 0.115700 ms)
+
+[QA] Opening scene: Assets/_Recovery/0.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/_Recovery/0.unity'
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/_Recovery/0.unity'
+	Deserialize:            682.036 ms
+	Integration:            3277.309 ms
+	Integration of assets:  73.105 ms
+	Thread Wait Time:       -71.666 ms
+	Total Operation Time:   3960.784 ms
+Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 27493.
+Memory consumption went from 261.7 MB to 261.7 MB.
+Total: 16.779300 ms (FindLiveObjects: 3.242400 ms CreateObjectMapping: 1.402200 ms MarkObjects: 12.066000 ms  DeleteObjects: 0.067400 ms)
+
+[QA] Opening scene: Assets/DoubleL/Demo/Demo.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/DoubleL/Demo/Demo.unity'
+Unloading 2 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/DoubleL/Demo/Demo.unity'
+	Deserialize:            35.851 ms
+	Integration:            1437.637 ms
+	Integration of assets:  0.008 ms
+	Thread Wait Time:       0.043 ms
+	Total Operation Time:   1473.539 ms
+Unloading 3 unused Assets / (5.0 KB). Loaded Objects now: 22704.
+Memory consumption went from 284.4 MB to 284.4 MB.
+Total: 26.207200 ms (FindLiveObjects: 5.689700 ms CreateObjectMapping: 5.324300 ms MarkObjects: 15.096300 ms  DeleteObjects: 0.095900 ms)
+
+[QA] Opening scene: Assets/Free Slash VFX/Demo/Scenes/SampleScene.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Free Slash VFX/Demo/Scenes/SampleScene.unity'
+Unloading 149 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Free Slash VFX/Demo/Scenes/SampleScene.unity'
+	Deserialize:            157.939 ms
+	Integration:            733.439 ms
+	Integration of assets:  26.647 ms
+	Thread Wait Time:       0.223 ms
+	Total Operation Time:   918.248 ms
+Unloading 572 unused Assets / (444.7 KB). Loaded Objects now: 13109.
+Memory consumption went from 290.8 MB to 290.4 MB.
+Total: 23.997700 ms (FindLiveObjects: 1.201700 ms CreateObjectMapping: 1.177600 ms MarkObjects: 18.251300 ms  DeleteObjects: 3.365500 ms)
+
+[QA] Opening scene: Assets/Idyllic Fantasy Nature/Demo/Demo.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Idyllic Fantasy Nature/Demo/Demo.unity'
+Unloading 45 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Idyllic Fantasy Nature/Demo/Demo.unity'
+	Deserialize:            712.678 ms
+	Integration:            3481.430 ms
+	Integration of assets:  2.477 ms
+	Thread Wait Time:       -0.062 ms
+	Total Operation Time:   4196.522 ms
+Unloading 662 unused Assets / (410.2 KB). Loaded Objects now: 50320.
+Memory consumption went from 417.0 MB to 416.6 MB.
+Total: 32.129200 ms (FindLiveObjects: 7.550800 ms CreateObjectMapping: 6.864700 ms MarkObjects: 16.541500 ms  DeleteObjects: 1.170200 ms)
+
+[QA] Opening scene: Assets/Matthew Guz/Hits Effects FREE/Scene Demo/HIT EFFECTS FREE Scene Demo.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Matthew Guz/Hits Effects FREE/Scene Demo/HIT EFFECTS FREE Scene Demo.unity'
+Unloading 289 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Matthew Guz/Hits Effects FREE/Scene Demo/HIT EFFECTS FREE Scene Demo.unity'
+	Deserialize:            42.639 ms
+	Integration:            417.744 ms
+	Integration of assets:  10.352 ms
+	Thread Wait Time:       0.176 ms
+	Total Operation Time:   470.912 ms
+Unloading 2033 unused Assets / (24.8 MB). Loaded Objects now: 12172.
+Memory consumption went from 332.4 MB to 307.6 MB.
+Total: 18.851500 ms (FindLiveObjects: 1.070600 ms CreateObjectMapping: 1.514500 ms MarkObjects: 12.835600 ms  DeleteObjects: 3.414600 ms)
+
+[QA] Opening scene: Assets/Scenes/IndoorScene.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/IndoorScene.unity'
+Unloading 12 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/IndoorScene.unity'
+	Deserialize:            11.385 ms
+	Integration:            357.591 ms
+	Integration of assets:  1.370 ms
+	Thread Wait Time:       0.039 ms
+	Total Operation Time:   370.385 ms
+Unloading 211 unused Assets / (24.3 KB). Loaded Objects now: 11847.
+Memory consumption went from 292.4 MB to 292.3 MB.
+Total: 15.279200 ms (FindLiveObjects: 0.869800 ms CreateObjectMapping: 0.984700 ms MarkObjects: 13.187500 ms  DeleteObjects: 0.235900 ms)
+
+[QA] Opening scene: Assets/Scenes/MainMenu.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/MainMenu.unity'
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/MainMenu.unity'
+	Deserialize:            2.664 ms
+	Integration:            392.560 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.064 ms
+	Total Operation Time:   395.290 ms
+Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11724.
+Memory consumption went from 286.7 MB to 286.7 MB.
+Total: 13.389500 ms (FindLiveObjects: 1.160200 ms CreateObjectMapping: 1.382700 ms MarkObjects: 10.790300 ms  DeleteObjects: 0.055100 ms)
+
+[QA] Opening scene: Assets/Scenes/MainScene.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/MainScene.unity'
+Broken text PPtr in file(Assets/Scenes/MainScene.unity). Local file identifier (83595848) doesn't exist!
+Broken text PPtr in file(Assets/Scenes/MainScene.unity). Local file identifier (83595847) doesn't exist!
+Broken text PPtr in file(Assets/Scenes/MainScene.unity). Local file identifier (194223818) doesn't exist!
+Broken text PPtr in file(Assets/Scenes/MainScene.unity). Local file identifier (1257916446) doesn't exist!
+Broken text PPtr in file(Assets/Scenes/MainScene.unity). Local file identifier (2071269336) doesn't exist!
+Broken text PPtr in file(Assets/Scenes/MainScene.unity). Local file identifier (2071269335) doesn't exist!
+Broken text PPtr in file(Assets/Scenes/MainScene.unity). Local file identifier (2071269334) doesn't exist!
+Unloading 2 Unused Serialized files (Serialized files now loaded: 0)
+Problem detected while opening the Scene file: 'Assets/Scenes/MainScene.unity'.
+Check the following logs for more details.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEditor.SceneManagement.EditorSceneManager:OpenScene (string,UnityEditor.SceneManagement.OpenSceneMode)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:118)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+[Assets/Editor/QaValidator.cs line 118]
+
+Object GameObject (named 'EventSystem') has multiple entries of the same Object component. Removing it!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEditor.SceneManagement.EditorSceneManager:OpenScene (string,UnityEditor.SceneManagement.OpenSceneMode)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:118)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+[Assets/Editor/QaValidator.cs line 118]
+
+Object GameObject (named 'Player Camera') has multiple entries of the same Object component. Removing it!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEditor.SceneManagement.EditorSceneManager:OpenScene (string,UnityEditor.SceneManagement.OpenSceneMode)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:118)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+[Assets/Editor/QaValidator.cs line 118]
+
+Object GameObject (named 'Player Camera') has multiple entries of the same Object component. Removing it!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEditor.SceneManagement.EditorSceneManager:OpenScene (string,UnityEditor.SceneManagement.OpenSceneMode)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:118)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+[Assets/Editor/QaValidator.cs line 118]
+
+Component at index 1 could not be loaded when loading game object 'EventSystem'. Removing it.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEditor.SceneManagement.EditorSceneManager:OpenScene (string,UnityEditor.SceneManagement.OpenSceneMode)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:118)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+[Assets/Editor/QaValidator.cs line 118]
+
+Component at index 1 could not be loaded when loading game object 'GlobalVolume'. Removing it.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEditor.SceneManagement.EditorSceneManager:OpenScene (string,UnityEditor.SceneManagement.OpenSceneMode)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:118)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+[Assets/Editor/QaValidator.cs line 118]
+
+Component at index 2 could not be loaded when loading game object 'Main Camera'. Removing it.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEditor.SceneManagement.EditorSceneManager:OpenScene (string,UnityEditor.SceneManagement.OpenSceneMode)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:118)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+[Assets/Editor/QaValidator.cs line 118]
+
+Component at index 1 could not be loaded when loading game object 'Player Camera'. Removing it.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEditor.SceneManagement.EditorSceneManager:OpenScene (string,UnityEditor.SceneManagement.OpenSceneMode)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:118)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+[Assets/Editor/QaValidator.cs line 118]
+
+Loaded scene 'Assets/Scenes/MainScene.unity'
+	Deserialize:            179.185 ms
+	Integration:            1103.684 ms
+	Integration of assets:  0.401 ms
+	Thread Wait Time:       -0.312 ms
+	Total Operation Time:   1282.959 ms
+Unloading 3 unused Assets / (1.3 KB). Loaded Objects now: 18475.
+Memory consumption went from 300.3 MB to 300.3 MB.
+Total: 21.085900 ms (FindLiveObjects: 4.066800 ms CreateObjectMapping: 1.864700 ms MarkObjects: 15.071400 ms  DeleteObjects: 0.080600 ms)
+
+[QA] Opening scene: Assets/Scenes/TestScenes/InteriorSystemsTest.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/TestScenes/InteriorSystemsTest.unity'
+Unloading 26 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/TestScenes/InteriorSystemsTest.unity'
+	Deserialize:            1.394 ms
+	Integration:            366.003 ms
+	Integration of assets:  0.003 ms
+	Thread Wait Time:       0.018 ms
+	Total Operation Time:   367.418 ms
+Unloading 26 unused Assets / (21.4 KB). Loaded Objects now: 11710.
+Memory consumption went from 296.0 MB to 296.0 MB.
+Total: 14.395300 ms (FindLiveObjects: 1.130000 ms CreateObjectMapping: 0.987300 ms MarkObjects: 12.042000 ms  DeleteObjects: 0.234900 ms)
+
+[QA] Opening scene: Assets/Scenes/TestScenes/Test_01_Player.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/TestScenes/Test_01_Player.unity'
+Unloading 8 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/TestScenes/Test_01_Player.unity'
+	Deserialize:            18.958 ms
+	Integration:            355.099 ms
+	Integration of assets:  0.004 ms
+	Thread Wait Time:       1.821 ms
+	Total Operation Time:   375.881 ms
+Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11723.
+Memory consumption went from 295.1 MB to 295.1 MB.
+Total: 15.075000 ms (FindLiveObjects: 0.930900 ms CreateObjectMapping: 1.150200 ms MarkObjects: 12.937100 ms  DeleteObjects: 0.055400 ms)
+
+[QA] Opening scene: Assets/Scenes/TestScenes/Test_02_UI.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/TestScenes/Test_02_UI.unity'
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/TestScenes/Test_02_UI.unity'
+	Deserialize:            1.503 ms
+	Integration:            347.654 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.068 ms
+	Total Operation Time:   349.226 ms
+Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11713.
+Memory consumption went from 295.1 MB to 295.1 MB.
+Total: 13.399400 ms (FindLiveObjects: 0.968200 ms CreateObjectMapping: 1.286600 ms MarkObjects: 11.092100 ms  DeleteObjects: 0.051300 ms)
+
+[QA] Opening scene: Assets/Scenes/TestScenes/Test_03_Combat.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/TestScenes/Test_03_Combat.unity'
+Could not extract GUID in text file Assets/Scenes/TestScenes/Test_03_Combat.unity at line 167.
+Broken text PPtr. GUID 00000000000000000000000000000000 fileID 11500000 is invalid!
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/TestScenes/Test_03_Combat.unity'
+	Deserialize:            11.922 ms
+	Integration:            335.234 ms
+	Integration of assets:  0.003 ms
+	Thread Wait Time:       0.074 ms
+	Total Operation Time:   347.232 ms
+Unloading 4 unused Assets / (8.3 MB). Loaded Objects now: 11710.
+Memory consumption went from 295.1 MB to 286.7 MB.
+Total: 15.231000 ms (FindLiveObjects: 1.557700 ms CreateObjectMapping: 1.311000 ms MarkObjects: 12.269700 ms  DeleteObjects: 0.091400 ms)
+
+[QA] Opening scene: Assets/Scenes/TestScenes/Test_04_Territory.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/TestScenes/Test_04_Territory.unity'
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/TestScenes/Test_04_Territory.unity'
+	Deserialize:            1.826 ms
+	Integration:            343.036 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.016 ms
+	Total Operation Time:   344.880 ms
+Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11713.
+Memory consumption went from 286.8 MB to 286.8 MB.
+Total: 15.355700 ms (FindLiveObjects: 1.084200 ms CreateObjectMapping: 1.399300 ms MarkObjects: 12.809100 ms  DeleteObjects: 0.061600 ms)
+
+[QA] Opening scene: Assets/Scenes/TestScenes/Test_05_Craft.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/TestScenes/Test_05_Craft.unity'
+Unloading 2 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/TestScenes/Test_05_Craft.unity'
+	Deserialize:            7.745 ms
+	Integration:            349.688 ms
+	Integration of assets:  0.005 ms
+	Thread Wait Time:       0.008 ms
+	Total Operation Time:   357.446 ms
+Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11713.
+Memory consumption went from 286.6 MB to 286.6 MB.
+Total: 13.887500 ms (FindLiveObjects: 0.824800 ms CreateObjectMapping: 1.012900 ms MarkObjects: 11.992500 ms  DeleteObjects: 0.056300 ms)
+
+[QA] Opening scene: Assets/Scenes/TestScenes/Test_06_TimeWeather.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/TestScenes/Test_06_TimeWeather.unity'
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/TestScenes/Test_06_TimeWeather.unity'
+	Deserialize:            11.467 ms
+	Integration:            355.313 ms
+	Integration of assets:  0.005 ms
+	Thread Wait Time:       0.049 ms
+	Total Operation Time:   366.833 ms
+Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11713.
+Memory consumption went from 286.6 MB to 286.6 MB.
+Total: 14.325700 ms (FindLiveObjects: 0.831100 ms CreateObjectMapping: 1.261800 ms MarkObjects: 12.191600 ms  DeleteObjects: 0.040100 ms)
+
+[QA] Opening scene: Assets/Scenes/TestScenes/Test_07_GasBomb.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/TestScenes/Test_07_GasBomb.unity'
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/TestScenes/Test_07_GasBomb.unity'
+	Deserialize:            2.056 ms
+	Integration:            344.831 ms
+	Integration of assets:  0.003 ms
+	Thread Wait Time:       0.047 ms
+	Total Operation Time:   346.937 ms
+Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11713.
+Memory consumption went from 286.6 MB to 286.6 MB.
+Total: 14.674500 ms (FindLiveObjects: 0.801800 ms CreateObjectMapping: 0.916100 ms MarkObjects: 12.854300 ms  DeleteObjects: 0.088400 ms)
+
+[QA] Opening scene: Assets/Scenes/TestScenes/Test_08_Dracula.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/TestScenes/Test_08_Dracula.unity'
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/TestScenes/Test_08_Dracula.unity'
+	Deserialize:            1.820 ms
+	Integration:            361.511 ms
+	Integration of assets:  0.015 ms
+	Thread Wait Time:       0.079 ms
+	Total Operation Time:   363.425 ms
+Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11713.
+Memory consumption went from 286.6 MB to 286.6 MB.
+Total: 13.921000 ms (FindLiveObjects: 0.831000 ms CreateObjectMapping: 1.120700 ms MarkObjects: 11.909500 ms  DeleteObjects: 0.058200 ms)
+
+[QA] Opening scene: Assets/Scenes/TestScenes/Test_09_AllInOne.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/TestScenes/Test_09_AllInOne.unity'
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/TestScenes/Test_09_AllInOne.unity'
+	Deserialize:            2.548 ms
+	Integration:            348.157 ms
+	Integration of assets:  0.004 ms
+	Thread Wait Time:       0.049 ms
+	Total Operation Time:   350.759 ms
+Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11713.
+Memory consumption went from 286.6 MB to 286.6 MB.
+Total: 14.942800 ms (FindLiveObjects: 0.932600 ms CreateObjectMapping: 0.927600 ms MarkObjects: 13.028200 ms  DeleteObjects: 0.053500 ms)
+
+[QA] Opening scene: Assets/Scenes/TestScenes/Test_10_TerritoryCombat.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/TestScenes/Test_10_TerritoryCombat.unity'
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/TestScenes/Test_10_TerritoryCombat.unity'
+	Deserialize:            2.350 ms
+	Integration:            343.228 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.068 ms
+	Total Operation Time:   345.648 ms
+Unloading 4 unused Assets / (5.6 KB). Loaded Objects now: 11710.
+Memory consumption went from 286.6 MB to 286.6 MB.
+Total: 15.083300 ms (FindLiveObjects: 0.932000 ms CreateObjectMapping: 1.294000 ms MarkObjects: 12.743000 ms  DeleteObjects: 0.113000 ms)
+
+[QA] Opening scene: Assets/Scenes/TopDownScene.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/TopDownScene.unity'
+Unloading 11 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/TopDownScene.unity'
+	Deserialize:            460.182 ms
+	Integration:            590.244 ms
+	Integration of assets:  2.221 ms
+	Thread Wait Time:       14.340 ms
+	Total Operation Time:   1066.987 ms
+Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 31019.
+Memory consumption went from 312.8 MB to 312.8 MB.
+Total: 17.634400 ms (FindLiveObjects: 3.079900 ms CreateObjectMapping: 1.276000 ms MarkObjects: 13.188200 ms  DeleteObjects: 0.089100 ms)
+
+[QA] Opening scene: Assets/Scenes/WorldMap.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:116)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 116)
+
+Opening scene 'Assets/Scenes/WorldMap.unity'
+Unloading 13 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/WorldMap.unity'
+	Deserialize:            64.262 ms
+	Integration:            453.758 ms
+	Integration of assets:  8.537 ms
+	Thread Wait Time:       -8.104 ms
+	Total Operation Time:   518.454 ms
+Unloading 34 unused Assets / (62.7 KB). Loaded Objects now: 12839.
+Memory consumption went from 294.1 MB to 294.1 MB.
+Total: 15.933100 ms (FindLiveObjects: 2.162600 ms CreateObjectMapping: 1.423100 ms MarkObjects: 12.181000 ms  DeleteObjects: 0.147600 ms)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~GroupEditorTests_Group.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~SerializationTests_AddressableAssetSettings.ccd2.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~SerializationTests_AddressableAssetSettings.ccd3.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~SerializationTests_AddressableAssetSettings.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~SerializationTests_AddressableAssetSettings_62.ccd2.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~SerializationTests_AddressableAssetSettings_62.ccd3.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~SerializationTests_AddressableAssetSettings_62.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~SerializationTests_AddressableAssetSettings_65.ccd2.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~SerializationTests_AddressableAssetSettings_65.ccd3.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~SerializationTests_AddressableAssetSettings_65.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~SerializationTests_Group.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~SerializationTests_Group_62.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~SerializationTests_GroupTemplate.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~SerializationTests_GroupTemplate_62.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~SerializationTests_ProfileDataSourceSettings.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~SerializationTests_ProfileDataSourceSettings_62.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.render-pipelines.universal/Editor/SceneTemplates/Basic.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.render-pipelines.universal/Editor/SceneTemplates/Indoors.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Skipping package scene: Packages/com.unity.render-pipelines.universal/Editor/SceneTemplates/Standard.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckScenes () (at Assets/Editor/QaValidator.cs:112)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 112)
+
+[QA] Checking for missing scripts...
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckMissingScripts () (at Assets/Editor/QaValidator.cs:139)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:33)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 139)
+
+[QA] Checking for duplicate asset names...
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:CheckDuplicateAssets () (at Assets/Editor/QaValidator.cs:175)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:34)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 175)
+
+[QA] Validation complete — Errors: 0, Warnings: 3637
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:37)
+
+(Filename: Assets/Editor/QaValidator.cs Line: 37)
+
+Batchmode quit successfully invoked - shutting down!
+Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.0497354 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Grass/Grass_02.mat using Guid(10483612dc26c1041b3d6687bd972505) (NativeFormatImporter) -> (Import Result ID: 'c1a18331354cf321a52588c57578d9fb') in 0.0432965 seconds [static dependencies only]. Details - ImportResultOutputID=f2a370d97c5dfb2140a41b01e033c0c1 DependenciesID=4284bce207ce07ec778815ba4084e482 StaticDependenciesID=47b267facb3e45c5b0111872a685eb04 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Fir_Branch.mat using Guid(0200ed8b82506f647a0cf289a244b119) (NativeFormatImporter) -> (Import Result ID: '4175aa42de4f5ab90f84362dd1d9a796') in 0.0036544 seconds [static dependencies only]. Details - ImportResultOutputID=aa527befdd7378b05dd99eff734ac2e5 DependenciesID=f5bfd006ae12f295753140a5a427f445 StaticDependenciesID=69ddccef36e7dcfe4b0e963a3f08cd1e 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Bushes/Bush_03.mat using Guid(624774d7ea92d5b4db92a800861eea5c) (NativeFormatImporter) -> (Import Result ID: 'eb51ea94aa8aa8bf6ea9959171dfa260') in 0.0036804 seconds [static dependencies only]. Details - ImportResultOutputID=1a221572668c486986d571fe4635cf7c DependenciesID=ac582762bd19443b7fb62b2336a68f36 StaticDependenciesID=c6f846fbaf0e9b65aba6d4b2a2594508 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Plants/Plant.mat using Guid(72cc46bc7c9dfe4499ba6674a29a0b45) (NativeFormatImporter) -> (Import Result ID: '850f6559aedb5fb9621a7fb2614abb25') in 0.0045624 seconds [static dependencies only]. Details - ImportResultOutputID=03949f1a77dae195f6163f24936e7e17 DependenciesID=625ecf0666c6c278c67e2ef8fe240b4f StaticDependenciesID=2ca64fdaffd2b6eb95d7788ada951b4c 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Broadleaf_Green.mat using Guid(d235d21210cd9c341a773bb97a0a4ad4) (NativeFormatImporter) -> (Import Result ID: '0aac282b5f9cd148be3f661175697491') in 0.0038993 seconds [static dependencies only]. Details - ImportResultOutputID=8dc49df84be5e15641659b9ec6867eed DependenciesID=40f317a1b727a152fa70190d5dd15397 StaticDependenciesID=b8e0f12075eb576aa75c78ff4fc54cec 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Reeds_02.mat using Guid(93177626868af8d4d971ee01e99f329f) (NativeFormatImporter) -> (Import Result ID: '10e9d88ff2a3630f3e4046c89029447b') in 0.013679 seconds [static dependencies only]. Details - ImportResultOutputID=8b6425b20da0aa133a50c8f98d93e271 DependenciesID=1a35c32d5f101d86613e2f079bb5e67d StaticDependenciesID=7e974dda7e4380969c41989c22f63b12 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Bushes/Bush_01.mat using Guid(547d20f3a4675194983b5d880d1fb348) (NativeFormatImporter) -> (Import Result ID: 'b3c8107c602dcfdcb531c0910d137ce9') in 0.0032549 seconds [static dependencies only]. Details - ImportResultOutputID=524edb38eb9439299b3bca26d1d71971 DependenciesID=84f3930c163ae4e0e471ebb3cc4add91 StaticDependenciesID=4bf228f311ffe2cfa2ca382683eff616 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Reeds_01.mat using Guid(f5c31f95aa6a9ce4ca82f354413014ce) (NativeFormatImporter) -> (Import Result ID: '311e271db717dafc008c6e2c92244184') in 0.0042737 seconds [static dependencies only]. Details - ImportResultOutputID=1948eb09f69ea067e59e780ce550300c DependenciesID=eb84f3866a3af7aaf6708cb3ca3b1917 StaticDependenciesID=c78a37df4deda4b917b3f9d271b9581f 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Bushes/Bush_02.mat using Guid(16db3acac4b71444b95fd5cca207bf73) (NativeFormatImporter) -> (Import Result ID: 'e6ce1d4fcb59a61ac837659c99f7624b') in 0.0035749 seconds [static dependencies only]. Details - ImportResultOutputID=30d676199a40aaab18394ca4a8614cbd DependenciesID=760ca52db1dec347e32a81c0e13c3b4d StaticDependenciesID=7a1db89fd031e418d419e719a4a43f44 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Grass/Grass_01.mat using Guid(76ef7e3a05c197a4ca75eadeb25e8c48) (NativeFormatImporter) -> (Import Result ID: '61a194f2a71b3a926f345e5e9d3eac6c') in 0.0034514 seconds [static dependencies only]. Details - ImportResultOutputID=a1bbfacd5ff1816771fa088f0d125dba DependenciesID=eaa0a3ab818b5734ab0be53d440cfee7 StaticDependenciesID=4871903bcdd9cce112413495ba4edcec 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Flowers/FlowerMeadow.mat using Guid(a803901a8f304c745aaafbe0260beaed) (NativeFormatImporter) -> (Import Result ID: 'd1e5425b1ae386d0605230f103f075a3') in 0.0033987 seconds [static dependencies only]. Details - ImportResultOutputID=d052003ab5fbcab609cf4bcee212e5e0 DependenciesID=41217147ec29a60ddc3690c566a12732 StaticDependenciesID=40e7ce191495d1d4716bec21b0b03be5 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Grass/Grass_03.mat using Guid(e85669880144e1f4ab0ee9d8a4abce6a) (NativeFormatImporter) -> (Import Result ID: 'db4c4efc3511e68fe7973473654f3b75') in 0.0034359 seconds [static dependencies only]. Details - ImportResultOutputID=4fbd3b7813499231dfbab233c4eda4ba DependenciesID=47d3040ab6009f05102e8dc0ca481324 StaticDependenciesID=af84a861e07cdc66058e5408913d6e77 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Tree_Blossoms.mat using Guid(1b87e06c04499a548b061cebc9c25c0d) (NativeFormatImporter) -> (Import Result ID: '1b8534e6795da00b454ef5893bfbcf08') in 0.0033189 seconds [static dependencies only]. Details - ImportResultOutputID=c058a337bc6880b460c70fb7796eadef DependenciesID=dc1f540f87b49d106441d4bee3bef6b9 StaticDependenciesID=9b265087d2c9d9ec7eed4f1904b2e3fb 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Reeds_03.mat using Guid(4b043753b6e14de40b5307322dceb86f) (NativeFormatImporter) -> (Import Result ID: 'e9644f3dfc360f691b8d84c98595adbe') in 0.0048757 seconds [static dependencies only]. Details - ImportResultOutputID=3e6e9dee0a1e353e69953405785bc851 DependenciesID=86e78d11f45075e3ef300774440e8f5f StaticDependenciesID=19fb5acbe3100cf0b97b5c711758aa81 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Willow_Branch_Green.mat using Guid(6baca70dc3434ed41acb5be62febe897) (NativeFormatImporter) -> (Import Result ID: 'd62475ba784ff28e753d6987f5f332e5') in 0.010379 seconds [static dependencies only]. Details - ImportResultOutputID=c09784b432546f4a6c19cb16ea81c298 DependenciesID=a680f26a98311b18c252bf759223409e StaticDependenciesID=32f343e8767de143036aa75989195820 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Cattail.mat using Guid(7da7c3a003bf2d949bac1d4b7b1663f1) (NativeFormatImporter) -> (Import Result ID: '922bae6eafc2fac48773fd985e242eb3') in 0.0122339 seconds [static dependencies only]. Details - ImportResultOutputID=dc6e1994aa69df8b407dab8293ba8f05 DependenciesID=750d7df9992fba09087588de18db3947 StaticDependenciesID=1f5e945c50e545c7636f6fddcf91ca89 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Flowers/Flower.mat using Guid(cef103c3c4d4f3c48bac1eff7d881a62) (NativeFormatImporter) -> (Import Result ID: '7681408f9542af44e84c6fbad14ab38b') in 0.0033632 seconds [static dependencies only]. Details - ImportResultOutputID=18de31197e2450569a4de35ab15ccbe7 DependenciesID=665e0699905bcdb8b18a0e8771f5860c StaticDependenciesID=824076d5a6693afa8d305360cfb75d15 
+Refreshing native plugins compatible for Editor in 6.41 ms, found 5 plugins.
+(Values over 0.050ms)
+Asset Pipeline Refresh (id=f469e6d3f265b634c84e296677e160ad): Total: 0.546 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+	Summary:
+		Imports: total=18 (actual=18, local cache=0, cache server=0)
+		Asset DB Process Time: managed=8 ms, native=449 ms
+		Asset DB Callback time: managed=24 ms, native=62 ms
+		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
+		Project Asset Count: scripts=2450, non-scripts=6808
+		Asset File Changes: new=0, changed=17, moved=0, deleted=0
+		Scan Filter Count: 27
+	ApplyChangesToAssetFolders: 0.195ms
+	Scan: 92.879ms
+	OnSourceAssetsModified: 3.645ms
+	ProcessAssetsWithTransientArtifactChanges: 0.151ms
+	CategorizeAssets: 46.207ms
+	ImportOutOfDateAssets: 295.396ms (1.027ms without children)
+		ImportManagerImport: 291.445ms (19.422ms without children)
+			UpdateCategorizedAssets: 0.181ms
+		ReloadNativeAssets: 0.084ms
+		UnloadImportedAssets: 0.382ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.529ms
+		OnDemandSchedulerStart: 0.917ms
+	PostProcessAllAssets: 76.143ms
+		XRBuildSystem.XRAssetImported 52.524ms
+		PostProcessCallbackCreateDeferredMaterials 0.089ms
+		MonoPostProcessAllAssets: 22.448ms
+			MaterialPostprocessor.OnPostprocessAllAssets 13.370ms
+			AssetPostprocessor.OnPostprocessAllAssets 4.743ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.823ms
+			LocalizationAssetPostProcessor.OnPostprocessAllAssets 0.567ms
+			AssetChangedListener.OnPostprocessAllAssets 0.300ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.204ms
+			PostProcessor.OnPostprocessAllAssets 0.175ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.173ms
+			SyncVS.PostprocessSyncProject 0.133ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.125ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.097ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.060ms
+	PostAssetChangesProfiler: 7.122ms
+	GatherAllCurrentPrimaryImportResultRevisions: 1.368ms
+	UnloadStreamsBegin: 8.773ms
+	PersistCurrentRevisions: 0.771ms
+	UnloadStreamsEnd: 0.360ms
+	Untracked: 12.654ms
+
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input Polling Thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-korea-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-korea channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+CodeReloadManager destroyed
+abort_threads: Failed aborting id: 0000000000002CA8, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 0000000000002570, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 0000000000002CA8, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 0000000000002570, mono_thread_manage will ignore it
+
+debugger-agent: Unable to listen on 3160
+Exiting batchmode successfully now!
+Exiting without the bug reporter. Application will terminate with return code 0

@@ -64,22 +64,29 @@ public static class QaValidator
             }
         }
 
-        // Also check via UnityEditor internals
+        // Also check via UnityEditor internals (guarded: API varies between Unity versions)
         var logEntriesType = Type.GetType("UnityEditor.LogEntries,UnityEditor");
         if (logEntriesType != null)
         {
-            var logCount = (int)logEntriesType.GetMethod("GetCount").Invoke(null, null);
-            for (int i = 0; i < logCount; i++)
+            var getCount = logEntriesType.GetMethod("GetCount");
+            var getEntryTypeMethod = logEntriesType.GetMethod("GetEntryType", new[] { typeof(int) });
+            var getEntryMsgMethod = logEntriesType.GetMethod("GetEntryMsg", new[] { typeof(int) });
+
+            // Unity 6000.x removed LogEntries.GetEntryType/GetEntryMsg — skip gracefully
+            // (compile errors are still caught via the log file and batch exit code).
+            if (getCount != null && getEntryTypeMethod != null && getEntryMsgMethod != null)
             {
-                var entryType = (int)logEntriesType.GetMethod("GetEntryType", new[] { typeof(int) })
-                    .Invoke(null, new object[] { i });
-                if (entryType == 2) // Error
+                var logCount = (int)getCount.Invoke(null, null);
+                for (int i = 0; i < logCount; i++)
                 {
-                    var entryStr = (string)logEntriesType.GetMethod("GetEntryMsg", new[] { typeof(int) })
-                        .Invoke(null, new object[] { i });
-                    if (entryStr.Contains("error CS"))
+                    var entryType = (int)getEntryTypeMethod.Invoke(null, new object[] { i });
+                    if (entryType == 2) // Error
                     {
-                        errors.Add($"[COMPILE] {entryStr}");
+                        var entryStr = (string)getEntryMsgMethod.Invoke(null, new object[] { i });
+                        if (entryStr.Contains("error CS"))
+                        {
+                            errors.Add($"[COMPILE] {entryStr}");
+                        }
                     }
                 }
             }
