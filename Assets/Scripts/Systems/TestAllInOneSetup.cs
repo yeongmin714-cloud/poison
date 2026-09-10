@@ -531,7 +531,8 @@ namespace ProjectName.Systems
             }
 
             // Unity 6 API: FindObjectsByType(Type, FindObjectsInactive, FindObjectsSortMode) 정적 오버로드 사용 (FindObjectOfType 폐지)
-            var existingHuds = Object.FindObjectsByType(_hudType, FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            // [CS0104 수정] using System; 과 using UnityEngine; 이 동시에 있어 'Object'가 System.Object/UnityEngine.Object로 모호함 → 명시적 한정
+            var existingHuds = UnityEngine.Object.FindObjectsByType(_hudType, FindObjectsInactive.Exclude, FindObjectsSortMode.None);
             if (existingHuds != null && existingHuds.Length > 0)
             {
                 Debug.Log("[TestAllInOneSetup] ℹ️ 이미 활성 HUD가 존재하여 HUD 생성을 건너뜁니다.");
