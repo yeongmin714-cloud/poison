@@ -128,6 +128,9 @@ namespace ProjectName.UI
         private GUIStyle _styleButton;          // 공용 버튼 (정렬/수리/사용 — 흰색 굵은 텍스트)
         private GUIStyle _styleWeaponBtn;       // 무기 장착 버튼 (다크 배경 + 흰 테두리)
         private GUIStyle _styleWeaponBtnEquipped; // 장착 중 버튼 (금색 테두리)
+        // ===== AAA 4레이어 스타일 (InventoryArtLibrary static 캐시 텍스처 — 파기 금지) =====
+        private GUIStyle _styleBackplate;       // Layer 1: 스톤 백플레이트 (9-Slice border 24)
+        private GUIStyle _styleMetalFrame;      // Layer 4: 금속 프레임 (9-Slice border 16)
         private bool _stylesInitialized;
         private Texture2D _texWhite;
         private Texture2D _texSlotBg;           // 슬롯 배경 (다크 + 흰 테두리)
@@ -226,14 +229,32 @@ namespace ProjectName.UI
             // T3B-1: 빈 슬롯 가이드 셀 — 라운드 사각 (다크 셀 + 그리드라인 보더)
             _texSlotEmptyGuide = MakeRoundedBorderedTexture(48, 48, ColorSlotEmptyCell, ColorGridLine, 1, 10);
 
-            // 타이틀 — 크고 굵은 흰색 (C-UP 폰트 확대: 52→64, TITLE_BAR 108px에 맞춰 보정)
+            // ===== AAA 4레이어: ArtLibrary 텍스처 기반 스타일 (static 캐시 — OnDisable/파괴 시 파기 금지) =====
+            // Layer 1 백플레이트 — 스톤 패널 (9-Slice, border 24 등소비)
+            _styleBackplate = new GUIStyle(GUI.skin.box)
+            {
+                normal = { background = InventoryArtLibrary.GetBackplate(), textColor = ColorTextPrimary },
+                border = new RectOffset(24, 24, 24, 24),
+                padding = new RectOffset(0, 0, 0, 0),
+                margin = new RectOffset(0, 0, 0, 0)
+            };
+            // Layer 4 금속 프레임 — 두께 14px 금속 (9-Slice, border 16)
+            _styleMetalFrame = new GUIStyle(GUI.skin.box)
+            {
+                normal = { background = InventoryArtLibrary.GetMetalFrame(), textColor = ColorTextPrimary },
+                border = new RectOffset(16, 16, 16, 16),
+                padding = new RectOffset(0, 0, 0, 0),
+                margin = new RectOffset(0, 0, 0, 0)
+            };
+
+            // 타이틀 — 크고 굵은 골드톤 (C-UP 폰트 확대: 52→64, TITLE_BAR 108px에 맞춰 보정)
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
                 fontSize = 64,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 clipping = TextClipping.Clip,
-                normal = { textColor = ColorTextPrimary },
+                normal = { textColor = new Color(0.98f, 0.90f, 0.62f, 1f) },   // AAA: 배너 위 골드톤 타이틀
                 padding = new RectOffset(21, 4, 0, 0)
             };
 
@@ -405,24 +426,25 @@ namespace ProjectName.UI
 
             InitStyles();
 
-            // === 배경 + 외곽 박스 ===
-            GUI.Box(new Rect(x, y, WINDOW_WIDTH, WINDOW_HEIGHT), "", _stylePanelBox);
+            // ===================================================================
+            // AAA 4레이어 z-order: ①드롭섀도우 → ②백플레이트 → ③그리드/컨텐츠 → ④프레임
+            // ===================================================================
 
-            // === 얇은 금색 외곽 테두리 (4면) ===
-            DrawColoredRect(new Rect(x, y, WINDOW_WIDTH, 2), ColorBorder);
-            DrawColoredRect(new Rect(x, y + WINDOW_HEIGHT - 2, WINDOW_WIDTH, 2), ColorBorder);
-            DrawColoredRect(new Rect(x, y, 2, WINDOW_HEIGHT), ColorBorder);
-            DrawColoredRect(new Rect(x + WINDOW_WIDTH - 2, y, 2, WINDOW_HEIGHT), ColorBorder);
+            // === 드롭섀도우: 창 rect 12px 사방 확장, 검정 tint 단일 DrawTexture (화면 팝업감) ===
+            DrawWindowDropShadow(x, y, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-            // === 타이틀 바 ===
-            DrawColoredRect(new Rect(x + 2, y + 2, WINDOW_WIDTH - 4, TITLE_BAR_HEIGHT), ColorTitleBar);
-            GUI.Label(new Rect(x, y + 2, WINDOW_WIDTH, TITLE_BAR_HEIGHT), "  📦 인벤토리", _styleTitle);
+            // === Layer 1: 스톤 백플레이트 (9-Slice) — 기존 평면 패널/타이틀 띠 대체 ===
+            GUI.Box(winRect, "", _styleBackplate);
 
-            // 정렬 버튼 (타이틀 바 우측) — 다크 배경 + 흰색 굵은 텍스트
+            // === 타이틀 배너 (Layer 4 소속) — 정렬 버튼 왼쪽 가용 영역 중앙 ===
             float sortBtnWidth = 340f;
             float sortBtnHeight = 80f;
             float sortBtnX = x + WINDOW_WIDTH - sortBtnWidth - 12f;
             float sortBtnY = y + 12f;
+            DrawTitleBanner(x, y, sortBtnX);
+            GUI.Label(new Rect(x, y + 2, WINDOW_WIDTH, TITLE_BAR_HEIGHT), "  📦 인벤토리", _styleTitle);
+
+            // 정렬 버튼 (타이틀 바 우측) — 기존 로직 유지 (다크 배경 + 흰색 굵은 텍스트)
             if (GUI.Button(new Rect(sortBtnX, sortBtnY, sortBtnWidth, sortBtnHeight), $"📊 {_sortModeLabels[(int)_sortMode]}", _styleButton))
             {
                 _sortMode = (SortMode)(((int)_sortMode + 1) % 5);
@@ -442,7 +464,7 @@ namespace ProjectName.UI
 
             // === 카테고리 탭 ===
             float tabY = y + TITLE_BAR_HEIGHT + 4;
-            DrawColoredRect(new Rect(x, tabY, WINDOW_WIDTH, TAB_BAR_HEIGHT), ColorTitleBar);
+            // (기존 ColorTitleBar 평면 띠 제거 — 스톤 백플레이트가 그대로 비쳐 보임)
             DrawCategoryTabs(x, tabY);
             DrawColoredRect(new Rect(x, tabY + TAB_BAR_HEIGHT, WINDOW_WIDTH, 1), ColorBorder);
 
@@ -454,6 +476,9 @@ namespace ProjectName.UI
             // === 하단 장비슬롯 6종 (2026-09-09: 무기버튼/프리뷰 대체, 우클릭 해제) ===
             float equipY = gridY + gridHeight + 2;
             DrawEquipRow(x, equipY);
+
+            // === Layer 4: 금속 프레임(9-Slice) + 4모서리 로터스 장식 — 컨텐츠 위 투명 텍스처로 안착 ===
+            DrawWindowFrame(x, y, WINDOW_WIDTH, WINDOW_HEIGHT);
 
             // === 중앙 아이템 설명 패널 (2026-09-09(2): 제2구획 — 설명 + 핫바 미니패드) ===
             DrawDescriptionPanel(x + WINDOW_WIDTH + DESC_GAP, y);
@@ -534,16 +559,20 @@ namespace ProjectName.UI
                 new Rect(0, 0, innerWidth - 20, contentHeight)
             );
 
-            // === T3B-1: 빈 슬롯 가이드 그리드 — 라운드 셀 가이드를 항상 표시 (아이템 슬롯은 그 위에 그려짐) ===
+            // === AAA Layer 2: 빈 슬롯 가이드 그리드 — 엠보싱 셀 텍스처(순백)로 항상 표시 (기존 _texSlotEmptyGuide 대체) ===
+            Texture2D slotCellTex = InventoryArtLibrary.GetSlotCell();
             int guideCells = guideRows * GRID_COLUMNS;
+            var prevGuideColor = GUI.color;
+            GUI.color = Color.white;
             for (int g = 0; g < guideCells; g++)
             {
                 int gCol = g % GRID_COLUMNS;
                 int gRow = g / GRID_COLUMNS;
                 float gx = SLOT_MARGIN + gCol * (slotWidth + SLOT_MARGIN);
                 float gy = SLOT_MARGIN + gRow * rowHeight;
-                GUI.DrawTexture(new Rect(gx, gy, slotWidth, slotHeight), _texSlotEmptyGuide);
+                GUI.DrawTexture(new Rect(gx, gy, slotWidth, slotHeight), slotCellTex);
             }
+            GUI.color = prevGuideColor;
 
             if (_currentSlots == null || _currentSlots.Length == 0)
             {
@@ -564,10 +593,16 @@ namespace ProjectName.UI
 
                     Rect slotRect = new Rect(sx, sy, slotWidth, slotHeight);
                     bool isSelected = (i == _selectedSlotIndex);
+                    bool isHover = slotRect.Contains(Event.current.mousePosition);
 
-                    // 슬롯 배경 — T3C-2: 선택 슬롯은 민트 글로우 배경 + 금색 테두리(_styleSlotSelected)
-                    var slotStyle = isSelected ? _styleSlotSelected : _styleSlot;
-                    GUI.Box(slotRect, "", slotStyle);
+                    // === AAA Layer 2: 엠보싱 셀(흰색) → 희귀도 글로우 tint (아이템 있는 슬롯만) ===
+                    Color prevSlotColor = GUI.color;
+                    GUI.color = Color.white;
+                    GUI.DrawTexture(slotRect, InventoryArtLibrary.GetSlotCell());
+                    int rarityIdx = Mathf.Clamp((int)slot.item.rarity, 0, InventoryArtLibrary.RarityColors.Length - 1);
+                    GUI.color = InventoryArtLibrary.RarityColors[rarityIdx];
+                    GUI.DrawTexture(slotRect, InventoryArtLibrary.GetSlotGlow());
+                    GUI.color = prevSlotColor;
 
                     // 아이콘 — 슬롯 상단 중앙 (C-UP: 슬롯 폭 비례, 상한 SLOT_ICON_SIZE)
                     float iconSize = Mathf.Min(SLOT_ICON_SIZE, slotWidth * 0.62f);
@@ -620,6 +655,12 @@ namespace ProjectName.UI
                         // 내구도 채움
                         DrawColoredRect(new Rect(sx + 6, barY, barWidth * Mathf.Clamp01(durability), barHeight), durColor);
                     }
+
+                    // === AAA Layer 3: 호버/선택 하이라이트 — 아이콘 위 최상단 라운드 링 오버레이 ===
+                    if (isSelected)
+                        DrawSlotTint(InventoryArtLibrary.GetSlotHighlight(), slotRect, ColorAccent);                    // 선택 = 골드
+                    else if (isHover)
+                        DrawSlotTint(InventoryArtLibrary.GetSlotHighlight(), slotRect, new Color(1f, 1f, 0.9f, 0.9f));  // 호버 = 따뜻한 백색
 
                     // 클릭 처리 (호버 영역) — 🗺️ 오토루트 우클릭 연동
                     if (Event.current.type == EventType.MouseDown && slotRect.Contains(Event.current.mousePosition))
@@ -676,7 +717,7 @@ namespace ProjectName.UI
                         }
                     }
                     // 툴팁 (마우스 호버 시)
-                    if (slotRect.Contains(Event.current.mousePosition))
+                    if (isHover)
                     {
                         DrawSlotTooltip(Event.current.mousePosition + new Vector2(22, 22), slot);
                     }
@@ -1456,7 +1497,13 @@ namespace ProjectName.UI
                 }
                 bool has = !string.IsNullOrEmpty(itemId);
 
-                GUI.Box(boxRect, "", reserved ? _styleSlot : (has ? _styleWeaponBtnEquipped : _styleSlot));
+                // === AAA Layer 2/3: 엠보싱 셀 + 장착 중 골드 테두리 (기존 박스 스타일 대체) ===
+                var prevEquipColor = GUI.color;
+                GUI.color = reserved ? new Color(1f, 1f, 1f, 0.55f) : Color.white;   // 예약 칸은 딤 처리
+                GUI.DrawTexture(boxRect, InventoryArtLibrary.GetSlotCell());
+                if (has)
+                    DrawSlotTint(InventoryArtLibrary.GetSlotHighlight(), boxRect, ColorAccent);   // 장착 중 = 골드 테두리
+                GUI.color = prevEquipColor;
                 GUI.Label(new Rect(sx, sy + boxH + 2f, boxW, 20f), slotNames[i], _styleSlotLabel);
                 if (has)
                     GUI.Label(new Rect(sx - 8f, sy + boxH + 20f, boxW + 16f, 20f),
@@ -1470,6 +1517,64 @@ namespace ProjectName.UI
                     Event.current.Use();
                 }
             }
+        }
+
+        // ===================================================================
+        // AAA 4레이어 드로우 헬퍼 (InventoryArtLibrary 소비)
+        // ===================================================================
+
+        /// <summary>드롭섀도우 — 창 rect를 12px 사방 확장해 소프트 섀도우 텍스처를 검정 tint로 단일 DrawTexture.</summary>
+        private void DrawWindowDropShadow(float wx, float wy, float ww, float wh)
+        {
+            var prevColor = GUI.color;
+            GUI.color = new Color(0f, 0f, 0f, 0.55f);
+            GUI.DrawTexture(new Rect(wx - 12f, wy - 12f, ww + 24f, wh + 24f), InventoryArtLibrary.GetWindowDropShadow());
+            GUI.color = prevColor;
+        }
+
+        /// <summary>Layer 4 — 금속 프레임(9-Slice Box) + 4모서리 로터스 장식(GUI.matrix 0/90/180/270° 회전, 반드시 복원).</summary>
+        private void DrawWindowFrame(float wx, float wy, float ww, float wh)
+        {
+            // 금속 프레임 — 9-Slice (border 16)
+            GUI.Box(new Rect(wx, wy, ww, wh), "", _styleMetalFrame);
+
+            // 4모서리 장식 — 좌상단 기준 텍스처를 모서리 중심 pivot 회전으로 4방향 배치 (투명 배경이라 컨텐츠 위 안착)
+            var orn = InventoryArtLibrary.GetCornerOrnament();
+            const float ornSize = 96f;
+            DrawCornerOrnament(orn, new Rect(wx, wy, ornSize, ornSize), 0f);
+            DrawCornerOrnament(orn, new Rect(wx + ww - ornSize, wy, ornSize, ornSize), 90f);
+            DrawCornerOrnament(orn, new Rect(wx + ww - ornSize, wy + wh - ornSize, ornSize, ornSize), 180f);
+            DrawCornerOrnament(orn, new Rect(wx, wy + wh - ornSize, ornSize, ornSize), 270f);
+        }
+
+        /// <summary>모서리 장식 1개 — rect 중심 pivot으로 angle도 회전 후 DrawTexture, matrix 반드시 복원.</summary>
+        private void DrawCornerOrnament(Texture2D tex, Rect rect, float angle)
+        {
+            var prevMatrix = GUI.matrix;
+            if (!Mathf.Approximately(angle, 0f))
+                GUIUtility.RotateAroundPivot(angle, rect.center);
+            GUI.DrawTexture(rect, tex);
+            GUI.matrix = prevMatrix;   // 회전 후 반드시 복원
+        }
+
+        /// <summary>타이틀 배너 — 정렬 버튼 왼쪽 가용 영역 중앙에 금속 배너(512×96 비율 유지) 배치.</summary>
+        private void DrawTitleBanner(float wx, float wy, float sortBtnX)
+        {
+            float avail = sortBtnX - wx - 24f;
+            float bannerW = Mathf.Min(512f, Mathf.Max(180f, avail * 0.94f));
+            float bannerH = 72f;
+            float bx = wx + (sortBtnX - wx - bannerW) * 0.5f;                 // 가용 영역 중앙
+            float by = wy + (TITLE_BAR_HEIGHT - bannerH) * 0.5f;
+            GUI.DrawTexture(new Rect(bx, by, bannerW, bannerH), InventoryArtLibrary.GetTitleBanner());
+        }
+
+        /// <summary>셀 위 오버레이(글로우/하이라이트) — GUI.color tint 후 반드시 복원.</summary>
+        private void DrawSlotTint(Texture2D tex, Rect rect, Color tint)
+        {
+            var prevColor = GUI.color;
+            GUI.color = tint;
+            GUI.DrawTexture(rect, tex);
+            GUI.color = prevColor;
         }
 
         // ===================================================================
