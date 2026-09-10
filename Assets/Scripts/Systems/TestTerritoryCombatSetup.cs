@@ -22,6 +22,16 @@ namespace ProjectName.Systems
             // Test_10_TerritoryCombat 전용: HighSpec 모드 강제 (메인 씬은 Balanced 기본값 유지)
             ActionFeel.SetMode(ActionFeelMode.HighSpec);
 
+            // GetHeightAt 계약 정합: 배치 좌표의 XZ는 존중하고 y만 수식 표면으로 재설정.
+            // PlayerMovement.ClampToGroundByHeight / BlobShadow가 기대하는 표면(1+GetHeightAt) 위에
+            // 엔티티가 정확히 떨어지도록 하여 텔레포트 진동을 근본 차단.
+            float lordY = SurfaceY(_lordPos.x, _lordPos.z) + 1.6f;   // 영주 box(3m)
+            float guardY = SurfaceY(_guardPos.x, _guardPos.z) + 1.0f; // 병사 box(1.8m)
+            float monsterY = SurfaceY(_monsterPos.x, _monsterPos.z) + 0.9f; // 몬스터 box(1m, GO scale 1.5)
+            _lordPos = new Vector3(_lordPos.x, lordY, _lordPos.z);
+            _guardPos = new Vector3(_guardPos.x, guardY, _guardPos.z);
+            _monsterPos = new Vector3(_monsterPos.x, monsterY, _monsterPos.z);
+
             EnsureGameManager();
             SetupPlayer();
             SetupCamera();
@@ -48,6 +58,26 @@ namespace ProjectName.Systems
             gm.AddComponent<MonsterAggroSystem>();
             gm.AddComponent<MonsterSkillSystem>();
             Debug.Log("[TestTerritoryCombat] ✅ GameManager + 시스템 생성");
+        }
+
+        // ================================================================
+        // 지형 수식 계약 (PlayerMovement.ClampToGroundByHeight와 동일 기준)
+        // ================================================================
+        /// <summary>
+        /// GetHeightAt 수식 표면 y (1 + 높이). PlayerMovement가 플레이어/그림자에 대해
+        /// 기대하는 바로 그 값 — 이 표면 위로 미니지형/스폰을 정렬해야 진동이 없다.
+        /// </summary>
+        private static float SurfaceY(float x, float z)
+        {
+            try
+            {
+                return 1f + ProjectName.Systems.TerrainGenerator.GetHeightAt(
+                    x, z, ProjectName.Core.Data.BiomeType.Plains, 42);
+            }
+            catch
+            {
+                return 1f;
+            }
         }
 
         // ================================================================
@@ -91,8 +121,10 @@ namespace ProjectName.Systems
             if (player.GetComponent<PlayerInventory>() == null)
                 player.AddComponent<PlayerInventory>();
 
-            player.transform.position = Vector3.zero;
-            Debug.Log("[TestTerritoryCombat] ✅ Player 설정 완료");
+            // PlayerMovement.Awake의 (728, …) 스폰 오버라이드를 여기서 이긴다(실행 순서 의존 유지).
+            // 캡슐 중심 = 표면 + 1 + 여유 → ClampToGroundByHeight 텔레포트 트리거 없음.
+            player.transform.position = new Vector3(0f, SurfaceY(0f, 0f) + 1.02f, 0f);
+            Debug.Log($"[TestTerritoryCombat] ✅ Player 설정 완료 (pos={player.transform.position}, 표면 y={SurfaceY(0f, 0f):F2})");
         }
 
         // ================================================================
@@ -127,19 +159,70 @@ namespace ProjectName.Systems
         {
             if (GameObject.Find("Ground") != null) return;
 
-            GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            ground.name = "Ground";
-            ground.transform.position = new Vector3(0, -0.5f, 0);
-            ground.transform.localScale = Vector3.one * 40f;
+            // Plane 프리미티브(표면 y=-0.5) 대신 GetHeightAt 계약 준수 미니지형.
+            // 정점 y = SurfaceY(x, z) = 1 + GetHeightAt(x, z, Plains, 42) →
+            // 스폰·ClampToGroundByHeight·BlobShadow가 기대하는 표면과 정확히 일치.
+            const int halfSize = 60;   // 반경 ±60m
+            const int step = 1;        // 정점 간격 1m
+            int vertCount = halfSize * 2 / step + 1; // 121 → 14641 정점
 
-            var renderer = ground.GetComponent<MeshRenderer>();
-            if (renderer != null)
+            var vertices = new Vector3[vertCount * vertCount];
+            var triangles = new int[(vertCount - 1) * (vertCount - 1) * 6];
+
+            int vi = 0;
+            for (int zi = 0; zi < vertCount; zi++)
             {
-                var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                mat.color = new Color(0.2f, 0.5f, 0.2f, 1f);
-                renderer.material = mat;
+                for (int xi = 0; xi < vertCount; xi++)
+                {
+                    float x = -halfSize + xi * step;
+                    float z = -halfSize + zi * step;
+                    vertices[vi++] = new Vector3(x, SurfaceY(x, z), z);
+                }
             }
-            Debug.Log("[TestTerritoryCombat] ✅ Ground 생성");
+
+            // 쿼드당 삼각형 2개 (아래→위 인덱스, 위쪽 면 시계방향 유지)
+            int ti = 0;
+            for (int zi = 0; zi < vertCount - 1; zi++)
+            {
+                for (int xi = 0; xi < vertCount - 1; xi++)
+                {
+                    int tl = zi * vertCount + xi;      // 좌하
+                    int tr = tl + 1;                   // 우하
+                    int bl = tl + vertCount;           // 좌상
+                    int br = bl + 1;                   // 우상
+                    triangles[ti++] = tl;
+                    triangles[ti++] = bl;
+                    triangles[ti++] = tr;
+                    triangles[ti++] = tr;
+                    triangles[ti++] = bl;
+                    triangles[ti++] = br;
+                }
+            }
+
+            var mesh = new Mesh
+            {
+                vertices = vertices,
+                triangles = triangles
+            };
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+
+            var ground = new GameObject("Ground");
+            ground.transform.position = Vector3.zero; // 메시는 월드 좌표 기준
+
+            var meshFilter = ground.AddComponent<MeshFilter>();
+            meshFilter.sharedMesh = mesh;
+
+            var renderer = ground.AddComponent<MeshRenderer>();
+            var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            mat.color = new Color(0.2f, 0.5f, 0.2f, 1f);
+            renderer.material = mat;
+
+            var meshCollider = ground.AddComponent<MeshCollider>();
+            meshCollider.sharedMesh = mesh;
+            meshCollider.convex = false;
+
+            Debug.Log($"[TestTerritoryCombat] ✅ 미니지형 생성 (계약: GetHeightAt+1, 정점 {vertCount}x{vertCount}={vertices.Length}, 원점 표면 y={SurfaceY(0f, 0f):F2})");
         }
 
         private void SetupLight()
