@@ -1041,3 +1041,22 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 **검증**: 배치컴파일 EXIT=0, error CS=0(buildlog_aaa_ui.txt). QA 에이전트 5항목 PASS(API/결정론 노이즈/빌더 실질합성 8개 전수/이중렌더 제거/로직 무변경/OnGUI 텍스처 생성 0건). 에이전트 2회 타임아웃(600s)→A의 결과물 검수+EquipmentWindow 부모 직접 구현 전환.
 
 **Play 판정 대기**: ①인벤토리(I) 4레이어 비주얼 — 스톤 백플레이트+골드 프레임+모서리 장식+배너 ②희귀도 글로우/테두리(전설=골드) ③호버/선택 링 ④장비창(E) 동일 세트+장착 글로우 ⑤배너 상단 걸침 클리핑 0 ⑥프레임이 슬롯 가리지 않음
+
+---
+
+## 2026-09-10 5차: Test_10 재판정+몬스터 머리 UI+크래프트 테스트씬 전 UI + C드라이브 용량 정리 ✅ (계획: .hermes/plans/2026-09-10_111500-test10-anim-rejudge-monsterui-crafttest-plan.md)
+
+**진단(영상2+로그 재판정)**: 부트는 작동 중(레거시 5개 제거+Player_AC 부착) — 1차 세션 "avatar=NULL"=GLB 어바탓 지연 도착으로 T포즈. 피격은 CombatLog 39건+이펙트 실제 출력(슬래시 스폰 성공 로그 부재만 문제).
+
+**Phase 1 — TestPlayerAnimatorBoot 보강(+110행)**: ①아바타 감시(5초 폴링, 도착 시 Rebind+재생 재시작 — T포즈 근본 차단) ②부트 3초 후 애니검증 로그(현재 클립명/playing) ③침하 감시 유지(0.435m 정상 실증). HumanoidClipDriver._anim은 컴포넌트 참조라 Rebind 후 유효.
+**FX 발화 로그**: SlashVFXRunner.PlaySlash 성공 경로에 스폰 로그 1줄(좌클릭 발화 증거).
+
+**Phase 2 — 신규 MonsterHeadUI.cs(329행)**: 몬스터 머리 위 이름+Lv+HP바(90×8px, ratio≥0.6녹/≥0.3노랑/빨강+수치) — AnimalAI.CurrentHP/MaxHP+MonsterLevelManager.GetLevelDisplay/EstimateTierByName 소비(MonsterTier 3값 매핑: 녹/노랑/주황). y반전·뒷면/화면밖/40m 스킵·Camera.main 0.5s 캐시·OnGUI GUIStyle 생성 0건. Test_10 SpawnMonster 훅 11행.
+
+**Phase 3 — 크래프트 테스트씬(InteriorSystemsTestSetup +96행)**: ①테스트 아이템 시딩 13종(기존 정적 데이터 10종+전설★/희귀/영웅 3종 — 글로우 등급색 검증) ②핫바 1~3 자동 할당(목검/치유초/멧돼지고기) ③테스트 몬스터 slime(HP바 실시간 검증) ④OnGUI 키 가이드(I인벤/E장비·스테이션/P스탯/M지도/X크래프트/K복수). 핫바/스탯/전투로그는 기존 셀프부트, I/P/M/E/X/K는 KeyBindings 공유.
+
+**검증**: 배치컴파일 CS=0(1차 CS0117 3건 — PlayerInventory.ItemRarity→ProjectName.Core.ItemRarity 정규화 후 통과, buildlog_monsterui_crafttest2.txt). QA 5/5 PASS(코루틴 제약/API 실존/로직 무변경/널가드).
+
+**Phase 5 — C드라이브 용량 정리 (7.4→23.2GB, +15.8GB 확보)**: venv 4.95GB(리눅스 심링크 venv — Windows Zip 불가 확정→requirements.txt 재구성 가능, 학습 보류 중이라 바로 삭제)/code_temp_compile 2.47GB(7/18 이후 미수정 사본)/Library/Artifacts 7.96GB(에디터 재생성 캐시)/buildlog_cap.txt 616MB. **주의: 다음 에디터 실행 시 리임포트(수 분) 발생 — 정상.**
+
+**Play 판정 대기**: ①Test_10 — 아바타 감시 로그+애니검증(clip=… playing=True)+T포즈 해소 ②슬라임 머리 이름/Lv/HP바(타격 시 실시간 감소·색 전환) ③[SlashVFX] 스윙 스폰 로그 ④크래프트 테스트씬 — 인벤 13종(전설 글로우)+핫바 3슬롯+미니맵/스탯/장비창 각 키 ⑤에디터 재실행 리임포트 완료 후 UI 정상
