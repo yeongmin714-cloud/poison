@@ -29,11 +29,9 @@ namespace ProjectName.Systems
         private const string ComboStateName = "WeaponCombo";
         private const float ComboClipFrames = 136f;                    // Weapon_Combo_2 총 프레임(30fps)
         private static readonly float[] ComboEndNormT = { 0.331f, 0.676f }; // 스테이지1/2 종료 경계(45f/92f). 3타는 클립 끝(1.0)
-        private static readonly float[] ComboImpactNormT = { 0.18f, 0.53f, 0.84f }; // 타별 타격 프레임(≈24f/72f/114f) — Play 판정 후 튜닝 상수
         private const float ComboHoldGrace = 0.25f;                    // 경계 홀드 후 입력 대기 시간
         private const float ComboExitBlend = 0.15f;
         private int _comboStage;          // 0=비활성, 1..3 = 현재 스테이지(클릭 수)
-        private int _comboImpactFired;    // 마지막 발화 임팩트 인덱스(1..3)
         private float _comboStartTime = -999f;
         private float _comboPinGraceStart = -999f;
         private int _legacyImpactFired;   // 레거시 Attack* 상태 1회 슬래시 플래그
@@ -46,6 +44,7 @@ namespace ProjectName.Systems
 
         private Vector3 _lastPos;
         private float _prevCombatAttack = -999f;   // 직전 프레임의 LastAttackTime (클릭 엣지 감지)
+        private float _prevPlayerHP = -1f;         // 직전 프레임의 PlayerHealth.CurrentHP (HP 감소 엣지 → HitLight)
         private bool _prevRolling, _prevJumping;
         private float _prevSpeedForTransition = -999f;   // T-D3: Run→Walk 전환 연출용 직전 프레임 속도
         private bool _prevBow, _prevSpear, _prevThrow;   // T-D3: 무기 모드 엣지 감지
@@ -329,6 +328,17 @@ namespace ProjectName.Systems
             var stealth = StealthSystem.Instance;
             _anim.SetBool("IsStealthed", stealth != null && stealth.IsStealthed);
 
+            // 피격 애니 — PlayerHealth HP 감소 엣지 감시. 감소 순간 HitLight 트리거(Any State 전이) 발화.
+            // 죽음(HP 0 도달/IsDead)은 Death 경로(TriggerDeath)가 담당하므로 여기서는 발화하지 않는다.
+            var ph = PlayerHealth.Instance;
+            if (ph != null)
+            {
+                float hp = ph.CurrentHP;
+                if (_prevPlayerHP >= 0f && hp < _prevPlayerHP - 0.001f && !ph.IsDead)
+                    _anim.SetTrigger("HitLight");   // 피격 애니 — AnyState 트리거
+                _prevPlayerHP = hp;
+            }
+
             // M2 정식 장착 연동: CurrentType 기반 게이트(핫바 장착이 유일한 전환 경로)
             var wtype = WeaponEquipManager.CurrentType;
             bool throwing = PlayerWeaponModeBridge.ThrowSelected;
@@ -393,15 +403,16 @@ namespace ProjectName.Systems
                     {
                         _comboStage++;
                         _comboPinGraceStart = -999f;
+                        FireComboSlash(_comboStage);   // 클릭 즉시 스윙 FX — 임팩트 프레임 대기 없음
                         Debug.Log($"[Combo] 스테이지 {_comboStage} 진행 (플레이헤드 이어받기)");
                     }
                     else if (!inCombo)
                     {
                         _anim.Play(ComboStateName, 0, 0f);
                         _comboStage = 1;
-                        _comboImpactFired = 0;
                         _comboPinGraceStart = -999f;
                         _comboStartTime = Time.time;
+                        FireComboSlash(1);   // 클릭 즉시 스윙 FX — 임팩트 프레임 대기 없음
                         Debug.Log("[Combo] WeaponCombo 1타 시작");
                     }
                     // 공격 상태 최소 유지 — 연타 중 Idle 경유 팝 방지
@@ -409,21 +420,11 @@ namespace ProjectName.Systems
                 }
             }
 
-            // ── WeaponCombo per-frame 감시: 타별 임팩트 스윙 FX + 경계 플레이헤드 홀드 + 종료 ──
+            // ── WeaponCombo per-frame 감시: 경계 플레이헤드 홀드 + 종료 (스윙 FX는 클릭 즉시 발화로 이동) ──
             var st = _anim.GetCurrentAnimatorStateInfo(0);
             if (st.IsName(ComboStateName) && _comboStage > 0)
             {
                 float normT = st.normalizedTime; // 단발 클립: 0→1
-
-                // 타별 임팩트 프레임 도달 시 스윙 VFX 발화 (1.._comboStage 순차 — 스윙 방향 따름)
-                for (int sIdx = _comboImpactFired + 1; sIdx <= _comboStage && sIdx <= 3; sIdx++)
-                {
-                    if (normT >= ComboImpactNormT[sIdx - 1])
-                    {
-                        FireComboSlash(sIdx);
-                        _comboImpactFired = sIdx;
-                    }
-                }
 
                 if (_comboStage < 3)
                 {
@@ -444,7 +445,6 @@ namespace ProjectName.Systems
             {
                 // WeaponCombo 상태가 아닌데 콤보 플래그만 남은 경우(Roll/Jump/Hit 등 인터럽트) — 유예 후 리셋
                 _comboStage = 0;
-                _comboImpactFired = 0;
                 _comboPinGraceStart = -999f;
                 Debug.Log("[Combo] 인터럽트 리셋");
             }
@@ -536,13 +536,12 @@ namespace ProjectName.Systems
         {
             _anim.CrossFade("Idle", ComboExitBlend, 0);
             _comboStage = 0;
-            _comboImpactFired = 0;
             _comboPinGraceStart = -999f;
             Debug.Log($"[Combo] 종료({reason})");
         }
 
         /// <summary>
-        /// 콤보 타별 임팩트 프레임 스윙 FX — 타마다 스윙 방향이 다른 Slash VFX를 발화한다.
+        /// 콤보 스윙 FX — 클릭 즉시 발화(임팩트 프레임 대기 없음). 타마다 스윙 방향이 다른 Slash VFX를 발화한다.
         /// 방향 각도(-30°/35°, roll -90°)와 위치/거리(up 1.25m, 전방 1.1m)는 Play 판정 후 조정하는 튜닝 상수.
         /// try-catch 감싸기: FX 실패가 전투를 절대 방해하지 않게 함 (프로젝트 관례).
         /// </summary>
