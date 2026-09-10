@@ -4,7 +4,50 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-10 (16차)
+> **최종 갱신:** 2026-09-10 (17차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-10 17차 — 씨앗 획득 + 자동수확 + 병사 명령 루프 + 상점 확장)
+
+> **스코프**: 농경 루프 완결 — (1)씨앗 획득(채집 희귀드랍 + 상점 랜덤판매), (2)경작지 자동수확(약초꾼-소유 조건/인벤토리 직행), (3)병사 RTS/전투 명령 실제 수행(이동·근접공격), (4)씨앗 소모 파종.
+
+### 변경 사항
+**`Core/PlayerInventory.cs`** — 씨앗 ItemData 5종 추가: `Seed_Red/Purple/Yellow/Silver/Green` (`herb_seed_*`, `ItemCategory.Material`, maxStack 20). Silver/Green은 `ItemRarity.Rare`.
+
+**`Systems/HerbPickup.cs`** — 채집 시 씨앗 희귀 드랍:
+- `SeedDropChanceCommon=0.24f`(흔한 허브 Red/Purple/Yellow), `SeedDropChanceRare=0.09f`(Silver/Green)
+- `Harvest()`: 바구니(LootBasket)에 허브와 함께 씨앗 추가. `TryAutoGather()`: 바구니 없이 인벤토리 직행 구조이므로 동일 경로로 인벤토리 직접 추가
+- 헬퍼: `SeedItemForCrop(HerbType)` 매핑 + `AddSeedDrop(basket, herbType)`
+
+**`Systems/FarmPlot.cs`** — 씨앗 소모 파종:
+- `Plant(crop)` 시작서: `HasItem(seed.id)` 없으면 "씨앗 부족" + phase 유지(return), 있으면 `RemoveItem(seed.id, 1)` 후 파종
+- `using ProjectName.Core;` 추가 + `static SeedItemForCrop(HerbType)` 매핑
+
+**`Systems/HerbGatheringMission.cs`** — 경작지 자동수확 연동:
+- `FarmPlot` 부착 `HerbPickup` 후보는 `plot.IsOwned == false`면 수집 제외(소유 상실 직후 선수확 방지)
+- Ready 경작지(부착 HerbPickup)는 기존 HerbPickup 수집 루프에 **자연 편입** — 재구성 없이 소유 필터만 추가
+- 디버그 로그: Ready 편입 수 / 경작지 출신 개별 수확 / 미소유 제외
+
+**`Systems/GuardPlaceholder.cs`** — 병사 명령 수행 루프 (`ExecuteMovement()`):
+- Update 시작부에서 호출(플레이어 부재와 무관). 상수: `MOVE_CLEAR_RADIUS=1.0`, `ATTACK_ARRIVE_RADIUS=1.5`, `ATTACK_MELEE_RANGE=2.2`, 쿨다운 1.2s, `MOVE_STOP_RADIUS=0.6`
+- **이동** `StepToward`: `_moveSpeed*delta`, 목표 넘어감 클램프 + 지형 `1+GetHeightAt` y 보정(try-catch) + Rigidbody 있으면 MovePosition 우회 + Slerp 회전(8f×delta)
+- **공격**: 도달 1.5m→대상 회전+쿨다운 게이트→`PerformAttack`(`HumanoidClipDriver.TriggerAttack` 또는 `rigAnim attack`, 데미지 `level*1.5f`, melee)
+- **대상 검증** `ValidateAttackTarget`/`ResolveAttackTarget`: 살아있는 적 IDamageable만, 자신·다른 병사·플레이어 제외
+- `GuardCombatAI.UpdateGuardBehavior(this, player.transform)` 매 Update 호출 추가 (전투 종료 후 귀환 연동)
+
+**`UI/ShopWindow.cs`** — 씨앗 판매 랜덤화:
+- `RandomizeSeedStock()` public: 일반 씨앗 65% 확률×1~2종, 가격 30~50G(재고 3~5), Silver 별도 35%(150G, `isRare=true`), Fisher–Yates 셔플
+- 호출: `InitializeShopInventory()` 끝 + `OnShow()`(개장 시마다 재추첨)
+
+### 검증
+- 배치컴파일: **`error CS=0`** + `CompileScripts: 48778ms` + "Exiting batchmode successfully"
+- DLL 심볼: Systems.dll → `ExecuteCommand`/`ATTACK_MELEE_RANGE`/`GetAllPlots`/`Seed_Green`/`TriggerAttack`, Core.dll → `Seed_Red~Green`/`GetSeed`, UI.dll → `RandomizeSeedSale` 반영
+
+### Play 판정 대기
+- 채집 시 씨앗 드랍(바구니 또는 인벤토리) → 파혈(씨앗 소비) → 성장 → 숙성 → (약초꾼 자동수확 또는 E키) → 재획득 루프
+- 상점 개장 시 씨앞 랜덤 등·구매
+- 병사 명령: 병사 선택 후 우클릭 이동/적 공격, H키 중단, 전투 종료 후 귀환
 
 ---
 
