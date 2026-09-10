@@ -17,9 +17,11 @@ namespace ProjectName.Systems
 
         [Header("Combat Settings")]
         [SerializeField] private LayerMask _targetLayers = -1; // 모든 레이어
-        [SerializeField] private float _maxRange = 3f;
+        [SerializeField] private float _maxRange = 8f; // 2026-09-10: 3→8m 상향 (Test_10 근접 조준 성공률)
         [SerializeField] private float _baseDamage = 10f;
         [SerializeField] private float _attackRadius = 0.5f; // 공격 반지름
+        // 2026-09-10: 근접 사거리 3→8m — Test_10 슬라임(9.4m)을 좌클릭으로 맞출 수 있게 상향.
+        // (이전 _maxRange=3m라 커서 조준 실패 시 SphereCast도 전부 빗나가 '공격 실패' 315회+HP 미감소 실증)
 
         [Header("Auto-Aim (C4-08)")]
         [SerializeField] private float _autoAimRange = 15f;           // 자동 조준 최대 거리

@@ -48,6 +48,7 @@ namespace ProjectName.Systems
             SetupHerbs();                  // 2026-09-10: 채집 가능 약초 3종(Red/Purple/Green) 배치 — E키 채집 흐름 점검용
             SetupFarm();                   // 2026-09-10: 농경 시스템 — 내 영지(East_01) 부지 농장 2x2 (E키 파종 → 게임 2일 성장 → HerbPickup 재사용 수확)
             EnsurePlayerHUD();             // 2026-09-10: 하트 HUD 부착(하트 아이콘+숫자HP) — Test_09 선례 이식
+            SetupUITestArena();            // 2026-09-10: UI 전수(미니맵/인벤/스탯/창고·크래프트 박스/전 아이템 시딩)
 
             // 2026-09-10: Test_10에 몬스터 없음 — Aggro 등록 없으므로 시스템 인스턴스만 정리 대상.
             // (기존: EnsureGameManager가 MonsterAggroSystem을 GM에 부착 — DontDestroyOnLoad가 아니라 씬 정리 경고는
@@ -385,7 +386,7 @@ namespace ProjectName.Systems
             if (go.GetComponent<Collider>() == null)
             {
                 var col = go.AddComponent<BoxCollider>();
-                col.size = new Vector3(1, 1, 1);
+                col.size = new Vector3(1.5f, 1.5f, 1.5f);   // 2026-09-10: 1→1.5 확대 (근접 조준 성공률)
             }
             if (go.GetComponent<Rigidbody>() == null)
             {
@@ -758,6 +759,127 @@ namespace ProjectName.Systems
                 rows: 2, cols: 2, spacing: 2.5f, HerbPickup.HerbType.Red, 2);
 
             Debug.Log($"[Farm] ✅ 농장 {plots.Count}칸 배치 (내 영지 East_01, center={center})");
+        }
+
+        // ================================================================
+        // UI 전수 부착 + 창고/크래프트 박스 + 전 아이템 시딩 (2026-09-10 신규)
+        // ================================================================
+        /// <summary>Test_10 UI 전수 테스트: 미니맵/인벤/스탯/EXP바/창고·크래프트 박스/전 아이템 시딩.
+        /// Systems asmdef은 UI 참조 불가(순환) → 리플렉션으로 부착(AttachUiComponent 선례).</summary>
+        private void SetupUITestArena()
+        {
+            var uiAsm = System.Reflection.Assembly.Load("ProjectName.UI");
+            if (uiAsm == null) { Debug.LogWarning("[UITest] ⚠️ ProjectName.UI 어셈블리 미발견 — UI 부착 생략"); return; }
+
+            // ① 미니맵 부착(셀프부트 없음 — 명시 생성)
+            var mmType = uiAsm.GetType("ProjectName.UI.MinimapUI");
+            if (mmType != null && UnityEngine.Object.FindAnyObjectByType(mmType) == null)
+            {
+                var mmGO = new GameObject("MinimapUI");
+                mmGO.AddComponent(mmType);
+                Debug.Log("[UITest] ✅ 미니맵 부착 (상시 표시)");
+            }
+
+            // ② 인벤토리 창 (I키)
+            var invType = uiAsm.GetType("ProjectName.UI.InventoryWindow");
+            if (invType != null && UnityEngine.Object.FindAnyObjectByType(invType) == null)
+            {
+                var invGO = new GameObject("InventoryUI");
+                invGO.AddComponent(invType);
+                Debug.Log("[UITest] ✅ 인벤토리 창 부착 (I키 토글)");
+            }
+
+            // ③ 스탯 창(P키) — 셀프부트가 있으나 겹침 방지로 존재 확인 후 부착
+            var stType = uiAsm.GetType("ProjectName.UI.StatusWindowUI");
+            if (stType != null && UnityEngine.Object.FindAnyObjectByType(stType) == null)
+            {
+                var stGO = new GameObject("StatusWindowUI");
+                stGO.AddComponent(stType);
+                Debug.Log("[UITest] ✅ 스탯 창 부착 (P키 토글)");
+            }
+
+            // ④ 창고 박스 2개 + 크래프트 박스 1개 — 창고(territoryId별)에 전 아이템 시딩
+            SetupWarehouseBox("Warehouse_1", new Vector3(6f, 0f, 14f), new Color(0.5f, 0.45f, 0.35f, 1f), "wh_test_1");
+            SetupWarehouseBox("Warehouse_2", new Vector3(-6f, 0f, 14f), new Color(0.45f, 0.5f, 0.35f, 1f), "wh_test2");
+            SetupCraftBox(new Vector3(0f, 0f, 16f), new Color(0.55f, 0.4f, 0.2f, 1f));
+            SeedAllItemsToWarehouse("wh_test");
+
+            // ⑤ 플레이어 인벤토리에도 대표 아이템 시딩(인벤 창 표시 검증용)
+            SeedPlayerInventory();
+        }
+
+        private void SetupWarehouseBox(string goName, Vector3 pos, Color color, string territoryId)
+        {
+            var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            box.name = goName;
+            box.transform.position = new Vector3(pos.x, SurfaceY(pos.x, pos.z) + 0.55f, pos.z);
+            box.transform.localScale = new Vector3(1.4f, 1.1f, 1.4f);
+            var mr = box.GetComponent<Renderer>();
+            if (mr != null) mr.sharedMaterial.color = color;
+            // TerritoryWarehouse(ProjectName.UI) — 리플렉션 부착(asmdef 순환 회피)
+            var uiAsm = System.Reflection.Assembly.Load("ProjectName.UI");
+            var whType = uiAsm != null ? uiAsm.GetType("ProjectName.UI.TerritoryWarehouse") : null;
+            if (whType != null) box.AddComponent(whType);
+        }
+
+        private void SetupCraftBox(Vector3 pos, Color color)
+        {
+            var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            box.name = "CraftStation_Box";
+            box.transform.position = new Vector3(pos.x, SurfaceY(pos.x, pos.z) + 0.55f, pos.z);
+            box.transform.localScale = new Vector3(1.4f, 1.1f, 1.4f);
+            var mr = box.GetComponent<Renderer>();
+            if (mr != null) mr.sharedMaterial.color = color;
+            var uiAsm = System.Reflection.Assembly.Load("ProjectName.UI");
+            var csType = uiAsm != null ? uiAsm.GetType("ProjectName.UI.CraftingStation") : null;
+            if (csType != null && box.GetComponent(csType) == null) box.AddComponent(csType);
+            var col = box.GetComponent<Collider>();
+            if (col != null) DestroyImmediate(col);   // Raycast 히트 대상에서 제외
+        }
+
+        /// <summary>WarehouseSystem에 전 아이템 시딩(territoryId="wh_test" 단일 창고).</summary>
+        private void SeedAllItemsToWarehouse(string territoryId)
+        {
+            int total = 0;
+            void Add(PlayerInventory.ItemData item, int count)
+            {
+                if (item == null) return;
+                if (WarehouseSystem.Instance != null && WarehouseSystem.Instance.AddItem(territoryId, item, count))
+                    total += count;
+            }
+
+            Add(PlayerInventory.Herb_Red, 10); Add(PlayerInventory.Herb_Purple, 10);
+            Add(PlayerInventory.Herb_Yellow, 10); Add(PlayerInventory.Herb_Silver, 10); Add(PlayerInventory.Herb_Green, 10);
+            Add(PlayerInventory.Seed_Red, 10); Add(PlayerInventory.Seed_Purple, 10); Add(PlayerInventory.Seed_Yellow, 10);
+            Add(PlayerInventory.Seed_Silver, 10); Add(PlayerInventory.Seed_Green, 10);
+            Add(PlayerInventory.RabbitMeat, 10); Add(PlayerInventory.BoarMeat, 10); Add(PlayerInventory.WolfMeat, 10);
+            Add(PlayerInventory.RabbitFur, 5); Add(PlayerInventory.BoarLeather, 10); Add(PlayerInventory.BoarTusk, 5);
+            Add(PlayerInventory.WolfTooth, 5); Add(PlayerInventory.WolfFur, 10);
+            Add(PlayerInventory.SwordWood, 2); Add(PlayerInventory.SpearWood, 2); Add(PlayerInventory.BowWood, 2);
+            Add(PlayerInventory.LeatherArmor, 2); Add(PlayerInventory.ClothArmor, 2);
+            Add(PlayerInventory.Pickaxe, 1); Add(PlayerInventory.Axe, 1); Add(PlayerInventory.FishingRod, 1);
+            Add(PlayerInventory.Fish_Common, 5); Add(PlayerInventory.Fish_Rare, 3); Add(PlayerInventory.Fish_Legendary, 1);
+            Add(PlayerInventory.StealthBoots, 1); Add(PlayerInventory.DarkCloak, 1); Add(PlayerInventory.StealthPotion, 5);
+            Add(PlayerInventory.Sedative, 5); Add(PlayerInventory.MountToken, 1); Add(PlayerInventory.EstateDeed, 1);
+            Add(PlayerInventory.Gold, 999);
+
+            Debug.Log($"[UITest] ✅ 창고 '{territoryId}'에 전 아이템 시딩 완료 ({total}개)");
+        }
+
+        /// <summary>플레이어 인벤토리 대표 시딩 — 인벤 창(I)/핫바 표시 검증용.</summary>
+        private void SeedPlayerInventory()
+        {
+            var inv = PlayerInventory.Instance;
+            if (inv == null) { Debug.LogWarning("[UITest] ⚠️ PlayerInventory 미발견 — 시딩 생략"); return; }
+
+            inv.AddItem(PlayerInventory.Herb_Red, 5);
+            inv.AddItem(PlayerInventory.RabbitMeat, 5);
+            inv.AddItem(PlayerInventory.SwordWood, 1);
+            inv.AddItem(PlayerInventory.LeatherArmor, 1);
+            inv.AddItem(PlayerInventory.Pickaxe, 1);
+            inv.AddItem(PlayerInventory.Fish_Common, 2);
+            inv.AddItem(PlayerInventory.Gold, 100);
+            Debug.Log("[UITest] ✅ 플레이어 인벤 대표 아이템 시딩 완료");
         }
     }
 }
