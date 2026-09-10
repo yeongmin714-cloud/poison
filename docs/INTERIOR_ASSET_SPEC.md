@@ -13,7 +13,21 @@
 
 ## 1. 표면 텍스처 (타일링 PNG) — ①류
 
-**공통 규격**
+### 1-1. 벽 구조 (현행 코드 기준 — 이 규격의 근거)
+
+현재 벽 1면은 **세로 3단 구성**이며, 각 단이 별도 텍스처를 쓴다:
+
+| 구간 | 높이 | 현재 텍스처 | 필요한 것 |
+|---|---|---|---|
+| 하단 Stone | 0~2m (h/2) | 석벽(TX-02) | **TX-02 그대로** |
+| 상단 Plaster | 2~4m (h/2) | 석고 | **TX-05 석고 or TX-12 목재 판넬** |
+| 최상단 BeamTop | 0.25m 띠 | 나무 | TX-03과 공용(별도 불필요) |
+
+- 천장 높이 32m(8배 확장 셸)이라 실제로는 하단 16m/상단 16m 구간 — **세로 커버를 위해 벽 텍스처는 "1장 = 2m(가로)×4m(세로)"를 권장** (아래 표 반영). 기존 "2m×2m"도 받지만 세로 타일링이 8번 반복되어 층감이 생길 수 있음 → 4m 세로 규격이 훨씬 자연스러움.
+- 남측 문 개구부: 폭 2.2m, 좌우 분할(Wall_S_L/R) — 문 상단 벽은 별도(Wall_S_Top 1.2m).
+
+### 1-2. 공통 규격
+
 | 항목 | 규격 |
 |---|---|
 | 형식 | PNG(권장)/JPG |
@@ -22,24 +36,35 @@
 | 필수 맵 | Albedo + Normal (2장) |
 | 선택 맵 | Roughness, AO (있으면 품질↑, 없으면 생략 가능 — Roughness는 코드에서 smoothness로 자동 반전) |
 | 조건 | **반드시 시임리스(상하좌우 연결)**, 라이팅/그림자 구워진 Albedo 금지(플랫 컬러만) |
-| 실물 크기 | **텍스처 1장이 몇 m×몇 m를 덮는지 알려줄 것** (기본: 2m×2m) — 타일링 계산에 필수 |
+| 실물 크기 | **텍스처 1장이 몇 m×몇 m를 덮는지 알려줄 것** — 타일링 계산에 필수 (벽은 기본 2m×4m 권장) |
 
 **Meshy 세팅**: Text-to-Texture → "Tileable/Seamless" ON, PBR Maps ON, 2K(또는 4K→내가 다운스케일), Quad UV.
+**벽 특화 주의**: 석벽은 **가로 이음새 강조**가 자연스러움(레이 코스) — 세로로 무한 반복돼도 블록 줄눈이 계단처럼 안 보이게, 블록 오프셋(런닝본드) 패턴 권장. 프롬프트에 `offset brick courses` 명시.
 
-**표면별 리스트 (우선순위 순)**
+### 1-3. 표면별 리스트 (우선순위 순)
 
 | ID | 표면 | 내용 | 1장 실물 크기 | 우선순위 |
 |---|---|---|---|---|
 | TX-01 | 성 바닥 | 플래그스톤(불규칙 석판, 마모·틈 흙) | 2m×2m | P0 |
-| TX-02 | 성 벽 | 대형 석벽 블록(어두운 화강암, 모르타르 깊게) | 2m×2m | P0 |
+| **TX-02** | **성 벽 — 석벽 하단** | 대형 석벽 블록(어두운 화강암, 모르타르 깊게, 오프셋 줄눈) | **2m×4m** | P0 |
 | TX-03 | 나무 바닥 | 오크 판자(넓은 판, 마모) | 2m×2m | P0 |
-| TX-04 | 나무 벽 패널 | 세로 판넬+장식 몰딩 톤 | 2m×2m | P1 |
-| TX-05 | 석고 벽 | 아비또르 석고(오염·균열 은은) | 2m×2m | P1 |
+| **TX-12** | **벽 — 석고 하단부(대안)** | 시골집/여관용 러프 석고+노출 목조 기둥 | 2m×4m | P1 |
+| **TX-13** | **벽 — 목재 판넬 상단** | 세로 오크 판넬+장식 몰딩 톤(왕좌 홀 상단용) | 2m×4m | P1 |
+| TX-05 | 석고 벽 | 아비또르 석고(오염·균열 은은) | 2m×4m | P1 |
 | TX-06 | 천장 | 어두운 대들보+널판 | 2m×2m | P1 |
+| **TX-14** | **벽 — 습식 석고+오염 워터마크** | 지하/동굴/지하감옥용 | 2m×4m | P2 |
+| **TX-15** | **벽 — 벽돌(레드 브릭)** | 크래프트하우스/대장간용 | 2m×4m | P2 |
 | TX-07 | 융단 | 화려한 중세 카펫(타일형 반복) | 3m×3m | P2 |
 | TX-08 | 동굴 바닥/벽 | 거친 암석 | 2m×2m | P2 |
 | TX-09 | 헛간 바닥 | 흙+짚 | 2m×2m | P2 |
 | TX-10 | 교회 바닥 | 모자이크/대리석 | 2m×2m | P2 |
+
+**벽 조합 매핑 (연동 시 코드에서 이렇게 씀)**
+- 성(5국가 공통): 하단 TX-02 석벽 + 상단 TX-05 석고 (현행 구조 그대로 교체)
+- 여관/집: 하단 TX-12 목조+석고 + 상단 TX-13 목재 판넬
+- 동굴: TX-08 단일(전체)
+- 크래프트하우스: TX-15 적벽독 + 상단 TX-04
+- 지하감옥: TX-14 습식 석고
 
 - 5국가 변형(동서남북)은 색만 다르면 됨 → **같은 패턴 재활용 가능**. 여유 되면 2종 추가(동양권 붉은 기와/석재, 서양 회석재). 없으면 코드 틴트로 대응.
 
@@ -102,6 +127,8 @@
 ## 5. Meshy 프롬프트 템플릿 (영문 권장)
 
 - 텍스처: `Seamless tileable PBR texture, medieval castle flagstone floor, irregular worn stone slabs with dirt in cracks, top-down flat albedo without shadows or baked lighting, neutral even lighting, 2m x 2m coverage`
+- **벽(석벽)**: `Seamless tileable PBR texture, medieval castle stone wall, large granite blocks with deep mortar joints, offset brick courses, weathered surface, flat albedo without shadows or baked lighting, vertical repeat friendly, 2m x 4m coverage`
+- **벽(목재 판넬)**: `Seamless tileable PBR texture, medieval interior oak wall paneling with carved decorative molding, vertical planks, worn varnish, flat albedo without baked lighting, 2m x 4m coverage`
 - 소품: `Game-ready medieval throne chair, weathered oak wood with aged iron fittings, realistic PBR, clean topology, quadrilateral retopology, less than 8000 triangles, centered origin at base, facing +Z`
 - 스타일 통일 접미사(전 소품 공통): `, consistent style: dark fantasy medieval, realistic weathered materials, warm muted palette`
 
