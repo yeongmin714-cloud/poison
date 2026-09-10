@@ -228,7 +228,7 @@ namespace ProjectName.Systems
 
             foreach (RaycastHit hit in hits)
             {
-                IDamageable target = hit.collider.GetComponent<IDamageable>();
+                IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
                 if (target != null && target.IsAlive)
                 {
                     if (hit.distance < closestDistance)
@@ -248,7 +248,7 @@ namespace ProjectName.Systems
 
                 foreach (RaycastHit hit in sphereHits)
                 {
-                    IDamageable target = hit.collider.GetComponent<IDamageable>();
+                    IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
                     if (target != null && target.IsAlive)
                     {
                         // 원뿔 각도 내에 있는지 추가 확인 (실제 각도 계산)
@@ -349,7 +349,7 @@ namespace ProjectName.Systems
 
             if (Physics.SphereCast(ray, _attackRadius, out RaycastHit hit, _maxRange, _targetLayers))
             {
-                IDamageable target = hit.collider.GetComponent<IDamageable>();
+                IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
                 if (target != null && target.IsAlive)
                 {
                     AttackTarget(target);

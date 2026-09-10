@@ -4,7 +4,30 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-10 (14차)
+> **최종 갱신:** 2026-09-10 (15차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-10 15차 — 몬스터 체력바 미감소 버그 수정)
+
+> **스코프**: Test_10에서 몬스터를 공격해도 체력바가 줄지 않는 버그를 근본원인부터 수술.
+
+### 근본원인 (Phase 1~2 정적 분석)
+- Test_10 몬스터는 GLB(Slime_Rigged) Instantiate → **AnimalAI(IDamageable)는 루트 GO**, Collider는 **GLB 자식 모델**에 있음.
+- 공격 시스템(`AttackSystem`/`PlayerCombat`)이 `hit.collider.GetComponent<IDamageable>()` — **콜라이더 본인만** 탐색 → 자식 콜라이더 히트 시 루트 AnimalAI 못 찾아 `null` → 공격 무시 → `TakeDamage` 미호출 → 체력바 미감소.
+- 선례: `ProceduralAttack.cs:457`이 동일 문제를 `col.GetComponentInParent<Damageable>()`으로 해결.
+
+### 수정 (탐색부만, 데미지/거리/드랍 로직 불변)
+- `AttackSystem.cs` — FindTargetByRaycast(258)·FindTargetBySphereCast(280) → `GetComponentInParent<IDamageable>()`
+- `PlayerCombat.cs` — RaycastAll(231)·SphereCastAll(251)·AttackCenterScreen(352) → `GetComponentInParent<IDamageable>()` (총 5곳)
+
+### 검증
+- `grep GetComponent<IDamageable>` 잔존 0, brace 균형
+- `QaValidator` 배치컴파일 **`error CS=0`** (50s), Systems.dll `GetComponentInParent` 심볼 포함
+- ★배치 시 `pkill Unity.Licensing.Client` 금지(라이선스 채널 끊겨 시작 안 됨 — 14차 기록)
+
+### Play 판정 대기
+- GLB 몬스터 좌클릭 시 체력바 감소 + 사망 드랍. (메인씬 GLB 몬스터/병사 공격도 함께 정상화 기대)
 
 ---
 

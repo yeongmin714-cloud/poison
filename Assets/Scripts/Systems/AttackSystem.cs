@@ -255,7 +255,7 @@ namespace ProjectName.Systems
 
             for (int i = 0; i < hitCount; i++)
             {
-                IDamageable dmg = _raycastHits[i].collider.GetComponent<IDamageable>();
+                IDamageable dmg = _raycastHits[i].collider.GetComponentInParent<IDamageable>();
                 if (dmg != null && dmg.IsAlive && _raycastHits[i].distance < closestDist)
                 {
                     closestDist = _raycastHits[i].distance;
@@ -277,7 +277,7 @@ namespace ProjectName.Systems
 
             for (int i = 0; i < hitCount; i++)
             {
-                IDamageable dmg = _sphereCastHits[i].collider.GetComponent<IDamageable>();
+                IDamageable dmg = _sphereCastHits[i].collider.GetComponentInParent<IDamageable>();
                 if (dmg != null && dmg.IsAlive && _sphereCastHits[i].distance < closestDist)
                 {
                     closestDist = _sphereCastHits[i].distance;

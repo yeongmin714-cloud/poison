@@ -1875,3 +1875,18 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | Play 판정 대기 | 약초 E키 채집 → LootBasket 생성 + 인벤토리/EXP 반영 + 리스폰 30초 | ⬜ |
 
 ---
+
+## 🐛 2026-09-10: 몬스터 체력바 미감소 버그 수정 (HITPARENT) — QaValidator 배치컴파일 error CS=0
+
+> **근본원인 (정적 분석 + 선례 검증):** Test_10 몬스터는 GLB 프리팹을 Instantiate해 `AnimalAI`(IDamageable)는 **루트 GO**에, Collider는 **GLB 자식 모델**에 있는 계층 구조. 공격 시스템(`AttackSystem`/`PlayerCombat`)이 `hit.collider.GetComponent<IDamageable>()`(콜라이더 **본인** 탐색)를 쓰므로 자식 콜라이더 히트 시 루트 AnimalAI를 못 찾아 `null` → 공격 무시 → `TakeDamage` 미호출 → 체력바 감소 안 함.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| AttackSystem | `FindTargetByRaycast`(258행) + `FindTargetBySphereCast`(280행) → `hit.collider.GetComponentInParent<IDamageable>()` 부모 탐색 | ✅ |
+| PlayerCombat | RaycastAll(231), SphereCastAll(251), AttackCenterScreen SphereCast(352) → `GetComponentInParent<IDamageable>()` | ✅ |
+| 검증 | `grep GetComponent<IDamageable>` 잔존 0, brace 균형, `QaValidator` 배치컴파일 `error CS=0`, Systems.dll GetComponentInParent 심볼 포함 | ✅ |
+| Play 판정 대기 | Test_10 GLB 몬스터 좌클릭 시 체력바 감소 + 사망 드랍 + (메인씬 GLB 몬스터/병사 공격 정상화) | ⬜ |
+
+> **선례:** `ProceduralAttack.cs:457`이 동일 문제를 `col.GetComponentInParent<Damageable>()`로 해결 — 부모 방향 탐색이 이 프로젝트에서 검증됨.
+
+---
