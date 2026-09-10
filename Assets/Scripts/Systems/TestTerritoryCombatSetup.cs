@@ -640,29 +640,69 @@ namespace ProjectName.Systems
             if (visCol != null)
                 DestroyImmediate(visCol);
 
-            // 2026-09-10: 병사 GLB 부착 — soldier_lv1-20_rigged(Humanoid 리그)가 있으면 캡슐을 대체.
-            // 레벨별 버전(20-40/40-50)은 RuntimeModelLoader alias("soldier_lv20"/"soldier_lv40")로 로드.
+            // 2026-09-10: 병사 비주얼 — Humanoid FBX(TerritoryBuilder 선례) + Soldier_AC + HumanoidClipDriver(Soldier 모드).
+            // 플레이어(Heat FBX+Player_AC)와 동일한 MeshyUser 클립 세트를 Humanoid 리타깃으로 공유한다.
+            // → 새 병사 GLB가 추가돼도 이 패턴(FBX 교체)이면 애니 추가 부착 불필요.
             {
-                string glbPath = level >= 40 ? "soldier_lv40" : level >= 20 ? "soldier_lv20" : "soldier_lv1";
-                if (RuntimeModelLoader.TryGetModel(glbPath, out var soldierPrefab))
+                string fbxKey = level >= 40
+                    ? "Models/UserProvided/fbx/soldier_lv40-50"
+                    : level >= 20 ? "Models/UserProvided/fbx/soldier_lv20-40"
+                    : "Models/UserProvided/fbx/soldier_lv1-20";
+                var fbxPrefab = Resources.Load<GameObject>(fbxKey);
+                if (fbxPrefab == null)
+                    fbxPrefab = Resources.Load<GameObject>(fbxKey);
+
+                if (fbxPrefab != null)
                 {
-                    var soldier = Instantiate(soldierPrefab, guardGO.transform);
-                    soldier.name = $"{goName}_GLB";
+                    var soldier = Instantiate(fbxPrefab, guardGO.transform);
+                    soldier.name = $"{goName}_Body";
                     soldier.transform.localPosition = Vector3.zero;
                     soldier.transform.localRotation = Quaternion.identity;
-                    // 캡슐 시각 제거(GLB 교체) + GLB 자식 콜라이더 제거(루트 BoxCollider만 유지)
+                    soldier.transform.localScale = Vector3.one;
+
+                    // 캡슐 시각 제거(FBX 교체) + FBX 자식 콜라이더 제거(루트 BoxCollider만 유지)
                     DestroyImmediate(visual);
-                    var glbCols = soldier.GetComponentsInChildren<Collider>(true);
-                    foreach (var c in glbCols)
+                    var cols = soldier.GetComponentsInChildren<Collider>(true);
+                    foreach (var c in cols)
                         DestroyImmediate(c);
-                    // GLB의 자동부착 애니 컴포넌트 제거(레거시 휴리스틱 — Test_10 플레이어와 동일 문제 예방)
-                    var assigner = soldier.GetComponent<ProjectName.Systems.Animation.ModelAnimatorAssigner>();
-                    if (assigner != null) DestroyImmediate(assigner);
-                    Debug.Log($"[TestTerritoryCombat] ✅ 병사 GLB 부착: {goName} ← {glbPath} (자식 콜라이더 제거)");
+
+                    // Animator + SoldierShield_AC(방패병사 컨트롤러 — TerritoryBuilder와 동일 계열)
+                    var anim = soldier.GetComponent<Animator>();
+                    if (anim == null) anim = soldier.gameObject.AddComponent<Animator>();
+                    var ctrl = Resources.Load<RuntimeAnimatorController>("Animation/Controllers/SoldierShield_AC");
+                    if (ctrl != null) anim.runtimeAnimatorController = ctrl;
+                    anim.applyRootMotion = false;
+                    anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+
+                    // 병사 모드 드라이버 — Speed=transform 델타, 공격은 GuardCombatAI→TriggerAttack
+                    var driver = guardGO.AddComponent<HumanoidClipDriver>();
+                    driver.mode = HumanoidClipDriver.DriveMode.Soldier;
+
+                    // GLB 머티리얼 이식(FBX 텍스처 유실 대비)
+                    HumanoidClipDriver.CopyMaterialsFromGlb(soldier, "Models/UserProvided/soldier_lv1-20_rigged");
+
+                    Debug.Log($"[TestTerritoryCombat] ✅ 병사 Humanoid FBX 부착: {goName} ← {fbxKey} (Soldier_AC+드라이버, 플레이어와 동일 클립)");
                 }
                 else
                 {
-                    Debug.LogWarning($"[TestTerritoryCombat] ⚠️ 병사 GLB 미로드({glbPath}) — 캡슐 유지: {goName}");
+                    // FBX 폴백: 기존 GLB 유지
+                    string glbPath = level >= 40 ? "soldier_lv40" : level >= 20 ? "soldier_lv20" : "soldier_lv1";
+                    if (RuntimeModelLoader.TryGetModel(glbPath, out var soldierPrefab))
+                    {
+                        var soldier = Instantiate(soldierPrefab, guardGO.transform);
+                        soldier.name = $"{goName}_GLB";
+                        soldier.transform.localPosition = Vector3.zero;
+                        DestroyImmediate(visual);
+                        foreach (var c in soldier.GetComponentsInChildren<Collider>(true))
+                            DestroyImmediate(c);
+                        var assigner = soldier.GetComponent<ProjectName.Systems.Animation.ModelAnimatorAssigner>();
+                        if (assigner != null) DestroyImmediate(assigner);
+                        Debug.Log($"[TestTerritoryCombat] ✅ 병사 GLB 부착: {goName} ← {glbPath}");
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[TestTerritoryCombat] ⚠️ 병사 FBX/GLB 모두 미로드 — 캡슐 유지: {goName}");
+                    }
                 }
             }
 
