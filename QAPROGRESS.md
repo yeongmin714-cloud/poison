@@ -1025,3 +1025,19 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 **검증**: 배치컴파일+인스톨러 2회 — error CS=0 ×2, "Exiting batchmode successfully" ×2(buildlog_vfx_install2/_final), 인스톨러 로그: 복사 3/3+변환 3종/참조 7건+셰이더 수집(Slash 4종 ShaderGraph, Impact 2종 URP Particles Unlit). QA 에이전트 8항목 전부 PASS(레거시 6종 네임스페이스 실물확인, 코루틴 이터레이터 제약 우회, 원본 에셋 무변경, 멱등성).
 
 **Play 판정 대기**: ①부트 로그 "✅ Player_AC 부착+레거시 제거 완료"+제거 목록 ②Idle/Walk/Attack 애니 재생(T포즈 아님) ③18초 경과 후 모델 유지(침하 0) ④좌클릭 → 슬래시 이펙트 ⑤타격 → BasicHit/BasicHit2 임팩트+기존 이펙트 공존 ⑥마젠타/InternalErrorShader 0건
+
+---
+
+## 2026-09-10 4차: 인벤토리/장비창 AAA 4레이어 재설계 ✅ (계획: .hermes/plans/2026-09-10_103000-aaa-inventory-4layer-plan.md)
+
+**요구**: 다중레이어 UI — L1 백플레이트(다크스톤+9-Slice)/L2 슬롯 행렬(엠보싱+희귀도 테두리·글로우)/L3 콘텐츠(아이콘·호버·장착 이펙트 안착)/L4 금속골드 프레임+4모서리 장식+타이틀 배너.
+
+**신규 InventoryArtLibrary.cs(598줄, static 캐시)** — 외부 에셋 의존 0 절차 아트: SDF 라운드+fBm 노이즈(고정시드 해시, Random 금지)로 8종 텍스처(Backplate 9-Slice 스톤+마법진 음각/MetalFrame 금속골드 3단 그라디언트/CornerOrnament 로터스 필리그리/TitleBanner 리벳 배너/SlotCell 엠보싱 인너섀도우/SlotGlow 방사형/SlotHighlight 링/DropShadow 가우시안). RarityColors 6종(Common회백/Uncommon녹/Rare청/Epic보라/Legendary골드/Unique시안).
+
+**InventoryWindow(1794→1899행)** — OnGUI z-order 재구성: 드롭섀도우→스톤 백플레이트→배너+타이틀→탭→그리드(셀+희귀도 글로우 tint+아이콘/수량/내구도+호버/선택 하이라이트)→장비행→금속프레임+4모서리(GUI.matrix 0/90/180/270° 회전, 복원 보장). 구 UIStyleManager 배경/타이틀 이중 렌더 제거. **데이터 로직 diff 5줄** — 정렬/탭/선택/우클릭장착/드래그/퀵슬롯 100% 유지.
+
+**EquipmentWindow(441→490행, 부모 직접 구현 — 에이전트 타임아웃 2회)** — 동일 4레이어: 장착 슬롯=골드 글로우(셀 뒤)+셀, 빈 슬롯=딤 셀, 호버=백색 링/선택=골드 링, 배너는 프레임 상단 걸침(bannerY=y-6), 모서리 88px 회전 배치. 클릭/해제/정보 로직 무변경, ArtLibrary 캐시 OnDestroy 파기 금지.
+
+**검증**: 배치컴파일 EXIT=0, error CS=0(buildlog_aaa_ui.txt). QA 에이전트 5항목 PASS(API/결정론 노이즈/빌더 실질합성 8개 전수/이중렌더 제거/로직 무변경/OnGUI 텍스처 생성 0건). 에이전트 2회 타임아웃(600s)→A의 결과물 검수+EquipmentWindow 부모 직접 구현 전환.
+
+**Play 판정 대기**: ①인벤토리(I) 4레이어 비주얼 — 스톤 백플레이트+골드 프레임+모서리 장식+배너 ②희귀도 글로우/테두리(전설=골드) ③호버/선택 링 ④장비창(E) 동일 세트+장착 글로우 ⑤배너 상단 걸침 클리핑 0 ⑥프레임이 슬롯 가리지 않음

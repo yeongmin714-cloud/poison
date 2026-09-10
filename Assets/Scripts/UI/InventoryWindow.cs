@@ -409,15 +409,14 @@ namespace ProjectName.UI
 
             base.OnGUI();
 
-            // G3-05: 통일 스타일 — 딤드 오버레이 + 배경 + 타이틀 + 닫기 버튼
+            // G3-05: 통일 스타일 — 딤드 오버레이 (창 자체는 아래 AAA 4레이어가 그림)
             UIStyleManager.DrawDimOverlay();
             // 2026-09-09(2): 화면 정확히 삼분활 — 제1구획=인벤(x=6), 제2=설명(S/3+6), 제3=컨텍스트(2S/3+6)
             float x = 6f;
             _lastInvX = x;
             float y = 10f;
             Rect winRect = new Rect(x, y, WINDOW_WIDTH, WINDOW_HEIGHT);
-            UIStyleManager.DrawWindowBackground(winRect);
-            UIStyleManager.DrawTitle(winRect, "  📦 인벤토리");
+            // (구 UIStyleManager.DrawWindowBackground/DrawTitle 제거 — AAA 백플레이트+배너로 대체, 이중 렌더 방지)
             if (UIStyleManager.DrawCloseButton(winRect))
             {
                 Hide();
