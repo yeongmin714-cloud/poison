@@ -42,6 +42,10 @@ namespace ProjectName.Systems
             SpawnGuard();
             SpawnMonster("slime");
             AttachAttackSystem();
+
+            // Phase 1 훅: Test_10 전용 애니 부트 — 레거시 Procedural/Neural 제거 + Player_AC/HumanoidClipDriver 부착
+            var playerAnimBoot = GameObject.FindGameObjectWithTag("Player");
+            if (playerAnimBoot != null) playerAnimBoot.AddComponent<TestPlayerAnimatorBoot>();
         }
 
         // ================================================================
