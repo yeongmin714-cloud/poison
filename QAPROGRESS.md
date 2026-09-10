@@ -1059,7 +1059,25 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 
 **Phase 5 — C드라이브 용량 정리 (7.4→23.2GB, +15.8GB 확보)**: venv 4.95GB(리눅스 심링크 venv — Windows Zip 불가 확정→requirements.txt 재구성 가능, 학습 보류 중이라 바로 삭제)/code_temp_compile 2.47GB(7/18 이후 미수정 사본)/Library/Artifacts 7.96GB(에디터 재생성 캐시)/buildlog_cap.txt 616MB. **주의: 다음 에디터 실행 시 리임포트(수 분) 발생 — 정상.**
 
-**Play 판정 대기**: ①Test_10 — 아바타 감시 로그+애니검증(clip=… playing=True)+T포즈 해소 ②슬라임 머리 이름/Lv/HP바(타격 시 실시간 감소·색 전환) ③[SlashVFX] 스윙 스폰 로그 ④크래프트 테스트씬 — 인벤 13종(전설 글로우)+핫바 3슬롯+미니맵/스탯/장비창 각 키 ⑤에디터 재실행 리임포트 완료 후 UI 정상
+**Play 판정 대기**: ①부팅 로그 "✅ 리그 소스 교체" ②애니검증 clip=… playing=True ③T포즈 해소+이동/공격 애니 ④좌클릭 연타 → AttackCombo 애니 ⑤슬라임 타격 시 제자리 경직(비행/벽 관통 0) ⑥카메라 에러 0건 ⑦모델 크기 적정(침하감시 bounds 로그) — 과대/과소 시 bounds 정규화 추가
+
+---
+
+## 2026-09-10 7차: 콤보 애니 등록 검증 + 공격 중 인터럽트 방지(Idle 팝 차단) ✅
+
+**사용자 보고**: "콤보 애니메이션이 등록 안 됐다" → 조사 결과 **등록은 완성** — Player_AC에 Attack/AttackCombo/AttackCombo2/AttackCombo3/AttackThrust/AttackBase 전부 AnyState 전이로 연결, 클립도 MeshyUser FBX 서브클립(Double/Triple_Combo_Attack 등) 정상 바인딩. 로그로 AttackCombo 실제 진입+클립 재생(human=True, len=4.33s) 실증.
+
+**진짜 문제 — 공격 애니 즉시 튕김**: Attack* 상태 진입 후 normT 0.04~0.07(5~7%)에서 Idle 복귀. 원인=공격 중 이동 시 Speed 파라미터가 1~5로 유지되어 Walk/Run 조건 전이가 애니를 인터럽트.
+
+**수정 (HumanoidClipDriver.cs, +30/-1)**:
+- 공격 상태 감시: `GetCurrentAnimatorStateInfo(0).IsName("Attack"/...6종)` — 진입 중 Speed 파라미터를 0으로 고정 → Speed 조건 전이 불발(공격 애니 보호). ResolveStateName 미매핑 상태(AttackBase/Thrust/Combo2/3)까지 커버하도록 IsName 직접 비교(QA 지적 반영 — ResolveStateName은 6종 중 2종만 매핑).
+- 콤보 홀드: 트리거 발화 시 `_attackHoldUntil = Time.time + 0.45s` (연타마다 연장, Max로 확장) — 홀드 중 Speed 0 고정으로 Idle 경유 팝 차단. 0.45s < 클립 4.3s라 클립을 자르지 않음(트리거는 큐잉 소비).
+- 이동은 CharacterController 자체 처리라 홀드 중에도 실제 이동 가능 — 발 미끄러짐(cosmetic)만 존재.
+- CS0414 신규 경고 0건(_attackHoldTimer 데드코드 삭제).
+
+**검증**: 배치컴파일 CS=0 ×1(buildlog_combo_hold2.txt). QA 6항목 — Speed 고정 목적 달성/자연 복귀/0.45s 홀드 안전/부작용 무해 확인 + **결함 2건 발견**: ①ResolveStateName이 AttackBase/Thrust/Combo2/3 미매핑(감시 블록이 죽은 조건) → IsName 직접 비교로 교체 ②_attackHoldTimer 데드코드 → 실제 연장 로직(+=Max)으로 교체. 재컴파일 CS=0, 경고 신규 0건.
+
+**Play 판정 대기**: ①좌클릭 연타 4타 → Attack→AttackCombo→AttackCombo2→AttackCombo3 이어짐(Idle 경유 팝 0) ②공격 중 이동 → 공격 애니 유지 후 자연 복귀 ③창 장착 연타(AttackThrust) 연속 발화 ④단발 공격 4.3s 클립 완주 후 Idle 복귀 ⑤CS0414 신규 경고 0건
 
 ---
 

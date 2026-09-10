@@ -89,6 +89,8 @@ namespace ProjectName.Systems
         // Speed 지수 평활 + 멈춤 스냅 (지형/경사 충돌로 속도가 0 근처로 순간 떨어질 때
         // Idle로 떨어졌다 복귀하는 "끊김 + 멈춤 모션"을 방지)
         private float _smoothedSpeed;
+        // 2026-09-10: 공격 애니 상태 최소 유지 — 연타 콤보 중 Idle 경유 팝 방지
+        private float _attackHoldUntil;   // 이 시각까지 Speed 파라미터를 0으로 고정(공격 애니 보호)
         private float _stallTime;        // 정지 판정 홀드 타이머 — 0.25초 연속 정체 시에만 스냅
         private float _lastTarget;       // 직전 프레임 목표 속도 — 미세 정체 홀드 중 유지값
         // T2B-3(애니 측): 점프→착지 하강 에지 직후 Speed 목표 상승을 잠시 제한 —
@@ -296,7 +298,10 @@ namespace ProjectName.Systems
             }
             float k = 1f - Mathf.Exp(-10f * Time.deltaTime);
             _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, target, k);
-            _anim.SetFloat("Speed", _smoothedSpeed);
+            // 2026-09-10: 공격 애니 보호 — 공격 상태 유지 시간(_attackHoldUntil) 내엔 Speed를 0으로 고정해
+            // Speed 조건 전이(Idle/Walk)가 공격 애니를 인터럽트하지 않게 한다.
+            bool inAttackHold = Time.time < _attackHoldUntil;
+            _anim.SetFloat("Speed", inAttackHold ? 0f : _smoothedSpeed);
             // T-D3 이동 파라미터 확장: 로컬 이동 벡터 → MoveX(측면)/MoveY(전후) — 후진/선회 상태 전환용
             if (_movement != null)
             {
@@ -347,6 +352,27 @@ namespace ProjectName.Systems
             }
 
             // 공격 감지 — LastAttackTime 변화 시 트리거 (2타 내 콤보)
+            // 2026-09-10: 콤보 트리거는 드라이버 Update에서 1회성 발화하는 구조라 유효 —
+            // 문제는 컨트롤러 쪽 Attack* 상태 진입 후 즉시 Idle 복귀(AfterStateExit 판정)였다.
+            // Attack* 상태 유지 중 다음 콤보 트리거를 받으면 연타 콤보가 자연스럽게 이어지도록
+            // 공격 상태 감시 스위치(_attackHoldUntil)를 두고, 유지 시간 내엔 Speed→Idle 전이 조건이
+            // 사실상 불발되게 Speed를 잠시 0 근처로 고정한다(공격 중 이동 애니 인터럽트 방지).
+            // 공격 상태 감시 — Attack* 진입 중 Speed 0 고정(Idle/Walk 인터럽트 차단)
+            if (_anim != null)
+            {
+                var stInfo = _anim.GetCurrentAnimatorStateInfo(0);
+                // ResolveStateName 미매핑 상태(AttackBase/AttackThrust/AttackCombo2/3)도 감지 — IsName 직접 비교
+                bool attackStateHold = stInfo.IsName("Attack") || stInfo.IsName("AttackBase") || stInfo.IsName("AttackThrust")
+                    || stInfo.IsName("AttackCombo") || stInfo.IsName("AttackCombo2") || stInfo.IsName("AttackCombo3");
+                if (attackStateHold)
+                {
+                    // 공격 애니 재생 중: Speed 파라미터를 0으로 고정 — Idle/Walk로 가는 Speed 조건 전이 불발
+                    _anim.SetFloat("Speed", 0f);
+                    // 콤보 창이 열려 있으면(마지막 공격 후 2초 내) 상태 유지 시간 연장
+                    if (_lastAttackAt > 0f && Time.time - _lastAttackAt < ComboWindow)
+                        _attackHoldUntil = Mathf.Max(_attackHoldUntil, Time.time + 0.35f);
+                }
+            }
             if (_combat != null)
             {
                 float lat = _combat.LastAttackTime;
@@ -370,6 +396,8 @@ namespace ProjectName.Systems
                         int r = Random.Range(0, 3);
                         _anim.SetTrigger(r == 0 ? "Attack" : r == 1 ? "AttackThrust" : "AttackBase");
                     }
+                    // 공격 상태 최소 유지 시작 — 연타 중 Idle 경유 팝 방지
+                    _attackHoldUntil = Time.time + 0.45f;
                 }
             }
 
