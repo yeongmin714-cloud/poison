@@ -386,7 +386,13 @@ namespace ProjectName.Systems
             if (go.GetComponent<Collider>() == null)
             {
                 var col = go.AddComponent<BoxCollider>();
-                col.size = new Vector3(1.5f, 1.5f, 1.5f);   // 2026-09-10: 1→1.5 확대 (근접 조준 성공률)
+                // 2026-09-11: glTFast GLB 프리팹은 메시 콜라이더를 전혀 생성하지 않는다 →
+                // 이 BoxCollider가 몬스터의 '유일한' 레이캐스트 히트 볼륨. GLB 시각 몸체(토끼/늑대)는
+                // 1.5박스(중심 0,0,0)보다 크고 위로 솟아 있어 커서가 몸통 위에 있어도 레이가 완전히 빗나갔다.
+                // 2×2×2 + center y 0.75로 확대해 시각 몸체 대부분을 커버 (기존 1→1.5 확대 선례 연장).
+                col.size = new Vector3(2.0f, 2.0f, 2.0f);
+                col.center = new Vector3(0f, 0.75f, 0f);
+                Debug.Log($"[TestTerritoryCombat] 📦 {go.name} 히트용 BoxCollider 추가 (2x2x2, center.y=0.75) — GLB 메시 콜라이더 부재 대비");
             }
             if (go.GetComponent<Rigidbody>() == null)
             {

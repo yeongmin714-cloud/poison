@@ -80,6 +80,7 @@ namespace ProjectName.Systems
             SetupLight();
             SetupSkybox();
             SetupUI();
+            SetupWarehouse(); // 2026-09-11: 창고 박스 + 전 무기/방어구/도구 시딩 (Test_10 패턴 이식)
 
             if (_includeCombat)
                 SetupCombat();

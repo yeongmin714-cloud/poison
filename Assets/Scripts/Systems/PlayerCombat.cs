@@ -184,10 +184,18 @@ namespace ProjectName.Systems
                 _currentTarget = autoAimTarget;
                 AttackTarget(_currentTarget);
             }
-            else
+            else if (!AttackCenterScreen())
             {
-                // 자동 조준 실패 → 기존 SphereCast 방식 (화면 중앙)
-                AttackCenterScreen();
+                // 자동 조준 + 화면 중앙 SphereCast 모두 실패 → 근접 스윕 폴백(안전망):
+                // 플레이어 전방 무기 사거리 내 가장 가까운 살아있는 IDamageable 즉시 적중.
+                IDamageable sweep = MeleeSweepFallback();
+                if (sweep != null)
+                {
+                    MonoBehaviour smb = sweep as MonoBehaviour;
+                    Debug.Log($"[PlayerCombat] 근접 스윕 폴백 적중: {smb?.name ?? "?"} dist={Vector3.Distance(transform.position, smb.transform.position):F1}m");
+                    _currentTarget = sweep;
+                    AttackTarget(sweep);
+                }
             }
 
             // 카메라 이펙트 (Cinemachine Impulse)
@@ -328,9 +336,13 @@ namespace ProjectName.Systems
         /// <summary>
         /// 자동 조준 실패 시 화면 중앙 방향으로 SphereCast 공격
         /// </summary>
-        private void AttackCenterScreen()
+        private bool AttackCenterScreen()
         {
-            if (_mainCamera == null) return;
+            if (_mainCamera == null)
+            {
+                Debug.LogWarning("[PlayerCombat] ⚠️ 메인 카메라 없음 — 조준 불가(Camera.main 태그 확인)");
+                return false;
+            }
 
             Vector3 screenCenter = new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f);
             Ray ray = _mainCamera.ScreenPointToRay(screenCenter);
@@ -341,11 +353,60 @@ namespace ProjectName.Systems
                 if (target != null && target.IsAlive)
                 {
                     AttackTarget(target);
-                    return;
+                    return true;
                 }
             }
 
-            Debug.Log("[PlayerCombat] ⚔️ 공격 실패 — 대상 없음");
+            // 미스 원인 진단 (1줄) — 다음 Play에서 즉시 판별용
+            Vector2 mousePos = Mouse.current != null
+                ? Mouse.current.position.ReadValue()
+                : (Vector2)new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+            Ray cursorRay = _mainCamera.ScreenPointToRay(mousePos);
+            RaycastHit[] cursorHits = Physics.RaycastAll(cursorRay, _autoAimRange, _targetLayers);
+            string nearest = "없음";
+            float nearestDist = float.MaxValue;
+            foreach (var ch in cursorHits)
+            {
+                if (ch.distance < nearestDist)
+                {
+                    nearestDist = ch.distance;
+                    nearest = ch.collider != null ? ch.collider.name : "?";
+                }
+            }
+            Debug.Log($"[PlayerCombat] ⚔️ 공격 실패 — cursorRay히트={cursorHits.Length}건(최근접: {nearest} {(cursorHits.Length > 0 ? nearestDist.ToString("F1") + "m" : "")}), 사거리 autoAim={_autoAimRange}m/sphereMax={_maxRange}m → 근접 스윕 폴백 시도");
+            return false;
+        }
+
+        /// <summary>
+        /// 근접 스윕 폴백 — 커서 레이캐스트/화면중앙 스피어캐스트 실패 시 안전망.
+        /// 플레이어 위치에서 무기 사거리(최소 2.5m) 내 OverlapSphere로 가장 가까운
+        /// 살아있는 IDamageable을 찾는다. 자기 자신(PlayerHealth)은 제외.
+        /// </summary>
+        private IDamageable MeleeSweepFallback()
+        {
+            float sweepRange = Mathf.Max(_currentWeapon != null ? _currentWeapon.range : 2f, 2.5f);
+            Collider[] overlaps = Physics.OverlapSphere(transform.position, sweepRange, _targetLayers);
+
+            IDamageable closest = null;
+            float closestDist = Mathf.Infinity;
+            foreach (var col in overlaps)
+            {
+                IDamageable dmg = col.GetComponentInParent<IDamageable>();
+                if (dmg == null || !dmg.IsAlive) continue;
+
+                MonoBehaviour dmgBehaviour = dmg as MonoBehaviour;
+                if (dmgBehaviour == null) continue;
+                // 자기 자신(플레이어) 제외 — PlayerHealth가 같은 오브젝트에 있으면 스킵
+                if (dmgBehaviour.GetComponent<PlayerHealth>() != null && dmgBehaviour.transform == transform) continue;
+
+                float dist = Vector3.Distance(transform.position, dmgBehaviour.transform.position);
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closest = dmg;
+                }
+            }
+            return closest;
         }
 
         /// <summary>

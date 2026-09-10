@@ -45,7 +45,15 @@ namespace ProjectName.Systems
                 _rigidbody = GetComponent<Rigidbody>();
             if (_targetRenderer == null)
                 _targetRenderer = GetComponent<Renderer>();
+            // 2026-09-11: GLB(glTFast) 프리팹은 루트에 Renderer가 없고 자식 메시에만 존재한다.
+            // 루트 GetComponent만으로는 null → 넉백 차단 경로의 히트 플래시가 조용히 스킵되어
+            // '피격 반응 없음' 증상의 직접 원인이었다. 자식 탐색으로 보완.
+            if (_targetRenderer == null)
+                _targetRenderer = GetComponentInChildren<Renderer>();
         }
+
+        // 넉백 차단 시 비주얼 플린치용 — 실행 중 펄스 코루틴
+        private Coroutine _pulseCoroutine;
 
         /// <summary>
         /// 타격 반응 실행: 넉백(AddForce) + 경직 + VFX
@@ -61,6 +69,12 @@ namespace ProjectName.Systems
             {
                 if (_targetRenderer != null)
                     HitVFX.PlayHitFlash(_targetRenderer);
+                // 2026-09-11: 물리(AddForce/KinematicJolt)는 차단하되 비주얼 플린치는 보장 —
+                // 스케일 펄스(팽창→복귀). transform.position을 건드리지 않으므로
+                // 슬라임 비행/유령 변위 버그는 재발하지 않는다. _targetRenderer가 null이어도 동작.
+                if (_pulseCoroutine != null)
+                    StopCoroutine(_pulseCoroutine);
+                _pulseCoroutine = StartCoroutine(ScalePulseCoroutine(force));
                 if (_stunCoroutine != null)
                     StopCoroutine(_stunCoroutine);
                 _stunCoroutine = StartCoroutine(StunCoroutine(_stunDuration));
@@ -106,6 +120,36 @@ namespace ProjectName.Systems
             yield return new WaitForSeconds(duration);
             _isStunned = false;
             _stunCoroutine = null;
+        }
+
+        /// <summary>
+        /// 넉백 차단 상태의 비주얼 플린치 — 스케일을 1.15배까지 0.05초 팽창 후 0.15초 복귀.
+        /// 피격 '애니메이션' 부재에 대한 최소 반응 (Test_10 GLB 몬스터용).
+        /// </summary>
+        private System.Collections.IEnumerator ScalePulseCoroutine(float force)
+        {
+            // 로컬 스냅샷 — AnimalAI.Start가 티어별 localScale을 Awake 이후에 적용하므로
+            // 필드 캐시(_baseScale) 대신 펄스 시작 시점 스케일을 기준으로 삼는다.
+            Vector3 baseScale = transform.localScale;
+            float peak = 1f + 0.15f * Mathf.Clamp01(force);
+            const float punchTime = 0.05f;
+            const float recoverTime = 0.15f;
+            float t = 0f;
+            while (t < punchTime)
+            {
+                t += Time.deltaTime;
+                transform.localScale = baseScale * Mathf.Lerp(1f, peak, t / punchTime);
+                yield return null;
+            }
+            t = 0f;
+            while (t < recoverTime)
+            {
+                t += Time.deltaTime;
+                transform.localScale = baseScale * Mathf.Lerp(peak, 1f, t / recoverTime);
+                yield return null;
+            }
+            transform.localScale = baseScale;
+            _pulseCoroutine = null;
         }
 
         /// <summary>
