@@ -4,7 +4,44 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-11 (20차)
+> **최종 갱신:** 2026-09-11 (21차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-11 ✅ 21차 — 콤보 FX 즉시발화+피격애니+전투판정 수리+창고 시딩)
+
+> **스코프**: Test_10 몬스터 좌클릭 'HP바 미감소/피격반응 부재'의 근본원인(glTFast GLB 프리팹은 메시 콜라이더를 자동 생성하지 않음 → 기존 BoxCollider가 시각 몸체를 커버하지 못해 레이캐스트 히트 0건) 수리. 근접 스윕 폴백 안전망, HitReaction 플린치 복원, 콤보 스윙 FX 클릭 즉시발화 전환, 플레이어 피격 HitLight 연결, Test_09 창고 전무기 시딩.
+
+### 변경 사항
+**`Systems/TestTerritoryCombatSetup.cs`** — 몬스터 히트박스 수리(근본원인 수정):
+- 몬스터 BoxCollider 1.5³ → **2×2×2, center y=0.75** (GLB 시각 몸체 대부분 커버) + 히트 볼륨 로그
+- 근본원인 명시: glTFast는 GLB 콜라이더를 자동생성하지 않음 → 추가한 BoxCollider가 유일한 레이캐스트 히트 볼륨
+
+**`Systems/PlayerCombat.cs`** — 근접 판정 안전망:
+- `AttackCenterScreen()` bool 반환화(성공 true/미스 false) + 미스 진단 로그(cursorRay히트 수/최근접 거리/사거리)
+- `MeleeSweepFallback()` 신설 — 커서/화면중앙 미스 시 플레이어 위치 OverlapSphere(무기 사거리, 최소 2.5m)로 가장 가까운 살아있는 IDamageable 즉시 적중(자기 자신 제외)
+- `_mainCamera` null 경고(Camera.main 태그 확인 유도)
+
+**`Systems/HitReaction.cs`** — 피격 반응 복원(비행 버그 미재발 설계):
+- Awake Renderer 자식 탐색(`GetComponentInChildren<Renderer>`) — GLB 프리팹은 루트에 Renderer가 없어 히트 플래시가 조용히 스킵되던 직접 원인 보완
+- `_knockbackDisabled` 경로에 스케일 펄스 플린치(0.05s 팽창→0.15s 복귀) — **position 무접촉**(transform.position 건드리지 않음 → 슬라임 비행/유령 변위 재발 없음), AddForce/KinematicJolt 차단 유지
+
+**`Systems/HumanoidClipDriver.cs`** — 콤보 FX 즉시발화 + 피격 애니:
+- 콤보 스윙 FX를 임팩트 프레임 대기에서 **클릭 즉시발화**로 전환 — `_comboImpactFired`/`ComboImpactNormT` 삭제, 콤보 시작(1타)·스테이지 진행 직후 `FireComboSlash` 호출
+- 플레이어 피격 애니 연결 — `_prevPlayerHP` HP 감소 엣지 감시 → `SetTrigger("HitLight")`(AnyState 전이), IsDead 제외(Death 경로 담당)
+
+**`Systems/TestAllInOneSetup.cs`** — Test_09 창고 + 전무기 시딩:
+- `SetupWarehouse()` 신설(Awake 호출): 창고 박스 2개(10,0.55,7)/(-12,0.55,0) + TerritoryWarehouse 리플렉션 부착 + `Configure("wh_test_09", 64, 3f)`(asmdef 순환 회피)
+- `WarehouseSystem._maxSlotsPerTerritory` 20→64 리플렉션 확장(전 장비 시딩 수용)
+- `SeedAllItemsToWarehouse("wh_test_09")`: 무기 SwordWood/SpearWood/BowWood, 방어구 LeatherArmor/ClothArmor/StealthBoots/DarkCloak, 도구 Pickaxe/Axe/FishingRod, 재료/어류/Gold 999 등 33종+ 전 아이템 — E키 근접 상호작용 오픈
+
+### 검증
+- 배치컴파일: **`error CS=0`** (3방향 병렬 코드 에이전트 라운드 통과)
+- 정적 QA(서브에이전트, 5파일): 괄호/중괄호 균형 통과(주석·문자열 제외), `_comboImpactFired`/`ComboImpactNormT` 잔여 참조 0건(레포 전역), `MeleeSweepFallback` 정의+호출 1쌍, `SetupWarehouse` 정의+Awake 호출 확인, `AttackCenterScreen` 호출부(`else if (!AttackCenterScreen())`)가 bool 반환 시그니처와 일치, HitReaction 변경부(`_knockbackDisabled` 경로/ScalePulse)에 AddForce/Rigidbody·position 접촉 없음(비행 버그 재발 방지)
+- 컨트롤러 AnyState `HitLight` 전이 존재 사전 확인
+
+### Play 판정 대기
+- Test_10 몬스터 좌클릭 시 HP바 감소 + 플린치/히트 플래시, 클릭 즉시 스윙 FX 발화, 플레이어 피격 시 HitLight 재생, Test_09 창고 E키 오픈 + 전 무기 장착 테스트
 
 ---
 

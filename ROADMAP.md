@@ -1977,3 +1977,20 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | Play 판정 대기 | 3연타 스윙 FX 방향(1타 좌 -30°/2타 우 +35°/3타 수직 roll-90), 경계 홀드 0.25s 내 클릭 시 다음 타 진행, 무입력/만료 시 Idle 복귀(0.15 블렌드) | ⬜ |
 
 튜닝 상수(`HumanoidClipDriver.cs`): `ComboImpactNormT = {0.18, 0.53, 0.84}` (≈24f/72f/114f @30fps), `ComboHoldGrace = 0.25s`, `ComboExitBlend = 0.15`, 스윙각 -30°/+35°/roll -90° — Play 판정 후 조정.
+
+---
+
+## 🗡️ 2026-09-11: 전투 판정 수리 + 즉시 스윙 FX + 피격애니 + 창고 시딩 (COMBAT-FIX-21)
+
+> **목표:** Test_10 몬스터 좌클릭 'HP바 미감소/피격반응 부재' 근본원인(glTFast GLB 프리팹은 메시 콜라이더를 자동 생성하지 않음 → 기존 BoxCollider가 시각 몸체를 커버하지 못해 레이캐스트 히트 0건) 수리 + 콤보 스윙 FX 클릭 즉시발화 전환 + 플레이어 피격 HitLight 연결 + Test_09 창고 전무기 시딩.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 근본원인 수리 — 몬스터 히트박스 | `TestTerritoryCombatSetup.cs` — glTFast GLB 무콜라이더 명시, 몬스터 BoxCollider 1.5³ → 2×2×2(center y=0.75) 확대 + 히트 볼륨 로그 | ✅ |
+| 근접 스윕 폴백 | `PlayerCombat.cs` — `AttackCenterScreen()` bool 반환화 + 미스 진단 로그, `MeleeSweepFallback()` 신설(무기 사거리 최소 2.5m OverlapSphere → 가장 가까운 IDamageable 즉시 적중), `_mainCamera` null 경고 | ✅ |
+| HitReaction 플린치 복원 | `HitReaction.cs` — Awake Renderer 자식 탐색(GetComponentInChildren, GLB 루트 무렌더러 보완), `_knockbackDisabled` 경로 스케일 펄스 플린치(0.05s 팽창→0.15s 복귀, position 무접촉 → 비행 버그 미재발) | ✅ |
+| 콤보 스윙 FX 즉시발화 | `HumanoidClipDriver.cs` — `_comboImpactFired`/`ComboImpactNormT` 삭제, 콤보 시작(1타)/스테이지 진행 직후 `FireComboSlash` 클릭 즉시발화 | ✅ |
+| 플레이어 피격 애니 | `HumanoidClipDriver.cs` — `_prevPlayerHP` HP 감소 엣지 감시 → `SetTrigger("HitLight")`(컨트롤러 AnyState 전이), IsDead 제외 | ✅ |
+| Test_09 창고 시딩 | `TestAllInOneSetup.cs` — `SetupWarehouse()`: 박스 2개(10,0.55,7)/(-12,0.55,0), TerritoryWarehouse 리플렉션 부착+`Configure("wh_test_09",64,3f)`, `_maxSlotsPerTerritory` 20→64, `SeedAllItemsToWarehouse` 전 무기/방어구/도구/Gold 999 등 33종+, E키 상호작용 오픈 | ✅ |
+| 검증 | 배치컴파일 `error CS=0`, 정적 QA 5파일(중괄호 균형, 잔여 참조 0건, 폴백 1쌍, bool 시그니처 일치, AddForce/position 무접촉) 통과 | ✅ |
+| Play 판정 대기 | Test_10 몬스터 좌클릭 시 HP바 감소+플린치, 클릭 즉시 스윙 FX, 피격 시 HitLight, Test_09 창고 E키 오픈+전 무기 장착 테스트 | ⬜ |

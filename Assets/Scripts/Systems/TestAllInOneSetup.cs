@@ -928,6 +928,91 @@ namespace ProjectName.Systems
 
         // ===================== 전투 시나리오: 몬스터(AnimalAI) ↔ 병사(GuardPlaceholder) =====================
 
+        // ================================================================
+        // 창고 박스 + 전 무기/방어구/도구 시딩 (2026-09-11, Test_10 패턴 이식)
+        // ================================================================
+        /// <summary>Test_09 전용 창고: 박스 2개 배치 + territoryId="wh_test_09"에 전 아이템 시딩.
+        /// Systems asmdef은 UI 참조 불가(순환) → TerritoryWarehouse는 리플렉션으로 부착/Configure.
+        /// E키 근접 상호작용/창고 UI 오픈은 TerritoryWarehouse(ProjectName.UI)가 자체 처리한다.</summary>
+        private void SetupWarehouse()
+        {
+            // ① WarehouseSystem 인스턴스 보장 (Test_09 단독 실행 대비)
+            if (WarehouseSystem.Instance == null)
+            {
+                var wsGO = new GameObject("WarehouseSystem");
+                wsGO.AddComponent<WarehouseSystem>();
+                Debug.Log("[TestAllInOneSetup] ✅ WarehouseSystem 생성");
+            }
+
+            // ② 영지당 슬롯 확장: 기본 20슬롯은 전 장비 시딩(33종+)에 부족 → 64로 확대.
+            //    _maxSlotsPerTerritory는 private [SerializeField] → 리플렉션 설정.
+            var slotsField = typeof(WarehouseSystem).GetField("_maxSlotsPerTerritory",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            slotsField?.SetValue(WarehouseSystem.Instance, 64);
+
+            // ③ 창고 박스 2개 — 기존 배치와 4m+ 이격:
+            //    몬스터 원(반경 15m, 각도 0/72/144/216/288°), 병사 원(반경 11m),
+            //    Dracula(0,0,20) / 스켈레톤 원(반경 10m, 중심 (0,20)), 더미 원(반경 5m)과 최소 5m+ 떨어진 지점.
+            //    지면은 평면(Plane, y=-0.5) → 지표면 y=0, 박스(높이 1.1) 중심 y=0.55.
+            SetupWarehouseBox("Warehouse_Test09_1", new Vector3(10f, 0f, 7f), new Color(0.5f, 0.45f, 0.35f, 1f));
+            SetupWarehouseBox("Warehouse_Test09_2", new Vector3(-12f, 0f, 0f), new Color(0.45f, 0.5f, 0.35f, 1f));
+
+            // ④ 전 아이템 시딩 (무기 3종 / 방어구 4종 / 도구 3종 포함, Gold 999)
+            SeedAllItemsToWarehouse("wh_test_09");
+        }
+
+        /// <summary>창고 박스 1개 생성 + TerritoryWarehouse 부착(territoryId="wh_test_09").</summary>
+        private void SetupWarehouseBox(string goName, Vector3 pos, Color color)
+        {
+            var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            box.name = goName;
+            box.transform.position = new Vector3(pos.x, 0f + 0.55f, pos.z); // 지표면(평면 y=0) + 0.55
+            box.transform.localScale = new Vector3(1.4f, 1.1f, 1.4f);
+            var mr = box.GetComponent<Renderer>();
+            if (mr != null) mr.sharedMaterial.color = color;
+
+            // TerritoryWarehouse(ProjectName.UI) — 리플렉션 부착(asmdef 순환 회피) + territoryId 설정.
+            // (Test_10은 Configure 호출 없이 기본 "East_01"로 남는 것과 달리, 시딩 id와 일치시킨다)
+            var uiAsm = Assembly.Load("ProjectName.UI");
+            var whType = uiAsm != null ? uiAsm.GetType("ProjectName.UI.TerritoryWarehouse") : null;
+            if (whType != null)
+            {
+                var wh = box.AddComponent(whType);
+                var configure = whType.GetMethod("Configure", new[] { typeof(string), typeof(int), typeof(float?) });
+                if (configure != null)
+                    configure.Invoke(wh, new object[] { "wh_test_09", 64, 3f });
+            }
+        }
+
+        /// <summary>WarehouseSystem에 전 아이템 시딩(territoryId="wh_test_09"). Test_10 목록 전량 + 동일 구성.</summary>
+        private void SeedAllItemsToWarehouse(string territoryId)
+        {
+            int total = 0;
+            void Add(PlayerInventory.ItemData item, int count)
+            {
+                if (item == null) return;
+                if (WarehouseSystem.Instance != null && WarehouseSystem.Instance.AddItem(territoryId, item, count))
+                    total += count;
+            }
+
+            Add(PlayerInventory.Herb_Red, 10); Add(PlayerInventory.Herb_Purple, 10);
+            Add(PlayerInventory.Herb_Yellow, 10); Add(PlayerInventory.Herb_Silver, 10); Add(PlayerInventory.Herb_Green, 10);
+            Add(PlayerInventory.Seed_Red, 10); Add(PlayerInventory.Seed_Purple, 10); Add(PlayerInventory.Seed_Yellow, 10);
+            Add(PlayerInventory.Seed_Silver, 10); Add(PlayerInventory.Seed_Green, 10);
+            Add(PlayerInventory.RabbitMeat, 10); Add(PlayerInventory.BoarMeat, 10); Add(PlayerInventory.WolfMeat, 10);
+            Add(PlayerInventory.RabbitFur, 5); Add(PlayerInventory.BoarLeather, 10); Add(PlayerInventory.BoarTusk, 5);
+            Add(PlayerInventory.WolfTooth, 5); Add(PlayerInventory.WolfFur, 10);
+            Add(PlayerInventory.SwordWood, 2); Add(PlayerInventory.SpearWood, 2); Add(PlayerInventory.BowWood, 2);
+            Add(PlayerInventory.LeatherArmor, 2); Add(PlayerInventory.ClothArmor, 2);
+            Add(PlayerInventory.Pickaxe, 1); Add(PlayerInventory.Axe, 1); Add(PlayerInventory.FishingRod, 1);
+            Add(PlayerInventory.Fish_Common, 5); Add(PlayerInventory.Fish_Rare, 3); Add(PlayerInventory.Fish_Legendary, 1);
+            Add(PlayerInventory.StealthBoots, 1); Add(PlayerInventory.DarkCloak, 1); Add(PlayerInventory.StealthPotion, 5);
+            Add(PlayerInventory.Sedative, 5); Add(PlayerInventory.MountToken, 1); Add(PlayerInventory.EstateDeed, 1);
+            Add(PlayerInventory.Gold, 999);
+
+            Debug.Log($"[TestAllInOneSetup] ✅ 창고 '{territoryId}'에 전 아이템 시딩 완료 ({total}개)");
+        }
+
         private void OnDestroy()
         {
             // 정적 이벤트 구독 해제 (씬 언로드 시 누수 방지)
