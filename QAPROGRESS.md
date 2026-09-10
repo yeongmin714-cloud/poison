@@ -4,7 +4,36 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-10 (19차)
+> **최종 갱신:** 2026-09-11 (20차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-11 20차 — 콤보 단일테이크 슬라이스(B안)+타별 스윙 FX)
+
+> **스코프**: 콤보 시스템 재작성(B안) — 3연타 전체가 담긴 단일 클립(Weapon_Combo_2)을 WeaponCombo 상태 하나로 재생하고 플레이헤드를 직접 제어. 경계 홀드+Grace로 콤보 입력 대기를 구현하고, 1~3타 임팩트 프레임마다 스윙 방향이 다른 Slash FX를 발화.
+
+### 변경 사항
+**`Editor/PlayerComboControllerSetup.cs`** (신규) — 컨트롤러 적용:
+- 전역 namespace 에디터 스크립트, `Player_AC.controller`에 `WeaponCombo` 상태 추가 (motion = `Weapon_Combo_2.fbx`, guid `cf0d62405fd723f4094948a660129696`)
+
+**`Systems/HumanoidClipDriver.cs`** — 콤보 재작성:
+- `SetTrigger("AttackCombo*")` 제거 → `_anim.Play("WeaponCombo", 0, normT)` 플레이헤드 직접 제어
+- 경계 홀드 0.25s Grace(무입력 시 EndCombo) / 콤보 만료 → `CrossFade("Idle", 0.15)`
+- `FireComboSlash(stage)` 타별 스윙 VFX: 1타 -30° / 2타 +35° / 3타 roll-90 수직 궤적
+- 레거시 `Attack*` 상태 normT≥0.5 단일 슬래시 보존, `attackStateHold`에 "WeaponCombo" 추가(Speed 0 고정 — Idle/Walk 인터럽트 차단)
+
+**`Systems/SlashVFXRunner.cs`** — `PlaySlash(pos, dir, arcRollDegrees)` 3인자 오버로드 추가 (기존 2인자 → 3인자 위임 유지, 기존 호출부 호환)
+
+**`Systems/PlayerCombat.cs`** — `TryAttack`의 즉시 `PlaySlash` 블록 제거 (VFX 발화 주체를 드라이버 임팩트 프레임으로 일원화)
+
+### 검증
+- 배치컴파일: **`error CS=0`** + "Exiting batchmode successfully" (compile.log)
+- 컨트롤러 YAML: `m_Name: WeaponCombo` 상태(3557행) + m_Motion guid `cf0d6240...` = `Weapon_Combo_2.fbx.meta` guid 일치 확인
+- 정적 QA(서브에이전트): 4파일 괄호/중괄호 균형 통과(주석 제외), 콤보 트리거 잔여 참조 0건(`_comboCount`/`ComboWindow`/`SetTrigger("AttackCombo*")` — attackStateHold IsName 레거시 감시 문자열은 정상 잔존), PlayerCombat `PlaySlash` 잔여 0건, SlashVFXRunner 2인자 시그니처 호환 확인
+- 사전결함(무관): QaValidator.CheckScenes가 Packages 내 addressables 테스트 씬에서 ArgumentException — 컴파일 게이트는 배치컴파일로 별도 통과
+
+### Play 판정 대기
+- 좌클릭 3연타: 1타(좌 -30°)→2타(우 +35°)→3타(수직 roll-90) 임팩트 프레임(`ComboImpactNormT` 0.18/0.53/0.84)별 스윙 FX 방향, 경계 홀드 0.25s 내 클릭 시 다음 타 진행, 무입력/만료 시 Idle 복귀(0.15 블렌드)
 
 ---
 

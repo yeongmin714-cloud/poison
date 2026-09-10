@@ -1961,3 +1961,19 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | Play 판정 대기 | Test_10에서 실제 하트 모양으로 풀→반→빈 하트 표시, 체력 감소 시 빨강→반→회색 외곽 | ⬜ |
 
 ---
+
+## ⚔️ 2026-09-11: 콤보 단일테이크 슬라이스 + 타별 스윙 FX (COMBO-B) (배치컴파일 error CS=0)
+
+> **목표:** 3연타 전체가 담긴 단일 클립(Weapon_Combo_2)을 WeaponCombo 상태 하나로 재생하고 플레이헤드를 직접 제어해 콤보 입력 대기를 구현. 1~3타 임팩트 프레임마다 스윙 방향이 다른 Slash FX를 발화하고, PlayerCombat의 즉시 VFX를 드라이버로 이동해 발화 주체를 일원화.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 컨트롤러 WeaponCombo 상태 | `Editor/PlayerComboControllerSetup.cs` (신규) — Player_AC.controller에 WeaponCombo 상태 추가, motion=Weapon_Combo_2.fbx (guid `cf0d62405fd723f4094948a660129696`) | ✅ |
+| 단일테이크 플레이헤드 콤보 | `HumanoidClipDriver.cs` — SetTrigger("AttackCombo*") 제거 → `_anim.Play("WeaponCombo",0,normT)`. 경계 홀드 0.25s Grace(무입력 EndCombo) / 만료 → CrossFade Idle 0.15 | ✅ |
+| 타별 임팩트 FX | `FireComboSlash(stage)` — 1타 -30° / 2타 +35° / 3타 roll-90 수직. `SlashVFXRunner.PlaySlash(pos,dir,arcRollDegrees)` 3인자 오버로드 추가(2인자 위임 유지) | ✅ |
+| PlayerCombat 즉시 VFX 제거 | `TryAttack`의 즉시 PlaySlash 블록 삭제 → VFX는 드라이버 임팩트 프레임 발화로 이동 | ✅ |
+| 레거시 보존 | Attack* 상태 normT≥0.5 단일 슬래시 유지, attackStateHold에 "WeaponCombo" 추가(Speed 0 고정) | ✅ |
+| 검증 | 배치컴파일 `error CS=0` + 컨트롤러 YAML WeaponCombo 상태/motion guid=`Weapon_Combo_2.fbx.meta` 일치, 4파일 괄호 균형 통과, 콤보 트리거 잔여 0건(`_comboCount`/`ComboWindow`/`SetTrigger("AttackCombo*")`), PlayerCombat PlaySlash 잔여 0건, SlashVFXRunner 2인자 호환 | ✅ |
+| Play 판정 대기 | 3연타 스윙 FX 방향(1타 좌 -30°/2타 우 +35°/3타 수직 roll-90), 경계 홀드 0.25s 내 클릭 시 다음 타 진행, 무입력/만료 시 Idle 복귀(0.15 블렌드) | ⬜ |
+
+튜닝 상수(`HumanoidClipDriver.cs`): `ComboImpactNormT = {0.18, 0.53, 0.84}` (≈24f/72f/114f @30fps), `ComboHoldGrace = 0.25s`, `ComboExitBlend = 0.15`, 스윙각 -30°/+35°/roll -90° — Play 판정 후 조정.
