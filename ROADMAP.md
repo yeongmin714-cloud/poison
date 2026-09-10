@@ -1948,4 +1948,16 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 검증 | CS0104(Object 모호: `using System;`+`UnityEngine`) 수정 → 배치컴파일 `error CS=0`, Systems.dll `EnsurePlayerHUD`/UI.dll `DrawHPNumberText`/Core `get_FinalDefense` 확인 | ✅ |
 | Play 판정 대기 | Test_10 하트 표시, 몬스터 피격 시 데미지만큼 하트·숫자 감소, VIT 투자 시 MaxHP+하트 증가 | ⬜ |
 
+### 💖 2026-09-10 (밤): 실제 하트 아이콘 (절차 생성) (배치컴파일 error CS=0)
+
+> **목표:** 사각형 근사 하트를 실제 하트 모양 아이콘으로 교체. 절차 텍스처로 하트 마스크 3종(Full/반/Empty)을 생성, GUI.color 틴트로 표시.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 하트 마스크 생성 | `HUD.cs` — `CreateHeartMaskTexture()`: 64×64 텍스처, 하트 입방방정식 `(u²+v²-1)³-u²·v³≤0` 픽셀 판정(4서브샘플 AA), Full/반(Half u≤0)/Empty(외곽 2px 링) | ✅ |
+| static lazy 캐시 | `EnsureHeartTextures()` — `_texHeartFull/Half/EmptyWhite` private static, 최초 1회 생성+재사용(GC 금지), HideAndDontSave | ✅ |
+| DrawHeart 교체 | GUI.Box 사각형 제거 → `GUI.color` 틴트 + `GUI.DrawTexture`. 채움 먼저→링 나중(2-pass). 임시하트=Full 마스크를 노랑 틴트로 재사용. 서명 `DrawHeart(rect,color,state)` | ✅ |
+| 검증 | 배치컴파일 `error CS=0`, UI.dll에 `CreateHeartMaskTexture`/`EnsureHeartTextures`/`_texHeartFullWhite`/`HeartMaskMode` 심볼 확인 | ✅ |
+| Play 판정 대기 | Test_10에서 실제 하트 모양으로 풀→반→빈 하트 표시, 체력 감소 시 빨강→반→회색 외곽 | ⬜ |
+
 ---

@@ -9,6 +9,7 @@ namespace ProjectName.UI
     /// - 좌측 상단 하트 시스템 (BotW 스타일)
     ///   * 하트 1개 = 20HP, MaxHP 100 = 5개 하트
     ///   * Full(빨강), Half(반만 빨강), Empty(회색) 상태
+    ///   * 하트 아이콘: 절차 생성 하트 모양 마스크 텍스처 + GUI.color 틴트 (GUI.Box 사각형 근사 대체)
     ///   * 데미지 시 흔들림 애니메이션
     ///   * 임시 하트(노랑, 버프 초과 체력) 지원
     /// - 우상단 버프 아이콘 표시
@@ -94,9 +95,8 @@ namespace ProjectName.UI
         private Rect _rectGasBarFill;
         private Rect _rectGasLabel;
 
-        // 하트용 재사용 Rect
+        // 하트용 재사용 Rect (절차 생성 하트 마스크는 정사각 Rect 하나로 그린다)
         private Rect _rectHeart;
-        private Rect _rectHeartInner;
 
         // 가스 분사기 상태 캐시
         private bool _gasSprayerEquipped;
@@ -235,9 +235,8 @@ namespace ProjectName.UI
 
         private void CacheStaticRects()
         {
-            // 하트용 Rect 초기화
+            // 하트용 Rect 초기화 (절차 생성 하트 마스크는 정사각 Rect 하나로 그린다)
             _rectHeart = new Rect(0, 0, _heartSize, _heartSize);
-            _rectHeartInner = new Rect(0, 0, _heartSize - 4, _heartSize - 4);
         }
 
         private void UpdateStaticRectPositions()
@@ -509,6 +508,7 @@ namespace ProjectName.UI
         /// BotW 스타일 하트 시스템으로 HP 표시
         /// - 하트 1개 = 20HP (_hpPerHeart)
         /// - Full(빨강), Half(반 빨강), Empty(회색) 상태 지원
+        /// - 하트 렌더링: 절차 생성 하트 마스크(흰색) + GUI.color 틴트 → GUI.DrawTexture
         /// - 데미지 시 흔들림 애니메이션
         /// - 임시 하트(노랑, 버프 초과 체력) 지원
         /// </summary>
@@ -547,31 +547,29 @@ namespace ProjectName.UI
 
                 _rectHeart.x = heartX;
                 _rectHeart.y = heartY;
-                _rectHeartInner.x = heartX + 2;
-                _rectHeartInner.y = heartY + 2;
 
                 float heartHPThreshold = (i + 1) * _hpPerHeart;
                 bool isTempHeart = i >= totalHearts;
 
                 if (isTempHeart)
                 {
-                    // 임시 하트 (노랑) - 버프로 인한 초과 체력
-                    DrawHeart(_rectHeart, _rectHeartInner, _heartTempColor, HeartState.Full);
+                    // 임시 하트 (노랑) - 버프로 인한 초과 체력 (Full 마스크를 노랑 틴트로 재사용)
+                    DrawHeart(_rectHeart, _heartTempColor, HeartState.Full);
                 }
                 else if (_currentHP >= heartHPThreshold)
                 {
                     // 풀 하트 (빨강)
-                    DrawHeart(_rectHeart, _rectHeartInner, _heartFullColor, HeartState.Full);
+                    DrawHeart(_rectHeart, _heartFullColor, HeartState.Full);
                 }
                 else if (_currentHP >= heartHPThreshold - _hpPerHeart * 0.5f)
                 {
-                    // 반 하트 (반만 빨강)
-                    DrawHeart(_rectHeart, _rectHeartInner, _heartHalfColor, HeartState.Half);
+                    // 반 하트 (좌측 절반만 빨강)
+                    DrawHeart(_rectHeart, _heartHalfColor, HeartState.Half);
                 }
                 else
                 {
-                    // 빈 하트 (회색)
-                    DrawHeart(_rectHeart, _rectHeartInner, _heartEmptyColor, HeartState.Empty);
+                    // 빈 하트 (회색 외곽만)
+                    DrawHeart(_rectHeart, _heartEmptyColor, HeartState.Empty);
                 }
             }
         }
@@ -622,37 +620,198 @@ namespace ProjectName.UI
             Full
         }
 
-        /// <summary>
-        /// 단일 하트 그리기 (GUI.Box로 하트 모양 근사)
-        /// </summary>
-        private void DrawHeart(Rect outerRect, Rect innerRect, Color color, HeartState state)
-        {
-            // 배경 (빈 하트 베이스)
-            GUI.color = _heartEmptyColor;
-            GUI.Box(outerRect, "");
+        // ================================================================
+        // 절차 생성 하트 아이콘 (하트 모양 마스크 텍스처 + GUI.color 틴트)
+        // - GUI.Box 사각형 근사 대신 진짜 하트 형상 아이콘을 그린다
+        // - 형상 판정: 입방 하트 암시방정식 (u² + v² − 1)³ − u²·v³ ≤ 0 (하트 내부)
+        // - 마스크는 흰색(RGB 255) 기저 + 알파로 형상 표현 → GUI.color 틴트로 상태색 칠하기
+        //   (ArenaBattleUI._texWhite + GUI.color 패턴과 동일, 임시 하트 노랑도 마스크 재사용)
+        // - 텍스처는 static 캐시: 최초 1회 lazy 생성 후 재사용 (OnGUI GC 방지)
+        // ================================================================
 
-            if (state != HeartState.Empty)
+        /// <summary>하트 마스크 텍스처 해상도(픽셀) — 64px면 40px 하트로 축소해도 충분히 부드럽다</summary>
+        private const int HeartTexSize = 64;
+
+        /// <summary>생성할 하트 마스크 종류</summary>
+        private enum HeartMaskMode
+        {
+            Full,   // 하트 전체 내부 (풀 하트 채움용)
+            Half,   // 좌측 절반만 (반 하트 채움용)
+            Empty   // 외곽 링만 (테두리 / 빈 하트용)
+        }
+
+        // GC: 하트 마스크 텍스처 static 캐시 — 최초 1회 lazy 생성, 이후 모든 하트가 재사용
+        private static Texture2D _texHeartFullWhite;   // 하트 전체 내부 마스크(흰색)
+        private static Texture2D _texHeartHalfWhite;   // 하트 좌측 절반 마스크(흰색)
+        private static Texture2D _texHeartEmptyWhite;  // 하트 외곽 링 마스크(흰색)
+
+        /// <summary>
+        /// 하트 마스크 텍스처 3종 lazy 생성 (최초 DrawHeart 호출 시 단 1회)
+        /// </summary>
+        private static void EnsureHeartTextures()
+        {
+            if (_texHeartFullWhite != null && _texHeartHalfWhite != null && _texHeartEmptyWhite != null)
+                return;
+
+            _texHeartFullWhite  = CreateHeartMaskTexture(HeartMaskMode.Full);
+            _texHeartHalfWhite  = CreateHeartMaskTexture(HeartMaskMode.Half);
+            _texHeartEmptyWhite = CreateHeartMaskTexture(HeartMaskMode.Empty);
+        }
+
+        /// <summary>
+        /// 하트 암시방정식: f(u,v) = (u² + v² − 1)³ − u²·v³ ≤ 0 이면 하트 내부.
+        /// 수학 좌표계(v 위쪽 양수) 기준 — 아래가 뾰족하고 위에 로브 2개인 하트 형상.
+        /// </summary>
+        private static float HeartImplicit(float u, float v)
+        {
+            float q = u * u + v * v - 1f;
+            return q * q * q - u * u * v * v * v;
+        }
+
+        /// <summary>
+        /// 하트 모양 "흰색 마스크" 텍스처를 절차 생성한다. (최초 1회만 호출)
+        /// - 좌표 변환: 텍셀 중심을 [-1,1] 정규화(u: 오른쪽+, v: 위쪽+).
+        ///   Texture2D 픽셀 (0,0)은 좌하단(UV 원점)이고 GUI.DrawTexture는 텍스처를 뒤집지 않고
+        ///   그대로 그리므로, 수학 y축(v)을 픽셀 y에 그대로 매핑하면 하트가 세워진 채
+        ///   렌더링된다 (아래 뾰족 부분이 Rect 하단에 위치). → 별도 y 반전 불필요.
+        /// - RGB는 항상 순수 흰색, 형상은 알파로만 표현 → GUI.color 틴트로 어떤 상태색이든 칠해진다.
+        ///   (알파 0 픽셀도 RGB를 흰색으로 유지해 bilinear 축소 시 어두운 외곽 번짐 방지)
+        /// - 외곽 계단 현상 완화: 텍셀당 4서브샘플(±1/4 텍셀) 내부 판정 평균을 알파로 사용.
+        /// - Empty 마스크: 내부 영역을 4방향 이웃 기준 2회 침식해 남은 코어를 빼면 2px 외곽 링.
+        /// </summary>
+        private static Texture2D CreateHeartMaskTexture(HeartMaskMode mode)
+        {
+            int size = HeartTexSize;
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            tex.name = "HUD_HeartMask_" + mode;
+            tex.hideFlags = HideFlags.HideAndDontSave;   // 씬/에셋 관리 대상 제외 (런타임 전용)
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Bilinear;        // 축소 시 부드러운 외곽
+
+            // 하트 묘형은 y ∈ [-1, 약 1.26] — 묘형 중심(≈0.13)을 텍스처 정중앙에 맞추는 보정
+            const float scale = 26f;   // 하트 폭(≈2.14)이 64px 안에 여백 2~3px를 두고 들어가도록
+            const float vShift = 0.13f;
+
+            var inside = new bool[size * size];     // 외곽 링 판정용 내부 플래그
+            var alphaFill = new float[size * size]; // Full 마스크 알파
+            var alphaLeft = new float[size * size]; // Half 마스크 알파 (u ≤ 0 좌측 절반)
+
+            for (int py = 0; py < size; py++)
             {
-                // 채워진 하트 영역
-                GUI.color = color;
-                
-                if (state == HeartState.Full)
+                for (int px = 0; px < size; px++)
                 {
-                    // 풀 하트: 전체 내부 영역 채우기
-                    GUI.Box(innerRect, "");
-                }
-                else // Half
-                {
-                    // 반 하트: 왼쪽 절반만 채우기
-                    Rect halfRect = innerRect;
-                    halfRect.width = innerRect.width * 0.5f;
-                    GUI.Box(halfRect, "");
+                    // 텍셀 중심 → 하트 수학좌표 (v는 위쪽 양수, 픽셀 y도 위로 증가 → 무반전)
+                    float u = (px + 0.5f - size * 0.5f) / scale;
+                    float v = (py + 0.5f - size * 0.5f) / scale + vShift;
+
+                    // 텍셀당 4서브샘플로 내부 판정 (간이 안티앨리어싱)
+                    int hit = 0;
+                    int hitLeft = 0;
+                    for (int sy = 0; sy < 2; sy++)
+                    {
+                        for (int sx = 0; sx < 2; sx++)
+                        {
+                            float su = u + (sx == 0 ? -0.25f : 0.25f) / scale;
+                            float sv = v + (sy == 0 ? -0.25f : 0.25f) / scale;
+                            if (HeartImplicit(su, sv) <= 0f)
+                            {
+                                hit++;
+                                if (su <= 0f) hitLeft++;   // 좌측 절반(u ≤ 0)만 카운트
+                            }
+                        }
+                    }
+
+                    int idx = py * size + px;
+                    inside[idx] = hit >= 2;            // 커버리지 절반 이상을 내부로 간주
+                    alphaFill[idx] = hit * 0.25f;      // 0/0.25/0.5/0.75/1 단계 알파
+                    alphaLeft[idx] = hitLeft * 0.25f;  // 반 하트: 좌측 절반 커버리지
                 }
             }
 
-            // 테두리
-            GUI.color = Color.white;
-            GUI.Box(outerRect, "");
+            // 모드별 최종 알파 선택
+            float[] alpha;
+            if (mode == HeartMaskMode.Full)
+            {
+                alpha = alphaFill;
+            }
+            else if (mode == HeartMaskMode.Half)
+            {
+                alpha = alphaLeft;
+            }
+            else // Empty: 내부를 2회 침식 → 침식 코어 바깥의 내부 픽셀 = 외곽 2px 링
+            {
+                var core = new bool[size * size];
+                System.Array.Copy(inside, core, core.Length);
+
+                for (int pass = 0; pass < 2; pass++)
+                {
+                    var eroded = new bool[size * size];
+                    for (int py = 0; py < size; py++)
+                    {
+                        for (int px = 0; px < size; px++)
+                        {
+                            int idx = py * size + px;
+                            // 4방향 이웃이 모두 코어일 때만 유지 (테두리는 즉시 침식)
+                            eroded[idx] = core[idx]
+                                && px > 0 && core[idx - 1]
+                                && px < size - 1 && core[idx + 1]
+                                && py > 0 && core[idx - size]
+                                && py < size - 1 && core[idx + size];
+                        }
+                    }
+                    core = eroded;
+                }
+
+                var alphaRing = new float[size * size];
+                for (int i = 0; i < alphaRing.Length; i++)
+                    alphaRing[i] = (inside[i] && !core[i]) ? 1f : 0f;
+                alpha = alphaRing;
+            }
+
+            // 픽셀 확정: RGB 흰색 고정 + 알파로 형상 (GUI.color 틴트용 마스크)
+            var pixels = new Color32[size * size];
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                byte a = (byte)Mathf.RoundToInt(Mathf.Clamp01(alpha[i]) * 255f);
+                pixels[i] = new Color32(255, 255, 255, a);
+            }
+
+            tex.SetPixels32(pixels);
+            tex.Apply();
+            return tex;
+        }
+
+        /// <summary>
+        /// 단일 하트 그리기 — 절차 생성 하트 마스크 + GUI.color 틴트 (진짜 하트 형상)
+        /// 1) 상태 채움: Full → 전체 마스크, Half → 좌측 절반 마스크를 상태색으로 틴트해 DrawTexture
+        ///    (임시 하트는 color가 노랑이므로 동일 마스크를 그대로 재사용)
+        /// 2) 외곽 링: 채워진 하트는 흰 테두리, 빈 하트는 회색 외곽을 채움 위에 덮어 그림
+        /// 3) GUI.color는 반드시 원복 — 틴트가 이후 GUI 호출에 누출되지 않도록
+        /// </summary>
+        private void DrawHeart(Rect rect, Color color, HeartState state)
+        {
+            EnsureHeartTextures();
+
+            Color prevColor = GUI.color;   // 틴트 복원용
+
+            // 1) 상태 채움 (Empty는 채움 없음)
+            if (state == HeartState.Full)
+            {
+                GUI.color = color;
+                GUI.DrawTexture(rect, _texHeartFullWhite);
+            }
+            else if (state == HeartState.Half)
+            {
+                GUI.color = color;
+                GUI.DrawTexture(rect, _texHeartHalfWhite);
+            }
+
+            // 2) 외곽 링 (하트 윤곽) — 채움 위에 덮어 그려 테두리를 선명하게
+            GUI.color = (state == HeartState.Empty) ? _heartEmptyColor : Color.white;
+            GUI.DrawTexture(rect, _texHeartEmptyWhite);
+
+            // 3) GUI.color 복원 (틴트 누출 방지)
+            GUI.color = prevColor;
         }
 
         private void DrawBuffIcons()

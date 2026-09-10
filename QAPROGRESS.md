@@ -8,7 +8,31 @@
 
 ---
 
-## 📌 세션 종합 스냅샷 (2026-09-10 19차 — 플레이어 HUD 하트 Test_10 부착 + 방어력 비율식)
+## 📌 세션 종합 스냅샷 (2026-09-10 ✅ 19차-2 — 실제 하트 아이콘 절차 생성)
+
+> **스코프**: 사각형 근사 하트를 실제 하트 모양 아이콘으로 교체. 하트 형상 텍스처를 절차 생성하고 GUI.color 틴트로 Full/반/Empty 표시, 체력 감소를 직관 표시.
+
+### 변경 사항
+**`UI/HUD.cs`** — 실제 하트 아이콘 절차 생성:
+- `CreateHeartMaskTexture(HeartMaskMode)` — 64×64 `Texture2D(RGBA32)` + `SetPixels32` + `Apply()` + `HideFlags.HideAndDontSave` (프로젝트 절차 텍스처 관례)
+  - 하트 형상 판정: 입방 방정식 `(u²+v²−1)³−u²·v³ ≤ 0`, 픽셀당 4서브샘플로 간이 안티앨리어싱
+  - 좌표: Texture2D (0,0)=좌하단 + GUI.DrawTexture 무반전 → 하트 세워짐. scale=26, vShift=0.13
+  - Full(전체 내부) / Half(좌반 u≤0) / Empty(외곽 2px 링: 내부 4방향 이웃 2회 침식으로 추출)
+- `EnsureHeartTextures()` + `_texHeartFull/Half/EmptyWhite` static lazy 캐시 (최초 1회, GC 금지). 마스크는 순수 흰색+알파라 `GUI.color` 틴트로 어떤 색이든 칠함
+- `DrawHeart(rect, color, state)` — GUI.Box 사각형 완전 제거 → `GUI.color` 틴트 + `GUI.DrawTexture`. 채움 먼저→링 나중(2-pass)으로 Half 반투명이 링 오염 방지. 임시하트=Full 마스크+노랑 틴트 재사용. GUI.color 저장/복원.
+- 호출부 4곳 서명 갱신, `_rectHeartInner`/halfRect/`CacheStaticRects` 잔여 제거(참조 0건 확인)
+
+### 검증
+- 배치컴파일: **`error CS=0`** + "Exiting batchmode successfully" (`CompileScripts: 12469ms`)
+- UI.dll 심볼: `CreateHeartMaskTexture`/`EnsureHeartTextures`/`_texHeartFullWhite`/`HeartMaskMode` 확인
+- 서브에이전트: 괄호/중괄호 균형 검증 통과(주석 제외), 229/229
+
+### Play 판정 대기
+- Test_10: 실제 하트 모양으로 표시, 체력 감소 시 빨강 Full→좌반만 빨강(Half)→회색 외곽(Empty)으로 단계 표시, 버프 초과 체력은 노랑 하트
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-10 19차-2 — 실제 하트 아이콘 절차 생성)
 
 > **스코프**: Test_10에도 플레이어 하트 HUD 표시, 피격 시 데미지만큼 하트·숫자 감소, 방어력을 비율식 감소로, 스탯(VIT)으로 체력·방어 상승 시 하트 자동 증가.
 
