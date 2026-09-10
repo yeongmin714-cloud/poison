@@ -1890,3 +1890,20 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 > **선례:** `ProceduralAttack.cs:457`이 동일 문제를 `col.GetComponentInParent<Damageable>()`로 해결 — 부모 방향 탐색이 이 프로젝트에서 검증됨.
 
 ---
+
+## 🌾 2026-09-10: 농경(재배) 시스템 (FARMING) — QaValidator 배치컴파일 error CS=0
+
+> **목표:** 자기 소속(PlayerOwned) 영지 부지에서 허브를 재배하고, 숙성 시 기존 HerbPickup(E키 채집→LootBasket)을 재사용해 수확. 기존 채집/소유/시간 시스템 결합.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| FarmPlot 신규 | `Systems/FarmPlot.cs` — 상태머신 Empty→Seeded→Growing→Ready. 흙탕 시각+허브 성장(스케일 단계), E키 파종/수확 | ✅ |
+| 소유 검증 | `ValidateOwnership(bool)` — `TerritoryDatabase.GetState(...).ownership == PlayerOwned` 아니면 강제 Empty 리셋+메시지. 주기(1.5s) 체크 | ✅ |
+| 성장 타이머 | `TimeManager` 절대 게임시간(`CurrentDay*86400+GameTime`, 자정 롤오버 안전)로 일수 경과. TimeManager null 시 실시간 폴백 | ✅ |
+| 수확 연동 | Ready 시 `HerbPickup` AddComponent+리플렉션 `_herbType` → 기존 E키 수확(LootBasket), `OnHarvestStarted` 구독→Empty 리셋 | ✅ |
+| FarmingManager 신규 | `Systems/FarmingManager.cs` — 싱글턴, `SpawnPlots(nation,index,center,rows,cols,spacing,crop,growDays)` 격자 배치+Configure | ✅ |
+| Test_10 결합 | `SetupFarm()` — 내 영지(East_01) 근처 2×2=4칸 농장, SurfaceY+0.1 계약 | ✅ |
+| 검증 | 컴파일 중 `ValidateOwnership` CS0103 9건 발견→정의 추가, `QaValidator` 배치컴파일 `error CS=0`, Systems.dll에 FarmPlot 심볼 확인 | ✅ |
+| Play 판정 대기 | 내 영지 밭 E키 파종→성장→숙성→수확 루프 + 소유 상실 시 경작 불가 | ⬜ |
+
+---

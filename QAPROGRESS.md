@@ -4,7 +4,31 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-10 (15차)
+> **최종 갱신:** 2026-09-10 (16차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-10 16차 — 농경 시스템 도입)
+
+> **스코프**: 자기 소속 영지 부지에서 허브 재배 → 숙성 시 기존 HerbPickup 수확 연동.
+
+### 변경 사항
+**신규 `Systems/FarmPlot.cs`** (namespace ProjectName.Systems)
+- 상태머신 `CropPhase { Empty, Seeded, Growing, Ready }` — 흙밭 시각(URP/Lit Cube), 허브 성장 단계별 스케일(0.12→0.4→0.8)
+- **소유 검증** `ValidateOwnership(bool force)` — `TerritoryDatabase.GetState(...).ownership == PlayerOwned` 아니면 강제 Empty 리셋 + "아군 영지에서만 경작 가능" 메시지. Update 1.5s 주기 체크
+- **성장** — `TimeManager` 절대 게임시간(`CurrentDay*86400+GameTime`, 자정 롤오버 안전)으로 게임 일수 경과. TimeManager null 시 `Time.time` 실시간 폴백
+- **수확** — Ready 시 `HerbPickup` AddComponent + 리플렉션 `_herbType` → 기존 E키 채집(LootBasket), `OnHarvestStarted` 구독 → Empty 리셋 + HerbPickup 제거(다음 Ready 재부착)
+
+**신규 `Systems/FarmingManager.cs`** — 싱글턴, `SpawnPlots(nation,index,center,rows,cols,spacing,crop,growDays)` 격자 배치 + Configure
+
+**Test_10 결합** — `SetupFarm()` (SetupHerbs 다음 줄 + 파일 말미 메서드) — 내 영지 East_01 근처 2×2=4칸, `SurfaceY(x,z)+0.1` 계약
+
+### 디버깅 (컴파일 순환)
+- 1차 컴파일: `FarmPlot.cs` `ValidateOwnership` CS0103 **9건** (정의 누락, 호출 3곳×3타입 보고) → 정의 추가
+- 재컴파일: **`error CS=0`**, Systems.dll에 FarmPlot/ValidateOwnership/SpawnPlots 심볼 확인
+
+### Play 판정 대기
+- 내 영지 밭 E키 파종 → 성장 → 숙성 → E키 수확(LootBasket) 루프 + 소유 상실 시 경작 불가.
 
 ---
 

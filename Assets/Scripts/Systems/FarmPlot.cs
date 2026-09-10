@@ -88,6 +88,38 @@ namespace ProjectName.Systems
             ValidateOwnership(true);
         }
 
+        /// <summary>
+        /// 소유 검증: TerritoryDatabase의 영지 상태를 조회해 PlayerOwned 여부로 IsOwned 갱신.
+        /// force=true: Configure/Start 등 직후 1회 확정 검사(상태 로그 포함).
+        /// force=false: Update 주기 검사(OwnershipCheckInterval) — 상실 시에만 로그/리셋.
+        /// 미소유/상실 시 밭을 강제 Empty 초기화(SetPhaseEmpty 재사용) + 상태 메시지.
+        /// </summary>
+        private void ValidateOwnership(bool force)
+        {
+            var db = TerritoryDatabase.Instance;
+            var st = db != null ? db.GetState(_plotNation, _plotIndex) : null;
+            bool owned = st != null && st.ownership == TerritoryOwnership.PlayerOwned;
+
+            bool wasOwned = IsOwned;
+            IsOwned = owned;
+
+            if (!owned)
+            {
+                if (_phase != CropPhase.Empty)
+                {
+                    SetPhaseEmpty("아군 영지에서만 경작 가능 — 소유 상실/미소유");
+                    ShowStatus("⚠️ 아군 영지에서만 경작 가능");
+                }
+
+                if (force || wasOwned)
+                    Debug.Log($"[FarmPlot] {name}: ({_plotNation} #{_plotIndex}) 아군 영지가 아님 — 경작 불가");
+            }
+            else if (force)
+            {
+                Debug.Log($"[FarmPlot] {name}: ({_plotNation} #{_plotIndex}) 플레이어 소유 영지 — 경작 가능");
+            }
+        }
+
         /// <summary>파종(Empty → Seeded). 소유 영지에서만 허용.</summary>
         public void Plant(HerbPickup.HerbType crop)
         {
