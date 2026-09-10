@@ -62,6 +62,7 @@ namespace ProjectName.Systems
 
             // ── 3)~7) 정리 + 부착 (NRE 격리) ────────────────────────────────
             var removed = new List<string>();
+            bool bootOk = true;
             try
             {
                 StripLegacyAnimation(playerRoot.transform, removed);   // 3) 레거시 Procedural/Neural 제거
@@ -72,12 +73,16 @@ namespace ProjectName.Systems
             }
             catch (System.Exception ex)
             {
+                bootOk = false;
                 Debug.LogError($"[TestPlayerAnimatorBoot] ❌ 부트 중 예외 — 무시하고 Play 유지: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
             }
 
             // ── 9) 최종 로그 ───────────────────────────────────────────────
             string removedTxt = removed.Count > 0 ? string.Join(", ", removed) : "제거 대상 없음";
-            Debug.Log($"[TestPlayerAnimatorBoot] ✅ Player_AC 부착+레거시 제거 완료 (제거 {removed.Count}개: {removedTxt})");
+            if (bootOk)
+                Debug.Log($"[TestPlayerAnimatorBoot] ✅ Player_AC 부착+레거시 제거 완료 (제거 {removed.Count}개: {removedTxt})");
+            else
+                Debug.LogWarning($"[TestPlayerAnimatorBoot] ⚠️ 부트 부분 실패 — 제거/부착 불완전 가능 (제거 {removed.Count}개: {removedTxt}), Play는 계속");
 
             // ── 8) 침하 감시 — 부트 완료 2초 후 1회 ─────────────────────────
             StartCoroutine(SinkWatch(playerRoot.transform, model));

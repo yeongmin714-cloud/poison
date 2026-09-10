@@ -1007,3 +1007,21 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 **검증**: 에디터 사용 중 락으로 배치컴파일 1회 실패 → 저사양 절차대로 에디터 강제종료+락파일 삭제 후 재실행 → **EXIT=0, error CS=0, "Exiting batchmode successfully"** (buildlog_test10_miniterrain.txt). QA 에이전트 4항목 전부 PASS(정점 수/인덱스 범위 14640≤14640/와인딩 +y/공유 파일 무변경/GetHeightAt 순수 수학 14,641호출 수ms 무해)
 
 **Play 판정 대기**: Test_10 Play → 플레이어가 미니지형 위에 안정 착지, 바닥 아래 소실/텔레포트 진동 0, 좌클릭 공격 정상
+
+---
+
+## 2026-09-10 3차: Test_10 모델 침하+애니 부재 근본수정 + Free Slash/Impact VFX 연동 ✅ (계획: .hermes/plans/2026-09-10_094500-test10-player-sink-vfx-anim-plan.md)
+
+**진단(영상 프레임+로그 교차)**: 루트 캡슐·그림자는 정상 착지(CamProbe y=1.61), **GLB 모델 자식만** 16초 정상→18초 소실. 원인=Test_10 코드생성 플레이어가 PlayerPlaceholder→ModelAnimatorAssigner.ForceBiped 경로로 레거시 Procedural/Neural 자동부착 → "Mapped 3 bones"+"heuristic fallback"이 루트본을 아래로 밀어 모델만 침하+애니 미작동(메인씬은 이 경로 이미 제거, Player_AC 단일 경로). 침하와 애니부재가 동일 원인.
+
+**Phase 1 — Test_10 전용 애니 부트 (메인 영향 0)**: 신규 TestPlayerAnimatorBoot.cs(227줄) — 지연부트(PlayerModel 5초 대기+1프레임) → 레거시 6종 제거(ModelAnimatorAssigner/ProceduralAnimationController/NeuralAnimationController/QuadrupedProceduralAnimation/HybridAnimationController/ProceduralBoneMap — BoneMap은 RequireComponent 의존이라 마지막) → 루트 빈 Animator 제거(PlayerCombat RequireComponent 선례) → PlayerModel에 Player_AC+applyRootMotion=false+cullingMode=AlwaysAnimate(InventoryWindow 1004 선례) → rb 재관성화 → 루트 HumanoidClipDriver(Player 모드: CC.velocity→Speed, LastAttackTime→Attack, 롤/점프 엣지) → 침하 감시(모델중심−루트 y<−0.5m 경고). TestTerritoryCombatSetup 훅 3줄.
+
+**Phase 2 — Free Slash VFX → 공격 연동(공유, 메인에도 자동 적용)**: 신규 SlashVFXRunner.cs(static 러너+숨은 호스트, HitVFX 선례) — PlayerCombat.TryAttack의 attack_swing SFX 직후 try-catch 훅, 카메라 정면 수평 방향+1.2m 전방에 "FX/Slash/Slash VFX" 스폰. 스윙/임팩트 각 0.08s 쿨다운 분리.
+
+**Phase 3 — Matthew Guz Impact → 피격 연동(공유)**: CombatFXGate.PlayHitFXInternal의 SpawnHitSparks 직후 SlashVFXRunner.PlayImpact(position, type) 1줄 — Organic→BasicHit/Construct→BasicHit2, 기존 스파크·출혈·숫자·카메라 단계 전부 유지(예산 무변경).
+
+**리소스 설치**: 신규 Assets/Editor/VFXResourceInstaller.cs(Tools/VFX 메뉴+-executeMethod 무인실행) — 프리팹 3종을 Assets/Resources/FX/{Slash,Impact}로 복사(멱등) + **Matthew Guz 빌트인 파티클 셰이더(43개 중 타격 프리팹 3종)→URP/Particles/Unlit 자동 변환**(원본 에셋 읽기 전용, 새 _URP.mat 에셋만 생성) — 마젠타 차단. Free Slash는 자체 ShaderGraph라 무변환. CS0023(CreateAsset void 반환) 1건 직접 수정.
+
+**검증**: 배치컴파일+인스톨러 2회 — error CS=0 ×2, "Exiting batchmode successfully" ×2(buildlog_vfx_install2/_final), 인스톨러 로그: 복사 3/3+변환 3종/참조 7건+셰이더 수집(Slash 4종 ShaderGraph, Impact 2종 URP Particles Unlit). QA 에이전트 8항목 전부 PASS(레거시 6종 네임스페이스 실물확인, 코루틴 이터레이터 제약 우회, 원본 에셋 무변경, 멱등성).
+
+**Play 판정 대기**: ①부트 로그 "✅ Player_AC 부착+레거시 제거 완료"+제거 목록 ②Idle/Walk/Attack 애니 재생(T포즈 아님) ③18초 경과 후 모델 유지(침하 0) ④좌클릭 → 슬래시 이펙트 ⑤타격 → BasicHit/BasicHit2 임팩트+기존 이펙트 공존 ⑥마젠타/InternalErrorShader 0건
