@@ -54,7 +54,7 @@ namespace ProjectName.Core
 
         [Header("Base Stats")]
         [SerializeField] private float _attackDamageBase = 10f;   // 기본 공격력
-        [SerializeField] private float _defenseBase = 0f;         // 기본 방어력 (뎀지 감소량)
+        [SerializeField] private float _defenseBase = 0f;         // 기본 방어력 (비율식 감소 가산치, 뎀지 직접 차감 아님)
         [SerializeField] private float _moveSpeedBase = 5f;       // 기본 이동 속도
         [SerializeField] private float _alchemyTempBonus = 0f;    // 임시 연금술 보너스 (버프 등)
         [SerializeField] private float _cookingTempBonus = 0f;    // 임시 요리 보너스 (버프 등)
@@ -171,7 +171,9 @@ namespace ProjectName.Core
         // 장비 보너스는 Systems 측 EquipmentStatBonusApplier가 OnEquipmentChanged 때 푸시 (Core→Systems 역참조 회피)
         public float FinalAttackDamage => _attackDamageBase + (_level * 0.5f) + (_allocatedStr * 2f)
                                           + _equipAttackBonus;   // 힘 +2 공격/pt
-        public float FinalDefense => _defenseBase + (_level * 0.2f) + _equipDefenseBonus;
+        public float FinalDefense => _defenseBase + (_level * 0.5f) + (_allocatedVit * 2f)
+                                          + _equipDefenseBonus;  // 비율식 감소용: 레벨 +0.5 방어/lv, VIT +2 방어/pt
+                                                                 // (Lv1 기본 VIT=5 → 방어≈10.5 → 감소율≈9.5%)
         public float FinalMoveSpeed => _moveSpeedBase + (_level * 0.1f) + (_allocatedAgi * 0.05f)
                                           + _equipSpeedBonus;  // 민첩 +0.05 속도/pt
         public float FinalAlchemyBonus => AlchemySuccessBonus + _alchemyTempBonus + (_allocatedInt * 0.005f); // 지능 +0.5%/pt

@@ -63,6 +63,7 @@ namespace ProjectName.Systems
         private Type _recipeWindowType;
         private Type _mapWindowType;
         private Type _lootWindowType;
+        private Type _hudType;          // 플레이어 HUD(하트 시스템, IMGUI 기반) — ProjectName.UI.HUD
 
         private void Awake()
         {
@@ -121,6 +122,7 @@ namespace ProjectName.Systems
             _recipeWindowType = uiAssembly.GetType("ProjectName.UI.RecipeWindow");
             _mapWindowType = uiAssembly.GetType("ProjectName.UI.MapWindow");
             _lootWindowType = uiAssembly.GetType("ProjectName.UI.LootWindow");
+            _hudType = uiAssembly.GetType("ProjectName.UI.HUD");
 
             if (_uiManagerType == null || _uiWindowType == null)
             {
@@ -509,7 +511,36 @@ namespace ProjectName.Systems
             CreateUIWindow(_mapWindowType, "MapWindow", canvasTransform);
             CreateUIWindow(_lootWindowType, "LootWindow", canvasTransform);
 
+            // 플레이어 HUD(하트 시스템) 자동 부착 — IMGUI(OnGUI) 기반이라 Canvas 불필요
+            EnsurePlayerHUD();
+
             Debug.Log("[TestAllInOneSetup] ✅ UI 시스템 + 주요 윈도우 생성 완료");
+        }
+
+        /// <summary>
+        /// 플레이어 HUD(하트 시스템, IMGUI 기반) 자동 부착.
+        /// - OnGUI 기반이므로 Canvas 없이 독립 GameObject에 AddComponent만으로 즉시 동작.
+        /// - 씬에 이미 활성화된 HUD가 있으면 중복 생성하지 않는다.
+        /// </summary>
+        private void EnsurePlayerHUD()
+        {
+            if (_hudType == null)
+            {
+                Debug.LogWarning("[TestAllInOneSetup] ProjectName.UI.HUD 타입을 찾을 수 없습니다. HUD 생성을 건너뜁니다.");
+                return;
+            }
+
+            // Unity 6 API: FindObjectsByType(Type, FindObjectsInactive, FindObjectsSortMode) 정적 오버로드 사용 (FindObjectOfType 폐지)
+            var existingHuds = Object.FindObjectsByType(_hudType, FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            if (existingHuds != null && existingHuds.Length > 0)
+            {
+                Debug.Log("[TestAllInOneSetup] ℹ️ 이미 활성 HUD가 존재하여 HUD 생성을 건너뜁니다.");
+                return;
+            }
+
+            var hudGO = new GameObject("HUD");
+            hudGO.AddComponent(_hudType);
+            Debug.Log("[TestAllInOneSetup] ✅ 플레이어 HUD(하트) 부착");
         }
 
         private void CreateUIWindow(Type windowType, string name, Transform parent)

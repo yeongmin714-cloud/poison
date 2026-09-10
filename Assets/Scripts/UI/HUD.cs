@@ -74,6 +74,8 @@ namespace ProjectName.UI
         // Phase 34: 은신 스타일
         private GUIStyle _cachedStealthIconStyle;
         private GUIStyle _cachedDetectionLabelStyle;
+        // 숫자 HP 표시 스타일 ("85 / 140")
+        private GUIStyle _cachedHPTextStyle;
 
         // GC: 캐싱된 Rect — OnGUI에서 new Rect() 방지 (구조체지만 스택 할당 최적화)
         private Rect _rectDeathOverlay;
@@ -83,6 +85,9 @@ namespace ProjectName.UI
         // 버프 아이콘용 재사용 Rect
         private Rect _rectBuffBg;
         private Rect _rectBuffInner;
+
+        // HP 숫자 표시용 재사용 Rect
+        private Rect _rectHPText;
 
         // 가스 분사기 타이머용 Rect
         private Rect _rectGasBarBg;
@@ -218,6 +223,14 @@ namespace ProjectName.UI
                 fontSize = 11,
                 alignment = TextAnchor.MiddleLeft
             };
+
+            // 숫자 HP 표시 스타일 (하트 아래 "현재HP / 최대HP")
+            _cachedHPTextStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 18,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleLeft
+            };
         }
 
         private void CacheStaticRects()
@@ -302,6 +315,7 @@ namespace ProjectName.UI
             UpdateStaticRectPositions();
 
             DrawHearts();
+            DrawHPNumberText(); // 하트 아래 숫자 HP 표시 ("85 / 140")
             DrawBuffIcons();
             DrawDeathOverlay();
             DrawGasSprayerTimer();
@@ -560,6 +574,42 @@ namespace ProjectName.UI
                     DrawHeart(_rectHeart, _rectHeartInner, _heartEmptyColor, HeartState.Empty);
                 }
             }
+        }
+
+        /// <summary>
+        /// 숫자 HP 표시 ("85 / 140") — 하트 영역 바로 아래에 그린다.
+        /// 하트 외에 피격 시 감소하는 HP를 숫자로도 확인할 수 있게 한다.
+        /// </summary>
+        private void DrawHPNumberText()
+        {
+            if (_cachedHPTextStyle == null) return;
+
+            // 하트 영역 맨 아래 Y 계산 (maxHP 기준 전체 하트 + 버프 임시 하트 포함 — 겹침 방지)
+            int totalHearts = Mathf.CeilToInt(_maxHP / _hpPerHeart);
+            if (totalHearts <= 0) totalHearts = 1;
+            int tempHearts = 0;
+            if (_tempMaxHP > _maxHP)
+            {
+                tempHearts = Mathf.CeilToInt((_tempMaxHP - _maxHP) / _hpPerHeart);
+            }
+            int displayHearts = totalHearts + tempHearts;
+            int rows = Mathf.CeilToInt((float)displayHearts / _heartsPerRow);
+            float heartsBottomY = _heartStartY + rows * (_heartSize + _heartSpacing);
+
+            // 하트 아래 +6 지점에 숫자 HP 라벨 (Rect 재사용 — GC 방지)
+            _rectHPText.x = _heartStartX;
+            _rectHPText.y = heartsBottomY + 6;
+            _rectHPText.width = 200;
+            _rectHPText.height = 24;
+
+            // 가독성: 체력 여유 시 흰색, 30% 이하로 떨어지면 노랑(경고)
+            float hpRatio = _maxHP > 0f ? _currentHP / _maxHP : 0f;
+            GUI.color = hpRatio <= 0.3f ? Color.yellow : Color.white;
+
+            GUI.Label(_rectHPText, $"{(int)_currentHP} / {(int)_maxHP}", _cachedHPTextStyle);
+
+            // GUI.color 원복 (다음 Draw 호출에 영향 없도록)
+            GUI.color = Color.white;
         }
 
         /// <summary>

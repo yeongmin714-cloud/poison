@@ -122,13 +122,15 @@ namespace ProjectName.Core
             if (Time.time - _lastDamageTime < _invincibleTime) return;
             _lastDamageTime = Time.time;
 
-            // 방어력 적용
-            float defense = 0f;
-            if (PlayerStats.Instance != null)
-                defense = PlayerStats.Instance.FinalDefense;
-            float actualDamage = Mathf.Max(0f, damage - defense);
+            // 방어력 적용 — 비율식 데미지 감소 (기존 평탄 감소 방식 대체)
+            // standard 공식: actualDamage = damage * (100 / (100 + defense))
+            // 방어력이 높을수록 감소율이 커지지만 절대 100%를 넘지 않음 (수렴형)
+            float defense = PlayerStats.Instance != null ? PlayerStats.Instance.FinalDefense : 0f;
+            float reductionRate = 1f - 100f / (100f + defense); // 감소율 = 1 - 100/(100+defense)
+            float actualDamage = damage * (100f / (100f + defense));
+            actualDamage = Mathf.Max(0f, actualDamage); // 최소 데미지 0 보장 (음수 방지)
             if (defense > 0f)
-                Debug.Log($"[PlayerHealth] 방어력 {defense}로 데미지 감소: {damage} → {actualDamage}");
+                Debug.Log($"[PlayerHealth] 방어력 {defense:F1}({reductionRate:P0}) 데미지 {damage:F1} → {actualDamage:F1}");
 
             _currentHP -= actualDamage;
             _currentHP = Mathf.Max(0f, _currentHP);
