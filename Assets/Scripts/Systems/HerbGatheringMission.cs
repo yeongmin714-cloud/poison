@@ -10,6 +10,13 @@ namespace ProjectName.Systems
     /// 
     /// 포섭된 Herbalist 병사가 주기적으로 주변 HerbPickup을 찾아
     /// 자동 채집하고 PlayerInventory에 전달합니다.
+    ///
+    /// C9-27 경작지 자동 수확 연동:
+    /// FarmPlot은 숙성(Ready) 시 자기 오브젝트에 HerbPickup을 부착하므로(AttachHerbPickup),
+    /// 아래 HerbPickup 검색만으로 소유 경작지의 Ready 약초도 함께 채집 대상이 된다.
+    /// 단, 경작지 출신 약초는 플레이어 소유 영지(FarmPlot.IsOwned)에서만 수확하며,
+    /// 성장 중인 플롯은 HerbPickup이 부착되지 않아 자동으로 무시된다.
+    /// AutoMissionManager가 5초 주기로 ExecuteGathering()을 호출하므로 별도 타이머는 불필요.
     /// </summary>
     public static class HerbGatheringMission
     {
@@ -46,12 +53,32 @@ namespace ProjectName.Systems
                 return results;
             }
             
+            // C9-27: 씬의 모든 HerbPickup 수집 — 야생 약초 + FarmPlot Ready 시 부착된 약초 모두 포함.
+            // 경작지 출신 약초는 플레이어 소유 영지(FarmPlot.IsOwned)에서만 자동 수확한다.
+            // (미소유/소유 상실 직후 ValidateOwnership 1.5초 주기 검사 사이의 창에서 선수확되는 것 방지)
             var herbs = Object.FindObjectsByType<HerbPickup>();
             var availableHerbs = new List<HerbPickup>(herbs.Length);
+            var farmPlotHerbs = new HashSet<HerbPickup>();   // 경작지 출신 약초 (로그 태깅용)
             foreach (var h in herbs)
             {
-                if (h != null && h.IsAvailable) availableHerbs.Add(h);
+                if (h == null || !h.IsAvailable) continue;
+
+                var plot = h.GetComponent<FarmPlot>();
+                if (plot != null)
+                {
+                    if (!plot.IsOwned)
+                    {
+                        Debug.Log($"[HerbGatheringMission] {plot.name}: 미소유 경작지 — 자동 수확 제외");
+                        continue;
+                    }
+                    farmPlotHerbs.Add(h);
+                }
+                availableHerbs.Add(h);
             }
+
+            // 경작지 Ready 약초가 채집 대상에 편입되었음을 로그로 확인 (자동 수확 연동 검증용)
+            if (farmPlotHerbs.Count > 0)
+                Debug.Log($"[HerbGatheringMission] 🌾 경작지(FarmPlot) Ready 약초 {farmPlotHerbs.Count}개 채집 대상에 포함");
             
             if (availableHerbs.Count == 0)
             {
@@ -95,6 +122,10 @@ namespace ProjectName.Systems
                     // 인벤토리 전달
                     if (PlayerInventory.Instance != null && PlayerInventory.Instance.AddItem(item, finalYield))
                     {
+                        // C9-27: 경작지 출신 약초 자동 수확 로그 (플레이어 E키 수확은 LootBasket 드롭, 자동은 인벤토리 직행)
+                        if (farmPlotHerbs.Contains(herb))
+                            Debug.Log($"[HerbGatheringMission] 🌾 {herbalist.GuardName}: 경작지 {item.displayName} x{finalYield} 자동 수확 → 인벤토리");
+
                         results.Add(new GatherResult
                         {
                             success = true,

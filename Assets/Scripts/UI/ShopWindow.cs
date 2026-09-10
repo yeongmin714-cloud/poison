@@ -50,6 +50,20 @@ namespace ProjectName.UI
             public bool isRare;        // 희귀 아이템 여부
         }
         
+        // ===== C9-27: 씨앗 랜덤 재고 =====
+        // 상점을 열 때마다 확률로 씨앗 상품을 재추첨해 재고에 섞는다(랜덤 재고 시스템).
+        private const float SEED_STOCK_CHANCE = 0.65f;    // 일반 씨앗 입고 확률 (60~70%)
+        private const float SEED_SILVER_CHANCE = 0.35f;   // 은빛(Silver) 씨앗 입고 확률 (가장 비쌈 → 낮은 확률)
+
+        /// <summary>일반 씨앗 후보 풀 — 보라 씨앗만 희귀 취급(Silver는 별도 처리, 항상 희귀)</summary>
+        private static readonly (PlayerInventory.ItemData item, bool rare)[] CommonSeeds =
+        {
+            (PlayerInventory.Seed_Red,    false),   // herb_seed_red
+            (PlayerInventory.Seed_Purple, true),    // herb_seed_purple (희귀)
+            (PlayerInventory.Seed_Yellow, false),   // herb_seed_yellow
+            (PlayerInventory.Seed_Green,  false),   // herb_seed_green
+        };
+        
         // ===== 커스텀 GUIStyle 캐시 =====
         private GUIStyle _styleTitle;
         private GUIStyle _styleSlot;
@@ -87,6 +101,7 @@ namespace ProjectName.UI
         {
             Debug.Log("[ShopWindow] 열림");
             _selectedSlotIndex = -1;
+            RandomizeSeedStock();   // C9-27: 개장 시마다 씨앗 랜덤 재고 재추첨
             RefreshShopItems();
             UpdateGoldDisplay();
         }
@@ -183,6 +198,70 @@ namespace ProjectName.UI
                 _shopInventory.Add(new ShopItem { item = PlayerInventory.Axe,        price = 60,  stock = 3,  isRare = false });
                 _shopInventory.Add(new ShopItem { item = PlayerInventory.FishingRod, price = 40,  stock = 5,  isRare = false });
             }
+
+            // ===== C9-27: 씨앗 랜덤 재고 — 초기화 시점에도 1회 추첨 =====
+            RandomizeSeedStock();
+        }
+
+        /// <summary>
+        /// C9-27: 씨앗 랜덤 재고 갱신 — 상점을 열 때마다(OnShow) 재추첨한다.
+        /// - 일반 씨앗(Red/Purple/Yellow/Green): 65% 확률로 무작위 1~2종, 가격 30~50G, 재고 3~5개
+        /// - 은빛(Silver) 씨앗: 별도 35% 확률, 150G 고정, isRare=true, 재고 3~5개
+        /// 기존 씨앗 상품은 제거 후 재추첨(랜덤 재고 방식 — 재개장 시 재고 리셋).
+        /// 씨앗 아이템은 PlayerInventory.Seed_* 정적 필드(id: herb_seed_*)를 직접 참조
+        /// (UI 어셈블리가 ProjectName.Core를 참조하므로 리플렉션 불필요).
+        /// </summary>
+        public void RandomizeSeedStock()
+        {
+            // 기존 씨앗 상품 제거 (재추첨 준비 — 이전 재고는 리셋)
+            _shopInventory.RemoveAll(s => s.item != null && s.item.id != null
+                                          && s.item.id.StartsWith("herb_seed_"));
+
+            var stocked = new List<string>();
+
+            // 1) 일반 씨앗 1~2종 입고 (Fisher–Yates 셔플로 무작위 선택)
+            if (Random.value <= SEED_STOCK_CHANCE)
+            {
+                var order = new List<int>(CommonSeeds.Length);
+                for (int i = 0; i < CommonSeeds.Length; i++) order.Add(i);
+                for (int i = order.Count - 1; i > 0; i--)
+                {
+                    int j = Random.Range(0, i + 1);
+                    int tmp = order[i]; order[i] = order[j]; order[j] = tmp;
+                }
+
+                int kinds = Random.Range(1, 3);   // 1~2종
+                for (int k = 0; k < kinds; k++)
+                {
+                    var seed = CommonSeeds[order[k]];
+                    _shopInventory.Add(new ShopItem
+                    {
+                        item = seed.item,
+                        price = Random.Range(30, 51),   // 30~50G
+                        stock = Random.Range(3, 6),     // 3~5개
+                        isRare = seed.rare
+                    });
+                    stocked.Add(seed.item.displayName);
+                }
+            }
+
+            // 2) 은빛(Silver) 씨앗 — 별도 낮은 확률(35%), 150G 고정, 희귀
+            if (Random.value <= SEED_SILVER_CHANCE)
+            {
+                _shopInventory.Add(new ShopItem
+                {
+                    item = PlayerInventory.Seed_Silver,
+                    price = 150,
+                    stock = Random.Range(3, 6),
+                    isRare = true
+                });
+                stocked.Add(PlayerInventory.Seed_Silver.displayName);
+            }
+
+            if (stocked.Count > 0)
+                Debug.Log($"[ShopWindow] 🎲 씨앗 랜덤 재고 갱신 — 입고: {string.Join(", ", stocked)}");
+            else
+                Debug.Log("[ShopWindow] 🎲 씨앗 랜덤 재고 갱신 — 이번 개장은 씨앗 입고 없음");
         }
         
         // 임시 물약 아이템 생성 (실제로는 HerbComboDatabase에서 만들어야 하지만 semplificato)

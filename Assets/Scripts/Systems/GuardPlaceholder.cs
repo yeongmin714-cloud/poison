@@ -75,6 +75,9 @@ namespace ProjectName.Systems
                     _rigAnim = gameObject.AddComponent<RigAnimationController>();
             }
 
+            // C9-20: Rigidbody 캐싱 (있으면 MovePosition으로 이동 우회, 없으면 transform 직접 이동)
+            _rb = GetComponent<Rigidbody>();
+
             // Phase 34: NPCAwarenessSystem 캐싱 (없으면 자동 추가)
             _awareness = GetComponent<NPCAwarenessSystem>();
             if (_awareness == null)
@@ -123,6 +126,10 @@ namespace ProjectName.Systems
             if (_playerCache == null || !_playerCache.activeInHierarchy)
                 _playerCache = GameObject.FindGameObjectWithTag("Player");
             var player = _playerCache;
+
+            // C9-20/C9-21: 명령 실행 루프 — 플레이어 부재와 무관하게 RTS/전투 명령(이동·공격)을 수행한다
+            ExecuteMovement();
+
             if (player == null) return;
 
             float dist = Vector3.Distance(transform.position, player.transform.position);
@@ -155,6 +162,9 @@ namespace ProjectName.Systems
 
             // Phase 34: 은신 상태 NPC 뒤에서 좌클릭 → 암살
             TryAssassinateGuard(player, dist);
+
+            // C9-21: 동행 병사 전투 AI (매 Update 말미 — playerTransform은 캐시된 _playerCache.transform)
+            GuardCombatAI.UpdateGuardBehavior(this, player.transform);
         }
 
         private void OnGUI()
@@ -621,6 +631,222 @@ namespace ProjectName.Systems
         public bool HasCommand => _hasCommand;
         public Vector3 CommandTarget => _commandTargetPos;
         public bool IsAttackCommand => _isAttackCommand;
+
+        // ===== C9-20/C9-21: 명령 실행 루프 =====
+        private const float MOVE_CLEAR_RADIUS = 1.0f;       // 이동 명령 해제 반경(m)
+        private const float MOVE_STOP_RADIUS = 0.6f;        // 이동 정지 판정 반경(m) — 이내 접근 금지(목표 넘어감 방지)
+        private const float ATTACK_ARRIVE_RADIUS = 1.5f;    // 공격 명령 도달 반경(m) — 공격 모션 개시
+        private const float ATTACK_MELEE_RANGE = 2.2f;      // 근접 공격 유효 거리(m)
+        private const float ATTACK_COOLDOWN_SECONDS = 1.2f; // 공격 쿨다운(초)
+        private const float ROTATION_SPEED = 8f;            // 회전 보간 속도 (Slerp 계수)
+        private const float TARGET_SEARCH_RADIUS = 2.5f;    // 명령 지점 주변 적 탐색 반경(m)
+
+        private Component _attackTarget;                    // 공격 명령 대상 (IDamageable 구현 컴포넌트 캐시)
+        private float _attackCooldown = 0f;                 // 공격 쿨다운 잔여 시간(초)
+        private HumanoidClipDriver _clipDriver;             // 공격 모션 드라이버 (지연 캐싱)
+        private Rigidbody _rb;                              // Rigidbody (없으면 transform 직접 이동)
+
+        /// <summary>
+        /// C9-20/C9-21: 명령 실행 루프 — RTS/전투 명령을 실제 이동·공격으로 수행한다.
+        /// GuardPlaceholder는 Rigidbody 없는 단순 생성 프리팹(cube)이므로 transform 이동을 허용하되,
+        /// Rigidbody가 존재하면 MovePosition으로 우회한다. 사망 시 어떤 행동도 하지 않는다.
+        /// </summary>
+        private void ExecuteMovement()
+        {
+            if (_isDead || !_hasCommand) return;
+
+            float delta = Time.deltaTime;
+
+            // 공격 쿨다운 감소
+            if (_attackCooldown > 0f) _attackCooldown -= delta;
+
+            Vector3 current = transform.position;
+            Vector3 target = _commandTargetPos;
+
+            // 수평(XZ) 거리 기준 판정 — y는 지형 보정에 따라 흔들리므로 판정에서 제외
+            Vector3 toTarget = target - current; toTarget.y = 0f;
+            float distXZ = toTarget.magnitude;
+
+            if (_isAttackCommand)
+            {
+                // ----- 공격 명령: 목표지점 도달(1.5m) 시 공격 모션 + 근접 데미지 -----
+                if (!ValidateAttackTarget())
+                {
+                    // 대상 재탐색 (명령 지점 주변 유효 적)
+                    ResolveAttackTarget();
+                    if (_attackTarget == null)
+                    {
+                        // 대상이 죽었거나 유효한 적이 없으면 명령 해제
+                        Debug.Log($"[GuardPlaceholder] {guardName} 공격 대상 상실 → 명령 해제");
+                        ClearCommand();
+                        return;
+                    }
+                }
+
+                if (distXZ > ATTACK_ARRIVE_RADIUS)
+                {
+                    // 미도달 → 목표지점으로 이동
+                    StepToward(current, target, distXZ, delta);
+                }
+                else
+                {
+                    // 도달 → 대상 방향 회전 후 쿨다운 게이트 공격
+                    FaceToward(_attackTarget.transform.position - current, delta);
+
+                    Vector3 dirToTarget = _attackTarget.transform.position - current; dirToTarget.y = 0f;
+                    if (_attackCooldown <= 0f && dirToTarget.magnitude <= ATTACK_MELEE_RANGE)
+                        PerformAttack((IDamageable)_attackTarget);
+                }
+            }
+            else
+            {
+                // ----- 이동 명령: 도달 반경 1.0m 진입 시 명령 해제 -----
+                if (distXZ <= MOVE_CLEAR_RADIUS)
+                {
+                    ClearCommand();
+                    if (_rigAnim != null) _rigAnim.SetState(AnimationState.Idle);
+                }
+                else
+                {
+                    StepToward(current, target, distXZ, delta);
+                }
+            }
+        }
+
+        /// <summary>목표를 향해 1프레임 이동 (속도 * delta, 목표 넘어감 방지 클램프 + 지형 y 보정 + 회전).</summary>
+        private void StepToward(Vector3 current, Vector3 target, float distXZ, float delta)
+        {
+            Vector3 dirXZ = target - current; dirXZ.y = 0f;
+            if (dirXZ.sqrMagnitude < 0.0001f) return;
+            dirXZ.Normalize();
+
+            // 이동량 = _moveSpeed * delta, 목표를 넘어가지 않도록 클램프 (정지 반경 0.6m 유지)
+            float step = Mathf.Min(_moveSpeed * delta, Mathf.Max(0f, distXZ - MOVE_STOP_RADIUS));
+            if (step <= 0f) return;
+
+            Vector3 next = current + dirXZ * step;
+            // 지형 계약: 이동 y는 표면(1 + GetHeightAt)으로 보정 (FarmPlot.TryGetSurfaceY와 동일 수식)
+            next.y = TryGetGroundY(next.x, next.z, current.y);
+
+            // Rigidbody가 있으면 MovePosition, 없으면 transform 직접 이동
+            if (_rb != null && !_rb.isKinematic) _rb.MovePosition(next);
+            else transform.position = next;
+
+            // 이동 방향으로 회전 (Slerp 8f * delta)
+            FaceToward(dirXZ, delta);
+
+            // 이동 애니메이션 (SetState는 동일 상태 재호출 시 early-return 하므로 매 프레임 호출 안전)
+            if (_rigAnim != null) _rigAnim.SetState(AnimationState.Walk);
+        }
+
+        /// <summary>수평 방향으로 부드럽게 회전 (Quaternion.Slerp, ROTATION_SPEED * delta).</summary>
+        private void FaceToward(Vector3 dirXZ, float delta)
+        {
+            dirXZ.y = 0f;
+            if (dirXZ.sqrMagnitude < 0.0001f) return;
+            Quaternion look = Quaternion.LookRotation(dirXZ.normalized, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, look, ROTATION_SPEED * delta);
+        }
+
+        /// <summary>
+        /// 공격 모션 트리거(HumanoidClipDriver 우선, 없으면 RigAnimationController 폴백)
+        /// + 근접 데미지 적용 (공격력 = level * 1.5f, 쿨다운 1.2s).
+        /// </summary>
+        private void PerformAttack(IDamageable target)
+        {
+            if (_clipDriver == null) _clipDriver = GetComponent<HumanoidClipDriver>();
+            if (_clipDriver != null) _clipDriver.TriggerAttack();
+            else if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack);
+
+            // 데미지 적용 (대상은 ValidateAttackTarget에서 유효성 검증 완료 상태)
+            float damage = level * 1.5f;
+            Vector3 dir = transform.forward;
+            if (_attackTarget is Component at)
+            {
+                Vector3 toTarget = at.transform.position - transform.position; toTarget.y = 0f;
+                if (toTarget.sqrMagnitude > 0.0001f) dir = toTarget.normalized;
+            }
+
+            target.TakeDamage(damage, dir, "melee");
+            _attackCooldown = ATTACK_COOLDOWN_SECONDS;
+
+            string targetName = (_attackTarget as Component) != null ? (_attackTarget as Component).name : "?";
+            Debug.Log($"[GuardPlaceholder] {guardName} 근접 공격! 대상={targetName} dmg={damage:F1}");
+        }
+
+        /// <summary>
+        /// 공격 대상 유효성 검사 — 살아있는 적 IDamageable만 허용.
+        /// 자기 자신, 다른 병사(GuardPlaceholder), 플레이어는 공격 금지.
+        /// </summary>
+        private bool ValidateAttackTarget()
+        {
+            if (_attackTarget == null) return false;
+
+            var dmg = _attackTarget as IDamageable;
+            if (dmg == null || !dmg.IsAlive)
+            {
+                _attackTarget = null;
+                return false;
+            }
+
+            GameObject go = _attackTarget.gameObject;
+            // 자기 자신 또는 다른 병사(GuardPlaceholder)는 공격 금지
+            if (go == gameObject || go.GetComponentInParent<GuardPlaceholder>() != null)
+            {
+                _attackTarget = null;
+                return false;
+            }
+            // 플레이어(및 플레이어 하위 오브젝트)는 공격 금지
+            if (_playerCache != null && go.transform.IsChildOf(_playerCache.transform))
+            {
+                _attackTarget = null;
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>명령 지점 주변(TARGET_SEARCH_RADIUS)에서 가장 가까운 유효한 적 IDamageable을 탐색해 캐싱한다.</summary>
+        private void ResolveAttackTarget()
+        {
+            _attackTarget = null;
+
+            Collider[] hits = Physics.OverlapSphere(_commandTargetPos, TARGET_SEARCH_RADIUS);
+            float bestDist = float.MaxValue;
+            Component bestComp = null;
+
+            foreach (var hit in hits)
+            {
+                if (hit == null) continue;
+                var dmg = hit.GetComponentInParent<IDamageable>();
+                if (dmg == null || !dmg.IsAlive) continue;
+
+                Component comp = dmg as Component;
+                if (comp == null) continue;
+
+                GameObject go = comp.gameObject;
+                if (go == gameObject || go.GetComponentInParent<GuardPlaceholder>() != null) continue; // 자기 자신/병사 제외
+                if (_playerCache != null && go.transform.IsChildOf(_playerCache.transform)) continue;  // 플레이어 제외
+
+                float d = Vector3.Distance(_commandTargetPos, comp.transform.position);
+                if (d < bestDist)
+                {
+                    bestDist = d;
+                    bestComp = comp;
+                }
+            }
+
+            _attackTarget = bestComp;
+        }
+
+        /// <summary>
+        /// 지형 계약 (FarmPlot.TryGetSurfaceY와 동일 수식): 월드 표면 y = 1 + GetHeightAt(x, z, Plains, 42).
+        /// TerrainGenerator 미초기화 등 예외 시 fallbackY(현재 y)를 유지해 텔레포트를 방지한다.
+        /// </summary>
+        private static float TryGetGroundY(float x, float z, float fallbackY)
+        {
+            try { return 1f + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42); }
+            catch { return fallbackY; }
+        }
 
         // ===== C9-21: 전투 AI =====
         private bool _isInCombat = false;

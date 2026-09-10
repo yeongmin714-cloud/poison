@@ -8,6 +8,12 @@ namespace ProjectName.Systems
     /// 농경 매니저 싱글턴 — 농장 경작지(FarmPlot)의 생성/조립만 전담.
     /// 성장/파종/수확 로직은 각 FarmPlot이 자체 Update에서 처리한다(매니저는 관여하지 않음).
     ///
+    /// C9-27 자동 수확 연동 (별도 설정/타이머 불필요 — 자동 연동):
+    ///   각 FarmPlot은 숙성(Ready) 시 자기 오브젝트에 HerbPickup을 부착하므로(AttachHerbPickup),
+    ///   AutoMissionManager(5초 주기) → HerbGatheringMission.ExecuteGathering()이
+    ///   소유 영지(IsOwned)의 Ready 경작지를 자동 수확해 PlayerInventory에 바로 넣는다.
+    ///   플레이어 E키 수확은 기존대로 LootBasket 드롭, 성장 중인 플롯은 부착물이 없어 무시된다.
+    ///
     /// 사용법:
     ///   if (FarmingManager.Instance == null)
     ///       new GameObject("FarmingManager").AddComponent<FarmingManager>();

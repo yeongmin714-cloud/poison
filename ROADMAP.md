@@ -1906,4 +1906,19 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 검증 | 컴파일 중 `ValidateOwnership` CS0103 9건 발견→정의 추가, `QaValidator` 배치컴파일 `error CS=0`, Systems.dll에 FarmPlot 심볼 확인 | ✅ |
 | Play 판정 대기 | 내 영지 밭 E키 파종→성장→숙성→수확 루프 + 소유 상실 시 경작 불가 | ⬜ |
 
+### 🌱 2026-09-10 (오후): 씨앗 + 자동수확 + 병사 명령 루프 + 상점 확장 (배치컴파일 error CS=0)
+
+> **목표:** 농경 루프가 완결되도록 (1)씨앗 획득(채집 희귀드랍 + 상점 랜덤판매), (2)경작지 자동수확(약초꾼-소유 조건), (3)병사 명령 수행 루프(이동/근접공격), (4)씨앗 소모 파종 을 구현.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 씨앗 ItemData 5종 | `Core/PlayerInventory.cs` — `Seed_Red/Purple/Yellow/Silver/Green`(`herb_seed_*`, Material, maxStack 20, Silver/Green=Rare) | ✅ |
+| 채집 희귀 씨앗 드랍 | `Systems/HerbPickup.cs` — `Harvest()`/`TryAutoGather()`에서 확률(흔함 24%, 희귀 9%)로 씨앗 바구니/인벤토리 추가. `SeedItemForCrop`+`AddSeedDrop` 헬퍼 | ✅ |
+| 씨앗 소모 파종 | `Systems/FarmPlot.cs` — `Plant(crop)` 시작서 `HasItem(seed)` 없으면 "씨앗 부족" + phase 유지, 있으면 `RemoveItem(seed,1)` 후 파종 | ✅ |
+| 경작지 자동수확 | `Systems/HerbGatheringMission.cs` — `FarmPlot` 부착 `HerbPickup`는 `plot.IsOwned` 필수(미소유 제외), Ready 편입 자동. 디버그 로그 추가 | ✅ |
+| 병사 명령 실행 루프 | `Systems/GuardPlaceholder.cs` — `ExecuteMovement()`: 이동(StepToward, 지형y 보정, Slerp회전, Rigidbody 우회) + 공격(도달1.5m→근접 2.2m 쿨다운 공격, level×1.5dmg) + 대상 검증(자신/병사/플레이어 제외) + `GuardCombatAI.UpdateGuardBehavior` 호출 | ✅ |
+| 상점 씨앗 랜덤판매 | `UI/ShopWindow.cs` — `RandomizeSeedStock()`: 일반 씨앗 65%×1~2종(30~50G), Silver 35%(150G, Rare), 파종 시마다 재추첨 | ✅ |
+| 검증 | 배치컴파일 `error CS=0` + "Exiting batchmode successfully". Systems.dll에 `ExecuteMovement`/`ATTACK_MELEE_RANGE`, Core.dll `Seed_*`/`GetSeed`, UI.dll `RandomizeSeedStock` 심볼 확인 | ✅ |
+| Play 판정 대기 | 씨앗 획득(채집/상점)→파 종→성장→숙성→(약초꾼 자동수확 또는 E키)→다시 씨앗 루프 + 병사 우클릭 이동/공격 | ⬜ |
+
 ---
