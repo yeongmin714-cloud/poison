@@ -69,8 +69,13 @@ namespace ProjectName.Systems
             Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.up;
             int damageInt = Mathf.RoundToInt(damage);
 
-            // 1. ?�트 ?�파??????�� 발사 (?�상?� 기존 ?��???고정)
+            // 1. 히트 스파크 발사 (방향은 기존 그대로 고정)
             CombatVFXController.SpawnHitSparks(position);
+
+            // 3단계 이펙트 추가 — 기존 FX 유지+보강: Matthew Guz Impact 피격 VFX
+            // (Organic → FX/Impact/BasicHit, Construct → FX/Impact/BasicHit2, 그 외 → BasicHit).
+            // Runner 내부에 0.08s 스팸 방지 쿨다운 있음. 예산/단계 로직은 전부 기존 그대로 유지.
+            SlashVFXRunner.PlayImpact(position, type);
 
             // 2. 블러????Organic�?(?�아?�는 ?�?��? 출혈). 치명?�??2?�출�?버스???��?
             if (type == CombatHitType.Organic)
