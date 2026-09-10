@@ -46,6 +46,7 @@ namespace ProjectName.Systems
             AttachAttackSystem();
             SetupTerritoriesAndGuards();   // 2026-09-10: 내 영지(PlayerOwned) + 적 영지(EnemyOwned 표기) + 병사 3+3 배치
             SetupHerbs();                  // 2026-09-10: 채집 가능 약초 3종(Red/Purple/Green) 배치 — E키 채집 흐름 점검용
+            SetupFarm();                   // 2026-09-10: 농경 시스템 — 내 영지(East_01) 부지 농장 2x2 (E키 파종 → 게임 2일 성장 → HerbPickup 재사용 수확)
 
             // 2026-09-10: Test_10에 몬스터 없음 — Aggro 등록 없으므로 시스템 인스턴스만 정리 대상.
             // (기존: EnsureGameManager가 MonsterAggroSystem을 GM에 부착 — DontDestroyOnLoad가 아니라 씬 정리 경고는
@@ -666,6 +667,33 @@ namespace ProjectName.Systems
             }
 
             Debug.Log($"[TestHerb] ✅ {goName} 배치 (type={herbType}, pos={pos})");
+        }
+
+        // ================================================================
+        // 농장 배치 (2026-09-10 신규 — 기존 셋업 무변경, 신규 배치만 추가)
+        // ================================================================
+        /// <summary>
+        /// 내 소속 영지(East_01 — SetupMyTerritory가 SetOwnership(East,1,PlayerOwned) 등록) 근처 농장 2x2 배치.
+        /// FarmPlot: 빈 밭에서 [E] 파종 → TimeManager 게임 2일 경과 → Ready → 부착된 HerbPickup이
+        /// 기존 E키 채집 흐름(LootBasket.Create + Random yield + EXP)을 그대로 수행.
+        /// y 좌표는 이 파일의 SurfaceY(x,z)+0.1 계약 준수(밭이 흙타일로 지면에 박히게 — FarmPlot.Awake에서도 자체 보정).
+        /// </summary>
+        private void SetupFarm()
+        {
+            if (FarmingManager.Instance == null)
+            {
+                var managerGO = new GameObject("FarmingManager");
+                managerGO.AddComponent<FarmingManager>();
+            }
+
+            // 내 영지 성(0,0,25) 전면 부지 — 약초(x ±3/0, z 18~20)와 내병사(z=19) 사이 여백에 2x2 격자
+            const float farmX = 0f, farmZ = 18f;
+            Vector3 center = new Vector3(farmX, SurfaceY(farmX, farmZ) + 0.1f, farmZ);
+
+            var plots = FarmingManager.Instance.SpawnPlots(NationType.East, 1, center,
+                rows: 2, cols: 2, spacing: 2.5f, HerbPickup.HerbType.Red, 2);
+
+            Debug.Log($"[Farm] ✅ 농장 {plots.Count}칸 배치 (내 영지 East_01, center={center})");
         }
     }
 }
