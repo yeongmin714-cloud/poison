@@ -986,3 +986,24 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 
 **검증**: 배치컴파일 2회 — error CS=0 ×2 ("Exiting batchmode successfully", buildlog_fix_player_ui.txt/_final.txt) + QA 에이전트 5항목 PASS/FIX 완료
 **Play 판정 대기**: ①Test_10 Play → 플레이어 모델(원점) 정상 표시 + 콘솔 태그 에러 0건 ②좌클릭 공격 → 영지/병사/몬스터 데미지 ③작업대 E → 크래프팅 창 텍스트 판독 가능 ④요리 창 동일 ⑤1080p에서 창 하단 버튼 잘림 0
+
+---
+
+## 2026-09-10 2차: Test_10 플레이어 지형 아래 소실 — 계약 미니지형으로 근본수정 ✅ (커밋 de7da135, Test_10 전용 단일 파일)
+
+**증상**: Test_10에서만 플레이어가 지형 아래로 사라짐(메인씬은 정상). 요구: 메인씬 공유 코드 무변경, 테스트씬에서만 수정.
+
+**근본원인(Editor.log 포렌식 확정)** — 메인씬 PlayerMovement(공유)는 "지형 표면 y = 1 + TerrainGenerator.GetHeightAt(x,z,Plains,42)" 계약으로 동작:
+- ①Awake: PlayerSpawnConfig.SpawnPosition(728,0.24,-529)을 GetHeightAt+2로 스폰 오버라이드 → Test_10에서도 y=4.53 스폰(로그 실증) — TestTerritoryCombatSetup의 position=zero가 나중에 실행되어 이김(순서 실증)
+- ②ClampToGroundByHeight: 매 프레임 feetY < formulaY-0.5면 formulaY+height/2+0.02 텔레포트(낙하 구제) — Test_10 평면 바닥(y=-0.5)은 formulaY(≈3.53)와 4m 어긋남 → **착지할 때마다 4.55 텔레포트 → 낙하 → 재텔레포트 무한 진동** = 플레이어가 바닥 아래로 사라졌다 튀어나옴 (CamProbe y=2.34 낙하 중 프레임 실증)
+- ③BlobShadow도 GetHeightAt+1 추적 → 그림자 공중 부양
+
+**수정 (TestTerritoryCombatSetup.cs 단일 파일 — 메인씬 영향 0)**:
+- SurfaceY(x,z) 헬퍼: 1+GetHeightAt(x,z,Plains,42), try-catch 폴백 1f — PlayerMovement·BlobShadow가 기대하는 표면과 100% 동일 수식
+- SetupGround 재작성: Plane 프리미티브(-0.5) 대신 **계약 준수 미니지형 메시**(±60m, 1m 간격, 121×121=14,641 정점, 28,800 삼각형, 정점 y=SurfaceY) — MeshCollider+기존 초록 URP 머터리얼. 메시 표면==formulaY → 텔레포트 트리거 구조적으로 불발
+- 스폰 y 정합: Awake 최상단에서 _lordPos +1.6 / _guardPos +1.0 / _monsterPos +0.9 (XZ 존중, y만 표면 기반)
+- SetupPlayer 마지막: position=(0, SurfaceY(0,0)+1.02, 0) — PlayerMovement.Awake의 (728,…) 오버라이드를 이기고, +1.02는 clamp 정착 목표와 동일해 개입 조건 불발
+
+**검증**: 에디터 사용 중 락으로 배치컴파일 1회 실패 → 저사양 절차대로 에디터 강제종료+락파일 삭제 후 재실행 → **EXIT=0, error CS=0, "Exiting batchmode successfully"** (buildlog_test10_miniterrain.txt). QA 에이전트 4항목 전부 PASS(정점 수/인덱스 범위 14640≤14640/와인딩 +y/공유 파일 무변경/GetHeightAt 순수 수학 14,641호출 수ms 무해)
+
+**Play 판정 대기**: Test_10 Play → 플레이어가 미니지형 위에 안정 착지, 바닥 아래 소실/텔레포트 진동 0, 좌클릭 공격 정상
