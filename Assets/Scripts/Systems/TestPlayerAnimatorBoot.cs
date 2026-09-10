@@ -54,6 +54,30 @@ namespace ProjectName.Systems
                 yield break;
             }
 
+            // ── 2-a) 리그 소스 교체 — GLB(non-humanoid 제네릭 리그) → Humanoid FBX 2026-09-10 ──
+            // 근거: RuntimeModelLoader가 Player_Rigged.glb를 RiggedMonster(non-humanoid)로 판정(log: "지연 로드: 'Player_Rigged' (RiggedMonster)")
+            // → GLB 인스턴스의 Animator.avatar가 null(휴머노이드 아님) → Player_AC(휴머노이드 전용) 재생 불가 = T포즈 근본원인.
+            // Player_Rigged_Heat.fbx는 Humanoid 임포트(animationType:3)로 imported avatar 보유 — InventoryWindow 프리뷰가
+            // 이미 이 경로를 쓰고 애니 정상 재생 실증. 없으면 기존 GLB 경로 유지(폴백).
+            var heatPrefab = Resources.Load<GameObject>("Models/UserProvided/fbx/Player_Rigged_Heat");
+            if (heatPrefab != null)
+            {
+                var playerRootNow = GameObject.FindWithTag("Player");
+                if (playerRootNow != null)
+                {
+                    var oldModel = model.gameObject;
+                    var heat = Object.Instantiate(heatPrefab, playerRootNow.transform);
+                    heat.name = ModelName;                       // 기존 "PlayerModel" 이름 계승 — 드라이버/감시 경로 호환
+                    heat.transform.localPosition = Vector3.zero;
+                    heat.transform.localRotation = Quaternion.identity;
+                    heat.transform.localScale = Vector3.one;     // FBX 임포트 스케일 유지(bounds로 아래에서 정합 확인)
+                    // GLB 모델은 컨텐츠/로직 참조가 없는 비주얼이므로 제거 안전(레거시 애니 컴포넌트도 함께 소멸)
+                    Object.Destroy(oldModel);
+                    model = heat.transform;
+                    Debug.Log("[TestPlayerAnimatorBoot] ✅ 리그 소스 교체: Player_Rigged.glb(non-humanoid) → Player_Rigged_Heat.fbx(Humanoid avatar 보유)");
+                }
+            }
+
             // ── 2) PlayerPlaceholder.Start + ForceBiped 완료 보장 1프레임 ─────
             yield return null;
 

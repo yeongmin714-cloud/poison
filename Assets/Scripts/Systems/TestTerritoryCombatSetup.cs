@@ -33,8 +33,8 @@ namespace ProjectName.Systems
             _monsterPos = new Vector3(_monsterPos.x, monsterY, _monsterPos.z);
 
             EnsureGameManager();
+            SetupCamera();      // 2026-09-10: SetupPlayer보다 먼저 — PlayerMovement.Awake의 "카메라 없음! 생성" 에러 방지
             SetupPlayer();
-            SetupCamera();
             SetupGround();
             SetupLight();
             EnsureEventSystem();
@@ -42,6 +42,10 @@ namespace ProjectName.Systems
             SpawnGuard();
             SpawnMonster("slime");
             AttachAttackSystem();
+
+            // 2026-09-10: Test_10에 몬스터 없음 — Aggro 등록 없으므로 시스템 인스턴스만 정리 대상.
+            // (기존: EnsureGameManager가 MonsterAggroSystem을 GM에 부착 — DontDestroyOnLoad가 아니라 씬 정리 경고는
+            //  AnimalAI 등이 런타임에 Instance 프로퍼티로 자동 생성한 별도 GO. 부팅 후 존재 시 씬 전환 유실 방지 차원에서 유지)
 
             // Phase 1 훅: Test_10 전용 애니 부트 — 레거시 Procedural/Neural 제거 + Player_AC/HumanoidClipDriver 부착
             var playerAnimBoot = GameObject.FindGameObjectWithTag("Player");
@@ -382,6 +386,24 @@ namespace ProjectName.Systems
                 var rb = go.AddComponent<Rigidbody>();
                 rb.useGravity = true;
                 rb.mass = 1f;
+            }
+            // 2026-09-10: 슬라임 비행 차단 — GLB 프리팹에 자동부착된 절차애니 컴포넌트(ModelAnimatorAssigner 계열)가
+            // RequireComponent(Rigidbody)로 비관성 rb를 남기고, HitReaction 넉백(AddForce Impulse)+HighSpec 절트(홉 y+0.4, 2배)가
+            // 중첩되면 몬스터가 공중으로 날아가 파란 스카이박스 위로 이동하는 증상이 발생했다.
+            // Test_10은 공격 판정 점검용이므로 몬스터 rb를 완전 관성화(중력 유지, 외력 무시)하고 절트도 차단한다.
+            {
+                var mrb = go.GetComponent<Rigidbody>();
+                if (mrb != null)
+                {
+                    mrb.isKinematic = false;
+                    mrb.useGravity = true;
+                    mrb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ
+                                    | RigidbodyConstraints.FreezeRotation;   // y만 물리(접지), 수평은 AnimalAI Transform 제어
+                    mrb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+                    mrb.drag = 0f; mrb.angularDrag = 0.05f;
+                }
+                var hit = go.GetComponent<HitReaction>();
+                if (hit != null) hit.DisableKnockback();   // 넉백/절트 완전 오프 — 절차애니 몬스터는 HitReaction 넉백이 Transform을 유령처럼 이동시킴
             }
             if (go.GetComponent<HitReaction>() == null)
                 go.AddComponent<HitReaction>();

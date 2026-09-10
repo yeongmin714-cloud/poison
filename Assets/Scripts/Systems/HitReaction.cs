@@ -34,6 +34,11 @@ namespace ProjectName.Systems
         /// <summary>현재 경직 중인가?</summary>
         public bool IsStunned => _isStunned;
 
+        // 2026-09-10: 넉백/절트 완전 비활성 스위치 — 절차애니 몬스터(Transform 제어 AI)에서
+        // AddForce+KinematicJolt가 유령 변위(비행/벽 관통)를 일으킬 때 호출. 경직(Stun)은 유지.
+        private bool _knockbackDisabled;
+        public void DisableKnockback() => _knockbackDisabled = true;
+
         private void Awake()
         {
             if (_rigidbody == null)
@@ -51,9 +56,16 @@ namespace ProjectName.Systems
         /// <param name="force">넉백 힘 배율</param>
         public void PlayHitReaction(Vector3 hitDirection, float force = 1f)
         {
-            // 1. HitFlash — 경직 중에도 항상 실행 (시각적 피드백 필수)
-            if (_targetRenderer != null)
-                HitVFX.PlayHitFlash(_targetRenderer);
+            // 넉백/절트 비활성 요청 시: VFX/경직만 수행 (몬스터 위치 보존)
+            if (_knockbackDisabled)
+            {
+                if (_targetRenderer != null)
+                    HitVFX.PlayHitFlash(_targetRenderer);
+                if (_stunCoroutine != null)
+                    StopCoroutine(_stunCoroutine);
+                _stunCoroutine = StartCoroutine(StunCoroutine(_stunDuration));
+                return;
+            }
 
             // 2. 넉백: hitDirection 반대 방향으로 AddForce
             if (_rigidbody != null && !_rigidbody.isKinematic)
