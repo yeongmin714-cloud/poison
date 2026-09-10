@@ -16,6 +16,8 @@ namespace ProjectName.Systems
         [SerializeField] private Vector3 _lordPos = new Vector3(0, 0, 15);
         [SerializeField] private Vector3 _guardPos = new Vector3(3, 0, 12);
         [SerializeField] private Vector3 _monsterPos = new Vector3(-5, 0, 8);
+        [SerializeField] private Vector3 _myTerritoryPos = new Vector3(0, 0, 25);
+        [SerializeField] private Vector3 _enemyTerritoryPos = new Vector3(0, 0, -25);
 
         private void Awake()
         {
@@ -42,6 +44,7 @@ namespace ProjectName.Systems
             SpawnGuard();
             SpawnMonster("slime");
             AttachAttackSystem();
+            SetupTerritoriesAndGuards();   // 2026-09-10: 내 영지(PlayerOwned) + 적 영지(EnemyOwned 표기) + 병사 3+3 배치
 
             // 2026-09-10: Test_10에 몬스터 없음 — Aggro 등록 없으므로 시스템 인스턴스만 정리 대상.
             // (기존: EnsureGameManager가 MonsterAggroSystem을 GM에 부착 — DontDestroyOnLoad가 아니라 씬 정리 경고는
@@ -455,12 +458,148 @@ namespace ProjectName.Systems
         private void OnGUI()
         {
             float labelWidth = 420;
-            float labelHeight = 50;
+            float labelHeight = 70;
             float x = (Screen.width - labelWidth) / 2f;
-            float y = Screen.height - 110;
+            float y = Screen.height - 130;
 
             GUI.Box(new Rect(x, y, labelWidth, labelHeight),
-                "🎯 공격시스템 점검 — 좌클릭=공격\n영지(타영주)·병사·몬스터 1기씩 → IDamageable 데미지 확인");
+                "🎯 공격시스템 점검 — 좌클릭=공격\n영지(타영주)·병사·몬스터 1기씩 → IDamageable 데미지 확인\n🏰 내 영지(파랑, 내병사 3) / 적 영지(빨강, 적문지기 3)");
+        }
+
+        // ================================================================
+        // 내/적 소속 영지 배치 (2026-09-10 신규 — 기존 셋업 무변경, 신규 배치만 추가)
+        // ================================================================
+        private void SetupTerritoriesAndGuards()
+        {
+            SetupMyTerritory();
+            SetupEnemyTerritory();
+        }
+
+        /// <summary>
+        /// 내 소속 영지(PlayerOwned): 파란 성 1채 + 내 병사 3명(레벨 10, East, 파랑, 포섭됨).
+        /// 뒤쪽(+z)에 배치해 SpawnLord(0,0,15)/SpawnGuard(3,0,12)와 겹치지 않는다.
+        /// </summary>
+        private void SetupMyTerritory()
+        {
+            TerritoryDatabase.Instance.SetOwnership(NationType.East, 1, TerritoryOwnership.PlayerOwned);
+
+            // 성 (순수 시각 — Collider 제거, 큐브 피벗이 중심이므로 y = 표면 + 높이/2 로 바닥 정렬)
+            float cx = _myTerritoryPos.x, cz = _myTerritoryPos.z;
+            float baseY = SurfaceY(cx, cz);
+            var castle = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            castle.name = "Territory_My_PlayerOwned";
+            castle.transform.position = new Vector3(cx, baseY + 4f, cz); // 높이 8 → 중심 +4, 바닥 = 수식 표면
+            castle.transform.localScale = new Vector3(10f, 8f, 10f);
+            var castleRenderer = castle.GetComponent<MeshRenderer>();
+            if (castleRenderer != null)
+            {
+                var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                mat.color = new Color(0.25f, 0.4f, 0.85f, 1f); // 내 진영 파랑
+                castleRenderer.material = mat;
+            }
+            var castleCol = castle.GetComponent<Collider>();
+            if (castleCol != null) DestroyImmediate(castleCol); // Raycast 히트 대상은 병사뿐
+
+            // 내 병사 3명 — 성 전면(-z)에 3m 간격
+            float frontZ = cz - 6f;
+            for (int i = 0; i < 3; i++)
+            {
+                float gx = cx - 3f + i * 3f;
+                Vector3 pos = new Vector3(gx, SurfaceY(gx, frontZ) + 1.0f, frontZ);
+                CreateGuard($"MyGuard_{i}", pos, $"내병사{i + 1}", 10, NationType.East,
+                    true, new Color(0.2f, 0.4f, 0.9f, 1f));
+            }
+
+            Debug.Log($"[MyTerritory] ✅ 내 소속 영지(PlayerOwned) 배치 — 성 'Territory_My_PlayerOwned' @({cx:F1}, {baseY:F1}, {cz:F1}), 내병사 3명(레벨 10, East, 파랑)");
+        }
+
+        /// <summary>
+        /// 적 소속 영지(EnemyOwned 표기): 빨간 성 1채 + 적 문지기 3명(레벨 15, North, 빨강, 미포섭).
+        /// 참고: TerritoryOwnership 열거형에는 EnemyOwned 값이 없어(Unoccupied/PlayerOwned/LordOwned/Contested)
+        /// 소유권은 '적 AI 영주 소유'에 해당하는 LordOwned로 등록하고, GO 이름은 요구대로 EnemyOwned 표기를 유지한다.
+        /// </summary>
+        private void SetupEnemyTerritory()
+        {
+            TerritoryDatabase.Instance.SetOwnership(NationType.North, 1, TerritoryOwnership.LordOwned);
+
+            // 성 (순수 시각 — Collider 제거, 바닥 정렬 동일 계약)
+            float cx = _enemyTerritoryPos.x, cz = _enemyTerritoryPos.z;
+            float baseY = SurfaceY(cx, cz);
+            var castle = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            castle.name = "Territory_Enemy_EnemyOwned";
+            castle.transform.position = new Vector3(cx, baseY + 4f, cz);
+            castle.transform.localScale = new Vector3(10f, 8f, 10f);
+            var castleRenderer = castle.GetComponent<MeshRenderer>();
+            if (castleRenderer != null)
+            {
+                var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                mat.color = new Color(0.85f, 0.3f, 0.3f, 1f); // 적 진영 빨강
+                castleRenderer.material = mat;
+            }
+            var castleCol = castle.GetComponent<Collider>();
+            if (castleCol != null) DestroyImmediate(castleCol);
+
+            // 적 문지기 3명 — 성문(-z) 방향, 성에서 4~6m 앞
+            float gateZ = cz - 10f;
+            for (int i = 0; i < 3; i++)
+            {
+                float gx = cx - 3f + i * 3f;
+                Vector3 pos = new Vector3(gx, SurfaceY(gx, gateZ) + 1.0f, gateZ);
+                CreateGuard($"EnemyGateGuard_{i}", pos, $"적문지기{i + 1}", 15, NationType.North,
+                    false, new Color(0.9f, 0.3f, 0.3f, 1f));
+            }
+
+            Debug.Log($"[EnemyTerritory] ✅ 적 소속 영지(EnemyOwned 표기) 배치 — 성 'Territory_Enemy_EnemyOwned' @({cx:F1}, {baseY:F1}, {cz:F1}), 적문지기 3명(레벨 15, North, 빨강)");
+        }
+
+        // ================================================================
+        // 병사 공용 생성 (SpawnGuard 패턴 그대로 — 이름/위치/레벨/국가/포섭/색만 파라미터화)
+        // ================================================================
+        private GameObject CreateGuard(string goName, Vector3 pos, string guardName, int level,
+            NationType nation, bool recruited, Color color)
+        {
+            GameObject guardGO = new GameObject(goName);
+            guardGO.transform.position = pos;
+            guardGO.tag = "Guard";
+
+            var guard = guardGO.AddComponent<GuardPlaceholder>();
+            guard.SetGuardInfo(guardName, level, nation);
+            guard.SetRecruited(recruited);
+
+            // Raycast 히트용 Collider
+            if (guardGO.GetComponent<Collider>() == null)
+            {
+                var col = guardGO.AddComponent<BoxCollider>();
+                col.size = new Vector3(0.6f, 1.8f, 0.6f);
+            }
+            if (guardGO.GetComponent<Rigidbody>() == null)
+            {
+                var rb = guardGO.AddComponent<Rigidbody>();
+                rb.useGravity = true;
+                rb.mass = 1f;
+            }
+            if (guardGO.GetComponent<HitReaction>() == null)
+                guardGO.AddComponent<HitReaction>();
+
+            // 시각 바디 (Collider 제거 — 물리 간섭 방지)
+            var visual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            visual.name = $"{goName}_Visual";
+            visual.transform.SetParent(guardGO.transform, false);
+            visual.transform.localPosition = new Vector3(0, 1f, 0);
+            visual.transform.localScale = new Vector3(0.5f, 1f, 0.5f);
+
+            var renderer = visual.GetComponent<MeshRenderer>();
+            if (renderer != null)
+            {
+                var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                mat.color = color;
+                renderer.material = mat;
+            }
+            var visCol = visual.GetComponent<Collider>();
+            if (visCol != null)
+                DestroyImmediate(visCol);
+
+            return guardGO;
         }
     }
 }
