@@ -4,7 +4,31 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-10 (12차)
+> **최종 갱신:** 2026-09-10 (13차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-10 13차 — Test_10 양 진영 영지/병사 배치)
+
+> **스코프**: Test_10 씬에 내 소속 영지(PlayerOwned)+내 병사 3명 / 적 소속 영지(LordOwned)+적 문지기 3명 배치. 기존 타영주/병사1/몬스터는 유지.
+
+### 변경 사항
+**`Systems/TestTerritoryCombatSetup.cs`** (기존 구성 무변경, 신규 4메서드 추가)
+- `SetupTerritoriesAndGuards()` 훅 — Awake의 AttachAttackSystem() 직후 호출
+- `SetupMyTerritory()` — `SetOwnership(East,1,PlayerOwned)` + 파란 성(Cube 10,8,10) + 내병사 3(Lv10/East/SetRecruited(true)/파랑) @ (0,0,25) 전면
+- `SetupEnemyTerritory()` — `SetOwnership(North,1,LordOwned)` + 빨간 성 + 적문지기 3(Lv15/North/미포섭/빨강) @ (0,0,-25) 성문(-z) 앞
+- `CreateGuard(...)` 공용 헬퍼 — 기존 SpawnGuard 패턴 파라미터화
+
+### 계약/주의
+- `TerritoryOwnership` 열거형에 **`EnemyOwned` 값 없음** (Unoccupied/PlayerOwned/LordOwned/Contested만) → 적 영지는 `LordOwned`(적 AI 영주 소유)로 등록, GO 이름만 EnemyOwned 표기 유지
+- 모든 y = `SurfaceY(x,z)+보정` (GetHeightAt+1 계약), 성은 순수 시각(Collider 없음), 기존 배치와 4m+ 이격
+
+### 검증
+- `QaValidator.RunAllChecks` 배치컴파일 **`error CS=0`**
+- `strings Systems.dll | grep SetupTerritoriesAndGuards` → 히트 (컴파일 반영 확정)
+
+### Play 판정 대기
+- 내(파랑)/적(빨강) 성+병사 진영 표시 + E키 상호작용(포섭/음식/약 등) 동작.
 
 ---
 

@@ -1846,3 +1846,18 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | Play 판정 대기 | 무기/약초/음식 GLB 아이콘이 인벤토리·크래프트 창에 표시 + 절차 폴백 정상 | ⬜ |
 
 ---
+
+## ⚔️ 2026-09-10: Test_10 양 진영 영지/병사 배치 (T10-FACTION) — QaValidator 배치컴파일 error CS=0
+
+> **목표:** Test_10 씬에 내 소속 영지(PlayerOwned)+내 병사 3명 / 적 소속 영지(LordOwned)+적 문지기 3명 배치. 기존 타영주/병사1/몬스터 구성은 유지.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 내 영지 | `SetupMyTerritory()` — SetOwnership(East,1,PlayerOwned) + 파란 성(Cube 10,8,10, y=SurfaceY+4 바닥정렬, Collider 없음) + 내병사 3(Lv10, East, SetRecruited(true), 파랑) | ✅ |
+| 적 영지 | `SetupEnemyTerritory()` — SetOwnership(North,1,LordOwned) + 빨간 성 + 적문지기 3(Lv15, North, 미포섭, 빨강), 성문(-z) 앞 | ✅ |
+| 병사 헬퍼 | `CreateGuard(...)` — 기존 SpawnGuard 패턴을 이름/위치/레벨/국가/포섭/색 파라미터화한 공용 메서드 | ✅ |
+| 계약 | 모든 y=SurfaceY(x,z)+보정 (GetHeightAt+1), 기존 배치와 4m+ 이격 | ✅ |
+| 검증 | `QaValidator` 배치컴파일 `error CS=0`, Systems.dll에 SetupTerritoriesAndGuards 포함 확인 | ✅ |
+| Play 판정 대기 | 내(파랑)/적(빨강) 성+병사 진영 표시 + E키 상호작용(포섭 등) 동작 | ⬜ |
+
+---
