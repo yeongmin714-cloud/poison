@@ -1934,4 +1934,18 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 검증 | 배치컴파일 `error CS=0` + "Exiting batchmode successfully". Systems.dll에 `GetAliveAggroDamageable`/`DropEquippedItems`/`DropEquippedSlot`/`CombatScenarioRoutine`/`CheckLootBasketSpawned` 심볼 확인 | ✅ |
 | Play 판정 대기 | 몬스터가 병사 공격→병사 사망→장비+테이블 전리품 LootBasket 드랍, 몬스터 사망→고기/재료+최소보장 드랍, 플레이어가 바구니에서 획득 | ⬜ |
 
+### ❤️ 2026-09-10 (밤): 플레이어 HUD 하트 + 방어력 비율식 (배치컴파일 error CS=0)
+
+> **목표:** Test_10에도 플레이어 하트 HUD 표시, 피격 시 데미지만큼 하트가 깎이도록, 방어력을 비율식 감소로, 스탯(VIT)으로 체력·방어 상승 시 하트 자동 증가.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| Test_10 HUD 부착 | `TestAllInOneSetup.cs` — `_hudType` 캐시 + `EnsurePlayerHUD()`: 리플렉션으로 `ProjectName.UI.HUD` GameObject 자동 부착(중복 방지) | ✅ |
+| HUD 숫자 HP 표시 | `HUD.cs` — `DrawHPNumberText()`: 하트 아래 `85 / 140` 라벨(캐시 스타일, 30% 이하 노랑 경고) | ✅ |
+| 방어력 비율식 | `PlayerHealth.cs` — `actualDamage = damage × (100/(100+defense))` 로 전환(평평감소 제거), 로그에 감소율 | ✅ |
+| 방어력 VIT 연동 | `PlayerStats.cs` — `FinalDefense = base + level×0.5 + VIT×2 + 장비` (Lv1 VIT5→def≈10.5→약9.5% 감소) | ✅ |
+| 하트 자동 증가 | 기존 `ceil(MaxHP/20)` 구조로 MaxHP 상승 시 하트 자동 증가(로직 기존 유지, 하트1칸=20HP, 기본100=5칸) | ✅ |
+| 검증 | CS0104(Object 모호: `using System;`+`UnityEngine`) 수정 → 배치컴파일 `error CS=0`, Systems.dll `EnsurePlayerHUD`/UI.dll `DrawHPNumberText`/Core `get_FinalDefense` 확인 | ✅ |
+| Play 판정 대기 | Test_10 하트 표시, 몬스터 피격 시 데미지만큼 하트·숫자 감소, VIT 투자 시 MaxHP+하트 증가 | ⬜ |
+
 ---

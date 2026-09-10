@@ -4,7 +4,41 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-10 (18차)
+> **최종 갱신:** 2026-09-10 (19차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-10 19차 — 플레이어 HUD 하트 Test_10 부착 + 방어력 비율식)
+
+> **스코프**: Test_10에도 플레이어 하트 HUD 표시, 피격 시 데미지만큼 하트·숫자 감소, 방어력을 비율식 감소로, 스탯(VIT)으로 체력·방어 상승 시 하트 자동 증가.
+
+### 변경 사항
+**`Systems/TestAllInOneSetup.cs`** — HUD 자동 부착:
+- `_hudType` 필드 + `CacheUIReflectionTypes()`에서 `uiAssembly.GetType("ProjectName.UI.HUD")` 로드
+- `EnsurePlayerHUD()`: 활성 HUD 없으면 `new GameObject("HUD")` + `AddComponent(_hudType)` (리플렉션, Canvas 불필요). 존재 시 스킵
+- **디버깅**: `Object.FindObjectsByType(...)` CS0104(`using System;`+`UnityEngine` 모호) → `UnityEngine.Object.FindObjectsByType` 정규화
+
+**`UI/HUD.cs`** — 숫자 HP 표시:
+- `DrawHPNumberText()` 신규: 하트 영역 아래 `{(int)_currentHP} / {(int)_maxHP}` (예: `85 / 140`), 캐시 스타일(`_cachedHPTextStyle`, 18px Bold), 30% 이하 노랑 경고, `GUI.color` 원복
+- `OnGUI`의 `DrawHearts()` 직후 호출
+
+**`Core/PlayerHealth.cs`** — 방어력 비율식:
+- `actualDamage = damage × (100f/(100f+defense))` (평평 감소 `damage-defense` 제거), `Mathf.Max(0, ...)`, 로그에 감소율(`reductionRate`) 포함
+
+**`Core/PlayerStats.cs`** — 방어력 VIT 스케일링:
+- `FinalDefense = base + level×0.5 + VIT×2 + 장비` (Lv1 VIT5→def≈10.5→약9.5% 감소). 기존 평평 가정 사용처(StatusWindowUI 표시뿐) 확인 후 전환
+
+### 검증
+- 배치컴파일: **`error CS=0`** + "Exiting batchmode successfully" (`CompileScripts: 11885ms`)
+- DLL 심볼: Systems.dll `EnsurePlayerHUD`, UI.dll `DrawHPNumberText`, Core.dll `get_FinalDefense` 확인
+- 하트 1칸 = 20HP (기본 MaxHP 100 = 5칸), MaxHP 상승 시 `ceil(MaxHP/20)`로 하트 자동 증가 (기존 로직 유지)
+
+### Play 판정 대기
+- Test_10: 왼위 하트 5칸 + `100 / 100` 숫자 표시, 몬스터 피격 시 데미지만큼 하트·숫자 깎임(방어 비율 반영), VIT 투자 시 MaxHP/하트 증가 확인
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-10 18차 — 전리품 드랍 완결: 몬스터↔병사 사망 전리품)
 
 ---
 
