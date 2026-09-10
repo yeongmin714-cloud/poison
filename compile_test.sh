@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# Set the Unity installation path
-UNITY_PATH="/mnt/c/Unity/Editor/Unity"
+# Set the Unity installation path (Unity Hub default install location)
+UNITY_PATH="/mnt/c/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Unity.exe"
+PROJECT_PATH="/mnt/c/Unity/code"
+LOG_FILE="/mnt/c/Unity/code/compile.log"
 
 # Check if Unity executable exists
 if [ ! -f "$UNITY_PATH" ]; then
@@ -9,9 +11,13 @@ if [ ! -f "$UNITY_PATH" ]; then
     exit 1
 fi
 
+# WSL cannot pass Linux-style paths to a Windows exe — convert to Windows paths
+PROJECT_PATH_WIN=$(wslpath -w "$PROJECT_PATH")
+LOG_FILE_WIN=$(wslpath -w "$LOG_FILE")
+
 # Compile the project
 echo "Starting Unity compile test..."
-"$UNITY_PATH" -quit -batchmode -projectPath "/mnt/c/Unity/code" -executeMethod TestCompile.CompileTest -logFile "/mnt/c/Unity/code/compile.log"
+"$UNITY_PATH" -quit -batchmode -projectPath "$PROJECT_PATH_WIN" -executeMethod TestCompile.CompileTest -logFile "$LOG_FILE_WIN"
 
 if [ $? -eq 0 ]; then
     echo "Unity compile test completed successfully"

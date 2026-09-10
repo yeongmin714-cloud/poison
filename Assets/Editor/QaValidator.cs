@@ -97,6 +97,15 @@ public static class QaValidator
         foreach (var guid in sceneGuids)
         {
             var path = AssetDatabase.GUIDToAssetPath(guid);
+
+            // Skip read-only scenes inside Packages (e.g. package test scenes)
+            // — they cannot be opened in the editor and throw ArgumentException.
+            if (path.StartsWith("Packages/"))
+            {
+                Debug.Log($"[QA] Skipping package scene: {path}");
+                continue;
+            }
+
             Debug.Log($"[QA] Opening scene: {path}");
 
             var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
