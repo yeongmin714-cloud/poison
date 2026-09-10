@@ -16,8 +16,8 @@ namespace ProjectName.Systems
         [SerializeField] private Vector3 _lordPos = new Vector3(0, 0, 15);
         [SerializeField] private Vector3 _guardPos = new Vector3(3, 0, 12);
         [SerializeField] private Vector3 _monsterPos = new Vector3(-5, 0, 8);
-        [SerializeField] private Vector3 _myTerritoryPos = new Vector3(0, 0, 25);
-        [SerializeField] private Vector3 _enemyTerritoryPos = new Vector3(0, 0, -25);
+        [SerializeField] private Vector3 _myTerritoryPos = new Vector3(0, 0, 32);
+        [SerializeField] private Vector3 _enemyTerritoryPos = new Vector3(0, 0, -32);
 
         private void Awake()
         {
@@ -492,7 +492,7 @@ namespace ProjectName.Systems
             var castle = GameObject.CreatePrimitive(PrimitiveType.Cube);
             castle.name = "Territory_My_PlayerOwned";
             castle.transform.position = new Vector3(cx, baseY + 4f, cz); // 높이 8 → 중심 +4, 바닥 = 수식 표면
-            castle.transform.localScale = new Vector3(10f, 8f, 10f);
+            castle.transform.localScale = new Vector3(14f, 12f, 14f);   // 2026-09-10: 대형화 — 카메라(원점 추적)에서도 확실히 보이게
             var castleRenderer = castle.GetComponent<MeshRenderer>();
             if (castleRenderer != null)
             {
@@ -531,7 +531,7 @@ namespace ProjectName.Systems
             var castle = GameObject.CreatePrimitive(PrimitiveType.Cube);
             castle.name = "Territory_Enemy_EnemyOwned";
             castle.transform.position = new Vector3(cx, baseY + 4f, cz);
-            castle.transform.localScale = new Vector3(10f, 8f, 10f);
+            castle.transform.localScale = new Vector3(14f, 12f, 14f);   // 2026-09-10: 대형화 — 원점 카메라에서도 가시성 확보
             var castleRenderer = castle.GetComponent<MeshRenderer>();
             if (castleRenderer != null)
             {
