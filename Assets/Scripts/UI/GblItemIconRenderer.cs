@@ -362,7 +362,7 @@ namespace ProjectName.UI
                 copy.Apply();
                 RenderTexture.active = prev;
 
-                copy.wrapMode = TextureWrapMode.ClampToEdge;
+                copy.wrapMode = TextureWrapMode.Clamp;
                 copy.hideFlags = HideFlags.HideAndDontSave; // 씬 전환/메모리 누수 방지 (ItemIconDatabase 전례)
                 copy.name = "GblIcon_" + job.modelKey;
                 return copy;

@@ -4,7 +4,30 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-09 (11차)
+> **최종 갱신:** 2026-09-10 (12차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-10 12차 — GLB 아이템 아이콘 시스템)
+
+> **스코프**: GLB 모델이 존재하는 아이템을 인벤토리·크래프트 창에서 그 GLB 렌더링 아이콘으로 표시. GLB 없으면 기존 절차 아이콘 폴백.
+
+### 변경 사항
+**1. 신규 `UI/GblItemIconRenderer.cs` (MonoBehaviour 싱글턴)**
+- 아이템 id → GLB 모델키 해석(`_itemToModel` 명시맵 16종 무기: `weapon_{type}_{metal}`→`{metal}_{type}`, 관례 후보=id 그대로/접두사 제거, `RuntimeModelLoader.HasModel`로 검증).
+- 원격 위치(10000,1000,10000)+전용카메라+RT 128² → `ReadPixels`로 Texture2D 베이크 → `item.id` 기준 캐시(최대 200, 초과 시 새 베이크 중단). 베이크 큐는 Update에서 프레임당 1개 순차.
+- 무기 16종·약초(herb_red/purple/green 등 id와 GLB명 일치)·푸드에 적용, GLB 없으면 절차 폴백.
+
+**2. `UI/ItemIconDatabase.cs`** — `GetOrCreateIcon` 선두에 `GblItemIconRenderer.GetOrCreateIcon` 우선 훅 추가. 인벤토리/퀵슬롯/상점/루트가 자동 수혜.
+
+**3. `UI/CraftingUI.cs`** — `DrawInventoryItemSlot` 색상 사각형 아이콘 → `ItemIconDatabase` 아이콘(폴백 유지), `DrawMaterialSlot` 재료 슬롯에도 아이콘 추가.
+
+### 검증
+- `QaValidator.RunAllChecks` 배치컴파일 `error CS=0` (1건 `TextureWrapMode.ClampToEdge`→`Clamp` 수정 — 이 엔진 유효값).
+- `strings ProjectName.UI.dll | grep GblItemIconRenderer` → 4 히트 (컴파일 반영 확정).
+
+### Play 판정 대기
+- 무기/약초/음식 GLB 아이콘이 인벤토리·크래프트 창에 표시 + 절차 폴백 정상.
 
 ---
 

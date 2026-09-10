@@ -1832,3 +1832,17 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | Play 판정 대기 | 서로 다른 영지 배치 상이 + 재방문 동일 + 기능문 동작 | ⬜ |
 
 ---
+
+## 🖼️ 2026-09-10: GLB 아이템 아이콘 시스템 (GLB-ICON) — QaValidator 배치컴파일 error CS=0
+
+> **목표:** GLB 모델이 존재하는 아이템(무기/약초/음식)을 인벤토리·크래프트 창에서 그 GLB 렌더링 아이콘(Texture2D)으로 표시. GLB 없으면 기존 절차 아이콘 폴백.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| GblItemIconRenderer 신규 | `Assets/Scripts/UI/GblItemIconRenderer.cs` — 아이템 id→GLB 모델키 해석(명시맵 16종 무기 + 관례 후보 검증) → 원격위치(10000,1000,10000)+전용카메라+RT 128² → `ReadPixels` 베이크 → 캐시(최대200). 큐 1프레임당 1개 순차, 절차 폴백 | ✅ |
+| ItemIconDatabase 훅 | `GetOrCreateIcon` 선두에 `GblItemIconRenderer.GetOrCreateIcon` 우선 훅 → 인벤토리/퀵슬롯/상점/루트 자동 수혜 | ✅ |
+| CraftingUI 아이콘 | `DrawInventoryItemSlot` 색상 사각형 → `ItemIconDatabase` 아이콘(폴백 유지), `DrawMaterialSlot` 재료 슬롯에도 아이콘 | ✅ |
+| 검증 | `QaValidator.RunAllChecks` 배치컴파일 `error CS=0` (ClampToEdge→Clamp 수정 1건), UI.dll에 GblItemIconRenderer 포함 확인 | ✅ |
+| Play 판정 대기 | 무기/약초/음식 GLB 아이콘이 인벤토리·크래프트 창에 표시 + 절차 폴백 정상 | ⬜ |
+
+---
