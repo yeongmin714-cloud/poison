@@ -47,6 +47,7 @@ namespace ProjectName.Systems
             SetupTerritoriesAndGuards();   // 2026-09-10: 내 영지(PlayerOwned) + 적 영지(EnemyOwned 표기) + 병사 3+3 배치
             SetupHerbs();                  // 2026-09-10: 채집 가능 약초 3종(Red/Purple/Green) 배치 — E키 채집 흐름 점검용
             SetupFarm();                   // 2026-09-10: 농경 시스템 — 내 영지(East_01) 부지 농장 2x2 (E키 파종 → 게임 2일 성장 → HerbPickup 재사용 수확)
+            EnsurePlayerHUD();             // 2026-09-10: 하트 HUD 부착(하트 아이콘+숫자HP) — Test_09 선례 이식
 
             // 2026-09-10: Test_10에 몬스터 없음 — Aggro 등록 없으므로 시스템 인스턴스만 정리 대상.
             // (기존: EnsureGameManager가 MonsterAggroSystem을 GM에 부착 — DontDestroyOnLoad가 아니라 씬 정리 경고는
@@ -555,6 +556,43 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
+        // 2026-09-10: 하트 HUD 부착 (Test_09 EnsurePlayerHUD 이식 — 리플렉션, 중복 방지)
+        // ================================================================
+        private System.Type _hudType;
+
+        private void EnsurePlayerHUD()
+        {
+            try
+            {
+                if (_hudType == null)
+                {
+                    var uiAssembly = System.Reflection.Assembly.Load("ProjectName.UI");
+                    _hudType = uiAssembly != null ? uiAssembly.GetType("ProjectName.UI.HUD") : null;
+                }
+                if (_hudType == null)
+                {
+                    Debug.LogWarning("[TestTerritoryCombat] ⚠️ ProjectName.UI.HUD 타입 미발견 — HUD 건너뜀");
+                    return;
+                }
+
+                var existing = UnityEngine.Object.FindObjectsByType(_hudType, FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+                if (existing != null && existing.Length > 0)
+                {
+                    Debug.Log("[TestTerritoryCombat] ℹ️ 이미 HUD 존재 — 건너뜀");
+                    return;
+                }
+
+                var hudGO = new GameObject("HUD");
+                hudGO.AddComponent(_hudType);
+                Debug.Log("[TestTerritoryCombat] ✅ 하트 HUD 부착 (하트 아이콘 + 숫자HP)");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"[TestTerritoryCombat] HUD 부착 실패(무시): {ex.Message}");
+            }
+        }
+
+        // ================================================================
         // 병사 공용 생성 (SpawnGuard 패턴 그대로 — 이름/위치/레벨/국가/포섭/색만 파라미터화)
         // ================================================================
         private GameObject CreateGuard(string goName, Vector3 pos, string guardName, int level,
@@ -600,6 +638,32 @@ namespace ProjectName.Systems
             var visCol = visual.GetComponent<Collider>();
             if (visCol != null)
                 DestroyImmediate(visCol);
+
+            // 2026-09-10: 병사 GLB 부착 — soldier_lv1-20_rigged(Humanoid 리그)가 있으면 캡슐을 대체.
+            // 레벨별 버전(20-40/40-50)은 RuntimeModelLoader alias("soldier_lv20"/"soldier_lv40")로 로드.
+            {
+                string glbPath = level >= 40 ? "soldier_lv40" : level >= 20 ? "soldier_lv20" : "soldier_lv1";
+                if (RuntimeModelLoader.TryGetModel(glbPath, out var soldierPrefab))
+                {
+                    var soldier = Instantiate(soldierPrefab, guardGO.transform);
+                    soldier.name = $"{goName}_GLB";
+                    soldier.transform.localPosition = Vector3.zero;
+                    soldier.transform.localRotation = Quaternion.identity;
+                    // 캡슐 시각 제거(GLB 교체) + GLB 자식 콜라이더 제거(루트 BoxCollider만 유지)
+                    DestroyImmediate(visual);
+                    var glbCols = soldier.GetComponentsInChildren<Collider>(true);
+                    foreach (var c in glbCols)
+                        DestroyImmediate(c);
+                    // GLB의 자동부착 애니 컴포넌트 제거(레거시 휴리스틱 — Test_10 플레이어와 동일 문제 예방)
+                    var assigner = soldier.GetComponent<ProjectName.Systems.Animation.ModelAnimatorAssigner>();
+                    if (assigner != null) DestroyImmediate(assigner);
+                    Debug.Log($"[TestTerritoryCombat] ✅ 병사 GLB 부착: {goName} ← {glbPath} (자식 콜라이더 제거)");
+                }
+                else
+                {
+                    Debug.LogWarning($"[TestTerritoryCombat] ⚠️ 병사 GLB 미로드({glbPath}) — 캡슐 유지: {goName}");
+                }
+            }
 
             return guardGO;
         }

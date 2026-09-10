@@ -442,7 +442,10 @@ namespace ProjectName.Systems
             _prevJumping = jumping;
 
             // T-D3: Run→Walk 전환 연출 — Speed가 2.0 임계를 아래로 하향 통과할 때 1회
-            if (_prevSpeedForTransition > 2f && _smoothedSpeed <= 2f && _anim != null)
+            // 2026-09-10: 공격 애니 보호 — _attackHoldUntil 유지 중엔 RunToWalk 트리거 발화 억제.
+            // (RunToWalk는 AnyState 전이라 공격 애니 중에도 Run_to_Walk_Transition으로 인터럽트함 — normT 5% 팝 실증)
+            if (_prevSpeedForTransition > 2f && _smoothedSpeed <= 2f && _anim != null
+                && Time.time >= _attackHoldUntil)
                 _anim.SetTrigger("RunToWalk");
             _prevSpeedForTransition = _smoothedSpeed;
         }
