@@ -39,6 +39,20 @@ namespace ProjectName.Systems
         [SerializeField] private int _guardCount = 3;
         [SerializeField] private int _dummyCount = 3;
 
+        [Header("Monster vs Guard Combat Scenario")]
+        [Tooltip("게임 시작 후 이 시간(초)에 몬스터-병사를 강제 '전투 상태'로 전환 (어그로/MonsterAggroSystem 활성화 검증)")]
+        [SerializeField] private float _combatStartDelaySeconds = 15f;
+        [Tooltip("몬스터 스폰 원 반경(m) — 기존 15m 원형 배치 유지")]
+        [SerializeField] private float _monsterSpawnRadius = 15f;
+        [Tooltip("병사 배치 반경(m) — 몬스터 원(15m) 안 10~12m 구간. 몬스터 detection(10~18m)/MonsterAggroSystem.AGGRO_RANGE(10m) 내 진입")]
+        [SerializeField] private float _guardSpawnRadius = 11f;
+
+        // [전투 시나리오] 런타임 상태
+        private readonly System.Collections.Generic.List<Vector3> _monsterSpawnPositions =
+            new System.Collections.Generic.List<Vector3>(); // SetupCombat에서 기록, SetupTerritory가 같은 각도 정렬에 사용
+        private int _knownLootBasketCount;                  // LootBasket 신규 생성 감지용(전리품 드랍 검증)
+        private bool _guardDeathHooked;                     // GuardPlaceholder.OnAnyGuardDied 구독 여부
+
         // 리플렉션용 캐시
         private Type _uiManagerType;
         private Type _uiWindowType;
@@ -78,6 +92,12 @@ namespace ProjectName.Systems
                 SetupGasBomb();
             if (_includeProceduralAnim)
                 EnsureProceduralAnimation();
+
+            // [전투 시나리오] 몬스터(AnimalAI) ↔ 병사(GuardPlaceholder) 전투 상태 유도 + 전리품 드랍 검증.
+            // 몬스터가 병사를 공격하는 실제 로직은 AnimalAI 측에 병렬로 추가될 예정이며,
+            // 본 셋업은 "전투 가능한 위치 배치 + 15초 후 강제 어그로 + 드랍/LootBasket 검증 로그"를 담당한다.
+            if (_includeCombat)
+                StartCoroutine(CombatScenarioRoutine());
 
             Debug.Log("[TestAllInOneSetup] ✅ Test_09_AllInOne 전체 시스템 설정 완료!");
         }
@@ -538,16 +558,22 @@ namespace ProjectName.Systems
                 ("ogre", MonsterTier.Advanced)
             };
 
+            // [전투 시나리오] 몬스터는 기존대로 반경 15m 원형 배치(각도: i/monsters.Length*360°)를 유지한다.
+            // 스폰 위치를 기록해두면 SetupTerritory가 같은 각도의 반경 11m 지점에 병사를 배치하여
+            // "몬스터 ↔ 병사"가 같은 방사선상에서 약 4m 거리로 마주 보게 된다.
+            // → Beginner 몬스터 detection(10m), MonsterAggroSystem.AGGRO_RANGE(10m) 내에 병사가 들어와 자연 어그로 유발.
+            _monsterSpawnPositions.Clear();
             for (int i = 0; i < Mathf.Min(_monsterCount, monsters.Length); i++)
             {
                 var (monsterId, tier) = monsters[i];
                 float angle = (i / (float)monsters.Length) * 360f * Mathf.Deg2Rad;
-                Vector3 pos = new Vector3(Mathf.Cos(angle) * 15f, 0f, Mathf.Sin(angle) * 15f);
+                Vector3 pos = new Vector3(Mathf.Cos(angle) * _monsterSpawnRadius, 0f, Mathf.Sin(angle) * _monsterSpawnRadius);
 
+                _monsterSpawnPositions.Add(pos);
                 SpawnMonster(monsterId, pos, tier);
             }
 
-            Debug.Log($"[TestAllInOneSetup] ✅ 전투 테스트 몬스터 {_monsterCount}마리 생성");
+            Debug.Log($"[TestAllInOneSetup] ✅ 전투 테스트 몬스터 {_monsterCount}마리 생성 (반경 {_monsterSpawnRadius:0}m 원형 — 병사와 대치 배치)");
         }
 
         private void SpawnMonster(string monsterId, Vector3 position, MonsterTier tier)
@@ -660,8 +686,23 @@ namespace ProjectName.Systems
 
                 for (int i = 0; i < _guardCount; i++)
                 {
-                    float angle = (i / (float)_guardCount) * 360f * Mathf.Deg2Rad;
-                    Vector3 pos = new Vector3(Mathf.Cos(angle) * 8f, 0f, Mathf.Sin(angle) * 8f);
+                    // [전투 시나리오] 병사를 기존 8m 원형 → 반경 11m(몬스터 15m 원 안 10~12m 구간)로 이동.
+                    // i번째 병사는 i번째 몬스터와 같은 각도(방사선)에 배치하여 몬스터-병사 거리를
+                    // 반경 차(15m − 11m = 4m)로 만든다. 이는 Beginner 몬스터의 detection range(10m) 및
+                    // MonsterAggroSystem.AGGRO_RANGE(10m) 이내 → 몬스터가 병사를 인지/공격할 수 있다.
+                    // (몬스터 미생성 시 Combat 모듈 off 등 → 기존 8m 원형으로 폴백)
+                    Vector3 pos;
+                    if (_monsterSpawnPositions.Count > 0)
+                    {
+                        Vector3 dir = _monsterSpawnPositions[i % _monsterSpawnPositions.Count];
+                        dir.y = 0f;
+                        pos = dir.normalized * _guardSpawnRadius;
+                    }
+                    else
+                    {
+                        float angle = (i / (float)_guardCount) * 360f * Mathf.Deg2Rad;
+                        pos = new Vector3(Mathf.Cos(angle) * 8f, 0f, Mathf.Sin(angle) * 8f);
+                    }
 
                     var guardGO = new GameObject($"Guard_{i}");
                     guardGO.transform.position = pos;
@@ -690,7 +731,7 @@ namespace ProjectName.Systems
                         DestroyImmediate(col);
                 }
 
-                Debug.Log($"[TestAllInOneSetup] ✅ 테스트 병사 {_guardCount}명 생성");
+                Debug.Log($"[TestAllInOneSetup] ✅ 테스트 병사 {_guardCount}명 생성 (반경 {_guardSpawnRadius:0}m — 몬스터와 전투 대치 배치)");
             }
         }
 
@@ -851,5 +892,144 @@ namespace ProjectName.Systems
                 Debug.Log("[TestAllInOneSetup] ✅ ParentVelocityProvider 생성");
             }
         }
+
+        // ===================== 전투 시나리오: 몬스터(AnimalAI) ↔ 병사(GuardPlaceholder) =====================
+
+        private void OnDestroy()
+        {
+            // 정적 이벤트 구독 해제 (씬 언로드 시 누수 방지)
+            if (_guardDeathHooked)
+                GuardPlaceholder.OnAnyGuardDied -= OnGuardDiedCheckLoot;
+        }
+
+        /// <summary>
+        /// [전투 시나리오] 게임 시작 후 _combatStartDelaySeconds(기본 15초)에 몬스터-병사를 '전투 상태'로 만든다.
+        ///  1) MonsterAggroSystem 활성화 확인 (AnimalAI는 Start에서 자가 등록됨)
+        ///  2) 각 몬스터에 가장 가까운 병사를 어그로 대상으로 설정 → Idle → Alert → (3초 후) Combat 전이
+        ///  3) 병사 사망 시 전리품(LootBasket) 드랍 여부를 로그로 검증 (DropTable 수정은 병렬 에이전트 담당)
+        /// </summary>
+        private System.Collections.IEnumerator CombatScenarioRoutine()
+        {
+            // 스폰/셋업 안정화 후 지정 시간(15초) 대기
+            yield return new WaitForSeconds(_combatStartDelaySeconds);
+
+            var monsters = FindObjectsByType<AnimalAI>(FindObjectsSortMode.None);
+            var guards = FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
+
+            Debug.Log($"[TestAllInOneSetup] ⚔️ 전투 시나리오 시작 (시작 후 {_combatStartDelaySeconds:0}초): 몬스터 {monsters.Length}마리, 병사 {guards.Length}명");
+
+            // MonsterAggroSystem 활성화 상태 로그 (몬스터-병사 어그로 전파 담당)
+            if (MonsterAggroSystem.Instance != null)
+                Debug.Log($"[TestAllInOneSetup] 🎯 MonsterAggroSystem 활성: 등록 몬스터 {MonsterAggroSystem.Instance.MonsterCount}마리, 어그로 전파 범위 {MonsterAggroSystem.AGGRO_RANGE:0}m");
+            else
+                Debug.LogWarning("[TestAllInOneSetup] ⚠️ MonsterAggroSystem 없음 — 어그로 전파 검증 불가");
+
+            if (guards.Length == 0)
+            {
+                Debug.LogWarning("[TestAllInOneSetup] ⚠️ 병사가 없어 몬스터-병사 전투 시나리오를 건너뜁니다 (_includeTerritory 확인)");
+                yield break;
+            }
+
+            // 병사 사망 → 전리품 드랍 검증 훅
+            if (!_guardDeathHooked)
+            {
+                GuardPlaceholder.OnAnyGuardDied += OnGuardDiedCheckLoot;
+                _guardDeathHooked = true;
+                _knownLootBasketCount = FindObjectsByType<LootBasket>(FindObjectsSortMode.None).Length;
+            }
+
+            // 시나리오 검증 로그: 병사가 몬스터 detection range 안에 놓였는지 확인 (자연 어그로 가능 여부)
+            foreach (var monster in monsters)
+            {
+                if (monster == null || monster.IsDead) continue;
+
+                GuardPlaceholder nearest = null;
+                float bestDist = float.MaxValue;
+                foreach (var guard in guards)
+                {
+                    if (guard == null || guard.IsDead) continue;
+                    float d = Vector3.Distance(monster.transform.position, guard.transform.position);
+                    if (d < bestDist) { bestDist = d; nearest = guard; }
+                }
+                if (nearest == null) continue;
+
+                // 강제 '전투 상태' 진입: IAggroable.SetAggroTarget → Idle → Alert (AnimalAI 내부에서 3초 후 Combat)
+                monster.SetAggroTarget(nearest.gameObject);
+
+                float detect = GetExpectedDetectRange(monster.Tier);
+                string rangeCheck = bestDist <= detect ? "✅ 인지 범위 내" : "⚠️ 인지 범위 밖";
+                Debug.Log($"[TestAllInOneSetup] ⚔️ {monster.name}({monster.Tier}) ↔ {nearest.name} 거리 {bestDist:0.0}m / detection {detect:0}m [{rangeCheck}] → 어그로 설정");
+            }
+
+            // 전투 상태 진입 및 병사 피해/전리품 드랍을 로그로 추적 (최대 60초, 3초 간격)
+            for (int tick = 0; tick < 20; tick++)
+            {
+                yield return new WaitForSeconds(3f);
+                LogCombatStatus();
+            }
+        }
+
+        /// <summary>전투 상태 요약 로그: 전투 중인 몬스터, 피해를 입은 병사, 신규 LootBasket.</summary>
+        private void LogCombatStatus()
+        {
+            var monsters = FindObjectsByType<AnimalAI>(FindObjectsSortMode.None);
+            var guards = FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
+
+            foreach (var monster in monsters)
+            {
+                if (monster != null && monster.IsInCombat)
+                {
+                    string targetName = monster.AggroTarget != null ? monster.AggroTarget.name : "null";
+                    Debug.Log($"[TestAllInOneSetup] ⚔️ {monster.name} 전투 상태 진입 → 대상: {targetName}");
+                }
+            }
+
+            foreach (var guard in guards)
+            {
+                // 몬스터가 병사를 공격해 HP가 깎이면 로그로 확인 (병사 타격 로그 대역)
+                if (guard != null && !guard.IsDead && guard.CurrentHP < guard.MaxHP)
+                    Debug.Log($"[TestAllInOneSetup] 🩸 {guard.name} 피해: HP {guard.CurrentHP:0}/{guard.MaxHP:0} — 몬스터 공격 검증 중");
+            }
+
+            int basketCount = FindObjectsByType<LootBasket>(FindObjectsSortMode.None).Length;
+            if (basketCount > _knownLootBasketCount)
+            {
+                Debug.Log($"[TestAllInOneSetup] 🎁 LootBasket 생성 확인: 신규 {basketCount - _knownLootBasketCount}개 (총 {basketCount}) — 병사 처치 → 전리품 드랍 검증 성공!");
+                _knownLootBasketCount = basketCount;
+            }
+        }
+
+        /// <summary>병사 사망 콜백: 전리품(LootBasket) 드랍 여부를 짧은 폴링으로 검증.</summary>
+        private void OnGuardDiedCheckLoot(GuardPlaceholder guard)
+        {
+            if (guard == null) return;
+            Debug.Log($"[TestAllInOneSetup] 💀 병사 사망 감지: {guard.name} — 전리품(LootBasket) 드랍 확인 대기...");
+            StartCoroutine(CheckLootBasketSpawned());
+        }
+
+        private System.Collections.IEnumerator CheckLootBasketSpawned()
+        {
+            for (int i = 0; i < 10; i++) // 최대 10초 대기
+            {
+                yield return new WaitForSeconds(1f);
+                int basketCount = FindObjectsByType<LootBasket>(FindObjectsSortMode.None).Length;
+                if (basketCount > _knownLootBasketCount)
+                {
+                    Debug.Log($"[TestAllInOneSetup] 🎁 LootBasket 생성 확인: 총 {basketCount}개 — 병사 사망 → 드랍 → 바구니 검증 성공!");
+                    _knownLootBasketCount = basketCount;
+                    yield break;
+                }
+            }
+            Debug.LogWarning("[TestAllInOneSetup] ⚠️ 병사 사망 후 10초 내 LootBasket 미확인 — DropTable 연동 확인 필요");
+        }
+
+        /// <summary>MonsterTier별 AnimalAI 감지 범위(AnimalAI.ApplyMonsterDefinition 기준) — 검증 로그용.</summary>
+        private static float GetExpectedDetectRange(MonsterTier tier) => tier switch
+        {
+            MonsterTier.Beginner => 10f,
+            MonsterTier.Intermediate => 14f,
+            MonsterTier.Advanced => 18f,
+            _ => 10f
+        };
     }
 }

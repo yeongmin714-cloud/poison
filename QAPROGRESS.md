@@ -4,7 +4,38 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-10 (17차)
+> **최종 갱신:** 2026-09-10 (18차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-10 18차 — 전리품 드랍 완결: 몬스터↔병사 사망 전리품)
+
+> **스코프**: 몬스터와 병사가 체력 고갈 시 죽으면서 전리품(LootBasket) 드랍. (1)몬스터-병사 상호공격, (2)병사 장비 드랍, (3)최소 전리품 보장, (4)Test_10 전투 대치 + 검증.
+
+### 변경 사항
+**`Systems/AnimalAI.cs`** — 몬스터 공격 일반화 + 최소 보장:
+- `TryAttack()`: 어그로 대상이 살아있는 병사(등 `IDamageable`)이면 `TakeDamage(_attackDamage, hitDirection, "melee")`로 공격. 대상 무효 시 기존 `PlayerHealth.Instance.TakeDamage` 폴백. 신규 헬퍼 `GetAliveAggroDamageable()` (활성+생존 검증)
+- `Die()`: `dropTable.ApplyToBasket` 및 fallback **두 경로 모두** 이후 `basket.IsEmpty` 검사 → 비었으면 `_meatDrop`(없으면 `PlayerInventory.Gold`) 1개 보장
+
+**`Systems/GuardPlaceholder.cs`** — 병사 사망 장비 드랍:
+- `Die()`에 `DropEquippedItems(basket)` 호출: `WeaponItem/ShieldItem/HelmetItem/ArmorItem` 4슬롯 중 null 아니면 `AddItem(item,1)`(100% 드랍) + 로그
+- 사망 후 `basket.IsEmpty`이면 `PlayerInventory.Gold` 1개 보장. 기존 SoldierDropTable/gold+fur 폴백 무겁게 유지
+
+**`Systems/TestAllInOneSetup.cs`** — 전투 대치 검증:
+- 몬스터 15m/병사 11m 반경, i번째 병사→같은 몬스터(거리≈4m, Beginner detection/Aggro 10m 내)
+- `CombatScenarioRoutine()`: 15초 후 각 몬스터에 근접 병사 `SetAggroTarget` 강제 전투 → 3초 간격 `LogCombatStatus()`(어르로/병사 HP), 병사 사망 시 `OnAnyGuardDied`→`CheckLootBasketSpawned()`(10초 LootBasket 폴링). `OnDestroy` 구독 해동
+- 신규 SerializeField: `_combatStartDelaySeconds=15`, `_monsterSpawnRadius=15`, `_guardSpawnRadius=11`
+
+### 검증
+- 배치컴파일: **`error CS=0`** + `CompileScripts: 19864ms` + "Exiting batchmode successfully"
+- Systems.dll 심볼: `GetAliveAggroDamageable`/`DropEquippedItems`/`DropEquippedSlot`/`CombatScenarioRoutine`/`LogCombatStatus`/`CheckLootBasketSpawned` 반영
+
+### Play 판정 대기
+- 몬스터가 병사 공격→병사 사망→장비+테이블 전리품 LootBasket 드랍, 몬스터 사망→고기/재료+최소보장 드랍, 플레이어 바구니 획득. Test_10에서 15초 후 자동 전투로 확인.
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-10 17차 — 씨앗 획득 + 자동수확 + 병사 명령 루프 + 상점 확장)
 
 ---
 

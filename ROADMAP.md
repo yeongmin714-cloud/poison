@@ -1921,4 +1921,17 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 검증 | 배치컴파일 `error CS=0` + "Exiting batchmode successfully". Systems.dll에 `ExecuteMovement`/`ATTACK_MELEE_RANGE`, Core.dll `Seed_*`/`GetSeed`, UI.dll `RandomizeSeedStock` 심볼 확인 | ✅ |
 | Play 판정 대기 | 씨앗 획득(채집/상점)→파 종→성장→숙성→(약초꾼 자동수확 또는 E키)→다시 씨앗 루프 + 병사 우클릭 이동/공격 | ⬜ |
 
+### 💀 2026-09-10 (저녁): 전리품 드랍 시스템 완결 — 몬스터↔병사 사망 전리품 (배치컴파일 error CS=0)
+
+> **목표:** 몬스터와 병사가 체력이 다하면 죽으면서 전리품(LootBasket)을 떨어뜨린다. (1)몬스터가 병사도 공격, (2)병사 장비 슬롯드랍, (3)사망 시 최소 전리품 보장, (4)Test_10 전투 대치 배치+검증.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 몬스터↔병사 공격 | `AnimalAI.cs` — `TryAttack()` 공격 대상을 어그로 병사(살아있는 IDamageable)로 일반화(`GetAliveAggroDamageable`, hitDirection "melee"), 대상 없으면 기존 플레이어 폴백 | ✅ |
+| 병사 장비 드랍 | `GuardPlaceholder.cs` — `Die()`에 `DropEquippedItems(basket)`: Weapon/Shield/Helmet/Armor 슬롯 100% 드랍(장착분만), 로그 | ✅ |
+| 최소 전리품 보장 | `AnimalAI.Die()`+`GuardPlaceholder.Die()` — 바구니가 비었면 `_meatDrop`(없으면 Gold) 1개 보장, 빈 바구니 소멸 방지 | ✅ |
+| Test_10 결합 | `TestAllInOneSetup.cs` — 몬스터 15m/병사 11m 반경 같은 각도 대치(≈4m), 15초 후 `SetAggroTarget` 강제 전투, 3초 간격 상태 로그, 병사 사망→LootBasket 폴링 검증 | ✅ |
+| 검증 | 배치컴파일 `error CS=0` + "Exiting batchmode successfully". Systems.dll에 `GetAliveAggroDamageable`/`DropEquippedItems`/`DropEquippedSlot`/`CombatScenarioRoutine`/`CheckLootBasketSpawned` 심볼 확인 | ✅ |
+| Play 판정 대기 | 몬스터가 병사 공격→병사 사망→장비+테이블 전리품 LootBasket 드랍, 몬스터 사망→고기/재료+최소보장 드랍, 플레이어가 바구니에서 획득 | ⬜ |
+
 ---

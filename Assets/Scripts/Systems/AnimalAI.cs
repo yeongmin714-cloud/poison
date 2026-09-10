@@ -591,9 +591,20 @@ namespace ProjectName.Systems
                 }
             }
 
-            // 플레이어에게 실제 데미지 (기본 공격)
-            if (PlayerHealth.Instance != null)
+            // === 공격 대상 결정: 어그로 대상(아군 병사 등) 우선, 없으면 플레이어 ===
+            // [확장] 어그로 대상이 활성 + 생존 중인 IDamageable이면 그 대상에게 근접 데미지.
+            //        대상이 없거나 죽었으면 기존처럼 플레이어 공격 (백워드 호환 경로 유지).
+            IDamageable aggroDamageable = GetAliveAggroDamageable();
+            if (aggroDamageable != null && _aggroTarget != null)
             {
+                // 어그로 대상(병사 등)에게 데미지 — IDamageable.TakeDamage(float, Vector3, string) 오버로드 사용
+                Vector3 hitDirection = (_aggroTarget.transform.position - transform.position).normalized;
+                aggroDamageable.TakeDamage(_attackDamage, hitDirection, "melee");
+                Debug.Log($"{MonsterDatabase.Get(_monsterId)?.displayName ?? _monsterId}가(이) {_aggroTarget.name}에게 {_attackDamage} 데미지!");
+            }
+            else if (PlayerHealth.Instance != null)
+            {
+                // 기존 경로: 플레이어에게 실제 데미지 (기본 공격)
                 PlayerHealth.Instance.TakeDamage(_attackDamage);
                 Debug.Log($"{MonsterDatabase.Get(_monsterId)?.displayName ?? _monsterId}가(이) 플레이어에게 {_attackDamage} 데미지!");
                 // 적용 디버프: 슬로우 (이동 속도 감소)
@@ -606,12 +617,24 @@ namespace ProjectName.Systems
                 {
                     Debug.LogWarning("[AnimalAI] BuffManager 인스턴스를 찾을 수 없습니다.");
                 }
-
             }
             else
             {
                 Debug.Log($"{_monsterId} attacks for {_attackDamage} damage!");
             }
+        }
+
+        /// <summary>
+        /// 어그로 대상이 유효한 근접 공격 대상인지 확인하고 IDamageable 반환.
+        /// 조건: 오브젝트 활성(activeInHierarchy) + 생존 중인 IDamageable 구현.
+        /// 유효하지 않으면 null 반환 → 호출부는 기존 플레이어 공격 경로로 폴백.
+        /// </summary>
+        private IDamageable GetAliveAggroDamageable()
+        {
+            if (_aggroTarget == null || !_aggroTarget.activeInHierarchy) return null;
+            var damageable = _aggroTarget.GetComponent<IDamageable>();
+            if (damageable == null || !damageable.IsAlive) return null;
+            return damageable;
         }
 
         /// <summary>
@@ -825,6 +848,15 @@ namespace ProjectName.Systems
                     basket.AddItem(_rareDrop, 1);
                     Debug.Log($"[AnimalAI] ★ 희귀 드롭! {_rareDrop.displayName} (레벨보정: +{levelDropBonus * 100:F0}%)");
                 }
+            }
+
+            // === 최소 전리품 보장: 바구니가 절대 빈 채로 소멸하지 않도록 ===
+            // DropTable 미적용 또는 적용 결과가 빈 경우 기본 아이템(고기 → 없으면 금화) 1개 이상 보장
+            if (basket.IsEmpty)
+            {
+                PlayerInventory.ItemData guaranteedItem = _meatDrop != null ? _meatDrop : PlayerInventory.Gold;
+                basket.AddItem(guaranteedItem, 1);
+                Debug.Log($"[AnimalAI] 🧺 최소 전리품 보장: 빈 바구니에 {guaranteedItem.displayName} x1 추가 ({monsterName})");
             }
 
             // 시체 처리
