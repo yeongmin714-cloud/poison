@@ -45,6 +45,7 @@ namespace ProjectName.Systems
             SpawnMonster("slime");
             AttachAttackSystem();
             SetupTerritoriesAndGuards();   // 2026-09-10: 내 영지(PlayerOwned) + 적 영지(EnemyOwned 표기) + 병사 3+3 배치
+            SetupHerbs();                  // 2026-09-10: 채집 가능 약초 3종(Red/Purple/Green) 배치 — E키 채집 흐름 점검용
 
             // 2026-09-10: Test_10에 몬스터 없음 — Aggro 등록 없으므로 시스템 인스턴스만 정리 대상.
             // (기존: EnsureGameManager가 MonsterAggroSystem을 GM에 부착 — DontDestroyOnLoad가 아니라 씬 정리 경고는
@@ -600,6 +601,71 @@ namespace ProjectName.Systems
                 DestroyImmediate(visCol);
 
             return guardGO;
+        }
+
+        // ================================================================
+        // 채집 가능 약초 3종 배치 (2026-09-10 신규 — 기존 셋업 무변경, 신규 배치만 추가)
+        // ================================================================
+        /// <summary>
+        /// Test_10 채집 흐름 점검용 약초 3종(Red/Purple/Green).
+        /// E키 채집 → HerbPickup.Harvest() → LootBasket.Create + PlayerStats EXP 3 흐름 검증.
+        /// 내 영지 앞(z 18~20)에 배치 — 기존 배치(내병사 z=19, 성 z=20~30)와 이격된 위치.
+        /// </summary>
+        private void SetupHerbs()
+        {
+            SetupHerb("Herb_Red", "Models/UserProvided/herb_red", new Vector3(3f, 0f, 20f),
+                HerbPickup.HerbType.Red, new Color(0.85f, 0.2f, 0.2f, 1f));
+            SetupHerb("Herb_Purple", "Models/UserProvided/herb_purple", new Vector3(-3f, 0f, 20f),
+                HerbPickup.HerbType.Purple, new Color(0.7f, 0.2f, 0.8f, 1f));
+            SetupHerb("Herb_Green", "Models/UserProvided/herb_green", new Vector3(0f, 0f, 18f),
+                HerbPickup.HerbType.Green, new Color(0.2f, 0.7f, 0.2f, 1f));
+        }
+
+        private void SetupHerb(string goName, string modelPath, Vector3 xzPos,
+            HerbPickup.HerbType herbType, Color fallbackColor)
+        {
+            // 지표면 계약(SurfaceY = 1 + GetHeightAt) 준수: 약초는 작은 지형 오브젝트 → 표면 + 0.3
+            Vector3 pos = new Vector3(xzPos.x, SurfaceY(xzPos.x, xzPos.z) + 0.3f, xzPos.z);
+
+            // 시각 바디: GLB 프리팹 우선, 실패 시 색상 구체 폴백
+            // (HerbPickup.Start가 GetComponent<Renderer>()를 사용하므로 시각 바디 필수)
+            GameObject go = null;
+            GameObject modelPrefab = Resources.Load<GameObject>(modelPath);
+            if (modelPrefab != null)
+                go = Instantiate(modelPrefab, pos, Quaternion.identity);
+
+            if (go == null)
+            {
+                Debug.LogWarning($"[TestHerb] ⚠️ '{modelPath}' 로드 실패 — 프리미티브 폴백");
+                go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                go.transform.position = pos;
+                go.transform.localScale = Vector3.one * 0.5f;
+                var r = go.GetComponent<Renderer>();
+                if (r != null)
+                {
+                    var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                    mat.color = fallbackColor;
+                    r.material = mat;
+                }
+            }
+
+            go.name = goName;
+
+            var herbPickup = go.AddComponent<HerbPickup>();
+
+            // _herbType은 private SerializeField — 프로젝트 관례(TestPlayerSetup 등)대로 리플렉션으로 설정
+            var hf = typeof(HerbPickup).GetField("_herbType",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            hf?.SetValue(herbPickup, herbType);
+
+            // Harvest()/Respawn()이 GetComponent<Collider>().enabled를 토글하므로 Collider 보장
+            if (go.GetComponent<Collider>() == null)
+            {
+                var col = go.AddComponent<BoxCollider>();
+                col.size = new Vector3(0.5f, 0.5f, 0.5f);
+            }
+
+            Debug.Log($"[TestHerb] ✅ {goName} 배치 (type={herbType}, pos={pos})");
         }
     }
 }

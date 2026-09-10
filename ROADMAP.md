@@ -1861,3 +1861,17 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | Play 판정 대기 | 내(파랑)/적(빨강) 성+병사 진영 표시 + E키 상호작용(포섭 등) 동작 | ⬜ |
 
 ---
+
+## 🌿 2026-09-10: Test_10 채집 확인용 약초 배치 (T10-HERB) — QaValidator 배치컴파일 error CS=0
+
+> **목표:** Test_10 씬에서 채집(HerbPickup) 흐름을 확인할 수 있도록 약초 3종 배치. 기존 영지/병사/몬스터 구성은 유지.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 약초 3종 | `SetupHerbs()` + `SetupHerb(...)` 헬퍼 — Herb_Red/Purple/Green 각각 GLB(herb_red/purple/green) Instantiate(폴백 Sphere+색) + HerbPickup 부착 | ✅ |
+| 채집 유형 | `_herbType` private SerializeField → 리플렉션(`typeof(HerbPickup).GetField("_herbType", NonPublic\|Instance)`+`SetValue`)으로 Red/Purple/Green 설정 | ✅ |
+| 좌표 | (3, ~, 20)/(−3, ~, 20)/(0, ~, 18), y=SurfaceY+0.3 계약, BoxCollider 부가 | ✅ |
+| 검증 | `QaValidator` 배치컴파일 `error CS=0`, Systems.dll에 SetupHerbs 포함 확인 | ✅ |
+| Play 판정 대기 | 약초 E키 채집 → LootBasket 생성 + 인벤토리/EXP 반영 + 리스폰 30초 | ⬜ |
+
+---

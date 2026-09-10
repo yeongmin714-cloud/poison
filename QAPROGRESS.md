@@ -4,7 +4,31 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-10 (13차)
+> **최종 갱신:** 2026-09-10 (14차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-10 14차 — Test_10 채집용 약초 배치 + 병사 명령 시스템 점검)
+
+> **스코프**: Test_10 씬에 채집 가능한 약초 3종(Red/Purple/Green) 배치. 병사 명령 시스템 구현 현황 점검.
+
+### 변경 사항
+**`Systems/TestTerritoryCombatSetup.cs`** (기존 구성 무변경 + 약초 배치)
+- `SetupHerbs()` + `SetupHerb(...)` 헬퍼 — Herb_Red/Purple/Green 각각 GLB(herb_red/purple/green) Instantiate(폴백 Sphere+URP/Lit 색) + `HerbPickup` 부착
+- `_herbType` private SerializeField → **리플렉션**(`typeof(HerbPickup).GetField("_herbType", System.Reflection.BindingFlags.NonPublic|Instance)` + `SetValue`)으로 설정 (TestPlayerSetup 관례)
+- 좌표 (3,~,20)/(−3,~,20)/(0,~,18), y=SurfaceY(x,z)+0.3, BoxCollider 부가
+
+### 병사 명령 시스템 점검 결과 (⚠️)
+- ✅ 구현됨: `RTSCommandSystem`(우클릭 공격/이동·Ctrl 일제·H정지), `GuardSelectionManager`(드래그 선택·우클릭/H키 중계), `GuardPlaceholder`(SetCommandTarget/ClearCommand/SetInCombat 상태 API)
+- ❌ 미연결: 명령을 실제 이동/공격으로 수행하는 **`GuardCombatAI.UpdateGuardBehavior`가 어디에서도 호출되지 않음** + 그 함수 내부에도 실제 `transform.position` 이동 코드 없음 → **선택·명령 저장까지만 되고 병사가 움직이지 않는 골격 상태**. (수행 루프 연결 + 실제 이동/추종 구현 필요)
+
+### 검증
+- `QaValidator.RunAllChecks` 배치컴파일 **`error CS=0`**
+- `strings Systems.dll | grep SetupHerbs` → 히트 (컴파일 반영 확정)
+- ★함정: 배치 전 `pkill Unity.Licensing.Client` 하면 활성 라이선스 채널이 끊겨 Unity가 즉시 종료(시작 안 됨) → **배치 시 라이선스 킬 금지**
+
+### Play 판정 대기
+- 약초 E키 채집 → LootBasket 생성 + 인벤토리/EXP + 리스폰 30초 / 내(파랑)·적(빨강) 진영 + 병사 E키 상호작용.
 
 ---
 
