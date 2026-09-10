@@ -65,6 +65,7 @@ namespace ProjectName.Systems
 
             Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
             GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(dir));
+            Debug.Log($"[SlashVFX] ✅ 스윙 FX 스폰 (pos={position}, 발화시각={Time.time:F2}s)");   // 1회성 검증 아님 — 좌클릭마다 1줄, 발화 증거
             instance.name = "SlashVFX_Swing";
 
             PlayAllParticleSystems(instance);

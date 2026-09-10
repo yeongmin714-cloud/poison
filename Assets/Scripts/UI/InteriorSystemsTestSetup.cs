@@ -35,7 +35,101 @@ namespace ProjectName.UI
             SetupCamera();      // PlayerMovement.Awake 전에 카메라 확보
             SetupPlayer();
             SetupStations();
-            Debug.Log("[InteriorSystemsTest] 구성 완료 — E키로 각 스테이션/창고/상점 상호작용");
+            StartCoroutine(SeedTestContentWhenReady());   // 2026-09-10: 테스트 아이템 시딩+몬스터(HP바 검증) 지연 구성
+            Debug.Log("[InteriorSystemsTest] 구성 완료 — I인벤/E장비·스테이션/P스탯/M지도/X크래프트/K복수");
+        }
+
+        // =====================================================================
+        // 2026-09-10: UI 전수 테스트 지원 — 아이템 시딩/몬스터/가이드
+        // =====================================================================
+
+        /// <summary>테스트 아이템 자동 지급(희귀도 분포+전설 글로우 검증용)+몬스터 1기(HP/레벨 머리표시)+핫바 할당. 플레이어/인벤 준비 대기 후 1회.</summary>
+        private System.Collections.IEnumerator SeedTestContentWhenReady()
+        {
+            // 플레이어 인벤토리 준비 대기 (최대 5초)
+            PlayerInventory inv = null;
+            for (int i = 0; i < 20; i++)
+            {
+                var player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null) { inv = player.GetComponent<PlayerInventory>(); if (inv != null) break; }
+                yield return new WaitForSecondsRealtime(0.25f);
+            }
+            if (inv == null) { Debug.LogWarning("[InteriorSystemsTest] ⚠️ 인벤토리 미발견 — 아이템 시딩 생략"); yield break; }
+
+            // 카테고리 대표 아이템 지급 (약초/고기/재료/무기/방어구 — 전부 기존 정적 데이터 재사용)
+            inv.AddItem(PlayerInventory.Herb_Red, 5);
+            inv.AddItem(PlayerInventory.Herb_Purple, 3);
+            inv.AddItem(PlayerInventory.RabbitMeat, 5);
+            inv.AddItem(PlayerInventory.WolfMeat, 2);
+            inv.AddItem(PlayerInventory.SwordWood, 1);
+            inv.AddItem(PlayerInventory.LeatherArmor, 1);
+            inv.AddItem(PlayerInventory.StealthBoots, 1);
+            inv.AddItem(PlayerInventory.ClothArmor, 1);
+            inv.AddItem(PlayerInventory.SpearWood, 1);
+            inv.AddItem(PlayerInventory.BowWood, 1);
+
+            // 희귀도 분포 — 전설 1개(글로우 검증용) + 희귀/영웅 수동 지정 사본
+            var legendary = new PlayerInventory.ItemData
+            {
+                id = "test_sword_legendary", displayName = "★ 전설의 검", description = "AAA 글로우 검증용 전설 무기.",
+                category = PlayerInventory.ItemCategory.Weapon, maxStack = 1, maxDurability = 60,
+                rarity = ProjectName.Core.ItemRarity.Legendary
+            };
+            inv.AddItem(legendary, 1);
+            var rare = new PlayerInventory.ItemData
+            {
+                id = "test_herb_rare", displayName = "희귀 치유초", description = "희귀 등급 테스트용 약초.",
+                category = PlayerInventory.ItemCategory.Herb, maxStack = 20,
+                rarity = ProjectName.Core.ItemRarity.Rare
+            };
+            inv.AddItem(rare, 4);
+            var epic = new PlayerInventory.ItemData
+            {
+                id = "test_armor_epic", displayName = "영웅의 사슬갑옷", description = "영웅 등급 테스트용 방어구.",
+                category = PlayerInventory.ItemCategory.Armor, maxStack = 1, maxDurability = 60,
+                rarity = ProjectName.Core.ItemRarity.Epic
+            };
+            inv.AddItem(epic, 1);
+
+            // 핫바 1~3슬롯 자동 할당 (우클릭장착/드래그 대체 수동 검증용)
+            HotbarUI.AssignItem(0, PlayerInventory.SwordWood.id, PlayerInventory.SwordWood.displayName);
+            HotbarUI.AssignItem(1, PlayerInventory.Herb_Red.id, PlayerInventory.Herb_Red.displayName);
+            HotbarUI.AssignItem(2, PlayerInventory.BoarMeat.id, PlayerInventory.BoarMeat.displayName);
+            Debug.Log("[InteriorSystemsTest] ✅ 테스트 아이템 10종 시딩 + 핫바 1~3 할당 완료 (전설 글로우: ★ 전설의 검)");
+
+            // 몬스터 1기 — 머리 위 HP/레벨 표시(MonsterHeadUI) 검증용
+            SpawnTestMonster();
+        }
+
+        private void SpawnTestMonster()
+        {
+            var monster = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            monster.name = "Monster_slime_test";
+            monster.tag = "Monster";
+            monster.transform.position = new Vector3(0f, 0.8f, 6f);
+            monster.transform.localScale = Vector3.one * 1.2f;
+            var mr = monster.GetComponent<Renderer>();
+            if (mr != null) mr.sharedMaterial.color = new Color(0.45f, 0.85f, 0.35f, 1f);
+
+            var ai = monster.GetComponent<AnimalAI>();
+            if (ai == null) ai = monster.AddComponent<AnimalAI>();
+            ai.SetMonsterId("slime");
+
+            if (monster.GetComponent<Collider>() == null) { var col = monster.AddComponent<BoxCollider>(); col.size = Vector3.one; }
+            if (monster.GetComponent<Rigidbody>() == null) { var rb = monster.AddComponent<Rigidbody>(); rb.useGravity = true; rb.mass = 1f; }
+            if (monster.GetComponent<HitReaction>() == null) monster.AddComponent<HitReaction>();
+
+            var head = MonsterHeadUI.AttachTo(monster);
+            if (head != null) head.Setup(ai);
+            Debug.Log("[InteriorSystemsTest] ✅ 테스트 몬스터 생성(slime) — 머리 위 이름/Lv/HP바 표시, 좌클릭 타격 시 실시간 감소");
+        }
+
+        /// <summary>UI 테스트 가이드 — 전체 창 열기 키 안내 OnGUI(하단 좌측).</summary>
+        private void OnGUI()
+        {
+            float w = 560f, h = 30f;
+            var r = new Rect(8f, Screen.height - h - 8f, w, h);
+            GUI.Box(r, " UI 테스트 — I 인벤 · E 장비/스테이션 · P 스탯 · M 지맵 · X 크래프트 · K 복수 · 슬라임 타격→HP바");
         }
 
         /// <summary>UIManager + 각 창 인스턴스 생성 (스테이션들이 OpenWindow(Type)으로 탐색)</summary>

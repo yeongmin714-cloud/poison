@@ -88,6 +88,12 @@ namespace ProjectName.Systems
             else
                 Debug.LogWarning($"[TestPlayerAnimatorBoot] ⚠️ 부트 부분 실패 — 제거/부착 불완전 가능 (제거 {removed.Count}개: {removedTxt}), Play는 계속");
 
+            // ── 10) 아바타 감시 — GLB 어바탓 지연 도착 대기(첫 세션 T포즈 실증) ─
+            StartCoroutine(AvatarArrivalWatch(model));
+
+            // ── 11) 애니 검증 — 부트 3초 후 1회 ─────────────────────────────
+            StartCoroutine(VerifyAnimationPlayback(model));
+
             // ── 8) 침하 감시 — 부트 완료 2초 후 1회 ─────────────────────────
             StartCoroutine(SinkWatch(playerRoot.transform, model));
         }
@@ -230,6 +236,110 @@ namespace ProjectName.Systems
             catch (System.Exception ex)
             {
                 Debug.LogError($"[TestPlayerAnimatorBoot] 침하 감시 예외(무시): {ex.GetType().Name}: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 10) 아바타 감시 — GLB 어바탓이 지연 도착해 첫 세션에서 T포즈가 되는 현상(로그 실증:
+        /// "anim=OK avatar=NULL") 대응. 부트 완료 후 최대 5초간 0.25초 간격으로 PlayerModel
+        /// Animator의 avatar를 폴링하고, null → 값 변화가 감지되면 재생을 재시작한다:
+        /// Rebind() → Play(현재 상태, 0, 0f) → Update(0). 5초 초과 시 경고 1회.
+        ///
+        /// [주의] HumanoidClipDriver._anim은 Start에서 캐시한 Animator '컴포넌트 참조'이므로
+        /// Rebind(같은 Animator 인스턴스에 적용) 후에도 참조가 깨지지 않는다 — 드라이버의
+        /// SetFloat/SetTrigger는 계속 유효하다. 재생 재시작은 PlayerModel의 Animator에 직접 수행.
+        /// </summary>
+        private IEnumerator AvatarArrivalWatch(Transform model)
+        {
+            if (model == null) yield break;
+
+            Animator anim = model.GetComponent<Animator>();
+            if (anim == null) yield break;
+
+            // 이미 아바타가 있으면 감시 불필요
+            if (anim.avatar != null)
+            {
+                Debug.Log("[TestPlayerAnimatorBoot] [아바타감시] avatar 이미 존재 — 감시 생략");
+                yield break;
+            }
+
+            float deadline = Time.realtimeSinceStartup + AvatarWatchTimeout;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                yield return new WaitForSecondsRealtime(AvatarPollInterval);
+                if (anim == null || model == null) yield break; // 소실 시 감시 중단
+                if (anim.avatar == null) continue;
+
+                // null → 도착: 재생 재시작
+                try
+                {
+                    // Rebind 전 현재 상태 캡처(아바타 null이어도 컨트롤러 상태 정보는 유지됨)
+                    int stateHash = 0;
+                    var info = anim.GetCurrentAnimatorStateInfo(0);
+                    if (info.length > 0f && anim.HasState(0, info.fullPathHash))
+                        stateHash = info.fullPathHash;
+
+                    anim.Rebind();
+                    anim.Update(0f);
+                    if (stateHash != 0)
+                    {
+                        anim.Play(stateHash, 0, 0f);
+                        anim.Update(0f);
+                    }
+                    Debug.Log($"[TestPlayerAnimatorBoot] ✅ [아바타감시] avatar 지연 도착 — Rebind+재생 재시작 완료 (stateHash={stateHash})");
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"[TestPlayerAnimatorBoot] 아바타 재바인딩 예외(무시): {ex.GetType().Name}: {ex.Message}");
+                }
+                yield break;
+            }
+
+            Debug.LogWarning("[TestPlayerAnimatorBoot] ⚠️ avatar 미도착 — T포즈 지속 가능");
+        }
+
+        /// <summary>
+        /// 11) 애니 검증 — 부트 3초 후 1회. 현재 AnimatorStateInfo 기준 재생 중 클립명/재생 여부/속도를
+        /// 로그로 남겨 T포즈(클립 미재생) 여부를 판정한다. 클립이 없으면 경고.
+        /// </summary>
+        private IEnumerator VerifyAnimationPlayback(Transform model)
+        {
+            yield return new WaitForSeconds(AnimationVerifyDelay);
+
+            if (model == null) yield break;
+
+            Animator anim = model.GetComponent<Animator>();
+            if (anim == null)
+            {
+                Debug.LogWarning("[TestPlayerAnimatorBoot] [애니검증] ⚠️ PlayerModel에 Animator 없음");
+                yield break;
+            }
+
+            try
+            {
+                var clips = anim.GetCurrentAnimatorClipInfo(0);
+                if (clips == null || clips.Length == 0 || clips[0].clip == null)
+                {
+                    Debug.LogWarning("[TestPlayerAnimatorBoot] [애니검증] ⚠️ 재생 중 클립 없음 — 컨트롤러/상태 머신 점검 필요");
+                    yield break;
+                }
+
+                var info = anim.GetCurrentAnimatorStateInfo(0);
+                bool hasState = anim.HasState(0, info.fullPathHash);
+                bool playing = hasState && anim.isActiveAndEnabled && anim.speed > 0f;
+
+                var sb = new System.Text.StringBuilder();
+                for (int i = 0; i < clips.Length; i++)
+                {
+                    if (i > 0) sb.Append(", ");
+                    sb.Append(clips[i].clip != null ? clips[i].clip.name : "(null)");
+                }
+
+                Debug.Log($"[TestPlayerAnimatorBoot] [애니검증] clip={clips[0].clip.name} playing={playing} speed={anim.speed:F2} (클립 {clips.Length}개: {sb}, 상태유효={hasState}, normalizedTime={info.normalizedTime:F2})");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[TestPlayerAnimatorBoot] 애니 검증 예외(무시): {ex.GetType().Name}: {ex.Message}");
             }
         }
     }

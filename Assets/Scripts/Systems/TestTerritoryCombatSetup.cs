@@ -386,6 +386,17 @@ namespace ProjectName.Systems
             if (go.GetComponent<HitReaction>() == null)
                 go.AddComponent<HitReaction>();
 
+            // Test_10 Phase 2 훅: 몬스터 헤드 UI(이름/Lv/HP바) 부착 — 그 외 로직 무변경
+            if (ai != null)
+            {
+                var head = go.AddComponent<MonsterHeadUI>();
+                head.Setup(ai);
+            }
+            else
+            {
+                Debug.LogWarning("[TestTerritoryCombat] ⚠️ AnimalAI 없음 — MonsterHeadUI 부착 생략");
+            }
+
             Debug.Log($"[TestTerritoryCombat] ✅ 몬스터 생성 ({monsterId}, {_monsterPos})");
         }
 
