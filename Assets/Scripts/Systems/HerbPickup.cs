@@ -79,6 +79,50 @@ namespace ProjectName.Systems
             return PlayerInventory.Herb_Red;
         }
 
+        // ===== 씨앗 드랍 확률 (코드 상수로 명시) =====
+        private const float SeedDropChanceCommon = 0.24f;   // 기본 씨앗(Red/Purple/Yellow): 설계 22~25% 범위 내 24%
+        private const float SeedDropChanceRare   = 0.09f;   // 희귀 씨앗(Silver/Green): 설계 8~10% 범위 내 9%
+
+        /// <summary>HerbType → 대응 씨앗 ItemData 매핑 (PlayerInventory 정의)</summary>
+        private static PlayerInventory.ItemData SeedItemForCrop(HerbType type)
+        {
+            switch (type)
+            {
+                case HerbType.Red:    return PlayerInventory.Seed_Red;
+                case HerbType.Purple: return PlayerInventory.Seed_Purple;
+                case HerbType.Yellow: return PlayerInventory.Seed_Yellow;
+                case HerbType.Silver: return PlayerInventory.Seed_Silver;
+                case HerbType.Green:  return PlayerInventory.Seed_Green;
+                default:              return PlayerInventory.Seed_Red;
+            }
+        }
+
+        /// <summary>
+        /// 씨앗 드랍 확률 판정. 성공 시 대응 씨앗 ItemData를 out으로 반환.
+        /// 희귀 종(Silver/Green)은 낮은 확률(9%), 나머지는 기본 확률(24%) 적용.
+        /// </summary>
+        private static bool TryRollSeedDrop(HerbType herbType, out PlayerInventory.ItemData seed, out float chance)
+        {
+            bool isRare = herbType == HerbType.Silver || herbType == HerbType.Green;
+            chance = isRare ? SeedDropChanceRare : SeedDropChanceCommon;
+            seed = SeedItemForCrop(herbType);
+            return UnityEngine.Random.value < chance;
+        }
+
+        /// <summary>
+        /// 채집 시 희귀확률로 씨앗을 바구니에 함께 드랍 (LootBasket.AddItem은 여러 번 호출 가능).
+        /// Harvest 경로 전용.
+        /// </summary>
+        private static void AddSeedDrop(LootBasket basket, HerbType herbType)
+        {
+            if (basket == null) return;
+            if (TryRollSeedDrop(herbType, out var seed, out float chance))
+            {
+                basket.AddItem(seed, 1);
+                Debug.Log($"[HerbPickup] 🌰 씨앗 드랍! {seed.displayName} (확률 {chance:P0})");
+            }
+        }
+
         private void Start()
         {
             _player = GameObject.FindGameObjectWithTag("Player")?.transform;
@@ -171,6 +215,10 @@ namespace ProjectName.Systems
             // LootBasket 생성: 약초가 바구니에 담겨서 떨어짐
             LootBasket basket = LootBasket.Create(transform.position);
             basket.AddItem(item, yield);
+
+            // 씨앗 드랍: 채집 시 희귀확률로 씨앗이 바구니에 함께 담김
+            AddSeedDrop(basket, _herbType);
+
             // 경험치 획득
             PlayerStats.Instance.AddEXP(3);
             Debug.Log($"[HerbPickup] 🧺 {item.displayName} x{yield} 바구니 생성!");
@@ -233,6 +281,14 @@ namespace ProjectName.Systems
 
             item = GetItemData();
             yield = UnityEngine.Random.Range(_minYield, _maxYield + 1);
+
+            // 씨앗 드랍 판정 — 자동 채집은 바구니 없이 인벤토리 직송 구조이므로
+            // 호출부(HerbGatheringMission)와 동일하게 플레이어 인벤토리에 즉시 추가한다.
+            if (TryRollSeedDrop(_herbType, out var seedDrop, out float seedChance))
+            {
+                if (PlayerInventory.Instance != null && PlayerInventory.Instance.AddItem(seedDrop, 1))
+                    Debug.Log($"[HerbPickup] 🌰 자동 채집 씨앗 획득! {seedDrop.displayName} (확률 {seedChance:P0})");
+            }
 
             // Hide visual
             var collider = GetComponent<Collider>();

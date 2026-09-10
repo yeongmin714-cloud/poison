@@ -235,6 +235,14 @@ namespace ProjectName.Core
         public static readonly ItemData Herb_Silver = new ItemData { id = "herb_silver", displayName = "은빛 이끼", description = "은색 이끼. 해독 성분.",        category = ItemCategory.Herb,    maxStack = 20 };
         public static readonly ItemData Herb_Green  = new ItemData { id = "herb_green",  displayName = "피어리",   description = "초록 약초. 재생/회복 성분.",   category = ItemCategory.Herb,    maxStack = 20 };
 
+        // ===== 씨앗 아이템 (약초 채집 시 확률 드랍, FarmPlot 파종 시 1개 소모) =====
+        // ItemCategory에 Seed 전용 항목이 없어 Material 사용 — id("herb_seed_*")와 displayName으로 식별
+        public static readonly ItemData Seed_Red    = new ItemData { id = "herb_seed_red",    displayName = "치유초 씨앗",   description = "치유초를 심을 수 있는 씨앗. 밭에 파종해 재배한다.",  category = ItemCategory.Material, maxStack = 20 };
+        public static readonly ItemData Seed_Purple = new ItemData { id = "herb_seed_purple", displayName = "독나물 씨앗",   description = "독나물을 심을 수 있는 씨앗. 밭에 파종해 재배한다.",  category = ItemCategory.Material, maxStack = 20 };
+        public static readonly ItemData Seed_Yellow = new ItemData { id = "herb_seed_yellow", displayName = "황혼초 씨앗",   description = "황혼초를 심을 수 있는 씨앗. 밭에 파종해 재배한다.",  category = ItemCategory.Material, maxStack = 20 };
+        public static readonly ItemData Seed_Silver = new ItemData { id = "herb_seed_silver", displayName = "은빛 이끼 씨앗", description = "은빛 이끼의 희귀 씨앗. 밭에 파종해 재배한다.",      category = ItemCategory.Material, maxStack = 20, rarity = ItemRarity.Rare };
+        public static readonly ItemData Seed_Green  = new ItemData { id = "herb_seed_green",  displayName = "피어리 씨앗",   description = "피어리의 희귀 씨앗. 밭에 파종해 재배한다.",        category = ItemCategory.Material, maxStack = 20, rarity = ItemRarity.Rare };
+
         public static readonly ItemData RabbitMeat  = new ItemData { id = "meat_rabbit", displayName = "토끼고기",  description = "작고 부드러운 고기.",          category = ItemCategory.Meat,    maxStack = 20 };
         public static readonly ItemData BoarMeat    = new ItemData { id = "meat_boar",   displayName = "멧돼지고기", description = "걸쭉한 맛이 나는 고기.",        category = ItemCategory.Meat,    maxStack = 20 };
         public static readonly ItemData WolfMeat    = new ItemData { id = "meat_wolf",   displayName = "늑대고기",  description = "담백한 늑대 고기.",            category = ItemCategory.Meat,    maxStack = 20 };

@@ -1,4 +1,5 @@
 using UnityEngine;
+using ProjectName.Core;
 using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
@@ -120,7 +121,27 @@ namespace ProjectName.Systems
             }
         }
 
-        /// <summary>파종(Empty → Seeded). 소유 영지에서만 허용.</summary>
+        /// <summary>
+        /// HerbType → 파종에 필요한 씨앗 ItemData 매핑 (PlayerInventory 정의).
+        /// 씨앗 id는 "herb_seed_*" 규약을 따른다.
+        /// </summary>
+        private static PlayerInventory.ItemData SeedItemForCrop(HerbPickup.HerbType crop)
+        {
+            switch (crop)
+            {
+                case HerbPickup.HerbType.Red:    return PlayerInventory.Seed_Red;
+                case HerbPickup.HerbType.Purple: return PlayerInventory.Seed_Purple;
+                case HerbPickup.HerbType.Yellow: return PlayerInventory.Seed_Yellow;
+                case HerbPickup.HerbType.Silver: return PlayerInventory.Seed_Silver;
+                case HerbPickup.HerbType.Green:  return PlayerInventory.Seed_Green;
+                default:                         return PlayerInventory.Seed_Red;
+            }
+        }
+
+        /// <summary>
+        /// 파종(Empty → Seeded). 소유 영지 + 해당 작물의 씨앗 1개 소비 필요.
+        /// 씨앗이 없으면 상태 메시지만 표시하고 phase를 변경하지 않는다.
+        /// </summary>
         public void Plant(HerbPickup.HerbType crop)
         {
             if (_phase != CropPhase.Empty) return;
@@ -130,6 +151,20 @@ namespace ProjectName.Systems
                 ShowStatus("아군 영지에서만 경작 가능");
                 return;
             }
+
+            // 씨앗 검사: 인벤토리에 해당 작물의 씨앗이 있어야 파종 가능 (phase 변경 없음)
+            var seed = SeedItemForCrop(crop);
+            var inv = PlayerInventory.Instance;
+            if (seed == null || inv == null || !inv.HasItem(seed.id))
+            {
+                ShowStatus("씨앗이 부족합니다 — 채집/상점에서 씨앗을 구하세요");
+                Debug.Log($"[FarmPlot] {name}: {crop} 파종 실패 — 씨앗 없음 ({seed?.displayName ?? crop + " 씨앗"})");
+                return;
+            }
+
+            // 씨앗 1개 소비 후 파종 진행
+            inv.RemoveItem(seed.id, 1);
+            Debug.Log($"[FarmPlot] 🌰 {name}: {seed.displayName} 1개 소비 → 파종 (남은 씨앗: {inv.GetItemCount(seed.id)}개)");
 
             _cropType = crop;
             _seededGameTime = CurrentClock();
