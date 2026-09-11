@@ -158,13 +158,13 @@ namespace ProjectName.UI
             Color cream = new Color(0.918f, 0.866f, 0.722f);   // 밝은 크림 베이스
             Color sepiaShade = new Color(0.62f, 0.50f, 0.34f); // 가장자리 세피아 섀도
             Color sepiaInk = new Color(0.30f, 0.20f, 0.115f);  // 테두리 짙은 갈색
-            const float INV = 1f / (512f - 1f);
+            float inv = 1f / (size - 1f);
 
             for (int y = 0; y < size; y++)
             {
                 for (int x = 0; x < size; x++)
                 {
-                    float nx = x * INV, ny = y * INV;
+                    float nx = x * inv, ny = y * inv;
 
                     // ①② 큰 얼룩(fBm) + 미세 그레인(해시)
                     float blotch = Fbm3(nx * 6f, ny * 6f);
@@ -576,8 +576,8 @@ namespace ProjectName.UI
             // 제목 (우측 70px는 X 버튼 여백)
             GUI.Label(new Rect(strip.x + 14f, strip.y, strip.width - 100f, strip.height),
                 "🗺️ 양피지 월드맵 — 포이즌 대륙", _styleTitle);
-            // 줌 배지
-            GUI.Label(new Rect(strip.xMax - 272f, strip.y, 258f, strip.height),
+            // 줌 배지 (우측 끝은 X 버튼 영역[winRect.xMax-66]에서 70px 이격)
+            GUI.Label(new Rect(strip.xMax - 330f, strip.y, 258f, strip.height),
                 $"확대 ×{_zoomScales[_zoomIndex]:0.0}", _styleZoom);
         }
 
@@ -1000,7 +1000,7 @@ namespace ProjectName.UI
             }
         }
 
-        /// <summary>결론 value noise — 격자 해시의 smoothstep 보간.</summary>
+        /// <summary>결정론 value noise — 격자 해시의 smoothstep 보간.</summary>
         private static float ValueNoise(float x, float y)
         {
             int ix = Mathf.FloorToInt(x), iy = Mathf.FloorToInt(y);

@@ -4,7 +4,27 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-11 (27차)
+> **최종 갱신:** 2026-09-11 (28차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-11 ✅ 28차 — M키 양피지 월드맵 신규 구현)
+
+> **스코프**: M키 토글 월드맵(WorldMapWindow) 신규 — 밝은 양피지지 절차 배경 + 전국/링 영지 82곳 방사형 배치(국가색·난이도·소유상태 마커) + 플레이어 위치 + 휠 줌/드래그 팬 + 마커 툴팁. 좌표 함정(영지 확장 1450m vs 지형 스플랫 반폭 1000m)으로 지형 텍스처 대신 순수 양피지+정규화 좌표계 채택.
+
+### 변경 사항
+**`UI/WorldMapWindow.cs`(신규, 1067줄)** — `ProjectName.UI`, `UIWindow` 파생:
+- **M키 자가등록**: Awake에서 `UIWorldMapHotkey`(파일 하단 클래스)를 AddComponent+Bind(중복 가드 First-Come). `EnsureVisibilityRoot()`로 `_windowRoot`를 자식 패널로 지정 → `UIWindow.Hide()`(CloseAnimation)가 root가 아닌 `_windowRoot`만 비활성화 → 핫키/OnGUI 계속 생존(InventoryWindow 선례). 시작은 닫힌 상태
+- **양피지 배경**(절차 1회 static 캐시 `BuildParchment`): 밝은 크림·세피아 베이스 + 그레인 노이즈 + 가장자리 어두움/불규칙 + 테두리 짙은 갈색. 같은 Texture2D를 지도 본체+창 프레임/장식에 재사용(밝게/세피아 틴트)
+- **영지 좌표 변환**: `u=0.5+worldPos.x/3200f, v=0.5+worldPos.z/3200f`(extent 1600m → Empire(0,0) 중앙, 링1/드라큘라(1450m) 가장자리)
+- **영지 마커**: `TerritoryDatabase.Instance.GetAllDefinitions()`(82곳) 순회 — 국가색(NationColor: East파랑/West초록/South빨강/North보라/Empire금/Dracula검강) 점 + territoryName 라벨 + 난이도별 크기 + 소유상태(PlayerOwned 강조/Contested 빨강 펄스/미점령·영주소유 구분) + Empire·드라큘라 특별 표식
+- **플레이어 마커**: `GameObject.FindWithTag("Player")` position 정규화, 강조 화살표
+- **줌/팬/툴팁**: `Event.current.type==ScrollWheel` 휠 줌, 좌클릭 드래그 팬, 마커 호버 시 영지명/국가/난이도/병사 수/설명 툴팁 박스
+- IMGUI 온건: OnGUI new GUIStyle/Rect 0건(static 캐시), GUI.color 복원
+
+### 컴파일/검증
+- 중괄호·소괄호·대괄호 균형 OK(106/438/17)
+- Unity 6000.4.10f1 batchmode 컴파일 **0 에러**(return 0)
 
 ---
 

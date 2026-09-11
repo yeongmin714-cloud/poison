@@ -2104,3 +2104,16 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 폰트 통일 | UI/UIFont.cs 신규(Display60/Title38/Body24/Caption17/Badge13 + static 캐시, Resources.Load<Font>("Fonts/NotoSansKR-VF")→malgun→빌트인 폴백). Assets/Resources/Fonts/에 NotoSansKR-VF.ttf·malgun.ttf. UIStyleManager·HUD·인벤·장비·상태·핫바·몬스터·레시피·옵션·연금·로드 11곳 적용, fontSize 파편화(10~96px) 5단계 수렴 | ✅ |
 | 검증 | 최종 배치컴파일 error CS=0(return 0). 중간 이슈: PlayerCombat WeaponType CS0104 모호성(Neural vs Core)→ProjectName.Core.WeaponType 정규화 해결. QAPROGRESS 27차 스냅샷 기록 | ✅ |
 | Play 판정 대기 | 장비창 우측 렌더+인벤 좌측/설명 중앙 배치, 장착 우클릭 즉시 장비창 반영, 설명창 아이콘 표시, 무기 교체 시 애니 전환(Spear 찌르기/Bow 발사), 화살 소모+부족 차단 메시지, 한글 폰트 렌더·글자 크기 정합 | ⬜ |
+
+## 🗺️ 2026-09-11: M키 양피지 월드맵 신규 (WORLD-MAP-28)
+
+> **목표:** M키 토글 월드맵 신규 구현 — 전체 양피지지 느낌의 지도에 각 영지 주소(이름)가 나오는 인터랙티브 월드맵.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 창/핫키 | `UI/WorldMapWindow.cs`(신규 1067줄) UIWindow 파생. M키 자가등록(UIWorldMapHotkey AddComponent+Bind, First-Come 중복 가드). `_windowRoot` 자식 패널 지정 → Hide 시에도 핫키/OnGUI 생존. 시작 닫힘 | ✅ |
+| 양피지 배경 | 절차 1회 static 캐시(BuildParchment) — 크림·세피아 베이스+그레인+가장자리 어두움+짙은 갈색 테두리. 지도 본체+프레임/장식 공용. 외부 에셋 없음 | ✅ |
+| 영지 배치 | 좌표 함정 회피(영지 확장 1450m vs 스플랫 반폭 1000m → 지형 배경 금지): 순수 양피지 위 정규화 u=0.5+x/3200, v=0.5+z/3200. GetAllDefinitions() 82곳 — 국가색 점+이름 라벨+난이도 크기+소유상태(PlayerOwned/Contested 펄스), Empire·드라큘라 특별 표식 | ✅ |
+| 기타 | 플레이어 위치 마커, 휠 줌(ScrollWheel)+드래그 팬, 마커 호버 툴팁(이름/국가/난이도/병사/설명) | ✅ |
+| 검증 | 중괄호/소괄호/대괄호 균형 OK(106/438/17), batchmode 컴파일 error CS=0(return 0). QAPROGRESS 28차 기록 | ✅ |
+| Play 판정 대기 | M키 토글 동작, 양피지 톤+영지 이름 82곳 렌더, 국가색/난이도/소유 마커, 플레이어 위치, 휠 줌·드래그 팬·툴팁, 닫기(ESC/M) | ⬜ |
