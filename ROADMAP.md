@@ -2193,3 +2193,18 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 입력 분리 | 좌클릭 단순클릭(10px 미만)=PlayerCombat 공격 유지 / 드래그(10px 이상)=병사 선택 | ✅ |
 | 검증 | 중괄호/괄호 0(21/54/4), batchmode 컴파일 0에러(return 0), QAPROGRESS 33차 기록 | ✅ |
 | Play 판정 대기 | 좌클릭 드래그로 자기 병사 선택(파란 원), 우클릭으로 적 공격/이동, Ctrl+우클릭 일제 공격, H 중단, 플레이어 공격 유지 | ⬜ |
+
+## 🗡️ 2026-09-11: 스윙 전방 클램프+핫바 장착 시스템+시딩 정리+병사 UI (UX-FIX-37)
+
+> **목표:** ① 3타 실측 yaw 143.6°의 후방 성분을 전방 반구로 미러 클램프해 뒤방향 발화 원천 차단 ② 숫자키 퀵슬롯 장착/사용+장비·창고→핫바 드래그 ③ 창고 시딩 wood 장비 축소 ④ 몬스터 스폰 진단 로그 ⑤ 핫바 도움말 제거 ⑥ 병사 상호작용 UI 1.6배 개편.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 스윙 전방 클램프 | HumanoidClipDriver.ComboStageDirection: 3타 실측 yaw 143.6° 후방 성분을 전방 반구로 미러 클램프(z 부호 반전=수평 yaw θ→180°−θ, 측면/수직 성분 유지) → \|yaw\|≤90° 보장, 슬래시/십자가 모두 뒤방향 발화 금지, "[Combo] 후방 스윙 → 전방 미러 클램프" 로그 | ✅ |
+| 몬스터 사망 진단 | AnimalAI Start() HP 확정 지점 "[AnimalAI] 스폰 {id} MaxHP={X} (스케일게이트={bool}, 레벨={L})" 1회(_spawnLogged 가드), 기존 데미지/사망 로그 유지 → 1회 Play로 사망 미판정 원인 판별 | ✅ |
+| 창고 시딩 정리 | Test_10/Test_09 SeedAllItemsToWarehouse 축소: 유지 wood 장비 13종(AllTieredGear wood 필터)+무기 재료(BoarTusk/WolfTooth ×5)+Gold, 제거 34종(steel/stone/crystal 장비+허브/씨앗/고기/어류/물약/도구 등) → 슬롯 ~137→약 26 | ✅ |
+| 힌트 텍스트 제거 | InventoryWindow "좌클릭: 선택 / 드래그..." 안내 블록 삭제 | ✅ |
+| 퀵슬롯 장착 | HotbarUI +148줄: 숫자키(1~8) 장착/사용(HandleNumberKeys, 인벤 소유 확인+카테고리 분기), EquipmentWindow 슬롯 MouseDown→ItemDragContext.Begin(Source.Inventory) 드래그, InventoryWindow ProcessDrag 핫바 드롭 연계(+138줄), 우클릭 장착 [Equip] 결정 로그+무기 id 토큰 파싱 수리(2062/2069행) | ✅ |
+| 병사 UI 개편 | GuardPlaceholder OnGUI: 패널 320×250→520×380(1.6배), 다크네이비 플랫 팔레트(12상수)+회백 테두리+스카이블루 타이틀 라인, 좌측 아바타 96px(GuardIconRenderer 리플렉션 TryGetGuardIcon — Systems↔UI asmdef 경계, null 시 국적색 원형+이니셜 폴백, 0.5초 폴링)+체력바 확대(70%폭)+호감도/중독도 바+[E] 배지+메뉴 버튼 5종 플랫화, static 스타일 캐시 | ✅ |
+| 검증 | 배치컴파일 error CS=0(return 0) + QaValidator Errors:0, 정적 QA 8파일 brace/괄호 균형 통과(주석 내 비대칭 괄호 제외 코드 0), 미러 클램프/스폰 로그/wood 필터/힌트 0건/HandleNumberKeys/ItemDragContext.Begin/TryGetGuardIcon/520×380 전수 확인, QAPROGRESS 37차 기록 | ✅ |
+| Play 판정 대기 | 슬래시/십자가 뒤방향 미발화, 숫자키 장착/사용, 장비·창고→핫바 드래그, 우클릭 장착, 창고 슬롯 약 26개, 몬스터 스폰 MaxHP 로그로 사망 판정, 병사 UI 520×380+아바타/바/버튼 렌더링 | ⬜ |

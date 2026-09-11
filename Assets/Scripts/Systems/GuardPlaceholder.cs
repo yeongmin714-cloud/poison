@@ -12,6 +12,8 @@ namespace ProjectName.Systems
     /// C9-08: E키 상호작용 → 병사 정보 HUD 표시 + 메뉴 (말걸기/음식주기/약주기)
     /// C9-11: 음식/약주기 — 인벤토리 선택 → 아이템 지급 → 호감도/중독도 변화
     /// Phase 34: NPCAwarenessSystem 연동 + 시야각 120° + 암살
+    /// 2026-09-12: 상호작용 패널 확대·고급화 — 다크네이비 플랫 패널 + 아바타(실제 3D 아이콘 → 국적색 원형 폴백)
+    ///              + 체력바 확대 + [E] 가이드 (E키 동작/데이터 불변)
     /// </summary>
     public class GuardPlaceholder : MonoBehaviour, IDamageable, IWorldSpaceHUD
     {
@@ -58,12 +60,31 @@ namespace ProjectName.Systems
 
         // 캐시된 텍스처 (메모리 누수 방지)
         private static Texture2D _whitePixelTex;
+        private static Texture2D _circleTex; // 국적색 원형 아바타 폴백 (지연 1회 생성)
+
+        // 실제 3D 아바타 (GuardIconRenderer 오프스크린 베이크) — 0.5초 폴링 재조회 (GuardSquadHotbar 동일 패턴)
+        private Texture2D _avatarIcon;
+        private float _avatarNextPoll;
 
         // 캐시된 플레이어 참조 (매 프레임 Find 방지)
         private GameObject _playerCache;
 
-        private const float HP_BAR_WIDTH = 150f;
-        private const float LABEL_WIDTH = 80f;
+        // ===== 정보 패널 스펙 팔레트 (다크네이비 반투명 / 회백 테두리 / 스카이블루 강조) =====
+        private static readonly Color ColorPanelBg       = new Color(0.063f, 0.086f, 0.133f, 0.88f); // 패널 배경
+        private static readonly Color ColorPanelBorder   = new Color(0.62f, 0.70f, 0.78f, 1f);       // 패널/테두리 회백
+        private static readonly Color ColorAccent        = new Color(0.35f, 0.65f, 0.90f, 1f);       // 스카이블루 강조
+        private static readonly Color ColorBarBg         = new Color(0.04f, 0.055f, 0.09f, 1f);      // 바 배경 — 플랫 다크네이비
+        private static readonly Color ColorKeyBadgeBg    = new Color(0.10f, 0.13f, 0.19f, 1f);       // [E] 배지 배경
+        private static readonly Color ColorBtnHover      = new Color(0.16f, 0.21f, 0.30f, 1f);       // 버튼 호버 틴트
+        private static readonly Color ColorLoyaltyFill   = new Color(0.30f, 0.56f, 0.95f, 1f);       // 호감도 채움 (기존 블루 계열 유지)
+        private static readonly Color ColorAddictionFill = new Color(0.95f, 0.35f, 0.85f, 1f);       // 중독도 채움 (기존 마젠타 계열 유지)
+
+        // 국적색 (GuardSquadHotbar.GetNationColor 동일 값 — 동=빨강, 서=파랑, 남=초록, 북=보라, 기타=회색)
+        private static readonly Color ColorNationEast    = new Color(0.92f, 0.28f, 0.26f, 1f);
+        private static readonly Color ColorNationWest    = new Color(0.30f, 0.56f, 0.95f, 1f);
+        private static readonly Color ColorNationSouth   = new Color(0.30f, 0.78f, 0.40f, 1f);
+        private static readonly Color ColorNationNorth   = new Color(0.64f, 0.42f, 0.90f, 1f);
+        private static readonly Color ColorNationDefault = new Color(0.62f, 0.62f, 0.66f, 1f);
 
         private void Awake()
         {
@@ -179,60 +200,85 @@ namespace ProjectName.Systems
 
             EnsureStyles();
 
-            float panelW = 320f;
-            float panelH = 250f;
+            EnsureAvatarIcon(); // 0.5초 폴링 — 실제 3D 아이콘 재조회 (GuardSquadHotbar 동일 패턴)
+
+            // 패널: 기존(320x250)의 1.6배 확대 (≥1.5배 규격)
+            float panelW = 520f;
+            float panelH = 380f;
             float x = (Screen.width - panelW) / 2f;
             float y = Screen.height - panelH - 20f;
-            float cy = y + 10f;
 
-            GUI.Box(new Rect(x, y, panelW, panelH), "");
+            // 플랫 패널 — 회백 2px 테두리 + ColorPanelBg 단색 배경 (절차 Rect 패턴)
+            DrawFlatRect(x, y, panelW, panelH, ColorPanelBorder);
+            DrawFlatRect(x + 2f, y + 2f, panelW - 4f, panelH - 4f, ColorPanelBg);
+            // 하단 스카이블루 2px 타이틀 라인
+            DrawFlatRect(x + 2f, y + panelH - 4f, panelW - 4f, 2f, ColorAccent);
 
-            // 타이틀
+            // ===== 좌측 아바타 96px (실제 3D 아이콘 → 국적색 원형+이니셜 폴백) =====
+            Rect avatarRect = new Rect(x + 16f, y + 20f, 96f, 96f);
+            if (_avatarIcon != null)
+            {
+                GUI.DrawTexture(avatarRect, _avatarIcon, ScaleMode.ScaleToFit, true);
+            }
+            else
+            {
+                EnsureCircleTex();
+                Color prevColor = GUI.color;
+                GUI.color = GetNationColor(nation);
+                GUI.DrawTexture(avatarRect, _circleTex);
+                GUI.color = prevColor;
+                GUI.Label(avatarRect, GetInitial(guardName), _styleAvatarInitial);
+            }
+
+            // ===== 우측 정보 열 =====
+            float rx = x + 128f;             // 아바타 열(16+96+16) 우측 기준
+            float rw = panelW - 128f - 16f;  // 376
+            float barW = panelW * 0.7f;      // 체력바 너비 = 패널의 70%
+            float cy = y + 18f;
+
+            // 타이틀 [국가] 역할 Lv.N (흰색 24px)
             string roleStr = GuardStatusSystem.GetRoleName(_role);
-            GUI.Label(new Rect(x + 10, cy, panelW - 20, 24), $"⚔️ [{nation}] {roleStr} Lv.{level}", _styleTitle);
-            cy += 30f;
+            GUI.Label(new Rect(rx, cy, rw, 32f), $"[{nation}] {roleStr} Lv.{level}", _styleTitle);
+            cy += 44f;
 
-            GUI.Label(new Rect(x + 10, cy, LABEL_WIDTH, 20), "❤️ 체력:", _styleLabel);
+            // 체력바 (높이 14px — ColorBarBg 배경 + 스카이블루 채움, hpRatio 기존 로직)
             float hpRatio = _currentHP / _maxHP;
-            DrawBar(x + 10 + LABEL_WIDTH, cy, HP_BAR_WIDTH, 18, hpRatio, Color.green, Color.red);
-            GUI.Label(new Rect(x + 10 + LABEL_WIDTH + HP_BAR_WIDTH + 5, cy, 60, 20), $"{(int)(hpRatio * 100)}%", _styleValue);
-            cy += 24f;
+            cy = DrawStatBar(rx, cy, barW, "❤️ 체력", $"{(int)(hpRatio * 100)}%", hpRatio, ColorAccent);
 
-            GUI.Label(new Rect(x + 10, cy, LABEL_WIDTH, 20), "🤝 호감도:", _styleLabel);
-            DrawBar(x + 10 + LABEL_WIDTH, cy, HP_BAR_WIDTH, 18, _loyalty / 100f, Color.blue, Color.gray);
-            GUI.Label(new Rect(x + 10 + LABEL_WIDTH + HP_BAR_WIDTH + 5, cy, 60, 20), $"{(int)_loyalty}%", _styleValue);
-            cy += 24f;
+            // 호감도/중독도 바 (기존 표기 유지 — 팔레트 채움색 활용)
+            cy = DrawStatBar(rx, cy, barW, "🤝 호감도", $"{(int)_loyalty}%", _loyalty / 100f, ColorLoyaltyFill);
+            cy = DrawStatBar(rx, cy, barW, "💊 중독도", $"{(int)_addiction}%", _addiction / 100f, ColorAddictionFill);
 
-            GUI.Label(new Rect(x + 10, cy, LABEL_WIDTH, 20), "💊 중독도:", _styleLabel);
-            DrawBar(x + 10 + LABEL_WIDTH, cy, HP_BAR_WIDTH, 18, _addiction / 100f, Color.magenta, Color.gray);
-            GUI.Label(new Rect(x + 10 + LABEL_WIDTH + HP_BAR_WIDTH + 5, cy, 60, 20), $"{(int)_addiction}%", _styleValue);
-            cy += 30f;
+            // 하단 [E] 배지 (ColorKeyBadgeBg 배경 + "[E] 상호작용" 13px)
+            Rect badgeRect = new Rect(rx, cy + 6f, 160f, 30f);
+            DrawFlatRect(badgeRect.x, badgeRect.y, badgeRect.width, badgeRect.height, ColorKeyBadgeBg);
+            GUI.Label(badgeRect, "[E] 상호작용", _styleBadge);
 
             if (!string.IsNullOrEmpty(_statusMessage))
             {
-                GUI.Label(new Rect(x + 10, cy, panelW - 20, 20), _statusMessage, _styleMsg);
-                cy += 24f;
+                GUI.Label(new Rect(x + 16f, y + panelH - 76f, panelW - 32f, 20f), _statusMessage, _styleMsg);
             }
-            // 메뉴 버튼들
-            float btnW = (panelW - 50f) / 5f;
-            float btnY = y + panelH - 40f;
 
-            if (GUI.Button(new Rect(x + 8, btnY, btnW, 30), "🗣️ 말걸기")) OnTalk();
-            if (GUI.Button(new Rect(x + 8 + btnW + 4, btnY, btnW, 30), "🥩 음식주기"))
+            // 메뉴 버튼들
+            float btnW = (panelW - 32f - 24f) / 5f;
+            float btnY = y + panelH - 52f;
+
+            if (FlatButton(new Rect(x + 16f, btnY, btnW, 36f), "🗣️ 말걸기")) OnTalk();
+            if (FlatButton(new Rect(x + 16f + (btnW + 6f), btnY, btnW, 36f), "🥩 음식주기"))
             {
                 _selectionMode = SelectionMode.SelectingFood;
                 _invScrollPos = Vector2.zero;
             }
-            if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 2, btnY, btnW, 30), "💊 약주기"))
+            if (FlatButton(new Rect(x + 16f + (btnW + 6f) * 2f, btnY, btnW, 36f), "💊 약주기"))
             {
                 _selectionMode = SelectionMode.SelectingDrug;
                 _invScrollPos = Vector2.zero;
             }
-            if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 3, btnY, btnW, 30), "🤝 포섭"))
+            if (FlatButton(new Rect(x + 16f + (btnW + 6f) * 3f, btnY, btnW, 36f), "🤝 포섭"))
             {
                 OnRecruit();
             }
-            if (GUI.Button(new Rect(x + 8 + (btnW + 4) * 4, btnY, btnW, 30), "🔙 닫기")) _showInfo = false;
+            if (FlatButton(new Rect(x + 16f + (btnW + 6f) * 4f, btnY, btnW, 36f), "🔙 닫기")) _showInfo = false;
         }
 
         // ===== C9-11: 아이템 선택 팝업 =====
@@ -248,7 +294,7 @@ namespace ProjectName.Systems
             GUI.Box(new Rect(x, y, popupW, popupH), "");
 
             string title = _selectionMode == SelectionMode.SelectingFood ? "🥩 음식 선택" : "💊 약 선택";
-            GUI.Label(new Rect(x + 10, y + 10, popupW - 20, 24), title, _styleTitle);
+            GUI.Label(new Rect(x + 10, y + 10, popupW - 20, 32), title, _styleTitle);
 
             var items = GetInventoryItemsByMode();
             float listY = y + 40f;
@@ -347,7 +393,8 @@ namespace ProjectName.Systems
             }
         }
 
-        private void DrawBar(float x, float y, float width, float height, float ratio, Color fillColor, Color bgColor)
+        // ===== 플랫 렌더 헬퍼 (기존 절차 Rect 패턴 — 1px 흰색 텍스처 + GUI.color 틴트) =====
+        private static void DrawFlatRect(float x, float y, float w, float h, Color color)
         {
             if (_whitePixelTex == null)
             {
@@ -355,13 +402,125 @@ namespace ProjectName.Systems
                 _whitePixelTex.SetPixel(0, 0, Color.white);
                 _whitePixelTex.Apply();
             }
-
-            var prevColor = GUI.color;
-            GUI.color = bgColor;
-            GUI.DrawTexture(new Rect(x, y, width, height), _whitePixelTex);
-            GUI.color = fillColor;
-            GUI.DrawTexture(new Rect(x, y, width * Mathf.Clamp01(ratio), height), _whitePixelTex);
+            Color prevColor = GUI.color;
+            GUI.color = color;
+            GUI.DrawTexture(new Rect(x, y, w, h), _whitePixelTex);
             GUI.color = prevColor;
+        }
+
+        /// <summary>캡션+수치 라인과 14px 플랫 바(배경 ColorBarBg)를 그린다 — 다음 행 y 반환.</summary>
+        private float DrawStatBar(float bx, float by, float bw, string caption, string valueText, float ratio, Color fill)
+        {
+            GUI.Label(new Rect(bx, by, bw * 0.6f, 16f), caption, _styleLabel);
+            GUI.Label(new Rect(bx + bw - 64f, by, 64f, 16f), valueText, _styleValueRight);
+            DrawFlatRect(bx, by + 18f, bw, 14f, ColorBarBg);
+            DrawFlatRect(bx, by + 18f, bw * Mathf.Clamp01(ratio), 14f, fill);
+            return by + 46f;
+        }
+
+        /// <summary>국적색 원형 아바타 폴백용 96px 원형 텍스처 (지연 1회 생성 — GuardSquadHotbar 원형 스프라이트 동일 수식).</summary>
+        private static void EnsureCircleTex()
+        {
+            if (_circleTex != null) return;
+            const int size = 96;
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            tex.wrapMode = TextureWrapMode.Clamp;
+            float center = size * 0.5f;
+            float radius = size * 0.5f - 1f; // 1px 여백 (클램프 블리딩 방지)
+            for (int py = 0; py < size; py++)
+            {
+                for (int px = 0; px < size; px++)
+                {
+                    float dx = px + 0.5f - center;
+                    float dy = py + 0.5f - center;
+                    float dist = Mathf.Sqrt(dx * dx + dy * dy);
+                    float alpha = Mathf.Clamp01(radius - dist + 0.5f); // 1px 안티앨리어싱
+                    tex.SetPixel(px, py, new Color(1f, 1f, 1f, alpha));
+                }
+            }
+            tex.Apply();
+            _circleTex = tex;
+        }
+
+        // ===== GuardIconRenderer 리플렉션 캐시 (asmdef 경계 — Systems는 UI 직접 참조 불가, Core→Systems TryGetBedSpawnPoint 선례) =====
+        private static System.Type _guardIconRendererType;
+        private static System.Reflection.MethodInfo _getOrCreateIconMethod;
+
+        /// <summary>
+        /// GuardIconRenderer.GetOrCreateIcon(g)를 리플렉션으로 호출한다 (asmdef 경계 — 정규화 직접 참조 대체).
+        /// Type/MethodInfo는 static 캐시로 GC 최소화. 실패 시 null (국적색 원형 폴백).
+        /// </summary>
+        private static Texture2D TryGetGuardIcon(GuardPlaceholder g)
+        {
+            try
+            {
+                if (_getOrCreateIconMethod == null)
+                {
+                    _guardIconRendererType = System.Type.GetType("ProjectName.UI.GuardIconRenderer, ProjectName.UI");
+                    if (_guardIconRendererType == null) return null;
+                    _getOrCreateIconMethod = _guardIconRendererType.GetMethod("GetOrCreateIcon",
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                    if (_getOrCreateIconMethod == null) return null;
+                }
+                return _getOrCreateIconMethod.Invoke(null, new object[] { g }) as Texture2D;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[GuardPlaceholder] GuardIconRenderer 리플렉션 호출 실패: " + e.Message);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 실제 3D 아이콘을 0.5초 폴링으로 재조회 (GuardSquadHotbar 동일 패턴).
+        /// GetOrCreateIcon은 캐시 히트 시 즉시 반환, 미베이크 시 큐 등록 후 null.
+        /// </summary>
+        private void EnsureAvatarIcon()
+        {
+            float now = Time.realtimeSinceStartup;
+            if (now < _avatarNextPoll) return;
+            _avatarNextPoll = now + 0.5f;
+            try
+            {
+                _avatarIcon = TryGetGuardIcon(this);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[GuardPlaceholder] 실제 아이콘 조회 실패 — 국적색 원형 폴백: " + e.Message);
+                _avatarIcon = null;
+            }
+        }
+
+        /// <summary>국적 → 아바타 색상 (동=빨강, 서=파랑, 남=초록, 북=보라, 황제국/무소속/기타=회색 — GuardSquadHotbar 동일).</summary>
+        private static Color GetNationColor(string nationName)
+        {
+            if (string.IsNullOrEmpty(nationName)) return ColorNationDefault;
+            if (nationName.Contains("동")) return ColorNationEast;
+            if (nationName.Contains("서")) return ColorNationWest;
+            if (nationName.Contains("남")) return ColorNationSouth;
+            if (nationName.Contains("북")) return ColorNationNorth;
+            return ColorNationDefault;
+        }
+
+        /// <summary>이름 첫 글자(이니셜) — 서러게이트 쌍은 2 코드유닛으로 안전 절단, 빈 이름은 "?".</summary>
+        private static string GetInitial(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return "?";
+            int len = (char.IsSurrogate(name[0]) && name.Length >= 2) ? 2 : 1;
+            return name.Substring(0, len);
+        }
+
+        /// <summary>플랫 버튼 — ColorKeyBadgeBg 배경 + 회백 1px 테두리 + 호버 틴트 (클릭 로직은 호출부 기존 그대로).</summary>
+        private bool FlatButton(Rect r, string text)
+        {
+            bool hovered = r.Contains(Event.current.mousePosition);
+            DrawFlatRect(r.x, r.y, r.width, r.height, hovered ? ColorBtnHover : ColorKeyBadgeBg);
+            DrawFlatRect(r.x, r.y, r.width, 1f, ColorPanelBorder);
+            DrawFlatRect(r.x, r.y + r.height - 1f, r.width, 1f, ColorPanelBorder);
+            DrawFlatRect(r.x, r.y, 1f, r.height, ColorPanelBorder);
+            DrawFlatRect(r.x + r.width - 1f, r.y, 1f, r.height, ColorPanelBorder);
+            GUI.Label(r, text, _styleBtn);
+            return GUI.Button(r, GUIContent.none, GUIStyle.none);
         }
 
         private void OnTalk()
@@ -390,18 +549,27 @@ namespace ProjectName.Systems
             }
         }
 
-        private GUIStyle _styleTitle;
-        private GUIStyle _styleLabel;
-        private GUIStyle _styleValue;
-        private GUIStyle _styleMsg;
+        // ===== GUI 스타일 캐시 (static 1회 생성 — OnGUI 내 new 금지) =====
+        private static GUIStyle _styleTitle;         // 타이틀 (흰색 24px)
+        private static GUIStyle _styleLabel;         // 바 캡션 (14px)
+        private static GUIStyle _styleValue;         // 수치 (14px 볼드)
+        private static GUIStyle _styleValueRight;    // 수치 (우측정렬)
+        private static GUIStyle _styleMsg;           // 상태 메시지 (13px 이탤릭)
+        private static GUIStyle _styleBadge;         // [E] 배지 (13px)
+        private static GUIStyle _styleBtn;           // 메뉴 버튼 (14px)
+        private static GUIStyle _styleAvatarInitial; // 아바타 이니셜 (34px)
 
-        private void EnsureStyles()
+        private static void EnsureStyles()
         {
             if (_styleTitle != null) return;
-            _styleTitle = new GUIStyle(GUI.skin.label) { fontSize = 16, fontStyle = FontStyle.Bold, normal = { textColor = Color.white } };
-            _styleLabel = new GUIStyle(GUI.skin.label) { fontSize = 13, normal = { textColor = Color.white } };
-            _styleValue = new GUIStyle(GUI.skin.label) { fontSize = 13, fontStyle = FontStyle.Bold, normal = { textColor = Color.yellow } };
-            _styleMsg = new GUIStyle(GUI.skin.label) { fontSize = 12, fontStyle = FontStyle.Italic, normal = { textColor = Color.cyan } };
+            _styleTitle = new GUIStyle(GUI.skin.label) { fontSize = 24, fontStyle = FontStyle.Bold, normal = { textColor = Color.white } };
+            _styleLabel = new GUIStyle(GUI.skin.label) { fontSize = 14, normal = { textColor = Color.white } };
+            _styleValue = new GUIStyle(GUI.skin.label) { fontSize = 14, fontStyle = FontStyle.Bold, normal = { textColor = Color.yellow } };
+            _styleValueRight = new GUIStyle(GUI.skin.label) { fontSize = 14, fontStyle = FontStyle.Bold, alignment = TextAnchor.UpperRight, normal = { textColor = Color.yellow } };
+            _styleMsg = new GUIStyle(GUI.skin.label) { fontSize = 13, fontStyle = FontStyle.Italic, normal = { textColor = Color.cyan } };
+            _styleBadge = new GUIStyle(GUI.skin.label) { fontSize = 13, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter, normal = { textColor = Color.white } };
+            _styleBtn = new GUIStyle(GUI.skin.label) { fontSize = 14, alignment = TextAnchor.MiddleCenter, normal = { textColor = Color.white } };
+            _styleAvatarInitial = new GUIStyle(GUI.skin.label) { fontSize = 34, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter, normal = { textColor = Color.white } };
         }
 
         // ===== IDamageable =====

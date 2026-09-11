@@ -1784,12 +1784,7 @@ namespace ProjectName.UI
             float cy = dy + TITLE_BAR_HEIGHT + 16f;
             if (_selectedItemData == null)
             {
-                // 2026-09-11(4): 창고 컨텍스트 안내 문구 분기
-                GUI.Label(new Rect(dx + 16f, cy, WINDOW_WIDTH - 32f, 40f),
-                    _contextMode == ContextMode.Warehouse
-                        ? "좌클릭: 선택 / 드래그: 창고 내 이동\n우클릭: 인벤토리로 1개 이동"
-                        : "좌클릭: 아이템 선택 / 드래그: 하단 핫바 지정\n우클릭: 장비 장착",
-                    _styleItemName);
+                // 2026-09-11(7): "좌클릭/드래그/우클릭" 안내 문구 폐지 (유저 요청 — 빈 슬롯 힌트 텍스트 제거)
                 // 2026-09-11(5): 반투명 자리표시 아이콘 + 선택 안내
                 var phColor = GUI.color;
                 GUI.color = new Color(1f, 1f, 1f, 0.15f);
@@ -1841,7 +1836,9 @@ namespace ProjectName.UI
         /// 2026-09-11(3): 드래그 고스트 + MouseUp 드롭 판정 — ItemDragContext 공유 컨텍스트 연동.
         /// - 인벤 소스: MouseDrag에서 Begin → MouseUp에 ①창고 슬롯(보관) ②다른 인벤 슬롯(스왑) ③핫바(등록),
         ///   그 외 영역은 드롭 실패로 Cancel (변경 없음)
-        /// - 창고 소스: 창고 창에서 시작한 드래그의 드롭 판정을 인벤 창이 대행 (창고→인벤 이동 / 창고 내 스왑)
+        /// - 장비창 소스(2026-09-11(7)): EquipmentWindow 임베디드 슬롯에서 Begin(Source.Inventory) →
+        ///   MouseUp에 핫바 드롭 = 슬롯 지정(장착 유지), 그 외 Cancel
+        /// - 창고 소스: 창고 창에서 시작한 드래그의 드롭 판정을 인벤 창이 대행 (창고→인벤 이동 / 창고 내 스왑 / 핫바 지정)
         /// - 고스트는 ItemDragContext.DrawGhost()가 프레임당 1회 렌더
         /// </summary>
         private void ProcessDrag()
@@ -1854,7 +1851,14 @@ namespace ProjectName.UI
                 else if (Event.current.type == EventType.MouseUp)
                 {
                     Vector2 p = Event.current.mousePosition;
-                    if (_contextMode == ContextMode.Warehouse)
+                    // ① 핫바 위 드롭 → 슬롯 지정 (2026-09-11(7): 창고 소스 — 아이템은 창고에 유지, 지정만)
+                    int hbSlot = HotbarUI.GetSlotIndexAtScreenPoint(Input.mousePosition);
+                    if (hbSlot >= 0 && ItemDragContext.Item != null)
+                    {
+                        HotbarUI.AssignItem(hbSlot, ItemDragContext.Item.id, ItemDragContext.Item.displayName);
+                        Debug.Log($"[InventoryWindow] 핫바 슬롯 {hbSlot + 1}에 '{ItemDragContext.Item.displayName}' 지정 (창고 소스 — 보관 유지)");
+                    }
+                    else if (_contextMode == ContextMode.Warehouse)
                     {
                         // 2026-09-11(4): 창고 컨텍스트 — 그리드가 곧 창고 뷰이므로 그리드 드롭 = 창고 내 스왑.
                         // (기존 "그리드 드롭 = 인벤 이동"은 그리드가 플레이어 인벤일 때만 성립)
@@ -1915,6 +1919,30 @@ namespace ProjectName.UI
                         }
                     }
                     // 그 외 영역 = 드롭 실패 → Cancel (변경 없음)
+                    ItemDragContext.Cancel();
+                    Event.current.Use();
+                }
+                ItemDragContext.DrawGhost();
+                return;
+            }
+
+            // === 장비창 소스 드래그: EquipmentWindow 임베디드 슬롯 MouseDown에서 Begin(Source.Inventory 재사용) ===
+            // (2026-09-11(7): 인벤 그리드 소유 드래그(_dragItemData 설정)와 구분 — 둘 다 무효일 때만 이 분기가 판정)
+            if (ItemDragContext.Active && ItemDragContext.SourceType == ItemDragContext.Source.Inventory
+                && _dragItemData == null && !_dragActive)
+            {
+                if (Event.current.type == EventType.MouseDrag)
+                    Event.current.Use();
+                else if (Event.current.type == EventType.MouseUp)
+                {
+                    // ① 핫바 위 드롭 → 슬롯 지정 (장착 상태 유지 — 지정만, 장비 해제 없음)
+                    int hbSlot = HotbarUI.GetSlotIndexAtScreenPoint(Input.mousePosition);
+                    if (hbSlot >= 0 && ItemDragContext.Item != null)
+                    {
+                        HotbarUI.AssignItem(hbSlot, ItemDragContext.Item.id, ItemDragContext.Item.displayName);
+                        Debug.Log($"[InventoryWindow] 핫바 슬롯 {hbSlot + 1}에 '{ItemDragContext.Item.displayName}' 지정 (장비창 소스 — 장착 유지)");
+                    }
+                    // ② 그 외 영역 = 드롭 실패 → Cancel (변경 없음)
                     ItemDragContext.Cancel();
                     Event.current.Use();
                 }
@@ -2027,32 +2055,19 @@ namespace ProjectName.UI
 
             if (item.category == PlayerInventory.ItemCategory.Weapon)
             {
-                if (_weaponIdMap.TryGetValue(item.id, out var w))
+                // 2026-09-11(7): id 해석 통합 — 신규 full-id(weapon_{type}_{tier}, dagger 포함)는
+                // 전체 id를 WeaponEquipManager에 그대로 전달(매핑 테이블이 GLB명 결정).
+                if (!TryResolveWeaponEquip(item.id, out string equipId, out WeaponType wType))
                 {
-                    ProjectName.Systems.WeaponEquipManager.Equip(w.equipId, playerT, w.type);
-                    Debug.Log($"[InventoryWindow] 무기 장착: {item.displayName}");
+                    Debug.Log($"[Equip] 우클릭 장착 {item.id} → 결과 실패(사유: 무기 id 해석 실패)");
+                    return;
                 }
-                else
-                {
-                    // 2026-09-11(5): (b) 매핑 누락 시 id 파싱 폴백 — weapon_sword_steel 형태 유추
-                    string s = (item.id ?? string.Empty).ToLowerInvariant();
-                    WeaponType type = s.Contains("bow") ? WeaponType.Bow
-                                    : s.Contains("spear") ? WeaponType.Spear
-                                    : WeaponType.Sword;
-                    string equipId = null;
-                    var parts = s.Split('_');
-                    foreach (var p in parts)
-                    {
-                        if (p == "weapon" || p == "sword" || p == "bow" || p == "spear") continue;
-                        if (p == "steel" || p == "iron" || p == "crystal" || p == "wood") { equipId = p; break; }
-                    }
-                    if (string.IsNullOrEmpty(equipId))
-                        equipId = parts.Length > 1 ? parts[parts.Length - 1] : s;
-
-                    Debug.Log($"[InventoryWindow] 무기 매핑 폴백: {item.id} → equipId={equipId}, type={type}");
-                    ProjectName.Systems.WeaponEquipManager.Equip(equipId, playerT, type);
-                    Debug.Log($"[InventoryWindow] 무기 장착(폴백): {item.displayName} ({equipId}/{type})");
-                }
+                ProjectName.Systems.WeaponEquipManager.Equip(equipId, playerT, wType);
+                // 결과 판정: 매니저는 모델/손본 로드 실패 시 CurrentId를 세팅하지 않음 → 성공 = CurrentId 일치
+                bool ok = ProjectName.Systems.WeaponEquipManager.CurrentId == equipId;
+                Debug.Log(ok
+                    ? $"[Equip] 우클릭 장착 {item.id} → 결과 성공 (equipId={equipId}, type={wType})"
+                    : $"[Equip] 우클릭 장착 {item.id} → 결과 실패(사유: 모델/손본 로드 실패 — equipId={equipId}, 매니저 로그 참조)");
                 return;
             }
 
@@ -2061,26 +2076,69 @@ namespace ProjectName.UI
                 var em = ProjectName.Systems.EquipmentManager.Instance;
                 if (em == null)
                 {
-                    Debug.LogWarning("[InventoryWindow] 방어구 장착 실패 — EquipmentManager 없음");
+                    Debug.Log($"[Equip] 우클릭 장착 {item.id} → 결과 실패(사유: EquipmentManager 없음)");
                     return;
                 }
                 var equipSlot = MapArmorSlot(item.id);
                 bool equipped = em.EquipItem(slot, equipSlot);
+                // 2026-09-11(7): 결정적 결과 로그 1줄 — 우클릭 장착 성공/실패와 사유
+                Debug.Log(equipped
+                    ? $"[Equip] 우클릭 장착 {item.id} → 결과 성공 ({equipSlot}, 인벤에서 1개 제거됨)"
+                    : $"[Equip] 우클릭 장착 {item.id} → 결과 실패(사유: 기존 장비 해제 실패 or 인벤 가득 — {equipSlot})");
                 if (equipped)
                 {
-                    Debug.Log($"[InventoryWindow] 방어구 장착 성공: {item.displayName} → {equipSlot}");
-                    // (c) 장착 직후 갱신 — 오른쪽 구획 장비창은 GetSlotData 실시간 조회라 자동 반영되지만,
+                    // 장착 직후 갱신 — 오른쪽 구획 장비창은 GetSlotData 실시간 조회라 자동 반영되지만,
                     // 인벤 그리드(수량/슬롯)를 즉시 동기화
                     RefreshInventory();
-                }
-                else
-                {
-                    Debug.LogWarning($"[InventoryWindow] 방어구 장착 실패: {item.displayName} → {equipSlot}");
                 }
                 return;
             }
 
-            Debug.Log($"[InventoryWindow] 장착 불가 카테고리: {item.category}");
+            Debug.Log($"[Equip] 우클릭 장착 {item.id} → 결과 실패(사유: 장착 불가 카테고리 {item.category})");
+        }
+
+        /// <summary>
+        /// 2026-09-11(7): 무기 id → (equipId, WeaponType) 해석.
+        /// - 신규 full-id(weapon_{type}_{tier}): dagger 토큰을 티어로 오인하던 기존 폴백이 원인 —
+        ///   "weapon_dagger_wood" → equipId="dagger" → 매니저가 없는 dagger_sword GLB 로드 실패.
+        ///   수리: 전체 id를 그대로 반환 → WeaponEquipManager._itemIdToGlb 매핑(wood_dagger 등)이 GLB 결정,
+        ///   WeaponData.GetTierMultiplier도 full-id에서 티어 토큰을 찾음.
+        /// - 구형 짧은 id(steel_sword 등): 기존 _weaponIdMap 유지, 미등록 시 티어 토큰 폴백.
+        /// </summary>
+        private static bool TryResolveWeaponEquip(string itemId, out string equipId, out WeaponType type)
+        {
+            if (_weaponIdMap.TryGetValue(itemId, out var w))
+            {
+                equipId = w.equipId;
+                type = w.type;
+                return true;
+            }
+            string s = (itemId ?? string.Empty).ToLowerInvariant();
+            var parts = s.Split('_');
+            if (parts.Length == 3 && parts[0] == "weapon")
+            {
+                switch (parts[1])
+                {
+                    case "bow":   type = WeaponType.Bow;   break;
+                    case "spear": type = WeaponType.Spear; break;
+                    default:      type = WeaponType.Sword; break;   // sword/dagger 등 근접 → Sword
+                }
+                equipId = s;
+                return true;
+            }
+            // 기존 폴백: 티어 토큰 추출 (예: iron_sword → iron)
+            type = s.Contains("bow") ? WeaponType.Bow
+                 : s.Contains("spear") ? WeaponType.Spear
+                 : WeaponType.Sword;
+            equipId = null;
+            foreach (var p in parts)
+            {
+                if (p == "weapon" || p == "sword" || p == "bow" || p == "spear" || p == "dagger") continue;
+                if (p == "steel" || p == "iron" || p == "crystal" || p == "wood" || p == "stone") { equipId = p; break; }
+            }
+            if (string.IsNullOrEmpty(equipId) && parts.Length > 1)
+                equipId = parts[parts.Length - 1];
+            return !string.IsNullOrEmpty(equipId);
         }
 
         private static ProjectName.Systems.EquipmentManager.EquipmentSlot MapArmorSlot(string id)

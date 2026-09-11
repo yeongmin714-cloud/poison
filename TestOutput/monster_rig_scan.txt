@@ -1,0 +1,31 @@
+=== Phase 1: 몬스터 리깅 판별 진단 (실제 프리팹 로드 기반) ===
+Unity=6000.4.10f1 Time=2026-09-11 22:23:46
+ROW|id=rabbit|glb=Rabbit_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=30|rigSig=BoneNumbered|sigHits=numbered=29/30|humanoid=X|clips=0[-]
+ROW|id=wolf|glb=Wolf_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=27|rigSig=BoneNumbered|sigHits=numbered=26/27|humanoid=X|clips=0[-]
+ROW|id=boar|glb=Boar_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=18|rigSig=BoneNumbered|sigHits=numbered=17/18|humanoid=X|clips=0[-]
+ROW|id=deer|glb=Deer_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=24|rigSig=BoneNumbered|sigHits=numbered=23/24|humanoid=X|clips=0[-]
+ROW|id=poison_snake|glb=Snake_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=14|rigSig=BoneNumbered|sigHits=numbered=13/14|humanoid=X|clips=0[-]
+ROW|id=bat|glb=Bat_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=21|rigSig=BoneNumbered|sigHits=numbered=20/21|humanoid=X|clips=0[-]
+ROW|id=giant_rat|glb=Big_Mouse_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=23|rigSig=BoneNumbered|sigHits=numbered=22/23|humanoid=X|clips=0[-]
+ROW|id=crow|glb=Crow_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=20|rigSig=BoneNumbered|sigHits=numbered=19/20|humanoid=X|clips=0[-]
+ROW|id=slime|glb=Slime_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=23|rigSig=BoneNumbered|sigHits=numbered=22/23|humanoid=X|clips=0[-]
+ROW|id=stone_golem|glb=Golem_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=28|rigSig=HumanoidSkeleton|sigHits=spine,shoulder,upperArm,forearm,hand,thigh,shin,foot|humanoid=O|clips=0[-]
+ROW|id=fire_lizard|glb=Fire_Lizard_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=41|rigSig=BoneNumbered|sigHits=numbered=40/41|humanoid=X|clips=0[-]
+ROW|id=electric_porcupine|glb=Electric_Spine_Hedgehog_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=26|rigSig=BoneNumbered|sigHits=numbered=25/26|humanoid=X|clips=0[-]
+ROW|id=swamp_croc|glb=Swamp_Alligator_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=34|rigSig=BoneNumbered|sigHits=numbered=33/34|humanoid=X|clips=0[-]
+ROW|id=forest_spirit|glb=Wooden Forest Spirit|loaderType=Static(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=0|rigSig=기타|sigHits=|humanoid=X|clips=0[-]
+ROW|id=wild_troll|glb=Wild_Troll_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=29|rigSig=HumanoidSkeleton|sigHits=spine,shoulder,upperArm,forearm,hand,thigh,shin,foot|humanoid=O|clips=0[-]
+ROW|id=ogre|glb=Swamp_Ogre_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=23|rigSig=BoneNumbered|sigHits=numbered=22/23|humanoid=X|clips=0[-]
+ROW|id=banshee|glb=Banshee_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=28|rigSig=HumanoidSkeleton|sigHits=spine,shoulder,upperArm,forearm,hand,thigh,shin,foot|humanoid=O|clips=0[-]
+ROW|id=griffin|glb=Griffon_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=23|rigSig=BoneNumbered|sigHits=numbered=22/23|humanoid=X|clips=0[-]
+ROW|id=minotaur|glb=Minotaur_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=43|rigSig=BoneNumbered|sigHits=numbered=42/43|humanoid=X|clips=0[-]
+ROW|id=manticore|glb=Manticore_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=36|rigSig=BoneNumbered|sigHits=numbered=35/36|humanoid=X|clips=0[-]
+ROW|id=salamander|glb=Salamander_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=38|rigSig=BoneNumbered|sigHits=numbered=37/38|humanoid=X|clips=0[-]
+ROW|id=shadow_assassin|glb=Shadow_Assassin_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=28|rigSig=HumanoidSkeleton|sigHits=spine,shoulder,upperArm,forearm,hand,thigh,shin,foot|humanoid=O|clips=0[-]
+=== 캘리브레이션 (판별기 정합성 검증) ===
+ROW|id=soldier_fbx(병사 Humanoid FBX)|glb=fbx/soldier_lv1-20_rigged|loaderType=RiggedHumanoid(True)|animator=OK|avatar=soldier_lv1-20_riggedAvatar(valid=True,human=True)|animIsHuman=True|ctrl=NULL|bones=29|rigSig=HumanoidSkeleton|sigHits=spine,shoulder,upperArm,forearm,hand,thigh,shin,foot|humanoid=O|clips=0[-]
+ROW|id=player_glb(비휴머노이드 실증)|glb=Player_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=28|rigSig=HumanoidSkeleton|sigHits=spine,shoulder,upperArm,forearm,hand,thigh,shin,foot|humanoid=O|clips=0[-]
+ROW|id=player_fbx(Humanoid FBX)|glb=fbx/Player_Rigged_Heat|loaderType=RiggedHumanoid(True)|animator=OK|avatar=Player_Rigged_HeatAvatar(valid=True,human=True)|animIsHuman=True|ctrl=NULL|bones=29|rigSig=기타|sigHits=spine|humanoid=O|clips=0[-]
+ROW|id=npc_lord_glb|glb=Npc_Lord_Rigged|loaderType=RiggedMonster(True)|animator=NULL|avatar=NULL|animIsHuman=False|ctrl=NULL|bones=28|rigSig=HumanoidSkeleton|sigHits=spine,shoulder,upperArm,forearm,hand,thigh,shin,foot|humanoid=O|clips=0[-]
+SUMMARY humanoid=4/22 ids=stone_golem,wild_troll,banshee,shadow_assassin
+SCAN_DONE

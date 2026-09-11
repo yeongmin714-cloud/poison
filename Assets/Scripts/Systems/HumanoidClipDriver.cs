@@ -680,6 +680,8 @@ namespace ProjectName.Systems
         /// 2026-09-11 위치 규격 변경: 플레이어 정면 스윙 영역 고정 — pos = 플레이어 + forward*0.9 + up*1.2.
         /// (기존엔 dir 실측 접선 방향으로 배치해 3타 dir의 후방 성분(yaw 143.6°) 때문에 VFX가 뒤로 치우침.
         ///  위치는 항상 정면 고정, dir/roll은 실측 궤적 방향 유지.)
+        /// [2026-09-11 전방 반구 클램프] dir은 <see cref="ComboStageDirection"/> → <see cref="ClampForwardHemisphere"/>를
+        /// 경유해 수평 |yaw|≤90°(전방 반구)가 강제된다 — 뒤방향 스윙 금지(사용자 요구: 항상 앞방향).
         /// 스윙 방향은 2026-09-11 WeaponSwingDirectionAnalyzer 실측값(1타 좌전방 -58°, 2타 수직 상승 pitch 78°, 3타 우후방 사선 143.6°) 기반.
         /// try-catch 감싸기: FX 실패가 전투를 절대 방해하지 않게 함 (프로젝트 관례).
         /// </summary>
@@ -707,18 +709,53 @@ namespace ProjectName.Systems
         /// 스테이지별 스윙 방향(튜닝 상수 — 2026-09-11 WeaponSwingDirectionAnalyzer 실측(Heat 리그 RightHand 리타깃) 기반).
         /// 1타 좌전방 수평(yaw -58°, pitch 1.3°), 2타 수직 상승 접선(yaw 63.2°, pitch 78° — 수평 성분만 dir로, 수직 궤적은 roll로),
         /// 3타 우후방 상향 사선(yaw 143.6°, pitch 28.7°). 스윙/크로스 공용.
+        /// [2026-09-11 전방 반구 클램프] 3타 실측 yaw 143.6°는 후방 성분을 포함해 슬래시 아크가 플레이어 뒤에
+        /// 발생하는 사용자 실측 증상의 원인이었다. 모든 스테이지 결과를 <see cref="ClampForwardHemisphere"/>로
+        /// 전방 반구(수평 |yaw|≤90°)로 강제한다 — 항상 앞방향, 뒤방향 스윙 금지(후방 성분은 yaw 미러로 전방 반전,
+        /// 수직 성분은 유지).
         /// </summary>
         private static Vector3 ComboStageDirection(int stage, Transform t)
         {
+            Vector3 dir;
             switch (stage)
             {
                 case 2:
-                    return Quaternion.Euler(0f, 63.2f, 0f) * t.forward;     // 2타: 실측 수직 상승 접선(y=0.98) — 수평 성분만 dir로, 수직 궤적은 roll -90으로
+                    dir = Quaternion.Euler(0f, 63.2f, 0f) * t.forward;      // 2타: 실측 수직 상승 접선(y=0.98) — 수평 성분만 dir로, 수직 궤적은 roll -90으로
+                    break;
                 case 3:
-                    return Quaternion.Euler(28.7f, 143.6f, 0f) * t.forward; // 3타: 실측 우후방 상향 사선
+                    dir = Quaternion.Euler(28.7f, 143.6f, 0f) * t.forward;  // 3타: 실측 우후방 상향 사선(후방 성분 → 아래 클램프에서 전방 미러)
+                    break;
                 default:
-                    return Quaternion.Euler(1.3f, -58f, 0f) * t.forward;    // 1타: 실측 좌전방 수평
+                    dir = Quaternion.Euler(1.3f, -58f, 0f) * t.forward;     // 1타: 실측 좌전방 수평
+                    break;
             }
+            return ClampForwardHemisphere(dir, t, stage);
+        }
+
+        /// <summary>
+        /// [2026-09-11] 스윙 방향 전방 반구 클램프 — 뒤방향 스윙 금지(스윙 FX는 항상 앞방향).
+        /// dir의 수평 성분이 플레이어 forward 뒤쪽(dot(dir.xz, forward.xz) &lt; 0, 즉 수평 |yaw| &gt; 90°)이면
+        /// yaw를 전방측으로 미러(θ → 180°−θ: 전방 성분 부호 반전, 측면 성분 유지)하고 수직 성분(dir.y)은 그대로 유지한다.
+        /// → 모든 스테이지에서 수평 |yaw| ≤ 90°(전방 반구) 보장. 이미 전방이면 무변경·무로그.
+        /// FireComboSlash(스윙, ComboStageDirection 경유)와 FireComboCross(크로스, 히트 지점 dir)가
+        /// 모두 이 헬퍼를 경유하므로 스윙/크로스 VFX 전부에 공용 적용된다.
+        /// </summary>
+        private static Vector3 ClampForwardHemisphere(Vector3 dir, Transform t, int stage)
+        {
+            Vector3 fwdFlat = new Vector3(t.forward.x, 0f, t.forward.z);
+            if (fwdFlat.sqrMagnitude < 0.000001f) return dir;   // 플레이어 수직 응시 등 퇴화 — 수평 기준 판정 불가, 원본 유지
+            fwdFlat.Normalize();
+            Vector3 dirFlat = new Vector3(dir.x, 0f, dir.z);
+            if (dirFlat.sqrMagnitude < 0.000001f) return dir;   // 수직 성분만 존재 — 후방 성분 없음, 클램프 불필요
+            float fwdDot = Vector3.Dot(dirFlat, fwdFlat);
+            if (fwdDot >= 0f) return dir;                        // 이미 전방 반구(수평 |yaw| ≤ 90°) — 무변경
+
+            // 후방 → 전방 미러: 전방 성분(음수)만 부호 반전, 측면 성분 유지 = 수평 yaw θ → 180°−θ
+            Vector3 mirroredFlat = dirFlat - 2f * fwdDot * fwdFlat;
+            float yawBefore = Vector3.SignedAngle(fwdFlat, dirFlat, Vector3.up);
+            float yawAfter = Vector3.SignedAngle(fwdFlat, mirroredFlat, Vector3.up);
+            Debug.Log($"[Combo] 후방 스윙 → 전방 미러 클램프 (stage={stage}, 수평 yaw {yawBefore:F1}°→{yawAfter:F1}°, |yaw|≤90° 강제)");
+            return new Vector3(mirroredFlat.x, dir.y, mirroredFlat.z).normalized;
         }
 
         /// <summary>
@@ -743,6 +780,7 @@ namespace ProjectName.Systems
                 Vector3 head = t.position + Vector3.up * 1.5f;                       // 플레이어 머리 기준점
                 Vector3 dir = PlayerCombat.LastHitPoint - head;
                 dir = dir.sqrMagnitude > 0.000001f ? dir.normalized : t.forward;     // 히트 지점==머리 등 퇴화 방어
+                dir = ClampForwardHemisphere(dir, t, stage);                         // [2026-09-11] 스윙/크로스 공용 전방 반구 클램프 — 뒤방향 스윙 금지
                 Vector3 pos = PlayerCombat.LastHitPoint;                             // 실제 적중 대상 지점에 발화
                 SlashVFXRunner.PlayCross(pos, dir);
                 Debug.Log($"[Combo] 크로스 FX stage={stage} → 적중 지점 발화 pos={pos:F2}");

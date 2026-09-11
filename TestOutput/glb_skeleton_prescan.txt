@@ -1,0 +1,45 @@
+=== GLB 스켈레톤 사전 진단 (GLB JSON 직접 파싱) ===
+ROW|id=rabbit|glb=Rabbit_Rigged.glb|nodes=31|joints=29|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[rabbit]: bone_0 | bone_1 | bone_2 | bone_3 | bone_12 | bone_13 | bone_14 | bone_15 | bone_16 | bone_17 | bone_18 | bone_19 | bone_4 | bone_5 | bone_6 | bone_7 | bone_8 | bone_9 | bone_10 | bone_11 | bone_20 | bone_21 | bone_22 | bone_23 | bone_24 | bone_25
+ROW|id=wolf|glb=Wolf_Rigged.glb|nodes=28|joints=26|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[wolf]: bone_0 | bone_1 | bone_2 | bone_3 | bone_4 | bone_5 | bone_10 | bone_11 | bone_6 | bone_7 | bone_8 | bone_9 | bone_12 | bone_13 | bone_14 | bone_15 | bone_16 | bone_17 | bone_18 | bone_19 | bone_20 | bone_21 | bone_22 | bone_23 | bone_24 | bone_25
+ROW|id=boar|glb=Boar_Rigged.glb|nodes=19|joints=17|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[boar]: bone_0 | bone_1 | bone_2 | bone_11 | bone_12 | bone_13 | bone_14 | bone_15 | bone_16 | bone_3 | bone_4 | bone_5 | bone_6 | bone_7 | bone_8 | bone_9 | bone_10
+ROW|id=deer|glb=Deer_Rigged.glb|nodes=25|joints=23|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[deer]: bone_0 | bone_1 | bone_2 | bone_10 | bone_11 | bone_12 | bone_13 | bone_14 | bone_15 | bone_3 | bone_4 | bone_5 | bone_6 | bone_7 | bone_8 | bone_9 | bone_16 | bone_17 | bone_18 | bone_19 | bone_20 | bone_21 | bone_22
+ROW|id=poison_snake|glb=Snake_Rigged.glb|nodes=15|joints=13|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[poison_snake]: bone_0 | bone_1 | bone_2 | bone_3 | bone_4 | bone_5 | bone_6 | bone_7 | bone_8 | bone_11 | bone_12 | bone_9 | bone_10
+ROW|id=bat|glb=Bat_Rigged.glb|nodes=22|joints=20|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[bat]: bone_0 | bone_1 | bone_10 | bone_11 | bone_12 | bone_13 | bone_2 | bone_3 | bone_4 | bone_5 | bone_6 | bone_7 | bone_8 | bone_9 | bone_14 | bone_15 | bone_16 | bone_17 | bone_18 | bone_19
+ROW|id=giant_rat|glb=Big_Mouse_Rigged.glb|nodes=24|joints=22|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[giant_rat]: bone_0 | bone_1 | bone_2 | bone_3 | bone_4 | bone_5 | bone_6 | bone_7 | bone_8 | bone_9 | bone_10 | bone_11 | bone_12 | bone_13 | bone_14 | bone_15 | bone_16 | bone_17 | bone_18 | bone_19 | bone_20 | neutral_bone
+ROW|id=crow|glb=Crow_Rigged.glb|nodes=21|joints=19|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[crow]: bone_0 | bone_1 | bone_2 | bone_3 | bone_4 | bone_5 | bone_6 | bone_7 | bone_8 | bone_9 | bone_10 | bone_11 | bone_12 | bone_13 | bone_14 | bone_15 | bone_16 | bone_17 | bone_18
+ROW|id=slime|glb=Slime_Rigged.glb|nodes=24|joints=22|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[slime]: bone_0 | bone_1 | bone_2 | bone_3 | bone_10 | bone_11 | bone_12 | bone_13 | bone_4 | bone_5 | bone_6 | bone_7 | bone_8 | bone_9 | bone_14 | bone_15 | bone_16 | bone_17 | bone_18 | bone_19 | bone_20 | bone_21
+ROW|id=stone_golem|glb=Golem_Rigged.glb|nodes=29|joints=27|mixamo=0|sig=HUMANOID추정|hits=spine,forearm,hand,thigh,shin,foot,toe,shoulder|quad=|clips=[]
+    bones[stone_golem]: Root | spine | spine.001 | spine.002 | spine.003 | spine.004 | spine.005 | shoulder.L | upper_arm.L | forearm.L | hand.L | shoulder.R | upper_arm.R | forearm.R | hand.R | breast.L | breast.R | pelvis.L | pelvis.R | thigh.L | shin.L | foot.L | toe.L | thigh.R | shin.R | foot.R
+ROW|id=fire_lizard|glb=Fire_Lizard_Rigged.glb|nodes=42|joints=40|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[fire_lizard]: bone_0 | bone_1 | bone_2 | bone_3 | bone_19 | bone_20 | bone_21 | bone_22 | bone_23 | bone_24 | bone_25 | bone_26 | bone_27 | bone_28 | bone_29 | bone_30 | bone_31 | bone_4 | bone_5 | bone_6 | bone_7 | bone_8 | bone_9 | bone_10 | bone_11 | bone_12
+ROW|id=electric_porcupine|glb=Electric_Spine_Hedgehog_Rigged.glb|nodes=27|joints=25|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[electric_porcupine]: bone_0 | bone_1 | bone_2 | bone_3 | bone_11 | bone_12 | bone_13 | bone_14 | bone_15 | bone_4 | bone_5 | bone_6 | bone_7 | bone_8 | bone_9 | bone_10 | bone_16 | bone_17 | bone_18 | bone_19 | bone_20 | bone_21 | bone_22 | bone_23 | neutral_bone
+ROW|id=swamp_croc|glb=Swamp_Alligator_Rigged.glb|nodes=35|joints=33|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[swamp_croc]: bone_0 | bone_1 | bone_2 | bone_22 | bone_23 | bone_24 | bone_25 | bone_26 | bone_27 | bone_28 | bone_29 | bone_3 | bone_11 | bone_12 | bone_13 | bone_14 | bone_15 | bone_16 | bone_17 | bone_18 | bone_19 | bone_20 | bone_21 | bone_4 | bone_5 | bone_6
+ROW|id=forest_spirit|glb=Wooden Forest Spirit.glb|nodes=1|joints=0|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[forest_spirit]: input
+ROW|id=wild_troll|glb=Wild_Troll_Rigged.glb|nodes=30|joints=28|mixamo=0|sig=HUMANOID추정|hits=spine,forearm,hand,thigh,shin,foot,toe,shoulder|quad=|clips=[]
+    bones[wild_troll]: Root | spine | spine.001 | spine.002 | spine.003 | spine.004 | spine.005 | shoulder.L | upper_arm.L | forearm.L | hand.L | shoulder.R | upper_arm.R | forearm.R | hand.R | breast.L | breast.R | pelvis.L | pelvis.R | thigh.L | shin.L | foot.L | toe.L | thigh.R | shin.R | foot.R
+ROW|id=ogre|glb=Swamp_Ogre_Rigged.glb|nodes=24|joints=22|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[ogre]: bone_0 | bone_1 | bone_2 | bone_3 | bone_10 | bone_11 | bone_12 | bone_13 | bone_4 | bone_5 | bone_6 | bone_7 | bone_8 | bone_9 | bone_14 | bone_15 | bone_16 | bone_17 | bone_18 | bone_19 | bone_20 | bone_21
+ROW|id=banshee|glb=Banshee_Rigged.glb|nodes=29|joints=27|mixamo=0|sig=HUMANOID추정|hits=spine,forearm,hand,thigh,shin,foot,toe,shoulder|quad=|clips=[]
+    bones[banshee]: Root | spine | spine.001 | spine.002 | spine.003 | spine.004 | spine.005 | shoulder.L | upper_arm.L | forearm.L | hand.L | shoulder.R | upper_arm.R | forearm.R | hand.R | breast.L | breast.R | pelvis.L | pelvis.R | thigh.L | shin.L | foot.L | toe.L | thigh.R | shin.R | foot.R
+ROW|id=griffin|glb=Griffon_Rigged.glb|nodes=24|joints=22|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[griffin]: bone_0 | bone_1 | bone_2 | bone_3 | bone_10 | bone_11 | bone_12 | bone_13 | bone_4 | bone_5 | bone_6 | bone_7 | bone_8 | bone_9 | bone_14 | bone_15 | bone_16 | bone_17 | bone_18 | bone_19 | bone_20 | bone_21
+ROW|id=minotaur|glb=Minotaur_Rigged.glb|nodes=44|joints=42|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[minotaur]: bone_0 | bone_1 | bone_2 | bone_3 | bone_18 | bone_19 | bone_20 | bone_21 | bone_22 | bone_23 | bone_24 | bone_25 | bone_26 | bone_27 | bone_28 | bone_29 | bone_4 | bone_5 | bone_6 | bone_7 | bone_8 | bone_9 | bone_10 | bone_11 | bone_12 | bone_13
+ROW|id=manticore|glb=Manticore_Rigged.glb|nodes=37|joints=35|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[manticore]: bone_0 | bone_1 | bone_2 | bone_21 | bone_22 | bone_3 | bone_13 | bone_14 | bone_15 | bone_16 | bone_17 | bone_18 | bone_19 | bone_20 | bone_4 | bone_5 | bone_10 | bone_11 | bone_12 | bone_6 | bone_7 | bone_8 | bone_9 | bone_23 | bone_24 | bone_25
+ROW|id=salamander|glb=Salamander_Rigged.glb|nodes=39|joints=37|mixamo=0|sig=비휴머노이드추정|hits=|quad=|clips=[]
+    bones[salamander]: bone_0 | bone_1 | bone_2 | bone_3 | bone_15 | bone_16 | bone_17 | bone_18 | bone_19 | bone_20 | bone_4 | bone_5 | bone_6 | bone_7 | bone_8 | bone_9 | bone_10 | bone_11 | bone_12 | bone_13 | bone_14 | bone_21 | bone_22 | bone_23 | bone_24 | bone_25
+ROW|id=shadow_assassin|glb=Shadow_Assassin_Rigged.glb|nodes=29|joints=27|mixamo=0|sig=HUMANOID추정|hits=spine,forearm,hand,thigh,shin,foot,toe,shoulder|quad=|clips=[]
+    bones[shadow_assassin]: Root | spine | spine.001 | spine.002 | spine.003 | spine.004 | spine.005 | shoulder.L | upper_arm.L | forearm.L | hand.L | shoulder.R | upper_arm.R | forearm.R | hand.R | breast.L | breast.R | pelvis.L | pelvis.R | thigh.L | shin.L | foot.L | toe.L | thigh.R | shin.R | foot.R

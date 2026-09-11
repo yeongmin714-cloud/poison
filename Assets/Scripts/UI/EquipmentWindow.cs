@@ -447,6 +447,16 @@ namespace ProjectName.UI
                 // === 클릭 처리 (슬롯 클릭 → 장비 해제) ===
                 if (Event.current.type == EventType.MouseDown && slotRect.Contains(Event.current.mousePosition))
                 {
+                    // 2026-09-11(7): 좌클릭 누른 채 이동 → 장비창 소스 드래그 시작 (퀵슬롯 지정용).
+                    // InventoryWindow.ProcessDrag의 장비창 소스 분기가 MouseUp 판정을 대행하므로,
+                    // 인벤 창이 닫힌 독립 모드(E키 단독)에서는 판정 주체가 없어 드래그를 시작하지 않는다.
+                    if (Event.current.button == 0 && !isEmpty
+                        && InventoryWindow.Instance != null && InventoryWindow.Instance.IsOpen
+                        && slotData.itemData != null)
+                    {
+                        ItemDragContext.Begin(ItemDragContext.Source.Inventory, -1, slotData.itemData);
+                    }
+
                     if (!isEmpty && _equipmentManager != null)
                     {
                         _selectedSlot = slotDef.slot;

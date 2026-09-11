@@ -320,9 +320,13 @@ namespace ProjectName.UI
 
         private void ActivateAssignedItem(int index, string itemId)
         {
-            if (_assignedWeaponMap.TryGetValue(itemId, out var w))
+            if (string.IsNullOrEmpty(itemId)) return;
+
+            // ① 무기 — 기존 짧은 id 맵 + 신규 full-id(weapon_{type}_{tier}) 파싱 (우클릭 장착과 동일 규칙)
+            //    무기는 모델/스탯 부착 방식이라 인벤 소유 확인 없이 토글 장착 (기존 동작 유지)
+            if (TryResolveWeapon(itemId, out string equipId, out WeaponType wType))
             {
-                // 무기: 기존 장착 경로와 동일 (토글)
+                // 무기 장착 시 투척 모드 해제 (모드 상호배타)
                 ProjectName.Systems.PlayerWeaponModeBridge.ThrowSelected = false;
                 Transform playerT = GetPlayerTransform();
                 if (playerT == null)
@@ -330,14 +334,148 @@ namespace ProjectName.UI
                     Debug.LogWarning("[HotbarUI] 플레이어를 찾지 못해 장착 스킵");
                     return;
                 }
-                if (WeaponEquipManager.CurrentId == w.equipId && WeaponEquipManager.IsEquipped)
+                if (WeaponEquipManager.CurrentId == equipId && WeaponEquipManager.IsEquipped)
+                {
                     WeaponEquipManager.Unequip();
+                    Debug.Log($"[HotbarUI] 슬롯 {index + 1} '{itemId}': 무기 장착 해제 (토글)");
+                }
                 else
-                    WeaponEquipManager.Equip(w.equipId, playerT, w.type);
+                {
+                    WeaponEquipManager.Equip(equipId, playerT, wType);
+                    Debug.Log($"[HotbarUI] 슬롯 {index + 1} '{itemId}': 무기 장착 ({equipId}/{wType})");
+                }
                 SyncSelectionHighlight();
                 return;
             }
-            Debug.Log($"[HotbarUI] 슬롯 {index + 1} '{itemId}': 소모품 사용 연결 예정 (표시 전용)");
+
+            var inv = PlayerInventory.Instance;
+            if (inv == null)
+            {
+                Debug.Log($"[HotbarUI] 슬롯 {index + 1} '{itemId}': 인벤토리 없음 — 스킵");
+                return;
+            }
+
+            // 2026-09-11(7): 숫자키 장착/사용 — 인벤 소유 확인 후 카테고리 분기
+            PlayerInventory.ItemSlot invSlot = FindInventorySlot(inv, itemId, out int globalIndex);
+            if (invSlot == null)
+            {
+                Debug.Log($"[HotbarUI] 슬롯 {index + 1} '{itemId}': 인벤에 아이템 없음 — 스킵");
+                return;
+            }
+
+            // ② 방어구 — EquipmentManager.EquipItem (장착 중이면 해제 토글). 장착 시 인벤에서 1개 제거됨.
+            if (invSlot.item.category == PlayerInventory.ItemCategory.Armor)
+            {
+                var em = ProjectName.Systems.EquipmentManager.Instance;
+                if (em == null)
+                {
+                    Debug.LogWarning("[HotbarUI] 방어구 장착 실패 — EquipmentManager 없음");
+                    return;
+                }
+                var equipSlot = MapArmorSlot(itemId);
+                if (em.GetItemId(equipSlot) == itemId)
+                {
+                    if (em.UnequipSlot(equipSlot))
+                        Debug.Log($"[HotbarUI] 슬롯 {index + 1} '{itemId}': 방어구 해제 (토글 — {equipSlot})");
+                    else
+                        Debug.LogWarning($"[HotbarUI] 슬롯 {index + 1} '{itemId}': 방어구 해제 실패 (인벤 가득)");
+                }
+                else if (em.EquipItem(invSlot, equipSlot))
+                {
+                    Debug.Log($"[HotbarUI] 슬롯 {index + 1} '{itemId}': 방어구 장착 ({equipSlot})");
+                }
+                else
+                {
+                    Debug.LogWarning($"[HotbarUI] 슬롯 {index + 1} '{itemId}': 방어구 장착 실패 (기존 장비 해제 실패 or 인벤 가득)");
+                }
+                // 장착/해제는 인벤 슬롯을 변경 — 인벤 창 열려 있으면 그리드 즉시 동기화
+                if (InventoryWindow.Instance != null && InventoryWindow.Instance.IsOpen)
+                    InventoryWindow.Instance.RefreshInventory();
+                return;
+            }
+
+            // ③ 소모성 — PlayerInventory.UseItem (ConsumableSystem: Food/Potion/Drug만 효과 적용 → 해당 3종만 허용,
+            //    그 외 카테고리는 무효 소모 방지 위해 스킵). QuickSlotUI의 키 사용 선례와 동일 경로.
+            if (invSlot.item.category == PlayerInventory.ItemCategory.Food
+                || invSlot.item.category == PlayerInventory.ItemCategory.Potion
+                || invSlot.item.category == PlayerInventory.ItemCategory.Drug)
+            {
+                inv.UseItem(globalIndex);
+                Debug.Log($"[HotbarUI] 슬롯 {index + 1} '{itemId}': 사용 (남은 수량 {inv.GetItemCount(itemId)})");
+                return;
+            }
+
+            Debug.Log($"[HotbarUI] 슬롯 {index + 1} '{itemId}': 장착/사용 불가 카테고리 ({invSlot.item.category}) — 표시 전용");
+        }
+
+        /// <summary>
+        /// 2026-09-11(7): 무기 id → (equipId, WeaponType) 해석 — InventoryWindow.TryResolveWeaponEquip와 동일 규칙.
+        /// 신규 full-id(weapon_{type}_{tier}, dagger 포함)는 전체 id를 그대로 전달
+        /// (WeaponEquipManager._itemIdToGlb 매핑이 GLB명 결정, WeaponData.GetTierMultiplier가 티어 토큰 인식).
+        /// </summary>
+        private static bool TryResolveWeapon(string itemId, out string equipId, out WeaponType type)
+        {
+            if (_assignedWeaponMap.TryGetValue(itemId, out var w))
+            {
+                equipId = w.equipId;
+                type = w.type;
+                return true;
+            }
+            string s = (itemId ?? string.Empty).ToLowerInvariant();
+            var parts = s.Split('_');
+            if (parts.Length == 3 && parts[0] == "weapon")
+            {
+                switch (parts[1])
+                {
+                    case "bow":   type = WeaponType.Bow;   break;
+                    case "spear": type = WeaponType.Spear; break;
+                    default:      type = WeaponType.Sword; break;   // sword/dagger 등 근접 → Sword
+                }
+                equipId = s;
+                return true;
+            }
+            // 기존 폴백: 티어 토큰 추출 (예: iron_sword → iron)
+            type = s.Contains("bow") ? WeaponType.Bow
+                 : s.Contains("spear") ? WeaponType.Spear
+                 : WeaponType.Sword;
+            equipId = null;
+            foreach (var p in parts)
+            {
+                if (p == "weapon" || p == "sword" || p == "bow" || p == "spear" || p == "dagger") continue;
+                if (p == "steel" || p == "iron" || p == "crystal" || p == "wood" || p == "stone") { equipId = p; break; }
+            }
+            if (string.IsNullOrEmpty(equipId) && parts.Length > 1)
+                equipId = parts[parts.Length - 1];
+            return !string.IsNullOrEmpty(equipId);
+        }
+
+        /// <summary>인벤에서 itemId에 해당하는 첫 슬롯을 반환 (전역 인덱스 out). 없으면 null.</summary>
+        private static PlayerInventory.ItemSlot FindInventorySlot(PlayerInventory inv, string itemId, out int globalIndex)
+        {
+            globalIndex = -1;
+            var all = inv.GetAllSlots();
+            if (all == null) return null;
+            for (int i = 0; i < all.Length; i++)
+            {
+                var s = all[i];
+                if (s != null && s.item != null && s.item.id == itemId)
+                {
+                    globalIndex = i;
+                    return s;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>방어구 id → EquipmentSlot (InventoryWindow.MapArmorSlot과 동일 규칙).</summary>
+        private static ProjectName.Systems.EquipmentManager.EquipmentSlot MapArmorSlot(string id)
+        {
+            string s = (id ?? "").ToLowerInvariant();
+            if (s.Contains("helmet") || s.Contains("투구")) return ProjectName.Systems.EquipmentManager.EquipmentSlot.Helmet;
+            if (s.Contains("shoe") || s.Contains("boot") || s.Contains("신발")) return ProjectName.Systems.EquipmentManager.EquipmentSlot.Shoes;
+            if (s.Contains("glove") || s.Contains("장갑")) return ProjectName.Systems.EquipmentManager.EquipmentSlot.Gloves;
+            if (s.Contains("cape") || s.Contains("망토") || s.EndsWith("_back")) return ProjectName.Systems.EquipmentManager.EquipmentSlot.Back;
+            return ProjectName.Systems.EquipmentManager.EquipmentSlot.Armor;
         }
 
         // ===== 장착 상태 ↔ 하이라이트 동기화 =====

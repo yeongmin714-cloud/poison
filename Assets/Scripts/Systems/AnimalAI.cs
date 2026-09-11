@@ -27,6 +27,9 @@ namespace ProjectName.Systems
         [Header("Level System (5.3.5)")]
         [SerializeField] private int _level = 1;
 
+        // [2026-09-11] 스폰 진단 로그 1회 출력 가드 — 중복 로그 방지
+        private bool _spawnLogged;
+
         [Header("Drop Items (auto-set by MonsterDatabase)")]
         [SerializeField] private PlayerInventory.ItemData _meatDrop;
         [SerializeField] private int _minMeat = 1;
@@ -170,6 +173,15 @@ namespace ProjectName.Systems
             ApplyMonsterDefinition();
 
             _currentHP = _maxHP;
+
+            // [2026-09-11] 스폰 진단: HP 최종 결정 지점 1회 로그(사망 판정 디버깅).
+            // SetMonsterId/SetLevel→ApplyLevelStats는 Start 이전에 호출되고, Start의
+            // ApplyMonsterDefinition이 HP를 재확정하므로 이 지점이 모든 스폰 경로의 공용 최종값.
+            if (!_spawnLogged)
+            {
+                _spawnLogged = true;
+                Debug.Log($"[AnimalAI] 스폰 {_monsterId} MaxHP={_maxHP} (스케일게이트={MonsterLevelManager.LevelScalingEnabled}, 레벨={_level})");
+            }
             _player = GameObject.FindGameObjectWithTag("Player")?.transform;
             _spawnPos = transform.position;
 

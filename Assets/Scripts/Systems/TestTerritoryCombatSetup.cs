@@ -903,7 +903,7 @@ namespace ProjectName.Systems
                 Debug.Log("[UITest] ✅ 스탯 창 부착 (P키 토글)");
             }
 
-            // ④ 창고 박스 2개 + 크래프트 박스 1개 — 창고(territoryId별)에 전 아이템 시딩
+            // ④ 창고 박스 2개 + 크래프트 박스 1개 — 창고(territoryId별)에 시딩(wood 장비+무기 재료+Gold)
             // 2026-09-11: 두 박스 모두 시딩 ID("wh_test")와 일치 — 이전 "wh_test_1"/"wh_test2"는
             // 시딩 창고와 다른 빈 창고를 가리켜 박스 UI가 텅 비어 보였다. 64슬롯은 Configure로 반영.
             SetupWarehouseBox("Warehouse_1", new Vector3(6f, 0f, 14f), new Color(0.5f, 0.45f, 0.35f, 1f), "wh_test");
@@ -952,7 +952,7 @@ namespace ProjectName.Systems
             if (col != null) DestroyImmediate(col);   // Raycast 히트 대상에서 제외
         }
 
-        /// <summary>WarehouseSystem에 전 아이템 시딩(territoryId="wh_test" 단일 창고).</summary>
+        /// <summary>WarehouseSystem 시딩(territoryId="wh_test" 단일 창고) — wood 장비 전종+무기 재료+Gold로 축소.</summary>
         private void SeedAllItemsToWarehouse(string territoryId)
         {
             // 2026-09-11: Test_10 창고 64슬롯 — TestAllInOneSetup 선례 패턴 이식.
@@ -961,6 +961,7 @@ namespace ProjectName.Systems
             // ② _maxSlotsPerTerritory 기본 20은 시딩을 잘라 사용자 실측 증상 →
             //    private [SerializeField]라 리플렉션으로 상향(시딩 전 1회).
             //    2026-09-11: 기존 시딩 ~43슬롯 + 신규 4티어 장비 47종×2(94슬롯) ≈ 137슬롯 → 64→160 상향.
+            //    2026-09-11(2): 시딩 축소(wood 장비 13종×2 + 무기 재료/Gold) — 상한 160은 여유로 유지.
             if (WarehouseSystem.Instance == null)
             {
                 var wsGO = new GameObject("WarehouseSystem");
@@ -979,26 +980,22 @@ namespace ProjectName.Systems
                     total += count;
             }
 
-            Add(PlayerInventory.Herb_Red, 10); Add(PlayerInventory.Herb_Purple, 10);
-            Add(PlayerInventory.Herb_Yellow, 10); Add(PlayerInventory.Herb_Silver, 10); Add(PlayerInventory.Herb_Green, 10);
-            Add(PlayerInventory.Seed_Red, 10); Add(PlayerInventory.Seed_Purple, 10); Add(PlayerInventory.Seed_Yellow, 10);
-            Add(PlayerInventory.Seed_Silver, 10); Add(PlayerInventory.Seed_Green, 10);
-            Add(PlayerInventory.RabbitMeat, 10); Add(PlayerInventory.BoarMeat, 10); Add(PlayerInventory.WolfMeat, 10);
-            Add(PlayerInventory.RabbitFur, 5); Add(PlayerInventory.BoarLeather, 10); Add(PlayerInventory.BoarTusk, 5);
-            Add(PlayerInventory.WolfTooth, 5); Add(PlayerInventory.WolfFur, 10);
-            Add(PlayerInventory.SwordWood, 2); Add(PlayerInventory.SpearWood, 2); Add(PlayerInventory.BowWood, 2);
-            Add(PlayerInventory.LeatherArmor, 2); Add(PlayerInventory.ClothArmor, 2);
-            Add(PlayerInventory.Pickaxe, 1); Add(PlayerInventory.Axe, 1); Add(PlayerInventory.FishingRod, 1);
-            Add(PlayerInventory.Fish_Common, 5); Add(PlayerInventory.Fish_Rare, 3); Add(PlayerInventory.Fish_Legendary, 1);
-            Add(PlayerInventory.StealthBoots, 1); Add(PlayerInventory.DarkCloak, 1); Add(PlayerInventory.StealthPotion, 5);
-            Add(PlayerInventory.Sedative, 5); Add(PlayerInventory.MountToken, 1); Add(PlayerInventory.EstateDeed, 1);
+            // 2026-09-11(2): 시딩 축소 — wood 등급 장비 전종 + 무기 재료 2종 + Gold만 유지.
+            //  제거: 허브·씨앗·고기·모피/가죽·도구·어류·잠입장비·물약·토큰/증서·비wood(steel/stone/crystal) 장비
+            Add(PlayerInventory.BoarTusk, 5);   // 무기 재료 (멧돼지 엄니)
+            Add(PlayerInventory.WolfTooth, 5);  // 무기 재료 (늑대 이빨)
             Add(PlayerInventory.Gold, 999);
 
-            // 2026-09-11: 4티어 GLB 장비 전종 시딩 (무기 16 + 방어구 25 + 부속 6 = 47종 ×2)
-            //  - shield는 steel/stone/crystal GLB 부재로 wood만, gas_mask/chemical_pack은 crystal GLB 부재로 3티어만
-            foreach (var gear in PlayerInventory.AllTieredGear) Add(gear, 2);
+            // wood 등급 GLB 장비 전종(id에 "wood" 포함) ×2 — steel/stone/crystal은 시딩 제외.
+            //  유지 13종: weapon_sword/spear/bow/dagger_wood + wood_armor/helmet/boot_left/boot_right/
+            //  glove_left/glove_right + wood_shield + wood_gas_mask + wood_chemical_pack
+            foreach (var gear in PlayerInventory.AllTieredGear)
+            {
+                if (gear != null && !string.IsNullOrEmpty(gear.id) && gear.id.Contains("wood"))
+                    Add(gear, 2);
+            }
 
-            Debug.Log($"[UITest] ✅ 창고 '{territoryId}'에 전 아이템 시딩 완료 ({total}개)");
+            Debug.Log($"[UITest] ✅ 창고 '{territoryId}'에 시딩 완료 (wood 장비+무기 재료+Gold, {total}개)");
         }
 
         /// <summary>플레이어 인벤토리 대표 시딩 — 인벤 창(I)/핫바 표시 검증용.</summary>
