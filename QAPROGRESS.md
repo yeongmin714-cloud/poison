@@ -4,7 +4,40 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-11 (26차)
+> **최종 갱신:** 2026-09-11 (27차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-11 ✅ 27차 — 장비창 우측 배치/3구획 UI+설명창 아이콘+우클릭 장착+무기별 애니+활/화살 시스템+폰트 통일)
+
+> **스코프**: ① 장비창을 화면 우측 구획으로 재배치(인벤=좌, 설명=중앙, 장비=우측 3구획, 상점/창고 컨텍스트 우선순위로 충돌 방지) ② 중앙 설명창 아이콘을 `ItemIconDatabase.GetOrCreateIcon` 재사용으로 항상 렌더(+자리표시) ③ 우클릭 장착 경로 보완(무기id 매핑 폴백 + 장착 후 RefreshInventory) ④ 무기타입별 공격 애니 분기(Fist/Sword=WeaponCombo, Spear=찌르기, Bow=ArcheryShot) ⑤ 활/화살 시스템(좌클릭 발사→ArrowManager 화살 소모, 3종 화살, 우클릭 직발사 제거→소모 루 통일) ⑥ Noto Sans KR + 맑은고딕 한글 폰트 도입 + fontSize 5단계 타입스케일 통일. Unity batchmode 컴파일 0에러.
+
+### 변경 사항
+**`UI/InventoryWindow.cs`** — 레이아웃 재배치 + 아이콘 + 우클릭 장착:
+- OnGUI 하단 `DrawEquipRow` 호출 제거(장비슬롯 그리드에서 분리), 그리드 높이 `EQUIP_ROW_HEIGHT` 차감 제거. 오른쪽 구획(`Screen.width*2/3+6, y, PanelWidth, WINDOW_HEIGHT`)에 `EquipmentWindow.TryRenderEmbedded(...)` 호출 — `ContextMode.None`일 때만(상점/창고 컨텍스트 우선순위)
+- DrawDescriptionPanel 아이콘: `ItemIconDatabase.GetOrCreateIcon(item)` → `item.icon.texture` 폴백 → 반투명 자리표시(α0.15), 128px ScaleToFit. 미선택 시 안내 문구+자리표시
+- TryEquipItem: `_weaponIdMap` 미스 시 id 토큰 파싱 폴백(`weapon_sword_steel`→WeaponType/equipId 유추), 방어구 장착 성공 시 RefreshInventory, 성공/실패 로그 명확화
+
+**`UI/EquipmentWindow.cs`** — 우측 임베디드 렌더:
+- `static Toggle()`(E키 호환), `TryRenderEmbedded(x,y,w,h)` 정적 진입점(씬에 인스턴스 없으면 자동 생성 1회), 기존 OnGUI AAA 4레이어 렌더를 `RenderWindow(..., embedded)`로 이관(embed=닫기버튼 생략/배너 클램프). 장비슬롯 실시간 `GetSlotData` 조회로 장착 즉시 반영
+
+**`Systems/PlayerCombat.cs`** — 무기별 공격 분기:
+- TryAttack 시작부(L191) `_currentWeapon.weaponType == ProjectName.Core.WeaponType.Bow`(CS0104 방지 정규화) → `TryBowShot()` 후 return(근접 경로 차단). `TryBowShot()`(L246~288): 커서 Ray 방향 → `ArrowManager.TryShootArrow(origin, dir, Bow.damage)` → 성공 시 `_clipDriver.TriggerBowShot()`(ArcheryShot 명시 트리거) + 카메라/런지. 실패 시 LastHitValid=false. `_clipDriver`는 `GetComponentInChildren<HumanoidClipDriver>()` 획득
+
+**`Systems/HumanoidClipDriver.cs`** — 드라이버 무기 분기:
+- 공용 API `TriggerSpearAttack()`/`TriggerBowShot()`(L62~85). ArcheryShot을 공격상태홀드(Speed 0 고정)에 추가(L442). 무기타입 감시(L456): Bow→ArcheryShot, Spear→Attack(찌르기), Fist/Sword→기존 WeaponCombo B안 유지. 활 우클릭(L622~628)을 직접 `ArrowProjectile.Spawn` → `ArrowManager.TryShootArrow`(화살 소모 후 발사, 소모 성공 시에만 애니)로 통일
+
+**`Systems/ArrowManager.cs`** — `TryShootArrow(origin, direction, baseDamage)` 3-파라 오버로드 신설, 기존 2-파라가 위임(호환성 유지), origin 우선 발사
+
+**`UI/UIFont.cs`(신규)** — 폰트 타입스케일 상수(Display60/Title38/Body24/Caption17/Badge13) + static 캐시 폰트 로더(`Resources.Load<Font>("Fonts/NotoSansKR-VF")`→"Fonts/malgun"→빌트인 폴백)
+
+**`Assets/Resources/Fonts/`(신규)** — `NotoSansKR-VF.ttf`(10.4MB) + `malgun.ttf`(13.4MB), .meta 자동 생성 확인
+
+**폰트 적용 11파일**: UIStyleManager(글로벌 스킨 폰트), HUD, InventoryWindow, EquipmentWindow, StatusWindowUI, HotbarUI, MonsterHeadUI(Systems 로컬 로드), RecipeWindow, OptionsUI, AlchemyUI, LoadGameUI — 전원 `UIFont.Load()`/`Resources.Load`로 교체, fontSize 파편화(10~96px)를 5단계로 수렴. (HUD 동적 버프폰트는 아이콘 비율 연산이라 제외, LockpickingUI는 스킨 폰트 사용)
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode 최종 컴파일 **0 에러**(`error CS` 0건, return 0)
+- 중간 이슈 1건 해결: `PlayerCombat.cs` WeaponType 모호성(Neural vs Core enum, CS0104) → `ProjectName.Core.WeaponType` 정규화
 
 ---
 
