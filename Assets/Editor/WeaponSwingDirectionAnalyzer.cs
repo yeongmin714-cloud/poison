@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -12,11 +14,14 @@ using UnityEngine.Playables;
 /// v1의 AnimationUtility.GetCurveBindings 경로는 휴머노이드 클립(머슬 커브)에서 회전 바인딩 0개로 실패함(compile.log 실측).
 /// v2는 PlayableGraph 휴머노이드 샘플링으로 전환 — 배치모드에서도 Animator CPU 평가만으로 동작(렌더링 불필요):
 ///   1) LoadAllAssetsAtPath(FBX) → AnimationClip(이름 contains "Weapon_Combo_2", __preview__ 제외) + Avatar.
-///   2) FBX 루트 GameObject를 임시 인스턴스화("SwingSampler") — 뼈 계층이 있어야 GetBoneTransform이 유효.
+///   2) FBX 루트 GameObject를 임시 인스턴스화("SwingSampler") — 뼈 계층이 있어야 샘플링이 유효.
 ///      HideFlags.HideAndDontSave + cullingMode=AlwaysAnimate(카메라 없는 배치에서도 평가 보장), applyRootMotion=false.
 ///   3) PlayableGraph(Manual) + AnimationClipPlayable → SetTime(t) 후 graph.Evaluate(0)로 정확 시간 샘플링.
-///   4) 136프레임(30fps, 4.533s) 전체를 1프레임 간격으로 RightHand world pos/rot 기록
-///      (null이면 RightLowerArm → LeftHand 폴백. GetBoneTransform은 휴머노이드 매핑 기반 리타깃 자세 반환).
+///   4) v3 이름 기반 폴백(swingdir.log 실측: GetBoneTransform 매핑이 전부 null인 리그):
+///      계층 전체를 순회해 이름에 hand/arm/wrist 포함 뼈를 후보 수집(우선순위: RightHand > RightLowerArm/RightForeArm > 기타 hand),
+///      전 프레임(136+1 샘플) world position 이동 경로 길이가 최대인 후보를 자동 선택 — 머슬 평가는 보네임 매핑과
+///      무관하게 스켈레톤 Transform을 실제로 움직이므로 이름 기반 직접 샘플링으로 우회 가능.
+///      실패 시 전체 뼈 이동 경로길이 상위 5개 + avatar.humanDescription.human 길이 진단 로그.
 ///   5) 스테이지별(normT 0~0.331 / 0.331~0.676 / 0.676~1.0) 임팩트 후보(normT 0.18/0.53/0.84) 중심 ±0.15s 구간의
 ///      인접 샘플 (p2-p1) 정규화 접선 벡터 누적·정규화 → 캐릭터 로컬(yaw=Atan2(t.x,t.z), pitch=Asin(t.y)).
 ///      캐릭터 forward=+Z, 임시 GO 회전 identity → world == character local.
@@ -42,7 +47,7 @@ public static class WeaponSwingDirectionAnalyzer
     [MenuItem("Tools/VFX/Analyze Weapon_Combo_2 Swing Direction")]
     public static void AnalyzeWeaponCombo2()
     {
-        Debug.Log("[SwingDir] ────────── Weapon_Combo_2 스윙 방향 실측 시작 (v2 PlayableGraph 휴머노이드 샘플링) ──────────");
+        Debug.Log("[SwingDir] ────────── Weapon_Combo_2 스윙 방향 실측 시작 (v3 이름 기반 폴백 샘플링) ──────────");
 
         // 1) FBX 서브에셋 → AnimationClip + Avatar
         AnimationClip clip = null;
@@ -110,28 +115,36 @@ public static class WeaponSwingDirectionAnalyzer
             return;
         }
 
-        // 뼈 폴백 순서: RightHand → RightLowerArm → LeftHand
-        HumanBodyBones[] boneOrder = { HumanBodyBones.RightHand, HumanBodyBones.RightLowerArm, HumanBodyBones.LeftHand };
-        Transform bone = null;
-        string boneName = "?";
-        foreach (var b in boneOrder)
+        // ── v3: GetBoneTransform 매핑 실패 우회 — 이름 기반 직접 샘플링 ──
+        // 머슬 평가는 보네임 매핑과 무관하게 스켈레톤 Transform을 실제로 움직이므로,
+        // 계층 순회 + 이름 매칭으로 후보를 수집하고 움직임이 가장 큰 뼈를 자동 선택한다.
+        var skeleton = sampler.GetComponentsInChildren<Transform>(true);
+        var candidates = new List<Candidate>();
+        for (int i = 0; i < skeleton.Length; i++)
         {
-            var t = anim.GetBoneTransform(b);
-            if (t != null)
-            {
-                bone = t;
-                boneName = $"{b}({t.name})";
-                break;
-            }
+            string n = skeleton[i].name.ToLowerInvariant();
+            if (!n.Contains("hand") && !n.Contains("arm") && !n.Contains("wrist")) continue;
+            candidates.Add(new Candidate { t = skeleton[i], idx = i, pri = BonePriority(n) });
         }
-        if (bone == null)
+
+        // 후보 나열 (우선순위 그룹 → 이름순)
+        candidates.Sort((a, b) => a.pri != b.pri ? a.pri.CompareTo(b.pri) : string.CompareOrdinal(a.t.name, b.t.name));
+        var candLog = new StringBuilder();
+        foreach (var c in candidates)
+            candLog.Append($"  [{c.pri}] {c.t.name} (path={TransformPath(c.t)})\n");
+        Debug.Log($"[SwingDir] 이름 기반 뼈 후보 {candidates.Count}개 (hand/arm/wrist 매칭, [n]=우선순위 0=RightHand 1=RightLowerArm/ForeArm 2=기타 hand 3=wrist/arm):\n{candLog}");
+
+        // 매핑 실패 원인 진단 1줄 (실측 실패했던 GetBoneTransform 상태 + 아바타 human 매핑 길이)
+        var mapped = anim.GetBoneTransform(HumanBodyBones.RightHand);
+        var humanBones = avatar.humanDescription.human;
+        Debug.Log($"[SwingDir] 진단: GetBoneTransform(RightHand)={(mapped == null ? "null — 보네임 매핑 비어 있음(이름 기반 우회 중)" : mapped.name)} | avatar.humanDescription.human 길이={(humanBones != null ? humanBones.Length : 0)} | 스켈레톤 뼈 수={skeleton.Length}");
+
+        if (candidates.Count == 0)
         {
-            Debug.LogError("[SwingDir] ❌ 휴머노이드 뼈 매핑 실패 (RightHand/RightLowerArm/LeftHand 전부 null) — 아바타 보네임 매핑 확인 필요");
-            Object.DestroyImmediate(sampler);
-            FinishOk();
-            return;
+            var allNames = new StringBuilder();
+            for (int i = 0; i < skeleton.Length && i < 60; i++) allNames.Append($"  {skeleton[i].name}\n");
+            Debug.LogWarning($"[SwingDir] ⚠️ hand/arm/wrist 이름 매칭 후보 0개 — 스켈레톤 뼈 이름(최대 60개):\n{allNames} → 샘플링 후 전체 뼈 이동 상위 진단으로 계속");
         }
-        Debug.Log($"[SwingDir] 샘플링 뼈: {boneName} | 임시 캐릭터 pos={sampler.transform.position} rot={sampler.transform.eulerAngles} (identity — world == character local, forward=+Z)");
 
         // 3) PlayableGraph 구성 (Manual 모드 — CPU 애니 평가만, 렌더링 불필요)
         var graph = PlayableGraph.Create("WeaponSwingDirectionAnalyzer");
@@ -143,7 +156,13 @@ public static class WeaponSwingDirectionAnalyzer
         clipPlayable.SetApplyPlayableIK(false);
         output.SetSourcePlayable(clipPlayable);
 
-        var positions = new Vector3[totalFrames + 1];
+        // 전체 뼈 샘플링 — 후보 자동 선택과 실패 시 전체 뼈 이동 진단에 모두 사용
+        int boneCount = skeleton.Length;
+        var samples = new Vector3[boneCount][];
+        for (int i = 0; i < boneCount; i++) samples[i] = new Vector3[totalFrames + 1];
+
+        Vector3[] positions = null;
+        string boneName = null;
         try
         {
             for (int f = 0; f <= totalFrames; f++)
@@ -151,20 +170,67 @@ public static class WeaponSwingDirectionAnalyzer
                 float t = Mathf.Min(f / fps, clip.length);
                 clipPlayable.SetTime(t);
                 graph.Evaluate(0);   // Manual 모드 — SetTime한 시점의 정확한 포즈 평가
-                positions[f] = bone.position;
+                for (int i = 0; i < boneCount; i++) samples[i][f] = skeleton[i].position;
             }
+
+            // 뼈별 world position 이동 경로 길이 (전 프레임 누적)
+            var pathLen = new float[boneCount];
+            for (int i = 0; i < boneCount; i++)
+            {
+                float len = 0f;
+                for (int f = 1; f <= totalFrames; f++) len += Vector3.Distance(samples[i][f - 1], samples[i][f]);
+                pathLen[i] = len;
+            }
+
+            // 후보 중 "휘두름이 가장 큰 뼈" 자동 선택 (이동 0 제외, 근접 동률은 우선순위 그룹으로 결정)
+            int sel = -1;
+            float bestLen = 0f;
+            int bestPri = int.MaxValue;
+            foreach (var c in candidates)
+            {
+                if (pathLen[c.idx] <= 1e-5f) continue;   // 이동 0 뼈 제외
+                if (pathLen[c.idx] > bestLen + 1e-5f || (pathLen[c.idx] > bestLen - 1e-5f && c.pri < bestPri))
+                {
+                    sel = c.idx;
+                    bestLen = pathLen[c.idx];
+                    bestPri = c.pri;
+                }
+            }
+
+            if (sel < 0)
+            {
+                // 진단 강화: 스켈레톤 전체 뼈 중 이동 경로 길이 상위 5개 (디버깅용)
+                var order = new List<int>();
+                for (int i = 0; i < boneCount; i++) order.Add(i);
+                order.Sort((a, b) => pathLen[b].CompareTo(pathLen[a]));
+                var top = new StringBuilder();
+                for (int k = 0; k < order.Count && k < 5; k++)
+                    top.Append($"  {skeleton[order[k]].name} (path={TransformPath(skeleton[order[k]])}): {pathLen[order[k]]:F4}m\n");
+                Debug.LogError($"[SwingDir] ❌ 이름 기반 뼈 선택 실패 (hand/arm/wrist 후보 {candidates.Count}개 전부 이동 0 또는 매칭 없음) — 전체 뼈 이동 경로길이 상위 5:\n{top}");
+                return;   // finally에서 graph/sampler 정리
+            }
+
+            positions = samples[sel];
+            boneName = skeleton[sel].name;
+            Debug.Log($"[SwingDir] 샘플링 뼈(자동 선택): {boneName} (path={TransformPath(skeleton[sel])}, 우선순위그룹={bestPri}, 전체 이동 경로길이={bestLen:F3}m) | 임시 캐릭터 pos={sampler.transform.position} rot={sampler.transform.eulerAngles} (identity — world == character local, forward=+Z)");
 
             // 샘플링 유효성 진단: 전 프레임 동일 위치면 평가 실패 의심
             bool allSame = true;
             for (int f = 1; f <= totalFrames && allSame; f++)
                 if ((positions[f] - positions[0]).sqrMagnitude > 1e-10f) allSame = false;
             if (allSame)
-                Debug.LogWarning($"[SwingDir] ⚠️ 전 프레임 손 위치 동일({positions[0]}) — 그래프 평가가 반영되지 않았을 수 있음. 결과 신뢰도 낮음");
+                Debug.LogWarning($"[SwingDir] ⚠️ 전 프레임 {boneName} 위치 동일({positions[0]}) — 그래프 평가가 반영되지 않았을 수 있음. 결과 신뢰도 낮음");
         }
         finally
         {
             if (graph.IsValid()) graph.Destroy();
             Object.DestroyImmediate(sampler);
+        }
+
+        if (positions == null)
+        {
+            FinishOk();   // 실패 진단 로그는 위에서 이미 출력됨
+            return;
         }
 
         // 4) 스테이지별 접선 방향 산출
@@ -246,6 +312,45 @@ public static class WeaponSwingDirectionAnalyzer
         float centroidShift = Vector3.Distance(start, centroid);
 
         Debug.Log($"[SwingDir] 궤적 요약(1줄): start=({start.x:F3},{start.y:F3},{start.z:F3}) end=({end.x:F3},{end.y:F3},{end.z:F3}) centroid=({centroid.x:F3},{centroid.y:F3},{centroid.z:F3}) 중심이동={centroidShift:F3}m 총경로={pathLength:F3}m 최대이동={(end - start).magnitude:F3}m (프레임 {positions.Length}개)");
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // 내부: 이름 기반 뼈 후보 (v3 폴백)
+    // ────────────────────────────────────────────────────────────────
+
+    /// <summary>이름 매칭 뼈 후보 (skeleton 배열 인덱스 + 우선순위 그룹).</summary>
+    private struct Candidate
+    {
+        public Transform t;
+        public int idx;
+        public int pri;
+    }
+
+    /// <summary>
+    /// 이름 기반 뼈 후보 우선순위: 0=오른손("righthand" 또는 right+hand), 1=오른팔 하완("lowerarm"+right / "rightforearm"),
+    /// 2=기타 hand, 3=wrist/arm 기타. right 판정은 "right" 포함 외에 Meshy 계열 접미사(_r/.r/공백 r)도 허용.
+    /// </summary>
+    private static int BonePriority(string n)
+    {
+        bool right = n.Contains("right") || n.EndsWith("_r") || n.EndsWith(".r") || n.EndsWith(" r");
+        bool hand = n.Contains("hand");
+        if (n.Contains("righthand") || (right && hand)) return 0;
+        if ((n.Contains("lowerarm") && right) || n.Contains("rightforearm")) return 1;
+        if (hand) return 2;
+        return 3;
+    }
+
+    /// <summary>계층 전체 경로(루트→뼈) 문자열 — 로그 진단용.</summary>
+    private static string TransformPath(Transform t)
+    {
+        var sb = new StringBuilder(t.name);
+        var p = t.parent;
+        while (p != null)
+        {
+            sb.Insert(0, p.name + "/");
+            p = p.parent;
+        }
+        return sb.ToString();
     }
 
     /// <summary>배치 모드에서 정상 종료 통지 (-quit 미사용 실행 대비, 기존 에디터 스크립트 패턴과 동일).</summary>
