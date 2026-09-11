@@ -553,18 +553,23 @@ namespace ProjectName.UI
 
             // === 아이템 슬롯 그리드 (스크롤 가능) ===
             float gridY = tabY + TAB_BAR_HEIGHT + 1;
-            float gridHeight = WINDOW_HEIGHT - (gridY - y) - EQUIP_ROW_HEIGHT - 8;
+            // 2026-09-11(5): 장비슬롯 행 제거 — 그리드가 창 하단까지 확장 (장비창은 오른쪽 구획으로)
+            float gridHeight = WINDOW_HEIGHT - (gridY - y) - 8;
             DrawItemGrid(x, gridY, gridHeight);
-
-            // === 하단 장비슬롯 6종 (2026-09-09: 무기버튼/프리뷰 대체, 우클릭 해제) ===
-            float equipY = gridY + gridHeight + 2;
-            DrawEquipRow(x, equipY);
 
             // === Layer 4: 금속 프레임(9-Slice) + 4모서리 로터스 장식 — 컨텐츠 위 투명 텍스처로 안착 ===
             DrawWindowFrame(x, y, WINDOW_WIDTH, WINDOW_HEIGHT);
 
             // === 중앙 아이템 설명 패널 (2026-09-09(2): 제2구획 — 설명 + 핫바 미니패드) ===
             DrawDescriptionPanel(x + WINDOW_WIDTH + DESC_GAP, y);
+
+            // === 오른쪽 구획: 장비창 (2026-09-11(5): 삼분활 재배치) ===
+            // 상점/창고 컨텍스트가 오른쪽 구획을 사용하면 컨텍스트 우선 — 장비창 생략 (E키 독립 창으로 확인 가능)
+            if (_contextMode == ContextMode.None)
+            {
+                float equipX = Screen.width * 2f / 3f + 6f;   // GetContextX와 동일 기준 — 우측 1/3
+                EquipmentWindow.TryRenderEmbedded(equipX, y, PanelWidth, WINDOW_HEIGHT);
+            }
 
             // === 🗺️ 오토루트 컨텍스트 메뉴 ===
             DrawRouteContextMenu();
@@ -1773,6 +1778,13 @@ namespace ProjectName.UI
                         ? "좌클릭: 선택 / 드래그: 창고 내 이동\n우클릭: 인벤토리로 1개 이동"
                         : "좌클릭: 아이템 선택 / 드래그: 하단 핫바 지정\n우클릭: 장비 장착",
                     _styleItemName);
+                // 2026-09-11(5): 반투명 자리표시 아이콘 + 선택 안내
+                var phColor = GUI.color;
+                GUI.color = new Color(1f, 1f, 1f, 0.15f);
+                GUI.DrawTexture(new Rect(dx + (WINDOW_WIDTH - 128f) / 2f, cy + 60f, 128f, 128f), _texWhite);
+                GUI.color = phColor;
+                GUI.Label(new Rect(dx + 16f, cy + 200f, WINDOW_WIDTH - 32f, 30f),
+                    "좌측 그리드에서 아이템을 선택하세요", _styleEmptyText);
                 return;
             }
 
@@ -1784,12 +1796,23 @@ namespace ProjectName.UI
                 $"[{item.category}]  수량: {_selectedItemCount}  등급: {item.rarity}", _styleSlotLabel);
             cy += 30f;
 
-            // 아이콘 (있으면)
-            if (item.icon != null)
+            // 아이콘 — 2026-09-11(5): 항상 렌더 (그리드와 동일 규칙 — ItemIconDatabase 절차 아이콘,
+            // 스프라이트 item.icon 폴백, 그래도 없으면 반투명 자리표시). 128px SizeToFit 레이아웃 유지.
+            Texture2D descIcon = ItemIconDatabase.GetOrCreateIcon(item);
+            if (descIcon == null && item.icon != null)
+                descIcon = item.icon.texture;
+            if (descIcon != null)
             {
-                GUI.DrawTexture(new Rect(dx + (WINDOW_WIDTH - 128f) / 2f, cy, 128f, 128f), item.icon.texture, ScaleMode.ScaleToFit);
-                cy += 136f;
+                GUI.DrawTexture(new Rect(dx + (WINDOW_WIDTH - 128f) / 2f, cy, 128f, 128f), descIcon, ScaleMode.ScaleToFit);
             }
+            else
+            {
+                var phColor = GUI.color;
+                GUI.color = new Color(1f, 1f, 1f, 0.2f);
+                GUI.DrawTexture(new Rect(dx + (WINDOW_WIDTH - 128f) / 2f, cy, 128f, 128f), _texWhite);
+                GUI.color = phColor;
+            }
+            cy += 136f;
 
             // 설명
             GUI.Label(new Rect(dx + 16f, cy, WINDOW_WIDTH - 32f, 120f), item.description ?? "", _styleSlotLabel);
@@ -1968,7 +1991,24 @@ namespace ProjectName.UI
                 }
                 else
                 {
-                    Debug.LogWarning($"[InventoryWindow] 무기 장착 매핑 없음: {item.id}");
+                    // 2026-09-11(5): (b) 매핑 누락 시 id 파싱 폴백 — weapon_sword_steel 형태 유추
+                    string s = (item.id ?? string.Empty).ToLowerInvariant();
+                    WeaponType type = s.Contains("bow") ? WeaponType.Bow
+                                    : s.Contains("spear") ? WeaponType.Spear
+                                    : WeaponType.Sword;
+                    string equipId = null;
+                    var parts = s.Split('_');
+                    foreach (var p in parts)
+                    {
+                        if (p == "weapon" || p == "sword" || p == "bow" || p == "spear") continue;
+                        if (p == "steel" || p == "iron" || p == "crystal" || p == "wood") { equipId = p; break; }
+                    }
+                    if (string.IsNullOrEmpty(equipId))
+                        equipId = parts.Length > 1 ? parts[parts.Length - 1] : s;
+
+                    Debug.Log($"[InventoryWindow] 무기 매핑 폴백: {item.id} → equipId={equipId}, type={type}");
+                    ProjectName.Systems.WeaponEquipManager.Equip(equipId, playerT, type);
+                    Debug.Log($"[InventoryWindow] 무기 장착(폴백): {item.displayName} ({equipId}/{type})");
                 }
                 return;
             }
@@ -1976,10 +2016,24 @@ namespace ProjectName.UI
             if (item.category == PlayerInventory.ItemCategory.Armor)
             {
                 var em = ProjectName.Systems.EquipmentManager.Instance;
-                if (em == null) return;
+                if (em == null)
+                {
+                    Debug.LogWarning("[InventoryWindow] 방어구 장착 실패 — EquipmentManager 없음");
+                    return;
+                }
                 var equipSlot = MapArmorSlot(item.id);
-                em.EquipItem(slot, equipSlot);
-                Debug.Log($"[InventoryWindow] 방어구 장착: {item.displayName} → {equipSlot}");
+                bool equipped = em.EquipItem(slot, equipSlot);
+                if (equipped)
+                {
+                    Debug.Log($"[InventoryWindow] 방어구 장착 성공: {item.displayName} → {equipSlot}");
+                    // (c) 장착 직후 갱신 — 오른쪽 구획 장비창은 GetSlotData 실시간 조회라 자동 반영되지만,
+                    // 인벤 그리드(수량/슬롯)를 즉시 동기화
+                    RefreshInventory();
+                }
+                else
+                {
+                    Debug.LogWarning($"[InventoryWindow] 방어구 장착 실패: {item.displayName} → {equipSlot}");
+                }
                 return;
             }
 

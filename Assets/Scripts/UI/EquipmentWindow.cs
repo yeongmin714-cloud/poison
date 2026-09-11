@@ -17,6 +17,10 @@ namespace ProjectName.UI
         [Header("Equipment Window Settings")]
         [SerializeField] private EquipmentManager _equipmentManager;
 
+        // ===== 2026-09-11(5): 인벤 오른쪽 구획 임베디드 렌더 지원 (static 인스턴스 캐시) =====
+        private static EquipmentWindow _instance;
+        private static bool _embedCreateLogged;
+
         // ===== 레이아웃 상수 =====
         private const float WINDOW_WIDTH = 600f;
         private const float WINDOW_HEIGHT = 540f;
@@ -82,6 +86,15 @@ namespace ProjectName.UI
             ApplyTheme(Phase33_Themes.CreateEquipmentTheme());
             if (_equipmentManager == null)
                 _equipmentManager = FindAnyObjectByType<EquipmentManager>();
+            _instance = this;
+        }
+
+        /// <summary>E키 토글 (기존 호출부 호환용 정적 진입점 — 독립 창 모드)</summary>
+        public static void Toggle()
+        {
+            if (_instance == null) return;
+            if (_instance.IsOpen) _instance.Hide();
+            else _instance.Show();
         }
 
         protected override void OnShow()
@@ -231,14 +244,53 @@ namespace ProjectName.UI
 
             float x = (Screen.width - WINDOW_WIDTH) / 2;
             float y = (Screen.height - WINDOW_HEIGHT) / 2;
-            var winRect = new Rect(x, y, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+            RenderWindow(x, y, WINDOW_WIDTH, WINDOW_HEIGHT, false);
+        }
+
+        // ===================================================================
+        // 2026-09-11(5): 인벤 오른쪽 구획 임베디드 렌더 진입점
+        // ===================================================================
+
+        /// <summary>
+        /// InventoryWindow.OnGUI의 오른쪽 구획에 장비창을 함께 렌더 (독립 UIWindow와 별개).
+        /// 인스턴스가 씬에 없으면 자동 생성 1회 (로그 1회). 항상 임베디드 모드 — 닫기 버튼 없음.
+        /// </summary>
+        public static void TryRenderEmbedded(float x, float y, float w, float h)
+        {
+            if (_instance == null)
+            {
+                _instance = FindAnyObjectByType<EquipmentWindow>(FindObjectsInactive.Include);
+                if (_instance == null)
+                {
+                    var go = new GameObject("EquipmentWindow (auto)");
+                    _instance = go.AddComponent<EquipmentWindow>();
+                    if (!_embedCreateLogged)
+                    {
+                        Debug.Log("[EquipmentWindow] 임베디드 렌더용 자동 생성 (씬 인스턴스 부재)");
+                        _embedCreateLogged = true;
+                    }
+                }
+            }
+            if (Event.current == null) return;
+            _instance.InitStyles();
+            _instance.RenderWindow(x, y, w, h, true);
+        }
+
+        /// <summary>
+        /// AAA 4레이어 창 렌더 코어 — 독립 모드(embedded=false)는 화면 중앙 600x540,
+        /// 임베디드 모드는 지정 rect에 닫기 버튼 없이 렌더. 기존 OnGUI 로직 이동.
+        /// </summary>
+        private void RenderWindow(float x, float y, float w, float h, bool embedded)
+        {
+            var winRect = new Rect(x, y, w, h);
 
             // ===================================================================
             // AAA 4레이어 z-order: ①드롭섀도우 → ②백플레이트 → ③슬롯/컨텐츠 → ④프레임
             // ===================================================================
 
             // === 드롭섀도우: 창 rect 12px 사방 확장, 검정 tint (화면 팝업감) ===
-            DrawWindowDropShadow(x, y, WINDOW_WIDTH, WINDOW_HEIGHT);
+            DrawWindowDropShadow(x, y, w, h);
 
             // === Layer 1: 스톤 백플레이트 (9-Slice) — 기존 평면 패널 대체 ===
             GUI.Box(winRect, "", _styleBackplate);
@@ -246,13 +298,14 @@ namespace ProjectName.UI
             // === 타이틀 배너 (Layer 4 소속) — 창 상단을 왕관처럼 얹음 + 중앙 타이틀 ===
             float bannerW = 340f;
             float bannerH = 52f;
-            float bannerX = x + (WINDOW_WIDTH - bannerW) * 0.5f;
+            float bannerX = x + (w - bannerW) * 0.5f;
             float bannerY = y - 6f;   // 배너가 프레임 상단에 살짝 걸친 AAA 스타일
+            if (bannerY < 0f) bannerY = 0f;   // 임베디드(상단 부착) 시 클램프
             GUI.DrawTexture(new Rect(bannerX, bannerY, bannerW, bannerH), InventoryArtLibrary.GetTitleBanner());
             GUI.Label(new Rect(bannerX, y + 2, bannerW, TITLE_BAR_HEIGHT), "🛡️ 장비창", _styleBannerTitle);
 
             // 닫기 버튼
-            if (GUI.Button(new Rect(x + WINDOW_WIDTH - 44, y + 6, 36, 28), "✕", _styleButton))
+            if (!embedded && GUI.Button(new Rect(x + w - 44, y + 6, 36, 28), "✕", _styleButton))
             {
                 Hide();
                 return;
@@ -261,17 +314,17 @@ namespace ProjectName.UI
             // === 장비 슬롯 목록 (Layer 2/3) ===
             float listX = x + 16;
             float listY = y + TITLE_BAR_HEIGHT + 12;
-            float listWidth = WINDOW_WIDTH - 32;
-            float listHeight = WINDOW_HEIGHT - TITLE_BAR_HEIGHT - BUTTON_AREA_HEIGHT - 28;
+            float listWidth = w - 32;
+            float listHeight = h - TITLE_BAR_HEIGHT - BUTTON_AREA_HEIGHT - 28;
 
             DrawEquipmentSlots(listX, listY, listWidth, listHeight);
 
             // === 하단 버튼 영역 ===
             float buttonY = listY + listHeight + 4;
-            DrawBottomButtons(x, buttonY);
+            DrawBottomButtons(x, buttonY, w);
 
             // === Layer 4: 금속 프레임(9-Slice) + 4모서리 장식 — 컨텐츠 위 투명 안착 ===
-            DrawWindowFrame(x, y, WINDOW_WIDTH, WINDOW_HEIGHT);
+            DrawWindowFrame(x, y, w, h);
         }
 
         // ===== 장비 슬롯 그리기 =====
@@ -399,13 +452,13 @@ namespace ProjectName.UI
         }
 
         // ===== 하단 버튼 영역 =====
-        private void DrawBottomButtons(float panelX, float buttonY)
+        private void DrawBottomButtons(float panelX, float buttonY, float panelWidth)
         {
             float btnWidth = 160f;
             float btnHeight = 32f;
             float gap = 12f;
             float totalWidth = btnWidth * 2 + gap;
-            float leftX = panelX + (WINDOW_WIDTH - totalWidth) / 2;
+            float leftX = panelX + (panelWidth - totalWidth) / 2;
 
             // 장비 해제 버튼 (선택된 슬롯이 있을 때)
             GUI.enabled = _hasSelection && _equipmentManager != null;
@@ -437,7 +490,7 @@ namespace ProjectName.UI
             GUI.enabled = true;
 
             // 하단 도움말
-            GUI.Label(new Rect(panelX + 8, buttonY + 38, WINDOW_WIDTH - 16, 24),
+            GUI.Label(new Rect(panelX + 8, buttonY + 38, panelWidth - 16, 24),
                 "💡 슬롯 클릭 → 장비 해제", _styleInfoText);
         }
 

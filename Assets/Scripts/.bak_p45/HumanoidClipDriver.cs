@@ -59,27 +59,6 @@ namespace ProjectName.Systems
         public void TriggerHarvest() { if (_anim != null) _anim.SetTrigger("Harvest"); }
         public void TriggerHitLight() { if (_anim != null) _anim.SetTrigger("HitLight"); }
 
-        // ── P4: 무기별 공격 애니 분기용 공용 트리거 (PlayerCombat 경유 호출 전용) ──
-        // 의존 방향: PlayerCombat → 이 공용 API로만 트리거(PlayerCombat에서 _anim 직접 접근 금지).
-        /// <summary>창(Spear) 찌르기 애니 — 레거시 Attack 트리거(AttackThrust 찌르기 경로) 발화. WeaponCombo 미진입.</summary>
-        public void TriggerSpearAttack()
-        {
-            if (_anim == null) return;
-            _anim.SetTrigger("Attack");
-            _attackHoldUntil = Time.time + 0.6f;   // 찌르기 중 Speed 0 홀드(Idle/Walk 인터럽트 방지)
-            Debug.Log("[HumanoidClipDriver] Spear 찌르기 트리거 (레거시 Attack 경로)");
-        }
-
-        /// <summary>활(Bow) 발사 애니 — ArcheryShot 트리거 발화. WeaponCombo 진입 금지.
-        /// 화살 소모/발사체 생성은 PlayerCombat(좌클릭) 또는 우클릭 경로에서 ArrowManager가 담당.</summary>
-        public void TriggerBowShot()
-        {
-            if (_anim == null) return;
-            _anim.SetTrigger("ArcheryShot");
-            _attackHoldUntil = Time.time + 0.6f;   // 발사 중 Speed 0 홀드
-            Debug.Log("[HumanoidClipDriver] ArcheryShot 트리거 (활 발사)");
-        }
-
         private void OnDestroy()
         {
             PlayerHealth.OnPlayerDamaged -= OnPlayerDamagedFX;
@@ -439,8 +418,7 @@ namespace ProjectName.Systems
                 // ResolveStateName 미매핑 상태(AttackBase/AttackThrust/AttackCombo2/3)도 감지 — IsName 직접 비교
                 bool attackStateHold = stInfo.IsName("Attack") || stInfo.IsName("AttackBase") || stInfo.IsName("AttackThrust")
                     || stInfo.IsName("AttackCombo") || stInfo.IsName("AttackCombo2") || stInfo.IsName("AttackCombo3")
-                    || stInfo.IsName(ComboStateName)
-                    || stInfo.IsName("ArcheryShot"); // P4: 활 발사 중에도 Speed 0 홀드(콤보 상태와 무관 고정)
+                    || stInfo.IsName(ComboStateName);
                 if (attackStateHold)
                 {
                     // 공격 애니 재생 중: Speed 파라미터를 0으로 고정 — Idle/Walk로 가는 Speed 조건 전이 불발
@@ -457,25 +435,6 @@ namespace ProjectName.Systems
                 {
                     _prevCombatAttack = lat;
 
-                    // P4: 무기 타입별 공격 애니 분기 — Bow/Spear는 WeaponCombo(근접 3연타)에 진입 금지.
-                    // Bow: ArcheryShot만 트리거(화살 소모/발사는 PlayerCombat이 ArrowManager로 담당).
-                    // Spear: 레거시 Attack 트리거(AttackThrust 찌르기 경로).
-                    // Fist/Sword: 기존 WeaponCombo B안 로직 그대로(정밀튜닝 보존).
-                    var curWType = WeaponEquipManager.CurrentType;
-                    if (curWType == WeaponType.Bow)
-                    {
-                        _anim.SetTrigger("ArcheryShot");
-                        _attackHoldUntil = Time.time + 0.6f;   // 발사 중 Speed 0 홀드
-                        Debug.Log("[Combo] 활 발사 — WeaponCombo 미진행 (ArcheryShot)");
-                    }
-                    else if (curWType == WeaponType.Spear)
-                    {
-                        _anim.SetTrigger("Attack");
-                        _attackHoldUntil = Time.time + 0.6f;   // 찌르기 중 Speed 0 홀드
-                        Debug.Log("[Combo] 창 찌르기 — 레거시 Attack 경로");
-                    }
-                    else
-                    {
                     // WeaponCombo B안: 클릭 엣지 → 스테이지 진행/시작 (트리거 미사용, Play/CrossFade 직접 제어)
                     var stInfo = _anim.GetCurrentAnimatorStateInfo(0);
                     bool inCombo = stInfo.IsName(ComboStateName) && _comboStage > 0;
@@ -516,7 +475,6 @@ namespace ProjectName.Systems
                     }
                     // 공격 상태 최소 유지 — 연타 중 Idle 경유 팝 방지
                     _attackHoldUntil = Time.time + 0.6f;
-                    } // P4: Fist/Sword WeaponCombo 분기 종료
                 }
             }
 
@@ -619,13 +577,9 @@ namespace ProjectName.Systems
             {
                 if (WeaponEquipManager.CurrentType == WeaponType.Bow && Input.GetMouseButtonDown(1))
                 {
-                    // P5: 화살 소모 후 발사로 통일 — ArrowManager 경유(직접 ArrowProjectile.Spawn 제거).
-                    // 소모 성공 시에만 발사 애니 트리거. 데미지 = Bow.damage + ArrowData.damageBonus(매니저 내부).
-                    var mgr = ArrowManager.Instance;
-                    var origin = _anim.transform.position + Vector3.up * 1.5f;   // 손/활 위치
-                    if (mgr != null && mgr.TryShootArrow(origin, _anim.transform.forward, WeaponData.Bow.damage))
-                        _anim.SetTrigger("ArcheryShot");
-                    // 화살 없음: TryShootArrow 내부에서 차단 메시지 표시 — 발사 애니/발사체 없음
+                    _anim.SetTrigger("ArcheryShot");
+                    var origin = _anim.transform.position + Vector3.up * 1.5f;
+                    ArrowProjectile.Spawn(origin, _anim.transform.forward, 22f, WeaponData.Bow.damage, new Color(0.9f, 0.8f, 0.4f));
                 }
                 if (PlayerWeaponModeBridge.ThrowSelected && Input.GetMouseButtonDown(0))
                 {
