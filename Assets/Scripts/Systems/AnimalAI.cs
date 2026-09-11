@@ -692,7 +692,10 @@ namespace ProjectName.Systems
             else
             {
                 // HitReaction 없으면 직접 HitFlash만
-                HitVFX.PlayHitFlash(_renderer);
+                // 2026-09-11: GLB 프리팹은 루트 _renderer가 null → 피격 플래시가 통째로 스킵됨.
+                // 자식 렌더러 폴백 탐색으로 피격 피드백 보장(못 찾으면 PlayHitFlash가 null-safe 스킵).
+                var flashRenderer = _renderer != null ? _renderer : GetComponentInChildren<Renderer>();
+                HitVFX.PlayHitFlash(flashRenderer);
             }
 
             // 기존 hit effect (레거시 호환)
@@ -748,9 +751,8 @@ namespace ProjectName.Systems
             if (_rareDrop != null && Random.value < _rareDropChance)
                 drops.Add((_rareDrop, 1));
 
-            // Hide visual
-            if (_collider != null) _collider.enabled = false;
-            if (_renderer != null) _renderer.enabled = false;
+            // Hide visual — 2026-09-11: Die()와 동일 계약(자식 렌더러/콜라이더/헤드UI 일괄, GLB 대응)
+            SetCorpseVisuals(false);
 
             // Schedule respawn
             CancelInvoke(nameof(Respawn));
@@ -762,6 +764,22 @@ namespace ProjectName.Systems
         public void TakeDamage(DamageInfo damageInfo)
         {
             TakeDamage(damageInfo.amount, damageInfo.knockback.normalized, "melee");
+        }
+
+        /// <summary>
+        /// 2026-09-11: 시체/리스폰 시각 토글 통합 헬퍼. GLB 몬스터는 렌더러가 자식 메시에만 있어
+        /// 루트 _renderer 단일 참조로는 시체가 남거나 리스폰 시 복구되지 않는다.
+        /// 자식 포함 Renderer/Collider 전체 + 부착된 MonsterHeadUI를 한 번에 토글한다.
+        /// </summary>
+        private void SetCorpseVisuals(bool visible)
+        {
+            foreach (var r in GetComponentsInChildren<Renderer>(true))
+                r.enabled = visible;
+            foreach (var c in GetComponentsInChildren<Collider>(true))
+                c.enabled = visible;
+            var head = GetComponent<MonsterHeadUI>();
+            if (head == null) head = GetComponentInChildren<MonsterHeadUI>(true);
+            if (head != null) head.enabled = visible;
         }
 
         private void Die()
@@ -816,6 +834,7 @@ namespace ProjectName.Systems
 
             // 드랍 아이템 바구니 생성
             LootBasket basket = LootBasket.Create(transform.position);
+            Debug.Log($"[AnimalAI] 🧺 전리품 바구니 스폰 ({transform.position.x:F1}, {transform.position.y:F1}, {transform.position.z:F1})");
 
             DropTableManager dropMgr = DropTableManager.Instance;
             DropTable dropTable = dropMgr != null ? dropMgr.GetMonsterTable(_tier) : null;
@@ -859,9 +878,11 @@ namespace ProjectName.Systems
                 Debug.Log($"[AnimalAI] 🧺 최소 전리품 보장: 빈 바구니에 {guaranteedItem.displayName} x1 추가 ({monsterName})");
             }
 
-            // 시체 처리
-            if (_collider != null) _collider.enabled = false;
-            if (_renderer != null) _renderer.enabled = false;
+            // 시체 처리 — 2026-09-11: GLB 프리팹은 렌더러가 자식 메시에만 존재해 루트 _renderer가 null.
+            // 단일 _renderer 토글로는 시체가 화면에 남아 Respawn(10초+)까지 표시됨 →
+            // 자식 렌더러 전체 + 콜라이더(자식 포함) + MonsterHeadUI 일괄 비활성.
+            // (페이드아웃 없이 즉시 비활성 — 리스폰 시 SetCorpseVisuals(true)로 시각 원복)
+            SetCorpseVisuals(false);
 
             // 리스폰
             float respawnDelay = 10f + (int)_tier * 5f;
@@ -882,8 +903,9 @@ namespace ProjectName.Systems
             _aggroTarget = null;
             _aggroAttacker = null;
             transform.position = _spawnPos;
-            if (_collider != null) _collider.enabled = true;
-            if (_renderer != null) _renderer.enabled = true;
+            // 2026-09-11: 시체 비활성 원복 — GLB 대응으로 자식 렌더러/콜라이더/헤드UI 일괄 재활성
+            // (기존 _renderer 단일 재활성은 GLB에서 null이라 무효)
+            SetCorpseVisuals(true);
             ApplyColor();
 
             // 애니메이션: Idle

@@ -670,11 +670,19 @@ namespace ProjectName.Systems
         // ===== 슬라임 분열 처리 =====
 
         /// <summary>
+        /// 슬라임 분열 게이트 — 테스트 씬(Test_10 등)에서 분열을 끄기 위한 전역 스위치.
+        /// 분열체는 CreatePrimitive 초록 구체에 AnimalAI만 부착(HP바/전리품 없음, 풀HP)이라
+        /// "몬스터가 안 죽고 늘어난다" 체감을 유발하므로 검증 씬에서는 비활성한다.
+        /// </summary>
+        public static bool SlimeSplitEnabled = true;
+
+        /// <summary>
         /// 슬라임 분열 체크 — HP가 30% 이하로 떨어졌을 때 2마리로 분열.
         /// AnimalAI.TakeDamage() 내부에서 호출됩니다.
         /// </summary>
         public static bool TrySplitSlime(AnimalAI monster)
         {
+            if (!SlimeSplitEnabled) return false;   // 테스트 씬 게이트
             if (monster == null || monster.MonsterId != "slime") return false;
             if (monster.IsDead) return false;
 

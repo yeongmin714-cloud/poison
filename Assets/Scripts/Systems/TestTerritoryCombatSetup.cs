@@ -24,6 +24,10 @@ namespace ProjectName.Systems
             // Test_10_TerritoryCombat 전용: HighSpec 모드 강제 (메인 씬은 Balanced 기본값 유지)
             ActionFeel.SetMode(ActionFeelMode.HighSpec);
 
+            // Test 씬 분열 비활성(HP바/드랍 미정합) — 슬라임이 HP 30% 이하에서 초록 구체 2개로 늘어나
+            // "몬스터가 안 죽고 늘어난다" 체감을 유발하는 것을 차단. 분열체는 AnimalAI만 부착된 풀HP 구체.
+            MonsterSkillSystem.SlimeSplitEnabled = false;
+
             // GetHeightAt 계약 정합: 배치 좌표의 XZ는 존중하고 y만 수식 표면으로 재설정.
             // PlayerMovement.ClampToGroundByHeight / BlobShadow가 기대하는 표면(1+GetHeightAt) 위에
             // 엔티티가 정확히 떨어지도록 하여 텔레포트 진동을 근본 차단.
@@ -650,13 +654,20 @@ namespace ProjectName.Systems
             // 플레이어(Heat FBX+Player_AC)와 동일한 MeshyUser 클립 세트를 Humanoid 리타깃으로 공유한다.
             // → 새 병사 GLB가 추가돼도 이 패턴(FBX 교체)이면 애니 추가 부착 불필요.
             {
+                // 2026-09-11 T포즈 근본 수리: 실제 FBX 에셋명에는 '_rigged' 접미사가 있다
+                // (Assets/Resources/Models/UserProvided/fbx/soldier_lv1-20_rigged.fbx — Humanoid 임포트 animationType:3,
+                //  Player_Rigged_Heat.fbx와 동일 계약). 기존 "soldier_lv1-20" 로드는 항상 null → GLB 폴백
+                // (non-humanoid, avatar=null) → Soldier_AC(휴머노이드 전용) 재생 불가 = T포즈 미끄러짐의 확정 원인.
                 string fbxKey = level >= 40
-                    ? "Models/UserProvided/fbx/soldier_lv40-50"
-                    : level >= 20 ? "Models/UserProvided/fbx/soldier_lv20-40"
-                    : "Models/UserProvided/fbx/soldier_lv1-20";
+                    ? "Models/UserProvided/fbx/soldier_lv40-50_rigged"
+                    : level >= 20 ? "Models/UserProvided/fbx/soldier_lv20-40_rigged"
+                    : "Models/UserProvided/fbx/soldier_lv1-20_rigged";
+                // 머티리얼 복사용 GLB 원본 — 실제 파일명 대소문자 일치(Soldier_Lv1-20_Rigged.glb 등)
+                string glbKey = level >= 40
+                    ? "Models/UserProvided/Soldier_Lv40-50_Rigged"
+                    : level >= 20 ? "Models/UserProvided/Soldier_Lv20-40_Rigged"
+                    : "Models/UserProvided/Soldier_Lv1-20_Rigged";
                 var fbxPrefab = Resources.Load<GameObject>(fbxKey);
-                if (fbxPrefab == null)
-                    fbxPrefab = Resources.Load<GameObject>(fbxKey);
 
                 if (fbxPrefab != null)
                 {
@@ -680,14 +691,25 @@ namespace ProjectName.Systems
                     anim.applyRootMotion = false;
                     anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
 
+                    // (c) 2026-09-11: avatar 유효성/매핑 확인 로그 — Humanoid 임포트 FBX는 루트 Animator에
+                    // imported humanoid avatar가 함께 온다(플레이어 T포즈 사례와 동일 판별 기준).
+                    // 무효면 Soldier_AC 재생 불가 → 즉시 경고로 원인 노출.
+                    bool avatarOk = anim.avatar != null && anim.avatar.isValid && anim.avatar.isHuman;
+                    Debug.Log($"[TestTerritoryCombat] 🧍 {goName} avatar={(anim.avatar != null ? anim.avatar.name : "NULL")}"
+                        + $" isValid={(anim.avatar != null ? anim.avatar.isValid.ToString() : "-")}"
+                        + $" isHuman={(anim.avatar != null ? anim.avatar.isHuman.ToString() : "-")}"
+                        + $" controller={(anim.runtimeAnimatorController != null ? anim.runtimeAnimatorController.name : "NULL")}");
+                    if (!avatarOk)
+                        Debug.LogWarning($"[TestTerritoryCombat] ⚠️ {goName} Humanoid avatar 무효 — Soldier_AC 재생 불가(T포즈) 가능성");
+
                     // 병사 모드 드라이버 — Speed=transform 델타, 공격은 GuardCombatAI→TriggerAttack
                     var driver = guardGO.AddComponent<HumanoidClipDriver>();
                     driver.mode = HumanoidClipDriver.DriveMode.Soldier;
 
-                    // GLB 머티리얼 이식(FBX 텍스처 유실 대비)
-                    HumanoidClipDriver.CopyMaterialsFromGlb(soldier, "Models/UserProvided/soldier_lv1-20_rigged");
+                    // GLB 머티리얼 이식(FBX 텍스처 유실 대비) — 2026-09-11: 실제 GLB 파일명으로 수정
+                    HumanoidClipDriver.CopyMaterialsFromGlb(soldier, glbKey);
 
-                    Debug.Log($"[TestTerritoryCombat] ✅ 병사 Humanoid FBX 부착: {goName} ← {fbxKey} (Soldier_AC+드라이버, 플레이어와 동일 클립)");
+                    Debug.Log($"[TestTerritoryCombat] ✅ 병사 Humanoid FBX 부착: {goName} ← {fbxKey} (SoldierShield_AC+드라이버, 플레이어와 동일 클립)");
                 }
                 else
                 {
@@ -845,8 +867,10 @@ namespace ProjectName.Systems
             }
 
             // ④ 창고 박스 2개 + 크래프트 박스 1개 — 창고(territoryId별)에 전 아이템 시딩
-            SetupWarehouseBox("Warehouse_1", new Vector3(6f, 0f, 14f), new Color(0.5f, 0.45f, 0.35f, 1f), "wh_test_1");
-            SetupWarehouseBox("Warehouse_2", new Vector3(-6f, 0f, 14f), new Color(0.45f, 0.5f, 0.35f, 1f), "wh_test2");
+            // 2026-09-11: 두 박스 모두 시딩 ID("wh_test")와 일치 — 이전 "wh_test_1"/"wh_test2"는
+            // 시딩 창고와 다른 빈 창고를 가리켜 박스 UI가 텅 비어 보였다. 64슬롯은 Configure로 반영.
+            SetupWarehouseBox("Warehouse_1", new Vector3(6f, 0f, 14f), new Color(0.5f, 0.45f, 0.35f, 1f), "wh_test");
+            SetupWarehouseBox("Warehouse_2", new Vector3(-6f, 0f, 14f), new Color(0.45f, 0.5f, 0.35f, 1f), "wh_test");
             SetupCraftBox(new Vector3(0f, 0f, 16f), new Color(0.55f, 0.4f, 0.2f, 1f));
             SeedAllItemsToWarehouse("wh_test");
 
@@ -865,7 +889,15 @@ namespace ProjectName.Systems
             // TerritoryWarehouse(ProjectName.UI) — 리플렉션 부착(asmdef 순환 회피)
             var uiAsm = System.Reflection.Assembly.Load("ProjectName.UI");
             var whType = uiAsm != null ? uiAsm.GetType("ProjectName.UI.TerritoryWarehouse") : null;
-            if (whType != null) box.AddComponent(whType);
+            if (whType != null)
+            {
+                var whComp = box.AddComponent(whType);
+                // 2026-09-11: Test_09 선례와 동일 계약 Configure("wh_test_09",64,3f) → Test_10 박스도
+                // 시딩 ID 일치 + 64슬롯 상향. AddComponent 직후 Awake가 20슬롯 캐시를 만들므로
+                // Configure(런타임 AddComponent 후 외부 초기화용)가 재조정한다.
+                var cfg = whType.GetMethod("Configure");
+                cfg?.Invoke(whComp, new object[] { territoryId, 64, 3f });
+            }
         }
 
         private void SetupCraftBox(Vector3 pos, Color color)
@@ -886,6 +918,21 @@ namespace ProjectName.Systems
         /// <summary>WarehouseSystem에 전 아이템 시딩(territoryId="wh_test" 단일 창고).</summary>
         private void SeedAllItemsToWarehouse(string territoryId)
         {
+            // 2026-09-11: Test_10 창고 64슬롯 — TestAllInOneSetup 선례 패턴 이식.
+            // ① WarehouseSystem은 자동 생성 싱글톤이 아님(Instance get; private set;) → 없으면 생성.
+            //    (이전에는 Instance 부재 시 시딩 전체가 무음 스킵됐다)
+            // ② _maxSlotsPerTerritory 기본 20은 시딩 33종을 잘라 무기 1종만 남는 사용자 실측 증상 →
+            //    private [SerializeField]라 리플렉션으로 64 상향(시딩 전 1회).
+            if (WarehouseSystem.Instance == null)
+            {
+                var wsGO = new GameObject("WarehouseSystem");
+                wsGO.AddComponent<WarehouseSystem>();
+                Debug.Log("[UITest] ✅ WarehouseSystem 생성");
+            }
+            var slotsField = typeof(WarehouseSystem).GetField("_maxSlotsPerTerritory",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            slotsField?.SetValue(WarehouseSystem.Instance, 64);
+
             int total = 0;
             void Add(PlayerInventory.ItemData item, int count)
             {
