@@ -42,8 +42,17 @@ namespace ProjectName.Systems
             return GetTotalArrowCount() > 0;
         }
 
-        /// <summary>화살 1개 소모하고 발사. 실패 시 false 반환.</summary>
+        /// <summary>화살 1개 소모하고 발사(스폰 포인트/기본 위치에서). 실패 시 false 반환.</summary>
         public bool TryShootArrow(Vector3 direction, float baseDamage)
+        {
+            Vector3 origin = _arrowSpawnPoint != null
+                ? _arrowSpawnPoint.position
+                : transform.position + transform.forward * 0.5f + Vector3.up * 1.2f;
+            return TryShootArrow(origin, direction, baseDamage);
+        }
+
+        /// <summary>화살 1개 소모하고 지정 위치(origin)에서 발사. 실패 시 false 반환.</summary>
+        public bool TryShootArrow(Vector3 origin, Vector3 direction, float baseDamage)
         {
             if (!HasArrows())
             {
@@ -63,10 +72,8 @@ namespace ProjectName.Systems
             // 화살 데이터 조회
             var arrowData = new ArrowData(consumedType);
 
-            // 발사체 생성
-            Vector3 spawnPos = _arrowSpawnPoint != null
-                ? _arrowSpawnPoint.position
-                : transform.position + transform.forward * 0.5f + Vector3.up * 1.2f;
+            // 발사체 생성 — origin 우선(호출부 지정 활 위치), 미지정 시 스폰 포인트/기본 위치
+            Vector3 spawnPos = origin;
 
             int totalDamage = Mathf.RoundToInt(baseDamage + arrowData.damageBonus);
 

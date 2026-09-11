@@ -45,6 +45,8 @@ namespace ProjectName.Systems
         private RigAnimationController _rigAnim;
         private ProceduralAnimationController _proceduralAnim;
         private NeuralAnimationController _neuralAnim;
+        // P6 (2026-09-11): 활(Bow) 좌클릭 발사용 — HumanoidClipDriver 공용 트리거(ArcheryShot) 접근
+        private HumanoidClipDriver _clipDriver;
 
         // ===== C4-08: 자동 조준 상태 =====
         private IDamageable _currentTarget;
@@ -113,6 +115,9 @@ namespace ProjectName.Systems
             // (RequireComponent(Animator)가 플레이어 루트에 빈 Animator를 생성해 Player_AC 재생을 깨는 원인)
             _rigAnim = GetComponent<RigAnimationController>();
 
+            // P6: 활 발사 애니(ArcheryShot) 명시 트리거용 — 드라이버는 PlayerCombat 자식 계층에 위치
+            _clipDriver = GetComponentInChildren<HumanoidClipDriver>();
+
             // Neural 보류(2026-09-05): 자동부착 금지 — 씬에 명시 배치된 경우만 사용
             _neuralAnim = GetComponent<NeuralAnimationController>();
         }
@@ -175,6 +180,20 @@ namespace ProjectName.Systems
             if (!CanAttack) return;
             _lastAttackTime = Time.time;
 
+            // ── P6 (2026-09-11): 무기 타입별 좌클릭 공격 분기 ──
+            // Bow: 화살 발사 경로 — 발사체(ArrowProjectile)가 데미지를 담당하므로 근접
+            //      AttackTarget/자동조준/근접 스윕을 호출하지 않는다(발사 성공/실패 모두 return).
+            //      LastAttackTime 갱신(위)으로 HumanoidClipDriver 감시(L456)가 Bow 분기에서
+            //      ArcheryShot을 자동 트리거 + TryBowShot 내부에서 TriggerBowShot()으로 명시 보강.
+            // Spear/Fist/Sword: 기존 근접 공격 경로 유지(자동조준→AttackTarget 등).
+            //      Spear는 사거리 4m < _autoAimRange 15m라 기존 조준 범위로 충분 — 별도 조정 없음.
+            //      Fist/Sword는 기존 WeaponCombo B안이 드라이버에서 그대로 처리됨(정밀튜닝 보존).
+            if (_currentWeapon != null && _currentWeapon.weaponType == ProjectName.Core.WeaponType.Bow)
+            {
+                TryBowShot();
+                return;
+            }
+
             // Phase 8.3: 공격 스윙 사운드
             SoundManager.Instance?.PlaySFX("attack_swing");
 
@@ -221,6 +240,50 @@ namespace ProjectName.Systems
             TriggerCameraEffects();
 
             // 공격 전진 (attack lunge)
+            StartCoroutine(AttackLungeCoroutine());
+        }
+
+        /// <summary>
+        /// P6 (2026-09-11): 활(Bow) 좌클릭 발사 — 마우스 커서 방향으로 화살 1발을 소모·발사한다.
+        /// 데미지는 발사체(ArrowProjectile)가 담당하므로 근접 AttackTarget/스윕 폴백을 호출하지 않는다.
+        /// 화살 부족 시 미스 처리(LastHitValid=false) 후 종료(근접 공격으로 폴백하지 않음 — 활은 근접 무기가 아님).
+        /// 카메라 이펙트/런지는 발사 성공 시에만 적용.
+        /// </summary>
+        private void TryBowShot()
+        {
+            // 발사 사운드 (스윙 계열 재사용)
+            SoundManager.Instance?.PlaySFX("attack_swing");
+
+            // ① 사격 방향 계산 — 마우스 커서 Ray 우선, 실패(카메라/마우스 없음) 시 플레이어 전방
+            Vector3 dir = transform.forward;
+            if (_mainCamera != null && Mouse.current != null)
+            {
+                Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+                if (ray.direction.sqrMagnitude > 0.0001f)
+                    dir = ray.direction;
+            }
+
+            // ② 화살 소모 + 발사체 생성 — origin: 활 위치(플레이어 + up*1.5m), 데미지: WeaponData.Bow.damage
+            //    (화살 종류별 보너스 데미지 합산은 ArrowManager 내부 처리)
+            Vector3 origin = transform.position + Vector3.up * 1.5f;
+            bool fired = ArrowManager.Instance != null
+                && ArrowManager.Instance.TryShootArrow(origin, dir, WeaponData.Bow.damage);
+            if (!fired)
+            {
+                // 화살 부족 — 발사 실패. TryShootArrow 내부에서 차단 메시지 표시됨.
+                LastHitValid = false;
+                Debug.Log("[PlayerCombat] 🏹 활 발사 실패 — 화살 부족");
+                return;
+            }
+
+            // ③ 발사 애니 — ArcheryShot 명시 트리거. LastAttackTime은 TryAttack 시작부에서 이미 갱신되어
+            //    드라이버 감시가 Bow 분기에서 ArcheryShot을 자동 트리거하며, TriggerBowShot()은
+            //    동일 프레임 중복 SetTrigger(무해)이자 드라이버 미연결 시나리오의 안전망이다.
+            //    ⚠️ _rigAnim.Attack()은 Fist 근접 클립을 재생시킬 수 있어 Bow 경로에서는 호출하지 않는다.
+            _clipDriver?.TriggerBowShot();
+
+            // ④ 발사 성공 시에만 연출 — 카메라 반동 + 발사 전진(런지)
+            TriggerCameraEffects();
             StartCoroutine(AttackLungeCoroutine());
         }
 
