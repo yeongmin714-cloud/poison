@@ -16,6 +16,7 @@ namespace ProjectName.UI
     /// - 사망 시 "사망" 오버레이 표시
     /// - 가스 분사기 타이머 (상단 중앙)
     /// - Phase 34: 은신 상태 아이콘 + 발각 게이지 (하트 아래 배치)
+    /// - 하단 중앙 경험치 바 (Lv 라벨 + EXP 수치, 플랫 스타일, 레벨업 펄스, MAX 처리)
     /// </summary>
     public class HUD : MonoBehaviour
     {
@@ -134,6 +135,28 @@ namespace ProjectName.UI
         private bool _stealthIconDirty = true;
 #pragma warning restore 0414
 
+        // ===== 경험치 바 HUD (플랫 스타일) =====
+        [Header("EXP Bar (Flat)")]
+        [SerializeField] private int _expBarWidth = 360;
+        [SerializeField] private int _expBarHeight = 12;
+        [SerializeField] private float _expBarHotbarGap = 14f; // 핫바 패널 상단과의 간격(px)
+        [SerializeField] private Color _expBgColor = UIStyleManager.BgColor;      // 다크 네이비 반투명
+        [SerializeField] private Color _expFillColor = UIStyleManager.AccentColor; // 스카이블루 채움
+        [SerializeField] private Color _expBorderColor = UIStyleManager.BorderColor; // 회백 테두리
+
+        // EXP 상태 캐시 (폴링 + 레벨업 엣지 감지)
+        private int _prevExpLevel = -1; // -1 = 미초기화 (첫 프레임 오탐 방지)
+        private float _lastLevelUpTime = float.NegativeInfinity;
+
+        // GC: EXP 바 스타일/Rect 캐싱
+        private GUIStyle _cachedExpLevelStyle;
+        private GUIStyle _cachedExpValueStyle;
+        private Rect _rectExpBarBorder;
+        private Rect _rectExpBarBg;
+        private Rect _rectExpBarFill;
+        private Rect _rectExpLevelLabel;
+        private Rect _rectExpValueText;
+
         // 파괴 시 구독 해제용
         private System.Action<bool> _stealthStateHandler;
         private System.Action<float> _detectionGaugeHandler;
@@ -231,6 +254,21 @@ namespace ProjectName.UI
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft
             };
+
+            // 경험치 바 스타일 — 좌측 "Lv.{n}" (11px Bold 흰색) + 바 위 수치 (10px 흰색)
+            _cachedExpLevelStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 11,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleRight,
+                normal = { textColor = Color.white }
+            };
+            _cachedExpValueStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 10,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = Color.white }
+            };
         }
 
         private void CacheStaticRects()
@@ -254,6 +292,21 @@ namespace ProjectName.UI
             _rectGasBarBg = new Rect(gasX, _gasTimerY, _gasTimerWidth, _gasTimerHeight);
             _rectGasBarFill = new Rect(gasX + 1, _gasTimerY + 1, _gasTimerWidth - 2, _gasTimerHeight - 2);
             _rectGasLabel = new Rect(gasX - 100, _gasTimerY, _gasTimerWidth + 200, _gasTimerHeight);
+
+            // 경험치 바 위치: 하단 중앙, 핫바(UGUI) 위 — 겹침 방지.
+            // HotbarUI 패널 = BottomMargin 12 + PanelHeight 150 = 162 (1080p 캔버스 단위).
+            // CanvasScaler(ScaleWithScreenSize, ref 1920x1080, match 0.5) 스케일을 픽셀로 환산:
+            // scale = sqrt((w/1920) * (h/1080)) → 어떤 해상도에서도 핫바 위 14px에 배치.
+            float canvasScale = Mathf.Sqrt((Screen.width / 1920f) * (Screen.height / 1080f));
+            float hotbarTopY = Screen.height - 162f * canvasScale;
+            float expX = (Screen.width - _expBarWidth) * 0.5f;
+            float expY = hotbarTopY - _expBarHotbarGap - _expBarHeight;
+
+            _rectExpBarBorder = new Rect(expX - 1f, expY - 1f, _expBarWidth + 2f, _expBarHeight + 2f);
+            _rectExpBarBg = new Rect(expX, expY, _expBarWidth, _expBarHeight);
+            _rectExpBarFill = new Rect(expX, expY, 0f, _expBarHeight); // width는 DrawExpBar에서 ratio로 갱신
+            _rectExpLevelLabel = new Rect(expX - 64f, expY + _expBarHeight * 0.5f - 9f, 58f, 18f);
+            _rectExpValueText = new Rect(expX, expY - 20f, _expBarWidth, 16f);
         }
 
         private void OnDestroy()
@@ -323,10 +376,23 @@ namespace ProjectName.UI
                 _maxHP = ph.MaxHP;
             }
 
+            // 2026-09-11(5): PlayerStats 라이브 폴링 — EXP/Lv 표시 + 레벨업 엣지 감지(펄스 트리거).
+            // 하트 HP 폴링 선례와 동일 패턴. PlayerStats.Instance는 null-safe 스킵
+            // (플레이어 부재 씬에서 HUD 오류 방지).
+            var ps = PlayerStats.Instance;
+            if (ps != null)
+            {
+                int lv = ps.Level;
+                if (_prevExpLevel >= 0 && lv > _prevExpLevel)
+                    _lastLevelUpTime = Time.time; // 레벨업 펄스 시작
+                _prevExpLevel = lv;
+            }
+
             UpdateStaticRectPositions();
 
             DrawHearts();
             DrawHPNumberText(); // 하트 아래 숫자 HP 표시 ("85 / 140")
+            DrawExpBar(); // 하단 중앙 경험치 바 (Lv + EXP, 플랫)
             DrawBuffIcons();
             DrawDeathOverlay();
             DrawGasSprayerTimer();
@@ -620,6 +686,88 @@ namespace ProjectName.UI
 
             // GUI.color 원복 (다음 Draw 호출에 영향 없도록)
             GUI.color = Color.white;
+        }
+
+        // ================================================================
+        // 경험치 바 (하단 중앙, 플랫 스타일)
+        // - 소스: PlayerStats.CurrentEXP / Level / GetExpForLevel(level) (누적 임계값)
+        // - 채움 비율: (CurrentEXP - GetExpForLevel(lv)) / (GetExpForLevel(lv+1) - GetExpForLevel(lv))
+        // - MaxLevel(50) 도달: 100% 채움 + "MAX" 라벨 (0 나눔 방지)
+        // - 레벨업 펄스: _prevExpLevel 엣지 감지 → 스카이블루→흰색 플래시 0.5s (Time.time 기반 감쇠)
+        // - 렌더: 1px 회백 테두리 → 다크 네이비 반투명 배경 → 스카이블루 채움 (단색 Rect, 9slice 불필요)
+        // ================================================================
+
+        /// <summary>
+        /// 하단 중앙 경험치 바 표시 (좌측 "Lv.{n}" + 바 위 "현재/다음" 수치).
+        /// PlayerStats.Instance가 없으면 스킵 (null-safe).
+        /// </summary>
+        private void DrawExpBar()
+        {
+            if (_cachedExpLevelStyle == null) return;
+
+            var ps = PlayerStats.Instance;
+            if (ps == null) return;
+
+            int level = ps.Level;
+            bool isMaxLevel = level >= PlayerStats.MaxLevel;
+
+            // 채움 비율: 현재 구간 누적 경험치 기준 (GetExpForLevel = 해당 레벨 도달 누적치)
+            int curExp;
+            int spanExp;
+            float ratio;
+            if (isMaxLevel)
+            {
+                curExp = 0;
+                spanExp = 0;
+                ratio = 1f; // MAX: 100% 채움
+            }
+            else
+            {
+                curExp = ps.CurrentEXP - ps.GetExpForLevel(level);
+                spanExp = ps.GetExpForLevel(level + 1) - ps.GetExpForLevel(level);
+                if (spanExp <= 0) spanExp = 1; // 0 나눔 방어
+                ratio = Mathf.Clamp01((float)curExp / spanExp);
+            }
+
+            // 레벨업 펄스: 0.5s 동안 흰색 → 스카이블루 감쇠 (GUI.color 틴트 — DrawFlatRect가 복원)
+            Color fillColor = _expFillColor;
+            float pulse = 1f - (Time.time - _lastLevelUpTime) / 0.5f;
+            if (pulse > 0f)
+                fillColor = Color.Lerp(_expFillColor, Color.white, Mathf.Clamp01(pulse));
+
+            // 1px 테두리 → 반투명 배경 → 채움 (Rect 재사용 — GC 방지)
+            DrawFlatRect(_rectExpBarBorder, _expBorderColor);
+            DrawFlatRect(_rectExpBarBg, _expBgColor);
+            _rectExpBarFill.width = _rectExpBarBg.width * ratio;
+            DrawFlatRect(_rectExpBarFill, fillColor);
+
+            // 라벨: 좌측 "Lv.{n}" (11px Bold 흰색) + 바 위 중앙 수치 ("320/500" 또는 "MAX")
+            GUI.Label(_rectExpLevelLabel, $"Lv.{level}", _cachedExpLevelStyle);
+            GUI.Label(_rectExpValueText, isMaxLevel ? "MAX" : $"{curExp}/{spanExp}", _cachedExpValueStyle);
+        }
+
+        /// <summary>단색 Rect 렌더용 1x1 흰색 텍스처 (static lazy 캐시 — 하트 마스크 선례, OnGUI GC 방지)</summary>
+        private static Texture2D _texFlatWhite;
+
+        /// <summary>
+        /// 단색 Rect 그리기 — 흰색 텍스처 + GUI.color 틴트.
+        /// DrawHeart 선례와 동일하게 호출 후 GUI.color를 반드시 복원 (틴트 누출 방지).
+        /// </summary>
+        private static void DrawFlatRect(Rect rect, Color color)
+        {
+            if (_texFlatWhite == null)
+            {
+                _texFlatWhite = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+                _texFlatWhite.name = "HUD_FlatWhite";
+                _texFlatWhite.hideFlags = HideFlags.HideAndDontSave; // 씬/에셋 관리 대상 제외 (런타임 전용)
+                _texFlatWhite.SetPixel(0, 0, Color.white);
+                _texFlatWhite.Apply();
+            }
+
+            Color prevColor = GUI.color; // 틴트 복원용
+            GUI.color = color;
+            GUI.DrawTexture(rect, _texFlatWhite, ScaleMode.StretchToFill);
+            GUI.color = prevColor;
         }
 
         /// <summary>

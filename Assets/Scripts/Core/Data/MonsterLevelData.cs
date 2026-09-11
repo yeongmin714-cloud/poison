@@ -71,6 +71,20 @@ namespace ProjectName.Core.Data
         [Tooltip("기본 데미지")]
         private float _baseDamage = 1f;
 
+        [Header("=== 티어별 기본 경험치 (레벨 계수 적용 전 기준값) ===")]
+
+        [SerializeField]
+        [Tooltip("초반(Beginner) 티어 기본 EXP")]
+        private float _beginnerExpBase = 15f;
+
+        [SerializeField]
+        [Tooltip("중반(Intermediate) 티어 기본 EXP")]
+        private float _intermediateExpBase = 60f;
+
+        [SerializeField]
+        [Tooltip("후반(Advanced) 티어 기본 EXP")]
+        private float _advancedExpBase = 180f;
+
         [Header("=== 드랍률 보정 ===")]
 
         [SerializeField]
@@ -192,6 +206,20 @@ namespace ProjectName.Core.Data
             }
         }
 
+        /// <summary>
+        /// 티어별 기본 경험치 반환 (레벨 계수 적용 전 기준값)
+        /// </summary>
+        public float GetExpBase(MonsterTier tier)
+        {
+            switch (tier)
+            {
+                case MonsterTier.Beginner:       return _beginnerExpBase;
+                case MonsterTier.Intermediate:   return _intermediateExpBase;
+                case MonsterTier.Advanced:       return _advancedExpBase;
+                default: return _beginnerExpBase;
+            }
+        }
+
         // ===== 에디터 데이터 무결성 검증 =====
 
 #if UNITY_EDITOR
@@ -223,6 +251,11 @@ namespace ProjectName.Core.Data
             _advancedHPPerLevel = Mathf.Max(0f, _advancedHPPerLevel);
             _damagePerLevel = Mathf.Max(0f, _damagePerLevel);
             _baseDamage = Mathf.Max(0f, _baseDamage);
+
+            // 티어별 기본 경험치: 양수 보장 (0이면 경험치 획득 불가 → 최소 1)
+            _beginnerExpBase = Mathf.Max(1f, _beginnerExpBase);
+            _intermediateExpBase = Mathf.Max(1f, _intermediateExpBase);
+            _advancedExpBase = Mathf.Max(1f, _advancedExpBase);
 
             // 드랍률: 0~1 범위
             _rareDropBonusPer10Levels = Mathf.Clamp01(_rareDropBonusPer10Levels);

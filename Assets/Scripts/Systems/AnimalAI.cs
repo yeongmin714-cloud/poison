@@ -804,14 +804,11 @@ namespace ProjectName.Systems
             // ⏱️ 전투 로그: 처치 기록
             string monsterName = MonsterDatabase.Get(_monsterId)?.displayName ?? _monsterId;
             CombatLog.AddEntry($"{monsterName} 처치!", LogType.Kill);
-            // 경험치 획득
-            int exp = 0;
-            switch (_tier)
-            {
-                case MonsterTier.Beginner: exp = Random.Range(10, 31); break;
-                case MonsterTier.Intermediate: exp = Random.Range(50, 101); break;
-                case MonsterTier.Advanced: exp = Random.Range(150, 301); break;
-            }
+            // 경험치 획득 — 레벨 기반: 티어 기본 EXP × (1 + 레벨×0.1) × 난수(0.8~1.2)
+            MonsterLevelManager mgr = MonsterLevelManager.Instance;
+            float baseExp = (mgr != null && mgr.Data != null) ? mgr.Data.GetExpBase(_tier) : 15f;
+            int exp = Mathf.Max(1, Mathf.RoundToInt(baseExp * (1f + _level * 0.1f) * Random.Range(0.8f, 1.2f)));
+            Debug.Log($"[AnimalAI] {monsterName} 경험치 계산: base={baseExp:F0}(티어={_tier}) × (1+Lv{_level}×0.1) × 난수(0.8~1.2) → +{exp} EXP");
             PlayerStats stats = PlayerStats.Instance;
             if (stats != null)
             {

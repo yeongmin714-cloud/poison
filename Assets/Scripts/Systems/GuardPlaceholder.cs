@@ -432,6 +432,12 @@ namespace ProjectName.Systems
             if (_isDead) return;
             // ⏱️ 전투 로그: 병사 처치 기록
             CombatLog.AddEntry($"{guardName} 처치!", LogType.Kill);
+
+            // 경험치: 병사 레벨 기반 (level × 5 × 난수 0.8~1.2)
+            int exp = Mathf.Max(1, Mathf.RoundToInt(level * 5f * Random.Range(0.8f, 1.2f)));
+            PlayerStats.Instance?.AddEXP(exp);
+            CombatLog.AddEntry($"병사 처치 경험치 +{exp}", LogType.Kill);
+            Debug.Log($"[GuardPlaceholder] 병사 처치 경험치 +{exp} (Lv.{level} × 5 × 난수 0.8~1.2)");
             _isDead = true;
 
             // Phase 3: 사망 카메라 연출 (킬 이펙트)
