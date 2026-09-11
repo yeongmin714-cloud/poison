@@ -2155,3 +2155,16 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 병사 희귀 고급 아이템 | `SoldierDropTable.asset`에 희귀 6종(isRare:1) 추가 — 강철검 5% / 돌창 3% / 강철갑옷 4% / 강철투구 3% / 늑대모피 3% / 늑대이빨 2%. id는 기존 장비 체계 재사용(우클릭 장착·아이콘·스탯 동작) | ✅ |
 | 검증 | batchmode 컴파일 0에러(return 0), isRare:1 6건 확인, YAML 유니코드·들여쓰기 파싱 통과, 중괄호 균형 OK. QAPROGRESS 30차 기록 | ✅ |
 | Play 판정 대기 | 토끼/멧돼지/늑대 사냥 시 각각 다른 고기·가죽 드랍, 병사 사살 시 희귀 시험(강철검 등) 제한 확률 드랍 확인 | ⬜ |
+
+## 💰 2026-09-11: 전리품 창 우측 배치 + 드래그로 인벤토리 이동 (LOOT-DND-31)
+
+> **목표:** 전리품 바구니 창을 화면 우측 고정 구획에 띄우고, 아이템을 드래그해 인벤토리로 옮긴다.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 우측 배치 | LootWindow를 InventoryWindow.GetContextX()(2S/3+6) 고정, 높이 Screen-180, 폭=인벤 WINDOW_WIDTH. 기존 중앙 1000×1000 팝업 대체. 다크네이비 테마/타이틀/전부획득 버튼 유지 | ✅ |
+| 드래그 시작 | 슬롯 MouseDown → ItemDragContext.Begin(Source.Loot, index, item). ItemDragContext.Source에 Loot 추가(하위 호환) | ✅ |
+| 드롭 판정 | InventoryWindow.ProcessDrag에 Loot 분기: 인벤 그리드 위 MouseUp → TryTakeDraggedToInventory()(TakeItem→RefreshInventory+RefreshLoot). 전리품 슬롯 위=클릭 획득, 그 외 Cancel | ✅ |
+| API | LootWindow.TryGetSlotAtScreenPoint(guiPoint, out slotIndex), TryTakeDraggedToInventory(), Awake 싱글턴. 잔여 전리품 NRE 하드닝 | ✅ |
+| 검증 | 중괄호 균형 OK(273/8/61), batchmode 컴파일 0에러(return 0), QAPROGRESS 31차 기록 | ✅ |
+| Play 판정 대기 | 전리품 창 우측 표시, 드래그 고스트, 인벤 그리드 놓기=이동, 클릭=획득, 전부 획득, 비면 자동 닫힘 | ⬜ |

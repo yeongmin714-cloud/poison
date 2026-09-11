@@ -4,7 +4,32 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-11 (30차)
+> **최종 갱신:** 2026-09-11 (31차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-11 ✅ 31차 — 전리품 창 우측 배치 + 드래그로 인벤토리 이동)
+
+> **스코프**: 전리품(모브 드랍 바구니) 창을 화면 우측 고정 구획으로 배치하고, 전리품 아이템을 **드래그해서 인벤토리로 옮기는** DnD 시스템 구현. 컴파일 0 에러.
+
+### 변경 사항
+**`UI/ItemDragContext.cs`** — Source enum에 `Loot` 추가(`{None, Inventory, Warehouse, Loot}`, 맨 뒤 추가로 하위 호환). Loot 소스는 InventoryWindow.ProcessDrag가 MouseUp 판정 대행.
+
+**`UI/LootWindow.cs`** (505→624줄) — 우측 고정 배치 + 드래그 시작:
+- `WINDOW_WIDTH`→InventoryWindow.WINDOW_WIDTH, `WINDOW_HEIGHT`→Screen.height-180 참조. 위치 = `InventoryWindow.GetContextX()`(2S/3+6), y=10
+- 슬롯 MouseDown 즉시 TakeItem → **`ItemDragContext.Begin(Source.Loot, i, entry.Item)` 드래그 시작**. 인벤 닫힘 시에만 현재 MouseUp 폴백(클릭=획득 유지) + 잔여 전리품 NRE 하드닝
+- 신규 정적 API: `TryGetSlotAtScreenPoint(guiPoint, out slotIndex)`(슬롯 Rect 캐시 y 보정 — GUIToScreenPoint yMin=sp.y-height 선례), `TryTakeDraggedToInventory()`(TakeItem→RefreshLoot), `Awake()` 싱글턴
+
+**`UI/InventoryWindow.cs`** — ProcessDrag에 **Loot 소스 분기 신설**(기존 Warehouse/인벤 흐름 무수정):
+- WINDOW_WIDTH/HEIGHT private→public(LootWindow 참조용)
+- MouseDrag Use + MouseUp: ① 인벤 그리드/슬롯 위 → `LootWindow.TryTakeDraggedToInventory()`(TakeItem→RefreshInventory+RefreshLoot) ② 전리품 슬롯 위 → 클릭 획득 유지 ③ 그 외 Cancel
+
+### Loot 드래그→인벤 흐름
+E키→OpenForBasket→우측 창 Show → 슬롯 좌클릭(MouseDown)→드래그 시작+고스트(ItemDragContext.DrawGhost) → 인벤 그리드 위 MouseUp=TakeItem(인벤 AddItem)+Refresh. 인벤 닫힘=클릭 획득 폴백(상호 배타 가드).
+
+### 컴파일/검증
+- 중괄호 균형 OK(Inventory 273/273, ItemDragContext 8/8, LootWindow 61/61)
+- Unity 6000.4.10f1 batchmode **0 에러**(return 0)
 
 ---
 

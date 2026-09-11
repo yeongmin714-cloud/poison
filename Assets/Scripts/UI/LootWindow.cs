@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.UI.Themes;
 using ProjectName.Core;
@@ -9,9 +10,11 @@ namespace ProjectName.UI
 {
     /// <summary>
     /// 전리품 창 (Loot Window) — LootBasket 열었을 때 표시.
-    /// 인벤토리와 비슷한 레이아웃, "전리품" 헤더, "전부 획득" 버튼.
-    /// 개별 아이템 클릭 시 인벤토리로 이동. 비면 자동 닫힘.
-    /// 
+    /// 2026-09-11(6): 화면 우측 1/3 구획 고정 배치 (인벤 창 제3구획과 동일 좌표 규약).
+    /// 인벤 그리드 스타일의 "전리품" 헤더, "전부 획득" 버튼.
+    /// 슬롯 좌클릭 = 드래그 시작(ItemDragContext.Source.Loot) — 인벤 그리드에 드롭 시 이동,
+    /// 전리품 슬롯 위에서 그냥 뗌 = 즉시 획득(기존 클릭 UX 유지). 비면 자동 닫힘.
+    ///
     /// [QA v1.1] OnGUI GC 최적화 완료 (Rect 캐싱, GUIContent 재사용, string 보간 제거).
     /// </summary>
     public class LootWindow : UIWindow
@@ -25,8 +28,10 @@ namespace ProjectName.UI
         private int _selectedIndex = -1;
 
         // ===== 레퍼런스 스타일 상수 =====
-        private const float WINDOW_WIDTH = 1000f;
-        private const float WINDOW_HEIGHT = 1000f;
+        // 2026-09-11(6): 우측 구획 고정 배치 — 기존 중앙 1000×1000 팝업 폐기.
+        // 폭/높이는 InventoryWindow의 창 크기 규약(WINDOW_WIDTH/WINDOW_HEIGHT)을 그대로 따른다.
+        private static float WINDOW_WIDTH => InventoryWindow.WINDOW_WIDTH;   // Screen.width/3 - 12
+        private static float WINDOW_HEIGHT => Screen.height - 180f;          // InventoryWindow.WINDOW_HEIGHT 규약 (하단 핫바 170 여백)
         private const float TITLE_BAR_HEIGHT = 90f;
         private const float BOTTOM_BAR_HEIGHT = 120f;
         private const int GRID_COLUMNS = 3;
@@ -84,6 +89,20 @@ namespace ProjectName.UI
         private string _strBasketName;
         private string _strItemCount;
 
+        // ===== 2026-09-11(6): 싱글턴 — InventoryWindow.ProcessDrag의 Loot 소스 드롭 판정이 참조 =====
+        private static LootWindow _instance;
+        public static LootWindow Instance => _instance;
+
+        // ===== 2026-09-11(6): DnD 드롭 판정용 슬롯 화면 Rect 캐시 (정적 — GC 캐시 관례, WarehouseUI 선례) =====
+        private static readonly List<Rect> s_slotScreenRects = new List<Rect>(32);   // 아이템 있는 전리품 슬롯
+        private static readonly List<int> s_slotScreenIndices = new List<int>(32);   // 바구니 항목 인덱스
+
+        protected override void Awake()
+        {
+            base.Awake();
+            _instance = this;
+        }
+
         public ILootBasket CurrentBasket
         {
             get => _currentBasket;
@@ -106,6 +125,13 @@ namespace ProjectName.UI
             Debug.Log("[LootWindow] 닫힘");
             _currentBasket = null;
             _cachedItems = null;
+
+            // 2026-09-11(6): 창이 닫히면 Loot 소스 드래그 잔여 정리 + 슬롯 Rect 캐시 무효화
+            // (스테일 Rect 오드롭/고스트 잔상 방지 — WarehouseUI 잔여 드래그 정리 선례)
+            if (ItemDragContext.Active && ItemDragContext.SourceType == ItemDragContext.Source.Loot)
+                ItemDragContext.Cancel();
+            s_slotScreenRects.Clear();
+            s_slotScreenIndices.Clear();
         }
 
         /// <summary>
@@ -256,8 +282,10 @@ namespace ProjectName.UI
             if (_cachedItems == null || _cachedItems.Length != _currentBasket.ItemCount)
                 RefreshLoot();
 
-            float x = (Screen.width - WINDOW_WIDTH) / 2;
-            float y = (Screen.height - WINDOW_HEIGHT) / 2;
+            // 2026-09-11(6): 우측 1/3 구획 고정 배치 — 인벤 창 제3구획(컨텍스트)과 동일 좌표 규약.
+            // x = Screen.width*2/3 + 6 (InventoryWindow.GetContextX 선례), y = 10 (인벤 창 상단 여백 규약).
+            float x = InventoryWindow.GetContextX(WINDOW_WIDTH);
+            float y = 10f;
 
             // === Rect 캐싱 (GC 최적화) ===
             _rectBg.Set(x, y, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -288,6 +316,21 @@ namespace ProjectName.UI
             // === 하단 바 (전부 획득 버튼) ===
             float bottomY = gridY + gridHeight + 2;
             DrawBottomBar(x, bottomY);
+
+            // === 2026-09-11(6): Loot 소스 드래그 보조 — 인벤이 닫혀 판정 주체가 없을 때 자체 처리 ===
+            if (ItemDragContext.Active && ItemDragContext.SourceType == ItemDragContext.Source.Loot
+                && (InventoryWindow.Instance == null || !InventoryWindow.Instance.IsOpen))
+            {
+                if (Event.current.type == EventType.MouseUp)
+                {
+                    // 전리품 슬롯 위 MouseUp은 DrawItemGrid의 폴백(클릭=획득)이 소비했으므로
+                    // 여기 온 MouseUp은 슬롯 밖 드롭 = 취소 (WarehouseUI 잔여 드래그 정리 선례)
+                    ItemDragContext.Cancel();
+                    Event.current.Use();
+                }
+                ItemDragContext.DrawGhost();   // 인벤이 렌더 주체가 아니므로 여기서 고스트 (프레임 가드 내장 — 이중 렌더 무해)
+            }
+            // 인벤이 열려 있으면 InventoryWindow.ProcessDrag의 Loot 분기가 고스트/드롭 판정을 담당한다.
         }
 
         // ===================================================================
@@ -298,6 +341,10 @@ namespace ProjectName.UI
             float innerX = panelX + 4;
             float innerY = gridY + 2;
             float innerWidth = WINDOW_WIDTH - 8;
+
+            // 2026-09-11(6): DnD 드롭 판정용 슬롯 화면 Rect 캐시 리빌드 (매 프레임 — InventoryWindow/WarehouseUI 선례)
+            s_slotScreenRects.Clear();
+            s_slotScreenIndices.Clear();
 
             _rectGridBg.Set(panelX, gridY, WINDOW_WIDTH, gridHeight);
             DrawColoredRect(_rectGridBg, ColorBg);
@@ -345,6 +392,12 @@ namespace ProjectName.UI
                     _rectSlot.Set(sx, sy, slotWidth, slotHeight);
                     bool isSelected = (i == _selectedIndex);
 
+                    // 2026-09-11(6): 드롭 판정용 스크린 Rect 캐시 — GUIToScreenPoint y 상승계 보정
+                    // (sp.y는 슬롯 윗변 → yMin = sp.y - height. InventoryWindow L710 수리 선례 동일)
+                    Vector2 slotScreenPos = GUIUtility.GUIToScreenPoint(new Vector2(sx, sy));
+                    s_slotScreenRects.Add(new Rect(slotScreenPos.x, slotScreenPos.y - slotHeight, slotWidth, slotHeight));
+                    s_slotScreenIndices.Add(i);
+
                     var slotStyle = isSelected ? _styleSlotSelected : _styleSlot;
                     GUI.Box(_rectSlot, "", slotStyle);
 
@@ -378,12 +431,33 @@ namespace ProjectName.UI
                     _gcItemCount.text = _strItemCount;
                     GUI.Label(_rectWork, _gcItemCount, _styleItemCount);
 
-                    // 클릭 → 획득 (MouseDown에서만 처리)
-                    if (isMouseDown && _rectSlot.Contains(currentEvent.mousePosition))
+                    // 2026-09-11(6): 좌클릭 MouseDown → 드래그 시작 (기존 "즉시 TakeItem" 대체).
+                    // - 인벤 열림: InventoryWindow.ProcessDrag의 Loot 소스 분기가 MouseUp 드롭 판정 대행
+                    //   (인벤 그리드 위 드롭=이동, 전리품 슬롯 위 뗌=획득, 그 외=취소)
+                    // - 인벤 닫힘: 아래 MouseUp 자체 폴백이 클릭=획득을 유지
+                    if (isMouseDown && currentEvent.button == 0 && !ItemDragContext.Active
+                        && _rectSlot.Contains(currentEvent.mousePosition))
                     {
+                        _selectedIndex = i;
+                        ItemDragContext.Begin(ItemDragContext.Source.Loot, i, entry.Item);
+                        currentEvent.Use();
+                    }
+                    else if (currentEvent.type == EventType.MouseUp && currentEvent.button == 0
+                             && _rectSlot.Contains(currentEvent.mousePosition)
+                             && ItemDragContext.Active && ItemDragContext.SourceType == ItemDragContext.Source.Loot
+                             && ItemDragContext.SourceIndex == i
+                             && (InventoryWindow.Instance == null || !InventoryWindow.Instance.IsOpen))
+                    {
+                        // 인벤이 닫혀 판정 주체(InventoryWindow.ProcessDrag)가 없으면 자체 폴백 — 클릭=획득 유지
                         _selectedIndex = i;
                         currentEvent.Use();
                         TakeSelectedItem(i);
+                        if (ItemDragContext.Active && ItemDragContext.SourceType == ItemDragContext.Source.Loot)
+                            ItemDragContext.Cancel();
+
+                        // 2026-09-11(6) 하드닝: 획득으로 바구니가 비면 RefreshLoot이 _cachedItems=null로 만들고
+                        // 창이 자동 Hide된다 — 루프 조건/후속 접근 NRE 방지를 위해 즉시 탈출.
+                        if (_cachedItems == null || i >= _cachedItems.Length) break;
                     }
                 }
             }
@@ -441,6 +515,51 @@ namespace ProjectName.UI
                 Debug.Log("[LootWindow] 모든 아이템 획득 완료");
                 RefreshLoot();
             }
+        }
+
+        // ===================================================================
+        // 2026-09-11(6): DnD — ItemDragContext 공유 컨텍스트 (InventoryWindow.ProcessDrag의 Loot 분기와 짝)
+        // ===================================================================
+
+        /// <summary>
+        /// 화면(GUI) 좌표가 전리품 슬롯 위인지 (InventoryWindow ProcessDrag의 Loot 소스 MouseUp 판정용).
+        /// out slotIndex: 바구니 항목 인덱스. 캐시는 그리드 렌더 프레임에 리빌드된다 (WarehouseUI 선례).
+        /// </summary>
+        public static bool TryGetSlotAtScreenPoint(Vector2 guiPoint, out int slotIndex)
+        {
+            // 캐시 Rect는 GUIToScreenPoint 결과(스크린 좌표계 — 좌하단 원점, y 상승) — GUI점을 같은 변환으로 통일
+            Vector2 sp = GUIUtility.GUIToScreenPoint(guiPoint);
+            for (int i = 0; i < s_slotScreenRects.Count; i++)
+            {
+                if (s_slotScreenRects[i].Contains(sp))
+                {
+                    slotIndex = s_slotScreenIndices[i];
+                    return true;
+                }
+            }
+            slotIndex = -1;
+            return false;
+        }
+
+        /// <summary>
+        /// 전리품→인벤 드래그 드롭: 드래그 중 전리품 슬롯(ItemDragContext.SourceIndex)의 아이템을
+        /// 플레이어 인벤토리로 이동 (LootBasket.TakeItem이 PlayerInventory.AddItem을 대행).
+        /// 성공 시 RefreshLoot(바구니가 비면 기존 규약대로 자동 Hide). 성공 true.
+        /// </summary>
+        public static bool TryTakeDraggedToInventory()
+        {
+            if (ItemDragContext.SourceType != ItemDragContext.Source.Loot) return false;
+            if (ItemDragContext.SourceIndex < 0) return false;
+            if (_instance == null) return false;
+            var basket = _instance._currentBasket;
+            if (basket == null) return false;
+
+            if (!basket.TakeItem(ItemDragContext.SourceIndex))
+                return false;   // 인벤 가득 참 등 — 변경 없음 (드래그는 Cancel만)
+
+            Debug.Log($"[LootWindow] 드래그 획득: {ItemDragContext.Item?.displayName ?? "?"}");
+            _instance.RefreshLoot();   // 비었으면 자동 Hide (기존 규약 유지)
+            return true;
         }
 
         // ===================================================================

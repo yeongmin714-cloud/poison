@@ -5,20 +5,22 @@ namespace ProjectName.UI
 {
     /// <summary>
     /// 2026-09-11: 창 간 드래그앤드롭 공유 컨텍스트 (정적 상태 — GC 캐시 관례 준수).
-    /// InventoryWindow(인벤 슬롯/창고 컨텍스트)와 WarehouseUI(창고 슬롯)가
+    /// InventoryWindow(인벤 슬롯/창고 컨텍스트)와 WarehouseUI(창고 슬롯), LootWindow(전리품 슬롯)가
     /// 드래그 시작/드롭 판정/고스트 렌더를 공유한다.
     /// - 드래그 시작: Begin(...) — 소스 창이 자신의 상태를 기록
     /// - 드롭 판정: 각 창이 자신의 Rect 캐시에 대해 TryConsumeDrop* 호출
+    ///   (Loot 소스는 InventoryWindow.ProcessDrag의 전리품 분기가 MouseUp 판정 대행)
     /// - 고스트: DrawGhost() — 매 프레임 1회만 그림(프레임 스탬프 가드, 이중 렌더 방지)
     /// 텍스처 파기 금지: Icon은 ItemIconDatabase 캐시/ArtLibrary 참조만 보관.
     /// </summary>
     public static class ItemDragContext
     {
-        public enum Source { None, Inventory, Warehouse }
+        // 2026-09-11(6): Loot 추가 — 전리품 창→인벤 드래그. 기존 값 순서 유지(하위 호환), 맨 뒤에 추가.
+        public enum Source { None, Inventory, Warehouse, Loot }
 
         public static bool Active;
         public static Source SourceType = Source.None;
-        public static int SourceIndex = -1;          // Inventory: 전역 슬롯 인덱스 / Warehouse: 창고 슬롯 인덱스
+        public static int SourceIndex = -1;          // Inventory: 전역 슬롯 인덱스 / Warehouse: 창고 슬롯 인덱스 / Loot: 전리품 바구니 항목 인덱스
         public static string TerritoryId = null;     // Warehouse 소스일 때 창고 territoryId
         public static PlayerInventory.ItemData Item; // 드래그 중 아이템
         public static Texture2D Icon;                // 고스트 아이콘 (nullable — 폴백 사각형)

@@ -108,8 +108,9 @@ namespace ProjectName.UI
 
         // ===== 레퍼런스 스타일 상수 (2026-09-11 Flat: 얇은 타이틀 스트립 + 컴팩트 탭) =====
         // 화면 정확히 삼분활 — 패널 폭 = Screen.width/3 - 12, 하단 핫바(150+12) 공간 확보
-        private static float WINDOW_WIDTH => Screen.width / 3f - 12f;
-        private static float WINDOW_HEIGHT => Screen.height - 180f;   // 상단 10 + 하단 핫바 170 여백
+        // 2026-09-11(6): public화 — LootWindow가 우측 구획 배치 시 동일 창 크기 규약을 참조 (기존 로직 무변경)
+        public static float WINDOW_WIDTH => Screen.width / 3f - 12f;
+        public static float WINDOW_HEIGHT => Screen.height - 180f;   // 상단 10 + 하단 핫바 170 여백
         private const float TITLE_BAR_HEIGHT = 64f;    // Flat: 얇은 상단 스트립
         private const float TAB_BAR_HEIGHT = 72f;      // Flat: 컴팩트 탭
         private const float INFO_PANEL_HEIGHT = 272f;   // (레거시 — 미사용)
@@ -1881,6 +1882,37 @@ namespace ProjectName.UI
                     {
                         // 창고 내 슬롯↔슬롯 스왑
                         WarehouseUI.SwapDraggedSlots(whTarget3);
+                    }
+                    // 그 외 영역 = 드롭 실패 → Cancel (변경 없음)
+                    ItemDragContext.Cancel();
+                    Event.current.Use();
+                }
+                ItemDragContext.DrawGhost();
+                return;
+            }
+
+            // === 전리품 소스 드래그: 인벤 창이 드롭 판정 대행 (2026-09-11(6): 전리품→인벤 이동) ===
+            // LootWindow 슬롯 MouseDown에서 Begin(Source.Loot, index, item) — 이 분기가 MouseUp 판정을 대행한다.
+            if (ItemDragContext.Active && ItemDragContext.SourceType == ItemDragContext.Source.Loot)
+            {
+                if (Event.current.type == EventType.MouseDrag)
+                    Event.current.Use();
+                else if (Event.current.type == EventType.MouseUp)
+                {
+                    Vector2 p = Event.current.mousePosition;
+                    // ① 인벤 그리드/슬롯 위 드롭 → 전리품 → 인벤 이동
+                    //    (IsPointOverInventoryGrid: 그리드 전체 영역[빈 셀 포함] / GetInventorySlotIndexAtScreenPoint: 아이템 슬롯 정밀 판정)
+                    // ② 전리품 슬롯 위에서 그냥 뗌 → 클릭 획득 (기존 좌클릭 획득 UX 유지)
+                    // ③ 그 외 영역 → 드롭 실패 (변경 없음)
+                    if (IsPointOverInventoryGrid(p)
+                        || GetInventorySlotIndexAtScreenPoint(p) >= 0
+                        || LootWindow.TryGetSlotAtScreenPoint(p, out _))
+                    {
+                        if (LootWindow.TryTakeDraggedToInventory())
+                        {
+                            RefreshInventory();
+                            Debug.Log($"[InventoryWindow] 전리품→인벤 이동(드래그): {ItemDragContext.Item?.displayName ?? "?"}");
+                        }
                     }
                     // 그 외 영역 = 드롭 실패 → Cancel (변경 없음)
                     ItemDragContext.Cancel();
