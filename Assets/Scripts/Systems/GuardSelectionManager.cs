@@ -275,5 +275,22 @@ namespace ProjectName.Systems
         /// </summary>
         public IReadOnlyList<GuardPlaceholder> SelectedGuards => _selectedGuardsReadOnly;
         public int SelectedCount => _selectedGuards.Count;
+
+        /// <summary>
+        /// 2026-09-11: 지정한 병사 리스트를 통째로 선택(기존 선택 대체) — 부대 핫바(GuardSquadHotbar)의
+        /// 숫자키 그룹 재선택용. 내부는 ClearSelection + AddToSelection 반복이며,
+        /// 기존 드래그 선택/우클릭 명령 로직은 일절 변경하지 않는다. (null 참조는 무시)
+        /// </summary>
+        public void SelectGroup(IReadOnlyList<GuardPlaceholder> guards)
+        {
+            ClearSelection();
+            if (guards == null) return;
+            foreach (var guard in guards)
+            {
+                if (guard == null) continue;
+                AddToSelection(guard);
+            }
+            Debug.Log($"[RTS] 그룹 선택: {_selectedGuards.Count}명");
+        }
     }
 }

@@ -50,6 +50,21 @@ namespace ProjectName.UI
             _instance = go.AddComponent<HotbarUI>();
         }
 
+        // ===== 2026-09-11: Tab 토글용 표시 전환 (GuardSquadHotbar가 호출 — 하단 중앙 자리 공유) =====
+        /// <summary>
+        /// 아이템 핫바 표시/숨김 (인스턴스 미존재 시 안전 no-op).
+        /// GO를 비활성화하므로 Update 정지 → 1~8 숫자키 처리(HandleNumberKeys)도 함께 차단된다.
+        /// </summary>
+        public static void SetVisible(bool visible)
+        {
+            if (_instance == null) return;
+            if (_instance.gameObject.activeSelf == visible) return;
+            _instance.gameObject.SetActive(visible);
+        }
+
+        /// <summary>아이템 핫바가 현재 표시 중인지.</summary>
+        public static bool IsVisible => _instance != null && _instance.gameObject.activeSelf;
+
         // ===== 슬롯 정의 (v1 고정 8슬롯) =====
         private enum SlotKind { Weapon, Consumable, Empty }
 
@@ -264,6 +279,8 @@ namespace ProjectName.UI
         public static int GetSlotIndexAtScreenPoint(Vector2 screenPos)
         {
             if (_instance == null) return -1;
+            // 2026-09-11: 부대 핫바 모드에서 숨겨진 핫바로의 드래그 드롭 판정 제외 (신규 모드에서의 혼선 방지)
+            if (!_instance.gameObject.activeSelf) return -1;
             for (int i = 0; i < SlotCount; i++)
             {
                 var bg = _instance._slotBgs[i];
