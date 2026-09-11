@@ -2090,3 +2090,17 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 부트 연결 | `TestAllInOneSetup.SetupPlayer` 말미(388행) + `TestTerritoryCombatSetup` 플레이어 생성 직후(153행) — `WeaponRangeIndicator.EnsureOn(player.transform)` 각 1줄 | ✅ |
 | 검증 | 배치컴파일 `error CS=0` + QaValidator Errors:0, 정적 QA 5파일 brace 균형 통과(25/25·203/203·57/57·176/176·135/135), OnPlayerDamaged 정의+발화+구독/해제, PlayHitFX 플레이어 경로, 폴링 PlayImpact 잔여 0건, EnsureOn 정의+2호출, 반경 테이블 WeaponData 단일 소스(Fist 2/Sword 2.5/Spear 4/Bow 10) | ✅ |
 | Play 판정 대기 | 피격 FX 풀체인 발화+이중 발화 없음, 링 반경 무기별 정합+전방 화살 추적, 무기 교체 즉시 갱신+맨손 숨김 | ⬜ |
+## 🗡️ 2026-09-11: 장비창 우측 배치/3구획 UI + 설명창 아이콘 + 우클릭 장착 + 무기별 애니 + 활/화살 + 폰트 통일 (EQUIP-PANEL-27)
+
+> **목표:** ① 장비창을 화면 우측 구획으로 재배치(인벤=좌, 설명=중앙, 장비=우측 3구획, 상점/창고 컨텍스트 우선으로 충돌 방지) ② 중앙 설명창 아이콘을 ItemIconDatabase.GetOrCreateIcon 재사용으로 항상 렌더 ③ 우클릭 장착 경로 보완(무기id 매핑 폴백) ④ 무기타입별 공격 애니 분기(Fist/Sword=WeaponCombo, Spear=찌르기, Bow=ArcheryShot) ⑤ 활/화살 시스템(좌클릭 발사→ArrowManager 화살 소모, 3종 화살) ⑥ Noto Sans KR+맑은고딕 폰트 도입 + fontSize 5단계 타입스케일 통일.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 3구획 재배치 | InventoryWindow.OnGUI 하단 DrawEquipRow 호출 제거→오른쪽 구획(Screen.width*2/3+6, PanelWidth, WINDOW_HEIGHT)에 EquipmentWindow.TryRenderEmbedded(...) — ContextMode.None일 때만(상점/창고 우선). EquipmentWindow에 static Toggle()/TryRenderEmbedded/RenderWindow(embedded) 이관 | ✅ |
+| 설명창 아이콘 | DrawDescriptionPanel에서 item.icon 대신 ItemIconDatabase.GetOrCreateIcon(item) 항상 렌더(item.icon.texture 폴백→α0.15 자리표시), 128px ScaleToFit. 미선택 시 안내 문구+자리표시 | ✅ |
+| 우클릭 장착 보완 | TryEquipItem: _weaponIdMap 미스 시 id 토큰 파싱 폴백(weapon_sword_steel→WeaponType/equipId 유추), 방어구 장착 성공 시 RefreshInventory, 성공/실패 로그 명확화 | ✅ |
+| 무기별 공격 애니 | PlayerCombat.TryAttack 시작부 Bow 분기→TryBowShot()(근접 차단). HumanoidClipDriver LastAttackTime 감시에서 Bow=ArcheryShot/Spear=Attack(찌르기)/Fist·Sword=WeaponCombo B안. ArcheryShot을 공격상태홀드에 추가 | ✅ |
+| 활/화살 시스템 | PlayerCombat.TryBowShot: 커서 Ray 방향→ArrowManager.TryShootArrow(origin,dir,Bow.damage) 화살 소모 후 발사→_clipDriver.TriggerBowShot(). 우클릭 직발사(ArrowProjectile.Spawn 직접) 제거→화살 소모 루 통일. ArrowManager에 3-파라 오버로드 신설 | ✅ |
+| 폰트 통일 | UI/UIFont.cs 신규(Display60/Title38/Body24/Caption17/Badge13 + static 캐시, Resources.Load<Font>("Fonts/NotoSansKR-VF")→malgun→빌트인 폴백). Assets/Resources/Fonts/에 NotoSansKR-VF.ttf·malgun.ttf. UIStyleManager·HUD·인벤·장비·상태·핫바·몬스터·레시피·옵션·연금·로드 11곳 적용, fontSize 파편화(10~96px) 5단계 수렴 | ✅ |
+| 검증 | 최종 배치컴파일 error CS=0(return 0). 중간 이슈: PlayerCombat WeaponType CS0104 모호성(Neural vs Core)→ProjectName.Core.WeaponType 정규화 해결. QAPROGRESS 27차 스냅샷 기록 | ✅ |
+| Play 판정 대기 | 장비창 우측 렌더+인벤 좌측/설명 중앙 배치, 장착 우클릭 즉시 장비창 반영, 설명창 아이콘 표시, 무기 교체 시 애니 전환(Spear 찌르기/Bow 발사), 화살 소모+부족 차단 메시지, 한글 폰트 렌더·글자 크기 정합 | ⬜ |
