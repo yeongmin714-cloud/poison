@@ -1860,3 +1860,22 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 **검증**: Unity 6000.4.10f1 배치모드 컴파일 → 종료 코드 0, `error CS` 0개 (로그 `C:/Unity/compile_log_squad.txt`). ProjectName.UI/Systems/Assembly-CSharp 전부 재컴파일. 신규 경고 0. 파일 3개 저장 확인 (GuardSquadHotbar.cs 신규 27,996B / HotbarUI.cs 29,812B / GuardSelectionManager.cs 11,805B).
 
 **Play 판정 대기**: ①Tab → 부대 핫바 전환(아이템 핫바 사라짐) ②박스 드래그 병사 선택 → Ctrl+1~8 등록 후 아바타 표시 ③부대 모드 숫자 1~8 → 해당 병사들 파란 원 선택 ④선택 후 우클릭 → 병사들이 이동/공격 명령 수행 ⑤다시 Tab → 아이템 핫바 복귀 ⑥병사 사망 시 아바타 회색화
+
+---
+
+## 2026-09-11 35차: 병사 실제 3D 외형 아이콘 — GuardIconRenderer 오프스크린 베이크 ✅ (커밋 37bdb344)
+
+**요구**: 병사 부대 핫바(34차) 슬롯 아바타를 "국적색 원형+이니셜" 절차 아바타 대신 **실제 3D 캐릭터 외형 아이콘**으로. 병사는 GLB가 아니라 런타임 생성 캡슐이라, 살아있는 GuardPlaceholder를 잠깐 원격으로 옮겨 오프스크린 카메라로 촬영(베이크) 후 즉시 원복하는 방식을 도입.
+
+**구현**:
+- **신규** `Assets/Scripts/UI/GuardIconRenderer.cs` — GblItemIconRenderer(아이템 GLB)의 2단계 베이크 패턴 복제, 입력은 GuardPlaceholder 참조.
+  - `GetOrCreateIcon(GuardPlaceholder)` static — 캐시 히트 즉시 반환, 미베이크 시 큐 등록 후 null(핫바 0.5초 폴링이 자동 재호출).
+  - 캐시 키: `guard_{nation}_{level}_{guardName}` — "같은 국적+레벨+이름이면 같은 외형"(캡슐+국적색+레벨 기반 장비 결정). GetInstanceID는 씬마다 새로 발급되어 무한 캐시 → 미사용.
+  - 마운트(1단계): 살아있는 guard를 `guard.enabled=false`(AI 정지)+원격좌표(10500,1000,10500, Gbl과 다른 자리)로 이동 → 전용 Camera(targetTexture=RT 128²) + 프레이밍(bodyRends bounds) + cam.Render(). 선택 링(SelectionOutline_)은 아이콘 오염 방지로 촬영 중만 숨김.
+  - 베이크(2단계): 다음 프레임 `BakeFromRT`(ReadPixels→Texture2D, wrapMode Clamp, HideFlags HideAndDontSave) 후 **반드시 원위치 복원**(position/rotation/enabled/선택링, teleported 플래그 멱등). 모든 경로 try/catch — 크래시 금지.
+  - 견고성: 사망/비활성 병사 큐 등록 금지, 실패 누적(MaxFailCount=3)→음성 캐시(무한 재촬영 차단), 구조적 실패(렌더러 부재) 즉시 음성, 캐시 상한 200, 큐 중복 방지, OnDestroy CleanupQueue 안전망.
+- **수정** `Assets/Scripts/UI/GuardSquadHotbar.cs` — `RefreshSlotVisual`이 대표 생존 병사에 대해 `GuardIconRenderer.GetOrCreateIcon(lead)` 시도, null 아니면 슬롯 Image에 실제 아이콘 Sprite 표시 → 성공 시 국적색 틴트 제거(Color.white), 이니셜 숨김. null이면 **기존 절차 아바타(국적색 원형+이니셜+Lv) 폴백**. 사망/미등록 전환 시 아이콘→절차 원형 복원, 사망 회색, x{생존수} 유지. `_slotIconSprites[i]`(Sprite 캐시, 갱신마다 Create 방지) + `_slotIconTextures[i]`(원본 소유·파괴 안 함) 도입.
+
+**검증**: Unity 6000.4.10f1 배치모드 컴파일 → 종료 0, `error CS` 0개 (로그 `C:/Unity/compile_log_guardicon.txt`). GblItemIconRenderer/HotbarUI/GuardSelectionManager 등 기존 파일 무수정, 기존 핫바 기능(탭 토글·등록·선택·사망처리) 유지.
+
+**Play 판정 대기**: ①부대 모드 첫 진입 시 잠깐 절차 아바타 → 0.5초내 병사 실제 외형 아이콘으로 전환 ②병사 선택 링이 아이콘에 안 잡힘(순수 캡슐+장비 실루엣) ③촬영 직후 병사가 원위치 복원(화면에서 튈림 없음) ④병사 사망 시 아이콘→회색 절차 아바타 전환 ⑤부대 모드→아이템 모드 Tab 복귀 정상 ⑥여러 국적/레벨 병사 슬롯 각각 다른 외형 아이콘
