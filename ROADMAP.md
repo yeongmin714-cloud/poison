@@ -2039,3 +2039,20 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 하트 빈칸 렌더+폴링 | 원인: `PlayerHealth.SetMaxHP()`가 OnHPChanged 미발화 → 레벨업 시 하트 수 갱신 안 됨. HUD가 CurrentHP/MaxHP 매 프레임 폴링(HUD 315-323행), `ceil(MaxHP/20)` 전체 하트 렌더+잔여 Empty 외곽 링(530-584행) — 레벨업 시 빈 하트 자동 증가 | ✅ |
 | 검증 | 배치컴파일 `error CS=0` + QaValidator Errors:0(return code 0), 정적 QA 12파일 brace 균형 통과, LastHitPoint 정의+적중 갱신+크로스 게이트, GroundModelToY 3호출, LevelScalingEnabled 정의+2부트 false, 하트 폴링+Empty 링, DnD 스크린 규약 일관 grep 확인 | ✅ |
 | Play 판정 대기 | 몬스터 몇 타 사망(HP바 빔=실 HP 감소)+시체 소멸+바구니 드랍, 모델 접지(발 땅 붙음), 적중 시 크로스 대상 지점 발화+빈 스윙 스킵, 레벨업 하트 칸 자동 증가+Empty 링, DnD 정상 판정, Test_10 I키 인벤 토글 | ⬜ |
+
+---
+
+## 📈 2026-09-11: 레벨 기반 경험치 + 경험치 바 HUD (EXP-SYS-24)
+
+> **목표:** 몬스터 경험치를 티어 랜덤에서 레벨 기반 산식으로 교체(티어 기본 EXP × 레벨 계수 × 난수), 병사 사망 EXP 신규 지급(level×5), HUD 하단 중앙 경험치 바(플랫 스타일) 신설 — Lv 라벨+수치+레벨업 펄스+MAX 처리.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 티어별 EXP 기본값 | `MonsterLevelData.cs` — `_beginnerExpBase=15f`/`_intermediateExpBase=60f`/`_advancedExpBase=180f`(78-86행), `GetExpBase(tier)` getter(212행), `OnValidate` 양수 클램프 `Mathf.Max(1f, ...)`(256-258행) | ✅ |
+| 몬스터 Die() EXP 교체 | `AnimalAI.cs` 807-811행 — 기존 티어 랜덤(10~30/50~100/150~300) 제거 → 레벨 기반 산식, `MonsterLevelManager.Data` null 가드+폴백 base 15(809행) | ✅ |
+| 병사 사망 EXP 신규 | `GuardPlaceholder.Die()` 437-440행 — `exp = Max(1, Round(level×5 × Random(0.8~1.2)))` + `PlayerStats.AddEXP`(438행) + CombatLog "병사 처치 경험치 +N"(439행) | ✅ |
+| HUD 경험치 바 신규 | `HUD.cs` — 하단 중앙 핫바 위 360×12 플랫 바(다크네이비 배경+스카이블루 채움+회백 테두리, 139-157행), Lv.N 라벨+수치, MAX(50레벨) 처리, 레벨업 0.5s 펄스, 핫바 캔버스 스케일 환산 겹침 방지, static 캐시 GC 금지 관례 | ✅ |
+| 경험치 산식 | 몬스터: `Max(1, Round(base × (1 + Lv×0.1) × Random(0.8~1.2)))`, 병사: `Max(1, Round(Lv×5 × Random(0.8~1.2)))`, 바 채움 비율: `(CurrentEXP − GetExpForLevel(lv)) / (GetExpForLevel(lv+1) − GetExpForLevel(lv))`(726-727행) | ✅ |
+| 균형 실측 | 슬라임 Lv1 평균 17 EXP → Lv2(100) 약 6마리, 병사 Lv10=50/Lv40=200, Advanced Lv30 평균 720(구 225 대비 3.2배) | ✅ |
+| 검증 | 배치컴파일 `error CS=0` + QaValidator Errors:0(return code 0), 정적 QA 4파일 brace 균형 통과(11/11·172/172·139/139·110/110), `GetExpBase` 정의+AnimalAI 사용, GuardPlaceholder `AddEXP`+CombatLog, HUD EXP바 심볼(360×12/펄스/MAX), 기존 switch 티어 랜덤 잔여 0건 | ✅ |
+| Play 판정 대기 | 몬스터/병사 처치 EXP 로그+지급 수치 정합, HUD 경험치 바 표시+채움 비율, 레벨업 펄스 0.5s, 슬라임 약 6마리 Lv2 균형, Lv50 MAX 표시 | ⬜ |

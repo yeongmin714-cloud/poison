@@ -4,7 +4,46 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-11 (23차)
+> **최종 갱신:** 2026-09-11 (24차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-11 ✅ 24차 — 레벨 기반 경험치+병사 사망 EXP+경험치 바 HUD)
+
+> **스코프**: 레벨 기반 경험치 시스템(몬스터 티어 기본 EXP × 레벨 계수 × 난수 산식), 몬스터 Die() EXP 교체(기존 티어 랜덤 제거), 병사 사망 EXP 신규 지급(level×5), HUD 하단 중앙 경험치 바 신규(플랫 바 + Lv 라벨 + 레벨업 펄스 + MAX 처리).
+
+### 변경 사항
+**`Core/Data/MonsterLevelData.cs`** — 티어별 EXP 기본값:
+- `_beginnerExpBase = 15f` / `_intermediateExpBase = 60f` / `_advancedExpBase = 180f`(78-86행) + `GetExpBase(tier)` getter(212행)
+- `OnValidate` 양수 클램프 `Mathf.Max(1f, ...)`(256-258행) — 0이면 경험치 획득 불가 방지
+
+**`Systems/AnimalAI.cs`** — 몬스터 Die() EXP 교체:
+- 기존 티어 랜덤(10~30/50~100/150~300) 제거 → `exp = Max(1, Round(base × (1 + level×0.1) × Random(0.8~1.2)))`(807-811행)
+- `MonsterLevelManager.Data` null 가드 + 폴백 base 15(809행)
+
+**`Systems/GuardPlaceholder.cs`** — 병사 사망 EXP 신규:
+- `Die()`에 `exp = Max(1, Round(level×5 × Random(0.8~1.2)))`(437행) + `PlayerStats.AddEXP`(438행) + CombatLog "병사 처치 경험치 +N"(439행)
+
+**`UI/HUD.cs`** — 경험치 바 신규:
+- 하단 중앙 핫바 위 360×12 플랫 바(다크 네이비 배경+스카이블루 채움+회백 테두리, 139-157행)
+- Lv.N 라벨 + 바 위 수치(320/500), MAX(MaxLevel 50) 도달 시 100% 채움+"MAX" 라벨(722/746행, 0 나눔 방지)
+- 레벨업 0.5s 펄스 — `_prevExpLevel` 엣지 감지(386-388행) → `_lastLevelUpTime` 기반 스카이블루→흰색 플래시 감쇠(734행)
+- 채움 비율 = `(CurrentEXP − GetExpForLevel(lv)) / (GetExpForLevel(lv+1) − GetExpForLevel(lv))`(726-727행)
+- 핫바 캔버스 스케일 환산 겹침 방지 — `hotbarTopY = Screen.height − 162×canvasScale`(301행), static 캐시 GC 금지 관례 유지
+
+균형 실측: 슬라임 Lv1 평균 17 EXP → Lv2(100) 약 6마리, 병사 Lv10=50/Lv40=200, Advanced Lv30 평균 720(구 225 대비 3.2배)
+
+### 검증
+- 배치컴파일: **`error CS=0`** + QaValidator 전체 통과(Errors:0, 배치 종료 return code 0)
+- 정적 QA(서브에이전트): 변경 4파일 brace 균형 전부 통과 — MonsterLevelData 11/11, AnimalAI 172/172, GuardPlaceholder 139/139, HUD 110/110
+- grep 검증: `GetExpBase` 정의(MonsterLevelData 212행)+AnimalAI 사용(809행, null 가드+폴백 15), GuardPlaceholder `AddEXP`(438행)+CombatLog(439행), HUD EXP바 심볼(360×12 140-141행/펄스 `_lastLevelUpTime` 149행/MAX 722·746행), 기존 switch 티어 랜덤(10~30/50~100/150~300) 잔여 **0건**, `OnValidate` EXP 양수 클램프(256-258행), `PlayerStats.GetExpForLevel/MaxLevel=50` 존재(282/42행)
+
+### Play 판정 대기
+⬜ 몬스터 처치 시 레벨 기반 EXP 지급(CombatLog 수치 = base×(1+Lv×0.1)×난수 정합)
+⬜ 병사 처치 시 "병사 처치 경험치 +N" 로그+EXP 지급
+⬜ HUD 경험치 바 표시(하단 중앙 핫바 위, Lv.N+수치) + 채움 비율 정합
+⬜ 레벨업 시 펄스 0.5s + 슬라임 약 6마리로 Lv2 체감 균형
+⬜ Lv50(MAX) 도달 시 100% 채움+MAX 라벨
 
 ---
 
