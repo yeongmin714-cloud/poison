@@ -2019,3 +2019,23 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | Play 판정 대기 | 몬스터 좌클릭 HP바 감소+사망 시체 소멸+바구니 드랍, 병사 걷기 애니, 클릭마다 스윙+십자가 FX 방향 정합, 플레이어 피격 하트+HitLight+임팩트, 창고 E토글/ESC/3m이탈+우클릭 장착+DnD, Test_09 I키 인벤, C키 은신+반투명, 창고 무기 3종 | ⬜ |
 
 실측 상수(`HumanoidClipDriver.cs` `ComboStageDirection`): 1타 `Euler(1.3f, -58f, 0f)`, 2타 `Euler(0f, 63.2f, 0f)`+roll -90(실측 pitch 78° 수직 상승 접선), 3타 `Euler(28.7f, 143.6f, 0f)` — 위치/거리(up 1.25m, 전방 1.1m)는 Play 판정 후 튜닝.
+
+---
+
+## ⚔️ 2026-09-11: 몬스터 HP스케일 게이트+접지+적중지점 십자가+DnD좌표+빈하트 (COMBAT-UI-23)
+
+> **목표:** 테스트 씬 몬스터가 몇 타에 안 죽는 문제(레벨 HP 스케일로 MaxHP 과대 — 영상 4 실측) 게이트 차단, 병사/몬스터 모델 bounds 기반 접지, 십자가 VFX를 실제 적중 대상 지점에 발화, 슬래시 정면 고정, DnD 이중 좌표계 수리, 하트 빈칸 렌더+폴링 갱신, Test_10 I키 자가 등록.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 몬스터 레벨 스케일 게이트 | `MonsterLevelManager.LevelScalingEnabled`(static, 기본 true) — `AnimalAI.ApplyLevelStats` 초입 스킵(124행, Respawn은 _maxHP 재사용으로 안전). 원인: 테스트 씬 몬스터 hpPerLevel×level 오버라이드로 MaxHP 과대 → HP바 비율이 0 근처여도 실제 HP 잔여로 미사망(영상 4 실측), Test_10 부트(`TestTerritoryCombatSetup` 34행)에서 `false` | ✅ |
+| Test_09 부트 게이트 | `TestAllInOneSetup.cs` 75행 — 스케일 게이트 1줄(`LevelScalingEnabled = false`) | ✅ |
+| 모델 bounds 접지 | `TestTerritoryCombatSetup.GroundModelToY(model, targetY)`(762행) — 렌더러 bounds 최저점을 pos.y에 정렬, CreateGuard/SpawnMonster 3호출(374 몬스터 + 692/738 병사) — 스폰 y가 모델 중심 기준이던 접지 오차(공중 부양/파묻힘) 해소 | ✅ |
+| 십자가 VFX 적중 지점 | `PlayerCombat.LastHitPoint/LastHitValid/LastHitTime`(21-25행) — AttackTarget 적중 시 대상 Collider/Renderer bounds 중심+up*0.2 갱신(311-313행), 미스 무효화(218행). `FireComboCross` 게이트 `LastHitValid && 0.5s 내`(HumanoidClipDriver 671-672) + pos=LastHitPoint + dir=(LastHitPoint−플레이어 머리) 정규화(679-681행) — 빈 스윙 크로스 스킵 | ✅ |
+| 슬래시 VFX 정면 고정 | 플레이어 정면 고정 발화 `t.position + forward*0.9 + up*1.2`(HumanoidClipDriver 631행), dir/roll은 실측 궤적 상수 유지 | ✅ |
+| 창고 표시 소스 검증 | 정상 — `RefreshFromWarehouse`가 `WarehouseSystem.GetItems(territoryId)` 렌더(WarehouseUI 260/319행), 타이틀 "창고"(InventoryWindow 526행), `TerritoryWarehouse→SetContextMode` territoryId 전달 정합(247-248행) | ✅ |
+| Test_10 I키 수리 | TestTerritoryCombatSetup에 UIInventoryHotkey 바인딩 전무 확정 → `InventoryWindow.Awake()` 자가 등록(핫키 부재 시 AddComponent+Bind, 선착순 레지스트리, 204-210행) + Bind 누락 폴백 | ✅ |
+| DnD 좌표계 수리 | 원인: 이중 좌표계(GUIToScreenPoint 결과를 Rect.yMin에 그대로 저장 + 판정점은 GUI 좌표 → y 뒤집힘, 드롭이 유령 영역 한 칸 위 판정). 단일 스크린 좌표계(좌하단 원점, y 상승) 규약 통일 — 캐시 y=sp.y−height 보정(WarehouseUI 367-370/438-439, InventoryWindow 639-641/694-695), 판정점 동일 변환(WarehouseUI 454, InventoryWindow 87-100) | ✅ |
+| 하트 빈칸 렌더+폴링 | 원인: `PlayerHealth.SetMaxHP()`가 OnHPChanged 미발화 → 레벨업 시 하트 수 갱신 안 됨. HUD가 CurrentHP/MaxHP 매 프레임 폴링(HUD 315-323행), `ceil(MaxHP/20)` 전체 하트 렌더+잔여 Empty 외곽 링(530-584행) — 레벨업 시 빈 하트 자동 증가 | ✅ |
+| 검증 | 배치컴파일 `error CS=0` + QaValidator Errors:0(return code 0), 정적 QA 12파일 brace 균형 통과, LastHitPoint 정의+적중 갱신+크로스 게이트, GroundModelToY 3호출, LevelScalingEnabled 정의+2부트 false, 하트 폴링+Empty 링, DnD 스크린 규약 일관 grep 확인 | ✅ |
+| Play 판정 대기 | 몬스터 몇 타 사망(HP바 빔=실 HP 감소)+시체 소멸+바구니 드랍, 모델 접지(발 땅 붙음), 적중 시 크로스 대상 지점 발화+빈 스윙 스킵, 레벨업 하트 칸 자동 증가+Empty 링, DnD 정상 판정, Test_10 I키 인벤 토글 | ⬜ |

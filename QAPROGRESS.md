@@ -4,7 +4,58 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-11 (22차)
+> **최종 갱신:** 2026-09-11 (23차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-11 ✅ 23차 — 스케일HP게이트+접지+적중지점 크로스+DnD좌표 수리+빈하트+I키)
+
+> **스코프**: 테스트 씬 몬스터 "몇 타에 안 죽음" 근본 수리(몬스터 레벨 HP 스케일 게이트 — hpPerLevel×level로 MaxHP 과대 → HP바 비율이 0 근처여도 실제 HP 잔여로 미사망, 영상 4 실측), 병사/몬스터 모델 bounds 기반 접지(GroundModelToY), 십자가 VFX 실제 적중 대상 지점 발화(빈 스윙 스킵), 슬래시 VFX 플레이어 정면 고정, 창고 표시 소스 검증(정상 판정), Test_10 I키 자가 등록, DnD 이중 좌표계 수리(스크린 좌표 규약 통일), 하트 HUD 빈칸 렌더+매 프레임 폴링 갱신.
+
+### 변경 사항
+**`Systems/MonsterLevelManager.cs` + `Systems/AnimalAI.cs`** — 몬스터 레벨 스케일 게이트:
+- `LevelScalingEnabled` static 게이트 신설(기본 true, 25행) — `ApplyLevelStats` 초입 스킵(AnimalAI 124행, Respawn은 _maxHP 재사용으로 안전)
+- 원인 — 테스트 씬 몬스터 hpPerLevel×level 오버라이드로 MaxHP 과대 → HP바 비율이 거의 0처럼 보여도 실제 HP가 남아 계속 두드려도 안 죽는 증상(영상 4 실측)
+
+**`Systems/TestTerritoryCombatSetup.cs` + `Systems/TestAllInOneSetup.cs`** — 테스트 부트 게이트:
+- Test_10 부트(34행) + Test_09 부트(75행)에서 `LevelScalingEnabled = false` — 몬스터 몇 타에 사망해야 공격/사망 검증 가능
+
+**`Systems/TestTerritoryCombatSetup.cs`** — 모델 bounds 기반 접지:
+- `GroundModelToY(model, targetY)` 신설(762행) — 렌더러 bounds 최저점을 pos.y에 정렬
+- CreateGuard/SpawnMonster 3호출(374 몬스터 + 692/738 병사) — 스폰 y가 모델 중심 기준이던 접지 오차(공중 부양/파묻힘) 해소
+
+**`Systems/PlayerCombat.cs` + `Systems/HumanoidClipDriver.cs`** — 십자가 VFX 적중 지점 발화:
+- `LastHitPoint/LastHitValid/LastHitTime` static 신설(21-25행) — AttackTarget 적중 시 대상 Collider/Renderer bounds 중심+up*0.2 갱신(311-313행), 미스 시 무효화(218행)
+- `FireComboCross` 게이트 — `LastHitValid && Time.time - LastHitTime <= 0.5s` 아니면 크로스 스킵(671-672행, 빈 스윙 무발화), pos=LastHitPoint + dir=(LastHitPoint−플레이어 머리) 정규화(679-681행)
+
+**`Systems/HumanoidClipDriver.cs`** — 슬래시 VFX 정면 고정:
+- 플레이어 정면 고정점 발화 — `t.position + t.forward * 0.9f + Vector3.up * 1.2f`(631행), dir/roll은 실측 궤적 상수 유지
+
+**`UI/WarehouseUI.cs` + `UI/InventoryWindow.cs` + `UI/TerritoryWarehouse.cs`** — 창고 표시 소스 검증(정상):
+- `RefreshFromWarehouse`가 `WarehouseSystem.GetItems(territoryId)` 렌더(WarehouseUI 260/319행), 타이틀 "창고"(InventoryWindow 526행), `TerritoryWarehouse→SetContextMode` territoryId 전달 정합(247-248행) — 표시 소스 이상 없음
+
+**`UI/InventoryWindow.cs`** — Test_10 I키 수리:
+- TestTerritoryCombatSetup에 UIInventoryHotkey 바인딩 전무 확정 → `Awake()` 자가 등록(핫키 부재 시 AddComponent+Bind, 선착순 레지스트리, 204-210행) + Bind 누락 폴백
+
+**`UI/WarehouseUI.cs` + `UI/InventoryWindow.cs`** — DnD 이중 좌표계 수리:
+- 원인 — GUIToScreenPoint 결과를 Rect.yMin에 그대로 저장 + 판정점은 GUI 좌표 → y 뒤집힘(드롭이 유령 영역 한 칸 위에 판정)
+- 단일 스크린 좌표계(좌하단 원점, y 상승) 규약 통일 — 캐시 y=sp.y−height 보정(WarehouseUI 367-370/438-439, InventoryWindow 639-641/694-695), 판정점 동일 변환(WarehouseUI 454, InventoryWindow 87-100)
+
+**`UI/HUD.cs`** — 하트 빈칸 렌더+폴링 갱신:
+- 원인 — `PlayerHealth.SetMaxHP()`가 OnHPChanged 미발화 → 레벨업 시 하트 수 갱신 안 됨
+- HUD가 CurrentHP/MaxHP 매 프레임 폴링(315-323행), `ceil(MaxHP/20)` 전체 하트 렌더+잔여 Empty 외곽 링(530-584행) — 레벨업 시 빈 하트 자동 증가
+
+### 검증
+- 배치컴파일: **`error CS=0`** + QaValidator 전체 통과(Errors:0, 배치 종료 return code 0)
+- 정적 QA(서브에이전트): git 변경 .cs 12파일 brace 균형 전부 통과(open=close)
+- grep 검증: `LastHitPoint` 정의+적중 갱신+미스 무효화(PlayerCombat 21-25/218/311-313)+크로스 게이트(HumanoidClipDriver 671-681), `GroundModelToY` 정의(762)+3호출(374/692/738), `LevelScalingEnabled` 정의(MonsterLevelManager 25)+ApplyLevelStats 스킵(AnimalAI 124)+Test 부트 false 2곳(TestTerritoryCombatSetup 34/TestAllInOneSetup 75), 하트 폴링(HUD 315-323)+`CeilToInt(MaxHP/20)`(359/530)+Empty 링(584/652), DnD 스크린 좌표 규약(WarehouseUI 367-370+438-439+454, InventoryWindow 84-100+639-641+694-695), I키 자가 등록(InventoryWindow 204-210), 슬래시 정면 고정(HumanoidClipDriver 631)
+
+### Play 판정 대기
+⬜ 몬스터 몇 타에 실제 사망(HP바 빔=실 HP 감소) + 시체 소멸+바구니 드랍
+⬜ 병사/몬스터 모델 발이 땅에 붙는지(공중 부양/파묻힘 해소)
+⬜ 적중 시 크로스 VFX가 대상 몸에서 발화 + 빈 스윙엔 미발화
+⬜ 레벨업 시 하트 칸 자동 증가 + 잔여 Empty 링 렌더
+⬜ DnD(인벤↔창고) 정상 판정 + Test_10 I키 인벤 토글
 
 ---
 
