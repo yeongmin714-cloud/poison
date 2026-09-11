@@ -1840,3 +1840,23 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 **검증**: 배치컴파일 CS=0 ×2(수정 전후, buildlog_fix3_combo_flight/_final). QA 3항목 PASS+**치명 순서 버그 1건 발견·직접 패치**(DisableKnockback 호출이 AddComponent 뒤에 오도록). Player_AC 트리거(Attack/AttackCombo/Hit/Death)+콤보 로직(HumanoidClipDriver 361-364행) 정상 확인 — T포즈만 해소되면 콤보/피격은 기존 파이프라인 그대로 발화.
 
 **Play 판정 대기**: ①부팅 로그 "✅ 리그 소스 교체" ②애니검증 clip=… playing=True ③T포즈 해소+이동/공격 애니 ④좌클릭 연타 → AttackCombo 애니 ⑤슬라임 타격 시 제자리 경직(비행/벽 관통 0) ⑥카메라 에러 0건 ⑦모델 크기 적정(침하감시 bounds 로그) — 과대/과소 시 bounds 정규화 추가
+
+---
+
+## 2026-09-11 34차: Tab 키 병사 부대 핫바 (RTS 제어그룹) ✅ (커밋 898e2b64)
+
+**요구**: 33차에서 활성화한 병사 선택/명령(RTS)을 빠르게 써먹기 위해, 하단 아이템 핫바 자리에 Tab 키로 전환되는 "병사 부대 핫바"를 추가. 숫자 키로 부대(제어그룹) 전체를 RTS 선택.
+
+**구현**:
+- **신규** `Assets/Scripts/UI/GuardSquadHotbar.cs` — 셀프 부트스트랩 싱글턴 (HotbarUI 패턴 동일, 코드 생성 uGUI, 에셋 의존성 0). 하단 중앙 동일 자리(866×150) 공유.
+  - **Tab 키** → 아이템 핫바 ↔ 부대 핫바 토글. 부대 모드 진입 시 `HotbarUI.SetVisible(false)`로 아이템 GO 비활성(숨김 + 1~8 숫자키 동시 차단). 루트 GO는 상시 활성(Tab 리스닝 유지), 패널만 토글.
+  - **Ctrl+1~8** → 현재 선택(박스 드래그)된 병사 그룹을 해당 슬롯에 등록(덮어쓰기), 즉시 아바타 표시.
+  - **1~8 (부대 모드)** → 슬롯의 생존 병사들만 `GuardSelectionManager.SelectGroup()`으로 RTS 선택 → 파란 원 표시 + 우클릭 공격/이동 명령(기존 RTSCommandSystem 경로) 그대로 동작.
+  - **아바타**: 국적색 절차 생성 원형 스프라이트 + 이름 이니셜 + `Lv{N}`. 사망 시 원/글자 회색 처리(0.5초 폴링), 인원은 우상단 `x{생존수}`. 씬 재진입 시 파괴 참조 null 무시.
+  - 국적색: 동=빨강 / 서=파랑 / 남=초록 / 북=보라 / 황제국·기타=회색.
+- **수정** `HotbarUI.cs`: `SetVisible(bool)`/`IsVisible` static 추가 (기존 아이템 슬롯 로직 무변경). `GetSlotIndexAtScreenPoint`에 숨김 상태 가드 1줄(인벤→숨겨진 핫바 드롭 오등록 방지, 표시 중엔 기존 동작 100% 동일).
+- **수정** `GuardSelectionManager.cs`: `SelectGroup(IReadOnlyList<GuardPlaceholder>)` public 추가 (ClearSelection+AddToSelection 반복, 기존 드래그/우클릭 로직 무변경).
+
+**검증**: Unity 6000.4.10f1 배치모드 컴파일 → 종료 코드 0, `error CS` 0개 (로그 `C:/Unity/compile_log_squad.txt`). ProjectName.UI/Systems/Assembly-CSharp 전부 재컴파일. 신규 경고 0. 파일 3개 저장 확인 (GuardSquadHotbar.cs 신규 27,996B / HotbarUI.cs 29,812B / GuardSelectionManager.cs 11,805B).
+
+**Play 판정 대기**: ①Tab → 부대 핫바 전환(아이템 핫바 사라짐) ②박스 드래그 병사 선택 → Ctrl+1~8 등록 후 아바타 표시 ③부대 모드 숫자 1~8 → 해당 병사들 파란 원 선택 ④선택 후 우클릭 → 병사들이 이동/공격 명령 수행 ⑤다시 Tab → 아이템 핫바 복귀 ⑥병사 사망 시 아바타 회색화
