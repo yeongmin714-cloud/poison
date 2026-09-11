@@ -28,6 +28,12 @@ public class CoreSystemsBootstrap : MonoBehaviour
         // 3. TerritoryBuilder 생성 (없는 경우)
         EnsureTerritoryBuilder();
 
+        // 3-1. RTSCommandSystem 생성 (없는 경우) — 우클릭 공격/이동·Ctrl 일제·H 중단
+        EnsureRTSCommandSystem();
+
+        // 3-2. GuardSelectionManager 생성 (없는 경우) — 좌클릭 드래그 병사 선택
+        EnsureGuardSelectionManager();
+
         // 4. 영지 전체 빌드
         if (_buildAllTerritories)
         {
@@ -87,6 +93,59 @@ public class CoreSystemsBootstrap : MonoBehaviour
 
         tm.gameObject.AddComponent<TerritoryBuilder>();
         Debug.Log("[CoreSystemsBootstrap] TerritoryBuilder 생성됨");
+    }
+
+    /// <summary>
+    /// RTSCommandSystem 싱글톤 보장 — 우클릭 공격/이동, Ctrl+우클릭 일제 공격, H키 중단
+    /// </summary>
+    private void EnsureRTSCommandSystem()
+    {
+        try
+        {
+            // 중복 가드 — 씬에 이미 배치(비활성 포함)된 경우 생성하지 않음
+            var existing = FindAnyObjectByType<RTSCommandSystem>(FindObjectsInactive.Include);
+            if (existing != null)
+            {
+                Debug.Log("[CoreSystemsBootstrap] RTSCommandSystem 이미 존재");
+                return;
+            }
+
+            var go = new GameObject("RTSCommandSystem");
+            go.AddComponent<RTSCommandSystem>();
+            Debug.Log("[CoreSystemsBootstrap] RTSCommandSystem 생성됨 — 우클릭 공격/이동·Ctrl 일제·H 중단 활성화");
+        }
+        catch (System.Exception e)
+        {
+            // 단일 시스템 생성 실패가 전체 부트를 깨지 않도록 격리
+            Debug.LogError($"[CoreSystemsBootstrap] RTSCommandSystem 생성 실패: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// GuardSelectionManager 싱글톤 보장 — 좌클릭 드래그(10px 이상)로 자기 소속 병사만 선택
+    /// 단순 좌클릭(10px 미만)은 무시되므로 PlayerCombat 좌클릭 공격과 자연 분리
+    /// </summary>
+    private void EnsureGuardSelectionManager()
+    {
+        try
+        {
+            // 중복 가드 — 씬에 이미 배치(비활성 포함)된 경우 생성하지 않음
+            var existing = FindAnyObjectByType<GuardSelectionManager>(FindObjectsInactive.Include);
+            if (existing != null)
+            {
+                Debug.Log("[CoreSystemsBootstrap] GuardSelectionManager 이미 존재");
+                return;
+            }
+
+            var go = new GameObject("GuardSelectionManager");
+            go.AddComponent<GuardSelectionManager>();
+            Debug.Log("[CoreSystemsBootstrap] GuardSelectionManager 생성됨 — 좌클릭 드래그 병사 선택 활성화");
+        }
+        catch (System.Exception e)
+        {
+            // 단일 시스템 생성 실패가 전체 부트를 깨지 않도록 격리
+            Debug.LogError($"[CoreSystemsBootstrap] GuardSelectionManager 생성 실패: {e.Message}");
+        }
     }
 
     /// <summary>

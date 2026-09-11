@@ -4,7 +4,31 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-11 (32차)
+> **최종 갱신:** 2026-09-11 (33차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-11 ✅ 33차 — 자기 소속 병사 공격 명령 부트 활성화)
+
+> **스코프**: "자기 소속 병사에게 공격 명령" 기능(RTSCommandSystem + GuardSelectionManager)은 이미 코드로 완전히 구현되어 있었으나, **어디서도 생성되지 않아(죽은 코드)** 실제 게임에서 동작하지 않던 상태 → 부트 생성 배선을 추가해 활성화. 컴파일 0 에러.
+
+### 진단
+- `RTSCommandSystem.cs`(우클릭 공격/이동, Ctrl 일제, H 중단) + `GuardSelectionManager.cs`(좌클릭 드래그 선택 → 우클릭 명령 배선)는 완전 구현. 선택은 `IsRecruited==true`(모집=자기 소속) 병사만.
+- **단, 두 컴포넌트를 AddComponent로 생성하는 지점이 전무** → 게임에서 동작 안 함.
+
+### 변경 사항
+**`Systems/CoreSystemsBootstrap.cs`** (107→166줄) — 부트 생성 배선:
+- Awake() L31~35에 `EnsureRTSCommandSystem()` / `EnsureGuardSelectionManager()` 호출 추가(TerritoryBuilder 이후)
+- 두 Ensure 메서드(L101/128): 기존 EnsureTerritoryManager 패턴 + 중복 가드(FindObjectsInactive.Include) + try/catch 격리(부트 try-catch 필수 메모리 준수), 한국어 로그 1회
+
+### 동작/분리
+- **좌클릭 단순 클릭(10px 미만)** = 기존 PlayerCombat 플레이어 공격 유지
+- **좌클릭 드래그(10px 이상)** = 병사 선택(GuardSelectionManager) — 자연 분리
+- **우클릭** = 선택된 자기 병사에게 적 공격/이동, **Ctrl+우클릭** = 일제 공격, **H** = 중단
+
+### 컴파일/검증
+- 중괄호/괄호/대괄호 균형 0(21/54/4)
+- Unity 6000.4.10f1 batchmode **0 에러**(return 0)
 
 ---
 

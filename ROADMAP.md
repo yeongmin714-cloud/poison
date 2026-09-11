@@ -2181,3 +2181,15 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 부활 스폰핀 | PlayerHealth.Respawn 우선순위: 침대 s_customSpawnPoint(Core 리플렉션 TryGetBedSpawnPoint) > 가까운 자기 영지(GuardManager.FindNearestPlayerTerritory) > 기본 위치 | ✅ |
 | 검증 | 중괄호/괄호 5파일 0, batchmode 컴파일 0에러(return 0), QAPROGRESS 32차 기록 | ✅ |
 | Play 판정 대기 | 자기 성 침대에서 E키→세이브, 사망 시 침대에서 부활, 세이브 안 하면 가까운 자기 영지 부활 | ⬜ |
+
+## ⚔️ 2026-09-11: 자기 소속 병사 공격 명령 부트 활성화 (RTS-COMMAND-BOOT-33)
+
+> **목표:** 이미 구현된 자기 병사 공격 명령(RTSCommandSystem+GuardSelectionManager)이 실제 게임에서 동작하도록 부트 배선 추가.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 진단 | RTSCommandSystem(우클릭 공격/이동·Ctrl일제·H중단)·GuardSelectionManager(좌클릭 드래그 선택→우클릭 배선, IsRecruited만 소속) 완전 구현이나 **AddComponent 생성 지점 전무(죽은 코드)** | ✅ |
+| 부트 배선 | CoreSystemsBootstrap.Awake에 EnsureRTSCommandSystem/EnsureGuardSelectionManager(중복가드+try/catch 격리+로그) | ✅ |
+| 입력 분리 | 좌클릭 단순클릭(10px 미만)=PlayerCombat 공격 유지 / 드래그(10px 이상)=병사 선택 | ✅ |
+| 검증 | 중괄호/괄호 0(21/54/4), batchmode 컴파일 0에러(return 0), QAPROGRESS 33차 기록 | ✅ |
+| Play 판정 대기 | 좌클릭 드래그로 자기 병사 선택(파란 원), 우클릭으로 적 공격/이동, Ctrl+우클릭 일제 공격, H 중단, 플레이어 공격 유지 | ⬜ |
