@@ -2117,3 +2117,17 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 기타 | 플레이어 위치 마커, 휠 줌(ScrollWheel)+드래그 팬, 마커 호버 툴팁(이름/국가/난이도/병사/설명) | ✅ |
 | 검증 | 중괄호/소괄호/대괄호 균형 OK(106/438/17), batchmode 컴파일 error CS=0(return 0). QAPROGRESS 28차 기록 | ✅ |
 | Play 판정 대기 | M키 토글 동작, 양피지 톤+영지 이름 82곳 렌더, 국가색/난이도/소유 마커, 플레이어 위치, 휠 줌·드래그 팬·툴팁, 닫기(ESC/M) | ⬜ |
+
+## 🗺️ 2026-09-11: M키 양피지 월드맵 신규 (WORLD-MAP-28)
+
+> **목표:** M키 토글 월드맵 — 전체 양피지지 느낌 배경에 각 영지 주소(이름)가 방사형 표시.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| M키 토글/핫키 | WorldMapWindow.cs(UI, UIWindow 파생) Awake에서 UIWorldMapHotkey 자가 등록(First-Come 중복 가드). `_windowRoot` 자식 패널 지정 → Hide 시에도 핫키/OnGUI 생존(InventoryWindow 선례) | ✅ |
+| 양피지 배경 | 절차 1회 static 캐시(BuildParchment) — 크림·세피아 베이스+그레인+가장자리·테두리 짙은 갈색. 지도 본체+창 프레임/장식 공용, 외부 에셋 없음 | ✅ |
+| 영지 방사형 배치 | 좌표 함정(영지 1450m vs 스플랫 반폭 1000m→지형 텍스처 금지): 순수 양피지+정규화 u=0.5+x/3200,v=0.5+z/3200. GetAllDefinitions() 82곳 — 국가색 점+이름 라벨+난이도 크기+소유상태(PlayerOwned 강조/Contested 펄스), Empire·드라큘라 특별 표식 | ✅ |
+| 플레이어 위치 | FindWithTag("Player") position 정규화, 강조 화살표 | ✅ |
+| 줌/팬/툴팁 | ScrollWheel 휠 줌, 좌클릭 드래그 팬, 마커 호버 시 영지명/국가/난이도/병사 수/설명 툴팁 | ✅ |
+| 검증 | 괄호 균형 OK(106/438/17), 배치컴파일 error CS=0(return 0), QAPROGRESS 28차 기록 | ✅ |
+| Play 판정 대기 | M키 토글, 양피지 톤+영지 82곳 이름 렌더/겹침, 국가색·난이도·소유 마커, 플레이어 위치 반짝, 휠 줌·드래그 팬·툴팁, ESC/M 닫기 | ⬜ |
