@@ -57,6 +57,11 @@ namespace ProjectName.Core
         public static event System.Action OnPlayerDied;
         /// <summary>부활 시 발생 (Systems.DeathEffectController 등에서 구독)</summary>
         public static event System.Action OnPlayerRespawned;
+        /// <summary>
+        /// 플레이어 피격 확정 발화 (position: 피격 지점(가슴 높이 +1.2), amount: 실제 적용 데미지).
+        /// TakeDamage의 HP 감소 확정 시점에만 발화 — 폴링 엣지(회복 동시 발생 엣지 흡수 등) 결함 제거용.
+        /// </summary>
+        public static event System.Action<Vector3, float> OnPlayerDamaged;
 
         private void Awake()
         {
@@ -145,6 +150,19 @@ namespace ProjectName.Core
             // ⏱️ 전투 로그: 피격 기록
             Debug.Log("[CombatLog] " + actualDamage + " 데미지를 받음");
             OnHPChanged?.Invoke(_currentHP, _maxHP);
+
+            // 이벤트 기반 피격 확정 발화 — HP 감소 확정 시점 1회. 구독자(HumanoidClipDriver 임팩트 FX 등)
+            // 예외가 데미지/사망 흐름을 절대 막지 않도록 try-catch로 흡수.
+            try
+            {
+                Vector3 hitPos = (_playerTransform != null ? _playerTransform.position : transform.position)
+                                 + Vector3.up * 1.2f;
+                OnPlayerDamaged?.Invoke(hitPos, actualDamage);
+            }
+            catch (System.Exception dmgEvtEx)
+            {
+                Debug.LogWarning($"[PlayerHealth] OnPlayerDamaged 구독자 예외 흡수(전투 계속): {dmgEvtEx.Message}");
+            }
 
             // G2-04: 피격 카메라 이펙트 (주석처리 - 임시)
             // CombatCameraEffects.PlayHit();
