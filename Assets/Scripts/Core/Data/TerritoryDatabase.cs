@@ -202,9 +202,15 @@ namespace ProjectName.Core.Data
                         string desc = GenerateDescription(nation, difficulty, index);
 
                         // Calculate world position for this territory
-                        float angleDeg = nationBaseAngle - 45f + (t * 18f) + 9f; // centered in each 18° slice
+                        // 결정론적 흔들림(jitter): 국가/링/인덱스 조합당 고정 시드 → 재시작·재생성 시에도 항상 동일 좌표
+                        var jitterRng = new System.Random(GetDeterministicHash($"{nation}_{ring}_{index}_jitter"));
+                        float radiusScale = 0.85f + (float)jitterRng.NextDouble() * 0.25f;  // 0.85 ~ 1.10 (링1 최대 1450×1.10=1595m < 세계 extent 1600m — 지도 밖 방지)
+                        float angleDeltaDeg = ((float)jitterRng.NextDouble() * 16f) - 8f;   // -8° ~ +8° (±10° 이내, 18° 슬라이스 안에 머묾 → 인접 영지와 최소 2° 간격 보장)
+
+                        float angleDeg = nationBaseAngle - 45f + (t * 18f) + 9f + angleDeltaDeg; // centered in each 18° slice
                         float angleRad = angleDeg * Mathf.Deg2Rad;
-                        Vector3 worldPos = new Vector3(Mathf.Cos(angleRad) * ringDistance, 0f, Mathf.Sin(angleRad) * ringDistance);
+                        float jitteredDistance = ringDistance * radiusScale; // 링 순서 유지: Ring3 최대 605m < Ring2 최소 850m 등 링 간 겹침 없음
+                        Vector3 worldPos = new Vector3(Mathf.Cos(angleRad) * jitteredDistance, 0f, Mathf.Sin(angleRad) * jitteredDistance);
 
                         AddDefinition(nation, index, name, nation, difficulty, baseGuardCount, lord, desc, worldPos);
                     }
