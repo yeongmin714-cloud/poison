@@ -12,16 +12,23 @@ using UnityEngine.Playables;
 /// 실제 Weapon_Combo_2.fbx 클립의 손 궤적으로 검증·교체하기 위한 실측 데이터 수집.
 ///
 /// v1의 AnimationUtility.GetCurveBindings 경로는 휴머노이드 클립(머슬 커브)에서 회전 바인딩 0개로 실패함(compile.log 실측).
-/// v2는 PlayableGraph 휴머노이드 샘플링으로 전환 — 배치모드에서도 Animator CPU 평가만으로 동작(렌더링 불필요):
-///   1) LoadAllAssetsAtPath(FBX) → AnimationClip(이름 contains "Weapon_Combo_2", __preview__ 제외) + Avatar.
-///   2) FBX 루트 GameObject를 임시 인스턴스화("SwingSampler") — 뼈 계층이 있어야 샘플링이 유효.
-///      HideFlags.HideAndDontSave + cullingMode=AlwaysAnimate(카메라 없는 배치에서도 평가 보장), applyRootMotion=false.
+/// v4는 플레이어 리그(Heat) 인스턴스 + PlayableGraph 휴머노이드 리타깃 샘플링 — 배치모드에서도 Animator CPU 평가만으로 동작(렌더링 불필요):
+///   1) LoadAllAssetsAtPath(Meshy FBX) → AnimationClip(이름 contains "Weapon_Combo_2", __preview__ 제외).
+///      클립(Armature|Weapon_Combo_2_withSkin)은 머슬 커브 — 리그 무관 리타깃 재생 가능(런타임 Player_AC와 동일 원리).
+///   2) 샘플러 = 플레이어 실제 리그 Player_Rigged_Heat.fbx 루트 GameObject 인스턴스화("SwingSampler", HideAndDontSave).
+///      swingdir.log 실측: Meshy Weapon_Combo_2.fbx를 인스턴스화하면 스켈레톤 뼈가 4개뿐(SwingSampler/Head/head_end/
+///      headfront — 스킨 본이 메시에 베이크된 내보내기) → 뼈 샘플링 불가. Heat 리그는 스켈레톤 계층 보유 +
+///      런타임 애니 정상 실증(TestPlayerAnimatorBoot.cs 62행 선례). 인스턴스 Animator에는 같은 FBX 서브에셋의
+///      imported Avatar(OfType<Avatar>)를 할당(인스턴스 내장 avatar 우선). cullingMode=AlwaysAnimate(카메라 없는
+///      배치에서도 평가 보장), applyRootMotion=false.
 ///   3) PlayableGraph(Manual) + AnimationClipPlayable → SetTime(t) 후 graph.Evaluate(0)로 정확 시간 샘플링.
-///   4) v3 이름 기반 폴백(swingdir.log 실측: GetBoneTransform 매핑이 전부 null인 리그):
-///      계층 전체를 순회해 이름에 hand/arm/wrist 포함 뼈를 후보 수집(우선순위: RightHand > RightLowerArm/RightForeArm > 기타 hand),
-///      전 프레임(136+1 샘플) world position 이동 경로 길이가 최대인 후보를 자동 선택 — 머슬 평가는 보네임 매핑과
-///      무관하게 스켈레톤 Transform을 실제로 움직이므로 이름 기반 직접 샘플링으로 우회 가능.
-///      실패 시 전체 뼈 이동 경로길이 상위 5개 + avatar.humanDescription.human 길이 진단 로그.
+///   4) 뼈 선택 폴백 체인 — (1) GetBoneTransform(RightHand) 휴머노이드 매핑 우선, null/이동 0이면
+///      (2) 이름 기반 폴백: 계층 전체를 순회해 이름에 hand/arm/wrist 포함 뼈를 후보 수집
+///      (우선순위: RightHand > RightLowerArm/RightForeArm > 기타 hand), 전 프레임(136+1 샘플) world position
+///      이동 경로 길이가 최대인 후보를 자동 선택 — 머슬 평가는 보네임 매핑과 무관하게 스켈레톤 Transform을
+///      실제로 움직이므로 이름 기반 직접 샘플링으로 우회 가능.
+///      검증 로그: 인스턴스 뼈 수(4개 이하면 실패 경고), GetBoneTransform(RightHand), 매핑 본수,
+///      avatar.humanDescription.human 길이. 실패 시 전체 뼈 이동 경로길이 상위 5개 진단 로그.
 ///   5) 스테이지별(normT 0~0.331 / 0.331~0.676 / 0.676~1.0) 임팩트 후보(normT 0.18/0.53/0.84) 중심 ±0.15s 구간의
 ///      인접 샘플 (p2-p1) 정규화 접선 벡터 누적·정규화 → 캐릭터 로컬(yaw=Atan2(t.x,t.z), pitch=Asin(t.y)).
 ///      캐릭터 forward=+Z, 임시 GO 회전 identity → world == character local.
@@ -35,6 +42,12 @@ public static class WeaponSwingDirectionAnalyzer
 {
     private const string FbxPath = "Assets/Animations/MeshyUser/Weapon_Combo_2.fbx";
 
+    /// <summary>샘플러 리그: 플레이어 실제 휴머노이드 FBX(스켈레톤 계층 보유) — Meshy 머슬 클립 리타깃 샘플링 타깃.</summary>
+    private const string HeatFbxPath = "Assets/Resources/Models/UserProvided/fbx/Player_Rigged_Heat.fbx";
+
+    /// <summary>Heat 리그 Resources.Load 경로(TestPlayerAnimatorBoot.cs 62행 선례 — 에디터 에셋 로드 실패 시 폴백).</summary>
+    private const string HeatResourcePath = "Models/UserProvided/fbx/Player_Rigged_Heat";
+
     /// <summary>HumanoidClipDriver.ComboEndNormT와 동일한 스테이지 경계 (45f/92f). 3타는 클립 끝(1.0).</summary>
     private static readonly float[] StageEndNormT = { 0.331f, 0.676f, 1f };
 
@@ -47,12 +60,10 @@ public static class WeaponSwingDirectionAnalyzer
     [MenuItem("Tools/VFX/Analyze Weapon_Combo_2 Swing Direction")]
     public static void AnalyzeWeaponCombo2()
     {
-        Debug.Log("[SwingDir] ────────── Weapon_Combo_2 스윙 방향 실측 시작 (v3 이름 기반 폴백 샘플링) ──────────");
+        Debug.Log("[SwingDir] ────────── Weapon_Combo_2 스윙 방향 실측 시작 (v4 Heat 리그 리타깃 샘플링) ──────────");
 
-        // 1) FBX 서브에셋 → AnimationClip + Avatar
+        // 1) Meshy FBX 서브에셋 → AnimationClip (머슬 커브 — 휴머노이드 리타깃으로 리그 무관 재생)
         AnimationClip clip = null;
-        Avatar avatar = null;
-        GameObject fbxRoot = null;
         var all = AssetDatabase.LoadAllAssetsAtPath(FbxPath);
         if (all == null || all.Length == 0)
         {
@@ -65,8 +76,6 @@ public static class WeaponSwingDirectionAnalyzer
         {
             if (o is AnimationClip c && c != null && !c.name.Contains("__preview__") && c.name.Contains("Weapon_Combo_2"))
                 clip = clip == null || c.length > clip.length ? c : clip;
-            if (o is Avatar av && av != null && avatar == null) avatar = av;
-            if (o is GameObject go && fbxRoot == null) fbxRoot = go;
         }
 
         if (clip == null)
@@ -82,43 +91,74 @@ public static class WeaponSwingDirectionAnalyzer
             FinishOk();
             return;
         }
-        if (avatar == null || fbxRoot == null)
+
+        // 2) 플레이어 리그(Heat) 로드 — 샘플러용 실제 스켈레톤 계층 보유 리그.
+        //    근거(swingdir.log 실측): Meshy Weapon_Combo_2.fbx 인스턴스는 뼈 4개뿐(SwingSampler/Head/head_end/headfront
+        //    — 스킨 본이 메시에 베이크된 내보내기, avatar.humanDescription.human=23으로 매핑은 있으나 계층이 없어
+        //    GetBoneTransform 전부 null) → 뼈 샘플링 불가. 런타임에서 Player_AC가 Meshy 클립을 휴머노이드 리타깃으로
+        //    재생하는 것과 동일 원리로, Heat 리그 인스턴스에서 클립을 평가해 뼈 궤적을 확보한다.
+        GameObject heatAsset = AssetDatabase.LoadAssetAtPath<GameObject>(HeatFbxPath);
+        if (heatAsset == null) heatAsset = Resources.Load<GameObject>(HeatResourcePath);
+        if (heatAsset == null)
         {
-            Debug.LogError($"[SwingDir] ❌ Avatar/FBX 루트 GameObject 없음 (avatar={(avatar == null ? "null" : avatar.name)}, root={(fbxRoot == null ? "null" : fbxRoot.name)}) — FBX 임포트 Animation Type 확인 필요");
+            Debug.LogError($"[SwingDir] ❌ 플레이어 리그 로드 실패: {HeatFbxPath} 및 Resources \"{HeatResourcePath}\"");
             FinishOk();
             return;
         }
 
+        // Heat FBX 서브에셋의 imported Avatar (인스턴스 Animator에 내장 avatar가 없을 때 할당용)
+        Avatar heatAvatar = null;
+        var heatSubs = AssetDatabase.LoadAllAssetsAtPath(HeatFbxPath);
+        if (heatSubs != null)
+            foreach (var o in heatSubs)
+                if (o is Avatar av && av != null && heatAvatar == null) heatAvatar = av;
+
         float fps = clip.frameRate > 1f ? clip.frameRate : 30f;
         int totalFrames = Mathf.Max(2, Mathf.RoundToInt(clip.length * fps));
-        Debug.Log($"[SwingDir] 대상 클립: {clip.name} (length={clip.length:F3}s, frameRate={fps:F1}, frames={totalFrames}) | 아바타: {avatar.name} (isHuman={avatar.isHuman})");
+        Debug.Log($"[SwingDir] 대상 클립: {clip.name} (length={clip.length:F3}s, frameRate={fps:F1}, frames={totalFrames}) | 샘플러 리그: {heatAsset.name} ({HeatFbxPath})");
 
-        // 2) 임시 캐릭터 인스턴스 (FBX 루트 = 전체 뼈 계층 포함)
-        var sampler = Object.Instantiate(fbxRoot);
+        // 3) Heat 리그 인스턴스화 (HideAndDontSave) — 이 리그에는 스켈레톤 계층이 있음
+        var sampler = Object.Instantiate(heatAsset);
         sampler.name = "SwingSampler";
         sampler.hideFlags = HideFlags.HideAndDontSave;
+        sampler.transform.position = Vector3.zero;
+        sampler.transform.rotation = Quaternion.identity;   // identity — world == character local, forward=+Z
 
         var anim = sampler.GetComponent<Animator>();
         if (anim == null) anim = sampler.AddComponent<Animator>();
-        anim.avatar = avatar;
+        if (anim.avatar == null && heatAvatar != null) anim.avatar = heatAvatar;
+        else if (anim.avatar != null) heatAvatar = anim.avatar;   // 인스턴스 내장 avatar(FBX imported) 우선
         anim.runtimeAnimatorController = null;
         anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
         anim.updateMode = AnimatorUpdateMode.Normal;
         anim.applyRootMotion = false;   // 루트 고정 — 손 궤적을 캐릭터 기준 자세 변화로 측정
         anim.enabled = true;
 
-        if (!anim.isHuman || !avatar.isHuman)
+        if (anim.avatar == null || !anim.isHuman || !anim.avatar.isHuman)
         {
-            Debug.LogError($"[SwingDir] ❌ 휴머노이드 아바타 아님 (anim.isHuman={anim.isHuman}) — Humanoid 리타깃 샘플링 불가");
+            Debug.LogError($"[SwingDir] ❌ Heat 리그 휴머노이드 아바타 없음/비휴머노이드 (avatar={(anim.avatar == null ? "null" : anim.avatar.name)}, anim.isHuman={anim.isHuman}) — 휴머노이드 리타깃 샘플링 불가");
             Object.DestroyImmediate(sampler);
             FinishOk();
             return;
         }
 
-        // ── v3: GetBoneTransform 매핑 실패 우회 — 이름 기반 직접 샘플링 ──
+        // ── 검증 로그: 인스턴스 뼈 수 / GetBoneTransform(RightHand) / 휴머노이드 매핑 본수 ──
+        var skeleton = sampler.GetComponentsInChildren<Transform>(true);
+        var rightHand = anim.GetBoneTransform(HumanBodyBones.RightHand);
+        int mappedBones = 0;
+        foreach (HumanBodyBones b in System.Enum.GetValues(typeof(HumanBodyBones)))
+            if (b != HumanBodyBones.LastBone && anim.GetBoneTransform(b) != null) mappedBones++;
+        var heatHuman = anim.avatar.humanDescription.human;
+
+        // Meshy 베이크 케이스(swingdir.log: 인스턴스 뼈 4개)와 동일 상태면 실패 경고
+        if (skeleton.Length <= 4)
+            Debug.LogWarning($"[SwingDir] ⚠️ Heat 인스턴스 뼈 수={skeleton.Length} — 스킨 본이 메시에 베이크된 리그로 보임(실패 예상). FBX 임포트 Rig 설정 확인 필요");
+
+        Debug.Log($"[SwingDir] Heat 리그 검증: 인스턴스 뼈 수={skeleton.Length} | GetBoneTransform(RightHand)={(rightHand == null ? "null → 이름 기반 폴백 사용" : rightHand.name)} | 휴머노이드 매핑 본수={mappedBones} | avatar.humanDescription.human 길이={(heatHuman != null ? heatHuman.Length : 0)}");
+
+        // ── 폴백 체인 (2): 이름 기반(hand/arm/wrist) 후보 수집 — (1)단계 GetBoneTransform(RightHand)이 null/이동 0일 때 사용 ──
         // 머슬 평가는 보네임 매핑과 무관하게 스켈레톤 Transform을 실제로 움직이므로,
         // 계층 순회 + 이름 매칭으로 후보를 수집하고 움직임이 가장 큰 뼈를 자동 선택한다.
-        var skeleton = sampler.GetComponentsInChildren<Transform>(true);
         var candidates = new List<Candidate>();
         for (int i = 0; i < skeleton.Length; i++)
         {
@@ -134,11 +174,6 @@ public static class WeaponSwingDirectionAnalyzer
             candLog.Append($"  [{c.pri}] {c.t.name} (path={TransformPath(c.t)})\n");
         Debug.Log($"[SwingDir] 이름 기반 뼈 후보 {candidates.Count}개 (hand/arm/wrist 매칭, [n]=우선순위 0=RightHand 1=RightLowerArm/ForeArm 2=기타 hand 3=wrist/arm):\n{candLog}");
 
-        // 매핑 실패 원인 진단 1줄 (실측 실패했던 GetBoneTransform 상태 + 아바타 human 매핑 길이)
-        var mapped = anim.GetBoneTransform(HumanBodyBones.RightHand);
-        var humanBones = avatar.humanDescription.human;
-        Debug.Log($"[SwingDir] 진단: GetBoneTransform(RightHand)={(mapped == null ? "null — 보네임 매핑 비어 있음(이름 기반 우회 중)" : mapped.name)} | avatar.humanDescription.human 길이={(humanBones != null ? humanBones.Length : 0)} | 스켈레톤 뼈 수={skeleton.Length}");
-
         if (candidates.Count == 0)
         {
             var allNames = new StringBuilder();
@@ -146,7 +181,7 @@ public static class WeaponSwingDirectionAnalyzer
             Debug.LogWarning($"[SwingDir] ⚠️ hand/arm/wrist 이름 매칭 후보 0개 — 스켈레톤 뼈 이름(최대 60개):\n{allNames} → 샘플링 후 전체 뼈 이동 상위 진단으로 계속");
         }
 
-        // 3) PlayableGraph 구성 (Manual 모드 — CPU 애니 평가만, 렌더링 불필요)
+        // 4) PlayableGraph 구성 (Manual 모드 — CPU 애니 평가만, 렌더링 불필요)
         var graph = PlayableGraph.Create("WeaponSwingDirectionAnalyzer");
         graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
         var output = AnimationPlayableOutput.Create(graph, "out", anim);
@@ -182,18 +217,40 @@ public static class WeaponSwingDirectionAnalyzer
                 pathLen[i] = len;
             }
 
-            // 후보 중 "휘두름이 가장 큰 뼈" 자동 선택 (이동 0 제외, 근접 동률은 우선순위 그룹으로 결정)
+            // ── 폴백 체인 뼈 선택: (1) GetBoneTransform(RightHand) 휴머노이드 매핑 → (2) 이름 매칭+이동 최대 뼈 ──
             int sel = -1;
             float bestLen = 0f;
             int bestPri = int.MaxValue;
-            foreach (var c in candidates)
+            string selSrc = null;
+
+            if (rightHand != null)
             {
-                if (pathLen[c.idx] <= 1e-5f) continue;   // 이동 0 뼈 제외
-                if (pathLen[c.idx] > bestLen + 1e-5f || (pathLen[c.idx] > bestLen - 1e-5f && c.pri < bestPri))
+                int hi = -1;
+                for (int i = 0; i < boneCount; i++)
+                    if (skeleton[i] == rightHand) { hi = i; break; }
+                if (hi >= 0 && pathLen[hi] > 1e-5f)
                 {
-                    sel = c.idx;
-                    bestLen = pathLen[c.idx];
-                    bestPri = c.pri;
+                    sel = hi;
+                    bestLen = pathLen[hi];
+                    selSrc = "humanoid-mapping(GetBoneTransform)";
+                }
+                else
+                    Debug.LogWarning("[SwingDir] ⚠️ GetBoneTransform(RightHand) 매핑 존재하나 전 프레임 이동 0 — 이름 기반 폴백으로 계속");
+            }
+
+            if (sel < 0)
+            {
+                // (2) 이름 기반 폴백 — 후보 중 "휘두름이 가장 큰 뼈" 자동 선택 (이동 0 제외, 근접 동률은 우선순위 그룹으로 결정)
+                foreach (var c in candidates)
+                {
+                    if (pathLen[c.idx] <= 1e-5f) continue;   // 이동 0 뼈 제외
+                    if (pathLen[c.idx] > bestLen + 1e-5f || (pathLen[c.idx] > bestLen - 1e-5f && c.pri < bestPri))
+                    {
+                        sel = c.idx;
+                        bestLen = pathLen[c.idx];
+                        bestPri = c.pri;
+                        selSrc = $"name-fallback(pri={c.pri})";
+                    }
                 }
             }
 
@@ -206,13 +263,13 @@ public static class WeaponSwingDirectionAnalyzer
                 var top = new StringBuilder();
                 for (int k = 0; k < order.Count && k < 5; k++)
                     top.Append($"  {skeleton[order[k]].name} (path={TransformPath(skeleton[order[k]])}): {pathLen[order[k]]:F4}m\n");
-                Debug.LogError($"[SwingDir] ❌ 이름 기반 뼈 선택 실패 (hand/arm/wrist 후보 {candidates.Count}개 전부 이동 0 또는 매칭 없음) — 전체 뼈 이동 경로길이 상위 5:\n{top}");
+                Debug.LogError($"[SwingDir] ❌ 샘플링 뼈 선택 실패 (GetBoneTransform(RightHand)={(rightHand == null ? "null" : "매핑됐으나 이동 0")}, hand/arm/wrist 이름 후보 {candidates.Count}개 전부 이동 0 또는 매칭 없음) — 전체 뼈 이동 경로길이 상위 5:\n{top}");
                 return;   // finally에서 graph/sampler 정리
             }
 
             positions = samples[sel];
             boneName = skeleton[sel].name;
-            Debug.Log($"[SwingDir] 샘플링 뼈(자동 선택): {boneName} (path={TransformPath(skeleton[sel])}, 우선순위그룹={bestPri}, 전체 이동 경로길이={bestLen:F3}m) | 임시 캐릭터 pos={sampler.transform.position} rot={sampler.transform.eulerAngles} (identity — world == character local, forward=+Z)");
+            Debug.Log($"[SwingDir] 샘플링 뼈(선택): {boneName} (path={TransformPath(skeleton[sel])}, 선택경로={selSrc}, 전체 이동 경로길이={bestLen:F3}m) | 임시 캐릭터 pos={sampler.transform.position} rot={sampler.transform.eulerAngles} scale={sampler.transform.lossyScale} (identity — world == character local, forward=+Z)");
 
             // 샘플링 유효성 진단: 전 프레임 동일 위치면 평가 실패 의심
             bool allSame = true;
@@ -233,11 +290,11 @@ public static class WeaponSwingDirectionAnalyzer
             return;
         }
 
-        // 4) 스테이지별 접선 방향 산출
+        // 5) 스테이지별 접선 방향 산출
         for (int s = 0; s < 3; s++)
             LogStageResult(s, positions, totalFrames, fps, clip.length, boneName);
 
-        // 5) 전 프레임 궤적 1줄 요약 (중심점 변화량)
+        // 6) 전 프레임 궤적 1줄 요약 (중심점 변화량)
         LogTrajectorySummary(positions);
 
         Debug.Log("[SwingDir] ────────── 실측 완료 — 위 RESULT 수치로 HumanoidClipDriver.FireComboSlash/ComboStageDirection 상수 교체는 다음 단계에서 진행 ──────────");
@@ -315,7 +372,7 @@ public static class WeaponSwingDirectionAnalyzer
     }
 
     // ────────────────────────────────────────────────────────────────
-    // 내부: 이름 기반 뼈 후보 (v3 폴백)
+    // 내부: 이름 기반 뼈 후보 (이름 매칭 폴백)
     // ────────────────────────────────────────────────────────────────
 
     /// <summary>이름 매칭 뼈 후보 (skeleton 배열 인덱스 + 우선순위 그룹).</summary>
