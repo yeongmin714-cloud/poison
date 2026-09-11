@@ -612,8 +612,10 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 콤보 스윙 FX — 클릭 즉시 발화(임팩트 프레임 대기 없음). 타마다 스윙 방향이 다른 Slash VFX를 발화한다.
-        /// 스윙 방향은 2026-09-11 WeaponSwingDirectionAnalyzer 실측값(1타 좌전방 -58°, 2타 수직 상승 pitch 78°, 3타 우후방 사선 143.6°) 기반,
-        /// 위치/거리(up 1.25m, 전방 1.1m)는 Play 판정 후 조정하는 튜닝 상수.
+        /// 2026-09-11 위치 규격 변경: 플레이어 정면 스윙 영역 고정 — pos = 플레이어 + forward*0.9 + up*1.2.
+        /// (기존엔 dir 실측 접선 방향으로 배치해 3타 dir의 후방 성분(yaw 143.6°) 때문에 VFX가 뒤로 치우침.
+        ///  위치는 항상 정면 고정, dir/roll은 실측 궤적 방향 유지.)
+        /// 스윙 방향은 2026-09-11 WeaponSwingDirectionAnalyzer 실측값(1타 좌전방 -58°, 2타 수직 상승 pitch 78°, 3타 우후방 사선 143.6°) 기반.
         /// try-catch 감싸기: FX 실패가 전투를 절대 방해하지 않게 함 (프로젝트 관례).
         /// </summary>
         private void FireComboSlash(int stage)
@@ -625,9 +627,10 @@ namespace ProjectName.Systems
                 // 롤(튜닝 상수): 1타/3타는 실측 dir 자체가 수평/사선이라 roll 0.
                 // 2타는 실측 접선이 수직 상승(pitch 78°)이므로 dir은 수평 성분만 잡고 roll -90으로 Slash 궤적 평면을 수직화.
                 float roll = stage == 2 ? -90f : 0f;
-                Vector3 pos = t.position + Vector3.up * 1.25f + dir * 1.1f;
+                // 위치는 항상 플레이어 정면 스윙 영역 고정 — dir(실측 궤적 방향)로 위치를 잡지 않는다.
+                Vector3 pos = t.position + t.forward * 0.9f + Vector3.up * 1.2f;
                 SlashVFXRunner.PlaySlash(pos, dir, roll);
-                Debug.Log($"[Combo] 스윙 FX stage={stage}");
+                Debug.Log($"[Combo] 스윙 FX stage={stage} (정면 고정 pos={pos:F2}, dir={dir:F2})");
             }
             catch (System.Exception fxEx)
             {
@@ -655,18 +658,29 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// #13: 타 완료 시점 십자가 VFX — 스윙이 끝나는 지점(스테이지 완료 경계 통과)에서 Multiple Slashes 발화.
-        /// 발화 위치 = FireComboSlash와 동일 기준점(플레이어 전방 +up 1.25 + fwd 1.1), 방향은 해당 스테이지 dir 재사용.
-        /// 발화 타이밍/1회 보장은 콤보 감시 블록의 경계 통과 엣지(_comboCrossFired)가 담당.
+        /// 2026-09-11 발화 위치 규격 변경: 플레이어 전방 고정점(up 1.25 + fwd 1.1)이 아니라
+        /// <see cref="PlayerCombat.LastHitPoint"/>(실제 공격을 맞은 대상 지점 = 대상 bounds 중심 + up*0.2)에 발화.
+        /// 최근 0.5초 내 적중이 없으면(빈 스윙) 크로스를 스킵한다 — 맞는 대상 지점에만 발화.
+        /// 방향은 스테이지 실측 dir 대신 히트 지점 기준: dir = (LastHitPoint - 플레이어 머리) 정규화.
+        /// 발화 타이밍/1회 보장은 콤보 감시 블록의 경계 통과 엣지(_comboCrossFired)가 담당(유지).
         /// </summary>
         private void FireComboCross(int stage)
         {
             try
             {
+                // 유효 적중 게이트 — 빈 스윙엔 크로스 없음 (PlayerCombat.LastHitPoint는 적중 직접 갱신, 미스 시 무효화)
+                if (!PlayerCombat.LastHitValid || Time.time - PlayerCombat.LastHitTime > 0.5f)
+                {
+                    Debug.Log("[Combo] 크로스 FX 스킵 — 최근 0.5초 내 적중 없음(빈 스윙)");
+                    return;
+                }
                 var t = _anim.transform;
-                Vector3 dir = ComboStageDirection(stage, t);
-                Vector3 pos = t.position + Vector3.up * 1.25f + dir * 1.1f;
+                Vector3 head = t.position + Vector3.up * 1.5f;                       // 플레이어 머리 기준점
+                Vector3 dir = PlayerCombat.LastHitPoint - head;
+                dir = dir.sqrMagnitude > 0.000001f ? dir.normalized : t.forward;     // 히트 지점==머리 등 퇴화 방어
+                Vector3 pos = PlayerCombat.LastHitPoint;                             // 실제 적중 대상 지점에 발화
                 SlashVFXRunner.PlayCross(pos, dir);
-                Debug.Log($"[Combo] 크로스 FX stage={stage} (타 완료 지점)");
+                Debug.Log($"[Combo] 크로스 FX stage={stage} → 적중 지점 발화 pos={pos:F2}");
             }
             catch (System.Exception fxEx)
             {

@@ -15,6 +15,15 @@ namespace ProjectName.Systems
     {
         private const string DataResourcePath = "Data/MonsterLevelData";
 
+        /// <summary>
+        /// [2026-09-11] 레벨 스케일링 전역 게이트. false면 AnimalAI.ApplyLevelStats()가
+        /// GetMonsterHP/GetMonsterDamage 오버라이드를 건너뛰고 MonsterDatabase 기본 HP를 유지합니다.
+        /// 테스트 씬(TestTerritoryCombatSetup.Awake)에서 false로 설정 — 몬스터가 몇 타에 사망해야
+        /// 공격 검증이 가능하며, 레벨 스케일 MaxHP가 커지면 HP바 비율이 0 근처여도 실제 HP가 남아
+        /// 미사망 증상이 발생함(영상 실측). 메인 씬은 기본값 true 유지.
+        /// </summary>
+        public static bool LevelScalingEnabled = true;
+
         private static MonsterLevelManager _instance;
         public static MonsterLevelManager Instance
         {

@@ -15,6 +15,15 @@ namespace ProjectName.Systems
     {
         public static PlayerCombat Instance { get; private set; }
 
+        // ===== 2026-09-11: 마지막 적중 정보 공유 — 십자가 VFX가 실제 맞은 대상 지점에 발화되도록 =====
+        // 의존 방향 유지: HumanoidClipDriver(드라이버) → PlayerCombat(컴뱃) 단방향 참조만 허용.
+        /// <summary>마지막 적중 대상의 지점(대상 Collider/Renderer bounds 중심 + up*0.2). 크로스 VFX 발화 기준점.</summary>
+        public static Vector3 LastHitPoint;
+        /// <summary>마지막 적중 정보 유효 여부 — 미스(빈 스윙) 경로에서 false로 무효화.</summary>
+        public static bool LastHitValid;
+        /// <summary>마지막 적중 시각(Time.time) — 0.5초 이내 적중만 VFX 발화 유효 판정용.</summary>
+        public static float LastHitTime;
+
         [Header("Combat Settings")]
         [SerializeField] private LayerMask _targetLayers = -1; // 모든 레이어
         [SerializeField] private float _maxRange = 8f; // 2026-09-10: 3→8m 상향 (Test_10 근접 조준 성공률)
@@ -177,14 +186,20 @@ namespace ProjectName.Systems
             _neuralAnim?.SwitchPolicy(NeuralAnimationController.PolicyType.Combat);
 
             // C4-08: 커서 방향으로 자동 조준 먼저 시도
+            bool hitAny = false; // 미스 판정용 — 어떤 경로로든 AttackTarget 도달 시 true
             IDamageable autoAimTarget = FindTargetInCursorDirection();
             if (autoAimTarget != null)
             {
                 // 자동 조준 성공 → 타겟 공격
                 _currentTarget = autoAimTarget;
                 AttackTarget(_currentTarget);
+                hitAny = true;
             }
-            else if (!AttackCenterScreen())
+            else if (AttackCenterScreen())
+            {
+                hitAny = true;
+            }
+            else
             {
                 // 자동 조준 + 화면 중앙 SphereCast 모두 실패 → 근접 스윕 폴백(안전망):
                 // 플레이어 전방 무기 사거리 내 가장 가까운 살아있는 IDamageable 즉시 적중.
@@ -195,8 +210,12 @@ namespace ProjectName.Systems
                     Debug.Log($"[PlayerCombat] 근접 스윕 폴백 적중: {smb?.name ?? "?"} dist={Vector3.Distance(transform.position, smb.transform.position):F1}m");
                     _currentTarget = sweep;
                     AttackTarget(sweep);
+                    hitAny = true;
                 }
             }
+
+            // 빈 스윙(미스) — 마지막 적중 정보 무효화 → 십자가 VFX 스킵(맞는 대상 지점에만 발화)
+            if (!hitAny) LastHitValid = false;
 
             // 카메라 이펙트 (Cinemachine Impulse)
             TriggerCameraEffects();
@@ -277,6 +296,21 @@ namespace ProjectName.Systems
             if (targetBehaviour != null)
             {
                 hitDirection = (targetBehaviour.transform.position - transform.position).normalized;
+            }
+
+            // 📍 2026-09-11: 마지막 적중 지점 저장 — 십자가 VFX(FireComboCross)가 플레이어 전방 고정점이
+            // 아니라 실제로 공격을 맞은 대상 지점에 발화되도록 공유. 데미지 로직 자체는 변경 없음.
+            // 저장 규격: 대상 Collider/Renderer bounds 중심 + up*0.2 (bounds 없으면 대상 position + up*1.2).
+            if (targetBehaviour != null)
+            {
+                Collider hitCol = targetBehaviour.GetComponentInChildren<Collider>();
+                Renderer hitRen = targetBehaviour.GetComponentInChildren<Renderer>();
+                Vector3 center = hitCol != null ? hitCol.bounds.center
+                               : hitRen != null ? hitRen.bounds.center
+                               : targetBehaviour.transform.position + Vector3.up * 1.2f;
+                LastHitPoint = center + Vector3.up * 0.2f;
+                LastHitValid = true;
+                LastHitTime = Time.time;
             }
 
             target.TakeDamage(damage, hitDirection, _currentWeapon?.weaponType.ToString() ?? "melee");

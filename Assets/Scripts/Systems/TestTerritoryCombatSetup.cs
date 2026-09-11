@@ -28,6 +28,11 @@ namespace ProjectName.Systems
             // "몬스터가 안 죽고 늘어난다" 체감을 유발하는 것을 차단. 분열체는 AnimalAI만 부착된 풀HP 구체.
             MonsterSkillSystem.SlimeSplitEnabled = false;
 
+            // [2026-09-11] 테스트 씬 몬스터 레벨 스케일 HP 게이트 — 몬스터 몇 타에 사망해야 공격 검증 가능.
+            // 영상 실측(테스트씬 영상 4): 레벨 스케일링(hpPerLevel×level)으로 MaxHP가 커져 HP바 비율이
+            // 거의 0처럼 보여도 실제 HP가 남아 계속 두드려도 안 죽는 증상 → 스케일링 비활성.
+            MonsterLevelManager.LevelScalingEnabled = false;
+
             // GetHeightAt 계약 정합: 배치 좌표의 XZ는 존중하고 y만 수식 표면으로 재설정.
             // PlayerMovement.ClampToGroundByHeight / BlobShadow가 기대하는 표면(1+GetHeightAt) 위에
             // 엔티티가 정확히 떨어지도록 하여 텔레포트 진동을 근본 차단.
@@ -362,7 +367,12 @@ namespace ProjectName.Systems
             {
                 GameObject modelPrefab = Resources.Load<GameObject>(modelPath);
                 if (modelPrefab != null)
+                {
                     go = Instantiate(modelPrefab, _monsterPos, Quaternion.identity);
+                    // [2026-09-11] bounds 기반 접지 — GLB 피벗 오프셋과 무관하게 발끝이 _monsterPos.y
+                    // (기존 SurfaceY 계약)에 정렬. 기존 접지 보정 코드 없음 → 신규 적용(중복 아님).
+                    GroundModelToY(go, _monsterPos.y);
+                }
             }
 
             if (go == null)
@@ -677,6 +687,10 @@ namespace ProjectName.Systems
                     soldier.transform.localRotation = Quaternion.identity;
                     soldier.transform.localScale = Vector3.one;
 
+                    // [2026-09-11] bounds 기반 접지 — Humanoid FBX 피벗 오프셋과 무관하게 발끝이
+                    // pos.y(기존 SurfaceY 계약)에 정렬(영상 컷 21-22 접지 불량 수리).
+                    GroundModelToY(soldier, pos.y);
+
                     // 캡슐 시각 제거(FBX 교체) + FBX 자식 콜라이더 제거(루트 BoxCollider만 유지)
                     DestroyImmediate(visual);
                     var cols = soldier.GetComponentsInChildren<Collider>(true);
@@ -720,6 +734,8 @@ namespace ProjectName.Systems
                         var soldier = Instantiate(soldierPrefab, guardGO.transform);
                         soldier.name = $"{goName}_GLB";
                         soldier.transform.localPosition = Vector3.zero;
+                        // [2026-09-11] GLB 폴백도 동일 bounds 접지
+                        GroundModelToY(soldier, pos.y);
                         DestroyImmediate(visual);
                         foreach (var c in soldier.GetComponentsInChildren<Collider>(true))
                             DestroyImmediate(c);
@@ -735,6 +751,24 @@ namespace ProjectName.Systems
             }
 
             return guardGO;
+        }
+
+        /// <summary>
+        /// [2026-09-11] GLB/FBX 모델 bounds 기반 접지 정렬 — 전체 렌더러 bounds의 최저점을
+        /// targetY(스폰 pos.y, 기존 SurfaceY 계약)에 맞춘다. 모델 피벗이 발끝과 다른 FBX/Glb에서
+        /// localPosition.zero 배치만으로는 뜨거나 부유하는 문제를 피벗 오프셋과 무관하게 수리.
+        /// Instantiate 직후(부착 직후) 1회 호출. 기존 색/레벨/포섭 로직 무변경.
+        /// </summary>
+        private static void GroundModelToY(GameObject model, float targetY)
+        {
+            if (model == null) return;
+            var rends = model.GetComponentsInChildren<Renderer>();
+            if (rends == null || rends.Length == 0) return;
+            var b = rends[0].bounds;
+            foreach (var r in rends)
+                b.Encapsulate(r.bounds);
+            float bottom = b.min.y;
+            model.transform.position += Vector3.up * (targetY - bottom);
         }
 
         // ================================================================

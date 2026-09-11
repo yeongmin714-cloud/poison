@@ -117,6 +117,12 @@ namespace ProjectName.Systems
         /// </summary>
         private void ApplyLevelStats()
         {
+            // [2026-09-11] 레벨 스케일 게이트 — 비활성 시 MonsterDatabase 기본 HP 유지.
+            // 테스트 씬은 몬스터가 몇 타에 죽어야 공격 검증 가능(영상 실측: HP바 0 근처인데도 미사망의
+            // 원인이 hpPerLevel×level 오버라이드로 커진 MaxHP). SetLevel→ApplyLevelStats 경로만 차단하며
+            // Respawn()은 스케일 재적용 없이 _maxHP 재사용하므로 그대로 안전.
+            if (!MonsterLevelManager.LevelScalingEnabled) return;
+
             if (_level <= 0) return;
 
             MonsterLevelManager mgr = MonsterLevelManager.Instance;
