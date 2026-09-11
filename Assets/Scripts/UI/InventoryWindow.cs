@@ -69,12 +69,12 @@ namespace ProjectName.UI
         private SortMode _sortMode = SortMode.None;
         private string[] _sortModeLabels = { "정렬 안함", "카테고리순", "이름순", "등급순", "수량순" };
 
-        // ===== 레퍼런스 스타일 상수 =====
-        // 2026-09-09(2): 화면 정확히 삼분활 — 패널 폭 = Screen.width/3 - 12, 하단 핫바(150+12) 공간 확보
+        // ===== 레퍼런스 스타일 상수 (2026-09-11 Flat: 얇은 타이틀 스트립 + 컴팩트 탭) =====
+        // 화면 정확히 삼분활 — 패널 폭 = Screen.width/3 - 12, 하단 핫바(150+12) 공간 확보
         private static float WINDOW_WIDTH => Screen.width / 3f - 12f;
         private static float WINDOW_HEIGHT => Screen.height - 180f;   // 상단 10 + 하단 핫바 170 여백
-        private const float TITLE_BAR_HEIGHT = 108f;
-        private const float TAB_BAR_HEIGHT = 96f;
+        private const float TITLE_BAR_HEIGHT = 64f;    // Flat: 얇은 상단 스트립
+        private const float TAB_BAR_HEIGHT = 72f;      // Flat: 컴팩트 탭
         private const float INFO_PANEL_HEIGHT = 272f;   // (레거시 — 미사용)
         private const float WEAPON_SECTION_HEIGHT = 112f;  // (레거시 — 미사용)
         private const float EQUIP_ROW_HEIGHT = 268f;    // 장비창 5칸씩 2줄 (박스 86 + 라벨 44 × 2)
@@ -87,29 +87,29 @@ namespace ProjectName.UI
         private const float PREVIEW_PANEL_WIDTH = 0f;    // (제거됨)
         private static float GRID_AREA_WIDTH => WINDOW_WIDTH - PREVIEW_PANEL_WIDTH; // 그리드 영역 폭
 
-        // 포커스/강조 색상 (민트 글로우 + 황금 테두리)
-        private static readonly Color ColorMintGlow = new Color(0.30f, 1f, 0.75f, 0.28f);
-        private static readonly Color ColorMintEdge = new Color(0.45f, 1f, 0.80f, 0.9f);
+        // 포커스/강조 색상 — Flat 모드: 스카이블루 글로우/엣지 (기존 민트 대체)
+        private static readonly Color ColorMintGlow = new Color(0.35f, 0.65f, 0.90f, 0.30f);
+        private static readonly Color ColorMintEdge = new Color(0.45f, 0.72f, 0.95f, 0.9f);
         private static readonly Color ColorSlotEmptyCell = new Color(0.10f, 0.10f, 0.13f, 0.55f); // 빈 슬롯 가이드 셀
         private static readonly Color ColorGridLine = new Color(0.30f, 0.30f, 0.34f, 0.5f);       // 그리드 가이드라인
 
-        // ===== 다크 테마 색상 (반투명 다크 패널 + 금색 강조) =====
-        private static readonly Color ColorBg = new Color(0.08f, 0.08f, 0.10f, 0.88f);         // 전체 배경 (반투명 다크)
-        private static readonly Color ColorTitleBar = new Color(0.10f, 0.10f, 0.13f, 0.95f);   // 타이틀 바 (더 어두움)
-        private static readonly Color ColorTabActive = new Color(0.80f, 0.60f, 0.20f, 1f);     // 활성 탭 (금색 배경)
-        private static readonly Color ColorTabInactive = new Color(0.16f, 0.16f, 0.20f, 0.95f);// 비활성 탭 (다크)
-        private static readonly Color ColorSlotBg = new Color(0.13f, 0.13f, 0.16f, 0.95f);     // 슬롯 배경 (다크 박스)
-        private static readonly Color ColorSlotHover = new Color(0.22f, 0.20f, 0.16f, 0.95f);  // 슬롯 호버
-        private static readonly Color ColorSlotSelected = new Color(0.38f, 0.30f, 0.10f, 1f);  // 슬롯 선택 (금색 틴트)
-        private static readonly Color ColorInfoBg = new Color(0.08f, 0.08f, 0.10f, 0.88f);     // 정보 패널 배경
+        // ===== 2026-09-11: Flat 테마 색상 (인벤토리 예시 2 — 플랫 다크 네이비 + 스카이블루) =====
+        private static readonly Color ColorBg = new Color(0.063f, 0.086f, 0.133f, 0.88f);      // 전체 배경 (다크 네이비 반투명)
+        private static readonly Color ColorTitleBar = new Color(0.055f, 0.078f, 0.125f, 0.95f); // 타이틀 스트립 (더 어두운 네이비)
+        private static readonly Color ColorTabActive = new Color(0.35f, 0.65f, 0.90f, 1f);     // 활성 탭 (스카이블루)
+        private static readonly Color ColorTabInactive = new Color(0.11f, 0.15f, 0.23f, 0.95f);// 비활성 탭 (다크 네이비)
+        private static readonly Color ColorSlotBg = new Color(0.09f, 0.12f, 0.19f, 0.72f);     // 슬롯 배경 (짙은 반투명)
+        private static readonly Color ColorSlotHover = new Color(0.14f, 0.20f, 0.30f, 0.90f);  // 슬롯 호버
+        private static readonly Color ColorSlotSelected = new Color(0.16f, 0.28f, 0.42f, 1f);  // 슬롯 선택 (스카이블루 틴트)
+        private static readonly Color ColorInfoBg = new Color(0.063f, 0.086f, 0.133f, 0.88f);  // 정보 패널 배경
         private static readonly Color ColorTextPrimary = new Color(1f, 1f, 1f, 1f);            // 기본 텍스트 (흰색)
-        private static readonly Color ColorTextSecondary = new Color(0.85f, 0.85f, 0.85f, 1f); // 보조 텍스트
-        private static readonly Color ColorTextDim = new Color(0.75f, 0.75f, 0.75f, 1f);       // 흐린 텍스트 (가독성 유지)
-        private static readonly Color ColorAccent = new Color(0.85f, 0.65f, 0.20f, 1f);        // 강조 (금색)
-        private static readonly Color ColorBorder = new Color(0.80f, 0.60f, 0.20f, 1f);        // 테두리 (얇은 금색)
-        private static readonly Color ColorBtnBg = new Color(0.15f, 0.15f, 0.18f, 1f);         // 버튼 배경 (다크)
-        private static readonly Color ColorBtnHover = new Color(0.26f, 0.24f, 0.18f, 1f);      // 버튼 호버
-        private static readonly Color ColorBtnEquippedBg = new Color(0.28f, 0.22f, 0.06f, 1f); // 장착 중 버튼 배경
+        private static readonly Color ColorTextSecondary = new Color(0.85f, 0.88f, 0.92f, 1f); // 보조 텍스트
+        private static readonly Color ColorTextDim = new Color(0.72f, 0.76f, 0.82f, 1f);       // 흐린 텍스트
+        private static readonly Color ColorAccent = new Color(0.35f, 0.65f, 0.90f, 1f);        // 강조 (스카이블루)
+        private static readonly Color ColorBorder = new Color(0.62f, 0.70f, 0.78f, 0.85f);     // 테두리 (얇은 회백)
+        private static readonly Color ColorBtnBg = new Color(0.12f, 0.16f, 0.24f, 1f);         // 버튼 배경 (다크 슬레이트)
+        private static readonly Color ColorBtnHover = new Color(0.18f, 0.25f, 0.36f, 1f);      // 버튼 호버
+        private static readonly Color ColorBtnEquippedBg = new Color(0.16f, 0.30f, 0.44f, 1f); // 장착 중 버튼 배경 (스카이블루 틴트)
 
         // ===== 커스텀 GUIStyle 캐시 =====
         private GUIStyle _styleTitle;
@@ -435,16 +435,16 @@ namespace ProjectName.UI
             // === Layer 1: 스톤 백플레이트 (9-Slice) — 기존 평면 패널/타이틀 띠 대체 ===
             GUI.Box(winRect, "", _styleBackplate);
 
-            // === 타이틀 배너 (Layer 4 소속) — 정렬 버튼 왼쪽 가용 영역 중앙 ===
-            float sortBtnWidth = 340f;
-            float sortBtnHeight = 80f;
+            // === 타이틀 스트립 (Flat: 얇은 상단 스트립 + 좌측 타이틀 텍스트) — 정렬 버튼 왼쪽 가용 영역 ===
+            float sortBtnWidth = 300f;
+            float sortBtnHeight = 48f;
             float sortBtnX = x + WINDOW_WIDTH - sortBtnWidth - 12f;
-            float sortBtnY = y + 12f;
-            DrawTitleBanner(x, y, sortBtnX);
-            GUI.Label(new Rect(x, y + 2, WINDOW_WIDTH, TITLE_BAR_HEIGHT), "  📦 인벤토리", _styleTitle);
+            float sortBtnY = y + (TITLE_BAR_HEIGHT - sortBtnHeight) * 0.5f;
+            DrawTitleStrip(x, y, WINDOW_WIDTH, sortBtnX);
+            GUI.Label(new Rect(x, y + 4, sortBtnX - x - 12f, TITLE_BAR_HEIGHT), " 인벤토리", _styleTitle);
 
-            // 정렬 버튼 (타이틀 바 우측) — 기존 로직 유지 (다크 배경 + 흰색 굵은 텍스트)
-            if (GUI.Button(new Rect(sortBtnX, sortBtnY, sortBtnWidth, sortBtnHeight), $"📊 {_sortModeLabels[(int)_sortMode]}", _styleButton))
+            // 정렬 버튼 (타이틀 스트립 우측) — 기존 로직 유지 (다크 배경 + 흰색 굵은 텍스트)
+            if (GUI.Button(new Rect(sortBtnX, sortBtnY, sortBtnWidth, sortBtnHeight), $"정렬: {_sortModeLabels[(int)_sortMode]}", _styleButton))
             {
                 _sortMode = (SortMode)(((int)_sortMode + 1) % 5);
                 if (_sortMode != SortMode.None)
@@ -1556,15 +1556,13 @@ namespace ProjectName.UI
             GUI.matrix = prevMatrix;   // 회전 후 반드시 복원
         }
 
-        /// <summary>타이틀 배너 — 정렬 버튼 왼쪽 가용 영역 중앙에 금속 배너(512×96 비율 유지) 배치.</summary>
-        private void DrawTitleBanner(float wx, float wy, float sortBtnX)
+        /// <summary>타이틀 스트립 — Flat 모드: 얇은 상단 스트립(정렬 버튼 왼쪽 영역) + 하단 2px 액센트 라인.</summary>
+        private void DrawTitleStrip(float wx, float wy, float ww, float sortBtnX)
         {
-            float avail = sortBtnX - wx - 24f;
-            float bannerW = Mathf.Min(512f, Mathf.Max(180f, avail * 0.94f));
-            float bannerH = 72f;
-            float bx = wx + (sortBtnX - wx - bannerW) * 0.5f;                 // 가용 영역 중앙
-            float by = wy + (TITLE_BAR_HEIGHT - bannerH) * 0.5f;
-            GUI.DrawTexture(new Rect(bx, by, bannerW, bannerH), InventoryArtLibrary.GetTitleBanner());
+            float stripW = sortBtnX - wx - 4f;
+            float stripH = TITLE_BAR_HEIGHT - 8f;
+            GUI.DrawTexture(new Rect(wx + 2f, wy + 4f, stripW, stripH), InventoryArtLibrary.GetTitleBanner());
+            DrawColoredRect(new Rect(wx, wy + TITLE_BAR_HEIGHT, ww, 2f), ColorBorder);
         }
 
         /// <summary>셀 위 오버레이(글로우/하이라이트) — GUI.color tint 후 반드시 복원.</summary>

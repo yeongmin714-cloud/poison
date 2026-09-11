@@ -25,6 +25,21 @@ namespace ProjectName.UI
             new Color(0.40f, 0.92f, 0.95f, 1f),   // [5] Unique — 계약 외 안전분 (ItemRarity.Unique=5 인덱스 초과 방지)
         };
 
+        // ===== 2026-09-11: Flat 모드 (인벤토리 예시 2 — 플랫 다크 네이비) =====
+        /// <summary>아트 스타일 모드. Flat = 플랫 모던(다크 네이비 + 얇은 회백 보더 + 스카이블루 강조). 기본 Flat.</summary>
+        public enum ArtStyleMode { Medieval, Flat }
+        /// <summary>현재 스타일 모드 — 최초 Get* 호출 전에만 변경 가능(캐시 파기 금지 관례).</summary>
+        public static ArtStyleMode Style = ArtStyleMode.Flat;
+
+        // ===== Flat 모드 지연 생성 static 캐시 (파기 금지) =====
+        private static Texture2D _flatBackplate;
+        private static Texture2D _flatFrame;
+        private static Texture2D _flatTitleStrip;
+        private static Texture2D _flatSlotCell;
+        private static Texture2D _flatSlotBorder;
+        private static Texture2D _flatSlotHighlight;
+        private static Texture2D _flatEmpty;    // corner ornament 대체 (완전 투명)
+
         // ===== 지연 생성 static 캐시 (파기 금지) =====
         private static Texture2D _backplate;
         private static Texture2D _metalFrame;
@@ -42,6 +57,11 @@ namespace ProjectName.UI
         /// <summary>256×256 스톤 백플레이트 — SDF 라운드 코너(18px) + 다크 스톤 + 세로 그라디언트 + fBm 질감 + 중앙 마법진. 9-Slice border 24 전제.</summary>
         public static Texture2D GetBackplate()
         {
+            if (Style == ArtStyleMode.Flat)
+            {
+                if (_flatBackplate == null) _flatBackplate = BuildFlatPanel();
+                return _flatBackplate;
+            }
             if (_backplate == null) _backplate = BuildBackplate();
             return _backplate;
         }
@@ -49,6 +69,11 @@ namespace ProjectName.UI
         /// <summary>256×256 금속 프레임 — 두께 14px, 외곽 하이라이트→내측 섀도우 그라디언트 + 스크래치 노이즈. border(16,16,16,16) 전제.</summary>
         public static Texture2D GetMetalFrame()
         {
+            if (Style == ArtStyleMode.Flat)
+            {
+                if (_flatFrame == null) _flatFrame = BuildFlatFrame();
+                return _flatFrame;
+            }
             if (_metalFrame == null) _metalFrame = BuildMetalFrame();
             return _metalFrame;
         }
@@ -56,6 +81,11 @@ namespace ProjectName.UI
         /// <summary>96×96 좌상단 기준 로터스/필리그리 코너 장식 — 소비자가 GUI.matrix로 회전 배치.</summary>
         public static Texture2D GetCornerOrnament()
         {
+            if (Style == ArtStyleMode.Flat)
+            {
+                if (_flatEmpty == null) _flatEmpty = MakeCanvas(96, 96, "InvArt_FlatEmpty");
+                return _flatEmpty;
+            }
             if (_cornerOrnament == null) _cornerOrnament = BuildCornerOrnament();
             return _cornerOrnament;
         }
@@ -63,6 +93,11 @@ namespace ProjectName.UI
         /// <summary>512×96 금속 타이틀 배너 — 중앙 볼록 곡률 + 좌우 테이퍼 + 양끝 리벳 + 세로 스트릭 노이즈.</summary>
         public static Texture2D GetTitleBanner()
         {
+            if (Style == ArtStyleMode.Flat)
+            {
+                if (_flatTitleStrip == null) _flatTitleStrip = BuildFlatTitleStrip();
+                return _flatTitleStrip;
+            }
             if (_titleBanner == null) _titleBanner = BuildTitleBanner();
             return _titleBanner;
         }
@@ -70,6 +105,11 @@ namespace ProjectName.UI
         /// <summary>72×72 엠보싱 인너섀도우 슬롯 셀 — 내부 어둡고 위/왼 어두움·아래/오른 밝음(움푹 파임), 순백 2px 테두리(tint 전제), 라운드 10px.</summary>
         public static Texture2D GetSlotCell()
         {
+            if (Style == ArtStyleMode.Flat)
+            {
+                if (_flatSlotCell == null) _flatSlotCell = BuildFlatSlotCell();
+                return _flatSlotCell;
+            }
             if (_slotCell == null) _slotCell = BuildSlotCell();
             return _slotCell;
         }
@@ -77,6 +117,11 @@ namespace ProjectName.UI
         /// <summary>72×72 방사형 글로우 — 중심 알파 0.55→가장자리 0, 순백(희귀도 색 tint 전용).</summary>
         public static Texture2D GetSlotGlow()
         {
+            if (Style == ArtStyleMode.Flat)
+            {
+                if (_flatSlotBorder == null) _flatSlotBorder = BuildFlatSlotBorder();
+                return _flatSlotBorder;
+            }
             if (_slotGlow == null) _slotGlow = BuildSlotGlow();
             return _slotGlow;
         }
@@ -84,6 +129,11 @@ namespace ProjectName.UI
         /// <summary>72×72 라운드 테두리 하이라이트 — 내부 투명, 순백 3px + 외곽 소프트(호버/선택 tint 전용).</summary>
         public static Texture2D GetSlotHighlight()
         {
+            if (Style == ArtStyleMode.Flat)
+            {
+                if (_flatSlotHighlight == null) _flatSlotHighlight = BuildFlatSlotHighlight();
+                return _flatSlotHighlight;
+            }
             if (_slotHighlight == null) _slotHighlight = BuildSlotHighlight();
             return _slotHighlight;
         }
@@ -448,6 +498,189 @@ namespace ProjectName.UI
                     // 가우시안 유사 falloff
                     float a = 0.5f * Mathf.Exp(-3.5f * (1f - u) * (1f - u));
                     buf[y * S + x] = new Color(1f, 1f, 1f, a);
+                }
+            }
+            tex.SetPixels(buf);
+            Apply(tex);
+            return tex;
+        }
+
+        // ===================================================================
+        // Flat 모드 텍스처 빌더 (2026-09-11 — 인벤토리 예시 2 스타일 토큰)
+        //   배경 다크 네이비 반투명 RGBA(16,22,34,0.88) / 테두리 밝은 회백 2px 라운드
+        //   강조 스카이블루 (0.35,0.65,0.90) / 슬롯 짙은 반투명 정사각 + 등급색 보더
+        //   결정론(SDF)만 사용 — Random 미사용 관례 유지. static 캐시 파기 금지.
+        // ===================================================================
+
+        /// <summary>Flat 패널 — 다크 네이비 반투명 + 2px 회백 보더, 라운드 12px. 9-Slice border 24 전제.</summary>
+        private static Texture2D BuildFlatPanel()
+        {
+            const int S = 256;
+            const float half = S * 0.5f;
+            const float corner = 12f;
+            var tex = MakeCanvas(S, S, "InvArt_FlatPanel");
+            var buf = new Color[S * S];
+            var fill = new Color(16f / 255f, 22f / 255f, 34f / 255f, 0.88f);
+            var border = new Color(0.62f, 0.70f, 0.78f, 0.92f);   // 밝은 회백
+
+            for (int y = 0; y < S; y++)
+            {
+                for (int x = 0; x < S; x++)
+                {
+                    int i = y * S + x;
+                    float px = x + 0.5f - half;
+                    float py = y + 0.5f - half;
+                    float d = SdfRoundRect(px, py, half, half, corner);
+                    if (d > 1f) { buf[i] = Color.clear; continue; }
+
+                    float aa = Mathf.Clamp01(0.5f - d);
+                    // 보더: 외곽 2px (9-Slice 코너/엣지에서 두께 보존)
+                    if (d > -2.5f)
+                        buf[i] = new Color(border.r, border.g, border.b, border.a * aa);
+                    else
+                        buf[i] = new Color(fill.r, fill.g, fill.b, fill.a * aa);
+                }
+            }
+            tex.SetPixels(buf);
+            Apply(tex);
+            return tex;
+        }
+
+        /// <summary>Flat 프레임 — 중앙 투명 + 2px 회백 라운드 보더. border(16,16,16,16) 9-Slice 전제.</summary>
+        private static Texture2D BuildFlatFrame()
+        {
+            const int S = 256;
+            const float half = S * 0.5f;
+            const float corner = 12f;
+            var tex = MakeCanvas(S, S, "InvArt_FlatFrame");
+            var buf = new Color[S * S];
+            var border = new Color(0.62f, 0.70f, 0.78f, 0.95f);
+
+            for (int y = 0; y < S; y++)
+            {
+                for (int x = 0; x < S; x++)
+                {
+                    int i = y * S + x;
+                    float px = x + 0.5f - half;
+                    float py = y + 0.5f - half;
+                    float d = SdfRoundRect(px, py, half, half, corner);
+                    // 중앙 투명, 외곽 2px 보더만
+                    if (d <= -2.5f || d > 1f) { buf[i] = Color.clear; continue; }
+                    float aa = Mathf.Clamp01(0.5f - d);
+                    buf[i] = new Color(border.r, border.g, border.b, border.a * aa);
+                }
+            }
+            tex.SetPixels(buf);
+            Apply(tex);
+            return tex;
+        }
+
+        /// <summary>Flat 타이틀 스트립 — 얇은 상단 스트립(짙은 네이비 반투명 + 하단 2px 스카이블루 라인). 9-Slice 미사용(Stretch).</summary>
+        private static Texture2D BuildFlatTitleStrip()
+        {
+            const int W = 512, H = 96;
+            var tex = MakeCanvas(W, H, "InvArt_FlatTitleStrip");
+            var buf = new Color[W * H];
+            var strip = new Color(0.055f, 0.078f, 0.125f, 0.72f);   // 패널보다 살짝 어두운 네이비
+            var accent = new Color(0.35f, 0.65f, 0.90f, 0.95f);     // 하단 스카이블루 액센트 라인
+
+            for (int y = 0; y < H; y++)
+            {
+                for (int x = 0; x < W; x++)
+                {
+                    int i = y * W + x;
+                    // 텍스처 y=0이 GUI 하단 → 하단 2px = y 0..1 에 액센트
+                    if (y < 2)
+                        buf[i] = accent;
+                    else
+                        buf[i] = strip;
+                }
+            }
+            tex.SetPixels(buf);
+            Apply(tex);
+            return tex;
+        }
+
+        /// <summary>Flat 슬롯 셀 — 짙은 반투명 다크 네이비 정사각, 라운드 8px, 보더 없음(등급색 보더는 GetSlotGlow tint).</summary>
+        private static Texture2D BuildFlatSlotCell()
+        {
+            const int S = 72;
+            const float half = S * 0.5f;
+            const float corner = 8f;
+            var tex = MakeCanvas(S, S, "InvArt_FlatSlotCell");
+            var buf = new Color[S * S];
+            var fill = new Color(0.045f, 0.075f, 0.125f, 0.66f);
+
+            for (int y = 0; y < S; y++)
+            {
+                for (int x = 0; x < S; x++)
+                {
+                    int i = y * S + x;
+                    float px = x + 0.5f - half;
+                    float py = y + 0.5f - half;
+                    float d = SdfRoundRect(px, py, half, half, corner);
+                    if (d > 0.5f) { buf[i] = Color.clear; continue; }
+                    buf[i] = new Color(fill.r, fill.g, fill.b, fill.a * Mathf.Clamp01(0.5f - d));
+                }
+            }
+            tex.SetPixels(buf);
+            Apply(tex);
+            return tex;
+        }
+
+        /// <summary>Flat 슬롯 보더 — 2px 라운드 링 순백(등급색 tint 전용 → RarityColors 소비).</summary>
+        private static Texture2D BuildFlatSlotBorder()
+        {
+            const int S = 72;
+            const float half = S * 0.5f;
+            const float corner = 8f;
+            var tex = MakeCanvas(S, S, "InvArt_FlatSlotBorder");
+            var buf = new Color[S * S];
+
+            for (int y = 0; y < S; y++)
+            {
+                for (int x = 0; x < S; x++)
+                {
+                    float px = x + 0.5f - half;
+                    float py = y + 0.5f - half;
+                    float d = SdfRoundRect(px, py, half, half, corner);
+                    float a;
+                    if (d <= -2.5f) a = 0f;                  // 내부 투명
+                    else if (d <= -1.5f) a = d + 2.5f;       // 내측 램프업
+                    else if (d <= 0f) a = 1f;                // 2px 코어
+                    else if (d <= 1f) a = 1f - d;            // 외곽 소프트
+                    else a = 0f;
+                    buf[(y * S) + x] = new Color(1f, 1f, 1f, Mathf.Clamp01(a));
+                }
+            }
+            tex.SetPixels(buf);
+            Apply(tex);
+            return tex;
+        }
+
+        /// <summary>Flat 슬롯 하이라이트 — 내부 투명 2px 라운드 링(호버/선택 tint 전용, 스카이블루 소비 전제).</summary>
+        private static Texture2D BuildFlatSlotHighlight()
+        {
+            const int S = 72;
+            const float half = S * 0.5f;
+            const float corner = 8f;
+            var tex = MakeCanvas(S, S, "InvArt_FlatSlotHighlight");
+            var buf = new Color[S * S];
+
+            for (int y = 0; y < S; y++)
+            {
+                for (int x = 0; x < S; x++)
+                {
+                    float px = x + 0.5f - half;
+                    float py = y + 0.5f - half;
+                    float d = SdfRoundRect(px, py, half, half, corner);
+                    float a;
+                    if (d <= -2.5f) a = 0f;
+                    else if (d <= -1.5f) a = d + 2.5f;
+                    else if (d <= 0f) a = 1f;
+                    else if (d <= 2f) a = 1f - d / 2f;
+                    else a = 0f;
+                    buf[y * S + x] = new Color(1f, 1f, 1f, Mathf.Clamp01(a));
                 }
             }
             tex.SetPixels(buf);

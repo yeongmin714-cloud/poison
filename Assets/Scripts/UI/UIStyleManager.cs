@@ -13,12 +13,14 @@ namespace ProjectName.UI
         // 공통 색상
         // ================================================================
 
-        /// <summary>창 배경 (어두움)</summary>
-        public static readonly Color BgColor = new Color(0f, 0f, 0f, 0.88f);
-        /// <summary>골드 테두리</summary>
-        public static readonly Color BorderColor = new Color(0.85f, 0.65f, 0.15f, 0.8f);
-        /// <summary>제목 색상 (골드)</summary>
-        public static readonly Color TitleColor = new Color(0.9f, 0.7f, 0.3f, 1f);
+        /// <summary>창 배경 — Flat 모드: 다크 네이비 반투명 RGBA(16,22,34,0.88)</summary>
+        public static readonly Color BgColor = new Color(0.063f, 0.086f, 0.133f, 0.88f);
+        /// <summary>테두리 — Flat 모드: 밝은 회백 얇은 라인 (기존 골드 대체)</summary>
+        public static readonly Color BorderColor = new Color(0.62f, 0.70f, 0.78f, 0.85f);
+        /// <summary>제목 색상 — Flat 모드: 흰색 Bold (기존 골드 대체)</summary>
+        public static readonly Color TitleColor = new Color(0.95f, 0.97f, 1f, 1f);
+        /// <summary>강조 — 스카이블루 (선택/활성 하이라이트, 2026-09-11 Flat 토큰)</summary>
+        public static readonly Color AccentColor = new Color(0.35f, 0.65f, 0.90f, 1f);
         /// <summary>딤드 오버레이</summary>
         public static readonly Color DimColor = new Color(0f, 0f, 0f, 0.5f);
         /// <summary>버튼 호버 강조</summary>
@@ -31,8 +33,8 @@ namespace ProjectName.UI
         public static readonly Color TextColor = Color.white;
         /// <summary>서브텍스트 (회색)</summary>
         public static readonly Color SubTextColor = new Color(0.75f, 0.75f, 0.75f, 1f);
-        /// <summary>테두리 두께 (픽셀)</summary>
-        public const int BorderWidth = 4;
+        /// <summary>테두리 두께 (픽셀) — Flat 모드: 얇은 2px 라인</summary>
+        public const int BorderWidth = 2;
 
         // ================================================================
         // 스타일 캐싱
@@ -71,9 +73,9 @@ namespace ProjectName.UI
 
             _titleStyle = new GUIStyle
             {
-                fontSize = 60,
+                fontSize = 40,
                 fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter,
+                alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = TitleColor }
             };
 
