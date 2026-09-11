@@ -209,7 +209,7 @@ namespace ProjectName.UI
         private static Font GetDefaultFont()
         {
             if (_cachedFont == null)
-                _cachedFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                _cachedFont = UIFont.Load(); // P7-1: 한글 서포트 커스텀 폰트 (static 캐시)
             return _cachedFont;
         }
 

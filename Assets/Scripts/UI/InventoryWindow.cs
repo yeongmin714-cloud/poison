@@ -329,10 +329,11 @@ namespace ProjectName.UI
                 margin = new RectOffset(0, 0, 0, 0)
             };
 
-            // 타이틀 — Flat: 흰색 40px (2026-09-11: 기존 64px 골드톤 대체 — 얇은 타이틀 스트립에 맞춤)
+            // 타이틀 — Flat: 흰색 (2026-09-11: 기존 64px 골드톤 대체 — 얇은 타이틀 스트립에 맞춤)
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 40,
+                font = UIFont.Load(), // P7-1: 한글 서포트 커스텀 폰트
+                fontSize = UIFont.Title, // P7-2: 40 → Title(38)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 clipping = TextClipping.Clip,
@@ -343,7 +344,8 @@ namespace ProjectName.UI
             // 탭 (비활성) — 다크 배경 + 흰 텍스트 (C-UP: 18→22, 탭 폭 ~130px로 확대되어 잘림 없음)
             _styleTab = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 22,
+                font = UIFont.Load(),
+                fontSize = UIFont.Body, // P7-2: 22 → Body(24)
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleCenter,
                 clipping = TextClipping.Clip,
@@ -370,7 +372,8 @@ namespace ProjectName.UI
                 border = new RectOffset(2, 2, 2, 2),
                 padding = new RectOffset(4, 4, 4, 4),
                 margin = new RectOffset(0, 0, 0, 0),
-                fontSize = 36,
+                font = UIFont.Load(),
+                fontSize = UIFont.Title, // P7-2: 36 → Title(38)
                 alignment = TextAnchor.MiddleCenter
             };
 
@@ -383,7 +386,8 @@ namespace ProjectName.UI
             // 슬롯 라벨 (아이템 이름) — 흰색 굵게
             _styleSlotLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 36,
+                font = UIFont.Load(),
+                fontSize = UIFont.Title, // P7-2: 36 → Title(38)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary },
@@ -393,7 +397,8 @@ namespace ProjectName.UI
             // 아이템 이름 (목록형 / 무기 섹션 라벨) — 흰색 굵게
             _styleItemName = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 60,
+                font = UIFont.Load(),
+                fontSize = UIFont.Display, // P7-2: 60 → Display(60)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary }
@@ -402,7 +407,8 @@ namespace ProjectName.UI
             // 아이템 개수 — 작게
             _styleItemCount = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 28,
+                font = UIFont.Load(),
+                fontSize = UIFont.Body, // P7-2: 28 → Body(24)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleRight,
                 normal = { textColor = ColorAccent }
@@ -411,7 +417,8 @@ namespace ProjectName.UI
             // 정보 패널 - 이름 (흰색 굵게, 크게)
             _styleInfoName = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 76,
+                font = UIFont.Load(),
+                fontSize = UIFont.Display, // P7-2: 76 → Display(60)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
@@ -421,7 +428,8 @@ namespace ProjectName.UI
             // 정보 패널 - 설명 (밝은 회색, 가독성 상향)
             _styleInfoDesc = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 54,
+                font = UIFont.Load(),
+                fontSize = UIFont.Body, // P7-2: 54 → Body(24)
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.UpperLeft,
                 normal = { textColor = ColorTextSecondary },
@@ -432,7 +440,8 @@ namespace ProjectName.UI
             // 정보 패널 - 레이블 (이탤릭 제거 + 밝은 텍스트)
             _styleInfoLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 48,
+                font = UIFont.Load(),
+                fontSize = UIFont.Body, // P7-2: 48 → Body(24)
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextSecondary }
@@ -441,7 +450,8 @@ namespace ProjectName.UI
             // 빈 목록 텍스트 (이탤릭 제거 + 흰색)
             _styleEmptyText = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 54,
+                font = UIFont.Load(),
+                fontSize = UIFont.Body, // P7-2: 54 → Body(24)
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary }
@@ -459,7 +469,8 @@ namespace ProjectName.UI
             // 공용 버튼 (정렬/수리/사용) — 다크 배경 + 흰색 굵은 텍스트
             _styleButton = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 36,
+                font = UIFont.Load(),
+                fontSize = UIFont.Title, // P7-2: 36 → Title(38)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary, background = _texBtnBg },
@@ -2133,7 +2144,8 @@ namespace ProjectName.UI
             string routeLabel = $"📍 오토루트: {_routeContextTerritoryName}";
             var labelStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 48,
+                font = UIFont.Load(), // P7-1
+                fontSize = UIFont.Title, // P7-2: 48 → Title(38)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = new Color(0.92f, 0.88f, 0.80f, 1f) },
@@ -2147,7 +2159,8 @@ namespace ProjectName.UI
             float btnY = menuY + menuHeight - btnHeight - 6;
             var btnStyle = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 46,
+                font = UIFont.Load(), // P7-1
+                fontSize = UIFont.Title, // P7-2: 46 → Title(38)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = new Color(0.80f, 0.60f, 0.20f, 1f),

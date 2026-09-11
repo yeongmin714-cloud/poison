@@ -201,7 +201,7 @@ namespace ProjectName.UI
             labelGo.transform.SetParent(row.transform, false);
             Text labelTxt = labelGo.AddComponent<Text>();
             labelTxt.text = labelText;
-            labelTxt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            labelTxt.font = UIFont.Load(); // P7-1: 한글 서포트 커스텀 폰트
             labelTxt.alignment = TextAnchor.MiddleLeft;
             labelTxt.fontSize = 56;
             labelTxt.color = Color.white;
@@ -230,7 +230,7 @@ namespace ProjectName.UI
             go.transform.SetParent(parent.transform, false);
             Text txt = go.AddComponent<Text>();
             txt.text = text;
-            txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            txt.font = UIFont.Load(); // P7-1: 한글 서포트 커스텀 폰트
             txt.alignment = TextAnchor.MiddleLeft;
             txt.fontSize = 56;
             txt.color = Color.white;
@@ -247,7 +247,7 @@ namespace ProjectName.UI
             buttonOut = go.AddComponent<Button>();
             Text txt = go.AddComponent<Text>();
             txt.text = text;
-            txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            txt.font = UIFont.Load(); // P7-1: 한글 서포트 커스텀 폰트
             txt.alignment = TextAnchor.MiddleCenter;
             txt.fontSize = 64;
             txt.color = Color.white;

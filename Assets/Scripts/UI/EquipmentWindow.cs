@@ -135,7 +135,8 @@ namespace ProjectName.UI
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 20,
+                font = UIFont.Load(), // P7-1: 한글 서포트 커스텀 폰트
+                fontSize = UIFont.Body, // P7-2: 20 → Body(24)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
@@ -144,7 +145,8 @@ namespace ProjectName.UI
 
             _styleSlotLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 15,
+                font = UIFont.Load(),
+                fontSize = UIFont.Caption, // P7-2: 15 → Caption(17)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
@@ -153,7 +155,8 @@ namespace ProjectName.UI
 
             _styleSlotValue = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                font = UIFont.Load(),
+                fontSize = UIFont.Badge, // P7-2: 13 → Badge(13)
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextSecondary },
@@ -162,7 +165,8 @@ namespace ProjectName.UI
 
             _styleEmptyText = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                font = UIFont.Load(),
+                fontSize = UIFont.Badge, // P7-2: 13 → Badge(13)
                 fontStyle = FontStyle.Italic,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextDim },
@@ -171,7 +175,8 @@ namespace ProjectName.UI
 
             _styleInfoText = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 12,
+                font = UIFont.Load(),
+                fontSize = UIFont.Badge, // P7-2: 12 → Badge(13)
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextDim },
@@ -180,7 +185,8 @@ namespace ProjectName.UI
 
             _styleDurabilityLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                font = UIFont.Load(),
+                fontSize = UIFont.Badge, // P7-2: 11 → Badge(13)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary }
@@ -188,7 +194,8 @@ namespace ProjectName.UI
 
             _styleButton = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 14,
+                font = UIFont.Load(),
+                fontSize = UIFont.Badge, // P7-2: 14 → Badge(13)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 padding = new RectOffset(8, 8, 2, 2),
@@ -224,7 +231,8 @@ namespace ProjectName.UI
 
             _styleBannerTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 20,
+                font = UIFont.Load(),
+                fontSize = UIFont.Body, // P7-2: 20 → Body(24)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = new Color(0.98f, 0.92f, 0.72f, 1f) }   // 골드톤 — 배너 위 가독

@@ -306,9 +306,18 @@ namespace ProjectName.Systems
             return s;
         }
 
-        /// <summary>빌트인 동적 폰트(fontSize 적용용). 실패 시 null → GUIStyle 기본 폰트 폴백.</summary>
+        /// <summary>폰트 로드 — P7-1: 한글 서포트 커스텀 폰트 우선, 실패 시 빌트인 폴백.
+        /// Systems asmdef는 ProjectName.UI 참조 불가 → Resources.Load를 로컬로 수행.</summary>
         private static Font LoadBuiltinFont()
         {
+            try
+            {
+                Font kr = Resources.Load<Font>("Fonts/NotoSansKR-VF"); // Assets/Resources/Fonts/
+                if (kr == null) kr = Resources.Load<Font>("Fonts/malgun"); // 폴백
+                if (kr != null) return kr;
+            }
+            catch { /* 다음 후보 진행 */ }
+
             try
             {
                 Font f = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); // Unity 2022.2+

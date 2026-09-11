@@ -66,7 +66,7 @@ namespace ProjectName.UI.Functions
             textGo.transform.SetParent(slotGo.transform, false);
             Text text = textGo.AddComponent<Text>();
             text.text = "비어있음";
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.font = UIFont.Load(); // P7-1: 한글 서포트 커스텀 폰트
             text.alignment = TextAnchor.MiddleCenter;
             text.fontSize = 24;
             text.color = Color.white;
@@ -86,7 +86,7 @@ namespace ProjectName.UI.Functions
             btnTextGo.transform.SetParent(btnGo.transform, false);
             Text btnText = btnTextGo.AddComponent<Text>();
             btnText.text = "불러오기";
-            btnText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            btnText.font = UIFont.Load(); // P7-1: 한글 서포트 커스텀 폰트
             btnText.alignment = TextAnchor.MiddleCenter;
             btnText.fontSize = 18;
             btnText.color = Color.white;
@@ -106,7 +106,7 @@ namespace ProjectName.UI.Functions
             delTextGo.transform.SetParent(delGo.transform, false);
             Text delText = delTextGo.AddComponent<Text>();
             delText.text = "삭제";
-            delText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            delText.font = UIFont.Load(); // P7-1: 한글 서포트 커스텀 폰트
             delText.alignment = TextAnchor.MiddleCenter;
             delText.fontSize = 18;
             delText.color = Color.white;

@@ -73,6 +73,7 @@ namespace ProjectName.UI
 
             _titleStyle = new GUIStyle
             {
+                font = UIFont.Load(), // P7-1: 한글 서포트 커스텀 폰트 (실패 시 빌트인 폴백)
                 fontSize = 40,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
@@ -85,6 +86,7 @@ namespace ProjectName.UI
 
             _closeButtonStyle = new GUIStyle
             {
+                font = UIFont.Load(), // P7-1
                 fontSize = 52,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
@@ -105,6 +107,7 @@ namespace ProjectName.UI
 
             _labelStyle = new GUIStyle
             {
+                font = UIFont.Load(), // P7-1
                 fontSize = 40,
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,

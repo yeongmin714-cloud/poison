@@ -593,9 +593,12 @@ namespace ProjectName.UI
             return Mathf.Sqrt((px - cx) * (px - cx) + (py - cy) * (py - cy)) - radius;
         }
 
-        /// <summary>빌트인 폰트 로드 (Unity 2022+: LegacyRuntime.ttf, 구버전: Arial.ttf).</summary>
+        /// <summary>폰트 로드 — P7-1: 한글 서포트 커스텀 폰트 우선(UIFont 캐시), 실패 시 빌트인 폴백.</summary>
         private static Font LoadBuiltinFont()
         {
+            var uiFont = ProjectName.UI.UIFont.Load(); // NotoSansKR → malgun → 빌트인 (static 캐시)
+            if (uiFont != null) return uiFont;
+
             try
             {
                 var f = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");

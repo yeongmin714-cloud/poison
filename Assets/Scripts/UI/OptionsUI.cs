@@ -224,7 +224,7 @@ namespace ProjectName.UI
             go.transform.SetParent(parent.transform, false);
             var txt = go.AddComponent<Text>();
             txt.text = text;
-            txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            txt.font = UIFont.Load(); // P7-1: 한글 서포트 커스텀 폰트
             txt.fontSize = fontSize;
             txt.color = color;
             txt.alignment = alignment;
@@ -243,7 +243,7 @@ namespace ProjectName.UI
 
             var txt = go.AddComponent<Text>();
             txt.text = text;
-            txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            txt.font = UIFont.Load(); // P7-1: 한글 서포트 커스텀 폰트
             txt.fontSize = fontSize;
             txt.alignment = TextAnchor.MiddleCenter;
             txt.color = Color.white;
@@ -556,7 +556,7 @@ namespace ProjectName.UI
                 var go = new GameObject("StatusText");
                 go.transform.SetParent(_windowRoot != null ? _windowRoot.transform : transform, false);
                 _statusText = go.AddComponent<Text>();
-                _statusText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                _statusText.font = UIFont.Load(); // P7-1: 한글 서포트 커스텀 폰트
                 _statusText.fontSize = 24;
                 _statusText.alignment = TextAnchor.MiddleCenter;
                 _statusText.color = Color.green;

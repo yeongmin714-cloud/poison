@@ -787,6 +787,10 @@ namespace ProjectName.UI
 
         private static Font LoadBuiltinFont()
         {
+            // P7-1: 한글 서포트 커스텀 폰트 (NotoSansKR → malgun → 빌트인, UIFont 내부 캐시)
+            var uiFont = ProjectName.UI.UIFont.Load();
+            if (uiFont != null) return uiFont;
+
             try { return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); }
             catch { /* 폴백 */ }
             try { return Resources.GetBuiltinResource<Font>("Arial.ttf"); }

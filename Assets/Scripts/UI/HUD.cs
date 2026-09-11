@@ -199,21 +199,24 @@ namespace ProjectName.UI
             // 모든 GUIStyle을 미리 캐싱 (OnGUI에서 new GUIStyle() 호출 금지)
             _cachedLabelStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 24,
+                font = UIFont.Load(), // P7-1: 한글 서포트 커스텀 폰트
+                fontSize = UIFont.Body, // P7-2: 24 → Body
                 alignment = TextAnchor.MiddleCenter,
                 fontStyle = FontStyle.Bold
             };
 
             _cachedDeathStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 96,
+                font = UIFont.Load(),
+                fontSize = UIFont.Display, // P7-2: 96 → Display(60)
                 alignment = TextAnchor.MiddleCenter,
                 fontStyle = FontStyle.Bold
             };
 
             _cachedRespawnStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 40,
+                font = UIFont.Load(),
+                fontSize = UIFont.Title, // P7-2: 40 → Title(38)
                 alignment = TextAnchor.MiddleCenter
             };
 
@@ -229,28 +232,32 @@ namespace ProjectName.UI
 
             _cachedGasTimerStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14,
+                font = UIFont.Load(),
+                fontSize = UIFont.Badge, // P7-2: 14 → Badge(13)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter
             };
-            
+
             // Phase 34: 은신 스타일
             _cachedStealthIconStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 14,
+                font = UIFont.Load(),
+                fontSize = UIFont.Badge, // P7-2: 14 → Badge(13)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter
             };
             _cachedDetectionLabelStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                font = UIFont.Load(),
+                fontSize = UIFont.Badge, // P7-2: 11 → Badge(13)
                 alignment = TextAnchor.MiddleLeft
             };
 
             // 숫자 HP 표시 스타일 (하트 아래 "현재HP / 최대HP")
             _cachedHPTextStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 18,
+                font = UIFont.Load(),
+                fontSize = UIFont.Caption, // P7-2: 18 → Caption(17)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft
             };
@@ -258,14 +265,16 @@ namespace ProjectName.UI
             // 경험치 바 스타일 — 좌측 "Lv.{n}" (11px Bold 흰색) + 바 위 수치 (10px 흰색)
             _cachedExpLevelStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 11,
+                font = UIFont.Load(),
+                fontSize = UIFont.Badge, // P7-2: 11 → Badge(13)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleRight,
                 normal = { textColor = Color.white }
             };
             _cachedExpValueStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 10,
+                font = UIFont.Load(),
+                fontSize = UIFont.Badge, // P7-2: 10 → Badge(13)
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.white }
             };
