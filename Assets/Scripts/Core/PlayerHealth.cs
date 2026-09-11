@@ -265,9 +265,20 @@ namespace ProjectName.Core
             // Time.timeScale 복원 (DeathEffectController에서 슬로우 모션 사용 후)
             Time.timeScale = 1f;
 
-            // 부활 위치: 가장 가까운 영지 또는 기본 위치
+            // 부활 위치 우선순위: 세이브한 침대(스폰핀) > 가장 가까운 자기 영지 > 기본 위치
             Vector3 respawnPos = _defaultRespawnPosition;
-            if (_respawnAtNearestTerritory)
+            bool spawnPosResolved = false;
+
+            // (a) 침대에서 세이브(💾)한 스폰핀 최우선 — Systems.Bed는 Core에서 직접 참조 불가(순환참조)라 리플렉션
+            if (TryGetBedSpawnPoint(out Vector3 bedSpawnPos))
+            {
+                // 매트리스(상단 ~0.5m) 위 소환 방지: 살짝 위에서 부활해 중력으로 착지
+                respawnPos = bedSpawnPos + Vector3.up * 0.8f;
+                spawnPosResolved = true;
+                Debug.Log($"[PlayerHealth] 세이브한 침대(스폰핀)에서 부활: {respawnPos}");
+            }
+
+            if (!spawnPosResolved && _respawnAtNearestTerritory)
             {
                 // Phase 27: GuardManager를 통해 가장 가까운 플레이어 소유 영지 찾기 (reflection-safe)
                 Vector3 currentPos = _playerTransform != null ? _playerTransform.position : _defaultRespawnPosition;
@@ -356,6 +367,32 @@ namespace ProjectName.Core
         public void SetInvincibleTime(float seconds)
         {
             _invincibleTime = Mathf.Max(0f, seconds);
+        }
+
+        /// <summary>
+        /// 침대에서 세이브한 스폰핀(부활 지점)을 조회합니다 (reflection-safe).
+        /// Systems.Bed.s_customSpawnPoint (Vector3?) — Core→Systems 직접 참조 불가(순환참조)라
+        /// 기존 GuardManager/TerritoryManager와 동일한 FindSystemType 리플렉션 패턴 사용.
+        /// </summary>
+        private static bool TryGetBedSpawnPoint(out Vector3 spawnPos)
+        {
+            spawnPos = Vector3.zero;
+
+            var bedType = FindSystemType("Bed");
+            if (bedType == null) return false;
+
+            var spawnField = bedType.GetField("s_customSpawnPoint",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            if (spawnField == null) return false;
+
+            // Vector3? 박싱: HasValue=true → boxed Vector3 (패턴 일치), false/null → 미설정
+            object value = spawnField.GetValue(null);
+            if (value is Vector3 pos)
+            {
+                spawnPos = pos;
+                return true;
+            }
+            return false;
         }
 
         /// <summary>

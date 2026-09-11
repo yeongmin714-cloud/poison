@@ -161,6 +161,10 @@ namespace ProjectName.Systems
             Material alchemyMat = new Material(shader) { name = "PlayerCastle_AlchemyMat" };
             alchemyMat.color = new Color(0.36f, 0.26f, 0.44f); // 연금 테이블 보라빛 나무
 
+            // 침실 재질 (성주 침대 — 세이브/수면 상호작용)
+            Material bedMat = new Material(shader) { name = "PlayerCastle_BedMat" };
+            bedMat.color = new Color(0.62f, 0.46f, 0.30f); // 따뜻한 나무 침대 프레임
+
             // 중세 판타지 장식 재질들 (석재 기둥/화로/러그)
             Material pillarMat = new Material(shader) { name = "PlayerCastle_PillarMat" };
             pillarMat.color = new Color(0.40f, 0.38f, 0.35f); // 회색 석재 기둥
@@ -237,6 +241,19 @@ namespace ProjectName.Systems
                 // 테이블 중앙을 향하도록 회전
                 planChair.transform.localRotation = Quaternion.Euler(0f, side > 0 ? -90f : 90f, 0f);
             }
+
+            // ===================================================================
+            // 1b. 침대 (성주 침실 — E키 상호작용: 수면/💾세이브, 사망 시 스폰핀 부활)
+            //     앞벽(z=-roomDepth*0.5)에 머리(베개, 로컬 -z)를 향해 배치.
+            //     작업대(5번, x=mx*-5)와 요리 테이블(5b, x=mx*6.2) 사이 여백이며,
+            //     석재 기둥열(6번, z=-5..5)과는 z 간격으로 분리 — 8개 variant 전부 무충돌.
+            //     CreateBed가 root에 Bed 컴포넌트를 부착하므로 E키 상호작용 즉시 동작.
+            // ===================================================================
+            GameObject lordBed = IndoorFurniturePlacer.CreateBed(1.2f, 2.0f, bedMat);
+            lordBed.name = "LordBed";
+            lordBed.transform.SetParent(room.transform);
+            lordBed.transform.localPosition = new Vector3(mx * -3f, 0f, -roomDepth * 0.5f + 1.2f);
+            AddNameplate(lordBed, "🛏️ 성주의 침대 (세이브)");
 
             // ===================================================================
             // 2. 플레이어 환영 배너 (뒷벽 위 — 점령지 표시)

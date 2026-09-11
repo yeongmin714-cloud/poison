@@ -55,6 +55,11 @@ namespace ProjectName.Systems
         private bool _isSleeping;
         private Coroutine _sleepCoroutine;
 
+        // ===== 💾 세이브(스폰핀) 피드백 상태 =====
+        private GUIStyle _feedbackStyle;
+        private string _saveFeedbackMessage;
+        private float _saveFeedbackUntilRealtime;
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -151,6 +156,15 @@ namespace ProjectName.Systems
                 normal = { textColor = Color.white }
             };
 
+            // 💾 세이브 완료 피드백 라벨 (성공 연두색 — 캐싱, 매 프레임 생성 없음)
+            _feedbackStyle = new GUIStyle
+            {
+                fontSize = 14,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = new Color(0.55f, 1f, 0.55f) }
+            };
+
             // ===== 캐싱된 텍스처 미리 생성 (GC 누수 방지) =====
             _cachedBgTex = MakeTexture(1, 1, _bgColor);
             _cachedOverlayTex = MakeTexture(1, 1, _sleepOverlayColor);
@@ -195,11 +209,16 @@ namespace ProjectName.Systems
             // ===== 수면 옵션 UI (침대 상호작용 시) =====
             if (!_isVisible || _currentBed == null) return;
 
+            // 💾 세이브 버튼 추가(수면 5개 + 세이브 1개 + 취소 + 피드백 라벨)로 필요 높이 계산.
+            // 직렬화된 _windowHeight가 더 크면 기존 값 유지 (기존 씬 배치 보존)
+            int neededHeight = 65 + (_buttonHeight + _buttonSpacing) * 6 + 5 + _buttonHeight + 33;
+            int windowHeight = Mathf.Max(_windowHeight, neededHeight);
+
             int centerX = (Screen.width - _windowWidth) / 2;
-            int centerY = (Screen.height - _windowHeight) / 2;
+            int centerY = (Screen.height - windowHeight) / 2;
 
             // 캐싱된 배경 스타일 사용 (매 프레임 GUIStyle 생성 방지)
-            GUI.Box(new Rect(centerX, centerY, _windowWidth, _windowHeight), "", _cachedBgStyle);
+            GUI.Box(new Rect(centerX, centerY, _windowWidth, windowHeight), "", _cachedBgStyle);
 
             // 제목
             string title = $"{_currentBed.BedName} — 얼마나 주무시겠습니까?";
@@ -216,12 +235,23 @@ namespace ProjectName.Systems
             DrawSleepButton(buttonX, buttonStartY + (_buttonHeight + _buttonSpacing) * 3, buttonWidth, "8시간 자기", () => StartSleep(8f));
             DrawSleepButton(buttonX, buttonStartY + (_buttonHeight + _buttonSpacing) * 4, buttonWidth, "아침까지 자기", () => StartSleep(-1f));
 
+            // 💾 세이브(스폰핀) 버튼 — 수면과 독립. 이 침대 위치를 부활 스폰포인트로 기록 + 실제 저장.
+            DrawSleepButton(buttonX, buttonStartY + (_buttonHeight + _buttonSpacing) * 5, buttonWidth,
+                "💾 여기서 세이브", SaveAtBed);
+
             // 취소 버튼
-            int cancelY = buttonStartY + (_buttonHeight + _buttonSpacing) * 5 + 5;
+            int cancelY = buttonStartY + (_buttonHeight + _buttonSpacing) * 6 + 5;
             GUI.backgroundColor = _cancelButtonColor;
             if (GUI.Button(new Rect(buttonX, cancelY, buttonWidth, _buttonHeight), "취소", _cancelButtonStyle))
             {
                 Hide();
+            }
+
+            // 💾 세이브 완료 피드백 (일정 시간 표시 후 자동 사라짐)
+            if (!string.IsNullOrEmpty(_saveFeedbackMessage) && Time.unscaledTime < _saveFeedbackUntilRealtime)
+            {
+                GUI.Label(new Rect(centerX, cancelY + _buttonHeight + 6, _windowWidth, 22),
+                    _saveFeedbackMessage, _feedbackStyle);
             }
         }
 
@@ -255,6 +285,41 @@ namespace ProjectName.Systems
                 _sleepCoroutine = StartCoroutine(DoSleep(hours));
                 _isVisible = false;
             }
+        }
+
+        /// <summary>
+        /// 💾 현재 침대 위치를 부활 스폰포인트(스폰핀)로 기록하고 SaveManager로 실제 저장합니다.
+        /// 수면과 독립 동작 — 세이브만 하고 UI는 유지됩니다.
+        /// </summary>
+        private void SaveAtBed()
+        {
+            if (_currentBed == null)
+            {
+                Debug.LogWarning("[SleepUI] 세이브 실패: 현재 침대 참조가 없습니다.");
+                return;
+            }
+
+            // 1) 침대 위치를 정적 스폰포인트(스폰핀)로 기록 → 사망 시 이 위치에서 부활
+            Bed.SetSpawnPoint(_currentBed.transform.position);
+
+            // 2) SaveManager로 실제 저장 (슬롯 UI 없이 자동 저장 — 빈 슬롯 우선, 없으면 가장 오래된 슬롯 덮어씀)
+            if (SaveManager.Instance != null)
+            {
+                SaveManager.Instance.AutoSave();
+                ShowSaveFeedback("💾 세이브 완료! 사망 시 이 침대에서 부활");
+            }
+            else
+            {
+                ShowSaveFeedback("⚠️ SaveManager 없음 — 스폰핀만 설정됨");
+                Debug.LogWarning("[SleepUI] SaveManager.Instance가 없어 실제 저장을 건너뜁니다.");
+            }
+        }
+
+        /// <summary>세이브 완료 피드백 메시지를 일정 시간(2.5초) 동안 표시합니다.</summary>
+        private void ShowSaveFeedback(string message)
+        {
+            _saveFeedbackMessage = message;
+            _saveFeedbackUntilRealtime = Time.unscaledTime + 2.5f;
         }
 
         /// <summary>

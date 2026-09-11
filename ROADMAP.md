@@ -2168,3 +2168,16 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | API | LootWindow.TryGetSlotAtScreenPoint(guiPoint, out slotIndex), TryTakeDraggedToInventory(), Awake 싱글턴. 잔여 전리품 NRE 하드닝 | ✅ |
 | 검증 | 중괄호 균형 OK(273/8/61), batchmode 컴파일 0에러(return 0), QAPROGRESS 31차 기록 | ✅ |
 | Play 판정 대기 | 전리품 창 우측 표시, 드래그 고스트, 인벤 그리드 놓기=이동, 클릭=획득, 전부 획득, 비면 자동 닫힘 | ⬜ |
+
+## 🛏️ 2026-09-11: 자기 영지 침대 세이브 + 죽으면 영지/침대 스폰 (BED-SAVE-SPAWN-32)
+
+> **목표:** 자기 소유 성에 침대를 배치하고, 그 침대에서 세이브(스폰핀 설정) → 사망 시 세이브한 침대 또는 근처 자기 영지에서 부활.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 침대 상호작용 | IndoorFurniturePlacer.CreateBed가 root에 Bed+BoxCollider(isTrigger) 부착(GetComponent<Bed> null일때만) → 모든 침대 E키 상호작용 가능 | ✅ |
+| 자기 성 침대 | PlayerCastleInteriorBuilder에 CreateBed "LordBed" 배치(이름표 "성주의 침대 (세이브)") | ✅ |
+| 침대 세이브 | SleepUI "💾 여기서 세이브" 버튼 → Bed.SetSpawnPoint(침대위치)+SaveManager.AutoSave → 피드백. 수면과 독립 | ✅ |
+| 부활 스폰핀 | PlayerHealth.Respawn 우선순위: 침대 s_customSpawnPoint(Core 리플렉션 TryGetBedSpawnPoint) > 가까운 자기 영지(GuardManager.FindNearestPlayerTerritory) > 기본 위치 | ✅ |
+| 검증 | 중괄호/괄호 5파일 0, batchmode 컴파일 0에러(return 0), QAPROGRESS 32차 기록 | ✅ |
+| Play 판정 대기 | 자기 성 침대에서 E키→세이브, 사망 시 침대에서 부활, 세이브 안 하면 가까운 자기 영지 부활 | ⬜ |

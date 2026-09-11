@@ -4,7 +4,36 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-11 (31차)
+> **최종 갱신:** 2026-09-11 (32차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-11 ✅ 32차 — 자기 영지 침대 세이브 + 죽으면 영지/침대 스폰)
+
+> **스코프**: 자기 소유 성에 침대를 배치하고 그 침대에서 세이브(스폰핀 설정) → 사망 시 세이브한 침대(우선) 또는 근처 자기 영지(기존 로직)에서 부활. 컴파일 0 에러.
+
+### 변경 사항
+**`Systems/Bed.cs`** — 정적 스폰핀 API 신설:
+- `static Vector3? s_customSpawnPoint`, `SetSpawnPoint(Vector3)`, `ClearSpawnPoint()`
+
+**`Systems/IndoorFurniturePlacer.cs`** — `CreateBed`가 root 프리팹에 `Bed`(+BoxCollider isTrigger) 부착(`GetComponent<Bed>()==null`일 때만, 중복 방지) → 모든 CreateBed 침대(집/성) E키 상호작용 가능
+
+**`Systems/PlayerCastleInteriorBuilder.cs`** — 자기 성에 침대 배치:
+- `CreateBed(1.2, 2.0, bedMat)` "LordBed" 배치(앞벽 x=mx×-3, z=-roomDepth/2+1.2), 이름표 "🛏️ 성주의 침대 (세이브)".
+
+**`Systems/SleepUI.cs`** — "💾 여기서 세이브" 버튼 추가(수면과 독립):
+- `SaveAtBed()` → `Bed.SetSpawnPoint(침대위치)` + `SaveManager.AutoSave()`(빈 슬롯 우선) → "💾 세이브 완료!" 연두 피드백 2.5초. 창 높이 자동 확장, _feedbackStyle 1회 캐시(OnGUI new GUIStyle 0건)
+
+**`Core/PlayerHealth.cs`** — Respawn 스폰핀 우선:
+- ① 세이브한 침대 있으면 침대 위치+up0.8m 부활(리플렉션 TryGetBedSpawnPoint — Core→Systems 순환참조 회피) ② 없으면 기존 `_respawnAtNearestTerritory`+`GuardManager.FindNearestPlayerTerritory`(가까운 자기 영지) ③ 둘 다 없으면 기본 위치
+
+### 스폰핀 우선순위
+**세이브한 침대 > 가까운 자기 영지 > 기본 위치**
+
+### 컴파일/검증
+- 중괄호/괄호/대괄호 균형 5파일 0
+- Unity 6000.4.10f1 batchmode **0 에러**(return 0)
+- ⚠️ 스폰핀은 세션 static(씬 재시작/로드 시 초기화) — 영속화는 SaveData 확장 과제
 
 ---
 

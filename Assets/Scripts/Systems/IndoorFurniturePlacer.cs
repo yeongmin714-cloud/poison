@@ -258,6 +258,24 @@ namespace ProjectName.Systems
             CreateBox(bed, "Pillow", new Vector3(pillowWidth, pillowHeight, pillowDepth),
                 new Vector3(0, frameHeight + mattressHeight + pillowHeight * 0.5f, -depth * 0.4f), mat);
 
+            // 상호작용: root에 Bed 컴포넌트(+요구 BoxCollider isTrigger) 부착 → E키 상호작용 가능.
+            // C16-02: PlayerMovement.HandleInteraction()이 Physics.OverlapSphere로 이 콜라이더를 감지.
+            // 중복 부착 방지 — 이미 Bed가 있으면 스킵 (재초기화/재사용 경로 대비).
+            BoxCollider bedCollider = bed.GetComponent<BoxCollider>();
+            if (bedCollider == null)
+            {
+                bedCollider = bed.AddComponent<BoxCollider>(); // Bed.RequireComponent 요구 충족
+            }
+            bedCollider.isTrigger = true;
+            // 감지 범위: 매트리스+프레임+베개를 덮도록 (높이 0.6, 중심 y=0.3)
+            bedCollider.center = new Vector3(0f, 0.3f, 0f);
+            bedCollider.size = new Vector3(width, 0.6f, depth);
+
+            if (bed.GetComponent<Bed>() == null)
+            {
+                bed.AddComponent<Bed>();
+            }
+
             return bed;
         }
 
