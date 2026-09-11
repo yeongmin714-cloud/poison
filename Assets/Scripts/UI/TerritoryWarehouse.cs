@@ -244,7 +244,8 @@ namespace ProjectName.UI
         private void OpenWarehouseUI()
         {
             // 2026-09-09: [인벤][설명][창고] 3패널 — 인벤토리를 함께 연다
-            InventoryWindow.SetContextMode(InventoryWindow.ContextMode.Warehouse);
+            // 2026-09-11(4): territoryId 전달 — 컨텍스트 창이 WarehouseSystem.GetItems(이 ID)를 렌더
+            InventoryWindow.SetContextMode(InventoryWindow.ContextMode.Warehouse, _territoryId);
             _warehouseOpen = true;
             _guiDirty = true;   // "[E] 닫기" 안내 전환
 

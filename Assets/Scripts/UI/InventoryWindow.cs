@@ -50,6 +50,11 @@ namespace ProjectName.UI
         private static ContextMode _pendingContextMode = ContextMode.None;
         private ContextMode _contextMode = ContextMode.None;
 
+        // ===== 2026-09-11(4): 창고 컨텍스트 실데이터 렌더 =====
+        private string _warehouseTerritoryId;                 // Warehouse 컨텍스트에서 렌더할 창고 territoryId
+        private static string s_pendingWarehouseTerritoryId;  // 인스턴스 생성 전 SetContextMode 대기 값
+        private int[] _warehouseSlotIndices = System.Array.Empty<int>();  // 필터 뷰 idx → 창고 전역 슬롯 idx
+
         private PlayerInventory.ItemData _selectedItemData;   // 설명 패널 표시용
         private bool _dragActive;                             // 그리드→드롭 타겟 드래그 (핫바/창고/슬롯 스왑)
         private PlayerInventory.ItemData _dragItemData;
@@ -184,21 +189,42 @@ namespace ProjectName.UI
             if (_pendingContextMode != ContextMode.None)
             {
                 _contextMode = _pendingContextMode;
+                if (_contextMode == ContextMode.Warehouse)
+                    _warehouseTerritoryId = s_pendingWarehouseTerritoryId;
                 _pendingContextMode = ContextMode.None;
+                s_pendingWarehouseTerritoryId = null;
+            }
+
+            // 2026-09-11(4): 셋업이 핫키를 못 단 경우(Test_10 등 부착만 하고 Bind 없음) 자가 등록 — I키 토글 보장.
+            // 기존 UIInventoryHotkey 클래스 재활용. 이미 씬에 핫키가 있으면 중복 등록하지 않는다.
+            if (FindAnyObjectByType<UIInventoryHotkey>(FindObjectsInactive.Include) == null)
+            {
+                var hotkey = gameObject.AddComponent<UIInventoryHotkey>();
+                hotkey.Bind(this);
+                Debug.Log("[InventoryWindow] UIInventoryHotkey 자가 등록 (I키 토글 — 셋업 바인딩 부재 폴백)");
             }
         }
 
         /// <summary>컨텍스트 모드 지정 (창고/상점/전리품 상호작용 시 호출 — 인벤 창도 함께 열어줌)</summary>
-        public static void SetContextMode(ContextMode mode)
+        public static void SetContextMode(ContextMode mode) => SetContextMode(mode, null);
+
+        /// <summary>
+        /// 2026-09-11(4): territoryId 전달 오버로드 — Warehouse 컨텍스트는 이 ID의
+        /// WarehouseSystem.GetItems(...) 내용을 렌더한다(플레이어 인벤 대체).
+        /// </summary>
+        public static void SetContextMode(ContextMode mode, string territoryId)
         {
             if (_instance != null)
             {
                 _instance._contextMode = mode;
+                _instance._warehouseTerritoryId = (mode == ContextMode.Warehouse) ? territoryId : null;
                 if (!_instance.IsOpen) _instance.Show();
+                else _instance.RefreshInventory();   // 이미 열림 — 즉시 소스 전환
             }
             else
             {
                 _pendingContextMode = mode;
+                s_pendingWarehouseTerritoryId = (mode == ContextMode.Warehouse) ? territoryId : null;
             }
         }
 
@@ -209,9 +235,11 @@ namespace ProjectName.UI
         public static void CloseContext()
         {
             _pendingContextMode = ContextMode.None;
+            s_pendingWarehouseTerritoryId = null;
             if (_instance != null)
             {
                 _instance._contextMode = ContextMode.None;
+                _instance._warehouseTerritoryId = null;
                 if (_instance.IsOpen) _instance.Hide();
             }
         }
@@ -250,6 +278,9 @@ namespace ProjectName.UI
             _dragActive = false;
             _dragSlotGlobalIndex = -1;
             ItemDragContext.Cancel();
+            // 2026-09-11(4): 창 닫힘 시 컨텍스트 해제 — 재오픈(I키)은 플레이어 인벤 모드로 시작
+            _contextMode = ContextMode.None;
+            _warehouseTerritoryId = null;
         }
 
         /// <summary>
@@ -486,7 +517,9 @@ namespace ProjectName.UI
             float sortBtnX = x + WINDOW_WIDTH - sortBtnWidth - 12f;
             float sortBtnY = y + (TITLE_BAR_HEIGHT - sortBtnHeight) * 0.5f;
             DrawTitleStrip(x, y, WINDOW_WIDTH, sortBtnX);
-            GUI.Label(new Rect(x, y + 4, sortBtnX - x - 12f, TITLE_BAR_HEIGHT), " 인벤토리", _styleTitle);
+            // 2026-09-11(4): 창고 컨텍스트 — 타이틀 "창고" 표기
+            GUI.Label(new Rect(x, y + 4, sortBtnX - x - 12f, TITLE_BAR_HEIGHT),
+                _contextMode == ContextMode.Warehouse ? " 창고" : " 인벤토리", _styleTitle);
 
             // 정렬 버튼 (타이틀 스트립 우측) — 기존 로직 유지 (다크 배경 + 흰색 굵은 텍스트)
             if (GUI.Button(new Rect(sortBtnX, sortBtnY, sortBtnWidth, sortBtnHeight), $"정렬: {_sortModeLabels[(int)_sortMode]}", _styleButton))
@@ -646,7 +679,10 @@ namespace ProjectName.UI
                     bool isHover = slotRect.Contains(Event.current.mousePosition);
 
                     // 2026-09-11(3): 드롭 판정용 슬롯 화면 Rect 캐시 (전역 인덱스)
-                    int dndGlobalIdx = GetGlobalSlotIndex(_selectedCategory, i);
+                    // 2026-09-11(4): 창고 컨텍스트에서는 창고 전역 슬롯 인덱스를 캐시 (인벤 전역 인덱스와 계열 구분)
+                    int dndGlobalIdx = _contextMode == ContextMode.Warehouse
+                        ? GetWarehouseSlotIndex(i)
+                        : GetGlobalSlotIndex(_selectedCategory, i);
                     Vector2 slotScreenPos = GUIUtility.GUIToScreenPoint(new Vector2(sx, sy));
                     s_slotScreenRects.Add(new Rect(slotScreenPos.x, slotScreenPos.y, slotWidth, slotHeight));
                     s_slotScreenIndices.Add(dndGlobalIdx);
@@ -728,14 +764,41 @@ namespace ProjectName.UI
                             _selectedItemDesc = slot.item.description;
                             _selectedItemCount = slot.count;
                             _selectedItemData = slot.item;
-                            _dragItemData = slot.item;   // ProcessDrag: MouseDrag Begin → MouseUp에서 드롭 판정
-                            _dragActive = false;
-                            _dragSlotGlobalIndex = GetGlobalSlotIndex(_selectedCategory, i);
+
+                            if (_contextMode == ContextMode.Warehouse)
+                            {
+                                // 2026-09-11(4): 창고 컨텍스트 — 창고 소스 드래그를 MouseDown에서 즉시 시작
+                                // (WarehouseUI 선례. ProcessDrag의 창고 소스 분기가 MouseUp 판정 대행)
+                                _dragItemData = null;
+                                _dragActive = false;
+                                _dragSlotGlobalIndex = -1;
+                                ItemDragContext.Begin(ItemDragContext.Source.Warehouse,
+                                    GetWarehouseSlotIndex(i), slot.item, _warehouseTerritoryId);
+                            }
+                            else
+                            {
+                                _dragItemData = slot.item;   // ProcessDrag: MouseDrag Begin → MouseUp에서 드롭 판정
+                                _dragActive = false;
+                                _dragSlotGlobalIndex = GetGlobalSlotIndex(_selectedCategory, i);
+                            }
                             Event.current.Use();
                         }
-                        else if (Event.current.button == 1) // 우클릭 — 장비면 장착, 아니면 오토루트 메뉴
+                        else if (Event.current.button == 1) // 우클릭 — 인벤: 장비 장착/오토루트, 창고: 인벤 이동
                         {
-                            if (CompareTooltip.IsEquipmentCategory(slot.item.category))
+                            if (_contextMode == ContextMode.Warehouse)
+                            {
+                                // 2026-09-11(4): 창고 컨텍스트 우클릭 — 1개를 인벤으로 이동
+                                // (창고 아이템 직접 장착은 인벤에 없는 장비가 장착되는 부작용 — TryEquipItem은 인벤 소유 아이템에만 유지)
+                                int whIdx = GetWarehouseSlotIndex(i);
+                                if (whIdx >= 0 && WarehouseSystem.Instance != null
+                                    && !string.IsNullOrEmpty(_warehouseTerritoryId)
+                                    && WarehouseSystem.Instance.TransferToInventory(_warehouseTerritoryId, whIdx, 1))
+                                {
+                                    Debug.Log($"[InventoryWindow] 창고→인벤 이동(우클릭): {slot.item.displayName}");
+                                    RefreshInventory();
+                                }
+                            }
+                            else if (CompareTooltip.IsEquipmentCategory(slot.item.category))
                             {
                                 // 2026-09-09: 무기 선택창 폐지 → 우클릭 장착으로 대체
                                 TryEquipItem(slot);
@@ -1266,6 +1329,7 @@ namespace ProjectName.UI
         // ===== 인벤토리 정렬 =====
         private void SortInventory()
         {
+            if (_contextMode == ContextMode.Warehouse) return;   // 2026-09-11(4): 창고 컨텍스트는 시딩 순서 유지 (플레이어 인벤 정렬 아님)
             if (PlayerInventory.Instance == null) return;
             var allSlots = PlayerInventory.Instance.GetAllSlots();
             if (allSlots == null) return;
@@ -1353,12 +1417,57 @@ namespace ProjectName.UI
         /// </summary>
         public void RefreshInventory()
         {
+            // 2026-09-11(4): 창고 컨텍스트 — WarehouseSystem.GetItems(territoryId)를 렌더한다.
+            // (기존엔 컨텍스트와 무관하게 플레이어 인벤을 그려 E키 창고가 플레이어 가방을 보여줬던 원인)
+            if (_contextMode == ContextMode.Warehouse)
+            {
+                RefreshFromWarehouse();
+                return;
+            }
+
             if (PlayerInventory.Instance == null) return;
 
             _currentSlots = PlayerInventory.Instance.GetSlotsByCategory(_selectedCategory);
             _selectedItemName = "";
             _selectedItemDesc = "";
             _selectedItemCount = 0;
+        }
+
+        /// <summary>2026-09-11(4): 창고 소스 — 선택 카테고리로 필터링 + 원본 슬롯 인덱스 병행 캐시(DnD용).</summary>
+        private void RefreshFromWarehouse()
+        {
+            _currentSlots = System.Array.Empty<PlayerInventory.ItemSlot>();
+            _warehouseSlotIndices = System.Array.Empty<int>();
+            _selectedItemName = "";
+            _selectedItemDesc = "";
+            _selectedItemCount = 0;
+
+            if (WarehouseSystem.Instance == null || string.IsNullOrEmpty(_warehouseTerritoryId)) return;
+
+            var items = WarehouseSystem.Instance.GetItems(_warehouseTerritoryId);
+            if (items == null || items.Count == 0) return;
+
+            var filtered = new List<PlayerInventory.ItemSlot>(items.Count);
+            var srcIdx = new List<int>(items.Count);
+            for (int i = 0; i < items.Count; i++)
+            {
+                var s = items[i];
+                if (s != null && s.item != null && s.count > 0 && s.item.category == _selectedCategory)
+                {
+                    filtered.Add(s);
+                    srcIdx.Add(i);
+                }
+            }
+            _currentSlots = filtered.ToArray();
+            _warehouseSlotIndices = srcIdx.ToArray();
+        }
+
+        /// <summary>2026-09-11(4): 필터 뷰 인덱스 → 창고 전역 슬롯 인덱스 (DnD 스왑/회수용). 미해당 -1.</summary>
+        private int GetWarehouseSlotIndex(int filteredIndex)
+        {
+            if (_warehouseSlotIndices == null || filteredIndex < 0 || filteredIndex >= _warehouseSlotIndices.Length)
+                return -1;
+            return _warehouseSlotIndices[filteredIndex];
         }
 
         private Color GetCategoryColor(PlayerInventory.ItemCategory category)
@@ -1649,8 +1758,12 @@ namespace ProjectName.UI
             float cy = dy + TITLE_BAR_HEIGHT + 16f;
             if (_selectedItemData == null)
             {
+                // 2026-09-11(4): 창고 컨텍스트 안내 문구 분기
                 GUI.Label(new Rect(dx + 16f, cy, WINDOW_WIDTH - 32f, 40f),
-                    "좌클릭: 아이템 선택 / 드래그: 하단 핫바 지정\n우클릭: 장비 장착", _styleItemName);
+                    _contextMode == ContextMode.Warehouse
+                        ? "좌클릭: 선택 / 드래그: 창고 내 이동\n우클릭: 인벤토리로 1개 이동"
+                        : "좌클릭: 아이템 선택 / 드래그: 하단 핫바 지정\n우클릭: 장비 장착",
+                    _styleItemName);
                 return;
             }
 
@@ -1697,17 +1810,34 @@ namespace ProjectName.UI
                 else if (Event.current.type == EventType.MouseUp)
                 {
                     Vector2 p = Event.current.mousePosition;
-                    if (IsPointOverInventoryGrid(p))
+                    if (_contextMode == ContextMode.Warehouse)
+                    {
+                        // 2026-09-11(4): 창고 컨텍스트 — 그리드가 곧 창고 뷰이므로 그리드 드롭 = 창고 내 스왑.
+                        // (기존 "그리드 드롭 = 인벤 이동"은 그리드가 플레이어 인벤일 때만 성립)
+                        int whTarget = GetInventorySlotIndexAtScreenPoint(p);   // 창고 전역 슬롯 인덱스 캐시
+                        if (whTarget >= 0 && whTarget != ItemDragContext.SourceIndex)
+                        {
+                            WarehouseUI.SwapDraggedSlots(whTarget);
+                            RefreshInventory();
+                        }
+                        else if (WarehouseUI.TryGetSlotAtScreenPoint(p, out int whTarget2)
+                                 && whTarget2 >= 0 && whTarget2 != ItemDragContext.SourceIndex)
+                        {
+                            // 별도 창고 창(WarehouseUI)이 함께 열린 경우 — 그쪽 슬롯과의 스왑
+                            WarehouseUI.SwapDraggedSlots(whTarget2);
+                        }
+                    }
+                    else if (IsPointOverInventoryGrid(p))
                     {
                         // 창고 → 인벤 이동 (1개)
                         WarehouseUI.TransferDraggedToInventory();
                         Debug.Log($"[InventoryWindow] 창고→인벤 이동(드래그): {ItemDragContext.Item?.displayName ?? "?"}");
                     }
-                    else if (WarehouseUI.TryGetSlotAtScreenPoint(p, out int whTarget)
-                             && whTarget >= 0 && whTarget != ItemDragContext.SourceIndex)
+                    else if (WarehouseUI.TryGetSlotAtScreenPoint(p, out int whTarget3)
+                             && whTarget3 >= 0 && whTarget3 != ItemDragContext.SourceIndex)
                     {
                         // 창고 내 슬롯↔슬롯 스왑
-                        WarehouseUI.SwapDraggedSlots(whTarget);
+                        WarehouseUI.SwapDraggedSlots(whTarget3);
                     }
                     // 그 외 영역 = 드롭 실패 → Cancel (변경 없음)
                     ItemDragContext.Cancel();

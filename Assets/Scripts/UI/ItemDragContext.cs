@@ -49,11 +49,15 @@ namespace ProjectName.UI
             Icon = null;
         }
 
-        /// <summary>고스트(반투명 아이콘)를 마우스 커서에 따라 그린다. 프레임당 최초 1회만 렌더.</summary>
+        /// <summary>고스트(반투명 아이콘)를 마우스 커서에 따라 그린다. 프레당 최초 1회만 렌더.</summary>
         public static void DrawGhost()
         {
             if (!Active || Item == null) return;
             if (Event.current == null) return;
+            // 2026-09-11(4) 수리: IMGUI는 프레임당 복수 이벤트 패스(MouseDrag → Repaint)를 도는데,
+            // 기존엔 입력 패스(MouseDrag 등)에서 스탬프를 먼저 찍어 같은 프레임 Repaint 패스가
+            // 프레임 가드에 막혀 고스트가 아예 안 그려졌다. 렌더는 Repaint 패스에서만 수행한다.
+            if (Event.current.type != EventType.Repaint) return;
             if (_lastGhostFrame == Time.frameCount) return;
             _lastGhostFrame = Time.frameCount;
 
