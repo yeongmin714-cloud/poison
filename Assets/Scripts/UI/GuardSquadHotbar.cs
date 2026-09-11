@@ -14,8 +14,10 @@ namespace ProjectName.UI
     ///     · Ctrl+숫자   — 박스 드래그로 선택한 병사(그룹)를 해당 슬롯에 등록(덮어쓰기), 즉시 아바타 표시
     ///     · 숫자(부대 모드) — 슬롯에 등록된 병사들(생존자만)을 GuardSelectionManager로 RTS 선택
     ///                       (파란 원 표시 — 이후 우클릭 공격/이동 명령은 기존 RTSCommandSystem 경로 사용)
-    /// - 아바타: 국적색 절차 생성 원형 스프라이트 + 병사 이름 이니셜 + "Lv{N}" 텍스트
-    ///           대표 병사가 죽었으면(IsAlive false) 회색 처리. 그룹 인원 수는 우상단 "x{생존수}" 소형 표시.
+    /// - 아바타: 생존 대표 병사의 실제 3D 외형 아이콘(GuardIconRenderer 오프스크린 베이크) 우선 표시.
+    ///           베이크 전/실패 시 기존 절차 아바타(국적색 원형 + 이니셜 + "Lv{N}" 텍스트)로 폴백.
+    ///           대표 병사가 죽었으면(IsAlive false) 아이콘 대신 기존 회색 절차 아바타.
+    ///           그룹 인원 수는 우상단 "x{생존수}" 소형 표시.
     ///
     /// [국적 색상] 동=빨강, 서=파랑, 남=초록, 북=보라, 황제국/무소속/기타=회색
     ///
@@ -91,7 +93,9 @@ namespace ProjectName.UI
         private readonly GuardPlaceholder[][] _slots = new GuardPlaceholder[SlotCount][]; // 부대 그룹 등록 (씬 재진입 시 null 무시)
 
         private readonly Image[] _slotBgs      = new Image[SlotCount];
-        private readonly Image[] _avatarImages = new Image[SlotCount]; // 국적색 원형
+        private readonly Image[] _avatarImages = new Image[SlotCount]; // 국적색 원형 (폴백 절차 아바타)
+        private readonly Sprite[]    _slotIconSprites  = new Sprite[SlotCount];    // 실제 3D 아이콘 Sprite (슬롯별 캐시 — 매 갱신 Sprite.Create 방지)
+        private readonly Texture2D[] _slotIconTextures = new Texture2D[SlotCount]; // 슬롯이 참조 중인 원본 텍스처 (교체/파괴 감지용)
         private readonly Text[]  _initialTexts = new Text[SlotCount];  // 이름 이니셜
         private readonly Text[]  _levelTexts   = new Text[SlotCount];  // "Lv{N}"
         private readonly Text[]  _countTexts   = new Text[SlotCount];  // "x{생존수}"
@@ -121,6 +125,13 @@ namespace ProjectName.UI
         {
             // 부대 모드에서 파괴되면 아이템 핫바를 반드시 복원 (숨겨진 채 잔류 방지)
             if (_squadMode) HotbarUI.SetVisible(true);
+
+            // 실제 아이콘 스프라이트 해제 (원본 텍스처는 GuardIconRenderer 캐시 소유 — 여기서 파괴하지 않음)
+            for (int i = 0; i < SlotCount; i++)
+            {
+                if (_slotIconSprites[i] != null) { Destroy(_slotIconSprites[i]); _slotIconSprites[i] = null; }
+                _slotIconTextures[i] = null;
+            }
 
             if (_instance == this) _instance = null;
         }
@@ -296,17 +307,45 @@ namespace ProjectName.UI
             bool registered = lead != null;
             bool dead = registered && !lead.IsAlive;
 
+            // 실제 3D 외형 아이콘 시도 (생존 대표 병사만) — null이면 기존 절차 아바타 폴백.
+            // GetOrCreateIcon은 캐시 히트 시 즉시 반환, 미베이크 시 큐 등록 후 null
+            // (0.5초 폴링이 재호출하므로 몇 프레임 후 아이콘이 자동 반영된다).
+            bool useRealIcon = false;
+            if (registered && !dead && _avatarImages[index] != null)
+            {
+                try
+                {
+                    Texture2D iconTex = GuardIconRenderer.GetOrCreateIcon(lead);
+                    if (iconTex != null)
+                    {
+                        _avatarImages[index].sprite = GetOrCreateSlotIconSprite(index, iconTex);
+                        _avatarImages[index].color = Color.white; // 아이콘 자체 색상 사용 (국적색 틴트 미적용)
+                        useRealIcon = true;
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning("[GuardSquadHotbar] 실제 아이콘 적용 실패 — 절차 아바타 폴백: " + e.Message);
+                }
+            }
+
             if (_avatarImages[index] != null)
             {
+                // 실제 아이콘 미사용 시 절차 원형으로 복원 (아이콘 → 사망/미등록 전환 대응)
+                if (!useRealIcon && _avatarImages[index].sprite != _circleSprite)
+                    _avatarImages[index].sprite = _circleSprite;
+
                 _avatarImages[index].enabled = registered;
-                _avatarImages[index].color = !registered ? ColorAvatarEmpty
-                    : dead ? ColorAvatarDead
-                    : GetNationColor(lead.Nation);
+                if (!useRealIcon)
+                    _avatarImages[index].color = !registered ? ColorAvatarEmpty
+                        : dead ? ColorAvatarDead
+                        : GetNationColor(lead.Nation);
             }
 
             if (_initialTexts[index] != null)
             {
-                _initialTexts[index].text = registered ? GetInitial(lead.GuardName) : string.Empty;
+                // 실제 아이콘 표시 중에는 이니셜 숨김 (캐릭터 실루엣 위 글자 겹침 방지)
+                _initialTexts[index].text = registered && !useRealIcon ? GetInitial(lead.GuardName) : string.Empty;
                 _initialTexts[index].color = dead ? ColorTextDead : ColorText;
             }
 
@@ -318,6 +357,24 @@ namespace ProjectName.UI
 
             if (_countTexts[index] != null)
                 _countTexts[index].text = registered && total > 1 ? $"x{aliveCount}" : string.Empty;
+        }
+
+        /// <summary>
+        /// 베이크된 Texture2D를 슬롯 표시용 Sprite로 변환 (슬롯별 캐시 — 갱신마다 Sprite.Create 방지).
+        /// 원본 텍스처는 GuardIconRenderer 캐시가 소유하므로 Sprite만 교체/파괴한다.
+        /// </summary>
+        private Sprite GetOrCreateSlotIconSprite(int index, Texture2D tex)
+        {
+            Sprite existing = _slotIconSprites[index];
+            if (existing != null && _slotIconTextures[index] == tex && tex != null)
+                return existing;
+
+            if (existing != null)
+                Destroy(existing); // Sprite만 해제 — 원본 텍스처는 렌더러 캐시 소유
+            Sprite sprite = Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0.5f));
+            _slotIconSprites[index] = sprite;
+            _slotIconTextures[index] = tex;
+            return sprite;
         }
 
         /// <summary>이름 첫 글자(이니셜) — 서러게이트 쌍(이모지 등)은 2 코드유닛으로 안전 잘라냄.</summary>
