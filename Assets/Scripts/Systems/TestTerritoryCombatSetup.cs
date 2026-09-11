@@ -955,8 +955,9 @@ namespace ProjectName.Systems
             // 2026-09-11: Test_10 창고 64슬롯 — TestAllInOneSetup 선례 패턴 이식.
             // ① WarehouseSystem은 자동 생성 싱글톤이 아님(Instance get; private set;) → 없으면 생성.
             //    (이전에는 Instance 부재 시 시딩 전체가 무음 스킵됐다)
-            // ② _maxSlotsPerTerritory 기본 20은 시딩 33종을 잘라 무기 1종만 남는 사용자 실측 증상 →
-            //    private [SerializeField]라 리플렉션으로 64 상향(시딩 전 1회).
+            // ② _maxSlotsPerTerritory 기본 20은 시딩을 잘라 사용자 실측 증상 →
+            //    private [SerializeField]라 리플렉션으로 상향(시딩 전 1회).
+            //    2026-09-11: 기존 시딩 ~43슬롯 + 신규 4티어 장비 47종×2(94슬롯) ≈ 137슬롯 → 64→160 상향.
             if (WarehouseSystem.Instance == null)
             {
                 var wsGO = new GameObject("WarehouseSystem");
@@ -965,7 +966,7 @@ namespace ProjectName.Systems
             }
             var slotsField = typeof(WarehouseSystem).GetField("_maxSlotsPerTerritory",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            slotsField?.SetValue(WarehouseSystem.Instance, 64);
+            slotsField?.SetValue(WarehouseSystem.Instance, 160);
 
             int total = 0;
             void Add(PlayerInventory.ItemData item, int count)
@@ -989,6 +990,10 @@ namespace ProjectName.Systems
             Add(PlayerInventory.StealthBoots, 1); Add(PlayerInventory.DarkCloak, 1); Add(PlayerInventory.StealthPotion, 5);
             Add(PlayerInventory.Sedative, 5); Add(PlayerInventory.MountToken, 1); Add(PlayerInventory.EstateDeed, 1);
             Add(PlayerInventory.Gold, 999);
+
+            // 2026-09-11: 4티어 GLB 장비 전종 시딩 (무기 16 + 방어구 25 + 부속 6 = 47종 ×2)
+            //  - shield는 steel/stone/crystal GLB 부재로 wood만, gas_mask/chemical_pack은 crystal GLB 부재로 3티어만
+            foreach (var gear in PlayerInventory.AllTieredGear) Add(gear, 2);
 
             Debug.Log($"[UITest] ✅ 창고 '{territoryId}'에 전 아이템 시딩 완료 ({total}개)");
         }

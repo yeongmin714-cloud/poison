@@ -89,6 +89,45 @@ namespace ProjectName.Systems
             { "crystal_bow",  new Bonus { attack = 4f, crit = 0.02f } },
             { "wood_bow",     new Bonus { attack = 3f, crit = 0.01f } },
             { "wood_spear",   new Bonus { attack = 3f } },
+
+            // ── 2026-09-11: 4티어 GLB 장비 등급 def 테이블 (티어 순 wood/steel/stone/crystal) ──
+            // helmet 5/9/14/20, armor 8/14/22/32, boots 4/7/11/16(좌우 동일), gloves 3/5/8/12(좌우 동일),
+            // shield 6/10/16/24(steel/stone/crystal GLB 부재 → wood만), gas_mask 7/12/18/26,
+            // chemical_pack: 지시에 값 없어 gas_mask와 동일 곡선 적용.
+            // boot speed 0.2는 기존 키워드 폴백(FromKeyword: boot → speed+0.2) 밸런스 유지.
+            { "wood_helmet",     new Bonus { defense = 5f  } },
+            { "steel_helmet",    new Bonus { defense = 9f  } },
+            { "stone_helmet",    new Bonus { defense = 14f } },
+            { "crystal_helmet",  new Bonus { defense = 20f } },
+            { "wood_armor",      new Bonus { defense = 8f  } },
+            { "steel_armor",     new Bonus { defense = 14f } },
+            { "stone_armor",     new Bonus { defense = 22f } },
+            { "crystal_armor",   new Bonus { defense = 32f } },
+            { "wood_boot_left",     new Bonus { defense = 4f,  speed = 0.2f } },
+            { "wood_boot_right",    new Bonus { defense = 4f,  speed = 0.2f } },
+            { "steel_boot_left",    new Bonus { defense = 7f,  speed = 0.2f } },
+            { "steel_boot_right",   new Bonus { defense = 7f,  speed = 0.2f } },
+            { "stone_boot_left",    new Bonus { defense = 11f, speed = 0.2f } },
+            { "stone_boot_right",   new Bonus { defense = 11f, speed = 0.2f } },
+            { "crystal_boot_left",  new Bonus { defense = 16f, speed = 0.2f } },
+            { "crystal_boot_right", new Bonus { defense = 16f, speed = 0.2f } },
+            { "wood_glove_left",     new Bonus { defense = 3f  } },
+            { "wood_glove_right",    new Bonus { defense = 3f  } },
+            { "steel_glove_left",    new Bonus { defense = 5f  } },
+            { "steel_glove_right",   new Bonus { defense = 5f  } },
+            { "stone_glove_left",    new Bonus { defense = 8f  } },
+            { "stone_glove_right",   new Bonus { defense = 8f  } },
+            { "crystal_glove_left",  new Bonus { defense = 12f } },
+            { "crystal_glove_right", new Bonus { defense = 12f } },
+            { "wood_shield",     new Bonus { defense = 6f  } }, // steel/stone/crystal_shield GLB 부재
+            { "wood_gas_mask",     new Bonus { defense = 7f  } },
+            { "steel_gas_mask",    new Bonus { defense = 12f } },
+            { "stone_gas_mask",    new Bonus { defense = 18f } },
+            { "crystal_gas_mask",  new Bonus { defense = 26f } }, // GLB 부재 — 테이블 선준비
+            { "wood_chemical_pack",    new Bonus { defense = 7f  } },
+            { "steel_chemical_pack",   new Bonus { defense = 12f } },
+            { "stone_chemical_pack",   new Bonus { defense = 18f } },
+            { "crystal_chemical_pack", new Bonus { defense = 26f } }, // GLB 부재 — 테이블 선준비
         };
 
         /// <summary>테이블에 없는 id는 키워드 폴백 (방어구/무기 계열 추론).</summary>

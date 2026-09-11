@@ -325,5 +325,91 @@ namespace ProjectName.Core
             category = ItemCategory.Tool,
             maxStack = 1
         };
+
+        // ================================================================
+        // 2026-09-11: 4티어 GLB 장비 전종 (wood/steel/stone/crystal)
+        //  - GLB: Assets/Resources/Models/UserProvided/{glbKey}.glb
+        //  - 무기 id = weapon_{type}_{tier} — GblItemIconRenderer._itemToModel 명시 맵과 일치
+        //  - 방어구/부속 id = GLB 파일명 그대로({tier}_{slot}) — 관례 후보 1(id 그대로)로 아이콘 자동 베이크
+        //    (GblItemIconRenderer.StripPrefix에 armor_/helmet_ 등 접두사가 없어 armor_{tier} 형태는 GLB 해석 불가)
+        //  - rarity/내구도: wood=Common/20, steel=Uncommon/40, stone=Rare/60, crystal=Epic/80
+        //  - 방어구 def: EquipmentStatBonusApplier._table (id 매핑) — 좌우 boot/glove는 좌우 동일 def
+        //  - 무기 dmg 보정: WeaponData.GetTierMultiplier (wood 1.0 / steel 1.8 / stone 2.5 / crystal 3.75)
+        //  - 부속 GLB 부재(id 미정의): crystal_shield, steel/stone_shield, crystal_gas_mask, crystal_chemical_pack
+        // ================================================================
+        private static ItemData Tiered(string id, string name, string desc, ItemCategory cat, ItemRarity rarity, int durability)
+            => new ItemData { id = id, displayName = name, description = desc, category = cat, rarity = rarity, maxStack = 1, maxDurability = durability };
+
+        // ── 무기 신규 13종 (wood 3종은 위 기존 정의 사용) ──
+        public static readonly ItemData DaggerWood    = Tiered("weapon_dagger_wood",    "나무 단도", "나무로 깎은 단도. 가볍고 빠른 근접 무기.",      ItemCategory.Weapon, ItemRarity.Common,    20);
+        public static readonly ItemData SwordSteel    = Tiered("weapon_sword_steel",    "강철검",   "강철로 벼린 검. 단단하고 강하다.",              ItemCategory.Weapon, ItemRarity.Uncommon,  40);
+        public static readonly ItemData SpearSteel    = Tiered("weapon_spear_steel",    "강철창",   "강철촉 창. 뚫고 나가는 긴 사거리.",             ItemCategory.Weapon, ItemRarity.Uncommon,  40);
+        public static readonly ItemData BowSteel      = Tiered("weapon_bow_steel",      "강철활",   "강철 활대의 활. 강한 시위 장력.",               ItemCategory.Weapon, ItemRarity.Uncommon,  40);
+        public static readonly ItemData DaggerSteel   = Tiered("weapon_dagger_steel",   "강철단도", "강철로 벼린 단도. 빠른 연격.",                  ItemCategory.Weapon, ItemRarity.Uncommon,  40);
+        public static readonly ItemData SwordStone    = Tiered("weapon_sword_stone",    "돌검",     "단단한 암석을 깎은 검. 묵직한 일격.",           ItemCategory.Weapon, ItemRarity.Rare,      60);
+        public static readonly ItemData SpearStone    = Tiered("weapon_spear_stone",    "돌창",     "돌촉 창. 무겁지만 강한 찌르기.",                ItemCategory.Weapon, ItemRarity.Rare,      60);
+        public static readonly ItemData BowStone      = Tiered("weapon_bow_stone",      "돌활",     "돌 화살촉을 쓰는 활. 관통력이 높다.",           ItemCategory.Weapon, ItemRarity.Rare,      60);
+        public static readonly ItemData DaggerStone   = Tiered("weapon_dagger_stone",   "돌단도",   "돌로 갈아 만든 단도. 잔인한 날.",               ItemCategory.Weapon, ItemRarity.Rare,      60);
+        public static readonly ItemData SwordCrystal  = Tiered("weapon_sword_crystal",  "수정검",   "수정으로 빚은 검. 신비한 힘이 깃들었다.",       ItemCategory.Weapon, ItemRarity.Epic,      80);
+        public static readonly ItemData SpearCrystal  = Tiered("weapon_spear_crystal",  "수정창",   "수정촉 창. 빛을 반사하는 창신.",                ItemCategory.Weapon, ItemRarity.Epic,      80);
+        public static readonly ItemData BowCrystal    = Tiered("weapon_bow_crystal",    "수정활",   "수정 활대의 활. 마력을 담은 화살.",             ItemCategory.Weapon, ItemRarity.Epic,      80);
+        public static readonly ItemData DaggerCrystal = Tiered("weapon_dagger_crystal", "수정단도", "수정으로 빚은 단도. 가장 예리한 칼날.",         ItemCategory.Weapon, ItemRarity.Epic,      80);
+
+        // ── 방어구 25종 (id = GLB 파일명: 상의4/투구4/신발좌우8/장갑좌우8/방패 wood만) ──
+        public static readonly ItemData ArmorWood     = Tiered("wood_armor",     "나무 갑옷",   "나무 판을 엮은 기본 갑옷.",                 ItemCategory.Armor, ItemRarity.Common,    20);
+        public static readonly ItemData ArmorSteel    = Tiered("steel_armor",    "강철 갑옷",   "강철 판갑옷. 튼튼한 방어력.",               ItemCategory.Armor, ItemRarity.Uncommon,  40);
+        public static readonly ItemData ArmorStone    = Tiered("stone_armor",    "돌 갑옷",     "석판으로 짠 무거운 갑옷.",                  ItemCategory.Armor, ItemRarity.Rare,      60);
+        public static readonly ItemData ArmorCrystal  = Tiered("crystal_armor",  "수정 갑옷",   "수정 결정으로 빚은 최고급 갑옷.",           ItemCategory.Armor, ItemRarity.Epic,      80);
+        public static readonly ItemData HelmetWood    = Tiered("wood_helmet",    "나무 투구",   "나무를 깎은 기본 투구.",                    ItemCategory.Armor, ItemRarity.Common,    20);
+        public static readonly ItemData HelmetSteel   = Tiered("steel_helmet",   "강철 투구",   "강철 두부 보호구.",                         ItemCategory.Armor, ItemRarity.Uncommon,  40);
+        public static readonly ItemData HelmetStone   = Tiered("stone_helmet",   "돌 투구",     "석재 헬멧. 머리를 단단히 지킨다.",          ItemCategory.Armor, ItemRarity.Rare,      60);
+        public static readonly ItemData HelmetCrystal = Tiered("crystal_helmet", "수정 투구",   "수정으로 빚은 투구. 신비한 보호막.",        ItemCategory.Armor, ItemRarity.Epic,      80);
+        public static readonly ItemData BootWoodLeft    = Tiered("wood_boot_left",    "나무 신발 (왼쪽)",  "나무 각반 — 왼발용.",       ItemCategory.Armor, ItemRarity.Common,    20);
+        public static readonly ItemData BootWoodRight   = Tiered("wood_boot_right",   "나무 신발 (오른쪽)", "나무 각반 — 오른발용.",     ItemCategory.Armor, ItemRarity.Common,    20);
+        public static readonly ItemData BootSteelLeft   = Tiered("steel_boot_left",   "강철 신발 (왼쪽)",  "강철 각반 — 왼발용.",       ItemCategory.Armor, ItemRarity.Uncommon,  40);
+        public static readonly ItemData BootSteelRight  = Tiered("steel_boot_right",  "강철 신발 (오른쪽)", "강철 각반 — 오른발용.",     ItemCategory.Armor, ItemRarity.Uncommon,  40);
+        public static readonly ItemData BootStoneLeft   = Tiered("stone_boot_left",   "돌 신발 (왼쪽)",    "석재 각반 — 왼발용.",       ItemCategory.Armor, ItemRarity.Rare,      60);
+        public static readonly ItemData BootStoneRight  = Tiered("stone_boot_right",  "돌 신발 (오른쪽)",  "석재 각반 — 오른발용.",     ItemCategory.Armor, ItemRarity.Rare,      60);
+        public static readonly ItemData BootCrystalLeft  = Tiered("crystal_boot_left",  "수정 신발 (왼쪽)",  "수정 각반 — 왼발용.",      ItemCategory.Armor, ItemRarity.Epic,      80);
+        public static readonly ItemData BootCrystalRight = Tiered("crystal_boot_right", "수정 신발 (오른쪽)", "수정 각반 — 오른발용.",    ItemCategory.Armor, ItemRarity.Epic,      80);
+        public static readonly ItemData GloveWoodLeft     = Tiered("wood_glove_left",     "나무 장갑 (왼쪽)",   "나무 손 보호구 — 왼손용.",    ItemCategory.Armor, ItemRarity.Common,    20);
+        public static readonly ItemData GloveWoodRight    = Tiered("wood_glove_right",    "나무 장갑 (오른쪽)", "나무 손 보호구 — 오른손용.",  ItemCategory.Armor, ItemRarity.Common,    20);
+        public static readonly ItemData GloveSteelLeft    = Tiered("steel_glove_left",    "강철 장갑 (왼쪽)",   "강철 장갑 — 왼손용.",         ItemCategory.Armor, ItemRarity.Uncommon,  40);
+        public static readonly ItemData GloveSteelRight   = Tiered("steel_glove_right",   "강철 장갑 (오른쪽)", "강철 장갑 — 오른손용.",       ItemCategory.Armor, ItemRarity.Uncommon,  40);
+        public static readonly ItemData GloveStoneLeft    = Tiered("stone_glove_left",    "돌 장갑 (왼쪽)",     "석재 장갑 — 왼손용.",         ItemCategory.Armor, ItemRarity.Rare,      60);
+        public static readonly ItemData GloveStoneRight   = Tiered("stone_glove_right",   "돌 장갑 (오른쪽)",   "석재 장갑 — 오른손용.",       ItemCategory.Armor, ItemRarity.Rare,      60);
+        public static readonly ItemData GloveCrystalLeft  = Tiered("crystal_glove_left",  "수정 장갑 (왼쪽)",   "수정 장갑 — 왼손용.",         ItemCategory.Armor, ItemRarity.Epic,      80);
+        public static readonly ItemData GloveCrystalRight = Tiered("crystal_glove_right", "수정 장갑 (오른쪽)", "수정 장갑 — 오른손용.",       ItemCategory.Armor, ItemRarity.Epic,      80);
+        // shield는 wood만 GLB 존재(wood_shield.glb) — steel/stone/crystal_shield.glb 부재로 미정의
+        public static readonly ItemData ShieldWood    = Tiered("wood_shield",    "나무 방패",   "두꺼운 나무 방패. 전방 막기용.",            ItemCategory.Armor, ItemRarity.Common,    20);
+
+        // ── 부속 6종 (gas_mask/chemical_pack — crystal GLB 부재로 3티어만) ──
+        public static readonly ItemData GasMaskWood         = Tiered("wood_gas_mask",         "나무 방독면",     "나무로 만든 기본 방독면.",           ItemCategory.Armor, ItemRarity.Common,    20);
+        public static readonly ItemData GasMaskSteel        = Tiered("steel_gas_mask",        "강철 방독면",     "강철 필터 방독면. 유해 가스 차단.",  ItemCategory.Armor, ItemRarity.Uncommon,  40);
+        public static readonly ItemData GasMaskStone        = Tiered("stone_gas_mask",        "돌 방독면",       "석재 마스크. 무겁지만 단단하다.",    ItemCategory.Armor, ItemRarity.Rare,      60);
+        public static readonly ItemData ChemicalPackWood    = Tiered("wood_chemical_pack",    "나무 화학장비",   "나무 상자의 기본 화학 장비.",        ItemCategory.Armor, ItemRarity.Common,    20);
+        public static readonly ItemData ChemicalPackSteel   = Tiered("steel_chemical_pack",   "강철 화학장비",   "강철 밀폐 화학장비. 유독 물질 취급.", ItemCategory.Armor, ItemRarity.Uncommon,  40);
+        public static readonly ItemData ChemicalPackStone   = Tiered("stone_chemical_pack",   "돌 화학장비",     "석재 용기 화학장비. 내식성이 높다.", ItemCategory.Armor, ItemRarity.Rare,      60);
+
+        /// <summary>4티어 GLB 장비 전종 (기존 wood 무기 3종 포함 47종) — 창고 시딩/테스트 순회용.</summary>
+        public static readonly ItemData[] AllTieredGear = new ItemData[]
+        {
+            // 무기 16종
+            SwordWood, SpearWood, BowWood, DaggerWood,
+            SwordSteel, SpearSteel, BowSteel, DaggerSteel,
+            SwordStone, SpearStone, BowStone, DaggerStone,
+            SwordCrystal, SpearCrystal, BowCrystal, DaggerCrystal,
+            // 방어구 25종
+            ArmorWood, ArmorSteel, ArmorStone, ArmorCrystal,
+            HelmetWood, HelmetSteel, HelmetStone, HelmetCrystal,
+            BootWoodLeft, BootWoodRight, BootSteelLeft, BootSteelRight,
+            BootStoneLeft, BootStoneRight, BootCrystalLeft, BootCrystalRight,
+            GloveWoodLeft, GloveWoodRight, GloveSteelLeft, GloveSteelRight,
+            GloveStoneLeft, GloveStoneRight, GloveCrystalLeft, GloveCrystalRight,
+            ShieldWood,
+            // 부속 6종
+            GasMaskWood, GasMaskSteel, GasMaskStone,
+            ChemicalPackWood, ChemicalPackSteel, ChemicalPackStone,
+        };
     }
 }

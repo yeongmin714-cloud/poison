@@ -195,11 +195,17 @@ namespace ProjectName.UI
         // ================================================================
 
         /// <summary>
-        /// 명시 맵 (weapon_{type}_{metal} → {metal}_{type}).
-        /// steel/crystal/stone/wood × sword/spear/bow/dagger — GLB 전부 존재 확인됨.
+        /// 명시 맵 (item id → GLB 모델명). 명시 맵이 관례 후보(접두 제거 등)보다 우선.
+        /// 무기 16종: weapon_{type}_{tier} → {tier}_{type} (type=sword/spear/bow/dagger,
+        /// tier=wood/steel/crystal/stone — GLB 전부 존재 확인됨).
+        /// 방어구/부속 28종: armor/helmet/boots/gloves/shield/gas_mask/chemical_pack_{tier}
+        ///   → {tier}_{armor|helmet|boot_left|glove_left|shield|gas_mask|chemical_pack}.
+        /// boots/gloves는 아이콘용 단일 좌측 모델(boot_left/glove_left) 사용.
+        /// GLB 부재 id는 ResolveModelKey의 RuntimeModelLoader.HasModel 검사로 절차 폴백.
         /// </summary>
         private static readonly Dictionary<string, string> _itemToModel = new Dictionary<string, string>
         {
+            // ── 무기 16종 (weapon_{type}_{tier} → {tier}_{type}) ──
             { "weapon_sword_wood",     "wood_sword" },
             { "weapon_spear_wood",     "wood_spear" },
             { "weapon_bow_wood",       "wood_bow" },
@@ -216,6 +222,38 @@ namespace ProjectName.UI
             { "weapon_spear_stone",    "stone_spear" },
             { "weapon_bow_stone",      "stone_bow" },
             { "weapon_dagger_stone",   "stone_dagger" },
+
+            // ── 방어구 20종 (× 4티어: wood/steel/stone/crystal) ──
+            { "armor_wood",     "wood_armor" },
+            { "armor_steel",    "steel_armor" },
+            { "armor_stone",    "stone_armor" },
+            { "armor_crystal",  "crystal_armor" },
+            { "helmet_wood",    "wood_helmet" },
+            { "helmet_steel",   "steel_helmet" },
+            { "helmet_stone",   "stone_helmet" },
+            { "helmet_crystal", "crystal_helmet" },
+            { "boots_wood",     "wood_boot_left" },
+            { "boots_steel",    "steel_boot_left" },
+            { "boots_stone",    "stone_boot_left" },
+            { "boots_crystal",  "crystal_boot_left" },
+            { "gloves_wood",    "wood_glove_left" },
+            { "gloves_steel",   "steel_glove_left" },
+            { "gloves_stone",   "stone_glove_left" },
+            { "gloves_crystal", "crystal_glove_left" },
+            { "shield_wood",    "wood_shield" },
+            { "shield_steel",   "steel_shield" },
+            { "shield_stone",   "stone_shield" },
+            { "shield_crystal", "crystal_shield" },
+
+            // ── 부속 8종 (gas_mask/chemical_pack × 4티어) ──
+            { "gas_mask_wood",     "wood_gas_mask" },
+            { "gas_mask_steel",    "steel_gas_mask" },
+            { "gas_mask_stone",    "stone_gas_mask" },
+            { "gas_mask_crystal",  "crystal_gas_mask" },
+            { "chemical_pack_wood",   "wood_chemical_pack" },
+            { "chemical_pack_steel",  "steel_chemical_pack" },
+            { "chemical_pack_stone",  "stone_chemical_pack" },
+            { "chemical_pack_crystal","crystal_chemical_pack" },
         };
 
         /// <summary>

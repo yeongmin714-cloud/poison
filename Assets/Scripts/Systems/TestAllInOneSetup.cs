@@ -1034,11 +1034,12 @@ namespace ProjectName.Systems
                 Debug.Log("[TestAllInOneSetup] ✅ WarehouseSystem 생성");
             }
 
-            // ② 영지당 슬롯 확장: 기본 20슬롯은 전 장비 시딩(33종+)에 부족 → 64로 확대.
+            // ② 영지당 슬롯 확장: 기본 20슬롯은 전 장비 시딩에 부족 → 확대.
+            //    2026-09-11: 기존 시딩 ~43슬롯 + 신규 4티어 장비 47종×2(94슬롯) ≈ 137슬롯 → 64→160 상향.
             //    _maxSlotsPerTerritory는 private [SerializeField] → 리플렉션 설정.
             var slotsField = typeof(WarehouseSystem).GetField("_maxSlotsPerTerritory",
                 BindingFlags.NonPublic | BindingFlags.Instance);
-            slotsField?.SetValue(WarehouseSystem.Instance, 64);
+            slotsField?.SetValue(WarehouseSystem.Instance, 160);
 
             // ③ 창고 박스 2개 — 기존 배치와 4m+ 이격:
             //    몬스터 원(반경 15m, 각도 0/72/144/216/288°), 병사 원(반경 11m),
@@ -1099,6 +1100,10 @@ namespace ProjectName.Systems
             Add(PlayerInventory.StealthBoots, 1); Add(PlayerInventory.DarkCloak, 1); Add(PlayerInventory.StealthPotion, 5);
             Add(PlayerInventory.Sedative, 5); Add(PlayerInventory.MountToken, 1); Add(PlayerInventory.EstateDeed, 1);
             Add(PlayerInventory.Gold, 999);
+
+            // 2026-09-11: 4티어 GLB 장비 전종 시딩 (무기 16 + 방어구 25 + 부속 6 = 47종 ×2)
+            //  - shield는 steel/stone/crystal GLB 부재로 wood만, gas_mask/chemical_pack은 crystal GLB 부재로 3티어만
+            foreach (var gear in PlayerInventory.AllTieredGear) Add(gear, 2);
 
             Debug.Log($"[TestAllInOneSetup] ✅ 창고 '{territoryId}'에 전 아이템 시딩 완료 ({total}개)");
         }

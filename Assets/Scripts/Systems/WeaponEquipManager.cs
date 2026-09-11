@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 using ProjectName.Core;
 
 namespace ProjectName.Systems
@@ -15,6 +16,30 @@ namespace ProjectName.Systems
     /// </summary>
     public static class WeaponEquipManager
     {
+        // ── 신규 full-id(weapon_{type}_{tier}) → Resources GLB명 결정 테이블 ──
+        // GblItemIconRenderer._itemToModel과 동일 규칙(2026-09-11). dagger 등 suffix 분기가
+        // 없는 무기와 기존 wood 3종의 ItemData.id 장착을 지원. 기존 짧은 id("steel" 등)는
+        // 이 테이블에 없어 기존 suffix 분기(_sword/_spear/_bow)로 폴백 — 하위 호환 유지.
+        static readonly Dictionary<string, string> _itemIdToGlb = new Dictionary<string, string>
+        {
+            { "weapon_sword_wood",     "wood_sword" },
+            { "weapon_spear_wood",     "wood_spear" },
+            { "weapon_bow_wood",       "wood_bow" },
+            { "weapon_dagger_wood",    "wood_dagger" },
+            { "weapon_sword_steel",    "steel_sword" },
+            { "weapon_spear_steel",    "steel_spear" },
+            { "weapon_bow_steel",      "steel_bow" },
+            { "weapon_dagger_steel",   "steel_dagger" },
+            { "weapon_sword_stone",    "stone_sword" },
+            { "weapon_spear_stone",    "stone_spear" },
+            { "weapon_bow_stone",      "stone_bow" },
+            { "weapon_dagger_stone",   "stone_dagger" },
+            { "weapon_sword_crystal",  "crystal_sword" },
+            { "weapon_spear_crystal",  "crystal_spear" },
+            { "weapon_bow_crystal",    "crystal_bow" },
+            { "weapon_dagger_crystal", "crystal_dagger" },
+        };
+
         // 현재 부착된 검 인스턴스 (null = 비장착)
         static GameObject _current;
 
@@ -60,7 +85,8 @@ namespace ProjectName.Systems
 
             // ② 타입 반영 — 모델 유무와 무관하게 먼저 세팅 (로드 실패 시 클립 모드만 전환)
             CurrentType = type;
-            SyncPlayerCombat(type);
+            // 등급 보정: id에 포함된 티어(steel/stone/crystal)로 무기 데미지 배율 적용 (wood/기타 = 1.0)
+            SyncPlayerCombat(type, WeaponData.GetTierMultiplier(id));
 
             // ③ 플레이어 자식 중 Animator → RightHand 본 획득
             var animator = player.GetComponentInChildren<Animator>();
@@ -73,16 +99,23 @@ namespace ProjectName.Systems
                 return;
             }
 
-            // ④ GLB 프리팹 로드 + 인스턴스화 (타입별 파일명 접미사 분기)
-            string suffix = type == WeaponType.Bow ? "_bow" : type == WeaponType.Spear ? "_spear" : "_sword";
-            var prefab = Resources.Load<GameObject>("Models/UserProvided/" + id + suffix);
+            // ④ GLB 프리팹 로드 + 인스턴스화
+            //    1) 신규 full-id(weapon_{type}_{tier}) → 매핑 테이블로 GLB명 결정 (dagger 등 신규 무기 지원)
+            //    2) 기존 짧은 id(steel 등) → 기존 suffix 분기(_sword/_spear/_bow) 유지 (하위 호환)
+            string glbKey;
+            if (!_itemIdToGlb.TryGetValue(id, out glbKey))
+            {
+                string suffix = type == WeaponType.Bow ? "_bow" : type == WeaponType.Spear ? "_spear" : "_sword";
+                glbKey = id + suffix;
+            }
+            var prefab = Resources.Load<GameObject>("Models/UserProvided/" + glbKey);
             if (prefab == null)
             {
-                Debug.LogWarning($"[WeaponEquipManager] 무기 프리팹 로드 실패: Models/UserProvided/{id}{suffix} — 모델 없이 클립 모드만 전환");
+                Debug.LogWarning($"[WeaponEquipManager] 무기 프리팹 로드 실패: Models/UserProvided/{glbKey} — 모델 없이 클립 모드만 전환");
                 return;
             }
             var sword = Object.Instantiate(prefab, handBone);
-            sword.name = id + suffix;
+            sword.name = glbKey;
 
             // ⑤ 부착 규격: 위치/회전 (손 아래로 검신이 나가도록 — 스크린샷 튜닝 전제)
             sword.transform.localPosition = new Vector3(0f, 0.12f, 0.02f);
@@ -101,7 +134,7 @@ namespace ProjectName.Systems
             // ⑥ 상태 갱신 + 로그
             _current = sword;
             CurrentId = id;
-            Debug.Log($"[WeaponEquipManager] ✅ 무기 장착: {id}{suffix} (type={type}) → RightHand({handBone.name})");
+            Debug.Log($"[WeaponEquipManager] ✅ 무기 장착: {glbKey} (type={type}) → RightHand({handBone.name})");
         }
 
         /// <summary>검 해제. 장착된 검이 있으면 파괴하고 상태를 초기화.</summary>
@@ -128,14 +161,15 @@ namespace ProjectName.Systems
             CurrentType = WeaponType.Fist;
         }
 
-        /// <summary>PlayerCombat에 해당 타입의 WeaponData 정적 인스턴스를 반영 (전투 스탯/클립 모드 동기화).</summary>
-        static void SyncPlayerCombat(WeaponType type)
+        /// <summary>PlayerCombat에 해당 타입의 WeaponData를 반영 (전투 스탯/클립 모드 동기화).
+        /// tierMultiplier ≠ 1이면 damage 등급 보정 복제본을 전달 — 정적 스탯 인스턴스는 오염하지 않음.</summary>
+        static void SyncPlayerCombat(WeaponType type, float tierMultiplier)
         {
             if (PlayerCombat.Instance == null) return;
-            var data = type == WeaponType.Bow ? WeaponData.Bow
+            var baseData = type == WeaponType.Bow ? WeaponData.Bow
                      : type == WeaponType.Spear ? WeaponData.Spear
                      : WeaponData.Sword;
-            PlayerCombat.Instance.SetWeapon(data);
+            PlayerCombat.Instance.SetWeapon(tierMultiplier != 1f ? baseData.CreateTieredCopy(tierMultiplier) : baseData);
         }
     }
 }
