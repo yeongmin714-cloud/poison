@@ -64,6 +64,7 @@ namespace ProjectName.Systems
         private Type _mapWindowType;
         private Type _lootWindowType;
         private Type _hudType;          // 플레이어 HUD(하트 시스템, IMGUI 기반) — ProjectName.UI.HUD
+        private Type _uiInventoryHotkeyType;   // 2026-09-11: I키 인벤토리 토글 핫키 — ProjectName.UI.UIInventoryHotkey
 
         private void Awake()
         {
@@ -75,6 +76,7 @@ namespace ProjectName.Systems
             SetupTimeAndWeather();
             SetupTerritoryAndNation();
             SetupPlayer();
+            EnsureStealthSystem();   // 2026-09-11: 은신 시스템 부트 보장 (C키 토글 + 비네트 + 반투명 피드)
             SetupCamera();
             SetupGround();
             SetupLight();
@@ -124,6 +126,7 @@ namespace ProjectName.Systems
             _mapWindowType = uiAssembly.GetType("ProjectName.UI.MapWindow");
             _lootWindowType = uiAssembly.GetType("ProjectName.UI.LootWindow");
             _hudType = uiAssembly.GetType("ProjectName.UI.HUD");
+            _uiInventoryHotkeyType = uiAssembly.GetType("ProjectName.UI.UIInventoryHotkey");
 
             if (_uiManagerType == null || _uiWindowType == null)
             {
@@ -506,16 +509,69 @@ namespace ProjectName.Systems
             var foundCanvas = FindAnyObjectByType<Canvas>();
             Transform canvasTransform = foundCanvas != null ? foundCanvas.transform : null;
 
-            CreateUIWindow(_inventoryWindowType, "InventoryWindow", canvasTransform);
+            // 2026-09-11: 인벤 창은 반환값을 받아 I키 핫키 바인딩 (UIInventoryHotkey 부착 — GameSetup 선례)
+            var invWindow = CreateUIWindow(_inventoryWindowType, "InventoryWindow", canvasTransform);
             CreateUIWindow(_questWindowType, "QuestWindow", canvasTransform);
             CreateUIWindow(_recipeWindowType, "RecipeWindow", canvasTransform);
             CreateUIWindow(_mapWindowType, "MapWindow", canvasTransform);
             CreateUIWindow(_lootWindowType, "LootWindow", canvasTransform);
 
+            // I키 인벤토리 토글 바인딩 (이전엔 부착만 하고 Bind가 없어 I키 무반응)
+            BindInventoryHotkey(invWindow);
+
             // 플레이어 HUD(하트 시스템) 자동 부착 — IMGUI(OnGUI) 기반이라 Canvas 불필요
             EnsurePlayerHUD();
 
             Debug.Log("[TestAllInOneSetup] ✅ UI 시스템 + 주요 윈도우 생성 완료");
+        }
+
+        /// <summary>
+        /// 2026-09-11: I키 인벤토리 토글 바인딩 — 인벤 창에 UIInventoryHotkey를 부착하고 Bind로 연결한다.
+        /// GameSetup 선례와 동일 경로 (리플렉션 — asmdef 순환 회피).
+        /// </summary>
+        private void BindInventoryHotkey(Component invWindow)
+        {
+            if (_uiInventoryHotkeyType == null)
+            {
+                Debug.LogWarning("[TestAllInOneSetup] ⚠️ UIInventoryHotkey 타입 없음 — I키 토글 바인딩 건너뜀");
+                return;
+            }
+            if (invWindow == null)
+            {
+                Debug.LogWarning("[TestAllInOneSetup] ⚠️ InventoryWindow 없음 — I키 토글 바인딩 건너뜀");
+                return;
+            }
+
+            var hotkey = invWindow.GetComponent(_uiInventoryHotkeyType);
+            if (hotkey == null)
+                hotkey = (Component)invWindow.gameObject.AddComponent(_uiInventoryHotkeyType);
+
+            var bind = _uiInventoryHotkeyType.GetMethod("Bind");
+            bind?.Invoke(hotkey, new object[] { invWindow });
+            Debug.Log("[TestAllInOneSetup] ✅ I키 인벤토리 토글 핫키 바인딩 (UIInventoryHotkey.Bind)");
+        }
+
+        /// <summary>
+        /// 2026-09-11: StealthSystem 부트 보장 — Instance가 없으면 Player에 부착한다.
+        /// 이전엔 Test_09에서 StealthSystem을 생성하지 않아 C키 은신이 무음이었다.
+        /// </summary>
+        private void EnsureStealthSystem()
+        {
+            if (StealthSystem.Instance != null)
+            {
+                Debug.Log("[TestAllInOneSetup] ℹ️ StealthSystem 이미 존재 — 부트 스킵");
+                return;
+            }
+
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+            {
+                Debug.LogWarning("[TestAllInOneSetup] ⚠️ Player 없음 — StealthSystem 부트 스킵");
+                return;
+            }
+
+            player.AddComponent<StealthSystem>();
+            Debug.Log("[TestAllInOneSetup] ✅ StealthSystem 부착 (C키 은신 토글 활성 — 비네트/속도감/반투명 피드)");
         }
 
         /// <summary>
@@ -545,9 +601,10 @@ namespace ProjectName.Systems
             Debug.Log("[TestAllInOneSetup] ✅ 플레이어 HUD(하트) 부착");
         }
 
-        private void CreateUIWindow(Type windowType, string name, Transform parent)
+        /// <summary>윈도우 생성. 2026-09-11: 생성된 컴포넌트 반환 (I키 핫키 바인딩 등 후속 연결용). 실패 시 null.</summary>
+        private Component CreateUIWindow(Type windowType, string name, Transform parent)
         {
-            if (windowType == null || _uiWindowType == null) return;
+            if (windowType == null || _uiWindowType == null) return null;
 
             var go = new GameObject(name, typeof(RectTransform));
             if (parent != null)
@@ -563,6 +620,7 @@ namespace ProjectName.Systems
             }
             
             Debug.Log($"[TestAllInOneSetup] ✅ {name} 생성됨");
+            return window;
         }
 
         private object GetDefaultThemeForWindow(string windowName)
@@ -779,20 +837,48 @@ namespace ProjectName.Systems
                 var inventory = player.GetComponent<PlayerInventory>();
                 if (inventory != null)
                 {
-                    // Use reflection to find AddItem method since parameter type may vary
-                    var addItemMethod = inventory.GetType().GetMethod("AddItem", new[] { typeof(string), typeof(int) });
+                    // 2026-09-11 수정: AddItem(string,int) 시그니처가 존재하지 않아 리플렉션이 null을 반환
+                    // → 시딩이 무음 실패하고 있었다. 실제 시그니처 AddItem(ItemData,int)로 교체하고
+                    //    PlayerInventory 정적 ItemData/재료 생성기로 시딩한다 (창고 시딩과 동일 경로).
+                    var addItemMethod = inventory.GetType().GetMethod("AddItem",
+                        new[] { typeof(PlayerInventory.ItemData), typeof(int) });
                     if (addItemMethod != null)
                     {
-                        addItemMethod.Invoke(inventory, new object[] { "iron_ore", 100 });
-                        addItemMethod.Invoke(inventory, new object[] { "wood_log", 100 });
-                        addItemMethod.Invoke(inventory, new object[] { "herb_basic", 50 });
-                        addItemMethod.Invoke(inventory, new object[] { "leather_scrap", 30 });
-                        addItemMethod.Invoke(inventory, new object[] { "magic_crystal", 20 });
-                        addItemMethod.Invoke(inventory, new object[] { "gold_coin", 5000 });
+                        void Add(PlayerInventory.ItemData item, int count)
+                        {
+                            if (item != null)
+                                addItemMethod.Invoke(inventory, new object[] { item, count });
+                        }
+
+                        Add(MakeCraftMaterial("iron_ore", "철광석"), 100);
+                        Add(MakeCraftMaterial("wood_log", "통나무"), 100);
+                        Add(MakeCraftMaterial("herb_basic", "기본 약초"), 50);
+                        Add(MakeCraftMaterial("leather_scrap", "가죽 조각"), 30);
+                        Add(MakeCraftMaterial("magic_crystal", "마법 결정"), 20);
+                        Add(MakeCraftMaterial("gold_coin", "금화"), 5000);
+                        Add(PlayerInventory.StealthPotion, 3);   // 2026-09-11: 은신 물약 시딩 (C키 은신/반투명 피드 검증용)
                     }
-                    Debug.Log("[TestAllInOneSetup] ✅ 크래프트 테스트 재료 추가");
+                    else
+                    {
+                        Debug.LogWarning("[TestAllInOneSetup] ⚠️ PlayerInventory.AddItem(ItemData,int) 미발견 — 인벤 시딩 스킵");
+                    }
+                    Debug.Log("[TestAllInOneSetup] ✅ 크래프트 테스트 재료 추가 (+은신 물약 x3)");
                 }
             }
+        }
+
+        /// <summary>2026-09-11: 크래프트 재료용 ItemData 생성 (PlayerInventory 정적 정의에 없는 id — ResourceNode 규격과 동일 id 사용).</summary>
+        private static PlayerInventory.ItemData MakeCraftMaterial(string id, string displayName, int maxStack = 99)
+        {
+            return new PlayerInventory.ItemData
+            {
+                id = id,
+                displayName = displayName,
+                description = displayName,
+                category = PlayerInventory.ItemCategory.Material,
+                maxStack = maxStack,
+                rarity = ItemRarity.Common
+            };
         }
 
         private void SetupDracula()

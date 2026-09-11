@@ -538,9 +538,9 @@ namespace ProjectName.Systems
         /// <summary>레벨 구간별 Humanoid FBX Resources 경로</summary>
         private static string SoldierFbxKeyForLevel(int level)
         {
-            if (level <= 20) return "Models/UserProvided/fbx/soldier_lv1-20";
-            if (level <= 40) return "Models/UserProvided/fbx/soldier_lv20-40";
-            return "Models/UserProvided/fbx/soldier_lv40-50";
+            if (level <= 20) return "Models/UserProvided/fbx/soldier_lv1-20_rigged";
+            if (level <= 40) return "Models/UserProvided/fbx/soldier_lv20-40_rigged";
+            return "Models/UserProvided/fbx/soldier_lv40-50_rigged";
         }
 
         private static GameObject CreateGuard(string name, Vector3 position, string guardName, int level, NationType nation, Transform parent = null, Vector3 forward = default)

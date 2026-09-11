@@ -55,6 +55,16 @@ namespace ProjectName.Systems
         // 비네트 텍스처 캐시
         private Texture2D _vignetteTexture;
 
+        // ===== 2026-09-11: 은신 렌더 피드 — 플레이어 렌더러 반투명 (기존 비네트/애니 피드에 추가) =====
+        private Renderer[] _feedRenderers;                 // 렌더러 캐시 (최초 적용 시 수집)
+        private Material[] _feedMaterials;                 // 인스턴스 머티리얼 평탄화 캐시
+        private readonly System.Collections.Generic.Dictionary<Material, Color> _feedOrigBase
+            = new System.Collections.Generic.Dictionary<Material, Color>();   // URP "_BaseColor" 원본
+        private readonly System.Collections.Generic.Dictionary<Material, Color> _feedOrigColor
+            = new System.Collections.Generic.Dictionary<Material, Color>();   // Built-in "_Color" 원본
+        private bool _feedApplied;
+        private const float STEALTH_FEED_ALPHA = 0.45f;
+
         // ===== Public Properties =====
         public bool IsStealthed => _isStealthed;
         public float DetectionGauge => _detectionGauge;
@@ -124,6 +134,7 @@ namespace ProjectName.Systems
             }
 
             HandleCameraLower();
+            UpdateStealthFeed();   // 2026-09-11: 은신 상태 변화 시 플레이어 렌더러 반투명 토글
             UpdateDetectionGauge();
 
             // 발각 게이지 이벤트
@@ -374,7 +385,6 @@ namespace ProjectName.Systems
         }
 
         // ===== IMGUI: 비네트 효과 =====
-        private void OnGUI()
         {
             if (!_isStealthed) return;
 

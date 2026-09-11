@@ -33,6 +33,7 @@ namespace ProjectName.UI
 
         private Transform _player;
         private bool _isPlayerNearby;
+        private bool _warehouseOpen;   // 2026-09-11(2): 창고 UI 열림 상태 (E토글/ESC/이탈 닫기 판정)
 
         // OnGUI GC 방지: 캐시
         private bool _guiDirty = true;
@@ -102,11 +103,30 @@ namespace ProjectName.UI
             _isPlayerNearby = sqrDist <= rangeSqr;
 
             if (_isPlayerNearby != wasNearby)
+            {
                 _guiDirty = true;
 
+                // 2026-09-11(2): 창고 열림 상태에서 상호작용 반경(3m) 이탈 → 자동 닫기
+                if (_warehouseOpen && !_isPlayerNearby)
+                {
+                    CloseWarehouseUI();
+                }
+            }
+
+            // 2026-09-11(2): ESC 닫기 — 열려 있으면 근접 여부 무관하게 닫는다
+            if (_warehouseOpen && Input.GetKeyDown(KeyCode.Escape))
+            {
+                CloseWarehouseUI();
+                return;
+            }
+
+            // 2026-09-11(2): E키 토글 — 열기/닫기 동일 키
             if (_isPlayerNearby && Input.GetKeyDown(KeyCode.E))
             {
-                OpenWarehouseUI();
+                if (_warehouseOpen)
+                    CloseWarehouseUI();
+                else
+                    OpenWarehouseUI();
             }
         }
 
@@ -225,6 +245,8 @@ namespace ProjectName.UI
         {
             // 2026-09-09: [인벤][설명][창고] 3패널 — 인벤토리를 함께 연다
             InventoryWindow.SetContextMode(InventoryWindow.ContextMode.Warehouse);
+            _warehouseOpen = true;
+            _guiDirty = true;   // "[E] 닫기" 안내 전환
 
             if (UIManager.Instance != null && UIManager.Instance.warehouseWindow != null)
             {
@@ -241,8 +263,33 @@ namespace ProjectName.UI
             }
             else
             {
-                Debug.LogWarning("[TerritoryWarehouse] WarehouseWindow가 UIManager에 없습니다.");
+                // 2026-09-11(2): warehouseWindow 미연결 폴백 — SetContextMode(Warehouse)로 열린
+                // 인벤 창(3패널 레이아웃)이 실제 창고 창 역할을 한다 (Test_09 경로). 정상 동작.
+                Debug.Log("[TerritoryWarehouse] warehouseWindow 미연결 — 인벤 창 Warehouse 컨텍스트로 개방");
             }
+        }
+
+        /// <summary>
+        /// 2026-09-11(2): 창고 UI 닫기 (E토글/ESC/반경 이탈 공용) —
+        /// 인벤 창 닫기 + Warehouse 컨텍스트 해제 + 진행 중 드래그 정리.
+        /// </summary>
+        private void CloseWarehouseUI()
+        {
+            if (!_warehouseOpen) return;
+            _warehouseOpen = false;
+            _guiDirty = true;   // "[E] 영지 창고" 안내 복원
+
+            // 드래그 중이던 아이템 컨텍스트 정리 (고스트 잔상 방지)
+            ItemDragContext.Cancel();
+
+            // 실제로 열리는 창은 SetContextMode(Warehouse)로 열린 인벤 창 — 컨텍스트 해제 + 창 닫기
+            InventoryWindow.CloseContext();
+
+            // warehouseWindow가 있으면 함께 닫기 (Test_09에선 null 가능)
+            if (UIManager.Instance != null && UIManager.Instance.warehouseWindow != null)
+                UIManager.Instance.warehouseWindow.Hide();
+
+            Debug.Log($"[TerritoryWarehouse] 창고 UI 닫힘 (영지: {_territoryId})");
         }
 
         private void OnGUI()
@@ -257,7 +304,9 @@ namespace ProjectName.UI
                     if (!string.IsNullOrEmpty(_slots[i].itemId))
                         used++;
                 }
-                _cachedGuiLabel = $"[E] 영지 창고 ({used}/{_maxSlots})";
+                _cachedGuiLabel = _warehouseOpen
+                    ? $"[E] 닫기 / ESC — 영지 창고 ({used}/{_maxSlots})"
+                    : $"[E] 영지 창고 ({used}/{_maxSlots})";
                 _guiLabelRect = new Rect(Screen.width / 2 - 150, Screen.height / 2 + 50, 300, 30);
                 _guiDirty = false;
             }

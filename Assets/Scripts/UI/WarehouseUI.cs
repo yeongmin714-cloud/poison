@@ -68,17 +68,17 @@ namespace ProjectName.UI
         private GUIStyle _styleDropdown;
         private bool _stylesInitialized;
 
-        // === 테마 컬러 ===
-        private static readonly Color ColorBg = new Color(0.18f, 0.13f, 0.16f, 0.92f);
-        private static readonly Color ColorTitleBar = new Color(0.12f, 0.09f, 0.11f, 1f);
-        private static readonly Color ColorSlotBg = new Color(0.22f, 0.17f, 0.14f, 0.9f);
-        private static readonly Color ColorSlotHover = new Color(0.35f, 0.25f, 0.18f, 0.9f);
-        private static readonly Color ColorSlotSelected = new Color(0.40f, 0.28f, 0.20f, 1f);
-        private static readonly Color ColorTextPrimary = new Color(0.92f, 0.88f, 0.80f, 1f);
-        private static readonly Color ColorTextSecondary = new Color(0.70f, 0.65f, 0.60f, 1f);
-        private static readonly Color ColorTextDim = new Color(0.50f, 0.45f, 0.40f, 1f);
-        private static readonly Color ColorAccent = new Color(0.80f, 0.60f, 0.20f, 1f);
-        private static readonly Color ColorBorder = new Color(0.12f, 0.09f, 0.11f, 1f);
+        // === 테마 컬러 — 2026-09-11 Flat 토큰 (다크 네이비 + 회백 보더 + 스카이블루 액센트; InventoryWindow 통일) ===
+        private static readonly Color ColorBg = new Color(0.063f, 0.086f, 0.133f, 0.88f);      // 창 배경 (다크 네이비)
+        private static readonly Color ColorTitleBar = new Color(0.055f, 0.078f, 0.125f, 0.95f); // 타이틀 스트립 (더 어두운 네이비)
+        private static readonly Color ColorSlotBg = new Color(0.09f, 0.12f, 0.19f, 0.9f);      // 슬롯 배경 (짙은 네이비)
+        private static readonly Color ColorSlotHover = new Color(0.14f, 0.20f, 0.30f, 0.9f);   // 슬롯 호버
+        private static readonly Color ColorSlotSelected = new Color(0.16f, 0.28f, 0.42f, 1f);  // 슬롯 선택 (스카이블루 틴트)
+        private static readonly Color ColorTextPrimary = new Color(1f, 1f, 1f, 1f);            // 기본 텍스트 (흰색)
+        private static readonly Color ColorTextSecondary = new Color(0.85f, 0.88f, 0.92f, 1f); // 보조 텍스트
+        private static readonly Color ColorTextDim = new Color(0.72f, 0.76f, 0.82f, 1f);       // 흐린 텍스트
+        private static readonly Color ColorAccent = new Color(0.35f, 0.65f, 0.90f, 1f);        // 강조 (스카이블루)
+        private static readonly Color ColorBorder = new Color(0.62f, 0.70f, 0.78f, 0.85f);     // 테두리 (얇은 회백)
 
         protected override void Awake()
         {
@@ -167,7 +167,7 @@ namespace ProjectName.UI
                 alignment = TextAnchor.MiddleCenter,
                 padding = new RectOffset(4, 4, 2, 2),
                 normal = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorSlotHover) },
-                hover = { textColor = ColorAccent, background = MakeTexture(1, 1, new Color(0.45f, 0.32f, 0.22f, 1f)) },
+                hover = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, new Color(0.18f, 0.25f, 0.36f, 1f)) },   // Flat: 다크 슬레이트 호버
                 active = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorSlotSelected) }
             };
 
@@ -230,6 +230,11 @@ namespace ProjectName.UI
 
             // ===== 하단: 영지 간 이동 UI / 액션 버튼 =====
             DrawActionArea();
+
+            // 2026-09-11(3): 인벤 창이 닫혀 드롭 판정 주체가 없으면 드래그 강제 종료 (고스트 잔상 방지)
+            if (ItemDragContext.Active &&
+                (InventoryWindow.Instance == null || !InventoryWindow.Instance.IsOpen))
+                ItemDragContext.Cancel();
         }
 
         // ===================================================================
@@ -306,6 +311,11 @@ namespace ProjectName.UI
         // ===================================================================
         private void DrawItemGrid()
         {
+            // 2026-09-11(3): DnD 드롭 판정 캐시 리빌드 (빈 창고 포함 — 스테일 Rect 방지)
+            s_slotRects.Clear();
+            s_slotIndices.Clear();
+            s_slotTerritoryId = _currentTerritoryId;
+
             var items = WarehouseSystem.Instance.GetItems(_currentTerritoryId);
             int totalSlots = items != null ? items.Count : 0;
 
@@ -353,6 +363,11 @@ namespace ProjectName.UI
             var style = isSelected ? _styleSlotSelected : _styleSlot;
             GUI.Box(rect, "", style);
 
+            // 2026-09-11(3): DnD 드롭 판정용 슬롯 화면 Rect 캐시
+            Vector2 sp = GUIUtility.GUIToScreenPoint(new Vector2(rect.x, rect.y));
+            s_slotRects.Add(new Rect(sp.x, sp.y, rect.width, rect.height));
+            s_slotIndices.Add(index);
+
             float iconSize = SlotSize * 0.55f;
             // GC 최적화: 캐시된 Rect 재사용
             _iconRect.x = rect.x + (rect.width - iconSize) / 2;
@@ -389,9 +404,12 @@ namespace ProjectName.UI
                 WarehouseSystem.Instance.TransferToInventory(_currentTerritoryId, index, 1);
             }
 
-            // 슬롯 클릭 → 선택
+            // 슬롯 클릭 → 선택 + 좌클릭 드래그 시작 (2026-09-11(3): 누른 채 이동하면 DnD, 클릭만 하면 선택)
             if (Event.current.type == EventType.MouseDown && rect.Contains(Event.current.mousePosition))
             {
+                if (Event.current.button == 0)
+                    ItemDragContext.Begin(ItemDragContext.Source.Warehouse, index, slot.item, _currentTerritoryId);
+
                 if (isSelected)
                 {
                     _selectedSlotIndex = -1;
@@ -413,6 +431,97 @@ namespace ProjectName.UI
         {
             var rect = GUILayoutUtility.GetRect(SlotSize, SlotSize);
             GUI.Box(rect, "", _styleSlot);
+            // 2026-09-11(3): 빈 슬롯도 드롭 타겟 — 인덱스 -1로 캐시
+            Vector2 sp = GUIUtility.GUIToScreenPoint(new Vector2(rect.x, rect.y));
+            s_slotRects.Add(new Rect(sp.x, sp.y, rect.width, rect.height));
+            s_slotIndices.Add(-1);
+        }
+
+        // ===================================================================
+        // 2026-09-11(3): DnD — ItemDragContext 공유 컨텍스트 (InventoryWindow ProcessDrag가 드롭 판정 대행)
+        // ===================================================================
+        private static readonly List<Rect> s_slotRects = new List<Rect>(MaxSlots);
+        private static readonly List<int> s_slotIndices = new List<int>(MaxSlots);
+        private static string s_slotTerritoryId;
+
+        /// <summary>화면(GUI) 좌표가 속한 창고 슬롯 반환. out slotIndex: 아이템 슬롯=인덱스, 빈 슬롯=-1. 미해당 시 false.</summary>
+        public static bool TryGetSlotAtScreenPoint(Vector2 guiPoint, out int slotIndex)
+        {
+            for (int i = 0; i < s_slotRects.Count; i++)
+            {
+                if (s_slotRects[i].Contains(guiPoint))
+                {
+                    slotIndex = s_slotIndices[i];
+                    return true;
+                }
+            }
+            slotIndex = -1;
+            return false;
+        }
+
+        /// <summary>
+        /// 인벤→창고 드래그 드롭: 인벤에서 1개 제거 후 현재 영지 창고에 보관 (실패 시 인벤 롤백). 성공 true.
+        /// </summary>
+        public static bool TryDepositFromDrag(PlayerInventory.ItemData item)
+        {
+            if (WarehouseSystem.Instance == null || PlayerInventory.Instance == null || item == null)
+                return false;
+            string tid = s_slotTerritoryId;
+            if (string.IsNullOrEmpty(tid)) return false;
+
+            bool removed = PlayerInventory.Instance.RemoveItem(item.id, 1);
+            if (!removed) return false;
+
+            if (!WarehouseSystem.Instance.AddItem(tid, item, 1))
+            {
+                // 창고 가득 → 인벤 롤백
+                PlayerInventory.Instance.AddItem(item, 1);
+                Debug.LogWarning("[WarehouseUI] 창고가 가득 찼습니다 — 드래그 보관 취소");
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>창고→인벤 드래그 드롭: 드래그 중 창고 슬롯 아이템 1개를 인벤으로 이동.</summary>
+        public static void TransferDraggedToInventory()
+        {
+            if (WarehouseSystem.Instance == null) return;
+            if (ItemDragContext.SourceType != ItemDragContext.Source.Warehouse) return;
+            if (ItemDragContext.SourceIndex < 0 || string.IsNullOrEmpty(ItemDragContext.TerritoryId)) return;
+
+            if (!WarehouseSystem.Instance.TransferToInventory(ItemDragContext.TerritoryId, ItemDragContext.SourceIndex, 1))
+                Debug.LogWarning("[WarehouseUI] 인벤으로 이동 실패 (인벤 가득 or 슬롯 상태 변경)");
+        }
+
+        /// <summary>창고 내 슬롯↔슬롯 드래그 스왑 (같은 영지 내 위치 교환 — 뒤 인덱스부터 제거해 시프트 오염 방지).</summary>
+        public static void SwapDraggedSlots(int targetIndex)
+        {
+            if (WarehouseSystem.Instance == null) return;
+            int src = ItemDragContext.SourceIndex;
+            string tid = ItemDragContext.TerritoryId;
+            if (src < 0 || targetIndex < 0 || src == targetIndex || string.IsNullOrEmpty(tid)) return;
+
+            var items = WarehouseSystem.Instance.GetItems(tid);
+            if (items == null || src >= items.Count || targetIndex >= items.Count) return;
+
+            var srcSlot = items[src];
+            var dstSlot = items[targetIndex];
+            if (srcSlot?.item == null && dstSlot?.item == null) return;   // 빈↔빈 — 무의미
+
+            int hi = Mathf.Max(src, targetIndex);
+            int lo = Mathf.Min(src, targetIndex);
+            int hiCount = items[hi]?.item != null ? items[hi].count : 0;
+            int loCount = items[lo]?.item != null ? items[lo].count : 0;
+
+            // 뒤 인덱스부터 제거 (RemoveAt 시프트 대응)
+            if (hiCount > 0 && !WarehouseSystem.Instance.RemoveItem(tid, hi, hiCount))
+                return;
+            if (loCount > 0 && !WarehouseSystem.Instance.RemoveItem(tid, lo, loCount))
+                return;
+
+            // 교차 재삽입 (dst→src 순서 — src가 먼저 제거됐던 자리와 무관하게 내용만 교환)
+            if (dstSlot?.item != null) WarehouseSystem.Instance.AddItem(tid, dstSlot.item, dstSlot.count);
+            if (srcSlot?.item != null) WarehouseSystem.Instance.AddItem(tid, srcSlot.item, srcSlot.count);
         }
 
         // ===================================================================

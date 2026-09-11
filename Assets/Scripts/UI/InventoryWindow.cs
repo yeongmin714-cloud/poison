@@ -51,9 +51,15 @@ namespace ProjectName.UI
         private ContextMode _contextMode = ContextMode.None;
 
         private PlayerInventory.ItemData _selectedItemData;   // 설명 패널 표시용
-        private bool _dragActive;                             // 그리드→핫바 드래그
+        private bool _dragActive;                             // 그리드→드롭 타겟 드래그 (핫바/창고/슬롯 스왑)
         private PlayerInventory.ItemData _dragItemData;
+        private int _dragSlotGlobalIndex = -1;                // 2026-09-11(3): 드래그 시작 전역 슬롯 인덱스 (슬롯↔슬롯 스왑용)
         private float _lastInvX;                              // 컨텍스트 창(상점)이 참조하는 인벤 좌측 x
+
+        // ===== 2026-09-11(3): DnD 드롭 판정용 화면 Rect 캐시 (정적 — GC 캐시 관례) =====
+        private static readonly List<Rect> s_slotScreenRects = new List<Rect>(80);   // 아이템 있는 슬롯 (전역 인덱스)
+        private static readonly List<int> s_slotScreenIndices = new List<int>(80);
+        private static Rect s_gridScreenRect;                                        // 그리드 전체 영역 (창고→인벤 드롭 타겟)
 
         /// <summary>상점 등 컨텍스트 창의 x 좌표 — 제3구획(화면 우측 1/3) 시작점</summary>
         public static float GetContextX(float contextWidth)
@@ -63,6 +69,26 @@ namespace ProjectName.UI
 
         /// <summary>삼분활 패널 폭 (상점 등 컨텍스트 창이 사용)</summary>
         public static float PanelWidth => Screen.width / 3f - 12f;
+
+        /// <summary>
+        /// 2026-09-11(3): 화면(GUI) 좌표가 속한 인벤 슬롯의 전역 인덱스 반환 (DnD 드롭 판정용).
+        /// 아이템 있는 슬롯 = 전역 인덱스(>=0). 미해당 시 -1. 후순위 매칭(아이템 슬롯 우선).
+        /// </summary>
+        public static int GetInventorySlotIndexAtScreenPoint(Vector2 guiPoint)
+        {
+            for (int i = s_slotScreenRects.Count - 1; i >= 0; i--)
+            {
+                if (s_slotScreenRects[i].Contains(guiPoint))
+                    return s_slotScreenIndices[i];
+            }
+            return -1;
+        }
+
+        /// <summary>2026-09-11(3): 화면(GUI) 좌표가 인벤 그리드 영역 안인지 (창고→인벤 드롭 타겟).</summary>
+        public static bool IsPointOverInventoryGrid(Vector2 guiPoint)
+        {
+            return s_gridScreenRect.width > 0f && s_gridScreenRect.Contains(guiPoint);
+        }
 
         // ===== 정렬 =====
         private enum SortMode { None, Category, Name, Rarity, Quantity }
@@ -176,6 +202,20 @@ namespace ProjectName.UI
             }
         }
 
+        /// <summary>
+        /// 2026-09-11(2): 컨텍스트 종료 (창고 E토글/ESC/이탈 닫기에서 호출) —
+        /// 컨텍스트 해제 + 창 닫기. SetContextMode와 달리 재오픈하지 않는다.
+        /// </summary>
+        public static void CloseContext()
+        {
+            _pendingContextMode = ContextMode.None;
+            if (_instance != null)
+            {
+                _instance._contextMode = ContextMode.None;
+                if (_instance.IsOpen) _instance.Hide();
+            }
+        }
+
         protected override void OnDestroy()
         {
             base.OnDestroy();
@@ -205,6 +245,11 @@ namespace ProjectName.UI
         protected override void OnHide()
         {
             // 2026-09-09: 프리뷰 제거로 정리 불필요 — OnDestroy의 ReleasePreview는 안전망으로 유지
+            // 2026-09-11(3): 창 닫힘 시 드래그 상태 정리 (고스트 잔상/스테일 컨텍스트 방지)
+            _dragItemData = null;
+            _dragActive = false;
+            _dragSlotGlobalIndex = -1;
+            ItemDragContext.Cancel();
         }
 
         /// <summary>
@@ -247,14 +292,14 @@ namespace ProjectName.UI
                 margin = new RectOffset(0, 0, 0, 0)
             };
 
-            // 타이틀 — 크고 굵은 골드톤 (C-UP 폰트 확대: 52→64, TITLE_BAR 108px에 맞춰 보정)
+            // 타이틀 — Flat: 흰색 40px (2026-09-11: 기존 64px 골드톤 대체 — 얇은 타이틀 스트립에 맞춤)
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 64,
+                fontSize = 40,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 clipping = TextClipping.Clip,
-                normal = { textColor = new Color(0.98f, 0.90f, 0.62f, 1f) },   // AAA: 배너 위 골드톤 타이틀
+                normal = { textColor = new Color(0.92f, 0.95f, 1f, 1f) },   // Flat: 흰색 톤 (골드 대체)
                 padding = new RectOffset(21, 4, 0, 0)
             };
 
@@ -549,6 +594,12 @@ namespace ProjectName.UI
             float contentHeight = guideRows * rowHeight + SLOT_MARGIN;
             float viewHeight = gridHeight - 4;
 
+            // 2026-09-11(3): DnD 드롭 판정용 Rect 캐시 리빌드 (매 프레임)
+            s_slotScreenRects.Clear();
+            s_slotScreenIndices.Clear();
+            Vector2 gridScreenPos = GUIUtility.GUIToScreenPoint(new Vector2(innerX, innerY));
+            s_gridScreenRect = new Rect(gridScreenPos.x, gridScreenPos.y, innerWidth, viewHeight);
+
             // 배경 (좌측 그리드 영역만 — 우측은 캐릭터 프리뷰 패널)
             DrawColoredRect(new Rect(panelX, gridY, GRID_AREA_WIDTH, gridHeight), ColorBg);
 
@@ -593,6 +644,12 @@ namespace ProjectName.UI
                     Rect slotRect = new Rect(sx, sy, slotWidth, slotHeight);
                     bool isSelected = (i == _selectedSlotIndex);
                     bool isHover = slotRect.Contains(Event.current.mousePosition);
+
+                    // 2026-09-11(3): 드롭 판정용 슬롯 화면 Rect 캐시 (전역 인덱스)
+                    int dndGlobalIdx = GetGlobalSlotIndex(_selectedCategory, i);
+                    Vector2 slotScreenPos = GUIUtility.GUIToScreenPoint(new Vector2(sx, sy));
+                    s_slotScreenRects.Add(new Rect(slotScreenPos.x, slotScreenPos.y, slotWidth, slotHeight));
+                    s_slotScreenIndices.Add(dndGlobalIdx);
 
                     // === AAA Layer 2: 엠보싱 셀(흰색) → 희귀도 글로우 tint (아이템 있는 슬롯만) ===
                     Color prevSlotColor = GUI.color;
@@ -671,8 +728,9 @@ namespace ProjectName.UI
                             _selectedItemDesc = slot.item.description;
                             _selectedItemCount = slot.count;
                             _selectedItemData = slot.item;
-                            _dragItemData = slot.item;   // ProcessDrag: MouseUp에서 패드 위면 핫바 등록
+                            _dragItemData = slot.item;   // ProcessDrag: MouseDrag Begin → MouseUp에서 드롭 판정
                             _dragActive = false;
+                            _dragSlotGlobalIndex = GetGlobalSlotIndex(_selectedCategory, i);
                             Event.current.Use();
                         }
                         else if (Event.current.button == 1) // 우클릭 — 장비면 장착, 아니면 오토루트 메뉴
@@ -1622,36 +1680,119 @@ namespace ProjectName.UI
             // 2026-09-09(3): 미니패드 제거 — 드래그 드롭은 하단 상시 핫바(HotbarUI.GetSlotIndexAtScreenPoint)로
         }
 
-        /// <summary>드래그 고스트 표시 + MouseUp 시 패드 드롭 → HotbarUI 등록</summary>
+        /// <summary>
+        /// 2026-09-11(3): 드래그 고스트 + MouseUp 드롭 판정 — ItemDragContext 공유 컨텍스트 연동.
+        /// - 인벤 소스: MouseDrag에서 Begin → MouseUp에 ①창고 슬롯(보관) ②다른 인벤 슬롯(스왑) ③핫바(등록),
+        ///   그 외 영역은 드롭 실패로 Cancel (변경 없음)
+        /// - 창고 소스: 창고 창에서 시작한 드래그의 드롭 판정을 인벤 창이 대행 (창고→인벤 이동 / 창고 내 스왑)
+        /// - 고스트는 ItemDragContext.DrawGhost()가 프레임당 1회 렌더
+        /// </summary>
         private void ProcessDrag()
         {
+            // === 창고 소스 드래그: 인벤 창이 드롭 판정 대행 ===
+            if (ItemDragContext.Active && ItemDragContext.SourceType == ItemDragContext.Source.Warehouse)
+            {
+                if (Event.current.type == EventType.MouseDrag)
+                    Event.current.Use();
+                else if (Event.current.type == EventType.MouseUp)
+                {
+                    Vector2 p = Event.current.mousePosition;
+                    if (IsPointOverInventoryGrid(p))
+                    {
+                        // 창고 → 인벤 이동 (1개)
+                        WarehouseUI.TransferDraggedToInventory();
+                        Debug.Log($"[InventoryWindow] 창고→인벤 이동(드래그): {ItemDragContext.Item?.displayName ?? "?"}");
+                    }
+                    else if (WarehouseUI.TryGetSlotAtScreenPoint(p, out int whTarget)
+                             && whTarget >= 0 && whTarget != ItemDragContext.SourceIndex)
+                    {
+                        // 창고 내 슬롯↔슬롯 스왑
+                        WarehouseUI.SwapDraggedSlots(whTarget);
+                    }
+                    // 그 외 영역 = 드롭 실패 → Cancel (변경 없음)
+                    ItemDragContext.Cancel();
+                    Event.current.Use();
+                }
+                ItemDragContext.DrawGhost();
+                return;
+            }
+
             if (_dragItemData == null) return;
 
-            if (Event.current.type == EventType.MouseDrag && _dragActive)
+            // === 인벤 소스: MouseDrag에서 드래그 시작 (좌클릭 누른 채 이동) ===
+            if (!_dragActive && Event.current.type == EventType.MouseDrag)
+            {
+                _dragActive = true;
+                ItemDragContext.Begin(ItemDragContext.Source.Inventory, _dragSlotGlobalIndex, _dragItemData);
+                Event.current.Use();
+            }
+
+            if (_dragActive && Event.current.type == EventType.MouseDrag)
                 Event.current.Use();
 
             if (Event.current.type == EventType.MouseUp)
             {
                 if (_dragActive)
                 {
-                    // 2026-09-09(3): 하단 상시 핫바 위 드롭 → 등록 (미니패드 폐지)
-                    int slot = HotbarUI.GetSlotIndexAtScreenPoint(Input.mousePosition);
-                    if (slot >= 0)
+                    Vector2 guiPoint = Event.current.mousePosition;
+                    bool consumed = false;
+
+                    // ① 창고 슬롯 위 드롭 → 인벤에서 1개 창고로 이동
+                    if (WarehouseUI.TryGetSlotAtScreenPoint(guiPoint, out _))
                     {
-                        HotbarUI.AssignItem(slot, _dragItemData.id, _dragItemData.displayName);
-                        Debug.Log($"[InventoryWindow] 핫바 슬롯 {slot + 1}에 '{_dragItemData.displayName}' 지정");
+                        if (WarehouseUI.TryDepositFromDrag(_dragItemData))
+                        {
+                            RefreshInventory();
+                            Debug.Log($"[InventoryWindow] 창고 보관(드래그): {_dragItemData.displayName}");
+                        }
+                        consumed = true;   // 실패 시에도 롤백 완료 — 드래그 종료
                     }
+                    else
+                    {
+                        // ② 다른 인벤 슬롯 위 드롭 → 슬롯 교체(스왑)
+                        int target = GetInventorySlotIndexAtScreenPoint(guiPoint);
+                        if (target >= 0 && target != _dragSlotGlobalIndex && PlayerInventory.Instance != null)
+                        {
+                            var all = PlayerInventory.Instance.GetAllSlots();
+                            if (all != null && _dragSlotGlobalIndex >= 0
+                                && _dragSlotGlobalIndex < all.Length && target < all.Length)
+                            {
+                                var tmp = all[_dragSlotGlobalIndex];
+                                all[_dragSlotGlobalIndex] = all[target];
+                                all[target] = tmp;
+                                RefreshInventory();
+                                Debug.Log($"[InventoryWindow] 슬롯 교체(드래그): {_dragSlotGlobalIndex} ↔ {target}");
+                            }
+                            consumed = true;
+                        }
+                    }
+
+                    // ③ 핫바 위 드롭 → 기존 경로 유지 (등록)
+                    if (!consumed)
+                    {
+                        int slot = HotbarUI.GetSlotIndexAtScreenPoint(Input.mousePosition);
+                        if (slot >= 0)
+                        {
+                            HotbarUI.AssignItem(slot, _dragItemData.id, _dragItemData.displayName);
+                            Debug.Log($"[InventoryWindow] 핫바 슬롯 {slot + 1}에 '{_dragItemData.displayName}' 지정");
+                            consumed = true;
+                        }
+                    }
+
+                    // ④ 그 외 = 드롭 실패 → 취소 (변경 없음)
+                    if (!consumed)
+                        Debug.Log($"[InventoryWindow] 드롭 실패 — 드래그 취소: {_dragItemData.displayName}");
                 }
+                ItemDragContext.Cancel();
                 _dragItemData = null;
                 _dragActive = false;
+                _dragSlotGlobalIndex = -1;
                 Event.current.Use();
                 return;
             }
 
-            // 고스트
-            if (_dragActive)
-                GUI.Label(new Rect(Event.current.mousePosition.x + 12f, Event.current.mousePosition.y + 8f, 220f, 24f),
-                    $"🫳 {_dragItemData.displayName}", _styleItemName);
+            // 고스트 — 공유 컨텍스트가 렌더 (프레임당 1회 가드 내장)
+            ItemDragContext.DrawGhost();
         }
 
         // ===================================================================
