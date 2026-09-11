@@ -4,7 +4,53 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-11 (24차)
+> **최종 갱신:** 2026-09-11 (25차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-11 ✅ 25차 — 등급별 무기/장비 47종 ItemData+아이콘 매핑+장착 스탯+시딩)
+
+> **스코프**: 4티어 GLB 장비 전종 ItemData 47종(무기 16+방어구 25+부속 6) 신규 정의, 무기 등급 dmg 배율(GetTierMultiplier+CreateTieredCopy 복제본 주입), 방어구 등급 def 테이블, GLB 아이콘 매핑 44종 확장, 창고 전종×2 시딩+슬롯 64→160.
+
+### 변경 사항
+**`Core/PlayerInventory.cs`** — 등급별 장비 47종 ItemData:
+- 무기 16종 `weapon_{type}_{tier}`(sword/spear/bow/dagger × wood/steel/stone/crystal) — wood sword/spear/bow 3종은 기존 정의 재사용, 나머지 13종 신규
+- 방어구 25종 — id=GLB 파일명 그대로(`{tier}_{slot}`): armor×4, helmet×4, boot 좌우×8, glove 좌우×8, wood_shield
+- 부속 6종 — gas_mask/chemical_pack ×wood/steel/stone(crystal GLB 부재로 미정의)
+- rarity/내구도: wood=Common/20, steel=Uncommon/40, stone=Rare/60, crystal=Epic/80
+- `AllTieredGear` 정적 배열(395행) — 47종 전체, 창고 시딩/테스트 순회용
+
+**`Core/WeaponData.cs`** — 무기 등급 스탯:
+- `GetTierMultiplier(weaponId)`(35행) — wood 1.0 / steel 1.8 / stone 2.5 / crystal 3.75(Sword dmg 12 기준 12→22→30→45)
+- `CreateTieredCopy(tierMultiplier)`(46행) — damage만 Round(base×배율), 공속/사거리/타입 유지 — 정적 WeaponData 오염 방지용 복제본
+- `WeaponType` enum에 Dagger 없음({Fist, Sword, Spear, Bow}) → dagger는 Sword 타입 장착(Equip 2인자 오버로드 위임, InventoryWindow 1067행)
+
+**`Systems/WeaponEquipManager.cs`** — 복제본 주입+GLB 매핑:
+- `_itemIdToGlb` 16종 full-id→GLB 매핑(23-41행) — dagger 등 suffix 분기 없는 무기 지원, 기존 짧은 id(steel 등)는 suffix 분기 폴백(하위 호환)
+- 장착 시 `SyncPlayerCombat(type, GetTierMultiplier(id))`(89행) + `PlayerCombat.SetWeapon(CreateTieredCopy)`(172행) — 복제본 주입
+
+**`Systems/EquipmentStatBonus.cs`** — 방어구 등급 def 테이블(98-130행):
+- helmet 5/9/14/20, armor 8/14/22/32, boots 좌우동일 4/7/11/16(+speed 0.2 유지), gloves 좌우동일 3/5/8/12, wood_shield 6, gas_mask/chemical_pack 7/12/18/26
+
+**`UI/GblItemIconRenderer.cs`** — 아이콘 매핑 44종 확장:
+- 명시 맵 `_itemToModel` — 무기 16종+방어구 20종+부속 8종 확장, 신규 ItemData 전종 자동 아이콘화
+- `armor_wood` 등 `{slot}_{tier}` 키는 dead-entry(실제 id=`{tier}_{slot}`) 허용 — 실제 id(wood_armor 등)는 관례 후보 1(id 그대로 GLB 매칭, 278행)로 베이크
+- GLB 부재 매핑(shield_steel 등)도 선준비 — 로드 실패 시 아이콘 스킵
+
+**`Systems/TestAllInOneSetup.cs` / `TestTerritoryCombatSetup.cs`** — 창고 시딩:
+- `foreach AllTieredGear Add(gear, 2)` 전종×2 시딩(1106/996행) + 창고 슬롯 64→160(1042행, Test_10/Test_09)
+
+### 검증
+- 배치컴파일: **`error CS=0`** + QaValidator 전체 통과(Errors:0) — 에디터 잠금으로 1회 실패 후 사용자 Play 완료 → 재실행 통과
+- 정적 QA(서브에이전트): 변경 7파일 brace 균형 전부 통과 — PlayerInventory 81/81, WeaponData 12/12, EquipmentStatBonus 107/107, WeaponEquipManager 44/44, GblItemIconRenderer 98/98, TestAllInOneSetup 176/176, TestTerritoryCombatSetup 135/135
+- grep 검증: `AllTieredGear` 정의(PlayerInventory 395행)+시딩 순회 2곳(1106/996행, ×2), `GetTierMultiplier` 정의(WeaponData 35행)+호출(WeaponEquipManager 89행), `CreateTieredCopy` 정의(46행)+복제본 주입(172행), `_itemIdToGlb` 16종(23-41행)+미매칭 suffix 폴백(106행), EquipmentStatBonus 신규 def 전티어 값 일치(helmet 5/9/14/20·armor 8/14/22/32·boots 4/7/11/16·gloves 3/5/8/12·shield 6·gas_mask/chemical_pack 7/12/18/26), GblItemIconRenderer 맵 44종+관례 1 매칭(278행), dagger=Sword 타입 장착(InventoryWindow 1067행), 창고 슬롯 160
+
+### Play 판정 대기
+⬜ 등급 무기 장착 — GLB 모델 부착+클립 전환+dmg 배율 정합(Sword wood 12→steel 22→stone 30→crystal 45)
+⬜ 등급 방어구 장착 — def 스탯 표 정합 반영(helmet 5/9/14/20 등)+부트 speed 유지
+⬜ 창고 전종 47종×2 표시(Test_10/Test_09, 슬롯 160) + 아이콘 44종 자동 베이크
+⬜ dagger 장착 — Sword 타입 클립+wood_dagger GLB 부착 정합
+⬜ GLB 부재 5종 입수 후 재검증(steel/stone/crystal_shield, crystal_gas_mask, crystal_chemical_pack)
 
 ---
 

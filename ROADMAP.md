@@ -2056,3 +2056,22 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 균형 실측 | 슬라임 Lv1 평균 17 EXP → Lv2(100) 약 6마리, 병사 Lv10=50/Lv40=200, Advanced Lv30 평균 720(구 225 대비 3.2배) | ✅ |
 | 검증 | 배치컴파일 `error CS=0` + QaValidator Errors:0(return code 0), 정적 QA 4파일 brace 균형 통과(11/11·172/172·139/139·110/110), `GetExpBase` 정의+AnimalAI 사용, GuardPlaceholder `AddEXP`+CombatLog, HUD EXP바 심볼(360×12/펄스/MAX), 기존 switch 티어 랜덤 잔여 0건 | ✅ |
 | Play 판정 대기 | 몬스터/병사 처치 EXP 로그+지급 수치 정합, HUD 경험치 바 표시+채움 비율, 레벨업 펄스 0.5s, 슬라임 약 6마리 Lv2 균형, Lv50 MAX 표시 | ⬜ |
+
+---
+
+## 🛡️ 2026-09-11: 등급별 무기/장비 47종 정의+등급 스탯+아이콘화 (GEAR-TIERS-25)
+
+> **목표:** 4티어 GLB 장비 전종(wood/steel/stone/crystal) ItemData 47종 정의, 무기 등급 dmg 배율(GetTierMultiplier+CreateTieredCopy 복제본 주입), 방어구 등급 def 테이블, GLB 아이콘 매핑 44종 확장, 창고 전종×2 시딩+슬롯 160 확장.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 등급 장비 ItemData 47종 | `PlayerInventory.cs` — 무기 16종 `weapon_{type}_{tier}`(sword/spear/bow/dagger×4티어, wood 3종 기존 정의 재사용), 방어구 25종(id=GLB 파일명 `{tier}_{slot}`: armor×4/helmet×4/boot 좌우×8/glove 좌우×8/wood_shield), 부속 6종(gas_mask/chemical_pack×3티어). rarity/내구도 wood=Common/20·steel=Uncommon/40·stone=Rare/60·crystal=Epic/80. `AllTieredGear` 정적 배열(395행) | ✅ |
+| 무기 등급 스탯 | `WeaponData.GetTierMultiplier`(35행) wood 1.0/steel 1.8/stone 2.5/crystal 3.75 + `CreateTieredCopy`(46행, damage만 Round, 정적 오염 방지). `WeaponEquipManager.SyncPlayerCombat(type, 배율)`(89행)+`PlayerCombat.SetWeapon(복제본)`(172행) 주입. dagger=Sword 타입 장착(WeaponType에 Dagger 부재 — Equip 2인자 오버로드 위임, InventoryWindow 1067행) | ✅ |
+| 방어구 등급 def | `EquipmentStatBonus` 테이블(98-130행) — helmet 5/9/14/20, armor 8/14/22/32, boots 좌우동일 4/7/11/16(+speed 0.2), gloves 좌우동일 3/5/8/12, shield 6(wood만), gas_mask/chemical_pack 7/12/18/26 | ✅ |
+| 아이콘 매핑 44종 | `GblItemIconRenderer._itemToModel` 확장 — 무기 16종+방어구 20종+부속 8종, 신규 ItemData 전종 자동 아이콘화. `armor_wood` 등 `{slot}_{tier}` 키는 dead-entry 허용 — 실제 id(`wood_armor`)는 관례 후보 1(id 그대로 GLB 매칭, 278행)로 베이크 | ✅ |
+| 창고 시딩 전종×2 | `TestAllInOneSetup`(1106행)/`TestTerritoryCombatSetup`(996행) — `foreach AllTieredGear Add(gear, 2)` 전종×2 + 창고 슬롯 64→160(1042행, Test_10/Test_09) | ✅ |
+| GLB 부재 5종 대응 | ItemData/아이콘 매핑/def 테이블 전부 선준비 — GLB 입수 시 자동 활성화(현 라운드는 로드 스킵) | ✅ |
+| 검증 | 배치컴파일 `error CS=0` + QaValidator Errors:0(에디터 잠금 1회 실패 후 Play 완료→재실행 통과), 정적 QA 7파일 brace 균형 통과(81/81·12/12·107/107·44/44·98/98·176/176·135/135), AllTieredGear 정의+시딩 순회 2곳, GetTierMultiplier/CreateTieredCopy 정의+호출, _itemIdToGlb 16종+suffix 폴백, def 전티어 값 일치, 아이콘 맵 44종+관례 1 매칭, 창고 슬롯 160 | ✅ |
+| Play 판정 대기 | 등급 무기 장착 모델+클립+dmg 배율 정합(Sword 12→22→30→45), 방어구 def 스탯 반영, 창고 전종 47종×2+아이콘 44종, dagger 장착 정합 | ⬜ |
+
+> **GLB 부재 5종 각주:** `steel_shield` / `stone_shield` / `crystal_shield` / `crystal_gas_mask` / `crystal_chemical_pack` — GLB 파일 미제공. ItemData 미정의(steel/stone/crystal shield는 정의 생략, crystal gas_mask/chemical_pack 미정의), 매핑+def 테이블만 선준비 상태. GLB 입수 시 ItemData 정의 후 AllTieredGear에 추가하면 전 파이프라인(아이콘/def/시딩) 자동 연동.
