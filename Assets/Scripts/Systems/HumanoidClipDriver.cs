@@ -612,8 +612,8 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 콤보 스윙 FX — 클릭 즉시 발화(임팩트 프레임 대기 없음). 타마다 스윙 방향이 다른 Slash VFX를 발화한다.
-        /// 방향 각도(-30°/35°, roll -90°)와 위치/거리(up 1.25m, 전방 1.1m)는 Play 판정 후 조정하는 튜닝 상수
-        /// (실측 교체 예정 — Assets/Editor/WeaponSwingDirectionAnalyzer.cs 측정값 반영).
+        /// 스윙 방향은 2026-09-11 WeaponSwingDirectionAnalyzer 실측값(1타 좌전방 -58°, 2타 수직 상승 pitch 78°, 3타 우후방 사선 143.6°) 기반,
+        /// 위치/거리(up 1.25m, 전방 1.1m)는 Play 판정 후 조정하는 튜닝 상수.
         /// try-catch 감싸기: FX 실패가 전투를 절대 방해하지 않게 함 (프로젝트 관례).
         /// </summary>
         private void FireComboSlash(int stage)
@@ -622,7 +622,9 @@ namespace ProjectName.Systems
             {
                 var t = _anim.transform;
                 Vector3 dir = ComboStageDirection(stage, t);
-                float roll = stage == 3 ? -90f : 0f;   // 3타: roll -90으로 궤적 평면 기울여 수직 하향 궤적
+                // 롤(튜닝 상수): 1타/3타는 실측 dir 자체가 수평/사선이라 roll 0.
+                // 2타는 실측 접선이 수직 상승(pitch 78°)이므로 dir은 수평 성분만 잡고 roll -90으로 Slash 궤적 평면을 수직화.
+                float roll = stage == 2 ? -90f : 0f;
                 Vector3 pos = t.position + Vector3.up * 1.25f + dir * 1.1f;
                 SlashVFXRunner.PlaySlash(pos, dir, roll);
                 Debug.Log($"[Combo] 스윙 FX stage={stage}");
@@ -633,17 +635,21 @@ namespace ProjectName.Systems
             }
         }
 
-        /// <summary>스테이지별 스윙 방향(튜닝 상수): 1타 좌측 -30°, 2타 우측 +35°, 3타 전방(roll -90 수직). 스윙/크로스 공용.</summary>
+        /// <summary>
+        /// 스테이지별 스윙 방향(튜닝 상수 — 2026-09-11 WeaponSwingDirectionAnalyzer 실측(Heat 리그 RightHand 리타깃) 기반).
+        /// 1타 좌전방 수평(yaw -58°, pitch 1.3°), 2타 수직 상승 접선(yaw 63.2°, pitch 78° — 수평 성분만 dir로, 수직 궤적은 roll로),
+        /// 3타 우후방 상향 사선(yaw 143.6°, pitch 28.7°). 스윙/크로스 공용.
+        /// </summary>
         private static Vector3 ComboStageDirection(int stage, Transform t)
         {
             switch (stage)
             {
                 case 2:
-                    return Quaternion.AngleAxis(35f, Vector3.up) * t.forward; // 2타: 우측 35° 스윙 방향
+                    return Quaternion.Euler(0f, 63.2f, 0f) * t.forward;     // 2타: 실측 수직 상승 접선(y=0.98) — 수평 성분만 dir로, 수직 궤적은 roll -90으로
                 case 3:
-                    return t.forward;   // 3타: 전방 — roll -90으로 궤적 평면을 기울여 수직 하향 궤적
-                default:                // 1타: 좌측 -30° 스윙 방향
-                    return Quaternion.AngleAxis(-30f, Vector3.up) * t.forward;
+                    return Quaternion.Euler(28.7f, 143.6f, 0f) * t.forward; // 3타: 실측 우후방 상향 사선
+                default:
+                    return Quaternion.Euler(1.3f, -58f, 0f) * t.forward;    // 1타: 실측 좌전방 수평
             }
         }
 
