@@ -1879,3 +1879,23 @@ TRACK1-P1C 조명에서 URP Soft Shadows 세부 튜닝(옵션) + TRACK2 병사 3
 **검증**: Unity 6000.4.10f1 배치모드 컴파일 → 종료 0, `error CS` 0개 (로그 `C:/Unity/compile_log_guardicon.txt`). GblItemIconRenderer/HotbarUI/GuardSelectionManager 등 기존 파일 무수정, 기존 핫바 기능(탭 토글·등록·선택·사망처리) 유지.
 
 **Play 판정 대기**: ①부대 모드 첫 진입 시 잠깐 절차 아바타 → 0.5초내 병사 실제 외형 아이콘으로 전환 ②병사 선택 링이 아이콘에 안 잡힘(순수 캡슐+장비 실루엣) ③촬영 직후 병사가 원위치 복원(화면에서 튈림 없음) ④병사 사망 시 아이콘→회색 절차 아바타 전환 ⑤부대 모드→아이템 모드 Tab 복귀 정상 ⑥여러 국적/레벨 병사 슬롯 각각 다른 외형 아이콘
+
+---
+
+## 2026-09-11 36차: 영지 NPC → 병사 Humanoid FBX 골격 교체 (방법 A) ✅ (커밋 2c5d9990)
+
+**요구**: NPC도 병사처럼 사람 사지 애니메이션(Idle/걷기)을. 몬스터는 미적용(NPC만).
+
+**Phase 1 진단 (실제 프리팹 로드 기반, 에디터 도구 `Assets/Editor/MonsterRigScanTool.cs` + `TestOutput/monster_rig_scan.txt`)**:
+- **중대 발견**: 몬스터 22종 + NPC GLB **전부 `animator=NULL, avatar=NULL, animIsHuman=False, clips=0`** — Humanoid avatar 하나도 없음. 병사 Humanoid FBX(`soldier_lv1-20_rigged.fbx`)만 `avatar(valid=True, human=True)` 보유(캘리브레이션 실증). 즉 GLB 리깅은 뼈가 사람형이어도 Player_AC/Soldier_AC(Humanoid 전용)를 못 돌림.
+- 휴머노이드 골격 시그니처(HumanoidSkeleton: spine+팔3+다리3) 4종 판별: **stone_golem/wild_troll/banshee/shadow_assassin**. 나머지 18종은 4족/넘버링. NPC 중 npc_lord_glb도 HumanoidSkeleton 골격이지만 avatar NULL.
+- fbx 폴더: Player_Rigged/Player_Rigged_Heat/soldier_lv1-20·20-40·40-50 5개뿐 — **NPC용 Humanoid FBX 없음**.
+
+**구현 (단일 파일 `Assets/Scripts/UI/TerritoryNPCSpawner.cs`, 127줄 추가)**:
+- `SpawnNPC` GLB 장착 분기(110~145)를 `TryAttachSoldierHumanoidBody(npcGO, npcName, npcKey)` try/catch 호출로 교체. 성공 시 병사형 FBX 골격 반환, 실패/예외 시 잔재 정리(`{npcName}_Body`, HumanoidClipDriver Destroy) 후 기존 GLB+`ModelAnimatorAssigner.ForceBiped(true)` 폴백(회귀 0, 크래시 금지).
+- `TryAttachSoldierHumanoidBody` (병사 검증 경로 TestTerritoryCombatSetup 674~730 복제): ①`Resources.Load("Models/UserProvided/fbx/soldier_lv1-20_rigged")` ②인스턴스 `{npcName}_Body` 부착(zero/identity/one) ③FBX 하위 Collider 전체 DestroyImmediate ④레거시 프로시저럴 계열 정리(StripLegacyAnimation: ModelAnimatorAssigner/Procedural/Neural/Hybrid/ProceduralBoneMap 마지막) ⑤Animator+SoldierShield_AC(applyRootMotion=false, AlwaysAnimate) ⑥avatar 유효성 로그(isValid/isHuman) ⑦npcGO 루트에 HumanoidClipDriver(mode=Soldier — 걷기/대기만, 공격 없음) ⑧`CopyMaterialsFromGlb(fbxBody, "Models/UserProvided/"+glbAliasKey)`로 NPC GLB 재질 이식 → **외형은 NPC 유지 + 사람 사지 애니**.
+- GroundModelToY 미적용(NPC y=position 고정 계약 유지). glbResourcePath는 RuntimeModelLoader 소문자 alias 키 그대로 사용(대소문자 불일치 리스크 최소).
+
+**검증**: Unity 6000.4.10f1 배치모드 컴파일 → 종료 0, `error CS` 0개 (로그 `C:/Unity/compile_log_npc.txt`). 몬스터/병사/플레이어 등 타 파일 무수정.
+
+**Play 판정 대기**: ①영지 진입 시 NPC가 병사형 사람 골격으로 Idle/걷기(외형/재질은 기존 NPC 그대로) ②NPC 재질 이식 확인(흰색 미표시) ③대화(Interact) 정상 ④실패 시 로그 "Humanoid FBX 교체 실패 — 기존 GLB 경로로 폴백" 없이 통과 ⑤기존 ForceBiped NPC와 충돌 없음
