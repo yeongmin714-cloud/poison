@@ -364,8 +364,10 @@ namespace ProjectName.UI
             GUI.Box(rect, "", style);
 
             // 2026-09-11(3): DnD 드롭 판정용 슬롯 화면 Rect 캐시
+            // 2026-09-11(4) 수리: GUIToScreenPoint 결과(sp.y)는 슬롯 윗변(스크린 y 상승계의 yMax) —
+            // yMin = sp.y - height 보정 없으면 유령 영역(한 칸 위)에 판정되어 드롭이 먹히지 않았다.
             Vector2 sp = GUIUtility.GUIToScreenPoint(new Vector2(rect.x, rect.y));
-            s_slotRects.Add(new Rect(sp.x, sp.y, rect.width, rect.height));
+            s_slotRects.Add(new Rect(sp.x, sp.y - rect.height, rect.width, rect.height));
             s_slotIndices.Add(index);
 
             float iconSize = SlotSize * 0.55f;
@@ -432,8 +434,9 @@ namespace ProjectName.UI
             var rect = GUILayoutUtility.GetRect(SlotSize, SlotSize);
             GUI.Box(rect, "", _styleSlot);
             // 2026-09-11(3): 빈 슬롯도 드롭 타겟 — 인덱스 -1로 캐시
+            // 2026-09-11(4) 수리: 스크린 y 상승계 보정 (DrawSlot 주석 참조)
             Vector2 sp = GUIUtility.GUIToScreenPoint(new Vector2(rect.x, rect.y));
-            s_slotRects.Add(new Rect(sp.x, sp.y, rect.width, rect.height));
+            s_slotRects.Add(new Rect(sp.x, sp.y - rect.height, rect.width, rect.height));
             s_slotIndices.Add(-1);
         }
 
@@ -447,9 +450,11 @@ namespace ProjectName.UI
         /// <summary>화면(GUI) 좌표가 속한 창고 슬롯 반환. out slotIndex: 아이템 슬롯=인덱스, 빈 슬롯=-1. 미해당 시 false.</summary>
         public static bool TryGetSlotAtScreenPoint(Vector2 guiPoint, out int slotIndex)
         {
+            // 2026-09-11(4) 수리: 캐시 Rect는 스크린 좌표계(y 상승) — GUI점(y 하강)을 같은 변환으로 통일.
+            Vector2 sp = GUIUtility.GUIToScreenPoint(guiPoint);
             for (int i = 0; i < s_slotRects.Count; i++)
             {
-                if (s_slotRects[i].Contains(guiPoint))
+                if (s_slotRects[i].Contains(sp))
                 {
                     slotIndex = s_slotIndices[i];
                     return true;

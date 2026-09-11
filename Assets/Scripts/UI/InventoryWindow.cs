@@ -81,9 +81,13 @@ namespace ProjectName.UI
         /// </summary>
         public static int GetInventorySlotIndexAtScreenPoint(Vector2 guiPoint)
         {
+            // 2026-09-11(4) 수리: 캐시 Rect는 GUIToScreenPoint 결과(스크린 좌표계 — 좌하단 원점, y 상승)로 저장.
+            // GUI 좌표(좌상단 원점, y 하강) 판정점을 같은 변환으로 통일하지 않으면 슬롯 한 칸 위 유령 영역에
+            // 판정되어 드롭이 사실상 먹히지 않았다(=DnD 미작동의 원인). 모든 호출부는 GUI점을 전달한다.
+            Vector2 sp = GUIUtility.GUIToScreenPoint(guiPoint);
             for (int i = s_slotScreenRects.Count - 1; i >= 0; i--)
             {
-                if (s_slotScreenRects[i].Contains(guiPoint))
+                if (s_slotScreenRects[i].Contains(sp))
                     return s_slotScreenIndices[i];
             }
             return -1;
@@ -92,7 +96,9 @@ namespace ProjectName.UI
         /// <summary>2026-09-11(3): 화면(GUI) 좌표가 인벤 그리드 영역 안인지 (창고→인벤 드롭 타겟).</summary>
         public static bool IsPointOverInventoryGrid(Vector2 guiPoint)
         {
-            return s_gridScreenRect.width > 0f && s_gridScreenRect.Contains(guiPoint);
+            if (s_gridScreenRect.width <= 0f) return false;
+            Vector2 sp = GUIUtility.GUIToScreenPoint(guiPoint);   // 캐시 Rect와 동일 좌표계로 변환 (위 주석 참조)
+            return s_gridScreenRect.Contains(sp);
         }
 
         // ===== 정렬 =====
@@ -630,8 +636,10 @@ namespace ProjectName.UI
             // 2026-09-11(3): DnD 드롭 판정용 Rect 캐시 리빌드 (매 프레임)
             s_slotScreenRects.Clear();
             s_slotScreenIndices.Clear();
+            // 2026-09-11(4) 수리: GUIToScreenPoint는 좌상단 모서리를 스크린 좌표(y 상승)로 변환 —
+            // 그 값은 Rect의 yMax(윗변)이므로 yMin = sp.y - height 로 보정해야 실제 영역과 일치한다.
             Vector2 gridScreenPos = GUIUtility.GUIToScreenPoint(new Vector2(innerX, innerY));
-            s_gridScreenRect = new Rect(gridScreenPos.x, gridScreenPos.y, innerWidth, viewHeight);
+            s_gridScreenRect = new Rect(gridScreenPos.x, gridScreenPos.y - viewHeight, innerWidth, viewHeight);
 
             // 배경 (좌측 그리드 영역만 — 우측은 캐릭터 프리뷰 패널)
             DrawColoredRect(new Rect(panelX, gridY, GRID_AREA_WIDTH, gridHeight), ColorBg);
@@ -684,7 +692,8 @@ namespace ProjectName.UI
                         ? GetWarehouseSlotIndex(i)
                         : GetGlobalSlotIndex(_selectedCategory, i);
                     Vector2 slotScreenPos = GUIUtility.GUIToScreenPoint(new Vector2(sx, sy));
-                    s_slotScreenRects.Add(new Rect(slotScreenPos.x, slotScreenPos.y, slotWidth, slotHeight));
+                    // 2026-09-11(4) 수리: 스크린 좌표계(y 상승)에서 sp.y는 슬롯 윗변(yMax) — yMin 보정 필수
+                    s_slotScreenRects.Add(new Rect(slotScreenPos.x, slotScreenPos.y - slotHeight, slotWidth, slotHeight));
                     s_slotScreenIndices.Add(dndGlobalIdx);
 
                     // === AAA Layer 2: 엠보싱 셀(흰색) → 희귀도 글로우 tint (아이템 있는 슬롯만) ===

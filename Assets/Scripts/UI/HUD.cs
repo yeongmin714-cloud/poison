@@ -311,6 +311,18 @@ namespace ProjectName.UI
                 CacheStyles();
             }
 
+            // 2026-09-11(4): PlayerHealth 라이브 폴링 — 하트 렌더 소스 동기화.
+            // PlayerHealth.SetMaxHP()는 OnHPChanged 이벤트를 발생시키지 않아 MaxHP 증가 시
+            // 하트 개수가 늘어나지 않았다. 매 프레임 폴링으로 ceil(MaxHP/20)개 전체 하트
+            // (Full/Half/Empty 링) + 임시하트(노랑)가 항상 실제 값으로 렌더된다.
+            // (HUD가 플레이어보다 먼저 생성되어 구독에 실패한 씬까지 커버)
+            var ph = PlayerHealth.Instance;
+            if (ph != null)
+            {
+                _currentHP = ph.CurrentHP;
+                _maxHP = ph.MaxHP;
+            }
+
             UpdateStaticRectPositions();
 
             DrawHearts();

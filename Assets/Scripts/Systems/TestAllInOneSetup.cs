@@ -70,6 +70,10 @@ namespace ProjectName.Systems
         {
             Debug.Log("[TestAllInOneSetup] 🚀 전체 시스템 종합 테스트 시작...");
 
+            // 2026-09-11: 레벨 스케일링 게이트 OFF — 몬스터가 몇 타에 사망해야 공격/사망 검증 가능
+            // (스케일 MaxHP는 커서 HP바 비율이 0 근처여도 실HP가 남아 미사망 증상 — MonsterLevelManager 주석 참조)
+            MonsterLevelManager.LevelScalingEnabled = false;
+
             CacheUIReflectionTypes();
             EnsureEventSystem();
             EnsureGameManager();
