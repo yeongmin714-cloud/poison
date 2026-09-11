@@ -33,17 +33,17 @@ namespace ProjectName.UI
         private const float SLOT_MARGIN = 12f;
 
         // ===== 다크 테마 색상 (인벤토리와 통일) =====
-        private static readonly Color ColorBg = new Color(0.18f, 0.13f, 0.16f, 0.92f);
-        private static readonly Color ColorTitleBar = new Color(0.12f, 0.09f, 0.11f, 1f);
-        private static readonly Color ColorSlotBg = new Color(0.22f, 0.17f, 0.14f, 0.9f);
-        private static readonly Color ColorSlotHover = new Color(0.35f, 0.25f, 0.18f, 0.9f);
-        private static readonly Color ColorSlotSelected = new Color(0.40f, 0.28f, 0.20f, 1f);
-        private static readonly Color ColorBottomBar = new Color(0.12f, 0.09f, 0.11f, 1f);
-        private static readonly Color ColorTextPrimary = new Color(0.92f, 0.88f, 0.80f, 1f);
-        private static readonly Color ColorTextSecondary = new Color(0.70f, 0.65f, 0.60f, 1f);
-        private static readonly Color ColorTextDim = new Color(0.50f, 0.45f, 0.40f, 1f);
-        private static readonly Color ColorAccent = new Color(0.80f, 0.60f, 0.20f, 1f);
-        private static readonly Color ColorBorder = new Color(0.12f, 0.09f, 0.11f, 1f);
+        private static readonly Color ColorBg = new Color(0.063f, 0.086f, 0.133f, 0.92f);   // 다크네이비
+        private static readonly Color ColorTitleBar = new Color(0.063f, 0.086f, 0.133f, 1f);
+        private static readonly Color ColorSlotBg = new Color(0.10f, 0.14f, 0.19f, 0.9f);
+        private static readonly Color ColorSlotHover = new Color(0.16f, 0.22f, 0.30f, 0.9f);
+        private static readonly Color ColorSlotSelected = new Color(0.20f, 0.28f, 0.38f, 1f);
+        private static readonly Color ColorBottomBar = new Color(0.063f, 0.086f, 0.133f, 1f);
+        private static readonly Color ColorTextPrimary = new Color(1f, 1f, 1f, 1f);          // 흰색
+        private static readonly Color ColorTextSecondary = new Color(0.62f, 0.70f, 0.78f, 1f); // 회백
+        private static readonly Color ColorTextDim = new Color(0.45f, 0.52f, 0.60f, 1f);
+        private static readonly Color ColorAccent = new Color(0.35f, 0.65f, 0.90f, 1f);      // 스카이블루
+        private static readonly Color ColorBorder = new Color(0.063f, 0.086f, 0.133f, 1f);
         private static readonly Color ColorBtnTakeAll = new Color(0.30f, 0.45f, 0.25f, 1f);
         private static readonly Color ColorBtnTakeAllHover = new Color(0.40f, 0.55f, 0.30f, 1f);
 

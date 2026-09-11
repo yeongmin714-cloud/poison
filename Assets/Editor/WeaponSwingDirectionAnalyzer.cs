@@ -234,7 +234,8 @@ public static class WeaponSwingDirectionAnalyzer
         float z = props.TryGetValue("m_LocalRotation.z", out var cz) ? cz.Evaluate(time) : 0f;
         float w = props.TryGetValue("m_LocalRotation.w", out var cw) ? cw.Evaluate(time) : 1f;
         var q = new Quaternion(x, y, z, w);
-        return q.sqrMagnitude > 1e-10f ? q.normalized : Quaternion.identity;
+        float sq = q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
+        return q.w != 0f || sq > 1e-10f ? q.normalized : Quaternion.identity;
     }
 
     /// <summary>스테이지별 회전 통계 — 순 변화(net)/최대 프레임 각(peak)/총 활동량(total).</summary>
@@ -415,7 +416,7 @@ public static class WeaponSwingDirectionAnalyzer
         var sb = new StringBuilder($"[SwingDir] 프레임별 오일러 덤프({ShortBoneName(best)}, yaw/pitch/roll°, 전 {totalFrames}프레임):\n");
         for (int f = 0; f <= totalFrames; f++)
         {
-            Vector3 e = frameTraces[f];
+            Vector3 e = trace[f];
             sb.Append($"f{f}:{e.y:F0}/{e.x:F0}/{e.z:F0}  ");
             if ((f + 1) % 6 == 0) sb.Append('\n');
         }

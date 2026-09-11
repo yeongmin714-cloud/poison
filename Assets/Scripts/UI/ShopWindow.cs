@@ -625,7 +625,7 @@ namespace ProjectName.UI
                 fontSize = 96,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = Color.yellow }
+                normal = { textColor = Color.white }   // 타이틀 흰색
             };
             
             // 슬롯 배경
@@ -658,7 +658,7 @@ namespace ProjectName.UI
             {
                 fontSize = 48,
                 alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = Color.yellow }
+                normal = { textColor = new Color(0.35f, 0.65f, 0.90f, 1f) }   // 가격 스카이블루
             };
             
             // 재고
@@ -666,7 +666,7 @@ namespace ProjectName.UI
             {
                 fontSize = 48,
                 alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = Color.cyan }
+                normal = { textColor = new Color(0.62f, 0.70f, 0.78f, 1f) }   // 재고 회백
             };
             
             // 희귀 태그
@@ -675,7 +675,7 @@ namespace ProjectName.UI
                 fontSize = 44,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = Color.magenta }
+                normal = { textColor = new Color(0.35f, 0.65f, 0.90f, 1f) }   // 희귀태그 스카이블루
             };
             
             // 버튼들
@@ -713,7 +713,7 @@ namespace ProjectName.UI
             // 패널 외곽 박스
             _stylePanelBox = new GUIStyle(GUI.skin.box)
             {
-                normal = { background = MakeTexture(1, 1, new Color(0.1f, 0.05f, 0.15f, 0.95f)), textColor = Color.white },
+                normal = { background = MakeTexture(1, 1, new Color(0.063f, 0.086f, 0.133f, 0.95f)), textColor = Color.white },   // 다크네이비 패널
                 border = new RectOffset(2, 2, 2, 2),
                 padding = new RectOffset(0, 0, 0, 0),
                 margin = new RectOffset(0, 0, 0, 0)

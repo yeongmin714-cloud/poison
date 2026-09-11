@@ -470,14 +470,14 @@ namespace ProjectName.Systems
                 // 판정해 정확히 1회만 발화한다. 경계: stage1 완료=0.331, stage2 완료=0.676, stage3 완료=클립 끝(1.0).
                 // 현재 스테이지와 무관하게 3개 경계를 모두 검사 — 클릭으로 스테이지가 같은 프레임에
                 // 건너뛰더라도 직전 스테이지의 완료 크로스를 놓치지 않는다.
-                for (int k = 0; k < _comboCrossFired.Length; k++)
+                for (int cIdx = 0; cIdx < _comboCrossFired.Length; cIdx++)
                 {
-                    if (_comboCrossFired[k]) continue;
-                    float crossBoundary = k < ComboEndNormT.Length ? ComboEndNormT[k] : 1f;
+                    if (_comboCrossFired[cIdx]) continue;
+                    float crossBoundary = cIdx < ComboEndNormT.Length ? ComboEndNormT[cIdx] : 1f;
                     if (_comboCrossPrevValid && _comboCrossPrevNormT < crossBoundary && normT >= crossBoundary)
                     {
-                        _comboCrossFired[k] = true;
-                        FireComboCross(k + 1);
+                        _comboCrossFired[cIdx] = true;
+                        FireComboCross(cIdx + 1);
                     }
                 }
                 _comboCrossPrevNormT = normT;

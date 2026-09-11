@@ -384,7 +384,116 @@ namespace ProjectName.Systems
             _detectionGauge = Mathf.Clamp(_detectionGauge + amount, 0f, 100f);
         }
 
+        // ===== 2026-09-11: 은신 렌더 피드 — 상태 변화 시에만 토글 =====
+        private void UpdateStealthFeed()
+        {
+            if (_feedApplied == _isStealthed) return;
+            _feedApplied = _isStealthed;
+            ApplyStealthFeed(_isStealthed);
+        }
+
+        /// <summary>플레이어 하위 렌더러/머티리얼 캐시 수집 (중복 방지).</summary>
+        private void EnsureFeedCache()
+        {
+            if (_feedMaterials != null && _feedMaterials.Length > 0) return;
+
+            try
+            {
+                var target = _playerMovement != null ? _playerMovement.gameObject : gameObject;
+                var rends = target.GetComponentsInChildren<Renderer>(true);
+                var matSet = new System.Collections.Generic.HashSet<Material>();
+                var rendList = new System.Collections.Generic.List<Renderer>();
+
+                foreach (var r in rends)
+                {
+                    if (r == null) continue;
+                    var mats = r.materials; // 인스턴스 머티리얼
+                    bool added = false;
+                    foreach (var m in mats)
+                    {
+                        if (m == null) continue;
+                        if (matSet.Add(m)) added = true;
+                    }
+                    if (added) rendList.Add(r);
+                }
+
+                _feedRenderers = rendList.ToArray();
+                var matList = new System.Collections.Generic.List<Material>(matSet);
+                _feedMaterials = matList.ToArray();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[StealthSystem] 피드 캐시 수집 실패: {e.Message}");
+                _feedRenderers = new Renderer[0];
+                _feedMaterials = new Material[0];
+            }
+        }
+
+        /// <summary>은신 피드 적용/해제 — 실패해도 은신 코어 로직은 절대 막히지 않게 전체 try-catch.</summary>
+        private void ApplyStealthFeed(bool on)
+        {
+            try
+            {
+                EnsureFeedCache();
+                if (_feedMaterials == null) return;
+
+                foreach (var mat in _feedMaterials)
+                {
+                    if (mat == null) continue;
+
+                    if (on)
+                    {
+                        // URP 전용: Opaque → Transparent 전환
+                        if (mat.HasProperty("_Surface"))
+                            mat.SetFloat("_Surface", 1f);
+                        if (mat.HasProperty("_BaseColor"))
+                        {
+                            if (!_feedOrigBase.ContainsKey(mat))
+                                _feedOrigBase[mat] = mat.GetColor("_BaseColor");
+                            Color c = _feedOrigBase[mat];
+                            c.a = STEALTH_FEED_ALPHA;
+                            mat.SetColor("_BaseColor", c);
+                        }
+                        if (mat.HasProperty("_Color"))
+                        {
+                            if (!_feedOrigColor.ContainsKey(mat))
+                                _feedOrigColor[mat] = mat.GetColor("_Color");
+                            Color c = _feedOrigColor[mat];
+                            c.a = STEALTH_FEED_ALPHA;
+                            mat.SetColor("_Color", c);
+                        }
+
+                        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                        mat.SetInt("_ZWrite", 0);
+                        mat.DisableKeyword("_ALPHATEST_ON");
+                        mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                        mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                    }
+                    else
+                    {
+                        // 원본색 복원 + Opaque 복귀
+                        if (mat.HasProperty("_BaseColor") && _feedOrigBase.TryGetValue(mat, out Color baseCol))
+                            mat.SetColor("_BaseColor", baseCol);
+                        if (mat.HasProperty("_Color") && _feedOrigColor.TryGetValue(mat, out Color col))
+                            mat.SetColor("_Color", col);
+
+                        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                        mat.SetInt("_ZWrite", 1);
+                        mat.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                        mat.renderQueue = -1;
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[StealthSystem] 은신 피드 적용 실패 (은신 자체에는 영향 없음): {e.Message}");
+            }
+        }
+
         // ===== IMGUI: 비네트 효과 =====
+        private void OnGUI()
         {
             if (!_isStealthed) return;
 
