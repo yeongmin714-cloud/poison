@@ -1994,3 +1994,28 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | Test_09 창고 시딩 | `TestAllInOneSetup.cs` — `SetupWarehouse()`: 박스 2개(10,0.55,7)/(-12,0.55,0), TerritoryWarehouse 리플렉션 부착+`Configure("wh_test_09",64,3f)`, `_maxSlotsPerTerritory` 20→64, `SeedAllItemsToWarehouse` 전 무기/방어구/도구/Gold 999 등 33종+, E키 상호작용 오픈 | ✅ |
 | 검증 | 배치컴파일 `error CS=0`, 정적 QA 5파일(중괄호 균형, 잔여 참조 0건, 폴백 1쌍, bool 시그니처 일치, AddForce/position 무접촉) 통과 | ✅ |
 | Play 판정 대기 | Test_10 몬스터 좌클릭 시 HP바 감소+플린치, 클릭 즉시 스윙 FX, 피격 시 HitLight, Test_09 창고 E키 오픈+전 무기 장착 테스트 | ⬜ |
+
+---
+
+## 🛠️ 2026-09-11: 사망루프 완결+UI 플랫 리디자인+실측 스윙 FX (DEATH-LOOP-UI-22)
+
+> **목표:** 몬스터 사망 루프 완결(시체 처리+분열 게이트), 병사 T포즈 근본원인(FBX 리소스 경로 오타) 수리, Test_10 창고 territoryId/슬롯 절단 수리, 매 클릭 스윙 FX+십자가 VFX+피격 임팩트, UI 플랫 전면 리디자인, 창고 닫기/DnD/I키/은신, WeaponSwingDirectionAnalyzer 실측 스윙 방향 적용.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 사망 루프 완결 — 시체 처리 | `AnimalAI.cs` `Die()` — 자식 렌더러/콜라이더 전체 + MonsterHeadUI 일괄 토글, 전리품 바구니 스폰 로그, 최소 전리품 보장(빈 바구니 방지), `TryAutoHunt` 동일 계약 | ✅ |
+| 슬라임 분열 게이트 | `MonsterSkillSystem.SlimeSplitEnabled`(기본 true, 685 게이트), `TestTerritoryCombatSetup.cs` 29에서 `false` — 분열체는 AnimalAI만 부착 풀HP 구체 | ✅ |
+| 병사 T포즈 근본 수리 | FBX 경로 오타 `soldier_lv1-20` → **`soldier_lv1-20_rigged`**(Humanoid 임포트 animationType:3) — `TerritoryBuilder.cs` 541-543 + `TestTerritoryCombatSetup.cs` 656-665 둘 다 수리, 기존 경로 항상 null→GLB 폴백(T포즈)이 근본원인 | ✅ |
+| Test_10 창고 수리 | 박스 territoryId `wh_test_1`/`wh_test2` → **`wh_test`** 통일 + 64슬롯(`Configure("wh_test",64,3f)`) — 시딩 33종이 20슬롯 절단→무기 1종만 보였던 원인 수정 | ✅ |
+| 매 클릭 스윙 FX | `HumanoidClipDriver.cs` — 4클릭 콤보 무시 → **4클릭 재시작**, 십자가 VFX `SlashVFXRunner.PlayCross`(Multiple Slashes 인스톨러 포함) 타 완료 지점 발화 | ✅ |
+| 플레이어 피격 임팩트 | HP 감소 엣지에서 `PlayImpact(BasicHit)` 발화(Organic 매핑) — 하트+HitLight+임팩트 FX 3중 피드백 | ✅ |
+| UI 플랫 리디자인 | `InventoryArtLibrary.ArtStyleMode.Flat`(기본) — 다크 네이비 반투명+회백 라운드 보더+스카이블루 하이라이트, 인벤/스탯/상점/크래프트/Loot/창고 창 일괄 교체 | ✅ |
+| 창고 닫기 3중 | `TerritoryWarehouse.cs` — E 토글 + ESC + 3m 상호작용 반경 이탈 자동 닫기 | ✅ |
+| 드래그앤드롭 | `ItemDragContext.cs`(신규, `using ProjectName.Core`) — 인벤↔창고 이동/슬롯교체/핫바/고스트(프레임 스탬프 가드, Icon 파기 금지) | ✅ |
+| Test_09 바인딩+시딩 수리 | I키 — UIInventoryHotkey 리플렉션 부착+Bind 연결, 시딩 — 존재하지 않는 `AddItem(string,int)` 리플렉션 호출 무음 실패 수정 | ✅ |
+| 은신 모드 | `EnsureStealthSystem()` 부트 보장(Instance 없으면 Player 부착), 렌더러 반투명 피드(URP 표면 전환), 은신물약 시딩 | ✅ |
+| 스윙 방향 실측 | `WeaponSwingDirectionAnalyzer.cs` v4 — Heat 리그 리타깃+RightHand PlayableGraph 샘플링(Meshy FBX 스켈레톤 4뼈 한계 → 플레이어 리그 샘플). 실측: **1타 yaw -58°/pitch 1°(좌전방 수평), 2타 pitch 78°(수직 상승), 3타 yaw 143.6°/pitch 29°(우후방 사선)** → `FireComboSlash` 상수 교체(2타 roll -90 수직 궤적) | ✅ |
+| 검증 | 배치컴파일 `error CS=0` + QaValidator 전체 통과(Errors:0), 정적 QA 22파일 brace/paren/bracket 균형 통과, `_rigged` 잔여 누락 0건, `SlimeSplitEnabled` 정의+게이트, `PlayCross` 정의+호출, `Euler(1.3f, -58f` 실측 상수, `ItemDragContext` using ProjectName.Core | ✅ |
+| Play 판정 대기 | 몬스터 좌클릭 HP바 감소+사망 시체 소멸+바구니 드랍, 병사 걷기 애니, 클릭마다 스윙+십자가 FX 방향 정합, 플레이어 피격 하트+HitLight+임팩트, 창고 E토글/ESC/3m이탈+우클릭 장착+DnD, Test_09 I키 인벤, C키 은신+반투명, 창고 무기 3종 | ⬜ |
+
+실측 상수(`HumanoidClipDriver.cs` `ComboStageDirection`): 1타 `Euler(1.3f, -58f, 0f)`, 2타 `Euler(0f, 63.2f, 0f)`+roll -90(실측 pitch 78° 수직 상승 접선), 3타 `Euler(28.7f, 143.6f, 0f)` — 위치/거리(up 1.25m, 전방 1.1m)는 Play 판정 후 튜닝.

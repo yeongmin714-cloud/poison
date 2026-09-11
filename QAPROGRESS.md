@@ -4,7 +4,70 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-11 (21차)
+> **최종 갱신:** 2026-09-11 (22차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-11 ✅ 22차 — 사망루프 완결+병사애니+UI 플랫 리디자인+실측 스윙 방향)
+
+> **스코프**: 몬스터 사망 루프 완결(Die() 시체 처리 수리 + 슬라임 분열 테스트게이트), 병사 T포즈 근본원인(FBX 리소스 경로 `_rigged` 오타) 수리, Test_10 창고 territoryId 불일치+20슬롯 절단 수리, 매 클릭 스윙 FX(4클릭 콤보 재시작), 십자가 VFX PlayCross 타 완료 지점 발화, 플레이어 피격 BasicHit 임팩트, UI 플랫 전면 리디자인(Flat 모드), 창고 닫기(E토글+ESC+3m이탈), 드래그앤드롭(ItemDragContext), Test_09 I키 바인딩+시딩 리플렉션 버그 수리, 은신 모드(StealthSystem 부트 보장+반투명 피드), 스윙 방향 실측(WeaponSwingDirectionAnalyzer v4 리그 리타깃)→FireComboSlash 상수 교체.
+
+### 변경 사항
+**`Systems/AnimalAI.cs`** — 사망 루프 완결:
+- `Die()` 시체 처리 수리 — 자식 렌더러/콜라이더 전체 + 부착된 MonsterHeadUI 일괄 토글(자식 포함 탐색, GLB 루트 무렌더러 보완), 전리품 바구니 스폰 로그(🧺)
+- 최소 전리품 보장 — 바구니가 빈 채로 소멸하지 않도록 guaranteedItem x1 자동 추가
+- `TryAutoHunt` 동일 계약 — 사망 판정/드랍 반환 경로 동일화
+
+**`Systems/MonsterSkillSystem.cs` + `TestTerritoryCombatSetup.cs`** — 슬라임 분열 테스트게이트:
+- `SlimeSplitEnabled` static 게이트 신설(기본 true) → Test_10에서 `false` 설정("몬스터가 안 죽고 늘어난다" 체감 차단, 분열체는 AnimalAI만 부착된 풀HP 구체)
+
+**`Systems/TestTerritoryCombatSetup.cs` + `TerritoryBuilder.cs`** — 병사 T포즈 근본원인 수리:
+- FBX 리소스 경로 오타 — `soldier_lv1-20` → **`soldier_lv1-20_rigged`**(실제 FBX 에셋명에 `_rigged` 접미사, Humanoid 임포트 animationType:3, Player_Rigged_Heat.fbx 동일 계약). 기존 경로는 항상 null 로드 → GLB 폴백(T포즈 지속)이 근본원인
+- 두 호출부(TerritoryBuilder 541-543 + TestTerritoryCombatSetup 656-665) 모두 수리, GLB 원본 머티리얼 복용 경로 병행 유지
+
+**`Systems/TestTerritoryCombatSetup.cs`** — Test_10 창고 수리:
+- 박스 territoryId 불일치 수리 — `wh_test_1`/`wh_test2` → **`wh_test`** 단일 ID 통일(시딩과 조회 불일치 제거)
+- 64슬롯 확장 — 시딩 33종이 20슬롯 절단 → 무기 1종만 보였던 원인 수정(`Configure("wh_test",64,3f)`)
+
+**`Systems/HumanoidClipDriver.cs`** — 매 클릭 스윙 FX + 실측 상수:
+- 4클릭 콤보 완전 무시 → **4클릭 시 콤보 재시작**(1타부터)
+- 십자가 VFX `PlayCross` — 타 완료 지점 발화(스윙과 동일 위치/방향 계약)
+- 플레이어 피격 임팩트 FX — HP 감소 엣지에서 `PlayImpact(BasicHit)` 발화(Organic 매핑)
+- 스윙 방향 실측 상수 적용 — 1타 `Euler(1.3f, -58f)`(좌전방 수평), 2타 yaw 63.2°+roll -90(실측 pitch 78° 수직 상승 궤적), 3타 `Euler(28.7f, 143.6f)`(우후방 사선)
+
+**`Editor/WeaponSwingDirectionAnalyzer.cs` (v4)** — 스윙 방향 실측:
+- Heat 리그 리타깃 + RightHand PlayableGraph 샘플링(Meshy FBX는 스켈레톤 4뼈뿐 → 플레이어 리그로 샘플)
+- 실측 결과: 1타 yaw **-58°**/pitch 1°, 2타 pitch **78°**(수직 상승), 3타 yaw **143.6°**/pitch 29° → `FireComboSlash` 상수 교체 완료
+
+**`UI/InventoryArtLibrary.cs` + 전 창 UI** — 플랫 전면 리디자인:
+- `ArtStyleMode.Flat` 신설(기본) — 다크 네이비 반투명 백플레이트 + 회백 라운드 보더 + 스카이블루 하이라이트, static 지연 생성 캐시(파기 금지)
+- 인벤/스탯창/상점/크래프트/Loot/창고 창 플랫 스타일 일괄 교체
+
+**`UI/TerritoryWarehouse.cs`** — 창고 닫기 + 드래그앤드롭:
+- 닫기 3중 — E 토글 + ESC + 3m 상호작용 반경 이탈 자동 닫기
+- `ItemDragContext` 신규 정적 컨텍스트(`using ProjectName.Core`) — 인벤↔창고 이동/슬롯교체/핫바/고스트 렌더(프레임 스탬프 가드, Icon 파기 금지)
+
+**`Systems/TestAllInOneSetup.cs`** — Test_09 바인딩+시딩 수리:
+- I키 바인딩 수리 — UIInventoryHotkey 리플렉션 Bind 연결(부착+Bind 2단)
+- 시딩 리플렉션 버그 수정 — 존재하지 않는 `AddItem(string,int)` 시그니처 호출로 전부 무음 실패 중이던 것 수리
+
+**`Systems/StealthSystem.cs` + `TestAllInOneSetup.cs`** — 은신 모드:
+- StealthSystem 부트 보장(Instance 없으면 Player에 부착 — 이전 Test_09에서 C키 은신 무음)
+- 렌더러 반투명 피드(URP 표면 전환) + 은신물약 시딩
+
+### 검증
+- 배치컴파일: **`error CS=0`** + QaValidator 전체 통과(Errors:0, 배치 종료 return code 0)
+- 정적 QA(서브에이전트): git status 변경 파일 22개 렉서식 검증(문자열/주석 제외 brace/paren/bracket 균형) 전부 통과
+- grep 검증: `_rigged` 경로 잔여 누락 0건(TerritoryBuilder 541-543 + TestTerritoryCombatSetup 656-665 + RuntimeModelLoader 매핑), `SlimeSplitEnabled` 정의(MonsterSkillSystem 677)+게이트(685)+Test_10 false 설정(29), `PlayCross` 정의(SlashVFXRunner 94)+호출(HumanoidClipDriver 668), `Euler(1.3f, -58f` 실측 상수 반영(HumanoidClipDriver ComboStageDirection), `ItemDragContext` using ProjectName.Core 확인
+- 기능 존재 확인: Die() 시체 토글+바구니 스폰(AnimalAI 785/835/883), wh_test 단일 ID+64슬롯 Configure, 창고 ESC/3m 이탈 닫기(TerritoryWarehouse 109-124), I키 Bind(TestAllInOneSetup 529-551), EnsureStealthSystem 부트(558-573), Flat 모드(InventoryArtLibrary 28-72), Multiple Slashes 인스톨러(VFXResourceInstaller 31-68), BasicHit 임팩트(HumanoidClipDriver 346-351)
+
+### Play 판정 대기
+⬜ 몬스터 좌클릭→HP바 감소 + 사망 시 시체 소멸 + 바구니 드랍
+⬜ 병사 걷기 애니(FBX _rigged 로드 성공 → T포즈 해소)
+⬜ 클릭마다 스윙 FX + 십자가 FX 방향 정합(실측 -58°/수직상승/우후방 사선)
+⬜ 플레이어 피격 시 하트+HitLight+BasicHit 임팩트 FX
+⬜ 창고 E토글/ESC/3m이탈 닫기 + 우클릭 장착 + DnD(인벤↔창고)
+⬜ Test_09 I키 인벤 토글, C키 은신+렌더러 반투명, 창고 무기 3종 표시
 
 ---
 
