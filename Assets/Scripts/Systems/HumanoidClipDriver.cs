@@ -58,6 +58,31 @@ namespace ProjectName.Systems
         /// <summary>T-D3+: 외부 시스템 발화용 퍼블릭 트리거(채집/경직/스턴/다운).</summary>
         public void TriggerHarvest() { if (_anim != null) _anim.SetTrigger("Harvest"); }
         public void TriggerHitLight() { if (_anim != null) _anim.SetTrigger("HitLight"); }
+
+        private void OnDestroy()
+        {
+            PlayerHealth.OnPlayerDamaged -= OnPlayerDamagedFX;
+        }
+
+        /// <summary>플레이어 피격 확정 이벤트 핸들러 — 임팩트 FX + 데미지넘버 일괄 발화.</summary>
+        private void OnPlayerDamagedFX(Vector3 pos, float amount)
+        {
+            try
+            {
+                // 몬스터 피격과 동일 경로(CombatFXGate): 히트 플래시+스파크+임팩트+출혈+데미지넘버+카메라 히트.
+                // GameObject 오버로드 우선(플래시/데미지넘버 포함), 인스턴스 부재 시 위치 기반 오버로드 폴백.
+                var ph = PlayerHealth.Instance;
+                if (ph != null)
+                    CombatFXGate.PlayHitFX(ph.gameObject, Vector3.back, CombatHitType.Organic, false, amount, Color.white);
+                else
+                    CombatFXGate.PlayHitFX(pos, Vector3.back, CombatHitType.Organic, false, amount, Color.white);
+                Debug.Log($"[PlayerHit] 피격 임팩트 FX 발화 pos={pos} dmg={amount:F1}");
+            }
+            catch (System.Exception hitFxEx)
+            {
+                Debug.LogWarning($"[PlayerHit] 피격 임팩트 FX 실패(전투 계속): {hitFxEx.Message}");
+            }
+        }
         public void TriggerStun() { if (_anim != null) _anim.SetTrigger("Stun"); }
         public void TriggerKnockdown() { if (_anim != null) _anim.SetTrigger("Knockdown"); }
         public void TriggerSitDown() { if (_anim != null) _anim.SetTrigger("SitDown"); }
@@ -129,6 +154,12 @@ namespace ProjectName.Systems
                     _lastPos = transform.position;
                     break;
             }
+
+            // 이벤트 기반 플레이어 피격 임팩트 FX — PlayerHealth.OnPlayerDamaged 구독.
+            // 기존 HP 폴링 엣지 PlayImpact는 제거(중복 방지). Player 모드 드라이버만 구독해
+            // 다중 드라이버(Soldier 등) 환경에서 이중 발화를 차단. FX 실패는 전투 방해 금지 원칙대로 흡수.
+            if (mode == DriveMode.Player)
+                PlayerHealth.OnPlayerDamaged += OnPlayerDamagedFX;
 
             if (_anim != null) _anim.SetFloat("Speed", 0f);
 
@@ -341,20 +372,8 @@ namespace ProjectName.Systems
                 if (_prevPlayerHP >= 0f && hp < _prevPlayerHP - 0.001f && !ph.IsDead)
                 {
                     _anim.SetTrigger("HitLight");   // 피격 애니 — AnyState 트리거
-                    // #11: 플레이어 피격 임팩트 FX — 몬스터 피격은 CombatFXGate.PlayHitFX가 담당하지만
-                    // 플레이어 피격(PlayerHealth HP 감소)엔 임팩트가 없었다. 드라이버의 HP 엣지 감시 지점에서
-                    // SlashVFXRunner를 직접 호출(같은 어셈블리 — asmdef 순환 회피)해 BasicHit 임팩트를
-                    // 플레이어 몸(가슴 높이 +up 1.0)에 발화한다. FX 실패는 전투 방해 금지 원칙대로 흡수.
-                    try
-                    {
-                        var pt = _anim.transform;
-                        SlashVFXRunner.PlayImpact(pt.position + Vector3.up * 1.0f, CombatHitType.Organic);
-                        Debug.Log("[Combo] 플레이어 피격 임팩트 FX 발화");
-                    }
-                    catch (System.Exception pfxEx)
-                    {
-                        Debug.LogWarning($"[Combo] 플레이어 피격 임팩트 FX 실패(전투 계속): {pfxEx.Message}");
-                    }
+                    // 임팩트 FX는 PlayerHealth.OnPlayerDamaged 이벤트(Start 구독)로 이전 —
+                    // 폴링 엣지 PlayImpact는 제거(회복 동시 발생 엣지 흡수/드라이버 부재 누락 등 결함 차단 + 중복 발화 방지).
                 }
                 _prevPlayerHP = hp;
             }
