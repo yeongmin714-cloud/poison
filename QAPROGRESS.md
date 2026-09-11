@@ -4,7 +4,28 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-11 (29차)
+> **최종 갱신:** 2026-09-11 (30차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-11 ✅ 30차 — 몬스터 전리품 종류별 분리 + 병사 희귀 고급 아이템)
+
+> **스코프**: ① 몬스터 전리품을 티어 공용 DropTable(종류 무관 동일)에서 **개체별(토끼/멧돼지/늑대)로 완전 분리** ② 병사 드랍 테이블에 **희귀 고급 아이템(isRare) 6종 추가**. 컴파일 0 에러.
+
+### 변경 사항
+**`Systems/AnimalAI.cs`** — Die() 드랍 블록(단일 경로화):
+- `DropTableManager.GetMonsterTable(_tier)`(티어 공용) 경로 **제거** → 개체별 드랍이 **항상 1차** 적용(토끼=토끼고기/토끼털, 멧돼지=돼지고기/가죽/엄니 20%, 늑대=늑대고기/이빨/모피 30%, 기타=“{이름} 고기”(meat_id)+“{이름} 재료”(mat_id))
+- 레벨 희귀 보정(levelDropBonus)과 빈 바구니 최소보장(Gold) 유지
+- DropTableManager/다른 시스템은 미수정(드라큘라/스켈레톤/병사 영향 없음)
+
+**`Resources/DropTables/SoldierDropTable.asset`** — 희귀 고급 아이템 6종 추가(전부 `isRare: 1`, 저확률):
+- `weapon_sword_steel` 강철검 5% / `weapon_spear_stone` 돌창 3% / `steel_armor` 강철 갑옷 4% / `steel_helmet` 강철 투구 3% / `mat_wolf_fur` 늑대 모피 3% / `mat_wolf_tooth` 늑대 이빨 2%
+- id는 기존 장비 체계(WeaponEquipManager._itemIdToGlb, PlayerInventory 장비 상수, EquipmentStatBonus)에서 **재사용** → 우클릭 장착·아이콘·스탯 동작
+- 기존 4항목(gold/목검/나무창/가죽갑옷) 무손상, YAML 들여쓰기·유니코드 이스케이프 검증 통과
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **0 에러**(return 0)
+- SoldierDropTable `isRare: 1` 6건 확인, AnimalAI 중괄호/소괄호/대괄호 균형 OK
 
 ---
 

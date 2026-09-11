@@ -839,41 +839,37 @@ namespace ProjectName.Systems
             LootBasket basket = LootBasket.Create(transform.position);
             Debug.Log($"[AnimalAI] 🧺 전리품 바구니 스폰 ({transform.position.x:F1}, {transform.position.y:F1}, {transform.position.z:F1})");
 
-            DropTableManager dropMgr = DropTableManager.Instance;
-            DropTable dropTable = dropMgr != null ? dropMgr.GetMonsterTable(_tier) : null;
+            // [전리품 종별 분리 2026-09-11] 티어 공용 DropTable(GetMonsterTable) 경로 제거.
+            // 기존에는 같은 티어면 토끼/멧돼지/늑대가 전부 동일한 티어 테이블 전리품을 뽑는 문제가 있었음.
+            // 이제 항상 개체별 드랍(_meatDrop/_materialDrop/_rareDrop — SetAutoDrops가 몬스터 ID별로 설정:
+            // 토끼=토끼고기+토끼털, 멧돼지=멧돼지고기+멧돼지가죽+멧돼지엄니, 늑대=늑대고기+늑대이빨+늑대털)이
+            // 유일한 드랍 경로이며 1차로 적용된다. (공용 DropTable과 결합하지 않음 → 중복 드랍 방지)
 
-            // [5.3.5] 레벨 기반 희귀 드랍률 보정
+            // [5.3.5] 레벨 기반 희귀 드랍률 보정 (유지)
             float levelDropBonus = 0f;
             if (MonsterLevelManager.Instance != null)
                 levelDropBonus = MonsterLevelManager.Instance.GetDropRateBonus(_level);
 
-            if (dropTable != null)
+            // 개체별 드랍 적용: 고기(_minMeat~_maxMeat) + 재료(_materialCount) + 희귀(확률+레벨보정)
+            int meatCount = _minMeat == _maxMeat ? _minMeat : Random.Range(_minMeat, _maxMeat + 1);
+            if (_meatDrop != null && meatCount > 0)
             {
-                dropTable.ApplyToBasket(basket, levelDropBonus);
+                basket.AddItem(_meatDrop, meatCount);
             }
-            else
+            if (_materialDrop != null && _materialCount > 0)
             {
-                // Fallback to default drops (original logic)
-                int meatCount = _minMeat == _maxMeat ? _minMeat : Random.Range(_minMeat, _maxMeat + 1);
-                if (_meatDrop != null && meatCount > 0)
-                {
-                    basket.AddItem(_meatDrop, meatCount);
-                }
-                if (_materialDrop != null && _materialCount > 0)
-                {
-                    basket.AddItem(_materialDrop, _materialCount);
-                }
-                // [5.3.5] 레벨 보정된 희귀 드랍 확률
-                float finalRareChance = Mathf.Clamp01(_rareDropChance + levelDropBonus);
-                if (_rareDrop != null && Random.value < finalRareChance)
-                {
-                    basket.AddItem(_rareDrop, 1);
-                    Debug.Log($"[AnimalAI] ★ 희귀 드롭! {_rareDrop.displayName} (레벨보정: +{levelDropBonus * 100:F0}%)");
-                }
+                basket.AddItem(_materialDrop, _materialCount);
+            }
+            // [5.3.5] 레벨 보정된 희귀 드랍 확률
+            float finalRareChance = Mathf.Clamp01(_rareDropChance + levelDropBonus);
+            if (_rareDrop != null && Random.value < finalRareChance)
+            {
+                basket.AddItem(_rareDrop, 1);
+                Debug.Log($"[AnimalAI] ★ 희귀 드롭! {_rareDrop.displayName} (레벨보정: +{levelDropBonus * 100:F0}%)");
             }
 
             // === 최소 전리품 보장: 바구니가 절대 빈 채로 소멸하지 않도록 ===
-            // DropTable 미적용 또는 적용 결과가 빈 경우 기본 아이템(고기 → 없으면 금화) 1개 이상 보장
+            // 개체별 드랍 적용 결과가 빈 경우 기본 아이템(고기 → 없으면 금화) 1개 이상 보장
             if (basket.IsEmpty)
             {
                 PlayerInventory.ItemData guaranteedItem = _meatDrop != null ? _meatDrop : PlayerInventory.Gold;
