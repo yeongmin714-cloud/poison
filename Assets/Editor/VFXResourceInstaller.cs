@@ -28,6 +28,7 @@ namespace ProjectName.EditorTools
     public static class VFXResourceInstaller
     {
         private const string SlashSource = "Assets/Free Slash VFX/Prefabs/Slash VFX.prefab";
+        private const string MultipleSlashesSource = "Assets/Free Slash VFX/Prefabs/Multiple Slashes.prefab";
         private const string BasicHitSource = "Assets/Matthew Guz/Hits Effects FREE/Prefab/Basic Hit .prefab";
         private const string BasicHit2Source = "Assets/Matthew Guz/Hits Effects FREE/Prefab/Basic Hit 2.prefab";
 
@@ -35,6 +36,7 @@ namespace ProjectName.EditorTools
         private const string ImpactFolder = "Assets/Resources/FX/Impact";
 
         private const string SlashDest = "Assets/Resources/FX/Slash/Slash VFX.prefab";
+        private const string MultipleSlashesDest = "Assets/Resources/FX/Slash/Multiple Slashes.prefab";
         private const string BasicHitDest = "Assets/Resources/FX/Impact/BasicHit.prefab";
         private const string BasicHit2Dest = "Assets/Resources/FX/Impact/BasicHit2.prefab";
 
@@ -51,6 +53,7 @@ namespace ProjectName.EditorTools
 
             // 2) 복사 (멱등: 대상 존재 시 삭제 후 복사, 소스 없으면 경고 후 계속)
             installed += CopyIdempotent(SlashSource, SlashDest);
+            installed += CopyIdempotent(MultipleSlashesSource, MultipleSlashesDest);
             installed += CopyIdempotent(BasicHitSource, BasicHitDest);
             installed += CopyIdempotent(BasicHit2Source, BasicHit2Dest);
 
@@ -62,6 +65,7 @@ namespace ProjectName.EditorTools
 
             // 4) 검증: 복사본 로드 → 셰이더 이름 수집 → 마젠타 감지
             ValidateCopiedPrefab(SlashDest, "Slash VFX");
+            ValidateCopiedPrefab(MultipleSlashesDest, "Multiple Slashes (십자 다중 슬래시)");
             ValidateCopiedPrefab(BasicHitDest, "BasicHit (Organic)");
             ValidateCopiedPrefab(BasicHit2Dest, "BasicHit2 (Construct)");
 
@@ -69,7 +73,7 @@ namespace ProjectName.EditorTools
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            Debug.Log($"[VFXInstaller] ✅ 설치 완료: {installed}/3 프리팹이 Resources 하위에 준비됨, 빌트인→URP 머티리얼 변환 {converted}종 (Assets/Resources/FX/Slash, Assets/Resources/FX/Impact)");
+            Debug.Log($"[VFXInstaller] ✅ 설치 완료: {installed}/4 프리팹이 Resources 하위에 준비됨, 빌트인→URP 머티리얼 변환 {converted}종 (Assets/Resources/FX/Slash, Assets/Resources/FX/Impact)");
         }
 
         /// <summary>parentFolder 아래에 folderName이 없으면 생성.</summary>

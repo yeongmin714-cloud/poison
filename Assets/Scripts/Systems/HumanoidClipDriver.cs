@@ -34,6 +34,10 @@ namespace ProjectName.Systems
         private int _comboStage;          // 0=비활성, 1..3 = 현재 스테이지(클릭 수)
         private float _comboStartTime = -999f;
         private float _comboPinGraceStart = -999f;
+        // #13: 타 완료 시점 십자가 VFX(Multiple Slashes) — 스테이지별 1회 발화 플래그 + 경계 통과 엣지 판정용
+        private readonly bool[] _comboCrossFired = new bool[3]; // 인덱스 0..2 = stage1..3 완료 크로스 발화 여부
+        private float _comboCrossPrevNormT;                     // 직전 감시 프레임의 normT
+        private bool _comboCrossPrevValid;                      // 첫 감시 프레임은 prev 없음(엣지 판정 스킵)
         private int _legacyImpactFired;   // 레거시 Attack* 상태 1회 슬래시 플래그
         private int _prevAttackStateHash = -1;
 
@@ -335,7 +339,23 @@ namespace ProjectName.Systems
             {
                 float hp = ph.CurrentHP;
                 if (_prevPlayerHP >= 0f && hp < _prevPlayerHP - 0.001f && !ph.IsDead)
+                {
                     _anim.SetTrigger("HitLight");   // 피격 애니 — AnyState 트리거
+                    // #11: 플레이어 피격 임팩트 FX — 몬스터 피격은 CombatFXGate.PlayHitFX가 담당하지만
+                    // 플레이어 피격(PlayerHealth HP 감소)엔 임팩트가 없었다. 드라이버의 HP 엣지 감시 지점에서
+                    // SlashVFXRunner를 직접 호출(같은 어셈블리 — asmdef 순환 회피)해 BasicHit 임팩트를
+                    // 플레이어 몸(가슴 높이 +up 1.0)에 발화한다. FX 실패는 전투 방해 금지 원칙대로 흡수.
+                    try
+                    {
+                        var pt = _anim.transform;
+                        SlashVFXRunner.PlayImpact(pt.position + Vector3.up * 1.0f, CombatHitType.Organic);
+                        Debug.Log("[Combo] 플레이어 피격 임팩트 FX 발화");
+                    }
+                    catch (System.Exception pfxEx)
+                    {
+                        Debug.LogWarning($"[Combo] 플레이어 피격 임팩트 FX 실패(전투 계속): {pfxEx.Message}");
+                    }
+                }
                 _prevPlayerHP = hp;
             }
 
@@ -406,12 +426,31 @@ namespace ProjectName.Systems
                         FireComboSlash(_comboStage);   // 클릭 즉시 스윙 FX — 임팩트 프레임 대기 없음
                         Debug.Log($"[Combo] 스테이지 {_comboStage} 진행 (플레이헤드 이어받기)");
                     }
+                    else if (inCombo && _comboStage >= 3)
+                    {
+                        // #6: 4번째 클릭 — 콤보 재시작으로 매 클릭 스윙 FX 보장 (기존엔 완전 무시됨).
+                        // 3타가 이미 끝난 시점(normT>=1)의 클릭이면 미발화 완료 크로스를 먼저 1회 발화하고
+                        // 새 사이클을 1타부터 시작한다.
+                        if (!_comboCrossFired[2] && stInfo.normalizedTime >= 1f)
+                        {
+                            _comboCrossFired[2] = true;
+                            FireComboCross(3);
+                        }
+                        _anim.Play(ComboStateName, 0, 0f);
+                        _comboStage = 1;
+                        _comboPinGraceStart = -999f;
+                        _comboStartTime = Time.time;
+                        ResetComboCrossFlags();
+                        FireComboSlash(1);   // 재시작 즉시 1타 스윙 FX
+                        Debug.Log("[Combo] 재시작 (4번째 클릭 → 1타부터 새 사이클)");
+                    }
                     else if (!inCombo)
                     {
                         _anim.Play(ComboStateName, 0, 0f);
                         _comboStage = 1;
                         _comboPinGraceStart = -999f;
                         _comboStartTime = Time.time;
+                        ResetComboCrossFlags();
                         FireComboSlash(1);   // 클릭 즉시 스윙 FX — 임팩트 프레임 대기 없음
                         Debug.Log("[Combo] WeaponCombo 1타 시작");
                     }
@@ -420,11 +459,29 @@ namespace ProjectName.Systems
                 }
             }
 
-            // ── WeaponCombo per-frame 감시: 경계 플레이헤드 홀드 + 종료 (스윙 FX는 클릭 즉시 발화로 이동) ──
+            // ── WeaponCombo per-frame 감시: 경계 플레이헤드 홀드 + 종료 + 타 완료 크로스 FX ──
             var st = _anim.GetCurrentAnimatorStateInfo(0);
             if (st.IsName(ComboStateName) && _comboStage > 0)
             {
                 float normT = st.normalizedTime; // 단발 클립: 0→1
+
+                // #13: 타 완료 경계 통과 엣지 → 십자가 VFX(Multiple Slashes) 스테이지별 1회.
+                // 홀드 중 Play 재호출로 normT가 경계에 고정되므로 "직전 프레임 미통과 → 통과" 엣지로
+                // 판정해 정확히 1회만 발화한다. 경계: stage1 완료=0.331, stage2 완료=0.676, stage3 완료=클립 끝(1.0).
+                // 현재 스테이지와 무관하게 3개 경계를 모두 검사 — 클릭으로 스테이지가 같은 프레임에
+                // 건너뛰더라도 직전 스테이지의 완료 크로스를 놓치지 않는다.
+                for (int k = 0; k < _comboCrossFired.Length; k++)
+                {
+                    if (_comboCrossFired[k]) continue;
+                    float crossBoundary = k < ComboEndNormT.Length ? ComboEndNormT[k] : 1f;
+                    if (_comboCrossPrevValid && _comboCrossPrevNormT < crossBoundary && normT >= crossBoundary)
+                    {
+                        _comboCrossFired[k] = true;
+                        FireComboCross(k + 1);
+                    }
+                }
+                _comboCrossPrevNormT = normT;
+                _comboCrossPrevValid = true;
 
                 if (_comboStage < 3)
                 {
@@ -446,6 +503,7 @@ namespace ProjectName.Systems
                 // WeaponCombo 상태가 아닌데 콤보 플래그만 남은 경우(Roll/Jump/Hit 등 인터럽트) — 유예 후 리셋
                 _comboStage = 0;
                 _comboPinGraceStart = -999f;
+                ResetComboCrossFlags();
                 Debug.Log("[Combo] 인터럽트 리셋");
             }
 
@@ -537,12 +595,25 @@ namespace ProjectName.Systems
             _anim.CrossFade("Idle", ComboExitBlend, 0);
             _comboStage = 0;
             _comboPinGraceStart = -999f;
+            ResetComboCrossFlags();   // #13: 종료 시 완료 크로스 플래그 리셋 — 다음 콤보에서 재발화 가능
             Debug.Log($"[Combo] 종료({reason})");
         }
 
         /// <summary>
+        /// #13: 타 완료 크로스 플래그 리셋 — 콤보 시작/재시작/종료/인터럽트 리셋 시 호출.
+        /// prev normT도 무효화해 직전 콤보의 잔여 normT로 인한 가짜 엣지를 방지한다.
+        /// </summary>
+        private void ResetComboCrossFlags()
+        {
+            for (int i = 0; i < _comboCrossFired.Length; i++) _comboCrossFired[i] = false;
+            _comboCrossPrevNormT = 0f;
+            _comboCrossPrevValid = false;
+        }
+
+        /// <summary>
         /// 콤보 스윙 FX — 클릭 즉시 발화(임팩트 프레임 대기 없음). 타마다 스윙 방향이 다른 Slash VFX를 발화한다.
-        /// 방향 각도(-30°/35°, roll -90°)와 위치/거리(up 1.25m, 전방 1.1m)는 Play 판정 후 조정하는 튜닝 상수.
+        /// 방향 각도(-30°/35°, roll -90°)와 위치/거리(up 1.25m, 전방 1.1m)는 Play 판정 후 조정하는 튜닝 상수
+        /// (실측 교체 예정 — Assets/Editor/WeaponSwingDirectionAnalyzer.cs 측정값 반영).
         /// try-catch 감싸기: FX 실패가 전투를 절대 방해하지 않게 함 (프로젝트 관례).
         /// </summary>
         private void FireComboSlash(int stage)
@@ -550,23 +621,8 @@ namespace ProjectName.Systems
             try
             {
                 var t = _anim.transform;
-                Vector3 dir;
-                float roll;
-                switch (stage)
-                {
-                    case 2:
-                        dir = Quaternion.AngleAxis(35f, Vector3.up) * t.forward; // 2타: 우측 35° 스윙 방향
-                        roll = 0f;
-                        break;
-                    case 3:
-                        dir = t.forward;   // 3타: 전방 — roll -90으로 궤적 평면을 기울여 수직 하향 궤적
-                        roll = -90f;
-                        break;
-                    default:               // 1타: 좌측 -30° 스윙 방향
-                        dir = Quaternion.AngleAxis(-30f, Vector3.up) * t.forward;
-                        roll = 0f;
-                        break;
-                }
+                Vector3 dir = ComboStageDirection(stage, t);
+                float roll = stage == 3 ? -90f : 0f;   // 3타: roll -90으로 궤적 평면 기울여 수직 하향 궤적
                 Vector3 pos = t.position + Vector3.up * 1.25f + dir * 1.1f;
                 SlashVFXRunner.PlaySlash(pos, dir, roll);
                 Debug.Log($"[Combo] 스윙 FX stage={stage}");
@@ -574,6 +630,41 @@ namespace ProjectName.Systems
             catch (System.Exception fxEx)
             {
                 Debug.LogWarning($"[Combo] 스윙 FX 실패(전투 계속): {fxEx.Message}");
+            }
+        }
+
+        /// <summary>스테이지별 스윙 방향(튜닝 상수): 1타 좌측 -30°, 2타 우측 +35°, 3타 전방(roll -90 수직). 스윙/크로스 공용.</summary>
+        private static Vector3 ComboStageDirection(int stage, Transform t)
+        {
+            switch (stage)
+            {
+                case 2:
+                    return Quaternion.AngleAxis(35f, Vector3.up) * t.forward; // 2타: 우측 35° 스윙 방향
+                case 3:
+                    return t.forward;   // 3타: 전방 — roll -90으로 궤적 평면을 기울여 수직 하향 궤적
+                default:                // 1타: 좌측 -30° 스윙 방향
+                    return Quaternion.AngleAxis(-30f, Vector3.up) * t.forward;
+            }
+        }
+
+        /// <summary>
+        /// #13: 타 완료 시점 십자가 VFX — 스윙이 끝나는 지점(스테이지 완료 경계 통과)에서 Multiple Slashes 발화.
+        /// 발화 위치 = FireComboSlash와 동일 기준점(플레이어 전방 +up 1.25 + fwd 1.1), 방향은 해당 스테이지 dir 재사용.
+        /// 발화 타이밍/1회 보장은 콤보 감시 블록의 경계 통과 엣지(_comboCrossFired)가 담당.
+        /// </summary>
+        private void FireComboCross(int stage)
+        {
+            try
+            {
+                var t = _anim.transform;
+                Vector3 dir = ComboStageDirection(stage, t);
+                Vector3 pos = t.position + Vector3.up * 1.25f + dir * 1.1f;
+                SlashVFXRunner.PlayCross(pos, dir);
+                Debug.Log($"[Combo] 크로스 FX stage={stage} (타 완료 지점)");
+            }
+            catch (System.Exception fxEx)
+            {
+                Debug.LogWarning($"[Combo] 크로스 FX 실패(전투 계속): {fxEx.Message}");
             }
         }
 

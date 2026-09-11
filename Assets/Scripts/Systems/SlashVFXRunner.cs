@@ -26,15 +26,18 @@ namespace ProjectName.Systems
         private const float DESTROY_AFTER = 3f;
 
         private const string SlashResourcePath = "FX/Slash/Slash VFX";
+        private const string CrossSlashResourcePath = "FX/Slash/Multiple Slashes";
         private const string BasicHitResourcePath = "FX/Impact/BasicHit";
         private const string ConstructHitResourcePath = "FX/Impact/BasicHit2";
 
         // ── static 캐시/상태 ─────────────────────────────────────────
         private static GameObject _slashPrefab;
+        private static GameObject _crossSlashPrefab;
         private static GameObject _basicHitPrefab;
         private static GameObject _constructHitPrefab;
 
         private static bool _slashLoadFailed;
+        private static bool _crossSlashLoadFailed;
         private static bool _basicHitLoadFailed;
         private static bool _constructHitLoadFailed;
         private static bool _shaderErrorWarned;
@@ -44,6 +47,7 @@ namespace ProjectName.Systems
         // 좌클릭 이중 처리 등)만 0.08s 쿨다운으로 흡수한다.
         private static float _lastSwingSpawnTime = -999f;
         private static float _lastImpactSpawnTime = -999f;
+        private static float _lastCrossSpawnTime = -999f;   // 크로스 전용 쿨다운 — 스윙/임팩트와 독립
         private static SlashFxHost _host;
 
         // ================================================================
@@ -79,6 +83,30 @@ namespace ProjectName.Systems
 
             PlayAllParticleSystems(instance);
             DetectShaderErrorOnce(instance, "Slash");
+            ScheduleDestroy(instance);
+        }
+
+        /// <summary>
+        /// 타 완료 시점 십자가 VFX — Free Slash VFX 팩의 "Multiple Slashes"(다중 슬래시 십자) 스폰.
+        /// 스윙이 끝나는 지점(스테이지 경계 통과)에 1회 발화한다(HumanoidClipDriver 콤보 감시에서 호출).
+        /// PlaySlash와 동일한 쿨다운/캐시/파괴 패턴. 프리팹 미설치 시 static 1회 경고 후 조용히 반환.
+        /// </summary>
+        public static void PlayCross(Vector3 position, Vector3 direction)
+        {
+            // 스팸 방지 (동일 크로스 이중 발화 흡수 — 스윙/임팩트와는 독립 쿨다운)
+            if (Time.time - _lastCrossSpawnTime < MIN_SPAWN_INTERVAL) return;
+            _lastCrossSpawnTime = Time.time;
+
+            GameObject prefab = LoadCrossSlashPrefab();
+            if (prefab == null) return;
+
+            Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
+            GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(dir));
+            instance.name = "SlashVFX_Cross";
+            Debug.Log($"[SlashVFX] ✅ 크로스 FX 스폰 (Multiple Slashes, pos={position}, 발화시각={Time.time:F2}s)");
+
+            PlayAllParticleSystems(instance);
+            DetectShaderErrorOnce(instance, "CrossSlash");
             ScheduleDestroy(instance);
         }
 
@@ -119,6 +147,20 @@ namespace ProjectName.Systems
                 Debug.LogWarning("[SlashVFX] 로드 실패(1회만 경고): Resources/FX/Slash/Slash VFX — 에디터 메뉴 Tools/VFX/Install Slash+Impact to Resources 실행 필요");
             }
             return _slashPrefab;
+        }
+
+        private static GameObject LoadCrossSlashPrefab()
+        {
+            if (_crossSlashPrefab != null) return _crossSlashPrefab;
+            if (_crossSlashLoadFailed) return null;
+
+            _crossSlashPrefab = Resources.Load<GameObject>(CrossSlashResourcePath);
+            if (_crossSlashPrefab == null)
+            {
+                _crossSlashLoadFailed = true;
+                Debug.LogWarning("[SlashVFX] 로드 실패(1회만 경고): Resources/FX/Slash/Multiple Slashes — 에디터 메뉴 Tools/VFX/Install Slash+Impact to Resources 실행 필요");
+            }
+            return _crossSlashPrefab;
         }
 
         private static GameObject LoadImpactPrefab(string resourcePath, CombatHitType type)
