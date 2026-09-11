@@ -383,6 +383,9 @@ namespace ProjectName.Systems
                 player.AddComponent<BombThrower>();
 
             player.transform.position = Vector3.zero;
+
+            // 2026-09-11: 공격 범위 표시기 부착 — 무기 타입별 사거리 링(지면). 맨손 때는 자동 숨김.
+            WeaponRangeIndicator.EnsureOn(player.transform);
             Debug.Log("[TestAllInOneSetup] ✅ Player 설정 완료 (전체 시스템 포함)");
         }
 

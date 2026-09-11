@@ -148,6 +148,9 @@ namespace ProjectName.Systems
             // PlayerMovement.Awake의 (728, …) 스폰 오버라이드를 여기서 이긴다(실행 순서 의존 유지).
             // 캡슐 중심 = 표면 + 1 + 여유 → ClampToGroundByHeight 텔레포트 트리거 없음.
             player.transform.position = new Vector3(0f, SurfaceY(0f, 0f) + 1.02f, 0f);
+
+            // 2026-09-11: 공격 범위 표시기 부착 — 무기 타입별 사거리 링(지면). 맨손 때는 자동 숨김.
+            WeaponRangeIndicator.EnsureOn(player.transform);
             Debug.Log($"[TestTerritoryCombat] ✅ Player 설정 완료 (pos={player.transform.position}, 표면 y={SurfaceY(0f, 0f):F2})");
         }
 

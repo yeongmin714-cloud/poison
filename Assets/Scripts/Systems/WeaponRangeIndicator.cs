@@ -192,12 +192,12 @@ namespace ProjectName.Systems
             }
         }
 
-        /// <summary>지면 부착용 LineRenderer 생성 — 로컬 XY 경로 + TransformZ 정렬(폭축 = 로컬 Z = 월드 수직).</summary>
-        static LineRenderer CreateLine(string goName, float width, Material mat)
+        /// <summary>지면 부착용 LineRenderer 생성 — 플레이어 자식(호스트와 생애주기 동일), 로컬 XY 경로 + TransformZ 정렬(폭축 = 로컬 Z = 월드 수직).</summary>
+        static LineRenderer CreateLine(string goName, float width, Material mat, Transform parent)
         {
             var go = new GameObject(goName);
-            go.transform.SetParent(null, worldPositionStays: false); // 위치는 TrackGround에서 월드 기준 설정
-            go.hideFlags = HideFlags.None;                            // 숨은 호스트 아님 — 일반 오브젝트
+            go.transform.SetParent(parent, worldPositionStays: false); // 플레이어 자식 부착 — 위치/회전은 TrackGround에서 월드 기준 강제
+            go.hideFlags = HideFlags.None;                             // 숨은 호스트 아님 — 일반 오브젝트
 
             var lr = go.AddComponent<LineRenderer>();
             lr.useWorldSpace = false;

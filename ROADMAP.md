@@ -2075,3 +2075,18 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | Play 판정 대기 | 등급 무기 장착 모델+클립+dmg 배율 정합(Sword 12→22→30→45), 방어구 def 스탯 반영, 창고 전종 47종×2+아이콘 44종, dagger 장착 정합 | ⬜ |
 
 > **GLB 부재 5종 각주:** `steel_shield` / `stone_shield` / `crystal_shield` / `crystal_gas_mask` / `crystal_chemical_pack` — GLB 파일 미제공. ItemData 미정의(steel/stone/crystal shield는 정의 생략, crystal gas_mask/chemical_pack 미정의), 매핑+def 테이블만 선준비 상태. GLB 입수 시 ItemData 정의 후 AllTieredGear에 추가하면 전 파이프라인(아이콘/def/시딩) 자동 연동.
+
+---
+
+## 🛡️ 2026-09-11: 피격 이펙트 이벤트 전환 + 공격 범위 표시기 (HIT-FX-RANGE-26)
+
+> **목표:** 플레이어 피격 이펙트를 폴링 엣지에서 정적 이벤트 기반으로 전환(PlayerHealth.OnPlayerDamaged → CombatFXGate.PlayHitFX 풀체인), 공격 범위 표시기 신규(무기별 사거리 지면 원형 링+전방 화살), 부트 2곳 연결.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 피격 이벤트 신규 | `PlayerHealth.OnPlayerDamaged` 정적 이벤트(Vector3 position, float amount)(64행) — TakeDamage HP 감소 확정 시점 발화(160행, try-catch로 구독자 예외 흡수, 전투 방해 금지) | ✅ |
+| 이벤트 구독 FX 전환 | `HumanoidClipDriver` Player 모드만 구독(Start 161-162행, OnDestroy 해제 64행) — 다중 드라이버 이중 발화 차단. `OnPlayerDamagedFX`(68행) → `CombatFXGate.PlayHitFX(playerGO...)` GameObject 오버로드 우선+위치 폴백(76/78행) — 몬스터 피격과 동일 경로(히트플래시+스파크+BasicHit+출혈+데미지넘버+카메라 히트). 구 폴링 엣지 PlayImpact 블록 제거(이중 발화 방지), HitLight 트리거는 폴링 유지 | ✅ |
+| 공격 범위 표시기 신규 | `WeaponRangeIndicator.cs`(233행) — LineRenderer 64분할 지면 원형 링(스카이블루 반투명, Sprites/Default 절차 머티리얼 static 캐시 HideAndDontSave). 반경=WeaponData 정적 스탯 단일 소스(RangeOf 184-193행): Fist 2m/Sword 2.5m/Spear 4m/Bow 10m. 활=전방 방향 선(사거리 끝)+V자 화살촉, 근접=링 앞 닫힌 마름모 화살촉. 무기 장착 중(CurrentType != Fist)만 표시+맨손 숨김, CurrentType 엣지 반경 갱신, CC 발 위치 보정, `EnsureOn` 정적 헬퍼(중복 부착 방지) | ✅ |
+| 부트 연결 | `TestAllInOneSetup.SetupPlayer` 말미(388행) + `TestTerritoryCombatSetup` 플레이어 생성 직후(153행) — `WeaponRangeIndicator.EnsureOn(player.transform)` 각 1줄 | ✅ |
+| 검증 | 배치컴파일 `error CS=0` + QaValidator Errors:0, 정적 QA 5파일 brace 균형 통과(25/25·203/203·57/57·176/176·135/135), OnPlayerDamaged 정의+발화+구독/해제, PlayHitFX 플레이어 경로, 폴링 PlayImpact 잔여 0건, EnsureOn 정의+2호출, 반경 테이블 WeaponData 단일 소스(Fist 2/Sword 2.5/Spear 4/Bow 10) | ✅ |
+| Play 판정 대기 | 피격 FX 풀체인 발화+이중 발화 없음, 링 반경 무기별 정합+전방 화살 추적, 무기 교체 즉시 갱신+맨손 숨김 | ⬜ |

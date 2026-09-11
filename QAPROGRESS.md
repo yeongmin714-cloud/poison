@@ -4,7 +4,44 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-11 (25차)
+> **최종 갱신:** 2026-09-11 (26차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-11 ✅ 26차 — 피격 이펙트 이벤트 전환+공격 범위 표시기)
+
+> **스코프**: 플레이어 피격 이펙트를 폴링 엣지에서 정적 이벤트 기반으로 전환(PlayerHealth.OnPlayerDamaged → CombatFXGate.PlayHitFX 풀체인), 공격 범위 표시기 신규(무기별 사거리 지면 원형 링+전방 화살), 부트 2곳 연결.
+
+### 변경 사항
+**`Core/PlayerHealth.cs`** — 피격 확정 정적 이벤트:
+- `public static event System.Action<Vector3, float> OnPlayerDamaged`(64행) 신규
+- TakeDamage HP 감소 확정 시점 발화(160행) — try-catch로 구독자 예외 흡수(164행 경고, 전투 방해 금지)
+
+**`Systems/HumanoidClipDriver.cs`** — 이벤트 구독 전환:
+- Player 모드만 구독(161-162행, Start) — 다중 드라이버(Soldier 등) 이중 발화 차단, OnDestroy 해제(64행)
+- `OnPlayerDamagedFX` 핸들러(68행) → `CombatFXGate.PlayHitFX(playerGO...)` GameObject 오버로드 우선, Instance 부재 시 위치 기반 폴백 — 몬스터 피격과 동일 경로(히트플래시+스파크+BasicHit+출혈+데미지넘버+카메라 히트)
+- 구 폴링 엣지 PlayImpact 블록 제거(이중 발화 방지, 376행 주석), HitLight 트리거는 폴링 유지
+
+**`Systems/WeaponRangeIndicator.cs`** — 신규(233행):
+- LineRenderer 64분할 지면 원형 링(스카이블루 반투명, Sprites/Default 절차 머티리얼 static 캐시)
+- 반경 = WeaponData 정적 스탯 단일 소스(RangeOf, 184-193행): Fist 2m / Sword 2.5m / Spear 4m / Bow 10m — 등급 배율은 dmg에만 반영되므로 무시
+- 활=전방 방향 선(사거리 끝까지)+V자 화살촉, 근접=링 앞쪽 닫힌 마름모 화살촉
+- 표시 조건: 무기 장착 중(CurrentType != Fist)만 표시, 맨손 숨김(ApplyVisibility), CurrentType 엣지 반경 갱신(RefreshIfNeeded)
+- CharacterController 있으면 발 위치 보정(캡슐 중심 계약), 부트 try-catch 실패 시 비활성화
+- `EnsureOn(Transform)` 정적 헬퍼(55행) — 중복 부착 방지(GetComponentInChildren 검사)
+
+**`Systems/TestAllInOneSetup.cs` / `TestTerritoryCombatSetup.cs`** — 부트 연결:
+- SetupPlayer 말미(388행) / 플레이어 생성 직후(153행) 각 `WeaponRangeIndicator.EnsureOn(player.transform)` 1줄
+
+### 검증
+- 배치컴파일: **`error CS=0`** + QaValidator Errors:0 (return code 0)
+- 정적 QA(서브에이전트): 변경 5파일 brace 균형 전부 통과 — WeaponRangeIndicator 25/25, HumanoidClipDriver 203/203, PlayerHealth 57/57, TestAllInOneSetup 176/176, TestTerritoryCombatSetup 135/135
+- grep 검증: `OnPlayerDamaged` 정의(PlayerHealth 64행)+발화(160행, try-catch)+구독(HumanoidClipDriver 162행, Player 모드 한정)+해제(64행 OnDestroy), `PlayHitFX` 플레이어 경로(HumanoidClipDriver 76/78행, GameObject 오버로드 우선+위치 폴백), 구 폴링 PlayImpact 제거 확인(잔여 0건 — 주석만), `EnsureOn` 정의(WeaponRangeIndicator 55행)+부트 2호출(388/153행), 반경 테이블 WeaponData 정적 스탯 단일 소스(Fist 2/Sword 2.5/Spear 4/Bow 10, 27-30행) — 하드코딩 없음
+
+### Play 판정 대기
+⬜ 플레이어 피격 — 히트플래시+스파크+출혈+데미지넘버+카메라 히트 정상 발화, 이중 발화 없음
+⬜ 범위 표시기 — 링 반경 무기별 정합(Fist 숨김/ Sword 2.5/Spear 4/Bow 10), 전방 화살 방향 추적
+⬜ 무기 교체 시 링 반경 즉시 갱신+맨손 전환 시 숨김
 
 ---
 
