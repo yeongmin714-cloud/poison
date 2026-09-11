@@ -111,6 +111,30 @@ namespace ProjectName.UI
             string npcKey = GetNPCKey(npc);
             if (RuntimeModelLoader.TryGetModel(npcKey, out var npcModel))
             {
+                // 2026-09-11: NPC도 병사와 동일 경로로 교체(Humanoid FBX 골격 + SoldierShield_AC + HumanoidClipDriver(Soldier)).
+                // NPC GLB는 Humanoid avatar가 없어(Phase 1 스캔: animator=NULL, avatar=NULL, animIsHuman=False)
+                // Player_AC/HumanoidClipDriver 직결이 불가능하므로, 검증된 병사 Humanoid FBX 리그
+                // (TestTerritoryCombatSetup.CreateGuardVisual 674~730행 패턴)를 빌려 쓰고,
+                // CopyMaterialsFromGlb로 NPC GLB 재질을 이식해 외형은 NPC 그대로 유지한다(사람 사지 Idle/걷기).
+                // NPC는 공격하지 않으므로 드라이버는 걷기/대기만 사용(TriggerAttack 불필요 — 부착은 해도 무해).
+                // 실패/예외 시 기존 GLB+ModelAnimatorAssigner.ForceBiped 경로로 폴백(회귀 0, 크래시 금지).
+                try
+                {
+                    if (TryAttachSoldierHumanoidBody(npcGO, npc.NpcName, npcKey))
+                        return npcGO;   // FBX 골격 교체 + GLB 재질 이식 성공
+                    Debug.LogWarning($"[TerritoryNPCSpawner] ⚠️ {npc.NpcName} Humanoid FBX 교체 실패 — 기존 GLB 경로로 폴백");
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning($"[TerritoryNPCSpawner] ⚠️ {npc.NpcName} Humanoid FBX 교체 예외 — 기존 GLB 경로로 폴백: {ex.Message}");
+                    // 부분 장착 잔재 정리 후 폴백(중복 본체 방지)
+                    var leftoverBody = npcGO.transform.Find(npc.NpcName + "_Body");
+                    if (leftoverBody != null) Object.Destroy(leftoverBody.gameObject);
+                    var leftoverDriver = npcGO.GetComponent<HumanoidClipDriver>();
+                    if (leftoverDriver != null) Object.Destroy(leftoverDriver);
+                }
+
+                // 기존 GLB 경로(폴백) — ForceBiped 프로시저럴 (회귀 없음)
                 var instance = Object.Instantiate(npcModel, npcGO.transform);
                 instance.transform.localPosition = Vector3.zero;
                 instance.transform.localRotation = Quaternion.identity;
@@ -142,6 +166,109 @@ namespace ProjectName.UI
             head.GetComponent<MeshRenderer>().material = MaterialHelper.CreateLitMaterial(skinColor, npc.NpcName + "_Head");
 
             return npcGO;
+        }
+
+        /// <summary>
+        /// NPC 본체를 병사와 동일한 Humanoid FBX 골격으로 교체한다(2026-09-11).
+        /// 검증 패턴: TestTerritoryCombatSetup.CreateGuardVisual 674~730행(병사 경로)과 동일 계약.
+        ///  1) Resources에서 공통 병사 FBX(soldier_lv1-20_rigged — Humanoid avatar 포함) 로드
+        ///  2) npcGO 하위에 인스턴스 부착(이름 "{npcName}_Body", localPosition zero/rotation identity/scale one)
+        ///  3) FBX 하위 Collider 전부 제거(루트 BoxCollider 없음이면 그대로)
+        ///  4) 레거시 프로시저럴 계열 정리(TestPlayerAnimatorBoot.StripLegacyAnimation 패턴)
+        ///  5) Animator + SoldierShield_AC 부착(applyRootMotion=false, AlwaysAnimate)
+        ///  6) HumanoidClipDriver(mode=Soldier) npcGO 루트에 부착(걷기/대기만)
+        ///  7) CopyMaterialsFromGlb로 NPC GLB 재질 이식(외형 유지)
+        /// 성공 시 fbxBody 반환, 실패 시 null 반환 → 호출부가 기존 GLB+ForceBiped 경로로 폴백.
+        /// 주의: GroundModelToY는 적용하지 않음 — 현재 NPC는 y=position 고정 계약(상태 유지).
+        /// </summary>
+        /// <param name="npcGO">NPC 루트 오브젝트</param>
+        /// <param name="npcName">로그/본체 명명용 NPC 이름</param>
+        /// <param name="glbAliasKey">CopyMaterialsFromGlb에 넘길 GLB 리소스 키.
+        /// 런타임모델로더(RuntimeModelLoader) 소문자 alias("npc_man1_rigged" 등)를 그대로 사용한다.
+        /// 실제 파일명은 NPC_Man1_Rigged.glb(대소문자 혼용)이지만, RuntimeModelLoader.LoadModelByKey가
+        /// "Models/UserProvided/"+소문자키 조합으로 로드 성공이 확인된 값이므로(Windows 에디터 대소문자
+        /// 무관 해석) 동일 키를 쓰는 것이 파일명 대소문자 불일치 리스크가 가장 낮음. 여기에
+        /// "Models/UserProvided/" 접두사를 붙여 전체 리소스 경로로 전달한다.</param>
+        /// <returns>부착된 FBX 본체(성공) 또는 null(실패)</returns>
+        private static GameObject TryAttachSoldierHumanoidBody(GameObject npcGO, string npcName, string glbAliasKey)
+        {
+            // 1) 공통 병사 Humanoid FBX 로드(NPC는 남/여/노인 혼합이므로 lv1 공통 FBX 사용 — 지침 고정 경로)
+            var fbxPrefab = Resources.Load<GameObject>("Models/UserProvided/fbx/soldier_lv1-20_rigged");
+            if (fbxPrefab == null)
+            {
+                Debug.LogWarning("[TerritoryNPCSpawner] 병사 Humanoid FBX 미로드 — GLB 폴백 대상: Models/UserProvided/fbx/soldier_lv1-20_rigged");
+                return null;
+            }
+
+            // 2) FBX 골격 부착
+            var fbxBody = Object.Instantiate(fbxPrefab, npcGO.transform);
+            fbxBody.name = $"{npcName}_Body";
+            fbxBody.transform.localPosition = Vector3.zero;
+            fbxBody.transform.localRotation = Quaternion.identity;
+            fbxBody.transform.localScale = Vector3.one;
+
+            // 3) FBX 하위 Collider 전부 제거(루트 BoxCollider 없음이면 그대로 — 병사 699~701행 패턴)
+            var cols = fbxBody.GetComponentsInChildren<Collider>(true);
+            foreach (var c in cols)
+            {
+                if (c != null) Object.DestroyImmediate(c);
+            }
+
+            // 4) 레거시 프로시저럴 계열 정리(병사 StripLegacyAnimation 패턴 — FBX 신규 인스턴스엔 원래 없음, npcGO 루트 포함 방어적 제거)
+            StripLegacyAnimation(npcGO.transform);
+
+            // 5) Animator + SoldierShield_AC(방패병사 컨트롤러 — 병사 704~709행과 동일)
+            var anim = fbxBody.GetComponent<Animator>();
+            if (anim == null) anim = fbxBody.AddComponent<Animator>();
+            var ctrl = Resources.Load<RuntimeAnimatorController>("Animation/Controllers/SoldierShield_AC");
+            if (ctrl != null) anim.runtimeAnimatorController = ctrl;
+            anim.applyRootMotion = false;
+            anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+
+            // (c) avatar 유효성/매핑 확인 로그(병사 711~720행 판별 기준과 동일 — Humanoid 임포트 FBX는
+            //     루트 Animator에 imported humanoid avatar가 함께 온다). 무효면 Soldier_AC 재생 불가.
+            //     병사 로직처럼 로그 후 계속 진행(재질 이식/드라이버는 유효).
+            bool avatarOk = anim.avatar != null && anim.avatar.isValid && anim.avatar.isHuman;
+            Debug.Log($"[TerritoryNPCSpawner] 🧍 {npcName} avatar={(anim.avatar != null ? anim.avatar.name : "NULL")}"
+                + $" isValid={(anim.avatar != null ? anim.avatar.isValid.ToString() : "-")}"
+                + $" isHuman={(anim.avatar != null ? anim.avatar.isHuman.ToString() : "-")}"
+                + $" controller={(anim.runtimeAnimatorController != null ? anim.runtimeAnimatorController.name : "NULL")}");
+            if (!avatarOk)
+                Debug.LogWarning($"[TerritoryNPCSpawner] ⚠️ {npcName} Humanoid avatar 무효 — Soldier_AC 재생 불가(T포즈) 가능성");
+
+            // 6) 병사 모드 드라이버(NPC 루트에 부착 — 병사 723~724행. 공격 없음 → 걷기/대기만 사용)
+            var driver = npcGO.AddComponent<HumanoidClipDriver>();
+            driver.mode = HumanoidClipDriver.DriveMode.Soldier;
+
+            // 7) NPC GLB 재질 이식(외형 유지) — fbxBody에는 FBX 인스턴스를 넘기고, GLB는
+            //    CopyMaterialsFromGlb 내부의 Resources.Load용 프리팹 경로를 넘긴다(인스턴스 재생성 불필요).
+            HumanoidClipDriver.CopyMaterialsFromGlb(fbxBody, "Models/UserProvided/" + glbAliasKey);
+
+            Debug.Log($"[TerritoryNPCSpawner] ✅ NPC Humanoid FBX 부착: {npcName} ← soldier_lv1-20_rigged (SoldierShield_AC+드라이버, GLB 재질 이식={glbAliasKey})");
+            return fbxBody;
+        }
+
+        /// <summary>
+        /// 레거시 애니 컴포넌트 전부 제거(TestPlayerAnimatorBoot.StripLegacyAnimation 패턴 — 루트 포함 전체 자식).
+        /// 런타임이므로 Destroy 사용(프레임 말 일괄 파괴 — RequireComponent 의존 무관 제거 가능).
+        /// ProceduralBoneMap은 여러 컴포넌트의 RequireComponent 의존 대상이므로 마지막에 제거.
+        /// </summary>
+        private static void StripLegacyAnimation(Transform root)
+        {
+            DestroyAll<ProjectName.Systems.Animation.ModelAnimatorAssigner>(root);
+            DestroyAll<ProjectName.Systems.Animation.Procedural.ProceduralAnimationController>(root);
+            DestroyAll<ProjectName.Systems.Animation.Neural.NeuralAnimationController>(root);
+            DestroyAll<ProjectName.Systems.Animation.Neural.HybridAnimationController>(root);
+            DestroyAll<ProjectName.Systems.Animation.Procedural.Bones.ProceduralBoneMap>(root); // 마지막
+        }
+
+        private static void DestroyAll<T>(Transform root) where T : Component
+        {
+            var comps = root.GetComponentsInChildren<T>(true);
+            foreach (var c in comps)
+            {
+                if (c != null) Object.Destroy(c);
+            }
         }
 
         /// <summary>
