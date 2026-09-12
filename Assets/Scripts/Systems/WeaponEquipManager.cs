@@ -10,12 +10,47 @@ namespace ProjectName.Systems
     /// 플레이어 Animator의 RightHand 본에 부착/제거한다.
     /// - GameSetup.Start: 기본 장착(steel) — 기존 인라인 검 부착 블록에서 이관
     /// - InventoryWindow 무기 슬롯: 사용자 장착/해제
-    /// 부착 규격(기존 GameSetup 튜닝 값 유지):
-    ///   localPosition (0, 0.12, 0.02), localRotation Euler(0,0,90),
-    ///   렌더러 bounds 최장축 0.9m 스케일 정규화.
+    /// 부착 규격(2026-09-12 그립 정밀화 — 테스트 영상 5: 전 무기 공용 고정 오프셋이
+    /// 창/활/단도에서 길이·피벗·축 차이로 어긋나는 문제 수리):
+    ///   - 타입별 그립 포즈 테이블(_gripTable): localPosition/localRotation/목표길이.
+    ///     검은 기존 GameSetup 실측 튜닝값 유지, 창/활은 신규 초기값(로그 실측 후 조정).
+    ///   - GLB bounds 자동 그립 정렬: 자식 렌더러 bounds 합산 → 최장축=그립축으로 간주,
+    ///     bounds 최하단부(그립부)가 테이블 localPosition 앵커에 착지하도록
+    ///     pivot-to-grip 오프셋을 localPosition에서 차감 (부착 후 1회, 프레임 지연 없음 —
+    ///     renderer bounds는 Instantiate 즉시 유효).
+    ///   - 스케일 보정: bounds 최장축이 목표 길이(검0.9/창1.8/활1.0/단도0.45m)의
+    ///     0.4~2.2배 범위를 벗어날 때만 targetLength로 균등 스케일 보정.
     /// </summary>
     public static class WeaponEquipManager
     {
+        // ── 타입별 그립 포즈 튜닝 테이블 (2026-09-12: 전 무기 공용 고정 오프셋 → 타입별 분리) ──
+        // 값은 초기값 — Play 후 "[Weapon] 그립 정렬" 로그의 offset/bounds 실측으로 미세 조정.
+        //   LocalPos  : 그립부(무기 bounds 최하단부)가 착지할 손(RightHand) 본 기준 앵커.
+        //               (0,0,0)이면 그립부가 정확히 손 원점에 정렬.
+        //   LocalEuler: 손 본 기준 부착 회전(Euler).
+        //   TargetLen : bounds 최장축 목표 길이(m) — 0.4~2.2배 범위 밖일 때만 균등 스케일 보정.
+        // 검 실측 튜닝값 유지. 단도(dagger)는 WeaponType 항목이 없어 Sword 경로로 장착되며
+        // id의 "dagger" 토큰으로 TargetLen만 0.45로 오버라이드(포즈는 검과 동일).
+        struct GripPose
+        {
+            public Vector3 LocalPos;
+            public Vector3 LocalEuler;
+            public float TargetLen;
+        }
+
+        static readonly Dictionary<WeaponType, GripPose> _gripTable = new Dictionary<WeaponType, GripPose>
+        {
+            { WeaponType.Sword, new GripPose { LocalPos = new Vector3(0f, 0.12f, 0.02f), LocalEuler = new Vector3(0f, 0f, 90f),   TargetLen = 0.9f } }, // 검 — 기존 실측 튜닝값 유지
+            { WeaponType.Spear, new GripPose { LocalPos = new Vector3(0f, 0.45f, 0.02f), LocalEuler = new Vector3(-90f, 0f, 0f),  TargetLen = 1.8f } }, // 창 — 자루 중심을 손에, 창두는 전방 상향
+            { WeaponType.Bow,   new GripPose { LocalPos = new Vector3(0f, 0.05f, 0.06f), LocalEuler = new Vector3(0f, -90f, 0f),  TargetLen = 1.0f } }, // 활 — 몸통이 손 아래 수직
+        };
+
+        // 단도(dagger) 목표 길이 — Sword 포즈 공유, TargetLen만 오버라이드
+        const float DaggerTargetLen = 0.45f;
+        // 스케일 보정 허용 범위 — 목표 길이의 0.4~2.2배. 범위 내 GLB는 원본 스케일 존중(강제 정규화 폐지)
+        const float GripScaleMinRatio = 0.4f;
+        const float GripScaleMaxRatio = 2.2f;
+
         // ── 신규 full-id(weapon_{type}_{tier}) → Resources GLB명 결정 테이블 ──
         // GblItemIconRenderer._itemToModel과 동일 규칙(2026-09-11). dagger 등 suffix 분기가
         // 없는 무기와 기존 wood 3종의 ItemData.id 장착을 지원. 기존 짧은 id("steel" 등)는
@@ -117,24 +152,97 @@ namespace ProjectName.Systems
             var sword = Object.Instantiate(prefab, handBone);
             sword.name = glbKey;
 
-            // ⑤ 부착 규격: 위치/회전 (손 아래로 검신이 나가도록 — 스크린샷 튜닝 전제)
-            sword.transform.localPosition = new Vector3(0f, 0.12f, 0.02f);
-            sword.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            // ⑤ 그립 포즈: 타입별 테이블 적용 (검 = 기존 실측 튜닝값 유지)
+            var pose = GetGripPose(type, id);
+            sword.transform.localRotation = Quaternion.Euler(pose.LocalEuler);
+            sword.transform.localPosition = pose.LocalPos;
 
-            // 스케일 정규화 — 렌더러 bounds 기준 총길이 ~0.9m
-            var rends = sword.GetComponentsInChildren<Renderer>();
-            if (rends.Length > 0)
-            {
-                var b = rends[0].bounds;
-                foreach (var r in rends) b.Encapsulate(r.bounds);
-                float len = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
-                if (len > 0.01f) sword.transform.localScale *= 0.9f / len;
-            }
+            // ⑥ GLB bounds 기반 그립 자동 정렬 + 스케일 보정
+            //    (부착 후 1회, 프레임 지연 없음 — renderer bounds는 Instantiate 즉시 유효)
+            ApplyBoundsGripAlignment(sword, handBone, pose);
 
-            // ⑥ 상태 갱신 + 로그
+            // ⑦ 상태 갱신 + 로그
             _current = sword;
             CurrentId = id;
             Debug.Log($"[WeaponEquipManager] ✅ 무기 장착: {glbKey} (type={type}) → RightHand({handBone.name})");
+        }
+
+        /// <summary>타입별 그립 포즈 조회. dagger full-id는 Sword 포즈에 TargetLen만 0.45로 오버라이드.</summary>
+        static GripPose GetGripPose(WeaponType type, string id)
+        {
+            if (!_gripTable.TryGetValue(type, out var pose))
+                pose = _gripTable[WeaponType.Sword]; // 미등록 타입(Fist 등) 폴백 — 검 포즈
+            if (type == WeaponType.Sword && !string.IsNullOrEmpty(id) && id.Contains("dagger"))
+                pose.TargetLen = DaggerTargetLen;
+            return pose;
+        }
+
+        /// <summary>
+        /// GLB bounds 기반 그립 자동 정렬 + 스케일 보정 (부착 직후 1회 — 프레임 지연 없음).
+        /// 1) 인스턴스 자식 렌더러 bounds 합산 → 최장축 = 그립축으로 간주.
+        /// 2) 최장축 길이가 TargetLen의 0.4~2.2배 범위를 벗어나면 targetLength로 균등 스케일 보정.
+        /// 3) bounds 최하단부(그립부)가 테이블 localPosition 앵커에 착지하도록 pivot-to-grip
+        ///    오프셋을 localPosition에서 차감 — GLB 피벗이 어디에 있든 동일 그립 지점
+        ///    (앵커 (0,0,0)이면 그립부가 정확히 손 원점). 렌더러 0개/예외 시 테이블 포즈 유지.
+        /// </summary>
+        static void ApplyBoundsGripAlignment(GameObject weapon, Transform handBone, GripPose pose)
+        {
+            try
+            {
+                var rends = weapon.GetComponentsInChildren<Renderer>();
+                if (rends.Length == 0)
+                {
+                    Debug.LogWarning("[Weapon] 그립 정렬 스킵: 렌더러 없음 — 테이블 포즈 그대로 부착");
+                    return;
+                }
+                var b = rends[0].bounds;
+                for (int i = 1; i < rends.Length; i++) b.Encapsulate(rends[i].bounds);
+                if (b.size.sqrMagnitude < 1e-10f) return;
+
+                // 무기 최장축 = 그립축
+                int axis = 0;
+                float len = b.size.x;
+                if (b.size.y > len) { axis = 1; len = b.size.y; }
+                if (b.size.z > len) { axis = 2; len = b.size.z; }
+
+                // 스케일 보정 — 목표 길이 대비 0.4~2.2배 범위 밖만 균등 보정
+                float scaleFix = 1f;
+                if (len > 0.0001f && (len < pose.TargetLen * GripScaleMinRatio || len > pose.TargetLen * GripScaleMaxRatio))
+                {
+                    scaleFix = pose.TargetLen / len;
+                    weapon.transform.localScale *= scaleFix;
+                }
+
+                // 그립부(최하단부) = 최장축 양끝 면 중심 중 더 낮은 쪽.
+                // 수평 무기(Y差 2cm 미만)는 손 원점에 가까운 쪽을 그립으로 판정.
+                Vector3 eMin = FaceCenter(b, axis, b.min);
+                Vector3 eMax = FaceCenter(b, axis, b.max);
+                Vector3 grip = (eMax.y - eMin.y >= 0.02f) ? eMin
+                             : (eMin.y - eMax.y >= 0.02f) ? eMax
+                             : ((eMin - handBone.position).sqrMagnitude <= (eMax - handBone.position).sqrMagnitude ? eMin : eMax);
+
+                // pivot-to-grip 오프셋(스케일 보정 배율 반영) → localPosition에서 차감
+                Vector3 pivot = weapon.transform.position;
+                Vector3 gripScaled = pivot + (grip - pivot) * scaleFix;
+                Vector3 offset = handBone.InverseTransformPoint(gripScaled) - handBone.InverseTransformPoint(pivot);
+                weapon.transform.localPosition -= offset;
+
+                Debug.Log($"[Weapon] 그립 정렬: bone={handBone.name}, offset={offset:F3}, bounds={b.size:F2} (스케일=x{scaleFix:F2})");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[Weapon] 그립 정렬 실패(테이블 포즈 유지): {e.Message}");
+            }
+        }
+
+        /// <summary>bounds의 지정축 끝면 중심점(나머지 축은 bounds 중심) — 그립부 후보 좌표.</summary>
+        static Vector3 FaceCenter(Bounds b, int axis, Vector3 end)
+        {
+            Vector3 c = b.center;
+            if (axis == 0) c.x = end.x;
+            else if (axis == 1) c.y = end.y;
+            else c.z = end.z;
+            return c;
         }
 
         /// <summary>검 해제. 장착된 검이 있으면 파괴하고 상태를 초기화.</summary>

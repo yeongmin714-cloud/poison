@@ -1,21 +1,21 @@
 [Licensing::Module] Trying to connect to existing licensing client channel...
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-09-12T04:22:13.1801504Z"
 Built from '6000.4/staging' branch; Version is '6000.4.10f1 (feeafc12a938) revision 16706300'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-09-12T05:03:18.2315523Z"
 OS: 'Windows 10  (10.0.19045) 64bit Core' Language: 'ko' Physical Memory: 7880 MB
 BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
 System  architecture: x64
 Process architecture: x64
-Date: 2026-09-12T04:22:13Z
+Date: 2026-09-12T05:03:18Z
 [Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 5560, path: "C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
 [Licensing::Module] LicensingClient has failed validation; ignoring
 [Licensing::Client] Handshaking with LicensingClient:
   Version:                 1.18.1+9fbee8e
-  Session Id:              da0bbf708c8b4dce92a47b087c83ceb4
+  Session Id:              8bd26d87388d432297261fe09ecae38f
   Correlation Id:          95290bc21d91dcbd3bf1957eb499a15f
-  External correlation Id: 3523192172324736848
+  External correlation Id: 5358154326859813322
   Machine Id:              5cJWr0XiXK4/b2/xsaHUUO6HAA8=
-[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-korea" (connect: 0.00s, validation: 0.01s, handshake: 0.13s)
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-09-12T04:22:13.3206504Z"
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-korea" (connect: 0.00s, validation: 0.01s, handshake: 0.21s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-09-12T05:03:18.4538192Z"
 [Licensing::Module] Error: Access token is unavailable; failed to update
 [Licensing::Client] Successfully resolved entitlement details
 [Licensing::Module] License group:
@@ -23,9 +23,9 @@ Date: 2026-09-12T04:22:13Z
   Product: Unity Personal
   Type: Assigned
   Expiration: Unlimited
-[Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.02
 [Licensing::Client] Successfully resolved entitlement details
-[Licensing::Module] Licensing Background thread has ended after 0.16s
+[Licensing::Module] Licensing Background thread has ended after 0.29s
 
 COMMAND LINE ARGUMENTS:
 Unity.exe
@@ -74,18 +74,18 @@ C:/Unity/code
     "memorysetup-job-temp-allocator-block-size=2097152"
     "memorysetup-job-temp-allocator-block-size-background=1048576"
     "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
-Player connection [916]  Target information:
+Player connection [11736]  Target information:
 
-Player connection [916]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 1325637015 [EditorId] 1325637015 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [11736]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 712763368 [EditorId] 712763368 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [916]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 1325637015 [EditorId] 1325637015 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [11736]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 712763368 [EditorId] 712763368 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [916] Host joined multi-casting on [225.0.0.222:54997]...
-Player connection [916] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Player connection [11736] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [11736] Host joined alternative multi-casting on [225.0.0.222:34997]...
 Input System module state changed to: Initialized.
 [Physics::Module] Initialized fallback backend.
 [Physics::Module] Id: 0xdecafbad
-[Package Manager] Connected to IPC stream "Upm-2580" after 0.3 seconds.
+[Package Manager] Connected to IPC stream "Upm-11468" after 1.5 seconds.
 [Licensing::Client] Successfully resolved entitlement details
 Library Redirect Path: Library/
 [Physics::Module] Selected backend.
@@ -94,6 +94,7 @@ Library Redirect Path: Library/
 [Physics::Module] SDK Version: 4.1.2
 [Physics::Module] Integration Version: 1.0.0
 [Physics::Module] Threading Mode: Multi-Threaded
+Refreshing native plugins compatible for Editor in 8.26 ms, found 0 plugins.
 Initialize engine version: 6000.4.10f1 (feeafc12a938)
 [Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Resources/UnitySubsystems
 [Subsystems] Discovering subsystems at path C:/Unity/code/Assets
@@ -112,7 +113,7 @@ Initialize mono
 Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Managed'
 Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
 Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/etc'
-Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56580
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56468
 CodeReloadManager initialized
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
@@ -122,30 +123,32 @@ Begin MonoManager ReloadAssembly
 Registering precompiled unity dll's ...
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
-Registered in 0.016566 seconds.
+Registered in 0.014887 seconds.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 Package Manager log level set to [2]
 ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.848 seconds
-Domain Reload Profiling: 1812ms
-	BeginReloadAssembly (303ms)
-		CreateAndSetChildDomain (4ms)
-	RebuildCommonClasses (71ms)
-	RebuildNativeTypeToScriptingClass (24ms)
-	initialDomainReloadingComplete (139ms)
-	LoadAllAssembliesAndSetupDomain (424ms)
-		LoadAssemblies (297ms)
-		AnalyzeDomain (402ms)
-			TypeCache.Refresh (401ms)
-				TypeCache.ScanAssembly (357ms)
-	FinalizeReload (851ms)
+- Finished resetting the current domain, in  1.390 seconds
+Domain Reload Profiling: 2952ms
+	BeginReloadAssembly (573ms)
+		CreateAndSetChildDomain (26ms)
+	RebuildCommonClasses (130ms)
+	RebuildNativeTypeToScriptingClass (23ms)
+	initialDomainReloadingComplete (234ms)
+	LoadAllAssembliesAndSetupDomain (594ms)
+		LoadAssemblies (529ms)
+		AnalyzeDomain (564ms)
+			TypeCache.Refresh (559ms)
+				TypeCache.ScanAssembly (502ms)
+			ResolveRequiredComponents (4ms)
+	FinalizeReload (1398ms)
 		SetupLoadedEditorAssemblies (0ms)
-			InitializePlatformSupportModulesInManaged (87ms)
-			BeforeProcessingInitializeOnLoad (159ms)
-			ProcessInitializeOnLoadAttributes (207ms)
-			ProcessInitializeOnLoadMethodAttributes (282ms)
+			InitializePlatformSupportModulesInManaged (109ms)
+			BeforeProcessingInitializeOnLoad (201ms)
+			ProcessInitializeOnLoadAttributes (325ms)
+			ProcessInitializeOnLoadMethodAttributes (553ms)
+			EditorAssembliesLoaded (4ms)
 [Licensing::Client] Successfully resolved entitlement details
 Application.AssetDatabase Initial Refresh Start
 [Package Manager] Restoring resolved packages state from cache
@@ -225,10 +228,63 @@ Application.AssetDatabase Initial Refresh Start
     com.unity.collections@6.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.collections@5b6ebd78ccc0)
 [Package Manager] com.unity.textmeshpro is deprecated: This package is no longer supported. TextMeshPro functionalities are now included in the com.unity.ugui package. To continue using them, consider adding it to your project dependencies.
 [Subsystems] No new subsystems found in resolved package list.
-[Package Manager] Done registering packages in 0.03 seconds
+[Package Manager] Done registering packages in 0.06 seconds
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
 [ScriptCompilation] Requested script compilation because: AssetDatabase observed changes in script compilation related files
+warn: Unity.AspNetCore.NamedPipeSupport.NamedPipeServer[0]
+      Exception occured while accepting client connection: System.IO.IOException: ÆÄÀÌÇÁ°¡ ´ÝÈ÷´Â ÁßÀÔ´Ï´Ù.
+         at System.IO.Pipes.NamedPipeServerStream.WaitForConnectionCoreAsync(CancellationToken cancellationToken)
+         at System.IO.Pipes.NamedPipeServerStream.WaitForConnectionAsync(CancellationToken cancellationToken)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer.AcceptLoop(Boolean useNamedPipeMessageSemantic)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer.AcceptLoop(Boolean useNamedPipeMessageSemantic)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer..ctor(String pipeName, NamedPipeListenerOptions options, ILogger`1 logger)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeListener..ctor(NamedPipeEndpoint endpoint, ILoggerFactory loggerFactory, NamedPipeListenerOptions namedPipeListenerOptions)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeListenerFactory.BindAsync(EndPoint _, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass28_0`1.<<StartAsync>g__OnBind|0>d.MoveNext()
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass28_0`1.<StartAsync>g__OnBind|0(ListenOptions options, CancellationToken onBindCancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.LocalhostListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.LocalhostListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.EndpointsStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.EndpointsStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindAsync(ListenOptions[] listenOptions, AddressBindContext context, Func`2 useHttps, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindAsync(ListenOptions[] listenOptions, AddressBindContext context, Func`2 useHttps, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+         at Microsoft.Extensions.Hosting.Internal.Host.<StartAsync>b__15_1(IHostedService service, CancellationToken token)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.Extensions.Hosting.Internal.Host.<StartAsync>b__15_1(IHostedService service, CancellationToken token)
+         at Microsoft.Extensions.Hosting.Internal.Host.ForeachService[T](IEnumerable`1 services, CancellationToken token, Boolean concurrent, Boolean abortOnFirstException, List`1 exceptions, Func`3 operation)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.Extensions.Hosting.Internal.Host.ForeachService[T](IEnumerable`1 services, CancellationToken token, Boolean concurrent, Boolean abortOnFirstException, List`1 exceptions, Func`3 operation)
+         at Microsoft.Extensions.Hosting.Internal.Host.StartAsync(CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.Extensions.Hosting.Internal.Host.StartAsync(CancellationToken cancellationToken)
+         at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+         at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.Run(IHost host)
+         at Program.<Main>$(String[] args)
+      --- End of stack trace from previous location ---
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer.AcceptLoop(Boolean useNamedPipeMessageSemantic)
 info: Microsoft.Hosting.Lifetime[14]
       Now listening on: http://localhost:80
 info: Microsoft.Hosting.Lifetime[0]
@@ -244,7 +300,7 @@ info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 64.3278ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 154.2175ms
 Starting: C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
 WorkingDir: C:/Unity/code
 DisplayProgressbar: Compiling Scripts
@@ -263,7 +319,7 @@ info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 155.9181ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 828.4863ms
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
@@ -276,14 +332,10 @@ info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       running Unity.Jobs.CodeGen.JobsILPostProcessor
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
-info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 381 references
-info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 32.9951ms
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
@@ -292,10 +344,6 @@ info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 144 defines and 355 references
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 40.8871ms
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       running Unity.Jobs.CodeGen.JobsILPostProcessor
 info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
@@ -308,26 +356,33 @@ info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       running zzzUnity.Burst.CodeGen.BurstILPostProcessor
 info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
       Resolved Unity.Burst.Cecil.Rocks, Version=0.11.6.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@6bb9aca3ef38\Unity.Burst.CodeGen\Unity.Burst.Cecil.Rocks.dll
-info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running Unity.Jobs.CodeGen.JobsILPostProcessor
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 684.0508ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 1171.0502ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 381 references
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       running zzzUnity.Burst.CodeGen.BurstILPostProcessor
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 809.7653ms
-ExitCode: 0 Duration: 10s
-[ 796/1401  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
-[BUSY       6s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll (+2 others)
-[1389/1401  7s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll (+2 others)
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 142.6882ms
+ExitCode: 0 Duration: 9s819ms
+[ 810/1401  1s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[1389/1401  2s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll (+2 others)
 Assets\Scripts\UI\EquipmentWindow.cs(93,28): warning CS0114: 'EquipmentWindow.Toggle()' hides inherited member 'UIWindow.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\TerritoryNPCSpawner.cs(259,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-[1392/1401  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/ProjectName.UI.dll (+pdb)
+[1390/1401  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/ProjectName.UI.dll (+pdb)
 Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll, with 144 defines and 286 references
 
 processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
@@ -335,9 +390,44 @@ processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.Burst
 running Unity.Jobs.CodeGen.JobsILPostProcessor
 
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[1393/1401  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.dll
-[1394/1401  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.pdb
-[1395/1401  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
+[1391/1401  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.pdb
+[1392/1401  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.dll
+[1393/1401  0s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll (+2 others)
+[1394/1401  1s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
+Assets\Editor\DayNightCycleReferenceFixer.cs(24,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixAllCriticalIssues.cs(207,27): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixAllCriticalIssues.cs(216,32): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixAllCriticalIssues.cs(225,28): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixAllCriticalIssues.cs(242,25): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+
+Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+
+Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+
+Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+
+Assets\Editor\IndoorShellMenu.cs(30,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Editor\IndoorShellMenu.cs(30,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Editor\FixMainScene.cs(938,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\VFXResourceInstaller.cs(279,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
+
+Assets\Editor\MonsterRigScanTool.cs(170,51): warning CS0184: The given expression is never of the provided ('AnimatorController') type
+[1395/1401  1s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
 Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 144 defines and 355 references
 
 processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
@@ -345,7 +435,9 @@ processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.Burst
 running Unity.Jobs.CodeGen.JobsILPostProcessor
 
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[1397/1401  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
+[1396/1401  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.pdb
+[1397/1401  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.dll
+[1398/1401  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
 Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 381 references
 
 processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
@@ -353,10 +445,29 @@ processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.Burst
 running Unity.Jobs.CodeGen.JobsILPostProcessor
 
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-*** Tundra build success (10.36 seconds), 7 items updated, 1401 evaluated
+[1399/1401  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
+[1400/1401  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
+*** Tundra build success (9.73 seconds), 13 items updated, 1401 evaluated
 Assets\Scripts\UI\EquipmentWindow.cs(93,28): warning CS0114: 'EquipmentWindow.Toggle()' hides inherited member 'UIWindow.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\TerritoryNPCSpawner.cs(259,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-AssetDatabase: script compilation time: 11.573249s
+Assets\Editor\DayNightCycleReferenceFixer.cs(24,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixAllCriticalIssues.cs(207,27): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixAllCriticalIssues.cs(216,32): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixAllCriticalIssues.cs(225,28): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixAllCriticalIssues.cs(242,25): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets\Editor\IndoorShellMenu.cs(30,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Editor\IndoorShellMenu.cs(30,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Editor\FixMainScene.cs(938,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\VFXResourceInstaller.cs(279,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
+Assets\Editor\MonsterRigScanTool.cs(170,51): warning CS0184: The given expression is never of the provided ('AnimatorController') type
+AssetDatabase: script compilation time: 12.943645s
 Begin MonoManager ReloadAssembly
 Assembly Assembly-CSharp-Editor-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-Editor-firstpass.dll not valid. Loading of assembly skipped.
 Assembly Assembly-CSharp-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll not valid. Loading of assembly skipped.
@@ -401,119 +512,120 @@ Symbol file LoadedFromMemory is not a mono symbol file
 Symbol file LoadedFromMemory is not a mono symbol file
 'Packages/com.unity.cinemachine/Editor/Editors/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
 'Packages/com.unity.cinemachine/Editor/Obsolete/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
-Refreshing native plugins compatible for Editor in 8.12 ms, found 5 plugins.
+Refreshing native plugins compatible for Editor in 32.46 ms, found 5 plugins.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
-Refreshing native plugins compatible for Editor in 10.35 ms, found 5 plugins.
+Refreshing native plugins compatible for Editor in 9.93 ms, found 5 plugins.
 [MODES] ModeService[none].Initialize
 [MODES] ModeService[none].LoadModes
 [MODES] Loading mode Default (0) for mode-current-id-í¬ì´ì¦Œ
 ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  7.129 seconds
-Domain Reload Profiling: 9937ms
-	BeginReloadAssembly (481ms)
-		DisableScriptedObjects (37ms)
-		CreateAndSetChildDomain (174ms)
-	RebuildCommonClasses (52ms)
-	RebuildNativeTypeToScriptingClass (20ms)
-	initialDomainReloadingComplete (470ms)
-	LoadAllAssembliesAndSetupDomain (1785ms)
-		LoadAssemblies (1288ms)
-		AnalyzeDomain (682ms)
-			TypeCache.Refresh (490ms)
-				TypeCache.ScanAssembly (464ms)
-			BuildScriptInfoCaches (138ms)
-			ResolveRequiredComponents (50ms)
-	FinalizeReload (7129ms)
+- Finished resetting the current domain, in 13.038 seconds
+Domain Reload Profiling: 18715ms
+	BeginReloadAssembly (564ms)
+		DisableScriptedObjects (72ms)
+		CreateAndSetChildDomain (187ms)
+	RebuildCommonClasses (68ms)
+	RebuildNativeTypeToScriptingClass (22ms)
+	initialDomainReloadingComplete (2142ms)
+	LoadAllAssembliesAndSetupDomain (2878ms)
+		LoadAssemblies (1854ms)
+		AnalyzeDomain (1230ms)
+			TypeCache.Refresh (1036ms)
+				TypeCache.ScanAssembly (841ms)
+			BuildScriptInfoCaches (150ms)
+			ResolveRequiredComponents (41ms)
+	FinalizeReload (13041ms)
 		SetupLoadedEditorAssemblies (0ms)
-			InitializePlatformSupportModulesInManaged (46ms)
-			BeforeProcessingInitializeOnLoad (516ms)
-			ProcessInitializeOnLoadAttributes (5502ms)
-			ProcessInitializeOnLoadMethodAttributes (649ms)
-			AfterProcessingInitializeOnLoad (16ms)
-			EditorAssembliesLoaded (3ms)
-		AwakeInstancesAfterBackupRestoration (42ms)
-Refreshing native plugins compatible for Editor in 6.95 ms, found 5 plugins.
+			InitializePlatformSupportModulesInManaged (47ms)
+			BeforeProcessingInitializeOnLoad (590ms)
+			ProcessInitializeOnLoadAttributes (10171ms)
+			ProcessInitializeOnLoadMethodAttributes (1557ms)
+			AfterProcessingInitializeOnLoad (19ms)
+		AwakeInstancesAfterBackupRestoration (80ms)
+Refreshing native plugins compatible for Editor in 215.66 ms, found 5 plugins.
 (Values over 0.050ms)
-Asset Pipeline Refresh (id=fd7fdccd75bc7f544b2fe09eca030f3f): Total: 26.804 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+Asset Pipeline Refresh (id=2ecfed16a60949b47a1520eb902bf43c): Total: 40.512 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
 	Summary:
 		Imports: total=0 (actual=0, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=11555 ms
-		Asset DB Callback time: managed=520 ms, native=73 ms
-		Scripting: domain reloads=1, domain reload time=2820 ms, compile time=11576 ms, other=256 ms
+		Asset DB Process Time: managed=0 ms, native=18754 ms
+		Asset DB Callback time: managed=1318 ms, native=1531 ms
+		Scripting: domain reloads=1, domain reload time=5689 ms, compile time=12948 ms, other=263 ms
 		Project Asset Count: scripts=2452, non-scripts=6834
 		Asset File Changes: new=0, changed=1, moved=0, deleted=0
 		Scan Filter Count: 0
-	InvokePackagesCallback: 49.477ms
-	ApplyChangesToAssetFolders: 1.203ms
-	Scan: 1753.531ms
-	OnSourceAssetsModified: 5.520ms
-	CategorizeScriptCompilationAssets: 1678.960ms
-	ProcessAssetsWithTransientArtifactChanges: 207.672ms
-	CategorizeAssets: 184.843ms
-	CompileScripts: 11575.980ms
-	ImportOutOfDateAssets: 7167.574ms (7159.779ms without children)
-		UnloadImportedAssets: 3.064ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.305ms
-		OnDemandSchedulerStart: 2.385ms
-	PostProcessAllAssets: 525.828ms
-		VCAutoAddAssetPostprocess 6.690ms
-		XRBuildSystem.XRAssetImported 2.482ms
-		MonoPostProcessAllAssets: 515.622ms
-			AssetPostprocessor.OnPostprocessAllAssets 363.386ms
-			StyleCatalogPostProcessor.OnPostprocessAllAssets 40.741ms
-			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 33.482ms
-			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 15.431ms
-			BuilderAssetPostprocessor.OnPostprocessAllAssets 9.971ms
-			SpeedTree9Postprocessor.OnPostprocessAllAssets 3.362ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 3.332ms
-			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 2.937ms
-			AssetChangedListener.OnPostprocessAllAssets 2.322ms
-			LocalizationAssetPostProcessor.OnPostprocessAllAssets 1.836ms
-			AddressablesAssetPostProcessor.OnPostprocessAllAssets 1.702ms
-			MaterialPostprocessor.OnPostprocessAllAssets 1.681ms
-			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 1.130ms
-			AssetPathToTypes.OnPostprocessAllAssets 1.124ms
-			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.828ms
-			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.810ms
-			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.741ms
-			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.733ms
-			TextAssetPostProcessor.OnPostprocessAllAssets 0.697ms
-			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.694ms
-			AssetEvents.OnPostprocessAllAssets 0.488ms
-			AudioMixerPostprocessor.OnPostprocessAllAssets 0.482ms
-			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.467ms
-			CinemachineSettings.OnPostprocessAllAssets 0.457ms
-			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.425ms
-			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.424ms
-			PostProcessor.OnPostprocessAllAssets 0.410ms
-			ModelAssetProcessor.OnPostprocessAllAssets 0.395ms
-			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.261ms
-			SyncVS.PostprocessSyncProject 0.259ms
-			SamplePostprocessor.OnPostprocessAllAssets 0.239ms
-			ConfigAssetsTracker.OnPostprocessAllAssets 0.218ms
-			SpeedTreePostProcessor.OnPostprocessAllAssets 0.205ms
-			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.177ms
-			AudioContainerPostProcessor.OnPostprocessAllAssets 0.152ms
-	PostAssetChangesProfiler: 17.442ms
-	UnloadStreamsBegin: 5.569ms
-	PersistCurrentRevisions: 0.441ms
-	GenerateScriptTypeHashes: 6.217ms
-	GenerateScriptTypeSerializationHashes: 11.394ms
-	Untracked: 3622.291ms
+	InvokePackagesCallback: 75.128ms
+	ApplyChangesToAssetFolders: 2.085ms
+	Scan: 2227.079ms
+	OnSourceAssetsModified: 3.778ms
+	CategorizeScriptCompilationAssets: 478.584ms
+	ProcessAssetsWithTransientArtifactChanges: 813.781ms
+	CategorizeAssets: 1224.381ms
+	CompileScripts: 12947.675ms
+	ImportOutOfDateAssets: 13126.227ms (13114.914ms without children)
+		UnloadImportedAssets: 5.476ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 3.016ms
+		OnDemandSchedulerStart: 2.771ms
+	PostProcessAllAssets: 1483.934ms
+		VCAutoAddAssetPostprocess 148.706ms
+		XRBuildSystem.XRAssetImported 3.692ms
+		WindowTitlePostprocess 0.879ms
+		PostProcessCallbackCreateDeferredMaterials 0.054ms
+		MonoPostProcessAllAssets: 1316.813ms
+			AssetPostprocessor.OnPostprocessAllAssets 613.838ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 181.830ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 63.666ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 42.339ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 29.857ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 28.768ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 26.763ms
+			AssetChangedListener.OnPostprocessAllAssets 19.285ms
+			MaterialPostprocessor.OnPostprocessAllAssets 18.110ms
+			AssetEvents.OnPostprocessAllAssets 12.078ms
+			LocalizationAssetPostProcessor.OnPostprocessAllAssets 9.699ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 8.277ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 7.205ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 7.009ms
+			ModelAssetProcessor.OnPostprocessAllAssets 6.872ms
+			PostProcessor.OnPostprocessAllAssets 5.299ms
+			AddressablesAssetPostProcessor.OnPostprocessAllAssets 2.787ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 2.362ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 2.249ms
+			AssetPathToTypes.OnPostprocessAllAssets 2.125ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 1.947ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 1.893ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 1.266ms
+			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.948ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.929ms
+			CinemachineSettings.OnPostprocessAllAssets 0.759ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.670ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.564ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.479ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.466ms
+			SamplePostprocessor.OnPostprocessAllAssets 0.462ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.365ms
+			ConfigAssetsTracker.OnPostprocessAllAssets 0.289ms
+			SyncVS.PostprocessSyncProject 0.285ms
+			AudioContainerPostProcessor.OnPostprocessAllAssets 0.241ms
+	PostAssetChangesProfiler: 1295.093ms
+	UnloadStreamsBegin: 8.124ms
+	PersistCurrentRevisions: 0.442ms
+	GenerateScriptTypeHashes: 9.570ms
+	GenerateScriptTypeSerializationHashes: 14.871ms
+	Untracked: 6799.528ms
 
 Application.AssetDatabase Initial Refresh End
-Launched and connected shader compiler UnityShaderCompiler.exe after 0.04 seconds
-Scanning for USB devices : 6.874ms
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.07 seconds
+Scanning for USB devices : 19.639ms
 Initializing Unity extensions:
 Unloading 70 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 10724 unused Assets / (14.6 MB). Loaded Objects now: 11640.
-Memory consumption went from 291.0 MB to 276.4 MB.
-Total: 35.679300 ms (FindLiveObjects: 1.867300 ms CreateObjectMapping: 4.801300 ms MarkObjects: 16.163100 ms  DeleteObjects: 12.208100 ms)
+Unloading 10724 unused Assets / (14.8 MB). Loaded Objects now: 11640.
+Memory consumption went from 290.9 MB to 276.1 MB.
+Total: 171.985500 ms (FindLiveObjects: 2.202600 ms CreateObjectMapping: 9.519700 ms MarkObjects: 116.617000 ms  DeleteObjects: 43.637700 ms)
 
-[QA] Starting validation â€” report: .\qa_report_2026-09-12_13-22-51.txt
+[QA] Starting validation â€” report: .\qa_report_2026-09-12_14-04-29.txt
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
@@ -536,7 +648,7 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:31)
 
 (Filename: Assets/Editor/QaValidator.cs Line: 51)
 
-Asset Pipeline Refresh (id=e733f065c87dfa740a62616bb1465d61): Total: 0.193 seconds - Initiated by RefreshV2(ForceUpdate)
+Asset Pipeline Refresh (id=f7f70dce355ec594d98d1de970a67f19): Total: 0.204 seconds - Initiated by RefreshV2(ForceUpdate)
 [QA] Checking scene integrity...
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
@@ -563,15 +675,16 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 
 Opening scene 'Assets/_Recovery/0 (1).unity'
 Unloading 0 Unused Serialized files (Serialized files now loaded: 0)
+[Licensing::Client] Successfully resolved entitlement details
 Loaded scene 'Assets/_Recovery/0 (1).unity'
-	Deserialize:            5.197 ms
-	Integration:            671.303 ms
-	Integration of assets:  0.004 ms
-	Thread Wait Time:       0.043 ms
-	Total Operation Time:   676.547 ms
+	Deserialize:            31.564 ms
+	Integration:            1248.650 ms
+	Integration of assets:  0.017 ms
+	Thread Wait Time:       77.981 ms
+	Total Operation Time:   1358.213 ms
 Unloading 2 unused Assets / (1.0 KB). Loaded Objects now: 11645.
-Memory consumption went from 248.2 MB to 248.2 MB.
-Total: 18.213500 ms (FindLiveObjects: 1.570800 ms CreateObjectMapping: 1.390300 ms MarkObjects: 15.188400 ms  DeleteObjects: 0.061800 ms)
+Memory consumption went from 248.3 MB to 248.3 MB.
+Total: 17.690300 ms (FindLiveObjects: 2.021000 ms CreateObjectMapping: 1.421300 ms MarkObjects: 14.143400 ms  DeleteObjects: 0.102000 ms)
 
 [QA] Opening scene: Assets/_Recovery/0.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -588,14 +701,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/_Recovery/0.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/_Recovery/0.unity'
-	Deserialize:            403.305 ms
-	Integration:            2696.808 ms
-	Integration of assets:  8.591 ms
-	Thread Wait Time:       -7.281 ms
-	Total Operation Time:   3101.423 ms
+	Deserialize:            7650.160 ms
+	Integration:            6989.503 ms
+	Integration of assets:  2497.086 ms
+	Thread Wait Time:       -2495.044 ms
+	Total Operation Time:   14641.704 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 27503.
-Memory consumption went from 261.8 MB to 261.8 MB.
-Total: 19.390500 ms (FindLiveObjects: 3.490600 ms CreateObjectMapping: 1.249500 ms MarkObjects: 14.544400 ms  DeleteObjects: 0.104200 ms)
+Memory consumption went from 262.0 MB to 262.0 MB.
+Total: 22.231200 ms (FindLiveObjects: 4.106800 ms CreateObjectMapping: 1.493200 ms MarkObjects: 16.440800 ms  DeleteObjects: 0.188500 ms)
 
 [QA] Opening scene: Assets/DoubleL/Demo/Demo.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -612,14 +725,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/DoubleL/Demo/Demo.unity'
 Unloading 2 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/DoubleL/Demo/Demo.unity'
-	Deserialize:            31.247 ms
-	Integration:            1528.863 ms
-	Integration of assets:  0.009 ms
-	Thread Wait Time:       0.476 ms
-	Total Operation Time:   1560.596 ms
+	Deserialize:            123.971 ms
+	Integration:            4249.624 ms
+	Integration of assets:  0.030 ms
+	Thread Wait Time:       0.072 ms
+	Total Operation Time:   4373.697 ms
 Unloading 3 unused Assets / (5.0 KB). Loaded Objects now: 22714.
-Memory consumption went from 284.5 MB to 284.5 MB.
-Total: 18.088000 ms (FindLiveObjects: 2.468900 ms CreateObjectMapping: 2.279100 ms MarkObjects: 12.913800 ms  DeleteObjects: 0.424700 ms)
+Memory consumption went from 284.6 MB to 284.6 MB.
+Total: 23.754300 ms (FindLiveObjects: 2.867400 ms CreateObjectMapping: 3.001900 ms MarkObjects: 16.556400 ms  DeleteObjects: 1.327100 ms)
 
 [QA] Opening scene: Assets/Free Slash VFX/Demo/Scenes/SampleScene.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -636,14 +749,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Free Slash VFX/Demo/Scenes/SampleScene.unity'
 Unloading 149 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Free Slash VFX/Demo/Scenes/SampleScene.unity'
-	Deserialize:            151.223 ms
-	Integration:            685.772 ms
-	Integration of assets:  25.538 ms
-	Thread Wait Time:       0.198 ms
-	Total Operation Time:   862.730 ms
-Unloading 572 unused Assets / (427.0 KB). Loaded Objects now: 13119.
-Memory consumption went from 290.9 MB to 290.5 MB.
-Total: 17.421600 ms (FindLiveObjects: 1.306700 ms CreateObjectMapping: 1.609900 ms MarkObjects: 13.609500 ms  DeleteObjects: 0.894600 ms)
+	Deserialize:            975.411 ms
+	Integration:            1897.169 ms
+	Integration of assets:  61.760 ms
+	Thread Wait Time:       2.139 ms
+	Total Operation Time:   2936.479 ms
+Unloading 572 unused Assets / (436.4 KB). Loaded Objects now: 13119.
+Memory consumption went from 291.0 MB to 290.6 MB.
+Total: 29.046000 ms (FindLiveObjects: 2.008500 ms CreateObjectMapping: 4.104500 ms MarkObjects: 17.049900 ms  DeleteObjects: 5.880700 ms)
 
 [QA] Opening scene: Assets/Idyllic Fantasy Nature/Demo/Demo.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -660,14 +773,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Idyllic Fantasy Nature/Demo/Demo.unity'
 Unloading 45 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Idyllic Fantasy Nature/Demo/Demo.unity'
-	Deserialize:            129.911 ms
-	Integration:            3015.634 ms
-	Integration of assets:  1.005 ms
-	Thread Wait Time:       0.079 ms
-	Total Operation Time:   3146.629 ms
-Unloading 662 unused Assets / (379.4 KB). Loaded Objects now: 50330.
-Memory consumption went from 417.1 MB to 416.7 MB.
-Total: 26.589100 ms (FindLiveObjects: 6.350500 ms CreateObjectMapping: 4.125600 ms MarkObjects: 15.164900 ms  DeleteObjects: 0.946600 ms)
+	Deserialize:            252.817 ms
+	Integration:            6039.631 ms
+	Integration of assets:  1.981 ms
+	Thread Wait Time:       -0.042 ms
+	Total Operation Time:   6294.387 ms
+Unloading 662 unused Assets / (136.8 KB). Loaded Objects now: 50330.
+Memory consumption went from 417.2 MB to 417.1 MB.
+Total: 100.862000 ms (FindLiveObjects: 15.898700 ms CreateObjectMapping: 14.171400 ms MarkObjects: 66.245700 ms  DeleteObjects: 4.543300 ms)
 
 [QA] Opening scene: Assets/Matthew Guz/Hits Effects FREE/Scene Demo/HIT EFFECTS FREE Scene Demo.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -684,14 +797,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Matthew Guz/Hits Effects FREE/Scene Demo/HIT EFFECTS FREE Scene Demo.unity'
 Unloading 289 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Matthew Guz/Hits Effects FREE/Scene Demo/HIT EFFECTS FREE Scene Demo.unity'
-	Deserialize:            49.332 ms
-	Integration:            447.181 ms
-	Integration of assets:  8.765 ms
-	Thread Wait Time:       0.074 ms
-	Total Operation Time:   505.353 ms
-Unloading 2033 unused Assets / (28.8 MB). Loaded Objects now: 12182.
-Memory consumption went from 332.5 MB to 303.7 MB.
-Total: 20.980400 ms (FindLiveObjects: 1.173300 ms CreateObjectMapping: 1.182600 ms MarkObjects: 15.507500 ms  DeleteObjects: 3.115900 ms)
+	Deserialize:            241.946 ms
+	Integration:            1761.820 ms
+	Integration of assets:  9.332 ms
+	Thread Wait Time:       -0.038 ms
+	Total Operation Time:   2013.059 ms
+Unloading 2033 unused Assets / (25.6 MB). Loaded Objects now: 12182.
+Memory consumption went from 332.6 MB to 307.0 MB.
+Total: 35.317800 ms (FindLiveObjects: 3.406800 ms CreateObjectMapping: 3.655200 ms MarkObjects: 21.543100 ms  DeleteObjects: 6.709500 ms)
 
 [QA] Opening scene: Assets/Scenes/IndoorScene.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -708,14 +821,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/IndoorScene.unity'
 Unloading 12 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/IndoorScene.unity'
-	Deserialize:            12.039 ms
-	Integration:            347.876 ms
-	Integration of assets:  1.108 ms
-	Thread Wait Time:       0.049 ms
-	Total Operation Time:   361.072 ms
+	Deserialize:            30.945 ms
+	Integration:            533.881 ms
+	Integration of assets:  3.150 ms
+	Thread Wait Time:       -0.725 ms
+	Total Operation Time:   567.251 ms
 Unloading 211 unused Assets / (24.3 KB). Loaded Objects now: 11857.
-Memory consumption went from 295.1 MB to 295.1 MB.
-Total: 14.035100 ms (FindLiveObjects: 1.050300 ms CreateObjectMapping: 0.939900 ms MarkObjects: 11.734600 ms  DeleteObjects: 0.309300 ms)
+Memory consumption went from 298.4 MB to 298.4 MB.
+Total: 23.117000 ms (FindLiveObjects: 1.114900 ms CreateObjectMapping: 1.478500 ms MarkObjects: 18.667300 ms  DeleteObjects: 1.853900 ms)
 
 [QA] Opening scene: Assets/Scenes/MainMenu.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -732,14 +845,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/MainMenu.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/MainMenu.unity'
-	Deserialize:            2.403 ms
-	Integration:            356.035 ms
-	Integration of assets:  0.002 ms
-	Thread Wait Time:       0.046 ms
-	Total Operation Time:   358.486 ms
+	Deserialize:            3.975 ms
+	Integration:            447.939 ms
+	Integration of assets:  0.004 ms
+	Thread Wait Time:       0.343 ms
+	Total Operation Time:   452.261 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11734.
-Memory consumption went from 286.8 MB to 286.8 MB.
-Total: 15.622300 ms (FindLiveObjects: 0.946300 ms CreateObjectMapping: 1.209200 ms MarkObjects: 13.421700 ms  DeleteObjects: 0.043900 ms)
+Memory consumption went from 286.9 MB to 286.9 MB.
+Total: 17.042400 ms (FindLiveObjects: 1.217700 ms CreateObjectMapping: 2.770400 ms MarkObjects: 13.007300 ms  DeleteObjects: 0.045800 ms)
 
 [QA] Opening scene: Assets/Scenes/MainScene.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -836,14 +949,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 [Assets/Editor/QaValidator.cs line 118]
 
 Loaded scene 'Assets/Scenes/MainScene.unity'
-	Deserialize:            174.385 ms
-	Integration:            493.267 ms
-	Integration of assets:  0.555 ms
-	Thread Wait Time:       -0.466 ms
-	Total Operation Time:   667.741 ms
+	Deserialize:            313.972 ms
+	Integration:            622.802 ms
+	Integration of assets:  4.436 ms
+	Thread Wait Time:       -4.190 ms
+	Total Operation Time:   937.020 ms
 Unloading 3 unused Assets / (1.3 KB). Loaded Objects now: 18485.
-Memory consumption went from 300.4 MB to 300.4 MB.
-Total: 17.196800 ms (FindLiveObjects: 1.851900 ms CreateObjectMapping: 1.091900 ms MarkObjects: 14.181900 ms  DeleteObjects: 0.069600 ms)
+Memory consumption went from 300.5 MB to 300.5 MB.
+Total: 19.904600 ms (FindLiveObjects: 2.907400 ms CreateObjectMapping: 1.799800 ms MarkObjects: 14.966200 ms  DeleteObjects: 0.229300 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/InteriorSystemsTest.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -860,14 +973,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/InteriorSystemsTest.unity'
 Unloading 26 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/InteriorSystemsTest.unity'
-	Deserialize:            1.333 ms
-	Integration:            332.354 ms
-	Integration of assets:  0.002 ms
-	Thread Wait Time:       0.066 ms
-	Total Operation Time:   333.755 ms
+	Deserialize:            2.302 ms
+	Integration:            416.100 ms
+	Integration of assets:  0.003 ms
+	Thread Wait Time:       0.018 ms
+	Total Operation Time:   418.423 ms
 Unloading 26 unused Assets / (21.5 KB). Loaded Objects now: 11720.
-Memory consumption went from 296.1 MB to 296.1 MB.
-Total: 13.565600 ms (FindLiveObjects: 0.833200 ms CreateObjectMapping: 1.007000 ms MarkObjects: 11.570500 ms  DeleteObjects: 0.153700 ms)
+Memory consumption went from 296.3 MB to 296.2 MB.
+Total: 14.147800 ms (FindLiveObjects: 0.956200 ms CreateObjectMapping: 0.972000 ms MarkObjects: 12.023100 ms  DeleteObjects: 0.195300 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_01_Player.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -884,14 +997,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_01_Player.unity'
 Unloading 8 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_01_Player.unity'
-	Deserialize:            15.658 ms
-	Integration:            342.630 ms
-	Integration of assets:  0.018 ms
-	Thread Wait Time:       1.150 ms
-	Total Operation Time:   359.455 ms
+	Deserialize:            91.359 ms
+	Integration:            496.269 ms
+	Integration of assets:  0.031 ms
+	Thread Wait Time:       0.305 ms
+	Total Operation Time:   587.964 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11733.
-Memory consumption went from 295.2 MB to 295.2 MB.
-Total: 13.163000 ms (FindLiveObjects: 0.805000 ms CreateObjectMapping: 0.905400 ms MarkObjects: 11.397300 ms  DeleteObjects: 0.054200 ms)
+Memory consumption went from 295.3 MB to 295.3 MB.
+Total: 15.328500 ms (FindLiveObjects: 0.842500 ms CreateObjectMapping: 0.973600 ms MarkObjects: 13.409300 ms  DeleteObjects: 0.101800 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_02_UI.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -908,14 +1021,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_02_UI.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_02_UI.unity'
-	Deserialize:            4.266 ms
-	Integration:            338.113 ms
+	Deserialize:            15.952 ms
+	Integration:            432.301 ms
 	Integration of assets:  0.006 ms
-	Thread Wait Time:       0.071 ms
-	Total Operation Time:   342.456 ms
+	Thread Wait Time:       0.107 ms
+	Total Operation Time:   448.365 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11723.
-Memory consumption went from 295.2 MB to 295.2 MB.
-Total: 13.052600 ms (FindLiveObjects: 0.906500 ms CreateObjectMapping: 0.937200 ms MarkObjects: 11.166600 ms  DeleteObjects: 0.041100 ms)
+Memory consumption went from 295.3 MB to 295.3 MB.
+Total: 15.855200 ms (FindLiveObjects: 1.589000 ms CreateObjectMapping: 2.214600 ms MarkObjects: 11.985600 ms  DeleteObjects: 0.064800 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_03_Combat.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -934,14 +1047,14 @@ Could not extract GUID in text file Assets/Scenes/TestScenes/Test_03_Combat.unit
 Broken text PPtr. GUID 00000000000000000000000000000000 fileID 11500000 is invalid!
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_03_Combat.unity'
-	Deserialize:            18.853 ms
-	Integration:            342.559 ms
-	Integration of assets:  0.003 ms
-	Thread Wait Time:       0.058 ms
-	Total Operation Time:   361.473 ms
-Unloading 4 unused Assets / (8.3 MB). Loaded Objects now: 11720.
-Memory consumption went from 295.2 MB to 286.8 MB.
-Total: 13.579400 ms (FindLiveObjects: 0.781700 ms CreateObjectMapping: 0.990400 ms MarkObjects: 11.673000 ms  DeleteObjects: 0.132900 ms)
+	Deserialize:            41.465 ms
+	Integration:            406.530 ms
+	Integration of assets:  0.008 ms
+	Thread Wait Time:       0.012 ms
+	Total Operation Time:   448.015 ms
+Unloading 4 unused Assets / (8.4 MB). Loaded Objects now: 11720.
+Memory consumption went from 295.3 MB to 287.0 MB.
+Total: 15.230800 ms (FindLiveObjects: 0.964200 ms CreateObjectMapping: 1.129800 ms MarkObjects: 12.602600 ms  DeleteObjects: 0.532200 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_04_Territory.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -958,14 +1071,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_04_Territory.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_04_Territory.unity'
-	Deserialize:            4.227 ms
-	Integration:            351.361 ms
-	Integration of assets:  0.030 ms
-	Thread Wait Time:       0.030 ms
-	Total Operation Time:   355.648 ms
+	Deserialize:            88.943 ms
+	Integration:            390.142 ms
+	Integration of assets:  0.034 ms
+	Thread Wait Time:       0.050 ms
+	Total Operation Time:   479.169 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11723.
-Memory consumption went from 287.0 MB to 287.0 MB.
-Total: 41.307300 ms (FindLiveObjects: 1.115000 ms CreateObjectMapping: 1.271900 ms MarkObjects: 38.860400 ms  DeleteObjects: 0.058700 ms)
+Memory consumption went from 287.1 MB to 287.1 MB.
+Total: 15.515200 ms (FindLiveObjects: 1.160900 ms CreateObjectMapping: 1.832100 ms MarkObjects: 12.438400 ms  DeleteObjects: 0.082200 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_05_Craft.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -982,14 +1095,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_05_Craft.unity'
 Unloading 2 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_05_Craft.unity'
-	Deserialize:            1.586 ms
-	Integration:            341.290 ms
-	Integration of assets:  0.003 ms
-	Thread Wait Time:       0.011 ms
-	Total Operation Time:   342.889 ms
+	Deserialize:            8.670 ms
+	Integration:            487.288 ms
+	Integration of assets:  0.004 ms
+	Thread Wait Time:       0.046 ms
+	Total Operation Time:   496.007 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11723.
-Memory consumption went from 286.7 MB to 286.7 MB.
-Total: 16.855400 ms (FindLiveObjects: 0.787400 ms CreateObjectMapping: 1.346200 ms MarkObjects: 14.635700 ms  DeleteObjects: 0.085100 ms)
+Memory consumption went from 286.8 MB to 286.8 MB.
+Total: 17.534400 ms (FindLiveObjects: 1.553300 ms CreateObjectMapping: 1.955400 ms MarkObjects: 13.944500 ms  DeleteObjects: 0.080000 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_06_TimeWeather.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1006,14 +1119,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_06_TimeWeather.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_06_TimeWeather.unity'
-	Deserialize:            13.025 ms
-	Integration:            352.327 ms
-	Integration of assets:  0.002 ms
-	Thread Wait Time:       0.070 ms
-	Total Operation Time:   365.424 ms
+	Deserialize:            241.868 ms
+	Integration:            385.254 ms
+	Integration of assets:  0.103 ms
+	Thread Wait Time:       -0.003 ms
+	Total Operation Time:   627.223 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11723.
-Memory consumption went from 286.7 MB to 286.7 MB.
-Total: 15.114000 ms (FindLiveObjects: 0.903000 ms CreateObjectMapping: 0.904300 ms MarkObjects: 13.177000 ms  DeleteObjects: 0.128300 ms)
+Memory consumption went from 286.8 MB to 286.8 MB.
+Total: 22.085100 ms (FindLiveObjects: 1.788400 ms CreateObjectMapping: 3.106600 ms MarkObjects: 17.129000 ms  DeleteObjects: 0.059600 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_07_GasBomb.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1030,14 +1143,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_07_GasBomb.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_07_GasBomb.unity'
-	Deserialize:            2.180 ms
-	Integration:            335.159 ms
-	Integration of assets:  0.002 ms
-	Thread Wait Time:       0.013 ms
-	Total Operation Time:   337.354 ms
+	Deserialize:            5.376 ms
+	Integration:            416.690 ms
+	Integration of assets:  0.004 ms
+	Thread Wait Time:       0.016 ms
+	Total Operation Time:   422.086 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11723.
-Memory consumption went from 286.7 MB to 286.7 MB.
-Total: 15.708600 ms (FindLiveObjects: 1.396000 ms CreateObjectMapping: 1.107000 ms MarkObjects: 13.003700 ms  DeleteObjects: 0.200400 ms)
+Memory consumption went from 286.8 MB to 286.8 MB.
+Total: 18.149000 ms (FindLiveObjects: 1.480200 ms CreateObjectMapping: 3.026300 ms MarkObjects: 13.484500 ms  DeleteObjects: 0.155500 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_08_Dracula.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1054,14 +1167,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_08_Dracula.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_08_Dracula.unity'
-	Deserialize:            4.595 ms
-	Integration:            347.102 ms
-	Integration of assets:  0.002 ms
-	Thread Wait Time:       0.044 ms
-	Total Operation Time:   351.743 ms
+	Deserialize:            1.997 ms
+	Integration:            395.239 ms
+	Integration of assets:  0.003 ms
+	Thread Wait Time:       0.028 ms
+	Total Operation Time:   397.267 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11723.
-Memory consumption went from 286.7 MB to 286.7 MB.
-Total: 13.477800 ms (FindLiveObjects: 0.852900 ms CreateObjectMapping: 1.263800 ms MarkObjects: 11.286700 ms  DeleteObjects: 0.073200 ms)
+Memory consumption went from 286.8 MB to 286.8 MB.
+Total: 16.591500 ms (FindLiveObjects: 1.029700 ms CreateObjectMapping: 0.972800 ms MarkObjects: 14.499800 ms  DeleteObjects: 0.087800 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_09_AllInOne.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1078,14 +1191,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_09_AllInOne.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_09_AllInOne.unity'
-	Deserialize:            2.160 ms
-	Integration:            335.607 ms
-	Integration of assets:  0.002 ms
-	Thread Wait Time:       0.040 ms
-	Total Operation Time:   337.808 ms
+	Deserialize:            15.875 ms
+	Integration:            405.439 ms
+	Integration of assets:  0.007 ms
+	Thread Wait Time:       0.129 ms
+	Total Operation Time:   421.449 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 11723.
-Memory consumption went from 286.7 MB to 286.7 MB.
-Total: 14.098600 ms (FindLiveObjects: 0.786500 ms CreateObjectMapping: 0.904900 ms MarkObjects: 12.295200 ms  DeleteObjects: 0.110400 ms)
+Memory consumption went from 286.8 MB to 286.8 MB.
+Total: 17.357200 ms (FindLiveObjects: 2.493700 ms CreateObjectMapping: 1.406100 ms MarkObjects: 12.968300 ms  DeleteObjects: 0.486400 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_10_TerritoryCombat.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1102,14 +1215,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_10_TerritoryCombat.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_10_TerritoryCombat.unity'
-	Deserialize:            2.040 ms
-	Integration:            337.967 ms
+	Deserialize:            5.798 ms
+	Integration:            414.404 ms
 	Integration of assets:  0.002 ms
-	Thread Wait Time:       0.066 ms
-	Total Operation Time:   340.075 ms
-Unloading 4 unused Assets / (5.5 KB). Loaded Objects now: 11720.
-Memory consumption went from 286.7 MB to 286.7 MB.
-Total: 14.126100 ms (FindLiveObjects: 0.827500 ms CreateObjectMapping: 0.890100 ms MarkObjects: 12.219800 ms  DeleteObjects: 0.187200 ms)
+	Thread Wait Time:       0.051 ms
+	Total Operation Time:   420.255 ms
+Unloading 4 unused Assets / (5.6 KB). Loaded Objects now: 11720.
+Memory consumption went from 286.8 MB to 286.8 MB.
+Total: 14.564200 ms (FindLiveObjects: 1.189400 ms CreateObjectMapping: 1.312400 ms MarkObjects: 11.971000 ms  DeleteObjects: 0.090200 ms)
 
 [QA] Opening scene: Assets/Scenes/TopDownScene.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1126,14 +1239,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TopDownScene.unity'
 Unloading 11 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TopDownScene.unity'
-	Deserialize:            457.451 ms
-	Integration:            504.962 ms
-	Integration of assets:  1.993 ms
-	Thread Wait Time:       -0.073 ms
-	Total Operation Time:   964.334 ms
+	Deserialize:            568.879 ms
+	Integration:            656.383 ms
+	Integration of assets:  2.571 ms
+	Thread Wait Time:       -0.087 ms
+	Total Operation Time:   1227.747 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 31029.
-Memory consumption went from 312.9 MB to 312.9 MB.
-Total: 17.815500 ms (FindLiveObjects: 3.233700 ms CreateObjectMapping: 1.114600 ms MarkObjects: 13.373500 ms  DeleteObjects: 0.092600 ms)
+Memory consumption went from 313.0 MB to 313.0 MB.
+Total: 19.640000 ms (FindLiveObjects: 3.005600 ms CreateObjectMapping: 2.018000 ms MarkObjects: 14.549900 ms  DeleteObjects: 0.065300 ms)
 
 [QA] Opening scene: Assets/Scenes/WorldMap.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1150,14 +1263,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/WorldMap.unity'
 Unloading 13 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/WorldMap.unity'
-	Deserialize:            37.433 ms
-	Integration:            376.609 ms
-	Integration of assets:  10.125 ms
-	Thread Wait Time:       -7.557 ms
-	Total Operation Time:   416.610 ms
-Unloading 34 unused Assets / (62.2 KB). Loaded Objects now: 12849.
-Memory consumption went from 294.2 MB to 294.2 MB.
-Total: 13.980300 ms (FindLiveObjects: 1.084800 ms CreateObjectMapping: 0.940700 ms MarkObjects: 11.765800 ms  DeleteObjects: 0.187700 ms)
+	Deserialize:            67.662 ms
+	Integration:            435.161 ms
+	Integration of assets:  5.270 ms
+	Thread Wait Time:       -3.738 ms
+	Total Operation Time:   504.355 ms
+Unloading 34 unused Assets / (62.8 KB). Loaded Objects now: 12849.
+Memory consumption went from 294.4 MB to 294.3 MB.
+Total: 14.910600 ms (FindLiveObjects: 1.446000 ms CreateObjectMapping: 1.021400 ms MarkObjects: 12.137800 ms  DeleteObjects: 0.303800 ms)
 
 [QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~GroupEditorTests_Group.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1423,68 +1536,68 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:37)
 (Filename: Assets/Editor/QaValidator.cs Line: 37)
 
 Batchmode quit successfully invoked - shutting down!
-Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.0187547 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Grass/Grass_02.mat using Guid(10483612dc26c1041b3d6687bd972505) (NativeFormatImporter) -> (Import Result ID: 'c1a18331354cf321a52588c57578d9fb') in 0.0158751 seconds [static dependencies only]. Details - ImportResultOutputID=f2a370d97c5dfb2140a41b01e033c0c1 DependenciesID=4284bce207ce07ec778815ba4084e482 StaticDependenciesID=47b267facb3e45c5b0111872a685eb04 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Fir_Branch.mat using Guid(0200ed8b82506f647a0cf289a244b119) (NativeFormatImporter) -> (Import Result ID: '4175aa42de4f5ab90f84362dd1d9a796') in 0.0032994 seconds [static dependencies only]. Details - ImportResultOutputID=aa527befdd7378b05dd99eff734ac2e5 DependenciesID=f5bfd006ae12f295753140a5a427f445 StaticDependenciesID=69ddccef36e7dcfe4b0e963a3f08cd1e 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Bushes/Bush_03.mat using Guid(624774d7ea92d5b4db92a800861eea5c) (NativeFormatImporter) -> (Import Result ID: 'eb51ea94aa8aa8bf6ea9959171dfa260') in 0.0039818 seconds [static dependencies only]. Details - ImportResultOutputID=1a221572668c486986d571fe4635cf7c DependenciesID=ac582762bd19443b7fb62b2336a68f36 StaticDependenciesID=c6f846fbaf0e9b65aba6d4b2a2594508 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Plants/Plant.mat using Guid(72cc46bc7c9dfe4499ba6674a29a0b45) (NativeFormatImporter) -> (Import Result ID: '850f6559aedb5fb9621a7fb2614abb25') in 0.0033066 seconds [static dependencies only]. Details - ImportResultOutputID=03949f1a77dae195f6163f24936e7e17 DependenciesID=625ecf0666c6c278c67e2ef8fe240b4f StaticDependenciesID=2ca64fdaffd2b6eb95d7788ada951b4c 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Broadleaf_Green.mat using Guid(d235d21210cd9c341a773bb97a0a4ad4) (NativeFormatImporter) -> (Import Result ID: '0aac282b5f9cd148be3f661175697491') in 0.0029267 seconds [static dependencies only]. Details - ImportResultOutputID=8dc49df84be5e15641659b9ec6867eed DependenciesID=40f317a1b727a152fa70190d5dd15397 StaticDependenciesID=b8e0f12075eb576aa75c78ff4fc54cec 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Reeds_02.mat using Guid(93177626868af8d4d971ee01e99f329f) (NativeFormatImporter) -> (Import Result ID: '10e9d88ff2a3630f3e4046c89029447b') in 0.0041588 seconds [static dependencies only]. Details - ImportResultOutputID=8b6425b20da0aa133a50c8f98d93e271 DependenciesID=1a35c32d5f101d86613e2f079bb5e67d StaticDependenciesID=7e974dda7e4380969c41989c22f63b12 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Bushes/Bush_01.mat using Guid(547d20f3a4675194983b5d880d1fb348) (NativeFormatImporter) -> (Import Result ID: 'b3c8107c602dcfdcb531c0910d137ce9') in 0.003877 seconds [static dependencies only]. Details - ImportResultOutputID=524edb38eb9439299b3bca26d1d71971 DependenciesID=84f3930c163ae4e0e471ebb3cc4add91 StaticDependenciesID=4bf228f311ffe2cfa2ca382683eff616 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Reeds_01.mat using Guid(f5c31f95aa6a9ce4ca82f354413014ce) (NativeFormatImporter) -> (Import Result ID: '311e271db717dafc008c6e2c92244184') in 0.0029759 seconds [static dependencies only]. Details - ImportResultOutputID=1948eb09f69ea067e59e780ce550300c DependenciesID=eb84f3866a3af7aaf6708cb3ca3b1917 StaticDependenciesID=c78a37df4deda4b917b3f9d271b9581f 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Bushes/Bush_02.mat using Guid(16db3acac4b71444b95fd5cca207bf73) (NativeFormatImporter) -> (Import Result ID: 'e6ce1d4fcb59a61ac837659c99f7624b') in 0.00321 seconds [static dependencies only]. Details - ImportResultOutputID=30d676199a40aaab18394ca4a8614cbd DependenciesID=760ca52db1dec347e32a81c0e13c3b4d StaticDependenciesID=7a1db89fd031e418d419e719a4a43f44 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Grass/Grass_01.mat using Guid(76ef7e3a05c197a4ca75eadeb25e8c48) (NativeFormatImporter) -> (Import Result ID: '61a194f2a71b3a926f345e5e9d3eac6c') in 0.0036817 seconds [static dependencies only]. Details - ImportResultOutputID=a1bbfacd5ff1816771fa088f0d125dba DependenciesID=eaa0a3ab818b5734ab0be53d440cfee7 StaticDependenciesID=4871903bcdd9cce112413495ba4edcec 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Flowers/FlowerMeadow.mat using Guid(a803901a8f304c745aaafbe0260beaed) (NativeFormatImporter) -> (Import Result ID: 'd1e5425b1ae386d0605230f103f075a3') in 0.0040166 seconds [static dependencies only]. Details - ImportResultOutputID=d052003ab5fbcab609cf4bcee212e5e0 DependenciesID=41217147ec29a60ddc3690c566a12732 StaticDependenciesID=40e7ce191495d1d4716bec21b0b03be5 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Grass/Grass_03.mat using Guid(e85669880144e1f4ab0ee9d8a4abce6a) (NativeFormatImporter) -> (Import Result ID: 'db4c4efc3511e68fe7973473654f3b75') in 0.0031718 seconds [static dependencies only]. Details - ImportResultOutputID=4fbd3b7813499231dfbab233c4eda4ba DependenciesID=47d3040ab6009f05102e8dc0ca481324 StaticDependenciesID=af84a861e07cdc66058e5408913d6e77 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Tree_Blossoms.mat using Guid(1b87e06c04499a548b061cebc9c25c0d) (NativeFormatImporter) -> (Import Result ID: '1b8534e6795da00b454ef5893bfbcf08') in 0.00294 seconds [static dependencies only]. Details - ImportResultOutputID=c058a337bc6880b460c70fb7796eadef DependenciesID=dc1f540f87b49d106441d4bee3bef6b9 StaticDependenciesID=9b265087d2c9d9ec7eed4f1904b2e3fb 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Reeds_03.mat using Guid(4b043753b6e14de40b5307322dceb86f) (NativeFormatImporter) -> (Import Result ID: 'e9644f3dfc360f691b8d84c98595adbe') in 0.0031318 seconds [static dependencies only]. Details - ImportResultOutputID=3e6e9dee0a1e353e69953405785bc851 DependenciesID=86e78d11f45075e3ef300774440e8f5f StaticDependenciesID=19fb5acbe3100cf0b97b5c711758aa81 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Willow_Branch_Green.mat using Guid(6baca70dc3434ed41acb5be62febe897) (NativeFormatImporter) -> (Import Result ID: 'd62475ba784ff28e753d6987f5f332e5') in 0.0029673 seconds [static dependencies only]. Details - ImportResultOutputID=c09784b432546f4a6c19cb16ea81c298 DependenciesID=a680f26a98311b18c252bf759223409e StaticDependenciesID=32f343e8767de143036aa75989195820 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Cattail.mat using Guid(7da7c3a003bf2d949bac1d4b7b1663f1) (NativeFormatImporter) -> (Import Result ID: '922bae6eafc2fac48773fd985e242eb3') in 0.0032522 seconds [static dependencies only]. Details - ImportResultOutputID=dc6e1994aa69df8b407dab8293ba8f05 DependenciesID=750d7df9992fba09087588de18db3947 StaticDependenciesID=1f5e945c50e545c7636f6fddcf91ca89 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Flowers/Flower.mat using Guid(cef103c3c4d4f3c48bac1eff7d881a62) (NativeFormatImporter) -> (Import Result ID: '7681408f9542af44e84c6fbad14ab38b') in 0.0031826 seconds [static dependencies only]. Details - ImportResultOutputID=18de31197e2450569a4de35ab15ccbe7 DependenciesID=665e0699905bcdb8b18a0e8771f5860c StaticDependenciesID=824076d5a6693afa8d305360cfb75d15 
-Refreshing native plugins compatible for Editor in 6.69 ms, found 5 plugins.
+Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.0603189 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Grass/Grass_02.mat using Guid(10483612dc26c1041b3d6687bd972505) (NativeFormatImporter) -> (Import Result ID: 'c1a18331354cf321a52588c57578d9fb') in 0.0346064 seconds [static dependencies only]. Details - ImportResultOutputID=f2a370d97c5dfb2140a41b01e033c0c1 DependenciesID=4284bce207ce07ec778815ba4084e482 StaticDependenciesID=47b267facb3e45c5b0111872a685eb04 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Fir_Branch.mat using Guid(0200ed8b82506f647a0cf289a244b119) (NativeFormatImporter) -> (Import Result ID: '4175aa42de4f5ab90f84362dd1d9a796') in 0.0047215 seconds [static dependencies only]. Details - ImportResultOutputID=aa527befdd7378b05dd99eff734ac2e5 DependenciesID=f5bfd006ae12f295753140a5a427f445 StaticDependenciesID=69ddccef36e7dcfe4b0e963a3f08cd1e 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Bushes/Bush_03.mat using Guid(624774d7ea92d5b4db92a800861eea5c) (NativeFormatImporter) -> (Import Result ID: 'eb51ea94aa8aa8bf6ea9959171dfa260') in 0.0039068 seconds [static dependencies only]. Details - ImportResultOutputID=1a221572668c486986d571fe4635cf7c DependenciesID=ac582762bd19443b7fb62b2336a68f36 StaticDependenciesID=c6f846fbaf0e9b65aba6d4b2a2594508 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Plants/Plant.mat using Guid(72cc46bc7c9dfe4499ba6674a29a0b45) (NativeFormatImporter) -> (Import Result ID: '850f6559aedb5fb9621a7fb2614abb25') in 0.0042128 seconds [static dependencies only]. Details - ImportResultOutputID=03949f1a77dae195f6163f24936e7e17 DependenciesID=625ecf0666c6c278c67e2ef8fe240b4f StaticDependenciesID=2ca64fdaffd2b6eb95d7788ada951b4c 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Broadleaf_Green.mat using Guid(d235d21210cd9c341a773bb97a0a4ad4) (NativeFormatImporter) -> (Import Result ID: '0aac282b5f9cd148be3f661175697491') in 0.0052946 seconds [static dependencies only]. Details - ImportResultOutputID=8dc49df84be5e15641659b9ec6867eed DependenciesID=40f317a1b727a152fa70190d5dd15397 StaticDependenciesID=b8e0f12075eb576aa75c78ff4fc54cec 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Reeds_02.mat using Guid(93177626868af8d4d971ee01e99f329f) (NativeFormatImporter) -> (Import Result ID: '10e9d88ff2a3630f3e4046c89029447b') in 0.0056748 seconds [static dependencies only]. Details - ImportResultOutputID=8b6425b20da0aa133a50c8f98d93e271 DependenciesID=1a35c32d5f101d86613e2f079bb5e67d StaticDependenciesID=7e974dda7e4380969c41989c22f63b12 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Bushes/Bush_01.mat using Guid(547d20f3a4675194983b5d880d1fb348) (NativeFormatImporter) -> (Import Result ID: 'b3c8107c602dcfdcb531c0910d137ce9') in 0.0039167 seconds [static dependencies only]. Details - ImportResultOutputID=524edb38eb9439299b3bca26d1d71971 DependenciesID=84f3930c163ae4e0e471ebb3cc4add91 StaticDependenciesID=4bf228f311ffe2cfa2ca382683eff616 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Reeds_01.mat using Guid(f5c31f95aa6a9ce4ca82f354413014ce) (NativeFormatImporter) -> (Import Result ID: '311e271db717dafc008c6e2c92244184') in 0.0042605 seconds [static dependencies only]. Details - ImportResultOutputID=1948eb09f69ea067e59e780ce550300c DependenciesID=eb84f3866a3af7aaf6708cb3ca3b1917 StaticDependenciesID=c78a37df4deda4b917b3f9d271b9581f 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Bushes/Bush_02.mat using Guid(16db3acac4b71444b95fd5cca207bf73) (NativeFormatImporter) -> (Import Result ID: 'e6ce1d4fcb59a61ac837659c99f7624b') in 0.0055423 seconds [static dependencies only]. Details - ImportResultOutputID=30d676199a40aaab18394ca4a8614cbd DependenciesID=760ca52db1dec347e32a81c0e13c3b4d StaticDependenciesID=7a1db89fd031e418d419e719a4a43f44 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Grass/Grass_01.mat using Guid(76ef7e3a05c197a4ca75eadeb25e8c48) (NativeFormatImporter) -> (Import Result ID: '61a194f2a71b3a926f345e5e9d3eac6c') in 0.0067096 seconds [static dependencies only]. Details - ImportResultOutputID=a1bbfacd5ff1816771fa088f0d125dba DependenciesID=eaa0a3ab818b5734ab0be53d440cfee7 StaticDependenciesID=4871903bcdd9cce112413495ba4edcec 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Flowers/FlowerMeadow.mat using Guid(a803901a8f304c745aaafbe0260beaed) (NativeFormatImporter) -> (Import Result ID: 'd1e5425b1ae386d0605230f103f075a3') in 0.0048537 seconds [static dependencies only]. Details - ImportResultOutputID=d052003ab5fbcab609cf4bcee212e5e0 DependenciesID=41217147ec29a60ddc3690c566a12732 StaticDependenciesID=40e7ce191495d1d4716bec21b0b03be5 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Grass/Grass_03.mat using Guid(e85669880144e1f4ab0ee9d8a4abce6a) (NativeFormatImporter) -> (Import Result ID: 'db4c4efc3511e68fe7973473654f3b75') in 0.004789 seconds [static dependencies only]. Details - ImportResultOutputID=4fbd3b7813499231dfbab233c4eda4ba DependenciesID=47d3040ab6009f05102e8dc0ca481324 StaticDependenciesID=af84a861e07cdc66058e5408913d6e77 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Tree_Blossoms.mat using Guid(1b87e06c04499a548b061cebc9c25c0d) (NativeFormatImporter) -> (Import Result ID: '1b8534e6795da00b454ef5893bfbcf08') in 0.005364 seconds [static dependencies only]. Details - ImportResultOutputID=c058a337bc6880b460c70fb7796eadef DependenciesID=dc1f540f87b49d106441d4bee3bef6b9 StaticDependenciesID=9b265087d2c9d9ec7eed4f1904b2e3fb 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Reeds_03.mat using Guid(4b043753b6e14de40b5307322dceb86f) (NativeFormatImporter) -> (Import Result ID: 'e9644f3dfc360f691b8d84c98595adbe') in 0.0043965 seconds [static dependencies only]. Details - ImportResultOutputID=3e6e9dee0a1e353e69953405785bc851 DependenciesID=86e78d11f45075e3ef300774440e8f5f StaticDependenciesID=19fb5acbe3100cf0b97b5c711758aa81 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Willow_Branch_Green.mat using Guid(6baca70dc3434ed41acb5be62febe897) (NativeFormatImporter) -> (Import Result ID: 'd62475ba784ff28e753d6987f5f332e5') in 0.0096114 seconds [static dependencies only]. Details - ImportResultOutputID=c09784b432546f4a6c19cb16ea81c298 DependenciesID=a680f26a98311b18c252bf759223409e StaticDependenciesID=32f343e8767de143036aa75989195820 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Cattail.mat using Guid(7da7c3a003bf2d949bac1d4b7b1663f1) (NativeFormatImporter) -> (Import Result ID: '922bae6eafc2fac48773fd985e242eb3') in 0.0044452 seconds [static dependencies only]. Details - ImportResultOutputID=dc6e1994aa69df8b407dab8293ba8f05 DependenciesID=750d7df9992fba09087588de18db3947 StaticDependenciesID=1f5e945c50e545c7636f6fddcf91ca89 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Flowers/Flower.mat using Guid(cef103c3c4d4f3c48bac1eff7d881a62) (NativeFormatImporter) -> (Import Result ID: '7681408f9542af44e84c6fbad14ab38b') in 0.0048361 seconds [static dependencies only]. Details - ImportResultOutputID=18de31197e2450569a4de35ab15ccbe7 DependenciesID=665e0699905bcdb8b18a0e8771f5860c StaticDependenciesID=824076d5a6693afa8d305360cfb75d15 
+Refreshing native plugins compatible for Editor in 6.75 ms, found 5 plugins.
 (Values over 0.050ms)
-Asset Pipeline Refresh (id=7790110a1cb5dcf4481e47174a3eec87): Total: 0.327 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=e202f373a247a81428f102e3c33e18b5): Total: 0.518 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
 	Summary:
 		Imports: total=18 (actual=18, local cache=0, cache server=0)
-		Asset DB Process Time: managed=6 ms, native=245 ms
-		Asset DB Callback time: managed=24 ms, native=49 ms
+		Asset DB Process Time: managed=15 ms, native=432 ms
+		Asset DB Callback time: managed=28 ms, native=40 ms
 		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
 		Project Asset Count: scripts=2452, non-scripts=6834
 		Asset File Changes: new=0, changed=0, moved=0, deleted=0
 		Scan Filter Count: 27
-	ApplyChangesToAssetFolders: 0.191ms
-	Scan: 49.156ms
-	ProcessAssetsWithTransientArtifactChanges: 0.167ms
-	CategorizeAssets: 4.857ms
-	ImportOutOfDateAssets: 181.985ms (0.880ms without children)
-		ImportManagerImport: 174.972ms (10.910ms without children)
-			UpdateCategorizedAssets: 0.263ms
-		ReloadNativeAssets: 0.198ms
-		UnloadImportedAssets: 0.405ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 4.560ms
-		OnDemandSchedulerStart: 0.958ms
-	PostProcessAllAssets: 66.953ms
-		XRBuildSystem.XRAssetImported 41.211ms
-		PostProcessCallbackCreateDeferredMaterials 0.050ms
-		MonoPostProcessAllAssets: 24.501ms
-			MaterialPostprocessor.OnPostprocessAllAssets 10.186ms
-			AssetPostprocessor.OnPostprocessAllAssets 6.273ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 2.608ms
-			AssetChangedListener.OnPostprocessAllAssets 1.054ms
-			LocalizationAssetPostProcessor.OnPostprocessAllAssets 0.376ms
-			TextAssetPostProcessor.OnPostprocessAllAssets 0.374ms
-			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.315ms
-			PostProcessor.OnPostprocessAllAssets 0.275ms
-			ModelAssetProcessor.OnPostprocessAllAssets 0.209ms
-			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.189ms
-			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.174ms
-			SyncVS.PostprocessSyncProject 0.122ms
-	PostAssetChangesProfiler: 7.458ms
-	GatherAllCurrentPrimaryImportResultRevisions: 0.830ms
-	UnloadStreamsBegin: 8.485ms
-	PersistCurrentRevisions: 0.342ms
-	UnloadStreamsEnd: 0.358ms
-	Untracked: 5.934ms
+	ApplyChangesToAssetFolders: 0.228ms
+	Scan: 108.207ms
+	ProcessAssetsWithTransientArtifactChanges: 0.172ms
+	CategorizeAssets: 8.858ms
+	ImportOutOfDateAssets: 308.437ms (1.517ms without children)
+		ImportManagerImport: 303.218ms (17.872ms without children)
+			UpdateCategorizedAssets: 0.228ms
+		ReloadNativeAssets: 0.116ms
+		UnloadImportedAssets: 0.406ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.316ms
+		OnDemandSchedulerStart: 0.848ms
+	PostProcessAllAssets: 62.285ms
+		XRBuildSystem.XRAssetImported 31.874ms
+		PostProcessCallbackCreateDeferredMaterials 0.072ms
+		MonoPostProcessAllAssets: 28.982ms
+			MaterialPostprocessor.OnPostprocessAllAssets 17.705ms
+			AssetPostprocessor.OnPostprocessAllAssets 6.541ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 1.020ms
+			LocalizationAssetPostProcessor.OnPostprocessAllAssets 0.423ms
+			AssetChangedListener.OnPostprocessAllAssets 0.378ms
+			PostProcessor.OnPostprocessAllAssets 0.261ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.211ms
+			SyncVS.PostprocessSyncProject 0.148ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.140ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.131ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.103ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.081ms
+	PostAssetChangesProfiler: 7.530ms
+	GatherAllCurrentPrimaryImportResultRevisions: 0.721ms
+	UnloadStreamsBegin: 7.849ms
+	PersistCurrentRevisions: 0.689ms
+	UnloadStreamsEnd: 0.470ms
+	Untracked: 12.938ms
 
 [Physics::Module] Cleanup current backend.
 [Physics::Module] Id: 0xf2b8ea05
@@ -1496,18 +1609,14 @@ Input System module state changed to: Shutdown.
 AcceleratorClientConnectionCallback - disconnected - :0
 Cleanup mono
 CodeReloadManager destroyed
-abort_threads: Failed aborting id: 0000000000000A88, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000000338, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 00000000000006A0, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 00000000000017D8, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 0000000000002D5C, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000000338, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 00000000000006A0, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 00000000000017D8, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 0000000000002D5C, mono_thread_manage will ignore it
-
-abort_threads: Failed aborting id: 0000000000000A88, mono_thread_manage will ignore it
-
-debugger-agent: Unable to listen on 3148
+debugger-agent: Unable to listen on 3176
 Exiting batchmode successfully now!
 Exiting without the bug reporter. Application will terminate with return code 0

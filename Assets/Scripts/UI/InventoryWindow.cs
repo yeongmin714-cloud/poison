@@ -2534,9 +2534,9 @@ namespace ProjectName.UI
         /// <summary>
         /// 2026-09-11(3): 드래그 고스트 + MouseUp 드롭 판정 — ItemDragContext 공유 컨텍스트 연동.
         /// - 인벤 소스: MouseDrag에서 Begin → MouseUp에 ①창고 슬롯(보관) ②다른 인벤 슬롯(스왑) ③핫바(등록),
-        ///   그 외 영역은 드롭 실패로 Cancel (변경 없음)
+        ///   그 외 영역(월드)은 지형에 버림 → LootBasket 스폰(버린 아이템 담김, E키 회수) (2026-09-12)
         /// - 장비창 소스(2026-09-11(7)): EquipmentWindow 임베디드 슬롯에서 Begin(Source.Inventory) →
-        ///   MouseUp에 핫바 드롭 = 슬롯 지정(장착 유지), 그 외 Cancel
+        ///   MouseUp에 핫바 드롭 = 슬롯 지정(장착 유지), 그 외 영역(월드)은 지형에 버림 → 바구니(해제 후 담김)
         /// - 창고 소스: 창고 창에서 시작한 드래그의 드롭 판정을 인벤 창이 대행 (창고→인벤 이동 / 창고 내 스왑 / 핫바 지정)
         /// - 고스트는 ItemDragContext.DrawGhost()가 프레임당 1회 렌더
         /// </summary>
@@ -2636,7 +2636,8 @@ namespace ProjectName.UI
 
             // === 장비칸 소스 드래그: 통합 장비칸 MouseDown+10px 이동에서 Begin(Source.Equipment) (2026-09-12(P4)) ===
             // MouseUp 인벤 그리드 위 = 해제 후 인벤 이동(EquipmentManager.UnequipSlot 경로). 창고 컨텍스트 드롭은 미동작.
-            // 그 외 영역 = 드롭 실패 → Cancel (변경 없음). 클릭(10px 미만)은 DrawEquipmentGrid의 기존 해제 경로 유지.
+            // 그 외 영역(월드) = 지형에 버림 → LootBasket 스폰(해제 후 바구니에 담김) (2026-09-12).
+            // 장비칸 UI 위 드롭 = 기존 취소 유지. 클릭(10px 미만)은 DrawEquipmentGrid의 기존 해제 경로 유지.
             if (ItemDragContext.Active && ItemDragContext.SourceType == ItemDragContext.Source.Equipment)
             {
                 if (Event.current.type == EventType.MouseDrag)
@@ -2644,10 +2645,20 @@ namespace ProjectName.UI
                 else if (Event.current.type == EventType.MouseUp)
                 {
                     Vector2 p = Event.current.mousePosition;
-                    if ((IsPointOverInventoryGrid(p) || GetInventorySlotIndexAtScreenPoint(p) >= 0)
-                        && TryUnequipDraggedToInventory(ItemDragContext.SourceIndex))
+                    bool overInvGrid = IsPointOverInventoryGrid(p) || GetInventorySlotIndexAtScreenPoint(p) >= 0;
+                    if (overInvGrid && TryUnequipDraggedToInventory(ItemDragContext.SourceIndex))
                     {
                         Debug.Log($"[InventoryWindow] 장비→인벤 이동(드래그): {ItemDragContext.Item?.displayName ?? "?"}");
+                    }
+                    else if (!overInvGrid && !TryGetEquipSlotAtScreenPoint(p, out _))
+                    {
+                        // 2026-09-12(지형 드롭): 그 외 영역(월드) = 지형에 버림 → LootBasket 스폰(버린 아이템 담김)
+                        TryDropDraggedToTerrain(true);
+                    }
+                    else
+                    {
+                        // 인벤 그리드 위 해제 실패(인벤 가득 등) or 장비칸 UI 위 드롭 = 기존 취소 유지 — 아이템 유지
+                        Debug.Log($"[인벤] 드롭 실패 — 드래그 취소(사유: {(overInvGrid ? "인벤 그리드 위 해제 실패" : "UI 영역 위 드롭")}) — {ItemDragContext.Item?.displayName ?? "?"} 유지");
                     }
                     ItemDragContext.Cancel();
                     Event.current.Use();
@@ -2676,7 +2687,16 @@ namespace ProjectName.UI
                             Debug.Log($"[InventoryWindow] 핫바 슬롯 {hbSlot + 1}에 '{ItemDragContext.Item.displayName}' 지정 (장비창 소스 — 장착 유지)");
                         }
                     }
-                    // ② 그 외 영역 = 드롭 실패 → Cancel (변경 없음)
+                    // ② 그 외 영역(월드) → 지형에 버림 → LootBasket 스폰 (2026-09-12: 장비창 소스는 장착 중 아이템 —
+                    //    EquipmentManager 슬롯을 id로 역查해 해제 후 바구니에 담김). 장비칸 UI 위는 기존 취소 유지.
+                    else if (!TryGetEquipSlotAtScreenPoint(Event.current.mousePosition, out _))
+                    {
+                        TryDropDraggedToTerrain(true);
+                    }
+                    else
+                    {
+                        Debug.Log($"[인벤] 드롭 실패 — 드래그 취소(사유: UI 영역 위 드롭) — {ItemDragContext.Item?.displayName ?? "?"} 유지");
+                    }
                     ItemDragContext.Cancel();
                     Event.current.Use();
                 }
@@ -2756,9 +2776,12 @@ namespace ProjectName.UI
                         }
                     }
 
-                    // ④ 그 외 = 드롭 실패 → 취소 (변경 없음)
-                    if (!consumed)
-                        Debug.Log($"[InventoryWindow] 드롭 실패 — 드래그 취소: {_dragItemData.displayName}");
+                    // ④ 그 외 영역(월드) = 지형에 버림 → LootBasket 스폰 (2026-09-12: 인벤에서 꺼내 지형에 버림)
+                    //    인벤 그리드(원본 슬롯 복귀 포함)/장비칸 등 UI 위는 기존대로 취소 — 아이템 유지.
+                    if (!consumed && !IsPointOverInventoryGrid(guiPoint) && !TryGetEquipSlotAtScreenPoint(guiPoint, out _))
+                        TryDropDraggedToTerrain(false);
+                    else if (!consumed)
+                        Debug.Log($"[InventoryWindow] 드롭 실패 — 드래그 취소(사유: UI 영역 위 드롭): {_dragItemData.displayName}");
                 }
                 ItemDragContext.Cancel();
                 _dragItemData = null;
@@ -2881,6 +2904,133 @@ namespace ProjectName.UI
             bool ok = em != null && em.UnequipSlot(def.slot);
             if (ok) RefreshInventory();
             return ok;
+        }
+
+        // ===================================================================
+        // 2026-09-12(지형 드롭): 인벤/장비 소스 드래그 "그 외 영역" MouseUp → 지형에 버림 → LootBasket 스폰
+        // ===================================================================
+
+        /// <summary>
+        /// 2026-09-12(지형 드롭): 인벤/장비 소스 드래그를 UI 판정 영역 밖(월드)에 드롭하면 커서 레이캐스트로
+        /// 지형 지점을 확정해 LootBasket을 스폰하고, 버린 아이템을 바구니에 담는다.
+        /// 이후 바구니 근접 + E키 상호작용으로 회수 가능(P7 통합 전리품 컨텍스트 자동 연동).
+        ///
+        /// [소모 계약]
+        /// - 인벤 소스(Source.Inventory, 인벤 그리드 드래그): PlayerInventory.RemoveItem(id, 1) + RefreshInventory
+        /// - 장비 소스(Source.Equipment 장비칸 / 장비창 소스=Source.Inventory 재사용):
+        ///   EquipmentManager.UnequipSlot(원래 슬롯) — 매니저가 해제 시 인벤 복귀(AddItem)하므로
+        ///   즉시 RemoveItem(id, 1)로 소모 → "인벤 복귀 없이 바구니로". 이후 RefreshInventory로 그리드 동기화.
+        ///
+        /// [수량 주의] 드래그 특성상 정확한 수량 지정이 불가하므로 스택 전체가 아닌 1개 단위만 바구니에 담긴다.
+        /// [위치] 레이캐스트 hit.point 그대로 전달(지면 파묻힘 방지는 LootBasket.Create 내부 하향 레이캐스트 보정).
+        ///        미스 시 폴백: Player 위치 + forward×1.5 (y는 플레이어 y). 취소 원인(레이캐스트 미스 등)은 로그 명시.
+        /// </summary>
+        /// <param name="fromEquipment">true = 장착 아이템 소스(장비칸 Source.Equipment / 장비창 소스), false = 인벤 그리드 소스</param>
+        /// <returns>버림 성공(소모 + 바구니 생성 + 아이템 담기 완료) 여부</returns>
+        private bool TryDropDraggedToTerrain(bool fromEquipment)
+        {
+            var item = ItemDragContext.Item;
+            if (item == null) return false;
+
+            // === 1) 커서 레이캐스트로 지형 지점 확정 (미스 시 플레이어 전방 폴백) ===
+            Vector3 spawnPos;
+            string rayCause;
+            Camera cam = Camera.main;
+            if (cam != null && Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, 500f))
+            {
+                spawnPos = hit.point;
+                rayCause = "커서 레이캐스트";
+            }
+            else
+            {
+                var playerT = GameObject.FindWithTag("Player")?.transform;
+                if (playerT == null)
+                {
+                    Debug.Log($"[인벤] 지형 버림 취소(사유: 레이캐스트 미스 + Player 없음) — {item.displayName} 유지");
+                    return false;
+                }
+                spawnPos = playerT.position + playerT.forward * 1.5f;   // y = 플레이어 y (Create가 지면 보정)
+                rayCause = "레이캐스트 미스 → 플레이어 전방 폴백";
+            }
+
+            // === 2) 소모 — 인벤: 1개 제거 / 장비: 원래 슬롯 해제 후 복귀분 즉시 소모 ===
+            if (fromEquipment)
+            {
+                var em = ProjectName.Systems.EquipmentManager.Instance;
+                if (em == null)
+                {
+                    Debug.Log($"[인벤] 지형 버림 취소(사유: EquipmentManager 없음) — {item.displayName} 유지");
+                    return false;
+                }
+                if (!TryResolveEquippedSlot(em, item.id, out ProjectName.Systems.EquipmentManager.EquipmentSlot slot))
+                {
+                    Debug.Log($"[인벤] 지형 버림 취소(사유: 장착 슬롯 미발견 — id={item.id}) — {item.displayName} 유지");
+                    return false;
+                }
+                if (!em.UnequipSlot(slot))
+                {
+                    Debug.Log($"[인벤] 지형 버림 취소(사유: 장비 해제 실패 — 인벤 가득 참 등) — {item.displayName} 유지");
+                    return false;
+                }
+                // UnequipSlot이 인벤으로 복귀(AddItem)시킨 1개를 즉시 소모 — "인벤 복귀 없이 바구니로"
+                PlayerInventory.Instance.RemoveItem(item.id, 1);
+                RefreshInventory();
+            }
+            else
+            {
+                if (PlayerInventory.Instance == null || !PlayerInventory.Instance.RemoveItem(item.id, 1))
+                {
+                    Debug.Log($"[인벤] 지형 버림 취소(사유: 인벤에서 제거 실패) — {item.displayName} 유지");
+                    return false;
+                }
+                RefreshInventory();
+            }
+
+            // === 3) 바구니 스폰 + 버린 아이템 담기 (드래그 특성상 정확한 수량 지정 불가 → 1개 단위만 담음) ===
+            var basket = ProjectName.Systems.LootBasket.Create(spawnPos);
+            if (basket == null)
+            {
+                Debug.LogError($"[인벤] 지형 버림 — LootBasket 생성 실패({spawnPos}), {item.displayName} 소모됨");
+                return false;
+            }
+            basket.AddItem(item, 1);   // 스택 전체 아님 — 1개 단위(드래그 드롭 특성)
+            Debug.Log($"[인벤] 지형에 버림: {item.displayName} → 바구니 ({spawnPos}) [{rayCause}] — E키로 회수");
+            return true;
+        }
+
+        /// <summary>
+        /// 2026-09-12(지형 드롭): 장착 중 아이템의 원래 EquipmentManager 슬롯 역查해.
+        /// 장비칸 소스(Source.Equipment)는 SourceIndex = 장비칸 셀 정의 인덱스 → def.slot 직접 사용,
+        /// 장비창 소스(Source.Inventory 재사용, SourceIndex=-1)는 id 일치 슬롯을 전수 조사해 반환.
+        /// </summary>
+        private bool TryResolveEquippedSlot(
+            ProjectName.Systems.EquipmentManager em, string itemId,
+            out ProjectName.Systems.EquipmentManager.EquipmentSlot slot)
+        {
+            // 장비칸 소스 — 셀 정의 슬롯 직접 사용 (TryUnequipDraggedToInventory와 동일 매핑)
+            if (ItemDragContext.SourceType == ItemDragContext.Source.Equipment
+                && ItemDragContext.SourceIndex >= 0 && ItemDragContext.SourceIndex < _equipCellDefs.Length)
+            {
+                var def = _equipCellDefs[ItemDragContext.SourceIndex];
+                if (def.real)
+                {
+                    slot = def.slot;
+                    return true;
+                }
+            }
+            // 장비창 소스 — 장착 중 슬롯을 id로 역查해 (EquipmentSlot 6종 전수)
+            foreach (ProjectName.Systems.EquipmentManager.EquipmentSlot es
+                     in System.Enum.GetValues(typeof(ProjectName.Systems.EquipmentManager.EquipmentSlot)))
+            {
+                var sd = em.GetSlotData(es);
+                if (sd != null && sd.itemData != null && sd.itemData.id == itemId)
+                {
+                    slot = es;
+                    return true;
+                }
+            }
+            slot = default;
+            return false;
         }
 
         // ===================================================================

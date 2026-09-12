@@ -4,7 +4,31 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-12 (40차)
+> **최종 갱신:** 2026-09-12 (41차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-12 ✅ 41차 — 무기 손 그립 정밀 장착 + 지형 드롭→바구니 시스템)
+
+> **스코프**: ① 무기 장착이 손에 어색하게 붙던 문제(테스트 영상 5) — 전 무기 공용 고정 오프셋이 원인 → 타입별 그립 테이블+GLB bounds 자동 정렬로 수리 ② 인벤/장비칸에서 지형에 드래그 드롭 → 바구니(LootBasket) 스폰+버린 아이템 담김 → E키로 통합 전리품 컨텍스트 회수(40차 P7 자동 연동). 배치컴파일 error CS=0 + QaValidator Errors:0.
+
+### 변경 사항 (2파일)
+**`Systems/WeaponEquipManager.cs`** (179→287행) — 손 장착 정밀화:
+- 근본 원인: RightHand 본 부착은 정상이나 전 무기 공용 고정 오프셋(0,0.12,0.02)+(0,0,90) — 검 실측 튜닝값이라 창/활/단도 길이·피벗·축이 달라 어색함.
+- **타입별 GripPose 튜닝 테이블**(파일 상단 const): Sword/Dagger(0,0.12,0.02)+(0,0,90)·0.9m(기존 실측 유지) / Spear(0,0.45,0.02)+(-90,0,0)·1.8m / Bow(0,0.05,0.06)+(0,-90,0)·1.0m — dagger는 id 토큰 시 TargetLen만 0.45 오버라이드.
+- **바운드 기반 그립 자동 정렬** ApplyBoundsGripAlignment: 자식 렌더러 bounds 합산 → 최장축=그립축 → bounds 최하단부(그립부)가 테이블 앵커에 착지하도록 pivot-to-grip 오프셋을 hand-local로 환산 차감(InverseTransformPoint — 스케일 체인 정확 반영).
+- 스케일 보정: 최장축이 목표 길이의 0.4~2.2배 밖일 때만 균등 스케일(범위 내 GLB는 원본 존중 — 기존 무조건 0.9m 강제 폐지).
+- 부착 로그 "[Weapon] 그립 정렬: bone/offset/bounds/스케일" — Play에서 어긋난 방향 즉시 판별. 렌더러 0개/예외 시 테이블 포즈 유지.
+**`UI/InventoryWindow.cs`** (+159) — 지형 드롭 → 바구니:
+- ProcessDrag 마지막 "그 외 영역(월드)" 분기 2곳(Source.Inventory/Source.Equipment)을 Cancel → **TryDropDraggedToTerrain** 전환: 커서 레이캐스트 지점(미스 시 플레이어+forward 1.5m)에 `LootBasket.Create` + AddItem(item, 1) — 버린 아이템이 바구니 안에 담김(E키 → 통합 전리품 컨텍스트 회수).
+- 소모 계약: 인벤 소스=RemoveItem(id,1)+Refresh, 장비 소스=UnequipSlot(원래 슬롯) 후 즉시 RemoveItem(인벤 복귀 없이 바구니로) + Refresh. Warehouse/Loot 소스는 기존 Cancel 유지.
+- 장비칸 UI 위 드롭은 기존 취소 유지(TryGetEquipSlotAtScreenPoint 판정 — 이 분기에서 Event.current.mousePosition 사용, CS0103 'p' 미선언 컴파일 에러 즉시 수리).
+- 중간 컴파일 에러 1건(2692행 CS0103 'p' ×3) 1개소 수리 후 CS=0 복귀.
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0** + QaValidator Errors:0 (에이전트 잔여 CS0103 1회 발견→수리→재컴파일 통과)
+- 정적: 균형 2파일 0, GripPose 테이블+bounds 정렬+스케일 보정+그립 로그, Cancel 잔존은 Warehouse/Loot 경로만, LootBasket.Create+AddItem 1쌍, 소모 경로(인벤/장비) 존재
+- Play 판정 대기: ① 검/창/활/단도가 손바닥에 정확히 얹힘(어긋나면 [Weapon] 그립 정렬 로그의 offset 방향으로 튜닝 테이블 상수 조정) ② 인벤에서 아이템 드래그→월드 놓기 → 바구니 스폰(안에 버린 아이템) → E키 회수 ③ 장비칸에서 드래그 아웃 → 해제 후 바구니
 
 ---
 
