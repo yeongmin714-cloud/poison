@@ -4,7 +4,27 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-12 (39차)
+> **최종 갱신:** 2026-09-12 (40차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-12 ✅ 40차 — 테스트 영상 5 기반 P1~P7: FX통합·보라제거·인벤+장비 통합창·전리품 컨텍스트·물약 복용·액션감 1차)
+
+> **스코프**: 사용자 3건 요구(십자가=스윙 정중앙 / 인벤+장비 통합(예시2) / 전리품 통합 컨텍스트(예시3) + 물약 복용 + 액션감 + 보라 점 제거) 전체 수행. 배치컴파일 error CS=0 + QaValidator Errors:0. QA 결함 2건(페이지 버튼 미렌더·복용 훅 미도달) 발견 즉시 수리.
+
+### 변경 사항 (14파일 — 신규 2: HitStopManager/PotionUseSystem)
+**FX**: `HumanoidClipDriver` FireComboCross pos를 스윙과 동일 앵커(Lerp(player,LastHitPoint,0.5)+up1.2)로 통일 — 십자가=스윙 정중앙(사용자 해법). `SlashVFXRunner.TintParticles` 헬퍼 — 보라 팩 파티클 제거(십자가=붉은/스윙=청백/임팩트=붉은).
+**통합창(예시2)**: InventoryWindow — 좌측 상단 **장비칸 2×5(부위 배지 🪖머리/👕갑옷/🧤장갑L·R/👞신발L/R/🧣망토/🛡️방패/🗡️무기, 클릭=해제)**, 아래 **인벤 단일 그리드 5×6(탭 제거, ◀/▶ 페이지)**, 설명창 620→400, 탭은 Warehouse 컨텍스트 전용, EquipmentWindow 임베드 제거+E키 리다이렉트.
+**드래그 장착(P4)**: 인벤→장비칸 드롭=장착(Armor=EquipItem+1소모/Weapon=WeaponEquipManager.Equip, 부위 불일치 차단 로그), 장비→인벤 해제 드래그(Source.Equipment 신설), **몸 장비 핫바 지정 차단**(InventoryWindow 3분기+HotbarUI 가드), 우클릭 장착 병행.
+**전리품(예시3)**: ContextMode.Loot — 좌=통합 패널, 우=🧺 전리품 상자 그리드+**[전부 획득]**, 상자→인벤 원하는 것만 드래그(ItemDragContext.Source.Loot 기존 파이프라인 이식), ESC/3m 이탈/바구니 소멸 자동 닫기, 바구니 열림 리다이렉트(LootWindow 팝업 경로 비활성, 데이터 API 유지).
+**물약(P5)**: PotionUseSystem.Use(item,player,out effectText) — 회복(만능=풀회복)/은신(ToggleStealth)/신속(PlayerMovement.SpeedModifier 배율+코루틴 복원)/괴력/진정 분기. 우클릭 복용(Potion/Drug 게이트 추가 — QA 결함 #2 수리)+복용 시 1개 소모+효과 텍스트 피드백. 효과 원천=docs/GAME_DATA.md 표.
+**액션감(P6 1차)**: HitStopManager — 타격 순간 timeScale 0.08/45ms(쿨다운 0.15s, 실시간 폴링 복귀, 요청 시점 값 보존→킬 슬로우모션과 충돌 없음, ForceRestore 3경로) + PlayerCombat.AttackTarget 훅 + FOV 펀치(-1.5°/0.15s 복귀) + 데미지 숫자 등장 팝(1.35→1.0/0.15s).
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(return 0) + QaValidator Errors:0 (라운드별 3회 통과)
+- 정적 QA: 8그룹 diff 일치 + 11파일 균형 0 + grep 전수(TintParticles 3호출/부위 불일치 차단/Armor 핫바 4중 차단/ContextMode.Loot 전체 체인/RequestHitStop 훅/FOV 복귀 2중) PASS
+- QA 발견 결함 2건 수리: ① ◀/▶ 페이지 버튼 미렌더(_gridPage 0 고정) → EndScrollView 하단 스트립 렌더+클램프 유지 ② 우클릭 복용 훅이 IsEquipmentCategory 게이트에 막힌 죽은 코드 → 게이트에 Potion/Drug 추가
+- Play 판정 대기: ① 십자가가 스윙 아크 정중앙에 겹쳐 보임(타격점 1개 체감) ② 보라 점 0건(붉은/청백 FX) ③ 인벤=장비칸 2×5+인벤 5×6 통합, 드래그 장착/해제, 몸 장비 핫바 차단 ④ 바구니 E → 좌 통합인벤/우 전리품 상자, 드래그 이동+전부 획득 ⑤ 우클릭 물약 복용+효과 텍스트 ⑥ 타격 히트스톱/FOV 펀치/데미지 숫자 팝 체감 ⑦ 30슬롯+ 인벤 ◀/▶ 페이지
 
 ---
 

@@ -290,10 +290,29 @@ namespace ProjectName.UI
             return -1;
         }
 
-        /// <summary>인벤토리 드래그로 슬롯에 아이템 지정 (InventoryWindow 설명 패널에서 호출). 무기류는 장착 연동, 그 외 표시 전용.</summary>
+        /// <summary>인벤토리 드래그로 슬롯에 아이템 지정 (InventoryWindow 설명 패널에서 호출). 무기류는 장착 연동, 그 외 표시 전용.
+        /// 2026-09-12(P4): 몸 장비(방어구) 핫바 지정 거부 가드(방어막) — InventoryWindow ProcessDrag 가드의 이중 방어.
+        /// 카테고리 해석: 드래그 컨텍스트 아이템 우선, 미일치 시 인벤 보유 슬롯에서 id 조회(레거시/테스트 경로).</summary>
         public static void AssignItem(int index, string itemId, string displayName)
         {
             if (index < 0 || index >= SlotCount || string.IsNullOrEmpty(itemId)) return;
+            var armorData = ItemDragContext.Item;
+            if (armorData == null || armorData.id != itemId || armorData.category != PlayerInventory.ItemCategory.Armor)
+            {
+                armorData = null;
+                var inv = PlayerInventory.Instance;
+                if (inv != null)
+                {
+                    var slot = FindInventorySlot(inv, itemId, out _);
+                    if (slot?.item != null && slot.item.category == PlayerInventory.ItemCategory.Armor)
+                        armorData = slot.item;
+                }
+            }
+            if (armorData != null)
+            {
+                Debug.Log($"[HotbarUI] 몸 장비는 핫바 지정 불가 — 장비칸으로 드래그: {displayName ?? itemId}");
+                return;
+            }
             _assignedIds[index] = itemId;
             _assignedNames[index] = displayName ?? itemId;
             PlayerPrefs.SetString($"poison_hotbar_{index}", itemId);

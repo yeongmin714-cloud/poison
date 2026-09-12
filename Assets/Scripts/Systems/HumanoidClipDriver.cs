@@ -797,8 +797,11 @@ namespace ProjectName.Systems
         /// [2026-09-12 루트 기준 통일] 기준 트랜스폼 = 드라이버 자신 transform(루트, 논리 정면) — 비주얼
         /// FBX 자식(_anim.transform)의 임포트 yaw 오프셋에 면역. 쿼드는 SlashVFXRunner가 카메라 수평
         /// 빌보드로 세우므로 dir은 빌보드 폴백/로그용.
-        /// [2026-09-12 명시 갱신] 임팩트는 항상 피격대상 지점(LastHitPoint)에 발화 — 스윙 FX가 적중지점
-        /// 앵커 모드(플레이어↔대상 중간점)를 쓰는 것과 달리 크로스는 대상 지점 그대로 유지한다.
+        /// [2026-09-12 명시 갱신] 사용자 지정 — 십자가는 스윙 아크의 정중앙에(타격점 하나로 읽힘):
+        /// 발화 pos를 스윙 FX와 완전히 동일 앵커로 통일 — Vector3.Lerp(플레이어 루트, LastHitPoint, 0.5) + up*1.2
+        /// (플레이어↔적중지점 사이 중간점 = 스윙 아크 정중앙, 39차 Play 실측 앵커). 기존 LastHitPoint 그대로 발화
+        /// 규격(대상 bounds 중심)은 스윙과 십자가 중심이 어긋나 타격이 분열처럼 보이던 문제로 폐기.
+        /// dir 계산(기존: LastHitPoint - 머리 → ClampForwardHemisphere)은 방향 전용이므로 기존 유지.
         /// </summary>
         private void FireComboCross(int stage)
         {
@@ -816,9 +819,11 @@ namespace ProjectName.Systems
                 Vector3 dir = PlayerCombat.LastHitPoint - head;
                 dir = dir.sqrMagnitude > 0.000001f ? dir.normalized : t.forward;     // 히트 지점==머리 등 퇴화 방어
                 dir = ClampForwardHemisphere(dir, t, stage);                         // [2026-09-11] 스윙/크로스 공용 전방 반구 클램프 — 뒤방향 스윙 금지
-                Vector3 pos = PlayerCombat.LastHitPoint;                             // 실제 적중 대상 지점에 발화
+                // 사용자 지정 — 십자가는 스윙 아크의 정중앙에(타격점 하나로 읽힘): 스윙 FX(39차)와 완전히 동일 앵커
+                // Lerp(플레이어 루트, LastHitPoint, 0.5) + up*1.2 = LastHitPoint를 플레이어 쪽으로 반쯤 당겨온 스윙 정중앙.
+                Vector3 pos = Vector3.Lerp(t.position, PlayerCombat.LastHitPoint, 0.5f) + Vector3.up * 1.2f;
                 SlashVFXRunner.PlayCross(pos, dir);
-                Debug.Log($"[Combo] 크로스 FX stage={stage} → 적중 지점 발화 pos={pos:F2}");
+                Debug.Log($"[Combo] 크로스 FX stage={stage} → 스윙 정중앙 발화 pos={pos:F2}");
             }
             catch (System.Exception fxEx)
             {

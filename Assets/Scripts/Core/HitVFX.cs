@@ -190,6 +190,9 @@ namespace ProjectName.Core
 
     /// <summary>
     /// DamageNumber 애니메이션: 위로 떠오르며 FadeOut
+    /// P6 액션감 1차: 등장 스케일 팝 추가 — 생성 직후 사이즈 계수 1.35배에서
+    /// 0.15초 동안 1.0으로 감쇠(생성 시각 경과 기반). 위로 뜨는 이동 로직은 기존 유지.
+    /// 히트스톱 중에는 Time.deltaTime도 느려져 팝이 프레임 정지와 함께 멈춰 보인다(연출 의도).
     /// </summary>
     internal class DamageNumberRunner : MonoBehaviour
     {
@@ -198,13 +201,21 @@ namespace ProjectName.Core
         private const float DURATION = 1.0f;
         private const float RISE_SPEED = 1.5f;
 
+        // ── P6 액션감 1차: 등장 스케일 팝 상수 ──
+        private const float POP_START_SCALE = 1.35f; // 등장 시작 사이즈 계수
+        private const float POP_DURATION = 0.15f;    // 팝 감쇠 시간 (초, 생성 시각 기반)
+        private float _baseCharacterSize = 0.1f;     // SpawnDamageNumber 기본 characterSize (팝 계수 기준값)
+
         private void Start()
         {
             _text = GetComponent<TextMesh>();
             if (_text == null)
             {
                 Destroy(gameObject);
+                return;
             }
+            // 기본 사이즈 캡처 — 팝 계수는 이 값에 곱해진다 (기존 0.1f 기준)
+            _baseCharacterSize = _text.characterSize;
         }
 
         private void Update()
@@ -217,8 +228,12 @@ namespace ProjectName.Core
 
             _elapsed += Time.deltaTime;
 
-            // 위로 떠오르기
+            // 위로 떠오르기 (기존 이동 로직 유지 — 최소 변경)
             transform.position += Vector3.up * RISE_SPEED * Time.deltaTime;
+
+            // P6: 등장 스케일 팝 — 사이즈 계수 1.35 → 1.0 (0.15초 감쇠, 생성 경과 기반)
+            float popT = Mathf.Clamp01(_elapsed / POP_DURATION);
+            _text.characterSize = _baseCharacterSize * Mathf.Lerp(POP_START_SCALE, 1f, popT);
 
             // FadeOut
             float t = _elapsed / DURATION;

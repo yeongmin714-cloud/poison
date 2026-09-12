@@ -16,6 +16,10 @@ namespace ProjectName.Systems
     ///
     /// 파괴 정책: duration+startLifetime.max 기반 동적 파괴도 가능하지만 3초 고정으로 충분
     /// (두 프리팹 모두 3초 내 완전 소진 — 주석 명시).
+    ///
+    /// [2026-09-12 P2 피격 FX 재색상] 외부 팩 프리팹의 보라·자주 기본색은 사용자 취향("피격시 보라색
+    /// 점들이 떠다니는 건 별로")과 불일치 → 스폰 직후 TintParticles로 붉은/흰 계열 재색상
+    /// (십자가 0.85,0.15,0.15 / 스윙 0.85,0.95,1.0 / 임팩트 0.8,0.2,0.2 — 하단 공용 헬퍼 참조).
     /// </summary>
     public static class SlashVFXRunner
     {
@@ -98,6 +102,9 @@ namespace ProjectName.Systems
             // 로컬 Z축 롤 = 빌보드 이후 화면축 기준 궤적 기울이기 (수직/사선 궤적 표현은 여기서만 담당)
             if (Mathf.Abs(arcRollDegrees) > 0.01f)
                 instance.transform.Rotate(0f, 0f, arcRollDegrees, Space.Self);
+            // [2026-09-12 P2 피격 FX 재색상] 스윙 궤적 일관색 — 밝은 흰/청백 틴트(팩 기본 보라 톤 제거).
+            // 파티클 재생 전에 적용해 첫 방출 파티클부터 새 색이 나온다.
+            TintParticles(instance, new Color(0.85f, 0.95f, 1.0f), 0.1f);
             Debug.Log($"[SlashVFX] ✅ 스윙 FX 스폰 (pos={position}, faceDir={faceDir:F2}, roll={arcRollDegrees:F0}°, 발화시각={Time.time:F2}s)");   // 1회성 검증 아님 — 좌클릭마다 1줄, 발화 증거
             instance.name = "SlashVFX_Swing";
 
@@ -128,6 +135,9 @@ namespace ProjectName.Systems
             Vector3 faceDir = CameraHorizontalFaceDir(position, dir);
             GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(faceDir));
             instance.name = "SlashVFX_Cross";
+            // [2026-09-12 P2 피격 FX 재색상] 보라색 팩 파티클("Multiple Slashes" 십자가) → 흰/붉은 타격
+            // 마크 톤(0.85,0.15,0.15)으로 재색상 — 사용자 취향 반영(피격 보라 부유 입자 제거). 재생 전 적용.
+            TintParticles(instance, new Color(0.85f, 0.15f, 0.15f), 0.15f);
             Debug.Log($"[SlashVFX] ✅ 크로스 FX 스폰 (Multiple Slashes, pos={position}, faceDir={faceDir:F2}, 발화시각={Time.time:F2}s)");
 
             PlayAllParticleSystems(instance);
@@ -150,6 +160,9 @@ namespace ProjectName.Systems
 
             GameObject instance = Object.Instantiate(prefab, position, Quaternion.identity);
             instance.name = $"ImpactVFX_{type}";
+            // [2026-09-12 P2 피격 FX 재색상] 보라색 팩 파티클("BasicHit"/"BasicHit2" 임팩트) → 붉은 계열
+            // (0.8,0.2,0.2)로 재색상 — 사용자 취향 반영(피격 보라 부유 입자 제거). 재생 전 적용.
+            TintParticles(instance, new Color(0.8f, 0.2f, 0.2f), 0.2f);
 
             PlayAllParticleSystems(instance);
             DetectShaderErrorOnce(instance, "Impact");
@@ -246,8 +259,43 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
-        // 내부: 파티클 재생 / 셰이더 감지 / 파괴 예약
+        // 내부: 파티클 재생 / 재색상 / 셰이더 감지 / 파괴 예약
         // ================================================================
+
+        /// <summary>
+        /// [2026-09-12 P2 피격 FX 재색상] 공용 헬퍼 — 외부 VFX 팩 프리팹("Multiple Slashes" 십자가,
+        /// "BasicHit"/"BasicHit2" 임팩트, "Slash VFX" 스윙)의 보라·자주 기본색은 사용자 취향
+        /// ("피격시 보라색 점들이 떠다니는 건 별로")과 불일치하므로, Instantiate 직후 root 및
+        /// 자식 전체 ParticleSystem을 순회해 main.startColor를 baseColor±variance 랜덤 틴트
+        /// (MinMaxGradient flat — 시스템별 1회 추첨)로 교체한다. 파티클 텍스처는 곱셈(multiply)
+        /// 조명이라 흰 텍스처에서 틴트가 그대로 드러난다. 알파는 원본 startColor가 flat 단색인
+        /// 경우에만 보존해 팩 프리팹의 페이드 알파 훼손을 막는다(그 외 모드는 baseColor 알파).
+        /// </summary>
+        internal static void TintParticles(GameObject root, Color baseColor, float variance)
+        {
+            if (root == null) return;
+
+            ParticleSystem[] systems = root.GetComponentsInChildren<ParticleSystem>(true);
+            foreach (ParticleSystem ps in systems)
+            {
+                if (ps == null) continue;
+
+                // main 모듈 1회 캐시 — ps.main 반복 접근 비용 회피(Unity 권장 패턴)
+                var main = ps.main;
+
+                // 원본 알파 보존 — flat 단색 모드에서만 신뢰 가능(그라디언트 모드는 알파 커브가 있어 폐기)
+                float alpha = baseColor.a;
+                if (main.startColor.mode == ParticleSystemGradientMode.Color)
+                    alpha = main.startColor.color.a;
+
+                // baseColor 채널별 ±variance 랜덤 틴트 → flat MinMaxGradient로 교체
+                main.startColor = new ParticleSystem.MinMaxGradient(new Color(
+                    Mathf.Clamp01(baseColor.r + Random.Range(-variance, variance)),
+                    Mathf.Clamp01(baseColor.g + Random.Range(-variance, variance)),
+                    Mathf.Clamp01(baseColor.b + Random.Range(-variance, variance)),
+                    Mathf.Clamp01(alpha)));
+            }
+        }
 
         /// <summary>일부 프리팹은 자체 재생 안 함 → 모든 ParticleSystem을 명시 재생.</summary>
         private static void PlayAllParticleSystems(GameObject instance)

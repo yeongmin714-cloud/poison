@@ -92,9 +92,9 @@ namespace ProjectName.UI
         /// <summary>E키 토글 (기존 호출부 호환용 정적 진입점 — 독립 창 모드)</summary>
         public static void Toggle()
         {
-            if (_instance == null) return;
-            if (_instance.IsOpen) _instance.Hide();
-            else _instance.Show();
+            // P3 통합 — E키는 통합 인벤창으로(기존 단독 장비창 렌더는 경로 제거)
+            var inv = ProjectName.UI.InventoryWindow.Instance;
+            if (inv != null) inv.TogglePlayerInventory();
         }
 
         protected override void OnShow()

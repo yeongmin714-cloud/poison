@@ -429,6 +429,14 @@ namespace ProjectName.Systems
 
             // 카메라 효과
             TriggerCameraEffects();
+
+            // 🎬 P6 액션감 1차: 히트스톱 + FOV 펀치 훅 (적중 성공 판정 지점, 1줄).
+            // 배치 주의: CombatCameraEffects.PlayHit/PlayCrit/PlayKill이 효과 시작 시점의
+            // Time.timeScale을 '_baseTimeScale'(자기 복귀 기준)로 저장하므로, 이 호출들
+            // "이전"에 히트스톱(0.08)을 걸면 CCE가 0.08을 원본으로 저장해 복귀 lerp 후
+            // 영구 저속 정지 사고가 난다. → CCE 호출 이후 마지막에 배치.
+            // 데미지 판정/HP/콤보 로직은 변경하지 않음 (FX 전용 훅).
+            HitStopManager.RequestHitStop(0.045f, 0.08f);
         }
 
         /// <summary>

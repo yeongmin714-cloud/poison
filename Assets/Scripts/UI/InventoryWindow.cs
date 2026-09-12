@@ -55,15 +55,33 @@ namespace ProjectName.UI
         private static string s_pendingWarehouseTerritoryId;  // 인스턴스 생성 전 SetContextMode 대기 값
         private int[] _warehouseSlotIndices = System.Array.Empty<int>();  // 필터 뷰 idx → 창고 전역 슬롯 idx
 
+        // ===== 2026-09-12(P7): Loot 컨텍스트 (바구니 상호작용 → 통합창 우측 전리품 패널) =====
+        // 좌측은 기존 통합 패널(장비칸+인벤)을 그대로 유지하고, 제4구획에 전리품 상자 패널을 렌더한다.
+        // 렌더/획득 데이터는 LootWindow 캐시 API(CachedItemCount/GetCachedItem/TakeAllFromBasket)를 재사용.
+        private ILootBasket _lootBasket;                       // Loot 컨텍스트 대상 바구니 (null 가드 렌더)
+        private static ILootBasket s_pendingLootBasket;        // 인스턴스 생성 전 SetContextMode 대기 값 (warehouse pending 패턴 복제)
+        private static readonly List<Rect> s_lootSlotScreenRects = new List<Rect>(32);   // 전리품 슬롯 화면 Rect (드래그 판정용 — 정적 GC 캐시 관례)
+        private static readonly List<int> s_lootSlotScreenIndices = new List<int>(32);   // 바구니 항목 인덱스
+        private Transform _playerTransform;                    // 3m 이탈 판정용 플레이어 캐시 (Update)
+        private const float LOOT_LEAVE_RANGE = 3f;             // Loot 컨텍스트 이탈 자동 닫기 반경 (TerritoryWarehouse 3f 선례)
+
         private PlayerInventory.ItemData _selectedItemData;   // 설명 패널 표시용
         private bool _dragActive;                             // 그리드→드롭 타겟 드래그 (핫바/창고/슬롯 스왑)
         private PlayerInventory.ItemData _dragItemData;
         private int _dragSlotGlobalIndex = -1;                // 2026-09-11(3): 드래그 시작 전역 슬롯 인덱스 (슬롯↔슬롯 스왑용)
         private float _lastInvX;                              // 컨텍스트 창(상점)이 참조하는 인벤 좌측 x
 
+        // ===== 2026-09-12(P3): 통합 레이아웃 상태 (장비칸 2×5 + 인벤 단일 그리드 페이지네이션) =====
+        private int _gridPage;                                // 인벤 그리드 현재 페이지 (0-based, 5행×6열 단위)
+        private int _equipPressIndex = -1;                    // 통합 장비칸 눌림 상태 (클릭=해제 / 드래그=장비창 소스 드래그 판정)
+        private Vector2 _equipPressPos;                       // 장비칸 MouseDown 지점 (드래그 임계 판정용)
+
         // ===== 2026-09-11(3): DnD 드롭 판정용 화면 Rect 캐시 (정적 — GC 캐시 관례) =====
         private static readonly List<Rect> s_slotScreenRects = new List<Rect>(80);   // 아이템 있는 슬롯 (전역 인덱스)
         private static readonly List<int> s_slotScreenIndices = new List<int>(80);
+        // ===== 2026-09-12(P4): 장비칸 슬롯 화면 Rect 캐시 (드래그 장착 드롭 판정 — 정적 GC 캐시 관례) =====
+        private static readonly List<Rect> s_equipSlotScreenRects = new List<Rect>(10);   // 실장비 셀 (셀 정의 인덱스)
+        private static readonly List<int> s_equipSlotCellIndices = new List<int>(10);
         private static Rect s_gridScreenRect;                                        // 그리드 전체 영역 (창고→인벤 드롭 타겟)
 
         /// <summary>상점 등 컨텍스트 창의 x 좌표 — 제3구획(화면 우측 1/3) 시작점</summary>
@@ -101,6 +119,78 @@ namespace ProjectName.UI
             return s_gridScreenRect.Contains(sp);
         }
 
+        /// <summary>
+        /// 2026-09-12(P4): 화면(GUI) 좌표가 통합 장비칸 실장비 셀 위인지 — 셀 정의 인덱스 반환 (드래그 장착 드롭 판정용).
+        /// LootWindow.TryGetSlotAtScreenPoint 선례: 캐시 Rect는 스크린 좌표계(y 상승) — GUI점을 동일 변환으로 통일해 판정.
+        /// </summary>
+        public static bool TryGetEquipSlotAtScreenPoint(Vector2 guiPoint, out int equipCellIndex)
+        {
+            equipCellIndex = -1;
+            if (s_equipSlotScreenRects.Count == 0) return false;
+            Vector2 sp = GUIUtility.GUIToScreenPoint(guiPoint);   // 캐시 Rect와 동일 좌표계 변환
+            for (int i = s_equipSlotScreenRects.Count - 1; i >= 0; i--)
+            {
+                if (s_equipSlotScreenRects[i].Contains(sp))
+                {
+                    equipCellIndex = s_equipSlotCellIndices[i];
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 2026-09-12(P7): 화면(GUI) 좌표가 우측 전리품 패널 슬롯 위인지 — 바구니 항목 인덱스 반환.
+        /// LootWindow.TryGetSlotAtScreenPoint 선례: 캐시 Rect는 스크린 좌표계(y 상승) — GUI점을
+        /// 동일 변환으로 통일해 판정. 캐시는 DrawLootPanel이 매 프레임 리빌드한다.
+        /// </summary>
+        public static bool TryGetLootSlotAtScreenPoint(Vector2 guiPoint, out int slotIndex)
+        {
+            slotIndex = -1;
+            if (s_lootSlotScreenRects.Count == 0) return false;
+            Vector2 sp = GUIUtility.GUIToScreenPoint(guiPoint);   // 캐시 Rect와 동일 좌표계 변환
+            for (int i = s_lootSlotScreenRects.Count - 1; i >= 0; i--)
+            {
+                if (s_lootSlotScreenRects[i].Contains(sp))
+                {
+                    slotIndex = s_lootSlotScreenIndices[i];
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // ===================================================================
+        // 2026-09-12(P3): 통합 장비칸 2×5 정의 (예시2 좌측 상단)
+        // EquipmentManager.EquipmentSlot 실제 6종(Helmet/Armor/Weapon/Shoes/Gloves/Back)을
+        // enum 순서대로 배치 + 부족한 칸은 빈 플레이스홀더로 2행×5열=10칸 고정.
+        // 각 칸 상단에 부위 배지(이모지+약어 라벨) 표시.
+        // ===================================================================
+        private struct EquipCellDef
+        {
+            public string badge;   // 부위 배지 (이모지 + 약어 라벨)
+            public bool real;      // 실장비 슬롯 여부 (false = 예약 플레이스홀더)
+            public ProjectName.Systems.EquipmentManager.EquipmentSlot slot;
+        }
+
+        private static readonly EquipCellDef[] _equipCellDefs = new EquipCellDef[]
+        {
+            new EquipCellDef { badge = "🪖머리", real = true,  slot = ProjectName.Systems.EquipmentManager.EquipmentSlot.Helmet },
+            new EquipCellDef { badge = "👕갑옷", real = true,  slot = ProjectName.Systems.EquipmentManager.EquipmentSlot.Armor },
+            new EquipCellDef { badge = "🗡️무기", real = true,  slot = ProjectName.Systems.EquipmentManager.EquipmentSlot.Weapon },
+            new EquipCellDef { badge = "👞신발", real = true,  slot = ProjectName.Systems.EquipmentManager.EquipmentSlot.Shoes },
+            new EquipCellDef { badge = "🧤장갑", real = true,  slot = ProjectName.Systems.EquipmentManager.EquipmentSlot.Gloves },
+            new EquipCellDef { badge = "🧣망토", real = true,  slot = ProjectName.Systems.EquipmentManager.EquipmentSlot.Back },
+            new EquipCellDef { badge = "예약",   real = false },
+            new EquipCellDef { badge = "예약",   real = false },
+            new EquipCellDef { badge = "예약",   real = false },
+            new EquipCellDef { badge = "예약",   real = false },
+        };
+
+        private const int EQUIP_GRID_COLS = 5;   // 통합 장비칸 열 수 (2행×5열 = 10칸 고정)
+        private const int EQUIP_GRID_ROWS = 2;
+        private const float EQUIP_BADGE_HEIGHT = 22f;   // 부위 배지 행 높이
+
         // ===== 정렬 =====
         private enum SortMode { None, Category, Name, Rarity, Quantity }
         private SortMode _sortMode = SortMode.None;
@@ -116,12 +206,14 @@ namespace ProjectName.UI
         private const float INFO_PANEL_HEIGHT = 272f;   // (레거시 — 미사용)
         private const float WEAPON_SECTION_HEIGHT = 112f;  // (레거시 — 미사용)
         private const float EQUIP_ROW_HEIGHT = 268f;    // 장비창 5칸씩 2줄 (박스 86 + 라벨 44 × 2)
-        private const float DESC_PANEL_HEIGHT = 620f;   // 2026-09-09(3): 설명창 세로 축소 (드래그는 하단 실제 핫바로)
+        private const float DESC_PANEL_HEIGHT = 400f;   // 2026-09-12(P3): 설명창 세로 620→400 축소 (이름/설명/아이콘/스탯 순 압축 — 하단 빈 여백 제거)
         private const float DESC_GAP = 12f;             // 구획 간 미세 여백
-        private const int GRID_COLUMNS = 5;                // 가방 5칸씩 (6줄 + 스크롤)
+        private const int GRID_COLUMNS = 6;                // 2026-09-12(P3): 6열 그리드 (예시2 — 인벤 단일 그리드, 탭은 창고 컨텍스트로 이동)
+        private const int GRID_ROWS_PER_PAGE = 5;          // 2026-09-12(P3): 페이지당 5행×6열=30슬롯 — 초과분은 ◀/▶ 페이지 버튼
+        private const int GRID_PAGE_SLOTS = GRID_ROWS_PER_PAGE * GRID_COLUMNS;
+        private const float PAGER_STRIP_HEIGHT = 40f;      // 그리드 하단 페이지 버튼 스트립 높이
         private const float SLOT_MARGIN = 6f;              // 슬롯 간격
         private const float SLOT_ICON_SIZE = 96f;          // 슬롯 내 아이콘 크기 (레거시, 동적 크기 사용 권장)
-        private const int GRID_MIN_ROWS = 6;               // 가방 가시 행 수 (6줄, 초과분 스크롤)
         private const float PREVIEW_PANEL_WIDTH = 0f;    // (제거됨)
         private static float GRID_AREA_WIDTH => WINDOW_WIDTH - PREVIEW_PANEL_WIDTH; // 그리드 영역 폭
 
@@ -166,6 +258,8 @@ namespace ProjectName.UI
         private GUIStyle _styleButton;          // 공용 버튼 (정렬/수리/사용 — 흰색 굵은 텍스트)
         private GUIStyle _styleWeaponBtn;       // 무기 장착 버튼 (다크 배경 + 흰 테두리)
         private GUIStyle _styleWeaponBtnEquipped; // 장착 중 버튼 (금색 테두리)
+        private GUIStyle _styleEquipBadge;      // 2026-09-12(P3): 통합 장비칸 부위 배지 (이모지+약어 라벨)
+        private GUIStyle _stylePagerBtn;        // 2026-09-12(P3): 그리드 페이지 버튼 (◀/▶ — 컴팩트)
         // ===== AAA 4레이어 스타일 (InventoryArtLibrary static 캐시 텍스처 — 파기 금지) =====
         private GUIStyle _styleBackplate;       // Layer 1: 스톤 백플레이트 (9-Slice border 24)
         private GUIStyle _styleMetalFrame;      // Layer 4: 금속 프레임 (9-Slice border 16)
@@ -198,9 +292,21 @@ namespace ProjectName.UI
                 _contextMode = _pendingContextMode;
                 if (_contextMode == ContextMode.Warehouse)
                     _warehouseTerritoryId = s_pendingWarehouseTerritoryId;
+                else if (_contextMode == ContextMode.Loot)
+                {
+                    // 2026-09-12(P7): Loot 컨텍스트 대기 값 적용 — LootWindow 캐시에도 주입(드래그 획득 경로 호환)
+                    _lootBasket = s_pendingLootBasket;
+                    SyncLootBasketToLootWindow(_lootBasket);
+                }
                 _pendingContextMode = ContextMode.None;
                 s_pendingWarehouseTerritoryId = null;
+                s_pendingLootBasket = null;
             }
+
+            // 2026-09-12(P7): 바구니 열림 리다이렉트 — LootBasket E키 이벤트를 통합창 Loot 컨텍스트로 연결.
+            // 기존 LootWindow.OpenForBasket 팝업 경로는 호출부가 없어 자연 소멸(LootWindow 클래스/필드는 유지).
+            // Systems의 정적 이벤트이므로 UI 측에서 구독(어셈블리 순환 회피 — TerritoryWarehouse 리플렉션 선례와 같은 이유).
+            ProjectName.Systems.LootBasket.OnOpenLootWindowRequested += OnLootOpenRequested;
 
             // 2026-09-11(4): 셋업이 핫키를 못 단 경우(Test_10 등 부착만 하고 Bind 없음) 자가 등록 — I키 토글 보장.
             // 기존 UIInventoryHotkey 클래스 재활용. 이미 씬에 핫키가 있으면 중복 등록하지 않는다.
@@ -213,7 +319,8 @@ namespace ProjectName.UI
         }
 
         /// <summary>컨텍스트 모드 지정 (창고/상점/전리품 상호작용 시 호출 — 인벤 창도 함께 열어줌)</summary>
-        public static void SetContextMode(ContextMode mode) => SetContextMode(mode, null);
+        // 2026-09-12(P7): (string) 캐스트 — territoryId/basket 오버로드 추가로 null 리터럴이 모호해지는 것 회피
+        public static void SetContextMode(ContextMode mode) => SetContextMode(mode, (string)null);
 
         /// <summary>
         /// 2026-09-11(4): territoryId 전달 오버로드 — Warehouse 컨텍스트는 이 ID의
@@ -225,6 +332,7 @@ namespace ProjectName.UI
             {
                 _instance._contextMode = mode;
                 _instance._warehouseTerritoryId = (mode == ContextMode.Warehouse) ? territoryId : null;
+                _instance._lootBasket = null;   // 2026-09-12(P7): 컨텍스트 전환 시 Loot 바구니 잔존 해제
                 if (!_instance.IsOpen) _instance.Show();
                 else _instance.RefreshInventory();   // 이미 열림 — 즉시 소스 전환
             }
@@ -232,8 +340,64 @@ namespace ProjectName.UI
             {
                 _pendingContextMode = mode;
                 s_pendingWarehouseTerritoryId = (mode == ContextMode.Warehouse) ? territoryId : null;
+                s_pendingLootBasket = null;
             }
         }
+
+        /// <summary>
+        /// 2026-09-12(P7): basket 전달 오버로드 — Loot 컨텍스트. 바구니 상호작용(E키)에서 호출.
+        /// 좌측 통합 패널(장비칸+인벤)은 유지되고 우측 제4구획에 전리품 상자 패널이 렌더된다.
+        /// 바구니 참조는 LootWindow 캐시에도 주입한다(기존 드래그 획득 TryTakeDraggedToInventory 경로 호환).
+        /// E키 토글: 동일 바구니로 이미 열려 있으면 닫는다(TerritoryWarehouse E토글 패턴 이식).
+        /// </summary>
+        public static void SetContextMode(ContextMode mode, ILootBasket basket)
+        {
+            if (mode == ContextMode.Loot && basket == null) return;   // 빈 요청 무시 — 기존 컨텍스트 보존
+
+            // E 토글 — 동일 바구니로 이미 열려 있으면 닫기 (E 열림/닫기 동일 키 패턴)
+            if (mode == ContextMode.Loot && _instance != null && _instance.IsOpen
+                && _instance._contextMode == ContextMode.Loot
+                && ReferenceEquals(_instance._lootBasket, basket))
+            {
+                CloseContext();
+                return;
+            }
+
+            if (_instance != null)
+            {
+                _instance._contextMode = mode;
+                _instance._warehouseTerritoryId = null;   // Loot 컨텍스트는 창고 뷰가 아님
+                _instance._lootBasket = (mode == ContextMode.Loot) ? basket : null;
+                SyncLootBasketToLootWindow(_instance._lootBasket);
+                if (!_instance.IsOpen) _instance.Show();
+                else _instance.RefreshInventory();
+            }
+            else
+            {
+                _pendingContextMode = mode;
+                s_pendingWarehouseTerritoryId = null;
+                s_pendingLootBasket = (mode == ContextMode.Loot) ? basket : null;
+            }
+        }
+
+        /// <summary>
+        /// 2026-09-12(P7): 바구니 참조를 LootWindow 캐시에 동기화 — LootBasket.TakeItem 인덱스 기반
+        /// 획득(TryTakeDraggedToInventory/전부 획득)이 _currentBasket을 참조하므로 컨텍스트 열림과 함께
+        /// 동기화해야 한다. null 주입은 캐시만 비운다(값 동일 시 무시 — RefreshLoot 스팸 방지).
+        /// </summary>
+        private static void SyncLootBasketToLootWindow(ILootBasket basket)
+        {
+            if (LootWindow.Instance == null) return;
+            if (ReferenceEquals(LootWindow.Instance.CurrentBasket, basket)) return;
+            LootWindow.Instance.CurrentBasket = basket;   // setter가 RefreshLoot까지 수행
+        }
+
+        /// <summary>
+        /// 2026-09-12(P7): LootBasket.OnOpenLootWindowRequested 수신부 — 바구니 열림을
+        /// InventoryWindow Loot 컨텍스트로 리다이렉트한다(기존 LootWindow 팝업 경로 대체).
+        /// </summary>
+        private static void OnLootOpenRequested(ILootBasket basket)
+            => SetContextMode(ContextMode.Loot, basket);
 
         /// <summary>
         /// 2026-09-11(2): 컨텍스트 종료 (창고 E토글/ESC/이탈 닫기에서 호출) —
@@ -243,12 +407,16 @@ namespace ProjectName.UI
         {
             _pendingContextMode = ContextMode.None;
             s_pendingWarehouseTerritoryId = null;
+            s_pendingLootBasket = null;
             if (_instance != null)
             {
                 _instance._contextMode = ContextMode.None;
                 _instance._warehouseTerritoryId = null;
+                _instance._lootBasket = null;
                 if (_instance.IsOpen) _instance.Hide();
             }
+            // 2026-09-12(P7): LootWindow 캐시도 정리 — 스테일 바구니 잔존(고스트/클릭 획득 오작동) 방지
+            SyncLootBasketToLootWindow(null);
         }
 
         /// <summary>
@@ -266,9 +434,11 @@ namespace ProjectName.UI
                 {
                     _contextMode = ContextMode.None;
                     _warehouseTerritoryId = null;
+                    _lootBasket = null;   // 2026-09-12(P7): I키 재오픈은 항상 플레이어 인벤 — Loot 컨텍스트 잔존 수리
                 }
                 _pendingContextMode = ContextMode.None;   // 인스턴스 생성 전 대기 컨텍스트도 차단
                 s_pendingWarehouseTerritoryId = null;
+                s_pendingLootBasket = null;
                 Show();
             }
             else
@@ -297,6 +467,9 @@ namespace ProjectName.UI
 
         protected override void OnDestroy()
         {
+            // 2026-09-12(P7): 정적 이벤트 구독 해제 — 파괴된 핸들러 잔존(NRE/메모리) 방지
+            ProjectName.Systems.LootBasket.OnOpenLootWindowRequested -= OnLootOpenRequested;
+
             base.OnDestroy();
             if (_texWhite != null)
             {
@@ -332,6 +505,47 @@ namespace ProjectName.UI
             // 2026-09-11(4): 창 닫힘 시 컨텍스트 해제 — 재오픈(I키)은 플레이어 인벤 모드로 시작
             _contextMode = ContextMode.None;
             _warehouseTerritoryId = null;
+            _lootBasket = null;   // 2026-09-12(P7): Loot 컨텍스트도 닫힘과 함께 해제 (바구니 상호작용은 E로 재개)
+        }
+
+        /// <summary>
+        /// 2026-09-12(P7): Loot 컨텍스트 닫기 가드 (TerritoryWarehouse 닫기 패턴 이식) —
+        /// ESC 닫기 / 바구니 소멸(전부 획득·빈 바구니·30s 수명 Destroy) 후 자동 닫기 /
+        /// 상호작용 반경(3m) 이탈 자동 닫기. UIWindow 베이스는 Update를 정의하지 않으므로
+        /// 유니티 매직 메서드로 직접 구동된다.
+        /// </summary>
+        private void Update()
+        {
+            if (!IsOpen || _contextMode != ContextMode.Loot) return;
+
+            // ESC 닫기 — 열려 있으면 근접 여부 무관 (TerritoryWarehouse ESC 패턴 동일)
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                CloseContext();
+                return;
+            }
+
+            // 바구니 소멸 — 전부 획득/빈 바구니 자동 파괴, 30s 수명 만료. 파괴된 컴포넌트는
+            // Unity == 오버로드로 null 판정되므로(as MonoBehaviour) 이 분기로 감지한다.
+            var basketMb = _lootBasket as MonoBehaviour;
+            if (basketMb == null)
+            {
+                CloseContext();
+                return;
+            }
+
+            // 3m 이탈 자동 닫기 (Vector3.Distance → sqrMagnitude — TerritoryWarehouse 선례 최적화 동일)
+            if (_playerTransform == null)
+            {
+                var playerGo = GameObject.FindGameObjectWithTag("Player");
+                if (playerGo != null) _playerTransform = playerGo.transform;
+            }
+            if (_playerTransform != null
+                && (basketMb.transform.position - _playerTransform.position).sqrMagnitude
+                    > LOOT_LEAVE_RANGE * LOOT_LEAVE_RANGE)
+            {
+                CloseContext();
+            }
         }
 
         /// <summary>
@@ -535,6 +749,30 @@ namespace ProjectName.UI
                 active = { textColor = ColorTextPrimary, background = _texBtnBgEquipped }
             };
 
+            // 2026-09-12(P3): 통합 장비칸 부위 배지 — 이모지+약어 라벨 (2×5 셀 상단, 작게)
+            _styleEquipBadge = new GUIStyle(GUI.skin.label)
+            {
+                font = UIFont.Load(),
+                fontSize = UIFont.Caption, // 배지 — 작은 라벨 (셀 2행 절약)
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = ColorTextSecondary },
+                padding = new RectOffset(2, 0, 0, 0)
+            };
+
+            // 2026-09-12(P3): 그리드 페이지 버튼 — ◀/▶ 컴팩트 스타일
+            _stylePagerBtn = new GUIStyle(GUI.skin.button)
+            {
+                font = UIFont.Load(),
+                fontSize = UIFont.Caption,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = ColorTextPrimary, background = _texBtnBg },
+                hover = { textColor = ColorTextPrimary, background = _texBtnBgHover },
+                active = { textColor = ColorTextPrimary, background = _texBtnBgHover },
+                border = new RectOffset(2, 2, 2, 2)
+            };
+
             _stylesInitialized = true;
         }
 
@@ -580,8 +818,12 @@ namespace ProjectName.UI
             float sortBtnY = y + (TITLE_BAR_HEIGHT - sortBtnHeight) * 0.5f;
             DrawTitleStrip(x, y, WINDOW_WIDTH, sortBtnX);
             // 2026-09-11(4): 창고 컨텍스트 — 타이틀 "창고" 표기
+            // 2026-09-12(P7): Loot 컨텍스트 — 통합창 타이틀 전용 문구 (리터럴 상수 표현식 — 프레임 GC 없음)
+            string contextTitle = _contextMode == ContextMode.Warehouse ? " 창고"
+                : _contextMode == ContextMode.Loot ? "🧺 전리품 — 원하는 아이템을 드래그"
+                : " 인벤토리";
             GUI.Label(new Rect(x, y + 4, sortBtnX - x - 12f, TITLE_BAR_HEIGHT),
-                _contextMode == ContextMode.Warehouse ? " 창고" : " 인벤토리", _styleTitle);
+                contextTitle, _styleTitle);
 
             // 정렬 버튼 (타이틀 스트립 우측) — 기존 로직 유지 (다크 배경 + 흰색 굵은 텍스트)
             if (GUI.Button(new Rect(sortBtnX, sortBtnY, sortBtnWidth, sortBtnHeight), $"정렬: {_sortModeLabels[(int)_sortMode]}", _styleButton))
@@ -601,15 +843,26 @@ namespace ProjectName.UI
             // 타이틀 하단 구분선
             DrawColoredRect(new Rect(x, y + TITLE_BAR_HEIGHT + 2, WINDOW_WIDTH, 2), ColorBorder);
 
-            // === 카테고리 탭 ===
+            // === 카테고리 탭 / 통합 장비칸 (2026-09-12(P3): 예시2 개편) ===
+            // 플레이어 인벤(ContextMode.None): 카테고리 탭 제거 → 좌측 상단에 통합 장비칸 2×5 (부위 배지)
+            // 창고 컨텍스트(ContextMode.Warehouse): 기존 카테고리 탭 유지 (탭은 창고 전용으로 이동)
             float tabY = y + TITLE_BAR_HEIGHT + 4;
-            // (기존 ColorTitleBar 평면 띠 제거 — 스톤 백플레이트가 그대로 비쳐 보임)
-            DrawCategoryTabs(x, tabY);
-            DrawColoredRect(new Rect(x, tabY + TAB_BAR_HEIGHT, WINDOW_WIDTH, 1), ColorBorder);
+            float gridY;
+            if (_contextMode == ContextMode.Warehouse)
+            {
+                // (기존 ColorTitleBar 평면 띠 제거 — 스톤 백플레이트가 그대로 비쳐 보임)
+                DrawCategoryTabs(x, tabY);
+                DrawColoredRect(new Rect(x, tabY + TAB_BAR_HEIGHT, WINDOW_WIDTH, 1), ColorBorder);
+                gridY = tabY + TAB_BAR_HEIGHT + 1;
+            }
+            else
+            {
+                // 통합 장비칸 2×5 — 카테고리 탭 자리를 대체 (장비 해제 클릭 경로 내장)
+                float equipH = DrawEquipmentGrid(x, tabY);
+                gridY = tabY + equipH + 1;
+            }
 
-            // === 아이템 슬롯 그리드 (스크롤 가능) ===
-            float gridY = tabY + TAB_BAR_HEIGHT + 1;
-            // 2026-09-11(5): 장비슬롯 행 제거 — 그리드가 창 하단까지 확장 (장비창은 오른쪽 구획으로)
+            // === 아이템 슬롯 그리드 (6열 · 5행/페이지 · 초과분 ◀/▶ 페이지 + 세로 스크롤 유지) ===
             float gridHeight = WINDOW_HEIGHT - (gridY - y) - 8;
             DrawItemGrid(x, gridY, gridHeight);
 
@@ -619,13 +872,14 @@ namespace ProjectName.UI
             // === 중앙 아이템 설명 패널 (2026-09-09(2): 제2구획 — 설명 + 핫바 미니패드) ===
             DrawDescriptionPanel(x + WINDOW_WIDTH + DESC_GAP, y);
 
-            // === 오른쪽 구획: 장비창 (2026-09-11(5): 삼분활 재배치) ===
-            // 상점/창고 컨텍스트가 오른쪽 구획을 사용하면 컨텍스트 우선 — 장비창 생략 (E키 독립 창으로 확인 가능)
-            if (_contextMode == ContextMode.None)
-            {
-                float equipX = Screen.width * 2f / 3f + 6f;   // GetContextX와 동일 기준 — 우측 1/3
-                EquipmentWindow.TryRenderEmbedded(equipX, y, PanelWidth, WINDOW_HEIGHT);
-            }
+            // === 2026-09-12(P7): 제4구획 전리품 상자 패널 — Loot 컨텍스트 전용 (좌 통합 패널은 유지) ===
+            // 설명창(x+WINDOW_WIDTH+DESC_GAP) 다음 WINDOW_WIDTH + 12 지점. 오버플로 시 화면 오른쪽 클램프.
+            if (_contextMode == ContextMode.Loot)
+                DrawLootPanel(x + WINDOW_WIDTH + DESC_GAP + WINDOW_WIDTH + 12f, y);
+
+            // 2026-09-12(P3): 우측 구획 장비창(EquipmentWindow.TryRenderEmbedded) 호출 제거 —
+            // 장비 슬롯은 좌측 상단 통합 장비칸(2×5)으로 통합됨. EquipmentWindow 클래스/렌더 코드는
+            // 참조 보존을 위해 유지되지만 임베드 호출 경로는 끊김 (E키는 통합 인벤창으로 리다이렉트).
 
             // === 🗺️ 오토루트 컨텍스트 메뉴 ===
             DrawRouteContextMenu();
@@ -674,6 +928,196 @@ namespace ProjectName.UI
         }
 
         // ===================================================================
+        // 2026-09-12(P3): 통합 장비칸 2×5 (예시2 좌측 상단) — 렌더 + 클릭 해제/드래그
+        // ===================================================================
+        /// <summary>
+        /// 인벤 그리드 위 2행×5열(10칸 고정) 통합 장비칸. EquipmentManager 실제 슬롯 6종
+        /// (Helmet/Armor/Weapon/Shoes/Gloves/Back — enum 순서) + 예약 플레이스홀더 4칸.
+        /// 각 칸: 부위 배지(이모지+약어) + 장착 아이템 아이콘/이름/내구도 바.
+        /// 클릭(드래그 아님) = 장비 해제 → 인벤 복귀 (기존 EquipmentWindow [장비 해제] 버튼과
+        /// 동일한 EquipmentManager.UnequipSlot 경로 이식). 우클릭도 해제(구 DrawEquipRow 선례).
+        /// 2026-09-12(P4) 드래그 = Begin(Source.Equipment, 셀인덱스, 착용아이템) — ProcessDrag의 장비칸 소스
+        /// 분기가 MouseUp 판정 대행: 인벤 그리드 위 = 해제 후 인벤 이동 / 클릭(10px 미만) = 기존 해제 유지.
+        /// 또한 드래그 장착용 셀 화면 Rect 캐시(s_equipSlotScreenRects)를 매 프레임 리빌드한다.
+        /// </summary>
+        /// <returns>장비칸 구역 전체 높이 (그리드 시작 y 계산용)</returns>
+        private float DrawEquipmentGrid(float panelX, float gridY)
+        {
+            var em = ProjectName.Systems.EquipmentManager.Instance;
+            float innerX = panelX + 4;
+            float innerWidth = GRID_AREA_WIDTH - 8;
+            float cellW = (innerWidth - SLOT_MARGIN * (EQUIP_GRID_COLS + 1)) / EQUIP_GRID_COLS;
+            float cellH = cellW * 0.55f;   // 인벤 슬롯보다 낮은 직사각 셀 (2행 절약)
+            float rowBlock = EQUIP_BADGE_HEIGHT + cellH + SLOT_MARGIN;
+            float totalH = EQUIP_GRID_ROWS * rowBlock + SLOT_MARGIN;
+
+            // 2026-09-12(P4): 드래그 장착 드롭 판정용 셀 화면 Rect 캐시 리빌드 (매 프레임 — ProcessDrag가 소비)
+            s_equipSlotScreenRects.Clear();
+            s_equipSlotCellIndices.Clear();
+
+            // 배경 (그리드 영역과 동일 폭 — 상단 구역)
+            DrawColoredRect(new Rect(panelX, gridY, GRID_AREA_WIDTH, totalH), ColorBg);
+
+            for (int i = 0; i < _equipCellDefs.Length; i++)
+            {
+                var def = _equipCellDefs[i];
+                int col = i % EQUIP_GRID_COLS;
+                int row = i / EQUIP_GRID_COLS;
+                float cx = innerX + SLOT_MARGIN + col * (cellW + SLOT_MARGIN);
+                float cy = gridY + SLOT_MARGIN + row * rowBlock;
+                Rect badgeRect = new Rect(cx, cy, cellW, EQUIP_BADGE_HEIGHT);
+                Rect cellRect = new Rect(cx, cy + EQUIP_BADGE_HEIGHT, cellW, cellH);
+
+                // 2026-09-12(P4): 실장비 셀 드롭 판정용 화면 Rect 캐시 (셀 정의 인덱스 — 예약 칸 제외)
+                // 2026-09-11(4) 선례: GUIToScreenPoint는 좌상단 모서리(y 상승) → yMin = sp.y - height 보정
+                if (def.real)
+                {
+                    Vector2 eqSp = GUIUtility.GUIToScreenPoint(new Vector2(cx, cy + EQUIP_BADGE_HEIGHT));
+                    s_equipSlotScreenRects.Add(new Rect(eqSp.x, eqSp.y - cellH, cellW, cellH));
+                    s_equipSlotCellIndices.Add(i);
+                }
+
+                // 부위 배지 (예약 칸은 흐리게)
+                var prevBadgeColor = GUI.color;
+                if (!def.real) GUI.color = ColorTextDim;
+                GUI.Label(badgeRect, def.badge, _styleEquipBadge);
+                GUI.color = prevBadgeColor;
+
+                var data = def.real && em != null ? em.GetSlotData(def.slot) : null;
+                bool has = data != null && !string.IsNullOrEmpty(data.itemId) && data.itemData != null;
+
+                // 셀 — 실장비 = 엠보싱 셀 / 예약 = 딤 처리 (구 DrawEquipRow 선례)
+                var prevCellColor = GUI.color;
+                GUI.color = !def.real ? new Color(1f, 1f, 1f, 0.45f) : Color.white;
+                GUI.DrawTexture(cellRect, InventoryArtLibrary.GetSlotCell());
+                GUI.color = prevCellColor;
+                if (has)
+                    DrawSlotTint(InventoryArtLibrary.GetSlotGlow(), cellRect, new Color(0.95f, 0.78f, 0.30f, 0.45f)); // 장착 = 골드 글로우
+
+                if (has)
+                {
+                    // 장착 아이템 아이콘 (중앙 상단 — 그리드와 동일 아이콘 소스)
+                    Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(data.itemData);
+                    float iconSize = Mathf.Min(cellH - 30f, cellW * 0.44f);
+                    float iconX = cx + (cellW - iconSize) * 0.5f;
+                    float iconY = cellRect.y + 6f;
+                    if (iconTex != null)
+                    {
+                        GUI.DrawTexture(new Rect(iconX, iconY, iconSize, iconSize), iconTex, ScaleMode.ScaleToFit);
+                    }
+                    else
+                    {
+                        // 폴백: 카테고리 색상 사각형 (그리드 폴백과 동일 패턴)
+                        Color iconColor = GetCategoryColor(data.itemData.category);
+                        GUI.color = iconColor;
+                        GUI.DrawTexture(new Rect(iconX, iconY, iconSize, iconSize), _texWhite);
+                        GUI.color = Color.white;
+                    }
+
+                    // 아이템 이름 (하단 중앙, 축약)
+                    GUI.Label(new Rect(cx + 4f, cellRect.yMax - 24f, cellW - 8f, 22f),
+                        TruncateText(data.itemData.displayName, cellW - 8f, _styleSlotLabel), _styleSlotLabel);
+
+                    // 내구도 바 (장비 아이템만 — 그리드 C9-18과 동일 패턴)
+                    if (data.itemData.maxDurability > 0)
+                    {
+                        float ratio = Mathf.Clamp01((float)data.currentDurability / data.itemData.maxDurability);
+                        Color durColor = ratio >= 0.6f ? Color.green : (ratio >= 0.3f ? Color.yellow : Color.red);
+                        float barY = cellRect.yMax - 5f;
+                        DrawColoredRect(new Rect(cx + 6f, barY, cellW - 12f, 3f), new Color(0.15f, 0.15f, 0.15f, 0.8f));
+                        DrawColoredRect(new Rect(cx + 6f, barY, (cellW - 12f) * ratio, 3f), durColor);
+                    }
+
+                    // 호버 툴팁 (이름/설명/내구도)
+                    if (cellRect.Contains(Event.current.mousePosition))
+                        DrawEquipSlotTooltip(Event.current.mousePosition + new Vector2(22f, 22f),
+                            data.itemData.displayName, data.itemData.description,
+                            data.currentDurability, data.itemData.maxDurability);
+                }
+                else if (def.real)
+                {
+                    GUI.Label(cellRect, "[비어있음]", _styleEmptyText);
+                }
+                else
+                {
+                    // 예약 플레이스홀더 — 딤 표시 (2×5=10칸 고정의 나머지 4칸)
+                    GUI.Label(cellRect, "─", _styleEmptyText);
+                }
+
+                // ===== 클릭/드래그 처리 (실장비 + 장착 상태만) =====
+                if (def.real && has)
+                {
+                    if (Event.current.type == EventType.MouseDown && Event.current.button == 0
+                        && cellRect.Contains(Event.current.mousePosition))
+                    {
+                        // 눌림 기록 — MouseUp(무이동) = 장비 해제, MouseDrag(임계 초과) = 장비창 소스 드래그
+                        _equipPressIndex = i;
+                        _equipPressPos = Event.current.mousePosition;
+                        Event.current.Use();
+                    }
+                    else if (Event.current.type == EventType.MouseDrag && _equipPressIndex == i
+                        && (Event.current.mousePosition - _equipPressPos).sqrMagnitude > 100f)   // 10px 임계
+                    {
+                        // 2026-09-12(P4): 장비칸 소스 드래그 — Source.Equipment + 셀 인덱스 전환(기존 Source.Inventory,-1 대체).
+                        // ProcessDrag의 장비칸 소스 분기가 MouseUp 판정 대행: 인벤 그리드 위 = 해제 후 인벤 이동.
+                        // 클릭(10px 미만) MouseUp = 기존 해제 경로 유지(아래 MouseUp 분기).
+                        _equipPressIndex = -1;
+                        ItemDragContext.Begin(ItemDragContext.Source.Equipment, i, data.itemData);
+                        Event.current.Use();
+                    }
+                    else if (Event.current.type == EventType.MouseUp && _equipPressIndex == i)
+                    {
+                        // 클릭(드래그 아님) = 장비 해제 → 인벤 복귀 (기존 [장비 해제] 버튼 경로 이식)
+                        _equipPressIndex = -1;
+                        bool unequipped = em != null && em.UnequipSlot(def.slot);
+                        if (unequipped)
+                        {
+                            Debug.Log($"[InventoryWindow] 장비 해제(통합 장비칸 클릭): {def.slot} → 인벤 복귀");
+                            RefreshInventory();
+                        }
+                        Event.current.Use();
+                    }
+                    else if (Event.current.type == EventType.MouseDown && Event.current.button == 1
+                        && cellRect.Contains(Event.current.mousePosition))
+                    {
+                        // 우클릭 해제 (구 DrawEquipRow 선례 유지)
+                        bool unequipped = em != null && em.UnequipSlot(def.slot);
+                        if (unequipped)
+                        {
+                            Debug.Log($"[InventoryWindow] 장비 해제(통합 장비칸 우클릭): {def.slot} → 인벤 복귀");
+                            RefreshInventory();
+                        }
+                        Event.current.Use();
+                    }
+                }
+                else if (Event.current.type == EventType.MouseDown && cellRect.Contains(Event.current.mousePosition))
+                {
+                    // 빈/예약 칸 — 이벤트 소비 (하위 전파 방지, EquipmentWindow 빈 슬롯 선례)
+                    Event.current.Use();
+                }
+            }
+
+            // 하단 구분선 (장비칸 ↔ 인벤 그리드 경계)
+            DrawColoredRect(new Rect(panelX, gridY + totalH, GRID_AREA_WIDTH, 1), ColorBorder);
+            return totalH;
+        }
+
+        /// <summary>2026-09-12(P3): 통합 장비칸 호버 툴팁 — 이름/설명/내구도 (DrawSlotTooltip의 경량판).</summary>
+        private void DrawEquipSlotTooltip(Vector2 position, string name, string desc, int curDurability, int maxDurability)
+        {
+            float w = 420f;
+            float h = maxDurability > 0 ? 96f : 76f;
+            Rect r = new Rect(position.x, position.y, w, h);
+            if (r.xMax > Screen.width) r.x = Screen.width - w;
+            if (r.yMax > Screen.height) r.y = Screen.height - h;
+            GUI.Box(r, "", _styleSlot);
+            GUI.Label(new Rect(r.x + 8f, r.y + 6f, w - 16f, 30f), name, _styleSlotLabel);
+            GUI.Label(new Rect(r.x + 8f, r.y + 34f, w - 16f, 28f), desc ?? "", _styleInfoDesc);
+            if (maxDurability > 0)
+                GUI.Label(new Rect(r.x + 8f, r.y + 64f, w - 16f, 24f), $"내구도: {curDurability}/{maxDurability}", _styleItemCount);
+        }
+
+        // ===================================================================
         // 아이템 슬롯 그리드
         // ===================================================================
         private void DrawItemGrid(float panelX, float gridY, float gridHeight)
@@ -682,17 +1126,27 @@ namespace ProjectName.UI
             float innerY = gridY + 2;
             float innerWidth = GRID_AREA_WIDTH - 8;   // T3B-2: 우측 프리뷰 패널을 제외한 좌측 그리드 영역
 
-            // 스크롤 뷰 — 젤다 스타일 5열 정사각 슬롯 (간격 6px)
+            // 스크롤 뷰 — 2026-09-12(P3): 6열 단일 그리드 (빈 슬롯 회색 가이드) + 5행/페이지 페이지네이션
+            // 세로 스크롤은 창 높이 부족 시 폴백으로 유지 (기존 scroll 패턴)
             float slotTotalWidth = innerWidth;
             float slotWidth = (slotTotalWidth - SLOT_MARGIN * (GRID_COLUMNS + 1)) / GRID_COLUMNS;
             float slotHeight = slotWidth;   // 정사각형 슬롯
             float rowHeight = slotHeight + SLOT_MARGIN;
 
             int totalSlots = _currentSlots != null ? _currentSlots.Length : 0;
-            int totalRows = Mathf.Max(1, Mathf.CeilToInt((float)totalSlots / GRID_COLUMNS));
-            int guideRows = Mathf.Max(totalRows, GRID_MIN_ROWS);   // T3B-1: 빈 상태에서도 최소 행수 가이드 표시
+            // 2026-09-12(P3): 페이지네이션 — 5행×6열=30슬롯/페이지, 초과분은 ◀/▶ 버튼으로 넘김
+            int totalPages = Mathf.Max(1, Mathf.CeilToInt((float)totalSlots / GRID_PAGE_SLOTS));
+            // 2026-09-12(40차 QA 결함 #1): 페이지 스트립은 플레이어 인벤 단일 그리드에만 적용 —
+            // 창고/전리품 컨텍스트 그리드는 스트립 미렌더(viewHeight도 미차감) + 항상 첫 페이지 슬라이스.
+            bool pagerApplies = _contextMode != ContextMode.Warehouse && _contextMode != ContextMode.Loot;
+            if (!pagerApplies) _gridPage = 0;
+            if (_gridPage >= totalPages) _gridPage = totalPages - 1;
+            if (_gridPage < 0) _gridPage = 0;
+            bool showPager = pagerApplies && totalPages > 1;
+
+            int guideRows = GRID_ROWS_PER_PAGE;   // 페이지당 5행 가이드 (빈 슬롯 회색 셀 포함)
             float contentHeight = guideRows * rowHeight + SLOT_MARGIN;
-            float viewHeight = gridHeight - 4;
+            float viewHeight = gridHeight - 4 - (showPager ? PAGER_STRIP_HEIGHT : 0f);
 
             // 2026-09-11(3): DnD 드롭 판정용 Rect 캐시 리빌드 (매 프레임)
             s_slotScreenRects.Clear();
@@ -712,6 +1166,7 @@ namespace ProjectName.UI
             );
 
             // === AAA Layer 2: 빈 슬롯 가이드 그리드 — 엠보싱 셀 텍스처(순백)로 항상 표시 (기존 _texSlotEmptyGuide 대체) ===
+            // 2026-09-12(P3): 페이지당 5행×6열 고정 가이드 — 빈 슬롯 = 회색 셀 (단일 그리드, 탭 필터 없음)
             Texture2D slotCellTex = InventoryArtLibrary.GetSlotCell();
             int guideCells = guideRows * GRID_COLUMNS;
             var prevGuideColor = GUI.color;
@@ -726,19 +1181,26 @@ namespace ProjectName.UI
             }
             GUI.color = prevGuideColor;
 
-            if (_currentSlots == null || _currentSlots.Length == 0)
+            if (totalSlots == 0)
             {
-                GUI.Label(new Rect(0, 24, innerWidth - 20, 60), "(이 카테고리에 아이템이 없습니다)", _styleEmptyText);
+                string emptyMsg = _contextMode == ContextMode.Warehouse
+                    ? "(이 카테고리에 아이템이 없습니다)"
+                    : "(인벤토리가 비어 있습니다)";
+                GUI.Label(new Rect(0, 24, innerWidth - 20, 60), emptyMsg, _styleEmptyText);
             }
             else
             {
-                for (int i = 0; i < _currentSlots.Length; i++)
+                // 2026-09-12(P3): 현재 페이지 슬라이스만 렌더 (페이지당 5행×6열)
+                int pageStart = _gridPage * GRID_PAGE_SLOTS;
+                int pageEnd = Mathf.Min(totalSlots, pageStart + GRID_PAGE_SLOTS);
+                for (int i = pageStart; i < pageEnd; i++)
                 {
                     var slot = _currentSlots[i];
                     if (slot == null || slot.item == null || slot.count <= 0) continue;
 
-                    int col = i % GRID_COLUMNS;
-                    int row = i / GRID_COLUMNS;
+                    int localIdx = i - pageStart;
+                    int col = localIdx % GRID_COLUMNS;
+                    int row = localIdx / GRID_COLUMNS;
 
                     float sx = SLOT_MARGIN + col * (slotWidth + SLOT_MARGIN);
                     float sy = SLOT_MARGIN + row * rowHeight;
@@ -868,9 +1330,14 @@ namespace ProjectName.UI
                                     RefreshInventory();
                                 }
                             }
-                            else if (CompareTooltip.IsEquipmentCategory(slot.item.category))
+                            else if (CompareTooltip.IsEquipmentCategory(slot.item.category)
+                                     || slot.item.category == PlayerInventory.ItemCategory.Potion
+                                     || slot.item.category == PlayerInventory.ItemCategory.Drug)
                             {
                                 // 2026-09-09: 무기 선택창 폐지 → 우클릭 장착으로 대체
+                                // 2026-09-12(40차 QA 결함 #2): Potion/Drug도 게이트 통과 — TryEquipItem의
+                                // Weapon/Armor 분기는 카테고리 일치 시에만 진입하므로 Potion/Drug는 그대로
+                                // 통과해 복용 훅(PotionUseSystem.Use → 소모/Refresh)에 도달한다(죽은 코드 수리).
                                 TryEquipItem(slot);
                             }
                             else if (AutoRouteSystem.Instance != null)
@@ -915,6 +1382,41 @@ namespace ProjectName.UI
             }
 
             GUI.EndScrollView();
+
+            // 2026-09-12(40차 QA 결함 #1): 그리드 하단 ◀/▶ 페이지 버튼 렌더 + _gridPage 증감 —
+            // 기존 showPager 높이 차감(PAGER_STRIP_HEIGHT)에 맞춘 하단 스트립.
+            // 창고/전리품 컨텍스트는 showPager=false라 스트립 미렌더(플레이어 인벤 단일 그리드에만 적용).
+            if (showPager)
+            {
+                float pagerY = innerY + viewHeight;
+                const float pagerBtnW = 56f;
+                const float pagerGap = 8f;
+                const float pagerLabelW = 88f;
+                float pagerGroupW = pagerBtnW * 2f + pagerGap * 2f + pagerLabelW;
+                float pagerX = innerX + Mathf.Max(0f, (innerWidth - pagerGroupW) * 0.5f);
+                Rect pagerPrevRect = new Rect(pagerX, pagerY, pagerBtnW, PAGER_STRIP_HEIGHT);
+                Rect pagerNextRect = new Rect(pagerX + pagerBtnW + pagerGap, pagerY, pagerBtnW, PAGER_STRIP_HEIGHT);
+                Rect pagerLabelRect = new Rect(pagerX + (pagerBtnW + pagerGap) * 2f, pagerY, pagerLabelW, PAGER_STRIP_HEIGHT);
+
+                bool canPrev = _gridPage > 0;                       // 첫 페이지 → ◀ 비활성(회색)
+                bool canNext = _gridPage < totalPages - 1;          // 마지막 페이지 → ▶ 비활성(회색)
+                Color pagerGuiColor = GUI.color;
+                bool pagerGuiEnabled = GUI.enabled;
+
+                GUI.enabled = canPrev;
+                if (!canPrev) GUI.color = new Color(0.45f, 0.45f, 0.48f, 0.55f);   // 비활성 회색 틴트
+                if (GUI.Button(pagerPrevRect, "◀", _stylePagerBtn) && canPrev) _gridPage--;
+                if (!canPrev) GUI.color = pagerGuiColor;
+
+                GUI.enabled = canNext;
+                if (!canNext) GUI.color = new Color(0.45f, 0.45f, 0.48f, 0.55f);
+                if (GUI.Button(pagerNextRect, "▶", _stylePagerBtn) && canNext) _gridPage++;
+                if (!canNext) GUI.color = pagerGuiColor;
+
+                GUI.enabled = pagerGuiEnabled;
+                GUI.color = pagerGuiColor;
+                GUI.Label(pagerLabelRect, $"{_gridPage + 1}/{totalPages}", _stylePagerBtn);
+            }
         }
 
         private void DrawSlotTooltip(Vector2 position, PlayerInventory.ItemSlot slot)
@@ -1876,6 +2378,159 @@ namespace ProjectName.UI
             // 2026-09-09(3): 미니패드 제거 — 드래그 드롭은 하단 상시 핫바(HotbarUI.GetSlotIndexAtScreenPoint)로
         }
 
+        // ===================================================================
+        // 2026-09-12(P7): 우측 전리품 상자 패널 (Loot 컨텍스트 — 제4구획)
+        // ===================================================================
+        /// <summary>
+        /// 바구니 상호작용(E키)으로 열린 Loot 컨텍스트의 우측 패널 —
+        /// 타이틀 "🧺 전리품" + 6열 그리드(항목수 동적 행, 최대 3행) + [전부 획득] 버튼.
+        /// 데이터는 LootWindow 캐시 API(CachedItemCount/GetCachedItem)를 재사용하며,
+        /// 슬롯 MouseDown → ItemDragContext.Begin(Source.Loot) — 기존 ProcessDrag의 Loot 분기
+        /// (MouseUp 인벤 그리드 = TryTakeDraggedToInventory)가 그대로 드롭 판정을 대행한다.
+        /// 빈 바구니/바구니 소멸 시 컨텍스트를 닫는다(LootWindow 빈 목록 자동 Hide 선례).
+        /// </summary>
+        private void DrawLootPanel(float panelX, float panelY)
+        {
+            // 오버플로 클램프 — 패널이 화면 오른쪽을 벗어나면 안쪽으로 당긴다
+            float lootW = WINDOW_WIDTH;
+            if (panelX + lootW > Screen.width - 2f)
+                panelX = Screen.width - 2f - lootW;
+
+            // === 렌더 데이터 — LootWindow 캐시 API (null 가드) ===
+            var lootWindow = LootWindow.Instance;
+            var basket = _lootBasket;
+            // Awake 실행 순서 폴백 — 인스턴스 생성 전 컨텍스트로 인해 LootWindow 주입이 누락된 경우 보완
+            // (참조 비교만 수행 — 매 프레임 GC 없음)
+            if (lootWindow != null && basket != null && !ReferenceEquals(lootWindow.CurrentBasket, basket))
+                lootWindow.CurrentBasket = basket;
+            int itemCount = lootWindow != null ? lootWindow.CachedItemCount : 0;
+
+            // 빈 바구니/바구니 소멸/획득 완료 → 즉시 닫기 (LootWindow.DrawWindowContent 빈 목록 자동 Hide 선례)
+            if (lootWindow == null || basket == null || itemCount == 0 || !basket.IsAvailable)
+            {
+                CloseContext();
+                return;
+            }
+
+            float lootH = WINDOW_HEIGHT;
+
+            // === AAA 4레이어 (메인 창과 동일 — 드롭섀도우 → 백플레이트 → 컨텐츠) ===
+            DrawWindowDropShadow(panelX, panelY, lootW, lootH);
+            GUI.Box(new Rect(panelX, panelY, lootW, lootH), "", _styleBackplate);
+
+            // === 타이틀 스트립 + 타이틀 ===
+            DrawTitleStrip(panelX, panelY, lootW, panelX + lootW);
+            GUI.Label(new Rect(panelX, panelY + 4, lootW, TITLE_BAR_HEIGHT), "  🧺 전리품", _styleTitle);
+            DrawColoredRect(new Rect(panelX, panelY + TITLE_BAR_HEIGHT + 2, lootW, 2), ColorBorder);
+
+            // === 6열 그리드 — 항목수 동적 행, 최대 3행 (18종 초과분은 [전부 획득]으로 일괄 획득) ===
+            const float LOOT_BOTTOM_H = 96f;
+            float gridY = panelY + TITLE_BAR_HEIGHT + 4;
+            float gridHeight = lootH - (gridY - panelY) - LOOT_BOTTOM_H - 6;
+            float innerWidth = lootW - 8;
+            float slotWidth = (innerWidth - SLOT_MARGIN * (GRID_COLUMNS + 1)) / GRID_COLUMNS;
+            float slotHeight = slotWidth;   // 정사각형 슬롯 (인벤 그리드 규약 동일)
+            float rowHeight = slotHeight + SLOT_MARGIN;
+            int totalRows = Mathf.Clamp(Mathf.CeilToInt((float)itemCount / GRID_COLUMNS), 1, 3);
+
+            DrawColoredRect(new Rect(panelX, gridY, lootW, gridHeight), ColorInfoBg);
+
+            // DnD 판정용 슬롯 화면 Rect 캐시 리빌드 (매 프레임 — InventoryWindow/WarehouseUI 선례)
+            s_lootSlotScreenRects.Clear();
+            s_lootSlotScreenIndices.Clear();
+
+            Event ev = Event.current;
+            for (int i = 0; i < itemCount; i++)
+            {
+                var entry = lootWindow.GetCachedItem(i);
+                if (entry == null || entry.Item == null || entry.Count <= 0) continue;   // 빈 항목 — 슬롯/판정 캐시 미생성
+
+                int col = i % GRID_COLUMNS;
+                int row = i / GRID_COLUMNS;
+                if (row >= totalRows) break;   // 최대 3행
+
+                float sx = SLOT_MARGIN + col * (slotWidth + SLOT_MARGIN);
+                float sy = gridY + SLOT_MARGIN + row * rowHeight;
+                Rect slotRect = new Rect(sx, sy, slotWidth, slotHeight);
+
+                // 드롭 판정용 스크린 Rect 캐시 — GUIToScreenPoint y 상승계 보정
+                // (sp.y는 슬롯 윗변 → yMin = sp.y - height. LootWindow.DrawItemGrid 수리 선례 동일)
+                Vector2 slotScreenPos = GUIUtility.GUIToScreenPoint(new Vector2(sx, sy));
+                s_lootSlotScreenRects.Add(new Rect(slotScreenPos.x, slotScreenPos.y - slotHeight, slotWidth, slotHeight));
+                s_lootSlotScreenIndices.Add(i);
+
+                // AAA Layer 2 셀 — 인벤 그리드와 동일 규약 (엠보싱 셀 + 희귀도 글로우 tint)
+                var prevSlotColor = GUI.color;
+                GUI.color = Color.white;
+                GUI.DrawTexture(slotRect, InventoryArtLibrary.GetSlotCell());
+                int rarityIdx = Mathf.Clamp((int)entry.Item.rarity, 0, InventoryArtLibrary.RarityColors.Length - 1);
+                GUI.color = InventoryArtLibrary.RarityColors[rarityIdx];
+                GUI.DrawTexture(slotRect, InventoryArtLibrary.GetSlotGlow());
+                GUI.color = prevSlotColor;
+
+                // 아이콘 — 슬롯 상단 중앙 (인벤 그리드 규약 동일)
+                float iconSize = Mathf.Min(SLOT_ICON_SIZE, slotWidth * 0.62f);
+                float iconX = sx + (slotWidth - iconSize) * 0.5f;
+                float iconY = sy + 8f;
+                Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(entry.Item);
+                if (iconTex != null)
+                {
+                    GUI.DrawTexture(new Rect(iconX, iconY, iconSize, iconSize), iconTex);
+                }
+                else
+                {
+                    // 폴백: 카테고리 색상 사각형
+                    GUI.color = GetCategoryColor(entry.Item.category);
+                    GUI.DrawTexture(new Rect(iconX, iconY, iconSize, iconSize), _texWhite);
+                    GUI.color = Color.white;
+                }
+
+                // 이름 — 슬롯 하단부 중앙
+                float nameWidth = slotWidth - 12f;
+                float nameY = iconY + iconSize + 4f;
+                GUI.Label(new Rect(sx + 6, nameY, nameWidth, 40),
+                    TruncateText(entry.Item.displayName, nameWidth, _styleSlotLabel), _styleSlotLabel);
+
+                // 개수 — 좌상단 강조
+                GUI.Label(new Rect(sx + 6, sy + 4, nameWidth, 30), "x" + entry.Count, _styleItemCount);
+
+                // 슬롯 MouseDown → 전리품 드래그 시작 (Source.Loot) —
+                // InventoryWindow.ProcessDrag의 Loot 분기(MouseUp 인벤 그리드 = TryTakeDraggedToInventory)가
+                // MouseUp 판정을 대행한다. LootWindow.DrawItemGrid MouseDown 선례와 동일 조건.
+                if (ev.type == EventType.MouseDown && ev.button == 0
+                    && !ItemDragContext.Active && slotRect.Contains(ev.mousePosition))
+                {
+                    ItemDragContext.Begin(ItemDragContext.Source.Loot, i, entry.Item);
+                    ev.Use();
+                }
+            }
+
+            // === 하단 바 — 아이템 종수 + [전부 획득] 버튼 ===
+            float bottomY = gridY + gridHeight + 2;
+            DrawColoredRect(new Rect(panelX, bottomY, lootW, LOOT_BOTTOM_H), ColorInfoBg);
+            DrawColoredRect(new Rect(panelX, bottomY, lootW, 1), ColorBorder);
+
+            float btnWidth = 260f;
+            float btnHeight = 52f;
+            float btnX = panelX + 16f;
+            float btnY = bottomY + (LOOT_BOTTOM_H - btnHeight) * 0.5f;
+            if (GUI.Button(new Rect(btnX, btnY, btnWidth, btnHeight), "📥 전부 획득", _styleButton))
+            {
+                if (lootWindow != null)
+                {
+                    lootWindow.TakeAllFromBasket();   // 기존 전부 획득 로직 위임 (획득 + RefreshLoot)
+                    ItemDragContext.Cancel();         // 진행 중 전리품 드래그 정리 (고스트 잔상 방지)
+                    if (lootWindow.CachedItemCount == 0)
+                    {
+                        CloseContext();               // 빈 바구니 — 컨텍스트 닫기 (바구니 오브젝트는 자체 파괴)
+                        return;
+                    }
+                }
+            }
+            GUI.Label(new Rect(btnX + btnWidth + 16f, btnY, lootW - (btnX - panelX) - btnWidth - 32f, btnHeight),
+                itemCount + "종", _styleEmptyText);
+        }
+
         /// <summary>
         /// 2026-09-11(3): 드래그 고스트 + MouseUp 드롭 판정 — ItemDragContext 공유 컨텍스트 연동.
         /// - 인벤 소스: MouseDrag에서 Begin → MouseUp에 ①창고 슬롯(보관) ②다른 인벤 슬롯(스왑) ③핫바(등록),
@@ -1899,8 +2554,12 @@ namespace ProjectName.UI
                     int hbSlot = HotbarUI.GetSlotIndexAtScreenPoint(Input.mousePosition);
                     if (hbSlot >= 0 && ItemDragContext.Item != null)
                     {
-                        HotbarUI.AssignItem(hbSlot, ItemDragContext.Item.id, ItemDragContext.Item.displayName);
-                        Debug.Log($"[InventoryWindow] 핫바 슬롯 {hbSlot + 1}에 '{ItemDragContext.Item.displayName}' 지정 (창고 소스 — 보관 유지)");
+                        // 2026-09-12(P4): 몸 장비(방어구) 핫바 지정 차단 — 장비칸 경로 유도
+                        if (!IsArmorHotbarBlocked(ItemDragContext.Item))
+                        {
+                            HotbarUI.AssignItem(hbSlot, ItemDragContext.Item.id, ItemDragContext.Item.displayName);
+                            Debug.Log($"[InventoryWindow] 핫바 슬롯 {hbSlot + 1}에 '{ItemDragContext.Item.displayName}' 지정 (창고 소스 — 보관 유지)");
+                        }
                     }
                     else if (_contextMode == ContextMode.Warehouse)
                     {
@@ -1940,7 +2599,7 @@ namespace ProjectName.UI
             }
 
             // === 전리품 소스 드래그: 인벤 창이 드롭 판정 대행 (2026-09-11(6): 전리품→인벤 이동) ===
-            // LootWindow 슬롯 MouseDown에서 Begin(Source.Loot, index, item) — 이 분기가 MouseUp 판정을 대행한다.
+            // 2026-09-12(P7): Loot 소스는 통합창 우측 전리품 패널 슬롯 MouseDown에서 Begin — 이 분기가 MouseUp 판정을 대행.
             if (ItemDragContext.Active && ItemDragContext.SourceType == ItemDragContext.Source.Loot)
             {
                 if (Event.current.type == EventType.MouseDrag)
@@ -1950,19 +2609,46 @@ namespace ProjectName.UI
                     Vector2 p = Event.current.mousePosition;
                     // ① 인벤 그리드/슬롯 위 드롭 → 전리품 → 인벤 이동
                     //    (IsPointOverInventoryGrid: 그리드 전체 영역[빈 셀 포함] / GetInventorySlotIndexAtScreenPoint: 아이템 슬롯 정밀 판정)
-                    // ② 전리품 슬롯 위에서 그냥 뗌 → 클릭 획득 (기존 좌클릭 획득 UX 유지)
+                    // ② 전리품 슬롯 위에서 그냥 뗌 → 클릭 획득 (기존 좌클릭 획득 UX 유지 — P7 통합창 패널 캐시 우선, 레거시 팝업 캐시 호환 유지)
                     // ③ 그 외 영역 → 드롭 실패 (변경 없음)
                     if (IsPointOverInventoryGrid(p)
                         || GetInventorySlotIndexAtScreenPoint(p) >= 0
+                        || TryGetLootSlotAtScreenPoint(p, out _)
                         || LootWindow.TryGetSlotAtScreenPoint(p, out _))
                     {
                         if (LootWindow.TryTakeDraggedToInventory())
                         {
                             RefreshInventory();
+                            // 2026-09-12(P7): 바구니가 비면 Loot 컨텍스트 자동 닫기
+                            // (TryTakeDraggedToInventory → RefreshLoot이 빈 캐시를 null로 만듦)
+                            if (LootWindow.Instance == null || LootWindow.Instance.CachedItemCount == 0)
+                                CloseContext();
                             Debug.Log($"[InventoryWindow] 전리품→인벤 이동(드래그): {ItemDragContext.Item?.displayName ?? "?"}");
                         }
                     }
                     // 그 외 영역 = 드롭 실패 → Cancel (변경 없음)
+                    ItemDragContext.Cancel();
+                    Event.current.Use();
+                }
+                ItemDragContext.DrawGhost();
+                return;
+            }
+
+            // === 장비칸 소스 드래그: 통합 장비칸 MouseDown+10px 이동에서 Begin(Source.Equipment) (2026-09-12(P4)) ===
+            // MouseUp 인벤 그리드 위 = 해제 후 인벤 이동(EquipmentManager.UnequipSlot 경로). 창고 컨텍스트 드롭은 미동작.
+            // 그 외 영역 = 드롭 실패 → Cancel (변경 없음). 클릭(10px 미만)은 DrawEquipmentGrid의 기존 해제 경로 유지.
+            if (ItemDragContext.Active && ItemDragContext.SourceType == ItemDragContext.Source.Equipment)
+            {
+                if (Event.current.type == EventType.MouseDrag)
+                    Event.current.Use();
+                else if (Event.current.type == EventType.MouseUp)
+                {
+                    Vector2 p = Event.current.mousePosition;
+                    if ((IsPointOverInventoryGrid(p) || GetInventorySlotIndexAtScreenPoint(p) >= 0)
+                        && TryUnequipDraggedToInventory(ItemDragContext.SourceIndex))
+                    {
+                        Debug.Log($"[InventoryWindow] 장비→인벤 이동(드래그): {ItemDragContext.Item?.displayName ?? "?"}");
+                    }
                     ItemDragContext.Cancel();
                     Event.current.Use();
                 }
@@ -1983,8 +2669,12 @@ namespace ProjectName.UI
                     int hbSlot = HotbarUI.GetSlotIndexAtScreenPoint(Input.mousePosition);
                     if (hbSlot >= 0 && ItemDragContext.Item != null)
                     {
-                        HotbarUI.AssignItem(hbSlot, ItemDragContext.Item.id, ItemDragContext.Item.displayName);
-                        Debug.Log($"[InventoryWindow] 핫바 슬롯 {hbSlot + 1}에 '{ItemDragContext.Item.displayName}' 지정 (장비창 소스 — 장착 유지)");
+                        // 2026-09-12(P4): 몸 장비(방어구) 핫바 지정 차단 — 장비칸 경로 유도
+                        if (!IsArmorHotbarBlocked(ItemDragContext.Item))
+                        {
+                            HotbarUI.AssignItem(hbSlot, ItemDragContext.Item.id, ItemDragContext.Item.displayName);
+                            Debug.Log($"[InventoryWindow] 핫바 슬롯 {hbSlot + 1}에 '{ItemDragContext.Item.displayName}' 지정 (장비창 소스 — 장착 유지)");
+                        }
                     }
                     // ② 그 외 영역 = 드롭 실패 → Cancel (변경 없음)
                     ItemDragContext.Cancel();
@@ -2014,8 +2704,15 @@ namespace ProjectName.UI
                     Vector2 guiPoint = Event.current.mousePosition;
                     bool consumed = false;
 
+                    // ⓪ 장비칸 슬롯 위 드롭 → 드래그 장착 (2026-09-12(P4): 부위 검증 — 우클릭 장착 TryEquipItem과 동일 소모 계약)
+                    // 성공/실패(부위 불일치 등) 모두 로그 1줄 후 드래그 종료 (변경 없음 보장)
+                    if (TryGetEquipSlotAtScreenPoint(guiPoint, out int eqCell))
+                    {
+                        TryEquipFromDrag(eqCell, _dragItemData, _dragSlotGlobalIndex);
+                        consumed = true;
+                    }
                     // ① 창고 슬롯 위 드롭 → 인벤에서 1개 창고로 이동
-                    if (WarehouseUI.TryGetSlotAtScreenPoint(guiPoint, out _))
+                    else if (WarehouseUI.TryGetSlotAtScreenPoint(guiPoint, out _))
                     {
                         if (WarehouseUI.TryDepositFromDrag(_dragItemData))
                         {
@@ -2044,15 +2741,18 @@ namespace ProjectName.UI
                         }
                     }
 
-                    // ③ 핫바 위 드롭 → 기존 경로 유지 (등록)
+                    // ③ 핫바 위 드롭 → 기존 경로 유지 (등록) — 2026-09-12(P4): 몸 장비(방어구)는 차단, 무기/소모품 허용
                     if (!consumed)
                     {
                         int slot = HotbarUI.GetSlotIndexAtScreenPoint(Input.mousePosition);
                         if (slot >= 0)
                         {
-                            HotbarUI.AssignItem(slot, _dragItemData.id, _dragItemData.displayName);
-                            Debug.Log($"[InventoryWindow] 핫바 슬롯 {slot + 1}에 '{_dragItemData.displayName}' 지정");
-                            consumed = true;
+                            if (!IsArmorHotbarBlocked(_dragItemData))
+                            {
+                                HotbarUI.AssignItem(slot, _dragItemData.id, _dragItemData.displayName);
+                                Debug.Log($"[InventoryWindow] 핫바 슬롯 {slot + 1}에 '{_dragItemData.displayName}' 지정");
+                            }
+                            consumed = true;   // 핫바 위 드롭은 성공/거부 모두 소비 — 드래그 종료
                         }
                     }
 
@@ -2070,6 +2770,117 @@ namespace ProjectName.UI
 
             // 고스트 — 공유 컨텍스트가 렌더 (프레임당 1회 가드 내장)
             ItemDragContext.DrawGhost();
+        }
+
+        // ===================================================================
+        // 2026-09-12(P4): 드래그 장착/해제 헬퍼 — 우클릭 장착(TryEquipItem)과 동일 소모 계약
+        // ===================================================================
+
+        /// <summary>2026-09-12(P4): 몸 장비(방어구) 핫바 지정 차단. true = 차단(로그 완료), false = 통과.</summary>
+        private static bool IsArmorHotbarBlocked(PlayerInventory.ItemData item)
+        {
+            if (item != null && item.category == PlayerInventory.ItemCategory.Armor)
+            {
+                Debug.Log("[인벤] 몸 장비는 핫바 지정 불가 — 장비칸으로 드래그");
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 2026-09-12(P4): 인벤 소스 드래그 → 장비칸 셀 드롭 장착. 우클릭 장착 경로와 동일 계약:
+        /// Armor = EquipmentManager.EquipItem(slot, MapArmorSlot(id)) — 인벤 1개 소모 + 기존 장비 인벤 복귀는 매니저가 처리.
+        /// Weapon = WeaponEquipManager.Equip(TryResolveWeaponEquip 경로) — 장착만, 인벤 소모 없음(우클릭 선례 동일).
+        /// 부위 불일치/예약 칸/장착 불가 카테고리 = "[인벤] 부위 불일치/장착 실패" 로그 1줄 + 변경 없음.
+        /// </summary>
+        private bool TryEquipFromDrag(int equipCellIndex, PlayerInventory.ItemData item, int dragSlotGlobalIndex)
+        {
+            if (item == null || equipCellIndex < 0 || equipCellIndex >= _equipCellDefs.Length) return false;
+            var def = _equipCellDefs[equipCellIndex];
+            if (!def.real)
+            {
+                Debug.Log($"[인벤] 드래그 장착 실패(사유: 예약 칸 장착 불가) — {item.displayName}");
+                return false;
+            }
+            if (item.category != PlayerInventory.ItemCategory.Weapon && item.category != PlayerInventory.ItemCategory.Armor)
+            {
+                Debug.Log($"[인벤] 부위 불일치 — {item.displayName}은(는) {def.badge}에 장착 불가");
+                return false;
+            }
+
+            // 부위 검증 — 드롭한 장비칸 슬롯과 아이템 부위 일치 (무기=무기칸, 방어구=MapArmorSlot(id) 규칙)
+            var targetSlot = item.category == PlayerInventory.ItemCategory.Weapon
+                ? ProjectName.Systems.EquipmentManager.EquipmentSlot.Weapon
+                : MapArmorSlot(item.id);
+            if (targetSlot != def.slot)
+            {
+                Debug.Log($"[인벤] 부위 불일치 — {item.displayName}은(는) {def.badge}에 장착 불가");
+                return false;
+            }
+
+            if (item.category == PlayerInventory.ItemCategory.Weapon)
+            {
+                // 무기 — 우클릭 장착(TryEquipItem)과 동일 경로: TryResolveWeaponEquip → WeaponEquipManager.Equip
+                var playerT = GameObject.FindWithTag("Player")?.transform;
+                if (playerT == null)
+                {
+                    Debug.Log("[인벤] 드래그 장착 실패(사유: Player 없음) — 장착 스킵");
+                    return false;
+                }
+                if (!TryResolveWeaponEquip(item.id, out string equipId, out WeaponType wType))
+                {
+                    Debug.Log($"[인벤] 드래그 장착 실패(사유: 무기 id 해석 실패) — {item.displayName}");
+                    return false;
+                }
+                ProjectName.Systems.WeaponEquipManager.Equip(equipId, playerT, wType);
+                // 결과 판정: 매니저는 모델/손본 로드 실패 시 CurrentId를 세팅하지 않음 → 성공 = CurrentId 일치
+                bool ok = ProjectName.Systems.WeaponEquipManager.CurrentId == equipId;
+                Debug.Log(ok
+                    ? $"[인벤] 드래그 장착 성공 — {item.displayName} → {def.badge} (equipId={equipId})"
+                    : $"[인벤] 드래그 장착 실패(사유: 모델/손본 로드 실패 — equipId={equipId})");
+                return ok;
+            }
+
+            // 방어구 — EquipmentManager.EquipItem(slot, MapArmorSlot(id)): 인벤 1개 소모 (우클릭 장착과 동일)
+            var em = ProjectName.Systems.EquipmentManager.Instance;
+            if (em == null)
+            {
+                Debug.Log($"[인벤] 드래그 장착 실패(사유: EquipmentManager 없음) — {item.displayName}");
+                return false;
+            }
+            PlayerInventory.ItemSlot invSlot = null;
+            if (PlayerInventory.Instance != null && dragSlotGlobalIndex >= 0)
+            {
+                var all = PlayerInventory.Instance.GetAllSlots();
+                if (all != null && dragSlotGlobalIndex < all.Length) invSlot = all[dragSlotGlobalIndex];
+            }
+            if (invSlot == null || invSlot.item == null || invSlot.item.id != item.id)
+            {
+                Debug.Log($"[인벤] 드래그 장착 실패(사유: 원본 인벤 슬롯 없음) — {item.displayName}");
+                return false;
+            }
+            bool equipped = em.EquipItem(invSlot, def.slot);
+            Debug.Log(equipped
+                ? $"[인벤] 드래그 장착 성공 — {item.displayName} → {def.badge} (인벤에서 1개 제거됨)"
+                : $"[인벤] 드래그 장착 실패(사유: 기존 장비 해제 실패 or 인벤 가득 — {def.badge})");
+            if (equipped)
+                RefreshInventory();
+            return equipped;
+        }
+
+        /// <summary>
+        /// 2026-09-12(P4): 장비칸 소스 드래그(Source.Equipment) — 셀 인덱스의 장비를 해제하고 인벤으로 이동.
+        /// 기존 클릭 해제와 동일 EquipmentManager.UnequipSlot 경로 (해제 실패 시 변경 없음).
+        /// </summary>
+        private bool TryUnequipDraggedToInventory(int equipCellIndex)
+        {
+            if (equipCellIndex < 0 || equipCellIndex >= _equipCellDefs.Length) return false;
+            var def = _equipCellDefs[equipCellIndex];
+            if (!def.real) return false;
+            var em = ProjectName.Systems.EquipmentManager.Instance;
+            bool ok = em != null && em.UnequipSlot(def.slot);
+            if (ok) RefreshInventory();
+            return ok;
         }
 
         // ===================================================================
@@ -2134,6 +2945,31 @@ namespace ProjectName.UI
                     // 장착 직후 갱신 — 오른쪽 구획 장비창은 GetSlotData 실시간 조회라 자동 반영되지만,
                     // 인벤 그리드(수량/슬롯)를 즉시 동기화
                     RefreshInventory();
+                }
+                return;
+            }
+
+            // 2026-09-12(P5): 우클릭 복용 훅 — Potion/Drug는 장착이 아니라 복용(PotionUseSystem 효과 레지스트리)
+            if (item.category == PlayerInventory.ItemCategory.Potion ||
+                item.category == PlayerInventory.ItemCategory.Drug)
+            {
+                bool used = ProjectName.Systems.PotionUseSystem.Use(item, playerT, out string effectText);
+                if (used)
+                {
+                    // P5: 시스템이 반환한 효과 요약(effectText) 우선 — 없으면 기존 폴백(effects 필드 → id)
+                    string eff = string.IsNullOrEmpty(effectText)
+                        ? (string.IsNullOrEmpty(item.effects) ? item.id : item.effects)
+                        : effectText;
+                    bool consumed = PlayerInventory.Instance != null &&
+                                    PlayerInventory.Instance.RemoveItem(item.id, 1);
+                    Debug.Log(consumed
+                        ? $"[Potion] 복용 성공: {item.displayName} — {eff}"
+                        : $"[Potion] 복용 성공했으나 소모 실패(인벤에서 미발견): {item.displayName}");
+                    RefreshInventory();
+                }
+                else
+                {
+                    Debug.Log($"[Potion] 복용 실패(소모 없음): {item.displayName} ({item.id})");
                 }
                 return;
             }

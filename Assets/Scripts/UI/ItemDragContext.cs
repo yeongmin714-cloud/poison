@@ -15,12 +15,14 @@ namespace ProjectName.UI
     /// </summary>
     public static class ItemDragContext
     {
-        // 2026-09-11(6): Loot 추가 — 전리품 창→인벤 드래그. 기존 값 순서 유지(하위 호환), 맨 뒤에 추가.
-        public enum Source { None, Inventory, Warehouse, Loot }
+        // 2026-09-11(6): Loot 추가 — 전리품 창→인벤 드래그.
+        // 2026-09-12(P4): Equipment 추가 — 통합 장비칸(장착 아이템) 소스 드래그(해제 후 인벤 이동).
+        // 기존 값 순서 유지(하위 호환), 신규 멤버는 항상 맨 뒤에 추가.
+        public enum Source { None, Inventory, Warehouse, Loot, Equipment }
 
         public static bool Active;
         public static Source SourceType = Source.None;
-        public static int SourceIndex = -1;          // Inventory: 전역 슬롯 인덱스 / Warehouse: 창고 슬롯 인덱스 / Loot: 전리품 바구니 항목 인덱스
+        public static int SourceIndex = -1;          // Inventory: 전역 슬롯 인덱스 / Warehouse: 창고 슬롯 인덱스 / Loot: 전리품 바구니 항목 인덱스 / Equipment: 장비칸 셀 정의 인덱스
         public static string TerritoryId = null;     // Warehouse 소스일 때 창고 territoryId
         public static PlayerInventory.ItemData Item; // 드래그 중 아이템
         public static Texture2D Icon;                // 고스트 아이콘 (nullable — 폴백 사각형)

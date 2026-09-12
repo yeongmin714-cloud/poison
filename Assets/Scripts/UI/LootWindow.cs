@@ -93,6 +93,25 @@ namespace ProjectName.UI
         private static LootWindow _instance;
         public static LootWindow Instance => _instance;
 
+        // ===== 2026-09-12(P7): InventoryWindow Loot 컨텍스트 데이터 API =====
+        // 바구니 열림이 통합창(InventoryWindow.ContextMode.Loot)으로 리다이렉트된 후에도
+        // 렌더/획득 데이터는 기존 캐시/획득 파이프라인을 그대로 재사용한다.
+        // (LootWindow 자체 OnGUI 팝업 경로는 호출되지 않음 — 클래스/필드/로직 유지)
+
+        /// <summary>캐시된 전리품 항목 수 (RefreshLoot 결과 — 빈 바구니 판정용). 캐시 null = 0.</summary>
+        public int CachedItemCount => (_cachedItems != null) ? _cachedItems.Length : 0;
+
+        /// <summary>캐시된 전리품 항목 반환 (통합창 우측 그리드 렌더용). 범위 밖/캐시 null = null.</summary>
+        public LootEntry GetCachedItem(int index)
+            => (_cachedItems != null && index >= 0 && index < _cachedItems.Length) ? _cachedItems[index] : null;
+
+        /// <summary>
+        /// 통합창 Loot 컨텍스트 [전부 획득] 버튼 위임 — 기존 TakeAllItems(전체 획득 + RefreshLoot)를
+        /// 그대로 실행한다. 바구니가 비면 RefreshLoot이 _cachedItems=null로 만들어
+        /// InventoryWindow 측 CachedItemCount==0 판정 → Loot 컨텍스트가 닫힌다.
+        /// </summary>
+        public void TakeAllFromBasket() => TakeAllItems();
+
         // ===== 2026-09-11(6): DnD 드롭 판정용 슬롯 화면 Rect 캐시 (정적 — GC 캐시 관례, WarehouseUI 선례) =====
         private static readonly List<Rect> s_slotScreenRects = new List<Rect>(32);   // 아이템 있는 전리품 슬롯
         private static readonly List<int> s_slotScreenIndices = new List<int>(32);   // 바구니 항목 인덱스
