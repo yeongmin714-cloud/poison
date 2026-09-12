@@ -337,6 +337,9 @@ namespace ProjectName.Systems
                 spawnPos = hit.point;
             }
 
+            // P3: 전리품 스폰 반짝임 연출 (FX 실패는 게임 로직에 영향 없음)
+            try { LootSpawnFX.PlaySpawn(spawnPos); } catch { /* 폴백/쿨다운 내부에서도 안전 */ }
+
             // 바구니 게임오브젝트 생성
             GameObject basketGO = new GameObject("LootBasket");
             basketGO.transform.position = spawnPos;

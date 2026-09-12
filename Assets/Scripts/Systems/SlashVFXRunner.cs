@@ -19,7 +19,12 @@ namespace ProjectName.Systems
     ///
     /// [2026-09-12 P2 피격 FX 재색상] 외부 팩 프리팹의 보라·자주 기본색은 사용자 취향("피격시 보라색
     /// 점들이 떠다니는 건 별로")과 불일치 → 스폰 직후 TintParticles로 붉은/흰 계열 재색상
-    /// (십자가 0.85,0.15,0.15 / 스윙 0.85,0.95,1.0 / 임팩트 0.8,0.2,0.2 — 하단 공용 헬퍼 참조).
+    /// (히트(TravisHit) 1.0,0.75,0.35 / 스윙 0.85,0.95,1.0 / 임팩트 0.8,0.2,0.2 — 하단 공용 헬퍼 참조).
+    ///
+    /// [2026-09-12 P2 크로스→TravisHit 교체] 타 완료 FX(PlayCross)는 Free Slash VFX 팩 "Multiple Slashes"에서
+    /// "FX/Impact/TravisHit" 프리팹으로 교체(빌보드/쿨다운/파괴 패턴 유지). 스윙(Slash VFX)은 호출부
+    /// (HumanoidClipDriver) 제거로 자연 데드화 — 스윙 궤적은 WeaponSwingTrail(무기 트레일)이 대체하며
+    /// PlaySlash/LoadSlashPrefab은 함수 유지(데드).
     /// </summary>
     public static class SlashVFXRunner
     {
@@ -38,18 +43,18 @@ namespace ProjectName.Systems
         private const float StrokeMirrorX = -1f;
 
         private const string SlashResourcePath = "FX/Slash/Slash VFX";
-        private const string CrossSlashResourcePath = "FX/Slash/Multiple Slashes";
+        private const string TravisHitResourcePath = "FX/Impact/TravisHit";
         private const string BasicHitResourcePath = "FX/Impact/BasicHit";
         private const string ConstructHitResourcePath = "FX/Impact/BasicHit2";
 
         // ── static 캐시/상태 ─────────────────────────────────────────
         private static GameObject _slashPrefab;
-        private static GameObject _crossSlashPrefab;
+        private static GameObject _travisHitPrefab;
         private static GameObject _basicHitPrefab;
         private static GameObject _constructHitPrefab;
 
         private static bool _slashLoadFailed;
-        private static bool _crossSlashLoadFailed;
+        private static bool _travisHitLoadFailed;
         private static bool _basicHitLoadFailed;
         private static bool _constructHitLoadFailed;
         private static bool _shaderErrorWarned;
@@ -69,6 +74,8 @@ namespace ProjectName.Systems
         /// <summary>
         /// 공격 스윙 FX. position: 플레이어 전방 스윙 지점, direction: 수평 스윙 방향.
         /// 로드 실패 시 1회 경고 후 조용히 반환 (전투 흐름 절대 방해 없음).
+        /// [42차 P2 스윙=무기 트레일로 교체] 호출부(HumanoidClipDriver 콤보/레거시 경로)가 모두 제거되어
+        /// 자연 데드화 — 함수는 유지. 스윙 궤적은 WeaponSwingTrail(무기 팁 TrailRenderer)이 담당.
         /// </summary>
         public static void PlaySlash(Vector3 position, Vector3 direction) => PlaySlash(position, direction, 0f);
 
@@ -114,7 +121,7 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 타 완료 시점 십자가 VFX — Free Slash VFX 팩의 "Multiple Slashes"(다중 슬래시 십자) 스폰.
+        /// 타 완료 시점 히트 VFX — [2026-09-12 P2] "FX/Impact/TravisHit" 프리팹 스폰(Multiple Slashes 교체).
         /// 스윙이 끝나는 지점(스테이지 경계 통과)에 1회 발화한다(HumanoidClipDriver 콤보 감시에서 호출).
         /// PlaySlash와 동일한 쿨다운/캐시/파괴 패턴. 프리팹 미설치 시 static 1회 경고 후 조용히 반환.
         /// [2026-09-12] 쿼드 오리엔테이션을 카메라 수평 빌보드로 변경(기존 LookRotation(dir)은 후방 카메라에서
@@ -126,7 +133,7 @@ namespace ProjectName.Systems
             if (Time.time - _lastCrossSpawnTime < MIN_SPAWN_INTERVAL) return;
             _lastCrossSpawnTime = Time.time;
 
-            GameObject prefab = LoadCrossSlashPrefab();
+            GameObject prefab = LoadTravisHitPrefab();
             if (prefab == null) return;
 
             Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
@@ -134,11 +141,10 @@ namespace ProjectName.Systems
             // 십자가가 후방 카메라에서도 항상 정면에서 읽힌다(뒷면 미러링 = 역스윙 체감 차단). 폴백 동일.
             Vector3 faceDir = CameraHorizontalFaceDir(position, dir);
             GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(faceDir));
-            instance.name = "SlashVFX_Cross";
-            // [2026-09-12 P2 피격 FX 재색상] 보라색 팩 파티클("Multiple Slashes" 십자가) → 흰/붉은 타격
-            // 마크 톤(0.85,0.15,0.15)으로 재색상 — 사용자 취향 반영(피격 보라 부유 입자 제거). 재생 전 적용.
-            TintParticles(instance, new Color(0.85f, 0.15f, 0.15f), 0.15f);
-            Debug.Log($"[SlashVFX] ✅ 크로스 FX 스폰 (Multiple Slashes, pos={position}, faceDir={faceDir:F2}, 발화시각={Time.time:F2}s)");
+            instance.name = "TravisHit_Cross";
+            // [2026-09-12 P2] 히트 마크 틴트 — 예시색(1.0, 0.75, 0.35 웜 골드) 유지(재생 전 적용).
+            TintParticles(instance, new Color(1.0f, 0.75f, 0.35f), 0.15f);
+            Debug.Log($"[SlashVFX] ✅ 크로스 FX 스폰 (TravisHit, pos={position}, faceDir={faceDir:F2}, 발화시각={Time.time:F2}s)");
 
             PlayAllParticleSystems(instance);
             DetectShaderErrorOnce(instance, "CrossSlash");
@@ -216,18 +222,20 @@ namespace ProjectName.Systems
             return _slashPrefab;
         }
 
-        private static GameObject LoadCrossSlashPrefab()
+        // [2026-09-12 P2 크로스→TravisHit 교체] 기존 "FX/Slash/Multiple Slashes" 로더를 TravisHit 로더로 대체
+        // (리소스 로드 경로만 교체 — 캐시/1회 경고/정적 플래그 패턴 동일). 로드 실패 시 크래시 없이 조용히 반환.
+        private static GameObject LoadTravisHitPrefab()
         {
-            if (_crossSlashPrefab != null) return _crossSlashPrefab;
-            if (_crossSlashLoadFailed) return null;
+            if (_travisHitPrefab != null) return _travisHitPrefab;
+            if (_travisHitLoadFailed) return null;
 
-            _crossSlashPrefab = Resources.Load<GameObject>(CrossSlashResourcePath);
-            if (_crossSlashPrefab == null)
+            _travisHitPrefab = Resources.Load<GameObject>(TravisHitResourcePath);
+            if (_travisHitPrefab == null)
             {
-                _crossSlashLoadFailed = true;
-                Debug.LogWarning("[SlashVFX] 로드 실패(1회만 경고): Resources/FX/Slash/Multiple Slashes — 에디터 메뉴 Tools/VFX/Install Slash+Impact to Resources 실행 필요");
+                _travisHitLoadFailed = true;
+                Debug.LogWarning("[SlashVFX] 로드 실패(1회만 경고): Resources/FX/Impact/TravisHit — 에디터 메뉴 Tools/VFX/Install Slash+Impact to Resources 실행 필요");
             }
-            return _crossSlashPrefab;
+            return _travisHitPrefab;
         }
 
         private static GameObject LoadImpactPrefab(string resourcePath, CombatHitType type)

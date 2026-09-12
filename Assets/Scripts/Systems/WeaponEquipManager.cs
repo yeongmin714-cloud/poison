@@ -20,6 +20,8 @@ namespace ProjectName.Systems
     ///     renderer bounds는 Instantiate 즉시 유효).
     ///   - 스케일 보정: bounds 최장축이 목표 길이(검0.9/창1.8/활1.0/단도0.45m)의
     ///     0.4~2.2배 범위를 벗어날 때만 targetLength로 균등 스케일 보정.
+    ///   - [2026-09-12 P2 공격 FX 개편] 장착 완료 후 WeaponSwingTrail(무기 트레일) 재부착 —
+    ///     bounds 최장축 팁(=그립 반대편 끝, 41차 그립 정렬 로직 재사용)에 흰 궤적 TrailRenderer.
     /// </summary>
     public static class WeaponEquipManager
     {
@@ -159,12 +161,20 @@ namespace ProjectName.Systems
 
             // ⑥ GLB bounds 기반 그립 자동 정렬 + 스케일 보정
             //    (부착 후 1회, 프레임 지연 없음 — renderer bounds는 Instantiate 즉시 유효)
-            ApplyBoundsGripAlignment(sword, handBone, pose);
+            //    반환값 = 무기 bounds 최장축 팁(그립 반대편 끝) 월드 좌표 — 스윙 트레일 부착점.
+            bool gripAligned = ApplyBoundsGripAlignment(sword, handBone, pose, out Vector3 tipWorld);
 
             // ⑦ 상태 갱신 + 로그
             _current = sword;
             CurrentId = id;
             Debug.Log($"[WeaponEquipManager] ✅ 무기 장착: {glbKey} (type={type}) → RightHand({handBone.name})");
+
+            // ⑧ [P2 공격 FX 개편] 스윙 트레일 (재)부착 — 장착마다 갱신(GLB 교체 시 구 트레일 폐기 후 재생성).
+            //    그립 정렬 실패(렌더러 0개 등) 시 팁 미산출 → 트레일 스킵(경고, 장착 자체는 계속).
+            if (gripAligned)
+                WeaponSwingTrail.Attach(sword, tipWorld);
+            else
+                Debug.LogWarning("[Weapon] 스윙 트레일 스킵: 그립 정렬 실패로 팁 미산출");
         }
 
         /// <summary>타입별 그립 포즈 조회. dagger full-id는 Sword 포즈에 TargetLen만 0.45로 오버라이드.</summary>
@@ -184,20 +194,22 @@ namespace ProjectName.Systems
         /// 3) bounds 최하단부(그립부)가 테이블 localPosition 앵커에 착지하도록 pivot-to-grip
         ///    오프셋을 localPosition에서 차감 — GLB 피벗이 어디에 있든 동일 그립 지점
         ///    (앵커 (0,0,0)이면 그립부가 정확히 손 원점). 렌더러 0개/예외 시 테이블 포즈 유지.
+        /// 반환: 정렬 성공 시 true + tipWorld(최장축 끝, 그립 반대편 팁의 월드 좌표) — 실패 시 false + Vector3.zero.
         /// </summary>
-        static void ApplyBoundsGripAlignment(GameObject weapon, Transform handBone, GripPose pose)
+        static bool ApplyBoundsGripAlignment(GameObject weapon, Transform handBone, GripPose pose, out Vector3 tipWorld)
         {
+            tipWorld = Vector3.zero;
             try
             {
                 var rends = weapon.GetComponentsInChildren<Renderer>();
                 if (rends.Length == 0)
                 {
                     Debug.LogWarning("[Weapon] 그립 정렬 스킵: 렌더러 없음 — 테이블 포즈 그대로 부착");
-                    return;
+                    return false;
                 }
                 var b = rends[0].bounds;
                 for (int i = 1; i < rends.Length; i++) b.Encapsulate(rends[i].bounds);
-                if (b.size.sqrMagnitude < 1e-10f) return;
+                if (b.size.sqrMagnitude < 1e-10f) return false;
 
                 // 무기 최장축 = 그립축
                 int axis = 0;
@@ -227,11 +239,19 @@ namespace ProjectName.Systems
                 Vector3 offset = handBone.InverseTransformPoint(gripScaled) - handBone.InverseTransformPoint(pivot);
                 weapon.transform.localPosition -= offset;
 
+                // 팁 월드 좌표 = bounds 중심 + (최장축 방향 단위벡터 × 최장축 절반 길이) — 그립 반대편 끝.
+                // 스케일 보정 배율(scaleFix)과 그립 재앵커링 이동을 반영한 최종 월드 좌표로 환산.
+                Vector3 axisDir = (b.center - grip).normalized;       // 그립 → 팁 쪽 최장축 단위벡터
+                Vector3 tipPre = b.center + axisDir * (len * 0.5f);   // 스케일 보정 전 팁(최장축 끝면 중심)
+                tipWorld = pivot + (tipPre - grip) * scaleFix;
+
                 Debug.Log($"[Weapon] 그립 정렬: bone={handBone.name}, offset={offset:F3}, bounds={b.size:F2} (스케일=x{scaleFix:F2})");
+                return true;
             }
             catch (System.Exception e)
             {
                 Debug.LogWarning($"[Weapon] 그립 정렬 실패(테이블 포즈 유지): {e.Message}");
+                return false;
             }
         }
 

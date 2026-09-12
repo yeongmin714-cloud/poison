@@ -4,7 +4,27 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-12 (41차)
+> **최종 갱신:** 2026-09-12 (42차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-12 ✅ 42차 — 공격 FX 개편[무기 트레일+Travis Hit]+에셋 인벤토리+전리품 반짝임+은신 클로ak+창고 4구획+우클릭 진단)
+
+> **스코프**: 공격 모션 예시(젤다 BOTW식) 재현 — 기존 슬래시 VFX 제거→무기 트레일(흰 궤적 잔상)+Travis Hit Impact 히트(화이트코어+샤프 스파이크, 오렌지 틴트). 스토어 에셋 등록부(docs/ASSET_INVENTORY.md) 신설. Linear Wipe(전리품 반짝임·HDRP 전용→절차 폴백)+Invisible VFX(은신 클로ak)+창고 4구획+우클릭 진단(물약 시딩 복원+4단 로그). 배치컴파일 error CS=0 + QaValidator Errors:0.
+
+### 변경 사항 (신규 5: WeaponSwingTrail/LootSpawnFX/StealthCloakFX/ASSET_INVENTORY/TravisHit+StealthCloak 프리팹)
+**공격 FX 개편(P2)**: Travis Hit_01~04 중 방사형 히트 버스트 프리팹 선정 → `Resources/FX/Impact/TravisHit` 복사 → **PlayCross(십자가)를 Travis 히트로 교체**(스윙 정중앙 발화, 틴트 (1.0,0.75,0.35)=화이트 코어+오렌지 글로우, 예시색). **스윙 쿼드(PlaySlash) 전부 제거** → 신규 `WeaponSwingTrail`(TrailRenderer: 폭 0.06→0·시간 0.18s·흰→투명·additive) — 무기 GLB 장착 시 bounds 팁(그립 반대 끝, ApplyBoundsGripAlignment out 확장)에 Attach, 콤보 진입/스테이지에서 SetEmitting(true), 홀드 종료/Idle 크로스/인터럽트에서 false. 레거시 Attack* 스윙도 트레일로 교체. BasicHit(피격) 유지.
+**에셋 인벤토리(P1)**: docs/ASSET_INVENTORY.md — 스토어 에셋 9종(Travis Hit Impact/Matthew Guz/Free Slash/Vefects Invisible+Linear Wipe+Fire/Hovl Magic/GabrielAguiar 미임포트 3패키지/DoubleL 애니/Idyllic) → 적재적소 매핑 표+운용 규칙(Resources 복사 선례/HDRP 검증).
+**전리품 반짝임(P3)**: Linear Wipe 프리팹은 **HDRP 전용 셰이더**로 URP 호환 불가 판정 → 절차 골드 스파이클 폴백(LootSpawnFX: 16파티클 버스트·3초 자가파괴·쿨다운) + `LootBasket.Create` 훅 1줄 — 몬스터/병사 사망·지형 드롭 전 바구니 경로 커버.
+**은신 클로ak(P4)**: Invisible 팩 재질은 URP 셰이더(M_VFX_Invisible_01~05) 확정 — 참조 프리팹 부재로 StealthCloak.prefab 신규 제작(클로ak 재질+루트 파티클) → `Resources/FX/Cloak/StealthCloak` + StealthCloakFX(Attach/Detach·루프 SFX·60s 재안착) + StealthSystem 훅 2곳(ToggleStealth/ForceExitStealth — 기존 반투명 병행).
+**창고 레이아웃(P6)**: 창고(E)=4구획 통일 — **좌 통합 인벤 패널(장비 2×5+인벤 그리드, 창고 컨텍스트에서도 플레이어 그리드 렌더)**/중앙 설명 400/**우측 DrawWarehousePanel(📦 창고 타이틀+카테고리 탭+창고 그리드+N/슬롯)**. 양방향 이동: 창고→인벤(기존 TransferDraggedToInventory)/인벤→창고 신규(TryDepositDraggedToWarehouse, 가득 시 롤백) + 우클릭 1개 이동 이식 + 슬롯 Rect 캐시 헬퍼.
+**우클릭 진단(P7)**: Test_10 시딩에 물약 복원(은신 물약×3+진정제×3 — 37차 시딩 축소로 물약 0개였던 것이 우클릭 미체감 원인 중 하나) + **우클릭 4단 판정 로그**(수신→게이트 통과→복용 훅 진행→소모/Refresh).
+**액션감 잔여**: 컴파일 에러 2건(ApplpyBoundsGripAlignment out 시그니처 CS1501) 즉시 수리 — 팁 월드 좌표 산출 추가.
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0** + QaValidator Errors:0 (중간 CS1501 1회 수리)
+- 정적: 12파일 균형 0, PlaySlash 호출 0건, SetEmitting/Attach/LootSpawnFX/StealthCloakFX 훅 1쌍 검증
+- Play 판정 대기: ① 공격 시 흰 무기 트레일(BOTW식) ② 타격 시 Travis 히트(화이트코어+샤프 스파이크+오렌지)가 스윙 정중앙 ③ 바구니 스폰 골드 반짝임 ④ C키 은신 시 클로ak VFX+SFX ⑤ 창고 E → 좌 인벤/우 창고 양방향 이동 ⑥ 우클릭 물약 복용(은신/진정)+장비 장착 — 4단 로그로 원인 판별 ⑦ 지형 드롭 바구니 E키 회수
 
 ---
 

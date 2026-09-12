@@ -154,9 +154,29 @@ namespace ProjectName.Systems
 
             OnStealthStateChanged?.Invoke(_isStealthed);
 
+            // ===== 2026-09-12: P4 은신 클로ak VFX 훅 (기존 반투명 피드와 병행) =====
+            HookCloakFX();
+
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             Debug.Log($"[StealthSystem] 은신 {( _isStealthed ? "ON" : "OFF" )}");
 #endif
+        }
+
+        /// <summary>은신 상태 전이에 맞춰 클로ak VFX 부착/해제 (try-catch 격리 — 기존 피드 로직 미변경).</summary>
+        private void HookCloakFX()
+        {
+            try
+            {
+                var target = _playerMovement != null ? _playerMovement.gameObject : gameObject;
+                if (_isStealthed)
+                    StealthCloakFX.Attach(target);
+                else
+                    StealthCloakFX.Detach(target);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[StealthSystem] 클로ak VFX 훅 실패 (은신 코어 로직에는 영향 없음): {e.Message}");
+            }
         }
 
         private void HandleCameraLower()
@@ -373,6 +393,9 @@ namespace ProjectName.Systems
 
             _detectionGauge = 0f;
             OnStealthStateChanged?.Invoke(false);
+
+            // ===== 2026-09-12: P4 은신 클로ak VFX 훅 — 강제 해제 시에도 클로ak 제거 =====
+            HookCloakFX();
         }
 
         /// <summary>

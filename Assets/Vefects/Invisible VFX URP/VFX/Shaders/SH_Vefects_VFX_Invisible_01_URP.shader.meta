@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 7f225d053ab9d3641bfd28dd0eda2671
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures:
+  - _ColorMaskTexture: {fileID: 2800000, guid: 47ecc64e9e6f11a4fb010157bb000bff, type: 3}
+  - _DistortNoise: {fileID: 2800000, guid: 47ecc64e9e6f11a4fb010157bb000bff, type: 3}
+  - _ChromaticAberrationTexture: {fileID: 2800000, guid: 47ecc64e9e6f11a4fb010157bb000bff,
+      type: 3}
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 397454
+  packageName: Invisible VFX - URP
+  packageVersion: 1.0.11
+  assetPath: Assets/Vefects/Invisible VFX URP/VFX/Shaders/SH_Vefects_VFX_Invisible_01_URP.shader
+  uploadId: 969280

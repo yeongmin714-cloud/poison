@@ -565,6 +565,7 @@ namespace ProjectName.Systems
                 _comboStage = 0;
                 _comboPinGraceStart = -999f;
                 ResetComboCrossFlags();
+                WeaponSwingTrail.SetEmitting(false);   // [2026-09-12 P2] 인터럽트 리셋 — 스윙 트레일 방출 OFF
                 Debug.Log("[Combo] 인터럽트 리셋");
             }
 
@@ -582,25 +583,21 @@ namespace ProjectName.Systems
                 if (_legacyImpactFired == 0 && st.normalizedTime >= 0.5f)
                 {
                     _legacyImpactFired = 1;
-                    try
-                    {
-                        // [2026-09-12 루트 기준 통일] _anim.transform(비주얼 FBX 자식 — 임포트 yaw 오프셋 가능) 대신
-                        // 드라이버 자신 transform(플레이어/병사 루트, 논리 정면) 사용 — 스윙 FX 위치/방향을
-                        // 논리 정면 기준으로 통일(비주얼 자식 yaw 오프셋 면역). lpos/ldir은 lt 기준이므로 함께 루트 기준화.
-                        var lt = transform;
-                        Vector3 ldir = lt.forward;
-                        Vector3 lpos = lt.position + Vector3.up * 1.25f + ldir * 1.1f;
-                        SlashVFXRunner.PlaySlash(lpos, ldir, 0f);
-                        Debug.Log("[Combo] 레거시 Attack* 스윙 FX (전방)");
-                    }
-                    catch (System.Exception lfxEx)
-                    {
-                        Debug.LogWarning($"[Combo] 레거시 스윙 FX 실패(전투 계속): {lfxEx.Message}");
-                    }
+                    // [2026-09-12 P2 스윙 트레일 전환] 레거시 Attack* 스윙 슬래시 쿼드(SlashVFXRunner.PlaySlash) 제거 —
+                    // 무기 팁 WeaponSwingTrail(TrailRenderer)이 대체한다(창 찌르기 등 레거시 상태에서도 팁 궤적 잔상).
+                    // 상태 탈출(아래 else 엣지)에서 SetEmitting(false)로 방출 종료.
+                    WeaponSwingTrail.SetEmitting(true);
+                    Debug.Log("[Combo] 레거시 Attack* 스윙 트레일 방출 (PlaySlash → 무기 트레일 대체)");
                 }
             }
             else
             {
+                if (_prevAttackStateHash != -1)
+                {
+                    // [2026-09-12 P2] 레거시 Attack* 탈출 엣지에서만 OFF — 무조건 OFF하면 WeaponCombo 진행
+                    // 프레임(레거시 상태 아님)마다 방출이 강제 종료된다(콤보 방출은 EndCombo/인터럽트가 담당).
+                    WeaponSwingTrail.SetEmitting(false);
+                }
                 _prevAttackStateHash = -1;
             }
 
@@ -661,6 +658,8 @@ namespace ProjectName.Systems
         private void EndCombo(string reason)
         {
             _anim.CrossFade("Idle", ComboExitBlend, 0);
+            // [2026-09-12 P2] 콤보 종료(무입력 홀드 만료/만료 Idle 크로스) — 스윙 트레일 방출 OFF
+            WeaponSwingTrail.SetEmitting(false);
             _comboStage = 0;
             _comboPinGraceStart = -999f;
             ResetComboCrossFlags();   // #13: 종료 시 완료 크로스 플래그 리셋 — 다음 콤보에서 재발화 가능
@@ -679,86 +678,25 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 콤보 스윙 FX — 클릭 즉시 발화(임팩트 프레임 대기 없음). 타마다 스윙 방향이 다른 Slash VFX를 발화한다.
-        /// 2026-09-11 위치 규격 변경: 플레이어 정면 스윙 영역 고정 — pos = 플레이어 + forward*0.9 + up*1.2.
-        /// (기존엔 dir 실측 접선 방향으로 배치해 3타 dir의 후방 성분(yaw 143.6°) 때문에 VFX가 뒤로 치우침.
-        ///  위치는 항상 정면 고정, dir/roll은 실측 궤적 방향 유지.)
-        /// [2026-09-11 전방 반구 클램프] dir은 <see cref="ComboStageDirection"/> → <see cref="ClampForwardHemisphere"/>를
-        /// 경유해 수평 |yaw|≤90°(전방 반구)가 강제된다 — 뒤방향 스윙 금지(사용자 요구: 항상 앞방향).
-        /// 스윙 방향은 2026-09-11 WeaponSwingDirectionAnalyzer 실측값(1타 좌전방 -58°, 2타 수직 상승 pitch 78°, 3타 우후방 사선 143.6°) 기반.
-        /// [2026-09-12 루트 기준 통일] 기준 트랜스폼 = 드라이버 자신 transform(루트, 논리 정면) — _anim.transform
-        /// (비주얼 FBX 자식)의 임포트 yaw 오프셋에 면역. 쿼드 오리엔테이션은 SlashVFXRunner가 카메라 수평
-        /// 빌보드로 담당하므로 dir은 빌보드 폴백/로그용.
-        /// [2026-09-12 피격대상 방향 앵커] pos는 최근 0.5초 내 유효 적중 시 Vector3.Lerp(플레이어, LastHitPoint,
-        /// 0.5) + up*1.2(플레이어↔대상 중간점 = 항상 캐릭터 앞/대상 쪽 — 자동조준 중 플레이어 forward가 대상을
-        /// 안 볼 때도 FX가 대상 방향으로 나옴), 적중 없으면 기존 정면 고정(fwd 0.9 + up 1.2).
-        /// try-catch 감싸기: FX 실패가 전투를 절대 방해하지 않게 함 (프로젝트 관례).
+        /// [2026-09-12 P2 스윙 트레일 전환] 콤보 스윙 FX — 슬래시 쿼드(SlashVFXRunner.PlaySlash) 발화를 제거하고
+        /// <see cref="WeaponSwingTrail"/>(무기 팁 TrailRenderer 흰 잔상) 방출 토글로 대체.
+        /// 콤보 진입(1타)/스테이지 진행(2·3타)/4번째 클릭 재시작 — 모든 발화 경로가 이 함수를 거치므로
+        /// 여기서 SetEmitting(true) 1회면 충분(동일 값 재호출은 러너 내부에서 무시 — 스팸 방지).
+        /// 방출 OFF는 EndCombo(무입력 홀드 만료/만료 Idle 크로스)/인터럽트 리셋/레거시 Attack* 탈출에서 수행.
+        /// (기존 스윙 쿼드 규격 — pos/dir/roll/적중지점 앵커 — 는 쿼드 폐기와 함께 제거.
+        ///  FireComboCross는 크로스 발화용으로 그대로 유지 — 다음 라운드에서 러너가 TravisHit로 교체.)
         /// </summary>
         private void FireComboSlash(int stage)
         {
             try
             {
-                // [2026-09-12 루트 기준 통일] 기준 트랜스폼을 드라이버 자신 transform(플레이어/병사 루트, 논리
-                // 정면)으로 교체 — 비주얼 FBX 자식(_anim.transform)의 임포트 yaw 오프셋에 면역. dir은 기존대로
-                // ClampForwardHemisphere 경유(전방 반구 방어막 유지).
-                var t = transform;
-                Vector3 dir = ComboStageDirection(stage, t);
-                // 롤(튜닝 상수) — [2026-09-12] SlashVFXRunner가 쿼드를 카메라 수평 빌보드로 세우므로 dir의
-                // pitch는 궤적 평면 기울임에 반영되지 않는다. 스테이지별 궤적 개성은 roll(빌보드 후 로컬 Z 롤 =
-                // 화면축 기준 기울임)로만 표현한다: 1타 0(수평), 2타 -90(수직 상승 궤적), 3타 -45(사선).
-                // 3타 사선 부호(-45)는 튜닝 상수 — 화면 기준 궤적 방향이 어색하면 부호 반전.
-                float roll = stage == 2 ? -90f : (stage == 3 ? -45f : 0f);
-                // [2026-09-12 피격대상 방향 앵커] 최근 0.5초 내 유효 적중이면 발화 위치를 플레이어↔대상 중간점
-                // (lerp 0.5) + up*1.2로 앵커 — 항상 캐릭터 앞/대상 쪽에 FX가 나온다(자동조준 시 플레이어 forward가
-                // 대상과 어긋나도 대상 방향 임팩트 보장). 적중 없으면 기존 정면 고정(fwd 0.9 + up 1.2) 유지.
-                string anchorMode;
-                Vector3 pos;
-                if (PlayerCombat.LastHitValid && Time.time - PlayerCombat.LastHitTime <= 0.5f)
-                {
-                    pos = Vector3.Lerp(t.position, PlayerCombat.LastHitPoint, 0.5f) + Vector3.up * 1.2f;
-                    anchorMode = "적중지점 앵커";
-                }
-                else
-                {
-                    pos = t.position + t.forward * 0.9f + Vector3.up * 1.2f;
-                    anchorMode = "정면 고정";
-                }
-                SlashVFXRunner.PlaySlash(pos, dir, roll);
-                Debug.Log($"[Combo] 스윙 FX stage={stage} (루트 기준 정면 pos={pos:F2}, dir={dir:F2}, anchor={anchorMode})");
+                WeaponSwingTrail.SetEmitting(true);
+                Debug.Log($"[Combo] 스윙 트레일 방출 (stage={stage})");
             }
             catch (System.Exception fxEx)
             {
-                Debug.LogWarning($"[Combo] 스윙 FX 실패(전투 계속): {fxEx.Message}");
+                Debug.LogWarning($"[Combo] 스윙 트레일 토글 실패(전투 계속): {fxEx.Message}");
             }
-        }
-
-        /// <summary>
-        /// 스테이지별 스윙 방향(튜닝 상수 — 2026-09-11 WeaponSwingDirectionAnalyzer 실측(Heat 리그 RightHand 리타깃) 기반).
-        /// 1타 좌전방 수평(yaw -58°, pitch 1.3°), 2타 수직 상승 접선(yaw 63.2°, pitch 78° — 수평 성분만 dir로, 수직 궤적은 roll로),
-        /// 3타 우후방 상향 사선(yaw 143.6°, pitch 28.7°). 스윙/크로스 공용.
-        /// [2026-09-11 전방 반구 클램프] 3타 실측 yaw 143.6°는 후방 성분을 포함해 슬래시 아크가 플레이어 뒤에
-        /// 발생하는 사용자 실측 증상의 원인이었다. 모든 스테이지 결과를 <see cref="ClampForwardHemisphere"/>로
-        /// 전방 반구(수평 |yaw|≤90°)로 강제한다 — 항상 앞방향, 뒤방향 스윙 금지(후방 성분은 yaw 미러로 전방 반전,
-        /// 수직 성분은 유지).
-        /// [2026-09-12] 반환 dir의 pitch는 SlashVFXRunner의 카메라 수평 빌보드 전환으로 궤적 평면에 반영되지
-        /// 않는다(오리엔테이션은 수평 성분만 사용) — 스테이지별 평면 기울임(개성)은 roll 담당.
-        /// </summary>
-        private static Vector3 ComboStageDirection(int stage, Transform t)
-        {
-            Vector3 dir;
-            switch (stage)
-            {
-                case 2:
-                    dir = Quaternion.Euler(0f, 63.2f, 0f) * t.forward;      // 2타: 실측 수직 상승 접선(y=0.98) — 수평 성분만 dir로, 수직 궤적은 roll -90으로
-                    break;
-                case 3:
-                    dir = Quaternion.Euler(28.7f, 143.6f, 0f) * t.forward;  // 3타: 실측 우후방 상향 사선(후방 성분 → 아래 클램프에서 전방 미러)
-                    break;
-                default:
-                    dir = Quaternion.Euler(1.3f, -58f, 0f) * t.forward;     // 1타: 실측 좌전방 수평
-                    break;
-            }
-            return ClampForwardHemisphere(dir, t, stage);
         }
 
         /// <summary>
@@ -766,8 +704,8 @@ namespace ProjectName.Systems
         /// dir의 수평 성분이 플레이어 forward 뒤쪽(dot(dir.xz, forward.xz) &lt; 0, 즉 수평 |yaw| &gt; 90°)이면
         /// yaw를 전방측으로 미러(θ → 180°−θ: 전방 성분 부호 반전, 측면 성분 유지)하고 수직 성분(dir.y)은 그대로 유지한다.
         /// → 모든 스테이지에서 수평 |yaw| ≤ 90°(전방 반구) 보장. 이미 전방이면 무변경·무로그.
-        /// FireComboSlash(스윙, ComboStageDirection 경유)와 FireComboCross(크로스, 히트 지점 dir)가
-        /// 모두 이 헬퍼를 경유하므로 스윙/크로스 VFX 전부에 공용 적용된다.
+        /// [2026-09-12 P2 스윙 트레일 전환] 스윙 쿼드 폐기(FireComboSlash → WeaponSwingTrail 방출 토글)로
+        /// 현재는 FireComboCross(크로스, 히트 지점 dir)만 이 헬퍼를 경유한다 — 크로스 전방 반구 클램프 유지.
         /// </summary>
         private static Vector3 ClampForwardHemisphere(Vector3 dir, Transform t, int stage)
         {

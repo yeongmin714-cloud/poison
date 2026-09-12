@@ -55,6 +55,17 @@ namespace ProjectName.UI
         private static string s_pendingWarehouseTerritoryId;  // 인스턴스 생성 전 SetContextMode 대기 값
         private int[] _warehouseSlotIndices = System.Array.Empty<int>();  // 필터 뷰 idx → 창고 전역 슬롯 idx
 
+        // ===== 2026-09-12(P6): 우측 창고 패널 (DrawLootPanel과 동일 제4구획 체계) =====
+        // 좌측은 None 모드와 동일한 통합 패널(장비칸 2×5 + 플레이어 인벤 그리드)을 렌더하고,
+        // 창고 그리드+카테고리 탭은 우측 패널로 이동 → 창고↔인벤 양방향 이동(드래그/우클릭) 유지.
+        private PlayerInventory.ItemSlot[] _warehouseSlots = System.Array.Empty<PlayerInventory.ItemSlot>(); // 창고 필터 뷰 슬롯 (카테고리 필터 — RefreshFromWarehouse 캐시)
+        private Vector2 _warehouseScrollPosition;             // 창고 그리드 스크롤 (메인 그리드 _scrollPosition과 분리)
+        private int _warehouseSelectedIndex = -1;             // 창고 패널 슬롯 선택 하이라이트 (메인 그리드 _selectedSlotIndex와 분리 — 인덱스 계열 충돌 방지)
+        private const int WAREHOUSE_MAX_SLOTS = 20;           // 영지 창고 슬롯 수 (WarehouseSystem._maxSlotsPerTerritory 기본값 — WarehouseUI.MaxSlots 동일, 시스템에 public 게터 없음)
+        private static readonly List<Rect> s_warehouseSlotScreenRects = new List<Rect>(32);   // 창고 슬롯 화면 Rect (드래그 판정용 — 정적 GC 캐시 관례)
+        private static readonly List<int> s_warehouseSlotScreenIndices = new List<int>(32);   // 창고 전역 슬롯 인덱스 (빈 셀 = -1 — WarehouseUI 빈 슬롯 캐시 선례)
+        private static Rect s_warehousePanelScreenRect;       // 창고 패널 전체 영역 (인벤 소스 드래그 "UI 영역" 판정 — 드롭 오인 투척 방지)
+
         // ===== 2026-09-12(P7): Loot 컨텍스트 (바구니 상호작용 → 통합창 우측 전리품 패널) =====
         // 좌측은 기존 통합 패널(장비칸+인벤)을 그대로 유지하고, 제4구획에 전리품 상자 패널을 렌더한다.
         // 렌더/획득 데이터는 LootWindow 캐시 API(CachedItemCount/GetCachedItem/TakeAllFromBasket)를 재사용.
@@ -158,6 +169,37 @@ namespace ProjectName.UI
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// 2026-09-12(P6): 화면(GUI) 좌표가 우측 창고 패널 슬롯 위인지 — 창고 전역 슬롯 인덱스 반환.
+        /// out slotIndex: 아이템 슬롯=창고 전역 인덱스, 빈 셀=-1 (WarehouseUI 빈 슬롯 캐시 선례 —
+        /// 인벤→창고 드롭은 빈 셀도 보관 타겟으로 허용). 미해당 시 false.
+        /// 캐시는 DrawWarehousePanel이 매 프레임 리빌드하며, Warehouse 컨텍스트에서만 유효하다
+        /// (컨텍스트 종료 시 OnHide에서 클리어 — 스테일 Rect 오판정 방지).
+        /// </summary>
+        public static bool TryGetWarehouseSlotAtScreenPoint(Vector2 guiPoint, out int slotIndex)
+        {
+            slotIndex = -1;
+            if (s_warehouseSlotScreenRects.Count == 0) return false;
+            Vector2 sp = GUIUtility.GUIToScreenPoint(guiPoint);   // 캐시 Rect와 동일 좌표계 변환 (위 헬퍼들 선례)
+            for (int i = s_warehouseSlotScreenRects.Count - 1; i >= 0; i--)
+            {
+                if (s_warehouseSlotScreenRects[i].Contains(sp))
+                {
+                    slotIndex = s_warehouseSlotScreenIndices[i];
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>2026-09-12(P6): 화면(GUI) 좌표가 우측 창고 패널 영역(타이틀~하단 바) 안인지 — 인벤 소스 드래그의 UI 영역 판정용.</summary>
+        public static bool IsPointOverWarehousePanel(Vector2 guiPoint)
+        {
+            if (s_warehousePanelScreenRect.width <= 0f) return false;
+            Vector2 sp = GUIUtility.GUIToScreenPoint(guiPoint);
+            return s_warehousePanelScreenRect.Contains(sp);
         }
 
         // ===================================================================
@@ -505,6 +547,13 @@ namespace ProjectName.UI
             // 2026-09-11(4): 창 닫힘 시 컨텍스트 해제 — 재오픈(I키)은 플레이어 인벤 모드로 시작
             _contextMode = ContextMode.None;
             _warehouseTerritoryId = null;
+            // 2026-09-12(P6): 창고 패널 캐시 정리 — 스테일 슬롯 Rect/선택 하이라이트 오판정 방지
+            _warehouseSlots = System.Array.Empty<PlayerInventory.ItemSlot>();
+            _warehouseSlotIndices = System.Array.Empty<int>();
+            _warehouseSelectedIndex = -1;
+            s_warehouseSlotScreenRects.Clear();
+            s_warehouseSlotScreenIndices.Clear();
+            s_warehousePanelScreenRect = default;
             _lootBasket = null;   // 2026-09-12(P7): Loot 컨텍스트도 닫힘과 함께 해제 (바구니 상호작용은 E로 재개)
         }
 
@@ -817,10 +866,9 @@ namespace ProjectName.UI
             float sortBtnX = x + WINDOW_WIDTH - sortBtnWidth - 12f;
             float sortBtnY = y + (TITLE_BAR_HEIGHT - sortBtnHeight) * 0.5f;
             DrawTitleStrip(x, y, WINDOW_WIDTH, sortBtnX);
-            // 2026-09-11(4): 창고 컨텍스트 — 타이틀 "창고" 표기
-            // 2026-09-12(P7): Loot 컨텍스트 — 통합창 타이틀 전용 문구 (리터럴 상수 표현식 — 프레임 GC 없음)
-            string contextTitle = _contextMode == ContextMode.Warehouse ? " 창고"
-                : _contextMode == ContextMode.Loot ? "🧺 전리품 — 원하는 아이템을 드래그"
+            // 타이틀 스트립: 통합창 타이틀 — 2026-09-12(P6): 창고 컨텍스트도 좌측 패널이 플레이어 인벤이므로
+            // " 인벤토리" 타이틀(창고 본체는 우측 패널 타이틀 "📦 창고"로 구분). Loot만 전용 문구 유지.
+            string contextTitle = _contextMode == ContextMode.Loot ? "🧺 전리품 — 원하는 아이템을 드래그"
                 : " 인벤토리";
             GUI.Label(new Rect(x, y + 4, sortBtnX - x - 12f, TITLE_BAR_HEIGHT),
                 contextTitle, _styleTitle);
@@ -843,24 +891,13 @@ namespace ProjectName.UI
             // 타이틀 하단 구분선
             DrawColoredRect(new Rect(x, y + TITLE_BAR_HEIGHT + 2, WINDOW_WIDTH, 2), ColorBorder);
 
-            // === 카테고리 탭 / 통합 장비칸 (2026-09-12(P3): 예시2 개편) ===
-            // 플레이어 인벤(ContextMode.None): 카테고리 탭 제거 → 좌측 상단에 통합 장비칸 2×5 (부위 배지)
-            // 창고 컨텍스트(ContextMode.Warehouse): 기존 카테고리 탭 유지 (탭은 창고 전용으로 이동)
+            // === 카테고리 탭 / 통합 장비칸 (2026-09-12(P3): 예시2 개편 / 2026-09-12(P6): 창고 재배치) ===
+            // 좌측 상단은 항상 통합 장비칸 2×5 (부위 배지) — None과 Warehouse 컨텍스트 모두 동일 렌더 경로.
+            // 카테고리 탭은 우측 창고 패널(DrawWarehousePanel) 전용으로 이동되어 메인 창에서는 렌더하지 않는다.
             float tabY = y + TITLE_BAR_HEIGHT + 4;
-            float gridY;
-            if (_contextMode == ContextMode.Warehouse)
-            {
-                // (기존 ColorTitleBar 평면 띠 제거 — 스톤 백플레이트가 그대로 비쳐 보임)
-                DrawCategoryTabs(x, tabY);
-                DrawColoredRect(new Rect(x, tabY + TAB_BAR_HEIGHT, WINDOW_WIDTH, 1), ColorBorder);
-                gridY = tabY + TAB_BAR_HEIGHT + 1;
-            }
-            else
-            {
-                // 통합 장비칸 2×5 — 카테고리 탭 자리를 대체 (장비 해제 클릭 경로 내장)
-                float equipH = DrawEquipmentGrid(x, tabY);
-                gridY = tabY + equipH + 1;
-            }
+            // 통합 장비칸 2×5 — 카테고리 탭 자리를 대체 (장비 해제 클릭 경로 내장)
+            float equipH = DrawEquipmentGrid(x, tabY);
+            float gridY = tabY + equipH + 1;
 
             // === 아이템 슬롯 그리드 (6열 · 5행/페이지 · 초과분 ◀/▶ 페이지 + 세로 스크롤 유지) ===
             float gridHeight = WINDOW_HEIGHT - (gridY - y) - 8;
@@ -872,10 +909,14 @@ namespace ProjectName.UI
             // === 중앙 아이템 설명 패널 (2026-09-09(2): 제2구획 — 설명 + 핫바 미니패드) ===
             DrawDescriptionPanel(x + WINDOW_WIDTH + DESC_GAP, y);
 
-            // === 2026-09-12(P7): 제4구획 전리품 상자 패널 — Loot 컨텍스트 전용 (좌 통합 패널은 유지) ===
-            // 설명창(x+WINDOW_WIDTH+DESC_GAP) 다음 WINDOW_WIDTH + 12 지점. 오버플로 시 화면 오른쪽 클램프.
+            // === 2026-09-12(P7/P6): 제4구획 컨텍스트 패널 — 설명창 다음 WINDOW_WIDTH + 12 지점 ===
+            // Loot = 전리품 상자 패널 / Warehouse = 창고 패널(카테고리 탭 + 창고 그리드).
+            // 동일 x 공식 + 오버플로 클램프로 4구획 체계(좌 인벤/중 설명/우 컨텍스트)를 통일한다.
+            float contextPanelX = x + WINDOW_WIDTH + DESC_GAP + WINDOW_WIDTH + 12f;
             if (_contextMode == ContextMode.Loot)
-                DrawLootPanel(x + WINDOW_WIDTH + DESC_GAP + WINDOW_WIDTH + 12f, y);
+                DrawLootPanel(contextPanelX, y);
+            else if (_contextMode == ContextMode.Warehouse)
+                DrawWarehousePanel(contextPanelX, y);
 
             // 2026-09-12(P3): 우측 구획 장비창(EquipmentWindow.TryRenderEmbedded) 호출 제거 —
             // 장비 슬롯은 좌측 상단 통합 장비칸(2×5)으로 통합됨. EquipmentWindow 클래스/렌더 코드는
@@ -889,7 +930,7 @@ namespace ProjectName.UI
         }
 
         // ===================================================================
-        // 카테고리 탭 그리기
+        // 카테고리 탭 그리기 — 2026-09-12(P6): 우측 창고 패널 전용 (메인 창은 통합 장비칸 사용)
         // ===================================================================
         private void DrawCategoryTabs(float panelX, float tabY)
         {
@@ -920,6 +961,7 @@ namespace ProjectName.UI
                     {
                         _selectedCategory = categories[i];
                         _selectedSlotIndex = -1;
+                        _warehouseSelectedIndex = -1;   // 2026-09-12(P6): 창고 패널 선택 하이라이트도 해제 (탭 전환)
                         RefreshInventory();
                     }
                 }
@@ -1137,8 +1179,9 @@ namespace ProjectName.UI
             // 2026-09-12(P3): 페이지네이션 — 5행×6열=30슬롯/페이지, 초과분은 ◀/▶ 버튼으로 넘김
             int totalPages = Mathf.Max(1, Mathf.CeilToInt((float)totalSlots / GRID_PAGE_SLOTS));
             // 2026-09-12(40차 QA 결함 #1): 페이지 스트립은 플레이어 인벤 단일 그리드에만 적용 —
-            // 창고/전리품 컨텍스트 그리드는 스트립 미렌더(viewHeight도 미차감) + 항상 첫 페이지 슬라이스.
-            bool pagerApplies = _contextMode != ContextMode.Warehouse && _contextMode != ContextMode.Loot;
+            // 2026-09-12(P6): 창고 컨텍스트도 좌측 그리드가 플레이어 인벤이므로 페이지네이션 적용(None과 동일).
+            // Loot만 스트립 미렌더(P7 레이아웃 유지) + 항상 첫 페이지 슬라이스. 창고 그리드(우측 패널)는 별도 렌더로 스트립 없음.
+            bool pagerApplies = _contextMode != ContextMode.Loot;
             if (!pagerApplies) _gridPage = 0;
             if (_gridPage >= totalPages) _gridPage = totalPages - 1;
             if (_gridPage < 0) _gridPage = 0;
@@ -1183,9 +1226,8 @@ namespace ProjectName.UI
 
             if (totalSlots == 0)
             {
-                string emptyMsg = _contextMode == ContextMode.Warehouse
-                    ? "(이 카테고리에 아이템이 없습니다)"
-                    : "(인벤토리가 비어 있습니다)";
+                // 2026-09-12(P6): 좌측 그리드는 플레이어 인벤 전용 렌더 — 창고 빈 카테고리 메시지는 우측 패널 담당
+                string emptyMsg = "(인벤토리가 비어 있습니다)";
                 GUI.Label(new Rect(0, 24, innerWidth - 20, 60), emptyMsg, _styleEmptyText);
             }
             else
@@ -1210,10 +1252,10 @@ namespace ProjectName.UI
                     bool isHover = slotRect.Contains(Event.current.mousePosition);
 
                     // 2026-09-11(3): 드롭 판정용 슬롯 화면 Rect 캐시 (전역 인덱스)
-                    // 2026-09-11(4): 창고 컨텍스트에서는 창고 전역 슬롯 인덱스를 캐시 (인벤 전역 인덱스와 계열 구분)
-                    int dndGlobalIdx = _contextMode == ContextMode.Warehouse
-                        ? GetWarehouseSlotIndex(i)
-                        : GetGlobalSlotIndex(_selectedCategory, i);
+                    // 2026-09-12(P6): 좌측 그리드는 항상 플레이어 인벤 — 인벤 전역 인덱스만 캐시한다.
+                    // (구 창고 컨텍스트의 "창고 전역 인덱스 캐시" 분기는 제거 — 창고 슬롯 판정은
+                    //  우측 패널의 s_warehouseSlotScreenRects/TryGetWarehouseSlotAtScreenPoint가 담당)
+                    int dndGlobalIdx = GetGlobalSlotIndex(_selectedCategory, i);
                     Vector2 slotScreenPos = GUIUtility.GUIToScreenPoint(new Vector2(sx, sy));
                     // 2026-09-11(4) 수리: 스크린 좌표계(y 상승)에서 sp.y는 슬롯 윗변(yMax) — yMin 보정 필수
                     s_slotScreenRects.Add(new Rect(slotScreenPos.x, slotScreenPos.y - slotHeight, slotWidth, slotHeight));
@@ -1297,47 +1339,29 @@ namespace ProjectName.UI
                             _selectedItemCount = slot.count;
                             _selectedItemData = slot.item;
 
-                            if (_contextMode == ContextMode.Warehouse)
-                            {
-                                // 2026-09-11(4): 창고 컨텍스트 — 창고 소스 드래그를 MouseDown에서 즉시 시작
-                                // (WarehouseUI 선례. ProcessDrag의 창고 소스 분기가 MouseUp 판정 대행)
-                                _dragItemData = null;
-                                _dragActive = false;
-                                _dragSlotGlobalIndex = -1;
-                                ItemDragContext.Begin(ItemDragContext.Source.Warehouse,
-                                    GetWarehouseSlotIndex(i), slot.item, _warehouseTerritoryId);
-                            }
-                            else
-                            {
-                                _dragItemData = slot.item;   // ProcessDrag: MouseDrag Begin → MouseUp에서 드롭 판정
-                                _dragActive = false;
-                                _dragSlotGlobalIndex = GetGlobalSlotIndex(_selectedCategory, i);
-                            }
+                            // 2026-09-12(P6): 창고 컨텍스트 전용 MouseDown 분기 제거 — 좌측 그리드는 항상
+                            // 플레이어 인벤이므로 None 모드와 동일한 Source.Inventory 드래그 시작.
+                            // (창고 소스 드래그는 우측 패널 DrawWarehousePanel의 MouseDown에서 Begin)
+                            _dragItemData = slot.item;   // ProcessDrag: MouseDrag Begin → MouseUp에서 드롭 판정
+                            _dragActive = false;
+                            _dragSlotGlobalIndex = GetGlobalSlotIndex(_selectedCategory, i);
                             Event.current.Use();
                         }
-                        else if (Event.current.button == 1) // 우클릭 — 인벤: 장비 장착/오토루트, 창고: 인벤 이동
+                        else if (Event.current.button == 1) // 우클릭 — 장비 장착/오토루트 (창고 아이템 우클릭은 우측 패널 담당)
                         {
-                            if (_contextMode == ContextMode.Warehouse)
-                            {
-                                // 2026-09-11(4): 창고 컨텍스트 우클릭 — 1개를 인벤으로 이동
-                                // (창고 아이템 직접 장착은 인벤에 없는 장비가 장착되는 부작용 — TryEquipItem은 인벤 소유 아이템에만 유지)
-                                int whIdx = GetWarehouseSlotIndex(i);
-                                if (whIdx >= 0 && WarehouseSystem.Instance != null
-                                    && !string.IsNullOrEmpty(_warehouseTerritoryId)
-                                    && WarehouseSystem.Instance.TransferToInventory(_warehouseTerritoryId, whIdx, 1))
-                                {
-                                    Debug.Log($"[InventoryWindow] 창고→인벤 이동(우클릭): {slot.item.displayName}");
-                                    RefreshInventory();
-                                }
-                            }
-                            else if (CompareTooltip.IsEquipmentCategory(slot.item.category)
-                                     || slot.item.category == PlayerInventory.ItemCategory.Potion
-                                     || slot.item.category == PlayerInventory.ItemCategory.Drug)
+                            // 2026-09-12(41차 P7): 우클릭 판정 체인 ①수신 — 판정 대상/카테고리/컨텍스트 증거
+                            Debug.Log($"[Inv] 우클릭: {slot.item.displayName} cat={slot.item.category} 컨텍스트={_contextMode}");
+
+                            if (CompareTooltip.IsEquipmentCategory(slot.item.category)
+                                || slot.item.category == PlayerInventory.ItemCategory.Potion
+                                || slot.item.category == PlayerInventory.ItemCategory.Drug)
                             {
                                 // 2026-09-09: 무기 선택창 폐지 → 우클릭 장착으로 대체
                                 // 2026-09-12(40차 QA 결함 #2): Potion/Drug도 게이트 통과 — TryEquipItem의
                                 // Weapon/Armor 분기는 카테고리 일치 시에만 진입하므로 Potion/Drug는 그대로
                                 // 통과해 복용 훅(PotionUseSystem.Use → 소모/Refresh)에 도달한다(죽은 코드 수리).
+                                // 2026-09-12(41차 P7): 체인 ②게이트 통과 — 장비는 [Equip] 로그, 물약은 [Potion] 로그로 후속
+                                Debug.Log($"[Inv] 우클릭 게이트 통과 → TryEquipItem ({slot.item.displayName}, cat={slot.item.category})");
                                 TryEquipItem(slot);
                             }
                             else if (AutoRouteSystem.Instance != null)
@@ -1901,7 +1925,8 @@ namespace ProjectName.UI
         // ===== 인벤토리 정렬 =====
         private void SortInventory()
         {
-            if (_contextMode == ContextMode.Warehouse) return;   // 2026-09-11(4): 창고 컨텍스트는 시딩 순서 유지 (플레이어 인벤 정렬 아님)
+            // 2026-09-12(P6): 창고 컨텍스트 조기 리턴 제거 — 좌측 그리드가 플레이어 인벤이므로
+            // None 모드와 동일하게 정렬 버튼이 동작한다(구 창고 그리드 시딩 순서 보호는 우측 패널로 이동).
             if (PlayerInventory.Instance == null) return;
             var allSlots = PlayerInventory.Instance.GetAllSlots();
             if (allSlots == null) return;
@@ -1989,14 +2014,9 @@ namespace ProjectName.UI
         /// </summary>
         public void RefreshInventory()
         {
-            // 2026-09-11(4): 창고 컨텍스트 — WarehouseSystem.GetItems(territoryId)를 렌더한다.
-            // (기존엔 컨텍스트와 무관하게 플레이어 인벤을 그려 E키 창고가 플레이어 가방을 보여줬던 원인)
-            if (_contextMode == ContextMode.Warehouse)
-            {
-                RefreshFromWarehouse();
-                return;
-            }
-
+            // 2026-09-12(P6): 창고 컨텍스트 전용 라우팅 제거 — 좌측 그리드는 None과 동일하게 플레이어
+            // 인벤을 렌더한다. 창고 데이터는 우측 패널(DrawWarehousePanel)이 매 프레임 RefreshFromWarehouse로
+            // 별도 캐시(_warehouseSlots/_warehouseSlotIndices)를 갱신하므로 여기서 건드리지 않는다.
             if (PlayerInventory.Instance == null) return;
 
             _currentSlots = PlayerInventory.Instance.GetSlotsByCategory(_selectedCategory);
@@ -2005,14 +2025,13 @@ namespace ProjectName.UI
             _selectedItemCount = 0;
         }
 
-        /// <summary>2026-09-11(4): 창고 소스 — 선택 카테고리로 필터링 + 원본 슬롯 인덱스 병행 캐시(DnD용).</summary>
+        /// <summary>2026-09-12(P6): 창고 패널 렌더 데이터 — 선택 카테고리 필터 + 원본 슬롯 인덱스 병행 캐시(DnD용).
+        /// DrawWarehousePanel이 매 프레임 호출한다(전리품 패널 캐시 리빌드 선례 — 소량 List/배열 alloc 허용).
+        /// 선택 필드(_selectedItem*)는 건드리지 않는다: 매 프레임 호출이므로 클릭 선택 정보를 지우면 설명창이 깜빡인다.</summary>
         private void RefreshFromWarehouse()
         {
-            _currentSlots = System.Array.Empty<PlayerInventory.ItemSlot>();
+            _warehouseSlots = System.Array.Empty<PlayerInventory.ItemSlot>();
             _warehouseSlotIndices = System.Array.Empty<int>();
-            _selectedItemName = "";
-            _selectedItemDesc = "";
-            _selectedItemCount = 0;
 
             if (WarehouseSystem.Instance == null || string.IsNullOrEmpty(_warehouseTerritoryId)) return;
 
@@ -2030,11 +2049,11 @@ namespace ProjectName.UI
                     srcIdx.Add(i);
                 }
             }
-            _currentSlots = filtered.ToArray();
+            _warehouseSlots = filtered.ToArray();
             _warehouseSlotIndices = srcIdx.ToArray();
         }
 
-        /// <summary>2026-09-11(4): 필터 뷰 인덱스 → 창고 전역 슬롯 인덱스 (DnD 스왑/회수용). 미해당 -1.</summary>
+        /// <summary>2026-09-12(P6): 창고 패널 필터 뷰 인덱스 → 창고 전역 슬롯 인덱스 (DnD 스왑/회수용). 미해당 -1.</summary>
         private int GetWarehouseSlotIndex(int filteredIndex)
         {
             if (_warehouseSlotIndices == null || filteredIndex < 0 || filteredIndex >= _warehouseSlotIndices.Length)
@@ -2531,9 +2550,257 @@ namespace ProjectName.UI
                 itemCount + "종", _styleEmptyText);
         }
 
+        // ===================================================================
+        // 2026-09-12(P6): 우측 창고 패널 (Warehouse 컨텍스트 — 제4구획, DrawLootPanel 동일 체계)
+        // ===================================================================
+        /// <summary>
+        /// 영지 창고(E키) 컨텍스트의 우측 패널 — 타이틀 "📦 창고" + 카테고리 탭(창고 전용) +
+        /// 6열 창고 슬롯 그리드(RefreshFromWarehouse 데이터 — 스크롤 유지, 페이지네이션 미적용) + 하단 "N/20" 표기.
+        /// 전리품 패널과 동일 x 공식 배치 → 좌 통합 패널(장비칸 2×5 + 플레이어 인벤 그리드)/중앙 설명창(400px)과
+        /// 4구획 체계 통일. 좌측 인벤 그리드에서 Source.Inventory 드래그 시작 가능(양방향 이동).
+        /// 슬롯 MouseDown → 선택(설명창) + ItemDragContext.Begin(Source.Warehouse) — ProcessDrag의 창고 소스
+        /// 분기(MouseUp 인벤 그리드 = TransferDraggedToInventory / 창고 패널 슬롯 = 스왑)가 드롭 판정을 대행.
+        /// 우클릭 = 1개 인벤 이동(기존 TransferToInventory 경로 이식). 인벤→창고 드롭은
+        /// TryDepositDraggedToWarehouse(WarehouseSystem에 단일 역방향 API가 없어 RemoveItem+AddItem 조합)가 담당.
+        /// </summary>
+        private void DrawWarehousePanel(float panelX, float panelY)
+        {
+            // 오버플로 클램프 — 패널이 화면 오른쪽을 벗어나면 안쪽으로 당긴다 (DrawLootPanel 선례)
+            if (panelX + WINDOW_WIDTH > Screen.width - 2f)
+                panelX = Screen.width - 2f - WINDOW_WIDTH;
+
+            // === 렌더 데이터 — 매 프레임 리빌드 (전리품 패널 캐시 리빌드 선례) ===
+            RefreshFromWarehouse();
+            int totalTypes = _warehouseSlots != null ? _warehouseSlots.Length : 0;
+
+            // 패널 화면 Rect 캐시 — 인벤 소스 드래그 "UI 영역" 판정용 (드롭 오인 → 지형 투척 방지)
+            // GUIToScreenPoint y 상승계 보정: sp.y는 패널 윗변 → yMin = sp.y - height (슬롯 캐시와 동일 규약)
+            Vector2 panelSp = GUIUtility.GUIToScreenPoint(new Vector2(panelX, panelY));
+            s_warehousePanelScreenRect = new Rect(panelSp.x, panelSp.y - WINDOW_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+            // === AAA 4레이어 (메인 창/전리품 패널 동일 — 드롭섀도우 → 백플레이트 → 컨텐츠) ===
+            DrawWindowDropShadow(panelX, panelY, WINDOW_WIDTH, WINDOW_HEIGHT);
+            GUI.Box(new Rect(panelX, panelY, WINDOW_WIDTH, WINDOW_HEIGHT), "", _styleBackplate);
+
+            // === 타이틀 스트립 + 타이틀 ===
+            DrawTitleStrip(panelX, panelY, WINDOW_WIDTH, panelX + WINDOW_WIDTH);
+            GUI.Label(new Rect(panelX, panelY + 4, WINDOW_WIDTH, TITLE_BAR_HEIGHT), "  📦 창고", _styleTitle);
+            DrawColoredRect(new Rect(panelX, panelY + TITLE_BAR_HEIGHT + 2, WINDOW_WIDTH, 2), ColorBorder);
+
+            // === 카테고리 탭 (창고 전용 — 기존 DrawCategoryTabs 재사용, 탭 클릭 = 카테고리 필터 전환) ===
+            float tabY = panelY + TITLE_BAR_HEIGHT + 4;
+            DrawCategoryTabs(panelX, tabY);
+            DrawColoredRect(new Rect(panelX, tabY + TAB_BAR_HEIGHT, WINDOW_WIDTH, 1), ColorBorder);
+            float gridY = tabY + TAB_BAR_HEIGHT + 1;
+
+            // === 6열 창고 슬롯 그리드 — 스크롤 유지 / 페이지네이션 미적용 (창고 최대 20슬롯 = 4행, 5행 가이드에 수용) ===
+            const float WH_BOTTOM_H = 64f;
+            float gridHeight = WINDOW_HEIGHT - (gridY - panelY) - WH_BOTTOM_H - 6;
+            float innerWidth = WINDOW_WIDTH - 8;
+            float slotWidth = (innerWidth - SLOT_MARGIN * (GRID_COLUMNS + 1)) / GRID_COLUMNS;
+            float slotHeight = slotWidth;               // 정사각형 슬롯 (메인 그리드 규약 동일)
+            float rowHeight = slotHeight + SLOT_MARGIN;
+            int guideRows = GRID_ROWS_PER_PAGE;         // 5행 가이드 (빈 슬롯 회색 셀 포함 — 메인 그리드 규약 동일)
+            float contentHeight = guideRows * rowHeight + SLOT_MARGIN;
+
+            // DnD 판정용 슬롯 화면 Rect 캐시 리빌드 (매 프레임, 빈 창고 포함 — 스테일 Rect 방지: WarehouseUI 선례)
+            s_warehouseSlotScreenRects.Clear();
+            s_warehouseSlotScreenIndices.Clear();
+
+            DrawColoredRect(new Rect(panelX, gridY, WINDOW_WIDTH, gridHeight), ColorInfoBg);
+
+            _warehouseScrollPosition = GUI.BeginScrollView(
+                new Rect(panelX + 4, gridY + 2, innerWidth, gridHeight - 4),
+                _warehouseScrollPosition,
+                new Rect(0, 0, innerWidth - 20, contentHeight)
+            );
+
+            // === AAA Layer 2: 빈 슬롯 가이드 그리드 + 전체 셀 드롭 타겟 캐시 (빈 셀 = -1 — WarehouseUI 선례) ===
+            Texture2D slotCellTex = InventoryArtLibrary.GetSlotCell();
+            int guideCells = guideRows * GRID_COLUMNS;
+            var prevGuideColor = GUI.color;
+            GUI.color = Color.white;
+            for (int g = 0; g < guideCells; g++)
+            {
+                int gCol = g % GRID_COLUMNS;
+                int gRow = g / GRID_COLUMNS;
+                float gx = SLOT_MARGIN + gCol * (slotWidth + SLOT_MARGIN);
+                float gy = SLOT_MARGIN + gRow * rowHeight;
+                GUI.DrawTexture(new Rect(gx, gy, slotWidth, slotHeight), slotCellTex);
+
+                Vector2 guideSp = GUIUtility.GUIToScreenPoint(new Vector2(gx, gy));
+                s_warehouseSlotScreenRects.Add(new Rect(guideSp.x, guideSp.y - slotHeight, slotWidth, slotHeight));
+                s_warehouseSlotScreenIndices.Add(-1);   // 빈 셀 — 인벤→창고 드롭 타겟으로만 사용
+            }
+            GUI.color = prevGuideColor;
+
+            if (totalTypes == 0)
+            {
+                GUI.Label(new Rect(0, 24, innerWidth - 20, 60), "(이 카테고리에 아이템이 없습니다)", _styleEmptyText);
+            }
+            else
+            {
+                Event ev = Event.current;
+                for (int i = 0; i < totalTypes; i++)
+                {
+                    var slot = _warehouseSlots[i];
+                    if (slot == null || slot.item == null || slot.count <= 0) continue;
+
+                    int col = i % GRID_COLUMNS;
+                    int row = i / GRID_COLUMNS;
+                    if (row >= guideRows) break;   // 가이드 행 초과분 미렌더 (20슬롯=4행 — 발생 없음, 방어)
+
+                    float sx = SLOT_MARGIN + col * (slotWidth + SLOT_MARGIN);
+                    float sy = SLOT_MARGIN + row * rowHeight;
+                    Rect slotRect = new Rect(sx, sy, slotWidth, slotHeight);
+                    bool isSelected = (i == _warehouseSelectedIndex);
+                    bool isHover = slotRect.Contains(Event.current.mousePosition);
+
+                    // 드롭 판정용 스크린 Rect 캐시 — 창고 전역 슬롯 인덱스 (가이드 루프의 -1 항목을 덮어씀.
+                    // TryGetWarehouseSlotAtScreenPoint는 후순위=나중 캐시 우선이라 아이템 슬롯이 우선 판정된다)
+                    int whGlobalIdx = GetWarehouseSlotIndex(i);
+                    Vector2 slotScreenPos = GUIUtility.GUIToScreenPoint(new Vector2(sx, sy));
+                    s_warehouseSlotScreenRects.Add(new Rect(slotScreenPos.x, slotScreenPos.y - slotHeight, slotWidth, slotHeight));
+                    s_warehouseSlotScreenIndices.Add(whGlobalIdx);
+
+                    // AAA Layer 2 셀 — 엠보싱 셀 + 희귀도 글로우 tint (메인 그리드/전리품 패널 규약 동일)
+                    var prevSlotColor = GUI.color;
+                    GUI.color = Color.white;
+                    GUI.DrawTexture(slotRect, InventoryArtLibrary.GetSlotCell());
+                    int rarityIdx = Mathf.Clamp((int)slot.item.rarity, 0, InventoryArtLibrary.RarityColors.Length - 1);
+                    GUI.color = InventoryArtLibrary.RarityColors[rarityIdx];
+                    GUI.DrawTexture(slotRect, InventoryArtLibrary.GetSlotGlow());
+                    GUI.color = prevSlotColor;
+
+                    // 아이콘 — 슬롯 상단 중앙 (메인 그리드 규약 동일)
+                    float iconSize = Mathf.Min(SLOT_ICON_SIZE, slotWidth * 0.62f);
+                    float iconX = sx + (slotWidth - iconSize) * 0.5f;
+                    float iconY = sy + 8f;
+                    Texture2D iconTex = ItemIconDatabase.GetOrCreateIcon(slot.item);
+                    if (iconTex != null)
+                    {
+                        GUI.DrawTexture(new Rect(iconX, iconY, iconSize, iconSize), iconTex);
+                    }
+                    else
+                    {
+                        // 폴백: 카테고리 색상 사각형
+                        GUI.color = GetCategoryColor(slot.item.category);
+                        GUI.DrawTexture(new Rect(iconX, iconY, iconSize, iconSize), _texWhite);
+                        GUI.color = Color.white;
+                    }
+
+                    // 이름 — 슬롯 하단부 중앙
+                    float nameWidth = slotWidth - 12f;
+                    float nameY = iconY + iconSize + 4f;
+                    GUI.Label(new Rect(sx + 6, nameY, nameWidth, 40),
+                        TruncateText(slot.item.displayName, nameWidth, _styleSlotLabel), _styleSlotLabel);
+
+                    // 수치 — 우상단 코너 (무기는 공격력 수치 함께 — 메인 그리드 동일)
+                    string valueText = $"x{slot.count}";
+                    if (slot.item.category == PlayerInventory.ItemCategory.Weapon)
+                    {
+                        string atk = ExtractFirstNumber(slot.item.effects);
+                        if (!string.IsNullOrEmpty(atk)) valueText = $"x{slot.count}  ⚔{atk}";
+                    }
+                    GUI.Label(new Rect(sx + slotWidth - 70f, sy + 8f, 64f, 30), valueText, _styleItemCount);
+
+                    // 내구도 바 (장비만 — 메인 그리드 C9-18 동일 패턴)
+                    if (slot.item.maxDurability > 0)
+                    {
+                        float durability = ProjectName.Systems.EquipmentDurabilitySystem.GetDurabilityRatio(slot);
+                        Color durColor = durability >= 0.6f ? Color.green :
+                                         durability >= 0.3f ? Color.yellow : Color.red;
+                        float barY = sy + slotHeight - 6f;
+                        DrawColoredRect(new Rect(sx + 6, barY, slotWidth - 12, 4), new Color(0.15f, 0.15f, 0.15f, 0.8f));
+                        DrawColoredRect(new Rect(sx + 6, barY, (slotWidth - 12) * Mathf.Clamp01(durability), 4), durColor);
+                    }
+
+                    // === AAA Layer 3: 호버/선택 하이라이트 — 메인 그리드와 동일 (선택 = 골드/호버 = 따뜻한 백색) ===
+                    if (isSelected)
+                        DrawSlotTint(InventoryArtLibrary.GetSlotHighlight(), slotRect, ColorAccent);
+                    else if (isHover)
+                        DrawSlotTint(InventoryArtLibrary.GetSlotHighlight(), slotRect, new Color(1f, 1f, 0.9f, 0.9f));
+
+                    // === 슬롯 클릭 처리 — 좌클릭: 선택(설명창) + 창고 소스 드래그 즉시 시작(WarehouseUI 선례) / 우클릭: 인벤 이동 ===
+                    if (ev.type == EventType.MouseDown && slotRect.Contains(ev.mousePosition))
+                    {
+                        if (ev.button == 0)
+                        {
+                            // 선택 — 설명창(가운데) 표시. _selectedSlotIndex(플레이어 그리드 계열)는 건드리지 않는다.
+                            _warehouseSelectedIndex = i;
+                            _selectedItemName = slot.item.displayName;
+                            _selectedItemDesc = slot.item.description;
+                            _selectedItemCount = slot.count;
+                            _selectedItemData = slot.item;
+
+                            // 창고 소스 드래그를 MouseDown에서 즉시 시작 (구 메인 그리드 창고 분기 + WarehouseUI 선례).
+                            // ProcessDrag의 창고 소스 분기가 MouseUp 판정 대행: 인벤 그리드=이동 / 창고 패널 슬롯=스왑.
+                            ItemDragContext.Begin(ItemDragContext.Source.Warehouse, whGlobalIdx, slot.item, _warehouseTerritoryId);
+                            ev.Use();
+                        }
+                        else if (ev.button == 1)
+                        {
+                            // 기존 우클릭 경로 이식 — 1개를 인벤으로 이동 (WarehouseSystem.TransferToInventory)
+                            // (창고 아이템 직접 장착은 인벤에 없는 장비가 장착되는 부작용 — 우클릭은 인벤 이동만 유지)
+                            if (whGlobalIdx >= 0 && WarehouseSystem.Instance != null
+                                && !string.IsNullOrEmpty(_warehouseTerritoryId)
+                                && WarehouseSystem.Instance.TransferToInventory(_warehouseTerritoryId, whGlobalIdx, 1))
+                            {
+                                Debug.Log($"[InventoryWindow] 창고→인벤 이동(우클릭): {slot.item.displayName}");
+                                RefreshInventory();
+                            }
+                            ev.Use();
+                        }
+                    }
+                    // 툴팁 (마우스 호버 시) — 메인 그리드와 동일
+                    if (isHover)
+                    {
+                        DrawSlotTooltip(Event.current.mousePosition + new Vector2(22, 22), slot);
+                    }
+                }
+            }
+
+            GUI.EndScrollView();
+
+            // === 하단 바 — 보관 현황 "N/20" + 조작 안내 ===
+            float bottomY = gridY + gridHeight + 2;
+            DrawColoredRect(new Rect(panelX, bottomY, WINDOW_WIDTH, WH_BOTTOM_H), ColorInfoBg);
+            DrawColoredRect(new Rect(panelX, bottomY, WINDOW_WIDTH, 1), ColorBorder);
+            int storedCount = (WarehouseSystem.Instance != null && !string.IsNullOrEmpty(_warehouseTerritoryId))
+                ? WarehouseSystem.Instance.GetItemCount(_warehouseTerritoryId) : 0;
+            GUI.Label(new Rect(panelX + 16f, bottomY + 4f, 240f, 30f),
+                $"📦 {storedCount}/{WAREHOUSE_MAX_SLOTS}", _styleItemCount);
+            GUI.Label(new Rect(panelX + 16f, bottomY + 32f, WINDOW_WIDTH - 32f, 26f),
+                "우클릭: 인벤으로 1개 이동 · 드래그: 인벤 ↔ 창고", _styleEmptyText);
+        }
+
+        /// <summary>
+        /// 2026-09-12(P6): 인벤→창고 드래그 드롭 — 인벤에서 1개 제거 후 현재 영지 창고에 보관 (실패 시 인벤 롤백). 성공 true.
+        /// WarehouseSystem에 역방향(인벤→창고) 단일 API가 없어 WarehouseUI.TryDepositFromDrag와 동일 조합
+        /// (PlayerInventory.RemoveItem + WarehouseSystem.AddItem)을 _warehouseTerritoryId 대상으로 수행한다.
+        /// </summary>
+        private bool TryDepositDraggedToWarehouse(PlayerInventory.ItemData item)
+        {
+            if (WarehouseSystem.Instance == null || PlayerInventory.Instance == null || item == null)
+                return false;
+            if (string.IsNullOrEmpty(_warehouseTerritoryId)) return false;
+
+            bool removed = PlayerInventory.Instance.RemoveItem(item.id, 1);
+            if (!removed) return false;
+
+            if (!WarehouseSystem.Instance.AddItem(_warehouseTerritoryId, item, 1))
+            {
+                // 창고 가득 → 인벤 롤백 (WarehouseUI.TryDepositFromDrag 선례)
+                PlayerInventory.Instance.AddItem(item, 1);
+                Debug.LogWarning("[InventoryWindow] 창고가 가득 찼습니다 — 드래그 보관 취소");
+                return false;
+            }
+            return true;
+        }
+
         /// <summary>
         /// 2026-09-11(3): 드래그 고스트 + MouseUp 드롭 판정 — ItemDragContext 공유 컨텍스트 연동.
-        /// - 인벤 소스: MouseDrag에서 Begin → MouseUp에 ①창고 슬롯(보관) ②다른 인벤 슬롯(스왑) ③핫바(등록),
+        /// - 인벤 소스: MouseDrag에서 Begin → MouseUp에 ①통합창 우측 창고 패널(보관, P6)/별도 창고 창 ②다른 인벤 슬롯(스왑) ③핫바(등록),
         ///   그 외 영역(월드)은 지형에 버림 → LootBasket 스폰(버린 아이템 담김, E키 회수) (2026-09-12)
         /// - 장비창 소스(2026-09-11(7)): EquipmentWindow 임베디드 슬롯에서 Begin(Source.Inventory) →
         ///   MouseUp에 핫바 드롭 = 슬롯 지정(장착 유지), 그 외 영역(월드)은 지형에 버림 → 바구니(해제 후 담김)
@@ -2561,33 +2828,25 @@ namespace ProjectName.UI
                             Debug.Log($"[InventoryWindow] 핫바 슬롯 {hbSlot + 1}에 '{ItemDragContext.Item.displayName}' 지정 (창고 소스 — 보관 유지)");
                         }
                     }
-                    else if (_contextMode == ContextMode.Warehouse)
+                    else if (_contextMode == ContextMode.Warehouse
+                             && TryGetWarehouseSlotAtScreenPoint(p, out int whTarget)
+                             && whTarget >= 0 && whTarget != ItemDragContext.SourceIndex)
                     {
-                        // 2026-09-11(4): 창고 컨텍스트 — 그리드가 곧 창고 뷰이므로 그리드 드롭 = 창고 내 스왑.
-                        // (기존 "그리드 드롭 = 인벤 이동"은 그리드가 플레이어 인벤일 때만 성립)
-                        int whTarget = GetInventorySlotIndexAtScreenPoint(p);   // 창고 전역 슬롯 인덱스 캐시
-                        if (whTarget >= 0 && whTarget != ItemDragContext.SourceIndex)
-                        {
-                            WarehouseUI.SwapDraggedSlots(whTarget);
-                            RefreshInventory();
-                        }
-                        else if (WarehouseUI.TryGetSlotAtScreenPoint(p, out int whTarget2)
-                                 && whTarget2 >= 0 && whTarget2 != ItemDragContext.SourceIndex)
-                        {
-                            // 별도 창고 창(WarehouseUI)이 함께 열린 경우 — 그쪽 슬롯과의 스왑
-                            WarehouseUI.SwapDraggedSlots(whTarget2);
-                        }
+                        // 2026-09-12(P6): 우측 창고 패널 슬롯 위 드롭 = 창고 내 스왑.
+                        // (구 "메인 그리드=창고 뷰" 스왑 분기의 이식 — 그리드 드롭=이동, 패널 슬롯=스왑으로 역할 재배분)
+                        WarehouseUI.SwapDraggedSlots(whTarget);
+                        RefreshInventory();
                     }
-                    else if (IsPointOverInventoryGrid(p))
+                    else if (IsPointOverInventoryGrid(p) || GetInventorySlotIndexAtScreenPoint(p) >= 0)
                     {
-                        // 창고 → 인벤 이동 (1개)
+                        // 2026-09-12(P6): 좌측 그리드 = 플레이어 인벤 — 창고 → 인벤 이동 (1개, 기존 경로 유지)
                         WarehouseUI.TransferDraggedToInventory();
                         Debug.Log($"[InventoryWindow] 창고→인벤 이동(드래그): {ItemDragContext.Item?.displayName ?? "?"}");
                     }
                     else if (WarehouseUI.TryGetSlotAtScreenPoint(p, out int whTarget3)
                              && whTarget3 >= 0 && whTarget3 != ItemDragContext.SourceIndex)
                     {
-                        // 창고 내 슬롯↔슬롯 스왑
+                        // 별도 창고 창(WarehouseUI)이 함께 열린 경우 — 그쪽 슬롯과의 스왑 (기존 경로 유지)
                         WarehouseUI.SwapDraggedSlots(whTarget3);
                     }
                     // 그 외 영역 = 드롭 실패 → Cancel (변경 없음)
@@ -2650,7 +2909,8 @@ namespace ProjectName.UI
                     {
                         Debug.Log($"[InventoryWindow] 장비→인벤 이동(드래그): {ItemDragContext.Item?.displayName ?? "?"}");
                     }
-                    else if (!overInvGrid && !TryGetEquipSlotAtScreenPoint(p, out _))
+                    else if (!overInvGrid && !TryGetEquipSlotAtScreenPoint(p, out _)
+                        && !IsPointOverWarehousePanel(p))   // 2026-09-12(P6): 창고 패널 위 = UI 영역 취소 (지형 투척 방지)
                     {
                         // 2026-09-12(지형 드롭): 그 외 영역(월드) = 지형에 버림 → LootBasket 스폰(버린 아이템 담김)
                         TryDropDraggedToTerrain(true);
@@ -2689,7 +2949,8 @@ namespace ProjectName.UI
                     }
                     // ② 그 외 영역(월드) → 지형에 버림 → LootBasket 스폰 (2026-09-12: 장비창 소스는 장착 중 아이템 —
                     //    EquipmentManager 슬롯을 id로 역查해 해제 후 바구니에 담김). 장비칸 UI 위는 기존 취소 유지.
-                    else if (!TryGetEquipSlotAtScreenPoint(Event.current.mousePosition, out _))
+                    else if (!TryGetEquipSlotAtScreenPoint(Event.current.mousePosition, out _)
+                        && !IsPointOverWarehousePanel(Event.current.mousePosition))   // 2026-09-12(P6): 창고 패널 위 = UI 영역 취소
                     {
                         TryDropDraggedToTerrain(true);
                     }
@@ -2731,7 +2992,18 @@ namespace ProjectName.UI
                         TryEquipFromDrag(eqCell, _dragItemData, _dragSlotGlobalIndex);
                         consumed = true;
                     }
-                    // ① 창고 슬롯 위 드롭 → 인벤에서 1개 창고로 이동
+                    // ①-(a) 2026-09-12(P6): 통합창 우측 창고 패널 위 드롭 → 인벤→창고 이동 (빈 셀 포함).
+                    // WarehouseSystem에 역방향 단일 API가 없어 RemoveItem+AddItem 조합으로 보관(_warehouseTerritoryId 대상).
+                    else if (_contextMode == ContextMode.Warehouse && TryGetWarehouseSlotAtScreenPoint(guiPoint, out _))
+                    {
+                        if (TryDepositDraggedToWarehouse(_dragItemData))
+                        {
+                            RefreshInventory();
+                            Debug.Log($"[InventoryWindow] 창고 보관(드래그): {_dragItemData.displayName}");
+                        }
+                        consumed = true;   // 실패(창고 가득 롤백 포함) 시에도 드래그 종료
+                    }
+                    // ① 창고 슬롯 위 드롭 → 인벤에서 1개 창고로 이동 (별도 창고 창 WarehouseUI — 기존 경로 유지)
                     else if (WarehouseUI.TryGetSlotAtScreenPoint(guiPoint, out _))
                     {
                         if (WarehouseUI.TryDepositFromDrag(_dragItemData))
@@ -2777,8 +3049,9 @@ namespace ProjectName.UI
                     }
 
                     // ④ 그 외 영역(월드) = 지형에 버림 → LootBasket 스폰 (2026-09-12: 인벤에서 꺼내 지형에 버림)
-                    //    인벤 그리드(원본 슬롯 복귀 포함)/장비칸 등 UI 위는 기존대로 취소 — 아이템 유지.
-                    if (!consumed && !IsPointOverInventoryGrid(guiPoint) && !TryGetEquipSlotAtScreenPoint(guiPoint, out _))
+                    //    인벤 그리드(원본 슬롯 복귀 포함)/장비칸/창고 패널(P6) 등 UI 위는 기존대로 취소 — 아이템 유지.
+                    if (!consumed && !IsPointOverInventoryGrid(guiPoint) && !TryGetEquipSlotAtScreenPoint(guiPoint, out _)
+                        && !IsPointOverWarehousePanel(guiPoint))
                         TryDropDraggedToTerrain(false);
                     else if (!consumed)
                         Debug.Log($"[InventoryWindow] 드롭 실패 — 드래그 취소(사유: UI 영역 위 드롭): {_dragItemData.displayName}");
@@ -3103,6 +3376,9 @@ namespace ProjectName.UI
             if (item.category == PlayerInventory.ItemCategory.Potion ||
                 item.category == PlayerInventory.ItemCategory.Drug)
             {
+                // 2026-09-12(41차 P7): 체인 ③복용 훅 분기 진입 증거
+                Debug.Log($"[Potion] 복용 훅 진행: {item.displayName} ({item.id}, cat={item.category})");
+
                 bool used = ProjectName.Systems.PotionUseSystem.Use(item, playerT, out string effectText);
                 if (used)
                 {
@@ -3116,6 +3392,8 @@ namespace ProjectName.UI
                         ? $"[Potion] 복용 성공: {item.displayName} — {eff}"
                         : $"[Potion] 복용 성공했으나 소모 실패(인벤에서 미발견): {item.displayName}");
                     RefreshInventory();
+                    // 2026-09-12(41차 P7): 체인 ④소모 후 그리드 갱신 완료 증거
+                    Debug.Log($"[Potion] 복용 후 인벤 Refresh 완료: {item.displayName} (소모={consumed})");
                 }
                 else
                 {

@@ -1028,7 +1028,12 @@ namespace ProjectName.Systems
             inv.AddItem(PlayerInventory.Pickaxe, 1);
             inv.AddItem(PlayerInventory.Fish_Common, 2);
             inv.AddItem(PlayerInventory.Gold, 100);
-            Debug.Log("[UITest] ✅ 플레이어 인벤 대표 아이템 시딩 완료");
+            // 2026-09-12(41차 P7): 우클릭 복용 테스트용 물약 시딩 — 실존 Potion 정의만 사용
+            // (PlayerInventory.StealthPotion=potion_stealth / Sedative=potion_sedative, maxStack 10).
+            // PotionUseSystem.Use 매핑 확인: stealth→은신 활성화, sedative→진정(투약 기록) 둘 다 true 반환.
+            inv.AddItem(PlayerInventory.StealthPotion, 3);
+            inv.AddItem(PlayerInventory.Sedative, 3);
+            Debug.Log("[UITest] ✅ 플레이어 인벤 대표 아이템 시딩 완료 (물약 포함: 은신 물약×3, 진정제×3 — 우클릭 복용 테스트용)");
         }
     }
 }
