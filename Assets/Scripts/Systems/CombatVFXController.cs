@@ -35,12 +35,33 @@ namespace ProjectName.Systems
 
         // ================================================================
         // 2. 데미지 폰트 — OnGUI WorldToScreenPoint, 1.5초 Fade Out
+        //    데미지 숫자 실패가 전투(사망 판정/전리품)를 절대 방해하지 않도록
+        //    전체 try-catch 격리 + 스팸 가드 경고(1초 쿨다운).
         // ================================================================
+        private static float _lastVfxWarningTime = -999f;
+
+        private static void LogVfxWarningOnce(string message)
+        {
+            if (Time.realtimeSinceStartup - _lastVfxWarningTime < 1f) return;
+            _lastVfxWarningTime = Time.realtimeSinceStartup;
+            Debug.LogWarning($"[CombatVFXController] {message}");
+        }
+
         public static void ShowDamageNumber(Vector3 worldPos, int damage, Color color)
         {
-            var go = new GameObject("DamageNumber");
-            go.transform.position = worldPos;
-            go.AddComponent<DamageNumberRunner>().Init(damage.ToString(), color);
+            GameObject go = null;
+            try
+            {
+                go = new GameObject("DamageNumber");
+                go.transform.position = worldPos;
+                go.AddComponent<DamageNumberRunner>().Init(damage.ToString(), color);
+            }
+            catch (System.Exception ex)
+            {
+                // 스팸 가드(1초 쿨다운) 경고 1회 후 조용히 반환 — 전투 흐름은 계속된다.
+                LogVfxWarningOnce($"데미지 숫자 생성 실패(무시): {ex.GetType().Name}: {ex.Message}");
+                if (go != null) Object.Destroy(go);
+            }
         }
 
         // ================================================================
@@ -322,30 +343,21 @@ namespace ProjectName.Systems
             private Color _color;
             private float _elapsed;
             private Camera _cam;
-            private GUIStyle _style;
-            private GUIStyle _shadowStyle;
             private GUIContent _guiContent;
+
+            // GUI 스타일 static 캐시 — GUI.skin 접근은 OnGUI 내부에서만 1회 수행.
+            // (관례: OnGUI 내 라인당 new 금지 → static 필드 + 최초 1회 생성)
+            private static GUIStyle _styleCache;
+            private static GUIStyle _shadowStyleCache;
 
             public void Init(string text, Color color)
             {
+                // OnGUI 밖에서는 GUI.skin 등 GUI 정적 API 호출 금지 —
+                // Init은 텍스트/색/수명 필드 저장만 담당하고, 스타일은 OnGUI에서 지연 생성한다.
                 _text = text;
                 _color = color;
                 _elapsed = 0f;
                 _cam = Camera.main;
-
-                _guiContent = new GUIContent(text);
-
-                _style = new GUIStyle(GUI.skin.label)
-                {
-                    fontSize = 14,
-                    alignment = TextAnchor.MiddleCenter,
-                    fontStyle = FontStyle.Bold
-                };
-
-                _shadowStyle = new GUIStyle(_style)
-                {
-                    normal = { textColor = new Color(0, 0, 0, 0.5f) }
-                };
             }
 
             private void Update()
@@ -356,32 +368,64 @@ namespace ProjectName.Systems
                     Destroy(gameObject);
             }
 
+            private static void EnsureStyles()
+            {
+                if (_styleCache != null && _shadowStyleCache != null) return;
+
+                _styleCache = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 14,
+                    alignment = TextAnchor.MiddleCenter,
+                    fontStyle = FontStyle.Bold
+                };
+
+                _shadowStyleCache = new GUIStyle(_styleCache)
+                {
+                    normal = { textColor = new Color(0, 0, 0, 0.5f) }
+                };
+            }
+
             private void OnGUI()
             {
+                // NRE 방어 1: Init 실패/미호출 상태(텍스트 없음)면 크래시 없이 스킵
+                if (string.IsNullOrEmpty(_text)) return;
+
+                // NRE 방어 2: 죽은 카메라 참조 가드 — 파괴 시 재탐색, 없으면 스킵
                 if (_cam == null)
                 {
                     _cam = Camera.main;
                     if (_cam == null) return;
                 }
 
+                // GUIContent는 인스턴스당 1회만 지연 생성 (매 프레임 new 금지)
+                if (_guiContent == null)
+                    _guiContent = new GUIContent(_text);
+
+                // NRE 방어 3: 스타일 캐시 지연 생성 (GUI.skin은 OnGUI 안에서만 접근)
+                if (_styleCache == null || _shadowStyleCache == null)
+                {
+                    try { EnsureStyles(); }
+                    catch { return; }
+                }
+                if (_styleCache == null || _shadowStyleCache == null) return;
+
                 Vector3 screenPos = _cam.WorldToScreenPoint(transform.position);
                 if (screenPos.z < 0) return;
                 screenPos.y = Screen.height - screenPos.y;
 
                 float alpha = Mathf.Lerp(1f, 0f, _elapsed / 1.5f);
-                Color guiColor = new Color(_color.r, _color.g, _color.b, alpha);
 
-                _style.normal.textColor = guiColor;
-                _shadowStyle.normal.textColor = new Color(0, 0, 0, alpha * 0.5f);
+                _styleCache.normal.textColor = new Color(_color.r, _color.g, _color.b, alpha);
+                _shadowStyleCache.normal.textColor = new Color(0, 0, 0, alpha * 0.5f);
 
-                Vector2 textSize = _style.CalcSize(_guiContent);
+                Vector2 textSize = _styleCache.CalcSize(_guiContent);
                 Rect rect = new Rect(
                     screenPos.x - textSize.x * 0.5f,
                     screenPos.y - textSize.y * 0.5f,
                     textSize.x, textSize.y);
 
-                GUI.Label(new Rect(rect.x + 1, rect.y + 1, rect.width, rect.height), _guiContent, _shadowStyle);
-                GUI.Label(rect, _guiContent, _style);
+                GUI.Label(new Rect(rect.x + 1, rect.y + 1, rect.width, rect.height), _guiContent, _shadowStyleCache);
+                GUI.Label(rect, _guiContent, _styleCache);
             }
         }
     }

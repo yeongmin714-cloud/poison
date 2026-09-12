@@ -584,7 +584,10 @@ namespace ProjectName.Systems
                     _legacyImpactFired = 1;
                     try
                     {
-                        var lt = _anim.transform;
+                        // [2026-09-12 루트 기준 통일] _anim.transform(비주얼 FBX 자식 — 임포트 yaw 오프셋 가능) 대신
+                        // 드라이버 자신 transform(플레이어/병사 루트, 논리 정면) 사용 — 스윙 FX 위치/방향을
+                        // 논리 정면 기준으로 통일(비주얼 자식 yaw 오프셋 면역). lpos/ldir은 lt 기준이므로 함께 루트 기준화.
+                        var lt = transform;
                         Vector3 ldir = lt.forward;
                         Vector3 lpos = lt.position + Vector3.up * 1.25f + ldir * 1.1f;
                         SlashVFXRunner.PlaySlash(lpos, ldir, 0f);
@@ -683,21 +686,45 @@ namespace ProjectName.Systems
         /// [2026-09-11 전방 반구 클램프] dir은 <see cref="ComboStageDirection"/> → <see cref="ClampForwardHemisphere"/>를
         /// 경유해 수평 |yaw|≤90°(전방 반구)가 강제된다 — 뒤방향 스윙 금지(사용자 요구: 항상 앞방향).
         /// 스윙 방향은 2026-09-11 WeaponSwingDirectionAnalyzer 실측값(1타 좌전방 -58°, 2타 수직 상승 pitch 78°, 3타 우후방 사선 143.6°) 기반.
+        /// [2026-09-12 루트 기준 통일] 기준 트랜스폼 = 드라이버 자신 transform(루트, 논리 정면) — _anim.transform
+        /// (비주얼 FBX 자식)의 임포트 yaw 오프셋에 면역. 쿼드 오리엔테이션은 SlashVFXRunner가 카메라 수평
+        /// 빌보드로 담당하므로 dir은 빌보드 폴백/로그용.
+        /// [2026-09-12 피격대상 방향 앵커] pos는 최근 0.5초 내 유효 적중 시 Vector3.Lerp(플레이어, LastHitPoint,
+        /// 0.5) + up*1.2(플레이어↔대상 중간점 = 항상 캐릭터 앞/대상 쪽 — 자동조준 중 플레이어 forward가 대상을
+        /// 안 볼 때도 FX가 대상 방향으로 나옴), 적중 없으면 기존 정면 고정(fwd 0.9 + up 1.2).
         /// try-catch 감싸기: FX 실패가 전투를 절대 방해하지 않게 함 (프로젝트 관례).
         /// </summary>
         private void FireComboSlash(int stage)
         {
             try
             {
-                var t = _anim.transform;
+                // [2026-09-12 루트 기준 통일] 기준 트랜스폼을 드라이버 자신 transform(플레이어/병사 루트, 논리
+                // 정면)으로 교체 — 비주얼 FBX 자식(_anim.transform)의 임포트 yaw 오프셋에 면역. dir은 기존대로
+                // ClampForwardHemisphere 경유(전방 반구 방어막 유지).
+                var t = transform;
                 Vector3 dir = ComboStageDirection(stage, t);
-                // 롤(튜닝 상수): 1타/3타는 실측 dir 자체가 수평/사선이라 roll 0.
-                // 2타는 실측 접선이 수직 상승(pitch 78°)이므로 dir은 수평 성분만 잡고 roll -90으로 Slash 궤적 평면을 수직화.
-                float roll = stage == 2 ? -90f : 0f;
-                // 위치는 항상 플레이어 정면 스윙 영역 고정 — dir(실측 궤적 방향)로 위치를 잡지 않는다.
-                Vector3 pos = t.position + t.forward * 0.9f + Vector3.up * 1.2f;
+                // 롤(튜닝 상수) — [2026-09-12] SlashVFXRunner가 쿼드를 카메라 수평 빌보드로 세우므로 dir의
+                // pitch는 궤적 평면 기울임에 반영되지 않는다. 스테이지별 궤적 개성은 roll(빌보드 후 로컬 Z 롤 =
+                // 화면축 기준 기울임)로만 표현한다: 1타 0(수평), 2타 -90(수직 상승 궤적), 3타 -45(사선).
+                // 3타 사선 부호(-45)는 튜닝 상수 — 화면 기준 궤적 방향이 어색하면 부호 반전.
+                float roll = stage == 2 ? -90f : (stage == 3 ? -45f : 0f);
+                // [2026-09-12 피격대상 방향 앵커] 최근 0.5초 내 유효 적중이면 발화 위치를 플레이어↔대상 중간점
+                // (lerp 0.5) + up*1.2로 앵커 — 항상 캐릭터 앞/대상 쪽에 FX가 나온다(자동조준 시 플레이어 forward가
+                // 대상과 어긋나도 대상 방향 임팩트 보장). 적중 없으면 기존 정면 고정(fwd 0.9 + up 1.2) 유지.
+                string anchorMode;
+                Vector3 pos;
+                if (PlayerCombat.LastHitValid && Time.time - PlayerCombat.LastHitTime <= 0.5f)
+                {
+                    pos = Vector3.Lerp(t.position, PlayerCombat.LastHitPoint, 0.5f) + Vector3.up * 1.2f;
+                    anchorMode = "적중지점 앵커";
+                }
+                else
+                {
+                    pos = t.position + t.forward * 0.9f + Vector3.up * 1.2f;
+                    anchorMode = "정면 고정";
+                }
                 SlashVFXRunner.PlaySlash(pos, dir, roll);
-                Debug.Log($"[Combo] 스윙 FX stage={stage} (정면 고정 pos={pos:F2}, dir={dir:F2})");
+                Debug.Log($"[Combo] 스윙 FX stage={stage} (루트 기준 정면 pos={pos:F2}, dir={dir:F2}, anchor={anchorMode})");
             }
             catch (System.Exception fxEx)
             {
@@ -713,6 +740,8 @@ namespace ProjectName.Systems
         /// 발생하는 사용자 실측 증상의 원인이었다. 모든 스테이지 결과를 <see cref="ClampForwardHemisphere"/>로
         /// 전방 반구(수평 |yaw|≤90°)로 강제한다 — 항상 앞방향, 뒤방향 스윙 금지(후방 성분은 yaw 미러로 전방 반전,
         /// 수직 성분은 유지).
+        /// [2026-09-12] 반환 dir의 pitch는 SlashVFXRunner의 카메라 수평 빌보드 전환으로 궤적 평면에 반영되지
+        /// 않는다(오리엔테이션은 수평 성분만 사용) — 스테이지별 평면 기울임(개성)은 roll 담당.
         /// </summary>
         private static Vector3 ComboStageDirection(int stage, Transform t)
         {
@@ -765,6 +794,11 @@ namespace ProjectName.Systems
         /// 최근 0.5초 내 적중이 없으면(빈 스윙) 크로스를 스킵한다 — 맞는 대상 지점에만 발화.
         /// 방향은 스테이지 실측 dir 대신 히트 지점 기준: dir = (LastHitPoint - 플레이어 머리) 정규화.
         /// 발화 타이밍/1회 보장은 콤보 감시 블록의 경계 통과 엣지(_comboCrossFired)가 담당(유지).
+        /// [2026-09-12 루트 기준 통일] 기준 트랜스폼 = 드라이버 자신 transform(루트, 논리 정면) — 비주얼
+        /// FBX 자식(_anim.transform)의 임포트 yaw 오프셋에 면역. 쿼드는 SlashVFXRunner가 카메라 수평
+        /// 빌보드로 세우므로 dir은 빌보드 폴백/로그용.
+        /// [2026-09-12 명시 갱신] 임팩트는 항상 피격대상 지점(LastHitPoint)에 발화 — 스윙 FX가 적중지점
+        /// 앵커 모드(플레이어↔대상 중간점)를 쓰는 것과 달리 크로스는 대상 지점 그대로 유지한다.
         /// </summary>
         private void FireComboCross(int stage)
         {
@@ -776,7 +810,8 @@ namespace ProjectName.Systems
                     Debug.Log("[Combo] 크로스 FX 스킵 — 최근 0.5초 내 적중 없음(빈 스윙)");
                     return;
                 }
-                var t = _anim.transform;
+                // [2026-09-12 루트 기준 통일] 비주얼 FBX 자식(_anim.transform) 대신 드라이버 루트(논리 정면).
+                var t = transform;
                 Vector3 head = t.position + Vector3.up * 1.5f;                       // 플레이어 머리 기준점
                 Vector3 dir = PlayerCombat.LastHitPoint - head;
                 dir = dir.sqrMagnitude > 0.000001f ? dir.normalized : t.forward;     // 히트 지점==머리 등 퇴화 방어

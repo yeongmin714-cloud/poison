@@ -86,7 +86,7 @@ namespace ProjectName.Systems
             // ② 타입 반영 — 모델 유무와 무관하게 먼저 세팅 (로드 실패 시 클립 모드만 전환)
             CurrentType = type;
             // 등급 보정: id에 포함된 티어(steel/stone/crystal)로 무기 데미지 배율 적용 (wood/기타 = 1.0)
-            SyncPlayerCombat(type, WeaponData.GetTierMultiplier(id));
+            SyncPlayerCombat(type, WeaponData.GetTierMultiplier(id), id);
 
             // ③ 플레이어 자식 중 Animator → RightHand 본 획득
             var animator = player.GetComponentInChildren<Animator>();
@@ -163,13 +163,17 @@ namespace ProjectName.Systems
 
         /// <summary>PlayerCombat에 해당 타입의 WeaponData를 반영 (전투 스탯/클립 모드 동기화).
         /// tierMultiplier ≠ 1이면 damage 등급 보정 복제본을 전달 — 정적 스탯 인스턴스는 오염하지 않음.</summary>
-        static void SyncPlayerCombat(WeaponType type, float tierMultiplier)
+        static void SyncPlayerCombat(WeaponType type, float tierMultiplier, string equipId)
         {
             if (PlayerCombat.Instance == null) return;
             var baseData = type == WeaponType.Bow ? WeaponData.Bow
                      : type == WeaponType.Spear ? WeaponData.Spear
                      : WeaponData.Sword;
             PlayerCombat.Instance.SetWeapon(tierMultiplier != 1f ? baseData.CreateTieredCopy(tierMultiplier) : baseData);
+
+            // 2026-09-12(P5): 무기별 애니 판정 가시화 — 38차 [Equip] 로그 0건 규명용(로직 미변경).
+            // 활=ArcheryShot(활발사) / 창=Attack(찌르기) / 그 외(검)=WeaponCombo(3연타)
+            Debug.Log($"[Equip] 무기 애니 경로 결정: {type} → {(type == WeaponType.Bow ? "ArcheryShot(활발사)" : type == WeaponType.Spear ? "Attack(찌르기)" : "WeaponCombo(3연타)")} (equipId={equipId}, 배율={tierMultiplier})");
         }
     }
 }

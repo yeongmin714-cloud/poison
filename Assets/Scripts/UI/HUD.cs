@@ -99,6 +99,12 @@ namespace ProjectName.UI
         // 하트용 재사용 Rect (절차 생성 하트 마스크는 정사각 Rect 하나로 그린다)
         private Rect _rectHeart;
 
+        // 캔버스 스케일 보정 (핫바 HotbarUI/cb45e8ec 선례와 동일 공식):
+        // 1080p 게임뷰 = 1.0 → 기존 픽셀값 그대로(원래 크기). 저해상도 게임뷰에서도
+        // 동일한 화면 비율을 유지하도록 하트/은신 HUD/HP 라벨 크기·간격을 비례 축소한다.
+        // UpdateStaticRectPositions에서 프레임당 1회 산출해 전파한다.
+        private float _canvasScale = 1f;
+
         // 가스 분사기 상태 캐시
         private bool _gasSprayerEquipped;
         private float _gasRemaining;
@@ -165,6 +171,10 @@ namespace ProjectName.UI
         {
             // GC: Rect 캐싱 — 고정 위치 Rect는 미리 계산
             CacheStaticRects();
+
+            // 직렬화 값 방어: 칸당 HP 0/음수 → CeilToInt(무한대) 폭발, 행당 칸수 < 1 → 0 나눔.
+            if (_hpPerHeart <= 0f) _hpPerHeart = 20f;
+            if (_heartsPerRow < 1) _heartsPerRow = 10;
 
             // PlayerHealth 구독
             if (PlayerHealth.Instance != null)
@@ -288,6 +298,14 @@ namespace ProjectName.UI
 
         private void UpdateStaticRectPositions()
         {
+            // 캔버스 스케일 프레임당 1회 산출 — 핫바(cb45e8ec)와 동일 공식.
+            // 하트/은신 HUD/HP 라벨/EXP 바 전부 이 필드를 재사용한다 (중복 계산 제거).
+            _canvasScale = Mathf.Sqrt((Screen.width / 1920f) * (Screen.height / 1080f));
+
+            // 하트 Rect 크기 갱신 (x/y는 DrawHearts에서 하트마다 설정)
+            _rectHeart.width = _heartSize * _canvasScale;
+            _rectHeart.height = _heartSize * _canvasScale;
+
             // 사망 오버레이 위치 (매 프레임 Screen 크기로 갱신)
             _rectDeathOverlay = new Rect(0, 0, Screen.width, Screen.height);
             _rectDeathLabel = new Rect(0, Screen.height * 0.35f, Screen.width, 120);
@@ -306,8 +324,8 @@ namespace ProjectName.UI
             // HotbarUI 패널 = BottomMargin 12 + PanelHeight 150 = 162 (1080p 캔버스 단위).
             // CanvasScaler(ScaleWithScreenSize, ref 1920x1080, match 0.5) 스케일을 픽셀로 환산:
             // scale = sqrt((w/1920) * (h/1080)) → 어떤 해상도에서도 핫바 위 14px에 배치.
-            float canvasScale = Mathf.Sqrt((Screen.width / 1920f) * (Screen.height / 1080f));
-            float hotbarTopY = Screen.height - 162f * canvasScale;
+            // (산식은 상단에서 _canvasScale로 1회 계산 — 중복 제거)
+            float hotbarTopY = Screen.height - 162f * _canvasScale;
             float expX = (Screen.width - _expBarWidth) * 0.5f;
             float expY = hotbarTopY - _expBarHotbarGap - _expBarHeight;
 
@@ -356,9 +374,11 @@ namespace ProjectName.UI
             _maxHP = max;
             _isDead = current <= 0;
             
-            // 임시 최대 체력 업데이트 (버프로 인한 초과 체력)
-            if (max > 100f)
-                _tempMaxHP = max;
+            // 임시 하트(노랑)는 현재 HP가 MaxHP를 초과하는 버프 체력일 때만.
+            // 기존 'max > 100 → 임시 체력' 판정은 레벨업으로 MaxHP가 커진 것을 임시 체력으로
+            // 오인했다 — 스펙상 레벨업 MaxHP 증가는 총칸 증가(빈 하트)로 렌더되어야 한다.
+            if (current > max)
+                _tempMaxHP = current;
             else
                 _tempMaxHP = 0f;
         }
@@ -431,12 +451,14 @@ namespace ProjectName.UI
                 return;
 
             // Rect 위치 계산: 하트 영역 아래 (하트 시작 Y + 하트 크기 * 줄 수 + 여백)
+            // 하트 렌더와 동일한 canvasScale 비례 좌표를 써야 2행 이상일 때도 안 겹친다.
             int totalHearts = Mathf.CeilToInt(_maxHP / _hpPerHeart);
             int rows = Mathf.CeilToInt((float)totalHearts / _heartsPerRow);
-            float heartsBottomY = _heartStartY + rows * (_heartSize + _heartSpacing) + 10;
-            
-            float iconSize = _stealthIconSize;
-            float iconX = _stealthIconX;
+            float heartStep = (_heartSize + _heartSpacing) * _canvasScale;
+            float heartsBottomY = _heartStartY * _canvasScale + rows * heartStep + 10f * _canvasScale;
+
+            float iconSize = _stealthIconSize * _canvasScale;
+            float iconX = _stealthIconX * _canvasScale;
             float iconY = heartsBottomY;
 
             _rectStealthIcon = new Rect(iconX, iconY, iconSize, iconSize);
@@ -453,9 +475,9 @@ namespace ProjectName.UI
 
                 // 발각 게이지 바 (아이콘 아래)
                 float barX = iconX;
-                float barY = iconY + iconSize + 4;
-                float barWidth = _detectionBarWidth;
-                float barHeight = _detectionBarHeight;
+                float barY = iconY + iconSize + 4f * _canvasScale;
+                float barWidth = _detectionBarWidth * _canvasScale;
+                float barHeight = _detectionBarHeight * _canvasScale;
 
                 _rectDetectionBarBg = new Rect(barX, barY, barWidth, barHeight);
                 _rectDetectionBarFill = new Rect(barX + 1, barY + 1, (barWidth - 2) * Mathf.Clamp01(detectionGauge / 100f), barHeight - 2);
@@ -479,7 +501,7 @@ namespace ProjectName.UI
                 GUI.Box(_rectDetectionBarBg, "");
 
                 // 레이블
-                _rectStealthLabel = new Rect(barX + barWidth + 8, barY, 60, barHeight);
+                _rectStealthLabel = new Rect(barX + barWidth + 8f * _canvasScale, barY, 60f * _canvasScale, barHeight);
                 GUI.color = Color.white;
                 string labelText = detectionGauge >= 100f ? "🔴 발각!" : $"발각: {detectionGauge:F0}%";
                 GUI.Label(_rectStealthLabel, labelText, _cachedDetectionLabelStyle);
@@ -489,7 +511,7 @@ namespace ProjectName.UI
                 {
                     GUI.color = new Color(1f, 0.2f, 0.2f, 0.3f + Mathf.Sin(Time.time * 4f) * 0.2f);
                     // 위험 표시 테두리
-                    GUI.Box(new Rect(barX - 2, barY - 2, barWidth + 4, barHeight + 4), "");
+                    GUI.Box(new Rect(barX - 2f * _canvasScale, barY - 2f * _canvasScale, barWidth + 4f * _canvasScale, barHeight + 4f * _canvasScale), "");
                 }
             }
             else if (detectionGauge > 0f)
@@ -602,6 +624,9 @@ namespace ProjectName.UI
         private void DrawHearts()
         {
             // 최대 체력 기준 전체 하트 수 계산
+            // 스펙: 기본 5칸(MaxHP 100). 레벨업으로 MaxHP가 오르면 ceil(MaxHP/20)만큼 총칸이
+            // 늘고, CurrentHP가 미달하는 초과분은 빈 하트(회색 외곽)로 렌더된다 ("95/150" 정합).
+            // _heartsPerRow(기존값 10) 초과 시 다음 행으로 흐른다 (row = i / _heartsPerRow).
             int totalHearts = Mathf.CeilToInt(_maxHP / _hpPerHeart);
             if (totalHearts <= 0) totalHearts = 1;
 
@@ -621,16 +646,19 @@ namespace ProjectName.UI
                 shakeOffset = Mathf.Sin(Time.time * 10f) * 2f;
             }
 
-            float startX = _heartStartX + shakeOffset;
-            float startY = _heartStartY;
+            // 캔버스 스케일 비례 시작 위치/간격 (1080p = 원래 픽셀값, _rectHeart 크기는
+            // UpdateStaticRectPositions에서 스케일 반영 완료)
+            float heartStep = (_heartSize + _heartSpacing) * _canvasScale;
+            float startX = _heartStartX * _canvasScale + shakeOffset * _canvasScale;
+            float startY = _heartStartY * _canvasScale;
 
             for (int i = 0; i < displayHearts; i++)
             {
                 int row = i / _heartsPerRow;
                 int col = i % _heartsPerRow;
 
-                float heartX = startX + col * (_heartSize + _heartSpacing);
-                float heartY = startY + row * (_heartSize + _heartSpacing);
+                float heartX = startX + col * heartStep;
+                float heartY = startY + row * heartStep;
 
                 _rectHeart.x = heartX;
                 _rectHeart.y = heartY;
@@ -679,13 +707,14 @@ namespace ProjectName.UI
             }
             int displayHearts = totalHearts + tempHearts;
             int rows = Mathf.CeilToInt((float)displayHearts / _heartsPerRow);
-            float heartsBottomY = _heartStartY + rows * (_heartSize + _heartSpacing);
+            float heartStep = (_heartSize + _heartSpacing) * _canvasScale;
+            float heartsBottomY = _heartStartY * _canvasScale + rows * heartStep;
 
-            // 하트 아래 +6 지점에 숫자 HP 라벨 (Rect 재사용 — GC 방지)
-            _rectHPText.x = _heartStartX;
-            _rectHPText.y = heartsBottomY + 6;
-            _rectHPText.width = 200;
-            _rectHPText.height = 24;
+            // 하트 아래 +6 지점에 숫자 HP 라벨 (Rect 재사용 — GC 방지, 위치/크기 스케일 비례)
+            _rectHPText.x = _heartStartX * _canvasScale;
+            _rectHPText.y = heartsBottomY + 6f * _canvasScale;
+            _rectHPText.width = 200f * _canvasScale;
+            _rectHPText.height = 24f * _canvasScale;
 
             // 가독성: 체력 여유 시 흰색, 30% 이하로 떨어지면 노랑(경고)
             float hpRatio = _maxHP > 0f ? _currentHP / _maxHP : 0f;

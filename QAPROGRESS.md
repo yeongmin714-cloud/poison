@@ -4,7 +4,64 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-11 (37차)
+> **최종 갱신:** 2026-09-12 (39차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-12 ✅ 39차 — 테스트 영상 4 기반 5건 수리[사망블로커/스윙FX/하트·미니맵비례/인벤I키/무기애니로그])
+
+> **스코프**: 사용자 5건 리포트(영상 4 + Editor.log 실측) 전부 뿌리 원인 확정 후 수리. ① 몬스터 불사 ② 스윙 FX 뒤방향 ③ 하트·미니맵 비대 ④ 인벤 I키 ⑤ 무기 교체. 배치컴파일 error CS=0 + QaValidator Errors:0.
+
+### 뿌리 원인 확정 (Editor.log/프레임 실측)
+- **불사**: TakeDamage FX 체인 중 `CombatVFXController.ShowDamageNumber → DamageNumberRunner.Init:338`이 OnGUI 밖에서 GUI.skin 호출 → **ArgumentException** → Die() 도달 불가(HP -53 누적·사망 로그 0건·바구니 0개 — 로그 59530행 실증)
+- **인벤 I키**: 핫키가 창 GO와 동거 → CloseAnimation의 `_windowRoot.SetActive(false)`가 핫키 Update까지 정지 → I키 재오픈 불가(토글 로그 닫힘 2회/열림 0회)
+- **하트·미니맵 비대**: 크기 상수 불변(하트 40px/미니맵 220px) — 게임뷰 해상도 축소로 상대적 확대 체감(핫바만 canvasScale 보정돼 있었음). 부수: 레벨업 MaxHP를 임시 하트로 오인(150HP → 총 5칸만 렌더, 8칸 위반)
+- **무기 애니**: 인벤 막힘으로 장착 시도 자체가 0건([Equip] 로그 0) — 분기 로직(Spear/Bow)은 존재
+
+### 변경 사항
+**`Systems/CombatVFXController.cs`** (+88): DamageNumberRunner.Init의 GUI.* 제거(필드 저장만) + EnsureStyles static 캐시(OnGUI 내 1회) + ShowDamageNumber try-catch+1초 스팸 가드 + OnGUI NRE 3중 방어.
+**`Systems/AnimalAI.cs`** (+107): TakeDamage FX 체인 전체 try-catch 격리(어그로는 try 밖 독립) — HP차감/어그로/Die() 절대 방해 금지.
+**`Systems/HumanoidClipDriver.cs`**: FireComboSlash 발화 위치 — LastHitValid&&0.5s 내면 `Lerp(player, LastHitPoint, 0.5)+up1.2` **적중지점 앵커**(항상 캐릭터 앞/대상 쪽), else 정면 고정.
+**`Systems/SlashVFXRunner.cs`**: `StrokeMirrorX=-1f` 스윙 전용 스트로크 플립 상수(사용자 실측 역방향 — 정방향이면 1f로).
+**`UI/HUD.cs`**: _canvasScale(핫바 선례 공식) 하트/HP라벨/스텔스/게이지 전파. OnHealthChanged (max>100f)→(current>max)(레벨업 MaxHP는 빈 하트로 총칸 증가), _hpPerHeart/_heartsPerRow 방어. **총칸=ceil(MaxHP/20): 기본 5칸, 레벨업 시 빈 하트 증가(사용자 스펙 확정)** — 150HP=8칸(4풀+1반+3빈).
+**`UI/Functions/MinimapUI.cs`**: _canvasScale 미니맵/마진/온도·소리 게이지/마커 전파.
+**`UI/InventoryWindow.cs`**: `TogglePlayerInventory()` 신설(컨텍스트 전체 리셋 후 Show) + Show/Hide 전이 로그.
+**`UI/UIInventoryHotkey.cs`**: I키 → TogglePlayerInventory 호출.
+**`UI/UIWindow.cs`**: Show() 시 _windowRoot 비활성이면 즉시 SetActive(true) 안전망.
+**`Systems/TestTerritoryCombatSetup.cs`**: Test_10 — UIInventoryHotkey 별도 GO 선부착 후 **Bind 2단(리플렉션)** 명시(동거 사망 구조 제거).
+**`Systems/WeaponEquipManager.cs` + `PlayerCombat.cs`**: 무기 장착 시 `[Equip] 무기 애니 경로 결정: type → WeaponCombo/Attack(찌르기)/ArcheryShot` + 무기 설정 로그(판정 가시화).
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0**(return 0) + QaValidator Errors:0
+- 정적 QA(서브에이전트): 8항목 diff 일치 PASS + 12파일 균형 0 + SyncPlayerCombat 3파라 시그니처 호출부 갱신 확인 + 회귀 리스크 5건(a~e) 전부 PASS(HP차감/어그로/Die() try 밖, 하트 스펙 준수, 안전망 idempotent, 이중토글 선착순 3중 방어, 스크립트 외 무수정)
+- Play 판정 대기: ① 슬라임 사망+🧺 바구니+경험치 ② 스윙 FX가 적중지점 앵커로 대상 쪽에서 앞방향 아크(역방향이면 StrokeMirrorX=1f) ③ 하트 5칸(100HP)/레벨업 시 빈 하트 증가 ④ I키 3-연쇄 로그(부착+Bind → 토글 열림 → 열림 컨텍스트=None) ⑤ 무기 장착 시 애니 경로 로그+애니 변화
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-12 ✅ 38차 — 스윙 FX 뒤방향 근본 수리[루트 기준+카메라 빌보드] + 병사창 크기 유지 확정)
+
+> **스코프**: 사용자가 "공격 슬래시 임팩트가 뒤로 향한다"를 2회 보고 → 37차 전방 반구 클램프(|yaw|≤90°)로도 해소 안 된 나머지 자유도 2건을 근본 수리. ① 기준 트랜스폼을 `_anim.transform`(비주얼 FBX 자식, yaw 오프셋 가능)→드라이버 루트로 통일 ② 슬래시/크로스 쿼드를 `LookRotation(dir)`→카메라 수평 빌보드(+Z 정면 관례 — 카메라가 아크 앞면에서 봄)로 오리엔테이션 ③ 스테이지 개성은 roll로 이관(1타 수평/2타 수직/3타 -45° 사선). **UI 검증: 최근 5커밋 diff 전수 확인 결과 병사 상호작용 창(GuardPlaceholder 320×250→520×380)만 크기 변경, 타 창 크기 변경 0건 — 되돌릴 항목 없음(요구대로 병사창만 확대 유지).** 배치컴파일 error CS=0 + QaValidator Errors:0.
+
+### 변경 사항
+**`Systems/HumanoidClipDriver.cs`** (+31/−13) — 스윙 FX 기준 루트화:
+- FireComboSlash(701행)/FireComboCross(796행)/레거시 Attack* 스윙(590행): `var t = _anim.transform` → `var t = transform`(드라이버=루트, 논리 정면 — 비주얼 자식 yaw 오프셋 면역). pos 규격(fwd 0.9 + up 1.2) 유지
+- roll(707행): 1타 0(수평) / 2타 -90(수직, 유지) / **3타 -45(사선 신규 — 기존 dir pitch 28.7°를 빌보드 전환 후 roll로 이관, 부호는 튜닝 상수)**
+- ClampForwardHemisphere 경로 유지(ComboStageDirection 745행/FireComboCross 800행 — 방어막). `_anim.transform` 잔존은 진단 로그/화살/투척 등 FX 무관 용도만
+
+**`Systems/SlashVFXRunner.cs`** (+53) — 카메라 수평 빌보드:
+- 공용 헬퍼 `CameraHorizontalFaceDir(position, dir)`(156행): `faceDir = cam.transform.position - position`(y=0) — **쿼드 +Z를 카메라 쪽으로** → 카메라가 슬래시 팩 제작 관례의 +Z 정면에서 아크를 봄(뒷면 미러링=역스윙 체감 원천 차단)
+- 3단 폴백: Camera.main null → `-dir`(y=0) → 수평 소실 → `Vector3.forward`. 롤은 빌보드 이후 `Rotate(0,0,roll, Space.Self)` — 화면축 기준 기울임(수직/사선 유지)
+- PlaySlash 2-파라 오버로드 시그니처 불변, PlayImpact(Quaternion.identity)/쿨다운(MIN_SPAWN_INTERVAL)/static 캐시/ScheduleDestroy 패턴 무변경. 위치 인자 원본 그대로(회전만 변경)
+
+### 원인 정리(사용자 2회 동일 리포트의 뿌리)
+- 1차 원인(37차 해결): 3타 실측 yaw 143.6° 후방 성분 → 전방 미러 클램프로 방향 벡터는 전방 반구 보장됐으나
+- 2차 원인(38차 해결): ① 쿼드가 `LookRotation(dir)`로 +Z=원거리 → 후방 카메라가 **뒷면에서 봄** → 스트로크 좌우 미러링이 역스윙처럼 읽힘 ② 기준 트랜스폼이 비주얼 자식이라 논리 정면과 어긋날 여지
+- Play 판정: 3타뿐 아니라 전 스테이지 스윙/크로스가 캐릭터 앞쪽에서 정면으로 읽히는지 확인
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0**(return 0) + QaValidator Errors:0
+- 정적 QA(서브에이전트): diff↔서술 일치/균형 2파일 0/스윙 경로 `_anim.transform` 잔존 0건/빌보드 후 Space.Self 롤 순서/2파라 오버로드·회귀 앵커(쿨다운·캐시·파괴·PlayImpact) 전부 PASS
+- UI 검증: `git diff bc32960c~5..bc32960c` UI 크기 상수 전수 — 병사창 외 변경 0건(인벤 힌트 삭제 1건은 텍스트 블록)
 
 ---
 

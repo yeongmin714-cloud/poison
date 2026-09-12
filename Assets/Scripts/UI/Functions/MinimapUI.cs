@@ -60,6 +60,12 @@ namespace ProjectName.UI
 
         // 런타임 데이터
         private Transform _playerTransform;
+
+        // 캔버스 스케일 보정 (핫바 HUD cb45e8ec 선례와 동일 공식) — 1080p 게임뷰 = 1.0(원래 크기).
+        // 저해상도 게임뷰에서 픽셀 고정이라 상대적으로 커 보이는 문제를 비례 축소로 수정.
+        // UpdateRectPositions에서 프레임당 1회 산출해 미니맵/게이지/마커 전체에 적용.
+        private float _canvasScale = 1f;
+
         private Rect _minimapRect;
         private Rect _tempGaugeRect;
         private Rect _soundGaugeRect;
@@ -153,26 +159,36 @@ namespace ProjectName.UI
 
         private void UpdateRectPositions()
         {
-            int cx = Screen.width - _marginRight - _minimapDiameter;
-            int cy = _marginTop;
+            // 캔버스 스케일 프레임당 1회 산출 — 핫바(HUD cb45e8ec)와 동일 공식.
+            // 1080p 게임뷰 = 1.0 → 기존 픽셀값 그대로(원래 크기 복원). 저해상도 게임뷰에서도
+            // 동일한 화면 비율을 유지한다.
+            _canvasScale = Mathf.Sqrt((Screen.width / 1920f) * (Screen.height / 1080f));
+
+            float diameter = _minimapDiameter * _canvasScale;
+            float cx = Screen.width - _marginRight * _canvasScale - diameter;
+            float cy = _marginTop * _canvasScale;
 
             // 미니맵 원형 영역
-            _minimapRect = new Rect(cx, cy, _minimapDiameter, _minimapDiameter);
+            _minimapRect = new Rect(cx, cy, diameter, diameter);
 
             // 온도 게이지 (미니맵 왼쪽)
-            int tempX = cx + _tempGaugeOffsetX - _tempGaugeWidth;
-            int tempY = cy + (_minimapDiameter - _tempGaugeHeight) / 2;
-            _tempGaugeRect = new Rect(tempX, tempY, _tempGaugeWidth, _tempGaugeHeight);
+            float tempW = _tempGaugeWidth * _canvasScale;
+            float tempH = _tempGaugeHeight * _canvasScale;
+            float tempX = cx + _tempGaugeOffsetX * _canvasScale - tempW;
+            float tempY = cy + (diameter - tempH) * 0.5f;
+            _tempGaugeRect = new Rect(tempX, tempY, tempW, tempH);
 
             // 소음 게이지 (미니맵 오른쪽)
-            int soundX = cx + _minimapDiameter + _soundGaugeOffsetX;
-            int soundY = cy + (_minimapDiameter - _soundGaugeHeight) / 2;
-            _soundGaugeRect = new Rect(soundX, soundY, _soundGaugeWidth, _soundGaugeHeight);
+            float soundW = _soundGaugeWidth * _canvasScale;
+            float soundH = _soundGaugeHeight * _canvasScale;
+            float soundX = cx + diameter + _soundGaugeOffsetX * _canvasScale;
+            float soundY = cy + (diameter - soundH) * 0.5f;
+            _soundGaugeRect = new Rect(soundX, soundY, soundW, soundH);
 
             // 시간/날씨 (미니맵 위)
-            int timeX = cx;
-            int timeY = cy - _timeWeatherHeight - 4;
-            _timeWeatherRect = new Rect(timeX, timeY, _minimapDiameter, _timeWeatherHeight);
+            float timeWeatherH = _timeWeatherHeight * _canvasScale;
+            float timeY = cy - timeWeatherH - 4f * _canvasScale;
+            _timeWeatherRect = new Rect(cx, timeY, diameter, timeWeatherH);
         }
 
         private void UpdateTemperature()
@@ -261,8 +277,9 @@ namespace ProjectName.UI
             int hour = Mathf.FloorToInt(_currentTimeOfDay * 24);
             string timeText = $"{hour:D2}:00";
             
-            // 날씨 아이콘 + 시간
-            Rect iconRect = new Rect(_timeWeatherRect.x + 8, _timeWeatherRect.y + 4, 22, 22);
+            // 날씨 아이콘 + 시간 (오프셋/크기 캔버스 스케일 비례)
+            float s = _canvasScale;
+            Rect iconRect = new Rect(_timeWeatherRect.x + 8f * s, _timeWeatherRect.y + 4f * s, 22f * s, 22f * s);
             Sprite weatherIcon = _currentWeather switch
             {
                 WeatherType.Rain => _rainIcon,
@@ -277,7 +294,7 @@ namespace ProjectName.UI
             else
                 GUI.Label(iconRect, _currentWeather == WeatherType.Rain ? "🌧" : _currentWeather == WeatherType.Night ? "🌙" : "☀️", _cachedLabelStyle);
 
-            Rect timeRect = new Rect(_timeWeatherRect.x + 36, _timeWeatherRect.y, _timeWeatherRect.width - 44, _timeWeatherRect.height);
+            Rect timeRect = new Rect(_timeWeatherRect.x + 36f * s, _timeWeatherRect.y, _timeWeatherRect.width - 44f * s, _timeWeatherRect.height);
             GUI.Label(timeRect, timeText, _cachedLabelStyle);
         }
 
@@ -327,10 +344,11 @@ namespace ProjectName.UI
         {
             if (_mapTexture == null || _playerTransform == null) return;   // 지형/플레이어 준비 전에는 스킵
 
-            float radius = _minimapDiameter * 0.5f;
+            // _minimapRect에는 캔버스 스케일이 반영되어 있다 (UpdateRectPositions)
+            float radius = _minimapRect.width * 0.5f;
             float centerX = _minimapRect.x + radius;
             float centerY = _minimapRect.y + radius;
-            float pxPerWorld = _minimapDiameter / (_localRadius * 2f);
+            float pxPerWorld = _minimapRect.width / (_localRadius * 2f);
             Vector3 pp = _playerTransform.position;
 
             // ── ① 영지 마커 (모두, 작은 검은 점) ──
@@ -338,7 +356,7 @@ namespace ProjectName.UI
             if (db != null)
             {
                 GUI.color = new Color(0f, 0f, 0f, 0.85f);
-                int mSize = 4;
+                float mSize = 4f * _canvasScale;
                 foreach (var def in db.GetAllDefinitions())
                 {
                     Vector3 wp = GetTerritoryWorldPosition(def);
@@ -352,7 +370,7 @@ namespace ProjectName.UI
             // ── ② 활성 퀘스트 마커 (QuestMarkerSystem — 퀘스트색 점, 더 큼) ──
             if (QuestMarkerSystem.Instance != null)
             {
-                int qSize = 7;
+                float qSize = 7f * _canvasScale;
                 foreach (var qm in QuestMarkerSystem.Instance.GetActiveQuestMarkers())
                 {
                     if (!TryLocalScreenPos(qm.worldPos, pp, pxPerWorld, radius - 2f, centerX, centerY, qSize, out var r)) continue;
@@ -364,7 +382,7 @@ namespace ProjectName.UI
         }
 
         /// <summary>월드좌표 → 로컬뷰 화면 Rect. 반경 밖이면 false. (+z=북=화면 위, GUI y 역방향 보정)</summary>
-        private bool TryLocalScreenPos(Vector3 wp, Vector3 pp, float pxPerWorld, float maxDist, float cx, float cy, int size, out Rect rect)
+        private bool TryLocalScreenPos(Vector3 wp, Vector3 pp, float pxPerWorld, float maxDist, float cx, float cy, float size, out Rect rect)
         {
             float dx = (wp.x - pp.x) * pxPerWorld;
             float dy = -(wp.z - pp.z) * pxPerWorld;
@@ -405,14 +423,16 @@ namespace ProjectName.UI
             if (_playerTransform == null) return;
 
             // 로컬뷰(2026-09-09): 플레이어는 항상 미니맵 중앙, 이동방향 화살표 표시
-            float radius = _minimapDiameter * 0.5f;
+            // _minimapRect에는 캔버스 스케일이 반영되어 있다 (UpdateRectPositions)
+            float radius = _minimapRect.width * 0.5f;
             float centerX = _minimapRect.x + radius;
             float centerY = _minimapRect.y + radius;
 
+            float markerSize = _playerMarkerSize * _canvasScale;
             var markerRect = new Rect(
-                centerX - _playerMarkerSize * 0.5f,
-                centerY - _playerMarkerSize * 0.5f,
-                _playerMarkerSize, _playerMarkerSize
+                centerX - markerSize * 0.5f,
+                centerY - markerSize * 0.5f,
+                markerSize, markerSize
             );
 
             // 플레이어 방향 표시 (화살표)
@@ -422,16 +442,18 @@ namespace ProjectName.UI
             // 방향 화살표 — forward 기준, +z=북=화면 위 (GUI y 역방향 보정)
             Vector3 fwd = _playerTransform.forward;
             float guiAngle = Mathf.Atan2(fwd.x, fwd.z) * Mathf.Rad2Deg; // 0°=북(위), 시계방향+
-            float arrowLength = _playerMarkerSize * 1.1f;
+            float arrowLength = markerSize * 1.1f;
             Vector2 from = new Vector2(centerX, centerY);
             Vector2 arrowEnd = from + new Vector2(Mathf.Sin(guiAngle * Mathf.Deg2Rad), -Mathf.Cos(guiAngle * Mathf.Deg2Rad)) * arrowLength;
-            DrawLine(from, arrowEnd, _playerMarkerColor, 3f);
+            DrawLine(from, arrowEnd, _playerMarkerColor, 3f * _canvasScale);
 
             GUI.color = Color.white;
         }
 
         private void DrawTemperatureGauge()
         {
+            float s = _canvasScale;
+
             // 배경
             GUI.color = new Color(0f, 0f, 0f, 0.6f);
             GUI.Box(_tempGaugeRect, "");
@@ -485,13 +507,13 @@ namespace ProjectName.UI
             // 아이콘 (위: 더위, 아래: 추위)
             if (_currentTemperature > 0.3f && _hotIcon != null)
             {
-                Rect iconRect = new Rect(_tempGaugeRect.x - 2, _tempGaugeRect.y - 24, 20, 20);
+                Rect iconRect = new Rect(_tempGaugeRect.x - 2f * s, _tempGaugeRect.y - 24f * s, 20f * s, 20f * s);
                 GUI.color = Color.white;
                 GUI.DrawTexture(iconRect, _hotIcon.texture);
             }
             else if (_currentTemperature < -0.3f && _coldIcon != null)
             {
-                Rect iconRect = new Rect(_tempGaugeRect.x - 2, _tempGaugeRect.yMax + 4, 20, 20);
+                Rect iconRect = new Rect(_tempGaugeRect.x - 2f * s, _tempGaugeRect.yMax + 4f * s, 20f * s, 20f * s);
                 GUI.color = Color.white;
                 GUI.DrawTexture(iconRect, _coldIcon.texture);
             }
@@ -499,7 +521,7 @@ namespace ProjectName.UI
             // 수치 텍스트
             GUI.color = Color.white;
             string tempText = _currentTemperature > 0 ? $"+{_currentTemperature * 50:F0}°" : $"{_currentTemperature * 50:F0}°";
-            Rect labelRect = new Rect(_tempGaugeRect.x - 30, _tempGaugeRect.yMax + 4, 60, 20);
+            Rect labelRect = new Rect(_tempGaugeRect.x - 30f * s, _tempGaugeRect.yMax + 4f * s, 60f * s, 20f * s);
             GUI.Label(labelRect, tempText, _cachedTempStyle);
 
             GUI.color = Color.white;
@@ -507,6 +529,8 @@ namespace ProjectName.UI
 
         private void DrawSoundGauge()
         {
+            float s = _canvasScale;
+
             // 배경
             GUI.color = new Color(0f, 0f, 0f, 0.6f);
             GUI.Box(_soundGaugeRect, "");
@@ -534,7 +558,7 @@ namespace ProjectName.UI
             // 아이콘 (아래)
             if (_soundIcon != null)
             {
-                Rect iconRect = new Rect(_soundGaugeRect.x - 2, _soundGaugeRect.yMax + 4, 20, 20);
+                Rect iconRect = new Rect(_soundGaugeRect.x - 2f * s, _soundGaugeRect.yMax + 4f * s, 20f * s, 20f * s);
                 GUI.color = Color.white;
                 GUI.DrawTexture(iconRect, _soundIcon.texture);
             }

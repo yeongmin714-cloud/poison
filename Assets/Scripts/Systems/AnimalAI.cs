@@ -670,7 +670,15 @@ namespace ProjectName.Systems
             Debug.Log($"{MonsterDatabase.Get(_monsterId)?.displayName ?? _monsterId}가(이) {amount} 데미지! HP={_currentHP}/{_maxHP}");
 
             // === G2-04: 카메라 타격 이펙트 ===
-            CombatCameraEffects.PlayHit();
+            // FX 체인 격리: 이펙트 예외가 아래 사망 판정(Die()) 도달을 차단하지 않도록 감쌈.
+            try
+            {
+                CombatCameraEffects.PlayHit();
+            }
+            catch (System.Exception fxEx)
+            {
+                LogFxWarningOnce("카메라 타격 이펙트", fxEx);
+            }
 
             // === MonsterAggroSystem: 공격 통보 → 주변 합세 ===
             if (MonsterAggroSystem.Instance != null)
@@ -681,49 +689,58 @@ namespace ProjectName.Systems
                 MonsterAggroSystem.Instance.NotifyAttack(gameObject, attacker);
             }
 
-            // === G2-05: CombatVFXController ===
-            CombatVFXController.PlayHitFlash(gameObject);
-            CombatVFXController.SpawnHitSparks(transform.position);
-            CombatVFXController.SpawnBloodSplatter(transform.position, hitDirection.normalized);
-
-            // === VFX ===
-            // 1. Sparks
-            HitVFX.PlayHitEffect(transform.position, hitDirection.normalized);
-
-            // 2. Damage Number
-            HitVFX.SpawnDamageNumber(transform.position, amount);
-
-            // 3. Damage Number (CombatVFXController — IMGUI)
-            Color dmgColor = Color.green;
-            if (amount / _maxHP >= 0.3f)
-                dmgColor = Color.red;
-            else if (amount / _maxHP >= 0.15f)
-                dmgColor = Color.yellow;
-            CombatVFXController.ShowDamageNumber(transform.position, Mathf.RoundToInt(amount), dmgColor);
-
-            // 4. Hit Reaction (넉백 + 경직)
-            var hitReaction = GetComponent<HitReaction>();
-            if (hitReaction != null)
+            // === G2-05: CombatVFXController + 레거시 히트 이펙트 (FX 체인 격리) ===
+            // 데미지 숫자(IMGUI) 등 어떤 FX 예외가 발생해도 Die() 도달이 막히지 않도록
+            // FX 전체를 try-catch로 격리한다. 예외 시 스팸 가드(1초 쿨다운) 경고 후 계속.
+            try
             {
-                hitReaction.PlayHitReaction(hitDirection, 1f);
+                CombatVFXController.PlayHitFlash(gameObject);
+                CombatVFXController.SpawnHitSparks(transform.position);
+                CombatVFXController.SpawnBloodSplatter(transform.position, hitDirection.normalized);
+
+                // === VFX ===
+                // 1. Sparks
+                HitVFX.PlayHitEffect(transform.position, hitDirection.normalized);
+
+                // 2. Damage Number
+                HitVFX.SpawnDamageNumber(transform.position, amount);
+
+                // 3. Damage Number (CombatVFXController — IMGUI)
+                Color dmgColor = Color.green;
+                if (amount / _maxHP >= 0.3f)
+                    dmgColor = Color.red;
+                else if (amount / _maxHP >= 0.15f)
+                    dmgColor = Color.yellow;
+                CombatVFXController.ShowDamageNumber(transform.position, Mathf.RoundToInt(amount), dmgColor);
+
+                // 4. Hit Reaction (넉백 + 경직)
+                var hitReaction = GetComponent<HitReaction>();
+                if (hitReaction != null)
+                {
+                    hitReaction.PlayHitReaction(hitDirection, 1f);
+                }
+                else
+                {
+                    // HitReaction 없으면 직접 HitFlash만
+                    // 2026-09-11: GLB 프리팹은 루트 _renderer가 null → 피격 플래시가 통째로 스킵됨.
+                    // 자식 렌더러 폴백 탐색으로 피격 피드백 보장(못 찾으면 PlayHitFlash가 null-safe 스킵).
+                    var flashRenderer = _renderer != null ? _renderer : GetComponentInChildren<Renderer>();
+                    HitVFX.PlayHitFlash(flashRenderer);
+                }
+
+                // 기존 hit effect (레거시 호환)
+                if (hitEffectPrefab != null)
+                {
+                    Instantiate(hitEffectPrefab, transform.position, Quaternion.identity);
+                }
+                if (hitSound != null)
+                {
+                    AudioSource.PlayClipAtPoint(hitSound, transform.position);
+                }
             }
-            else
+            catch (System.Exception fxEx)
             {
-                // HitReaction 없으면 직접 HitFlash만
-                // 2026-09-11: GLB 프리팹은 루트 _renderer가 null → 피격 플래시가 통째로 스킵됨.
-                // 자식 렌더러 폴백 탐색으로 피격 피드백 보장(못 찾으면 PlayHitFlash가 null-safe 스킵).
-                var flashRenderer = _renderer != null ? _renderer : GetComponentInChildren<Renderer>();
-                HitVFX.PlayHitFlash(flashRenderer);
-            }
-
-            // 기존 hit effect (레거시 호환)
-            if (hitEffectPrefab != null)
-            {
-                Instantiate(hitEffectPrefab, transform.position, Quaternion.identity);
-            }
-            if (hitSound != null)
-            {
-                AudioSource.PlayClipAtPoint(hitSound, transform.position);
+                LogFxWarningOnce("타격 FX 체인", fxEx);
             }
 
             // 🐉 슬라임 분열 체크 (HP 30% 이하)
@@ -744,6 +761,16 @@ namespace ProjectName.Systems
                 _detectRange = Mathf.Max(_detectRange, 20f);
                 if (_monsterId == "wolf") CallNearbyMonsters();
             }
+        }
+
+        // FX 체인 예외 경고 스팸 가드(1초 쿨다운) — 매 히트마다 로그가 도배되지 않도록 함
+        private static float _lastFxWarningTime = -999f;
+
+        private static void LogFxWarningOnce(string context, System.Exception ex)
+        {
+            if (Time.realtimeSinceStartup - _lastFxWarningTime < 1f) return;
+            _lastFxWarningTime = Time.realtimeSinceStartup;
+            Debug.LogWarning($"[AnimalAI] {context} FX 예외 무시(사망/전리품 처리는 계속): {ex.GetType().Name}: {ex.Message}");
         }
 
         /// <summary>

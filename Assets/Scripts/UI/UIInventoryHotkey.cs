@@ -41,10 +41,11 @@ namespace ProjectName.UI
             var inv = _inv != null ? _inv : ProjectName.UI.InventoryWindow.Instance;
             if (inv == null) return;
 
-            // I 키 상승 에지 1회 → 토글 (스테일 참조 방지: 매 프레임 즉시 조회)
+            // I 키 상승 에지 1회 → 플레이어 인벤 토글 (2026-09-12 P4: 컨텍스트 리셋 포함 —
+            // 창고/상점 컨텍스트 잔존 상태로 열려 플레이어 인벤이 안 보이던 문제 방지)
             if (kb.iKey.wasPressedThisFrame)
             {
-                inv.Toggle();
+                inv.TogglePlayerInventory();
                 Debug.Log($"[UIInventoryHotkey] 인벤토리 토글 → {(inv.IsOpen ? "열림" : "닫힘")}");
             }
         }

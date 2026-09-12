@@ -202,6 +202,11 @@ namespace ProjectName.UI
             // CloseAnimation 종료 시 _windowRoot가 비활성화될 수 있으므로 여기서 재활성화.
             gameObject.SetActive(true);
 
+            // 2026-09-12(P4): 재열기 안전망 — CloseAnimation이 _windowRoot를 비활성화한 뒤
+            // OpenAnimation 코루틴의 SetActive에 의존하지 않고 즉시 복구(창이 알파 0/비활성에 갇힘 방지).
+            if (_windowRoot != null && !_windowRoot.activeSelf)
+                _windowRoot.SetActive(true);
+
             _isOpen = true;
             _animCoroutine = StartCoroutine(OpenAnimation());
         }

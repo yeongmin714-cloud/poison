@@ -2208,3 +2208,43 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 병사 UI 개편 | GuardPlaceholder OnGUI: 패널 320×250→520×380(1.6배), 다크네이비 플랫 팔레트(12상수)+회백 테두리+스카이블루 타이틀 라인, 좌측 아바타 96px(GuardIconRenderer 리플렉션 TryGetGuardIcon — Systems↔UI asmdef 경계, null 시 국적색 원형+이니셜 폴백, 0.5초 폴링)+체력바 확대(70%폭)+호감도/중독도 바+[E] 배지+메뉴 버튼 5종 플랫화, static 스타일 캐시 | ✅ |
 | 검증 | 배치컴파일 error CS=0(return 0) + QaValidator Errors:0, 정적 QA 8파일 brace/괄호 균형 통과(주석 내 비대칭 괄호 제외 코드 0), 미러 클램프/스폰 로그/wood 필터/힌트 0건/HandleNumberKeys/ItemDragContext.Begin/TryGetGuardIcon/520×380 전수 확인, QAPROGRESS 37차 기록 | ✅ |
 | Play 판정 대기 | 슬래시/십자가 뒤방향 미발화, 숫자키 장착/사용, 장비·창고→핫바 드래그, 우클릭 장착, 창고 슬롯 약 26개, 몬스터 스폰 MaxHP 로그로 사망 판정, 병사 UI 520×380+아바타/바/버튼 렌더링 | ⬜ |
+
+## 🗡️ 2026-09-12: 스윙 FX 방향 수리 + 루트 기준 통일 (SLASH-FACING-38/39)
+
+> 38차(루트 트랜스폼+카메라 빌보드)와 39차(적중지점 앵커+스트로크 미러) 통합.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 루트 기준 통일 | 스윙 FX 3경루(FireComboSlash/Cross/레거시) `_anim.transform`→`transform`(논리 정면) | ✅ |
+| 카메라 빌보드 | 슬래시/크로스 쿼드 +Z→카메라(뒷면 미러링 차단), 3단 폴백 | ✅ |
+| 적중지점 앵커 | LastHitValid 0.5s 내 → Lerp(player,hit,0.5)+up1.2 (항상 대상 쪽) | ✅ |
+| 스트로크 플립 | StrokeMirrorX=-1f 스윙 전용(사용자 실측 역방향, 튜닝 상수) | ✅ |
+| Play 판정 대기 | 전 스테이지 아크가 앞방향으로 읽힘 / 역방향이면 상수 1f | ⬜ |
+
+## 💀 2026-09-12: 몬스터 불사 뿌리 수리 — TakeDamage FX 예외 격리 (DEATH-BLOCK-39)
+
+> 뿌리 원인: 데미지 숫자 IMGUI가 OnGUI 밖 GUI.skin 호출 → ArgumentException → Die() 도달 불가(HP 마이너스 누적, 로그 59530행 실증).
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| GUI-외부 호출 제거 | DamageNumberRunner.Init 필드 저장만 + EnsureStyles OnGUI 내 static 1회 | ✅ |
+| FX 격리 | TakeDamage FX 체인 전체 try-catch + 스팸 가드(HP차감/어그로/Die() try 밖) | ✅ |
+| 검증 | 배치컴파일 CS=0, QA PASS(Die() 도달성 분석 포함) | ✅ |
+| Play 판정 대기 | 슬라임 사망 + 🧺 바구니 + 경험치 로그 | ⬜ |
+
+## 🩹 2026-09-12: 하트·미니맵 canvasScale 비례화 + 하트 총칸 스펙 수리 (UI-SCALE-39)
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| canvasScale 비례화 | 하트/미니맵/게이지/마커 전파 — 1080p 기준 원래 크기 복원(하트40/미니맵220px), 해상도 무관 동일 비율 | ✅ |
+| 하트 스펙 수리 | 총칸=ceil(MaxHP/20): 기본 5칸, 레벨업 MaxHP 증가 시 빈 하트 증가. 레벨업 MaxHP 임시하트 오인(current>max 판정) 수리 | ✅ |
+| Play 판정 대기 | 100HP=5칸, 레벨업 후 총칸 증가+빈 하트 외곽 렌더 | ⬜ |
+
+## 🎒 2026-09-12: 인벤 I키 재오픈 불가 뿌리 수리 + 무기 애니 판정 로그 (INV-HOTKEY-39)
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 뿌리 원인 | 핫키가 창 GO 동거 → CloseAnimation SetActive(false)가 핫키까지 정지 → I키 재오픈 불가(열림 로그 0회) | ✅ |
+| 수리 | TogglePlayerInventory(컨텍스트 리셋) + 핫키 별도 GO 선부착+Bind 2단(Test_10) + UIWindow.Show 안전망 | ✅ |
+| 무기 애니 | 장착 시 애니 경로 결정 로그(WeaponCombo/찌르기/활발사) — 장착 0건의 원인은 인벤 막힘이었음 | ✅ |
+| Play 판정 대기 | I키 3-연쇄 로그 + 인벤에서 우클릭 장착 + 무기별 애니 변화 | ⬜ |

@@ -25,6 +25,14 @@ namespace ProjectName.Systems
         /// <summary>인스턴스 파괴 예약 시간 (고정).</summary>
         private const float DESTROY_AFTER = 3f;
 
+        /// <summary>
+        /// [2026-09-12 스트로크 미러 플립] 사용자 실측(테스트 영상 4): 빌보드 정면 뷰에서도 아크 진행이
+        /// 좌우 반대로(우→좌) 읽힘 → X 미러로 스트로크 방향 플립(쿼드 로컬 X 반전 = 아크 진행 좌우 반전).
+        /// 빌보드 Instantiate 직후, 롤(Rotate) 적용 전에 localScale로 적용. 정방향 스트로크로 판명되면
+        /// 1f로 되돌릴 것(튜닝 상수). 크로스/임팩트에는 미적용 — 스윙(Slash VFX) 전용.
+        /// </summary>
+        private const float StrokeMirrorX = -1f;
+
         private const string SlashResourcePath = "FX/Slash/Slash VFX";
         private const string CrossSlashResourcePath = "FX/Slash/Multiple Slashes";
         private const string BasicHitResourcePath = "FX/Impact/BasicHit";
@@ -62,7 +70,10 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 공격 스윙 FX (궤적 기울임 포함). arcRollDegrees: 로컬 Z축 회전각(도) —
-        /// 0이면 기존 수평 스윙과 동일. 3타 수직 하향 궤적 등 궤적 평면 기울이기용.
+        /// 0이면 수평 스윙. 2타 수직 궤적(-90)/3타 사선(-45) 등 궤적 평면 기울이기 전용 —
+        /// [2026-09-12] 쿼드 자체는 카메라 수평 빌보드로 세워지므로 롤은 화면축 기준 기울임이다.
+        /// [2026-09-12 스트로크 미러 플립] 빌보드 직후 X 스케일을 <see cref="StrokeMirrorX"/>로 반전해
+        /// 아크 진행 방향을 좌우 플립한다(사용자 실측: 우→좌 역방향 읽힘). 크로스/임팩트에는 미적용.
         /// </summary>
         public static void PlaySlash(Vector3 position, Vector3 direction, float arcRollDegrees)
         {
@@ -74,11 +85,20 @@ namespace ProjectName.Systems
             if (prefab == null) return;
 
             Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
-            GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(dir));
-            // 로컬 Z축 롤 = 스윙 궤적 평면 기울이기 (LookRotation은 방향만 정렬하므로 여기서 추가 회전)
+            // [2026-09-12 카메라 수평 빌보드] 기존 Quaternion.LookRotation(dir)은 쿼드 +Z를 스윙 dir(원거리)로
+            // 향하게 했다 — 3인칭 후방 카메라가 쿼드 뒷면(-Z)을 비스듬히 보게 되고, 슬래시 팩의 아크(+Z 정면
+            // 제작이 일반적)는 뒤에서 보면 스트로크 진행이 좌우 미러링되어 "뒤에서 앞으로 휘두르는" 역스윙처럼
+            // 읽혔다(사용자 2회차 리포트). → 쿼드를 카메라 시선 축(수평)에 정렬해 제작사 의도의 정면 뷰를 보장.
+            // 궤적 개성(수직/사선)은 아래 로컬 Z 롤(화면축 기준 기울임)로만 표현하고, dir은 폴백/로그용으로 유지.
+            Vector3 faceDir = CameraHorizontalFaceDir(position, dir);
+            GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(faceDir));
+            // [2026-09-12 스트로크 미러 플립] X 스케일 반전(튜닝 상수 StrokeMirrorX) — 아크 진행 방향 좌우 플립.
+            // 빌보드 Instantiate 직후, 롤(Rotate) 적용 전에 실행해 로컬 X 미러가 롤 회전축과 간섭 없이 먹게 한다.
+            instance.transform.localScale = new Vector3(StrokeMirrorX, 1f, 1f);
+            // 로컬 Z축 롤 = 빌보드 이후 화면축 기준 궤적 기울이기 (수직/사선 궤적 표현은 여기서만 담당)
             if (Mathf.Abs(arcRollDegrees) > 0.01f)
                 instance.transform.Rotate(0f, 0f, arcRollDegrees, Space.Self);
-            Debug.Log($"[SlashVFX] ✅ 스윙 FX 스폰 (pos={position}, roll={arcRollDegrees:F0}°, 발화시각={Time.time:F2}s)");   // 1회성 검증 아님 — 좌클릭마다 1줄, 발화 증거
+            Debug.Log($"[SlashVFX] ✅ 스윙 FX 스폰 (pos={position}, faceDir={faceDir:F2}, roll={arcRollDegrees:F0}°, 발화시각={Time.time:F2}s)");   // 1회성 검증 아님 — 좌클릭마다 1줄, 발화 증거
             instance.name = "SlashVFX_Swing";
 
             PlayAllParticleSystems(instance);
@@ -90,6 +110,8 @@ namespace ProjectName.Systems
         /// 타 완료 시점 십자가 VFX — Free Slash VFX 팩의 "Multiple Slashes"(다중 슬래시 십자) 스폰.
         /// 스윙이 끝나는 지점(스테이지 경계 통과)에 1회 발화한다(HumanoidClipDriver 콤보 감시에서 호출).
         /// PlaySlash와 동일한 쿨다운/캐시/파괴 패턴. 프리팹 미설치 시 static 1회 경고 후 조용히 반환.
+        /// [2026-09-12] 쿼드 오리엔테이션을 카메라 수평 빌보드로 변경(기존 LookRotation(dir)은 후방 카메라에서
+        /// 뒷면 미러링 = 역스윙 체감 유발). direction은 빌보드 폴백/로그용으로 유지.
         /// </summary>
         public static void PlayCross(Vector3 position, Vector3 direction)
         {
@@ -101,9 +123,12 @@ namespace ProjectName.Systems
             if (prefab == null) return;
 
             Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
-            GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(dir));
+            // [2026-09-12 카메라 수평 빌보드] 히트 지점에서 쿼드 +Z를 카메라 시선 축(수평)에 정렬 —
+            // 십자가가 후방 카메라에서도 항상 정면에서 읽힌다(뒷면 미러링 = 역스윙 체감 차단). 폴백 동일.
+            Vector3 faceDir = CameraHorizontalFaceDir(position, dir);
+            GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(faceDir));
             instance.name = "SlashVFX_Cross";
-            Debug.Log($"[SlashVFX] ✅ 크로스 FX 스폰 (Multiple Slashes, pos={position}, 발화시각={Time.time:F2}s)");
+            Debug.Log($"[SlashVFX] ✅ 크로스 FX 스폰 (Multiple Slashes, pos={position}, faceDir={faceDir:F2}, 발화시각={Time.time:F2}s)");
 
             PlayAllParticleSystems(instance);
             DetectShaderErrorOnce(instance, "CrossSlash");
@@ -129,6 +154,35 @@ namespace ProjectName.Systems
             PlayAllParticleSystems(instance);
             DetectShaderErrorOnce(instance, "Impact");
             ScheduleDestroy(instance);
+        }
+
+        // ================================================================
+        // 내부: 카메라 수평 빌보드 faceDir 산식 (슬래시/크로스 공용)
+        // ================================================================
+
+        /// <summary>
+        /// [2026-09-12] 슬래시/크로스 쿼드 공용 faceDir — 카메라 수평 빌보드.
+        /// +Z 정면 관례 — 카메라가 아크의 앞면에서 보도록(미러링 방지): 쿼드 +Z를
+        /// 스폰 지점→카메라 축의 수평 성분에 정렬해 3인칭 후방 카메라에서도
+        /// 제작사 의도의 정면 뷰가 나오게 한다(뒷면 미러링 = 역스윙 체감 원인 제거).
+        /// 폴백: Camera.main 부재 또는 수평 성분 퇴화 시 -dir(수평화), 그것도 소실 시 Vector3.forward.
+        /// </summary>
+        private static Vector3 CameraHorizontalFaceDir(Vector3 position, Vector3 dir)
+        {
+            Vector3 faceDir;
+            var cam = Camera.main;
+            if (cam != null)
+                faceDir = cam.transform.position - position;   // 스폰 지점→카메라 축 — 쿼드 +Z가 카메라를 향함(카메라가 +Z 정면에서 아크를 봄)
+            else
+                faceDir = -dir;                                 // 폴백: 카메라 부재 — 스윙 방향 역방향(캐릭터 쪽 정면 뷰)
+            faceDir.y = 0f;                                     // 수평 빌보드 — 카메라 피치가 궤적 기울임(roll)에 섞이지 않게 제거
+            if (faceDir.sqrMagnitude < 0.0001f)
+            {
+                faceDir = -dir;                                 // 퇴화(카메라가 스폰 지점 수직 상하) → dir 역방향 폴백
+                faceDir.y = 0f;
+            }
+            if (faceDir.sqrMagnitude < 0.0001f) faceDir = Vector3.forward;   // 최종 방어 — dir 수직 등 수평 성분 완전 소실
+            return faceDir.normalized;
         }
 
         // ================================================================

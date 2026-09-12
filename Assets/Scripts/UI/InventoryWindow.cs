@@ -251,6 +251,50 @@ namespace ProjectName.UI
             }
         }
 
+        /// <summary>
+        /// 2026-09-12(P4): I키 전용 플레이어 인벤 토글 — 컨텍스트 잔존 수리.
+        /// 38차 실측 '토글 → 열림 0회'의 보완: 창고(E)/상점 컨텍스트가 남은 채 Show되면
+        /// 플레이어 인벤 뷰가 아니라 컨텍스트 뷰로 열린다. I키는 항상 플레이어 인벤으로 시작.
+        /// 닫혀있으면: 컨텍스트 None 리셋 후 Show(). 열려있으면: Hide().
+        /// 기존 UIWindow.Toggle()은 호환 위해 유지(다른 호출부 영향 없음).
+        /// </summary>
+        public void TogglePlayerInventory()
+        {
+            if (!IsOpen)
+            {
+                if (_contextMode != ContextMode.None)
+                {
+                    _contextMode = ContextMode.None;
+                    _warehouseTerritoryId = null;
+                }
+                _pendingContextMode = ContextMode.None;   // 인스턴스 생성 전 대기 컨텍스트도 차단
+                s_pendingWarehouseTerritoryId = null;
+                Show();
+            }
+            else
+            {
+                Hide();
+            }
+        }
+
+        /// <summary>2026-09-12(P4): 상태 전이 로그 1회 — '열림 0회' 실측 원인 규명용(열림 + 현재 컨텍스트).</summary>
+        public override void Show()
+        {
+            bool wasOpen = IsOpen;
+            base.Show();
+            if (!wasOpen)
+                Debug.Log($"[InventoryWindow] 열림 (컨텍스트={_contextMode})");
+        }
+
+        /// <summary>2026-09-12(P4): 상태 전이 로그 1회 (닫힘 + 컨텍스트 — OnHide 리셋 전 값으로 진단).</summary>
+        public override void Hide()
+        {
+            bool wasOpen = IsOpen;
+            base.Hide();
+            if (wasOpen)
+                Debug.Log($"[InventoryWindow] 닫힘 (컨텍스트={_contextMode})");
+        }
+
         protected override void OnDestroy()
         {
             base.OnDestroy();

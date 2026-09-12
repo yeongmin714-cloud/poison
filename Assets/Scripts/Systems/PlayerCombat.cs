@@ -70,7 +70,8 @@ namespace ProjectName.Systems
         {
             if (weapon == null) return;
             _currentWeapon = weapon;
-            Debug.Log($"[PlayerCombat] 🗡️ 무기 설정: {weapon.weaponName}");
+            // 2026-09-12(P5): 무기별 애니 판정 가시화 — 무기명/타입/공속/DMG 1줄
+            Debug.Log($"[PlayerCombat] 🗡️ 무기 설정: {weapon.weaponName} (타입={weapon.weaponType}, 공속={weapon.attackSpeed}s, DMG={weapon.damage})");
         }
 
         /// <summary>무기와 플레이어 레벨을 기반으로 데미지를 계산합니다.</summary>

@@ -885,13 +885,30 @@ namespace ProjectName.Systems
                 Debug.Log("[UITest] ✅ 미니맵 부착 (상시 표시)");
             }
 
-            // ② 인벤토리 창 (I키)
+            // ② 인벤토리 창 (I키) + 핫키 2단 바인딩 (2026-09-12 P4: 열림 신뢰화)
+            // 핫키를 창과 별도 GameObject에 선부착 — ① 창 닫힘(CloseAnimation → _windowRoot 비활성)과
+            // 무관하게 I키 수신 유지(38차 '열림 0회'의 근본 원인: 자가등록 핫키가 창 GO에 동거해
+            // 창 닫힘 시 함께 죽음), ② 창 Awake의 자가등록 폴백이 선점 스킵(중복 등록 방지).
+            var hotType = uiAsm.GetType("ProjectName.UI.UIInventoryHotkey");
+            UnityEngine.Object hotComp = null;
+            if (hotType != null && UnityEngine.Object.FindAnyObjectByType(hotType) == null)
+            {
+                var hotGO = new GameObject("UIInventoryHotkey");
+                hotComp = hotGO.AddComponent(hotType);
+            }
             var invType = uiAsm.GetType("ProjectName.UI.InventoryWindow");
             if (invType != null && UnityEngine.Object.FindAnyObjectByType(invType) == null)
             {
                 var invGO = new GameObject("InventoryUI");
                 invGO.AddComponent(invType);
                 Debug.Log("[UITest] ✅ 인벤토리 창 부착 (I키 토글)");
+                // 2단(Attach→Bind) 명시 — 셋업이 핫키-창 연결을 보장 (자가등록 폴백 의존 제거)
+                if (hotComp != null)
+                {
+                    var bind = hotType.GetMethod("Bind", new[] { invType });
+                    bind?.Invoke(hotComp, new object[] { UnityEngine.Object.FindAnyObjectByType(invType) });
+                    Debug.Log("[UITest] ✅ UIInventoryHotkey 부착+Bind 2단 완료 (별도 GO — 창 비활성과 무관 I키 수신)");
+                }
             }
 
             // ③ 스탯 창(P키) — 셀프부트가 있으나 겹침 방지로 존재 확인 후 부착
