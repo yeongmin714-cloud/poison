@@ -28,6 +28,11 @@
 **수리**: `AnimalAI.TakeDamage` FX 블록 → PlayHitFlash 1줄만 유지(비플레이어 피격 소스 대비)+절차 파티클/숫자 2종 제거(PlayerCombat→CombatFXGate 단일 경로로 통일). `AnimalAI.Die()` 사망 혈흔 제거. `MonsterSkillSystem` 절차 파티클 15콜 전부 제거(스파크/블러드 — 지시 5곳+전수 발견 10곳). 잔존 전수: AnimalAI/MonsterSkillSystem 0건(정의부·StealthAssassination만 남음).
 **컴파일**: error CS=0(1회 통과) — Play 판정 대기 갱신: 동일 항목 + 몬스터 타격 화면에서 절차 파티클 0건.
 
+### 🔧 46차 후속2 (사용자 "슬래시/피격 임팩트 부착 안 됨" — 위치 뿌리 수리)
+**원인(로그 실측)**: ① 피격 임팩트 = Gate GameObject 오버로드가 target.transform.position(모델 피벗) 사용 → Editor.log pos y≈2.9 공중 부양(실제 타격 지점 아님) ② 슬래시 = 월드 고정점(루트 fwd0.9+up1.2) 스폰 → 플레이어 이동 시 아크가 몸과 분리.
+**수리**: ① `CombatFXGate.PlayHitFX(GameObject target, Vector3 hitPos, ...)` 신규 오버로드(PlayHitFlash 유지+hitPos 전달) + PlayerCombat이 LastHitPoint(bounds center+0.2, 375행 직전 갱신) 전달 — 임팩트가 실제 타격 지점에 부착 ② 크로스 앵커 up1.2→0.6 ③ `PlaySlashStage(..., Transform playerRoot)` — 인스턴스를 플레이어에 SetParent(worldPositionStays=true, 스폰 정렬 유지+이동 추종) + 앵커 근접화(fwd0.9+up1.2→fwd0.55+up1.25) + 스케일 1.2→1.5.
+**컴파일**: error CS=0.
+
 ## 📌 세션 종합 스냅샷 (2026-09-13 ✅ 45차 — 보라 파티클 진범=마젠타 셰이더 에러 뿌리 수리+BOTW 팔레트 통일+임팩트 단일화+방어구 비주얼 부착 신규+전리품창 5×2+화살 탭)
 
 > **스코프**: 테스트 7 영상 픽셀 실측으로 "보라 파티클"의 진범 확정 — 평균 RGB (219,19,219)=**Unity 셰이더 에러 마젠타**. 런타임 파티클이 기본 머티리얼(Particles/Standard Unlit)로 생성되어 URP 미지원 → 마젠타 렌더. 40차 틴트/44차 색 교체/보라 정규화가 무효였던 근본 이유. 텍스처 전수 확인(HIE/Guz 전부 무채색)으로 코드 색·텍스처는 무죄. 배치컴파일 error CS=0 + 정적 QA FAIL 0건.

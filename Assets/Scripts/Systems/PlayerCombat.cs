@@ -17,7 +17,7 @@ namespace ProjectName.Systems
 
         // ===== 2026-09-11: 마지막 적중 정보 공유 — 십자가 VFX가 실제 맞은 대상 지점에 발화되도록 =====
         // 의존 방향 유지: HumanoidClipDriver(드라이버) → PlayerCombat(컴뱃) 단방향 참조만 허용.
-        /// <summary>마지막 적중 대상의 지점(대상 Collider/Renderer bounds 중심 + up*0.2). 크로스 VFX 발화 기준점.</summary>
+        /// <summary>마지막 적중 대상의 지점(대상 Collider/Renderer bounds 중심 + up*0.1 — 2026-09-13 0.2→0.1 하향, 부착감). 크로스 VFX 발화 기준점.</summary>
         public static Vector3 LastHitPoint;
         /// <summary>마지막 적중 정보 유효 여부 — 미스(빈 스윙) 경로에서 false로 무효화.</summary>
         public static bool LastHitValid;
@@ -364,7 +364,8 @@ namespace ProjectName.Systems
 
             // 📍 2026-09-11: 마지막 적중 지점 저장 — 십자가 VFX(FireComboCross)가 플레이어 전방 고정점이
             // 아니라 실제로 공격을 맞은 대상 지점에 발화되도록 공유. 데미지 로직 자체는 변경 없음.
-            // 저장 규격: 대상 Collider/Renderer bounds 중심 + up*0.2 (bounds 없으면 대상 position + up*1.2).
+            // 저장 규격: 대상 Collider/Renderer bounds 중심 + up*0.1 (bounds 없으면 대상 position + up*1.2).
+            // [2026-09-13] 오프셋 0.2→0.1 하향 — 히트 지점 VFX/FX가 대상에서 살짝 뜨는 체감 개선(부착감).
             if (targetBehaviour != null)
             {
                 Collider hitCol = targetBehaviour.GetComponentInChildren<Collider>();
@@ -372,7 +373,7 @@ namespace ProjectName.Systems
                 Vector3 center = hitCol != null ? hitCol.bounds.center
                                : hitRen != null ? hitRen.bounds.center
                                : targetBehaviour.transform.position + Vector3.up * 1.2f;
-                LastHitPoint = center + Vector3.up * 0.2f;
+                LastHitPoint = center + Vector3.up * 0.1f;
                 LastHitValid = true;
                 LastHitTime = Time.time;
             }
@@ -425,9 +426,9 @@ namespace ProjectName.Systems
             if (targetBehaviour != null)
             {
                 Color numberColor = isBackAttack ? FXPalette.Accent : FXPalette.Core;
-                // 46차 후속: 임팩트를 실제 타격 지점(bounds center+0.2)에 부착 — 기존 GameObject 오버로드는
+                // 46차 후속: 임팩트를 실제 타격 지점(bounds center+0.1)에 부착 — 기존 GameObject 오버로드는
                 // target.transform.position(모델 피벗, Editor.log 실측 y≈2.9 공중 부양)에 발화해 타격 지점과 어긋났다.
-                // hitPos = LastHitPoint(375행에서 직전에 갱신: bounds center+up*0.2). Time.time 기반 신선도
+                // hitPos = LastHitPoint(375행에서 직전에 갱신: bounds center+up*0.1). Time.time 기반 신선도
                 // 확인(LastHitValid/LastHitTime, 0.5s — FireComboCross와 동일 규약)이 있으므로 그대로 사용하고,
                 // 만료 시엔 기존과 같이 대상 피벗으로 폴백한다.
                 bool hitPointFresh = LastHitValid && Time.time - LastHitTime <= 0.5f;

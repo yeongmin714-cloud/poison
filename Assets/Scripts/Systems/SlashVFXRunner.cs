@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.VFX;   // [2026-09-13 alive 진단] VisualEffect.aliveParticleCount — SlashAliveProbe 진단용
 
 namespace ProjectName.Systems
 {
@@ -54,6 +55,12 @@ namespace ProjectName.Systems
         /// </summary>
         private const float StylizedSlashDestroyAfter = 1.5f;
 
+        /// <summary>
+        /// [2026-09-13 폴백] 구 Slash VFX 폴백 스케일 배수 — StylizedSlashScale(1.5)과 동일 값으로 시작하는
+        /// 폴백 전용 상수(독립 튜닝 가능). 폴백 발화 시 이 값으로 균일 스케일.
+        /// </summary>
+        private const float FallbackSlashScale = 1.5f;
+
         /// <summary>인스턴스 파괴 예약 시간 (고정).</summary>
         private const float DESTROY_AFTER = 3f;
 
@@ -98,6 +105,12 @@ namespace ProjectName.Systems
         private static float _lastImpactSpawnTime = -999f;
         private static float _lastCrossSpawnTime = -999f;   // 크로스 전용 쿨다운 — 스윙/임팩트와 독립
         private static float _lastStylizedSlashSpawnTime = -999f;   // [2026-09-13] 스타일라이즈드 전용 쿨다운(0.25s) — 3종과 독립
+
+        // [2026-09-13 alive 진단] VFX Graph 미출력 폴백 플래그 — SlashAliveProbe가 aliveParticleCount<=0을
+        // 감지하면 true로 세팅되고, 이후 PlaySlashStage 발화부터 구 Slash VFX("FX/Slash/Slash VFX") 폴백
+        // 경로를 사용한다. alive>0(정상 출력) 진단 시 false로 복귀 — VFX 복구 시 자동 복귀.
+        private static bool _vfxDeadFallbackActive;
+
         private static SlashFxHost _host;
 
         // ================================================================
@@ -172,9 +185,24 @@ namespace ProjectName.Systems
         /// <param name="playerRoot">46차 후속: 플레이어 루트 Transform — 인스턴스 부착(추종) 대상. null이면 부모 없이 스폰(폴백).</param>
         public static void PlaySlashStage(Vector3 position, Vector3 direction, int stage, float yawSign, Transform playerRoot = null)
         {
-            // 스팸 방지 — 스타일라이즈드 전용 쿨다운(0.25s, MIN_SPAWN_INTERVAL과 별개 상수): 콤보 타당 최소 간격 강제
+            // 스팸 방지 — 스타일라이즈드/폴백 공용 쿨다운(0.25s, MIN_SPAWN_INTERVAL과 별개 상수): 콤보 타당 최소 간격 강제
             if (Time.time - _lastStylizedSlashSpawnTime < MIN_STYLIZED_SLASH_INTERVAL) return;
             _lastStylizedSlashSpawnTime = Time.time;
+
+            // [2026-09-13 폴백 분기] alive 진단으로 VFX Graph 미출력이 확정된 상태(_vfxDeadFallbackActive)면
+            // 구 Slash VFX 프리팹(Resources.Load("FX/Slash/Slash VFX") — 8 MeshRenderer, URP Shader Graph,
+            // 42차 이전 렌더 실적)으로 동일 오리엔테이션 파이프라인 발화한다(아래 SpawnFallbackSlashStage).
+            if (_vfxDeadFallbackActive)
+            {
+                GameObject fallbackPrefab = LoadSlashPrefab();   // 캐시 + static 1회 경고 — 기존 스윙 로더 공용
+                if (fallbackPrefab != null)
+                {
+                    SpawnFallbackSlashStage(fallbackPrefab, position, direction, stage, yawSign, playerRoot);
+                    return;
+                }
+                // Resources 로드 실패 시(위 로더가 1회 경고) 가장 안전한 기본값: 스타일라이즈드 경로 유지 —
+                // 아래 기존 StylizedSlash 스폰 경로로 계속 진행한다.
+            }
 
             GameObject prefab = LoadStylizedSlashPrefab();
             if (prefab == null) return;
@@ -207,6 +235,11 @@ namespace ProjectName.Systems
             // 스케일 튜닝 상수 — 46차 후속: 1.5배(StylizedSlashScale, 가시성 확대). 플립이 회전 기반이므로 균일 스케일.
             instance.transform.localScale = Vector3.one * StylizedSlashScale;
 
+            // [2026-09-13 alive 진단] 부착/오리엔테이션 완료 시점에 진단 러너 부착 — 0.35s 후 aliveParticleCount로
+            // VFX Graph 미출력(테스트 9프레임 픽셀 스캔 골드 아크 0픽셀 확정 — URP 렌더 타겟 불일치 추정)을
+            // 판정해 NotifyVfxDead()로 폴백 플래그를 세팅한다(진단 러너 = 파일 하단 SlashAliveProbe).
+            instance.AddComponent<SlashAliveProbe>();
+
             // [틴트 불가] 이 팩은 노출 프로퍼티(m_PropertySheet)가 비어 있어 런타임 틴트 불가 — TintParticles/
             // NormalizePurpleParticles(ParticleSystem 대상)도 무효(프리팹에 파티클 시스템 없음, VFX Graph 단독).
             // 원본 골드 계열이 곧 팔레트 Accent 톤이므로 무색상 처리로 확정.
@@ -216,9 +249,68 @@ namespace ProjectName.Systems
             ScheduleDestroy(instance, StylizedSlashDestroyAfter);   // VFX 자체 종료 후 잔존 없음 — 1.5s 자가 파괴
         }
 
+        /// <summary>
+        /// [2026-09-13 폴백 스폰] 구 Slash VFX 프리팹("FX/Slash/Slash VFX" — 8 MeshRenderer, URP Shader Graph,
+        /// 42차 이전 렌더 실적)을 스타일라이즈드 경로와 동일 오리엔테이션 파이프라인으로 발화한다:
+        /// ① 카메라 수평 빌보드 ② playerRoot SetParent(true) 부착 ③ yawSign Y 180도 플립 ④ stage 롤
+        /// ⑤ 균일 스케일(FallbackSlashScale — StylizedSlashScale과 동일 값). 구 프리팹의 Point Light 자식은
+        /// 연출 요소이므로 그대로 둔다. 파괴 1.5s(StylizedSlashDestroyAfter 공용), 쿨다운은 PlaySlashStage
+        /// 선두의 _lastStylizedSlashSpawnTime 하나를 공유한다.
+        /// </summary>
+        private static void SpawnFallbackSlashStage(GameObject prefab, Vector3 position, Vector3 direction, int stage, float yawSign, Transform playerRoot)
+        {
+            Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
+            // ① 카메라 수평 빌보드 — 기존 경로와 동일(+Z 정면 관례)
+            Vector3 faceDir = CameraHorizontalFaceDir(position, dir);
+            GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(faceDir));
+            instance.name = "SlashVFX_Fallback";
+
+            // ② 플레이어 부착(추종) — worldPositionStays=true, 기존 경로 동일(파괴는 자식 인스턴스만 → 부모 안전)
+            if (playerRoot != null)
+                instance.transform.SetParent(playerRoot, true);
+
+            // ③ yawSign 좌우 플립 — Y 180도 회전(기존 경로 동일: localScale 음수 대신 회전 우선)
+            if (yawSign < 0f)
+                instance.transform.Rotate(0f, 180f, 0f, Space.Self);
+
+            // ④ stage 롤 — 기존 규약 동일(1타 0° / 2타 -90° / 3타 -45°)
+            float roll = ComboStageRollDegrees(stage);
+            if (Mathf.Abs(roll) > 0.01f)
+                instance.transform.Rotate(0f, 0f, roll, Space.Self);
+
+            // ⑤ 스케일 — 폴백 전용 상수(FallbackSlashScale) = StylizedSlashScale과 동일 값(1.5) 균일 스케일
+            instance.transform.localScale = Vector3.one * FallbackSlashScale;
+
+            // 구 프리팹 자체 재생 불가 케이스 대비 — 기존 PlaySlash 선례대로 파티클 명시 재생(이미 재생 중이면 무해)
+            PlayAllParticleSystems(instance);
+            DetectShaderErrorOnce(instance, "FallbackSlash");
+            Debug.Log($"[SlashVFX] 폴백 Slash VFX 발화 (stage={stage}, yawSign={yawSign})");
+            ScheduleDestroy(instance, StylizedSlashDestroyAfter);   // 1.5s 자가 파괴 — 스타일라이즈드와 동일 상수 공용
+        }
+
         /// <summary>콤보 스테이지별 아크 롤(기존 규약) — 1타 수평 0° / 2타 수직 -90° / 3타 사선 -45°. 3타 부호는 튜닝 포인트.</summary>
         private static float ComboStageRollDegrees(int stage)
             => stage == 2 ? -90f : (stage == 3 ? -45f : 0f);
+
+        // ================================================================
+        // 내부: alive 진단 콜백 (SlashAliveProbe → 러너) — VFX Graph 미출력 폴백 전환
+        // ================================================================
+
+        /// <summary>
+        /// [2026-09-13 alive 진단] SlashAliveProbe가 aliveParticleCount<=0(미출력)을 감지하면 호출 —
+        /// _vfxDeadFallbackActive 플래그를 세팅해 이후 PlaySlashStage 발화부터 구 Slash VFX 폴백 경로를
+        /// 사용한다. 호출 1회로 충분(플래그는 멱등 — 중복 진단에도 안전).
+        /// </summary>
+        internal static void NotifyVfxDead()
+        {
+            _vfxDeadFallbackActive = true;
+        }
+
+        /// <summary>alive>0(정상 출력) 진단 시 플래그 해제 — VFX 복구 시 스타일라이즈드 경로로 자동 복귀.</summary>
+        internal static void NotifyVfxAlive()
+        {
+            _vfxDeadFallbackActive = false;
+        }
 
         /// <summary>
         /// 타 완료 시점 히트 VFX — [45차 P3 임팩트 단일화] TravisHit 전용 스폰을 제거하고 PlayImpact와
@@ -535,5 +627,41 @@ namespace ProjectName.Systems
     /// </summary>
     internal class SlashFxHost : MonoBehaviour
     {
+    }
+
+    /// <summary>
+    /// [2026-09-13 alive 진단] StylizedSlash(VFX Graph) 인스턴스에 부착되는 진단 러너 — 스폰 0.35초 후
+    /// aliveParticleCount를 확인해 VFX Graph 미출력(URP 렌더 파이프라인 타겟 불일치 추정)을 판정한다.
+    ///   - alive<=0: SlashVFXRunner.NotifyVfxDead() 1회 호출 → 이후 발화부터 구 Slash VFX 폴백 전환.
+    ///   - alive>0 : 정상 출력 — 폴백 플래그 해제 유지(VFX 복구 시 스타일라이즈드 경로 자동 복귀).
+    /// SlashFxHost와 동일한 파일 내부 보조 MonoBehaviour 패턴(진단에 0.35s 지연이 필요해 컴포넌트로 분리).
+    /// </summary>
+    internal sealed class SlashAliveProbe : MonoBehaviour
+    {
+        /// <summary>진단 지연(초) — 첫 방출 파티클이 확실히 살아있어야 할 시점(튜닝 상수).</summary>
+        private const float DiagnoseDelay = 0.35f;
+
+        private void Start()
+        {
+            // Start에서 0.35s 후 진단 — static 러너는 코루틴을 못 돌리므로 자기 인스턴스 코루틴으로 실행.
+            StartCoroutine(Diagnose());
+        }
+
+        private System.Collections.IEnumerator Diagnose()
+        {
+            yield return new WaitForSeconds(DiagnoseDelay);
+
+            var ve = GetComponent<VisualEffect>();
+            int alive = ve != null ? ve.aliveParticleCount : -1;
+            if (alive <= 0)
+            {
+                SlashVFXRunner.NotifyVfxDead();
+                Debug.Log($"[SlashVFX] VFX Graph 미출력 감지(alive={alive}) — 구 Slash VFX 폴백 전환");
+            }
+            else
+            {
+                SlashVFXRunner.NotifyVfxAlive();   // 정상 출력 — 폴백 플래그 유지 해제(복구 시 자동 복귀)
+            }
+        }
     }
 }
