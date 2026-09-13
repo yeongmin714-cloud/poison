@@ -692,29 +692,11 @@ namespace ProjectName.Systems
             // === G2-05: CombatVFXController + 레거시 히트 이펙트 (FX 체인 격리) ===
             // 데미지 숫자(IMGUI) 등 어떤 FX 예외가 발생해도 Die() 도달이 막히지 않도록
             // FX 전체를 try-catch로 격리한다. 예외 시 스팸 가드(1초 쿨다운) 경고 후 계속.
+            // 2026-09-13(46차): 피격 표현 단일화 — PlayerCombat→CombatFXGate 경로(Guz 에셋+데미지 숫자+카메라)로 통일,
+            // AnimalAI 자체 절차 파티클 제거(스파크/블러드/HitVFX/숫자 2종). HitReaction은 행동 로직으로 유지.
             try
             {
                 CombatVFXController.PlayHitFlash(gameObject);
-                CombatVFXController.SpawnHitSparks(transform.position);
-                CombatVFXController.SpawnBloodSplatter(transform.position, hitDirection.normalized);
-
-                // === VFX ===
-                // 1. Sparks
-                HitVFX.PlayHitEffect(transform.position, hitDirection.normalized);
-
-                // 2. Damage Number
-                HitVFX.SpawnDamageNumber(transform.position, amount);
-
-                // 3. Damage Number (CombatVFXController — IMGUI)
-                // 2026-09-13(45차 P2): BOTW 팔레트 통일 — 흰/골드/주황 3색.
-                // 일반=Core(흰), 강타(최대 HP 30% 이상)=Accent(골드), 기타(15% 이상 중타)=Edge(주황).
-                // (TakeDamage 시그니처에 치명 플래그가 없어 HP 비율 강타 기준으로 매핑 — 녹/빨강/노랑 제거)
-                Color dmgColor = FXPalette.Core;
-                if (amount / _maxHP >= 0.3f)
-                    dmgColor = FXPalette.Accent;
-                else if (amount / _maxHP >= 0.15f)
-                    dmgColor = FXPalette.Edge;
-                CombatVFXController.ShowDamageNumber(transform.position, Mathf.RoundToInt(amount), dmgColor);
 
                 // 4. Hit Reaction (넉백 + 경직)
                 var hitReaction = GetComponent<HitReaction>();
@@ -862,7 +844,7 @@ namespace ProjectName.Systems
             }
 
             // === G2-05: 사망 VFX ===
-            CombatVFXController.SpawnBloodSplatter(transform.position, Vector3.up);
+            // 2026-09-13(46차): 사망 혈흔도 절차 파티클 제외 — 사용자 지정
 
             // 🔊 컨트롤러 진동: 몬스터 사망 (Light)
             HapticFeedback.PlayPreset(HapticFeedback.RumblePreset.Light);

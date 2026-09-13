@@ -23,6 +23,11 @@
 - 정적 QA(서브에이전트): 5파일 diff 전수/시그니처 일치(PlaySlashStage↔호출부·ComboStageDirection 복원)/미수정 영역 보존/guid 유일(원본 중복 0)/제거 7종 호출 0건+유지 토큰 전수/Soldier 도달 0/균형 — **FAIL 0건**
 - Play 판정 대기: ① 타격 시 골드/금색 스파크·파편·붉은 점·발밑 주황 링·화면 황색 틴트 전부 소멸 ② 피격=Guz 히트 에셋+흰 번쩍+데미지 숫자만 ③ 스윙 시 골드 스타일라이즈드 아크가 1타 수평/2타 수직/3타 사선+방향 추종 ④ 흰 무기 트레일 유지 ⑤ 크로스와 임팩트 동일 톤
 
+### 🔧 46차 후속 수리 (사용자 "전혀 안고쳐졌어" — 뿌리 추가 확정)
+**원인**: 몬스터 피격 FX는 CombatFXGate와 **별개 경로**였음 — `AnimalAI.TakeDamage`(698-717행)가 SpawnHitSparks/SpawnBloodSplatter/HitVFX.PlayHitEffect/HitVFX.SpawnDamageNumber/ShowDamageNumber를 **자체 직접 호출**(이중 발화) → 46차 Gate 정리와 무관하게 절차 파티클이 그대로 보임. 슬래시 발화 로그(stage/yawSign)는 정상 출력 확인 — "안 고쳐진 것"은 이 잔존 경로.
+**수리**: `AnimalAI.TakeDamage` FX 블록 → PlayHitFlash 1줄만 유지(비플레이어 피격 소스 대비)+절차 파티클/숫자 2종 제거(PlayerCombat→CombatFXGate 단일 경로로 통일). `AnimalAI.Die()` 사망 혈흔 제거. `MonsterSkillSystem` 절차 파티클 15콜 전부 제거(스파크/블러드 — 지시 5곳+전수 발견 10곳). 잔존 전수: AnimalAI/MonsterSkillSystem 0건(정의부·StealthAssassination만 남음).
+**컴파일**: error CS=0(1회 통과) — Play 판정 대기 갱신: 동일 항목 + 몬스터 타격 화면에서 절차 파티클 0건.
+
 ## 📌 세션 종합 스냅샷 (2026-09-13 ✅ 45차 — 보라 파티클 진범=마젠타 셰이더 에러 뿌리 수리+BOTW 팔레트 통일+임팩트 단일화+방어구 비주얼 부착 신규+전리품창 5×2+화살 탭)
 
 > **스코프**: 테스트 7 영상 픽셀 실측으로 "보라 파티클"의 진범 확정 — 평균 RGB (219,19,219)=**Unity 셰이더 에러 마젠타**. 런타임 파티클이 기본 머티리얼(Particles/Standard Unlit)로 생성되어 URP 미지원 → 마젠타 렌더. 40차 틴트/44차 색 교체/보라 정규화가 무효였던 근본 이유. 텍스처 전수 확인(HIE/Guz 전부 무채색)으로 코드 색·텍스처는 무죄. 배치컴파일 error CS=0 + 정적 QA FAIL 0건.

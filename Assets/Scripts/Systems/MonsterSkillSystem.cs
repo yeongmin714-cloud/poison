@@ -367,7 +367,7 @@ namespace ProjectName.Systems
             proj.Init(skillData, monster);
 
             // 시각 효과: 파티클
-            CombatVFXController.SpawnHitSparks(monsterPos);
+            // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
             Debug.Log($"[MonsterSkill] 🔥 {MonsterDatabase.Get(monster.MonsterId)?.displayName ?? monster.MonsterId} 화염구 발사!");
         }
 
@@ -392,7 +392,7 @@ namespace ProjectName.Systems
             }
 
             // 시각 효과
-            CombatVFXController.SpawnHitSparks(target.transform.position);
+            // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
         }
 
         /// <summary>
@@ -441,8 +441,7 @@ namespace ProjectName.Systems
             }
 
             // 시각 효과
-            CombatVFXController.SpawnHitSparks(monster.transform.position);
-            CombatVFXController.SpawnBloodSplatter(monster.transform.position, direction);
+            // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
             Debug.Log($"[MonsterSkill] 💨 {MonsterDatabase.Get(monster.MonsterId)?.displayName ?? monster.MonsterId} 돌진! ({distance}m)");
         }
 
@@ -493,8 +492,7 @@ namespace ProjectName.Systems
             }
 
             // 시각 효과 (더 강하게)
-            CombatVFXController.SpawnHitSparks(monster.transform.position);
-            CombatVFXController.SpawnBloodSplatter(endPos, direction);
+            // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
             Debug.Log($"[MonsterSkill] 🦘 {MonsterDatabase.Get(monster.MonsterId)?.displayName ?? monster.MonsterId} 덤벼들기!");
         }
 
@@ -518,8 +516,7 @@ namespace ProjectName.Systems
             monster.transform.LookAt(new Vector3(targetPos.x, monsterPos.y, targetPos.z));
 
             // 시각 효과
-            CombatVFXController.SpawnHitSparks(monsterPos); // 원래 위치
-            CombatVFXController.SpawnHitSparks(teleportPos); // 새 위치
+            // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
             Debug.Log($"[MonsterSkill] ⚡ {MonsterDatabase.Get(monster.MonsterId)?.displayName ?? monster.MonsterId} 순간이동! → {teleportPos}");
         }
 
@@ -547,14 +544,7 @@ namespace ProjectName.Systems
                 }
             }
 
-            // 시각 효과: 파티클 버스트
-            CombatVFXController.SpawnHitSparks(monsterPos);
-            for (int i = 0; i < 5; i++)
-            {
-                Vector3 offset = Random.insideUnitSphere * skillData.range;
-                offset.y = Mathf.Abs(offset.y);
-                CombatVFXController.SpawnHitSparks(monsterPos + offset);
-            }
+            // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
 
             // 지면 충격 효과 (데미지 폰트)
             if (hitPlayer)
@@ -584,7 +574,7 @@ namespace ProjectName.Systems
                 Debug.Log($"[MonsterSkill] 💚 드라큘라 HP 회복! +{healAmount} ({dracula.HP}/{dracula.MaxHP})");
 
                 // 시각 효과
-                CombatVFXController.SpawnHitSparks(dracula.transform.position);
+                // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
             }
             else
             {
@@ -641,7 +631,7 @@ namespace ProjectName.Systems
                 Destroy(minion, 5f);
             }
 
-            CombatVFXController.SpawnHitSparks(monsterPos);
+            // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
             Debug.Log($"[MonsterSkill] 🦇 {MonsterDatabase.Get(monster.MonsterId)?.displayName ?? monster.MonsterId} 미니언 소환!");
         }
 
@@ -663,7 +653,7 @@ namespace ProjectName.Systems
             }
 
             // 시각 효과 (보라색/초록색)
-            CombatVFXController.SpawnHitSparks(target.transform.position);
+            // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
             Debug.Log($"[MonsterSkill] 🐌 {MonsterDatabase.Get(monster.MonsterId)?.displayName ?? monster.MonsterId} 디버프 적용! (이속 -50%, 5초)");
         }
 
@@ -806,8 +796,7 @@ namespace ProjectName.Systems
             }
 
             // 시각 효과
-            CombatVFXController.SpawnHitSparks(transform.position);
-            CombatVFXController.SpawnBloodSplatter(transform.position, Vector3.up);
+            // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
 
             // 제거
             Destroy(gameObject);
