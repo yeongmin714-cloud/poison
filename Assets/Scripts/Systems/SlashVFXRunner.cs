@@ -7,6 +7,8 @@ namespace ProjectName.Systems
     ///   - 스윙: Free Slash VFX "Slash VFX.prefab" (Assets/Resources/FX/Slash/Slash VFX)
     ///   - 피격: Matthew Guz "Basic Hit" (Assets/Resources/FX/Impact/BasicHit)
     ///     [45차 P3 임팩트 단일화] BasicHit2(Construct)/TravisHit(크로스) 경로 제거 — BasicHit 단일 프리팹
+    ///   - [2026-09-13 스타일라이즈드 스윙] Stylizer Slash VFX(slash5-HungNguyen) "white-yellow bolder"
+    ///     (Assets/Resources/FX/Slash/StylizedSlash) — PlaySlashStage가 콤보 스윙 아크 발화(아래 상수/메서드 참조)
     ///
     /// 프리팹은 에디터 인스톨러(Tools/VFX/Install Slash+Impact to Resources, -executeMethod:
     /// ProjectName.EditorTools.VFXResourceInstaller.InstallAll)가 Resources 하위로 복사해두므로
@@ -36,6 +38,22 @@ namespace ProjectName.Systems
         /// <summary>스팸 방지: 마지막 스폰 후 이 시간 이내 재호출은 무시 (이중 발화 흡수).</summary>
         private const float MIN_SPAWN_INTERVAL = 0.08f;
 
+        /// <summary>
+        /// [2026-09-13 스타일라이즈드 슬래시] 스타일라이즈드 스윙 아크 전용 쿨다운 — MIN_SPAWN_INTERVAL(0.08s)과
+        /// 별개 상수. 콤보 타당 최소 간격(0.25s)을 강제해 빠른 연타에서 아크 겹침/스팸을 방지한다
+        /// (스윙/크로스/임팩트 쿨다운과 독립 — 타이머도 별도).
+        /// </summary>
+        private const float MIN_STYLIZED_SLASH_INTERVAL = 0.25f;
+
+        /// <summary>스타일라이즈드 슬래시 스케일 배수(튜닝 상수) — 초기 1.2배, Play 판정 후 조정.</summary>
+        private const float StylizedSlashScale = 1.2f;
+
+        /// <summary>
+        /// 스타일라이즈드 슬래시 자가 파괴 예약 시간(튜닝 상수) — VFX Graph가 자체 수명 후 완전 소진되므로
+        /// 잔존 GO 정리용. ScheduleDestroy 파괴 예약 패턴 재사용(WeaponSwingTrail/기존 3s 파괴 선례).
+        /// </summary>
+        private const float StylizedSlashDestroyAfter = 1.5f;
+
         /// <summary>인스턴스 파괴 예약 시간 (고정).</summary>
         private const float DESTROY_AFTER = 3f;
 
@@ -50,6 +68,10 @@ namespace ProjectName.Systems
         private const string SlashResourcePath = "FX/Slash/Slash VFX";
         // [45차 P3 임팩트 단일화] TravisHit/BasicHit2 리소스 경로 제거 — BasicHit 단일 경로만 유지
         private const string BasicHitResourcePath = "FX/Impact/BasicHit";
+        // [2026-09-13 P2 임팩트 Guz 단일 유지] 임팩트는 BasicHit 단일 프리팹으로 확정 — PlayImpact/PlayCross 모두
+        // CoreTint(흰 1,1,1) 틴트 유지(아래 PlayImpact 내 TintParticles(CoreTint) 확인 완료).
+        // "Basic Hit 8 (NEW)" 후보 에셋 존재 — Play 판정(실측) 후 검토 예정. 회귀 방지: 현시점 교체 없음(주석 명기).
+        private const string StylizedSlashResourcePath = "FX/Slash/StylizedSlash";
 
         // ── 45차 P3: BOTW 팔레트 틴트 상수 — 코어=흰 / 액센트=골드 / 외곽=주황 ──
         /// <summary>[45차 P3: BOTW 팔레트] 코어 틴트 = 흰(1,1,1) — 임팩트/스윙 기본 톤.</summary>
@@ -62,9 +84,11 @@ namespace ProjectName.Systems
         // ── static 캐시/상태 ─────────────────────────────────────────
         private static GameObject _slashPrefab;
         private static GameObject _basicHitPrefab;   // [45차 P3] TravisHit/Construct(BasicHit2) 캐시 제거 — BasicHit 단일 캐시
+        private static GameObject _stylizedSlashPrefab;   // [2026-09-13 스타일라이즈드 슬래시] 캐시 — LoadImpactPrefab 선례
 
         private static bool _slashLoadFailed;
         private static bool _basicHitLoadFailed;
+        private static bool _stylizedSlashLoadFailed;   // 로드 실패 경고 static 1회 패턴
         private static bool _shaderErrorWarned;
 
         // 스팸 방지 타이머는 스윙/임팩트 분리: 같은 프레임에 스윙+임팩트가 연속 와도
@@ -73,6 +97,7 @@ namespace ProjectName.Systems
         private static float _lastSwingSpawnTime = -999f;
         private static float _lastImpactSpawnTime = -999f;
         private static float _lastCrossSpawnTime = -999f;   // 크로스 전용 쿨다운 — 스윙/임팩트와 독립
+        private static float _lastStylizedSlashSpawnTime = -999f;   // [2026-09-13] 스타일라이즈드 전용 쿨다운(0.25s) — 3종과 독립
         private static SlashFxHost _host;
 
         // ================================================================
@@ -129,6 +154,63 @@ namespace ProjectName.Systems
             DetectShaderErrorOnce(instance, "Slash");
             ScheduleDestroy(instance);
         }
+
+        /// <summary>
+        /// [2026-09-13 스타일라이즈드 슬래시] 콤보 스윙 아크 FX — slash5-HungNguyen 팩 "white-yellow bolder" 프리팹
+        /// (Resources/FX/Slash/StylizedSlash)을 콤보 스테이지별 오리엔테이션으로 발화한다(HumanoidClipDriver.
+        /// FireComboSlash의 Player 전용 경로에서 호출). 골드 계열 VFX라 45차 BOTW 팔레트 액센트(AccentTint
+        /// 1,0.9,0.5)와 자연 동조 — 별도 틴트 없이 원본색 사용이 선택 사유.
+        /// 오리엔테이션(38차 규약): ① 루트를 카메라 수평 빌보드(CameraHorizontalFaceDir 재사용) ② stage 롤
+        /// (1타 0 / 2타 -90 / 3타 -45 — 기존 규약, ComboStageRollDegrees) ③ yawSign 좌우 플립(아래 주석).
+        /// VFX Graph(m_InitialEventName=OnPlay)는 Instantiate 직후 자동 재생되므로 명시 Play 불필요.
+        /// 쿨다운 0.25s(스윙/크로스/임팩트와 독립), 자가 파괴 1.5s(StylizedSlashDestroyAfter).
+        /// </summary>
+        /// <param name="position">스윙 앵커(루트 기준 fwd 0.9 + up 1.2 — 38차 규격, 호출부 산출).</param>
+        /// <param name="direction">콤보 방향(ComboStageDirection → 전방 반구 클램프 결과) — 빌보드 폴백/로그용.</param>
+        /// <param name="stage">콤보 스테이지(1~3) — 롤 규약 적용 대상.</param>
+        /// <param name="yawSign">스윙 yaw 부호(-1=좌, +1=우) — 아크 진행 좌우 플립 판정(호출부 ComboStageDirection 기반).</param>
+        public static void PlaySlashStage(Vector3 position, Vector3 direction, int stage, float yawSign)
+        {
+            // 스팸 방지 — 스타일라이즈드 전용 쿨다운(0.25s, MIN_SPAWN_INTERVAL과 별개 상수): 콤보 타당 최소 간격 강제
+            if (Time.time - _lastStylizedSlashSpawnTime < MIN_STYLIZED_SLASH_INTERVAL) return;
+            _lastStylizedSlashSpawnTime = Time.time;
+
+            GameObject prefab = LoadStylizedSlashPrefab();
+            if (prefab == null) return;
+
+            Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
+            // ① 카메라 수평 빌보드 — 38차 규약(+Z 정면 관례, 후방 카메라 뒷면 미러링 차단)
+            Vector3 faceDir = CameraHorizontalFaceDir(position, dir);
+            GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(faceDir));
+            instance.name = "SlashVFX_Stylized";
+
+            // ② [yawSign 좌우 플립 — 튜닝 포인트] yawSign<0(좌 스윙)이면 로컬 Y 180도 회전으로 아크 진행을 플립한다.
+            // VFX 특성상(음수 localScale은 파티클 스폰 위치/벨로시티 미러링이 불안정해질 수 있음) localScale.x=-1보다
+            // 회전을 우선한다. 단, Y 180도 회전은 쿼드 뒷면을 보여줄 수 있으므로 Play 판정에서 뒷면/미러가 어색하면
+            // (a) 플립 기준 반전 또는 (b) localScale.x = -StylizedSlashScale 대체를 검토할 것.
+            if (yawSign < 0f)
+                instance.transform.Rotate(0f, 180f, 0f, Space.Self);
+
+            // ③ [stage 롤 — 기존 규약] 1타 수평 0° / 2타 수직 -90° / 3타 사선 -45°(빌보드 후 로컬 Z 롤 = 화면축 기준 기울임)
+            float roll = ComboStageRollDegrees(stage);
+            if (Mathf.Abs(roll) > 0.01f)
+                instance.transform.Rotate(0f, 0f, roll, Space.Self);
+
+            // 스케일 튜닝 상수 — 초기 1.2배(Play 판정 후 조정). 플립이 회전 기반이므로 균일 스케일.
+            instance.transform.localScale = Vector3.one * StylizedSlashScale;
+
+            // [틴트 불가] 이 팩은 노출 프로퍼티(m_PropertySheet)가 비어 있어 런타임 틴트 불가 — TintParticles/
+            // NormalizePurpleParticles(ParticleSystem 대상)도 무효(프리팹에 파티클 시스템 없음, VFX Graph 단독).
+            // 원본 골드 계열이 곧 팔레트 Accent 톤이므로 무색상 처리로 확정.
+            // VFX Graph는 OnPlay 초기 이벤트로 자동 재생 — 명시 재생 없음, 셰이더 오류 감지만 수행.
+            DetectShaderErrorOnce(instance, "StylizedSlash");
+            Debug.Log($"[SlashVFX] 스타일라이즈드 슬래시 발화 (stage={stage}, yawSign={yawSign})");   // 1회성 아님 — 발화마다(크로스 로그 선례)
+            ScheduleDestroy(instance, StylizedSlashDestroyAfter);   // VFX 자체 종료 후 잔존 없음 — 1.5s 자가 파괴
+        }
+
+        /// <summary>콤보 스테이지별 아크 롤(기존 규약) — 1타 수평 0° / 2타 수직 -90° / 3타 사선 -45°. 3타 부호는 튜닝 포인트.</summary>
+        private static float ComboStageRollDegrees(int stage)
+            => stage == 2 ? -90f : (stage == 3 ? -45f : 0f);
 
         /// <summary>
         /// 타 완료 시점 히트 VFX — [45차 P3 임팩트 단일화] TravisHit 전용 스폰을 제거하고 PlayImpact와
@@ -254,6 +336,22 @@ namespace ProjectName.Systems
                 Debug.LogWarning("[SlashVFX] 로드 실패(1회만 경고): Resources/FX/Impact/BasicHit — 인스톨러 실행 필요");
             }
             return _basicHitPrefab;
+        }
+
+        // [2026-09-13 스타일라이즈드 슬래시] slash5 팩 프리팹 로더 — LoadImpactPrefab 선례(캐시 + static 1회 경고) 동일 패턴.
+        // 프리팹은 수동 복사본(Assets/Resources/FX/Slash/StylizedSlash.prefab) — 인스톨러 대상이 아니므로 재설치 무관.
+        private static GameObject LoadStylizedSlashPrefab()
+        {
+            if (_stylizedSlashPrefab != null) return _stylizedSlashPrefab;
+            if (_stylizedSlashLoadFailed) return null;
+
+            _stylizedSlashPrefab = Resources.Load<GameObject>(StylizedSlashResourcePath);
+            if (_stylizedSlashPrefab == null)
+            {
+                _stylizedSlashLoadFailed = true;
+                Debug.LogWarning("[SlashVFX] 로드 실패(1회만 경고): Resources/FX/Slash/StylizedSlash — Assets/slash5-HungNguyen/prefab/slash/white-yellow bolder.prefab 복사 필요");
+            }
+            return _stylizedSlashPrefab;
         }
 
         // ================================================================
@@ -388,14 +486,17 @@ namespace ProjectName.Systems
             }
         }
 
-        /// <summary>숨은 호스트로 코루틴을 돌려 3초 후 파괴 예약 (파티클이 끝나도 GO 잔존 없음).</summary>
-        private static void ScheduleDestroy(GameObject instance)
+        /// <summary>
+        /// 숨은 호스트로 코루틴을 돌려 지정 시간(delay) 후 파괴 예약 (파티클/VFX가 끝나도 GO 잔존 없음).
+        /// [2026-09-13] delay 파라미터화 — 기존 3s(DESTROY_AFTER)와 스타일라이즈드 1.5s(StylizedSlashDestroyAfter) 공용.
+        /// </summary>
+        private static void ScheduleDestroy(GameObject instance, float delay = DESTROY_AFTER)
         {
             EnsureHost();
             if (_host != null)
-                _host.StartCoroutine(DestroyAfterDelay(instance, DESTROY_AFTER));
+                _host.StartCoroutine(DestroyAfterDelay(instance, delay));
             else
-                Object.Destroy(instance, DESTROY_AFTER); // 폴백: 호스트 생성 실패 시 예약 파괴
+                Object.Destroy(instance, delay); // 폴백: 호스트 생성 실패 시 예약 파괴
         }
 
         private static System.Collections.IEnumerator DestroyAfterDelay(GameObject instance, float delay)

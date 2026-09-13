@@ -678,24 +678,42 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// [2026-09-12 P2 스윙 트레일 전환] 콤보 스윙 FX — 슬래시 쿼드(SlashVFXRunner.PlaySlash) 발화를 제거하고
-        /// <see cref="WeaponSwingTrail"/>(무기 팁 TrailRenderer 흰 잔상) 방출 토글로 대체.
-        /// 콤보 진입(1타)/스테이지 진행(2·3타)/4번째 클릭 재시작 — 모든 발화 경로가 이 함수를 거치므로
-        /// 여기서 SetEmitting(true) 1회면 충분(동일 값 재호출은 러너 내부에서 무시 — 스팸 방지).
-        /// 방출 OFF는 EndCombo(무입력 홀드 만료/만료 Idle 크로스)/인터럽트 리셋/레거시 Attack* 탈출에서 수행.
-        /// (기존 스윙 쿼드 규격 — pos/dir/roll/적중지점 앵커 — 는 쿼드 폐기와 함께 제거.
-        ///  FireComboCross는 크로스 발화용으로 그대로 유지 — 다음 라운드에서 러너가 TravisHit로 교체.)
+        /// [2026-09-12 P2 스윙 트레일 전환] 콤보 스윙 FX — 무기 트레일 <see cref="WeaponSwingTrail"/>(무기 팁
+        /// TrailRenderer 흰 잔상) 방출 토글로 대체. 콤보 진입(1타)/스테이지 진행(2·3타)/4번째 클릭 재시작 —
+        /// 모든 발화 경로가 이 함수를 거치므로 여기서 SetEmitting(true) 1회면 충분(동일 값 재호출은 러너 내부에서
+        /// 무시 — 스팸 방지). 방출 OFF는 EndCombo(무입력 홀드 만료/만료 Idle 크로스)/인터럽트 리셋/레거시 Attack*
+        /// 탈출에서 수행.
+        /// [2026-09-13 스타일라이즈드 슬래시] Player 모드에 한정해 SlashVFXRunner.PlaySlashStage(스윙 아크 VFX,
+        /// slash5 골드 계열)를 병행 발화 — 트레일(잔상) + 아크(타격 임프레션) 이중 연출. Player 전용 근거:
+        /// FireComboSlash 호출부 3곳이 모두 UpdatePlayer 내부라 Soldier(UpdateSoldier)에선 도달하지 않으며
+        ///(grep 검증), mode==DriveMode.Player 게이트(EnsureBareFist 게이트 옆)로 이중 차단한다.
+        /// (기존 스윙 쿼드 규격 — pos/dir/roll — 는 42차 쿼드 폐기 때 제거되었다가 본 차 스타일라이즈드 슬래시
+        ///  발화로 부분 복원. 크로스는 45차부터 BasicHit 단일 경로(FireComboCross) — 구 TravisHit 참조 소멸.)
         /// </summary>
         private void FireComboSlash(int stage)
         {
             try
             {
-                // [2026-09-13 맨손 폴백] 무기 트레일 미부착(맨손)이면 플레이어 오른손에 폴백 트레일 부착.
-                // FireComboSlash는 UpdatePlayer 전용 경로라 Soldier에선 애초 도달하지 않지만,
-                // 모드 가드를 명시해 Soldier 유출을 이중 차단한다. 내부 _trail==null 가드가
-                // 무기 트레일을 보존하므로 여기서 매 콤보 진입마다 호출해도 무해(부착 1회, 로그 1회).
                 if (mode == DriveMode.Player)
+                {
+                    // [2026-09-13 맨손 폴백] 무기 트레일 미부착(맨손)이면 플레이어 오른손에 폴백 트레일 부착.
+                    // 내부 _trail==null 가드가 무기 트레일을 보존하므로 매 콤보 진입마다 호출해도 무해(부착 1회, 로그 1회).
                     WeaponSwingTrail.EnsureBareFist(transform.root);
+
+                    // [2026-09-13 스타일라이즈드 슬래시 발화] 38차 규격 앵커(루트 기준 fwd 0.9 + up 1.2) +
+                    // 콤보 방향(ComboStageDirection → 전방 반구 클램프) + yaw 부호(좌우 플립 판정).
+                    var t = transform;
+                    Vector3 dir = ComboStageDirection(stage, t);
+                    Vector3 pos = t.position + t.forward * 0.9f + Vector3.up * 1.2f;
+                    // yawSign — ComboStageDirection(클램프 후)의 수평 yaw 부호: 1타 -58°(좌) → -1, 2타 +63°(우)·
+                    // 3타 클램프 후 +36°(우) → +1. 러너에서 이 부호로 아크 진행을 좌우 플립한다.
+                    Vector3 fwdFlat = new Vector3(t.forward.x, 0f, t.forward.z);
+                    Vector3 dirFlat = new Vector3(dir.x, 0f, dir.z);
+                    float yawSign = (fwdFlat.sqrMagnitude > 0.000001f && dirFlat.sqrMagnitude > 0.000001f
+                        && Vector3.SignedAngle(fwdFlat.normalized, dirFlat.normalized, Vector3.up) < 0f)
+                        ? -1f : 1f;
+                    SlashVFXRunner.PlaySlashStage(pos, dir, stage, yawSign);
+                }
                 WeaponSwingTrail.SetEmitting(true);
                 Debug.Log($"[Combo] 스윙 트레일 방출 (stage={stage})");
             }
@@ -706,12 +724,38 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
+        /// [2026-09-13 스타일라이즈드 슬래시 복원] 스테이지별 스윙 방향(튜닝 상수 — 2026-09-11
+        /// WeaponSwingDirectionAnalyzer 실측(Heat 리그 RightHand 리타깃) 기반, 42차 스윙 쿼드 폐기 때 제거했다가
+        /// 스타일라이즈드 아크 발화용으로 원본 계산 그대로 복원).
+        /// 1타 좌전방 수평(yaw -58°), 2타 우전방(yaw 63.2° — 수직 궤적은 러너 롤 -90 담당), 3타 우후방 상향 사선
+        /// (yaw 143.6°). 모든 스테이지 <see cref="ClampForwardHemisphere"/>를 경유해 전방 반구(수평 |yaw|≤90°)를
+        /// 강제한다(38~39차 규약 — 뒤방향 스윙 금지, 후방 성분은 yaw 미러로 전방 반전).
+        /// </summary>
+        private static Vector3 ComboStageDirection(int stage, Transform t)
+        {
+            Vector3 dir;
+            switch (stage)
+            {
+                case 2:
+                    dir = Quaternion.Euler(0f, 63.2f, 0f) * t.forward;      // 2타: 실측 수직 상승 접선 — 수평 성분만 dir로, 수직 궤적은 러너 롤 -90
+                    break;
+                case 3:
+                    dir = Quaternion.Euler(28.7f, 143.6f, 0f) * t.forward;  // 3타: 실측 우후방 상향 사선(후방 성분 → 아래 클램프에서 전방 미러)
+                    break;
+                default:
+                    dir = Quaternion.Euler(1.3f, -58f, 0f) * t.forward;     // 1타: 실측 좌전방 수평
+                    break;
+            }
+            return ClampForwardHemisphere(dir, t, stage);
+        }
+
+        /// <summary>
         /// [2026-09-11] 스윙 방향 전방 반구 클램프 — 뒤방향 스윙 금지(스윙 FX는 항상 앞방향).
         /// dir의 수평 성분이 플레이어 forward 뒤쪽(dot(dir.xz, forward.xz) &lt; 0, 즉 수평 |yaw| &gt; 90°)이면
         /// yaw를 전방측으로 미러(θ → 180°−θ: 전방 성분 부호 반전, 측면 성분 유지)하고 수직 성분(dir.y)은 그대로 유지한다.
         /// → 모든 스테이지에서 수평 |yaw| ≤ 90°(전방 반구) 보장. 이미 전방이면 무변경·무로그.
-        /// [2026-09-12 P2 스윙 트레일 전환] 스윙 쿼드 폐기(FireComboSlash → WeaponSwingTrail 방출 토글)로
-        /// 현재는 FireComboCross(크로스, 히트 지점 dir)만 이 헬퍼를 경유한다 — 크로스 전방 반구 클램프 유지.
+        /// [2026-09-13 스타일라이즈드 슬래시 복원] FireComboSlash(스윙, ComboStageDirection 경유)가 복원되어
+        /// 스윙/크로스(FireComboCross, 히트 지점 dir) 모두 이 헬퍼를 경유한다 — 전방 반구 클램프 공용 유지.
         /// </summary>
         private static Vector3 ClampForwardHemisphere(Vector3 dir, Transform t, int stage)
         {

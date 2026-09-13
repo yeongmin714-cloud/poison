@@ -2333,4 +2333,17 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | P7 화살 탭 | 창고 카테고리 탭 Arrow 추가 | ✅ |
 | 검증 | 배치컴파일 error CS=0(LeftForeArm→LeftLowerArm 수리), 정적 QA FAIL 0건(10파일) | ✅ |
 | Play 판정 대기 | 마젠타 0건/팔레트 체감/크로스·임팩트 동일 톤/트레일 펄스/방어구 GLB 부착+해제/전리품 5×2/화살 탭 | ⬜ |
+
+## 🗡️ 2026-09-13: 타격 체인 정리(에셋 전용)+Stylized Slash 스윙 (ASSET-ONLY-FX-46)
+
+> **목표:** 사용자 결정 — 절차 파티클 전면 제외, 피격=Hit Effect FREE 에셋만, 스윙=stylized slash(slash5)를 휘두르는 방향에 따라. 발밑 주황 링+화면 황색 틴트 제거.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| P1 체인 정리 | PlayHitFXInternal 축소 — 제거: 스파크/블러드/크리 구체/데브리스/전투 링/주황 플래시/크리버스트. 유지: BasicHit+데미지 숫자+히트플래시+카메라+사운드+흰 극미량 플래시 | ✅ |
+| P2 에셋 전용 | Guz BasicHit 단일 유지(Basic Hit 8 교체 보류 — 회귀 방지) | ✅ |
+| P3 슬래시 | slash5 white-yellow VFX Graph 프리팹 Resources 복사(guid 신규 발행)+PlaySlashStage(빌보드+yawSign 플립+롤 0/-90/-45+스케일1.2+1.5s 파괴+0.25s 쿨다운)+FireComboSlash Player 훅+ComboStageDirection 복원 | ✅ |
+| P4 청소 | 전투 링/주황 플래시 제거(바구니 골드 링 유지), 구식 주석 정리 | ✅ |
+| 검증 | 배치컴파일 error CS=0, 정적 QA FAIL 0건(5파일 — guid 유일/미수정 영역 보존/Soldier 도달 0) | ✅ |
+| Play 판정 대기 | 절차 파티클 소멸/에셋+숫자+번쩍만/골드 아크 방향 추종/트레일 유지 | ⬜ |
 | Play 판정 대기 | 트레일/Travis 히트/바구니 반짝임/클로ak/창고 4구획/우클릭 4단 로그 | ⬜ |

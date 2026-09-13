@@ -4,9 +4,24 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-13 (45차)
+> **최종 갱신:** 2026-09-13 (46차)
 
 ---
+
+## 📌 세션 종합 스냅샷 (2026-09-13 ✅ 46차 — 타격 체인 대폭 정리(에셋 전용 피격)+Stylized Slash 스윙 아크 적용+주황 링/화면 틴트 제거)
+
+> **스코프**: 테스트 8 기반 사용자 결정 — "파티클 다 없애라. 피격은 Hit Effect FREE 에셋으로만, 스윙은 stylized slash 에셋(slash5-HungNguyen)을 휘두르는 방향에 따라". 결과 구성: 스윙=흰 무기 트레일+골드 스타일라이즈드 아크(방향 추종) → 피격=Guz BasicHit 에셋+데미지 숫자+카메라/히트스톱. 그 외 절차 파티클/링/화면 틴트 전부 제외. 배치컴파일 error CS=0 + 정적 QA FAIL 0건.
+
+### 변경 사항 (5파일 — 신규 1: StylizedSlash.prefab)
+**`Systems/CombatFXGate.cs` (P1/P4)**: PlayHitFXInternal 77→46행 축소 — 제거: SpawnHitSparks(금색 스파크)/SpawnBloodSplatter/HitVFX 크리 구체/SpawnHitDebris/ShockwaveRingFX 전투 링(발밑 주황 표시의 정체)/ScreenFlashFX.FlashOrange(화면 황색 틴트)/SpawnCritBurst. 유지: PlayImpact(Guz 에셋)+ShowDamageNumber+PlayHitFlash(대상 흰 번쩍)+CombatCameraEffects+ImpactSoundFX+FlashWhite(0.05 극미량). 예산/오버로드/미수정 영역 원본 보존(바이트 정밀 치환).
+**`Resources/FX/Slash/StylizedSlash.prefab`(신규)+`Systems/SlashVFXRunner.cs` (P3)**: slash5-HungNguyen "white-yellow bolder"(VFX Graph, OnPlay 자동 재생) 복사 — meta guid 신규 발행(원본 중복 방지, 내부 vfx 참조 바이트 동일 보존). `PlaySlashStage(position, direction, stage, yawSign)` 신규 — 카메라 수평 빌보드(38차 규약)+yawSign 좌우 플립(휘두르는 방향 추종)+stage 롤(1타 수평/2타 -90 수직/3타 -45 사선)+스케일 1.2(튜닝 상수)+1.5s 자가파괴+0.25s 전용 쿨다운.
+**`Systems/HumanoidClipDriver.cs` (P3)**: FireComboSlash에서 Player 모드 한정 PlaySlashStage 호출(스윙 앵커 fwd0.9+up1.2, ComboStageDirection 방향, yaw 부호) — **ComboStageDirection 복원**(42차 제거분 — 1타 -58°/2타 63.2°/3타 143.6°+전방 반구 클램프, git 이전 커밋에서 실측 원본). Soldier 경로 도달 없음. 구식 주석 정리.
+**`Systems/SlashVFXRunner.cs` (P2)**: BasicHit(Guz) 유지 — Basic Hit 8 (NEW) 교체는 회귀 방지로 보류(주석 명기), 틴트 흰 유지.
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0**(exit 0, 1회 통과)
+- 정적 QA(서브에이전트): 5파일 diff 전수/시그니처 일치(PlaySlashStage↔호출부·ComboStageDirection 복원)/미수정 영역 보존/guid 유일(원본 중복 0)/제거 7종 호출 0건+유지 토큰 전수/Soldier 도달 0/균형 — **FAIL 0건**
+- Play 판정 대기: ① 타격 시 골드/금색 스파크·파편·붉은 점·발밑 주황 링·화면 황색 틴트 전부 소멸 ② 피격=Guz 히트 에셋+흰 번쩍+데미지 숫자만 ③ 스윙 시 골드 스타일라이즈드 아크가 1타 수평/2타 수직/3타 사선+방향 추종 ④ 흰 무기 트레일 유지 ⑤ 크로스와 임팩트 동일 톤
 
 ## 📌 세션 종합 스냅샷 (2026-09-13 ✅ 45차 — 보라 파티클 진범=마젠타 셰이더 에러 뿌리 수리+BOTW 팔레트 통일+임팩트 단일화+방어구 비주얼 부착 신규+전리품창 5×2+화살 탭)
 

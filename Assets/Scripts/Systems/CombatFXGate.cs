@@ -66,77 +66,46 @@ namespace ProjectName.Systems
         // ================================================================
         private static void PlayHitFXInternal(Vector3 position, Vector3 direction, CombatHitType type, bool isCrit, float damage, Color numberColor)
         {
-            Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.up;
             int damageInt = Mathf.RoundToInt(damage);
 
-            // 1. 히트 스파크 발사 (방향은 기존 그대로 고정)
-            CombatVFXController.SpawnHitSparks(position);
+            // == 46차 정리: 타격 체인 대폭 축소 (사용자 지정 — 에셋 전용 피격 표현) =====================
+            // 피격 표현은 Guz 히트 에셋(SlashVFXRunner.PlayImpact)으로 일원화. 유지 항목: PlayImpact /
+            // ShowDamageNumber / CombatCameraEffects.PlayHit·PlayCrit(+히트스톱) / HighSpec ImpactSoundFX.PlayHit /
+            // ScreenFlashFX.FlashWhite(거의 안 보이는 흰색).
+            // 타격 체인에서 제외(호출선만 끊음 — 해당 함수들은 다른 경로 존재 가능으로 유지):
+            //   히트 스파크 / 블러드 스플래터 / 크리 전용 피격 구체 /
+            //   HighSpec: 파편 데브리스 / 지면 충격파 링(전투 링) / 주황 화면 플래시 / 크리 종합 버스트.
+            // direction은 제거된 블러드/데브리스 방향 인자로만 쓰였으므로 현재 미사용(시그니처는 유지).
+            // ==========================================================================================
 
-            // 3단계 이펙트 추가 — 기존 FX 유지+보강: Matthew Guz Impact 피격 VFX
-            // (Organic → FX/Impact/BasicHit, Construct → FX/Impact/BasicHit2, 그 외 → BasicHit).
-            // Runner 내부에 0.08s 스팸 방지 쿨다운 있음. 예산/단계 로직은 전부 기존 그대로 유지.
+            // 1. 피격 VFX — Matthew Guz Impact 에셋 (유일한 피격 표현). Runner 내부에 0.08s 스팸 방지 쿨다운 있음.
             SlashVFXRunner.PlayImpact(position, type);
 
-            // 2. 블러????Organic�?(?�아?�는 ?�?��? 출혈). 치명?�??2?�출�?버스???��?
-            if (type == CombatHitType.Organic)
-            {
-                CombatVFXController.SpawnBloodSplatter(position, dir);
-                if (isCrit)
-                {
-                    CombatVFXController.SpawnBloodSplatter(position + dir * 0.05f, dir);
-                    // 캐시???�파??메시 ?�버?�이 (HitVFX, ?��? ?�괴 0.3s) ???�리??강조
-                    HitVFX.PlayHitEffect(position, dir);
-                }
-            }
-
-            // 3. ?��?지 ?�자 ??치명?� ?�기 구분?� ?�출?��? 밝�? numberColor�??�달
+            // 2. 데미지 숫자 — 치명타 구분은 호출측이 밝은 numberColor(밝은 노랑/주황)로 전달하는 방식.
             CombatVFXController.ShowDamageNumber(position, damageInt, numberColor);
 
-            // 4. 카메?????�리?��? ?�이??2�?+ ?�트?�톱. PlayKill?� ?�출??책임.
+            // 3. 카메라 셰이크(히트/크리틱 2종) + 히트스톱. PlayKill은 별도 호출 책임.
             if (isCrit)
                 CombatCameraEffects.PlayCrit();
             else
                 CombatCameraEffects.PlayHit();
 
-            // 5. 하이스펙 전용 추가 FX (ActionFeel.HighSpec일 때만 실행 — 저사양(Balanced) 기존 동작은 위 1~4 그대로 유지)
+            // 4. 하이스펙 전용 레이어 (ActionFeel.HighSpec일 때만 실행 — 저사양(Balanced)은 위 1~3 그대로).
             //    PlayHitFX 진입에서 이미 예산(TryConsumeBudget)을 소모했으므로 별도 예산 체크는 불필요.
             if (ActionFeel.HighSpec)
             {
-                // 파편 데브리스 3겹 — 하이스펙 파티클 강화 (내부에서 HighSpec 재확인, 일반 중타/크리 모두)
-                CombatVFXController.SpawnHitDebris(position, dir, isCrit);
+                // 화면 플래시: 크리 주황 플래시는 46차에서 제외 — 거의 보이지 않는 흰색만 유지해 타격감 보존.
+                // (완전 OFF 대신 극미량 유지. ScreenFlashFX는 단일 인스턴스라 연속 타격 시 덮어써서 스택되지 않음)
+                ScreenFlashFX.FlashWhite(0.05f, 0.05f);
 
-                // 지면 충격파 링: 스팸 방지 게이트 — 치명타 또는 중타 이상(damage >= 40)만 스폰
-                // (소프트 그레이즈/경미한 타격은 링 없음. 치명타=주황 강조, 일반 중타=흰색 중립)
-                if (isCrit || damage >= 40f)
-                {
-                    // 치명타: 크고 오래 지속(1.5m, 0.5s) + 주황 / 일반 중타: 작고 짧게(1.0m, 0.35s) + 흰색
-                    Color ringColor = isCrit
-                        ? ScreenFlashFX.CritColor                       // 주황 (치명타 강조)
-                        : new Color(1f, 1f, 1f, 0.6f);                  // 흰색 (일반 중타)
-                    ShockwaveRingFX.Spawn(position, isCrit ? 1.5f : 1.0f, ringColor, isCrit ? 0.5f : 0.35f);
-                }
-
-                // 화면 플래시: 세척(wash-out) 방지를 위해 값을 최소화.
-                // 결정: 치명타 -> 주황 0.3/0.2s (명확한 강조), 일반 타격 -> 극미량 흰색 0.05/0.05s
-                // (완전 OFF 대신 거의 보이지 않는 수준만 유지해 타격감 보존. ScreenFlashFX는 단일 인스턴스라
-                //  연속 타격 시 덮어써서 스택되지 않음)
-                if (isCrit)
-                {
-                    ScreenFlashFX.FlashOrange(0.3f, 0.2f);
-                    // 크리티컬 전용 종합 버스트: 스파크 링 + 데브리스 + 스플래시 일괄
-                    CombatVFXController.SpawnCritBurst(position);
-                }
-                else
-                    ScreenFlashFX.FlashWhite(0.05f, 0.05f);
-
-                // 충격 사운드: 하이스펙 전용 레이어드 임팩트음 (ImpactSoundFX.PlayHit).
+                // 충격 사운드: 하이스펙 전용 레이어드 임팩트음 (소리는 유지).
                 // 내부에서도 ActionFeel.HighSpec을 재확인하는 이중 게이트. 클립 에셋이 없어도
                 // PlaySFX가 플레이스홀더 로그 후 안전 반환하므로 크래시 없음.
                 // 처치(isKill) 사운드는 CombatCameraEffects.PlayKill()을 호출하는 처치 지점에서
                 // ImpactSoundFX.PlayHit(false, true)로 별도 재생 (여기서는 타격까지만 담당).
                 ImpactSoundFX.PlayHit(isCrit, isKill: false);
 
-                Debug.Log($"[CombatFX-HS] ring+flash crit={(isCrit ? 1 : 0)} damage={damageInt} pos={position}");
+                Debug.Log($"[CombatFX-HS] flash+sound crit={(isCrit ? 1 : 0)} damage={damageInt} pos={position}");
             }
 
             Debug.Log($"[CombatFX] crit={(isCrit ? 1 : 0)} type={type} pos={position} damage={damageInt}");
