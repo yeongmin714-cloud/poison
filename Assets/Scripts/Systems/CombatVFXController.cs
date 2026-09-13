@@ -9,6 +9,8 @@ namespace ProjectName.Systems
     /// 히트플래시, 데미지 폰트, 스파크, 블러드 스플래터.
     /// G2-06 HighSpec: 파편(디브리) 버스트, 크리티컬 버스트, 파티클 부스트.
     /// 저사양(Balanced) 경로는 기존 동작 그대로 유지 — 강화는 모두 ActionFeel.HighSpec 게이트.
+    /// 2026-09-13(45차 P1): 런타임 파티클 6종 전부 FXPalette.ApplyTo 머티리얼 정규화 —
+    /// 머티리얼 미지정 기본 셰이더(마젠타 RGB (219,19,219) 원인) 제거. 색은 BOTW 팔레트 통일.
     /// </summary>
     public static class CombatVFXController
     {
@@ -69,8 +71,8 @@ namespace ProjectName.Systems
         //    [2026-09-13 스파크 개선] 느슨한 사각 점(노랑 10개) → 날카로운 직선 스파크.
         //    골드화이트(1,0.9,0.5) + 스트레치 렌더(velocityScale 0.2)로 속도 방향
         //    선형 스파크 렌더 — BOTW식 밝은 코어 임팩트 스타일.
-        //    머티리얼은 파일 기존 패턴 유지(렌더러 기본 파티클 머티리얼 — 소프트 원형
-        //    텍스처가 스트레치 시 자연스러운 뾰족 꼬리를 만든다).
+        //    머티리얼은 FXPalette.ParticleMaterial 정규화 적용(45차 P1) — 기본 머티리얼
+        //    방치(URP 미지원 → 마젠타 원인)를 제거한다.
         // ================================================================
         public static void SpawnHitSparks(Vector3 position)
         {
@@ -81,7 +83,7 @@ namespace ProjectName.Systems
             main.startLifetime = new ParticleSystem.MinMaxCurve(0.15f, 0.25f);
             main.startSpeed = new ParticleSystem.MinMaxCurve(6f, 9f);
             main.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.06f);
-            main.startColor = new Color(1f, 0.9f, 0.5f); // 골드화이트 — 순수 노랑 제거
+            main.startColor = FXPalette.Accent; // 45차 P2: 골드화이트(팔레트 Accent) — 순수 노랑 제거
 
             // 타격 지점 밀집 발화 — 느슨하게 퍼지던 기본 Shape 반경을 조여 직선 스파크 강조
             var shape = ps.shape;
@@ -94,6 +96,7 @@ namespace ProjectName.Systems
             {
                 rnd.renderMode = ParticleSystemRenderMode.Stretch;
                 rnd.velocityScale = 0.2f;
+                FXPalette.ApplyTo(rnd); // 45차 P1: 머티리얼 정규화 — 마젠타 방지
             }
             ps.Emit(12);
 
@@ -115,7 +118,7 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
-        // 4. 블러드 스플래터 — 3개 파티클, 방향 적용
+        // 4. 블러드 스플래터 — 3개 파티클, 방향 적용 (색: 팔레트 Blood 붉은색)
         // ================================================================
         public static void SpawnBloodSplatter(Vector3 position, Vector3 direction)
         {
@@ -126,7 +129,10 @@ namespace ProjectName.Systems
             main.startLifetime = 0.8f;
             main.startSpeed = new ParticleSystem.MinMaxCurve(0.5f, 2f);
             main.startSize = new ParticleSystem.MinMaxCurve(0.08f, 0.2f);
-            main.startColor = Color.red;
+            main.startColor = FXPalette.Blood; // 45차 P2: 순수 red → 팔레트 Blood
+
+            // 45차 P1: 머티리얼 정규화 — 기본 머티리얼 방치(마젠타 원인) 제거
+            FXPalette.ApplyTo(go.GetComponent<ParticleSystemRenderer>());
 
             Vector3 vel = direction.normalized * 2.5f;
             var emitParams = new ParticleSystem.EmitParams
@@ -154,11 +160,11 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
-        // 5. 암살 VFX — 붉은 섬광 + 블러드 스플래터
+        // 5. 암살 VFX — 흰색 섬광(팔레트 Core) + 블러드 스플래터(팔레트 Blood)
         // ================================================================
         public static void PlayAssassinationVFX(Vector3 position)
         {
-            // 붉은 섬광 (ParticleSystem)
+            // 흰색 섬광 (ParticleSystem) — 45차 P2: 붉은 섬광 → Core(흰) 섬광
             var flashGo = new GameObject("AssassinationFlash", typeof(ParticleSystem));
             flashGo.transform.position = position + Vector3.up * 0.5f;
             var flashPs = flashGo.GetComponent<ParticleSystem>();
@@ -166,8 +172,10 @@ namespace ProjectName.Systems
             flashMain.startLifetime = 0.3f;
             flashMain.startSpeed = 0f;
             flashMain.startSize = new ParticleSystem.MinMaxCurve(0.5f, 1.0f);
-            flashMain.startColor = new Color(1f, 0.2f, 0.2f, 0.8f);
+            flashMain.startColor = FXPalette.Core;
             flashPs.Emit(5);
+            // 45차 P1: 머티리얼 정규화 — 마젠타 방지
+            FXPalette.ApplyTo(flashGo.GetComponent<ParticleSystemRenderer>());
             Object.Destroy(flashGo, 0.4f);
 
             // 블러드 스플래터 (확산)
@@ -178,7 +186,7 @@ namespace ProjectName.Systems
             bloodMain.startLifetime = 0.6f;
             bloodMain.startSpeed = new ParticleSystem.MinMaxCurve(1f, 3f);
             bloodMain.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.3f);
-            bloodMain.startColor = Color.red;
+            bloodMain.startColor = FXPalette.Blood; // 45차 P2: 순수 red → 팔레트 Blood
             for (int i = 0; i < 3; i++)
             {
                 Vector3 vel = Random.insideUnitSphere.normalized * 2.5f;
@@ -186,6 +194,8 @@ namespace ProjectName.Systems
                 var emitParams = new ParticleSystem.EmitParams { velocity = vel };
                 bloodPs.Emit(emitParams, 3);
             }
+            // 45차 P1: 머티리얼 정규화 — 마젠타 방지
+            FXPalette.ApplyTo(bloodGo.GetComponent<ParticleSystemRenderer>());
             Object.Destroy(bloodGo, 0.8f);
 
             Debug.Log($"[CombatVFXController] Assassination VFX at {position}");
@@ -194,6 +204,7 @@ namespace ProjectName.Systems
         // ================================================================
         // 6. 파편 조각(디브리) 버스트 — 갈색/회색 샤드 + 밝은 플렉 (HighSpec 전용)
         //    Balanced 모드에서는 즉시 반환 (저사양 스폰 없음, 기존 동작 불변)
+        //    [45차 P1] 색은 갈색/회색 그대로 유지, 머티리얼만 FXPalette 정규화 적용.
         // ================================================================
         public static void SpawnHitDebris(Vector3 position, Vector3 direction, bool isCrit)
         {
@@ -230,11 +241,14 @@ namespace ProjectName.Systems
                 var ep = new ParticleSystem.EmitParams
                 {
                     velocity = Random.insideUnitSphere.normalized * Random.Range(3f, 6f),
-                    startColor = new Color(1f, 0.9f, 0.5f, 1f),
+                    startColor = FXPalette.Accent, // 45차 P2: 골드 플렉(팔레트 Accent, 값 동일)
                     startSize = Random.Range(0.04f, 0.08f)
                 };
                 ps.Emit(ep, 1);
             }
+
+            // 45차 P1: 머티리얼 정규화 — 기본 머티리얼 방치(마젠타 원인) 제거
+            FXPalette.ApplyTo(go.GetComponent<ParticleSystemRenderer>());
 
             Object.Destroy(go, 1.2f);
         }
@@ -244,6 +258,7 @@ namespace ProjectName.Systems
         //    [2026-09-13 크리 버스트 절제] 붉은 플래시(1,0.2,0.2)+블롭 → BOTW식 절제 스타일:
         //    화이트 코어 플래시(1,0.95,0.8, 속도 0, 0.15s 즉시 소멸) + 주황 외곽(1,0.55,0.2)
         //    직선 스파크 12개. 파편은 기존 SpawnHitDebris(갈색/회색)가 담당 — 여기서 중복 스폰하지 않는다.
+        //    [45차 P2] 플래시=팔레트 Core(흰), 외곽 스파크=팔레트 Edge(주황).
         // ================================================================
         public static void SpawnCritBurst(Vector3 position)
         {
@@ -256,7 +271,7 @@ namespace ProjectName.Systems
             main.startLifetime = new ParticleSystem.MinMaxCurve(0.15f, 0.25f);
             main.startSpeed = new ParticleSystem.MinMaxCurve(6f, 9f);
             main.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.06f);
-            main.startColor = new Color(1f, 0.55f, 0.2f); // 주황 외곽 스파크 기본색
+            main.startColor = FXPalette.Edge; // 45차 P2: 주황 외곽 스파크(팔레트 Edge)
             main.simulationSpace = ParticleSystemSimulationSpace.World;
 
             // 타격 지점 밀집 발화 + 스트레치 렌더 — SpawnHitSparks와 동일 직선 스파크 스타일
@@ -268,6 +283,7 @@ namespace ProjectName.Systems
             {
                 rnd.renderMode = ParticleSystemRenderMode.Stretch;
                 rnd.velocityScale = 0.2f;
+                FXPalette.ApplyTo(rnd); // 45차 P1: 머티리얼 정규화 — 마젠타 방지
             }
 
             // 레이어 1: 화이트 코어 플래시 — 속도 0, 0.15s 즉시 소멸(1-2프레임 섬광)
@@ -276,7 +292,7 @@ namespace ProjectName.Systems
                 var ep = new ParticleSystem.EmitParams
                 {
                     velocity = Vector3.zero,
-                    startColor = new Color(1f, 0.95f, 0.8f, 1f),
+                    startColor = FXPalette.Core, // 45차 P2: 화이트 코어 플래시(팔레트 Core)
                     startLifetime = 0.15f,
                     startSize = Random.Range(0.6f, 1.0f)
                 };

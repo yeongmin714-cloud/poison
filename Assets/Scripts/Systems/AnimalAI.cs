@@ -706,11 +706,14 @@ namespace ProjectName.Systems
                 HitVFX.SpawnDamageNumber(transform.position, amount);
 
                 // 3. Damage Number (CombatVFXController — IMGUI)
-                Color dmgColor = Color.green;
+                // 2026-09-13(45차 P2): BOTW 팔레트 통일 — 흰/골드/주황 3색.
+                // 일반=Core(흰), 강타(최대 HP 30% 이상)=Accent(골드), 기타(15% 이상 중타)=Edge(주황).
+                // (TakeDamage 시그니처에 치명 플래그가 없어 HP 비율 강타 기준으로 매핑 — 녹/빨강/노랑 제거)
+                Color dmgColor = FXPalette.Core;
                 if (amount / _maxHP >= 0.3f)
-                    dmgColor = Color.red;
+                    dmgColor = FXPalette.Accent;
                 else if (amount / _maxHP >= 0.15f)
-                    dmgColor = Color.yellow;
+                    dmgColor = FXPalette.Edge;
                 CombatVFXController.ShowDamageNumber(transform.position, Mathf.RoundToInt(amount), dmgColor);
 
                 // 4. Hit Reaction (넉백 + 경직)

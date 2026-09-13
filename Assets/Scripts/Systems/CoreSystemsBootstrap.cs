@@ -34,6 +34,9 @@ public class CoreSystemsBootstrap : MonoBehaviour
         // 3-2. GuardSelectionManager 생성 (없는 경우) — 좌클릭 드래그 병사 선택
         EnsureGuardSelectionManager();
 
+        // 3-3. ArmorVisualAttachSystem 생성 (없는 경우) — 방어구 슬롯 GLB 비주얼 부착 (2026-09-13 P6)
+        EnsureArmorVisualAttachSystem();
+
         // 4. 영지 전체 빌드
         if (_buildAllTerritories)
         {
@@ -145,6 +148,34 @@ public class CoreSystemsBootstrap : MonoBehaviour
         {
             // 단일 시스템 생성 실패가 전체 부트를 깨지 않도록 격리
             Debug.LogError($"[CoreSystemsBootstrap] GuardSelectionManager 생성 실패: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// ArmorVisualAttachSystem 싱글톤 보장 — 방어구 슬롯(Helmet/Armor/Shoes/Gloves/Back) GLB 비주얼 부착
+    /// EquipmentManager.OnEquipmentChanged 구독 → 플레이어(Tag Player) 본에 장착 GLB 부착/파괴.
+    /// 무기 슬롯은 WeaponEquipManager 소유이므로 이 시스템이 건드리지 않는다.
+    /// </summary>
+    private void EnsureArmorVisualAttachSystem()
+    {
+        try
+        {
+            // 중복 가드 — 씬에 이미 배치(비활성 포함)된 경우 생성하지 않음
+            var existing = FindAnyObjectByType<ArmorVisualAttachSystem>(FindObjectsInactive.Include);
+            if (existing != null)
+            {
+                Debug.Log("[CoreSystemsBootstrap] ArmorVisualAttachSystem 이미 존재");
+                return;
+            }
+
+            var go = new GameObject("ArmorVisualAttachSystem");
+            go.AddComponent<ArmorVisualAttachSystem>();
+            Debug.Log("[CoreSystemsBootstrap] ArmorVisualAttachSystem 생성됨 — 방어구 비주얼 부착 활성화");
+        }
+        catch (System.Exception e)
+        {
+            // 단일 시스템 생성 실패가 전체 부트를 깨지 않도록 격리
+            Debug.LogError($"[CoreSystemsBootstrap] ArmorVisualAttachSystem 생성 실패: {e.Message}");
         }
     }
 

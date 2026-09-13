@@ -253,6 +253,9 @@ namespace ProjectName.UI
         private const float DESC_PANEL_HEIGHT = 400f;   // 2026-09-12(P3): 설명창 세로 620→400 축소 (이름/설명/아이콘/스탯 순 압축 — 하단 빈 여백 제거)
         private const float DESC_GAP = 12f;             // 구획 간 미세 여백
         private const int GRID_COLUMNS = 6;                // 2026-09-12(P3): 6열 그리드 (예시2 — 인벤 단일 그리드, 탭은 창고 컨텍스트로 이동)
+        // 2026-09-13(P5): 전리품창 전용 그리드 상수 — 메인 인벤 6열 공용 상수(GRID_COLUMNS)는 무수정 (전리품만 5열 분리)
+        private const int LOOT_COLUMNS = 5;                // 전리품 5열 — 슬롯 폭 계산 전용 (정사각형 유지)
+        private const int LOOT_ROWS_MAX = 2;               // 전리품 최대 2행 — 10종 초과분은 [전부 획득] 버튼으로 일괄 획득 안내
         private const int GRID_ROWS_PER_PAGE = 5;          // 2026-09-12(P3): 페이지당 5행×6열=30슬롯 — 초과분은 ◀/▶ 페이지 버튼
         private const int GRID_PAGE_SLOTS = GRID_ROWS_PER_PAGE * GRID_COLUMNS;
         private const float PAGER_STRIP_HEIGHT = 40f;      // 그리드 하단 페이지 버튼 스트립 높이
@@ -948,7 +951,9 @@ namespace ProjectName.UI
         // ===================================================================
         private void DrawCategoryTabs(float panelX, float tabY)
         {
-            string[] tabNames = { "🌿 약초", "🥩 고기", "🍲 요리", "🧪 약", "🧱 재료", "🗡️ 무기", "🛡️ 방어구", "🔧 도구" };
+            // 2026-09-13(P7): 화살 탭 추가 — 시딩(arrow_regular/reinforced/magic ×20) 대응.
+            // 창고 필터(RefreshFromWarehouse)가 카테고리 목록 기반이므로 별도 분기 없이 자동 동작.
+            string[] tabNames = { "🌿 약초", "🥩 고기", "🍲 요리", "🧪 약", "🧱 재료", "🗡️ 무기", "🛡️ 방어구", "🔧 도구", "🏹 화살" };
             PlayerInventory.ItemCategory[] categories =
             {
                 PlayerInventory.ItemCategory.Herb,
@@ -958,7 +963,8 @@ namespace ProjectName.UI
                 PlayerInventory.ItemCategory.Material,
                 PlayerInventory.ItemCategory.Weapon,
                 PlayerInventory.ItemCategory.Armor,
-                PlayerInventory.ItemCategory.Tool
+                PlayerInventory.ItemCategory.Tool,
+                PlayerInventory.ItemCategory.Arrow
             };
 
             float tabWidth = (WINDOW_WIDTH - 8) / tabNames.Length;
@@ -2418,7 +2424,7 @@ namespace ProjectName.UI
         // ===================================================================
         /// <summary>
         /// 바구니 상호작용(E키)으로 열린 Loot 컨텍스트의 우측 패널 —
-        /// 타이틀 "🧺 전리품" + 6열 그리드(항목수 동적 행, 최대 3행) + [전부 획득] 버튼.
+        /// 타이틀 "🧺 전리품" + 5열 그리드(항목수 동적 행, 최대 2행 — 10종 초과분은 [전부 획득]) + [전부 획득] 버튼.
         /// 데이터는 LootWindow 캐시 API(CachedItemCount/GetCachedItem)를 재사용하며,
         /// 슬롯 MouseDown → ItemDragContext.Begin(Source.Loot) — 기존 ProcessDrag의 Loot 분기
         /// (MouseUp 인벤 그리드 = TryTakeDraggedToInventory)가 그대로 드롭 판정을 대행한다.
@@ -2477,15 +2483,17 @@ namespace ProjectName.UI
             GUI.Label(new Rect(panelX, panelY + 4, lootW, TITLE_BAR_HEIGHT), "  🧺 전리품", _styleTitle);
             DrawColoredRect(new Rect(panelX, panelY + TITLE_BAR_HEIGHT + 2, lootW, 2), ColorBorder);
 
-            // === 6열 그리드 — 항목수 동적 행, 최대 3행 (18종 초과분은 [전부 획득]으로 일괄 획득) ===
+            // === 전리품 전용 5열 그리드 — 항목수 동적 행, 최대 2행 (10종 초과분은 [전부 획득]으로 일괄 획득) ===
+            // 2026-09-13(P5): 메인 인벤 공용 상수(GRID_COLUMNS=6/3행) → 전리품 전용 상수(LOOT_COLUMNS=5/LOOT_ROWS_MAX=2).
+            // 슬롯 폭은 5열 기준 재계산 — slotHeight = slotWidth 정사각형 규약 유지, 아이콘 렌더 경로는 그대로.
             const float LOOT_BOTTOM_H = 96f;
             float gridY = panelY + TITLE_BAR_HEIGHT + 4;
             float gridHeight = lootH - (gridY - panelY) - LOOT_BOTTOM_H - 6;
             float innerWidth = lootW - 8;
-            float slotWidth = (innerWidth - SLOT_MARGIN * (GRID_COLUMNS + 1)) / GRID_COLUMNS;
-            float slotHeight = slotWidth;   // 정사각형 슬롯 (인벤 그리드 규약 동일)
+            float slotWidth = (innerWidth - SLOT_MARGIN * (LOOT_COLUMNS + 1)) / LOOT_COLUMNS;
+            float slotHeight = slotWidth;   // 정사각형 슬롯 (인벤 그리드 규약 동일 — 5열에서도 유지)
             float rowHeight = slotHeight + SLOT_MARGIN;
-            int totalRows = Mathf.Clamp(Mathf.CeilToInt((float)itemCount / GRID_COLUMNS), 1, 3);
+            int totalRows = Mathf.Clamp(Mathf.CeilToInt((float)itemCount / LOOT_COLUMNS), 1, LOOT_ROWS_MAX);
 
             DrawColoredRect(new Rect(panelX, gridY, lootW, gridHeight), ColorInfoBg);
 
@@ -2499,9 +2507,9 @@ namespace ProjectName.UI
                 var entry = lootWindow.GetCachedItem(i);
                 if (entry == null || entry.Item == null || entry.Count <= 0) continue;   // 빈 항목 — 슬롯/판정 캐시 미생성
 
-                int col = i % GRID_COLUMNS;
-                int row = i / GRID_COLUMNS;
-                if (row >= totalRows) break;   // 최대 3행
+                int col = i % LOOT_COLUMNS;
+                int row = i / LOOT_COLUMNS;
+                if (row >= totalRows) break;   // 최대 2행 — 초과분은 [전부 획득] 일괄 획득
 
                 float sx = SLOT_MARGIN + col * (slotWidth + SLOT_MARGIN);
                 float sy = gridY + SLOT_MARGIN + row * rowHeight;
@@ -2581,8 +2589,12 @@ namespace ProjectName.UI
                     }
                 }
             }
+            // 2026-09-13(P5): 5열×2행(10종) 초과분은 그리드에 미표시 — 기존 [전부 획득] 버튼으로 일괄 획득 안내 유지
+            string lootCountText = itemCount > LOOT_COLUMNS * LOOT_ROWS_MAX
+                ? itemCount + "종 — 초과분은 [전부 획득]"
+                : itemCount + "종";
             GUI.Label(new Rect(btnX + btnWidth + 16f, btnY, lootW - (btnX - panelX) - btnWidth - 32f, btnHeight),
-                itemCount + "종", _styleEmptyText);
+                lootCountText, _styleEmptyText);
         }
 
         // ===================================================================

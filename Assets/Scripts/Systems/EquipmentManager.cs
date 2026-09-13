@@ -224,6 +224,9 @@ namespace ProjectName.Systems
                 _slots[idx].itemId = null;
                 _slots[idx].currentDurability = 0;
                 _slots[idx].itemData = null;
+                // 2026-09-13(P6): 슬롯 클리어 후 이벤트 누락 경로 보완 — 방어구 비주얼 부착 시스템이
+                // 해제 상태를 추적할 수 있도록 1회 발화 보장 (정상 해제/장착 경로와 동일 규약)
+                OnEquipmentChanged?.Invoke(slot, null);
                 return false;
             }
 

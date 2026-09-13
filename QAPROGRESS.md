@@ -4,9 +4,26 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-13 (44차)
+> **최종 갱신:** 2026-09-13 (45차)
 
 ---
+
+## 📌 세션 종합 스냅샷 (2026-09-13 ✅ 45차 — 보라 파티클 진범=마젠타 셰이더 에러 뿌리 수리+BOTW 팔레트 통일+임팩트 단일화+방어구 비주얼 부착 신규+전리품창 5×2+화살 탭)
+
+> **스코프**: 테스트 7 영상 픽셀 실측으로 "보라 파티클"의 진범 확정 — 평균 RGB (219,19,219)=**Unity 셰이더 에러 마젠타**. 런타임 파티클이 기본 머티리얼(Particles/Standard Unlit)로 생성되어 URP 미지원 → 마젠타 렌더. 40차 틴트/44차 색 교체/보라 정규화가 무효였던 근본 이유. 텍스처 전수 확인(HIE/Guz 전부 무채색)으로 코드 색·텍스처는 무죄. 배치컴파일 error CS=0 + 정적 QA FAIL 0건.
+
+### 변경 사항 (10파일 — 신규 2: FXPalette/ArmorVisualAttachSystem)
+**`Systems/FXPalette.cs`(신규)+`CombatVFXController.cs` (P1)**: FXPalette(Core=흰/Accent=골드(1,.9,.5)/Edge=주황(1,.55,.2)/Blood=붉은 + URP 호환 파티클 머티리얼 지연 캐시 Sprites/Default 우선) 신설 → CVC 런타임 파티클 6지점(HitSparks/BloodSplatter/AssassinationFlash/AssassinationBlood/HitDebris/CritBurst) 전부 ApplyTo. 프로젝트 전수 스윕 결과 CVC 외 런타임 PS 생성 9파일 전부 기존 명시 머티리얼 존재 — **미지정 지점 0건** (마젠타 위험 완전 소멸).
+**`Systems/AnimalAI.cs`+`PlayerCombat.cs` (P2)**: 데미지 숫자 색 팔레트화 — 일반=Core(흰)/크리·강타=Accent(골드)/기타=Edge(주황) (구 녹/빨강/노랑 교체).
+**`Systems/SlashVFXRunner.cs` (P3)**: 임팩트 단일화 — PlayCross TravisHit 스폰 제거→BasicHit 단일 경로 위임, BasicHit2(Construct) 분기 제거, 크로스 틴트=골드/임팩트 틴트=흰(팔레트 정렬). 시그니처/쿨다운/static 캐시 보존, TintParticles/NormalizePurpleParticles 유지.
+**`Systems/WeaponSwingTrail.cs`+`PlayerCombat.cs` (P4)**: 폭 곡선 3키(0,1.0)/(0.6,0.65)/(1,0)+TrailTime 0.22s+`Pulse()` 신규(히트 순간 폭 1.25배 0.12s — TrailPulseRunner 내부 컴포넌트)+AttackTarget 적중 분기 훅 1줄.
+**`UI/InventoryWindow.cs` (P5/P7)**: 전리품 그리드 전용 상수 LOOT_COLUMNS=5/LOOT_ROWS_MAX=2 분리(메인 6열 무영향)+창고 카테고리 탭에 Arrow(화살 🏹) 추가 — 시딩된 화살 3종이 탭에서 보임.
+**`Systems/ArmorVisualAttachSystem.cs`(신규)+`EquipmentManager.cs`+`CoreSystemsBootstrap.cs` (P6)**: 방어구 GLB 비주얼 부착 신규 — OnEquipmentChanged(EquipmentSlot,string) 구독+초기 동기화, Helmet→Head/Armor→Spine/Shoes→양발/Gloves→양손/Back(방패)→좌수 본 부착(id left/right 토큰 분기), Weapon 슬롯 스킵, GLB 로드=WeaponEquipManager와 동일 Resources 경로, 아바타 지연도착 5초 폴링(실패 시 1회 경고 스킵), 해제/교체 파괴, 플레이어 Tag 전용(병사 오염 0). 부트 Ensure 배선.
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0**(exit 0) — 중간 1회 수리(HumanBodyBones.LeftForeArm→LeftLowerArm)
+- 정적 QA(서브에이전트): 10파일 diff 전수/시그니처/회귀/마젠타 잔존 전수(0건)/균형 — **FAIL 0건**. 참고: CombatFXGate·HumanoidClipDriver에 구식 주석(BasicHit2/TravisHit 언급) 잔존 — 동작 무영향, 다음 라운드 정리 후보
+- Play 판정 대기: ① 타격 시 마젠타 0건+흰/골드/주황 팔레트 체감 ② 크로스/임팩트 동일 톤 ③ 히트 순간 트레일 펄스 ④ 방어구(wood 투구/갑옷/부츠/장갑/방패) 장착 시 캐릭터에 GLB 부착+해제 시 제거 ⑤ 전리품창 5칸×2줄 ⑥ 창고 화살 탭에서 화살 3종 표시+활 발사
 
 ## 📌 세션 종합 스냅샷 (2026-09-13 ✅ 44차 — 바구니 E키 즉시닫힘 뿌리 수리+공격 FX 품질 개편(BOTW 레퍼런스)+그립 bounds 가드+장비칸 무기 동기화+창고 화살 시딩)
 

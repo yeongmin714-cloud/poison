@@ -19,7 +19,7 @@ namespace ProjectName.Systems
     ///     Idle 크로스(콤보 종료/인터럽트)에 SetEmitting(false) — static 바인딩.
     ///
     /// 트레일 사양(요구):
-    ///   - width 0.09 → 0 곡선(부채꼴 페이드아웃), time 0.18s
+    ///   - [45차 P4] width 3키 곡선 (0,1.0)/(0.6,0.65)/(1,0) — 뿌리 굵고 끝이 빠지는 부채꼴, time 0.22s
     ///   - 색 그라디언트 흰(알파1) → 흰(알파0)
     ///   - additive(Universal Render Pipeline/Particles/Unlit — _Blend=Additive 세팅,
     ///     셰이더 미발견 시 Sprites/Default 폴백), minVertexDistance 0.05
@@ -31,8 +31,8 @@ namespace ProjectName.Systems
         // ── 사양 상수 ──
         /// <summary>트레일 폭(팁 기준 최대, m) — 캐릭터 키(~1.7m) 대비 0.09 = 잘 보이는 궤적(0.06에서 가시성 보강 상향).</summary>
         private const float TipWidth = 0.09f;
-        /// <summary>잔상 지속(초) — BOTW식 짧은 흰 궤적.</summary>
-        private const float TrailTime = 0.18f;
+        /// <summary>잔상 지속(초) — BOTW식 짧은 흰 궤적. [45차 P4] 0.18 → 0.22 (가독성 소폭 상향).</summary>
+        private const float TrailTime = 0.22f;
         /// <summary>정점 최소 간격(m) — 무거운 회전에서도 부드러운 곡선.</summary>
         private const float MinVertexDistance = 0.05f;
 
@@ -59,6 +59,23 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
+        /// [45차 P4] 히트 순간 트레일 밝기 펄스 — 공격 적중 확정 시점(PlayerCombat.AttackTarget 성공 분기)에서 호출.
+        /// startColor 알파 1.0 고정 + 그라디언트 복원 방안은 단순화하고, widthMultiplier를 순간 1.25배로
+        /// 뻈다가 0.12s 뒤 원복한다(부채꼴 폭 곡선 전체가 같이 확장되어 밝고 두껍게 읽힘).
+        /// static은 코루틴 호스트가 없으므로 트레일 GO에 소형 트리거 컴포넌트(<see cref="TrailPulseRunner"/>)를
+        /// 붙여 구현 — 44차 AutoDestroy 선례 패턴. 트레일 미부착(_trail null)이면 무시(호출부 null 가드 불필요).
+        /// </summary>
+        public static void Pulse()
+        {
+            if (_trail == null || _trailGo == null) return;   // 미부착/파괴 — 조용히 무시
+
+            var runner = _trailGo.GetComponent<TrailPulseRunner>();
+            if (runner == null)
+                runner = _trailGo.AddComponent<TrailPulseRunner>();
+            runner.Trigger(_trail, TipWidth);
+        }
+
+        /// <summary>
         /// 무기 GLB 장착 시 트레일 (재)부착 — WeaponEquipManager가 그립 정렬 완료 직후 호출.
         /// tipWorld: 무기 bounds 최장축 그립 반대편 끝(팁)의 월드 좌표(스케일 보정·오프셋 반영 완료).
         /// weapon 인스턴스의 자식 GO로 부착하므로 손 본을 자동 추적한다. 기존 트레일은 파괴 후 재생성.
@@ -77,10 +94,13 @@ namespace ProjectName.Systems
             _trail = _trailGo.AddComponent<TrailRenderer>();
             _trail.time = TrailTime;
             _trail.minVertexDistance = MinVertexDistance;
-            // 부채꼴 페이드아웃 — 폭 0.09 → 0 선형 감소 곡선 × widthMultiplier
+            // 부채꼴 페이드아웃 — 폭 곡선 × widthMultiplier
             _trail.widthMultiplier = TipWidth;
+            // [45차 P4 폭 곡선 개선] 3키 곡선 — 뿌리 굵게(1.0) → 60% 지점 0.65로 완만히 감쇠 → 끝에서 소실(0).
+            // 기존 2키 선형((0,1)→(1,0))은 중간 감쇠가 단조로워 궤적 끝이 밋밋하게 읽히던 것을 개선.
             AnimationCurve width = new AnimationCurve();
             width.AddKey(0f, 1f);
+            width.AddKey(0.6f, 0.65f);
             width.AddKey(1f, 0f);
             _trail.widthCurve = width;
             // 색 그라디언트 — 흰(불투명) → 흰(투명)
@@ -207,6 +227,52 @@ namespace ProjectName.Systems
                 Debug.LogWarning("[Weapon] URP Particles/Unlit 미발견 — 스윙 트레일 Sprites/Default 폴백(알파 블렌드)");
             }
             return spriteDefault != null ? new Material(spriteDefault) : null;
+        }
+
+        // ================================================================
+        // 내부: 히트 펄스 트리거 컴포넌트 (44차 AutoDestroy 선례 패턴)
+        // ================================================================
+
+        /// <summary>
+        /// [45차 P4] 스윙 트레일 밝기 펄스 트리거 — static 클래스가 코루틴을 실행할 수 없어 트레일 GO에
+        /// 부착하는 소형 호스트 컴포넌트(44차 AutoDestroy 선례 패턴, SlashFxHost와 동일 발상).
+        /// widthMultiplier를 1.25배로 순간 확장 후 0.12s 뒤 기본 폭으로 원복. 재트리거 시 원복 시각만 재예약.
+        /// </summary>
+        private sealed class TrailPulseRunner : MonoBehaviour
+        {
+            /// <summary>펄스 확장 배율 — 순간 1.25배.</summary>
+            private const float PulseScale = 1.25f;
+            /// <summary>펄스 지속(초) — 0.12s 뒤 원복.</summary>
+            private const float PulseDuration = 0.12f;
+
+            private TrailRenderer _trail;
+            private float _baseWidth;
+            private float _restoreTime;
+
+            /// <summary>펄스 시작 — 진행 중 재호출 시 원복 시각을 재예약(연속 히트 흡수).</summary>
+            public void Trigger(TrailRenderer trail, float baseWidth)
+            {
+                _trail = trail;
+                _baseWidth = baseWidth;
+                if (_trail != null)
+                    _trail.widthMultiplier = _baseWidth * PulseScale;
+                _restoreTime = Time.time + PulseDuration;
+                enabled = true;
+            }
+
+            private void Update()
+            {
+                // 트레일 파괴(재장착 등) 시 원복 불필요 — 펄스만 종료
+                if (_trail == null)
+                {
+                    enabled = false;
+                    return;
+                }
+                if (Time.time < _restoreTime) return;
+
+                _trail.widthMultiplier = _baseWidth;   // 원복 — 부착 시 기본 폭(TipWidth)
+                enabled = false;                        // 펄스 종료 — 다음 트리거는 Trigger()가 재활성화
+            }
         }
     }
 }

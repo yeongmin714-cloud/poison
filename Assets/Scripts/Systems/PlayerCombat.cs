@@ -377,6 +377,9 @@ namespace ProjectName.Systems
                 LastHitTime = Time.time;
             }
 
+            // [45차 P4] 히트 순간 스윙 트레일 밝기 펄스 — 적중 확정 지점 1줄 훅(null 가드는 Pulse 내부).
+            WeaponSwingTrail.Pulse();
+
             target.TakeDamage(damage, hitDirection, _currentWeapon?.weaponType.ToString() ?? "melee");
 
             // ⏱️ 전투 로그: 데미지 기록
@@ -417,10 +420,11 @@ namespace ProjectName.Systems
             // CombatFXGate.PlayHitFX(GameObject 오버로드)가 스파크, 유기체 출혈(Organic),
             // 데미지 넘버, 히트 플래시, 카메라 Crit/Hit를 일괄 처리하므로
             // 기존의 중복 HitVFX.PlayHitEffect/PlayHitFlash 블록은 제거함 (게이트가 대체).
-            // 백어택 = 치명타(isCrit) → 데미지 넘버 색: 주황, 일반 → 흰색.
+            // 백어택 = 치명타(isCrit) → 데미지 넘버 색: Accent(골드), 일반 → Core(흰).
+            // 2026-09-13(45차 P2): BOTW 팔레트 통일 — 흰/골드/주황 3색.
             if (targetBehaviour != null)
             {
-                Color numberColor = isBackAttack ? new Color(1f, 0.6f, 0.1f) : Color.white;
+                Color numberColor = isBackAttack ? FXPalette.Accent : FXPalette.Core;
                 CombatFXGate.PlayHitFX(targetBehaviour.gameObject, hitDirection, CombatHitType.Organic, isBackAttack, damage, numberColor);
                 Debug.Log($"[PlayerCombat] ✨ FX 게이트 호출: {targetName} (crit={isBackAttack}, dmg={damage})");
             }

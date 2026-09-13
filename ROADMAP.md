@@ -2317,4 +2317,20 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | P6 창고 | 화살 3종 ×20 시딩(arrow_regular/reinforced/magic, id=ArrowManager 상수 일치) | ✅ |
 | 검증 | 배치컴파일 error CS=0(SlashVFXRunner colorOverLifetime API 3회 수리), 정적 QA FAIL 0건(11파일) | ✅ |
 | Play 판정 대기 | E키 열림 유지/반짝임 가시/보라 0건/목검 부착/장비칸 무기 표시+해제 연동/활 발사 | ⬜ |
+
+## ⚔️ 2026-09-13: 마젠타 뿌리 수리+BOTW 팔레트 통일+방어구 비주얼 부착 (FX-QUALITY-45)
+
+> **목표:** "보라 파티클"의 진범 확정(픽셀 실측 RGB(219,19,219)=셰이더 에러 마젠타 — 런타임 파티클 기본 머티리얼 URP 미지원) 후 뿌리 수리+BOTW 팔레트 3색 통일+임팩트 단일화+방어구 GLB 비주얼 부착 신규+전리품창 5×2+화살 탭.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| P1 마젠타 뿌리 | FXPalette 신설(팔레트 3색+URP 호환 파티클 머티리얼 Sprites/Default 우선)+CVC 6지점 ApplyTo+프로젝트 전수 스윕(미지정 0건) | ✅ |
+| P2 팔레트 | 데미지 숫자/피격 색 흰/골드/주황 통일(AnimalAI/PlayerCombat) | ✅ |
+| P3 임팩트 단일화 | PlayCross TravisHit 제거→BasicHit 단일, BasicHit2 분기 제거, 틴트 팔레트 정렬 | ✅ |
+| P4 트레일 | 폭 3키 곡선+0.22s+Pulse(히트 순간 1.25배 0.12s)+적중 훅 | ✅ |
+| P5 전리품창 | LOOT_COLUMNS=5/LOOT_ROWS_MAX=2 전용 분리(메인 6열 유지) | ✅ |
+| P6 방어구 부착 | ArmorVisualAttachSystem 신규(OnEquipmentChanged 구독+본 부착+5초 폴링+GLB 로드)+부트 Ensure | ✅ |
+| P7 화살 탭 | 창고 카테고리 탭 Arrow 추가 | ✅ |
+| 검증 | 배치컴파일 error CS=0(LeftForeArm→LeftLowerArm 수리), 정적 QA FAIL 0건(10파일) | ✅ |
+| Play 판정 대기 | 마젠타 0건/팔레트 체감/크로스·임팩트 동일 톤/트레일 펄스/방어구 GLB 부착+해제/전리품 5×2/화살 탭 | ⬜ |
 | Play 판정 대기 | 트레일/Travis 히트/바구니 반짝임/클로ak/창고 4구획/우클릭 4단 로그 | ⬜ |

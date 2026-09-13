@@ -5,7 +5,8 @@ namespace ProjectName.Systems
     /// <summary>
     /// 3단계 이펙트: 에셋 스토어 무료 프리팹 기반 스윙/피격 FX 정적 러너.
     ///   - 스윙: Free Slash VFX "Slash VFX.prefab" (Assets/Resources/FX/Slash/Slash VFX)
-    ///   - 피격: Matthew Guz "Basic Hit / Basic Hit 2" (Assets/Resources/FX/Impact/BasicHit, BasicHit2)
+    ///   - 피격: Matthew Guz "Basic Hit" (Assets/Resources/FX/Impact/BasicHit)
+    ///     [45차 P3 임팩트 단일화] BasicHit2(Construct)/TravisHit(크로스) 경로 제거 — BasicHit 단일 프리팹
     ///
     /// 프리팹은 에디터 인스톨러(Tools/VFX/Install Slash+Impact to Resources, -executeMethod:
     /// ProjectName.EditorTools.VFXResourceInstaller.InstallAll)가 Resources 하위로 복사해두므로
@@ -25,6 +26,10 @@ namespace ProjectName.Systems
     /// "FX/Impact/TravisHit" 프리팹으로 교체(빌보드/쿨다운/파괴 패턴 유지). 스윙(Slash VFX)은 호출부
     /// (HumanoidClipDriver) 제거로 자연 데드화 — 스윙 궤적은 WeaponSwingTrail(무기 트레일)이 대체하며
     /// PlaySlash/LoadSlashPrefab은 함수 유지(데드).
+    ///
+    /// [45차 P3 임팩트 단일화] 타격 FX 3종 혼용(PlayImpact의 BasicHit/BasicHit2 분기 + PlayCross의 TravisHit)을
+    /// BasicHit 단일 경로로 통일 — 프리팹 소스 분산에 의한 톤 불일치 해소. 틴트는 45차 BOTW 팔레트로 정렬:
+    /// 코어=흰(1,1,1) / 액센트=골드(1,0.9,0.5) / 외곽=주황(1,0.55,0.2) — 크로스=골드, 임팩트=흰.
     /// </summary>
     public static class SlashVFXRunner
     {
@@ -43,20 +48,23 @@ namespace ProjectName.Systems
         private const float StrokeMirrorX = -1f;
 
         private const string SlashResourcePath = "FX/Slash/Slash VFX";
-        private const string TravisHitResourcePath = "FX/Impact/TravisHit";
+        // [45차 P3 임팩트 단일화] TravisHit/BasicHit2 리소스 경로 제거 — BasicHit 단일 경로만 유지
         private const string BasicHitResourcePath = "FX/Impact/BasicHit";
-        private const string ConstructHitResourcePath = "FX/Impact/BasicHit2";
+
+        // ── 45차 P3: BOTW 팔레트 틴트 상수 — 코어=흰 / 액센트=골드 / 외곽=주황 ──
+        /// <summary>[45차 P3: BOTW 팔레트] 코어 틴트 = 흰(1,1,1) — 임팩트/스윙 기본 톤.</summary>
+        internal static readonly Color CoreTint = new Color(1f, 1f, 1f);
+        /// <summary>[45차 P3: BOTW 팔레트] 액센트 틴트 = 골드(1,0.9,0.5) — 크로스(타 완료) 액센트 톤.</summary>
+        internal static readonly Color AccentTint = new Color(1f, 0.9f, 0.5f);
+        /// <summary>[45차 P3: BOTW 팔레트] 외곽 틴트 = 주황(1,0.55,0.2) — 외곽 연출 참조 톤(러너 내 직접 사용 없음).</summary>
+        internal static readonly Color OuterTint = new Color(1f, 0.55f, 0.2f);
 
         // ── static 캐시/상태 ─────────────────────────────────────────
         private static GameObject _slashPrefab;
-        private static GameObject _travisHitPrefab;
-        private static GameObject _basicHitPrefab;
-        private static GameObject _constructHitPrefab;
+        private static GameObject _basicHitPrefab;   // [45차 P3] TravisHit/Construct(BasicHit2) 캐시 제거 — BasicHit 단일 캐시
 
         private static bool _slashLoadFailed;
-        private static bool _travisHitLoadFailed;
         private static bool _basicHitLoadFailed;
-        private static bool _constructHitLoadFailed;
         private static bool _shaderErrorWarned;
 
         // 스팸 방지 타이머는 스윙/임팩트 분리: 같은 프레임에 스윙+임팩트가 연속 와도
@@ -109,9 +117,9 @@ namespace ProjectName.Systems
             // 로컬 Z축 롤 = 빌보드 이후 화면축 기준 궤적 기울이기 (수직/사선 궤적 표현은 여기서만 담당)
             if (Mathf.Abs(arcRollDegrees) > 0.01f)
                 instance.transform.Rotate(0f, 0f, arcRollDegrees, Space.Self);
-            // [2026-09-12 P2 피격 FX 재색상] 스윙 궤적 일관색 — 밝은 흰/청백 틴트(팩 기본 보라 톤 제거).
-            // 파티클 재생 전에 적용해 첫 방출 파티클부터 새 색이 나온다.
-            TintParticles(instance, new Color(0.85f, 0.95f, 1.0f), 0.1f);
+            // [2026-09-12 P2 피격 FX 재색상] 스윙 궤적 일관색 — 팩 기본 보라 톤 제거. 파티클 재생 전에 적용해
+            // 첫 방출 파티클부터 새 색이 나온다. [45차 P3: BOTW 팔레트] 스윙 = 코어 흰(1,1,1) 정렬(데드 경로).
+            TintParticles(instance, CoreTint, 0.1f);
             // [2026-09-13 보라 정규화] 틴트 후 잔여 보라(colorOverLifetime 그라디언트 등) 골드화이트 교체.
             NormalizePurpleParticles(instance);
             Debug.Log($"[SlashVFX] ✅ 스윙 FX 스폰 (pos={position}, faceDir={faceDir:F2}, roll={arcRollDegrees:F0}°, 발화시각={Time.time:F2}s)");   // 1회성 검증 아님 — 좌클릭마다 1줄, 발화 증거
@@ -123,11 +131,12 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 타 완료 시점 히트 VFX — [2026-09-12 P2] "FX/Impact/TravisHit" 프리팹 스폰(Multiple Slashes 교체).
+        /// 타 완료 시점 히트 VFX — [45차 P3 임팩트 단일화] TravisHit 전용 스폰을 제거하고 PlayImpact와
+        /// 동일 단일 경로(FX/Impact/BasicHit)로 위임한다(프리팹 소스 분산에 의한 톤 불일치 해소).
         /// 스윙이 끝나는 지점(스테이지 경계 통과)에 1회 발화한다(HumanoidClipDriver 콤보 감시에서 호출).
-        /// PlaySlash와 동일한 쿨다운/캐시/파괴 패턴. 프리팹 미설치 시 static 1회 경고 후 조용히 반환.
-        /// [2026-09-12] 쿼드 오리엔테이션을 카메라 수평 빌보드로 변경(기존 LookRotation(dir)은 후방 카메라에서
-        /// 뒷면 미러링 = 역스윙 체감 유발). direction은 빌보드 폴백/로그용으로 유지.
+        /// 호출부 시그니처/크로스 전용 쿨다운/static 캐시/파괴 패턴 유지. 프리팹 미설치 시 static 1회 경고 후 조용히 반환.
+        /// [2026-09-12] 쿼드 오리엔테이션은 카메라 수평 빌보드 유지(후방 카메라 뒷면 미러링 = 역스윙 체감 차단).
+        /// direction은 빌보드 폴백/로그용으로 유지.
         /// </summary>
         public static void PlayCross(Vector3 position, Vector3 direction)
         {
@@ -135,20 +144,21 @@ namespace ProjectName.Systems
             if (Time.time - _lastCrossSpawnTime < MIN_SPAWN_INTERVAL) return;
             _lastCrossSpawnTime = Time.time;
 
-            GameObject prefab = LoadTravisHitPrefab();
+            // [45차 P3 임팩트 단일화] BasicHit 단일 경로 위임 — TravisHit 참조/로드 코드 제거
+            GameObject prefab = LoadImpactPrefab();
             if (prefab == null) return;
 
             Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
             // [2026-09-12 카메라 수평 빌보드] 히트 지점에서 쿼드 +Z를 카메라 시선 축(수평)에 정렬 —
-            // 십자가가 후방 카메라에서도 항상 정면에서 읽힌다(뒷면 미러링 = 역스윙 체감 차단). 폴백 동일.
+            // 후방 카메라에서도 항상 정면에서 읽힌다(뒷면 미러링 = 역스윙 체감 차단). 폴백 동일.
             Vector3 faceDir = CameraHorizontalFaceDir(position, dir);
             GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(faceDir));
-            instance.name = "TravisHit_Cross";
-            // [2026-09-12 P2] 히트 마크 틴트 — 예시색(1.0, 0.75, 0.35 웜 골드) 유지(재생 전 적용).
-            TintParticles(instance, new Color(1.0f, 0.75f, 0.35f), 0.15f);
-            // [2026-09-13 보라 정규화] TravisHit 팩 잔여 보라 → 골드화이트 교체(재생 전).
+            instance.name = "ImpactVFX_Cross";
+            // [45차 P3: BOTW 팔레트] 크로스 틴트 = 액센트 골드(1,0.9,0.5) — 타 완료 액센트 톤(재생 전 적용).
+            TintParticles(instance, AccentTint, 0.15f);
+            // [2026-09-13 보라 정규화] 잔여 보라 → 골드화이트 교체(재생 전).
             NormalizePurpleParticles(instance);
-            Debug.Log($"[SlashVFX] ✅ 크로스 FX 스폰 (TravisHit, pos={position}, faceDir={faceDir:F2}, 발화시각={Time.time:F2}s)");
+            Debug.Log($"[SlashVFX] ✅ 크로스 FX 스폰 (단일 임팩트, pos={position}, faceDir={faceDir:F2}, 발화시각={Time.time:F2}s)");
 
             PlayAllParticleSystems(instance);
             DetectShaderErrorOnce(instance, "CrossSlash");
@@ -156,7 +166,8 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 피격 임팩트 FX. Organic → BasicHit, Construct → BasicHit2, 그 외 → BasicHit.
+        /// 피격 임팩트 FX — [45차 P3 임팩트 단일화] Organic/Construct/그 외 모두 BasicHit 단일 프리팹으로 통일
+        /// (기존 Construct → BasicHit2 분기 제거). type은 로그/인스턴스명 구분용으로만 유지.
         /// </summary>
         public static void PlayImpact(Vector3 position, CombatHitType type)
         {
@@ -164,15 +175,15 @@ namespace ProjectName.Systems
             if (Time.time - _lastImpactSpawnTime < MIN_SPAWN_INTERVAL) return;
             _lastImpactSpawnTime = Time.time;
 
-            string resourcePath = type == CombatHitType.Construct ? ConstructHitResourcePath : BasicHitResourcePath;
-            GameObject prefab = LoadImpactPrefab(resourcePath, type);
+            // [45차 P3 임팩트 단일화] BasicHit 단일 로드 — BasicHitResourcePath 경로 유지
+            GameObject prefab = LoadImpactPrefab();
             if (prefab == null) return;
 
             GameObject instance = Object.Instantiate(prefab, position, Quaternion.identity);
             instance.name = $"ImpactVFX_{type}";
-            // [2026-09-12 P2 피격 FX 재색상] 보라색 팩 파티클("BasicHit"/"BasicHit2" 임팩트) → 붉은 계열
-            // (0.8,0.2,0.2)로 재색상 — 사용자 취향 반영(피격 보라 부유 입자 제거). 재생 전 적용.
-            TintParticles(instance, new Color(0.8f, 0.2f, 0.2f), 0.2f);
+            // [2026-09-12 P2 피격 FX 재색상] 보라색 팩 파티클 재색상 — 사용자 취향 반영(피격 보라 부유 입자 제거).
+            // [45차 P3: BOTW 팔레트] 임팩트 틴트 = 코어 흰(1,1,1) 정렬(기존 붉은 계열 0.8,0.2,0.2 교체). 재생 전 적용.
+            TintParticles(instance, CoreTint, 0.2f);
             // [2026-09-13 보라 정규화] 틴트가 main.startColor만 평탄화하므로 그라디언트 등에
             // 남은 보라를 골드화이트로 교체 — 보라 감지 색은 틴트 결과보다 우선 적용.
             NormalizePurpleParticles(instance);
@@ -229,42 +240,14 @@ namespace ProjectName.Systems
             return _slashPrefab;
         }
 
-        // [2026-09-12 P2 크로스→TravisHit 교체] 기존 "FX/Slash/Multiple Slashes" 로더를 TravisHit 로더로 대체
-        // (리소스 로드 경로만 교체 — 캐시/1회 경고/정적 플래그 패턴 동일). 로드 실패 시 크래시 없이 조용히 반환.
-        private static GameObject LoadTravisHitPrefab()
+        // [45차 P3 임팩트 단일화] TravisHit 로더 제거 + LoadImpactPrefab의 Construct(BasicHit2) 분기 제거 —
+        // BasicHit 단일 로더만 유지(캐시/1회 경고/정적 플래그 패턴 동일). 로드 실패 시 크래시 없이 조용히 반환.
+        private static GameObject LoadImpactPrefab()
         {
-            if (_travisHitPrefab != null) return _travisHitPrefab;
-            if (_travisHitLoadFailed) return null;
-
-            _travisHitPrefab = Resources.Load<GameObject>(TravisHitResourcePath);
-            if (_travisHitPrefab == null)
-            {
-                _travisHitLoadFailed = true;
-                Debug.LogWarning("[SlashVFX] 로드 실패(1회만 경고): Resources/FX/Impact/TravisHit — 에디터 메뉴 Tools/VFX/Install Slash+Impact to Resources 실행 필요");
-            }
-            return _travisHitPrefab;
-        }
-
-        private static GameObject LoadImpactPrefab(string resourcePath, CombatHitType type)
-        {
-            if (resourcePath == ConstructHitResourcePath)
-            {
-                if (_constructHitPrefab != null) return _constructHitPrefab;
-                if (_constructHitLoadFailed) return null;
-                _constructHitPrefab = Resources.Load<GameObject>(resourcePath);
-                if (_constructHitPrefab == null)
-                {
-                    _constructHitLoadFailed = true;
-                    Debug.LogWarning($"[SlashVFX] 로드 실패(1회만 경고): Resources/{resourcePath} (Construct 임팩트) — 인스톨러 실행 필요");
-                }
-                return _constructHitPrefab;
-            }
-
-            // Organic 및 분류 불가(None 등)는 모두 BasicHit 사용
             if (_basicHitPrefab != null) return _basicHitPrefab;
             if (_basicHitLoadFailed) return null;
 
-            _basicHitPrefab = Resources.Load<GameObject>(resourcePath);
+            _basicHitPrefab = Resources.Load<GameObject>(BasicHitResourcePath);
             if (_basicHitPrefab == null)
             {
                 _basicHitLoadFailed = true;
