@@ -700,11 +700,13 @@ namespace ProjectName.Systems
                     // 내부 _trail==null 가드가 무기 트레일을 보존하므로 매 콤보 진입마다 호출해도 무해(부착 1회, 로그 1회).
                     WeaponSwingTrail.EnsureBareFist(transform.root);
 
-                    // [2026-09-13 스타일라이즈드 슬래시 발화] 38차 규격 앵커(루트 기준 fwd 0.9 + up 1.2) +
-                    // 콤보 방향(ComboStageDirection → 전방 반구 클램프) + yaw 부호(좌우 플립 판정).
+                    // [2026-09-13 스타일라이즈드 슬래시 발화] 콤보 방향(ComboStageDirection → 전방 반구 클램프) +
+                    // yaw 부호(좌우 플립 판정). [46차 후속] 스윙 앵커를 몸에 가깝게 — 기존 fwd 0.9 + up 1.2(38차 규격)에서
+                    // fwd 0.55 + up 1.25로 조정(플레이어 루트 기준). ← 튜닝 포인트: 아크가 몸에서 떠 보이면 fwd를,
+                    // 높이가 어색하면 up 값을 조정할 것. (앵커 계산은 호출부 단일 소스 — 러너 내부 계산 없음, 불일치 제거)
                     var t = transform;
                     Vector3 dir = ComboStageDirection(stage, t);
-                    Vector3 pos = t.position + t.forward * 0.9f + Vector3.up * 1.2f;
+                    Vector3 pos = t.position + t.forward * 0.55f + Vector3.up * 1.25f;
                     // yawSign — ComboStageDirection(클램프 후)의 수평 yaw 부호: 1타 -58°(좌) → -1, 2타 +63°(우)·
                     // 3타 클램프 후 +36°(우) → +1. 러너에서 이 부호로 아크 진행을 좌우 플립한다.
                     Vector3 fwdFlat = new Vector3(t.forward.x, 0f, t.forward.z);
@@ -712,7 +714,9 @@ namespace ProjectName.Systems
                     float yawSign = (fwdFlat.sqrMagnitude > 0.000001f && dirFlat.sqrMagnitude > 0.000001f
                         && Vector3.SignedAngle(fwdFlat.normalized, dirFlat.normalized, Vector3.up) < 0f)
                         ? -1f : 1f;
-                    SlashVFXRunner.PlaySlashStage(pos, dir, stage, yawSign);
+                    // 46차 후속: playerRoot = 플레이어 루트(transform.root — EnsureBareFist와 동일 기준) 전달 —
+                    // 슬래시 인스턴스가 플레이어에 부착되어 이동/회전을 추종한다(부착감). null이면 러너가 폴백.
+                    SlashVFXRunner.PlaySlashStage(pos, dir, stage, yawSign, transform.root);
                 }
                 WeaponSwingTrail.SetEmitting(true);
                 Debug.Log($"[Combo] 스윙 트레일 방출 (stage={stage})");
@@ -808,8 +812,10 @@ namespace ProjectName.Systems
                 dir = dir.sqrMagnitude > 0.000001f ? dir.normalized : t.forward;     // 히트 지점==머리 등 퇴화 방어
                 dir = ClampForwardHemisphere(dir, t, stage);                         // [2026-09-11] 스윙/크로스 공용 전방 반구 클램프 — 뒤방향 스윙 금지
                 // 사용자 지정 — 십자가는 스윙 아크의 정중앙에(타격점 하나로 읽힘): 스윙 FX(39차)와 완전히 동일 앵커
-                // Lerp(플레이어 루트, LastHitPoint, 0.5) + up*1.2 = LastHitPoint를 플레이어 쪽으로 반쯤 당겨온 스윙 정중앙.
-                Vector3 pos = Vector3.Lerp(t.position, PlayerCombat.LastHitPoint, 0.5f) + Vector3.up * 1.2f;
+                // Lerp(플레이어 루트, LastHitPoint, 0.5) = LastHitPoint를 플레이어 쪽으로 반쯤 당겨온 스윙 정중앙.
+                // [46차 후속] up 오프셋 1.2 → 0.6으로 낮춰 타격 지점에 가깝게. ← 튜닝 포인트: 크로스가 타격점보다
+                // 낮게/높게 보이면 이 값을 조정할 것.
+                Vector3 pos = Vector3.Lerp(t.position, PlayerCombat.LastHitPoint, 0.5f) + Vector3.up * 0.6f;
                 SlashVFXRunner.PlayCross(pos, dir);
                 Debug.Log($"[Combo] 크로스 FX stage={stage} → 스윙 정중앙 발화 pos={pos:F2}");
             }

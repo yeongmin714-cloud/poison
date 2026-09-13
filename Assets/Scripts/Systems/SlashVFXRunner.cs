@@ -45,8 +45,8 @@ namespace ProjectName.Systems
         /// </summary>
         private const float MIN_STYLIZED_SLASH_INTERVAL = 0.25f;
 
-        /// <summary>스타일라이즈드 슬래시 스케일 배수(튜닝 상수) — 초기 1.2배, Play 판정 후 조정.</summary>
-        private const float StylizedSlashScale = 1.2f;
+        /// <summary>스타일라이즈드 슬래시 스케일 배수(튜닝 상수) — 46차 후속: 1.2배→1.5배(가시성 확대). Play 판정 후 조정.</summary>
+        private const float StylizedSlashScale = 1.5f;
 
         /// <summary>
         /// 스타일라이즈드 슬래시 자가 파괴 예약 시간(튜닝 상수) — VFX Graph가 자체 수명 후 완전 소진되므로
@@ -165,11 +165,12 @@ namespace ProjectName.Systems
         /// VFX Graph(m_InitialEventName=OnPlay)는 Instantiate 직후 자동 재생되므로 명시 Play 불필요.
         /// 쿨다운 0.25s(스윙/크로스/임팩트와 독립), 자가 파괴 1.5s(StylizedSlashDestroyAfter).
         /// </summary>
-        /// <param name="position">스윙 앵커(루트 기준 fwd 0.9 + up 1.2 — 38차 규격, 호출부 산출).</param>
+        /// <param name="position">스윙 앵커(루트 기준 fwd 0.55 + up 1.25 — 46차 후속 규격, 몸에 가깝게. 호출부 산출).</param>
         /// <param name="direction">콤보 방향(ComboStageDirection → 전방 반구 클램프 결과) — 빌보드 폴백/로그용.</param>
         /// <param name="stage">콤보 스테이지(1~3) — 롤 규약 적용 대상.</param>
         /// <param name="yawSign">스윙 yaw 부호(-1=좌, +1=우) — 아크 진행 좌우 플립 판정(호출부 ComboStageDirection 기반).</param>
-        public static void PlaySlashStage(Vector3 position, Vector3 direction, int stage, float yawSign)
+        /// <param name="playerRoot">46차 후속: 플레이어 루트 Transform — 인스턴스 부착(추종) 대상. null이면 부모 없이 스폰(폴백).</param>
+        public static void PlaySlashStage(Vector3 position, Vector3 direction, int stage, float yawSign, Transform playerRoot = null)
         {
             // 스팸 방지 — 스타일라이즈드 전용 쿨다운(0.25s, MIN_SPAWN_INTERVAL과 별개 상수): 콤보 타당 최소 간격 강제
             if (Time.time - _lastStylizedSlashSpawnTime < MIN_STYLIZED_SLASH_INTERVAL) return;
@@ -184,6 +185,13 @@ namespace ProjectName.Systems
             GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(faceDir));
             instance.name = "SlashVFX_Stylized";
 
+            // ①-2 [46차 후속: 플레이어 부착(추종)] 스폰 직후 플레이어 루트에 부착 — worldPositionStays=true로
+            // 스폰 시점의 화면 정렬(빌보드/롤/플립 결과)을 그대로 유지한 채 이후 플레이어 이동/회전에 따라가
+            // 아크가 몸에서 분리되어 보이지 않는다(부착감). playerRoot가 null이면 기존처럼 월드 고정 스폰(폴백).
+            // 파괴 정책: 1.5s 후 자식 인스턴스만 Destroy되므로 부모(플레이어) 파괴를 유발하지 않음(안전).
+            if (playerRoot != null)
+                instance.transform.SetParent(playerRoot, true);
+
             // ② [yawSign 좌우 플립 — 튜닝 포인트] yawSign<0(좌 스윙)이면 로컬 Y 180도 회전으로 아크 진행을 플립한다.
             // VFX 특성상(음수 localScale은 파티클 스폰 위치/벨로시티 미러링이 불안정해질 수 있음) localScale.x=-1보다
             // 회전을 우선한다. 단, Y 180도 회전은 쿼드 뒷면을 보여줄 수 있으므로 Play 판정에서 뒷면/미러가 어색하면
@@ -196,7 +204,7 @@ namespace ProjectName.Systems
             if (Mathf.Abs(roll) > 0.01f)
                 instance.transform.Rotate(0f, 0f, roll, Space.Self);
 
-            // 스케일 튜닝 상수 — 초기 1.2배(Play 판정 후 조정). 플립이 회전 기반이므로 균일 스케일.
+            // 스케일 튜닝 상수 — 46차 후속: 1.5배(StylizedSlashScale, 가시성 확대). 플립이 회전 기반이므로 균일 스케일.
             instance.transform.localScale = Vector3.one * StylizedSlashScale;
 
             // [틴트 불가] 이 팩은 노출 프로퍼티(m_PropertySheet)가 비어 있어 런타임 틴트 불가 — TintParticles/

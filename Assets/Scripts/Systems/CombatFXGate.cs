@@ -62,6 +62,28 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
+        // 오브젝트+타격 지점 기반 진입 (46차 후속 — 임팩트를 실제 타격 지점에 부착)
+        // ================================================================
+        /// <summary>
+        /// 46차 후속: 기존 GameObject 오버로드와 동일하되, Internal에 전달하는 발화 위치를
+        /// target.transform.position(모델 피벗 — Editor.log 실측 y≈2.9 공중 부양, 실제 타격 지점 아님)
+        /// 대신 hitPos(실제 타격 지점)로 전달한다. PlayHitFlash(target)는 유지(오브젝트 플래시는 피벗 무관).
+        /// 기존 2개 오버로드는 무수정(하위 호환 유지).
+        /// </summary>
+        public static void PlayHitFX(GameObject target, Vector3 hitPos, Vector3 hitDirection, CombatHitType type, bool isCrit, float damage, Color numberColor)
+        {
+            if (target == null)
+            {
+                Debug.LogWarning("[CombatFX] PlayHitFX(target, hitPos, ...) — target이 null이라 스킵");
+                return;
+            }
+            if (!TryConsumeBudget()) return;
+
+            CombatVFXController.PlayHitFlash(target);
+            PlayHitFXInternal(hitPos, hitDirection, type, isCrit, damage, numberColor);
+        }
+
+        // ================================================================
         // ?��? 코어 ???�산 ?�비 ???�제 ?�펙??발사
         // ================================================================
         private static void PlayHitFXInternal(Vector3 position, Vector3 direction, CombatHitType type, bool isCrit, float damage, Color numberColor)

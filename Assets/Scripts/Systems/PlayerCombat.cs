@@ -425,8 +425,15 @@ namespace ProjectName.Systems
             if (targetBehaviour != null)
             {
                 Color numberColor = isBackAttack ? FXPalette.Accent : FXPalette.Core;
-                CombatFXGate.PlayHitFX(targetBehaviour.gameObject, hitDirection, CombatHitType.Organic, isBackAttack, damage, numberColor);
-                Debug.Log($"[PlayerCombat] ✨ FX 게이트 호출: {targetName} (crit={isBackAttack}, dmg={damage})");
+                // 46차 후속: 임팩트를 실제 타격 지점(bounds center+0.2)에 부착 — 기존 GameObject 오버로드는
+                // target.transform.position(모델 피벗, Editor.log 실측 y≈2.9 공중 부양)에 발화해 타격 지점과 어긋났다.
+                // hitPos = LastHitPoint(375행에서 직전에 갱신: bounds center+up*0.2). Time.time 기반 신선도
+                // 확인(LastHitValid/LastHitTime, 0.5s — FireComboCross와 동일 규약)이 있으므로 그대로 사용하고,
+                // 만료 시엔 기존과 같이 대상 피벗으로 폴백한다.
+                bool hitPointFresh = LastHitValid && Time.time - LastHitTime <= 0.5f;
+                Vector3 impactPos = hitPointFresh ? LastHitPoint : targetBehaviour.transform.position;
+                CombatFXGate.PlayHitFX(targetBehaviour.gameObject, impactPos, hitDirection, CombatHitType.Organic, isBackAttack, damage, numberColor);
+                Debug.Log($"[PlayerCombat] ✨ FX 게이트 호출: {targetName} (crit={isBackAttack}, dmg={damage}, impactPos={impactPos})");
             }
 
             Debug.Log($"[PlayerCombat] 🎯 자동조준! {_currentWeapon?.weaponName ?? "Unknown"} → {target} 데미지: {damage}");
