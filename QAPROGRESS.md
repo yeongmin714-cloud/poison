@@ -33,6 +33,11 @@
 **수리**: ① `CombatFXGate.PlayHitFX(GameObject target, Vector3 hitPos, ...)` 신규 오버로드(PlayHitFlash 유지+hitPos 전달) + PlayerCombat이 LastHitPoint(bounds center+0.2, 375행 직전 갱신) 전달 — 임팩트가 실제 타격 지점에 부착 ② 크로스 앵커 up1.2→0.6 ③ `PlaySlashStage(..., Transform playerRoot)` — 인스턴스를 플레이어에 SetParent(worldPositionStays=true, 스폰 정렬 유지+이동 추종) + 앵커 근접화(fwd0.9+up1.2→fwd0.55+up1.25) + 스케일 1.2→1.5.
 **컴파일**: error CS=0.
 
+### 🔧 46차 후속3 (사용자 "테스트 9 전혀 적용 안됐어" — 슬래시 미렌더 확정)
+**진단**: 테스트 9 프레임 전수 픽셀 스캔(4fps 81프레임) — 골드 아크 픽셀 0(노이즈 ≤4px). 슬래시 발화 로그는 정상, 프리팹/참조 guid 정상, 로드 실패/셰이더 에러 0건 → **VFX Graph가 URP에서 출력하지 않음**(출력 블록 렌더 파이프라인 타겟 불일치 추정 — 코드 복구 불가 영역).
+**수리**: SlashVFXRunner에 **alive 진단 러너**(SlashAliveProbe — 스폰 0.35s 후 aliveParticleCount 체크) 추가 → alive≤0이면 `NotifyVfxDead()` 플래그 + 로그, 이후 발화부터 **구 "FX/Slash/Slash VFX" 폴백** 전환(URP Shader Graph — 42차 이전 렌더 실적, 8 MeshRenderer). 폴백도 동일 파이프라인(빌보드/yawSign 플립/stage 롤/SetParent 추종/스케일 1.5/1.5s 파괴/쿨다운 공유). alive>0 복귀 시 스타일라이즈드로 자동 복귀. LastHitPoint up 0.2→0.1 하향(부착감).
+**컴파일**: error CS=0(1회 통과).
+
 ## 📌 세션 종합 스냅샷 (2026-09-13 ✅ 45차 — 보라 파티클 진범=마젠타 셰이더 에러 뿌리 수리+BOTW 팔레트 통일+임팩트 단일화+방어구 비주얼 부착 신규+전리품창 5×2+화살 탭)
 
 > **스코프**: 테스트 7 영상 픽셀 실측으로 "보라 파티클"의 진범 확정 — 평균 RGB (219,19,219)=**Unity 셰이더 에러 마젠타**. 런타임 파티클이 기본 머티리얼(Particles/Standard Unlit)로 생성되어 URP 미지원 → 마젠타 렌더. 40차 틴트/44차 색 교체/보라 정규화가 무효였던 근본 이유. 텍스처 전수 확인(HIE/Guz 전부 무채색)으로 코드 색·텍스처는 무죄. 배치컴파일 error CS=0 + 정적 QA FAIL 0건.

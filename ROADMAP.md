@@ -2347,5 +2347,6 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 검증 | 배치컴파일 error CS=0, 정적 QA FAIL 0건(5파일 — guid 유일/미수정 영역 보존/Soldier 도달 0) | ✅ |
 | 후속 수리 | "전혀 안고쳐졌어" 뿌리 추가 확정 — AnimalAI.TakeDamage 자체 FX 경로(스파크/블러드/HitVFX/숫자 2종 이중 발화)+Die() 혈흔+MonsterSkillSystem 15콜 → 전부 제거, AnimalAI=PlayHitFlash만 유지 | ✅ |
 | 후속2 부착 | 임팩트=Gate hitPos 신규 오버로드+LastHitPoint 전달(피벗 공중부양 y≈2.9 수리), 슬래시=플레이어 SetParent 추종+앵커 근접화+스케일 1.5, 크로스 up 0.6 | ✅ |
-| Play 판정 대기 | 절차 파티클 소멸/에셋+숫자+번쩍만/골드 아크 방향 추종/트레일 유지 | ⬜ |
+| 후속3 폴백 | 테스트9 전수 스캔—VFX Graph 미렌더 확정(골드 0픽셀) → SlashAliveProbe alive 진단+미출력 시 구 Slash VFX 폴백 전환(URP Shader Graph 실적)/복구 시 자동 복귀, LastHitPoint up 0.1 | ✅ |
+| Play 판정 대기 | 절차 파티클 소멸/에셋+숫자+번쩍만/슬래시 아크 표시(폴백)/트레일 유지 | ⬜ |
 | Play 판정 대기 | 트레일/Travis 히트/바구니 반짝임/클로ak/창고 4구획/우클릭 4단 로그 | ⬜ |
