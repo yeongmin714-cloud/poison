@@ -73,6 +73,8 @@ namespace ProjectName.UI
         private static ILootBasket s_pendingLootBasket;        // 인스턴스 생성 전 SetContextMode 대기 값 (warehouse pending 패턴 복제)
         private static readonly List<Rect> s_lootSlotScreenRects = new List<Rect>(32);   // 전리품 슬롯 화면 Rect (드래그 판정용 — 정적 GC 캐시 관례)
         private static readonly List<int> s_lootSlotScreenIndices = new List<int>(32);   // 바구니 항목 인덱스
+        private bool _lootOpenLogged;                          // 2026-09-13(44차 P1): 첫 렌더 캐시 항목수 로그 가드 (열림당 1회)
+        private bool _lootCloseReasonLogged;                   // 2026-09-13(44차 P1): 즉시 닫기 사유 로그 가드 (열림당 1회 — 매 프레임 스팸 방지)
         private Transform _playerTransform;                    // 3m 이탈 판정용 플레이어 캐시 (Update)
         private const float LOOT_LEAVE_RANGE = 3f;             // Loot 컨텍스트 이탈 자동 닫기 반경 (TerritoryWarehouse 3f 선례)
 
@@ -403,6 +405,18 @@ namespace ProjectName.UI
             {
                 CloseContext();
                 return;
+            }
+
+            // 2026-09-13(44차 P1): E키 바구니 → Loot 컨텍스트 열림 진단 로그 (열림당 1회).
+            // 1회성 로그 가드(첫 렌더 항목수/즉시 닫기 사유)도 여기서 재장전 — 다음 열림에서 재기록.
+            if (mode == ContextMode.Loot)
+            {
+                Debug.Log("[Loot] 전리품 컨텍스트 열림");
+                if (_instance != null)
+                {
+                    _instance._lootOpenLogged = false;
+                    _instance._lootCloseReasonLogged = false;
+                }
             }
 
             if (_instance != null)
@@ -2418,7 +2432,9 @@ namespace ProjectName.UI
                 panelX = Screen.width - 2f - lootW;
 
             // === 렌더 데이터 — LootWindow 캐시 API (null 가드) ===
-            var lootWindow = LootWindow.Instance;
+            // 2026-09-13(44차 P1): Instance → EnsureInstance — Test 씬에 LootWindow GO가 없어도
+            // 런타임 폴백 생성으로 캐시 API를 확보 (lootWindow==null 닫기 조건 즉시 충족 방지).
+            var lootWindow = LootWindow.EnsureInstance();
             var basket = _lootBasket;
             // Awake 실행 순서 폴백 — 인스턴스 생성 전 컨텍스트로 인해 LootWindow 주입이 누락된 경우 보완
             // (참조 비교만 수행 — 매 프레임 GC 없음)
@@ -2426,9 +2442,26 @@ namespace ProjectName.UI
                 lootWindow.CurrentBasket = basket;
             int itemCount = lootWindow != null ? lootWindow.CachedItemCount : 0;
 
+            // 2026-09-13(44차 P1): 첫 렌더 진단 — 전리품 캐시 항목수 확인 (열림당 1회 가드)
+            if (!_lootOpenLogged)
+            {
+                _lootOpenLogged = true;
+                Debug.Log($"[Loot] 전리품 캐시 항목수={itemCount}");
+            }
+
             // 빈 바구니/바구니 소멸/획득 완료 → 즉시 닫기 (LootWindow.DrawWindowContent 빈 목록 자동 Hide 선례)
             if (lootWindow == null || basket == null || itemCount == 0 || !basket.IsAvailable)
             {
+                // 2026-09-13(44차 P1): 즉시 닫기 사유 진단 로그 (열림당 1회 — 다음 Play에서 원인 즉시 판별)
+                if (!_lootCloseReasonLogged)
+                {
+                    _lootCloseReasonLogged = true;
+                    string reason = (lootWindow == null) ? "lootWindow==null"
+                                  : (basket == null) ? "basket==null"
+                                  : (itemCount == 0) ? "itemCount==0"
+                                  : "IsAvailable=false";
+                    Debug.Log($"[Loot] 전리품 컨텍스트 즉시 닫기 트리거 — 사유: {reason}");
+                }
                 CloseContext();
                 return;
             }

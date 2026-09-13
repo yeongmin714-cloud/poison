@@ -11,7 +11,8 @@ namespace ProjectName.Systems
     {
         // ── 상수 ─────────────────────────────────────────────────────
         private const float START_RADIUS = 0.2f;    // 링 시작 반지름
-        private const float RING_THICKNESS = 0.05f; // 링 두께 (Y)
+        // [2026-09-13 가시화 보강] 링 두께 0.05→0.09 (1.8배 — 반짝임 미표시 리포트 반영).
+        private const float RING_THICKNESS = 0.09f; // 링 두께 (Y)
         private const float CYL_RADIUS = 0.5f;      // Cylinder 프리미티브 기본 반지름
         private const float CYL_HEIGHT = 1f;        // Cylinder 프리미티브 기본 높이
 
@@ -40,6 +41,12 @@ namespace ProjectName.Systems
             // 안전 클램프
             if (maxRadius < START_RADIUS) maxRadius = START_RADIUS;
             if (duration <= 0f) duration = 0.1f;
+
+            // [2026-09-13 가시화 보강] 입력색 밝기/알파 상향 — RGB 30% 화이트 쪽 러프,
+            // 알파는 최소 0.75 보장(페이드 시작점도 함께 상향돼 링이 확실히 보인다).
+            // Spawn 시그니처는 유지하고 내부에서만 부스트한다.
+            color = Color.Lerp(color, Color.white, 0.3f);
+            color.a = Mathf.Max(color.a, 0.75f);
 
             // 링 GameObject (직접 MeshFilter/MeshRenderer 구성 — Collider 오버헤드 제거)
             GameObject ring = new GameObject("ShockwaveRing")

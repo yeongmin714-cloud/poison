@@ -123,6 +123,61 @@ namespace ProjectName.Systems
             return true;
         }
 
+        // ===== 무기 슬롯 등록 (2026-09-13 P5: 인벤 무기 장착 → 장비칸 동기화) =====
+
+        /// <summary>
+        /// 무기 슬롯 등록 (id 전용 오버로드) — WeaponEquipManager.Equip 성공 분기에서 호출.
+        /// id로 PlayerInventory.GetItemById 정적 조회해 itemData까지 채운다.
+        /// (장비칸 소비자(InventoryWindow)는 itemData가 null이면 미표시 판정 → itemData 채움 필수)
+        /// </summary>
+        public void SetWeaponSlot(string itemId)
+        {
+            if (string.IsNullOrEmpty(itemId))
+            {
+                Debug.LogWarning("[EquipmentManager] SetWeaponSlot: itemId가 비어 있음 — 등록 스킵");
+                return;
+            }
+
+            var data = PlayerInventory.GetItemById(itemId);
+            if (data == null)
+                Debug.LogWarning($"[EquipmentManager] SetWeaponSlot: '{itemId}' ItemData 조회 실패 — id만 등록(장비칸 표시 제한)");
+
+            SetWeaponSlot(itemId, data);
+        }
+
+        /// <summary>
+        /// 무기 슬롯 등록 (순수 등록 — 인벤 소모 없음) — itemId+itemData를 Weapon 슬롯에 덮어쓰기.
+        /// 무기 우클릭/드래그 장착은 인벤 소모가 없는 기존 설계이므로 EquipItem의 인벤 소모/
+        /// 기존 장비 인벤 복귀 로직과 분리. 교체 장착 시 기존 슬롯을 그대로 덮어쓴다(별도 해제 불필요).
+        /// </summary>
+        public void SetWeaponSlot(string itemId, PlayerInventory.ItemData itemData)
+        {
+            if (string.IsNullOrEmpty(itemId))
+            {
+                Debug.LogWarning("[EquipmentManager] SetWeaponSlot: itemId가 비어 있음 — 등록 스킵");
+                return;
+            }
+            if (!TryGetValidIndex(EquipmentSlot.Weapon, out int idx))
+            {
+                Debug.LogWarning("[EquipmentManager] SetWeaponSlot: Weapon 슬롯 인덱스 무효 — 등록 스킵");
+                return;
+            }
+            if (_slots[idx] == null)
+                _slots[idx] = new EquipmentSlotData();
+
+            // 교체 장착 판정: 기존에 다른 무기가 등록되어 있으면 덮어쓰기(자동 교체)
+            bool replaced = !string.IsNullOrEmpty(_slots[idx].itemId) && _slots[idx].itemId != itemId;
+
+            _slots[idx].itemId = itemId;
+            _slots[idx].itemData = itemData;
+            // 내구도: 교체 장착이거나 빈 슬롯이면 풀 내구도로 초기화, 동일 무기 재등록은 기존치 유지
+            if (replaced || _slots[idx].currentDurability <= 0)
+                _slots[idx].currentDurability = (itemData != null && itemData.maxDurability > 0) ? itemData.maxDurability : 0;
+
+            Debug.Log($"[EquipmentManager] 무기 슬롯 동기화: {itemId}" + (replaced ? " (기존 무기 덮어쓰기)" : ""));
+            OnEquipmentChanged?.Invoke(EquipmentSlot.Weapon, itemId);
+        }
+
         // ===== 해제 =====
 
         /// <summary>
@@ -140,6 +195,23 @@ namespace ProjectName.Systems
             {
                 Debug.Log($"[EquipmentManager] {slot} 슬롯이 이미 비어있습니다.");
                 return false;
+            }
+
+            // 2026-09-13(P5): 무기 슬롯 해제 위임 — 손 GLB 제거는 WeaponEquipManager가 담당.
+            // 무기는 우클릭/드래그 장착 모두 인벤 소모가 없으므로 아래 공용 경로의 인벤 복귀(AddItem)를
+            // 실행하면 인벤에 중복 생성된다 → 인벤 복귀 없이 슬롯만 클리어.
+            // 이중 해제 가드: 장착 상태(CurrentId 설정)일 때만 위임(WeaponEquipManager.Unequip은 멱등).
+            if (slot == EquipmentSlot.Weapon)
+            {
+                if (!string.IsNullOrEmpty(WeaponEquipManager.CurrentId))
+                    WeaponEquipManager.Unequip();   // 손에 부착된 무기 GLB 제거
+                _slots[idx].itemId = null;
+                _slots[idx].currentDurability = 0;
+                _slots[idx].itemData = null;
+
+                Debug.Log("[EquipmentManager] 무기 슬롯 해제 — WeaponEquipManager.Unequip 위임(손 GLB 제거), 인벤 복귀 없음");
+                OnEquipmentChanged?.Invoke(slot, null);
+                return true;
             }
 
             var itemData = _slots[idx].itemData;

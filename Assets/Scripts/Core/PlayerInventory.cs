@@ -411,5 +411,33 @@ namespace ProjectName.Core
             GasMaskWood, GasMaskSteel, GasMaskStone,
             ChemicalPackWood, ChemicalPackSteel, ChemicalPackStone,
         };
+
+        // 2026-09-13(P5): id → ItemData 정적 조회 캐시 — GetItemById 전용.
+        // static readonly 필드를 1회 리플렉션 스캔해 구축(EquipmentManager.BuildItemCache와 동일 방식).
+        private static System.Collections.Generic.Dictionary<string, ItemData> _idLookupCache;
+
+        /// <summary>
+        /// 아이템 ID로 정의된 ItemData를 조회 (인스턴스/인벤 슬롯과 무관한 정적 정의 조회).
+        /// 2026-09-13(P5) 추가: EquipmentManager.SetWeaponSlot의 무기 슬롯 itemData 채움 전용.
+        /// 찾지 못하면 null 반환.
+        /// </summary>
+        public static ItemData GetItemById(string itemId)
+        {
+            if (string.IsNullOrEmpty(itemId)) return null;
+            if (_idLookupCache == null)
+            {
+                _idLookupCache = new System.Collections.Generic.Dictionary<string, ItemData>();
+                var fields = typeof(PlayerInventory).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                foreach (var field in fields)
+                {
+                    if (field.FieldType != typeof(ItemData)) continue;
+                    var item = field.GetValue(null) as ItemData;
+                    if (item != null && !string.IsNullOrEmpty(item.id) && !_idLookupCache.ContainsKey(item.id))
+                        _idLookupCache[item.id] = item;
+                }
+            }
+            _idLookupCache.TryGetValue(itemId, out var found);
+            return found;
+        }
     }
 }

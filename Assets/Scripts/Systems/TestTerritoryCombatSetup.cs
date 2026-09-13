@@ -969,7 +969,8 @@ namespace ProjectName.Systems
             if (col != null) DestroyImmediate(col);   // Raycast 히트 대상에서 제외
         }
 
-        /// <summary>WarehouseSystem 시딩(territoryId="wh_test" 단일 창고) — wood 장비 전종+무기 재료+Gold로 축소.</summary>
+        /// <summary>WarehouseSystem 시딩(territoryId="wh_test" 단일 창고) — wood 장비 전종+무기 재료+Gold+화살 3종으로 축소.
+        /// 2026-09-13(44차 P6): 화살 3종 시딩 — 활 발사 테스트용.</summary>
         private void SeedAllItemsToWarehouse(string territoryId)
         {
             // 2026-09-11: Test_10 창고 64슬롯 — TestAllInOneSetup 선례 패턴 이식.
@@ -1012,7 +1013,42 @@ namespace ProjectName.Systems
                     Add(gear, 2);
             }
 
-            Debug.Log($"[UITest] ✅ 창고 '{territoryId}'에 시딩 완료 (wood 장비+무기 재료+Gold, {total}개)");
+            // 2026-09-13(44차 P6): 화살 3종 시딩 — 활 발사 테스트용.
+            //  PlayerInventory에 화살 정적 정의가 없어 ArrowManager.AddArrows(ArrowData 매핑)와
+            //  동일한 id/displayName/description으로 인라인 ItemData 생성(category=ItemCategory.Arrow,
+            //  maxStack=50). ArrowManager.TryConsumeArrow(RemoveItem by id) 소모 판정 호환.
+            Add(new PlayerInventory.ItemData
+            {
+                id = "arrow_regular",
+                displayName = "일반 화살",
+                description = "기본 화살. 특별한 효과 없음.",
+                category = PlayerInventory.ItemCategory.Arrow,
+                rarity = ItemRarity.Common,
+                maxStack = 50,
+                maxDurability = 0
+            }, 20);
+            Add(new PlayerInventory.ItemData
+            {
+                id = "arrow_reinforced",
+                displayName = "강화 화살",
+                description = "철촉이 달린 강화 화살. +5 데미지.",
+                category = PlayerInventory.ItemCategory.Arrow,
+                rarity = ItemRarity.Uncommon,
+                maxStack = 50,
+                maxDurability = 0
+            }, 20);
+            Add(new PlayerInventory.ItemData
+            {
+                id = "arrow_magic",
+                displayName = "마법 화살",
+                description = "마력이 깃든 화살. +15 데미지.",
+                category = PlayerInventory.ItemCategory.Arrow,
+                rarity = ItemRarity.Rare,
+                maxStack = 50,
+                maxDurability = 0
+            }, 20);
+
+            Debug.Log($"[UITest] ✅ 창고 '{territoryId}'에 시딩 완료 (wood 장비+무기 재료+Gold+화살 3종, {total}개)");
         }
 
         /// <summary>플레이어 인벤토리 대표 시딩 — 인벤 창(I)/핫바 표시 검증용.</summary>

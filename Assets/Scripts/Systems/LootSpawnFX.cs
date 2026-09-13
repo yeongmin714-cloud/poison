@@ -52,10 +52,12 @@ namespace ProjectName.Systems
         }
 
         // === 절차적 폴백: 골드 파티클 스파이클 + 골드 확장 링 ===
-        // [2026-09-13 체감 보강] 스펙 상향 — startSize 0.07→0.14m, burst 16→24발,
-        // startSpeed 2.2→3.0, gravityModifier 1.6→1.2, startLifetime 0.5→0.6s, duration 0.6s 유지.
-        // 발화 오리진을 지면 위 0.4m로 올려(지하 발화 방지) 파티클 전량이 화면에 보이게 하고,
-        // 스폰 즉시 골드 링 1회(반경 0.8m, 0.4s)로 스폰 순간 가시성을 보강한다.
+        // [2026-09-13 가시화 보강] 스펙 상향 — startSize 0.14→0.2m, burst 24→32발,
+        // startLifetime 0.6→0.8s. 머티리얼 우선순위를 "Sprites/Default"(URP 확실 렌더,
+        // 빌트인 호환 셰이더라 URP에서 무조건 렌더됨) → URP Particles/Unlit → 기본 순으로
+        // 변경하고, 해상된 셰이더 이름을 1회성 진단 로그로 남긴다(반짝임 미표시 리포트 추적용).
+
+        static bool _shaderLoggedOnce;
 
         static void SpawnProceduralGoldSpike(Vector3 position)
         {
@@ -76,9 +78,9 @@ namespace ProjectName.Systems
             var main = ps.main;
             main.duration = 0.6f;
             main.loop = false;
-            main.startLifetime = 0.6f;
+            main.startLifetime = 0.8f;
             main.startSpeed = 3.0f;
-            main.startSize = 0.14f;
+            main.startSize = 0.2f;
             main.startColor = new Color(1f, 0.85f, 0.35f); // 골드
             main.gravityModifier = 1.2f;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
@@ -86,7 +88,7 @@ namespace ProjectName.Systems
 
             var emission = ps.emission;
             emission.rateOverTime = 0f;
-            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 24) });
+            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 32) });
 
             var shape = ps.shape;
             shape.shapeType = ParticleSystemShapeType.Sphere;
@@ -108,18 +110,28 @@ namespace ProjectName.Systems
                 });
             colorOverLifetime.color = grad;
 
-            // URP 파티클 언릿 재질 (Shader.Find 실패 시 기본 파티클 재질 유지)
-            Shader unlit = Shader.Find("Universal Render Pipeline/Particles/Unlit")
-                           ?? Shader.Find("Universal Render Pipeline/Unlit")
+            // 파티클 재질 — 우선순위: "Sprites/Default"(URP 확실 렌더) → URP Particles/Unlit →
+            // Particles/Standard Unlit → 기본 머티리얼 유지. 해상 결과를 1회만 진단 로그로 남긴다.
+            Color gold = new Color(1f, 0.85f, 0.35f, 1f);
+            Shader unlit = Shader.Find("Sprites/Default")
+                           ?? Shader.Find("Universal Render Pipeline/Particles/Unlit")
                            ?? Shader.Find("Particles/Standard Unlit");
             if (unlit != null)
             {
                 Material mat = new Material(unlit);
-                // startColor·골드 링(ShockwaveRingFX)과 동일 골드 동기 — [2026-09-13 체감 보강]에서도 유지
-                mat.SetColor("_BaseColor", new Color(1f, 0.85f, 0.35f, 1f));
+                // 셰이더별 틴트 프로퍼티 분기 — Sprites/Default는 _Color, URP 계열은 _BaseColor.
+                // 미존재 프로퍼티 SetColor는 무해하므로 양쪽 모두 기록한다(분기 누락 방지).
+                mat.SetColor("_Color", gold);      // Sprites/Default 틴트
+                mat.SetColor("_BaseColor", gold);  // URP Particles/Unlit 틴트
                 var rnd = root.GetComponent<ParticleSystemRenderer>();
                 if (rnd != null)
                     rnd.material = mat;
+
+                if (!_shaderLoggedOnce)
+                {
+                    _shaderLoggedOnce = true;
+                    Debug.Log($"[LootSpawnFX] 폴백 FX 셰이더={unlit.name}");
+                }
             }
 
             ps.Play(true);

@@ -112,6 +112,8 @@ namespace ProjectName.Systems
             // [2026-09-12 P2 피격 FX 재색상] 스윙 궤적 일관색 — 밝은 흰/청백 틴트(팩 기본 보라 톤 제거).
             // 파티클 재생 전에 적용해 첫 방출 파티클부터 새 색이 나온다.
             TintParticles(instance, new Color(0.85f, 0.95f, 1.0f), 0.1f);
+            // [2026-09-13 보라 정규화] 틴트 후 잔여 보라(colorOverLifetime 그라디언트 등) 골드화이트 교체.
+            NormalizePurpleParticles(instance);
             Debug.Log($"[SlashVFX] ✅ 스윙 FX 스폰 (pos={position}, faceDir={faceDir:F2}, roll={arcRollDegrees:F0}°, 발화시각={Time.time:F2}s)");   // 1회성 검증 아님 — 좌클릭마다 1줄, 발화 증거
             instance.name = "SlashVFX_Swing";
 
@@ -144,6 +146,8 @@ namespace ProjectName.Systems
             instance.name = "TravisHit_Cross";
             // [2026-09-12 P2] 히트 마크 틴트 — 예시색(1.0, 0.75, 0.35 웜 골드) 유지(재생 전 적용).
             TintParticles(instance, new Color(1.0f, 0.75f, 0.35f), 0.15f);
+            // [2026-09-13 보라 정규화] TravisHit 팩 잔여 보라 → 골드화이트 교체(재생 전).
+            NormalizePurpleParticles(instance);
             Debug.Log($"[SlashVFX] ✅ 크로스 FX 스폰 (TravisHit, pos={position}, faceDir={faceDir:F2}, 발화시각={Time.time:F2}s)");
 
             PlayAllParticleSystems(instance);
@@ -169,6 +173,9 @@ namespace ProjectName.Systems
             // [2026-09-12 P2 피격 FX 재색상] 보라색 팩 파티클("BasicHit"/"BasicHit2" 임팩트) → 붉은 계열
             // (0.8,0.2,0.2)로 재색상 — 사용자 취향 반영(피격 보라 부유 입자 제거). 재생 전 적용.
             TintParticles(instance, new Color(0.8f, 0.2f, 0.2f), 0.2f);
+            // [2026-09-13 보라 정규화] 틴트가 main.startColor만 평탄화하므로 그라디언트 등에
+            // 남은 보라를 골드화이트로 교체 — 보라 감지 색은 틴트 결과보다 우선 적용.
+            NormalizePurpleParticles(instance);
 
             PlayAllParticleSystems(instance);
             DetectShaderErrorOnce(instance, "Impact");
@@ -304,6 +311,64 @@ namespace ProjectName.Systems
                     Mathf.Clamp01(alpha)));
             }
         }
+
+        /// <summary>
+        /// [2026-09-13 보라 정규화] 외부 팩 프리팹의 잔여 보라 계열 색을 감지해 골드화이트로 교체.
+        /// TintParticles는 main.startColor만 평탄화하므로 colorOverLifetime 그라디언트 등
+        /// 모듈에 남은 보라가 사용자 리포트("보라색 점들")의 잔여 원인 — 스폰 직후 1회
+        /// 저비용 순회(파티클 시스템 수 적음)로 정규화한다. 40차 틴트 상수 뒤에 적용되며
+        /// 보라 판정에 걸린 색은 틴트 결과보다 정규화가 우선된다.
+        /// 판정: r>0.4 && b>0.4 && g<r*0.55 && g<b*0.55 (보라/자주 계열) → (1,0.9,0.6) 골드화이트.
+        /// </summary>
+        internal static void NormalizePurpleParticles(GameObject root)
+        {
+            if (root == null) return;
+
+            ParticleSystem[] systems = root.GetComponentsInChildren<ParticleSystem>(true);
+            foreach (ParticleSystem ps in systems)
+            {
+                if (ps == null) continue;
+
+                // 1) main.startColor — flat 단색 모드만 판정(그라디언트 모드는 아래 2)에서 처리)
+                var main = ps.main;
+                if (main.startColor.mode == ParticleSystemGradientMode.Color)
+                {
+                    Color c = main.startColor.color;
+                    if (IsPurple(c))
+                        main.startColor = new ParticleSystem.MinMaxGradient(ToGoldWhite(c));
+                }
+
+                // 2) colorOverLifetime 그라디언트 — 팩 프리팹 보라 잔여의 주 범인 모듈
+                var col = ps.colorOverLifetime;
+                if (col.enabled && col.color.mode == ParticleSystemGradientMode.Gradient)
+                {
+                    Gradient g = col.color.gradient;
+                    GradientColorKey[] colorKeys = g.colorKeys;
+                    bool changed = false;
+                    for (int i = 0; i < colorKeys.Length; i++)
+                    {
+                        if (IsPurple(colorKeys[i].color))
+                        {
+                            colorKeys[i] = new GradientColorKey(ToGoldWhite(colorKeys[i].color), colorKeys[i].time);
+                            changed = true;
+                        }
+                    }
+                    if (changed)
+                    {
+                        g.SetKeys(colorKeys, g.alphaKeys);
+                        col.color = new ParticleSystem.MinMaxGradient(g);
+                    }
+                }
+            }
+        }
+
+        /// <summary>보라/자주 계열 판정 — r·b 모두 높고 g가 양쪽의 절반 이하(채널 균형 붕괴).</summary>
+        private static bool IsPurple(Color c)
+            => c.r > 0.4f && c.b > 0.4f && c.g < c.r * 0.55f && c.g < c.b * 0.55f;
+
+        /// <summary>보라 → 골드화이트(1,0.9,0.6) 교체. 원본 알파는 보존해 페이드 훼손 방지.</summary>
+        private static Color ToGoldWhite(Color original)
+            => new Color(1f, 0.9f, 0.6f, original.a);
 
         /// <summary>일부 프리팹은 자체 재생 안 함 → 모든 ParticleSystem을 명시 재생.</summary>
         private static void PlayAllParticleSystems(GameObject instance)

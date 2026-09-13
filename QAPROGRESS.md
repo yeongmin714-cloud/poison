@@ -4,9 +4,26 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-13 (43차)
+> **최종 갱신:** 2026-09-13 (44차)
 
 ---
+
+## 📌 세션 종합 스냅샷 (2026-09-13 ✅ 44차 — 바구니 E키 즉시닫힘 뿌리 수리+공격 FX 품질 개편(BOTW 레퍼런스)+그립 bounds 가드+장비칸 무기 동기화+창고 화살 시딩)
+
+> **스코프**: 테스트 6 영상+로그 기반 리포트 6건 뿌리 수리. 진단 확정: ① E키=LootWindow GO 씬 전무(Instance null → 열림(Loot) 직후 DrawLootPanel:2432 즉시 CloseContext 로그 실측) ② 반짝임=FX 발화 중(골드링 로그+영상 프레임14 링 확인)이나 파티클만 미보임 ③ 공격 FX=보라 사각 파티클+주황 블롭 폭발이 촌스러움(BOTW 레퍼런스 스펙 확보: 흰/노랑 코어+직선 스파크, 보라 없음, 1-2프레임) ④ 그립=목검 bounds 정육면체(1.41,1.43,1.29)로 최장축 판정 노이즈(프레임 12/15 무기 부유) ⑤ 장비칸=무기는 WeaponEquipManager만 갱신(패널은 EquipmentManager 소스) ⑥ 화살=시딩 0("활 발사 실패 — 화살 부족" 6회). 배치컴파일 error CS=0 + 정적 QA FAIL 0건.
+
+### 변경 사항 (11파일)
+**`UI/LootWindow.cs`+`UI/InventoryWindow.cs` (P1)**: `EnsureInstance()` 신규 — Instance 부재 시 new GO+AddComponent(idempotent, Show() 미호출로 팝업 경로 비활성 유지, UIWindow Awake null-safe 확인). DrawLootPanel이 EnsureInstance 사용 → lootWindow==null 즉시 닫기 원천 제거. 열림/캐시 항목수/닫기 사유 3종 진단 로그(1회성 가드).
+**`Systems/TestTerritoryCombatSetup.cs`+`TestAllInOneSetup.cs` (P6)**: 창고 시딩 화살 3종 추가(arrow_regular/reinforced/magic ×20, category=Arrow, ArrowManager 상수와 id 일치) — wood 장비/재료/Gold 유지.
+**`Systems/CombatVFXController.cs`+`SlashVFXRunner.cs` (P3)**: SpawnHitSparks → 골드화이트(1,0.9,0.5) 직선 스트릭 12개(velocityScale 0.2, 0.15~0.25s, Shape 반경 0.05 밀집). SpawnCritBurst → 화이트 코어 플래시((1,0.95,0.8))+주황 외곽 직선 스파크 12개(붉은 플래시/블롭/붉은 스플래시 제거). `NormalizePurpleParticles` 신규 — 보라 판정(r>0.4∧b>0.4∧g<r·0.55∧g<b·0.55) → 골드화이트(알파 보존), main.startColor+colorOverLifetime 그라디언트 키 순회, PlaySlash/PlayCross/PlayImpact 3경로 적용(40차 틴트 후 호출 — 수학 검증 상호 충돌 0).
+**`Systems/LootSpawnFX.cs`+`ShockwaveRingFX.cs` (P2)**: 파티클 머티리얼 우선순위 Sprites/Default 우선(URP 확실 렌더)+크기 0.2·32개·0.8s+셰이더 진단 로그 1회(_shaderLoggedOnce). 링: LineRenderer 아닌 Cylinder 메시 → RING_THICKNESS 0.05→0.09(1.8배)+RGB 화이트 러프 30%·알파 하한 0.75 부스트(전 링 공통, Spawn 시그니처 보존).
+**`Systems/WeaponEquipManager.cs`+`EquipmentManager.cs`+`Core/PlayerInventory.cs` (P4/P5)**: bounds 신뢰 가드 — 최장/차장축 비율 <1.15(BoundsTrustMinRatio) → bounds 정렬 스킵+테이블 포즈 사용+TargetLen 기반 tipWorld 반환(트레일 부착 보호). 실측: 검 L/S=1.01 가드 발동/창 1.53·활 1.48 기존 유지. `SetWeaponSlot(itemId[,itemData])` 신규(Weapon 슬롯 순수 등록)+`Equip` 성공 분기 말미 등록 훅(CurrentId 세팅 후)+`UnequipSlot(Weapon)` → `WeaponEquipManager.Unequip()` 위임(CurrentId 가드 이중 해제 방지, 인벤 복귀 생략 — 무기 장착은 인벤 소모 없음이 기존 설계)+`PlayerInventory.GetItemById` static 헬퍼(리플렉션 1회 캐시, public static readonly 필드 대상).
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0**(exit 0) — 중간 SlashVFXRunner colorOverLifetime API 3회 수리(col.color.mode 체크+col.color.gradient+MinMaxGradient 래핑)
+- 정적 QA(서브에이전트): 11파일 diff 전수 일치/SetWeaponSlot 체인 null 가드/GetItemById 리플렉션 안전/UnequipSlot 이중 해제 방지/EnsureInstance Awake 부작용 없음/NormalizePurpleParticles×40차 틴트 상호 보완(수학 검증)/시그니처 보존/균형 — **FAIL 0건**
+- 관찰 1건(비차단): 핫바 단축 id("steel"/"wood") 장착은 full-id가 아니라 GetItemById 미조회 → 장비칸 itemData null 폴백(이름 미표시 가능) — 45차에서 full-id 전파 검토
+- Play 판정 대기: ① E키 바구니 → 통합창 열림 유지(전리품 그리드+전부 획득) ② 바구니 골드 파티클+굵은 링 가시 ③ 타격 시 골드화이트 직선 스파크+화이트 코어 크리(보라 0건) ④ 목검 손에 정확히 부착 ⑤ 우클릭 무기 장착 → 좌측 장비칸 무기 셀 표시+셀 클릭 해제 시 손에서 제거 ⑥ 화살 소모 활 발사
 
 ## 📌 세션 종합 스냅샷 (2026-09-13 ✅ 43차 — 우클릭 소모품 복용+공격 FX 체감 수리+바구니 반짝임 보강+치명 예외 2건 소멸)
 

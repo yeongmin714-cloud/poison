@@ -65,7 +65,12 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
-        // 3. 타격 파티클 Sparks — 10개 파티클 버스트
+        // 3. 타격 파티클 Sparks — 12개 직선 스파크 버스트
+        //    [2026-09-13 스파크 개선] 느슨한 사각 점(노랑 10개) → 날카로운 직선 스파크.
+        //    골드화이트(1,0.9,0.5) + 스트레치 렌더(velocityScale 0.2)로 속도 방향
+        //    선형 스파크 렌더 — BOTW식 밝은 코어 임팩트 스타일.
+        //    머티리얼은 파일 기존 패턴 유지(렌더러 기본 파티클 머티리얼 — 소프트 원형
+        //    텍스처가 스트레치 시 자연스러운 뾰족 꼬리를 만든다).
         // ================================================================
         public static void SpawnHitSparks(Vector3 position)
         {
@@ -73,14 +78,28 @@ namespace ProjectName.Systems
             go.transform.position = position;
             var ps = go.GetComponent<ParticleSystem>();
             var main = ps.main;
-            main.startLifetime = 0.5f;
-            main.startSpeed = new ParticleSystem.MinMaxCurve(2f, 5f);
-            main.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.15f);
-            main.startColor = Color.yellow;
-            ps.Emit(10);
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.15f, 0.25f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(6f, 9f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.06f);
+            main.startColor = new Color(1f, 0.9f, 0.5f); // 골드화이트 — 순수 노랑 제거
 
-            // G2-06 HighSpec: 파티클 2배(10→20) + 미묘한 상향 바이어스.
-            // 저사양(Balanced) 경로는 위 Emit(10) 그대로 유지된다.
+            // 타격 지점 밀집 발화 — 느슨하게 퍼지던 기본 Shape 반경을 조여 직선 스파크 강조
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Sphere;
+            shape.radius = 0.05f;
+
+            // 스트레치 렌더 — 파티클을 속도 방향으로 늘려 사각 점이 아닌 직선 스파크
+            var rnd = go.GetComponent<ParticleSystemRenderer>();
+            if (rnd != null)
+            {
+                rnd.renderMode = ParticleSystemRenderMode.Stretch;
+                rnd.velocityScale = 0.2f;
+            }
+            ps.Emit(12);
+
+            // G2-06 HighSpec: 파티클 2배(+10) + 미묘한 상향 바이어스. 수치 기존 유지, 스타일은
+            // 위 main 설정(골드화이트 스트레치 스파크)을 그대로 상속한다.
+            // 저사양(Balanced) 경로는 위 Emit(12) 그대로 유지된다.
             if (ActionFeel.HighSpec)
             {
                 for (int i = 0; i < 10; i++)
@@ -221,8 +240,10 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
-        // 7. 크리티컬 버스트 — 스파크 링 + 파편 + 스플래시 동시 발사 (HighSpec 전용)
-        //    단일 ParticleSystem에 3개 레이어를 EmitParams 오버라이드로 합성.
+        // 7. 크리티컬 버스트 — 화이트 코어 플래시 + 주황 직선 스파크 (HighSpec 전용)
+        //    [2026-09-13 크리 버스트 절제] 붉은 플래시(1,0.2,0.2)+블롭 → BOTW식 절제 스타일:
+        //    화이트 코어 플래시(1,0.95,0.8, 속도 0, 0.15s 즉시 소멸) + 주황 외곽(1,0.55,0.2)
+        //    직선 스파크 12개. 파편은 기존 SpawnHitDebris(갈색/회색)가 담당 — 여기서 중복 스폰하지 않는다.
         // ================================================================
         public static void SpawnCritBurst(Vector3 position)
         {
@@ -232,59 +253,53 @@ namespace ProjectName.Systems
             go.transform.position = position;
             var ps = go.GetComponent<ParticleSystem>();
             var main = ps.main;
-            main.startLifetime = new ParticleSystem.MinMaxCurve(0.5f, 1.0f);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(3f, 6f);
-            main.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.25f);
-            main.startColor = new ParticleSystem.MinMaxGradient(
-                new Color(0.45f, 0.32f, 0.18f, 1f),   // 갈색 (파편 기본 레이어)
-                new Color(0.55f, 0.55f, 0.55f, 1f));  // 회색
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.15f, 0.25f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(6f, 9f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.06f);
+            main.startColor = new Color(1f, 0.55f, 0.2f); // 주황 외곽 스파크 기본색
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
 
-            // 레이어 1: 스파크 링 — 수평 원형 16방향으로 퍼지는 밝은 노란 스파크
-            const int ringCount = 16;
-            for (int i = 0; i < ringCount; i++)
+            // 타격 지점 밀집 발화 + 스트레치 렌더 — SpawnHitSparks와 동일 직선 스파크 스타일
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Sphere;
+            shape.radius = 0.05f;
+            var rnd = go.GetComponent<ParticleSystemRenderer>();
+            if (rnd != null)
             {
-                float angle = (360f / ringCount) * i * Mathf.Deg2Rad + Random.Range(-0.15f, 0.15f);
-                Vector3 vel = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * Random.Range(4f, 6f);
+                rnd.renderMode = ParticleSystemRenderMode.Stretch;
+                rnd.velocityScale = 0.2f;
+            }
+
+            // 레이어 1: 화이트 코어 플래시 — 속도 0, 0.15s 즉시 소멸(1-2프레임 섬광)
+            for (int i = 0; i < 3; i++)
+            {
+                var ep = new ParticleSystem.EmitParams
+                {
+                    velocity = Vector3.zero,
+                    startColor = new Color(1f, 0.95f, 0.8f, 1f),
+                    startLifetime = 0.15f,
+                    startSize = Random.Range(0.6f, 1.0f)
+                };
+                ps.Emit(ep, 1);
+            }
+
+            // 레이어 2: 주황 외곽 직선 스파크 12개 — 수평 링 + 살짝 위로 번짐
+            const int sparkCount = 12;
+            for (int i = 0; i < sparkCount; i++)
+            {
+                float angle = (360f / sparkCount) * i * Mathf.Deg2Rad + Random.Range(-0.15f, 0.15f);
+                Vector3 vel = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * Random.Range(6f, 9f);
                 vel.y = Random.Range(0.5f, 1.5f); // 링이 살짝 위로 번지게
                 var ep = new ParticleSystem.EmitParams
                 {
                     velocity = vel,
-                    startColor = Color.yellow,
-                    startLifetime = Random.Range(0.4f, 0.6f),
-                    startSize = Random.Range(0.05f, 0.12f)
+                    startLifetime = Random.Range(0.15f, 0.25f),
+                    startSize = Random.Range(0.03f, 0.06f)
                 };
                 ps.Emit(ep, 1);
             }
 
-            // 레이어 2: 파편 샤드 — 구면 산란 + 하향(-Y) 중력 경향 (main 갈색/회색 상속)
-            for (int i = 0; i < 12; i++)
-            {
-                Vector3 vel = Random.insideUnitSphere.normalized * Random.Range(3f, 6f);
-                vel.y -= Random.Range(1f, 3f);
-                var ep = new ParticleSystem.EmitParams
-                {
-                    velocity = vel,
-                    startLifetime = Random.Range(0.6f, 1.0f)
-                };
-                ps.Emit(ep, 1);
-            }
-
-            // 레이어 3: 붉은 스플래시 — 느리고 크게 퍼지는 액체 튀김
-            for (int i = 0; i < 8; i++)
-            {
-                Vector3 vel = Random.insideUnitSphere.normalized * Random.Range(1f, 2.5f);
-                vel.y = Mathf.Abs(vel.y) * 0.5f + 0.3f;
-                var ep = new ParticleSystem.EmitParams
-                {
-                    velocity = vel,
-                    startColor = Color.red,
-                    startLifetime = Random.Range(0.5f, 0.8f),
-                    startSize = Random.Range(0.15f, 0.3f)
-                };
-                ps.Emit(ep, 1);
-            }
-
-            Object.Destroy(go, 1.3f);
+            Object.Destroy(go, 0.5f);
         }
 
         // ================================================================

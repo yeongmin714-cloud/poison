@@ -52,6 +52,10 @@ namespace ProjectName.Systems
         // 스케일 보정 허용 범위 — 목표 길이의 0.4~2.2배. 범위 내 GLB는 원본 스케일 존중(강제 정규화 폐지)
         const float GripScaleMinRatio = 0.4f;
         const float GripScaleMaxRatio = 2.2f;
+        // bounds 신뢰 가드 (2026-09-13 P4): 최장축 L / 차장축 S 비율이 이 값 미만이면 거의 정육면체 —
+        // 최장축=그립축 판정이 노이즈에 지배됨(목검 GLB bounds (1.41,1.43,1.29) 실측 사례).
+        // 미달 시 bounds 기반 오프셋/스케일 보정을 스킵하고 타입별 GripPose 테이블 포즈를 그대로 사용.
+        const float BoundsTrustMinRatio = 1.15f;
 
         // ── 신규 full-id(weapon_{type}_{tier}) → Resources GLB명 결정 테이블 ──
         // GblItemIconRenderer._itemToModel과 동일 규칙(2026-09-11). dagger 등 suffix 분기가
@@ -171,10 +175,20 @@ namespace ProjectName.Systems
 
             // ⑧ [P2 공격 FX 개편] 스윙 트레일 (재)부착 — 장착마다 갱신(GLB 교체 시 구 트레일 폐기 후 재생성).
             //    그립 정렬 실패(렌더러 0개 등) 시 팁 미산출 → 트레일 스킵(경고, 장착 자체는 계속).
+            //    bounds 비신뢰 가드 스킵(테이블 포즈 사용) 케이스도 팁을 반환하므로 트레일은 정상 부착.
             if (gripAligned)
                 WeaponSwingTrail.Attach(sword, tipWorld);
             else
                 Debug.LogWarning("[Weapon] 스윙 트레일 스킵: 그립 정렬 실패로 팁 미산출");
+
+            // ⑨ [2026-09-13 P5 장비칸 동기화] EquipmentManager 무기 슬롯 등록 —
+            //    인벤 우클릭/드래그 장착도 좌측 장비칸 2×5(GetSlotData 소스)에 표시되도록 동기화.
+            //    순수 등록(인벤 소모 없음 — 무기 장착 기존 설계 준수). id → ItemData는
+            //    EquipmentManager가 PlayerInventory.GetItemById 정적 조회로 채운다.
+            if (EquipmentManager.Instance != null)
+                EquipmentManager.Instance.SetWeaponSlot(id);
+            else
+                Debug.LogWarning("[WeaponEquipManager] EquipmentManager.Instance 없음 — 무기 슬롯 미동기화");
         }
 
         /// <summary>타입별 그립 포즈 조회. dagger full-id는 Sword 포즈에 TargetLen만 0.45로 오버라이드.</summary>
@@ -189,12 +203,15 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// GLB bounds 기반 그립 자동 정렬 + 스케일 보정 (부착 직후 1회 — 프레임 지연 없음).
+        /// 0) 신뢰 가드(2026-09-13 P4): 최장축 L/차장축 S 비율 &lt; 1.15(거의 정육면체)면 bounds 비신뢰 →
+        ///    오프셋/스케일 보정 스킵, 테이블 포즈 그대로 사용 + TargetLen 기반 팁 반환(true).
         /// 1) 인스턴스 자식 렌더러 bounds 합산 → 최장축 = 그립축으로 간주.
         /// 2) 최장축 길이가 TargetLen의 0.4~2.2배 범위를 벗어나면 targetLength로 균등 스케일 보정.
         /// 3) bounds 최하단부(그립부)가 테이블 localPosition 앵커에 착지하도록 pivot-to-grip
         ///    오프셋을 localPosition에서 차감 — GLB 피벗이 어디에 있든 동일 그립 지점
         ///    (앵커 (0,0,0)이면 그립부가 정확히 손 원점). 렌더러 0개/예외 시 테이블 포즈 유지.
         /// 반환: 정렬 성공 시 true + tipWorld(최장축 끝, 그립 반대편 팁의 월드 좌표) — 실패 시 false + Vector3.zero.
+        /// (신뢰 가드 스킵 케이스도 테이블 포즈로 정렬된 것으로 간주 → true + 테이블 기반 팁)
         /// </summary>
         static bool ApplyBoundsGripAlignment(GameObject weapon, Transform handBone, GripPose pose, out Vector3 tipWorld)
         {
@@ -216,6 +233,23 @@ namespace ProjectName.Systems
                 float len = b.size.x;
                 if (b.size.y > len) { axis = 1; len = b.size.y; }
                 if (b.size.z > len) { axis = 2; len = b.size.z; }
+
+                // 신뢰 가드 (2026-09-13 P4): 최장축 L과 차장축 S의 비율이 미달이면 bounds 비신뢰.
+                // 거의 정육면체 GLB(목검 (1.41,1.43,1.29) 실측)는 최장축 판정이 노이즈로 뒤집혀
+                // 그립 오프셋 오차가 발생 → bounds 기반 오프셋/스케일 보정 스킵,
+                // 타입별 GripPose 테이블 포즈 그대로 사용.
+                // tipWorld는 테이블 TargetLen 기반 그립축 끝으로 반환 — 스윙 트레일 부착 보호.
+                float secondLen = axis == 0 ? Mathf.Max(b.size.y, b.size.z)
+                                : axis == 1 ? Mathf.Max(b.size.x, b.size.z)
+                                : Mathf.Max(b.size.x, b.size.y);
+                float asymRatio = secondLen > 0.0001f ? len / secondLen : float.MaxValue;
+                if (asymRatio < BoundsTrustMinRatio)
+                {
+                    // 테이블 포즈 기준 그립축(+Y 축) 끝 = TargetLen 지점 (스케일 보정 없음 → 로컬 좌표 그대로)
+                    tipWorld = weapon.transform.TransformPoint(new Vector3(0f, pose.TargetLen, 0f));
+                    Debug.Log($"[Weapon] bounds 비신뢰(비대칭 {asymRatio:F2} 미달) — 테이블 포즈 사용");
+                    return true;
+                }
 
                 // 스케일 보정 — 목표 길이 대비 0.4~2.2배 범위 밖만 균등 보정
                 float scaleFix = 1f;

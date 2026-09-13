@@ -93,6 +93,35 @@ namespace ProjectName.UI
         private static LootWindow _instance;
         public static LootWindow Instance => _instance;
 
+        // ===== 2026-09-13(44차 P1): 런타임 폴백 생성 — Test 씬에 LootWindow GO 전무 대응 =====
+        // 씬 YAML에 LootWindow GO가 배치되지 않아 Instance==null인 경우에도 InventoryWindow Loot
+        // 컨텍스트가 데이터 캐시 API(CachedItemCount/GetCachedItem/CurrentBasket)를 쓸 수 있게 한다.
+        private static bool s_runtimeCreationLogged;   // 생성 로그 1회 가드 (씬 재로드 재생성 시에도 1회)
+
+        /// <summary>
+        /// 2026-09-13(44차 P1): LootWindow 인스턴스 보장 — 살아있는 인스턴스를 반환하고, 없으면
+        /// new GameObject("LootWindow") + AddComponent로 런타임 생성한다(재진입 안전/idempotent).
+        /// 활성 GO에 AddComponent하면 Awake가 동기 실행되어 _instance가 즉시 세팅된다
+        /// (Awake는 UIWindow 베이스 호출 후 _instance = this — 121-123행).
+        /// UIWindow.Awake는 신규 GameObject(Canvas/CanvasGroup 부재)에서도 null-safe 초기화
+        /// (CreateDimBackground가 _parentCanvas==null 가드로 null 반환) — AddComponent만으로 안전.
+        /// Show() 호출 금지: OnShow/OnHide는 팝업 Show() 경로 전용 — 팝업은 40차 리다이렉트로 비활성 유지.
+        /// </summary>
+        public static LootWindow EnsureInstance()
+        {
+            if (_instance != null) return _instance;   // 살아있는 인스턴스 재사용 — 생성 스팸 방지
+
+            var go = new GameObject("LootWindow");
+            var window = go.AddComponent<LootWindow>();   // 활성 GO — Awake 동기 실행, _instance 세팅됨
+            if (_instance == null) _instance = window;    // 방어 폴백 (Awake 미실행 시나리오 대비)
+            if (!s_runtimeCreationLogged)
+            {
+                s_runtimeCreationLogged = true;
+                Debug.Log("[LootWindow] 인스턴스 없어 런타임 생성");
+            }
+            return window;
+        }
+
         // ===== 2026-09-12(P7): InventoryWindow Loot 컨텍스트 데이터 API =====
         // 바구니 열림이 통합창(InventoryWindow.ContextMode.Loot)으로 리다이렉트된 후에도
         // 렌더/획득 데이터는 기존 캐시/획득 파이프라인을 그대로 재사용한다.

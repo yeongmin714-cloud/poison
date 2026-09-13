@@ -2302,4 +2302,19 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 병사 사망 | GuardPlaceholder.Die() 631행 Instance 삼항 가드+드랍 섹션 try-catch 격리(사망 로직 try 밖) | ✅ |
 | 검증 | 배치컴파일 error CS=0(exit 0), 정적 QA FAIL 0건(diff 전수·시그니처·회귀 5건·OnGUI 밖 GUI 0건·6파일 균형) | ✅ |
 | Play 판정 대기 | 맨손/무기 트레일, 치유초 회복+소모, 물약 복용 4단 로그, 바구니 골드+링, 크리 버스트+임팩트음, 병사 드랍 정상 | ⬜ |
+
+## 🧺 2026-09-13: 바구니 E키+공격 FX 품질+그립+장비칸 동기화+화살 시딩 (TEST6-FIX-44)
+
+> **목표:** 테스트 6 영상 기반 리포트 6건 뿌리 수리 — E키 즉시닫힘(LootWindow GO 씬 전무)/반짝임 파티클 미보임/보라+블롭 FX 촌스러움(BOTW 레퍼런스 스펙)/목검 bounds 정육면체 그립 오차/장비칸 무기 미표시(2시스템 미동기화)/화살 시딩 0.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| P1 E키 바구니 | LootWindow.EnsureInstance 신규(부재 시 런타임 생성, Show 미호출)+DrawLootPanel 적용+열림/항목수/닫기사유 진단 로그 | ✅ |
+| P2 반짝임 | 파티클 Sprites/Default 우선+0.2/32개/0.8s+셰이더 진단 로그, 링 두께 0.05→0.09+색 부스트 | ✅ |
+| P3 공격 FX | 스파크=골드화이트 직선 스트릭(velocityScale 0.2), 크리=화이트 코어+주황 외곽, NormalizePurpleParticles(보라→골드화이트, 그라디언트 키 포함) 3경로 | ✅ |
+| P4 그립 | bounds 신뢰 가드(L/S<1.15 스킵→테이블 포즈+tipWorld 보호) — 검 1.01 가드/창 1.53·활 1.48 유지 | ✅ |
+| P5 장비칸 | SetWeaponSlot 신규+Equip 성공 훅+UnequipSlot(Weapon)→WeaponEquipManager.Unequip 위임+GetItemById 헬퍼 | ✅ |
+| P6 창고 | 화살 3종 ×20 시딩(arrow_regular/reinforced/magic, id=ArrowManager 상수 일치) | ✅ |
+| 검증 | 배치컴파일 error CS=0(SlashVFXRunner colorOverLifetime API 3회 수리), 정적 QA FAIL 0건(11파일) | ✅ |
+| Play 판정 대기 | E키 열림 유지/반짝임 가시/보라 0건/목검 부착/장비칸 무기 표시+해제 연동/활 발사 | ⬜ |
 | Play 판정 대기 | 트레일/Travis 히트/바구니 반짝임/클로ak/창고 4구획/우클릭 4단 로그 | ⬜ |
