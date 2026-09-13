@@ -1354,13 +1354,15 @@ namespace ProjectName.UI
 
                             if (CompareTooltip.IsEquipmentCategory(slot.item.category)
                                 || slot.item.category == PlayerInventory.ItemCategory.Potion
-                                || slot.item.category == PlayerInventory.ItemCategory.Drug)
+                                || slot.item.category == PlayerInventory.ItemCategory.Drug
+                                || slot.item.category == PlayerInventory.ItemCategory.Herb)
                             {
                                 // 2026-09-09: 무기 선택창 폐지 → 우클릭 장착으로 대체
                                 // 2026-09-12(40차 QA 결함 #2): Potion/Drug도 게이트 통과 — TryEquipItem의
                                 // Weapon/Armor 분기는 카테고리 일치 시에만 진입하므로 Potion/Drug는 그대로
                                 // 통과해 복용 훅(PotionUseSystem.Use → 소모/Refresh)에 도달한다(죽은 코드 수리).
                                 // 2026-09-12(41차 P7): 체인 ②게이트 통과 — 장비는 [Equip] 로그, 물약은 [Potion] 로그로 후속
+                                // 2026-09-13(43차): Herb 추가 — 치유초 복용(Weapon/Armor 불일치로 장착 로직 미진입 보장)
                                 Debug.Log($"[Inv] 우클릭 게이트 통과 → TryEquipItem ({slot.item.displayName}, cat={slot.item.category})");
                                 TryEquipItem(slot);
                             }
@@ -3373,8 +3375,10 @@ namespace ProjectName.UI
             }
 
             // 2026-09-12(P5): 우클릭 복용 훅 — Potion/Drug는 장착이 아니라 복용(PotionUseSystem 효과 레지스트리)
+            // 2026-09-13(43차): Herb 추가 — 치유초 복용(Weapon/Armor 분기는 카테고리 불일치로 통과)
             if (item.category == PlayerInventory.ItemCategory.Potion ||
-                item.category == PlayerInventory.ItemCategory.Drug)
+                item.category == PlayerInventory.ItemCategory.Drug ||
+                item.category == PlayerInventory.ItemCategory.Herb)
             {
                 // 2026-09-12(41차 P7): 체인 ③복용 훅 분기 진입 증거
                 Debug.Log($"[Potion] 복용 훅 진행: {item.displayName} ({item.id}, cat={item.category})");
@@ -3394,6 +3398,11 @@ namespace ProjectName.UI
                     RefreshInventory();
                     // 2026-09-12(41차 P7): 체인 ④소모 후 그리드 갱신 완료 증거
                     Debug.Log($"[Potion] 복용 후 인벤 Refresh 완료: {item.displayName} (소모={consumed})");
+                }
+                else if (item.category == PlayerInventory.ItemCategory.Herb)
+                {
+                    // 2026-09-13(43차): 효과 미매칭 약초(독나물/황혼초 등) — 물약 실패 로그와 구분해 연금술 재료용 안내
+                    Debug.Log($"[Inv] {item.displayName}: 복용 불가(연금술 재료용 약초 — 우클릭 소모 없음)");
                 }
                 else
                 {

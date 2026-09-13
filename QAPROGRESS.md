@@ -4,9 +4,32 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-12 (42차)
+> **최종 갱신:** 2026-09-13 (43차)
 
 ---
+
+## 📌 세션 종합 스냅샷 (2026-09-13 ✅ 43차 — 우클릭 소모품 복용+공격 FX 체감 수리+바구니 반짝임 보강+치명 예외 2건 소멸)
+
+> **스코프**: 사용자 리포트 3건(우클릭 소모품 미작동/슬래시 제거 후 스윙·히트 FX 부재/바구니 반짝임 미보임)을 Editor.log 실측 기반으로 뿌리 원인 확정 후 전부 수리. 배치컴파일 error CS=0 + 정적 QA FAIL 0건.
+
+### 뿌리 원인 확정 (Editor.log 실측)
+- **우클릭**: "[Inv] 우클릭: 치유초 cat=Herb 컨텍스트=None" 7회 — 게이트가 Potion/Drug만 통과해 Herb(치유초) 차단, AutoRoute 무경로로 조용히 소멸. 물약 복용 훅은 완성 상태였으나 세션 내 물약 우클릭 시도 자체 0건(미검증).
+- **FX 부재 3겹**: ① [Equip]/그립/트레일 부착 로그 0건 = **맨손** — 트레일은 무기 GLB 장착 시에만 Attach(설계상 맨손 무시) ② 공격 실패 85회 vs TravisHit 크로스 4회 — 적중 희소로 히트 FX 자체가 거의 미발화 ③ "You can only call GUI functions from inside OnGUI" **48회** — ScreenFlashFX.ScreenFlashRunner.Init(83행)이 OnGUI 밖 GUI.skin 호출 → 히트 체인 HighSpec 블록(크리 버스트/임팩트 사운드) 단절.
+- **바구니 반짝임**: 절차 폴백 스파이크가 크기 0.07m·16개·지면 y=hit.point 발화(하프 지하) → 시인성 0. LootWipe 프리팹 부재(HDRP 판정) 자체는 정상.
+- **보너스**: GuardPlaceholder.Die() 627행 DropTableManager.Instance NRE 1회 — 장비 드랍/최소보장/후처리 전부 스킵.
+
+### 변경 사항 (6파일)
+**`Systems/ScreenFlashFX.cs`**: Init에서 GUIStyle 생성 제거(필드 저장만) + OnGUI 지연 생성 폴백 유지(39차 DamageNumberRunner 선례 동일 패턴) → 48회 예외 소멸 + 크리 버스트(SpawnCritBurst)/임팩트 사운드(ImpactSoundFX.PlayHit) 경로 복구.
+**`Systems/GuardPlaceholder.cs`**: Die() 631행 `DropTableManager.Instance != null ? ...GetSoldierTable() : null` 삼항 가드(null이면 기존 폴백 골드 블록 자동 실행) + 전리품/드랍 섹션(바구니 생성~최소보장) try-catch 격리(사망 로직 EXP/이벤트/GuardManager/파괴는 try 밖 유지).
+**`UI/InventoryWindow.cs`**: 우클릭 게이트(1358행)+복용 훅(3381행)에 **Herb 추가** — 치유초는 PotionUseSystem 회복 분기(displayName "치유" 매칭)로 MaxHP×40% 회복+소모. 미매칭 약초(독나물/황혼초)는 "[Inv] 복용 불가(연금술 재료용 약초)" 로그로 구분. Weapon/Armor 분기는 카테고리 일치만 진입 → Herb 장착 미탈 보장(순서 실측 확인).
+**`Systems/WeaponSwingTrail.cs`**: TipWidth 0.06→0.09 + 신규 `EnsureBareFist(Transform player)` — _trail null 가드(무기 트레일 절대 덮지 않음), RightHand 본 3단 탐색(Animator GetBoneTransform→이름 검색→루트 폴백), 기존 Attach 재사용(팁=손 위치).
+**`Systems/HumanoidClipDriver.cs`**: FireComboSlash의 SetEmitting(true) 직전 Player 모드 한정(mode == DriveMode.Player) EnsureBareFist 호출 — **맨손 공격에서도 흰 궤적 표시**. Soldier 경로(UpdateSoldier) 도달 없음 확인.
+**`Systems/LootSpawnFX.cs`**: 스파이크 보강 — 오리진 up+0.4m(지하 발화 방지)·크기 0.07→0.14·16→24개·속도 2.2→3.0·중력 1.6→1.2·수명 0.5→0.6 + 스폰 즉시 골드 링 1회(ShockwaveRingFX.Spawn 0.8m/0.4s).
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0**(exit 0)
+- 정적 QA(서브에이전트): git diff 전수 스코프 일치/시그니처 일치(EnsureBareFist 1쌍·ShockwaveRingFX 4인자·DriveMode 실명)/회귀 5건 전부 PASS/OnGUI 밖 GUI.* 0건/6파일 괄호 균형 0 — FAIL 0건
+- Play 판정 대기: ① 맨손 스윙에도 흰 궤적(무기 장착 시 무기 팁 트레일) ② 치유초 우클릭=HP 40% 회복+1개 소모, 독나물/황혼초=재료 안내 ③ 은신 물약/진정제 우클릭 복용(4단 로그 ①~④) ④ 바구니 스폰 골드 파티클+링 가시 ⑤ 크리타격 시 크리 버스트+임팩트 사운드(GUI 예외 소멸로 복구) ⑥ 병사 처치 드랍 정상(NRE 소멸)
 
 ## 📌 세션 종합 스냅샷 (2026-09-12 ✅ 42차 — 공격 FX 개편[무기 트레일+Travis Hit]+에셋 인벤토리+전리품 반짝임+은신 클로ak+창고 4구획+우클릭 진단)
 

@@ -623,32 +623,42 @@ namespace ProjectName.Systems
                 GuardManager.Instance.OnGuardDiedInGame(this);
             }
 
-            LootBasket basket = LootBasket.Create(transform.position);
-            DropTable dropTable = DropTableManager.Instance.GetSoldierTable();
-            if (dropTable != null)
-                dropTable.ApplyToBasket(basket, MonsterLevelManager.Instance?.GetDropRateBonus(level) ?? 0f);
-            else
+            // ===== 전리품/드랍 처리 (try-catch 격리 — 드랍 실패가 사망 로직을 중단하지 않도록) =====
+            try
             {
-                PlayerInventory.ItemData goldItem = new PlayerInventory.ItemData
+                LootBasket basket = LootBasket.Create(transform.position);
+                // DropTableManager.Instance null 가드 (NRE 방지 — null이면 아래 폴백 골드 블록 실행)
+                DropTable dropTable = DropTableManager.Instance != null ? DropTableManager.Instance.GetSoldierTable() : null;
+                if (dropTable != null)
+                    dropTable.ApplyToBasket(basket, MonsterLevelManager.Instance?.GetDropRateBonus(level) ?? 0f);
+                else
                 {
-                    id = "gold", displayName = "금", description = "통화",
-                    category = PlayerInventory.ItemCategory.Material, maxStack = 99
-                };
-                basket.AddItem(goldItem, level * 10);
-                if (Random.value < 0.5f) basket.AddItem(PlayerInventory.RabbitFur, 1);
+                    PlayerInventory.ItemData goldItem = new PlayerInventory.ItemData
+                    {
+                        id = "gold", displayName = "금", description = "통화",
+                        category = PlayerInventory.ItemCategory.Material, maxStack = 99
+                    };
+                    basket.AddItem(goldItem, level * 10);
+                    if (Random.value < 0.5f) basket.AddItem(PlayerInventory.RabbitFur, 1);
+                }
+
+                // ===== 장착 장비 전리품 드랍 (무기/방패/투구/갑옷) =====
+                // 장비는 항상 100% 드랍하며, '실제 장착된'(null이 아닌) 아이템만 떨어뜨린다.
+                // 빈 슬롯은 위의 SoldierDropTable/폴백 드랍에 그대로 맡긴다.
+                DropEquippedItems(basket);
+
+                // ===== 사망 드랍 최소 보장 =====
+                // 장비 + 드롭 테이블(및 폴백) 모두로 바구니가 비었으면 최소 1개(금)는 반드시 떨어뜨린다.
+                if (basket.IsEmpty)
+                {
+                    basket.AddItem(PlayerInventory.Gold, 1);
+                    Debug.Log($"[GuardPlaceholder] {guardName} 죽: 드랍 최소 보장 — 금 1개 전리품 드랍");
+                }
             }
-
-            // ===== 장착 장비 전리품 드랍 (무기/방패/투구/갑옷) =====
-            // 장비는 항상 100% 드랍하며, '실제 장착된'(null이 아닌) 아이템만 떨어뜨린다.
-            // 빈 슬롯은 위의 SoldierDropTable/폴백 드랍에 그대로 맡긴다.
-            DropEquippedItems(basket);
-
-            // ===== 사망 드랍 최소 보장 =====
-            // 장비 + 드롭 테이블(및 폴백) 모두로 바구니가 비었으면 최소 1개(금)는 반드시 떨어뜨린다.
-            if (basket.IsEmpty)
+            catch (System.Exception ex)
             {
-                basket.AddItem(PlayerInventory.Gold, 1);
-                Debug.Log($"[GuardPlaceholder] {guardName} 죽: 드랍 최소 보장 — 금 1개 전리품 드랍");
+                // 드랍 실패가 사망 처리(비활성화/부활 시스템)를 중단하지 않도록 격리
+                Debug.LogWarning($"[GuardPlaceholder] 드랍 처리 실패(사망 자체는 계속): {ex.Message}");
             }
 
             // 비활성화 (Destroy 대신 — GuardResurrectionSystem에서 부활 가능)

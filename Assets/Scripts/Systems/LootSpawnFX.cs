@@ -51,12 +51,23 @@ namespace ProjectName.Systems
             SpawnProceduralGoldSpike(position);
         }
 
-        // === 절차적 폴백: 작은 골드 파티클 스파이클 ===
+        // === 절차적 폴백: 골드 파티클 스파이클 + 골드 확장 링 ===
+        // [2026-09-13 체감 보강] 스펙 상향 — startSize 0.07→0.14m, burst 16→24발,
+        // startSpeed 2.2→3.0, gravityModifier 1.6→1.2, startLifetime 0.5→0.6s, duration 0.6s 유지.
+        // 발화 오리진을 지면 위 0.4m로 올려(지하 발화 방지) 파티클 전량이 화면에 보이게 하고,
+        // 스폰 즉시 골드 링 1회(반경 0.8m, 0.4s)로 스폰 순간 가시성을 보강한다.
 
         static void SpawnProceduralGoldSpike(Vector3 position)
         {
+            // 스폰 즉시 골드 링 1회 — 지면 근처(+0.1m)에서 0.8m 반경으로 0.4s 확장.
+            // ShockwaveRingFX에는 자체 스팸 가드가 없으므로 PlaySpawn의 0.1s 쿨다운이 상위 가드 역할.
+            ShockwaveRingFX.Spawn(position + Vector3.up * 0.1f, 0.8f, new Color(1f, 0.85f, 0.35f), 0.4f);
+
+            // 발화 오리진을 지면 위로 — hit.point 그대로면 파티클 절반이 지하에서 발화해 안 보임
+            Vector3 origin = position + Vector3.up * 0.4f;
+
             GameObject root = new GameObject("LootSpawnFX_GoldSpike");
-            root.transform.position = position;
+            root.transform.position = origin;
             AttachAutoDestroy(root, LifetimeSeconds); // static에서 코루틴 불가 → 자가 파괴 컴포넌트
 
             ParticleSystem ps = root.AddComponent<ParticleSystem>();
@@ -65,17 +76,17 @@ namespace ProjectName.Systems
             var main = ps.main;
             main.duration = 0.6f;
             main.loop = false;
-            main.startLifetime = 0.5f;
-            main.startSpeed = 2.2f;
-            main.startSize = 0.07f;
+            main.startLifetime = 0.6f;
+            main.startSpeed = 3.0f;
+            main.startSize = 0.14f;
             main.startColor = new Color(1f, 0.85f, 0.35f); // 골드
-            main.gravityModifier = 1.6f;
+            main.gravityModifier = 1.2f;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
             main.playOnAwake = false;
 
             var emission = ps.emission;
             emission.rateOverTime = 0f;
-            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 16) });
+            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 24) });
 
             var shape = ps.shape;
             shape.shapeType = ParticleSystemShapeType.Sphere;
@@ -104,6 +115,7 @@ namespace ProjectName.Systems
             if (unlit != null)
             {
                 Material mat = new Material(unlit);
+                // startColor·골드 링(ShockwaveRingFX)과 동일 골드 동기 — [2026-09-13 체감 보강]에서도 유지
                 mat.SetColor("_BaseColor", new Color(1f, 0.85f, 0.35f, 1f));
                 var rnd = root.GetComponent<ParticleSystemRenderer>();
                 if (rnd != null)

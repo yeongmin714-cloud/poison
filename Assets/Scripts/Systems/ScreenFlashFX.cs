@@ -75,15 +75,13 @@ namespace ProjectName.Systems
 
             public void Init(Color color, float intensity, float duration)
             {
+                // 필드 저장만 수행 — GUIStyle 생성은 OnGUI 내 지연 생성 폴백으로 위임한다.
+                // (OnGUI 밖에서 GUI.skin 접근 시 ArgumentException 발생 — G2-06 버그 수리,
+                //  DamageNumberRunner.Init 선례와 동일 패턴)
                 _color = color;
                 _intensity = intensity;
                 _duration = Mathf.Max(0.01f, duration);
                 _elapsed = 0f;
-
-                _style = new GUIStyle(GUI.skin.box)
-                {
-                    normal = { background = Texture2D.whiteTexture }
-                };
             }
 
             /// <summary>안티 스팸: 활성 플래시의 파라미터를 덮어쓰고 페이드를 재시작.</summary>

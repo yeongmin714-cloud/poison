@@ -690,6 +690,12 @@ namespace ProjectName.Systems
         {
             try
             {
+                // [2026-09-13 맨손 폴백] 무기 트레일 미부착(맨손)이면 플레이어 오른손에 폴백 트레일 부착.
+                // FireComboSlash는 UpdatePlayer 전용 경로라 Soldier에선 애초 도달하지 않지만,
+                // 모드 가드를 명시해 Soldier 유출을 이중 차단한다. 내부 _trail==null 가드가
+                // 무기 트레일을 보존하므로 여기서 매 콤보 진입마다 호출해도 무해(부착 1회, 로그 1회).
+                if (mode == DriveMode.Player)
+                    WeaponSwingTrail.EnsureBareFist(transform.root);
                 WeaponSwingTrail.SetEmitting(true);
                 Debug.Log($"[Combo] 스윙 트레일 방출 (stage={stage})");
             }

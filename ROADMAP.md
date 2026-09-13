@@ -2287,4 +2287,19 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | P6 창고 4구획 | 좌 통합인벤/중앙 설명/우측 창고(탭) — 양방향 이동(인벤→창고 신규 포함) | ✅ |
 | P7 우클릭 | Test_10 물약 시딩 복원(은신×3+진정×3)+우클릭 4단 판정 로그 | ✅ |
 | 검증 | 배치컴파일 error CS=0(CS1501 1회 수리), 12파일 균형 0, PlaySlash 0건 | ✅ |
+
+## 🧪 2026-09-13: 우클릭 소모품 복용+공격 FX 체감+바구니 반짝임 수리 (CONSUMABLE-FX-43)
+
+> **목표:** 사용자 리포트 3건(우클릭 소모품 미작동/스윙·히트 FX 부재/바구니 반짝임 미보임)을 Editor.log 실측 기반 뿌리 수리 + 치명 예외 2건(GUI.skin 48회·병사 Die NRE) 소멸.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 뿌리 진단 | 우클릭=게이트 Herb 차단(치유초 7회 로그) / FX 부재=맨손(장착 0건)+적중 희소(실패 85 vs 크로스 4)+ScreenFlashFX GUI 예외 48회(체인 단절) / 반짝임=0.07m·16개·지면 발화 시인성 0 / 병사 Die() Instance NRE 1회 | ✅ |
+| ScreenFlashFX 수리 | Init에서 GUIStyle 생성 제거(필드 저장만)+OnGUI 지연 생성 유지 — 39차 DamageNumberRunner 선례 동일 패턴, 48회 예외 소멸+크리버스트/임팩트음 복구 | ✅ |
+| 우클릭 소모품 | 게이트(1358행)+복용 훅(3381행) Herb 추가 — 치유초=MaxHP×40% 회복+소모, 미매칭 약초=재료 안내 로그. Weapon/Armor 분기 미탈 보장 | ✅ |
+| 스윙 FX | WeaponSwingTrail TipWidth 0.06→0.09+EnsureBareFist 폴백(RightHand 3단 탐색·_trail null 가드) — HumanoidClipDriver 콤보 진입 Player 모드 한정 호출 → 맨손에도 흰 궤적 | ✅ |
+| 바구니 반짝임 | 스파이크 보강(오리진+0.4m·0.14·24개·속도3.0·중력1.2·수명0.6)+골드 링 1회(ShockwaveRingFX 0.8m/0.4s) | ✅ |
+| 병사 사망 | GuardPlaceholder.Die() 631행 Instance 삼항 가드+드랍 섹션 try-catch 격리(사망 로직 try 밖) | ✅ |
+| 검증 | 배치컴파일 error CS=0(exit 0), 정적 QA FAIL 0건(diff 전수·시그니처·회귀 5건·OnGUI 밖 GUI 0건·6파일 균형) | ✅ |
+| Play 판정 대기 | 맨손/무기 트레일, 치유초 회복+소모, 물약 복용 4단 로그, 바구니 골드+링, 크리 버스트+임팩트음, 병사 드랍 정상 | ⬜ |
 | Play 판정 대기 | 트레일/Travis 히트/바구니 반짝임/클로ak/창고 4구획/우클릭 4단 로그 | ⬜ |
