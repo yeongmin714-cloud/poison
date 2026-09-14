@@ -295,9 +295,8 @@ namespace ProjectName.Systems
             if (Mathf.Abs(roll) > 0.01f)
                 instance.transform.Rotate(0f, 0f, roll, Space.Self);
 
-            // [2026-09-14(47차 후속7): 슬래시 크기=공격범위 연동(사거리×0.4, 클램프 0.8~1.6) — 사용자 지정 '공격범위에 맞춰 작게']
-            // 무기 사거리 기반 동적 스케일 — 검(2.5m)→1.0, 창(4m)→1.6, 맨손(2m)→0.8. 플립이 회전 기반이므로 균일 스케일.
-            float scale = Mathf.Clamp(RangeOf(WeaponEquipManager.CurrentType) * 0.4f, 0.8f, 1.6f);
+            // [2026-09-14(47차 후속8): 더 작게 — 사거리×0.25, 클램프 0.5~1.2 (검 2.5m→0.63/창 4m→1.0/맨손 2m→0.5) — 사용자 지정 "공격범위랑 일치"]
+            float scale = Mathf.Clamp(RangeOf(WeaponEquipManager.CurrentType) * 0.25f, 0.5f, 1.2f);
             instance.transform.localScale = Vector3.one * scale;
 
             // [2026-09-14(47차 후속6)] 기동 블록 이동 — Reinit+Play는 위 런타임 빌드 블록(AddComponent 직후
