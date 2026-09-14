@@ -99,6 +99,13 @@ namespace ProjectName.Systems
             return damage;
         }
 
+        // [2026-09-14(51차 방어)] 컴포넌트 재활성화 시 리코일 완료 플래그 리셋 — 재활성 전 리코일이 중단(비활성화/예외)되면
+        // _recoilActive가 true로 고정돼 AttackLungeCoroutine의 while (_recoilActive) 대기가 영구 양보, 런지가 영구 스킵되는 것을 방지.
+        private void OnEnable()
+        {
+            _recoilActive = false;
+        }
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -686,16 +693,26 @@ namespace ProjectName.Systems
             Vector3 startPos = transform.position;
             Vector3 endPos = startPos + dir * dist;
             float elapsed = 0f;
-            while (elapsed < duration)
+            // [2026-09-14(51차 방어)] try/finally — 루프 중 예외/StopCoroutine/컴포넌트 비활성화로 코루틴이 강제 종료돼도
+            // 반드시 플래그를 해제한다(Unity가 코루틴 중단 시 iterator를 Dispose → finally 실행). C# iterator 제약상
+            // finally 블록 안에는 yield를 둘 수 없으므로, yield는 전부 try 블록 내부에 유지.
+            try
             {
-                float t = Mathf.Clamp01(elapsed / duration);
-                float ease = t * t * (3f - 2f * t); // smoothstep — 가속 후 감속
-                transform.position = Vector3.Lerp(startPos, endPos, ease);
-                elapsed += Time.deltaTime;
-                yield return null;
+                while (elapsed < duration)
+                {
+                    float t = Mathf.Clamp01(elapsed / duration);
+                    float ease = t * t * (3f - 2f * t); // smoothstep — 가속 후 감속
+                    transform.position = Vector3.Lerp(startPos, endPos, ease);
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
             }
-            // #48차 후속 FIX(2026-09-14): 리코일 루프 완료 직후 플래그 OFF — 대기 중이던 런지가 여기서 인계받음.
-            _recoilActive = false;
+            finally
+            {
+                // #48차 후속 FIX(2026-09-14): 리코일 루프 완료 직후 플래그 OFF — 대기 중이던 런지가 여기서 인계받음.
+                // 51차: finally로 이동 — 정상 종료뿐 아니라 예외/강제 중단 시에도 해제 보장(런지 영구 스킵 방지).
+                _recoilActive = false;
+            }
         }
     }
 }

@@ -2389,3 +2389,37 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | QA-FIX | gait/stepHeight→실제 렌더 위상 통합(Locomotion-SyncLegPhases/GetGaitPhaseMultiplier/UpdateLegTarget 리프트, SpineIK 이중누적 제거), SpecialCreature 루트 델타 자체속도 산출, forest_spirit·bat·crow·poison_snake 특수형 분류 수정 | ✅ |
 | 검증 | 배치컴파일 error CS=0, 정적 QA(F 6포인트 — 추락 0, gait 통합, 이동피드 활성), 5파일 괄호 균형 | ✅ |
 | Play 판정 대기 | 토끼 깡충/악어 기어감/슬라임 펄스/숲정령 부유 등 종별 모션 · 공격/피격 반응 · 트롤·오우거 2족 보행 | ⬜ |
+
+
+## 🦍 2026-09-14: 2족 몬스터 절차 애니 — AI 속도 피드 + 종별 보행 프로필 (MONSTER-BIPED-50)
+
+> **목표:** 49차(4족/특수형) 후속 — 2족 몬스터(트롤/오우거/미노타우로스/그림자암살자/밴시/돌골렘)가 절차 애니로 종별에 맞게 걷게. ProceduralAnimationController(obsolete biped)의 IVelocityProvider 인터페이스를 AnimalAI가 구현·연결해 AI 속도 피드 + 종별 walk/run 프로필.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| P1 IVelocityProvider | AnimalAI가 IVelocityProvider 구현(CurrentVelocity/CurrentSpeed/IsGrounded) + _currentAIVelocity/_currentAISpeed 필드 | ✅ |
+| P2 연동 | UpdateBipedLink 지연 탐색(3s) → ProceduralAnimationController.SetVelocityProvider(this)+ApplyMonsterProfile, FeedQuadrupedSpeed 선두에서 실속도 기록 갱신 | ✅ |
+| P3 종별 프로필 | ApplyMonsterProfile(monsterId): wild_troll/ogre/stone_golem walk3/run6/accel12(무거움), minotaur 4/8/15(돌진), shadow_assassin/banshee 6/12/25(민첩), default 유지 | ✅ |
+| QA-FIX-1 | Debug.Log가 user 네임스페이스 Debug와 충돌(CS0234) → UnityEngine.Debug로 정규화 | ✅ |
+| QA-FIX-2 | MonsterSpawner.IsBiped quad구리스 배열에 2족 5종이 껴있어 SpecialCreatureAnimator(Spider) 오부착 → 5종 제거, 2족 절차 애니 단독 동작 | ✅ |
+| 검증 | 배치컴파일 error CS=0(에러 3건→FIX 후 0), 정적 QA(2족 속도 0 버그 없음, 인터페이스 단일 정의, 탐색 병행 안전) | ✅ |
+| Play 판정 대기 | 트롤 무거운 발걸음/오우거 저속/미노타우로스 돌진/그림자암살자 민첩 보행/밴시 유영, 2족-특수형 오부착 없음 | ⬜ |
+
+
+## 🛡️ 2026-09-14: 공격/몬스터 애니 무결성 재검증 + 리코일 플래그 방어 (INTEGRITY-REVIEW-51)
+
+> **목표:** 사용자 요청 "잘못된 건 없는지 한번 더 확인" — 48~50차 전체 변경을 전역 재검증하고, 유일하게 지적된 방어 결함만 수리. 컴파일 재실행 + 정적 QA 2경로 병렬.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| 전역 재검증 | git diff 확인(12파일/1311삽입 — 48~50차 변경 일관), 배치컴파일 error CS=0 | ✅ |
+| 공격모션 QA | PlayerCombat/HumanoidClipDriver/SlashVFXRunner 정적 QA — 코루틴 동시성 ✅(속성 분리 전환), 49·50차 상호작용 ✅, 46·47차 게이트/슬래시 회귀 ✅, HitStop 상호작용 ✅, 콤보 버퍼가 크로스 타이밍 무손상 ✅ | ✅ |
+| 몬스터애니 배타성 | 4족(UpdateQuadrupedLink·GetComponent 존재시) vs 2족(IsBipedMonster 6종) 상호 배타 확인 — 동시 부착 경로 없음 | ✅ |
+| 51차 방어 | QA 권장 — RecoilCoroutine 플래그(_recoilActive)가 비활성화/예외로 true 고정 시 런지 영구 스킵 → OnEnable 리셋 + try/finally 이중 방어 | ✅ |
+| 검증 | 배치컴파일 error CS=0, 괄호 균형, finally 내 yield 없음(C# 제약) | ✅ |
+
+## 동작 변화/판정
+- 22종 몬스터 분류(4족/2족/특수형) 상호 배타 정합, SpecialCreature 중복 부착 없음(49차 목록 + 50차 2족 5종 제거 후)
+- 공격 모션(런지/페이스/리코일/연타펀치/콤보 버퍼) 최종 무결성 — 차단 버그 0건
+- 리코일-런지 인계(_recoilActive 게이트)가 비활성화/예외에도 안전하게 해제
+| Play 판정 대기 | 몬스터 종별 모션 + 공격 전진/반동/콤보 연속성 + 트롤·오우거 2족 보행 (기존 49·50차와 동일) | ⬜ |

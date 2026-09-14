@@ -4,7 +4,7 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-14 (49차)
+> **최종 갱신:** 2026-09-14 (51차)
 
 ---
 
@@ -1279,3 +1279,42 @@ E키→OpenForBasket→우측 창 Show → 슬롯 좌클릭(MouseDown)→드래�
 - 3초 타임아웃 후 재탐색 없음 → GLB 로딩이 3초 넘으면 영구 미적용(키보드 모드 잔존). 주기 재시도(0.5s 스로틀) 또는 ModelAnimatorAssigner 부착 콜백으로 역링크 권장.
 - 2족(트롤/오우거/미노타우로스/그림자암살자)은 ProceduralAnimationController 경로 — 별도 종별 프로필 필요(향후).
 - LargeMonster 타입 미사용(giant_clam DB 없음), deep_clam 중복 매핑 — 기존 코드.
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-14 ✅ 50차 — 2족 몬스터 절차 애니: AI 속도 피드 + 종별 보행 프로필)
+
+> **스코프**: 49차(4족/특수형) 후속으로 2족 몬스터(트롤/오우거/미노타우로스/그림자암살자/밴시/돌골렘)에 종별 보행. ProceduralAnimationController(biped)의 IVelocityProvider 인터페이스로 AI 속도 피드 + 종별 walk/run 프로필. 2파일 수정.
+
+### 변경 사항
+**`Systems/AnimalAI.cs` (1311→1408행)**: `AnimalAI : MonoBehaviour, IDamageable, IAggroable, IVelocityProvider` 인터페이스 추가. IVelocityProvider 구현(CurrentVelocity=>_currentAIVelocity, CurrentSpeed=>_currentAISpeed, IsGrounded=>true). IsBipedMonster() 6종 판정 + UpdateBipedLink() 3초 지연 탐색 → SetVelocityProvider(this)+ApplyMonsterProfile. FeedQuadrupedSpeed 선두에서 실속도(이동방향×속도) 기록. (4족 경로 무변경).
+**`Systems/Animation/Procedural/ProceduralAnimationController.cs` (1310→1342행)**: ApplyMonsterProfile(string monsterId) — wild_troll/ogre/stone_golem walk3/run6/accel12, minotaur 4/8/15, shadow_assassin/banshee 6/12/25, default 유지. walkSpeed/runSpeed/acceleration에 기록.
+**`Systems/MonsterSpawner.cs` (QA-FIX)**: IsBiped quad구리스 배열에서 2족 5종(wild_troll/ogre/minotaur/banshee/shadow_assassin) 제거 → SpecialCreatureAnimator(Spider) 오부착 방지, 2족 절차 애니 단독 동작.
+
+### 컴파일/검증
+- 배치 컴파일: 초기 **error CS=3**(ApplyMonsterProfile의 Debug.Log가 user 네임스페이스 Debug 충돌 CS0234) → UnityEngine.Debug 정규화로 0. 이후 QA-FIX(IsBiped) 재컴파일 **error CS=0**.
+- 정적 QA: A(인터페이스 단일 정의·시그니처 ✅) B(분류 체계 — isQuadruped 정합 ✅, IsBiped 불일치 ⚠️→FIX) C(**2족 속도 0 버그 없음** ✅ — FeedQuadrupedSpeed 가드 이전 무조건 기록, 이동 경로 전수 커버) D(보행 반영 ✅) E(문법 ✅).
+- Play 판정 대기: 트롤 무거운 발걸음/오우거 저속/미노타우로스 돌진/암살자 민첩 보행/밴시 유영 + 2족-특수형 오부착 없음.
+
+### 비고/후속 제안
+- MonsterSpawner.IsBiped quad구리스 배열명이 실제 분류와 혼동 소지 — 향후 ID 기반 상수 테이블(4족/2족/특수형) 단일 소스로 이전 권장.
+- 6종 GLB가 실제 휴머노이드 임포트여야 SetupBiped 경로(ProceduralAnimationController) 탑승 — 제네릭 릭이면 SetupQuadruped로 흐를 수 있어 Play에서 별도 확인 권장.
+- ProceduralAnimationController는 [Obsolete] — 추후 Hybrid/Neural 전환 시 IVelocityProvider 연결 유지 필요.
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-14 ✅ 51차 — 공격/몬스터 애니 무결성 재검증 + 리코일 방어)
+
+> **스코프**: 사용자 "잘못된 건 없는지 한번 더 확인" — 48~50차 변경(플레이어 공격 모션 + 몬스터 절차 애니 4족/2족/특수형) 최종 무결성 재검증. 컴파일 재실행 + 정적 QA 2경로 병렬. 지적된 방어 결함 1건만 수리.
+
+### 검증 결과
+- **배치컴파일 error CS=0** (재실행), git diff 12파일/1311삽입 일관 확인.
+- **공격모션 QA(48차×49·50차)**: A 코루틴 동시성 ✅(페이스=rotation / 리코일·런지=position 속성 분리 → 충돌 없음), B 49·50차 상호작용 ✅(몬스터 피드 미간섭), C 46·47차 게이트/슬래시 회귀 ✅(CombatFXGate 3오버로드·SlashVFXRunner 47차 최종 잔존), D HitStop 상호작용 ✅(리코일→런지 인계 히트스톱 중에도 성립), F 콤보 버퍼가 크로스 타이밍 무손상 ✅. **차단 버그 0건**. ⚠️ 유일 권고: RecoilCoroutine 플래그 비활성화/예외 시 런지 영구 스킵.
+- **몬스터애니 배타성(직접 확인)**: UpdateQuadrupedLink(GetComponent 존재 시) vs UpdateBipedLink(IsBipedMonster 6종) — 4족이면 2족 스킵, 2족이면 4족 GetComponent null로 스킵. **동시 부착/구동 없음**. 특수형(49차 specialIds)과도 상호 배타.
+
+### 51차 수정 (공격모션 QA 권고 1건)
+**`Systems/PlayerCombat.cs` (701→719행)**: `_recoilActive` 플래그가 리코일 도중 비활성화/예외로 true 고정되면 모든 후속 런지가 영구 스킵되는 방어 — ① `OnEnable() { _recoilActive = false; }` 추가 ② `RecoilCoroutine` 루프를 try/finally로 감싸 플래그 해제를 finally로 이동(예외/StopCoroutine/비활성화에도 반드시 해제, finally 내 yield 없음 C# 제약 준수).
+
+### 컴파일/검증
+- 배치컴파일 error CS=0(총 2회 — 51차 포함), PlayerCombat 괄호 균형{69/69}.
+- Play 판정 대기(기존과 동일): 몬스터 종별 모션(토끼 깡충/악어 기어감/슬라임 펄스/숲정령 부유/2족 보행) + 공격 전진/반동/콤보 연속성.
