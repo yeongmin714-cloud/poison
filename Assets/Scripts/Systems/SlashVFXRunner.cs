@@ -367,13 +367,13 @@ namespace ProjectName.Systems
         /// 슬래시 스케일 연동용으로 중복 정의(출처: Assets/Scripts/Systems/WeaponRangeIndicator.cs 184행 사거리 표와
         /// 동일 유지할 것). WeaponData 정적 스탯 단일 소스(타입 고정, 등급 배율 무관): Sword 2.5 / Spear 4 / Bow 10 / Fist 2.
         /// </summary>
-        private static float RangeOf(WeaponType type)
+        private static float RangeOf(ProjectName.Core.WeaponType type)
         {
             switch (type)
             {
-                case WeaponType.Sword: return WeaponData.Sword.range;   // 2.5m
-                case WeaponType.Spear: return WeaponData.Spear.range;   // 4m
-                case WeaponType.Bow:   return WeaponData.Bow.range;     // 10m
+                case ProjectName.Core.WeaponType.Sword: return WeaponData.Sword.range;   // 2.5m
+                case ProjectName.Core.WeaponType.Spear: return WeaponData.Spear.range;   // 4m
+                case ProjectName.Core.WeaponType.Bow:   return WeaponData.Bow.range;     // 10m
                 default:               return WeaponData.Fist.range;    // 2m
             }
         }
