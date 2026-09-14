@@ -6,8 +6,10 @@ namespace ProjectName.Systems
     /// <summary>
     /// 3단계 이펙트: 에셋 스토어 무료 프리팹 기반 스윙/피격 FX 정적 러너.
     ///   - 스윙: Free Slash VFX "Slash VFX.prefab" (Assets/Resources/FX/Slash/Slash VFX)
-    ///   - 피격: Matthew Guz "Basic Hit" (Assets/Resources/FX/Impact/BasicHit)
-    ///     [45차 P3 임팩트 단일화] BasicHit2(Construct)/TravisHit(크로스) 경로 제거 — BasicHit 단일 프리팹
+    ///   - 피격: Matthew Guz "Magic Hit 2" (Assets/Resources/FX/Impact/MagicHit)
+    ///     [2026-09-14(47차)] 사용자 지정 — Guz Magic Hit 2로 교체(공격 예시와 가장 유사).
+    ///     BasicHit은 Resources에 유지(롤백 가능: 상수 경로를 FX/Impact/BasicHit로 되돌리면 즉시 복귀).
+    ///     [45차 P3 임팩트 단일화] BasicHit2(Construct)/TravisHit(크로스) 경로 제거 — 단일 프리팹 위임 선례 유지
     ///   - [2026-09-13 스타일라이즈드 스윙] Stylizer Slash VFX(slash5-HungNguyen) "white-yellow bolder"
     ///     (Assets/Resources/FX/Slash/StylizedSlash) — PlaySlashStage가 콤보 스윙 아크 발화(아래 상수/메서드 참조)
     ///
@@ -23,7 +25,9 @@ namespace ProjectName.Systems
     ///
     /// [2026-09-12 P2 피격 FX 재색상] 외부 팩 프리팹의 보라·자주 기본색은 사용자 취향("피격시 보라색
     /// 점들이 떠다니는 건 별로")과 불일치 → 스폰 직후 TintParticles로 붉은/흰 계열 재색상
-    /// (히트(TravisHit) 1.0,0.75,0.35 / 스윙 0.85,0.95,1.0 / 임팩트 0.8,0.2,0.2 — 하단 공용 헬퍼 참조).
+    /// (스윙 0.85,0.95,1.0 — 하단 공용 헬퍼 참조).
+    /// [2026-09-14(47차)] 임팩트(PlayImpact/PlayCross)는 MagicHit 에셋 고유 색상 유지 — TintParticles(흰)
+    /// 호출 제거(사용자가 이 에셋의 룩을 선택). NormalizePurpleParticles는 유지(보라만 골드화이트 안전망).
     ///
     /// [2026-09-12 P2 크로스→TravisHit 교체] 타 완료 FX(PlayCross)는 Free Slash VFX 팩 "Multiple Slashes"에서
     /// "FX/Impact/TravisHit" 프리팹으로 교체(빌보드/쿨다운/파괴 패턴 유지). 스윙(Slash VFX)은 호출부
@@ -33,6 +37,7 @@ namespace ProjectName.Systems
     /// [45차 P3 임팩트 단일화] 타격 FX 3종 혼용(PlayImpact의 BasicHit/BasicHit2 분기 + PlayCross의 TravisHit)을
     /// BasicHit 단일 경로로 통일 — 프리팹 소스 분산에 의한 톤 불일치 해소. 틴트는 45차 BOTW 팔레트로 정렬:
     /// 코어=흰(1,1,1) / 액센트=골드(1,0.9,0.5) / 외곽=주황(1,0.55,0.2) — 크로스=골드, 임팩트=흰.
+    /// [2026-09-14(47차)] 위 틴트 정책은 MagicHit 교체로 철회 — 에셋 고유 색상 사용(보라 정규화만 유지).
     /// </summary>
     public static class SlashVFXRunner
     {
@@ -73,11 +78,10 @@ namespace ProjectName.Systems
         private const float StrokeMirrorX = -1f;
 
         private const string SlashResourcePath = "FX/Slash/Slash VFX";
-        // [45차 P3 임팩트 단일화] TravisHit/BasicHit2 리소스 경로 제거 — BasicHit 단일 경로만 유지
-        private const string BasicHitResourcePath = "FX/Impact/BasicHit";
-        // [2026-09-13 P2 임팩트 Guz 단일 유지] 임팩트는 BasicHit 단일 프리팹으로 확정 — PlayImpact/PlayCross 모두
-        // CoreTint(흰 1,1,1) 틴트 유지(아래 PlayImpact 내 TintParticles(CoreTint) 확인 완료).
-        // "Basic Hit 8 (NEW)" 후보 에셋 존재 — Play 판정(실측) 후 검토 예정. 회귀 방지: 현시점 교체 없음(주석 명기).
+        // [2026-09-14(47차)] 사용자 지정 — Guz Magic Hit 2(공격 예시와 가장 유사). BasicHit은 Resources에 유지(롤백 가능).
+        // 프리팹은 수동 복사본(Assets/Resources/FX/Impact/MagicHit.prefab — meta guid 신규 재발행, StylizedSlash 선례).
+        // 인스톨러 대상 아님(StylizedSlash와 동일 — 재설치 무관). 롤백: 이 상수를 "FX/Impact/BasicHit"로 되돌리면 끝.
+        private const string MagicHitResourcePath = "FX/Impact/MagicHit";
         private const string StylizedSlashResourcePath = "FX/Slash/StylizedSlash";
 
         // ── 45차 P3: BOTW 팔레트 틴트 상수 — 코어=흰 / 액센트=골드 / 외곽=주황 ──
@@ -90,11 +94,11 @@ namespace ProjectName.Systems
 
         // ── static 캐시/상태 ─────────────────────────────────────────
         private static GameObject _slashPrefab;
-        private static GameObject _basicHitPrefab;   // [45차 P3] TravisHit/Construct(BasicHit2) 캐시 제거 — BasicHit 단일 캐시
+        private static GameObject _magicHitPrefab;   // [2026-09-14(47차)] BasicHit 캐시 → MagicHit 캐시(캐시/1회 경고 패턴 동일)
         private static GameObject _stylizedSlashPrefab;   // [2026-09-13 스타일라이즈드 슬래시] 캐시 — LoadImpactPrefab 선례
 
         private static bool _slashLoadFailed;
-        private static bool _basicHitLoadFailed;
+        private static bool _magicHitLoadFailed;
         private static bool _stylizedSlashLoadFailed;   // 로드 실패 경고 static 1회 패턴
         private static bool _shaderErrorWarned;
 
@@ -175,7 +179,9 @@ namespace ProjectName.Systems
         /// 1,0.9,0.5)와 자연 동조 — 별도 틴트 없이 원본색 사용이 선택 사유.
         /// 오리엔테이션(38차 규약): ① 루트를 카메라 수평 빌보드(CameraHorizontalFaceDir 재사용) ② stage 롤
         /// (1타 0 / 2타 -90 / 3타 -45 — 기존 규약, ComboStageRollDegrees) ③ yawSign 좌우 플립(아래 주석).
-        /// VFX Graph(m_InitialEventName=OnPlay)는 Instantiate 직후 자동 재생되므로 명시 Play 불필요.
+        /// VFX Graph(m_InitialEventName=OnPlay)는 Instantiate 직후 자동 재생되는 것이 원칙이나, 실측에서
+        /// 초기 이벤트만으로 미기동(alive=-1) 사례가 확인되어 [2026-09-14(47차)] 오리엔테이션 완료 후
+        /// 명시 기동(Reinit+Play)을 수행한다(아래 PlaySlashStage 본문 참조).
         /// 쿨다운 0.25s(스윙/크로스/임팩트와 독립), 자가 파괴 1.5s(StylizedSlashDestroyAfter).
         /// </summary>
         /// <param name="position">스윙 앵커(루트 기준 fwd 0.55 + up 1.25 — 46차 후속 규격, 몸에 가깝게. 호출부 산출).</param>
@@ -235,15 +241,26 @@ namespace ProjectName.Systems
             // 스케일 튜닝 상수 — 46차 후속: 1.5배(StylizedSlashScale, 가시성 확대). 플립이 회전 기반이므로 균일 스케일.
             instance.transform.localScale = Vector3.one * StylizedSlashScale;
 
-            // [2026-09-13 alive 진단] 부착/오리엔테이션 완료 시점에 진단 러너 부착 — 0.35s 후 aliveParticleCount로
-            // VFX Graph 미출력(테스트 9프레임 픽셀 스캔 골드 아크 0픽셀 확정 — URP 렌더 타겟 불일치 추정)을
-            // 판정해 NotifyVfxDead()로 폴백 플래그를 세팅한다(진단 러너 = 파일 하단 SlashAliveProbe).
+            // [2026-09-14(47차)] 슬래시 VFX 기동 복구 — 0.35s 진단에서 alive=-1(not awake)이 반복 관측되어
+            // "초기 이벤트만으로 미기동" 가능성이 원인으로 추정됨 → 오리엔테이션(빌보드/부착/플립/롤/스케일)
+            // 완료 직후 명시 기동(Reinit+Play)을 수행한다. Reinit은 그래프 상태를 초기화하고 Play는 OnPlay
+            // 이벤트를 확실히 쏘아 시스템을 깨운다(이미 재생 중이어도 무해). using UnityEngine.VFX 있음.
+            var ve = instance.GetComponent<VisualEffect>();
+            if (ve != null)
+            {
+                ve.Reinit();
+                ve.Play();
+            }
+
+            // [2026-09-13 alive 진단 → 2026-09-14(47차) 강화] 부착/오리엔테이션 완료 시점에 진단 러너 부착 —
+            // 0.35s와 1.0s 두 시점에 aliveParticleCount를 확인해 VFX Graph 미출력을 판정한다(진단 러너 =
+            // 파일 하단 SlashAliveProbe — 두 체크 모두 alive<=0일 때만 폴백 전환).
             instance.AddComponent<SlashAliveProbe>();
 
             // [틴트 불가] 이 팩은 노출 프로퍼티(m_PropertySheet)가 비어 있어 런타임 틴트 불가 — TintParticles/
             // NormalizePurpleParticles(ParticleSystem 대상)도 무효(프리팹에 파티클 시스템 없음, VFX Graph 단독).
             // 원본 골드 계열이 곧 팔레트 Accent 톤이므로 무색상 처리로 확정.
-            // VFX Graph는 OnPlay 초기 이벤트로 자동 재생 — 명시 재생 없음, 셰이더 오류 감지만 수행.
+            // [2026-09-14(47차)] 위 Reinit+Play 명시 기동 후 셰이더 오류 감지만 수행.
             DetectShaderErrorOnce(instance, "StylizedSlash");
             Debug.Log($"[SlashVFX] 스타일라이즈드 슬래시 발화 (stage={stage}, yawSign={yawSign})");   // 1회성 아님 — 발화마다(크로스 로그 선례)
             ScheduleDestroy(instance, StylizedSlashDestroyAfter);   // VFX 자체 종료 후 잔존 없음 — 1.5s 자가 파괴
@@ -314,7 +331,7 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 타 완료 시점 히트 VFX — [45차 P3 임팩트 단일화] TravisHit 전용 스폰을 제거하고 PlayImpact와
-        /// 동일 단일 경로(FX/Impact/BasicHit)로 위임한다(프리팹 소스 분산에 의한 톤 불일치 해소).
+        /// 동일 단일 경로(FX/Impact/MagicHit — [2026-09-14(47차)] BasicHit 교체)로 위임한다.
         /// 스윙이 끝나는 지점(스테이지 경계 통과)에 1회 발화한다(HumanoidClipDriver 콤보 감시에서 호출).
         /// 호출부 시그니처/크로스 전용 쿨다운/static 캐시/파괴 패턴 유지. 프리팹 미설치 시 static 1회 경고 후 조용히 반환.
         /// [2026-09-12] 쿼드 오리엔테이션은 카메라 수평 빌보드 유지(후방 카메라 뒷면 미러링 = 역스윙 체감 차단).
@@ -326,7 +343,7 @@ namespace ProjectName.Systems
             if (Time.time - _lastCrossSpawnTime < MIN_SPAWN_INTERVAL) return;
             _lastCrossSpawnTime = Time.time;
 
-            // [45차 P3 임팩트 단일화] BasicHit 단일 경로 위임 — TravisHit 참조/로드 코드 제거
+            // [2026-09-14(47차)] MagicHit 단일 경로 위임 — BasicHit 경로에서 교체(롤백: MagicHitResourcePath 상수)
             GameObject prefab = LoadImpactPrefab();
             if (prefab == null) return;
 
@@ -336,9 +353,8 @@ namespace ProjectName.Systems
             Vector3 faceDir = CameraHorizontalFaceDir(position, dir);
             GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(faceDir));
             instance.name = "ImpactVFX_Cross";
-            // [45차 P3: BOTW 팔레트] 크로스 틴트 = 액센트 골드(1,0.9,0.5) — 타 완료 액센트 톤(재생 전 적용).
-            TintParticles(instance, AccentTint, 0.15f);
-            // [2026-09-13 보라 정규화] 잔여 보라 → 골드화이트 교체(재생 전).
+            // [2026-09-14(47차)] TintParticles(골드) 제거 — MagicHit 에셋 고유 색상 유지(사용자가 이 에셋의 룩을 선택).
+            // NormalizePurpleParticles는 유지(보라만 골드화이트로 안전망 — 잔여 보라 → 골드화이트 교체, 재생 전).
             NormalizePurpleParticles(instance);
             Debug.Log($"[SlashVFX] ✅ 크로스 FX 스폰 (단일 임팩트, pos={position}, faceDir={faceDir:F2}, 발화시각={Time.time:F2}s)");
 
@@ -348,8 +364,9 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 피격 임팩트 FX — [45차 P3 임팩트 단일화] Organic/Construct/그 외 모두 BasicHit 단일 프리팹으로 통일
-        /// (기존 Construct → BasicHit2 분기 제거). type은 로그/인스턴스명 구분용으로만 유지.
+        /// 피격 임팩트 FX — [45차 P3 임팩트 단일화] Organic/Construct/그 외 모두 단일 프리팹으로 통일
+        /// (기존 Construct → BasicHit2 분기 제거). [2026-09-14(47차)] 프리팹은 MagicHit(Guz Magic Hit 2)로 교체.
+        /// type은 로그/인스턴스명 구분용으로만 유지.
         /// </summary>
         public static void PlayImpact(Vector3 position, CombatHitType type)
         {
@@ -357,16 +374,14 @@ namespace ProjectName.Systems
             if (Time.time - _lastImpactSpawnTime < MIN_SPAWN_INTERVAL) return;
             _lastImpactSpawnTime = Time.time;
 
-            // [45차 P3 임팩트 단일화] BasicHit 단일 로드 — BasicHitResourcePath 경로 유지
+            // [2026-09-14(47차)] MagicHit 단일 로드 — MagicHitResourcePath 경로(기존 BasicHit 교체)
             GameObject prefab = LoadImpactPrefab();
             if (prefab == null) return;
 
             GameObject instance = Object.Instantiate(prefab, position, Quaternion.identity);
             instance.name = $"ImpactVFX_{type}";
-            // [2026-09-12 P2 피격 FX 재색상] 보라색 팩 파티클 재색상 — 사용자 취향 반영(피격 보라 부유 입자 제거).
-            // [45차 P3: BOTW 팔레트] 임팩트 틴트 = 코어 흰(1,1,1) 정렬(기존 붉은 계열 0.8,0.2,0.2 교체). 재생 전 적용.
-            TintParticles(instance, CoreTint, 0.2f);
-            // [2026-09-13 보라 정규화] 틴트가 main.startColor만 평탄화하므로 그라디언트 등에
+            // [2026-09-14(47차)] TintParticles(흰) 제거 — MagicHit 에셋 고유 색상 유지(사용자가 이 에셋의 룩을 선택).
+            // [2026-09-13 보라 정규화] 그라디언트 등에
             // 남은 보라를 골드화이트로 교체 — 보라 감지 색은 틴트 결과보다 우선 적용.
             NormalizePurpleParticles(instance);
 
@@ -422,20 +437,21 @@ namespace ProjectName.Systems
             return _slashPrefab;
         }
 
-        // [45차 P3 임팩트 단일화] TravisHit 로더 제거 + LoadImpactPrefab의 Construct(BasicHit2) 분기 제거 —
-        // BasicHit 단일 로더만 유지(캐시/1회 경고/정적 플래그 패턴 동일). 로드 실패 시 크래시 없이 조용히 반환.
+        // [2026-09-14(47차)] 로더 스왑 — BasicHit → MagicHit(캐시/1회 경고/정적 플래그 패턴 동일 유지).
+        // 프리팹은 수동 복사본(Resources/FX/Impact/MagicHit.prefab — StylizedSlash 선례, 인스톨러 대상 아님).
+        // 로드 실패 시 크래시 없이 조용히 반환.
         private static GameObject LoadImpactPrefab()
         {
-            if (_basicHitPrefab != null) return _basicHitPrefab;
-            if (_basicHitLoadFailed) return null;
+            if (_magicHitPrefab != null) return _magicHitPrefab;
+            if (_magicHitLoadFailed) return null;
 
-            _basicHitPrefab = Resources.Load<GameObject>(BasicHitResourcePath);
-            if (_basicHitPrefab == null)
+            _magicHitPrefab = Resources.Load<GameObject>(MagicHitResourcePath);
+            if (_magicHitPrefab == null)
             {
-                _basicHitLoadFailed = true;
-                Debug.LogWarning("[SlashVFX] 로드 실패(1회만 경고): Resources/FX/Impact/BasicHit — 인스톨러 실행 필요");
+                _magicHitLoadFailed = true;
+                Debug.LogWarning("[SlashVFX] 로드 실패(1회만 경고): Resources/FX/Impact/MagicHit — 'Assets/Matthew Guz/Hits Effects FREE/Prefab/Magic Hit 2.prefab' 복사 필요");
             }
-            return _basicHitPrefab;
+            return _magicHitPrefab;
         }
 
         // [2026-09-13 스타일라이즈드 슬래시] slash5 팩 프리팹 로더 — LoadImpactPrefab 선례(캐시 + static 1회 경고) 동일 패턴.
@@ -630,38 +646,61 @@ namespace ProjectName.Systems
     }
 
     /// <summary>
-    /// [2026-09-13 alive 진단] StylizedSlash(VFX Graph) 인스턴스에 부착되는 진단 러너 — 스폰 0.35초 후
-    /// aliveParticleCount를 확인해 VFX Graph 미출력(URP 렌더 파이프라인 타겟 불일치 추정)을 판정한다.
-    ///   - alive<=0: SlashVFXRunner.NotifyVfxDead() 1회 호출 → 이후 발화부터 구 Slash VFX 폴백 전환.
-    ///   - alive>0 : 정상 출력 — 폴백 플래그 해제 유지(VFX 복구 시 스타일라이즈드 경로 자동 복귀).
-    /// SlashFxHost와 동일한 파일 내부 보조 MonoBehaviour 패턴(진단에 0.35s 지연이 필요해 컴포넌트로 분리).
+    /// [2026-09-13 alive 진단 → 2026-09-14(47차) 강화] StylizedSlash(VFX Graph) 인스턴스에 부착되는 진단 러너 —
+    /// 스폰 후 0.35s와 1.0s 두 시점에 aliveParticleCount를 확인해 VFX Graph 미출력을 판정한다.
+    ///   - 어느 한 시점이라도 alive>0 : 정상 출력 — NotifyVfxAlive() 후 코루틴 즉시 종료(폴백 미발동).
+    ///     (Reinit+Play 명시 기동으로 alive가 0보다 커지면 폴백 없음 — PlaySlashStage 본문 참조)
+    ///   - 두 체크 모두 alive<=0 : 폴백 전환(마지막 안전망) — 늦게 피는 이펙트 오판 방지를 위해 2회 연속 조건.
+    ///     alive=-1(not awake) 2회 연속이면 별도 진단 로그("VFX 미각성 지속 — 에셋 로드/타겟 확인 필요") 출력.
+    /// 진단 로그는 assetNull/awake/alive를 함께 기록해 다음 Play에서 원인 즉시 판별이 가능하다.
+    /// SlashFxHost와 동일한 파일 내부 보조 MonoBehaviour 패턴(진단에 지연이 필요해 컴포넌트로 분리).
     /// </summary>
     internal sealed class SlashAliveProbe : MonoBehaviour
     {
-        /// <summary>진단 지연(초) — 첫 방출 파티클이 확실히 살아있어야 할 시점(튜닝 상수).</summary>
+        /// <summary>1차 진단 시점(스폰 후 초) — 첫 방출 파티클이 확실히 살아있어야 할 시점(튜닝 상수).</summary>
         private const float DiagnoseDelay = 0.35f;
+        /// <summary>2차 진단 시점(스폰 후 초) — 늦게 피는 이펙트 오판 방지용 2차 관찰 시점(튜닝 상수).</summary>
+        private const float DiagnoseDelaySecond = 1.0f;
 
         private void Start()
         {
-            // Start에서 0.35s 후 진단 — static 러너는 코루틴을 못 돌리므로 자기 인스턴스 코루틴으로 실행.
+            // Start에서 0.35s/1.0s 2시점 진단 — static 러너는 코루틴을 못 돌리므로 자기 인스턴스 코루틴으로 실행.
             StartCoroutine(Diagnose());
         }
 
         private System.Collections.IEnumerator Diagnose()
         {
+            // ── 1차 체크 @0.35s ──
             yield return new WaitForSeconds(DiagnoseDelay);
 
             var ve = GetComponent<VisualEffect>();
             int alive = ve != null ? ve.aliveParticleCount : -1;
-            if (alive <= 0)
+            Debug.Log($"[SlashVFX] VFX 진단: assetNull={ve == null || ve.visualEffectAsset == null} awake={ve != null && ve.HasAnySystemAwake()} alive={alive} @0.35s");
+            if (alive > 0)
             {
-                SlashVFXRunner.NotifyVfxDead();
-                Debug.Log($"[SlashVFX] VFX Graph 미출력 감지(alive={alive}) — 구 Slash VFX 폴백 전환");
+                SlashVFXRunner.NotifyVfxAlive();   // 정상 출력 — 폴백 플래그 해제(VFX 복구 시 스타일라이즈드 경로 자동 복귀)
+                yield break;   // 정상 — 2차 체크 불필요
             }
-            else
+
+            // ── 2차 체크 @1.0s — 1차 미출력이어도 늦게 피는 이펙트일 수 있어 관찰 연장(스폰 기준 총 1.0s) ──
+            yield return new WaitForSeconds(DiagnoseDelaySecond - DiagnoseDelay);
+
+            ve = GetComponent<VisualEffect>();
+            int alive2 = ve != null ? ve.aliveParticleCount : -1;
+            Debug.Log($"[SlashVFX] VFX 진단: assetNull={ve == null || ve.visualEffectAsset == null} awake={ve != null && ve.HasAnySystemAwake()} alive={alive2} @1.0s");
+            if (alive2 > 0)
             {
-                SlashVFXRunner.NotifyVfxAlive();   // 정상 출력 — 폴백 플래그 유지 해제(복구 시 자동 복귀)
+                SlashVFXRunner.NotifyVfxAlive();   // 늦게라도 기동 성공 — 폴백 미발동
+                yield break;
             }
+
+            // ── 두 체크 모두 alive<=0 → 폴백 전환(마지막 안전망) ──
+            // [2026-09-14(47차)] 폴백 조건 강화: 단일 0.35s 판정 → 2시점 연속 미출력만 전환해 늦게 피는
+            // 이펙트 오판을 차단. Reinit+Play 명시 기동으로 alive>0이 되면 여기에 도달하지 않는다(폴백 미발동).
+            SlashVFXRunner.NotifyVfxDead();
+            if (alive < 0 && alive2 < 0)
+                Debug.Log("[SlashVFX] VFX 미각성 지속 — 에셋 로드/타겟 확인 필요");   // alive=-1(not awake) 2회 연속 — 기동 실패/프리팹 문제
+            Debug.Log($"[SlashVFX] VFX Graph 미출력 확정(2회 연속 alive<=0) — 구 Slash VFX 폴백 전환");
         }
     }
 }
