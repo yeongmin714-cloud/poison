@@ -73,6 +73,13 @@ namespace ProjectName.Systems
         private AnimationRiggingSetup _rigSetup;
         private NeuralAnimationController _neuralAnim;
 
+        // [2026-09-14(49차)] 4족 절차 애니메이션 연결 — AI 이동 속도를 애니에 피드(다리 미동작 수리).
+        // ModelAnimatorAssigner.SetupQuadruped가 몬스터에 늦게 부착할 수 있어 지연 탐색 재시도.
+        private QuadrupedProceduralAnimation _quadAnim;
+        private bool _quadConfigured;          // 연결+프로필 적용 완료 플래그
+        private float _quadSearchElapsed;      // 탐색 경과 시간
+        private const float QUAD_SEARCH_TIMEOUT = 3f; // 탐색 포기 시간(초) — 2족 몬스터 등
+
         // === IAggroable (어그로 합세 시스템) ===
         private AggroState _aggroState = AggroState.Idle;
         private GameObject _aggroTarget;
@@ -342,11 +349,53 @@ namespace ProjectName.Systems
             _rareDropChance = Mathf.Clamp01(_rareDropChance * DifficultyManager.GetDropRateMultiplier((DifficultyMode)GameManager.CurrentDifficulty));
         }
 
+        // [2026-09-14(49차)] 4족 절차 애니 연결 — 지연 탐색 + AI 모드 설정 + 종별 보행 프로필 적용.
+        // ModelAnimatorAssigner.SetupQuadruped가 AnimalAI.Start 이후에 QuadrupedProceduralAnimation을
+        // 부착할 수 있어, 발견 시까지 최대 QUAD_SEARCH_TIMEOUT초간 재시도한다.
+        private void UpdateQuadrupedLink()
+        {
+            if (_quadConfigured) return;
+
+            if (_quadAnim == null)
+            {
+                _quadAnim = GetComponent<QuadrupedProceduralAnimation>();
+                if (_quadAnim == null)
+                {
+                    _quadSearchElapsed += Time.deltaTime;
+                    if (_quadSearchElapsed < QUAD_SEARCH_TIMEOUT) return;
+                    _quadConfigured = true; // 4족 애니 미부착(2족 등) — 탐색 포기
+                    return;
+                }
+            }
+
+            // 4족 발견 → AI 구동 모드 진입 + 종별 보행 프로필 적용 (이동/회전은 AnimalAI 담당)
+            _quadAnim.SetAiDriven(true);
+            _quadAnim.ApplyMonsterProfile(_monsterId);
+            _quadConfigured = true;
+            Debug.Log($"[AnimalAI] 4족 절차 애니 연결 완료: {_monsterId} (AI 구동 모드 + 보행 프로필)");
+        }
+
+        /// <summary>
+        /// [2026-09-14(49차)] 4족 절차 애니메이션에 실제 이동 속도 피드.
+        /// AnimalAI가 transform을 직접 이동하므로 이동 크기만 전달하고, 방향 회전은 AnimalAI가
+        /// 이미 처리하므로 애니 컨트롤러의 회전 중복은 없다(SetMovementSpeed는 속도만 설정).
+        /// </summary>
+        private void FeedQuadrupedSpeed(float speed)
+        {
+            if (_quadAnim != null && _quadConfigured)
+                _quadAnim.SetMovementSpeed(speed);
+        }
+
         private void Update()
         {
+            // [2026-09-14(49차)] 4족 절차 애니 연결 시도(지연 부착 대응) — 최초 1회 성공 후 스킵
+            UpdateQuadrupedLink();
+
             if (_isDead || _player == null)
             {
                 // 사망 또는 플레이어 없음 → Idle
+                // [2026-09-14(49차)] 정지 상태 — 4족 애니 속도 0 피드(다리 정지)
+                if (_quadAnim != null && _quadConfigured) _quadAnim.SetMovementSpeed(0f);
                 if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
                     _rigAnim.SetStateImmediate(AnimationState.Idle);
                 return;
@@ -383,6 +432,8 @@ namespace ProjectName.Systems
             if (dist > _detectRange)
             {
                 // 감지 범위 밖 → Idle
+                // [2026-09-14(49차)] 정지 — 4족 애니 속도 0 피드
+                FeedQuadrupedSpeed(0f);
                 if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
                     _rigAnim.SetState(AnimationState.Idle);
                 return;
@@ -403,6 +454,9 @@ namespace ProjectName.Systems
                     HandleObstacleAvoidance(ref desiredPos);
                     transform.position = desiredPos;
 
+                    // [2026-09-14(49차)] 도망 이동 속도(_speed)를 4족 애니에 피드 — 다리 위상 구동
+                    FeedQuadrupedSpeed(_speed);
+
                     // 애니메이션: Walk (도망)
                     if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed; _rigAnim.SetState(AnimationState.Walk); }
                     break;
@@ -418,6 +472,9 @@ namespace ProjectName.Systems
                         Vector3 desiredPos = transform.position + dir * (_speed * 1.5f) * Time.deltaTime;
                         HandleObstacleAvoidance(ref desiredPos);
                         transform.position = desiredPos;
+
+                        // [2026-09-14(49차)] 돌진 속도(_speed×1.5)를 4족 애니에 피드
+                        FeedQuadrupedSpeed(_speed * 1.5f);
 
                         // 애니메이션: Walk (돌진)
                         if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * 1.5f; _rigAnim.SetState(AnimationState.Walk); }
@@ -441,6 +498,9 @@ namespace ProjectName.Systems
                         transform.position = desiredPos;
                         if (_monsterId == "wolf") CallNearbyMonsters();
 
+                        // [2026-09-14(49차)] 추격 속도(_speed)를 4족 애니에 피드
+                        FeedQuadrupedSpeed(_speed);
+
                         // 애니메이션: Walk (추격)
                         if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed; _rigAnim.SetState(AnimationState.Walk); }
                     }
@@ -458,6 +518,8 @@ namespace ProjectName.Systems
             if (dist > _detectRange)
             {
                 // 감지 범위 밖 → Idle
+                // [2026-09-14(49차)] 정지 — 4족 애니 속도 0 피드
+                FeedQuadrupedSpeed(0f);
                 if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
                     _rigAnim.SetState(AnimationState.Idle);
                 return;
@@ -481,6 +543,9 @@ namespace ProjectName.Systems
                 HandleObstacleAvoidance(ref desiredPos);
                 transform.position = desiredPos;
 
+                // [2026-09-14(49차)] 추격 실속도(_speed×speedMult)를 4족 애니에 피드
+                FeedQuadrupedSpeed(_speed * speedMult);
+
                 // 애니메이션: Walk
                 if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * speedMult; _rigAnim.SetState(AnimationState.Walk); }
 
@@ -491,6 +556,9 @@ namespace ProjectName.Systems
                     desiredPos = transform.position + dir * _speed * 1.5f * Time.deltaTime;
                     HandleObstacleAvoidance(ref desiredPos);
                     transform.position = desiredPos;
+
+                    // [2026-09-14(49차)] 악어 돌진 속도(_speed×1.5)로 피드 갱신
+                    FeedQuadrupedSpeed(_speed * 1.5f);
 
                     // 애니메이션: Run (돌진)
                     if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * 1.5f; _rigAnim.SetState(AnimationState.Run); }
@@ -510,6 +578,8 @@ namespace ProjectName.Systems
             if (dist > _detectRange)
             {
                 // 감지 범위 밖 → Idle
+                // [2026-09-14(49차)] 정지 — 4족 애니 속도 0 피드
+                FeedQuadrupedSpeed(0f);
                 if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
                     _rigAnim.SetState(AnimationState.Idle);
                 return;
@@ -526,6 +596,9 @@ namespace ProjectName.Systems
                 Vector3 desiredPos = transform.position + dir * _speed * speedMult * Time.deltaTime;
                 HandleObstacleAvoidance(ref desiredPos);
                 transform.position = desiredPos;
+
+                // [2026-09-14(49차)] 추격 실속도(_speed×speedMult)를 4족 애니에 피드
+                FeedQuadrupedSpeed(_speed * speedMult);
 
                 // 애니메이션: Walk (또는 Run)
                 if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * speedMult; _rigAnim.SetState(speedMult > 1.0f ? AnimationState.Run : AnimationState.Walk); }
@@ -563,6 +636,9 @@ namespace ProjectName.Systems
 
         private void TryAttack()
         {
+            // [2026-09-14(49차)] 공격 중 정지 상태 — 4족 애니 속도 0 피드(다리 정지 후 공격 모션)
+            FeedQuadrupedSpeed(0f);
+
             if (Time.time - _lastAttackTime < _attackCooldown) return;
             _lastAttackTime = Time.time;
 
@@ -931,6 +1007,9 @@ namespace ProjectName.Systems
             SetCorpseVisuals(true);
             ApplyColor();
 
+            // [2026-09-14(49차)] 리스폰 정지 — 4족 애니 속도 0 피드
+            FeedQuadrupedSpeed(0f);
+
             // 애니메이션: Idle
             if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
         }
@@ -1048,6 +1127,8 @@ namespace ProjectName.Systems
             {
                 ClearAggro();
                 // Idle 애니메이션
+                // [2026-09-14(49차)] 정지 — 4족 애니 속도 0 피드
+                FeedQuadrupedSpeed(0f);
                 if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
                     _rigAnim.SetStateImmediate(AnimationState.Idle);
                 return;
@@ -1058,6 +1139,8 @@ namespace ProjectName.Systems
             {
                 ClearAggro();
                 // Idle 애니메이션
+                // [2026-09-14(49차)] 정지 — 4족 애니 속도 0 피드
+                FeedQuadrupedSpeed(0f);
                 if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
                     _rigAnim.SetStateImmediate(AnimationState.Idle);
                 return;
@@ -1074,6 +1157,8 @@ namespace ProjectName.Systems
                     transform.rotation = Quaternion.LookRotation(dir);
 
                 // 애니메이션: Idle (경계)
+                // [2026-09-14(49차)] 경계 정지 — 4족 애니 속도 0 피드
+                FeedQuadrupedSpeed(0f);
                 if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
                     _rigAnim.SetState(AnimationState.Idle);
                 return;
@@ -1098,6 +1183,9 @@ namespace ProjectName.Systems
                         HandleObstacleAvoidance(ref desiredPos);
                         transform.position = desiredPos;
 
+                        // [2026-09-14(49차)] 어그로 도망 속도(_speed×어그로배율)를 4족 애니에 피드
+                        FeedQuadrupedSpeed(_speed * AGGRO_SPEED_MULT);
+
                         // 애니메이션: Walk (도망)
                         if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * AGGRO_SPEED_MULT; _rigAnim.SetState(AnimationState.Walk); }
                         break;
@@ -1115,6 +1203,9 @@ namespace ProjectName.Systems
                             Vector3 desiredPos = transform.position + dir * (_speed * 1.5f * AGGRO_SPEED_MULT) * Time.deltaTime;
                             HandleObstacleAvoidance(ref desiredPos);
                             transform.position = desiredPos;
+
+                            // [2026-09-14(49차)] 어그로 돌진 속도(_speed×1.5×어그로배율)를 4족 애니에 피드
+                            FeedQuadrupedSpeed(_speed * 1.5f * AGGRO_SPEED_MULT);
 
                             // 애니메이션: Walk (돌진)
                             if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * 1.5f * AGGRO_SPEED_MULT; _rigAnim.SetState(AnimationState.Walk); }
@@ -1138,6 +1229,9 @@ namespace ProjectName.Systems
                             Vector3 desiredPos = transform.position + dir * _speed * AGGRO_SPEED_MULT * Time.deltaTime;
                             HandleObstacleAvoidance(ref desiredPos);
                             transform.position = desiredPos;
+
+                            // [2026-09-14(49차)] 어그로 추격 속도(_speed×어그로배율)를 4족 애니에 피드
+                            FeedQuadrupedSpeed(_speed * AGGRO_SPEED_MULT);
 
                             // 애니메이션: Walk (추격)
                             if (_rigAnim != null) { _rigAnim.CurrentSpeed = _speed * AGGRO_SPEED_MULT; _rigAnim.SetState(AnimationState.Walk); }

@@ -602,7 +602,10 @@ namespace ProjectName.Systems
                 "salamander", "swamp_croc", "snake", "hedgehog", "wild_troll", "ogre", "minotaur",
                 "griffin", "banshee", "manticore", "shadow_assassin" };
 
-            string[] specialIds = { "spider", "clam", "spirit", "deep_clam", "ice_spider" };
+            // [2026-09-14(49차 후속)] forest_spirit/bat/crow/poison_snake 를 특수형 목록에 추가.
+            // 기존 누락으로 isQuadruped=false인 숲정령(forest_spirit)이 IsBiped=true로 잘못 분류되어
+            // SpecialCreatureAnimator(Spirit) 부착 게이트를 통과하지 못하고 쿼드/2족 경로로 흘렀다.
+            string[] specialIds = { "spider", "clam", "spirit", "forest_spirit", "deep_clam", "ice_spider", "bat", "crow", "poison_snake" };
 
             if (System.Array.Exists(quadrupedIds, id => id == monsterId)) return false;
             if (System.Array.Exists(specialIds, id => id == monsterId)) return false;
@@ -618,6 +621,9 @@ namespace ProjectName.Systems
             return monsterId switch
             {
                 "spider" or "ice_spider" => SpecialCreatureAnimator.CreatureType.Spider,
+                // [2026-09-14(49차 후속)] bat/crow/poison_snake 폴백 명시 —
+                // 날개 본 매핑 시 펄럭 폴백(bat/crow), 본 전무 시 부유 폴백(poison_snake)
+                "bat" or "crow" or "poison_snake" => SpecialCreatureAnimator.CreatureType.Spider,
                 "clam" or "deep_clam" => SpecialCreatureAnimator.CreatureType.Clam,
                 "slime" => SpecialCreatureAnimator.CreatureType.Slime,
                 "forest_spirit" => SpecialCreatureAnimator.CreatureType.Spirit,

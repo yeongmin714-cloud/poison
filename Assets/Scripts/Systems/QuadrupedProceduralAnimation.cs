@@ -68,6 +68,15 @@ namespace ProjectName.Systems
         private bool _isGrounded;
         private float _coyoteTimer;
 
+        // [2026-09-14(49차 후속)] 마지막으로 동기화한 gait — Locomotion.CurrentGait 변화 감지 시
+        // gait 오프셋으로 실제 렌더 위상(LF/RF/LH/RH_Phase)을 재정렬하는 트리거용.
+        private QuadrupedProceduralLocomotion.Gait? _syncedGait;
+
+        // [2026-09-14(49차)] AI 구동 모드 플래그 — AnimalAI.SetAiDriven(true)로 활성화.
+        // true면 HandleInput(키보드) 대신 SetMovementSpeed()로 공급된 속도를 사용하고,
+        // FixedUpdate의 ApplyMovement(Rigidbody 이동)는 스킵한다(AI가 transform 직접 이동).
+        private bool _aiDriven;
+
         // Leg phases (0~1)
         public float LF_Phase = 0f;    // Left Front
         public float RF_Phase = 0.5f;  // Right Front
@@ -104,6 +113,13 @@ namespace ProjectName.Systems
         public QuadrupedProceduralLocomotion LocomotionModule => _locomotion;
         public ProceduralBoneMap BoneMap => _boneMap;
 
+        // [2026-09-14(49차 후속)] 발별 지면 접촉(레이 히트) 플래그 공개 —
+        // Locomotion.UpdateLegTarget이 스윙 리프트 적용 시 타겟 갱신 여부 판단(누적 방지)에 사용.
+        public bool LF_Grounded => _lfGrounded;
+        public bool RF_Grounded => _rfGrounded;
+        public bool LH_Grounded => _lhGrounded;
+        public bool RH_Grounded => _rhGrounded;
+
         // ──────────────────────────────────────────────
         // Unity Lifecycle
         // ──────────────────────────────────────────────
@@ -137,14 +153,27 @@ namespace ProjectName.Systems
 
         private void Update()
         {
-            HandleInput();
-            UpdateMovement();
+            // [2026-09-14(49차)] AI 구동 분기 — 몬스터는 AnimalAI가 transform을 직접 이동하므로
+            // WASD 키보드 전용 HandleInput()은 목표 속도를 절대 설정하지 못해 다리가 정지했다.
+            // AI 모드에서는 SetMovementSpeed()로 공급된 속도를 사용한다.
+            if (_aiDriven)
+            {
+                UpdateMovementAI();
+            }
+            else
+            {
+                HandleInput();   // 플레이어 테스트 전용 (키보드)
+                UpdateMovement();
+            }
             UpdateCoyoteTime();
         }
 
         private void FixedUpdate()
         {
-            ApplyMovement();
+            // [2026-09-14(49차)] AI 구동 시 이동은 AnimalAI가 transform.position으로 직접 처리하므로
+            // Rigidbody 속도 재설정(ApplyMovement)을 스킵한다 — 이동 중복/충돌 방지.
+            if (!_aiDriven)
+                ApplyMovement();
             ApplyGravity();
         }
 
@@ -153,6 +182,13 @@ namespace ProjectName.Systems
             UpdateGroundDetection();
             UpdateLegPhases();
             UpdateIKTargets();
+
+            // [2026-09-14(49차 후속)] 지면 감지로 발 타겟(접촉점)이 확정된 '직후' gait 스윙 보정을 적용한다.
+            // 기존엔 Locomotion.Update에서 타겟을 계산해도 이후 UpdateGroundDetection이 덮어써
+            // _stepHeight 리프트가 화면에 반영되지 않았다(실행 순서 문제).
+            if (_locomotion != null)
+                _locomotion.UpdateGaitTargets();
+
             ApplyProceduralPose();
         }
 
@@ -234,6 +270,122 @@ namespace ProjectName.Systems
             _bodyLeanRotation = Quaternion.Lerp(_bodyLeanRotation, Quaternion.Euler(_bodyLeanOffset), Time.deltaTime * 5f);
         }
 
+        // ──────────────────────────────────────────────
+        // [2026-09-14(49차)] AI 구동 이동 (몬스터 전용)
+        // ──────────────────────────────────────────────
+
+        /// <summary>
+        /// [2026-09-14(49차)] AI 구동 모드 설정. MonsterSpawner/AnimalAI에서 호출.
+        /// true: HandleInput(키보드) 비활성 + SetMovementSpeed() 속도 사용 + ApplyMovement 스킵.
+        /// </summary>
+        public void SetAiDriven(bool on)
+        {
+            _aiDriven = on;
+            if (on)
+            {
+                // 키보드 모드에서 남은 목표/현재 속도 초기화 (잔여 슬라이드 방지).
+                // Rigidbody Y속도는 유지(중력/점프 보존), 수평 속도만 0화.
+                _targetVelocity = Vector3.zero;
+                _targetSpeed = 0f;
+                _currentVelocity = Vector3.zero;
+                _currentSpeed = 0f;
+                if (_rigidbody != null)
+                    _rigidbody.linearVelocity = new Vector3(0f, _rigidbody.linearVelocity.y, 0f);
+            }
+        }
+
+        /// <summary>
+        /// [2026-09-14(49차)] AI 구동용 실시간 이동 속도 설정 — HandleInput의 _targetVelocity/_targetSpeed
+        /// 설정을 대체. 방향은 transform.forward 기준으로 내부 변환하며, 실제 회전은 AnimalAI가 담당하므로
+        /// 여기서 transform을 회전하지 않는다(회전 중복 방지).
+        /// </summary>
+        public void SetMovementSpeed(float speed)
+        {
+            if (!_aiDriven) return; // 키보드 테스트 모드에서의 오호출 무시
+            speed = Mathf.Max(0f, speed);
+            _targetSpeed = speed;
+            _targetVelocity = transform.forward * speed;
+        }
+
+        /// <summary>
+        /// [2026-09-14(49차)] AI 모드 이동 업데이트 — UpdateMovement()의 키보드 의존부(턴 린 입력)를
+        /// 제거한 버전. 회전 린은 AnimalAI 회전에 개입하지 않도록 0으로 수렴시킨다.
+        /// </summary>
+        private void UpdateMovementAI()
+        {
+            _currentVelocity = Vector3.MoveTowards(_currentVelocity, _targetVelocity, _acceleration * Time.deltaTime);
+            _currentSpeed = _currentVelocity.magnitude;
+            _locomotion.SetTargetSpeed(_targetSpeed);
+
+            // AI 모드: 좌우 린 입력 없음 — 기존 린 잔량을 0으로 수렴
+            _bodyLeanOffset = Vector3.Lerp(_bodyLeanOffset, Vector3.zero, Time.deltaTime * 5f);
+            _bodyLeanRotation = Quaternion.Lerp(_bodyLeanRotation, Quaternion.identity, Time.deltaTime * 5f);
+        }
+
+        // ──────────────────────────────────────────────
+        // [2026-09-14(49차)] 몬스터별 보행 프로필
+        // ──────────────────────────────────────────────
+
+        /// <summary>
+        /// [2026-09-14(49차)] 종별 보행 파라미터 프로필 적용 — 몬스터 ID 기반.
+        /// 걸음 속도 임계(walk/trot/gallop)와 스텝 길이/높이를 종 특성에 맞춘다.
+        /// 값은 Locomotion 모듈에도 동기화되어 gait 선택 임계로 사용된다.
+        /// </summary>
+        public void ApplyMonsterProfile(string monsterId)
+        {
+            switch (monsterId)
+            {
+                case "rabbit": // 빠른 도약형 — 높이 뛰는 발, 도약 호핑 갤럽 고정
+                    _walkSpeed = 2.5f; _trotSpeed = 5f; _gallopSpeed = 9f;
+                    _stepLength = 0.5f; _stepHeight = 0.35f;
+                    if (_locomotion != null) _locomotion.SetGaitOverride(QuadrupedProceduralLocomotion.Gait.Gallop);
+                    break;
+                case "wolf": // 빠른 갤럽
+                    _walkSpeed = 3f; _trotSpeed = 6f; _gallopSpeed = 12f;
+                    _stepLength = 0.9f; _stepHeight = 0.18f;
+                    break;
+                case "boar": // 무거운 트롯/충전
+                    _walkSpeed = 2f; _trotSpeed = 4f; _gallopSpeed = 8f;
+                    _stepLength = 0.7f; _stepHeight = 0.14f;
+                    break;
+                case "deer": // 우아한 갤럽 — 긴 보폭
+                    _walkSpeed = 3f; _trotSpeed = 7f; _gallopSpeed = 13f;
+                    _stepLength = 1.0f; _stepHeight = 0.2f;
+                    break;
+                case "giant_rat": // 빠른 소형
+                    _walkSpeed = 2f; _trotSpeed = 5f; _gallopSpeed = 9f;
+                    _stepLength = 0.5f; _stepHeight = 0.12f;
+                    break;
+                case "fire_lizard": // 낮게 기어가는 파충류 — 스텝 낮고 좁음(다리 폭 좁음+몸 낮음은 스텝 파라미터로 근사)
+                case "salamander":
+                    _walkSpeed = 1.5f; _trotSpeed = 3f; _gallopSpeed = 5f;
+                    _stepLength = 0.6f; _stepHeight = 0.08f;
+                    break;
+                case "electric_porcupine": // 느린 고슴도치
+                    _walkSpeed = 1.5f; _trotSpeed = 3f; _gallopSpeed = 5f;
+                    _stepLength = 0.4f; _stepHeight = 0.1f;
+                    break;
+                case "swamp_croc": // 천천히 기어가는 악어 — 척추 파동 강화(몸통 굽힘)
+                    _walkSpeed = 1f; _trotSpeed = 2f; _gallopSpeed = 4f;
+                    _stepLength = 0.8f; _stepHeight = 0.06f;
+                    if (_locomotion != null) _locomotion.SetSpineWave(0.12f, 1.5f);
+                    break;
+                case "griffin": // 대형 맹수
+                case "manticore":
+                    _walkSpeed = 2.5f; _trotSpeed = 5f; _gallopSpeed = 11f;
+                    _stepLength = 1.1f; _stepHeight = 0.22f;
+                    break;
+                default: // 그 외 4족: 중간값(인스펙터 기본값) 유지
+                    break;
+            }
+
+            // 프로필 값을 Locomotion(gait 임계/스텝 파라미터)에 동기화 — 두 클래스 일관 유지
+            if (_locomotion != null)
+                _locomotion.SyncProfileParams(_walkSpeed, _trotSpeed, _paceSpeed, _gallopSpeed, _stepLength, _stepHeight);
+
+            Debug.Log($"[QuadrupedProceduralAnimation] 보행 프로필 적용: {monsterId} (walk={_walkSpeed}, trot={_trotSpeed}, gallop={_gallopSpeed}, stepLen={_stepLength}, stepH={_stepHeight})");
+        }
+
         private void ApplyMovement()
         {
             if (!_isGrounded) return;
@@ -312,17 +464,27 @@ namespace ProjectName.Systems
 
         private void UpdateLegPhases()
         {
+            // [2026-09-14(49차 후속)] gait 전환 감지 → Locomotion의 gait 오프셋으로 실제 렌더 위상 재정렬.
+            // 공중에서도 즉시 동기화해 착지 직후 위상 끊김을 방지한다.
+            if (_locomotion != null && _syncedGait != _locomotion.CurrentGait)
+            {
+                _locomotion.SyncLegPhases(this);
+                _syncedGait = _locomotion.CurrentGait;
+            }
+
             if (!_isGrounded) return;
 
-            float phaseSpeed = _currentSpeed / _stepLength * 1.5f;
+            // [2026-09-14(49차 후속)] 실제 렌더 위상 진행에 현재 gait 배율을 적용한다.
+            // 기존 고정 1.5f는 Locomotion.GetPhaseSpeed의 gait 배율(Walk 0.8/Trot 1.2/Pace 1.4/Gallop 2.0)과
+            // 무관해 토끼 Gallop 고정 등 gait 조정이 write-only로 화면에 반영되지 않았던 문제를 수정.
+            float gaitMultiplier = (_locomotion != null) ? _locomotion.GetGaitPhaseMultiplier() : 1.5f;
+            float phaseSpeed = _currentSpeed / _stepLength * gaitMultiplier;
             float delta = phaseSpeed * Time.deltaTime;
 
             LF_Phase = Mathf.Repeat(LF_Phase + delta, 1f);
             RF_Phase = Mathf.Repeat(RF_Phase + delta, 1f);
             LH_Phase = Mathf.Repeat(LH_Phase + delta, 1f);
             RH_Phase = Mathf.Repeat(RH_Phase + delta, 1f);
-
-            // Locomotion 모듈에서 gait offsets 적용
         }
 
         // ──────────────────────────────────────────────
@@ -341,7 +503,9 @@ namespace ProjectName.Systems
         private void ApplyProceduralPose()
         {
             ApplyFootIK();
-            ApplySpineIK();
+            // [2026-09-14(49차 후속)] ApplySpineIK 제거 — 척추 파동은 QuadrupedProceduralLocomotion.ApplySpineWave가
+            // 단일 담당한다. 기존엔 이곳(하드코딩 0.05@2Hz)과 Locomotion.ApplySpineWave가 이중으로
+            // 척추를 Rotate 누적해 croc 파동이 겹치고 SetSpineWave 조정이 묻혔다.
             ApplyHeadLook();
             ApplyBodyLean();
         }
@@ -432,27 +596,8 @@ namespace ProjectName.Systems
             }
         }
 
-        private void ApplySpineIK()
-        {
-            if (!_boneMap.Has(BoneRole.Spine0) ||
-                !_boneMap.Has(BoneRole.Spine1) ||
-                !_boneMap.Has(BoneRole.Spine2))
-                return;
-
-            var spine0 = _boneMap.Get(BoneRole.Spine0);
-            var spine1 = _boneMap.Get(BoneRole.Spine1);
-            var spine2 = _boneMap.Get(BoneRole.Spine2);
-
-            if (spine0 == null || spine1 == null || spine2 == null) return;
-
-            // Spine wave from locomotion module
-            float time = Time.time * 2f;
-            float wave = Mathf.Sin(time) * 0.05f;
-
-            spine0.Rotate(Vector3.up, wave * 0.3f, Space.Self);
-            spine1.Rotate(Vector3.up, wave * 0.6f, Space.Self);
-            spine2.Rotate(Vector3.up, wave * 0.1f, Space.Self);
-        }
+        // [2026-09-14(49차 후속)] ApplySpineIK 메서드 삭제 — 척추 파동은 Locomotion.ApplySpineWave 단일 담당
+        // (이중 Rotate 누적 제거). ApplyFootIK/ApplyHeadLook/ApplyBodyLean 등 기타 포즈 로직은 보존.
 
         private void ApplyHeadLook()
         {
