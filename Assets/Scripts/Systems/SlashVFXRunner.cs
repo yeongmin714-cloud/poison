@@ -14,6 +14,9 @@ namespace ProjectName.Systems
     ///     (Assets/Resources/FX/Slash/StylizedSlash) — PlaySlashStage가 콤보 스윙 아크 발화(아래 상수/메서드 참조)
     ///     [2026-09-14(47차 후속2)] 프리팹 직렬화 참조 결함(fileID 불일치 → assetNull 지속) 우회 — Resources에서
     ///     VisualEffectAsset을 직접 로드(StylizedVfxResourcePath)해 런타임 할당(PlaySlashStage 본문 참조).
+    ///     [2026-09-14(47차 후속6)] 깨진 참조 프리팹은 Instantiate 시 VisualEffect 컴포넌트 누락 확인
+    ///     (probe assetNull/alive=-1 패턴) → 프리팹 Instantiate 폐기, new GameObject + AddComponent
+    ///     런타임 빌드로 전환(LoadStylizedSlashPrefab/프리팹 캐시 제거 — PlaySlashStage 본문 참조).
     ///
     /// 프리팹은 에디터 인스톨러(Tools/VFX/Install Slash+Impact to Resources, -executeMethod:
     /// ProjectName.EditorTools.VFXResourceInstaller.InstallAll)가 Resources 하위로 복사해두므로
@@ -84,7 +87,8 @@ namespace ProjectName.Systems
         // 프리팹은 수동 복사본(Assets/Resources/FX/Impact/MagicHit.prefab — meta guid 신규 재발행, StylizedSlash 선례).
         // 인스톨러 대상 아님(StylizedSlash와 동일 — 재설치 무관). 롤백: 이 상수를 "FX/Impact/BasicHit"로 되돌리면 끝.
         private const string MagicHitResourcePath = "FX/Impact/MagicHit";
-        private const string StylizedSlashResourcePath = "FX/Slash/StylizedSlash";
+        // [2026-09-14(47차 후속6)] StylizedSlashResourcePath(프리팹 경로) 상수 제거 — 프리팹 Instantiate 폐기
+        // (깨진 참조 프리팹 Instantiate 시 VisualEffect 컴포넌트 누락 → 런타임 빌드 전환). .vfx 에셋 경로만 유지.
 
         // [2026-09-14(47차 후속2)] StylizedSlash .vfx 에셋 직접 로드용 경로 — 프리팹 내부 직렬화 참조(fileID
         // 불일치) 결함을 우회하고 Resources에서 VisualEffectAsset을 로드해 런타임에 ve.visualEffectAsset에
@@ -102,7 +106,7 @@ namespace ProjectName.Systems
         // ── static 캐시/상태 ─────────────────────────────────────────
         private static GameObject _slashPrefab;
         private static GameObject _magicHitPrefab;   // [2026-09-14(47차)] BasicHit 캐시 → MagicHit 캐시(캐시/1회 경고 패턴 동일)
-        private static GameObject _stylizedSlashPrefab;   // [2026-09-13 스타일라이즈드 슬래시] 캐시 — LoadImpactPrefab 선례
+        // [2026-09-14(47차 후속6)] _stylizedSlashPrefab 프리팹 캐시 제거 — 프리팹 Instantiate 폐기(런타임 빌드 전환).
 
         // [2026-09-14(47차 후속2)] StylizedSlash .vfx 에셋 캐시(VisualEffectAsset) — 프리팹 직렬화 참조 결함
         // 우회용(런타임 직접 할당). 로드 실패 경고는 static bool로 1회만(기존 _slashLoadFailed 선례).
@@ -111,7 +115,7 @@ namespace ProjectName.Systems
 
         private static bool _slashLoadFailed;
         private static bool _magicHitLoadFailed;
-        private static bool _stylizedSlashLoadFailed;   // 로드 실패 경고 static 1회 패턴
+        // [2026-09-14(47차 후속6)] _stylizedSlashLoadFailed 제거 — 프리팹 로더 폐기(로드 1회 경고는 _stylizedVfxLoadWarned 담당).
         private static bool _shaderErrorWarned;
 
         // 스팸 방지 타이머는 스윙/임팩트 분리: 같은 프레임에 스윙+임팩트가 연속 와도
@@ -185,17 +189,15 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// [2026-09-13 스타일라이즈드 슬래시] 콤보 스윙 아크 FX — slash5-HungNguyen 팩 "white-yellow bolder" 프리팹
-        /// (Resources/FX/Slash/StylizedSlash)을 콤보 스테이지별 오리엔테이션으로 발화한다(HumanoidClipDriver.
-        /// FireComboSlash의 Player 전용 경로에서 호출). 골드 계열 VFX라 45차 BOTW 팔레트 액센트(AccentTint
-        /// 1,0.9,0.5)와 자연 동조 — 별도 틴트 없이 원본색 사용이 선택 사유.
+        /// [2026-09-13 스타일라이즈드 슬래시] 콤보 스윙 아크 FX — slash5-HungNguyen 팩 "white-yellow bolder"의
+        /// VFX Graph 에셋(Resources/FX/Slash/StylizedSlashVFX.vfx)을 콤보 스테이지별 오리엔테이션으로 발화한다
+        /// (HumanoidClipDriver.FireComboSlash의 Player 전용 경로에서 호출). 골드 계열 VFX라 45차 BOTW 팔레트
+        /// 액센트(AccentTint 1,0.9,0.5)와 자연 동조 — 별도 틴트 없이 원본색 사용이 선택 사유.
         /// 오리엔테이션(38차 규약): ① 루트를 카메라 수평 빌보드(CameraHorizontalFaceDir 재사용) ② stage 롤
         /// (1타 0 / 2타 -90 / 3타 -45 — 기존 규약, ComboStageRollDegrees) ③ yawSign 좌우 플립(아래 주석).
-        /// VFX Graph(m_InitialEventName=OnPlay)는 Instantiate 직후 자동 재생되는 것이 원칙이나, 실측에서
-        /// 초기 이벤트만으로 미기동(alive=-1) 사례가 확인되어 [2026-09-14(47차)] 오리엔테이션 완료 후
-        /// 명시 기동(Reinit+Play)을 수행한다(아래 PlaySlashStage 본문 참조).
-        /// [2026-09-14(47차 후속2)] 기동 전 프리팹의 결함 직렬화 참조를 우회해 Resources의 .vfx 에셋을
-        /// 런타임 직접 할당한다(에셋 할당 → Reinit → Play 순서 규약).
+        /// [2026-09-14(47차 후속6)] 깨진 참조 프리팹은 Instantiate 시 VisualEffect 컴포넌트 누락 확인
+        /// (probe assetNull/alive=-1 패턴) → 프리팹 Instantiate 폐기, new GameObject + AddComponent
+        /// 런타임 빌드로 전환. 기동은 에셋 할당 → Reinit → Play 명시 순서(아래 본문 참조).
         /// 쿨다운 0.25s(스윙/크로스/임팩트와 독립), 자가 파괴 1.5s(StylizedSlashDestroyAfter).
         /// </summary>
         /// <param name="position">스윙 앵커(루트 기준 fwd 0.55 + up 1.25 — 46차 후속 규격, 몸에 가깝게. 호출부 산출).</param>
@@ -224,14 +226,54 @@ namespace ProjectName.Systems
                 // 아래 기존 StylizedSlash 스폰 경로로 계속 진행한다.
             }
 
-            GameObject prefab = LoadStylizedSlashPrefab();
-            if (prefab == null) return;
+            // ════════════════════════════════════════════════════════════
+            // [2026-09-14(47차 후속6): 깨진 참조 프리팹은 Instantiate 시 VisualEffect 컴포넌트 누락 확인
+            // (assetNull/alive=-1 패턴) → 런타임 빌드로 전환] — 프리팹 Instantiate 폐기.
+            // 후속2~5의 에셋 직접 할당/Reinit 순서 수리로도 해소 불가(인스턴스에 VisualEffect 컴포넌트
+            // 자체가 부재 → ve==null → 기동/진단 모두 무효). 원본 프리팹(StylizedSlash)은 더 이상
+            // 사용하지 않고, new GameObject + AddComponent로 런타임에 조립한다(결함 직렬화 상태 원천 차단).
+            // ════════════════════════════════════════════════════════════
+            if (_stylizedVfxAsset == null)
+                _stylizedVfxAsset = Resources.Load<VisualEffectAsset>(StylizedVfxResourcePath);   // 기존 캐시 로드 유지(후속2)
+            if (_stylizedVfxAsset == null)
+            {
+                // [기존 로드 실패 분기 유지] 확정 불가 에셋 — 0.35s/1.0s 진단을 기다리지 않고 즉시 폴백 전환
+                // (1회 경고 + NotifyVfxDead + 구 Slash VFX 프리팹 즉시 발화. 플래그는 멱등 — 중복 호출 안전).
+                if (!_stylizedVfxLoadWarned)
+                {
+                    _stylizedVfxLoadWarned = true;
+                    Debug.LogWarning("[SlashVFX] Resources/FX/Slash/StylizedSlashVFX.vfx 로드 실패 — 에셋 임포트 오류(에디터에서 .vfx 열어 확인 필요), 폴백 경로 사용");
+                    Debug.Log("[SlashVFX] visualEffectAsset 할당 실패(Resources 로드 null) — 폴백으로 전환");
+                }
+                NotifyVfxDead();
+                GameObject fallbackPrefab = LoadSlashPrefab();   // 캐시 + static 1회 경고 — 기존 스윙 로더 공용
+                if (fallbackPrefab != null)
+                {
+                    SpawnFallbackSlashStage(fallbackPrefab, position, direction, stage, yawSign, playerRoot);
+                    return;
+                }
+                return;   // 폴백 프리팹도 부재면 조용히 반환(전투 흐름 절대 방해 없음 — 로더가 1회 경고)
+            }
 
+            // ── 런타임 빌드: 프리팹 경유 없이 GO + VisualEffect를 코드로 조립 ──
             Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
             // ① 카메라 수평 빌보드 — 38차 규약(+Z 정면 관례, 후방 카메라 뒷면 미러링 차단)
             Vector3 faceDir = CameraHorizontalFaceDir(position, dir);
-            GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(faceDir));
-            instance.name = "SlashVFX_Stylized";
+            GameObject instance = new GameObject("StylizedSlashVFX");
+            instance.transform.SetPositionAndRotation(position, Quaternion.LookRotation(faceDir));
+
+            // VisualEffect 신규 부착 — Unity 규약상 AddComponent<VisualEffect>를 넣으면 네이티브 코드가
+            // VFXRenderer를 자동 부착한다(Renderer 없는 VisualEffect는 렌더링 불가 — 네이티브가 항상 보장).
+            // VFXRenderer는 UnityEngine 내부 타입(internal)이라 스크립트에서 명시 AddComponent 자체가
+            // 불가능하므로, 중복 가드(GetComponent 체크)도 불필요 — 자동 부착에 의존한다.
+            var ve = instance.AddComponent<VisualEffect>();
+            // [후속6 개정] 순서 규약: 에셋 할당 → Reinit → Play. 후속5의 "Reinit 먼저" 규약은 프리팹 인스턴스의
+            // 깨진 직렬화 값이 Reinit에서 되살아나는 문제 대응이었으나, 런타임 빌드 컴포넌트에는 직렬화 결함이
+            // 원천 없으므로 — 리소스 에셋 직접 할당 후 Reinit(그래프 상태를 새 에셋 기준 리셋) → Play(OnPlay
+            // 명시 발사, 이미 재생 중이어도 무해)가 안전하다. using UnityEngine.VFX 있음.
+            ve.visualEffectAsset = _stylizedVfxAsset;   // 리소스 에셋 직접 할당
+            ve.Reinit();                                // 에셋 교체 후 리셋
+            ve.Play();
 
             // ①-2 [46차 후속: 플레이어 부착(추종)] 스폰 직후 플레이어 루트에 부착 — worldPositionStays=true로
             // 스폰 시점의 화면 정렬(빌보드/롤/플립 결과)을 그대로 유지한 채 이후 플레이어 이동/회전에 따라가
@@ -255,41 +297,10 @@ namespace ProjectName.Systems
             // 스케일 튜닝 상수 — 46차 후속: 1.5배(StylizedSlashScale, 가시성 확대). 플립이 회전 기반이므로 균일 스케일.
             instance.transform.localScale = Vector3.one * StylizedSlashScale;
 
-            // [2026-09-14(47차)] 슬래시 VFX 기동 복구 — 0.35s 진단에서 alive=-1(not awake)이 반복 관측되어
-            // "초기 이벤트만으로 미기동" 가능성이 원인으로 추정됨 → 오리엔테이션(빌보드/부착/플립/롤/스케일)
-            // 완료 직후 명시 기동(Reinit+Play)을 수행한다. Reinit은 그래프 상태를 초기화하고 Play는 OnPlay
-            // 이벤트를 확실히 쏘아 시스템을 깨운다(이미 재생 중이어도 무해). using UnityEngine.VFX 있음.
-            // [2026-09-14(47차 후속2): 원본 프리팹의 직렬화 참조 fileID가 에셋 내 오브젝트와 불일치
-            // (...526→...527 수리에도 assetNull 지속 — 에디터 재임포트 환경차 추정) → 프리팹 참조 의존 제거,
-            // Resources에서 VisualEffectAsset 직접 로드 후 런타임 할당.]
-            var ve = instance.GetComponent<VisualEffect>();
-            if (ve != null)
-            {
-                // 47차 후속2 — 프리팹 직렬화 참조 결함 우회: .vfx 에셋을 Resources에서 직접 로드(1회 캐시) 후 할당.
-                // 순서 규약: Reinit → 에셋 할당 → Play.
-                if (_stylizedVfxAsset == null)
-                    _stylizedVfxAsset = Resources.Load<VisualEffectAsset>(StylizedVfxResourcePath);
-                if (_stylizedVfxAsset != null)
-                {
-                    // 2026-09-14(47차 후속5): 할당→Reinit 순서 버그 수리 — Reinit이 직렬화 값(프리팹 깨진 null 참조)으로
-                    // 되돌려 런타임 할당을 덮어씀. 반드시 Reinit 후 할당.
-                    ve.Reinit();                                // 직렬화 상태로 리셋(선)
-                    ve.visualEffectAsset = _stylizedVfxAsset;   // 리셋 후 런타임 할당(후) — Reinit이 덮어쓰지 않도록 순서 필수
-                    ve.Play();
-                }
-                else
-                {
-                    // [47차 후속2] 확정 불가 에셋 — 0.35s/1.0s 진단을 기다리지 않고 즉시 폴백 전환
-                    // (이후 발화부터 폴백 경로 사용. 플래그는 멱등 — 중복 호출 안전).
-                    if (!_stylizedVfxLoadWarned)
-                    {
-                        _stylizedVfxLoadWarned = true;
-                        Debug.LogWarning("[SlashVFX] Resources/FX/Slash/StylizedSlashVFX.vfx 로드 실패 — 에셋 임포트 오류(에디터에서 .vfx 열어 확인 필요), 폴백 경로 사용");
-                        Debug.Log("[SlashVFX] visualEffectAsset 할당 실패(Resources 로드 null) — 폴백으로 전환");
-                    }
-                    NotifyVfxDead();
-                }
-            }
+            // [2026-09-14(47차 후속6)] 기동 블록 이동 — Reinit+Play는 위 런타임 빌드 블록(AddComponent 직후
+            // 할당→Reinit→Play)에서 수행. 프리팹 GetComponent<VisualEffect>() 분기(ve==null 시 아무것도
+            // 하지 않던 무기동 결함)는 폐기되었다. 오리엔테이션(부착/플립/롤/스케일)은 Play 후 동일 프레임
+            // 내 적용 — 렌더 전 트랜스폼 확정이라 출력에 영향 없음(후속6 전환으로 동일 프레임 순서 변경).
 
             // [2026-09-13 alive 진단 → 2026-09-14(47차) 강화] 부착/오리엔테이션 완료 시점에 진단 러너 부착 —
             // 0.35s와 1.0s 두 시점에 aliveParticleCount를 확인해 VFX Graph 미출력을 판정한다(진단 러너 =
@@ -299,7 +310,7 @@ namespace ProjectName.Systems
             // [틴트 불가] 이 팩은 노출 프로퍼티(m_PropertySheet)가 비어 있어 런타임 틴트 불가 — TintParticles/
             // NormalizePurpleParticles(ParticleSystem 대상)도 무효(프리팹에 파티클 시스템 없음, VFX Graph 단독).
             // 원본 골드 계열이 곧 팔레트 Accent 톤이므로 무색상 처리로 확정.
-            // [2026-09-14(47차)] 위 Reinit+Play 명시 기동 후 셰이더 오류 감지만 수행.
+            // [2026-09-14(47차)] 위 런타임 기동(할당→Reinit→Play) 후 셰이더 오류 감지만 수행.
             DetectShaderErrorOnce(instance, "StylizedSlash");
             Debug.Log($"[SlashVFX] 스타일라이즈드 슬래시 발화 (stage={stage}, yawSign={yawSign})");   // 1회성 아님 — 발화마다(크로스 로그 선례)
             ScheduleDestroy(instance, StylizedSlashDestroyAfter);   // VFX 자체 종료 후 잔존 없음 — 1.5s 자가 파괴
@@ -493,21 +504,9 @@ namespace ProjectName.Systems
             return _magicHitPrefab;
         }
 
-        // [2026-09-13 스타일라이즈드 슬래시] slash5 팩 프리팹 로더 — LoadImpactPrefab 선례(캐시 + static 1회 경고) 동일 패턴.
-        // 프리팹은 수동 복사본(Assets/Resources/FX/Slash/StylizedSlash.prefab) — 인스톨러 대상이 아니므로 재설치 무관.
-        private static GameObject LoadStylizedSlashPrefab()
-        {
-            if (_stylizedSlashPrefab != null) return _stylizedSlashPrefab;
-            if (_stylizedSlashLoadFailed) return null;
-
-            _stylizedSlashPrefab = Resources.Load<GameObject>(StylizedSlashResourcePath);
-            if (_stylizedSlashPrefab == null)
-            {
-                _stylizedSlashLoadFailed = true;
-                Debug.LogWarning("[SlashVFX] 로드 실패(1회만 경고): Resources/FX/Slash/StylizedSlash — Assets/slash5-HungNguyen/prefab/slash/white-yellow bolder.prefab 복사 필요");
-            }
-            return _stylizedSlashPrefab;
-        }
+        // [2026-09-14(47차 후속6)] LoadStylizedSlashPrefab/프리팹 캐시 제거 — 깨진 참조 프리팹은 Instantiate 시
+        // VisualEffect 컴포넌트 누락 확인(assetNull/alive=-1 패턴) → 런타임 빌드로 전환(PlaySlashStage 본문 참조).
+        // 스타일라이즈드 소스는 StylizedVfxResourcePath(.vfx 에셋) 단일 경로로 확정.
 
         // ================================================================
         // 내부: 파티클 재생 / 재색상 / 셰이더 감지 / 파괴 예약
