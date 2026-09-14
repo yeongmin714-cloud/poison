@@ -12,6 +12,8 @@ namespace ProjectName.Systems
     ///     [45차 P3 임팩트 단일화] BasicHit2(Construct)/TravisHit(크로스) 경로 제거 — 단일 프리팹 위임 선례 유지
     ///   - [2026-09-13 스타일라이즈드 스윙] Stylizer Slash VFX(slash5-HungNguyen) "white-yellow bolder"
     ///     (Assets/Resources/FX/Slash/StylizedSlash) — PlaySlashStage가 콤보 스윙 아크 발화(아래 상수/메서드 참조)
+    ///     [2026-09-14(47차 후속2)] 프리팹 직렬화 참조 결함(fileID 불일치 → assetNull 지속) 우회 — Resources에서
+    ///     VisualEffectAsset을 직접 로드(StylizedVfxResourcePath)해 런타임 할당(PlaySlashStage 본문 참조).
     ///
     /// 프리팹은 에디터 인스톨러(Tools/VFX/Install Slash+Impact to Resources, -executeMethod:
     /// ProjectName.EditorTools.VFXResourceInstaller.InstallAll)가 Resources 하위로 복사해두므로
@@ -84,6 +86,11 @@ namespace ProjectName.Systems
         private const string MagicHitResourcePath = "FX/Impact/MagicHit";
         private const string StylizedSlashResourcePath = "FX/Slash/StylizedSlash";
 
+        // [2026-09-14(47차 후속2)] StylizedSlash .vfx 에셋 직접 로드용 경로 — 프리팹 내부 직렬화 참조(fileID
+        // 불일치) 결함을 우회하고 Resources에서 VisualEffectAsset을 로드해 런타임에 ve.visualEffectAsset에
+        // 할당한다. 에셋: Assets/Resources/FX/Slash/StylizedSlashVFX.vfx(수동 복사본 — meta guid 신규 발행).
+        private const string StylizedVfxResourcePath = "FX/Slash/StylizedSlashVFX";
+
         // ── 45차 P3: BOTW 팔레트 틴트 상수 — 코어=흰 / 액센트=골드 / 외곽=주황 ──
         /// <summary>[45차 P3: BOTW 팔레트] 코어 틴트 = 흰(1,1,1) — 임팩트/스윙 기본 톤.</summary>
         internal static readonly Color CoreTint = new Color(1f, 1f, 1f);
@@ -96,6 +103,11 @@ namespace ProjectName.Systems
         private static GameObject _slashPrefab;
         private static GameObject _magicHitPrefab;   // [2026-09-14(47차)] BasicHit 캐시 → MagicHit 캐시(캐시/1회 경고 패턴 동일)
         private static GameObject _stylizedSlashPrefab;   // [2026-09-13 스타일라이즈드 슬래시] 캐시 — LoadImpactPrefab 선례
+
+        // [2026-09-14(47차 후속2)] StylizedSlash .vfx 에셋 캐시(VisualEffectAsset) — 프리팹 직렬화 참조 결함
+        // 우회용(런타임 직접 할당). 로드 실패 경고는 static bool로 1회만(기존 _slashLoadFailed 선례).
+        private static VisualEffectAsset _stylizedVfxAsset;
+        private static bool _stylizedVfxLoadWarned;
 
         private static bool _slashLoadFailed;
         private static bool _magicHitLoadFailed;
@@ -182,6 +194,8 @@ namespace ProjectName.Systems
         /// VFX Graph(m_InitialEventName=OnPlay)는 Instantiate 직후 자동 재생되는 것이 원칙이나, 실측에서
         /// 초기 이벤트만으로 미기동(alive=-1) 사례가 확인되어 [2026-09-14(47차)] 오리엔테이션 완료 후
         /// 명시 기동(Reinit+Play)을 수행한다(아래 PlaySlashStage 본문 참조).
+        /// [2026-09-14(47차 후속2)] 기동 전 프리팹의 결함 직렬화 참조를 우회해 Resources의 .vfx 에셋을
+        /// 런타임 직접 할당한다(에셋 할당 → Reinit → Play 순서 규약).
         /// 쿨다운 0.25s(스윙/크로스/임팩트와 독립), 자가 파괴 1.5s(StylizedSlashDestroyAfter).
         /// </summary>
         /// <param name="position">스윙 앵커(루트 기준 fwd 0.55 + up 1.25 — 46차 후속 규격, 몸에 가깝게. 호출부 산출).</param>
@@ -245,11 +259,34 @@ namespace ProjectName.Systems
             // "초기 이벤트만으로 미기동" 가능성이 원인으로 추정됨 → 오리엔테이션(빌보드/부착/플립/롤/스케일)
             // 완료 직후 명시 기동(Reinit+Play)을 수행한다. Reinit은 그래프 상태를 초기화하고 Play는 OnPlay
             // 이벤트를 확실히 쏘아 시스템을 깨운다(이미 재생 중이어도 무해). using UnityEngine.VFX 있음.
+            // [2026-09-14(47차 후속2): 원본 프리팹의 직렬화 참조 fileID가 에셋 내 오브젝트와 불일치
+            // (...526→...527 수리에도 assetNull 지속 — 에디터 재임포트 환경차 추정) → 프리팹 참조 의존 제거,
+            // Resources에서 VisualEffectAsset 직접 로드 후 런타임 할당.]
             var ve = instance.GetComponent<VisualEffect>();
             if (ve != null)
             {
-                ve.Reinit();
-                ve.Play();
+                // 47차 후속2 — 프리팹 직렬화 참조 결함 우회: .vfx 에셋을 Resources에서 직접 로드(1회 캐시) 후 할당.
+                // 순서 규약: 에셋 할당 → Reinit → Play(Reinit이 새 에셋 기준으로 그래프를 재구성).
+                if (_stylizedVfxAsset == null)
+                    _stylizedVfxAsset = Resources.Load<VisualEffectAsset>(StylizedVfxResourcePath);
+                if (_stylizedVfxAsset != null)
+                {
+                    ve.visualEffectAsset = _stylizedVfxAsset;   // 47차 후속: 프리팹 직렬화 참조 결함 우회 — 에셋 런타임 직접 할당
+                    ve.Reinit();
+                    ve.Play();
+                }
+                else
+                {
+                    // [47차 후속2] 확정 불가 에셋 — 0.35s/1.0s 진단을 기다리지 않고 즉시 폴백 전환
+                    // (이후 발화부터 폴백 경로 사용. 플래그는 멱등 — 중복 호출 안전).
+                    if (!_stylizedVfxLoadWarned)
+                    {
+                        _stylizedVfxLoadWarned = true;
+                        Debug.LogWarning("[SlashVFX] Resources/FX/Slash/StylizedSlashVFX.vfx 로드 실패 — 에셋 임포트 오류(에디터에서 .vfx 열어 확인 필요), 폴백 경로 사용");
+                        Debug.Log("[SlashVFX] visualEffectAsset 할당 실패(Resources 로드 null) — 폴백으로 전환");
+                    }
+                    NotifyVfxDead();
+                }
             }
 
             // [2026-09-13 alive 진단 → 2026-09-14(47차) 강화] 부착/오리엔테이션 완료 시점에 진단 러너 부착 —
@@ -652,7 +689,8 @@ namespace ProjectName.Systems
     ///     (Reinit+Play 명시 기동으로 alive가 0보다 커지면 폴백 없음 — PlaySlashStage 본문 참조)
     ///   - 두 체크 모두 alive<=0 : 폴백 전환(마지막 안전망) — 늦게 피는 이펙트 오판 방지를 위해 2회 연속 조건.
     ///     alive=-1(not awake) 2회 연속이면 별도 진단 로그("VFX 미각성 지속 — 에셋 로드/타겟 확인 필요") 출력.
-    /// 진단 로그는 assetNull/awake/alive를 함께 기록해 다음 Play에서 원인 즉시 판별이 가능하다.
+    /// 진단 로그는 assetNull/assetAssigned/awake/alive를 함께 기록해 다음 Play에서 원인 즉시 판별이 가능하다
+    /// ([47차 후속2] assetAssigned 추가 — 할당 실패(Resources 로드 null)와 참조 결함을 즉시 구분).
     /// SlashFxHost와 동일한 파일 내부 보조 MonoBehaviour 패턴(진단에 지연이 필요해 컴포넌트로 분리).
     /// </summary>
     internal sealed class SlashAliveProbe : MonoBehaviour
@@ -675,7 +713,9 @@ namespace ProjectName.Systems
 
             var ve = GetComponent<VisualEffect>();
             int alive = ve != null ? ve.aliveParticleCount : -1;
-            Debug.Log($"[SlashVFX] VFX 진단: assetNull={ve == null || ve.visualEffectAsset == null} awake={ve != null && ve.HasAnySystemAwake()} alive={alive} @0.35s");
+            // [47차 후속2] assetAssigned 필드 추가 — assetNull=True의 원인(할당 실패 vs 프리팹 참조 결함)을
+            // 다음 Play에서 즉시 구분(assetAssigned=False → 에셋 미할당/로드 실패, True+assetNull=True → 참조 결함).
+            Debug.Log($"[SlashVFX] VFX 진단: assetNull={ve == null || ve.visualEffectAsset == null} assetAssigned={ve != null && ve.visualEffectAsset != null} awake={ve != null && ve.HasAnySystemAwake()} alive={alive} @0.35s");
             if (alive > 0)
             {
                 SlashVFXRunner.NotifyVfxAlive();   // 정상 출력 — 폴백 플래그 해제(VFX 복구 시 스타일라이즈드 경로 자동 복귀)
@@ -687,7 +727,7 @@ namespace ProjectName.Systems
 
             ve = GetComponent<VisualEffect>();
             int alive2 = ve != null ? ve.aliveParticleCount : -1;
-            Debug.Log($"[SlashVFX] VFX 진단: assetNull={ve == null || ve.visualEffectAsset == null} awake={ve != null && ve.HasAnySystemAwake()} alive={alive2} @1.0s");
+            Debug.Log($"[SlashVFX] VFX 진단: assetNull={ve == null || ve.visualEffectAsset == null} assetAssigned={ve != null && ve.visualEffectAsset != null} awake={ve != null && ve.HasAnySystemAwake()} alive={alive2} @1.0s");
             if (alive2 > 0)
             {
                 SlashVFXRunner.NotifyVfxAlive();   // 늦게라도 기동 성공 — 폴백 미발동
