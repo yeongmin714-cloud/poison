@@ -371,10 +371,10 @@ namespace ProjectName.Systems
         {
             switch (type)
             {
-                case ProjectName.Core.WeaponType.Sword: return WeaponData.Sword.range;   // 2.5m
-                case ProjectName.Core.WeaponType.Spear: return WeaponData.Spear.range;   // 4m
-                case ProjectName.Core.WeaponType.Bow:   return WeaponData.Bow.range;     // 10m
-                default:               return WeaponData.Fist.range;    // 2m
+                case ProjectName.Core.WeaponType.Sword: return ProjectName.Core.WeaponData.Sword.range;   // 2.5m
+                case ProjectName.Core.WeaponType.Spear: return ProjectName.Core.WeaponData.Spear.range;   // 4m
+                case ProjectName.Core.WeaponType.Bow:   return ProjectName.Core.WeaponData.Bow.range;     // 10m
+                default:               return ProjectName.Core.WeaponData.Fist.range;    // 2m
             }
         }
 

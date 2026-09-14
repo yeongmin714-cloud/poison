@@ -430,7 +430,7 @@ namespace ProjectName.Systems
                     mrb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ
                                     | RigidbodyConstraints.FreezeRotation;   // y만 물리(접지), 수평은 AnimalAI Transform 제어
                     mrb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-                    mrb.drag = 0f; mrb.angularDrag = 0.05f;
+                    mrb.linearDamping = 0f; mrb.angularDamping = 0.05f;
                 }
                 // 넉백/절트 차단은 HitReaction 확정 '이후'에 적용 — GLB 프리팹은 HitReaction 미부착이므로
                 // 이전 순서(GetComponent→null→스킵 후 AddComponent)로는 신규 추가분에 스위치가
