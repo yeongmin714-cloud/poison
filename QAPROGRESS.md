@@ -38,6 +38,18 @@
 **수리**: SlashVFXRunner에 **alive 진단 러너**(SlashAliveProbe — 스폰 0.35s 후 aliveParticleCount 체크) 추가 → alive≤0이면 `NotifyVfxDead()` 플래그 + 로그, 이후 발화부터 **구 "FX/Slash/Slash VFX" 폴백** 전환(URP Shader Graph — 42차 이전 렌더 실적, 8 MeshRenderer). 폴백도 동일 파이프라인(빌보드/yawSign 플립/stage 롤/SetParent 추종/스케일 1.5/1.5s 파괴/쿨다운 공유). alive>0 복귀 시 스타일라이즈드로 자동 복귀. LastHitPoint up 0.2→0.1 하향(부착감).
 **컴파일**: error CS=0(1회 통과).
 
+## 📌 세션 종합 스냅샷 (2026-09-14 ✅ 47차 — 임팩트를 Guz Magic Hit 2로 교체+StylizedSlash 기동 복구+진단 강화)
+
+> **스코프**: 사용자 결정 — ① 피격 임팩트를 "hit effect free"의 **Magic Hit 2**로(공격 예시와 가장 유사) ② 슬래시는 Free Slash 폴백이 아니라 **stylized slash 본체** 사용(에셋 문서상 URP 지원). 진단: 테스트 10 세션의 alive=-1 = VFX "not awake" — 초기 이벤트만으로 미기동 가능성.
+
+### 변경 사항
+**`Systems/SlashVFXRunner.cs`+`Resources/FX/Impact/MagicHit.prefab`(신규)**: Guz "Magic Hit 2.prefab" → Resources 복사(meta guid 신규 발행, 머티리얼 4종은 builtin 셰이더 211=Legacy Particles/Alpha Blended라 URP 변환 불필요 — 텍스처 guid 원본 해결). 임팩트 로더 BasicHit → MagicHit 교체(BasicHit은 Resources 유지 — 롤백 시 상수 1줄). **TintParticles 제거로 에셋 고유 색상 유지**(사용자 선택 룩 존중), NormalizePurpleParticles는 안전망으로 유지. 크로스 경로도 MagicHit 공유.
+**`Systems/SlashVFXRunner.cs` (StylizedSlash 복구)**: 스폰 오리엔테이션 완료 직후 `ve.Reinit()+ve.Play()` 명시 기동(초기 이벤트 미기동 대응). SlashAliveProbe 2시점 진단(0.35s/1.0s — alive>0이면 즉시 정상 종료), **두 체크 모두 alive≤0일 때만** Free Slash 폴백 전환(늦게 피는 이펙트 오판 방지), alive=-1 미각성 2회 연속 시 별도 로그("[SlashVFX] VFX 미각성 지속 — 에셋 로드/타겟 확인 필요"). 진단 로그: assetNull/awake/alive 상세 출력 — 다음 Play에서 뿌리 즉시 판별.
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0**(exit 0) + 정적 검증 통과(균형/grep 전수)
+- Play 판정 대기: ① 피격 = Magic Hit 2 이펙트(마법 심볼+플래시+쇼크웨이브)가 타격 지점에 표시 ② 슬래시 = stylized slash 아크 렌더(명시 Play로 기동) — 여전히 미출력이면 진단 로그의 assetNull/awake/alive 값이 다음 수리 방향 결정 ③ 폴백은 두 체크 모두 실패 시에만 발동
+
 ## 📌 세션 종합 스냅샷 (2026-09-13 ✅ 45차 — 보라 파티클 진범=마젠타 셰이더 에러 뿌리 수리+BOTW 팔레트 통일+임팩트 단일화+방어구 비주얼 부착 신규+전리품창 5×2+화살 탭)
 
 > **스코프**: 테스트 7 영상 픽셀 실측으로 "보라 파티클"의 진범 확정 — 평균 RGB (219,19,219)=**Unity 셰이더 에러 마젠타**. 런타임 파티클이 기본 머티리얼(Particles/Standard Unlit)로 생성되어 URP 미지원 → 마젠타 렌더. 40차 틴트/44차 색 교체/보라 정규화가 무효였던 근본 이유. 텍스처 전수 확인(HIE/Guz 전부 무채색)으로 코드 색·텍스처는 무죄. 배치컴파일 error CS=0 + 정적 QA FAIL 0건.
