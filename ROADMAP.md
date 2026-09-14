@@ -2353,5 +2353,6 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 후속2 | ...527 수리에도 assetNull 지속 → 프리팹 참조 의존 제거(StylizedSlashVFX.vfx Resources 로드+런타임 visualEffectAsset 할당+Reinit/Play, 로드 실패시 즉시 폴백, 진단 assetAssigned 필드) | ✅ |
 | 후속3 | assetAssigned=False 진범=VFX Graph 패키지 미설치 확정 → manifest에 com.unity.visualeffectgraph 17.4.0 추가(URP 17.4.0 동일 트레인, resolve 성공) → .vfx 임포트 정상화 | ✅ |
 | 후속4 | 패키지 설치 후에도 SG 미임포트(AssetDatabase 캐시 고착) → 배치 ImportAsset(ForceUpdate) 강제 → SG 임포트 성공(Object=True)+.vfx 재컴파일(cannot be compiled 0건) | ✅ |
-| Play 판정 대기 | stylized slash 아크 렌더(모든 장애물 제거 후 첫 검증)/피격=Magic Hit 2 표시 | ⬜ |
+| 후속5 | 할당 순서 버그 수리(할당→Reinit이 직렬화 null로 덮어씀→**Reinit→할당→Play** 재정렬)+PlayHitFlash ShaderGraph _Color 부재 가드(에러 스팸 제거) | ✅ |
+| Play 판정 대기 | stylized slash 아크 렌더(순서 수리 후 첫 검증)/피격=Magic Hit 2 표시 | ⬜ |
 | Play 판정 대기 | 트레일/Travis 히트/바구니 반짝임/클로ak/창고 4구획/우클릭 4단 로그 | ⬜ |
