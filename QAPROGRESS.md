@@ -64,6 +64,11 @@
 **수리**: manifest.json에 `com.unity.visualeffectgraph: 17.4.0` 추가(URP 17.4.0 동일 트레인) → batch resolve 성공(PackageCache 설치 확인) → .vfx 임포트 정상화. 슬래시는 Resources.Load 경로로 stylized 렌더 예상 — 여전히 문제가 있으면 진단 로그(assetAssigned/alive)가 다음 단계 지시.
 **컴파일**: error CS=0. Play 판정 대기: stylized slash 아크 렌더(패키지 설치 후 첫 검증).
 
+### 🔧 47차 후속4 (패키지 설치 후에도 SG "missing" — AssetDatabase 임포트 캐시 결함 해소)
+**진단**: 패키지 설치 후에도 slash5.shadergraph가 AssetDatabase에서 임포트 시도조차 안 됨(로그 전수 — 이 파일만 0회, 다른 .shadergraph는 정상 임포트). 강제 재임포트(mtime 변경)도 무시 → AssetDatabase 임포트 캐시가 VFG 설치 전 실패 상태로 고착.
+**수리**: 배치모드 -executeMethod로 `AssetDatabase.ImportAsset(ForceUpdate)` 강제 → **SG 임포트 성공**(Object=True, 이름=slash5) + .vfx 5종 재컴파일 — "cannot be compiled ... missing" 0건(이전 세션 대비). StylizedSlashVFX.vfx도 재컴파일 완료 → stylized slash 렌더 조건 완성. 진단 스크립트(Assets/Editor/DiagSlashShaderGraphImport.cs)는 향후 SG 임포트 진단용으로 유지.
+**컴파일**: error CS=0. Play 판정 대기: stylized slash 아크 렌더(모든 장애물 제거 후 첫 검증).
+
 ## 📌 세션 종합 스냅샷 (2026-09-13 ✅ 45차 — 보라 파티클 진범=마젠타 셰이더 에러 뿌리 수리+BOTW 팔레트 통일+임팩트 단일화+방어구 비주얼 부착 신규+전리품창 5×2+화살 탭)
 
 > **스코프**: 테스트 7 영상 픽셀 실측으로 "보라 파티클"의 진범 확정 — 평균 RGB (219,19,219)=**Unity 셰이더 에러 마젠타**. 런타임 파티클이 기본 머티리얼(Particles/Standard Unlit)로 생성되어 URP 미지원 → 마젠타 렌더. 40차 틴트/44차 색 교체/보라 정규화가 무효였던 근본 이유. 텍스처 전수 확인(HIE/Guz 전부 무채색)으로 코드 색·텍스처는 무죄. 배치컴파일 error CS=0 + 정적 QA FAIL 0건.
