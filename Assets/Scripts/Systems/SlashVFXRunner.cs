@@ -10,8 +10,9 @@ namespace ProjectName.Systems
     ///     [2026-09-14(47차)] 사용자 지정 — Guz Magic Hit 2로 교체(공격 예시와 가장 유사).
     ///     BasicHit은 Resources에 유지(롤백 가능: 상수 경로를 FX/Impact/BasicHit로 되돌리면 즉시 복귀).
     ///     [45차 P3 임팩트 단일화] BasicHit2(Construct)/TravisHit(크로스) 경로 제거 — 단일 프리팹 위임 선례 유지
-    ///   - [2026-09-13 스타일라이즈드 스윙] Stylizer Slash VFX(slash5-HungNguyen) "white-yellow bolder"
+    ///   - [2026-09-13 스타일라이즈드 스윙] Stylizer Slash VFX(slash5-HungNguyen) white-blue 변종
     ///     (Assets/Resources/FX/Slash/StylizedSlash) — PlaySlashStage가 콤보 스윙 아크 발화(아래 상수/메서드 참조)
+    ///     [2026-09-14(47차 후속7)] 색상 — 파란색(피격 Magic Hit 매칭) white-blue 변종(같은 경로/같은 meta guid — 코드 무변경)
     ///     [2026-09-14(47차 후속2)] 프리팹 직렬화 참조 결함(fileID 불일치 → assetNull 지속) 우회 — Resources에서
     ///     VisualEffectAsset을 직접 로드(StylizedVfxResourcePath)해 런타임 할당(PlaySlashStage 본문 참조).
     ///     [2026-09-14(47차 후속6)] 깨진 참조 프리팹은 Instantiate 시 VisualEffect 컴포넌트 누락 확인
@@ -56,8 +57,8 @@ namespace ProjectName.Systems
         /// </summary>
         private const float MIN_STYLIZED_SLASH_INTERVAL = 0.25f;
 
-        /// <summary>스타일라이즈드 슬래시 스케일 배수(튜닝 상수) — 46차 후속: 1.2배→1.5배(가시성 확대). Play 판정 후 조정.</summary>
-        private const float StylizedSlashScale = 1.5f;
+        // [2026-09-14(47차 후속7)] 스윙 스케일 고정 상수(구 기본값 1.5) 제거 — 슬래시 크기=공격범위 연동으로 대체
+        // (사거리×0.4, 클램프 0.8~1.6 — PlaySlashStage 본문의 동적 계산 + RangeOf 헬퍼 참조).
 
         /// <summary>
         /// 스타일라이즈드 슬래시 자가 파괴 예약 시간(튜닝 상수) — VFX Graph가 자체 수명 후 완전 소진되므로
@@ -66,8 +67,8 @@ namespace ProjectName.Systems
         private const float StylizedSlashDestroyAfter = 1.5f;
 
         /// <summary>
-        /// [2026-09-13 폴백] 구 Slash VFX 폴백 스케일 배수 — StylizedSlashScale(1.5)과 동일 값으로 시작하는
-        /// 폴백 전용 상수(독립 튜닝 가능). 폴백 발화 시 이 값으로 균일 스케일.
+        /// [2026-09-13 폴백] 구 Slash VFX 폴백 스케일 배수 — 구 고정 스케일값(1.5)과 동일 값으로 시작하는
+        /// 폴백 전용 상수(독립 튜닝 가능, 동적 사거리 연동 미적용). 폴백 발화 시 이 값으로 균일 스케일.
         /// </summary>
         private const float FallbackSlashScale = 1.5f;
 
@@ -189,10 +190,10 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// [2026-09-13 스타일라이즈드 슬래시] 콤보 스윙 아크 FX — slash5-HungNguyen 팩 "white-yellow bolder"의
+        /// [2026-09-13 스타일라이즈드 슬래시] 콤보 스윙 아크 FX — slash5-HungNguyen 팩 white-blue 변종의
         /// VFX Graph 에셋(Resources/FX/Slash/StylizedSlashVFX.vfx)을 콤보 스테이지별 오리엔테이션으로 발화한다
-        /// (HumanoidClipDriver.FireComboSlash의 Player 전용 경로에서 호출). 골드 계열 VFX라 45차 BOTW 팔레트
-        /// 액센트(AccentTint 1,0.9,0.5)와 자연 동조 — 별도 틴트 없이 원본색 사용이 선택 사유.
+        /// (HumanoidClipDriver.FireComboSlash의 Player 전용 경로에서 호출). [2026-09-14(47차 후속7)] 색상 —
+        /// 파란색(피격 Magic Hit 매칭) white-blue 변종 — 별도 틴트 없이 원본색 사용이 선택 사유.
         /// 오리엔테이션(38차 규약): ① 루트를 카메라 수평 빌보드(CameraHorizontalFaceDir 재사용) ② stage 롤
         /// (1타 0 / 2타 -90 / 3타 -45 — 기존 규약, ComboStageRollDegrees) ③ yawSign 좌우 플립(아래 주석).
         /// [2026-09-14(47차 후속6)] 깨진 참조 프리팹은 Instantiate 시 VisualEffect 컴포넌트 누락 확인
@@ -285,7 +286,7 @@ namespace ProjectName.Systems
             // ② [yawSign 좌우 플립 — 튜닝 포인트] yawSign<0(좌 스윙)이면 로컬 Y 180도 회전으로 아크 진행을 플립한다.
             // VFX 특성상(음수 localScale은 파티클 스폰 위치/벨로시티 미러링이 불안정해질 수 있음) localScale.x=-1보다
             // 회전을 우선한다. 단, Y 180도 회전은 쿼드 뒷면을 보여줄 수 있으므로 Play 판정에서 뒷면/미러가 어색하면
-            // (a) 플립 기준 반전 또는 (b) localScale.x = -StylizedSlashScale 대체를 검토할 것.
+            // (a) 플립 기준 반전 또는 (b) localScale.x = -scale 대체를 검토할 것.
             if (yawSign < 0f)
                 instance.transform.Rotate(0f, 180f, 0f, Space.Self);
 
@@ -294,8 +295,10 @@ namespace ProjectName.Systems
             if (Mathf.Abs(roll) > 0.01f)
                 instance.transform.Rotate(0f, 0f, roll, Space.Self);
 
-            // 스케일 튜닝 상수 — 46차 후속: 1.5배(StylizedSlashScale, 가시성 확대). 플립이 회전 기반이므로 균일 스케일.
-            instance.transform.localScale = Vector3.one * StylizedSlashScale;
+            // [2026-09-14(47차 후속7): 슬래시 크기=공격범위 연동(사거리×0.4, 클램프 0.8~1.6) — 사용자 지정 '공격범위에 맞춰 작게']
+            // 무기 사거리 기반 동적 스케일 — 검(2.5m)→1.0, 창(4m)→1.6, 맨손(2m)→0.8. 플립이 회전 기반이므로 균일 스케일.
+            float scale = Mathf.Clamp(RangeOf(WeaponEquipManager.CurrentType) * 0.4f, 0.8f, 1.6f);
+            instance.transform.localScale = Vector3.one * scale;
 
             // [2026-09-14(47차 후속6)] 기동 블록 이동 — Reinit+Play는 위 런타임 빌드 블록(AddComponent 직후
             // 할당→Reinit→Play)에서 수행. 프리팹 GetComponent<VisualEffect>() 분기(ve==null 시 아무것도
@@ -309,7 +312,7 @@ namespace ProjectName.Systems
 
             // [틴트 불가] 이 팩은 노출 프로퍼티(m_PropertySheet)가 비어 있어 런타임 틴트 불가 — TintParticles/
             // NormalizePurpleParticles(ParticleSystem 대상)도 무효(프리팹에 파티클 시스템 없음, VFX Graph 단독).
-            // 원본 골드 계열이 곧 팔레트 Accent 톤이므로 무색상 처리로 확정.
+            // 원본 파란색(피격 Magic Hit 매칭) white-blue 변종이므로 무색상 처리로 확정.
             // [2026-09-14(47차)] 위 런타임 기동(할당→Reinit→Play) 후 셰이더 오류 감지만 수행.
             DetectShaderErrorOnce(instance, "StylizedSlash");
             Debug.Log($"[SlashVFX] 스타일라이즈드 슬래시 발화 (stage={stage}, yawSign={yawSign})");   // 1회성 아님 — 발화마다(크로스 로그 선례)
@@ -320,7 +323,7 @@ namespace ProjectName.Systems
         /// [2026-09-13 폴백 스폰] 구 Slash VFX 프리팹("FX/Slash/Slash VFX" — 8 MeshRenderer, URP Shader Graph,
         /// 42차 이전 렌더 실적)을 스타일라이즈드 경로와 동일 오리엔테이션 파이프라인으로 발화한다:
         /// ① 카메라 수평 빌보드 ② playerRoot SetParent(true) 부착 ③ yawSign Y 180도 플립 ④ stage 롤
-        /// ⑤ 균일 스케일(FallbackSlashScale — StylizedSlashScale과 동일 값). 구 프리팹의 Point Light 자식은
+        /// ⑤ 균일 스케일(FallbackSlashScale — 1.5 고정, 동적 사거리 연동 미적용). 구 프리팹의 Point Light 자식은
         /// 연출 요소이므로 그대로 둔다. 파괴 1.5s(StylizedSlashDestroyAfter 공용), 쿨다운은 PlaySlashStage
         /// 선두의 _lastStylizedSlashSpawnTime 하나를 공유한다.
         /// </summary>
@@ -345,7 +348,7 @@ namespace ProjectName.Systems
             if (Mathf.Abs(roll) > 0.01f)
                 instance.transform.Rotate(0f, 0f, roll, Space.Self);
 
-            // ⑤ 스케일 — 폴백 전용 상수(FallbackSlashScale) = StylizedSlashScale과 동일 값(1.5) 균일 스케일
+            // ⑤ 스케일 — 폴백 전용 상수(FallbackSlashScale, 1.5 고정 — 동적 사거리 연동 미적용) 균일 스케일
             instance.transform.localScale = Vector3.one * FallbackSlashScale;
 
             // 구 프리팹 자체 재생 불가 케이스 대비 — 기존 PlaySlash 선례대로 파티클 명시 재생(이미 재생 중이면 무해)
@@ -358,6 +361,22 @@ namespace ProjectName.Systems
         /// <summary>콤보 스테이지별 아크 롤(기존 규약) — 1타 수평 0° / 2타 수직 -90° / 3타 사선 -45°. 3타 부호는 튜닝 포인트.</summary>
         private static float ComboStageRollDegrees(int stage)
             => stage == 2 ? -90f : (stage == 3 ? -45f : 0f);
+
+        /// <summary>
+        /// [2026-09-14(47차 후속7)] 타입별 공격 사거리(m) — WeaponRangeIndicator.RangeOf(private static)를
+        /// 슬래시 스케일 연동용으로 중복 정의(출처: Assets/Scripts/Systems/WeaponRangeIndicator.cs 184행 사거리 표와
+        /// 동일 유지할 것). WeaponData 정적 스탯 단일 소스(타입 고정, 등급 배율 무관): Sword 2.5 / Spear 4 / Bow 10 / Fist 2.
+        /// </summary>
+        private static float RangeOf(WeaponType type)
+        {
+            switch (type)
+            {
+                case WeaponType.Sword: return WeaponData.Sword.range;   // 2.5m
+                case WeaponType.Spear: return WeaponData.Spear.range;   // 4m
+                case WeaponType.Bow:   return WeaponData.Bow.range;     // 10m
+                default:               return WeaponData.Fist.range;    // 2m
+            }
+        }
 
         // ================================================================
         // 내부: alive 진단 콜백 (SlashAliveProbe → 러너) — VFX Graph 미출력 폴백 전환
