@@ -706,7 +706,7 @@ namespace ProjectName.Systems
                     // 높이가 어색하면 up 값을 조정할 것. (앵커 계산은 호출부 단일 소스 — 러너 내부 계산 없음, 불일치 제거)
                     var t = transform;
                     Vector3 dir = ComboStageDirection(stage, t);
-                    Vector3 pos = t.position + t.forward * 0.55f + Vector3.up * 1.25f;
+                    Vector3 pos = t.position + t.forward * 0.8f + Vector3.up * 1.25f;   // 47차 후속9: 아크 전방 배치(0.55→0.8) — 스월 아크를 대상 방향 전방에 위치
                     // yawSign — ComboStageDirection(클램프 후)의 수평 yaw 부호: 1타 -58°(좌) → -1, 2타 +63°(우)·
                     // 3타 클램프 후 +36°(우) → +1. 러너에서 이 부호로 아크 진행을 좌우 플립한다.
                     Vector3 fwdFlat = new Vector3(t.forward.x, 0f, t.forward.z);

@@ -283,20 +283,16 @@ namespace ProjectName.Systems
             if (playerRoot != null)
                 instance.transform.SetParent(playerRoot, true);
 
-            // ② [yawSign 좌우 플립 — 튜닝 포인트] yawSign<0(좌 스윙)이면 로컬 Y 180도 회전으로 아크 진행을 플립한다.
-            // VFX 특성상(음수 localScale은 파티클 스폰 위치/벨로시티 미러링이 불안정해질 수 있음) localScale.x=-1보다
-            // 회전을 우선한다. 단, Y 180도 회전은 쿼드 뒷면을 보여줄 수 있으므로 Play 판정에서 뒷면/미러가 어색하면
-            // (a) 플립 기준 반전 또는 (b) localScale.x = -scale 대체를 검토할 것.
-            if (yawSign < 0f)
-                instance.transform.Rotate(0f, 180f, 0f, Space.Self);
+            // ② [방향 — 47차 후속9] yawSign Y 180도 플립 제거 — 테스트 13 실측: 플립 적용 아크가 캐릭터 등 쪽(후방)으로 스왑됨.
+            // 빌보드 기준 방향 유지 + 앵커 전방 이동(호출부 fwd0.8)으로 아크를 항상 전방에 배치. 좌우 미러가 필요하면 롤/스케일로 튜닝.
 
             // ③ [stage 롤 — 기존 규약] 1타 수평 0° / 2타 수직 -90° / 3타 사선 -45°(빌보드 후 로컬 Z 롤 = 화면축 기준 기울임)
             float roll = ComboStageRollDegrees(stage);
             if (Mathf.Abs(roll) > 0.01f)
                 instance.transform.Rotate(0f, 0f, roll, Space.Self);
 
-            // [2026-09-14(47차 후속8): 더 작게 — 사거리×0.25, 클램프 0.5~1.2 (검 2.5m→0.63/창 4m→1.0/맨손 2m→0.5) — 사용자 지정 "공격범위랑 일치"]
-            float scale = Mathf.Clamp(RangeOf(WeaponEquipManager.CurrentType) * 0.25f, 0.5f, 1.2f);
+            // [2026-09-14(47차 후속9): 더 작게(스월형 네이티브가 대형 — 사거리×0.15, 클램프 0.3~0.7: 검 2.5m→0.38)] — 사용자 지정 "공격범위랑 일치"
+            float scale = Mathf.Clamp(RangeOf(WeaponEquipManager.CurrentType) * 0.15f, 0.3f, 0.7f);
             instance.transform.localScale = Vector3.one * scale;
 
             // [2026-09-14(47차 후속6)] 기동 블록 이동 — Reinit+Play는 위 런타임 빌드 블록(AddComponent 직후
