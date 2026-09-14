@@ -10,6 +10,7 @@ namespace ProjectName.Systems
     /// <summary>
     /// 플레이어 공격 시스템 — 마우스 좌클릭 → 커서 방향 자동 조준 → 데미지
     /// C4-08: 마우스 커서 방향으로 가장 가까운 적 자동 탐지 및 타겟팅
+    /// 2026-09-14: 공격 모션 개선 — 런지 무게감(가속→감속) / 페이스 타깃 / 공격자 리코일 / 연타 카메라 펀치 차등
     /// </summary>
     public class PlayerCombat : MonoBehaviour
     {
@@ -47,6 +48,19 @@ namespace ProjectName.Systems
         private NeuralAnimationController _neuralAnim;
         // P6 (2026-09-11): 활(Bow) 좌클릭 발사용 — HumanoidClipDriver 공용 트리거(ArcheryShot) 접근
         private HumanoidClipDriver _clipDriver;
+
+        // ===== 2026-09-14: 공격 모션 개선 상수 — 런지 무게감 / 페이스 타깃 / 리코일 / 연타 카메라 펀치 =====
+        private const float AttackStreakWindow = 0.6f;    // 직전 공격 후 이 시간(초) 내 재공격이면 연타 스트릭 유지
+        private const int AttackStreakMax = 3;            // 연타 스트릭 최대값(클램프) — 카메라 펀치 3단계
+        private const float FaceTargetSpeed = 15f;        // 페이스 타깃 회전 보간 속도(12~15 상단 — 공격 진입 즉시 정렬)
+        private const int FaceTargetMaxFrames = 10;       // 페이스 회전 최대 프레임 — 공격 순간에만 회전(CursorTurn 충돌 최소화)
+        private const float RecoilDistanceNormal = 0.15f; // 일반 타격 시 공격자 리코일 거리(m)
+        private const float RecoilDistanceCrit = 0.25f;   // 백어택/치명타 리코일 거리(m) — 반동 증폭
+        private int _attackStreak;                        // 연타 카운터(1~3) — HumanoidClipDriver 콤보와 무관한 자체 카운터
+        // #48차 후속 FIX(2026-09-14): 리코일-런지 동시 위치 덮어쓰기 충돌 게이트 플래그 — RecoilCoroutine 생존 중 true.
+        // 성공 타격 시 히트스톱(timeScale 0.08) 선행으로 deltaTime이 축소되어 리코일(0.05s)과 런지(0.15s)가
+        // 수십 프레임 동안 매 프레임 transform.position을 동시 기록 → 리코일이 런지에 묻혀 잘리던 버그 해소.
+        private bool _recoilActive;                       // 리코일 진행 중 플래그 — 시작 true/종료 false(런지 대기 기준점)
 
         // ===== C4-08: 자동 조준 상태 =====
         private IDamageable _currentTarget;
@@ -179,6 +193,11 @@ namespace ProjectName.Systems
         private void TryAttack()
         {
             if (!CanAttack) return;
+            // 연타 카운터 갱신(2026-09-14): 직전 공격 후 0.6초 이내 재공격이면 +1(최대 3), 아니면 1로 리셋.
+            // _lastAttackTime 갱신 "전"에 판정해야 직전 공격 시각 기준으로 정상 판정된다.
+            _attackStreak = (Time.time - _lastAttackTime <= AttackStreakWindow)
+                ? Mathf.Min(_attackStreak + 1, AttackStreakMax)
+                : 1;
             _lastAttackTime = Time.time;
 
             // ── P6 (2026-09-11): 무기 타입별 좌클릭 공격 분기 ──
@@ -212,6 +231,9 @@ namespace ProjectName.Systems
             {
                 // 자동 조준 성공 → 타겟 공격
                 _currentTarget = autoAimTarget;
+                // 페이스 타깃(2026-09-14): 이펙트/타격 전 타겟 방향으로 신속 회전 — 공격 순간에만 동작해
+                // PlayerMovement.CursorTurn(이동 입력 회전)과의 충돌을 최소화. 타겟 없으면 호출하지 않음(현재 방향 유지).
+                StartFaceTarget(autoAimTarget);
                 AttackTarget(_currentTarget);
                 hitAny = true;
             }
@@ -229,6 +251,7 @@ namespace ProjectName.Systems
                     MonoBehaviour smb = sweep as MonoBehaviour;
                     Debug.Log($"[PlayerCombat] 근접 스윕 폴백 적중: {smb?.name ?? "?"} dist={Vector3.Distance(transform.position, smb.transform.position):F1}m");
                     _currentTarget = sweep;
+                    StartFaceTarget(sweep); // 폴백 스윕 타겟도 동일하게 페이스 타깃 적용
                     AttackTarget(sweep);
                     hitAny = true;
                 }
@@ -408,6 +431,12 @@ namespace ProjectName.Systems
                 }
             }
 
+            // 공격자 리코일(2026-09-14): 타격 성공 직후 타격 방향 반대(-hitDirection)로 밀려나는 짧은 반동.
+            // 백어택/치명타면 반동 증폭(0.15m → 0.25m). HitStopManager는 기존 규약대로 마지막에 호출(호출 순서 변경 없음).
+            // #48차 후속 FIX(2026-09-14): 리코일 시작 전 플래그 ON — 러닝 중 런지가 이 플래그 해제를 대기(순차 인계).
+            _recoilActive = true;
+            StartCoroutine(RecoilCoroutine(-hitDirection, isBackAttack ? RecoilDistanceCrit : RecoilDistanceNormal));
+
             // 킬 시 슬로우모션
             if (target is IDamageable damageable && damageable.IsDead)
             {
@@ -530,33 +559,143 @@ namespace ProjectName.Systems
         /// <summary>
         /// 공격 시 카메라 이펙트 — Cinemachine Impulse Source로 반동 처리.
         /// CombatCameraEffects.PlayCrit()가 추가 Shake/HitStop을 처리합니다.
+        /// 2026-09-14: 연타 카운터(1~3타)에 따라 펀치 강도 차등(0.4 / 0.55 / 0.7).
         /// </summary>
         private void TriggerCameraEffects()
         {
             if (_impulseSource != null)
             {
-                _impulseSource.GenerateImpulse(Vector3.forward * 0.5f);
+                // 연타 스트릭별 펀치 강도(2026-09-14) — HumanoidClipDriver 콤보 스테이지와 독립적으로
+                // 이 파일 자체의 _attackStreak만 사용한다(드라이버 참조 없음).
+                float impulse;
+                switch (_attackStreak)
+                {
+                    case 1: impulse = 0.4f; break;  // 1타 — 가벼운 펀치
+                    case 2: impulse = 0.55f; break; // 2타 — 중간 강도
+                    default: impulse = 0.7f; break; // 3타(최대) — 가장 강한 펀치
+                }
+                _impulseSource.GenerateImpulse(Vector3.forward * impulse);
             }
         }
 
         /// <summary>
-        /// 공격 전진 (attack lunge) — 0.15초간 전방 1m 이동
+        /// 공격 전진 (attack lunge, 2026-09-14 개선) — 스윙 임팩트 타이밍에 맞춰 3프레임(≈0.05s) 지연 후
+        /// 무기 타입별 고정 거리만큼 전진. 전반 40% 가속 → 후반 감속 곡선으로 시작은 느리게 벌떡 오르고 마지막에 꽂히는 무게감.
+        /// 방향: 최근(0.5s 내) 유효 적중이면 타겟(LastHitPoint) 방향, 아니면 현재 전방 폴백(y 제거 후 정규화).
         /// </summary>
         private System.Collections.IEnumerator AttackLungeCoroutine()
         {
-            float duration = 0.15f;
-            float distance = 1.0f;
+            // 임팩트 동기화: 스윙 애니의 타격 프레임과 겹치도록 이동 시작을 3프레임(≈0.05s @60fps) 지연(anticipation).
+            yield return null;
+            yield return null;
+            yield return null;
+
+            const float duration = 0.15f; // 이동 지속 시간(기존 유지) — 짧고 강한 전진
+            // 무기 타입별 런지 거리(고정 상수 맵 — WeaponData.range 직접 사용 금지. 스윙 아크 최적화상 너무 크면 어색함):
+            float distance;
+            switch (_currentWeapon != null ? _currentWeapon.weaponType : ProjectName.Core.WeaponType.Fist)
+            {
+                case ProjectName.Core.WeaponType.Sword: distance = 0.6f; break; // 소드 — 스윙 아크에 맞는 중간 전진
+                case ProjectName.Core.WeaponType.Spear: distance = 1.2f; break; // 스피어 — 찌르기 특성상 가장 긴 전진
+                case ProjectName.Core.WeaponType.Bow:   distance = 0.5f; break; // 활 — 발사 반동 수준의 소폭 전진
+                default:                                distance = 0.4f; break; // 주먹 — 짧은 잽형 전진
+            }
+
+            // 방향 결정: 최근(0.5s 내) 유효 적중이면 타겟(LastHitPoint) 방향, 아니면 현재 전방 폴백.
+            Vector3 dir;
+            if (LastHitValid && Time.time - LastHitTime <= 0.5f)
+                dir = LastHitPoint - transform.position; // 타겟 방향 런지
+            else
+                dir = transform.forward;                 // 폴백 — 현재 전방
+            dir.y = 0f; // xz 평면 이동만 — 수직 출렁임 방지
+            if (dir.sqrMagnitude < 0.0001f)
+            {
+                dir = transform.forward; // 극단 케이스(동일 위치 등) — 현재 전방 재폴백
+                dir.y = 0f;
+            }
+            if (dir.sqrMagnitude < 0.0001f) yield break; // 그래도 무효하면 런지 스킵
+            dir.Normalize();
+
+            // 지연 "후" 위치 캡처 — 리코일(후방 반동)이 끝난 지점에서 런지가 이어져 스냅 없이 자연 연결
+            // #48차 후속 FIX(2026-09-14): 리코일 완료 대기 게이트 — 리코일 생존 중(_recoilActive) 매 프레임 양보 후 캡처.
+            // 히트스톱(timeScale 0.08)/고프레임 환경에서도 리코일→런지 순차 인계 보장. 기존 3프레임 지연은 유지.
+            // 플래그가 이미 false(미스 경로 등 리코일 미시작)면 즉시 통과 — 기존 미스 경로 속도 불변.
+            while (_recoilActive) yield return null;
             Vector3 startPos = transform.position;
-            Vector3 endPos = startPos + transform.forward * distance;
+            Vector3 endPos = startPos + dir * distance;
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 float t = elapsed / duration;
-                float ease = 1f - Mathf.Pow(1f - t, 2f);
+                // 무게감 곡선: 전반 40%는 ease-in(느린 출발→가속), 이후 ease-out(최고 속도→감속하며 꽂힘).
+                // 40% 경계에서 속도 연속(양쪽 모두 평균 속도의 2배) — 중간에 쉬지 않는 자연스러운 가속→감속.
+                float ease;
+                if (t < 0.4f)
+                {
+                    float local = t / 0.4f;
+                    ease = 0.4f * local * local; // ease-in — 정지 상태에서 가속 ("벌떡" 참진 시작)
+                }
+                else
+                {
+                    float local = (t - 0.4f) / 0.6f;
+                    ease = 0.4f + 0.6f * (1f - (1f - local) * (1f - local)); // ease-out — 감속 후 정확히 도달
+                }
                 transform.position = Vector3.Lerp(startPos, endPos, ease);
                 elapsed += Time.deltaTime;
                 yield return null;
             }
+        }
+
+        /// <summary>
+        /// 페이스 타깃(2026-09-14) — 공격 진입 순간에만 타겟 xz 방향으로 빠르게 회전(Slerp).
+        /// 타겟 없으면 아예 호출하지 않아 현재 방향 유지(기존 동작 변경 없음).
+        /// </summary>
+        private void StartFaceTarget(IDamageable target)
+        {
+            MonoBehaviour targetBehaviour = target as MonoBehaviour;
+            if (targetBehaviour == null) return;
+            StartCoroutine(FaceTargetRoutine(targetBehaviour.transform.position));
+        }
+
+        private System.Collections.IEnumerator FaceTargetRoutine(Vector3 targetPos)
+        {
+            Vector3 dir = targetPos - transform.position;
+            dir.y = 0f; // xz 평면만 회전 — 상하 기울임 없음
+            if (dir.sqrMagnitude < 0.0001f) yield break;
+            Quaternion targetRot = Quaternion.LookRotation(dir.normalized, Vector3.up);
+            for (int frame = 0; frame < FaceTargetMaxFrames; frame++) // 최대 10프레임 — 공격 순간에만 회전
+            {
+                // Slerp 보간(속도 15 × deltaTime): 180도 반전 같은 큰 각도도 부드럽게 회전
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, FaceTargetSpeed * Time.deltaTime);
+                if (Quaternion.Angle(transform.rotation, targetRot) < 1f) yield break; // 정렬 완료 시 조기 종료
+                yield return null;
+            }
+        }
+
+        /// <summary>
+        /// 공격자 리코일(2026-09-14) — 타격 성공 직후 타격 방향 반대로 dist만큼 밀려나는 짧은 반동.
+        /// smoothstep(t²(3−2t)) 곡선: 가속→감속으로 출발/정지 모두 부드럽다. 기존 런지와 동일하게 transform.position 직접 이동.
+        /// </summary>
+        private System.Collections.IEnumerator RecoilCoroutine(Vector3 dir, float dist)
+        {
+            const float duration = 0.05f; // 리코일 지속 — 히트 임팩트에 맞춘 0.05초 반동
+            dir.y = 0f; // 수평 반동만
+            // #48차 후속 FIX(2026-09-14): 조기 종료 경로에서도 플래그 해제 — 미해제 시 런지 대기 무한 블로킹 방지.
+            if (dir.sqrMagnitude < 0.0001f) { _recoilActive = false; yield break; } // 방향 불명(타겟 transform 없음) 시 스킵
+            dir.Normalize();
+            Vector3 startPos = transform.position;
+            Vector3 endPos = startPos + dir * dist;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                float t = Mathf.Clamp01(elapsed / duration);
+                float ease = t * t * (3f - 2f * t); // smoothstep — 가속 후 감속
+                transform.position = Vector3.Lerp(startPos, endPos, ease);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            // #48차 후속 FIX(2026-09-14): 리코일 루프 완료 직후 플래그 OFF — 대기 중이던 런지가 여기서 인계받음.
+            _recoilActive = false;
         }
     }
 }

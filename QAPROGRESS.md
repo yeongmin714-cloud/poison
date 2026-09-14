@@ -4,7 +4,7 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-13 (46차)
+> **최종 갱신:** 2026-09-14 (48차)
 
 ---
 
@@ -1228,3 +1228,31 @@ E키→OpenForBasket→우측 창 Show → 슬롯 좌클릭(MouseDown)→드래�
 - **P3 배선**: 창고 상호작용(TerritoryWarehouse.OpenWarehouseUI) → InventoryWindow.SetContextMode(Warehouse)+인벤 동시 오픈. **전리품 상자는 기존 존재 확인**(AnimalAI.Die/GuardPlaceholder.Die → LootBasket.Create+DropTable.ApplyToBasket → E → LootWindow) — 신규 작성 불필요. **ShopWindow 1440x1170→520x940 축소+우측 배치 완료**(GetContextX: 인벤 열림 시 [인벤][설명] 우측, 아니면 화면 우측; ShopPlaceholder.ToggleShop에서 SetContextMode(Shop)+인벤 동시 오픈)
 - **검증**: 배치컴파일 error CS=0(중간 1회 CS1503 Sprite→Texture 수정), DLL 심볼 확인(AssignItem/DrawDescriptionPanel/SetContextMode), IsStealthed 3건(파라미터+전이2)
 - **후속(1072bba6)**: ①스탯창 NRE 루트원인 확정 — 뷰포트 오브젝트에 Image 존재 상태에서 RawImage AddComponent → 유니티 거부 null 반환(진단 로깅이 즉시 특정) → RawImage 전용 오브젝트 생성으로 수정 ②
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-14 ✅ 48차 — 공격 액션(모션) 살리기: 런지 무게감 + 페이스 타깃 + 리코일 + 연타 펀치 + 콤보 버퍼)
+
+> **스코프**: VFX(이펙트)가 아니라 **공격자 본체의 몸동작**을 개선. 전진 런지의 무게감, 공격 진입 타겟 회전 정렬, 타격 성공 후방 반동, 연타 콤보의 한-호흡 연속성. VFX는 46·47차 에셋 기반 그대로. 사운드는 기존 attack_swing/attack_hit 재활용(신규 없음). 3파일 수정.
+
+### 변경 사항
+**`Systems/PlayerCombat.cs` (+151행)**: 
+- **런지 무게감** — AttackLungeCoroutine 재작성: 3프레임(≈0.05s) 임팩트 동기화 지연 + 무기별 거리 테이블(검0.6/창1.2/활0.5/권0.4m) + 전반40% ease-in→후반60% ease-out 곡선(40% 경계 속도 연속) + 타겟(LastHitPoint) 방향 우선·전방 폴백·y 제거 정규화 + 지연 후 위치 캡처로 리코일과 자연 인계(스냅 방지).
+- **페이스 타깃** — StartFaceTarget/FaceTargetRoutine: 공격 진입 순간 타겟 xz 방향 Slerp(속도15·최대10프레임·<1° 조기종료). auto-aim 타겟 + 근접 스윕 폴백 타겟 모두 적용. 타겟 없으면 호출 안 함(기존 방향 유지). CursorTurn과 충돌 최소화.
+- **공격자 리코일** — AttackTarget 성공 분기 RecoilCoroutine(-hitDirection, 일반0.15m/백어택·치명타0.25m, 0.05s smoothstep t²(3-2t)) — 타격 방향 반대 후방 반동.
+- **연타 카메라 펀치 차등** — _attackStreak 카운터(0.6s 윈도우, 최대3, _lastAttackTime 갱신 전 판정) → TriggerCameraEffects 이펙트 펀치 0.4/0.55/0.7차등. HumanoidClipDriver 콤보와 독립(파일 내 자체 카운터).
+- **FIX(48차 후속)** — _recoilActive 플래그 게이트: 런지가 리코일 완료까지 while 크기 반복 대기(히트스톱 timeScale 0.08에서도 동일 인계), 리코일 조기종료 경로 포함 모든 종료에서 해제 → 공동 transform 쓰기/데드락 방지.
+
+**`Systems/HumanoidClipDriver.cs` (+55·-15행)**:
+- **콤보 버퍼링** — ComboBufferWindow=0.12s 1슬롯 클릭 버퍼(_comboBufferedClick/_comboBufferEndTime): 스윙 중 클릭 → 버퍼 적립 → 경계 도달 프레임 즉시 소비해 홀드 없이 다음 스테이지 연결(한 호흡 연속 몸동작). 경계 홀드 대기 중 클릭은 기존대로 즉시 진행. 인터럽트/신규 시작/재시작/EndCombo/3타 클립 끝 리셋 6경로 전수.
+- **리커버리 감소** — ComboHoldGrace 0.25→0.18, ComboExitBlend 0.15→0.10 (EndCombo 전용).
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0**(1차 변경 + FIX 통합 후 총 2회 통과, exit 0)
+- 정적 QA(서브에이전트): 6포인트 — ①런지/리코일 동시성 ⚠️→FIX ②streak 순서 ✅ ③HitStop 순서·timeScale ✅(anticipation 붕괴 우려 1건 Play 확인) ④콤보 버퍼 리셋 6경로 전수 ✅ ⑤FaceTarget vs CursorTurn ⚠️(고프레임 144fps 미정렬 리스크 — 권장 개선) ⑥문법/규약 ✅. 괄호 균형 0/0, 미사용 0, CI(한국어+2026-09-14 태그) 준수.
+- Play 판정 대기: 전진 찌르는 무게감 / 타겟 정렬 회전 / 타격 반동 / 3연타 한 호흡 / 카메라 펀치 단계 차등.
+
+### 비고/후속 제안
+- Play에서 히트스톱 중 예비동작(anticipation)이 사실상 붕괴되는지(미스에서만 온전히 작동) 체감 확인 — 히트스톱 자체가 임팩트를 주므로 치명적이진 않으나 의도한 스윙 타이밍 지연은 성공 타격에서 축소됨.
+- TriggerCameraEffects가 성공 타격 시 2회(AttackTarget+TryAttack) 호출되어 streak 펀치가 실효 2배(0.8/1.1/1.4), 미스는 1회 → 히트/미스 강도 불일치. 추후 단일화 권장.
+- FaceTargetRoutine 프레임 수 캡(fps 의존) → 시간 기반(≤0.15s) 또는 RotateTowards(최대각속도) 방식 전환 권장, 특히 근접 스윕 폴백(후방 대상)+고프레임 환경.

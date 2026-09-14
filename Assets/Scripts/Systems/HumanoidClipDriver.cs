@@ -29,11 +29,18 @@ namespace ProjectName.Systems
         private const string ComboStateName = "WeaponCombo";
         private const float ComboClipFrames = 136f;                    // Weapon_Combo_2 총 프레임(30fps)
         private static readonly float[] ComboEndNormT = { 0.331f, 0.676f }; // 스테이지1/2 종료 경계(45f/92f). 3타는 클립 끝(1.0)
-        private const float ComboHoldGrace = 0.25f;                    // 경계 홀드 후 입력 대기 시간
-        private const float ComboExitBlend = 0.15f;
+        private const float ComboHoldGrace = 0.18f;                    // 이전 0.25 → 0.18 (연타 진입 감도 상향) — 경계 홀드 후 입력 대기 시간
+        // #48차 리커버리 감소: 이전 0.15 → 0.10 — 콤보 종료 시 Idle CrossFade 시간 단축(EndCombo 전용, 스테이지 전환 경로엔 미사용)
+        private const float ComboExitBlend = 0.10f;
+        // #48차 콤보 버퍼링: 경계 도달 전 클릭 버퍼 유효 시간(백업) — 이 안에 경계 도달하면 즉시 소비
+        private const float ComboBufferWindow = 0.12f;
         private int _comboStage;          // 0=비활성, 1..3 = 현재 스테이지(클릭 수)
         private float _comboStartTime = -999f;
         private float _comboPinGraceStart = -999f;
+        // #48차 콤보 버퍼링: 경계 도달 전(스윙 중)에 들어온 연타 입력을 다음 스테이지로 캐리하는 1슬롯 버퍼.
+        // 경계 도달 프레임에 유효 버퍼를 즉시 소비해 홀드 없이 다음 스테이지로 이어붙인다(한 호흡 연속 몸동작).
+        private bool _comboBufferedClick;      // 버퍼된 클릭 존재 여부(연타 중복 입력은 만료 시각 갱신)
+        private float _comboBufferEndTime;     // 버퍼 만료 시각(Time.time + ComboBufferWindow)
         // #13: 타 완료 시점 십자가 VFX(Multiple Slashes) — 스테이지별 1회 발화 플래그 + 경계 통과 엣지 판정용
         private readonly bool[] _comboCrossFired = new bool[3]; // 인덱스 0..2 = stage1..3 완료 크로스 발화 여부
         private float _comboCrossPrevNormT;                     // 직전 감시 프레임의 normT
@@ -481,10 +488,23 @@ namespace ProjectName.Systems
                     bool inCombo = stInfo.IsName(ComboStateName) && _comboStage > 0;
                     if (inCombo && _comboStage < 3)
                     {
-                        _comboStage++;
-                        _comboPinGraceStart = -999f;
-                        FireComboSlash(_comboStage);   // 클릭 즉시 스윙 FX — 임팩트 프레임 대기 없음
-                        Debug.Log($"[Combo] 스테이지 {_comboStage} 진행 (플레이헤드 이어받기)");
+                        // #48차 콤보 버퍼링: 경계 홀드 대기 중(이미 경계 도달)이면 기존대로 즉시 진행,
+                        // 아직 경계 전(스윙 중)이면 버퍼 적립 — 경계 도달 프레임에 소비해 홀드 없이 연결.
+                        bool atBoundaryHold = stInfo.normalizedTime >= ComboEndNormT[_comboStage - 1];
+                        if (atBoundaryHold)
+                        {
+                            _comboStage++;
+                            _comboPinGraceStart = -999f;
+                            _comboBufferedClick = false;
+                            FireComboSlash(_comboStage);   // 클릭 즉시 스윙 FX — 임팩트 프레임 대기 없음
+                            Debug.Log($"[Combo] 스테이지 {_comboStage} 진행 (경계 홀드 중 즉시)");
+                        }
+                        else
+                        {
+                            _comboBufferedClick = true;
+                            _comboBufferEndTime = Time.time + ComboBufferWindow;
+                            Debug.Log($"[Combo] 클릭 버퍼 적립 (스테이지 {_comboStage} 경계 도달 시 소비, 유효 {ComboBufferWindow:F2}s)");
+                        }
                     }
                     else if (inCombo && _comboStage >= 3)
                     {
@@ -499,6 +519,7 @@ namespace ProjectName.Systems
                         _anim.Play(ComboStateName, 0, 0f);
                         _comboStage = 1;
                         _comboPinGraceStart = -999f;
+                        _comboBufferedClick = false;   // #48차: 새 사이클 시작 — 미소비 버퍼 리셋
                         _comboStartTime = Time.time;
                         ResetComboCrossFlags();
                         FireComboSlash(1);   // 재시작 즉시 1타 스윙 FX
@@ -509,6 +530,7 @@ namespace ProjectName.Systems
                         _anim.Play(ComboStateName, 0, 0f);
                         _comboStage = 1;
                         _comboPinGraceStart = -999f;
+                        _comboBufferedClick = false;   // #48차: 콤보 신규 시작 — 미소비 버퍼 리셋
                         _comboStartTime = Time.time;
                         ResetComboCrossFlags();
                         FireComboSlash(1);   // 클릭 즉시 스윙 FX — 임팩트 프레임 대기 없음
@@ -549,9 +571,22 @@ namespace ProjectName.Systems
                     float endNorm = ComboEndNormT[_comboStage - 1];
                     if (normT >= endNorm)
                     {
-                        _anim.Play(ComboStateName, 0, endNorm);   // 플레이헤드 홀드(입력 대기)
-                        if (_comboPinGraceStart < 0f) _comboPinGraceStart = Time.time;
-                        else if (Time.time - _comboPinGraceStart > ComboHoldGrace) EndCombo("무입력");
+                        // #48차 콤보 버퍼링: 경계 도달 프레임에 유효 버퍼가 있으면 즉시 소비 —
+                        // 홀드/그레이스 대기 없이 다음 스테이지로 플레이헤드를 이어붙여 연타가 한 호흡으로 흐른다.
+                        if (_comboBufferedClick && Time.time <= _comboBufferEndTime)
+                        {
+                            _comboBufferedClick = false;
+                            _comboStage++;
+                            _comboPinGraceStart = -999f;
+                            FireComboSlash(_comboStage);   // 스윙 FX — 기존 스테이지 진행 경로와 동일 발화 시점
+                            Debug.Log($"[Combo] 버퍼 클릭 소비 → 스테이지 {_comboStage} 진행 (경계 무홀드 연결)");
+                        }
+                        else
+                        {
+                            _anim.Play(ComboStateName, 0, endNorm);   // 플레이헤드 홀드(입력 대기)
+                            if (_comboPinGraceStart < 0f) _comboPinGraceStart = Time.time;
+                            else if (Time.time - _comboPinGraceStart > ComboHoldGrace) EndCombo("무입력");
+                        }
                     }
                 }
                 else if (normT >= 1f)
@@ -564,6 +599,7 @@ namespace ProjectName.Systems
                 // WeaponCombo 상태가 아닌데 콤보 플래그만 남은 경우(Roll/Jump/Hit 등 인터럽트) — 유예 후 리셋
                 _comboStage = 0;
                 _comboPinGraceStart = -999f;
+                _comboBufferedClick = false;   // #48차: 인터럽트 리셋 시 미소비 버퍼 폐기
                 ResetComboCrossFlags();
                 WeaponSwingTrail.SetEmitting(false);   // [2026-09-12 P2] 인터럽트 리셋 — 스윙 트레일 방출 OFF
                 Debug.Log("[Combo] 인터럽트 리셋");
@@ -662,6 +698,7 @@ namespace ProjectName.Systems
             WeaponSwingTrail.SetEmitting(false);
             _comboStage = 0;
             _comboPinGraceStart = -999f;
+            _comboBufferedClick = false;   // #48차 콤보 버퍼링: 종료 시 미소비 버퍼 리셋(3타 클립 끝 "만료" 포함)
             ResetComboCrossFlags();   // #13: 종료 시 완료 크로스 플래그 리셋 — 다음 콤보에서 재발화 가능
             Debug.Log($"[Combo] 종료({reason})");
         }
