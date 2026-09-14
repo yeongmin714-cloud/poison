@@ -54,6 +54,11 @@
 **진단**: ① 슬래시 미렌더 뿌리 = **원본 에셋 자체 결함** — slash5 프리팹의 vfx 참조 fileID(...526)가 .vfx 파일 내 실제 VisualEffectAsset 오브젝트(...527)와 불일치(제작자가 vfx 재생성 후 프리팹 미갱신) → runtime assetNull=True. 복사본 참조를 ...527로 수리 → 스타일라이즈드 렌더 예상(Free Slash 폴백은 안전망으로 유지) ② 전리품창 빈 슬롯 = DrawLootPanel 슬롯 루프 sx에 panelX 오프셋 누락 — 아이템 슬롯이 화면 좌측(x≈8)에 렌더(캐시 항목수=1 정상이었음). sx=panelX+... 수리(드래그 판정 Rect 연동 수리) ③ 크로스 앵커 Lerp 중간지점 → LastHitPoint+up*0.15 대상 밀착.
 **컴파일**: error CS=0. Play 판정 대기: 스타일라이즈드 아크 렌더/전리품 슬롯에 아이콘+이름+개수 표시/크로스 대상 밀착.
 
+### 🔧 47차 후속2 (fileID 수리에도 assetNull=True 지속 → 참조 의존 제거)
+**진단**: ...527 수리 후 최신 세션에서도 assetNull=True — 프리팹 직렬화 참조가 에디터 환경에서 계속 해결되지 않음(재임포트 환경차 추정).
+**수리**: 프리팹 참조 의존 제거 — `StylizedSlashVFX.vfx`를 Resources/FX/Slash에 복사(meta guid 신규) → 스폰 시 `Resources.Load<VisualEffectAsset>` 직접 로드 후 `ve.visualEffectAsset` 런타임 할당+Reinit/Play. 로드 실패(null) 시 즉시 NotifyVfxDead → 폴백(진단 대기 없음). SlashAliveProbe 진단에 `assetAssigned=` 필드 추가 — 다음 Play에서 할당 성공/실패 즉시 구분.
+**컴파일**: error CS=0.
+
 ## 📌 세션 종합 스냅샷 (2026-09-13 ✅ 45차 — 보라 파티클 진범=마젠타 셰이더 에러 뿌리 수리+BOTW 팔레트 통일+임팩트 단일화+방어구 비주얼 부착 신규+전리품창 5×2+화살 탭)
 
 > **스코프**: 테스트 7 영상 픽셀 실측으로 "보라 파티클"의 진범 확정 — 평균 RGB (219,19,219)=**Unity 셰이더 에러 마젠타**. 런타임 파티클이 기본 머티리얼(Particles/Standard Unlit)로 생성되어 URP 미지원 → 마젠타 렌더. 40차 틴트/44차 색 교체/보라 정규화가 무효였던 근본 이유. 텍스처 전수 확인(HIE/Guz 전부 무채색)으로 코드 색·텍스처는 무죄. 배치컴파일 error CS=0 + 정적 QA FAIL 0건.

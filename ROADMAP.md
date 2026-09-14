@@ -2350,5 +2350,6 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 후속3 폴백 | 테스트9 전수 스캔—VFX Graph 미렌더 확정(골드 0픽셀) → SlashAliveProbe alive 진단+미출력 시 구 Slash VFX 폴백 전환(URP Shader Graph 실적)/복구 시 자동 복귀, LastHitPoint up 0.1 | ✅ |
 | 47차 | 임팩트=Guz Magic Hit 2 교체(Resources 복사+guid 신규, Tint 제거로 에셋 색 유지), 슬래시=ve.Reinit+Play 명시 기동+2시점 진단(0.35s/1.0s, 미각성 2회 연속시에만 폴백) | ✅ |
 | 후속 | 슬래시 미렌더 뿌리=원본 에셋 vfx 참조 fileID 불일치(...526→...527 수리), 전리품창=슬롯 sx panelX 오프셋 누락 수리(화면 좌측 렌더 버그), 크로스=대상 밀착(up0.15) | ✅ |
-| Play 판정 대기 | 피격=Magic Hit 2 표시/슬래시 아크 렌더(진단 로그 assetNull/awake/alive)/폴백 최후 안전망 | ⬜ |
+| 후속2 | ...527 수리에도 assetNull 지속 → 프리팹 참조 의존 제거(StylizedSlashVFX.vfx Resources 로드+런타임 visualEffectAsset 할당+Reinit/Play, 로드 실패시 즉시 폴백, 진단 assetAssigned 필드) | ✅ |
+| Play 판정 대기 | 피격=Magic Hit 2 표시/슬래시 아크 렌더(진단 로그 assetAssigned)/폴백 최후 안전망 | ⬜ |
 | Play 판정 대기 | 트레일/Travis 히트/바구니 반짝임/클로ak/창고 4구획/우클릭 4단 로그 | ⬜ |
