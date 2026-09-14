@@ -266,13 +266,15 @@ namespace ProjectName.Systems
             if (ve != null)
             {
                 // 47차 후속2 — 프리팹 직렬화 참조 결함 우회: .vfx 에셋을 Resources에서 직접 로드(1회 캐시) 후 할당.
-                // 순서 규약: 에셋 할당 → Reinit → Play(Reinit이 새 에셋 기준으로 그래프를 재구성).
+                // 순서 규약: Reinit → 에셋 할당 → Play.
                 if (_stylizedVfxAsset == null)
                     _stylizedVfxAsset = Resources.Load<VisualEffectAsset>(StylizedVfxResourcePath);
                 if (_stylizedVfxAsset != null)
                 {
-                    ve.visualEffectAsset = _stylizedVfxAsset;   // 47차 후속: 프리팹 직렬화 참조 결함 우회 — 에셋 런타임 직접 할당
-                    ve.Reinit();
+                    // 2026-09-14(47차 후속5): 할당→Reinit 순서 버그 수리 — Reinit이 직렬화 값(프리팹 깨진 null 참조)으로
+                    // 되돌려 런타임 할당을 덮어씀. 반드시 Reinit 후 할당.
+                    ve.Reinit();                                // 직렬화 상태로 리셋(선)
+                    ve.visualEffectAsset = _stylizedVfxAsset;   // 리셋 후 런타임 할당(후) — Reinit이 덮어쓰지 않도록 순서 필수
                     ve.Play();
                 }
                 else

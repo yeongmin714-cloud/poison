@@ -27,9 +27,17 @@ namespace ProjectName.Systems
             foreach (Renderer r in renderers)
             {
                 if (r == null || r.sharedMaterial == null) continue;
+                // 47차 후속5: ShaderGraph 재질(_Color 부재) 가드 — 콘솔 에러 스팸 제거.
+                // 폴백 슬래시('Slash World'/'Trail' 등)가 플레이어 자식으로 부착되어 이 루프에 포함되며,
+                // _Color 프로퍼티가 없는 재질에 material.color(get_color) 접근하면 콘솔 에러가 스팸한다.
+                // 해당 재질은 색 저장/플래시를 생략한다(캐시 미포함 → HitFlashRunner.Restore도 자동 스킵).
+                if (!r.sharedMaterial.HasProperty("_Color")) continue;
                 cache[r] = r.sharedMaterial.color;
                 r.sharedMaterial.color = Color.white;
             }
+
+            // 47차 후속5: 플래시 가능한 재질(_Color 보유)이 하나도 없으면 Runner 스폰 생략(플래시 생략).
+            if (cache.Count == 0) return;
 
             var go = new GameObject("HitFlashRunner");
             go.AddComponent<HitFlashRunner>().Init(renderers, cache);
