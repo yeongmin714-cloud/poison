@@ -69,6 +69,11 @@
 **수리**: ① SlashVFXRunner ve 블록 재정렬 — `Reinit() → visualEffectAsset 할당 → Play()`(순서 필수 주석) ② PlayHitFlash에 `HasProperty("_Color")` 가드 — ShaderGraph 재질('Slash World'/'Trail', 폴백 슬래시가 플레이어 자식으로 포함) get_color 에러 스팸 제거(캐시/복원 양쪽 자동 적용).
 **컴파일**: error CS=0. Play 판정 대기: stylized slash 아크 렌더(순서 수리 후 첫 검증)/히트 플래시 에러 스팸 0건.
 
+### 🔧 47차 후속6 (여전히 assetNull — 진단 패턴 재해석: 인스턴스에 VisualEffect 컴포넌트 자체가 없음)
+**진단**: assetNull=True/awake=False/alive=-1 조합 = probe의 GetComponent<VisualEffect>()가 **null** — 깨진 직렬화 참조(m_Asset=null로 풀림) 프리팹은 Instantiate 시 VisualEffect 컴포넌트가 생략됨 → 할당/Reinit 코드 자체가 스킵되고 있었음.
+**수리**: 프리팹 Instantiate 폐기 → **런타임 빌드**: new GameObject+AddComponent<VisualEffect>+visualEffectAsset 직접 할당(Resources 로드 캐시)+Reinit+Play+기존 오리엔테이션 파이프라인(빌보드/플립/롤/SetParent/스케일1.5/1.5s 파괴/probe). 프리팹 로더/캐시/상수 제거. VFXRenderer는 AddComponent 시 자동 부착(internal 타입).
+**컴파일**: error CS=0. Play 판정 대기: stylized slash 아크 렌더(프리팹 의존 완전 제거 후 첫 검증).
+
 ### 🔧 47차 후속4 (패키지 설치 후에도 SG "missing" — AssetDatabase 임포트 캐시 결함 해소)
 **진단**: 패키지 설치 후에도 slash5.shadergraph가 AssetDatabase에서 임포트 시도조차 안 됨(로그 전수 — 이 파일만 0회, 다른 .shadergraph는 정상 임포트). 강제 재임포트(mtime 변경)도 무시 → AssetDatabase 임포트 캐시가 VFG 설치 전 실패 상태로 고착.
 **수리**: 배치모드 -executeMethod로 `AssetDatabase.ImportAsset(ForceUpdate)` 강제 → **SG 임포트 성공**(Object=True, 이름=slash5) + .vfx 5종 재컴파일 — "cannot be compiled ... missing" 0건(이전 세션 대비). StylizedSlashVFX.vfx도 재컴파일 완료 → stylized slash 렌더 조건 완성. 진단 스크립트(Assets/Editor/DiagSlashShaderGraphImport.cs)는 향후 SG 임포트 진단용으로 유지.
