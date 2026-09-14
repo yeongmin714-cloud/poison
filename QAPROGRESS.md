@@ -4,7 +4,7 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-14 (48차)
+> **최종 갱신:** 2026-09-14 (49차)
 
 ---
 
@@ -1256,3 +1256,26 @@ E키→OpenForBasket→우측 창 Show → 슬롯 좌클릭(MouseDown)→드래�
 - Play에서 히트스톱 중 예비동작(anticipation)이 사실상 붕괴되는지(미스에서만 온전히 작동) 체감 확인 — 히트스톱 자체가 임팩트를 주므로 치명적이진 않으나 의도한 스윙 타이밍 지연은 성공 타격에서 축소됨.
 - TriggerCameraEffects가 성공 타격 시 2회(AttackTarget+TryAttack) 호출되어 streak 펀치가 실효 2배(0.8/1.1/1.4), 미스는 1회 → 히트/미스 강도 불일치. 추후 단일화 권장.
 - FaceTargetRoutine 프레임 수 캡(fps 의존) → 시간 기반(≤0.15s) 또는 RotateTowards(최대각속도) 방식 전환 권장, 특히 근접 스윕 폴백(후방 대상)+고프레임 환경.
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-14 ✅ 49차 — 몬스터 절차 애니메이션 구현: 4족 AI 속도 피드 + 종별 보행 프로필 + 특수형 몸놀림)
+
+> **스코프**: 사용자 요청 "몬스터 애니메이션 제작(옵션1=절차 커스터마이즈)". 기존 절차 애니는 존재하나 **WASD 키보드 입력 전용이라 AI 구동 몬스터는 다리가 정지** → 근본 원인 수리 + 종별 프로필 + 특수형 전면 구현. FBX 클립 제작 아님(절차/코드). 5파일 수정.
+
+### 변경 사항
+**`Systems/QuadrupedProceduralAnimation.cs` (534→651행)**: `_aiDriven` 분기(플레이어 키보드 테스트 유지) + FixedUpdate에서 Rigidbody 이동 중복 제거 + SetAiDriven/SetMovementSpeed/ApplyMonsterProfile(11종 보행 프로필) + UpdateLegPhases가 gait 배율(GetGaitPhaseMultiplier) 적용 + gait 전환 시 SyncLegPhases로 렌더 위상 재정렬 + ApplySpineIK 제거(Locomotion 단일 담당 — 이중 누적 해소).
+**`Systems/QuadrupedProceduralLocomotion.cs` (314→391행)**: GetCurrentGaitPhaseSpeed/GetGaitPhaseMultiplier/SyncLegPhases public + UpdateLegTarget 재작성(폐기 height → _stepHeight×sin 스윙 리프트 실사용, 발 공중 부양 방지) + _gaitOverride+SetGaitOverride(no-op 수리) + croc SetSpineWave 유효화.
+**`Systems/AnimalAI.cs` (1311행)**: UpdateQuadrupedLink 지연 탐색(3s, ModelAnimatorAssigner 늦은 부착 대응) → SetAiDriven+ApplyMonsterProfile. 이동/정지 피드 FeedQuadrupedSpeed 삽입(모든 이동·공격·사망·리스폰 경로).
+**`Systems/Animation/Procedural/SpecialCreatureAnimator.cs` (44→470행)**: CreatureType별 전면 구현 — Slime(0.9↔1.1 펄스+이동스쿼시), Spirit(+y 부유+_EmissionColor 펄스·인스턴스 보호), Clam(여닫이 1.0↔0.3), Spider(본 다리좌우교차), LargeMonster(기울임). **루트 델타 자체속도 산출(LateUpdate, transform 읽기만)** → AnimalAI 미호출 상태에서도 이동 피드 발동. SetMoving/SetMoveSpeed API 유지.
+**`Systems/MonsterSpawner.cs`**: IsBiped specialIds에 forest_spirit/bat/crow/poison_snake 추가 → 숲정령 등 특수형 분류 복구. GetSpecialCreatureType 폴백 명시.
+
+### 컴파일/검증
+- Unity batchmode **error CS=0**(1차 + QA-FIX 2회 통과), 5파일 괄호 균형 0/0/0
+- 정적 QA: A(360 이동 중복 ✔) B(SetMovementSpeed→다리 체인 ✔) C(지연탐색 ✔, 3s 후 재탐색 없음 — 주기 재시도 권장) D(gait 렌더 반영 ⚠→**QA-FIX로 해결**) E(이동피드 무호출 ⚠→**자체 산출로 해결**, forest_spirit 분류 ⚠→**수정**) F(문법 ✔, linearVelocity 통일)
+- Play 판정 대기: 토끼 깡충/악어 기어감/슬라임 펄스/숲정령 부유/거미 다리 등 종별 모션 + 공격·피격 반응 + 트롤·오우거 등 2족 보행 확인.
+
+### 비고/후속 제안
+- 3초 타임아웃 후 재탐색 없음 → GLB 로딩이 3초 넘으면 영구 미적용(키보드 모드 잔존). 주기 재시도(0.5s 스로틀) 또는 ModelAnimatorAssigner 부착 콜백으로 역링크 권장.
+- 2족(트롤/오우거/미노타우로스/그림자암살자)은 ProceduralAnimationController 경로 — 별도 종별 프로필 필요(향후).
+- LargeMonster 타입 미사용(giant_clam DB 없음), deep_clam 중복 매핑 — 기존 코드.

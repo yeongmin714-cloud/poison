@@ -598,9 +598,15 @@ namespace ProjectName.Systems
         /// </summary>
         private bool IsBiped(string monsterId)
         {
+            // [2026-09-14(50차 후속)] 2족(사람형) 5종 wild_troll/ogre/minotaur/banshee/shadow_assassin 을
+            // quadrupedIds 에서 제거. 기존에는 4족 목록에 포함되어 IsBiped가 false를 반환하고,
+            // 스폰 시 SpecialCreatureAnimator 부착 게이트(!def.isQuadruped && !IsBiped)를 통과해
+            // GetSpecialCreatureType 폴백(Spider)이 오부착되어 2족 절차 애니(ProceduralAnimationController)와
+            // 병존/충돌하는 문제가 있었다. 제거 후 이 5종은 아래 def != null && !def.isQuadruped 경로로
+            // IsBiped=true가 되어 SpecialCreatureAnimator가 부착되지 않고 2족 절차 애니가 단독 동작한다.
+            // (fire_lizard/salamander/swamp_croc 등 실제 4족은 유지, stone_golem은 원래 목록에 없음)
             string[] quadrupedIds = { "wolf", "boar", "deer", "fox", "bear", "slime", "golem", "fire_lizard",
-                "salamander", "swamp_croc", "snake", "hedgehog", "wild_troll", "ogre", "minotaur",
-                "griffin", "banshee", "manticore", "shadow_assassin" };
+                "salamander", "swamp_croc", "snake", "hedgehog", "griffin", "manticore" };
 
             // [2026-09-14(49차 후속)] forest_spirit/bat/crow/poison_snake 를 특수형 목록에 추가.
             // 기존 누락으로 isQuadruped=false인 숲정령(forest_spirit)이 IsBiped=true로 잘못 분류되어

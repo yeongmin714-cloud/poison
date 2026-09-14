@@ -104,6 +104,37 @@ namespace ProjectName.Systems.Animation.Procedural
             _boneMap = boneMap;
         }
 
+        /// <summary>
+        /// [2026-09-14(50차)] 종별 보행 프로필 적용 — 2족 몬스터 보행 파라미터(walk/run/accel)를 종 특성에 맞춘다.
+        /// AnimalAI.UpdateBipedLink가 지연 탐색 후 SetVelocityProvider와 함께 호출(몬스터당 1회).
+        /// 기록된 값은 HandleInput(외부 속도 수용), UpdateMovement(acceleration으로 속도 수렴),
+        /// UpdateLegPhases(_currentSpeed/runSpeed 비율로 위상 속도 결정)에 그대로 반영된다.
+        /// </summary>
+        public void ApplyMonsterProfile(string monsterId)
+        {
+            switch (monsterId)
+            {
+                // 대형·무거운 괴수 — 느리고 무거운 발걸음(보폭 큼)
+                case "wild_troll":
+                case "ogre":
+                case "stone_golem":
+                    walkSpeed = 3f; runSpeed = 6f; acceleration = 12f;
+                    break;
+                // 돌진형 중간 체격
+                case "minotaur":
+                    walkSpeed = 4f; runSpeed = 8f; acceleration = 15f;
+                    break;
+                // 민첩형 — 빠른 보행
+                case "shadow_assassin":
+                case "banshee":
+                    walkSpeed = 6f; runSpeed = 12f; acceleration = 25f;
+                    break;
+                default:
+                    return; // 그 외 2족: 기본값(walk 5 / run 10 / accel 20) 유지
+            }
+            UnityEngine.Debug.Log($"[ProceduralAnimationController] 종별 보행 프로필 적용: {monsterId} (walk={walkSpeed}, run={runSpeed}, accel={acceleration})");
+        }
+
         // ──────────────────────────────────────────────
         // 네이티브 배열 (Job System용)
         // ──────────────────────────────────────────────

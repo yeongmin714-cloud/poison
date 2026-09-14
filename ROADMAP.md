@@ -2374,3 +2374,18 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 검증 | 배치컴파일 error CS=0(2회 통과 — FIX 포함 최종), 정적 QA FAIL 0건(6포인트), 괄호 균형 0/0 | ✅ |
 | FIX 후속 | QA 지적: 런지/리코일이 히트스톱(timeScale 0.08)에서 deltaTime 축소로 동시 transform 덮어쓰기 → 리코일 묻힘 수리 — _recoilActive 플래그 게이트(런지가 리코일 완료 대기, 조기종료 경로도 해제해 데드락 방지) | ✅ |
 | Play 판정 대기 | 전진 찌르는 무게감, 대상 정렬 회전, 타격 반동, 3연타 한 호흡, 카메라 펀치 단계 차등 | ⬜ |
+
+
+## 🐾 2026-09-14: 몬스터 절차 애니메이션 구현 (몬스터별 맞춤) (MONSTER-PROCANIM-49)
+
+> **목표:** 이펙트가 아니라 몬스터 본체의 움직임을 종별에 맞게. 기존 절차 애니 시스템(WASD 키보드 테스트 전용)이 AI 구동 몬스터에서 미동작이던 원인 수리 + 종별 보행 프로필 + 특수형 몸놀림. FBX 제작이 아닌 절차(코드) 커스터마이즈(옵션 1).
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| P1 4족 원인수리 | QuadrupedProceduralAnimation.HandleInput()이 WASD 키보드로만 속도 수신 → AI 몬스터 다리 정지 원인 → _aiDriven 분기+SetMovementSpeed+UpdateMovementAI+Rigidbody 이동 중복 제거 | ✅ |
+| P2 종별 보행 프로필 | ApplyMonsterProfile(monsterId) 11종 — rabbit 도약형(stepH0.35+Gallop fix)/wolf갤럽/deer우아/deer돌진/boar무거운트롯/giant_rat빠름/fire_lizard·salamander파충류저보폭/electric_porcupine느림/swamp_croc기어감+척추파동/griffin·manticore대형맹수 | ✅ |
+| P3 AI 속도 피드 | AnimalAI 지연탐색(3s 타임아웃, ModelAnimatorAssigner 늦은 부착 대응)+SetAiDriven/ApplyMonsterProfile, 이동 9곳·정지 9곳 FeedQuadrupedSpeed | ✅ |
+| P4 특수형 몸놀림 | SpecialCreatureAnimator 전면구현 — Slime(0.9↔1.1펄스+스쿼시)/Spirit(부유+발광펄스)/Clam(여닫이)/Spider(다리교차)/LargeMonster(기울임), 본 부재 시 transform 폴백 | ✅ |
+| QA-FIX | gait/stepHeight→실제 렌더 위상 통합(Locomotion-SyncLegPhases/GetGaitPhaseMultiplier/UpdateLegTarget 리프트, SpineIK 이중누적 제거), SpecialCreature 루트 델타 자체속도 산출, forest_spirit·bat·crow·poison_snake 특수형 분류 수정 | ✅ |
+| 검증 | 배치컴파일 error CS=0, 정적 QA(F 6포인트 — 추락 0, gait 통합, 이동피드 활성), 5파일 괄호 균형 | ✅ |
+| Play 판정 대기 | 토끼 깡충/악어 기어감/슬라임 펄스/숲정령 부유 등 종별 모션 · 공격/피격 반응 · 트롤·오우거 2족 보행 | ⬜ |

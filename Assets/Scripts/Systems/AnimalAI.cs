@@ -2,6 +2,8 @@ using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Systems.Animation.Neural;
+// [2026-09-14(50차)] 2족 절차 애니 연결 — IVelocityProvider/ProceduralAnimationController 참조용
+using ProjectName.Systems.Animation.Procedural;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -10,7 +12,9 @@ namespace ProjectName.Systems
     /// 몬스터 AI — GAME_DATA.md v2.0 기반 24종 몬스터 지원.
     /// 토끼(도망), 멧돼지(돌진), 늑대(추격) 등 기본 행동 패턴 + 티어별 난이도.
     /// </summary>
-    public class AnimalAI : MonoBehaviour, IDamageable, IAggroable
+    // [2026-09-14(50차)] IVelocityProvider 구현 — 2족 몬스터의 ProceduralAnimationController에
+    // AnimalAI 실 이동 속도를 공급한다(UpdateBipedLink에서 SetVelocityProvider(this)로 연결).
+    public class AnimalAI : MonoBehaviour, IDamageable, IAggroable, IVelocityProvider
     {
         [Header("Monster Identity")]
         [SerializeField] private string _monsterId = "rabbit";  // MonsterDatabase 키
@@ -80,6 +84,17 @@ namespace ProjectName.Systems
         private float _quadSearchElapsed;      // 탐색 경과 시간
         private const float QUAD_SEARCH_TIMEOUT = 3f; // 탐색 포기 시간(초) — 2족 몬스터 등
 
+        // [2026-09-14(50차)] 2족 절차 애니메이션 연결 — AI 이동 속도를 ProceduralAnimationController에 피드.
+        // ModelAnimatorAssigner.SetupBiped가 AnimalAI.Start 이후에 늦게 부착할 수 있어 지연 탐색 재시도
+        // (4족 _quadAnim 지연 탐색 패턴과 동일). 탐색 성공/포기 후 1회만 시도.
+        private ProceduralAnimationController _bipedAnim;
+        private bool _bipedConfigured;         // 연결+프로필 적용 완료 플래그
+        private float _bipedSearchElapsed;     // 탐색 경과 시간
+
+        // [2026-09-14(50차)] IVelocityProvider 출력 값 — 실 이동 방향×속력(FeedQuadrupedSpeed 공용 경로에서 갱신)
+        private Vector3 _currentAIVelocity;
+        private float _currentAISpeed;
+
         // === IAggroable (어그로 합세 시스템) ===
         private AggroState _aggroState = AggroState.Idle;
         private GameObject _aggroTarget;
@@ -107,6 +122,14 @@ namespace ProjectName.Systems
         public MonsterTier Tier => _tier;
         /// <summary>[5.3.5] 몬스터 레벨</summary>
         public int Level => _level;
+
+        // ===================== IVelocityProvider 구현 [2026-09-14(50차)] =====================
+        /// <summary>현재 이동 속도 벡터(실 이동 방향×속력) — 절차 보행 위상/조향 판정에 사용.</summary>
+        public Vector3 CurrentVelocity => _currentAIVelocity;
+        /// <summary>현재 실제 이동 속력(m/s) — 보행/달리기 블렌드 판정에 사용.</summary>
+        public float CurrentSpeed => _currentAISpeed;
+        /// <summary>몬스터는 항상 지면 위를 이동하므로 true 고정(공중 상태 없음).</summary>
+        public bool IsGrounded => true;
 
         /// <summary>몬스터 ID 설정. MonsterSpawner에서 호출.</summary>
         public void SetMonsterId(string id)
@@ -375,6 +398,67 @@ namespace ProjectName.Systems
             Debug.Log($"[AnimalAI] 4족 절차 애니 연결 완료: {_monsterId} (AI 구동 모드 + 보행 프로필)");
         }
 
+        // [2026-09-14(50차)] 2족 절차 애니 대상 판정 — MonsterDef.isQuadruped == false인 실제 2족형 6종.
+        // (독뱀/박쥐/까마귀/슬라임/숲정령 등 나머지 비4족은 특수형·비2족으로 제외)
+        private bool IsBipedMonster()
+        {
+            MonsterDef def = MonsterDatabase.Get(_monsterId);
+            if (def != null && def.isQuadruped) return false; // DB상 4족이면 제외
+
+            switch (_monsterId)
+            {
+                case "stone_golem":     // 돌골렘
+                case "wild_troll":      // 야생트롤
+                case "ogre":            // 오우거
+                case "banshee":         // 밴시
+                case "minotaur":        // 미노타우로스
+                case "shadow_assassin": // 그림자암살자
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        // [2026-09-14(50차)] 2족 절차 애니 연결 — 지연 탐색 + IVelocityProvider 연결 + 종별 보행 프로필 적용.
+        // ModelAnimatorAssigner.SetupBiped가 AnimalAI.Start 이후에 ProceduralAnimationController를
+        // 부착할 수 있어, 발견 시까지 최대 QUAD_SEARCH_TIMEOUT초간 재시도한다(UpdateQuadrupedLink와 동일 패턴).
+        private void UpdateBipedLink()
+        {
+            if (_bipedConfigured) return;
+
+            // 2족 대상이 아니면 1회 판정 후 영구 스킵
+            if (!IsBipedMonster())
+            {
+                _bipedConfigured = true;
+                return;
+            }
+
+            if (_bipedAnim == null)
+            {
+                _bipedAnim = GetComponent<ProceduralAnimationController>();
+                if (_bipedAnim == null)
+                {
+                    _bipedSearchElapsed += Time.deltaTime;
+                    if (_bipedSearchElapsed < QUAD_SEARCH_TIMEOUT) return;
+                    _bipedConfigured = true; // 절차 애니 미부착 — 탐색 포기(AI 이동만 유지)
+                    Debug.Log($"[AnimalAI] 2족 절차 애니 미부착 — 속도 피드 생략: {_monsterId}");
+                    return;
+                }
+            }
+
+            // 2족 절차 컨트롤러 발견 → AI 속도 공급자 연결 + 종별 보행 프로필 적용.
+            // 실 이동/회전은 AnimalAI가 transform으로 담당하며, 컨트롤러는 공급 속도를 읽어
+            // 보행 위상(다리 사이클)·lean만 구동한다(provider 연결 시 컨트롤러 자체 이동/중력은 스킵됨).
+            _bipedAnim.SetVelocityProvider(this);
+            _bipedAnim.ApplyMonsterProfile(_monsterId);
+            _bipedConfigured = true;
+            Debug.Log($"[AnimalAI] 2족 절차 애니 연결 완료: {_monsterId} (IVelocityProvider 연결 + 보행 프로필)");
+
+            // 이중 구동 판별용 모니터 로그 — RigAnimationController도 부착돼 있으면 두 경로 병존
+            if (_rigAnim != null)
+                Debug.Log($"[AnimalAI] {_monsterId}: RigAnimationController 병존 — 기존 SetState 경로 유지 + 절차 보행 병행");
+        }
+
         /// <summary>
         /// [2026-09-14(49차)] 4족 절차 애니메이션에 실제 이동 속도 피드.
         /// AnimalAI가 transform을 직접 이동하므로 이동 크기만 전달하고, 방향 회전은 AnimalAI가
@@ -382,6 +466,13 @@ namespace ProjectName.Systems
         /// </summary>
         private void FeedQuadrupedSpeed(float speed)
         {
+            // [2026-09-14(50차)] AI 실속도 갱신(공용 경로) — 모든 이동/정지 루틴이 이 메서드를 거치므로
+            // 2족 절차 애니용 IVelocityProvider 출력을 여기서 함께 갱신한다. 이동 방향은 이동 루틴이
+            // LookRotation으로 정렬한 직후 호출되므로 transform.forward와 일치.
+            // 4족 피드 로직(SetMovementSpeed)은 변경 없음 — 별개 경로 유지.
+            _currentAISpeed = Mathf.Max(0f, speed);
+            _currentAIVelocity = _currentAISpeed > 0.001f ? transform.forward * _currentAISpeed : Vector3.zero;
+
             if (_quadAnim != null && _quadConfigured)
                 _quadAnim.SetMovementSpeed(speed);
         }
@@ -391,11 +482,17 @@ namespace ProjectName.Systems
             // [2026-09-14(49차)] 4족 절차 애니 연결 시도(지연 부착 대응) — 최초 1회 성공 후 스킵
             UpdateQuadrupedLink();
 
+            // [2026-09-14(50차)] 2족 절차 애니 연결 시도(지연 부착 대응) — IVelocityProvider 연결 + 보행 프로필
+            UpdateBipedLink();
+
             if (_isDead || _player == null)
             {
                 // 사망 또는 플레이어 없음 → Idle
                 // [2026-09-14(49차)] 정지 상태 — 4족 애니 속도 0 피드(다리 정지)
                 if (_quadAnim != null && _quadConfigured) _quadAnim.SetMovementSpeed(0f);
+                // [2026-09-14(50차)] 2족 절차 애니 정지 — 속도 공급 값 0 클리어(보행 위상 정지)
+                _currentAISpeed = 0f;
+                _currentAIVelocity = Vector3.zero;
                 if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
                     _rigAnim.SetStateImmediate(AnimationState.Idle);
                 return;
