@@ -811,13 +811,13 @@ namespace ProjectName.Systems
                 Vector3 dir = PlayerCombat.LastHitPoint - head;
                 dir = dir.sqrMagnitude > 0.000001f ? dir.normalized : t.forward;     // 히트 지점==머리 등 퇴화 방어
                 dir = ClampForwardHemisphere(dir, t, stage);                         // [2026-09-11] 스윙/크로스 공용 전방 반구 클램프 — 뒤방향 스윙 금지
-                // 사용자 지정 — 십자가는 스윙 아크의 정중앙에(타격점 하나로 읽힘): 스윙 FX(39차)와 완전히 동일 앵커
-                // Lerp(플레이어 루트, LastHitPoint, 0.5) = LastHitPoint를 플레이어 쪽으로 반쯤 당겨온 스윙 정중앙.
-                // [46차 후속] up 오프셋 1.2 → 0.6으로 낮춰 타격 지점에 가깝게. ← 튜닝 포인트: 크로스가 타격점보다
-                // 낮게/높게 보이면 이 값을 조정할 것.
-                Vector3 pos = Vector3.Lerp(t.position, PlayerCombat.LastHitPoint, 0.5f) + Vector3.up * 0.6f;
+                // 2026-09-14(47차): 피격대상 밀착 — 중간지점 Lerp 제거(사용자 지정).
+                // 기존: Lerp(플레이어 루트, LastHitPoint, 0.5) + up*0.6 = 플레이어↔대상 중간 지점 → 크로스가
+                // 대상에서 멀어 보임. 이제 LastHitPoint(대상 bounds 중심 + up*0.2)에 밀착, up*0.15 미세 보정.
+                // LastHitValid/0.5s 게이트(상단)는 유지 — 빈 스윙엔 크로스 없음.
+                Vector3 pos = PlayerCombat.LastHitPoint + Vector3.up * 0.15f;
                 SlashVFXRunner.PlayCross(pos, dir);
-                Debug.Log($"[Combo] 크로스 FX stage={stage} → 스윙 정중앙 발화 pos={pos:F2}");
+                Debug.Log($"[Combo] 크로스 FX stage={stage} → 피격대상 밀착 발화 pos={pos:F2}");
             }
             catch (System.Exception fxEx)
             {

@@ -2511,7 +2511,10 @@ namespace ProjectName.UI
                 int row = i / LOOT_COLUMNS;
                 if (row >= totalRows) break;   // 최대 2행 — 초과분은 [전부 획득] 일괄 획득
 
-                float sx = SLOT_MARGIN + col * (slotWidth + SLOT_MARGIN);
+                // 2026-09-14(47차): panelX 오프셋 누락 수리 — 이 패널은 BeginGroup/ScrollView 없이
+                // 절대 스크린 좌표로 렌더(배경 Box·타이틀·그리드 배경 모두 panelX 사용). 기존
+                // SLOT_MARGIN 단독 시작이라 슬롯이 화면 좌측(x≈8)에 렌더되어 패널엔 빈 슬롯만 보였음.
+                float sx = panelX + SLOT_MARGIN + col * (slotWidth + SLOT_MARGIN);
                 float sy = gridY + SLOT_MARGIN + row * rowHeight;
                 Rect slotRect = new Rect(sx, sy, slotWidth, slotHeight);
 
