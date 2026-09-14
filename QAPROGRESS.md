@@ -74,6 +74,10 @@
 **수리**: 프리팹 Instantiate 폐기 → **런타임 빌드**: new GameObject+AddComponent<VisualEffect>+visualEffectAsset 직접 할당(Resources 로드 캐시)+Reinit+Play+기존 오리엔테이션 파이프라인(빌보드/플립/롤/SetParent/스케일1.5/1.5s 파괴/probe). 프리팹 로더/캐시/상수 제거. VFXRenderer는 AddComponent 시 자동 부착(internal 타입).
 **컴파일**: error CS=0. Play 판정 대기: stylized slash 아크 렌더(프리팹 의존 완전 제거 후 첫 검증).
 
+### 🎨 47차 후속7 (사용자 피드백: 슬래시 렌더 성공 → 색/크기 조정)
+**적용**: ① 색상 — white-yellow → **white-blue 변종** 교체(Resources/FX/Slash/StylizedSlashVFX.vfx 내용 교체, 경로/guid 유지 — 피격 Magic Hit 2 파란색과 매칭) ② 크기 — 고정 1.5 제거 → **공격범위 연동**(사거리×0.4, 클램프 0.8~1.6: 검 2.5m→1.0/창 4m→1.6/맨손 2m→0.8, WeaponRangeIndicator 사거리 표와 동일 소스).
+**비고**: 에디터 개방으로 배치컴파일 잠김 — 에디터 포커스 시 자동 컴파일. Play 판정 대기: 파란 아크+범위 맞춘 크기.
+
 ### 🔧 47차 후속4 (패키지 설치 후에도 SG "missing" — AssetDatabase 임포트 캐시 결함 해소)
 **진단**: 패키지 설치 후에도 slash5.shadergraph가 AssetDatabase에서 임포트 시도조차 안 됨(로그 전수 — 이 파일만 0회, 다른 .shadergraph는 정상 임포트). 강제 재임포트(mtime 변경)도 무시 → AssetDatabase 임포트 캐시가 VFG 설치 전 실패 상태로 고착.
 **수리**: 배치모드 -executeMethod로 `AssetDatabase.ImportAsset(ForceUpdate)` 강제 → **SG 임포트 성공**(Object=True, 이름=slash5) + .vfx 5종 재컴파일 — "cannot be compiled ... missing" 0건(이전 세션 대비). StylizedSlashVFX.vfx도 재컴파일 완료 → stylized slash 렌더 조건 완성. 진단 스크립트(Assets/Editor/DiagSlashShaderGraphImport.cs)는 향후 SG 임포트 진단용으로 유지.

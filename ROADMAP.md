@@ -2355,5 +2355,6 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 후속4 | 패키지 설치 후에도 SG 미임포트(AssetDatabase 캐시 고착) → 배치 ImportAsset(ForceUpdate) 강제 → SG 임포트 성공(Object=True)+.vfx 재컴파일(cannot be compiled 0건) | ✅ |
 | 후속5 | 할당 순서 버그 수리(할당→Reinit이 직렬화 null로 덮어씀→**Reinit→할당→Play** 재정렬)+PlayHitFlash ShaderGraph _Color 부재 가드(에러 스팸 제거) | ✅ |
 | 후속6 | 여전히 assetNull=인스턴스에 VisualEffect 컴포넌트 부재(깨진 참조 프리팹 Instantiate 생략)→프리팹 Instantiate 폐기, 런타임 빌드 전환(new GameObject+AddComponent<VisualEffect>+직접 할당) | ✅ |
-| Play 판정 대기 | stylized slash 아크 렌더(프리팹 의존 완전 제거 후 첫 검증)/피격=Magic Hit 2 표시 | ⬜ |
+| 후속7 | 렌더 성공 확인 → 색상=파란 변종(white-blue, Magic Hit 매칭)+크기=공격범위 연동(사거리×0.4 클램프 0.8~1.6) | ✅ |
+| Play 판정 대기 | 파란 아크+범위 맞춘 크기 체감/피격=Magic Hit 2 표시 | ⬜ |
 | Play 판정 대기 | 트레일/Travis 히트/바구니 반짝임/클로ak/창고 4구획/우클릭 4단 로그 | ⬜ |
