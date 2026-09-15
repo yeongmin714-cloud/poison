@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using Unity.Cinemachine;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -7,6 +8,11 @@ namespace ProjectName.Systems
     /// <summary>
     /// G2-04: 전투 카메라 이펙트 — 흔들림, HitStop, 슬로우모션.
     /// 싱글톤, 코루틴 기반 (Time.unscaledDeltaTime 사용).
+    /// [2026-09-15 Phase A] 무기별 카메라 임펄스 프로파일 추가:
+    ///   - 검: 근접 강함(전진+흔들림)
+    ///   - 창: 찌르기 관통감(좁고 깊은 흔들림)
+    ///   - 활: 원거리 약함(가벼운 진동)
+    ///   - 맨손: 경쾌한 연타(짧고 빠른)
     /// </summary>
     public class CombatCameraEffects : MonoBehaviour
     {
@@ -26,6 +32,12 @@ namespace ProjectName.Systems
         [SerializeField] private float _killSlowTimeScale = 0.5f;
         [SerializeField] private float _killSlowDuration = 0.3f;
         [SerializeField] private float _killSlowRecoveryDuration = 0.4f;
+
+        [Header("Weapon-Specific Impulse Profiles (Phase A)")]
+        [SerializeField] private CameraImpulseProfile _swordProfile;
+        [SerializeField] private CameraImpulseProfile _spearProfile;
+        [SerializeField] private CameraImpulseProfile _bowProfile;
+        [SerializeField] private CameraImpulseProfile _fistProfile;
 
         // ================================================================
         // HighSpec 전용 feel 튜닝 상수 (Balanced 동작에는 영향 없음)
@@ -70,11 +82,34 @@ namespace ProjectName.Systems
                 _originalCamLocalPos = _mainCamera.transform.localPosition;
         }
 
+        /// <summary>
+        /// 무기별 임펄스 프로파일 구조체
+        /// </summary>
+        [System.Serializable]
+        public struct CameraImpulseProfile
+        {
+            public float intensity;      // 흔들림 강도
+            public float duration;       // 지속 시간
+            public float frequency;      // 진동 주파수
+            public Vector3 directionBias; // 방향 바이어스 (전진/상향 등)
+            public bool useImpulseSource; // Cinemachine Impulse Source 사용 여부
+        }
+
         /// <summary>일반 타격 효과: Shake + HitStop</summary>
         public static void PlayHit()
         {
             if (Instance == null) return;
             Instance.PlayHitShake(Instance._hitShakeIntensity);
+            Instance.PlayHitStop();
+        }
+
+        /// <summary>무기별 타격 효과: 무기 타입에 따른 임펄스 프로파일 적용</summary>
+        public static void PlayHit(ProjectName.Core.WeaponType weaponType)
+        {
+            if (Instance == null) return;
+
+            var profile = Instance.GetProfile(weaponType);
+            Instance.PlayWeaponShake(profile);
             Instance.PlayHitStop();
         }
 
@@ -94,18 +129,59 @@ namespace ProjectName.Systems
 
         // ===== Instance Methods =====
 
-        /// <summary>카메라 위치 랜덤 오프셋 + 원복 (0.1s)</summary>
+        private CameraImpulseProfile GetProfile(ProjectName.Core.WeaponType weaponType)
+        {
+            switch (weaponType)
+            {
+                case ProjectName.Core.WeaponType.Sword: return _swordProfile;
+                case ProjectName.Core.WeaponType.Spear: return _spearProfile;
+                case ProjectName.Core.WeaponType.Bow: return _bowProfile;
+                case ProjectName.Core.WeaponType.Fist: return _fistProfile;
+                default: return _fistProfile;
+            }
+        }
+
+        /// <summary>무기별 전용 흔들림 재생 (Cinemachine Impulse + 기존 셰이크 병행)</summary>
+        public void PlayWeaponShake(CameraImpulseProfile profile)
+        {
+            // 1. Cinemachine Impulse Source로 임펄스 발사 (가장 자연스러운 카메라 반응)
+            if (profile.useImpulseSource && _mainCamera != null)
+            {
+                var impulseSource = _mainCamera.GetComponent<CinemachineImpulseSource>();
+                if (impulseSource == null)
+                    impulseSource = _mainCamera.gameObject.AddComponent<CinemachineImpulseSource>();
+
+                // 임펄스 방향: 전진 바이어스 + 랜덤
+                Vector3 impulseDir = _mainCamera.transform.forward * profile.directionBias.z
+                                   + _mainCamera.transform.up * profile.directionBias.y
+                                   + _mainCamera.transform.right * profile.directionBias.x;
+
+                impulseSource.GenerateImpulse(impulseDir * profile.intensity);
+            }
+
+            // 2. 기존 셰이크 루틴도 병행 (호환성)
+            if (_activeShake != null)
+                StopCoroutine(_activeShake);
+
+            float intensity = profile.intensity;
+            if (ActionFeel.HighSpec)
+                intensity *= HighSpecShakeMultiplier;
+
+            _activeShake = StartCoroutine(ShakeRoutine(intensity, profile.duration, profile.frequency));
+        }
+
+        // ===== Instance Methods =====
+
+        /// <summary>카메라 위치 랜덤 오프셋 + 원복 (주파수 파라미터 추가)</summary>
         public void PlayHitShake(float intensity)
         {
             if (_activeShake != null)
                 StopCoroutine(_activeShake);
 
-            // HighSpec: 흔들림 강도 1.3배 (Balanced는 기본값 유지).
-            // PlayCritShake도 이 메서드를 경유하므로 치명타 흔들림도 함께 강해진다.
             if (ActionFeel.HighSpec)
                 intensity *= HighSpecShakeMultiplier;
 
-            _activeShake = StartCoroutine(ShakeRoutine(intensity, _hitShakeDuration));
+            _activeShake = StartCoroutine(ShakeRoutine(intensity, _hitShakeDuration, 25f));
         }
 
         /// <summary>Time.timeScale=0.5 (0.1s) → Lerp 복구</summary>
@@ -118,7 +194,6 @@ namespace ProjectName.Systems
             float holdDuration = _hitStopDuration;
             float recoveryDuration = _hitStopRecoveryDuration;
 
-            // HighSpec: 더 깊게(0.35), 더 길게(1.15배) — 더 강한 타격감 (Balanced는 기본값 유지)
             if (ActionFeel.HighSpec)
             {
                 timeScale = HighSpecHitStopTimeScale;
@@ -139,7 +214,6 @@ namespace ProjectName.Systems
             float holdDuration = _killSlowDuration;
             float recoveryDuration = _killSlowRecoveryDuration;
 
-            // HighSpec: 킬 슬로우모션도 살짝 더 깊게(0.4), 더 길게(1.15배) (Balanced는 기본값 유지)
             if (ActionFeel.HighSpec)
             {
                 timeScale = HighSpecKillSlowTimeScale;
@@ -159,16 +233,22 @@ namespace ProjectName.Systems
 
         // ===== Coroutines =====
 
-        private IEnumerator ShakeRoutine(float intensity, float duration)
+        /// <summary>주파수 파라미터 추가된 셰이크 루틴</summary>
+        private IEnumerator ShakeRoutine(float intensity, float duration, float frequency = 25f)
         {
             if (_mainCamera == null) yield break;
 
             float elapsed = 0f;
             while (elapsed < duration)
             {
-                Vector3 randomOffset = Random.insideUnitSphere * intensity;
-                // Keep the z offset minimal to avoid clipping
-                randomOffset.z = randomOffset.z * 0.3f;
+                // 주파수 기반 진동 (더 자연스러운 카메라 흔들림)
+                float noise = Mathf.PerlinNoise(Time.unscaledTime * frequency, 0f) * 2f - 1f;
+                float noise2 = Mathf.PerlinNoise(0f, Time.unscaledTime * frequency) * 2f - 1f;
+                float noise3 = Mathf.PerlinNoise(Time.unscaledTime * frequency * 0.7f, Time.unscaledTime * frequency * 0.7f) * 2f - 1f;
+
+                Vector3 randomOffset = new Vector3(noise, noise2, noise3 * 0.3f) * intensity;
+                randomOffset.z = randomOffset.z * 0.3f; // Z축은 덜 흔들림 (클리핑 방지)
+
                 _mainCamera.transform.localPosition = _originalCamLocalPos + randomOffset;
 
                 elapsed += Time.unscaledDeltaTime;
@@ -193,17 +273,14 @@ namespace ProjectName.Systems
 
         private IEnumerator HitStopRoutine(float timeScale, float holdDuration, float recoveryDuration)
         {
-            // 최초 효과 시작 시에만 _baseTimeScale 저장 (중첩 호출 시 덮어쓰지 않음)
             if (!_isTimeScaleEffectRunning)
             {
                 _baseTimeScale = Time.timeScale;
                 _isTimeScaleEffectRunning = true;
             }
 
-            // Immediate time scale drop
             Time.timeScale = timeScale;
 
-            // Hold at slow speed
             float elapsed = 0f;
             while (elapsed < holdDuration)
             {
@@ -211,7 +288,6 @@ namespace ProjectName.Systems
                 yield return null;
             }
 
-            // Lerp recovery back to _baseTimeScale (원본 값으로 복구)
             float recoveryElapsed = 0f;
             float startScale = Time.timeScale;
             while (recoveryElapsed < recoveryDuration)
@@ -229,17 +305,14 @@ namespace ProjectName.Systems
 
         private IEnumerator KillSlowMotionRoutine(float timeScale, float holdDuration, float recoveryDuration)
         {
-            // 최초 효과 시작 시에만 _baseTimeScale 저장 (중첩 호출 시 덮어쓰지 않음)
             if (!_isTimeScaleEffectRunning)
             {
                 _baseTimeScale = Time.timeScale;
                 _isTimeScaleEffectRunning = true;
             }
 
-            // Immediate time scale drop
             Time.timeScale = timeScale;
 
-            // Hold at slow speed
             float elapsed = 0f;
             while (elapsed < holdDuration)
             {
@@ -247,7 +320,6 @@ namespace ProjectName.Systems
                 yield return null;
             }
 
-            // Lerp recovery back to _baseTimeScale (원본 값으로 복구)
             float recoveryElapsed = 0f;
             float startScale = Time.timeScale;
             while (recoveryElapsed < recoveryDuration)

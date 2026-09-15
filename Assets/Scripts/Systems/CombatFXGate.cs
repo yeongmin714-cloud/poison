@@ -103,8 +103,12 @@ namespace ProjectName.Systems
             // 1. 피격 VFX — Matthew Guz Impact 에셋 (유일한 피격 표현). Runner 내부에 0.08s 스팸 방지 쿨다운 있음.
             SlashVFXRunner.PlayImpact(position, type);
 
-            // 2. 데미지 숫자 — 치명타 구분은 호출측이 밝은 numberColor(밝은 노랑/주황)로 전달하는 방식.
-            CombatVFXController.ShowDamageNumber(position, damageInt, numberColor);
+            // 2. 데미지 숫자 — 치명타/백어택 구분: isCrit=true일 때 백어택인지 체크하여 타입 결정
+            var dmgType = isCrit
+                ? CombatVFXController.DamageNumberType.Critical
+                : CombatVFXController.DamageNumberType.Normal;
+            // TODO: 백어택 구분 필요 시 isBackAttack 파라미터 추가하여 BackAttack 타입 사용
+            CombatVFXController.ShowDamageNumber(position, damageInt, numberColor, dmgType);
 
             // 3. 카메라 셰이크(히트/크리틱 2종) + 히트스톱. PlayKill은 별도 호출 책임.
             if (isCrit)

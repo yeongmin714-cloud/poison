@@ -602,6 +602,8 @@ namespace ProjectName.Systems
                 _comboBufferedClick = false;   // #48차: 인터럽트 리셋 시 미소비 버퍼 폐기
                 ResetComboCrossFlags();
                 WeaponSwingTrail.SetEmitting(false);   // [2026-09-12 P2] 인터럽트 리셋 — 스윙 트레일 방출 OFF
+                // [Phase B] 콤보 스테이지 리셋 — 트레일 색상 오버라이드 해제
+                WeaponSwingTrail.SetComboStage(0);
                 Debug.Log("[Combo] 인터럽트 리셋");
             }
 
@@ -696,6 +698,8 @@ namespace ProjectName.Systems
             _anim.CrossFade("Idle", ComboExitBlend, 0);
             // [2026-09-12 P2] 콤보 종료(무입력 홀드 만료/만료 Idle 크로스) — 스윙 트레일 방출 OFF
             WeaponSwingTrail.SetEmitting(false);
+            // [Phase B] 콤보 스테이지 리셋 — 트레일 색상 오버라이드 해제
+            WeaponSwingTrail.SetComboStage(0);
             _comboStage = 0;
             _comboPinGraceStart = -999f;
             _comboBufferedClick = false;   // #48차 콤보 버퍼링: 종료 시 미소비 버퍼 리셋(3타 클립 끝 "만료" 포함)
@@ -737,20 +741,43 @@ namespace ProjectName.Systems
                     // 내부 _trail==null 가드가 무기 트레일을 보존하므로 매 콤보 진입마다 호출해도 무해(부착 1회, 로그 1회).
                     WeaponSwingTrail.EnsureBareFist(transform.root);
 
+                    // [Phase B] 콤보 스테이지 설정 — 트레일 색상 오버라이드 적용
+                    WeaponSwingTrail.SetComboStage(stage);
+
                     // [2026-09-13 스타일라이즈드 슬래시 발화] 콤보 방향(ComboStageDirection → 전방 반구 클램프) +
                     // yaw 부호(좌우 플립 판정). [46차 후속] 스윙 앵커를 몸에 가깝게 — 기존 fwd 0.9 + up 1.2(38차 규격)에서
                     // fwd 0.55 + up 1.25로 조정(플레이어 루트 기준). ← 튜닝 포인트: 아크가 몸에서 떠 보이면 fwd를,
                     // 높이가 어색하면 up 값을 조정할 것. (앵커 계산은 호출부 단일 소스 — 러너 내부 계산 없음, 불일치 제거)
                     var t = transform;
-                    Vector3 dir = ComboStageDirection(stage, t);
                     Vector3 pos = t.position + t.forward * 0.8f + Vector3.up * 1.25f;   // 47차 후속9: 아크 전방 배치(0.55→0.8) — 스월 아크를 대상 방향 전방에 위치
-                    // yawSign — ComboStageDirection(클램프 후)의 수평 yaw 부호: 1타 -58°(좌) → -1, 2타 +63°(우)·
-                    // 3타 클램프 후 +36°(우) → +1. 러너에서 이 부호로 아크 진행을 좌우 플립한다.
+                    
+                    // [2026-09-15 Phase A] 슬래시 호가 피격 대상(몬스터)을 향하도록 방향 계산
+                    // LastHitPoint(최근 적중 지점) 또는 CurrentTarget 위치 기준으로 방향 계산
+                    Vector3 dir;
+                    if (ProjectName.Systems.PlayerCombat.LastHitValid && Time.time - ProjectName.Systems.PlayerCombat.LastHitTime <= 0.5f)
+                    {
+                        dir = (ProjectName.Systems.PlayerCombat.LastHitPoint - pos).normalized;  // 슬래시 앵커 → 타격 지점 방향
+                    }
+                    else if (ProjectName.Systems.PlayerCombat.Instance != null && ProjectName.Systems.PlayerCombat.Instance.CurrentTarget != null)
+                    {
+                        var targetComp = ProjectName.Systems.PlayerCombat.Instance.CurrentTarget as Component;
+                        dir = (targetComp.transform.position - pos).normalized;  // 슬래시 앵커 → 현재 타겟 방향
+                    }
+                    else
+                    {
+                        dir = ComboStageDirection(stage, t);  // 폴백: 기존 스윙 방향
+                    }
+                    dir.y = 0f; // 수평 방향만 사용 (수직 성분 제거)
+                    if (dir.sqrMagnitude < 0.0001f)
+                        dir = t.forward; // 극단 케이스 폴백
+
+                    // yawSign — 타겟 방향의 수평 yaw 부호: 좌측이면 -1, 우측이면 +1 (아크 진행 좌우 플립용)
                     Vector3 fwdFlat = new Vector3(t.forward.x, 0f, t.forward.z);
                     Vector3 dirFlat = new Vector3(dir.x, 0f, dir.z);
                     float yawSign = (fwdFlat.sqrMagnitude > 0.000001f && dirFlat.sqrMagnitude > 0.000001f
                         && Vector3.SignedAngle(fwdFlat.normalized, dirFlat.normalized, Vector3.up) < 0f)
                         ? -1f : 1f;
+                    
                     // 46차 후속: playerRoot = 플레이어 루트(transform.root — EnsureBareFist와 동일 기준) 전달 —
                     // 슬래시 인스턴스가 플레이어에 부착되어 이동/회전을 추종한다(부착감). null이면 러너가 폴백.
                     SlashVFXRunner.PlaySlashStage(pos, dir, stage, yawSign, transform.root);
@@ -767,10 +794,9 @@ namespace ProjectName.Systems
         /// <summary>
         /// [2026-09-13 스타일라이즈드 슬래시 복원] 스테이지별 스윙 방향(튜닝 상수 — 2026-09-11
         /// WeaponSwingDirectionAnalyzer 실측(Heat 리그 RightHand 리타깃) 기반, 42차 스윙 쿼드 폐기 때 제거했다가
-        /// 스타일라이즈드 아크 발화용으로 원본 계산 그대로 복원).
-        /// 1타 좌전방 수평(yaw -58°), 2타 우전방(yaw 63.2° — 수직 궤적은 러너 롤 -90 담당), 3타 우후방 상향 사선
-        /// (yaw 143.6°). 모든 스테이지 <see cref="ClampForwardHemisphere"/>를 경유해 전방 반구(수평 |yaw|≤90°)를
-        /// 강제한다(38~39차 규약 — 뒤방향 스윙 금지, 후방 성분은 yaw 미러로 전방 반전).
+        /// 스타일라이즈드 아크 발화용 — 모든 스테이지가 전방 반구를 향하도록 고정.
+        /// 1타: 좌전방 수평(yaw -45°), 2타: 우전방 수직(yaw +45°, 롤 -90°로 수직 처리), 3타: 정면 전방(yaw 0°).
+        /// ClampForwardHemisphere는 안전망으로만 유지(이미 전방이면 무변경).
         /// </summary>
         private static Vector3 ComboStageDirection(int stage, Transform t)
         {
@@ -778,13 +804,13 @@ namespace ProjectName.Systems
             switch (stage)
             {
                 case 2:
-                    dir = Quaternion.Euler(0f, 63.2f, 0f) * t.forward;      // 2타: 실측 수직 상승 접선 — 수평 성분만 dir로, 수직 궤적은 러너 롤 -90
+                    dir = Quaternion.Euler(0f, 45f, 0f) * t.forward;      // 2타: 우전방 (수직 궤적은 러너 롤 -90 담당)
                     break;
                 case 3:
-                    dir = Quaternion.Euler(28.7f, 143.6f, 0f) * t.forward;  // 3타: 실측 우후방 상향 사선(후방 성분 → 아래 클램프에서 전방 미러)
+                    dir = t.forward;  // 3타: 정면 전방 (후방/사선 제거)
                     break;
                 default:
-                    dir = Quaternion.Euler(1.3f, -58f, 0f) * t.forward;     // 1타: 실측 좌전방 수평
+                    dir = Quaternion.Euler(0f, -45f, 0f) * t.forward;     // 1타: 좌전방 수평
                     break;
             }
             return ClampForwardHemisphere(dir, t, stage);

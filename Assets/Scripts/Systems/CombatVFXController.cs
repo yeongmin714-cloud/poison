@@ -47,6 +47,7 @@ namespace ProjectName.Systems
         // 2. 데미지 폰트 — OnGUI WorldToScreenPoint, 1.5초 Fade Out
         //    데미지 숫자 실패가 전투(사망 판정/전리품)를 절대 방해하지 않도록
         //    전체 try-catch 격리 + 스팸 가드 경고(1초 쿨다운).
+        // [2026-09-15 Phase A] 데미지 타입별 색상/애니메이션 추가
         // ================================================================
         private static float _lastVfxWarningTime = -999f;
 
@@ -57,14 +58,24 @@ namespace ProjectName.Systems
             Debug.LogWarning($"[CombatVFXController] {message}");
         }
 
-        public static void ShowDamageNumber(Vector3 worldPos, int damage, Color color)
+        // 데미지 숫자 타입 (public으로 노출하여 ShowDamageNumber에서 사용)
+        public enum DamageNumberType
+        {
+            Normal,      // 일반 데미지 (흰)
+            Critical,    // 치명타 (골드)
+            BackAttack,  // 백어택 (주황)
+            Heal,        // 치유 (초록)
+            Mana,        // 마나/리소스 (파랑)
+        }
+
+        public static void ShowDamageNumber(Vector3 worldPos, int damage, Color color, DamageNumberType type = DamageNumberType.Normal)
         {
             GameObject go = null;
             try
             {
                 go = new GameObject("DamageNumber");
                 go.transform.position = worldPos;
-                go.AddComponent<DamageNumberRunner>().Init(damage.ToString(), color);
+                go.AddComponent<DamageNumberRunner>().Init(damage.ToString(), color, type);
             }
             catch (System.Exception ex)
             {
@@ -327,12 +338,14 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
-        // 내부 Runner: HitFlash 복원
+        // 내부 Runner: HitFlash 복원 + 아웃라인
+        // [2026-09-15 Phase A] 히트 플래시 + 아웃라인(흰/금 테두리 0.15초)
         // ================================================================
         private class HitFlashRunner : MonoBehaviour
         {
             private Renderer[] _renderers;
             private Dictionary<Renderer, Color> _cache;
+            private Dictionary<Renderer, Vector3> _originalScales;
             private float _elapsed;
             private bool _restored;
 
@@ -342,12 +355,49 @@ namespace ProjectName.Systems
                 _cache = cache;
                 _elapsed = 0f;
                 _restored = false;
+
+                // [Phase A] 아웃라인용 원본 스케일 저장
+                _originalScales = new Dictionary<Renderer, Vector3>(renderers.Length);
+                foreach (Renderer r in renderers)
+                {
+                    if (r != null)
+                        _originalScales[r] = r.transform.localScale;
+                }
             }
 
             private void Update()
             {
                 _elapsed += Time.deltaTime;
-                if (_elapsed >= 0.1f && !_restored)
+                float duration = 0.15f; // 아웃라인/플래시 지속시간 0.15초
+
+                if (_elapsed < duration)
+                {
+                    // [Phase A] 아웃라인 효과: 스케일 1.05배 + 이미션(발광) 추가
+                    float t = _elapsed / duration;
+                    float scaleMultiplier = Mathf.Lerp(1.05f, 1f, t); // 1.05배 → 1.0배
+                    float emissionIntensity = Mathf.Lerp(1.5f, 0f, t); // 발광 1.5 → 0
+
+                    foreach (Renderer r in _renderers)
+                    {
+                        if (r == null || r.sharedMaterial == null) continue;
+
+                        // 스케일로 아웃라인 효과 (약간 부풀리기)
+                        if (_originalScales.TryGetValue(r, out Vector3 origScale))
+                        {
+                            r.transform.localScale = origScale * scaleMultiplier;
+                        }
+
+                        // 이미션으로 아웃라인 글로우 효과
+                        if (r.sharedMaterial.HasProperty("_EmissionColor"))
+                        {
+                            Color emission = Color.white * emissionIntensity;
+                            r.sharedMaterial.SetColor("_EmissionColor", emission);
+                            r.sharedMaterial.EnableKeyword("_EMISSION");
+                        }
+                    }
+                }
+
+                if (_elapsed >= duration && !_restored)
                 {
                     Restore();
                     _restored = true;
@@ -362,6 +412,17 @@ namespace ProjectName.Systems
                     if (r == null || r.sharedMaterial == null) continue;
                     if (_cache.TryGetValue(r, out Color color))
                         r.sharedMaterial.color = color;
+
+                    // [Phase A] 아웃라인 복원: 스케일 원복 + 이미션 끄기
+                    if (_originalScales.TryGetValue(r, out Vector3 origScale))
+                    {
+                        r.transform.localScale = origScale;
+                    }
+                    if (r.sharedMaterial.HasProperty("_EmissionColor"))
+                    {
+                        r.sharedMaterial.SetColor("_EmissionColor", Color.black);
+                        r.sharedMaterial.DisableKeyword("_EMISSION");
+                    }
                 }
             }
 
@@ -374,7 +435,9 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
-        // 내부 Runner: IMGUI 데미지 폰트 (1.5초 Fade Out)
+        // 내부 Runner: IMGUI 데미지 폰트 (1.5초 Fade Out + Pop Animation + 색상 코딩)
+        // [2026-09-15 Phase A] 팝 애니메이션(스케일 바운스 1.35→1.0) + 데미지 타입별 색상:
+        //   일반=흰(Core), 크리티컬=골드(Accent), 백어택=주황(Edge), 치유=초록, 마나=파랑
         // ================================================================
         private class DamageNumberRunner : MonoBehaviour
         {
@@ -383,25 +446,39 @@ namespace ProjectName.Systems
             private float _elapsed;
             private Camera _cam;
             private GUIContent _guiContent;
+            private float _popScale = 1f;
+            private DamageNumberType _type = DamageNumberType.Normal;
 
             // GUI 스타일 static 캐시 — GUI.skin 접근은 OnGUI 내부에서만 1회 수행.
             // (관례: OnGUI 내 라인당 new 금지 → static 필드 + 최초 1회 생성)
             private static GUIStyle _styleCache;
             private static GUIStyle _shadowStyleCache;
+            private static GUIStyle _critStyleCache;
 
-            public void Init(string text, Color color)
+            public void Init(string text, Color color, DamageNumberType type = DamageNumberType.Normal)
             {
-                // OnGUI 밖에서는 GUI.skin 등 GUI 정적 API 호출 금지 —
-                // Init은 텍스트/색/수명 필드 저장만 담당하고, 스타일은 OnGUI에서 지연 생성한다.
                 _text = text;
                 _color = color;
                 _elapsed = 0f;
                 _cam = Camera.main;
+                _type = type;
+                _popScale = 1.35f; // 팝 시작 스케일
             }
 
             private void Update()
             {
                 _elapsed += Time.deltaTime;
+
+                // 팝 애니메이션: 1.35 → 1.0 (0.15초간 ease-out)
+                if (_elapsed < 0.15f)
+                {
+                    _popScale = Mathf.Lerp(1.35f, 1f, _elapsed / 0.15f);
+                }
+                else
+                {
+                    _popScale = 1f;
+                }
+
                 transform.position += Vector3.up * (1.2f * Time.deltaTime);
                 if (_elapsed >= 1.5f)
                     Destroy(gameObject);
@@ -409,7 +486,7 @@ namespace ProjectName.Systems
 
             private static void EnsureStyles()
             {
-                if (_styleCache != null && _shadowStyleCache != null) return;
+                if (_styleCache != null && _shadowStyleCache != null && _critStyleCache != null) return;
 
                 _styleCache = new GUIStyle(GUI.skin.label)
                 {
@@ -422,31 +499,33 @@ namespace ProjectName.Systems
                 {
                     normal = { textColor = new Color(0, 0, 0, 0.5f) }
                 };
+
+                _critStyleCache = new GUIStyle(_styleCache)
+                {
+                    fontSize = 18, // 크리티컬은 더 크게
+                    fontStyle = FontStyle.Bold
+                };
             }
 
             private void OnGUI()
             {
-                // NRE 방어 1: Init 실패/미호출 상태(텍스트 없음)면 크래시 없이 스킵
                 if (string.IsNullOrEmpty(_text)) return;
 
-                // NRE 방어 2: 죽은 카메라 참조 가드 — 파괴 시 재탐색, 없으면 스킵
                 if (_cam == null)
                 {
                     _cam = Camera.main;
                     if (_cam == null) return;
                 }
 
-                // GUIContent는 인스턴스당 1회만 지연 생성 (매 프레임 new 금지)
                 if (_guiContent == null)
                     _guiContent = new GUIContent(_text);
 
-                // NRE 방어 3: 스타일 캐시 지연 생성 (GUI.skin은 OnGUI 안에서만 접근)
-                if (_styleCache == null || _shadowStyleCache == null)
+                if (_styleCache == null || _shadowStyleCache == null || _critStyleCache == null)
                 {
                     try { EnsureStyles(); }
                     catch { return; }
                 }
-                if (_styleCache == null || _shadowStyleCache == null) return;
+                if (_styleCache == null || _shadowStyleCache == null || _critStyleCache == null) return;
 
                 Vector3 screenPos = _cam.WorldToScreenPoint(transform.position);
                 if (screenPos.z < 0) return;
@@ -454,18 +533,312 @@ namespace ProjectName.Systems
 
                 float alpha = Mathf.Lerp(1f, 0f, _elapsed / 1.5f);
 
-                _styleCache.normal.textColor = new Color(_color.r, _color.g, _color.b, alpha);
+                // 데미지 타입별 스타일 선택
+                var style = (_type == DamageNumberType.Critical || _type == DamageNumberType.BackAttack)
+                    ? _critStyleCache : _styleCache;
+
+                style.normal.textColor = new Color(_color.r, _color.g, _color.b, alpha);
                 _shadowStyleCache.normal.textColor = new Color(0, 0, 0, alpha * 0.5f);
 
-                Vector2 textSize = _styleCache.CalcSize(_guiContent);
+                Vector2 textSize = style.CalcSize(_guiContent);
+
+                // 팝 스케일 적용
+                float scaledWidth = textSize.x * _popScale;
+                float scaledHeight = textSize.y * _popScale;
+
                 Rect rect = new Rect(
-                    screenPos.x - textSize.x * 0.5f,
-                    screenPos.y - textSize.y * 0.5f,
-                    textSize.x, textSize.y);
+                    screenPos.x - scaledWidth * 0.5f,
+                    screenPos.y - scaledHeight * 0.5f,
+                    scaledWidth, scaledHeight);
 
                 GUI.Label(new Rect(rect.x + 1, rect.y + 1, rect.width, rect.height), _guiContent, _shadowStyleCache);
-                GUI.Label(rect, _guiContent, _styleCache);
+                GUI.Label(rect, _guiContent, style);
             }
         }
+    // ================================================================
+        // 8. 킬 VFX — 슬로우모션 + 화이트 플래시 + XP 팝업 (파티클 버스트 제거)
+        //    몬스터 사망 시 호출 (AnimalAI.Die에서)
+        // ================================================================
+        public static void PlayKillVFX(Vector3 position, int xpGain = 0)
+        {
+            // ① 슬로우모션 — 0.12초간 timeScale 0.3 → 1.0 복원
+            var host = new GameObject("KillSlowmoHost");
+            host.AddComponent<KillSlowmoRunner>().Init();
+
+            // ② 화이트 플래시 (전체 화면) — 0.15초간
+            var flashGo = new GameObject("KillFlash", typeof(ParticleSystem));
+            flashGo.transform.position = Camera.main != null ? Camera.main.transform.position + Camera.main.transform.forward * 1f : position;
+            var flashPs = flashGo.GetComponent<ParticleSystem>();
+            var flashMain = flashPs.main;
+            flashMain.startLifetime = 0.15f;
+            flashMain.startSpeed = 0f;
+            flashMain.startSize = new ParticleSystem.MinMaxCurve(2f, 3f);
+            flashMain.startColor = new ParticleSystem.MinMaxGradient(
+                new Color(1f, 1f, 1f, 0.4f),
+                new Color(1f, 1f, 1f, 0f)
+            );
+            flashPs.Emit(3);
+            FXPalette.ApplyTo(flashGo.GetComponent<ParticleSystemRenderer>());
+            Object.Destroy(flashGo, 0.3f);
+
+            // ③ XP 팝업 (데미지 넘버 스타일) — XP 획득 시만
+            if (xpGain > 0)
+            {
+                ShowDamageNumber(position + Vector3.up * 1.5f, xpGain, new Color(0.3f, 1f, 0.5f, 1f), DamageNumberType.Heal);
+            }
+
+            // ④ 카메라 임펄스 (살짝)
+            if (CombatCameraEffects.Instance != null)
+            {
+                CombatCameraEffects.PlayKill();
+            }
+
+            Debug.Log($"[CombatVFXController] Kill VFX at {position}, XP={xpGain}");
+        }
+
+        // ================================================================
+        // 내부 Runner: 킬 슬로우모션
+        // ================================================================
+        private class KillSlowmoRunner : MonoBehaviour
+        {
+            private float _timer;
+            private const float Duration = 0.12f;
+            private const float SlowScale = 0.3f;
+
+            public void Init()
+            {
+                _timer = 0f;
+                Time.timeScale = SlowScale;
+                Time.fixedDeltaTime = 0.02f * SlowScale;
+            }
+
+            private void Update()
+            {
+                _timer += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(_timer / Duration);
+                // ease-out 복원
+                Time.timeScale = Mathf.Lerp(SlowScale, 1f, t * t);
+                Time.fixedDeltaTime = 0.02f * Time.timeScale;
+
+                if (_timer >= Duration)
+                {
+                    Time.timeScale = 1f;
+                    Time.fixedDeltaTime = 0.02f;
+                    Destroy(gameObject);
+                }
+            }
+
+            private void OnDestroy()
+            {
+                // 안전 복원
+                Time.timeScale = 1f;
+                Time.fixedDeltaTime = 0.02f;
+            }
+        }
+
+        // ================================================================
+        // 9. 솔저/NPC 커맨드 경로 마커 — 플레이어가 병사/NPC에게 이동/공격 명령 시
+        /// 목표 지점까지 점선 경로 + 방향 화살표 표시 (지속 시간 후 페이드아웃)
+        // ================================================================
+        public static void ShowCommandPath(Vector3 startPos, Vector3 endPos, Color color, float duration = 3f)
+        {
+            var go = new GameObject("CommandPathMarker");
+            go.transform.position = startPos;
+            var marker = go.AddComponent<CommandPathMarker>();
+            marker.Init(startPos, endPos, color, duration);
+        }
+
+        /// <summary>
+        /// 병사/용병/병력 이동 경로 미리보기 — 여러 웨이포인트 지원
+        /// </summary>
+        public static void ShowCommandPathMulti(Vector3[] waypoints, Color color, float duration = 3f)
+        {
+            if (waypoints == null || waypoints.Length < 2) return;
+            var go = new GameObject("CommandPathMarkerMulti");
+            go.transform.position = waypoints[0];
+            var marker = go.AddComponent<CommandPathMarker>();
+            marker.InitMulti(waypoints, color, duration);
+        }
+
+        // ================================================================
+        // 내부: 커맨드 경로 마커
+        // ================================================================
+        private class CommandPathMarker : MonoBehaviour
+        {
+            private Vector3 _startPos;
+            private Vector3 _endPos;
+            private Vector3[] _waypoints;
+            private Color _color;
+            private float _duration;
+            private float _elapsed;
+            private LineRenderer _line;
+            private bool _isMulti;
+
+            private const float LineWidth = 0.12f;
+            private const int Segments = 32;
+            private const float ArrowSize = 0.5f;
+
+            public void Init(Vector3 start, Vector3 end, Color color, float duration)
+            {
+                _startPos = start;
+                _endPos = end;
+                _color = color;
+                _duration = duration;
+                _elapsed = 0f;
+                _isMulti = false;
+
+                SetupLine();
+                DrawPath(new Vector3[] { start, end });
+            }
+
+            public void InitMulti(Vector3[] waypoints, Color color, float duration)
+            {
+                _waypoints = waypoints;
+                _color = color;
+                _duration = duration;
+                _elapsed = 0f;
+                _isMulti = true;
+                _startPos = waypoints[0];
+                _endPos = waypoints[waypoints.Length - 1];
+
+                SetupLine();
+                DrawPath(waypoints);
+            }
+
+            private void SetupLine()
+            {
+                _line = gameObject.AddComponent<LineRenderer>();
+                _line.useWorldSpace = true;
+                _line.startWidth = LineWidth;
+                _line.endWidth = LineWidth * 0.5f;
+                _line.material = CreatePathMaterial(_color);
+                _line.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                _line.receiveShadows = false;
+                // LineRenderer uses sortingLayerID/sortingOrder instead of renderQueue
+                _line.sortingOrder = 100;
+            }
+
+            private Material CreatePathMaterial(Color color)
+            {
+                Shader urpUnlit = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+                Material mat;
+                if (urpUnlit != null)
+                {
+                    mat = new Material(urpUnlit);
+                    if (mat.HasProperty("_Surface")) mat.SetFloat("_Surface", 1f);
+                    if (mat.HasProperty("_Blend")) mat.SetFloat("_Blend", 2f);
+                    if (mat.HasProperty("_SrcBlend")) mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    if (mat.HasProperty("_DstBlend")) mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                    if (mat.HasProperty("_ZWrite")) mat.SetFloat("_ZWrite", 0f);
+                    mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    mat.EnableKeyword("_EMISSION");
+                }
+                else
+                {
+                    mat = new Material(Shader.Find("Sprites/Default"));
+                }
+                mat.SetColor("_BaseColor", color);
+                mat.SetColor("_EmissionColor", color * 1.5f);
+                return mat;
+            }
+
+            private void DrawPath(Vector3[] points)
+            {
+                if (points.Length < 2) return;
+
+                // 곡선 보간으로 부드러운 경로 생성
+                List<Vector3> smoothPoints = new List<Vector3>();
+                for (int i = 0; i < points.Length - 1; i++)
+                {
+                    Vector3 p0 = points[i];
+                    Vector3 p1 = points[i + 1];
+                    for (int s = 0; s < Segments; s++)
+                    {
+                        float t = (float)s / Segments;
+                        // 약간의 높이 오프셋으로 지형 위 표시
+                        Vector3 lerped = Vector3.Lerp(p0, p1, t);
+                        lerped.y = Mathf.Max(lerped.y + 0.15f, p0.y + 0.1f, p1.y + 0.1f);
+                        smoothPoints.Add(lerped);
+                    }
+                }
+                // 마지막 점 추가
+                Vector3 last = points[points.Length - 1];
+                last.y = Mathf.Max(last.y + 0.15f, last.y + 0.1f);
+                smoothPoints.Add(last);
+
+                _line.positionCount = smoothPoints.Count;
+                _line.SetPositions(smoothPoints.ToArray());
+
+                // 방향 화살표 (마지막 세그먼트 끝)
+                if (points.Length >= 2)
+                {
+                    AddArrowHead(smoothPoints[smoothPoints.Count - 1],
+                        (smoothPoints[smoothPoints.Count - 1] - smoothPoints[smoothPoints.Count - 2]).normalized);
+                }
+            }
+
+            private void AddArrowHead(Vector3 pos, Vector3 dir)
+            {
+                // 간단한 화살표 헤드용 추가 라인 렌더러
+                var arrowGo = new GameObject("ArrowHead");
+                arrowGo.transform.SetParent(transform);
+                var arrowLine = arrowGo.AddComponent<LineRenderer>();
+                arrowLine.useWorldSpace = true;
+                arrowLine.startWidth = LineWidth * 1.5f;
+                arrowLine.endWidth = 0f;
+                arrowLine.material = _line.material;
+                arrowLine.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                arrowLine.receiveShadows = false;
+
+                Vector3 right = Vector3.Cross(dir, Vector3.up).normalized;
+                Vector3 up = Vector3.up * 0.3f;
+                Vector3 tip = pos;
+                Vector3 baseL = pos - dir * ArrowSize + right * ArrowSize * 0.5f + up;
+                Vector3 baseR = pos - dir * ArrowSize - right * ArrowSize * 0.5f + up;
+
+                arrowLine.positionCount = 3;
+                arrowLine.SetPositions(new Vector3[] { tip, baseL, baseR });
+            }
+
+            private void Update()
+            {
+                _elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(_elapsed / _duration);
+
+                // 페이드아웃
+                float alpha = Mathf.Lerp(1f, 0f, t);
+                Color fadedColor = new Color(_color.r, _color.g, _color.b, alpha);
+                if (_line != null)
+                {
+                    _line.startColor = fadedColor;
+                    _line.endColor = new Color(fadedColor.r, fadedColor.g, fadedColor.b, alpha * 0.5f);
+                    // 매터리얼도 업데이트
+                    if (_line.material != null)
+                    {
+                        _line.material.SetColor("_BaseColor", fadedColor);
+                        _line.material.SetColor("_EmissionColor", fadedColor * 1.5f);
+                    }
+                }
+
+                // 화살표도 페이드
+                var arrowLines = GetComponentsInChildren<LineRenderer>();
+                foreach (var al in arrowLines)
+                {
+                    if (al != _line && al.material != null)
+                    {
+                        al.startColor = fadedColor;
+                        al.endColor = fadedColor;
+                        al.material.SetColor("_BaseColor", fadedColor);
+                        al.material.SetColor("_EmissionColor", fadedColor * 1.5f);
+                    }
+                }
+
+                if (_elapsed >= _duration)
+                {
+                    Destroy(gameObject);
+                }
+            }
+        }
+
     }
 }

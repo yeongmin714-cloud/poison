@@ -221,8 +221,8 @@ namespace ProjectName.Systems
                 return;
             }
 
-            // Phase 8.3: 공격 스윙 사운드
-            SoundManager.Instance?.PlaySFX("attack_swing");
+            // Phase B: 무기별 스윙 사운드 레이어링
+            PlayWeaponSwingSound();
 
             // 스윙 VFX는 HumanoidClipDriver가 콤보 임팩트 프레임(1~3타)에서 스윙 방향에 맞춰 발화
 
@@ -282,8 +282,8 @@ namespace ProjectName.Systems
         /// </summary>
         private void TryBowShot()
         {
-            // 발사 사운드 (스윙 계열 재사용)
-            SoundManager.Instance?.PlaySFX("attack_swing");
+            // ① 발사 사운드 — 무기별 레이어링
+            PlayWeaponSwingSound();
 
             // ① 사격 방향 계산 — 마우스 커서 Ray 우선, 실패(카메라/마우스 없음) 시 플레이어 전방
             Vector3 dir = transform.forward;
@@ -434,7 +434,8 @@ namespace ProjectName.Systems
                 }
                 else
                 {
-                    CombatCameraEffects.PlayHit();
+                    // 2026-09-15 Phase A: 무기별 카메라 임펄스 프로파일 적용
+                    CombatCameraEffects.PlayHit(_currentWeapon != null ? _currentWeapon.weaponType : ProjectName.Core.WeaponType.Fist);
                 }
             }
 
@@ -444,14 +445,8 @@ namespace ProjectName.Systems
             _recoilActive = true;
             StartCoroutine(RecoilCoroutine(-hitDirection, isBackAttack ? RecoilDistanceCrit : RecoilDistanceNormal));
 
-            // 킬 시 슬로우모션
-            if (target is IDamageable damageable && damageable.IsDead)
-            {
-                CombatCameraEffects.PlayKill();
-            }
-
-            // Phase 8.3: 적중 사운드
-            SoundManager.Instance?.PlaySFX("attack_hit");
+            // Phase B: 무기별 적중 사운드 레이어링
+            PlayWeaponHitSound(isBackAttack);
 
             // Phase 2 (COMBAT_VFX_UPGRADE_PLAN): 중앙 VFX 게이트로 히트 FX 통합.
             // CombatFXGate.PlayHitFX(GameObject 오버로드)가 스파크, 유기체 출혈(Organic),
@@ -484,7 +479,12 @@ namespace ProjectName.Systems
             // "이전"에 히트스톱(0.08)을 걸면 CCE가 0.08을 원본으로 저장해 복귀 lerp 후
             // 영구 저속 정지 사고가 난다. → CCE 호출 이후 마지막에 배치.
             // 데미지 판정/HP/콤보 로직은 변경하지 않음 (FX 전용 훅).
-            HitStopManager.RequestHitStop(0.045f, 0.08f);
+            // 2026-09-15: 무기별 차등 지속시간 — 검 50ms / 창 60ms / 활 30ms / 맨손 40ms
+            // (HitStopManager.DurationOf 테이블). 무기 미장착 시 맨손(Fist) 폴백.
+            // bare WeaponType 대신 정규화명 사용 — Neural 네임스페이스의 동명 enum과의 모호성 회피(218/603행 선례).
+            HitStopManager.RequestHitStop(
+                _currentWeapon != null ? _currentWeapon.weaponType : ProjectName.Core.WeaponType.Fist,
+                0.08f);
         }
 
         /// <summary>
@@ -599,13 +599,14 @@ namespace ProjectName.Systems
 
             const float duration = 0.15f; // 이동 지속 시간(기존 유지) — 짧고 강한 전진
             // 무기 타입별 런지 거리(고정 상수 맵 — WeaponData.range 직접 사용 금지. 스윙 아크 최적화상 너무 크면 어색함):
+            // 2026-09-15 무기별 전진 거리 차등 — 검 1.5m / 창 2.5m / 활 0.3m / 맨손 1.0m
             float distance;
             switch (_currentWeapon != null ? _currentWeapon.weaponType : ProjectName.Core.WeaponType.Fist)
             {
-                case ProjectName.Core.WeaponType.Sword: distance = 0.6f; break; // 소드 — 스윙 아크에 맞는 중간 전진
-                case ProjectName.Core.WeaponType.Spear: distance = 1.2f; break; // 스피어 — 찌르기 특성상 가장 긴 전진
-                case ProjectName.Core.WeaponType.Bow:   distance = 0.5f; break; // 활 — 발사 반동 수준의 소폭 전진
-                default:                                distance = 0.4f; break; // 주먹 — 짧은 잽형 전진
+                case ProjectName.Core.WeaponType.Sword: distance = 1.5f; break; // 검 — 1.5m 전진
+                case ProjectName.Core.WeaponType.Spear: distance = 2.5f; break; // 창 — 찌르기 특성상 가장 긴 2.5m 전진
+                case ProjectName.Core.WeaponType.Bow:   distance = 0.3f; break; // 활 — 발사 반동 수준의 최소 전진 0.3m
+                default:                                distance = 1.0f; break; // 맨손 — 잽형 1.0m 전진
             }
 
             // 방향 결정: 최근(0.5s 내) 유효 적중이면 타겟(LastHitPoint) 방향, 아니면 현재 전방 폴백.
@@ -713,6 +714,65 @@ namespace ProjectName.Systems
                 // 51차: finally로 이동 — 정상 종료뿐 아니라 예외/강제 중단 시에도 해제 보장(런지 영구 스킵 방지).
                 _recoilActive = false;
             }
+        }
+
+        /// <summary>
+        /// [Phase B] 무기별 스윙 사운드 재생 — 무기 타입에 따라 다른 사운드 ID 사용.
+        /// AudioConfig에 attack_swing_sword, attack_swing_spear, attack_swing_bow, attack_swing_fist 등이
+        /// 등록되어 있으면 해당 사운드를, 없으면 기본 attack_swing 폴백.
+        /// </summary>
+        private void PlayWeaponSwingSound()
+        {
+            if (SoundManager.Instance == null) return;
+
+            string soundId = "attack_swing"; // 기본 폴백
+            if (_currentWeapon != null)
+            {
+                switch (_currentWeapon.weaponType)
+                {
+                    case ProjectName.Core.WeaponType.Sword: soundId = "attack_swing_sword"; break;
+                    case ProjectName.Core.WeaponType.Spear: soundId = "attack_swing_spear"; break;
+                    case ProjectName.Core.WeaponType.Bow: soundId = "attack_swing_bow"; break;
+                    case ProjectName.Core.WeaponType.Fist: soundId = "attack_swing_fist"; break;
+                }
+            }
+
+            // 등록된 사운드가 없으면 기본 attack_swing으로 폴백 (SoundManager 내부에서 경고 처리)
+            SoundManager.Instance.PlaySFX(soundId);
+        }
+
+        /// <summary>
+        /// [Phase B] 무기별 적중 사운드 재생 — 무기 타입 + 백어택 여부에 따라 다른 사운드 ID 사용.
+        /// 백어택/치명타 시 attack_hit_crit_<weapon> 우선, 없으면 attack_hit_<weapon>, 그것도 없으면 기본 attack_hit.
+        /// </summary>
+        private void PlayWeaponHitSound(bool isBackAttack)
+        {
+            if (SoundManager.Instance == null) return;
+
+            string weaponSuffix = "";
+
+            if (_currentWeapon != null)
+            {
+                switch (_currentWeapon.weaponType)
+                {
+                    case ProjectName.Core.WeaponType.Sword: weaponSuffix = "_sword"; break;
+                    case ProjectName.Core.WeaponType.Spear: weaponSuffix = "_spear"; break;
+                    case ProjectName.Core.WeaponType.Bow: weaponSuffix = "_bow"; break;
+                    case ProjectName.Core.WeaponType.Fist: weaponSuffix = "_fist"; break;
+                }
+            }
+
+            if (isBackAttack)
+            {
+                // 치명타/백어택 전용 사운드 우선 시도
+                string critSound = "attack_hit_crit" + weaponSuffix;
+                // SoundManager.PlaySFX는 미존재 시 조용히 무시하므로 순차 시도
+                SoundManager.Instance.PlaySFX(critSound);
+            }
+
+            // 기본 무기별 적중 사운드
+            string hitSound = "attack_hit" + weaponSuffix;
+            SoundManager.Instance.PlaySFX(hitSound);
         }
     }
 }

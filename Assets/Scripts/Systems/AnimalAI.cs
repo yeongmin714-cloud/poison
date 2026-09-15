@@ -1016,17 +1016,17 @@ namespace ProjectName.Systems
                 Debug.LogWarning("[AnimalAI] PlayerStats.Instance를 찾을 수 없습니다.");
             }
 
+            // [Phase D] 킬 VFX — 슬로우모션 + 화이트 플래시 + XP 팝업 (파티클 버스트 제거)
+            CombatVFXController.PlayKillVFX(transform.position + Vector3.up * 1f, exp);
+
             // === G2-05: 사망 VFX ===
             // 2026-09-13(46차): 사망 혈흔도 절차 파티클 제외 — 사용자 지정
 
             // 🔊 컨트롤러 진동: 몬스터 사망 (Light)
             HapticFeedback.PlayPreset(HapticFeedback.RumblePreset.Light);
 
-            // Death effect
-            if (deathEffectPrefab != null)
-            {
-                Instantiate(deathEffectPrefab, transform.position, Quaternion.identity);
-            }
+            // Death effect — 프리팹 이펙트 제거 (촌스러운 파티클 방지)
+            // if (deathEffectPrefab != null) { Instantiate(deathEffectPrefab, transform.position, Quaternion.identity); }
             if (deathSound != null)
             {
                 AudioSource.PlayClipAtPoint(deathSound, transform.position);

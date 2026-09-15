@@ -14,6 +14,7 @@ namespace ProjectName.Systems
     ///  - 복귀 대상 timeScale은 "요청 시점 값"(평시 1.0). 킬 슬로우모션 등 타 효과가
     ///    낮춰둔 값이면 그 값으로 복귀해 타 시스템의 복귀 lerp를 망가뜨리지 않는다.
     ///  - 진행 중 재요청은 무시(흡수) + 쿨다운 0.15s → 연타 히트스톱 스팸 가드 내장.
+    ///  - 무기별 차등 지속시간 내장(2026-09-15): 검 50ms / 창 60ms / 활 30ms / 맨손 40ms → DurationOf.
     ///  - Time.timeScale이 이미 0.05 이하(일시정지/암살 프리즈 등)면 요청 자체를 무시.
     ///  - 어플리케이션 일시정지(OnApplicationPause)·호스트 파괴 시 즉시 강제 복귀.
     /// </summary>
@@ -64,6 +65,35 @@ namespace ProjectName.Systems
             _active = true;
 
             StartFovPunch(now);
+        }
+
+        // ── 무기별 히트스톱 차등 (2026-09-15) ──
+        // 검 50ms / 창 60ms / 활 30ms / 맨손 40ms — 무기 특성별 타격감 차등.
+        // 창은 찌르기 관통 무게감으로 최장, 활은 빠른 발사 리듬을 해치지 않도록 최단.
+
+        /// <summary>
+        /// 무기별 히트스톱 기본 지속시간(초): 검 0.050 / 창 0.060 / 활 0.030 / 맨손 0.040.
+        /// 미등록 타입(WeaponType 확장 시)은 맨손 값(0.040) 폴백.
+        /// </summary>
+        public static float DurationOf(ProjectName.Core.WeaponType weaponType)
+        {
+            switch (weaponType)
+            {
+                case ProjectName.Core.WeaponType.Sword: return 0.050f; // 검 — 표준 타격감
+                case ProjectName.Core.WeaponType.Spear: return 0.060f; // 창 — 찌르기 무게감 (최장)
+                case ProjectName.Core.WeaponType.Bow:   return 0.030f; // 활 — 발사 리듬 보존 (최단)
+                case ProjectName.Core.WeaponType.Fist:  return 0.040f; // 맨손 — 경쾌한 연타
+                default:                                return 0.040f; // 미등록 폴백 = 맨손
+            }
+        }
+
+        /// <summary>
+        /// 무기 타입 기반 히트스톱 요청 — DurationOf 테이블로 무기별 차등 지속시간을 적용한다.
+        /// 스팸 가드(진행 중 흡수 + 0.15s 쿨다운)는 float 오버로드와 동일하게 적용된다.
+        /// </summary>
+        public static void RequestHitStop(ProjectName.Core.WeaponType weaponType, float scale = 0.08f)
+        {
+            RequestHitStop(DurationOf(weaponType), scale);
         }
 
         /// <summary>

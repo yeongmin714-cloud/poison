@@ -44,6 +44,8 @@ namespace ProjectName.Systems
     /// BasicHit 단일 경로로 통일 — 프리팹 소스 분산에 의한 톤 불일치 해소. 틴트는 45차 BOTW 팔레트로 정렬:
     /// 코어=흰(1,1,1) / 액센트=골드(1,0.9,0.5) / 외곽=주황(1,0.55,0.2) — 크로스=골드, 임팩트=흰.
     /// [2026-09-14(47차)] 위 틴트 정책은 MagicHit 교체로 철회 — 에셋 고유 색상 사용(보라 정규화만 유지).
+    /// [2026-09-15 콤보 스테이지 틴트] PlaySlashStage가 콤보 스테이지별 틴트 적용 — 1타 흰(CoreTint) /
+    /// 2타 골드(AccentTint) / 3타 주황·붉은(OuterTint) — ComboStageTint 헬퍼 + TintParticles 호출.
     /// </summary>
     public static class SlashVFXRunner
     {
@@ -101,7 +103,7 @@ namespace ProjectName.Systems
         internal static readonly Color CoreTint = new Color(1f, 1f, 1f);
         /// <summary>[45차 P3: BOTW 팔레트] 액센트 틴트 = 골드(1,0.9,0.5) — 크로스(타 완료) 액센트 톤.</summary>
         internal static readonly Color AccentTint = new Color(1f, 0.9f, 0.5f);
-        /// <summary>[45차 P3: BOTW 팔레트] 외곽 틴트 = 주황(1,0.55,0.2) — 외곽 연출 참조 톤(러너 내 직접 사용 없음).</summary>
+        /// <summary>[45차 P3: BOTW 팔레트] 외곽 틴트 = 주황(1,0.55,0.2) — [2026-09-15] 콤보 3타 스테이지 틴트(주황/붉은)로 직접 사용.</summary>
         internal static readonly Color OuterTint = new Color(1f, 0.55f, 0.2f);
 
         // ── static 캐시/상태 ─────────────────────────────────────────
@@ -194,6 +196,8 @@ namespace ProjectName.Systems
         /// VFX Graph 에셋(Resources/FX/Slash/StylizedSlashVFX.vfx)을 콤보 스테이지별 오리엔테이션으로 발화한다
         /// (HumanoidClipDriver.FireComboSlash의 Player 전용 경로에서 호출). [2026-09-14(47차 후속7)] 색상 —
         /// 파란색(피격 Magic Hit 매칭) white-blue 변종 — 별도 틴트 없이 원본색 사용이 선택 사유.
+        /// [2026-09-15 콤보 스테이지 틴트] 위 정책 갱신 — 스테이지별 틴트(1타 흰/2타 골드/3타 주황·붉은)를
+        /// ComboStageTint로 산출해 TintParticles로 적용(폴백 경로 유효, 스타일라이즈드는 ParticleSystem 부재로 no-op).
         /// 오리엔테이션(38차 규약): ① 루트를 카메라 수평 빌보드(CameraHorizontalFaceDir 재사용) ② stage 롤
         /// (1타 0 / 2타 -90 / 3타 -45 — 기존 규약, ComboStageRollDegrees) ③ yawSign 좌우 플립(아래 주석).
         /// [2026-09-14(47차 후속6)] 깨진 참조 프리팹은 Instantiate 시 VisualEffect 컴포넌트 누락 확인
@@ -212,6 +216,10 @@ namespace ProjectName.Systems
             if (Time.time - _lastStylizedSlashSpawnTime < MIN_STYLIZED_SLASH_INTERVAL) return;
             _lastStylizedSlashSpawnTime = Time.time;
 
+            // [2026-09-15 콤보 스테이지 틴트] 스테이지별 팔레트 산출 — 1타 흰 / 2타 골드 / 3타 주황·붉은.
+            // 스타일라이즈드/폴백 두 경로가 동일 stageTint를 쓰도록 여기서 1회 산출(아래 TintParticles 호출 참조).
+            Color stageTint = ComboStageTint(stage);
+
             // [2026-09-13 폴백 분기] alive 진단으로 VFX Graph 미출력이 확정된 상태(_vfxDeadFallbackActive)면
             // 구 Slash VFX 프리팹(Resources.Load("FX/Slash/Slash VFX") — 8 MeshRenderer, URP Shader Graph,
             // 42차 이전 렌더 실적)으로 동일 오리엔테이션 파이프라인 발화한다(아래 SpawnFallbackSlashStage).
@@ -220,7 +228,7 @@ namespace ProjectName.Systems
                 GameObject fallbackPrefab = LoadSlashPrefab();   // 캐시 + static 1회 경고 — 기존 스윙 로더 공용
                 if (fallbackPrefab != null)
                 {
-                    SpawnFallbackSlashStage(fallbackPrefab, position, direction, stage, yawSign, playerRoot);
+                    SpawnFallbackSlashStage(fallbackPrefab, position, direction, stage, yawSign, playerRoot, stageTint);
                     return;
                 }
                 // Resources 로드 실패 시(위 로더가 1회 경고) 가장 안전한 기본값: 스타일라이즈드 경로 유지 —
@@ -250,7 +258,7 @@ namespace ProjectName.Systems
                 GameObject fallbackPrefab = LoadSlashPrefab();   // 캐시 + static 1회 경고 — 기존 스윙 로더 공용
                 if (fallbackPrefab != null)
                 {
-                    SpawnFallbackSlashStage(fallbackPrefab, position, direction, stage, yawSign, playerRoot);
+                    SpawnFallbackSlashStage(fallbackPrefab, position, direction, stage, yawSign, playerRoot, stageTint);
                     return;
                 }
                 return;   // 폴백 프리팹도 부재면 조용히 반환(전투 흐름 절대 방해 없음 — 로더가 1회 경고)
@@ -258,10 +266,10 @@ namespace ProjectName.Systems
 
             // ── 런타임 빌드: 프리팹 경유 없이 GO + VisualEffect를 코드로 조립 ──
             Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
-            // ① 카메라 수평 빌보드 — 38차 규약(+Z 정면 관례, 후방 카메라 뒷면 미러링 차단)
-            Vector3 faceDir = CameraHorizontalFaceDir(position, dir);
+            // ① 타격 대상 방향을 향하도록 회전 (카메라 빌보드 대신 대상 방향 사용)
+            //    쿼드 +Z가 dir(타격 대상 방향)을 향하게 — 아크의 볼록한 부분(블레이드)이 대상을 향함
             GameObject instance = new GameObject("StylizedSlashVFX");
-            instance.transform.SetPositionAndRotation(position, Quaternion.LookRotation(faceDir));
+            instance.transform.SetPositionAndRotation(position, Quaternion.LookRotation(dir));
 
             // VisualEffect 신규 부착 — Unity 규약상 AddComponent<VisualEffect>를 넣으면 네이티브 코드가
             // VFXRenderer를 자동 부착한다(Renderer 없는 VisualEffect는 렌더링 불가 — 네이티브가 항상 보장).
@@ -305,57 +313,71 @@ namespace ProjectName.Systems
             // 파일 하단 SlashAliveProbe — 두 체크 모두 alive<=0일 때만 폴백 전환).
             instance.AddComponent<SlashAliveProbe>();
 
-            // [틴트 불가] 이 팩은 노출 프로퍼티(m_PropertySheet)가 비어 있어 런타임 틴트 불가 — TintParticles/
-            // NormalizePurpleParticles(ParticleSystem 대상)도 무효(프리팹에 파티클 시스템 없음, VFX Graph 단독).
-            // 원본 파란색(피격 Magic Hit 매칭) white-blue 변종이므로 무색상 처리로 확정.
+            // [2026-09-15 콤보 스테이지 틴트] 스테이지별 틴트 적용 — 1타 흰(CoreTint) / 2타 골드(AccentTint) /
+            // 3타 주황·붉은(OuterTint). 이 팩은 노출 프로퍼티(m_PropertySheet)가 비어 있고 파티클 시스템이 없어
+            // (VFX Graph 단독) 현재 TintParticles는 no-op이지만, 폴백 경로(구 Slash VFX 파티클 프리팹)와 동일
+            // 파이프라인 유지 + 향후 팩 교체 시 즉시 유효하도록 공용 호출로 확정.
+            TintParticles(instance, stageTint, 0.1f);
+
             // [2026-09-14(47차)] 위 런타임 기동(할당→Reinit→Play) 후 셰이더 오류 감지만 수행.
             DetectShaderErrorOnce(instance, "StylizedSlash");
-            Debug.Log($"[SlashVFX] 스타일라이즈드 슬래시 발화 (stage={stage}, yawSign={yawSign})");   // 1회성 아님 — 발화마다(크로스 로그 선례)
+            Debug.Log($"[SlashVFX] 스타일라이즈드 슬래시 발화 (stage={stage}, stageTint={stageTint}, yawSign={yawSign})");   // 1회성 아님 — 발화마다(크로스 로그 선례)
             ScheduleDestroy(instance, StylizedSlashDestroyAfter);   // VFX 자체 종료 후 잔존 없음 — 1.5s 자가 파괴
         }
 
         /// <summary>
-        /// [2026-09-13 폴백 스폰] 구 Slash VFX 프리팹("FX/Slash/Slash VFX" — 8 MeshRenderer, URP Shader Graph,
-        /// 42차 이전 렌더 실적)을 스타일라이즈드 경로와 동일 오리엔테이션 파이프라인으로 발화한다:
-        /// ① 카메라 수평 빌보드 ② playerRoot SetParent(true) 부착 ③ yawSign Y 180도 플립 ④ stage 롤
-        /// ⑤ 균일 스케일(FallbackSlashScale — 1.5 고정, 동적 사거리 연동 미적용). 구 프리팹의 Point Light 자식은
-        /// 연출 요소이므로 그대로 둔다. 파괴 1.5s(StylizedSlashDestroyAfter 공용), 쿨다운은 PlaySlashStage
-        /// 선두의 _lastStylizedSlashSpawnTime 하나를 공유한다.
-        /// </summary>
-        private static void SpawnFallbackSlashStage(GameObject prefab, Vector3 position, Vector3 direction, int stage, float yawSign, Transform playerRoot)
-        {
-            Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
-            // ① 카메라 수평 빌보드 — 기존 경로와 동일(+Z 정면 관례)
-            Vector3 faceDir = CameraHorizontalFaceDir(position, dir);
-            GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(faceDir));
-            instance.name = "SlashVFX_Fallback";
+                /// [2026-09-13 폴백 스폰] 구 Slash VFX 프리팹("FX/Slash/Slash VFX" — 8 MeshRenderer, URP Shader Graph,
+                /// 42차 이전 렌더 실적)을 스타일라이즈드 경로와 동일 오리엔테이션 파이프라인으로 발화한다:
+                /// ① 타격 대상 방향 정렬 (dir을 향하게) ② playerRoot SetParent(true) 부착 ③ stage 롤
+                /// ④ 사거리 기반 스케일 (RangeOf * 0.15f, 클램프 0.3~0.7) ⑤ 색상 흰색 고정.
+                /// 파괴 1.5s(StylizedSlashDestroyAfter 공용), 쿨다운은 PlaySlashStage 선두의 _lastStylizedSlashSpawnTime 하나를 공유한다.
+                /// </summary>
+                private static void SpawnFallbackSlashStage(GameObject prefab, Vector3 position, Vector3 direction, int stage, float yawSign, Transform playerRoot, Color stageTint)
+                {
+                    Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
+                    // ① 타격 대상 방향 정렬 — 쿼드 +Z가 dir(타격 대상 방향)을 향하게
+                    GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(dir));
+                    instance.name = "SlashVFX_Fallback";
 
-            // ② 플레이어 부착(추종) — worldPositionStays=true, 기존 경로 동일(파괴는 자식 인스턴스만 → 부모 안전)
-            if (playerRoot != null)
-                instance.transform.SetParent(playerRoot, true);
+                    // ② 플레이어 부착(추종) — worldPositionStays=true, 기존 경로 동일(파괴는 자식 인스턴스만 → 부모 안전)
+                    if (playerRoot != null)
+                        instance.transform.SetParent(playerRoot, true);
 
-            // ③ yawSign 좌우 플립 — Y 180도 회전(기존 경로 동일: localScale 음수 대신 회전 우선)
-            if (yawSign < 0f)
-                instance.transform.Rotate(0f, 180f, 0f, Space.Self);
+                    // ③ yawSign 좌우 플립 — 제거(47차 후속9와 동일: 테스트 13 실측 플립 적용 시 아크가 캐릭터 등 쪽으로 스왑됨)
+            // 빌보드 기준 방향 유지 + 앵커 전방 이동(호출부 fwd0.8)으로 아크를 항상 전방에 배치.
+            // if (yawSign < 0f)
+            //     instance.transform.Rotate(0f, 180f, 0f, Space.Self);
 
-            // ④ stage 롤 — 기존 규약 동일(1타 0° / 2타 -90° / 3타 -45°)
-            float roll = ComboStageRollDegrees(stage);
-            if (Mathf.Abs(roll) > 0.01f)
-                instance.transform.Rotate(0f, 0f, roll, Space.Self);
+                    // ④ stage 롤 — 기존 규약 동일(1타 0° / 2타 -90° / 3타 -45°)
+                    float roll = ComboStageRollDegrees(stage);
+                    if (Mathf.Abs(roll) > 0.01f)
+                        instance.transform.Rotate(0f, 0f, roll, Space.Self);
 
-            // ⑤ 스케일 — 폴백 전용 상수(FallbackSlashScale, 1.5 고정 — 동적 사거리 연동 미적용) 균일 스케일
-            instance.transform.localScale = Vector3.one * FallbackSlashScale;
+                    // ⑤ 스케일 — 사거리 기반 동적 스케일 (스타일라이즈드와 동일: RangeOf * 0.15f, 클램프 0.3~0.7)
+                    float scale = Mathf.Clamp(RangeOf(WeaponEquipManager.CurrentType) * 0.15f, 0.3f, 0.7f);
+                    instance.transform.localScale = Vector3.one * scale;
 
-            // 구 프리팹 자체 재생 불가 케이스 대비 — 기존 PlaySlash 선례대로 파티클 명시 재생(이미 재생 중이면 무해)
-            PlayAllParticleSystems(instance);
-            DetectShaderErrorOnce(instance, "FallbackSlash");
-            Debug.Log($"[SlashVFX] 폴백 Slash VFX 발화 (stage={stage}, yawSign={yawSign})");
-            ScheduleDestroy(instance, StylizedSlashDestroyAfter);   // 1.5s 자가 파괴 — 스타일라이즈드와 동일 상수 공용
-        }
+                    // [수정] 색상 흰색 고정 (stageTint 무시)
+                    TintParticles(instance, CoreTint, 0.1f);
+
+                    // 구 프리팹 자체 재생 불가 케이스 대비 — 기존 PlaySlash 선례대로 파티클 명시 재생(이미 재생 중이면 무해)
+                    PlayAllParticleSystems(instance);
+                    DetectShaderErrorOnce(instance, "FallbackSlash");
+                    Debug.Log($"[SlashVFX] 폴백 Slash VFX 발화 (stage={stage}, scale={scale:F2}, white)");
+                    ScheduleDestroy(instance, StylizedSlashDestroyAfter);   // 1.5s 자가 파괴 — 스타일라이즈드와 동일 상수 공용
+                }
 
         /// <summary>콤보 스테이지별 아크 롤(기존 규약) — 1타 수평 0° / 2타 수직 -90° / 3타 사선 -45°. 3타 부호는 튜닝 포인트.</summary>
         private static float ComboStageRollDegrees(int stage)
             => stage == 2 ? -90f : (stage == 3 ? -45f : 0f);
+
+        /// <summary>
+        /// [2026-09-15 콤보 스테이지 틴트] 콤보 스테이지별 스윙 아크 팔레트 — 45차 BOTW 팔레트 상수 재사용:
+        /// 1타 흰(CoreTint) / 2타 골드(AccentTint) / 3타 주황·붉은(OuterTint). 범위 외 스테이지는 흰(코어) 폴백.
+        /// [수정] 슬래시 색상 통일: 항상 흰색으로 고정 (몬스터 대상 슬래시)
+        /// </summary>
+        private static Color ComboStageTint(int stage)
+            => CoreTint; // 항상 흰색 (CoreTint = 1,1,1,1)
 
         /// <summary>
         /// [2026-09-14(47차 후속7)] 타입별 공격 사거리(m) — WeaponRangeIndicator.RangeOf(private static)를

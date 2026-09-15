@@ -15,16 +15,19 @@ public class GameSetup : MonoBehaviour
     [SerializeField] private bool _autoSetup = true;
 
     private void Awake()
-    {
-        // CRITICAL: Set up Physics layer collision matrix BEFORE first physics step
-        // NOTE: Physics.autoSimulation을 끄고 켜는 건 스폰 직후 물리 세계(콜라이더 등록/시뮬레이션)를
-        //       리셋하여 CharacterController가 초기 콜라이더를 못 잡고 뚫는 원인이 될 수 있어 제거.
-        //       레이어 충돌 설정만 유지.
-        EnsureLayerCollisionMatrix();
+        {
+            // CRITICAL: Set up Physics layer collision matrix BEFORE first physics step
+            // NOTE: Physics.autoSimulation을 끄고 켜는 건 스폰 직후 물리 세계(콜라이더 등록/시뮬레이션)를
+            //       리셋하여 CharacterController가 초기 콜라이더를 못 잡고 뚫는 원인이 될 수 있어 제거.
+            //       레이어 충돌 설정만 유지.
+            EnsureLayerCollisionMatrix();
         
-        // CRITICAL: Purge any leftover DontDestroyOnLoad singletons from previous Play sessions
-        PurgeRuntimeSingletons();
-    }
+            // CRITICAL: EquipmentManager를 Awake에서 즉시 생성 — 인벤토리 OnGUI가 Start 전에 참조할 수 있음
+            EnsureEquipmentManager();
+        
+            // CRITICAL: Purge any leftover DontDestroyOnLoad singletons from previous Play sessions
+            PurgeRuntimeSingletons();
+        }
 
     private void Start()
     {
@@ -701,6 +704,21 @@ public class GameSetup : MonoBehaviour
         {
             player.AddComponent<BlobShadow>();
             Debug.Log("[GameSetup] ✅ BlobShadow → Player에 추가 (접지감 반투명 그림자)");
+        }
+    }
+
+    /// <summary>
+    /// EquipmentManager 싱글톤 보장 — 장비 슬롯(Helmet/Armor/Weapon/Shoes/Gloves/Back) 관리
+    /// 인벤토리 우클릭/드래그 장착, 장비창 UI, 방어구 비주얼 부착 시스템 등이 모두 이 인스턴스를 참조.
+    /// Awake에서 호출되어 OnGUI 이전에 Instance가 존재하도록 보장.
+    /// </summary>
+    private void EnsureEquipmentManager()
+    {
+        if (FindAnyObjectByType<EquipmentManager>() == null)
+        {
+            var eqGO = new GameObject("EquipmentManager");
+            eqGO.AddComponent<EquipmentManager>();
+            Debug.Log("[GameSetup] ✅ EquipmentManager 생성 — 장비 슬롯 관리 활성화 (Awake)");
         }
     }
 

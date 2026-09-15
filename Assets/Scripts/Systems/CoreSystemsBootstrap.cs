@@ -37,6 +37,9 @@ public class CoreSystemsBootstrap : MonoBehaviour
         // 3-3. ArmorVisualAttachSystem 생성 (없는 경우) — 방어구 슬롯 GLB 비주얼 부착 (2026-09-13 P6)
         EnsureArmorVisualAttachSystem();
 
+        // 3-4. EquipmentManager 생성 (없는 경우) — 장비 슬롯 관리 (2026-09-14: 장착 안 되는 버그 수정)
+        EnsureEquipmentManager();
+
         // 4. 영지 전체 빌드
         if (_buildAllTerritories)
         {
@@ -176,6 +179,33 @@ public class CoreSystemsBootstrap : MonoBehaviour
         {
             // 단일 시스템 생성 실패가 전체 부트를 깨지 않도록 격리
             Debug.LogError($"[CoreSystemsBootstrap] ArmorVisualAttachSystem 생성 실패: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// EquipmentManager 싱글톤 보장 — 장비 슬롯(Helmet/Armor/Weapon/Shoes/Gloves/Back) 관리
+    /// 인벤토리 우클릭/드래그 장착, 장비창 UI, 방어구 비주얼 부착 시스템 등이 모두 이 인스턴스를 참조.
+    /// </summary>
+    private void EnsureEquipmentManager()
+    {
+        try
+        {
+            // 중복 가드 — 씬에 이미 배치(비활성 포함)된 경우 생성하지 않음
+            var existing = FindAnyObjectByType<EquipmentManager>(FindObjectsInactive.Include);
+            if (existing != null)
+            {
+                Debug.Log("[CoreSystemsBootstrap] EquipmentManager 이미 존재");
+                return;
+            }
+
+            var go = new GameObject("EquipmentManager");
+            go.AddComponent<EquipmentManager>();
+            Debug.Log("[CoreSystemsBootstrap] EquipmentManager 생성됨 — 장비 슬롯 관리 활성화");
+        }
+        catch (System.Exception e)
+        {
+            // 단일 시스템 생성 실패가 전체 부트를 깨지 않도록 격리
+            Debug.LogError($"[CoreSystemsBootstrap] EquipmentManager 생성 실패: {e.Message}");
         }
     }
 

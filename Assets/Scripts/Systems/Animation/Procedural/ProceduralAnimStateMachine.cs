@@ -45,6 +45,12 @@ namespace ProjectName.Systems.Animation.Procedural
         float _lastJumpTime;
         float _lastAttackTime;
 
+        // [Phase A] 넉백/히트리액션 데이터
+        Vector3 _hitDirection;        // 피격 방향 (정규화)
+        float _hitDamage;             // 피격 데미지량
+        bool _isHeavyHit;             // 강한 피격 여부 (Knockback/Launch 여부)
+        float _staggerDuration;       // Stagger 지속시간 (리액션 타입별 가변)
+
         // Component refs
         ProceduralAnimationController _animController;
         Rigidbody _rigidbody;
@@ -128,7 +134,7 @@ namespace ProjectName.Systems.Animation.Procedural
                     break;
 
                 case State.Stagger:
-                    if (_stateTimer > 0.5f)
+                    if (_stateTimer > _staggerDuration)
                         SetState(State.Locomotion);
                     break;
             }
@@ -193,10 +199,15 @@ namespace ProjectName.Systems.Animation.Procedural
                 SetState(State.Climb);
         }
 
-        public void TakeDamage(float damage)
+        public void TakeDamage(float damage, Vector3 hitDirection = default)
         {
             if (_currentState != State.Death)
             {
+                // [Phase A] 히트 방향/데미지 저장 (리액션 타입 결정용)
+                _hitDirection = hitDirection.sqrMagnitude > 0.0001f ? hitDirection.normalized : transform.forward;
+                _hitDamage = damage;
+                _isHeavyHit = damage > 30f;
+
                 if (damage > 30f)
                     SetState(State.Stagger);
 
@@ -269,7 +280,39 @@ namespace ProjectName.Systems.Animation.Procedural
                     break;
 
                 case State.Stagger:
-                    _animController?.TriggerAction("stagger");
+                    // [Phase A] 넉백/히트리액션 다양화
+                    // 데미지/방향에 따른 리액션 타입:
+                    // - Light (damage <= 20): 경직만 (0.3s)
+                    // - Heavy (damage 20-40): 넉백 (0.5s + 후방 밀림)
+                    // - Launch (damage >= 40): 에어본 (0.8s + 상향 튕김)
+                    if (_hitDamage <= 20f)
+                    {
+                        _staggerDuration = 0.3f; // Light: 짧은 경직
+                        _animController?.TriggerAction("stagger_light");
+                    }
+                    else if (_hitDamage < 40f)
+                    {
+                        _staggerDuration = 0.5f; // Heavy: 넉백
+                        _animController?.TriggerAction("stagger_heavy");
+                        // 넉백 물리: 피격 반대 방향으로 밀림
+                        if (_rigidbody != null && !_rigidbody.isKinematic)
+                        {
+                            Vector3 knockbackDir = -_hitDirection;
+                            knockbackDir.y = 0.2f; // 약간 상향
+                            _rigidbody.AddForce(knockbackDir * _hitDamage * 0.5f, ForceMode.Impulse);
+                        }
+                    }
+                    else
+                    {
+                        _staggerDuration = 0.8f; // Launch: 에어본
+                        _animController?.TriggerAction("stagger_launch");
+                        // 런치 물리: 상향 튕김
+                        if (_rigidbody != null && !_rigidbody.isKinematic)
+                        {
+                            _rigidbody.linearVelocity = new Vector3(_rigidbody.linearVelocity.x, 10f, _rigidbody.linearVelocity.z);
+                        }
+                    }
+                    _stateTimer = 0f;
                     break;
 
                 case State.Death:

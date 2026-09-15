@@ -18,6 +18,11 @@ namespace ProjectName.Systems
         public const float AGGRO_RANGE = 10f;
         private const float AGGRO_RANGE_SQR = AGGRO_RANGE * AGGRO_RANGE; // 100f
 
+        // [Phase A] 어그로 시각화 설정
+        private static Material _aggroMaterial;       // 붉은 오라 머티리얼
+        private static GameObject _exclamationPrefab; // 느낌표 프리팹
+        private static bool _visualizationInitialized;
+
         private static MonsterAggroSystem _instance;
         public static MonsterAggroSystem Instance
         {
@@ -54,6 +59,9 @@ namespace ProjectName.Systems
             }
             _instance = this;
             _showDebugUI = false;
+
+            // [Phase A] 어그로 시각화 초기화
+            InitializeVisualization();
         }
 
         /// <summary>몬스터 등록</summary>
@@ -71,6 +79,8 @@ namespace ProjectName.Systems
         /// <summary>몬스터 등록 해제</summary>
         public void UnregisterMonster(IAggroable monster)
         {
+            // [Phase A] 어그로 시각화 제거
+            HideAggroVisual(monster);
             if (monster != null)
                 _monsterMap.Remove(monster);
         }
@@ -95,6 +105,8 @@ namespace ProjectName.Systems
             if (!attackedAggro.IsInCombat)
             {
                 attackedAggro.SetAggroTarget(attacker);
+                // [Phase A] 어그로 시각화 표시
+                ShowAggroVisual(attackedAggro, AggroState.Alert);
             }
 
             // 주변 같은 종류 몬스터 탐색 (제곱 거리 비교로 sqrt 절약)
@@ -113,6 +125,8 @@ namespace ProjectName.Systems
                 if (sqrDist <= sqrRange)
                 {
                     monster.SetAggroTarget(attacker);
+                    // [Phase A] 어그로 시각화 표시
+                    ShowAggroVisual(monster, AggroState.Alert);
                 }
             }
         }
@@ -147,6 +161,21 @@ namespace ProjectName.Systems
                 }
 
                 monster.UpdateAggroTimer(Time.deltaTime);
+
+                // [Phase A] 어그로 상태 변경 시 시각화 업데이트
+                var currentState = monster.CurrentAggroState;
+                if (monster is MonoBehaviour mb)
+                {
+                    var go2 = mb.gameObject;
+                    var indicator = go2.transform.Find("AggroExclamation");
+                    bool hasIndicator = indicator != null;
+                    bool shouldShow = currentState == AggroState.Alert || currentState == AggroState.Combat;
+
+                    if (shouldShow && !hasIndicator)
+                        ShowAggroVisual(monster, currentState);
+                    else if (!shouldShow && hasIndicator)
+                        HideAggroVisual(monster);
+                }
             }
 
             foreach (var m in _toRemoveCache)
@@ -260,6 +289,107 @@ namespace ProjectName.Systems
             }
 
             Debug.Log($"[MonsterAggroSystem] SetAlertAllNearby at {position}, radius={radius}, monsters alerted");
+        }
+
+        // [Phase A] 몬스터 어그로 시각화 표시/숨김
+        public static void ShowAggroVisual(IAggroable monster, AggroState state)
+        {
+            if (!_visualizationInitialized) InitializeVisualization();
+            var mb = monster as MonoBehaviour;
+            if (mb == null) return;
+            var go = mb.gameObject;
+
+            // 기존 인디케이터 정리
+            HideAggroVisual(monster);
+
+            // 어그로 상태에 따라 표시
+            if (state == AggroState.Alert || state == AggroState.Combat)
+            {
+                // 1. 붉은 오라 (머티리얼 오버레이)
+                var renderers = go.GetComponentsInChildren<Renderer>();
+                foreach (var r in renderers)
+                {
+                    if (r == null) continue;
+                    var mats = r.materials;
+                    var newMats = new Material[mats.Length + 1];
+                    for (int i = 0; i < mats.Length; i++) newMats[i] = mats[i];
+                    newMats[mats.Length] = _aggroMaterial;
+                    r.materials = newMats;
+                }
+
+                // 2. 느낌표 표시 (머리 위)
+                var exclamation = Instantiate(_exclamationPrefab, go.transform);
+                exclamation.name = "AggroExclamation";
+                exclamation.transform.localPosition = new Vector3(0, 2.5f, 0); // 머리 위
+                exclamation.SetActive(true);
+            }
+        }
+
+        public static void HideAggroVisual(IAggroable monster)
+        {
+            var mb = monster as MonoBehaviour;
+            if (mb == null) return;
+            var go = mb.gameObject;
+
+            // 오라 머티리얼 제거
+            var renderers = go.GetComponentsInChildren<Renderer>();
+            foreach (var r in renderers)
+            {
+                if (r == null) continue;
+                var mats = new List<Material>(r.materials);
+                mats.RemoveAll(m => m == _aggroMaterial);
+                r.materials = mats.ToArray();
+            }
+
+            // 느낌표 제거
+            var exclamations = go.GetComponentsInChildren<Transform>(true);
+            foreach (var t in exclamations)
+            {
+                if (t.name == "AggroExclamation")
+                    Destroy(t.gameObject);
+            }
+        }
+
+        // [Phase A] 어그로 시각화 초기화
+        private static void InitializeVisualization()
+        {
+            if (_visualizationInitialized) return;
+
+            // 붉은 오라 머티리얼 생성 (Unlit Transparent, 붉은 색)
+            _aggroMaterial = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+            _aggroMaterial.SetColor("_BaseColor", new Color(1f, 0.2f, 0.2f, 0.5f)); // 반투명 붉은색
+            _aggroMaterial.SetFloat("_Surface", 1f); // Transparent
+            _aggroMaterial.SetFloat("_Blend", 0f); // Alpha
+            _aggroMaterial.SetFloat("_SrcBlend", 5f); // SrcAlpha
+            _aggroMaterial.SetFloat("_DstBlend", 10f); // OneMinusSrcAlpha
+            _aggroMaterial.SetFloat("_ZWrite", 0f);
+            _aggroMaterial.renderQueue = 3000;
+
+            // 느낌표 프리팹 생성 (빌보드 + TextMesh)
+            _exclamationPrefab = new GameObject("AggroExclamation");
+            _exclamationPrefab.hideFlags = HideFlags.DontSave;
+            var textMesh = _exclamationPrefab.AddComponent<TextMesh>();
+            textMesh.text = "!";
+            textMesh.fontSize = 24; // 크기 축소 (기존 48 → 24)
+            textMesh.color = Color.red;
+            textMesh.anchor = TextAnchor.MiddleCenter;
+            textMesh.alignment = TextAlignment.Center;
+            var billboard = _exclamationPrefab.AddComponent<Billboard>();
+            _exclamationPrefab.SetActive(false);
+
+            _visualizationInitialized = true;
+        }
+
+        // [Phase A] 빌보드 컴포넌트 (카메라를 향하게)
+        private class Billboard : MonoBehaviour
+        {
+            private Transform _camTransform;
+            private void LateUpdate()
+            {
+                if (_camTransform == null) _camTransform = Camera.main?.transform;
+                if (_camTransform != null)
+                    transform.rotation = Quaternion.LookRotation(transform.position - _camTransform.position);
+            }
         }
     }
 }

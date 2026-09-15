@@ -944,6 +944,9 @@ namespace ProjectName.UI
 
             // === 드래그 고스트 + 패드 드롭 판정 ===
             ProcessDrag();
+
+            // [Phase C] 슬롯 하이라이트 렌더링 (드래그 중 유효 드롭 타겟 펄스)
+            ItemDragContext.DrawSlotHighlight();
         }
 
         // ===================================================================
@@ -2856,9 +2859,21 @@ namespace ProjectName.UI
         ///   MouseUp에 핫바 드롭 = 슬롯 지정(장착 유지), 그 외 영역(월드)은 지형에 버림 → 바구니(해제 후 담김)
         /// - 창고 소스: 창고 창에서 시작한 드래그의 드롭 판정을 인벤 창이 대행 (창고→인벤 이동 / 창고 내 스왑 / 핫바 지정)
         /// - 고스트는 ItemDragContext.DrawGhost()가 프레임당 1회 렌더
+        /// [Phase C] MouseDrag 중 유효 드롭 타겟 감지 → 고스트 스냅 + 슬롯 하이라이트 펄스
         /// </summary>
         private void ProcessDrag()
         {
+            // [Phase C] 드래그 중 유효 드롭 타겟 실시간 감지 (MouseDrag 이벤트에서)
+            if (ItemDragContext.Active && Event.current.type == EventType.MouseDrag)
+            {
+                UpdateValidDropTarget(Event.current.mousePosition);
+            }
+            else if (ItemDragContext.Active && Event.current.type != EventType.MouseDrag)
+            {
+                // MouseDrag가 아니면 타겟 해제 (MouseUp은 별도 처리)
+                ItemDragContext.ClearValidDropTarget();
+            }
+
             // === 창고 소스 드래그: 인벤 창이 드롭 판정 대행 ===
             if (ItemDragContext.Active && ItemDragContext.SourceType == ItemDragContext.Source.Warehouse)
             {
@@ -3694,6 +3709,141 @@ namespace ProjectName.UI
                     _routeContextTerritoryId
                 );
             }
+        }
+
+        /// <summary>
+        /// [Phase C] 마우스 위치에서 유효한 드롭 타겟 감지 → ItemDragContext에 설정 (고스트 스냅 + 슬롯 하이라이트용)
+        /// </summary>
+        private void UpdateValidDropTarget(Vector2 guiPoint)
+        {
+            if (!ItemDragContext.Active || ItemDragContext.Item == null) return;
+
+            // 소스 타입에 따라 유효한 타겟만 감지
+            switch (ItemDragContext.SourceType)
+            {
+                case ItemDragContext.Source.Inventory:
+                    // 인벤 소스 → 장비칸(장착), 창고 패널(보관), 다른 인벤 슬롯(스왑), 핫바(등록)
+                    if (TryGetEquipSlotAtScreenPoint(guiPoint, out int eqCell))
+                    {
+                        ItemDragContext.SetValidDropTarget(s_equipSlotScreenRects[s_equipSlotCellIndices.IndexOf(eqCell)], "Equip", eqCell);
+                        return;
+                    }
+                    else if (_contextMode == ContextMode.Warehouse && TryGetWarehouseSlotAtScreenPoint(guiPoint, out _))
+                    {
+                        ItemDragContext.SetValidDropTarget(s_warehouseSlotScreenRects[s_warehouseSlotScreenIndices.FindIndex(x => x >= 0)], "Warehouse");
+                        return;
+                    }
+                    else if (WarehouseUI.TryGetSlotAtScreenPoint(guiPoint, out _))
+                    {
+                        // 별도 창고 창 슬롯
+                        return; // 별도 창고 창은 자체 처리
+                    }
+                    else if (GetInventorySlotIndexAtScreenPoint(guiPoint) >= 0)
+                    {
+                        var rect = s_slotScreenRects[s_slotScreenIndices.FindIndex(x => x == GetInventorySlotIndexAtScreenPoint(guiPoint))];
+                        ItemDragContext.SetValidDropTarget(rect, "Inventory", GetInventorySlotIndexAtScreenPoint(guiPoint));
+                        return;
+                    }
+                    else if (HotbarUI.GetSlotIndexAtScreenPoint(Input.mousePosition) >= 0)
+                    {
+                        // 핫바는 별도 처리 (Rect 캐시 없음)
+                        ItemDragContext.SetValidDropTarget(new Rect(Input.mousePosition.x - 32, Input.mousePosition.y - 32, 64, 64), "Hotbar");
+                        return;
+                    }
+                    break;
+
+                case ItemDragContext.Source.Loot:
+                    // 전리품 소스 → 인벤 그리드, 전리품 슬롯
+                    if (IsPointOverInventoryGrid(guiPoint) || GetInventorySlotIndexAtScreenPoint(guiPoint) >= 0 || TryGetLootSlotAtScreenPoint(guiPoint, out _))
+                    {
+                        if (GetInventorySlotIndexAtScreenPoint(guiPoint) >= 0)
+                        {
+                            var rect = s_slotScreenRects[s_slotScreenIndices.FindIndex(x => x == GetInventorySlotIndexAtScreenPoint(guiPoint))];
+                            ItemDragContext.SetValidDropTarget(rect, "Inventory", GetInventorySlotIndexAtScreenPoint(guiPoint));
+                        }
+                        else
+                        {
+                            ItemDragContext.SetValidDropTarget(new Rect(guiPoint.x - 32, guiPoint.y - 32, 64, 64), "Inventory");
+                        }
+                        return;
+                    }
+                    break;
+
+                case ItemDragContext.Source.Equipment:
+                    // 장비 소스 → 인벤 그리드
+                    if (IsPointOverInventoryGrid(guiPoint) || GetInventorySlotIndexAtScreenPoint(guiPoint) >= 0)
+                    {
+                        if (GetInventorySlotIndexAtScreenPoint(guiPoint) >= 0)
+                        {
+                            var rect = s_slotScreenRects[s_slotScreenIndices.FindIndex(x => x == GetInventorySlotIndexAtScreenPoint(guiPoint))];
+                            ItemDragContext.SetValidDropTarget(rect, "Inventory", GetInventorySlotIndexAtScreenPoint(guiPoint));
+                        }
+                        else
+                        {
+                            ItemDragContext.SetValidDropTarget(new Rect(guiPoint.x - 32, guiPoint.y - 32, 64, 64), "Inventory");
+                        }
+                        return;
+                    }
+                    break;
+
+                case ItemDragContext.Source.Warehouse:
+                    // 창고 소스 → 핫바, 창고 패널 슬롯(스왑), 인벤 그리드(이동)
+                    if (HotbarUI.GetSlotIndexAtScreenPoint(Input.mousePosition) >= 0)
+                    {
+                        ItemDragContext.SetValidDropTarget(new Rect(Input.mousePosition.x - 32, Input.mousePosition.y - 32, 64, 64), "Hotbar");
+                        return;
+                    }
+                    else if (_contextMode == ContextMode.Warehouse && TryGetWarehouseSlotAtScreenPoint(guiPoint, out int whTarget) && whTarget >= 0 && whTarget != ItemDragContext.SourceIndex)
+                    {
+                        var rect = s_warehouseSlotScreenRects[s_warehouseSlotScreenIndices.FindIndex(x => x == whTarget)];
+                        ItemDragContext.SetValidDropTarget(rect, "Warehouse", whTarget);
+                        return;
+                    }
+                    else if (IsPointOverInventoryGrid(guiPoint) || GetInventorySlotIndexAtScreenPoint(guiPoint) >= 0)
+                    {
+                        ItemDragContext.SetValidDropTarget(new Rect(guiPoint.x - 32, guiPoint.y - 32, 64, 64), "Inventory");
+                        return;
+                    }
+                    break;
+            }
+
+            // 유효 타겟 없음
+            ItemDragContext.ClearValidDropTarget();
+        }
+
+        // 2026-09-15: 드래그 드롭 성공 시 픽업 파티클 스폰 (IMGUI 기반 절차 파티클)
+        private void SpawnPickupParticles(PlayerInventory.ItemData item)
+        {
+            if (item == null) return;
+            var player = GameObject.FindWithTag("Player");
+            if (player == null) return;
+
+            // 간단한 절차 파티클: 월드 위치에 골드 스파크 버스트 + 사운드
+            Vector3 spawnPos = player.transform.position + Vector3.up * 1.5f;
+            
+            // LootSpawnFX 재사용 (골드 파티클 + 링)
+            try
+            {
+                var fxType = typeof(ProjectName.Systems.LootSpawnFX);
+                var method = fxType.GetMethod("Spawn", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                if (method != null)
+                    method.Invoke(null, new object[] { spawnPos });
+                else
+                    Debug.LogWarning("[InventoryWindow] LootSpawnFX.Spawn 메서드 없음 — 파티클 생략");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[InventoryWindow] 파티클 스폰 실패: {e.Message}");
+            }
+
+            // 획득 사운드 재생 (SoundManager 있으면)
+            try
+            {
+                var sm = ProjectName.Core.SoundManager.Instance;
+                if (sm != null)
+                    sm.PlaySFX("UI_Pickup");
+            }
+            catch { }
         }
     }
 }
