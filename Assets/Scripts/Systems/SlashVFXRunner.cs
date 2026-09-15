@@ -456,6 +456,12 @@ namespace ProjectName.Systems
         /// </summary>
         public static void PlayImpact(Vector3 position, CombatHitType type)
         {
+            PlayImpactMulti(position, type, 1f);
+        }
+
+        /// <summary>[Phase E-2] 멀티 스케일 임팩트 — 크리티컬 1.5배 등 선택적 스케일.</summary>
+        public static void PlayImpactMulti(Vector3 position, CombatHitType type, float scale)
+        {
             // 스팸 방지 (동일 임팩트 이중 발화 흡수 — 스윙과는 독립 쿨다운)
             if (Time.time - _lastImpactSpawnTime < MIN_SPAWN_INTERVAL) return;
             _lastImpactSpawnTime = Time.time;
@@ -466,6 +472,11 @@ namespace ProjectName.Systems
 
             GameObject instance = Object.Instantiate(prefab, position, Quaternion.identity);
             instance.name = $"ImpactVFX_{type}";
+            if (scale > 1.0001f)
+            {
+                instance.transform.localScale = Vector3.one * scale;   // 크리 1.5배 확대 — 지속시간/수명은 파티클 에미션 길이 그대로 보존
+                Debug.Log($"[SlashVFX] 임팩트 스케일 {scale:F2}x (type={type})");
+            }
             // [2026-09-14(47차)] TintParticles(흰) 제거 — MagicHit 에셋 고유 색상 유지(사용자가 이 에셋의 룩을 선택).
             // [2026-09-13 보라 정규화] 그라디언트 등에
             // 남은 보라를 골드화이트로 교체 — 보라 감지 색은 틴트 결과보다 우선 적용.

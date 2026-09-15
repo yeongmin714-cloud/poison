@@ -129,11 +129,15 @@ namespace ProjectName.Systems
             // Weapon 슬롯은 WeaponEquipManager 소유 — 스킵
             if (slot == EquipmentManager.EquipmentSlot.Weapon) return;
 
+            // 2026-09-15(H-3): 이벤트 수신 실측 로그 — 부착 전 도달 여부/해제(Detach) 여부를
+            // 홉 단위로 판별. 부착 성공만(✅)이 아니라 수신 자체를 로그로 남겨 dead-end을 구분한다.
             if (string.IsNullOrEmpty(itemId))
             {
+                Debug.Log($"{LogTag} OnEquipmentChanged 수신 ({slot}) — 해제(Detach)");
                 DestroySlotVisuals(slot, log: true);
                 return;
             }
+            Debug.Log($"{LogTag} OnEquipmentChanged 수신 ({slot}) item={itemId} — 부착 시작");
             StartCoroutine(AttachRoutine(slot, itemId));
         }
 

@@ -1407,3 +1407,45 @@ E키→OpenForBasket→우측 창 Show → 슬롯 좌클릭(MouseDown)→드래�
 
 ### 잔여
 E(FX strike 동기) · I(사운드) · J(넘버 juice) · L(사망 다운) · K(회피/차지/패링) · H-2 장비착용 확정검증 · G-3 DnD hit-test
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 55차 — 공격액션 업그레이드 잔여 Phase E/I/J/L/G-2/H + 사운드 통합)
+
+> **스코프**: 중단됐던 공격액션 계획서 잔여 Phase 재개. E(FX strike 동기)·I(사운드 4레이어)·J-2/3(넘버 스택·가독성)·L(적 사망 다운)·G-2(월드맵/창고 비례)·H-2~4(장비 착용 계측) + 사운드 레이어 새 모듈.
+
+### Phase E — FX strike 프레임 동기 ✅
+- `HumanoidClipDriver.cs`: `StageStrikeSyncNormT=0.38f` + `_pendingStageArc` 신설. 스테이지 클립 경로(Start/AdvanceStageClip)에서 **트레일은 즉시 방출(FireComboTrail), 아크는 strike 프레임 도달 시 발화**하도록 분리. `MonitorStageClip`이 normT≥0.38 통과 순간 `_pendingStageArc` 소진·`FireComboSlash` 호출, 인터럽트 시 대기 아크 리셋.
+- `SlashVFXRunner.cs`: `PlayImpactMulti(pos,type,scale)` 추가 — 기존 `PlayImpact`는 1x로 위임(시그니처 보존).
+- `CombatFXGate.cs`: `PlayHitFXInternal`이 `isCrit`일 때 임팩트 **1.5배**(`PlayImpactMulti`).
+- E-4(스테이지 틴트)는 Phase B에서 이미 구현, E-3(킬버스트)은 기존 CombatCameraEffects.PlayKill·ImpactSoundFX로 충족, E-5(프레임당≤10 캡)는 기존 TryConsumeBudget 유지.
+
+### Phase I — 사운드 4레이어 ✅
+- **신규 `Systems/AttackSoundLayerManager.cs`**: 스윙/임팩트/서브베이스/보이스 4 독립 AudioSource 레이어. `attack_swing{_weapon}`/`attack_hit{_weapon}` 재활용 + `attack_sub`(클립 없으면 절차적 70Hz 서브베이스 보장). `ProfileOf(type)` 무기별 피치·볼륨표 — 검(대검 둔탁)/창(금속 고피치)/활(시위 twang)/맨손(중간). 크리 시 임팩트 피치+8%·볼륨+20%.
+- `PlayerCombat.cs`: `PlayWeaponSwingSound`/`PlayWeaponHitSound`가 AttackSoundLayerManager로 재배선(시그니처 보존, 히트스톱 이전 즉시 → I-3 선행 보장).
+
+### Phase J-2/3 — 데미지 넘버 juice ✅
+- `CombatVFXController.cs`: 위치 버킷(`_stackBuckets`) 기반 **연타 스택** — 0.5u 좌표 반올림·0.35s 창·슬롯8 초과 시 wrapping, 1번 히트 중앙→좌우 교대 대각(↗/↖·26/15px×스케일) 퍼짐. **가독성** — 8방향 흑색 외곽선(일반2·크리3 두께×스케일) + 그림자 알파 0.5→0.8·+2px 오프셋 추가. (DamageFont는 데드 경로로 미변경.)
+
+### Phase L — 적 사망 다운 모션 ✅
+- `AnimalAI.cs`: `Die()`가 즉시 파괴 대신 `StartDeathSequence` → 절차 눕힘(0.5s Slerp 90°)+sink(지면 0.4m)+**0.6~1.2s 지연 파괴** 후 리스폰. `_deathRoutineStarted` 재진입 가드(전리품 중복 드롭 방지), 콜라이더/어그로는 다운 시작 즉시 비활, 리스폰 시 회전 원복(`_spawnRot`).
+
+### Phase G-2 — 타 UI창 해상도 비례 ✅
+- `WorldMapWindow.cs`/`WarehouseUI.cs`: `_uiScale = sqrt((W/1920)*(H/1080))` + const→배수 프로퍼티(TITLE_H/HINT_H·슬롯·패딩·드롭다운) + `UIFont.Load()` 폰트·fontSize 스케일 + 해상도 변경 시 스타일 재생성(`_uiScaleUsedForStyles`).
+
+### Phase H-2~4 — 장비(방어구) 착용 계측 ✅
+- `EquipmentManager.cs`/`ArmorVisualAttachSystem.cs`/`InventoryWindow.cs`: 우클릭→`EquipItem`→`OnEquipmentChanged`, 드래그 장착, 드래그 해제 각 홉에 측정 로그 추가. 구조적 dead-end 없음 확인 — 매니저 발화→ArmorVisual 수신→부착/Detach 체인 측정 가능화. MapArmorSlot(헬멧/갑옷/신발/장갑/백·방패) 5종 정확.
+
+### Phase K — 회피/차지/패링
+- K-1(롤+무적)은 **기존 구현 확인**: ProceduralAnimationController Q키 `RequestRoll` + PlayerHealth C21-02 `IsRolling` 반사 무적 이미 존재 → 추가 작업 불필요.
+- K-2(차지)/K-3(패링): 신규 클립 에셋(Roll_Dodge/Charged_Upward_Slash/Sword_Parry .anim) 미존재 확인 → **생략 판정**(에셋 확보 시 후속).
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0**(exit 0, 에디터 종료 상태 3회 실행 모두 정상).
+- 변경 파일: AnimalAI/ArmorVisualAttachSystem/CombatFXGate/CombatVFXController/EquipmentManager/HumanoidClipDriver/PlayerCombat/SlashVFXRunner/InventoryWindow/WarehouseUI/WorldMapWindow(11) + 신규 AttackSoundLayerManager.cs.
+
+### Play 판정 대기
+① 콤보 타별 아크가 strike 프레임(0.38)에 동기 발화(즉시 아님) ② 크리 임팩트 1.5배 ③ 공격 사운드 4레이어·무기별 피치 ④ 연타 데미지 넘버가 좌우 대각으로 퍼짐+외곽선 판독 ⑤ 몬스터 사망 시 눕힘→지연 파괴 ⑥ 월드맵/창고 해상도 비례 ⑦ 장비 착용 로그 체인 ⑧ Q키 구르기 무적.
+
+### 잔여
+K-2(차지 강공·클립 확보 시) · K-3(패링·클립 확보 시) · H-2 Play 확정검증 · G-3 DnD hit-test · Play 눈검증(구르기/사운드/다운 모션).

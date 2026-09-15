@@ -72,8 +72,21 @@ namespace ProjectName.UI
         /// <summary>정규화 분모 = 2×extent. u = 0.5 + x/WORLD_SPAN.</summary>
         private const float WORLD_SPAN = 3200f;
 
-        private const float TITLE_H = 46f;   // 타이틀 스트립 높이
-        private const float HINT_H = 24f;    // 하단 힌트 바 높이
+        private static float TITLE_H => 46f * _uiScale;   // 타이틀 스트립 높이
+        private static float HINT_H => 24f * _uiScale;    // 하단 힌트 바 높이
+
+        // ===== [2026-09-15 Phase G-UI] 해상도 비례 스케일 =====
+        // HUD._canvasScale/InventoryWindow 선례와 동일 산식. 고정 px 상수는 화면 크기가
+        // 바뀌면 비율이 깨지므로 _uiScale 배수 프로퍼티로 전환해 사용처 이름 그대로 자동 비례한다.
+        private static float _uiScale = 1f;
+        private static int _uiScaleW = -1, _uiScaleH = -1;
+        public static float UIScale => _uiScale;
+        private static void RefreshUIScale()
+        {
+            if (Screen.width == _uiScaleW && Screen.height == _uiScaleH) return;
+            _uiScaleW = Screen.width; _uiScaleH = Screen.height;
+            _uiScale = Mathf.Max(0.35f, Mathf.Sqrt((Screen.width / 1920f) * (Screen.height / 1080f)));
+        }
 
         /// <summary>휠 줌 3단 (콘텐츠 배율 — 1.0=전체 대륙, 2.5=확대).</summary>
         private static readonly float[] _zoomScales = { 1f, 1.6f, 2.5f };
@@ -132,6 +145,7 @@ namespace ProjectName.UI
         private GUIStyle _styleHint;        // 하단 힌트
         private GUIStyle _styleCompass;     // N/E/S/W 방위
         private bool _stylesInitialized;
+        private float _uiScaleUsedForStyles = -1f;   // [Phase G-UI] 스타일 생성 시점의 스케일
 
         // ===================================================================
         // 절차 텍스처 static 캐시 (외부 에셋 금지 — 1회 생성, 파기 금지)
@@ -311,11 +325,17 @@ namespace ProjectName.UI
             if (!IsOpen) return;
             base.OnGUI(); // 테마 없음 → 실드(빈 DrawWindowContent)만, 배경은 아래 양피지가 전담
 
+            RefreshUIScale();   // [Phase G-UI] 해상도 변경 감지 → 비례 스케일 갱신
+            if (!Mathf.Approximately(_uiScaleUsedForStyles, _uiScale))   // 스케일 변경 → 폰트 스타일 재생성
+            {
+                _uiScaleUsedForStyles = _uiScale;
+                _stylesInitialized = false;
+            }
             InitStyles();
 
-            // 창 rect — 중앙 배치, 화면 클램프(H>1080 클램프 함정 대응)
-            float winW = Mathf.Min(Screen.width - 24f, 1660f);
-            float winH = Mathf.Min(Screen.height - 24f, 1080f);
+            // 창 rect — 중앙 배치, 화면 클램프(H>1080 클램프 함정 대응) + 해상도 비례 디자인 치수
+            float winW = Mathf.Min(Screen.width - 24f * _uiScale, 1660f * _uiScale);
+            float winH = Mathf.Min(Screen.height - 24f * _uiScale, 1080f * _uiScale);
             var winRect = new Rect((Screen.width - winW) * 0.5f, (Screen.height - winH) * 0.5f, winW, winH);
 
             UIStyleManager.DrawDimOverlay();
@@ -371,7 +391,7 @@ namespace ProjectName.UI
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
                 font = font,
-                fontSize = 19,
+                fontSize = (int)(19f * _uiScale),   // [Phase G-UI] 해상도 비례
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 clipping = TextClipping.Clip,
@@ -380,7 +400,7 @@ namespace ProjectName.UI
             _styleZoom = new GUIStyle(GUI.skin.label)
             {
                 font = font,
-                fontSize = 13,
+                fontSize = (int)(13f * _uiScale),   // [Phase G-UI] 해상도 비례
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleRight,
                 normal = { textColor = ColorInkSoft }
@@ -388,25 +408,25 @@ namespace ProjectName.UI
             _styleMapLabel = new GUIStyle(GUI.skin.label)
             {
                 font = font,
-                fontSize = 11,
+                fontSize = (int)(11f * _uiScale),   // [Phase G-UI] 해상도 비례
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 clipping = TextClipping.Clip,
                 wordWrap = false,
                 normal = { textColor = ColorInk }
             };
-            _styleMapTiny = new GUIStyle(_styleMapLabel) { fontSize = 9 };
+            _styleMapTiny = new GUIStyle(_styleMapLabel) { fontSize = (int)(9f * _uiScale) };   // [Phase G-UI] 해상도 비례
             _styleGlyph = new GUIStyle(GUI.skin.label)
             {
                 font = font,
-                fontSize = 13,
+                fontSize = (int)(13f * _uiScale),   // [Phase G-UI] 해상도 비례
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorInk }
             };
             _styleTipTitle = new GUIStyle(GUI.skin.label)
             {
                 font = font,
-                fontSize = 14,
+                fontSize = (int)(14f * _uiScale),   // [Phase G-UI] 해상도 비례
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 clipping = TextClipping.Clip,
@@ -415,7 +435,7 @@ namespace ProjectName.UI
             _styleTipBody = new GUIStyle(GUI.skin.label)
             {
                 font = font,
-                fontSize = 11,
+                fontSize = (int)(11f * _uiScale),   // [Phase G-UI] 해상도 비례
                 alignment = TextAnchor.MiddleLeft,
                 clipping = TextClipping.Clip,
                 normal = { textColor = ColorInkSoft }
@@ -423,7 +443,7 @@ namespace ProjectName.UI
             _styleTipDesc = new GUIStyle(GUI.skin.label)
             {
                 font = font,
-                fontSize = 11,
+                fontSize = (int)(11f * _uiScale),   // [Phase G-UI] 해상도 비례
                 alignment = TextAnchor.UpperLeft,
                 wordWrap = true,
                 normal = { textColor = ColorInkSoft }
@@ -431,7 +451,7 @@ namespace ProjectName.UI
             _styleHint = new GUIStyle(GUI.skin.label)
             {
                 font = font,
-                fontSize = 10,
+                fontSize = (int)(10f * _uiScale),   // [Phase G-UI] 해상도 비례
                 alignment = TextAnchor.MiddleLeft,
                 clipping = TextClipping.Clip,
                 normal = { textColor = ColorInkSoft }
@@ -439,7 +459,7 @@ namespace ProjectName.UI
             _styleCompass = new GUIStyle(GUI.skin.label)
             {
                 font = font,
-                fontSize = 11,
+                fontSize = (int)(11f * _uiScale),   // [Phase G-UI] 해상도 비례
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorInk }
@@ -812,16 +832,16 @@ namespace ProjectName.UI
             TerritoryState state = db != null ? db.GetState(def.id) : null;
             TerritoryOwnership own = state != null ? state.ownership : TerritoryOwnership.Unoccupied;
 
-            const float W = 320f;
+            float W = 320f * _uiScale;   // [Phase G-UI] 해상도 비례
             s_tipContent.text = def.description ?? string.Empty;
-            float descH = Mathf.Min(_styleTipDesc.CalcHeight(s_tipContent, W - 28f), 110f);
-            float h = 20f + 20f + 20f + descH + 18f;
+            float descH = Mathf.Min(_styleTipDesc.CalcHeight(s_tipContent, W - 28f * _uiScale), 110f * _uiScale);
+            float h = 20f * _uiScale + 20f * _uiScale + 20f * _uiScale + descH + 18f * _uiScale;
 
             Vector2 m = Event.current.mousePosition;
-            var box = new Rect(m.x + 18f, m.y + 20f, W, h);
-            if (box.xMax > winRect.xMax - 8f) box.x = m.x - W - 18f;           // 우측 클램프 → 좌측 플립
-            if (box.yMax > winRect.yMax - 8f) box.y = winRect.yMax - h - 8f;   // 하단 클램프
-            box.x = Mathf.Max(box.x, winRect.x + 8f);
+            var box = new Rect(m.x + 18f * _uiScale, m.y + 20f * _uiScale, W, h);
+            if (box.xMax > winRect.xMax - 8f * _uiScale) box.x = m.x - W - 18f * _uiScale;           // 우측 클램프 → 좌측 플립
+            if (box.yMax > winRect.yMax - 8f * _uiScale) box.y = winRect.yMax - h - 8f * _uiScale;   // 하단 클램프
+            box.x = Mathf.Max(box.x, winRect.x + 8f * _uiScale);
 
             Color old = GUI.color;
 
@@ -839,15 +859,15 @@ namespace ProjectName.UI
             GUI.color = old;
             DrawRectBorder(box, ColorSepiaFrame, 2f);
 
-            float ix = box.x + 12f, iw = W - 24f;
-            GUI.Label(new Rect(ix, box.y + 7f, iw, 20f), TitleLine(def), _styleTipTitle);
-            GUI.Label(new Rect(ix, box.y + 27f, iw, 20f),
+            float ix = box.x + 12f * _uiScale, iw = W - 24f * _uiScale;
+            GUI.Label(new Rect(ix, box.y + 7f * _uiScale, iw, 20f * _uiScale), TitleLine(def), _styleTipTitle);
+            GUI.Label(new Rect(ix, box.y + 27f * _uiScale, iw, 20f * _uiScale),
                 $"국가: {NationLabel(def.nation)}   난이도: {DifficultyLabel(def.difficulty)}", _styleTipBody);
-            GUI.Label(new Rect(ix, box.y + 47f, iw, 20f),
+            GUI.Label(new Rect(ix, box.y + 47f * _uiScale, iw, 20f * _uiScale),
                 $"병사: {def.guardCount}명 · {OwnershipLabel(own)}{(def.isNightOnly ? " · 🌙 야간 전용" : "")}",
                 _styleTipBody);
             s_tipContent.text = def.description ?? string.Empty;
-            GUI.Label(new Rect(ix, box.y + 67f, iw, descH), s_tipContent, _styleTipDesc);
+            GUI.Label(new Rect(ix, box.y + 67f * _uiScale, iw, descH), s_tipContent, _styleTipDesc);
 
             GUI.color = old;
         }

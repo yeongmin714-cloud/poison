@@ -719,62 +719,25 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// [Phase B] 무기별 스윙 사운드 재생 — 무기 타입에 따라 다른 사운드 ID 사용.
-        /// AudioConfig에 attack_swing_sword, attack_swing_spear, attack_swing_bow, attack_swing_fist 등이
-        /// 등록되어 있으면 해당 사운드를, 없으면 기본 attack_swing 폴백.
+        /// [Phase I] 무기별 스윙 사운드 재생 — 스윙 레이어(공격 시작 시점)만 담당.
+        /// AttackSoundLayerManager가 무기 타입별 피치/볼륨을 적용해 재생한다.
+        /// 토큰 재활용: attack_swing_{weapon} 우선, attack_swing 기본 폴백 (기존 AudioConfig 경로 유지).
         /// </summary>
         private void PlayWeaponSwingSound()
         {
-            if (SoundManager.Instance == null) return;
-
-            string soundId = "attack_swing"; // 기본 폴백
-            if (_currentWeapon != null)
-            {
-                switch (_currentWeapon.weaponType)
-                {
-                    case ProjectName.Core.WeaponType.Sword: soundId = "attack_swing_sword"; break;
-                    case ProjectName.Core.WeaponType.Spear: soundId = "attack_swing_spear"; break;
-                    case ProjectName.Core.WeaponType.Bow: soundId = "attack_swing_bow"; break;
-                    case ProjectName.Core.WeaponType.Fist: soundId = "attack_swing_fist"; break;
-                }
-            }
-
-            // 등록된 사운드가 없으면 기본 attack_swing으로 폴백 (SoundManager 내부에서 경고 처리)
-            SoundManager.Instance.PlaySFX(soundId);
+            var w = _currentWeapon != null ? _currentWeapon.weaponType : ProjectName.Core.WeaponType.Fist;
+            AttackSoundLayerManager.PlaySwing(w);
         }
 
         /// <summary>
-        /// [Phase B] 무기별 적중 사운드 재생 — 무기 타입 + 백어택 여부에 따라 다른 사운드 ID 사용.
-        /// 백어택/치명타 시 attack_hit_crit_<weapon> 우선, 없으면 attack_hit_<weapon>, 그것도 없으면 기본 attack_hit.
+        /// [Phase I] 무기별 적중 사운드 재생 — 타격 시점에 임팩트+서브베이스+보이스 3중 레이어를
+        /// 즉시 동시 발화. 히트스톱(RequestHitStop)은 호출부에서 이 메서드 이후 마지막에 걸리므로
+        /// I-3 규약(히트스톱 지연과 무관하게 임팩트 선행)이 충족된다.
         /// </summary>
         private void PlayWeaponHitSound(bool isBackAttack)
         {
-            if (SoundManager.Instance == null) return;
-
-            string weaponSuffix = "";
-
-            if (_currentWeapon != null)
-            {
-                switch (_currentWeapon.weaponType)
-                {
-                    case ProjectName.Core.WeaponType.Sword: weaponSuffix = "_sword"; break;
-                    case ProjectName.Core.WeaponType.Spear: weaponSuffix = "_spear"; break;
-                    case ProjectName.Core.WeaponType.Bow: weaponSuffix = "_bow"; break;
-                    case ProjectName.Core.WeaponType.Fist: weaponSuffix = "_fist"; break;
-                }
-            }
-
-            if (isBackAttack)
-            {
-                // 치명타/백어택 전용 사운드 우선 시도
-                string critSound = "attack_hit_crit" + weaponSuffix;
-                // SoundManager.PlaySFX는 미존재 시 조용히 무시하므로 순차 시도
-                SoundManager.Instance.PlaySFX(critSound);
-            }
-
-            // 기본 무기별 적중 사운드
-            string hitSound = "attack_hit" + weaponSuffix;
-            SoundManager.Instance.PlaySFX(hitSound);
+            var w = _currentWeapon != null ? _currentWeapon.weaponType : ProjectName.Core.WeaponType.Fist;
+            AttackSoundLayerManager.PlayAttackHit(w, isBackAttack);
         }
     }
 }

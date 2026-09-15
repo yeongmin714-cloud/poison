@@ -91,6 +91,10 @@ namespace ProjectName.Systems
                 return false;
             }
 
+            // 2026-09-15(H-2): 경로 실측 진입 로그 — 우클릭/드래그 장착이 EquipmentManager까지
+            // 도달했는지 홉 단위로 판별하는 측정 지점 (git diff 대신 콘솔에서 검증용).
+            Debug.Log($"[EquipmentManager] EquipItem 진입 ({slot}) item={inventorySlot.item.id} name={inventorySlot.item.displayName}");
+
             int idx = SlotIndex(slot);
             if (!TryGetValidIndex(slot, out int validatedIdx))
             {
@@ -120,6 +124,8 @@ namespace ProjectName.Systems
             Debug.Log($"[EquipmentManager] {slot}에 {inventorySlot.item.displayName} 장착!");
 
             OnEquipmentChanged?.Invoke(slot, _slots[idx].itemId);
+            // 2026-09-15(H-3): 이벤트 발화 실측 — ArmorVisualAttachSystem 등 구독자의 수신 경로를 판별하는 측정 지점.
+            Debug.Log($"[EquipmentManager] OnEquipmentChanged 발화 ({slot}, {_slots[idx].itemId})");
             return true;
         }
 
@@ -257,6 +263,8 @@ namespace ProjectName.Systems
             Debug.Log($"[EquipmentManager] {slot} 해제! 인벤토리로 반환됨.");
 
             OnEquipmentChanged?.Invoke(slot, null);
+            // 2026-09-15(H-3): 해제 이벤트 발화 실측 — ArmorVisualAttachSystem 비주얼 Detach 수신 경로 판별용.
+            Debug.Log($"[EquipmentManager] OnEquipmentChanged 발화 ({slot}, null) — 해제");
             return true;
         }
 

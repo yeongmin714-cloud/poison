@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections; // [Phase L] 사망 시 다운 모션 + 지연 파괴 코루틴용
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Systems.Animation.Neural;
@@ -60,7 +61,9 @@ namespace ProjectName.Systems
         private float _currentHP;
         private Transform _player;
         private Vector3 _spawnPos;
+        private Quaternion _spawnRot;   // [Phase L] 리스폰 시 회전 원복용
         private bool _isDead = false;
+        private bool _deathRoutineStarted; // [Phase L] 다운 시퀀스 코루틴 재진입 가드
         private float _lastAttackTime;
         private Vector3 _fleeTarget;
         private Renderer _renderer;
@@ -214,6 +217,7 @@ namespace ProjectName.Systems
             }
             _player = GameObject.FindGameObjectWithTag("Player")?.transform;
             _spawnPos = transform.position;
+            _spawnRot = transform.rotation; // [Phase L] 리스폰/다운 복구용
 
             // Auto-exclude player layer from obstacle mask to prevent self-hitting
             if (_player != null)
@@ -1074,20 +1078,82 @@ namespace ProjectName.Systems
                 Debug.Log($"[AnimalAI] 🧺 최소 전리품 보장: 빈 바구니에 {guaranteedItem.displayName} x1 추가 ({monsterName})");
             }
 
-            // 시체 처리 — 2026-09-11: GLB 프리팹은 렌더러가 자식 메시에만 존재해 루트 _renderer가 null.
-            // 단일 _renderer 토글로는 시체가 화면에 남아 Respawn(10초+)까지 표시됨 →
-            // 자식 렌더러 전체 + 콜라이더(자식 포함) + MonsterHeadUI 일괄 비활성.
-            // (페이드아웃 없이 즉시 비활성 — 리스폰 시 SetCorpseVisuals(true)로 시각 원복)
-            SetCorpseVisuals(false);
-
-            // 리스폰
+            // [Phase L] 전리품은 위에서 다운 시작 시 1회 드롭됨(재진입은 _isDead로 가드).
+            // 즉시 SetCorpseVisuals(false)로 시체를 숨기지 않고, 절차 눕힘 + sink 후 0.6~1.2s 지연으로 파괴.
             float respawnDelay = 10f + (int)_tier * 5f;
             // C20-02: 난이도별 리스폰 속도 배율 (Easy: 빠름, Hard: 느림)
             respawnDelay *= DifficultyManager.GetRespawnRateMultiplier((DifficultyMode)GameManager.CurrentDifficulty);
-            Invoke(nameof(Respawn), respawnDelay); // 고급 몬스터는 더 천천히 리스폰
+            StartDeathSequence(respawnDelay);
 
-            // === G2-04: 처치 카메라 이펙트 ===
+            // === G2-04: 처치 카메라 이펙트
             CombatCameraEffects.PlayKill();
+        }
+
+        /// <summary>
+        /// [Phase L] 다운 모션 + 지연 파괴 시퀀스 시작. 콜라이더/어그로는 즉시 비활성,
+        /// 루트를 90° 눕힌 뒤 0.6~1.2s 지연으로 시체(렌더러/콜라이더/헤드UI)를 숨긴다.
+        /// 전리품은 호출측(Die)에서 다운 시작 시 1회 드롭하므로 이곳에선 드롭을 하지 않는다.
+        /// </summary>
+        private void StartDeathSequence(float respawnDelay)
+        {
+            if (_deathRoutineStarted) return;
+            _deathRoutineStarted = true;
+
+            // 어그로 해제 + 콜라이더 즉시 비활성 (렌더러는 다운 동안 유지)
+            ClearAggro();
+            FeedQuadrupedSpeed(0f);
+            SetCollidersEnabled(false);
+
+            StartCoroutine(DeathDownRoutine(respawnDelay));
+        }
+
+        /// <summary>자식 포함 콜라이더만 토글 (렌더러는 유지 → 다운 모션 중 시체 표시).</summary>
+        private void SetCollidersEnabled(bool enabled)
+        {
+            foreach (var c in GetComponentsInChildren<Collider>(true))
+                c.enabled = enabled;
+        }
+
+        private IEnumerator DeathDownRoutine(float respawnDelay)
+        {
+            // 1) 절차 눕힘: 루트 좌우 회전 90° (측면으로 눕는 연출을 클립 없이 절차 재현) — 0.5s
+            Quaternion startRot = transform.rotation; // 현재 바라보는 방향 기준 눕힘 (스폰 회전으로 역스냅 방지)
+            Quaternion downRot = startRot * Quaternion.Euler(0f, 0f, 90f); // GLB 메시 기준 측면 눕힘
+            if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
+
+            float downDuration = 0.5f;
+            float t = 0f;
+            while (t < downDuration)
+            {
+                t += Time.deltaTime;
+                transform.rotation = Quaternion.Slerp(startRot, downRot, Mathf.Clamp01(t / downDuration));
+                yield return null;
+            }
+            transform.rotation = downRot;
+
+            // 2) 총 0.6~1.2s 지연: 다운 후 남은 시간 동안 점점 sink (지면으로 가라앉는 연출)
+            float totalDelay = Random.Range(0.6f, 1.2f);
+            float remaining = Mathf.Max(0.05f, totalDelay - downDuration);
+            Vector3 sinkStart = transform.position;
+            float sinkDuration = Mathf.Min(0.5f, remaining);
+            t = 0f;
+            while (t < sinkDuration)
+            {
+                t += Time.deltaTime;
+                transform.position = Vector3.Lerp(sinkStart, sinkStart - Vector3.up * 0.4f, Mathf.Clamp01(t / sinkDuration));
+                yield return null;
+            }
+
+            // 남은 지연 대기
+            if (remaining > sinkDuration)
+                yield return new WaitForSeconds(remaining - sinkDuration);
+
+            // 3) 시체 파괴(숨김): 렌더러/콜라이더/헤드UI 일괄. 회전 원복 후 리스폰.
+            transform.rotation = _spawnRot; // 회전 원복 — 리스폰이 올바른 자세로 재생성
+            SetCorpseVisuals(false);
+            _deathRoutineStarted = false;
+
+            Invoke(nameof(Respawn), respawnDelay);
         }
 
         private void Respawn()
@@ -1099,6 +1165,8 @@ namespace ProjectName.Systems
             _aggroTarget = null;
             _aggroAttacker = null;
             transform.position = _spawnPos;
+            transform.rotation = _spawnRot; // [Phase L] 다운 중 눕혔던 회전 원복
+            _deathRoutineStarted = false;   // [Phase L] 다운 시퀀스 초기화
             // 2026-09-11: 시체 비활성 원복 — GLB 대응으로 자식 렌더러/콜라이더/헤드UI 일괄 재활성
             // (기존 _renderer 단일 재활성은 GLB에서 null이라 무효)
             SetCorpseVisuals(true);

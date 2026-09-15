@@ -3241,6 +3241,9 @@ namespace ProjectName.UI
                 Debug.Log($"[인벤] 드래그 장착 실패(사유: 원본 인벤 슬롯 없음) — {item.displayName}");
                 return false;
             }
+            // 2026-09-15(H-2): 드래그 장착 부위→매니저 호출 브리지 실측 — 드래그가 EquipmentManager로
+            // 전달되는 몫과 대상 슬롯을 판별하는 측정 지점 (다음 홉: [EquipmentManager] EquipItem 진입).
+            Debug.Log($"[인벤] 드래그 장착 → EquipmentManager.EquipItem 호출 ({item.id} → {def.badge}/{def.slot})");
             bool equipped = em.EquipItem(invSlot, def.slot);
             Debug.Log(equipped
                 ? $"[인벤] 드래그 장착 성공 — {item.displayName} → {def.badge} (인벤에서 1개 제거됨)"
@@ -3260,6 +3263,9 @@ namespace ProjectName.UI
             var def = _equipCellDefs[equipCellIndex];
             if (!def.real) return false;
             var em = ProjectName.Systems.EquipmentManager.Instance;
+            // 2026-09-15(H-4): 장비칸 드래그 해제 경로 실측 — 장비칸 소스 드래그가 해제(인벤 이동)에
+            // 도달했는지 판별하는 측정 지점 (클릭 해제와 동일 EquipmentManager.UnequipSlot 경로).
+            Debug.Log($"[InventoryWindow] 장비→인벤 드래그 해제 도달 (셀={equipCellIndex}, slot={def.slot})");
             bool ok = em != null && em.UnequipSlot(def.slot);
             if (ok) RefreshInventory();
             return ok;
@@ -3444,6 +3450,9 @@ namespace ProjectName.UI
                     return;
                 }
                 var equipSlot = MapArmorSlot(item.id);
+                // 2026-09-15(H-2): 부위 해석→매니저 호출 브리지 실측 — 우클릭 장착이 EquipmentManager로
+                // 전달되는 몫과 대상 슬롯을 판별하는 측정 지점 (다음 홉: [EquipmentManager] EquipItem 진입).
+                Debug.Log($"[Equip] 우클릭 장착 {item.id} → EquipmentManager.EquipItem 호출 (slot={equipSlot}, cat={item.category})");
                 bool equipped = em.EquipItem(slot, equipSlot);
                 // 2026-09-11(7): 결정적 결과 로그 1줄 — 우클릭 장착 성공/실패와 사유
                 Debug.Log(equipped

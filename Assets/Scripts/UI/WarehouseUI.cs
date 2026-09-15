@@ -25,8 +25,21 @@ namespace ProjectName.UI
         private Vector2 _scrollPos;
         private const int SlotsPerRow = 4;
         private const int MaxSlots = 20;
-        private const float SlotSize = 64f;
-        private const float Padding = 5f;
+
+        // ===== [2026-09-15 Phase G-UI] 해상도 비례 스케일 =====
+        // HUD._canvasScale/InventoryWindow 선례와 동일 산식. 고정 px 상수는 화면 크기가
+        // 바뀌면 비율이 깨지므로 _uiScale 배수 프로퍼티로 전환해 사용처 이름 그대로 자동 비례한다.
+        private static float _uiScale = 1f;
+        private static int _uiScaleW = -1, _uiScaleH = -1;
+        public static float UIScale => _uiScale;
+        private static void RefreshUIScale()
+        {
+            if (Screen.width == _uiScaleW && Screen.height == _uiScaleH) return;
+            _uiScaleW = Screen.width; _uiScaleH = Screen.height;
+            _uiScale = Mathf.Max(0.35f, Mathf.Sqrt((Screen.width / 1920f) * (Screen.height / 1080f)));
+        }
+        private static float SlotSize => 64f * _uiScale;   // 슬롯 셀 크기 (해상도 비례)
+        private static float Padding => 5f * _uiScale;
 
         // === 영지 선택 드롭다운 ===
         private string[] _territoryOptions;
@@ -67,6 +80,7 @@ namespace ProjectName.UI
         private GUIStyle _styleSlotSelected;
         private GUIStyle _styleDropdown;
         private bool _stylesInitialized;
+        private float _uiScaleUsedForStyles = -1f;   // [Phase G-UI] 스타일 생성 시점의 스케일
 
         // === 테마 컬러 — 2026-09-11 Flat 토큰 (다크 네이비 + 회백 보더 + 스카이블루 액센트; InventoryWindow 통일) ===
         private static readonly Color ColorBg = new Color(0.063f, 0.086f, 0.133f, 0.88f);      // 창 배경 (다크 네이비)
@@ -143,9 +157,12 @@ namespace ProjectName.UI
         {
             if (_stylesInitialized) return;
 
+            Font font = UIFont.Load();   // P7-1: 한글 서포트 커스텀 폰트
+
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 18,
+                font = font,
+                fontSize = (int)(18f * _uiScale),   // [Phase G-UI] 해상도 비례
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
@@ -154,7 +171,8 @@ namespace ProjectName.UI
 
             _styleLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                font = font,
+                fontSize = (int)(13f * _uiScale),   // [Phase G-UI] 해상도 비례
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextSecondary },
                 padding = new RectOffset(8, 4, 0, 0)
@@ -162,7 +180,8 @@ namespace ProjectName.UI
 
             _styleButton = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 13,
+                font = font,
+                fontSize = (int)(13f * _uiScale),   // [Phase G-UI] 해상도 비례
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 padding = new RectOffset(4, 4, 2, 2),
@@ -173,6 +192,7 @@ namespace ProjectName.UI
 
             _styleSlot = new GUIStyle(GUI.skin.box)
             {
+                font = font,
                 normal = { background = MakeTexture(1, 1, ColorSlotBg), textColor = ColorTextPrimary },
                 border = new RectOffset(1, 1, 1, 1),
                 padding = new RectOffset(2, 2, 2, 2),
@@ -186,7 +206,8 @@ namespace ProjectName.UI
 
             _styleDropdown = new GUIStyle(GUI.skin.box)
             {
-                fontSize = 13,
+                font = font,
+                fontSize = (int)(13f * _uiScale),   // [Phase G-UI] 해상도 비례
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorSlotBg) },
                 padding = new RectOffset(8, 4, 4, 4)
@@ -214,6 +235,12 @@ namespace ProjectName.UI
         protected override void DrawWindowContent()
         {
             if (!IsOpen) return;
+            RefreshUIScale();   // [Phase G-UI] 해상도 변경 감지 → 비례 스케일 갱신
+            if (!Mathf.Approximately(_uiScaleUsedForStyles, _uiScale))   // 스케일 변경 → 폰트 스타일 재생성
+            {
+                _uiScaleUsedForStyles = _uiScale;
+                _stylesInitialized = false;
+            }
             InitStyles();
 
             if (WarehouseSystem.Instance == null)
@@ -245,11 +272,11 @@ namespace ProjectName.UI
             GUILayout.BeginHorizontal();
 
             // 영지 선택 드롭다운
-            GUILayout.Label("🏰 영지: ", _styleLabel, GUILayout.Width(80));
+            GUILayout.Label("🏰 영지: ", _styleLabel, GUILayout.Width(80f * _uiScale));
 
             if (GUILayout.Button(_territoryOptions != null && _selectedTerritoryIndex < _territoryOptions.Length
                 ? _territoryOptions[_selectedTerritoryIndex] : _currentTerritoryId,
-                _styleDropdown, GUILayout.Width(200), GUILayout.Height(28)))
+                _styleDropdown, GUILayout.Width(200f * _uiScale), GUILayout.Height(28f * _uiScale)))
             {
                 _showTerritoryDropdown = !_showTerritoryDropdown;
             }
@@ -259,7 +286,7 @@ namespace ProjectName.UI
             // 창고 용량 표시
             var items = WarehouseSystem.Instance.GetItems(_currentTerritoryId);
             int count = items != null ? items.Count : 0;
-            GUILayout.Label($"📦 {count}/{MaxSlots}", _styleLabel, GUILayout.Width(100));
+            GUILayout.Label($"📦 {count}/{MaxSlots}", _styleLabel, GUILayout.Width(100f * _uiScale));
 
             GUILayout.EndHorizontal();
 
@@ -273,7 +300,7 @@ namespace ProjectName.UI
                     bool isCurrent = i == _selectedTerritoryIndex;
 
                     if (GUILayout.Button(isCurrent ? $"👉 {optionName}" : $"   {optionName}",
-                        _styleButton, GUILayout.Height(24)))
+                        _styleButton, GUILayout.Height(24f * _uiScale)))
                     {
                         if (!isCurrent)
                         {
@@ -303,7 +330,7 @@ namespace ProjectName.UI
             }
 
             // 구분선
-            GUILayout.Box("", GUILayout.Height(2), GUILayout.ExpandWidth(true));
+            GUILayout.Box("", GUILayout.Height(2f * _uiScale), GUILayout.ExpandWidth(true));
         }
 
         // ===================================================================
@@ -325,7 +352,7 @@ namespace ProjectName.UI
                 return;
             }
 
-            _scrollPos = GUILayout.BeginScrollView(_scrollPos, GUILayout.Height(320));
+            _scrollPos = GUILayout.BeginScrollView(_scrollPos, GUILayout.Height(320f * _uiScale));
 
             int rows = Mathf.CeilToInt((float)totalSlots / SlotsPerRow);
             for (int r = 0; r < rows; r++)
@@ -371,36 +398,36 @@ namespace ProjectName.UI
             s_slotIndices.Add(index);
 
             float iconSize = SlotSize * 0.55f;
-            // GC 최적화: 캐시된 Rect 재사용
+            // GC 최적화: 캐시된 Rect 재사용 ([Phase G-UI] 좌표/크기 해상도 비례)
             _iconRect.x = rect.x + (rect.width - iconSize) / 2;
-            _iconRect.y = rect.y + 3;
+            _iconRect.y = rect.y + 3f * _uiScale;
             _iconRect.width = iconSize;
             _iconRect.height = iconSize;
             DrawItemIcon(_iconRect, slot.item);
 
             // 아이템 이름
-            _itemNameRect.x = rect.x + 2;
-            _itemNameRect.y = rect.y + iconSize + 2;
-            _itemNameRect.width = rect.width - 4;
-            _itemNameRect.height = 14;
-            GUI.Label(_itemNameRect, TruncateText(slot.item.displayName, rect.width - 4, _styleLabel), _styleLabel);
+            _itemNameRect.x = rect.x + 2f * _uiScale;
+            _itemNameRect.y = rect.y + iconSize + 2f * _uiScale;
+            _itemNameRect.width = rect.width - 4f * _uiScale;
+            _itemNameRect.height = 14f * _uiScale;
+            GUI.Label(_itemNameRect, TruncateText(slot.item.displayName, rect.width - 4f * _uiScale, _styleLabel), _styleLabel);
 
             // 수량
             if (slot.count > 1)
             {
-                _countRect.x = rect.x + rect.width - 22;
-                _countRect.y = rect.y + rect.height - 18;
-                _countRect.width = 20;
-                _countRect.height = 16;
+                _countRect.x = rect.x + rect.width - 22f * _uiScale;
+                _countRect.y = rect.y + rect.height - 18f * _uiScale;
+                _countRect.width = 20f * _uiScale;
+                _countRect.height = 16f * _uiScale;
                 _countLabel = "x" + slot.count;
                 GUI.Label(_countRect, _countLabel, _styleLabel);
             }
 
             // 인벤토리 이동 버튼 (▽)
-            _transferRect.x = rect.x + rect.width - 18;
-            _transferRect.y = rect.y + 2;
-            _transferRect.width = 16;
-            _transferRect.height = 16;
+            _transferRect.x = rect.x + rect.width - 18f * _uiScale;
+            _transferRect.y = rect.y + 2f * _uiScale;
+            _transferRect.width = 16f * _uiScale;
+            _transferRect.height = 16f * _uiScale;
             if (GUI.Button(_transferRect, "▽", _styleButton))
             {
                 WarehouseSystem.Instance.TransferToInventory(_currentTerritoryId, index, 1);
@@ -534,14 +561,14 @@ namespace ProjectName.UI
         // ===================================================================
         private void DrawActionArea()
         {
-            GUILayout.Space(4);
-            GUILayout.Box("", GUILayout.Height(1), GUILayout.ExpandWidth(true));
-            GUILayout.Space(4);
+            GUILayout.Space(4f * _uiScale);
+            GUILayout.Box("", GUILayout.Height(1f * _uiScale), GUILayout.ExpandWidth(true));
+            GUILayout.Space(4f * _uiScale);
 
             // === 인벤토리 → 창고 토글 버튼 ===
             GUILayout.BeginHorizontal();
             if (GUILayout.Button(_showInventoryTransfer ? "📦 창고 아이템 (현재)" : "🎒 인벤토리 → 창고",
-                _styleButton, GUILayout.Width(200), GUILayout.Height(28)))
+                _styleButton, GUILayout.Width(200f * _uiScale), GUILayout.Height(28f * _uiScale)))
             {
                 _showInventoryTransfer = !_showInventoryTransfer;
                 if (_showInventoryTransfer)
@@ -563,10 +590,10 @@ namespace ProjectName.UI
             }
 
             // 닫기 버튼
-            GUILayout.Space(8);
+            GUILayout.Space(8f * _uiScale);
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button("닫기", _styleButton, GUILayout.Width(120), GUILayout.Height(32)))
+            if (GUILayout.Button("닫기", _styleButton, GUILayout.Width(120f * _uiScale), GUILayout.Height(32f * _uiScale)))
             {
                 Hide();
             }
@@ -591,7 +618,7 @@ namespace ProjectName.UI
             }
 
             // 인벤토리 아이템 리스트
-            _invScrollPos = GUILayout.BeginScrollView(_invScrollPos, GUILayout.Height(160));
+            _invScrollPos = GUILayout.BeginScrollView(_invScrollPos, GUILayout.Height(160f * _uiScale));
 
             for (int i = 0; i < slots.Length; i++)
             {
@@ -604,12 +631,12 @@ namespace ProjectName.UI
                 Color color = GetCategoryColor(slot.item.category);
                 var oldColor = GUI.color;
                 GUI.color = color;
-                GUILayout.Box("", GUILayout.Width(24), GUILayout.Height(24));
+                GUILayout.Box("", GUILayout.Width(24f * _uiScale), GUILayout.Height(24f * _uiScale));
                 GUI.color = oldColor;
 
-                GUILayout.Label($"{symbol} {slot.item.displayName} x{slot.count}", _styleLabel, GUILayout.Width(240));
+                GUILayout.Label($"{symbol} {slot.item.displayName} x{slot.count}", _styleLabel, GUILayout.Width(240f * _uiScale));
 
-                if (GUILayout.Button("창고로", _styleButton, GUILayout.Width(80), GUILayout.Height(24)))
+                if (GUILayout.Button("창고로", _styleButton, GUILayout.Width(80f * _uiScale), GUILayout.Height(24f * _uiScale)))
                 {
                     // 1개를 창고로 이동
                     bool removed = PlayerInventory.Instance.RemoveItem(slot.item.id, 1);
@@ -631,12 +658,12 @@ namespace ProjectName.UI
                 }
 
                 // 수량 지정 전송
-                GUILayout.Label("x", _styleLabel, GUILayout.Width(12));
-                string countStr = GUILayout.TextField(_invTransferCount.ToString(), GUILayout.Width(36));
+                GUILayout.Label("x", _styleLabel, GUILayout.Width(12f * _uiScale));
+                string countStr = GUILayout.TextField(_invTransferCount.ToString(), GUILayout.Width(36f * _uiScale));
                 int.TryParse(countStr, out _invTransferCount);
                 _invTransferCount = Mathf.Clamp(_invTransferCount, 1, slot.count);
 
-                if (GUILayout.Button("전송", _styleButton, GUILayout.Width(60), GUILayout.Height(24)))
+                if (GUILayout.Button("전송", _styleButton, GUILayout.Width(60f * _uiScale), GUILayout.Height(24f * _uiScale)))
                 {
                     int transferCount = Mathf.Min(_invTransferCount, slot.count);
                     bool removed = PlayerInventory.Instance.RemoveItem(slot.item.id, transferCount);
@@ -675,15 +702,15 @@ namespace ProjectName.UI
                     if (slot != null && slot.item != null)
                     {
                         GUILayout.BeginHorizontal();
-                        GUILayout.Label($"선택: {slot.item.displayName} (x{slot.count})", _styleLabel, GUILayout.Width(250));
+                        GUILayout.Label($"선택: {slot.item.displayName} (x{slot.count})", _styleLabel, GUILayout.Width(250f * _uiScale));
 
                         // 수량 조절
-                        if (GUILayout.Button("-", _styleButton, GUILayout.Width(24), GUILayout.Height(24)))
+                        if (GUILayout.Button("-", _styleButton, GUILayout.Width(24f * _uiScale), GUILayout.Height(24f * _uiScale)))
                         {
                             _transferCount = Mathf.Max(1, _transferCount - 1);
                         }
-                        GUILayout.Label($"{_transferCount}", _styleLabel, GUILayout.Width(30));
-                        if (GUILayout.Button("+", _styleButton, GUILayout.Width(24), GUILayout.Height(24)))
+                        GUILayout.Label($"{_transferCount}", _styleLabel, GUILayout.Width(30f * _uiScale));
+                        if (GUILayout.Button("+", _styleButton, GUILayout.Width(24f * _uiScale), GUILayout.Height(24f * _uiScale)))
                         {
                             _transferCount = Mathf.Min(slot.count, _transferCount + 1);
                         }
@@ -693,7 +720,7 @@ namespace ProjectName.UI
 
                         // 대상 영지 선택
                         GUILayout.BeginHorizontal();
-                        GUILayout.Label("→ 다른 영지로 보내기:", _styleLabel, GUILayout.Width(150));
+                        GUILayout.Label("→ 다른 영지로 보내기:", _styleLabel, GUILayout.Width(150f * _uiScale));
 
                         if (_territoryOptions != null && _territoryOptions.Length > 1)
                         {
@@ -703,13 +730,13 @@ namespace ProjectName.UI
                             if (targetIdx < 0) targetIdx = 0;
 
                             if (GUILayout.Button(targetOptions != null && targetIdx < targetOptions.Length
-                                ? targetOptions[targetIdx] : "선택...", _styleDropdown, GUILayout.Width(180), GUILayout.Height(24)))
+                                ? targetOptions[targetIdx] : "선택...", _styleDropdown, GUILayout.Width(180f * _uiScale), GUILayout.Height(24f * _uiScale)))
                             {
                                 // 다음 대상으로 순환
                                 CycleTargetTerritory();
                             }
 
-                            if (GUILayout.Button("📦 보내기", _styleButton, GUILayout.Width(100), GUILayout.Height(28)))
+                            if (GUILayout.Button("📦 보내기", _styleButton, GUILayout.Width(100f * _uiScale), GUILayout.Height(28f * _uiScale)))
                             {
                                 TransferToOtherTerritory();
                             }

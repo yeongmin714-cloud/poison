@@ -115,7 +115,8 @@ namespace ProjectName.Systems
             // ==========================================================================================
 
             // 1. 피격 VFX — Matthew Guz Impact 에셋 (유일한 피격 표현). Runner 내부에 0.08s 스팸 방지 쿨다운 있음.
-            SlashVFXRunner.PlayImpact(position, type);
+            // [Phase E-2] 크리티컬은 임팩트 1.5배 확대.
+            SlashVFXRunner.PlayImpactMulti(position, type, isCrit ? 1.5f : 1f);
 
             // 2. 데미지 숫자 — 치명타/백어택 구분: isCrit=true일 때 백어택인지 체크하여 타입 결정
             var dmgType = isCrit

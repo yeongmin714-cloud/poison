@@ -2436,7 +2436,7 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | C 피격 리액션 | 신규 `HitReactionDriver`(+Runner) — 플린치(경/중/크리 0.16/0.24/0.30s)+넉백(RB/CC)+Animator 트리거 동반. CombatFXGate GameObject 오버로드 2곳 배선, try-catch 격리, 파괴 미관여 | ✅ |
 | D 카메라 | 카메라 펀치 이중 발화 단일화(`if(!hitAny)`) — 히트/미스 강도 일치. 무기별 히트스톱은 기존 구현 확인 | ✅ |
 | 검증 | 배치컴파일 error CS=0(A 기준선 + BCD 적용 후 총 2회), 괄호 균형 157/157 | ✅ |
-| 잔여 | Phase E(FX strike 동기)/F(사운드)/G(넘버 juice)/H(회피롤·차지·패링) + 적 사망 다운 모션 | ⬜ |
+| 잔여 | ~~Phase E(FX strike 동기)~~✅ ~~F(사운드)~~✅ ~~G(넘버 juice)~~✅ ~~H(회피롤·차지·패링)~~(롤 무적 이미 존재) ~~+ 적 사망 다운 모션~~✅ — 55차에서 E/I/J/L/G-2/H-2~4 완료, K-2/3 클립 미확보로 생략 | ✅ |
 
 ### 동작 변화/판정 (52차)
 - 1/2/3타 모션이 서로 다른 클립으로 개성화(Double_Combo_Attack → Triple_Combo_Attack → Weapon_Combo_2)
@@ -2475,3 +2475,21 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 컴파일 | **error CS=0**(exit 0) — 에디터 종료 상태 배치 성공 | ✅ |
 
 | Play 판정 대기 | ① 흰색 복귀 ② 무기 손 표시 ③ 느낌표 ④ Loot/장비창 비례 ⑤ 장비 착용 | ⬜ |
+
+## ⚔️ 2026-09-15: 공격액션 업그레이드 잔여 Phase 재개 — E/I/J/L/G-2/H + 사운드 (ATTACK-FEEL-55)
+
+> **목표**: 중단됐던 공격액션 계획서(ATTACK_FEEL_UPGRADE_PLAN.md)의 잔여 Phase 재개. 계획 §6 실행순서(G-2→H→E→I→J→L→K) 준수.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| E | FX strike 프레임 동기 — 트레일 즉시/아크 strike(0.38) 분리(`StageStrikeSyncNormT`+`_pendingStageArc`), 임팩트 크리 1.5배(`PlayImpactMulti`) | ✅ |
+| I | 사운드 4레이어 — 신규 `AttackSoundLayerManager`(4 AudioSource: 스윙/임팩트/서브베이스/보이스) + 무기별 피치·볼륨 + 히트스톱 선행 | ✅ |
+| J-2/3 | 데미지 넘버 juice — 위치 버킷 연타 스택(좌우 대각 퍼짐) + 8방향 흑색 외곽선 + 그림자 0.8 | ✅ |
+| L | 적 사망 다운 — Die() 절차 눕힘(0.5s 90°)+sink+0.6~1.2s 지연 파괴, 재진입 가드 | ✅ |
+| G-2 | WorldMapWindow/WarehouseUI `_uiScale` 해상도 비례(폰트+상수+스타일 재생성) | ✅ |
+| H-2~4 | 장비(방어구) 착용 계측 로그(EquipmentManager/ArmorVisualAttach/Inventory) — 구조 완결 확인 | ✅ |
+| K | 롤+무적 기존 구현 확인(ProceduralAnimation Q RequestRoll + PlayerHealth IsRolling), K-2/3 클립 미확보로 생략 | 🔶 |
+| 검증 | 배치컴파일 **error CS=0**(exit 0) — 변경 11파일+신규 1. 실행 2회 정상 | ✅ |
+
+### Play 판정 대기
+① 콤보 아크 strike 동기 ② 크리 임팩트 1.5배 ③ 사운드 4레이어·무기 피치 ④ 연타 넘버 퍼짐/외곽선 ⑤ 사망 눕힘→지연 파괴 ⑥ 월드맵/창고 비례 ⑦ 장비 착용 로그 ⑧ Q 구르기 무적

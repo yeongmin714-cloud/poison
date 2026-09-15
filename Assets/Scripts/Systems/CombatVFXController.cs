@@ -503,6 +503,27 @@ namespace ProjectName.Systems
             private static GUIStyle _styleCache;
             private static GUIStyle _shadowStyleCache;
             private static GUIStyle _critStyleCache;
+            // [Phase J-3] 초록 지형 대비용 외곽선 스타일 (흑색 불투명) — 일반/크리티컬 각각 확보.
+            private static GUIStyle _outlineStyleCache;
+            private static GUIStyle _critOutlineStyleCache;
+
+            // [Phase J-2] 연타 스택 — 짧은 시간 내 같은 위치 중복 생성 시 서로 다른
+            // 아이소메트릭(대각) 오프셋으로 퍼지게 배치한다. key는 위치 버킷(월드 0.5u 단위).
+            private static readonly Dictionary<Vector3Int, StackBucket> _stackBuckets = new Dictionary<Vector3Int, StackBucket>();
+            private static float _lastBucketPrune = -999f;
+            private const float StackWindow = 0.35f;   // 이 시간 안의 동일 위치 히트를 한 스택으로 집계
+            private const int StackMaxSlot = 8;        // 같은 버킷에 누적할 최대 스택 깊이 (초과 시 wrapping)
+
+            // 순회 순서 캐시 — 가비지 감소
+            private static readonly List<Vector3Int> _pruneReader = new List<Vector3Int>();
+
+            /// <summary>동일 위치 버킷의 최근 스피언 시각 목록 (오름차순).</summary>
+            private class StackBucket
+            {
+                public readonly List<float> Times = new List<float>();
+            }
+
+            private Vector2 _stackOffset; // [Phase J-2] 스택별 화면 공간 아이소메트릭 오프셋
 
             public void Init(string text, Color color, DamageNumberType type = DamageNumberType.Normal)
             {
@@ -512,6 +533,69 @@ namespace ProjectName.Systems
                 _cam = Camera.main;
                 _type = type;
                 _popScale = 1.35f; // 팝 시작 스케일
+                // [Phase J-2] 생성 시각 기준 같은 위치 연타 스택 슬롯 확보 → 대각 오프셋 계산.
+                _stackOffset = ComputeStackScreenOffset(transform.position, GetStyleScale());
+            }
+
+            /// <summary>해상도 비례 스타일 스케일(EnsureStyles와 동일 공식).</summary>
+            private static float GetStyleScale()
+            {
+                return Mathf.Clamp(Mathf.Sqrt((Screen.width / 1920f) * (Screen.height / 1080f)), 0.5f, 2.5f);
+            }
+
+            /// <summary>
+            /// [Phase J-2] 같은 위치의 최근 스피언을 버킷으로 세고, 슬롯 번호에 따라
+            /// 아이소메트릭 대각선(V자) 화면 오프셋을 반환한다. 첫 히트는 중앙(0,0),
+            /// 이후 히트는 좌우 교대로 위로 대각선(↗↖)으로 퍼진다.
+            /// </summary>
+            private static Vector2 ComputeStackScreenOffset(Vector3 worldPos, float s)
+            {
+                var key = new Vector3Int(
+                    Mathf.RoundToInt(worldPos.x * 2f),
+                    Mathf.RoundToInt(worldPos.y * 2f),
+                    Mathf.RoundToInt(worldPos.z * 2f));
+
+                float now = Time.time;
+
+                // 주기적 가비지 정리 — 빈 버킷 제거 (딕셔너리 무한 성장 방지)
+                if (now - _lastBucketPrune > 0.2f)
+                {
+                    _lastBucketPrune = now;
+                    if (_stackBuckets.Count > 0)
+                    {
+                        _pruneReader.Clear();
+                        foreach (var kv in _stackBuckets)
+                        {
+                            kv.Value.Times.RemoveAll(t => now - t > StackWindow);
+                            if (kv.Value.Times.Count == 0) _pruneReader.Add(kv.Key);
+                        }
+                        for (int i = 0; i < _pruneReader.Count; i++) _stackBuckets.Remove(_pruneReader[i]);
+                    }
+                }
+
+                if (!_stackBuckets.TryGetValue(key, out var bucket))
+                {
+                    bucket = new StackBucket();
+                    _stackBuckets[key] = bucket;
+                }
+                bucket.Times.RemoveAll(t => now - t > StackWindow);
+                int slot = bucket.Times.Count; // 현 슬롯 = 이번이 몇 번째 히트인가
+                bucket.Times.Add(now);
+
+                Vector2 offset = Vector2.zero;
+                if (slot > 0)
+                {
+                    // 스택 깊이 한정 — 과도한 중첩 시 wrapping (겹침 방지 + 성능 보호)
+                    int i = slot % StackMaxSlot;
+                    if (i == 0) i = StackMaxSlot;
+                    // 아이소메트릭 대각 배치: i=1→(dx,-dy), i=2→(-dx,-dy), i=3→(2dx,-2dy), i=4→(-2dx,-2dy) ...
+                    int side = (i % 2 == 1) ? 1 : -1;     // 홀수=우측, 짝수=좌측
+                    int group = (i + 1) / 2;              // 대각 '층' (y 높이 증가 계수)
+                    float dx = 26f * s;                    // 좌우 간격 (글자 반폭여유)
+                    float dy = 15f * s;                    // y 대각 상승 간격
+                    offset = new Vector2(side * group * dx, -group * dy);
+                }
+                return offset;
             }
 
             private void Update()
@@ -539,8 +623,10 @@ namespace ProjectName.Systems
             {
                 // [2026-09-15 Phase J] 해상도 비례 + 가독성 상향 — 기존 14/18px 고정은 저해상/고해상에서
                 // 읽기 어렵고 초록 지형 대비가 약했다(테스트17 판정). 스케일이 바뀌면 스타일을 재생성한다.
-                float s = Mathf.Clamp(Mathf.Sqrt((Screen.width / 1920f) * (Screen.height / 1080f)), 0.5f, 2.5f);
+                // [Phase J-3] 초록 지형 대비용 외곽선(흑색 링) 스타일 추가 — 잔디·바위 위 판독 보장.
+                float s = GetStyleScale();
                 if (_styleCache != null && _shadowStyleCache != null && _critStyleCache != null
+                    && _outlineStyleCache != null && _critOutlineStyleCache != null
                     && Mathf.Approximately(_styleScale, s)) return;
                 _styleScale = s;
 
@@ -561,6 +647,16 @@ namespace ProjectName.Systems
                     fontSize = (int)(32 * s), // 크리티컬은 더 크게
                     fontStyle = FontStyle.Bold
                 };
+
+                // [Phase J-3] 흑색 외곽선 스타일 — 일반/크리티컬 크기 각각 대응 (본문과 동일 정렬/두께)
+                _outlineStyleCache = new GUIStyle(_styleCache)
+                {
+                    normal = { textColor = new Color(0, 0, 0, 0.92f) }
+                };
+                _critOutlineStyleCache = new GUIStyle(_critStyleCache)
+                {
+                    normal = { textColor = new Color(0, 0, 0, 0.92f) }
+                };
             }
 
             private void OnGUI()
@@ -576,12 +672,14 @@ namespace ProjectName.Systems
                 if (_guiContent == null)
                     _guiContent = new GUIContent(_text);
 
-                if (_styleCache == null || _shadowStyleCache == null || _critStyleCache == null)
+                if (_styleCache == null || _shadowStyleCache == null || _critStyleCache == null
+                    || _outlineStyleCache == null || _critOutlineStyleCache == null)
                 {
                     try { EnsureStyles(); }
                     catch { return; }
                 }
-                if (_styleCache == null || _shadowStyleCache == null || _critStyleCache == null) return;
+                if (_styleCache == null || _shadowStyleCache == null || _critStyleCache == null
+                    || _outlineStyleCache == null || _critOutlineStyleCache == null) return;
 
                 Vector3 screenPos = _cam.WorldToScreenPoint(transform.position);
                 if (screenPos.z < 0) return;
@@ -590,11 +688,13 @@ namespace ProjectName.Systems
                 float alpha = Mathf.Lerp(1f, 0f, _elapsed / 1.5f);
 
                 // 데미지 타입별 스타일 선택
-                var style = (_type == DamageNumberType.Critical || _type == DamageNumberType.BackAttack)
-                    ? _critStyleCache : _styleCache;
+                bool isBig = (_type == DamageNumberType.Critical || _type == DamageNumberType.BackAttack);
+                var style = isBig ? _critStyleCache : _styleCache;
+                var outlineStyle = isBig ? _critOutlineStyleCache : _outlineStyleCache;
 
                 style.normal.textColor = new Color(_color.r, _color.g, _color.b, alpha);
-                _shadowStyleCache.normal.textColor = new Color(0, 0, 0, alpha * 0.5f);
+                _shadowStyleCache.normal.textColor = new Color(0, 0, 0, alpha * 0.8f);
+                outlineStyle.normal.textColor = new Color(0, 0, 0, alpha);
 
                 Vector2 textSize = style.CalcSize(_guiContent);
 
@@ -602,13 +702,38 @@ namespace ProjectName.Systems
                 float scaledWidth = textSize.x * _popScale;
                 float scaledHeight = textSize.y * _popScale;
 
+                // [Phase J-2] 연타 스택 아이소메트릭 오프셋을 중심에 반영
                 Rect rect = new Rect(
-                    screenPos.x - scaledWidth * 0.5f,
-                    screenPos.y - scaledHeight * 0.5f,
+                    screenPos.x - scaledWidth * 0.5f + _stackOffset.x,
+                    screenPos.y - scaledHeight * 0.5f + _stackOffset.y,
                     scaledWidth, scaledHeight);
 
-                GUI.Label(new Rect(rect.x + 1, rect.y + 1, rect.width, rect.height), _guiContent, _shadowStyleCache);
+                // [Phase J-3] 흑색 외곽선 링 — 잔디·바위 위 대비 보장. 본문 뒤 8방향으로 그림자.
+                float thickness = (isBig ? 3f : 2f) * _styleScale;
+                DrawTextOutline(rect, outlineStyle, thickness);
+
+                // 진한 연성 그림자 (외곽선 위에 한 번 더 — 초록 배경 밀도 보충)
+                GUI.Label(new Rect(rect.x + 2f, rect.y + 2f, rect.width, rect.height), _guiContent, _shadowStyleCache);
+
                 GUI.Label(rect, _guiContent, style);
+            }
+
+            // [Phase J-3] 8방향 외곽선 그리기 — 흑색 링으로 초록/밝은 지형 위에서도 글자 판독.
+            private static readonly Vector2[] OutlineStep =
+            {
+                new Vector2(-1, -1), new Vector2(0, -1), new Vector2(1, -1),
+                new Vector2(-1, 0),                         new Vector2(1, 0),
+                new Vector2(-1, 1),  new Vector2(0, 1),  new Vector2(1, 1)
+            };
+
+            private void DrawTextOutline(Rect rect, GUIStyle style, float thickness)
+            {
+                for (int i = 0; i < OutlineStep.Length; i++)
+                {
+                    GUI.Label(new Rect(rect.x + OutlineStep[i].x * thickness,
+                                       rect.y + OutlineStep[i].y * thickness,
+                                       rect.width, rect.height), _guiContent, style);
+                }
             }
         }
     // ================================================================

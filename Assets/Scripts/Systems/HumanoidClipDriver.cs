@@ -42,7 +42,12 @@ namespace ProjectName.Systems
         private static readonly string[] StageStateNames = { "AttackCombo", "AttackCombo2", "AttackCombo3" };
         private static readonly string[] StageTriggerNames = { "AttackCombo", "AttackCombo2", "AttackCombo3" };
         private const float StageCancelGate = 0.30f;   // 스테이지 클립 진행률 게이트 — 이 이상이면 다음 타 입력 즉시 소비(스윙 캔슬 허용)
+        // [2026-09-15 Phase E] 아크 발화 strike 동기 게이트 — StageCancelGate와 같은 지역(대략 clip진행 0.3~0.5)의
+        // strike 프레임에 아크/임팩트를 발화하기 위한 임계. 스테이지 클립 진행률이 이 값 이상이면 발화 대기 아크를 소진한다.
+        private const float StageStrikeSyncNormT = 0.38f;
         private int _comboStage;          // 0=비활성, 1..3 = 현재 스테이지(클릭 수)
+        // [2026-09-15 Phase E] strike 동기 대기 아크 — 클릭 즉시가 아닌 strike 프레임에서 발화할 아크 스테이지(0=없음).
+        private int _pendingStageArc;
         private float _comboStartTime = -999f;
         private float _comboPinGraceStart = -999f;
         // #48차 콤보 버퍼링: 경계 도달 전(스윙 중)에 들어온 연타 입력을 다음 스테이지로 캐리하는 1슬롯 버퍼.
@@ -754,8 +759,9 @@ namespace ProjectName.Systems
             _comboBufferedClick = false;
             _comboStartTime = Time.time;
             _anim.SetTrigger(StageTriggerNames[_comboStage - 1]);
-            FireComboSlash(_comboStage);
-            Debug.Log($"[Combo] stage={_comboStage} path=stageClip trigger={StageTriggerNames[_comboStage - 1]}");
+            FireComboTrail(_comboStage);                 // 트레일은 스윙 즉시 방출
+            _pendingStageArc = _comboStage;              // [Phase E] 아크는 strike 프레임에서 발화
+            Debug.Log($"[Combo] stage={_comboStage} path=stageClip trigger={StageTriggerNames[_comboStage - 1]} (아크 strike 대기)");
         }
 
         /// <summary>다음 스테이지로 진행 — 트리거 발화 + 스테이지별 스윙 FX.</summary>
@@ -767,8 +773,9 @@ namespace ProjectName.Systems
             _comboBufferedClick = false;
             _comboStartTime = Time.time;
             _anim.SetTrigger(StageTriggerNames[_comboStage - 1]);
-            FireComboSlash(_comboStage);
-            Debug.Log($"[Combo] stage={_comboStage} path=stageClip 트리거 진행");
+            FireComboTrail(_comboStage);                 // 트레일은 스윙 즉시 방출
+            _pendingStageArc = _comboStage;              // [Phase E] 아크는 strike 프레임에서 발화
+            Debug.Log($"[Combo] stage={_comboStage} path=stageClip 트리거 진행 (아크 strike 대기)");
         }
 
         /// <summary>
@@ -781,6 +788,14 @@ namespace ProjectName.Systems
             if (IsInStageClip() && _comboStage > 0)
             {
                 float normT = _anim.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                // [Phase E] strike 동기 — 대기 아크를 strike 프레임(StageStrikeSyncNormT) 통과 순간 발화.
+                if (_pendingStageArc > 0 && normT >= StageStrikeSyncNormT)
+                {
+                    int arcStage = _pendingStageArc;
+                    _pendingStageArc = 0;   // 1회만 발화 (재대기 방지)
+                    FireComboSlash(arcStage);   // 아크 + 크로스 발화 (트레일은 이미 즉시 방출됨 — 중복 무해)
+                    Debug.Log($"[Combo] strike 동기 아크 발화 (stage={arcStage}, normT={normT:F2})");
+                }
                 if (_comboBufferedClick && Time.time <= _comboBufferEndTime && _comboStage < 3 && normT >= StageCancelGate)
                 {
                     _comboBufferedClick = false;
@@ -791,6 +806,7 @@ namespace ProjectName.Systems
             else if (_comboStage > 0 && Time.time - _comboStartTime > 0.5f)
             {
                 _comboStage = 0;
+                _pendingStageArc = 0;   // [Phase E] 대기 아크도 함께 리셋 (인터럽트 시 미발화 소멸)
                 _comboPinGraceStart = -999f;
                 _comboBufferedClick = false;
                 ResetComboCrossFlags();
@@ -824,6 +840,28 @@ namespace ProjectName.Systems
             for (int i = 0; i < _comboCrossFired.Length; i++) _comboCrossFired[i] = false;
             _comboCrossPrevNormT = 0f;
             _comboCrossPrevValid = false;
+        }
+
+        /// <summary>
+        /// [Phase E] 스테이지 클립 경로용 스윙 트레일 즉시 방출 — 아크(strike 동기)와 분리.
+        /// 트레일은 스윙 시작 즉시(정확한 손/무기 잔상), 아크는 MonitorStageClip이 StageStrikeSyncNormT에서 발화.
+        /// </summary>
+        private void FireComboTrail(int stage)
+        {
+            try
+            {
+                if (mode == DriveMode.Player)
+                {
+                    WeaponSwingTrail.EnsureBareFist(transform.root);
+                    WeaponSwingTrail.SetComboStage(stage);
+                    WeaponSwingTrail.SetEmitting(true);
+                    Debug.Log($"[Combo] 스윙 트레일 즉시 방출 (stage={stage}, 아크는 strike 대기)");
+                }
+            }
+            catch (System.Exception fxEx)
+            {
+                Debug.LogWarning($"[Combo] 트레일 즉시 방출 실패(전투 계속): {fxEx.Message}");
+            }
         }
 
         /// <summary>
