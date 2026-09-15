@@ -32,10 +32,10 @@ namespace ProjectName.UI
         // 폭/높이는 InventoryWindow의 창 크기 규약(WINDOW_WIDTH/WINDOW_HEIGHT)을 그대로 따른다.
         private static float WINDOW_WIDTH => InventoryWindow.WINDOW_WIDTH;   // Screen.width/3 - 12
         private static float WINDOW_HEIGHT => Screen.height - 180f;          // InventoryWindow.WINDOW_HEIGHT 규약 (하단 핫바 170 여백)
-        private const float TITLE_BAR_HEIGHT = 90f;
-        private const float BOTTOM_BAR_HEIGHT = 120f;
+        private static float TITLE_BAR_HEIGHT => 90f * _uiScale;
+        private static float BOTTOM_BAR_HEIGHT => 120f * _uiScale;
         private const int GRID_COLUMNS = 3;
-        private const float SLOT_MARGIN = 12f;
+        private static float SLOT_MARGIN => 12f * _uiScale;
 
         // ===== 다크 테마 색상 (인벤토리와 통일) =====
         private static readonly Color ColorBg = new Color(0.063f, 0.086f, 0.133f, 0.92f);   // 다크네이비
@@ -62,6 +62,18 @@ namespace ProjectName.UI
         private GUIStyle _stylePanelBox;
         private GUIStyle _styleTakeAllBtn;
         private bool _stylesInitialized;
+        private float _uiScaleUsedForStyles = -1f;
+        // ===== [2026-09-15 Phase G-UI] 해상도 비례 스케일 (InventoryWindow 선례) =====
+        private static float _uiScale = 1f;
+        private static int _uiScaleW = -1, _uiScaleH = -1;
+        public static float UIScale => _uiScale;
+        private static void RefreshUIScale()
+        {
+            if (Screen.width == _uiScaleW && Screen.height == _uiScaleH) return;
+            _uiScaleW = Screen.width; _uiScaleH = Screen.height;
+            _uiScale = Mathf.Max(0.35f, Mathf.Sqrt((Screen.width / 1920f) * (Screen.height / 1080f)));
+        }
+
         private Texture2D _texWhite;
 
         // ===== GC 최적화: Rect 재사용 =====
@@ -243,7 +255,7 @@ namespace ProjectName.UI
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 72,
+                fontSize = (int)(72 * _uiScale),
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
@@ -257,7 +269,7 @@ namespace ProjectName.UI
                 border = new RectOffset(2, 2, 2, 2),
                 padding = new RectOffset(4, 4, 4, 4),
                 margin = new RectOffset(2, 2, 2, 2),
-                fontSize = 48,
+                fontSize = (int)(48 * _uiScale),
                 alignment = TextAnchor.MiddleCenter
             };
 
@@ -268,7 +280,7 @@ namespace ProjectName.UI
 
             _styleSlotLabel = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 44,
+                fontSize = (int)(44 * _uiScale),
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary },
@@ -277,7 +289,7 @@ namespace ProjectName.UI
 
             _styleItemCount = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 44,
+                fontSize = (int)(44 * _uiScale),
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleRight,
                 normal = { textColor = ColorAccent }
@@ -285,7 +297,7 @@ namespace ProjectName.UI
 
             _styleEmptyText = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 52,
+                fontSize = (int)(52 * _uiScale),
                 fontStyle = FontStyle.Italic,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextDim }
@@ -301,7 +313,7 @@ namespace ProjectName.UI
 
             _styleTakeAllBtn = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 56,
+                fontSize = (int)(56 * _uiScale),
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary, background = MakeTexture(1, 1, ColorBtnTakeAll) },
@@ -319,6 +331,12 @@ namespace ProjectName.UI
         // ===================================================================
         protected override void DrawWindowContent()
         {
+            RefreshUIScale();
+            if (!Mathf.Approximately(_uiScaleUsedForStyles, _uiScale))
+            {
+                _uiScaleUsedForStyles = _uiScale;
+                _stylesInitialized = false;
+            }
             InitStyles();
 
             if (_currentBasket == null || _currentBasket.IsEmpty || !_currentBasket.IsAvailable)

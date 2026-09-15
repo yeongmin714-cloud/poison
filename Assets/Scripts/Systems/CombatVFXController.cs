@@ -23,24 +23,73 @@ namespace ProjectName.Systems
             Renderer[] renderers = target.GetComponentsInChildren<Renderer>();
             if (renderers.Length == 0) return;
 
-            var cache = new Dictionary<Renderer, Color>(renderers.Length);
+            var mats = new System.Collections.Generic.List<Material>();
             foreach (Renderer r in renderers)
             {
-                if (r == null || r.sharedMaterial == null) continue;
+                if (r == null) continue;
+                var m = r.sharedMaterial;
                 // 47차 후속5: ShaderGraph 재질(_Color 부재) 가드 — 콘솔 에러 스팸 제거.
-                // 폴백 슬래시('Slash World'/'Trail' 등)가 플레이어 자식으로 부착되어 이 루프에 포함되며,
-                // _Color 프로퍼티가 없는 재질에 material.color(get_color) 접근하면 콘솔 에러가 스팸한다.
-                // 해당 재질은 색 저장/플래시를 생략한다(캐시 미포함 → HitFlashRunner.Restore도 자동 스킵).
-                if (!r.sharedMaterial.HasProperty("_Color")) continue;
-                cache[r] = r.sharedMaterial.color;
-                r.sharedMaterial.color = Color.white;
+                if (m == null || !m.HasProperty("_Color")) continue;
+                // [2026-09-15 Phase F-FLASH] 공유 재질은 1회만 begin(중복 카운트 방지)
+                if (mats.Contains(m)) continue;
+                mats.Add(m);
+                FlashMaterialBegin(m);
             }
-
-            // 47차 후속5: 플래시 가능한 재질(_Color 보유)이 하나도 없으면 Runner 스폰 생략(플래시 생략).
-            if (cache.Count == 0) return;
+            if (mats.Count == 0) return;
 
             var go = new GameObject("HitFlashRunner");
-            go.AddComponent<HitFlashRunner>().Init(renderers, cache);
+            go.AddComponent<HitFlashRunner>().Init(renderers, mats);
+        }
+
+        // ================================================================
+        // [2026-09-15 Phase F-FLASH] 히트플래시 재질 레지스트리
+        //   뿌리: 기존 구현은 r.sharedMaterial.color 를 직접 흰색으로 바꾸고 '플래시별' 색 스냅샷으로 복원했다.
+        //   공유 재질을 쓰는 몬스터가 여럿이거나 연속/중첩 타격이면 스냅샷이 이미 흰색이 되어
+        //   복원해도 흰색이 남는 레이스가 발생(테스트19 "흰색에서 안 돌아옴").
+        //   수정: 재질별 '진짜 원본 색/이미션'을 최초 1회만 기록 + refcount 로 동시 플래시를 세고,
+        //         마지막 플래시가 끝날 때만 원본으로 복원한다. 대상이 파괴돼도 재질 키 기반이라 복원 성공.
+        // ================================================================
+        private static readonly System.Collections.Generic.Dictionary<Material, Color> _flashOrigColor = new System.Collections.Generic.Dictionary<Material, Color>();
+        private static readonly System.Collections.Generic.Dictionary<Material, int> _flashRef = new System.Collections.Generic.Dictionary<Material, int>();
+        private static readonly System.Collections.Generic.Dictionary<Material, Color> _flashOrigEmission = new System.Collections.Generic.Dictionary<Material, Color>();
+
+        private static void FlashMaterialBegin(Material m)
+        {
+            if (m == null || !m.HasProperty("_Color")) return;
+            _flashRef.TryGetValue(m, out int c);
+            if (c == 0)
+            {
+                _flashOrigColor[m] = m.color;
+                if (m.HasProperty("_EmissionColor"))
+                {
+                    _flashOrigEmission[m] = m.GetColor("_EmissionColor");
+                    m.EnableKeyword("_EMISSION");
+                }
+                m.color = Color.white;
+            }
+            _flashRef[m] = c + 1;
+        }
+
+        private static void FlashMaterialEnd(Material m)
+        {
+            if (m == null) return;
+            if (!_flashRef.TryGetValue(m, out int c)) return;
+            c--;
+            if (c > 0) { _flashRef[m] = c; return; }
+            _flashRef.Remove(m);
+            // 원본 복원(반드시 — 흰색 잔존 금지)
+            if (_flashOrigColor.TryGetValue(m, out Color oc)) { m.color = oc; _flashOrigColor.Remove(m); }
+            if (_flashOrigEmission.TryGetValue(m, out Color oe))
+            {
+                m.SetColor("_EmissionColor", oe);
+                _flashOrigEmission.Remove(m);
+                if (oe.maxColorComponent <= 0.001f) m.DisableKeyword("_EMISSION");
+            }
+            else if (m.HasProperty("_EmissionColor"))
+            {
+                m.SetColor("_EmissionColor", Color.black);
+                m.DisableKeyword("_EMISSION");
+            }
         }
 
         // ================================================================
@@ -344,15 +393,15 @@ namespace ProjectName.Systems
         private class HitFlashRunner : MonoBehaviour
         {
             private Renderer[] _renderers;
-            private Dictionary<Renderer, Color> _cache;
+            private System.Collections.Generic.List<Material> _mats;
             private Dictionary<Renderer, Vector3> _originalScales;
             private float _elapsed;
             private bool _restored;
 
-            public void Init(Renderer[] renderers, Dictionary<Renderer, Color> cache)
+            public void Init(Renderer[] renderers, System.Collections.Generic.List<Material> mats)
             {
                 _renderers = renderers;
-                _cache = cache;
+                _mats = mats;
                 _elapsed = 0f;
                 _restored = false;
 
@@ -379,20 +428,22 @@ namespace ProjectName.Systems
 
                     foreach (Renderer r in _renderers)
                     {
-                        if (r == null || r.sharedMaterial == null) continue;
+                        if (r == null) continue;
 
                         // 스케일로 아웃라인 효과 (약간 부풀리기)
                         if (_originalScales.TryGetValue(r, out Vector3 origScale))
                         {
                             r.transform.localScale = origScale * scaleMultiplier;
                         }
+                    }
 
-                        // 이미션으로 아웃라인 글로우 효과
-                        if (r.sharedMaterial.HasProperty("_EmissionColor"))
+                    // [Phase F-FLASH] 이미션 글로우 — 재질 레지스트리 경유(직접 원본 훼손 금지)
+                    if (_mats != null)
+                    {
+                        foreach (var m in _mats)
                         {
-                            Color emission = Color.white * emissionIntensity;
-                            r.sharedMaterial.SetColor("_EmissionColor", emission);
-                            r.sharedMaterial.EnableKeyword("_EMISSION");
+                            if (m == null || !m.HasProperty("_EmissionColor")) continue;
+                            m.SetColor("_EmissionColor", Color.white * emissionIntensity);
                         }
                     }
                 }
@@ -407,29 +458,27 @@ namespace ProjectName.Systems
 
             private void Restore()
             {
-                foreach (Renderer r in _renderers)
+                // [Phase F-FLASH] 재질 복원은 refcount 레지스트리에 위임 — 반드시 원본으로 돌아온다.
+                if (_mats != null)
                 {
-                    if (r == null || r.sharedMaterial == null) continue;
-                    if (_cache.TryGetValue(r, out Color color))
-                        r.sharedMaterial.color = color;
+                    foreach (var m in _mats) FlashMaterialEnd(m);
+                }
 
-                    // [Phase A] 아웃라인 복원: 스케일 원복 + 이미션 끄기
-                    if (_originalScales.TryGetValue(r, out Vector3 origScale))
+                // [Phase A] 아웃라인 복원: 스케일 원복
+                if (_renderers != null && _originalScales != null)
+                {
+                    foreach (Renderer r in _renderers)
                     {
-                        r.transform.localScale = origScale;
-                    }
-                    if (r.sharedMaterial.HasProperty("_EmissionColor"))
-                    {
-                        r.sharedMaterial.SetColor("_EmissionColor", Color.black);
-                        r.sharedMaterial.DisableKeyword("_EMISSION");
+                        if (r == null) continue;
+                        if (_originalScales.TryGetValue(r, out Vector3 origScale))
+                            r.transform.localScale = origScale;
                     }
                 }
             }
 
             private void OnDestroy()
             {
-                if (!_restored && _renderers != null && _cache != null)
-                    Restore();
+                if (!_restored) Restore();
                 _restored = true;
             }
         }

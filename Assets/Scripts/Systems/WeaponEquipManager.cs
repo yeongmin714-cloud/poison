@@ -138,6 +138,17 @@ namespace ProjectName.Systems
             var handBone = animator != null
                 ? animator.GetBoneTransform(HumanBodyBones.RightHand)
                 : null;
+            // [2026-09-15 Phase H-GRIP2] 폴백 — 아바타가 Generic/미매핑이면 GetBoneTransform이 null을 반환해
+            //   무기 장착이 조용히 스킵된다("손에 아무것도 없음" 현상). 이름 기반으로 RightHand 본을 재탐색.
+            if (handBone == null && animator != null)
+            {
+                foreach (var t in animator.GetComponentsInChildren<Transform>(true))
+                {
+                    string tn = t.name.ToLowerInvariant();
+                    if (tn.Contains("righthand") || tn.Contains("right_hand") || tn.Contains("hand_r") || tn.EndsWith(":righthand"))
+                    { handBone = t; break; }
+                }
+            }
             if (handBone == null)
             {
                 Debug.LogWarning("[WeaponEquipManager] 플레이어에서 Animator/RightHand 본 미발견 — 장착 스킵");
@@ -154,13 +165,27 @@ namespace ProjectName.Systems
                 glbKey = id + suffix;
             }
             var prefab = Resources.Load<GameObject>("Models/UserProvided/" + glbKey);
+            if (prefab == null && glbKey != id) prefab = Resources.Load<GameObject>("Models/UserProvided/" + id); // 폴백: 원본 id 경로
             if (prefab == null)
             {
-                Debug.LogWarning($"[WeaponEquipManager] 무기 프리팹 로드 실패: Models/UserProvided/{glbKey} — 모델 없이 클립 모드만 전환");
+                Debug.LogWarning($"[WeaponEquipManager] 무기 프리팹 로드 실패: Models/UserProvided/{glbKey} (및 {id}) — 모델 없이 클립 모드만 전환");
                 return;
             }
             var sword = Object.Instantiate(prefab, handBone);
             sword.name = glbKey;
+
+            // [2026-09-15 Phase H-GRIP2] GLB 낙하/물리 간섭 차단 — 무기 모델이 손에 안 보이는 known trap.
+            //   GLB 프리팹에 Rigidbody가 있으면 중력으로 손에서 떨어져 화면에 안 보인다(비가시 현상).
+            //   + 콜라이더는 비활성(스윙 중 플레이어/몬스터 밀어내기 방지), 렌더러는 강제 활성(가시 보장).
+            var rbs = sword.GetComponentsInChildren<Rigidbody>(true);
+            for (int i = 0; i < rbs.Length; i++) { rbs[i].isKinematic = true; rbs[i].useGravity = false; Object.Destroy(rbs[i]); }
+            var cols = sword.GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
+            var rendsDiag = sword.GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < rendsDiag.Length; i++) rendsDiag[i].enabled = true;
+            // 무기 모델 자체의 로컬 스케일 0/음수 방어(임포트 결함 → 비가시)
+            if (sword.transform.localScale.sqrMagnitude < 1e-8f) sword.transform.localScale = Vector3.one;
+            Debug.Log($"[Weapon] 인스턴스: {glbKey} 렌더러={rendsDiag.Length} rb제거={rbs.Length} colliderOff={cols.Length} hand={handBone.name}");
 
             // ⑤ 그립 포즈: 타입별 테이블 적용 (검 = 기존 실측 튜닝값 유지)
             var pose = GetGripPose(type, id);

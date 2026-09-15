@@ -321,6 +321,7 @@ namespace ProjectName.Systems
                 var exclamation = Instantiate(_exclamationPrefab, go.transform);
                 exclamation.name = "AggroExclamation";
                 exclamation.transform.localPosition = new Vector3(0, 2.5f, 0); // 머리 위
+                exclamation.transform.localScale = Vector3.one * 0.5f;          // [Phase F] 추가 축소 — characterSize와 곱연산(테스트19 재과대 리포트)
                 exclamation.SetActive(true);
             }
         }

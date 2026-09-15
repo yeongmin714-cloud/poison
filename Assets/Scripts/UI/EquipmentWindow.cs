@@ -22,12 +22,12 @@ namespace ProjectName.UI
         private static bool _embedCreateLogged;
 
         // ===== 레이아웃 상수 =====
-        private const float WINDOW_WIDTH = 600f;
-        private const float WINDOW_HEIGHT = 540f;
-        private const float TITLE_BAR_HEIGHT = 40f;
-        private const float SLOT_HEIGHT = 64f;
-        private const float SLOT_GAP = 6f;
-        private const float BUTTON_AREA_HEIGHT = 60f;
+        private static float WINDOW_WIDTH => 600f * _uiScale;
+        private static float WINDOW_HEIGHT => 540f * _uiScale;
+        private static float TITLE_BAR_HEIGHT => 40f * _uiScale;
+        private static float SLOT_HEIGHT => 64f * _uiScale;
+        private static float SLOT_GAP => 6f * _uiScale;
+        private static float BUTTON_AREA_HEIGHT => 60f * _uiScale;
 
         // ===== 선택 상태 =====
         private EquipmentManager.EquipmentSlot _selectedSlot = EquipmentManager.EquipmentSlot.Helmet;
@@ -60,6 +60,18 @@ namespace ProjectName.UI
         private GUIStyle _styleMetalFrame;      // AAA Layer 4: 금속 프레임 (9-Slice border 16)
         private GUIStyle _styleBannerTitle;     // AAA Layer 4: 배너 위 타이틀 (중앙 정렬)
         private bool _stylesInitialized;
+        private float _uiScaleUsedForStyles = -1f;
+        // ===== [2026-09-15 Phase G-UI] 해상도 비례 스케일 (InventoryWindow 선례) =====
+        private static float _uiScale = 1f;
+        private static int _uiScaleW = -1, _uiScaleH = -1;
+        public static float UIScale => _uiScale;
+        private static void RefreshUIScale()
+        {
+            if (Screen.width == _uiScaleW && Screen.height == _uiScaleH) return;
+            _uiScaleW = Screen.width; _uiScaleH = Screen.height;
+            _uiScale = Mathf.Max(0.35f, Mathf.Sqrt((Screen.width / 1920f) * (Screen.height / 1080f)));
+        }
+
 
         // ===== 슬롯 정의 (표시 순서) =====
         private struct SlotDef
@@ -136,7 +148,7 @@ namespace ProjectName.UI
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(), // P7-1: 한글 서포트 커스텀 폰트
-                fontSize = UIFont.Body, // P7-2: 20 → Body(24)
+                fontSize = (int)(UIFont.Body * _uiScale), // P7-2: 20 → Body(24)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
@@ -146,7 +158,7 @@ namespace ProjectName.UI
             _styleSlotLabel = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Caption, // P7-2: 15 → Caption(17)
+                fontSize = (int)(UIFont.Caption * _uiScale), // P7-2: 15 → Caption(17)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
@@ -156,7 +168,7 @@ namespace ProjectName.UI
             _styleSlotValue = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Badge, // P7-2: 13 → Badge(13)
+                fontSize = (int)(UIFont.Badge * _uiScale), // P7-2: 13 → Badge(13)
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextSecondary },
@@ -166,7 +178,7 @@ namespace ProjectName.UI
             _styleEmptyText = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Badge, // P7-2: 13 → Badge(13)
+                fontSize = (int)(UIFont.Badge * _uiScale), // P7-2: 13 → Badge(13)
                 fontStyle = FontStyle.Italic,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextDim },
@@ -176,7 +188,7 @@ namespace ProjectName.UI
             _styleInfoText = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Badge, // P7-2: 12 → Badge(13)
+                fontSize = (int)(UIFont.Badge * _uiScale), // P7-2: 12 → Badge(13)
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextDim },
@@ -186,7 +198,7 @@ namespace ProjectName.UI
             _styleDurabilityLabel = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Badge, // P7-2: 11 → Badge(13)
+                fontSize = (int)(UIFont.Badge * _uiScale), // P7-2: 11 → Badge(13)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary }
@@ -195,7 +207,7 @@ namespace ProjectName.UI
             _styleButton = new GUIStyle(GUI.skin.button)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Badge, // P7-2: 14 → Badge(13)
+                fontSize = (int)(UIFont.Badge * _uiScale), // P7-2: 14 → Badge(13)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 padding = new RectOffset(8, 8, 2, 2),
@@ -232,7 +244,7 @@ namespace ProjectName.UI
             _styleBannerTitle = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Body, // P7-2: 20 → Body(24)
+                fontSize = (int)(UIFont.Body * _uiScale), // P7-2: 20 → Body(24)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = new Color(0.98f, 0.92f, 0.72f, 1f) }   // 골드톤 — 배너 위 가독
@@ -248,6 +260,12 @@ namespace ProjectName.UI
             if (!IsOpen) return;
             if (Event.current == null) return; // C02: NRE 방지
 
+            RefreshUIScale();
+            if (!Mathf.Approximately(_uiScaleUsedForStyles, _uiScale))
+            {
+                _uiScaleUsedForStyles = _uiScale;
+                _stylesInitialized = false;
+            }
             InitStyles();
 
             float x = (Screen.width - WINDOW_WIDTH) / 2;
