@@ -4,7 +4,7 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-15 (53차)
+> **최종 갱신:** 2026-09-15 (54차)
 
 ---
 
@@ -1379,3 +1379,31 @@ E키→OpenForBasket→우측 창 Show → 슬롯 좌클릭(MouseDown)→드래�
 - G-2 타 UI창(Equipment/Loot/WorldMap/Warehouse) 동일 비례 적용 · G-3 드래그 DnD hit-test 검증 · G-4 비16:9 완화
 - H-2~H-4 장비(방어구) 착용 실패 지점 판별·수리 + ArmorVisualAttachSystem 부착 확인 · H-5 그립 상수 튜닝
 - E(FX strike 동기) · I(사운드 4레이어) · J(넘버 juice) · L(적 사망 다운) · K(회피롤·차지·패링)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 54차 — 테스트19: 흰색고정 뿌리수리 + 무기 부착 수리 + 느낌표 추가축소 + Loot/Equipment 비례)
+
+> **스코프**: 테스트 19 검증 → ① 몬스터 피격 시 흰색에서 안 돌아오는 문제 ② 무기 그립 미해결 ③ 느낌표 재과대 ④ 전리품/장비창 비례 미적용. 계획 F/G/H 잔여 진행.
+
+### 테스트 19 판정
+- ✅ **플린치/넉백 동작**(9~12, 21~23프레임 젖힘+밀림) — 53차 Phase C 수정 성공.
+- ❌ **흰색 고정**(15, 21~24, 64~66프레임) — 뿌리 확정: `PlayHitFlash`가 `sharedMaterial.color`를 직접 흰색으로 바꾸고 **플래시별 색 스냅샷**으로 복원 → 공유 재질 다중 피격/연속 타격 시 스냅샷이 이미 흰색 → 복원해도 흰색 잔존(레이스). 대상 파괴 시 `r==null` 스킵으로 영구 잔존.
+- ❌ **무기 모델 자체가 손에 없음**(빈손 — 슬래시 아크만) → 그립 오프셋 문제가 아니라 장착 자체 실패/비가시.
+- ❌ 느낌표 여전히 적 신장 50~70%.
+
+### 수정 (5파일)
+**`Systems/CombatVFXController.cs` [Phase F-FLASH]**: 재질별 **refcount 레지스트리**(`_flashOrigColor`/`_flashRef`/`_flashOrigEmission`) 신설 — 최초 1회만 '진짜 원본' 색/이미션 기록 + 동시 플래시 카운트, **마지막 플래시 종료 시에만** 원본 복원. 재질 키 기반이라 대상이 파괴돼도 복원 성공. HitFlashRunner는 renderer 대신 Material 리스트 보유(스케일 아웃라인은 유지).
+**`Systems/WeaponEquipManager.cs` [Phase H-GRIP2]**: ① Resources.Load 실패 시 원본 id 경로 폴백 ② 인스턴스에 **Rigidbody 제거(isKinematic+useGravity off→Destroy)/Collider 비활성/렌더러 강제 활성/로컬스케일 0 방어**(GLB 낙하=비가시 known trap) ③ **RightHand 이름 기반 폴백**(아바타 Generic/미매핑으로 GetBoneTransform null → 조용히 스킵되던 문제) ④ 인스턴스 진단 로그(렌더러 수/rb제거/collider/hand).
+**`Systems/MonsterAggroSystem.cs`**: 느낌표 `localScale = 0.5` 추가(characterSize 0.30과 곱연산).
+**`UI/LootWindow.cs` + `UI/EquipmentWindow.cs` [Phase G-UI 확산]**: InventoryWindow와 동일한 `_uiScale` 인프라 + const→배수 프로퍼티(Loot 3종/Equipment 6종) + fontSize 스케일(각 6/8곳) + 스타일 재생성.
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0**(exit 0) — 에디터 종료 상태에서 실행 성공.
+- 정적: 5파일 균형 0/0/0, `_cache` 잔존 0, const-context 위반 0.
+
+### Play 판정 대기
+① 피격 후 흰색이 0.15s 뒤 원래 색으로 복귀(연속 타격·다중 몬스터에서도 잔존 0) ② 무기 장착 시 손에 모델 표시(로그 `[Weapon] 인스턴스: ... 렌더러=N`) ③ 느낌표 크기 ④ 전리품/장비창 해상도 비례 ⑤ 장비 착용
+
+### 잔여
+E(FX strike 동기) · I(사운드) · J(넘버 juice) · L(사망 다운) · K(회피/차지/패링) · H-2 장비착용 확정검증 · G-3 DnD hit-test
