@@ -33,6 +33,10 @@ namespace ProjectName.Systems
         private Vector2 _dragStartMouse;
         private Rect _selectionRect;
 
+        // [60차] 좌클릭 드래그 시작 플래그 — PlayerCombat이 좌클릭을 즉시 공격으로 소비해
+        // 병사 드래그 선택이 가려지던 문제 해소. Update에서 좌클릭 down 시 true, PlayerCombat이 소비 시 false.
+        public static bool consumeLeftClickAsDrag = false;
+
         // 캐시된 흰색 텍스처 (MakeTex 메모리 누수 방지)
         private static Texture2D _cachedWhiteTex;
 
@@ -67,6 +71,7 @@ namespace ProjectName.Systems
             // 좌클릭 드래그 시작
             if (Mouse.current.leftButton.wasPressedThisFrame)
             {
+                consumeLeftClickAsDrag = true;   // PlayerCombat: 이번 좌클릭을 공격 대신 드래그로 위임
                 _dragStartMouse = Mouse.current.position.ReadValue();
                 _isDragging = true;
             }

@@ -29,6 +29,7 @@ namespace ProjectName.Systems
             if (damageable == null || !damageable.IsAlive) return;
 
             var guards = Object.FindObjectsByType<GuardPlaceholder>();
+            int formationIndex = 0;   // [60차] 타겟 주변 포진 위치 분산용 — 병사가 전부 한 점에 뭉치는 것 방지
             foreach (var guard in guards)
             {
                 if (!guard.IsAlive || !guard.IsRecruited) continue;
@@ -37,9 +38,15 @@ namespace ProjectName.Systems
                 float dist = Vector3.Distance(guard.transform.position, target.transform.position);
                 if (dist <= COMBAT_DETECT_RANGE)
                 {
-                    guard.SetCommandTarget(target.transform.position, true);
+                    // [60차] 각 병사에게 target 주변 원형 포진 오프셋(1.8m 반경, 120° 간격)을 부여 —
+                    //  전부 target.position 그대로 주면 3명이 한 점에 겹쳐진다(테스트21 '병사 3명 겹침').
+                    int slot = formationIndex % 4;
+                    formationIndex++;
+                    float ang = slot * Mathf.PI * 0.5f + 0.3f;
+                    Vector3 offset = new Vector3(Mathf.Cos(ang) * 1.8f, 0f, Mathf.Sin(ang) * 1.8f);
+                    guard.SetCommandTarget(target.transform.position + offset, true);
                     guard.SetInCombat(true);
-                    Debug.Log($"[GuardCombatAI] {guard.GuardName} 플레이어 합세! → {target.name}");
+                    Debug.Log($"[GuardCombatAI] {guard.GuardName} 플레이어 합세! → {target.name} (포진 슬롯 {slot})");
                 }
             }
         }

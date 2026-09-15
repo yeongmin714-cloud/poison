@@ -4,7 +4,7 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-15 (60차)
+> **최종 갱신:** 2026-09-15 (61차)
 
 ---
 
@@ -1514,6 +1514,34 @@ K-2(차지 강공·클립 확보 시) · K-3(패링·클립 확보 시) · H-2 P
 ## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 58차 — 타 영지 병사 적대화: 공격 시 호감도 하락 + transient 느낌표 + 플레이어/내병사 공격)
 
 > **스코프**: 사장님 요구 — ① 내 공격 시 내 소속 병사도 공격(이미 배선) ② **타 영지 병사는 호감도에 따라 원래 공격 안 하다가, 내가 공격하는 순간 호감도 하락 → 몬스터처럼 느낌표 뜨며 플레이어/내 병사 공격** ③ 느낌표는 잠깐 뜨고 사라지게(계속 X).
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 61차 — 테스트21 피드백 후속: 슬래시 즉시 발화 + 병사 포진 분산 + 좌클릭 드래그/공격 분리)
+
+> **스코프**: 사용자 테스트 21(22:45, 60차 반영 전 촬영) 피드백 — ① 1번(빨간 몬스터) 해결 확인 ✓ ② 땅 파묻힘 해결 ✓ ③ 방어구·무기 그립·드래그는 Play 재판정 필요 ④ **슬래시가 늦음**(좌클릭 시 공격+이펙트 동시여야) ⑤ **병사 3명이 겹침**. → 슬래시 strike 동기 제거(즉시 발화)+병사 포진 분산+좌클릭 드래그/공격 분리. 배치컴파일 error CS=0.
+
+### 테스트21 피드백 근본 원인 실측
+- **슬래시 늦음** = 55차 Phase E `StageStrikeSyncNormT=0.38`이 아크를 strike 프레임까지 지연(로그: `[Combo] 트레일 즉시 → 아크는 strike 대기 → strike 동기 아크 발화(0.38)`). 사용자는 '좌클릭 즉시 공격+이펙트 동시' 원함.
+- **병사 3명 겹침** = `GuardCombatAI.NotifyPlayerAttack`이 모든 포섭 병사에게 **같은 `target.position`** 을 명령 목표로 줘 3명이 한 점에 뭉침(로그: 내병사1/2/3 모두 `합세 → TerritoryLord` + `근접 공격 대상=TerritoryLord`).
+- **드래그(단체 선택) 미해결** = `GuardSelectionManager`는 생성됐지만, `PlayerCombat`이 좌클릭 `wasPressedThisFrame`에서 **무조건 TryAttack()** 을 호출해 드래그 시작 직후 공격이 나가 선택이 가려짐(60차 생성은 Pop pero 충돌 미해소).
+- **방어구/무기 그립** = 60차에서 EquipmentManager 생성+ArmorVisual 구독 확인. 우클릭 장착 시도 로그 0건은 60차 반영 전 촬영 때문 — 최신 빌드 Play 재판정. 무기 그립은 장착 성공(손에 들림)이나 정밀 어긋남 — H-5 튜닝 Play 판정.
+
+### 변경 사항 (3파일 — HumanoidClipDriver/GuardCombatAI/GuardSelectionManager + PlayerCombat)
+**`Systems/HumanoidClipDriver.cs` [슬래시 즉시 발화]**: `StartStageClip`(763)/`AdvanceStageClip`(777)에서 `_pendingStageArc = _comboStage`(strike 대기) → **`FireComboSlash(_comboStage)` 직접 호출** — 아크를 클릭 즉시 발화(공격+이펙트 동시, 사용자 요구). MonitorStageClip의 strike 동기 블록은 `_pendingStageArc` 정지로 dead(유지 — 회귀 리스크 0).
+**`Systems/GuardCombatAI.cs` [병사 포진]**: `NotifyPlayerAttack`에서 각 병사에게 target 주변 **원형 포진 오프셋(1.8m 반경, 90° 간격 slot 0~3)** 을 부여 — 전원이 한 점에 뭉치는 것 방지. 로그에 포진 슬롯 표기.
+**`Systems/GuardSelectionManager.cs` [드래그 플래그]**: `public static bool consumeLeftClickAsDrag` 신설 — 좌클릭 down 시 true 세팅(드래그 시작 의도 표시).
+**`Systems/PlayerCombat.cs` [좌클릭 분리]**: 좌클릭 `wasPressedThisFrame`에서 `GuardSelectionManager.consumeLeftClickAsDrag`가 true면 **공격 스킵 + 드래그로 소비**(소비 후 false). 단순 클릭(드래그 전)은 공격 재개 → '좌클릭=공격 / 드래그=단체 선택' 자연 분리.
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0** (exit 0, 에디터 종료 상태 2회 통과).
+- 괄호 균형: 변경 4파일 전부 {}/()/[] 정합. GuardSelectionManager/PlayerCombat 같은 네임스페이스(Systems)로 참조 무충돌.
+- Play 판정 대기: ① 좌클릭 즉시 흰 슬래시 아크+공격 동시 ② 내병사 3명이 대상 주변 포진으로 벌려 붙음(겹침 없음) ③ 드래그 박스로 병사 단체 선택(파란 박스)+우클릭 명령 ④ 방어구 우클릭/드래그 장착+GLB 부착(현재 빌드) ⑤ 무기 그립 정밀 ⑥ 몬스터 어그로 오라 복귀 ⑦ Free Slash 흰색.
+
+### 잔여 (Play 판정 후)
+- 무기 그립 H-5: `[Weapon] 그립 정렬` 로그 offset/pivotT로 검/창/활 GripPose 미세튜닝.
+- 방어구: 최신 빌드에서 우클릭 wood_armor → 성공 로그 + GLB 부착 확인.
+- Test_10 병사 GLB(현 FBX 폴백)는 에디터 임포트 재확인.
 
 ---
 

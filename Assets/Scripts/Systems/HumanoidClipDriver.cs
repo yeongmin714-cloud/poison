@@ -760,8 +760,8 @@ namespace ProjectName.Systems
             _comboStartTime = Time.time;
             _anim.SetTrigger(StageTriggerNames[_comboStage - 1]);
             FireComboTrail(_comboStage);                 // 트레일은 스윙 즉시 방출
-            _pendingStageArc = _comboStage;              // [Phase E] 아크는 strike 프레임에서 발화
-            Debug.Log($"[Combo] stage={_comboStage} path=stageClip trigger={StageTriggerNames[_comboStage - 1]} (아크 strike 대기)");
+            FireComboSlash(_comboStage);                 // [60차: strike 동기 제거] 아크도 클릭 즉시 발화 — 사용자 요구(좌클릭 시 공격+이펙트 동시)
+            Debug.Log($"[Combo] stage={_comboStage} path=stageClip trigger={StageTriggerNames[_comboStage - 1]} (아크 즉시)");
         }
 
         /// <summary>다음 스테이지로 진행 — 트리거 발화 + 스테이지별 스윙 FX.</summary>
@@ -774,8 +774,8 @@ namespace ProjectName.Systems
             _comboStartTime = Time.time;
             _anim.SetTrigger(StageTriggerNames[_comboStage - 1]);
             FireComboTrail(_comboStage);                 // 트레일은 스윙 즉시 방출
-            _pendingStageArc = _comboStage;              // [Phase E] 아크는 strike 프레임에서 발화
-            Debug.Log($"[Combo] stage={_comboStage} path=stageClip 트리거 진행 (아크 strike 대기)");
+            FireComboSlash(_comboStage);                 // [60차: strike 동기 제거] 아크도 즉시 발화
+            Debug.Log($"[Combo] stage={_comboStage} path=stageClip 트리거 진행 (아크 즉시)");
         }
 
         /// <summary>

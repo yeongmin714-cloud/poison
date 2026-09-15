@@ -2580,3 +2580,18 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ### Play 판정 대기
 ① 어그로 오라 상태 이탈 시 원래 색 복귀(잔존 0) ② 내 병사 드래그 박스 단체 선택(파란 박스)+우클릭 명령 ③ 방어구 장착+GLB 부착 ④ 무기 그립 ⑤ 병사 발 지면 붙음 ⑥ Free Slash 흰색 아크
+
+## ⚔️ 2026-09-15: 테스트21 피드백 후속 — 슬래시 즉시 발화 + 병사 포진 분산 + 좌클릭 드래그/공격 분리 (TEST21-FOLLOWUP-61)
+
+> **목표**: 사용자 테스트21 피드백(슬래시 늦음 / 병사 3명 겹침 / 드래그·방어구·무기 그립 재판정) 후속 수리.
+
+| 항목 | 근본 원인 | 수리 | 상태 |
+|:---|:---|:---|:---:|
+| 슬래시 늦음 | 55차 `StageStrikeSyncNormT=0.38` 아크 strike 지연 | `StartStageClip`/`AdvanceStageClip`에서 `FireComboSlash` **즉시 발화**(strike 대기 제거) — 좌클릭 시 공격+이펙트 동시 | ✅ |
+| 병사 3명 겹침 | `NotifyPlayerAttack`가 모든 병사에 같은 target.pos 명령 | 병사별 **원형 포진 오프셋**(1.8m·90° slot) 분산 | ✅ |
+| 드래그 선택 미해결 | PlayerCombat이 좌클릭 즉시 TryAttack → 드래그 가려짐 | GuardSelectionManager `consumeLeftClickAsDrag` + PlayerCombat 공격 스킵 분리 | ✅ |
+| 방어구/무기 그립 | 22:45 영상은 60차 반영 전 — 현재 빌드 EquipmentManager 정상 | 최신 빌드 Play 재판정 | 🔶 |
+| 검증 | 배치컴파일 **error CS=0**(exit 0) — 변경 4파일 | ✅ |
+
+### Play 판정 대기
+① 좌클릭 즉시 흰 슬래시+공격 동시 ② 내병사 3명 포진으로 벌려 붙음 ③ 드래그 상자 단체 선택+우클릭 명령 ④ 방어구 장착+GLB ⑤ 무기 그립 정밀 ⑥ 어그로 오라 복귀

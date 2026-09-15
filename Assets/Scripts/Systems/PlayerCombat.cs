@@ -197,6 +197,15 @@ namespace ProjectName.Systems
             // 좌클릭 감지 (InputSystem)
             if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             {
+                // [60차] 병사 드래그 단체 선택(RTS)과 충돌 분리 — GuardSelectionManager가 이 좌클릭을
+                // 드래그로 사용할 예정이면 공격 대신 드래그로 위임한다(플레이어 공격은 우클릭 사용자는
+                // 좌클릭 드래그 후 선택이 되므로, 단순 클릭=공격, 드래그=선택을 보장).
+                if (GuardSelectionManager.consumeLeftClickAsDrag)
+                {
+                    GuardSelectionManager.consumeLeftClickAsDrag = false;   // 드래그로 소비
+                    // 드래그 시작이므로 이 프레임 공격 스킵 (단순 클릭이면 다음 프레임 공격 재개)
+                    return;
+                }
                 // [Phase 1-2] 패링 — 공격 시작 짧은 순간 방어 판정 창(우클릭 차지와 동시 아님)
                 if (_charging)
                 {
