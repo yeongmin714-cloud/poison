@@ -393,5 +393,31 @@ namespace ProjectName.Systems
                     transform.rotation = Quaternion.LookRotation(transform.position - _camTransform.position);
             }
         }
+
+        // ================================================================
+        // [2026-09-15] transient 느낌표 — 병사/적 개체에 잠깐 떴다 사라지는 몬스터식 느낌표.
+        // (계속 떠있지 않고 duration 초 후 제거. IAggroable 전용이 아닌 임의 개체에 재사용.)
+        // ================================================================
+        public static void ShowTransientExclamation(GameObject host, float duration = 1.2f)
+        {
+            if (host == null) return;
+            if (!_visualizationInitialized) InitializeVisualization();
+            if (_exclamationPrefab == null) return;
+
+            var exclamation = Instantiate(_exclamationPrefab, host.transform);
+            exclamation.name = "AggroExclamation";
+            exclamation.transform.localPosition = new Vector3(0, 2.5f, 0); // 머리 위
+            exclamation.transform.localScale = Vector3.one * 0.5f;
+            exclamation.SetActive(true);
+
+            // 수명 후 자동 제거 — "잠깐 뜨고 사라지게"
+            Instance.StartCoroutine(HideTransientLater(exclamation, duration));
+        }
+
+        private static System.Collections.IEnumerator HideTransientLater(GameObject exclamation, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            if (exclamation != null) Destroy(exclamation);
+        }
     }
 }

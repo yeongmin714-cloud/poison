@@ -1508,3 +1508,34 @@ K-2(차지 강공·클립 확보 시) · K-3(패링·클립 확보 시) · H-2 P
 - 배치컴파일 error CS=0. 변경 2파일(TestTerritoryCombatSetup/PlayerCombat).
 ### Play 판정 대기
 ① Test_10 내병사 3명이 병사 GLB(창/방패)로 렌더되고 지면에 발 붙어 서 있음 ② 내병사가 플레이어를 따라다님(추종) ③ 플레이어가 적/몬스터 공격 시 내병사도 함께 접근해 공격 ④ 접지(발이 지면, 뜨/가라앉음 없음).
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 58차 — 타 영지 병사 적대화: 공격 시 호감도 하락 + transient 느낌표 + 플레이어/내병사 공격)
+
+> **스코프**: 사장님 요구 — ① 내 공격 시 내 소속 병사도 공격(이미 배선) ② **타 영지 병사는 호감도에 따라 원래 공격 안 하다가, 내가 공격하는 순간 호감도 하락 → 몬스터처럼 느낌표 뜨며 플레이어/내 병사 공격** ③ 느낌표는 잠깐 뜨고 사라지게(계속 X).
+
+### 조사 결론
+- GuardHostilitySystem이 호감도 주기(2s) 적대 전환·선공을 이미 구현했지만: ①플레이어 공격 시점의 즉시 트리거+호감도 하락 부재 ②적대 시 느낌표 표시 부재 ③생성부(Instance)가 어디에도 없어 실동작 미배선.
+- 느낌표는 MonsterAggroSystem의 AggroExclamation 프리팹(빌보드+TextMesh) — IAggroable(몬스터) 전용이라 병사엔 재사용 불가.
+- 병사 기본 호감도 50, Loyalty clamp -100~100.
+
+### 수정
+**MonsterAggroSystem.cs [transient 느낌표 재사용]**
+- `ShowTransientExclamation(GameObject host, float duration=1.2)` 추가 — 동일 프리팹을 임의 개체(head 위 +2.5m)에 붙이고 **duration 초 후 StartCoroutine으로 자동 제거** → "잠깐 뜨고 사라지게" 완결. (기존 ShowAggroVisual은 몬스터 전용·수명 무제한이라 안 씀.)
+
+**GuardHostilitySystem.cs [플레이어 공격 즉시 적대화]**
+- `HostileLoyaltyDrop=45` 상수 + `NotifyPlayerAttack(attackedTarget, player)` 추가 — 공격 반경(_attackRange 8m) 내 **비-포섭(적) 병사**만: ①호감도 -45(충성도 급락) ②적대 상태 재계산 ③적대 전환 시 `ConvertToHostile` ④`ShowTransientExclamation` 느낌표 ⑤`SetCommandTarget(플레이어,공격)` 선공.
+- `InitiateAttackVsPlayerAndSoldiers` — 적대 병사가 플레이어 공격(내 병사 합세는 기존 GuardCombatAI.NotifyPlayerAttack이 담당).
+
+**PlayerCombat.cs [호출 배선]**
+- AttackTarget 공격 성공 직후 `GuardHostilitySystem.Instance.NotifyPlayerAttack(target, 플레이어)` 호출 추가(이미 GuardCombatAI.NotifyPlayerAttack 내병사 합세 배선 옆).
+
+**TestTerritoryCombatSetup.cs [Instance 보장]**
+- EnsureGameManager에 `GuardHostilitySystem` AddComponent — 생성부가 없어 실동작 미배선이던 문제 해결.
+
+### 컴파일/검증
+- 배치컴파일 error CS=0. 변경 4파일.
+
+### Play 판정 대기
+① 내 공격 시 내병사 합세 ② 적 문지기(호감도 50) 가까이서 공격 → 호감도 하락 → 느낌표 잠깐 뜨고 사라짐 → 플레이어/내병사 공격 ③ 친화(호감도 50) 적 문지기는 원래 공격 안 함 ④ 호감도 낮은 타 영지 병사는 처음부터 적대.

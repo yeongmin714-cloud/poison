@@ -81,6 +81,7 @@ namespace ProjectName.Systems
             gm.AddComponent<MonsterLevelManager>();
             gm.AddComponent<MonsterAggroSystem>();
             gm.AddComponent<MonsterSkillSystem>();
+            gm.AddComponent<GuardHostilitySystem>();   // [57차 후속] 타 영지 병사 적대화(호감도 하락→느낌표→공격) — Instance 보장
             Debug.Log("[TestTerritoryCombat] ✅ GameManager + 시스템 생성");
         }
 

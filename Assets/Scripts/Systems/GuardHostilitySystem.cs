@@ -21,6 +21,7 @@ namespace ProjectName.Systems
         public const float HOSTILE_THRESHOLD = 0f;       // 호감도 < 0 → 적대 전환
         public const float PREEMPTIVE_THRESHOLD = -30f;  // 호감도 < -30 → 선공
         public const float ALARM_THRESHOLD = -50f;       // 호감도 < -50 → 경보 발령
+        public const float HostileLoyaltyDrop = 45f;     // [2026-09-15] 플레이어 공격 목격 시 호감도 하락량(→ 적대화 유도)
 
         private float _timer = 0f;
 
@@ -132,6 +133,52 @@ namespace ProjectName.Systems
 
             // 사라진 병사 정리
             CleanupDeadGuards();
+        }
+
+        /// <summary>
+        /// [2026-09-15] 플레이어가 공격한 순간 — 근처 비-포섭(적) 병사의 호감도를 하락시키고,
+        /// 적대 임계 도달 시 적대화(전투 상태) + 잠깐 떴다 사라지는 느낌표 + 플레이어/내 병사 공격 명령.
+        /// 호출: PlayerCombat.AttackTarget(공격 성공 직후). 계속 떠있는 게 아니라서 느낌표는 transient.
+        /// </summary>
+        public void NotifyPlayerAttack(GameObject attackedTarget, GameObject player)
+        {
+            if (attackedTarget == null || player == null) return;
+
+            Vector3 attackPos = attackedTarget.transform.position;
+            var guards = Object.FindObjectsByType<GuardPlaceholder>();
+            foreach (var guard in guards)
+            {
+                if (guard == null || !guard.IsAlive) continue;
+                if (guard.IsRecruited) continue;             // 내 병사는 적대화 대상 아님(이미 동맹)
+
+                float dist = Vector3.Distance(guard.transform.position, attackPos);
+                if (dist > _attackRange) continue;           // 플레이어 공격 반경 내만 반응
+
+                // 1) 호감도 하락 — 타 영지 병사가 플레이어 공격을 목격하면 충성도 급락
+                guard.Loyalty = Mathf.Clamp(guard.Loyalty - HostileLoyaltyDrop, GuardLoyaltySystem.MIN_LOYALTY, GuardLoyaltySystem.MAX_LOYALTY);
+
+                // 2) 적대 상태 재계산 → 적대/선공 전환 시 처리
+                HostilityState prev = GetCurrentHostilityState(guard);
+                HostilityState st = CalculateHostilityState(guard.Loyalty);
+                if (st != prev)
+                    Debug.Log($"[GuardHostility] {guard.GuardName} 호감도 하락 → {st} (호감도: {guard.Loyalty:F0})");
+
+                if (st == HostilityState.Friendly) continue;
+
+                // 3) 적대 전환 + 잠깐 느낌표 + 공격
+                if (prev != st) ConvertToHostile(guard);
+                MonsterAggroSystem.ShowTransientExclamation(guard.gameObject, 1.2f);  // 잠깐 떴다 사라짐
+                InitiateAttackVsPlayerAndSoldiers(guard, player);
+            }
+        }
+
+        /// <summary>[2026-09-15] 적대 병사 선공 — 플레이어와 근처 내(포섭) 병사 모두 공격.</summary>
+        private void InitiateAttackVsPlayerAndSoldiers(GuardPlaceholder guard, GameObject player)
+        {
+            if (guard == null || player == null) return;
+            guard.SetCommandTarget(player.transform.position, true);
+            guard.SetInCombat(true);
+            Debug.Log($"[GuardHostility] 🗡️ {guard.GuardName} 플레이어 선공! (호감도: {guard.Loyalty:F0})");
         }
 
         // ===== 상태 전환 =====

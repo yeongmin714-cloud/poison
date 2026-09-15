@@ -555,6 +555,11 @@ namespace ProjectName.Systems
             if (targetBehaviour != null)
             {
                 GuardCombatAI.NotifyPlayerAttack(targetBehaviour.gameObject);
+
+                // [57차 후속] 타 영지(비-포섭) 병사 — 플레이어 공격 목격 시 호감도 하락 → 적대화.
+                // 몬스터처럼 느낌표가 잠깐 떴다 사라지며 플레이어/내 병사 공격(GuardHostilitySystem 내부 처리).
+                if (GuardHostilitySystem.Instance != null)
+                    GuardHostilitySystem.Instance.NotifyPlayerAttack(targetBehaviour.gameObject, gameObject);
             }
 
             // ⏱️ 전투 로그: 데미지 기록
