@@ -62,11 +62,11 @@
 - [x] J-2 연타 시 넘버 스택(겹침 방지)·위치 오프셋 — 위치 버킷 + 좌우 대각 퍼짐
 - [x] J-3 초록 지형 대비 가독성(그림자/외곽선) — 8방향 흑색 외곽선 + 그림자 0.8
 
-## Phase K — 신규 메커닉 (기존 Phase H 승계, 옵션) 🔶 55차 — K-1만 충족
-- [x] K-1 회피(롤) — 기존 구현 확정: `ProceduralAnimationController` Q키 `RequestRoll` + PlayerHealth C21-02 반사 `IsRolling` 무적(i-frame). 추가 작업 불필요.
-- [ ] K-2 차지 강공 — `Charged_Upward_Slash` **클립 미확보로 생략** (에셋 확보 시 후속)
-- [ ] K-3 발도/납도 — `Draw Sword 1`/`Withdrawing Sword` 클립 미확보 생략
-- [ ] K-4 방어/패링 — `Sword_Parry_Backward_1`/`Sword And Shield Block` 클립 미확보 생략
+## Phase K — 신규 메커닉 ✅ 56차 (K-1/2/4 구현, K-3 발도만 보류)
+- [x] K-1 회피(롤) — 기존 구현 확정: `ProceduralAnimationController` Q키 `RequestRoll` + PlayerHealth C21-02 반사 `IsRolling` 무적(i-frame).
+- [x] K-2 차지 강공 — **56차 절차 구현**: 우클릭 홀드 0.8s 충전→강공(데미지×1.8·임팩트 1.5배). `ChargedClipName` 클립 플러그인(FBX 교체 시 클립명만) + `ProceduralAnimStateMachine.Charge` 상태 + `TriggerAction("charge")`.
+- [ ] K-3 발도/납도 — `Draw Sword 1`/`Withdrawing Sword` 클립 미확보 생략(예약)
+- [x] K-4 방어/패링 — **56차 절차 구현**: 좌클릭 직후 0.28s 패링 창, 근접 melee 피격을 `PlayerCombat.TryParry()`로 흡수(PlayerHealth 리플렉션, 데미지/넉백 차단). `ParryClipName` 플러그인 + `ProceduralAnimStateMachine.Parry` 상태.
 
 ## Phase L — 적 사망 다운 모션 (Phase C 잔여) ✅ 55차
 - [x] L-1 `AnimalAI.Die()` 즉시 파괴 → 절차 눕힘(0.5s Slerp 90°) + sink + **0.6~1.2s 지연 파괴** — 전리품 재진입 가드(`_deathRoutineStarted`), 콜라이더/어그로 즉시 비활, 리스폰 회전 원복

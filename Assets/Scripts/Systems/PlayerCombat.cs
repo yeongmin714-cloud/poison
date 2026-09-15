@@ -62,6 +62,18 @@ namespace ProjectName.Systems
         // 수십 프레임 동안 매 프레임 transform.position을 동시 기록 → 리코일이 런지에 묻혀 잘리던 버그 해소.
         private bool _recoilActive;                       // 리코일 진행 중 플래그 — 시작 true/종료 false(런지 대기 기준점)
 
+        // ===== Phase 1-1/1-2: 차지(강공) & 패링(방어) =====
+        private const float ChargeMaxHold = 0.8f;        // 차지 최대 충전 시간(초) — 오버차지 시 자동 강공
+        private const float ChargeMinHold = 0.12f;       // 차지 인식 최소 홀드(초) — 그 이하는 일반 좌클릭 공격
+        private const float ChargeDamageMultiplier = 1.8f; // 차지 강공 데미지 배율
+        private const float ParryWindow = 0.28f;         // 패링 방어 판정 창(초) — 공격/우클릭 시작 시점으로부터
+        private float _chargeHeldTime;                   // 우클릭 홀드 누적 시간
+        private bool _charging;                          // 차지 충전 중 여부
+        private bool _parryActive;                       // 패링 방어 창 활성 여부
+        private float _parryActiveUntil;                 // 패링 창 만료 시각
+        public string ChargedClipName = "Charged_Upward_Slash"; // [Phase 1-1] 차지 클립 플러그인 — FBX 확보 시 클립명만 갱신
+        public string ParryClipName = "Sword_Parry_Backward_1"; // [Phase 1-2] 패링 클립 플러그인 — FBX 확보 시 클립명만 갱신
+
         // ===== C4-08: 자동 조준 상태 =====
         private IDamageable _currentTarget;
 
@@ -151,11 +163,135 @@ namespace ProjectName.Systems
             // 타겟 상태 업데이트 (사망 또는 범위 이탈 체크)
             UpdateTargetState();
 
+            // [Phase 1-1/1-2] 패링 창 만료 감시
+            if (_parryActive && Time.time >= _parryActiveUntil)
+            {
+                _parryActive = false;
+                _proceduralAnim?.TriggerAction("parry_end");
+            }
+
+            // [Phase 1-1] 우클릭 차지 — 홀드 중 충전 누적, 해제 시 강공 발동
+            if (Mouse.current != null)
+            {
+                if (Mouse.current.rightButton.isPressed && !_charging && !_parryActive)
+                {
+                    _charging = true;
+                    _chargeHeldTime = 0f;
+                    _proceduralAnim?.TriggerAction("charge");
+                }
+                if (_charging)
+                {
+                    _chargeHeldTime += Time.deltaTime;
+                    if (_chargeHeldTime >= ChargeMaxHold)
+                    {
+                        // 오버차지 — 자동 강공 발동
+                        ReleaseCharge(true);
+                    }
+                }
+                if (Mouse.current.rightButton.wasReleasedThisFrame && _charging)
+                {
+                    ReleaseCharge(_chargeHeldTime >= ChargeMinHold);
+                }
+            }
+
             // 좌클릭 감지 (InputSystem)
             if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             {
+                // [Phase 1-2] 패링 — 공격 시작 짧은 순간 방어 판정 창(우클릭 차지와 동시 아님)
+                if (_charging)
+                {
+                    // 차지 중 좌클릭 = 차지 취소하고 일반 공격
+                    _charging = false;
+                    _proceduralAnim?.TriggerAction("charge_end");
+                }
+                else
+                {
+                    _parryActive = true;
+                    _parryActiveUntil = Time.time + ParryWindow;
+                    _proceduralAnim?.TriggerAction("parry");
+                }
                 TryAttack();
             }
+        }
+
+        /// <summary>[Phase 1-1] 차지 해제 — 충전 보너스 반영 강공 1타.</summary>
+        private void ReleaseCharge(bool fire)
+        {
+            _charging = false;
+            float held = _chargeHeldTime;
+            _chargeHeldTime = 0f;
+            _proceduralAnim?.TriggerAction("charge_end");
+            if (!fire) return;
+
+            float bonus = Mathf.Clamp01(held / ChargeMaxHold); // 0~1 충전 게이지
+            TryChargeAttack(1f + bonus * (ChargeDamageMultiplier - 1f));
+        }
+
+        /// <summary>
+        /// [Phase 1-1] 차지 강공 1타 — 충전 배율을 데미지/임팩트에 적용.
+        /// 타겟은 기존 조준(커서 방향 → 화면 중앙 → 스윕 폴백)을 우클릭 전방 대상으로 수행.
+        /// </summary>
+        private void TryChargeAttack(float damageMultiplier)
+        {
+            if (_currentWeapon == null) return;
+
+            // 조준 — 우클릭 방향으로 가장 가까운 살아있는 대상
+            IDamageable target = FindTargetInCursorDirection();
+            if (target == null) target = MeleeSweepFallback();
+
+            if (target == null || !target.IsAlive)
+            {
+                // 미스 — 빈 차지 스윙 (카메라 펀치만)
+                TriggerCameraEffects();
+                return;
+            }
+
+            _currentTarget = target;
+            StartFaceTarget(target);
+
+            float baseDamage = CalculateDamage();
+            float damage = baseDamage * damageMultiplier;
+
+            MonoBehaviour targetBehaviour = target as MonoBehaviour;
+            Vector3 hitDirection = Vector3.zero;
+            if (targetBehaviour != null)
+                hitDirection = (targetBehaviour.transform.position - transform.position).normalized;
+
+            // 충전 강공 — 임팩트 1.5x(계획 E-2 스택 활용), 히트스톱 강화는 타격측 호출부에서
+            target.TakeDamage(damage, hitDirection, _currentWeapon.weaponType.ToString());
+
+            // 히트 지점 VFX — 크리티컬 룩 강화(1.5배 확대)
+            if (targetBehaviour != null)
+            {
+                Collider hitCol = targetBehaviour.GetComponentInChildren<Collider>();
+                Renderer hitRen = targetBehaviour.GetComponentInChildren<Renderer>();
+                Vector3 center = hitCol != null ? hitCol.bounds.center
+                               : hitRen != null ? hitRen.bounds.center
+                               : targetBehaviour.transform.position + Vector3.up * 1.2f;
+                LastHitPoint = center + Vector3.up * 0.1f;
+                LastHitValid = true;
+                LastHitTime = Time.time;
+                SlashVFXRunner.PlayImpactMulti(LastHitPoint, CombatHitType.Organic, 1.5f);
+            }
+
+            string targetName = targetBehaviour != null ? targetBehaviour.gameObject.name : "Unknown";
+            CombatLog.AddEntry($"{targetName}에게 강공 {damage} 데미지 (충전 {damageMultiplier:F1}x)", LogType.Damage);
+            HapticFeedback.PlayPreset(HapticFeedback.RumblePreset.Heavy);
+            Debug.Log($"[PlayerCombat] ⚡ 차지 강공: {targetName} 데미지 {damage} (충전 {damageMultiplier:F1}x)");
+        }
+
+        /// <summary>[Phase 1-2] 패링 방어 판정 — PlayerHealth가 근접 피격 시 호출(false 반환 시 회피 처리).</summary>
+        public bool TryParry()
+        {
+            if (_parryActive)
+            {
+                _parryActive = false;   // 1회만
+                _parryActiveUntil = -999f;
+                _proceduralAnim?.TriggerAction("parry_success");
+                Debug.Log("[PlayerCombat] 🛡️ 패링 성공 — 근접 공격 흡수");
+                return true;
+            }
+            return false;
         }
 
         /// <summary>

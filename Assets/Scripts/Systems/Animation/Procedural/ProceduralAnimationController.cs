@@ -186,7 +186,7 @@ namespace ProjectName.Systems.Animation.Procedural
         float _actionTimer;
         Vector3 _actionTarget;
 
-        public enum ActionState { None, Attack, Gather, Roll, Climb, Stagger, Mount }
+        public enum ActionState { None, Attack, Gather, Roll, Climb, Stagger, Mount, Charge, Parry }
 
         // ──────────────────────────────────────────────
         // 공개 속성 (StateMachine 등에서 사용)
@@ -285,7 +285,30 @@ namespace ProjectName.Systems.Animation.Procedural
                 case "death": RequestDeath(); break;
                 case "mount": RequestMount(); break;
                 case "dismount": RequestDismount(); break;
+                case "charge": RequestCharge(); break;
+                case "parry": RequestParry(); break;
+                // [Phase 1-1/1-2] 상태 머신 상태가 없는 순수 패턴일 뿐 — no-op 폴백 (FBX 클립 교체 시 여기서 대체)
+                case "charge_end": case "parry_end": case "parry_success":
+                    break;
             }
+        }
+
+        /// <summary>[Phase 1-1] 차지(강공 충전) 절차 요청.</summary>
+        public void RequestCharge()
+        {
+            var sm = GetComponent<ProceduralAnimStateMachine>();
+            if (sm != null) { sm.RequestCharge(); return; }
+            // 상태 머신 없으면 직접 절차 동작 플래그 (후일 FBX 클립 "charge" 재생 포인트)
+            _actionState = ActionState.Charge;
+        }
+
+        /// <summary>[Phase 1-2] 패링(근접 방어) 절차 요청.</summary>
+        public void RequestParry()
+        {
+            var sm = GetComponent<ProceduralAnimStateMachine>();
+            if (sm != null) { sm.RequestParry(); return; }
+            // 상태 머신 없으면 직접 절차 동작 플래그 (후일 FBX 클립 "parry" 재생 포인트)
+            _actionState = ActionState.Parry;
         }
 
         public void RequestJump()

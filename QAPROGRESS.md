@@ -1449,3 +1449,36 @@ E(FX strike 동기) · I(사운드) · J(넘버 juice) · L(사망 다운) · K(
 
 ### 잔여
 K-2(차지 강공·클립 확보 시) · K-3(패링·클립 확보 시) · H-2 Play 확정검증 · G-3 DnD hit-test · Play 눈검증(구르기/사운드/다운 모션).
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 56차 — 차지/패링 + 병사 공격·수비 배치 + 가시적 전쟁)
+
+> **스코프**: 사장님 3건 — ① 차지/패링 절차 구현(애니 FBX는 나중에 교체 가능하게) ② 실내씬에서 점령 영지 병사 공격/수비 배치 ③ 전쟁이 콘솔 로그가 아니라 병사가 실제로 움직여 보이도록.
+
+### 분석 결론
+- 실제 전쟁 = TerritoryWarManager.ExecuteWar(숫자 공식+로그만), AIWarSystem.SpawnGarrison은 데드코드.
+- 플레이어 영지 = TerritoryState.ownership == PlayerOwned.
+- 병사 = GuardPlaceholder, 이동/공격 명령 SetCommandTarget(Vector3,bool)과 ExecuteMovement가 이미 내장 → 이를 재활용.
+
+### Phase 1 — 차지/패링 ✅
+- PlayerCombat.cs: 우클릭 홀드=차지(0.8s 충전 게이지)→강공 1타(데미지×1.8, 임팩트 1.5배). 좌클릭 직후 0.28s 패링 창. ChargedClipName/ParryClipName 공개 클립 플러그인(FBX 확보 시 클립명만 교체).
+- ProceduralAnimStateMachine.cs: State.Charge/Parry + RequestCharge/RequestParry + 전이 + TriggerAction.
+- ProceduralAnimationController.cs: TriggerAction charge/parry case + ActionState.Charge/Parry.
+- PlayerHealth.cs: 근접(melee) 피격 시 리플렉션(GameManager 선례)으로 PlayerCombat.TryParry() 호출 — 패링 창 중 데미지/넉백 차단.
+
+### Phase 2 — 병사 공격/수비 배치 ✅
+- TerritoryData.cs: enum GarrisonRole {None,Attack,Defense} + TerritoryState._garrisonRole/_attackTargetId + 게터/세터.
+- 신규 TerritoryDeploymentSystem.cs: DeployAttack(병사→SetCommandTarget 대상 영지)/DeployDefense(문 앞 수비)/Undeploy(ClearCommand).
+- 신규 TerritoryDeploymentUI.cs(Assets/Scripts/UI/): 실내씬 IMGUI 패널 — 점령 영지별 병사+역할, 공격(대상 선택)/수비/해제 버튼.
+
+### Phase 3 — 가시적 전쟁 ✅
+- 신규 WarMarchSimulation.cs: TryStartMarch(동시 ≤2 캡) — 공격군 SpawnGarrison 2~5→SetCommandTarget으로 실제 걷기→HasCommand==false 도달→CombatFXGate 플린치/깃발→Release 파괴.
+- TerritoryWarManager.cs: ExecuteWar 후 행진 훅(기존 수치/로그 결과 무손상).
+
+### 컴파일/검증
+- 배치컴파일 error CS=0. 변경 6 + 신규 3.
+- TerritoryDeploymentUI 어셈블리(UIFont는 ProjectName.UI) → Assets/Scripts/UI/로 이동해 해결.
+
+### Play 판정 대기
+① 우클릭 홀드 강공 ② 좌클릭 직후 근접 패링 흡수 ③ 실내 배치 UI 공격/수비 ④ 배치 공격 병사 실제 걷기 ⑤ 전쟁 행진(공격군 목표 영지로) ⑥ 도달 시 전투 플린치.

@@ -178,6 +178,18 @@ namespace ProjectName.Core
         /// </summary>
         public void TakeDamage(float amount, Vector3 hitDirection, string weaponType = "melee")
         {
+            // [Phase 1-2] 패링 — 근접 공격에 한해 PlayerCombat.TryParry()로 흡수 시도.
+            // Core→Systems 어셈블리 참조 제약 피하기 위해 리플렉션으로 접근(안전 실패 — null/타입 불일치 시 미흡수).
+            if (weaponType == "melee")
+            {
+                bool parried = TryParryReflection();
+                if (parried)
+                {
+                    Debug.Log($"[PlayerHealth] 🛡️ 패링으로 근접 공격 흡수 ({amount} 데미지 차단)");
+                    return;
+                }
+            }
+
             // 기존 TakeDamage 호출 (방어력/무적 처리 포함)
             TakeDamage(amount);
 
@@ -192,6 +204,28 @@ namespace ProjectName.Core
                     controller.Move(knockback);
                 }
                 Debug.Log($"[PlayerHealth] 넉백 방향: {hitDirection}, 무기 타입: {weaponType}");
+            }
+        }
+
+        /// <summary>[Phase 1-2] 리플렉션 안전 패링 판정 — Systems.PlayerCombat.TryParry() 호출.</summary>
+        private bool TryParryReflection()
+        {
+            try
+            {
+                // 프로젝트 리플렉션 관례(GameManager 선례): System.Type.GetType + GetProperty/GetMethod.
+                var cls = System.Type.GetType("ProjectName.Systems.PlayerCombat");
+                if (cls == null) return false;
+                var inst = cls.GetProperty("Instance", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)?.GetValue(null);
+                if (inst == null) return false;
+                var m = cls.GetMethod("TryParry", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (m == null) return false;
+                object result = m.Invoke(inst, null);
+                return result is bool && (bool)result;
+            }
+            catch (System.Exception parryEx)
+            {
+                Debug.LogWarning($"[PlayerHealth] 패링 판정 실패(미흡수로 진행): {parryEx.Message}");
+                return false;
             }
         }
 

@@ -29,7 +29,9 @@ namespace ProjectName.Systems.Animation.Procedural
             Roll,
             Climb,
             Stagger,
-            Death
+            Death,
+            Charge,   // [Phase 1-1] 차지(강공 충전) 절차 상태
+            Parry     // [Phase 1-2] 패링(근접 방어) 절차 상태
         }
 
         [Header("Transition Timing")]
@@ -38,6 +40,8 @@ namespace ProjectName.Systems.Animation.Procedural
         [SerializeField] float _gatherDuration = 1.5f;
         [SerializeField] float _rollDuration = 0.6f;
         [SerializeField] float _landingDuration = 0.3f;
+        [SerializeField] float _chargeMaxDuration = 0.8f;   // [Phase 1-1] 차지 최대 충전 시간 (초) — 오버차지 시 자동 강공
+        [SerializeField] float _parryDuration = 0.28f;      // [Phase 1-2] 패링 방어 판정 창 (초)
 
         State _currentState = State.Locomotion;
         State _previousState = State.Locomotion;
@@ -128,6 +132,18 @@ namespace ProjectName.Systems.Animation.Procedural
                         SetState(State.Locomotion);
                     break;
 
+                case State.Charge:
+                    // [Phase 1-1] 차지 — 최대 충전 시간 후 자동 강공 발동(해제 시 PlayerCombat이 발동).
+                    if (_stateTimer > _chargeMaxDuration)
+                        SetState(State.Locomotion);   // 오버차지 — 대기 종료
+                    break;
+
+                case State.Parry:
+                    // [Phase 1-2] 패링 — 짧은 창 이후 종료.
+                    if (_stateTimer > _parryDuration)
+                        SetState(State.Locomotion);
+                    break;
+
                 case State.Climb:
                     if (!IsClimbing())
                         SetState(State.Locomotion);
@@ -191,6 +207,20 @@ namespace ProjectName.Systems.Animation.Procedural
         {
             if (_currentState == State.Locomotion)
                 SetState(State.Roll);
+        }
+
+        /// <summary>[Phase 1-1] 차지(강공 충전) 시작 — 전투 상태에서만 진입.</summary>
+        public void RequestCharge()
+        {
+            if (_currentState == State.Locomotion)
+                SetState(State.Charge);
+        }
+
+        /// <summary>[Phase 1-2] 패링(근접 방어) 시작 — 공격 직후 창이 짧아 전투 진입과 별도.</summary>
+        public void RequestParry()
+        {
+            if (_currentState == State.Locomotion || _currentState == State.Roll)
+                SetState(State.Parry);
         }
 
         public void RequestClimb()
@@ -274,6 +304,16 @@ namespace ProjectName.Systems.Animation.Procedural
                 case State.Roll:
                     _animController?.TriggerAction("roll");
                     ApplyRollImpulse();
+                    break;
+
+                case State.Charge:
+                    // [Phase 1-1] 차지 절차 동작 트리거 — FBX 클립 확보 시 TriggerAction("charge")를 클립 재생으로 대체 가능.
+                    _animController?.TriggerAction("charge");
+                    break;
+
+                case State.Parry:
+                    // [Phase 1-2] 패링 절차 동작 트리거 — FBX 클립 확보 시 TriggerAction("parry") 클립 재생.
+                    _animController?.TriggerAction("parry");
                     break;
 
                 case State.Climb:

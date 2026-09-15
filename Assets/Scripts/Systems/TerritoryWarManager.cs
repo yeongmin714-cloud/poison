@@ -521,6 +521,19 @@ namespace ProjectName.Systems
             // ===== 전쟁 시작 =====
             Debug.Log($"[TerritoryWarManager] ⚔️ {attacker} → {defender}: {territoryName}({territoryId}) 침공!");
 
+            // ===== 가시 전쟁 행진 시뮬레이션 훅 (기존 수치/로그/UI 결과 무손상) =====
+            // 공격측 영지에서 공격군 병사 그룹이 생성돼 방어측 영지까지 실제로 걸어간다.
+            // 동시 행진 그룹 상한(≤2)을 넘으면 스킵됨(저사양 캡) — 전쟁 수치는 그대로 진행.
+            var marchFromIds = GetNationTerritoryIds(attacker);
+            if (marchFromIds.Count > 0)
+            {
+                TerritoryDefinition marchFromDef = db.GetDefinition(marchFromIds[Random.Range(0, marchFromIds.Count)]);
+                if (marchFromDef.id.nation != NationType.None)
+                {
+                    WarMarchSimulation.TryStartMarch(marchFromDef, marchFromDef.worldPosition, def.worldPosition, def);
+                }
+            }
+
             // 전쟁 중 상태 플래그 설정
             state.isUnderAttack = true;
 

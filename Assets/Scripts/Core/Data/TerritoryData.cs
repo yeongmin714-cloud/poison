@@ -129,6 +129,19 @@ namespace ProjectName.Core.Data
     }
 
     /// <summary>
+    /// 병사 배치 역할 — 플레이어 소유 영지의 주둔군을 공격/수비 모드로 지정 (TerritoryDeploymentSystem 연동)
+    /// </summary>
+    public enum GarrisonRole
+    {
+        /// <summary>배치 없음 (기본)</summary>
+        None,
+        /// <summary>공격 배치 — 타 영지로 공격 명령 발동</summary>
+        Attack,
+        /// <summary>수비 배치 — 문지기/주둔군 수비 태세</summary>
+        Defense
+    }
+
+    /// <summary>
     /// 영지 런타임 상태 — 게임 진행 중 변경되는 데이터
     /// </summary>
     [Serializable]
@@ -144,6 +157,10 @@ namespace ProjectName.Core.Data
         [SerializeField] private bool _lordDefeated = false;        // 영주 처치 여부 (C10-10)
         [SerializeField] private bool _lordExecuted = false;        // 영주 처형 여부 (C10-11)
         [SerializeField] private bool _lordSpared = false;          // 영주 살려주기 여부 (C10-11)
+
+        // ===== 병사 배치 (TerritoryDeploymentSystem 연동) =====
+        [SerializeField] private GarrisonRole _garrisonRole = GarrisonRole.None;   // 공격/수비 배치 상태
+        [SerializeField] private TerritoryId _attackTargetId;                       // 공격 목표 영지 (Attack 모드일 때)
 
         // ===== 정보원 수집 플래그 (SpySystem 연동) =====
         [SerializeField] private bool _spyReportRecon = false;       // 정찰 정보 수집 완료
@@ -200,6 +217,12 @@ namespace ProjectName.Core.Data
         public int deadGuardCount { get => _deadGuardCount; set => _deadGuardCount = value; }
         public int totalGuardCount { get => _totalGuardCount; set => _totalGuardCount = value; }
         public bool isActive { get => _isActive; set => _isActive = value; }
+
+        // ===== 병사 배치 프로퍼티 (TerritoryDeploymentSystem 연동) =====
+        /// <summary>현재 배치 역할 (None/Attack/Defense)</summary>
+        public GarrisonRole garrisonRole { get => _garrisonRole; set => _garrisonRole = value; }
+        /// <summary>공격 목표 영지 (Attack 모드일 때만 유효)</summary>
+        public TerritoryId attackTargetId { get => _attackTargetId; set => _attackTargetId = value; }
 
         /// <summary>
         /// Unity 역직렬화용 매개변수 없는 생성자.
