@@ -393,6 +393,17 @@ namespace ProjectName.UI
                 CacheStyles();
             }
 
+            // [T3 2026-09-15] 드래그 앤 드롭 고스트 상시 렌더 — ItemDragContext가 Active면
+            // 어떤 창(인벤/장비/전리품/창고)이 닫혀 있어도 고스트 아이콘/스냅/하이라이트를 항상 그린다.
+            // 기존엔 InventoryWindow.OnGUI(IsOpen일 때만)가 고스트를 그려, 인벤토지를 닫은 채 전리품/창고
+            // 드래그를 하면 고스트가 보이지 않아 '드래그 불가'로 느껴졌다. 프레임 가드(Time.frameCount)가
+            // 이중 렌더를 막으므로 다른 창의 DrawGhost와 공존해도 안전하다.
+            if (ItemDragContext.Active)
+            {
+                ItemDragContext.DrawGhost();
+                ItemDragContext.DrawSlotHighlight();
+            }
+
             // 2026-09-11(4): PlayerHealth 라이브 폴링 — 하트 렌더 소스 동기화.
             // PlayerHealth.SetMaxHP()는 OnHPChanged 이벤트를 발생시키지 않아 MaxHP 증가 시
             // 하트 개수가 늘어나지 않았다. 매 프레임 폴링으로 ceil(MaxHP/20)개 전체 하트

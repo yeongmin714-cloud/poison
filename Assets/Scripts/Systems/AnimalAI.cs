@@ -881,14 +881,9 @@ namespace ProjectName.Systems
                 {
                     hitReaction.PlayHitReaction(hitDirection, 1f);
                 }
-                else
-                {
-                    // HitReaction 없으면 직접 HitFlash만
-                    // 2026-09-11: GLB 프리팹은 루트 _renderer가 null → 피격 플래시가 통째로 스킵됨.
-                    // 자식 렌더러 폴백 탐색으로 피격 피드백 보장(못 찾으면 PlayHitFlash가 null-safe 스킵).
-                    var flashRenderer = _renderer != null ? _renderer : GetComponentInChildren<Renderer>();
-                    HitVFX.PlayHitFlash(flashRenderer);
-                }
+                // [T1 2026-09-15] 히트플래시 단일화 — HitReaction 유무와 무관하게
+                // CombatVFXController.PlayHitFlash(gameObject) 하나만 사용한다(위). GetComponentsInChildren<Renderer>로
+                // GLB 자식 렌더러를 모두 덮으므로 레거시 HitVFX.PlayHitFlash(MPB) 경로는 이중 발화·흰색 고정 원인이 되어 제거.
 
                 // 기존 hit effect (레거시 호환)
                 if (hitEffectPrefab != null)

@@ -67,8 +67,8 @@ namespace ProjectName.Systems
             // 넉백/절트 비활성 요청 시: VFX/경직만 수행 (몬스터 위치 보존)
             if (_knockbackDisabled)
             {
-                if (_targetRenderer != null)
-                    HitVFX.PlayHitFlash(_targetRenderer);
+                // [T1 2026-09-15] 히트플래시 단일화 — 레거시 HitVFX.PlayHitFlash(MPB)는 흰색 고정 원인 → 제거.
+                // 실제 플래시는 CombatFXGate→CombatVFXController(refcount) 경로가 담당하므로 여기선 비주얼 플린치만.
                 // 2026-09-11: 물리(AddForce/KinematicJolt)는 차단하되 비주얼 플린치는 보장 —
                 // 스케일 펄스(팽창→복귀). transform.position을 건드리지 않으므로
                 // 슬라임 비행/유령 변위 버그는 재발하지 않는다. _targetRenderer가 null이어도 동작.

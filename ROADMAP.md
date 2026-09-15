@@ -2544,3 +2544,22 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ### Play 판정 대기
 ① 내 공격 시 내병사 합세 ② 적 문지기 근처 공격 → 호감도 하락·느낌표 잠깐·공격 ③ 친화 적 문지기는 원래 공격 안 함 ④ 저호감도 적은 처음부터 적대
+
+## ⚔️ 2026-09-15: 테스트20 통합 수리 — 단일 히트플래시 + 느낌표 수명 + 고스트 상시 렌더 + 방어구 생성 (TEST20-FIX-59)
+
+> **목표**: 사용자가 테스트 20 영상에서 발견한 9건(흰색 고정/느낌표/드래그 불가/방어구 장착/무기 그립/슬래시 색/병사 GLB/접지)을 `docs/TEST20_FIX_PLAN.md`로 근본 원인 실측 후 1차 수리.
+
+| 항목 | 내용 | 상태 |
+|:---|:---|:---:|
+| #1 흰색 고정 | 이중 히트플래시 경로 — `AnimalAI`+`HitReaction`의 레거시 `HitVFX.PlayHitFlash`(MPB) 제거 → `CombatVFXController`(refcount) 단일 경로 통일 | ✅ |
+| #2 느낌표 | 몬스터 느낌표를 `ShowAggroVisual`(수명 무제한) → `ShowTransientExclamation`(1.5s) 단일 수명으로 통일 + 상태 이탈 시 즉시 제거 | ✅ |
+| #3/#8 드래그 | `HUD.OnGUI`에 `ItemDragContext.Active`면 고스트 상시 렌더 — 인벤/창고/전리품/장비 닫혀도 드래그 고스트 표시 | ✅ |
+| #4 방어구 장착 | Test_10 `EnsureGameManager`에 `EquipmentManager`+`ArmorVisualAttachSystem` 생성(누락이 직접 원인) | ✅ |
+| #5 무기 그립 | 무기 장착은 성공 — 그립 미세튜닝 Play 판정 |
+| #6 슬래시 색 | `ComboStageTint` 흰색 고정 이미 완료 — .vfx 색 Play 판정(Free Slash 고려) |
+| #7 병사 GLB | 6기 전부 FBX 폴백 부착·애니 동작 확인 — GLB 전용 로드 Play 검증 |
+| #9 병사 접지 | `GroundModelToY(SurfaceY)`(57차) 유지 — Play 재확인 |
+| 검증 | 배치컴파일 **error CS=0**(exit 0) — 변경 5파일 + 문서 1(docs/TEST20_FIX_PLAN.md) | ✅ |
+
+### Play 판정 대기
+① 피격 후 흰색 0.15s 후 원복(연속/다중 피격 잔존 0) ② 느낌표 잠깐 뜨고 사라짐 ③ 인벤 닫힌 채 전리품/창고 드래그 고스트+드롭 ④ 방어구 우클릭/드래그 장착+GLB 부착 ⑤ 슬래시 흰색(Free Slash 판정) ⑥ 병사 FBX 렌더+접지 ⑦ 무기 그립 미세 조정

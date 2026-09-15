@@ -4,7 +4,7 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-15 (54차)
+> **최종 갱신:** 2026-09-15 (59차)
 
 ---
 
@@ -1512,6 +1512,43 @@ K-2(차지 강공·클립 확보 시) · K-3(패링·클립 확보 시) · H-2 P
 ---
 
 ## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 58차 — 타 영지 병사 적대화: 공격 시 호감도 하락 + transient 느낌표 + 플레이어/내병사 공격)
+
+> **스코프**: 사장님 요구 — ① 내 공격 시 내 소속 병사도 공격(이미 배선) ② **타 영지 병사는 호감도에 따라 원래 공격 안 하다가, 내가 공격하는 순간 호감도 하락 → 몬스터처럼 느낌표 뜨며 플레이어/내 병사 공격** ③ 느낌표는 잠깐 뜨고 사라지게(계속 X).
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 59차 — 테스트20 통합 수리: 단일 히트플래시 + 느낌표 수명 + 고스트 상시 렌더 + 방어구 생성)
+
+> **스코프**: 사용자가 테스트 20 영상(2026-09-15)에서 발견한 9건을 `docs/TEST20_FIX_PLAN.md`로 확정하고 근본 원인 장르별(T1~T7) 수리. 1차 라운드로 T1(흰색 고정), T2(느낌표), T3(드래그/고스트), T4(방어구 장착), T6(슬래시 흰색 확정)을 수리. 계획서 기준 배치컴파일 error CS=0.
+
+### 테스트 20 근본 원인 실측 (Editor.log + 프레임 스캔)
+- **#1 흰색 고정** = 이중 경로 — `AnimalAI.TakeDamage`(890) + `HitReaction.cs`(71)이 refcount(CombatVFXController)와 **별개인 레거시 `HitVFX.PlayHitFlash`(MaterialPropertyBlock)** 를 병행 호출 → MPB가 sharedMaterial 색을 덮어 흰색 잔존. 영상 25프레임에서 흰 덩어리 재현.
+- **#2 느낌표 미소멸** = `ShowAggroVisual`(수명 무제한)이 적대(Combat) 상태 내내 재표시 — `ShowTransientExclamation`(1.2s)과 별개로 충성도 주기 재표시.
+- **#3·#8 드래그 불가** = 고스트 렌더가 `InventoryWindow.OnGUI`(IsOpen일 때만) 의존 → 인벤 닫힌 채 전리품/창고 드래그 시 고스트 없음.
+- **#4 방어구 장착 실패** = Test_10 `EnsureGameManager`에 `EquipmentManager`/`ArmorVisualAttachSystem` 생성 누락(CoreSystemsBootstrap 미실행 씬). 로그: `결과 실패(사유: EquipmentManager 없음)`. (무기는 성공: `✅ wood_sword → RightHand`)
+- **#5 무기 그립** = 무기 장착 성공(영상에서 손에 들림) — 그립 끌어당김만 잔여(Play 튜닝).
+- **#6 슬래시 색** = `ComboStageTint`는 이미 흰색 고정 — 스타일라이즈드 .vfx(white-blue)가 파티클 시스템 부재로 tint no-op라 파란색 노출(Play 판정).
+- **#7 병사 GLB** = 6기 전부 **FBX 폴백**(avatar Valid + SoldierShield_AC)으로 부착·애니 동작 — GLB 전용 로드는 null(에디터 임포트 검증 필요).
+- **#9 병사 접지** = `GroundModelToY(SurfaceY)` 적용됨(57차) — 영상 프레임 대체로 지면 접촉, Play 재확인.
+
+### 변경 사항 (5파일 — 문서 1: docs/TEST20_FIX_PLAN.md)
+**`Systems/AnimalAI.cs` [T1]** (890행): 레거시 `HitVFX.PlayHitFlash`(MPB) else 블록 제거 → `CombatVFXController.PlayHitFlash(gameObject)` 단일 경로(GetComponentsInChildren로 GLB 자식 렌더러 전부 커버). 이중 발화·흰색 고정 원인 제거.
+**`Systems/HitReaction.cs` [T1]** (71행): 레거시 `HitVFX.PlayHitFlash`(MPB) 제거 → 비주얼 플린치(스케일 펄스/경직)만 수행. 플래시는 CombatFXGate→CombatVFXController(refcount) 담당.
+**`Systems/MonsterAggroSystem.cs` [T2]** (Update 174·ShowAggroVisual 320): 몬스터 느낌표를 `ShowAggroVisual`의 수명 무제한 생성 → `ShowTransientExclamation(go, 1.5f)` 단일 수명으로 통일. 상태(Alert/Combat)가 이탈하면 HideAggroVisual로 즉시 제거. 병사 적대(GuardHostilitySystem)도 동일 transient 경로.
+**`UI/HUD.cs` [T3]** (OnGUI 상단): `ItemDragContext.Active`면 `DrawGhost()`+`DrawSlotHighlight()` 상시 렌더 — 인벤토리/창고/전리품/장비 어떤 창이 닫혀 있어도 드래그 고스트 표시. 프레임 가드(Time.frameCount)로 이중 렌더 방지. 기존엔 인벤 OnGUI(IsOpen)만이 고스트를 그려 '드래그 불가'로 보였음.
+**`Systems/TestTerritoryCombatSetup.cs` [T4]** (EnsureGameManager): Test_10 씬에 `EquipmentManager` + `ArmorVisualAttachSystem` 생성 보장(중복 가드 + ✏️) — 방어구 우클릭/드래그 장착 활성화. 사용자 리포트(장비 착용 안 됨) 직접 근본 원인.
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0** (exit 0, 에디터 종료 상태 1회 통과).
+- 괄호 균형: 변경 5파일 전부 {}/()/[] 정합.
+- Play 판정 대기: ① 피격 후 흰색 0.15s 후 원복(연속/다중 피격 잔존 0) ② 느낌표 잠깐 뜨고 사라짐(상태 이탈 시 즉시) ③ 인벤 닫은 채 전리품/창고 드래그 고스트 표시+드롭 ④ 방어구 우클릭/드래그 장착+GLB 부착 ⑤ 슬래시 흰색(Free Slash 고려 Play 판정) ⑥ 병사 FBX 렌더+접지 ⑦ 무기 그립 미세 조정.
+
+### 잔여 (T5/T7 Play 판정 + 계획서 후속)
+- T5 무기 그립 끌: `[Weapon] 그립 정렬` 로그의 offset/pivotT로 검/창/활 GripPose 오프셋 튜닝(H-5).
+- T7 병사 GLB 전용 로드: CreateGuard GLB 로드 null → 에디터 임포트 확인 + 성공 시 GLB 렌더(현 FBX는 동작). 접지 지면 재확인.
+- T6 Free Slash 폴백 강제 여부(사용자 선택).
+
+---
 
 > **스코프**: 사장님 요구 — ① 내 공격 시 내 소속 병사도 공격(이미 배선) ② **타 영지 병사는 호감도에 따라 원래 공격 안 하다가, 내가 공격하는 순간 호감도 하락 → 몬스터처럼 느낌표 뜨며 플레이어/내 병사 공격** ③ 느낌표는 잠깐 뜨고 사라지게(계속 X).
 

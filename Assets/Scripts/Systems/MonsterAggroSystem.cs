@@ -171,6 +171,8 @@ namespace ProjectName.Systems
                     bool hasIndicator = indicator != null;
                     bool shouldShow = currentState == AggroState.Alert || currentState == AggroState.Combat;
 
+                    // [T2 2026-09-15] 느낌표 수명 통일 — ShowAggroVisual이 생성하는 몬스터 느낌표도
+                    // transient(수명) 처리되어 '잠깐 떴다 사라진다'. 상태가 이탈하면 즉시 제거.
                     if (shouldShow && !hasIndicator)
                         ShowAggroVisual(monster, currentState);
                     else if (!shouldShow && hasIndicator)
@@ -317,12 +319,8 @@ namespace ProjectName.Systems
                     r.materials = newMats;
                 }
 
-                // 2. 느낌표 표시 (머리 위)
-                var exclamation = Instantiate(_exclamationPrefab, go.transform);
-                exclamation.name = "AggroExclamation";
-                exclamation.transform.localPosition = new Vector3(0, 2.5f, 0); // 머리 위
-                exclamation.transform.localScale = Vector3.one * 0.5f;          // [Phase F] 추가 축소 — characterSize와 곱연산(테스트19 재과대 리포트)
-                exclamation.SetActive(true);
+                // 2. 느낌표 표시 (머리 위) — [T2] 몬스터 느낌표도 잠깐 떴다 사라지게 수명 부여(ShowTransientExclamation 재사용)
+                ShowTransientExclamation(go, 1.5f);
             }
         }
 

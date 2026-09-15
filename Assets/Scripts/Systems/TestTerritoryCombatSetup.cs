@@ -82,6 +82,22 @@ namespace ProjectName.Systems
             gm.AddComponent<MonsterAggroSystem>();
             gm.AddComponent<MonsterSkillSystem>();
             gm.AddComponent<GuardHostilitySystem>();   // [57차 후속] 타 영지 병사 적대화(호감도 하락→느낌표→공격) — Instance 보장
+
+            // [T4 2026-09-15] Test_10(영역 전투 씬)은 CoreSystemsBootstrap 미실행이므로
+            // 장비 슬롯(방어구 장착)과 방어구 비주얼 부착 시스템을 이 씬에서 직접 생성 보장.
+            // 54차 '장비 착용' 수정은 메인 씬(CoreSystemsBootstrap)만 커버했고, 테스트 씬엔
+            // EquipmentManager가 없어 '우클릭 장착 wood_armor → 실패(사유: EquipmentManager 없음)'가 났다.
+            if (Object.FindAnyObjectByType<EquipmentManager>(FindObjectsInactive.Include) == null)
+            {
+                gm.AddComponent<EquipmentManager>();
+                Debug.Log("[TestTerritoryCombat] ✅ EquipmentManager 생성 — 방어구 장착 활성화");
+            }
+            if (Object.FindAnyObjectByType<ArmorVisualAttachSystem>(FindObjectsInactive.Include) == null)
+            {
+                gm.AddComponent<ArmorVisualAttachSystem>();
+                Debug.Log("[TestTerritoryCombat] ✅ ArmorVisualAttachSystem 생성 — 방어구 비주얼 부착 활성화");
+            }
+
             Debug.Log("[TestTerritoryCombat] ✅ GameManager + 시스템 생성");
         }
 
