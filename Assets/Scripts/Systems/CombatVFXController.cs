@@ -533,25 +533,32 @@ namespace ProjectName.Systems
                     Destroy(gameObject);
             }
 
+            private static float _styleScale = -1f;
+
             private static void EnsureStyles()
             {
-                if (_styleCache != null && _shadowStyleCache != null && _critStyleCache != null) return;
+                // [2026-09-15 Phase J] 해상도 비례 + 가독성 상향 — 기존 14/18px 고정은 저해상/고해상에서
+                // 읽기 어렵고 초록 지형 대비가 약했다(테스트17 판정). 스케일이 바뀌면 스타일을 재생성한다.
+                float s = Mathf.Clamp(Mathf.Sqrt((Screen.width / 1920f) * (Screen.height / 1080f)), 0.5f, 2.5f);
+                if (_styleCache != null && _shadowStyleCache != null && _critStyleCache != null
+                    && Mathf.Approximately(_styleScale, s)) return;
+                _styleScale = s;
 
                 _styleCache = new GUIStyle(GUI.skin.label)
                 {
-                    fontSize = 14,
+                    fontSize = (int)(22 * s),
                     alignment = TextAnchor.MiddleCenter,
                     fontStyle = FontStyle.Bold
                 };
 
                 _shadowStyleCache = new GUIStyle(_styleCache)
                 {
-                    normal = { textColor = new Color(0, 0, 0, 0.5f) }
+                    normal = { textColor = new Color(0, 0, 0, 0.65f) }
                 };
 
                 _critStyleCache = new GUIStyle(_styleCache)
                 {
-                    fontSize = 18, // 크리티컬은 더 크게
+                    fontSize = (int)(32 * s), // 크리티컬은 더 크게
                     fontStyle = FontStyle.Bold
                 };
             }
