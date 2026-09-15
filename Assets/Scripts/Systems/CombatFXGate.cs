@@ -59,6 +59,13 @@ namespace ProjectName.Systems
 
             CombatVFXController.PlayHitFlash(target);
             PlayHitFXInternal(target.transform.position, hitDirection, type, isCrit, damage, numberColor);
+            // [2026-09-15 Phase C] 피격자 반응(플린치/넉백) — 플레이어 제외. 연출 전용, 실패해도 타격/Die 는 계속.
+            try
+            {
+                var sev = isCrit ? HitSeverity.Crit : (damage >= 15f ? HitSeverity.Heavy : HitSeverity.Light);
+                HitReactionDriver.Apply(target, hitDirection, sev, false);
+            }
+            catch (System.Exception e) { Debug.LogWarning($"[CombatFX] 피격 리액션 스킵: {e.GetType().Name}"); }
         }
 
         // ================================================================
@@ -81,6 +88,13 @@ namespace ProjectName.Systems
 
             CombatVFXController.PlayHitFlash(target);
             PlayHitFXInternal(hitPos, hitDirection, type, isCrit, damage, numberColor);
+            // [2026-09-15 Phase C] 피격자 반응(플린치/넉백) — 플레이어 제외. 연출 전용, 실패해도 타격/Die 는 계속.
+            try
+            {
+                var sevC = isCrit ? HitSeverity.Crit : (damage >= 15f ? HitSeverity.Heavy : HitSeverity.Light);
+                HitReactionDriver.Apply(target, hitDirection, sevC, false);
+            }
+            catch (System.Exception e) { Debug.LogWarning($"[CombatFX] 피격 리액션 스킵: {e.GetType().Name}"); }
         }
 
         // ================================================================

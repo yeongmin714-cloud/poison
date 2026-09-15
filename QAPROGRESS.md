@@ -4,7 +4,7 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-14 (51차)
+> **최종 갱신:** 2026-09-15 (52차)
 
 ---
 
@@ -1318,3 +1318,36 @@ E키→OpenForBasket→우측 창 Show → 슬롯 좌클릭(MouseDown)→드래�
 ### 컴파일/검증
 - 배치컴파일 error CS=0(총 2회 — 51차 포함), PlayerCombat 괄호 균형{69/69}.
 - Play 판정 대기(기존과 동일): 몬스터 종별 모션(토끼 깡충/악어 기어감/슬라임 펄스/숲정령 부유/2족 보행) + 공격 전진/반동/콤보 연속성.
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 52차 — 공격 액션감 전면 개선 [Phase A 기반 + Phase B/C/D]: 스테이지 클립 콤보 + 피격 리액션 + 카메라 단일화)
+
+> **스코프**: 사용자 리포트(테스트 17 영상) "3D RPG 대비 공격 액션 부족". 계획서 `docs/ATTACK_FEEL_UPGRADE_PLAN.md` 수립 후 Phase A(기반 커밋) → B/C/D 구현. 진단 뿌리: ① 콤보 3타가 **단일 클립 슬라이스**라 타별 개성 0 ② 피격자가 **전혀 반응 없음**(HP바만 감소) ③ 카메라 펀치 **이중 발화**로 히트/미스 강도 불일치.
+
+### Phase A — 기반 커밋 (커밋 0908bad1)
+직전 세션 미커밋분 15파일/+1411줄: 데미지 넘버 타입(Normal/Critical/BackAttack/Heal/Mana), WeaponSwingTrail 무기별 색/폭 차별화, CombatCameraEffects 무기별 임펄스 프로파일(_sword/_spear/_bow/fist), MonsterAggroSystem 어그로 시각화(붉은 오라+느낌표), ItemDragContext 드래그 스냅/하이라이트. 배치컴파일 error CS=0.
+
+### Phase B — 스테이지 클립 콤보 (HumanoidClipDriver.cs)
+**뿌리 확정**: `Player_AC.controller` 전이 전수 파싱(2026-09-15) — AnyState→AttackCombo/AttackCombo2/AttackCombo3 전이가 **트리거(동명) 조건으로 이미 존재**. 상태 클립 = Double_Combo_Attack / Triple_Combo_Attack / Weapon_Combo_2. 즉, 스테이지별 개성 클립이 배선돼 있었으나 B안(단일 테이크 슬라이스)이 이를 우회하고 있었음.
+**수리**: `UseStageClips=true` 경로 신설 — 클릭 → `SetTrigger("AttackCombo"|"AttackCombo2"|"AttackCombo3")`로 스테이지 진행. 진행률 게이트(StageCancelGate=0.30) 통과 시 다음 타 즉시 소비(스윙 캔슬), 미달 시 0.12s 버퍼. 스테이지 클립은 컨트롤러 exit(≈0.92)로 자동 복귀하므로 홀드/만료 불필요.
+신규 헬퍼: `IsInStageClip()` / `StartStageClip(int)` / `AdvanceStageClip(int)` / `MonitorStageClip()`. **기존 B안 코드 전량 보존**(플래그 false로 즉시 복귀). 스테이지별 FireComboSlash FX·트레일·콤보버퍼·Player모드 한정·Bow/Spear 차단 전부 유지.
+
+### Phase C — 피격 리액션 (신규 HitReactionDriver.cs + CombatFXGate.cs 배선)
+**뿌리**: 적 애니메이터(Monster_Animator/Soldier_Animator)에 Hit/Death 상태가 **전혀 없음**(상태=Attack/AttackTrigger/Base/Idle/Run/State/Walk뿐) → 컨트롤러 편집 없이 **절차 반응**으로 구현.
+**신규**: `HitReactionDriver` + 러너 `HitReactionRunner` — ① 플린치: 시각 모델 자식 트랜스폼을 타격 반대방향으로 젖힘(smoothstep)+복원(경 0.16s/5°/0.05m, 중 0.24s/11°/0.14m, 크리 0.30s/16°/0.22m) ② 넉백: Rigidbody=AddForce(VelocityChange), CC=감쇠 이동(강타 0.9m/크리 1.5m) ③ Animator에 HitLight/Hit 트리거가 있으면(hasParameter 확인) 동반 발화 ④ **파괴는 일절 하지 않음**(사망 처리는 기존 Die() 담당 — 이중 파괴/전리품 타이밍 회귀 차단).
+**배선**: CombatFXGate의 GameObject 오버로드 2곳에서 `PlayHitFlash` 직후 호출(플레이어 태그 제외). severity = 크리→Crit / 데미지≥15→Heavy / 그 외→Light. try-catch 격리(39차 교훈 — 연출 예외가 Die() 방해 금지).
+
+### Phase D — 카메라 펀치 이중 발화 단일화 (PlayerCombat.cs)
+무기별 히트스톱은 **이미 구현 확인**(HitStopManager.DurationOf — 검 .050/창 .060/활 .030/맨손 .040). 남은 48차 비고만 수리: TryAttack 말미의 무조건 `TriggerCameraEffects()` → `if (!hitAny) TriggerCameraEffects()`로 변경(적중 시에는 AttackTarget 내부가 발화). → 성공 타격의 실효 펀치 2배(0.8/1.1/1.4) 문제 해소, 히트/미스 강도 일치.
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0** (Phase A 기준선 / Phase B·C·D 적용 후 총 2회, exit 0)
+- HumanoidClipDriver 괄호 균형 157/157{ · 493/493(, diff 0
+- **⚠️ 실행 방식**: B/C/D 서브에이전트 3병렬 위임 → **3건 모두 600s 타임아웃(파일 변경 0)** → 프로젝트 규칙(타임아웃 시 부모 직접)에 따라 부모가 직접 구현.
+- Play 판정 대기: ① 1/2/3타가 서로 다른 모션(Double→Triple→Weapon_Combo_2) ② 타격 시 몬스터/병사가 젖혀짐+강타 넉백 ③ 크리 시 큰 리액션 ④ 카메라 펀치가 히트/미스 동일 강도·연타 차등 정상
+
+### 비고/후속
+- 적 사망 "다운 모션"(즉시 파괴 대체)은 미구현 — Die() 파괴 타이밍/전리품 회귀 리스크로 보류(Phase C-3 잔여).
+- 계획서 Phase E(FX strike 동기)/F(사운드 4레이어)/G(넘버 juice)/H(회피롤·차지·패링) 미착수.
+- 진단 #7(테스트17 무기 모델 미표시) 미확인 — Play `[Equip]` 로그로 판별 필요.

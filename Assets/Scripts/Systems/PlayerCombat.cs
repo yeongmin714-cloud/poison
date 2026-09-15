@@ -267,8 +267,10 @@ namespace ProjectName.Systems
             // 빈 스윙(미스) — 마지막 적중 정보 무효화 → 십자가 VFX 스킵(맞는 대상 지점에만 발화)
             if (!hitAny) LastHitValid = false;
 
-            // 카메라 이펙트 (Cinemachine Impulse)
-            TriggerCameraEffects();
+            // [2026-09-15 Phase D] 카메라 펀치 이중 발화 정리(48차 비고: 성공 타격 시 AttackTarget + TryAttack
+            // 2회 호출로 실효 2배) — 적중 시에는 AttackTarget 내부가 발화하므로 여기서는 '미스 스윙'만 담당한다.
+            // → 히트/미스 카메라 강도 일치, 연타 스트릭 펀치(0.4/0.55/0.7) 정상화.
+            if (!hitAny) TriggerCameraEffects();
 
             // 공격 전진 (attack lunge)
             StartCoroutine(AttackLungeCoroutine());

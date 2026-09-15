@@ -34,6 +34,14 @@ namespace ProjectName.Systems
         private const float ComboExitBlend = 0.10f;
         // #48차 콤보 버퍼링: 경계 도달 전 클릭 버퍼 유효 시간(백업) — 이 안에 경계 도달하면 즉시 소비
         private const float ComboBufferWindow = 0.12f;
+        // ── [2026-09-15 Phase B] 스테이지 클립 콤보: 컨트롤러의 트리거 구동 체인 사용 ──
+        // Player_AC.controller 실측(2026-09-15): AnyState→AttackCombo/AttackCombo2/AttackCombo3 전이가
+        // 트리거(동명) 조건으로 이미 존재. 각 상태 클립 = Double_Combo_Attack / Triple_Combo_Attack / Weapon_Combo_2.
+        // B안은 3타가 같은 테이크 구간이라 스테이지 개성이 약함 → 기본값을 스테이지 클립으로. false 로 되돌리면 B안 복귀.
+        private const bool UseStageClips = true;
+        private static readonly string[] StageStateNames = { "AttackCombo", "AttackCombo2", "AttackCombo3" };
+        private static readonly string[] StageTriggerNames = { "AttackCombo", "AttackCombo2", "AttackCombo3" };
+        private const float StageCancelGate = 0.30f;   // 스테이지 클립 진행률 게이트 — 이 이상이면 다음 타 입력 즉시 소비(스윙 캔슬 허용)
         private int _comboStage;          // 0=비활성, 1..3 = 현재 스테이지(클릭 수)
         private float _comboStartTime = -999f;
         private float _comboPinGraceStart = -999f;
@@ -483,6 +491,32 @@ namespace ProjectName.Systems
                     }
                     else
                     {
+                    if (UseStageClips)
+                    {
+                        // [2026-09-15 Phase B] 스테이지 클립 경로 — 트리거 구동(Double/Triple/Weapon_Combo_2)
+                        bool inStage = IsInStageClip();
+                        if (inStage && _comboStage > 0 && _comboStage < 3)
+                        {
+                            if (_anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= StageCancelGate)
+                            {
+                                AdvanceStageClip(_comboStage + 1);
+                            }
+                            else
+                            {
+                                _comboBufferedClick = true;
+                                _comboBufferEndTime = Time.time + ComboBufferWindow;
+                                Debug.Log($"[Combo] 클릭 버퍼 적립 (stageClip {_comboStage} 진행률 미달, 유효 {ComboBufferWindow:F2}s)");
+                            }
+                        }
+                        else
+                        {
+                            StartStageClip(1);   // 신규 시작 또는 3타 완료 후 재시작
+                            Debug.Log(inStage ? "[Combo] stageClip 재시작(4번째 클릭 → 1타)" : "[Combo] stageClip 1타 시작");
+                        }
+                        _attackHoldUntil = Time.time + 0.6f;
+                    }
+                    else
+                    {
                     // WeaponCombo B안: 클릭 엣지 → 스테이지 진행/시작 (트리거 미사용, Play/CrossFade 직접 제어)
                     var stInfo = _anim.GetCurrentAnimatorStateInfo(0);
                     bool inCombo = stInfo.IsName(ComboStateName) && _comboStage > 0;
@@ -539,11 +573,18 @@ namespace ProjectName.Systems
                     // 공격 상태 최소 유지 — 연타 중 Idle 경유 팝 방지
                     _attackHoldUntil = Time.time + 0.6f;
                     } // P4: Fist/Sword WeaponCombo 분기 종료
+                    } // [2026-09-15 Phase B] UseStageClips else 종료
                 }
             }
 
             // ── WeaponCombo per-frame 감시: 경계 플레이헤드 홀드 + 종료 + 타 완료 크로스 FX ──
             var st = _anim.GetCurrentAnimatorStateInfo(0);
+            if (UseStageClips)
+            {
+                MonitorStageClip();
+            }
+            else
+            {
             if (st.IsName(ComboStateName) && _comboStage > 0)
             {
                 float normT = st.normalizedTime; // 단발 클립: 0→1
@@ -606,6 +647,7 @@ namespace ProjectName.Systems
                 WeaponSwingTrail.SetComboStage(0);
                 Debug.Log("[Combo] 인터럽트 리셋");
             }
+            } // [2026-09-15 Phase B] UseStageClips else 종료
 
             // ── 레거시 Attack* 상태 보존(기존 경로: TriggerAttack/창 등) — 상태 진입 1회 전방 슬래시 ──
             bool legacyAttack = st.IsName("Attack") || st.IsName("AttackBase") || st.IsName("AttackThrust")
@@ -690,6 +732,72 @@ namespace ProjectName.Systems
                 && Time.time >= _attackHoldUntil)
                 _anim.SetTrigger("RunToWalk");
             _prevSpeedForTransition = _smoothedSpeed;
+        }
+
+        // ── [2026-09-15 Phase B] 스테이지 클립 콤보 헬퍼 (트리거 구동) ──
+        /// <summary>현재 Animator 상태가 스테이지 클립(AttackCombo/2/3) 중 하나인지.</summary>
+        private bool IsInStageClip()
+        {
+            if (_anim == null) return false;
+            var si = _anim.GetCurrentAnimatorStateInfo(0);
+            for (int i = 0; i < StageStateNames.Length; i++) if (si.IsName(StageStateNames[i])) return true;
+            return false;
+        }
+
+        /// <summary>스테이지 클립 시작/재시작 — 트리거 발화 + 스테이지별 스윙 FX.</summary>
+        private void StartStageClip(int stage)
+        {
+            if (_anim == null) return;
+            ResetComboCrossFlags();
+            _comboStage = Mathf.Clamp(stage, 1, 3);
+            _comboPinGraceStart = -999f;
+            _comboBufferedClick = false;
+            _comboStartTime = Time.time;
+            _anim.SetTrigger(StageTriggerNames[_comboStage - 1]);
+            FireComboSlash(_comboStage);
+            Debug.Log($"[Combo] stage={_comboStage} path=stageClip trigger={StageTriggerNames[_comboStage - 1]}");
+        }
+
+        /// <summary>다음 스테이지로 진행 — 트리거 발화 + 스테이지별 스윙 FX.</summary>
+        private void AdvanceStageClip(int stage)
+        {
+            if (_anim == null) return;
+            _comboStage = Mathf.Clamp(stage, 1, 3);
+            _comboPinGraceStart = -999f;
+            _comboBufferedClick = false;
+            _comboStartTime = Time.time;
+            _anim.SetTrigger(StageTriggerNames[_comboStage - 1]);
+            FireComboSlash(_comboStage);
+            Debug.Log($"[Combo] stage={_comboStage} path=stageClip 트리거 진행");
+        }
+
+        /// <summary>
+        /// 스테이지 클립 per-frame 감시 — 진행률 게이트 통과 시 버퍼 클릭 소비, 상태 이탈 시 리셋.
+        /// 스테이지 클립은 컨트롤러 exit(≈0.92)로 자동 복귀하므로 별도 홀드/만료 처리가 필요 없다.
+        /// </summary>
+        private void MonitorStageClip()
+        {
+            if (_anim == null) return;
+            if (IsInStageClip() && _comboStage > 0)
+            {
+                float normT = _anim.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                if (_comboBufferedClick && Time.time <= _comboBufferEndTime && _comboStage < 3 && normT >= StageCancelGate)
+                {
+                    _comboBufferedClick = false;
+                    AdvanceStageClip(_comboStage + 1);
+                    Debug.Log($"[Combo] 버퍼 클릭 소비 → stageClip {_comboStage} (무홀드 연결)");
+                }
+            }
+            else if (_comboStage > 0 && Time.time - _comboStartTime > 0.5f)
+            {
+                _comboStage = 0;
+                _comboPinGraceStart = -999f;
+                _comboBufferedClick = false;
+                ResetComboCrossFlags();
+                WeaponSwingTrail.SetEmitting(false);
+                WeaponSwingTrail.SetComboStage(0);
+                Debug.Log("[Combo] 인터럽트 리셋(stageClip)");
+            }
         }
 
         /// <summary>WeaponCombo 종료 — Idle로 블렌드 아웃하고 콤보 상태 변수를 리셋.</summary>
