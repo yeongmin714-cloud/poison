@@ -100,11 +100,11 @@ namespace ProjectName.UI
         /// <summary>상점 등 컨텍스트 창의 x 좌표 — 제3구획(화면 우측 1/3) 시작점</summary>
         public static float GetContextX(float contextWidth)
         {
-            return Screen.width * 2f / 3f + 6f;
+            return Screen.width * 2f / 3f + 6f * _uiScale;
         }
 
         /// <summary>삼분활 패널 폭 (상점 등 컨텍스트 창이 사용)</summary>
-        public static float PanelWidth => Screen.width / 3f - 12f;
+        public static float PanelWidth => Screen.width / 3f - 12f * _uiScale;
 
         /// <summary>
         /// 2026-09-11(3): 화면(GUI) 좌표가 속한 인벤 슬롯의 전역 인덱스 반환 (DnD 드롭 판정용).
@@ -233,7 +233,7 @@ namespace ProjectName.UI
 
         private const int EQUIP_GRID_COLS = 5;   // 통합 장비칸 열 수 (2행×5열 = 10칸 고정)
         private const int EQUIP_GRID_ROWS = 2;
-        private const float EQUIP_BADGE_HEIGHT = 22f;   // 부위 배지 행 높이
+        private static float EQUIP_BADGE_HEIGHT => 22f * _uiScale;   // 부위 배지 행 높이
 
         // ===== 정렬 =====
         private enum SortMode { None, Category, Name, Rarity, Quantity }
@@ -243,26 +243,40 @@ namespace ProjectName.UI
         // ===== 레퍼런스 스타일 상수 (2026-09-11 Flat: 얇은 타이틀 스트립 + 컴팩트 탭) =====
         // 화면 정확히 삼분활 — 패널 폭 = Screen.width/3 - 12, 하단 핫바(150+12) 공간 확보
         // 2026-09-11(6): public화 — LootWindow가 우측 구획 배치 시 동일 창 크기 규약을 참조 (기존 로직 무변경)
-        public static float WINDOW_WIDTH => Screen.width / 3f - 12f;
-        public static float WINDOW_HEIGHT => Screen.height - 180f;   // 상단 10 + 하단 핫바 170 여백
-        private const float TITLE_BAR_HEIGHT = 64f;    // Flat: 얇은 상단 스트립
-        private const float TAB_BAR_HEIGHT = 72f;      // Flat: 컴팩트 탭
-        private const float INFO_PANEL_HEIGHT = 272f;   // (레거시 — 미사용)
-        private const float WEAPON_SECTION_HEIGHT = 112f;  // (레거시 — 미사용)
-        private const float EQUIP_ROW_HEIGHT = 268f;    // 장비창 5칸씩 2줄 (박스 86 + 라벨 44 × 2)
-        private const float DESC_PANEL_HEIGHT = 400f;   // 2026-09-12(P3): 설명창 세로 620→400 축소 (이름/설명/아이콘/스탯 순 압축 — 하단 빈 여백 제거)
-        private const float DESC_GAP = 12f;             // 구획 간 미세 여백
+        public static float WINDOW_WIDTH => Screen.width / 3f - 12f * _uiScale;
+        public static float WINDOW_HEIGHT => Screen.height - 180f * _uiScale;   // 상단 10 + 하단 핫바 170 여백
+        private static float TITLE_BAR_HEIGHT => 64f * _uiScale;    // Flat: 얇은 상단 스트립
+        private static float TAB_BAR_HEIGHT => 72f * _uiScale;      // Flat: 컴팩트 탭
+        private static float INFO_PANEL_HEIGHT => 272f * _uiScale;   // (레거시 — 미사용)
+        private static float WEAPON_SECTION_HEIGHT => 112f * _uiScale;  // (레거시 — 미사용)
+        private static float EQUIP_ROW_HEIGHT => 268f * _uiScale;    // 장비창 5칸씩 2줄 (박스 86 + 라벨 44 × 2)
+        private static float DESC_PANEL_HEIGHT => 400f * _uiScale;   // 2026-09-12(P3): 설명창 세로 620→400 축소 (이름/설명/아이콘/스탯 순 압축 — 하단 빈 여백 제거)
+        private static float DESC_GAP => 12f * _uiScale;             // 구획 간 미세 여백
         private const int GRID_COLUMNS = 6;                // 2026-09-12(P3): 6열 그리드 (예시2 — 인벤 단일 그리드, 탭은 창고 컨텍스트로 이동)
         // 2026-09-13(P5): 전리품창 전용 그리드 상수 — 메인 인벤 6열 공용 상수(GRID_COLUMNS)는 무수정 (전리품만 5열 분리)
         private const int LOOT_COLUMNS = 5;                // 전리품 5열 — 슬롯 폭 계산 전용 (정사각형 유지)
         private const int LOOT_ROWS_MAX = 2;               // 전리품 최대 2행 — 10종 초과분은 [전부 획득] 버튼으로 일괄 획득 안내
         private const int GRID_ROWS_PER_PAGE = 5;          // 2026-09-12(P3): 페이지당 5행×6열=30슬롯 — 초과분은 ◀/▶ 페이지 버튼
         private const int GRID_PAGE_SLOTS = GRID_ROWS_PER_PAGE * GRID_COLUMNS;
-        private const float PAGER_STRIP_HEIGHT = 40f;      // 그리드 하단 페이지 버튼 스트립 높이
-        private const float SLOT_MARGIN = 6f;              // 슬롯 간격
-        private const float SLOT_ICON_SIZE = 96f;          // 슬롯 내 아이콘 크기 (레거시, 동적 크기 사용 권장)
+        private static float PAGER_STRIP_HEIGHT => 40f * _uiScale;      // 그리드 하단 페이지 버튼 스트립 높이
+        private static float SLOT_MARGIN => 6f * _uiScale;              // 슬롯 간격
+        private static float SLOT_ICON_SIZE => 96f * _uiScale;          // 슬롯 내 아이콘 크기 (레거시, 동적 크기 사용 권장)
         private const float PREVIEW_PANEL_WIDTH = 0f;    // (제거됨)
         private static float GRID_AREA_WIDTH => WINDOW_WIDTH - PREVIEW_PANEL_WIDTH; // 그리드 영역 폭
+
+        // ===== [2026-09-15 Phase G-UI] 해상도 비례 스케일 =====
+        // 고정 px 상수는 화면 크기가 바뀌면 비율이 깨져 글자가 잘리거나 안 보인다.
+        // HUD._canvasScale 과 동일 산식으로 _uiScale 을 구하고, 레이아웃 상수를 _uiScale 배수 프로퍼티로
+        // 전환한다(사용처는 이름 그대로 → 무수정 자동 비례). 폰트 크기는 InitStyles 에서 함께 곱한다.
+        private static float _uiScale = 1f;
+        private static int _uiScaleW = -1, _uiScaleH = -1;
+        public static float UIScale => _uiScale;
+        private static void RefreshUIScale()
+        {
+            if (Screen.width == _uiScaleW && Screen.height == _uiScaleH) return;
+            _uiScaleW = Screen.width; _uiScaleH = Screen.height;
+            _uiScale = Mathf.Max(0.35f, Mathf.Sqrt((Screen.width / 1920f) * (Screen.height / 1080f)));
+        }
 
         // 포커스/강조 색상 — Flat 모드: 스카이블루 글로우/엣지 (기존 민트 대체)
         private static readonly Color ColorMintGlow = new Color(0.35f, 0.65f, 0.90f, 0.30f);
@@ -311,6 +325,7 @@ namespace ProjectName.UI
         private GUIStyle _styleBackplate;       // Layer 1: 스톤 백플레이트 (9-Slice border 24)
         private GUIStyle _styleMetalFrame;      // Layer 4: 금속 프레임 (9-Slice border 16)
         private bool _stylesInitialized;
+        private float _uiScaleUsedForStyles = -1f;   // [Phase G-UI] 스타일 생성 시점의 스케일
         private Texture2D _texWhite;
         private Texture2D _texSlotBg;           // 슬롯 배경 (다크 + 흰 테두리)
         private Texture2D _texSlotBgHover;      // 슬롯 호버 배경
@@ -658,7 +673,7 @@ namespace ProjectName.UI
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(), // P7-1: 한글 서포트 커스텀 폰트
-                fontSize = UIFont.Title, // P7-2: 40 → Title(38)
+                fontSize = (int)(UIFont.Title * _uiScale), // P7-2: 40 → Title(38)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 clipping = TextClipping.Clip,
@@ -670,7 +685,7 @@ namespace ProjectName.UI
             _styleTab = new GUIStyle(GUI.skin.button)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Body, // P7-2: 22 → Body(24)
+                fontSize = (int)(UIFont.Body * _uiScale), // P7-2: 22 → Body(24)
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleCenter,
                 clipping = TextClipping.Clip,
@@ -698,7 +713,7 @@ namespace ProjectName.UI
                 padding = new RectOffset(4, 4, 4, 4),
                 margin = new RectOffset(0, 0, 0, 0),
                 font = UIFont.Load(),
-                fontSize = UIFont.Title, // P7-2: 36 → Title(38)
+                fontSize = (int)(UIFont.Title * _uiScale), // P7-2: 36 → Title(38)
                 alignment = TextAnchor.MiddleCenter
             };
 
@@ -712,7 +727,7 @@ namespace ProjectName.UI
             _styleSlotLabel = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Title, // P7-2: 36 → Title(38)
+                fontSize = (int)(UIFont.Title * _uiScale), // P7-2: 36 → Title(38)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary },
@@ -723,7 +738,7 @@ namespace ProjectName.UI
             _styleItemName = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Display, // P7-2: 60 → Display(60)
+                fontSize = (int)(UIFont.Display * _uiScale), // P7-2: 60 → Display(60)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary }
@@ -733,7 +748,7 @@ namespace ProjectName.UI
             _styleItemCount = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Body, // P7-2: 28 → Body(24)
+                fontSize = (int)(UIFont.Body * _uiScale), // P7-2: 28 → Body(24)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleRight,
                 normal = { textColor = ColorAccent }
@@ -743,7 +758,7 @@ namespace ProjectName.UI
             _styleInfoName = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Display, // P7-2: 76 → Display(60)
+                fontSize = (int)(UIFont.Display * _uiScale), // P7-2: 76 → Display(60)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
@@ -754,7 +769,7 @@ namespace ProjectName.UI
             _styleInfoDesc = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Body, // P7-2: 54 → Body(24)
+                fontSize = (int)(UIFont.Body * _uiScale), // P7-2: 54 → Body(24)
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.UpperLeft,
                 normal = { textColor = ColorTextSecondary },
@@ -766,7 +781,7 @@ namespace ProjectName.UI
             _styleInfoLabel = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Body, // P7-2: 48 → Body(24)
+                fontSize = (int)(UIFont.Body * _uiScale), // P7-2: 48 → Body(24)
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextSecondary }
@@ -776,7 +791,7 @@ namespace ProjectName.UI
             _styleEmptyText = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Body, // P7-2: 54 → Body(24)
+                fontSize = (int)(UIFont.Body * _uiScale), // P7-2: 54 → Body(24)
                 fontStyle = FontStyle.Normal,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary }
@@ -795,7 +810,7 @@ namespace ProjectName.UI
             _styleButton = new GUIStyle(GUI.skin.button)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Title, // P7-2: 36 → Title(38)
+                fontSize = (int)(UIFont.Title * _uiScale), // P7-2: 36 → Title(38)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary, background = _texBtnBg },
@@ -819,7 +834,7 @@ namespace ProjectName.UI
             _styleEquipBadge = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Caption, // 배지 — 작은 라벨 (셀 2행 절약)
+                fontSize = (int)(UIFont.Caption * _uiScale), // 배지 — 작은 라벨 (셀 2행 절약)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextSecondary },
@@ -830,7 +845,7 @@ namespace ProjectName.UI
             _stylePagerBtn = new GUIStyle(GUI.skin.button)
             {
                 font = UIFont.Load(),
-                fontSize = UIFont.Caption,
+                fontSize = (int)(UIFont.Caption * _uiScale),
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = ColorTextPrimary, background = _texBtnBg },
@@ -865,6 +880,12 @@ namespace ProjectName.UI
                 return;
             }
 
+            RefreshUIScale();   // [Phase G-UI] 해상도 변경 감지 → 비례 스케일 갱신
+            if (!Mathf.Approximately(_uiScaleUsedForStyles, _uiScale))   // 스케일 변경 → 폰트 스타일 재생성
+            {
+                _uiScaleUsedForStyles = _uiScale;
+                _stylesInitialized = false;
+            }
             InitStyles();
 
             // ===================================================================
@@ -1438,9 +1459,9 @@ namespace ProjectName.UI
             if (showPager)
             {
                 float pagerY = innerY + viewHeight;
-                const float pagerBtnW = 56f;
-                const float pagerGap = 8f;
-                const float pagerLabelW = 88f;
+                float pagerBtnW = 56f * _uiScale;
+                float pagerGap = 8f * _uiScale;
+                float pagerLabelW = 88f * _uiScale;
                 float pagerGroupW = pagerBtnW * 2f + pagerGap * 2f + pagerLabelW;
                 float pagerX = innerX + Mathf.Max(0f, (innerWidth - pagerGroupW) * 0.5f);
                 Rect pagerPrevRect = new Rect(pagerX, pagerY, pagerBtnW, PAGER_STRIP_HEIGHT);
@@ -2322,7 +2343,7 @@ namespace ProjectName.UI
 
             // 4모서리 장식 — 좌상단 기준 텍스처를 모서리 중심 pivot 회전으로 4방향 배치 (투명 배경이라 컨텐츠 위 안착)
             var orn = InventoryArtLibrary.GetCornerOrnament();
-            const float ornSize = 96f;
+            float ornSize = 96f * _uiScale;
             DrawCornerOrnament(orn, new Rect(wx, wy, ornSize, ornSize), 0f);
             DrawCornerOrnament(orn, new Rect(wx + ww - ornSize, wy, ornSize, ornSize), 90f);
             DrawCornerOrnament(orn, new Rect(wx + ww - ornSize, wy + wh - ornSize, ornSize, ornSize), 180f);
@@ -2489,7 +2510,7 @@ namespace ProjectName.UI
             // === 전리품 전용 5열 그리드 — 항목수 동적 행, 최대 2행 (10종 초과분은 [전부 획득]으로 일괄 획득) ===
             // 2026-09-13(P5): 메인 인벤 공용 상수(GRID_COLUMNS=6/3행) → 전리품 전용 상수(LOOT_COLUMNS=5/LOOT_ROWS_MAX=2).
             // 슬롯 폭은 5열 기준 재계산 — slotHeight = slotWidth 정사각형 규약 유지, 아이콘 렌더 경로는 그대로.
-            const float LOOT_BOTTOM_H = 96f;
+            float LOOT_BOTTOM_H = 96f * _uiScale;
             float gridY = panelY + TITLE_BAR_HEIGHT + 4;
             float gridHeight = lootH - (gridY - panelY) - LOOT_BOTTOM_H - 6;
             float innerWidth = lootW - 8;
@@ -2647,7 +2668,7 @@ namespace ProjectName.UI
             float gridY = tabY + TAB_BAR_HEIGHT + 1;
 
             // === 6열 창고 슬롯 그리드 — 스크롤 유지 / 페이지네이션 미적용 (창고 최대 20슬롯 = 4행, 5행 가이드에 수용) ===
-            const float WH_BOTTOM_H = 64f;
+            float WH_BOTTOM_H = 64f * _uiScale;
             float gridHeight = WINDOW_HEIGHT - (gridY - panelY) - WH_BOTTOM_H - 6;
             float innerWidth = WINDOW_WIDTH - 8;
             float slotWidth = (innerWidth - SLOT_MARGIN * (GRID_COLUMNS + 1)) / GRID_COLUMNS;
@@ -3615,7 +3636,7 @@ namespace ProjectName.UI
             var labelStyle = new GUIStyle(GUI.skin.label)
             {
                 font = UIFont.Load(), // P7-1
-                fontSize = UIFont.Title, // P7-2: 48 → Title(38)
+                fontSize = (int)(UIFont.Title * _uiScale), // P7-2: 48 → Title(38)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = new Color(0.92f, 0.88f, 0.80f, 1f) },
@@ -3630,7 +3651,7 @@ namespace ProjectName.UI
             var btnStyle = new GUIStyle(GUI.skin.button)
             {
                 font = UIFont.Load(), // P7-1
-                fontSize = UIFont.Title, // P7-2: 46 → Title(38)
+                fontSize = (int)(UIFont.Title * _uiScale), // P7-2: 46 → Title(38)
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = new Color(0.80f, 0.60f, 0.20f, 1f),

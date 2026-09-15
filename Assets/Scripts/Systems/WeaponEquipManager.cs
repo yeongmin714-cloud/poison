@@ -38,7 +38,11 @@ namespace ProjectName.Systems
             public Vector3 LocalPos;
             public Vector3 LocalEuler;
             public float TargetLen;
+            public int GripEnd;   // [2026-09-15 Phase H-GRIP] 0=자동(피벗 신뢰/휴리스틱), -1=bounds 최소축 끝, +1=최대축 끝
         }
+
+        /// <summary>bounds 지정축 성분 추출 헬퍼 (그립부/피벗 위치 판정용).</summary>
+        static float AxisComponent(Vector3 v, int axis) => axis == 0 ? v.x : axis == 1 ? v.y : v.z;
 
         static readonly Dictionary<WeaponType, GripPose> _gripTable = new Dictionary<WeaponType, GripPose>
         {
@@ -259,7 +263,37 @@ namespace ProjectName.Systems
                     weapon.transform.localScale *= scaleFix;
                 }
 
-                // 그립부(최하단부) = 최장축 양끝 면 중심 중 더 낮은 쪽.
+                // pivot-to-grip 오프셋(스케일 보정 배율 반영) → localPosition에서 차감
+                Vector3 pivot = weapon.transform.position;
+
+                // [2026-09-15 Phase H-GRIP] 그립부 결정 — 피벗 관례 우선.
+                //   대부분의 무기 GLB는 피벗이 손잡이(그립부)에 있다. 피벗이 최장축 끝부(≤15% 또는 ≥85%)에
+                //   있으면 그립부 = 피벗으로 간주해 bounds 오프셋 보정을 건너뛴다(테이블 튜닝 포즈 그대로 = 손에 정확히 부착).
+                //   끝부가 아니면 기존 휴리스틱(낮은 쪽 → 손 근처) 사용, 타입별 GripEnd(±1) 강제값이 있으면 그것을 우선.
+                float pivotT = Mathf.InverseLerp(AxisComponent(b.min, axis), AxisComponent(b.max, axis), AxisComponent(pivot, axis));
+                bool pivotAtGrip = pivotT <= 0.15f || pivotT >= 0.85f;
+
+                if (pose.GripEnd != 0)
+                {
+                    Vector3 forceGrip = FaceCenter(b, axis, pose.GripEnd < 0 ? b.min : b.max);
+                    Vector3 offF = handBone.InverseTransformPoint(pivot + (forceGrip - pivot) * scaleFix) - handBone.InverseTransformPoint(pivot);
+                    weapon.transform.localPosition -= offF;
+                    Vector3 dirF = (b.center - forceGrip).normalized;
+                    tipWorld = pivot + ((b.center + dirF * (len * 0.5f)) - forceGrip) * scaleFix;
+                    Debug.Log($"[Weapon] 그립 정렬(타입강제 end={pose.GripEnd}): bone={handBone.name}, offset={offF:F3}, bounds={b.size:F2} (스케일=x{scaleFix:F2})");
+                    return true;
+                }
+                if (pivotAtGrip)
+                {
+                    // 피벗 = 손잡이 → 오프셋 보정 없음. 팁은 피벗 반대쪽 최장축 끝.
+                    Vector3 dirP = (b.center - pivot).sqrMagnitude > 1e-8f ? (b.center - pivot).normalized : weapon.transform.up;
+                    Vector3 tipPreP = b.center + dirP * (len * 0.5f);
+                    tipWorld = pivot + (tipPreP - pivot) * scaleFix;
+                    Debug.Log($"[Weapon] 그립 정렬(피벗=그립부 신뢰 pivotT={pivotT:F2}): bone={handBone.name}, bounds={b.size:F2} (스케일=x{scaleFix:F2})");
+                    return true;
+                }
+
+                // 기존 휴리스틱: 그립부(최하단부) = 최장축 양끝 면 중심 중 더 낮은 쪽.
                 // 수평 무기(Y差 2cm 미만)는 손 원점에 가까운 쪽을 그립으로 판정.
                 Vector3 eMin = FaceCenter(b, axis, b.min);
                 Vector3 eMax = FaceCenter(b, axis, b.max);
@@ -267,8 +301,7 @@ namespace ProjectName.Systems
                              : (eMin.y - eMax.y >= 0.02f) ? eMax
                              : ((eMin - handBone.position).sqrMagnitude <= (eMax - handBone.position).sqrMagnitude ? eMin : eMax);
 
-                // pivot-to-grip 오프셋(스케일 보정 배율 반영) → localPosition에서 차감
-                Vector3 pivot = weapon.transform.position;
+                // pivot-to-grip 오프셋(스케일 보정 배율 반영) → localPosition에서 차감 (pivot은 상단에서 선언)
                 Vector3 gripScaled = pivot + (grip - pivot) * scaleFix;
                 Vector3 offset = handBone.InverseTransformPoint(gripScaled) - handBone.InverseTransformPoint(pivot);
                 weapon.transform.localPosition -= offset;

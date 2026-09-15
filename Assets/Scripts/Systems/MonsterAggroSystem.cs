@@ -370,7 +370,8 @@ namespace ProjectName.Systems
             _exclamationPrefab.hideFlags = HideFlags.DontSave;
             var textMesh = _exclamationPrefab.AddComponent<TextMesh>();
             textMesh.text = "!";
-            textMesh.fontSize = 24; // 크기 축소 (기존 48 → 24)
+            textMesh.fontSize = 48;          // [2026-09-15 Phase F] 글리프 해상도용(표시 크기는 characterSize가 결정)
+            textMesh.characterSize = 0.30f;  // [Phase F] 월드 크기 대폭 축소 — 기존 기본값 1.0 → 0.30 (느낌표 과대 리포트 수정)
             textMesh.color = Color.red;
             textMesh.anchor = TextAnchor.MiddleCenter;
             textMesh.alignment = TextAlignment.Center;

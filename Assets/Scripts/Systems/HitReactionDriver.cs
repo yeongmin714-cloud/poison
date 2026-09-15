@@ -23,15 +23,15 @@ namespace ProjectName.Systems
     /// </summary>
     public static class HitReactionDriver
     {
-        private const float LightDuration = 0.16f;
-        private const float HeavyDuration = 0.24f;
-        private const float CritDuration = 0.30f;
-        private const float LightLeanDeg = 5f;
-        private const float HeavyLeanDeg = 11f;
-        private const float CritLeanDeg = 16f;
-        private const float LightPush = 0.05f;
-        private const float HeavyPush = 0.14f;
-        private const float CritPush = 0.22f;
+        private const float LightDuration = 0.18f;
+        private const float HeavyDuration = 0.26f;
+        private const float CritDuration = 0.34f;
+        private const float LightLeanDeg = 9f;
+        private const float HeavyLeanDeg = 16f;
+        private const float CritLeanDeg = 22f;
+        private const float LightPush = 0.09f;
+        private const float HeavyPush = 0.22f;
+        private const float CritPush = 0.32f;
 
         /// <summary>
         /// 피격 리액션 적용. 대상이 플레이어면 스킵(플레이어는 자체 HitLight 경로 사용).
@@ -125,6 +125,7 @@ namespace ProjectName.Systems
         private Vector3 _baseLocalPos;
         private Quaternion _baseLocalRot;
         private bool _baseCaptured;
+        private bool _logOnce;
         private Coroutine _flinchCo;
 
         /// <summary>플린치 시작 — 진행 중이면 재시작(연타 대응).</summary>
@@ -158,7 +159,23 @@ namespace ProjectName.Systems
                 }
             }
             if (_visual == null && transform.childCount == 1) _visual = transform.GetChild(0);
-            if (_visual == null) return false;
+            // [2026-09-15 Phase F] 폴백 강화 — 이름 힌트/유일자식 실패 시 '렌더러를 가장 많이 가진 자식' 선택.
+            // (테스트18에서 flinch가 안 보인 원인 중 하나: 시각 자식 탐지 실패 → 적용 자체가 스킵)
+            if (_visual == null)
+            {
+                int best = -1, bestCount = 0;
+                for (int i = 0; i < transform.childCount; i++)
+                {
+                    int c = transform.GetChild(i).GetComponentsInChildren<Renderer>(true).Length;
+                    if (c > bestCount) { bestCount = c; best = i; }
+                }
+                if (best >= 0) _visual = transform.GetChild(best);
+            }
+            if (_visual == null)
+            {
+                if (!_logOnce) { _logOnce = true; Debug.Log("[HitReaction] 시각 자식 탐지 실패 — 플린치 스킵(넉백만 적용)"); }
+                return false;
+            }
 
             _baseLocalPos = _visual.localPosition;
             _baseLocalRot = _visual.localRotation;

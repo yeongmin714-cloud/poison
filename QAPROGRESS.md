@@ -4,7 +4,7 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-15 (52차)
+> **최종 갱신:** 2026-09-15 (53차)
 
 ---
 
@@ -1351,3 +1351,31 @@ E키→OpenForBasket→우측 창 Show → 슬롯 좌클릭(MouseDown)→드래�
 - 적 사망 "다운 모션"(즉시 파괴 대체)은 미구현 — Die() 파괴 타이밍/전리품 회귀 리스크로 보류(Phase C-3 잔여).
 - 계획서 Phase E(FX strike 동기)/F(사운드 4레이어)/G(넘버 juice)/H(회피롤·차지·패링) 미착수.
 - 진단 #7(테스트17 무기 모델 미표시) 미확인 — Play `[Equip]` 로그로 판별 필요.
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 53차 — 테스트18 검증 + 느낌표 축소 + 플린치 상향 + 인벤 해상도 비례 + 무기 그립 피벗신뢰)
+
+> **스코프**: 테스트 18 영상으로 52차(Phase B/C/D) 의도를 검증하고, 사용자 신규 4건(느낌표 과대 / 인벤창 해상도 취약 / 장비 착용 / 무기 정확 부착)을 수리. 계획서 `docs/ATTACK_FEEL_UPGRADE_PLAN.md`를 **Phase E 승계 + 신규 이슈 병합 통합 로드맵(F~L)**으로 재작성.
+
+### 테스트 18 판정 (의도 대비)
+- ✅ **일치**: 콤보 3단 개성화 — 1타 횡베기 → 2타 대각 하강 → 3타 회전/오버헤드, wind-up→strike→recovery, 전방 lean. (Phase B 성공)
+- ❌ **불일치 ①**: 피격 flinch 여전히 미표시 — 원인 2건 확정: (a) 경타 강도 과소(5°/0.05m는 육안 불가) (b) 시각 자식 탐지 실패 시 적용 자체 스킵.
+- ❌ **불일치 ②**: 느낌표가 적 신장의 1/3~1/2 (과대).
+- ❌ **불일치 ③**: 인벤창 해상도 변경 시 슬롯/텍스트 클리핑·패널 밀림·오버레이 불균일.
+- ⚠️ 무기 부착: 저해상 판독은 "부착"이나 사용자 육안은 "정확히 손에 없음" → bounds 그립부 휴리스틱이 블레이드 끝을 손잡이로 오판 가능성.
+
+### 수정 (4파일 + 계획서)
+**`Systems/MonsterAggroSystem.cs`**: 느낌표 `textMesh.characterSize = 0.30f`(기본 1.0 → 3.3배 축소) + fontSize 48(글리프 해상도용). 과대 리포트 수정.
+**`Systems/HitReactionDriver.cs`**: 플린치 강도 상향(경 0.18s/9°/0.09m, 중 0.26s/16°/0.22m, 크리 0.34s/22°/0.32m) + 시각 자식 탐지 폴백 3단(Animator자식 → 이름힌트 → **렌더러 최다 자식**) + 탐지 실패 1회 로그(`[HitReaction] 시각 자식 탐지 실패 — 플린치 스킵`).
+**`UI/InventoryWindow.cs` [Phase G-UI]**: `_uiScale = sqrt((Screen.width/1920)*(Screen.height/1080))`(HUD._canvasScale 동일 산식) 도입 → 레이아웃 상수 11종(TITLE_BAR/TAB_BAR/EQUIP_ROW/DESC_PANEL/PAGER_STRIP/SLOT_MARGIN/SLOT_ICON_SIZE/EQUIP_BADGE/… )을 `_uiScale` 배수 프로퍼티로 전환(사용처 무수정 자동 비례) + 로컬 상수 6종·fontSize 15곳 스케일 + WINDOW_WIDTH/HEIGHT 여백항 스케일 + 해상도 변경 감지 시 `_stylesInitialized=false`로 스타일(폰트) 재생성.
+**`Systems/WeaponEquipManager.cs` [Phase H-GRIP]**: 그립부 결정에 **피벗 관례 우선** 규칙 추가 — GLB 피벗이 최장축 끝부(pivotT ≤0.15 또는 ≥0.85)면 그립부=피벗으로 간주해 bounds 오프셋 보정을 **건너뜀**(테이블 튜닝 포즈 그대로 = 손에 정확히). 타입별 `GripPose.GripEnd(±1)` 강제값 지원 + `AxisComponent` 헬퍼. 로그에 pivotT 표기(다음 튜닝 근거).
+
+### 컴파일/검증
+- ⚠️ **배치컴파일 불가**: Unity 에디터(PID 5540, 14:48 개방)가 프로젝트를 점유 → `Multiple Unity instances cannot open the same project` (exit 1). **에디터 포커스 시 자동 컴파일** / 에디터 종료 후 배치 재검증 필요.
+- 정적 검증(대체): 수정 7파일 **괄호 균형 전부 0/0**, `const` 컨텍스트로 인한 컴파일 위반 **0건**, `_uiScale` 선언 1개·`RefreshUIScale` 1개·`_uiScaleUsedForStyles` 인스턴스 필드 확인, 로컬 상수 6종 스케일 변환 확인.
+
+### 잔여 (통합 로드맵 F~L)
+- G-2 타 UI창(Equipment/Loot/WorldMap/Warehouse) 동일 비례 적용 · G-3 드래그 DnD hit-test 검증 · G-4 비16:9 완화
+- H-2~H-4 장비(방어구) 착용 실패 지점 판별·수리 + ArmorVisualAttachSystem 부착 확인 · H-5 그립 상수 튜닝
+- E(FX strike 동기) · I(사운드 4레이어) · J(넘버 juice) · L(적 사망 다운) · K(회피롤·차지·패링)
