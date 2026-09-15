@@ -73,20 +73,31 @@ namespace ProjectName.Systems
         // ================================================================
         private void EnsureGameManager()
         {
-            if (GameManager.Instance != null) return;
+            // [2026-09-15(59차 후속)] early-return 제거 — GameManager가 이미 존재해도
+            // EquipmentManager/ArmorVisualAttachSystem은 항상 보장해야 한다.
+            // 기존: if (GameManager.Instance != null) return; → 장비 시스템 생성이 스킵되어
+            // 재실행/재스폰 상황에서 '드래그 장착 실패(사유: EquipmentManager 없음)'가 지속됐다.
+            GameObject gm = GameManager.Instance != null ? GameManager.Instance.gameObject : new GameObject("GameManager");
 
-            var gm = new GameObject("GameManager");
-            gm.AddComponent<GameManager>();
-            gm.AddComponent<BuffManager>();
-            gm.AddComponent<MonsterLevelManager>();
-            gm.AddComponent<MonsterAggroSystem>();
-            gm.AddComponent<MonsterSkillSystem>();
-            gm.AddComponent<GuardHostilitySystem>();   // [57차 후속] 타 영지 병사 적대화(호감도 하락→느낌표→공격) — Instance 보장
+            if (GameManager.Instance == null)
+            {
+                gm.AddComponent<GameManager>();
+                gm.AddComponent<BuffManager>();
+                gm.AddComponent<MonsterLevelManager>();
+                gm.AddComponent<MonsterAggroSystem>();
+                gm.AddComponent<MonsterSkillSystem>();
+            }
+            if (Object.FindAnyObjectByType<GuardHostilitySystem>(FindObjectsInactive.Include) == null)
+            {
+                gm.AddComponent<GuardHostilitySystem>();   // [57차 후속] 타 영지 병사 적대화 — Instance 보장(중복 가드)
+            }
 
             // [T4 2026-09-15] Test_10(영역 전투 씬)은 CoreSystemsBootstrap 미실행이므로
             // 장비 슬롯(방어구 장착)과 방어구 비주얼 부착 시스템을 이 씬에서 직접 생성 보장.
             // 54차 '장비 착용' 수정은 메인 씬(CoreSystemsBootstrap)만 커버했고, 테스트 씬엔
             // EquipmentManager가 없어 '우클릭 장착 wood_armor → 실패(사유: EquipmentManager 없음)'가 났다.
+            // [59차 후속] GameManager 존재 여부와 무관하게 항상 보장(중복 가드 포함) — gm이 새로 생성된
+            // 경우엔 이미 위에 없으므로, 여기서 일괄 보장. 중복 AddComponent는 Unity가 방지하나 가드 유지.
             if (Object.FindAnyObjectByType<EquipmentManager>(FindObjectsInactive.Include) == null)
             {
                 gm.AddComponent<EquipmentManager>();
@@ -96,6 +107,18 @@ namespace ProjectName.Systems
             {
                 gm.AddComponent<ArmorVisualAttachSystem>();
                 Debug.Log("[TestTerritoryCombat] ✅ ArmorVisualAttachSystem 생성 — 방어구 비주얼 부착 활성화");
+            }
+            // [59차 후속] 드래그 단체 지정 — Test_10은 CoreSystemsBootstrap 미실행이라
+            // GuardSelectionManager(좌클릭 드래그 병사 선택)가 생성되지 않아 '내 병사 드래그 지정 모션'이 안 됐다.
+            if (Object.FindAnyObjectByType<GuardSelectionManager>(FindObjectsInactive.Include) == null)
+            {
+                gm.AddComponent<GuardSelectionManager>();
+                Debug.Log("[TestTerritoryCombat] ✅ GuardSelectionManager 생성 — 병사 드래그 단체 지정 활성화");
+            }
+            if (Object.FindAnyObjectByType<RTSCommandSystem>(FindObjectsInactive.Include) == null)
+            {
+                gm.AddComponent<RTSCommandSystem>();
+                Debug.Log("[TestTerritoryCombat] ✅ RTSCommandSystem 생성 — 우클릭 공격/이동 활성화");
             }
 
             Debug.Log("[TestTerritoryCombat] ✅ GameManager + 시스템 생성");
@@ -640,6 +663,12 @@ namespace ProjectName.Systems
         private GameObject CreateGuard(string goName, Vector3 pos, string guardName, int level,
             NationType nation, bool recruited, Color color)
         {
+            // [59차 후속] 병사 접지 — 루트를 지면(SurfaceY)에 직접 놓는다.
+            // 기존: pos.y = SurfaceY+1.0(레이케스트용 박스 오프셋)을 루트로 쓰고, 모델만 GroundModelToY로
+            // 지면에 내려 발이 땅에 닿게 했다. 이 구조는 StepToward(루트.y를 TryGetGroundY=지면으로 보정)가
+            // 루트를 지면으로 내리면 모델은 상대 -1.0 이 되어 지면 아래로 파묻히는 모순을 낳았다('병사 땅으로 사라짐').
+            // → 루트 자체를 지면에 두고, BoxCollider 히트 볼륨은 루트 기준 위쪽(+0.9)으로 조정한다.
+            pos.y = SurfaceY(pos.x, pos.z);
             GameObject guardGO = new GameObject(goName);
             guardGO.transform.position = pos;
             guardGO.tag = "Guard";
@@ -648,11 +677,12 @@ namespace ProjectName.Systems
             guard.SetGuardInfo(guardName, level, nation);
             guard.SetRecruited(recruited);
 
-            // Raycast 히트용 Collider
+            // Raycast 히트용 Collider — [59차 후속] 루트가 지면으로 내려왔으므로 히트 볼륨을 위쪽(+0.9)으로 올려 몸통 커버
             if (guardGO.GetComponent<Collider>() == null)
             {
                 var col = guardGO.AddComponent<BoxCollider>();
                 col.size = new Vector3(0.6f, 1.8f, 0.6f);
+                col.center = new Vector3(0f, 0.9f, 0f);
             }
             if (guardGO.GetComponent<Rigidbody>() == null)
             {

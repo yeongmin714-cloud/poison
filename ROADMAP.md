@@ -2563,3 +2563,20 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ### Play 판정 대기
 ① 피격 후 흰색 0.15s 후 원복(연속/다중 피격 잔존 0) ② 느낌표 잠깐 뜨고 사라짐 ③ 인벤 닫힌 채 전리품/창고 드래그 고스트+드롭 ④ 방어구 우클릭/드래그 장착+GLB 부착 ⑤ 슬래시 흰색(Free Slash 판정) ⑥ 병사 FBX 렌더+접지 ⑦ 무기 그립 미세 조정
+
+## ⚔️ 2026-09-15: 테스트21 잔여 수리 — 어그로 오라 MPB + GuardSelection/RTS 생성 + 방어구 근본 + Free Slash 주경로 + 병사 지면 접지 (TEST21-FIX-60)
+
+> **목표**: 테스트 21 영상 잔여 문제(빨간 몬스터 고정 / 드래그 단체 지정 / 방어구 지속 실패 / 무기 그립 / 병사 땅 파묻힘 / 슬래시 흰색)를 근본 원인 확정 후 수리.
+
+| 항목 | 근본 원인 | 수리 | 상태 |
+|:---|:---|:---|:---:|
+| 빨간 몬스터 고정 | `ShowAggroVisual`가 `r.materials`에 `_aggroMaterial` 추가 해제 시 **참조 비교**(Unity가 인스턴스 재질 복제해 참조 깨짐) | **MaterialPropertyBlock(_BaseColor) 기반** 전환 + 원본 색 추적 복원 | ✅ |
+| 드래그 단체 지정 | Test_10이 CoreSystemsBootstrap 미실행 → `GuardSelectionManager`/`RTSCommandSystem` 미생성(구현돼 있으나 dead code) | `EnsureGameManager`에 생성 추가(early-return 제거로 재실행/재스폰에서도 보장) | ✅ |
+| 방어구 지속 실패 | 59차 `EnsureGameManager`의 `if(GameManager.Instance!=null) return;` early-return으로 GM 존재 시 장비 시스템 생성 스킵 | early-return 제거 + EquipmentManager/ArmorVisual 항상 보장 | ✅ |
+| 무기 그립 | 무기 장착은 실제 성공(로그) — 그립 오프셋 미세조정 | Play 판정 로그로 H-5 튜닝 | 🔶 |
+| 병사 땅 파묻힘 | 루트=SurfaceY+1.0(박스), 모델만 지면 → StepToward가 루트를 지면으로 보정 시 모델이 −1.0 파묻힘 | 루트를 지면(SurfaceY)에 직접 배치 + BoxCollider center(+0.9) 위쪽 | ✅ |
+| 슬래시 흰색 | 스타일라이즈드(.vfx)는 파티클 없어 tint no-op → 흰색 안 됨 | **Free Slash(Slash VFX.prefab)를 주 경로로 승격**(사용자 지시), 실패 시 스타일라이즈드 폴백 | ✅ |
+| 검증 | 배치컴파일 **error CS=0**(exit 0) — 변경 3파일 | ✅ |
+
+### Play 판정 대기
+① 어그로 오라 상태 이탈 시 원래 색 복귀(잔존 0) ② 내 병사 드래그 박스 단체 선택(파란 박스)+우클릭 명령 ③ 방어구 장착+GLB 부착 ④ 무기 그립 ⑤ 병사 발 지면 붙음 ⑥ Free Slash 흰색 아크

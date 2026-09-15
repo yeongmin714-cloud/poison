@@ -307,21 +307,66 @@ namespace ProjectName.Systems
             // 어그로 상태에 따라 표시
             if (state == AggroState.Alert || state == AggroState.Combat)
             {
-                // 1. 붉은 오라 (머티리얼 오버레이)
+                // 1. 붉은 오라 — [59차 후속] MaterialPropertyBlock 기반으로 전환.
+                //    기존 r.materials 배열에 _aggroMaterial(참조 비교로 제거) 방식은 Unity가 r.materials
+                //    접근 시마다 인스턴스 재질을 복제해 참조가 깨져, HideAggroVisual의 m==_aggroMaterial
+                //    비교가 실패 → 오라가 영구 잔존('몬스터가 빨간색에서 안 돌아옴') 의 근본 원인이었다.
+                //    MPB는 렌더러 레벨에서 원본 색을 기억·복원하므로 공유/인스턴스 재질과 무관하게 항상 정리된다.
                 var renderers = go.GetComponentsInChildren<Renderer>();
                 foreach (var r in renderers)
                 {
                     if (r == null) continue;
-                    var mats = r.materials;
-                    var newMats = new Material[mats.Length + 1];
-                    for (int i = 0; i < mats.Length; i++) newMats[i] = mats[i];
-                    newMats[mats.Length] = _aggroMaterial;
-                    r.materials = newMats;
+                    ApplyAggroAura(r);
                 }
 
                 // 2. 느낌표 표시 (머리 위) — [T2] 몬스터 느낌표도 잠깐 떴다 사라지게 수명 부여(ShowTransientExclamation 재사용)
                 ShowTransientExclamation(go, 1.5f);
             }
+        }
+
+        // [59차 후속] 어그로 오라 적용 대상 렌더러의 원본 _BaseColor를 추적해 복원 — 참조가 아닌 색으로 안전 정리
+        private static readonly System.Collections.Generic.Dictionary<Renderer, Color> _aggroAuraOrigColor =
+            new System.Collections.Generic.Dictionary<Renderer, Color>();
+        private static readonly int _aggroBaseColorId = Shader.PropertyToID("_BaseColor");
+
+        private static void ApplyAggroAura(Renderer r)
+        {
+            if (r == null) return;
+            // 원본 _BaseColor 캡처(MPB에 이미 값이 있으면 그 값, 없으면 재질의 현재 색)
+            var block = new MaterialPropertyBlock();
+            r.GetPropertyBlock(block);
+            Color orig;
+            if (block.HasProperty(_aggroBaseColorId))
+                orig = block.GetColor(_aggroBaseColorId);
+            else if (r.sharedMaterial != null && r.sharedMaterial.HasProperty("_BaseColor"))
+                orig = r.sharedMaterial.GetColor("_BaseColor");
+            else
+                orig = Color.white;
+
+            _aggroAuraOrigColor[r] = orig;
+
+            // 반투명 붉은 오라 — MPB에 붉은 색 톤을 덮어 씌운다(재질 배열 비변경)
+            var apply = new MaterialPropertyBlock();
+            apply.SetColor(_aggroBaseColorId, new Color(1f, 0.25f, 0.25f, 1f));
+            r.SetPropertyBlock(apply);
+        }
+
+        private static void RemoveAggroAura(Renderer r)
+        {
+            if (r == null) return;
+            if (!_aggroAuraOrigColor.TryGetValue(r, out Color orig))
+            {
+                // 추적 없음이지만 오라가 남아 있을 가능성 — MPB를 비워 원본 재질로 복귀시킨다.
+                // (렌더러에 다른 MPB가 없었다는 가정 하에 안전. HitFlash는 sharedMaterial refcount를 쓰므로 충돌 없음.)
+                r.SetPropertyBlock(new MaterialPropertyBlock());
+                return;
+            }
+            // 원본 MPB로 복원 — _BaseColor만 원본으로 되돌리고 나머지 MPB 데이터는 보존
+            var block = new MaterialPropertyBlock();
+            r.GetPropertyBlock(block);
+            block.SetColor(_aggroBaseColorId, orig);
+            r.SetPropertyBlock(block);
+            _aggroAuraOrigColor.Remove(r);
         }
 
         public static void HideAggroVisual(IAggroable monster)
@@ -330,15 +375,15 @@ namespace ProjectName.Systems
             if (mb == null) return;
             var go = mb.gameObject;
 
-            // 오라 머티리얼 제거
-            var renderers = go.GetComponentsInChildren<Renderer>();
+            // 오라 제거 — [59차 후속] 추적된 렌더러별 원본 복원
+            var renderers = go.GetComponentsInChildren<Renderer>(true);
             foreach (var r in renderers)
             {
                 if (r == null) continue;
-                var mats = new List<Material>(r.materials);
-                mats.RemoveAll(m => m == _aggroMaterial);
-                r.materials = mats.ToArray();
+                RemoveAggroAura(r);
             }
+            // 이 개체에 추적됐지만 렌더러가 파괴된 잔여 오라 레코드 정리(수명 안전)
+            RemoveStaleAuraRecords(go);
 
             // 느낌표 제거
             var exclamations = go.GetComponentsInChildren<Transform>(true);
@@ -347,6 +392,18 @@ namespace ProjectName.Systems
                 if (t.name == "AggroExclamation")
                     Destroy(t.gameObject);
             }
+        }
+
+        private static void RemoveStaleAuraRecords(GameObject go)
+        {
+            if (_aggroAuraOrigColor.Count == 0) return;
+            var stale = new System.Collections.Generic.List<Renderer>();
+            foreach (var kvp in _aggroAuraOrigColor)
+            {
+                if (kvp.Key == null || kvp.Key.gameObject == null || kvp.Key.gameObject == go)
+                    stale.Add(kvp.Key);
+            }
+            foreach (var k in stale) _aggroAuraOrigColor.Remove(k);
         }
 
         // [Phase A] 어그로 시각화 초기화

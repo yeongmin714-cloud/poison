@@ -4,7 +4,7 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-15 (59차)
+> **최종 갱신:** 2026-09-15 (60차)
 
 ---
 
@@ -1514,6 +1514,34 @@ K-2(차지 강공·클립 확보 시) · K-3(패링·클립 확보 시) · H-2 P
 ## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 58차 — 타 영지 병사 적대화: 공격 시 호감도 하락 + transient 느낌표 + 플레이어/내병사 공격)
 
 > **스코프**: 사장님 요구 — ① 내 공격 시 내 소속 병사도 공격(이미 배선) ② **타 영지 병사는 호감도에 따라 원래 공격 안 하다가, 내가 공격하는 순간 호감도 하락 → 몬스터처럼 느낌표 뜨며 플레이어/내 병사 공격** ③ 느낌표는 잠깐 뜨고 사라지게(계속 X).
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 60차 — 테스트21 잔여 수리: 어그로 오라 MPB 전환 + GuardSelection/RTS 생성 + 드래그 단체 지정 + 방어구 장착 근본 + Free Slash 주경로 + 병사 지면 접지)
+
+> **스코프**: 테스트 21 영상(2026-09-15) 잔여 문제를 근본 원인 확정 후 수리. ① 빨간 몬스터 고정(FB) ② 드래그 단체 지정(GB) ③ 방어구 장착 지속 실패(GB) ④ 무기 그립(GC) ⑤ 병사 땅 파묻힘(GD) ⑥ 슬래시 Free Slash 전환(GE). 배치컴파일 error CS=0.
+
+### 테스트 21 근본 원인 실측 (Editor.log + 코드)
+- **#FB 빨간 몬스터에서 안 돌아옴** = `MonsterAggroSystem.ShowAggroVisual`이 `r.materials` 배열 끝에 `_aggroMaterial`(반투명 붉은 재질)을 추가했는데, `HideAggroVisual`이 `m == _aggroMaterial` **참조 비교**로 제거. Unity의 `r.materials`는 접근 시마다 인스턴스 재질을 반환/복제해 참조가 깨짐 → 오라가 영구 잔존(몸이 계속 빨강).
+- **#GB 방어구 지속 실패** = 59차에서 Test_10 `EnsureGameManager`에 `EquipmentManager` 추가했으나, 76행 `if (GameManager.Instance != null) return;` **early-return**이 있어 GameManager가 이미 존재하면 장비 시스템 생성이 스킵됨(로그: `결과 실패(사유: EquipmentManager 없음)`).
+- **#GB 드래그 단체 지정** = Test_10은 CoreSystemsBootstrap 미실행 → `GuardSelectionManager`(좌클릭 드래그 병사 선택)와 `RTSCommandSystem` 미생성 → '내 병사를 드래그해서 단체 지정하는 모션'이 동작 안 함. (GuardSelectionManager는 완전 구현돼 있었으나 생성부 부재 — 33차/GB에 dead code).
+- **#GC 무기 그립** = 무기는 실제 장착 성공(로그 `[Weapon] 인스턴스: wood_sword 렌더러=1 hand=RightHand` + `✅ → RightHand`). 영상에서 어긋나 보이는 건 그립 오프셋 미세조정(Play 튜닝).
+- **#GD 병사 땅 파묻힘** = 병사 루트를 `pos.y=SurfaceY+1.0`(레이케스트 박스 오프셋)에 두고 모델만 `GroundModelToY`로 지면에 내리는 구조 → `StepToward`가 루트.y를 `TryGetGroundY`(지면)로 보정하면 모델이 상대 −1.0으로 지면 아래 파묻힘(모순). 루트를 지면에 직접 두고 콜라이더만 위로(+0.9) 올리는 방식으로 전환.
+- **#GE 슬래시 흰색** = 스타일라이즈드(.vfx)는 파티클 시스템이 없어 `TintParticles`(흰색 tint)가 no-op → 흰색 아크가 안 됨. → **Free Slash(Slash VFX.prefab, 8 MeshRenderer·URP Shader Graph)를 주 경로로 승격**(사용자 지시). Free Slash는 파티클이라 `ComboStageTint`(흰색)가 즉시 반영.
+
+### 변경 사항 (3파일 — SlashVFXRunner/MonsterAggroSystem/TestTerritoryCombatSetup)
+**`Systems/MonsterAggroSystem.cs` [오라 MPB]**: `ShowAggroVisual`/`HideAggroVisual`의 붉은 오라를 `r.materials` 배열 추가/참조-비교 제거 → **MaterialPropertyBlock(_BaseColor) 기반으로 전환**(렌더러별 원본 색 추적 `_aggroAuraOrigColor` + 복원). 공유/인스턴스 재질과 무관하게 항상 정리 → '몬스터가 빨간색에서 안 돌아옴' 근본 해결.
+**`Systems/TestTerritoryCombatSetup.cs` [시스템 생성 + 접지]**: ① `EnsureGameManager` early-return 제거 — GameManager 이미 존재해도 `EquipmentManager`+`ArmorVisualAttachSystem`+`GuardSelectionManager`+`RTSCommandSystem`+`GuardHostilitySystem`을 항상 보장(재실행/재스폰에서도 방어구·드래그 지정 동작). ② 병사 `CreateGuard` 루트를 지면(`SurfaceY`)에 직접 배치 + BoxCollider center(+0.9) 위쪽 조정 — '병사 땅으로 사라짐' 근본 해결.
+**`Systems/SlashVFXRunner.cs` [Free Slash 우선]**: `PlaySlashStage`에서 `LoadSlashPrefab()`(Free Slash "FX/Slash/Slash VFX") 성공 시 즉시 발화 return(주 경로), 실패 시에만 스타일라이즈드(.vfx) 폴백. 흰색 아크(ComboStageTint)가 파티클에 즉시 반영.
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0** (exit 0, 에디터 종료 상태 2회 통과).
+- 괄호 균형: 변경 3파일 전부 {}/()/[] 정합.
+- Play 판정 대기: ① 몬스터 어그로 붉은 오라가 상태 이탈 시 원래 색으로 복귀(잔존 0) ② 내 병사 우클릭 드래그 박스로 단체 선택(파란 박스 표시) + 선택 병사 우클릭 명령 ③ 방어구 우클릭/드래그 장착+GLB 부착(EquipmentManager 있음) ④ 무기 그립 정밀(손바닥) ⑤ 병사 발이 지면에 붙고 공중/파묻힘 없음 ⑥ 슬래시 Free Slash 흰색 아크(스테이지별 흰색).
+
+### 잔여 (Play 판정 후)
+- #GC 무기 그립: `[Weapon] 그립 정렬` 로그 offset/pivotT로 검/창/활 GripPose 미세조정(H-5).
+- 테스트21에서 "흰색 고정"이 여전히 보이면: `CombatVFXController.PlayHitFlash` refcount가 여전히 레거시 MPB(HitVFX)와 충돌하는지 추가 확인(59차 T1로 MPB 호출 제거했으나, 다른 호출부 확인).
 
 ---
 

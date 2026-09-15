@@ -220,9 +220,22 @@ namespace ProjectName.Systems
             // 스타일라이즈드/폴백 두 경로가 동일 stageTint를 쓰도록 여기서 1회 산출(아래 TintParticles 호출 참조).
             Color stageTint = ComboStageTint(stage);
 
+            // [2026-09-15(60차) Free Slash 우선 전환 — 사용자 요구]
+            // 슬래시 아크를 'Free Slash VFX'(Assets/Resources/FX/Slash/Slash VFX — 8 MeshRenderer, URP Shader Graph,
+            // 42차 이전에 렌더 실적 있는 파티클 프리팹)를 기본 경로로 발화한다.
+            // 기존 스타일라이즈드(.vfx, white-blue)는 화이트 틴트 적용이 불가해(파티클 시스템 부재 → tint no-op)
+            // 흰색 아크가 되지 않았다. Free Slash는 파티클이라 ComboStageTint(흰색)가 즉시 반영된다.
+            // 실패 시에만 스타일라이즈드 런타임 빌드로 폴백.
+            GameObject slashPrefab = LoadSlashPrefab();   // 캐시 + static 1회 경고 — "FX/Slash/Slash VFX"
+            if (slashPrefab != null)
+            {
+                SpawnFallbackSlashStage(slashPrefab, position, direction, stage, yawSign, playerRoot, stageTint);
+                return;
+            }
+            // Free Slash 프리팹 로드 실패 시 → 기존 스타일라이즈드 경로로 계속 진행(아래).
+
             // [2026-09-13 폴백 분기] alive 진단으로 VFX Graph 미출력이 확정된 상태(_vfxDeadFallbackActive)면
-            // 구 Slash VFX 프리팹(Resources.Load("FX/Slash/Slash VFX") — 8 MeshRenderer, URP Shader Graph,
-            // 42차 이전 렌더 실적)으로 동일 오리엔테이션 파이프라인 발화한다(아래 SpawnFallbackSlashStage).
+            // 구 Slash VFX 프리팹으로 동일 오리엔테이션 파이프라인 발화한다.
             if (_vfxDeadFallbackActive)
             {
                 GameObject fallbackPrefab = LoadSlashPrefab();   // 캐시 + static 1회 경고 — 기존 스윙 로더 공용
