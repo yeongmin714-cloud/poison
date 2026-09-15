@@ -90,6 +90,7 @@ namespace ProjectName.UI
         private GameObject _panelGO;    // 패널 (Tab 토글 대상 — 루트 GO는 Tab 리스닝용으로 상시 활성)
 
         private bool _squadMode;                                        // false=모드 A(아이템), true=모드 B(부대)
+
         private readonly GuardPlaceholder[][] _slots = new GuardPlaceholder[SlotCount][]; // 부대 그룹 등록 (씬 재진입 시 null 무시)
 
         private readonly Image[] _slotBgs      = new Image[SlotCount];
@@ -143,6 +144,10 @@ namespace ProjectName.UI
             if (_squadMode)
                 HandleSelectKeys(); // 1~8: 부대 선택 (부대 모드에서만)
             RefreshAvatarsPeriodically(); // 사망/파괴 반영 폴링
+
+            // [TEST21-FOLLOWUP] GuardSelectionManager 드래그 선택게이트 — Tab(부대) 모드에서만 드래그.
+            // (UI→Systems 직접 참조 가능 — GuardSquadHotbar가 Systems import 중. 평상 시 아이템 모드=좌클릭 공격 유지.)
+            GuardSelectionManager.squadModeActive = _squadMode;
         }
 
         // ===== Tab 토글 =====

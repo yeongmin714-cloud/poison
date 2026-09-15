@@ -83,7 +83,7 @@ namespace ProjectName.UI
         private float _uiScaleUsedForStyles = -1f;   // [Phase G-UI] 스타일 생성 시점의 스케일
 
         // === 테마 컬러 — 2026-09-11 Flat 토큰 (다크 네이비 + 회백 보더 + 스카이블루 액센트; InventoryWindow 통일) ===
-        private static readonly Color ColorBg = new Color(0.063f, 0.086f, 0.133f, 0.88f);      // 창 배경 (다크 네이비)
+        private static readonly Color ColorBg = new Color(0.11f, 0.11f, 0.11f, 0.88f);      // 창 배경 (다크 네이비)
         private static readonly Color ColorTitleBar = new Color(0.055f, 0.078f, 0.125f, 0.95f); // 타이틀 스트립 (더 어두운 네이비)
         private static readonly Color ColorSlotBg = new Color(0.09f, 0.12f, 0.19f, 0.9f);      // 슬롯 배경 (짙은 네이비)
         private static readonly Color ColorSlotHover = new Color(0.14f, 0.20f, 0.30f, 0.9f);   // 슬롯 호버
@@ -91,7 +91,7 @@ namespace ProjectName.UI
         private static readonly Color ColorTextPrimary = new Color(1f, 1f, 1f, 1f);            // 기본 텍스트 (흰색)
         private static readonly Color ColorTextSecondary = new Color(0.85f, 0.88f, 0.92f, 1f); // 보조 텍스트
         private static readonly Color ColorTextDim = new Color(0.72f, 0.76f, 0.82f, 1f);       // 흐린 텍스트
-        private static readonly Color ColorAccent = new Color(0.35f, 0.65f, 0.90f, 1f);        // 강조 (스카이블루)
+        private static readonly Color ColorAccent = new Color(0.29f, 0.48f, 0.81f, 1f);        // 강조 (스카이블루)
         private static readonly Color ColorBorder = new Color(0.62f, 0.70f, 0.78f, 0.85f);     // 테두리 (얇은 회백)
 
         protected override void Awake()

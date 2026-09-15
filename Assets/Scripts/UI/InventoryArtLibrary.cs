@@ -582,7 +582,7 @@ namespace ProjectName.UI
             var tex = MakeCanvas(W, H, "InvArt_FlatTitleStrip");
             var buf = new Color[W * H];
             var strip = new Color(0.055f, 0.078f, 0.125f, 0.72f);   // 패널보다 살짝 어두운 네이비
-            var accent = new Color(0.35f, 0.65f, 0.90f, 0.95f);     // 하단 스카이블루 액센트 라인
+            var accent = new Color(0.29f, 0.48f, 0.81f, 0.95f);     // 하단 스카이블루 액센트 라인
 
             for (int y = 0; y < H; y++)
             {

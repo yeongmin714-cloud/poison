@@ -41,6 +41,10 @@ namespace ProjectName.Systems
             if (target == null) return;
             if (target.CompareTag("Player")) return;
 
+            // [TEST21-FOLLOWUP] inactive(사망·SetActive(false) 잔여) 대상은 코루틴 시작 불가 →
+            // 'Coroutine couldn't be started because ... is inactive' 스팸 방지 + 사망 처리는 Die() 담당이므로 스킵.
+            if (!target.activeInHierarchy) return;
+
             Vector3 dir = hitDirection;
             dir.y = 0f;
             if (dir.sqrMagnitude < 0.0001f) dir = -target.transform.forward;

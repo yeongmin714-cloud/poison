@@ -12,6 +12,20 @@ namespace ProjectName.Systems
     {
         public static EquipmentManager Instance { get; private set; }
 
+        /// <summary>
+        /// [TEST21-FOLLOWUP] lazy 자가 생성 헬퍼 — Instance가 null(씬 미부트/파괴/초기화 순서)이면
+        /// 즉시 새 GO+AddComponent로 생성해 반환한다. 방어구 우클릭/드래그 장착이 어느 씬·시점에서든
+        /// 항상 동작하도록 보장(씬 편집 없이 런타임 생성 — GuardManager 선례). 멱등(중복 생성 안전).
+        /// </summary>
+        public static EquipmentManager Get()
+        {
+            if (Instance != null) return Instance;
+            if (!Application.isPlaying) return null;   // Edit 모드에선 생성하지 않음
+            var go = new GameObject("EquipmentManager");
+            var em = go.AddComponent<EquipmentManager>();
+            return em;
+        }
+
         // 장비 슬롯 enum
         public enum EquipmentSlot
         {

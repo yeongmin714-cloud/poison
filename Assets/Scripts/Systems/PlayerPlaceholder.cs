@@ -105,7 +105,14 @@ namespace ProjectName.Systems
                     rb.isKinematic = true;
                     rb.useGravity = false;
                     rb.detectCollisions = false;
-                    DestroyImmediate(rb);
+                    // [TEST21-FOLLOWUP] 의존 컴포넌트(ProceduralAnimationController 등)가 RequireComponent로
+                    // 붙어 있으면 DestroyImmediate가 'Can't remove Rigidbody because ... depends on it'으로
+                    // **흐와 전체 중단**시킬 수 있다 → try-catch로 격리, 실패해도 중립 상태 유지로 계속 진행.
+                    try { DestroyImmediate(rb); }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogWarning($"[PlayerPlaceholder] GLB 리지드바디 제거 무시(의존 컴포넌트): {e.GetType().Name} — isKinematic으로 중력 낙하 차단 유지");
+                    }
                 }
 
                 // 별도 레이어로 이동 (부모와 충돌 방지)

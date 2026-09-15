@@ -658,7 +658,7 @@ namespace ProjectName.UI
             {
                 fontSize = 48,
                 alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = new Color(0.35f, 0.65f, 0.90f, 1f) }   // 가격 스카이블루
+                normal = { textColor = new Color(0.29f, 0.48f, 0.81f, 1f) }   // 가격 스카이블루
             };
             
             // 재고
@@ -675,7 +675,7 @@ namespace ProjectName.UI
                 fontSize = 44,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = new Color(0.35f, 0.65f, 0.90f, 1f) }   // 희귀태그 스카이블루
+                normal = { textColor = new Color(0.29f, 0.48f, 0.81f, 1f) }   // 희귀태그 스카이블루
             };
             
             // 버튼들
@@ -713,7 +713,7 @@ namespace ProjectName.UI
             // 패널 외곽 박스
             _stylePanelBox = new GUIStyle(GUI.skin.box)
             {
-                normal = { background = MakeTexture(1, 1, new Color(0.063f, 0.086f, 0.133f, 0.95f)), textColor = Color.white },   // 다크네이비 패널
+                normal = { background = MakeTexture(1, 1, new Color(0.11f, 0.11f, 0.11f, 0.95f)), textColor = Color.white },   // 다크네이비 패널
                 border = new RectOffset(2, 2, 2, 2),
                 padding = new RectOffset(0, 0, 0, 0),
                 margin = new RectOffset(0, 0, 0, 0)

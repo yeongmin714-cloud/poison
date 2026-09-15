@@ -138,7 +138,7 @@ namespace ProjectName.UI
             if (HasValidDropTarget)
             {
                 float pulse = 0.5f + 0.5f * Mathf.Sin(Time.time * 8f);
-                GUI.color = new Color(0.35f, 0.65f, 0.90f, 0.8f * pulse); // 스카이블루 글로우 펄스
+                GUI.color = new Color(0.29f, 0.48f, 0.81f, 0.8f * pulse); // 스카이블루 글로우 펄스
                 GUI.DrawTexture(new Rect(r.x - 2, r.y - 2, r.width + 4, r.height + 4), Texture2D.whiteTexture, ScaleMode.StretchToFill);
                 GUI.color = prevColor;
             }
@@ -186,7 +186,7 @@ namespace ProjectName.UI
             switch (ValidDropTargetType)
             {
                 case "Inventory":
-                    highlightColor = new Color(0.35f, 0.65f, 0.90f, 0.4f + 0.3f * pulse); // 스카이블루
+                    highlightColor = new Color(0.29f, 0.48f, 0.81f, 0.4f + 0.3f * pulse); // 스카이블루
                     break;
                 case "Equip":
                     highlightColor = new Color(1f, 0.85f, 0.3f, 0.5f + 0.3f * pulse); // 골드
@@ -202,7 +202,7 @@ namespace ProjectName.UI
                     highlightColor = new Color(0.8f, 0.4f, 0.9f, 0.4f + 0.3f * pulse); // 퍼플
                     break;
                 default:
-                    highlightColor = new Color(0.35f, 0.65f, 0.90f, 0.4f + 0.3f * pulse);
+                    highlightColor = new Color(0.29f, 0.48f, 0.81f, 0.4f + 0.3f * pulse);
                     break;
             }
 

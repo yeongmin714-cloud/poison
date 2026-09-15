@@ -37,6 +37,11 @@ namespace ProjectName.Systems
         // 병사 드래그 선택이 가려지던 문제 해소. Update에서 좌클릭 down 시 true, PlayerCombat이 소비 시 false.
         public static bool consumeLeftClickAsDrag = false;
 
+        // [TEST21-FOLLOWUP] 부대(Tab) 모드 활성 플래그 — UI의 GuardSquadHotbar가 매 프레임 갱신.
+        // 평상 시(아이템 모드)엔 false → 드래그 선택 비활성(좌클릭=공격 유지), Tab 부대 모드에서만 true → 드래그 가능.
+        // 이 플래그가 참일 때만 좌클릭을 드래그로 소비한다(단순 클릭 공격 보존).
+        public static bool squadModeActive = false;
+
         // 캐시된 흰색 텍스처 (MakeTex 메모리 누수 방지)
         private static Texture2D _cachedWhiteTex;
 
@@ -67,6 +72,9 @@ namespace ProjectName.Systems
         private void Update()
         {
             if (Mouse.current == null) return;
+
+            // [TEST21-FOLLOWUP] 좌클릭 드래그는 부대(Tab) 모드에서만 활성 — 평상 시(아이템 모드) 좌클릭=공격 유지.
+            if (!squadModeActive) return;
 
             // 좌클릭 드래그 시작
             if (Mouse.current.leftButton.wasPressedThisFrame)

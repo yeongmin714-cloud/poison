@@ -46,9 +46,9 @@ namespace ProjectName.Systems
 
         static readonly Dictionary<WeaponType, GripPose> _gripTable = new Dictionary<WeaponType, GripPose>
         {
-            { WeaponType.Sword, new GripPose { LocalPos = new Vector3(0f, 0.12f, 0.02f), LocalEuler = new Vector3(0f, 0f, 90f),   TargetLen = 0.9f } }, // 검 — 기존 실측 튜닝값 유지
+            { WeaponType.Sword, new GripPose { LocalPos = new Vector3(0f, 0.05f, 0.02f), LocalEuler = new Vector3(0f, 0f, 90f),   TargetLen = 0.9f } }, // 검 — 손바닥 밀착([TEST21-FOLLOWUP] y 0.12→0.05: 손에서 약간 떠 있던 것을 내려 밀착, 날 방향 정상)
             { WeaponType.Spear, new GripPose { LocalPos = new Vector3(0f, 0.45f, 0.02f), LocalEuler = new Vector3(-90f, 180f, 0f), TargetLen = 1.8f } }, // 창 — 자루 중심을 손에, 창두는 전방 상향([61차] Y 180: 창두(뾰족)가 뒤로 가던 것을 전방(+)으로)
-            { WeaponType.Bow,   new GripPose { LocalPos = new Vector3(0f, 0.05f, 0.06f), LocalEuler = new Vector3(0f, -90f, 0f),  TargetLen = 1.0f } }, // 활 — 몸통이 손 아래 수직
+            { WeaponType.Bow,   new GripPose { LocalPos = new Vector3(0f, 0.05f, 0.06f), LocalEuler = new Vector3(0f, 90f, 0f),  TargetLen = 1.0f } }, // 활 — 좌우 미러 보정([TEST21-FOLLOWUP] Y -90→90: 손잡이·시위 방향 교정, 왼손 활대/오른손 시위)
         };
 
         // 단도(dagger) 목표 길이 — Sword 포즈 공유, TargetLen만 오버라이드

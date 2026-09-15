@@ -2595,3 +2595,22 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ### Play 판정 대기
 ① 좌클릭 즉시 흰 슬래시+공격 동시 ② 내병사 3명 포진으로 벌려 붙음 ③ 드래그 상자 단체 선택+우클릭 명령 ④ 방어구 장착+GLB ⑤ 무기 그립 정밀 ⑥ 어그로 오라 복귀
+
+## ⚔️ 2026-09-15: TEST21-FOLLOWUP 전면 수리 — 방어구 lazy 생성 + 창/검/활 그립 + 병사 GLB/inactive + 화살발사 + 드래그 Tab 게이트 + UI 중세판타지 팔레트 (TEST21-FULL-FIX-62)
+
+> **목표**: `docs/TEST21_FOLLOWUP_PLAN.md` 전체 실행(A~G). +UI 디자인 가이드라인(docs/UI_DESIGN_GUIDELINES.md) 적용.
+
+| Phase | 내용 | 상태 |
+|:---|:---|:---:|
+| A 방어구 | `EquipmentManager.Get()` lazy 자가 생성 + InventoryWindow 우클릭/드래그 적용 — 씬·순서 무관 장착 | ✅ |
+| B 창 그립 | Spear LocalEuler Y+180 전방(창두 뾰족 뒤→앞) | ✅ |
+| B2 검 | GripPose y 0.12→0.05 손바닥 밀착(어긋남 수정, 날 정상) | ✅ |
+| C 활 | Bow LocalEuler Y -90→+90 좌우 미러(왼손 활대/오른손 시위) | ✅ |
+| D 병사 | PlayerPlaceholder Rigidbody Destroy try-catch(의존 차단 격리)+HitReactionDriver inactive 스킵(사망 flinch 스팸 0) | ✅ |
+| E 화살 | ArrowManager Test_10 생성 보장+TryBowShot lazy+ArrowProjectile Guard/RecruitedSoldier/DraculaLord 적중 태그 — 화살 발사·적중 | ✅ |
+| F 드래그 | Tab(부대) 모드에서만 드래그 게이트(GuardSelectionManager.squadModeActive, GuardSquadHotbar 갱신) — 평상시 좌클릭=공격, 부대 모드 드래그 선택 → Ctrl+등록 → 슬롯 병사 얼굴 | ✅ |
+| G UI | UIStyleManager 미드나이트블루→딥차콜/브론즈/골드/양피지 + 창 하드코딩 스카이블루→마법블루·네이비→차콜 일괄 치환(docs/UI_DESIGN_GUIDELINES.md 기준) | ✅ |
+| 검증 | 배치컴파일 **error CS=0**(exit 0) — 중간 CS0102(IsSquadMode 중복) 1건 수리, 변경 17파일+문서 1 | ✅ |
+
+### Play 판정 대기
+① 방어구 우클릭/드래그 장착+GLB ② 창 전방·검 밀착·활 좌우 ③ 병사 GLB·flinch 스팸 0 ④ 활 화살→몬스터/병사 적중 ⑤ Tab에서만 드래그→슬롯 병사 얼굴 ⑥ 전 창 딥차콜/브론즈/골드/양피지

@@ -443,6 +443,13 @@ namespace ProjectName.Systems
 
             // ② 화살 소모 + 발사체 생성 — origin: 활 위치(플레이어 + up*1.5m), 데미지: WeaponData.Bow.damage
             //    (화살 종류별 보너스 데미지 합산은 ArrowManager 내부 처리)
+            //    [TEST21-FOLLOWUP] ArrowManager lazy 자가 확보 — 씬 미부트/초기화 순서로 Instance가 null이면
+            //    즉시 생성 시도(EnsureGameManager 보장과 이중 안전, 멱등). 없으면 발사 불가로 안내.
+            if (ArrowManager.Instance == null)
+            {
+                // Test_10 EnsureGameManager에서 생성 보장이 우선이지만, 다른 씬/순서 대비 런타임 자가 생성.
+                if (Application.isPlaying) { var go = new GameObject("ArrowManager"); go.AddComponent<ArrowManager>(); }
+            }
             Vector3 origin = transform.position + Vector3.up * 1.5f;
             bool fired = ArrowManager.Instance != null
                 && ArrowManager.Instance.TryShootArrow(origin, dir, WeaponData.Bow.damage);
@@ -450,7 +457,7 @@ namespace ProjectName.Systems
             {
                 // 화살 부족 — 발사 실패. TryShootArrow 내부에서 차단 메시지 표시됨.
                 LastHitValid = false;
-                Debug.Log("[PlayerCombat] 🏹 활 발사 실패 — 화살 부족");
+                Debug.Log("[PlayerCombat] 🏹 활 발사 실패 — 화살 부족 or ArrowManager 미생성");
                 return;
             }
 

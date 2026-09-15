@@ -55,14 +55,14 @@ namespace ProjectName.UI
         private const float StatRowH = 30f;
 
         // ===== 테마 색상 (다크네이비 톤) =====
-        private static readonly Color ColorPanelBg  = new Color(0.063f, 0.086f, 0.133f, 0.92f);
-        private static readonly Color ColorTitleBar = new Color(0.063f, 0.086f, 0.133f, 1f); // 다크네이비
+        private static readonly Color ColorPanelBg  = new Color(0.11f, 0.11f, 0.11f, 0.92f);
+        private static readonly Color ColorTitleBar = new Color(0.11f, 0.11f, 0.11f, 1f); // 다크네이비
         private static readonly Color ColorZoneBg   = new Color(0.09f, 0.12f, 0.17f, 0.85f);
         private static readonly Color ColorSlotBg   = new Color(0.10f, 0.14f, 0.19f, 0.95f);
         private static readonly Color ColorLabel    = new Color(0.62f, 0.70f, 0.78f, 1f);   // 항목명 회백
         private static readonly Color ColorValue    = new Color(1f, 1f, 1f, 1f);            // 수치 흰색
         private static readonly Color ColorDim      = new Color(0.55f, 0.52f, 0.48f, 1f);
-        private static readonly Color ColorGold     = new Color(0.35f, 0.65f, 0.90f, 1f);   // 스카이블루
+        private static readonly Color ColorGold     = new Color(0.29f, 0.48f, 0.81f, 1f);   // 스카이블루
         private static readonly Color ColorPlusOn   = new Color(0.25f, 0.60f, 0.30f, 1f);
         private static readonly Color ColorPlusOff  = new Color(0.28f, 0.28f, 0.28f, 0.8f);
         private static readonly Color ColorGaugeBg  = new Color(0f, 0f, 0f, 0.65f);

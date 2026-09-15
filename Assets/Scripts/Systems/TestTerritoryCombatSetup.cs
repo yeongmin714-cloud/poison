@@ -120,6 +120,13 @@ namespace ProjectName.Systems
                 gm.AddComponent<RTSCommandSystem>();
                 Debug.Log("[TestTerritoryCombat] ✅ RTSCommandSystem 생성 — 우클릭 공격/이동 활성화");
             }
+            // [TEST21-FOLLOWUP] 화살 발사 시스템 — Test_10은 CoreSystemsBootstrap 미실행이라 ArrowManager가
+            // 생성되지 않아(Instance null) 활 공격이 스킵됐다. 여기서 보장.
+            if (Object.FindAnyObjectByType<ArrowManager>(FindObjectsInactive.Include) == null)
+            {
+                gm.AddComponent<ArrowManager>();
+                Debug.Log("[TestTerritoryCombat] ✅ ArrowManager 생성 — 화살 발사 활성화");
+            }
 
             Debug.Log("[TestTerritoryCombat] ✅ GameManager + 시스템 생성");
         }

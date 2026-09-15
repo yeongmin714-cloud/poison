@@ -10,29 +10,40 @@ namespace ProjectName.UI
     public static class UIStyleManager
     {
         // ================================================================
-        // 공통 색상
+        // 공통 색상 — [TEST21-FOLLOWUP Phase G] 중세 판타지 × Duckov 클린 파레트
+        // docs/UI_DESIGN_GUIDELINES.md §1 참조 (25차 전체 UI, 위치 규칙 무변경)
         // ================================================================
 
-        /// <summary>창 배경 — Flat 모드: 다크 네이비 반투명 RGBA(16,22,34,0.88)</summary>
-        public static readonly Color BgColor = new Color(0.063f, 0.086f, 0.133f, 0.88f);
-        /// <summary>테두리 — Flat 모드: 밝은 회백 얇은 라인 (기존 골드 대체)</summary>
-        public static readonly Color BorderColor = new Color(0.62f, 0.70f, 0.78f, 0.85f);
-        /// <summary>제목 색상 — Flat 모드: 흰색 Bold (기존 골드 대체)</summary>
-        public static readonly Color TitleColor = new Color(0.95f, 0.97f, 1f, 1f);
-        /// <summary>강조 — 스카이블루 (선택/활성 하이라이트, 2026-09-11 Flat 토큰)</summary>
-        public static readonly Color AccentColor = new Color(0.35f, 0.65f, 0.90f, 1f);
+        /// <summary>창 배경 — 딥 차콜 레더 반투명(28,28,28,0.88) — 미드나이트 블루에서 교체</summary>
+        public static readonly Color BgColor = new Color(0.11f, 0.11f, 0.11f, 0.88f);
+        /// <summary>패널 심층 — 다크 슬레이트(20,20,20,0.9) — 슬롯/내부 영역</summary>
+        public static readonly Color BgDarkColor = new Color(0.078f, 0.078f, 0.078f, 0.9f);
+        /// <summary>테두리 — 브론즈(140,107,63) — 이전 밝은 회백 라인 교체</summary>
+        public static readonly Color BorderColor = new Color(0.55f, 0.42f, 0.25f, 0.85f);
+        /// <summary>강조 테두리 — 앤틱 골드(201,162,39) — 선택/마법/희귀</summary>
+        public static readonly Color BorderGoldColor = new Color(0.79f, 0.64f, 0.15f, 1f);
+        /// <summary>미세 그리드 라인 — 다크 아이언(58,58,58) — 슬롯 구분</summary>
+        public static readonly Color IronLineColor = new Color(0.23f, 0.23f, 0.23f, 0.6f);
+        /// <summary>제목 — 양피지 화이트(245,239,224) — 이전 청백 교체</summary>
+        public static readonly Color TitleColor = new Color(0.96f, 0.94f, 0.88f, 1f);
+        /// <summary>강조 — 마법 블루(74,123,208) — 스탯/마나</summary>
+        public static readonly Color AccentColor = new Color(0.29f, 0.48f, 0.81f, 1f);
+        /// <summary>희귀 강조 — 희귀 골드(231,183,58)</summary>
+        public static readonly Color RareGoldColor = new Color(0.91f, 0.72f, 0.23f, 1f);
+        /// <summary>체력/위험 — 헬스 레드(200,56,56)</summary>
+        public static readonly Color HealthRedColor = new Color(0.78f, 0.22f, 0.22f, 1f);
         /// <summary>딤드 오버레이</summary>
         public static readonly Color DimColor = new Color(0f, 0f, 0f, 0.5f);
-        /// <summary>버튼 호버 강조</summary>
-        public static readonly Color HoverColor = new Color(0.3f, 0.5f, 0.7f, 1f);
+        /// <summary>버튼 호버 — 골드(217,180,91)</summary>
+        public static readonly Color HoverColor = new Color(0.85f, 0.71f, 0.36f, 1f);
         /// <summary>닫기 버튼 (빨강)</summary>
         public static readonly Color CloseBtnColor = new Color(0.7f, 0.15f, 0.15f, 0.9f);
         /// <summary>닫기 호버</summary>
         public static readonly Color CloseHoverColor = new Color(0.9f, 0.2f, 0.2f, 1f);
-        /// <summary>텍스트</summary>
-        public static readonly Color TextColor = Color.white;
-        /// <summary>서브텍스트 (회색)</summary>
-        public static readonly Color SubTextColor = new Color(0.75f, 0.75f, 0.75f, 1f);
+        /// <summary>텍스트 — 양피지 화이트</summary>
+        public static readonly Color TextColor = new Color(0.96f, 0.94f, 0.88f, 1f);
+        /// <summary>서브텍스트 — 뮤트 웜 그레이(185,179,166)</summary>
+        public static readonly Color SubTextColor = new Color(0.72f, 0.70f, 0.65f, 1f);
         /// <summary>테두리 두께 (픽셀) — Flat 모드: 얇은 2px 라인</summary>
         public const int BorderWidth = 2;
 

@@ -4,7 +4,7 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-15 (61차)
+> **최종 갱신:** 2026-09-15 (62차)
 
 ---
 
@@ -1514,6 +1514,34 @@ K-2(차지 강공·클립 확보 시) · K-3(패링·클립 확보 시) · H-2 P
 ## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 58차 — 타 영지 병사 적대화: 공격 시 호감도 하락 + transient 느낌표 + 플레이어/내병사 공격)
 
 > **스코프**: 사장님 요구 — ① 내 공격 시 내 소속 병사도 공격(이미 배선) ② **타 영지 병사는 호감도에 따라 원래 공격 안 하다가, 내가 공격하는 순간 호감도 하락 → 몬스터처럼 느낌표 뜨며 플레이어/내 병사 공격** ③ 느낌표는 잠깐 뜨고 사라지게(계속 X).
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 62차 — TEST21-FOLLOWUP 전면 수리: 방어구 lazy 생성 + 창/검/활 그립 + 병사 GLB/inactive + 화살발사 + 드래그 Tab 게이트 + UI 중세판타지 팔레트 전환)
+
+> **스코프**: `docs/TEST21_FOLLOWUP_PLAN.md` 실행. A방어구/B창그립+B2검/C활/D병사/E화살/F드래그Tab/G UI 팔레트 전부 수리. 배치컴파일 error CS=0 (exit 0).
+
+### 근본 원인 실측 요약
+- **A 방어구 실패** = `EquipmentManager.Instance`가 씬 미부트/초기화 순서로 null. `InventoryWindow`가 Instance만 조회 → 실패 로그만.
+- **B 창 그립** = Spear `LocalEuler(-90,0,0)`에서 창두가 뒤로 → **Y+180** 전방 보정.
+- **B2 검** = "손에서 약간 어긋남"(날 방향 정상) → GripPose y 0.12→0.05 손바닥 밀착.
+- **C 활** = Bow `LocalEuler Y -90→+90` 좌우 미러 교정(왼손 활대/오른손 시위).
+- **D 병사** = ① `PlayerPlaceholder:108 DestroyImmediate(rb)`가 ProceduralAnimationController 의존(RequireComponent)으로 차단 → try-catch 격리+중립 유지 ② inactive(사망) 대상 HitReaction Driver 코루틴 스팸 → `!target.activeInHierarchy` 스킵.
+- **E 화살** = Test_10에 ArrowManager 미생성(Instance null, TryShootArrow 스킵) → EnsureGameManager+TryBowShot lazy 자가생성. ArrowProjectile이 `Guard/RecruitedSoldier/DraculaLord` 적중 미탐지 → 태그 추가.
+- **F 드래그** = `consumeLeftClickAsDrag`가 단순 클릭까지 드래그로 소비 → **Tab(부대) 모드에서만 드래그** 게이트(squadModeActive, GuardSquadHotbar가 갱신). 기존 IsSquadMode 중복 제거(CS0102).
+- **G UI** = UIStyleManager 미드나이트 블루 파레트 → **딥 차콜 레더+브론즈/골드 트림+양피지 화이트**(docs/UI_DESIGN_GUIDELINES.md). 창 하드코딩 스카이블루(0.35,0.65,0.90)→마법블루(0.29,0.48,0.81)·네이비(0.063,0.086,0.133)→차콜(0.11,0.11,0.11) 일괄 치환.
+
+### 변경 파일 (13 + 문서 1)
+EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/InventoryWindow(Get()×2+색)/PlayerPlaceholder(RB try-catch)/HitReactionDriver(inactive스킵)/TestTerritoryCombatSetup(ArrowManager 생성)/PlayerCombat(ArrowManager lazy+활)/ArrowProjectile(적중태그)/GuardSelectionManager(squadModeActive 게이트)/GuardSquadHotbar(IsSquadMode 중복제거+게이트)/UIStyleManager(파레트)/InventoryArtLibrary·LootWindow·ShopWindow·StatusWindowUI·WarehouseUI·ItemDragContext(색 치환) + docs/TEST21_FOLLOWUP_PLAN.md·UI_DESIGN_GUIDELINES.md.
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0** (exit 0) — 중간 CS0102(IsSquadMode 중복) 1건 수리 후 통과.
+- 남은 것은 Editor 스크립트 deprecated 경고(CS0618 등) — 동작 무영향.
+- Play 판정 대기: ① 방어구 우클릭/드래그 장착+GLB 부착 ② 창 두가 전방·검 밀착·활 좌우 ③ 병사 GLB 렌더·inactive flinch 스팸 0 ④ 활 좌클릭 화살 발사→몬스터/병사 적중 ⑤ Tab(부대)에서만 드래그 선택→Ctrl+등록→슬롯 병사 얼굴 ⑥ 전 창 딥 차콜/브론즈/골드/양피지 팔레트.
+
+### 잔여
+- 무기 그립 미세(창두 방향/활 미러 Play `[Weapon] 그립 정렬` 로그 확인).
+- UI 심화(각 창 섹션별 골드 트림·폰트 계층·인터랙션)는 사용자 Play 후 Phase G 후속.
 
 ---
 

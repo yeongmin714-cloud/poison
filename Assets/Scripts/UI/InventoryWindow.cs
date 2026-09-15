@@ -279,24 +279,24 @@ namespace ProjectName.UI
         }
 
         // 포커스/강조 색상 — Flat 모드: 스카이블루 글로우/엣지 (기존 민트 대체)
-        private static readonly Color ColorMintGlow = new Color(0.35f, 0.65f, 0.90f, 0.30f);
+        private static readonly Color ColorMintGlow = new Color(0.29f, 0.48f, 0.81f, 0.30f);
         private static readonly Color ColorMintEdge = new Color(0.45f, 0.72f, 0.95f, 0.9f);
         private static readonly Color ColorSlotEmptyCell = new Color(0.10f, 0.10f, 0.13f, 0.55f); // 빈 슬롯 가이드 셀
         private static readonly Color ColorGridLine = new Color(0.30f, 0.30f, 0.34f, 0.5f);       // 그리드 가이드라인
 
         // ===== 2026-09-11: Flat 테마 색상 (인벤토리 예시 2 — 플랫 다크 네이비 + 스카이블루) =====
-        private static readonly Color ColorBg = new Color(0.063f, 0.086f, 0.133f, 0.88f);      // 전체 배경 (다크 네이비 반투명)
+        private static readonly Color ColorBg = new Color(0.11f, 0.11f, 0.11f, 0.88f);      // 전체 배경 (다크 네이비 반투명)
         private static readonly Color ColorTitleBar = new Color(0.055f, 0.078f, 0.125f, 0.95f); // 타이틀 스트립 (더 어두운 네이비)
-        private static readonly Color ColorTabActive = new Color(0.35f, 0.65f, 0.90f, 1f);     // 활성 탭 (스카이블루)
+        private static readonly Color ColorTabActive = new Color(0.29f, 0.48f, 0.81f, 1f);     // 활성 탭 (스카이블루)
         private static readonly Color ColorTabInactive = new Color(0.11f, 0.15f, 0.23f, 0.95f);// 비활성 탭 (다크 네이비)
         private static readonly Color ColorSlotBg = new Color(0.09f, 0.12f, 0.19f, 0.72f);     // 슬롯 배경 (짙은 반투명)
         private static readonly Color ColorSlotHover = new Color(0.14f, 0.20f, 0.30f, 0.90f);  // 슬롯 호버
         private static readonly Color ColorSlotSelected = new Color(0.16f, 0.28f, 0.42f, 1f);  // 슬롯 선택 (스카이블루 틴트)
-        private static readonly Color ColorInfoBg = new Color(0.063f, 0.086f, 0.133f, 0.88f);  // 정보 패널 배경
+        private static readonly Color ColorInfoBg = new Color(0.11f, 0.11f, 0.11f, 0.88f);  // 정보 패널 배경
         private static readonly Color ColorTextPrimary = new Color(1f, 1f, 1f, 1f);            // 기본 텍스트 (흰색)
         private static readonly Color ColorTextSecondary = new Color(0.85f, 0.88f, 0.92f, 1f); // 보조 텍스트
         private static readonly Color ColorTextDim = new Color(0.72f, 0.76f, 0.82f, 1f);       // 흐린 텍스트
-        private static readonly Color ColorAccent = new Color(0.35f, 0.65f, 0.90f, 1f);        // 강조 (스카이블루)
+        private static readonly Color ColorAccent = new Color(0.29f, 0.48f, 0.81f, 1f);        // 강조 (스카이블루)
         private static readonly Color ColorBorder = new Color(0.62f, 0.70f, 0.78f, 0.85f);     // 테두리 (얇은 회백)
         private static readonly Color ColorBtnBg = new Color(0.12f, 0.16f, 0.24f, 1f);         // 버튼 배경 (다크 슬레이트)
         private static readonly Color ColorBtnHover = new Color(0.18f, 0.25f, 0.36f, 1f);      // 버튼 호버
@@ -3223,11 +3223,12 @@ namespace ProjectName.UI
                 return ok;
             }
 
-            // 방어구 — EquipmentManager.EquipItem(slot, MapArmorSlot(id)): 인벤 1개 소모 (우클릭 장착과 동일)
-            var em = ProjectName.Systems.EquipmentManager.Instance;
+            // 방어구 — EquipmentManager.EquipItem(slot, MapArmorSlot(id)): 인벤 1개 소모 (우클릭 장착과 동일).
+            // [TEST21-FOLLOWUP] lazy 자가 생성으로 항상 확보(씬 미부트/순서 무관).
+            var em = ProjectName.Systems.EquipmentManager.Get();
             if (em == null)
             {
-                Debug.Log($"[인벤] 드래그 장착 실패(사유: EquipmentManager 없음) — {item.displayName}");
+                Debug.Log($"[인벤] 드래그 장착 실패(사유: EquipmentManager 생성 불가 — 비플레이) — {item.displayName}");
                 return false;
             }
             PlayerInventory.ItemSlot invSlot = null;
@@ -3443,10 +3444,12 @@ namespace ProjectName.UI
 
             if (item.category == PlayerInventory.ItemCategory.Armor)
             {
-                var em = ProjectName.Systems.EquipmentManager.Instance;
+                // [TEST21-FOLLOWUP] EquipmentManager lazy 자가 생성 — 씬 미부트/파괴/초기화 순서로 null이어도
+                // Get()으로 즉시 확보해 방어구 우클릭 장착이 항상 동작하도록. (편집 없이 런타임 생성, 멱등)
+                var em = ProjectName.Systems.EquipmentManager.Get();
                 if (em == null)
                 {
-                    Debug.Log($"[Equip] 우클릭 장착 {item.id} → 결과 실패(사유: EquipmentManager 없음)");
+                    Debug.Log($"[Equip] 우클릭 장착 {item.id} → 결과 실패(사유: EquipmentManager 생성 불가 — 비플레이)");
                     return;
                 }
                 var equipSlot = MapArmorSlot(item.id);

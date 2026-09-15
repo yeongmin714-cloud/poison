@@ -92,8 +92,13 @@ namespace ProjectName.Systems
 
         private void OnTriggerEnter(Collider other)
         {
-            // 적 감지
-            if (other.CompareTag("Enemy") || other.CompareTag("Monster"))
+            // 적 감지 — 몬스터/병사(포섭 여부 무관) + 영주. [TEST21-FOLLOWUP] Guard/RecruitedSoldier/DraculaLord 추가.
+            GameObject hitGO = other != null ? other.gameObject : null;
+            bool isTarget = hitGO != null
+                && (hitGO.CompareTag("Enemy") || hitGO.CompareTag("Monster")
+                    || hitGO.CompareTag("Guard") || hitGO.CompareTag("RecruitedSoldier")
+                    || hitGO.CompareTag("DraculaLord"));
+            if (isTarget)
             {
                 var damageable = other.GetComponent<IDamageable>();
                 if (damageable != null)
