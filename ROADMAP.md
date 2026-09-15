@@ -2631,3 +2631,21 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ### Play 판정 대기
 ① 인벤 화살 20씩 → 활 좌클릭 발사·적중 ② 병사 GLB 6기 렌더 ③ 방어구 GLB 부착 ④ Ctrl+드래그 병사 선택 → Ctrl+1 등록 → 슬롯 얼굴 ⑤ 그립 손 위치
+
+## ⚔️ 2026-09-15: 테스트24 — RecruitedSoldier 태그 정의 + 활 좌클릭 발사(우클릭 차지 분리) + 무기 그립 과보정 클램프 + Ctrl 좌클릭 직접 드래그 판정 (TEST24-FIX-64)
+
+> **목표**: 테스트24(01:33) 피드백 실측 수리 — 활 좌클릭/내 병사 태그/그립/Ctrl 드래그.
+
+| 항목 | 근본 원인 | 수리 | 상태 |
+|:---|:---|:---|:---:|
+| 내 병사 GLB 미부착 | `TagManager.asset`에 `RecruitedSoldier` 태그 없음 → 내 병사 태그 무효(적=Guard는 정상) | tags에 RecruitedSoldier 추가. (병사 GLB는 63차 확장자 폴백으로 이미 6기 부착 로그 확인) | ✅ |
+| 활=우클릭 발사 | 활 장착과 무관하게 우클릭 차지가 강공 발동 | 활이면 차지 스킵(isBowEquipped) + ReleaseCharge 이중 방어 → 좌클릭 TryBowShot만 | ✅ |
+| 활 애니 | HumanoidClipDriver BowEnter/IsBow(425-434) 이미 구현 | Play 판정(장착 즉시 활 대기) | 🔶 |
+| 무기 그립 | 활/창 offset −0.926 과보정, 검 offset 0(테이블 포즈) | offset ±0.5 초과 클램프 + 경고 로그. 무기별 세부는 Play 로그 | ✅ |
+| Ctrl 드래그 | PlayerCombat이 좌클릭 먼저 소비 → 플래그 타이밍 문제 | **Ctrl 홀드 직접 판정**(Keyboard.current.ctrlKey) → 공격 대신 드래그 위임(순서 무관). 드래그 박스(OnGUI) 이미 존재 | ✅ |
+| 화살 조준점(H3)·장비 파츠(A') | 신규/Play 확인 | 다음 라운드 | 🔶 |
+| 검증 | 배치컴파일 error CS=0 (3회) | ✅ |
+
+### Play 판정 대기
+① 활 장착 → 우클릭 무반응·좌클릭 화살 발사 ② 활 대기 애니 ③ 내 병사 GLB+공격/추종 ④ Ctrl+드래그 네모→선택→Ctrl+1 슬롯 얼굴 ⑤ 검/창/활 손 부착
+⚠️ TagManager 수정은 에디터 재시작(Play) 필요.

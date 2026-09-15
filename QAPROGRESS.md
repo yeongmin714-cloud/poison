@@ -4,7 +4,7 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-15 (63차)
+> **최종 갱신:** 2026-09-15 (64차)
 
 ---
 
@@ -1514,6 +1514,32 @@ K-2(차지 강공·클립 확보 시) · K-3(패링·클립 확보 시) · H-2 P
 ## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 58차 — 타 영지 병사 적대화: 공격 시 호감도 하락 + transient 느낌표 + 플레이어/내병사 공격)
 
 > **스코프**: 사장님 요구 — ① 내 공격 시 내 소속 병사도 공격(이미 배선) ② **타 영지 병사는 호감도에 따라 원래 공격 안 하다가, 내가 공격하는 순간 호감도 하락 → 몬스터처럼 느낌표 뜨며 플레이어/내 병사 공격** ③ 느낌표는 잠깐 뜨고 사라지게(계속 X).
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 64차 — 테스트24: RecruitedSoldier 태그 정의 + 활 좌클릭 발사(우클릭 차지 분리) + 무기 그립 과보정 클램프 + Ctrl 좌클릭 직접 드래그 판정)
+
+> **스코프**: 테스트24(01:33) 피드백 + Editor.log(01:38) 실측 수리. ① 활=좌클릭 발사(우클릭 차지 스킵) ② 내 병사 GLB 근본(태그 미정의) ③ 무기 그립 과보정 ④ Ctrl 드래그 순서 문제. 배치컴파일 error CS=0 (exit 0).
+
+### 근본 원인 실측
+- **내 병사 GLB 미부착(D')** = `ProjectSettings/TagManager.asset` tags에 **`RecruitedSoldier`가 없음** (`Tag: RecruitedSoldier is not defined` 로그). 내 병사만 무효 태그 → GLB/충돌/선택 회피. (적=Guard 태그 정상.) 63차 GLB 확장자 폴백은 이미 적용 — 최신 로그(01:52)에 **병사 GLB 부착 6기 전부 성공**(MyGuard 0~2 + EnemyGateGuard 0~2). 재 태그 정의로 내 병사 태그 유효화.
+- **활=우클릭 발사(H1)** = `PlayerCombat.Update`에서 **활 장착과 무관하게** 우클릭 차지(ReleaseCharge→TryChargeAttack)가 활에서도 강공 발동 → '우클릭 화살'처럼 보임. 좌클릭 TryBowShot은 363-365에 이미 존재.
+- **활 애니(H2)** = `HumanoidClipDriver`에 `BowEnter/IsBow` 엣지 트리거(425-434) 이미 구현 — 활 장착 시 자동.
+- **무기 그립(G)** = Log1(활/창) `offset=-0.926` 과보정(휴리스틱), Log2(검) `pivotT=0.03` 신뢰 경로는 offset 0(테이블 포즈) → 손 밀착 부족.
+- **Ctrl 드래그(F')** = `PlayerCombat`이 좌클릭을 먼저 소비하면 `consumeLeftClickAsDrag`가 같은 프레임에 아직 false → 공격이 나가 드래그 안 됨(순서 문제). `GuardSelectionManager.OnGUI` 드래그 박스(142)는 이미 존재.
+
+### 변경 사항 (3파일)
+**`ProjectSettings/TagManager.asset` [D']**: tags에 `RecruitedSoldier` 추가 — 내 병사 태그 유효화.
+**`Systems/PlayerCombat.cs` [H1+F']**: ① 우클릭 차지 블록에 `isBowEquipped` 가드(활이면 차지 스킵) ② `ReleaseCharge` 활 이중 방어 ③ 좌클릭 감지에서 **Ctrl 홀드 직접 판정**(Keyboard.current.ctrlKey)하면 공격 대신 드래그로 위임 — 프레임 순서와 무관하게 Ctrl+드래그 동작. 평상 좌클릭=공격 유지.
+**`Systems/WeaponEquipManager.cs` [G]**: 휴리스틱 오프셋 과보정 방지 — offset 성분 절대값이 0.5 초과 시 클램프(+클램프 경고 로그). 무기별 세부 튜닝은 Play `[Weapon] 그립 정렬` 로그 기반.
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0** (exit 0, 3회).
+- Play 판정 대기: ① 활 장착 → 우클릭 무반응·좌클릭 화살 발사(인벤 화살 소모) ② 활 장착 즉시 활 대기 애니 ③ 내 병사 GLB 조회(태그 정상, 공격/추종) ④ Ctrl+드래그 시 반투명 네모+병사 선택 → Ctrl+1 슬롯 얼굴 ⑤ 검/창/활 손 부착 로그.
+- ⚠️ TagManager 수정은 **에디터 재시작**(Play) 필요 — 재시작 후 태그 유효화.
+
+### 남음
+- H3(화살 조준점)·A'(장비 파츠 시각)는 Play 확인 후 후속(조준점은 다음 라운드 구현, 장비부착은 62차 확장자 폴백 준비—방어구 우클릭 이번 로그에 없었음).
 
 ---
 

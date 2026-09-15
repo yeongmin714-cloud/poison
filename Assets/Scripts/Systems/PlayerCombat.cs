@@ -171,9 +171,13 @@ namespace ProjectName.Systems
             }
 
             // [Phase 1-1] 우클릭 차지 — 홀드 중 충전 누적, 해제 시 강공 발동
+            // [TEST24-FIX H1] 활 장착 중이면 우클릭 차지 스킵 — 활은 좌클릭으로 화살 발사만.
+            // 우클릭 차지(근접 강공)는 검/창/Fist에서만. 활에서 우클릭이 '화살 발사처럼' 보이던 것 방지.
+            bool isBowEquipped = _currentWeapon != null
+                && _currentWeapon.weaponType == ProjectName.Core.WeaponType.Bow;
             if (Mouse.current != null)
             {
-                if (Mouse.current.rightButton.isPressed && !_charging && !_parryActive)
+                if (Mouse.current.rightButton.isPressed && !_charging && !_parryActive && !isBowEquipped)
                 {
                     _charging = true;
                     _chargeHeldTime = 0f;
@@ -197,13 +201,22 @@ namespace ProjectName.Systems
             // 좌클릭 감지 (InputSystem)
             if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             {
-                // [60차] 병사 드래그 단체 선택(RTS)과 충돌 분리 — GuardSelectionManager가 이 좌클릭을
-                // 드래그로 사용할 예정이면 공격 대신 드래그로 위임한다(플레이어 공격은 우클릭 사용자는
-                // 좌클릭 드래그 후 선택이 되므로, 단순 클릭=공격, 드래그=선택을 보장).
+                // [TEST24-FIX F'] 병사 드래그 단체 선택 — **Ctrl 키를 누른 채 좌클릭**이면
+                // 프레임 순서와 무관하게 공격 대신 드래그로 위임(PlayerCombat이 먼저 돌아도
+                // consumeLeftClickAsDrag 플래그 타이밍에 의존하지 않고 Ctrl 홀드를 직접 판정).
+                // 평상 시(좌클릭만)는 공격 유지.
+                if (Keyboard.current != null
+                    && (Keyboard.current.ctrlKey.isPressed
+                        || Keyboard.current.leftCtrlKey.isPressed
+                        || Keyboard.current.rightCtrlKey.isPressed))
+                {
+                    GuardSelectionManager.consumeLeftClickAsDrag = false;   // 드래그로 소비(중복 방지)
+                    return;   // Ctrl+좌클릭 → 드래그(GuardSelectionManager가 선택 처리)
+                }
+                // [60차] GuardSelectionManager가 미리 세팅한 드래그 플래그 소비(보조 백업 — Ctrl 아닌 드래그 경로)
                 if (GuardSelectionManager.consumeLeftClickAsDrag)
                 {
                     GuardSelectionManager.consumeLeftClickAsDrag = false;   // 드래그로 소비
-                    // 드래그 시작이므로 이 프레임 공격 스킵 (단순 클릭이면 다음 프레임 공격 재개)
                     return;
                 }
                 // [Phase 1-2] 패링 — 공격 시작 짧은 순간 방어 판정 창(우클릭 차지와 동시 아님)
@@ -226,6 +239,14 @@ namespace ProjectName.Systems
         /// <summary>[Phase 1-1] 차지 해제 — 충전 보너스 반영 강공 1타.</summary>
         private void ReleaseCharge(bool fire)
         {
+            // [TEST24-FIX H1] 활 이중 방어 — 차지 발동 자체를 활에서 금지(우클릭 차지 검/창 전용).
+            if (_currentWeapon != null && _currentWeapon.weaponType == ProjectName.Core.WeaponType.Bow)
+            {
+                _charging = false;
+                _chargeHeldTime = 0f;
+                _proceduralAnim?.TriggerAction("charge_end");
+                return;
+            }
             _charging = false;
             float held = _chargeHeldTime;
             _chargeHeldTime = 0f;

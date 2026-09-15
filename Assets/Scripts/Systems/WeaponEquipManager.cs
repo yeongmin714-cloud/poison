@@ -329,7 +329,21 @@ namespace ProjectName.Systems
                 // pivot-to-grip 오프셋(스케일 보정 배율 반영) → localPosition에서 차감 (pivot은 상단에서 선언)
                 Vector3 gripScaled = pivot + (grip - pivot) * scaleFix;
                 Vector3 offset = handBone.InverseTransformPoint(gripScaled) - handBone.InverseTransformPoint(pivot);
-                weapon.transform.localPosition -= offset;
+
+                // [TEST24-FIX G] 휴리스틱 과보정 방지 — offset이 과대(활/창: y −0.9 이상 등 로그 실측)하면
+                // 그립축 방향의 과도한 이동이 '손에서 크게 벗어남'을 낳는다. 절대 상한을 두고 초과 시 clamp:
+                // 가장 긴 성분만 상한(GRIP_CLAMP_MAX)으로 제한하되, 방향(부호)은 유지해 회귀 최소화.
+                const float GripClampMax = 0.5f;
+                Vector3 offClamped = offset;
+                for (int a = 0; a < 3; a++)
+                {
+                    float v = offClamped[a];
+                    if (Mathf.Abs(v) > GripClampMax)
+                        offClamped[a] = Mathf.Clamp(v, -GripClampMax, GripClampMax);
+                }
+                weapon.transform.localPosition -= offClamped;
+                if (offClamped != offset)
+                    Debug.LogWarning($"[Weapon] 그립 오프셋 과보정 클램프: {offset:F3} → {offClamped:F3} (활/창 자루 중심 유지 접근)");
 
                 // 팁 월드 좌표 = bounds 중심 + (최장축 방향 단위벡터 × 최장축 절반 길이) — 그립 반대편 끝.
                 // 스케일 보정 배율(scaleFix)과 그립 재앵커링 이동을 반영한 최종 월드 좌표로 환산.
