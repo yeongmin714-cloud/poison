@@ -73,6 +73,16 @@
 
 ---
 
+## Phase G — UI 디자인 전면 교체 (Medieval Fantasy × Duckov Cleanish) 🟡
+>  상세: `docs/UI_DESIGN_GUIDELINES.md` 참조.
+- [ ] **G-1** `UIStyleManager` 파레트 전환 — 미드나이트 블루 → **딥 차콜 레더 패널 + 브론즈/벤틱골드 테두리 + 양피지 화이트 타이포 + 마법블루/희귀골드 스탯**.
+- [ ] **G-2** `UIFont` 타이포 계층 확정(Display/Title/Heading/Body/Stats/Badge) + `_uiScale`/폰트 스케일 무결성(비16:9·해상도변경 폰트 왜곡 방지).
+- [ ] **G-3** 기존 창 전수 적용 — **인벤토리=왼쪽·창고=오른쪽·전리품=우측·장비=우측·체력·미니맵·핫바 위치 규칙은 유지**한 채 색/폰트/간격/테두리만 교체. (`UIStyleManager` 참조 창 전수: Inventory/Equipment/Warehouse/Loot/Status/Minimap/Hotbar/HUD + 퀘스트/레시피/연금/병사/크래프트.)
+- [ ] **G-4** 신규 UI 작성 원칙 — 모든 새 창은 `UIStyleManager` 토큰 + `UIFont` 계층 + `_uiScale`만 사용(로컬 하드코딩 금지, static 캐시 재생성 회피).
+- [ ] **검증**: 배치컴파일 error CS=0 + Play 시각(테두리/가독성/스케일) 재검증.
+
+---
+
 ## 실행 순서
 ```
 B(창 그립 Y 전방 — 적용 완료) · A(방어구·Instance) → B2(검 미세)·C(활 좌우)  [1차]
@@ -81,7 +91,9 @@ D(병사 GLB/inactive) → E(화살 발사)  [2차]
   ↓
 F(드래그 Tab 모드 → 핫바 병사 얼굴, 이미 구현 연동) → 통합 컴파일 + Play 판정  [3차]
   ↓
-Z (QAPROGRESS / ROADMAP / 이 계획서 / 영구메모리 / git commit·push)
+G(UI 디자인 전면 교체 — docs/UI_DESIGN_GUIDELINES.md, 좌:인벤/우:창고 유지)  [4차]
+  ↓
+Z (QAPROGRESS / ROADMAP / 이 계획서 / UI 가이드라인 / 영구메모리 / git commit·push)
 ```
 > 위임 규칙: 서브에이전트(delegate_task, "Respond in Korean"). 600s 타임아웃 시 부모 직접(프로젝트 규칙). 배치 최대 3 병렬.
 
