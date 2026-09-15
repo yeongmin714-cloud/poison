@@ -1482,3 +1482,29 @@ K-2(차지 강공·클립 확보 시) · K-3(패링·클립 확보 시) · H-2 P
 
 ### Play 판정 대기
 ① 우클릭 홀드 강공 ② 좌클릭 직후 근접 패링 흡수 ③ 실내 배치 UI 공격/수비 ④ 배치 공격 병사 실제 걷기 ⑤ 전쟁 행진(공격군 목표 영지로) ⑥ 도달 시 전투 플린치.
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 56차 후속 — Test_10 병사 GLB 전환 + 공격 배치 추종 + 접지 수정)
+
+> **스코프**: 사장님 3건 — ① Test_10 내/적 병사가 플레이스홀더로 보이던 것을 병사 GLB로 전환 ② 테스트씬 병사를 공격 배치로 적용해 플레이어 따라 함께 공격 ③ 병사 접지 문제 수정.
+
+### 조사 결론
+- 병사 GLB/FBX 에셋 모두 존재(Soldier_Lv1-20_Rigged.glb / fbx/soldier_lv1-20_rigged.fbx).
+- Test_10 병사는 CreateGuard가 FBX 먼저→GLB 폴백(RuntimeModelLoader.TryGetModel) — 실동작에서 GLB 미부착 시 캡슐(플레이스홀더) 잔존("병사 GLB로 전환" 요구 원인).
+- GuardCombatAI.NotifyPlayerAttack(포섭 병사가 플레이어 공격 대상에 합세)은 정의만 있고 호출부 無 = "나를 따라 공격" 미동작 근본 원인.
+- 접지: 스폰 pos.y가 SurfaceY+1.0(박스 오프셋)인데 GroundModelToY가 발끝을 pos.y에 맞춰 모델이 지면에서 1m 떠 있음.
+
+### 수정
+**TestTerritoryCombatSetup.cs [Test_10 병사]**
+- ① CreateGuard 모델 부착 재작성: FBX 먼저 → **GLB 우선**(프로덕션 GuardManager 검증 로더 `Resources.Load<GameObject>($"Models/UserProvided/{Soldier_Lv1-20_Rigged.glb}")`) → 실패 시 FBX Humanoid → 둘 다 실패 시에만 캡슐. 겹침/콜라이더 제거/접지/Animator/SoldierShield_AC/HumanoidClipDriver(Soldier) 유지.
+- ③ 접지: GroundModelToY 모델 발끝을 `pos.y`(박스+1.0)가 아닌 **실제 지면 `SurfaceY(pos.x,pos.z)`**에 정렬(GLB·FBX 양 경로). Rigidbody useGravity=false + isKinematic(true)로 중력이 접지를 깨지 않게(CreateGuard+SpawnGuard 양쪽).
+- ② 병사 태그: 모델 미부착 시에도 공격 배치 동작 가능하도록 `RecruitedSoldier`/`Guard` 태그.
+
+**PlayerCombat.cs [동행 병사 합세 배선]**
+- AttackTarget 공격 성공 직후 `GuardCombatAI.NotifyPlayerAttack(targetBehaviour.gameObject)` 호출 → 포섭(recruited) 내 병사들이 플레이어가 공격한 대상을 함께 공격(SetCommandTarget 공격 명령). Por섭 병사는 GuardCombatAI.UpdateGuardBehavior(기존 GuardPlaceholder.Update에서 자동 호출)로 플레이어 추종도 동작.
+
+### 컴파일/검증
+- 배치컴파일 error CS=0. 변경 2파일(TestTerritoryCombatSetup/PlayerCombat).
+### Play 판정 대기
+① Test_10 내병사 3명이 병사 GLB(창/방패)로 렌더되고 지면에 발 붙어 서 있음 ② 내병사가 플레이어를 따라다님(추종) ③ 플레이어가 적/몬스터 공격 시 내병사도 함께 접근해 공격 ④ 접지(발이 지면, 뜨/가라앉음 없음).

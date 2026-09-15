@@ -551,6 +551,12 @@ namespace ProjectName.Systems
 
             target.TakeDamage(damage, hitDirection, _currentWeapon?.weaponType.ToString() ?? "melee");
 
+            // [56차 후속] 동행 병사 합세 — 포섭(recruited) 병사들이 플레이어가 공격한 대상을 함께 공격.
+            if (targetBehaviour != null)
+            {
+                GuardCombatAI.NotifyPlayerAttack(targetBehaviour.gameObject);
+            }
+
             // ⏱️ 전투 로그: 데미지 기록
             string targetName = targetBehaviour != null ? targetBehaviour.gameObject.name : "Unknown";
             CombatLog.AddEntry($"{targetName}에게 {damage} 데미지", LogType.Damage);

@@ -2512,3 +2512,17 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ### Play 판정 대기
 ① 우클릭 강공 ② 근접 패링 ③ 실내 배치 UI ④ 배치 공격 병사 걷기 ⑤ 전쟁 행진 ⑥ 도달 전투 플린치
+
+## ⚔️ 2026-09-15: Test_10 병사 GLB 전환 + 공격 배치 추종 + 접지 (TEST10-SOLDIER-GLB-57)
+
+> **목표**: Test_10 테스트씬에서 ① 배치된 내/적 병사가 플레이스홀더(캡슐)가 아니라 병사 GLB로 렌더 ② 내병사가 공격 배치로 플레이어 따라 함께 공격 ③ 병사 접지(지면 부착) 수정.
+
+| 항목 | 내용 | 상태 |
+|:---|:---|:---:|
+| GLB 전환 | CreateGuard를 FBX 먼저→**GLB 우선**(프로덕션 GuardManager 검증 로더)으로 재작성 — 플레이스홀더 잔존 경로 최소화 | ✅ |
+| 공격 배치 | PlayerCombat.AttackTarget에 `GuardCombatAI.NotifyPlayerAttack` 배선(누락분) — 포섭 내병사가 플레이어 공격 대상에 합세·추종 | ✅ |
+| 접지 | GroundModelToY 발끝을 실제 지면 `SurfaceY(pos.x,pos.z)`(박스+1.0 아님)에 정렬 + Rigidbody 중력 off/isKinematic | ✅ |
+| 검증 | 배치컴파일 error CS=0, 변경 2파일 | ✅ |
+
+### Play 판정 대기
+① 병사 GLB 렌더+지면 부착 ② 내병사 플레이어 추종 ③ 플레이어 공격 시 내병사 합세 ④ 접지(뜨/가라앉음 없음)
