@@ -4,7 +4,7 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-15 (62차)
+> **최종 갱신:** 2026-09-15 (63차)
 
 ---
 
@@ -1514,6 +1514,26 @@ K-2(차지 강공·클립 확보 시) · K-3(패링·클립 확보 시) · H-2 P
 ## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 58차 — 타 영지 병사 적대화: 공격 시 호감도 하락 + transient 느낌표 + 플레이어/내병사 공격)
 
 > **스코프**: 사장님 요구 — ① 내 공격 시 내 소속 병사도 공격(이미 배선) ② **타 영지 병사는 호감도에 따라 원래 공격 안 하다가, 내가 공격하는 순간 호감도 하락 → 몬스터처럼 느낌표 뜨며 플레이어/내 병사 공격** ③ 느낌표는 잠깐 뜨고 사라지게(계속 X).
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-15 ✅ 63차 — TEST23 실 실행: 화살 인벤 시딩 + 병사 GLB 확장자 폴백 + 방어구 GLB 폴백 + 드래그 Ctrl 홀드)
+
+> **스코프**: 62차 계획 문서상의 잔여를 실제 코드로 반영한 실행 라운드. ① 화살(창고→인벤) ② 병사 GLB 확장자 폴백 ③ 방어구 GLB 폴백 ④ 드래그 Ctrl 홀드 방식. 배치컴파일 error CS=0 (exit 0).
+
+### 이번 라운드 코드 반영
+**`Systems/TestTerritoryCombatSetup.cs` [T23-E 화살·T23-D 병사]**: ① `SeedPlayerInventory`에 화살 3종(arrow_regular/reinforced/magic ×20, ItemCategory.Arrow) 인벤 시딩 추가 — ArrowManager는 PlayerInventory에서 화살 소모(창고 아님) → '화살 부족' 발사 불가 근본 해결. ② `CreateGuard` GLB 로드 — 확장자 없는 경로 우선 + `.glb` 폴백(슬라임 CreateMonster 선례). 기존 확장자 포함만으로 6기 전부 FBX 폴백이던 것 해소.
+**`Systems/ArmorVisualAttachSystem.cs` [T23-A]**: 방어구 GLB 로드도 확장자 없는 경로 우선 + `.glb` 폴백(WeaponEquipManager·병사와 동일 패턴). 부착 시각화 회귀 차단.
+**`Systems/GuardSelectionManager.cs` [T23-F]**: 좌클릭 드래그 게이트를 **Ctrl 홀드**(`ctrlKey/leftCtrl/rightCtrl`)로 교체 — 평상 시 좌클릭=공격 유지, Ctrl 누른 채만 병사 드래그 선택.
+**`UI/GuardSquadHotbar.cs` [T23-F]**: `squadModeActive` 전달 제거(더 이상 Tab 의존 불필요 — Ctrl 방식으로 단순화). 부대 등록/선택(숫자키)만 유지.
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0** (exit 0) — 중간 CS0136(ctrlHeld 중첩 스코프) 1건 rename으로 수리(ctrlActiveForDrag).
+- Play 판정 대기: ① 인벤에 화살 20씩 → 활 좌클릭 발사·적중 ② 병사 GLB 6기 렌더(FBX 폴백 0) ③ 방어구 장착 시 캡슐 아닌 GLB 부착 ④ Ctrl 누른 채 드래그로 병사 선택 → Ctrl+1 등록 → 슬롯 얼굴, 평상 좌클릭=공격 ⑤ 창/검/활 그립 로그(62차 Y+180/y0.05/Y+90 반영 확인).
+
+### 남음 (그립/UI는 Play 튜닝 필요)
+- T23-B/C 그립: 62차 방향 변경(Y+180/y0.05/Y+90)이 로그에서는 pivotT/offset만 보임 — Play 시각 확인 후 `[Weapon] 그립 정렬` offset/pivotT로 손 위치 정밀 조정(H-5).
+- T23-G UI 비례: HUD/미니맵은 `_canvasScale` 적용 주이, HotbarUI는 RectTransform 캐시 구조라 전용 라운드 보류(회귀 리스크). 창 크기 변경 비례 + 미니맵/핫바 확대는 다음 Play 후.
 
 ---
 

@@ -728,10 +728,15 @@ namespace ProjectName.Systems
             // GLB를 먼저 로드하고(대문자 경로+확장자), 실패 시 FBX Humanoid 부착, 둘 다 실패 시에만 캡슐 유지.
             {
                 // ① GLB 먼저 — GuardManager.GetSoldierModelPath/Resources.Load 관례(정확한 대문자+확장자, 실동작 검증).
-                string glbPath = level >= 40 ? "Soldier_Lv40-50_Rigged.glb"
-                              : level >= 20 ? "Soldier_Lv20-40_Rigged.glb"
-                              : "Soldier_Lv1-20_Rigged.glb";
-                var glbPrefab = Resources.Load<GameObject>($"Models/UserProvided/{glbPath}");
+                string glbName = level >= 40 ? "Soldier_Lv40-50_Rigged"
+                              : level >= 20 ? "Soldier_Lv20-40_Rigged"
+                              : "Soldier_Lv1-20_Rigged";
+                // [TEST23-FIX] GLB 로드 — 확장자 없는 경로 우선(슬라임 CreateMonster 선례: "Models/UserProvided/Slime_Rigged"),
+                // 실패 시 확장자 포함 폴백. 로그(01:03)에서 확장자 포함이 null → 6기 전부 FBX 폴백이었다.
+                var glbPrefab = Resources.Load<GameObject>($"Models/UserProvided/{glbName}");
+                if (glbPrefab == null)
+                    glbPrefab = Resources.Load<GameObject>($"Models/UserProvided/{glbName}.glb");
+                string glbPath = $"{glbName}.glb";
                 GameObject attachedBody = null;
 
                 if (glbPrefab != null)
@@ -1145,6 +1150,15 @@ namespace ProjectName.Systems
             // PotionUseSystem.Use 매핑 확인: stealth→은신 활성화, sedative→진정(투약 기록) 둘 다 true 반환.
             inv.AddItem(PlayerInventory.StealthPotion, 3);
             inv.AddItem(PlayerInventory.Sedative, 3);
+
+            // [TEST23-FIX] 화살 인벤 시딩 — ArrowManager는 PlayerInventory에서 화살을 소모한다(창고 아님).
+            // 창고(wh_test)에도 화살을 시딩했으나 인벤엔 없어 '화살 부족' → 발사 불가. 활 좌클릭 테스트용으로
+            // ArrowManager가 소모하는 id(arrow_regular/reinforced/magic)와 동일 ItemData를 인벤에 추가.
+            // PlayerInventory에 화살 정적 정의가 없으므로 인라인 ItemData 생성(창고 시딩 선례와 동일).
+            inv.AddItem(new PlayerInventory.ItemData { id = "arrow_regular",    displayName = "일반 화살", description = "기본 화살. 특별한 효과 없음.", category = PlayerInventory.ItemCategory.Arrow, rarity = ItemRarity.Common,   maxStack = 50, maxDurability = 0 }, 20);
+            inv.AddItem(new PlayerInventory.ItemData { id = "arrow_reinforced", displayName = "강화 화살", description = "철촉이 달린 강화 화살. +5 데미지.", category = PlayerInventory.ItemCategory.Arrow, rarity = ItemRarity.Uncommon, maxStack = 50, maxDurability = 0 }, 20);
+            inv.AddItem(new PlayerInventory.ItemData { id = "arrow_magic",      displayName = "마법 화살", description = "마력이 깃든 화살. +15 데미지.", category = PlayerInventory.ItemCategory.Arrow, rarity = ItemRarity.Rare,      maxStack = 50, maxDurability = 0 }, 20);
+
             Debug.Log("[UITest] ✅ 플레이어 인벤 대표 아이템 시딩 완료 (물약 포함: 은신 물약×3, 진정제×3 — 우클릭 복용 테스트용)");
         }
     }

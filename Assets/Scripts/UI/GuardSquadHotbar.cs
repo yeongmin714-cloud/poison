@@ -145,9 +145,9 @@ namespace ProjectName.UI
                 HandleSelectKeys(); // 1~8: 부대 선택 (부대 모드에서만)
             RefreshAvatarsPeriodically(); // 사망/파괴 반영 폴링
 
-            // [TEST21-FOLLOWUP] GuardSelectionManager 드래그 선택게이트 — Tab(부대) 모드에서만 드래그.
-            // (UI→Systems 직접 참조 가능 — GuardSquadHotbar가 Systems import 중. 평상 시 아이템 모드=좌클릭 공격 유지.)
-            GuardSelectionManager.squadModeActive = _squadMode;
+            // [TEST23-FIX] 드래그 선택게이트는 GuardSelectionManager 내부에서 Ctrl 홀드로 판정한다.
+            // (이전 버전은 _squadMode(Tab)를 GuardSelectionManager.squadModeActive로 전달했으나
+            //  좌클릭=공격과 충돌·의존 문제로, Ctrl+드래그 방식으로 단순화 — 여기서 전달하지 않는다.)
         }
 
         // ===== Tab 토글 =====

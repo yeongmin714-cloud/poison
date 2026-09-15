@@ -165,10 +165,13 @@ namespace ProjectName.Systems
             }
 
             // ③ GLB 로드 (WeaponEquipManager와 동일 경로, id = 파일명)
+            // [TEST23-FIX] 확장자 없는 경로 우선, 실패 시 .glb 폴백 (슬라임/병사 선례와 동일).
             var prefab = Resources.Load<GameObject>(GlbResourceRoot + itemId);
             if (prefab == null)
+                prefab = Resources.Load<GameObject>(GlbResourceRoot + itemId + ".glb");
+            if (prefab == null)
             {
-                WarnOnce($"load:{itemId}", $"{LogTag} GLB 로드 실패: {GlbResourceRoot}{itemId} — {slot} 부착 스킵");
+                WarnOnce($"load:{itemId}", $"{LogTag} GLB 로드 실패: {GlbResourceRoot}{itemId}(.glb 폴백 포함) — {slot} 부착 스킵");
                 yield break;
             }
 

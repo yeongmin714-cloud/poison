@@ -73,13 +73,18 @@ namespace ProjectName.Systems
         {
             if (Mouse.current == null) return;
 
-            // [TEST21-FOLLOWUP] 좌클릭 드래그는 부대(Tab) 모드에서만 활성 — 평상 시(아이템 모드) 좌클릭=공격 유지.
-            if (!squadModeActive) return;
+            // [TEST23-FIX] 좌클릭 드래그는 **Ctrl 키를 누른 채**일 때만 활성 — 평상 시(아이템 모드) 좌클릭=공격 유지.
+            bool ctrlActiveForDrag = false;
+            if (Keyboard.current != null)
+                ctrlActiveForDrag = Keyboard.current.ctrlKey.isPressed
+                    || Keyboard.current.leftCtrlKey.isPressed
+                    || Keyboard.current.rightCtrlKey.isPressed;
+            if (!ctrlActiveForDrag) return;   // Ctrl 미홀드 → 드래그 스킵, 좌클릭=공격은 PlayerCombat이 그대로 수행
 
             // 좌클릭 드래그 시작
             if (Mouse.current.leftButton.wasPressedThisFrame)
             {
-                consumeLeftClickAsDrag = true;   // PlayerCombat: 이번 좌클릭을 공격 대신 드래그로 위임
+                consumeLeftClickAsDrag = true;   // PlayerCombat: 이번 좌클릭(작성 드래그)을 공격 대신 드래그로 위임
                 _dragStartMouse = Mouse.current.position.ReadValue();
                 _isDragging = true;
             }
