@@ -246,6 +246,9 @@ namespace ProjectName.Systems
             Animator placeAnim = null;
             var playerGo = GameObject.FindWithTag(PlayerTag);
             if (playerGo != null) placeAnim = playerGo.GetComponentInChildren<Animator>();
+            // [2026-09-16] 실측 피팅 — 부착 루프 밖에서 플레이어 메시 본 기반 바디 실측 1회(부착마다 재측정, 이동 대응).
+            PlayerBodyMeasure.TryMeasurePlayerBody(placeAnim, out var mHead, out var mTorso,
+                out var mLeftFoot, out var mRightFoot, out var mLeftHand, out var mRightHand);
             foreach (var bone in bones)
             {
                 if (bone == null) continue;
@@ -279,10 +282,32 @@ namespace ProjectName.Systems
                 //   위치 앵커 상수는 1도 변경하지 않는다(실측 검증 완료).
                 TryGetPlayerPlacement(out _, out var alignFwd, out var alignLeft);
                 ApplySlotAxisAlignment(visual, bone, slot, placeAnim, alignFwd, alignLeft);
+
+                // [2026-09-16] 실측 피팅 — 슬롯 규칙 대상(Helmet/Armor/Shoes/Mask/Bag)은 플레이어 메시 본 기반 피팅 시도.
+                //   성공 시 기존 상수 worldAnchor + SnapVisualToBone 폴백을 건너뛴다(Gloves/Back은 기존 경로 그대로).
+                bool bodyFitted = false;
+                if (slot == EquipmentManager.EquipmentSlot.Helmet || slot == EquipmentManager.EquipmentSlot.Armor
+                    || slot == EquipmentManager.EquipmentSlot.Shoes || slot == EquipmentManager.EquipmentSlot.Mask
+                    || slot == EquipmentManager.EquipmentSlot.Bag)
+                {
+                    PlayerBodyMeasure.BodyPart fitPart = default;
+                    switch (slot)
+                    {
+                        case EquipmentManager.EquipmentSlot.Helmet: fitPart = mHead; break;
+                        case EquipmentManager.EquipmentSlot.Armor:
+                        case EquipmentManager.EquipmentSlot.Bag:    fitPart = mTorso; break;
+                        case EquipmentManager.EquipmentSlot.Mask:   fitPart = mHead; break;
+                        case EquipmentManager.EquipmentSlot.Shoes:
+                            fitPart = bone.name.ToLowerInvariant().Contains("left") ? mLeftFoot : mRightFoot;
+                            break;
+                    }
+                    bodyFitted = FitVisualToBodyPart(visual, slot, bone, fitPart, alignFwd);
+                }
+
                 //   ①CC 높이 기준은 모델보다 커서 투구가 머리 위 20~25% 부유(스크린샷 65 실측)
                 //   ②SkinnedMesh 몸 bounds 왜곡(3.2m) ③본 로컬축(손 본 +Z=손가락 방향) 모두 폐기.
                 Vector3? worldAnchor = null;
-                if (TryGetPlayerPlacement(out var ground, out var pFwd, out var pLeft))
+                if (!bodyFitted && TryGetPlayerPlacement(out var ground, out var pFwd, out var pLeft))
                 {
                     switch (slot)
                     {
@@ -323,7 +348,8 @@ namespace ProjectName.Systems
                             break;
                     }
                 }
-                SnapVisualToBone(visual, bone, GetCenterOffset(slot, itemId), GetBottomAnchor(slot, itemId), worldAnchor);
+                if (!bodyFitted)
+                    SnapVisualToBone(visual, bone, GetCenterOffset(slot, itemId), GetBottomAnchor(slot, itemId), worldAnchor);
                 if (worldAnchor.HasValue) { lastAnchorWorld = worldAnchor.Value; hasAnchor = true; }
 
                 AddVisual(slot, visual);
@@ -452,8 +478,8 @@ namespace ProjectName.Systems
                     tgtLongW = Vector3.up; applyTwist = false; // yaw 자유
                     break;
                 case EquipmentManager.EquipmentSlot.Armor:
-                    tgtLongW = Vector3.up;   // thin bulge → +pFwd (볼록=가슴 앞)
-                    tgtThinW = (bulgeSign >= 0 ? 1f : -1f) * pFwd;
+                    tgtLongW = Vector3.up;   // thin bulge → −pFwd (본 에셋 주 판=등 — 스크린샷 실측 뒤집힘 수리)
+                    tgtThinW = (bulgeSign >= 0 ? -1f : 1f) * pFwd;
                     break;
                 case EquipmentManager.EquipmentSlot.Bag:
                     tgtLongW = Vector3.up;   // thin bulge → −pFwd (가방 볼록=등 뒤)
@@ -486,13 +512,12 @@ namespace ProjectName.Systems
                 }
                 case EquipmentManager.EquipmentSlot.Shoes:
                 {
-                    tgtLongW = Vector3.up;
-                    // toe: thin/mid 중 수평축(extent 큰 쪽)의 bulge 방향 → +pFwd.
-                    float thinExt = aabb.size[thinIdx], midExt = aabb.size[midIdx];
-                    Vector3 toeBasis = (midExt >= thinExt) ? midBasis : thinBasis;
-                    int toeSign = (Vector3.Dot(bulgeVec, toeBasis) >= 0f) ? 1 : -1;
-                    thinBasis = toeBasis; // twist 축을 toe 축으로 대체
-                    tgtThinW = (toeSign >= 0 ? 1f : -1f) * pFwd;
+                    // [2026-09-16] 실측 피팅: 부츠 긴축(long)=발길이(toe-heel) → long→+pFwd(발끝),
+                    //   mid→up, thin→pLeft. 기존 long→up 매핑이 긴축(발길이)을 세워 부츠를 옆으로 눕게 만듦(스크린샷 실측).
+                    //   toe bulge는 long축 그대로 유지 — bulge 쪽이 +pFwd가 되도록 long 방향 부호를 결정.
+                    int longSign = (Vector3.Dot(bulgeVec, longBasis) >= 0f) ? 1 : -1;
+                    tgtLongW = (longSign >= 0 ? 1f : -1f) * pFwd;
+                    tgtThinW = pLeft;
                     break;
                 }
                 default:
@@ -608,6 +633,212 @@ namespace ProjectName.Systems
                 ? new Vector3(b.center.x, b.min.y, b.center.z)   // 최하단 중심 — 투구는 머리에 "쓰고", 부츠는 발에 "신는"
                 : b.center;
             visual.transform.position += desired - anchorPoint;
+        }
+
+        /// <summary>
+        /// [2026-09-16] 실측 피팅 — 플레이어 메시 실측 부위(part)에 비주얼을 배치.
+        /// 슬롯별 균등 스케일 보정 후 월드 배치. part.valid=false면 false(기존 상수/스냅 폴백 사용). 성공 true 반환.
+        /// part 비유효(정점 <5) 시 즉시 폴백 — 상수 경로(세계 고정치)로 기존대로 진행된다.
+        /// </summary>
+        static bool FitVisualToBodyPart(GameObject visual, EquipmentManager.EquipmentSlot slot, Transform bone,
+                                        PlayerBodyMeasure.BodyPart part, Vector3 pFwd)
+        {
+            if (visual == null || !part.valid) return false;
+
+            var rends = visual.GetComponentsInChildren<Renderer>(true);
+            if (rends.Length == 0) return false;
+            var b = rends[0].bounds;
+            foreach (var r in rends)
+                if (r.enabled) b.Encapsulate(r.bounds);
+            if (b.size.x < 0.001f && b.size.y < 0.001f && b.size.z < 0.001f) return false;
+
+            Vector3 pSize = part.worldBounds.size;
+            float scale = 1f;
+            switch (slot)
+            {
+                case EquipmentManager.EquipmentSlot.Helmet:
+                    scale = (Mathf.Max(pSize.x, pSize.z) * 1.12f) / Mathf.Max(b.size.x, b.size.z); // 두개골 감쌈
+                    break;
+                case EquipmentManager.EquipmentSlot.Armor:
+                    scale = (pSize.x * 1.25f) / b.size.x;                                          // 몸통 감쌈
+                    break;
+                case EquipmentManager.EquipmentSlot.Shoes:
+                    scale = (Mathf.Max(pSize.x, pSize.z) * 1.15f) / Mathf.Max(b.size.x, b.size.z); // 발길이 기준(본별 좌우 part)
+                    break;
+                case EquipmentManager.EquipmentSlot.Mask:
+                    scale = (Mathf.Max(pSize.x, pSize.z) * 0.95f) / Mathf.Max(b.size.x, b.size.z);
+                    break;
+                case EquipmentManager.EquipmentSlot.Bag:
+                    scale = (pSize.x * 0.95f) / b.size.x;
+                    break;
+                default:
+                    return false;
+            }
+            scale = Mathf.Clamp(scale, 0.3f, 3.0f);
+            visual.transform.localScale *= scale;
+
+            // 스케일 후 bounds 재계산
+            b = rends[0].bounds;
+            foreach (var r in rends)
+                if (r.enabled) b.Encapsulate(r.bounds);
+
+            Vector3 partCenter = part.worldBounds.center;
+            Vector3 target = b.center;
+            switch (slot)
+            {
+                case EquipmentManager.EquipmentSlot.Helmet:
+                case EquipmentManager.EquipmentSlot.Armor:
+                    target = partCenter;
+                    break;
+                case EquipmentManager.EquipmentSlot.Shoes:
+                    // 발바닥 접지 — center.xz → part.center.xz, min.y → part.min.y
+                    target = new Vector3(partCenter.x, b.center.y, partCenter.z);
+                    target.y += part.worldBounds.min.y - b.min.y;
+                    break;
+                case EquipmentManager.EquipmentSlot.Mask:
+                {
+                    // faceCenter = part.center + pFwd*(part.size.z/2); center → faceCenter + pFwd*(0.35−0.5)*bounds.size.z
+                    //   전방 면이 얼굴 표면에서 pFwd 방향 bounds.size.z*0.35 만큼 밖, y는 눈높이.
+                    Vector3 faceCenter = partCenter + pFwd * (part.worldBounds.size.z * 0.5f);
+                    target = faceCenter + pFwd * (b.size.z * 0.35f - b.size.z * 0.5f);
+                    target.y = partCenter.y + part.worldBounds.size.y * 0.1f; // 눈높이
+                    break;
+                }
+                case EquipmentManager.EquipmentSlot.Bag:
+                {
+                    // backCenter = part.center − pFwd*(part.size.z/2); center → backCenter − pFwd*(0.5−0.1)*bounds.size.z
+                    //   등 표면에 90% 밀착·10% 매몰 허용.
+                    Vector3 backCenter = partCenter - pFwd * (part.worldBounds.size.z * 0.5f);
+                    target = backCenter - pFwd * (b.size.z * 0.5f - b.size.z * 0.1f);
+                    break;
+                }
+            }
+            visual.transform.position += target - b.center;
+
+            Debug.Log($"[ArmorVisual] 피팅 {slot}: part={part.worldBounds.size.ToString("F2")} scale보정=x{scale:F2} center={visual.transform.position.ToString("F2")}");
+            return true;
+        }
+
+        /// <summary>
+        /// [2026-09-16] 플레이어 메시 정점 실측 기반 바디 피팅 헬퍼 — 상수/추정을 폐기하고
+        /// 실제 몸 메시 정점을 본 월드 y/거리 기준으로 영역 분류해 각 부위의 월드 Bounds를 측정한다.
+        /// Humanoid 매핑 실패(Generic/FBX) 시 이름 기반 본 재탐색 폴백(FindBoneByName 재사용).
+        /// </summary>
+        private class PlayerBodyMeasure
+        {
+            public struct BodyPart
+            {
+                public Bounds worldBounds;
+                public bool valid;
+            }
+
+            public static bool TryMeasurePlayerBody(Animator placeAnim,
+                out BodyPart head, out BodyPart torso, out BodyPart leftFoot, out BodyPart rightFoot,
+                out BodyPart leftHand, out BodyPart rightHand)
+            {
+                head = default; torso = default; leftFoot = default; rightFoot = default;
+                leftHand = default; rightHand = default;
+
+                var player = GameObject.FindWithTag(PlayerTag);
+                if (player == null) return false;
+
+                // 본 월드 y 기준점 — Humanoid 매핑 실패 시 이름 검색 폴백.
+                Transform headBone = placeAnim != null ? placeAnim.GetBoneTransform(HumanBodyBones.Head) : null;
+                if (headBone == null && placeAnim != null) headBone = FindBoneByName(placeAnim, new[] { "head" });
+                Transform spineBone = placeAnim != null ? placeAnim.GetBoneTransform(HumanBodyBones.Spine) : null;
+                if (spineBone == null && placeAnim != null) spineBone = FindBoneByName(placeAnim, new[] { "spine" });
+
+                Transform lf = placeAnim != null ? placeAnim.GetBoneTransform(HumanBodyBones.LeftFoot) : null;
+                if (lf == null && placeAnim != null) lf = FindBoneByName(placeAnim, new[] { "leftfoot", "left_foot", "foot_l" });
+                Transform rf = placeAnim != null ? placeAnim.GetBoneTransform(HumanBodyBones.RightFoot) : null;
+                if (rf == null && placeAnim != null) rf = FindBoneByName(placeAnim, new[] { "rightfoot", "right_foot", "foot_r" });
+                Transform lh = placeAnim != null ? placeAnim.GetBoneTransform(HumanBodyBones.LeftHand) : null;
+                if (lh == null && placeAnim != null) lh = FindBoneByName(placeAnim, new[] { "lefthand", "left_hand", "hand_l" });
+                Transform rh = placeAnim != null ? placeAnim.GetBoneTransform(HumanBodyBones.RightHand) : null;
+                if (rh == null && placeAnim != null) rh = FindBoneByName(placeAnim, new[] { "righthand", "right_hand", "hand_r" });
+
+                float headThreshold = headBone != null ? headBone.position.y - 0.05f : float.PositiveInfinity;
+                float torsoLow = spineBone != null ? spineBone.position.y - 0.20f : float.NegativeInfinity;
+
+                const float limbRadius = 0.35f;
+                float limbR2 = limbRadius * limbRadius;
+
+                int headCnt = 0, torsoCnt = 0, lfCnt = 0, rfCnt = 0, lhCnt = 0, rhCnt = 0;
+                bool hI = false, tI = false, lfI = false, rfI = false, lhI = false, rhI = false;
+                Bounds hb = default, tb = default, lfb = default, rfb = default, lhb = default, rhb = default;
+
+                const int MaxSamples = 3000;
+                int samples = 0;
+                var rends = player.GetComponentsInChildren<Renderer>(true);
+                foreach (var r in rends)
+                {
+                    if (r == null || !r.enabled) continue;
+                    Mesh mesh = null;
+                    var smr = r as SkinnedMeshRenderer;
+                    if (smr != null && smr.sharedMesh != null) mesh = smr.sharedMesh;
+                    if (mesh == null)
+                    {
+                        var mf = r.GetComponent<MeshFilter>();
+                        if (mf != null && mf.sharedMesh != null) mesh = mf.sharedMesh;
+                    }
+                    if (mesh == null) continue;
+                    var verts = mesh.vertices;
+                    int n = verts.Length;
+                    if (n == 0) continue;
+                    int step = Mathf.Max(1, n / MaxSamples);
+                    Matrix4x4 l2w = r.transform.localToWorldMatrix; // smr는 transform L2W 근사
+                    for (int i = 0; i < n && samples < MaxSamples; i += step)
+                    {
+                        Vector3 v = l2w.MultiplyPoint3x4(verts[i]);
+                        samples++;
+                        if (headBone != null && v.y >= headThreshold)
+                        {
+                            if (!hI) { hb = new Bounds(v, Vector3.zero); hI = true; } else hb.Encapsulate(v);
+                            headCnt++;
+                            continue;
+                        }
+                        if (spineBone != null && v.y >= torsoLow && v.y < headThreshold)
+                        {
+                            if (!tI) { tb = new Bounds(v, Vector3.zero); tI = true; } else tb.Encapsulate(v);
+                            torsoCnt++;
+                            continue;
+                        }
+                        if (lf != null && (v - lf.position).sqrMagnitude <= limbR2)
+                        {
+                            if (!lfI) { lfb = new Bounds(v, Vector3.zero); lfI = true; } else lfb.Encapsulate(v);
+                            lfCnt++;
+                            continue;
+                        }
+                        if (rf != null && (v - rf.position).sqrMagnitude <= limbR2)
+                        {
+                            if (!rfI) { rfb = new Bounds(v, Vector3.zero); rfI = true; } else rfb.Encapsulate(v);
+                            rfCnt++;
+                            continue;
+                        }
+                        if (lh != null && (v - lh.position).sqrMagnitude <= limbR2)
+                        {
+                            if (!lhI) { lhb = new Bounds(v, Vector3.zero); lhI = true; } else lhb.Encapsulate(v);
+                            lhCnt++;
+                            continue;
+                        }
+                        if (rh != null && (v - rh.position).sqrMagnitude <= limbR2)
+                        {
+                            if (!rhI) { rhb = new Bounds(v, Vector3.zero); rhI = true; } else rhb.Encapsulate(v);
+                            rhCnt++;
+                            continue;
+                        }
+                    }
+                }
+
+                const int MinVerts = 5; // 정점 ≥5개일 때만 유효로 간주
+                head.valid = headCnt >= MinVerts; head.worldBounds = hb;
+                torso.valid = torsoCnt >= MinVerts; torso.worldBounds = tb;
+                leftFoot.valid = lfCnt >= MinVerts; leftFoot.worldBounds = lfb;
+                rightFoot.valid = rfCnt >= MinVerts; rightFoot.worldBounds = rfb;
+                leftHand.valid = lhCnt >= MinVerts; leftHand.worldBounds = lhb;
+                rightHand.valid = rhCnt >= MinVerts; rightHand.worldBounds = rhb;
+                return true;
+            }
         }
 
         /// <summary>[TEST28-69차 후속2] 플레이어 배치 기준 — SkinnedMeshRenderer 몸 bounds는 왜곡(헬멧 3.2m 오프 실측)되므로
