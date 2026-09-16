@@ -34,7 +34,12 @@
 ### 컴파일/검증
 - Unity 6000.4.10f1 batchmode **error CS=0**(exit 0, 1회 통과) + "Exiting batchmode successfully now!"
 - 정적 QA-Lite: 변경 9파일 괄호 균형 0(부모 실검증), 오탐지 1건은 써드파티 Free Slash VFX 데모 에셋(class명≠파일명) — 무관.
-- Play 판정 대기: ①방어구 헬멧/갑옷/부츠/장갑/방패 캐릭터 부위 표시 ②검 손바닥·창 창두 전방 상향·활 시위/손잡이 정렬 ③활 장착 시 좌클릭 발사+화살 애니, 우클릭은 행동 없음+가까운 적 자동 조준 ④주요 병사(재충원) 3D GLB+걷기/대기 애니+RecruitedSoldier 태그 ⑤Ctrl-좌클릭 드래그 상자→병사 파란원 다중 선택(+[RTS] N명·rect 로그) ⑥인벤 정렬 버튼 골드 문구 가독 ⑦Loot/창고 중세 4레이어 배경 일관. (배치컴파일 잠김 이슈 없음 — 컴파일 전 tasklist 보강)
+- Play 판정 대기: ①방어구 헬멧/갑옷/부츠/장갑/방패 캐릭터 부위 표시 ②검 손바닥·창 창두 전방 상향·활 시위/손잡이 정렬 ③활 장착 시 좌클릭 발사+화살 애니, 우클릭은 행동 없음+가까운 적 자동 조준 ④주요 병사(재충원) 3D GLB+걷기/대기 애니+RecruitedSoldier 태그 ⑤Ctrl-좌클릭 드래그 상자→병사 파란원 다중 선택(+[RTS] N명·rect 로그) ⑥인벤 정렬 버튼 골드 문구 가독 ⑦Loot/창고 중세 4레이어 배경 일관.
+
+### 🔧 65차 후속 (사용자 "테스트씬10에서 하나도 변화 없음" — 부트 상태 미노출 원인 수리)
+**진단**: Test_10 부팅 시 플레이어가 무기·방어구를 자동장착하지 않아(Fist 상태) ①방어구·②무기 그립이 시작 화면에 안 보이고, 병사 GLB는 avatar 미설정으로 T포즈(④애니 미재생). 코드는 정상 컴파일·실행(에러 0)이나 테스트 씬이 수리 결과를 부트 화면에 노출하지 않음.
+**수리(`TestTerritoryCombatSetup.cs` +124)**: ① `EquipDemoStarterGear()` 신규 — 플레이어 시작 즉시 wood 방어구 풀셋(helmet/armor/boot/glove/shield)을 인벤 보장 후 `EquipmentManager.EquipItem`으로 장착(→OnEquipmentChanged→ArmorVisualAttachSystem 비주얼 부착) + `WeaponEquipManager.Equip("weapon_spear_wood",Spear)` 창 시작 무기(그립 전방). 각 단계 try-catch 격리·크래시 금지. ② CreateGuard GLB branch에 FBX Humanoid avatar 지정(같은 레벨대 FBX avatar 로드→Animator.avatar) → SoldierShield_AC 클립이 발 퇴 매핑돼 병사 걷기/대기 애니(④ 해소). 배치컴파일 **error CS=0**(exit 0).
+- Play 판정 추가: 부팅 즉시 플레이어에 갑옷/투구/장갑/방패+창 그립, 병사 걷기/대기 동작(부트 확인). ①권 동작들은 직접 장착/활발사/Ctrl드래그로 확인. (배치컴파일 잠김 이슈 없음 — 컴파일 전 tasklist 보강)
 
 ---
 
