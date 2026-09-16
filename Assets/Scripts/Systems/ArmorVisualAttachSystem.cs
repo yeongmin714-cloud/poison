@@ -236,11 +236,16 @@ namespace ProjectName.Systems
         {
             var pose = _poseTable.TryGetValue(slot, out var p) ? p : new AttachPose { LocalPos = Vector3.zero, LocalEuler = Vector3.zero, Scale = 1f };
             var boneNames = new List<string>();
-            Renderer firstRend = null;
-            var totalBounds = new Bounds();
             float appliedScale = 1f;   // [TEST27-68차] 마지막 적용 스케일(로그용) — 루프 밖 로그 참조
             Vector3 lastAnchorWorld = default;
             bool hasAnchor = false;    // [TEST28-69차] 월드 앵커 실측값(콘솔 튜닝용)
+            bool anyRenderer = false;  // [69차 후속4] 본별 실측 로그 — 쌍슬롯은 좌우 합산 bounds 중심이 손에서 멀어 보이는 오판(장갑 0.24m)을 만들므로 본별 최대값 사용
+            float maxCenterDist = -1f;
+            string maxDistBone = null;
+            // [69차 후속4] 방패 바깥오프셋용 Spine 본 조회(부착 시 1회 — transform 기반 pLeft는 모델 시선과 어긋남)
+            Animator placeAnim = null;
+            var playerGo = GameObject.FindWithTag(PlayerTag);
+            if (playerGo != null) placeAnim = playerGo.GetComponentInChildren<Animator>();
             foreach (var bone in bones)
             {
                 if (bone == null) continue;
@@ -278,25 +283,36 @@ namespace ProjectName.Systems
                     switch (slot)
                     {
                         case EquipmentManager.EquipmentSlot.Helmet:
-                            worldAnchor = bone.position + Vector3.up * 0.03f;       // 헬멧 하단 = Head 본(두개골 상단)+3cm
+                            worldAnchor = bone.position - Vector3.up * 0.06f;       // [69차 후속4] 투구 하단 = Head 본-6cm — 본이 두개골 상단(1.44m 실측)이라 +3cm면 관 위 부유(스크린샷 66)
                             break;
                         case EquipmentManager.EquipmentSlot.Mask:
-                            worldAnchor = bone.position + pFwd * 0.07f;             // 가면 중심 = 얼굴(Head 본 + 전방)
+                            worldAnchor = bone.position + pFwd * 0.07f - Vector3.up * 0.12f; // [69차 후속4] 가면 중심 = 눈높이(본-12cm) — 본 높이면 정수리에 걸침(스크린샷 66)
                             break;
                         case EquipmentManager.EquipmentSlot.Armor:
-                            worldAnchor = bone.position + Vector3.up * 0.10f;       // 갑옷 중심 = Spine 본 + 위 10cm(가슴)
+                            worldAnchor = bone.position + Vector3.up * 0.14f;       // [69차 후속4] 갑옷 중심 = Spine 본+14cm(가슴 중앙으로 4cm 상승)
                             break;
                         case EquipmentManager.EquipmentSlot.Bag:
-                            worldAnchor = bone.position - pFwd * 0.12f;             // 가방 중심 = 등(Spine 뒤)
+                            worldAnchor = bone.position - pFwd * 0.10f + Vector3.up * 0.05f; // [69차 후속4] 가방 중심 = 등 중앙(본+5cm 위, 등 표면 뒤 10cm)
                             break;
                         case EquipmentManager.EquipmentSlot.Gloves:
                             worldAnchor = bone.position;                             // 장갑 중심 = 손 본
                             break;
                         case EquipmentManager.EquipmentSlot.Back:
-                            worldAnchor = bone.position + pLeft * 0.25f + Vector3.up * 0.03f; // 방패 = 왼팔 옆(몸 밖)
+                        {
+                            // [69차 후속4] 방패 = 손 본에서 팔 바깥쪽 10cm — transform 기반 pLeft는 모델 시선과 어긋남이
+                            //   실측됨(LeftHand 본이 transform 기준 우측 0.23m, 콘솔 로그 역산) → Spine↔손 벡터(본 기준) 사용.
+                            var lat = Vector3.zero;
+                            var spineBone = placeAnim != null ? placeAnim.GetBoneTransform(HumanBodyBones.Spine) : null;
+                            if (spineBone != null)
+                            {
+                                var d = bone.position - spineBone.position; d.y = 0f;
+                                if (d.sqrMagnitude > 0.0001f) lat = d.normalized * 0.10f;
+                            }
+                            worldAnchor = bone.position + lat + Vector3.up * 0.02f;
                             break;
+                        }
                         case EquipmentManager.EquipmentSlot.Shoes:
-                            worldAnchor = new Vector3(bone.position.x, ground.y + 0.01f, bone.position.z); // 부츠 하단 = 발바닥(지면)
+                            worldAnchor = bone.position - Vector3.up * 0.05f;       // [69차 후속4] 부츠 하단 = 복사 본-5cm — transform.y는 지면이 아니라 CC 중심(스폰 실측 0.87m)이라 부츠가 0.88m 무릎 높이에 붙던 것 수리
                             break;
                     }
                 }
@@ -305,12 +321,20 @@ namespace ProjectName.Systems
 
                 AddVisual(slot, visual);
                 boneNames.Add(bone.name);
-                var rends = visual.GetComponentsInChildren<Renderer>(true);
-                foreach (var r in rends)
+                // [69차 후속4] 본별 중심 거리 실측 — 스냅 후 이 비주얼 자체 bounds 기준(쌍슬롯 합산 왜곡 제거)
+                bool ownInit = false;
+                var ownB = new Bounds();
+                foreach (var r in visual.GetComponentsInChildren<Renderer>(true))
                 {
-                    if (!r.enabled) continue;
-                    if (firstRend == null) { firstRend = r; totalBounds = r.bounds; }
-                    else totalBounds.Encapsulate(r.bounds);
+                    if (r == null || !r.enabled) continue;
+                    if (!ownInit) { ownB = r.bounds; ownInit = true; }
+                    else ownB.Encapsulate(r.bounds);
+                }
+                if (ownInit)
+                {
+                    anyRenderer = true;
+                    var d = Vector3.Distance(ownB.center, bone.position);
+                    if (d > maxCenterDist) { maxCenterDist = d; maxDistBone = bone.name; }
                 }
             }
 
@@ -319,11 +343,13 @@ namespace ProjectName.Systems
                 Debug.LogWarning($"{LogTag} ⚠️ {slot} 비주얼 부착 실패: {itemId} — 유효 본 0개/부착 가능 프리팹 없음");
                 return false;
             }
-            if (firstRend != null)
+            if (anyRenderer)
             {
-                float centerDist = bones[0] != null ? Vector3.Distance(totalBounds.center, bones[0].position) : -1f;
-                Debug.Log($"{LogTag} ✅ {slot} 비주얼 부착: {itemId} → {string.Join(", ", boneNames)} (스케일 x{appliedScale:F2}, anchor={(hasAnchor ? lastAnchorWorld.ToString("F2") : "본 기준")}, 본↔중심 {centerDist:F2}m)");
-                if (centerDist > 0.35f)
+                string distInfo = maxCenterDist >= 0f
+                    ? $"본↔중심 {maxCenterDist:F2}m{(bones.Length > 1 && maxDistBone != null ? $" (최대 {maxDistBone})" : "")}"
+                    : "본↔중심 측정 불가";
+                Debug.Log($"{LogTag} ✅ {slot} 비주얼 부착: {itemId} → {string.Join(", ", boneNames)} (스케일 x{appliedScale:F2}, anchor={(hasAnchor ? lastAnchorWorld.ToString("F2") : "본 기준")}, {distInfo})");
+                if (maxCenterDist > 0.35f)
                     Debug.LogWarning($"{LogTag} ⚠️ {slot} 비주얼 중심이 본에서 0.35m 이상 벗어남 — 포즈 튜닝 필요(slot={slot}, item={itemId})");
             }
             else
@@ -394,7 +420,9 @@ namespace ProjectName.Systems
         }
 
         /// <summary>[TEST28-69차 후속2] 플레이어 배치 기준 — SkinnedMeshRenderer 몸 bounds는 왜곡(헬멧 3.2m 오프 실측)되므로
-        ///   루트 위치(발) + CharacterController 높이 + 월드 방향만 사용한다. 본 로컬축도 손가락 방향 문제로 배제.</summary>
+        ///   루트 위치 + 월드 방향만 사용한다. 본 로컬축도 손가락 방향 문제로 배제.
+        ///   [69차 후속4] ⚠️ player.transform.position의 Y는 지면이 아니라 CC 중심(스폰 실측 0.87m — 발은 ~0m, Head 본 1.44m).
+        ///   후속4에서 Shoes는 본 기준 앵커로 전환했으므로 ground는 더 이상 접지에 사용하지 않는다.</summary>
         static bool TryGetPlayerPlacement(out Vector3 ground, out Vector3 forward, out Vector3 left)
         {
             ground = default; forward = Vector3.forward; left = Vector3.left;
