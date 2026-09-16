@@ -46,7 +46,7 @@ namespace ProjectName.Systems
             { EquipmentManager.EquipmentSlot.Armor,  new AttachPose { LocalPos = Vector3.zero,             LocalEuler = Vector3.zero, Scale = 1.0f } },
             { EquipmentManager.EquipmentSlot.Shoes,  new AttachPose { LocalPos = new Vector3(0f, 0.05f, 0f), LocalEuler = Vector3.zero, Scale = 1.0f } },
             { EquipmentManager.EquipmentSlot.Gloves, new AttachPose { LocalPos = Vector3.zero,             LocalEuler = Vector3.zero, Scale = 1.0f } },
-            { EquipmentManager.EquipmentSlot.Back,   new AttachPose { LocalPos = Vector3.zero,             LocalEuler = Vector3.zero, Scale = 1.0f } },
+            { EquipmentManager.EquipmentSlot.Back,   new AttachPose { LocalPos = new Vector3(0f, 0.02f, 0.06f), LocalEuler = Vector3.zero, Scale = 1.0f } }, // [TEST25-66차] 방패 — 손 앞쪽 살짝 이격(판이 손 원점에 겹쳐 가려지지 않게)
         };
 
         // 슬롯별 부착 비주얼 인스턴스 (Shoes/Gloves는 좌우 2개 → List)
@@ -138,16 +138,97 @@ namespace ProjectName.Systems
                 return;
             }
             Debug.Log($"{LogTag} OnEquipmentChanged 수신 ({slot}) item={itemId} — 부착 시작");
+            // [TEST25-66차] 동기 즉시 부착 1차 시도 — 본+GLB가 이 프레임에서 해결되면 코루틴 없이 즉시 완료.
+            //   뿌리(실측): 부트 Awake 중 발화된 AttachRoutine 코루틴이 첫 yield 후 재개되지 않고 침묵 사망해
+            //   "부착 시작" 로그만 남고 장비가 안 보였다(Editor.log: 성공/미발견/로드실패 로그 전부 0건).
+            //   동기 경로는 코루틴 수명과 무관하게 같은 프레임에 부착+로그가 고정된다.
+            if (TryAttachImmediate(slot, itemId)) return;
             StartCoroutine(AttachRoutine(slot, itemId));
         }
 
         /// <summary>
-        /// 슬롯 비주얼 부착: 기존 파괴 → 부착 본 폴링(최대 5초) → GLB 로드+부착.
-        /// 본/GLB 어느 쪽이든 지연 도착에 대비해 폴링하며, 실패 시 경고 1회로 스킵.
+        /// [TEST25-66차] 동기 즉시 부착 — 본 해석+GLB 로드가 즉시 성공하면 코루틴 없이 그 자리에서 완료.
+        /// 성공 true(코루틴 불필요) / 실패 false(폴링 코루틴 폴백). 예외는 로그 후 false(코루틴이 재시도·경고).
+        /// </summary>
+        bool TryAttachImmediate(EquipmentManager.EquipmentSlot slot, string itemId)
+        {
+            try
+            {
+                // ① 기존 비주얼 파괴 (동일 슬롯 재부착/교체 공통)
+                DestroySlotVisuals(slot, log: false);
+
+                // ② 부착 본 즉시 해석
+                var bones = ResolveBones(slot, itemId);
+                if (bones == null) return false;
+
+                // ③ GLB 즉시 로드 (확장자 없는 경로 우선, .glb 폴백)
+                var prefab = Resources.Load<GameObject>(GlbResourceRoot + itemId);
+                if (prefab == null)
+                    prefab = Resources.Load<GameObject>(GlbResourceRoot + itemId + ".glb");
+                if (prefab == null) return false;
+
+                // ④ 즉시 부착
+                InstantiateAttached(slot, itemId, prefab, bones);
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"{LogTag} 동기 즉시 부착 예외({slot}, {itemId}): {e.Message} — 폴링 코루틴으로 폴백");
+                return false;
+            }
+        }
+
+        /// <summary>[TEST25-66차] 본별 인스턴스 부착 + 성공 로그(bounds 실측 포함 — 침묵 경로 금지).</summary>
+        void InstantiateAttached(EquipmentManager.EquipmentSlot slot, string itemId, GameObject prefab, Transform[] bones)
+        {
+            var pose = _poseTable.TryGetValue(slot, out var p) ? p : new AttachPose { LocalPos = Vector3.zero, LocalEuler = Vector3.zero, Scale = 1f };
+            var boneNames = new List<string>();
+            Renderer firstRend = null;
+            var totalBounds = new Bounds();
+            foreach (var bone in bones)
+            {
+                if (bone == null) continue;
+                var visual = Instantiate(prefab, bone);
+                visual.name = itemId;
+                visual.transform.localPosition = pose.LocalPos;
+                visual.transform.localRotation = Quaternion.Euler(pose.LocalEuler);
+                visual.transform.localScale = Vector3.one * pose.Scale;
+                AddVisual(slot, visual);
+                boneNames.Add(bone.name);
+                var rends = visual.GetComponentsInChildren<Renderer>(true);
+                foreach (var r in rends)
+                {
+                    if (!r.enabled) continue;
+                    if (firstRend == null) { firstRend = r; totalBounds = r.bounds; }
+                    else totalBounds.Encapsulate(r.bounds);
+                }
+            }
+
+            if (boneNames.Count == 0)
+            {
+                Debug.LogWarning($"{LogTag} ⚠️ {slot} 비주얼 부착 실패: {itemId} — 유효 본 0개");
+                return;
+            }
+            if (firstRend != null)
+            {
+                float centerDist = bones[0] != null ? Vector3.Distance(totalBounds.center, bones[0].position) : -1f;
+                Debug.Log($"{LogTag} ✅ {slot} 비주얼 부착: {itemId} → {string.Join(", ", boneNames)} (bounds size={totalBounds.size:F2}, 본↔중심 {centerDist:F2}m)");
+                if (centerDist > 1.0f)
+                    Debug.LogWarning($"{LogTag} ⚠️ {slot} 비주얼 중심이 본에서 1m 이상 벗어남 — 포즈 튜닝 필요(slot={slot}, item={itemId})");
+            }
+            else
+            {
+                Debug.Log($"{LogTag} ✅ {slot} 비주얼 부착: {itemId} → {string.Join(", ", boneNames)} (활성 렌더러 없음 — 시각 확인 요망)");
+            }
+        }
+
+        /// <summary>
+        /// 슬롯 비주얼 부착 폴백: 기존 파괴 → 부착 본 폴링(최대 5초) → GLB 로드+부착.
+        /// [TEST25-66차] 동기 즉시 부착(TryAttachImmediate) 실패분만 도달 — 본/GLB 지연 도착 대비 폴링.
         /// </summary>
         IEnumerator AttachRoutine(EquipmentManager.EquipmentSlot slot, string itemId)
         {
-            // ① 기존 비주얼 파괴 (동일 슬롯 재부착/교체 공통)
+            // ① 기존 비주얼 파괴 (동일 슬롯 재부착/교체 공통 — 즉시 부착 실패분이면 이미 비어 있어 멱등)
             DestroySlotVisuals(slot, log: false);
 
             // ② 부착 본 폴링 — Player 매 시도 재조회(대상 교체 대비)
@@ -175,22 +256,8 @@ namespace ProjectName.Systems
                 yield break;
             }
 
-            // ④ 포즈 테이블 적용 + 본별 부착
-            var pose = _poseTable.TryGetValue(slot, out var p) ? p : new AttachPose { LocalPos = Vector3.zero, LocalEuler = Vector3.zero, Scale = 1f };
-            var boneNames = new List<string>();
-            foreach (var bone in bones)
-            {
-                if (bone == null) continue;
-                var visual = Instantiate(prefab, bone);
-                visual.name = itemId;
-                visual.transform.localPosition = pose.LocalPos;
-                visual.transform.localRotation = Quaternion.Euler(pose.LocalEuler);
-                visual.transform.localScale = Vector3.one * pose.Scale;
-                AddVisual(slot, visual);
-                boneNames.Add(bone.name);
-            }
-
-            Debug.Log($"{LogTag} ✅ {slot} 비주얼 부착: {itemId} → {string.Join(", ", boneNames)}");
+            // ④ 포즈 테이블 적용 + 본별 부착 (+ 성공 로그)
+            InstantiateAttached(slot, itemId, prefab, bones);
         }
 
         // ===== 본 해석 =====

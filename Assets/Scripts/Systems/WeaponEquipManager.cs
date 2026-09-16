@@ -40,6 +40,8 @@ namespace ProjectName.Systems
             public float TargetLen;
             public int GripEnd;   // [2026-09-15 Phase H-GRIP] 0=자동(피벗 신뢰/휴리스틱), -1=bounds 최소축 끝, +1=최대축 끝
             public float GripClampMax; // [2026-09-16] 그립 오프셋 과보정 클램프 절대 상한(m) — 대형 무기(활/창 1.0), 검 0.5
+            public bool GripCenter;  // [TEST25-66차] true = 그립점을 bounds 중앙으로(활 손잡이 등 중앙 그립 무기)
+            public bool IdOverride;  // [TEST25-66차] id 전용 테이블 항목 — bounds 비신뢰 가드를 우회해 규칙 적용
         }
 
         /// <summary>bounds 지정축 성분 추출 헬퍼 (그립부/피벗 위치 판정용).</summary>
@@ -50,6 +52,18 @@ namespace ProjectName.Systems
             { WeaponType.Sword, new GripPose { LocalPos = new Vector3(0f, 0.05f, 0.02f), LocalEuler = new Vector3(0f, 0f, 90f),   TargetLen = 0.9f, GripClampMax = 0.5f } }, // 검 — 손바닥 밀착([TEST21-FOLLOWUP] y 0.12→0.05: 손에서 약간 떠 있던 것을 내려 밀착, 날 방향 정상)
             { WeaponType.Spear, new GripPose { LocalPos = new Vector3(0f, 0.45f, 0.02f), LocalEuler = new Vector3(-90f, 180f, 0f), TargetLen = 1.8f, GripEnd = -1, GripClampMax = 1.0f } }, // 창 — 자루 중심을 손에, 창두는 전방 상향([61차] Y 180: 창두(뾰족)가 뒤로 가던 것을 전방(+)으로). GripEnd=-1: 피벗이 창두(0.85+)에 있어도 pivotAtGrip 신뢰 분기를 타지 않고 그립부를 bounds 최소축 끝(자루/핸들 끝)으로 강제 → 창두가 앞으로 향함([66차])
             { WeaponType.Bow,   new GripPose { LocalPos = new Vector3(0f, 0.05f, 0.06f), LocalEuler = new Vector3(0f, 90f, 0f),  TargetLen = 1.0f, GripClampMax = 1.0f } }, // 활 — 좌우 미러 보정([TEST21-FOLLOWUP] Y -90→90: 손잡이·시위 방향 교정, 왼손 활대/오른손 시위). GripClampMax=1.0: 활의 큰 정렬 오프셋(-0.55~-0.7) 허용([66차])
+        };
+
+        // [TEST25-66차] 무기 id별 그립 오버라이드 — 타입 테이블보다 우선. 키 = GLB 파일명(확장자 제외) 또는 장비 id.
+        //   GLB 지오메트리 파싱 실측: wood_bow는 Y축 1.9m 좌우 대칭(피벗=중앙=손잡이) → GripCenter로 중앙 그립
+        //   (기존 휴리스틱은 하단 끝면을 그립으로 잡아 offset Y +0.811 = 손에서 0.8m 이탈 — Editor.log 실측).
+        //   wood_spear는 피벗=창두(65차 확정) → GripEnd=-1 유지. wood_sword는 비대칭 1.01로 bounds 비신뢰 가드에
+        //   걸려 테이블 포즈로 떨어졌던 것 → IdOverride로 가드 우회 후 정렬 경로 진행 + 실측 로그로 검증.
+        static readonly Dictionary<string, GripPose> _gripTableById = new Dictionary<string, GripPose>
+        {
+            { "wood_sword", new GripPose { LocalPos = new Vector3(0f, 0.05f, 0.02f), LocalEuler = new Vector3(0f, 0f, 90f),    TargetLen = 0.9f, GripClampMax = 0.5f, IdOverride = true } },
+            { "wood_bow",   new GripPose { LocalPos = new Vector3(0f, 0.05f, 0.06f), LocalEuler = new Vector3(0f, 90f, 0f),    TargetLen = 1.0f, GripClampMax = 1.0f, GripCenter = true, IdOverride = true } },
+            { "wood_spear", new GripPose { LocalPos = new Vector3(0f, 0.45f, 0.02f), LocalEuler = new Vector3(-90f, 180f, 0f), TargetLen = 1.8f, GripClampMax = 1.0f, GripEnd = -1, IdOverride = true } },
         };
 
         // 단도(dagger) 목표 길이 — Sword 포즈 공유, TargetLen만 오버라이드
@@ -188,8 +202,8 @@ namespace ProjectName.Systems
             if (sword.transform.localScale.sqrMagnitude < 1e-8f) sword.transform.localScale = Vector3.one;
             Debug.Log($"[Weapon] 인스턴스: {glbKey} 렌더러={rendsDiag.Length} rb제거={rbs.Length} colliderOff={cols.Length} hand={handBone.name}");
 
-            // ⑤ 그립 포즈: 타입별 테이블 적용 (검 = 기존 실측 튜닝값 유지)
-            var pose = GetGripPose(type, id);
+            // ⑤ 그립 포즈: [TEST25-66차] id 전용 오버라이드 우선 → 타입별 테이블
+            var pose = GetGripPose(type, id, glbKey);
             sword.transform.localRotation = Quaternion.Euler(pose.LocalEuler);
             sword.transform.localPosition = pose.LocalPos;
 
@@ -197,6 +211,16 @@ namespace ProjectName.Systems
             //    (부착 후 1회, 프레임 지연 없음 — renderer bounds는 Instantiate 즉시 유효)
             //    반환값 = 무기 bounds 최장축 팁(그립 반대편 끝) 월드 좌표 — 스윙 트레일 부착점.
             bool gripAligned = ApplyBoundsGripAlignment(sword, handBone, pose, out Vector3 tipWorld);
+
+            // ⑥' [TEST25-66차] 그립 실측 로그 — 손 본 ↔ 무기 bounds 중심 거리(그립 튜닝 판정 근거 고정).
+            //    중앙 그립(활)은 0에 수렴해야 정상, 끝 그립(창)은 자루 절반 길이가 정상값.
+            var rendsPost = sword.GetComponentsInChildren<Renderer>();
+            if (rendsPost.Length > 0 && handBone != null)
+            {
+                var pb = rendsPost[0].bounds;
+                for (int i = 1; i < rendsPost.Length; i++) pb.Encapsulate(rendsPost[i].bounds);
+                Debug.Log($"[Weapon] 그립 실측: {glbKey} 손({handBone.name})↔bounds중심 {Vector3.Distance(handBone.position, pb.center):F3}m, bounds={pb.size:F2}");
+            }
 
             // ⑦ 상태 갱신 + 로그
             _current = sword;
@@ -207,7 +231,7 @@ namespace ProjectName.Systems
             //    그립 정렬 실패(렌더러 0개 등) 시 팁 미산출 → 트레일 스킵(경고, 장착 자체는 계속).
             //    bounds 비신뢰 가드 스킵(테이블 포즈 사용) 케이스도 팁을 반환하므로 트레일은 정상 부착.
             if (gripAligned)
-                WeaponSwingTrail.Attach(sword, tipWorld);
+                WeaponSwingTrail.Attach(sword, tipWorld, type);   // [TEST25-66차] 무기 타입 전파(기존 기본값 Fist 버그 수리)
             else
                 Debug.LogWarning("[Weapon] 스윙 트레일 스킵: 그립 정렬 실패로 팁 미산출");
 
@@ -221,9 +245,14 @@ namespace ProjectName.Systems
                 Debug.LogWarning("[WeaponEquipManager] EquipmentManager.Instance 없음 — 무기 슬롯 미동기화");
         }
 
-        /// <summary>타입별 그립 포즈 조회. dagger full-id는 Sword 포즈에 TargetLen만 0.45로 오버라이드.</summary>
-        static GripPose GetGripPose(WeaponType type, string id)
+        /// <summary>타입별 그립 포즈 조회. [TEST25-66차] id 전용 오버라이드 우선 → 타입 테이블. dagger full-id는 Sword 포즈에 TargetLen만 0.45로 오버라이드.</summary>
+        static GripPose GetGripPose(WeaponType type, string id, string glbKey = null)
         {
+            // id 전용 오버라이드 우선 — 장비 id → GLB 키 순 조회
+            if (!string.IsNullOrEmpty(id) && _gripTableById.TryGetValue(id, out var byId))
+                return byId;
+            if (!string.IsNullOrEmpty(glbKey) && _gripTableById.TryGetValue(glbKey, out var byGlb))
+                return byGlb;
             if (!_gripTable.TryGetValue(type, out var pose))
                 pose = _gripTable[WeaponType.Sword]; // 미등록 타입(Fist 등) 폴백 — 검 포즈
             if (type == WeaponType.Sword && !string.IsNullOrEmpty(id) && id.Contains("dagger"))
@@ -273,7 +302,7 @@ namespace ProjectName.Systems
                                 : axis == 1 ? Mathf.Max(b.size.x, b.size.z)
                                 : Mathf.Max(b.size.x, b.size.y);
                 float asymRatio = secondLen > 0.0001f ? len / secondLen : float.MaxValue;
-                if (asymRatio < BoundsTrustMinRatio)
+                if (!pose.IdOverride && asymRatio < BoundsTrustMinRatio)
                 {
                     // 테이블 포즈 기준 그립축(+Y 축) 끝 = TargetLen 지점 (스케일 보정 없음 → 로컬 좌표 그대로)
                     tipWorld = weapon.transform.TransformPoint(new Vector3(0f, pose.TargetLen, 0f));
@@ -291,6 +320,23 @@ namespace ProjectName.Systems
 
                 // pivot-to-grip 오프셋(스케일 보정 배율 반영) → localPosition에서 차감
                 Vector3 pivot = weapon.transform.position;
+
+                // [TEST25-66차] 중앙 그립 — 그립점 = bounds 중앙(활 손잡이). 기존 끝면 휴리스틱은 하단 활끝을
+                //   그립으로 잡아 offset Y +0.811m(손에서 0.8m 이탈 — Editor.log 실측)을 낳았다. 활 GLB는
+                //   Y축 1.9m 좌우 대칭(피벗=중앙=손잡이 — 파싱 실측)이므로 중앙 스냅이 기하학적으로 정답.
+                if (pose.GripCenter)
+                {
+                    Vector3 centerGrip = b.center;
+                    Vector3 offC = handBone.InverseTransformPoint(pivot + (centerGrip - pivot) * scaleFix)
+                                 - handBone.InverseTransformPoint(pivot);
+                    weapon.transform.localPosition -= offC;
+                    Vector3 dirC = (b.center - centerGrip).sqrMagnitude > 1e-8f
+                        ? (b.center - centerGrip).normalized : weapon.transform.up;
+                    Vector3 tipPreC = b.center + dirC * (len * 0.5f);
+                    tipWorld = pivot + (tipPreC - centerGrip) * scaleFix;
+                    Debug.Log($"[Weapon] 그립 정렬(중앙 그립): bone={handBone.name}, offset={offC:F3}, bounds={b.size:F2} (스케일=x{scaleFix:F2})");
+                    return true;
+                }
 
                 // [2026-09-15 Phase H-GRIP] 그립부 결정 — 피벗 관례 우선.
                 //   대부분의 무기 GLB는 피벗이 손잡이(그립부)에 있다. 피벗이 최장축 끝부(≤15% 또는 ≥85%)에

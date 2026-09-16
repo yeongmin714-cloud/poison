@@ -73,20 +73,25 @@ namespace ProjectName.Systems
         {
             if (Mouse.current == null) return;
 
-            // [TEST23-FIX] 좌클릭 드래그는 **Ctrl 키를 누른 채**일 때만 활성 — 평상 시(아이템 모드) 좌클릭=공격 유지.
+            // [TEST23-FIX] 좌클릭 드래그는 **Ctrl 키를 누른 채** 시작 — 평상 시(아이템 모드) 좌클릭=공격 유지.
+            // [TEST25-66차] 드래그 시작 후에는 Ctrl을 떼어도 지속(기존: Update 초단 Ctrl 미홀드 return이라
+            //   드래그 중 Ctrl 해제 시 즉시 취소 → 박스·선택 모두 실패하는 체감). Ctrl은 시작 조건으로만 사용.
             bool ctrlActiveForDrag = false;
             if (Keyboard.current != null)
                 ctrlActiveForDrag = Keyboard.current.ctrlKey.isPressed
                     || Keyboard.current.leftCtrlKey.isPressed
                     || Keyboard.current.rightCtrlKey.isPressed;
-            if (!ctrlActiveForDrag) return;   // Ctrl 미홀드 → 드래그 스킵, 좌클릭=공격은 PlayerCombat이 그대로 수행
+            if (!_isDragging && !ctrlActiveForDrag) return;   // 드래그 중이 아니면 Ctrl 미홀드 스킵 — 좌클릭=공격 유지
 
-            // 좌클릭 드래그 시작
-            if (Mouse.current.leftButton.wasPressedThisFrame)
+            // 좌클릭 드래그 시작 (Ctrl+좌클릭 down)
+            if (Mouse.current.leftButton.wasPressedThisFrame && ctrlActiveForDrag)
             {
                 consumeLeftClickAsDrag = true;   // PlayerCombat: 이번 좌클릭(작성 드래그)을 공격 대신 드래그로 위임
                 _dragStartMouse = Mouse.current.position.ReadValue();
                 _isDragging = true;
+                if (_mainCamera == null || !_mainCamera.gameObject.activeInHierarchy)
+                    _mainCamera = Camera.main;   // 드래그 시작 시 카메라 갱신(씬 전환 stale 대비)
+                Debug.Log($"[RTS] 드래그 시작 (Ctrl+좌클릭) start=({_dragStartMouse.x:F0},{_dragStartMouse.y:F0})");
             }
 
             // 드래그 중
@@ -114,6 +119,11 @@ namespace ProjectName.Systems
                     // C9-22: Shift 누르면 추가 선택, 아니면 새 선택
                     bool additive = Keyboard.current != null && Keyboard.current.shiftKey.isPressed;
                     SelectGuardsInRect(_selectionRect, additive);
+                }
+                else
+                {
+                    // [TEST25-66차] 미확정 실측 로그 — 클릭 한계 미달 드래그도 흔적을 남겨 침묵 구간 제거
+                    Debug.Log("[RTS] 드래그 미확정(이동량 한계 미달) — 단순 클릭은 공격용");
                 }
                 // 단순 클릭은 무시 (좌클릭은 공격용)
             }
@@ -249,7 +259,12 @@ namespace ProjectName.Systems
         /// </summary>
         public void SelectGuardsInRect(Rect screenRect, bool additive = false)
         {
-            if (_mainCamera == null) return;
+            if (_mainCamera == null)
+            {
+                // [TEST25-66차] 무로그 얼리리턴 제거 — 침묵 스킵은 원인 파악을 불가하게 한다
+                Debug.LogWarning("[RTS] 메인 카메라 없음 — 드래그 선택 스킵");
+                return;
+            }
 
             if (!additive) ClearSelection();
 

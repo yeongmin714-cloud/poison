@@ -199,11 +199,21 @@ namespace ProjectName.Systems
             // 2026-09-11: 공격 범위 표시기 부착 — 무기 타입별 사거리 링(지면). 맨손 때는 자동 숨김.
             WeaponRangeIndicator.EnsureOn(player.transform);
 
-            // [2026-09-16] 데모 자동장착 — 시작 즉시 방어구 풀셋(wood) + 창이 보이도록.
-            // 방어구 비주얼(ArmorVisualAttachSystem)과 무기 그립(WeaponEquipManager)은
-            // OnEquipmentChanged/장착 즉시 반영되므로 부팅 직후 확인 가능. 각 단계 try-catch 격리(크래시 금지).
-            EquipDemoStarterGear();
+            // [TEST25-66차] 데모 자동장착 — 시작 즉시 방어구 풀셋(wood) + 창이 보이도록.
+            // 뿌리(실측): Awake 중 즉시 장착하면 ArmorVisualAttachSystem.AttachRoutine 코루틴이 부팅 프레임에서
+            //   첫 yield 후 재개되지 않고 침묵 사망("부착 시작" 로그 후 성공/실패 로그 전무 — Editor.log 실측).
+            //   → 장착 이벤트를 부트 완료 후(0.25s)로 지연해 모든 시스템 기동 뒤에 발화. ArmorVisualAttachSystem
+            //   쪽에도 동기 즉시 부착 경로를 추가해 이중 방어(패치 66-#3).
+            StartCoroutine(EquipDemoStarterGearDelayed());
             Debug.Log($"[TestTerritoryCombat] ✅ Player 설정 완료 (pos={player.transform.position}, 표면 y={SurfaceY(0f, 0f):F2})");
+        }
+
+        // [TEST25-66차] 부팅 레이스 흡수 — Awake 완료 후 0.25s 뒤 장착(위 주석 참조).
+        System.Collections.IEnumerator EquipDemoStarterGearDelayed()
+        {
+            yield return new WaitForSeconds(0.25f);
+            Debug.Log("[TestTerritoryCombat] 🛡️ 데모 자동장착 시작(부트 지연 해제 — 시스템 기동 완료 후)");
+            EquipDemoStarterGear();
         }
 
         // [2026-09-16] 테스트씬 부팅용 시작 장비 데모 — wood 방어구 풀셋 + 창을 인벤 보장 후 즉시 장착.
@@ -812,36 +822,36 @@ namespace ProjectName.Systems
             if (visCol != null)
                 DestroyImmediate(visCol);
 
-            // 2026-09-10/09-15: 병사 비주얼 — GLB 모델 확실 부착(플레이스홀더/캡슐 방지).
-            // 사장님 요구: 테스트 병사는 병사 GLB로 렌더. 프로덕션(GuardManager.CreateGuard L302) 검증 로더로
-            // GLB를 먼저 로드하고(대문자 경로+확장자), 실패 시 FBX Humanoid 부착, 둘 다 실패 시에만 캡슐 유지.
+            // 2026-09-10/09-15: 병사 비주얼 — [TEST25-66차] FBX 우선 + GLB 재질 이식.
+            // 뿌리(실측): Soldier_*.glb는 임베디드 애니메이션 0개 + 뼈대 중첩(metarig/Root/spine/spine.001/...),
+            //   반면 Soldier_*.anim 클립 바인딩은 flat 단일 경로(foot.L, shin.L, shoulder.L, Root 등)라
+            //   Unity 제너릭 바인딩이 GLB 중첩 경로와 불일치 → GLB 몸통은 무애니(T포즈).
+            //   FBX(fbx/soldier_lv*_rigged)는 flat 계층이라 클립 경로가 일치 → 애니 재생(59차 Editor.log 실측).
+            //   → 몸통은 FBX(애니 보장), GLB는 재질 소스(CopyMaterialsFromGlb)로만 사용 — 59차 검증 조합 복원.
             {
-                // ① GLB 먼저 — GuardManager.GetSoldierModelPath/Resources.Load 관례(정확한 대문자+확장자, 실동작 검증).
-                string glbName = level >= 40 ? "Soldier_Lv40-50_Rigged"
-                              : level >= 20 ? "Soldier_Lv20-40_Rigged"
-                              : "Soldier_Lv1-20_Rigged";
-                // [TEST23-FIX] GLB 로드 — 확장자 없는 경로 우선(슬라임 CreateMonster 선례: "Models/UserProvided/Slime_Rigged"),
-                // 실패 시 확장자 포함 폴백. 로그(01:03)에서 확장자 포함이 null → 6기 전부 FBX 폴백이었다.
-                var glbPrefab = Resources.Load<GameObject>($"Models/UserProvided/{glbName}");
-                if (glbPrefab == null)
-                    glbPrefab = Resources.Load<GameObject>($"Models/UserProvided/{glbName}.glb");
-                string glbPath = $"{glbName}.glb";
+                // ① FBX 우선 — SoldierShield_AC + HumanoidClipDriver(Soldier) + GLB 재질 이식.
+                string fbxKey = level >= 40
+                    ? "Models/UserProvided/fbx/soldier_lv40-50_rigged"
+                    : level >= 20 ? "Models/UserProvided/fbx/soldier_lv20-40_rigged"
+                    : "Models/UserProvided/fbx/soldier_lv1-20_rigged";
+                string matGlbKey = level >= 40
+                    ? "Models/UserProvided/Soldier_Lv40-50_Rigged"
+                    : level >= 20 ? "Models/UserProvided/Soldier_Lv20-40_Rigged"
+                    : "Models/UserProvided/Soldier_Lv1-20_Rigged";
+                var fbxPrefab = Resources.Load<GameObject>(fbxKey);
                 GameObject attachedBody = null;
 
-                if (glbPrefab != null)
+                if (fbxPrefab != null)
                 {
-                    var soldier = Instantiate(glbPrefab, guardGO.transform);
+                    var soldier = Instantiate(fbxPrefab, guardGO.transform);
                     soldier.name = $"{goName}_Body";
                     soldier.transform.localPosition = Vector3.zero;
                     soldier.transform.localRotation = Quaternion.identity;
                     soldier.transform.localScale = Vector3.one;
-
-                    // bounds 접지 — GLB 피벗 발끝을 실제 지면(SurfaceY)에 정렬.
-                    // (pos.y는 박스/배치 오프셋(+1.0)이 이미 들어 있어 그대로 쓰면 발이 1m 떠서 '접지 불량'.
-                    //  루트 BoxCollider는 그대로 두고 모델만 지면에 붙여 시각 접지 + 콜라이더 히트는 루트로 유지.)
+                    // 접지 — FBX도 발끝을 실제 지면에 정렬(pos.y는 박스 오프셋+1.0 포함, 발이 뜸).
                     GroundModelToY(soldier, SurfaceY(pos.x, pos.z));
 
-                    // 캡슐 시각 제거 + GLB 자식 콜라이더 제거(루트 BoxCollider만 유지)
+                    // 캡슐 시각 제거 + FBX 자식 콜라이더 제거(루트 BoxCollider만 유지)
                     DestroyImmediate(visual);
                     foreach (var c in soldier.GetComponentsInChildren<Collider>(true))
                         DestroyImmediate(c);
@@ -854,39 +864,39 @@ namespace ProjectName.Systems
                     anim.applyRootMotion = false;
                     anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
 
-                    // [2026-09-16] GLB에 FBX Humanoid avatar 지정 — ROLLBACK.
-                    //   병사 GLB는 FBX와 bone 명칭이 달라 FBX Humanoid avatar를 지정하면
-                    //   Generic 리그(기존 정상 걷기)가 깨져 T포즈가 된다(사용자 실측).
-                    //   기존 SoldierShield_AC + HumanoidClipDriver(Soldier) 경로로 복귀.
+                    bool avatarOk = anim.avatar != null && anim.avatar.isValid && anim.avatar.isHuman;
+                    Debug.Log($"[TestTerritoryCombat] 🧍 {goName} avatar={(anim.avatar != null ? anim.avatar.name : "NULL")}"
+                        + $" isValid={(anim.avatar != null ? anim.avatar.isValid.ToString() : "-")}"
+                        + $" isHuman={(anim.avatar != null ? anim.avatar.isHuman.ToString() : "-")}"
+                        + $" controller={(anim.runtimeAnimatorController != null ? anim.runtimeAnimatorController.name : "NULL")}");
+                    if (!avatarOk)
+                        Debug.LogWarning($"[TestTerritoryCombat] ⚠️ {goName} Humanoid avatar 무효 — Soldier_AC 재생 불가(T포즈) 가능성");
 
                     // 병사 모드 드라이버 — Speed=transform 델타, 공격은 GuardCombatAI→TriggerAttack
                     var driver = guardGO.AddComponent<HumanoidClipDriver>();
                     driver.mode = HumanoidClipDriver.DriveMode.Soldier;
+                    HumanoidClipDriver.CopyMaterialsFromGlb(soldier, matGlbKey);
 
-                    Debug.Log($"[TestTerritoryCombat] ✅ 병사 GLB 부착: {goName} ← Models/UserProvided/{glbPath} (SoldierShield_AC+드라이버)");
+                    Debug.Log($"[TestTerritoryCombat] ✅ 병사 FBX 부착(애니 보장): {goName} ← {fbxKey} + GLB 재질 이식({matGlbKey}) (SoldierShield_AC+드라이버)");
                     attachedBody = soldier;
                 }
                 else
                 {
-                    // ② GLB 실패 → Humanoid FBX 부착(SoldierShield_AC+드라이버, GLB 재질 이식) — 기존 경로 유지.
-                    string fbxKey = level >= 40
-                        ? "Models/UserProvided/fbx/soldier_lv40-50_rigged"
-                        : level >= 20 ? "Models/UserProvided/fbx/soldier_lv20-40_rigged"
-                        : "Models/UserProvided/fbx/soldier_lv1-20_rigged";
-                    string matGlbKey = level >= 40
-                        ? "Models/UserProvided/Soldier_Lv40-50_Rigged"
-                        : level >= 20 ? "Models/UserProvided/Soldier_Lv20-40_Rigged"
-                        : "Models/UserProvided/Soldier_Lv1-20_Rigged";
-                    var fbxPrefab = Resources.Load<GameObject>(fbxKey);
-
-                    if (fbxPrefab != null)
+                    // ② FBX 실패 폴백 → GLB 부착(애니는 클립 경로 불일치로 재생 안 될 수 있음 — 렌더 보장용).
+                    string glbName = level >= 40 ? "Soldier_Lv40-50_Rigged"
+                                  : level >= 20 ? "Soldier_Lv20-40_Rigged"
+                                  : "Soldier_Lv1-20_Rigged";
+                    var glbPrefab = Resources.Load<GameObject>($"Models/UserProvided/{glbName}");
+                    if (glbPrefab == null)
+                        glbPrefab = Resources.Load<GameObject>($"Models/UserProvided/{glbName}.glb");
+                    if (glbPrefab != null)
                     {
-                        var soldier = Instantiate(fbxPrefab, guardGO.transform);
+                        var soldier = Instantiate(glbPrefab, guardGO.transform);
                         soldier.name = $"{goName}_Body";
                         soldier.transform.localPosition = Vector3.zero;
                         soldier.transform.localRotation = Quaternion.identity;
                         soldier.transform.localScale = Vector3.one;
-                        // 접지 — FBX도 발끝을 실제 지면에 정렬(pos.y는 박스 오프셋+1.0 포함, 발이 뜸).
+
                         GroundModelToY(soldier, SurfaceY(pos.x, pos.z));
 
                         DestroyImmediate(visual);
@@ -900,27 +910,18 @@ namespace ProjectName.Systems
                         anim.applyRootMotion = false;
                         anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
 
-                        bool avatarOk = anim.avatar != null && anim.avatar.isValid && anim.avatar.isHuman;
-                        Debug.Log($"[TestTerritoryCombat] 🧍 {goName} avatar={(anim.avatar != null ? anim.avatar.name : "NULL")}"
-                            + $" isValid={(anim.avatar != null ? anim.avatar.isValid.ToString() : "-")}"
-                            + $" isHuman={(anim.avatar != null ? anim.avatar.isHuman.ToString() : "-")}"
-                            + $" controller={(anim.runtimeAnimatorController != null ? anim.runtimeAnimatorController.name : "NULL")}");
-                        if (!avatarOk)
-                            Debug.LogWarning($"[TestTerritoryCombat] ⚠️ {goName} Humanoid avatar 무효 — Soldier_AC 재생 불가(T포즈) 가능성");
-
                         var driver = guardGO.AddComponent<HumanoidClipDriver>();
                         driver.mode = HumanoidClipDriver.DriveMode.Soldier;
-                        HumanoidClipDriver.CopyMaterialsFromGlb(soldier, matGlbKey);
 
-                        Debug.Log($"[TestTerritoryCombat] ✅ 병사 Humanoid FBX 부착: {goName} ← {fbxKey} (SoldierShield_AC+드라이버)");
+                        Debug.LogWarning($"[TestTerritoryCombat] ⚠️ 병사 GLB 폴백 부착(FBX 실패 — 애니 바인딩 불일치 가능): {goName} ← Models/UserProvided/{glbName}.glb");
                         attachedBody = soldier;
                     }
                 }
 
                 if (attachedBody == null)
                 {
-                    // ③ GLB·FBX 모두 미로드 — 캡슐(플레이스홀더) 유지 경고(가급적 발생 안 함).
-                    Debug.LogWarning($"[TestTerritoryCombat] ⚠️ 병사 GLB/FBX 모두 미로드 — 캡슐 유지: {goName} (Models/UserProvided/{glbPath})");
+                    // ③ FBX·GLB 모두 미로드 — 캡슐(플레이스홀더) 유지 경고(가급적 발생 안 함).
+                    Debug.LogWarning($"[TestTerritoryCombat] ⚠️ 병사 GLB/FBX 모두 미로드 — 캡슐 유지: {goName}");
 
                     // [2026-09-15] 공격 배치 보장: 병사GO에 Rigidbody 중력 off(위 접지 수정) + 모델 없어도
                     // GuardCombatAI 추종 기반 동작은 유지되도록 태그/약어 기록.

@@ -514,6 +514,8 @@ namespace ProjectName.Systems
                 Debug.Log("[PlayerCombat] 🏹 활 발사 실패 — 화살 부족 or ArrowManager 미생성");
                 return;
             }
+            // [TEST25-66차] 발사 성공 실측 로그 — 화살 비행(ArrowProjectile) + ArcheryShot(발사 애니) 동시 고정.
+            Debug.Log("[PlayerCombat] 🏹 활 발사 성공 — 화살 비행(ArrowProjectile) + ArcheryShot(활 사격 애니)");
 
             // ③ 발사 애니 — ArcheryShot 명시 트리거. LastAttackTime은 TryAttack 시작부에서 이미 갱신되어
             //    드라이버 감시가 Bow 분기에서 ArcheryShot을 자동 트리거하며, TriggerBowShot()은

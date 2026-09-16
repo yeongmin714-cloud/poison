@@ -424,6 +424,11 @@ namespace ProjectName.Systems
             bool throwing = PlayerWeaponModeBridge.ThrowSelected;
             if (wtype != _prevWType)
             {
+                // [TEST25-66차] 전환 실측 로그 — 활 장착 시 BowEnter 트리거 발화 증거 고정
+                // (Player_AC에 BowEnter 전이 존재 확인: m_ConditionEvent: BowEnter, HasExitTime=0 → 도달 가능).
+                Debug.Log($"[Anim] 무기 타입 전환 {_prevWType} → {wtype}"
+                    + (wtype == WeaponType.Bow ? " — BowEnter 트리거 발화(활 스탠스 전이)"
+                    : wtype == WeaponType.Spear ? " — SpearEnter 트리거 발화" : ""));
                 if (wtype == WeaponType.Bow) _anim.SetTrigger("BowEnter");
                 if (wtype == WeaponType.Spear) _anim.SetTrigger("SpearEnter");
             }

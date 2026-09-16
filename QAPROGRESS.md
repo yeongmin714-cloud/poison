@@ -4,7 +4,35 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-16 (65차)
+> **최종 갱신:** 2026-09-16 (66차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-16 ✅ 66차 — TEST25 타모델 회귀 5건 전면 수리[병사애니 FBX복원/장비 즉시가시부착/그립 id오버라이드/활 스탠스 실측/Ctrl드래그 지속])
+
+> **스코프**: 타 AI 모델 세션(64~65차) 이후 사용자 5건 리포트(①병사 애니 미재생 ②활 전용 애니+화살 비행 ③장비 장착 비가시 ④Ctrl+드래그 선택 ⑤무기 그립 불일치)를 Editor.log 실측 + GLB 바이너리 파싱으로 뿌리 확정 후 6파일 수리. 배치컴파일 **error CS=0**(exit 0).
+
+### 뿌리 원인 확정 (실측)
+- **①병사 애니**: `Soldier_*.glb` 파싱 — **임베디드 애니메이션 0개** + 뼈대 중첩(`metarig/Root/spine/spine.001/...`). 반면 `Soldier_*.anim` 클립 바인딩은 **flat 단일 경로**(foot.L, shin.L, shoulder.L, Root) → Unity 제너릭 바인딩이 GLB 중첩 경로와 불일치 → GLB 몸통 무애니(T포즈). FBX는 flat 계층이라 클립 경로 일치(59차 애니 동작 실측). 63차 GLB 우선 로드가 뿌리.
+- **③장비 비가시**: 부트(Awake) EquipDemoStarterGear → ArmorVisualAttachSystem이 6슬롯 전부 "부착 시작" 수신 후 **성공(✅)·본 미발견·로드 실패 로그 전무**(AttachRoutine 코루틴이 첫 yield 후 재개 없이 침묵 사망). wood_*.glb 전부 존재 확인 — 로드 문제 아님.
+- **⑤그립**: 검 `bounds 비신뢰(비대칭 1.06 미달) → 테이블 포즈` 폴백 / 활 `그립 정렬 offset=(0.295, 0.811, -0.355)` — 활 GLB는 Y축 1.9m **좌우 대칭(피벗=중앙=손잡이)** 인데 휴리스틱이 하단 활끝을 그립으로 잡아 손에서 0.8m 이탈 / 스윙 트레일 `타입=Fist`(Attach 호출부 타입 미전달).
+- **②활**: Player_AC에 BowEnter 트리거+전이(HasExitTime=0)+IsBow 조건 전이 다수+상태(BowAimedF/BowBack1/DrawShoot) 존재 확인 — 발사·적중은 마지막 세션 로그로 동작 실측(TryBowShot 4회+ArrowProjectile OnTriggerEnter).
+- **④드래그**: 선택 로직(좌표계·태그·IsRecruited) 정상 — Update 초단 `if(!ctrl) return;`이 **드래그 중 Ctrl 해제 시 즉시 취소**(박스·선택 동시 실패 체감) + SelectGuardsInRect 카메라 null 무로그 얼리리턴.
+
+### 변경 사항 (6파일)
+**`Systems/TestTerritoryCombatSetup.cs` (#1/#3)**: CreateGuard 본 분기 **FBX 우선 + GLB 재질 이식(CopyMaterialsFromGlb)** 로 복원(59차 검증 조합 — FBX=애니 보장, GLB=재질 소스) + GLB는 FBX 실패 폴백으로 격하 + avatar 실측 로그. EquipDemoStarterGear를 **0.25s 지연 코루틴**(부트 레이스 흡수 — Awake 중 코루틴 침묵 사망 차단).
+**`Systems/ArmorVisualAttachSystem.cs` (#3)**: `TryAttachImmediate` 동기 즉시 부착 경로 신설(본+GLB 즉시 해결 시 코루틴 없이 같은 프레임 완료) + `InstantiateAttached` 공용화 + **성공/실패 무조건 로그**(bounds size·본↔중심 거리 실측, 1m 이탈 경고) — 침묵 경로 제거. Back(방패) 포즈 (0,0.02,0.06) 이격.
+**`Systems/WeaponEquipManager.cs` (#5)**: GripPose에 `GripCenter`/`IdOverride` 필드 + **무기 id별 그립 오버라이드 테이블 `_gripTableById`**(wood_sword/wood_bow/wood_spear — GLB 파싱 실측 기반) 신설, GetGripPose 우선순위 id→glbKey→type. **활 중앙 그립 분기**(그립점=bounds 중앙 — 하단끝 휴리스틱 차단), IdOverride는 bounds 비신뢰 가드 우회. `그립 실측` 로그(손↔bounds중심 거리). 스윙 트레일 Attach에 **type 전파**(Fist 버그 수리).
+**`Systems/HumanoidClipDriver.cs` (#2)**: 무기 타입 전환 시 `[Anim] 무기 타입 전환 → BowEnter 트리거 발화` 실측 로그(스탠스 전이 증거 고정).
+**`Systems/PlayerCombat.cs` (#2)**: 활 발사 성공 실측 로그(화살 비행+ArcheryShot 동시 고정).
+**`Systems/GuardSelectionManager.cs` (#4)**: 드래그 **시작 후 Ctrl 해제 허용**(Ctrl=시작 조건으로 한정 — `if(!_isDragging && !ctrl) return` 구조) + 드래그 시작/미확정 실측 로그 + 시작 시 카메라 갱신 + SelectGuardsInRect 카메라 null 경고 로그.
+
+### 스코프 판정 (미변경)
+- `Systems/GuardManager.cs` LoadSoldierModel(프로덕션)은 **ForceBiped 경로**(ModelAnimatorAssigner — 36차 검증)라 FBX-first 전환 무의미 → 미변경(회귀 리스크 회피). 테스트 씬(Test_10) 병사만 FBX 우선 복원.
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0**(exit 0, 1회 통과) + 변경 6파일 괄호 균형 0(부모 실검증).
+- Play 판정 대기: ① 병사 걷기/대기 애니(FBX+GLB 재질 — `병사 FBX 부착(애니 보장)` 로그) ② 활 장착 시 `[Anim] 무기 타입 전환 → BowEnter` 후 활 스탠스 + 좌클릭 `활 발사 성공` ③ 시작 0.25s 후 투구/갑옷/장갑/부츠/방패 가시(`[ArmorVisual] ✅ ... 비주얼 부착` 로그) ④ Ctrl+드래그 박스→`[RTS] N명 선택` + 파란 원 ⑤ `[Weapon] 그립 실측` 로그로 검/창/활/방패 손 위치 판정(활은 0에 수렴).
 
 ---
 
