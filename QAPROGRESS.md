@@ -1825,3 +1825,26 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 
 ### Play 판정 대기
 ① 내 공격 시 내병사 합세 ② 적 문지기(호감도 50) 가까이서 공격 → 호감도 하락 → 느낌표 잠깐 뜨고 사라짐 → 플레이어/내병사 공격 ③ 친화(호감도 50) 적 문지기는 원래 공격 안 함 ④ 호감도 낮은 타 영지 병사는 처음부터 적대.
+
+---
+
+## 69차 후속3·4 (2026-09-16, 스크린샷 65/66+앵커 콘솔 실측) — 장비 부위별 배치 확정
+
+### 변경 로그
+- **후속3 (커밋 5e49d6c0)**: EquipmentSlot에 Mask/Bag 신설(가스마스크=얼굴 Head/가스팩=등 Spine — MapArmorSlot 폴백이 Armor로 보내 Spine에 붙던 것 수리) + 장비칸 예약 2칸→🎭가면/🎒가방 실슬롯 + 장갑/부츠 통합 id의 단일 GLB 부재(좌우 파일만 존재)→InstantiateAttached 본별 좌우 GLB 로드 위임(bool 반환) + 통합 id→좌 GLB 아이콘 맵 8종 + 창 방향 3차 (-90,0,0).
+- **후속4 (커밋 8d905e97, 스크린샷 66 미세조정)**: 콘솔 anchor 실측 역산 —
+  - ⚠️ **player.transform.y는 지면이 아니라 CC 중심**(스폰 실측 0.87m; Head 본 1.44/Spine 1.12/손 1.24/발 ~0m) → Shoes가 ground.y+0.01=0.88m(무릎)에 붙던 뿌리 수리: 부츠 하단 = 복사 본-5cm(본 기준·언덕 추종).
+  - **Head 본=두개골 상단(1.44m) 확정** → 투구 하단 본-6cm(관 감쌈), 가면 본-12cm+전방 7cm(눈높이 — 정수리 걸침 수리).
+  - 갑옷 Spine+14cm(가슴 중앙), 가방 본+5cm·등 뒤 10cm.
+  - 방패 pLeft(transform 기반) 폐기 — LeftHand 본이 transform 기준 우측 0.23m 역산(모델 시선 어긋남) → **Spine↔손 벡터** 바깥 10cm+본+2cm.
+  - 부착 로그 본별 실측화 — 쌍슬롯 합산 bounds가 장갑을 "본↔중심 0.24m"로 오판(실제론 각 손 본 스냅) → 본별 최대 거리+본명 표기.
+
+### 버그/제약 (신규 확정)
+- CC/transform 피벗·SkinnedMesh bounds는 접지 기준으로 절대 신뢰 금지 — 장비 배치는 전부 본 위치 기준(이동 후 Head 2.94=지형 1.5+1.44로 언덕 추종 검증).
+- 통합 부츠/장갑은 단일 GLB가 없으므로 본별 좌우 GLB(wood_boot_left/right 등) 필수.
+
+### 컴파일/검증
+- 배치컴파일 error CS=0 (후속3·후속4 모두 exit 0). 변경: ArmorVisualAttachSystem.cs(후속4) + EquipmentManager/InventoryWindow/WeaponEquipManager/GblItemIconRenderer(후속3).
+
+### Play 판정 대기 (스크린샷 67~)
+① 투구 머리 감쌈 ② 가면 얼굴(눈높이) ③ 갑옷 가슴 중앙 ④ 가방 등 중앙 ⑤ 부츠 발(지면 근처) ⑥ 장갑 양손 ⑦ 방패 왼손 바깥쪽 ⑧ 부착 로그 본↔중심 ≤0.2m — 어긋나면 스크린샷+anchor 콘솔값 → 슬롯 상수 즉시 튜닝.
