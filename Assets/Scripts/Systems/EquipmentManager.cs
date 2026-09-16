@@ -26,7 +26,7 @@ namespace ProjectName.Systems
             return em;
         }
 
-        // 장비 슬롯 enum
+        // 장비 슬롯 enum — [TEST28-69차] Mask(가면: 가스 마스크 등 얼굴) / Bag(가방: 가스팩 등 등 장비) 추가
         public enum EquipmentSlot
         {
             Helmet,
@@ -34,7 +34,9 @@ namespace ProjectName.Systems
             Weapon,
             Shoes,
             Gloves,
-            Back
+            Back,
+            Mask,
+            Bag
         }
 
         // 장비 슬롯 데이터

@@ -219,15 +219,9 @@ namespace ProjectName.Systems
                 var bones = ResolveBones(slot, itemId);
                 if (bones == null) return false;
 
-                // ③ GLB 즉시 로드 (확장자 없는 경로 우선, .glb 폴백)
-                var prefab = Resources.Load<GameObject>(GlbResourceRoot + itemId);
-                if (prefab == null)
-                    prefab = Resources.Load<GameObject>(GlbResourceRoot + itemId + ".glb");
-                if (prefab == null) return false;
-
-                // ④ 즉시 부착
-                InstantiateAttached(slot, itemId, prefab, bones);
-                return true;
+                // ③ 즉시 부착 — [TEST28-69차 후속3] 프리팹 로드를 본별로 위임
+                //   (통합 부츠/장갑 id의 단일 GLB는 없고 좌우 GLB만 존재 — 기존 단일 게이트에서 전체 실패였음)
+                return InstantiateAttached(slot, itemId, bones, null);
             }
             catch (System.Exception e)
             {
@@ -236,8 +230,9 @@ namespace ProjectName.Systems
             }
         }
 
-        /// <summary>[TEST27-68차] 본별 인스턴스 부착 + 슬롯 목표 크기 정규화 + 본 스냅 + 성공 로그(침묵 경로 금지).</summary>
-        void InstantiateAttached(EquipmentManager.EquipmentSlot slot, string itemId, GameObject prefab, Transform[] bones)
+        /// <summary>[TEST28-69차 후속3] 본별 인스턴스 부착 + 슬롯 목표 크기 정규화 + 본 스냅 + 성공 로그.
+        ///   plainPrefab은 통합 GLB(없으면 null 허용 — 부츠/장갑은 본별 좌우 GLB 로드). 하나라도 부착하면 true.</summary>
+        bool InstantiateAttached(EquipmentManager.EquipmentSlot slot, string itemId, Transform[] bones, GameObject plainPrefab)
         {
             var pose = _poseTable.TryGetValue(slot, out var p) ? p : new AttachPose { LocalPos = Vector3.zero, LocalEuler = Vector3.zero, Scale = 1f };
             var boneNames = new List<string>();
@@ -252,7 +247,7 @@ namespace ProjectName.Systems
 
                 // [TEST28-69차 후속2] 통합 부츠/장갑 — 좌우 GLB가 별도 파일이면 본 좌우에 맞는 쪽을 선택 부착
                 //   (wood_boot 통합 id → LeftFoot엔 wood_boot_left, RightFoot엔 wood_boot_right. 전용 파일 없으면 통합/원본 유지)
-                var bonePrefab = prefab;
+                var bonePrefab = plainPrefab;
                 bool pairSlot = slot == EquipmentManager.EquipmentSlot.Shoes || slot == EquipmentManager.EquipmentSlot.Gloves;
                 string idLower = itemId.ToLowerInvariant();
                 if (pairSlot && !idLower.Contains("left") && !idLower.Contains("right"))
@@ -274,28 +269,34 @@ namespace ProjectName.Systems
                 //   플레이어를 덮는 문제. 최장축을 슬롯 목표 치수로 균등 스케일.
                 appliedScale = NormalizeVisualScale(visual, GetTargetSize(slot, itemId));
 
-                // [TEST28-69차 후속2] 배치 앵커 — SkinnedMesh 몸 bounds 왜곡(헬멧 3.2m 오프 실측)과
-                //   본 로컬축 방향(손 본 +Z = 손가락 방향 = 아래) 문제를 피해,
-                //   캐릭터 루트(발) + CharacterController 높이 + 월드 방향(전방/왼쪽)으로 배치한다.
+                // [TEST28-69차 후속3] 배치 앵커 — 본 위치(실측 정확) + 월드 방향 오프셋.
+                //   ①CC 높이 기준은 모델보다 커서 투구가 머리 위 20~25% 부유(스크린샷 65 실측)
+                //   ②SkinnedMesh 몸 bounds 왜곡(3.2m) ③본 로컬축(손 본 +Z=손가락 방향) 모두 폐기.
                 Vector3? worldAnchor = null;
-                if (TryGetPlayerPlacement(out var ground, out var pHeight, out var pFwd, out var pLeft))
+                if (TryGetPlayerPlacement(out var ground, out var pFwd, out var pLeft))
                 {
                     switch (slot)
                     {
                         case EquipmentManager.EquipmentSlot.Helmet:
-                            worldAnchor = ground + Vector3.up * (pHeight - 0.22f);          // 헬멧 하단 = 머리 꼭대기 근처(살짝 씌움)
+                            worldAnchor = bone.position + Vector3.up * 0.03f;       // 헬멧 하단 = Head 본(두개골 상단)+3cm
+                            break;
+                        case EquipmentManager.EquipmentSlot.Mask:
+                            worldAnchor = bone.position + pFwd * 0.07f;             // 가면 중심 = 얼굴(Head 본 + 전방)
                             break;
                         case EquipmentManager.EquipmentSlot.Armor:
-                            worldAnchor = ground + Vector3.up * (pHeight * 0.63f);          // 갑옷 중심 = 가슴 높이
+                            worldAnchor = bone.position + Vector3.up * 0.10f;       // 갑옷 중심 = Spine 본 + 위 10cm(가슴)
+                            break;
+                        case EquipmentManager.EquipmentSlot.Bag:
+                            worldAnchor = bone.position - pFwd * 0.12f;             // 가방 중심 = 등(Spine 뒤)
+                            break;
+                        case EquipmentManager.EquipmentSlot.Gloves:
+                            worldAnchor = bone.position;                             // 장갑 중심 = 손 본
+                            break;
+                        case EquipmentManager.EquipmentSlot.Back:
+                            worldAnchor = bone.position + pLeft * 0.25f + Vector3.up * 0.03f; // 방패 = 왼팔 옆(몸 밖)
                             break;
                         case EquipmentManager.EquipmentSlot.Shoes:
                             worldAnchor = new Vector3(bone.position.x, ground.y + 0.01f, bone.position.z); // 부츠 하단 = 발바닥(지면)
-                            break;
-                        case EquipmentManager.EquipmentSlot.Gloves:
-                            worldAnchor = bone.position + Vector3.down * 0.05f + pFwd * 0.03f;             // 장갑 중심 = 손목 아래 살짝(주먹 방향)
-                            break;
-                        case EquipmentManager.EquipmentSlot.Back:
-                            worldAnchor = bone.position + pLeft * 0.25f + Vector3.up * 0.03f;              // 방패 = 왼팔 옆(몸 밖, 팔에 든 느낌)
                             break;
                     }
                 }
@@ -315,8 +316,8 @@ namespace ProjectName.Systems
 
             if (boneNames.Count == 0)
             {
-                Debug.LogWarning($"{LogTag} ⚠️ {slot} 비주얼 부착 실패: {itemId} — 유효 본 0개");
-                return;
+                Debug.LogWarning($"{LogTag} ⚠️ {slot} 비주얼 부착 실패: {itemId} — 유효 본 0개/부착 가능 프리팹 없음");
+                return false;
             }
             if (firstRend != null)
             {
@@ -329,6 +330,7 @@ namespace ProjectName.Systems
             {
                 Debug.Log($"{LogTag} ✅ {slot} 비주얼 부착: {itemId} → {string.Join(", ", boneNames)} (활성 렌더러 없음 — 시각 확인 요망)");
             }
+            return true;
         }
 
         // [TEST27-68차] 슬롯별 목표 최대 치수(m) — 67차 Play 실측(헬멧 bounds 1.37m 등, 플레이어 ~1.7m) 기반
@@ -340,6 +342,8 @@ namespace ProjectName.Systems
             { EquipmentManager.EquipmentSlot.Shoes,  0.36f },
             { EquipmentManager.EquipmentSlot.Gloves, 0.24f },
             { EquipmentManager.EquipmentSlot.Back,   0.85f },
+            { EquipmentManager.EquipmentSlot.Mask,   0.30f },   // [TEST28-69차] 가면(가스 마스크)
+            { EquipmentManager.EquipmentSlot.Bag,    0.45f },   // [TEST28-69차] 가방(가스팩)
         };
         // [TEST28-69차] 슬롯별 bounds 중심/앵커 오프셋(본 로컬) — Bottom 앵커용 접지 오프셋
         static readonly Dictionary<EquipmentManager.EquipmentSlot, Vector3> _centerOffset =
@@ -391,14 +395,12 @@ namespace ProjectName.Systems
 
         /// <summary>[TEST28-69차 후속2] 플레이어 배치 기준 — SkinnedMeshRenderer 몸 bounds는 왜곡(헬멧 3.2m 오프 실측)되므로
         ///   루트 위치(발) + CharacterController 높이 + 월드 방향만 사용한다. 본 로컬축도 손가락 방향 문제로 배제.</summary>
-        static bool TryGetPlayerPlacement(out Vector3 ground, out float height, out Vector3 forward, out Vector3 left)
+        static bool TryGetPlayerPlacement(out Vector3 ground, out Vector3 forward, out Vector3 left)
         {
-            ground = default; height = 1.8f; forward = Vector3.forward; left = Vector3.left;
+            ground = default; forward = Vector3.forward; left = Vector3.left;
             var player = GameObject.FindWithTag("Player");
             if (player == null) return false;
             ground = player.transform.position;
-            var cc = player.GetComponent<CharacterController>();
-            if (cc != null) height = Mathf.Max(1f, cc.height);
             forward = player.transform.forward; forward.y = 0f; forward.Normalize();
             left = Vector3.Cross(Vector3.up, forward);
             if (left.sqrMagnitude < 0.0001f) left = Vector3.left;
@@ -428,19 +430,15 @@ namespace ProjectName.Systems
                 yield break;
             }
 
-            // ③ GLB 로드 (WeaponEquipManager와 동일 경로, id = 파일명)
-            // [TEST23-FIX] 확장자 없는 경로 우선, 실패 시 .glb 폴백 (슬라임/병사 선례와 동일).
+            // ③ GLB 로드 — [TEST28-69차 후속3] 프리팹 로드를 본별로 위임(통합 부츠/장갑은 좌우 GLB 별도 파일).
+            //    단일/좌우 모두 실패할 때만 경고(WarnOnce) 후 스킵.
             var prefab = Resources.Load<GameObject>(GlbResourceRoot + itemId);
             if (prefab == null)
                 prefab = Resources.Load<GameObject>(GlbResourceRoot + itemId + ".glb");
-            if (prefab == null)
+            if (!InstantiateAttached(slot, itemId, bones, prefab))
             {
-                WarnOnce($"load:{itemId}", $"{LogTag} GLB 로드 실패: {GlbResourceRoot}{itemId}(.glb 폴백 포함) — {slot} 부착 스킵");
-                yield break;
+                WarnOnce($"load:{itemId}", $"{LogTag} GLB 로드 실패: {GlbResourceRoot}{itemId}(.glb/좌우 포함) — {slot} 부착 스킵");
             }
-
-            // ④ 포즈 테이블 적용 + 본별 부착 (+ 성공 로그)
-            InstantiateAttached(slot, itemId, prefab, bones);
         }
 
         // ===== 본 해석 =====
@@ -510,6 +508,20 @@ namespace ProjectName.Systems
                     var foreArm = animator.GetBoneTransform(HumanBodyBones.LeftLowerArm);
                     if (foreArm == null) foreArm = FindBoneByName(animator, new[] { "leftlowerarm", "left_lower_arm", "lowerarm_l", "forearm_l" });
                     return Single(foreArm);
+                }
+
+                case EquipmentManager.EquipmentSlot.Mask: // [TEST28-69차] 가면 — 얼굴(Head 본)
+                {
+                    var head = animator.GetBoneTransform(HumanBodyBones.Head);
+                    if (head == null) head = FindBoneByName(animator, new[] { "head" });
+                    return Single(head);
+                }
+
+                case EquipmentManager.EquipmentSlot.Bag: // [TEST28-69차] 가방 — 등(Spine 본)
+                {
+                    var spine = animator.GetBoneTransform(HumanBodyBones.Spine);
+                    if (spine == null) spine = FindBoneByName(animator, new[] { "spine" });
+                    return Single(spine);
                 }
 
                 default:

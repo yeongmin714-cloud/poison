@@ -225,10 +225,8 @@ namespace ProjectName.UI
             new EquipCellDef { badge = "👞신발", real = true,  slot = ProjectName.Systems.EquipmentManager.EquipmentSlot.Shoes },
             new EquipCellDef { badge = "🧤장갑", real = true,  slot = ProjectName.Systems.EquipmentManager.EquipmentSlot.Gloves },
             new EquipCellDef { badge = "🧣망토", real = true,  slot = ProjectName.Systems.EquipmentManager.EquipmentSlot.Back },
-            new EquipCellDef { badge = "예약",   real = false },
-            new EquipCellDef { badge = "예약",   real = false },
-            new EquipCellDef { badge = "예약",   real = false },
-            new EquipCellDef { badge = "예약",   real = false },
+            new EquipCellDef { badge = "🎭가면", real = true,  slot = ProjectName.Systems.EquipmentManager.EquipmentSlot.Mask },   // [TEST28-69차] 예약칸 → 가면(가스 마스크)
+            new EquipCellDef { badge = "🎒가방", real = true,  slot = ProjectName.Systems.EquipmentManager.EquipmentSlot.Bag },    // [TEST28-69차] 예약칸 → 가방(가스팩)
         };
 
         private const int EQUIP_GRID_COLS = 5;   // 통합 장비칸 열 수 (2행×5열 = 10칸 고정)
@@ -3560,6 +3558,9 @@ namespace ProjectName.UI
             if (s.Contains("helmet") || s.Contains("투구")) return ProjectName.Systems.EquipmentManager.EquipmentSlot.Helmet;
             if (s.Contains("shoe") || s.Contains("boot") || s.Contains("신발")) return ProjectName.Systems.EquipmentManager.EquipmentSlot.Shoes;
             if (s.Contains("glove") || s.Contains("장갑")) return ProjectName.Systems.EquipmentManager.EquipmentSlot.Gloves;
+            // [TEST28-69차] 가면/가방 슬롯 — 가스 마스크(얼굴)와 가스팩(등) 분리 장착
+            if (s.Contains("mask") || s.Contains("마스크")) return ProjectName.Systems.EquipmentManager.EquipmentSlot.Mask;
+            if (s.Contains("pack") || s.Contains("bag") || s.Contains("가방")) return ProjectName.Systems.EquipmentManager.EquipmentSlot.Bag;
             if (s.Contains("cape") || s.Contains("망토") || s.Contains("shield") || s.Contains("방패") || s.EndsWith("_back")) return ProjectName.Systems.EquipmentManager.EquipmentSlot.Back;
             return ProjectName.Systems.EquipmentManager.EquipmentSlot.Armor;
         }
