@@ -75,6 +75,13 @@ namespace ProjectName.Systems
         public string ChargedClipName = "Charged_Upward_Slash"; // [Phase 1-1] 차지 클립 플러그인 — FBX 확보 시 클립명만 갱신
         public string ParryClipName = "Sword_Parry_Backward_1"; // [Phase 1-2] 패링 클립 플러그인 — FBX 확보 시 클립명만 갱신
 
+        // ===== 활(Bow) 드로→릴리즈 (2026-09-17): 좌클릭 홀드 = 드로(파워 축적), 해제 = 릴리즈(발사) =====
+        // 근접 우클릭 차지(위)와 별개의 좌클릭 경로 — 검/창/Fist에는 영향 없음.
+        private bool _bowDrawing;                 // 활 드로 진행 중 여부
+        private float _bowDrawHeldTime;           // 드로 홀드 누적 시간(초)
+        private const float BowDrawMaxHold = 0.5f; // 드로 최대 = 0.5초 — 이때 파워 1.0 도달
+        private const float BowMinFire = 0.18f;    // 이 파워 미만 = 탭 = 캔슬(발사 안 함)
+
         // ===== C4-08: 자동 조준 상태 =====
         private IDamageable _currentTarget;
 
@@ -197,6 +204,18 @@ namespace ProjectName.Systems
                 {
                     ReleaseCharge(_chargeHeldTime >= ChargeMinHold);
                 }
+                // [활 드로→릴리즈] 매 프레임 드로 누적 + 좌클릭 해제 = 릴리즈(파워 반영 발사)
+                // 근접 우클릭 차지와 별개 좌클릭 경로 — 검/창/Fist에는 영향 없음(_bowDrawing은 활에서만 true).
+                if (_bowDrawing)
+                {
+                    _bowDrawHeldTime += Time.deltaTime;
+                }
+                if (Mouse.current.leftButton.wasReleasedThisFrame && _bowDrawing)
+                {
+                    bool wasDrawing = _bowDrawing;
+                    _bowDrawing = false;
+                    if (wasDrawing) ReleaseBow(Mathf.Clamp01(_bowDrawHeldTime / BowDrawMaxHold));
+                }
             }
 
             // 좌클릭 감지 (InputSystem)
@@ -225,6 +244,15 @@ namespace ProjectName.Systems
                 if (GuardSelectionManager.consumeLeftClickAsDrag)
                 {
                     GuardSelectionManager.consumeLeftClickAsDrag = false;   // 드래그로 소비
+                    return;
+                }
+                // [활 드로 시작] 좌클릭 press 시 활이면 드로 시작 — 근접 parry/TryAttack 경로는 스킵하고
+                // 해제(wasReleasedThisFrame) 시 ReleaseBow로 파워 반영 발사. 근접 우클릭 차지와 무관.
+                if (isBowEquipped)
+                {
+                    _bowDrawing = true;
+                    _bowDrawHeldTime = 0f;
+                    AttackSoundLayerManager.PlayBowDraw(); // [활 드로] 좌클릭 press — 당김 스트레치 사운드 발화
                     return;
                 }
                 // [Phase 1-2] 패링 — 공격 시작 짧은 순간 방어 판정 창(우클릭 차지와 동시 아님)
@@ -263,6 +291,19 @@ namespace ProjectName.Systems
 
             float bonus = Mathf.Clamp01(held / ChargeMaxHold); // 0~1 충전 게이지
             TryChargeAttack(1f + bonus * (ChargeDamageMultiplier - 1f));
+        }
+
+        /// <summary>[활 드로→릴리즈] 좌클릭 해제 — 파워 기반 화살 발사. 화살 소모/발사체 생성은 ArrowManager 담당.</summary>
+        /// 파워가 최소(BowMinFire) 미만이면 탭으로 간주해 드로 캔슬(발사 안 함). 근접 ReleaseCharge와 별개 경로.
+        private void ReleaseBow(float power)
+        {
+            if (power < BowMinFire)
+            {
+                Debug.Log($"[Bow] 드로 캔슬 (파워 너무 낮음) power={power:F2}");
+                return;
+            }
+            _bowDrawHeldTime = 0f;
+            TryBowShot(power);
         }
 
         /// <summary>
@@ -391,7 +432,7 @@ namespace ProjectName.Systems
             //      Fist/Sword는 기존 WeaponCombo B안이 드라이버에서 그대로 처리됨(정밀튜닝 보존).
             if (_currentWeapon != null && _currentWeapon.weaponType == ProjectName.Core.WeaponType.Bow)
             {
-                TryBowShot();
+                TryBowShot(1f);   // 드로→릴리즈 외 즉발 회귀용 — 파워 풀(1f)
                 return;
             }
 
@@ -456,7 +497,7 @@ namespace ProjectName.Systems
         /// 화살 부족 시 미스 처리(LastHitValid=false) 후 종료(근접 공격으로 폴백하지 않음 — 활은 근접 무기가 아님).
         /// 카메라 이펙트/런지는 발사 성공 시에만 적용.
         /// </summary>
-        private void TryBowShot()
+        private void TryBowShot(float power)
         {
             // ① 발사 사운드 — 무기별 레이어링
             PlayWeaponSwingSound();
@@ -504,7 +545,7 @@ namespace ProjectName.Systems
             }
 
             // ③ 화살 소모 + 발사체 생성 — origin: 활 위치(플레이어 + up*1.5m), 데미지: WeaponData.Bow.damage
-            //    (화살 종류별 보너스 데미지 합산은 ArrowManager 내부 처리)
+            //    (화살 종류별 보너스 데미지 합산 + 파워 반영 속도/데미지는 ArrowManager 내부 처리)
             //    [TEST21-FOLLOWUP] ArrowManager lazy 자가 확보 — 씬 미부트/초기화 순서로 Instance가 null이면
             //    즉시 생성 시도(EnsureGameManager 보장과 이중 안전, 멱등). 없으면 발사 불가로 안내.
             if (ArrowManager.Instance == null)
@@ -514,7 +555,7 @@ namespace ProjectName.Systems
             }
             Vector3 origin = transform.position + Vector3.up * 1.5f;
             bool fired = ArrowManager.Instance != null
-                && ArrowManager.Instance.TryShootArrow(origin, dir, WeaponData.Bow.damage);
+                && ArrowManager.Instance.TryShootArrow(origin, dir, WeaponData.Bow.damage, power);
             if (!fired)
             {
                 // 화살 부족 — 발사 실패. TryShootArrow 내부에서 차단 메시지 표시됨.

@@ -4,7 +4,24 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-16 (69차 후속16)
+> **최종 갱신:** 2026-09-17 (화살 액션 고품질)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-17 ✅ 화살 액션 고품질 — 드로→릴리즈 발사 + 화살 모델(샤프트·콘촉·플레처) + 명중 박힘(stick) + 화살 사운드(드로/임팩트))
+
+> **입력**: "화살 액션이 고품질로 나오게" — 기존 \"좌클릭 즉발 직발사 실린더 + 단순 소모\"를 끌어올리기. 계획서: `docs/ARCHERY_ACTION_UPGRADE_PLAN.md`. **뿌리 진단**: ①발사 모션이 단일 ArcheryShot 클립(드로 feel 없음) ②차지(활시위 힘) 매커니즘 없음(근접만 우클릭 차지 존재) ③발사체가 실린더 1개 ④화살 명중이 PlayerCombat 공격 경로를 안 타 임팩트 사운드 부재. 검증상 📌 `AttackSoundLayerManager`는 코드에 존재(파일명 검색 오탐에 주의) + `CombatFXGate.PlayHitFX(target, hitPos, ...)` lastHitPoint 오버로드 존재 + `PrimitiveType.Cone`은 **없음**.
+
+### 변경 사항 (4파일)
+**`Systems/PlayerCombat.cs`**: 활 드로→릴리즈 신규 경로(근접 우클릭 차지 무회귀) — 필드 `_bowDrawing/_bowDrawHeldTime/BowDrawMaxHold 0.5/BowMinFire 0.18` + 좌클릭 press(활) 시 드로 시작·해제 시 `ReleaseBow(power)` + `TryBowShot()`→`TryBowShot(float power)`(즉발 회귀 `TryBowShot(1f)`) + 드로 시작 `AttackSoundLayerManager.PlayBowDraw()`.
+**`Systems/ArrowManager.cs`**: `TryShootArrow(origin,dir,baseDamage,power)` 4-arg 신설 — `speed=_arrowSpeed*(0.7+0.5*power)`(파워 0→70%, 1→120%), `damage=Round(base+bonus+power*8)`; 기존 3-arg는 4-arg(power=1f) 위임(하위 호환).
+**`Systems/ArrowProjectile.cs`**: 화살 모델 조립 `AssembleArrow` — 샤프트(실린더) + 촉(절차 콘 메시 `BuildArrowHeadCone`, `PrimitiveType.Cone` 없음 → 직접 생성·양면 와인딩) + 플레처 3(Cube 120° 방사); **촉/플레처 Material 인스턴스 분리**(공유 `.color` 덮어쓰기 버그 방지); 명중 시 `_stuck=true`+`SetParent(hitGO,true)` 스틱+6초 잔존+kinematic/velocity0; 지면 꽂힘 `_stuck=true`+2초; 명중 임팩트 `AttackSoundLayerManager.PlayAttackHit(Bow,false)` 1회.
+**`Systems/AttackSoundLayerManager.cs`**: `PlayBowDraw()` 신규 — `attack_swing_bow` 우선/기본 폴백, 낮은 피치 0.85·볼륨 0.65 드로 스트레치.
+
+### 컴파일/QA
+- 배치컴파일 **error CS=0**(exit 0, success banner) + 괄호 균형 0(4파일: 131/131·19/19·28/28·45/45). DLL 심볼 착륙 검증(ReleaseBow/BuildArrowHeadCone/PlayBowDraw >0).
+- 서브 QA 에이전트 **10/10 PASS, 회귀 0건**(근접 차지 무회귀/화살 태그 allowlist 유지/이중 사운드 없음/파워 전달 정합/드로 상태머신 무스택/재질 분리/스틱 정합/CS0104 정규화/필드 1회 선언). 저위험 노트: 2/3-arg 위임 시 파워 풀(1f)=+8데미지·1.2x속도 — 현재 외부 호출자 없어 실영향 0.
+- Play 판정 대기(테스트 40): ①활 장착 좌클릭 홀드→드로(스트레치음)+해제→파워 반영 발사, 탭=캔슬 ②화살이 실린더 아닌 샤프트+금속촉+깃털 ③적 명중 시 화살이 몸통에 6초 박힘+임팩트사운드 ④형태/명중 너무 큰 화살은 크기·피벗 튜닝.
 
 ---
 

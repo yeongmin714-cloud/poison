@@ -2917,3 +2917,20 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ### Play 판정 대기 (테스트 39)
 ①인벤 한 그리드에 재료+무기 전부 ②전리품 우클릭/드래그 → 즉시 보임 ③해제 → 즉시 복귀 ④핫바 아이콘 ⑤인벤 밖 드롭 바구니
+
+## 🏹 2026-09-17: 화살 액션 고품질 — 드로→릴리즈 발사(파워) + 화살 모델(샤프트·콘촉·플레처) + 명중 박힘(stick) + 화살 사운드(드로/임팩트) (ARCHERY-ACTION-70)
+
+> **목표**: 기존 "좌클릭 즉발 직발사 실린더 + 단순 소모" 궁술을 끌어올리기. **뿌리 진단**: ①발사 모션 단일 ArcheryShot 클립(드로 feel 없음 — DoubleL Bow_Attack A/B 2클립 미활용) ②차지(활시위 힘) 없음 ③발사체 실린더 1개 ④화살 명중이 근접 공격 경로를 안 타 임팩트 사운드 부재. 계획서: `docs/ARCHERY_ACTION_UPGRADE_PLAN.md`. 검증: 📌 `AttackSoundLayerManager`는 코드에 존재+`PlayHitFX(target,hitPos,...)` 오버로드 존재+`PrimitiveType.Cone` 없음(절차 콘 생성으로 해결).
+
+| 항목 | 뿌리 원인 | 수리 | 상태 |
+|:---|:---|:---|:---:|
+| 활 드로 feel 없음 | 좌클릭 즉발 직발사, 근접만 우클릭 차지 | **좌클릭 홀드=드로(최대 0.5s 파워 축적)→해제=릴리즈** — `_bowDrawing/_bowDrawHeldTime/BowDrawMaxHold/BowMinFire`, `ReleaseBow(power)`, `TryBowShot(float power)` | ✅ |
+| 파워 반영 없음 | ArrowManager 무인자/직속 고정 | `TryShootArrow(...,power)` 4-arg — `speed=_arrowSpeed*(0.7+0.5*power)`, `damage=Round(base+bonus+power*8)`; 3-arg는 power=1f 위임 | ✅ |
+| 화살 촌스러움 | 실린더 1개 | **AssembleArrow** — 샤프트+절차 콘촉(`BuildArrowHeadCone`, `PrimitiveType.Cone` 없음→직접 생성·양면 와인딩)+플레처3(120° 방사); **촉/플레처 Material 인스턴스 분리**(공유 `.color` 덮어씀 방지) | ✅ |
+| 명중 시 화살 즉시 소멸 | OnTriggerEnter → Destroy | **박힘(stick)** — `SetParent(hitGO,true)`+`_stuck`+kinematic/velocity0+6초 잔존(타겟 파괴 시 자연 제거); 지면 꽂힘 2초 | ✅ |
+| 화살 명중 임팩트 사운드 부재 | 화살이 근접 공격 경로를 안 탐 | `ArrowProjectile` 명중 분기 1회 `AttackSoundLayerManager.PlayAttackHit(Bow,false)` | ✅ |
+| 드로 당김 사운드 부재 | 드로 경로 신설이라 없음 | `AttackSoundLayerManager.PlayBowDraw()` 신규(`attack_swing_bow` 우선·피치 0.85/볼륨 0.65), PlayerCombat 드로 시작 호출 | ✅ |
+| 검증 | — | 배치컴파일 error CS=0(exit 0) + 괄호 균형 0(4파일) + DLL 심볼 착륙 + 서브 QA 10/10 PASS 회귀 0건 | ✅ |
+
+### Play 판정 대기 (테스트 40)
+①활 장착 좌클릭 홀드→드로(스트레치음) + 해제→파워 반영 발사, 탭(0.18 미만)=캔슬 ②화살이 실린더 아닌 샤프트+금속촉+깃털 ③적 명중 시 화살 6초 박힘+임팩트사운드 ④형태/모션이 과하면 화살 크기·피벗·드로 시간 튜닝. 잔여 Phase(B 발사 애니 A/B 클립 배선·E 비행 휘파람·F 조준/드로 게이지 UI).

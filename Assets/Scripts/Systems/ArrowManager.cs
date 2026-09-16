@@ -51,8 +51,16 @@ namespace ProjectName.Systems
             return TryShootArrow(origin, direction, baseDamage);
         }
 
-        /// <summary>화살 1개 소모하고 지정 위치(origin)에서 발사. 실패 시 false 반환.</summary>
+        /// <summary>화살 1개 소모하고 지정 위치(origin)에서 발사. 실패 시 false 반환.
+        /// 파워 미지정(3-arg) → 파워 풀(1f) 위임 — 기존 호출 하위 호환 보장.</summary>
         public bool TryShootArrow(Vector3 origin, Vector3 direction, float baseDamage)
+        {
+            return TryShootArrow(origin, direction, baseDamage, 1f);
+        }
+
+        /// <summary>화살 1개 소모하고 지정 위치(origin)에서 파워 기반 발사(드로→릴리즈). 실패 시 false 반환.</summary>
+        /// 파워(0~1)로 발사 속도/데미지 보정: 파워 0→속도 70%, 파워 1→속도 120%; 데미지 +power*8.
+        public bool TryShootArrow(Vector3 origin, Vector3 direction, float baseDamage, float power)
         {
             if (!HasArrows())
             {
@@ -75,9 +83,11 @@ namespace ProjectName.Systems
             // 발사체 생성 — origin 우선(호출부 지정 활 위치), 미지정 시 스폰 포인트/기본 위치
             Vector3 spawnPos = origin;
 
-            int totalDamage = Mathf.RoundToInt(baseDamage + arrowData.damageBonus);
+            // 파워 반영 — 발사 속도(0~1 파워: 70%~120%)와 데미지(+power*8) 보정
+            float speed = _arrowSpeed * (0.7f + 0.5f * power);
+            int totalDamage = Mathf.RoundToInt(baseDamage + arrowData.damageBonus + power * 8f);
 
-            ArrowProjectile.Spawn(spawnPos, direction, _arrowSpeed, totalDamage, arrowData.trailColor);
+            ArrowProjectile.Spawn(spawnPos, direction, speed, totalDamage, arrowData.trailColor);
 
             return true;
         }

@@ -177,6 +177,17 @@ namespace ProjectName.Systems
             }
         }
 
+        /// <summary>활 드로(당김) 사운드 — 시위를 당길 때 낮은 피치의 스트레치. 클립 없으면 사일런트.</summary>
+        public static void PlayBowDraw()
+        {
+            if (!Application.isPlaying) return;
+            EnsureHost();
+            AudioClip clip = LoadLayerClip(Layer.Swing, "_bow"); // attack_swing_bow 우선, attack_swing 폴백
+            if (clip == null) { Debug.Log("[AttackSoundLayerManager] 🏹 드로 요청 (clip 없음 — 사일런트)"); return; }
+            // 드로는 릴리즈 twang(고피치 1.6)과 대비되게 낮은 피치로 당김 스트레치
+            _host.PlayWithPitch((int)Layer.Swing, clip, 0.85f, 0.65f);
+        }
+
         /// <summary>치명타 전용 단일 임팩트 재생 (외부 특수 상황용 — 현재 미사용).</summary>
         public static void PlayImpactCrit(WeaponType weaponType)
         {
