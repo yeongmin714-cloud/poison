@@ -283,12 +283,12 @@ namespace ProjectName.Systems
                 TryGetPlayerPlacement(out _, out var alignFwd, out var alignLeft);
                 ApplySlotAxisAlignment(visual, bone, slot, placeAnim, alignFwd, alignLeft);
 
-                // [2026-09-16] 실측 피팅 — 슬롯 규칙 대상(Helmet/Armor/Shoes/Mask/Bag)은 플레이어 메시 본 기반 피팅 시도.
-                //   성공 시 기존 상수 worldAnchor + SnapVisualToBone 폴백을 건너뛴다(Gloves/Back은 기존 경로 그대로).
+                // [2026-09-16] 실측 피팅 — 슬롯 규칙 대상(Helmet/Armor/Shoes/Gloves/Mask/Bag)은 플레이어 메시 본 기반 피팅 시도.
+                //   성공 시 기존 상수 worldAnchor + SnapVisualToBone 폴백을 건너뛴다(Back은 기존 상수 경로 그대로).
                 bool bodyFitted = false;
                 if (slot == EquipmentManager.EquipmentSlot.Helmet || slot == EquipmentManager.EquipmentSlot.Armor
-                    || slot == EquipmentManager.EquipmentSlot.Shoes || slot == EquipmentManager.EquipmentSlot.Mask
-                    || slot == EquipmentManager.EquipmentSlot.Bag)
+                    || slot == EquipmentManager.EquipmentSlot.Shoes || slot == EquipmentManager.EquipmentSlot.Gloves
+                    || slot == EquipmentManager.EquipmentSlot.Mask || slot == EquipmentManager.EquipmentSlot.Bag)
                 {
                     PlayerBodyMeasure.BodyPart fitPart = default;
                     switch (slot)
@@ -299,6 +299,9 @@ namespace ProjectName.Systems
                         case EquipmentManager.EquipmentSlot.Mask:   fitPart = mHead; break;
                         case EquipmentManager.EquipmentSlot.Shoes:
                             fitPart = bone.name.ToLowerInvariant().Contains("left") ? mLeftFoot : mRightFoot;
+                            break;
+                        case EquipmentManager.EquipmentSlot.Gloves: // [2026-09-16] 본 이름(left 포함)으로 좌/우 손 part 선택 — Shoes와 동일 규칙
+                            fitPart = bone.name.ToLowerInvariant().Contains("left") ? mLeftHand : mRightHand;
                             break;
                     }
                     bodyFitted = FitVisualToBodyPart(visual, slot, bone, fitPart, alignFwd);
@@ -657,7 +660,7 @@ namespace ProjectName.Systems
             switch (slot)
             {
                 case EquipmentManager.EquipmentSlot.Helmet:
-                    scale = (Mathf.Max(pSize.x, pSize.z) * 1.12f) / Mathf.Max(b.size.x, b.size.z); // 두개골 감쌈
+                    scale = (Mathf.Max(pSize.x, pSize.z) * 1.12f) / Mathf.Max(b.size.x, b.size.z); // 두개골 감쌈(배율 1.12 유지 — 렌더러별 샘플링으로 두개골이 제대로 측정되면 자동으로 커짐)
                     break;
                 case EquipmentManager.EquipmentSlot.Armor:
                     scale = (pSize.x * 1.25f) / b.size.x;                                          // 몸통 감쌈
@@ -665,11 +668,16 @@ namespace ProjectName.Systems
                 case EquipmentManager.EquipmentSlot.Shoes:
                     scale = (Mathf.Max(pSize.x, pSize.z) * 1.15f) / Mathf.Max(b.size.x, b.size.z); // 발길이 기준(본별 좌우 part)
                     break;
+                case EquipmentManager.EquipmentSlot.Gloves:
+                    // [2026-09-16] 손을 감싸도록 1.3배 — max(part) 대비 최대축 정규화(손바닥 평면 감쌈).
+                    scale = (Mathf.Max(pSize.x, Mathf.Max(pSize.y, pSize.z)) * 1.3f)
+                            / Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
+                    break;
                 case EquipmentManager.EquipmentSlot.Mask:
-                    scale = (Mathf.Max(pSize.x, pSize.z) * 0.95f) / Mathf.Max(b.size.x, b.size.z);
+                    scale = (Mathf.Max(pSize.x, pSize.z) * 1.0f) / Mathf.Max(b.size.x, b.size.z); // [2026-09-16] 0.95→1.0 — 약간 작음 보정
                     break;
                 case EquipmentManager.EquipmentSlot.Bag:
-                    scale = (pSize.x * 0.95f) / b.size.x;
+                    scale = (pSize.x * 1.05f) / b.size.x;                                          // [2026-09-16] 0.95→1.05 — 10~15% 작음 보정
                     break;
                 default:
                     return false;
@@ -688,28 +696,30 @@ namespace ProjectName.Systems
             {
                 case EquipmentManager.EquipmentSlot.Helmet:
                 case EquipmentManager.EquipmentSlot.Armor:
+                case EquipmentManager.EquipmentSlot.Gloves:
+                    // [2026-09-16] Gloves: bounds.center → part.center — 손 부피 중심 = 손을 감쌈(손바닥 평면 → 손 중심으로 이동돼 손등 쪽으로 넘어옴).
                     target = partCenter;
                     break;
                 case EquipmentManager.EquipmentSlot.Shoes:
-                    // 발바닥 접지 — center.xz → part.center.xz, min.y → part.min.y
+                    // 발바닥 접지 — center.xz → part.center.xz, min.y → part.min.y − 0.01(미세 부유 흡수)
                     target = new Vector3(partCenter.x, b.center.y, partCenter.z);
-                    target.y += part.worldBounds.min.y - b.min.y;
+                    target.y += part.worldBounds.min.y - 0.01f - b.min.y;
                     break;
                 case EquipmentManager.EquipmentSlot.Mask:
                 {
-                    // faceCenter = part.center + pFwd*(part.size.z/2); center → faceCenter + pFwd*(0.35−0.5)*bounds.size.z
-                    //   전방 면이 얼굴 표면에서 pFwd 방향 bounds.size.z*0.35 만큼 밖, y는 눈높이.
+                    // faceCenter = part.center + pFwd*(part.size.z/2); center → faceCenter + pFwd*(0.4−0.5)*bounds.size.z
+                    //   전방 면이 얼굴 표면에서 pFwd 방향 bounds.size.z*0.4 만큼 밖([2026-09-16] 0.35→0.4 — 매몰 수정), y는 눈높이.
                     Vector3 faceCenter = partCenter + pFwd * (part.worldBounds.size.z * 0.5f);
-                    target = faceCenter + pFwd * (b.size.z * 0.35f - b.size.z * 0.5f);
-                    target.y = partCenter.y + part.worldBounds.size.y * 0.1f; // 눈높이
+                    target = faceCenter + pFwd * (b.size.z * 0.4f - b.size.z * 0.5f);
+                    target.y = partCenter.y + part.worldBounds.size.y * 0.15f; // 눈높이 ([2026-09-16] 0.1→0.15)
                     break;
                 }
                 case EquipmentManager.EquipmentSlot.Bag:
                 {
-                    // backCenter = part.center − pFwd*(part.size.z/2); center → backCenter − pFwd*(0.5−0.1)*bounds.size.z
-                    //   등 표면에 90% 밀착·10% 매몰 허용.
+                    // backCenter = part.center − pFwd*(part.size.z/2); center → backCenter − pFwd*(0.5−0.25)*bounds.size.z
+                    //   등 표면에 75% 밀착·25% 매몰 허용 ([2026-09-16] 0.4→0.25 — 등에 더 밀착).
                     Vector3 backCenter = partCenter - pFwd * (part.worldBounds.size.z * 0.5f);
-                    target = backCenter - pFwd * (b.size.z * 0.5f - b.size.z * 0.1f);
+                    target = backCenter - pFwd * (b.size.z * 0.5f - b.size.z * 0.25f);
                     break;
                 }
             }
@@ -760,15 +770,18 @@ namespace ProjectName.Systems
                 float headThreshold = headBone != null ? headBone.position.y - 0.05f : float.PositiveInfinity;
                 float torsoLow = spineBone != null ? spineBone.position.y - 0.20f : float.NegativeInfinity;
 
-                const float limbRadius = 0.35f;
-                float limbR2 = limbRadius * limbRadius;
+                const float footRadius = 0.28f; // [2026-09-16] 발 반경 0.35→0.28 — 발목/정강이 오염 감소
+                const float handRadius = 0.25f; // [2026-09-16] 손 반경 0.35→0.25 — 전완 오염 감소
+                float footR2 = footRadius * footRadius;
+                float handR2 = handRadius * handRadius;
 
                 int headCnt = 0, torsoCnt = 0, lfCnt = 0, rfCnt = 0, lhCnt = 0, rhCnt = 0;
                 bool hI = false, tI = false, lfI = false, rfI = false, lhI = false, rhI = false;
                 Bounds hb = default, tb = default, lfb = default, rfb = default, lhb = default, rhb = default;
 
-                const int MaxSamples = 3000;
-                int samples = 0;
+                const int PerRendererSamples = 1500; // [2026-09-16] 렌더러별 독립 예산 — 전역 상한(3000) 폐기: 앞 렌더러(몸통)가 예산을 소진해
+                //   뒤 렌더러(머리/헤어/손/발)가 정점 0개만 기여 → 부위 과소 측정(헬멧 높이 0.15m 등)의 뿌리. 각 렌더러는 무조건
+                //   stride 샘플링(≤1500)으로 기여해 모든 부위가 측정에 반영된다.
                 var rends = player.GetComponentsInChildren<Renderer>(true);
                 foreach (var r in rends)
                 {
@@ -785,12 +798,11 @@ namespace ProjectName.Systems
                     var verts = mesh.vertices;
                     int n = verts.Length;
                     if (n == 0) continue;
-                    int step = Mathf.Max(1, n / MaxSamples);
+                    int step = Mathf.Max(1, n / PerRendererSamples);
                     Matrix4x4 l2w = r.transform.localToWorldMatrix; // smr는 transform L2W 근사
-                    for (int i = 0; i < n && samples < MaxSamples; i += step)
+                    for (int i = 0; i < n; i += step)
                     {
                         Vector3 v = l2w.MultiplyPoint3x4(verts[i]);
-                        samples++;
                         if (headBone != null && v.y >= headThreshold)
                         {
                             if (!hI) { hb = new Bounds(v, Vector3.zero); hI = true; } else hb.Encapsulate(v);
@@ -803,25 +815,25 @@ namespace ProjectName.Systems
                             torsoCnt++;
                             continue;
                         }
-                        if (lf != null && (v - lf.position).sqrMagnitude <= limbR2)
+                        if (lf != null && (v - lf.position).sqrMagnitude <= footR2)
                         {
                             if (!lfI) { lfb = new Bounds(v, Vector3.zero); lfI = true; } else lfb.Encapsulate(v);
                             lfCnt++;
                             continue;
                         }
-                        if (rf != null && (v - rf.position).sqrMagnitude <= limbR2)
+                        if (rf != null && (v - rf.position).sqrMagnitude <= footR2)
                         {
                             if (!rfI) { rfb = new Bounds(v, Vector3.zero); rfI = true; } else rfb.Encapsulate(v);
                             rfCnt++;
                             continue;
                         }
-                        if (lh != null && (v - lh.position).sqrMagnitude <= limbR2)
+                        if (lh != null && (v - lh.position).sqrMagnitude <= handR2)
                         {
                             if (!lhI) { lhb = new Bounds(v, Vector3.zero); lhI = true; } else lhb.Encapsulate(v);
                             lhCnt++;
                             continue;
                         }
-                        if (rh != null && (v - rh.position).sqrMagnitude <= limbR2)
+                        if (rh != null && (v - rh.position).sqrMagnitude <= handR2)
                         {
                             if (!rhI) { rhb = new Bounds(v, Vector3.zero); rhI = true; } else rhb.Encapsulate(v);
                             rhCnt++;
