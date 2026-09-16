@@ -247,7 +247,15 @@ namespace ProjectName.Systems
             var playerGo = GameObject.FindWithTag(PlayerTag);
             if (playerGo != null) placeAnim = playerGo.GetComponentInChildren<Animator>();
             // [2026-09-16] 실측 피팅 — 부착 루프 밖에서 플레이어 메시 본 기반 바디 실측 1회(부착마다 재측정, 이동 대응).
-            PlayerBodyMeasure.TryMeasurePlayerBody(placeAnim, out var mHead, out var mTorso,
+            // [2026-09-16 69차 후속11] 측정 오염 제거 — 기존 부착 장비 비주얼이 플레이어 렌더러 목록에 포함되어
+            //   부위 bounds가 부풀고(같은 장비 재장착 시 장비가 점점 커지는 버그의 뿌리) 측정이 불안정해진다.
+            //   시스템이 추적 중인 모든 장비 비주얼 루트를 측정에서 제외한다.
+            var excludeRoots = new List<Transform>();
+            foreach (var kv in _slotVisuals)
+                if (kv.Value != null)
+                    foreach (var v in kv.Value)
+                        if (v != null) excludeRoots.Add(v.transform);
+            PlayerBodyMeasure.TryMeasurePlayerBody(placeAnim, excludeRoots, out var mHead, out var mTorso,
                 out var mLeftFoot, out var mRightFoot, out var mLeftHand, out var mRightHand);
             foreach (var bone in bones)
             {
@@ -450,7 +458,7 @@ namespace ProjectName.Systems
             if (bone == null || visual == null) return;
 
             // 1) 에셋 축 실측 — bone-local(=visual-root-local, localRotation=identity) AABB/중심.
-            if (!MeasureRootLocalAABB(visual, out var aabb, out var centroid)) return; // 렌더러 0 → 정렬 스킵
+            if (!MeasureRootLocalAABB(visual, out var aabb, out _)) return; // 렌더러 0 → 정렬 스킵 (centroid는 후속11에서 미사용)
 
             // extents 랭킹 → long(최장)/mid/thin(최단) 축 인덱스 (x=0,y=1,z=2)
             float ex = aabb.size.x, ey = aabb.size.y, ez = aabb.size.z;
@@ -465,40 +473,33 @@ namespace ProjectName.Systems
             Vector3 thinBasis = axes[thinIdx];
             Vector3 midBasis = axes[midIdx];
 
-            // 2) 부르주(bulge) 방향 실측 — centroid − bounds.center 의 thin축 성분 부호.
-            var bulgeVec = centroid - aabb.center;
-            int bulgeSign = 1;
-            if (Mathf.Abs(bulgeVec.sqrMagnitude) > 0.0000001f)
-                bulgeSign = (Vector3.Dot(bulgeVec, thinBasis) >= 0f) ? 1 : -1;
+            // 2) [69차 후속11] 부르주(bulge) 부호 휴리스틱 폐기 — 자산마다 오작동해 투구/신발/가면 180°,
+            //   갑옷/가방 90° 엇갈림(테스트 31 실측). 전면 방향은 아래 슬롯별 고정 yaw 테이블로 결정한다.
 
-            // 3) 슬롯별 목표축(월드) 결정.
+            // 3) 슬롯별 long축 목표(고정) + 고정 yaw 오프셋 테이블 — 이 표의 yaw 숫자 한 줄만 바꾸면 해당 슬롯
+            //   회전이 즉시 보정된다(정면이 반대면 ±180, 왼쪽/오른쪽이면 ±90).
             Vector3 tgtLongW = Vector3.up;
-            Vector3 tgtThinW = Vector3.zero;
-            bool applyTwist = true;
+            float fixedYaw = 0f;
             switch (slot)
             {
                 case EquipmentManager.EquipmentSlot.Helmet:
-                    tgtLongW = Vector3.up; applyTwist = false; // yaw 자유
+                    tgtLongW = Vector3.up; fixedYaw = 180f;   // 테스트 31: 앞뒤 180° — 정면 보정
                     break;
                 case EquipmentManager.EquipmentSlot.Armor:
-                    tgtLongW = Vector3.up;   // thin bulge → −pFwd (본 에셋 주 판=등 — 스크린샷 실측 뒤집힘 수리)
-                    tgtThinW = (bulgeSign >= 0 ? -1f : 1f) * pFwd;
+                    tgtLongW = Vector3.up; fixedYaw = 90f;    // 테스트 31: 측면 90° — 정면 보정(반대면 -90)
                     break;
                 case EquipmentManager.EquipmentSlot.Bag:
-                    tgtLongW = Vector3.up;   // thin bulge → −pFwd (가방 볼록=등 뒤)
-                    tgtThinW = (bulgeSign >= 0 ? -1f : 1f) * pFwd;
+                    tgtLongW = Vector3.up; fixedYaw = -90f;   // 테스트 31: 옆으로 90~110° — 정면 보정(반대면 +90)
                     break;
                 case EquipmentManager.EquipmentSlot.Mask:
-                    tgtLongW = Vector3.up;   // thin bulge → +pFwd (필터 돌기=정면)
-                    tgtThinW = (bulgeSign >= 0 ? 1f : -1f) * pFwd;
+                    tgtLongW = Vector3.up; fixedYaw = 180f;   // 테스트 31: 앞뒤 180°
                     break;
                 case EquipmentManager.EquipmentSlot.Back:
-                    tgtLongW = Vector3.up;   // thin bulge → +pLeft (방패=바깥)
-                    tgtThinW = (bulgeSign >= 0 ? 1f : -1f) * pLeft;
+                    tgtLongW = Vector3.up; fixedYaw = 0f;     // 방패 — 평면 수직이면 충분
                     break;
                 case EquipmentManager.EquipmentSlot.Gloves:
                 {
-                    // long → 손가락 방향(손 본−팔꿈치), thin → pLeft. 좌우 본 각각 계산.
+                    // long → 손가락 방향(손 본−팔꿈치). 좌우 본 각각 계산.
                     bool isL = bone.name.ToLowerInvariant().Contains("left");
                     var elbowBone = placeAnim != null
                         ? placeAnim.GetBoneTransform(isL ? HumanBodyBones.LeftLowerArm : HumanBodyBones.RightLowerArm)
@@ -509,61 +510,31 @@ namespace ProjectName.Systems
                         var fd = bone.position - elbowBone.position;
                         if (fd.sqrMagnitude > 0.0001f) fingerW = fd.normalized;
                     }
-                    tgtLongW = fingerW;
-                    tgtThinW = pLeft;
+                    tgtLongW = fingerW; fixedYaw = 0f;
                     break;
                 }
                 case EquipmentManager.EquipmentSlot.Shoes:
-                {
-                    // [2026-09-16] 실측 피팅: 부츠 긴축(long)=발길이(toe-heel) → long→+pFwd(발끝),
-                    //   mid→up, thin→pLeft. 기존 long→up 매핑이 긴축(발길이)을 세워 부츠를 옆으로 눕게 만듦(스크린샷 실측).
-                    //   toe bulge는 long축 그대로 유지 — bulge 쪽이 +pFwd가 되도록 long 방향 부호를 결정.
-                    int longSign = (Vector3.Dot(bulgeVec, longBasis) >= 0f) ? 1 : -1;
-                    tgtLongW = (longSign >= 0 ? 1f : -1f) * pFwd;
-                    tgtThinW = pLeft;
+                    // 부츠 긴축(long)=발길이 → long→+pFwd(발끝 전방, 고정) + 앞뒤 180° 보정(테스트 31: 발끝이 뒤)
+                    tgtLongW = pFwd; fixedYaw = 180f;
                     break;
-                }
                 default:
-                    tgtLongW = Vector3.up; applyTwist = false;
+                    tgtLongW = Vector3.up; fixedYaw = 0f;
                     break;
             }
 
-            // 4) Swing-Twist 회전 구성 (bone-local 공간).
+            // 4) 회전 구성(bone-local): R1(long→목표축 스윙 — 눕기/서기 결정) + 고정 yaw(월드 up 축 기준 — 전면 방향 결정).
             Vector3 tgtLongL = bone.InverseTransformDirection(tgtLongW);
             if (tgtLongL.sqrMagnitude < 0.0001f) return;
             tgtLongL.Normalize();
 
             Quaternion R1 = Quaternion.FromToRotation(longBasis, tgtLongL);
-            Quaternion finalRot = R1 * visual.transform.localRotation;
-
-            if (applyTwist)
-            {
-                Vector3 thinAligned = R1 * thinBasis; // 이미 tgtLong과 수직
-                Vector3 tgtThinL = bone.InverseTransformDirection(tgtThinW);
-                // degenerate(같은 축/수직 성분 0)이면 FromToRotation만 적용한다(안전 경로).
-                if (tgtThinL.sqrMagnitude < 0.0001f) { /* skip or keeping R1; fall to safe path */ }
-                else
-                {
-                    tgtThinL.Normalize();
-                    float d = Vector3.Dot(tgtThinL, tgtLongL);
-                    if (Mathf.Abs(d) < 0.999f)
-                    {
-                        Vector3 proj = tgtThinL - tgtLongL * d;
-                        if (Mathf.Abs(proj.sqrMagnitude) > 0.0001f)
-                        {
-                            proj.Normalize();
-                            float ang = Vector3.SignedAngle(thinAligned, proj, tgtLongL);
-                            Quaternion R2 = Quaternion.AngleAxis(ang, tgtLongL);
-                            finalRot = R2 * finalRot;
-                        }
-                    }
-                }
-            }
-
-            visual.transform.localRotation = finalRot;
+            Vector3 upLocal = bone.InverseTransformDirection(Vector3.up);
+            if (upLocal.sqrMagnitude < 0.0001f) upLocal = tgtLongL;
+            Quaternion yawRot = Quaternion.AngleAxis(fixedYaw, upLocal.normalized);
+            visual.transform.localRotation = yawRot * R1 * visual.transform.localRotation;
 
             // 5) 실측 로그 1줄/본.
-            Debug.Log($"[ArmorVisual] 정렬 {slot}: long={longIdx} thin={thinIdx} bulge={(bulgeSign >= 0 ? "+" : "-")} → localEuler={visual.transform.localRotation.eulerAngles.ToString("F0")} (bone={bone.name})");
+            Debug.Log($"[ArmorVisual] 정렬 {slot}: long={longIdx} thin={thinIdx} yaw={fixedYaw:F0} → localEuler={visual.transform.localRotation.eulerAngles.ToString("F0")} (bone={bone.name})");
         }
 
         /// <summary>bone-local(=현재 localRotation 동일) 공간의 AABB+정점 중심 실측. 렌더러 없으면 false(정렬 스킵).</summary>
@@ -669,8 +640,8 @@ namespace ProjectName.Systems
                     scale = (Mathf.Max(pSize.x, pSize.z) * 1.15f) / Mathf.Max(b.size.x, b.size.z); // 발길이 기준(본별 좌우 part)
                     break;
                 case EquipmentManager.EquipmentSlot.Gloves:
-                    // [2026-09-16] 손을 감싸도록 1.3배 — max(part) 대비 최대축 정규화(손바닥 평면 감쌈).
-                    scale = (Mathf.Max(pSize.x, Mathf.Max(pSize.y, pSize.z)) * 1.3f)
+                    // [2026-09-16 후속11] 손을 감싸도록 1.3→1.6배 — 테스트 31: 장갑이 눈에 안 보임(과소).
+                    scale = (Mathf.Max(pSize.x, Mathf.Max(pSize.y, pSize.z)) * 1.6f)
                             / Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
                     break;
                 case EquipmentManager.EquipmentSlot.Mask:
@@ -703,10 +674,25 @@ namespace ProjectName.Systems
             {
                 case EquipmentManager.EquipmentSlot.Helmet:
                 case EquipmentManager.EquipmentSlot.Armor:
-                case EquipmentManager.EquipmentSlot.Gloves:
-                    // [2026-09-16] Gloves: bounds.center → part.center — 손 부피 중심 = 손을 감쌈(손바닥 평면 → 손 중심으로 이동돼 손등 쪽으로 넘어옴).
                     target = partCenter;
                     break;
+                case EquipmentManager.EquipmentSlot.Gloves:
+                {
+                    // [2026-09-16 69차 후속11] 손등 노출 — 손 부피 중심에 두면 장갑이 손 메시 안에 파묻힘
+                    //   (테스트 31: 안 보임). 몸 중심축→손 방향(수평 바깥 = 팔이 자연 하강 시 손등 방향)으로
+                    //   장갑 최대 치수의 30% 오프셋해 손등 쪽에 노출 배치.
+                    Vector3 outward = Vector3.zero;
+                    var pvGo = GameObject.FindWithTag(PlayerTag);
+                    if (pvGo != null)
+                    {
+                        outward = bone.position - pvGo.transform.position;
+                        outward.y = 0f;
+                    }
+                    if (outward.sqrMagnitude < 0.0001f) outward = Vector3.left;
+                    float gloveMax = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
+                    target = partCenter + outward.normalized * (gloveMax * 0.30f);
+                    break;
+                }
                 case EquipmentManager.EquipmentSlot.Shoes:
                     // 발바닥 접지 — center.xz → part.center.xz, min.y → part.min.y − 0.01(미세 부유 흡수)
                     target = new Vector3(partCenter.x, b.center.y, partCenter.z);
@@ -749,7 +735,7 @@ namespace ProjectName.Systems
                 public bool valid;
             }
 
-            public static bool TryMeasurePlayerBody(Animator placeAnim,
+            public static bool TryMeasurePlayerBody(Animator placeAnim, IReadOnlyList<Transform> excludeRoots,
                 out BodyPart head, out BodyPart torso, out BodyPart leftFoot, out BodyPart rightFoot,
                 out BodyPart leftHand, out BodyPart rightHand)
             {
@@ -798,6 +784,16 @@ namespace ProjectName.Systems
                 foreach (var r in rends)
                 {
                     if (r == null || !r.enabled) continue;
+                    // [69차 후속11] 장비 비주얼 계열 제외 — 부위 측정 오염(재장착 커짐 버그) 차단
+                    if (excludeRoots != null)
+                    {
+                        bool excluded = false;
+                        foreach (var exRoot in excludeRoots)
+                        {
+                            if (exRoot != null && r.transform.IsChildOf(exRoot)) { excluded = true; break; }
+                        }
+                        if (excluded) continue;
+                    }
                     try
                     {
                         Vector3[] verts = new Vector3[0];
