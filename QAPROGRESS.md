@@ -1848,3 +1848,28 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 
 ### Play 판정 대기 (스크린샷 67~)
 ① 투구 머리 감쌈 ② 가면 얼굴(눈높이) ③ 갑옷 가슴 중앙 ④ 가방 등 중앙 ⑤ 부츠 발(지면 근처) ⑥ 장갑 양손 ⑦ 방패 왼손 바깥쪽 ⑧ 부착 로그 본↔중심 ≤0.2m — 어긋나면 스크린샷+anchor 콘솔값 → 슬롯 상수 즉시 튜닝.
+
+---
+
+## 69차 후속5 (2026-09-16, 테스트27 영상+FBX/GLB 직접 파싱) — 치비 리그 발견·헬멧 매몰 수리
+
+### 근본 원인 (실측 — 커밋 1cc37035)
+- **플레이어 = 1.0m 치비 캐릭터**: Player_Rigged.fbx 바이너리 정점 직접 파싱 → VERT_SIZE=(0.89, 1.0, 0.4), 발=모델 원점(y=0), useFileScale=1/globalScale=1 그대로 임포트. PlayerPlaceholder가 모델을 transform 원점에 scale 1 부착 → **transform.y=지면**(스폰 0.87), 두개골=로컬 0.6~1.0(0.4m 대형 머리).
+- **Head 본(로컬 0.57)=턱/두개골 하단** — 후속4의 "두개골 상단" 추정 오진. 본±수cm 앵커(후속3 -12cm / 후속4 -6cm)는 전부 두개골 **내부 매몰** → 67차 영상 "투구 아예 안 보임"의 뿌리. 65차(CC 앵커 2.65m)에서만 보였던 이유=머리 위 0.8m 공중 부양이었음.
+
+### 수정 (ArmorVisualAttachSystem.cs)
+- 투구: Bottom(본-6cm) → **Center 본+26cm**(정수리 감쌈), GetBottomAnchor에서 Helmet 제외(Shoes만 Bottom).
+- 가면: 본-12cm(턱 아래) → **본+19cm+전방 6cm**(눈높이 로컬 0.76).
+- 갑옷 Spine+15cm(가슴 로컬 0.40) / 가방 Spine+12cm·등 뒤 9cm / 장갑 손 본-2cm.
+- 부츠(발 본-5cm=지면+1cm)·방패(Spine↔손 벡터 바깥 10cm)는 실측 부합 → 유지.
+- **Assets/Editor/MeasureRig.cs 신규**: 에디터 닫힌 후 `Unity -executeMethod MeasureRig.Measure`로 FBX bounds+휴머노이드 본+장비 GLB 치수 일괄 실측.
+
+### 실측 데이터(튜닝 기준)
+- 본(로컬): 발 0.06 / Spine 0.25 / 손 0.37 / Head 0.57. 장비 정규화 치수: 투구 0.27높이 / 갑옷 0.62너비·0.34높이 / 방패 0.80×0.40 / 가면 0.24×0.21 / 가팩 0.39×0.26 / 부츠 0.19×0.36 / 장갑 0.15×0.08.
+- FBX 바이너리 파서 함정: plen은 속성 시작 기준(pos+plen 아님), 버전<7500은 32-bit 오프셋, 헤더 23바이트+버전@23. GLB: accessor min/max는 primitives[].attributes.POSITION 경로.
+
+### 컴파일/검증
+- 배치컴파일 에디터 점유로 미실행(EXIT=1, lock) — 변경은 상수 3곳+불식 1개라 리스크 없음, 에디터 포커스 시 자동 리컴파일. **다음 Play 전 콘솔 CS 에러 여부 확인 요망.**
+
+### Play 판정 대기 (테스트 28)
+① 투구 정수리 착용 ② 가면 눈높이 ③ 갑옷 가슴 ④ 가방 등 ⑤ 장갑 손목 ⑥ 부츠/방패 유지 ⑦ CS 에러 무 — 어긋나면 anchor 콘솔값+스크린샷 → 상수 튜닝.
