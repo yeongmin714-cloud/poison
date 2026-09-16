@@ -198,7 +198,96 @@ namespace ProjectName.Systems
 
             // 2026-09-11: 공격 범위 표시기 부착 — 무기 타입별 사거리 링(지면). 맨손 때는 자동 숨김.
             WeaponRangeIndicator.EnsureOn(player.transform);
+
+            // [2026-09-16] 데모 자동장착 — 시작 즉시 방어구 풀셋(wood) + 창이 보이도록.
+            // 방어구 비주얼(ArmorVisualAttachSystem)과 무기 그립(WeaponEquipManager)은
+            // OnEquipmentChanged/장착 즉시 반영되므로 부팅 직후 확인 가능. 각 단계 try-catch 격리(크래시 금지).
+            EquipDemoStarterGear();
             Debug.Log($"[TestTerritoryCombat] ✅ Player 설정 완료 (pos={player.transform.position}, 표면 y={SurfaceY(0f, 0f):F2})");
+        }
+
+        // [2026-09-16] 테스트씬 부팅용 시작 장비 데모 — wood 방어구 풀셋 + 창을 인벤 보장 후 즉시 장착.
+        // 모든 매니저는 lazy/Get() 확보, 각 단계 예외 격리(실패해도 크래시 금지 — 데모 목적).
+        private void EquipDemoStarterGear()
+        {
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+            {
+                Debug.LogWarning("[TestTerritoryCombat] ⚠️ 데모 장착 스킵 — Player 없음");
+                return;
+            }
+
+            // ① 방어구 아이템 인벤 보장(멱등) + 슬롯별 장착
+            var em = ProjectName.Systems.EquipmentManager.Get();
+            if (PlayerInventory.Instance != null && em != null)
+            {
+                // (id, 대상 슬롯) — ArmorVisualAttachSystem.ResolveBones 슬롯 규칙과 정합.
+                var gear = new (string id, ProjectName.Systems.EquipmentManager.EquipmentSlot slot)[]
+                {
+                    ("wood_helmet", ProjectName.Systems.EquipmentManager.EquipmentSlot.Helmet),
+                    ("wood_armor",  ProjectName.Systems.EquipmentManager.EquipmentSlot.Armor),
+                    ("wood_boot_right", ProjectName.Systems.EquipmentManager.EquipmentSlot.Shoes),
+                    ("wood_boot_left",  ProjectName.Systems.EquipmentManager.EquipmentSlot.Shoes),
+                    ("wood_glove_right", ProjectName.Systems.EquipmentManager.EquipmentSlot.Gloves),
+                    ("wood_glove_left",  ProjectName.Systems.EquipmentManager.EquipmentSlot.Gloves),
+                    ("wood_shield", ProjectName.Systems.EquipmentManager.EquipmentSlot.Back),
+                };
+
+                foreach (var (id, slot) in gear)
+                {
+                    try
+                    {
+                        if (!PlayerInventory.Instance.HasItem(id))
+                        {
+                            var itemData = PlayerInventory.GetItemById(id);
+                            if (itemData == null)
+                            {
+                                Debug.LogWarning($"[TestTerritoryCombat] ⚠️ 데모 장착 스킵 — ItemData 미정의: {id}");
+                                continue;
+                            }
+                            PlayerInventory.Instance.AddItem(itemData, 1);
+                        }
+                        // 해당 id 슬롯을 찾아 EquipmentManager.EquipItem(인벤 소모 + OnEquipmentChanged 발화).
+                        PlayerInventory.ItemSlot invSlot = null;
+                        var all = PlayerInventory.Instance.GetAllSlots();
+                        if (all != null)
+                        {
+                            foreach (var s in all)
+                            {
+                                if (s != null && s.item != null && s.item.id == id)
+                                { invSlot = s; break; }
+                            }
+                        }
+                        if (invSlot == null)
+                        {
+                            Debug.LogWarning($"[TestTerritoryCombat] ⚠️ 데모 장착 스킵 — 인벤 슬롯 미발견: {id}");
+                            continue;
+                        }
+                        if (em.EquipItem(invSlot, slot))
+                            Debug.Log($"[TestTerritoryCombat] 🛡️ 자동장착: {id} → {slot}");
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogWarning($"[TestTerritoryCombat] ⚠️ 데모 장착 예외({id}) — 계속: {e.Message}");
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[TestTerritoryCombat] ⚠️ 데모 방어구 장착 스킵 — PlayerInventory/EquipmentManager 없음");
+            }
+
+            // ② 창 시작 무기 — 시작 즉시 그립(전방 수리) 표시.
+            try
+            {
+                ProjectName.Systems.WeaponEquipManager.Equip("weapon_spear_wood", player.transform, ProjectName.Core.WeaponType.Spear);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[TestTerritoryCombat] ⚠️ 데모 창 장착 예외 — 계속: {e.Message}");
+            }
+
+            Debug.Log("[TestTerritoryCombat] ✅ 데모 무기/방어구 자동장착 완료");
         }
 
         // ================================================================
@@ -764,6 +853,41 @@ namespace ProjectName.Systems
                     if (ctrl != null) anim.runtimeAnimatorController = ctrl;
                     anim.applyRootMotion = false;
                     anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+
+                    // [2026-09-16] GLB에 FBX Humanoid avatar 지정 — SoldierShield_AC 클립 발 퇴 매핑용.
+                    // GLB는 humanoid avatar가 없어 클립-드라이버(Soldier, HumanoidClipDriver) 재생 불가 → T포즈(움직임 없음).
+                    // 같은 레벨대 FBX(사람형) 프리팹에서 avatar만 분리해 GLB Animator에 지정하면
+                    // SoldierShield_AC(걷기/대기) 클립이 발 퇴 기준 사지(bones)에 매핑되어 재생된다.
+                    try
+                    {
+                        string fbxAvatarKey = level >= 40
+                            ? "Models/UserProvided/fbx/soldier_lv40-50_rigged"
+                            : level >= 20 ? "Models/UserProvided/fbx/soldier_lv20-40_rigged"
+                            : "Models/UserProvided/fbx/soldier_lv1-20_rigged";
+                        var fbxAvatar = Resources.Load<Avatar>(fbxAvatarKey);
+                        if (fbxAvatar == null)
+                        {
+                            var fbxAvatarPrefab = Resources.Load<GameObject>(fbxAvatarKey);
+                            if (fbxAvatarPrefab != null)
+                            {
+                                var fbxAvatarAnim = fbxAvatarPrefab.GetComponent<Animator>();
+                                if (fbxAvatarAnim != null) fbxAvatar = fbxAvatarAnim.avatar;
+                            }
+                        }
+                        if (fbxAvatar != null)
+                        {
+                            anim.avatar = fbxAvatar;
+                            Debug.Log($"[TestTerritoryCombat] 🧍 {goName} GLB에 FBX Humanoid avatar 지정: {fbxAvatar.name}");
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"[TestTerritoryCombat] ⚠️ {goName} FBX avatar 획득 실패 — SoldierShield_AC 재생 불가(T포즈) 가능성 유지");
+                        }
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogWarning($"[TestTerritoryCombat] ⚠️ {goName} GLB avatar 지정 예외 — 계속: {e.Message}");
+                    }
 
                     // 병사 모드 드라이버 — Speed=transform 델타, 공격은 GuardCombatAI→TriggerAttack
                     var driver = guardGO.AddComponent<HumanoidClipDriver>();
