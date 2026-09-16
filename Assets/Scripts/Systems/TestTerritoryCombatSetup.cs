@@ -854,40 +854,10 @@ namespace ProjectName.Systems
                     anim.applyRootMotion = false;
                     anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
 
-                    // [2026-09-16] GLB에 FBX Humanoid avatar 지정 — SoldierShield_AC 클립 발 퇴 매핑용.
-                    // GLB는 humanoid avatar가 없어 클립-드라이버(Soldier, HumanoidClipDriver) 재생 불가 → T포즈(움직임 없음).
-                    // 같은 레벨대 FBX(사람형) 프리팹에서 avatar만 분리해 GLB Animator에 지정하면
-                    // SoldierShield_AC(걷기/대기) 클립이 발 퇴 기준 사지(bones)에 매핑되어 재생된다.
-                    try
-                    {
-                        string fbxAvatarKey = level >= 40
-                            ? "Models/UserProvided/fbx/soldier_lv40-50_rigged"
-                            : level >= 20 ? "Models/UserProvided/fbx/soldier_lv20-40_rigged"
-                            : "Models/UserProvided/fbx/soldier_lv1-20_rigged";
-                        var fbxAvatar = Resources.Load<Avatar>(fbxAvatarKey);
-                        if (fbxAvatar == null)
-                        {
-                            var fbxAvatarPrefab = Resources.Load<GameObject>(fbxAvatarKey);
-                            if (fbxAvatarPrefab != null)
-                            {
-                                var fbxAvatarAnim = fbxAvatarPrefab.GetComponent<Animator>();
-                                if (fbxAvatarAnim != null) fbxAvatar = fbxAvatarAnim.avatar;
-                            }
-                        }
-                        if (fbxAvatar != null)
-                        {
-                            anim.avatar = fbxAvatar;
-                            Debug.Log($"[TestTerritoryCombat] 🧍 {goName} GLB에 FBX Humanoid avatar 지정: {fbxAvatar.name}");
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"[TestTerritoryCombat] ⚠️ {goName} FBX avatar 획득 실패 — SoldierShield_AC 재생 불가(T포즈) 가능성 유지");
-                        }
-                    }
-                    catch (System.Exception e)
-                    {
-                        Debug.LogWarning($"[TestTerritoryCombat] ⚠️ {goName} GLB avatar 지정 예외 — 계속: {e.Message}");
-                    }
+                    // [2026-09-16] GLB에 FBX Humanoid avatar 지정 — ROLLBACK.
+                    //   병사 GLB는 FBX와 bone 명칭이 달라 FBX Humanoid avatar를 지정하면
+                    //   Generic 리그(기존 정상 걷기)가 깨져 T포즈가 된다(사용자 실측).
+                    //   기존 SoldierShield_AC + HumanoidClipDriver(Soldier) 경로로 복귀.
 
                     // 병사 모드 드라이버 — Speed=transform 델타, 공격은 GuardCombatAI→TriggerAttack
                     var driver = guardGO.AddComponent<HumanoidClipDriver>();
@@ -957,6 +927,12 @@ namespace ProjectName.Systems
                     guardGO.tag = recruited ? "RecruitedSoldier" : "Guard";
                 }
             }
+
+            // [2026-09-16] 포섭 여부 태그 — 성공 부착(GLB/FBX) 경로에서도 RecruitedSoldier/Guard 일관 부여.
+            //   64차: 프로덕션(GuardManager)은 SetRecruited(true) 시 RecruitedSoldier 태그 부여로 통일했지만,
+            //   이 테스트 CreateGuard는 '폐백(GLB/FBX 실패)' 분기에서만 태그를 바꿔 성공 부착 시 "Guard"로 남아
+            //   내병사의 RecruitedSoldier 태그(화살 적중/선택·내병사 GLB 회피 방지)가 누락됐다. 전 케이스 일관 부여.
+            guardGO.tag = recruited ? "RecruitedSoldier" : "Guard";
 
             return guardGO;
         }
