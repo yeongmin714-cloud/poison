@@ -988,6 +988,25 @@ namespace ProjectName.Systems
             target.TakeDamage(damage, dir, "melee");
             _attackCooldown = ATTACK_COOLDOWN_SECONDS;
 
+            // [TEST26-67차] 병사 타격 가시 피드백 — 데미지 숫자 표시.
+            // 뿌리(실측): 병사 데미지는 정상 적용됐다(로그 "슬라임 15 데미지! HP=7.7/35") — 그러나
+            //   데미지 숫자는 PlayerCombat→CombatFXGate 단일 경로에만 있어 병사 타격엔 숫자가 안 떠
+            //   '몬스터 피가 안 달린다'로 보였다. 병사 타격에도 동일 숫자 API로 표시(피격 플래시는
+            //   AnimalAI.TakeDamage가 이미 수행).
+            try
+            {
+                if (target is Component tc)
+                    CombatVFXController.ShowDamageNumber(
+                        tc.transform.position + Vector3.up * 1.6f,
+                        Mathf.RoundToInt(damage),
+                        new Color(1f, 0.85f, 0.4f),
+                        CombatVFXController.DamageNumberType.Normal);
+            }
+            catch (System.Exception fxEx)
+            {
+                Debug.LogWarning($"[GuardPlaceholder] 데미지 숫자 표시 실패(전투 계속): {fxEx.Message}");
+            }
+
             string targetName = (_attackTarget as Component) != null ? (_attackTarget as Component).name : "?";
             Debug.Log($"[GuardPlaceholder] {guardName} 근접 공격! 대상={targetName} dmg={damage:F1}");
         }

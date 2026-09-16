@@ -42,6 +42,10 @@ namespace ProjectName.Systems
             public float GripClampMax; // [2026-09-16] 그립 오프셋 과보정 클램프 절대 상한(m) — 대형 무기(활/창 1.0), 검 0.5
             public bool GripCenter;  // [TEST25-66차] true = 그립점을 bounds 중앙으로(활 손잡이 등 중앙 그립 무기)
             public bool IdOverride;  // [TEST25-66차] id 전용 테이블 항목 — bounds 비신뢰 가드를 우회해 규칙 적용
+            // [TEST26-67차] 정점 기반 그립 — world AABB가 glTFast 임포트에서 크게 왜곡(검 1.0m→1.47m 실측)되어
+            //   mesh 정점을 직접 슬라이스 분석한다. 0=off(기존 경로), 1=중앙 그립(활), 2=가드/창날 기준(검/창).
+            public byte GripStrategy;
+            public float GripGuardFactor;   // 전략 2: 최대 단면(가드/창날)→손잡이 끝 진행 계수(검 0.5, 창 0.75)
         }
 
         /// <summary>bounds 지정축 성분 추출 헬퍼 (그립부/피벗 위치 판정용).</summary>
@@ -61,9 +65,12 @@ namespace ProjectName.Systems
         //   걸려 테이블 포즈로 떨어졌던 것 → IdOverride로 가드 우회 후 정렬 경로 진행 + 실측 로그로 검증.
         static readonly Dictionary<string, GripPose> _gripTableById = new Dictionary<string, GripPose>
         {
-            { "wood_sword", new GripPose { LocalPos = new Vector3(0f, 0.05f, 0.02f), LocalEuler = new Vector3(0f, 0f, 90f),    TargetLen = 0.9f, GripClampMax = 0.5f, IdOverride = true } },
-            { "wood_bow",   new GripPose { LocalPos = new Vector3(0f, 0.05f, 0.06f), LocalEuler = new Vector3(0f, 90f, 0f),    TargetLen = 1.0f, GripClampMax = 1.0f, GripCenter = true, IdOverride = true } },
-            { "wood_spear", new GripPose { LocalPos = new Vector3(0f, 0.45f, 0.02f), LocalEuler = new Vector3(-90f, 180f, 0f), TargetLen = 1.8f, GripClampMax = 1.0f, GripEnd = -1, IdOverride = true } },
+            // [TEST26-67차] GripStrategy 2 = 정점 슬라이스 분석(최대 단면=가드/창날 → 손잡이 방향 factor 진행 지점의
+            //   정점 무게중심을 그립점). GLB 정점 파싱 실측: 검은 x≈0 가드(단면 0.46), x>0.3 손잡이(0.14~0.2),
+            //   x<-0.3 칼날(0.33, 끝 테이퍼) / 창은 z≈-0.9 창날(0.09), 나머지 샤프트(0.03~0.05).
+            { "wood_sword", new GripPose { LocalPos = Vector3.zero, LocalEuler = new Vector3(0f, 0f, 90f),    TargetLen = 0.9f, GripClampMax = 0.5f, IdOverride = true, GripStrategy = 2, GripGuardFactor = 0.5f } },
+            { "wood_bow",   new GripPose { LocalPos = Vector3.zero, LocalEuler = new Vector3(0f, 90f, 0f),    TargetLen = 1.0f, GripClampMax = 1.0f, IdOverride = true, GripStrategy = 1 } },
+            { "wood_spear", new GripPose { LocalPos = Vector3.zero, LocalEuler = new Vector3(-90f, 180f, 0f), TargetLen = 1.8f, GripClampMax = 1.0f, GripEnd = -1, IdOverride = true, GripStrategy = 2, GripGuardFactor = 0.75f } },
         };
 
         // 단도(dagger) 목표 길이 — Sword 포즈 공유, TargetLen만 오버라이드
@@ -277,6 +284,20 @@ namespace ProjectName.Systems
             tipWorld = Vector3.zero;
             try
             {
+                // [TEST26-67차] 정점 기반 그립 — world AABB가 glTFast 임포트에서 크게 왜곡(사용자 실측 로그:
+                //   검 bounds=(1.38,1.35,1.47) vs GLB 원본 (1.0,0.98,0.56))되어 이 값으로 계산하면 어긋난다.
+                //   mesh 정점을 직접 분석해 그립점을 손 원점에 스냅. 실패 시 기존 bounds 경로로 폴백.
+                if (pose.GripStrategy != 0 && ComputeGripPointsLocal(weapon, pose.GripStrategy, pose.GripGuardFactor, out Vector3 gripWorld, out Vector3 vertTip))
+                {
+                    Vector3 gripLocal = weapon.transform.InverseTransformPoint(gripWorld);
+                    weapon.transform.localPosition -= handBone.InverseTransformPoint(gripWorld);
+                    Vector3 gripAfter = weapon.transform.TransformPoint(gripLocal);
+                    float handErr = Vector3.Distance(handBone.position, gripAfter);
+                    Debug.Log($"[Weapon] 그립 정렬(정점 strategy={pose.GripStrategy}): gripLocal={gripLocal:F3}, 손오차={handErr:F3}m (0에 수렴=정상)");
+                    tipWorld = vertTip;
+                    return true;
+                }
+
                 var rends = weapon.GetComponentsInChildren<Renderer>();
                 if (rends.Length == 0)
                 {
@@ -405,6 +426,96 @@ namespace ProjectName.Systems
             catch (System.Exception e)
             {
                 Debug.LogWarning($"[Weapon] 그립 정렬 실패(테이블 포즈 유지): {e.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// [TEST26-67차] mesh 정점 기반 그립점/팁 산출(월드 좌표 반환).
+        /// 전략 1: 최장축 중앙(활 손잡이 — GLB 파싱 실측: Y축 1.9m 대칭, 피벗=중앙).
+        /// 전략 2: 최장축 20 슬라이스 단면 분석 — 최대 단면(가드/창날)에서 끝 단면이 더 작은 쪽(손잡이/버트)으로
+        /// factor만큼 진행한 지점 ±1 슬라이스 정점 무게중심. 월드 좌표 반환으로 자식 노드 변환/스케일과 무관.
+        /// </summary>
+        static bool ComputeGripPointsLocal(GameObject weapon, byte strategy, float factor, out Vector3 gripWorld, out Vector3 tipWorld)
+        {
+            gripWorld = default; tipWorld = default;
+            try
+            {
+                MeshFilter best = null; int bestCount = 0;
+                foreach (var mf in weapon.GetComponentsInChildren<MeshFilter>(true))
+                {
+                    var m = mf != null ? mf.sharedMesh : null;
+                    if (m != null && m.vertexCount > bestCount) { bestCount = m.vertexCount; best = mf; }
+                }
+                if (best == null || bestCount == 0) return false;
+                var mesh = best.sharedMesh;
+                Vector3[] verts = mesh.vertices;
+                if (verts == null || verts.Length == 0) return false;
+                Bounds b = mesh.bounds;
+                Vector3 size = b.size;
+                int axis = 0; float len = size.x;
+                if (size.y > len) { axis = 1; len = size.y; }
+                if (size.z > len) { axis = 2; len = size.z; }
+                if (len < 0.05f) return false;
+
+                Vector3 gripMesh;
+                if (strategy == 1)
+                {
+                    gripMesh = b.center;
+                }
+                else
+                {
+                    const int Slices = 20;
+                    float lo = b.min[axis];
+                    float span = len;
+                    var minO = new float[Slices]; var maxO = new float[Slices];
+                    int o0 = (axis + 1) % 3, o1 = (axis + 2) % 3;
+                    for (int s = 0; s < Slices; s++) { minO[s] = float.MaxValue; maxO[s] = float.MinValue; }
+                    foreach (var v in verts)
+                    {
+                        int s = Mathf.Clamp((int)((v[axis] - lo) / span * Slices), 0, Slices - 1);
+                        if (v[o0] < minO[s]) minO[s] = v[o0];
+                        if (v[o0] > maxO[s]) maxO[s] = v[o0];
+                        if (v[o1] < minO[s]) minO[s] = v[o1];
+                        if (v[o1] > maxO[s]) maxO[s] = v[o1];
+                    }
+                    int guardSlice = 0; float bestCross = -1f;
+                    for (int s = 0; s < Slices; s++)
+                    {
+                        float cross = maxO[s] - minO[s];
+                        if (cross > bestCross) { bestCross = cross; guardSlice = s; }
+                    }
+                    float cross0 = maxO[0] - minO[0];
+                    float cross1 = maxO[Slices - 1] - minO[Slices - 1];
+                    int endSlice = cross1 <= cross0 ? Slices - 1 : 0;   // 끝 단면이 작은 쪽 = 손잡이(버트)
+                    int gripSlice = Mathf.RoundToInt(Mathf.Lerp(guardSlice, endSlice, Mathf.Clamp01(factor)));
+                    float gLo = lo + span * (gripSlice - 1) / Slices;
+                    float gHi = lo + span * (gripSlice + 2) / Slices;
+                    Vector3 sum = Vector3.zero; int n = 0;
+                    foreach (var v in verts)
+                    {
+                        if (v[axis] >= gLo && v[axis] < gHi) { sum += v; n++; }
+                    }
+                    if (n == 0) return false;
+                    gripMesh = sum / n;
+                }
+
+                // 그립점(월드) + 팁(그립점에서 가장 먼 정점 — 스윙 트레일 부착용)
+                Vector3 gW = best.transform.TransformPoint(gripMesh);
+                Vector3 far = gW; float farD = -1f;
+                foreach (var v in verts)
+                {
+                    Vector3 w = best.transform.TransformPoint(v);
+                    float d = (w - gW).sqrMagnitude;
+                    if (d > farD) { farD = d; far = w; }
+                }
+                gripWorld = gW;
+                tipWorld = far;
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[Weapon] 정점 그립 분석 실패(기존 경로 폴백): {e.Message}");
                 return false;
             }
         }

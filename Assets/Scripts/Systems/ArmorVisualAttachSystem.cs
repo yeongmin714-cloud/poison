@@ -57,11 +57,18 @@ namespace ProjectName.Systems
         static readonly HashSet<string> _warnedKeys = new HashSet<string>();
 
         bool _subscribed;
+        // [TEST26-67차] 구독 대상 인스턴스 추적 — Watchdog이 유실/교체 감지에 사용
+        EquipmentManager _subscribedTo;
+        /// <summary>[TEST26-67차] 싱글턴 — Watchdog 파괴 감지용.</summary>
+        public static ArmorVisualAttachSystem Instance { get; private set; }
 
         // ===== 초기화 =====
 
         private void Awake()
         {
+            // [TEST26-67차] 싱글턴 — Watchdog이 파괴/유실 감지에 사용
+            Instance = this;
+
             // 부모 쪽 EnsureArmorVisualAttachSystem()이 AddComponent만 하므로 여기서 초기화.
             // EquipmentManager가 이미 부트되어 있으면 즉시 구독+초기 동기화,
             // 아니면 부트 순서 대기 후 구독(코루틴 — Edit 모드 Awake에서는 미실행).
@@ -73,6 +80,56 @@ namespace ProjectName.Systems
             else if (Application.isPlaying)
             {
                 StartCoroutine(SubscribeWhenReadyRoutine());
+            }
+
+            // [TEST26-67차] 자가 치유 워치독 — 공유 GO 파괴/구독 유실과 무관하게 장비 비주얼 유지.
+            // 뿌리(실측): 공유 GameManager GO 파괴 시 구독이 사라져 "발화는 되는데 수신 0건"(Editor.log).
+            if (Object.FindAnyObjectByType<ArmorVisualSyncWatchdog>(FindObjectsInactive.Include) == null)
+            {
+                var wgo = new GameObject("ArmorVisualSyncWatchdog");
+                DontDestroyOnLoad(wgo);
+                wgo.AddComponent<ArmorVisualSyncWatchdog>();
+            }
+        }
+
+        /// <summary>[TEST26-67차] Watchdog 0.5s 주기 호출 — 재구독 + 슬롯 리컨실레이션(자가 치유).</summary>
+        public void SyncTick()
+        {
+            var em = EquipmentManager.Instance;
+            if (em == null) return;
+
+            // ① 구독 유실/인스턴스 교체 감지 → 재구독 + 전체 재동기화
+            if (!_subscribed || _subscribedTo != em)
+            {
+                Unsubscribe();
+                Subscribe();
+                if (_subscribed)
+                {
+                    Debug.Log($"{LogTag} 구독 유실 감지 — 재구독 완료(자가 치유) + 전체 재동기화");
+                    InitialSyncAll();
+                }
+                if (!_subscribed) return;
+            }
+
+            // ② 슬롯 리컨실레이션 — 장착 itemId 대비 부착 비주얼 부재/불일치 → 즉시 재부착
+            foreach (EquipmentManager.EquipmentSlot slot in System.Enum.GetValues(typeof(EquipmentManager.EquipmentSlot)))
+            {
+                if (slot == EquipmentManager.EquipmentSlot.Weapon) continue;
+                string desired = em.GetItemId(slot);
+                bool hasVisual = _slotVisuals.TryGetValue(slot, out var list) && list != null && list.Exists(v => v != null);
+                bool hasDesiredVisual = hasVisual && list.Exists(v => v != null && v.name == desired);
+
+                if (string.IsNullOrEmpty(desired))
+                {
+                    if (hasVisual) DestroySlotVisuals(slot, log: true);
+                }
+                else if (!hasDesiredVisual)
+                {
+                    Debug.Log($"{LogTag} 리컨실레이션: {slot} → {desired} (부착 부재/불일치 — 자가 치유)");
+                    DestroySlotVisuals(slot, log: false);
+                    if (!TryAttachImmediate(slot, desired))
+                        StartCoroutine(AttachRoutine(slot, desired));
+                }
             }
         }
 
@@ -97,6 +154,7 @@ namespace ProjectName.Systems
             if (_subscribed || EquipmentManager.Instance == null) return;
             EquipmentManager.Instance.OnEquipmentChanged += HandleEquipmentChanged;
             _subscribed = true;
+            _subscribedTo = EquipmentManager.Instance;
             Debug.Log($"{LogTag} EquipmentManager.OnEquipmentChanged 구독 완료");
         }
 
@@ -403,6 +461,32 @@ namespace ProjectName.Systems
             // 잔존 비주얼 정리(부모 본과 함께 파괴되는 경우가 대부분이지만 멱등 처리)
             foreach (EquipmentManager.EquipmentSlot slot in System.Enum.GetValues(typeof(EquipmentManager.EquipmentSlot)))
                 DestroySlotVisuals(slot, log: false);
+        }
+    }
+
+    /// <summary>
+    /// [TEST26-67차] ArmorVisual 자가 치유 워치독 — 자체 GO(DontDestroyOnLoad)에서 0.5s 주기 감시.
+    /// 뿌리(실측): ArmorVisualAttachSystem이 공유 GameManager GO에 붙어 있어 그 GO가 파괴되면
+    /// OnDestroy→Unsubscribe로 구독이 사라지고, 이후 장착 이벤트는 "발화는 되는데 수신 0건"(Editor.log)이 됐다.
+    /// ① 시스템 파괴 감지 → 자체 GO에 재생성 ② SyncTick으로 재구독 + 슬롯 리컨실레이션.
+    /// </summary>
+    public class ArmorVisualSyncWatchdog : MonoBehaviour
+    {
+        float _nextTick;
+        void Update()
+        {
+            if (Time.unscaledTime < _nextTick) return;
+            _nextTick = Time.unscaledTime + 0.5f;
+
+            if (ArmorVisualAttachSystem.Instance == null)
+            {
+                var go = new GameObject("ArmorVisualAttachSystem");
+                DontDestroyOnLoad(go);
+                go.AddComponent<ArmorVisualAttachSystem>();
+                Debug.Log("[ArmorVisualWatchdog] 시스템 부재 감지 — 재생성(자가 치유)");
+                return;
+            }
+            ArmorVisualAttachSystem.Instance.SyncTick();
         }
     }
 }

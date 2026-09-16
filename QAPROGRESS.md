@@ -4,7 +4,25 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-16 (66차)
+> **최종 갱신:** 2026-09-16 (67차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-16 ✅ 67차 — TEST26 2차 라운드[병사 데미지 숫자/장비 자가치유 워치독/활 정지 대기 전이/드래그 진단·늦은Ctrl/정점 기반 그립])
+
+> **스코프**: 66차 후 Play 재실측. ①병사 애니는 해결 확인(추종·합세 정상). 뿌리 2차 확정: ⑴병사 데미지는 정상 적용(HP=7.7/35 로그) — 숫자만 무표시 ⑵장비는 이벤트 발화 후 수신 0건 = 구독 유실(공유 GO 파괴) ⑶활은 Walk_Forward_with_Bow_Aimed 클립이 제자리 루프(활 전용 Idle 클립 부재 — MeshyUser 전수 확인) ⑷드래그는 진단 로그 0건 ⑸그립은 world AABB 왜곡(검 1.47m vs 원본 1.0m — 사용자 실측 로그).
+
+### 변경 사항 (4파일 + 컨트롤러 1)
+**`Systems/GuardPlaceholder.cs`**: PerformAttack에 `CombatVFXController.ShowDamageNumber`(골드) 추가 — 병사 타격도 데미지 숫자 표시.
+**`Systems/ArmorVisualAttachSystem.cs`**: 싱글턴(Instance)+`_subscribedTo` 추적 + `SyncTick()`(재구독+InitialSync+슬롯 리컨실레이션) + 신규 `ArmorVisualSyncWatchdog`(자체 DontDestroyOnLoad GO, 0.5s 주기: 시스템 부재→재생성, 구독 유실→치유). 이벤트 유실과 무관하게 ≤0.5s 내 장비 부착.
+**`Player_AC.controller`**: `BowAimedF→Idle` 전이 신설(Speed<0.2, 모드4/Less, dst=Idle 3594517172120623874) — 정지 시 자연 대기(활은 손 프롭). 파라미터/상태 추가만, 삭제 없음.
+**`Systems/GuardSelectionManager.cs`**: 모든 좌클릭 `[RTS] 좌클릭 감지 ctrl={}` 진단 로그 + 늦은 Ctrl 흡수(홀드 중 Ctrl 나중에 눌러도 드래그 시작).
+**`Systems/WeaponEquipManager.cs`**: GripPose에 `GripStrategy`(0/1/2)+`GripGuardFactor` 추가 + `ComputeGripPointsLocal`(mesh 정점 20 슬라이스 단면 분석 — 최대 단면=가드/창날 → 손잡이 방향 계수 지점 정점 무게중심) → 그립점 손 원점 스냅 + 손오차 로그. id 테이블: 검(전략2·0.5)/창(전략2·0.75)/활(전략1). world AABB 기반 경로는 폴백으로 강등.
+**정점 파싱 실측**: 검 x≈0 가드(단면 0.46)·x>0.3 손잡이(0.14~0.2)·x<-0.3 칼날 / 창 z≈-0.9 창날(0.09)·샤프트(0.03~0.05) — 그립점 수치 확정의 근거.
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0, 1회 통과) + 변경 4파일 괄호 균형 0.
+- Play 판정 대기: ① 병사 타격 골드 숫자+HP바 하락 ② 장착 ≤0.5s 가시 부착(리컨실레이션 로그) ③ 활 정지 시 자연 대기+좌클릭 화살 ④ `[RTS] 좌클릭 감지` 로그로 드래그 판별 ⑤ `그립 정렬(정점)` 손오차≈0.
 
 ---
 

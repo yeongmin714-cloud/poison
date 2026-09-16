@@ -37,6 +37,9 @@ namespace ProjectName.Systems
         // 병사 드래그 선택이 가려지던 문제 해소. Update에서 좌클릭 down 시 true, PlayerCombat이 소비 시 false.
         public static bool consumeLeftClickAsDrag = false;
 
+        // [TEST26-67차] 늦은 Ctrl 흡수 추적 — 좌클릭 홀드 중 Ctrl을 나중에 눌러도 드래그 시작(입력 순서 무관)
+        private bool _leftDownWithoutCtrl;
+
         // [TEST21-FOLLOWUP] 부대(Tab) 모드 활성 플래그 — UI의 GuardSquadHotbar가 매 프레임 갱신.
         // 평상 시(아이템 모드)엔 false → 드래그 선택 비활성(좌클릭=공격 유지), Tab 부대 모드에서만 true → 드래그 가능.
         // 이 플래그가 참일 때만 좌클릭을 드래그로 소비한다(단순 클릭 공격 보존).
@@ -81,11 +84,26 @@ namespace ProjectName.Systems
                 ctrlActiveForDrag = Keyboard.current.ctrlKey.isPressed
                     || Keyboard.current.leftCtrlKey.isPressed
                     || Keyboard.current.rightCtrlKey.isPressed;
+
+            // [TEST26-67차] 좌클릭 진단 — 이전 세션에서 드래그 시작 로그가 0건이라 원인 판별 불가였다.
+            // 모든 좌클릭 down에 ctrl/dragging 상태를 남겨 다음 Play에서 즉시 판별한다.
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+                Debug.Log($"[RTS] 좌클릭 감지 ctrl={ctrlActiveForDrag} dragging={_isDragging}");
+
+            // [TEST26-67차] 늦은 Ctrl 흡수 — 좌클릭 홀드 중 Ctrl을 나중에 눌러도 드래그 시작
+            if (Mouse.current.leftButton.wasPressedThisFrame && !ctrlActiveForDrag)
+                _leftDownWithoutCtrl = true;
+            if (!Mouse.current.leftButton.isPressed)
+                _leftDownWithoutCtrl = false;
+
             if (!_isDragging && !ctrlActiveForDrag) return;   // 드래그 중이 아니면 Ctrl 미홀드 스킵 — 좌클릭=공격 유지
 
-            // 좌클릭 드래그 시작 (Ctrl+좌클릭 down)
-            if (Mouse.current.leftButton.wasPressedThisFrame && ctrlActiveForDrag)
+            // 좌클릭 드래그 시작 — (a) Ctrl+좌클릭 down (b) 홀드 중 Ctrl 늦게 누름
+            bool startDrag = !_isDragging && ctrlActiveForDrag && Mouse.current.leftButton.isPressed
+                && (Mouse.current.leftButton.wasPressedThisFrame || _leftDownWithoutCtrl);
+            if (startDrag)
             {
+                _leftDownWithoutCtrl = false;
                 consumeLeftClickAsDrag = true;   // PlayerCombat: 이번 좌클릭(작성 드래그)을 공격 대신 드래그로 위임
                 _dragStartMouse = Mouse.current.position.ReadValue();
                 _isDragging = true;
