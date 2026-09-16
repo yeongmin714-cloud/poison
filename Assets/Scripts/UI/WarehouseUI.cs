@@ -340,7 +340,7 @@ namespace ProjectName.UI
             DrawTitleStrip(0f, 0f, ww);
 
             // 제목 텍스트 — UIFont.Title(38)×_uiScale 한글 서포트 (LootWindow 선례)
-            GUI.Label(new Rect(0f, 2f, ww, TITLE_BAR_HEIGHT), "📦 영지 창고", _styleTitleBar);
+            GUI.Label(new Rect(0f, 2f, ww, TITLE_BAR_HEIGHT), "영지 창고", _styleTitleBar);
 
             // ===== 내용: 기존 GUILayout 로직 (드래그/이동/탭 무수정) — AAA 프레임 안쪽 영역에 배치 =====
             float pad = 14f * _uiScale;
@@ -385,7 +385,7 @@ namespace ProjectName.UI
             // 창고 용량 표시
             var items = WarehouseSystem.Instance.GetItems(_currentTerritoryId);
             int count = items != null ? items.Count : 0;
-            GUILayout.Label($"📦 {count}/{MaxSlots}", _styleLabel, GUILayout.Width(100f * _uiScale));
+            GUILayout.Label($"{count}/{MaxSlots}", _styleLabel, GUILayout.Width(100f * _uiScale));
 
             GUILayout.EndHorizontal();
 
@@ -666,7 +666,7 @@ namespace ProjectName.UI
 
             // === 인벤토리 → 창고 토글 버튼 ===
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button(_showInventoryTransfer ? "📦 창고 아이템 (현재)" : "🎒 인벤토리 → 창고",
+            if (GUILayout.Button(_showInventoryTransfer ? "창고 아이템 (현재)" : "인벤토리 → 창고",
                 _styleButton, GUILayout.Width(200f * _uiScale), GUILayout.Height(28f * _uiScale)))
             {
                 _showInventoryTransfer = !_showInventoryTransfer;
@@ -835,7 +835,7 @@ namespace ProjectName.UI
                                 CycleTargetTerritory();
                             }
 
-                            if (GUILayout.Button("📦 보내기", _styleButton, GUILayout.Width(100f * _uiScale), GUILayout.Height(28f * _uiScale)))
+                            if (GUILayout.Button("보내기", _styleButton, GUILayout.Width(100f * _uiScale), GUILayout.Height(28f * _uiScale)))
                             {
                                 TransferToOtherTerritory();
                             }
@@ -1038,11 +1038,11 @@ namespace ProjectName.UI
                 case PlayerInventory.ItemCategory.Drug: return "💊";
                 case PlayerInventory.ItemCategory.Material: return "🪨";
                 case PlayerInventory.ItemCategory.Quest: return "⭐";
-                case PlayerInventory.ItemCategory.Weapon: return "🗡️";
-                case PlayerInventory.ItemCategory.Armor: return "🛡️";
+                case PlayerInventory.ItemCategory.Weapon: return "";
+                case PlayerInventory.ItemCategory.Armor: return "";
                 case PlayerInventory.ItemCategory.Tool: return "🔧";
                 case PlayerInventory.ItemCategory.Arrow: return "🏹";
-                default: return "📦";
+                default: return "";
             }
         }
 

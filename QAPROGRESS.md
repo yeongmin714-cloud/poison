@@ -4,7 +4,20 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-16 (69차 후속14)
+> **최종 갱신:** 2026-09-16 (69차 후속15)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-16 ✅ 69차 후속15 — TEST28 15차 라운드[테스트 35: 시각 미세 튜닝(신발 후퇴·장갑 2.8배·가면 1.15배) + 적대 병사 어그로 뿌리 수리(타겟 정책) + 전리품 우클릭 획득 + 인벤 즉시 갱신 + 이모지 제거])
+
+> **입력**: 테스트 35 영상 + 사용자 리포트 5건. ①**적대 병사가 내 병사를 공격하지 않음** — 뿌리: `GuardPlaceholder.ResolveAttackTarget`이 **모든 GuardPlaceholder와 플레이어를 무조건 제외**(1117~1118행) → 적대 병사는 공격 대상을 절대 못 찾고 "공격 대상 상실 → 명령 해제" ②**전리품 우클릭 이동 경로 부재**(드래그만 구현) ③**장비 해제/아이템 지급 시 인벤 미표시** — `_currentSlots`가 RefreshInventory 시점에만 캐싱(외부 변화 무반영) ④장비창/창고창 글리프 누락 이모지.
+
+### 변경 사항 (7파일)
+**`Systems/GuardPlaceholder.cs`**: `HostileToPlayerFaction` 속성 신설 + `ResolveAttackTarget` 게이트 개편 — 적대 정책 가드는 **내(포섭) 병사(RecruitedSoldier 태그)와 플레이어를 공격 대상으로 허용**, 비적대는 기존 동작 유지(병사·플레이어 제외). **`Systems/GuardHostilitySystem.cs`**: ConvertToHostile/InitiateAttackVsPlayerAndSoldiers에서 `HostileToPlayerFaction = true` 세팅. **`UI/LootWindow.cs`**: 전리품 슬롯 **우클릭 = 즉시 획득**(TakeSelectedItem — 드래그 외 직접 이동 경로). **`UI/InventoryWindow.cs`**: DrawItemGrid에서 **매 프레임 슬롯 재조회**(GetSlotsByCategory) — 해제·지급 아이템 즉시 표시. **`UI/EquipmentWindow.cs`+`WarehouseUI.cs`**: 이모지 전면 제거(글리프 누락). **`Systems/ArmorVisualAttachSystem.cs`** 시각 튜닝: 신발 뒤꿈치 쪽 8% 후퇴+접지 −2cm(앞쏠림 수리), 장갑 2.4→**2.8배**+손가락 방향 15% 전진(손등 커버), 가면 1.0→**1.15배**.
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0) + 괄호 균형 0(7파일).
+- Play 판정 대기: ①타 영지 병사 공격 → 호감도 하락·느낌표 후 **적 병사가 플레이어/내 병사를 실제 추격·공격**(HP바 하락) ②전리품 우클릭 → 인벤 이동 ③전리품 드래그 → 인벤 드롭 ④장비 해제/아이템 지급 → 인벤 즉시 표시 ⑤장비창·창고창 이모지 박스 0건 ⑥신발 뒤꿈치 정렬·장갑 손등 커버·가면 크기.
 
 ---
 

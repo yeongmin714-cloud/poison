@@ -617,12 +617,13 @@ namespace ProjectName.Systems
                     scale = (Mathf.Max(pSize.x, pSize.z) * 1.15f) / Mathf.Max(b.size.x, b.size.z); // 발길이 기준(본별 좌우 part)
                     break;
                 case EquipmentManager.EquipmentSlot.Gloves:
-                    // [2026-09-16 후속13] 2.0→2.4배 — 테스트 33: 여전히 작음(사용자 요구).
-                    scale = (Mathf.Max(pSize.x, Mathf.Max(pSize.y, pSize.z)) * 2.4f)
+                    // [2026-09-16 후속15] 2.4→2.8배 — 테스트 35: 손등 덮음 부족(사용자 요구).
+                    scale = (Mathf.Max(pSize.x, Mathf.Max(pSize.y, pSize.z)) * 2.8f)
                             / Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
                     break;
                 case EquipmentManager.EquipmentSlot.Mask:
-                    scale = (Mathf.Max(pSize.x, pSize.z) * 1.0f) / Mathf.Max(b.size.x, b.size.z); // [2026-09-16] 0.95→1.0 — 약간 작음 보정
+                    // [2026-09-16 후속15] 1.0→1.15배 — 테스트 35: 가면 작음(사용자 요구: 크기 확대 또는 전방 노출).
+                    scale = (Mathf.Max(pSize.x, pSize.z) * 1.15f) / Mathf.Max(b.size.x, b.size.z);
                     break;
                 case EquipmentManager.EquipmentSlot.Bag:
                     scale = (pSize.x * 1.05f) / b.size.x;                                          // [2026-09-16] 0.95→1.05 — 10~15% 작음 보정
@@ -658,9 +659,8 @@ namespace ProjectName.Systems
                     break;
                 case EquipmentManager.EquipmentSlot.Gloves:
                 {
-                    // [2026-09-16 69차 후속11] 손등 노출 — 손 부피 중심에 두면 장갑이 손 메시 안에 파묻힘
-                    //   (테스트 31: 안 보임). 몸 중심축→손 방향(수평 바깥 = 팔이 자연 하강 시 손등 방향)으로
-                    //   장갑 최대 치수의 30% 오프셋해 손등 쪽에 노출 배치.
+                    // [2026-09-16 69차 후속15] 손등 커버 — 손목 뭉침 개선: 손 중심에서 손가락 방향으로 15% 전진
+                    //   (장갑이 손등+손가락까지 덮도록) + 바깥 오프셋 0.15 유지.
                     Vector3 outward = Vector3.zero;
                     var pvGo = GameObject.FindWithTag(PlayerTag);
                     if (pvGo != null)
@@ -669,14 +669,21 @@ namespace ProjectName.Systems
                         outward.y = 0f;
                     }
                     if (outward.sqrMagnitude < 0.0001f) outward = Vector3.left;
+                    Vector3 towardFingers = partCenter - bone.position;
+                    towardFingers.y *= 0.3f;
+                    if (towardFingers.sqrMagnitude < 0.0001f) towardFingers = pFwd;
                     float gloveMax = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
-                    target = partCenter + outward.normalized * (gloveMax * 0.15f); // [후속14] 0.35→0.15 — 손등에 더 가까이(사용자 지시)
+                    target = partCenter
+                           + outward.normalized * (gloveMax * 0.15f)
+                           + towardFingers.normalized * (gloveMax * 0.15f);
                     break;
                 }
                 case EquipmentManager.EquipmentSlot.Shoes:
-                    // 발바닥 접지 — center.xz → part.center.xz, min.y → part.min.y − 0.01(미세 부유 흡수)
+                    // 발바닥 접지 — center.xz → part.center.xz, min.y → part.min.y − 0.02(접지)
+                    //   [후속15] xz를 발 중심에서 뒤꿈치 쪽으로 8% 후퇴 — 테스트 35: 앞쪽 쏠림 실측.
                     target = new Vector3(partCenter.x, b.center.y, partCenter.z);
-                    target.y += part.worldBounds.min.y - 0.01f - b.min.y;
+                    target -= pFwd * (b.size.z * 0.08f);
+                    target.y += part.worldBounds.min.y - 0.02f - b.min.y;
                     break;
                 case EquipmentManager.EquipmentSlot.Mask:
                 {

@@ -176,6 +176,7 @@ namespace ProjectName.Systems
         private void InitiateAttackVsPlayerAndSoldiers(GuardPlaceholder guard, GameObject player)
         {
             if (guard == null || player == null) return;
+            guard.HostileToPlayerFaction = true;   // [69차 후속15] 타겟 정책 게이트 해제
             guard.SetCommandTarget(player.transform.position, true);
             guard.SetInCombat(true);
             Debug.Log($"[GuardHostility] 🗡️ {guard.GuardName} 플레이어 선공! (호감도: {guard.Loyalty:F0})");
@@ -187,6 +188,7 @@ namespace ProjectName.Systems
         private void ConvertToHostile(GuardPlaceholder guard)
         {
             guard.SetInCombat(true);
+            guard.HostileToPlayerFaction = true;   // [69차 후속15] 플레이어·내 병사 공격 대상 허용(ResolveAttackTarget 게이트)
             Debug.Log($"[GuardHostility] ⚔️ {guard.GuardName} 적대 전환! (호감도: {guard.Loyalty:F0})");
         }
 

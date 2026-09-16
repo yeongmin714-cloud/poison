@@ -83,12 +83,12 @@ namespace ProjectName.UI
 
         private static readonly SlotDef[] _slotDefs = new SlotDef[]
         {
-            new SlotDef { icon = "🪖", label = "헬멧", slot = EquipmentManager.EquipmentSlot.Helmet },
-            new SlotDef { icon = "👕", label = "갑옷", slot = EquipmentManager.EquipmentSlot.Armor },
-            new SlotDef { icon = "🗡️", label = "무기", slot = EquipmentManager.EquipmentSlot.Weapon },
-            new SlotDef { icon = "👢", label = "신발", slot = EquipmentManager.EquipmentSlot.Shoes },
-            new SlotDef { icon = "🧤", label = "장갑", slot = EquipmentManager.EquipmentSlot.Gloves },
-            new SlotDef { icon = "🎒", label = "Back", slot = EquipmentManager.EquipmentSlot.Back }
+            new SlotDef { icon = "", label = "헬멧", slot = EquipmentManager.EquipmentSlot.Helmet },
+            new SlotDef { icon = "", label = "갑옷", slot = EquipmentManager.EquipmentSlot.Armor },
+            new SlotDef { icon = "", label = "무기", slot = EquipmentManager.EquipmentSlot.Weapon },
+            new SlotDef { icon = "", label = "신발", slot = EquipmentManager.EquipmentSlot.Shoes },
+            new SlotDef { icon = "", label = "장갑", slot = EquipmentManager.EquipmentSlot.Gloves },
+            new SlotDef { icon = "", label = "Back", slot = EquipmentManager.EquipmentSlot.Back } // [후속15] 이모지 제거(글리프 누락)
         };
 
         protected override void Awake()
@@ -328,7 +328,7 @@ namespace ProjectName.UI
             float bannerY = y - 6f;   // 배너가 프레임 상단에 살짝 걸친 AAA 스타일
             if (bannerY < 0f) bannerY = 0f;   // 임베디드(상단 부착) 시 클램프
             GUI.DrawTexture(new Rect(bannerX, bannerY, bannerW, bannerH), InventoryArtLibrary.GetTitleBanner());
-            GUI.Label(new Rect(bannerX, y + 2, bannerW, TITLE_BAR_HEIGHT), "🛡️ 장비창", _styleBannerTitle);
+            GUI.Label(new Rect(bannerX, y + 2, bannerW, TITLE_BAR_HEIGHT), "장비창", _styleBannerTitle); // [후속15] 이모지 제거
 
             // 닫기 버튼
             if (!embedded && GUI.Button(new Rect(x + w - 44, y + 6, 36, 28), "✕", _styleButton))

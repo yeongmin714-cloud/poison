@@ -591,6 +591,18 @@ namespace ProjectName.UI
                     _gcItemCount.text = _strItemCount;
                     GUI.Label(_rectWork, _gcItemCount, _styleItemCount);
 
+                    // [후속15] 우클릭 = 해당 슬롯 즉시 획득(인벤으로 이동) — 사용자 요구(드래그 외 직접 이동 경로).
+                    if (currentEvent.type == EventType.MouseDown && currentEvent.button == 1
+                        && _rectSlot.Contains(currentEvent.mousePosition))
+                    {
+                        _selectedIndex = i;
+                        currentEvent.Use();
+                        TakeSelectedItem(i);
+                        if (ItemDragContext.Active && ItemDragContext.SourceType == ItemDragContext.Source.Loot)
+                            ItemDragContext.Cancel();
+                        if (_cachedItems == null || i >= _cachedItems.Length) break;
+                    }
+
                     // 2026-09-11(6): 좌클릭 MouseDown → 드래그 시작 (기존 "즉시 TakeItem" 대체).
                     // - 인벤 열림: InventoryWindow.ProcessDrag의 Loot 소스 분기가 MouseUp 드롭 판정 대행
                     //   (인벤 그리드 위 드롭=이동, 전리품 슬롯 위 뗌=획득, 그 외=취소)

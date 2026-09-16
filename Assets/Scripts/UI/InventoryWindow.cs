@@ -1216,6 +1216,10 @@ namespace ProjectName.UI
 
             // [2026-09-16 69차 후속10] 그리드 그리는 도중 장착(리프레시)이 _currentSlots를 더 짧은 새 배열로
             //   교체해도 로컬 참조는 안정 — IndexOutOfRangeException(1279행 실측) 뿌리 수리.
+            // [후속15] 장비 해제/아이템 지급 등 외부 변화 즉시 반영 — 그리드 그릴 때마다 슬롯 재조회
+            //   (기존: RefreshInventory 호출 시점에만 캐싱 → 해제·지급 아이템이 표시되지 않는 뿌리)
+            if (PlayerInventory.Instance != null)
+                _currentSlots = PlayerInventory.Instance.GetSlotsByCategory(_selectedCategory);
             var slotsLocal = _currentSlots;
             int totalSlots = slotsLocal != null ? slotsLocal.Length : 0;
             // 2026-09-12(P3): 페이지네이션 — 5행×6열=30슬롯/페이지, 초과분은 ◀/▶ 버튼으로 넘김

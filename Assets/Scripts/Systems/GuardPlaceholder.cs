@@ -1095,6 +1095,10 @@ namespace ProjectName.Systems
             return true;
         }
 
+        /// <summary>[69차 후속15] 적대 정책 — true면 이 병사는 플레이어와 내(포섭) 병사를 공격 대상으로
+        ///   인정한다(ResolveAttackTarget 게이트). GuardHostilitySystem 적대 전환 시 true 세팅.</summary>
+        public bool HostileToPlayerFaction { get; set; }
+
         /// <summary>명령 지점 주변(TARGET_SEARCH_RADIUS)에서 가장 가까운 유효한 적 IDamageable을 탐색해 캐싱한다.</summary>
         private void ResolveAttackTarget()
         {
@@ -1114,8 +1118,25 @@ namespace ProjectName.Systems
                 if (comp == null) continue;
 
                 GameObject go = comp.gameObject;
-                if (go == gameObject || go.GetComponentInParent<GuardPlaceholder>() != null) continue; // 자기 자신/병사 제외
-                if (_playerCache != null && go.transform.IsChildOf(_playerCache.transform)) continue;  // 플레이어 제외
+                if (go == gameObject) continue; // 자기 자신
+
+                var otherGuard = go.GetComponentInParent<GuardPlaceholder>();
+                if (otherGuard != null)
+                {
+                    // [69차 후속15] 병사 대 병사 — 적대 정책 가드는 내(포섭) 병사만 공격 대상으로 허용
+                    //   (기존: 모든 GuardPlaceholder 제외 → 적대 병사가 내 병사를 공격하지 못하는 뿌리).
+                    if (HostileToPlayerFaction)
+                    {
+                        if (!otherGuard.CompareTag("RecruitedSoldier")) continue;
+                    }
+                    else continue;
+                }
+                else
+                {
+                    // 플레이어 — 적대 정책 가드는 공격 대상 허용(기존: 무조건 제외 → 선공 후 명령 해제의 뿌리)
+                    if (!HostileToPlayerFaction && _playerCache != null
+                        && go.transform.IsChildOf(_playerCache.transform)) continue;
+                }
 
                 float d = Vector3.Distance(_commandTargetPos, comp.transform.position);
                 if (d < bestDist)
