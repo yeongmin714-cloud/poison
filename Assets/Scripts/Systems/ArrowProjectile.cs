@@ -20,6 +20,7 @@ namespace ProjectName.Systems
         private Rigidbody _rb;
         private Collider _collider;
         private bool _stuck = false;    // 명중/지면 꽂힘 시 true — 회전 정렬·충돌 재처리 방지
+        private static readonly float GravityScale = 0.45f;   // [化살-사거리] 중력 축소 계수 — 약 2배 사거리+가시 긴 아크
 
         private void Awake()
         {
@@ -29,9 +30,9 @@ namespace ProjectName.Systems
             if (_trail == null)
                 _trail = gameObject.AddComponent<TrailRenderer>();
 
-            _trail.time = 0.5f;    // [TEST28-69차] 0.35→0.5 — 잔상 길게(비행 가시성)
-            _trail.startWidth = 0.08f;   // [TEST27-68차] 0.05→0.08 — 원거리 가시성
-            _trail.endWidth = 0.01f;
+            _trail.time = 0.9f;    // [化살-가시성] 0.5→0.9 — 비행시간(0.8s+) 길어져 긴 잔상 가능
+            _trail.startWidth = 0.13f;   // [化살-가시성] 0.08→0.13 — 원거리에서도 트레일 식별
+            _trail.endWidth = 0.025f;
             _trail.minVertexDistance = 0.08f;
             _trail.material = new Material(Shader.Find("Sprites/Default"));
         }
@@ -46,7 +47,7 @@ namespace ProjectName.Systems
             //   화살이 옆으로 누운 채 날아갔다(엣지온 = 안 보임, 사용자 실측 "화살이 날아가지도 않음").
             //   X축 +90° 회전을 곱해 길이축(Y)을 진행방향으로 세운다.
             go.transform.rotation = Quaternion.LookRotation(direction) * Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = new Vector3(0.06f, 0.7f, 0.06f);
+            go.transform.localScale = new Vector3(0.09f, 0.85f, 0.09f);
 
             // Collider 설정
             var collider = go.GetComponent<CapsuleCollider>();
@@ -56,8 +57,9 @@ namespace ProjectName.Systems
             }
 
             var rb = go.AddComponent<Rigidbody>();
-            rb.useGravity = true;
+            rb.useGravity = false;                 // [化살-사거리] 물리 중력 대신 아래 Update에서 축소 중력 수동 적용(45% 중력 → 약 2배 사거리)
             rb.linearVelocity = direction * speed;
+            rb.linearDamping = 0f;                 // 비행 중 저항 없음
             rb.constraints = RigidbodyConstraints.FreezeRotation;
 
             var arrow = go.AddComponent<ArrowProjectile>();
@@ -188,6 +190,13 @@ namespace ProjectName.Systems
             if (_elapsed >= _lifetime)
             {
                 Destroy(gameObject);
+            }
+
+            // [化살-사거리] 축소 중력 수동 적용 — useGravity=false 상태에서 속도에 가속 추가(0.45*지구중력).
+            //   박힌 화살(_stuck)/무중력 상태는 스킵.
+            if (!_stuck && _rb != null && _rb.useGravity == false)
+            {
+                _rb.linearVelocity += Physics.gravity * GravityScale * Time.deltaTime;
             }
 
             // 회전을 속도 방향으로 정렬 (박힌 화살은 유지)

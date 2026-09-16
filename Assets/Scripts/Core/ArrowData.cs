@@ -45,7 +45,7 @@ namespace ProjectName.Core
                     description = "기본 화살. 특별한 효과 없음.";
                     rarity = ItemRarity.Common;
                     goldCost = 5;
-                    trailColor = new Color(0.55f, 0.35f, 0.15f); // 갈색
+                    trailColor = new Color(0.85f, 0.62f, 0.28f); // 밝은 황갈색(가시성)
                     break;
                 case ArrowType.Reinforced:
                     displayName = "강화 화살";
@@ -53,7 +53,7 @@ namespace ProjectName.Core
                     description = "철촉이 달린 강화 화살. +5 데미지.";
                     rarity = ItemRarity.Uncommon;
                     goldCost = 15;
-                    trailColor = new Color(0.75f, 0.75f, 0.80f); // 은색
+                    trailColor = new Color(0.95f, 0.95f, 1.0f); // 밝은 은백색(가시성)
                     break;
                 case ArrowType.Magic:
                     displayName = "마법 화살";
@@ -61,7 +61,7 @@ namespace ProjectName.Core
                     description = "마력이 깃든 화살. +15 데미지.";
                     rarity = ItemRarity.Rare;
                     goldCost = 50;
-                    trailColor = new Color(0.7f, 0.2f, 0.9f); // 보라색
+                    trailColor = new Color(0.95f, 0.4f, 1.0f); // 밝은 보라색(가시성)
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, $"알 수 없는 ArrowType: {type}");
