@@ -11,7 +11,7 @@ namespace ProjectName.UI
     /// [스펙]
     /// - Tab 키: 하단 중앙 동일 자리에 아이템 핫바(HotbarUI) ↔ 병사 부대 핫바 교체 표시
     /// - 8슬롯(1~8):
-    ///     · Ctrl+숫자   — 박스 드래그로 선택한 병사(그룹)를 해당 슬롯에 등록(덮어쓰기), 즉시 아바타 표시
+    ///     · F+숫자     — 박스 드래그로 선택한 병사(그룹)를 해당 슬롯에 등록(덮어쓰기), 즉시 아바타 표시(후속13: Ctrl→F)
     ///     · 숫자(부대 모드) — 슬롯에 등록된 병사들(생존자만)을 GuardSelectionManager로 RTS 선택
     ///                       (파란 원 표시 — 이후 우클릭 공격/이동 명령은 기존 RTSCommandSystem 경로 사용)
     /// - 아바타: 생존 대표 병사의 실제 3D 외형 아이콘(GuardIconRenderer 오프스크린 베이크) 우선 표시.
@@ -43,7 +43,7 @@ namespace ProjectName.UI
 
             var go = new GameObject("GuardSquadHotbar");
             _instance = go.AddComponent<GuardSquadHotbar>();
-            Debug.Log("[GuardSquadHotbar] 생성됨 — Tab: 아이템/부대 핫바 토글, Ctrl+1~8: 부대 등록, 1~8: 부대 선택");
+            Debug.Log("[GuardSquadHotbar] 생성됨 — Tab: 아이템/부대 핫바 토글, F+1~8: 부대 등록, 1~8: 부대 선택");
         }
 
         // ===== 레이아웃 상수 (HotbarUI와 동일 — 하단 중앙 동일 자리 공유) =====
@@ -140,7 +140,7 @@ namespace ProjectName.UI
         private void Update()
         {
             HandleTabKey();         // Tab: 모드 토글 (상시)
-            HandleCtrlAssignKeys(); // Ctrl+1~8: 부대 등록 (상시 — 아이템 모드에서도 무해)
+            HandleCtrlAssignKeys(); // [후속13] F+1~8: 부대 등록 (상시 — 아이템 모드에서도 무해, 기존 Ctrl 대체)
             HandleDoubleNumpadKeys(); // [TEST28-69차] 눌패드 1~8 두 번 연속 입력 → 해당 슬롯에 부대 등록 (상시)
             if (_squadMode)
                 HandleSelectKeys(); // 1~8: 부대 선택 (부대 모드에서만)
@@ -181,11 +181,11 @@ namespace ProjectName.UI
         /// <summary>현재 부대 모드인지 (디버그/연동용).</summary>
         public static bool IsSquadMode => _instance != null && _instance._squadMode;
 
-        // ===== Ctrl+1~8: 선택된 병사 그룹 슬롯 등록 (덮어쓰기) =====
+        // ===== [69차 후속13] F+1~8: 선택된 병사 그룹 슬롯 등록 (덮어쓰기) — 기존 Ctrl+1~8 대체(사용자 요구) =====
         private void HandleCtrlAssignKeys()
         {
-            bool ctrl = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-            if (!ctrl) return;
+            bool fHeld = Input.GetKey(KeyCode.F);
+            if (!fHeld) return;
 
             for (int i = 0; i < SlotCount; i++)
             {
@@ -231,7 +231,7 @@ namespace ProjectName.UI
             }
             if (mgr.SelectedCount <= 0)
             {
-                Debug.Log("[GuardSquadHotbar] 선택된 병사 없음 — 박스 드래그로 병사 선택 후 Ctrl+숫자");
+                Debug.Log("[GuardSquadHotbar] 선택된 병사 없음 — 박스 드래그로 병사 선택 후 F+숫자");
                 return;
             }
 

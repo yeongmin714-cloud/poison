@@ -457,11 +457,11 @@ namespace ProjectName.Systems
         {
             if (bone == null || visual == null) return;
 
-            // 1) [69차 후속12] 자작 프레임 — GLB 정점 파싱으로 확정한 자작 축(모든 wood 방어구 공통):
-            //    up = -Z, front = -Y (메시가 로컬 Z를 -1.0→0.0로 스팬, 가면 필터/투구 넥가드 질량 -Y 실측).
+            // 1) [69차 후속13] 자작 프레임 — GLB 정점 파싱으로 확정한 자작 축(모든 wood 방어구 공통):
+            //    up = -Z, front = +Y ([테스트 33 실측] 투구/가면/신발/갑옷 전부 앞뒤 반대 — -Y→+Y 부호 플립).
             //    extent 랭킹/부르주/고정 yaw 전부 폐기 — 자작 up/front를 월드 up/전방에 직접 대응.
             Vector3 sUpW = bone.TransformDirection(new Vector3(0f, 0f, -1f));
-            Vector3 sFwdW = bone.TransformDirection(new Vector3(0f, -1f, 0f));
+            Vector3 sFwdW = bone.TransformDirection(new Vector3(0f, 1f, 0f));
             if (sUpW.sqrMagnitude < 0.0001f || sFwdW.sqrMagnitude < 0.0001f) return;
             sUpW.Normalize();
             sFwdW.Normalize();
@@ -614,8 +614,8 @@ namespace ProjectName.Systems
                     scale = (Mathf.Max(pSize.x, pSize.z) * 1.15f) / Mathf.Max(b.size.x, b.size.z); // 발길이 기준(본별 좌우 part)
                     break;
                 case EquipmentManager.EquipmentSlot.Gloves:
-                    // [2026-09-16 후속12] 1.6→2.0배 — 테스트 32: 여전히 작음(사용자 요구 추가 확대).
-                    scale = (Mathf.Max(pSize.x, Mathf.Max(pSize.y, pSize.z)) * 2.0f)
+                    // [2026-09-16 후속13] 2.0→2.4배 — 테스트 33: 여전히 작음(사용자 요구).
+                    scale = (Mathf.Max(pSize.x, Mathf.Max(pSize.y, pSize.z)) * 2.4f)
                             / Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
                     break;
                 case EquipmentManager.EquipmentSlot.Mask:
@@ -667,7 +667,7 @@ namespace ProjectName.Systems
                     }
                     if (outward.sqrMagnitude < 0.0001f) outward = Vector3.left;
                     float gloveMax = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
-                    target = partCenter + outward.normalized * (gloveMax * 0.30f);
+                    target = partCenter + outward.normalized * (gloveMax * 0.35f); // [후속13] 0.30→0.35 — 손등 노출 강화
                     break;
                 }
                 case EquipmentManager.EquipmentSlot.Shoes:
@@ -685,9 +685,9 @@ namespace ProjectName.Systems
                 }
                 case EquipmentManager.EquipmentSlot.Bag:
                 {
-                    // backCenter = part.center − pFwd*(part.size.z/2); 등 표면에 35% 매몰([후속12] 25→35% — 더 밀착).
+                    // backCenter = part.center − pFwd*(part.size.z/2); 등 표면에 45% 매몰([후속13] 35→45% — 더 밀착).
                     Vector3 backCenter = partCenter - pFwd * (part.worldBounds.size.z * 0.5f);
-                    target = backCenter - pFwd * (b.size.z * 0.5f - b.size.z * 0.35f);
+                    target = backCenter - pFwd * (b.size.z * 0.5f - b.size.z * 0.45f);
                     break;
                 }
             }
