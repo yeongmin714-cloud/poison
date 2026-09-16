@@ -4,7 +4,20 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-16 (69차 후속9)
+> **최종 갱신:** 2026-09-16 (69차 후속10)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-16 ✅ 69차 후속10 — TEST28 10차 라운드[테스트 30 실측: 플레이어 메시 isReadable 예외 뿌리 수리(BakeMesh+meta) + 아군 오인 피해 차단(사용자 요구) + 인벤 mid-draw 인덱스 수리 + 헬멧 치수 캡])
+
+> **입력**: 테스트 30 영상 + 피팅/콘솔 로그. ①**"Not allowed to access vertices (isReadable is false)" 예외 스팸** — TryMeasurePlayerBody의 mesh.vertices가 플레이어 메시에서 예외 → 측정 도중 중단 → 부착마다 다른 부분 측정(Helmet part=(0.11,0.15,0.33)→(0.73,0.25,0.54)→(0.44,0.19,0.75) 들쭉날쭉, scale보정 x3.00 클램프 폭발, 가면/장갑 피팅 로그 부재) ②InventoryWindow.DrawItemGrid 1279행 IndexOutOfRangeException — 그리드 그리는 도중 장착 리프레시가 _currentSlots를 더 짧은 새 배열로 교체 ③사용자 요구: **내가 때렸을 때 내 소속 병사는 피해를 입지 않게(아군 오인 피해 차단)** — 합세 기능 자체는 유지.
+
+### 변경 사항 (코드 4파일 + meta 2개)
+**`Systems/ArmorVisualAttachSystem.cs`**: ①`TryMeasurePlayerBody` 정점 접근 안전화 — SkinnedMeshRenderer는 **BakeMesh**(isReadable 무관·현재 포즈 반영, tmp Mesh 즉시 Destroy), MeshFilter는 isReadable 가드로 조용히 스킵, 렌더러 처리 전체 try/catch(1회 요약 경고)로 **단일 렌더러 실패가 측정 전체를 중단하지 않음** ②Helmet 피팅 **치수 상한 0.6m 캡**(scale 클램프 후/localScale 적용 전) — 헤어 스파이크로 Head bounds가 비정상 커질 때 x3.00 폭발 방지. **meta**: Player_Rigged.fbx.meta·Player_Rigged_Heat.fbx.meta `isReadable: 0→1`. **`Systems/PlayerCombat.cs`**: `IsOwnSoldier`(RecruitedSoldier 태그) 헬퍼 — FindTargetInCursorDirection 2개 루프 타겟 선정 제외 + 차지강공 빈 스윙 + AttackTarget 조기 return(데미지·VFX·합세통보 차단). **`Systems/ArrowProjectile.cs`**: 화살 적중 태그에서 RecruitedSoldier 제외 → **내 병사 관통**(지면/벽 분기 회피 no-op). **`UI/InventoryWindow.cs`**: 그리드 루프를 `slotsLocal` 로컬 참조 기준으로 전환 + `if (i >= slotsLocal.Length) break;` 가드 — mid-draw 배열 교체 인덱스 예외 뿌리 수리.
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0) — 중간 CS0246(Exception, using System 부재) 2건 System.Exception 정규화로 수리. 괄호 균형 0 + 서브 QA 정적 검증 **FAIL 0건**(IsOwnSoldier 태그 계층/필터 2곳/가드 2곳/합세·적대화 호출 생존/화살 분기 순서/BakeMesh 블록/헬멧 캡 위치/slotsLocal 전수/meta 무변경 확인).
+- Play 판정 대기: ①isReadable 예외 스팸 0건 + 피팅 로그 part 치수가 매 부착마다 안정 ②가면/장갑 피팅 로그 정상 출력 ③내 병사를 때려도 피해 0(빈 스윙/화살 관통) — 적 병사·몬스터는 정상 피해 ④투구가 두개골 크기(0.6m 캡 이내) ⑤인벤에서 장비 연속 장착 시 IndexOutOfRangeException 0건.
 
 ---
 

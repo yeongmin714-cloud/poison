@@ -22,7 +22,7 @@ ModelImporter:
     extraExposedTransformPaths: []
     extraUserProperties: []
     clipAnimations: []
-    isReadable: 0
+    isReadable: 1
   mesh:
     globalScale: 1
     meshCompression: 0

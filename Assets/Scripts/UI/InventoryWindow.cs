@@ -1214,7 +1214,10 @@ namespace ProjectName.UI
             float slotHeight = slotWidth;   // 정사각형 슬롯
             float rowHeight = slotHeight + SLOT_MARGIN;
 
-            int totalSlots = _currentSlots != null ? _currentSlots.Length : 0;
+            // [2026-09-16 69차 후속10] 그리드 그리는 도중 장착(리프레시)이 _currentSlots를 더 짧은 새 배열로
+            //   교체해도 로컬 참조는 안정 — IndexOutOfRangeException(1279행 실측) 뿌리 수리.
+            var slotsLocal = _currentSlots;
+            int totalSlots = slotsLocal != null ? slotsLocal.Length : 0;
             // 2026-09-12(P3): 페이지네이션 — 5행×6열=30슬롯/페이지, 초과분은 ◀/▶ 버튼으로 넘김
             int totalPages = Mathf.Max(1, Mathf.CeilToInt((float)totalSlots / GRID_PAGE_SLOTS));
             // 2026-09-12(40차 QA 결함 #1): 페이지 스트립은 플레이어 인벤 단일 그리드에만 적용 —
@@ -1276,7 +1279,8 @@ namespace ProjectName.UI
                 int pageEnd = Mathf.Min(totalSlots, pageStart + GRID_PAGE_SLOTS);
                 for (int i = pageStart; i < pageEnd; i++)
                 {
-                    var slot = _currentSlots[i];
+                    if (i >= slotsLocal.Length) break;   // [69차 후속10] mid-draw 교체 가드
+                    var slot = slotsLocal[i];
                     if (slot == null || slot.item == null || slot.count <= 0) continue;
 
                     int localIdx = i - pageStart;

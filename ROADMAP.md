@@ -2810,3 +2810,18 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ### Play 판정 대기 (테스트 32)
 ①투구 두개골 감쌈(측정 정상화 효과) ②장갑 손 감쌈+손등+확대 ③가방 등 중앙 밀착 ④가면 얼굴 ⑤신발 지면 밀착 ⑥갑옷/방패 유지 — 먼저 `[ArmorVisual] 피팅` 로그 part 치수가 실제 부위와 일치하는지 확인
+
+## ⚔️ 2026-09-16: TEST28 — 10차 라운드(테스트 30) — isReadable 예외 뿌리 수리 + 아군 오인 피해 차단 + 인벤 mid-draw 인덱스 + 헬멧 캡 (TEST28-ROUND10-69후속10)
+
+> **입력**: 테스트 30 영상+로그. ①isReadable=false 예외로 측정 중단(부착마다 다른 부위값·투구 x3.00·가면/장갑 로그 부재의 단일 뿌리) ②인벤 1279행 인덱스 예외 ③사용자 요구: 내 병사는 내 공격으로 피해를 입지 않게(합세는 유지).
+
+| 항목 | 뿌리 원인 | 수리 | 상태 |
+|:---|:---|:---|:---:|
+| 측정 예외 스팸·중단 | 플레이어 메시 isReadable: 0 — mesh.vertices 예외 | SMR=BakeMesh(포즈반영·readable무관) + MeshFilter isReadable 가드 + per-renderer try/catch + **FBX meta isReadable 1** | ✅ |
+| 투구 과대(x3.00 폭발) | 헤어 스파이크가 Head bounds 오염 | 헬멧 최종 max(x,z) 치수 0.6m 캡 | ✅ |
+| 내 병사 피해(사용자 요구) | 플레이어 공격이 RecruitedSoldier에 피해 적용 | PlayerCombat IsOwnSoldier — 자동조준 제외+차지강공 빈스윙+AttackTarget 조기return / 화살은 관통 | ✅ |
+| 인벤 인덱스 예외 | 그리드 도중 장착 → _currentSlots 교체 | slotsLocal 로컬 캡처 + break 가드 | ✅ |
+| 검증 | — | 배치컴파일 error CS=0(중간 CS0246 Exception 2건 정규화 수리) + 서브 QA FAIL 0건 | ✅ |
+
+### Play 판정 대기 (테스트 33)
+①isReadable 예외 0건+part 치수 안정 ②가면/장갑 피팅 로그 출력 ③내 병사 피해 0(적 병사·몬스터 정상) ④투구 크기 정상 ⑤인벤 연속 장착 예외 0건

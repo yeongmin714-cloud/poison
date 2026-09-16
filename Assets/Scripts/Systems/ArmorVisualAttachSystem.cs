@@ -683,6 +683,13 @@ namespace ProjectName.Systems
                     return false;
             }
             scale = Mathf.Clamp(scale, 0.3f, 3.0f);
+            // [2026-09-16 69차 후속10] 헬멧 치수 상한 캡 — 헤어 스파이크가 Head 영역 bounds를 비정상적으로
+            //   키울 때(테스트 30: part=(0.73,0.25,0.54) → scale보정 x3.00 클램프 폭발) 투구 과대 방지.
+            if (slot == EquipmentManager.EquipmentSlot.Helmet)
+            {
+                float helmMax = Mathf.Max(b.size.x, b.size.z) * scale;
+                if (helmMax > 0.6f) scale *= 0.6f / helmMax;
+            }
             visual.transform.localScale *= scale;
 
             // 스케일 후 bounds 재계산
@@ -783,61 +790,86 @@ namespace ProjectName.Systems
                 //   뒤 렌더러(머리/헤어/손/발)가 정점 0개만 기여 → 부위 과소 측정(헬멧 높이 0.15m 등)의 뿌리. 각 렌더러는 무조건
                 //   stride 샘플링(≤1500)으로 기여해 모든 부위가 측정에 반영된다.
                 var rends = player.GetComponentsInChildren<Renderer>(true);
+                // [69차 후속10] 바디 측정 정점 접근 안전화:
+                //   - SkinnedMeshRenderer는 sharedMesh.vertices 대신 BakeMesh로 현재 포즈를 읽는다(isReadable 무관).
+                //   - MeshFilter는 isReadable == false면 조용히 스킵(해당 렌더러 0 기여 — 다른 렌더러는 계속).
+                //   - 각 렌더러 처리를 try-catch로 감싸 어떤 예외가 나도 전체 측정이 중단되지 않게 한다.
+                bool rendererWarned = false;
                 foreach (var r in rends)
                 {
                     if (r == null || !r.enabled) continue;
-                    Mesh mesh = null;
-                    var smr = r as SkinnedMeshRenderer;
-                    if (smr != null && smr.sharedMesh != null) mesh = smr.sharedMesh;
-                    if (mesh == null)
+                    try
                     {
-                        var mf = r.GetComponent<MeshFilter>();
-                        if (mf != null && mf.sharedMesh != null) mesh = mf.sharedMesh;
+                        Vector3[] verts = new Vector3[0];
+                        var smr = r as SkinnedMeshRenderer;
+                        if (smr != null)
+                        {
+                            Mesh tmp = new Mesh();
+                            try { smr.BakeMesh(tmp); }
+                            catch (System.Exception) { tmp = null; }
+                            if (tmp != null)
+                            {
+                                verts = tmp.vertices;
+                                Object.Destroy(tmp); // 즉시 해제 — 에디터/런타임 겸용 Destroy
+                            }
+                        }
+                        if (verts.Length == 0)
+                        {
+                            var mf = r.GetComponent<MeshFilter>();
+                            if (mf != null && mf.sharedMesh != null && mf.sharedMesh.isReadable)
+                                verts = mf.sharedMesh.vertices;
+                        }
+                        int n = verts.Length;
+                        if (n == 0) continue;
+                        int step = Mathf.Max(1, n / PerRendererSamples);
+                        Matrix4x4 l2w = r.transform.localToWorldMatrix; // smr는 transform L2W 근사
+                        for (int i = 0; i < n; i += step)
+                        {
+                            Vector3 v = l2w.MultiplyPoint3x4(verts[i]);
+                            if (headBone != null && v.y >= headThreshold)
+                            {
+                                if (!hI) { hb = new Bounds(v, Vector3.zero); hI = true; } else hb.Encapsulate(v);
+                                headCnt++;
+                                continue;
+                            }
+                            if (spineBone != null && v.y >= torsoLow && v.y < headThreshold)
+                            {
+                                if (!tI) { tb = new Bounds(v, Vector3.zero); tI = true; } else tb.Encapsulate(v);
+                                torsoCnt++;
+                                continue;
+                            }
+                            if (lf != null && (v - lf.position).sqrMagnitude <= footR2)
+                            {
+                                if (!lfI) { lfb = new Bounds(v, Vector3.zero); lfI = true; } else lfb.Encapsulate(v);
+                                lfCnt++;
+                                continue;
+                            }
+                            if (rf != null && (v - rf.position).sqrMagnitude <= footR2)
+                            {
+                                if (!rfI) { rfb = new Bounds(v, Vector3.zero); rfI = true; } else rfb.Encapsulate(v);
+                                rfCnt++;
+                                continue;
+                            }
+                            if (lh != null && (v - lh.position).sqrMagnitude <= handR2)
+                            {
+                                if (!lhI) { lhb = new Bounds(v, Vector3.zero); lhI = true; } else lhb.Encapsulate(v);
+                                lhCnt++;
+                                continue;
+                            }
+                            if (rh != null && (v - rh.position).sqrMagnitude <= handR2)
+                            {
+                                if (!rhI) { rhb = new Bounds(v, Vector3.zero); rhI = true; } else rhb.Encapsulate(v);
+                                rhCnt++;
+                                continue;
+                            }
+                        }
                     }
-                    if (mesh == null) continue;
-                    var verts = mesh.vertices;
-                    int n = verts.Length;
-                    if (n == 0) continue;
-                    int step = Mathf.Max(1, n / PerRendererSamples);
-                    Matrix4x4 l2w = r.transform.localToWorldMatrix; // smr는 transform L2W 근사
-                    for (int i = 0; i < n; i += step)
+                    catch (System.Exception ex)
                     {
-                        Vector3 v = l2w.MultiplyPoint3x4(verts[i]);
-                        if (headBone != null && v.y >= headThreshold)
+                        if (!rendererWarned)
                         {
-                            if (!hI) { hb = new Bounds(v, Vector3.zero); hI = true; } else hb.Encapsulate(v);
-                            headCnt++;
-                            continue;
-                        }
-                        if (spineBone != null && v.y >= torsoLow && v.y < headThreshold)
-                        {
-                            if (!tI) { tb = new Bounds(v, Vector3.zero); tI = true; } else tb.Encapsulate(v);
-                            torsoCnt++;
-                            continue;
-                        }
-                        if (lf != null && (v - lf.position).sqrMagnitude <= footR2)
-                        {
-                            if (!lfI) { lfb = new Bounds(v, Vector3.zero); lfI = true; } else lfb.Encapsulate(v);
-                            lfCnt++;
-                            continue;
-                        }
-                        if (rf != null && (v - rf.position).sqrMagnitude <= footR2)
-                        {
-                            if (!rfI) { rfb = new Bounds(v, Vector3.zero); rfI = true; } else rfb.Encapsulate(v);
-                            rfCnt++;
-                            continue;
-                        }
-                        if (lh != null && (v - lh.position).sqrMagnitude <= handR2)
-                        {
-                            if (!lhI) { lhb = new Bounds(v, Vector3.zero); lhI = true; } else lhb.Encapsulate(v);
-                            lhCnt++;
-                            continue;
-                        }
-                        if (rh != null && (v - rh.position).sqrMagnitude <= handR2)
-                        {
-                            if (!rhI) { rhb = new Bounds(v, Vector3.zero); rhI = true; } else rhb.Encapsulate(v);
-                            rhCnt++;
-                            continue;
+                            rendererWarned = true;
+                            Debug.LogWarning($"[ArmorVisual] 바디 측정 스킵: {r.name} ({ex.Message})");
                         }
                     }
                 }

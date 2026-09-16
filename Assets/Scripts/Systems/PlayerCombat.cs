@@ -277,7 +277,7 @@ namespace ProjectName.Systems
             IDamageable target = FindTargetInCursorDirection();
             if (target == null) target = MeleeSweepFallback();
 
-            if (target == null || !target.IsAlive)
+            if (target == null || !target.IsAlive || IsOwnSoldier(target))   // [69차 후속10] 아군 오인 차단 — 내 병사는 빈 스윙
             {
                 // 미스 — 빈 차지 스윙 (카메라 펀치만)
                 TriggerCameraEffects();
@@ -540,6 +540,14 @@ namespace ProjectName.Systems
         /// C4-08: 마우스 커서 방향으로 가장 가까운 적을 찾습니다.
         /// 카메라 → 마우스 커서 위치로 Ray를 쏘아 IDamageable 구현체를 탐색합니다.
         /// </summary>
+        /// <summary>[2026-09-16 69차 후속10] 아군 오인 피해 차단 — 내 소속(포섭) 병사(RecruitedSoldier 태그)는
+        ///   플레이어 공격의 대상이 되지 않는다(타겟 선정 제외 + 데미지 무시). 적 병사(Guard)는 정상 피해.</summary>
+        private static bool IsOwnSoldier(IDamageable target)
+        {
+            var mb = target as MonoBehaviour;
+            return mb != null && mb.CompareTag("RecruitedSoldier");
+        }
+
         private IDamageable FindTargetInCursorDirection()
         {
             if (_mainCamera == null || Mouse.current == null) return null;
@@ -556,7 +564,7 @@ namespace ProjectName.Systems
             foreach (RaycastHit hit in hits)
             {
                 IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
-                if (target != null && target.IsAlive)
+                if (target != null && target.IsAlive && !IsOwnSoldier(target))
                 {
                     if (hit.distance < closestDistance)
                     {
@@ -576,7 +584,7 @@ namespace ProjectName.Systems
                 foreach (RaycastHit hit in sphereHits)
                 {
                     IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
-                    if (target != null && target.IsAlive)
+                    if (target != null && target.IsAlive && !IsOwnSoldier(target))
                     {
                         // 원뿔 각도 내에 있는지 추가 확인 (실제 각도 계산)
                         Vector3 directionToTarget = (hit.point - ray.origin).normalized;
@@ -599,6 +607,7 @@ namespace ProjectName.Systems
         private void AttackTarget(IDamageable target)
         {
             if (target == null || !target.IsAlive) return;
+            if (IsOwnSoldier(target)) return;   // [69차 후속10] 아군 오인 피해 차단 — 내 소속 병사는 플레이어 공격으로 피해를 입지 않는다(합세 통보도 없음)
 
             float damage = CalculateDamage();
             Vector3 hitDirection = Vector3.zero;

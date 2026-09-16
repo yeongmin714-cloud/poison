@@ -95,12 +95,15 @@ namespace ProjectName.Systems
 
         private void OnTriggerEnter(Collider other)
         {
-            // 적 감지 — 몬스터/병사(포섭 여부 무관) + 영주. [TEST21-FOLLOWUP] Guard/RecruitedSoldier/DraculaLord 추가.
+            // 적 감지 — 몬스터/적 병사 + 영주. [TEST21-FOLLOWUP] Guard/DraculaLord 추가.
+            // [2026-09-16 69차 후속10] RecruitedSoldier 제외 — 화살이 내 소속 병사를 관통(아군 오인 피해 차단).
+            //   관통 처리: 내 병사 히트는 어느 분기에도 걸리지 않아 화살이 계속 비행한다.
             GameObject hitGO = other != null ? other.gameObject : null;
             bool isTarget = hitGO != null
                 && (hitGO.CompareTag("Enemy") || hitGO.CompareTag("Monster")
-                    || hitGO.CompareTag("Guard") || hitGO.CompareTag("RecruitedSoldier")
+                    || hitGO.CompareTag("Guard")
                     || hitGO.CompareTag("DraculaLord"));
+            bool isOwnSoldier = hitGO != null && hitGO.CompareTag("RecruitedSoldier");   // 아군 — 아무 처리 없음(관통)
             if (isTarget)
             {
                 var damageable = other.GetComponent<IDamageable>();
@@ -110,6 +113,10 @@ namespace ProjectName.Systems
                     damageable.TakeDamage(_damage, hitDir, "Arrow");
                 }
                 Destroy(gameObject);
+            }
+            else if (isOwnSoldier)
+            {
+                // 내 소속 병사 — 피해 없이 관통(지면/벽 충돌 분기에도 걸리지 않도록 명시적 no-op)
             }
             // 지면/벽 충돌
             else if (!other.CompareTag("Player") && !other.isTrigger)
