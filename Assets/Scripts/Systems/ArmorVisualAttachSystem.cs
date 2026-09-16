@@ -283,24 +283,27 @@ namespace ProjectName.Systems
                     switch (slot)
                     {
                         case EquipmentManager.EquipmentSlot.Helmet:
-                            worldAnchor = bone.position - Vector3.up * 0.06f;       // [69차 후속4] 투구 하단 = Head 본-6cm — 본이 두개골 상단(1.44m 실측)이라 +3cm면 관 위 부유(스크린샷 66)
+                            // [69차 후속5] 실측: 플레이어=1.0m 치비(발=원점, Player_Rigged.fbx VERT 0.89×1.0×0.4),
+                            //   Head 본=턱/두개골 하단(로컬 0.57), 두개골=로컬 0.6~1.0(0.4m 대형 머리).
+                            //   본±수cm 앵커는 투구(높이 0.267)가 두개골 내부에 매몰 → 67차 영상 "투구 안 보임"의 뿌리.
+                            //   헬멧 중심 = 본+26cm(정수리 감쌈, 상단이 머리 꼭대기와 맞물림).
+                            worldAnchor = bone.position + Vector3.up * 0.26f;
                             break;
                         case EquipmentManager.EquipmentSlot.Mask:
-                            worldAnchor = bone.position + pFwd * 0.07f - Vector3.up * 0.12f; // [69차 후속4] 가면 중심 = 눈높이(본-12cm) — 본 높이면 정수리에 걸침(스크린샷 66)
+                            worldAnchor = bone.position + pFwd * 0.06f + Vector3.up * 0.19f; // [69차 후속5] 가면 중심 = 눈높이(로컬 0.76) — 본-12cm는 턱 아래로 과납(67차 실측)
                             break;
                         case EquipmentManager.EquipmentSlot.Armor:
-                            worldAnchor = bone.position + Vector3.up * 0.14f;       // [69차 후속4] 갑옷 중심 = Spine 본+14cm(가슴 중앙으로 4cm 상승)
+                            worldAnchor = bone.position + Vector3.up * 0.15f;       // [69차 후속5] 갑옷 중심 = 가슴(로컬 0.40, 갑옷 높이 0.341 → 허리~목하단)
                             break;
                         case EquipmentManager.EquipmentSlot.Bag:
-                            worldAnchor = bone.position - pFwd * 0.10f + Vector3.up * 0.05f; // [69차 후속4] 가방 중심 = 등 중앙(본+5cm 위, 등 표면 뒤 10cm)
+                            worldAnchor = bone.position + Vector3.up * 0.12f - pFwd * 0.09f; // [69차 후속5] 가방 중심 = 등 중앙(로컬 0.37, 등 표면 뒤 9cm)
                             break;
                         case EquipmentManager.EquipmentSlot.Gloves:
-                            worldAnchor = bone.position;                             // 장갑 중심 = 손 본
+                            worldAnchor = bone.position - Vector3.up * 0.02f;        // [69차 후속5] 장갑(손목보호대, 높이 0.08) 중심 = 손 본-2cm
                             break;
                         case EquipmentManager.EquipmentSlot.Back:
                         {
-                            // [69차 후속4] 방패 = 손 본에서 팔 바깥쪽 10cm — transform 기반 pLeft는 모델 시선과 어긋남이
-                            //   실측됨(LeftHand 본이 transform 기준 우측 0.23m, 콘솔 로그 역산) → Spine↔손 벡터(본 기준) 사용.
+                            // [69차 후속4] 방패 = 손 본에서 팔 바깥쪽 10cm — Spine↔손 벡터(본 기준, 시선 무관).
                             var lat = Vector3.zero;
                             var spineBone = placeAnim != null ? placeAnim.GetBoneTransform(HumanBodyBones.Spine) : null;
                             if (spineBone != null)
@@ -312,7 +315,7 @@ namespace ProjectName.Systems
                             break;
                         }
                         case EquipmentManager.EquipmentSlot.Shoes:
-                            worldAnchor = bone.position - Vector3.up * 0.05f;       // [69차 후속4] 부츠 하단 = 복사 본-5cm — transform.y는 지면이 아니라 CC 중심(스폰 실측 0.87m)이라 부츠가 0.88m 무릎 높이에 붙던 것 수리
+                            worldAnchor = bone.position - Vector3.up * 0.05f;       // [69차 후속4·5 검증] 복사 본(로컬 0.06)-5cm = 지면+1cm — 실측 부합, 유지
                             break;
                     }
                 }
@@ -386,7 +389,7 @@ namespace ProjectName.Systems
         static Vector3 GetCenterOffset(EquipmentManager.EquipmentSlot slot, string itemId)
             => _centerOffset.TryGetValue(slot, out var o) ? o : Vector3.zero;
         static bool GetBottomAnchor(EquipmentManager.EquipmentSlot slot, string itemId)
-            => slot == EquipmentManager.EquipmentSlot.Helmet || slot == EquipmentManager.EquipmentSlot.Shoes;
+            => slot == EquipmentManager.EquipmentSlot.Shoes; // [69차 후속5] Helmet 제외 — 치비 두개골 매몰 수리로 Center 앵커(본+26cm)로 전환, Shoes만 접지 Bottom
 
         /// <summary>[TEST27-68차] 비주얼 최장축을 목표 크기로 균등 스케일(보정 계수 클램프 0.4~5.0). 적용 계수 반환.</summary>
         static float NormalizeVisualScale(GameObject visual, float targetSize)
