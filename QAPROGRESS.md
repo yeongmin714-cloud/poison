@@ -4,7 +4,20 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-16 (69차)
+> **최종 갱신:** 2026-09-16 (69차 후속7)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-16 ✅ 69차 후속7 — TEST28 7차 라운드[장비 부착 회전 보정 전무 뿌리 확정 + 축 자가 정렬 신설 — 가면 기울어짐/가방 회전틀림/부츠 옆으로 눕기])
+
+> **입력**: 테스트 29 영상(장비 개별 부착 — 가면 기울어짐·부유, 가방 회전틀림, 부츠 옆으로 눕기, 무기 손 근처 어색 부착) + anchor 콘솔 로그(5슬롯 본↔중심 0.02~0.20m — 위치 앵커는 정상 범위). 뿌리: **회전 보정 전무** — `_poseTable`의 LocalEuler가 전부 Vector3.zero라 GLB가 원본 저자 오리엔테이션 그대로 부착(위치는 본+실측 오프셋으로 맞지만 축이 캐릭터 축과 불일치).
+
+### 변경 사항 (1파일 +190행 — 신규 메서드 2)
+**`Systems/ArmorVisualAttachSystem.cs`**: `ApplySlotAxisAlignment` 신규 — InstantiateAttached 루프 내 NormalizeVisualScale 직후/SnapVisualToBone 직전 호출(회전 → bounds 재계산 → 스냅 반영 순서 보장). ①**본로컬 AABB 축 랭킹**(mesh.bounds 8코너 → visual-root-local 누적 → long/mid/thin) ②**정점 centroid−bounds.center 부르주 부호**(첫 메시 ≤2000 샘플) ③**Swing-Twist 2단계**(R1=FromToRotation(long→목표축) + R2=AngleAxis(SignedAngle around tgtLong)) ④**슬롯 규칙**: Helmet=long→up(twist 없음)/Armor=thin볼록→+전방/Bag=볼록→−전방/Mask=볼록→+전방/Back(방패)=볼록→+좌/Gloves=long→손가락방향(elbow=LeftLowerArm·RightLowerArm, null→up)·thin→좌/Shoes=long→up·toe축 볼록→+전방 ⑤degenerate 가드(목표축 평행 시 twist 스킵) ⑥`[ArmorVisual] 정렬` 실측 로그(long/thin/bulge/euler). `MeasureRootLocalAABB` 헬퍼 신규. **위치 앵커 상수 일절 불변**(실측 검증 완료분).
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0, "Exiting batchmode successfully now!") + 괄호 균형 0 + 서브 QA 에이전트 정적 검증 **FAIL 0건**(축 랭킹/swing-twist 수학/호출 순서/기존 상수 불변/중복 정의 0/C# 문법 전수 OK).
+- Play 판정 대기: ①가면이 얼굴 정면(기울어짐 0) ②가방 등에 수직 정렬 ③부츠 발에 똑바로(옆으로 눕기 소멸) ④장갑 손가락 방향 ⑤투구 정수리 유지 ⑥방패 바깥면 수직 — 어긋나면 `[ArmorVisual] 정렬` 로그의 long/thin/bulge/euler 값으로 슬롯 규칙 즉시 튜닝.
 
 ---
 

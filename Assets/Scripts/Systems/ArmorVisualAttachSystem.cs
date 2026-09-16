@@ -274,7 +274,11 @@ namespace ProjectName.Systems
                 //   플레이어를 덮는 문제. 최장축을 슬롯 목표 치수로 균등 스케일.
                 appliedScale = NormalizeVisualScale(visual, GetTargetSize(slot, itemId));
 
-                // [TEST28-69차 후속3] 배치 앵커 — 본 위치(실측 정확) + 월드 방향 오프셋.
+                // [2026-09-16] 축 자가 정렬 — GLB 원본 축을 슬롯 규칙에 맞춰 회전 보정.
+                //   스냅(SnapVisualToBone)보다 먼저 실행: 회전 → 이후 bounds 재계산 → 스냅이 올바른 앵커를 읽는다.
+                //   위치 앵커 상수는 1도 변경하지 않는다(실측 검증 완료).
+                TryGetPlayerPlacement(out _, out var alignFwd, out var alignLeft);
+                ApplySlotAxisAlignment(visual, bone, slot, placeAnim, alignFwd, alignLeft);
                 //   ①CC 높이 기준은 모델보다 커서 투구가 머리 위 20~25% 부유(스크린샷 65 실측)
                 //   ②SkinnedMesh 몸 bounds 왜곡(3.2m) ③본 로컬축(손 본 +Z=손가락 방향) 모두 폐기.
                 Vector3? worldAnchor = null;
@@ -404,6 +408,190 @@ namespace ProjectName.Systems
             float scale = Mathf.Clamp(targetSize / maxDim, 0.12f, 5f);   // [TEST28-69차] 하한 0.4→0.12 — 0.4 클램프가 목표 스케일(부츠 0.26 등)을 잘라 0.55m 잔존(68차 로그 실측)
             visual.transform.localScale *= scale;
             return scale;
+        }
+
+        /// <summary>
+        /// [2026-09-16] 축 자가 정렬 — GLB 원본 축을 슬롯 규칙에 맞춰 bone-local 공간에서 회전 보정.
+        /// Swing-Twist 2단계로 long축→목표(FromToRotation, R1) 후 long축 기준 thin축의 부호 있는 twist(R2).
+        /// 위치 앵커는 건드리지 않고 회전만 보정한다. 렌더러가 없거나 축 실측에 실패하면 스킵(기존 동작 유지).
+        /// </summary>
+        static void ApplySlotAxisAlignment(GameObject visual, Transform bone, EquipmentManager.EquipmentSlot slot,
+                                           Animator placeAnim, Vector3 pFwd, Vector3 pLeft)
+        {
+            if (bone == null || visual == null) return;
+
+            // 1) 에셋 축 실측 — bone-local(=visual-root-local, localRotation=identity) AABB/중심.
+            if (!MeasureRootLocalAABB(visual, out var aabb, out var centroid)) return; // 렌더러 0 → 정렬 스킵
+
+            // extents 랭킹 → long(최장)/mid/thin(최단) 축 인덱스 (x=0,y=1,z=2)
+            float ex = aabb.size.x, ey = aabb.size.y, ez = aabb.size.z;
+            int longIdx = 1, midIdx = 0, thinIdx = 2;
+            if (ex >= ey && ex >= ez) longIdx = 0; else if (ey >= ex && ey >= ez) longIdx = 1; else longIdx = 2;
+            if (longIdx == 0) { midIdx = (ey >= ez) ? 1 : 2; thinIdx = (ey >= ez) ? 2 : 1; }
+            else if (longIdx == 1) { midIdx = (ex >= ez) ? 0 : 2; thinIdx = (ex >= ez) ? 2 : 0; }
+            else { midIdx = (ex >= ey) ? 0 : 1; thinIdx = (ex >= ey) ? 1 : 0; }
+
+            Vector3[] axes = { Vector3.right, Vector3.up, Vector3.forward };
+            Vector3 longBasis = axes[longIdx];
+            Vector3 thinBasis = axes[thinIdx];
+            Vector3 midBasis = axes[midIdx];
+
+            // 2) 부르주(bulge) 방향 실측 — centroid − bounds.center 의 thin축 성분 부호.
+            var bulgeVec = centroid - aabb.center;
+            int bulgeSign = 1;
+            if (Mathf.Abs(bulgeVec.sqrMagnitude) > 0.0000001f)
+                bulgeSign = (Vector3.Dot(bulgeVec, thinBasis) >= 0f) ? 1 : -1;
+
+            // 3) 슬롯별 목표축(월드) 결정.
+            Vector3 tgtLongW = Vector3.up;
+            Vector3 tgtThinW = Vector3.zero;
+            bool applyTwist = true;
+            switch (slot)
+            {
+                case EquipmentManager.EquipmentSlot.Helmet:
+                    tgtLongW = Vector3.up; applyTwist = false; // yaw 자유
+                    break;
+                case EquipmentManager.EquipmentSlot.Armor:
+                    tgtLongW = Vector3.up;   // thin bulge → +pFwd (볼록=가슴 앞)
+                    tgtThinW = (bulgeSign >= 0 ? 1f : -1f) * pFwd;
+                    break;
+                case EquipmentManager.EquipmentSlot.Bag:
+                    tgtLongW = Vector3.up;   // thin bulge → −pFwd (가방 볼록=등 뒤)
+                    tgtThinW = (bulgeSign >= 0 ? -1f : 1f) * pFwd;
+                    break;
+                case EquipmentManager.EquipmentSlot.Mask:
+                    tgtLongW = Vector3.up;   // thin bulge → +pFwd (필터 돌기=정면)
+                    tgtThinW = (bulgeSign >= 0 ? 1f : -1f) * pFwd;
+                    break;
+                case EquipmentManager.EquipmentSlot.Back:
+                    tgtLongW = Vector3.up;   // thin bulge → +pLeft (방패=바깥)
+                    tgtThinW = (bulgeSign >= 0 ? 1f : -1f) * pLeft;
+                    break;
+                case EquipmentManager.EquipmentSlot.Gloves:
+                {
+                    // long → 손가락 방향(손 본−팔꿈치), thin → pLeft. 좌우 본 각각 계산.
+                    bool isL = bone.name.ToLowerInvariant().Contains("left");
+                    var elbowBone = placeAnim != null
+                        ? placeAnim.GetBoneTransform(isL ? HumanBodyBones.LeftLowerArm : HumanBodyBones.RightLowerArm)
+                        : null;
+                    Vector3 fingerW = Vector3.up;
+                    if (elbowBone != null)
+                    {
+                        var fd = bone.position - elbowBone.position;
+                        if (fd.sqrMagnitude > 0.0001f) fingerW = fd.normalized;
+                    }
+                    tgtLongW = fingerW;
+                    tgtThinW = pLeft;
+                    break;
+                }
+                case EquipmentManager.EquipmentSlot.Shoes:
+                {
+                    tgtLongW = Vector3.up;
+                    // toe: thin/mid 중 수평축(extent 큰 쪽)의 bulge 방향 → +pFwd.
+                    float thinExt = aabb.size[thinIdx], midExt = aabb.size[midIdx];
+                    Vector3 toeBasis = (midExt >= thinExt) ? midBasis : thinBasis;
+                    int toeSign = (Vector3.Dot(bulgeVec, toeBasis) >= 0f) ? 1 : -1;
+                    thinBasis = toeBasis; // twist 축을 toe 축으로 대체
+                    tgtThinW = (toeSign >= 0 ? 1f : -1f) * pFwd;
+                    break;
+                }
+                default:
+                    tgtLongW = Vector3.up; applyTwist = false;
+                    break;
+            }
+
+            // 4) Swing-Twist 회전 구성 (bone-local 공간).
+            Vector3 tgtLongL = bone.InverseTransformDirection(tgtLongW);
+            if (tgtLongL.sqrMagnitude < 0.0001f) return;
+            tgtLongL.Normalize();
+
+            Quaternion R1 = Quaternion.FromToRotation(longBasis, tgtLongL);
+            Quaternion finalRot = R1 * visual.transform.localRotation;
+
+            if (applyTwist)
+            {
+                Vector3 thinAligned = R1 * thinBasis; // 이미 tgtLong과 수직
+                Vector3 tgtThinL = bone.InverseTransformDirection(tgtThinW);
+                // degenerate(같은 축/수직 성분 0)이면 FromToRotation만 적용한다(안전 경로).
+                if (tgtThinL.sqrMagnitude < 0.0001f) { /* skip or keeping R1; fall to safe path */ }
+                else
+                {
+                    tgtThinL.Normalize();
+                    float d = Vector3.Dot(tgtThinL, tgtLongL);
+                    if (Mathf.Abs(d) < 0.999f)
+                    {
+                        Vector3 proj = tgtThinL - tgtLongL * d;
+                        if (Mathf.Abs(proj.sqrMagnitude) > 0.0001f)
+                        {
+                            proj.Normalize();
+                            float ang = Vector3.SignedAngle(thinAligned, proj, tgtLongL);
+                            Quaternion R2 = Quaternion.AngleAxis(ang, tgtLongL);
+                            finalRot = R2 * finalRot;
+                        }
+                    }
+                }
+            }
+
+            visual.transform.localRotation = finalRot;
+
+            // 5) 실측 로그 1줄/본.
+            Debug.Log($"[ArmorVisual] 정렬 {slot}: long={longIdx} thin={thinIdx} bulge={(bulgeSign >= 0 ? "+" : "-")} → localEuler={visual.transform.localRotation.eulerAngles.ToString("F0")} (bone={bone.name})");
+        }
+
+        /// <summary>bone-local(=현재 localRotation 동일) 공간의 AABB+정점 중심 실측. 렌더러 없으면 false(정렬 스킵).</summary>
+        static bool MeasureRootLocalAABB(GameObject visual, out Bounds aabb, out Vector3 centroid)
+        {
+            aabb = default; centroid = default;
+            var visualT = visual.transform;
+            Matrix4x4 w2v = visualT.worldToLocalMatrix;
+            var rends = visual.GetComponentsInChildren<Renderer>(true);
+            bool init = false;
+            Bounds acc = default;
+            Renderer firstRend = null; Mesh firstMesh = null;
+            foreach (var r in rends)
+            {
+                if (r == null || !r.enabled) continue;
+                Mesh mesh = null;
+                var smr = r as SkinnedMeshRenderer; if (smr != null && smr.sharedMesh != null) mesh = smr.sharedMesh;
+                if (mesh == null)
+                {
+                    // MeshFilter는 Renderer의 하위 타입이 아니므로(as 불가) 같은 GO에서 GetComponent로 조회.
+                    var mf = r.GetComponent<MeshFilter>();
+                    if (mf != null && mf.sharedMesh != null) mesh = mf.sharedMesh;
+                }
+                // mesh bounds는 로컬 좌표, renderer.bounds는 이미 월드 좌표 → 각각 알맞은 변환 행렬 사용.
+                Matrix4x4 useL2W = mesh != null ? r.transform.localToWorldMatrix : Matrix4x4.identity;
+                Bounds src = mesh != null ? mesh.bounds : r.bounds;
+                for (int i = 0; i < 8; i++)
+                {
+                    var p = new Vector3((i & 1) != 0 ? src.max.x : src.min.x, (i & 2) != 0 ? src.max.y : src.min.y, (i & 4) != 0 ? src.max.z : src.min.z);
+                    Vector3 v = w2v.MultiplyPoint3x4(useL2W.MultiplyPoint3x4(p));
+                    if (!init) { acc = new Bounds(v, Vector3.zero); init = true; }
+                    else acc.Encapsulate(v);
+                }
+                if (firstMesh == null && mesh != null) { firstMesh = mesh; firstRend = r; }
+            }
+
+            if (!init) return false;
+            aabb = acc;
+
+            // 정점 중심(centroid) — 첫 메시 최대 2000개 샘플링, world→visual-root-local 변환 후 평균.
+            if (firstMesh != null && firstRend != null)
+            {
+                var verts = firstMesh.vertices;
+                int n = verts.Length;
+                int step = Mathf.Max(1, n / 2000);
+                Vector3 csum = Vector3.zero;
+                Matrix4x4 l2wM = firstRend.transform.localToWorldMatrix;
+                int cnt = 0;
+                for (int i = 0; i < n; i += step)
+                {
+                    Vector3 v = w2v.MultiplyPoint3x4(l2wM.MultiplyPoint3x4(verts[i]));
+                    csum += v; cnt++;
+                }
+                if (cnt > 0) centroid = csum / cnt;
+            }
+            return true;
         }
 
         /// <summary>[TEST28-69차] 비주얼을 본에 스냅 — 앵커 모드: Helmet/Boots=Bottom(쓰고/신는 배치), 나머지=Center.
