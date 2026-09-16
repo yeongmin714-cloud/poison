@@ -244,10 +244,27 @@ namespace ProjectName.Systems
             Renderer firstRend = null;
             var totalBounds = new Bounds();
             float appliedScale = 1f;   // [TEST27-68차] 마지막 적용 스케일(로그용) — 루프 밖 로그 참조
+            Vector3 lastAnchorWorld = default;
+            bool hasAnchor = false;    // [TEST28-69차] 월드 앵커 실측값(콘솔 튜닝용)
             foreach (var bone in bones)
             {
                 if (bone == null) continue;
-                var visual = Instantiate(prefab, bone);
+
+                // [TEST28-69차 후속2] 통합 부츠/장갑 — 좌우 GLB가 별도 파일이면 본 좌우에 맞는 쪽을 선택 부착
+                //   (wood_boot 통합 id → LeftFoot엔 wood_boot_left, RightFoot엔 wood_boot_right. 전용 파일 없으면 통합/원본 유지)
+                var bonePrefab = prefab;
+                bool pairSlot = slot == EquipmentManager.EquipmentSlot.Shoes || slot == EquipmentManager.EquipmentSlot.Gloves;
+                string idLower = itemId.ToLowerInvariant();
+                if (pairSlot && !idLower.Contains("left") && !idLower.Contains("right"))
+                {
+                    bool isLeftBone = bone.name.ToLowerInvariant().Contains("left");
+                    string sideId = itemId + (isLeftBone ? "_left" : "_right");
+                    var sidePrefab = Resources.Load<GameObject>(GlbResourceRoot + sideId)
+                                     ?? Resources.Load<GameObject>(GlbResourceRoot + sideId + ".glb");
+                    if (sidePrefab != null) bonePrefab = sidePrefab;
+                }
+
+                var visual = Instantiate(bonePrefab, bone);
                 visual.name = itemId;
                 visual.transform.localPosition = pose.LocalPos;
                 visual.transform.localRotation = Quaternion.Euler(pose.LocalEuler);
@@ -256,19 +273,34 @@ namespace ProjectName.Systems
                 // [TEST27-68차] 슬롯 목표 크기 정규화 — 방어구 GLB가 플레이어 대비 3~4배(헬멧 1.37m 실측)로
                 //   플레이어를 덮는 문제. 최장축을 슬롯 목표 치수로 균등 스케일.
                 appliedScale = NormalizeVisualScale(visual, GetTargetSize(slot, itemId));
-                // [TEST28-69차] 본 스냅 — 앵커 모드(투구/부츠=Bottom: 최하단을 본에 접지, 장착감)
-                // [TEST28-69차 후속] 헬멧/갑옷은 본 원점 기준 배치 시 몸 메쉬에 박힘 — 플레이어 몸 bounds 비례
-                //   월드 앵커로 배치(머리 꼭대기/가슴 높이). GLB끼리·캐릭터와 충돌은 없음(콜라이더 미부착) — 겹침 허용.
+
+                // [TEST28-69차 후속2] 배치 앵커 — SkinnedMesh 몸 bounds 왜곡(헬멧 3.2m 오프 실측)과
+                //   본 로컬축 방향(손 본 +Z = 손가락 방향 = 아래) 문제를 피해,
+                //   캐릭터 루트(발) + CharacterController 높이 + 월드 방향(전방/왼쪽)으로 배치한다.
                 Vector3? worldAnchor = null;
-                if (TryGetPlayerBodyBounds(out var bodyBounds))
+                if (TryGetPlayerPlacement(out var ground, out var pHeight, out var pFwd, out var pLeft))
                 {
-                    float bodyH = bodyBounds.size.y;
-                    if (slot == EquipmentManager.EquipmentSlot.Helmet)
-                        worldAnchor = new Vector3(bodyBounds.center.x, bodyBounds.max.y - 0.25f, bodyBounds.center.z);   // 헬멧 하단 = 머리 꼭대기 -25cm(살짝 씌움)
-                    else if (slot == EquipmentManager.EquipmentSlot.Armor)
-                        worldAnchor = new Vector3(bodyBounds.center.x, bodyBounds.min.y + bodyH * 0.66f, bodyBounds.center.z); // 갑옷 중심 = 가슴 높이
+                    switch (slot)
+                    {
+                        case EquipmentManager.EquipmentSlot.Helmet:
+                            worldAnchor = ground + Vector3.up * (pHeight - 0.22f);          // 헬멧 하단 = 머리 꼭대기 근처(살짝 씌움)
+                            break;
+                        case EquipmentManager.EquipmentSlot.Armor:
+                            worldAnchor = ground + Vector3.up * (pHeight * 0.63f);          // 갑옷 중심 = 가슴 높이
+                            break;
+                        case EquipmentManager.EquipmentSlot.Shoes:
+                            worldAnchor = new Vector3(bone.position.x, ground.y + 0.01f, bone.position.z); // 부츠 하단 = 발바닥(지면)
+                            break;
+                        case EquipmentManager.EquipmentSlot.Gloves:
+                            worldAnchor = bone.position + Vector3.down * 0.05f + pFwd * 0.03f;             // 장갑 중심 = 손목 아래 살짝(주먹 방향)
+                            break;
+                        case EquipmentManager.EquipmentSlot.Back:
+                            worldAnchor = bone.position + pLeft * 0.25f + Vector3.up * 0.03f;              // 방패 = 왼팔 옆(몸 밖, 팔에 든 느낌)
+                            break;
+                    }
                 }
                 SnapVisualToBone(visual, bone, GetCenterOffset(slot, itemId), GetBottomAnchor(slot, itemId), worldAnchor);
+                if (worldAnchor.HasValue) { lastAnchorWorld = worldAnchor.Value; hasAnchor = true; }
 
                 AddVisual(slot, visual);
                 boneNames.Add(bone.name);
@@ -289,7 +321,7 @@ namespace ProjectName.Systems
             if (firstRend != null)
             {
                 float centerDist = bones[0] != null ? Vector3.Distance(totalBounds.center, bones[0].position) : -1f;
-                Debug.Log($"{LogTag} ✅ {slot} 비주얼 부착: {itemId} → {string.Join(", ", boneNames)} (스케일 x{appliedScale:F2}, bounds size={totalBounds.size:F2}, 본↔중심 {centerDist:F2}m)");
+                Debug.Log($"{LogTag} ✅ {slot} 비주얼 부착: {itemId} → {string.Join(", ", boneNames)} (스케일 x{appliedScale:F2}, anchor={(hasAnchor ? lastAnchorWorld.ToString("F2") : "본 기준")}, 본↔중심 {centerDist:F2}m)");
                 if (centerDist > 0.35f)
                     Debug.LogWarning($"{LogTag} ⚠️ {slot} 비주얼 중심이 본에서 0.35m 이상 벗어남 — 포즈 튜닝 필요(slot={slot}, item={itemId})");
             }
@@ -357,22 +389,20 @@ namespace ProjectName.Systems
             visual.transform.position += desired - anchorPoint;
         }
 
-        /// <summary>[TEST28-69차 후속] 플레이어 몸 전체 bounds — 헬멧/갑옷을 몸 비례 위치에 배치하기 위한 실측.</summary>
-        static bool TryGetPlayerBodyBounds(out Bounds body)
+        /// <summary>[TEST28-69차 후속2] 플레이어 배치 기준 — SkinnedMeshRenderer 몸 bounds는 왜곡(헬멧 3.2m 오프 실측)되므로
+        ///   루트 위치(발) + CharacterController 높이 + 월드 방향만 사용한다. 본 로컬축도 손가락 방향 문제로 배제.</summary>
+        static bool TryGetPlayerPlacement(out Vector3 ground, out float height, out Vector3 forward, out Vector3 left)
         {
-            body = default;
+            ground = default; height = 1.8f; forward = Vector3.forward; left = Vector3.left;
             var player = GameObject.FindWithTag("Player");
             if (player == null) return false;
-            var rends = player.GetComponentsInChildren<Renderer>(true);
-            if (rends.Length == 0) return false;
-            bool any = false;
-            foreach (var r in rends)
-            {
-                if (r == null || !r.enabled) continue;
-                if (!any) { body = r.bounds; any = true; }
-                else body.Encapsulate(r.bounds);
-            }
-            return any;
+            ground = player.transform.position;
+            var cc = player.GetComponent<CharacterController>();
+            if (cc != null) height = Mathf.Max(1f, cc.height);
+            forward = player.transform.forward; forward.y = 0f; forward.Normalize();
+            left = Vector3.Cross(Vector3.up, forward);
+            if (left.sqrMagnitude < 0.0001f) left = Vector3.left;
+            return true;
         }
 
         /// <summary>

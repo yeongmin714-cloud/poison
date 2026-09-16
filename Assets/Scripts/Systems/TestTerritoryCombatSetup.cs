@@ -242,10 +242,8 @@ namespace ProjectName.Systems
                 {
                     ("wood_helmet", ProjectName.Systems.EquipmentManager.EquipmentSlot.Helmet),
                     ("wood_armor",  ProjectName.Systems.EquipmentManager.EquipmentSlot.Armor),
-                    ("wood_boot_right", ProjectName.Systems.EquipmentManager.EquipmentSlot.Shoes),
-                    ("wood_boot_left",  ProjectName.Systems.EquipmentManager.EquipmentSlot.Shoes),
-                    ("wood_glove_right", ProjectName.Systems.EquipmentManager.EquipmentSlot.Gloves),
-                    ("wood_glove_left",  ProjectName.Systems.EquipmentManager.EquipmentSlot.Gloves),
+                    ("wood_boot",  ProjectName.Systems.EquipmentManager.EquipmentSlot.Shoes),      // [TEST28-69차] 좌우 분리 → 통합(양발 자동)
+                    ("wood_glove", ProjectName.Systems.EquipmentManager.EquipmentSlot.Gloves),     // [TEST28-69차] 통합(양손 자동)
                     ("wood_shield", ProjectName.Systems.EquipmentManager.EquipmentSlot.Back),
                 };
 

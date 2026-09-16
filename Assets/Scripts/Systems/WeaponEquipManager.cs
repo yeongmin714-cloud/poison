@@ -155,6 +155,15 @@ namespace ProjectName.Systems
 
             // ② 타입 반영 — 모델 유무와 무관하게 먼저 세팅 (로드 실패 시 클립 모드만 전환)
             CurrentType = type;
+
+            // [TEST28-69차] 활(양손) 장착 → 방패(Back) 자동 해제 — 활은 양손 무기라 방패와 동시 착용 불가
+            if (type == WeaponType.Bow && EquipmentManager.Instance != null
+                && !string.IsNullOrEmpty(EquipmentManager.Instance.GetItemId(EquipmentManager.EquipmentSlot.Back)))
+            {
+                EquipmentManager.Instance.UnequipSlot(EquipmentManager.EquipmentSlot.Back);
+                Debug.Log("[WeaponEquipManager] 🏹 활(양손) 장착 — 방패(Back) 자동 해제");
+            }
+
             // 등급 보정: id에 포함된 티어(steel/stone/crystal)로 무기 데미지 배율 적용 (wood/기타 = 1.0)
             SyncPlayerCombat(type, WeaponData.GetTierMultiplier(id), id);
 

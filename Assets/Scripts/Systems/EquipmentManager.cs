@@ -105,6 +105,13 @@ namespace ProjectName.Systems
                 return false;
             }
 
+            // [TEST28-69차] 활(양손) 착용 중 방패(Back) 장착 금지 — 활은 양손 무기
+            if (slot == EquipmentSlot.Back && WeaponEquipManager.CurrentType == WeaponType.Bow)
+            {
+                Debug.LogWarning("[EquipmentManager] 🏹 활(양손) 착용 중 — 방패를 함께 찾을 수 없습니다. 활을 먼저 해제하세요.");
+                return false;
+            }
+
             // 2026-09-15(H-2): 경로 실측 진입 로그 — 우클릭/드래그 장착이 EquipmentManager까지
             // 도달했는지 홉 단위로 판별하는 측정 지점 (git diff 대신 콘솔에서 검증용).
             Debug.Log($"[EquipmentManager] EquipItem 진입 ({slot}) item={inventorySlot.item.id} name={inventorySlot.item.displayName}");

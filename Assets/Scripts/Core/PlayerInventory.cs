@@ -364,22 +364,16 @@ namespace ProjectName.Core
         public static readonly ItemData HelmetSteel   = Tiered("steel_helmet",   "강철 투구",   "강철 두부 보호구.",                         ItemCategory.Armor, ItemRarity.Uncommon,  40);
         public static readonly ItemData HelmetStone   = Tiered("stone_helmet",   "돌 투구",     "석재 헬멧. 머리를 단단히 지킨다.",          ItemCategory.Armor, ItemRarity.Rare,      60);
         public static readonly ItemData HelmetCrystal = Tiered("crystal_helmet", "수정 투구",   "수정으로 빚은 투구. 신비한 보호막.",        ItemCategory.Armor, ItemRarity.Epic,      80);
-        public static readonly ItemData BootWoodLeft    = Tiered("wood_boot_left",    "나무 신발 (왼쪽)",  "나무 각반 — 왼발용.",       ItemCategory.Armor, ItemRarity.Common,    20);
-        public static readonly ItemData BootWoodRight   = Tiered("wood_boot_right",   "나무 신발 (오른쪽)", "나무 각반 — 오른발용.",     ItemCategory.Armor, ItemRarity.Common,    20);
-        public static readonly ItemData BootSteelLeft   = Tiered("steel_boot_left",   "강철 신발 (왼쪽)",  "강철 각반 — 왼발용.",       ItemCategory.Armor, ItemRarity.Uncommon,  40);
-        public static readonly ItemData BootSteelRight  = Tiered("steel_boot_right",  "강철 신발 (오른쪽)", "강철 각반 — 오른발용.",     ItemCategory.Armor, ItemRarity.Uncommon,  40);
-        public static readonly ItemData BootStoneLeft   = Tiered("stone_boot_left",   "돌 신발 (왼쪽)",    "석재 각반 — 왼발용.",       ItemCategory.Armor, ItemRarity.Rare,      60);
-        public static readonly ItemData BootStoneRight  = Tiered("stone_boot_right",  "돌 신발 (오른쪽)",  "석재 각반 — 오른발용.",     ItemCategory.Armor, ItemRarity.Rare,      60);
-        public static readonly ItemData BootCrystalLeft  = Tiered("crystal_boot_left",  "수정 신발 (왼쪽)",  "수정 각반 — 왼발용.",      ItemCategory.Armor, ItemRarity.Epic,      80);
-        public static readonly ItemData BootCrystalRight = Tiered("crystal_boot_right", "수정 신발 (오른쪽)", "수정 각반 — 오른발용.",    ItemCategory.Armor, ItemRarity.Epic,      80);
-        public static readonly ItemData GloveWoodLeft     = Tiered("wood_glove_left",     "나무 장갑 (왼쪽)",   "나무 손 보호구 — 왼손용.",    ItemCategory.Armor, ItemRarity.Common,    20);
-        public static readonly ItemData GloveWoodRight    = Tiered("wood_glove_right",    "나무 장갑 (오른쪽)", "나무 손 보호구 — 오른손용.",  ItemCategory.Armor, ItemRarity.Common,    20);
-        public static readonly ItemData GloveSteelLeft    = Tiered("steel_glove_left",    "강철 장갑 (왼쪽)",   "강철 장갑 — 왼손용.",         ItemCategory.Armor, ItemRarity.Uncommon,  40);
-        public static readonly ItemData GloveSteelRight   = Tiered("steel_glove_right",   "강철 장갑 (오른쪽)", "강철 장갑 — 오른손용.",       ItemCategory.Armor, ItemRarity.Uncommon,  40);
-        public static readonly ItemData GloveStoneLeft    = Tiered("stone_glove_left",    "돌 장갑 (왼쪽)",     "석재 장갑 — 왼손용.",         ItemCategory.Armor, ItemRarity.Rare,      60);
-        public static readonly ItemData GloveStoneRight   = Tiered("stone_glove_right",   "돌 장갑 (오른쪽)",   "석재 장갑 — 오른손용.",       ItemCategory.Armor, ItemRarity.Rare,      60);
-        public static readonly ItemData GloveCrystalLeft  = Tiered("crystal_glove_left",  "수정 장갑 (왼쪽)",   "수정 장갑 — 왼손용.",         ItemCategory.Armor, ItemRarity.Epic,      80);
-        public static readonly ItemData GloveCrystalRight = Tiered("crystal_glove_right", "수정 장갑 (오른쪽)", "수정 장갑 — 오른손용.",       ItemCategory.Armor, ItemRarity.Epic,      80);
+        // [TEST28-69차] 부츠/장갑 통합 아이템 — 좌/우 분리 → 단일 아이템(장착 시 양발/양손 자동 부착).
+        //   GLB는 좌우 파일이 별도(wood_boot_left/right.glb) → ArmorVisualAttachSystem이 본 좌우에 맞춰 선택 부착.
+        public static readonly ItemData BootWood    = Tiered("wood_boot",    "나무 신발",  "나무 각반 — 양발 착용.",   ItemCategory.Armor, ItemRarity.Common,    20);
+        public static readonly ItemData BootSteel   = Tiered("steel_boot",   "강철 신발",  "강철 각반 — 양발 착용.",   ItemCategory.Armor, ItemRarity.Uncommon,  40);
+        public static readonly ItemData BootStone   = Tiered("stone_boot",   "돌 신발",    "석재 각반 — 양발 착용.",   ItemCategory.Armor, ItemRarity.Rare,      60);
+        public static readonly ItemData BootCrystal = Tiered("crystal_boot", "수정 신발",  "수정 각반 — 양발 착용.",   ItemCategory.Armor, ItemRarity.Epic,      80);
+        public static readonly ItemData GloveWood    = Tiered("wood_glove",    "나무 장갑",  "나무 손 보호구 — 양손 착용.",  ItemCategory.Armor, ItemRarity.Common,    20);
+        public static readonly ItemData GloveSteel   = Tiered("steel_glove",   "강철 장갑",  "강철 장갑 — 양손 착용.",       ItemCategory.Armor, ItemRarity.Uncommon,  40);
+        public static readonly ItemData GloveStone   = Tiered("stone_glove",   "돌 장갑",    "석재 장갑 — 양손 착용.",       ItemCategory.Armor, ItemRarity.Rare,      60);
+        public static readonly ItemData GloveCrystal = Tiered("crystal_glove", "수정 장갑",  "수정 장갑 — 양손 착용.",       ItemCategory.Armor, ItemRarity.Epic,      80);
         // shield는 wood만 GLB 존재(wood_shield.glb) — steel/stone/crystal_shield.glb 부재로 미정의
         public static readonly ItemData ShieldWood    = Tiered("wood_shield",    "나무 방패",   "두꺼운 나무 방패. 전방 막기용.",            ItemCategory.Armor, ItemRarity.Common,    20);
 
@@ -399,13 +393,11 @@ namespace ProjectName.Core
             SwordSteel, SpearSteel, BowSteel, DaggerSteel,
             SwordStone, SpearStone, BowStone, DaggerStone,
             SwordCrystal, SpearCrystal, BowCrystal, DaggerCrystal,
-            // 방어구 25종
+            // 방어구 17종 — [TEST28-69차] 부츠/장갑 좌우 분리 → 통합 아이템(장착 시 양발/양손 부착)
             ArmorWood, ArmorSteel, ArmorStone, ArmorCrystal,
             HelmetWood, HelmetSteel, HelmetStone, HelmetCrystal,
-            BootWoodLeft, BootWoodRight, BootSteelLeft, BootSteelRight,
-            BootStoneLeft, BootStoneRight, BootCrystalLeft, BootCrystalRight,
-            GloveWoodLeft, GloveWoodRight, GloveSteelLeft, GloveSteelRight,
-            GloveStoneLeft, GloveStoneRight, GloveCrystalLeft, GloveCrystalRight,
+            BootWood, BootSteel, BootStone, BootCrystal,
+            GloveWood, GloveSteel, GloveStone, GloveCrystal,
             ShieldWood,
             // 부속 6종
             GasMaskWood, GasMaskSteel, GasMaskStone,
