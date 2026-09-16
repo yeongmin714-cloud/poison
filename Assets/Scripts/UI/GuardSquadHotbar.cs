@@ -181,16 +181,52 @@ namespace ProjectName.UI
         /// <summary>현재 부대 모드인지 (디버그/연동용).</summary>
         public static bool IsSquadMode => _instance != null && _instance._squadMode;
 
-        // ===== [69차 후속13] F+1~8: 선택된 병사 그룹 슬롯 등록 (덮어쓰기) — 기존 Ctrl+1~8 대체(사용자 요구) =====
+        // ===== [69차 후속14] F+1~8: 선택된 병사 그룹 슬롯 등록 (덮어쓰기) — 듀얼 입력 경로 + F1~F8 직접 키 =====
         private void HandleCtrlAssignKeys()
         {
-            bool fHeld = Input.GetKey(KeyCode.F);
+            bool fHeld = false;
+            var digitPressed = new bool[SlotCount];
+
+            // 경로 1: Input System(프로젝트 주력 — GuardSelectionManager와 동일 경로)
+            var kb = UnityEngine.InputSystem.Keyboard.current;
+            if (kb != null)
+            {
+                fHeld = kb.fKey.isPressed;
+                if (kb.digit1Key.wasPressedThisFrame) digitPressed[0] = true;
+                if (kb.digit2Key.wasPressedThisFrame) digitPressed[1] = true;
+                if (kb.digit3Key.wasPressedThisFrame) digitPressed[2] = true;
+                if (kb.digit4Key.wasPressedThisFrame) digitPressed[3] = true;
+                if (kb.digit5Key.wasPressedThisFrame) digitPressed[4] = true;
+                if (kb.digit6Key.wasPressedThisFrame) digitPressed[5] = true;
+                if (kb.digit7Key.wasPressedThisFrame) digitPressed[6] = true;
+                if (kb.digit8Key.wasPressedThisFrame) digitPressed[7] = true;
+                // F1~F8 직접 키도 동일 동작(대체 입력)
+                if (kb.f1Key.wasPressedThisFrame) { fHeld = true; digitPressed[0] = true; }
+                if (kb.f2Key.wasPressedThisFrame) { fHeld = true; digitPressed[1] = true; }
+                if (kb.f3Key.wasPressedThisFrame) { fHeld = true; digitPressed[2] = true; }
+                if (kb.f4Key.wasPressedThisFrame) { fHeld = true; digitPressed[3] = true; }
+                if (kb.f5Key.wasPressedThisFrame) { fHeld = true; digitPressed[4] = true; }
+                if (kb.f6Key.wasPressedThisFrame) { fHeld = true; digitPressed[5] = true; }
+                if (kb.f7Key.wasPressedThisFrame) { fHeld = true; digitPressed[6] = true; }
+                if (kb.f8Key.wasPressedThisFrame) { fHeld = true; digitPressed[7] = true; }
+            }
+            // 경로 2: legacy 폴백(입력 이벤트는 브로드캐스트라 양 경로 병행 무해)
+            if (Input.GetKey(KeyCode.F))
+            {
+                fHeld = true;
+                for (int i = 0; i < SlotCount; i++)
+                    if (Input.GetKeyDown(KeyCode.Alpha1 + i)) digitPressed[i] = true;
+            }
+
             if (!fHeld) return;
 
             for (int i = 0; i < SlotCount; i++)
             {
-                if (Input.GetKeyDown(KeyCode.Alpha1 + i))
+                if (digitPressed[i])
+                {
+                    Debug.Log($"[GuardSquadHotbar] F+{i + 1} 입력 감지 — 부대 등록 시도(선택 병사 필요)");
                     RegisterSelectedGroupToSlot(i);
+                }
             }
         }
 

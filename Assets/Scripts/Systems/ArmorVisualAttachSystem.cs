@@ -457,11 +457,14 @@ namespace ProjectName.Systems
         {
             if (bone == null || visual == null) return;
 
-            // 1) [69차 후속13] 자작 프레임 — GLB 정점 파싱으로 확정한 자작 축(모든 wood 방어구 공통):
-            //    up = -Z, front = +Y ([테스트 33 실측] 투구/가면/신발/갑옷 전부 앞뒤 반대 — -Y→+Y 부호 플립).
+            // 1) [69차 후속14] 자작 프레임 — GLB 정점 파싱 + 실착 판정으로 확정한 자작 축:
+            //    up = -Z 공통 / front 부호는 슬롯별 상이 — 투구·가면·신발·갑옷=+Y, 가방·방패·장갑=-Y(테스트 33/34 실측).
             //    extent 랭킹/부르주/고정 yaw 전부 폐기 — 자작 up/front를 월드 up/전방에 직접 대응.
             Vector3 sUpW = bone.TransformDirection(new Vector3(0f, 0f, -1f));
-            Vector3 sFwdW = bone.TransformDirection(new Vector3(0f, 1f, 0f));
+            float frontSign = (slot == EquipmentManager.EquipmentSlot.Bag
+                               || slot == EquipmentManager.EquipmentSlot.Back
+                               || slot == EquipmentManager.EquipmentSlot.Gloves) ? -1f : 1f;
+            Vector3 sFwdW = bone.TransformDirection(new Vector3(0f, frontSign, 0f));
             if (sUpW.sqrMagnitude < 0.0001f || sFwdW.sqrMagnitude < 0.0001f) return;
             sUpW.Normalize();
             sFwdW.Normalize();
@@ -667,7 +670,7 @@ namespace ProjectName.Systems
                     }
                     if (outward.sqrMagnitude < 0.0001f) outward = Vector3.left;
                     float gloveMax = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
-                    target = partCenter + outward.normalized * (gloveMax * 0.35f); // [후속13] 0.30→0.35 — 손등 노출 강화
+                    target = partCenter + outward.normalized * (gloveMax * 0.15f); // [후속14] 0.35→0.15 — 손등에 더 가까이(사용자 지시)
                     break;
                 }
                 case EquipmentManager.EquipmentSlot.Shoes:
@@ -677,9 +680,10 @@ namespace ProjectName.Systems
                     break;
                 case EquipmentManager.EquipmentSlot.Mask:
                 {
-                    // faceCenter = part.center + pFwd*(part.size.z/2); 전방 면이 얼굴 표면에서 0.35 밖([후속12] 0.4→0.35 — 얼굴에 더 밀착), y는 눈높이.
+                    // faceCenter = part.center + pFwd*(part.size.z/2); 마스크 전체가 얼굴 앞에 살짝 떨어져 착용
+                    //   ([후속14] 전방 면 = 얼굴 표면 +0.55·b.z — 얼굴에서 앞쪽으로 떨어뜨림, 사용자 지시), y는 눈높이.
                     Vector3 faceCenter = partCenter + pFwd * (part.worldBounds.size.z * 0.5f);
-                    target = faceCenter + pFwd * (b.size.z * 0.35f - b.size.z * 0.5f);
+                    target = faceCenter + pFwd * (b.size.z * 0.55f - b.size.z * 0.5f);
                     target.y = partCenter.y + part.worldBounds.size.y * 0.15f; // 눈높이 ([2026-09-16] 0.1→0.15)
                     break;
                 }
