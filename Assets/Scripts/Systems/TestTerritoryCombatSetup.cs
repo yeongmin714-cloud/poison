@@ -635,18 +635,8 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
-        // OnGUI 안내
+        // OnGUI 안내 — [TEST28-69차 후속6] "좌클릭=공격" 점검 안내창 사용자 요청으로 제거
         // ================================================================
-        private void OnGUI()
-        {
-            float labelWidth = 420;
-            float labelHeight = 70;
-            float x = (Screen.width - labelWidth) / 2f;
-            float y = Screen.height - 130;
-
-            GUI.Box(new Rect(x, y, labelWidth, labelHeight),
-                "🎯 공격시스템 점검 — 좌클릭=공격\n영지(타영주)·병사·몬스터 1기씩 → IDamageable 데미지 확인\n🏰 내 영지(파랑, 내병사 3) / 적 영지(빨강, 적문지기 3)");
-        }
 
         // ================================================================
         // 내/적 소속 영지 배치 (2026-09-10 신규 — 기존 셋업 무변경, 신규 배치만 추가)
