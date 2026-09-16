@@ -202,15 +202,23 @@ namespace ProjectName.Systems
         // ===== 선택 박스 (IMGUI) =====
         private void DrawSelectionBoxGUI()
         {
+            // _selectionRect는 InputSystem 마우스 좌표 (원점 좌하단, y-up).
+            // IMGUI는 좌상단 y-down이므로 그릴 때만 y 뒤집어 마우스 위치와 상자 정렬.
+            Rect guiRect = new Rect(
+                _selectionRect.x,
+                Screen.height - _selectionRect.yMax,
+                _selectionRect.width,
+                _selectionRect.height);
+
             var color = GUI.color;
             GUI.color = _selectionBoxColor;
-            GUI.DrawTexture(_selectionRect, MakeTex(1, 1, Color.white));
+            GUI.DrawTexture(guiRect, MakeTex(1, 1, Color.white));
             GUI.color = _selectionBorderColor;
             // 테두리 (4면)
-            GUI.DrawTexture(new Rect(_selectionRect.x, _selectionRect.y, _selectionRect.width, 2), MakeTex(1, 1, Color.white));
-            GUI.DrawTexture(new Rect(_selectionRect.x, _selectionRect.yMax - 2, _selectionRect.width, 2), MakeTex(1, 1, Color.white));
-            GUI.DrawTexture(new Rect(_selectionRect.x, _selectionRect.y, 2, _selectionRect.height), MakeTex(1, 1, Color.white));
-            GUI.DrawTexture(new Rect(_selectionRect.xMax - 2, _selectionRect.y, 2, _selectionRect.height), MakeTex(1, 1, Color.white));
+            GUI.DrawTexture(new Rect(guiRect.x, guiRect.y, guiRect.width, 2), MakeTex(1, 1, Color.white));
+            GUI.DrawTexture(new Rect(guiRect.x, guiRect.yMax - 2, guiRect.width, 2), MakeTex(1, 1, Color.white));
+            GUI.DrawTexture(new Rect(guiRect.x, guiRect.y, 2, guiRect.height), MakeTex(1, 1, Color.white));
+            GUI.DrawTexture(new Rect(guiRect.xMax - 2, guiRect.y, 2, guiRect.height), MakeTex(1, 1, Color.white));
             GUI.color = color;
         }
 
@@ -246,15 +254,15 @@ namespace ProjectName.Systems
             if (!additive) ClearSelection();
 
             var guards = FindObjectsByType<GuardPlaceholder>();
+            // [FIX] 드래그 rect(_selectionRect)는 InputSystem 마우스 좌표(원점 좌하단, y가 위로 증가)로 생성됨.
+            // WorldToScreenPoint 결과를 y 뒤집지 않아(좌하단 유지) 드래그 rect와 동일 좌표계에서 Contains 판정한다.
             foreach (var guard in guards)
             {
-                if (!guard.IsAlive || guard.IsRecruited == false) continue;
+                // 선택 후보: 생존 && (IsRecruited OR 태그 "RecruitedSoldier")
+                if (!guard.IsAlive || (guard.IsRecruited == false && !guard.gameObject.CompareTag("RecruitedSoldier"))) continue;
 
                 Vector3 worldPos = guard.transform.position;
                 Vector3 screenPos = _mainCamera.WorldToScreenPoint(worldPos);
-
-                // Unity Screen 좌표계 변환 (y 반전)
-                screenPos.y = Screen.height - screenPos.y;
 
                 if (screenRect.Contains(screenPos))
                 {
@@ -262,7 +270,7 @@ namespace ProjectName.Systems
                 }
             }
 
-            Debug.Log($"[RTS] {_selectedGuards.Count}명 선택됨");
+            Debug.Log($"[RTS] {_selectedGuards.Count}명 선택됨 | rect({screenRect.x:F0},{screenRect.y:F0},{screenRect.width:F0}x{screenRect.height:F0})");
         }
 
         /// <summary>

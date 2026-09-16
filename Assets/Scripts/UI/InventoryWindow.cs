@@ -301,6 +301,7 @@ namespace ProjectName.UI
         private static readonly Color ColorBtnBg = new Color(0.12f, 0.16f, 0.24f, 1f);         // 버튼 배경 (다크 슬레이트)
         private static readonly Color ColorBtnHover = new Color(0.18f, 0.25f, 0.36f, 1f);      // 버튼 호버
         private static readonly Color ColorBtnEquippedBg = new Color(0.16f, 0.30f, 0.44f, 1f); // 장착 중 버튼 배경 (스카이블루 틴트)
+        private static readonly Color ColorSortText = new Color(1f, 0.85f, 0.4f, 1f);       // 정렬 버튼 텍스트 (밝은 골드/크림 — 다크 배경 대비)
 
         // ===== 커스텀 GUIStyle 캐시 =====
         private GUIStyle _styleTitle;
@@ -321,6 +322,7 @@ namespace ProjectName.UI
         private GUIStyle _styleWeaponBtnEquipped; // 장착 중 버튼 (금색 테두리)
         private GUIStyle _styleEquipBadge;      // 2026-09-12(P3): 통합 장비칸 부위 배지 (이모지+약어 라벨)
         private GUIStyle _stylePagerBtn;        // 2026-09-12(P3): 그리드 페이지 버튼 (◀/▶ — 컴팩트)
+        private GUIStyle _styleSortButton;      // 정렬 버튼 (타이틀 우측 — 밝은 골드 텍스트)
         // ===== AAA 4레이어 스타일 (InventoryArtLibrary static 캐시 텍스처 — 파기 금지) =====
         private GUIStyle _styleBackplate;       // Layer 1: 스톤 백플레이트 (9-Slice border 24)
         private GUIStyle _styleMetalFrame;      // Layer 4: 금속 프레임 (9-Slice border 16)
@@ -822,6 +824,12 @@ namespace ProjectName.UI
             // 무기 장착 버튼 — 다크 배경 + 밝은 테두리, 흰색 굵은 텍스트
             _styleWeaponBtn = new GUIStyle(_styleButton);
 
+            // 정렬 버튼 전용 — _styleButton 기반, 텍스트 밝은 골드/크림 (다크 배경 대비 확보, 회귀 최소화)
+            _styleSortButton = new GUIStyle(_styleButton);
+            _styleSortButton.normal.textColor = ColorSortText;
+            _styleSortButton.hover.textColor = ColorSortText;
+            _styleSortButton.active.textColor = ColorSortText;
+
             // 무기 장착 중 버튼 — 금색 테두리
             _styleWeaponBtnEquipped = new GUIStyle(_styleButton)
             {
@@ -912,7 +920,7 @@ namespace ProjectName.UI
                 contextTitle, _styleTitle);
 
             // 정렬 버튼 (타이틀 스트립 우측) — 기존 로직 유지 (다크 배경 + 흰색 굵은 텍스트)
-            if (GUI.Button(new Rect(sortBtnX, sortBtnY, sortBtnWidth, sortBtnHeight), $"정렬: {_sortModeLabels[(int)_sortMode]}", _styleButton))
+            if (GUI.Button(new Rect(sortBtnX, sortBtnY, sortBtnWidth, sortBtnHeight), $"정렬: {_sortModeLabels[(int)_sortMode]}", _styleSortButton))
             {
                 _sortMode = (SortMode)(((int)_sortMode + 1) % 5);
                 if (_sortMode != SortMode.None)

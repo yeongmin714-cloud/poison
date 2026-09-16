@@ -299,7 +299,7 @@ namespace ProjectName.Systems
             GameObject modelPrefab = null;
             if (!string.IsNullOrEmpty(modelPath))
             {
-                modelPrefab = Resources.Load<GameObject>($"Models/UserProvided/{modelPath}");
+                modelPrefab = LoadSoldierModel(modelPath);
             }
 
             GameObject guardModel;
@@ -330,7 +330,9 @@ namespace ProjectName.Systems
 
             var guard = guardGO.AddComponent<GuardPlaceholder>();
             guard.SetGuardInfo(newName, newLevel, id.nation);
-            guard.SetRecruited(true);
+            bool recruited = true;
+            guard.SetRecruited(recruited);
+            guardGO.tag = recruited ? "RecruitedSoldier" : "Guard";
 
             // ModelAnimatorAssigner 부착 (ForceBiped)
             var assigner = guardModel.AddComponent<ModelAnimatorAssigner>();
@@ -536,6 +538,30 @@ namespace ProjectName.Systems
             if (level <= 20) return "Soldier_Lv1-20_Rigged.glb";
             if (level <= 40) return "Soldier_Lv20-40_Rigged.glb";
             return "Soldier_Lv40-50_Rigged.glb";
+        }
+
+        // ================================================================
+        // 헬퍼: 병사 모델 로드 (확장자 없는 경로 우선 → .glb 폴백)
+        // ================================================================
+        private static GameObject LoadSoldierModel(string modelPath)
+        {
+            string basePath = modelPath;
+            if (basePath.EndsWith(".glb"))
+                basePath = basePath.Substring(0, basePath.Length - ".glb".Length);
+
+            // 확장자 없는 경로 우선 로드
+            GameObject loaded = Resources.Load<GameObject>($"Models/UserProvided/{basePath}");
+
+            // 실패 시 .glb 폴백
+            if (loaded == null)
+                loaded = Resources.Load<GameObject>($"Models/UserProvided/{basePath}.glb");
+
+            if (loaded != null)
+                Debug.Log($"[GuardManager] 병사 모델 로드 성공: {modelPath}");
+            else
+                Debug.Log($"[GuardManager] ⚠️ 병사 모델 로드 실패 — 큐브 폴백: {modelPath}");
+
+            return loaded;
         }
 
         // ================================================================

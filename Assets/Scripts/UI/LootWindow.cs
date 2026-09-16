@@ -61,6 +61,9 @@ namespace ProjectName.UI
         private GUIStyle _styleEmptyText;
         private GUIStyle _stylePanelBox;
         private GUIStyle _styleTakeAllBtn;
+        // ===== AAA 4레이어 중세 배경 (InventoryArtLibrary 텍스처 기반) — static 캐시 1회 생성 =====
+        private static GUIStyle _styleBackplate;   // Layer 2 스톤 패널 (9-Slice border 24)
+        private static GUIStyle _styleMetalFrame;  // Layer 3 금속 프레임 (9-Slice border 16)
         private bool _stylesInitialized;
         private float _uiScaleUsedForStyles = -1f;
         // ===== [2026-09-15 Phase G-UI] 해상도 비례 스케일 (InventoryWindow 선례) =====
@@ -255,7 +258,8 @@ namespace ProjectName.UI
 
             _styleTitle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = (int)(72 * _uiScale),
+                font = UIFont.Load(),                              // P7: 한글 서포트 커스텀 폰트
+                fontSize = (int)(UIFont.Title * _uiScale),        // Title(38)×_uiScale — 인벤 창 선례
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 normal = { textColor = ColorTextPrimary },
@@ -311,6 +315,30 @@ namespace ProjectName.UI
                 margin = new RectOffset(0, 0, 0, 0)
             };
 
+            // ===== AAA 4레이어 중세 배경 스타일 (ArtLibrary static 텍스처 — static 캐시 1회 생성) =====
+            // Layer 2 백플레이트 — 스톤 패널 (9-Slice, border 24 등소비)
+            if (_styleBackplate == null)
+            {
+                _styleBackplate = new GUIStyle(GUI.skin.box)
+                {
+                    normal = { background = InventoryArtLibrary.GetBackplate(), textColor = ColorTextPrimary },
+                    border = new RectOffset(24, 24, 24, 24),
+                    padding = new RectOffset(0, 0, 0, 0),
+                    margin = new RectOffset(0, 0, 0, 0)
+                };
+            }
+            // Layer 3 금속 프레임 — 두께 14px 금속 (9-Slice, border 16)
+            if (_styleMetalFrame == null)
+            {
+                _styleMetalFrame = new GUIStyle(GUI.skin.box)
+                {
+                    normal = { background = InventoryArtLibrary.GetMetalFrame(), textColor = ColorTextPrimary },
+                    border = new RectOffset(16, 16, 16, 16),
+                    padding = new RectOffset(0, 0, 0, 0),
+                    margin = new RectOffset(0, 0, 0, 0)
+                };
+            }
+
             _styleTakeAllBtn = new GUIStyle(GUI.skin.button)
             {
                 fontSize = (int)(56 * _uiScale),
@@ -354,24 +382,27 @@ namespace ProjectName.UI
             float y = 10f;
 
             // === Rect 캐싱 (GC 최적화) ===
-            _rectBg.Set(x, y, WINDOW_WIDTH, WINDOW_HEIGHT);
-            _rectBorderTop.Set(x, y, WINDOW_WIDTH, 2);
-            _rectTitleBar.Set(x, y + 2, WINDOW_WIDTH, TITLE_BAR_HEIGHT);
-            _rectTitleLabel.Set(x, y + 2, WINDOW_WIDTH, TITLE_BAR_HEIGHT);
-            _rectTitleDivider.Set(x, y + TITLE_BAR_HEIGHT + 2, WINDOW_WIDTH, 2);
+            float ww = WINDOW_WIDTH;
+            float wh = WINDOW_HEIGHT;   // 상단 y=10 + Screen.height-180 = 화면 내 안착 — 오버플로 없음(클램프 불필요)
+            _rectBg.Set(x, y, ww, wh);
+            _rectTitleLabel.Set(x, y + 2, ww, TITLE_BAR_HEIGHT);
+            _rectTitleDivider.Set(x, y + TITLE_BAR_HEIGHT + 2, ww, 2);
 
-            // === 배경 박스 ===
-            GUI.Box(_rectBg, "", _stylePanelBox);
+            // === AAA 중세 4레이어 배경 (InventoryArtLibrary — InventoryWindow 선례) ===
+            // ① 드롭섀도우 — 창 rect 12px 사방 확장, 검정 0.55 tint
+            DrawWindowDropShadow(x, y, ww, wh);
+            // ② 백플레이트 — 스톤 패널 (9-Slice border 24)
+            GUI.Box(_rectBg, "", _styleBackplate);
+            // ③ 금속 프레임(9-Slice border 16) + 4모서리 로터스 장식
+            DrawWindowFrame(x, y, ww, wh);
+            // ④ 타이틀 배너 (제목 텍스트 배경)
+            DrawTitleStrip(x, y, ww);
 
-            // === 상단 테두리 ===
-            DrawColoredRect(_rectBorderTop, ColorBorder);
-
-            // === 타이틀 바 ===
-            DrawColoredRect(_rectTitleBar, ColorTitleBar);
+            // === 타이틀 ===
             _strBasketName = _currentBasket != null ? _currentBasket.BasketName : "전리품";
             GUI.Label(_rectTitleLabel, "  🎁 " + _strBasketName, _styleTitle);
 
-            // 구분선
+            // === 구분선 (금속 프레임/타이틀 배너와 이중 렌더 방지 — 평면 타이틀바/상단 테두리 제거) ===
             DrawColoredRect(_rectTitleDivider, ColorBorder);
 
             // === 아이템 그리드 ===
@@ -397,6 +428,49 @@ namespace ProjectName.UI
                 ItemDragContext.DrawGhost();   // 인벤이 렌더 주체가 아니므로 여기서 고스트 (프레임 가드 내장 — 이중 렌더 무해)
             }
             // 인벤이 열려 있으면 InventoryWindow.ProcessDrag의 Loot 분기가 고스트/드롭 판정을 담당한다.
+        }
+
+        // ===================================================================
+        // AAA 4레이어 드로우 헬퍼 (InventoryArtLibrary 소비 — InventoryWindow 선례)
+        // ===================================================================
+        /// <summary>드롭섀도우 — 창 rect 12px 사방 확장해 소프트 섀도우 텍스처를 검정 tint로 단일 DrawTexture.</summary>
+        private void DrawWindowDropShadow(float wx, float wy, float ww, float wh)
+        {
+            var prevColor = GUI.color;
+            GUI.color = new Color(0f, 0f, 0f, 0.55f);
+            GUI.DrawTexture(new Rect(wx - 12f, wy - 12f, ww + 24f, wh + 24f), InventoryArtLibrary.GetWindowDropShadow());
+            GUI.color = prevColor;
+        }
+
+        /// <summary>Layer 3 — 금속 프레임(9-Slice Box) + 4모서리 로터스 장식(GUI.matrix 0/90/180/270° 회전, 반드시 복원).</summary>
+        private void DrawWindowFrame(float wx, float wy, float ww, float wh)
+        {
+            GUI.Box(new Rect(wx, wy, ww, wh), "", _styleMetalFrame);
+
+            var orn = InventoryArtLibrary.GetCornerOrnament();
+            float ornSize = 96f * _uiScale;
+            DrawCornerOrnament(orn, new Rect(wx, wy, ornSize, ornSize), 0f);
+            DrawCornerOrnament(orn, new Rect(wx + ww - ornSize, wy, ornSize, ornSize), 90f);
+            DrawCornerOrnament(orn, new Rect(wx + ww - ornSize, wy + wh - ornSize, ornSize, ornSize), 180f);
+            DrawCornerOrnament(orn, new Rect(wx, wy + wh - ornSize, ornSize, ornSize), 270f);
+        }
+
+        /// <summary>모서리 장식 1개 — rect 중심 pivot으로 angle도 회전 후 DrawTexture, matrix 반드시 복원.</summary>
+        private void DrawCornerOrnament(Texture2D tex, Rect rect, float angle)
+        {
+            var prevMatrix = GUI.matrix;
+            if (!Mathf.Approximately(angle, 0f))
+                GUIUtility.RotateAroundPivot(angle, rect.center);
+            GUI.DrawTexture(rect, tex);
+            GUI.matrix = prevMatrix;
+        }
+
+        /// <summary>Layer 4 — 타이틀 배너 (제목 텍스트 배경).</summary>
+        private void DrawTitleStrip(float wx, float wy, float ww)
+        {
+            float stripW = ww - 4f;
+            float stripH = TITLE_BAR_HEIGHT - 8f;
+            GUI.DrawTexture(new Rect(wx + 2f, wy + 4f, stripW, stripH), InventoryArtLibrary.GetTitleBanner());
         }
 
         // ===================================================================

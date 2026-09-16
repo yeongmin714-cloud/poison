@@ -39,6 +39,7 @@ namespace ProjectName.Systems
             public Vector3 LocalEuler;
             public float TargetLen;
             public int GripEnd;   // [2026-09-15 Phase H-GRIP] 0=자동(피벗 신뢰/휴리스틱), -1=bounds 최소축 끝, +1=최대축 끝
+            public float GripClampMax; // [2026-09-16] 그립 오프셋 과보정 클램프 절대 상한(m) — 대형 무기(활/창 1.0), 검 0.5
         }
 
         /// <summary>bounds 지정축 성분 추출 헬퍼 (그립부/피벗 위치 판정용).</summary>
@@ -46,9 +47,9 @@ namespace ProjectName.Systems
 
         static readonly Dictionary<WeaponType, GripPose> _gripTable = new Dictionary<WeaponType, GripPose>
         {
-            { WeaponType.Sword, new GripPose { LocalPos = new Vector3(0f, 0.05f, 0.02f), LocalEuler = new Vector3(0f, 0f, 90f),   TargetLen = 0.9f } }, // 검 — 손바닥 밀착([TEST21-FOLLOWUP] y 0.12→0.05: 손에서 약간 떠 있던 것을 내려 밀착, 날 방향 정상)
-            { WeaponType.Spear, new GripPose { LocalPos = new Vector3(0f, 0.45f, 0.02f), LocalEuler = new Vector3(-90f, 180f, 0f), TargetLen = 1.8f } }, // 창 — 자루 중심을 손에, 창두는 전방 상향([61차] Y 180: 창두(뾰족)가 뒤로 가던 것을 전방(+)으로)
-            { WeaponType.Bow,   new GripPose { LocalPos = new Vector3(0f, 0.05f, 0.06f), LocalEuler = new Vector3(0f, 90f, 0f),  TargetLen = 1.0f } }, // 활 — 좌우 미러 보정([TEST21-FOLLOWUP] Y -90→90: 손잡이·시위 방향 교정, 왼손 활대/오른손 시위)
+            { WeaponType.Sword, new GripPose { LocalPos = new Vector3(0f, 0.05f, 0.02f), LocalEuler = new Vector3(0f, 0f, 90f),   TargetLen = 0.9f, GripClampMax = 0.5f } }, // 검 — 손바닥 밀착([TEST21-FOLLOWUP] y 0.12→0.05: 손에서 약간 떠 있던 것을 내려 밀착, 날 방향 정상)
+            { WeaponType.Spear, new GripPose { LocalPos = new Vector3(0f, 0.45f, 0.02f), LocalEuler = new Vector3(-90f, 180f, 0f), TargetLen = 1.8f, GripEnd = -1, GripClampMax = 1.0f } }, // 창 — 자루 중심을 손에, 창두는 전방 상향([61차] Y 180: 창두(뾰족)가 뒤로 가던 것을 전방(+)으로). GripEnd=-1: 피벗이 창두(0.85+)에 있어도 pivotAtGrip 신뢰 분기를 타지 않고 그립부를 bounds 최소축 끝(자루/핸들 끝)으로 강제 → 창두가 앞으로 향함([66차])
+            { WeaponType.Bow,   new GripPose { LocalPos = new Vector3(0f, 0.05f, 0.06f), LocalEuler = new Vector3(0f, 90f, 0f),  TargetLen = 1.0f, GripClampMax = 1.0f } }, // 활 — 좌우 미러 보정([TEST21-FOLLOWUP] Y -90→90: 손잡이·시위 방향 교정, 왼손 활대/오른손 시위). GripClampMax=1.0: 활의 큰 정렬 오프셋(-0.55~-0.7) 허용([66차])
         };
 
         // 단도(dagger) 목표 길이 — Sword 포즈 공유, TargetLen만 오버라이드
@@ -332,8 +333,9 @@ namespace ProjectName.Systems
 
                 // [TEST24-FIX G] 휴리스틱 과보정 방지 — offset이 과대(활/창: y −0.9 이상 등 로그 실측)하면
                 // 그립축 방향의 과도한 이동이 '손에서 크게 벗어남'을 낳는다. 절대 상한을 두고 초과 시 clamp:
-                // 가장 긴 성분만 상한(GRIP_CLAMP_MAX)으로 제한하되, 방향(부호)은 유지해 회귀 최소화.
-                const float GripClampMax = 0.5f;
+                // 가장 긴 성분만 상한(타입별 GripClampMax)으로 제한하되, 방향(부호)은 유지해 회귀 최소화.
+                //   2026-09-16: 상한을 무기 타입별로 분리 — 대형 무기(활/창 1.0)는 큰 정렬 오프셋 허용, 검은 0.5 유지.
+                float GripClampMax = pose.GripClampMax;
                 Vector3 offClamped = offset;
                 for (int a = 0; a < 3; a++)
                 {

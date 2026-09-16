@@ -91,7 +91,7 @@ namespace ProjectName.Systems
         }
 
         /// <summary>활(Bow) 발사 애니 — ArcheryShot 트리거 발화. WeaponCombo 진입 금지.
-        /// 화살 소모/발사체 생성은 PlayerCombat(좌클릭) 또는 우클릭 경로에서 ArrowManager가 담당.</summary>
+        /// 화살 소모/발사체 생성은 PlayerCombat(좌클릭 TryBowShot) 경로에서 ArrowManager가 담당.</summary>
         public void TriggerBowShot()
         {
             if (_anim == null) return;
@@ -699,19 +699,10 @@ namespace ProjectName.Systems
                 _anim.SetTrigger(backJump ? "JumpBack" : "Jump");
             }
 
-            // M3/M4: 무기 모드 입력 — 활(우클릭 발사: 화살 데미지 연동), 폭탄 선택 중 좌클릭(던지기: Bomb 스폰)
+            // M3/M4: 무기 모드 입력 — 폭탄 선택 중 좌클릭(던지기: Bomb 스폰)만 처리.
+            // 활(Bow) 발사는 PlayerCombat의 좌클릭 TryBowShot 단일 경로로 통일 — 우클릭 활 발사 경로 제거(2026-09-16).
             if (_movement != null && _anim != null)
             {
-                if (WeaponEquipManager.CurrentType == WeaponType.Bow && Input.GetMouseButtonDown(1))
-                {
-                    // P5: 화살 소모 후 발사로 통일 — ArrowManager 경유(직접 ArrowProjectile.Spawn 제거).
-                    // 소모 성공 시에만 발사 애니 트리거. 데미지 = Bow.damage + ArrowData.damageBonus(매니저 내부).
-                    var mgr = ArrowManager.Instance;
-                    var origin = _anim.transform.position + Vector3.up * 1.5f;   // 손/활 위치
-                    if (mgr != null && mgr.TryShootArrow(origin, _anim.transform.forward, WeaponData.Bow.damage))
-                        _anim.SetTrigger("ArcheryShot");
-                    // 화살 없음: TryShootArrow 내부에서 차단 메시지 표시 — 발사 애니/발사체 없음
-                }
                 if (PlayerWeaponModeBridge.ThrowSelected && Input.GetMouseButtonDown(0))
                 {
                     bool pitch = Random.Range(0, 2) == 0;

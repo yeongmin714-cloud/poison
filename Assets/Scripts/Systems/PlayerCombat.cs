@@ -462,7 +462,40 @@ namespace ProjectName.Systems
                     dir = ray.direction;
             }
 
-            // ② 화살 소모 + 발사체 생성 — origin: 활 위치(플레이어 + up*1.5m), 데미지: WeaponData.Bow.damage
+            // ② 조준 보정(자동 조준) 2026-09-16 — 커서 Ray가 적을 직접 못 맞히면 커서 방향(전방 반구)에서
+            //    가장 가까운 적으로 dir 보정. 기존 조준 수단(FindTargetInCursorDirection: Raycast→원뿔 스윕) 재사용.
+            //    보정은 직접 Raycast에 적 히트가 없을 때만 동작하며, cosθ>0.7 클램프로 화면 뒤 180도 스냅을 방지한다.
+            if (_mainCamera != null && Mouse.current != null)
+            {
+                Ray cursorRay = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+                bool directEnemyHit = false;
+                RaycastHit[] directHits = Physics.RaycastAll(cursorRay, _autoAimRange, _targetLayers);
+                for (int i = 0; i < directHits.Length && !directEnemyHit; i++)
+                {
+                    IDamageable dmg = directHits[i].collider.GetComponentInParent<IDamageable>();
+                    if (dmg != null && dmg.IsAlive) directEnemyHit = true;
+                }
+                if (!directEnemyHit)
+                {
+                    IDamageable target = FindTargetInCursorDirection();
+                    MonoBehaviour targetBehaviour = (target != null) ? target as MonoBehaviour : null;
+                    if (targetBehaviour != null)
+                    {
+                        Vector3 toTarget = targetBehaviour.transform.position - transform.position;
+                        if (toTarget.sqrMagnitude > 0.0001f)
+                        {
+                            toTarget.Normalize();
+                            if (Vector3.Dot(toTarget, transform.forward) > 0.7f)
+                            {
+                                dir = toTarget;
+                                Debug.Log("[PlayerCombat] 자동 조준: " + targetBehaviour.name);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ③ 화살 소모 + 발사체 생성 — origin: 활 위치(플레이어 + up*1.5m), 데미지: WeaponData.Bow.damage
             //    (화살 종류별 보너스 데미지 합산은 ArrowManager 내부 처리)
             //    [TEST21-FOLLOWUP] ArrowManager lazy 자가 확보 — 씬 미부트/초기화 순서로 Instance가 null이면
             //    즉시 생성 시도(EnsureGameManager 보장과 이중 안전, 멱등). 없으면 발사 불가로 안내.

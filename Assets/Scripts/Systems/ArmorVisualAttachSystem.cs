@@ -214,31 +214,51 @@ namespace ProjectName.Systems
             switch (slot)
             {
                 case EquipmentManager.EquipmentSlot.Helmet:
-                    return Single(animator.GetBoneTransform(HumanBodyBones.Head));
+                {
+                    var head = animator.GetBoneTransform(HumanBodyBones.Head);
+                    if (head == null) head = FindBoneByName(animator, new[] { "head" });
+                    return Single(head);
+                }
 
                 case EquipmentManager.EquipmentSlot.Armor:
                 {
                     var spine = animator.GetBoneTransform(HumanBodyBones.Spine);
+                    if (spine == null) spine = FindBoneByName(animator, new[] { "spine" });
                     if (spine != null) return Single(spine);
                     var chest = animator.GetBoneTransform(HumanBodyBones.Chest);
+                    if (chest == null) chest = FindBoneByName(animator, new[] { "chest" });
                     return Single(chest);
                 }
 
                 case EquipmentManager.EquipmentSlot.Shoes:
-                    if (left) return Single(animator.GetBoneTransform(HumanBodyBones.LeftFoot));
-                    if (right) return Single(animator.GetBoneTransform(HumanBodyBones.RightFoot));
-                    return Pair(animator.GetBoneTransform(HumanBodyBones.LeftFoot), animator.GetBoneTransform(HumanBodyBones.RightFoot));
+                {
+                    var lf = animator.GetBoneTransform(HumanBodyBones.LeftFoot);
+                    if (lf == null) lf = FindBoneByName(animator, new[] { "leftfoot", "left_foot", "foot_l" });
+                    var rf = animator.GetBoneTransform(HumanBodyBones.RightFoot);
+                    if (rf == null) rf = FindBoneByName(animator, new[] { "rightfoot", "right_foot", "foot_r" });
+                    if (left) return Single(lf);
+                    if (right) return Single(rf);
+                    return Pair(lf, rf);
+                }
 
                 case EquipmentManager.EquipmentSlot.Gloves:
-                    if (left) return Single(animator.GetBoneTransform(HumanBodyBones.LeftHand));
-                    if (right) return Single(animator.GetBoneTransform(HumanBodyBones.RightHand));
-                    return Pair(animator.GetBoneTransform(HumanBodyBones.LeftHand), animator.GetBoneTransform(HumanBodyBones.RightHand));
+                {
+                    var lh = animator.GetBoneTransform(HumanBodyBones.LeftHand);
+                    if (lh == null) lh = FindBoneByName(animator, new[] { "lefthand", "left_hand", "hand_l" });
+                    var rh = animator.GetBoneTransform(HumanBodyBones.RightHand);
+                    if (rh == null) rh = FindBoneByName(animator, new[] { "righthand", "right_hand", "hand_r" });
+                    if (left) return Single(lh);
+                    if (right) return Single(rh);
+                    return Pair(lh, rh);
+                }
 
                 case EquipmentManager.EquipmentSlot.Back: // 방패류 — 왼손 우선, 없으면 왼팔뚝
                 {
                     var hand = animator.GetBoneTransform(HumanBodyBones.LeftHand);
+                    if (hand == null) hand = FindBoneByName(animator, new[] { "lefthand", "left_hand", "hand_l" });
                     if (hand != null) return Single(hand);
                     var foreArm = animator.GetBoneTransform(HumanBodyBones.LeftLowerArm);
+                    if (foreArm == null) foreArm = FindBoneByName(animator, new[] { "leftlowerarm", "left_lower_arm", "lowerarm_l", "forearm_l" });
                     return Single(foreArm);
                 }
 
@@ -253,6 +273,26 @@ namespace ProjectName.Systems
         {
             if (a == null || b == null) return null; // 쌍 본은 둘 다 도착해야 부착
             return new[] { a, b };
+        }
+
+        /// <summary>
+        /// 2026-09-16(45차 P6): 이름 기반 본 재탐색 폴백 — WeaponEquipManager의 H-GRIP2 패턴.
+        /// 플레이어 아바타가 Humanoid 매핑이 아닌 Generic/FBX라 GetBoneTransform이 null을 반환할 때,
+        /// GetComponentsInChildren 순회 + 소문자 이름 부분일치 키워드로 본을 찾는다. 첫 매칭 반환.
+        /// </summary>
+        static Transform FindBoneByName(Animator animator, string[] keywords)
+        {
+            if (animator == null || keywords == null || keywords.Length == 0) return null;
+            var ts = animator.GetComponentsInChildren<Transform>(true);
+            foreach (var t in ts)
+            {
+                var name = t.name.ToLowerInvariant();
+                for (int i = 0; i < keywords.Length; i++)
+                {
+                    if (name.Contains(keywords[i])) return t;
+                }
+            }
+            return null;
         }
 
         // ===== 비주얼 관리 =====
