@@ -1,21 +1,21 @@
 [Licensing::Module] Trying to connect to existing licensing client channel...
 Built from '6000.4/staging' branch; Version is '6000.4.10f1 (feeafc12a938) revision 16706300'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-09-16T15:26:03.7521466Z"
 OS: 'Windows 10  (10.0.19045) 64bit Core' Language: 'ko' Physical Memory: 7880 MB
 BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
 System  architecture: x64
 Process architecture: x64
-Date: 2026-09-16T15:03:13Z
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-09-16T15:03:13.9157273Z"
+Date: 2026-09-16T15:26:03Z
 [Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 7852, path: "C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
 [Licensing::Module] LicensingClient has failed validation; ignoring
 [Licensing::Client] Handshaking with LicensingClient:
   Version:                 1.18.1+9fbee8e
-  Session Id:              31a69acaf2ca440cacc4791b57f2dee5
+  Session Id:              15a6a4b3351a4a7b999ca7b17eb7dd37
   Correlation Id:          4897e0dc9a8184b1e2f36db108fbca26
-  External correlation Id: 8292187592886859597
+  External correlation Id: 4808812759030522587
   Machine Id:              5cJWr0XiXK4/b2/xsaHUUO6HAA8=
 [Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-korea" (connect: 0.00s, validation: 0.00s, handshake: 0.12s)
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-09-16T15:03:14.0372149Z"
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-09-16T15:26:03.8695175Z"
 [Licensing::Module] Error: Access token is unavailable; failed to update
 [Licensing::Client] Successfully resolved entitlement details
 [Licensing::Module] License group:
@@ -25,7 +25,7 @@ Date: 2026-09-16T15:03:13Z
   Expiration: Unlimited
 [Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
 [Licensing::Client] Successfully resolved entitlement details
-[Licensing::Module] Licensing Background thread has ended after 0.14s
+[Licensing::Module] Licensing Background thread has ended after 0.13s
 
 COMMAND LINE ARGUMENTS:
 Unity.exe
@@ -74,18 +74,18 @@ C:/Unity/code
     "memorysetup-job-temp-allocator-block-size=2097152"
     "memorysetup-job-temp-allocator-block-size-background=1048576"
     "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
-Player connection [6440]  Target information:
+Player connection [12892]  Target information:
 
-Player connection [6440]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 4283845374 [EditorId] 4283845374 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [12892]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 847833801 [EditorId] 847833801 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [6440]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 4283845374 [EditorId] 4283845374 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [12892]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 847833801 [EditorId] 847833801 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [6440] Host joined multi-casting on [225.0.0.222:54997]...
-Player connection [6440] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Player connection [12892] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [12892] Host joined alternative multi-casting on [225.0.0.222:34997]...
 Input System module state changed to: Initialized.
 [Physics::Module] Initialized fallback backend.
 [Physics::Module] Id: 0xdecafbad
-[Package Manager] Connected to IPC stream "Upm-8716" after 0.4 seconds.
+[Package Manager] Connected to IPC stream "Upm-10600" after 0.4 seconds.
 [Licensing::Client] Successfully resolved entitlement details
 Library Redirect Path: Library/
 [Physics::Module] Selected backend.
@@ -112,7 +112,7 @@ Initialize mono
 Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Managed'
 Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
 Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/etc'
-Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56716
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56600
 CodeReloadManager initialized
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
@@ -122,29 +122,30 @@ Begin MonoManager ReloadAssembly
 Registering precompiled unity dll's ...
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
-Registered in 0.013825 seconds.
+Registered in 0.019540 seconds.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 Package Manager log level set to [2]
 ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.792 seconds
-Domain Reload Profiling: 1717ms
-	BeginReloadAssembly (303ms)
-	RebuildCommonClasses (76ms)
-	RebuildNativeTypeToScriptingClass (24ms)
-	initialDomainReloadingComplete (137ms)
-	LoadAllAssembliesAndSetupDomain (383ms)
-		LoadAssemblies (295ms)
-		AnalyzeDomain (365ms)
-			TypeCache.Refresh (363ms)
-				TypeCache.ScanAssembly (332ms)
-	FinalizeReload (794ms)
+- Finished resetting the current domain, in  0.864 seconds
+Domain Reload Profiling: 1971ms
+	BeginReloadAssembly (364ms)
+		CreateAndSetChildDomain (16ms)
+	RebuildCommonClasses (95ms)
+	RebuildNativeTypeToScriptingClass (23ms)
+	initialDomainReloadingComplete (174ms)
+	LoadAllAssembliesAndSetupDomain (446ms)
+		LoadAssemblies (346ms)
+		AnalyzeDomain (422ms)
+			TypeCache.Refresh (420ms)
+				TypeCache.ScanAssembly (389ms)
+	FinalizeReload (870ms)
 		SetupLoadedEditorAssemblies (0ms)
-			InitializePlatformSupportModulesInManaged (93ms)
-			BeforeProcessingInitializeOnLoad (136ms)
-			ProcessInitializeOnLoadAttributes (187ms)
-			ProcessInitializeOnLoadMethodAttributes (268ms)
+			InitializePlatformSupportModulesInManaged (96ms)
+			BeforeProcessingInitializeOnLoad (158ms)
+			ProcessInitializeOnLoadAttributes (205ms)
+			ProcessInitializeOnLoadMethodAttributes (277ms)
 [Licensing::Client] Successfully resolved entitlement details
 Application.AssetDatabase Initial Refresh Start
 [Package Manager] Restoring resolved packages state from cache
@@ -225,7 +226,7 @@ Application.AssetDatabase Initial Refresh Start
     com.unity.collections@6.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.collections@5b6ebd78ccc0)
 [Package Manager] com.unity.textmeshpro is deprecated: This package is no longer supported. TextMeshPro functionalities are now included in the com.unity.ugui package. To continue using them, consider adding it to your project dependencies.
 [Subsystems] No new subsystems found in resolved package list.
-[Package Manager] Done registering packages in 0.04 seconds
+[Package Manager] Done registering packages in 0.05 seconds
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
 [ScriptCompilation] Requested script compilation because: AssetDatabase observed changes in script compilation related files
@@ -244,16 +245,16 @@ info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 60.0322ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 62.2505ms
 Starting: C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
 WorkingDir: C:/Unity/code
 DisplayProgressbar: Compiling Scripts
 Starting: C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\netcorerun\netcorerun.exe "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Tools\BuildPipeline\ScriptCompilationBuildProgram.exe" "Library/Bee/1900b0aE.dag.json" "Library/Bee/1900b0aE-inputdata.json" "Library\Bee\buildprogram0.traceevents"
 WorkingDir: C:/Unity/code
-ExitCode: 4 Duration: 0s867ms
+ExitCode: 4 Duration: 0s924ms
 Rebuilding DAG because FileSignature timestamp changed: Library/Bee/1900b0aE-inputdata.json
-*** Tundra requires additional run (0.80 seconds), 0 items updated, 2 evaluated
-ExitCode: 0 Duration: 3s785ms
+*** Tundra requires additional run (0.84 seconds), 0 items updated, 2 evaluated
+ExitCode: 0 Duration: 5s372ms
 Starting: C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --dagfilejson="Library\Bee\1900b0aE.dag.json" --profile="Library/Bee/backend2.traceevents" ScriptAssemblies
 WorkingDir: C:/Unity/code
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
@@ -271,47 +272,29 @@ info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 183.6493ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 241.8034ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
       Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.Systems.dll, with 144 defines and 286 references
-info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
-info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running Unity.Jobs.CodeGen.JobsILPostProcessor
-info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
-      Resolved Unity.Burst.Cecil.Rocks, Version=0.11.6.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@6bb9aca3ef38\Unity.Burst.CodeGen\Unity.Burst.Cecil.Rocks.dll
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 2335.0969ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+      Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 383 references
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll, with 144 defines and 286 references
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 144 defines and 357 references
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running Unity.Jobs.CodeGen.JobsILPostProcessor
-info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 52.5186ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
-info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 144 defines and 357 references
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
@@ -324,18 +307,8 @@ info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
       Resolved UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 2524.1745ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
-info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 383 references
-info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Burst.Cecil.Rocks, Version=0.11.6.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@6bb9aca3ef38\Unity.Burst.CodeGen\Unity.Burst.Cecil.Rocks.dll
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       running Unity.Jobs.CodeGen.JobsILPostProcessor
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
@@ -343,308 +316,28 @@ info: Unity.ILPP.Runner.PostProcessingPipeline[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 648.7964ms
-ExitCode: 0 Duration: 26s
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 1748.2567ms
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 1756.4609ms
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 1974.6947ms
+ExitCode: 0 Duration: 13s
 Finished compiling graph: 1427 nodes, 29221 flattened edges (23607 ToBuild, 236 ToUse), maximum node priority 1604
-[ 994/1423  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
-[BUSY       6s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.Systems.dll (+2 others)
-[1407/1423 10s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.Systems.dll (+2 others)
-Assets\Scripts\Systems\AnimalAI.cs(93,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(256,16): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(32,9): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Combat\ProceduralAttack.cs(204,34): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\HerbPickup.cs(48,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\PlayerCombat.cs(47,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\PlayerMovement.cs(147,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(790,16): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(27,26): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(67,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(293,38): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(429,35): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1025,72): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(502,40): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(596,35): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(688,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(801,36): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(819,40): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(873,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(880,39): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(895,41): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(919,20): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Procedural\ParentVelocityProvider.cs(10,30): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\CinemachineCameraBinder.cs(150,41): warning CS0252: Possible unintended reference comparison; to get a value comparison, cast the left hand side to type 'Object'
-
-Assets\Scripts\Systems\AnimalAI.cs(442,43): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(104,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(107,59): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\ProgressiveRolloutManager.cs(163,31): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
-
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1029,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1030,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1031,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1032,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1033,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1034,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1035,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1036,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1037,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1038,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\MLRuntimeManager.cs(450,22): warning CS0219: The variable 'done' is assigned but its value is never used
-
-Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(249,54): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(294,54): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Animation\Neural\Evaluation\ABTestFramework.cs(112,31): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
-
-Assets\Scripts\Systems\TestTerritoryCombatSetup.cs(747,108): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Scripts\Systems\TestTerritoryCombatSetup.cs(747,32): warning CS0618: 'Object.FindObjectsByType(Type, FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType(Type) or FindObjectsByType(Type, FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\Scripts\Systems\TestPlayerSetup.cs(85,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\TestPlayerSetup.cs(88,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\TestPlayerSetup.cs(92,33): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\TestPlayerSetup.cs(94,33): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\TestPlayerAnimatorBoot.cs(146,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Combat\Damageable.cs(129,45): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Combat\Damageable.cs(140,45): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\Combat\ProceduralAttack.cs(248,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(364,37): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(365,37): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(366,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(367,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(599,108): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(599,32): warning CS0618: 'Object.FindObjectsByType(Type, FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType(Type) or FindObjectsByType(Type, FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1007,37): warning CS0618: 'ProceduralLODManager' is obsolete: 'Use NeuralAnimationController with ONNX policies instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1010,36): warning CS0618: 'ProceduralLODManager' is obsolete: 'Use NeuralAnimationController with ONNX policies instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1165,56): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1165,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1166,62): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1166,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1187,71): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1187,41): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1224,56): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1224,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1225,62): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1225,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1243,61): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1243,31): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1264,65): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1264,35): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\Scripts\Systems\HerbPickup.cs(144,72): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\HerbPickup.cs(149,68): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\HumanoidClipDriver.cs(281,49): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\HumanoidClipDriver.cs(531,21): warning CS0162: Unreachable code detected
-
-Assets\Scripts\Systems\HumanoidClipDriver.cs(598,13): warning CS0162: Unreachable code detected
-
-Assets\Scripts\Systems\LightShaftBillboard.cs(259,52): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Scripts\Systems\LightShaftBillboard.cs(259,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\Scripts\Systems\TerritoryBuilder.cs(616,97): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Scripts\Systems\TerritoryBuilder.cs(616,29): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\Scripts\Systems\TerritoryBuilder.cs(619,91): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Scripts\Systems\TerritoryBuilder.cs(619,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\Scripts\Systems\TerritoryBuilder.cs(623,88): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Scripts\Systems\TerritoryBuilder.cs(623,30): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\Scripts\Systems\TerrainTextureApplier.cs(209,70): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Scripts\Systems\TerrainTextureApplier.cs(209,31): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\Scripts\Systems\MountSystem.cs(441,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\MountSystem.cs(495,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\MountSystem.cs(503,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\MountSystem.cs(561,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\MountSystem.cs(569,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\PlayerMovement.cs(220,62): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\PlayerMovement.cs(225,66): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\IdyllicDecoPlacer.cs(1614,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
-
-Assets\Scripts\Systems\PlayerCombat.cs(129,54): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\PlayerCombat.cs(134,58): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-
-Assets\Scripts\Systems\SoldierIdlePose.cs(115,52): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
-
-Assets\Scripts\Systems\TerrainPathGenerator.cs(320,19): warning CS0219: The variable 'halfW2' is assigned but its value is never used
-
-Assets\Scripts\Systems\Animation\Neural\ModelManagement\AvatarFineTuningConfig.cs(16,47): warning CS0414: The field 'AvatarFineTuningConfig._defenseBias' is assigned but its value is never used
-
-Assets\Scripts\Systems\Animation\Procedural\LOD\ProceduralLODSystem.cs(137,31): warning CS0414: The field 'ProceduralLODManager._enableFrustumCulling' is assigned but its value is never used
-
-Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(63,47): warning CS0414: The field 'HybridAnimationController._rootMotionProceduralWeight' is assigned but its value is never used
-
-Assets\Scripts\Systems\Animation\Neural\ModelManagement\AvatarFineTuningConfig.cs(15,47): warning CS0414: The field 'AvatarFineTuningConfig._aggressionBias' is assigned but its value is never used
-
-Assets\Scripts\Systems\Animation\Procedural\ProceduralAnimationController.cs(65,47): warning CS0414: The field 'ProceduralAnimationController.armSwingAmount' is assigned but its value is never used
-
-Assets\Scripts\Systems\Animation\Procedural\ProceduralAnimationController.cs(210,14): warning CS0414: The field 'ProceduralAnimationController._lodSpineWaveEnabled' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestCraftSetup.cs(31,40): warning CS0414: The field 'TestCraftSetup._defaultPitch' is assigned but its value is never used
-
-Assets\Scripts\Systems\QuadrupedProceduralAnimation.cs(38,55): warning CS0414: The field 'QuadrupedProceduralAnimation._spineIKWeight' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestCraftSetup.cs(26,40): warning CS0414: The field 'TestCraftSetup._walkSpeed' is assigned but its value is never used
-
-Assets\Scripts\Systems\QuadrupedProceduralAnimation.cs(101,23): warning CS0414: The field 'QuadrupedProceduralAnimation._actionTimer' is assigned but its value is never used
-
-Assets\Scripts\Systems\TemperatureSystem.cs(17,40): warning CS0414: The field 'TemperatureSystem._changeRate' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(35,40): warning CS0414: The field 'TestAllInOneSetup._defaultPitch' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestCraftSetup.cs(27,40): warning CS0414: The field 'TestCraftSetup._runSpeed' is assigned but its value is never used
-
-Assets\Scripts\Systems\Animation\Procedural\SpecialCreatureAnimator.cs(30,32): warning CS0414: The field 'SpecialCreatureAnimator._turnSpeed' is assigned but its value is never used
-
-Assets\Scripts\Systems\Animation\Neural\ModelManagement\AvatarFineTuningConfig.cs(17,47): warning CS0414: The field 'AvatarFineTuningConfig._evasionBias' is assigned but its value is never used
-
-Assets\Scripts\Systems\QuadrupedProceduralLocomotion.cs(32,40): warning CS0414: The field 'QuadrupedProceduralLocomotion._dutyCycle' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestCraftSetup.cs(30,40): warning CS0414: The field 'TestCraftSetup._orbitRadius' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestTerritorySetup.cs(26,40): warning CS0414: The field 'TestTerritorySetup._walkSpeed' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(30,40): warning CS0414: The field 'TestAllInOneSetup._runSpeed' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(31,40): warning CS0414: The field 'TestAllInOneSetup._jumpHeight' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestTerritorySetup.cs(30,40): warning CS0414: The field 'TestTerritorySetup._orbitRadius' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestCombatSetup.cs(18,40): warning CS0414: The field 'TestCombatSetup._walkSpeed' is assigned but its value is never used
-
-Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(58,31): warning CS0414: The field 'HybridAnimationController._useLODManager' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(34,40): warning CS0414: The field 'TestAllInOneSetup._orbitRadius' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestCombatSetup.cs(19,40): warning CS0414: The field 'TestCombatSetup._runSpeed' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestTerritorySetup.cs(27,40): warning CS0414: The field 'TestTerritorySetup._runSpeed' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestPlayerSetup.cs(25,36): warning CS0414: The field 'TestPlayerSetup._orbitRadius' is assigned but its value is never used
-
-Assets\Scripts\Systems\QuadrupedProceduralAnimation.cs(44,40): warning CS0414: The field 'QuadrupedProceduralAnimation._dutyCycle' is assigned but its value is never used
-
-Assets\Scripts\Systems\QuadrupedPoseController.cs(24,55): warning CS0414: The field 'QuadrupedPoseController._stepPhaseOffset' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestCombatSetup.cs(15,38): warning CS0414: The field 'TestCombatSetup._monsterCount' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestAllInOneSetup.cs(29,40): warning CS0414: The field 'TestAllInOneSetup._walkSpeed' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestPlayerSetup.cs(26,36): warning CS0414: The field 'TestPlayerSetup._defaultPitch' is assigned but its value is never used
-
-Assets\Scripts\Systems\Animation\Procedural\ProceduralAnimationController.cs(66,47): warning CS0414: The field 'ProceduralAnimationController.headStabilization' is assigned but its value is never used
-
-Assets\Scripts\Systems\TestTerritorySetup.cs(31,40): warning CS0414: The field 'TestTerritorySetup._defaultPitch' is assigned but its value is never used
-[1408/1423  2s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/ProjectName.Systems.dll (+pdb)
-Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.Systems.dll, with 144 defines and 286 references
-
-processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
-
-running Unity.Jobs.CodeGen.JobsILPostProcessor
-
-running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[1409/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.Systems.pdb
-[1410/1423  3s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll (+2 others)
+[1012/1423  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[BUSY       6s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll (+2 others)
+[1411/1423  7s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll (+2 others)
 Assets\Scripts\UI\EquipmentWindow.cs(105,28): warning CS0114: 'EquipmentWindow.Toggle()' hides inherited member 'UIWindow.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\TerritoryNPCSpawner.cs(259,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-[1411/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.Systems.dll
-[1412/1423  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/ProjectName.UI.dll (+pdb)
-Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll, with 144 defines and 286 references
-
-processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
-
-running Unity.Jobs.CodeGen.JobsILPostProcessor
-
-running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[1413/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.dll
-[1414/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.pdb
-[1415/1423  3s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll (+2 others)
-Assets\Travis Game Assets\Hit Impact Effects\Demo Scene\Scripts\HitImpactEffectsPreview.cs(28,21): warning CS0108: 'HitImpactEffectsPreview.light' hides inherited member 'Component.light'. Use the new keyword if hiding was intended.
-[1416/1423  2s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
+[1414/1423  1s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
 Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 144 defines and 357 references
 
 processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
@@ -652,43 +345,17 @@ processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.Burst
 running Unity.Jobs.CodeGen.JobsILPostProcessor
 
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[1417/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.pdb
-[1418/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.dll
-[1419/1423  4s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
-Assets\Editor\DayNightCycleReferenceFixer.cs(24,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+[1415/1423  1s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/ProjectName.UI.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll, with 144 defines and 286 references
 
-Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
 
-Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+running Unity.Jobs.CodeGen.JobsILPostProcessor
 
-Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-
-Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
-
-Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
-
-Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
-
-Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
-
-Assets\Editor\FixMainScene.cs(938,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-
-Assets\Editor\IndoorShellMenu.cs(30,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Editor\IndoorShellMenu.cs(30,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\Editor\FixAllCriticalIssues.cs(207,27): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-
-Assets\Editor\FixAllCriticalIssues.cs(216,32): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-
-Assets\Editor\FixAllCriticalIssues.cs(225,28): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-
-Assets\Editor\FixAllCriticalIssues.cs(242,25): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-
-Assets\Editor\VFXResourceInstaller.cs(279,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
-
-Assets\Editor\MonsterRigScanTool.cs(170,51): warning CS0184: The given expression is never of the provided ('AnimatorController') type
-[1420/1423  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1417/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.dll
+[1418/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.pdb
+[1420/1423  2s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
 Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 383 references
 
 processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
@@ -696,165 +363,10 @@ processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.Burst
 running Unity.Jobs.CodeGen.JobsILPostProcessor
 
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[1421/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
-[1422/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
-*** Tundra build success (26.90 seconds), 17 items updated, 1423 evaluated
-Assets\Scripts\Systems\AnimalAI.cs(93,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(256,16): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(32,9): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Combat\ProceduralAttack.cs(204,34): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\HerbPickup.cs(48,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\PlayerCombat.cs(47,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\PlayerMovement.cs(147,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(790,16): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(27,26): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(67,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(293,38): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(429,35): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1025,72): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(502,40): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(596,35): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(688,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(801,36): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(819,40): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(873,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(880,39): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(895,41): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(919,20): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Procedural\ParentVelocityProvider.cs(10,30): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\CinemachineCameraBinder.cs(150,41): warning CS0252: Possible unintended reference comparison; to get a value comparison, cast the left hand side to type 'Object'
-Assets\Scripts\Systems\AnimalAI.cs(442,43): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(104,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(107,59): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\ProgressiveRolloutManager.cs(163,31): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1029,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1030,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1031,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1032,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1033,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1034,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1035,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1036,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1037,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1038,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\MLRuntimeManager.cs(450,22): warning CS0219: The variable 'done' is assigned but its value is never used
-Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(249,54): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(294,54): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Animation\Neural\Evaluation\ABTestFramework.cs(112,31): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
-Assets\Scripts\Systems\TestTerritoryCombatSetup.cs(747,108): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Scripts\Systems\TestTerritoryCombatSetup.cs(747,32): warning CS0618: 'Object.FindObjectsByType(Type, FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType(Type) or FindObjectsByType(Type, FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Scripts\Systems\TestPlayerSetup.cs(85,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\TestPlayerSetup.cs(88,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\TestPlayerSetup.cs(92,33): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\TestPlayerSetup.cs(94,33): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\TestPlayerAnimatorBoot.cs(146,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Combat\Damageable.cs(129,45): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Combat\Damageable.cs(140,45): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\Combat\ProceduralAttack.cs(248,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(364,37): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(365,37): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(366,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(367,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(599,108): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(599,32): warning CS0618: 'Object.FindObjectsByType(Type, FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType(Type) or FindObjectsByType(Type, FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1007,37): warning CS0618: 'ProceduralLODManager' is obsolete: 'Use NeuralAnimationController with ONNX policies instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1010,36): warning CS0618: 'ProceduralLODManager' is obsolete: 'Use NeuralAnimationController with ONNX policies instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1165,56): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1165,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1166,62): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1166,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1187,71): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1187,41): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1224,56): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1224,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1225,62): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1225,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1243,61): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1243,31): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1264,65): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Scripts\Systems\TestAllInOneSetup.cs(1264,35): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Scripts\Systems\HerbPickup.cs(144,72): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\HerbPickup.cs(149,68): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\HumanoidClipDriver.cs(281,49): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\HumanoidClipDriver.cs(531,21): warning CS0162: Unreachable code detected
-Assets\Scripts\Systems\HumanoidClipDriver.cs(598,13): warning CS0162: Unreachable code detected
-Assets\Scripts\Systems\LightShaftBillboard.cs(259,52): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Scripts\Systems\LightShaftBillboard.cs(259,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Scripts\Systems\TerritoryBuilder.cs(616,97): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Scripts\Systems\TerritoryBuilder.cs(616,29): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Scripts\Systems\TerritoryBuilder.cs(619,91): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Scripts\Systems\TerritoryBuilder.cs(619,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Scripts\Systems\TerritoryBuilder.cs(623,88): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Scripts\Systems\TerritoryBuilder.cs(623,30): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Scripts\Systems\TerrainTextureApplier.cs(209,70): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Scripts\Systems\TerrainTextureApplier.cs(209,31): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Scripts\Systems\MountSystem.cs(441,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\MountSystem.cs(495,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\MountSystem.cs(503,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\MountSystem.cs(561,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\MountSystem.cs(569,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\PlayerMovement.cs(220,62): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\PlayerMovement.cs(225,66): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\IdyllicDecoPlacer.cs(1614,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
-Assets\Scripts\Systems\PlayerCombat.cs(129,54): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\PlayerCombat.cs(134,58): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\Systems\SoldierIdlePose.cs(115,52): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
-Assets\Scripts\Systems\TerrainPathGenerator.cs(320,19): warning CS0219: The variable 'halfW2' is assigned but its value is never used
-Assets\Scripts\Systems\Animation\Neural\ModelManagement\AvatarFineTuningConfig.cs(16,47): warning CS0414: The field 'AvatarFineTuningConfig._defenseBias' is assigned but its value is never used
-Assets\Scripts\Systems\Animation\Procedural\LOD\ProceduralLODSystem.cs(137,31): warning CS0414: The field 'ProceduralLODManager._enableFrustumCulling' is assigned but its value is never used
-Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(63,47): warning CS0414: The field 'HybridAnimationController._rootMotionProceduralWeight' is assigned but its value is never used
-Assets\Scripts\Systems\Animation\Neural\ModelManagement\AvatarFineTuningConfig.cs(15,47): warning CS0414: The field 'AvatarFineTuningConfig._aggressionBias' is assigned but its value is never used
-Assets\Scripts\Systems\Animation\Procedural\ProceduralAnimationController.cs(65,47): warning CS0414: The field 'ProceduralAnimationController.armSwingAmount' is assigned but its value is never used
-Assets\Scripts\Systems\Animation\Procedural\ProceduralAnimationController.cs(210,14): warning CS0414: The field 'ProceduralAnimationController._lodSpineWaveEnabled' is assigned but its value is never used
-Assets\Scripts\Systems\TestCraftSetup.cs(31,40): warning CS0414: The field 'TestCraftSetup._defaultPitch' is assigned but its value is never used
-Assets\Scripts\Systems\QuadrupedProceduralAnimation.cs(38,55): warning CS0414: The field 'QuadrupedProceduralAnimation._spineIKWeight' is assigned but its value is never used
-Assets\Scripts\Systems\TestCraftSetup.cs(26,40): warning CS0414: The field 'TestCraftSetup._walkSpeed' is assigned but its value is never used
-Assets\Scripts\Systems\QuadrupedProceduralAnimation.cs(101,23): warning CS0414: The field 'QuadrupedProceduralAnimation._actionTimer' is assigned but its value is never used
-Assets\Scripts\Systems\TemperatureSystem.cs(17,40): warning CS0414: The field 'TemperatureSystem._changeRate' is assigned but its value is never used
-Assets\Scripts\Systems\TestAllInOneSetup.cs(35,40): warning CS0414: The field 'TestAllInOneSetup._defaultPitch' is assigned but its value is never used
-Assets\Scripts\Systems\TestCraftSetup.cs(27,40): warning CS0414: The field 'TestCraftSetup._runSpeed' is assigned but its value is never used
-Assets\Scripts\Systems\Animation\Procedural\SpecialCreatureAnimator.cs(30,32): warning CS0414: The field 'SpecialCreatureAnimator._turnSpeed' is assigned but its value is never used
-Assets\Scripts\Systems\Animation\Neural\ModelManagement\AvatarFineTuningConfig.cs(17,47): warning CS0414: The field 'AvatarFineTuningConfig._evasionBias' is assigned but its value is never used
-Assets\Scripts\Systems\QuadrupedProceduralLocomotion.cs(32,40): warning CS0414: The field 'QuadrupedProceduralLocomotion._dutyCycle' is assigned but its value is never used
-Assets\Scripts\Systems\TestCraftSetup.cs(30,40): warning CS0414: The field 'TestCraftSetup._orbitRadius' is assigned but its value is never used
-Assets\Scripts\Systems\TestTerritorySetup.cs(26,40): warning CS0414: The field 'TestTerritorySetup._walkSpeed' is assigned but its value is never used
-Assets\Scripts\Systems\TestAllInOneSetup.cs(30,40): warning CS0414: The field 'TestAllInOneSetup._runSpeed' is assigned but its value is never used
-Assets\Scripts\Systems\TestAllInOneSetup.cs(31,40): warning CS0414: The field 'TestAllInOneSetup._jumpHeight' is assigned but its value is never used
-Assets\Scripts\Systems\TestTerritorySetup.cs(30,40): warning CS0414: The field 'TestTerritorySetup._orbitRadius' is assigned but its value is never used
-Assets\Scripts\Systems\TestCombatSetup.cs(18,40): warning CS0414: The field 'TestCombatSetup._walkSpeed' is assigned but its value is never used
-Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(58,31): warning CS0414: The field 'HybridAnimationController._useLODManager' is assigned but its value is never used
-Assets\Scripts\Systems\TestAllInOneSetup.cs(34,40): warning CS0414: The field 'TestAllInOneSetup._orbitRadius' is assigned but its value is never used
-Assets\Scripts\Systems\TestCombatSetup.cs(19,40): warning CS0414: The field 'TestCombatSetup._runSpeed' is assigned but its value is never used
-Assets\Scripts\Systems\TestTerritorySetup.cs(27,40): warning CS0414: The field 'TestTerritorySetup._runSpeed' is assigned but its value is never used
-Assets\Scripts\Systems\TestPlayerSetup.cs(25,36): warning CS0414: The field 'TestPlayerSetup._orbitRadius' is assigned but its value is never used
-Assets\Scripts\Systems\QuadrupedProceduralAnimation.cs(44,40): warning CS0414: The field 'QuadrupedProceduralAnimation._dutyCycle' is assigned but its value is never used
-Assets\Scripts\Systems\QuadrupedPoseController.cs(24,55): warning CS0414: The field 'QuadrupedPoseController._stepPhaseOffset' is assigned but its value is never used
-Assets\Scripts\Systems\TestCombatSetup.cs(15,38): warning CS0414: The field 'TestCombatSetup._monsterCount' is assigned but its value is never used
-Assets\Scripts\Systems\TestAllInOneSetup.cs(29,40): warning CS0414: The field 'TestAllInOneSetup._walkSpeed' is assigned but its value is never used
-Assets\Scripts\Systems\TestPlayerSetup.cs(26,36): warning CS0414: The field 'TestPlayerSetup._defaultPitch' is assigned but its value is never used
-Assets\Scripts\Systems\Animation\Procedural\ProceduralAnimationController.cs(66,47): warning CS0414: The field 'ProceduralAnimationController.headStabilization' is assigned but its value is never used
-Assets\Scripts\Systems\TestTerritorySetup.cs(31,40): warning CS0414: The field 'TestTerritorySetup._defaultPitch' is assigned but its value is never used
+*** Tundra build success (13.19 seconds), 7 items updated, 1423 evaluated
 Assets\Scripts\UI\EquipmentWindow.cs(105,28): warning CS0114: 'EquipmentWindow.Toggle()' hides inherited member 'UIWindow.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\TerritoryNPCSpawner.cs(259,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Travis Game Assets\Hit Impact Effects\Demo Scene\Scripts\HitImpactEffectsPreview.cs(28,21): warning CS0108: 'HitImpactEffectsPreview.light' hides inherited member 'Component.light'. Use the new keyword if hiding was intended.
-Assets\Editor\DayNightCycleReferenceFixer.cs(24,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
-Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
-Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
-Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
-Assets\Editor\FixMainScene.cs(938,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\IndoorShellMenu.cs(30,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Editor\IndoorShellMenu.cs(30,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Editor\FixAllCriticalIssues.cs(207,27): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\FixAllCriticalIssues.cs(216,32): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\FixAllCriticalIssues.cs(225,28): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\FixAllCriticalIssues.cs(242,25): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\VFXResourceInstaller.cs(279,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
-Assets\Editor\MonsterRigScanTool.cs(170,51): warning CS0184: The given expression is never of the provided ('AnimatorController') type
-AssetDatabase: script compilation time: 32.719163s
+AssetDatabase: script compilation time: 20.648168s
 Begin MonoManager ReloadAssembly
 Assembly Assembly-CSharp-Editor-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-Editor-firstpass.dll not valid. Loading of assembly skipped.
 Assembly Assembly-CSharp-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll not valid. Loading of assembly skipped.
@@ -901,220 +413,222 @@ Symbol file LoadedFromMemory is not a mono symbol file
 Symbol file LoadedFromMemory is not a mono symbol file
 'Packages/com.unity.cinemachine/Editor/Editors/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
 'Packages/com.unity.cinemachine/Editor/Obsolete/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
-Refreshing native plugins compatible for Editor in 8.91 ms, found 5 plugins.
+Refreshing native plugins compatible for Editor in 11.33 ms, found 5 plugins.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
-Refreshing native plugins compatible for Editor in 6.83 ms, found 5 plugins.
+Refreshing native plugins compatible for Editor in 8.44 ms, found 5 plugins.
 [MODES] ModeService[none].Initialize
 [MODES] ModeService[none].LoadModes
 [MODES] Loading mode Default (0) for mode-current-id-포이즌
 ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  6.940 seconds
-Domain Reload Profiling: 11444ms
-	BeginReloadAssembly (510ms)
-		DisableScriptedObjects (39ms)
-		CreateAndSetChildDomain (182ms)
-	RebuildCommonClasses (67ms)
-	RebuildNativeTypeToScriptingClass (22ms)
-	initialDomainReloadingComplete (2075ms)
-	LoadAllAssembliesAndSetupDomain (1830ms)
-		LoadAssemblies (1351ms)
-		AnalyzeDomain (676ms)
-			TypeCache.Refresh (497ms)
-				TypeCache.ScanAssembly (470ms)
-			BuildScriptInfoCaches (147ms)
+- Finished resetting the current domain, in  7.343 seconds
+Domain Reload Profiling: 10171ms
+	BeginReloadAssembly (463ms)
+		DisableScriptedObjects (36ms)
+		CreateAndSetChildDomain (167ms)
+	RebuildCommonClasses (52ms)
+	RebuildNativeTypeToScriptingClass (25ms)
+	initialDomainReloadingComplete (516ms)
+	LoadAllAssembliesAndSetupDomain (1773ms)
+		LoadAssemblies (1267ms)
+		AnalyzeDomain (687ms)
+			TypeCache.Refresh (511ms)
+				TypeCache.ScanAssembly (484ms)
+			BuildScriptInfoCaches (143ms)
 			ResolveRequiredComponents (29ms)
-	FinalizeReload (6940ms)
+	FinalizeReload (7344ms)
 		SetupLoadedEditorAssemblies (0ms)
 			InitializePlatformSupportModulesInManaged (38ms)
-			BeforeProcessingInitializeOnLoad (506ms)
-			ProcessInitializeOnLoadAttributes (5384ms)
-			ProcessInitializeOnLoadMethodAttributes (565ms)
-			AfterProcessingInitializeOnLoad (16ms)
-		AwakeInstancesAfterBackupRestoration (54ms)
+			BeforeProcessingInitializeOnLoad (503ms)
+			ProcessInitializeOnLoadAttributes (5533ms)
+			ProcessInitializeOnLoadMethodAttributes (854ms)
+			AfterProcessingInitializeOnLoad (18ms)
+			EditorAssembliesLoaded (5ms)
+		AwakeInstancesAfterBackupRestoration (43ms)
 Start importing Packages/com.unity.render-pipelines.core/Tests/Editor/UnifiedRayTracing/TraceRays.urtshader using Guid(1142bbad8b9e8c44c83a9775ff120d37) (ScriptedImporter)Launched and connected shader compiler UnityShaderCompiler.exe after 0.03 seconds
 
 Compiling Ray Tracing Shader "TraceRays.urtshader", keywords = <no keywords>
-    finished in 0.06 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '33f398bdfa7c10409c63e16472cf5448') in 0.2969482 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=c318fb77de2db73647fab9e98851469d DependenciesID=c4b6cbf45f1a126b654d3ec43ff518b4 StaticDependenciesID=b7859538b7c8061be2c1df0681a26cec 
+    finished in 0.05 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: '33f398bdfa7c10409c63e16472cf5448') in 0.1748925 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=c318fb77de2db73647fab9e98851469d DependenciesID=c4b6cbf45f1a126b654d3ec43ff518b4 StaticDependenciesID=b7859538b7c8061be2c1df0681a26cec 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/RisEstimation.urtshader using Guid(713f6141bd66a134383b787f2eaa7c11) (ScriptedImporter)
 Compiling Ray Tracing Shader "RisEstimation.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '3e0794f61b814c58fba62fbdf018b2be') in 0.0491705 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=eceb737164082aa5ea9ee5b30b9eb0ad DependenciesID=d73329633f0139446b7cd637b36b6fd8 StaticDependenciesID=1251c416255850dca778d66927462604 
+ -> (Import Result ID: '3e0794f61b814c58fba62fbdf018b2be') in 0.043562 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=eceb737164082aa5ea9ee5b30b9eb0ad DependenciesID=d73329633f0139446b7cd637b36b6fd8 StaticDependenciesID=1251c416255850dca778d66927462604 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapShadowMaskIntegration.urtshader using Guid(d19f4f8a13b6edb48b986a47ec96402e) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapShadowMaskIntegration.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'f245faaebb45e24d73ea768da04f8d41') in 0.1028069 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=5e53dd02842c7495c53e3d1bc7a78ddc DependenciesID=db81e65f389a69c4574c50cd7e5e276d StaticDependenciesID=dddefbaa39ba5d51a386df5433e82fa1 
+ -> (Import Result ID: 'f245faaebb45e24d73ea768da04f8d41') in 0.09673 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=5e53dd02842c7495c53e3d1bc7a78ddc DependenciesID=db81e65f389a69c4574c50cd7e5e276d StaticDependenciesID=dddefbaa39ba5d51a386df5433e82fa1 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapGBufferDebug.urtshader using Guid(737a1597422c12547a8714d76a9406ec) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapGBufferDebug.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'e5c06b1d2dad6f7975fe60b947e94539') in 0.0227195 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=e0c24e325b6a556ed6c8a59b48713ca2 DependenciesID=baf99c66c6069e7b579c55cd6b4cdb96 StaticDependenciesID=62194a0448f2b8616e1214fb593272db 
+ -> (Import Result ID: 'e5c06b1d2dad6f7975fe60b947e94539') in 0.029211 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=e0c24e325b6a556ed6c8a59b48713ca2 DependenciesID=baf99c66c6069e7b579c55cd6b4cdb96 StaticDependenciesID=62194a0448f2b8616e1214fb593272db 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapNormalIntegration.urtshader using Guid(1451d029813b192429211be28181beab) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapNormalIntegration.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'ce972ba09ce3ff2cbf02665ead7cd8ab') in 0.0219561 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f3ad37befedec87f4be431be1f35efde DependenciesID=7812c5e79d5bc15a69d0e20c9928e52b StaticDependenciesID=cbe3820d9825e61936c3967ec27e4e90 
+ -> (Import Result ID: 'ce972ba09ce3ff2cbf02665ead7cd8ab') in 0.0258405 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f3ad37befedec87f4be431be1f35efde DependenciesID=7812c5e79d5bc15a69d0e20c9928e52b StaticDependenciesID=cbe3820d9825e61936c3967ec27e4e90 
 Start importing Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/RenderingLayerMask/TraceRenderingLayerMask.urtshader using Guid(94a070d33e408384bafc1dea4a565df9) (ScriptedImporter)
 Compiling Ray Tracing Shader "TraceRenderingLayerMask.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '6c2cfebc6165a04b035d10bc02129e6b') in 0.0198212 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=0dc2dececef44bfb87e215abcba869e8 DependenciesID=16de5d81d8af1d6c5b7e34df569e403b StaticDependenciesID=83d03f1fcc976b11b697d3bab0b97d8c 
+ -> (Import Result ID: '6c2cfebc6165a04b035d10bc02129e6b') in 0.0201798 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=0dc2dececef44bfb87e215abcba869e8 DependenciesID=16de5d81d8af1d6c5b7e34df569e403b StaticDependenciesID=83d03f1fcc976b11b697d3bab0b97d8c 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/UniformEstimation.urtshader using Guid(94a39d12848d8d64ca962a72b74e7c50) (ScriptedImporter)
 Compiling Ray Tracing Shader "UniformEstimation.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '82d95866967d7d448c23bb0d2fb10000') in 0.0243502 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=208dd87ba38690ecbdd8ce2ef3a42322 DependenciesID=d6ea983cec9f32cfce64242dd4b8eecc StaticDependenciesID=f100dc97879ef35876f7ad5427566dd9 
+ -> (Import Result ID: '82d95866967d7d448c23bb0d2fb10000') in 0.0175699 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=208dd87ba38690ecbdd8ce2ef3a42322 DependenciesID=d6ea983cec9f32cfce64242dd4b8eecc StaticDependenciesID=f100dc97879ef35876f7ad5427566dd9 
 Start importing Packages/com.unity.render-pipelines.core/Tests/Editor/UnifiedRayTracing/TraceTransparentRays.urtshader using Guid(6513c3b892e933c4f8d00c19d5c47532) (ScriptedImporter)
 Compiling Ray Tracing Shader "TraceTransparentRays.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'bc209695f9cf005a88d081252f657429') in 0.0119235 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=91bbc23bfffb7105b2b114873efdb1f2 DependenciesID=6945867d669fd72bb85a201c6705b033 StaticDependenciesID=5e41b194f27d8b70c797e75555e2b1f0 
+ -> (Import Result ID: 'bc209695f9cf005a88d081252f657429') in 0.0118421 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=91bbc23bfffb7105b2b114873efdb1f2 DependenciesID=6945867d669fd72bb85a201c6705b033 StaticDependenciesID=5e41b194f27d8b70c797e75555e2b1f0 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapIndirectIntegration.urtshader using Guid(7624adbeb148b5c48ab5ab660cc2602a) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapIndirectIntegration.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '67e8c330902cd5e732e06c94bd0f7618') in 0.0291063 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f09eeff93767bc2d4ca4231c8567847d DependenciesID=a6bfb09c833f569387ed01fe5be7f68d StaticDependenciesID=6d19372de11b03798f093933090e79bb 
+ -> (Import Result ID: '67e8c330902cd5e732e06c94bd0f7618') in 0.0346317 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f09eeff93767bc2d4ca4231c8567847d DependenciesID=a6bfb09c833f569387ed01fe5be7f68d StaticDependenciesID=6d19372de11b03798f093933090e79bb 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapGBufferIntegration.urtshader using Guid(e9f4de6d1e07fb94f9a60d35b618f724) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapGBufferIntegration.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'c0f4b2582ffcf2c2ff54d4177df54ac3') in 0.0219495 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=1c0e528a9979685af5e087a9161fbef3 DependenciesID=6581769ff26ea9b7b14b553554989a7c StaticDependenciesID=66dc06979910318021783fcb4ccd3ecc 
+ -> (Import Result ID: 'c0f4b2582ffcf2c2ff54d4177df54ac3') in 0.0238889 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=1c0e528a9979685af5e087a9161fbef3 DependenciesID=6581769ff26ea9b7b14b553554989a7c StaticDependenciesID=66dc06979910318021783fcb4ccd3ecc 
 Start importing Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/DynamicGI/DynamicGISkyOcclusion.urtshader using Guid(5a2a534753fbdb44e96c3c78b5a6999d) (ScriptedImporter)
 Compiling Ray Tracing Shader "DynamicGISkyOcclusion.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'a86cbfdaed43755cb737c6394f2f7dd8') in 0.0189659 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=a874898d18eae9e00b79828747828672 DependenciesID=16df158a22f4c8051a6679df21bb6f16 StaticDependenciesID=18974378deb0e4fc540e6b2321b0ff13 
+ -> (Import Result ID: 'a86cbfdaed43755cb737c6394f2f7dd8') in 0.0219103 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=a874898d18eae9e00b79828747828672 DependenciesID=16df158a22f4c8051a6679df21bb6f16 StaticDependenciesID=18974378deb0e4fc540e6b2321b0ff13 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapDirectIntegration.urtshader using Guid(5bbebdef5916845478fcef13fa10d89f) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapDirectIntegration.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'dad1bd87862ce17b1a6f9b60244690d8') in 0.0242761 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=575772a2c318afcd1a335e99619769d8 DependenciesID=4dbce75b84537949726dd242cfb94486 StaticDependenciesID=63188f79534be5f4b9e074ad4af5bfb7 
+ -> (Import Result ID: 'dad1bd87862ce17b1a6f9b60244690d8') in 0.0313423 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=575772a2c318afcd1a335e99619769d8 DependenciesID=4dbce75b84537949726dd242cfb94486 StaticDependenciesID=63188f79534be5f4b9e074ad4af5bfb7 
 Start importing Packages/com.unity.render-pipelines.core/Tests/Editor/UnifiedRayTracing/TraceRaysAndFetchAttributes.urtshader using Guid(fbc59f55df2416344b008dc23753cae2) (ScriptedImporter)
 Compiling Ray Tracing Shader "TraceRaysAndFetchAttributes.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'e7d10f853c78da67c2d4f837eb8ca0a1') in 0.0180005 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=4a191d661b3d19bc4a36fd8aa98bb84f DependenciesID=1a1ad1f36cae5eba17a1cef34e1e16e8 StaticDependenciesID=aa8291e86ea82085a643681c1c779d39 
+ -> (Import Result ID: 'e7d10f853c78da67c2d4f837eb8ca0a1') in 0.0233521 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=4a191d661b3d19bc4a36fd8aa98bb84f DependenciesID=1a1ad1f36cae5eba17a1cef34e1e16e8 StaticDependenciesID=aa8291e86ea82085a643681c1c779d39 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapAOIntegration.urtshader using Guid(1c410815c01ce1d4d82c645c0cd45747) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapAOIntegration.urtshader", keywords = <no keywords>
-    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '7b740e58b85665f099cfd3e5419aa5dc') in 0.0254254 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=6e193c7fad6abe3f3874d7d6f1463481 DependenciesID=e72323d3c7187fd5422b976e024d74e6 StaticDependenciesID=bcaf3aac9727a2ca27155e619d011e5f 
+    finished in 0.08 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: '7b740e58b85665f099cfd3e5419aa5dc') in 0.1036029 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=6e193c7fad6abe3f3874d7d6f1463481 DependenciesID=e72323d3c7187fd5422b976e024d74e6 StaticDependenciesID=bcaf3aac9727a2ca27155e619d011e5f 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/ProbeIntegrationValidity.urtshader using Guid(2c32233d92a2d0745930664c087c5c9a) (ScriptedImporter)
 Compiling Ray Tracing Shader "ProbeIntegrationValidity.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'e33da5794499a03236819bc23dbe3dc4') in 0.0205725 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=d935b17231a0a22067d89f21ab9c2798 DependenciesID=cc1a0c0428cf7c676e0b3197f9173821 StaticDependenciesID=4aea10376946a8225ccdfdec15a70dac 
+ -> (Import Result ID: 'e33da5794499a03236819bc23dbe3dc4') in 0.023219 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=d935b17231a0a22067d89f21ab9c2798 DependenciesID=cc1a0c0428cf7c676e0b3197f9173821 StaticDependenciesID=4aea10376946a8225ccdfdec15a70dac 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapValidityIntegration.urtshader using Guid(ace95ac84e213794891b4bd7c9b3c158) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapValidityIntegration.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '2afc97fdb6ed91bdf651e0ae5f6d3b94') in 0.0295949 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f7002ecb1d7cf6ba26b81594bf688948 DependenciesID=44c876861aeaaad98c736054441de774 StaticDependenciesID=46d905dacc01197a8e043a8ad4f9d21d 
+ -> (Import Result ID: '2afc97fdb6ed91bdf651e0ae5f6d3b94') in 0.0227636 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f7002ecb1d7cf6ba26b81594bf688948 DependenciesID=44c876861aeaaad98c736054441de774 StaticDependenciesID=46d905dacc01197a8e043a8ad4f9d21d 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/RestirCandidateTemporal.urtshader using Guid(ad3a9f9982f8c4f4a839a78955e78458) (ScriptedImporter)
 Compiling Ray Tracing Shader "RestirCandidateTemporal.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '7a88537960c967378283b95eb6bfd77a') in 0.0252632 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=5682df992b9d47745a9b5d3f3fbcf3d2 DependenciesID=78a0f525e4751e3ae6e7570f333d8352 StaticDependenciesID=2beaac54fac463ee5ee15c00b0990d01 
+ -> (Import Result ID: '7a88537960c967378283b95eb6bfd77a') in 0.01807 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=5682df992b9d47745a9b5d3f3fbcf3d2 DependenciesID=78a0f525e4751e3ae6e7570f333d8352 StaticDependenciesID=2beaac54fac463ee5ee15c00b0990d01 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/ProbeIntegrationIndirect.urtshader using Guid(5ecdabd800f05984696f22ba95284516) (ScriptedImporter)
 Compiling Ray Tracing Shader "ProbeIntegrationIndirect.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'f51aca4d67869a41150f3e0a8e3bdc15') in 0.0283263 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=9b755da8d53ee6bb90c5cd2610a8961c DependenciesID=b62f52344154070230c3cd7a53f26643 StaticDependenciesID=83ecbbd61911181b4944eb7ac9eabee5 
+ -> (Import Result ID: 'f51aca4d67869a41150f3e0a8e3bdc15') in 0.0268153 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=9b755da8d53ee6bb90c5cd2610a8961c DependenciesID=b62f52344154070230c3cd7a53f26643 StaticDependenciesID=83ecbbd61911181b4944eb7ac9eabee5 
 Start importing Packages/com.unity.render-pipelines.core/Tests/Runtime/PathTracing/PathIteratorTest.urtshader using Guid(6e0b547bab30a804c8123974120d583f) (ScriptedImporter)
 Compiling Ray Tracing Shader "PathIteratorTest.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '500f35121367e5c7e958cfb9d9a29a64') in 0.0338985 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=8d0df153da311f7d10e1500823ef010c DependenciesID=30dba2cb67a2cd2adb3f577c231d71f9 StaticDependenciesID=cf2a33ce9b71ea08a4459556694e1323 
+ -> (Import Result ID: '500f35121367e5c7e958cfb9d9a29a64') in 0.0269522 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=8d0df153da311f7d10e1500823ef010c DependenciesID=30dba2cb67a2cd2adb3f577c231d71f9 StaticDependenciesID=cf2a33ce9b71ea08a4459556694e1323 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LiveGI.urtshader using Guid(ceb7a31b84722d144bbeff1c8cd88769) (ScriptedImporter)
 Compiling Ray Tracing Shader "LiveGI.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'a74720dc4b3e01c6956e9a23f3fef792') in 0.0236137 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=b7b0361b445e4d63e4c025ef6477c385 DependenciesID=80daf8d3ed4d3722d8ec04bb2b08e853 StaticDependenciesID=628001b751fe9fddf64a203b1446575e 
+ -> (Import Result ID: 'a74720dc4b3e01c6956e9a23f3fef792') in 0.0239742 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=b7b0361b445e4d63e4c025ef6477c385 DependenciesID=80daf8d3ed4d3722d8ec04bb2b08e853 StaticDependenciesID=628001b751fe9fddf64a203b1446575e 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/ProbeIntegrationOcclusion.urtshader using Guid(de3013e16d99f2746ab1735ec06a660b) (ScriptedImporter)
 Compiling Ray Tracing Shader "ProbeIntegrationOcclusion.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'e85389a39c7b98508fbacb7957d65688') in 0.022793 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=0b84ff315b8a5318a99b10956e4c5d4e DependenciesID=71548de73cf28ea4ad8faa250dda4e5f StaticDependenciesID=183f3d853e4af89ec08f4e79696e167d 
+ -> (Import Result ID: 'e85389a39c7b98508fbacb7957d65688') in 0.0247143 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=0b84ff315b8a5318a99b10956e4c5d4e DependenciesID=71548de73cf28ea4ad8faa250dda4e5f StaticDependenciesID=183f3d853e4af89ec08f4e79696e167d 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/ProbeIntegrationDirect.urtshader using Guid(1f9bfe60b4ad75943a5281839c1a4e5c) (ScriptedImporter)
 Compiling Ray Tracing Shader "ProbeIntegrationDirect.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '25964f87db05586a640fad2d9cc15939') in 0.0269109 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=efae7c68c01649f56dbb0e593d0167d0 DependenciesID=f079aadab5140229f59b2610f71b3fa7 StaticDependenciesID=d3f99f9cc1ae2c0c0147c2fa8da668fc 
+ -> (Import Result ID: '25964f87db05586a640fad2d9cc15939') in 0.0417 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=efae7c68c01649f56dbb0e593d0167d0 DependenciesID=f079aadab5140229f59b2610f71b3fa7 StaticDependenciesID=d3f99f9cc1ae2c0c0147c2fa8da668fc 
 Start importing Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/VirtualOffset/TraceVirtualOffset.urtshader using Guid(ff2cbab5da58bf04d82c5f34037ed123) (ScriptedImporter)
 Compiling Ray Tracing Shader "TraceVirtualOffset.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'a57c84c41270216125416ad4640d4f06') in 0.0219198 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=734d0cfdf242e2376dd95fc0e7c01a88 DependenciesID=64a4d613723520d2612b3ca586afd1d2 StaticDependenciesID=f51ff46b48d84884c883ac486ebfd7f9 
-Refreshing native plugins compatible for Editor in 9.24 ms, found 5 plugins.
+ -> (Import Result ID: 'a57c84c41270216125416ad4640d4f06') in 0.0212514 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=734d0cfdf242e2376dd95fc0e7c01a88 DependenciesID=64a4d613723520d2612b3ca586afd1d2 StaticDependenciesID=f51ff46b48d84884c883ac486ebfd7f9 
+Refreshing native plugins compatible for Editor in 8.58 ms, found 5 plugins.
 (Values over 0.050ms)
-Asset Pipeline Refresh (id=2bdd0a086f5d9584b9aa1a489430e627): Total: 50.317 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+Asset Pipeline Refresh (id=c5f60bf1be63bcc4297f3e95a4265718): Total: 37.447 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
 	Summary:
 		Imports: total=23 (actual=23, local cache=0, cache server=0)
-		Asset DB Process Time: managed=8 ms, native=11807 ms
-		Asset DB Callback time: managed=508 ms, native=495 ms
-		Scripting: domain reloads=1, domain reload time=4516 ms, compile time=32722 ms, other=256 ms
+		Asset DB Process Time: managed=8 ms, native=12667 ms
+		Asset DB Callback time: managed=514 ms, native=483 ms
+		Scripting: domain reloads=1, domain reload time=2840 ms, compile time=20650 ms, other=280 ms
 		Project Asset Count: scripts=2660, non-scripts=7581
-		Asset File Changes: new=0, changed=7, moved=0, deleted=0
+		Asset File Changes: new=0, changed=2, moved=0, deleted=0
 		Scan Filter Count: 0
-	InvokePackagesCallback: 48.872ms
-	ApplyChangesToAssetFolders: 1.233ms
-	Scan: 2414.674ms
-	OnSourceAssetsModified: 1.098ms
-	CategorizeScriptCompilationAssets: 452.898ms
-	ProcessAssetsWithTransientArtifactChanges: 234.077ms
-	CategorizeAssets: 210.726ms
-	CompileScripts: 32722.023ms
-	ImportOutOfDateAssets: 7953.466ms (6985.611ms without children)
-		ImportManagerImport: 958.615ms (2.967ms without children)
-			UpdateCategorizedAssets: 2.168ms
-		UnloadImportedAssets: 3.648ms
-		ReloadImportedAssets: 16.399ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.429ms
-		OnDemandSchedulerStart: 3.103ms
-	PostProcessAllAssets: 942.222ms
-		ComputeShaderImportPostprocess 267.914ms
-		RaytracingShaderImportPostprocess 155.869ms
-		VCAutoAddAssetPostprocess 5.192ms
-		XRBuildSystem.XRAssetImported 2.399ms
-		PostProcessCallbackCreateDeferredMaterials 0.225ms
-		ShaderAssetModifiedCallback 0.098ms
-		BlockShaderImporter.PostprocessAllAssets 0.052ms
-		LocalizationDatabase.AssetDatabasePostprocessCallback 0.051ms
-		MonoPostProcessAllAssets: 507.658ms
-			AssetPostprocessor.OnPostprocessAllAssets 379.995ms
-			StyleCatalogPostProcessor.OnPostprocessAllAssets 42.491ms
-			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 16.656ms
-			BuilderAssetPostprocessor.OnPostprocessAllAssets 10.200ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 4.292ms
-			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 3.742ms
-			SpeedTree9Postprocessor.OnPostprocessAllAssets 3.427ms
-			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 3.067ms
-			AssetChangedListener.OnPostprocessAllAssets 2.528ms
-			LocalizationAssetPostProcessor.OnPostprocessAllAssets 2.166ms
-			VFXGraphPreprocessor.OnPostprocessAllAssets 2.082ms
-			AddressablesAssetPostProcessor.OnPostprocessAllAssets 1.557ms
-			MaterialPostprocessor.OnPostprocessAllAssets 1.316ms
-			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 1.203ms
-			TextAssetPostProcessor.OnPostprocessAllAssets 0.947ms
-			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.886ms
-			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.881ms
-			AssetPathToTypes.OnPostprocessAllAssets 0.839ms
-			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.716ms
-			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.650ms
-			AssetEvents.OnPostprocessAllAssets 0.643ms
-			PostProcessor.OnPostprocessAllAssets 0.631ms
-			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.623ms
-			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.563ms
-			ModelAssetProcessor.OnPostprocessAllAssets 0.514ms
-			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.463ms
-			CinemachineSettings.OnPostprocessAllAssets 0.434ms
-			AudioMixerPostprocessor.OnPostprocessAllAssets 0.421ms
-			SyncVS.PostprocessSyncProject 0.283ms
-			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.280ms
-			SpeedTreePostProcessor.OnPostprocessAllAssets 0.251ms
-			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.244ms
-			ConfigAssetsTracker.OnPostprocessAllAssets 0.225ms
-			SamplePostprocessor.OnPostprocessAllAssets 0.225ms
-			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.195ms
-			AudioContainerPostProcessor.OnPostprocessAllAssets 0.105ms
-	PostAssetChangesProfiler: 16.442ms
-	UnloadStreamsBegin: 5.624ms
-	PersistCurrentRevisions: 1.002ms
-	GenerateScriptTypeHashes: 7.631ms
-	GenerateScriptTypeSerializationHashes: 14.480ms
-	Untracked: 5305.056ms
+	InvokePackagesCallback: 65.483ms
+	ApplyChangesToAssetFolders: 1.417ms
+	Scan: 2930.499ms
+	OnSourceAssetsModified: 3.443ms
+	CategorizeScriptCompilationAssets: 432.052ms
+	ProcessAssetsWithTransientArtifactChanges: 260.059ms
+	CategorizeAssets: 184.245ms
+	CompileScripts: 20650.123ms
+	ImportOutOfDateAssets: 8309.747ms (7384.549ms without children)
+		ImportManagerImport: 916.911ms (2.900ms without children)
+			UpdateCategorizedAssets: 2.214ms
+		ReloadNativeAssets: 0.070ms
+		UnloadImportedAssets: 3.434ms
+		ReloadImportedAssets: 6.306ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.321ms
+		OnDemandSchedulerStart: 2.449ms
+	PostProcessAllAssets: 912.120ms
+		ComputeShaderImportPostprocess 234.332ms
+		RaytracingShaderImportPostprocess 156.466ms
+		VCAutoAddAssetPostprocess 5.104ms
+		XRBuildSystem.XRAssetImported 1.937ms
+		PostProcessCallbackCreateDeferredMaterials 0.109ms
+		ShaderAssetModifiedCallback 0.082ms
+		SpeedTreeImporter.PostprocessAllAssets 0.057ms
+		AssemblyValidation.PostprocessAllAssets 0.053ms
+		MonoPostProcessAllAssets: 511.257ms
+			AssetPostprocessor.OnPostprocessAllAssets 363.659ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 50.361ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 23.135ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 10.370ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 7.346ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 4.911ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 4.126ms
+			LocalizationAssetPostProcessor.OnPostprocessAllAssets 2.842ms
+			AssetChangedListener.OnPostprocessAllAssets 2.638ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 2.318ms
+			MaterialPostprocessor.OnPostprocessAllAssets 2.214ms
+			VFXGraphPreprocessor.OnPostprocessAllAssets 1.982ms
+			AddressablesAssetPostProcessor.OnPostprocessAllAssets 1.613ms
+			AssetPathToTypes.OnPostprocessAllAssets 1.485ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 1.264ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 1.092ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.891ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.758ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.680ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.635ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.635ms
+			PostProcessor.OnPostprocessAllAssets 0.608ms
+			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.573ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.558ms
+			CinemachineSettings.OnPostprocessAllAssets 0.438ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 0.436ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.392ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.389ms
+			AssetEvents.OnPostprocessAllAssets 0.370ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.344ms
+			SyncVS.PostprocessSyncProject 0.302ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.262ms
+			ConfigAssetsTracker.OnPostprocessAllAssets 0.250ms
+			SamplePostprocessor.OnPostprocessAllAssets 0.224ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.198ms
+			AudioContainerPostProcessor.OnPostprocessAllAssets 0.102ms
+	PostAssetChangesProfiler: 20.334ms
+	UnloadStreamsBegin: 5.997ms
+	PersistCurrentRevisions: 0.882ms
+	GenerateScriptTypeHashes: 5.683ms
+	GenerateScriptTypeSerializationHashes: 10.347ms
+	Untracked: 3661.865ms
 
 Application.AssetDatabase Initial Refresh End
-Scanning for USB devices : 7.602ms
+Scanning for USB devices : 8.290ms
 Initializing Unity extensions:
 Unloading 105 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 11415 unused Assets / (26.2 MB). Loaded Objects now: 12298.
-Memory consumption went from 324.2 MB to 298.0 MB.
-Total: 40.266900 ms (FindLiveObjects: 2.082400 ms CreateObjectMapping: 4.442900 ms MarkObjects: 13.935900 ms  DeleteObjects: 18.668400 ms)
+Unloading 11415 unused Assets / (30.9 MB). Loaded Objects now: 12298.
+Memory consumption went from 324.3 MB to 293.4 MB.
+Total: 40.946400 ms (FindLiveObjects: 1.827300 ms CreateObjectMapping: 3.486300 ms MarkObjects: 14.098200 ms  DeleteObjects: 20.883100 ms)
 
-[QA] Starting validation — report: .\qa_report_2026-09-17_00-04-12.txt
+[QA] Starting validation — report: .\qa_report_2026-09-17_00-26-50.txt
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
@@ -1137,7 +651,7 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:31)
 
 (Filename: Assets/Editor/QaValidator.cs Line: 51)
 
-Asset Pipeline Refresh (id=d19fd320afd00934886d97837e7cec00): Total: 0.183 seconds - Initiated by RefreshV2(ForceUpdate)
+Asset Pipeline Refresh (id=abbf337b3ebd9ff4eae904714b151bea): Total: 0.153 seconds - Initiated by RefreshV2(ForceUpdate)
 [QA] Checking scene integrity...
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
@@ -1165,14 +679,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/_Recovery/0 (1).unity'
 Unloading 0 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/_Recovery/0 (1).unity'
-	Deserialize:            6.528 ms
-	Integration:            368.507 ms
-	Integration of assets:  0.004 ms
-	Thread Wait Time:       0.036 ms
-	Total Operation Time:   375.076 ms
+	Deserialize:            6.414 ms
+	Integration:            457.885 ms
+	Integration of assets:  0.007 ms
+	Thread Wait Time:       0.021 ms
+	Total Operation Time:   464.327 ms
 Unloading 2 unused Assets / (1.0 KB). Loaded Objects now: 12301.
-Memory consumption went from 271.7 MB to 271.7 MB.
-Total: 16.056100 ms (FindLiveObjects: 1.833800 ms CreateObjectMapping: 1.540200 ms MarkObjects: 12.616500 ms  DeleteObjects: 0.064000 ms)
+Memory consumption went from 271.9 MB to 271.9 MB.
+Total: 18.195800 ms (FindLiveObjects: 1.665500 ms CreateObjectMapping: 1.875000 ms MarkObjects: 14.576700 ms  DeleteObjects: 0.076100 ms)
 
 [QA] Opening scene: Assets/_Recovery/0.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1189,14 +703,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/_Recovery/0.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/_Recovery/0.unity'
-	Deserialize:            356.303 ms
-	Integration:            2641.272 ms
-	Integration of assets:  18.412 ms
-	Thread Wait Time:       -15.939 ms
-	Total Operation Time:   3000.048 ms
+	Deserialize:            333.545 ms
+	Integration:            2791.014 ms
+	Integration of assets:  13.599 ms
+	Thread Wait Time:       -12.019 ms
+	Total Operation Time:   3126.139 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 28159.
-Memory consumption went from 285.4 MB to 285.4 MB.
-Total: 18.457000 ms (FindLiveObjects: 2.817600 ms CreateObjectMapping: 1.215400 ms MarkObjects: 14.340300 ms  DeleteObjects: 0.081000 ms)
+Memory consumption went from 285.6 MB to 285.6 MB.
+Total: 22.544800 ms (FindLiveObjects: 5.592300 ms CreateObjectMapping: 2.360800 ms MarkObjects: 14.524200 ms  DeleteObjects: 0.066200 ms)
 
 [QA] Opening scene: Assets/DoubleL/Demo/Demo.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1213,14 +727,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/DoubleL/Demo/Demo.unity'
 Unloading 2 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/DoubleL/Demo/Demo.unity'
-	Deserialize:            36.630 ms
-	Integration:            1706.505 ms
-	Integration of assets:  0.011 ms
-	Thread Wait Time:       0.239 ms
-	Total Operation Time:   1743.385 ms
+	Deserialize:            32.636 ms
+	Integration:            3326.148 ms
+	Integration of assets:  0.021 ms
+	Thread Wait Time:       0.029 ms
+	Total Operation Time:   3358.833 ms
 Unloading 3 unused Assets / (5.0 KB). Loaded Objects now: 23370.
-Memory consumption went from 308.1 MB to 308.1 MB.
-Total: 18.591900 ms (FindLiveObjects: 2.965900 ms CreateObjectMapping: 2.840800 ms MarkObjects: 12.604300 ms  DeleteObjects: 0.180100 ms)
+Memory consumption went from 308.2 MB to 308.2 MB.
+Total: 19.277400 ms (FindLiveObjects: 2.485200 ms CreateObjectMapping: 2.433500 ms MarkObjects: 14.246000 ms  DeleteObjects: 0.111400 ms)
 
 [QA] Opening scene: Assets/Free Slash VFX/Demo/Scenes/SampleScene.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1237,14 +751,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Free Slash VFX/Demo/Scenes/SampleScene.unity'
 Unloading 149 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Free Slash VFX/Demo/Scenes/SampleScene.unity'
-	Deserialize:            140.071 ms
-	Integration:            680.435 ms
-	Integration of assets:  25.151 ms
-	Thread Wait Time:       0.213 ms
-	Total Operation Time:   845.871 ms
-Unloading 572 unused Assets / (428.0 KB). Loaded Objects now: 13775.
-Memory consumption went from 314.5 MB to 314.1 MB.
-Total: 19.660500 ms (FindLiveObjects: 1.508100 ms CreateObjectMapping: 1.563100 ms MarkObjects: 15.569900 ms  DeleteObjects: 1.018100 ms)
+	Deserialize:            141.536 ms
+	Integration:            1283.587 ms
+	Integration of assets:  28.899 ms
+	Thread Wait Time:       0.208 ms
+	Total Operation Time:   1454.230 ms
+Unloading 572 unused Assets / (427.4 KB). Loaded Objects now: 13775.
+Memory consumption went from 314.6 MB to 314.2 MB.
+Total: 18.834400 ms (FindLiveObjects: 1.416700 ms CreateObjectMapping: 1.592300 ms MarkObjects: 14.919700 ms  DeleteObjects: 0.904500 ms)
 
 [QA] Opening scene: Assets/Hovl Studio/Magic effects pack/Demo scene/Magic effects demo.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1270,14 +784,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 [Assets/Editor/QaValidator.cs line 118]
 
 Loaded scene 'Assets/Hovl Studio/Magic effects pack/Demo scene/Magic effects demo.unity'
-	Deserialize:            8.908 ms
-	Integration:            691.556 ms
-	Integration of assets:  0.006 ms
-	Thread Wait Time:       0.305 ms
-	Total Operation Time:   700.774 ms
-Unloading 655 unused Assets / (441.4 KB). Loaded Objects now: 13840.
-Memory consumption went from 325.5 MB to 325.1 MB.
-Total: 17.235100 ms (FindLiveObjects: 2.194000 ms CreateObjectMapping: 1.655400 ms MarkObjects: 12.272900 ms  DeleteObjects: 1.111000 ms)
+	Deserialize:            8.514 ms
+	Integration:            686.868 ms
+	Integration of assets:  0.003 ms
+	Thread Wait Time:       0.036 ms
+	Total Operation Time:   695.420 ms
+Unloading 655 unused Assets / (358.5 KB). Loaded Objects now: 13840.
+Memory consumption went from 325.7 MB to 325.3 MB.
+Total: 17.492600 ms (FindLiveObjects: 1.562900 ms CreateObjectMapping: 2.637400 ms MarkObjects: 12.524600 ms  DeleteObjects: 0.765400 ms)
 
 [QA] Opening scene: Assets/Hovl Studio/Magic effects pack/Demo scene/Magic effects second demo.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1294,14 +808,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Hovl Studio/Magic effects pack/Demo scene/Magic effects second demo.unity'
 Unloading 48 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Hovl Studio/Magic effects pack/Demo scene/Magic effects second demo.unity'
-	Deserialize:            7.661 ms
-	Integration:            574.919 ms
-	Integration of assets:  0.001 ms
-	Thread Wait Time:       0.041 ms
-	Total Operation Time:   582.622 ms
-Unloading 723 unused Assets / (113.0 KB). Loaded Objects now: 13393.
-Memory consumption went from 316.5 MB to 316.4 MB.
-Total: 15.376800 ms (FindLiveObjects: 1.191500 ms CreateObjectMapping: 1.411400 ms MarkObjects: 12.079300 ms  DeleteObjects: 0.692400 ms)
+	Deserialize:            7.390 ms
+	Integration:            552.931 ms
+	Integration of assets:  0.004 ms
+	Thread Wait Time:       0.057 ms
+	Total Operation Time:   560.382 ms
+Unloading 723 unused Assets / (110.8 KB). Loaded Objects now: 13393.
+Memory consumption went from 316.6 MB to 316.5 MB.
+Total: 18.004500 ms (FindLiveObjects: 1.073500 ms CreateObjectMapping: 1.247400 ms MarkObjects: 14.893200 ms  DeleteObjects: 0.789100 ms)
 
 [QA] Opening scene: Assets/Idyllic Fantasy Nature/Demo/Demo.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1318,14 +832,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Idyllic Fantasy Nature/Demo/Demo.unity'
 Unloading 48 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Idyllic Fantasy Nature/Demo/Demo.unity'
-	Deserialize:            182.996 ms
-	Integration:            2618.376 ms
-	Integration of assets:  3.040 ms
-	Thread Wait Time:       -0.006 ms
-	Total Operation Time:   2804.406 ms
-Unloading 511 unused Assets / (107.0 KB). Loaded Objects now: 50987.
-Memory consumption went from 440.1 MB to 440.0 MB.
-Total: 149.514200 ms (FindLiveObjects: 7.290000 ms CreateObjectMapping: 4.629400 ms MarkObjects: 136.615100 ms  DeleteObjects: 0.977400 ms)
+	Deserialize:            145.657 ms
+	Integration:            2897.117 ms
+	Integration of assets:  2.162 ms
+	Thread Wait Time:       0.046 ms
+	Total Operation Time:   3044.983 ms
+Unloading 511 unused Assets / (97.0 KB). Loaded Objects now: 50987.
+Memory consumption went from 440.2 MB to 440.1 MB.
+Total: 26.331700 ms (FindLiveObjects: 6.153700 ms CreateObjectMapping: 4.040200 ms MarkObjects: 15.481100 ms  DeleteObjects: 0.655300 ms)
 
 [QA] Opening scene: Assets/Matthew Guz/Hits Effects FREE/Scene Demo/HIT EFFECTS FREE Scene Demo.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1342,14 +856,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Matthew Guz/Hits Effects FREE/Scene Demo/HIT EFFECTS FREE Scene Demo.unity'
 Unloading 289 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Matthew Guz/Hits Effects FREE/Scene Demo/HIT EFFECTS FREE Scene Demo.unity'
-	Deserialize:            160.837 ms
-	Integration:            657.631 ms
-	Integration of assets:  8.939 ms
-	Thread Wait Time:       -0.010 ms
-	Total Operation Time:   827.397 ms
-Unloading 2033 unused Assets / (23.1 MB). Loaded Objects now: 12839.
-Memory consumption went from 356.3 MB to 333.3 MB.
-Total: 19.075900 ms (FindLiveObjects: 1.213000 ms CreateObjectMapping: 1.892900 ms MarkObjects: 12.271900 ms  DeleteObjects: 3.697200 ms)
+	Deserialize:            38.488 ms
+	Integration:            398.011 ms
+	Integration of assets:  8.752 ms
+	Thread Wait Time:       0.088 ms
+	Total Operation Time:   445.339 ms
+Unloading 2033 unused Assets / (23.2 MB). Loaded Objects now: 12839.
+Memory consumption went from 356.4 MB to 333.2 MB.
+Total: 17.759700 ms (FindLiveObjects: 1.441700 ms CreateObjectMapping: 1.607200 ms MarkObjects: 11.521300 ms  DeleteObjects: 3.188500 ms)
 
 [QA] Opening scene: Assets/Scenes/IndoorScene.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1366,14 +880,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/IndoorScene.unity'
 Unloading 12 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/IndoorScene.unity'
-	Deserialize:            10.329 ms
-	Integration:            363.621 ms
-	Integration of assets:  2.525 ms
-	Thread Wait Time:       0.094 ms
-	Total Operation Time:   376.570 ms
+	Deserialize:            11.830 ms
+	Integration:            377.910 ms
+	Integration of assets:  1.256 ms
+	Thread Wait Time:       0.025 ms
+	Total Operation Time:   391.021 ms
 Unloading 211 unused Assets / (24.3 KB). Loaded Objects now: 12514.
 Memory consumption went from 324.6 MB to 324.6 MB.
-Total: 15.768900 ms (FindLiveObjects: 0.939700 ms CreateObjectMapping: 1.682200 ms MarkObjects: 12.839500 ms  DeleteObjects: 0.305600 ms)
+Total: 14.170400 ms (FindLiveObjects: 0.928800 ms CreateObjectMapping: 1.146500 ms MarkObjects: 11.846000 ms  DeleteObjects: 0.247900 ms)
 
 [QA] Opening scene: Assets/Scenes/MainMenu.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1390,14 +904,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/MainMenu.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/MainMenu.unity'
-	Deserialize:            2.674 ms
-	Integration:            386.680 ms
+	Deserialize:            2.424 ms
+	Integration:            372.468 ms
 	Integration of assets:  0.002 ms
-	Thread Wait Time:       0.047 ms
-	Total Operation Time:   389.403 ms
+	Thread Wait Time:       0.069 ms
+	Total Operation Time:   374.963 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 12391.
-Memory consumption went from 310.6 MB to 310.6 MB.
-Total: 21.028400 ms (FindLiveObjects: 1.392700 ms CreateObjectMapping: 3.339800 ms MarkObjects: 16.162700 ms  DeleteObjects: 0.131800 ms)
+Memory consumption went from 310.7 MB to 310.7 MB.
+Total: 16.130300 ms (FindLiveObjects: 1.457500 ms CreateObjectMapping: 1.773800 ms MarkObjects: 12.836700 ms  DeleteObjects: 0.061300 ms)
 
 [QA] Opening scene: Assets/Scenes/MainScene.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1494,14 +1008,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 [Assets/Editor/QaValidator.cs line 118]
 
 Loaded scene 'Assets/Scenes/MainScene.unity'
-	Deserialize:            263.180 ms
-	Integration:            530.132 ms
-	Integration of assets:  0.533 ms
-	Thread Wait Time:       -0.402 ms
-	Total Operation Time:   793.442 ms
+	Deserialize:            148.164 ms
+	Integration:            516.658 ms
+	Integration of assets:  0.390 ms
+	Thread Wait Time:       -0.254 ms
+	Total Operation Time:   664.958 ms
 Unloading 3 unused Assets / (1.3 KB). Loaded Objects now: 19142.
-Memory consumption went from 324.2 MB to 324.2 MB.
-Total: 125.148300 ms (FindLiveObjects: 2.113200 ms CreateObjectMapping: 1.526100 ms MarkObjects: 121.427400 ms  DeleteObjects: 0.080100 ms)
+Memory consumption went from 324.3 MB to 324.3 MB.
+Total: 16.947200 ms (FindLiveObjects: 1.795400 ms CreateObjectMapping: 1.165900 ms MarkObjects: 13.896600 ms  DeleteObjects: 0.088000 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/InteriorSystemsTest.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1518,14 +1032,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/InteriorSystemsTest.unity'
 Unloading 26 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/InteriorSystemsTest.unity'
-	Deserialize:            1.482 ms
-	Integration:            363.779 ms
-	Integration of assets:  0.003 ms
-	Thread Wait Time:       0.052 ms
-	Total Operation Time:   365.317 ms
+	Deserialize:            1.426 ms
+	Integration:            342.153 ms
+	Integration of assets:  0.004 ms
+	Thread Wait Time:       0.017 ms
+	Total Operation Time:   343.600 ms
 Unloading 26 unused Assets / (21.3 KB). Loaded Objects now: 12377.
-Memory consumption went from 319.9 MB to 319.9 MB.
-Total: 14.714400 ms (FindLiveObjects: 1.269400 ms CreateObjectMapping: 1.452500 ms MarkObjects: 11.797500 ms  DeleteObjects: 0.194000 ms)
+Memory consumption went from 320.1 MB to 320.0 MB.
+Total: 22.817200 ms (FindLiveObjects: 0.810500 ms CreateObjectMapping: 1.266400 ms MarkObjects: 20.492200 ms  DeleteObjects: 0.233600 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_01_Player.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1542,14 +1056,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_01_Player.unity'
 Unloading 8 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_01_Player.unity'
-	Deserialize:            78.906 ms
-	Integration:            360.286 ms
-	Integration of assets:  0.019 ms
-	Thread Wait Time:       0.261 ms
-	Total Operation Time:   439.472 ms
+	Deserialize:            18.992 ms
+	Integration:            346.319 ms
+	Integration of assets:  0.005 ms
+	Thread Wait Time:       1.354 ms
+	Total Operation Time:   366.671 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 12390.
-Memory consumption went from 319.0 MB to 319.0 MB.
-Total: 17.808100 ms (FindLiveObjects: 1.006200 ms CreateObjectMapping: 3.361400 ms MarkObjects: 13.376200 ms  DeleteObjects: 0.063300 ms)
+Memory consumption went from 319.1 MB to 319.1 MB.
+Total: 18.071700 ms (FindLiveObjects: 0.982100 ms CreateObjectMapping: 1.355300 ms MarkObjects: 15.688600 ms  DeleteObjects: 0.044800 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_02_UI.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1566,14 +1080,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_02_UI.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_02_UI.unity'
-	Deserialize:            8.239 ms
-	Integration:            349.216 ms
-	Integration of assets:  0.019 ms
-	Thread Wait Time:       0.009 ms
-	Total Operation Time:   357.483 ms
+	Deserialize:            9.558 ms
+	Integration:            340.921 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.037 ms
+	Total Operation Time:   350.517 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 12380.
-Memory consumption went from 319.0 MB to 319.0 MB.
-Total: 15.934400 ms (FindLiveObjects: 1.071200 ms CreateObjectMapping: 1.627500 ms MarkObjects: 13.122900 ms  DeleteObjects: 0.111200 ms)
+Memory consumption went from 319.1 MB to 319.1 MB.
+Total: 15.183200 ms (FindLiveObjects: 0.879800 ms CreateObjectMapping: 1.035200 ms MarkObjects: 13.178900 ms  DeleteObjects: 0.088300 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_03_Combat.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1592,14 +1106,14 @@ Could not extract GUID in text file Assets/Scenes/TestScenes/Test_03_Combat.unit
 Broken text PPtr. GUID 00000000000000000000000000000000 fileID 11500000 is invalid!
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_03_Combat.unity'
-	Deserialize:            21.942 ms
-	Integration:            347.149 ms
-	Integration of assets:  0.008 ms
-	Thread Wait Time:       0.116 ms
-	Total Operation Time:   369.215 ms
+	Deserialize:            8.399 ms
+	Integration:            356.414 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.042 ms
+	Total Operation Time:   364.858 ms
 Unloading 4 unused Assets / (8.3 MB). Loaded Objects now: 12377.
-Memory consumption went from 319.0 MB to 310.6 MB.
-Total: 16.410700 ms (FindLiveObjects: 0.897000 ms CreateObjectMapping: 1.220700 ms MarkObjects: 14.149600 ms  DeleteObjects: 0.142100 ms)
+Memory consumption went from 319.1 MB to 310.8 MB.
+Total: 14.949200 ms (FindLiveObjects: 1.016000 ms CreateObjectMapping: 1.201400 ms MarkObjects: 12.606500 ms  DeleteObjects: 0.124400 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_04_Territory.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1616,14 +1130,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_04_Territory.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_04_Territory.unity'
-	Deserialize:            5.659 ms
-	Integration:            365.741 ms
-	Integration of assets:  0.008 ms
-	Thread Wait Time:       0.026 ms
-	Total Operation Time:   371.434 ms
+	Deserialize:            2.164 ms
+	Integration:            351.392 ms
+	Integration of assets:  0.003 ms
+	Thread Wait Time:       0.054 ms
+	Total Operation Time:   353.612 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 12380.
-Memory consumption went from 310.8 MB to 310.8 MB.
-Total: 16.657200 ms (FindLiveObjects: 1.349600 ms CreateObjectMapping: 1.703400 ms MarkObjects: 13.506500 ms  DeleteObjects: 0.096200 ms)
+Memory consumption went from 310.9 MB to 310.9 MB.
+Total: 14.724000 ms (FindLiveObjects: 1.123100 ms CreateObjectMapping: 1.211200 ms MarkObjects: 12.332800 ms  DeleteObjects: 0.055700 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_05_Craft.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1640,14 +1154,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_05_Craft.unity'
 Unloading 2 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_05_Craft.unity'
-	Deserialize:            6.479 ms
-	Integration:            359.038 ms
-	Integration of assets:  0.006 ms
-	Thread Wait Time:       0.020 ms
-	Total Operation Time:   365.543 ms
+	Deserialize:            5.935 ms
+	Integration:            362.957 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.058 ms
+	Total Operation Time:   368.952 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 12380.
-Memory consumption went from 310.5 MB to 310.5 MB.
-Total: 14.468900 ms (FindLiveObjects: 1.186700 ms CreateObjectMapping: 1.742000 ms MarkObjects: 11.470200 ms  DeleteObjects: 0.068400 ms)
+Memory consumption went from 310.6 MB to 310.6 MB.
+Total: 13.458400 ms (FindLiveObjects: 0.848900 ms CreateObjectMapping: 1.051600 ms MarkObjects: 11.511900 ms  DeleteObjects: 0.044900 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_06_TimeWeather.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1664,14 +1178,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_06_TimeWeather.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_06_TimeWeather.unity'
-	Deserialize:            11.117 ms
-	Integration:            358.196 ms
+	Deserialize:            9.122 ms
+	Integration:            353.238 ms
 	Integration of assets:  0.002 ms
-	Thread Wait Time:       0.060 ms
-	Total Operation Time:   369.375 ms
+	Thread Wait Time:       0.034 ms
+	Total Operation Time:   362.396 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 12380.
-Memory consumption went from 310.5 MB to 310.5 MB.
-Total: 14.443300 ms (FindLiveObjects: 0.971700 ms CreateObjectMapping: 1.109000 ms MarkObjects: 12.284900 ms  DeleteObjects: 0.076500 ms)
+Memory consumption went from 310.6 MB to 310.6 MB.
+Total: 14.638900 ms (FindLiveObjects: 0.866800 ms CreateObjectMapping: 1.116600 ms MarkObjects: 12.573600 ms  DeleteObjects: 0.080500 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_07_GasBomb.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1688,14 +1202,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_07_GasBomb.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_07_GasBomb.unity'
-	Deserialize:            10.900 ms
-	Integration:            370.716 ms
-	Integration of assets:  0.005 ms
-	Thread Wait Time:       0.019 ms
-	Total Operation Time:   381.641 ms
+	Deserialize:            7.040 ms
+	Integration:            349.288 ms
+	Integration of assets:  0.003 ms
+	Thread Wait Time:       0.069 ms
+	Total Operation Time:   356.400 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 12380.
-Memory consumption went from 310.5 MB to 310.5 MB.
-Total: 13.835000 ms (FindLiveObjects: 0.916700 ms CreateObjectMapping: 1.388800 ms MarkObjects: 11.479500 ms  DeleteObjects: 0.049100 ms)
+Memory consumption went from 310.6 MB to 310.6 MB.
+Total: 14.641000 ms (FindLiveObjects: 0.874200 ms CreateObjectMapping: 1.291200 ms MarkObjects: 12.416800 ms  DeleteObjects: 0.057600 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_08_Dracula.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1712,14 +1226,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_08_Dracula.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_08_Dracula.unity'
-	Deserialize:            1.683 ms
-	Integration:            364.230 ms
+	Deserialize:            1.964 ms
+	Integration:            354.883 ms
 	Integration of assets:  0.003 ms
-	Thread Wait Time:       0.230 ms
-	Total Operation Time:   366.146 ms
+	Thread Wait Time:       0.064 ms
+	Total Operation Time:   356.914 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 12380.
-Memory consumption went from 310.5 MB to 310.5 MB.
-Total: 14.375900 ms (FindLiveObjects: 1.050500 ms CreateObjectMapping: 1.593100 ms MarkObjects: 11.675900 ms  DeleteObjects: 0.055000 ms)
+Memory consumption went from 310.6 MB to 310.6 MB.
+Total: 16.949300 ms (FindLiveObjects: 0.980400 ms CreateObjectMapping: 1.068600 ms MarkObjects: 14.840900 ms  DeleteObjects: 0.058400 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_09_AllInOne.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1736,14 +1250,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_09_AllInOne.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_09_AllInOne.unity'
-	Deserialize:            20.680 ms
-	Integration:            350.296 ms
-	Integration of assets:  0.020 ms
-	Thread Wait Time:       0.549 ms
-	Total Operation Time:   371.544 ms
+	Deserialize:            11.484 ms
+	Integration:            347.927 ms
+	Integration of assets:  0.005 ms
+	Thread Wait Time:       0.048 ms
+	Total Operation Time:   359.463 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 12380.
-Memory consumption went from 310.5 MB to 310.5 MB.
-Total: 13.709100 ms (FindLiveObjects: 0.968800 ms CreateObjectMapping: 1.092800 ms MarkObjects: 11.577900 ms  DeleteObjects: 0.068400 ms)
+Memory consumption went from 310.6 MB to 310.6 MB.
+Total: 16.519300 ms (FindLiveObjects: 0.933400 ms CreateObjectMapping: 1.170400 ms MarkObjects: 14.366800 ms  DeleteObjects: 0.047700 ms)
 
 [QA] Opening scene: Assets/Scenes/TestScenes/Test_10_TerritoryCombat.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1760,14 +1274,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TestScenes/Test_10_TerritoryCombat.unity'
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TestScenes/Test_10_TerritoryCombat.unity'
-	Deserialize:            10.523 ms
-	Integration:            352.959 ms
-	Integration of assets:  0.002 ms
-	Thread Wait Time:       0.104 ms
-	Total Operation Time:   363.588 ms
+	Deserialize:            9.137 ms
+	Integration:            341.516 ms
+	Integration of assets:  0.009 ms
+	Thread Wait Time:       0.032 ms
+	Total Operation Time:   350.694 ms
 Unloading 4 unused Assets / (5.8 KB). Loaded Objects now: 12377.
-Memory consumption went from 310.5 MB to 310.5 MB.
-Total: 13.919200 ms (FindLiveObjects: 0.945200 ms CreateObjectMapping: 1.260600 ms MarkObjects: 11.553500 ms  DeleteObjects: 0.158600 ms)
+Memory consumption went from 310.6 MB to 310.6 MB.
+Total: 17.548500 ms (FindLiveObjects: 0.836800 ms CreateObjectMapping: 1.488700 ms MarkObjects: 15.121900 ms  DeleteObjects: 0.099900 ms)
 
 [QA] Opening scene: Assets/Scenes/TopDownScene.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1784,14 +1298,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/TopDownScene.unity'
 Unloading 11 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/TopDownScene.unity'
-	Deserialize:            774.597 ms
-	Integration:            574.389 ms
-	Integration of assets:  2.380 ms
-	Thread Wait Time:       -0.120 ms
-	Total Operation Time:   1351.246 ms
+	Deserialize:            885.957 ms
+	Integration:            540.891 ms
+	Integration of assets:  1.940 ms
+	Thread Wait Time:       -0.127 ms
+	Total Operation Time:   1428.661 ms
 Unloading 1 unused Assets / (0.5 KB). Loaded Objects now: 31686.
-Memory consumption went from 336.8 MB to 336.8 MB.
-Total: 18.106300 ms (FindLiveObjects: 4.393000 ms CreateObjectMapping: 2.058400 ms MarkObjects: 11.567600 ms  DeleteObjects: 0.085600 ms)
+Memory consumption went from 336.9 MB to 336.9 MB.
+Total: 20.002300 ms (FindLiveObjects: 3.682100 ms CreateObjectMapping: 1.688300 ms MarkObjects: 14.516400 ms  DeleteObjects: 0.114000 ms)
 
 [QA] Opening scene: Assets/Scenes/WorldMap.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1808,14 +1322,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Scenes/WorldMap.unity'
 Unloading 13 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Scenes/WorldMap.unity'
-	Deserialize:            75.119 ms
-	Integration:            424.743 ms
-	Integration of assets:  3.894 ms
-	Thread Wait Time:       -3.364 ms
-	Total Operation Time:   500.392 ms
+	Deserialize:            41.520 ms
+	Integration:            395.378 ms
+	Integration of assets:  9.476 ms
+	Thread Wait Time:       -4.911 ms
+	Total Operation Time:   441.464 ms
 Unloading 34 unused Assets / (62.8 KB). Loaded Objects now: 13506.
-Memory consumption went from 318.1 MB to 318.0 MB.
-Total: 14.525900 ms (FindLiveObjects: 1.273500 ms CreateObjectMapping: 1.481800 ms MarkObjects: 11.450100 ms  DeleteObjects: 0.319000 ms)
+Memory consumption went from 318.2 MB to 318.2 MB.
+Total: 13.762300 ms (FindLiveObjects: 1.301500 ms CreateObjectMapping: 1.281900 ms MarkObjects: 11.026400 ms  DeleteObjects: 0.151300 ms)
 
 [QA] Opening scene: Assets/slash5-HungNguyen/sample scene-slash5-HungNguyen.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1832,14 +1346,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/slash5-HungNguyen/sample scene-slash5-HungNguyen.unity'
 Unloading 3 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/slash5-HungNguyen/sample scene-slash5-HungNguyen.unity'
-	Deserialize:            14.676 ms
-	Integration:            664.459 ms
-	Integration of assets:  0.152 ms
-	Thread Wait Time:       0.041 ms
-	Total Operation Time:   679.328 ms
+	Deserialize:            5.333 ms
+	Integration:            481.914 ms
+	Integration of assets:  0.120 ms
+	Thread Wait Time:       0.043 ms
+	Total Operation Time:   487.410 ms
 Unloading 3 unused Assets / (5.0 KB). Loaded Objects now: 12553.
-Memory consumption went from 324.2 MB to 324.2 MB.
-Total: 18.423600 ms (FindLiveObjects: 1.763200 ms CreateObjectMapping: 1.950000 ms MarkObjects: 14.566200 ms  DeleteObjects: 0.141800 ms)
+Memory consumption went from 324.3 MB to 324.3 MB.
+Total: 15.741100 ms (FindLiveObjects: 1.918500 ms CreateObjectMapping: 1.159400 ms MarkObjects: 12.565800 ms  DeleteObjects: 0.093700 ms)
 
 [QA] Opening scene: Assets/Travis Game Assets/Hit Impact Effects/Demo Scene/Hit Impact Effects - Demo Scene.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1857,14 +1371,14 @@ Opening scene 'Assets/Travis Game Assets/Hit Impact Effects/Demo Scene/Hit Impac
 Unloading 21 Unused Serialized files (Serialized files now loaded: 0)
 LightingSettings: switching bake backend from 2 to 1.
 Loaded scene 'Assets/Travis Game Assets/Hit Impact Effects/Demo Scene/Hit Impact Effects - Demo Scene.unity'
-	Deserialize:            15.715 ms
-	Integration:            430.064 ms
-	Integration of assets:  0.908 ms
-	Thread Wait Time:       1.524 ms
-	Total Operation Time:   448.211 ms
+	Deserialize:            15.830 ms
+	Integration:            382.222 ms
+	Integration of assets:  0.604 ms
+	Thread Wait Time:       1.080 ms
+	Total Operation Time:   399.735 ms
 Unloading 87 unused Assets / (0.5 MB). Loaded Objects now: 12645.
-Memory consumption went from 324.7 MB to 324.2 MB.
-Total: 51.452500 ms (FindLiveObjects: 1.018200 ms CreateObjectMapping: 1.107500 ms MarkObjects: 12.209800 ms  DeleteObjects: 37.115700 ms)
+Memory consumption went from 324.8 MB to 324.3 MB.
+Total: 20.448000 ms (FindLiveObjects: 1.311800 ms CreateObjectMapping: 1.301700 ms MarkObjects: 12.785600 ms  DeleteObjects: 5.047700 ms)
 
 [QA] Opening scene: Assets/Vefects/Free Fire VFX URP/Scene/Scenes/VFX_Scene_Overview.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1881,14 +1395,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Vefects/Free Fire VFX URP/Scene/Scenes/VFX_Scene_Overview.unity'
 Unloading 11 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Vefects/Free Fire VFX URP/Scene/Scenes/VFX_Scene_Overview.unity'
-	Deserialize:            6.790 ms
-	Integration:            624.938 ms
-	Integration of assets:  0.517 ms
-	Thread Wait Time:       0.018 ms
-	Total Operation Time:   632.262 ms
+	Deserialize:            5.334 ms
+	Integration:            429.639 ms
+	Integration of assets:  0.559 ms
+	Thread Wait Time:       0.045 ms
+	Total Operation Time:   435.577 ms
 Unloading 91 unused Assets / (1.6 MB). Loaded Objects now: 13320.
-Memory consumption went from 329.3 MB to 327.7 MB.
-Total: 16.311800 ms (FindLiveObjects: 1.478900 ms CreateObjectMapping: 1.844400 ms MarkObjects: 12.107700 ms  DeleteObjects: 0.879500 ms)
+Memory consumption went from 329.4 MB to 327.7 MB.
+Total: 16.243600 ms (FindLiveObjects: 1.221300 ms CreateObjectMapping: 1.137300 ms MarkObjects: 13.205700 ms  DeleteObjects: 0.677700 ms)
 
 [QA] Opening scene: Assets/Vefects/Invisible VFX URP/_ Extra/Scenes/Vefects Secret Extra Scene.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1905,14 +1419,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Vefects/Invisible VFX URP/_ Extra/Scenes/Vefects Secret Extra Scene.unity'
 Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Vefects/Invisible VFX URP/_ Extra/Scenes/Vefects Secret Extra Scene.unity'
-	Deserialize:            5.486 ms
-	Integration:            366.945 ms
+	Deserialize:            9.716 ms
+	Integration:            358.003 ms
 	Integration of assets:  0.004 ms
-	Thread Wait Time:       0.018 ms
-	Total Operation Time:   372.453 ms
+	Thread Wait Time:       0.045 ms
+	Total Operation Time:   367.768 ms
 Unloading 455 unused Assets / (88.7 KB). Loaded Objects now: 12554.
-Memory consumption went from 320.4 MB to 320.3 MB.
-Total: 15.203900 ms (FindLiveObjects: 1.126600 ms CreateObjectMapping: 1.448700 ms MarkObjects: 12.156800 ms  DeleteObjects: 0.470500 ms)
+Memory consumption went from 320.5 MB to 320.4 MB.
+Total: 15.276000 ms (FindLiveObjects: 1.047700 ms CreateObjectMapping: 1.136500 ms MarkObjects: 12.480200 ms  DeleteObjects: 0.610300 ms)
 
 [QA] Opening scene: Assets/Vefects/Invisible VFX URP/Demo/Scenes/Invisible VFX.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1929,14 +1443,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Vefects/Invisible VFX URP/Demo/Scenes/Invisible VFX.unity'
 Unloading 4 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Vefects/Invisible VFX URP/Demo/Scenes/Invisible VFX.unity'
-	Deserialize:            28.731 ms
-	Integration:            658.590 ms
-	Integration of assets:  0.330 ms
-	Thread Wait Time:       0.043 ms
-	Total Operation Time:   687.694 ms
+	Deserialize:            14.911 ms
+	Integration:            457.088 ms
+	Integration of assets:  0.383 ms
+	Thread Wait Time:       0.067 ms
+	Total Operation Time:   472.450 ms
 Unloading 24 unused Assets / (9.9 KB). Loaded Objects now: 12517.
-Memory consumption went from 320.9 MB to 320.9 MB.
-Total: 14.983800 ms (FindLiveObjects: 1.004100 ms CreateObjectMapping: 1.054600 ms MarkObjects: 12.808100 ms  DeleteObjects: 0.115600 ms)
+Memory consumption went from 321.0 MB to 321.0 MB.
+Total: 13.749400 ms (FindLiveObjects: 1.099400 ms CreateObjectMapping: 1.086800 ms MarkObjects: 11.446700 ms  DeleteObjects: 0.114200 ms)
 
 [QA] Opening scene: Assets/Vefects/Invisible VFX URP/Demo/Scenes/Linear Wipe VFX HDRP.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1953,14 +1467,14 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:32)
 Opening scene 'Assets/Vefects/Invisible VFX URP/Demo/Scenes/Linear Wipe VFX HDRP.unity'
 Unloading 6 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/Vefects/Invisible VFX URP/Demo/Scenes/Linear Wipe VFX HDRP.unity'
-	Deserialize:            19.500 ms
-	Integration:            619.229 ms
+	Deserialize:            7.936 ms
+	Integration:            413.341 ms
 	Integration of assets:  0.370 ms
-	Thread Wait Time:       0.098 ms
-	Total Operation Time:   639.198 ms
+	Thread Wait Time:       0.017 ms
+	Total Operation Time:   421.663 ms
 Unloading 8 unused Assets / (3.2 KB). Loaded Objects now: 12886.
-Memory consumption went from 327.0 MB to 327.0 MB.
-Total: 15.167900 ms (FindLiveObjects: 1.144200 ms CreateObjectMapping: 1.378000 ms MarkObjects: 12.562900 ms  DeleteObjects: 0.081500 ms)
+Memory consumption went from 327.1 MB to 327.1 MB.
+Total: 15.043500 ms (FindLiveObjects: 1.134300 ms CreateObjectMapping: 1.100500 ms MarkObjects: 12.703900 ms  DeleteObjects: 0.103700 ms)
 
 [QA] Skipping package scene: Packages/com.unity.addressables/Tests/Editor/Expected/~GroupEditorTests_Group.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -2226,71 +1740,69 @@ QaValidator:RunAllChecks () (at Assets/Editor/QaValidator.cs:37)
 (Filename: Assets/Editor/QaValidator.cs Line: 37)
 
 Batchmode quit successfully invoked - shutting down!
-Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.0177244 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Grass/Grass_02.mat using Guid(10483612dc26c1041b3d6687bd972505) (NativeFormatImporter) -> (Import Result ID: 'c1a18331354cf321a52588c57578d9fb') in 0.0063507 seconds [static dependencies only]. Details - ImportResultOutputID=f2a370d97c5dfb2140a41b01e033c0c1 DependenciesID=4284bce207ce07ec778815ba4084e482 StaticDependenciesID=47b267facb3e45c5b0111872a685eb04 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Fir_Branch.mat using Guid(0200ed8b82506f647a0cf289a244b119) (NativeFormatImporter) -> (Import Result ID: '4175aa42de4f5ab90f84362dd1d9a796') in 0.0035601 seconds [static dependencies only]. Details - ImportResultOutputID=aa527befdd7378b05dd99eff734ac2e5 DependenciesID=f5bfd006ae12f295753140a5a427f445 StaticDependenciesID=69ddccef36e7dcfe4b0e963a3f08cd1e 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Bushes/Bush_03.mat using Guid(624774d7ea92d5b4db92a800861eea5c) (NativeFormatImporter) -> (Import Result ID: 'eb51ea94aa8aa8bf6ea9959171dfa260') in 0.0047867 seconds [static dependencies only]. Details - ImportResultOutputID=1a221572668c486986d571fe4635cf7c DependenciesID=ac582762bd19443b7fb62b2336a68f36 StaticDependenciesID=c6f846fbaf0e9b65aba6d4b2a2594508 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Plants/Plant.mat using Guid(72cc46bc7c9dfe4499ba6674a29a0b45) (NativeFormatImporter) -> (Import Result ID: '850f6559aedb5fb9621a7fb2614abb25') in 0.0037006 seconds [static dependencies only]. Details - ImportResultOutputID=03949f1a77dae195f6163f24936e7e17 DependenciesID=625ecf0666c6c278c67e2ef8fe240b4f StaticDependenciesID=2ca64fdaffd2b6eb95d7788ada951b4c 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Broadleaf_Green.mat using Guid(d235d21210cd9c341a773bb97a0a4ad4) (NativeFormatImporter) -> (Import Result ID: '0aac282b5f9cd148be3f661175697491') in 0.0035565 seconds [static dependencies only]. Details - ImportResultOutputID=8dc49df84be5e15641659b9ec6867eed DependenciesID=40f317a1b727a152fa70190d5dd15397 StaticDependenciesID=b8e0f12075eb576aa75c78ff4fc54cec 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Reeds_02.mat using Guid(93177626868af8d4d971ee01e99f329f) (NativeFormatImporter) -> (Import Result ID: '10e9d88ff2a3630f3e4046c89029447b') in 0.006002 seconds [static dependencies only]. Details - ImportResultOutputID=8b6425b20da0aa133a50c8f98d93e271 DependenciesID=1a35c32d5f101d86613e2f079bb5e67d StaticDependenciesID=7e974dda7e4380969c41989c22f63b12 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Bushes/Bush_01.mat using Guid(547d20f3a4675194983b5d880d1fb348) (NativeFormatImporter) -> (Import Result ID: 'b3c8107c602dcfdcb531c0910d137ce9') in 0.003886 seconds [static dependencies only]. Details - ImportResultOutputID=524edb38eb9439299b3bca26d1d71971 DependenciesID=84f3930c163ae4e0e471ebb3cc4add91 StaticDependenciesID=4bf228f311ffe2cfa2ca382683eff616 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Reeds_01.mat using Guid(f5c31f95aa6a9ce4ca82f354413014ce) (NativeFormatImporter) -> (Import Result ID: '311e271db717dafc008c6e2c92244184') in 0.0034015 seconds [static dependencies only]. Details - ImportResultOutputID=1948eb09f69ea067e59e780ce550300c DependenciesID=eb84f3866a3af7aaf6708cb3ca3b1917 StaticDependenciesID=c78a37df4deda4b917b3f9d271b9581f 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Bushes/Bush_02.mat using Guid(16db3acac4b71444b95fd5cca207bf73) (NativeFormatImporter) -> (Import Result ID: 'e6ce1d4fcb59a61ac837659c99f7624b') in 0.0032525 seconds [static dependencies only]. Details - ImportResultOutputID=30d676199a40aaab18394ca4a8614cbd DependenciesID=760ca52db1dec347e32a81c0e13c3b4d StaticDependenciesID=7a1db89fd031e418d419e719a4a43f44 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Grass/Grass_01.mat using Guid(76ef7e3a05c197a4ca75eadeb25e8c48) (NativeFormatImporter) -> (Import Result ID: '61a194f2a71b3a926f345e5e9d3eac6c') in 0.0039567 seconds [static dependencies only]. Details - ImportResultOutputID=a1bbfacd5ff1816771fa088f0d125dba DependenciesID=eaa0a3ab818b5734ab0be53d440cfee7 StaticDependenciesID=4871903bcdd9cce112413495ba4edcec 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Flowers/FlowerMeadow.mat using Guid(a803901a8f304c745aaafbe0260beaed) (NativeFormatImporter) -> (Import Result ID: 'd1e5425b1ae386d0605230f103f075a3') in 0.0038469 seconds [static dependencies only]. Details - ImportResultOutputID=d052003ab5fbcab609cf4bcee212e5e0 DependenciesID=41217147ec29a60ddc3690c566a12732 StaticDependenciesID=40e7ce191495d1d4716bec21b0b03be5 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Grass/Grass_03.mat using Guid(e85669880144e1f4ab0ee9d8a4abce6a) (NativeFormatImporter) -> (Import Result ID: 'db4c4efc3511e68fe7973473654f3b75') in 0.0031636 seconds [static dependencies only]. Details - ImportResultOutputID=4fbd3b7813499231dfbab233c4eda4ba DependenciesID=47d3040ab6009f05102e8dc0ca481324 StaticDependenciesID=af84a861e07cdc66058e5408913d6e77 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Tree_Blossoms.mat using Guid(1b87e06c04499a548b061cebc9c25c0d) (NativeFormatImporter) -> (Import Result ID: '1b8534e6795da00b454ef5893bfbcf08') in 0.0034719 seconds [static dependencies only]. Details - ImportResultOutputID=c058a337bc6880b460c70fb7796eadef DependenciesID=dc1f540f87b49d106441d4bee3bef6b9 StaticDependenciesID=9b265087d2c9d9ec7eed4f1904b2e3fb 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Reeds_03.mat using Guid(4b043753b6e14de40b5307322dceb86f) (NativeFormatImporter) -> (Import Result ID: 'e9644f3dfc360f691b8d84c98595adbe') in 0.0031183 seconds [static dependencies only]. Details - ImportResultOutputID=3e6e9dee0a1e353e69953405785bc851 DependenciesID=86e78d11f45075e3ef300774440e8f5f StaticDependenciesID=19fb5acbe3100cf0b97b5c711758aa81 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Willow_Branch_Green.mat using Guid(6baca70dc3434ed41acb5be62febe897) (NativeFormatImporter) -> (Import Result ID: 'd62475ba784ff28e753d6987f5f332e5') in 0.0029953 seconds [static dependencies only]. Details - ImportResultOutputID=c09784b432546f4a6c19cb16ea81c298 DependenciesID=a680f26a98311b18c252bf759223409e StaticDependenciesID=32f343e8767de143036aa75989195820 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Cattail.mat using Guid(7da7c3a003bf2d949bac1d4b7b1663f1) (NativeFormatImporter) -> (Import Result ID: '922bae6eafc2fac48773fd985e242eb3') in 0.0031686 seconds [static dependencies only]. Details - ImportResultOutputID=dc6e1994aa69df8b407dab8293ba8f05 DependenciesID=750d7df9992fba09087588de18db3947 StaticDependenciesID=1f5e945c50e545c7636f6fddcf91ca89 
-Start importing Assets/Idyllic Fantasy Nature/Materials/Flowers/Flower.mat using Guid(cef103c3c4d4f3c48bac1eff7d881a62) (NativeFormatImporter) -> (Import Result ID: '7681408f9542af44e84c6fbad14ab38b') in 0.003162 seconds [static dependencies only]. Details - ImportResultOutputID=18de31197e2450569a4de35ab15ccbe7 DependenciesID=665e0699905bcdb8b18a0e8771f5860c StaticDependenciesID=824076d5a6693afa8d305360cfb75d15 
-Refreshing native plugins compatible for Editor in 6.55 ms, found 5 plugins.
+Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.0130322 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Grass/Grass_02.mat using Guid(10483612dc26c1041b3d6687bd972505) (NativeFormatImporter) -> (Import Result ID: 'c1a18331354cf321a52588c57578d9fb') in 0.0075391 seconds [static dependencies only]. Details - ImportResultOutputID=f2a370d97c5dfb2140a41b01e033c0c1 DependenciesID=4284bce207ce07ec778815ba4084e482 StaticDependenciesID=47b267facb3e45c5b0111872a685eb04 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Fir_Branch.mat using Guid(0200ed8b82506f647a0cf289a244b119) (NativeFormatImporter) -> (Import Result ID: '4175aa42de4f5ab90f84362dd1d9a796') in 0.0038571 seconds [static dependencies only]. Details - ImportResultOutputID=aa527befdd7378b05dd99eff734ac2e5 DependenciesID=f5bfd006ae12f295753140a5a427f445 StaticDependenciesID=69ddccef36e7dcfe4b0e963a3f08cd1e 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Bushes/Bush_03.mat using Guid(624774d7ea92d5b4db92a800861eea5c) (NativeFormatImporter) -> (Import Result ID: 'eb51ea94aa8aa8bf6ea9959171dfa260') in 0.0034353 seconds [static dependencies only]. Details - ImportResultOutputID=1a221572668c486986d571fe4635cf7c DependenciesID=ac582762bd19443b7fb62b2336a68f36 StaticDependenciesID=c6f846fbaf0e9b65aba6d4b2a2594508 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Plants/Plant.mat using Guid(72cc46bc7c9dfe4499ba6674a29a0b45) (NativeFormatImporter) -> (Import Result ID: '850f6559aedb5fb9621a7fb2614abb25') in 0.0038936 seconds [static dependencies only]. Details - ImportResultOutputID=03949f1a77dae195f6163f24936e7e17 DependenciesID=625ecf0666c6c278c67e2ef8fe240b4f StaticDependenciesID=2ca64fdaffd2b6eb95d7788ada951b4c 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Broadleaf_Green.mat using Guid(d235d21210cd9c341a773bb97a0a4ad4) (NativeFormatImporter) -> (Import Result ID: '0aac282b5f9cd148be3f661175697491') in 0.0062131 seconds [static dependencies only]. Details - ImportResultOutputID=8dc49df84be5e15641659b9ec6867eed DependenciesID=40f317a1b727a152fa70190d5dd15397 StaticDependenciesID=b8e0f12075eb576aa75c78ff4fc54cec 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Reeds_02.mat using Guid(93177626868af8d4d971ee01e99f329f) (NativeFormatImporter) -> (Import Result ID: '10e9d88ff2a3630f3e4046c89029447b') in 0.0038906 seconds [static dependencies only]. Details - ImportResultOutputID=8b6425b20da0aa133a50c8f98d93e271 DependenciesID=1a35c32d5f101d86613e2f079bb5e67d StaticDependenciesID=7e974dda7e4380969c41989c22f63b12 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Bushes/Bush_01.mat using Guid(547d20f3a4675194983b5d880d1fb348) (NativeFormatImporter) -> (Import Result ID: 'b3c8107c602dcfdcb531c0910d137ce9') in 0.0042078 seconds [static dependencies only]. Details - ImportResultOutputID=524edb38eb9439299b3bca26d1d71971 DependenciesID=84f3930c163ae4e0e471ebb3cc4add91 StaticDependenciesID=4bf228f311ffe2cfa2ca382683eff616 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Reeds_01.mat using Guid(f5c31f95aa6a9ce4ca82f354413014ce) (NativeFormatImporter) -> (Import Result ID: '311e271db717dafc008c6e2c92244184') in 0.0039438 seconds [static dependencies only]. Details - ImportResultOutputID=1948eb09f69ea067e59e780ce550300c DependenciesID=eb84f3866a3af7aaf6708cb3ca3b1917 StaticDependenciesID=c78a37df4deda4b917b3f9d271b9581f 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Bushes/Bush_02.mat using Guid(16db3acac4b71444b95fd5cca207bf73) (NativeFormatImporter) -> (Import Result ID: 'e6ce1d4fcb59a61ac837659c99f7624b') in 0.0031631 seconds [static dependencies only]. Details - ImportResultOutputID=30d676199a40aaab18394ca4a8614cbd DependenciesID=760ca52db1dec347e32a81c0e13c3b4d StaticDependenciesID=7a1db89fd031e418d419e719a4a43f44 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Grass/Grass_01.mat using Guid(76ef7e3a05c197a4ca75eadeb25e8c48) (NativeFormatImporter) -> (Import Result ID: '61a194f2a71b3a926f345e5e9d3eac6c') in 0.0070239 seconds [static dependencies only]. Details - ImportResultOutputID=a1bbfacd5ff1816771fa088f0d125dba DependenciesID=eaa0a3ab818b5734ab0be53d440cfee7 StaticDependenciesID=4871903bcdd9cce112413495ba4edcec 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Flowers/FlowerMeadow.mat using Guid(a803901a8f304c745aaafbe0260beaed) (NativeFormatImporter) -> (Import Result ID: 'd1e5425b1ae386d0605230f103f075a3') in 0.0050952 seconds [static dependencies only]. Details - ImportResultOutputID=d052003ab5fbcab609cf4bcee212e5e0 DependenciesID=41217147ec29a60ddc3690c566a12732 StaticDependenciesID=40e7ce191495d1d4716bec21b0b03be5 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Grass/Grass_03.mat using Guid(e85669880144e1f4ab0ee9d8a4abce6a) (NativeFormatImporter) -> (Import Result ID: 'db4c4efc3511e68fe7973473654f3b75') in 0.0047629 seconds [static dependencies only]. Details - ImportResultOutputID=4fbd3b7813499231dfbab233c4eda4ba DependenciesID=47d3040ab6009f05102e8dc0ca481324 StaticDependenciesID=af84a861e07cdc66058e5408913d6e77 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Tree_Blossoms.mat using Guid(1b87e06c04499a548b061cebc9c25c0d) (NativeFormatImporter) -> (Import Result ID: '1b8534e6795da00b454ef5893bfbcf08') in 0.0036305 seconds [static dependencies only]. Details - ImportResultOutputID=c058a337bc6880b460c70fb7796eadef DependenciesID=dc1f540f87b49d106441d4bee3bef6b9 StaticDependenciesID=9b265087d2c9d9ec7eed4f1904b2e3fb 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Reeds_03.mat using Guid(4b043753b6e14de40b5307322dceb86f) (NativeFormatImporter) -> (Import Result ID: 'e9644f3dfc360f691b8d84c98595adbe') in 0.003123 seconds [static dependencies only]. Details - ImportResultOutputID=3e6e9dee0a1e353e69953405785bc851 DependenciesID=86e78d11f45075e3ef300774440e8f5f StaticDependenciesID=19fb5acbe3100cf0b97b5c711758aa81 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Trees/Willow_Branch_Green.mat using Guid(6baca70dc3434ed41acb5be62febe897) (NativeFormatImporter) -> (Import Result ID: 'd62475ba784ff28e753d6987f5f332e5') in 0.0034311 seconds [static dependencies only]. Details - ImportResultOutputID=c09784b432546f4a6c19cb16ea81c298 DependenciesID=a680f26a98311b18c252bf759223409e StaticDependenciesID=32f343e8767de143036aa75989195820 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Waterplants/Cattail.mat using Guid(7da7c3a003bf2d949bac1d4b7b1663f1) (NativeFormatImporter) -> (Import Result ID: '922bae6eafc2fac48773fd985e242eb3') in 0.0031797 seconds [static dependencies only]. Details - ImportResultOutputID=dc6e1994aa69df8b407dab8293ba8f05 DependenciesID=750d7df9992fba09087588de18db3947 StaticDependenciesID=1f5e945c50e545c7636f6fddcf91ca89 
+Start importing Assets/Idyllic Fantasy Nature/Materials/Flowers/Flower.mat using Guid(cef103c3c4d4f3c48bac1eff7d881a62) (NativeFormatImporter) -> (Import Result ID: '7681408f9542af44e84c6fbad14ab38b') in 0.0047199 seconds [static dependencies only]. Details - ImportResultOutputID=18de31197e2450569a4de35ab15ccbe7 DependenciesID=665e0699905bcdb8b18a0e8771f5860c StaticDependenciesID=824076d5a6693afa8d305360cfb75d15 
+Refreshing native plugins compatible for Editor in 29.14 ms, found 5 plugins.
 (Values over 0.050ms)
-Asset Pipeline Refresh (id=e68459adef7374345b127ea7550e5f24): Total: 0.316 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=c3061fa0f0e1e164b9d8e7a1b1bb9303): Total: 0.357 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
 	Summary:
 		Imports: total=18 (actual=18, local cache=0, cache server=0)
-		Asset DB Process Time: managed=4 ms, native=250 ms
-		Asset DB Callback time: managed=24 ms, native=35 ms
+		Asset DB Process Time: managed=3 ms, native=273 ms
+		Asset DB Callback time: managed=18 ms, native=59 ms
 		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
 		Project Asset Count: scripts=2660, non-scripts=7581
 		Asset File Changes: new=0, changed=0, moved=0, deleted=0
 		Scan Filter Count: 27
-	ApplyChangesToAssetFolders: 0.219ms
-	Scan: 62.526ms
-	ProcessAssetsWithTransientArtifactChanges: 0.379ms
-	CategorizeAssets: 6.745ms
-	ImportOutOfDateAssets: 167.587ms (0.812ms without children)
-		ImportManagerImport: 163.236ms (9.673ms without children)
-			UpdateCategorizedAssets: 0.161ms
-		ReloadNativeAssets: 0.097ms
-		UnloadImportedAssets: 0.507ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.056ms
-		OnDemandSchedulerStart: 0.868ms
-	PostProcessAllAssets: 52.643ms
-		XRBuildSystem.XRAssetImported 26.744ms
-		ShaderAssetModifiedCallback 0.087ms
-		PostProcessCallbackCreateDeferredMaterials 0.072ms
-		MonoPostProcessAllAssets: 24.493ms
-			MaterialPostprocessor.OnPostprocessAllAssets 16.386ms
-			AssetPostprocessor.OnPostprocessAllAssets 3.141ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 1.066ms
-			LocalizationAssetPostProcessor.OnPostprocessAllAssets 0.597ms
-			ModelAssetProcessor.OnPostprocessAllAssets 0.214ms
-			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.187ms
-			SyncVS.PostprocessSyncProject 0.173ms
-			PostProcessor.OnPostprocessAllAssets 0.171ms
-			VFXGraphPreprocessor.OnPostprocessAllAssets 0.167ms
-			TextAssetPostProcessor.OnPostprocessAllAssets 0.147ms
-			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.144ms
-			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.123ms
-			AssetChangedListener.OnPostprocessAllAssets 0.068ms
-			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.054ms
-	PostAssetChangesProfiler: 7.442ms
-	GatherAllCurrentPrimaryImportResultRevisions: 0.891ms
-	UnloadStreamsBegin: 10.718ms
-	PersistCurrentRevisions: 0.445ms
-	UnloadStreamsEnd: 0.315ms
-	Untracked: 6.070ms
+	ApplyChangesToAssetFolders: 0.221ms
+	Scan: 66.083ms
+	ProcessAssetsWithTransientArtifactChanges: 0.420ms
+	CategorizeAssets: 9.095ms
+	ImportOutOfDateAssets: 177.456ms (1.038ms without children)
+		ImportManagerImport: 171.948ms (9.678ms without children)
+			UpdateCategorizedAssets: 0.187ms
+		ReloadNativeAssets: 0.167ms
+		UnloadImportedAssets: 0.449ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.894ms
+		OnDemandSchedulerStart: 0.939ms
+	PostProcessAllAssets: 48.806ms
+		XRBuildSystem.XRAssetImported 28.689ms
+		PostProcessCallbackCreateDeferredMaterials 0.054ms
+		MonoPostProcessAllAssets: 18.890ms
+			MaterialPostprocessor.OnPostprocessAllAssets 11.170ms
+			AssetPostprocessor.OnPostprocessAllAssets 3.937ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.855ms
+			LocalizationAssetPostProcessor.OnPostprocessAllAssets 0.397ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.241ms
+			PostProcessor.OnPostprocessAllAssets 0.180ms
+			SyncVS.PostprocessSyncProject 0.121ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.116ms
+			VFXGraphPreprocessor.OnPostprocessAllAssets 0.105ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.100ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.099ms
+			AssetChangedListener.OnPostprocessAllAssets 0.066ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.062ms
+	PostAssetChangesProfiler: 29.924ms
+	GatherAllCurrentPrimaryImportResultRevisions: 1.173ms
+	UnloadStreamsBegin: 15.969ms
+	PersistCurrentRevisions: 0.497ms
+	UnloadStreamsEnd: 0.379ms
+	Untracked: 6.974ms
 
 [Physics::Module] Cleanup current backend.
 [Physics::Module] Id: 0xf2b8ea05
@@ -2302,18 +1814,18 @@ Input System module state changed to: Shutdown.
 AcceleratorClientConnectionCallback - disconnected - :0
 Cleanup mono
 CodeReloadManager destroyed
-abort_threads: Failed aborting id: 00000000000028E8, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 00000000000031B0, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 0000000000002494, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000003574, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 0000000000002A04, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000001D0C, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 00000000000028E8, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 00000000000031B0, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 0000000000002494, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000003574, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 0000000000002A04, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000001D0C, mono_thread_manage will ignore it
 
-debugger-agent: Unable to listen on 3164
+debugger-agent: Unable to listen on 3156
 Exiting batchmode successfully now!
 Exiting without the bug reporter. Application will terminate with return code 0

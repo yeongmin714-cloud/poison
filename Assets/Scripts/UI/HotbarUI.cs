@@ -155,6 +155,16 @@ namespace ProjectName.UI
             HandleNumberKeys();
             SyncSelectionHighlight();
             RefreshCountsPeriodically();
+
+            // [후속16] 지정 아이템 아이콘 재시도 — GLB 아이콘 비동기 베이크 대응 (1초 주기)
+            _iconRetryTimer -= Time.unscaledDeltaTime;
+            if (_iconRetryTimer <= 0f)
+            {
+                _iconRetryTimer = 1f;
+                for (int i = 0; i < SlotCount; i++)
+                    if (!string.IsNullOrEmpty(_assignedIds[i]))
+                        RefreshSlotIcon(i);
+            }
         }
 
         // ===== 입력: Alpha1~Alpha8 =====
@@ -261,6 +271,10 @@ namespace ProjectName.UI
         private static readonly string[] _assignedIds = new string[SlotCount];
         private static readonly string[] _assignedNames = new string[SlotCount];
         private Text[] _assignedTexts = new Text[SlotCount];
+        private readonly Image[] _itemIcons = new Image[SlotCount];   // [후속16] 지정 아이템 아이콘
+        private static readonly System.Collections.Generic.Dictionary<string, Sprite> _iconSpriteCache =
+            new System.Collections.Generic.Dictionary<string, Sprite>();
+        private float _iconRetryTimer;
         private static readonly Dictionary<string, (string equipId, WeaponType type)> _assignedWeaponMap =
             new Dictionary<string, (string, WeaponType)>
             {
@@ -325,6 +339,36 @@ namespace ProjectName.UI
         {
             if (_assignedTexts[index] != null)
                 _assignedTexts[index].text = _assignedNames[index] ?? string.Empty;
+            RefreshSlotIcon(index);
+        }
+
+        /// <summary>[후속16] 지정 아이템 아이콘 표시 — 인벤에서 ItemData를 찾아 ItemIconDatabase(GLB 우선) 아이콘 렌더.
+        ///   GLB 아이콘은 비동기 베이크라 즉시 null일 수 있어 Update 1초 주기 재시도.</summary>
+        private void RefreshSlotIcon(int index)
+        {
+            var img = _itemIcons[index];
+            if (img == null) return;
+            string itemId = _assignedIds[index];
+            if (string.IsNullOrEmpty(itemId)) { img.enabled = false; return; }
+
+            var inv = PlayerInventory.Instance;
+            if (inv == null) { img.enabled = false; return; }
+            var slot = FindInventorySlot(inv, itemId, out _);
+            if (slot == null || slot.item == null) { img.enabled = false; return; }
+
+            if (_iconSpriteCache.TryGetValue(itemId, out var cached) && cached != null)
+            {
+                img.sprite = cached;
+                img.enabled = true;
+                return;
+            }
+
+            var tex = ItemIconDatabase.GetOrCreateIcon(slot.item);
+            if (tex == null) { img.enabled = false; return; }
+            var sp = Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0.5f));
+            _iconSpriteCache[itemId] = sp;
+            img.sprite = sp;
+            img.enabled = true;
         }
 
         private void LoadAssignedItems()
@@ -636,6 +680,17 @@ namespace ProjectName.UI
                     new Vector2(SlotSize - 12f, 20f));
                 assignedLabel.GetComponent<Text>().raycastTarget = false;
                 _assignedTexts[i] = assignedLabel.GetComponent<Text>();
+
+                // [후속16] 중앙 아이콘 — 지정 아이템의 아이콘(GLB 우선) 표시. ApplyAssignedVisual/Update에서 갱신.
+                var iconRt = CreateImage(
+                    bg, $"Slot{i}_ItemIcon", null, Color.white,
+                    new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                    new Vector2(-SlotSize * 0.30f, -SlotSize * 0.30f),
+                    new Vector2(SlotSize * 0.60f, SlotSize * 0.60f));
+                var iconImg = iconRt.GetComponent<Image>();
+                iconImg.raycastTarget = false;
+                iconImg.enabled = false;
+                _itemIcons[i] = iconImg;
 
                 // ④ 우상단 수량 (소비 아이템만 갱신됨)
                 if (def.kind == SlotKind.Consumable)

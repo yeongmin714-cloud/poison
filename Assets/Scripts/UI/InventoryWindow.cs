@@ -1218,8 +1218,9 @@ namespace ProjectName.UI
             //   교체해도 로컬 참조는 안정 — IndexOutOfRangeException(1279행 실측) 뿌리 수리.
             // [후속15] 장비 해제/아이템 지급 등 외부 변화 즉시 반영 — 그리드 그릴 때마다 슬롯 재조회
             //   (기존: RefreshInventory 호출 시점에만 캐싱 → 해제·지급 아이템이 표시되지 않는 뿌리)
+            // [후속16] 단일 통합 그리드 — 카테고리 필터 폐기, 재료/무기 전부 한 그리드에 표시(사용자 요구)
             if (PlayerInventory.Instance != null)
-                _currentSlots = PlayerInventory.Instance.GetSlotsByCategory(_selectedCategory);
+                _currentSlots = PlayerInventory.Instance.GetAllSlots();
             var slotsLocal = _currentSlots;
             int totalSlots = slotsLocal != null ? slotsLocal.Length : 0;
             // 2026-09-12(P3): 페이지네이션 — 5행×6열=30슬롯/페이지, 초과분은 ◀/▶ 버튼으로 넘김
@@ -1302,7 +1303,7 @@ namespace ProjectName.UI
                     // 2026-09-12(P6): 좌측 그리드는 항상 플레이어 인벤 — 인벤 전역 인덱스만 캐시한다.
                     // (구 창고 컨텍스트의 "창고 전역 인덱스 캐시" 분기는 제거 — 창고 슬롯 판정은
                     //  우측 패널의 s_warehouseSlotScreenRects/TryGetWarehouseSlotAtScreenPoint가 담당)
-                    int dndGlobalIdx = GetGlobalSlotIndex(_selectedCategory, i);
+                    int dndGlobalIdx = i;   // [후속16] 통합 그리드 — 루프 인덱스 = 전역 슬롯 인덱스
                     Vector2 slotScreenPos = GUIUtility.GUIToScreenPoint(new Vector2(sx, sy));
                     // 2026-09-11(4) 수리: 스크린 좌표계(y 상승)에서 sp.y는 슬롯 윗변(yMax) — yMin 보정 필수
                     s_slotScreenRects.Add(new Rect(slotScreenPos.x, slotScreenPos.y - slotHeight, slotWidth, slotHeight));
@@ -1391,7 +1392,7 @@ namespace ProjectName.UI
                             // (창고 소스 드래그는 우측 패널 DrawWarehousePanel의 MouseDown에서 Begin)
                             _dragItemData = slot.item;   // ProcessDrag: MouseDrag Begin → MouseUp에서 드롭 판정
                             _dragActive = false;
-                            _dragSlotGlobalIndex = GetGlobalSlotIndex(_selectedCategory, i);
+                            _dragSlotGlobalIndex = i;   // [후속16] 통합 그리드 — 루프 인덱스 = 전역 인덱스
                             Event.current.Use();
                         }
                         else if (Event.current.button == 1) // 우클릭 — 장비 장착/오토루트 (창고 아이템 우클릭은 우측 패널 담당)
@@ -1613,7 +1614,7 @@ namespace ProjectName.UI
                     if (ratio < 1f)
                     {
                         // _selectedSlotIndex는 필터링된 _currentSlots의 인덱스 — 전역 인덱스로 변환
-                        int globalSlotIdx = GetGlobalSlotIndex(_selectedCategory, _selectedSlotIndex);
+                        int globalSlotIdx = _selectedSlotIndex;   // [후속16] 통합 그리드 — 표시 인덱스 = 전역 인덱스
                         if (globalSlotIdx >= 0 && GUI.Button(new Rect(innerX + innerWidth - 125, innerY + 80, 252, 42), "🔧 수리"))
                         {
                             var result = ProjectName.Systems.EquipmentRepairSystem.RepairInventorySlot(globalSlotIdx);
@@ -2068,7 +2069,7 @@ namespace ProjectName.UI
             // 별도 캐시(_warehouseSlots/_warehouseSlotIndices)를 갱신하므로 여기서 건드리지 않는다.
             if (PlayerInventory.Instance == null) return;
 
-            _currentSlots = PlayerInventory.Instance.GetSlotsByCategory(_selectedCategory);
+            _currentSlots = PlayerInventory.Instance.GetAllSlots();   // [후속16] 단일 통합 그리드 — 전 카테고리 표시
             _selectedItemName = "";
             _selectedItemDesc = "";
             _selectedItemCount = 0;
