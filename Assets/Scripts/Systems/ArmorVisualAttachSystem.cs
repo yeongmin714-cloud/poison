@@ -236,13 +236,14 @@ namespace ProjectName.Systems
             }
         }
 
-        /// <summary>[TEST25-66차] 본별 인스턴스 부착 + 성공 로그(bounds 실측 포함 — 침묵 경로 금지).</summary>
+        /// <summary>[TEST27-68차] 본별 인스턴스 부착 + 슬롯 목표 크기 정규화 + 본 스냅 + 성공 로그(침묵 경로 금지).</summary>
         void InstantiateAttached(EquipmentManager.EquipmentSlot slot, string itemId, GameObject prefab, Transform[] bones)
         {
             var pose = _poseTable.TryGetValue(slot, out var p) ? p : new AttachPose { LocalPos = Vector3.zero, LocalEuler = Vector3.zero, Scale = 1f };
             var boneNames = new List<string>();
             Renderer firstRend = null;
             var totalBounds = new Bounds();
+            float appliedScale = 1f;   // [TEST27-68차] 마지막 적용 스케일(로그용) — 루프 밖 로그 참조
             foreach (var bone in bones)
             {
                 if (bone == null) continue;
@@ -251,6 +252,13 @@ namespace ProjectName.Systems
                 visual.transform.localPosition = pose.LocalPos;
                 visual.transform.localRotation = Quaternion.Euler(pose.LocalEuler);
                 visual.transform.localScale = Vector3.one * pose.Scale;
+
+                // [TEST27-68차] 슬롯 목표 크기 정규화 — 방어구 GLB가 플레이어 대비 3~4배(헬멧 1.37m 실측)로
+                //   플레이어를 덮는 문제. 최장축을 슬롯 목표 치수로 균등 스케일.
+                appliedScale = NormalizeVisualScale(visual, GetTargetSize(slot, itemId));
+                // [TEST27-68차] 본 스냅 — bounds 중심을 본 원점+슬롯 오프셋에 정렬(공중 부양 ~0.5m 해소)
+                SnapVisualToBone(visual, bone, GetCenterOffset(slot, itemId));
+
                 AddVisual(slot, visual);
                 boneNames.Add(bone.name);
                 var rends = visual.GetComponentsInChildren<Renderer>(true);
@@ -270,14 +278,66 @@ namespace ProjectName.Systems
             if (firstRend != null)
             {
                 float centerDist = bones[0] != null ? Vector3.Distance(totalBounds.center, bones[0].position) : -1f;
-                Debug.Log($"{LogTag} ✅ {slot} 비주얼 부착: {itemId} → {string.Join(", ", boneNames)} (bounds size={totalBounds.size:F2}, 본↔중심 {centerDist:F2}m)");
-                if (centerDist > 1.0f)
-                    Debug.LogWarning($"{LogTag} ⚠️ {slot} 비주얼 중심이 본에서 1m 이상 벗어남 — 포즈 튜닝 필요(slot={slot}, item={itemId})");
+                Debug.Log($"{LogTag} ✅ {slot} 비주얼 부착: {itemId} → {string.Join(", ", boneNames)} (스케일 x{appliedScale:F2}, bounds size={totalBounds.size:F2}, 본↔중심 {centerDist:F2}m)");
+                if (centerDist > 0.35f)
+                    Debug.LogWarning($"{LogTag} ⚠️ {slot} 비주얼 중심이 본에서 0.35m 이상 벗어남 — 포즈 튜닝 필요(slot={slot}, item={itemId})");
             }
             else
             {
                 Debug.Log($"{LogTag} ✅ {slot} 비주얼 부착: {itemId} → {string.Join(", ", boneNames)} (활성 렌더러 없음 — 시각 확인 요망)");
             }
+        }
+
+        // [TEST27-68차] 슬롯별 목표 최대 치수(m) — 67차 Play 실측(헬멧 bounds 1.37m 등, 플레이어 ~1.7m) 기반
+        static readonly Dictionary<EquipmentManager.EquipmentSlot, float> _targetSize =
+            new Dictionary<EquipmentManager.EquipmentSlot, float>
+        {
+            { EquipmentManager.EquipmentSlot.Helmet, 0.34f },
+            { EquipmentManager.EquipmentSlot.Armor,  0.62f },
+            { EquipmentManager.EquipmentSlot.Shoes,  0.36f },
+            { EquipmentManager.EquipmentSlot.Gloves, 0.24f },
+            { EquipmentManager.EquipmentSlot.Back,   0.85f },
+        };
+        // [TEST27-68차] 슬롯별 bounds 중심 오프셋(본 로컬) — 장착감(헬멧은 머리 위, 방패는 손 앞)
+        static readonly Dictionary<EquipmentManager.EquipmentSlot, Vector3> _centerOffset =
+            new Dictionary<EquipmentManager.EquipmentSlot, Vector3>
+        {
+            { EquipmentManager.EquipmentSlot.Helmet, new Vector3(0f, 0.06f, 0f) },
+            { EquipmentManager.EquipmentSlot.Armor,  Vector3.zero },
+            { EquipmentManager.EquipmentSlot.Shoes,  Vector3.zero },
+            { EquipmentManager.EquipmentSlot.Gloves, Vector3.zero },
+            { EquipmentManager.EquipmentSlot.Back,   new Vector3(0f, 0.02f, 0.08f) },
+        };
+        static float GetTargetSize(EquipmentManager.EquipmentSlot slot, string itemId)
+            => _targetSize.TryGetValue(slot, out var t) ? t : 0.5f;
+        static Vector3 GetCenterOffset(EquipmentManager.EquipmentSlot slot, string itemId)
+            => _centerOffset.TryGetValue(slot, out var o) ? o : Vector3.zero;
+
+        /// <summary>[TEST27-68차] 비주얼 최장축을 목표 크기로 균등 스케일(보정 계수 클램프 0.4~5.0). 적용 계수 반환.</summary>
+        static float NormalizeVisualScale(GameObject visual, float targetSize)
+        {
+            var rends = visual.GetComponentsInChildren<Renderer>(true);
+            if (rends.Length == 0) return 1f;
+            var b = rends[0].bounds;
+            foreach (var r in rends)
+                if (r.enabled) b.Encapsulate(r.bounds);
+            float maxDim = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
+            if (maxDim < 0.01f) return 1f;
+            float scale = Mathf.Clamp(targetSize / maxDim, 0.4f, 5f);
+            visual.transform.localScale *= scale;
+            return scale;
+        }
+
+        /// <summary>[TEST27-68차] 비주얼 bounds 중심을 본 원점+오프셋에 스냅(공중 부양 해소).</summary>
+        static void SnapVisualToBone(GameObject visual, Transform bone, Vector3 boneLocalOffset)
+        {
+            var rends = visual.GetComponentsInChildren<Renderer>(true);
+            if (rends.Length == 0 || bone == null) return;
+            var b = rends[0].bounds;
+            foreach (var r in rends)
+                if (r.enabled) b.Encapsulate(r.bounds);
+            Vector3 desired = bone.TransformPoint(boneLocalOffset);
+            visual.transform.position += desired - b.center;
         }
 
         /// <summary>

@@ -70,6 +70,15 @@ namespace ProjectName.Systems
 
             // 캐시된 ReadOnlyCollection 갱신 (리스트가 바뀌었을 수 있음)
             _selectedGuardsReadOnly = _selectedGuards.AsReadOnly();
+
+            // [TEST27-68차] 자가 치유 워치독 — 공유 GameManager GO 파괴 시 Update가 죽는 문제
+            // (67차 실측: 생성 로그 있음에도 [RTS] 좌클릭 감지 0건 = Update 사망) 대비.
+            if (Object.FindAnyObjectByType<GuardSelectionWatchdog>(FindObjectsInactive.Include) == null)
+            {
+                var wgo = new GameObject("GuardSelectionWatchdog");
+                DontDestroyOnLoad(wgo);
+                wgo.AddComponent<GuardSelectionWatchdog>();
+            }
         }
 
         private void Update()
@@ -350,6 +359,29 @@ namespace ProjectName.Systems
                 AddToSelection(guard);
             }
             Debug.Log($"[RTS] 그룹 선택: {_selectedGuards.Count}명");
+        }
+    }
+
+    /// <summary>
+    /// [TEST27-68차] GSM 자가 치유 워치독 — 자체 GO(DontDestroyOnLoad)에서 1s 주기 감시.
+    /// 67차 실측: GSM이 공유 GameManager GO에 붙어 그 GO가 파괴되면 Update가 죽어
+    /// "[RTS] 좌클릭 감지" 로그가 전혀 안 남았다. 부재 감지 → 재생성.
+    /// </summary>
+    public class GuardSelectionWatchdog : MonoBehaviour
+    {
+        float _next;
+        void Update()
+        {
+            if (Time.unscaledTime < _next) return;
+            _next = Time.unscaledTime + 1f;
+
+            if (GuardSelectionManager.Instance == null)
+            {
+                var go = new GameObject("GuardSelectionManager");
+                DontDestroyOnLoad(go);
+                go.AddComponent<GuardSelectionManager>();
+                Debug.Log("[GSMWatchdog] GuardSelectionManager 부재 감지 — 재생성(자가 치유)");
+            }
         }
     }
 }

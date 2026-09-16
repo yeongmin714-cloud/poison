@@ -4,7 +4,27 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-16 (67차)
+> **최종 갱신:** 2026-09-16 (68차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-16 ✅ 68차 — TEST27 3차 라운드[장비 크기 정규화+본스냅/병사 HP바·Lv·킬체인/화살 축정렬/활걷기 복귀전이/GSM 자가치유])
+
+> **입력**: 테스트 25 영상(프레임 실측) + 67차 Editor.log 진단. 실측 뿌리: ⑴장비 GLB가 플레이어 대비 3~4배(헬멧 1.37m)+공중 부양 0.5m ⑵병사 데미지는 정상 — 몬스터 HP바 미표시+몬스터가 병사를 못 때림+병사 HP바 부재 ⑶화살 스폰 3회 성공이나 Cylinder 축 불일치(Y길이 vs Z진행)로 엣지온 비가시 ⑷활 걷기는 67차 전이 후 복귀 경로 부재 ⑸GSM 생성됐는데 [RTS] 로그 0건 = 공유 GO 파괴로 Update 사망.
+
+### 변경 사항 (8파일 + 컨트롤러 + 신규 1)
+**`Systems/ArmorVisualAttachSystem.cs`**: 슬롯별 목표 치수 정규화(`_targetSize`: 헬멧 0.34/갑옷 0.62/부츠 0.36/장갑 0.24/방패 0.85m — 최장축 균등 스케일, 클램프 0.4~5.0) + `SnapVisualToBone`(bounds 중심→본 원점+슬롯 오프셋 스냅) + 로그에 스케일·본↔중심(경고 임계 0.35m).
+**`Systems/GuardHeadUI.cs`(신규)**: 병사 머리 위 이름+Lv+HP바(IMGUI, 비율색 녹/노랑/빨강 — MonsterHeadUI 규약). `TestTerritoryCombatSetup` CreateGuard/SpawnGuard 양쪽 부착.
+**`Systems/GuardPlaceholder.cs`**: PerformAttack에 `AnimalAI.NotifyAttacker(gameObject)`(병사 타격→몬스터 어그로) + `_maxHP` 10→25 + Die()에 쓰러짐 연출(전도+콜라이더 비활성).
+**`Systems/AnimalAI.cs`**: `NotifyAttacker(GameObject)` 신규 — _aggroTarget/_aggroAttacker 등록 + MonsterAggroSystem.NotifyAttack. 기존 GetAliveAggroDamageable 근접 경로로 병사 피격.
+**`Systems/ArrowProjectile.cs`**: Spawn 회전에 X+90° 곱함(Cylinder 길이축 Y→진행방향 Z 정렬 — 엣지온 비가시 뿌리) + 스케일 0.06/0.7 + 트레일 width 0.08.
+**`Player_AC.controller`**: `Idle→BowAimedF`(IsBow+Speed>0.55 — Idle 전이 목록 선두 배치로 우선순위 확보) + `Walk→BowAimedF`(IsBow) 신설 — 67차 BowAimedF→Idle과 왕복 루프 완성.
+**`Systems/GuardSelectionManager.cs` + `TestTerritoryCombatSetup.cs`**: GSM/RTSCommandSystem을 전용 GO(DontDestroyOnLoad)로 생성 변경 + `GuardSelectionWatchdog` 신규(1s, 부재→재생성 — 기존 Instance 프로퍼티 재용, CS0102 중복 제거).
+**`Systems/PlayerCombat.cs` + `Core/GameManager.cs`**: 독립 클릭 프로브(30s 쿨) + GameManager.OnDestroy 스택트레이스(공유 GO 파괴자 확정용).
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0) — 중간 CS0102(GSM Instance 이중 정의)/CS0103(appliedScale 스코프) 2건 자가 수리.
+- Play 판정 대기: ① 장비 몸 맞음(본↔중심 ≤0.35m) ② 병사 머리 위 이름+Lv+HP바 ③ 병사 타격→몬스터 HP바 하락·사망 ④ 몬스터→병사 공격·쓰러짐 ⑤ 화살 가시 비행 ⑥ 활 걷기 복귀 ⑦ [RTS] 로그+드래그 ⑧ GameManager OnDestroy 스택트레이스.
 
 ---
 

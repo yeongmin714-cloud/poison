@@ -57,6 +57,7 @@ namespace ProjectName.Systems
         private const float RecoilDistanceNormal = 0.15f; // 일반 타격 시 공격자 리코일 거리(m)
         private const float RecoilDistanceCrit = 0.25f;   // 백어택/치명타 리코일 거리(m) — 반동 증폭
         private int _attackStreak;                        // 연타 카운터(1~3) — HumanoidClipDriver 콤보와 무관한 자체 카운터
+        private float _nextClickProbe;                    // [TEST27-68차] 독립 클릭 프로브 쿨다운(30s)
         // #48차 후속 FIX(2026-09-14): 리코일-런지 동시 위치 덮어쓰기 충돌 게이트 플래그 — RecoilCoroutine 생존 중 true.
         // 성공 타격 시 히트스톱(timeScale 0.08) 선행으로 deltaTime이 축소되어 리코일(0.05s)과 런지(0.15s)가
         // 수십 프레임 동안 매 프레임 transform.position을 동시 기록 → 리코일이 런지에 묻혀 잘리던 버그 해소.
@@ -201,6 +202,13 @@ namespace ProjectName.Systems
             // 좌클릭 감지 (InputSystem)
             if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             {
+                // [TEST27-68차] 독립 클릭 프로브 — GSM이 죽어도(공유 GO 파괴) 클릭 입력 자체의 증거를 남긴다.
+                // [RTS] 좌클릭 감지 로그와 대조해 드래그 무반응의 위치(GSM vs 입력)를 판별한다.
+                if (Time.unscaledTime >= _nextClickProbe)
+                {
+                    _nextClickProbe = Time.unscaledTime + 30f;
+                    Debug.Log("[ClickProbe] 플레이어 좌클릭 감지(30s 쿨) — [RTS] 로그와 대조");
+                }
                 // [TEST24-FIX F'] 병사 드래그 단체 선택 — **Ctrl 키를 누른 채 좌클릭**이면
                 // 프레임 순서와 무관하게 공격 대신 드래그로 위임(PlayerCombat이 먼저 돌아도
                 // consumeLeftClickAsDrag 플래그 타이밍에 의존하지 않고 Ctrl 홀드를 직접 판정).

@@ -27,10 +27,10 @@ namespace ProjectName.Systems
             if (_trail == null)
                 _trail = gameObject.AddComponent<TrailRenderer>();
 
-            _trail.time = 0.3f;
-            _trail.startWidth = 0.05f;
+            _trail.time = 0.35f;
+            _trail.startWidth = 0.08f;   // [TEST27-68차] 0.05→0.08 — 원거리 가시성
             _trail.endWidth = 0.01f;
-            _trail.minVertexDistance = 0.1f;
+            _trail.minVertexDistance = 0.08f;
             _trail.material = new Material(Shader.Find("Sprites/Default"));
         }
 
@@ -40,8 +40,11 @@ namespace ProjectName.Systems
             var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             go.name = "Arrow(Clone)";
             go.transform.position = position;
-            go.transform.rotation = Quaternion.LookRotation(direction);
-            go.transform.localScale = new Vector3(0.05f, 0.5f, 0.05f);
+            // [TEST27-68차] 축 정렬 수리 — Cylinder 길이축은 Y인데 LookRotation은 +Z를 진행방향으로 정렬해
+            //   화살이 옆으로 누운 채 날아갔다(엣지온 = 안 보임, 사용자 실측 "화살이 날아가지도 않음").
+            //   X축 +90° 회전을 곱해 길이축(Y)을 진행방향으로 세운다.
+            go.transform.rotation = Quaternion.LookRotation(direction) * Quaternion.Euler(90f, 0f, 0f);
+            go.transform.localScale = new Vector3(0.06f, 0.7f, 0.06f);
 
             // Collider 설정
             var collider = go.GetComponent<CapsuleCollider>();

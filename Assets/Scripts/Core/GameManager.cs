@@ -35,6 +35,14 @@ namespace ProjectName.Core
             DontDestroyOnLoad(gameObject);
 
             Application.targetFrameRate = 60;
+
+            // [TEST27-68차] 파괴자 추적 — 공유 GO가 플레이 중 파괴되면 그 위의 시스템(GSM/ArmorVisual 등)의
+            // 구독·Update가 함께 죽는다(66~67차 실측: ArmorVisual 수신 0건, [RTS] 로그 0건).
+            // OnDestroy 스택트레이스로 파괴 경로를 확정한다.
+            if (Application.isPlaying)
+            {
+                Debug.Log($"[GameManager] DontDestroyOnLoad 완료 — 파괴 시 OnDestroy 스택트레이스가 기록됨");
+            }
 #if UNITY_EDITOR
             // Editor 전용 디버그/테스트 컴포넌트 (Play 모드에서도 데이터 검증용)
             gameObject.AddComponent<HerbTester>();
@@ -445,6 +453,13 @@ namespace ProjectName.Core
                 }
             }
             return null;
+        }
+
+        // [TEST27-68차] 파괴자 추적 — 플레이 중 공유 GO가 파괴되면 그 위의 시스템(GSM/ArmorVisual 등)의
+        // 구독·Update가 함께 죽는다(66~67차 실측). OnDestroy 스택트레이스로 파괴 경로를 확정한다.
+        private void OnDestroy()
+        {
+            Debug.Log($"[GameManager] OnDestroy 호출됨 — 파괴 스택트레이스:\n{System.Environment.StackTrace}");
         }
     }
 }

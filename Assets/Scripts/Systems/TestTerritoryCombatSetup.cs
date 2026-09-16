@@ -112,13 +112,19 @@ namespace ProjectName.Systems
             // GuardSelectionManager(좌클릭 드래그 병사 선택)가 생성되지 않아 '내 병사 드래그 지정 모션'이 안 됐다.
             if (Object.FindAnyObjectByType<GuardSelectionManager>(FindObjectsInactive.Include) == null)
             {
-                gm.AddComponent<GuardSelectionManager>();
-                Debug.Log("[TestTerritoryCombat] ✅ GuardSelectionManager 생성 — 병사 드래그 단체 지정 활성화");
+                // [TEST27-68차] 전용 GO + DontDestroyOnLoad — 공유 GameManager GO가 중간에 파괴되면
+                // GSM Update가 같이 죽어(67차 실측: [RTS] 로그 0건) 드래그가 완전히 무반응이 됐다.
+                var ggo = new GameObject("GuardSelectionManager");
+                DontDestroyOnLoad(ggo);
+                ggo.AddComponent<GuardSelectionManager>();
+                Debug.Log("[TestTerritoryCombat] ✅ GuardSelectionManager 생성(전용 GO — 자가치유 대상)");
             }
             if (Object.FindAnyObjectByType<RTSCommandSystem>(FindObjectsInactive.Include) == null)
             {
-                gm.AddComponent<RTSCommandSystem>();
-                Debug.Log("[TestTerritoryCombat] ✅ RTSCommandSystem 생성 — 우클릭 공격/이동 활성화");
+                var rgo = new GameObject("RTSCommandSystem");
+                DontDestroyOnLoad(rgo);
+                rgo.AddComponent<RTSCommandSystem>();
+                Debug.Log("[TestTerritoryCombat] ✅ RTSCommandSystem 생성(전용 GO)");
             }
             // [TEST21-FOLLOWUP] 화살 발사 시스템 — Test_10은 CoreSystemsBootstrap 미실행이라 ArrowManager가
             // 생성되지 않아(Instance null) 활 공격이 스킵됐다. 여기서 보장.
@@ -477,6 +483,10 @@ namespace ProjectName.Systems
             if (guardGO.GetComponent<HitReaction>() == null)
                 guardGO.AddComponent<HitReaction>();
 
+            // [TEST27-68차] 병사 헤드 UI — 이름 + Lv + HP바 (몬스터 MonsterHeadUI 대응)
+            if (guardGO.GetComponent<GuardHeadUI>() == null)
+                guardGO.AddComponent<GuardHeadUI>();
+
             // 시각 바디 (Collider 제거 — 물리 간섭 방지)
             var visual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             visual.name = "Guard_Visual_0";
@@ -803,6 +813,10 @@ namespace ProjectName.Systems
             }
             if (guardGO.GetComponent<HitReaction>() == null)
                 guardGO.AddComponent<HitReaction>();
+
+            // [TEST27-68차] 병사 헤드 UI — 이름 + Lv + HP바 (몬스터 MonsterHeadUI 대응)
+            if (guardGO.GetComponent<GuardHeadUI>() == null)
+                guardGO.AddComponent<GuardHeadUI>();
 
             // 시각 바디 (Collider 제거 — 물리 간섭 방지)
             var visual = GameObject.CreatePrimitive(PrimitiveType.Capsule);

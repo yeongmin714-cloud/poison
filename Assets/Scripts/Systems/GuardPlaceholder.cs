@@ -25,7 +25,7 @@ namespace ProjectName.Systems
 
         [Header("상호작용")]
         [SerializeField] private float _interactRange = 3f;
-        [SerializeField] private float _maxHP = 10f;
+        [SerializeField] private float _maxHP = 25f;   // [TEST27-68차] 10→25 — 슬라임 공격 5 기준 2타 사망 → 5타로 완화(병사 전투 체감)
         private float _currentHP;
         private bool _isDead = false;
 
@@ -608,6 +608,16 @@ namespace ProjectName.Systems
             Debug.Log($"[GuardPlaceholder] 병사 처치 경험치 +{exp} (Lv.{level} × 5 × 난수 0.8~1.2)");
             _isDead = true;
 
+            // [TEST27-68차] 사망 연출 — 쓰러짐(전도) + 충돌 비활성 (부활/정리 시스템이 후속 처리)
+            try
+            {
+                float yaw = transform.rotation.eulerAngles.y;
+                transform.rotation = Quaternion.Euler(-90f, yaw, 0f);
+                foreach (var col in GetComponentsInChildren<Collider>())
+                    col.enabled = false;
+            }
+            catch { }
+
             // Phase 3: 사망 카메라 연출 (킬 이펙트)
             CombatCameraEffects.PlayKill();
 
@@ -1005,6 +1015,14 @@ namespace ProjectName.Systems
             catch (System.Exception fxEx)
             {
                 Debug.LogWarning($"[GuardPlaceholder] 데미지 숫자 표시 실패(전투 계속): {fxEx.Message}");
+            }
+
+            // [TEST27-68차] 몬스터 어그로 → 병사 — 병사가 때리면 몬스터의 근접 공격 대상이 병사로 향한다
+            // (AnimalAI의 GetAliveAggroDamageable 경로 재사용 — 몬스터가 병사를 공격 → 병사 HP바 하락/사망).
+            if (_attackTarget is Component atc)
+            {
+                var monsterAI = atc.GetComponentInParent<AnimalAI>();
+                if (monsterAI != null) monsterAI.NotifyAttacker(gameObject);
             }
 
             string targetName = (_attackTarget as Component) != null ? (_attackTarget as Component).name : "?";

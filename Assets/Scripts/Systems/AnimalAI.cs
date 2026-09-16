@@ -824,6 +824,20 @@ namespace ProjectName.Systems
         /// 조건: 오브젝트 활성(activeInHierarchy) + 생존 중인 IDamageable 구현.
         /// 유효하지 않으면 null 반환 → 호출부는 기존 플레이어 공격 경로로 폴백.
         /// </summary>
+        /// <summary>
+        /// [TEST27-68차] 병사 등 비-플레이어 공격자 어그로 등록 — 병사가 몬스터를 때리면
+        /// 몬스터의 근접 공격 대상이 병사로 향한다(기존 GetAliveAggroDamageable 경로 재사용).
+        /// GuardPlaceholder.PerformAttack에서 호출.
+        /// </summary>
+        public void NotifyAttacker(GameObject attacker)
+        {
+            if (attacker == null || _isDead) return;
+            _aggroTarget = attacker;
+            _aggroAttacker = attacker;
+            MonsterAggroSystem.Instance?.NotifyAttack(gameObject, attacker);
+            Debug.Log($"[AnimalAI] {MonsterDatabase.Get(_monsterId)?.displayName ?? _monsterId} 어그로 → {attacker.name} (병사 공격자 등록)");
+        }
+
         private IDamageable GetAliveAggroDamageable()
         {
             if (_aggroTarget == null || !_aggroTarget.activeInHierarchy) return null;

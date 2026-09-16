@@ -2682,3 +2682,19 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ### Play 판정 대기
 ① 병사 타격 시 몬스터에 골드 데미지 숫자 표시+HP바 하락 ② 장비 장착 ≤0.5s 내 가시 부착(`[ArmorVisual] 리컨실레이션/✅ 부착` 로그) ③ 활 장착 후 정지 시 자연 대기(제자리 걷기 소멸)+좌클릭 화살 비행 ④ `[RTS] 좌클릭 감지` 로그 확인→Ctrl+드래그 선택 ⑤ `[Weapon] 그립 정렬(정점)` 손오차≈0 + 검/창/활 손 위치
+
+## ⚔️ 2026-09-16: TEST27 — 3차 라운드(테스트25 영상 실측) — 장비 크기 정규화+본스냅 / 병사 HP바·Lv·킬체인 / 화살 축정렬+활걷기 복귀전이 / GSM 자가치유·파괴자 추적 (TEST27-ROUND3-68)
+
+> **입력**: 테스트 25 영상(프레임 실측 — 장비가 플레이어를 덮음, 활 프롭 가림, 몬스터 HP바 미표시) + Editor.log(67차 진단). 계획서 docs/TEST27_FIX_PLAN.md.
+
+| 항목 | 뿌리 원인 (실측) | 수리 | 상태 |
+|:---|:---|:---|:---:|
+| 장비 크기 이상 | 부착 성공이나 GLB 원본이 플레이어 대비 3~4배(헬멧 bounds 1.37m/부츠 1.36m — 67차 ✅ 로그) + 본↔중심 0.44~0.51m 공중 부양 | 슬롯별 목표 치수 정규화(헬멧 0.34/갑옷 0.62/부츠 0.36/장갑 0.24/방패 0.85m) + bounds 중심→본 스냅 + 슬롯 오프셋 | ✅ |
+| 병사 킬체인/HP바 | 병사 데미지·사망 로직은 존재 — ①병사 HP바/레벨 표시 없음 ②몬스터 공격 대상이 플레이어뿐(병사 못 때림) | **GuardHeadUI 신규**(이름+Lv+HP바, IMGUI) + CreateGuard/SpawnGuard 부착 + **AnimalAI.NotifyAttacker**(병사 타격 시 어그로→병사 — 기존 GetAliveAggroDamageable 경로) + 병사 사망 쓰러짐 연출 + 병사 maxHP 10→25 | ✅ |
+| 화살 안 보임 | **스폰 3회 성공**(활 발사 성공 로그)이나 Cylinder 길이축(Y)이 LookRotation(Z)과 불일치 → 옆으로 누운 채 비행(엣지온) | 회전에 X+90° 곱함(길이축=진행방향) + 스케일 0.06/0.7 + 트레일 강화(width 0.08) | ✅ |
+| 활 걷기 소실 | 67차 `BowAimedF→Idle(Speed<0.2)` 후 **Idle→일반 Walk로 빠져 복귀 경로 부재** | 컨트롤러 복귀 전이 2종: `Idle→BowAimedF`(IsBow+Speed>0.55, 우선순위 선두) + `Walk→BowAimedF`(IsBow) | ✅ |
+| Ctrl 드래그 무반응 | GSM 생성 로그 있어도 **[RTS] 좌클릭 감지 0건** = Update 사망(공유 GO 파괴 추정 — GroundWatch 경고 동반) | GSM/RTSCommandSystem **전용 GO+DontDestroyOnLoad** + **GuardSelectionWatchdog**(1s, 부재→재생성) + GameManager.OnDestroy 스택트레이스(파괴자 확정용) + PlayerCombat 독립 클릭 프로브(30s 쿨) | ✅ |
+| 검증 | 배치컴파일 **error CS=0**(exit 0) — 중간 CS0102(GSM Instance 중복)/CS0103(스코프) 2건 수리, 변경 8파일+컨트롤러+신규 1 | | ✅ |
+
+### Play 판정 대기
+① 장비가 몸에 맞게 장착(헬멧=머리, 부츠=발 — 본↔중심 ≤0.35m) ② 병사 머리 위 이름+Lv+HP바 ③ 병사 타격→몬스터 HP바 하락·사망 ④ 몬스터가 병사 공격→병사 HP바 하락·쓰러짐 ⑤ 화살이 방향대로 보이며 비행·적중 ⑥ 활 들고 걸으면 활 걷기 복귀 ⑦ `[RTS] 좌클릭 감지` 로그 존재+Ctrl 드래그 ⑧ `[GameManager] OnDestroy` 스택트레이스로 파괴자 확정
