@@ -4,7 +4,37 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-15 (64차)
+> **최종 갱신:** 2026-09-16 (65차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-16 ✅ 65차 — 테스트24 후속 8건 전면 수리[병사 GLB/방어구 폴백/무기 그립/활 좌클릭+조준/RTS 좌표계/4레이어 UI])
+
+> **스코프**: 테스트24 이후 사용자 8건 리포트(①방어구 시각 미부착 ②무기 그립 이상[창 역방향·활/검 어긋남] ③화살 애니 미전환 ④내 병사 GLB/애니 미부착 ⑤RTS 드래그 안 됨 ⑥활 우클릭 발사→좌클릭+조준 업그레이드 ⑦인벤 정렬 문구 안 보임 ⑧전체 UI 업그레이드)를 Editor.log 실측으로 근본 원인 확정 후 9파일 수리. 배치컴파일 **error CS=0**(exit 0) + "Exiting batchmode successfully now!".
+
+### 뿌리 원인 확정 (Editor.log 실측)
+- **①방어구**: 플레이어 아바타가 Generic/FBX(비 Humanoid)라 `ResolveBones()`의 HumanBodyBones 조회가 null → "부착 본 미발견"으로 전부 스킵(WeaponEquipManager는 H-GRIP2 이름 폴백으로 이미 해결, 방어구엔 없었음).
+- **②무기 그립**: 창 `그립 정렬(피벗=그립부 신뢰 pivotT=0.96)` — 피벗이 창두(끝)에 있어 신뢰 분기로 짧게 종료되며 창두가 손에 붙음(역방향). 활 `그립 오프셋 과보정 클램프 (-0.113,-0.697,-0.554)→(-0.5,-0.5)` — 0.5m 클램프가 활의 큰 정렬 오프셋 절단(어긋남).
+- **③화살 애니**: ArcheryShot 트리거는 정상, 현재는 좌클릭/우클릭 경로 혼재(우클릭도 ArrowManager로 발사 — ⑥과 동일 뿌리).
+- **④병사 GLB**: GuardManager(프로덕션 재충원) 경로가 ① 확장자 포함 로드 단일 ② 태그 무부여 — 테스트 경로(TestTerritoryCombatSetup)만 수정돼 있어 프로덕션 누락.
+- **⑤RTS 드래그**: 드래그 rect는 InputSystem(좌하단 y-up), 병사 점은 WorldToScreenPoint 후 y-뒤집기(좌상단)로 **y-좌표계 미스매치 → Contains 항상 실패 → 0명 선택**.
+- **⑥활 우클릭**: HumanoidClipDriver L705 `CurrentType==Bow && GetMouseButtonDown(1)` 잔존 우클릭 발사 브랜치가 ArrowManager로 화살 발사(PlayerCombat 좌클릭 차지 스킵만으로는 불충분).
+- **⑦정렬 문구**: 62차 팔레트 전환 후 _styleButton 텍스트색이 배경과 대비 부족.
+- **⑧UI**: Loot/Warehouse는 여전히 평면 GUI.skin.box(인벤/장비/월드맵만 4레이어 적용).
+
+### 변경 사항 (9파일, 신규 0)
+**`Systems/GuardManager.cs` (A/④)**: 재충원 병사 GO 태그 부여(SetRecruited(true)→`"RecruitedSoldier"`, else `"Guard"`) + 모델 로드 헬퍼 `LoadSoldierModel(modelPath)`(확장자 없는 경로 우선→.glb 폴백)로 교체 + 모델 로드 성공/실패 로그.
+**`Systems/ArmorVisualAttachSystem.cs` (B/①)**: `FindBoneByName(animator, keywords)` 정적 헬퍼(WeaponEquipManager H-GRIP2 패턴) 추가 → ResolveBones의 HumanBodyBones 조회 실패 시 이름 폴백 적용(Helmet→head / Armor→spine·chest / Feet→foot_l·foot_r / Hands→hand_l·hand_r / Back LowerArm→lowerarm·forearm).
+**`Systems/WeaponEquipManager.cs` (C/②)**: GripPose에 `GripClampMax` 필드 추가(활/창=1.0, 검=0.5 — 0.5 상수 폐지) + 창(Spear) GripEnd=-1 강제(피벗=창두 신뢰 분기 차단, 그립부=자루 끝으로 → 창두 전방).
+**`Systems/HumanoidClipDriver.cs`+`PlayerCombat.cs` (D/③·⑥)**: HumanoidClipDriver L705~714 우클릭 활 발사 브랜치 제거(폭탄 좌클릭 브랜치는 유지) → 활은 좌클릭 TryBowShot 단일 경로. TryBowShot에 자동 조준 보정 추가 — 커서 Ray가 적을 못 맞히면 `FindTargetInCursorDirection()` 재사용·전방 반구(cos>0.7)로 가장 가까운 적 향해 dir 보정.
+**`Systems/GuardSelectionManager.cs` (E/⑤)**: SelectGuardsInRect 병사 화면 점의 y-뒤집기 제거 → 드래그 rect(좌하단)와 좌표계 통일(Contains 정상화). DrawSelectionBoxGUI는 IMGUI용으로만 y 뒤집어 표시. 선택 조건 `IsRecruited || tag=="RecruitedSoldier"` OR 확장. [RTS] 로그에 rect 포함.
+**`UI/InventoryWindow.cs` (F/⑦)**: 정렬 버튼 전용 `_styleSortButton`(gold `ColorSortText=(1,0.85,0.4)`) 추가 → L915 사용 — 공용 버튼은 기존 흰색 유지(회귀 최소화).
+**`UI/LootWindow.cs`+`WarehouseUI.cs` (F/⑧)**: InventoryArtLibrary 4레이어(드롭섀도우→GetBackplate 백플레이트→GetMetalFrame+4모서리→GetTitleBanner) 중세 백그라운드 적용, 기존 평면 배경/타이틀바 렌더 제거(이중 렌더 금지), 한글 제목 UIFont.Title(38)×_uiScale, static 캐시(OnGUI new GUIStyle 0건), 창 높이 화면 클램프. Loot +90/-16, Warehouse +124/-1.
+
+### 컴파일/검증
+- Unity 6000.4.10f1 batchmode **error CS=0**(exit 0, 1회 통과) + "Exiting batchmode successfully now!"
+- 정적 QA-Lite: 변경 9파일 괄호 균형 0(부모 실검증), 오탐지 1건은 써드파티 Free Slash VFX 데모 에셋(class명≠파일명) — 무관.
+- Play 판정 대기: ①방어구 헬멧/갑옷/부츠/장갑/방패 캐릭터 부위 표시 ②검 손바닥·창 창두 전방 상향·활 시위/손잡이 정렬 ③활 장착 시 좌클릭 발사+화살 애니, 우클릭은 행동 없음+가까운 적 자동 조준 ④주요 병사(재충원) 3D GLB+걷기/대기 애니+RecruitedSoldier 태그 ⑤Ctrl-좌클릭 드래그 상자→병사 파란원 다중 선택(+[RTS] N명·rect 로그) ⑥인벤 정렬 버튼 골드 문구 가독 ⑦Loot/창고 중세 4레이어 배경 일관. (배치컴파일 잠김 이슈 없음 — 컴파일 전 tasklist 보강)
 
 ---
 
