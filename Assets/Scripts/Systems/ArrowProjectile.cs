@@ -20,7 +20,7 @@ namespace ProjectName.Systems
         private Rigidbody _rb;
         private Collider _collider;
         private bool _stuck = false;    // 명중/지면 꽂힘 시 true — 회전 정렬·충돌 재처리 방지
-        private static readonly float GravityScale = 0.45f;   // [化살-사거리] 중력 축소 계수 — 약 2배 사거리+가시 긴 아크
+        private static readonly float GravityScale = 0.22f;   // [화살-사거리2] 0.45→0.22 — 낙하 1.17s·사거리 ~80m(테스트 2: 여전히 짧음)
 
         private void Awake()
         {
@@ -30,9 +30,9 @@ namespace ProjectName.Systems
             if (_trail == null)
                 _trail = gameObject.AddComponent<TrailRenderer>();
 
-            _trail.time = 0.9f;    // [化살-가시성] 0.5→0.9 — 비행시간(0.8s+) 길어져 긴 잔상 가능
-            _trail.startWidth = 0.13f;   // [化살-가시성] 0.08→0.13 — 원거리에서도 트레일 식별
-            _trail.endWidth = 0.025f;
+            _trail.time = 1.6f;          // [화살-가시성2] 0.9→1.6 — 비행 전체를 잔상이 덮음(속도70 기준 ~110m 커버)
+            _trail.startWidth = 0.22f;   // 0.13→0.22 — 원거리 식별 강화
+            _trail.endWidth = 0.05f;
             _trail.minVertexDistance = 0.08f;
             _trail.material = new Material(Shader.Find("Sprites/Default"));
         }
@@ -47,7 +47,7 @@ namespace ProjectName.Systems
             //   화살이 옆으로 누운 채 날아갔다(엣지온 = 안 보임, 사용자 실측 "화살이 날아가지도 않음").
             //   X축 +90° 회전을 곱해 길이축(Y)을 진행방향으로 세운다.
             go.transform.rotation = Quaternion.LookRotation(direction) * Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = new Vector3(0.09f, 0.85f, 0.09f);
+            go.transform.localScale = new Vector3(0.13f, 1.15f, 0.13f); // [화살-가시성2] (0.09,0.85)→(0.13,1.15) — 샤프트 굵게·길게
 
             // Collider 설정
             var collider = go.GetComponent<CapsuleCollider>();

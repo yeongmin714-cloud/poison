@@ -14,7 +14,7 @@ namespace ProjectName.Systems
         public static ArrowManager Instance { get; private set; }
 
         [Header("화살 발사 설정")]
-        [SerializeField] private float _arrowSpeed = 60f;   // [化살-사거리] 45→60 — 축소중력(0.45g)과 결합해 실사거리 ~25m→~50m+(파워 풀 ~60m)
+        [SerializeField] private float _arrowSpeed = 70f;   // [화살-사거리2] 60→70 — 축소중력(0.22g)과 결합, 실사거리 ~80m
         [SerializeField] private Transform _arrowSpawnPoint; // 플레이어 손/활 위치
 
         private PlayerInventory _inventory;
