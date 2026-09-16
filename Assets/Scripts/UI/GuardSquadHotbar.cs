@@ -141,6 +141,7 @@ namespace ProjectName.UI
         {
             HandleTabKey();         // Tab: 모드 토글 (상시)
             HandleCtrlAssignKeys(); // Ctrl+1~8: 부대 등록 (상시 — 아이템 모드에서도 무해)
+            HandleDoubleNumpadKeys(); // [TEST28-69차] 눌패드 1~8 두 번 연속 입력 → 해당 슬롯에 부대 등록 (상시)
             if (_squadMode)
                 HandleSelectKeys(); // 1~8: 부대 선택 (부대 모드에서만)
             RefreshAvatarsPeriodically(); // 사망/파괴 반영 폴링
@@ -190,6 +191,33 @@ namespace ProjectName.UI
             {
                 if (Input.GetKeyDown(KeyCode.Alpha1 + i))
                     RegisterSelectedGroupToSlot(i);
+            }
+        }
+
+        // ===== [TEST28-69차] 눌패드 1~8 두 번 연속 입력 → 해당 슬롯 부대 등록 =====
+        // "눌패드 1번을 두 번 누르면 핫바 1번에 배치, 2번이면 2번 슬롯" — 0.6초 내 동일 키 2회 입력.
+        private int _lastNumpadSlot = -1;
+        private float _lastNumpadTime;
+
+        private void HandleDoubleNumpadKeys()
+        {
+            for (int i = 0; i < SlotCount; i++)
+            {
+                var key = KeyCode.Keypad1 + i;
+                if (Input.GetKeyDown(key))
+                {
+                    if (_lastNumpadSlot == i && Time.unscaledTime - _lastNumpadTime <= 0.6f)
+                    {
+                        RegisterSelectedGroupToSlot(i);   // 기존 등록 경로 재사용(선택 없으면 안내 로그)
+                        _lastNumpadSlot = -1;
+                    }
+                    else
+                    {
+                        _lastNumpadSlot = i;
+                        _lastNumpadTime = Time.unscaledTime;
+                        Debug.Log($"[GuardSquadHotbar] 눌패드 {i + 1} 1회 입력 — 0.6초 내 재입력 시 슬롯 {i + 1}에 부대 등록");
+                    }
+                }
             }
         }
 

@@ -256,8 +256,8 @@ namespace ProjectName.Systems
                 // [TEST27-68차] 슬롯 목표 크기 정규화 — 방어구 GLB가 플레이어 대비 3~4배(헬멧 1.37m 실측)로
                 //   플레이어를 덮는 문제. 최장축을 슬롯 목표 치수로 균등 스케일.
                 appliedScale = NormalizeVisualScale(visual, GetTargetSize(slot, itemId));
-                // [TEST27-68차] 본 스냅 — bounds 중심을 본 원점+슬롯 오프셋에 정렬(공중 부양 ~0.5m 해소)
-                SnapVisualToBone(visual, bone, GetCenterOffset(slot, itemId));
+                // [TEST28-69차] 본 스냅 — 앵커 모드(투구/부츠=Bottom: 최하단을 본에 접지, 장착감)
+                SnapVisualToBone(visual, bone, GetCenterOffset(slot, itemId), GetBottomAnchor(slot, itemId));
 
                 AddVisual(slot, visual);
                 boneNames.Add(bone.name);
@@ -298,20 +298,22 @@ namespace ProjectName.Systems
             { EquipmentManager.EquipmentSlot.Gloves, 0.24f },
             { EquipmentManager.EquipmentSlot.Back,   0.85f },
         };
-        // [TEST27-68차] 슬롯별 bounds 중심 오프셋(본 로컬) — 장착감(헬멧은 머리 위, 방패는 손 앞)
+        // [TEST28-69차] 슬롯별 bounds 중심/앵커 오프셋(본 로컬) — Bottom 앵커용 접지 오프셋
         static readonly Dictionary<EquipmentManager.EquipmentSlot, Vector3> _centerOffset =
             new Dictionary<EquipmentManager.EquipmentSlot, Vector3>
         {
-            { EquipmentManager.EquipmentSlot.Helmet, new Vector3(0f, 0.06f, 0f) },
+            { EquipmentManager.EquipmentSlot.Helmet, new Vector3(0f, 0.02f, 0f) },   // 투구 최하단 → 머리 본 +2cm
             { EquipmentManager.EquipmentSlot.Armor,  Vector3.zero },
-            { EquipmentManager.EquipmentSlot.Shoes,  Vector3.zero },
+            { EquipmentManager.EquipmentSlot.Shoes,  Vector3.zero },                 // 부츠 최하단 → 발 본
             { EquipmentManager.EquipmentSlot.Gloves, Vector3.zero },
-            { EquipmentManager.EquipmentSlot.Back,   new Vector3(0f, 0.02f, 0.08f) },
+            { EquipmentManager.EquipmentSlot.Back,   new Vector3(0f, 0.02f, 0.10f) }, // 방패 중심 → 손 +전방
         };
         static float GetTargetSize(EquipmentManager.EquipmentSlot slot, string itemId)
             => _targetSize.TryGetValue(slot, out var t) ? t : 0.5f;
         static Vector3 GetCenterOffset(EquipmentManager.EquipmentSlot slot, string itemId)
             => _centerOffset.TryGetValue(slot, out var o) ? o : Vector3.zero;
+        static bool GetBottomAnchor(EquipmentManager.EquipmentSlot slot, string itemId)
+            => slot == EquipmentManager.EquipmentSlot.Helmet || slot == EquipmentManager.EquipmentSlot.Shoes;
 
         /// <summary>[TEST27-68차] 비주얼 최장축을 목표 크기로 균등 스케일(보정 계수 클램프 0.4~5.0). 적용 계수 반환.</summary>
         static float NormalizeVisualScale(GameObject visual, float targetSize)
@@ -323,13 +325,13 @@ namespace ProjectName.Systems
                 if (r.enabled) b.Encapsulate(r.bounds);
             float maxDim = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
             if (maxDim < 0.01f) return 1f;
-            float scale = Mathf.Clamp(targetSize / maxDim, 0.4f, 5f);
+            float scale = Mathf.Clamp(targetSize / maxDim, 0.12f, 5f);   // [TEST28-69차] 하한 0.4→0.12 — 0.4 클램프가 목표 스케일(부츠 0.26 등)을 잘라 0.55m 잔존(68차 로그 실측)
             visual.transform.localScale *= scale;
             return scale;
         }
 
-        /// <summary>[TEST27-68차] 비주얼 bounds 중심을 본 원점+오프셋에 스냅(공중 부양 해소).</summary>
-        static void SnapVisualToBone(GameObject visual, Transform bone, Vector3 boneLocalOffset)
+        /// <summary>[TEST28-69차] 비주얼을 본에 스냅 — 앵커 모드: Helmet/Boots=Bottom(쓰고/신는 배치), 나머지=Center.</summary>
+        static void SnapVisualToBone(GameObject visual, Transform bone, Vector3 boneLocalOffset, bool bottomAnchor)
         {
             var rends = visual.GetComponentsInChildren<Renderer>(true);
             if (rends.Length == 0 || bone == null) return;
@@ -337,7 +339,10 @@ namespace ProjectName.Systems
             foreach (var r in rends)
                 if (r.enabled) b.Encapsulate(r.bounds);
             Vector3 desired = bone.TransformPoint(boneLocalOffset);
-            visual.transform.position += desired - b.center;
+            Vector3 anchorPoint = bottomAnchor
+                ? new Vector3(b.center.x, b.min.y, b.center.z)   // 최하단 중심 — 투구는 머리에 "쓰고", 부츠는 발에 "신는"
+                : b.center;
+            visual.transform.position += desired - anchorPoint;
         }
 
         /// <summary>

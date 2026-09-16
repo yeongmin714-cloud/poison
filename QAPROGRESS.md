@@ -4,7 +4,25 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-16 (68차)
+> **최종 갱신:** 2026-09-16 (69차)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-16 ✅ 69차 — TEST28 4차 라운드[장비 앵커/어그로 플립 차단/병사 EXP·전리품 순서/화살 속도/단검·창 그립/활 Idle·Run 배선/더블 눌패드/자체 드롭/정렬 제거])
+
+> **입력**: 테스트 26 영상(병사 HP바 "경비병 Lv.1" ✓, 창 head-up 수직, 병사-슬라임 대치 무공격) + 68차 로그(클램프 x0.40 하한, 어그로 등록 후 무공격, 단검 0.206m, 활 발사 8회). 뿌리: ⑴스케일 클램프 하한 0.4 절단 ⑵어그로 Alert 머묾+플레이어 타격마다 어그로 플립 ⑶드롭 판정이 인벤 열림 시만 대행 ⑷Cylinder/스케일 등은 68차 수리 확인.
+
+### 변경 사항 (11파일 + 컨트롤러 + 에디터 스크립트 신규)
+**ArmorVisualAttachSystem**: 클램프 하한 0.12 + 앵커 모드(Helmet/Boots=Bottom 접지, Back=손+전방 0.1) + 오프셋 재튜닝. **ArrowManager/ArrowProjectile**: 속도 45 + 트레일 0.5s. **WeaponEquipManager**: 단검 정점 그립(전략2·0.6) + 창 LocalEuler (-180,180,0). **AnimalAI**: NotifyAttacker 즉시 Combat + TakeDamage 병사 타격("guard") 어그로 플립 게이트. **GuardPlaceholder**: TakeDamage("guard") + 킬 크레딧 AddEXP(15/킬, level×50 레벨업, maxHP+10) + Die() 전리품 1.2s 지연 코루틴(DieLootAndDeactivate) + Update _isDead 게이트 + ClearCommand. **GuardHeadUI 부착 유지**. **GuardSquadHotbar**: HandleDoubleNumpadKeys(눌패드 두 번 0.6s → 슬롯 등록). **InventoryWindow**: 정렬 버튼 제거(_sortMode None 고정) + IsOpenNow 정적. **WarehouseUI/LootWindow**: 인벤 닫힘 시 자체 MouseUp 드롭 판정(TransferDraggedToInventory/TryTakeDraggedToInventory 재사용). **Assets/Editor/BowClipWiring.cs(신규)**: AnimatorController API 배치 배선(멱등).
+
+### 활 애니 최종 배선 (BowClipWiring 배치 실행 — exit 0)
+- **BowIdle**(신규, Idle_Holding_Bow): 활 장착+정지 = 활 든 대기(장착 시 애니 변화 확보). 진입: Idle→BowIdle(IsBow+Speed<0.2, 선두)/BowAimedF→BowIdle(Speed<0.2 — 67차 전이 재지정)/BowRunF→BowIdle.
+- **BowAimedF**(활 걷기 Walk_Forward_with_Bow_Aimed 유지): 진입 BowIdle→BowAimedF(IsBow+Speed>0.55)/Walk→BowAimedF(68차).
+- **BowRunF**(신규, Run_Forward_with_Bow): 활 들고 뛰기. BowAimedF→BowRunF(Speed>5.0)/BowRunF→BowAimedF(<4.2). 런 경계는 Play 판정 후 조정.
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0) + 배치 배선 exit 0 — 중간 CS0102(GSM Instance)/CS0029(void→bool)/CS1061(AnimatorCondition.parameter) 3건 자가 수리.
+- Play 판정 대기: ① 장비 딱 붙음 ② 몬스터가 병사 즉시 추격·공격→HP바 하락·쓰러짐→전리품 ③ 병사 킬→Lv 상승 ④ 화살 빠른 비행 ⑤ 단검/창 그립 ⑥ 활 든 대기+활 뛰기 ⑦ 더블 눌패드 등록 ⑧ 인벤 닫힌 채 창고/전리품 드래그 드롭 ⑨ 인벤 무정렬.
 
 ---
 

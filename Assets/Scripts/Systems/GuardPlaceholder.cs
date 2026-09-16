@@ -143,6 +143,9 @@ namespace ProjectName.Systems
 
         private void Update()
         {
+            // [TEST28-69차] 사망 시 업데이트 정지 — 쓰러짐 연출 중 시체가 명령/이동하지 않도록
+            if (_isDead) return;
+
             // 캐시된 참조 갱신 (null이거나 비활성화된 경우 재탐색)
             if (_playerCache == null || !_playerCache.activeInHierarchy)
                 _playerCache = GameObject.FindGameObjectWithTag("Player");
@@ -633,6 +636,16 @@ namespace ProjectName.Systems
                 GuardManager.Instance.OnGuardDiedInGame(this);
             }
 
+            // [TEST28-69차] 전리품/비활성화를 1.2s 지연 — 쓰러짐 연출 먼저, 그 후 전리품 생성(사용자 요구 순서).
+            //   연출 동안 시체가 명령/이동하지 않도록 명령 해제 + Update _isDead 게이트.
+            ClearCommand();
+            StartCoroutine(DieLootAndDeactivate(1.2f));
+        }
+
+        /// <summary>[TEST28-69차] 쓰러짐 연출(1.2s) 후 전리품 생성 → 비활성화(GuardResurrectionSystem 호환 유지).</summary>
+        private System.Collections.IEnumerator DieLootAndDeactivate(float delay)
+        {
+            yield return new WaitForSeconds(delay);
             // ===== 전리품/드랍 처리 (try-catch 격리 — 드랍 실패가 사망 로직을 중단하지 않도록) =====
             try
             {
@@ -674,7 +687,6 @@ namespace ProjectName.Systems
             // 비활성화 (Destroy 대신 — GuardResurrectionSystem에서 부활 가능)
             gameObject.SetActive(false);
         }
-
         /// <summary>
         /// 장착된 장비 슬롯(무기/방패/투구/갑옷)을 전리품 바구니에 드랍합니다.
         /// null이 아닌(장착된) 아이템만 1개씩 드랍하며, 각 드랍 시 한국어 로그를 남깁니다.
@@ -995,7 +1007,7 @@ namespace ProjectName.Systems
                 if (toTarget.sqrMagnitude > 0.0001f) dir = toTarget.normalized;
             }
 
-            target.TakeDamage(damage, dir, "melee");
+            target.TakeDamage(damage, dir, "guard");   // [TEST28-69차] "melee"→"guard" — 몬스터 어그로가 플레이어로 플립되는 것 차단(AnimalAI.TakeDamage 게이트)
             _attackCooldown = ATTACK_COOLDOWN_SECONDS;
 
             // [TEST26-67차] 병사 타격 가시 피드백 — 데미지 숫자 표시.
@@ -1027,6 +1039,29 @@ namespace ProjectName.Systems
 
             string targetName = (_attackTarget as Component) != null ? (_attackTarget as Component).name : "?";
             Debug.Log($"[GuardPlaceholder] {guardName} 근접 공격! 대상={targetName} dmg={damage:F1}");
+
+            // [TEST28-69차] 킬 크레딧 → 병사 경험치/레벨업 — 내 타격으로 대상이 사망하면 EXP 획득(몬스터/병사 공통)
+            if (target != null && !target.IsAlive)
+                AddEXP(KillExpPerTarget);
+        }
+
+        // [TEST28-69차] 병사 킬 경험치 — 킬 1회당 고정 15(레벨업 필요치 = level×50, 레벨업 시 maxHP +10)
+        const int KillExpPerTarget = 15;
+        private int _exp;
+
+        /// <summary>병사 경험치 추가 — level×50 도달마다 레벨업(maxHP +10, 풀회복, 데미지는 level×1.5 수식 자동 반영).</summary>
+        public void AddEXP(int amount)
+        {
+            if (amount <= 0 || _isDead) return;
+            _exp += amount;
+            while (_exp >= level * 50)
+            {
+                _exp -= level * 50;
+                level++;
+                _maxHP += 10f;
+                _currentHP = _maxHP;   // 레벨업 풀회복
+                Debug.Log($"[GuardPlaceholder] ⬆️ {guardName} 레벨업! Lv.{level} (maxHP={_maxHP}, 다음 필요 EXP={level * 50})");
+            }
         }
 
         /// <summary>

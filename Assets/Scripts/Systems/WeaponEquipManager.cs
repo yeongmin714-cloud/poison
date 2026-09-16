@@ -70,7 +70,10 @@ namespace ProjectName.Systems
             //   x<-0.3 칼날(0.33, 끝 테이퍼) / 창은 z≈-0.9 창날(0.09), 나머지 샤프트(0.03~0.05).
             { "wood_sword", new GripPose { LocalPos = Vector3.zero, LocalEuler = new Vector3(0f, 0f, 90f),    TargetLen = 0.9f, GripClampMax = 0.5f, IdOverride = true, GripStrategy = 2, GripGuardFactor = 0.5f } },
             { "wood_bow",   new GripPose { LocalPos = Vector3.zero, LocalEuler = new Vector3(0f, 90f, 0f),    TargetLen = 1.0f, GripClampMax = 1.0f, IdOverride = true, GripStrategy = 1 } },
-            { "wood_spear", new GripPose { LocalPos = Vector3.zero, LocalEuler = new Vector3(-90f, 180f, 0f), TargetLen = 1.8f, GripClampMax = 1.0f, GripEnd = -1, IdOverride = true, GripStrategy = 2, GripGuardFactor = 0.75f } },
+            // [TEST28-69차] 단검 — id 테이블 미등록으로 구 bounds 경로(손↔중심 0.206m 실측)를 탔던 것 수리
+            { "wood_dagger", new GripPose { LocalPos = Vector3.zero, LocalEuler = new Vector3(0f, 0f, 90f),   TargetLen = 0.45f, GripClampMax = 0.5f, IdOverride = true, GripStrategy = 2, GripGuardFactor = 0.6f } },
+            // [TEST28-69차] 창 방향 — 수직 head-up(영상 f10 실측) → 수평 전방으로 X축 -90 추가. 그립점은 정점 기반이라 방향과 무관하게 손에 고정
+            { "wood_spear", new GripPose { LocalPos = Vector3.zero, LocalEuler = new Vector3(-180f, 180f, 0f), TargetLen = 1.8f, GripClampMax = 1.0f, GripEnd = -1, IdOverride = true, GripStrategy = 2, GripGuardFactor = 0.75f } },
         };
 
         // 단도(dagger) 목표 길이 — Sword 포즈 공유, TargetLen만 오버라이드

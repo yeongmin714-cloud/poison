@@ -27,7 +27,7 @@ namespace ProjectName.Systems
             if (_trail == null)
                 _trail = gameObject.AddComponent<TrailRenderer>();
 
-            _trail.time = 0.35f;
+            _trail.time = 0.5f;    // [TEST28-69차] 0.35→0.5 — 잔상 길게(비행 가시성)
             _trail.startWidth = 0.08f;   // [TEST27-68차] 0.05→0.08 — 원거리 가시성
             _trail.endWidth = 0.01f;
             _trail.minVertexDistance = 0.08f;

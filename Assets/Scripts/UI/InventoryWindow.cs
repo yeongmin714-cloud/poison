@@ -919,20 +919,9 @@ namespace ProjectName.UI
             GUI.Label(new Rect(x, y + 4, sortBtnX - x - 12f, TITLE_BAR_HEIGHT),
                 contextTitle, _styleTitle);
 
-            // 정렬 버튼 (타이틀 스트립 우측) — 기존 로직 유지 (다크 배경 + 흰색 굵은 텍스트)
-            if (GUI.Button(new Rect(sortBtnX, sortBtnY, sortBtnWidth, sortBtnHeight), $"정렬: {_sortModeLabels[(int)_sortMode]}", _styleSortButton))
-            {
-                _sortMode = (SortMode)(((int)_sortMode + 1) % 5);
-                if (_sortMode != SortMode.None)
-                {
-                    SortInventory();
-                    RefreshInventory();
-                }
-                else
-                {
-                    RefreshInventory();
-                }
-            }
+            // [TEST28-69차] 정렬 버튼 제거 — 인벤토리는 항상 원본 슬롯 순서로 전체 표시(사용자 요구).
+            // _sortMode는 None 고정(열거형/SortInventory 로직은 잔존 — UI 진입점만 제거).
+            _sortMode = SortMode.None;
 
             // 타이틀 하단 구분선
             DrawColoredRect(new Rect(x, y + TITLE_BAR_HEIGHT + 2, WINDOW_WIDTH, 2), ColorBorder);
@@ -2890,6 +2879,9 @@ namespace ProjectName.UI
         /// - 고스트는 ItemDragContext.DrawGhost()가 프레임당 1회 렌더
         /// [Phase C] MouseDrag 중 유효 드롭 타겟 감지 → 고스트 스냅 + 슬롯 하이라이트 펄스
         /// </summary>
+        /// <summary>[TEST28-69차] 인벤 열림 여부 정적 접근 — 창고/전리품 자체 드롭 판정 분기용.</summary>
+        public static bool IsOpenNow => _instance != null && _instance.IsOpen;
+
         private void ProcessDrag()
         {
             // [Phase C] 드래그 중 유효 드롭 타겟 실시간 감지 (MouseDrag 이벤트에서)

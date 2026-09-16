@@ -359,7 +359,27 @@ namespace ProjectName.UI
         // ===================================================================
         protected override void DrawWindowContent()
         {
-            RefreshUIScale();
+            // [TEST28-69차] 자체 드롭 판정(인벤 닫힘) — Loot 소스 MouseUp 판정도 InventoryWindow.ProcessDrag
+            //   (인벤 열림 시만) 대행이었다. 인벤이 닫혀 있으면 이곳에서 MouseUp → 전리품→인벤 이동.
+            if (ItemDragContext.Active && ItemDragContext.SourceType == ItemDragContext.Source.Loot
+                && !InventoryWindow.IsOpenNow)
+            {
+                if (Event.current.type == EventType.MouseDrag)
+                    Event.current.Use();
+                else if (Event.current.type == EventType.MouseUp)
+                {
+                    if (LootWindow.TryTakeDraggedToInventory())
+                        Debug.Log($"[LootWindow] 전리품→인벤 이동(자체 드롭 — 인벤 닫힘): {ItemDragContext.Item?.displayName ?? "?"}");
+                    else
+                        Debug.Log("[LootWindow] 자체 드롭 실패 — 수용 불가/대상 없음");
+                    ItemDragContext.Cancel();
+                    Event.current.Use();
+                }
+                ItemDragContext.DrawGhost();
+            }
+
+            if (!IsOpen) return;
+            RefreshUIScale();   // [Phase G-UI] 해상도 변경 감지 → 비례 스케일 갱신
             if (!Mathf.Approximately(_uiScaleUsedForStyles, _uiScale))
             {
                 _uiScaleUsedForStyles = _uiScale;

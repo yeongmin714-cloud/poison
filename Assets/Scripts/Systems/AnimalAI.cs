@@ -509,7 +509,17 @@ namespace ProjectName.Systems
                 return; // 어그로 상태에서는 기존 행동 대신 어그로 행동 수행
             }
 
-            float dist = Vector3.Distance(transform.position, _player.position);
+            // [TEST28-69차] 추격/공격 대상 — 어그로 대상(병사)이 생존하면 그 대상 우선, 없으면 플레이어.
+            //   기존은 dist/방향이 전부 _player 기준이라 병사가 옆에 있어도 몬스터가 병사를 공격하지 않았다.
+            Transform chaseTarget = _player;
+            if (_aggroTarget != null && _aggroTarget.activeInHierarchy)
+                chaseTarget = _aggroTarget.transform;
+            if (chaseTarget == null)
+            {
+                _currentAIVelocity = Vector3.zero;
+                return;
+            }
+            float dist = Vector3.Distance(transform.position, chaseTarget.position);
 
             switch (_tier)
             {
@@ -825,17 +835,19 @@ namespace ProjectName.Systems
         /// 유효하지 않으면 null 반환 → 호출부는 기존 플레이어 공격 경로로 폴백.
         /// </summary>
         /// <summary>
-        /// [TEST27-68차] 병사 등 비-플레이어 공격자 어그로 등록 — 병사가 몬스터를 때리면
+        /// [TEST28-69차] 병사 등 비-플레이어 공격자 어그로 등록 — 병사가 몬스터를 때리면
         /// 몬스터의 근접 공격 대상이 병사로 향한다(기존 GetAliveAggroDamageable 경로 재사용).
-        /// GuardPlaceholder.PerformAttack에서 호출.
+        /// GuardPlaceholder.PerformAttack에서 호출. 즉시 Combat(Alert 응시 스킵 — 68차에서 3초 응시만 하던 문제).
         /// </summary>
         public void NotifyAttacker(GameObject attacker)
         {
             if (attacker == null || _isDead) return;
             _aggroTarget = attacker;
             _aggroAttacker = attacker;
+            if (_aggroState == AggroState.Idle || _aggroState == AggroState.Cooldown || _aggroState == AggroState.Alert)
+                _aggroState = AggroState.Combat;   // 병사 어그로는 즉시 Combat — 추격·공격 시작
             MonsterAggroSystem.Instance?.NotifyAttack(gameObject, attacker);
-            Debug.Log($"[AnimalAI] {MonsterDatabase.Get(_monsterId)?.displayName ?? _monsterId} 어그로 → {attacker.name} (병사 공격자 등록)");
+            Debug.Log($"[AnimalAI] {MonsterDatabase.Get(_monsterId)?.displayName ?? _monsterId} 어그로 → {attacker.name} (병사 공격자 등록 — Combat)");
         }
 
         private IDamageable GetAliveAggroDamageable()
@@ -872,7 +884,10 @@ namespace ProjectName.Systems
             }
 
             // === MonsterAggroSystem: 공격 통보 → 주변 합세 ===
-            if (MonsterAggroSystem.Instance != null)
+            // [TEST28-69차] 병사 타격(weaponType "guard")은 어그로를 플레이어로 되돌리지 않는다 —
+            //   기존은 무조건 attacker=player라 병사가 때려도 플레이어 타격마다 어그로가 플립됐다
+            //   (병사 어그로는 PerformAttack → NotifyAttacker가 직접 등록).
+            if (MonsterAggroSystem.Instance != null && weaponType != "guard")
             {
                 // 공격자 찾기: hitDirection 반대 방향으로 추정 (또는 player)
                 GameObject attacker = null;

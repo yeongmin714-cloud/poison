@@ -282,6 +282,25 @@ namespace ProjectName.UI
         // ===================================================================
         protected override void OnGUI()
         {
+            // [TEST28-69차] 자체 드롭 판정(인벤 닫힘) — 기존은 InventoryWindow.ProcessDrag(인벤 열림 시만)가
+            //   창고 소스 MouseUp 판정을 대행해 인벤을 닫으면 드롭이 전혀 안 됐다. 인벤이 닫혀 있으면 이곳에서
+            //   MouseUp → 창고→인벤 이동으로 마무리한다(인벤 열림 시 기존 대행 경로 유지 — 이중 처리 없음).
+            if (ItemDragContext.Active && ItemDragContext.SourceType == ItemDragContext.Source.Warehouse
+                && !InventoryWindow.IsOpenNow)
+            {
+                if (Event.current.type == EventType.MouseDrag)
+                    Event.current.Use();
+                else if (Event.current.type == EventType.MouseUp)
+                {
+                    // [TEST28-69차] TransferDraggedToInventory는 void — 이동 실행 후 로그로 결과 추적
+                    WarehouseUI.TransferDraggedToInventory();
+                    Debug.Log($"[WarehouseUI] 창고→인벤 이동(자체 드롭 — 인벤 닫힘): {ItemDragContext.Item?.displayName ?? "?"}");
+                    ItemDragContext.Cancel();
+                    Event.current.Use();
+                }
+                ItemDragContext.DrawGhost();
+            }
+
             if (!IsOpen) return;
             DrawWindowContent();
         }
