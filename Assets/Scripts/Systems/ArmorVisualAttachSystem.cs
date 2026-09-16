@@ -257,7 +257,18 @@ namespace ProjectName.Systems
                 //   플레이어를 덮는 문제. 최장축을 슬롯 목표 치수로 균등 스케일.
                 appliedScale = NormalizeVisualScale(visual, GetTargetSize(slot, itemId));
                 // [TEST28-69차] 본 스냅 — 앵커 모드(투구/부츠=Bottom: 최하단을 본에 접지, 장착감)
-                SnapVisualToBone(visual, bone, GetCenterOffset(slot, itemId), GetBottomAnchor(slot, itemId));
+                // [TEST28-69차 후속] 헬멧/갑옷은 본 원점 기준 배치 시 몸 메쉬에 박힘 — 플레이어 몸 bounds 비례
+                //   월드 앵커로 배치(머리 꼭대기/가슴 높이). GLB끼리·캐릭터와 충돌은 없음(콜라이더 미부착) — 겹침 허용.
+                Vector3? worldAnchor = null;
+                if (TryGetPlayerBodyBounds(out var bodyBounds))
+                {
+                    float bodyH = bodyBounds.size.y;
+                    if (slot == EquipmentManager.EquipmentSlot.Helmet)
+                        worldAnchor = new Vector3(bodyBounds.center.x, bodyBounds.max.y - 0.25f, bodyBounds.center.z);   // 헬멧 하단 = 머리 꼭대기 -25cm(살짝 씌움)
+                    else if (slot == EquipmentManager.EquipmentSlot.Armor)
+                        worldAnchor = new Vector3(bodyBounds.center.x, bodyBounds.min.y + bodyH * 0.66f, bodyBounds.center.z); // 갑옷 중심 = 가슴 높이
+                }
+                SnapVisualToBone(visual, bone, GetCenterOffset(slot, itemId), GetBottomAnchor(slot, itemId), worldAnchor);
 
                 AddVisual(slot, visual);
                 boneNames.Add(bone.name);
@@ -330,19 +341,38 @@ namespace ProjectName.Systems
             return scale;
         }
 
-        /// <summary>[TEST28-69차] 비주얼을 본에 스냅 — 앵커 모드: Helmet/Boots=Bottom(쓰고/신는 배치), 나머지=Center.</summary>
-        static void SnapVisualToBone(GameObject visual, Transform bone, Vector3 boneLocalOffset, bool bottomAnchor)
+        /// <summary>[TEST28-69차] 비주얼을 본에 스냅 — 앵커 모드: Helmet/Boots=Bottom(쓰고/신는 배치), 나머지=Center.
+        /// worldAnchor 지정 시 본 무관 월드 좌표(플레이어 몸 비례)에 배치.</summary>
+        static void SnapVisualToBone(GameObject visual, Transform bone, Vector3 boneLocalOffset, bool bottomAnchor, Vector3? worldAnchor = null)
         {
             var rends = visual.GetComponentsInChildren<Renderer>(true);
             if (rends.Length == 0 || bone == null) return;
             var b = rends[0].bounds;
             foreach (var r in rends)
                 if (r.enabled) b.Encapsulate(r.bounds);
-            Vector3 desired = bone.TransformPoint(boneLocalOffset);
+            Vector3 desired = worldAnchor.HasValue ? worldAnchor.Value : bone.TransformPoint(boneLocalOffset);
             Vector3 anchorPoint = bottomAnchor
                 ? new Vector3(b.center.x, b.min.y, b.center.z)   // 최하단 중심 — 투구는 머리에 "쓰고", 부츠는 발에 "신는"
                 : b.center;
             visual.transform.position += desired - anchorPoint;
+        }
+
+        /// <summary>[TEST28-69차 후속] 플레이어 몸 전체 bounds — 헬멧/갑옷을 몸 비례 위치에 배치하기 위한 실측.</summary>
+        static bool TryGetPlayerBodyBounds(out Bounds body)
+        {
+            body = default;
+            var player = GameObject.FindWithTag("Player");
+            if (player == null) return false;
+            var rends = player.GetComponentsInChildren<Renderer>(true);
+            if (rends.Length == 0) return false;
+            bool any = false;
+            foreach (var r in rends)
+            {
+                if (r == null || !r.enabled) continue;
+                if (!any) { body = r.bounds; any = true; }
+                else body.Encapsulate(r.bounds);
+            }
+            return any;
         }
 
         /// <summary>
