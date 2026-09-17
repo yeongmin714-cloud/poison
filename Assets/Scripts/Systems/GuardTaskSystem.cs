@@ -30,7 +30,8 @@ namespace ProjectName.Systems
             Defend,   // 성문 앞 수비
             Gather,   // 약초 채집
             Hunt,     // 몬스터 사냥
-            Farm      // 농사 (파종/수확)
+            Farm,     // 농사 (파종/수확)
+            Envoy     // 🕵️ 특사 — 적 영지 잠입 첩보 (민첩이 높을수록 발각 확률 낮음, 발각 시 처형)
         }
 
         /// <summary>싱글턴 — 비월드/파괴 대비.</summary>
@@ -47,6 +48,7 @@ namespace ProjectName.Systems
         const float UpdateThrottleSec = 0.4f;   // 전역 업데이트 스로틀
         const float ActionCooldownSec = 4f;     // 기본 역할 행동 쿨다운
         const float FarmCooldownSec = 3f;       // 농사 쿨다운
+        const float EnvoyCooldownSec = 30f;     // 특사(정보원) 첩보 쿨다운 — 장시간 유지 (스팸 방지)
         const float AttackSetTargetSec = 1f;    // 추종 위치 갱신 주기
 
         // 범위
@@ -215,6 +217,7 @@ namespace ProjectName.Systems
                 case GuardTask.Gather:  RoutineGather(guard);  break;
                 case GuardTask.Hunt:    RoutineHunt(guard);    break;
                 case GuardTask.Farm:    RoutineFarm(guard);    break;
+                case GuardTask.Envoy:   RoutineEnvoy(guard);   break;
             }
         }
 
@@ -385,6 +388,92 @@ namespace ProjectName.Systems
             }
 
             CooldownStamp(guard, FarmCooldownSec);
+        }
+
+        /// <summary>
+        /// 🕵️ Envoy(특사) — 적(미소유) 영지로 잠입해 영주/병력 정보를 수집한다.
+        /// SpySystem.SendSpy를 경유하므로 민첩(GetAgility)이 높을수록 발각 확률이 낮다(SpySystem 민첩 보정).
+        /// 발각되면 SpySystem이 정보원을 처형(EXECUTION_DAMAGE)하며, 안전망으로 즉시 사망 처리한다.
+        /// </summary>
+        private void RoutineEnvoy(GuardPlaceholder guard)
+        {
+            if (!CooldownReady(guard, EnvoyCooldownSec)) return;
+
+            // 타겟: 플레이어 소유가 아닌 가장 가까운 영지 (적/무주지 잠입)
+            TerritoryId targetId = FindNearestEnemyTerritoryId(guard);
+            if (targetId.Equals(default) || TerritoryDatabase.Instance == null)
+            {
+                CooldownStamp(guard, EnvoyCooldownSec);
+                return;
+            }
+
+            TerritoryDefinition targetDef = TerritoryDatabase.Instance.GetDefinition(targetId);
+            string targetName = string.IsNullOrEmpty(targetDef.territoryName)
+                ? targetId.ToString()
+                : targetDef.territoryName;
+
+            // 영주 정보(Lv.5+) + 병력 정보(Lv.10+) 수집 — 레벨 미달은 SpySystem이 Fail 반환.
+            SpySystem.SpyResult lord = SpySystem.SendSpy(guard, targetId, SpySystem.SpyMission.LordInfo);
+            SpySystem.SpyResult troop = SpySystem.SendSpy(guard, targetId, SpySystem.SpyMission.TroopInfo);
+
+            // 발각 시 — SpySystem이 이미 처형(EXECUTION_DAMAGE). 안전망으로 즉시 사망 처리.
+            if (lord.detected || troop.detected)
+            {
+                if (guard.IsAlive)
+                    guard.TakeDamage(999999f, Vector3.zero, "melee");
+                Debug.Log($"{LogTag} 💀 정보원 {guard.GuardName}이(가) {targetName} 잠입 중 발각되어 처형되었습니다.");
+                CooldownStamp(guard, EnvoyCooldownSec);
+                return;
+            }
+
+            // 성공한 임무의 정보를 합산한 첩보 보고서 구성
+            var report = new List<string>();
+            if (lord.success && !string.IsNullOrEmpty(lord.infoGathered))
+                report.Add(lord.infoGathered);
+            if (troop.success && !string.IsNullOrEmpty(troop.infoGathered))
+                report.Add(troop.infoGathered);
+
+            // 재화/보물 정보 추가 (TerritoryState에 실제 필드가 없어 추정 지수로 보고)
+            AppendTreasuryInfo(targetDef, report);
+
+            string summary = string.Join("\n", report.ToArray());
+            if (string.IsNullOrEmpty(summary)) summary = "(수집된 정보 없음 — 레벨 부족 등)";
+            Debug.Log($"{LogTag} 🕵️ {guard.GuardName} 특사 첩보 보고 [{targetName}]\n{summary}");
+
+            CooldownStamp(guard, EnvoyCooldownSec);
+        }
+
+        /// <summary>
+        /// 특사 잠입 타겟 — 플레이어 소유 영지를 제외한 가장 가까운 영지 정의 선택.
+        /// (GuardTaskSystem.ResolveGuardTerritory로 자기가 소속된 영지는 제외.)
+        /// </summary>
+        private TerritoryId FindNearestEnemyTerritoryId(GuardPlaceholder guard)
+        {
+            if (TerritoryDatabase.Instance == null) return default;
+            TerritoryId own = ResolveGuardTerritory(guard);
+            TerritoryId best = default;
+            float bestDist = float.MaxValue;
+            foreach (var def in TerritoryDatabase.Instance.GetAllDefinitions())
+            {
+                if (def.id.Equals(own)) continue;
+                TerritoryState st = TerritoryDatabase.Instance.GetState(def.id);
+                if (st != null && st.ownership == TerritoryOwnership.PlayerOwned) continue; // 아군 영지 제외
+                float d = Vector3.Distance(guard.transform.position, def.worldPosition);
+                if (d < bestDist) { bestDist = d; best = def.id; }
+            }
+            return best;
+        }
+
+        /// <summary>
+        /// 첩보 보고에 재화/보물 정보를 추가한다.
+        /// TerritoryState에는 treasury/gold/보물 전용 공개 필드가 없어 실제 재화량은 읽지 못한다 —
+        /// 대신 영지 난이도 링 기반 "보물 지수(추정)"를 보고에 담아 목표 재화/보물 안내를 남긴다.
+        /// (향후 TerritoryState에 treasury 필드가 추가되면 여기서 실제 값을 조회·추가.)
+        /// </summary>
+        private static void AppendTreasuryInfo(TerritoryDefinition def, List<string> report)
+        {
+            int treasureIndex = 1 + (int)def.difficulty; // Ring1=1 ~ Empire=5
+            report.Add($"재화/보물: 유력 (추정 지수 {treasureIndex})");
         }
 
         // ================================================================

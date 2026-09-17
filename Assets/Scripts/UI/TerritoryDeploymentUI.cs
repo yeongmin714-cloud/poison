@@ -20,6 +20,9 @@ namespace ProjectName.Systems
         private bool _pickingAttack = false;
         private TerritoryId _pickSourceId;
 
+        // 특사(정보원) 대상 선택 상태
+        private bool _pickingEnvoy = false;
+
         private float _uiScale = 1f;
         private Font _cachedFont;
 
@@ -92,6 +95,30 @@ namespace ProjectName.Systems
                     if (GUILayout.Button("🌾 농경", btnStyle))
                         AssignTerritoryRole(def.id, GuardTaskSystem.GuardTask.Farm);
                     GUILayout.EndHorizontal();
+
+                    // ── 특사(정보원) 배치 — 대상 영지 선택 후 Envoy 역할 배정 ──
+                    GUILayout.BeginHorizontal();
+                    if (GUILayout.Button("🕵️ 특사", btnStyle))
+                    {
+                        _pickingEnvoy = true;
+                        _pickSourceId = def.id;
+                    }
+                    GUILayout.EndHorizontal();
+
+                    // 특사(정보원) 대상 선택 (선택 시에만 표시) — 적(미소유) 영지 후보 재사용
+                    if (_pickingEnvoy && _pickSourceId.Equals(def.id))
+                    {
+                        foreach (var targetDef in GetAttackTargets(def.id))
+                        {
+                            if (GUILayout.Button($"🕵️ → {targetDef.territoryName} ({targetDef.id})", btnStyle))
+                            {
+                                AssignTerritoryRole(def.id, GuardTaskSystem.GuardTask.Envoy);
+                                _pickingEnvoy = false;
+                            }
+                        }
+                        if (GUILayout.Button("대상 선택 취소", btnStyle))
+                            _pickingEnvoy = false;
+                    }
 
                     // 공격 대상 선택 (선택 시에만 표시)
                     if (_pickingAttack && _pickSourceId.Equals(def.id))

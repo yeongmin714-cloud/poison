@@ -41,6 +41,8 @@ namespace ProjectName.Systems
         public const float BASE_DETECT_CHANCE = 0.3f;       // 기본 30%
         public const float LEVEL_DETECT_REDUCTION = 0.008f; // 정보원 레벨 1당 -0.8%
         public const float LOYALTY_DETECT_REDUCTION = 0.005f; // 호감도 1당 -0.5%
+        public const float AGILITY_DETECT_REDUCTION = 0.004f; // 민첩 1당 발각 확률 -0.4% (특사/정보원 — 높은 민첩=높은 성공)
+        public const float MIN_DETECT_CHANCE = 0.02f;         // 발각 확률 최소 2% (완전 면역 방지)
         public const float DIFFICULTY_DETECT_INCREASE = 0.05f; // 난이도 링 1단계당 +5%
 
         // 임무 소요 시간 (초) — ROADMAP 기준 1일=30초로 환산
@@ -298,8 +300,10 @@ namespace ProjectName.Systems
             float chance = BASE_DETECT_CHANCE;
             chance -= state.loyaltyToPlayer * LOYALTY_DETECT_REDUCTION;
             chance -= spy.Level * LEVEL_DETECT_REDUCTION;
+            chance -= spy.GetAgility() * AGILITY_DETECT_REDUCTION; // 민첩 1당 발각 확률 -0.4% (높은 민첩 → 성공 확률 ↑)
             chance += GetDifficultyModifier(def.difficulty);
-            return Mathf.Clamp01(chance);
+            // 발각 확률 최소 2% 유지 (민첩/호감도가 아무리 높아도 완전 면역 없음)
+            return Mathf.Max(MIN_DETECT_CHANCE, Mathf.Clamp01(chance));
         }
 
         private static float GetDifficultyModifier(TerritoryDifficulty difficulty)

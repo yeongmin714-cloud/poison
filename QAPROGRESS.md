@@ -4,7 +4,27 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-17 (영지 병사 역할 배치 — 사냥/공격/수비/채집/농경)
+> **최종 갱신:** 2026-09-17 (영지 병사 역할 배치 + 특사(Envoy))
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-17 ✅ 특사(Envoy) 역할 — 민첩 기반 잠입 정보수집 + 발각 시 처형)
+
+> **입력**: 영지 역할에 **특사** 추가 — 민첩이 높을수록 성공, 다른 영지에 잠입해 정보(병사 수/레벨·왕의 선호음식·재화·보물) 수집, 노출 시 즉각 처형. 기존 **SpySystem**이 동일 구조(선호음식/병력 Info, 발각=EXECUTION_DAMAGE) 재사용으로 확장.
+
+### 변경 사항 (3파일)
+**`Systems/SpySystem.cs`**: 발각확률에 **민첩 감소** 추가 — `AGILITY_DETECT_REDUCTION=0.004f`(민첩1당 -0.4%)+`MIN_DETECT_CHANCE=0.02f`, `CalculateDetectChance`에서 `-spy.GetAgility()*…` 반영(레벨/호감도 감소 유지). **발각 시 즉시 처형(TakeDamage 9999) 유지**.
+**`Systems/GuardTaskSystem.cs`**: `GuardTask.Envoy` 추가 + `RoutineEnvoy` — `FindNearestEnemyTerritoryId`(가장 가까운 비소유 영지) 선택, `SpySystem.SendSpy(LordInfo+TroopInfo)`로 정보수집, detective시 SpySystem이 처형+안전망 TakeDamage(999999), 수집 정보+재화(난이도 추정 지수)를 Debug.Log 보고. 쿨다운 30s.
+**`UI/TerritoryDeploymentUI`**: 🕵️ **특사** 버튼 + 대상 영지 target-pick(기존 GetAttackTargets 재사용, `_pickingEnvoy` 패턴) → `AssignTerritoryRole(Envoy)`.
+
+### 컴파일/QA
+- 배치컴파일 **error CS=0**(exit 0) — Systems/UI.dll 갱신 + 심볼(GuardTask 6·RoutineEnvoy 1·AGILITY_DETECT_REDUCTION 1).
+- Play 판정 대기: ①특사 버튼+대상 영지 선택 ②민첩 높은 병사=성공확률↑ ③정보(병사수/레벨·선호음식·재화 추정) 수집 보고 ④발각 시 즉각 처형(병사 소멸+드랍).
+- 노트: TerritoryState에 금/보물 실필드 없음 → 난이도 추정 지수로 대체(실재화 필드 추가 시 교체). GuardPlaceholder `_statusMessage` public setter 없음 → 정보는 Debug.Log(월드 버블 표시 원하면 setter 추가).
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-17 ✅ 영지 병사 역할 배치 — GuardTaskSystem)
 
 ---
 
