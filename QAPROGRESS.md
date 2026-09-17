@@ -4,7 +4,22 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-17 (병사 스탯 랜덤 분배 + 정보보기 2분할 + 장비/물약 지수파일)
+> **최종 갱신:** 2026-09-17 (영지 병사 역할 배치 — 사냥/공격/수비/채집/농경)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-17 ✅ 영지 병사 역할(task) 배치 — GuardTaskSystem)
+
+> **입력**: 영지 창(TerritoryDeploymentUI)에 역할 선택 추가 — 사냥/공격/수비/채집/농경. 공격=플레이어 동행, 수비=문지기, 채집=근처 약초(확률), 사냥=근처 몬스터(확률 드랍+일정확률 사망), 농경=병사 농사.
+
+### 변경 사항 (신규 1 + 수정 3)
+**`Systems/GuardTaskSystem.cs`(신규)**: 싱글톤+Ensure. `enum GuardTask{None,Attack,Defend,Gather,Hunt,Farm}`+`AssignTask/AssignTerritoryTask/ReleaseTask`. 0.4s 루틴: **Attack**=플레이어 추종 / **Defend**=성문 앞 주둔 / **Gather**=`GatheringSystem.TryGather` 약초 / **Hunt**=몬스터 데미지+고기60%+**사망8%**(TakeDamage→Die) / **Farm**=`FarmingSystem.Plant/Harvest`.
+**`UI/TerritoryDeploymentUI`**: 영지별 **사냥/공격/수비/채집/농경** 5버튼→GuardTaskSystem 라우팅, 기존 해제 유지.
+**`CoreSystemsBootstrap`·`TestTerritoryCombatSetup`**: Ensure 와이어링.
+
+### 컴파일/QA
+- 배치컴파일 **error CS=0**(exit 0) — Systems/UI.dll 갱신 + 심볼(GuardTaskSystem 3/AssignTerritoryTask 1/GuardTask 4).
+- Play 판정 대기: ①5역할 버튼 ②공격=추종 ③수비=성문 ④채집=약초 ⑤사냥=고기+8%사망 ⑥농경 ⑦해제.
 
 ---
 

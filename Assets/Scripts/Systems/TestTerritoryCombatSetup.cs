@@ -118,6 +118,7 @@ namespace ProjectName.Systems
             ContextCommandRouter.Ensure(gm);       // 커서 시스템(OS커서 Ctrl표시·컸텍스트 아이콘)+좌클릭 병사명령 자가확보
             FarmingSystem.Ensure(gm);              // 경지(농사) — 약초 파종→성장→수확
             GatheringSystem.Ensure(gm);            // 채집(풀) — 약초 리스폰
+            GuardTaskSystem.Ensure(gm);            // 병사 역할(사냥/공격동행/수비문지기/채집/농경) 자동 수행
             // [59차 후속] 드래그 단체 지정 — Test_10은 CoreSystemsBootstrap 미실행이라
             // GuardSelectionManager(좌클릭 드래그 병사 선택)가 생성되지 않아 '내 병사 드래그 지정 모션'이 안 됐다.
             if (Object.FindAnyObjectByType<GuardSelectionManager>(FindObjectsInactive.Include) == null)

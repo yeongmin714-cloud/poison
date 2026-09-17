@@ -47,6 +47,9 @@ public class CoreSystemsBootstrap : MonoBehaviour
         FarmingSystem.Ensure();
         GatheringSystem.Ensure();
 
+        // 3-6-1. GuardTaskSystem 생성 (없는 경우) — 영지 병사 역할(사냥/공격동행/수비문지기/채집/농경) 자동 수행
+        GuardTaskSystem.Ensure();
+
         // 3-4. EquipmentManager 생성 (없는 경우) — 장비 슬롯 관리 (2026-09-14: 장착 안 되는 버그 수정)
         EnsureEquipmentManager();
 

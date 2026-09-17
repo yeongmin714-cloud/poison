@@ -79,6 +79,20 @@ namespace ProjectName.Systems
                     }
                     GUILayout.EndHorizontal();
 
+                    // ── 역할 배정 5종 (GuardTaskSystem) — 사냥/공격/수비/채집/농경 (해제는 위 ⏹️ 해제 버튼 유지) ──
+                    GUILayout.BeginHorizontal();
+                    if (GUILayout.Button("🏹 사냥", btnStyle))
+                        AssignTerritoryRole(def.id, GuardTaskSystem.GuardTask.Hunt);
+                    if (GUILayout.Button("⚔️ 공격(동행)", btnStyle))
+                        AssignTerritoryRole(def.id, GuardTaskSystem.GuardTask.Attack);
+                    if (GUILayout.Button("🛡️ 수비(문지기)", btnStyle))
+                        AssignTerritoryRole(def.id, GuardTaskSystem.GuardTask.Defend);
+                    if (GUILayout.Button("🌿 채집", btnStyle))
+                        AssignTerritoryRole(def.id, GuardTaskSystem.GuardTask.Gather);
+                    if (GUILayout.Button("🌾 농경", btnStyle))
+                        AssignTerritoryRole(def.id, GuardTaskSystem.GuardTask.Farm);
+                    GUILayout.EndHorizontal();
+
                     // 공격 대상 선택 (선택 시에만 표시)
                     if (_pickingAttack && _pickSourceId.Equals(def.id))
                     {
@@ -114,6 +128,22 @@ namespace ProjectName.Systems
                     result.Add(def);
             }
             return result;
+        }
+
+        /// <summary>
+        /// 영지 병사에게 역할(GuardTask)을 배정한다 — GuardTaskSystem 경유.
+        /// 시스템 인스턴스가 없으면 지연 Ensure한 뒤 배정 (사냥/공격동행/수비문지기/채집/농경 공용).
+        /// </summary>
+        private void AssignTerritoryRole(TerritoryId id, GuardTaskSystem.GuardTask task)
+        {
+            GuardTaskSystem system = GuardTaskSystem.Instance != null ? GuardTaskSystem.Instance : GuardTaskSystem.Ensure();
+            if (system == null)
+            {
+                Debug.LogWarning("[TerritoryDeploymentUI] GuardTaskSystem 미생성 — 역할 배정 실패");
+                return;
+            }
+            int n = system.AssignTerritoryTask(id, task);
+            Debug.Log($"[TerritoryDeploymentUI] 영지 {id} → {task} ({n}명 배정)");
         }
 
         /// <summary>공격 대상 후보 (자기 자신 제외 — 아직 점령 안 된/타 소유 영지 포함)</summary>
