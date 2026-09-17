@@ -104,3 +104,40 @@
   - G-2: 왼쪽=인벤토리 / 오른쪽=창고·전리품 / 상단=체력·미니맵 / 하단=핫바 위치 **유지**하며 디자인만 교체.
   - G-3: 전 기존 창(UIStyleManager 참조 창 전수) + 신규 창 생성 시 §1~§3 준수.
   - G-4: 배치컴파일 error CS=0 + Play 시각 검증(가독성/스케일/테두리).
+
+---
+
+## UTK (UI Toolkit) 표준 — Phase 68 (2026-09-18)
+
+> 모든 신규 UI는 UI Toolkit(UXML/USS) — IMGUI 신규 금지. 계획서: docs/UI_TOOLKIT_MIGRATION.md
+
+### 토큰 이식 (Theme.uss `:root` 변수)
+| 기존 토큰 | USS 변수 |
+|:--|:--|
+| BgPanel #1C1C1C E0 | `--c-bg-panel` |
+| BgPanelDark #141414 E8 | `--c-bg-panel-dark` |
+| BorderBronze #8C6B3F | `--c-border-bronze` |
+| BorderGold #C9A227 | `--c-border-gold` |
+| TextPrimary #F5EFE0 | `--c-text-primary` |
+| TextSecondary #B9B3A6 | `--c-text-secondary` |
+| AccentMagic #4A7BD0 | `--c-accent-magic` |
+| AccentRare #E7B73A | `--c-accent-rare` |
+| HoverGold #D9B45B | `--c-hover-gold` |
+| 등급 6종 | `--c-rank-common`~`--c-rank-unique` |
+
+### 폰트 5단 (기존 UIFont 계승)
+`--fs-xl: 60px` / `--fs-lg: 38px` / `--fs-md: 24px` / `--fs-sm: 17px` / `--fs-xs: 13px`
+실제 폰트는 `UTKWindowBase.ApplyUIToolkitFont(VisualElement)`로 적용.
+
+### 레이아웃 관례 (유지)
+좌: 인벤 / 우: 창고·장비 · 전리품=우측 2S/3+6(높이 Screen-180) · 월드맵=양피지+정규화 좌표
+
+### 엔진 규약 (마이그레이션 중 확립)
+1. IStyle은 셔스루햇 없음 — margin/padding/borderColor/borderWidth 반드시 Top/Bottom/Left/Right 4면 개별
+2. 폴링 = `element.schedule.Execute(Action).Every(ms)` → `IVisualElementScheduledItem`, 정지=`Pause()`
+3. static Toggle = `if (_instance != null && _instance.IsOpen) { _instance.Close(); return; } Ensure();`
+4. DropdownField는 3-arg `(label, choices, defaultIndex)`만 안전
+5. 보간문자열(`$"..."`) 내 중첩 따옴표 금지 — `+` 문자열 연결로 재구성
+6. 구조체 반환 API(GetDefinition 등) null 비교 불가 — 필드 빈값 체크(IsNullOrEmpty)
+7. Systems→UI 순환참조 회피: 정적 이벤트(OnXxxRequestedUTK) + UTKWireUp 구독 브리지, 폴백 내장
+8. 호버/프레스 상태: USS `:hover` + UTKButton.Variant(Primary/Secondary/Danger)

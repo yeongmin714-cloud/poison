@@ -76,8 +76,18 @@ namespace ProjectName.Systems
         /// 플레이어가 이 침대와 상호작용할 때 호출됩니다.
         /// SleepUI.Instance.Show()를 통해 수면 옵션 UI를 띄웁니다.
         /// </summary>
+        /// <summary>[U8 배선] UTK 수면 UI 우선 경로 — UI 어셈블리가 구독(UTKWireUp). 미구독 시 기존 경로.</summary>
+        public static event System.Action<Bed> OnInteractRequestedUTK;
+
         public void OnInteract()
         {
+            // [U8 배선] UTK 우선 — 구독자가 처리하면 리턴, 아니면 기존 IMGUI 경로 유지
+            if (OnInteractRequestedUTK != null)
+            {
+                OnInteractRequestedUTK.Invoke(this);
+                return;
+            }
+
             if (SleepUI.Instance != null)
             {
                 SleepUI.Instance.Show(this);

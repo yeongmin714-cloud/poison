@@ -8,6 +8,28 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U8 — 호출부 배선(이벤트 브리지) + UTK 표준 가이드 확정)
+
+> **입력**: 마이그레이션 계획 U8 — 호출부 배선 회귀 최상급 단계. **순환참조 회피 이벤트 브리지 패턴**으로 최소 침습 배선(침대 수면+전리품 바구니 2경로 우선), 가이드 UTK 표준 확정.
+
+### 변경 사항 (수정 2 + 신규 1 + 문서)
+**`Systems/Bed.cs`**: `OnInteractRequestedUTK` 정적 이벤트 추가 — OnInteract에서 UTK 구독자 우선(무구독 시 기존 SleepUI 경로 100% 유지).
+**`Systems/LootBasket.cs`**: `OnOpenLootWindowRequestedUTK` 정적 이벤트 + `InvokeLegacyOpenRequest()` 공개 폴백(이벤트는 외부 Invoke 불가 — CS0079) 추가.
+**`UI/Toolkit/UTKWireUp.cs`(신규)**: RuntimeInitializeOnLoadMethod(AfterSceneLoad)에서 2이벤트 구독 — UIRoot 준비 시 UTK 창, 미준비 시 **원본 IMGUI 자동 폴백**. 제거 한 줄로 100% 원본 회귀(되돌리기 보장).
+**docs/UI_DESIGN_GUIDELINES.md**: UTK 표준 섹션 추가 — 팔레트→USS 변수 매핑표, 폰트 5단, 레이아웃 관례, **엔진 규약 8종** 확정.
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0) — 수리 3건: void Ensure() null 비교(CS0019), 이벤트 외부 Invoke 금지(CS0079 → InvokeLegacyOpenRequest 우회), ILootBasket→LootBasket 캐스트.
+- **규약 신규 확정**: Systems→UI 호출은 정적 이벤트+UI 구독 브리지(폴백 내장) — 직접 참조/리플렉션 금지.
+- Play 판정 대기: ①침대 E키 → SleepUTK 표시(수면 위임+여기서세이브) ②바구니 E키 → LootWindowUTK(우클릭 획득/드래그 수령) ③UTK 루트 미준비 시나리오 폴백 로그 확인.
+
+### 남은 항목 (후속 세션)
+- 배선 확대: 상점/상태창/인벤 키·가드정보 등 창 단위 점진 전환(같은 브리지 패턴 반복)
+- HUDUTK↔QuickSlotUTK 하단 겹침 해소(하나 은퇴)
+- Play 렌더 종합 검증 후 구 IMGUI 폐기(LEGACY 제거)+git 태그
+
+---
+
 ## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U7 — HUD/오버레이 UTK 7창 + 유지 판정 확정)
 
 > **입력**: 마이그레이션 계획 U7 — 원본 3,406줄 HUD 7종(HUD 1098/부대핫바 796/미니맵 614/시간/전쟁알림/전투로그/약초). 서브에이전트 3병렬 전원 성공.

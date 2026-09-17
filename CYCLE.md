@@ -588,3 +588,8 @@
 - Status: ✅
 - Details: HUD(415 체력/퀵슬롯/EXP)+GuardSquadHotbar(428 리플렉션 공유)+Minimap(440 스플랫+마커)+Time(162)/War(173)/CombatLog(224 L키)/Herb(233) = 7파일 2,075줄, 원본 0변경. 배치컴파일 error CS=0(LogType 한정/backgroundPosition/textOverflow 수리). 유지 확정: 월드스페이스 6종+디버그 IMGUI. 호출부 배선은 U8
 - Date: 2026-09-18
+
+# Cycle: Phase 68 U8 — 호출부 배선(이벤트 브리지)+UTK 가이드 확정
+- Status: 🔄 (Play 검증 후 폐기 단계 잔여)
+- Details: Bed/LootBasket에 OnXxxRequestedUTK 정적 이벤트+UTKWireUp 구독 브리지(UTK 우선·원본 폴백 내장·제거 한 줄 회귀). UI_DESIGN_GUIDELINES에 UTK 표준 섹션(팔레트 매핑/엔진 규약 8종). 배치컴파일 error CS=0(CS0019/CS0079/캐스트 수리). 후속: 배선 확대/HUD 겹침 해소/Play 검증/폐기
+- Date: 2026-09-18

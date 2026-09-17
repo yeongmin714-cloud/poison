@@ -277,6 +277,21 @@ namespace ProjectName.Systems
         /// LootWindow를 열기 위한 정적 이벤트 — UIManager가 구독하여 처리합니다.
         /// </summary>
         public static event System.Action<ILootBasket> OnOpenLootWindowRequested;
+
+        /// <summary>[U8 배선] UTK 전리품 창 우선 경로 — UI 어셈블리가 구독(UTKWireUp). 미구독 시 기존 이벤트.</summary>
+        public static event System.Action<ILootBasket> OnOpenLootWindowRequestedUTK;
+
+        /// <summary>[U8 배선] 폴백용 — 기존 LootWindow 열기 요청(외부에서 이벤트 Invoke 불가해 public 메서드로 우회).</summary>
+        public void InvokeLegacyOpenRequest()
+        {
+            if (OnOpenLootWindowRequested != null)
+                OnOpenLootWindowRequested.Invoke(this);
+            else
+            {
+                Debug.LogWarning("[LootBasket] LootWindow handler가 없어 직접 루팅합니다.");
+                TakeAll();
+            }
+        }
         private void OpenForLoot()
         {
             if (_isLooted) return;
@@ -290,6 +305,13 @@ namespace ProjectName.Systems
 
             HidePrompt();
             _playerNearby = false; // 프롬프트 상태 리셋 — LootWindow 닫힌 후 재표시 가능하도록
+
+            // [U8 배선] UTK 우선 — 구독자가 처리하면 리턴, 아니면 기존 LootWindow 이벤트 유지
+            if (OnOpenLootWindowRequestedUTK != null)
+            {
+                OnOpenLootWindowRequestedUTK.Invoke(this);
+                return;
+            }
 
             if (OnOpenLootWindowRequested != null)
             {

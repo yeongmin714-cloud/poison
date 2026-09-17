@@ -1,41 +1,32 @@
 [Licensing::Module] Trying to connect to existing licensing client channel...
 Built from '6000.4/staging' branch; Version is '6000.4.10f1 (feeafc12a938) revision 16706300'; Using compiler version '194234433'; Build Type 'Release'
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-09-17T19:03:32.6776047Z"
 OS: 'Windows 10  (10.0.19045) 64bit Core' Language: 'ko' Physical Memory: 7880 MB
 BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
 System  architecture: x64
 Process architecture: x64
-Date: 2026-09-17T19:03:32Z
+Date: 2026-09-17T20:15:05Z
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-09-17T20:15:05.8314612Z"
 [Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 3220, path: "C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
 [Licensing::Module] LicensingClient has failed validation; ignoring
-[Licensing::Client] Handshaking with LicensingClient:
-  Version:                 1.18.1+9fbee8e
-  Session Id:              5b95acd1b5134ea3babfe0ae72538a07
-  Correlation Id:          4544091c8d567265a1a500d64ab6d873
-  External correlation Id: 2691529939603148485
-  Machine Id:              5cJWr0XiXK4/b2/xsaHUUO6HAA8=
-[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-korea" (connect: 0.00s, validation: 0.00s, handshake: 0.11s)
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-09-17T19:03:32.7904695Z"
-[Licensing::Module] Error: Access token is unavailable; failed to update
-[Licensing::Client] Successfully resolved entitlement details
-[Licensing::Module] License group:
-  Id: 14569764733855-UnityPersXXXX
-  Product: Unity Personal
-  Type: Assigned
-  Expiration: Unlimited
-[Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
-[Licensing::Client] Successfully resolved entitlement details
-[Licensing::Module] Licensing Background thread has ended after 0.13s
 
 COMMAND LINE ARGUMENTS:
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.1+9fbee8e
+  Session Id:              2ec284af941f4d5497f53b5c04e2189f
+  Correlation Id:          4544091c8d567265a1a500d64ab6d873
+  External correlation Id: 384307267661456875
+  Machine Id:              5cJWr0XiXK4/b2/xsaHUUO6HAA8=
 Unity.exe
 -quit
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-korea" (connect: 0.00s, validation: 0.00s, handshake: 0.15s)
 -batchmode
 -projectPath
 C:\Unity\code
 -executeMethod
 TestCompile.CompileTest
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-09-17T20:15:05.9810135Z"
 -logFile
+[Licensing::Module] Error: Access token is unavailable; failed to update
 C:\Unity\code\compile.log
 Successfully changed project path to: C:\Unity\code
 C:/Unity/code
@@ -74,18 +65,27 @@ C:/Unity/code
     "memorysetup-job-temp-allocator-block-size=2097152"
     "memorysetup-job-temp-allocator-block-size-background=1048576"
     "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
-Player connection [13188]  Target information:
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 14569764733855-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
+Player connection [12860]  Target information:
 
-Player connection [13188]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 4226320898 [EditorId] 4226320898 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [12860]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 1694288747 [EditorId] 1694288747 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [13188]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 4226320898 [EditorId] 4226320898 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [12860]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 1694288747 [EditorId] 1694288747 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [13188] Host joined multi-casting on [225.0.0.222:54997]...
-Player connection [13188] Host joined alternative multi-casting on [225.0.0.222:34997]...
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Licensing Background thread has ended after 0.19s
+Player connection [12860] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [12860] Host joined alternative multi-casting on [225.0.0.222:34997]...
 Input System module state changed to: Initialized.
 [Physics::Module] Initialized fallback backend.
 [Physics::Module] Id: 0xdecafbad
-[Package Manager] Connected to IPC stream "Upm-7048" after 0.4 seconds.
+[Package Manager] Connected to IPC stream "Upm-13916" after 0.4 seconds.
 [Licensing::Client] Successfully resolved entitlement details
 Library Redirect Path: Library/
 [Physics::Module] Selected backend.
@@ -112,7 +112,7 @@ Initialize mono
 Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Managed'
 Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
 Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/etc'
-Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56048
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56916
 CodeReloadManager initialized
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
@@ -122,30 +122,30 @@ Begin MonoManager ReloadAssembly
 Registering precompiled unity dll's ...
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
-Registered in 0.005368 seconds.
+Registered in 0.005188 seconds.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 Package Manager log level set to [2]
 ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.706 seconds
-Domain Reload Profiling: 1480ms
-	BeginReloadAssembly (256ms)
-		CreateAndSetChildDomain (3ms)
-	RebuildCommonClasses (57ms)
+- Finished resetting the current domain, in  0.707 seconds
+Domain Reload Profiling: 1525ms
+	BeginReloadAssembly (264ms)
+		CreateAndSetChildDomain (17ms)
+	RebuildCommonClasses (67ms)
 	RebuildNativeTypeToScriptingClass (20ms)
-	initialDomainReloadingComplete (120ms)
-	LoadAllAssembliesAndSetupDomain (319ms)
-		LoadAssemblies (249ms)
-		AnalyzeDomain (305ms)
-			TypeCache.Refresh (303ms)
-				TypeCache.ScanAssembly (283ms)
-	FinalizeReload (708ms)
+	initialDomainReloadingComplete (119ms)
+	LoadAllAssembliesAndSetupDomain (346ms)
+		LoadAssemblies (245ms)
+		AnalyzeDomain (328ms)
+			TypeCache.Refresh (326ms)
+				TypeCache.ScanAssembly (306ms)
+	FinalizeReload (710ms)
 		SetupLoadedEditorAssemblies (0ms)
-			InitializePlatformSupportModulesInManaged (75ms)
-			BeforeProcessingInitializeOnLoad (143ms)
+			InitializePlatformSupportModulesInManaged (83ms)
+			BeforeProcessingInitializeOnLoad (145ms)
 			ProcessInitializeOnLoadAttributes (175ms)
-			ProcessInitializeOnLoadMethodAttributes (196ms)
+			ProcessInitializeOnLoadMethodAttributes (198ms)
 [Licensing::Client] Successfully resolved entitlement details
 Application.AssetDatabase Initial Refresh Start
 [Package Manager] Restoring resolved packages state from cache
@@ -226,7 +226,7 @@ Application.AssetDatabase Initial Refresh Start
     com.unity.collections@6.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.collections@5b6ebd78ccc0)
 [Package Manager] com.unity.textmeshpro is deprecated: This package is no longer supported. TextMeshPro functionalities are now included in the com.unity.ugui package. To continue using them, consider adding it to your project dependencies.
 [Subsystems] No new subsystems found in resolved package list.
-[Package Manager] Done registering packages in 0.04 seconds
+[Package Manager] Done registering packages in 0.03 seconds
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
 [ScriptCompilation] Requested script compilation because: AssetDatabase observed changes in script compilation related files
@@ -245,7 +245,7 @@ info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 52.5587ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 44.2742ms
 Starting: C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
 WorkingDir: C:/Unity/code
 DisplayProgressbar: Compiling Scripts
@@ -264,7 +264,7 @@ info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 108.0463ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 106.7842ms
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
@@ -280,7 +280,7 @@ info: Unity.ILPP.Runner.PostProcessingPipeline[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 67.9228ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 244.7806ms
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
@@ -299,16 +299,16 @@ info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
       Resolved UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
       Resolved Unity.Burst.Cecil.Rocks, Version=0.11.6.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@6bb9aca3ef38\Unity.Burst.CodeGen\Unity.Burst.Cecil.Rocks.dll
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 3034.0512ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 2721.3121ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 383 references
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
@@ -320,25 +320,55 @@ info: Unity.ILPP.Runner.PostProcessingPipeline[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 423.5982ms
-ExitCode: 0 Duration: 9s549ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 286.0404ms
+ExitCode: 0 Duration: 14s
 [1083/1423  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
-[1411/1423  3s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll (+2 others)
-Assets\Scripts\UI\EquipmentWindow.cs(105,28): warning CS0114: 'EquipmentWindow.Toggle()' hides inherited member 'UIWindow.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
+[1411/1423  1s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll (+2 others)
 Assets\Scripts\UI\Toolkit\AchievementUTK.cs(55,28): warning CS0114: 'AchievementUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\GameStatsUTK.cs(59,28): warning CS0114: 'GameStatsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
 Assets\Scripts\UI\Toolkit\AlchemyStationUTK.cs(45,28): warning CS0114: 'AlchemyStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\GasSprayUTK.cs(39,28): warning CS0114: 'GasSprayUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\NPCDialogueUTK.cs(49,28): warning CS0114: 'NPCDialogueUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\ArenaBattleUTK.cs(52,28): warning CS0114: 'ArenaBattleUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\ArenaMenuUTK.cs(57,28): warning CS0114: 'ArenaMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\ChurchUTK.cs(41,28): warning CS0114: 'ChurchUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\ChurchUTK.cs(59,32): warning CS0108: 'ChurchUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
+
+Assets\Scripts\UI\Toolkit\CookingWindowUTK.cs(46,28): warning CS0114: 'CookingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\EquipmentWindow.cs(105,28): warning CS0114: 'EquipmentWindow.Toggle()' hides inherited member 'UIWindow.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\CraftingWindowUTK.cs(58,28): warning CS0114: 'CraftingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\GameStatsUTK.cs(59,28): warning CS0114: 'GameStatsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(54,28): warning CS0114: 'DynamicEventUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(60,28): warning CS0114: 'DynamicEventUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\GasSprayUTK.cs(39,28): warning CS0114: 'GasSprayUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\EncyclopediaWindowUTK.cs(63,28): warning CS0114: 'EncyclopediaWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\EnvoyMissionUTK.cs(46,28): warning CS0114: 'EnvoyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\EquipmentWindowUTK.cs(46,28): warning CS0114: 'EquipmentWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\FastTravelUTK.cs(45,28): warning CS0114: 'FastTravelUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\FestivalUTK.cs(55,28): warning CS0114: 'FestivalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\FestivalUTK.cs(61,28): warning CS0114: 'FestivalUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\NPCDialogueUTK.cs(49,28): warning CS0114: 'NPCDialogueUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\FishingUTK.cs(131,28): warning CS0114: 'FishingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\MercyUTK.cs(173,28): warning CS0114: 'MercyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\OptionsUTK.cs(43,28): warning CS0114: 'OptionsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
@@ -346,75 +376,45 @@ Assets\Scripts\UI\Toolkit\TutorialGuideUTK.cs(77,28): warning CS0114: 'TutorialG
 
 Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(52,28): warning CS0114: 'PlayerFlagUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\ChurchUTK.cs(41,28): warning CS0114: 'ChurchUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\ChurchUTK.cs(59,32): warning CS0108: 'ChurchUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
-
 Assets\Scripts\UI\Toolkit\QuestChoiceUTK.cs(58,28): warning CS0114: 'QuestChoiceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\QuestJournalUTK.cs(62,28): warning CS0114: 'QuestJournalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\CookingWindowUTK.cs(46,28): warning CS0114: 'CookingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\QuestWindowUTK.cs(64,28): warning CS0114: 'QuestWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\CraftingWindowUTK.cs(58,28): warning CS0114: 'CraftingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(54,28): warning CS0114: 'DynamicEventUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(60,28): warning CS0114: 'DynamicEventUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(46,28): warning CS0114: 'ReadDocumentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(60,23): warning CS0108: 'ReadDocumentUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
-
-Assets\Scripts\UI\Toolkit\EncyclopediaWindowUTK.cs(63,28): warning CS0114: 'EncyclopediaWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\LockpickingUTK.cs(142,28): warning CS0114: 'LockpickingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\RepairStationUTK.cs(45,28): warning CS0114: 'RepairStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\RevengeListUTK.cs(46,28): warning CS0114: 'RevengeListUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(43,28): warning CS0114: 'WorldMapWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\EnvoyMissionUTK.cs(46,28): warning CS0114: 'EnvoyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\LordAudienceUTK.cs(49,28): warning CS0114: 'LordAudienceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\EquipmentWindowUTK.cs(46,28): warning CS0114: 'EquipmentWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\FastTravelUTK.cs(45,28): warning CS0114: 'FastTravelUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\SettingsMenuUTK.cs(49,28): warning CS0114: 'SettingsMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\MercyUTK.cs(173,28): warning CS0114: 'MercyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\FestivalUTK.cs(55,28): warning CS0114: 'FestivalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\FestivalUTK.cs(61,28): warning CS0114: 'FestivalUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\MercenaryHireUTK.cs(47,28): warning CS0114: 'MercenaryHireUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\FishingUTK.cs(131,28): warning CS0114: 'FishingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\SpyMissionUTK.cs(47,28): warning CS0114: 'SpyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\NPCDailyUTK.cs(37,28): warning CS0114: 'NPCDailyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\NPCDailyUTK.cs(43,28): warning CS0114: 'NPCDailyUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
+Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(46,28): warning CS0114: 'ReadDocumentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(60,23): warning CS0108: 'ReadDocumentUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
+
+Assets\Scripts\UI\Toolkit\QuestJournalUTK.cs(62,28): warning CS0114: 'QuestJournalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\RepairStationUTK.cs(45,28): warning CS0114: 'RepairStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\QuestWindowUTK.cs(64,28): warning CS0114: 'QuestWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\RevengeListUTK.cs(46,28): warning CS0114: 'RevengeListUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\SettingsMenuUTK.cs(49,28): warning CS0114: 'SettingsMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(43,28): warning CS0114: 'WorldMapWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\LockpickingUTK.cs(142,28): warning CS0114: 'LockpickingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\SpyMissionUTK.cs(47,28): warning CS0114: 'SpyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\LordAudienceUTK.cs(49,28): warning CS0114: 'LordAudienceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
 Assets\Scripts\UI\Toolkit\TerritoryDeploymentUTK.cs(44,28): warning CS0114: 'TerritoryDeploymentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\MercenaryHireUTK.cs(47,28): warning CS0114: 'MercenaryHireUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\TerritoryNPCSpawner.cs(259,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
 
 Assets\Scripts\UI\Toolkit\GuardSquadHotbarUTK.cs(334,38): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
 
-Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(193,22): warning CS0414: The field 'WorldMapWindowUTK._legacyMapPreviouslyOpen' is assigned but its value is never used
-
 Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(72,22): warning CS0414: The field 'PlayerFlagUTK._showMessage' is assigned but its value is never used
+
+Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(193,22): warning CS0414: The field 'WorldMapWindowUTK._legacyMapPreviouslyOpen' is assigned but its value is never used
 [1412/1423  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/ProjectName.UI.dll (+pdb)
 Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll, with 144 defines and 286 references
 
@@ -425,9 +425,19 @@ running Unity.Jobs.CodeGen.JobsILPostProcessor
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
 [1413/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.pdb
 [1414/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.dll
-[1415/1423  0s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll (+2 others)
+[1415/1423  4s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll (+2 others)
 Assets\Travis Game Assets\Hit Impact Effects\Demo Scene\Scripts\HitImpactEffectsPreview.cs(28,21): warning CS0108: 'HitImpactEffectsPreview.light' hides inherited member 'Component.light'. Use the new keyword if hiding was intended.
-[1416/1423  1s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
+[1416/1423  3s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 144 defines and 357 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1417/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.dll
+[1418/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.pdb
+[1419/1423  5s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
 Assets\Editor\DayNightCycleReferenceFixer.cs(24,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
 Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
@@ -440,15 +450,9 @@ Assets\Editor\FixAllCriticalIssues.cs(216,32): warning CS0618: 'Object.FindFirst
 
 Assets\Editor\FixAllCriticalIssues.cs(225,28): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
-Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-
 Assets\Editor\FixAllCriticalIssues.cs(242,25): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
-Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
-
-Assets\Editor\IndoorShellMenu.cs(30,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\Editor\IndoorShellMenu.cs(30,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
 Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
 
@@ -456,22 +460,18 @@ Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider'
 
 Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
 
+Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+
+Assets\Editor\IndoorShellMenu.cs(30,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Editor\IndoorShellMenu.cs(30,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
 Assets\Editor\FixMainScene.cs(938,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
-Assets\Editor\MonsterRigScanTool.cs(170,51): warning CS0184: The given expression is never of the provided ('AnimatorController') type
-
 Assets\Editor\VFXResourceInstaller.cs(279,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
-[1417/1423  3s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
-Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 144 defines and 357 references
 
-processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
-
-running Unity.Jobs.CodeGen.JobsILPostProcessor
-
-running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[1418/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.pdb
-[1419/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.dll
-[1420/1423  1s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
+Assets\Editor\MonsterRigScanTool.cs(170,51): warning CS0184: The given expression is never of the provided ('AnimatorController') type
+[1420/1423  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
 Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 383 references
 
 processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
@@ -481,53 +481,53 @@ running Unity.Jobs.CodeGen.JobsILPostProcessor
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
 [1421/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
 [1422/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
-*** Tundra build success (9.48 seconds), 13 items updated, 1423 evaluated
-Assets\Scripts\UI\EquipmentWindow.cs(105,28): warning CS0114: 'EquipmentWindow.Toggle()' hides inherited member 'UIWindow.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+*** Tundra build success (14.59 seconds), 13 items updated, 1423 evaluated
 Assets\Scripts\UI\Toolkit\AchievementUTK.cs(55,28): warning CS0114: 'AchievementUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\GameStatsUTK.cs(59,28): warning CS0114: 'GameStatsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\AlchemyStationUTK.cs(45,28): warning CS0114: 'AlchemyStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\GasSprayUTK.cs(39,28): warning CS0114: 'GasSprayUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\NPCDialogueUTK.cs(49,28): warning CS0114: 'NPCDialogueUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\ArenaBattleUTK.cs(52,28): warning CS0114: 'ArenaBattleUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\ArenaMenuUTK.cs(57,28): warning CS0114: 'ArenaMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ChurchUTK.cs(41,28): warning CS0114: 'ChurchUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ChurchUTK.cs(59,32): warning CS0108: 'ChurchUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
+Assets\Scripts\UI\Toolkit\CookingWindowUTK.cs(46,28): warning CS0114: 'CookingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\EquipmentWindow.cs(105,28): warning CS0114: 'EquipmentWindow.Toggle()' hides inherited member 'UIWindow.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\CraftingWindowUTK.cs(58,28): warning CS0114: 'CraftingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\GameStatsUTK.cs(59,28): warning CS0114: 'GameStatsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(54,28): warning CS0114: 'DynamicEventUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(60,28): warning CS0114: 'DynamicEventUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\GasSprayUTK.cs(39,28): warning CS0114: 'GasSprayUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\EncyclopediaWindowUTK.cs(63,28): warning CS0114: 'EncyclopediaWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\EnvoyMissionUTK.cs(46,28): warning CS0114: 'EnvoyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\EquipmentWindowUTK.cs(46,28): warning CS0114: 'EquipmentWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\FastTravelUTK.cs(45,28): warning CS0114: 'FastTravelUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\FestivalUTK.cs(55,28): warning CS0114: 'FestivalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\FestivalUTK.cs(61,28): warning CS0114: 'FestivalUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\NPCDialogueUTK.cs(49,28): warning CS0114: 'NPCDialogueUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\FishingUTK.cs(131,28): warning CS0114: 'FishingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\MercyUTK.cs(173,28): warning CS0114: 'MercyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\OptionsUTK.cs(43,28): warning CS0114: 'OptionsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\TutorialGuideUTK.cs(77,28): warning CS0114: 'TutorialGuideUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(52,28): warning CS0114: 'PlayerFlagUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ChurchUTK.cs(41,28): warning CS0114: 'ChurchUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ChurchUTK.cs(59,32): warning CS0108: 'ChurchUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
 Assets\Scripts\UI\Toolkit\QuestChoiceUTK.cs(58,28): warning CS0114: 'QuestChoiceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\QuestJournalUTK.cs(62,28): warning CS0114: 'QuestJournalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\CookingWindowUTK.cs(46,28): warning CS0114: 'CookingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\QuestWindowUTK.cs(64,28): warning CS0114: 'QuestWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\CraftingWindowUTK.cs(58,28): warning CS0114: 'CraftingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(54,28): warning CS0114: 'DynamicEventUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(60,28): warning CS0114: 'DynamicEventUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(46,28): warning CS0114: 'ReadDocumentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(60,23): warning CS0108: 'ReadDocumentUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
-Assets\Scripts\UI\Toolkit\EncyclopediaWindowUTK.cs(63,28): warning CS0114: 'EncyclopediaWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\LockpickingUTK.cs(142,28): warning CS0114: 'LockpickingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\RepairStationUTK.cs(45,28): warning CS0114: 'RepairStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\RevengeListUTK.cs(46,28): warning CS0114: 'RevengeListUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(43,28): warning CS0114: 'WorldMapWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\EnvoyMissionUTK.cs(46,28): warning CS0114: 'EnvoyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\LordAudienceUTK.cs(49,28): warning CS0114: 'LordAudienceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\EquipmentWindowUTK.cs(46,28): warning CS0114: 'EquipmentWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\FastTravelUTK.cs(45,28): warning CS0114: 'FastTravelUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\SettingsMenuUTK.cs(49,28): warning CS0114: 'SettingsMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\MercyUTK.cs(173,28): warning CS0114: 'MercyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\FestivalUTK.cs(55,28): warning CS0114: 'FestivalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\FestivalUTK.cs(61,28): warning CS0114: 'FestivalUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\MercenaryHireUTK.cs(47,28): warning CS0114: 'MercenaryHireUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\FishingUTK.cs(131,28): warning CS0114: 'FishingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\SpyMissionUTK.cs(47,28): warning CS0114: 'SpyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\NPCDailyUTK.cs(37,28): warning CS0114: 'NPCDailyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\NPCDailyUTK.cs(43,28): warning CS0114: 'NPCDailyUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(46,28): warning CS0114: 'ReadDocumentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(60,23): warning CS0108: 'ReadDocumentUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
+Assets\Scripts\UI\Toolkit\QuestJournalUTK.cs(62,28): warning CS0114: 'QuestJournalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\RepairStationUTK.cs(45,28): warning CS0114: 'RepairStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\QuestWindowUTK.cs(64,28): warning CS0114: 'QuestWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\RevengeListUTK.cs(46,28): warning CS0114: 'RevengeListUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\SettingsMenuUTK.cs(49,28): warning CS0114: 'SettingsMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(43,28): warning CS0114: 'WorldMapWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\LockpickingUTK.cs(142,28): warning CS0114: 'LockpickingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\SpyMissionUTK.cs(47,28): warning CS0114: 'SpyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\LordAudienceUTK.cs(49,28): warning CS0114: 'LordAudienceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\TerritoryDeploymentUTK.cs(44,28): warning CS0114: 'TerritoryDeploymentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\MercenaryHireUTK.cs(47,28): warning CS0114: 'MercenaryHireUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\TerritoryNPCSpawner.cs(259,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
 Assets\Scripts\UI\Toolkit\GuardSquadHotbarUTK.cs(334,38): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
-Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(193,22): warning CS0414: The field 'WorldMapWindowUTK._legacyMapPreviouslyOpen' is assigned but its value is never used
 Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(72,22): warning CS0414: The field 'PlayerFlagUTK._showMessage' is assigned but its value is never used
+Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(193,22): warning CS0414: The field 'WorldMapWindowUTK._legacyMapPreviouslyOpen' is assigned but its value is never used
 Assets\Travis Game Assets\Hit Impact Effects\Demo Scene\Scripts\HitImpactEffectsPreview.cs(28,21): warning CS0108: 'HitImpactEffectsPreview.light' hides inherited member 'Component.light'. Use the new keyword if hiding was intended.
 Assets\Editor\DayNightCycleReferenceFixer.cs(24,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
@@ -535,18 +535,18 @@ Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObj
 Assets\Editor\FixAllCriticalIssues.cs(207,27): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\Editor\FixAllCriticalIssues.cs(216,32): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\Editor\FixAllCriticalIssues.cs(225,28): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\Editor\FixAllCriticalIssues.cs(242,25): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
-Assets\Editor\IndoorShellMenu.cs(30,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Editor\IndoorShellMenu.cs(30,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
 Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
 Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets\Editor\IndoorShellMenu.cs(30,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Editor\IndoorShellMenu.cs(30,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\Editor\FixMainScene.cs(938,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\MonsterRigScanTool.cs(170,51): warning CS0184: The given expression is never of the provided ('AnimatorController') type
 Assets\Editor\VFXResourceInstaller.cs(279,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
-AssetDatabase: script compilation time: 10.367283s
+Assets\Editor\MonsterRigScanTool.cs(170,51): warning CS0184: The given expression is never of the provided ('AnimatorController') type
+AssetDatabase: script compilation time: 15.457625s
 Begin MonoManager ReloadAssembly
 Assembly Assembly-CSharp-Editor-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-Editor-firstpass.dll not valid. Loading of assembly skipped.
 Assembly Assembly-CSharp-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll not valid. Loading of assembly skipped.
@@ -593,119 +593,119 @@ Symbol file LoadedFromMemory is not a mono symbol file
 Symbol file LoadedFromMemory is not a mono symbol file
 'Packages/com.unity.cinemachine/Editor/Editors/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
 'Packages/com.unity.cinemachine/Editor/Obsolete/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
-Refreshing native plugins compatible for Editor in 7.77 ms, found 5 plugins.
+Refreshing native plugins compatible for Editor in 212.02 ms, found 5 plugins.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
-Refreshing native plugins compatible for Editor in 7.05 ms, found 5 plugins.
+Refreshing native plugins compatible for Editor in 7.39 ms, found 5 plugins.
 [MODES] ModeService[none].Initialize
 [MODES] ModeService[none].LoadModes
 [MODES] Loading mode Default (0) for mode-current-id-포이즌
 ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  7.070 seconds
-Domain Reload Profiling: 11280ms
-	BeginReloadAssembly (487ms)
-		DisableScriptedObjects (35ms)
-		CreateAndSetChildDomain (156ms)
-	RebuildCommonClasses (64ms)
-	RebuildNativeTypeToScriptingClass (22ms)
-	initialDomainReloadingComplete (1687ms)
-	LoadAllAssembliesAndSetupDomain (1950ms)
-		LoadAssemblies (1361ms)
-		AnalyzeDomain (779ms)
-			TypeCache.Refresh (572ms)
-				TypeCache.ScanAssembly (543ms)
-			BuildScriptInfoCaches (167ms)
-			ResolveRequiredComponents (35ms)
-	FinalizeReload (7071ms)
+- Finished resetting the current domain, in  8.933 seconds
+Domain Reload Profiling: 29232ms
+	BeginReloadAssembly (505ms)
+		DisableScriptedObjects (41ms)
+		CreateAndSetChildDomain (185ms)
+	RebuildCommonClasses (56ms)
+	RebuildNativeTypeToScriptingClass (20ms)
+	initialDomainReloadingComplete (14604ms)
+	LoadAllAssembliesAndSetupDomain (5113ms)
+		LoadAssemblies (4018ms)
+		AnalyzeDomain (1274ms)
+			TypeCache.Refresh (1066ms)
+				TypeCache.ScanAssembly (1033ms)
+			BuildScriptInfoCaches (171ms)
+			ResolveRequiredComponents (34ms)
+	FinalizeReload (8934ms)
 		SetupLoadedEditorAssemblies (0ms)
-			InitializePlatformSupportModulesInManaged (42ms)
-			BeforeProcessingInitializeOnLoad (553ms)
-			ProcessInitializeOnLoadAttributes (5167ms)
-			ProcessInitializeOnLoadMethodAttributes (849ms)
-			AfterProcessingInitializeOnLoad (15ms)
+			InitializePlatformSupportModulesInManaged (40ms)
+			BeforeProcessingInitializeOnLoad (534ms)
+			ProcessInitializeOnLoadAttributes (6077ms)
+			ProcessInitializeOnLoadMethodAttributes (1758ms)
+			AfterProcessingInitializeOnLoad (16ms)
 		AwakeInstancesAfterBackupRestoration (42ms)
-Refreshing native plugins compatible for Editor in 6.78 ms, found 5 plugins.
+Refreshing native plugins compatible for Editor in 7.54 ms, found 5 plugins.
 (Values over 0.050ms)
-Asset Pipeline Refresh (id=dc7f7e538d3509841b6c6efd53ec7f39): Total: 24.075 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+Asset Pipeline Refresh (id=f43e4c7a0928d6f4d97584b90b8cca8a): Total: 47.382 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
 	Summary:
 		Imports: total=0 (actual=0, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=8507 ms
-		Asset DB Callback time: managed=626 ms, native=85 ms
-		Scripting: domain reloads=1, domain reload time=4221 ms, compile time=10370 ms, other=264 ms
+		Asset DB Process Time: managed=0 ms, native=10644 ms
+		Asset DB Callback time: managed=597 ms, native=90 ms
+		Scripting: domain reloads=1, domain reload time=20310 ms, compile time=15460 ms, other=277 ms
 		Project Asset Count: scripts=2679, non-scripts=7668
-		Asset File Changes: new=0, changed=2, moved=0, deleted=0
+		Asset File Changes: new=0, changed=1, moved=0, deleted=0
 		Scan Filter Count: 0
-	InvokePackagesCallback: 46.480ms
-	ApplyChangesToAssetFolders: 5.432ms
-	Scan: 358.864ms
-	OnSourceAssetsModified: 1.418ms
-	CategorizeScriptCompilationAssets: 126.481ms
-	ProcessAssetsWithTransientArtifactChanges: 243.351ms
-	CategorizeAssets: 206.594ms
-	CompileScripts: 10369.732ms
-	ImportOutOfDateAssets: 7123.621ms (7115.990ms without children)
-		ReloadNativeAssets: 0.055ms
-		UnloadImportedAssets: 3.161ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.463ms
-		OnDemandSchedulerStart: 1.946ms
-	PostProcessAllAssets: 641.577ms
-		VCAutoAddAssetPostprocess 7.846ms
-		XRBuildSystem.XRAssetImported 1.842ms
-		PostProcessCallbackCreateDeferredMaterials 0.055ms
-		MonoPostProcessAllAssets: 624.900ms
-			AssetPostprocessor.OnPostprocessAllAssets 480.745ms
-			StyleCatalogPostProcessor.OnPostprocessAllAssets 44.701ms
-			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 33.760ms
-			BuilderAssetPostprocessor.OnPostprocessAllAssets 10.768ms
-			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 3.534ms
-			SpeedTree9Postprocessor.OnPostprocessAllAssets 3.207ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 2.889ms
-			AssetChangedListener.OnPostprocessAllAssets 2.750ms
-			MaterialPostprocessor.OnPostprocessAllAssets 2.174ms
-			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 1.785ms
-			AddressablesAssetPostProcessor.OnPostprocessAllAssets 1.708ms
-			LocalizationAssetPostProcessor.OnPostprocessAllAssets 1.632ms
-			VFXGraphPreprocessor.OnPostprocessAllAssets 1.508ms
-			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 1.383ms
-			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.913ms
-			AssetPathToTypes.OnPostprocessAllAssets 0.795ms
-			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.679ms
-			AssetEvents.OnPostprocessAllAssets 0.635ms
-			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.621ms
-			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.588ms
-			TextAssetPostProcessor.OnPostprocessAllAssets 0.523ms
-			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.520ms
-			CinemachineSettings.OnPostprocessAllAssets 0.433ms
-			AudioMixerPostprocessor.OnPostprocessAllAssets 0.425ms
-			ModelAssetProcessor.OnPostprocessAllAssets 0.412ms
-			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.380ms
-			PostProcessor.OnPostprocessAllAssets 0.353ms
-			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.326ms
-			SpeedTreePostProcessor.OnPostprocessAllAssets 0.251ms
-			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.238ms
-			SyncVS.PostprocessSyncProject 0.232ms
-			ConfigAssetsTracker.OnPostprocessAllAssets 0.225ms
-			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.206ms
-			SamplePostprocessor.OnPostprocessAllAssets 0.204ms
-			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.184ms
-			AudioContainerPostProcessor.OnPostprocessAllAssets 0.097ms
-	PostAssetChangesProfiler: 25.610ms
-	UnloadStreamsBegin: 5.739ms
-	PersistCurrentRevisions: 0.521ms
-	GenerateScriptTypeHashes: 8.166ms
-	GenerateScriptTypeSerializationHashes: 15.492ms
-	Untracked: 4911.565ms
+	InvokePackagesCallback: 43.553ms
+	ApplyChangesToAssetFolders: 1.481ms
+	Scan: 361.122ms
+	OnSourceAssetsModified: 0.993ms
+	CategorizeScriptCompilationAssets: 127.115ms
+	ProcessAssetsWithTransientArtifactChanges: 275.406ms
+	CategorizeAssets: 209.734ms
+	CompileScripts: 15460.201ms
+	ImportOutOfDateAssets: 9226.884ms (9218.658ms without children)
+		ReloadNativeAssets: 0.063ms
+		UnloadImportedAssets: 3.690ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.414ms
+		OnDemandSchedulerStart: 2.056ms
+	PostProcessAllAssets: 616.841ms
+		VCAutoAddAssetPostprocess 7.321ms
+		XRBuildSystem.XRAssetImported 2.300ms
+		PostProcessCallbackCreateDeferredMaterials 0.065ms
+		MonoPostProcessAllAssets: 596.764ms
+			AssetPostprocessor.OnPostprocessAllAssets 443.552ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 67.533ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 23.916ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 11.085ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 4.942ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 2.670ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 2.551ms
+			AssetChangedListener.OnPostprocessAllAssets 2.083ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 1.795ms
+			VFXGraphPreprocessor.OnPostprocessAllAssets 1.648ms
+			LocalizationAssetPostProcessor.OnPostprocessAllAssets 1.624ms
+			AddressablesAssetPostProcessor.OnPostprocessAllAssets 1.436ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 1.091ms
+			MaterialPostprocessor.OnPostprocessAllAssets 1.008ms
+			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.860ms
+			AssetPathToTypes.OnPostprocessAllAssets 0.816ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.742ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.732ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.611ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.555ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.534ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.525ms
+			AssetEvents.OnPostprocessAllAssets 0.442ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 0.430ms
+			CinemachineSettings.OnPostprocessAllAssets 0.427ms
+			SyncVS.PostprocessSyncProject 0.420ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.410ms
+			PostProcessor.OnPostprocessAllAssets 0.401ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.319ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.302ms
+			ConfigAssetsTracker.OnPostprocessAllAssets 0.295ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.294ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.292ms
+			SamplePostprocessor.OnPostprocessAllAssets 0.199ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.186ms
+			AudioContainerPostProcessor.OnPostprocessAllAssets 0.099ms
+	PostAssetChangesProfiler: 31.513ms
+	UnloadStreamsBegin: 6.613ms
+	PersistCurrentRevisions: 0.433ms
+	GenerateScriptTypeHashes: 6.427ms
+	GenerateScriptTypeSerializationHashes: 12.066ms
+	Untracked: 21012.447ms
 
 Application.AssetDatabase Initial Refresh End
-Launched and connected shader compiler UnityShaderCompiler.exe after 0.10 seconds
-Scanning for USB devices : 10.957ms
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.07 seconds
+Scanning for USB devices : 24.322ms
 Initializing Unity extensions:
 Unloading 84 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 11454 unused Assets / (22.9 MB). Loaded Objects now: 12381.
-Memory consumption went from 320.2 MB to 297.3 MB.
-Total: 57.383600 ms (FindLiveObjects: 2.613200 ms CreateObjectMapping: 5.036100 ms MarkObjects: 19.785500 ms  DeleteObjects: 29.228400 ms)
+Unloading 11455 unused Assets / (17.1 MB). Loaded Objects now: 12382.
+Memory consumption went from 320.7 MB to 303.6 MB.
+Total: 61.138800 ms (FindLiveObjects: 2.496600 ms CreateObjectMapping: 4.752700 ms MarkObjects: 26.597500 ms  DeleteObjects: 26.385300 ms)
 
 [ScriptCompilation] Requested script compilation because: Requested through public api
 Compilation requested
@@ -720,7 +720,6 @@ TestCompile:CompileTest () (at Assets/Scripts/TestCompile.cs:11)
 (Filename: Assets/Scripts/TestCompile.cs Line: 11)
 
 Batchmode quit successfully invoked - shutting down!
-Curl error 42: Callback aborted
 Font Asset [LiberationSans SDF - Fallback] Units Per EM set to 2048. Please commit the newly serialized value.
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
@@ -737,44 +736,57 @@ UnityEditor.EditorApplication:Internal_EditorApplicationQuit ()
 
 (Filename: ./Library/PackageCache/com.unity.ugui@1f2d1ab0d950/Runtime/TMP/TMP_FontAsset.cs Line: 820)
 
-Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.2333317 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
-Refreshing native plugins compatible for Editor in 7.94 ms, found 5 plugins.
-Preloading 1 native plugins for Editor in 5.11 ms.
+Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.0950968 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
+Refreshing native plugins compatible for Editor in 7.90 ms, found 5 plugins.
+Preloading 1 native plugins for Editor in 2.48 ms.
 (Values over 0.050ms)
-Asset Pipeline Refresh (id=e6a806ee3230ad04b907b5ceb3be9419): Total: 0.658 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=54f90a77ebcbb1841b28dcbb18280496): Total: 0.503 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
 	Summary:
 		Imports: total=1 (actual=1, local cache=0, cache server=0)
-		Asset DB Process Time: managed=15 ms, native=546 ms
-		Asset DB Callback time: managed=20 ms, native=74 ms
+		Asset DB Process Time: managed=7 ms, native=421 ms
+		Asset DB Callback time: managed=14 ms, native=57 ms
 		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
 		Project Asset Count: scripts=2679, non-scripts=7668
 		Asset File Changes: new=0, changed=0, moved=0, deleted=0
 		Scan Filter Count: 1
-	ApplyChangesToAssetFolders: 0.226ms
-	Scan: 105.900ms
-	ProcessAssetsWithTransientArtifactChanges: 2.639ms
-	CategorizeAssets: 118.353ms
-	ImportOutOfDateAssets: 267.224ms (1.324ms without children)
-		ImportManagerImport: 262.093ms (5.330ms without children)
-		ReloadNativeAssets: 0.085ms
-		UnloadImportedAssets: 0.324ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.042ms
-		OnDemandSchedulerStart: 1.344ms
-	PostProcessAllAssets: 78.500ms
-		XRBuildSystem.XRAssetImported 51.472ms
-		AssemblyValidation.PostprocessAllAssets 0.555ms
-		MonoPostProcessAllAssets: 20.476ms
-			AssetPostprocessor.OnPostprocessAllAssets 13.728ms
-			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 2.016ms
-			AssetChangedListener.OnPostprocessAllAssets 1.945ms
-			ModelAssetProcessor.OnPostprocessAllAssets 1.930ms
-			SyncVS.PostprocessSyncProject 0.125ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.105ms
-	PostAssetChangesProfiler: 16.635ms
-	GatherAllCurrentPrimaryImportResultRevisions: 3.544ms
-	UnloadStreamsBegin: 0.094ms
-	PersistCurrentRevisions: 0.519ms
-	Untracked: 63.939ms
+	ApplyChangesToAssetFolders: 0.233ms
+	Scan: 137.435ms
+	ProcessAssetsWithTransientArtifactChanges: 3.124ms
+	CategorizeAssets: 128.126ms
+	ImportOutOfDateAssets: 120.271ms (1.004ms without children)
+		ImportManagerImport: 115.906ms (3.147ms without children)
+		UnloadImportedAssets: 0.325ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.991ms
+		OnDemandSchedulerStart: 0.998ms
+	PostProcessAllAssets: 59.632ms
+		XRBuildSystem.XRAssetImported 38.499ms
+		AssemblyValidation.PostprocessAllAssets 0.559ms
+		PostProcessCallbackCreateDeferredMaterials 0.061ms
+		MonoPostProcessAllAssets: 14.892ms
+			AssetPostprocessor.OnPostprocessAllAssets 5.917ms
+			AssetChangedListener.OnPostprocessAllAssets 2.374ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 1.191ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.924ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.610ms
+			AddressablesAssetPostProcessor.OnPostprocessAllAssets 0.535ms
+			MaterialPostprocessor.OnPostprocessAllAssets 0.233ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.226ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.214ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 0.209ms
+			SyncVS.PostprocessSyncProject 0.179ms
+			LocalizationAssetPostProcessor.OnPostprocessAllAssets 0.131ms
+			PostProcessor.OnPostprocessAllAssets 0.089ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.070ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.070ms
+			AssetEvents.OnPostprocessAllAssets 0.069ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.061ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 0.055ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.051ms
+	PostAssetChangesProfiler: 13.207ms
+	GatherAllCurrentPrimaryImportResultRevisions: 2.902ms
+	UnloadStreamsBegin: 0.109ms
+	PersistCurrentRevisions: 0.751ms
+	Untracked: 37.241ms
 
 [Physics::Module] Cleanup current backend.
 [Physics::Module] Id: 0xf2b8ea05
@@ -786,14 +798,14 @@ Input System module state changed to: Shutdown.
 AcceleratorClientConnectionCallback - disconnected - :0
 Cleanup mono
 CodeReloadManager destroyed
-abort_threads: Failed aborting id: 0000000000000258, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000001644, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 0000000000000A04, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 00000000000023B0, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 0000000000000258, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000001644, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 0000000000000A04, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 00000000000023B0, mono_thread_manage will ignore it
 
-debugger-agent: Unable to listen on 3152
+debugger-agent: Unable to listen on 3144
 Exiting batchmode successfully now!
 Exiting without the bug reporter. Application will terminate with return code 0
