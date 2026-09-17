@@ -851,8 +851,11 @@ namespace ProjectName.Systems
                     soldier.transform.localRotation = Quaternion.identity;
                     soldier.transform.localScale = Vector3.one;
                     // [69차 후속17] 병사 크기 = 플레이어 실측 높이와 동일화 — 스케일 후 접지
+                    // [후속17-2] lv20+ 덩치 병사는 일반(lv1-20) 대비 1.8배 확대 + 히트박스 동기화
                     float soldierScale = GuardManager.NormalizeSoldierScaleToPlayer(soldier);
+                    soldierScale *= GuardManager.GetSoldierSizeMultiplier(level);
                     soldier.transform.localScale = Vector3.one * soldierScale;
+                    ScaleGuardHitbox(guardGO, level);
                     // 접지 — FBX도 발끝을 실제 지면에 정렬(pos.y는 박스 오프셋+1.0 포함, 발이 뜸).
                     GroundModelToY(soldier, SurfaceY(pos.x, pos.z));
 
@@ -902,8 +905,11 @@ namespace ProjectName.Systems
                         soldier.transform.localRotation = Quaternion.identity;
                         soldier.transform.localScale = Vector3.one;
                         // [69차 후속17] 병사 크기 = 플레이어 실측 높이와 동일화 — 스케일 후 접지
+                        // [후속17-2] lv20+ 덩치 병사는 일반(lv1-20) 대비 1.8배 확대 + 히트박스 동기화
                         float soldierScaleGlb = GuardManager.NormalizeSoldierScaleToPlayer(soldier);
+                        soldierScaleGlb *= GuardManager.GetSoldierSizeMultiplier(level);
                         soldier.transform.localScale = Vector3.one * soldierScaleGlb;
+                        ScaleGuardHitbox(guardGO, level);
 
                         GroundModelToY(soldier, SurfaceY(pos.x, pos.z));
 
@@ -1269,6 +1275,19 @@ namespace ProjectName.Systems
             inv.AddItem(new PlayerInventory.ItemData { id = "arrow_magic",      displayName = "마법 화살", description = "마력이 깃든 화살. +15 데미지.", category = PlayerInventory.ItemCategory.Arrow, rarity = ItemRarity.Rare,      maxStack = 50, maxDurability = 0 }, 20);
 
             Debug.Log("[UITest] ✅ 플레이어 인벤 대표 아이템 시딩 완료 (물약 포함: 은신 물약×3, 진정제×3 — 우클릭 복용 테스트용)");
+        }
+
+        /// <summary>[후속17-2] 덩치 병사(level>=20)의 히트용 BoxCollider를 배율만큼 확대(윗몸이 안 맞는 버그 방지).
+        ///   보통 병사(배율 1.0)는 기존 상태를 그대로 유지한다.</summary>
+        private void ScaleGuardHitbox(GameObject guardGO, int level)
+        {
+            float mult = GuardManager.GetSoldierSizeMultiplier(level);
+            if (mult == 1f) return;
+            var hc = guardGO.GetComponent<BoxCollider>();
+            if (hc == null) return;
+            float w = 0.6f * mult, h = 1.8f * mult, d = 0.6f * mult;
+            hc.size = new Vector3(w, h, d);
+            hc.center = new Vector3(hc.center.x, h * 0.5f, hc.center.z); // 바닥(0) 기준으로 스팬 — 발이 지면에 닿게
         }
     }
 }

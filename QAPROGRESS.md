@@ -4,7 +4,21 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-17 (70차 후속19 — 계획서 V2 Phase A~D 실행)
+> **최종 갱신:** 2026-09-17 (덩치 병사 크기 — lv20+ 두 모델 1.8배)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-17 ✅ 덩치 병사 사이즈 — 레벨 곡선 아닌 "두 덩치 모델 1.8배" 고정)
+
+> **입력**: "덩치큰 두 병사를 일반 병사보다 1.8배 크게". 설계 논의 후 확정 — "레벨별 확대 시스템이 아니라, 높은 레벨(덩치) **두 병사 모델만** 1.8배". 일반 병사(lv1-20)는 1.0배 유지.
+
+### 변경 사항 (2파일)
+**`Systems/GuardManager.cs`**: `GetSoldierSizeMultiplier(int level)` 신설 — `level>=20 ? 1.8f : 1.0f`(정확히 두 덩치 티어만, 레벨 곡선 아님). 프로덕션 병사 보충(refill) 경로에서 정규화 후 `s *= GetSoldierSizeMultiplier(newLevel)`.
+**`Systems/TestTerritoryCombatSetup.cs`**: FBX 경로 + GLB 폴백 경로 각각 정규화 후 `* GetSoldierSizeMultiplier(level)`. `ScaleGuardHitbox(guardGO, level)` 신설 — 몸이 1.8배 커진 덩치 병사의 히트용 root `BoxCollider`(원 0.6×1.8×0.6)를 배율만큼 확대+바닥(0) 기준 재중앙화(윗몸이 안 맞는 버그 방지). 배율 1.0(일반)은 기존 그대로 유지.
+
+### 컴파일/QA
+- 배치컴파일 **error CS=0**(exit 0) — Systems.dll 갱신 + `strings`로 `GetSoldierSizeMultiplier`·`ScaleGuardHitbox` 심볼 착륙 확인.
+- Play 판정 대기: ①lv20-40/lv40-50 병사가 일반(lv1-20)보다 1.8배 크게 보임 ②덩치 병사 윗몸도 화살/공격에 히트(콜라이더 확대 확인) ③일반 병사 크기 변화 없음(회귀 없음).
 
 ---
 

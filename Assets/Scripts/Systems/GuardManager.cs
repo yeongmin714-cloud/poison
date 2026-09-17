@@ -309,7 +309,9 @@ namespace ProjectName.Systems
                 guardModel.name = "GuardModel";
                 guardModel.transform.localPosition = new Vector3(0, 0.9f, 0);
                 // [69차 후속17] 병사 크기 = 플레이어 실측 높이와 동일화(FBX 원본이 작아 보이는 문제)
+                // [후속17-2] lv20+ 덩치 병사는 일반(lv1-20) 대비 1.8배 확대
                 float s = NormalizeSoldierScaleToPlayer(guardModel);
+                s *= GetSoldierSizeMultiplier(newLevel);
                 guardModel.transform.localScale = Vector3.one * s;
                 guardModel.transform.localPosition = new Vector3(0, 0, 0);   // 스케일 후 재접지(GroundModelToY 호환)
                 SetGrounded(guardModel);
@@ -643,6 +645,12 @@ namespace ProjectName.Systems
             float h = max - min;
             if (h < 0.01f) return 1f;
             return Mathf.Clamp(target / h, 0.5f, 5f);
+        }
+
+        /// <summary>[후속17-2] 레벨 구간별 덩치 배율 — lv20 미만 일반 병사=1.0, lv20+ 덩치 병사=1.8(일반 대비).</summary>
+        public static float GetSoldierSizeMultiplier(int level)
+        {
+            return level >= 20 ? 1.8f : 1.0f;
         }
 
         /// <summary>모델 최하단을 지면(SurfaceY 실측)에 접지 — 스케일 후 필수.</summary>
