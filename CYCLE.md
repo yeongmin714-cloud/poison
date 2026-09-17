@@ -593,3 +593,8 @@
 - Status: 🔄 (Play 검증 후 폐기 단계 잔여)
 - Details: Bed/LootBasket에 OnXxxRequestedUTK 정적 이벤트+UTKWireUp 구독 브리지(UTK 우선·원본 폴백 내장·제거 한 줄 회귀). UI_DESIGN_GUIDELINES에 UTK 표준 섹션(팔레트 매핑/엔진 규약 8종). 배치컴파일 error CS=0(CS0019/CS0079/캐스트 수리). 후속: 배선 확대/HUD 겹침 해소/Play 검증/폐기
 - Date: 2026-09-18
+
+# Cycle: Phase 68 Play 1차 실측 — UTK 렌더 정상 + 예외 수리
+- Status: ✅
+- Details: Editor.log 실측 — Status(P)/Quest(Q)/Squad UTK 정상 토글, 부트+배선 로그 착륙, UTK 예외 0. ProceduralAnimationController.RequestGather 파괴 후 접근 가드 추가(MissingReferenceException 뿌리 수리)
+- Date: 2026-09-18

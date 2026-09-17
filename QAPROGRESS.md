@@ -8,6 +8,19 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U8 후속 — Play 실측 1차 검증 통과 + 예외 수리)
+
+> **입력**: Editor.log Play 실측 판정 — **UTK 렌더 정상 확인**. StatusWindowUTK(P키 토글 2회 열림/닫힘 정상)/QuestWindowUTK(Q키 2회)/SquadUTK(부대 모드 병사↔아이템 전환 반영)/UIToolkitBootstrap 부트스트랩+UTKWire 배선 로그 착륙. **UTK 기원 예외 0건** — 66창 인프라 정상 착륙.
+
+### 수리 (1파일)
+**`Systems/Animation/Procedural/ProceduralAnimationController.cs`**: `RequestGather` 파괴 후 접근 가드 추가 — `this==null || !gameObject || !gameObject.activeInHierarchy` 조기 리턴. 뿌리: 씬 전환/파괴 후에도 PlayerMovement.Update → TriggerAction("gather") 잔존 참조 호출 → transform 접근 시 MissingReferenceException(ProceduralAnimationController.cs:344 실측).
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0).
+- Play 판정: UTK 창 토글/ESC/폴링 실동작 확인 — 인벤 DnD/상점/수면/전리품 상호작용은 사용자 Play 리포트 대기.
+
+---
+
 ## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U8 — 호출부 배선(이벤트 브리지) + UTK 표준 가이드 확정)
 
 > **입력**: 마이그레이션 계획 U8 — 호출부 배선 회귀 최상급 단계. **순환참조 회피 이벤트 브리지 패턴**으로 최소 침습 배선(침대 수면+전리품 바구니 2경로 우선), 가이드 UTK 표준 확정.
