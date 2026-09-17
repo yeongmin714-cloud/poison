@@ -308,7 +308,11 @@ namespace ProjectName.Systems
                 guardModel = Object.Instantiate(modelPrefab, guardGO.transform);
                 guardModel.name = "GuardModel";
                 guardModel.transform.localPosition = new Vector3(0, 0.9f, 0);
-                guardModel.transform.localScale = Vector3.one;
+                // [69차 후속17] 병사 크기 = 플레이어 실측 높이와 동일화(FBX 원본이 작아 보이는 문제)
+                float s = NormalizeSoldierScaleToPlayer(guardModel);
+                guardModel.transform.localScale = Vector3.one * s;
+                guardModel.transform.localPosition = new Vector3(0, 0, 0);   // 스케일 후 재접지(GroundModelToY 호환)
+                SetGrounded(guardModel);
                 // Soldier 모델도 Player 레이어로
                 SetLayerRecursive(guardModel, LayerMask.NameToLayer("Player"));
             }
@@ -603,6 +607,61 @@ namespace ProjectName.Systems
             {
                 SetLayerRecursive(child.gameObject, layer);
             }
+        }
+
+        // ===== [69차 후속17] 병사 크기 정규화 — 플레이어 실측 높이와 동일화 =====
+
+        /// <summary>플레이어 모델 실측 높이(렌더러 bounds 최상단). 실패 시 실측 기본값 1.9m(Head 본 1.44+두개골).</summary>
+        public static float GetPlayerHeightReference()
+        {
+            var p = GameObject.FindWithTag("Player");
+            if (p == null) return 1.9f;
+            float max = 0f;
+            foreach (var r in p.GetComponentsInChildren<Renderer>())
+            {
+                if (r == null || !r.enabled) continue;
+                if (r.bounds.max.y > max) max = r.bounds.max.y;
+            }
+            return max > 0.5f ? max : 1.9f;
+        }
+
+        /// <summary>병사 모델의 스케일을 플레이어 높이에 맞춘 계수 반환(클램프 0.5~5.0).</summary>
+        public static float NormalizeSoldierScaleToPlayer(GameObject model)
+        {
+            if (model == null) return 1f;
+            float target = GetPlayerHeightReference();
+            float max = 0f, min = float.MaxValue;
+            bool any = false;
+            foreach (var r in model.GetComponentsInChildren<Renderer>())
+            {
+                if (r == null || !r.enabled) continue;
+                any = true;
+                if (r.bounds.max.y > max) max = r.bounds.max.y;
+                if (r.bounds.min.y < min) min = r.bounds.min.y;
+            }
+            if (!any) return 1f;
+            float h = max - min;
+            if (h < 0.01f) return 1f;
+            return Mathf.Clamp(target / h, 0.5f, 5f);
+        }
+
+        /// <summary>모델 최하단을 지면(SurfaceY 실측)에 접지 — 스케일 후 필수.</summary>
+        private void SetGrounded(GameObject model)
+        {
+            float max = -999f, min = 999f;
+            bool any = false;
+            foreach (var r in model.GetComponentsInChildren<Renderer>())
+            {
+                if (r == null || !r.enabled) continue;
+                any = true;
+                if (r.bounds.max.y > max) max = r.bounds.max.y;
+                if (r.bounds.min.y < min) min = r.bounds.min.y;
+            }
+            if (!any) return;
+            var pos = model.transform.position;
+            float surfaceY = 1f + TerrainGenerator.GetHeightAt(pos.x, pos.z, BiomeType.Plains, 42);   // TestTerritoryCombatSetup.SurfaceY와 동일 수식
+            pos.y += surfaceY - min;   // 최하단 = 지면
+            model.transform.position = pos;
         }
     }
 }

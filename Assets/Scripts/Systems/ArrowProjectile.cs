@@ -31,8 +31,8 @@ namespace ProjectName.Systems
                 _trail = gameObject.AddComponent<TrailRenderer>();
 
             _trail.time = 1.6f;          // [화살-가시성2] 0.9→1.6 — 비행 전체를 잔상이 덮음(속도70 기준 ~110m 커버)
-            _trail.startWidth = 0.22f;   // 0.13→0.22 — 원거리 식별 강화
-            _trail.endWidth = 0.05f;
+            _trail.startWidth = 0.45f;   // [화살-가시성3] 0.22→0.45 — 탑다운 카메라에서 명확한 광대
+            _trail.endWidth = 0.12f;
             _trail.minVertexDistance = 0.08f;
             _trail.material = new Material(Shader.Find("Sprites/Default"));
         }
@@ -47,7 +47,7 @@ namespace ProjectName.Systems
             //   화살이 옆으로 누운 채 날아갔다(엣지온 = 안 보임, 사용자 실측 "화살이 날아가지도 않음").
             //   X축 +90° 회전을 곱해 길이축(Y)을 진행방향으로 세운다.
             go.transform.rotation = Quaternion.LookRotation(direction) * Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = new Vector3(0.13f, 1.15f, 0.13f); // [화살-가시성2] (0.09,0.85)→(0.13,1.15) — 샤프트 굵게·길게
+            go.transform.localScale = new Vector3(0.25f, 1.8f, 0.25f); // [화살-가시성3] (0.13,1.15)→(0.25,1.8) — 게임 감성 대형화(탑다운 카메라에서 식별)
 
             // Collider 설정
             var collider = go.GetComponent<CapsuleCollider>();
@@ -113,7 +113,7 @@ namespace ProjectName.Systems
             var head = new GameObject("ArrowHead");
             head.transform.SetParent(shaft.transform, false);
             head.transform.localPosition = new Vector3(0f, 0.45f, 0f);  // 샤프트 Y 반지름(0.35) + 헤드 길이 절반쯤
-            head.transform.localScale = new Vector3(0.07f, 0.18f, 0.07f); // 뾰족한 촉 (단위 콘: 반지름1·높이1)
+            head.transform.localScale = new Vector3(0.13f, 0.3f, 0.13f); // 뾰족한 촉 (단위 콘: 반지름1·높이1) — [후속17] 대형화
             {
                 var mf = head.AddComponent<MeshFilter>();
                 mf.mesh = BuildArrowHeadCone();   // PrimitiveType.Cone 없음 → 절차 메시(양면 와인딩)
@@ -128,7 +128,7 @@ namespace ProjectName.Systems
                 var fin = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 fin.name = "ArrowFletching" + i;
                 fin.transform.SetParent(shaft.transform, false);
-                fin.transform.localScale = new Vector3(0.03f, 0.22f, 0.08f);
+                fin.transform.localScale = new Vector3(0.06f, 0.3f, 0.12f); // [후속17] 대형화
                 // X축으로 샤프트 표면에 살짝 오프셋 → 길이축(Y) 회전으로 120° 방사 팬.
                 fin.transform.localPosition = new Vector3(0.045f, -0.5f, 0f);
                 fin.transform.localRotation = Quaternion.Euler(0f, 120f * i, 0f);

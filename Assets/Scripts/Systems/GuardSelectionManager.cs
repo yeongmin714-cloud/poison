@@ -28,6 +28,60 @@ namespace ProjectName.Systems
         // 현재 선택된 병사 목록
         private readonly List<GuardPlaceholder> _selectedGuards = new List<GuardPlaceholder>();
 
+        // [69차 후속17] 선택 오라 VFX — Hovl Studio Character auras/Buff(Resources 복사본)를
+        //   선택 병사 발밑에 월드 스페이스로 렌더(IMGUI 원 위 추가 — 기존 화면표시 유지).
+        private readonly Dictionary<GuardPlaceholder, GameObject> _selectionAuras =
+            new Dictionary<GuardPlaceholder, GameObject>();
+        private GameObject _auraPrefab;
+
+        private void LateUpdate()
+        {
+            SyncSelectionAuras();
+        }
+
+        /// <summary>[69차 후속17] 선택 집합 ↔ 오라 인스턴스 동기화 — 선택 해제/사망 시 파괴, 이동 추종.</summary>
+        private void SyncSelectionAuras()
+        {
+            if (_auraPrefab == null)
+                _auraPrefab = Resources.Load<GameObject>("FX/Selection/Buff");
+
+            var toRemove = new List<GuardPlaceholder>();
+            foreach (var kv in _selectionAuras)
+            {
+                if (kv.Key == null || kv.Value == null || !_selectedGuards.Contains(kv.Key))
+                    toRemove.Add(kv.Key);
+            }
+            foreach (var g in toRemove)
+            {
+                if (_selectionAuras[g] != null) Destroy(_selectionAuras[g]);
+                _selectionAuras.Remove(g);
+            }
+
+            foreach (var g in _selectedGuards)
+            {
+                if (g == null) continue;
+                if (_selectionAuras.TryGetValue(g, out var aura) && aura != null)
+                {
+                    aura.transform.position = g.transform.position;   // 이동 추종
+                    continue;
+                }
+                if (_auraPrefab == null) { Debug.LogWarning("[RTS] 선택 오라 프리팹 미로드 — Resources/FX/Selection/Buff 확인"); continue; }
+                var inst = Instantiate(_auraPrefab);
+                inst.transform.position = g.transform.position;
+                inst.transform.localScale = Vector3.one * 2.0f;   // 병사 전신 커버(래퍼런스 실측 후 튜닝)
+                _selectionAuras[g] = inst;
+                Debug.Log($"[RTS] 선택 오라 생성: {g.GuardName} — FX/Selection/Buff (x2.0)");
+            }
+        }
+
+        private void OnDestroy()
+        {
+            foreach (var kv in _selectionAuras)
+                if (kv.Value != null) Destroy(kv.Value);
+            _selectionAuras.Clear();
+            if (Instance == this) Instance = null;
+        }
+
         // 드래그 상태
         private bool _isDragging = false;
         private Vector2 _dragStartMouse;

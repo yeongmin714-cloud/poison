@@ -4,7 +4,20 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-17 (화살 테스트 2 — 비행 연장·트레일 강화)
+> **최종 갱신:** 2026-09-17 (화살 테스트 3 — 대형화 + 병사 크기 정규화 + 선택 오라 VFX)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-17 ✅ 70차 후속17 — 화살 테스트 3 실측: 화살 게임 감성 대형화 + 병사 크기=플레이어 정규화 + 선택 오라 VFX(Hovl Buff))
+
+> **입력**: `Screenshots/화살 테스트 3.mp4` 프레임 시트 실측 — ①화살 본체 식별 불가(얇은 하늘색 선만 보임 — 샤프트 0.13×1.15는 탑다운 카메라에서 수 픽셀) ②사용자 요구: 병사 크기=플레이어 실측 크기, 드래그 선택 표시를 보유 VFX로 업그레이드. **보유 VFX 스캔**: Hovl Studio Magic effects pack — `Character auras/Buff.prefab`(ParticleSystem 기반 8개, VFX Graph 0 — 안정) 선정 → Resources 복사.
+
+### 변경 사항 (4파일 + 자산 1)
+**`Systems/ArrowProjectile.cs`**: 샤프트 (0.13,1.15)→**(0.25,1.8)**·촉 (0.07,0.18)→**(0.13,0.3)**·플레처 (0.03,0.22,0.08)→**(0.06,0.3,0.12)**·트레일 startWidth 0.22→**0.45**·end 0.05→**0.12** — 탑다운 카메라에서 명확한 광대+부피감(게임 감성 대형화). **`Systems/GuardManager.cs`**: `GetPlayerHeightReference`(플레이어 렌더러 bounds 실측, 폴백 1.9m)+`NormalizeSoldierScaleToPlayer`(병사 모델 높이→플레이어 높이 스케일, 클램프 0.5~5)+`SetGrounded`(스케일 후 재접지 — TerrainGenerator 수식 동일) — 프로덕션 스폰 경로 적용. **`Systems/TestTerritoryCombatSetup.cs`**: FBX 경로+GLB 폴백 경로 동일 정규화 적용(접지 전 스케일). **`Systems/GuardSelectionManager.cs`**: **선택 오라 VFX** — `_selectionAuras` 동기화(LateUpdate): 선택 병사 발밑에 `Resources/FX/Selection/Buff`(Hovl 복사본, x2.0) 생성·이동 추종·해제/사망 파괴, OnDestroy 정리. IMGUI 파란 원은 유지(오라 추가 레이어). **자산**: `Assets/Resources/FX/Selection/Buff.prefab`(Hovl 복사 — GUID 참조 유지).
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0 — 중간 CS0103(_instance→Instance 프로퍼티) 1건 수리) + 괄호 균형 0(29/29, 83/83, 44/44, 122/122).
+- Play 판정 대기: ①화살이 두꺼운 광대+대형 샤프트로 명확 비행 ②병사가 플레이어와 동일 높이(나란히 비교) ③선택 병사 발밑 Buff 오라 생성·이동 추종·해제 소멸 ④오라 프리팹 미로드 시 경고 로그 확인.
 
 ---
 

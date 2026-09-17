@@ -850,6 +850,9 @@ namespace ProjectName.Systems
                     soldier.transform.localPosition = Vector3.zero;
                     soldier.transform.localRotation = Quaternion.identity;
                     soldier.transform.localScale = Vector3.one;
+                    // [69차 후속17] 병사 크기 = 플레이어 실측 높이와 동일화 — 스케일 후 접지
+                    float soldierScale = GuardManager.NormalizeSoldierScaleToPlayer(soldier);
+                    soldier.transform.localScale = Vector3.one * soldierScale;
                     // 접지 — FBX도 발끝을 실제 지면에 정렬(pos.y는 박스 오프셋+1.0 포함, 발이 뜸).
                     GroundModelToY(soldier, SurfaceY(pos.x, pos.z));
 
@@ -898,6 +901,9 @@ namespace ProjectName.Systems
                         soldier.transform.localPosition = Vector3.zero;
                         soldier.transform.localRotation = Quaternion.identity;
                         soldier.transform.localScale = Vector3.one;
+                        // [69차 후속17] 병사 크기 = 플레이어 실측 높이와 동일화 — 스케일 후 접지
+                        float soldierScaleGlb = GuardManager.NormalizeSoldierScaleToPlayer(soldier);
+                        soldier.transform.localScale = Vector3.one * soldierScaleGlb;
 
                         GroundModelToY(soldier, SurfaceY(pos.x, pos.z));
 
