@@ -78,6 +78,8 @@ namespace ProjectName.Systems
         // ===== 활(Bow) 드로→릴리즈 (2026-09-17): 좌클릭 홀드 = 드로(파워 축적), 해제 = 릴리즈(발사) =====
         // 근접 우클릭 차지(위)와 별개의 좌클릭 경로 — 검/창/Fist에는 영향 없음.
         private bool _bowDrawing;                 // 활 드로 진행 중 여부
+        /// <summary>[70차 후속19/C6] 마지막 활 발사 파워(0~1) — 명중 시 파워 풀 크리틱 연출 판정용.</summary>
+        public static float LastBowPower { get; private set; } = 1f;
         private float _bowDrawHeldTime;           // 드로 홀드 누적 시간(초)
         private const float BowDrawMaxHold = 0.5f; // 드로 최대 = 0.5초 — 이때 파워 1.0 도달
         private const float BowMinFire = 0.18f;    // 이 파워 미만 = 탭 = 캔슬(발사 안 함)
@@ -508,7 +510,13 @@ namespace ProjectName.Systems
             {
                 Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
                 if (ray.direction.sqrMagnitude > 0.0001f)
-                    dir = ray.direction;
+                {
+                    // [70차 후속19] 커서 레이를 지면 기준 수평 방향으로 평탄화 — 탑다운 카메라의 레이는
+                    //   아래로 기울어져 있어 그대로 발사하면 화살이 땅으로 다이빙(테스트 5 실측 뿌리).
+                    Vector3 flat = new Vector3(ray.direction.x, 0f, ray.direction.z);
+                    if (flat.sqrMagnitude > 0.0001f)
+                        dir = flat.normalized;
+                }
             }
 
             // ② 조준 보정(자동 조준) 2026-09-16 — 커서 Ray가 적을 직접 못 맞히면 커서 방향(전방 반구)에서
@@ -536,6 +544,9 @@ namespace ProjectName.Systems
                             toTarget.Normalize();
                             if (Vector3.Dot(toTarget, transform.forward) > 0.7f)
                             {
+                                // [70차 후속19] 자동 조준 방향도 지면 기준 평탄화 — 타겟 중심(y 낮음)으로 다이빙 방지
+                                toTarget.y = 0f;
+                                toTarget.Normalize();
                                 dir = toTarget;
                                 Debug.Log("[PlayerCombat] 자동 조준: " + targetBehaviour.name);
                             }
@@ -565,6 +576,9 @@ namespace ProjectName.Systems
                 Debug.Log("[PlayerCombat] 🏹 활 발사 실패 — 화살 부족 or ArrowManager 미생성");
                 return;
             }
+            // [70차 후속19/C1·C6] 발사 성공 — 소형 카메라 킥(활 전용) + 파워 기억(명중 시 크리틱 연출용)
+            CombatCameraEffects.PlayFireKick();
+            LastBowPower = power;
             // [TEST25-66차] 발사 성공 실측 로그 — 화살 비행(ArrowProjectile) + ArcheryShot(발사 애니) 동시 고정.
             Debug.Log("[PlayerCombat] 🏹 활 발사 성공 — 화살 비행(ArrowProjectile) + ArcheryShot(활 사격 애니)");
 
@@ -1017,6 +1031,34 @@ namespace ProjectName.Systems
         {
             var w = _currentWeapon != null ? _currentWeapon.weaponType : ProjectName.Core.WeaponType.Fist;
             AttackSoundLayerManager.PlayAttackHit(w, isBackAttack);
+        }
+        private void OnGUI()
+        {
+            // [70차 후속19/C5] 드로 중 조준 프리뷰 — 활 위치→조준 방향 얇은 궤적 라인(파워 비례 길이·알파).
+            if (!_bowDrawing || _mainCamera == null) return;
+
+            Vector3 aimFwd = transform.forward; aimFwd.y = 0f; aimFwd.Normalize();
+            Vector3 arrowOrigin = transform.position + aimFwd * 0.6f + Vector3.up * 1.4f;
+            Vector3 end = arrowOrigin + aimFwd * (12f + 50f * _bowDrawHeldTime / Mathf.Max(0.01f, BowDrawMaxHold));
+
+            Vector3 s0 = _mainCamera.WorldToScreenPoint(arrowOrigin);
+            Vector3 s1 = _mainCamera.WorldToScreenPoint(end);
+            if (s0.z < 0f || s1.z < 0f) return;
+            s0.y = Screen.height - s0.y; s1.y = Screen.height - s1.y;
+
+            float power = Mathf.Clamp01(_bowDrawHeldTime / Mathf.Max(0.01f, BowDrawMaxHold));
+            var prevColor = GUI.color;
+            GUI.color = new Color(1f, 0.85f, 0.4f, 0.25f + 0.45f * power);   // 골드 프리뷰 — 파워 비례 진해짐
+            Vector2 delta = new Vector2(s1.x - s0.x, s1.y - s0.y);
+            float len = delta.magnitude;
+            if (len > 1f)
+            {
+                float ang = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
+                GUIUtility.RotateAroundPivot(ang, s0);
+                GUI.DrawTexture(new Rect(s0.x, s0.y - 1.5f, len, 3f), Texture2D.whiteTexture);
+                GUI.matrix = Matrix4x4.identity;
+            }
+            GUI.color = prevColor;
         }
     }
 }

@@ -127,6 +127,13 @@ namespace ProjectName.Systems
             Instance.PlayCritShake();
         }
 
+        /// <summary>[70차 후속19/C1] 활 발사 킥 — 가벼운 흔들림만(HitStop 없음, 사격 리듬 유지).</summary>
+        public static void PlayFireKick()
+        {
+            if (Instance == null) return;
+            Instance.PlayHitShake(Instance._hitShakeIntensity * 0.4f);
+        }
+
         // ===== Instance Methods =====
 
         private CameraImpulseProfile GetProfile(ProjectName.Core.WeaponType weaponType)

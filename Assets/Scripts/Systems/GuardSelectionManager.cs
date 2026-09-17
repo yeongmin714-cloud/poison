@@ -44,9 +44,11 @@ namespace ProjectName.Systems
         {
             if (_auraPrefab == null)
             {
-                // [70차 후속18] trail/지면 원형 VFX 자산 전환 — Hovl Magic circle 2(지면 마법진)를
-                //   선택 표시로 사용(사용자 지정: trail VFX 자산 활용). Buff는 대체 후보로 유지.
-                _auraPrefab = Resources.Load<GameObject>("FX/Selection/MagicCircle2")
+                // [70차 후속19/D] trail VFX 자산 전환 — Vefects Trails URP의 VFX_Trail_Earth(TrailRenderer
+                //   리본×2, 스크립트 0)를 선택 병사에 부모화 — 이동 시 earth trail 잔상(사용자 지정).
+                //   MagicCircle2(지면 마법진)·Buff(오라)는 폴백 후보 유지.
+                _auraPrefab = Resources.Load<GameObject>("FX/Selection/EarthTrail")
+                              ?? Resources.Load<GameObject>("FX/Selection/MagicCircle2")
                               ?? Resources.Load<GameObject>("FX/Selection/Buff");
             }
 
@@ -72,11 +74,16 @@ namespace ProjectName.Systems
                 }
                 if (_auraPrefab == null) { Debug.LogWarning("[RTS] 선택 오라 프리팹 미로드 — Resources/FX/Selection/Buff 확인"); continue; }
                 var inst = Instantiate(_auraPrefab);
-                inst.transform.position = g.transform.position;   // 마법진 프리팹이 지면 원점 기준
-                inst.transform.rotation = Quaternion.identity;
-                inst.transform.localScale = Vector3.one * 1.8f;   // 병사 전신 커버(래퍼런스 실측 후 튜닝)
+                // [70차 후속19/D] EarthTrail = TrailRenderer 리본 — 병사에 부모화해 이동 시 잔상을 그린다
+                inst.transform.SetParent(g.transform, false);
+                inst.transform.localPosition = Vector3.zero;
+                inst.transform.localRotation = Quaternion.identity;
+                inst.transform.localScale = Vector3.one;
+                // 오디오 소스가 포함된 경우 음소거(선택 표시는 무음)
+                foreach (var src in inst.GetComponentsInChildren<AudioSource>())
+                    src.enabled = false;
                 _selectionAuras[g] = inst;
-                Debug.Log($"[RTS] 선택 마법진 생성: {g.GuardName} — FX/Selection/MagicCircle2 (x1.8)");
+                Debug.Log($"[RTS] 선택 earth trail 부착: {g.GuardName} — FX/Selection/EarthTrail");
             }
         }
 

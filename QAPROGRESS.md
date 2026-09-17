@@ -4,7 +4,20 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-17 (화살 테스트 4 — 발사 위치 수리 + 선택 마법진)
+> **최종 갱신:** 2026-09-17 (70차 후속19 — 계획서 V2 Phase A~D 실행)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-17 ✅ 70차 후속19 — 계획서 V2(ARCHERY_PLAN_V2) Phase A~D 실행: 화살 방향 평탄화·물리 안정화 + 명중 피드백 + 조준 프리뷰 + Earth Trail 선택 표시)
+
+> **입력**: 화살 테스트 5 프레임 시트 실측 + 계획서(docs/ARCHERY_PLAN_V2.md) 승인("진행"). **핵심 뿌리 발견**: 발사 방향이 `커서 레이의 3D 방향`(카메라에서 아래로 기울어진 레이) 그대로 — 화살이 땅으로 다이빙하며 "이상하게" 보였음(0.22g·속도 등 비행 파라미터는 정상).
+
+### 변경 사항 (5파일 + 자산 1)
+**`Systems/PlayerCombat.cs`**: ①커서 레이 **지면 평탄화**(ray.direction xz 정규화) — 다이빙 뿌리 수리 ②자동 조준 dir도 y=0 평탄화(타겟 중심 다이빙 방지) ③**발사 카메라 킥**(CombatCameraEffects.PlayFireKick 신설 — shake 0.4x·HitStop 없음) ④LastBowPower 정적(명중 크리틱 판정용) ⑤**C5 조준 프리뷰 OnGUI** — 드로 중 활 위치→조준 방향 골드 라인(파워 비례 길이·알파). **`Systems/ArrowProjectile.cs`**: rb.interpolation=Interpolate·minVertexDistance 0.05(A4 트레일 끊김)·`_power` 필드·명중 시 **PlayHit(Bow)/파워 풀 PlayCrit**(C2/C6)+**ShowDamageNumber 골드**(C3)+스틱 후 trail 비활성(B2 잔상 오버드로 정지). **`Systems/ArrowManager.cs`**: 발사 직후 플레이어 콜라이더 IgnoreCollision(A3) + proj._power 세팅. **`Systems/CombatCameraEffects.cs`**: PlayFireKick 정적 신설. **`Systems/GuardSelectionManager.cs`**: 선택 표시를 **Vefects Trails URP `VFX_Trail_Earth`**(TrailRenderer 리본×2 — Resources/FX/Selection/EarthTrail 복사)로 전환 — 병사 부모화, **이동 시 earth trail 잔상**(MagicCircle2·Buff 폴백), 포함 AudioSource 음소거. **자산**: EarthTrail.prefab 복사.
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0 — 중간 CS1503(float→int 데미지 숫자) 1건 수리) + 괄호 균형 0(5파일).
+- Play 판정 대기: ①화살이 커서 방향(지면 수평)으로 날아감 — 땅 다이빙 소멸 ②트레일 끊김 0 ③명중 시 데미지 숫자(골드)+히트스톱 체감, 파워 풀=크리틱 ④선택 병사 이동 시 earth trail 잔상 ⑤발사 카메라 킥.
 
 ---
 

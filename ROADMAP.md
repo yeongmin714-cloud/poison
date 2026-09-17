@@ -2979,3 +2979,21 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ### Play 판정 대기 (화살 테스트 5 + 선택 확인)
 ①화살이 활 앞에서 몸을 뚫지 않고 발사 ②선택 병사 발밑 마법진 생성/추종/소멸 ③마음에 안 들면 Buff(오라)/다른 원형(Healing/Freeze circle) 교체 가능
+
+
+## 🏹 2026-09-17: 계획서 V2 Phase A~D 실행 — 화살 방향 평탄화·물리 안정화 + 명중 피드백 + Earth Trail (70차 후속19)
+
+> **입력**: 계획서 docs/ARCHERY_PLAN_V2.md 승인("진행"). **핵심 뿌리**: 발사 dir = 커서 레이 3D 방향(카메라 기울기 포함) → 화살 땅 다이빙.
+
+| 항목 | 뿌리 원인 | 수리 | 상태 |
+|:---|:---|:---|:---:|
+| 화살 땅 다이빙(이상함 뿌리) | dir = 커서 레이 3D 방향(카메라 아래 기울기) | **지면 평탄화**(xz 정규화) + 자동조준 y=0 | ✅ |
+| 트레일 끊김 | minVertexDistance 0.08 + 보간 미설정 | 0.05 + rb.interpolation | ✅ |
+| 명중 피드백 부재 | 화살 경로 FX/숫자 없음 | PlayHit(Bow)/파워풀 PlayCrit + ShowDamageNumber 골드 | ✅ |
+| 발사 킥 부재 | — | PlayFireKick(0.4x shake) | ✅ |
+| 스틱 잔상 오버드로 | trail 지속 | 스틱 후 trail.enabled=false | ✅ |
+| 선택 표시 Earth Trail | 요구 — Vefects Trails URP VFX_Trail_Earth | Resources 복사+병사 부모화(이동 잔상), MagicCircle2/Buff 폴백 | ✅ |
+| 검증 | — | 배치컴파일 error CS=0(CS1503 1건 수리) + 괄호 균형 0(5파일) | ✅ |
+
+### Play 판정 대기 (화살 테스트 6)
+①화살이 커서 방향 수평 비행(땅 다이빙 0) ②트레일 연속 ③명중 데미지 숫자+히트스톱(파워풀 크리틱) ④발사 킥 ⑤선택 병사 earth trail 이동 잔상 ⑥기존 회귀 없음

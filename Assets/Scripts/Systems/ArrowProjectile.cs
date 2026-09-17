@@ -20,6 +20,8 @@ namespace ProjectName.Systems
         private Rigidbody _rb;
         private Collider _collider;
         private bool _stuck = false;    // 명중/지면 꽂힘 시 true — 회전 정렬·충돌 재처리 방지
+        /// <summary>[70차 후속19/C6] 발사 파워(0~1) — ArrowManager가 세팅. 파워 풀 명중 시 크리틱 연출.</summary>
+        public float _power = 1f;
         private static readonly float GravityScale = 0.22f;   // [화살-사거리2] 0.45→0.22 — 낙하 1.17s·사거리 ~80m(테스트 2: 여전히 짧음)
 
         private void Awake()
@@ -33,7 +35,7 @@ namespace ProjectName.Systems
             _trail.time = 1.6f;          // [화살-가시성2] 0.9→1.6 — 비행 전체를 잔상이 덮음(속도70 기준 ~110m 커버)
             _trail.startWidth = 0.45f;   // [화살-가시성3] 0.22→0.45 — 탑다운 카메라에서 명확한 광대
             _trail.endWidth = 0.12f;
-            _trail.minVertexDistance = 0.08f;
+            _trail.minVertexDistance = 0.05f;   // [후속19/A4] 0.08→0.05 — 프레임 드랍 시에도 궤적 연속
             _trail.material = new Material(Shader.Find("Sprites/Default"));
         }
 
@@ -61,6 +63,7 @@ namespace ProjectName.Systems
             rb.linearVelocity = direction * speed;
             rb.linearDamping = 0f;                 // 비행 중 저항 없음
             rb.constraints = RigidbodyConstraints.FreezeRotation;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;   // [후속19/A4] 프레임 간 보간 — 트레일 끊김 완화
 
             var arrow = go.AddComponent<ArrowProjectile>();
             arrow._damage = damage;
@@ -230,10 +233,17 @@ namespace ProjectName.Systems
                 // 임팩트 사운드를 발화한다(활 명중 시 T/P 하이 피치 임팩트). isTarget 분기당 1회만 호출.
                 AttackSoundLayerManager.PlayAttackHit(ProjectName.Core.WeaponType.Bow, false);
 
+                // [70차 후속19/C2·C3] 명중 피드백 — 활 히트스톱+흔들림(파워 풀=PlayCrit 강화) + 데미지 숫자(골드)
+                if (_power >= 0.95f) CombatCameraEffects.PlayCrit();
+                else CombatCameraEffects.PlayHit(ProjectName.Core.WeaponType.Bow);
+                CombatVFXController.ShowDamageNumber(other.transform.position + Vector3.up * 1.0f,
+                    Mathf.RoundToInt(_damage), new Color(1f, 0.85f, 0.4f));
+
                 // [2026-09-17] 박힘(stick) — 즉시 제거 대신 화살을 타겟의 자식으로 부모 변경해
                 //   6초간 몸통에 박힌 채 잔존시킨다. worldPositionStays:true로 월드 위치/회전 유지.
                 _stuck = true;
                 _lifetime = Mathf.Min(_lifetime, _elapsed + 6f); // 타겟에 6초간 박힘
+                if (_trail != null) _trail.enabled = false;   // [후속19/B2] 박힌 후 잔상 추가 드로 정지(기존 궤적은 자연 페이드)
                 if (_rb != null)
                 {
                     _rb.isKinematic = true;

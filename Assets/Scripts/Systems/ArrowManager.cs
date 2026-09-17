@@ -87,7 +87,16 @@ namespace ProjectName.Systems
             float speed = _arrowSpeed * (0.7f + 0.5f * power);
             int totalDamage = Mathf.RoundToInt(baseDamage + arrowData.damageBonus + power * 8f);
 
-            ArrowProjectile.Spawn(spawnPos, direction, speed, totalDamage, arrowData.trailColor);
+            // [70차 후속19/A3] 발사 직후 플레이어 콜라이더 충돌 무시 — 스폰 겹침으로 화살이 튕기는 것 방지
+            var proj = ArrowProjectile.Spawn(spawnPos, direction, speed, totalDamage, arrowData.trailColor);
+            proj._power = power;   // [C6] 명중 시 파워 풀 크리틱 판정용
+            var playerGo = GameObject.FindWithTag("Player");
+            if (playerGo != null)
+            {
+                var myCol = proj.GetComponent<Collider>();
+                foreach (var pc in playerGo.GetComponentsInChildren<Collider>())
+                    if (myCol != null && pc != null) Physics.IgnoreCollision(myCol, pc, true);
+            }
 
             return true;
         }
