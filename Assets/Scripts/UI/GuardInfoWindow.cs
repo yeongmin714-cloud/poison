@@ -175,57 +175,140 @@ namespace ProjectName.UI
             var guard = _currentGuard;
             if (guard == null) { Close(); return; }
 
-            // --- 헤더: 이름/등급/종류 ---
+            // --- 헤더: 이름/등급/종류 (전체 폭) ---
             string guardType = GetGuardTypeLabel(guard);
             string gradeStr = GetGuardGradeString(guard);
             GUI.Label(new Rect(x + 15, cy, WINDOW_WIDTH - 30, 28),
                 $"⚔️ {guard.GuardName} {gradeStr} | {guardType}", _styleTitle);
             cy += 32f;
 
-            // --- 레벨 ---
+            // --- 레벨/국적 줄 (전체 폭) ---
             GUI.Label(new Rect(x + 15, cy, 120, 22), "Lv.", _styleLabel);
             GUI.Label(new Rect(x + 95, cy, 90, 22), $"{guard.Level}", _styleValue);
             string nationDisplay = !string.IsNullOrEmpty(guard.Nation) ? $" ({guard.Nation})" : "";
             GUI.Label(new Rect(x + 155, cy, 180, 22), nationDisplay, _styleLabel);
-            cy += 26f;
-
-            // --- HP 프로그레스바 ---
-            GUI.Label(new Rect(x + 15, cy, 90, 22), "❤️ HP:", _styleLabel);
-            float hpRatio = guard.HP / guard.MaxHP;
-            DrawBar(x + 80, cy, HP_BAR_WIDTH, 20, hpRatio, Color.green, Color.red);
-            GUI.Label(new Rect(x + 80 + HP_BAR_WIDTH + 8, cy, 120, 22),
-                $"{(int)guard.HP}/{(int)guard.MaxHP}", _styleValue);
             cy += 28f;
 
-            // --- 전투력 ---
+            // ===== 2-PANE (좌: 외형+장비 / 우: 스탯+물약버프) =====
+            float leftW = (WINDOW_WIDTH - 40f) / 2f;   // ~370
+            float leftX = x + 15f;
+            float rightX = leftX + leftW + 8f;
+            // rightW는 오프셋 기준 폭 (x 제외) — 우측 열 끝 = x + (WINDOW_WIDTH - 15)
+            float rightW = (WINDOW_WIDTH - 15f) - (leftW + 8f + 15f);
+
+            float leftCy = cy;
+            float rightCy = cy;
+
+            // ── LEFT: 외형 + 장착 장비 목록 ──
+            const float faceH = 150f;
+            GUI.Box(new Rect(leftX, leftCy, leftW, faceH), "");
+            GUI.Label(new Rect(leftX + 8, leftCy + 6, leftW - 16, 20), "🧍 병사 외형", _styleHeader);
+            GUI.Label(new Rect(leftX + 12, leftCy + 34, leftW - 24, 60), $"{guard.GuardName} ({guard.JobTitle})", _styleValue);
+            GUI.Label(new Rect(leftX + 12, leftCy + 96, leftW - 24, 30), $"국적색: {guard.Nation}", _styleLabel);
+            leftCy += faceH + 10f;
+
+            GUI.Label(new Rect(leftX, leftCy, leftW, 22), "📦 장착 장비", _styleHeader);
+            leftCy += 26f;
+            bool anyGear = false;
+            anyGear = DrawEquipSlot(leftX, ref leftCy, leftW, "⚔️ 무기", guard.WeaponItem) || anyGear;
+            anyGear = DrawEquipSlot(leftX, ref leftCy, leftW, "🪖 투구", guard.HelmetItem) || anyGear;
+            anyGear = DrawEquipSlot(leftX, ref leftCy, leftW, "🛡️ 갑옷", guard.ArmorItem) || anyGear;
+            anyGear = DrawEquipSlot(leftX, ref leftCy, leftW, "👢 신발", guard.BootsItem) || anyGear;
+            anyGear = DrawEquipSlot(leftX, ref leftCy, leftW, "🧤 장갑", guard.GlovesItem) || anyGear;
+            anyGear = DrawEquipSlot(leftX, ref leftCy, leftW, "🛡️ 방패", guard.ShieldItem) || anyGear;
+            if (!anyGear)
+            {
+                GUI.Label(new Rect(leftX + 10, leftCy, leftW - 20, 20), "장착 장비 없음", _styleLabel);
+                leftCy += 20f;
+            }
+
+            // ── RIGHT: 스탯 + 물약 버프 ──
+            GUI.Label(new Rect(rightX, rightCy, rightW, 22), "📊 능력치", _styleHeader);
+            rightCy += 26f;
+
+            // HP 바
+            float maxHp = guard.GetMaxHP();
+            float hpRatio = maxHp > 0f ? guard.HP / maxHp : 0f;
+            GUI.Label(new Rect(rightX, rightCy, rightW * 0.4f, 20), "❤️ HP:", _styleLabel);
+            DrawBar(rightX + rightW * 0.4f, rightCy, 110, 18, hpRatio, Color.green, Color.red);
+            GUI.Label(new Rect(rightX + rightW * 0.4f + 116, rightCy, rightW * 0.3f, 20),
+                $"{(int)guard.HP}/{(int)maxHp}", _styleValue);
+            rightCy += 26f;
+
+            // 전투력
             float combatPower = 0f;
             if (GuardEquipmentSystem.Instance != null)
                 combatPower = GuardEquipmentSystem.Instance.CalculateGuardCombatPower(guard);
-            GUI.Label(new Rect(x + 15, cy, 120, 22), "⚡ 전투력:", _styleLabel);
-            GUI.Label(new Rect(x + 95, cy, 120, 22), $"{combatPower:F0}", _styleValue);
-            cy += 26f;
+            DrawRightStat(rightX, rightW, ref rightCy, "⚡ 전투력:", $"{combatPower:F0}", "장비 반영");
 
-            // --- 공격/방어/이속 ---
-            float baseAtk = GuardLevelSystem.CalculateDamage(guard.Level);
-            float baseDef = GuardLevelSystem.CalculateDefense(guard.Level);
+            // 스탯 (장비 보너스 포함)
+            int rawAtk = guard.GetStatAttack();
+            int totalAtk = guard.GetAttack();
+            int gearAtk = totalAtk - rawAtk;
+            int rawDef = guard.GetStatDefense();
+            int totalDef = guard.GetDefense();
+            int gearDef = totalDef - rawDef;
 
-            float equipAtk = GuardEquipmentSystem.Instance?.GetGuardEquipmentAttackBonus(guard) ?? 0f;
-            float equipDef = GuardEquipmentSystem.Instance?.GetGuardEquipmentDefenseBonus(guard) ?? 0f;
+            DrawRightStat(rightX, rightW, ref rightCy, "⚔️ 공격력:", $"{totalAtk}",
+                gearAtk > 0 ? $"기본 {rawAtk} + 무기 {gearAtk}" : $"기본 {rawAtk}");
+            DrawRightStat(rightX, rightW, ref rightCy, "🛡️ 방어력:", $"{totalDef}",
+                gearDef > 0 ? $"기본 {rawDef} + 장비 {gearDef}" : $"기본 {rawDef}");
+            DrawRightStat(rightX, rightW, ref rightCy, "💚 최대체력:", $"{maxHp:F0}",
+                $"기본 {guard.MaxHP:F0} + 체력 {guard.GetStatVitality() * 2}");
+            DrawRightStat(rightX, rightW, ref rightCy, "💨 민첩:", $"{guard.GetAgility()}",
+                $"기본 {guard.GetStatAgility()}");
+            DrawRightStat(rightX, rightW, ref rightCy, "🤝 호감도:", $"{guard.Loyalty:F0}/100",
+                GuardLoyaltySystem.GetLoyaltyTag(guard.Loyalty));
+            rightCy += 4f;
 
-            DrawStatRow(x, ref cy, "⚔️ 공격력:", $"{baseAtk + equipAtk:F1}", $"기본 {baseAtk:F1} + 장비 {equipAtk:F1}");
-            DrawStatRow(x, ref cy, "🛡️ 방어력:", $"{baseDef + equipDef:F1}", $"기본 {baseDef:F1} + 장비 {equipDef:F1}");
-            DrawStatRow(x, ref cy, "💨 이동속도:", "4.0", "기본 이동 속도");
-            cy += 4f;
+            // 물약 버프 (PotionBuffData 표 — 적용 가능한 버프 안내)
+            GUI.Label(new Rect(rightX, rightCy, rightW, 22), "💊 물약 버프", _styleHeader);
+            rightCy += 24f;
+            foreach (var kv in PotionBuffData.AllEffects)
+            {
+                GUI.Label(new Rect(rightX + 8, rightCy, rightW - 16, 18),
+                    DescribePotionBuff(kv.Key, kv.Value), _styleDetail);
+                rightCy += 18f;
+            }
 
-            // --- 호감도 (병사도 표시) ---
-            DrawStatRow(x, ref cy, "🤝 호감도:", $"{guard.Loyalty:F0}/100", GuardLoyaltySystem.GetLoyaltyTag(guard.Loyalty));
-            cy += 4f;
+            // 두 열 중 더 아래쪽을 cy로 (역할 섹션이 그 아래에 이어짐)
+            cy = leftCy > rightCy ? leftCy : rightCy;
+        }
 
-            // --- 장비 슬롯 ---
-            DrawEquipmentSlots(x, ref cy, guard: guard);
+        // ===== [2026-09-17] 2-Pane 헬퍼 =====
 
-            // --- 버프 목록 ---
-            DrawGuardBuffs(x, ref cy, guard);
+        /// <summary>장착된 장비 1줄 (null이면 false — 다음 호출로 표시 생략).</summary>
+        private bool DrawEquipSlot(float x, ref float cy, float w, string slotName, PlayerInventory.ItemData item)
+        {
+            if (item == null) return false;
+            GUI.Label(new Rect(x + 10, cy, w - 20, 20), $"{slotName}: {item.displayName}", _styleLabel);
+            cy += 20f;
+            return true;
+        }
+
+        /// <summary>우측 열 전용 스탯 줄 (label / value / 상세 3칸 압축 배치).</summary>
+        private void DrawRightStat(float x, float w, ref float cy, string label, string value, string detail)
+        {
+            GUI.Label(new Rect(x, cy, w * 0.4f, 20), label, _styleLabel);
+            GUI.Label(new Rect(x + w * 0.4f, cy, w * 0.28f, 20), value, _styleValue);
+            if (!string.IsNullOrEmpty(detail))
+                GUI.Label(new Rect(x + w * 0.7f, cy, w * 0.3f, 20), detail, _styleDetail);
+            cy += 22f;
+        }
+
+        /// <summary>물약 버프 요약 문자열.</summary>
+        private string DescribePotionBuff(string potionId, PotionBuffEffect effect)
+        {
+            if (effect.healFlat > 0f)
+                return $"{potionId}: 체력 +{effect.healFlat:0}";
+            if (effect.healPercent > 0f)
+                return $"{potionId}: 체력 +{effect.healPercent * 100f:0}%";
+            var parts = new System.Collections.Generic.List<string>(3);
+            if (effect.attackBuff > 0f)  parts.Add($"공격+{effect.attackBuff:0}");
+            if (effect.defenseBuff > 0f) parts.Add($"방어+{effect.defenseBuff:0}");
+            if (effect.agilityBuff > 0f) parts.Add($"민첩+{effect.agilityBuff:0}");
+            if (parts.Count == 0) return $"{potionId}: (효과 없음)";
+            return $"{potionId}: {string.Join(" / ", parts.ToArray())} ({effect.buffSeconds:0}초)";
         }
 
         // ===== 용병 정보 그리기 =====

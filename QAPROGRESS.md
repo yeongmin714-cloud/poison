@@ -4,7 +4,24 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-17 (RTS 커서/호버/명령 + 농사·채집 + 선택 토글/핫바)
+> **최종 갱신:** 2026-09-17 (병사 스탯 랜덤 분배 + 정보보기 2분할 + 장비/물약 지수파일)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-17 ✅ 병사 스탯 모델·정보보기 2분할·장비/물약 데이터 — 민첩)
+
+> **입력**: ①병사 스탯 정도는 레벨로 일정, 종류는 랜덤 배치 ②정보보기 창 신설 ③좌=현재 모습+착용 장비 / 우=스탯(+장비 착용 시 공/방 상승) ④무기 공격력·방어구 방어력 상승지수 파일 정리 ⑤물약 종류별 능력치 버프 파일 정리. (이속→**민첩** 확정).
+
+### 변경 사항 (신규 2 + 수정 2)
+**신규 `Core/GearStatIndex.cs`**: `GetWeaponAttackBoost(id)` — 무기타입 기본데미지(검12/창10/활8/단검7/맨손5 추정값 문서화)×`WeaponData.GetTierMultiplier`(wood1/steel1.8/stone2.5/crystal3.75). `GetArmorDefenseBoost(id)` — 부위 기본(헬멧4/갑옷8/부츠3/장갑2/방패6/마스크·팩2)×티어.
+**신규 `Core/PotionBuffData.cs`**: `PotionBuffEffect{healFlat,healPercent,attackBuff,defenseBuff,agilityBuff,buffSeconds}` + `GetBuff(id,out effect)` + `AllEffects`(potion_hp_small/big·potion_attack/defense/agility) — PotionUseSystem 키워드 규칙과 정렬.
+**`Systems/GuardPlaceholder.cs`**: 랜덤 스탯 모델 — `RollStats()`: 총합=`Round(6+level*1.5)` 고정, 3절단점 정렬로 공/방/체력/민첩 4구간 랜덤 분배(합=총량). `GetStat*`(raw) + `GetAttack()`(기본+무기 지수)/`GetDefense()`(기본+방어구 지수합)/`GetAgility()`/`GetMaxHP()`(기본 _maxHP+체력×2). 근접 공격 데미지 `level*1.5`→`GetAttack()` 교체(장비가 실제 공격력에 반영). Start에서 RollStats.
+**`UI/GuardInfoWindow.cs`**: 2분할 — **좌**: 모습(이름/직합/국가)+착용 장비 목록(무기/투구/갑옷/신발/장갑/방패), **우**: HP바·전투력·공/방/최대체력/민첩(+기본N+장비M 분해)·물약 버프. ESC/우클릭/정보버튼 유지.
+
+### 컴파일/QA
+- 배치컴파일 **error CS=0**(exit 0) — 6 DLL 갱신 + 심볼 착륙(GearStatIndex 4/PotionBuffData 4/RollStats 1/GetAttack 7/GetDefense 10/GetAgility 2/GetMaxHP 2).
+- 수정 컴파일 오류: RollStats 내 `int c` 지역변수 중복(while 내부 vs 메서드 몸통) → `cut` rename(CS0136).
+- Play 판정 대기: ①정보보기 창 2분할 ②병사별 공/방/체/민첩 분포 상이하나 총량 일정 ③장비 착용 시 공/방 상승 표시+실제 근접 데미지 반영 ④무기/방어구/물약 지수 파일 값 확인 ⑤민첩 표기.
 
 ---
 

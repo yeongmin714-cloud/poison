@@ -23,6 +23,13 @@ namespace ProjectName.Systems
         [SerializeField] private string nation = "동";
         [SerializeField] private string jobTitle = "병사";
 
+        // ===== [2026-09-17] 랜덤 스탯 배분 (레벨 고정 총합, 4-way 랜덤 분배) =====
+        private int _statAttack;
+        private int _statDefense;
+        private int _statVitality;   // 체력 보너스 (기본 MaxHP에 가산)
+        private int _statAgility;    // 민첩
+        private bool _statsRolled;
+
         [Header("상호작용")]
         [SerializeField] private float _interactRange = 3f;
         [SerializeField] private float _maxHP = 25f;   // [TEST27-68차] 10→25 — 슬라임 공격 5 기준 2타 사망 → 5타로 완화(병사 전투 체감)
@@ -139,6 +146,9 @@ namespace ProjectName.Systems
 
             // C32-04~06: 병사 장비 자동 생성 및 장착
             GuardEquipmentSpawner.SpawnEquipment(gameObject, level);
+
+            // [2026-09-17] 랜덤 스탯 배분 — 먼저 롤된 장비와 무관하게, 레벨 기반 총합을 4개 능력치로 분배.
+            RollStats();
         }
 
         private void Update()
@@ -833,6 +843,102 @@ namespace ProjectName.Systems
         public string JobTitle { get => jobTitle; set => jobTitle = value; }
         public float HP => _currentHP;
         public float Loyalty { get => _loyalty; set => _loyalty = Mathf.Clamp(value, -100, 100); }
+
+        // ===== [2026-09-17] 랜덤 스탯 (관/방/체력/민첩) =====
+
+        private void EnsureStatsRolled()
+        {
+            if (!_statsRolled) RollStats();
+        }
+
+        /// <summary>
+        /// 레벨 기반 총합 스탯 예산을 4개 능력치(공격/방어/체력/민첩)에 랜덤 배분.
+        /// 총합(total = 6 + level*1.5)은 항상 일정 — 병사의 "스탯 강함"은 레벨로 고정되고
+        /// 분포만 병사마다 무작위. 3개의 랜덤 절단점을 정렬해 4개 구간으로 나눈다.
+        /// </summary>
+        public void RollStats()
+        {
+            int total = Mathf.RoundToInt(6f + level * 1.5f);
+            if (total < 4) total = 4;
+
+            // 3개 랜덤 절단점 [1, total-1] — 중복 방지
+            var cuts = new System.Collections.Generic.List<int>(3);
+            int safety = 0;
+            while (cuts.Count < 3 && safety < 100)
+            {
+                int cut = Random.Range(1, total);
+                if (!cuts.Contains(cut)) cuts.Add(cut);
+                safety++;
+            }
+            while (cuts.Count < 3) cuts.Add(total); // 드물게 부족 시 마지막에 가둠
+            cuts.Sort();
+
+            int a = cuts[0];
+            int b = cuts[1] - cuts[0];
+            int c = cuts[2] - cuts[1];
+            int d = total - cuts[2];
+            if (b < 0) b = 0;
+            if (c < 0) c = 0;
+            if (d < 0) d = 0;
+
+            _statAttack = a;
+            _statDefense = b;
+            _statVitality = c;
+            _statAgility = d;
+            _statsRolled = true;
+        }
+
+        /// <summary>장비 보정 전 순수 공격 스탯 (롤된 값).</summary>
+        public int GetStatAttack() { EnsureStatsRolled(); return _statAttack; }
+        /// <summary>장비 보정 전 순수 방어 스탯 (롤된 값).</summary>
+        public int GetStatDefense() { EnsureStatsRolled(); return _statDefense; }
+        /// <summary>장비 보정 전 순수 체력 보너스 (롤된 값).</summary>
+        public int GetStatVitality() { EnsureStatsRolled(); return _statVitality; }
+        /// <summary>장비 보정 전 순수 민첩 스탯 (롤된 값).</summary>
+        public int GetStatAgility() { EnsureStatsRolled(); return _statAgility; }
+
+        /// <summary>총 공격력 = 순수 공격 + 장착 무기 보너스 (GearStatIndex).</summary>
+        public int GetAttack()
+        {
+            GetStatAttack();
+            int gear = WeaponItem != null
+                ? Mathf.RoundToInt(GearStatIndex.GetWeaponAttackBoost(WeaponItem.id))
+                : 0;
+            return _statAttack + gear;
+        }
+
+        /// <summary>총 방어력 = 순수 방어 + 장착 방어구/부속 보너스 합 (GearStatIndex).</summary>
+        public int GetDefense()
+        {
+            GetStatDefense();
+            return _statDefense + GetGearDefenseBonus();
+        }
+
+        /// <summary>총 민첩 = 순수 민첩 (민첩 장비 보너스는 현재 없음 — 평탄 유지).</summary>
+        public int GetAgility()
+        {
+            GetStatAgility();
+            return _statAgility;
+        }
+
+        /// <summary>총 최대체력 = 기본 MaxHP + 체력 스탯 보너스 × 2.</summary>
+        public float GetMaxHP()
+        {
+            GetStatVitality();
+            return _maxHP + _statVitality * 2f;
+        }
+
+        /// <summary>장착 방어구 5슬롯의 가능한 방어 보너스 합 (정수 반올림).</summary>
+        private int GetGearDefenseBonus()
+        {
+            int sum = 0;
+            if (HelmetItem != null) sum += Mathf.RoundToInt(GearStatIndex.GetArmorDefenseBoost(HelmetItem.id));
+            if (ArmorItem != null)  sum += Mathf.RoundToInt(GearStatIndex.GetArmorDefenseBoost(ArmorItem.id));
+            if (BootsItem != null)  sum += Mathf.RoundToInt(GearStatIndex.GetArmorDefenseBoost(BootsItem.id));
+            if (GlovesItem != null) sum += Mathf.RoundToInt(GearStatIndex.GetArmorDefenseBoost(GlovesItem.id));
+            if (ShieldItem != null) sum += Mathf.RoundToInt(GearStatIndex.GetArmorDefenseBoost(ShieldItem.id));
+            return sum;
+        }
         public float Addiction { get => _addiction; set => _addiction = Mathf.Clamp(value, 0, GuardAddictionSystem.MAX_ADDICTION); }
         public bool IsPlayerNearby => _playerNearby;
         public bool IsShowingInfo => _showInfo;
@@ -1001,7 +1107,8 @@ namespace ProjectName.Systems
             else if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack);
 
             // 데미지 적용 (대상은 ValidateAttackTarget에서 유효성 검증 완료 상태)
-            float damage = level * 1.5f;
+            // [2026-09-17] 기존 level × 1.5 → 장착 무기를 반영한 GetAttack() 사용.
+            float damage = GetAttack();
             Vector3 dir = transform.forward;
             if (_attackTarget is Component at)
             {
