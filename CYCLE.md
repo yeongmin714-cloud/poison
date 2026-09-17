@@ -578,3 +578,8 @@
 - Status: ✅
 - Details: GuardInfo(480 2분할)+Options(391)+Settings(463 접근성 9API)+MainMenu(379)/Esc(156)/SaveSlot(206)/Load(207)/Loading(237)/Death(timeScale 홀드)+Credits(189 스크롤)+GameStats(242 U키)/Achievement(228 A키)/Tutorial(279 T키) = 13파일 3,407줄, 원본 0변경. 배치컴파일 error CS=0(수리 8건). DropdownField 3-arg 규약/보간문자열 중첩따옴표 금지
 - Date: 2026-09-18
+
+# Cycle: Phase 68 U6 — 미니게임/대화/이벤트 UTK 전환 17창
+- Status: ✅
+- Details: 대화4(NPCDialogue/QuestChoice/ReadDocument/LordAudience)+미니게임4(Lockpicking/Fishing/Mercy/Sleep 수면위임+침대세이브)+아레나2+MissionResult(자체큐)+이벤트3(Festival/DynamicEvent/NPCDaily)+깃발/가스/교회(2원본통합) = 17파일 ~4,030줄, 원본 0변경. 배치컴파일 error CS=0(barText Label/TerritoryDefinition 구조체 null비교 수리). 구조체 반환 API null비교 금지 규약
+- Date: 2026-09-18

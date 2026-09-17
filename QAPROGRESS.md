@@ -8,6 +8,24 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U6 — 미니게임/대화/이벤트 UTK 전환 17창)
+
+> **입력**: 마이그레이션 계획 U6 — 원본 ~6,100줄 18창(대화 4/미니게임 4/아레나 2+결과/이벤트 7). 서브에이전트 5회(R1 3병렬 1성공+2타임아웃, Sleep/MissionResult 부모 직접 작성, D 2병렬 전원 성공).
+
+### 변경 사항 (신규 17, ~4,030줄)
+**대화/문서**: NPCDialogueUTK(352 — NPCInstance 대화/선택지)/QuestChoiceUTK(306 — QuestChainManager.IsChoiceAvailable/CompleteCurrentNode)/ReadDocumentUTK(186 — OnDocumentReadRequested 이벤트 브리지)/LordAudienceUTK(242 — 화술 판정 Level>=difficulty).
+**미니게임/수면/자비**: LockpickingUTK(454)/FishingUTK(238)/MercyUTK(286)/SleepUTK(수면=SleepUI.StartSleep 리플렉션 위임 단일소스, 침대세이브=Bed.SetSpawnPoint+SaveManager.AutoSave 정적 직접 호출).
+**아레나/결과**: ArenaMenuUTK(431)/ArenaBattleUTK(373 — HP바 실시간)/MissionResultUTK(원본 피드 API 부재 → 자체 큐+public AddResult 정적, 배선은 U7).
+**이벤트**: FestivalUTK(276 — OnFestivalStarted 구독+12s 배너)/DynamicEventUTK(252 — OnEventStarted+이동/무시 선택+15s 자동해제)/NPCDailyUTK(193 — 시간대 폴링).
+**깃발/가스/교회**: PlayerFlagUTK(356 — EmblemManager 엠블럼 10형×8색+골드)/GasSprayUTK(280 — 등급/재장전/포션분류)/ChurchUTK(295 — ChurchSystemUI+ChurchNPCInteraction 통합, 기부 10/50/100+친밀도 80+ 알현 게이트).
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0) — 수리 2종: ①barText 반환형 VisualElement→Label(CS0266) ②TerritoryDefinition 구조체 null 비교(CS0019) → IsNullOrEmpty(territoryName).
+- 노트: **구조체 반환 API(GetDefinition)는 null 비교 불가 — 필드 빈값 체크로 대체** (RevengeList의 TryResolveDefinition 패턴과 동일 계열).
+- Play 판정 대기: ①NPC 대화/퀘스트 선택/문서 ②자물쇠·낚시 미니게임 ③수면(세이브+스폰핀) ④아레나 ⑤축제/동적이벤트 배너 ⑥깃발 등록/가스/교회 기부.
+
+---
+
 ## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U5 — 메뉴/시스템 UTK 전환 13창)
 
 > **입력**: 마이그레이션 계획 U5 — 원본 5,785줄 13창(가드정보/옵션/설정/메인/ESC/세이브/로드/로딩/사망/크레딧/통계/업적/튜토리얼). 서브에이전트 3회(R1 3병렬: 2성공+1타임아웃→부모 DeathScreen 직접 작성, R2 1회 전원 성공).

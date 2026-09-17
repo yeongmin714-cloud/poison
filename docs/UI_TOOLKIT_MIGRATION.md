@@ -78,11 +78,13 @@
 - [x] **GameStatsUTK**(242, U키)+AchievementUTK(228, A키)+TutorialGuideUTK(279, T키)
 - [ ] 크레딧 phase 머신(통계 요약→뉴게임+ 선택) 완성 — U8 회귀 라운드 검토
 
-### Phase U6 — 미니게임/대화/이벤트
-- [ ] NPCDialogueWindow + QuestChoiceUI + ReadDocumentWindow + LordAudienceUI
-- [ ] LockpickingUI + FishingUI + MercyUI + SleepUI
-- [ ] ArenaMenuUI/ArenaBattleUI + FestivalUI + DynamicEventUI + MissionResultUI + NPCDailyUI
-- [ ] PlayerFlagRegistrationWindow + GasSprayUI + ChurchSystemUI/ChurchNPCInteraction
+### Phase U6 — 미니게임/대화/이벤트 (17창 전부 ✅)
+- [x] **NPCDialogueUTK**(352)+QuestChoiceUTK(306)+ReadDocumentUTK(186)+LordAudienceUTK(242)
+- [x] **LockpickingUTK**(454)+FishingUTK(238)+MercyUTK(286)+SleepUTK(수면 위임+침대세이브)
+- [x] **ArenaMenuUTK**(431)+ArenaBattleUTK(373)+MissionResultUTK(자체 큐 — 피드 배선 U7)
+- [x] **FestivalUTK**(276)+DynamicEventUTK(252)+NPCDailyUTK(193)
+- [x] **PlayerFlagUTK**(356)+GasSprayUTK(280)+ChurchUTK(295 — 2원본 통합)
+- [ ] 원본→UTK 호출부 배선 — U7 일괄 전환 라운드
 
 ### Phase U7 — HUD/오버레이 + 잔여 정리
 - [ ] HUD + GuardSquadHotbar(부대 F+1~8/토글/우클릭 해제) + MinimapUI
@@ -121,4 +123,5 @@
 | 2026-09-18 | U3 | 경제/제작 완료 — 6파일 2,750줄(창고/크래프트/연금/요리/수리/퀵슬롯), 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | U4 | 전략/영지 13창 완료 — 4,417줄(월드맵/영지배치/퀘스트/도감/임무/용병/복수/이동), 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | U5 | 메뉴/시스템 13창 완료 — 3,407줄(가드정보/옵션/설정/게임흐름 6종/잔여 4종), 배치컴파일 error CS=0 | ✅ |
-| | U6~U8 | 대기 — U6 미니게임/대화/이벤트부터 | ⏳ |
+| 2026-09-18 | U6 | 미니게임/대화/이벤트 17창 완료 — ~4,030줄, 배치컴파일 error CS=0 | ✅ |
+| | U7~U8 | 대기 — U7 HUD/오버레이+호출부 배선+유지 판정부터 | ⏳ |
