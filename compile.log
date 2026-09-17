@@ -1,21 +1,21 @@
 [Licensing::Module] Trying to connect to existing licensing client channel...
 Built from '6000.4/staging' branch; Version is '6000.4.10f1 (feeafc12a938) revision 16706300'; Using compiler version '194234433'; Build Type 'Release'
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-09-17T15:48:25.9474658Z"
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-09-17T16:02:51.7232523Z"
 OS: 'Windows 10  (10.0.19045) 64bit Core' Language: 'ko' Physical Memory: 7880 MB
 BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
 System  architecture: x64
 Process architecture: x64
-Date: 2026-09-17T15:48:25Z
+Date: 2026-09-17T16:02:51Z
 [Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 3220, path: "C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
 [Licensing::Module] LicensingClient has failed validation; ignoring
 [Licensing::Client] Handshaking with LicensingClient:
   Version:                 1.18.1+9fbee8e
-  Session Id:              aca0f0a9f7574097820d602d9b0122e0
+  Session Id:              905dbe32c4574b6a9a7b7f92afa8fe71
   Correlation Id:          4544091c8d567265a1a500d64ab6d873
-  External correlation Id: 3441585565566495231
+  External correlation Id: 6672766764873495031
   Machine Id:              5cJWr0XiXK4/b2/xsaHUUO6HAA8=
-[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-korea" (connect: 0.00s, validation: 0.00s, handshake: 0.11s)
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-09-17T15:48:26.0600025Z"
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-korea" (connect: 0.00s, validation: 0.00s, handshake: 0.10s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-09-17T16:02:51.8255754Z"
 [Licensing::Module] Error: Access token is unavailable; failed to update
 [Licensing::Client] Successfully resolved entitlement details
 [Licensing::Module] License group:
@@ -25,7 +25,7 @@ Date: 2026-09-17T15:48:25Z
   Expiration: Unlimited
 [Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
 [Licensing::Client] Successfully resolved entitlement details
-[Licensing::Module] Licensing Background thread has ended after 0.13s
+[Licensing::Module] Licensing Background thread has ended after 0.12s
 
 COMMAND LINE ARGUMENTS:
 Unity.exe
@@ -74,18 +74,18 @@ C:/Unity/code
     "memorysetup-job-temp-allocator-block-size=2097152"
     "memorysetup-job-temp-allocator-block-size-background=1048576"
     "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
-Player connection [2108]  Target information:
+Player connection [10756]  Target information:
 
-Player connection [2108]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 1155313676 [EditorId] 1155313676 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [10756]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 1236269536 [EditorId] 1236269536 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [2108]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 1155313676 [EditorId] 1155313676 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [10756]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 1236269536 [EditorId] 1236269536 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [2108] Host joined multi-casting on [225.0.0.222:54997]...
-Player connection [2108] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Player connection [10756] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [10756] Host joined alternative multi-casting on [225.0.0.222:34997]...
 Input System module state changed to: Initialized.
 [Physics::Module] Initialized fallback backend.
 [Physics::Module] Id: 0xdecafbad
-[Package Manager] Connected to IPC stream "Upm-11888" after 0.4 seconds.
+[Package Manager] Connected to IPC stream "Upm-2288" after 0.4 seconds.
 [Licensing::Client] Successfully resolved entitlement details
 Library Redirect Path: Library/
 [Physics::Module] Selected backend.
@@ -94,7 +94,7 @@ Library Redirect Path: Library/
 [Physics::Module] SDK Version: 4.1.2
 [Physics::Module] Integration Version: 1.0.0
 [Physics::Module] Threading Mode: Multi-Threaded
-Refreshing native plugins compatible for Editor in 5.94 ms, found 0 plugins.
+Refreshing native plugins compatible for Editor in 2.68 ms, found 0 plugins.
 Initialize engine version: 6000.4.10f1 (feeafc12a938)
 [Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Resources/UnitySubsystems
 [Subsystems] Discovering subsystems at path C:/Unity/code/Assets
@@ -113,7 +113,7 @@ Initialize mono
 Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Managed'
 Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
 Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/etc'
-Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56888
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56288
 CodeReloadManager initialized
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
@@ -123,30 +123,30 @@ Begin MonoManager ReloadAssembly
 Registering precompiled unity dll's ...
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
-Registered in 0.005196 seconds.
+Registered in 0.004616 seconds.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 Package Manager log level set to [2]
 ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.783 seconds
-Domain Reload Profiling: 1573ms
-	BeginReloadAssembly (253ms)
-		CreateAndSetChildDomain (3ms)
-	RebuildCommonClasses (65ms)
-	RebuildNativeTypeToScriptingClass (21ms)
-	initialDomainReloadingComplete (119ms)
-	LoadAllAssembliesAndSetupDomain (329ms)
+- Finished resetting the current domain, in  0.671 seconds
+Domain Reload Profiling: 1473ms
+	BeginReloadAssembly (267ms)
+		CreateAndSetChildDomain (18ms)
+	RebuildCommonClasses (64ms)
+	RebuildNativeTypeToScriptingClass (23ms)
+	initialDomainReloadingComplete (116ms)
+	LoadAllAssembliesAndSetupDomain (330ms)
 		LoadAssemblies (244ms)
-		AnalyzeDomain (314ms)
-			TypeCache.Refresh (312ms)
+		AnalyzeDomain (316ms)
+			TypeCache.Refresh (314ms)
 				TypeCache.ScanAssembly (293ms)
-	FinalizeReload (786ms)
+	FinalizeReload (673ms)
 		SetupLoadedEditorAssemblies (0ms)
 			InitializePlatformSupportModulesInManaged (74ms)
-			BeforeProcessingInitializeOnLoad (152ms)
-			ProcessInitializeOnLoadAttributes (204ms)
-			ProcessInitializeOnLoadMethodAttributes (201ms)
+			BeforeProcessingInitializeOnLoad (138ms)
+			ProcessInitializeOnLoadAttributes (174ms)
+			ProcessInitializeOnLoadMethodAttributes (186ms)
 [Licensing::Client] Successfully resolved entitlement details
 Application.AssetDatabase Initial Refresh Start
 [Package Manager] Restoring resolved packages state from cache
@@ -246,14 +246,14 @@ info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 43.7371ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 44.5958ms
 Starting: C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
 WorkingDir: C:/Unity/code
-DisplayProgressbar: Compiling Scripts
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
       Executing endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+DisplayProgressbar: Compiling Scripts
 warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
       Assembly system.runtime.interopservices.windowsruntime has duplicate hint path. Ignoring "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Runtime.InteropServices.WindowsRuntime.dll" in favor of "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\NetStandard\Extensions\2.0.0\System.Runtime.InteropServices.WindowsRuntime.dll"
 warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
@@ -265,7 +265,7 @@ info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 112.6184ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 117.3250ms
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
@@ -281,7 +281,7 @@ info: Unity.ILPP.Runner.PostProcessingPipeline[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 54.2939ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 63.1189ms
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
@@ -305,7 +305,7 @@ info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 2107.6807ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 1132.5097ms
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
@@ -321,13 +321,15 @@ info: Unity.ILPP.Runner.PostProcessingPipeline[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 310.9655ms
-ExitCode: 0 Duration: 12s
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 102.8182ms
+ExitCode: 0 Duration: 8s482ms
 [1083/1423  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
-[1411/1423  2s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll (+2 others)
-Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
+[1411/1423  3s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll (+2 others)
 Assets\Scripts\UI\EquipmentWindow.cs(105,28): warning CS0114: 'EquipmentWindow.Toggle()' hides inherited member 'UIWindow.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\EquipmentWindowUTK.cs(46,28): warning CS0114: 'EquipmentWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\TerritoryNPCSpawner.cs(259,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
 [1412/1423  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/ProjectName.UI.dll (+pdb)
@@ -340,20 +342,14 @@ running Unity.Jobs.CodeGen.JobsILPostProcessor
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
 [1413/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.pdb
 [1414/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.dll
-[1415/1423  2s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll (+2 others)
+[1415/1423  0s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll (+2 others)
 Assets\Travis Game Assets\Hit Impact Effects\Demo Scene\Scripts\HitImpactEffectsPreview.cs(28,21): warning CS0108: 'HitImpactEffectsPreview.light' hides inherited member 'Component.light'. Use the new keyword if hiding was intended.
-[1416/1423  2s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
-Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 144 defines and 357 references
-
-processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
-
-running Unity.Jobs.CodeGen.JobsILPostProcessor
-
-running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[1417/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.pdb
-[1418/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.dll
-[1419/1423  4s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
+[1416/1423  1s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
 Assets\Editor\DayNightCycleReferenceFixer.cs(24,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
+Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
 Assets\Editor\FixAllCriticalIssues.cs(207,27): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
@@ -363,8 +359,6 @@ Assets\Editor\FixAllCriticalIssues.cs(225,28): warning CS0618: 'Object.FindFirst
 
 Assets\Editor\FixAllCriticalIssues.cs(242,25): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
-Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-
 Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
 Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
@@ -372,8 +366,6 @@ Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider'
 Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
 
 Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
-
-Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
 Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
 
@@ -386,6 +378,16 @@ Assets\Editor\FixMainScene.cs(938,19): warning CS0618: 'Object.FindFirstObjectBy
 Assets\Editor\VFXResourceInstaller.cs(279,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
 
 Assets\Editor\MonsterRigScanTool.cs(170,51): warning CS0184: The given expression is never of the provided ('AnimatorController') type
+[1417/1423  1s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 144 defines and 357 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1418/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.pdb
+[1419/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.dll
 [1420/1423  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
 Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 383 references
 
@@ -396,29 +398,30 @@ running Unity.Jobs.CodeGen.JobsILPostProcessor
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
 [1421/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
 [1422/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
-*** Tundra build success (12.58 seconds), 13 items updated, 1423 evaluated
-Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+*** Tundra build success (8.41 seconds), 13 items updated, 1423 evaluated
 Assets\Scripts\UI\EquipmentWindow.cs(105,28): warning CS0114: 'EquipmentWindow.Toggle()' hides inherited member 'UIWindow.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\EquipmentWindowUTK.cs(46,28): warning CS0114: 'EquipmentWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\TerritoryNPCSpawner.cs(259,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
 Assets\Travis Game Assets\Hit Impact Effects\Demo Scene\Scripts\HitImpactEffectsPreview.cs(28,21): warning CS0108: 'HitImpactEffectsPreview.light' hides inherited member 'Component.light'. Use the new keyword if hiding was intended.
 Assets\Editor\DayNightCycleReferenceFixer.cs(24,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\Editor\FixAllCriticalIssues.cs(207,27): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\Editor\FixAllCriticalIssues.cs(216,32): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\Editor\FixAllCriticalIssues.cs(225,28): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\Editor\FixAllCriticalIssues.cs(242,25): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
 Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
 Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
-Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
 Assets\Editor\IndoorShellMenu.cs(30,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\Editor\IndoorShellMenu.cs(30,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\Editor\FixMainScene.cs(938,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\Editor\VFXResourceInstaller.cs(279,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
 Assets\Editor\MonsterRigScanTool.cs(170,51): warning CS0184: The given expression is never of the provided ('AnimatorController') type
-AssetDatabase: script compilation time: 13.454587s
+AssetDatabase: script compilation time: 9.285120s
 Begin MonoManager ReloadAssembly
 Assembly Assembly-CSharp-Editor-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-Editor-firstpass.dll not valid. Loading of assembly skipped.
 Assembly Assembly-CSharp-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll not valid. Loading of assembly skipped.
@@ -465,121 +468,118 @@ Symbol file LoadedFromMemory is not a mono symbol file
 Symbol file LoadedFromMemory is not a mono symbol file
 'Packages/com.unity.cinemachine/Editor/Editors/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
 'Packages/com.unity.cinemachine/Editor/Obsolete/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
-Refreshing native plugins compatible for Editor in 215.15 ms, found 5 plugins.
+Refreshing native plugins compatible for Editor in 30.68 ms, found 5 plugins.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
-Refreshing native plugins compatible for Editor in 7.71 ms, found 5 plugins.
+Refreshing native plugins compatible for Editor in 8.78 ms, found 5 plugins.
 [MODES] ModeService[none].Initialize
 [MODES] ModeService[none].LoadModes
 [MODES] Loading mode Default (0) for mode-current-id-포이즌
 ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  9.116 seconds
-Domain Reload Profiling: 30825ms
-	BeginReloadAssembly (591ms)
-		DisableScriptedObjects (63ms)
-		CreateAndSetChildDomain (200ms)
-	RebuildCommonClasses (58ms)
+- Finished resetting the current domain, in  7.297 seconds
+Domain Reload Profiling: 11597ms
+	BeginReloadAssembly (576ms)
+		DisableScriptedObjects (59ms)
+		CreateAndSetChildDomain (193ms)
+	RebuildCommonClasses (59ms)
 	RebuildNativeTypeToScriptingClass (21ms)
-	initialDomainReloadingComplete (15485ms)
-	LoadAllAssembliesAndSetupDomain (5555ms)
-		LoadAssemblies (4370ms)
-		AnalyzeDomain (1406ms)
-			TypeCache.Refresh (1201ms)
-				TypeCache.ScanAssembly (1167ms)
-			BuildScriptInfoCaches (166ms)
-			ResolveRequiredComponents (35ms)
-	FinalizeReload (9117ms)
+	initialDomainReloadingComplete (1623ms)
+	LoadAllAssembliesAndSetupDomain (2021ms)
+		LoadAssemblies (1414ms)
+		AnalyzeDomain (815ms)
+			TypeCache.Refresh (607ms)
+				TypeCache.ScanAssembly (574ms)
+			BuildScriptInfoCaches (168ms)
+			ResolveRequiredComponents (36ms)
+	FinalizeReload (7297ms)
 		SetupLoadedEditorAssemblies (0ms)
-			InitializePlatformSupportModulesInManaged (38ms)
-			BeforeProcessingInitializeOnLoad (522ms)
-			ProcessInitializeOnLoadAttributes (6099ms)
-			ProcessInitializeOnLoadMethodAttributes (1916ms)
-			AfterProcessingInitializeOnLoad (14ms)
-			EditorAssembliesLoaded (12ms)
-		AwakeInstancesAfterBackupRestoration (63ms)
-Refreshing native plugins compatible for Editor in 82.16 ms, found 5 plugins.
-Preloading 1 native plugins for Editor in 4.17 ms.
+			InitializePlatformSupportModulesInManaged (47ms)
+			BeforeProcessingInitializeOnLoad (558ms)
+			ProcessInitializeOnLoadAttributes (5292ms)
+			ProcessInitializeOnLoadMethodAttributes (629ms)
+			AfterProcessingInitializeOnLoad (16ms)
+		AwakeInstancesAfterBackupRestoration (50ms)
+Refreshing native plugins compatible for Editor in 8.21 ms, found 5 plugins.
 (Values over 0.050ms)
-Asset Pipeline Refresh (id=30ece0867465d8548a1005558336f805): Total: 48.884 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+Asset Pipeline Refresh (id=c4cdab4950cb87c4a9b851a7db2b0737): Total: 23.402 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
 	Summary:
 		Imports: total=0 (actual=0, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=11574 ms
-		Asset DB Callback time: managed=1503 ms, native=356 ms
-		Scripting: domain reloads=1, domain reload time=21721 ms, compile time=13457 ms, other=268 ms
+		Asset DB Process Time: managed=0 ms, native=8819 ms
+		Asset DB Callback time: managed=605 ms, native=99 ms
+		Scripting: domain reloads=1, domain reload time=4313 ms, compile time=9287 ms, other=271 ms
 		Project Asset Count: scripts=2679, non-scripts=7668
-		Asset File Changes: new=0, changed=2, moved=0, deleted=0
+		Asset File Changes: new=0, changed=1, moved=0, deleted=0
 		Scan Filter Count: 0
-	InvokePackagesCallback: 45.319ms
-	ApplyChangesToAssetFolders: 0.959ms
-	Scan: 391.978ms
-	OnSourceAssetsModified: 1.346ms
-	CategorizeScriptCompilationAssets: 127.782ms
-	ProcessAssetsWithTransientArtifactChanges: 277.871ms
-	CategorizeAssets: 691.311ms
-	CompileScripts: 13456.778ms
-	ImportOutOfDateAssets: 9493.430ms (9472.198ms without children)
-		ReloadNativeAssets: 0.077ms
-		UnloadImportedAssets: 3.397ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 3.128ms
-		OnDemandSchedulerStart: 14.621ms
-	PostProcessAllAssets: 1523.297ms
-		VCAutoAddAssetPostprocess 10.050ms
-		XRBuildSystem.XRAssetImported 2.149ms
-		PostProcessCallbackCreateDeferredMaterials 0.118ms
-		MonoPostProcessAllAssets: 1502.428ms
-			AssetPostprocessor.OnPostprocessAllAssets 666.825ms
-			StyleCatalogPostProcessor.OnPostprocessAllAssets 161.573ms
-			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 155.489ms
-			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 41.820ms
-			BuilderAssetPostprocessor.OnPostprocessAllAssets 22.298ms
-			AssetChangedListener.OnPostprocessAllAssets 10.657ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 9.606ms
-			SpeedTree9Postprocessor.OnPostprocessAllAssets 8.362ms
-			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 6.134ms
-			AddressablesAssetPostProcessor.OnPostprocessAllAssets 4.745ms
-			SyncVS.PostprocessSyncProject 3.300ms
-			ProjectSettingsPostprocessor.OnPostprocessAllAssets 2.486ms
-			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 1.919ms
-			LocalizationAssetPostProcessor.OnPostprocessAllAssets 1.819ms
-			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 1.597ms
-			UVCSAssetPostprocessor.OnPostprocessAllAssets 1.504ms
-			VFXGraphPreprocessor.OnPostprocessAllAssets 1.449ms
-			TMPro_TexturePostProcessor.OnPostprocessAllAssets 1.205ms
-			MaterialPostprocessor.OnPostprocessAllAssets 1.075ms
-			AssetEvents.OnPostprocessAllAssets 0.902ms
-			AudioMixerPostprocessor.OnPostprocessAllAssets 0.811ms
-			AssetPathToTypes.OnPostprocessAllAssets 0.779ms
-			TextAssetPostProcessor.OnPostprocessAllAssets 0.709ms
-			ModelAssetProcessor.OnPostprocessAllAssets 0.553ms
-			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.536ms
-			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.510ms
-			CinemachineSettings.OnPostprocessAllAssets 0.415ms
-			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.375ms
-			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.356ms
-			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.350ms
-			PostProcessor.OnPostprocessAllAssets 0.338ms
-			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.282ms
-			ConfigAssetsTracker.OnPostprocessAllAssets 0.256ms
-			SpeedTreePostProcessor.OnPostprocessAllAssets 0.249ms
-			SamplePostprocessor.OnPostprocessAllAssets 0.196ms
-			AudioContainerPostProcessor.OnPostprocessAllAssets 0.193ms
-	PostAssetChangesProfiler: 293.959ms
-	UnloadStreamsBegin: 5.995ms
-	PersistCurrentRevisions: 0.693ms
-	GenerateScriptTypeHashes: 9.839ms
-	GenerateScriptTypeSerializationHashes: 18.275ms
-	Untracked: 22564.546ms
+	InvokePackagesCallback: 49.569ms
+	ApplyChangesToAssetFolders: 1.079ms
+	Scan: 413.403ms
+	OnSourceAssetsModified: 1.052ms
+	CategorizeScriptCompilationAssets: 112.540ms
+	ProcessAssetsWithTransientArtifactChanges: 264.883ms
+	CategorizeAssets: 218.780ms
+	CompileScripts: 9287.095ms
+	ImportOutOfDateAssets: 7369.693ms (7361.065ms without children)
+		UnloadImportedAssets: 3.100ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.633ms
+		OnDemandSchedulerStart: 2.848ms
+	PostProcessAllAssets: 624.723ms
+		VCAutoAddAssetPostprocess 7.160ms
+		XRBuildSystem.XRAssetImported 1.998ms
+		PostProcessCallbackCreateDeferredMaterials 0.056ms
+		MonoPostProcessAllAssets: 604.757ms
+			AssetPostprocessor.OnPostprocessAllAssets 413.485ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 73.527ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 25.021ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 24.165ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 10.106ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 5.400ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 2.985ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 2.521ms
+			LocalizationAssetPostProcessor.OnPostprocessAllAssets 2.231ms
+			VFXGraphPreprocessor.OnPostprocessAllAssets 2.080ms
+			AddressablesAssetPostProcessor.OnPostprocessAllAssets 2.060ms
+			AssetChangedListener.OnPostprocessAllAssets 1.996ms
+			MaterialPostprocessor.OnPostprocessAllAssets 1.353ms
+			SamplePostprocessor.OnPostprocessAllAssets 1.266ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 1.111ms
+			AssetPathToTypes.OnPostprocessAllAssets 0.906ms
+			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.889ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.846ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.747ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.665ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.663ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.633ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.621ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.591ms
+			CinemachineSettings.OnPostprocessAllAssets 0.545ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 0.422ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.412ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.403ms
+			PostProcessor.OnPostprocessAllAssets 0.397ms
+			AssetEvents.OnPostprocessAllAssets 0.343ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.315ms
+			SyncVS.PostprocessSyncProject 0.289ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.259ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.252ms
+			ConfigAssetsTracker.OnPostprocessAllAssets 0.227ms
+			AudioContainerPostProcessor.OnPostprocessAllAssets 0.166ms
+	PostAssetChangesProfiler: 34.588ms
+	UnloadStreamsBegin: 6.128ms
+	PersistCurrentRevisions: 0.483ms
+	GenerateScriptTypeHashes: 6.317ms
+	GenerateScriptTypeSerializationHashes: 11.188ms
+	Untracked: 5010.158ms
 
 Application.AssetDatabase Initial Refresh End
-Launched and connected shader compiler UnityShaderCompiler.exe after 0.11 seconds
-Scanning for USB devices : 15.359ms
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.16 seconds
+Scanning for USB devices : 11.938ms
 Initializing Unity extensions:
 Unloading 84 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 11395 unused Assets / (16.7 MB). Loaded Objects now: 12322.
-Memory consumption went from 319.8 MB to 303.1 MB.
-Total: 64.541100 ms (FindLiveObjects: 3.262600 ms CreateObjectMapping: 3.874600 ms MarkObjects: 27.146200 ms  DeleteObjects: 29.476400 ms)
+Unloading 11398 unused Assets / (16.2 MB). Loaded Objects now: 12325.
+Memory consumption went from 314.6 MB to 298.4 MB.
+Total: 240.854700 ms (FindLiveObjects: 2.384800 ms CreateObjectMapping: 14.565300 ms MarkObjects: 191.381800 ms  DeleteObjects: 25.622000 ms)
 
 [ScriptCompilation] Requested script compilation because: Requested through public api
 Compilation requested
@@ -610,55 +610,44 @@ UnityEditor.EditorApplication:Internal_EditorApplicationQuit ()
 
 (Filename: ./Library/PackageCache/com.unity.ugui@1f2d1ab0d950/Runtime/TMP/TMP_FontAsset.cs Line: 820)
 
-Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.1274958 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
-Refreshing native plugins compatible for Editor in 9.21 ms, found 5 plugins.
-Preloading 1 native plugins for Editor in 2.59 ms.
+Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.0719216 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
+Refreshing native plugins compatible for Editor in 7.64 ms, found 5 plugins.
 (Values over 0.050ms)
-Asset Pipeline Refresh (id=eafcb84fa727bee4fbf13e7d866efaaa): Total: 2.449 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=0e0d8c36cb4fec74489858cfc08ea56c): Total: 0.471 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
 	Summary:
 		Imports: total=1 (actual=1, local cache=0, cache server=0)
-		Asset DB Process Time: managed=14 ms, native=2317 ms
-		Asset DB Callback time: managed=28 ms, native=87 ms
+		Asset DB Process Time: managed=6 ms, native=386 ms
+		Asset DB Callback time: managed=10 ms, native=66 ms
 		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
 		Project Asset Count: scripts=2679, non-scripts=7668
 		Asset File Changes: new=0, changed=0, moved=0, deleted=0
 		Scan Filter Count: 1
-	ApplyChangesToAssetFolders: 4.849ms
-	Scan: 127.776ms
-	ProcessAssetsWithTransientArtifactChanges: 19.848ms
-	CategorizeAssets: 1437.782ms
-	ImportOutOfDateAssets: 169.886ms (2.678ms without children)
-		ImportManagerImport: 156.757ms (8.053ms without children)
-		ReloadNativeAssets: 0.965ms
-		UnloadImportedAssets: 0.265ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.227ms
-		OnDemandSchedulerStart: 6.978ms
-	PostProcessAllAssets: 98.356ms
-		XRBuildSystem.XRAssetImported 57.952ms
-		PostProcessCallbackCreateDeferredMaterials 1.199ms
-		AssemblyValidation.PostprocessAllAssets 0.958ms
-		RaytracingShaderImportPostprocess 0.075ms
-		ShaderAssetModifiedCallback 0.052ms
-		MonoPostProcessAllAssets: 28.120ms
-			AssetPostprocessor.OnPostprocessAllAssets 16.819ms
-			AssetChangedListener.OnPostprocessAllAssets 2.655ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 1.824ms
-			ModelAssetProcessor.OnPostprocessAllAssets 1.316ms
-			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 1.087ms
-			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 0.575ms
-			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.304ms
-			SyncVS.PostprocessSyncProject 0.265ms
-			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.236ms
-			AssetPathToTypes.OnPostprocessAllAssets 0.228ms
-			VFXGraphPreprocessor.OnPostprocessAllAssets 0.205ms
-			SpeedTree9Postprocessor.OnPostprocessAllAssets 0.166ms
-			LocalizationAssetPostProcessor.OnPostprocessAllAssets 0.163ms
-			TextAssetPostProcessor.OnPostprocessAllAssets 0.110ms
-	PostAssetChangesProfiler: 15.961ms
-	GatherAllCurrentPrimaryImportResultRevisions: 20.818ms
-	UnloadStreamsBegin: 0.172ms
-	PersistCurrentRevisions: 0.425ms
-	Untracked: 553.209ms
+	ApplyChangesToAssetFolders: 0.200ms
+	Scan: 131.059ms
+	ProcessAssetsWithTransientArtifactChanges: 3.234ms
+	CategorizeAssets: 116.795ms
+	ImportOutOfDateAssets: 102.410ms (1.670ms without children)
+		ImportManagerImport: 95.380ms (2.721ms without children)
+			UpdateCategorizedAssets: 0.060ms
+		ReloadNativeAssets: 0.052ms
+		UnloadImportedAssets: 0.359ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 3.583ms
+		OnDemandSchedulerStart: 1.352ms
+	PostProcessAllAssets: 65.204ms
+		XRBuildSystem.XRAssetImported 43.363ms
+		AssemblyValidation.PostprocessAllAssets 1.073ms
+		MonoPostProcessAllAssets: 10.286ms
+			AssetPostprocessor.OnPostprocessAllAssets 4.941ms
+			AssetChangedListener.OnPostprocessAllAssets 2.591ms
+			ModelAssetProcessor.OnPostprocessAllAssets 1.012ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.786ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.227ms
+			SyncVS.PostprocessSyncProject 0.136ms
+	PostAssetChangesProfiler: 11.329ms
+	GatherAllCurrentPrimaryImportResultRevisions: 2.336ms
+	UnloadStreamsBegin: 0.104ms
+	PersistCurrentRevisions: 0.551ms
+	Untracked: 37.469ms
 
 [Physics::Module] Cleanup current backend.
 [Physics::Module] Id: 0xf2b8ea05
@@ -670,14 +659,14 @@ Input System module state changed to: Shutdown.
 AcceleratorClientConnectionCallback - disconnected - :0
 Cleanup mono
 CodeReloadManager destroyed
-abort_threads: Failed aborting id: 0000000000001C3C, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 00000000000037F0, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 000000000000335C, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 00000000000035A8, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 0000000000001C3C, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 00000000000037F0, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 000000000000335C, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 00000000000035A8, mono_thread_manage will ignore it
 
-debugger-agent: Unable to listen on 3144
+debugger-agent: Unable to listen on 3148
 Exiting batchmode successfully now!
 Exiting without the bug reporter. Application will terminate with return code 0
