@@ -62,12 +62,13 @@
 - [x] **QuickSlotUTK**(236) — 퀵슬롯(U2에서 이월)
 - [ ] CompareTooltip — U7 툴팁 통합 라운드로 이월 (UTKTooltip 공통 인프라 존재)
 
-### Phase U4 — 전략/영지 창
-- [ ] MapWindow + WorldMapWindow (양피지+정규화 좌표 유지, M키 핫키 유지)
-- [ ] TerritoryInfoPopup + TerritoryDeploymentUI (역할 5버튼+특사)
-- [ ] FastTravelUI + RouteConfirmationUI + AutoMoveUI
-- [ ] EnvoyMissionUI + SpyMissionUI + MercenaryHireUI
-- [ ] RevengeListWindow(+Integration) + EncyclopediaWindow + QuestWindow + QuestJournalUI
+### Phase U4 — 전략/영지 창 (13창 전부 ✅)
+- [x] **WorldMapWindowUTK**(659) — 정규화 좌표 마커/절차 양피지/M키+구핫키 무력화/소유 실시간
+- [x] **TerritoryDeploymentUTK**(298)+**TerritoryInfoPopupUTK**(284) — 6역할 배치+특사 pick/상세
+- [x] **QuestWindowUTK**(419)+**QuestJournalUTK**(320)+**EncyclopediaWindowUTK**(384) — Q/J/L키
+- [x] **SpyMissionUTK**(636)+**EnvoyMissionUTK**(523) — 첩보/특사 임무
+- [x] **MercenaryHireUTK**(296)+**RevengeListUTK**(385)+**FastTravelUTK**(296)+**RouteConfirmationUTK**(207)+**AutoMoveUTK**(258)
+- [ ] 원본→UTK 호출 전환(Show 호출부 배선) — U7 일괄 전환 라운드로
 
 ### Phase U5 — 메뉴/시스템 화면
 - [ ] MainMenuUI + EscMenuUI
@@ -117,4 +118,5 @@
 | 2026-09-18 | U1 | 파일럿 완료 — StatusWindowUTK(581줄)+ShopWindowUTK(564줄), 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | U2 | DnD 코어 완료 — UTKDragDrop+Inventory/Loot/Equipment/Hotbar UTK 5파일(1,768줄), 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | U3 | 경제/제작 완료 — 6파일 2,750줄(창고/크래프트/연금/요리/수리/퀵슬롯), 배치컴파일 error CS=0 | ✅ |
-| | U4~U8 | 대기 — U4 전략/영지(월드맵/배치/임무)부터 | ⏳ |
+| 2026-09-18 | U4 | 전략/영지 13창 완료 — 4,417줄(월드맵/영지배치/퀘스트/도감/임무/용병/복수/이동), 배치컴파일 error CS=0 | ✅ |
+| | U5~U8 | 대기 — U5 메뉴/시스템(메인/옵션/세이브/사망)부터 | ⏳ |

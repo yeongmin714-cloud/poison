@@ -568,3 +568,8 @@
 - Status: ✅
 - Details: WarehouseWindowUTK(629, 양방향 DnD)+CraftingWindowUTK(837, 프리셋/즐겨찾기)+AlchemyStationUTK(358)+CookingWindowUTK(393)+RepairStationUTK(297)+QuickSlotUTK(236) = 6파일 2,750줄, 원본 0변경. 배치컴파일 error CS=0(CS7036/CS0191 readonly 8필드/CS1061 borderWidth 4면/using System.Linq 수리). IStyle borderWidth/borderColor 셔스루햇 부재 확정
 - Date: 2026-09-18
+
+# Cycle: Phase 68 U4 — 전략/영지 루프 UTK 전환 13창
+- Status: ✅
+- Details: WorldMap(659)/TerritoryDeployment(298)/TerritoryInfoPopup(284)/Quest(419)/QuestJournal(320)/Encyclopedia(384)/Spy(636)/Envoy(523)/Mercenary(296)/Revenge(385)/FastTravel(296)/Route(207)/AutoMove(258) = 13파일 4,417줄, 원본 0변경. 배치컴파일 error CS=0(수리 7건). static Toggle IsOpen 분기 규약 확정. 월드맵 정규화 u=0.5+x/3200·절차 양피지 이식, 구핫키 런타임 무력화
+- Date: 2026-09-18

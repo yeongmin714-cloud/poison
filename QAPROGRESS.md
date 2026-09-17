@@ -8,6 +8,23 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U4 — 전략/영지 루프 UTK 전환 13창)
+
+> **입력**: 마이그레이션 계획 U4 — 원본 8,059줄 14창(지도/영지/퀘스트/임무/용병/복수/이동) 포팅. 서브에이전트 5회(R1 3병렬 전원 성공, R2 2병렬 — 1성공 1타임아웃, R3 2병렬 재위임 전원 성공).
+
+### 변경 사항 (신규 13, 4,417줄)
+**지도/영지**: WorldMapWindowUTK(659 — 정규화 u=0.5+x/3200 마커 4링+국가색+소유 실시간 폴링/절차 양피지(원본 Fbm3 동일 수식)/M키 토글+구 UIWorldMapHotkey 런타임 무력화/SetActive(false))/TerritoryDeploymentUTK(298 — 6역할 버튼+특사 대상 pick GetAttackTargets)/TerritoryInfoPopupUTK(284 — 재화 추정 지수).
+**퀘스트**: QuestWindowUTK(419, Q키 — 수락/완료/체인 진행)/QuestJournalUTK(320, J키 — 진행·완료 2탭)/EncyclopediaWindowUTK(384, L키 — 8카테고리 탭+수집률).
+**임무**: SpyMissionUTK(636 — 4임무/발각확률/방해소모품 소모/SpySystem 직접 호출)/EnvoyMissionUTK(523 — Gift/Friendship/Alliance/Assassinate+독살 음식 선택/EnvoySystem).
+**용병/복수/이동**: MercenaryHireUTK(296)/RevengeListUTK(385 — 원본 API 불일치(GetDefinition non-nullable) 자가 수리 TryResolveDefinition+신규 도전 버튼 TerritoryBattleManager.StartBattle)/FastTravelUTK(296 — 소유 영지/비용/ExecuteFastTravel)/RouteConfirmationUTK(207 — 3초 자동닫힘+Nation_Index 좌표 산식)/AutoMoveUTK(258 — OnAutoMoveNotification 이벤트 구독+도착/취소 색상 분기).
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0) — 수리 7건: static Toggle 인스턴스호출 3건(IsOpen 분기), 미정의 헬퍼 라인 제거, WorldMap 필드 누락(클래스 레벨 이동), RevengeList 파이썬식 조건식('x if c else y' → C# 삼항), RevengeList 원본 TerritoryDatabase.GetDefinition API 불일치.
+- 노트: **static Toggle 규약 확정 — 모든 UTK 창 `if (_instance != null && _instance.IsOpen) { _instance.Close(); return; } Ensure();`**.
+- Play 판정 대기: ①M/Q/J/L키 토글+ESC ②월드맵 마커/소유/클릭 ③영지 6역할 배치 ④첩보/특사 임무 ⑤용병 고용/복수 도전 ⑥빠른이동/오토무브.
+
+---
+
 ## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U3 — 경제/제작 루프 UTK 전환(창고/크래프트/연금/요리/수리/퀵슬롯))
 
 > **입력**: 마이그레이션 계획 U3 — 원본 4,677줄(창고 1102+317/크래프트 1108+221/연금 101/요리 581+104/수리 348/퀵슬롯 506) 포팅. 서브에이전트 3병렬(전원 600s 타임아웃이나 6파일 전부 작성 완료 상태로 종료 → 부모가 수리·검증 완료).
