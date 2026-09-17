@@ -1,0 +1,84 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
+
+namespace ProjectName.UI.Toolkit
+{
+    /// <summary>
+    /// UI Toolkit Phase U0 — 런타임 부트스트랩.
+    /// 참조 계획서: docs/UI_TOOLKIT_MIGRATION.md
+    ///
+    /// 씬 로드 직전(BeforeSceneLoad) 1회 실행되어:
+    ///   - Resources/UI/PanelSettings 로드 (없으면 경고 1회, 재시도 없음 — 에디터 스크립트가 생성)
+    ///   - DontDestroyOnLoad "UTKRoot" GameObject + UIDocument 생성
+    ///   - rootVisualElement에 Theme.uss 적용
+    ///   - static UIRoot 접근자 + public Ensure() (CoreSystemsBootstrap Ensure 스타일, 멱등) 제공
+    /// </summary>
+    public static class UIToolkitBootstrap
+    {
+        private const string PanelSettingsRes = "UI/PanelSettings";
+        private const string ThemeUssRes      = "UI/Theme";
+        private const string RootGoName       = "UTKRoot";
+
+        private static UIDocument _document;
+        private static bool _warnedPanelMissing;
+
+        /// <summary>UTK 루트 UIDocument 루트 VisualElement (없으면 null).</summary>
+        public static VisualElement UIRoot => _document != null ? _document.rootVisualElement : null;
+
+        /// <summary>부트스트랩이 이미 완료(중복 가드)되었는지.</summary>
+        public static bool IsReady => _document != null;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Bootstrap()
+        {
+            Ensure();
+        }
+
+        /// <summary>외부 강제 보장용 — 멱등(중복 실행 무시). CoreSystemsBootstrap Ensure 스타일.</summary>
+        public static void Ensure()
+        {
+            if (_document != null)
+                return;
+
+            var settings = Resources.Load<PanelSettings>(PanelSettingsRes);
+            if (settings == null)
+            {
+                if (!_warnedPanelMissing)
+                {
+                    _warnedPanelMissing = true;
+                    Debug.LogWarning($"[UIToolkitBootstrap] PanelSettings 없음({PanelSettingsRes}) — 에디터의 UIToolkitSetup이 생성 예정. UI Toolkit 비활성화.");
+                }
+                return;
+            }
+
+            var go = new GameObject(RootGoName);
+            Object.DontDestroyOnLoad(go);
+            _document = go.AddComponent<UIDocument>();
+            _document.panelSettings = settings;
+
+            var theme = Resources.Load<StyleSheet>(ThemeUssRes);
+            if (theme != null)
+                _document.rootVisualElement.styleSheets.Add(theme);
+            else
+                Debug.LogWarning($"[UIToolkitBootstrap] Theme.uss 로드 실패({ThemeUssRes})");
+
+            Debug.Log("[UIToolkitBootstrap] UI Toolkit 부트스트랩 완료 (UTKRoot)");
+        }
+
+        // ─────────────────────────── ESC 통합 (선택적 게이트) ───────────────────────────
+        // Pause 게이트: 게임 일시정지 시 ESC 무시 여부 — 추후 스펙 확정 시 여기에 통합.
+        // 1프레임 Update용 멤버로 사용. WindowManager의 Update 루프에서 호출되도록 공개 유틸로.
+        internal static bool EscapePressedThisFrame()
+        {
+            var kb = Keyboard.current;
+            return kb != null && kb.escapeKey.wasPressedThisFrame && !_ignoreEscapeWhenPaused();
+        }
+
+        private static bool _ignoreEscapeWhenPaused()
+        {
+            // 추후 Pause 상태 조회 연동 지점 — 현재는 항상 허용.
+            return false;
+        }
+    }
+}

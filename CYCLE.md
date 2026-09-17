@@ -548,3 +548,8 @@
 - Status: ✅
 - Details: AccessibilityManager.cs + SettingsMenuUI 접근성탭 + TooltipWindow/NPCDialogue/TutorialGuide 연동
 - Date: 2026-07-02
+
+# Cycle: Phase 68 U0 — UI Toolkit 전환 인프라 구축
+- Status: ✅
+- Details: docs/UI_TOOLKIT_MIGRATION.md U0 — Theme.uss(팔레트 18변수+폰트 5단+공통 클래스)+UnityDefaultTheme.tss+PanelSettings.asset(배치 생성: UIToolkitSetup.Recreate -executeMethod)+UIToolkitBootstrap(BeforeSceneLoad 자가 Ensure)+UTKWindowManager(ESC 스택)+UTKWindowBase(타이틀바 드래그)+UTKControls(Button/Slot/Rarity/Tooltip/Modal/Toast). 배치컴파일 error CS=0(CS0103 1건 수리)
+- Date: 2026-09-18

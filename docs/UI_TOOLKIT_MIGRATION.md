@@ -1,0 +1,115 @@
+# 🎨 UI Toolkit 전면 마이그레이션 계획서 (UI-T)
+
+> **결정 (2026-09-17, 사용자 확정):** 앞으로 모든 UI는 **UI Toolkit(UXML/USS)** 방식으로 작업.
+> IMGUI(OnGUI) 신규 작성 금지. 기존 IMGUI 창은 본 계획의 Phase 순서로 단계적 전환.
+>
+> **우선순위:** 전체 UI 개편 = 현재 로드맵 1순위 (화살/RTS 버그 수정 계획서 A~F는 그 다음).
+> **대상 스코프:** OnGUI 사용 파일 112개 전수 조사 기반 — 전환/부분/유지 3분류.
+> **플랫폼:** Unity 6000.4.10f1 / URP 17.4.0 / com.unity.ui (Unity 6 내장, 런타임 지원 성숙)
+
+---
+
+## 0. 불변 규칙 (모든 세션 준수)
+
+1. **신규 UI = 100% UI Toolkit** — UXML(구조) + USS(스타일) + C# 컨트롤러. OnGUI 신규 금지.
+2. **스타일은 Theme.uss 변수로만** — 하드코딩 색상 금지. UI_DESIGN_GUIDELINES 62차 팔레트(양피지 0.96,0.94,0.88 / 딥차콜 0.11 / 브론즈 0.55,0.42,0.25 / 골드)를 USS 변수로 이식.
+3. **공존 시 렌더 순서** — OnGUI는 항상 최상위에 그려짐 → **그룹 단위 완전 전환**으로 충돌 회피 (한 창이 절반 UTK+절반 IMGUI면 안 됨).
+4. **스케일** — PanelSettings.referenceResolution 1920×1080 + match로 통일 (기존 `_uiScale = sqrt((W/1920)*(H/1080))` 수동 공식 대체).
+5. **폰트** — 기존 UIFont 체계(60/38/24/17/13)를 UTK 폰트 정의로 승격.
+6. **월드스페이스 예외** — DamageNumber, 이름표(HeadUI/Nameplate), ScreenFlashFX, 디버그/Test 셋업 IMGUI는 전환 제외 (3D 앵커 전용).
+7. **Phase 완료 시** — 이 문서 체크표시 + QAPROGRESS.md 스냅샷 + git commit 3종 세트.
+
+---
+
+## 1. 현황 조사 (2026-09-17 실측)
+
+- OnGUI 사용 파일: **112개** (UI/ 60+, Systems/ 40+, Functions/ 일부)
+- 핵심 게임창: Inventory(통합그리드+DnD), Loot(우측 2S/3+6), Shop(화술 할인/판매), Equipment(우측 임베드), Warehouse, WorldMap(정규화 u=0.5+x/3200), Map, GuardInfo(2분할), TerritoryDeployment(역할 5버튼), Crafting, Hotbar(아이콘), GuardSquadHotbar(부대 F+1~8)
+- DnD 코어: `ItemDragContext`(Source.Loot/Inventory 등), 드래그→MouseUp TakeItem 체인
+- 팔레트/톤 관리: UIStyleManager + UIFont + UI_DESIGN_GUIDELINES.md
+
+---
+
+## 2. Phase 계획
+
+### Phase U0 — 인프라 구축 (모든 Phase의 전제)
+- [x] **PanelSettings 에셋 생성** — 에디터 배치 스크립트(UIToolkitSetup.Recreate -executeMethod)로 생성 완료 (ScaleWithScreenSize 1920×1080 match 0.5)
+- [x] **UIDocument 부트스트랩** — UIToolkitBootstrap(BeforeSceneLoad 자가 Ensure, UTKRoot DontDestroyOnLoad) + UTKWindowManager(ESC 스택)
+- [x] **Theme.uss** — 팔레트 USS 변수 18종 + 폰트 5단 + 공통 클래스
+- [x] **공통 컨트롤 라이브러리** — UTKWindowBase(타이틀바 드래그·ESC), UTKButton 3변형, UTKSlot(등급 테두리·호버), UTKTooltip, UTKModal, UTKToastService
+- [x] **희귀도 슬롯 오라** — 등급별 테두리 클래스(.utk-rank--common~unique)
+- [x] **IMGUI 공존 가이드** — 그룹 단위 완전 전환 규칙 문서화(본 계획서 §0 규칙 3)
+
+### Phase U1 — 파일럿 창 2개 (패턴 확립)
+- [ ] **StatusWindowUI** (단순 — 화술 스탯 표시 포함) → UTK 포팅
+- [ ] **ShopWindow** (중간 — 구매할인/판매 프리미엄 로직 유지) → UTK 포팅
+- [ ] 기존 IMGUI 버전은 `#if LEGACY_UI` 게이트로 보관(회귀 A/B 가능), 검증 후 제거
+- [ ] 검증: 폰트/스케일/호버/ESC/게이트웨이 — 서브 QA 에이전트
+
+### Phase U2 — 인벤/전리품 코어 루프 (최대 리스크 — DnD)
+- [ ] **InventoryWindow** (통합 그리드 GetAllSlots) → UTK
+- [ ] **ItemDragContext UTK 재설계** — PointerManipulator 기반 드래그, Source/Target 계약 유지
+- [ ] **LootWindow** (2S/3+6, 우클릭 획득, 드래그 테이크) → UTK
+- [ ] **EquipmentWindow** (우측 임베드, 장착/해제→인벤 복귀) → UTK
+- [ ] **HotbarUI** (아이콘 Image, ItemIconDatabase 연동) + **QuickSlotUI** → UTK
+- [ ] 회귀: 전리품 우클릭/드래그/장비 해제 복귀/인벤 즉시 갱신 4경로
+
+### Phase U3 — 경제/제작 루프
+- [ ] WarehouseUI + TerritoryWarehouse (좌:인벤/우:창고 유지)
+- [ ] CraftingUI + CraftPresetManager/PresetNamePopup + CraftResultPopup
+- [ ] AlchemyStation/CookingUI/CookingStation/RepairStationUI
+- [ ] CompareTooltip + TooltipWindow(UTK 공통 툴팁으로 흡수)
+
+### Phase U4 — 전략/영지 창
+- [ ] MapWindow + WorldMapWindow (양피지+정규화 좌표 유지, M키 핫키 유지)
+- [ ] TerritoryInfoPopup + TerritoryDeploymentUI (역할 5버튼+특사)
+- [ ] FastTravelUI + RouteConfirmationUI + AutoMoveUI
+- [ ] EnvoyMissionUI + SpyMissionUI + MercenaryHireUI
+- [ ] RevengeListWindow(+Integration) + EncyclopediaWindow + QuestWindow + QuestJournalUI
+
+### Phase U5 — 메뉴/시스템 화면
+- [ ] MainMenuUI + EscMenuUI
+- [ ] OptionsUI + SettingsMenuUI (접근성 탭 포함 — AccessibilityManager 연동)
+- [ ] SaveSlotUI + LoadGameUI + LoadingScreenUI + DeathScreenUI + EndingCreditsUI
+- [ ] GuardInfoWindow (2분할) + GameStatsWindow + AchievementSystem
+- [ ] TutorialGuideSystem
+
+### Phase U6 — 미니게임/대화/이벤트
+- [ ] NPCDialogueWindow + QuestChoiceUI + ReadDocumentWindow + LordAudienceUI
+- [ ] LockpickingUI + FishingUI + MercyUI + SleepUI
+- [ ] ArenaMenuUI/ArenaBattleUI + FestivalUI + DynamicEventUI + MissionResultUI + NPCDailyUI
+- [ ] PlayerFlagRegistrationWindow + GasSprayUI + ChurchSystemUI/ChurchNPCInteraction
+
+### Phase U7 — HUD/오버레이 + 잔여 정리
+- [ ] HUD + GuardSquadHotbar(부대 F+1~8/토글/우클릭 해제) + MinimapUI
+- [ ] TimeDisplayUI + WarNotificationUI + CombatLogUI + HerbRespawnUI + AutoMoveUI
+- [ ] **유지(전환 제외) 확정**: DamageFont/DamageNumber, Nameplate/HeadUI/레벨라벨(월드스페이스), ScreenFlashFX, GuardWorldSpaceHUD, 디버그/Test 셋업 IMGUI
+- [ ] 중복 경로 정리: UIStyleManager → UTK Theme 흡수, 구 IMGUI 코드 제거
+
+### Phase U8 — 최종 회귀 + 표준화
+- [ ] 전 창 회귀 QA (서브 QA 에이전트 — 키/스케일/DnD/접근성/컨트롤러)
+- [ ] UI_DESIGN_GUIDELINES.md 갱신 — UTK 표준으로 재작성
+- [ ] `LEGACY_UI` 게이트 제거 + 폐기 코드 정리 + git 태그
+
+---
+
+## 3. 리스크 & 대응
+
+| 리스크 | 대응 |
+|:--|:--|
+| IMGUI 최상위 렌더 → 공존 시 겹침 | 그룹 단위 완전 전환 (규칙 3) |
+| DnD 회귀 (인벤/전리품) | Phase U2 단독 분리 + 회귀 4경로 테스트 |
+| PanelSettings 에셋 필요 | 에디터 배치 스크립트 1회 생성 (U0) |
+| 폰트/스케일 불일치 | PanelSettings referenceResolution 통일 (규칙 4) |
+| 컨트롤러/접근성 회귀 | U5에서 AccessibilityManager/HapticFeedback 재연동 검증 |
+| 마이그레이션 중 기능 누락 | 창별 "이전 기능 체크리스트"를 각 Phase 검증 항목에 명시 |
+
+---
+
+## 4. 진행 로그
+
+| 날짜 | Phase | 내용 | 상태 |
+|:--|:--|:--|:--|
+| 2026-09-17 | — | 계획서 작성 (112개 OnGUI 파일 전수 조사 기반) | ✅ |
+| 2026-09-18 | U0 | 인프라 구축 완료 — Theme.uss/TSS/PanelSettings(배치 생성)/UIToolkitBootstrap/WindowManager/WindowBase/Controls 7파일, 배치컴파일 error CS=0 | ✅ |
+| | U1~U8 | 대기 — U1 파일럿(Status/Shop)부터 | ⏳ |

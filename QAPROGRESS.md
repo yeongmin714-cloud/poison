@@ -4,7 +4,28 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-17 (화술 판매 프리미엄 — 상점에 비싸게 팔기)
+> **최종 갱신:** 2026-09-18 (Phase 68/U0 — UI Toolkit 전환 인프라 구축)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U0 — UI Toolkit 전환 인프라 구축)
+
+> **입력**: UI Toolkit 전면 전환 결정(사용자 확정 — 모든 UI UXML/USS, IMGUI 신규 금지) → 계획서 docs/UI_TOOLKIT_MIGRATION.md 수립(OnGUI 112파일 전수 조사, Phase U0~U8, UI 개편 1순위) → U0 실행.
+
+### 변경 사항 (신규 7 + 자산 3)
+**Assets/Resources/UI/Theme.uss**: 62차 팔레트 USS 변수 18종(--c-bg-panel #1C1C1C E0·--c-border-bronze #8C6B3F·--c-border-gold #C9A227·--c-text-primary #F5EFE0 등) + 폰트 5단(--fs-xl 60/lg 38/md 24/sm 17/xs 13) + 공통 클래스(.utk-window/.utk-title-bar/.utk-btn 3변형/.utk-slot/.utk-tooltip/.utk-modal/.utk-toast/등급 테두리 6종). **비표준 속성 제거**(border-style/box-shadow — USS 미지원, Import 경고 0).
+**Assets/Resources/UI/UnityDefaultTheme.tss**: `@import url("unity-theme://default")` 1줄 — PanelSettings 기본 테마.
+**Assets/Resources/UI/PanelSettings.asset**: 배치 생성 — ScaleWithScreenSize·referenceResolution 1920×1080·match 0.5·테마 TSS 할당(기존 _uiScale 수동 공식 은퇴 예정).
+**Assets/Editor/UIToolkitSetup.cs**: InitializeOnLoad 멱등 자동생성(USS/TSS/PanelSettings 부재 시 기록+Import) + 메뉴 "Tools/UI Toolkit/Recreate Panel Settings". ⚠️ **batchmode -quit는 delayCall 미실행 → 배치 생성은 `-executeMethod UIToolkitSetup.Recreate`(0-arg) 정석 경로**(EnsureResources는 1-arg라 executeMethod 불가).
+**Assets/Scripts/UI/Toolkit/UIToolkitBootstrap.cs**: [RuntimeInitializeOnLoadMethod BeforeSceneLoad] 자가 Ensure — "UTKRoot"(DontDestroyOnLoad)+UIDocument(panelSettings=Resources/UI/PanelSettings)+Theme.uss 적용. static UIRoot/IsReady/public Ensure(멱등).
+**UTKWindowManager.cs**: 열림 윈도우 순서 보장 스택+ESC 최상단 Close(내장 Updater MB, Ensure 멱등).
+**UTKWindowBase.cs**: 윈도우 셸 — .utk-window/.utk-title-bar(타이틀바 드래그 PointerDown/Move/Up+PointerCapture·닫기 버튼)/.utk-content, Show/Hide/Toggle/Close+매니저 자동 등록, `ApplyUIToolkitFont(VisualElement)`(UIFont.Load→style.unityFont 재귀).
+**UTKControls.cs**: UTKButton(Primary/Secondary/Danger)·UTKSlot(아이콘 background-image+카운트+등급 테두리+호버)·UTKRarity(등급→USS 클래스)·UTKTooltip(커서 추적)·UTKToastService(하단 큐+schedule 페이드)·UTKModal(확인/취소+ShowToRoot).
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0) — 중간 CS0103 1건 수리(UTKControls의 ApplyUIToolkitFont → UTKWindowBase.ApplyUIToolkitFont 클래스 한정).
+- PanelSettings 배치 생성 확인 + Theme.uss ScriptedImporter 로드 성공(팔레트 변수/공통 클래스 파싱 경고 0).
+- Play 판정 대기: ①에디터 포커스 시 InitializeOnLoad 로그 3종 ②UTKWindowBase 상속 테스트 창 렌더(Phase U1 파일럿에서 검증).
 
 ---
 
