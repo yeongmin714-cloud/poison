@@ -64,8 +64,35 @@ namespace ProjectName.UI
         /// <summary>
         /// 상점 토글 (열림/닫힘)
         /// </summary>
+        /// <summary>[U8 배선] UTK 상점 창 우선 경로 — UI 어셈블리가 구독(UTKWireUp). 미구독 시 기존 IMGUI 경로.</summary>
+        public static event System.Action<ShopPlaceholder> ToggleShopRequestedUTK;
+
+        /// <summary>[U8 배선] 폴백용 — 기존 IMGUI 토글 몸통 실행(UTKWireUp에서 호출).</summary>
+        public void InvokeLegacyToggleShop()
+        {
+            ToggleShopLegacy();
+        }
+
         public void ToggleShop()
         {
+            // [U8 배선] UTK 우선 — 구독자가 처리하면 리턴, 아니면 기존 IMGUI 경로 유지
+            if (ToggleShopRequestedUTK != null)
+            {
+                ToggleShopRequestedUTK.Invoke(this);
+                return;
+            }
+            ToggleShopLegacy();
+        }
+
+        private void ToggleShopLegacy()
+        {
+            // [U8 배선] UTK 우선 — 구독자가 처리하면 리턴, 아니면 기존 IMGUI 경로 유지
+            if (ToggleShopRequestedUTK != null)
+            {
+                ToggleShopRequestedUTK.Invoke(this);
+                return;
+            }
+
             if (_uiManager == null)
             {
                 Debug.LogWarning("[ShopPlaceholder] UIManager가 없어 상점을 열 수 없습니다!");

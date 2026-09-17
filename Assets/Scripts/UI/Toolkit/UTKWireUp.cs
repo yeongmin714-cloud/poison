@@ -63,7 +63,39 @@ namespace ProjectName.UI.Toolkit
                 }
             };
 
-            Debug.Log("[UTKWire] 호출부 배선 완료 (침대 수면/전리품 바구니)");
+            // 상점 상호작용 → 상점 UTK (폴백: 원본 ShopPlaceholder IMGUI 경로 자동 — 미구독)
+            ProjectName.UI.ShopPlaceholder.ToggleShopRequestedUTK += shop =>
+            {
+                if (UIToolkitBootstrap.UIRoot != null)
+                {
+                    ShopWindowUTK.Open();
+                    Debug.Log("[UTKWire] 상점 → ShopWindowUTK");
+                }
+                else
+                {
+                    Debug.Log("[UTKWire] UTK 루트 미준비 — 원본 ShopPlaceholder 폴백");
+                    shop.InvokeLegacyToggleShop();
+                }
+            };
+
+            // I키 → 인벤 UTK (폴백: 원본 InventoryWindow IMGUI 토글)
+            UIInventoryHotkey.InventoryToggleRequestedUTK += () =>
+            {
+                if (UIToolkitBootstrap.UIRoot != null)
+                {
+                    InventoryWindowUTK.Ensure();
+                    InventoryWindowUTK.Toggle();
+                    Debug.Log("[UTKWire] I키 → InventoryWindowUTK");
+                }
+                else
+                {
+                    Debug.Log("[UTKWire] UTK 루트 미준비 — 원본 인벤 폴백");
+                    var inv = ProjectName.UI.InventoryWindow.Instance;
+                    if (inv != null) inv.TogglePlayerInventory();
+                }
+            };
+
+            Debug.Log("[UTKWire] 호출부 배선 완료 (침대 수면/전리품 바구니/상점/인벤 I키)");
         }
     }
 }

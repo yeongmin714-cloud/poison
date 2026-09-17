@@ -15,6 +15,9 @@ namespace ProjectName.UI
     /// </summary>
     public class UIInventoryHotkey : MonoBehaviour
     {
+        /// <summary>[U8 배선] UTK 인벤 우선 경로 — UI 어셈블리가 구독(UTKWireUp). 미구독 시 기존 IMGUI 토글.</summary>
+        public static event System.Action InventoryToggleRequestedUTK;
+
         private ProjectName.UI.InventoryWindow _inv;
 
         // 살아있는 핫키 레지스트리 (선착순 단일 처리 — GC 캐시 관례: 정적 리스트)
@@ -45,6 +48,14 @@ namespace ProjectName.UI
             // 창고/상점 컨텍스트 잔존 상태로 열려 플레이어 인벤이 안 보이던 문제 방지)
             if (kb.iKey.wasPressedThisFrame)
             {
+                // [U8 배선] UTK 우선 — 구독자가 처리하면 리턴, 아니면 기존 IMGUI 인벤 토글
+                if (InventoryToggleRequestedUTK != null)
+                {
+                    InventoryToggleRequestedUTK.Invoke();
+                    Debug.Log("[UIInventoryHotkey] I키 → UTK 인벤 (브리지)");
+                    return;
+                }
+
                 inv.TogglePlayerInventory();
                 Debug.Log($"[UIInventoryHotkey] 인벤토리 토글 → {(inv.IsOpen ? "열림" : "닫힘")}");
             }
