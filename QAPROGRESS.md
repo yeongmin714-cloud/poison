@@ -8,6 +8,25 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U2 — DnD 코어 루프 UTK 전환(인벤/전리품/장비/핫바))
+
+> **입력**: 마이그레이션 계획 U2 — 원본 6,510줄(Inventory 3891/Loot 796/Equipment 620/Hotbar 849/DragContext 240) 중 **핵심 회귀 4경로 중심 MVP** 포팅. 기존 파일 무변경(additive). 서브에이전트 3회(R1 1회+R2 2병렬, R1 타임아웃→부모 수리 완료).
+
+### 변경 사항 (신규 5)
+**`UTKDragDrop.cs`(348줄)**: UTKDragPayload{SourceKind{None,Inventory,Loot,Equipment,Warehouse,Hotbar}, SourceIndex, TerritoryId, Item, Icon}+IUTKDragSource/IUTKDropTarget{CanDrop/Drop}+고스트 아이콘(PointerMove 추적)+**MakeDraggable(ve, payloadFn, onClick)** — 임계 6px 미만은 클릭, 초과 시 드래그(원본 MouseUp 체인 대체). FindDropTargetAt=worldBound 역순 히트테스트.
+**`InventoryWindowUTK.cs`(451줄)**: 통합 그리드 7열(GetAllSlots 전 카테고리)+UTKSlot(아이콘/카운트/등급)+**schedule.Execute().Every(250ms)** 재조회(즉시 갱신)+Loot 수령/슬롯 스왑/땅 바구니(LootBasket.Create+AddItem) DropTarget+슬롯별 바인딩 위생(리프레시마다 재등록). static Open/Toggle(좌측 배치 관례).
+**`LootWindowUTK.cs`(320줄)**: 바구니 행 리스트+행 드래그(SourceKind.Loot, SourceIndex=항목)+**우클릭 TakeItem 즉시 획득**(원본 데이터 경로 ILootBasket.TakeItem→AddItem 대행)+빈바구니/IsAvailable 자동 Hide+우측 2S/3+6·높이Screen-180 관례. 드래그 중 자기창 드롭=취소 소비(아이템 유지).
+**`EquipmentWindowUTK.cs`(363줄)**: 8슬롯(투구/갑옷/무기/방패/신발/장갑/가면/가방)+내구도 색상+**해제 버튼·우클릭 → EquipmentManager.UnequipSlot 실호출→인벤 복귀**+OnEquipmentChanged 구독+400ms 폴링. 우측 배치.
+**`HotbarUIUTK.cs`(286줄)**: 8슬롯 하단 바+숫자 라벨+아이콘(GetOrCreateIcon, GLB 1초 재시도 관례)+**PlayerPrefs poison_hotbar_* 원본 데이터 소스 상호 연동**(원본과 같은 키 — 어느 쪽 등록이든 공유)+우클릭 해제. AfterSceneLoad 부트. 키 입력 배선은 후속(원본과 충돌 방지).
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0) — 서브에이전트 산출 수리 5건: ScheduledItem→IVisualElementScheduledItem(Execute().Every(Pause 정지)), FlexWrap→Wrap.Wrap, globalBounds→worldBound(Rect 값타입), static Toggle 인스턴스호출→IsOpen 분기, ApplyUIToolkitFont 클래스한정.
+- **UTK 폴링 규약 확립**: element.schedule.Execute(Action).Every(ms) → IVisualElementScheduledItem, 정지=Pause().
+- 회귀 안전: 원본 5파일 0변경 — IMGUI/UTK 양쪽 공존, 토글 전환은 후속 일괄.
+- Play 판정 대기: ①인벤 통합 그리드 표시+수령·판매 즉시 반영 ②전리품 행 드래그→인벤 수령+우클릭 획득 ③인벤 밖 드롭=땅 바구니 ④장비 해제→인벤 복귀 ⑤핫바 등록/아이콘/해제 ⑥ESC 닫기·드래그 고스트.
+
+---
+
 ## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U1 — 파일럿 2창 UTK 포팅(상태창/상점))
 
 > **입력**: U0 인프라 위 파일럿 — StatusWindowUI(802줄)/ShopWindow(769줄) IMGUI → UI Toolkit 포팅. **additive 원칙: 기존 파일 무변경**, 신규 2파일.

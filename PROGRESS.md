@@ -395,3 +395,4 @@
 | U1 파일럿 | Status/Shop UTK 포팅 | ⬜ |
 | U2~U8 | DnD 코어/경제/전략/메뉴/미니게임/HUD/회귀 | ⬜ |
 | U1 파일럿 | StatusWindowUTK+ShopWindowUTK 포팅 (additive) | ✅ |
+| U2 DnD 코어 | UTKDragDrop+인벤/전리품/장비/핫바 5파일 | ✅ |

@@ -47,12 +47,13 @@
 - [x] 검증: 배치컴파일 error CS=0 + 서브에이전트 자체 검증(괄호 균형/OnGUI 부재/클래스 중복 0). Play 렌더 판정은 다음 세션
 
 ### Phase U2 — 인벤/전리품 코어 루프 (최대 리스크 — DnD)
-- [ ] **InventoryWindow** (통합 그리드 GetAllSlots) → UTK
-- [ ] **ItemDragContext UTK 재설계** — PointerManipulator 기반 드래그, Source/Target 계약 유지
-- [ ] **LootWindow** (2S/3+6, 우클릭 획득, 드래그 테이크) → UTK
-- [ ] **EquipmentWindow** (우측 임베드, 장착/해제→인벤 복귀) → UTK
-- [ ] **HotbarUI** (아이콘 Image, ItemIconDatabase 연동) + **QuickSlotUI** → UTK
-- [ ] 회귀: 전리품 우클릭/드래그/장비 해제 복귀/인벤 즉시 갱신 4경로
+- [x] **UTKDragDrop**(348줄) — UTKDragPayload/IUTKDragSource/IUTKDropTarget/고스트 아이콘/MakeDraggable(임계 6px)
+- [x] **InventoryWindowUTK**(451줄) — 통합 그리드 7열(GetAllSlots)+Loot 수령/스왑/땅 바구니+250ms 재조회 즉시 갱신
+- [x] **LootWindowUTK**(320줄) — 행 드래그+우클릭 즉시 획득+빈바구니 자동 Hide+우측 2S/3+6 관례
+- [x] **EquipmentWindowUTK**(363줄) — 8슬롯+해제(UnequipSlot 실호출)→인벤 복귀+이벤트 구독
+- [x] **HotbarUIUTK**(286줄) — 8슬롯+PlayerPrefs 원본 데이터 소스 연동+우클릭 해제+GLB 1초 재시도
+- [ ] QuickSlotUI 포팅 — U3 경제 라운드로 이월
+- [x] 회귀: 원본 5파일 0변경(additive) — 배치컴파일 error CS=0. Play 렌더 판정은 다음 세션
 
 ### Phase U3 — 경제/제작 루프
 - [ ] WarehouseUI + TerritoryWarehouse (좌:인벤/우:창고 유지)
@@ -113,4 +114,5 @@
 | 2026-09-17 | — | 계획서 작성 (112개 OnGUI 파일 전수 조사 기반) | ✅ |
 | 2026-09-18 | U0 | 인프라 구축 완료 — Theme.uss/TSS/PanelSettings(배치 생성)/UIToolkitBootstrap/WindowManager/WindowBase/Controls 7파일, 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | U1 | 파일럿 완료 — StatusWindowUTK(581줄)+ShopWindowUTK(564줄), 배치컴파일 error CS=0 | ✅ |
-| | U2~U8 | 대기 — U2 DnD 코어 루프(인벤/전리품/장비/핫바)부터 | ⏳ |
+| 2026-09-18 | U2 | DnD 코어 완료 — UTKDragDrop+Inventory/Loot/Equipment/Hotbar UTK 5파일(1,768줄), 배치컴파일 error CS=0 | ✅ |
+| | U3~U8 | 대기 — U3 경제/제작(창고/크래프트/연금/요리+QuickSlot 이월)부터 | ⏳ |
