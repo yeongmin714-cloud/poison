@@ -567,15 +567,20 @@ namespace ProjectName.UI
         private int CalculateSellPrice(PlayerInventory.ItemData item)
         {
             // 기본 가격 5G, Potion=15G, Weapon=30G, Armor=25G, Tool=20G
+            int basePrice;
             switch (item.category)
             {
-                case PlayerInventory.ItemCategory.Potion: return 15;
-                case PlayerInventory.ItemCategory.Weapon: return 30;
-                case PlayerInventory.ItemCategory.Armor: return 25;
-                case PlayerInventory.ItemCategory.Tool: return 20;
-                case PlayerInventory.ItemCategory.Material: return 5;
-                default: return 5;
+                case PlayerInventory.ItemCategory.Potion: basePrice = 15; break;
+                case PlayerInventory.ItemCategory.Weapon: basePrice = 30; break;
+                case PlayerInventory.ItemCategory.Armor: basePrice = 25; break;
+                case PlayerInventory.ItemCategory.Tool: basePrice = 20; break;
+                case PlayerInventory.ItemCategory.Material: basePrice = 5; break;
+                default: basePrice = 5; break;
             }
+
+            // 화술 높을수록 비싸게 판매
+            float bonus = PlayerStats.Instance?.SellBonus ?? 0f;
+            return Mathf.Max(1, Mathf.CeilToInt(basePrice * (1f + bonus)));
         }
         
         // 상점 아이템 목록 새로고침

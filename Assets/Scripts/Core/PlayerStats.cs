@@ -166,6 +166,9 @@ namespace ProjectName.Core
         /// <summary>구매 할인률 (0~1): 화술 100이면 최대 20%</summary>
         public float BuyDiscount => Mathf.Clamp(SpeechSkill * 0.01f, 0f, 0.2f);
 
+        // 2026-09-17: 판매 프리미엄(판매가 인상) — 화술이 높을수록 비싸게 판다. 최대 +50%
+        public float SellBonus => Mathf.Clamp(SpeechSkill * 0.01f, 0f, 0.5f);
+
         /// <summary>포섭 확률 보정 (0~1): 화술 높을수록 포섭 성공률 상승</summary>
         public float RecruitSpeechBonus => Mathf.Clamp(SpeechSkill * 0.003f, 0f, 0.2f);
 

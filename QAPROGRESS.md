@@ -4,7 +4,20 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-17 (지능 파생 화술 — 포섭/거래/밀매)
+> **최종 갱신:** 2026-09-17 (화술 판매 프리미엄 — 상점에 비싸게 팔기)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-17 ✅ 화술 판매 프리미엄 — 상점 판매가 인상)
+
+> **입력**: 상점에 팔 때 더 비싼 가격으로 팔 수 있도록 화술(지능 파생)이 판매가에 작용.
+
+**`Core/PlayerStats.cs`**: `SellBonus = Clamp(SpeechSkill*0.01,0,0.5)` 판매 프리미엄(화술×1%, 최대 +50%) 추가.
+**`UI/ShopWindow.cs`**: `CalculateSellPrice`에 `Mathf.Max(1, CeilToInt(basePrice*(1+SellBonus)))` — 화술 높을수록 비싸게 판매(카테고리 기본가 유지, null 폴백, 최소 1G).
+
+### 컴파일/QA
+- 배치컴파일 **error CS=0**(exit 0), Core.dll 오늘시각 갱신 + 심볼 `get_SellBonus` 착륙.
+- 밀매 경로(`SmuggleSell`)와 별개 — 일반 상점 판매(`SellSelectedItem→AddGold`)에만 적용.
 
 ---
 
