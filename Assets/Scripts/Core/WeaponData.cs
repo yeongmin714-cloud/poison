@@ -29,16 +29,16 @@ namespace ProjectName.Core
         public static readonly WeaponData Spear = new WeaponData("창", 10f, 1.5f, 4f, WeaponType.Spear);
         public static readonly WeaponData Bow = new WeaponData("활", 8f, 2.0f, 10f, WeaponType.Bow);
 
-        // ── 등급(티어) 보정 테이블 (2026-09-11) ──
-        // wood 1.0 / steel 1.8 / stone 2.5 / crystal 3.75
-        // Sword(12) 기준: wood 12 → steel 22 → stone 30 → crystal 45
+        // ── 등급(티어) 보정 테이블 (2026-09-11, [후속] steel/stone 계수 교환) ──
+        // wood 1.0 / stone 1.8 / steel 2.5 / crystal 3.75
+        // Sword(12) 기준: wood 12 → stone 22 → steel 30 → crystal 45
         public static float GetTierMultiplier(string weaponId)
         {
             if (string.IsNullOrEmpty(weaponId)) return 1f;
             string s = weaponId.ToLowerInvariant();
             if (s.Contains("crystal")) return 3.75f;
-            if (s.Contains("stone"))   return 2.5f;
-            if (s.Contains("steel"))   return 1.8f;
+            if (s.Contains("steel"))   return 2.5f;
+            if (s.Contains("stone"))   return 1.8f;
             return 1f; // wood 및 기타
         }
 
