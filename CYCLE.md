@@ -563,3 +563,8 @@
 - Status: ✅
 - Details: UTKDragDrop(348)+InventoryWindowUTK(451)+LootWindowUTK(320)+EquipmentWindowUTK(363)+HotbarUIUTK(286) = 1,768줄 신규, 원본 5파일 0변경. 핵심 회귀 4경로(전리품 우클릭/드래그/장비해제복귀/즉시갱신) 모두 UTK 경로 구현. 배치컴파일 error CS=0(수리 5건). UTK 폴링 규약: schedule.Execute().Every(ms)→IVisualElementScheduledItem.Pause(). QuickSlotUI는 U3 이월
 - Date: 2026-09-18
+
+# Cycle: Phase 68 U3 — 경제/제작 루프 UTK 전환
+- Status: ✅
+- Details: WarehouseWindowUTK(629, 양방향 DnD)+CraftingWindowUTK(837, 프리셋/즐겨찾기)+AlchemyStationUTK(358)+CookingWindowUTK(393)+RepairStationUTK(297)+QuickSlotUTK(236) = 6파일 2,750줄, 원본 0변경. 배치컴파일 error CS=0(CS7036/CS0191 readonly 8필드/CS1061 borderWidth 4면/using System.Linq 수리). IStyle borderWidth/borderColor 셔스루햇 부재 확정
+- Date: 2026-09-18

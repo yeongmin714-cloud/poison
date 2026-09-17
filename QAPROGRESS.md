@@ -8,6 +8,22 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U3 — 경제/제작 루프 UTK 전환(창고/크래프트/연금/요리/수리/퀵슬롯))
+
+> **입력**: 마이그레이션 계획 U3 — 원본 4,677줄(창고 1102+317/크래프트 1108+221/연금 101/요리 581+104/수리 348/퀵슬롯 506) 포팅. 서브에이전트 3병렬(전원 600s 타임아웃이나 6파일 전부 작성 완료 상태로 종료 → 부모가 수리·검증 완료).
+
+### 변경 사항 (신규 6)
+**`WarehouseWindowUTK.cs`(629줄)**: 좌:인벤/우:창고 2컬럼 관례 + **양방향 DnD**(인벤→창고 입고, 창고→인벤 출고, IUTKDropTarget)+행 우클릭=반대편 즉시 이동+territory 선택 메뉴(absolute 팝업)+250ms 폴링. TerritoryWarehouse 데이터 소스 실측 연동.
+**`CraftingWindowUTK.cs`(837줄)**: 좌 레시피 목록(ScrollView)+우 상세(재료 요구/보유 수량)+제작 버튼(원본 제작 API 직접 호출)+**프리셋 저장/로드/즐겨찾기**(CraftPresetManager 직접 호출, 이름 입력 인라인 TextField — PresetNamePopup 파일 미생성)+제작 결과 UTKToast(결과 팝업 대응). 레시피 발견/즐겨찾기 필터.
+**`AlchemyStationUTK.cs`(358)**: 연금 제작 창. **`CookingWindowUTK.cs`(393)**: 고기/약초 재료 슬롯+조리 경로. **`RepairStationUTK.cs`(297)**: 장비 수리(비용+수리 버튼). **`QuickSlotUTK.cs`(236)**: 퀵슬롯(원본 데이터 소스 재사용, HotbarUIUTK 패턴).
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0) — 수리 4종: ①CS7036(Cooking BuildIngredientSlot 호출부 인자 2→4 보강) ②CS0191(Crafting readonly 8필드 — Build 메서드에서 할당이므로 readonly 제거; 첫 시도에서 타입명 누락 패턴 실패 후 정규식 재수리) ③CS1061 borderWidth/borderColor 셔스루햇 → 4면 분해(정규식 1차 수리가 수신자를 유실 — 세그먼트 재구성으로 복구) ④IReadOnlyCollection.Contains → using System.Linq.
+- 노트: **IStyle에 borderWidth/borderColor 셔스루햇도 없음 확정** — 4면 규약에 추가.
+- Play 판정 대기: ①창고 입고/출고 드래그+우클릭 ②크래프트 제작+프리셋 ③연금/요리/수리 ④퀵슬롯 등록/해제 ⑤ESC/폴링 갱신.
+
+---
+
 ## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U2 — DnD 코어 루프 UTK 전환(인벤/전리품/장비/핫바))
 
 > **입력**: 마이그레이션 계획 U2 — 원본 6,510줄(Inventory 3891/Loot 796/Equipment 620/Hotbar 849/DragContext 240) 중 **핵심 회귀 4경로 중심 MVP** 포팅. 기존 파일 무변경(additive). 서브에이전트 3회(R1 1회+R2 2병렬, R1 타임아웃→부모 수리 완료).

@@ -56,10 +56,11 @@
 - [x] 회귀: 원본 5파일 0변경(additive) — 배치컴파일 error CS=0. Play 렌더 판정은 다음 세션
 
 ### Phase U3 — 경제/제작 루프
-- [ ] WarehouseUI + TerritoryWarehouse (좌:인벤/우:창고 유지)
-- [ ] CraftingUI + CraftPresetManager/PresetNamePopup + CraftResultPopup
-- [ ] AlchemyStation/CookingUI/CookingStation/RepairStationUI
-- [ ] CompareTooltip + TooltipWindow(UTK 공통 툴팁으로 흡수)
+- [x] **WarehouseWindowUTK**(629줄) — 좌:인벤/우:창고 양방향 DnD 입고/출고+우클릭 즉시 이동+territory 메뉴
+- [x] **CraftingWindowUTK**(837줄) — 레시피 목록/상세/재료/제작+프리셋 저장·로드·즐겨찾기(CraftPresetManager 직접 호출)+결과 토스트
+- [x] **AlchemyStationUTK**(358) + **CookingWindowUTK**(393) + **RepairStationUTK**(297) — 스테이션 3종
+- [x] **QuickSlotUTK**(236) — 퀵슬롯(U2에서 이월)
+- [ ] CompareTooltip — U7 툴팁 통합 라운드로 이월 (UTKTooltip 공통 인프라 존재)
 
 ### Phase U4 — 전략/영지 창
 - [ ] MapWindow + WorldMapWindow (양피지+정규화 좌표 유지, M키 핫키 유지)
@@ -115,4 +116,5 @@
 | 2026-09-18 | U0 | 인프라 구축 완료 — Theme.uss/TSS/PanelSettings(배치 생성)/UIToolkitBootstrap/WindowManager/WindowBase/Controls 7파일, 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | U1 | 파일럿 완료 — StatusWindowUTK(581줄)+ShopWindowUTK(564줄), 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | U2 | DnD 코어 완료 — UTKDragDrop+Inventory/Loot/Equipment/Hotbar UTK 5파일(1,768줄), 배치컴파일 error CS=0 | ✅ |
-| | U3~U8 | 대기 — U3 경제/제작(창고/크래프트/연금/요리+QuickSlot 이월)부터 | ⏳ |
+| 2026-09-18 | U3 | 경제/제작 완료 — 6파일 2,750줄(창고/크래프트/연금/요리/수리/퀵슬롯), 배치컴파일 error CS=0 | ✅ |
+| | U4~U8 | 대기 — U4 전략/영지(월드맵/배치/임무)부터 | ⏳ |
