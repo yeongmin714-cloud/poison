@@ -108,6 +108,12 @@ namespace ProjectName.Systems
                 gm.AddComponent<ArmorVisualAttachSystem>();
                 Debug.Log("[TestTerritoryCombat] ✅ ArmorVisualAttachSystem 생성 — 방어구 비주얼 부착 활성화");
             }
+            // [2026-09-17] 병사 방어구 비주얼 부착 (분리/ADDITIVE — 플레이어 시스템과 무관)
+            if (Object.FindAnyObjectByType<GuardVisualAttachSystem>(FindObjectsInactive.Include) == null)
+            {
+                gm.AddComponent<GuardVisualAttachSystem>();
+                Debug.Log("[TestTerritoryCombat] ✅ GuardVisualAttachSystem 생성 — 병사 방어구 비주얼 부착 활성화");
+            }
             // [59차 후속] 드래그 단체 지정 — Test_10은 CoreSystemsBootstrap 미실행이라
             // GuardSelectionManager(좌클릭 드래그 병사 선택)가 생성되지 않아 '내 병사 드래그 지정 모션'이 안 됐다.
             if (Object.FindAnyObjectByType<GuardSelectionManager>(FindObjectsInactive.Include) == null)

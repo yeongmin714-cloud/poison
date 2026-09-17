@@ -37,6 +37,9 @@ public class CoreSystemsBootstrap : MonoBehaviour
         // 3-3. ArmorVisualAttachSystem 생성 (없는 경우) — 방어구 슬롯 GLB 비주얼 부착 (2026-09-13 P6)
         EnsureArmorVisualAttachSystem();
 
+        // 3-3-1. GuardVisualAttachSystem 생성 (없는 경우) — 병사 방어구 GLB 비주얼 본 부착 (ADDITIVE)
+        EnsureGuardVisualAttachSystem();
+
         // 3-4. EquipmentManager 생성 (없는 경우) — 장비 슬롯 관리 (2026-09-14: 장착 안 되는 버그 수정)
         EnsureEquipmentManager();
 
@@ -179,6 +182,31 @@ public class CoreSystemsBootstrap : MonoBehaviour
         {
             // 단일 시스템 생성 실패가 전체 부트를 깨지 않도록 격리
             Debug.LogError($"[CoreSystemsBootstrap] ArmorVisualAttachSystem 생성 실패: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// GuardVisualAttachSystem 싱글톤 보장 — 병사(GuardPlaceholder) 착용 방어구 GLB를 본 릭에 부착.
+    /// 플레이어 ArmorVisualAttachSystem과 무관한 분리 시스템. 티어 기본 폴백으로 병사가 항상 방어구를 입음.
+    /// </summary>
+    private void EnsureGuardVisualAttachSystem()
+    {
+        try
+        {
+            var existing = FindAnyObjectByType<GuardVisualAttachSystem>(FindObjectsInactive.Include);
+            if (existing != null)
+            {
+                Debug.Log("[CoreSystemsBootstrap] GuardVisualAttachSystem 이미 존재");
+                return;
+            }
+
+            var go = new GameObject("GuardVisualAttachSystem");
+            go.AddComponent<GuardVisualAttachSystem>();
+            Debug.Log("[CoreSystemsBootstrap] GuardVisualAttachSystem 생성됨 — 병사 방어구 비주얼 부착 활성화");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[CoreSystemsBootstrap] GuardVisualAttachSystem 생성 실패: {e.Message}");
         }
     }
 

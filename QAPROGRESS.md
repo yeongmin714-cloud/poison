@@ -4,7 +4,23 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-17 (덩치 병사 크기 — lv20+ 두 모델 1.8배)
+> **최종 갱신:** 2026-09-17 (병사 장비 비주얼 부착 — GuardVisualAttachSystem 신설)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-17 ✅ 병사 방어구 비주얼 부착 시스템 신설 — 정상(×1.0)·덩치(×1.8) 병사 공용)
+
+> **입력**: "병사들도 장비 착용이 가능하게 — 정상 크기 병사는 플레이어처럼 부착, 덩치 병사는 장비 크기 확대". **설계 조사(ground-truth)**: 병사 rig(3티어 공통 27뼈)은 Blender식 `.L/.R` 접미 이름(`hand.L/foot.L/forearm.L/spine.001..005`), `Head/Chest` **없음** → 크라운=`spine.005`, 가슴=`spine.003` 대리. 플레이어 시스템(`ArmorVisualAttachSystem`, `Head/LeftFoot…` 기대)과 이름 불일치 → **매핑 계층 필요**. 병사 희귀 장비(`steel_helmet/steel_armor` 등)는 시각 GLB 존재, 기본 절차 장비(`equip_armor_*`)는 GLB 없음.
+
+### 변경 사항 (3파일, ADDITIVE — 플레이어 시스템 무접촉/회귀 0)
+**`Systems/GuardVisualAttachSystem.cs` (신규)**: 병사(GuardPlaceholder) 0.35s 폴링 → `GuardEquipmentSystem.GetAllGuardEquipment`에서 방어구 가져와 병사 본에 GLB 부착. 슬롯 판정=id 키워드(helmet/armor/boot|shoe/glove/shield). 병사 본 맵: 크라운 spine.005·가슴 spine.003·척추 spine·손 hand.L/.R·발 foot.L/.R·방패 hand.L(폴백 forearm.L). 부착은 `Object.Instantiate(prefab, bone)` + localScale=1(본 공간) — **덩치 1.8x는 부모 모델 스케일이 뼈에 전파되어 장비 자동 1.8배, 정상 병사는 1.0 유지**. GLB 없는 절차 장비는 티어 폴백(level≥40 steel, 20~40 wood). 슬롯별 재계퍼레이션(낡은 시각 파괴/중복 방지). 싱글톤 Instance+Ensure.
+**`Systems/CoreSystemsBootstrap.cs`**: `EnsureGuardVisualAttachSystem()` — 부트 시 GuardVisualAttachSystem 생성(중복 가드+try/catch). `EnsureArmorVisualAttachSystem()` 직후 호출.
+**`Systems/TestTerritoryCombatSetup.cs`**: 테스트 씬 gameManager GO에 GuardVisualAttachSystem 추가(중복 가드) — Test_10은 Bootstrap 미실행이므로.
+
+### 컴파일/QA
+- 배치컴파일 **error CS=0**(exit 0) — Systems.dll 갱신 + `strings Systems.dll | grep -c GuardVisualAttachSystem` = 4(클래스+메서드 착륙).
+- 관용구 검증: `string.Equals(a,b,System.StringComparison.OrdinalIgnoreCase)`·`Object.FindObjectsByType<T>(FindObjectsInactive)`·`kv.Key/.Value`·`Object.Instantiate(prefab,bone)` 모두 코드베이스 기존 용례와 일치.
+- Play 판정 대기: ①정상 병사(×1.0)가 플레이어처럼 투구/갑옷 입음 ②덩치 병사(×1.8)는 그 장비가 1.8배로 입혀짐 ③장비 해제/교체 시 시각 갱신 ④GLB 없는 절차 장비 병사도 티어 기본 방어구 표시.
 
 ---
 
