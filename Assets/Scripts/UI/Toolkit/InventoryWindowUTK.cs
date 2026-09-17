@@ -63,6 +63,19 @@ namespace ProjectName.UI.Toolkit
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
         private EquipmentManager _subscribedEquip;
 
+        /// <summary>현재 선택된 인벤 아이템 (QuickSlot 등록용 노출).</summary>
+        private PlayerInventory.ItemData _selectedItemData;
+
+        // =====================================================================
+        //  선택 접근자 — QuickSlotUTK 등록용 (원본 InventoryWindow.HasSelectedItem/GetSelectedItemData 대응)
+        // =====================================================================
+
+        /// <summary>인벤토리에서 선택된 아이템이 있는지.</summary>
+        public bool HasSelectedInInventory() => _selectedItemData != null;
+
+        /// <summary>현재 선택된 인벤토리 아이템 (없으면 null).</summary>
+        public PlayerInventory.ItemData GetSelectedInventoryItem() => _selectedItemData;
+
         // 드롭 타겟 재생성 위생: 각 리프레시에서 이전 슬롯 바인딩 해제 후 재등록.
         private readonly List<VisualElement> _slotTargets = new List<VisualElement>();
 
@@ -281,9 +294,11 @@ namespace ProjectName.UI.Toolkit
             if (slotData == null || slotData.item == null)
             {
                 _selectedLabel.text = "";
+                _selectedItemData = null;
                 return;
             }
             _selectedLabel.text = $"{slotData.item.displayName}  x{slotData.count}  —  {slotData.item.description}";
+            _selectedItemData = slotData.item;
             Debug.Log($"[InventoryUTK] 슬롯 선택(클릭): {slotData.item.displayName} (슬롯 {slotIndex})");
         }
 

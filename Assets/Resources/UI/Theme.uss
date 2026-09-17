@@ -170,6 +170,15 @@
     margin-bottom: 2px;
 }
 
+/* 선택된 레시피 행 강조 */
+.utk-selected-row {
+    background-color: rgba(217, 180, 91, 0.18);
+    border-left-width: 3px;
+    border-left-color: var(--c-hover-gold);
+    border-top-width: 1px;
+    border-top-color: var(--c-iron-line);
+}
+
 /* 희귀도 테두리 오라 */
 .utk-rank--common    { border-color: var(--c-rank-common); }
 .utk-rank--uncommon  { border-color: var(--c-rank-uncommon); }
