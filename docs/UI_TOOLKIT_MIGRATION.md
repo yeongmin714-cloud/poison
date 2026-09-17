@@ -70,12 +70,13 @@
 - [x] **MercenaryHireUTK**(296)+**RevengeListUTK**(385)+**FastTravelUTK**(296)+**RouteConfirmationUTK**(207)+**AutoMoveUTK**(258)
 - [ ] 원본→UTK 호출 전환(Show 호출부 배선) — U7 일괄 전환 라운드로
 
-### Phase U5 — 메뉴/시스템 화면
-- [ ] MainMenuUI + EscMenuUI
-- [ ] OptionsUI + SettingsMenuUI (접근성 탭 포함 — AccessibilityManager 연동)
-- [ ] SaveSlotUI + LoadGameUI + LoadingScreenUI + DeathScreenUI + EndingCreditsUI
-- [ ] GuardInfoWindow (2분할) + GameStatsWindow + AchievementSystem
-- [ ] TutorialGuideSystem
+### Phase U5 — 메뉴/시스템 화면 (13창 전부 ✅)
+- [x] **GuardInfoUTK**(480) — 2분할(장비 6슬롯/스탯 분해/물약 버프/전투력)
+- [x] **OptionsUTK**(391)+**SettingsMenuUTK**(463) — 역할 분담+PlayerPrefs 키 공유+접근성 9API
+- [x] **MainMenuUTK**(379)+EscMenuUTK(156)+SaveSlotUTK(206)+LoadGameUTK(207)+LoadingScreenUTK(237)+DeathScreenUTK(timeScale 홀드)
+- [x] **EndingCreditsUTK**(189 자동스크롤·스킵 — 4-phase 머신은 크레딧 롤만 이식, 통계 요약 스텁)
+- [x] **GameStatsUTK**(242, U키)+AchievementUTK(228, A키)+TutorialGuideUTK(279, T키)
+- [ ] 크레딧 phase 머신(통계 요약→뉴게임+ 선택) 완성 — U8 회귀 라운드 검토
 
 ### Phase U6 — 미니게임/대화/이벤트
 - [ ] NPCDialogueWindow + QuestChoiceUI + ReadDocumentWindow + LordAudienceUI
@@ -119,4 +120,5 @@
 | 2026-09-18 | U2 | DnD 코어 완료 — UTKDragDrop+Inventory/Loot/Equipment/Hotbar UTK 5파일(1,768줄), 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | U3 | 경제/제작 완료 — 6파일 2,750줄(창고/크래프트/연금/요리/수리/퀵슬롯), 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | U4 | 전략/영지 13창 완료 — 4,417줄(월드맵/영지배치/퀘스트/도감/임무/용병/복수/이동), 배치컴파일 error CS=0 | ✅ |
-| | U5~U8 | 대기 — U5 메뉴/시스템(메인/옵션/세이브/사망)부터 | ⏳ |
+| 2026-09-18 | U5 | 메뉴/시스템 13창 완료 — 3,407줄(가드정보/옵션/설정/게임흐름 6종/잔여 4종), 배치컴파일 error CS=0 | ✅ |
+| | U6~U8 | 대기 — U6 미니게임/대화/이벤트부터 | ⏳ |

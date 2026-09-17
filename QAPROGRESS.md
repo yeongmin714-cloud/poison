@@ -8,6 +8,23 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U5 — 메뉴/시스템 UTK 전환 13창)
+
+> **입력**: 마이그레이션 계획 U5 — 원본 5,785줄 13창(가드정보/옵션/설정/메인/ESC/세이브/로드/로딩/사망/크레딧/통계/업적/튜토리얼). 서브에이전트 3회(R1 3병렬: 2성공+1타임아웃→부모 DeathScreen 직접 작성, R2 1회 전원 성공).
+
+### 변경 사항 (신규 13, 3,407줄)
+**GuardInfoUTK(480)**: 좌우 2분할 — 좌:장비 6슬롯(UTKSlot)/우:HP바·전투력(GuardEquipmentSystem.CalculateGuardCombatPower)·공/방/체/민첩(+기본+장비 분해)·물약 버프. static Open(GuardPlaceholder).
+**OptionsUTK(391)+SettingsMenuUTK(463)**: 역할 분담 실측(옵션=게임 내 3탭, 설정=독립 4탭+접근성) — **동일 PlayerPrefs 키(Settings_*) 공유, 복제 0**. DropdownField/Slider/Toggle UTK 기본 컨트롤 + AccessibilityManager 9API 실측 연동.
+**게임 흐름 6종**: MainMenuUTK(379)/EscMenuUTK(156)/SaveSlotUTK(206)/LoadGameUTK(207)/LoadingScreenUTK(237)/DeathScreenUTK(부활=_isDead 리플렉션+HealFull, 로드=SaveManager.Load(0), **timeScale 0 홀드/1 복원 유지**).
+**잔여 4종**: EndingCreditsUTK(189 — 80단위/s 자동 스크롤+스킵, 원본 phase 머신은 크레딧 롤만 이식·통계 요약 스텁)/GameStatsUTK(242 — GameStatsCollector 7섹션 실측 연동, U키)/AchievementUTK(228 — A키)/TutorialGuideUTK(279 — 21단계 PlayerPrefs guide_* 키 공유, T키).
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0) — 수리 8건: DropdownField 2-arg→3-arg(label,choices,0)/ApplyUIToolkitFont 미한정+이중접두/IStyle fontStyle→unityFontStyleAndWeight/padding shorthand→4면/보간문자열 중첩 따옴표 파손→문자열 연결 재구성.
+- 노트: MainMenuUI는 Systems/UI.Functions 이중 존재 — Systems(774줄) 기준 포팅, UI/Functions쪽 무접촉.
+- Play 판정 대기: ①메인→새게임/이어하기 ②ESC→설정(접근성 슬라이더 즉시 저장) ③세이브/로드 슬롯 ④사망→부활/로드 ⑤크레딧 스크롤 ⑥통계(U)/업적(A)/튜토리얼(T) 키 ⑦가드정보 2분할.
+
+---
+
 ## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U4 — 전략/영지 루프 UTK 전환 13창)
 
 > **입력**: 마이그레이션 계획 U4 — 원본 8,059줄 14창(지도/영지/퀘스트/임무/용병/복수/이동) 포팅. 서브에이전트 5회(R1 3병렬 전원 성공, R2 2병렬 — 1성공 1타임아웃, R3 2병렬 재위임 전원 성공).

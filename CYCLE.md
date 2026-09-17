@@ -573,3 +573,8 @@
 - Status: ✅
 - Details: WorldMap(659)/TerritoryDeployment(298)/TerritoryInfoPopup(284)/Quest(419)/QuestJournal(320)/Encyclopedia(384)/Spy(636)/Envoy(523)/Mercenary(296)/Revenge(385)/FastTravel(296)/Route(207)/AutoMove(258) = 13파일 4,417줄, 원본 0변경. 배치컴파일 error CS=0(수리 7건). static Toggle IsOpen 분기 규약 확정. 월드맵 정규화 u=0.5+x/3200·절차 양피지 이식, 구핫키 런타임 무력화
 - Date: 2026-09-18
+
+# Cycle: Phase 68 U5 — 메뉴/시스템 UTK 전환 13창
+- Status: ✅
+- Details: GuardInfo(480 2분할)+Options(391)+Settings(463 접근성 9API)+MainMenu(379)/Esc(156)/SaveSlot(206)/Load(207)/Loading(237)/Death(timeScale 홀드)+Credits(189 스크롤)+GameStats(242 U키)/Achievement(228 A키)/Tutorial(279 T키) = 13파일 3,407줄, 원본 0변경. 배치컴파일 error CS=0(수리 8건). DropdownField 3-arg 규약/보간문자열 중첩따옴표 금지
+- Date: 2026-09-18
