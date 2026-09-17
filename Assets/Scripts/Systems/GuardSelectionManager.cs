@@ -43,7 +43,12 @@ namespace ProjectName.Systems
         private void SyncSelectionAuras()
         {
             if (_auraPrefab == null)
-                _auraPrefab = Resources.Load<GameObject>("FX/Selection/Buff");
+            {
+                // [70차 후속18] trail/지면 원형 VFX 자산 전환 — Hovl Magic circle 2(지면 마법진)를
+                //   선택 표시로 사용(사용자 지정: trail VFX 자산 활용). Buff는 대체 후보로 유지.
+                _auraPrefab = Resources.Load<GameObject>("FX/Selection/MagicCircle2")
+                              ?? Resources.Load<GameObject>("FX/Selection/Buff");
+            }
 
             var toRemove = new List<GuardPlaceholder>();
             foreach (var kv in _selectionAuras)
@@ -67,10 +72,11 @@ namespace ProjectName.Systems
                 }
                 if (_auraPrefab == null) { Debug.LogWarning("[RTS] 선택 오라 프리팹 미로드 — Resources/FX/Selection/Buff 확인"); continue; }
                 var inst = Instantiate(_auraPrefab);
-                inst.transform.position = g.transform.position;
-                inst.transform.localScale = Vector3.one * 2.0f;   // 병사 전신 커버(래퍼런스 실측 후 튜닝)
+                inst.transform.position = g.transform.position;   // 마법진 프리팹이 지면 원점 기준
+                inst.transform.rotation = Quaternion.identity;
+                inst.transform.localScale = Vector3.one * 1.8f;   // 병사 전신 커버(래퍼런스 실측 후 튜닝)
                 _selectionAuras[g] = inst;
-                Debug.Log($"[RTS] 선택 오라 생성: {g.GuardName} — FX/Selection/Buff (x2.0)");
+                Debug.Log($"[RTS] 선택 마법진 생성: {g.GuardName} — FX/Selection/MagicCircle2 (x1.8)");
             }
         }
 

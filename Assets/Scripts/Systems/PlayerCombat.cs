@@ -544,7 +544,10 @@ namespace ProjectName.Systems
                 }
             }
 
-            // ③ 화살 소모 + 발사체 생성 — origin: 활 위치(플레이어 + up*1.5m), 데미지: WeaponData.Bow.damage
+            // ③ 화살 소모 + 발사체 생성 — origin: 활 위치(전방 0.6m·눈높이 1.4m), 데미지: WeaponData.Bow.damage
+            // [70차 후속18] 플레이어 중심 스폰이 몸을 뚫는 문제(테스트 4 실측) → 활 위치로 이동
+            Vector3 aimFwd = transform.forward; aimFwd.y = 0f; aimFwd.Normalize();
+            Vector3 origin = transform.position + aimFwd * 0.6f + Vector3.up * 1.4f;
             //    (화살 종류별 보너스 데미지 합산 + 파워 반영 속도/데미지는 ArrowManager 내부 처리)
             //    [TEST21-FOLLOWUP] ArrowManager lazy 자가 확보 — 씬 미부트/초기화 순서로 Instance가 null이면
             //    즉시 생성 시도(EnsureGameManager 보장과 이중 안전, 멱등). 없으면 발사 불가로 안내.
@@ -553,7 +556,6 @@ namespace ProjectName.Systems
                 // Test_10 EnsureGameManager에서 생성 보장이 우선이지만, 다른 씬/순서 대비 런타임 자가 생성.
                 if (Application.isPlaying) { var go = new GameObject("ArrowManager"); go.AddComponent<ArrowManager>(); }
             }
-            Vector3 origin = transform.position + Vector3.up * 1.5f;
             bool fired = ArrowManager.Instance != null
                 && ArrowManager.Instance.TryShootArrow(origin, dir, WeaponData.Bow.damage, power);
             if (!fired)
