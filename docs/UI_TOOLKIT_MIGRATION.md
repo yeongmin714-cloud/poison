@@ -96,6 +96,7 @@
 
 ### Phase U8 — 최종 회귀 + 표준화 (진행 중 — Play 검증 선행 권장)
 - [x] **호출부 배선 1차** — 침대 수면(SleepUTK)+전리품 바구니(LootWindowUTK): 이벤트 브리지 패턴(UTKWireUp) — UTK 미준비 시 원본 자동 폴백, 한 줄 제거로 완전 회귀
+- [x] **배선 확대** — 상점(ShopPlaceholder.ToggleShop)+인벤 I키(UIInventoryHotkey): 총 4경로 브리지
 - [x] **UI 가이드 UTK 표준 확정** — UI_DESIGN_GUIDELINES.md UTK 섹션(팔레트 매핑/폰트/레이아웃/엔진 규약 8종)
 - [ ] 배선 확대 — 상점/상태창/인벤 키/가드정보 등 창 단위 점진 전환
 - [ ] HUDUTK↔QuickSlotUTK 하단 겹침 해소
@@ -132,4 +133,5 @@
 | 2026-09-18 | U7 | HUD 7창 완료(2,075줄)+유지 판정 확정, 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | U8 | 1차 배선(수면/전리품 브리지)+가이드 UTK 표준 확정, 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | Play 1차 | Editor.log 실측 — Status/Quest/Squad UTK 정상 렌더·토글, UTK 예외 0. ProceduralAnimationController 파괴 가드 수리 | ✅ |
+| 2026-09-18 | 배선 확대 | 4경로(침대 수면/전리품 바구니/상점/인벤 I키) — 브리지 패턴 동일 적용, 배치컴파일 error CS=0 | ✅ |
 | | 후속 | 배선 확대+HUD 겹침 해소+Play 종합 검증+폐기+태그 | ⏳ |

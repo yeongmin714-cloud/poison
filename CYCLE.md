@@ -598,3 +598,8 @@
 - Status: ✅
 - Details: Editor.log 실측 — Status(P)/Quest(Q)/Squad UTK 정상 토글, 부트+배선 로그 착륙, UTK 예외 0. ProceduralAnimationController.RequestGather 파괴 후 접근 가드 추가(MissingReferenceException 뿌리 수리)
 - Date: 2026-09-18
+
+# Cycle: Phase 68 배선 확대 — 4경로(수면/전리품/상점/인벤 I키)
+- Status: ✅
+- Details: ShopPlaceholder.ToggleShopRequestedUTK+InvokeLegacyToggleShop 폴백 분리, UIInventoryHotkey.InventoryToggleRequestedUTK 라우팅, UTKWireUp 브리지 2건 추가(총 4경로). UTK 미준비 시 원본 폴백 내장. 배치컴파일 error CS=0
+- Date: 2026-09-18
