@@ -155,6 +155,25 @@ namespace ProjectName.Core
         public float AlchemySuccessBonus => _level * 0.02f; // +2% per level
         public float CookingSuccessBonus => _level * 0.02f; // +2% per level
         public int SpeechAffinityBonus => _level; // +1 affinity modifier per level
+
+        // ===== 화술(Speech) — 지능(INT) 파생 스탯 =====
+        // 2026-09-17: 화술 = 레벨 + 지능 할당치. 높을수록 포섭/저가구매/밀매에 영향을 준다.
+        public const float SPEECH_INT_FACTOR = 1f; // 지능(INT) 1pt당 화술 +1
+
+        /// <summary>화술 스탯 = 레벨 + 지능 할당치</summary>
+        public int SpeechSkill => _level + Mathf.RoundToInt(_allocatedInt * SPEECH_INT_FACTOR);
+
+        /// <summary>구매 할인률 (0~1): 화술 100이면 최대 20%</summary>
+        public float BuyDiscount => Mathf.Clamp(SpeechSkill * 0.01f, 0f, 0.2f);
+
+        /// <summary>포섭 확률 보정 (0~1): 화술 높을수록 포섭 성공률 상승</summary>
+        public float RecruitSpeechBonus => Mathf.Clamp(SpeechSkill * 0.003f, 0f, 0.2f);
+
+        /// <summary>밀매 숙련 (0~1): 화술 높을수록 밀매 가능/성공</summary>
+        public float SmuggleSkill => Mathf.Clamp(SpeechSkill * 0.01f, 0.05f, 0.9f);
+
+        /// <summary>밀매 판매 프리미엄 (1.0~1.5): 최대 +50%</summary>
+        public float SmuggleGainMultiplier => 1f + Mathf.Clamp(SpeechSkill * 0.005f, 0f, 0.5f);
         public float CombatDamageBonus => _level * 0.01f; // +1% damage per level
 
         /// <summary>

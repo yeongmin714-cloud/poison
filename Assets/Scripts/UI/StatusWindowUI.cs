@@ -318,7 +318,7 @@ namespace ProjectName.UI
             SetRow(3, $"{stats.FinalMoveSpeed:F1}");
             SetRow(4, $"+{stats.FinalAlchemyBonus * 100f:F1}%");
             SetRow(5, $"+{stats.FinalCookingBonus * 100f:F1}%");
-            SetRow(6, $"+{stats.SpeechAffinityBonus}");
+            SetRow(6, $"+{stats.SpeechSkill}");
             SetRow(7, $"{stats.Gold:N0} G");
 
             SetBonusNote(0, "힘 → 공격 +2/pt");

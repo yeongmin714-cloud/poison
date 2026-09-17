@@ -133,7 +133,7 @@ namespace ProjectName.Systems
 
             if (PlayerStats.Instance == null) return false;
 
-            int totalPrice = Mathf.RoundToInt(item.price * _priceMultiplier * count);
+            int totalPrice = Mathf.RoundToInt(item.price * _priceMultiplier * (1f - (PlayerStats.Instance?.BuyDiscount ?? 0f)) * count);
 
             if (!PlayerStats.Instance.SpendGold(totalPrice))
             {
@@ -168,6 +168,44 @@ namespace ProjectName.Systems
 
             item.stock -= count;
             Debug.Log($"[WanderingMerchant] {itemData.displayName} x{count} 구매 완료! ({totalPrice}G)");
+            return true;
+        }
+
+        /// <summary>
+        /// 2026-09-17: 밀매 판매 — 플레이어 인벤토리 아이템을 암시장에 판매.
+        /// 화술(Speech)이 높을수록 SmuggleGainMultiplier 프리미엄이 커진다.
+        /// </summary>
+        public bool SmuggleSell(PlayerInventory.ItemData itemData, int count)
+        {
+            if (itemData == null || count <= 0) return false;
+            if (PlayerStats.Instance == null) return false;
+            if (!SmuggleSystem.CanSmuggle)
+            {
+                Debug.Log($"[WanderingMerchant] 화술 부족 — 밀매 불가 (필요 숙련 0.30).");
+                return false;
+            }
+
+            var inventory = PlayerInventory.Instance;
+            if (inventory == null)
+            {
+                Debug.LogError("[WanderingMerchant] PlayerInventory.Instance is null! 밀매 취소.");
+                return false;
+            }
+
+            // 인벤토리에 소지 확인 (없거나 부족하면 실패)
+            if (inventory.GetItemCount(itemData.id) < count)
+            {
+                Debug.LogWarning($"[WanderingMerchant] 소지한 아이템 부족 — 밀매 실패: {itemData.displayName} x{count}");
+                return false;
+            }
+
+            int smugglePrice = Mathf.FloorToInt(SmuggleSystem.EstimateBaseValue(itemData)
+                                                * (PlayerStats.Instance?.SmuggleGainMultiplier ?? 1f) * count);
+
+            PlayerStats.Instance.AddGold(smugglePrice);
+            inventory.RemoveItem(itemData.id, count);
+
+            Debug.Log($"[WanderingMerchant] 밀매 완료: {itemData.displayName} x{count} → {smugglePrice}G (프리미엄 x{(PlayerStats.Instance?.SmuggleGainMultiplier ?? 1f):F2})");
             return true;
         }
 

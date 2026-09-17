@@ -4,7 +4,25 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-17 (영지 병사 역할 배치 + 특사(Envoy))
+> **최종 갱신:** 2026-09-17 (지능 파생 화술 — 포섭/거래/밀매)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-17 ✅ 지능(INT) 파생 화술(Speech) — 포섭/저가구매/밀매)
+
+> **입력**: 플레이어 지능 파생 스탯에 **화술** 추가 — 화술이 높을수록 **포섭**, **거래(상점 저가 구매)**, **밀매** 스탯이 상승하도록.
+
+### 변경 사항 (6파일: 수정5 + 신규1)
+**`Core/PlayerStats.cs`**: 지능 파생 화술 추가 — `SpeechSkill=Level+INT(SPEECH_INT_FACTOR=1)`, `BuyDiscount=Clamp(SpeechSkill*0.01,0,0.2)` 최대20% 구매할인, `RecruitSpeechBonus=Clamp(SpeechSkill*0.003,0,0.2)` 포섭 보정, `SmuggleSkill=Clamp(SpeechSkill*0.01,0.05,0.9)`, `SmuggleGainMultiplier=1+Clamp(SpeechSkill*0.005,0,0.5)` 최대+50%. (`SpeechAffinityBonus` 레벨기반은 호환성 유지).
+**`Systems/GuardRecruitSystem.cs`**: 포섭 선물(GIFT)/위협(THREAT) 확률에 `+RecruitSpeechBonus` 가산(Clamp01, PlayerStats null 폴백).
+**`UI/ShopWindow.cs`**: `GetBuyPrice(item)=Max(1, Ceil(price*(1-BuyDiscount)))` — 구매(내부+public BuyItem)·canAfford·환불 모두 할인가 적용, 표시=`"가격 {할인가}G (원가 {원가}G)"`.
+**`Systems/WanderingMerchant.cs`**: 구매 totalPrice에 `(1-BuyDiscount)` 적용 + **`SmuggleSell(ItemData,count)`** 신규(CanSmuggle 확인 → Gold 지급 `EstimateBaseValue×SmuggleGainMultiplier×count`, 인벤 제거).
+**`Systems/SmuggleSystem.cs`(신규)**: static — `SmuggleSkill/GainMultiplier/CanSmuggle(숙련≥0.30)/EstimateBaseValue(카테고리별 추정가)`.
+**`UI/StatusWindowUI.cs`**: 화술 행 = `SpeechSkill`(INT 보정 반영 표시).
+
+### 컴파일/QA
+- 배치컴파일 **error CS=0**(exit 0, 오늘시각 DLL 4종 갱신) — 심볼 착륙 확인: Systems.dll `SmuggleSystem/SmuggleSell`, Core.dll `get_SpeechSkill/get_RecruitSpeechBonus`.
+- 노트: 밀매는 기존 상점 판매와 별개 신규 경로(SmuggleSell). GUI/버튼은 미추가(상인 UI 확장 시 연동 가능). 밀매 상점 UI 원하면 후속 작업.
 
 ---
 

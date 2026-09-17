@@ -330,7 +330,7 @@ namespace ProjectName.UI
             if (_selectedSlotIndex >= 0 && _selectedSlotIndex < _currentItems.Count)
             {
                 ShopItem selectedItem = _currentItems[_selectedSlotIndex];
-                bool canAfford = (PlayerStats.Instance?.Gold ?? 0) >= selectedItem.price;
+                bool canAfford = (PlayerStats.Instance?.Gold ?? 0) >= GetBuyPrice(selectedItem);
                 bool inStock = selectedItem.stock == -1 || selectedItem.stock > 0;
                 
                 GUI.enabled = canAfford && inStock;
@@ -475,8 +475,8 @@ namespace ProjectName.UI
                 return;
             }
             
-            // 골드 확인 및 차감
-            if (!(PlayerStats.Instance?.SpendGold(item.price) ?? false)) return;
+            // 골드 확인 및 차감 (화술 할인 적용)
+            if (!(PlayerStats.Instance?.SpendGold(GetBuyPrice(item)) ?? false)) return;
             
             // 재고 확인 및 감소 (-1은 무한)
             if (item.stock > 0)
@@ -493,7 +493,7 @@ namespace ProjectName.UI
             else
             {
                 // 인벤토리 가득 찼으면 골드 환불
-                PlayerStats.Instance?.AddGold(item.price);
+                PlayerStats.Instance?.AddGold(GetBuyPrice(item));
                 Debug.LogWarning("[ShopWindow] 인벤토리 가득 참! 구매 취소.");
             }
         }
@@ -502,7 +502,7 @@ namespace ProjectName.UI
         public bool BuyItem(ShopItem item)
         {
             if (item == null || item.item == null) return false;
-            if (!(PlayerStats.Instance?.SpendGold(item.price) ?? false)) return false;
+            if (!(PlayerStats.Instance?.SpendGold(GetBuyPrice(item)) ?? false)) return false;
 
             if (item.stock > 0)
             {
@@ -517,7 +517,7 @@ namespace ProjectName.UI
             }
             else
             {
-                PlayerStats.Instance?.AddGold(item.price);
+                PlayerStats.Instance?.AddGold(GetBuyPrice(item));
                 Debug.LogWarning("[ShopWindow] 인벤토리 가득 참! 구매 취소.");
                 return false;
             }
@@ -553,6 +553,14 @@ namespace ProjectName.UI
             Debug.Log($"[ShopWindow] 판매 성공: {itemData.displayName} → {sellPrice}G");
             RefreshShopItems();
             UpdateGoldDisplay();
+        }
+
+        // 화술(Speech) 기반 구매 할인 적용 가격 계산 (2026-09-17)
+        private int GetBuyPrice(ShopItem item)
+        {
+            if (item == null) return 0;
+            float discount = PlayerStats.Instance?.BuyDiscount ?? 0f;
+            return Mathf.Max(1, Mathf.CeilToInt(item.price * (1f - discount)));
         }
 
         // 판매 가격 계산 (아이템 카테고리/등급 기반)
@@ -597,7 +605,10 @@ namespace ProjectName.UI
             for (int i = 0; i < count; i++)
             {
                 var item = _currentItems[i];
-                _cachedPriceTexts[i] = $"가격: {item.price}G";
+                int buyPrice = GetBuyPrice(item);
+                _cachedPriceTexts[i] = buyPrice < item.price
+                    ? $"가격: {buyPrice}G (원가 {item.price}G)"
+                    : $"가격: {buyPrice}G";
                 _cachedStockTexts[i] = item.stock == -1 ? "재고: 무한" : $"재고: {item.stock}개";
                 _cachedIconTextures[i] = ItemIconDatabase.GetOrCreateIcon(item.item);
             }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using ProjectName.Core;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -76,7 +77,8 @@ namespace ProjectName.Systems
             // 선물 병행 포섭 (호감도 50+)
             if (loyalty >= LOYALTY_GIFT)
             {
-                if (Random.value < GIFT_CHANCE)
+                float bonus = PlayerStats.Instance?.RecruitSpeechBonus ?? 0f;
+                if (Random.value < Mathf.Clamp01(GIFT_CHANCE + bonus))
                     return Success($"{guard.GuardName}: \"선물이 마음에 들었소. 영지로 가겠소!\"", "gift");
 
                 guard.Loyalty -= GIFT_FAIL_PENALTY;
@@ -86,7 +88,8 @@ namespace ProjectName.Systems
             // 위협 포섭 (호감도 0+)
             if (loyalty >= LOYALTY_THREAT)
             {
-                if (Random.value < THREAT_CHANCE)
+                float bonus = PlayerStats.Instance?.RecruitSpeechBonus ?? 0f;
+                if (Random.value < Mathf.Clamp01(THREAT_CHANCE + bonus))
                     return Success($"{guard.GuardName}: \"...알겠소. 따르겠소.\" (위협)", "threat");
 
                 guard.Loyalty -= THREAT_FAIL_PENALTY;
