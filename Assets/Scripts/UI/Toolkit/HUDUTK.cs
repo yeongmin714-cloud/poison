@@ -1,0 +1,416 @@
+using UnityEngine;
+using UnityEngine.UIElements;
+using ProjectName.Core;       // PlayerHealth / PlayerStats / PlayerInventory
+using ProjectName.Systems;    // QuickSlotManager
+using ProjectName.UI;         // ItemIconDatabase
+
+namespace ProjectName.UI.Toolkit
+{
+    /// <summary>
+    /// UI Toolkit Phase U7 Round A — 메인 HUD 통합 (HUD 1098줄 IMGUI → UTK 포팅).
+    /// 참조 계획서: docs/UI_TOOLKIT_MIGRATION.md
+    /// 원본: Assets/Scripts/UI/HUD.cs — 절대 수정 금지.
+    ///
+    /// [기능] 비윈도우 상시 HUD (HotbarUIUTK/QuickSlotUTK 패턴 — rootVisualElement 직속):
+    ///   ① 상단좌: 체력 바 + ❤ + 수치 (원본 DrawHearts/DrawHPNumberText 소스
+    ///      PlayerHealth 실측 — CurrentHP / MaxHP / HPRatio).
+    ///   ② 하단: 스킬 퀵슬롯 (원본 QuickSlotManager SLOT_COUNT=6 실측, 아이콘 + 키 라벨 1~6).
+    ///   ③ 하단 우측: 경험치/레벨 바 (원본 DrawExpBar 소스 PlayerStats 실측 —
+    ///      Level / CurrentEXP / GetExpForLevel, MaxLevel(50) MAX 처리).
+    ///   ④ 250ms 폴링 갱신 — schedule.Execute().Every(250ms) → IVisualElementScheduledItem.Pause 정지.
+    ///   ⑤ static Ensure() — 멱등 부트스트랩 (UIToolkitBootstrap.Ensure 선례).
+    ///
+    /// [규약] foreach/for(색인 슬롯), 컴포넌트 클래스 public(CS0050), UnityEngine.Debug,
+    ///        IStyle 4면 개별 속성, 삼항연산자, 보간문자열 중첩따옴표 금지.
+    ///        Unity 배치 실행 금지. 초기화 로그는 1회만 — 폴링 중 로그 금지.
+    /// </summary>
+    public class HUDUTK : VisualElement
+    {
+        // ===== 싱글턴 / 부트스트랩 =====
+        private static HUDUTK _instance;
+        public static HUDUTK Instance => _instance;
+
+        /// <summary>멱등 부트스트랩 보장 — UIToolkitBootstrap.Ensure 스타일 (여러 번 호출해도 1회만 생성).</summary>
+        public static void Ensure()
+        {
+            if (_instance != null && _instance.parent != null) return;
+            _instance = new HUDUTK();
+            var go = new GameObject("HUDUTK");
+            Object.DontDestroyOnLoad(go);
+            go.AddComponent<MonoKeeper>().hud = _instance;
+            Debug.Log("[HUDUTK] 초기화 완료 — 체력/퀵슬롯/경험치 HUD 준비");
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void Bootstrap()
+        {
+            if (_instance != null && _instance.parent != null) return;
+            Ensure();
+        }
+
+        // ===== 설정 =====
+        private const int    PollMs     = 250;   // 폴링 주기 (요구사항)
+        private const float  QuickSize  = 56f;
+        private const float  QuickGap   = 6f;
+        private const float  Bottom     = 12f;   // 하단 정렬 기준
+        private readonly Color _heartColor = new Color(0.9f, 0.15f, 0.15f, 1f);
+        private readonly Color _expFillColor = new Color(0.55f, 0.75f, 1f, 1f);
+        private readonly Color _expBorderColor = new Color(0.75f, 0.75f, 0.75f, 1f);
+        private readonly Color _fillBgColor = new Color(0.08f, 0.10f, 0.16f, 0.85f);
+
+        // 체력
+        private VisualElement _hpFill;
+        private Label         _hpText;
+        private VisualElement _hpBorder;
+
+        // 퀵슬롯
+        private readonly UTKSlot[] _quickSlots;
+        private readonly Label[]   _quickKeyLabels;
+
+        // 경험치
+        private VisualElement _expFill;
+        private Label         _expText;
+        private Label         _levelText;
+        private Label         _expValueText;
+
+        // 퀵슬롯 개수 (원본 QuickSlotManager 실측 — 설정값 6)
+        private readonly int _quickCount;
+        private IVisualElementScheduledItem _pollTask;
+
+        private HUDUTK()
+        {
+            name = "HUD";
+            style.position = Position.Absolute;
+            style.left = 0f;
+            style.right = 0f;
+            style.top = 0f;
+            style.bottom = 0f;
+            pickingMode = PickingMode.Ignore;
+
+            int mgrCount = QuickSlotManager.Instance != null ? QuickSlotManager.Instance.SlotCount : 6;
+            _quickCount = mgrCount > 0 ? mgrCount : 6;
+            _quickSlots = new UTKSlot[_quickCount];
+            _quickKeyLabels = new Label[_quickCount];
+
+            BuildHealth();
+            BuildQuickSlots();
+            BuildExpBar();
+
+            UTKWindowBase.ApplyUIToolkitFont(this);
+
+            StartPolling();
+        }
+
+        // =====================================================================
+        // ① 상단좌 체력 바 (PlayerHealth 실측 — 하트 + 바 + 수치)
+        // =====================================================================
+        private void BuildHealth()
+        {
+            var host = new VisualElement();
+            host.name = "HealthHost";
+            host.style.position = Position.Absolute;
+            host.style.left = 18f;
+            host.style.top = 16f;
+            host.style.flexDirection = FlexDirection.Row;
+            host.style.alignItems = Align.Center;
+            Add(host);
+
+            var heart = new Label("❤");
+            heart.name = "HeartIcon";
+            heart.style.fontSize = 28f;
+            heart.style.color = new StyleColor(_heartColor);
+            heart.style.marginRight = 8f;
+            heart.style.width = 34f;
+            heart.style.unityTextAlign = TextAnchor.MiddleCenter;
+            host.Add(heart);
+
+            var barWrap = new VisualElement();
+            barWrap.style.flexDirection = FlexDirection.Column;
+            barWrap.style.width = 180f;
+            host.Add(barWrap);
+
+            _hpBorder = new VisualElement();
+            _hpBorder.name = "HPBorder";
+            _hpBorder.style.height = 16f;
+            _hpBorder.style.borderTopWidth = 1f;
+            _hpBorder.style.borderBottomWidth = 1f;
+            _hpBorder.style.borderLeftWidth = 1f;
+            _hpBorder.style.borderRightWidth = 1f;
+            _hpBorder.style.borderTopColor = new StyleColor(_expBorderColor);
+            _hpBorder.style.borderBottomColor = new StyleColor(_expBorderColor);
+            _hpBorder.style.borderLeftColor = new StyleColor(_expBorderColor);
+            _hpBorder.style.borderRightColor = new StyleColor(_expBorderColor);
+            barWrap.Add(_hpBorder);
+
+            _hpFill = new VisualElement();
+            _hpFill.name = "HPFill";
+            _hpFill.style.height = new Length(100f, LengthUnit.Percent);
+            _hpFill.style.backgroundColor = new StyleColor(_heartColor);
+            _hpFill.style.width = new Length(100f, LengthUnit.Percent);
+            _hpBorder.Add(_hpFill);
+
+            _hpText = new Label("100 / 100");
+            _hpText.name = "HPText";
+            _hpText.style.fontSize = 16f;
+            _hpText.style.marginTop = 2f;
+            _hpText.style.color = new StyleColor(UTKColor.TextPrimary);
+            barWrap.Add(_hpText);
+        }
+
+        // =====================================================================
+        // ② 하단 퀵슬롯 (QuickSlotManager 실측 6슬롯 — 아이콘 + 키 라벨)
+        // =====================================================================
+        private void BuildQuickSlots()
+        {
+            var row = new VisualElement();
+            row.name = "HUDQuickRow";
+            row.style.position = Position.Absolute;
+            row.style.left = 0f;
+            row.style.right = 0f;
+            row.style.bottom = Bottom;
+            row.style.flexDirection = FlexDirection.Row;
+            row.style.justifyContent = Justify.Center;
+            row.style.alignItems = Align.FlexEnd;
+            Add(row);
+
+            for (int i = 0; i < _quickCount; i++)
+            {
+                var cell = new VisualElement();
+                cell.name = "HUDQuickCell_" + i;
+                cell.style.flexDirection = FlexDirection.Row;
+                cell.style.alignItems = Align.Center;
+                cell.style.marginLeft = QuickGap * 0.5f;
+                cell.style.marginRight = QuickGap * 0.5f;
+                row.Add(cell);
+
+                var slot = new UTKSlot();
+                slot.name = "HUDQuickSlot_" + i;
+                slot.style.width = QuickSize;
+                slot.style.height = QuickSize;
+                cell.Add(slot);
+
+                var key = new Label((i + 1).ToString());
+                key.name = "HUDQuickKey_" + i;
+                key.style.width = 20f;
+                key.style.height = 20f;
+                key.style.fontSize = 12f;
+                key.style.unityTextAlign = TextAnchor.MiddleCenter;
+                key.style.color = new StyleColor(UTKColor.TextSecondary);
+                key.style.backgroundColor = new StyleColor(new Color(0.10f, 0.10f, 0.12f, 0.9f));
+                cell.Add(key);
+
+                _quickSlots[i] = slot;
+                _quickKeyLabels[i] = key;
+            }
+        }
+
+        // =====================================================================
+        // ③ 하단 우측 경험치/레벨 바 (PlayerStats 실측)
+        // =====================================================================
+        private void BuildExpBar()
+        {
+            var host = new VisualElement();
+            host.name = "ExpHost";
+            host.style.position = Position.Absolute;
+            host.style.right = 18f;
+            host.style.bottom = Bottom;
+            host.style.flexDirection = FlexDirection.Column;
+            host.style.alignItems = Align.FlexEnd;
+            Add(host);
+
+            _levelText = new Label("Lv.1");
+            _levelText.name = "LevelText";
+            _levelText.style.fontSize = 14f;
+            _levelText.style.color = new StyleColor(UTKColor.TextPrimary);
+            host.Add(_levelText);
+
+            var barWrap = new VisualElement();
+            barWrap.style.position = Position.Relative;
+            barWrap.style.width = 300f;
+            barWrap.style.height = 18f;
+            barWrap.style.marginTop = 4f;
+            host.Add(barWrap);
+
+            _expFill = new VisualElement();
+            _expFill.name = "ExpFill";
+            _expFill.style.position = Position.Absolute;
+            _expFill.style.left = 0f;
+            _expFill.style.top = 0f;
+            _expFill.style.bottom = 0f;
+            _expFill.style.backgroundColor = new StyleColor(_fillBgColor);
+            _expFill.style.width = new Length(100f, LengthUnit.Percent);
+            barWrap.Add(_expFill);
+
+            var expFront = new VisualElement();
+            expFront.name = "ExpFront";
+            expFront.style.position = Position.Absolute;
+            expFront.style.left = 0f;
+            expFront.style.top = 0f;
+            expFront.style.bottom = 0f;
+            expFront.style.backgroundColor = new StyleColor(_expFillColor);
+            expFront.style.width = new Length(0f, LengthUnit.Percent);
+            barWrap.Add(expFront);
+            _expFill = expFront;
+
+            _expValueText = new Label("0/100");
+            _expValueText.name = "ExpValue";
+            _expValueText.style.position = Position.Absolute;
+            _expValueText.style.left = 0f;
+            _expValueText.style.right = 0f;
+            _expValueText.style.top = 0f;
+            _expValueText.style.bottom = 0f;
+            _expValueText.style.fontSize = 12f;
+            _expValueText.style.unityTextAlign = TextAnchor.MiddleCenter;
+            _expValueText.style.color = new StyleColor(UTKColor.TextPrimary);
+            barWrap.Add(_expValueText);
+            _expText = _expValueText;
+        }
+
+        // =====================================================================
+        // ④ 폴링 — schedule.Execute().Every(250ms) → Pause 정지 (낙하 규약 준수)
+        // =====================================================================
+        private void StartPolling()
+        {
+            if (_pollTask != null) return;
+            _pollTask = schedule.Execute(() =>
+            {
+                if (parent != null) RefreshAll();
+            }).Every(PollMs);
+        }
+
+        private void StopPolling()
+        {
+            if (_pollTask != null)
+            {
+                _pollTask.Pause();
+                _pollTask = null;
+            }
+        }
+
+        // =====================================================================
+        //  데이터 갱신 (원본 실측 경로 — 로그 금지, 폴링 중 무음)
+        // =====================================================================
+        private void RefreshAll()
+        {
+            RefreshHealth();
+            RefreshExpBar();
+            RefreshQuickSlots();
+        }
+
+        private void RefreshHealth()
+        {
+            var ph = PlayerHealth.Instance;
+            float current = ph != null ? ph.CurrentHP : 0f;
+            float max = ph != null ? ph.MaxHP : 1f;
+            float ratio = max > 0f ? Mathf.Clamp01(current / max) : 0f;
+
+            if (_hpFill != null)
+                _hpFill.style.width = new Length(ratio * 100f, LengthUnit.Percent);
+
+            // 30% 이하 경고 (원본 DrawHPNumberText: hpRatio<=0.3 → 노랑)
+            if (_hpText != null)
+            {
+                string num = (int)current + " / " + (int)max;
+                _hpText.text = num;
+                _hpText.style.color = ratio <= 0.3f
+                    ? new StyleColor(Color.yellow)
+                    : new StyleColor(UTKColor.TextPrimary);
+            }
+        }
+
+        private void RefreshExpBar()
+        {
+            var ps = PlayerStats.Instance;
+            if (ps == null) return;
+
+            int level = ps.Level;
+            bool isMax = level >= PlayerStats.MaxLevel;
+
+            int curExp;
+            int spanExp;
+            float ratio;
+            if (isMax)
+            {
+                curExp = 0;
+                spanExp = 0;
+                ratio = 1f;
+            }
+            else
+            {
+                curExp = ps.CurrentEXP - ps.GetExpForLevel(level);
+                spanExp = ps.GetExpForLevel(level + 1) - ps.GetExpForLevel(level);
+                if (spanExp <= 0) spanExp = 1;
+                ratio = Mathf.Clamp01((float)curExp / spanExp);
+            }
+
+            if (_expFill != null)
+                _expFill.style.width = new Length(ratio * 100f, LengthUnit.Percent);
+            if (_levelText != null)
+                _levelText.text = "Lv." + level;
+            if (_expText != null)
+                _expText.text = isMax ? "MAX" : curExp + "/" + spanExp;
+        }
+
+        private void RefreshQuickSlots()
+        {
+            var mgr = QuickSlotManager.Instance;
+            if (mgr == null)
+            {
+                foreach (var slot in _quickSlots)
+                {
+                    slot.SetIcon(null);
+                    slot.SetCount(0);
+                    slot.SetRank("common");
+                }
+                return;
+            }
+
+            for (int i = 0; i < _quickSlots.Length; i++)
+                RefreshQuickSlot(i, mgr);
+        }
+
+        private void RefreshQuickSlot(int index, QuickSlotManager mgr)
+        {
+            var slot = _quickSlots[index];
+            if (slot == null) return;
+
+            if (!mgr.HasItemInSlot(index))
+            {
+                slot.SetIcon(null);
+                slot.SetCount(0);
+                slot.SetRank("common");
+                return;
+            }
+
+            var item = mgr.GetItemInSlot(index);
+            if (item != null)
+            {
+                slot.SetIcon(ItemIconDatabase.GetOrCreateIcon(item));
+                slot.SetRank(UTKRarity.ClassForIndex((int)item.rarity));
+                int invCount = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetItemCount(item.id) : 0;
+                slot.SetCount(invCount);
+            }
+            else
+            {
+                slot.SetIcon(null);
+                slot.SetCount(0);
+                slot.SetRank("common");
+            }
+        }
+
+        // =====================================================================
+        //  부착용 MonoKeeper — HotbarUIUTK.Updater 관례 (UIRoot 부착)
+        // =====================================================================
+        private class MonoKeeper : MonoBehaviour
+        {
+            public HUDUTK hud;
+
+            private void Update()
+            {
+                var root = UIToolkitBootstrap.UIRoot;
+                if (root != null && hud != null && hud.parent == null)
+                    root.Add(hud);
+            }
+        }
+    }
+}
