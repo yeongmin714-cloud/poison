@@ -4,7 +4,23 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-17 (병사 장비 비주얼 부착 — GuardVisualAttachSystem 신설)
+> **최종 갱신:** 2026-09-17 (병사 플레이어 장비 착용+드랍 — 로드아웃 스폰)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-17 ✅ 병사가 플레이어 장비 착용·스폰·드랍 — 레벨 스케일 희귀 + 저레벨 소확률)
+
+> **입력**: "병사도 플레이어 장비 착용 → 스폰 시 랜덤으로 일부 착용 → 사망 시 그 장비 드랍. 레벨 높을수록 희귀, 낮아도 희박하게 희귀". **뿌리 설계**: 드랍(`GuardPlaceholder` 필드)과 시각(`GuardEquipmentSystem`)이 **분리**돼 "입은 것≠드랍" 위험 → **단일 소스(GuardPlaceholder 장비 필드)**로 통일해 "보이는 그대로 드랍" 보장. 등급은 기존 `RarityProbabilityTable.Roll(level) + LuckyRollSystem.TryLuck` 재사용(레벨 구간별 확률표가 이미 저레벨 Rare 8% 포함) + 부츠/장갑 통합 id(`wood_boot`)의 좌우 GLB 분리 부착 필요.
+
+### 변경 사항 (3파일)
+**`Systems/GuardPlaceholder.cs`**: 장비 필드 `BootsItem`·`GlovesItem` 신설(기존 Weapon/Shield/Helmet/Armor 뒤). `DropEquippedItems`에 `BootsItem`·`GlovesItem` 드랍 추가(100%) — 총 6슬롯(무기/방패/투구/갑옷/신발/장갑).
+**`Systems/GuardEquipmentSpawner.cs`**: `SpawnPlayerLoadout(gp, level)` 신설 — 부위별 착용 확률(투구 .65/갑옷 .80/신발 .50/장갑 .45/방패 .25)로 일부만 착용, `RollLoadoutItem(part, level)`이 `RarityProbabilityTable.Roll`→`LuckyRollSystem.TryLuck`→티어 매핑(Common=wood/Uncommon=steel/Rare=stone/Epic+=crystal, shield=wood_shield 고정)→`PlayerInventory.GetItemById`로 실제 플레이어 아이템 id 생성. `SpawnEquipment` 끝에서 호출 → 기존 절차 장비(스탯)와 병행.
+**`Systems/GuardVisualAttachSystem.cs`**: 시각 소스를 `GuardEquipmentSystem.GetAllGuardEquipment` → **GuardPlaceholder 장비 필드**로 재소싱(AddFieldToDesired — 투구/갑옷/신발/장갑/방패). **좌우 처리 추가** `ResolveSideVisualId` — Shoes/Gloves는 foot.L/hand.L에 `{id}_left`·foot.R/hand.R에 `{id}_right` GLB 부착(부재 시 원본 `{id}` 폴백). GuardEquipmentSystem 의존 완전 제거.
+
+### 컴파일/QA
+- 배치컴파일 **error CS=0**(exit 0) — Systems.dll 갱신 + `strings` 심볼 착륙(SpawnPlayerLoadout/RollLoadoutItem/BootsItem/ResolveSideVisualId/AddFieldToDesired 모두 >0).
+- 플레이어 비주얼 시스템(EquipmentManager·ArmorVisualAttachSystem·WeaponPartsSystem) **무접촉** — 회귀 0.
+- Play 판정 대기: ①병사 스폰 시 플레이어 방어구(wood~crystal) 일부 착용 ②고레벨 병사는 희귀/에픽, 저레벨은 드물게 희귀 ③병사 사망 시 입었던 장비(투구/갑옷/신발/장갑/방패)가 전리품으로 드랍 ④부츠/장갑 좌우 정위치 부착 ⑤덩치(×1.8) 병사는 장비도 1.8배.
 
 ---
 

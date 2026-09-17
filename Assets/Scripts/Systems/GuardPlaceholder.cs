@@ -698,6 +698,8 @@ namespace ProjectName.Systems
             DropEquippedSlot(basket, ShieldItem);
             DropEquippedSlot(basket, HelmetItem);
             DropEquippedSlot(basket, ArmorItem);
+            DropEquippedSlot(basket, BootsItem);
+            DropEquippedSlot(basket, GlovesItem);
         }
 
         /// <summary>단일 장비 슬롯 드랍 처리 (null이 아니면 100% 드랍)</summary>
@@ -1193,6 +1195,8 @@ namespace ProjectName.Systems
         public PlayerInventory.ItemData ShieldItem { get; set; }
         public PlayerInventory.ItemData HelmetItem { get; set; }
         public PlayerInventory.ItemData ArmorItem { get; set; }
+        public PlayerInventory.ItemData BootsItem { get; set; }
+        public PlayerInventory.ItemData GlovesItem { get; set; }
 
         /// <summary>장비 외형 업데이트 (WeaponPartsSystem 연동)</summary>
         public void UpdateVisual() { }

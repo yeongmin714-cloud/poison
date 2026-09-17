@@ -71,6 +71,10 @@ namespace ProjectName.Systems
                     Debug.Log($"[GuardEquipmentSpawner] {gp.GuardName}에게 {item.displayName} 장착 완료 (슬롯: {slot})");
                 }
             }
+
+            // ===== [후속22] 실착 플레이어 방어구(GLB 비주얼) 로드아웃 =====
+            // GuardPlaceholder 장비 필드에 저장 → GuardVisualAttachSystem(시각)과 DropEquippedItems(전리품)가 동일 소스로 사용.
+            SpawnPlayerLoadout(gp, guardLevel);
         }
 
         /// <summary>
@@ -169,6 +173,65 @@ namespace ProjectName.Systems
                 default:
                     return GuardEquipmentSystem.EquipSlot.Accessory;
             }
+        }
+
+        /// <summary>
+        /// [후속22] 병사가 플레이어 실착 방어구(GLB 비주얼 아이템)를 일부 착용하고 스폰.
+        /// 레벨 스케일 등급 + 저레벨 희귀 소확률 (RarityProbabilityTable.Roll + LuckyRollSystem.TryLuck).
+        /// 결과를 GuardPlaceholder 장비 필드에 저장 → GuardVisualAttachSystem(시각)와 DropEquippedItems(전리품)가
+        /// 동일 소스를 사용해 "보이는 그대로 드랍"된다.
+        /// </summary>
+        /// <param name="gp">사용할 GuardPlaceholder (필드가 채워짐)</param>
+        /// <param name="level">병사 레벨 (등급 테이블 인덱스)</param>
+        public static void SpawnPlayerLoadout(GuardPlaceholder gp, int level)
+        {
+            if (gp == null) return;
+
+            // 부위별 착용 확률 (1보다 크면 항상 착용)
+            float helmetChance = 0.65f;
+            float armorChance  = 0.80f;
+            float bootsChance  = 0.50f;
+            float glovesChance = 0.45f;
+            float shieldChance = 0.25f;
+
+            if (Random.value < helmetChance) gp.HelmetItem = RollLoadoutItem("helmet", level);
+            if (Random.value < armorChance)  gp.ArmorItem  = RollLoadoutItem("armor",  level);
+            if (Random.value < bootsChance)  gp.BootsItem  = RollLoadoutItem("boot",   level);
+            if (Random.value < glovesChance) gp.GlovesItem = RollLoadoutItem("glove",  level);
+            if (Random.value < shieldChance) gp.ShieldItem = RollLoadoutItem("shield", level);
+        }
+
+        /// <summary>
+        /// [후속22] 부위별 실착 플레이어 방어구 아이템 1개를 롤.
+        /// 등급 = RarityProbabilityTable.Roll(level) → LuckyRollSystem.TryLuck 승격 → 티어 매핑
+        /// (Common=wood / Uncommon=steel / Rare=stone / Epic+=crystal) → PlayerInventory.GetItemById로 조회.
+        /// Shield는 GLB가 wood_shield뿐이므로 항상 wood_shield 반환.
+        /// </summary>
+        /// <param name="part">"helmet" | "armor" | "boot" | "glove" | "shield"</param>
+        /// <param name="level">병사 레벨</param>
+        /// <returns>해당 부위 ItemData (없으면 null)</returns>
+        public static PlayerInventory.ItemData RollLoadoutItem(string part, int level)
+        {
+            ItemRarity rarity = RarityProbabilityTable.Roll(level);
+            rarity = LuckyRollSystem.TryLuck(rarity);
+
+            // 등급 → 티어 접두 (Epic+는 crystal GLB만 존재)
+            string tier;
+            switch (rarity)
+            {
+                case ItemRarity.Common:    tier = "wood";    break;
+                case ItemRarity.Uncommon:  tier = "steel";   break;
+                case ItemRarity.Rare:      tier = "stone";   break;
+                default:                   tier = "crystal"; break; // Epic / Legendary / Unique → crystal
+            }
+
+            string itemId;
+            if (string.Equals(part, "shield", System.StringComparison.OrdinalIgnoreCase))
+                itemId = "wood_shield"; // shield GLB는 wood_shield만 존재
+            else
+                itemId = tier + "_" + part; // helmet/armor/boot/glove
+
+            return PlayerInventory.GetItemById(itemId);
         }
     }
 }

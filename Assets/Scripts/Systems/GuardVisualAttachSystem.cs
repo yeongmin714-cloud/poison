@@ -10,7 +10,8 @@ namespace ProjectName.Systems
     ///
     /// 병사(GuardPlaceholder)의 본 릭(27 bones, Blender식 `.L/.R` 접미 이름 — spine/spine.001..005,
     /// shoulder/upper_arm/forearm/hand/breast/pelvis/thigh/shin/foot/toe)에
-    /// 병사가 착용 중인 방어구 장비(GuardEquipmentSystem)의 GLB 비주얼을 부착한다.
+    /// 병사가 착용 중인 방어구 장비(GuardPlaceholder의 HelmetItem/ArmorItem/BootsItem/GlovesItem/ShieldItem)의
+    /// GLB 비주얼을 부착한다.
     ///
     /// - 슬롯 판정: 아이템 id 키워드(helmet/armor/boot|shoe/glove/shield) → VisualSlot.
     /// - 부착 본 매핑: 크라운=spine.005, 가슴=spine.003, 척추=spine, 손/발=hand.L/.R·foot.L/.R,
@@ -101,7 +102,6 @@ namespace ProjectName.Systems
             if (_syncTimer < SyncIntervalSec) return;
             _syncTimer = 0f;
 
-            if (GuardEquipmentSystem.Instance == null) return;
             var guards = Object.FindObjectsByType<GuardPlaceholder>(FindObjectsInactive.Exclude);
             foreach (var g in guards)
             {
@@ -131,25 +131,15 @@ namespace ProjectName.Systems
             var body = ResolveBody(guard);
             if (body == null) return;
 
-            var equip = GuardEquipmentSystem.Instance.GetAllGuardEquipment(guard);
-
-            // 원하는 슬롯→itemId 맵 (무기/악기 제외 — 무기 비주얼은 별도 시스템)
+            // [후속22] GuardPlaceholder 장비 필드(실착 플레이어 방어구)를 시각 슬롯 맵으로.
+            // 전리품(DropEquippedItems)도 동일 필드 소스이므로 "보이는 그대로 드랍"된다.
+            // (기존 GuardEquipmentSystem.GetAllGuardEquipment 의존은 제거 — 무기/악기 비주얼은 별도 시스템)
             var desired = new Dictionary<VisualSlot, string>();
-            if (equip != null)
-            {
-                foreach (var kv in equip)
-                {
-                    if (kv.Key == GuardEquipmentSystem.EquipSlot.Weapon
-                        || kv.Key == GuardEquipmentSystem.EquipSlot.Instrument) continue;
-                    if (kv.Value == null || kv.Value.itemData == null) continue;
-                    string raw = kv.Value.itemData.id;
-                    if (string.IsNullOrEmpty(raw)) continue;
-                    var vs = VisualSlotFor(raw);
-                    if (vs == VisualSlot.None) continue;
-                    string resolved = ResolveVisualId(guard, vs, raw);
-                    if (resolved != null) desired[vs] = resolved;
-                }
-            }
+            AddFieldToDesired(guard, guard.HelmetItem, desired);
+            AddFieldToDesired(guard, guard.ArmorItem, desired);
+            AddFieldToDesired(guard, guard.BootsItem, desired);
+            AddFieldToDesired(guard, guard.GlovesItem, desired);
+            AddFieldToDesired(guard, guard.ShieldItem, desired);
 
             if (!_perGuard.TryGetValue(key, out var slots))
                 _perGuard[key] = slots = new Dictionary<VisualSlot, SlotState>();
@@ -171,6 +161,19 @@ namespace ProjectName.Systems
             foreach (var vs in stale) DestroySlot(slots, vs);
         }
 
+        /// <summary>[후속22] GuardPlaceholder 장비 필드 1개를 desired 시각 슬롯 맵에 반영 (null/무관 슬롯 무시).</summary>
+        void AddFieldToDesired(GuardPlaceholder guard, PlayerInventory.ItemData field,
+                               Dictionary<VisualSlot, string> desired)
+        {
+            if (field == null) return;
+            string raw = field.id;
+            if (string.IsNullOrEmpty(raw)) return;
+            var vs = VisualSlotFor(raw);
+            if (vs == VisualSlot.None) return;
+            string resolved = ResolveVisualId(guard, vs, raw);
+            if (resolved != null) desired[vs] = resolved;
+        }
+
         static bool AllAlive(List<GameObject> list)
         {
             if (list == null || list.Count == 0) return false;
@@ -190,15 +193,37 @@ namespace ProjectName.Systems
                 var bone = FindBoneOnTarget(body, new[] { boneName });
                 if (bone == null) continue;
 
-                var prefab = LoadVisualPrefab(itemId);
+                // [후속22] Shoes/Gloves는 좌우 본(.L/.R)에 {id}_left / {id}_right GLB 부착 (부재 시 원본 {id} 폴백)
+                string visualId = ResolveSideVisualId(slot, boneName, itemId);
+                var prefab = LoadVisualPrefab(visualId);
                 if (prefab == null) continue;
 
                 var visual = Object.Instantiate(prefab, bone);
-                visual.name = itemId;
+                visual.name = visualId;
                 visual.transform.localPosition = Vector3.zero;
                 visual.transform.localScale = Vector3.one; // 본 공간 — 덩치 1.8x는 부모 스케일이 자동 전파
                 st.visuals.Add(visual);
             }
+        }
+
+        /// <summary>
+        /// [후속22] 슬롯/본 이름에 따라 부착할 GLB id를 결정.
+        /// Shoes/Gloves는 좌우 본(foot.L/.R·hand.L/.R)에 대해 {id}_left / {id}_right GLB를 우선 사용.
+        /// 좌우 전용 GLB가 없으면(또는 그 외 슬롯) 원본 {id} 그대로.
+        /// </summary>
+        static string ResolveSideVisualId(VisualSlot slot, string boneName, string itemId)
+        {
+            bool isSided = (slot == VisualSlot.Shoes || slot == VisualSlot.Gloves);
+            if (!isSided || string.IsNullOrEmpty(itemId))
+                return itemId;
+
+            if (boneName.EndsWith(".R") || boneName.EndsWith(".L"))
+            {
+                string side = boneName.EndsWith(".L") ? "_left" : "_right";
+                string sided = itemId + side;
+                if (LoadVisualPrefab(sided) != null) return sided;
+            }
+            return itemId; // 좌우 전용 GLB 부재 → 원본 id 폴백
         }
 
         void DestroySlot(Dictionary<VisualSlot, SlotState> slots, VisualSlot slot)
