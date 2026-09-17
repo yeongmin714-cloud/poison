@@ -338,6 +338,7 @@ namespace ProjectName.Systems.Animation.Procedural
 
         public void RequestGather(Vector3? target = null)
         {
+            if (this == null || !gameObject || !gameObject.activeInHierarchy) return; // 파괴 후 접근 가드 (Play 실측 MissingReferenceException)
             if (_actionState != ActionState.None) return;
             _actionState = ActionState.Gather;
             _actionTimer = 0f;
