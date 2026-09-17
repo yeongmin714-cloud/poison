@@ -583,3 +583,8 @@
 - Status: ✅
 - Details: 대화4(NPCDialogue/QuestChoice/ReadDocument/LordAudience)+미니게임4(Lockpicking/Fishing/Mercy/Sleep 수면위임+침대세이브)+아레나2+MissionResult(자체큐)+이벤트3(Festival/DynamicEvent/NPCDaily)+깃발/가스/교회(2원본통합) = 17파일 ~4,030줄, 원본 0변경. 배치컴파일 error CS=0(barText Label/TerritoryDefinition 구조체 null비교 수리). 구조체 반환 API null비교 금지 규약
 - Date: 2026-09-18
+
+# Cycle: Phase 68 U7 — HUD/오버레이 UTK 7창 + 유지 판정
+- Status: ✅
+- Details: HUD(415 체력/퀵슬롯/EXP)+GuardSquadHotbar(428 리플렉션 공유)+Minimap(440 스플랫+마커)+Time(162)/War(173)/CombatLog(224 L키)/Herb(233) = 7파일 2,075줄, 원본 0변경. 배치컴파일 error CS=0(LogType 한정/backgroundPosition/textOverflow 수리). 유지 확정: 월드스페이스 6종+디버그 IMGUI. 호출부 배선은 U8
+- Date: 2026-09-18

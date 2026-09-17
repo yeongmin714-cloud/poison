@@ -86,11 +86,13 @@
 - [x] **PlayerFlagUTK**(356)+GasSprayUTK(280)+ChurchUTK(295 — 2원본 통합)
 - [ ] 원본→UTK 호출부 배선 — U7 일괄 전환 라운드
 
-### Phase U7 — HUD/오버레이 + 잔여 정리
-- [ ] HUD + GuardSquadHotbar(부대 F+1~8/토글/우클릭 해제) + MinimapUI
-- [ ] TimeDisplayUI + WarNotificationUI + CombatLogUI + HerbRespawnUI + AutoMoveUI
-- [ ] **유지(전환 제외) 확정**: DamageFont/DamageNumber, Nameplate/HeadUI/레벨라벨(월드스페이스), ScreenFlashFX, GuardWorldSpaceHUD, 디버그/Test 셋업 IMGUI
-- [ ] 중복 경로 정리: UIStyleManager → UTK Theme 흡수, 구 IMGUI 코드 제거
+### Phase U7 — HUD/오버레이 + 유지 판정 (HUD 7창 ✅ / 배선 U8 이월)
+- [x] **HUDUTK**(415) — 체력/퀵슬롯 6/경험치 바 (⚠️ QuickSlotUTK와 하단 겹침 — U8에서 은퇴 대상 결정)
+- [x] **GuardSquadHotbarUTK**(428) — 원본 _slots 리플렉션 공유(키 입력은 원본 담당)
+- [x] **MinimapUTK**(440) — 월드 스플랫+영지/퀘스트 마커+날씨
+- [x] **TimeDisplayUTK**(162)+WarNotificationUTK(173)+CombatLogUTK(224, L키)+HerbRespawnUTK(233)
+- [x] **유지 판정 확정**: DamageNumber·이름표 4종·ScreenFlashFX·GuardWorldSpaceHUD·컷신 2종·디버그/Test IMGUI — 전환 제외
+- [ ] **호출부 배선(원본 Show()→UTK 전환) — U8에서 창 단위 점진 적용**
 
 ### Phase U8 — 최종 회귀 + 표준화
 - [ ] 전 창 회귀 QA (서브 QA 에이전트 — 키/스케일/DnD/접근성/컨트롤러)
@@ -124,4 +126,5 @@
 | 2026-09-18 | U4 | 전략/영지 13창 완료 — 4,417줄(월드맵/영지배치/퀘스트/도감/임무/용병/복수/이동), 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | U5 | 메뉴/시스템 13창 완료 — 3,407줄(가드정보/옵션/설정/게임흐름 6종/잔여 4종), 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | U6 | 미니게임/대화/이벤트 17창 완료 — ~4,030줄, 배치컴파일 error CS=0 | ✅ |
-| | U7~U8 | 대기 — U7 HUD/오버레이+호출부 배선+유지 판정부터 | ⏳ |
+| 2026-09-18 | U7 | HUD 7창 완료(2,075줄)+유지 판정 확정, 배치컴파일 error CS=0 | ✅ |
+| | U8 | 대기 — 최종 회귀+호출부 배선+UI 가이드 갱신+폐기 | ⏳ |

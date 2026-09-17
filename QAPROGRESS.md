@@ -8,6 +8,23 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U7 — HUD/오버레이 UTK 7창 + 유지 판정 확정)
+
+> **입력**: 마이그레이션 계획 U7 — 원본 3,406줄 HUD 7종(HUD 1098/부대핫바 796/미니맵 614/시간/전쟁알림/전투로그/약초). 서브에이전트 3병렬 전원 성공.
+
+### 변경 사항 (신규 7, 2,075줄)
+**HUDUTK(415)**: 상단좌 체력(하트+바+수치, 30% 경고색)+하단 퀵슬롯 6(QuickSlotManager 실측)+하단우 경험치/레벨 바(GetExpForLevel 수식 이식) — 250ms 폴링, 초기화 로그 1회. ⚠️ **QuickSlotUTK와 하단 겹침 가능 — U8에서 하나 은퇴 결정**.
+**GuardSquadHotbarUTK(428)**: 원본 `_slots`(GuardPlaceholder[][]) **리플렉션 공유 단일소스** — 키 입력은 원본 담당(충돌 방지), UTK는 표시+우클릭 해제(UnregisterSlot 위임)+국적색/생존수/Lv. 0.5s 폴링.
+**MinimapUTK(440)**: TerrainSplatBaker.LastWorldSplat 배경+영지/퀘스트 마커(월드→로컬 보정, 링 논리 이식)+온도/소음/날씨+HH:00. 좌상단.
+**알림 4종**: TimeDisplayUTK(162, 우상단 일/시간+주야 게이지)/WarNotificationUTK(173 — 원본 ActiveNotifications public 미러, max5/8s 동일)/CombatLogUTK(224 — **CombatLog.GetRecentEntries(100) 직접 피드 존재 확인, L키**+AddLog 헬퍼)/HerbRespawnUTK(233 — 30m 컬링+진행 그라디언트).
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0) — 수리 3건: LogType 모호(ProjectName.Systems vs UnityEngine) → 완전 한정, IStyle backgroundPosition 미존재(제거 — Contain 기본 중앙), unityTextOverflow→textOverflow.
+- **유지 판정 확정(전환 제외 목록)**: DamageFont/DamageNumber(월드 3D), Nameplate/HeadUI/MonsterLevelLabel/TownNameLabel(월드 앵커), ScreenFlashFX, GuardWorldSpaceHUD, FestivalMapIndicator(월드), 디버그/Test 셋업 IMGUI(TestAllInOneSetup/TestTerritoryCombatSetup/InteriorSystemsTestSetup 등), AssassinationCutscene/OpeningCutscene(연출 IMGUI).
+- **호출부 배선은 U8로 이월** — 창 단위 원본 Show()→UTK 전환(회귀 최상급, 점진 적용).
+
+---
+
 ## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U6 — 미니게임/대화/이벤트 UTK 전환 17창)
 
 > **입력**: 마이그레이션 계획 U6 — 원본 ~6,100줄 18창(대화 4/미니게임 4/아레나 2+결과/이벤트 7). 서브에이전트 5회(R1 3병렬 1성공+2타임아웃, Sleep/MissionResult 부모 직접 작성, D 2병렬 전원 성공).
