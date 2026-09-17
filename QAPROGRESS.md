@@ -8,6 +8,21 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U1 — 파일럿 2창 UTK 포팅(상태창/상점))
+
+> **입력**: U0 인프라 위 파일럿 — StatusWindowUI(802줄)/ShopWindow(769줄) IMGUI → UI Toolkit 포팅. **additive 원칙: 기존 파일 무변경**, 신규 2파일.
+
+### 변경 사항 (신규 2)
+**`UI/Toolkit/StatusWindowUTK.cs`(581줄)**: UTKWindowBase 상속 — 좌:장비슬롯 6개(EquipmentSlot 매핑)+보너스 내역(GetActiveBonusLabels), 우:주스탯 4행(+분배 버튼→AllocateStat)/전투 스탯 8행(공·방·치명·속도·연금·요리·**화술**·골드)/경험치·체력 게이지/중독. 갱신=원본 동일(OnLevelChanged+OnEquipmentChanged 구독+0.25s 폴링+씬전환 재구독). 레벨업 팝업→UTKToastService(ShowLevelUpPopup 정적 진입 유지). 3D 뷰포트는 Placeholder 축약(시각 요소 — 후속).
+**`UI/Toolkit/ShopWindowUTK.cs`(564줄)**: 구매/판매 2탭+씨앗 랜덤 재고(Fisher–Yates, 원본 확률 상수 일치)+행 기반 리스트(UTKSlot 아이콘+등급 테두리). 가격=**PlayerStats 소스 직접 호출**(GetBuyPrice BuyDiscount/CalculateSellPrice SellBonus 복제 금지), `가격 {할인가}G (원가 {원가}G)` 병기 관례 유지. canAfford/재고/인벤 가득 골드 환불 포함. Open() 정적 팩토리(UIRoot 우측 60%).
+
+### 컴파일/검증
+- 배치컴파일 **error CS=0**(exit 0) — 서브에이전트 산출물 수리 3건: ①GaugeParts static→sealed(CS0722/0708) ②IStyle margin/padding 셔스루햇 미존재→4면 분해(CS1061) ③IStyle borderColor→borderTop/BottomColor.
+- 노트: IStyle C# API는 USS와 달리 셔스루햇(margin/padding/borderColor)이 없다 — **4면 개별 속성 사용이 규약**(마이그레이션 표준 패턴).
+- Play 판정 대기: ①StatusWindowUTK/ShopWindowUTK Ensure→렌더 ②스탯 분배 반영 ③상점 구매 할인가/판매 프리미엄 ④ESC 닫기 ⑤폰트(한글) 적용.
+
+---
+
 ## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U0 — UI Toolkit 전환 인프라 구축)
 
 > **입력**: UI Toolkit 전면 전환 결정(사용자 확정 — 모든 UI UXML/USS, IMGUI 신규 금지) → 계획서 docs/UI_TOOLKIT_MIGRATION.md 수립(OnGUI 112파일 전수 조사, Phase U0~U8, UI 개편 1순위) → U0 실행.

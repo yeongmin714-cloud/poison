@@ -553,3 +553,8 @@
 - Status: ✅
 - Details: docs/UI_TOOLKIT_MIGRATION.md U0 — Theme.uss(팔레트 18변수+폰트 5단+공통 클래스)+UnityDefaultTheme.tss+PanelSettings.asset(배치 생성: UIToolkitSetup.Recreate -executeMethod)+UIToolkitBootstrap(BeforeSceneLoad 자가 Ensure)+UTKWindowManager(ESC 스택)+UTKWindowBase(타이틀바 드래그)+UTKControls(Button/Slot/Rarity/Tooltip/Modal/Toast). 배치컴파일 error CS=0(CS0103 1건 수리)
 - Date: 2026-09-18
+
+# Cycle: Phase 68 U1 — 파일럿 2창 UTK 포팅(상태창/상점)
+- Status: ✅
+- Details: StatusWindowUTK(581줄)+ShopWindowUTK(564줄) — additive(기존 IMGUI 무변경). 데이터 소스 직접 호출(PlayerStats BuyDiscount/SellBonus, EquipmentManager, DishDatabase). 배치컴파일 error CS=0(GaugeParts static→sealed, IStyle margin/padding/borderColor 4면 분해 — C# IStyle은 셔스루햇 없음 규약 확립)
+- Date: 2026-09-18

@@ -41,10 +41,10 @@
 - [x] **IMGUI 공존 가이드** — 그룹 단위 완전 전환 규칙 문서화(본 계획서 §0 규칙 3)
 
 ### Phase U1 — 파일럿 창 2개 (패턴 확립)
-- [ ] **StatusWindowUI** (단순 — 화술 스탯 표시 포함) → UTK 포팅
-- [ ] **ShopWindow** (중간 — 구매할인/판매 프리미엄 로직 유지) → UTK 포팅
-- [ ] 기존 IMGUI 버전은 `#if LEGACY_UI` 게이트로 보관(회귀 A/B 가능), 검증 후 제거
-- [ ] 검증: 폰트/스케일/호버/ESC/게이트웨이 — 서브 QA 에이전트
+- [x] **StatusWindowUI** → **StatusWindowUTK.cs**(581줄) — 스탯 4분배/전투 스탯 8행/장비 6슬롯+보너스/게이지/중독/레벨업 토스트 (3D 뷰포트는 Placeholder 축약 — 후속)
+- [x] **ShopWindow** → **ShopWindowUTK.cs**(564줄) — 구매/판매 2탭+씨앗 랜덤 재고+가격 병기(할인가/원가)+골드 잔액. 가격 로직은 PlayerStats 소스 직접 호출
+- [x] 기존 IMGUI 무변경(additive 원칙 확립 — LEGACY_UI 게이트 불필요, 전환 스위치는 U7에서 일괄)
+- [x] 검증: 배치컴파일 error CS=0 + 서브에이전트 자체 검증(괄호 균형/OnGUI 부재/클래스 중복 0). Play 렌더 판정은 다음 세션
 
 ### Phase U2 — 인벤/전리품 코어 루프 (최대 리스크 — DnD)
 - [ ] **InventoryWindow** (통합 그리드 GetAllSlots) → UTK
@@ -112,4 +112,5 @@
 |:--|:--|:--|:--|
 | 2026-09-17 | — | 계획서 작성 (112개 OnGUI 파일 전수 조사 기반) | ✅ |
 | 2026-09-18 | U0 | 인프라 구축 완료 — Theme.uss/TSS/PanelSettings(배치 생성)/UIToolkitBootstrap/WindowManager/WindowBase/Controls 7파일, 배치컴파일 error CS=0 | ✅ |
-| | U1~U8 | 대기 — U1 파일럿(Status/Shop)부터 | ⏳ |
+| 2026-09-18 | U1 | 파일럿 완료 — StatusWindowUTK(581줄)+ShopWindowUTK(564줄), 배치컴파일 error CS=0 | ✅ |
+| | U2~U8 | 대기 — U2 DnD 코어 루프(인벤/전리품/장비/핫바)부터 | ⏳ |
