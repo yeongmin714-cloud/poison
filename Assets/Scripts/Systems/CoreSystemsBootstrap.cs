@@ -40,6 +40,13 @@ public class CoreSystemsBootstrap : MonoBehaviour
         // 3-3-1. GuardVisualAttachSystem 생성 (없는 경우) — 병사 방어구 GLB 비주얼 본 부착 (ADDITIVE)
         EnsureGuardVisualAttachSystem();
 
+        // 3-5. RTS 인터랙션 커서/호버/명령 (ADDITIVE) — OS커서 Ctrl표시·컸텍스트 아이콘(검/곡갱이/삽)·좌클릭 병사명령
+        ContextCommandRouter.Ensure();
+
+        // 3-6. 농사(경지·약초) / 채집(풀) (ADDITIVE) — 파종→성장→수확 재화·채집 리스폰
+        FarmingSystem.Ensure();
+        GatheringSystem.Ensure();
+
         // 3-4. EquipmentManager 생성 (없는 경우) — 장비 슬롯 관리 (2026-09-14: 장착 안 되는 버그 수정)
         EnsureEquipmentManager();
 

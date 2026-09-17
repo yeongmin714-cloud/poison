@@ -143,7 +143,10 @@ namespace ProjectName.UI
             HandleCtrlAssignKeys(); // [후속13] F+1~8: 부대 등록 (상시 — 아이템 모드에서도 무해, 기존 Ctrl 대체)
             HandleDoubleNumpadKeys(); // [TEST28-69차] 눌패드 1~8 두 번 연속 입력 → 해당 슬롯에 부대 등록 (상시)
             if (_squadMode)
-                HandleSelectKeys(); // 1~8: 부대 선택 (부대 모드에서만)
+            {
+                HandleSelectKeys();         // 1~8(+눌패드): 부대 선택/토글 (부대 모드에서만)
+                HandleRightClickUnregister(); // [P5] 슬롯 우클릭 → 등록 해제 (부대 모드에서만)
+            }
             RefreshAvatarsPeriodically(); // 사망/파괴 반영 폴링
 
             // [TEST23-FIX] 드래그 선택게이트는 GuardSelectionManager 내부에서 Ctrl 홀드로 판정한다.
@@ -235,6 +238,9 @@ namespace ProjectName.UI
         private int _lastNumpadSlot = -1;
         private float _lastNumpadTime;
 
+        // [P5] 마지막으로 숫자키(1~8)로 선택한 슬롯 — 동일 키 재입력 토글(해제) 판정용. -1 = 최근 선택 없음.
+        private int _lastSelectedSlot = -1;
+
         private void HandleDoubleNumpadKeys()
         {
             for (int i = 0; i < SlotCount; i++)
@@ -282,12 +288,14 @@ namespace ProjectName.UI
             Debug.Log($"[GuardSquadHotbar] 슬롯 {index + 1}에 병사 {members.Count}명 등록 (덮어쓰기)");
         }
 
-        // ===== 1~8 (부대 모드): 등록 그룹 RTS 선택 =====
+        // ===== 1~8 (부대 모드): 등록 그룹 RTS 선택 — [P5] 동일 키 재입력 시 토글(선택 해제, 등록 유지) + 눌패드 지원 =====
         private void HandleSelectKeys()
         {
             for (int i = 0; i < SlotCount; i++)
             {
-                if (Input.GetKeyDown(KeyCode.Alpha1 + i))
+                // 상단 숫자키(Alpha1+i, 기존 경로) + 눌패드(Keypad1+i — HandleDoubleNumpadKeys와 동일 키 필드명)
+                if (Input.GetKeyDown(KeyCode.Alpha1 + i)
+                    || Input.GetKeyDown(KeyCode.Keypad1 + i))
                     SelectSlotGroup(i);
             }
         }
@@ -323,8 +331,75 @@ namespace ProjectName.UI
                 return;
             }
 
+            // [P5] 토글 오프 — 마지막 선택 슬롯과 동일하고 그 그룹 병사가 전부 현재 선택되어 있으면
+            //      재입력을 해제로 처리(선택만 해제 — 슬롯 등록/그룹은 유지).
+            if (_lastSelectedSlot == index && IsGroupFullySelected(alive, mgr))
+            {
+                mgr.ClearSelection();
+                _lastSelectedSlot = -1; // 다음 입력은 해제가 아닌 신규 선택으로
+                Debug.Log($"[GuardSquadHotbar] 슬롯 {index + 1}: 그룹 선택 해제(토글) — 슬롯 등록은 유지");
+                return;
+            }
+
             mgr.SelectGroup(alive); // 파란 원 표시 + 이후 우클릭 명령은 기존 경로
+            _lastSelectedSlot = index;
             Debug.Log($"[GuardSquadHotbar] 슬롯 {index + 1}: 등록 병사 {alive.Count}명 RTS 선택");
+        }
+
+        /// <summary>[P5] 그룹 목록의 전체 병사가 현재 선택되어 있는지 — 숫자키 토글(해제) 판정. null/빈 그룹은 false.</summary>
+        private static bool IsGroupFullySelected(System.Collections.Generic.List<GuardPlaceholder> group, GuardSelectionManager mgr)
+        {
+            if (group == null || group.Count == 0) return false;
+            foreach (var guard in group)
+            {
+                if (guard == null) continue;
+                // Contains 대신 참조 순회 — 읽기전용 뷰 타입 의존 회피
+                bool found = false;
+                foreach (var sel in mgr.SelectedGuards)
+                {
+                    if (sel == guard) { found = true; break; }
+                }
+                if (!found) return false;
+            }
+            return true;
+        }
+
+        // ===== [P5] 우클릭: 슬롯 등록 해제 (부대 모드에서만 호출) =====
+        private void HandleRightClickUnregister()
+        {
+            var mouse = UnityEngine.InputSystem.Mouse.current;
+            if (mouse == null || !mouse.rightButton.wasPressedThisFrame) return;
+
+            int slot = GetSlotIndexAtScreenPoint(mouse.position.ReadValue());
+            if (slot >= 0)
+                UnregisterSlot(slot);
+        }
+
+        /// <summary>[P5] 화면 좌표가 속한 부대 핫바 슬롯 인덱스 반환 (HotbarUI.GetSlotIndexAtScreenPoint 동일 패턴 — 오버레이 캔버스라 카메라 null). 미해당 시 -1.</summary>
+        public int GetSlotIndexAtScreenPoint(Vector2 screenPos)
+        {
+            for (int i = 0; i < SlotCount; i++)
+            {
+                var bg = _slotBgs[i];
+                if (bg != null && RectTransformUtility.RectangleContainsScreenPoint(bg.rectTransform, screenPos, null))
+                    return i;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// [P5] 지정 슬롯의 등록 병사 그룹 해제(비우기) — 우클릭/외부 호출용.
+        /// 등록 슬롯만 제거하며 현재 RTS 선택(드래그/명령) 상태에는 간섭하지 않는다. 빈 슬롯은 no-op.
+        /// </summary>
+        public void UnregisterSlot(int index)
+        {
+            if (index < 0 || index >= SlotCount) return;
+            if (_slots[index] == null || _slots[index].Length == 0) return;
+
+            _slots[index] = null;
+            RefreshSlotVisual(index);   // 빈 슬롯 시각화 복원
+            if (_lastSelectedSlot == index) _lastSelectedSlot = -1; // 해제한 슬롯은 최근 선택 추적 리셋
+            Debug.Log($"[GuardSquadHotbar] 슬롯 {index + 1}: 등록 해제(우클릭)");
         }
 
         // ===== 아바타 갱신 (0.5초 폴링 — 사망/파괴 반영, HotbarUI 수량 폴링 선례 동일) =====

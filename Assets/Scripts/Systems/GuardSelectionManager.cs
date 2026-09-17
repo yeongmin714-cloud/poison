@@ -104,6 +104,11 @@ namespace ProjectName.Systems
         // 병사 드래그 선택이 가려지던 문제 해소. Update에서 좌클릭 down 시 true, PlayerCombat이 소비 시 false.
         public static bool consumeLeftClickAsDrag = false;
 
+        // [컨텍스트 커맨드 추가] ContextCommandRouter가 적 대상 좌클릭(병사 전용 공격) 프레임에 세팅하는
+        // 의미론적 마커 — 아직 소비자는 없다(순수 선언 추가, 기존 로직 무변경). 향후 PlayerCombat 수정 시
+        // 이 값을 참조하면 병사 공격이 겹칠 때 플레이어 공격을 명시적으로 생략할 수 있다.
+        public static bool consumeLeftClickAsContextCommand = false;
+
         // [TEST26-67차] 늦은 Ctrl 흡수 추적 — 좌클릭 홀드 중 Ctrl을 나중에 눌러도 드래그 시작(입력 순서 무관)
         private bool _leftDownWithoutCtrl;
 

@@ -4,7 +4,25 @@
 >
 > **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
 >
-> **최종 갱신:** 2026-09-17 (병사 플레이어 장비 착용+드랍 — 로드아웃 스폰)
+> **최종 갱신:** 2026-09-17 (RTS 커서/호버/명령 + 농사·채집 + 선택 토글/핫바)
+
+---
+
+## 📌 세션 종합 스냅샷 (2026-09-17 ✅ RTS 인터랙션/커서/농사·채집 — P1~P5)
+
+> **입력**: ①Ctrl 시만 OS커서 표시 ②병사 지정+우클릭=이동, 몬스터/적대병사=검커서+좌클릭 공격(병사만) ③경지=곡갱이 커서+좌클릭 농사(약초씨→성장→수확 재화) ④풀=삽 커서+좌클릭 채집 ⑤숫자패드 선택 토글(재눌름=해제, 슬롯 유지) ⑥핫바 우클릭=슬롯 해제. **정정**: 활=좌클릭 발사가 맞음. 우클릭 카메라 드래그는 **실제 활성**(TopDownCameraController L87) → 우클릭 3경합(카메라/근접차지/RTS) 라우팅 우선순위 필요. 커서 아이콘(검/곡갱이/삽)은 **절차 생성** 선택(외부 의존 0). OS커서 API=`UnityEngine.Cursor.visible`.
+
+### 변경 사항 (신규 6 + 수정 5)
+**신규 `Systems/`**: `ContextCommandRouter`(좌클릭: 병사선택+적호버→RTS 공격(병사만)+consumeLeftClickAsDrag 소비 / 커서 2종 자동 확보) · `HoverTargetClassifier`(카메라레이→Enemy/Farm/Gather/Ally/Terrain) · `ContextCursorSystem`(마우스 추적 커스텀 커서: 검/곡갱이/삽/화살) · `CursorVisibilityController`(Ctrl 홀드 시만 OS커서) · `FarmingSystem`(경지: Plant→25s→Harvest 약초 재화) · `GatheringSystem`(풀: TryGather→약초+15s 리스폰).
+**`UI/GuardSquadHotbar`**: 숫자패드+상단 숫자 선택 **토글**(재눌름=해제, 슬롯 유지) + **우클릭=슬롯 해제**(UnregisterSlot) — 그룹 배열이 이 파일(GuardSelectionManager 아님).
+**`Systems/GuardSelectionManager`**: static `consumeLeftClickAsContextCommand` 필드만 추가(로직 무변경).
+**`Core/PlayerInventory`**: `Seed_Herb(seed_herb·약초씨)`·`Herb_Yakcho(herb_yakcho·약초)`.
+**`Systems/CoreSystemsBootstrap`·`TestTerritoryCombatSetup`**: 항목 Ensure 와이어링.
+
+### 컴파일/QA
+- 배치컴파일 **error CS=0**(exit 0) — 4 DLL 갱신 + 전 심볼 착륙. 회귀 0(플레이어 비주얼·RTS·선택 기존 로직 무접촉).
+- 수정 컴파일 오류: ①`for(var key in…)`→`foreach`(이 엔진 for-in 미지원) ②`FarmingPlot` package-private→`public`(CS0050).
+- Play 판정 대기: ①Ctrl 홀드 시만 커서 ②병사+몬스터 호버=검커서·좌클릭 병사만 공격/지형 우클릭=이동 ③경지=곡갱이·좌클릭 파종→25s→수확 ④풀=삽·좌클릭 채집 ⑤숫자패드 재눌름=해제(슬롯 유지) ⑥핫바 우클릭=슬롯 해제.
 
 ---
 

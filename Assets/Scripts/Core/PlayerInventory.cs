@@ -243,6 +243,13 @@ namespace ProjectName.Core
         public static readonly ItemData Seed_Silver = new ItemData { id = "herb_seed_silver", displayName = "은빛 이끼 씨앗", description = "은빛 이끼의 희귀 씨앗. 밭에 파종해 재배한다.",      category = ItemCategory.Material, maxStack = 20, rarity = ItemRarity.Rare };
         public static readonly ItemData Seed_Green  = new ItemData { id = "herb_seed_green",  displayName = "피어리 씨앗",   description = "피어리의 희귀 씨앗. 밭에 파종해 재배한다.",        category = ItemCategory.Material, maxStack = 20, rarity = ItemRarity.Rare };
 
+        // ===== P4 농사/채집 (Farming/Gathering) 자원 연결 =====
+        // 약초(농사 수확 + 채집 산출)와 약초씨(밭 파종 소모).
+        // GetItemById의 _idLookupCache는 public static ItemData 필드를 1회 리플렉션 스캔하므로,
+        // 아래 static 필드만 추가하면 자동으로 id→ItemData 조회에 포함된다.
+        public static readonly ItemData Herb_Yakcho = new ItemData { id = "herb_yakcho", displayName = "약초", description = "들판에서 자라는 기본 약초. 밭 수확/채집으로 얻는다.", category = ItemCategory.Herb,    maxStack = 99 };
+        public static readonly ItemData Seed_Herb    = new ItemData { id = "seed_herb",   displayName = "약초씨",  description = "밭(FarmPlot)에 파종해 약초를 재배하는 씨앗.",  category = ItemCategory.Material, maxStack = 20 };
+
         public static readonly ItemData RabbitMeat  = new ItemData { id = "meat_rabbit", displayName = "토끼고기",  description = "작고 부드러운 고기.",          category = ItemCategory.Meat,    maxStack = 20 };
         public static readonly ItemData BoarMeat    = new ItemData { id = "meat_boar",   displayName = "멧돼지고기", description = "걸쭉한 맛이 나는 고기.",        category = ItemCategory.Meat,    maxStack = 20 };
         public static readonly ItemData WolfMeat    = new ItemData { id = "meat_wolf",   displayName = "늑대고기",  description = "담백한 늑대 고기.",            category = ItemCategory.Meat,    maxStack = 20 };

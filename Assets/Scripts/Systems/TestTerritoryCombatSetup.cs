@@ -114,6 +114,10 @@ namespace ProjectName.Systems
                 gm.AddComponent<GuardVisualAttachSystem>();
                 Debug.Log("[TestTerritoryCombat] ✅ GuardVisualAttachSystem 생성 — 병사 방어구 비주얼 부착 활성화");
             }
+            // [2026-09-17] RTS 인터랙션 커서/호버/명령 + 농사/채집 (ADDITIVE)
+            ContextCommandRouter.Ensure(gm);       // 커서 시스템(OS커서 Ctrl표시·컸텍스트 아이콘)+좌클릭 병사명령 자가확보
+            FarmingSystem.Ensure(gm);              // 경지(농사) — 약초 파종→성장→수확
+            GatheringSystem.Ensure(gm);            // 채집(풀) — 약초 리스폰
             // [59차 후속] 드래그 단체 지정 — Test_10은 CoreSystemsBootstrap 미실행이라
             // GuardSelectionManager(좌클릭 드래그 병사 선택)가 생성되지 않아 '내 병사 드래그 지정 모션'이 안 됐다.
             if (Object.FindAnyObjectByType<GuardSelectionManager>(FindObjectsInactive.Include) == null)
