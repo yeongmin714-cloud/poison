@@ -335,7 +335,7 @@ namespace ProjectName.UI.Toolkit
                         if (_appliedIconSignature[index] != sig)
                         {
                             _avatarIcons[index].style.backgroundImage =
-                                new StyleBackground(Background.FromTexture2D(iconTex));
+                                UTKTextureSafe.ToBackground(iconTex);
                             _appliedIconSignature[index] = sig;
                         }
                         _avatarIcons[index].style.display = DisplayStyle.Flex;

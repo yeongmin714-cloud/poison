@@ -236,7 +236,7 @@ namespace ProjectName.UI.Toolkit
             if (splat == null) return;
 
             _mapTexture = splat;
-            _mapCanvas.style.backgroundImage = new StyleBackground(Background.FromTexture2D(splat));
+            _mapCanvas.style.backgroundImage = UTKTextureSafe.ToBackground(splat);
             Debug.Log("[MinimapUTK] 지형 텍스처 주입 완료: " + splat.name);
         }
 

@@ -64,6 +64,12 @@ namespace ProjectName.UI.Toolkit
                 Debug.LogWarning($"[UIToolkitBootstrap] Theme.uss 로드 실패({ThemeUssRes})");
 
             ProjectName.Core.UITransitionState.UtkActive = true;   // [U8 은퇴 게이트] 원본 HUD류 자가 은퇴 트리거
+            // [U8] 월드 이름표 오버레이 — UIRoot "먼저"(index 0) 부착되어 모든 창보다 아래 깔림.
+            NameplateOverlayUTK.Ensure();
+            // [UTK] 원본 IMGUI 이름표/헤드UI 3종 은퇴 — NameplateOverlayUTK가 데이터·표시 규칙을 계승.
+            ProjectName.Systems.GuardHeadUI.s_retired = true;
+            ProjectName.Systems.MonsterHeadUI.s_retired = true;
+            ProjectName.Systems.NameplateDisplay.s_retired = true;
             Debug.Log("[UIToolkitBootstrap] UI Toolkit 부트스트랩 완료 (UTKRoot)");
         }
 

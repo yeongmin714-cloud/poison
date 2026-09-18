@@ -20,6 +20,9 @@ namespace ProjectName.Systems
     /// </summary>
     public class MonsterHeadUI : MonoBehaviour
     {
+        /// <summary>[UTK 은퇴 게이트] true면 OnGUI 은퇴 — NameplateOverlayUTK가 대행.</summary>
+        public static bool s_retired = false;
+
         [Header("참조 (SpawnMonster 훅에서 Setup으로 주입)")]
         [SerializeField] private AnimalAI _ai;
 
@@ -116,6 +119,7 @@ namespace ProjectName.Systems
 
         private void OnGUI()
         {
+            if (s_retired) return; // [UTK 은퇴] NameplateOverlayUTK 대행 — 원본 그리기 중단
             if (!_stylesReady || _ai == null) return;
 
             RefreshCamera();

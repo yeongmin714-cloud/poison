@@ -9,6 +9,9 @@ namespace ProjectName.Systems
     /// </summary>
     public class GuardHeadUI : MonoBehaviour
     {
+        /// <summary>[UTK 은퇴 게이트] true면 OnGUI 은퇴 — NameplateOverlayUTK가 대행.</summary>
+        public static bool s_retired = false;
+
         private GuardPlaceholder _guard;
         private Camera _cam;
         private static GUIStyle _labelStyle;
@@ -26,6 +29,7 @@ namespace ProjectName.Systems
 
         private void OnGUI()
         {
+            if (s_retired) return; // [UTK 은퇴] NameplateOverlayUTK 대행 — 원본 그리기 중단
             if (ProjectName.Core.UITransitionState.AnyWindowOpen) return; // [U8 은퇴] 창 열림 시 헤드UI 숨김(겹침 방지)
             if (_guard == null || !_guard.IsAlive || _cam == null) return;
 

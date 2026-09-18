@@ -81,6 +81,13 @@ namespace ProjectName.UI.Toolkit
         private readonly VisualElement _invColumn;
         private readonly VisualElement _whColumn;
         private string _categoryFilter = "전체";   // [U8 요구] 카테고리 탭 필터
+
+        // [우클릭 출고 수리] 우클릭 이중 경로(PointerDown button1 + ContextClickEvent) 중복 발화 방지 가드.
+        //   Environment.TickCount(ms) 기준 200ms 내 같은 슬롯 중복 요청은 무시 → 어느 경로로 와도 1회만 실행.
+        //   [QA 수정] 슬롯별 키로 분리 — 전역 단일 타이머로는 연속 우클릭(다른 슬롯)을 200ms간 씹는다.
+        private static readonly int WithdrawDedupeMs = 200;
+        private readonly System.Collections.Generic.Dictionary<int, int> _lastWithdrawMsPerSlot
+            = new System.Collections.Generic.Dictionary<int, int>();
         private readonly VisualElement _invGrid;
         private readonly VisualElement _whGrid;
         private readonly Label _territoryButton;
@@ -368,15 +375,20 @@ namespace ProjectName.UI.Toolkit
         {
             _whGrid.Clear();
             var allItems = WarehouseSystem.Instance != null ? WarehouseSystem.Instance.GetItems(_territoryId) : null;
-            // [U8 요구] 카테고리 탭 필터 — 전체 외에는 해당 카테고리만 표시
-            var items = new System.Collections.Generic.List<PlayerInventory.ItemSlot>();
+            // [우클릭 출고 수리] 카테고리 탭 필터 — 표시 목록(items)과 전체 리스트 기준 실제 인덱스(actualIdx) 병행 보관.
+            //   필터로 걸러진 "표시 idx"를 TransferToInventory(전체 리스트 기준)에 그대로 쓰면
+            //   엉뚱한 슬롯 출고/실패가 생긴다 → 반드시 전체 인덱스를 함께 캡처해 클로저에 넘긴다.
+            var items = new List<PlayerInventory.ItemSlot>();
+            var actualIdx = new List<int>();
             if (allItems != null)
             {
-                foreach (var s in allItems)
+                for (int i = 0; i < allItems.Count; i++)
                 {
+                    var s = allItems[i];
                     if (s != null && s.item != null && _categoryFilter != "전체" && !CategoryMatches(s.item.category, _categoryFilter))
                         continue;
                     items.Add(s);
+                    actualIdx.Add(i);
                 }
             }
             int total = items != null ? items.Count : 0;
@@ -387,7 +399,8 @@ namespace ProjectName.UI.Toolkit
                 for (int c = 0; c < Columns; c++)
                 {
                     int idx = r * Columns + c;
-                    _whGrid.Add(BuildWarehouseCell(items, idx, total));
+                    int actual = idx < actualIdx.Count ? actualIdx[idx] : idx;
+                    _whGrid.Add(BuildWarehouseCell(items, idx, total, actual));
                 }
             }
         }
@@ -429,7 +442,7 @@ namespace ProjectName.UI.Toolkit
         //  셀 빌드 — 우측 창고
         // =====================================================================
 
-        private VisualElement BuildWarehouseCell(List<PlayerInventory.ItemSlot> items, int idx, int total)
+        private VisualElement BuildWarehouseCell(List<PlayerInventory.ItemSlot> items, int idx, int total, int actualSlotIndex)
         {
             var cell = new UTKSlot();
             cell.name = "WhSlot_" + idx;
@@ -443,12 +456,20 @@ namespace ProjectName.UI.Toolkit
                 cell.SetCount(slotData.count);
                 cell.SetRank(UTKRarity.ClassForIndex((int)item.rarity));
 
-                int slotIndex = idx;
+                int slotIndex = actualSlotIndex;   // [우클릭 출고 수리] 반드시 전체 리스트 기준 실제 인덱스 사용
                 // ② 드래그 소스 (좌/우 드래그 = 출고 이동) + 좌클릭 설명 + 우클릭(비드래그) = 즉시 출고
                 UTKDragDrop.MakeDraggable(cell,
                     () => MakeWarehousePayload(slotIndex, item),
                     () => OnWarehouseSlotClick(slotIndex),
-                    () => WithdrawSlot(slotIndex));
+                    () => OnWarehouseSlotRightClick(slotIndex, null));
+
+                // [우클릭 출고 수리] ContextClickEvent 폴백 — PointerDown(button=1)이 미발화되는 환경 대비.
+                //   우클릭 시 PointerDownEvent와 ContextClickEvent가 둘 다 도착하지만
+                //   WithdrawSlot의 중복 요청 가드(slot별 200ms)가 1회만 실행시킨다.
+                cell.RegisterCallback<ContextClickEvent>(evt =>
+                {
+                    OnWarehouseSlotRightClick(slotIndex, evt);
+                });
             }
             else
             {
@@ -612,10 +633,15 @@ namespace ProjectName.UI.Toolkit
             string tid = _territoryId;
             if (string.IsNullOrEmpty(tid)) return false;
 
+            // [입고 실패 진단] RemoveItem 실패 사유 보강 — 개수 부족 vs ID 불일치(재고 없음) 판별.
+            int invCount = PlayerInventory.Instance.GetItemCount(item.id);
             bool removed = PlayerInventory.Instance.RemoveItem(item.id, 1);
             if (!removed)
             {
-                Debug.Log($"[WarehouseUTK] 입고 취소(사유: 인벤 제거 실패) — {item.displayName} 유지");
+                if (invCount <= 0)
+                    Debug.Log($"[WarehouseUTK] 입고 취소(사유: 인벤 ID 불일치 — 재고 0) — {item.displayName}(id={item.id}) 유지");
+                else
+                    Debug.LogWarning($"[WarehouseUTK] 입고 취소(사유: RemoveItem 실패, 잔여 {invCount}개) — {item.displayName}(id={item.id}) 유지");
                 return false;
             }
             if (!WarehouseSystem.Instance.AddItem(tid, item, 1))
@@ -633,13 +659,44 @@ namespace ProjectName.UI.Toolkit
         /// </summary>
         private bool WithdrawSlot(int slotIndex)
         {
-            if (WarehouseSystem.Instance == null) return false;
-            if (string.IsNullOrEmpty(_territoryId) || slotIndex < 0) return false;
-            if (!WarehouseSystem.Instance.TransferToInventory(_territoryId, slotIndex, 1))
+            // [우클릭 출고 수리] 진입 로그 — 출고 시도 자체 추적 (차기 실측 대비)
+            Debug.Log($"[WarehouseUTK] 출고 시도 slot={slotIndex}");
+
+            // [우클릭 출고 수리] 이중 발화 가드 — 우클릭 시 PointerDown(button=1)과 ContextClickEvent가
+            //   둘 다 도착. 같은 슬롯에 대해 200ms 내 중복 요청은 무시해 어느 경로로 와도 1회만 실행.
+            //   (슬롯별 키 → 서로 다른 슬롯의 연속 우클릭은 씹지 않는다.)
+            int now = System.Environment.TickCount;
+            int last = _lastWithdrawMsPerSlot.TryGetValue(slotIndex, out int prev) ? prev : int.MinValue;
+            if (now - last < WithdrawDedupeMs)
             {
-                Debug.LogWarning("[WarehouseUTK] 출고 실패(인벤 가득 or 슬롯 변경)");
+                Debug.Log($"[WarehouseUTK] 출고 중복 요청 무시 slot={slotIndex} ({now - last}ms 내)");
                 return false;
             }
+            _lastWithdrawMsPerSlot[slotIndex] = now;
+
+            if (WarehouseSystem.Instance == null)
+            {
+                Debug.LogWarning("[WarehouseUTK] 출고 실패 — WarehouseSystem.Instance 없음");
+                return false;
+            }
+            if (string.IsNullOrEmpty(_territoryId))
+            {
+                Debug.LogWarning("[WarehouseUTK] 출고 실패 — _territoryId 빈값");
+                return false;
+            }
+            if (slotIndex < 0)
+            {
+                Debug.LogWarning($"[WarehouseUTK] 출고 실패 — 슬롯범위이상 slot={slotIndex}");
+                return false;
+            }
+
+            if (!WarehouseSystem.Instance.TransferToInventory(_territoryId, slotIndex, 1))
+            {
+                Debug.LogWarning($"[WarehouseUTK] 출고 실패(인벤 가득 or 슬롯 변경) slot={slotIndex} tid={_territoryId}");
+                return false;
+            }
+            RefreshGrid();   // [우클릭 출고 수리] 출고 직후 즉시 갱신 — 250ms 폴링에만 의존하지 않음
+            Debug.Log($"[WarehouseUTK] 출고(우클릭): slot={slotIndex} ← {_territoryId}");
             return true;
         }
 

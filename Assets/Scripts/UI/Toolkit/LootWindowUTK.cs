@@ -234,9 +234,7 @@ namespace ProjectName.UI.Toolkit
             slotIcon.style.height = IconSize;
             slotIcon.style.marginRight = 8f;
             var icon = ItemIconDatabase.GetOrCreateIcon(entry.Item);
-            slotIcon.style.backgroundImage = icon != null
-                ? new StyleBackground(Background.FromTexture2D(icon))
-                : StyleKeyword.Null;
+            slotIcon.style.backgroundImage = UTKTextureSafe.ToBackground(icon);
             row.Add(slotIcon);
 
             // 이름

@@ -8,6 +8,9 @@ namespace ProjectName.Systems
     /// </summary>
     public class NameplateDisplay : MonoBehaviour
     {
+        /// <summary>[UTK 은퇴 게이트] true면 OnGUI 은퇴 — NameplateOverlayUTK가 대행.</summary>
+        public static bool s_retired = false;
+
         [Header("설정")]
         [Tooltip("이름표에 표시할 텍스트")]
         [SerializeField] private string _displayName = "NPC";
@@ -41,8 +44,12 @@ namespace ProjectName.Systems
             _playerNearby = distSqr <= _interactRange * _interactRange;
         }
 
+        /// <summary>[UTK] 오버레이가 플레이어 근접 판정에 사용할 상호작용 범위 (원본 _interactRange 계승).</summary>
+        public float InteractRange => _interactRange;
+
         private void OnGUI()
         {
+            if (s_retired) return; // [UTK 은퇴] NameplateOverlayUTK 대행 — 원본 그리기 중단
             if (ProjectName.Core.UITransitionState.AnyWindowOpen) return; // [U8 은퇴] 창 열림 시 이름표 숨김(겹침 방지)
             if (!_playerNearby) return;
             if (_mainCamera == null) return;

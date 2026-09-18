@@ -212,9 +212,10 @@ namespace ProjectName.UI.Toolkit
                                               System.Func<UTKDragPayload> factory, System.Action onClick,
                                               System.Action onRightClick)
         {
-            // [U8 수정확정] 우클릭 = "한 번 클릭" 전용 — 즉시 발화, 드래그/캡처 없음
+            // [우클릭 출고 진단] button==1 수신 확인용 — 차기 Play 실측 대비.
             if (evt.button == 1)
             {
+                Debug.Log($"[UTKDragDrop] 우클릭 수신 ve={ve.name}");
                 onRightClick?.Invoke();
                 evt.StopPropagation();
                 return;
@@ -338,7 +339,7 @@ namespace ProjectName.UI.Toolkit
                 root.Add(_ghost);
             }
             if (Payload != null && Payload.Icon != null)
-                _ghost.style.backgroundImage = new StyleBackground(Background.FromTexture2D(Payload.Icon));
+                _ghost.style.backgroundImage = UTKTextureSafe.ToBackground(Payload.Icon);
             else
                 _ghost.style.backgroundImage = StyleKeyword.Null;
         }

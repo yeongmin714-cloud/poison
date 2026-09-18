@@ -120,7 +120,7 @@ namespace ProjectName.UI.Toolkit
             _mapCanvas.style.marginTop = 6f;
             _mapCanvas.style.position = Position.Relative;
             _mapCanvas.style.aspectRatio = 1f;                       // 양피지(정사각) 비율 유지
-            _mapCanvas.style.backgroundImage = new StyleBackground(GetParchment());
+            _mapCanvas.style.backgroundImage = UTKTextureSafe.ToBackground(GetParchment());
             _mapCanvas.style.backgroundSize = new BackgroundSize(BackgroundSizeType.Contain);
             _mapCanvas.style.borderLeftWidth = 2f;
             _mapCanvas.style.borderRightWidth = 2f;
