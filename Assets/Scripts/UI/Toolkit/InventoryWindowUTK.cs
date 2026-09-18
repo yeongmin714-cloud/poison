@@ -51,16 +51,24 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float WinW = 460f;
-        private const float WinH = 520f;
+        private const float WinW = 1080f;   // [3분할] 좌(장비+가방)/중(설명)/우(창고·상호작용시)
+        private const float WinH = 620f;
+        private const int BagColumns = 5;   // 가방 6줄×5칸
+        private const int BagRows = 6;
+        private const int EquipColumns = 5; // 장비 2줄×5칸
+        private const int EquipRows = 2;
         private const float SlotSize = 56f;
         private const int Columns = 7;   // 행당 N칸
         private const long RefreshMs = 250L;
 
         // ===== 레퍼런스 =====
         private readonly VisualElement _grid;
-        private readonly VisualElement _equipPanel;   // [U8 확장] 우측 장비창 임베드 (인벤창 위에 장비창 관례)
+        private readonly VisualElement _equipPanel;        // [3분할] 좌측 상단 장비 2x5
         private readonly Dictionary<string, Label> _equipSlotLabels = new Dictionary<string, Label>();
+        private readonly VisualElement _warehousePanel;    // [3분할] 우측 창고 그리드 (상호작용시만)
+        private readonly Label _warehouseEmptyHint;
+        private Label _descName;                            // [3분할] 중앙 설명창
+        private Label _descText;
         private Label _selectedLabel;
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
         private EquipmentManager _subscribedEquip;
@@ -89,55 +97,109 @@ namespace ProjectName.UI.Toolkit
             // ④ 월드 드롭 백드롭: UIRoot(전체 화면) — 인벤 드롭이 UI 밖이면 땅에 바구니.
             RegisterWorldDrop();
 
-            // [U8 확장] 좌우 2컬럼 — 좌: 인벤 그리드 / 우: 장비창 임베드 (인벤창 위에 장비창 관례)
+            // [3분할 레이아웃] 좌: 장비 2x5+가방 6x5 / 중: 설명창 / 우: 창고(상호작용시)
             var columns = new VisualElement();
             columns.style.flexDirection = FlexDirection.Row;
             columns.style.flexGrow = 1f;
             _content.Add(columns);
 
+            // ── 좌측 패널: 장비 2줄×5칸 + 가방 6줄×5칸 ──
             var leftCol = new VisualElement();
-            leftCol.style.flexGrow = 1f;
+            leftCol.style.width = 380f;
             leftCol.style.marginRight = 10f;
             columns.Add(leftCol);
 
-            var gridTitle = new Label("통합 인벤토리 (재료·무기·소모품)");
-            gridTitle.AddToClassList("utk-title-label");
-            gridTitle.style.fontSize = 18f;
-            leftCol.Add(gridTitle);
+            var equipTitle = new Label("장비");
+            equipTitle.style.fontSize = 17f;
+            equipTitle.style.color = new StyleColor(UTKColor.AccentRare);
+            equipTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            leftCol.Add(equipTitle);
+
+            _equipPanel = new VisualElement();
+            _equipPanel.style.flexDirection = FlexDirection.Row;
+            _equipPanel.style.flexWrap = Wrap.Wrap;
+            _equipPanel.style.marginBottom = 10f;
+            leftCol.Add(_equipPanel);
+            BuildEquipPanel();
+
+            var bagTitle = new Label("가방");
+            bagTitle.style.fontSize = 17f;
+            bagTitle.style.color = new StyleColor(UTKColor.TextPrimary);
+            bagTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            leftCol.Add(bagTitle);
 
             _grid = new VisualElement();
             _grid.name = "InvGrid";
             _grid.style.flexDirection = FlexDirection.Row;
             _grid.style.flexWrap = Wrap.Wrap;
-            _grid.style.marginTop = 8f;
-            _grid.style.marginBottom = 8f;
+            _grid.style.marginTop = 6f;
             leftCol.Add(_grid);
 
             _selectedLabel = new Label("");
             _selectedLabel.style.fontSize = 13f;
             _selectedLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             _selectedLabel.style.whiteSpace = WhiteSpace.Normal;
+            _selectedLabel.style.marginTop = 4f;
             leftCol.Add(_selectedLabel);
 
-            // 우측: 장비창 임베드 — 슬롯 8종(무기/방패/투구/갑옷/신발/장갑/가면/가방), 우클릭=해제
+            // ── 중앙 패널: 아이템 설명창 ──
+            var midCol = new VisualElement();
+            midCol.style.width = 300f;
+            midCol.style.marginRight = 10f;
+            midCol.style.paddingLeft = 10f;
+            midCol.style.borderLeftWidth = 1f;
+            midCol.style.borderLeftColor = new StyleColor(UTKColor.IronLine);
+            columns.Add(midCol);
+
+            var descTitle = new Label("설명");
+            descTitle.style.fontSize = 17f;
+            descTitle.style.color = new StyleColor(UTKColor.TextPrimary);
+            descTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            descTitle.style.marginBottom = 6f;
+            midCol.Add(descTitle);
+
+            _descName = new Label("아이템을 선택하세요");
+            _descName.style.fontSize = 24f;
+            _descName.style.color = new StyleColor(UTKColor.AccentRare);
+            _descName.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _descName.style.whiteSpace = WhiteSpace.Normal;
+            midCol.Add(_descName);
+
+            _descText = new Label("");
+            _descText.style.fontSize = 17f;
+            _descText.style.color = new StyleColor(UTKColor.TextPrimary);
+            _descText.style.whiteSpace = WhiteSpace.Normal;
+            _descText.style.marginTop = 8f;
+            _descText.style.flexGrow = 1f;
+            midCol.Add(_descText);
+
+            // ── 우측 패널: 창고 (창고 상호작용 시에만 표시) ──
             var rightCol = new VisualElement();
-            rightCol.style.width = 150f;
+            rightCol.style.width = 300f;
             rightCol.style.paddingLeft = 10f;
             rightCol.style.borderLeftWidth = 1f;
             rightCol.style.borderLeftColor = new StyleColor(UTKColor.IronLine);
             columns.Add(rightCol);
 
-            var equipTitle = new Label("장비");
-            equipTitle.style.fontSize = 18f;
-            equipTitle.style.color = new StyleColor(UTKColor.AccentRare);
-            equipTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
-            equipTitle.style.marginBottom = 6f;
-            rightCol.Add(equipTitle);
+            var whTitle = new Label("창고");
+            whTitle.style.fontSize = 17f;
+            whTitle.style.color = new StyleColor(UTKColor.AccentRare);
+            whTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            rightCol.Add(whTitle);
 
-            _equipPanel = new VisualElement();
-            _equipPanel.style.flexGrow = 1f;
-            rightCol.Add(_equipPanel);
-            BuildEquipPanel();
+            _warehousePanel = new VisualElement();
+            _warehousePanel.style.flexDirection = FlexDirection.Row;
+            _warehousePanel.style.flexWrap = Wrap.Wrap;
+            _warehousePanel.style.marginTop = 6f;
+            _warehousePanel.style.flexGrow = 1f;
+            rightCol.Add(_warehousePanel);
+
+            _warehouseEmptyHint = new Label("창고와 상호작용하면\n표시됩니다");
+            _warehouseEmptyHint.style.fontSize = 13f;
+            _warehouseEmptyHint.style.color = new StyleColor(UTKColor.TextSecondary);
+            _warehouseEmptyHint.style.whiteSpace = WhiteSpace.Normal;
+            rightCol.Add(_warehouseEmptyHint);
+            _warehousePanel.style.display = DisplayStyle.None;
 
             ApplyUIToolkitFont(this);
 
@@ -194,6 +256,10 @@ namespace ProjectName.UI.Toolkit
                 ("가면", EquipmentManager.EquipmentSlot.Mask), ("가방", EquipmentManager.EquipmentSlot.Bag)
             };
 
+            // 2줄×5칸 격자 — 8슬롯+빈 2칸 (예시 레이아웃 정합)
+            while (slots.Count < EquipColumns * EquipRows)
+                slots.Add(("", (EquipmentManager.EquipmentSlot)999));
+
             foreach (var pair in slots)
             {
                 string label = pair.Item1;
@@ -222,7 +288,7 @@ namespace ProjectName.UI.Toolkit
                 // 우클릭 = 해제 (원본 TryRenderEmbedded 관례 — EquipmentManager.UnequipSlot)
                 row.RegisterCallback<PointerDownEvent>(evt =>
                 {
-                    if (evt.button == 1)
+                    if (evt.button == 1 && (int)slot <= 8)
                     {
                         bool ok = em.UnequipSlot(slot);
                         Debug.Log($"[InventoryUTK] 장비 해제(우클릭) slot={slot} → {ok}");
@@ -241,6 +307,30 @@ namespace ProjectName.UI.Toolkit
                 var data = em.GetSlotData((EquipmentManager.EquipmentSlot)System.Enum.Parse(typeof(EquipmentManager.EquipmentSlot), kv.Key));
                 kv.Value.text = (data != null && !string.IsNullOrEmpty(data.itemId)) ? data.itemId : "—";
             }
+        }
+
+        /// <summary>[3분할] 중앙 설명창 갱신 — 슬롯 클릭 시 호출. PlayerInventory.ItemData 직접 표시.</summary>
+        public void ShowItemDescription(PlayerInventory.ItemData item, int count)
+        {
+            if (_descName == null) return;
+            if (item == null) { _descName.text = "아이템을 선택하세요"; _descText.text = ""; return; }
+            _descName.text = item.displayName ?? item.id;
+            var sb = new System.Text.StringBuilder();
+            if (!string.IsNullOrEmpty(item.description)) sb.AppendLine(item.description);
+            sb.AppendLine($"카테고리: {item.category}");
+            sb.AppendLine($"등급: {item.rarity}");
+            if (item.maxDurability > 0) sb.AppendLine($"내구도: {item.maxDurability}");
+            _descText.text = sb.ToString();
+            Debug.Log($"[InventoryUTK] 설명창 갱신 — {item.displayName ?? item.id}");
+        }
+
+        /// <summary>[3분할] 우측 창고 패널 표시/숨김 — 창고 상호작용 시 Show(territoryId) 경유.</summary>
+        public void SetWarehouseMode(string territoryId, bool visible)
+        {
+            if (_warehousePanel == null || _warehouseEmptyHint == null) return;
+            _warehousePanel.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+            _warehouseEmptyHint.style.display = visible ? DisplayStyle.None : DisplayStyle.Flex;
+            Debug.Log($"[InventoryUTK] 창고 패널 {(visible ? "표시" : "숨김")} (territory={territoryId})");
         }
 
         /// <summary>창이 UIRoot에 부착(등록)된 후 ④ 백드롭과 ②③ 윈도우 타겟을 등록한다.</summary>
