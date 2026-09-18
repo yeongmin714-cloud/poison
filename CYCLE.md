@@ -683,3 +683,8 @@
 - Status: ✅
 - Details: F1 트레일 머티리얼 URP Particles/Unlit+컬러 그라디언트(헤드 밝음→테일 페이드) F2 명중 SpawnHitSparks+크리틱 SpawnCritBurst F3 지면/벽 꽂힘 스파크 — CombatVFXController 기존 API 재사용(외부 의존 0). 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 리포트 반영 — AttackSystem 게이트/창고창 크기/핫바 Tab 자체 폴링/EXP 바 은퇴
+- Status: ✅
+- Details: ①AttackSystem.Update PointerOverUI 게이트(KeyCode.Mouse0 레거시 독립 폴링 — 창 위 클릭 공격 뿌리) ②WarehouseWindowUTK 420×680 창고 전용+설명창 동시 표시 ③HotbarUIUTK Tab 자체 폴링(_squadMode+원본 _squadMode 리플렉션 동기)+원본 HandleTabKey 은퇴 게이트(이중 토글 방지) ④HUDUTK EXP/상태 바 은퇴(하단 녹색 바). 배치컴파일 error CS=0
+- Date: 2026-09-18

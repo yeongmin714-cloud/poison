@@ -151,6 +151,7 @@
 | 2026-09-18 | 테마 재지정+HUD 정리 | Theme.uss 다크 브라운 아크릴+앤틱 골드 라인+슬롯 음각 스타일(사용자 지정 — 글래스모피즘 네이비 대체). HUDUTK 퀵슬롯 제거(중복 슬롯 은퇴)+ctor/필드 복구. 설명창 420px 확장 | ✅ |
 | 2026-09-18 | 수정안 실행 | ①드래그 좌표 단일 경로화(GetPanelPointerPos — 마우스 실측×패널스케일, pos=2151 뿌리 차단) ②창고 우클릭 출고 ContextClickEvent→onRightClick 위임 ③핫바 가시 전환(HotbarUIUTK 매 프레임 IsSquadMode) ④레이아웃 확정(인벤 560×700/설명 440×700@596/창고@1044) | ✅ |
 | 2026-09-18 | H1~H4 | ①핫바 단일 바(Tab 직접 폴링, 부대 렌더=원본 _slots 리플렉션) ②HUD 클러스터(체력+스태미너+원형 아이콘 하단 좌측) ③인벤 우클릭 컨텍스트(창고 열림=입고) ④부대 슬롯 좌클릭→GuardInfoUTK 배선 | ✅ |
+| 2026-09-18 | 리포트 반영 | ①AttackSystem 레거시 경로 게이트(창 위 클릭 공격 뿌리 — KeyCode.Mouse0 독립 폴링) ②창고창 420×680 전용+설명 동시 ③핫바 Tab 자체 폴링+원본 HandleTabKey 은퇴 게이트(이중 토글 방지) ④HUDUTK EXP/상태 바 은퇴 | ✅ |
 | 2026-09-18 | Play 수리 7건 | ①QuickSlotUTK 은퇴(1~6 잔재) ②Active 유착 자가 해제(공격 불능 뿌리)+HUDUTK 풀스크린 Ignore 오버레이(클러스터 미표시 뿌리) ③전리품 폴링 가드+우클릭 중복 제거 ④우클릭 즉시 발화 확정(PointerDown) ⑤핫바 전환 펄스 애니 ⑥Complete try/catch | ✅ |
 | 2026-09-18 | 리포트 반영 5건 | ①전리품 열림 시 인벤+설명 동시 표시 ②원형 게이지 예시 정합(링+하단 채움, HP/스태미너) ③치유초 Herb 회복 25HP(ConsumableSystem Herb 분기) ④병사 F키 상호작용(SoldierInteractBridge→GuardInfoUTK) ⑤부대 슬롯 청록 틴트 | ✅ |
 | 2026-09-18 | HUD 정리 | 체력/스태미너 바 제거 → 원형 게이지 통합(핫바 왼쪽 인접, 화면 중앙×0.5−388px) | ✅ |
