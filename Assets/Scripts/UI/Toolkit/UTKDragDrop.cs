@@ -201,8 +201,14 @@ namespace ProjectName.UI.Toolkit
                                               System.Func<UTKDragPayload> factory, System.Action onClick,
                                               System.Action onRightClick)
         {
-            // [U8 요구] 좌클릭/우클릭 모두 드래그 가능 (우클릭 드래그로도 아이템 이동)
-            if ((evt.button != 0 && evt.button != 1) || _drag != null) return;
+            // [U8 수정확정] 우클릭 = "한 번 클릭" 전용 — 즉시 발화, 드래그/캡처 없음
+            if (evt.button == 1)
+            {
+                onRightClick?.Invoke();
+                evt.StopPropagation();
+                return;
+            }
+            if (evt.button != 0 || _drag != null) return;
             _drag = new DragSession();
             _drag.element = ve;
             _drag.factory = factory;
@@ -281,12 +287,8 @@ namespace ProjectName.UI.Toolkit
 
             if (engaged)
             {
-                Complete();
-            }
-            else if (drag.button == 1 && drag.onRightClick != null)
-            {
-                // [U8 요구] 우클릭 비드래그 — 소모품 사용/장착 등
-                drag.onRightClick.Invoke();
+                try { Complete(); }
+                catch (System.Exception e) { Debug.LogError("[UTKDragDrop] Complete 예외 — 강제 취소: " + e.Message); Cancel(); }
             }
             else if (drag.onClick != null)
             {

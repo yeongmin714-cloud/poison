@@ -165,7 +165,8 @@ namespace ProjectName.UI.Toolkit
             if (_refreshTask != null) return;
             _refreshTask = schedule.Execute(() =>
             {
-                if (IsOpen) RefreshList();
+                if (UTKDragDrop.Active) return;   // [U8 수리] 드래그 중 재생성 금지 — 캡처 상실 차단
+            if (IsOpen) RefreshList();
             }).Every(RefreshMs);
         }
 
@@ -181,6 +182,12 @@ namespace ProjectName.UI.Toolkit
         // =====================================================================
         //  ① 바구니 항목 리스트 — 매 갱신 재조회 (⑥ 빈바구니 자동 Hide)
         // =====================================================================
+
+        /// <summary>[U8] 우클릭 즉시 획득 — 기존 TakeSelectedItem 데이터 경로.</summary>
+        private void TakeLootRow(int index)
+        {
+            TakeSelectedItem(index);
+        }
 
         private void RefreshList()
         {
@@ -246,15 +253,7 @@ namespace ProjectName.UI.Toolkit
             row.Add(countLabel);
 
             // ② 행 드래그 소스 (좌클릭) — 임계거리 미만 클릭 = 우클릭 아닌 좌클릭 획득은 하지 않음(원본은 인벤 열림 시 드롭 판정)
-            UTKDragDrop.MakeDraggable(row, () => MakePayload(index, entry.Item));
-
-            // ③ 행 우클릭 = 즉시 획득 (원본 TakeSelectedItem과 동일 데이터 경로)
-            row.RegisterCallback<PointerDownEvent>(evt =>
-            {
-                if (evt.button != 1) return;
-                TakeSelectedItem(index);
-                evt.StopPropagation();
-            });
+            UTKDragDrop.MakeDraggable(row, () => MakePayload(index, entry.Item), null, () => TakeLootRow(index));
 
             return row;
         }

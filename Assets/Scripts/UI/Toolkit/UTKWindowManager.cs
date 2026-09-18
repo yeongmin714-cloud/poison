@@ -85,6 +85,14 @@ namespace ProjectName.UI.Toolkit
         {
             private void Update()
             {
+                // [U8 수리] 드래그 유착 자가 해제 — 버튼이 모두 떨어졌는데 Active가 남아있으면 강제 취소
+                var mouse = UnityEngine.InputSystem.Mouse.current;
+                if (mouse != null && UTKDragDrop.Active
+                    && !mouse.leftButton.isPressed && !mouse.rightButton.isPressed)
+                {
+                    UTKDragDrop.Cancel();
+                }
+
                 // [U8 수리] 포인터-over-UI 플래그 갱신 — Systems 측 게임 입력 게이트(PlayerCombat 등)가 읽음
                 ProjectName.Core.UITransitionState.PointerOverUI = UTKInputGate.IsPointerOverUI();
 

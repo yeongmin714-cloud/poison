@@ -72,6 +72,12 @@ namespace ProjectName.UI.Toolkit
 
         private HUDUTK()
         {
+            // [U8 수리] 풀스크린 Ignore 오버레이 — 자식 절대좌표가 화면 기준으로 잡히고
+            // pickingMode Ignore로 게임 클릭을 막지 않는다 (클러스터 미표시 뿌리 수리)
+            style.position = Position.Absolute;
+            style.left = 0f; style.right = 0f; style.top = 0f; style.bottom = 0f;
+            pickingMode = PickingMode.Ignore;
+
             BuildHealth();
             BuildExpBar();
 

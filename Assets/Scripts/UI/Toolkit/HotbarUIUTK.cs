@@ -147,11 +147,24 @@ namespace ProjectName.UI.Toolkit
         private static string IdKey(int index)   => string.Format(PrefsIdKey, index);
         private static string NameKey(int index) => string.Format(PrefsNameKey, index);
 
-        /// <summary>[U8 요구] Tab 전환 — 아이템 모드 ↔ 부대 지정 모드 (동일 8슬롯 정렬).</summary>
+        /// <summary>[U8 요구] Tab 전환 — 아이템 모드 ↔ 부대 지정 모드 (동일 8슬롯 정렬) + 전환 펄스 애니.</summary>
         public void ToggleSquadMode()
         {
             _squadMode = !_squadMode;
             RefreshAllIcons();
+
+            // 전환 펄스 애니 — 스케일 1.15 → 1.0 (150ms, unscaled)
+            style.scale = new StyleScale(new Scale(new Vector2(1.15f, 1.15f)));
+            float t = 0f;
+            schedule.Execute(() =>
+            {
+                t += Time.unscaledDeltaTime;
+                float k = Mathf.Clamp01(1f - t / 0.15f);
+                float s = 1f + 0.15f * k;
+                style.scale = new StyleScale(new Scale(new Vector2(s, s)));
+                if (k <= 0f) style.scale = StyleKeyword.Null;
+            }).Every(16L).ExecuteLater(0);
+
             Debug.Log($"[HotbarUTK] 모드 전환 → {(_squadMode ? "부대 지정" : "아이템")}");
         }
 

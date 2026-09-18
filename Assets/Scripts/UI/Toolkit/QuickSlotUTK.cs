@@ -32,6 +32,7 @@ namespace ProjectName.UI.Toolkit
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
         {
+            if (ProjectName.Core.UITransitionState.UtkActive) return; // [U8 은퇴] 퀵슬롯 잔재 — 사용자 지정 제거
             if (_instance != null) return;
             _instance = new QuickSlotUTK();
             var go = new GameObject("QuickSlotUTK");
