@@ -243,6 +243,17 @@ namespace ProjectName.UI
 
         private void OpenWarehouseUI()
         {
+            // [U8 배선] UTK 우선 — UIRoot 준비 시 인벤+창고 UTK, 아니면 기존 IMGUI 경로
+            if (ProjectName.UI.Toolkit.UIToolkitBootstrap.UIRoot != null)
+            {
+                ProjectName.UI.Toolkit.InventoryWindowUTK.Open();
+                ProjectName.UI.Toolkit.WarehouseWindowUTK.Open(_territoryId);
+                Debug.Log($"[TerritoryWarehouse] 창고 열기 → UTK (territory={_territoryId})");
+                _warehouseOpen = true;
+                _guiDirty = true;
+                return;
+            }
+
             // 2026-09-09: [인벤][설명][창고] 3패널 — 인벤토리를 함께 연다
             // 2026-09-11(4): territoryId 전달 — 컨텍스트 창이 WarehouseSystem.GetItems(이 ID)를 렌더
             InventoryWindow.SetContextMode(InventoryWindow.ContextMode.Warehouse, _territoryId);

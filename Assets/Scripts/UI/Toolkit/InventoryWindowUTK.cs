@@ -59,6 +59,8 @@ namespace ProjectName.UI.Toolkit
 
         // ===== 레퍼런스 =====
         private readonly VisualElement _grid;
+        private readonly VisualElement _equipPanel;   // [U8 확장] 우측 장비창 임베드 (인벤창 위에 장비창 관례)
+        private readonly Dictionary<string, Label> _equipSlotLabels = new Dictionary<string, Label>();
         private Label _selectedLabel;
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
         private EquipmentManager _subscribedEquip;
@@ -87,10 +89,21 @@ namespace ProjectName.UI.Toolkit
             // ④ 월드 드롭 백드롭: UIRoot(전체 화면) — 인벤 드롭이 UI 밖이면 땅에 바구니.
             RegisterWorldDrop();
 
+            // [U8 확장] 좌우 2컬럼 — 좌: 인벤 그리드 / 우: 장비창 임베드 (인벤창 위에 장비창 관례)
+            var columns = new VisualElement();
+            columns.style.flexDirection = FlexDirection.Row;
+            columns.style.flexGrow = 1f;
+            _content.Add(columns);
+
+            var leftCol = new VisualElement();
+            leftCol.style.flexGrow = 1f;
+            leftCol.style.marginRight = 10f;
+            columns.Add(leftCol);
+
             var gridTitle = new Label("통합 인벤토리 (재료·무기·소모품)");
             gridTitle.AddToClassList("utk-title-label");
             gridTitle.style.fontSize = 18f;
-            _content.Add(gridTitle);
+            leftCol.Add(gridTitle);
 
             _grid = new VisualElement();
             _grid.name = "InvGrid";
@@ -98,13 +111,33 @@ namespace ProjectName.UI.Toolkit
             _grid.style.flexWrap = Wrap.Wrap;
             _grid.style.marginTop = 8f;
             _grid.style.marginBottom = 8f;
-            _content.Add(_grid);
+            leftCol.Add(_grid);
 
             _selectedLabel = new Label("");
             _selectedLabel.style.fontSize = 13f;
             _selectedLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             _selectedLabel.style.whiteSpace = WhiteSpace.Normal;
-            _content.Add(_selectedLabel);
+            leftCol.Add(_selectedLabel);
+
+            // 우측: 장비창 임베드 — 슬롯 8종(무기/방패/투구/갑옷/신발/장갑/가면/가방), 우클릭=해제
+            var rightCol = new VisualElement();
+            rightCol.style.width = 150f;
+            rightCol.style.paddingLeft = 10f;
+            rightCol.style.borderLeftWidth = 1f;
+            rightCol.style.borderLeftColor = new StyleColor(UTKColor.IronLine);
+            columns.Add(rightCol);
+
+            var equipTitle = new Label("장비");
+            equipTitle.style.fontSize = 18f;
+            equipTitle.style.color = new StyleColor(UTKColor.AccentRare);
+            equipTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            equipTitle.style.marginBottom = 6f;
+            rightCol.Add(equipTitle);
+
+            _equipPanel = new VisualElement();
+            _equipPanel.style.flexGrow = 1f;
+            rightCol.Add(_equipPanel);
+            BuildEquipPanel();
 
             ApplyUIToolkitFont(this);
 
@@ -132,6 +165,7 @@ namespace ProjectName.UI.Toolkit
             EnsureEquipSubscription();
             StartRefreshLoop();
             RefreshGrid();
+            RefreshEquipPanel();   // [U8 확장] 장비 임베드 갱신
             Debug.Log("[InventoryUTK] 인벤토리 창 열림");
         }
 
@@ -140,6 +174,73 @@ namespace ProjectName.UI.Toolkit
             base.Hide();
             StopRefreshLoop();
             Debug.Log("[InventoryUTK] 인벤토리 창 닫힘");
+        }
+
+        /// <summary>[U8 확장] 우측 장비 임베드 패널 구성 — EquipmentManager 실측 데이터, 우클릭=해제(UnequipSlot).</summary>
+        private void BuildEquipPanel()
+        {
+            var em = EquipmentManager.Instance ?? EquipmentManager.Get();
+            if (em == null)
+            {
+                _equipPanel.Add(new Label("(장비 시스템 없음)"));
+                return;
+            }
+
+            var slots = new System.Collections.Generic.List<(string, EquipmentManager.EquipmentSlot)>
+            {
+                ("무기", EquipmentManager.EquipmentSlot.Weapon), ("방패", EquipmentManager.EquipmentSlot.Back),
+                ("투구", EquipmentManager.EquipmentSlot.Helmet), ("갑옷", EquipmentManager.EquipmentSlot.Armor),
+                ("신발", EquipmentManager.EquipmentSlot.Shoes), ("장갑", EquipmentManager.EquipmentSlot.Gloves),
+                ("가면", EquipmentManager.EquipmentSlot.Mask), ("가방", EquipmentManager.EquipmentSlot.Bag)
+            };
+
+            foreach (var pair in slots)
+            {
+                string label = pair.Item1;
+                var slot = pair.Item2;
+
+                var row = new VisualElement();
+                row.style.flexDirection = FlexDirection.Row;
+                row.style.alignItems = Align.Center;
+                row.style.marginBottom = 4f;
+                _equipPanel.Add(row);
+
+                var name = new Label(label);
+                name.style.width = 40f;
+                name.style.fontSize = 13f;
+                name.style.color = new StyleColor(UTKColor.TextSecondary);
+                row.Add(name);
+
+                var value = new Label("—");
+                value.style.fontSize = 13f;
+                value.style.color = new StyleColor(UTKColor.TextPrimary);
+                value.style.flexGrow = 1f;
+                value.style.whiteSpace = WhiteSpace.Normal;
+                row.Add(value);
+                _equipSlotLabels[slot.ToString()] = value;
+
+                // 우클릭 = 해제 (원본 TryRenderEmbedded 관례 — EquipmentManager.UnequipSlot)
+                row.RegisterCallback<PointerDownEvent>(evt =>
+                {
+                    if (evt.button == 1)
+                    {
+                        bool ok = em.UnequipSlot(slot);
+                        Debug.Log($"[InventoryUTK] 장비 해제(우클릭) slot={slot} → {ok}");
+                    }
+                });
+            }
+        }
+
+        /// <summary>[U8 확장] 장비 임베드 라벨 갱신 — 창 열림/장비 변경 시.</summary>
+        private void RefreshEquipPanel()
+        {
+            var em = EquipmentManager.Instance ?? EquipmentManager.Get();
+            if (em == null || _equipPanel == null) return;
+            foreach (var kv in _equipSlotLabels)
+            {
+                var data = em.GetSlotData((EquipmentManager.EquipmentSlot)System.Enum.Parse(typeof(EquipmentManager.EquipmentSlot), kv.Key));
+                kv.Value.text = (data != null && !string.IsNullOrEmpty(data.itemId)) ? data.itemId : "—";
+            }
         }
 
         /// <summary>창이 UIRoot에 부착(등록)된 후 ④ 백드롭과 ②③ 윈도우 타겟을 등록한다.</summary>
@@ -203,6 +304,7 @@ namespace ProjectName.UI.Toolkit
         {
             if (!IsOpen) return;
             Debug.Log($"[InventoryUTK] 장비 변경 수신(slot={slot}, item={itemId ?? "none"}) — 그리드 갱신");
+            RefreshEquipPanel();   // [U8 확장] 장비 임베드 즉시 갱신
             RefreshGrid();
         }
 
