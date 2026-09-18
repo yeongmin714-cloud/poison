@@ -678,3 +678,8 @@
 - Status: ✅
 - Details: HUDUTK — BuildHealth/BuildStamina/RefreshHealth/RefreshStamina 제거, BuildRings/RefreshRings 신설(골드 링+하단 게이지 채움 HP/스태미너). 핫바 왼쪽 끝 인접 배치(화면 중앙×0.5−388px). 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase F — 화살 액션감 증가(F1~F3)
+- Status: ✅
+- Details: F1 트레일 머티리얼 URP Particles/Unlit+컬러 그라디언트(헤드 밝음→테일 페이드) F2 명중 SpawnHitSparks+크리틱 SpawnCritBurst F3 지면/벽 꽂힘 스파크 — CombatVFXController 기존 API 재사용(외부 의존 0). 배치컴파일 error CS=0
+- Date: 2026-09-18
