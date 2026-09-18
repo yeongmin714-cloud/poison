@@ -44,8 +44,17 @@
 .utk-window {
     position: absolute;
     background-color: var(--c-bg-panel);
+    /* 입체(A): 상단 밝은 우드 → 하단 어두운 우드 세로 부피감 */
+    background-image: linear-gradient(to bottom,
+        rgba(48, 34, 21, 0.90),
+        rgba(28, 18, 11, 0.94));
     border-width: 2px;
     border-color: var(--c-border-bronze);
+    /* 입체(B): 금속 테두리 베벨 — 상단/좌측 어둡게(후퇴), 하단/우측 황동(전진) */
+    border-top-color: rgba(0, 0, 0, 0.35);
+    border-left-color: rgba(0, 0, 0, 0.35);
+    border-bottom-color: var(--c-border-bronze);
+    border-right-color: var(--c-border-bronze);
     border-radius: 8px;
     color: var(--c-text-primary);
     font-size: var(--fs-sm);
@@ -101,8 +110,17 @@
     font-size: var(--fs-sm);
     color: var(--c-text-primary);
     background-color: var(--c-bg-panel-dark);
+    /* 입체(A): 미세한 세로 부피감 */
+    background-image: linear-gradient(to bottom,
+        rgba(46, 33, 21, 0.92),
+        rgba(24, 16, 9, 0.95));
     border-width: 1px;
     border-color: var(--c-border-bronze);
+    /* 입체(E): 버튼 양각 베벨 — 상단/좌측 어둡게, 하단/우측 황동 */
+    border-top-color: rgba(0, 0, 0, 0.40);
+    border-left-color: rgba(0, 0, 0, 0.40);
+    border-bottom-color: var(--c-border-bronze);
+    border-right-color: var(--c-border-bronze);
     border-radius: 3px;
     padding: 4px 14px;
     align-items: center;
@@ -111,6 +129,14 @@
 
 .utk-btn:hover {
     background-color: var(--c-hover-gold);
+    /* 입체(D): 호버 시 배경 밝기 + 골드 글로우 강조 */
+    background-image: linear-gradient(to bottom,
+        rgba(217, 180, 91, 0.34),
+        rgba(201, 162, 39, 0.22));
+    border-top-color: var(--c-hover-gold);
+    border-left-color: var(--c-hover-gold);
+    border-bottom-color: var(--c-border-gold);
+    border-right-color: var(--c-border-gold);
     color: #201A10;
 }
 
@@ -144,6 +170,10 @@
     width: 64px;
     height: 64px;
     background-color: rgba(14, 9, 5, 0.72);          /* 음각(오목) 느낌의 어두운 내부 */
+    /* 입체(C): 내부 인셋 그라데이션 — 상단 약간 밝음 → 하단 더 캄캄해 음각 심화 */
+    background-image: linear-gradient(to bottom,
+        rgba(20, 13, 8, 0.72),
+        rgba(8, 5, 3, 0.84));
     border-top-width: 2px;
     border-left-width: 2px;
     border-bottom-width: 2px;
@@ -157,8 +187,15 @@
 }
 
 .utk-slot--hover {
-    background-color: rgba(217, 180, 91, 0.15);
-    border-color: var(--c-hover-gold);
+    background-color: rgba(217, 180, 91, 0.22);      /* 입체(D): 호버 배경 밝게 */
+    /* 입체(D): 부드러운 아우터 글로우 — 하단/우측으로 확산되는 빛 */
+    background-image: radial-gradient(circle at 50% 40%,
+        rgba(232, 200, 119, 0.28),
+        rgba(201, 162, 39, 0.14));
+    border-top-color: var(--c-hover-gold);
+    border-left-color: var(--c-hover-gold);
+    border-bottom-color: var(--c-border-gold);
+    border-right-color: var(--c-border-gold);
 }
 
 .utk-slot__icon {
@@ -199,8 +236,16 @@
 .utk-tooltip {
     position: absolute;
     background-color: var(--c-bg-panel-dark);
+    /* 입체(A): 세로 부피감 */
+    background-image: linear-gradient(to bottom,
+        rgba(48, 34, 21, 0.94),
+        rgba(26, 17, 10, 0.96));
     border-width: 1px;
     border-color: var(--c-border-bronze);
+    border-top-color: rgba(0, 0, 0, 0.35);
+    border-left-color: rgba(0, 0, 0, 0.35);
+    border-bottom-color: var(--c-border-bronze);
+    border-right-color: var(--c-border-bronze);
     border-radius: 3px;
     padding: 6px 10px;
     font-size: var(--fs-xs);
@@ -212,8 +257,17 @@
 .utk-modal {
     position: absolute;
     background-color: var(--c-bg-panel);
+    /* 입체(A): 세로 부피감 */
+    background-image: linear-gradient(to bottom,
+        rgba(48, 34, 21, 0.90),
+        rgba(28, 18, 11, 0.94));
     border-width: 2px;
     border-color: var(--c-border-gold);
+    /* 입체(B): 금속 베벨 — 상단/좌측 어둡게, 하단/우측 브라이트 골드 */
+    border-top-color: rgba(0, 0, 0, 0.35);
+    border-left-color: rgba(0, 0, 0, 0.35);
+    border-bottom-color: var(--c-border-gold);
+    border-right-color: var(--c-border-gold);
     border-radius: 4px;
     padding: 16px;
     min-width: 260px;
@@ -227,8 +281,16 @@
 .utk-toast {
     position: absolute;
     background-color: var(--c-bg-panel-dark);
+    /* 입체(A): 세로 부피감 + 금속 베벨 */
+    background-image: linear-gradient(to bottom,
+        rgba(48, 34, 21, 0.94),
+        rgba(26, 17, 10, 0.96));
     border-width: 1px;
     border-color: var(--c-border-bronze);
+    border-top-color: rgba(0, 0, 0, 0.35);
+    border-left-color: rgba(0, 0, 0, 0.35);
+    border-bottom-color: var(--c-border-bronze);
+    border-right-color: var(--c-border-bronze);
     border-radius: 4px;
     padding: 8px 16px;
     font-size: var(--fs-sm);

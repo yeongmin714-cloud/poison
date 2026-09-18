@@ -3018,3 +3018,6 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | U8 | 최종 회귀+UI 가이드 갱신 | 🔄 1차 배선+가이드 확정 — Play 검증 후 폐기 단계 |
 
 > 우선순위 비고: 화살/RTS 버그 수정계획(Phase A~F)은 UI 마이그레이션 완료 후 재개.
+
+### U9 (2026-09-18 ✅) — UI 입체 테마 + 그리드 좌우 대칭
+사용자 설계 요청(UI/인벤토리 예시 참조) 반영: `Theme.uss`에 세로 그라데이션+금속 베벨+라디얼 골드 글로우(입체, box-shadow 미지원 대체), `InventoryWindowUTK` leftCol 고정폭 제거·그리드 Centering(7열), `WarehouseWindowUTK` 그리드 Centering(5열). 배치컴파일 error CS=0.

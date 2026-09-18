@@ -51,9 +51,9 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float WinW = 560f;    // [독립 창] 좌측 인벤창(장비 2x5+가방 6x5) — 설명/창고/전리품은 별개 창
+        private const float WinW = 560f;    // [독립 창] 좌측 인벤창(장비 2x5 + 가방 그리드 행당 7칸) — 설명/창고/전리품은 별개 창
         private const float WinH = 700f;
-        private const int BagColumns = 5;   // 가방 6줄×5칸
+        private const int BagColumns = 5;   // [미참조] 실제 그리드 행당 칸은 Columns=7
         private const int BagRows = 6;
         private const int EquipColumns = 5; // 장비 2줄×5칸
         private const int EquipRows = 2;
@@ -103,9 +103,9 @@ namespace ProjectName.UI.Toolkit
             columns.style.flexGrow = 1f;
             _content.Add(columns);
 
-            // ── 좌측 패널: 장비 2줄×5칸 + 가방 6줄×5칸 ──
+            // ── 좌측 패널: 장비 2줄×5칸 + 가방 그리드(행당 7칸) ──
             var leftCol = new VisualElement();
-            leftCol.style.width = 380f;
+            leftCol.style.flexGrow = 1f;   // 고정 380px 제거 — 창 폭을 채워 우측 빈 여백 제거(좌우 대칭)
             leftCol.style.marginRight = 10f;
             columns.Add(leftCol);
 
@@ -118,6 +118,7 @@ namespace ProjectName.UI.Toolkit
             _equipPanel = new VisualElement();
             _equipPanel.style.flexDirection = FlexDirection.Row;
             _equipPanel.style.flexWrap = Wrap.Wrap;
+            _equipPanel.style.justifyContent = Justify.Center;   // 장비 행 좌우 대칭(우측 쏠림 제거)
             _equipPanel.style.marginBottom = 10f;
             leftCol.Add(_equipPanel);
             BuildEquipPanel();
@@ -132,6 +133,7 @@ namespace ProjectName.UI.Toolkit
             _grid.name = "InvGrid";
             _grid.style.flexDirection = FlexDirection.Row;
             _grid.style.flexWrap = Wrap.Wrap;
+            _grid.style.justifyContent = Justify.Center;   // 행당 7칸 중앙 배치 — 행 좌우 여백 동일
             _grid.style.marginTop = 6f;
             leftCol.Add(_grid);
 

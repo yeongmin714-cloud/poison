@@ -8,6 +8,37 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-18 ✅ UI 업그레이드 — 입체 테마 + 그리드 좌우 대칭)
+
+> **입력**: 사용자 설계 요청 — (1)UI 예시/인벤토리 예시1·2 사진처럼 전체 UI를 더 **입체적**으로, (2)그리드 **양쪽 대칭**, (3)인벤토리 **우측 여백 과다** 제거.
+
+### 변경 사항 (수정 3파일 — code agent 위임, 규약 준수)
+**`Resources/UI/Theme.uss`** (전역 → 전 창 자동 적용, 디자인시스템 상속)
+- 창/패널(`.utk-window`/`.utk-modal`/`.utk-tooltip`/`.utk-toast`): `background-image linear-gradient(to bottom, 딥우드 밝→어두움)` 세로 그라데이션 — 부피감
+- 테두리 베벨(양각): 상단/좌측 `rgba(0,0,0,.35)` 후퇴 + 하단/우측 브론즈/골드 전진 — 금속 두께감
+- 슬롯(`.utk-slot`): 인셋 그라데이션(위 밝→아래 어두움)으로 음각 심화
+- 호버/선택(`.utk-slot--hover`/`.utk-btn:hover`): `radial-gradient` 골드 아우터 글로우 강화
+- 버튼(`.utk-btn`): 상/좌 암 + 하/우 브론즈 베벨 — 돌출감
+- ※ `box-shadow`는 UITK 미지원 → 그라데이션+베벨+글로우로 깊이 구현. 희귀도 등급색/팔레트/클래스명 파괴 없음.
+
+**`Scripts/UI/Toolkit/InventoryWindowUTK.cs`** (그리드 대칭)
+- `leftCol.width=380f`(고정) → `flexGrow=1f`: 창 폭 560에서 오른쪽 ~150px 빈 틈 제거
+- `_grid`/`_equipPanel`에 `justifyContent=Justify.Center`: 7열(490px)이 중앙 배치 → 좌우 여백 동일
+- 주석을 실제 Columns=7에 맞춰 정리
+
+**`Scripts/UI/Toolkit/WarehouseWindowUTK.cs`**
+- `_whGrid`에 `justifyContent=Justify.Center`: 5열(290px) 중앙 배치 → 좌우 대칭
+- `LootWindowUTK`는 세로 단일 컬럼 리스트라 이미 폭을 채움 — 변경 불필요
+
+### 검증
+- QA 정적 리뷰: 드래그 좌표는 `worldBound` 실측 판정(UTKDragDrop.cs)이라 그리드 중앙 이동과 무관하게 안전. USS 괄호/세미콜론 균형, box-shadow 미사용, 그라데이션 문법 표준 확인.
+- 배치컴파일 **error CS=0** (exit 0).
+
+### Play 판정 대기
+①모든 창(인벤/창고/설명/전리품/상점)이 세로 그라데이션+금속 베벨로 입체화 ②인벤토리 그리드 좌우 여백 대칭·오른쪽 과다 제거 ③창고 그리드 대칭 ④슬롯 음각 깊어짐 ⑤호버 골드 글로우 ⑥드래그/우클릭/전환 회귀 없음
+
+---
+
 ## 📌 세션 스냅샷 (2026-09-18 ✅ Phase 68/U8 후속 — Play 실측 1차 검증 통과 + 예외 수리)
 
 > **입력**: Editor.log Play 실측 판정 — **UTK 렌더 정상 확인**. StatusWindowUTK(P키 토글 2회 열림/닫힘 정상)/QuestWindowUTK(Q키 2회)/SquadUTK(부대 모드 병사↔아이템 전환 반영)/UIToolkitBootstrap 부트스트랩+UTKWire 배선 로그 착륙. **UTK 기원 예외 0건** — 66창 인프라 정상 착륙.

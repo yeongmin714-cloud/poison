@@ -214,6 +214,7 @@ namespace ProjectName.UI.Toolkit
             _whGrid.name = "WarehouseGrid";
             _whGrid.style.flexDirection = FlexDirection.Row;
             _whGrid.style.flexWrap = Wrap.Wrap;
+            _whGrid.style.justifyContent = Justify.Center;   // 행당 5칸 중앙 배치 — 좌우 여백 동일
             _whGrid.style.marginTop = 4f;
             _whGrid.style.marginBottom = 4f;
             _whColumn.Add(_whGrid);
