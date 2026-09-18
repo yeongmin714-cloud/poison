@@ -85,8 +85,42 @@ namespace ProjectName.UI.Toolkit
         /// <summary>Update 전용 MonoBehaviour. 씬과 무관하게 DOM 로드 시 존재.</summary>
         private class Updater : MonoBehaviour
         {
+            private float _nextSweep;      // [U9 배경 힐러] 0.5s 스로틀
+            private bool _sweepPending;    // 씬 로드 직후 1회 강제 스윕 플래그
+
+            private void OnEnable()
+            {
+                UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+            }
+
+            private void OnDisable()
+            {
+                UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+            }
+
+            // [U9] 씬 전환 시 Resources.UnloadUnusedAssets류로 런타임 텍스처가 대량 파괴될 수 있음
+            //   → 로드 직후 다음 프레임에 즉시 스윕 1회(스타일 재적용 전 정리).
+            private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene,
+                                       UnityEngine.SceneManagement.LoadSceneMode mode)
+            {
+                _sweepPending = true;
+            }
+
             private void Update()
             {
+                // [U9 배경 힐러] 죽은 배경 텍스처 자가 치유 — "Invalid value for image texture" 노란 경고 차단
+                if (_sweepPending)
+                {
+                    _sweepPending = false;
+                    _nextSweep = Time.unscaledTime + 0.5f;
+                    UTKBackgroundHealer.Sweep();
+                }
+                else if (Time.unscaledTime >= _nextSweep)
+                {
+                    _nextSweep = Time.unscaledTime + 0.5f;
+                    UTKBackgroundHealer.Sweep();
+                }
+
                 // [U8 수리] 드래그 유착 자가 해제 — 버튼이 모두 떨어졌는데 Active가 남아있으면 강제 취소
                 var mouse = UnityEngine.InputSystem.Mouse.current;
                 if (mouse != null && UTKDragDrop.Active

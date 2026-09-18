@@ -14,7 +14,11 @@ namespace ProjectName.UI.Toolkit
     /// </summary>
     public static class UTKTextureSafe
     {
-        private const int MaxCacheEntries = 256;
+        // [U9 보강] 상한 256→1024 + 축출 조건에 "나이 600초 경과" 추가 — 아이콘 재베이크
+        //   체인으로 캐시가 회전해도 "현재 스타일이 참조 중인 젊은 복사본"이 파괴되지 않게
+        //   보장(파괴된 복사본 참조 = "Invalid value for image texture" 재발 뿌리).
+        private const int MaxCacheEntries = 1024;
+        private const float EvictMinAgeSeconds = 600f;
 
         private static readonly System.Collections.Generic.Dictionary<int, Texture2D> _copies
             = new System.Collections.Generic.Dictionary<int, Texture2D>();
@@ -25,6 +29,9 @@ namespace ProjectName.UI.Toolkit
         // 큐 노드는 '복사본'이므로 축출 시 이 매핑 없이는 올바른 dict 엔트리를 지울 수 없다.
         private static readonly System.Collections.Generic.Dictionary<int, int> _copySource
             = new System.Collections.Generic.Dictionary<int, int>();
+        // 복사본 instanceID → 생성 시각(unscaled). 축출 나이 판정용.
+        private static readonly System.Collections.Generic.Dictionary<int, float> _copyBorn
+            = new System.Collections.Generic.Dictionary<int, float>();
 
         /// <summary>원본 텍스처의 소유 복사본 반환 (인스턴스 ID 캐시). 파괴된 원본이면 null.</summary>
         public static Texture2D GetSafe(Texture2D source)
@@ -38,7 +45,9 @@ namespace ProjectName.UI.Toolkit
                 // 원본이 파괴되어 캐시 히트 실패 — 사본도 함께 제거(FIFO 잔여물 정리)
                 _copies.Remove(id);
                 _fifo.Remove(cached);
-                _copySource.Remove(cached.GetInstanceID());
+                int deadCopyId = cached.GetInstanceID();
+                _copySource.Remove(deadCopyId);
+                _copyBorn.Remove(deadCopyId);
             }
 
             try
@@ -52,7 +61,9 @@ namespace ProjectName.UI.Toolkit
                 copy.Apply(false, true);   // read/write 비활성화 — GPU 전용 업로드
                 _copies[id] = copy;
                 _fifo.AddLast(copy);
-                _copySource[copy.GetInstanceID()] = id;
+                int copyId = copy.GetInstanceID();
+                _copySource[copyId] = id;
+                _copyBorn[copyId] = Time.unscaledTime;
                 EvictOverflow();
                 return copy;
             }
@@ -70,21 +81,29 @@ namespace ProjectName.UI.Toolkit
             return safe != null ? new StyleBackground(Background.FromTexture2D(safe)) : new StyleBackground(StyleKeyword.Null);
         }
 
-        /// <summary>FIFO 한계 초과 시 가장 오래된 복사본을 파괴(에디터/런타임 안전).</summary>
+        /// <summary>
+        /// FIFO 한계 초과 시 가장 오래된 복사본을 파괴(에디터/런타임 안전).
+        /// [U9] 단, 600초 미만의 "젊은" 복사본은 살아있는 스타일이 참조 중일 수 있으므로
+        ///   축출을 보류한다(상한을 임시 초과 허용 — 메모리 안전 vs 경고 방지 트레이드오프).
+        /// </summary>
         private static void EvictOverflow()
         {
             while (_fifo.Count > MaxCacheEntries)
             {
                 var oldest = _fifo.First;
                 if (oldest == null) return;
+                int copyId = oldest.Value.GetInstanceID();
+                if (_copyBorn.TryGetValue(copyId, out float born)
+                    && Time.unscaledTime - born < EvictMinAgeSeconds)
+                    return;   // 가장 오래된 항목이 아직 젊다 — 축출 보류(다음 기회에)
                 _fifo.RemoveFirst();
                 // _copies 키는 원본 ID — 복사본 ID로 역조회해 정확한 엔트리 제거
-                int copyId = oldest.Value.GetInstanceID();
                 if (_copySource.TryGetValue(copyId, out int srcId))
                 {
                     _copies.Remove(srcId);
                     _copySource.Remove(copyId);
                 }
+                _copyBorn.Remove(copyId);
                 if (Application.isPlaying) Object.Destroy(oldest.Value);
                 else Object.DestroyImmediate(oldest.Value);
             }

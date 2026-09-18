@@ -97,17 +97,25 @@ namespace ProjectName.Systems
                 renderer.material.color = trailColor * 0.7f;
             }
 
-            // [2026-09-17] 화살 모델 조립 — 샤프트(실린더) + 촉(콘) + 플레처(사각조각 3개) 자식 추가.
-            //   피벗은 샤프트 중심(발사 origin과 동일) 유지. 자식 전부 Rigidbody 없이 부모에 종속되며,
-            //   콜라이더를 제거해 명중 시 불필요한 2차 충돌을 만들지 않는다.
-            try
+            // [요구] 실제 화살 GLB 모델 장착(arrow.glb → arrow2 → arrow3 폴백, 전부 실패 시 원기둥 회귀).
+            //   성공 시 실린더 렌더러는 숨기고(콜라이더·트레일은 루트가 유지) 모델이 비주얼을 대체한다.
+            if (MountArrowModel(go))
             {
-                AssembleArrow(go, trailColor);
+                if (renderer != null) renderer.enabled = false;
             }
-            catch (System.Exception e)
+            else
             {
-                // 조립 실패(Cone/Cube 프리미티브 null 등) 시에도 화살은 최소한 샤프트 실린더로 동작.
-                Debug.Log("[Arrow] 화살 머리/깃털 조립 실패 → 샤프트만 유지: " + e.ToString());
+                // [2026-09-17] 절차 조립 회귀 — 샤프트(실린더) + 촉(콘) + 플레처(사각조각 3개) 자식 추가.
+                //   피벗은 샤프트 중심 유지, 자식은 Rigidbody 없이 부모 종속, 콜라이더 제거로 2차 충돌 차단.
+                //   실패(Cone/Cube 프리미티브 null 등) 시에도 최소한 샤프트 실린더로 동작.
+                try
+                {
+                    AssembleArrow(go, trailColor);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.Log("[Arrow] 화살 머리/깃털 조립 실패 → 샤프트만 유지: " + e.ToString());
+                }
             }
 
             return arrow;
@@ -161,6 +169,85 @@ namespace ProjectName.Systems
                     }
                 }
             }
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // [요구] 실제 화살 GLB 장착 — arrow.glb → arrow2 → arrow3 폴백.
+        //
+        // [GLB 실측] (GLB JSON/바이너리 직접 파싱 — 3모델 공통):
+        //   - 메시 장축 = X(길이 1.0), 촉 = -X 쪽(+X단 평균반경 0.50 = 깃털, -X단 0.12 = 촉),
+        //   - 노드 회전 Rx(90) — 장축 방향은 불변.
+        //   → 촉(-X)을 루트 진행축(로컬 +Y)으로 세우려면 Q_fix = Rz(90)×Ry(180).
+        //
+        // [전단(스큐) 방지 설계] 루트 스케일이 비균일(0.25, 1.8, 0.25)이라 회전된 자식을
+        //   직접 넣으면 찌그러진다. → 래퍼를 "무회전"으로 두고 localScale을 루트 스케일의
+        //   역수 비율로 보간해 래퍼 lossyScale을 균일(s)로 만든 뒤, 그 안에서만 모델을 회전.
+        //   (균일 스케일 × 회전은 전단이 발생하지 않음 — 수학적 보장)
+        //
+        // [피팅] 스탠드얼론으로 인스턴스 후 renderer.bounds 실측 → 최장축을 기존 실린더
+        //   시각 길이(단위 2 × localScale.y 1.8 = 3.6m)에 자동 스케일. 피벗 = bounds 중심.
+        // ─────────────────────────────────────────────────────────────
+        private const float ArrowModelTargetLength = 3.6f;   // 기존 실린더 시각 길이 유지(가시성 결정 론산)
+
+        private static bool MountArrowModel(GameObject root)
+        {
+            // ① 프리팹 로드 폴백 체인
+            string[] paths = { "Models/UserProvided/arrow", "Models/UserProvided/arrow2", "Models/UserProvided/arrow3" };
+            GameObject prefab = null;
+            string used = null;
+            foreach (var p in paths)
+            {
+                prefab = Resources.Load<GameObject>(p);
+                if (prefab != null) { used = p; break; }
+            }
+            if (prefab == null)
+            {
+                Debug.Log("[Arrow] GLB 로드 실패(arrow/arrow2/arrow3 전부) — 절차 화살 회귀");
+                return false;
+            }
+
+            // ② 스탠드얼론 인스턴스 → 원본 스케일 1 상태에서 bounds 실측(노드 회전 포함 월드=모델 공간)
+            GameObject inst = Object.Instantiate(prefab);
+            Bounds total = new Bounds(Vector3.zero, Vector3.zero);
+            bool hasRenderer = false;
+            foreach (var r in inst.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!hasRenderer) { total = r.bounds; hasRenderer = true; }
+                else total.Encapsulate(r.bounds);
+            }
+            if (!hasRenderer || total.size.x <= 0f && total.size.y <= 0f && total.size.z <= 0f)
+            {
+                Debug.Log("[Arrow] GLB 렌더러 없음 — 절차 화살 회귀");
+                Object.Destroy(inst);
+                return false;
+            }
+            float maxDim = Mathf.Max(total.size.x, total.size.y, total.size.z);
+            float s = ArrowModelTargetLength / Mathf.Max(0.0001f, maxDim);
+            Vector3 center = total.center;   // 모델 공간 중심(피벗 보정용)
+
+            // ③ 콜라이더 제거 — 2차 충돌 방지(충돌은 루트 캡슐이 담당)
+            foreach (var c in inst.GetComponentsInChildren<Collider>(true))
+                Object.Destroy(c);
+
+            // ④ 균일 스케일 래퍼 — 루트 비균일 스케일 역보간으로 lossyScale=(s,s,s) 달성
+            var lossy = root.transform.lossyScale;
+            var wrapper = new GameObject("ArrowModelWrap");
+            wrapper.transform.SetParent(root.transform, false);
+            wrapper.transform.localPosition = Vector3.zero;
+            wrapper.transform.localRotation = Quaternion.identity;
+            wrapper.transform.localScale = new Vector3(
+                s / Mathf.Max(0.0001f, Mathf.Abs(lossy.x)),
+                s / Mathf.Max(0.0001f, Mathf.Abs(lossy.y)),
+                s / Mathf.Max(0.0001f, Mathf.Abs(lossy.z)));
+
+            // ⑤ 재부모화 + 정렬: 촉(-X) → 진행축(+Y). 노드 회전은 교체(장축 불변이므로 안전).
+            inst.transform.SetParent(wrapper.transform, false);
+            inst.transform.localRotation = Quaternion.Euler(0f, 0f, 90f) * Quaternion.Euler(0f, 180f, 0f);
+            inst.transform.localScale = Vector3.one;
+            inst.transform.localPosition = -(inst.transform.localRotation * center);   // 피벗 = 모델 중심
+
+            Debug.Log($"[Arrow] GLB 장착: {used} 목표길이={ArrowModelTargetLength:0.0}m (모델 maxDim={maxDim:0.00}, scale={s:0.00})");
+            return true;
         }
 
         /// <summary>
@@ -251,10 +338,10 @@ namespace ProjectName.Systems
                 // [70차 후속19/C2·C3] 명중 피드백 — 활 히트스톱+흔들림(파워 풀=PlayCrit 강화) + 데미지 숫자(골드)
                 if (_power >= 0.95f) CombatCameraEffects.PlayCrit();
                 else CombatCameraEffects.PlayHit(ProjectName.Core.WeaponType.Bow);
-                // [F2 액션감] 명중 스파크 + 파워풀 크리틱 버스트
+                // [요구] 노란 파티클 제거 — 이미 피격 이펙트가 있으므로 명중 스파크/크리틱 버스트는 뽑지 않는다.
+                //   유지: 데미지 숫자(골드)·카메라 히트피드백(PlayHit/PlayCrit: 히트스톱·흔들림)·임팩트 사운드/styles 및 trail off.
+                //   (CombatVFXController 파일은 다른 무기 슬래시가 공유하므로 여기서 수정 금지 — 본 파일에서만 호출 제거)
                 Vector3 hitPoint = other != null ? other.ClosestPoint(transform.position) : transform.position;
-                CombatVFXController.SpawnHitSparks(hitPoint);
-                if (_power >= 0.95f) CombatVFXController.SpawnCritBurst(hitPoint);
                 CombatVFXController.ShowDamageNumber(other.transform.position + Vector3.up * 1.0f,
                     Mathf.RoundToInt(_damage), new Color(1f, 0.85f, 0.4f));
 
@@ -287,8 +374,7 @@ namespace ProjectName.Systems
                 if (_rb != null) _rb.linearVelocity = Vector3.zero;
                 if (_collider != null) _collider.enabled = false; // 중복 충돌 방지
 
-                // [F3 액션감] 지면/벽 꽂힘 — 소형 스파크
-                CombatVFXController.SpawnHitSparks(transform.position);
+                // [요구] 노란 파티클 제거 — 지면/벽 꽂힘 스파크도 동일 사유로 제거(사운드는 기존 유지).
             }
         }
     }
