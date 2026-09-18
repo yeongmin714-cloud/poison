@@ -147,7 +147,9 @@ namespace ProjectName.UI.Toolkit
         private static string IdKey(int index)   => string.Format(PrefsIdKey, index);
         private static string NameKey(int index) => string.Format(PrefsNameKey, index);
 
-        /// <summary>[U8 요구] Tab 전환 — 아이템 모드 ↔ 부대 지정 모드 (동일 8슬롯 정렬) + 전환 펄스 애니.</summary>
+        public bool IsSquadMode => _squadMode;
+
+        /// <summary>[U8 요구] Tab 전환 — 아이템 모드 ↔ 부대 지정 모드 (동일 8슬롯 정렬).</summary>
         public void ToggleSquadMode()
         {
             _squadMode = !_squadMode;
@@ -369,7 +371,17 @@ namespace ProjectName.UI.Toolkit
                 // [U8 요구] Tab 직접 폴링 — 아이템 모드 ↔ 부대 지정 모드 전환 (동일 8슬롯 정렬)
                 var kb = UnityEngine.InputSystem.Keyboard.current;
                 if (kb != null && kb.tabKey.wasPressedThisFrame)
+                {
                     bar.ToggleSquadMode();
+                    // 원본 GuardSquadHotbar 모드 동기 (1~8 선택 로직 단일소스 유지)
+                    var original = Object.FindAnyObjectByType<ProjectName.UI.GuardSquadHotbar>();
+                    if (original != null)
+                    {
+                        var f = typeof(ProjectName.UI.GuardSquadHotbar).GetField("_squadMode",
+                            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        if (f != null) f.SetValue(original, bar.IsSquadMode);
+                    }
+                }
 
                 // GLB 아이콘 비동기 베이크 재시도 + 인벤 수량 변동 반영 — 1초 주기 (원본 Update 관례)
                 _tick -= Time.unscaledDeltaTime;

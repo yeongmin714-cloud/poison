@@ -157,6 +157,8 @@ namespace ProjectName.UI
         // ===== Tab 토글 =====
         private void HandleTabKey()
         {
+            // [U8 은퇴 게이트] Tab 전환은 HotbarUIUTK가 담당 — 원본은 모드 동기만 받음
+            if (ProjectName.Core.UITransitionState.UtkActive) return;
             if (Input.GetKeyDown(KeyCode.Tab))
                 ToggleMode();
         }

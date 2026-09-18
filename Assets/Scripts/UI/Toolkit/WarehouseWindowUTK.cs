@@ -66,8 +66,8 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float WinW = 820f;
-        private const float WinH = 560f;
+        private const float WinW = 420f;   // [U8] 창고 전용 창 (인벤은 독립 창)
+        private const float WinH = 680f;
         private const float SlotSize = 52f;
         private const int Columns = 5;     // 행당 N칸 (창고 원본 4열, UTK 그리드 5열)
         private const int MaxSlots = 20;   // 창고 최대 슬롯 (원본 WarehouseUI.MaxSlots / TerritoryWarehouse._maxSlots 기본)

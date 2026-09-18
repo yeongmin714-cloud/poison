@@ -62,6 +62,10 @@ namespace ProjectName.Systems
             if (PlayerHealth.Instance != null && PlayerHealth.Instance.IsDead)
                 return;
 
+            // [U8 게이트] UTK UI 위 포인터 — 창 상호작용 우선, 공격 차단
+            if (ProjectName.Core.UITransitionState.PointerOverUI)
+                return;
+
             // 공격 키 확인 (설정 가능)
             if (!Input.GetKeyDown(_attackKey))
                 return;

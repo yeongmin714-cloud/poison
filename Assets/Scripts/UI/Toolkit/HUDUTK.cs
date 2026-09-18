@@ -82,7 +82,7 @@ namespace ProjectName.UI.Toolkit
             pickingMode = PickingMode.Ignore;
 
             BuildRings();
-            BuildExpBar();
+            // [U8 은퇴] EXP/상태 바 제거 — 사용자 지정 (핫바 위 녹색 바)
 
             UTKWindowBase.ApplyUIToolkitFont(this);
 
@@ -257,7 +257,6 @@ namespace ProjectName.UI.Toolkit
         private void RefreshAll()
         {
             RefreshRings();     // [예시 정합] 원형 게이지 갱신(HP/스태미너 통합)
-            RefreshExpBar();
         }
 
         private void RefreshExpBar()
