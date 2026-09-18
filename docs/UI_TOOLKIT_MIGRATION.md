@@ -135,5 +135,8 @@
 | 2026-09-18 | Play 1차 | Editor.log 실측 — Status/Quest/Squad UTK 정상 렌더·토글, UTK 예외 0. ProceduralAnimationController 파괴 가드 수리 | ✅ |
 | 2026-09-18 | Play 1차 | Editor.log 실측 — Status/Quest/Squad UTK 정상 렌더·토글, UTK 예외 0. ProceduralAnimationController 파괴 가드 수리 | ✅ |
 | 2026-09-18 | 배선 확대 | 4경로(침대 수면/전리품 바구니/상점/인벤 I키) — 브리지 패턴 동일 적용, 배치컴파일 error CS=0 | ✅ |
+| 2026-09-18 | Play 1차 | Editor.log 실측 — Status/Quest/Squad UTK 정상 렌더·토글, UTK 예외 0. ProceduralAnimationController 파괴 가드 수리 | ✅ |
+| 2026-09-18 | 배선 확대 | 4경로(침대 수면/전리품 바구니/상점/인벤 I키) — 브리지 패턴 동일 적용, 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | Play 수리 2건 | ①인벤 I키 미표시(Toggle이 Ensure만 하고 Show 누락 → Open 위임) ②미니맵 우상단 이동(사용자 지정) | ✅ |
+| 2026-09-18 | Play 수리 3건 | ①창고 UTK 배선(TerritoryWarehouse→Inventory+Warehouse UTK) ②인벤창 위 장비창 임베드(8슬롯+우클릭 해제) ③EquipmentManager 단일소스 | ✅ |
 | | 후속 | 배선 확대+HUD 겹침 해소+Play 종합 검증+폐기+태그 | ⏳ |

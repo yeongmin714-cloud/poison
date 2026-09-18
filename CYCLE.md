@@ -608,3 +608,8 @@
 - Status: ✅
 - Details: ①InventoryWindowUTK.Toggle이 IsOpen=false일 때 Ensure()만 호출(Show 누락) → Open() 위임 수리(레퍼런스 흐름: WireUp→Toggle→Open→Show) ②MinimapUTK 좌상단→우상단(style.right, 사용자 지정). 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 Play 수리 — 창고 UTK 배선+장비창 임베드
+- Status: ✅
+- Details: ①TerritoryWarehouse.OpenWarehouseUI UTK 우선(인벤+창고 동시 오픈) ②InventoryWindowUTK 좌우 2컬럼 확장 — 우측 장비 8슬롯(무기/방패/투구/갑옷/신발/장갑/가면/가방)+우클릭 UnequipSlot+RefreshEquipPanel(Show/이벤트). EquipmentManager 중첩 enum 한정/Boots→Shoes 수리. 배치컴파일 error CS=0
+- Date: 2026-09-18
