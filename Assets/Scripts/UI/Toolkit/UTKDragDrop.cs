@@ -208,6 +208,16 @@ namespace ProjectName.UI.Toolkit
             evt.StopPropagation();
         }
 
+        /// <summary>[U8 수리] 수신 엘리먼트 로컬 좌표 → UIRoot 패널 좌표 변환.
+        /// PointerMove/Up의 evt.position은 캡처된 엘리먼트 기준 로컬값이라 그대로 쓰면
+        /// 고스트/드롭 판정이 어긋난다(Play 실측 드래그 불능 뿌리).</summary>
+        private static Vector2 ToRootPos(VisualElement el, Vector2 localPos)
+        {
+            var world = el.LocalToWorld(localPos);
+            var root = UIToolkitBootstrap.UIRoot;
+            return root != null ? root.WorldToLocal(world) : world;
+        }
+
         private static void OnDragPointerMove(PointerMoveEvent evt)
         {
             if (_drag == null || !_drag.captured) return;
@@ -230,7 +240,7 @@ namespace ProjectName.UI.Toolkit
                 Begin(payload);
             }
 
-            _ghostPos = evt.position;
+            _ghostPos = ToRootPos(_drag.element, evt.position);   // [U8 수리] 로컬→루트 변환
             MoveGhost(_ghostPos);
             evt.StopPropagation();
         }
@@ -242,7 +252,7 @@ namespace ProjectName.UI.Toolkit
             bool engaged = _drag.engaged;
             if (engaged)
             {
-                _ghostPos = evt.position;
+                _ghostPos = ToRootPos(_drag.element, evt.position);   // [U8 수리] 로컬→루트 변환
                 LastDropPos = _ghostPos;
                 MoveGhost(_ghostPos);
             }
