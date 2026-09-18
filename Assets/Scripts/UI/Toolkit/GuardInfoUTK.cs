@@ -41,6 +41,13 @@ namespace ProjectName.UI.Toolkit
         }
 
         /// <summary>병사 정보창 열기 (원본 OpenForGuard 패리티).</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void BootstrapBridge()
+        {
+            // [U8 배선] F키 병사 상호작용 브리지 구독 — Systems 이벤트 → UTK 정보창
+            SoldierInteractBridge.OnSoldierInfoRequested += guard => Open(guard);
+        }
+
         public static void Open(GuardPlaceholder guard)
         {
             if (guard == null) return;

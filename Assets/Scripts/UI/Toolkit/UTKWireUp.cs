@@ -52,7 +52,9 @@ namespace ProjectName.UI.Toolkit
                 {
                     LootWindowUTK.Ensure();
                     LootWindowUTK.Open(basket);
-                    Debug.Log("[UTKWire] 바구니 → LootWindowUTK");
+                    InventoryWindowUTK.Open();            // [U8 요구] 전리품 열림 시 인벤 동시 표시
+                    ItemDescriptionWindowUTK.Show();
+                    Debug.Log("[UTKWire] 바구니 → LootWindowUTK + 인벤/설명 동시 표시");
                 }
                 else
                 {

@@ -4,18 +4,18 @@ OS: 'Windows 10  (10.0.19045) 64bit Core' Language: 'ko' Physical Memory: 7880 M
 BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
 System  architecture: x64
 Process architecture: x64
-Date: 2026-09-18T05:48:43Z
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-09-18T05:48:43.8130231Z"
+Date: 2026-09-18T06:14:54Z
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-09-18T06:14:54.9471642Z"
 [Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 3220, path: "C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
 [Licensing::Module] LicensingClient has failed validation; ignoring
 [Licensing::Client] Handshaking with LicensingClient:
   Version:                 1.18.1+9fbee8e
-  Session Id:              2814666e727448159798be714673e77c
+  Session Id:              7d5d75e1aced41ba8401aafd7d0011c5
   Correlation Id:          4544091c8d567265a1a500d64ab6d873
-  External correlation Id: 4967626145072839608
+  External correlation Id: 5707189250842233428
   Machine Id:              5cJWr0XiXK4/b2/xsaHUUO6HAA8=
-[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-korea" (connect: 0.00s, validation: 0.00s, handshake: 0.13s)
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-09-18T05:48:43.9495962Z"
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-korea" (connect: 0.00s, validation: 0.00s, handshake: 0.15s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-09-18T06:14:55.1037314Z"
 [Licensing::Module] Error: Access token is unavailable; failed to update
 [Licensing::Client] Successfully resolved entitlement details
 [Licensing::Module] License group:
@@ -25,7 +25,7 @@ Date: 2026-09-18T05:48:43Z
   Expiration: Unlimited
 [Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
 [Licensing::Client] Successfully resolved entitlement details
-[Licensing::Module] Licensing Background thread has ended after 0.17s
+[Licensing::Module] Licensing Background thread has ended after 0.21s
 
 COMMAND LINE ARGUMENTS:
 Unity.exe
@@ -74,18 +74,18 @@ C:/Unity/code
     "memorysetup-job-temp-allocator-block-size=2097152"
     "memorysetup-job-temp-allocator-block-size-background=1048576"
     "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
-Player connection [12908]  Target information:
+Player connection [272]  Target information:
 
-Player connection [12908]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 526938218 [EditorId] 526938218 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [272]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 2061361100 [EditorId] 2061361100 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [12908]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 526938218 [EditorId] 526938218 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [272]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 2061361100 [EditorId] 2061361100 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [12908] Host joined multi-casting on [225.0.0.222:54997]...
-Player connection [12908] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Player connection [272] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [272] Host joined alternative multi-casting on [225.0.0.222:34997]...
 Input System module state changed to: Initialized.
 [Physics::Module] Initialized fallback backend.
 [Physics::Module] Id: 0xdecafbad
-[Package Manager] Connected to IPC stream "Upm-8956" after 0.3 seconds.
+[Package Manager] Connected to IPC stream "Upm-6904" after 0.4 seconds.
 [Licensing::Client] Successfully resolved entitlement details
 Library Redirect Path: Library/
 [Physics::Module] Selected backend.
@@ -112,7 +112,7 @@ Initialize mono
 Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Managed'
 Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
 Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/etc'
-Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56956
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56904
 CodeReloadManager initialized
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
@@ -122,30 +122,30 @@ Begin MonoManager ReloadAssembly
 Registering precompiled unity dll's ...
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
-Registered in 0.012629 seconds.
+Registered in 0.271622 seconds.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 Package Manager log level set to [2]
 ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.848 seconds
-Domain Reload Profiling: 1852ms
-	BeginReloadAssembly (316ms)
-		CreateAndSetChildDomain (19ms)
-	RebuildCommonClasses (85ms)
-	RebuildNativeTypeToScriptingClass (22ms)
-	initialDomainReloadingComplete (163ms)
-	LoadAllAssembliesAndSetupDomain (415ms)
-		LoadAssemblies (294ms)
-		AnalyzeDomain (395ms)
-			TypeCache.Refresh (392ms)
-				TypeCache.ScanAssembly (357ms)
-	FinalizeReload (852ms)
+- Finished resetting the current domain, in  0.957 seconds
+Domain Reload Profiling: 4851ms
+	BeginReloadAssembly (2099ms)
+		CreateAndSetChildDomain (6ms)
+	RebuildCommonClasses (464ms)
+	RebuildNativeTypeToScriptingClass (26ms)
+	initialDomainReloadingComplete (776ms)
+	LoadAllAssembliesAndSetupDomain (524ms)
+		LoadAssemblies (2051ms)
+		AnalyzeDomain (504ms)
+			TypeCache.Refresh (501ms)
+				TypeCache.ScanAssembly (458ms)
+	FinalizeReload (961ms)
 		SetupLoadedEditorAssemblies (0ms)
-			InitializePlatformSupportModulesInManaged (90ms)
-			BeforeProcessingInitializeOnLoad (134ms)
-			ProcessInitializeOnLoadAttributes (211ms)
-			ProcessInitializeOnLoadMethodAttributes (313ms)
+			InitializePlatformSupportModulesInManaged (109ms)
+			BeforeProcessingInitializeOnLoad (162ms)
+			ProcessInitializeOnLoadAttributes (224ms)
+			ProcessInitializeOnLoadMethodAttributes (352ms)
 [Licensing::Client] Successfully resolved entitlement details
 Application.AssetDatabase Initial Refresh Start
 [Package Manager] Restoring resolved packages state from cache
@@ -226,7 +226,7 @@ Application.AssetDatabase Initial Refresh Start
     com.unity.collections@6.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.collections@5b6ebd78ccc0)
 [Package Manager] com.unity.textmeshpro is deprecated: This package is no longer supported. TextMeshPro functionalities are now included in the com.unity.ugui package. To continue using them, consider adding it to your project dependencies.
 [Subsystems] No new subsystems found in resolved package list.
-[Package Manager] Done registering packages in 0.04 seconds
+[Package Manager] Done registering packages in 0.06 seconds
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
 [ScriptCompilation] Requested script compilation because: AssetDatabase observed changes in script compilation related files
@@ -245,16 +245,16 @@ info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 65.9243ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 77.8870ms
 Starting: C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
 WorkingDir: C:/Unity/code
 DisplayProgressbar: Compiling Scripts
-ExitCode: 4 Duration: 0s881ms
+ExitCode: 4 Duration: 0s859ms
 Rebuilding DAG because FileSignature timestamp changed: Library/Bee/1900b0aE-inputdata.json
-*** Tundra requires additional run (0.81 seconds), 0 items updated, 39 evaluated
+*** Tundra requires additional run (0.79 seconds), 0 items updated, 2 evaluated
 Starting: C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\netcorerun\netcorerun.exe "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Tools\BuildPipeline\ScriptCompilationBuildProgram.exe" "Library/Bee/1900b0aE.dag.json" "Library/Bee/1900b0aE-inputdata.json" "Library\Bee\buildprogram0.traceevents"
 WorkingDir: C:/Unity/code
-ExitCode: 0 Duration: 4s964ms
+ExitCode: 0 Duration: 5s963ms
 Starting: C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --dagfilejson="Library\Bee\1900b0aE.dag.json" --profile="Library/Bee/backend2.traceevents" ScriptAssemblies
 WorkingDir: C:/Unity/code
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
@@ -272,7 +272,57 @@ info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 219.1000ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 199.2657ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.Core.dll, with 144 defines and 282 references
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.Effects.dll, with 144 defines and 279 references
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 1132.3364ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 1148.9232ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.Systems.dll, with 144 defines and 286 references
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Burst.Cecil.Rocks, Version=0.11.6.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@6bb9aca3ef38\Unity.Burst.CodeGen\Unity.Burst.Cecil.Rocks.dll
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 511.4457ms
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
@@ -288,7 +338,7 @@ info: Unity.ILPP.Runner.PostProcessingPipeline[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 50.0865ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 29.1231ms
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
@@ -307,12 +357,10 @@ info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
       Resolved UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
-      Resolved Unity.Burst.Cecil.Rocks, Version=0.11.6.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@6bb9aca3ef38\Unity.Burst.CodeGen\Unity.Burst.Cecil.Rocks.dll
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 1060.7101ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 986.0497ms
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
@@ -328,133 +376,356 @@ info: Unity.ILPP.Runner.PostProcessingPipeline[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 163.5106ms
-Assets\Scripts\UI\EquipmentWindow.cs(105,28): warning CS0114: 'EquipmentWindow.Toggle()' hides inherited member 'UIWindow.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\AchievementUTK.cs(55,28): warning CS0114: 'AchievementUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\AlchemyStationUTK.cs(45,28): warning CS0114: 'AlchemyStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ArenaBattleUTK.cs(52,28): warning CS0114: 'ArenaBattleUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ArenaMenuUTK.cs(57,28): warning CS0114: 'ArenaMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ChurchUTK.cs(41,28): warning CS0114: 'ChurchUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ChurchUTK.cs(59,32): warning CS0108: 'ChurchUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
-Assets\Scripts\UI\Toolkit\CookingWindowUTK.cs(46,28): warning CS0114: 'CookingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\GasSprayUTK.cs(39,28): warning CS0114: 'GasSprayUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\CraftingWindowUTK.cs(58,28): warning CS0114: 'CraftingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\TutorialGuideUTK.cs(77,28): warning CS0114: 'TutorialGuideUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\NPCDialogueUTK.cs(49,28): warning CS0114: 'NPCDialogueUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(54,28): warning CS0114: 'DynamicEventUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(60,28): warning CS0114: 'DynamicEventUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\OptionsUTK.cs(43,28): warning CS0114: 'OptionsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\EncyclopediaWindowUTK.cs(63,28): warning CS0114: 'EncyclopediaWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(52,28): warning CS0114: 'PlayerFlagUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\QuestChoiceUTK.cs(58,28): warning CS0114: 'QuestChoiceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\EnvoyMissionUTK.cs(46,28): warning CS0114: 'EnvoyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\QuestJournalUTK.cs(62,28): warning CS0114: 'QuestJournalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\EquipmentWindowUTK.cs(46,28): warning CS0114: 'EquipmentWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\QuestWindowUTK.cs(64,28): warning CS0114: 'QuestWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\FastTravelUTK.cs(45,28): warning CS0114: 'FastTravelUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\FestivalUTK.cs(55,28): warning CS0114: 'FestivalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\FestivalUTK.cs(61,28): warning CS0114: 'FestivalUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(46,28): warning CS0114: 'ReadDocumentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(60,23): warning CS0108: 'ReadDocumentUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
-Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(92,28): warning CS0114: 'ItemDescriptionWindowUTK.Show()' hides inherited member 'UTKWindowBase.Show()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(100,28): warning CS0114: 'ItemDescriptionWindowUTK.Hide()' hides inherited member 'UTKWindowBase.Hide()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(137,28): warning CS0108: 'ItemDescriptionWindowUTK.Clear()' hides inherited member 'VisualElement.Clear()'. Use the new keyword if hiding was intended.
-Assets\Scripts\UI\Toolkit\FishingUTK.cs(131,28): warning CS0114: 'FishingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\RepairStationUTK.cs(45,28): warning CS0114: 'RepairStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\GameStatsUTK.cs(59,28): warning CS0114: 'GameStatsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(41,28): warning CS0114: 'WorldMapWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\RevengeListUTK.cs(46,28): warning CS0114: 'RevengeListUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\MercenaryHireUTK.cs(47,28): warning CS0114: 'MercenaryHireUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\LockpickingUTK.cs(142,28): warning CS0114: 'LockpickingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\MercyUTK.cs(173,28): warning CS0114: 'MercyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\SpyMissionUTK.cs(47,28): warning CS0114: 'SpyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\SettingsMenuUTK.cs(49,28): warning CS0114: 'SettingsMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\LordAudienceUTK.cs(49,28): warning CS0114: 'LordAudienceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\NPCDailyUTK.cs(37,28): warning CS0114: 'NPCDailyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\NPCDailyUTK.cs(43,28): warning CS0114: 'NPCDailyUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\TerritoryDeploymentUTK.cs(44,28): warning CS0114: 'TerritoryDeploymentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\TerritoryNPCSpawner.cs(259,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
-Assets\Scripts\UI\Toolkit\GuardSquadHotbarUTK.cs(334,38): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
-Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(72,22): warning CS0414: The field 'PlayerFlagUTK._showMessage' is assigned but its value is never used
-Assets\Travis Game Assets\Hit Impact Effects\Demo Scene\Scripts\HitImpactEffectsPreview.cs(28,21): warning CS0108: 'HitImpactEffectsPreview.light' hides inherited member 'Component.light'. Use the new keyword if hiding was intended.
-Assets\Editor\DayNightCycleReferenceFixer.cs(24,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
-Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
-Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
-Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
-Assets\Editor\FixAllCriticalIssues.cs(207,27): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\FixAllCriticalIssues.cs(216,32): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\FixAllCriticalIssues.cs(225,28): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\FixAllCriticalIssues.cs(242,25): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\IndoorShellMenu.cs(30,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\Editor\IndoorShellMenu.cs(30,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\VFXResourceInstaller.cs(279,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
-Assets\Editor\FixMainScene.cs(938,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\Editor\MonsterRigScanTool.cs(170,51): warning CS0184: The given expression is never of the provided ('AnimatorController') type
-ExitCode: 0 Duration: 20s
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 118.7658ms
+ExitCode: 0 Duration: 25s
 Finished compiling graph: 1427 nodes, 29221 flattened edges (23607 ToBuild, 236 ToUse), maximum node priority 1604
-[ 863/1423  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
-[BUSY       6s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll (+2 others)
-[1411/1423  9s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll (+2 others)
+[ 581/1423  0s] WriteText Library/Bee/artifacts/1900b0aE.dag/ProjectName.Systems.rsp
+[ 916/1423  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[1399/1423  5s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.Core.dll (+2 others)
+Assets\Scripts\Core\CameraShake.cs(16,40): warning CS0414: The field 'CameraShake._shakeFrequency' is assigned but its value is never used
+[1401/1423  1s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/ProjectName.Effects.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.Effects.dll, with 144 defines and 279 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1402/1423  1s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/ProjectName.Core.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.Core.dll, with 144 defines and 282 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1405/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.Core.pdb
+[1406/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.Core.dll
+[BUSY       7s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.Systems.dll (+2 others)
+[1407/1423  8s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.Systems.dll (+2 others)
+Assets\Scripts\Systems\AnimalAI.cs(93,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(256,16): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(32,9): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Combat\ProceduralAttack.cs(204,34): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(790,16): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(27,26): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(67,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(293,38): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(429,35): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(502,40): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(596,35): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(688,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(801,36): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(819,40): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(873,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(880,39): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(895,41): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(919,20): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1025,72): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\HerbPickup.cs(48,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\PlayerCombat.cs(47,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\PlayerMovement.cs(147,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Procedural\ParentVelocityProvider.cs(10,30): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\CinemachineCameraBinder.cs(150,41): warning CS0252: Possible unintended reference comparison; to get a value comparison, cast the left hand side to type 'Object'
+
+Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(104,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(107,59): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\AnimalAI.cs(442,43): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\ProgressiveRolloutManager.cs(163,31): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1029,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1030,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1031,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1032,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1033,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1034,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1035,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1036,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1037,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1038,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\MLRuntimeManager.cs(450,22): warning CS0219: The variable 'done' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestPlayerSetup.cs(85,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\TestPlayerSetup.cs(88,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\TestPlayerSetup.cs(92,33): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\TestPlayerSetup.cs(94,33): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\TestPlayerAnimatorBoot.cs(146,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(249,54): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(294,54): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\TestTerritoryCombatSetup.cs(758,108): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Scripts\Systems\TestTerritoryCombatSetup.cs(758,32): warning CS0618: 'Object.FindObjectsByType(Type, FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType(Type) or FindObjectsByType(Type, FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(364,37): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(365,37): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(366,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(367,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\Evaluation\ABTestFramework.cs(112,31): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(599,108): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(599,32): warning CS0618: 'Object.FindObjectsByType(Type, FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType(Type) or FindObjectsByType(Type, FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1007,37): warning CS0618: 'ProceduralLODManager' is obsolete: 'Use NeuralAnimationController with ONNX policies instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1010,36): warning CS0618: 'ProceduralLODManager' is obsolete: 'Use NeuralAnimationController with ONNX policies instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1165,56): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1165,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1166,62): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1166,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1187,71): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1187,41): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1224,56): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1224,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1225,62): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1225,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1243,61): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1243,31): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1264,65): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1264,35): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Scripts\Systems\TerrainTextureApplier.cs(209,70): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Scripts\Systems\TerrainTextureApplier.cs(209,31): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Scripts\Systems\TerritoryBuilder.cs(616,97): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Scripts\Systems\TerritoryBuilder.cs(616,29): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Scripts\Systems\TerritoryBuilder.cs(619,91): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Scripts\Systems\TerritoryBuilder.cs(619,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Scripts\Systems\TerritoryBuilder.cs(623,88): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Scripts\Systems\TerritoryBuilder.cs(623,30): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Scripts\Systems\TerrainPathGenerator.cs(320,19): warning CS0219: The variable 'halfW2' is assigned but its value is never used
+
+Assets\Scripts\Systems\SoldierIdlePose.cs(115,52): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
+
+Assets\Scripts\Systems\PlayerCombat.cs(138,54): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\PlayerCombat.cs(143,58): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\PlayerMovement.cs(220,62): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\PlayerMovement.cs(225,66): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\MountSystem.cs(441,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\MountSystem.cs(495,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\MountSystem.cs(503,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\MountSystem.cs(561,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\MountSystem.cs(569,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\LightShaftBillboard.cs(259,52): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\Scripts\Systems\LightShaftBillboard.cs(259,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\Scripts\Systems\HerbPickup.cs(144,72): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\HerbPickup.cs(149,68): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\HumanoidClipDriver.cs(281,49): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\HumanoidClipDriver.cs(531,21): warning CS0162: Unreachable code detected
+
+Assets\Scripts\Systems\HumanoidClipDriver.cs(598,13): warning CS0162: Unreachable code detected
+
+Assets\Scripts\Systems\Combat\ProceduralAttack.cs(248,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Combat\Damageable.cs(129,45): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\IdyllicDecoPlacer.cs(1614,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
+
+Assets\Scripts\Systems\Combat\Damageable.cs(140,45): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+
+Assets\Scripts\Systems\Animation\Neural\ModelManagement\AvatarFineTuningConfig.cs(15,47): warning CS0414: The field 'AvatarFineTuningConfig._aggressionBias' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestTerritorySetup.cs(31,40): warning CS0414: The field 'TestTerritorySetup._defaultPitch' is assigned but its value is never used
+
+Assets\Scripts\Systems\Animation\Procedural\ProceduralAnimationController.cs(66,47): warning CS0414: The field 'ProceduralAnimationController.headStabilization' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(35,40): warning CS0414: The field 'TestAllInOneSetup._defaultPitch' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestCraftSetup.cs(30,40): warning CS0414: The field 'TestCraftSetup._orbitRadius' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestCraftSetup.cs(31,40): warning CS0414: The field 'TestCraftSetup._defaultPitch' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(29,40): warning CS0414: The field 'TestAllInOneSetup._walkSpeed' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestTerritorySetup.cs(27,40): warning CS0414: The field 'TestTerritorySetup._runSpeed' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(31,40): warning CS0414: The field 'TestAllInOneSetup._jumpHeight' is assigned but its value is never used
+
+Assets\Scripts\Systems\TemperatureSystem.cs(17,40): warning CS0414: The field 'TemperatureSystem._changeRate' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(34,40): warning CS0414: The field 'TestAllInOneSetup._orbitRadius' is assigned but its value is never used
+
+Assets\Scripts\Systems\Animation\Procedural\LOD\ProceduralLODSystem.cs(137,31): warning CS0414: The field 'ProceduralLODManager._enableFrustumCulling' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestCombatSetup.cs(15,38): warning CS0414: The field 'TestCombatSetup._monsterCount' is assigned but its value is never used
+
+Assets\Scripts\Systems\QuadrupedPoseController.cs(24,55): warning CS0414: The field 'QuadrupedPoseController._stepPhaseOffset' is assigned but its value is never used
+
+Assets\Scripts\Systems\QuadrupedProceduralAnimation.cs(44,40): warning CS0414: The field 'QuadrupedProceduralAnimation._dutyCycle' is assigned but its value is never used
+
+Assets\Scripts\Systems\Animation\Procedural\ProceduralAnimationController.cs(65,47): warning CS0414: The field 'ProceduralAnimationController.armSwingAmount' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestCombatSetup.cs(18,40): warning CS0414: The field 'TestCombatSetup._walkSpeed' is assigned but its value is never used
+
+Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(58,31): warning CS0414: The field 'HybridAnimationController._useLODManager' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestPlayerSetup.cs(25,36): warning CS0414: The field 'TestPlayerSetup._orbitRadius' is assigned but its value is never used
+
+Assets\Scripts\Systems\QuadrupedProceduralLocomotion.cs(32,40): warning CS0414: The field 'QuadrupedProceduralLocomotion._dutyCycle' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestTerritorySetup.cs(26,40): warning CS0414: The field 'TestTerritorySetup._walkSpeed' is assigned but its value is never used
+
+Assets\Scripts\Systems\QuadrupedProceduralAnimation.cs(38,55): warning CS0414: The field 'QuadrupedProceduralAnimation._spineIKWeight' is assigned but its value is never used
+
+Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(63,47): warning CS0414: The field 'HybridAnimationController._rootMotionProceduralWeight' is assigned but its value is never used
+
+Assets\Scripts\Systems\Animation\Neural\ModelManagement\AvatarFineTuningConfig.cs(16,47): warning CS0414: The field 'AvatarFineTuningConfig._defenseBias' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestPlayerSetup.cs(26,36): warning CS0414: The field 'TestPlayerSetup._defaultPitch' is assigned but its value is never used
+
+Assets\Scripts\Systems\Animation\Neural\ModelManagement\AvatarFineTuningConfig.cs(17,47): warning CS0414: The field 'AvatarFineTuningConfig._evasionBias' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestCraftSetup.cs(26,40): warning CS0414: The field 'TestCraftSetup._walkSpeed' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestCraftSetup.cs(27,40): warning CS0414: The field 'TestCraftSetup._runSpeed' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestAllInOneSetup.cs(30,40): warning CS0414: The field 'TestAllInOneSetup._runSpeed' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestTerritorySetup.cs(30,40): warning CS0414: The field 'TestTerritorySetup._orbitRadius' is assigned but its value is never used
+
+Assets\Scripts\Systems\Animation\Procedural\SpecialCreatureAnimator.cs(30,32): warning CS0414: The field 'SpecialCreatureAnimator._turnSpeed' is assigned but its value is never used
+
+Assets\Scripts\Systems\Animation\Procedural\ProceduralAnimationController.cs(210,14): warning CS0414: The field 'ProceduralAnimationController._lodSpineWaveEnabled' is assigned but its value is never used
+
+Assets\Scripts\Systems\TestCombatSetup.cs(19,40): warning CS0414: The field 'TestCombatSetup._runSpeed' is assigned but its value is never used
+
+Assets\Scripts\Systems\QuadrupedProceduralAnimation.cs(101,23): warning CS0414: The field 'QuadrupedProceduralAnimation._actionTimer' is assigned but its value is never used
+[1408/1423  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/ProjectName.Systems.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.Systems.dll, with 144 defines and 286 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1409/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.Systems.pdb
+[1410/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.Systems.dll
+[1411/1423  4s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll (+2 others)
 Assets\Scripts\UI\EquipmentWindow.cs(105,28): warning CS0114: 'EquipmentWindow.Toggle()' hides inherited member 'UIWindow.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\AchievementUTK.cs(55,28): warning CS0114: 'AchievementUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
+Assets\Scripts\UI\Toolkit\NPCDialogueUTK.cs(49,28): warning CS0114: 'NPCDialogueUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\GasSprayUTK.cs(39,28): warning CS0114: 'GasSprayUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
 Assets\Scripts\UI\Toolkit\AlchemyStationUTK.cs(45,28): warning CS0114: 'AlchemyStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\OptionsUTK.cs(43,28): warning CS0114: 'OptionsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\ArenaBattleUTK.cs(52,28): warning CS0114: 'ArenaBattleUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
+Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(52,28): warning CS0114: 'PlayerFlagUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
 Assets\Scripts\UI\Toolkit\ArenaMenuUTK.cs(57,28): warning CS0114: 'ArenaMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\QuestChoiceUTK.cs(58,28): warning CS0114: 'QuestChoiceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\QuestJournalUTK.cs(62,28): warning CS0114: 'QuestJournalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\ChurchUTK.cs(41,28): warning CS0114: 'ChurchUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\ChurchUTK.cs(59,32): warning CS0108: 'ChurchUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
 
-Assets\Scripts\UI\Toolkit\CookingWindowUTK.cs(46,28): warning CS0114: 'CookingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\GasSprayUTK.cs(39,28): warning CS0114: 'GasSprayUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\CraftingWindowUTK.cs(58,28): warning CS0114: 'CraftingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\TutorialGuideUTK.cs(77,28): warning CS0114: 'TutorialGuideUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\NPCDialogueUTK.cs(49,28): warning CS0114: 'NPCDialogueUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(54,28): warning CS0114: 'DynamicEventUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(60,28): warning CS0114: 'DynamicEventUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\OptionsUTK.cs(43,28): warning CS0114: 'OptionsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\EncyclopediaWindowUTK.cs(63,28): warning CS0114: 'EncyclopediaWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(52,28): warning CS0114: 'PlayerFlagUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\QuestChoiceUTK.cs(58,28): warning CS0114: 'QuestChoiceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\EnvoyMissionUTK.cs(46,28): warning CS0114: 'EnvoyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\QuestJournalUTK.cs(62,28): warning CS0114: 'QuestJournalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\EquipmentWindowUTK.cs(46,28): warning CS0114: 'EquipmentWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
 Assets\Scripts\UI\Toolkit\QuestWindowUTK.cs(64,28): warning CS0114: 'QuestWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\FastTravelUTK.cs(45,28): warning CS0114: 'FastTravelUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\FestivalUTK.cs(55,28): warning CS0114: 'FestivalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\FestivalUTK.cs(61,28): warning CS0114: 'FestivalUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(41,28): warning CS0114: 'WorldMapWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(46,28): warning CS0114: 'ReadDocumentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(60,23): warning CS0108: 'ReadDocumentUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
+
+Assets\Scripts\UI\Toolkit\CookingWindowUTK.cs(46,28): warning CS0114: 'CookingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\RepairStationUTK.cs(45,28): warning CS0114: 'RepairStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\FastTravelUTK.cs(45,28): warning CS0114: 'FastTravelUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\CraftingWindowUTK.cs(58,28): warning CS0114: 'CraftingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(92,28): warning CS0114: 'ItemDescriptionWindowUTK.Show()' hides inherited member 'UTKWindowBase.Show()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
@@ -462,33 +733,45 @@ Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(100,28): warning CS0114: '
 
 Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(137,28): warning CS0108: 'ItemDescriptionWindowUTK.Clear()' hides inherited member 'VisualElement.Clear()'. Use the new keyword if hiding was intended.
 
-Assets\Scripts\UI\Toolkit\FishingUTK.cs(131,28): warning CS0114: 'FishingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\RepairStationUTK.cs(45,28): warning CS0114: 'RepairStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\GameStatsUTK.cs(59,28): warning CS0114: 'GameStatsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(41,28): warning CS0114: 'WorldMapWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
 Assets\Scripts\UI\Toolkit\RevengeListUTK.cs(46,28): warning CS0114: 'RevengeListUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\MercenaryHireUTK.cs(47,28): warning CS0114: 'MercenaryHireUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\FestivalUTK.cs(55,28): warning CS0114: 'FestivalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\FestivalUTK.cs(61,28): warning CS0114: 'FestivalUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\TutorialGuideUTK.cs(77,28): warning CS0114: 'TutorialGuideUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(54,28): warning CS0114: 'DynamicEventUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(60,28): warning CS0114: 'DynamicEventUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\LockpickingUTK.cs(142,28): warning CS0114: 'LockpickingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\MercyUTK.cs(173,28): warning CS0114: 'MercyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\SpyMissionUTK.cs(47,28): warning CS0114: 'SpyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
 Assets\Scripts\UI\Toolkit\SettingsMenuUTK.cs(49,28): warning CS0114: 'SettingsMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\LordAudienceUTK.cs(49,28): warning CS0114: 'LordAudienceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\EncyclopediaWindowUTK.cs(63,28): warning CS0114: 'EncyclopediaWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\MercyUTK.cs(173,28): warning CS0114: 'MercyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\MercenaryHireUTK.cs(47,28): warning CS0114: 'MercenaryHireUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\NPCDailyUTK.cs(37,28): warning CS0114: 'NPCDailyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\NPCDailyUTK.cs(43,28): warning CS0114: 'NPCDailyUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
+Assets\Scripts\UI\Toolkit\SpyMissionUTK.cs(47,28): warning CS0114: 'SpyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\FishingUTK.cs(131,28): warning CS0114: 'FishingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\GameStatsUTK.cs(59,28): warning CS0114: 'GameStatsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\LordAudienceUTK.cs(49,28): warning CS0114: 'LordAudienceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
 Assets\Scripts\UI\Toolkit\TerritoryDeploymentUTK.cs(44,28): warning CS0114: 'TerritoryDeploymentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\EnvoyMissionUTK.cs(46,28): warning CS0114: 'EnvoyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\EquipmentWindowUTK.cs(46,28): warning CS0114: 'EquipmentWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\TerritoryNPCSpawner.cs(259,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
 
@@ -505,7 +788,7 @@ running Unity.Jobs.CodeGen.JobsILPostProcessor
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
 [1413/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.pdb
 [1414/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.dll
-[1415/1423  1s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll (+2 others)
+[1415/1423  0s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll (+2 others)
 Assets\Travis Game Assets\Hit Impact Effects\Demo Scene\Scripts\HitImpactEffectsPreview.cs(28,21): warning CS0108: 'HitImpactEffectsPreview.light' hides inherited member 'Component.light'. Use the new keyword if hiding was intended.
 [1416/1423  1s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
 Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 144 defines and 357 references
@@ -516,21 +799,14 @@ running Unity.Jobs.CodeGen.JobsILPostProcessor
 
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
 [1417/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.pdb
-[1418/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.dll
-[1419/1423  2s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
+[1418/1423  1s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
 Assets\Editor\DayNightCycleReferenceFixer.cs(24,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
 Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
 Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
-Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
-
-Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
-
-Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
-
-Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
 Assets\Editor\FixAllCriticalIssues.cs(207,27): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
@@ -540,17 +816,24 @@ Assets\Editor\FixAllCriticalIssues.cs(225,28): warning CS0618: 'Object.FindFirst
 
 Assets\Editor\FixAllCriticalIssues.cs(242,25): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
+Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+
 Assets\Editor\IndoorShellMenu.cs(30,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
 Assets\Editor\IndoorShellMenu.cs(30,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
-Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
 
-Assets\Editor\VFXResourceInstaller.cs(279,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
+Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+
+Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
 
 Assets\Editor\FixMainScene.cs(938,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
+Assets\Editor\VFXResourceInstaller.cs(279,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
+
 Assets\Editor\MonsterRigScanTool.cs(170,51): warning CS0184: The given expression is never of the provided ('AnimatorController') type
+[1419/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.dll
 [1420/1423  0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
 Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 383 references
 
@@ -561,8 +844,210 @@ running Unity.Jobs.CodeGen.JobsILPostProcessor
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
 [1421/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
 [1422/1423  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
-*** Tundra build success (19.97 seconds), 13 items updated, 1423 evaluated
-AssetDatabase: script compilation time: 27.022754s
+*** Tundra build success (25.10 seconds), 23 items updated, 1423 evaluated
+Assets\Scripts\Core\CameraShake.cs(16,40): warning CS0414: The field 'CameraShake._shakeFrequency' is assigned but its value is never used
+Assets\Scripts\Systems\AnimalAI.cs(93,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(256,16): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(32,9): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Combat\ProceduralAttack.cs(204,34): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(790,16): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(27,26): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(67,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(293,38): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(429,35): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(502,40): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(596,35): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(688,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(801,36): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(819,40): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(873,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(880,39): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(895,41): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Procedural\Debug\ProceduralAnimDebugger.cs(919,20): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1025,72): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\HerbPickup.cs(48,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\PlayerCombat.cs(47,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\PlayerMovement.cs(147,17): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Procedural\ParentVelocityProvider.cs(10,30): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\CinemachineCameraBinder.cs(150,41): warning CS0252: Possible unintended reference comparison; to get a value comparison, cast the left hand side to type 'Object'
+Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(104,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\ModelAnimatorAssigner.cs(107,59): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\AnimalAI.cs(442,43): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\ProgressiveRolloutManager.cs(163,31): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1029,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1030,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1031,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1032,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1033,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1034,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1035,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1036,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1037,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\PolicySelector.cs(1038,22): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\MLRuntimeManager.cs(450,22): warning CS0219: The variable 'done' is assigned but its value is never used
+Assets\Scripts\Systems\TestPlayerSetup.cs(85,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\TestPlayerSetup.cs(88,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\TestPlayerSetup.cs(92,33): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\TestPlayerSetup.cs(94,33): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\TestPlayerAnimatorBoot.cs(146,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(249,54): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(294,54): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\TestTerritoryCombatSetup.cs(758,108): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Scripts\Systems\TestTerritoryCombatSetup.cs(758,32): warning CS0618: 'Object.FindObjectsByType(Type, FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType(Type) or FindObjectsByType(Type, FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(364,37): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(365,37): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(366,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(367,37): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\Evaluation\ABTestFramework.cs(112,31): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(599,108): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(599,32): warning CS0618: 'Object.FindObjectsByType(Type, FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType(Type) or FindObjectsByType(Type, FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1007,37): warning CS0618: 'ProceduralLODManager' is obsolete: 'Use NeuralAnimationController with ONNX policies instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1010,36): warning CS0618: 'ProceduralLODManager' is obsolete: 'Use NeuralAnimationController with ONNX policies instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1165,56): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1165,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1166,62): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1166,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1187,71): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1187,41): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1224,56): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1224,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1225,62): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1225,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1243,61): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1243,31): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1264,65): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Scripts\Systems\TestAllInOneSetup.cs(1264,35): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Scripts\Systems\TerrainTextureApplier.cs(209,70): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Scripts\Systems\TerrainTextureApplier.cs(209,31): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Scripts\Systems\TerritoryBuilder.cs(616,97): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Scripts\Systems\TerritoryBuilder.cs(616,29): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Scripts\Systems\TerritoryBuilder.cs(619,91): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Scripts\Systems\TerritoryBuilder.cs(619,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Scripts\Systems\TerritoryBuilder.cs(623,88): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Scripts\Systems\TerritoryBuilder.cs(623,30): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Scripts\Systems\TerrainPathGenerator.cs(320,19): warning CS0219: The variable 'halfW2' is assigned but its value is never used
+Assets\Scripts\Systems\SoldierIdlePose.cs(115,52): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
+Assets\Scripts\Systems\PlayerCombat.cs(138,54): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\PlayerCombat.cs(143,58): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\PlayerMovement.cs(220,62): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\PlayerMovement.cs(225,66): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\MountSystem.cs(441,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\MountSystem.cs(495,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\MountSystem.cs(503,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\MountSystem.cs(561,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\MountSystem.cs(569,83): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\LightShaftBillboard.cs(259,52): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Scripts\Systems\LightShaftBillboard.cs(259,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Scripts\Systems\HerbPickup.cs(144,72): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\HerbPickup.cs(149,68): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\HumanoidClipDriver.cs(281,49): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\HumanoidClipDriver.cs(531,21): warning CS0162: Unreachable code detected
+Assets\Scripts\Systems\HumanoidClipDriver.cs(598,13): warning CS0162: Unreachable code detected
+Assets\Scripts\Systems\Combat\ProceduralAttack.cs(248,44): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Combat\Damageable.cs(129,45): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\IdyllicDecoPlacer.cs(1614,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
+Assets\Scripts\Systems\Combat\Damageable.cs(140,45): warning CS0618: 'ProceduralAnimStateMachine' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\Systems\Animation\Neural\ModelManagement\AvatarFineTuningConfig.cs(15,47): warning CS0414: The field 'AvatarFineTuningConfig._aggressionBias' is assigned but its value is never used
+Assets\Scripts\Systems\TestTerritorySetup.cs(31,40): warning CS0414: The field 'TestTerritorySetup._defaultPitch' is assigned but its value is never used
+Assets\Scripts\Systems\Animation\Procedural\ProceduralAnimationController.cs(66,47): warning CS0414: The field 'ProceduralAnimationController.headStabilization' is assigned but its value is never used
+Assets\Scripts\Systems\TestAllInOneSetup.cs(35,40): warning CS0414: The field 'TestAllInOneSetup._defaultPitch' is assigned but its value is never used
+Assets\Scripts\Systems\TestCraftSetup.cs(30,40): warning CS0414: The field 'TestCraftSetup._orbitRadius' is assigned but its value is never used
+Assets\Scripts\Systems\TestCraftSetup.cs(31,40): warning CS0414: The field 'TestCraftSetup._defaultPitch' is assigned but its value is never used
+Assets\Scripts\Systems\TestAllInOneSetup.cs(29,40): warning CS0414: The field 'TestAllInOneSetup._walkSpeed' is assigned but its value is never used
+Assets\Scripts\Systems\TestTerritorySetup.cs(27,40): warning CS0414: The field 'TestTerritorySetup._runSpeed' is assigned but its value is never used
+Assets\Scripts\Systems\TestAllInOneSetup.cs(31,40): warning CS0414: The field 'TestAllInOneSetup._jumpHeight' is assigned but its value is never used
+Assets\Scripts\Systems\TemperatureSystem.cs(17,40): warning CS0414: The field 'TemperatureSystem._changeRate' is assigned but its value is never used
+Assets\Scripts\Systems\TestAllInOneSetup.cs(34,40): warning CS0414: The field 'TestAllInOneSetup._orbitRadius' is assigned but its value is never used
+Assets\Scripts\Systems\Animation\Procedural\LOD\ProceduralLODSystem.cs(137,31): warning CS0414: The field 'ProceduralLODManager._enableFrustumCulling' is assigned but its value is never used
+Assets\Scripts\Systems\TestCombatSetup.cs(15,38): warning CS0414: The field 'TestCombatSetup._monsterCount' is assigned but its value is never used
+Assets\Scripts\Systems\QuadrupedPoseController.cs(24,55): warning CS0414: The field 'QuadrupedPoseController._stepPhaseOffset' is assigned but its value is never used
+Assets\Scripts\Systems\QuadrupedProceduralAnimation.cs(44,40): warning CS0414: The field 'QuadrupedProceduralAnimation._dutyCycle' is assigned but its value is never used
+Assets\Scripts\Systems\Animation\Procedural\ProceduralAnimationController.cs(65,47): warning CS0414: The field 'ProceduralAnimationController.armSwingAmount' is assigned but its value is never used
+Assets\Scripts\Systems\TestCombatSetup.cs(18,40): warning CS0414: The field 'TestCombatSetup._walkSpeed' is assigned but its value is never used
+Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(58,31): warning CS0414: The field 'HybridAnimationController._useLODManager' is assigned but its value is never used
+Assets\Scripts\Systems\TestPlayerSetup.cs(25,36): warning CS0414: The field 'TestPlayerSetup._orbitRadius' is assigned but its value is never used
+Assets\Scripts\Systems\QuadrupedProceduralLocomotion.cs(32,40): warning CS0414: The field 'QuadrupedProceduralLocomotion._dutyCycle' is assigned but its value is never used
+Assets\Scripts\Systems\TestTerritorySetup.cs(26,40): warning CS0414: The field 'TestTerritorySetup._walkSpeed' is assigned but its value is never used
+Assets\Scripts\Systems\QuadrupedProceduralAnimation.cs(38,55): warning CS0414: The field 'QuadrupedProceduralAnimation._spineIKWeight' is assigned but its value is never used
+Assets\Scripts\Systems\Animation\Neural\HybridAnimationController.cs(63,47): warning CS0414: The field 'HybridAnimationController._rootMotionProceduralWeight' is assigned but its value is never used
+Assets\Scripts\Systems\Animation\Neural\ModelManagement\AvatarFineTuningConfig.cs(16,47): warning CS0414: The field 'AvatarFineTuningConfig._defenseBias' is assigned but its value is never used
+Assets\Scripts\Systems\TestPlayerSetup.cs(26,36): warning CS0414: The field 'TestPlayerSetup._defaultPitch' is assigned but its value is never used
+Assets\Scripts\Systems\Animation\Neural\ModelManagement\AvatarFineTuningConfig.cs(17,47): warning CS0414: The field 'AvatarFineTuningConfig._evasionBias' is assigned but its value is never used
+Assets\Scripts\Systems\TestCraftSetup.cs(26,40): warning CS0414: The field 'TestCraftSetup._walkSpeed' is assigned but its value is never used
+Assets\Scripts\Systems\TestCraftSetup.cs(27,40): warning CS0414: The field 'TestCraftSetup._runSpeed' is assigned but its value is never used
+Assets\Scripts\Systems\TestAllInOneSetup.cs(30,40): warning CS0414: The field 'TestAllInOneSetup._runSpeed' is assigned but its value is never used
+Assets\Scripts\Systems\TestTerritorySetup.cs(30,40): warning CS0414: The field 'TestTerritorySetup._orbitRadius' is assigned but its value is never used
+Assets\Scripts\Systems\Animation\Procedural\SpecialCreatureAnimator.cs(30,32): warning CS0414: The field 'SpecialCreatureAnimator._turnSpeed' is assigned but its value is never used
+Assets\Scripts\Systems\Animation\Procedural\ProceduralAnimationController.cs(210,14): warning CS0414: The field 'ProceduralAnimationController._lodSpineWaveEnabled' is assigned but its value is never used
+Assets\Scripts\Systems\TestCombatSetup.cs(19,40): warning CS0414: The field 'TestCombatSetup._runSpeed' is assigned but its value is never used
+Assets\Scripts\Systems\QuadrupedProceduralAnimation.cs(101,23): warning CS0414: The field 'QuadrupedProceduralAnimation._actionTimer' is assigned but its value is never used
+Assets\Scripts\UI\EquipmentWindow.cs(105,28): warning CS0114: 'EquipmentWindow.Toggle()' hides inherited member 'UIWindow.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\AchievementUTK.cs(55,28): warning CS0114: 'AchievementUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\NPCDialogueUTK.cs(49,28): warning CS0114: 'NPCDialogueUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\GasSprayUTK.cs(39,28): warning CS0114: 'GasSprayUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\AlchemyStationUTK.cs(45,28): warning CS0114: 'AlchemyStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\OptionsUTK.cs(43,28): warning CS0114: 'OptionsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ArenaBattleUTK.cs(52,28): warning CS0114: 'ArenaBattleUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(52,28): warning CS0114: 'PlayerFlagUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ArenaMenuUTK.cs(57,28): warning CS0114: 'ArenaMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\QuestChoiceUTK.cs(58,28): warning CS0114: 'QuestChoiceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\QuestJournalUTK.cs(62,28): warning CS0114: 'QuestJournalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ChurchUTK.cs(41,28): warning CS0114: 'ChurchUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ChurchUTK.cs(59,32): warning CS0108: 'ChurchUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
+Assets\Scripts\UI\Toolkit\QuestWindowUTK.cs(64,28): warning CS0114: 'QuestWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(41,28): warning CS0114: 'WorldMapWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(46,28): warning CS0114: 'ReadDocumentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(60,23): warning CS0108: 'ReadDocumentUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
+Assets\Scripts\UI\Toolkit\CookingWindowUTK.cs(46,28): warning CS0114: 'CookingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\RepairStationUTK.cs(45,28): warning CS0114: 'RepairStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\FastTravelUTK.cs(45,28): warning CS0114: 'FastTravelUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\CraftingWindowUTK.cs(58,28): warning CS0114: 'CraftingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(92,28): warning CS0114: 'ItemDescriptionWindowUTK.Show()' hides inherited member 'UTKWindowBase.Show()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(100,28): warning CS0114: 'ItemDescriptionWindowUTK.Hide()' hides inherited member 'UTKWindowBase.Hide()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(137,28): warning CS0108: 'ItemDescriptionWindowUTK.Clear()' hides inherited member 'VisualElement.Clear()'. Use the new keyword if hiding was intended.
+Assets\Scripts\UI\Toolkit\RevengeListUTK.cs(46,28): warning CS0114: 'RevengeListUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\FestivalUTK.cs(55,28): warning CS0114: 'FestivalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\FestivalUTK.cs(61,28): warning CS0114: 'FestivalUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\TutorialGuideUTK.cs(77,28): warning CS0114: 'TutorialGuideUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(54,28): warning CS0114: 'DynamicEventUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(60,28): warning CS0114: 'DynamicEventUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\LockpickingUTK.cs(142,28): warning CS0114: 'LockpickingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\SettingsMenuUTK.cs(49,28): warning CS0114: 'SettingsMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\EncyclopediaWindowUTK.cs(63,28): warning CS0114: 'EncyclopediaWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\MercyUTK.cs(173,28): warning CS0114: 'MercyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\MercenaryHireUTK.cs(47,28): warning CS0114: 'MercenaryHireUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\NPCDailyUTK.cs(37,28): warning CS0114: 'NPCDailyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\NPCDailyUTK.cs(43,28): warning CS0114: 'NPCDailyUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\SpyMissionUTK.cs(47,28): warning CS0114: 'SpyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\FishingUTK.cs(131,28): warning CS0114: 'FishingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\GameStatsUTK.cs(59,28): warning CS0114: 'GameStatsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\LordAudienceUTK.cs(49,28): warning CS0114: 'LordAudienceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\TerritoryDeploymentUTK.cs(44,28): warning CS0114: 'TerritoryDeploymentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\EnvoyMissionUTK.cs(46,28): warning CS0114: 'EnvoyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\EquipmentWindowUTK.cs(46,28): warning CS0114: 'EquipmentWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\TerritoryNPCSpawner.cs(259,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
+Assets\Scripts\UI\Toolkit\GuardSquadHotbarUTK.cs(334,38): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
+Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(72,22): warning CS0414: The field 'PlayerFlagUTK._showMessage' is assigned but its value is never used
+Assets\Travis Game Assets\Hit Impact Effects\Demo Scene\Scripts\HitImpactEffectsPreview.cs(28,21): warning CS0108: 'HitImpactEffectsPreview.light' hides inherited member 'Component.light'. Use the new keyword if hiding was intended.
+Assets\Editor\DayNightCycleReferenceFixer.cs(24,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\DeepDiagnoseScene.cs(193,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixPhase1_Terrain.cs(51,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\DeepDiagnoseScene.cs(454,21): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixAllCriticalIssues.cs(207,27): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixAllCriticalIssues.cs(216,32): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixAllCriticalIssues.cs(225,28): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\FixAllCriticalIssues.cs(242,25): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\GroundDiagRunner.cs(19,25): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets\Editor\IndoorShellMenu.cs(30,94): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\Editor\IndoorShellMenu.cs(30,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\Editor\FixPhase4_Camera.cs(106,44): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\FixPhase4_Camera.cs(107,62): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\FixPhase4_Camera.cs(113,32): warning CS0618: 'CinemachineCollider' is obsolete: 'CinemachineCollider has been deprecated. Use CinemachineDeoccluder instead'
+Assets\Editor\FixMainScene.cs(938,19): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Editor\VFXResourceInstaller.cs(279,23): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
+Assets\Editor\MonsterRigScanTool.cs(170,51): warning CS0184: The given expression is never of the provided ('AnimatorController') type
+AssetDatabase: script compilation time: 33.145305s
 Begin MonoManager ReloadAssembly
 Assembly Assembly-CSharp-Editor-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-Editor-firstpass.dll not valid. Loading of assembly skipped.
 Assembly Assembly-CSharp-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll not valid. Loading of assembly skipped.
@@ -609,220 +1094,224 @@ Symbol file LoadedFromMemory is not a mono symbol file
 Symbol file LoadedFromMemory is not a mono symbol file
 'Packages/com.unity.cinemachine/Editor/Editors/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
 'Packages/com.unity.cinemachine/Editor/Obsolete/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
-Refreshing native plugins compatible for Editor in 22.98 ms, found 5 plugins.
+Refreshing native plugins compatible for Editor in 9.24 ms, found 5 plugins.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
-Refreshing native plugins compatible for Editor in 8.29 ms, found 5 plugins.
+Refreshing native plugins compatible for Editor in 8.09 ms, found 5 plugins.
 [MODES] ModeService[none].Initialize
 [MODES] ModeService[none].LoadModes
 [MODES] Loading mode Default (0) for mode-current-id-포이즌
 ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  7.552 seconds
-Domain Reload Profiling: 12301ms
-	BeginReloadAssembly (530ms)
+- Finished resetting the current domain, in  8.001 seconds
+Domain Reload Profiling: 13636ms
+	BeginReloadAssembly (515ms)
 		DisableScriptedObjects (37ms)
-		CreateAndSetChildDomain (187ms)
-	RebuildCommonClasses (60ms)
+		CreateAndSetChildDomain (177ms)
+	RebuildCommonClasses (89ms)
 	RebuildNativeTypeToScriptingClass (22ms)
-	initialDomainReloadingComplete (1864ms)
-	LoadAllAssembliesAndSetupDomain (2273ms)
-		LoadAssemblies (1622ms)
-		AnalyzeDomain (847ms)
-			TypeCache.Refresh (632ms)
-				TypeCache.ScanAssembly (598ms)
-			BuildScriptInfoCaches (173ms)
-			ResolveRequiredComponents (35ms)
-	FinalizeReload (7553ms)
+	initialDomainReloadingComplete (2995ms)
+	LoadAllAssembliesAndSetupDomain (2013ms)
+		LoadAssemblies (1465ms)
+		AnalyzeDomain (752ms)
+			TypeCache.Refresh (563ms)
+				TypeCache.ScanAssembly (532ms)
+			BuildScriptInfoCaches (152ms)
+			ResolveRequiredComponents (32ms)
+	FinalizeReload (8002ms)
 		SetupLoadedEditorAssemblies (0ms)
-			InitializePlatformSupportModulesInManaged (49ms)
-			BeforeProcessingInitializeOnLoad (556ms)
-			ProcessInitializeOnLoadAttributes (5495ms)
-			ProcessInitializeOnLoadMethodAttributes (892ms)
+			InitializePlatformSupportModulesInManaged (44ms)
+			BeforeProcessingInitializeOnLoad (579ms)
+			ProcessInitializeOnLoadAttributes (5979ms)
+			ProcessInitializeOnLoadMethodAttributes (909ms)
 			AfterProcessingInitializeOnLoad (14ms)
-			EditorAssembliesLoaded (18ms)
-		AwakeInstancesAfterBackupRestoration (44ms)
-Start importing Packages/com.unity.render-pipelines.core/Tests/Editor/UnifiedRayTracing/TraceRays.urtshader using Guid(1142bbad8b9e8c44c83a9775ff120d37) (ScriptedImporter)Launched and connected shader compiler UnityShaderCompiler.exe after 0.05 seconds
+			EditorAssembliesLoaded (6ms)
+		AwakeInstancesAfterBackupRestoration (41ms)
+Start importing Packages/com.unity.render-pipelines.core/Tests/Editor/UnifiedRayTracing/TraceRays.urtshader using Guid(1142bbad8b9e8c44c83a9775ff120d37) (ScriptedImporter)Launched and connected shader compiler UnityShaderCompiler.exe after 0.08 seconds
 
 Compiling Ray Tracing Shader "TraceRays.urtshader", keywords = <no keywords>
-    finished in 0.05 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '33f398bdfa7c10409c63e16472cf5448') in 1.921104 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=c318fb77de2db73647fab9e98851469d DependenciesID=c4b6cbf45f1a126b654d3ec43ff518b4 StaticDependenciesID=b7859538b7c8061be2c1df0681a26cec 
+    finished in 0.08 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: '33f398bdfa7c10409c63e16472cf5448') in 1.5530402 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=c318fb77de2db73647fab9e98851469d DependenciesID=c4b6cbf45f1a126b654d3ec43ff518b4 StaticDependenciesID=b7859538b7c8061be2c1df0681a26cec 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/RisEstimation.urtshader using Guid(713f6141bd66a134383b787f2eaa7c11) (ScriptedImporter)
 Compiling Ray Tracing Shader "RisEstimation.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '3e0794f61b814c58fba62fbdf018b2be') in 0.0949301 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=eceb737164082aa5ea9ee5b30b9eb0ad DependenciesID=d73329633f0139446b7cd637b36b6fd8 StaticDependenciesID=1251c416255850dca778d66927462604 
+ -> (Import Result ID: '3e0794f61b814c58fba62fbdf018b2be') in 0.1298828 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=eceb737164082aa5ea9ee5b30b9eb0ad DependenciesID=d73329633f0139446b7cd637b36b6fd8 StaticDependenciesID=1251c416255850dca778d66927462604 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapShadowMaskIntegration.urtshader using Guid(d19f4f8a13b6edb48b986a47ec96402e) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapShadowMaskIntegration.urtshader", keywords = <no keywords>
-    finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'f245faaebb45e24d73ea768da04f8d41') in 0.1057556 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=5e53dd02842c7495c53e3d1bc7a78ddc DependenciesID=db81e65f389a69c4574c50cd7e5e276d StaticDependenciesID=dddefbaa39ba5d51a386df5433e82fa1 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'f245faaebb45e24d73ea768da04f8d41') in 0.1066358 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=5e53dd02842c7495c53e3d1bc7a78ddc DependenciesID=db81e65f389a69c4574c50cd7e5e276d StaticDependenciesID=dddefbaa39ba5d51a386df5433e82fa1 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapGBufferDebug.urtshader using Guid(737a1597422c12547a8714d76a9406ec) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapGBufferDebug.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'e5c06b1d2dad6f7975fe60b947e94539') in 0.0250612 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=e0c24e325b6a556ed6c8a59b48713ca2 DependenciesID=baf99c66c6069e7b579c55cd6b4cdb96 StaticDependenciesID=62194a0448f2b8616e1214fb593272db 
+ -> (Import Result ID: 'e5c06b1d2dad6f7975fe60b947e94539') in 0.0342484 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=e0c24e325b6a556ed6c8a59b48713ca2 DependenciesID=baf99c66c6069e7b579c55cd6b4cdb96 StaticDependenciesID=62194a0448f2b8616e1214fb593272db 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapNormalIntegration.urtshader using Guid(1451d029813b192429211be28181beab) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapNormalIntegration.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'ce972ba09ce3ff2cbf02665ead7cd8ab') in 0.0251639 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f3ad37befedec87f4be431be1f35efde DependenciesID=7812c5e79d5bc15a69d0e20c9928e52b StaticDependenciesID=cbe3820d9825e61936c3967ec27e4e90 
+ -> (Import Result ID: 'ce972ba09ce3ff2cbf02665ead7cd8ab') in 0.036397 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f3ad37befedec87f4be431be1f35efde DependenciesID=7812c5e79d5bc15a69d0e20c9928e52b StaticDependenciesID=cbe3820d9825e61936c3967ec27e4e90 
 Start importing Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/RenderingLayerMask/TraceRenderingLayerMask.urtshader using Guid(94a070d33e408384bafc1dea4a565df9) (ScriptedImporter)
 Compiling Ray Tracing Shader "TraceRenderingLayerMask.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '6c2cfebc6165a04b035d10bc02129e6b') in 0.0391722 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=0dc2dececef44bfb87e215abcba869e8 DependenciesID=16de5d81d8af1d6c5b7e34df569e403b StaticDependenciesID=83d03f1fcc976b11b697d3bab0b97d8c 
+ -> (Import Result ID: '6c2cfebc6165a04b035d10bc02129e6b') in 0.0434179 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=0dc2dececef44bfb87e215abcba869e8 DependenciesID=16de5d81d8af1d6c5b7e34df569e403b StaticDependenciesID=83d03f1fcc976b11b697d3bab0b97d8c 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/UniformEstimation.urtshader using Guid(94a39d12848d8d64ca962a72b74e7c50) (ScriptedImporter)
 Compiling Ray Tracing Shader "UniformEstimation.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '82d95866967d7d448c23bb0d2fb10000') in 0.0214458 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=208dd87ba38690ecbdd8ce2ef3a42322 DependenciesID=d6ea983cec9f32cfce64242dd4b8eecc StaticDependenciesID=f100dc97879ef35876f7ad5427566dd9 
+ -> (Import Result ID: '82d95866967d7d448c23bb0d2fb10000') in 0.0215483 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=208dd87ba38690ecbdd8ce2ef3a42322 DependenciesID=d6ea983cec9f32cfce64242dd4b8eecc StaticDependenciesID=f100dc97879ef35876f7ad5427566dd9 
 Start importing Packages/com.unity.render-pipelines.core/Tests/Editor/UnifiedRayTracing/TraceTransparentRays.urtshader using Guid(6513c3b892e933c4f8d00c19d5c47532) (ScriptedImporter)
 Compiling Ray Tracing Shader "TraceTransparentRays.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'bc209695f9cf005a88d081252f657429') in 0.0208827 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=91bbc23bfffb7105b2b114873efdb1f2 DependenciesID=6945867d669fd72bb85a201c6705b033 StaticDependenciesID=5e41b194f27d8b70c797e75555e2b1f0 
+ -> (Import Result ID: 'bc209695f9cf005a88d081252f657429') in 0.0163483 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=91bbc23bfffb7105b2b114873efdb1f2 DependenciesID=6945867d669fd72bb85a201c6705b033 StaticDependenciesID=5e41b194f27d8b70c797e75555e2b1f0 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapIndirectIntegration.urtshader using Guid(7624adbeb148b5c48ab5ab660cc2602a) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapIndirectIntegration.urtshader", keywords = <no keywords>
     finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '67e8c330902cd5e732e06c94bd0f7618') in 0.0397319 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f09eeff93767bc2d4ca4231c8567847d DependenciesID=a6bfb09c833f569387ed01fe5be7f68d StaticDependenciesID=6d19372de11b03798f093933090e79bb 
+ -> (Import Result ID: '67e8c330902cd5e732e06c94bd0f7618') in 0.0356255 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f09eeff93767bc2d4ca4231c8567847d DependenciesID=a6bfb09c833f569387ed01fe5be7f68d StaticDependenciesID=6d19372de11b03798f093933090e79bb 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapGBufferIntegration.urtshader using Guid(e9f4de6d1e07fb94f9a60d35b618f724) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapGBufferIntegration.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'c0f4b2582ffcf2c2ff54d4177df54ac3') in 0.0248139 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=1c0e528a9979685af5e087a9161fbef3 DependenciesID=6581769ff26ea9b7b14b553554989a7c StaticDependenciesID=66dc06979910318021783fcb4ccd3ecc 
+ -> (Import Result ID: 'c0f4b2582ffcf2c2ff54d4177df54ac3') in 0.0297581 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=1c0e528a9979685af5e087a9161fbef3 DependenciesID=6581769ff26ea9b7b14b553554989a7c StaticDependenciesID=66dc06979910318021783fcb4ccd3ecc 
 Start importing Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/DynamicGI/DynamicGISkyOcclusion.urtshader using Guid(5a2a534753fbdb44e96c3c78b5a6999d) (ScriptedImporter)
 Compiling Ray Tracing Shader "DynamicGISkyOcclusion.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'a86cbfdaed43755cb737c6394f2f7dd8') in 0.0239889 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=a874898d18eae9e00b79828747828672 DependenciesID=16df158a22f4c8051a6679df21bb6f16 StaticDependenciesID=18974378deb0e4fc540e6b2321b0ff13 
+ -> (Import Result ID: 'a86cbfdaed43755cb737c6394f2f7dd8') in 0.0214095 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=a874898d18eae9e00b79828747828672 DependenciesID=16df158a22f4c8051a6679df21bb6f16 StaticDependenciesID=18974378deb0e4fc540e6b2321b0ff13 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapDirectIntegration.urtshader using Guid(5bbebdef5916845478fcef13fa10d89f) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapDirectIntegration.urtshader", keywords = <no keywords>
-    finished in 0.02 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'dad1bd87862ce17b1a6f9b60244690d8') in 0.0422777 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=575772a2c318afcd1a335e99619769d8 DependenciesID=4dbce75b84537949726dd242cfb94486 StaticDependenciesID=63188f79534be5f4b9e074ad4af5bfb7 
+    finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'dad1bd87862ce17b1a6f9b60244690d8') in 0.0375868 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=575772a2c318afcd1a335e99619769d8 DependenciesID=4dbce75b84537949726dd242cfb94486 StaticDependenciesID=63188f79534be5f4b9e074ad4af5bfb7 
 Start importing Packages/com.unity.render-pipelines.core/Tests/Editor/UnifiedRayTracing/TraceRaysAndFetchAttributes.urtshader using Guid(fbc59f55df2416344b008dc23753cae2) (ScriptedImporter)
 Compiling Ray Tracing Shader "TraceRaysAndFetchAttributes.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'e7d10f853c78da67c2d4f837eb8ca0a1') in 0.0161932 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=4a191d661b3d19bc4a36fd8aa98bb84f DependenciesID=1a1ad1f36cae5eba17a1cef34e1e16e8 StaticDependenciesID=aa8291e86ea82085a643681c1c779d39 
+ -> (Import Result ID: 'e7d10f853c78da67c2d4f837eb8ca0a1') in 0.0251839 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=4a191d661b3d19bc4a36fd8aa98bb84f DependenciesID=1a1ad1f36cae5eba17a1cef34e1e16e8 StaticDependenciesID=aa8291e86ea82085a643681c1c779d39 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapAOIntegration.urtshader using Guid(1c410815c01ce1d4d82c645c0cd45747) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapAOIntegration.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '7b740e58b85665f099cfd3e5419aa5dc') in 0.0255976 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=6e193c7fad6abe3f3874d7d6f1463481 DependenciesID=e72323d3c7187fd5422b976e024d74e6 StaticDependenciesID=bcaf3aac9727a2ca27155e619d011e5f 
+ -> (Import Result ID: '7b740e58b85665f099cfd3e5419aa5dc') in 0.0282541 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=6e193c7fad6abe3f3874d7d6f1463481 DependenciesID=e72323d3c7187fd5422b976e024d74e6 StaticDependenciesID=bcaf3aac9727a2ca27155e619d011e5f 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/ProbeIntegrationValidity.urtshader using Guid(2c32233d92a2d0745930664c087c5c9a) (ScriptedImporter)
 Compiling Ray Tracing Shader "ProbeIntegrationValidity.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'e33da5794499a03236819bc23dbe3dc4') in 0.0289424 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=d935b17231a0a22067d89f21ab9c2798 DependenciesID=cc1a0c0428cf7c676e0b3197f9173821 StaticDependenciesID=4aea10376946a8225ccdfdec15a70dac 
+ -> (Import Result ID: 'e33da5794499a03236819bc23dbe3dc4') in 0.0252804 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=d935b17231a0a22067d89f21ab9c2798 DependenciesID=cc1a0c0428cf7c676e0b3197f9173821 StaticDependenciesID=4aea10376946a8225ccdfdec15a70dac 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapValidityIntegration.urtshader using Guid(ace95ac84e213794891b4bd7c9b3c158) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapValidityIntegration.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '2afc97fdb6ed91bdf651e0ae5f6d3b94') in 0.0262767 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f7002ecb1d7cf6ba26b81594bf688948 DependenciesID=44c876861aeaaad98c736054441de774 StaticDependenciesID=46d905dacc01197a8e043a8ad4f9d21d 
+ -> (Import Result ID: '2afc97fdb6ed91bdf651e0ae5f6d3b94') in 0.0357423 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f7002ecb1d7cf6ba26b81594bf688948 DependenciesID=44c876861aeaaad98c736054441de774 StaticDependenciesID=46d905dacc01197a8e043a8ad4f9d21d 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/RestirCandidateTemporal.urtshader using Guid(ad3a9f9982f8c4f4a839a78955e78458) (ScriptedImporter)
 Compiling Ray Tracing Shader "RestirCandidateTemporal.urtshader", keywords = <no keywords>
-    finished in 0.02 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '7a88537960c967378283b95eb6bfd77a') in 0.0754344 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=5682df992b9d47745a9b5d3f3fbcf3d2 DependenciesID=78a0f525e4751e3ae6e7570f333d8352 StaticDependenciesID=2beaac54fac463ee5ee15c00b0990d01 
+    finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: '7a88537960c967378283b95eb6bfd77a') in 0.0558017 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=5682df992b9d47745a9b5d3f3fbcf3d2 DependenciesID=78a0f525e4751e3ae6e7570f333d8352 StaticDependenciesID=2beaac54fac463ee5ee15c00b0990d01 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/ProbeIntegrationIndirect.urtshader using Guid(5ecdabd800f05984696f22ba95284516) (ScriptedImporter)
 Compiling Ray Tracing Shader "ProbeIntegrationIndirect.urtshader", keywords = <no keywords>
-    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'f51aca4d67869a41150f3e0a8e3bdc15') in 0.0402076 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=9b755da8d53ee6bb90c5cd2610a8961c DependenciesID=b62f52344154070230c3cd7a53f26643 StaticDependenciesID=83ecbbd61911181b4944eb7ac9eabee5 
+    finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'f51aca4d67869a41150f3e0a8e3bdc15') in 0.0333802 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=9b755da8d53ee6bb90c5cd2610a8961c DependenciesID=b62f52344154070230c3cd7a53f26643 StaticDependenciesID=83ecbbd61911181b4944eb7ac9eabee5 
 Start importing Packages/com.unity.render-pipelines.core/Tests/Runtime/PathTracing/PathIteratorTest.urtshader using Guid(6e0b547bab30a804c8123974120d583f) (ScriptedImporter)
 Compiling Ray Tracing Shader "PathIteratorTest.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '500f35121367e5c7e958cfb9d9a29a64') in 0.05172 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=8d0df153da311f7d10e1500823ef010c DependenciesID=30dba2cb67a2cd2adb3f577c231d71f9 StaticDependenciesID=cf2a33ce9b71ea08a4459556694e1323 
+ -> (Import Result ID: '500f35121367e5c7e958cfb9d9a29a64') in 0.0503579 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=8d0df153da311f7d10e1500823ef010c DependenciesID=30dba2cb67a2cd2adb3f577c231d71f9 StaticDependenciesID=cf2a33ce9b71ea08a4459556694e1323 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LiveGI.urtshader using Guid(ceb7a31b84722d144bbeff1c8cd88769) (ScriptedImporter)
 Compiling Ray Tracing Shader "LiveGI.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'a74720dc4b3e01c6956e9a23f3fef792') in 0.0238095 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=b7b0361b445e4d63e4c025ef6477c385 DependenciesID=80daf8d3ed4d3722d8ec04bb2b08e853 StaticDependenciesID=628001b751fe9fddf64a203b1446575e 
+ -> (Import Result ID: 'a74720dc4b3e01c6956e9a23f3fef792') in 0.0699952 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=b7b0361b445e4d63e4c025ef6477c385 DependenciesID=80daf8d3ed4d3722d8ec04bb2b08e853 StaticDependenciesID=628001b751fe9fddf64a203b1446575e 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/ProbeIntegrationOcclusion.urtshader using Guid(de3013e16d99f2746ab1735ec06a660b) (ScriptedImporter)
 Compiling Ray Tracing Shader "ProbeIntegrationOcclusion.urtshader", keywords = <no keywords>
-    finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'e85389a39c7b98508fbacb7957d65688') in 0.0335572 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=0b84ff315b8a5318a99b10956e4c5d4e DependenciesID=71548de73cf28ea4ad8faa250dda4e5f StaticDependenciesID=183f3d853e4af89ec08f4e79696e167d 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'e85389a39c7b98508fbacb7957d65688') in 0.0416207 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=0b84ff315b8a5318a99b10956e4c5d4e DependenciesID=71548de73cf28ea4ad8faa250dda4e5f StaticDependenciesID=183f3d853e4af89ec08f4e79696e167d 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/ProbeIntegrationDirect.urtshader using Guid(1f9bfe60b4ad75943a5281839c1a4e5c) (ScriptedImporter)
 Compiling Ray Tracing Shader "ProbeIntegrationDirect.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '25964f87db05586a640fad2d9cc15939') in 0.040467 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=efae7c68c01649f56dbb0e593d0167d0 DependenciesID=f079aadab5140229f59b2610f71b3fa7 StaticDependenciesID=d3f99f9cc1ae2c0c0147c2fa8da668fc 
+ -> (Import Result ID: '25964f87db05586a640fad2d9cc15939') in 0.0575144 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=efae7c68c01649f56dbb0e593d0167d0 DependenciesID=f079aadab5140229f59b2610f71b3fa7 StaticDependenciesID=d3f99f9cc1ae2c0c0147c2fa8da668fc 
 Start importing Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/VirtualOffset/TraceVirtualOffset.urtshader using Guid(ff2cbab5da58bf04d82c5f34037ed123) (ScriptedImporter)
 Compiling Ray Tracing Shader "TraceVirtualOffset.urtshader", keywords = <no keywords>
     finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'a57c84c41270216125416ad4640d4f06') in 0.0704144 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=734d0cfdf242e2376dd95fc0e7c01a88 DependenciesID=64a4d613723520d2612b3ca586afd1d2 StaticDependenciesID=f51ff46b48d84884c883ac486ebfd7f9 
-Refreshing native plugins compatible for Editor in 805.58 ms, found 5 plugins.
+ -> (Import Result ID: 'a57c84c41270216125416ad4640d4f06') in 0.0487561 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=734d0cfdf242e2376dd95fc0e7c01a88 DependenciesID=64a4d613723520d2612b3ca586afd1d2 StaticDependenciesID=f51ff46b48d84884c883ac486ebfd7f9 
+Refreshing native plugins compatible for Editor in 75.60 ms, found 5 plugins.
+Preloading 1 native plugins for Editor in 8.52 ms.
 (Values over 0.050ms)
-Asset Pipeline Refresh (id=78a4e0cb6b7c5ba4c86447a3fb62e3a8): Total: 54.272 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+Asset Pipeline Refresh (id=73f1de87625eb864fb9b9b4c3c371848): Total: 57.429 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
 	Summary:
 		Imports: total=23 (actual=23, local cache=0, cache server=0)
-		Asset DB Process Time: managed=13 ms, native=18426 ms
-		Asset DB Callback time: managed=1728 ms, native=2053 ms
-		Scripting: domain reloads=1, domain reload time=4765 ms, compile time=27025 ms, other=256 ms
+		Asset DB Process Time: managed=10 ms, native=14907 ms
+		Asset DB Callback time: managed=2637 ms, native=813 ms
+		Scripting: domain reloads=1, domain reload time=5649 ms, compile time=33148 ms, other=260 ms
 		Project Asset Count: scripts=2679, non-scripts=7668
-		Asset File Changes: new=0, changed=6, moved=0, deleted=0
+		Asset File Changes: new=1, changed=7, moved=0, deleted=0
 		Scan Filter Count: 0
-	InvokePackagesCallback: 59.823ms
-	ApplyChangesToAssetFolders: 1.289ms
-	Scan: 6005.331ms
-	OnSourceAssetsModified: 1.264ms
-	CategorizeScriptCompilationAssets: 435.626ms
-	ProcessAssetsWithTransientArtifactChanges: 258.692ms
-	CategorizeAssets: 470.787ms
-	CompileScripts: 27024.814ms
-	ImportOutOfDateAssets: 10587.435ms (7619.342ms without children)
-		ImportManagerImport: 2957.290ms (3.344ms without children)
-			UpdateCategorizedAssets: 6.712ms
-		UnloadImportedAssets: 3.853ms
-		ReloadImportedAssets: 6.084ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.476ms
-		OnDemandSchedulerStart: 4.413ms
-	PostProcessAllAssets: 2745.266ms
-		ComputeShaderImportPostprocess 220.632ms
-		RaytracingShaderImportPostprocess 149.920ms
-		VCAutoAddAssetPostprocess 116.565ms
-		PostProcessCallbackCreateDeferredMaterials 5.828ms
-		XRBuildSystem.XRAssetImported 2.077ms
-		ShaderAssetModifiedCallback 0.104ms
-		BlockShaderImporter.PostprocessAllAssets 0.068ms
-		LocalizationDatabase.AssetDatabasePostprocessCallback 0.057ms
-		SpeedTreeImporter.PostprocessAllAssets 0.056ms
-		MonoPostProcessAllAssets: 1727.957ms
-			AssetPostprocessor.OnPostprocessAllAssets 1132.802ms
-			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 308.706ms
-			StyleCatalogPostProcessor.OnPostprocessAllAssets 100.240ms
-			SpeedTree9Postprocessor.OnPostprocessAllAssets 35.927ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 22.923ms
-			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 21.709ms
-			AssetChangedListener.OnPostprocessAllAssets 20.900ms
-			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 13.518ms
-			BuilderAssetPostprocessor.OnPostprocessAllAssets 10.172ms
-			LocalizationAssetPostProcessor.OnPostprocessAllAssets 3.149ms
-			VFXGraphPreprocessor.OnPostprocessAllAssets 2.570ms
-			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 2.305ms
-			AddressablesAssetPostProcessor.OnPostprocessAllAssets 1.703ms
-			MaterialPostprocessor.OnPostprocessAllAssets 1.575ms
-			AssetPathToTypes.OnPostprocessAllAssets 0.968ms
-			TextAssetPostProcessor.OnPostprocessAllAssets 0.961ms
-			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.905ms
-			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.891ms
-			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.850ms
-			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.790ms
-			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.766ms
-			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.621ms
-			ModelAssetProcessor.OnPostprocessAllAssets 0.608ms
-			PostProcessor.OnPostprocessAllAssets 0.591ms
-			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.483ms
-			AudioMixerPostprocessor.OnPostprocessAllAssets 0.445ms
-			AssetEvents.OnPostprocessAllAssets 0.444ms
-			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.440ms
-			CinemachineSettings.OnPostprocessAllAssets 0.404ms
-			SpeedTreePostProcessor.OnPostprocessAllAssets 0.384ms
-			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.326ms
-			ConfigAssetsTracker.OnPostprocessAllAssets 0.319ms
-			SyncVS.PostprocessSyncProject 0.316ms
-			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.296ms
-			SamplePostprocessor.OnPostprocessAllAssets 0.247ms
-			AudioContainerPostProcessor.OnPostprocessAllAssets 0.106ms
-	PostAssetChangesProfiler: 981.319ms
-	UnloadStreamsBegin: 5.610ms
-	PersistCurrentRevisions: 1.476ms
-	GenerateScriptTypeHashes: 9.640ms
-	GenerateScriptTypeSerializationHashes: 15.041ms
-	Untracked: 5686.013ms
+	InvokePackagesCallback: 76.779ms
+	ApplyChangesToAssetFolders: 1.056ms
+	Scan: 2619.926ms
+	OnSourceAssetsModified: 1.070ms
+	CategorizeScriptCompilationAssets: 485.541ms
+	ProcessAssetsWithTransientArtifactChanges: 273.801ms
+	CategorizeAssets: 203.736ms
+	CompileScripts: 33148.125ms
+	ImportOutOfDateAssets: 10738.073ms (8050.507ms without children)
+		ImportManagerImport: 2673.238ms (3.754ms without children)
+			UpdateCategorizedAssets: 4.696ms
+		ReloadNativeAssets: 0.057ms
+		UnloadImportedAssets: 3.987ms
+		ReloadImportedAssets: 6.920ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.673ms
+		OnDemandSchedulerStart: 7.597ms
+	PostProcessAllAssets: 3189.876ms
+		ComputeShaderImportPostprocess 197.073ms
+		RaytracingShaderImportPostprocess 160.192ms
+		VCAutoAddAssetPostprocess 138.211ms
+		XRBuildSystem.XRAssetImported 2.256ms
+		PostProcessCallbackCreateDeferredMaterials 1.476ms
+		VersionControlSettings.HiddenFilePostprocess 0.270ms
+		ShaderAssetModifiedCallback 0.100ms
+		SpeedTreeImporter.PostprocessAllAssets 0.086ms
+		AssemblyValidation.PostprocessAllAssets 0.067ms
+		BlockShaderImporter.PostprocessAllAssets 0.062ms
+		LocalizationDatabase.AssetDatabasePostprocessCallback 0.062ms
+		MonoPostProcessAllAssets: 2611.480ms
+			AssetPostprocessor.OnPostprocessAllAssets 817.457ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 541.929ms
+			AssetChangedListener.OnPostprocessAllAssets 75.134ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 46.565ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 42.006ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 39.878ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 30.352ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 23.982ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 23.905ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 22.767ms
+			AddressablesAssetPostProcessor.OnPostprocessAllAssets 15.759ms
+			LocalizationAssetPostProcessor.OnPostprocessAllAssets 9.391ms
+			VFXGraphPreprocessor.OnPostprocessAllAssets 8.386ms
+			SyncVS.PostprocessSyncProject 6.838ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 5.407ms
+			AssetPathToTypes.OnPostprocessAllAssets 5.200ms
+			MaterialPostprocessor.OnPostprocessAllAssets 4.588ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 3.399ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 2.345ms
+			UVCSAssetPostprocessor.OnPostprocessAllAssets 1.329ms
+			CinemachineSettings.OnPostprocessAllAssets 1.253ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 1.057ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.995ms
+			SamplePostprocessor.OnPostprocessAllAssets 0.988ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.920ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.844ms
+			PostProcessor.OnPostprocessAllAssets 0.786ms
+			ConfigAssetsTracker.OnPostprocessAllAssets 0.651ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.635ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.569ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 0.496ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.416ms
+			AssetEvents.OnPostprocessAllAssets 0.342ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.294ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.214ms
+			AudioContainerPostProcessor.OnPostprocessAllAssets 0.156ms
+	PostAssetChangesProfiler: 188.092ms
+	UnloadStreamsBegin: 6.299ms
+	PersistCurrentRevisions: 1.227ms
+	GenerateScriptTypeHashes: 6.295ms
+	GenerateScriptTypeSerializationHashes: 10.818ms
+	Untracked: 6487.156ms
 
 Application.AssetDatabase Initial Refresh End
-Scanning for USB devices : 13.379ms
+Scanning for USB devices : 24.206ms
 Initializing Unity extensions:
 Unloading 104 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 11485 unused Assets / (17.4 MB). Loaded Objects now: 12374.
-Memory consumption went from 321.3 MB to 303.9 MB.
-Total: 68.319000 ms (FindLiveObjects: 2.297000 ms CreateObjectMapping: 5.783000 ms MarkObjects: 23.771200 ms  DeleteObjects: 35.729100 ms)
+Unloading 11486 unused Assets / (17.4 MB). Loaded Objects now: 12375.
+Memory consumption went from 326.7 MB to 309.3 MB.
+Total: 51.393700 ms (FindLiveObjects: 3.124100 ms CreateObjectMapping: 4.854400 ms MarkObjects: 19.658600 ms  DeleteObjects: 23.751300 ms)
 
 [ScriptCompilation] Requested script compilation because: Requested through public api
 Compilation requested
@@ -836,8 +1325,8 @@ TestCompile:CompileTest () (at Assets/Scripts/TestCompile.cs:11)
 
 (Filename: Assets/Scripts/TestCompile.cs Line: 11)
 
-Curl error 42: Callback aborted
 Batchmode quit successfully invoked - shutting down!
+Curl error 42: Callback aborted
 Font Asset [LiberationSans SDF - Fallback] Units Per EM set to 2048. Please commit the newly serialized value.
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
@@ -854,41 +1343,44 @@ UnityEditor.EditorApplication:Internal_EditorApplicationQuit ()
 
 (Filename: ./Library/PackageCache/com.unity.ugui@1f2d1ab0d950/Runtime/TMP/TMP_FontAsset.cs Line: 820)
 
-Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.0160659 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
-Refreshing native plugins compatible for Editor in 7.30 ms, found 5 plugins.
+Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.118923 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
+Refreshing native plugins compatible for Editor in 11.73 ms, found 5 plugins.
 (Values over 0.050ms)
-Asset Pipeline Refresh (id=0a0cd07bed159e04d8a56e1f78470c95): Total: 1.449 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=60fa824bb3f957f4995934d4db5f8863): Total: 0.954 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
 	Summary:
 		Imports: total=1 (actual=1, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=1419 ms
-		Asset DB Callback time: managed=4 ms, native=24 ms
+		Asset DB Process Time: managed=3 ms, native=851 ms
+		Asset DB Callback time: managed=16 ms, native=81 ms
 		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
 		Project Asset Count: scripts=2679, non-scripts=7668
 		Asset File Changes: new=0, changed=0, moved=0, deleted=0
 		Scan Filter Count: 1
 	ApplyChangesToAssetFolders: 0.152ms
-	Scan: 118.283ms
-	ProcessAssetsWithTransientArtifactChanges: 0.362ms
-	CategorizeAssets: 1105.082ms
-	ImportOutOfDateAssets: 23.297ms (1.062ms without children)
-		ImportManagerImport: 18.382ms (0.402ms without children)
-		UnloadImportedAssets: 0.418ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.526ms
-		InitializingProgressBar: 0.843ms
-		OnDemandSchedulerStart: 1.021ms
-	PostProcessAllAssets: 20.833ms
-		XRBuildSystem.XRAssetImported 16.198ms
-		MonoPostProcessAllAssets: 4.474ms
-			AssetPostprocessor.OnPostprocessAllAssets 3.621ms
-			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.149ms
-			SyncVS.PostprocessSyncProject 0.128ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.068ms
-			ModelAssetProcessor.OnPostprocessAllAssets 0.050ms
-	PostAssetChangesProfiler: 7.642ms
-	GatherAllCurrentPrimaryImportResultRevisions: 0.931ms
-	UnloadStreamsBegin: 0.057ms
-	PersistCurrentRevisions: 0.369ms
-	Untracked: 172.157ms
+	Scan: 448.696ms
+	ProcessAssetsWithTransientArtifactChanges: 1.626ms
+	CategorizeAssets: 121.258ms
+	ImportOutOfDateAssets: 137.397ms (1.917ms without children)
+		ImportManagerImport: 131.351ms (0.457ms without children)
+		UnloadImportedAssets: 0.361ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.370ms
+		OnDemandSchedulerStart: 1.368ms
+	PostProcessAllAssets: 78.384ms
+		XRBuildSystem.XRAssetImported 51.877ms
+		AssemblyValidation.PostprocessAllAssets 1.666ms
+		MonoPostProcessAllAssets: 16.853ms
+			AssetChangedListener.OnPostprocessAllAssets 7.134ms
+			AssetPostprocessor.OnPostprocessAllAssets 5.690ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 1.164ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.808ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.778ms
+			SyncVS.PostprocessSyncProject 0.292ms
+			PostProcessor.OnPostprocessAllAssets 0.092ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.090ms
+	PostAssetChangesProfiler: 20.013ms
+	GatherAllCurrentPrimaryImportResultRevisions: 15.834ms
+	UnloadStreamsBegin: 0.062ms
+	PersistCurrentRevisions: 0.389ms
+	Untracked: 129.910ms
 
 [Physics::Module] Cleanup current backend.
 [Physics::Module] Id: 0xf2b8ea05
@@ -900,14 +1392,14 @@ Input System module state changed to: Shutdown.
 AcceleratorClientConnectionCallback - disconnected - :0
 Cleanup mono
 CodeReloadManager destroyed
-abort_threads: Failed aborting id: 000000000000301C, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000002758, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 000000000000093C, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000001F0C, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 000000000000301C, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000002758, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 000000000000093C, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000001F0C, mono_thread_manage will ignore it
 
-debugger-agent: Unable to listen on 3156
+debugger-agent: Unable to listen on 3148
 Exiting batchmode successfully now!
 Exiting without the bug reporter. Application will terminate with return code 0

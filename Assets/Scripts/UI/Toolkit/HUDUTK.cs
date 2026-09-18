@@ -67,6 +67,8 @@ namespace ProjectName.UI.Toolkit
         private Label         _expText;        // [U8] BuildExpBar 바인딩
         private Label         _expValueText;   // [U8] BuildExpBar 바인딩
         private VisualElement _staminaFill;    // [예시 정합] 스태미너 바
+        private VisualElement _ringHpFill;      // [예시 정합] 원형 HP 게이지
+        private VisualElement _ringStaminaFill; // [예시 정합] 원형 스태미너 게이지
         private UnityEngine.UIElements.IVisualElementScheduledItem _pollTask; // [U8] 폴링
         // [U8 정리] 퀵슬롯 섹션 제거 — HotbarUIUTK(아이템 핫바 1~8)가 담당 (중복 슬롯 은퇴)
 
@@ -181,14 +183,11 @@ namespace ProjectName.UI.Toolkit
             circles.style.flexDirection = FlexDirection.Row;
             Add(circles);
             string[] icons = { "❤", "⚡" };
-            foreach (var ic in icons)
+            for (int ci = 0; ci < icons.Length; ci++)
             {
-                var ring = new Label(ic);
-                ring.style.width = 44f;
-                ring.style.height = 44f;
-                ring.style.unityTextAlign = TextAnchor.MiddleCenter;
-                ring.style.fontSize = 18f;
-                ring.style.color = new StyleColor(UTKColor.TextPrimary);
+                var ring = new VisualElement();
+                ring.style.width = 46f;
+                ring.style.height = 46f;
                 ring.style.backgroundColor = new StyleColor(new Color(0.14f, 0.09f, 0.05f, 0.9f));
                 ring.style.borderTopWidth = 2f; ring.style.borderBottomWidth = 2f;
                 ring.style.borderLeftWidth = 2f; ring.style.borderRightWidth = 2f;
@@ -196,9 +195,46 @@ namespace ProjectName.UI.Toolkit
                 ring.style.borderBottomColor = new StyleColor(UTKColor.BorderGold);
                 ring.style.borderLeftColor = new StyleColor(UTKColor.BorderGold);
                 ring.style.borderRightColor = new StyleColor(UTKColor.BorderGold);
+                float tl = 23f, tr = 23f, bl = 23f, br = 23f;
+                ring.style.borderTopLeftRadius = tl; ring.style.borderTopRightRadius = tr;
+                ring.style.borderBottomLeftRadius = bl; ring.style.borderBottomRightRadius = br;
+                ring.style.overflow = Overflow.Hidden;
                 ring.style.marginRight = 6f;
                 circles.Add(ring);
+
+                var fill = new VisualElement();
+                fill.style.position = Position.Absolute;
+                fill.style.left = 0f; fill.style.right = 0f; fill.style.bottom = 0f;
+                fill.style.height = new Length(100f, LengthUnit.Percent);
+                fill.style.backgroundColor = ci == 0
+                    ? new StyleColor(new Color(0.82f, 0.31f, 0.31f, 0.9f))
+                    : new StyleColor(new Color(0.95f, 0.78f, 0.30f, 0.9f));
+                ring.Add(fill);
+
+                var icon = new Label(icons[ci]);
+                icon.style.position = Position.Absolute;
+                icon.style.left = 0f; icon.style.right = 0f; icon.style.top = 0f; icon.style.bottom = 0f;
+                icon.style.unityTextAlign = TextAnchor.MiddleCenter;
+                icon.style.fontSize = 18f;
+                icon.style.color = new StyleColor(UTKColor.TextPrimary);
+                ring.Add(icon);
+
+                if (ci == 0) _ringHpFill = fill;
+                else _ringStaminaFill = fill;
             }
+        }
+
+        /// <summary>[예시 정합] 원형 게이지 갱신 — HP/스태미너 비율.</summary>
+        private void RefreshRings()
+        {
+            var ph = PlayerHealth.Instance;
+            float hpRatio = ph != null && ph.MaxHP > 0f ? Mathf.Clamp01(ph.CurrentHP / ph.MaxHP) : 0f;
+            var pm = Object.FindAnyObjectByType<ProjectName.Systems.PlayerMovement>();
+            float stRatio = pm != null ? pm.StaminaRatio : 0f;
+            if (_ringHpFill != null)
+                _ringHpFill.style.height = new Length(hpRatio * 100f, LengthUnit.Percent);
+            if (_ringStaminaFill != null)
+                _ringStaminaFill.style.height = new Length(stRatio * 100f, LengthUnit.Percent);
         }
 
         /// <summary>[예시 정합] 스태미너 바 갱신 — PlayerMovement.StaminaRatio 실측.</summary>
@@ -301,6 +337,7 @@ namespace ProjectName.UI.Toolkit
         {
             RefreshHealth();
             RefreshStamina();   // [예시 정합] 스태미너 갱신
+            RefreshRings();     // [예시 정합] 원형 게이지 갱신
             RefreshExpBar();
         }
 

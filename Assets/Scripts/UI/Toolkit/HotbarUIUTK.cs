@@ -269,6 +269,12 @@ namespace ProjectName.UI.Toolkit
 
         private void RefreshAllIcons()
         {
+            // [U8 요구] 부대 모드 슬롯 색상 차별화 — 청록 틴트 배경 (아이템 모드는 다크 브라운)
+            var squadBg = new StyleColor(new Color(0.10f, 0.22f, 0.30f, 0.92f));
+            var itemBg = new StyleColor(new Color(0.07f, 0.05f, 0.03f, 0.85f));
+            for (int i = 0; i < SlotCount; i++)
+                _slots[i].style.backgroundColor = _squadMode ? squadBg : itemBg;
+
             if (_squadMode) { RefreshSquadSlots(); return; }   // [U8 요구] 부대 모드 — 동일 8슬롯에 부대 렌더
             for (int i = 0; i < SlotCount; i++)
                 RefreshSlot(i);

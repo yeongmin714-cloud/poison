@@ -543,6 +543,25 @@ namespace ProjectName.Systems
                     }
                 }
             }
+
+            // [U8 배선] F 키 — 병사 상호작용 (정보창, UTK)
+            if (kb.fKey.wasPressedThisFrame)
+            {
+                Collider[] hits = Physics.OverlapSphere(transform.position, _interactionRadius, _interactableLayers);
+                GuardPlaceholder nearest = null;
+                float nearestDist = float.MaxValue;
+                foreach (var hit in hits)
+                {
+                    var guard = hit.GetComponentInParent<GuardPlaceholder>();
+                    if (guard != null && guard.IsAlive)
+                    {
+                        float d = Vector3.Distance(transform.position, guard.transform.position);
+                        if (d < nearestDist) { nearestDist = d; nearest = guard; }
+                    }
+                }
+                if (nearest != null)
+                    SoldierInteractBridge.Raise(nearest);
+            }
         }
 
         private void HandleMovement()

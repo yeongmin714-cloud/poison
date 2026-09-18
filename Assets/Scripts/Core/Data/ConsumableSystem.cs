@@ -30,6 +30,13 @@ namespace ProjectName.Core.Data
             {
                 ConsumePotion(item);
             }
+            else if (item.category == PlayerInventory.ItemCategory.Herb)
+            {
+                // [U8 수리] 약초 사용 — 기본 치료 25HP (치유초 등)
+                HealPlayer(25f);
+                PlayDrinkAnimation();
+                Debug.Log($"[ConsumableSystem] 약초 사용 — 25 HP 회복 ({item.displayName})");
+            }
             else
             {
                 Debug.LogWarning($"[ConsumableSystem] Item {item.displayName} is not consumable (category {item.category}).");
