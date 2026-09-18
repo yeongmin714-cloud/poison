@@ -51,13 +51,13 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float WinW = 460f;    // [독립 창] 좌측 인벤창(장비 2x5+가방 6x5) — 설명/창고/전리품은 별개 창
-        private const float WinH = 640f;
+        private const float WinW = 520f;    // [독립 창] 좌측 인벤창(장비 2x5+가방 6x5) — 설명/창고/전리품은 별개 창
+        private const float WinH = 680f;
         private const int BagColumns = 5;   // 가방 6줄×5칸
         private const int BagRows = 6;
         private const int EquipColumns = 5; // 장비 2줄×5칸
         private const int EquipRows = 2;
-        private const float SlotSize = 56f;
+        private const float SlotSize = 64f;
         private const int Columns = 7;   // 행당 N칸
         private const long RefreshMs = 250L;
 
@@ -391,43 +391,13 @@ namespace ProjectName.UI.Toolkit
                 cell.SetCount(slotData.count);
                 cell.SetRank(UTKRarity.ClassForIndex((int)slotData.item.rarity));
 
-                // ③ 인벤 소스 드래그 + 클릭 설명
+                // ③ 인벤 소스 드래그(좌/우) + 좌클릭 설명 + 우클릭 비드래그=사용/장착
                 int globalIdx = idx;
                 var item = slotData.item;
                 var slotRef = slotData;
-                UTKDragDrop.MakeDraggable(cell, () => MakeSlotPayload(globalIdx, item), () => OnSlotClick(globalIdx));
-
-                // [U8 수리] 우클릭 = 소모품 사용 / 무기·방어구 장착 (원본 TryEquipItem 경로 재사용)
-                cell.RegisterCallback<PointerDownEvent>(evt =>
-                {
-                    if (evt.button != 1) return;
-                    var cat = item.category;
-                    if (cat == PlayerInventory.ItemCategory.Weapon || cat == PlayerInventory.ItemCategory.Armor)
-                    {
-                        // 장착 — 원본 InventoryWindow.TryEquipItem 공개 래퍼 위임(무기 해석+방어구 매핑 단일소스)
-                        var origin = ProjectName.UI.InventoryWindow.Instance;
-                        if (origin != null)
-                        {
-                            origin.TryEquipItemPublic(slotRef);
-                            RefreshGrid();
-                        }
-                        else Debug.LogWarning("[InventoryUTK] InventoryWindow.Instance 없음 — 장착 불가");
-                    }
-                    else if (cat == PlayerInventory.ItemCategory.Potion
-                        || cat == PlayerInventory.ItemCategory.Food
-                        || cat == PlayerInventory.ItemCategory.Herb
-                        || cat == PlayerInventory.ItemCategory.Drug)
-                    {
-                        // 소모품 사용 — PlayerInventory.UseItem(slotIndex) 단일 경로
-                        var pi = PlayerInventory.Instance;
-                        if (pi != null)
-                        {
-                            pi.UseItem(globalIdx);
-                            RefreshGrid();
-                            Debug.Log($"[InventoryUTK] 소모품 사용(우클릭): {item.displayName}");
-                        }
-                    }
-                });
+                UTKDragDrop.MakeDraggable(cell, () => MakeSlotPayload(globalIdx, item),
+                    () => OnSlotClick(globalIdx),
+                    () => OnSlotRightClick(globalIdx, slotRef, item));
 
                 // ③ 인벤 타겟 — 슬롯 위 드롭 = 교체(스왑) (슬롯이 윈도우 타겟보다 상위 우선)
                 IUTKDropTarget slotTarget = new SlotDropTarget(this, globalIdx);
@@ -470,6 +440,40 @@ namespace ProjectName.UI.Toolkit
             _selectedItemData = slotData.item;
             ItemDescriptionWindowUTK.ShowItem(slotData.item, slotData.count);   // [독립 창] 중앙 설명창 갱신
             Debug.Log($"[InventoryUTK] 슬롯 선택(클릭): {slotData.item.displayName} (슬롯 {slotIndex})");
+        }
+
+        /// <summary>[U8 요구] 가방 우클릭(비드래그) — 소모품 사용 / 무기·방어구 장착 (원본 TryEquipItem 위임).</summary>
+        private void OnSlotRightClick(int slotIndex, PlayerInventory.ItemSlot slotRef, PlayerInventory.ItemData item)
+        {
+            var cat = item.category;
+            if (cat == PlayerInventory.ItemCategory.Weapon || cat == PlayerInventory.ItemCategory.Armor)
+            {
+                var origin = ProjectName.UI.InventoryWindow.Instance;
+                if (origin != null)
+                {
+                    origin.TryEquipItemPublic(slotRef);
+                    RefreshGrid();
+                    Debug.Log($"[InventoryUTK] 장착(우클릭): {item.displayName}");
+                }
+                else Debug.LogWarning("[InventoryUTK] InventoryWindow.Instance 없음 — 장착 불가");
+                return;
+            }
+            if (cat == PlayerInventory.ItemCategory.Potion
+                || cat == PlayerInventory.ItemCategory.Food
+                || cat == PlayerInventory.ItemCategory.Herb
+                || cat == PlayerInventory.ItemCategory.Drug)
+            {
+                var pi = PlayerInventory.Instance;
+                if (pi != null)
+                {
+                    pi.UseItem(slotIndex);
+                    RefreshGrid();
+                    ItemDescriptionWindowUTK.Clear();
+                    Debug.Log($"[InventoryUTK] 소모품 사용(우클릭): {item.displayName}");
+                }
+                return;
+            }
+            Debug.Log($"[InventoryUTK] 우클릭 — {item.displayName} (사용/장착 대상 아님)");
         }
 
         // =====================================================================

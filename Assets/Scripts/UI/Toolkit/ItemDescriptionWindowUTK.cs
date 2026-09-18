@@ -15,10 +15,10 @@ namespace ProjectName.UI.Toolkit
     /// </summary>
     public class ItemDescriptionWindowUTK : UTKWindowBase
     {
-        private const float WinW = 320f;
-        private const float WinH = 640f;
-        // 인벤(좌 16+460) 오른쪽 바로 다음
-        private const float PosX = 484f;
+        private const float WinW = 340f;
+        private const float WinH = 680f;
+        // 인벤(16+520) 오른쪽 바로 다음 — 예시 2 행 배치
+        private const float PosX = 544f;
         private const float PosY = 96f;
 
         private static ItemDescriptionWindowUTK _instance;
@@ -27,10 +27,25 @@ namespace ProjectName.UI.Toolkit
         private readonly Label _itemName;
         private readonly Label _itemMeta;
         private readonly Label _itemDesc;
+        private readonly VisualElement _iconPreview;   // [U8 요구] 아이템 아이콘 프리뷰
         private Texture2D _currentIcon;
 
         private ItemDescriptionWindowUTK() : base("아이템 설명", new Vector2(WinW, WinH))
         {
+            // [U8 요구] 아이템 아이콘 프리뷰 — 예시 2의 대형 이미지 영역
+            _iconPreview = new VisualElement();
+            _iconPreview.style.width = 140f;
+            _iconPreview.style.height = 140f;
+            _iconPreview.style.backgroundColor = new StyleColor(new Color(0.03f, 0.08f, 0.16f, 0.6f));
+            _iconPreview.style.borderTopWidth = 1; _iconPreview.style.borderBottomWidth = 1;
+            _iconPreview.style.borderLeftWidth = 1; _iconPreview.style.borderRightWidth = 1;
+            _iconPreview.style.borderTopColor = new StyleColor(UTKColor.IronLine);
+            _iconPreview.style.borderBottomColor = new StyleColor(UTKColor.IronLine);
+            _iconPreview.style.borderLeftColor = new StyleColor(UTKColor.IronLine);
+            _iconPreview.style.borderRightColor = new StyleColor(UTKColor.IronLine);
+            _iconPreview.style.marginBottom = 10f;
+            _content.Add(_iconPreview);
+
             _itemName = new Label("아이템을 선택하세요");
             _itemName.style.fontSize = 24f;
             _itemName.style.color = new StyleColor(UTKColor.AccentRare);
@@ -101,6 +116,10 @@ namespace ProjectName.UI.Toolkit
             var i = Ensure();
             if (i == null || item == null) return;
 
+            var icon = ItemIconDatabase.GetOrCreateIcon(item);
+            i._iconPreview.style.backgroundImage = icon != null
+                ? new StyleBackground(Background.FromTexture2D(icon))
+                : i._iconPreview.style.backgroundImage;
             i._itemName.text = item.displayName ?? item.id;
             var sb = new System.Text.StringBuilder();
             sb.AppendLine($"수량: {count}");

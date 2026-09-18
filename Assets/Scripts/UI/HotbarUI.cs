@@ -130,6 +130,7 @@ namespace ProjectName.UI
         // ===== 생명주기 =====
         private void Awake()
         {
+            if (ProjectName.Core.UITransitionState.UtkActive) { enabled = false; return; } // [U8 은퇴] HotbarUIUTK 담당 — 구 uGUI 핫바 비활성
             if (_instance != null && _instance != this)
             {
                 Destroy(gameObject);

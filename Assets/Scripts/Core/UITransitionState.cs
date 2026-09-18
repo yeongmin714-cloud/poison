@@ -10,5 +10,8 @@ namespace ProjectName.Core
     {
         /// <summary>UTK 루트가 살아있고 원본 HUD류가 은퇴해야 하면 true.</summary>
         public static bool UtkActive;
+
+        /// <summary>[U8 수리] 포인터가 UTK UI 위에 있음 — 게임 월드 클릭(공격/RTS/카메라) 차단용. UTK측 Update에서 갱신.</summary>
+        public static bool PointerOverUI;
     }
 }

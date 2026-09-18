@@ -223,6 +223,9 @@ namespace ProjectName.Systems
             // 좌클릭 감지 (InputSystem)
             if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             {
+                // [U8 수리] UTK UI 위 좌클릭(인벤 드래그/슬롯 클릭)은 게임 공격으로 소비 금지
+                if (ProjectName.Core.UITransitionState.PointerOverUI)
+                    return;
                 // [TEST27-68차] 독립 클릭 프로브 — GSM이 죽어도(공유 GO 파괴) 클릭 입력 자체의 증거를 남긴다.
                 // [RTS] 좌클릭 감지 로그와 대조해 드래그 무반응의 위치(GSM vs 입력)를 판별한다.
                 if (Time.unscaledTime >= _nextClickProbe)

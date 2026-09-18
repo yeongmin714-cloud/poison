@@ -212,7 +212,7 @@ namespace ProjectName.UI.Toolkit
 
             // 기본 숨김 + 우측 배치 (좌:인벤/우:창고 — 인벤 16px 좌측에 대응)
             style.display = DisplayStyle.None;
-            style.left = 420f;
+            style.left = 892f;
             style.top = 96f;
         }
 
@@ -242,7 +242,7 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && parent == null)
                 root.Add(this);
-            style.left = 420f;
+            style.left = 892f;
             style.top = 96f;
             StartRefreshLoop();
             RefreshGrid();

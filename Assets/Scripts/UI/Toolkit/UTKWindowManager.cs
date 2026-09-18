@@ -85,6 +85,9 @@ namespace ProjectName.UI.Toolkit
         {
             private void Update()
             {
+                // [U8 수리] 포인터-over-UI 플래그 갱신 — Systems 측 게임 입력 게이트(PlayerCombat 등)가 읽음
+                ProjectName.Core.UITransitionState.PointerOverUI = UTKInputGate.IsPointerOverUI();
+
                 var kb = Keyboard.current;
                 if (kb == null || !kb.escapeKey.wasPressedThisFrame)
                     return;

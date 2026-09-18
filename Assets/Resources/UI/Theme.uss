@@ -10,18 +10,19 @@
 
 :root {
     /* ---- 팔레트 (UI_DESIGN_GUIDELINES 62차) ---- */
-    --c-bg-panel:      rgba(28, 28, 28, 0.878);   /* #1C1C1C @ E0 */
-    --c-bg-panel-dark: rgba(20, 20, 20, 0.910);   /* #141414 @ E8 */
-    --c-border-bronze: #8C6B3F;                    /* 브론즈 */
-    --c-border-gold:   #C9A227;                    /* 골드 */
-    --c-iron-line:     #3A3A3A;                    /* 철분리선 */
-    --c-text-primary:  #F5EFE0;                    /* 본문 */
-    --c-text-secondary:#B9B3A6;                    /* 보조 */
-    --c-accent-magic:  #4A7BD0;                    /* 마법 강조 */
-    --c-accent-rare:   #E7B73A;                    /* 희귀 강조 */
-    --c-health-red:    #C83838;                    /* HP/위험 */
-    --c-guild-green:   #5E8C4A;                    /* 길드/성공 */
-    --c-hover-gold:    #D9B45B;                    /* 호버 */
+    /* ---- 모던 다크 네이비 + 글래스모피즘 (2026-09-18 사용자 지정) ---- */
+    --c-bg-panel:      rgba(12, 20, 38, 0.72);    /* 다크 네이비 글래스 (반투명 아크릴) */
+    --c-bg-panel-dark: rgba(6, 12, 26, 0.82);     /* 심층 글래스 */
+    --c-border-bronze: rgba(90, 180, 255, 0.40);  /* 시안 포인트 라인 (구 브론즈 자리) */
+    --c-border-gold:   rgba(130, 220, 255, 0.85); /* 브라이트 시안 (구 골드 자리) */
+    --c-iron-line:     rgba(80, 140, 220, 0.25);  /* 미세 구분선 */
+    --c-text-primary:  #EAF4FF;                    /* 아이스 화이트 */
+    --c-text-secondary:#8FA8C8;                    /* 뮤트 블루 그레이 */
+    --c-accent-magic:  #4A7BD0;                    /* 마법 블루 유지 */
+    --c-accent-rare:   #4FD8EB;                    /* 시안 강조 */
+    --c-health-red:    #E05060;                    /* HP/위험 */
+    --c-guild-green:   #50C878;                    /* 성공 */
+    --c-hover-gold:    rgba(90, 200, 255, 0.35);   /* 호버 글로우 */
 
     /* ---- 희귀도 등급색 (EquipmentRarityData 통일) ---- */
     --c-rank-common:    #999999;   /* 일반 */
@@ -43,9 +44,9 @@
 .utk-window {
     position: absolute;
     background-color: var(--c-bg-panel);
-    border-width: 2px;
+    border-width: 1px;
     border-color: var(--c-border-bronze);
-    border-radius: 4px;
+    border-radius: 10px;
     color: var(--c-text-primary);
     font-size: var(--fs-sm);
     overflow: hidden;

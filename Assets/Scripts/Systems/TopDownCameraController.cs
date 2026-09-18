@@ -159,6 +159,7 @@ namespace ProjectName.Systems
 
         void HandleRightDrag()
         {
+            if (ProjectName.Core.UITransitionState.PointerOverUI) return; // [U8 수리] UI 위 우드래그 = 아이템 이동 — 카메라 회전 차단
             if (Mouse.current == null || !Mouse.current.rightButton.isPressed) return;
 
             Vector2 delta = Mouse.current.delta.ReadValue();

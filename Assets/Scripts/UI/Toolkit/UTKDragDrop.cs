@@ -181,22 +181,25 @@ namespace ProjectName.UI.Toolkit
         /// 임계 초과 시 factory로 페이로드를 만들어 드래그 시작(엘리먼트가 IUTKDragSource면 BeginDrag 통지).
         /// </summary>
         public static void MakeDraggable(VisualElement ve, System.Func<UTKDragPayload> factory = null,
-                                         System.Action onClick = null)
+                                         System.Action onClick = null, System.Action onRightClick = null)
         {
             if (ve == null) return;
-            ve.RegisterCallback<PointerDownEvent>(evt => OnDragPointerDown(evt, ve, factory, onClick));
+            ve.RegisterCallback<PointerDownEvent>(evt => OnDragPointerDown(evt, ve, factory, onClick, onRightClick));
             ve.RegisterCallback<PointerMoveEvent>(evt => OnDragPointerMove(evt));
             ve.RegisterCallback<PointerUpEvent>(evt => OnDragPointerUp(evt));
             ve.RegisterCallback<PointerCaptureOutEvent>(evt => OnDragCaptureOut(evt));
         }
 
         private static void OnDragPointerDown(PointerDownEvent evt, VisualElement ve,
-                                              System.Func<UTKDragPayload> factory, System.Action onClick)
+                                              System.Func<UTKDragPayload> factory, System.Action onClick,
+                                              System.Action onRightClick)
         {
-            if (evt.button != 0 || _drag != null) return;
+            // [U8 요구] 좌클릭/우클릭 모두 드래그 가능 (우클릭 드래그로도 아이템 이동)
+            if ((evt.button != 0 && evt.button != 1) || _drag != null) return;
             _drag = new DragSession();
             _drag.element = ve;
             _drag.factory = factory;
+            _drag.button = evt.button;
             _drag.onClick = onClick;
             _drag.downPos = evt.position;
             _drag.engaged = false;
@@ -268,6 +271,11 @@ namespace ProjectName.UI.Toolkit
             {
                 Complete();
             }
+            else if (drag.button == 1 && drag.onRightClick != null)
+            {
+                // [U8 요구] 우클릭 비드래그 — 소모품 사용/장착 등
+                drag.onRightClick.Invoke();
+            }
             else if (drag.onClick != null)
             {
                 // 임계 미만 — 클릭으로 취급, onClick 핸들러로 전달
@@ -333,6 +341,18 @@ namespace ProjectName.UI.Toolkit
 
         // ─────────────────────────────── 내부 상태 ───────────────────────────────
 
+        private sealed class DragSession
+        {
+            public VisualElement element;
+            public System.Func<UTKDragPayload> factory;
+            public System.Action onClick;
+            public System.Action onRightClick;   // [U8 요구] 우클릭 클릭(비드래그) — 소모품 사용/장착
+            public int button;                   // 0=좌, 1=우
+            public Vector2 downPos;
+            public bool engaged;
+            public bool captured;
+        }
+
         private sealed class DropTargetBinding
         {
             public VisualElement element;
@@ -345,14 +365,6 @@ namespace ProjectName.UI.Toolkit
             }
         }
 
-        private sealed class DragSession
-        {
-            public VisualElement element;
-            public System.Func<UTKDragPayload> factory;
-            public System.Action onClick;
-            public Vector2 downPos = Vector2.zero;
-            public bool engaged;
-            public bool captured;
-        }
+        
     }
 }
