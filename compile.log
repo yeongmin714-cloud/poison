@@ -1,21 +1,21 @@
 [Licensing::Module] Trying to connect to existing licensing client channel...
 Built from '6000.4/staging' branch; Version is '6000.4.10f1 (feeafc12a938) revision 16706300'; Using compiler version '194234433'; Build Type 'Release'
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-09-18T04:09:12.2480317Z"
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea" at "2026-09-18T04:44:01.5507437Z"
 OS: 'Windows 10  (10.0.19045) 64bit Core' Language: 'ko' Physical Memory: 7880 MB
 BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
 System  architecture: x64
 Process architecture: x64
-Date: 2026-09-18T04:09:12Z
+Date: 2026-09-18T04:44:01Z
 [Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 3220, path: "C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
 [Licensing::Module] LicensingClient has failed validation; ignoring
 [Licensing::Client] Handshaking with LicensingClient:
   Version:                 1.18.1+9fbee8e
-  Session Id:              2ef6317833b4424387c762b30a296a0f
+  Session Id:              a993d9fc00c642f6bb11ad6768cb58d2
   Correlation Id:          4544091c8d567265a1a500d64ab6d873
-  External correlation Id: 7507465514377987625
+  External correlation Id: 1320748530664476393
   Machine Id:              5cJWr0XiXK4/b2/xsaHUUO6HAA8=
-[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-korea" (connect: 0.00s, validation: 0.00s, handshake: 0.13s)
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-09-18T04:09:12.3832122Z"
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-korea" (connect: 0.00s, validation: 0.00s, handshake: 0.11s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-korea-notifications" at "2026-09-18T04:44:01.6633321Z"
 [Licensing::Module] Error: Access token is unavailable; failed to update
 [Licensing::Client] Successfully resolved entitlement details
 [Licensing::Module] License group:
@@ -25,7 +25,7 @@ Date: 2026-09-18T04:09:12Z
   Expiration: Unlimited
 [Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
 [Licensing::Client] Successfully resolved entitlement details
-[Licensing::Module] Licensing Background thread has ended after 0.16s
+[Licensing::Module] Licensing Background thread has ended after 0.13s
 
 COMMAND LINE ARGUMENTS:
 Unity.exe
@@ -74,18 +74,18 @@ C:/Unity/code
     "memorysetup-job-temp-allocator-block-size=2097152"
     "memorysetup-job-temp-allocator-block-size-background=1048576"
     "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
-Player connection [13288]  Target information:
+Player connection [10132]  Target information:
 
-Player connection [13288]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 1394208187 [EditorId] 1394208187 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [10132]  * "[IP] 172.21.112.1 [Port] 55504 [Flags] 2 [Guid] 607570657 [EditorId] 607570657 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [13288]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 1394208187 [EditorId] 1394208187 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [10132]  * "[IP] 192.168.219.108 [Port] 55504 [Flags] 2 [Guid] 607570657 [EditorId] 607570657 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-N0QMTC3) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [13288] Host joined multi-casting on [225.0.0.222:54997]...
-Player connection [13288] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Player connection [10132] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [10132] Host joined alternative multi-casting on [225.0.0.222:34997]...
 Input System module state changed to: Initialized.
 [Physics::Module] Initialized fallback backend.
 [Physics::Module] Id: 0xdecafbad
-[Package Manager] Connected to IPC stream "Upm-5628" after 0.5 seconds.
+[Package Manager] Connected to IPC stream "Upm-13420" after 0.4 seconds.
 [Licensing::Client] Successfully resolved entitlement details
 Library Redirect Path: Library/
 [Physics::Module] Selected backend.
@@ -112,7 +112,7 @@ Initialize mono
 Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/Managed'
 Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
 Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/MonoBleedingEdge/etc'
-Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56628
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56420
 CodeReloadManager initialized
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
@@ -122,30 +122,30 @@ Begin MonoManager ReloadAssembly
 Registering precompiled unity dll's ...
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.10f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
-Registered in 0.005848 seconds.
+Registered in 0.004777 seconds.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 Package Manager log level set to [2]
 ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.698 seconds
-Domain Reload Profiling: 1513ms
-	BeginReloadAssembly (291ms)
-		CreateAndSetChildDomain (21ms)
-	RebuildCommonClasses (59ms)
-	RebuildNativeTypeToScriptingClass (20ms)
+- Finished resetting the current domain, in  0.688 seconds
+Domain Reload Profiling: 1441ms
+	BeginReloadAssembly (253ms)
+		CreateAndSetChildDomain (16ms)
+	RebuildCommonClasses (54ms)
+	RebuildNativeTypeToScriptingClass (19ms)
 	initialDomainReloadingComplete (119ms)
-	LoadAllAssembliesAndSetupDomain (323ms)
-		LoadAssemblies (264ms)
-		AnalyzeDomain (310ms)
-			TypeCache.Refresh (307ms)
-				TypeCache.ScanAssembly (282ms)
-	FinalizeReload (701ms)
+	LoadAllAssembliesAndSetupDomain (304ms)
+		LoadAssemblies (232ms)
+		AnalyzeDomain (291ms)
+			TypeCache.Refresh (289ms)
+				TypeCache.ScanAssembly (269ms)
+	FinalizeReload (691ms)
 		SetupLoadedEditorAssemblies (0ms)
 			InitializePlatformSupportModulesInManaged (73ms)
-			BeforeProcessingInitializeOnLoad (138ms)
-			ProcessInitializeOnLoadAttributes (180ms)
-			ProcessInitializeOnLoadMethodAttributes (208ms)
+			BeforeProcessingInitializeOnLoad (129ms)
+			ProcessInitializeOnLoadAttributes (170ms)
+			ProcessInitializeOnLoadMethodAttributes (210ms)
 [Licensing::Client] Successfully resolved entitlement details
 Application.AssetDatabase Initial Refresh Start
 [Package Manager] Restoring resolved packages state from cache
@@ -226,7 +226,7 @@ Application.AssetDatabase Initial Refresh Start
     com.unity.collections@6.4.0 (location: C:\Unity\code\Library\PackageCache\com.unity.collections@5b6ebd78ccc0)
 [Package Manager] com.unity.textmeshpro is deprecated: This package is no longer supported. TextMeshPro functionalities are now included in the com.unity.ugui package. To continue using them, consider adding it to your project dependencies.
 [Subsystems] No new subsystems found in resolved package list.
-[Package Manager] Done registering packages in 0.04 seconds
+[Package Manager] Done registering packages in 0.03 seconds
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
 [ScriptCompilation] Requested script compilation because: AssetDatabase observed changes in script compilation related files
@@ -245,9 +245,10 @@ info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 60.1830ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 49.7447ms
 Starting: C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
 WorkingDir: C:/Unity/code
+DisplayProgressbar: Compiling Scripts
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
@@ -256,7 +257,6 @@ warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
       Assembly system.runtime.interopservices.windowsruntime has duplicate hint path. Ignoring "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Runtime.InteropServices.WindowsRuntime.dll" in favor of "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\NetStandard\Extensions\2.0.0\System.Runtime.InteropServices.WindowsRuntime.dll"
 warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
       Assembly system.componentmodel.composition has duplicate hint path. Ignoring "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\System.ComponentModel.Composition.dll" in favor of "C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\NetStandard\compat\2.1.0\shims\netfx\System.ComponentModel.Composition.dll"
-DisplayProgressbar: Compiling Scripts
 info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
       Resolved Unity.Burst.Cecil, Version=0.11.6.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@6bb9aca3ef38\Unity.Burst.CodeGen\Unity.Burst.Cecil.dll
 info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
@@ -264,13 +264,13 @@ info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 129.2026ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 106.8991ms
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
       Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
       Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
@@ -278,97 +278,81 @@ info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
       Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 383 references
+      Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll, with 144 defines and 286 references
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 144 defines and 357 references
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+      Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 383 references
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll, with 144 defines and 286 references
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       running Unity.Jobs.CodeGen.JobsILPostProcessor
 info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
       Resolved Unity.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with Library\Bee\artifacts\1900b0aE.dag\Unity.Collections.dll
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 2653.0203ms
 info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
       Resolved UnityEditor.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Managed\UnityEngine\UnityEditor.CoreModule.dll
 info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
       Resolved UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with C:\Program Files\Unity\Hub\Editor\6000.4.10f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll
 info: Unity.ILPP.Runner.PostProcessingPipeline[0]
       running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
 info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
       Resolved Unity.Burst.Cecil.Rocks, Version=0.11.6.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@6bb9aca3ef38\Unity.Burst.CodeGen\Unity.Burst.Cecil.Rocks.dll
-info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running Unity.Jobs.CodeGen.JobsILPostProcessor
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 1973.2970ms
-info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running Unity.Jobs.CodeGen.JobsILPostProcessor
-info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 3209.5907ms
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 2033.6492ms
-info: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 2263.7067ms
-ExitCode: 0 Duration: 5s743ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 3231.2045ms
+ExitCode: 0 Duration: 8s586ms
 [1083/1423  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
-[1411/1423  1s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll (+2 others)
+[1411/1423  3s] Csc Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll (+2 others)
 Assets\Scripts\UI\EquipmentWindow.cs(105,28): warning CS0114: 'EquipmentWindow.Toggle()' hides inherited member 'UIWindow.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\AchievementUTK.cs(55,28): warning CS0114: 'AchievementUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\AlchemyStationUTK.cs(45,28): warning CS0114: 'AlchemyStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\GasSprayUTK.cs(39,28): warning CS0114: 'GasSprayUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\OptionsUTK.cs(43,28): warning CS0114: 'OptionsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
 Assets\Scripts\UI\Toolkit\ArenaBattleUTK.cs(52,28): warning CS0114: 'ArenaBattleUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(52,28): warning CS0114: 'PlayerFlagUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\ArenaMenuUTK.cs(57,28): warning CS0114: 'ArenaMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\QuestChoiceUTK.cs(58,28): warning CS0114: 'QuestChoiceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\QuestJournalUTK.cs(62,28): warning CS0114: 'QuestJournalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\GasSprayUTK.cs(39,28): warning CS0114: 'GasSprayUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\ChurchUTK.cs(41,28): warning CS0114: 'ChurchUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\ChurchUTK.cs(59,32): warning CS0108: 'ChurchUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
 
-Assets\Scripts\UI\Toolkit\QuestWindowUTK.cs(64,28): warning CS0114: 'QuestWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
 Assets\Scripts\UI\Toolkit\CookingWindowUTK.cs(46,28): warning CS0114: 'CookingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(46,28): warning CS0114: 'ReadDocumentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(60,23): warning CS0108: 'ReadDocumentUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
-
-Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\OptionsUTK.cs(43,28): warning CS0114: 'OptionsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\CraftingWindowUTK.cs(58,28): warning CS0114: 'CraftingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\RepairStationUTK.cs(45,28): warning CS0114: 'RepairStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(52,28): warning CS0114: 'PlayerFlagUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(92,28): warning CS0114: 'ItemDescriptionWindowUTK.Show()' hides inherited member 'UTKWindowBase.Show()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\QuestChoiceUTK.cs(58,28): warning CS0114: 'QuestChoiceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(100,28): warning CS0114: 'ItemDescriptionWindowUTK.Hide()' hides inherited member 'UTKWindowBase.Hide()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\QuestJournalUTK.cs(62,28): warning CS0114: 'QuestJournalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(137,28): warning CS0108: 'ItemDescriptionWindowUTK.Clear()' hides inherited member 'VisualElement.Clear()'. Use the new keyword if hiding was intended.
-
-Assets\Scripts\UI\Toolkit\RevengeListUTK.cs(46,28): warning CS0114: 'RevengeListUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\QuestWindowUTK.cs(64,28): warning CS0114: 'QuestWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(54,28): warning CS0114: 'DynamicEventUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
@@ -376,13 +360,27 @@ Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(60,28): warning CS0114: 'DynamicEve
 
 Assets\Scripts\UI\Toolkit\EncyclopediaWindowUTK.cs(63,28): warning CS0114: 'EncyclopediaWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\LockpickingUTK.cs(142,28): warning CS0114: 'LockpickingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\SettingsMenuUTK.cs(49,28): warning CS0114: 'SettingsMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\EnvoyMissionUTK.cs(46,28): warning CS0114: 'EnvoyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\LordAudienceUTK.cs(49,28): warning CS0114: 'LordAudienceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(92,28): warning CS0114: 'ItemDescriptionWindowUTK.Show()' hides inherited member 'UTKWindowBase.Show()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(100,28): warning CS0114: 'ItemDescriptionWindowUTK.Hide()' hides inherited member 'UTKWindowBase.Hide()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(137,28): warning CS0108: 'ItemDescriptionWindowUTK.Clear()' hides inherited member 'VisualElement.Clear()'. Use the new keyword if hiding was intended.
+
+Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(46,28): warning CS0114: 'ReadDocumentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(60,23): warning CS0108: 'ReadDocumentUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
+
+Assets\Scripts\UI\Toolkit\RepairStationUTK.cs(45,28): warning CS0114: 'RepairStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\EquipmentWindowUTK.cs(46,28): warning CS0114: 'EquipmentWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\RevengeListUTK.cs(46,28): warning CS0114: 'RevengeListUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\LockpickingUTK.cs(142,28): warning CS0114: 'LockpickingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\FastTravelUTK.cs(45,28): warning CS0114: 'FastTravelUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
@@ -390,15 +388,19 @@ Assets\Scripts\UI\Toolkit\FestivalUTK.cs(55,28): warning CS0114: 'FestivalUTK.To
 
 Assets\Scripts\UI\Toolkit\FestivalUTK.cs(61,28): warning CS0114: 'FestivalUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\EquipmentWindowUTK.cs(46,28): warning CS0114: 'EquipmentWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\SettingsMenuUTK.cs(49,28): warning CS0114: 'SettingsMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\MercenaryHireUTK.cs(47,28): warning CS0114: 'MercenaryHireUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\LordAudienceUTK.cs(49,28): warning CS0114: 'LordAudienceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\FishingUTK.cs(131,28): warning CS0114: 'FishingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\MercyUTK.cs(173,28): warning CS0114: 'MercyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(41,28): warning CS0114: 'WorldMapWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\GameStatsUTK.cs(59,28): warning CS0114: 'GameStatsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\MercyUTK.cs(173,28): warning CS0114: 'MercyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\MercenaryHireUTK.cs(47,28): warning CS0114: 'MercenaryHireUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\Toolkit\SpyMissionUTK.cs(47,28): warning CS0114: 'SpyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
@@ -408,26 +410,16 @@ Assets\Scripts\UI\Toolkit\NPCDailyUTK.cs(37,28): warning CS0114: 'NPCDailyUTK.To
 
 Assets\Scripts\UI\Toolkit\NPCDailyUTK.cs(43,28): warning CS0114: 'NPCDailyUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
-Assets\Scripts\UI\Toolkit\TutorialGuideUTK.cs(77,28): warning CS0114: 'TutorialGuideUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
-Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(41,28): warning CS0114: 'WorldMapWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-
 Assets\Scripts\UI\Toolkit\NPCDialogueUTK.cs(49,28): warning CS0114: 'NPCDialogueUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+
+Assets\Scripts\UI\Toolkit\TutorialGuideUTK.cs(77,28): warning CS0114: 'TutorialGuideUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 
 Assets\Scripts\UI\TerritoryNPCSpawner.cs(259,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
 
 Assets\Scripts\UI\Toolkit\GuardSquadHotbarUTK.cs(334,38): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
 
 Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(72,22): warning CS0414: The field 'PlayerFlagUTK._showMessage' is assigned but its value is never used
-[1414/1423  2s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
-Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 144 defines and 357 references
-
-processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
-
-running Unity.Jobs.CodeGen.JobsILPostProcessor
-
-running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[1416/1423  2s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/ProjectName.UI.dll (+pdb)
+[1414/1423  2s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/ProjectName.UI.dll (+pdb)
 Processing assembly Library/Bee/artifacts/1900b0aE.dag/ProjectName.UI.dll, with 144 defines and 286 references
 
 processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
@@ -435,9 +427,17 @@ processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.Burst
 running Unity.Jobs.CodeGen.JobsILPostProcessor
 
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[1417/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.pdb
-[1418/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.dll
-[1420/1423  2s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
+[1415/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.pdb
+[1416/1423  0s] CopyFiles Library/ScriptAssemblies/ProjectName.UI.dll
+[1417/1423  3s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 144 defines and 357 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1418/1423  3s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
 Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 142 defines and 383 references
 
 processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
@@ -445,56 +445,56 @@ processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.Burst
 running Unity.Jobs.CodeGen.JobsILPostProcessor
 
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-*** Tundra build success (5.68 seconds), 7 items updated, 1423 evaluated
+*** Tundra build success (8.52 seconds), 7 items updated, 1423 evaluated
 Assets\Scripts\UI\EquipmentWindow.cs(105,28): warning CS0114: 'EquipmentWindow.Toggle()' hides inherited member 'UIWindow.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\AchievementUTK.cs(55,28): warning CS0114: 'AchievementUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\AlchemyStationUTK.cs(45,28): warning CS0114: 'AlchemyStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\GasSprayUTK.cs(39,28): warning CS0114: 'GasSprayUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\OptionsUTK.cs(43,28): warning CS0114: 'OptionsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\ArenaBattleUTK.cs(52,28): warning CS0114: 'ArenaBattleUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(52,28): warning CS0114: 'PlayerFlagUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\ArenaMenuUTK.cs(57,28): warning CS0114: 'ArenaMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\QuestChoiceUTK.cs(58,28): warning CS0114: 'QuestChoiceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\QuestJournalUTK.cs(62,28): warning CS0114: 'QuestJournalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\GasSprayUTK.cs(39,28): warning CS0114: 'GasSprayUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\ChurchUTK.cs(41,28): warning CS0114: 'ChurchUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\ChurchUTK.cs(59,32): warning CS0108: 'ChurchUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
-Assets\Scripts\UI\Toolkit\QuestWindowUTK.cs(64,28): warning CS0114: 'QuestWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\CookingWindowUTK.cs(46,28): warning CS0114: 'CookingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(46,28): warning CS0114: 'ReadDocumentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(60,23): warning CS0108: 'ReadDocumentUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
-Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\OptionsUTK.cs(43,28): warning CS0114: 'OptionsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\CraftingWindowUTK.cs(58,28): warning CS0114: 'CraftingWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\RepairStationUTK.cs(45,28): warning CS0114: 'RepairStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(92,28): warning CS0114: 'ItemDescriptionWindowUTK.Show()' hides inherited member 'UTKWindowBase.Show()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(100,28): warning CS0114: 'ItemDescriptionWindowUTK.Hide()' hides inherited member 'UTKWindowBase.Hide()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(137,28): warning CS0108: 'ItemDescriptionWindowUTK.Clear()' hides inherited member 'VisualElement.Clear()'. Use the new keyword if hiding was intended.
-Assets\Scripts\UI\Toolkit\RevengeListUTK.cs(46,28): warning CS0114: 'RevengeListUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(52,28): warning CS0114: 'PlayerFlagUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\QuestChoiceUTK.cs(58,28): warning CS0114: 'QuestChoiceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\QuestJournalUTK.cs(62,28): warning CS0114: 'QuestJournalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\QuestWindowUTK.cs(64,28): warning CS0114: 'QuestWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(54,28): warning CS0114: 'DynamicEventUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\DynamicEventUTK.cs(60,28): warning CS0114: 'DynamicEventUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\EncyclopediaWindowUTK.cs(63,28): warning CS0114: 'EncyclopediaWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\LockpickingUTK.cs(142,28): warning CS0114: 'LockpickingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\SettingsMenuUTK.cs(49,28): warning CS0114: 'SettingsMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\InventoryWindowUTK.cs(47,28): warning CS0114: 'InventoryWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\EnvoyMissionUTK.cs(46,28): warning CS0114: 'EnvoyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\LordAudienceUTK.cs(49,28): warning CS0114: 'LordAudienceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(92,28): warning CS0114: 'ItemDescriptionWindowUTK.Show()' hides inherited member 'UTKWindowBase.Show()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(100,28): warning CS0114: 'ItemDescriptionWindowUTK.Hide()' hides inherited member 'UTKWindowBase.Hide()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ItemDescriptionWindowUTK.cs(137,28): warning CS0108: 'ItemDescriptionWindowUTK.Clear()' hides inherited member 'VisualElement.Clear()'. Use the new keyword if hiding was intended.
+Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(46,28): warning CS0114: 'ReadDocumentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\ReadDocumentUTK.cs(60,23): warning CS0108: 'ReadDocumentUTK._titleLabel' hides inherited member 'UTKWindowBase._titleLabel'. Use the new keyword if hiding was intended.
+Assets\Scripts\UI\Toolkit\RepairStationUTK.cs(45,28): warning CS0114: 'RepairStationUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\EquipmentWindowUTK.cs(46,28): warning CS0114: 'EquipmentWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\RevengeListUTK.cs(46,28): warning CS0114: 'RevengeListUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\LockpickingUTK.cs(142,28): warning CS0114: 'LockpickingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\FastTravelUTK.cs(45,28): warning CS0114: 'FastTravelUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\FestivalUTK.cs(55,28): warning CS0114: 'FestivalUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\FestivalUTK.cs(61,28): warning CS0114: 'FestivalUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\EquipmentWindowUTK.cs(46,28): warning CS0114: 'EquipmentWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\MercenaryHireUTK.cs(47,28): warning CS0114: 'MercenaryHireUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\SettingsMenuUTK.cs(49,28): warning CS0114: 'SettingsMenuUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\LordAudienceUTK.cs(49,28): warning CS0114: 'LordAudienceUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\FishingUTK.cs(131,28): warning CS0114: 'FishingUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\MercyUTK.cs(173,28): warning CS0114: 'MercyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(41,28): warning CS0114: 'WorldMapWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\GameStatsUTK.cs(59,28): warning CS0114: 'GameStatsUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\MercyUTK.cs(173,28): warning CS0114: 'MercyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\MercenaryHireUTK.cs(47,28): warning CS0114: 'MercenaryHireUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\SpyMissionUTK.cs(47,28): warning CS0114: 'SpyMissionUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\TerritoryDeploymentUTK.cs(44,28): warning CS0114: 'TerritoryDeploymentUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\NPCDailyUTK.cs(37,28): warning CS0114: 'NPCDailyUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\NPCDailyUTK.cs(43,28): warning CS0114: 'NPCDailyUTK.Close()' hides inherited member 'UTKWindowBase.Close()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\TutorialGuideUTK.cs(77,28): warning CS0114: 'TutorialGuideUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-Assets\Scripts\UI\Toolkit\WorldMapWindowUTK.cs(41,28): warning CS0114: 'WorldMapWindowUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\Toolkit\NPCDialogueUTK.cs(49,28): warning CS0114: 'NPCDialogueUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+Assets\Scripts\UI\Toolkit\TutorialGuideUTK.cs(77,28): warning CS0114: 'TutorialGuideUTK.Toggle()' hides inherited member 'UTKWindowBase.Toggle()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
 Assets\Scripts\UI\TerritoryNPCSpawner.cs(259,24): warning CS0618: 'ProceduralAnimationController' is obsolete: 'Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md'
 Assets\Scripts\UI\Toolkit\GuardSquadHotbarUTK.cs(334,38): warning CS0618: 'Object.GetInstanceID()' is obsolete: 'GetInstanceID is deprecated. Use GetEntityId instead. This will be removed in a future version.'
 Assets\Scripts\UI\Toolkit\PlayerFlagUTK.cs(72,22): warning CS0414: The field 'PlayerFlagUTK._showMessage' is assigned but its value is never used
-AssetDatabase: script compilation time: 6.553349s
+AssetDatabase: script compilation time: 9.365333s
 Begin MonoManager ReloadAssembly
 Assembly Assembly-CSharp-Editor-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-Editor-firstpass.dll not valid. Loading of assembly skipped.
 Assembly Assembly-CSharp-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll not valid. Loading of assembly skipped.
@@ -541,227 +541,218 @@ Symbol file LoadedFromMemory is not a mono symbol file
 Symbol file LoadedFromMemory is not a mono symbol file
 'Packages/com.unity.cinemachine/Editor/Editors/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
 'Packages/com.unity.cinemachine/Editor/Obsolete/CinemachineVirtualCameraBaseEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
-Refreshing native plugins compatible for Editor in 229.73 ms, found 5 plugins.
+Refreshing native plugins compatible for Editor in 10.91 ms, found 5 plugins.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 Assembly reference Packages/com.unity.cinemachine/Editor/Samples/ExposeHDRPInternals/HDRP-Editor-ref.asmref has no target assembly definition
-Refreshing native plugins compatible for Editor in 7.29 ms, found 5 plugins.
+Refreshing native plugins compatible for Editor in 7.19 ms, found 5 plugins.
 [MODES] ModeService[none].Initialize
 [MODES] ModeService[none].LoadModes
 [MODES] Loading mode Default (0) for mode-current-id-포이즌
 ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in 17.925 seconds
-Domain Reload Profiling: 39106ms
-	BeginReloadAssembly (563ms)
-		DisableScriptedObjects (61ms)
-		CreateAndSetChildDomain (184ms)
-	RebuildCommonClasses (55ms)
-	RebuildNativeTypeToScriptingClass (22ms)
-	initialDomainReloadingComplete (14937ms)
-	LoadAllAssembliesAndSetupDomain (5511ms)
-		LoadAssemblies (4121ms)
-		AnalyzeDomain (1596ms)
-			TypeCache.Refresh (1355ms)
-				TypeCache.ScanAssembly (1310ms)
-			BuildScriptInfoCaches (202ms)
-			ResolveRequiredComponents (36ms)
-	FinalizeReload (18018ms)
+- Finished resetting the current domain, in  6.762 seconds
+Domain Reload Profiling: 9688ms
+	BeginReloadAssembly (488ms)
+		DisableScriptedObjects (43ms)
+		CreateAndSetChildDomain (181ms)
+	RebuildCommonClasses (53ms)
+	RebuildNativeTypeToScriptingClass (23ms)
+	initialDomainReloadingComplete (536ms)
+	LoadAllAssembliesAndSetupDomain (1826ms)
+		LoadAssemblies (1262ms)
+		AnalyzeDomain (742ms)
+			TypeCache.Refresh (559ms)
+				TypeCache.ScanAssembly (529ms)
+			BuildScriptInfoCaches (149ms)
+			ResolveRequiredComponents (30ms)
+	FinalizeReload (6764ms)
 		SetupLoadedEditorAssemblies (0ms)
-			InitializePlatformSupportModulesInManaged (43ms)
-			BeforeProcessingInitializeOnLoad (555ms)
-			ProcessInitializeOnLoadAttributes (12946ms)
-			ProcessInitializeOnLoadMethodAttributes (2287ms)
-			AfterProcessingInitializeOnLoad (71ms)
-			EditorAssembliesLoaded (25ms)
-		ExecutionOrderSort2 (10ms)
-		AwakeInstancesAfterBackupRestoration (301ms)
-Start importing Packages/com.unity.render-pipelines.core/Tests/Editor/UnifiedRayTracing/TraceRays.urtshader using Guid(1142bbad8b9e8c44c83a9775ff120d37) (ScriptedImporter)Launched and connected shader compiler UnityShaderCompiler.exe after 0.11 seconds
+			InitializePlatformSupportModulesInManaged (37ms)
+			BeforeProcessingInitializeOnLoad (545ms)
+			ProcessInitializeOnLoadAttributes (4801ms)
+			ProcessInitializeOnLoadMethodAttributes (888ms)
+			AfterProcessingInitializeOnLoad (15ms)
+		AwakeInstancesAfterBackupRestoration (61ms)
+Start importing Packages/com.unity.render-pipelines.core/Tests/Editor/UnifiedRayTracing/TraceRays.urtshader using Guid(1142bbad8b9e8c44c83a9775ff120d37) (ScriptedImporter)Launched and connected shader compiler UnityShaderCompiler.exe after 0.04 seconds
 
 Compiling Ray Tracing Shader "TraceRays.urtshader", keywords = <no keywords>
-    finished in 0.85 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '33f398bdfa7c10409c63e16472cf5448') in 1.9390845 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=c318fb77de2db73647fab9e98851469d DependenciesID=c4b6cbf45f1a126b654d3ec43ff518b4 StaticDependenciesID=b7859538b7c8061be2c1df0681a26cec 
+    finished in 0.06 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: '33f398bdfa7c10409c63e16472cf5448') in 0.9564225 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=c318fb77de2db73647fab9e98851469d DependenciesID=c4b6cbf45f1a126b654d3ec43ff518b4 StaticDependenciesID=b7859538b7c8061be2c1df0681a26cec 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/RisEstimation.urtshader using Guid(713f6141bd66a134383b787f2eaa7c11) (ScriptedImporter)
 Compiling Ray Tracing Shader "RisEstimation.urtshader", keywords = <no keywords>
-    finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '3e0794f61b814c58fba62fbdf018b2be') in 0.2558608 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=eceb737164082aa5ea9ee5b30b9eb0ad DependenciesID=d73329633f0139446b7cd637b36b6fd8 StaticDependenciesID=1251c416255850dca778d66927462604 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: '3e0794f61b814c58fba62fbdf018b2be') in 0.0703362 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=eceb737164082aa5ea9ee5b30b9eb0ad DependenciesID=d73329633f0139446b7cd637b36b6fd8 StaticDependenciesID=1251c416255850dca778d66927462604 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapShadowMaskIntegration.urtshader using Guid(d19f4f8a13b6edb48b986a47ec96402e) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapShadowMaskIntegration.urtshader", keywords = <no keywords>
     finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'f245faaebb45e24d73ea768da04f8d41') in 0.2966415 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=5e53dd02842c7495c53e3d1bc7a78ddc DependenciesID=db81e65f389a69c4574c50cd7e5e276d StaticDependenciesID=dddefbaa39ba5d51a386df5433e82fa1 
+ -> (Import Result ID: 'f245faaebb45e24d73ea768da04f8d41') in 0.6136423 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=5e53dd02842c7495c53e3d1bc7a78ddc DependenciesID=db81e65f389a69c4574c50cd7e5e276d StaticDependenciesID=dddefbaa39ba5d51a386df5433e82fa1 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapGBufferDebug.urtshader using Guid(737a1597422c12547a8714d76a9406ec) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapGBufferDebug.urtshader", keywords = <no keywords>
-    finished in 0.02 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'e5c06b1d2dad6f7975fe60b947e94539') in 0.062146 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=e0c24e325b6a556ed6c8a59b48713ca2 DependenciesID=baf99c66c6069e7b579c55cd6b4cdb96 StaticDependenciesID=62194a0448f2b8616e1214fb593272db 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'e5c06b1d2dad6f7975fe60b947e94539') in 0.0286121 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=e0c24e325b6a556ed6c8a59b48713ca2 DependenciesID=baf99c66c6069e7b579c55cd6b4cdb96 StaticDependenciesID=62194a0448f2b8616e1214fb593272db 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapNormalIntegration.urtshader using Guid(1451d029813b192429211be28181beab) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapNormalIntegration.urtshader", keywords = <no keywords>
-    finished in 0.02 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'ce972ba09ce3ff2cbf02665ead7cd8ab') in 0.063691 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f3ad37befedec87f4be431be1f35efde DependenciesID=7812c5e79d5bc15a69d0e20c9928e52b StaticDependenciesID=cbe3820d9825e61936c3967ec27e4e90 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'ce972ba09ce3ff2cbf02665ead7cd8ab') in 0.0321687 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f3ad37befedec87f4be431be1f35efde DependenciesID=7812c5e79d5bc15a69d0e20c9928e52b StaticDependenciesID=cbe3820d9825e61936c3967ec27e4e90 
 Start importing Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/RenderingLayerMask/TraceRenderingLayerMask.urtshader using Guid(94a070d33e408384bafc1dea4a565df9) (ScriptedImporter)
 Compiling Ray Tracing Shader "TraceRenderingLayerMask.urtshader", keywords = <no keywords>
-    finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '6c2cfebc6165a04b035d10bc02129e6b') in 0.0603565 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=0dc2dececef44bfb87e215abcba869e8 DependenciesID=16de5d81d8af1d6c5b7e34df569e403b StaticDependenciesID=83d03f1fcc976b11b697d3bab0b97d8c 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: '6c2cfebc6165a04b035d10bc02129e6b') in 0.0383808 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=0dc2dececef44bfb87e215abcba869e8 DependenciesID=16de5d81d8af1d6c5b7e34df569e403b StaticDependenciesID=83d03f1fcc976b11b697d3bab0b97d8c 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/UniformEstimation.urtshader using Guid(94a39d12848d8d64ca962a72b74e7c50) (ScriptedImporter)
 Compiling Ray Tracing Shader "UniformEstimation.urtshader", keywords = <no keywords>
     finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '82d95866967d7d448c23bb0d2fb10000') in 0.053827 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=208dd87ba38690ecbdd8ce2ef3a42322 DependenciesID=d6ea983cec9f32cfce64242dd4b8eecc StaticDependenciesID=f100dc97879ef35876f7ad5427566dd9 
+ -> (Import Result ID: '82d95866967d7d448c23bb0d2fb10000') in 0.0414429 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=208dd87ba38690ecbdd8ce2ef3a42322 DependenciesID=d6ea983cec9f32cfce64242dd4b8eecc StaticDependenciesID=f100dc97879ef35876f7ad5427566dd9 
 Start importing Packages/com.unity.render-pipelines.core/Tests/Editor/UnifiedRayTracing/TraceTransparentRays.urtshader using Guid(6513c3b892e933c4f8d00c19d5c47532) (ScriptedImporter)
 Compiling Ray Tracing Shader "TraceTransparentRays.urtshader", keywords = <no keywords>
-    finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'bc209695f9cf005a88d081252f657429') in 0.0350451 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=91bbc23bfffb7105b2b114873efdb1f2 DependenciesID=6945867d669fd72bb85a201c6705b033 StaticDependenciesID=5e41b194f27d8b70c797e75555e2b1f0 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'bc209695f9cf005a88d081252f657429') in 0.0144986 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=91bbc23bfffb7105b2b114873efdb1f2 DependenciesID=6945867d669fd72bb85a201c6705b033 StaticDependenciesID=5e41b194f27d8b70c797e75555e2b1f0 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapIndirectIntegration.urtshader using Guid(7624adbeb148b5c48ab5ab660cc2602a) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapIndirectIntegration.urtshader", keywords = <no keywords>
-    finished in 0.02 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '67e8c330902cd5e732e06c94bd0f7618') in 0.0608392 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f09eeff93767bc2d4ca4231c8567847d DependenciesID=a6bfb09c833f569387ed01fe5be7f68d StaticDependenciesID=6d19372de11b03798f093933090e79bb 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: '67e8c330902cd5e732e06c94bd0f7618') in 0.0356152 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f09eeff93767bc2d4ca4231c8567847d DependenciesID=a6bfb09c833f569387ed01fe5be7f68d StaticDependenciesID=6d19372de11b03798f093933090e79bb 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapGBufferIntegration.urtshader using Guid(e9f4de6d1e07fb94f9a60d35b618f724) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapGBufferIntegration.urtshader", keywords = <no keywords>
-    finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'c0f4b2582ffcf2c2ff54d4177df54ac3') in 0.0560035 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=1c0e528a9979685af5e087a9161fbef3 DependenciesID=6581769ff26ea9b7b14b553554989a7c StaticDependenciesID=66dc06979910318021783fcb4ccd3ecc 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'c0f4b2582ffcf2c2ff54d4177df54ac3') in 0.0263464 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=1c0e528a9979685af5e087a9161fbef3 DependenciesID=6581769ff26ea9b7b14b553554989a7c StaticDependenciesID=66dc06979910318021783fcb4ccd3ecc 
 Start importing Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/DynamicGI/DynamicGISkyOcclusion.urtshader using Guid(5a2a534753fbdb44e96c3c78b5a6999d) (ScriptedImporter)
 Compiling Ray Tracing Shader "DynamicGISkyOcclusion.urtshader", keywords = <no keywords>
-    finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'a86cbfdaed43755cb737c6394f2f7dd8') in 0.0417908 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=a874898d18eae9e00b79828747828672 DependenciesID=16df158a22f4c8051a6679df21bb6f16 StaticDependenciesID=18974378deb0e4fc540e6b2321b0ff13 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'a86cbfdaed43755cb737c6394f2f7dd8') in 0.017628 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=a874898d18eae9e00b79828747828672 DependenciesID=16df158a22f4c8051a6679df21bb6f16 StaticDependenciesID=18974378deb0e4fc540e6b2321b0ff13 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapDirectIntegration.urtshader using Guid(5bbebdef5916845478fcef13fa10d89f) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapDirectIntegration.urtshader", keywords = <no keywords>
-    finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'dad1bd87862ce17b1a6f9b60244690d8') in 0.0535719 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=575772a2c318afcd1a335e99619769d8 DependenciesID=4dbce75b84537949726dd242cfb94486 StaticDependenciesID=63188f79534be5f4b9e074ad4af5bfb7 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'dad1bd87862ce17b1a6f9b60244690d8') in 0.0297442 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=575772a2c318afcd1a335e99619769d8 DependenciesID=4dbce75b84537949726dd242cfb94486 StaticDependenciesID=63188f79534be5f4b9e074ad4af5bfb7 
 Start importing Packages/com.unity.render-pipelines.core/Tests/Editor/UnifiedRayTracing/TraceRaysAndFetchAttributes.urtshader using Guid(fbc59f55df2416344b008dc23753cae2) (ScriptedImporter)
 Compiling Ray Tracing Shader "TraceRaysAndFetchAttributes.urtshader", keywords = <no keywords>
-    finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'e7d10f853c78da67c2d4f837eb8ca0a1') in 0.0354756 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=4a191d661b3d19bc4a36fd8aa98bb84f DependenciesID=1a1ad1f36cae5eba17a1cef34e1e16e8 StaticDependenciesID=aa8291e86ea82085a643681c1c779d39 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'e7d10f853c78da67c2d4f837eb8ca0a1') in 0.015336 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=4a191d661b3d19bc4a36fd8aa98bb84f DependenciesID=1a1ad1f36cae5eba17a1cef34e1e16e8 StaticDependenciesID=aa8291e86ea82085a643681c1c779d39 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapAOIntegration.urtshader using Guid(1c410815c01ce1d4d82c645c0cd45747) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapAOIntegration.urtshader", keywords = <no keywords>
-    finished in 0.02 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '7b740e58b85665f099cfd3e5419aa5dc') in 0.0602085 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=6e193c7fad6abe3f3874d7d6f1463481 DependenciesID=e72323d3c7187fd5422b976e024d74e6 StaticDependenciesID=bcaf3aac9727a2ca27155e619d011e5f 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: '7b740e58b85665f099cfd3e5419aa5dc') in 0.0230226 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=6e193c7fad6abe3f3874d7d6f1463481 DependenciesID=e72323d3c7187fd5422b976e024d74e6 StaticDependenciesID=bcaf3aac9727a2ca27155e619d011e5f 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/ProbeIntegrationValidity.urtshader using Guid(2c32233d92a2d0745930664c087c5c9a) (ScriptedImporter)
 Compiling Ray Tracing Shader "ProbeIntegrationValidity.urtshader", keywords = <no keywords>
-    finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'e33da5794499a03236819bc23dbe3dc4') in 0.0421868 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=d935b17231a0a22067d89f21ab9c2798 DependenciesID=cc1a0c0428cf7c676e0b3197f9173821 StaticDependenciesID=4aea10376946a8225ccdfdec15a70dac 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'e33da5794499a03236819bc23dbe3dc4') in 0.0201979 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=d935b17231a0a22067d89f21ab9c2798 DependenciesID=cc1a0c0428cf7c676e0b3197f9173821 StaticDependenciesID=4aea10376946a8225ccdfdec15a70dac 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LightmapValidityIntegration.urtshader using Guid(ace95ac84e213794891b4bd7c9b3c158) (ScriptedImporter)
 Compiling Ray Tracing Shader "LightmapValidityIntegration.urtshader", keywords = <no keywords>
-    finished in 0.02 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '2afc97fdb6ed91bdf651e0ae5f6d3b94') in 0.0620085 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f7002ecb1d7cf6ba26b81594bf688948 DependenciesID=44c876861aeaaad98c736054441de774 StaticDependenciesID=46d905dacc01197a8e043a8ad4f9d21d 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: '2afc97fdb6ed91bdf651e0ae5f6d3b94') in 0.0230895 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=f7002ecb1d7cf6ba26b81594bf688948 DependenciesID=44c876861aeaaad98c736054441de774 StaticDependenciesID=46d905dacc01197a8e043a8ad4f9d21d 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/RestirCandidateTemporal.urtshader using Guid(ad3a9f9982f8c4f4a839a78955e78458) (ScriptedImporter)
 Compiling Ray Tracing Shader "RestirCandidateTemporal.urtshader", keywords = <no keywords>
-    finished in 0.01 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '7a88537960c967378283b95eb6bfd77a') in 0.0675071 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=5682df992b9d47745a9b5d3f3fbcf3d2 DependenciesID=78a0f525e4751e3ae6e7570f333d8352 StaticDependenciesID=2beaac54fac463ee5ee15c00b0990d01 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: '7a88537960c967378283b95eb6bfd77a') in 0.0264968 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=5682df992b9d47745a9b5d3f3fbcf3d2 DependenciesID=78a0f525e4751e3ae6e7570f333d8352 StaticDependenciesID=2beaac54fac463ee5ee15c00b0990d01 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/ProbeIntegrationIndirect.urtshader using Guid(5ecdabd800f05984696f22ba95284516) (ScriptedImporter)
 Compiling Ray Tracing Shader "ProbeIntegrationIndirect.urtshader", keywords = <no keywords>
-    finished in 0.02 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'f51aca4d67869a41150f3e0a8e3bdc15') in 0.0775133 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=9b755da8d53ee6bb90c5cd2610a8961c DependenciesID=b62f52344154070230c3cd7a53f26643 StaticDependenciesID=83ecbbd61911181b4944eb7ac9eabee5 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'f51aca4d67869a41150f3e0a8e3bdc15') in 0.0348054 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=9b755da8d53ee6bb90c5cd2610a8961c DependenciesID=b62f52344154070230c3cd7a53f26643 StaticDependenciesID=83ecbbd61911181b4944eb7ac9eabee5 
 Start importing Packages/com.unity.render-pipelines.core/Tests/Runtime/PathTracing/PathIteratorTest.urtshader using Guid(6e0b547bab30a804c8123974120d583f) (ScriptedImporter)
 Compiling Ray Tracing Shader "PathIteratorTest.urtshader", keywords = <no keywords>
-    finished in 0.02 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '500f35121367e5c7e958cfb9d9a29a64') in 0.0698918 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=8d0df153da311f7d10e1500823ef010c DependenciesID=30dba2cb67a2cd2adb3f577c231d71f9 StaticDependenciesID=cf2a33ce9b71ea08a4459556694e1323 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: '500f35121367e5c7e958cfb9d9a29a64') in 0.0365393 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=8d0df153da311f7d10e1500823ef010c DependenciesID=30dba2cb67a2cd2adb3f577c231d71f9 StaticDependenciesID=cf2a33ce9b71ea08a4459556694e1323 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/LiveGI.urtshader using Guid(ceb7a31b84722d144bbeff1c8cd88769) (ScriptedImporter)
 Compiling Ray Tracing Shader "LiveGI.urtshader", keywords = <no keywords>
-    finished in 0.02 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'a74720dc4b3e01c6956e9a23f3fef792') in 0.083282 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=b7b0361b445e4d63e4c025ef6477c385 DependenciesID=80daf8d3ed4d3722d8ec04bb2b08e853 StaticDependenciesID=628001b751fe9fddf64a203b1446575e 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'a74720dc4b3e01c6956e9a23f3fef792') in 0.0249942 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=b7b0361b445e4d63e4c025ef6477c385 DependenciesID=80daf8d3ed4d3722d8ec04bb2b08e853 StaticDependenciesID=628001b751fe9fddf64a203b1446575e 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/ProbeIntegrationOcclusion.urtshader using Guid(de3013e16d99f2746ab1735ec06a660b) (ScriptedImporter)
 Compiling Ray Tracing Shader "ProbeIntegrationOcclusion.urtshader", keywords = <no keywords>
-    finished in 0.02 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'e85389a39c7b98508fbacb7957d65688') in 0.0682822 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=0b84ff315b8a5318a99b10956e4c5d4e DependenciesID=71548de73cf28ea4ad8faa250dda4e5f StaticDependenciesID=183f3d853e4af89ec08f4e79696e167d 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'e85389a39c7b98508fbacb7957d65688') in 0.0232176 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=0b84ff315b8a5318a99b10956e4c5d4e DependenciesID=71548de73cf28ea4ad8faa250dda4e5f StaticDependenciesID=183f3d853e4af89ec08f4e79696e167d 
 Start importing Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/ProbeIntegrationDirect.urtshader using Guid(1f9bfe60b4ad75943a5281839c1a4e5c) (ScriptedImporter)
 Compiling Ray Tracing Shader "ProbeIntegrationDirect.urtshader", keywords = <no keywords>
-    finished in 0.02 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: '25964f87db05586a640fad2d9cc15939') in 0.0604515 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=efae7c68c01649f56dbb0e593d0167d0 DependenciesID=f079aadab5140229f59b2610f71b3fa7 StaticDependenciesID=d3f99f9cc1ae2c0c0147c2fa8da668fc 
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: '25964f87db05586a640fad2d9cc15939') in 0.0326661 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=efae7c68c01649f56dbb0e593d0167d0 DependenciesID=f079aadab5140229f59b2610f71b3fa7 StaticDependenciesID=d3f99f9cc1ae2c0c0147c2fa8da668fc 
 Start importing Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/VirtualOffset/TraceVirtualOffset.urtshader using Guid(ff2cbab5da58bf04d82c5f34037ed123) (ScriptedImporter)
 Compiling Ray Tracing Shader "TraceVirtualOffset.urtshader", keywords = <no keywords>
-    finished in 0.02 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
- -> (Import Result ID: 'a57c84c41270216125416ad4640d4f06') in 0.063709 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=734d0cfdf242e2376dd95fc0e7c01a88 DependenciesID=64a4d613723520d2612b3ca586afd1d2 StaticDependenciesID=f51ff46b48d84884c883ac486ebfd7f9 
-Start importing Assets/Resources/UI/Theme.uss using Guid(0044c4408e4b45f4181a322b99f449ff) (ScriptedImporter)Assets/Resources/UI/Theme.uss (line 209): warning: Unknown property 'pointer-events' (did you mean 'border-radius'?)
-    pointer-events: none
- -> (Import Result ID: 'f22a3b379aa69d7cd7435ec860c58994') in 0.1140352 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=a19153ef4c10b6988c0a66e56cdcc895 DependenciesID=083311cf8ccc0b2e575ed1dae9b3f4a4 StaticDependenciesID=f22a16ea48779d39007457ca80e6b78d 
-Refreshing native plugins compatible for Editor in 33.55 ms, found 5 plugins.
+    finished in 0.00 seconds. Local cache hits 1, remote cache hits 0, compiled 0 platform variants
+ -> (Import Result ID: 'a57c84c41270216125416ad4640d4f06') in 0.0293024 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=734d0cfdf242e2376dd95fc0e7c01a88 DependenciesID=64a4d613723520d2612b3ca586afd1d2 StaticDependenciesID=f51ff46b48d84884c883ac486ebfd7f9 
+Refreshing native plugins compatible for Editor in 37.72 ms, found 5 plugins.
 (Values over 0.050ms)
-Asset Pipeline Refresh (id=25d51b7caa57c5e4b9cf4af7cd4a0238): Total: 57.165 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+Asset Pipeline Refresh (id=948dd528a2db5ee47ba3b68456e6d0ad): Total: 30.867 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
 	Summary:
-		Imports: total=24 (actual=24, local cache=0, cache server=0)
-		Asset DB Process Time: managed=13 ms, native=27184 ms
-		Asset DB Callback time: managed=1282 ms, native=761 ms
-		Scripting: domain reloads=1, domain reload time=21102 ms, compile time=6559 ms, other=258 ms
+		Imports: total=23 (actual=23, local cache=0, cache server=0)
+		Asset DB Process Time: managed=34 ms, native=10481 ms
+		Asset DB Callback time: managed=7322 ms, native=462 ms
+		Scripting: domain reloads=1, domain reload time=2937 ms, compile time=9368 ms, other=257 ms
 		Project Asset Count: scripts=2679, non-scripts=7668
 		Asset File Changes: new=0, changed=1, moved=0, deleted=0
 		Scan Filter Count: 0
-	InvokePackagesCallback: 90.895ms
-	ApplyChangesToAssetFolders: 7.445ms
-	Scan: 323.046ms
-	OnSourceAssetsModified: 1.311ms
-	CategorizeScriptCompilationAssets: 123.350ms
-	ProcessAssetsWithTransientArtifactChanges: 275.971ms
-	CategorizeAssets: 1463.222ms
-	CompileScripts: 6559.368ms
-	ImportOutOfDateAssets: 22937.925ms (18526.666ms without children)
-		ImportManagerImport: 4384.795ms (445.291ms without children)
-			UpdateCategorizedAssets: 2.629ms
-		ReloadNativeAssets: 0.061ms
-		UnloadImportedAssets: 16.682ms
-		ReloadImportedAssets: 28.315ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 3.620ms
-		InitializingProgressBar: 2.918ms
-		OnDemandSchedulerStart: 3.179ms
-	PostProcessAllAssets: 1921.216ms
-		ComputeShaderImportPostprocess 432.331ms
-		RaytracingShaderImportPostprocess 166.378ms
-		VCAutoAddAssetPostprocess 13.277ms
-		XRBuildSystem.XRAssetImported 5.145ms
-		PostProcessCallbackCreateDeferredMaterials 2.509ms
-		Canvas.OnAllAssetImport 0.932ms
-		AssemblyValidation.PostprocessAllAssets 0.621ms
-		ShaderAssetModifiedCallback 0.081ms
-		BlockShaderImporter.PostprocessAllAssets 0.067ms
-		LocalizationDatabase.AssetDatabasePostprocessCallback 0.066ms
-		MonoPostProcessAllAssets: 1281.669ms
-			AssetPostprocessor.OnPostprocessAllAssets 1090.633ms
-			StyleCatalogPostProcessor.OnPostprocessAllAssets 74.023ms
-			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 42.321ms
-			BuilderAssetPostprocessor.OnPostprocessAllAssets 9.462ms
-			SpeedTree9Postprocessor.OnPostprocessAllAssets 4.295ms
-			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 3.504ms
-			AssetChangedListener.OnPostprocessAllAssets 3.323ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 3.149ms
-			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 3.048ms
-			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 2.878ms
-			VFXGraphPreprocessor.OnPostprocessAllAssets 2.800ms
-			LocalizationAssetPostProcessor.OnPostprocessAllAssets 1.936ms
-			TextAssetPostProcessor.OnPostprocessAllAssets 1.705ms
-			TMPro_TexturePostProcessor.OnPostprocessAllAssets 1.421ms
-			AddressablesAssetPostProcessor.OnPostprocessAllAssets 1.403ms
-			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 1.304ms
-			MaterialPostprocessor.OnPostprocessAllAssets 1.180ms
-			SpeedTreePostProcessor.OnPostprocessAllAssets 0.858ms
-			AssetPathToTypes.OnPostprocessAllAssets 0.742ms
-			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.691ms
-			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.675ms
-			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.576ms
-			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.550ms
-			PostProcessor.OnPostprocessAllAssets 0.515ms
-			AudioMixerPostprocessor.OnPostprocessAllAssets 0.484ms
-			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.468ms
-			AssetEvents.OnPostprocessAllAssets 0.429ms
-			CinemachineSettings.OnPostprocessAllAssets 0.380ms
-			ModelAssetProcessor.OnPostprocessAllAssets 0.369ms
-			ConfigAssetsTracker.OnPostprocessAllAssets 0.368ms
-			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.285ms
-			SyncVS.PostprocessSyncProject 0.218ms
-			SamplePostprocessor.OnPostprocessAllAssets 0.210ms
-			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.180ms
-			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.171ms
-			AudioContainerPostProcessor.OnPostprocessAllAssets 0.127ms
-	PostAssetChangesProfiler: 74.703ms
-	UnloadStreamsBegin: 6.351ms
-	PersistCurrentRevisions: 1.230ms
-	GenerateScriptTypeHashes: 8.890ms
-	GenerateScriptTypeSerializationHashes: 14.660ms
-	Untracked: 23353.517ms
+	InvokePackagesCallback: 41.575ms
+	ApplyChangesToAssetFolders: 1.079ms
+	Scan: 328.520ms
+	OnSourceAssetsModified: 1.340ms
+	CategorizeScriptCompilationAssets: 123.077ms
+	ProcessAssetsWithTransientArtifactChanges: 235.267ms
+	CategorizeAssets: 266.687ms
+	CompileScripts: 9368.278ms
+	ImportOutOfDateAssets: 9137.566ms (6813.959ms without children)
+		ImportManagerImport: 2313.665ms (2.935ms without children)
+			UpdateCategorizedAssets: 2.504ms
+		ReloadNativeAssets: 0.057ms
+		UnloadImportedAssets: 4.167ms
+		ReloadImportedAssets: 6.613ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.460ms
+		OnDemandSchedulerStart: 3.244ms
+	PostProcessAllAssets: 7684.644ms
+		ComputeShaderImportPostprocess 184.772ms
+		RaytracingShaderImportPostprocess 157.667ms
+		VCAutoAddAssetPostprocess 9.396ms
+		XRBuildSystem.XRAssetImported 2.059ms
+		PostProcessCallbackCreateDeferredMaterials 0.124ms
+		ShaderAssetModifiedCallback 0.100ms
+		LocalizationDatabase.AssetDatabasePostprocessCallback 0.059ms
+		MonoPostProcessAllAssets: 7321.547ms
+			AssetPostprocessor.OnPostprocessAllAssets 7108.980ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 63.754ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 29.926ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 26.777ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 7.574ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 7.328ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 6.683ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 4.958ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 4.060ms
+			AssetChangedListener.OnPostprocessAllAssets 3.760ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 3.113ms
+			AddressablesAssetPostProcessor.OnPostprocessAllAssets 2.734ms
+			LocalizationAssetPostProcessor.OnPostprocessAllAssets 2.350ms
+			VFXGraphPreprocessor.OnPostprocessAllAssets 1.972ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 1.794ms
+			UVCSAssetPostprocessor.OnPostprocessAllAssets 1.724ms
+			MaterialPostprocessor.OnPostprocessAllAssets 1.599ms
+			AssetPathToTypes.OnPostprocessAllAssets 0.925ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.912ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 0.901ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.854ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.789ms
+			AssetEvents.OnPostprocessAllAssets 0.779ms
+			PostProcessor.OnPostprocessAllAssets 0.717ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.715ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.659ms
+			CinemachineSettings.OnPostprocessAllAssets 0.495ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.453ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.381ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.369ms
+			SyncVS.PostprocessSyncProject 0.350ms
+			ConfigAssetsTracker.OnPostprocessAllAssets 0.288ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.271ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.254ms
+			AudioContainerPostProcessor.OnPostprocessAllAssets 0.231ms
+			SamplePostprocessor.OnPostprocessAllAssets 0.223ms
+	PostAssetChangesProfiler: 62.855ms
+	UnloadStreamsBegin: 5.433ms
+	PersistCurrentRevisions: 1.010ms
+	GenerateScriptTypeHashes: 70.118ms
+	GenerateScriptTypeSerializationHashes: 167.137ms
+	Untracked: 3600.884ms
 
 Application.AssetDatabase Initial Refresh End
-Scanning for USB devices : 12.699ms
+Scanning for USB devices : 12.072ms
 Initializing Unity extensions:
 Unloading 104 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 11485 unused Assets / (24.0 MB). Loaded Objects now: 12374.
-Memory consumption went from 327.7 MB to 303.7 MB.
-Total: 74.372000 ms (FindLiveObjects: 1.642800 ms CreateObjectMapping: 2.978100 ms MarkObjects: 25.584900 ms  DeleteObjects: 42.759800 ms)
+Unloading 11485 unused Assets / (17.4 MB). Loaded Objects now: 12374.
+Memory consumption went from 326.8 MB to 309.4 MB.
+Total: 51.208600 ms (FindLiveObjects: 1.569700 ms CreateObjectMapping: 2.675200 ms MarkObjects: 18.373000 ms  DeleteObjects: 27.683500 ms)
 
 [ScriptCompilation] Requested script compilation because: Requested through public api
 Compilation requested
@@ -793,9 +784,40 @@ UnityEditor.EditorApplication:Internal_EditorApplicationQuit ()
 
 (Filename: ./Library/PackageCache/com.unity.ugui@1f2d1ab0d950/Runtime/TMP/TMP_FontAsset.cs Line: 820)
 
-Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.0205374 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
-Refreshing native plugins compatible for Editor in 8.56 ms, found 5 plugins.
-Asset Pipeline Refresh (id=1ee5ab6fdf4173947af02a31cd4033d0): Total: 0.275 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing ProjectSettings/EditorBuildSettings.asset using Guid(0000000000000000b000000000000000) (LibraryAssetImporter) -> (Import Result ID: 'bd52947ed447db5b1a3fd28b4c69231b') in 0.0318021 seconds [static dependencies only]. Details - ImportResultOutputID=d777934f36c664454d62eda103573334 DependenciesID=6e07365756e0b154cce5b039bbda3d76 StaticDependenciesID=92333616223ccd73505ef5204746baf5 
+Refreshing native plugins compatible for Editor in 7.54 ms, found 5 plugins.
+(Values over 0.050ms)
+Asset Pipeline Refresh (id=2b758d8ff0c82be438dcf1f7ccc5d488): Total: 1.392 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+	Summary:
+		Imports: total=1 (actual=1, local cache=0, cache server=0)
+		Asset DB Process Time: managed=1 ms, native=1360 ms
+		Asset DB Callback time: managed=5 ms, native=23 ms
+		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
+		Project Asset Count: scripts=2679, non-scripts=7668
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 1
+	ApplyChangesToAssetFolders: 0.146ms
+	Scan: 59.261ms
+	ProcessAssetsWithTransientArtifactChanges: 0.625ms
+	CategorizeAssets: 1054.940ms
+	ImportOutOfDateAssets: 40.266ms (1.064ms without children)
+		ImportManagerImport: 35.028ms (0.405ms without children)
+		UnloadImportedAssets: 0.425ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 2.312ms
+		OnDemandSchedulerStart: 1.393ms
+	PostProcessAllAssets: 21.116ms
+		XRBuildSystem.XRAssetImported 15.814ms
+		MonoPostProcessAllAssets: 5.125ms
+			AssetPostprocessor.OnPostprocessAllAssets 3.793ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.244ms
+			SyncVS.PostprocessSyncProject 0.193ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.183ms
+			ModelAssetProcessor.OnPostprocessAllAssets 0.068ms
+	PostAssetChangesProfiler: 7.836ms
+	GatherAllCurrentPrimaryImportResultRevisions: 0.857ms
+	PersistCurrentRevisions: 0.379ms
+	Untracked: 206.791ms
+
 [Physics::Module] Cleanup current backend.
 [Physics::Module] Id: 0xf2b8ea05
 Input System module state changed to: ShutdownInProgress.
@@ -806,14 +828,14 @@ Input System module state changed to: Shutdown.
 AcceleratorClientConnectionCallback - disconnected - :0
 Cleanup mono
 CodeReloadManager destroyed
-abort_threads: Failed aborting id: 00000000000022FC, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 00000000000028F0, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 00000000000035B4, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 00000000000026A0, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 00000000000022FC, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 00000000000028F0, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 00000000000035B4, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 00000000000026A0, mono_thread_manage will ignore it
 
-debugger-agent: Unable to listen on 3144
+debugger-agent: Unable to listen on 3156
 Exiting batchmode successfully now!
 Exiting without the bug reporter. Application will terminate with return code 0

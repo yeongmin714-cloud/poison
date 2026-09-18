@@ -51,8 +51,8 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float WinW = 520f;    // [독립 창] 좌측 인벤창(장비 2x5+가방 6x5) — 설명/창고/전리품은 별개 창
-        private const float WinH = 680f;
+        private const float WinW = 560f;    // [독립 창] 좌측 인벤창(장비 2x5+가방 6x5) — 설명/창고/전리품은 별개 창
+        private const float WinH = 700f;
         private const int BagColumns = 5;   // 가방 6줄×5칸
         private const int BagRows = 6;
         private const int EquipColumns = 5; // 장비 2줄×5칸

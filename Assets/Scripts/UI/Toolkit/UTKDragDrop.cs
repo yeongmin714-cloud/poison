@@ -115,7 +115,11 @@ namespace ProjectName.UI.Toolkit
 
             bool consumed = false;
             var target = FindDropTargetAt(_ghostPos);
-            Debug.Log($"[UTKDragDrop] Drop 판정 pos={_ghostPos} target={(target != null ? target.GetType().Name : "없음")}");
+            var invWin = InventoryWindowUTK.Instance;
+            var whWin = WarehouseWindowUTK.Instance;
+            Debug.Log($"[UTKDragDrop] Drop 판정 pos={_ghostPos} target={(target != null ? target.GetType().Name : "없음")}"
+                + $" | inv={(invWin != null && invWin.IsOpen ? invWin.worldBound.ToString() : "닫힘")}"
+                + $" | wh={(whWin != null && whWin.IsOpen ? whWin.worldBound.ToString() : "닫힘")}");
             if (target != null)
             {
                 LastDropPos = _ghostPos;
@@ -214,14 +218,19 @@ namespace ProjectName.UI.Toolkit
             evt.StopPropagation();
         }
 
-        /// <summary>[U8 수리] 수신 엘리먼트 로컬 좌표 → UIRoot 패널 좌표 변환.
-        /// PointerMove/Up의 evt.position은 캡처된 엘리먼트 기준 로컬값이라 그대로 쓰면
-        /// 고스트/드롭 판정이 어긋난다(Play 실측 드래그 불능 뿌리).</summary>
-        private static Vector2 ToRootPos(VisualElement el, Vector2 localPos)
+        /// <summary>[U8 수리 v2] 마우스 실측 → 패널 좌표 변환 (단일 경로).
+        /// 이벤트 로컬 좌표/LocalToWorld 추측 변환은 패널 스케일(PanelSettings 1920×1080)과
+        /// 어긋나 pos=2151 같은 패널 폭 초과 좌표가 나왔다(Play 실측). 마우스 실측 픽셀에
+        /// 패널 스케일 배율(root.w / Screen.w)을 곱하는 것이 스케일 무관 성립하는 유일 수식.</summary>
+        private static Vector2 GetPanelPointerPos()
         {
-            var world = el.LocalToWorld(localPos);
             var root = UIToolkitBootstrap.UIRoot;
-            return root != null ? root.WorldToLocal(world) : world;
+            var mouse = UnityEngine.InputSystem.Mouse.current;
+            if (root == null || mouse == null) return Vector2.zero;
+            var screen = mouse.position.ReadValue();               // 실제 픽셀, y 하단 원점
+            float scale = root.worldBound.width / (float)Screen.width;
+            if (scale <= 0f) scale = 1f;
+            return new Vector2(screen.x * scale, root.worldBound.height - screen.y * scale);
         }
 
         private static void OnDragPointerMove(PointerMoveEvent evt)
@@ -246,7 +255,7 @@ namespace ProjectName.UI.Toolkit
                 Begin(payload);
             }
 
-            _ghostPos = ToRootPos(_drag.element, evt.position);   // [U8 수리] 로컬→루트 변환
+            _ghostPos = GetPanelPointerPos();   // [U8 수리 v2] 마우스 실측 단일 경로
             MoveGhost(_ghostPos);
             evt.StopPropagation();
         }
@@ -262,7 +271,7 @@ namespace ProjectName.UI.Toolkit
             bool engaged = drag.engaged;
             if (engaged)
             {
-                _ghostPos = ToRootPos(drag.element, evt.position);   // 로컬→루트 변환
+                _ghostPos = GetPanelPointerPos();   // [U8 수리 v2] 마우스 실측 단일 경로
                 LastDropPos = _ghostPos;
                 MoveGhost(_ghostPos);
             }

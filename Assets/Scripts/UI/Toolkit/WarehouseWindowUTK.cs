@@ -231,7 +231,7 @@ namespace ProjectName.UI.Toolkit
 
             // 기본 숨김 + 우측 배치 (좌:인벤/우:창고 — 인벤 16px 좌측에 대응)
             style.display = DisplayStyle.None;
-            style.left = 892f;
+            style.left = 1044f;
             style.top = 96f;
         }
 
@@ -261,7 +261,7 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && parent == null)
                 root.Add(this);
-            style.left = 892f;
+            style.left = 1044f;
             style.top = 96f;
             StartRefreshLoop();
             RefreshGrid();
@@ -410,12 +410,11 @@ namespace ProjectName.UI.Toolkit
                 cell.SetRank(UTKRarity.ClassForIndex((int)item.rarity));
 
                 int slotIndex = idx;
-                // ① 드래그 소스 (인벤 → 우측 창고 입고) + 좌클릭 설명
+                // ① 드래그 소스 (좌/우 드래그 = 입고) + 좌클릭 설명 + 우클릭(비드래그) = 즉시 입고
                 UTKDragDrop.MakeDraggable(cell,
                     () => MakeInventoryPayload(slotIndex, item),
-                    () => OnInventorySlotClick(slotIndex));
-                // ③ 우클릭 = 즉시 입고
-                cell.RegisterCallback<ContextClickEvent>(evt => OnInventorySlotRightClick(slotIndex, evt));
+                    () => OnInventorySlotClick(slotIndex),
+                    () => OnInventorySlotRightClick(slotIndex, null));
             }
             else
             {
@@ -444,12 +443,11 @@ namespace ProjectName.UI.Toolkit
                 cell.SetRank(UTKRarity.ClassForIndex((int)item.rarity));
 
                 int slotIndex = idx;
-                // ② 드래그 소스 (창고 → 좌측 인벤 출고) + 좌클릭 설명
+                // ② 드래그 소스 (좌/우 드래그 = 출고 이동) + 좌클릭 설명 + 우클릭(비드래그) = 즉시 출고
                 UTKDragDrop.MakeDraggable(cell,
                     () => MakeWarehousePayload(slotIndex, item),
-                    () => OnWarehouseSlotClick(slotIndex));
-                // ③ 우클릭 = 즉시 출고
-                cell.RegisterCallback<ContextClickEvent>(evt => OnWarehouseSlotRightClick(slotIndex, evt));
+                    () => OnWarehouseSlotClick(slotIndex),
+                    () => WithdrawSlot(slotIndex));
             }
             else
             {

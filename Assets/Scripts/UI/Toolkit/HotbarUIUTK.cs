@@ -184,11 +184,6 @@ namespace ProjectName.UI.Toolkit
 
         private void RefreshAllIcons()
         {
-            // [U8 요구] Tab 부대 모드 연동 — 부대 모드면 아이템 핫바 숨김(부대 핫바만)
-            if (ProjectName.UI.GuardSquadHotbar.IsSquadMode && style.display == DisplayStyle.Flex)
-                style.display = DisplayStyle.None;
-            else if (!ProjectName.UI.GuardSquadHotbar.IsSquadMode && style.display == DisplayStyle.None)
-                style.display = DisplayStyle.Flex;
             for (int i = 0; i < SlotCount; i++)
                 RefreshSlot(i);
         }
@@ -278,6 +273,11 @@ namespace ProjectName.UI.Toolkit
                     root.Add(bar);
 
                 if (bar == null) return;
+
+                // [U8 요구] Tab 부대 모드 연동 — 부대 모드면 아이템 핫바 숨김(부대 핫바만), 해제 시 복원
+                bool squad = ProjectName.UI.GuardSquadHotbar.IsSquadMode;
+                bar.style.display = squad ? DisplayStyle.None : DisplayStyle.Flex;
+
                 // GLB 아이콘 비동기 베이크 재시도 + 인벤 수량 변동 반영 — 1초 주기 (원본 Update 관례)
                 _tick -= Time.unscaledDeltaTime;
                 if (_tick <= 0f)
