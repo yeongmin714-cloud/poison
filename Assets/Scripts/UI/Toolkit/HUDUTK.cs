@@ -66,6 +66,7 @@ namespace ProjectName.UI.Toolkit
         private VisualElement _expFill;        // [U8] BuildExpBar 바인딩
         private Label         _expText;        // [U8] BuildExpBar 바인딩
         private Label         _expValueText;   // [U8] BuildExpBar 바인딩
+        private VisualElement _staminaFill;    // [예시 정합] 스태미너 바
         private UnityEngine.UIElements.IVisualElementScheduledItem _pollTask; // [U8] 폴링
         // [U8 정리] 퀵슬롯 섹션 제거 — HotbarUIUTK(아이템 핫바 1~8)가 담당 (중복 슬롯 은퇴)
 
@@ -88,7 +89,7 @@ namespace ProjectName.UI.Toolkit
             host.name = "HealthHost";
             host.style.position = Position.Absolute;
             host.style.left = 18f;
-            host.style.top = 16f;
+            host.style.bottom = 92f;   // [예시 정합] 하단 좌측 클러스터 — 퀵슬롯 위 계단식
             host.style.flexDirection = FlexDirection.Row;
             host.style.alignItems = Align.Center;
             Add(host);
@@ -114,10 +115,10 @@ namespace ProjectName.UI.Toolkit
             _hpBorder.style.borderBottomWidth = 1f;
             _hpBorder.style.borderLeftWidth = 1f;
             _hpBorder.style.borderRightWidth = 1f;
-            _hpBorder.style.borderTopColor = new StyleColor(_expBorderColor);
-            _hpBorder.style.borderBottomColor = new StyleColor(_expBorderColor);
-            _hpBorder.style.borderLeftColor = new StyleColor(_expBorderColor);
-            _hpBorder.style.borderRightColor = new StyleColor(_expBorderColor);
+            _hpBorder.style.borderTopColor = new StyleColor(UTKColor.BorderGold);     // [예시 정합] 앤틱 골드 프레임
+            _hpBorder.style.borderBottomColor = new StyleColor(UTKColor.BorderGold);
+            _hpBorder.style.borderLeftColor = new StyleColor(UTKColor.BorderGold);
+            _hpBorder.style.borderRightColor = new StyleColor(UTKColor.BorderGold);
             barWrap.Add(_hpBorder);
 
             _hpFill = new VisualElement();
@@ -133,6 +134,74 @@ namespace ProjectName.UI.Toolkit
             _hpText.style.marginTop = 2f;
             _hpText.style.color = new StyleColor(UTKColor.TextPrimary);
             barWrap.Add(_hpText);
+
+            // [예시 정합] 스태미너 바 — 체력바 아래 계단식
+            var stWrap = new VisualElement();
+            stWrap.style.position = Position.Absolute;
+            stWrap.style.left = 60f;
+            stWrap.style.bottom = 58f;
+            stWrap.style.flexDirection = FlexDirection.Row;
+            stWrap.style.alignItems = Align.Center;
+            Add(stWrap);
+
+            var bolt = new Label("⚡");
+            bolt.style.fontSize = 20f;
+            bolt.style.width = 28f;
+            bolt.style.unityTextAlign = TextAnchor.MiddleCenter;
+            bolt.style.color = new StyleColor(UTKColor.AccentRare);
+            stWrap.Add(bolt);
+
+            var stBorder = new VisualElement();
+            stBorder.style.width = 180f;
+            stBorder.style.height = 10f;
+            stBorder.style.borderTopWidth = 1f; stBorder.style.borderBottomWidth = 1f;
+            stBorder.style.borderLeftWidth = 1f; stBorder.style.borderRightWidth = 1f;
+            stBorder.style.borderTopColor = new StyleColor(UTKColor.BorderGold);
+            stBorder.style.borderBottomColor = new StyleColor(UTKColor.BorderGold);
+            stBorder.style.borderLeftColor = new StyleColor(UTKColor.BorderGold);
+            stBorder.style.borderRightColor = new StyleColor(UTKColor.BorderGold);
+            stWrap.Add(stBorder);
+
+            _staminaFill = new VisualElement();
+            _staminaFill.style.height = new Length(100f, LengthUnit.Percent);
+            _staminaFill.style.backgroundColor = new StyleColor(new Color(0.95f, 0.78f, 0.30f, 0.95f));
+            stBorder.Add(_staminaFill);
+
+            // [예시 정합] 원형 자원 아이콘 2종 — 체력바 위 계단식 (HP/스태미너 링 근사)
+            var circles = new VisualElement();
+            circles.style.position = Position.Absolute;
+            circles.style.left = 18f;
+            circles.style.bottom = 96f;
+            circles.style.flexDirection = FlexDirection.Row;
+            Add(circles);
+            string[] icons = { "❤", "⚡" };
+            foreach (var ic in icons)
+            {
+                var ring = new Label(ic);
+                ring.style.width = 44f;
+                ring.style.height = 44f;
+                ring.style.unityTextAlign = TextAnchor.MiddleCenter;
+                ring.style.fontSize = 18f;
+                ring.style.color = new StyleColor(UTKColor.TextPrimary);
+                ring.style.backgroundColor = new StyleColor(new Color(0.14f, 0.09f, 0.05f, 0.9f));
+                ring.style.borderTopWidth = 2f; ring.style.borderBottomWidth = 2f;
+                ring.style.borderLeftWidth = 2f; ring.style.borderRightWidth = 2f;
+                ring.style.borderTopColor = new StyleColor(UTKColor.BorderGold);
+                ring.style.borderBottomColor = new StyleColor(UTKColor.BorderGold);
+                ring.style.borderLeftColor = new StyleColor(UTKColor.BorderGold);
+                ring.style.borderRightColor = new StyleColor(UTKColor.BorderGold);
+                ring.style.marginRight = 6f;
+                circles.Add(ring);
+            }
+        }
+
+        /// <summary>[예시 정합] 스태미너 바 갱신 — PlayerMovement.StaminaRatio 실측.</summary>
+        private void RefreshStamina()
+        {
+            var pm = Object.FindAnyObjectByType<ProjectName.Systems.PlayerMovement>();
+            float ratio = pm != null ? pm.StaminaRatio : 0f;
+            if (_staminaFill != null)
+                _staminaFill.style.width = new Length(ratio * 100f, LengthUnit.Percent);
         }
 
 
@@ -225,6 +294,7 @@ namespace ProjectName.UI.Toolkit
         private void RefreshAll()
         {
             RefreshHealth();
+            RefreshStamina();   // [예시 정합] 스태미너 갱신
             RefreshExpBar();
         }
 

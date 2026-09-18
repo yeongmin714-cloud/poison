@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using ProjectName.Systems;    // GuardPlaceholder, GuardSquadHotbar
 using ProjectName.Core;   // PlayerInventory
 using ProjectName.UI;     // ItemIconDatabase
 
@@ -51,6 +52,8 @@ namespace ProjectName.UI.Toolkit
         private readonly Label[]   _keyLabels;
         private readonly string[]  _assignedIds;    // 슬롯별 등록 itemId (PlayerPrefs 반영본)
         private readonly string[]  _assignedNames;
+        private bool _squadMode;                    // [U8 요구] Tab 전환 모드 — false=아이템, true=부대 지정
+        private GuardPlaceholder[] _squadReps;      // [U8 배선] 부대 대표 병사 (정보창 진입용)
 
         private HotbarUIUTK()
         {
@@ -109,8 +112,17 @@ namespace ProjectName.UI.Toolkit
                 int capturedIndex = i;
                 slot.RegisterCallback<PointerDownEvent>(evt =>
                 {
-                    if (evt.button == 1) UnregisterSlot(capturedIndex);
+                    // [U8 배선] 부대 모드 좌클릭 = 병사 정보창 (UTK)
+                    if (_squadMode && evt.button == 0 && _squadReps != null && capturedIndex < _squadReps.Length && _squadReps[capturedIndex] != null)
+                    {
+                        GuardInfoUTK.Open(_squadReps[capturedIndex]);
+                        return;
+                    }
+                    if (evt.button == 1 && !_squadMode) UnregisterSlot(capturedIndex);
                 });
+
+                // [U8 요구] 좌클릭 드래그 드롭 = 핫바에 아이템 등록 (마인크래프트식)
+                UTKDragDrop.RegisterDropTarget(slot, new HotbarSlotDropTarget(capturedIndex));
             }
 
             // 원본 PlayerPrefs 데이터 소스 로드
@@ -134,6 +146,66 @@ namespace ProjectName.UI.Toolkit
 
         private static string IdKey(int index)   => string.Format(PrefsIdKey, index);
         private static string NameKey(int index) => string.Format(PrefsNameKey, index);
+
+        /// <summary>[U8 요구] Tab 전환 — 아이템 모드 ↔ 부대 지정 모드 (동일 8슬롯 정렬).</summary>
+        public void ToggleSquadMode()
+        {
+            _squadMode = !_squadMode;
+            RefreshAllIcons();
+            Debug.Log($"[HotbarUTK] 모드 전환 → {(_squadMode ? "부대 지정" : "아이템")}");
+        }
+
+        /// <summary>[U8 요구] 부대 모드 렌더 — 원본 GuardSquadHotbar._slots 리플렉션 데이터(병사 아바타).</summary>
+        private void RefreshSquadSlots()
+        {
+            if (_squadReps == null || _squadReps.Length != SlotCount) _squadReps = new GuardPlaceholder[SlotCount];
+            var original = Object.FindAnyObjectByType<ProjectName.UI.GuardSquadHotbar>();
+            if (original == null)
+            {
+                for (int i = 0; i < SlotCount; i++)
+                {
+                    _slots[i].SetIcon(null);
+                    _slots[i].SetCount(0);
+                    _slots[i].SetRank("common");
+                }
+                return;
+            }
+
+            // 원본 GuardSquadHotbar private _slots 리플렉션 실측 (GuardSquadHotbarUTK 검증 경로와 동일)
+            var field = typeof(GuardSquadHotbar).GetField("_slots",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var groups = field != null ? field.GetValue(original) as GuardPlaceholder[][] : null;
+            for (int i = 0; i < SlotCount; i++)
+            {
+                var members = (groups != null && i < groups.Length) ? groups[i] : null;
+                int alive = 0;
+                GuardPlaceholder representative = null;
+                if (members != null)
+                {
+                    foreach (var g in members)
+                    {
+                        if (g == null || !g.IsAlive) continue;
+                        alive++;
+                        if (representative == null) representative = g;
+                    }
+                }
+
+                _squadReps[i] = representative;
+                if (representative != null)
+                {
+                    var icon = GuardIconRenderer.GetOrCreateIcon(representative);
+                    _slots[i].SetIcon(icon);
+                    _slots[i].SetCount(alive);
+                    _slots[i].SetRank("common");
+                }
+                else
+                {
+                    _slots[i].SetIcon(null);
+                    _slots[i].SetCount(0);
+                    _slots[i].SetRank("common");
+                }
+            }
+        }
 
         /// <summary>
         /// 등록 API — 원본 HotbarUI.AssignItem과 동일 데이터 경로(PlayerPrefs 키)로 아이템 지정.
@@ -184,6 +256,7 @@ namespace ProjectName.UI.Toolkit
 
         private void RefreshAllIcons()
         {
+            if (_squadMode) { RefreshSquadSlots(); return; }   // [U8 요구] 부대 모드 — 동일 8슬롯에 부대 렌더
             for (int i = 0; i < SlotCount; i++)
                 RefreshSlot(i);
         }
@@ -274,10 +347,14 @@ namespace ProjectName.UI.Toolkit
 
                 if (bar == null) return;
 
-                // [U8 요구] Tab 부대 모드 연동 — 부대 모드면 아이템 핫바 숨김(부대 핫바만), 해제 시 복원
-                bool squad = ProjectName.UI.GuardSquadHotbar.IsSquadMode;
-                bar.style.display = squad ? DisplayStyle.None : DisplayStyle.Flex;
+                // [U8 요구] Tab 직접 폴링 — 아이템 모드 ↔ 부대 지정 모드 전환 (동일 8슬롯 정렬)
+                var kb = UnityEngine.InputSystem.Keyboard.current;
+                if (kb != null && kb.tabKey.wasPressedThisFrame)
+                    bar.ToggleSquadMode();
 
+                // GLB 아이콘 비동기 베이크 재시도 + 인벤 수량 변동 반영 — 1초 주기 (원본 Update 관례)
+                _tick -= Time.unscaledDeltaTime;
+                if (_tick <= 0f)
                 // GLB 아이콘 비동기 베이크 재시도 + 인벤 수량 변동 반영 — 1초 주기 (원본 Update 관례)
                 _tick -= Time.unscaledDeltaTime;
                 if (_tick <= 0f)
@@ -287,6 +364,26 @@ namespace ProjectName.UI.Toolkit
                         bar.RefreshAllIcons();
                 }
             }
+        }
+    }
+}
+
+namespace ProjectName.UI.Toolkit
+{
+    /// <summary>[U8 요구] 핫바 슬롯 드롭 타겟 — 가방에서 좌클릭 드래그로 아이템 등록 (마인크래프트식).</summary>
+    public class HotbarSlotDropTarget : IUTKDropTarget
+    {
+        private readonly int _index;
+
+        public HotbarSlotDropTarget(int index) { _index = index; }
+
+        public bool CanDrop(UTKDragPayload payload)
+            => payload != null && payload.Item != null && payload.Source == UTKDragSourceKind.Inventory;
+
+        public bool Drop(UTKDragPayload payload)
+        {
+            HotbarUIUTK.AssignItem(_index, payload.Item);
+            return true;
         }
     }
 }

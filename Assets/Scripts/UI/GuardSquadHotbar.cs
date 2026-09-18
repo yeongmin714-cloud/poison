@@ -172,6 +172,13 @@ namespace ProjectName.UI
             if (_squadMode == squadMode) return;
             _squadMode = squadMode;
 
+            // [U8 은퇴 게이트] UTK 핫바 담당 — 원본 uGUI 패널/HotbarUI 표시 억제 (Tab·데이터 로직은 유지)
+            if (ProjectName.Core.UITransitionState.UtkActive)
+            {
+                if (_panelGO != null) _panelGO.SetActive(false);
+                return;
+            }
+
             // 아이템 핫바 표시 전환 (정적 헬퍼 — 인스턴스 미존재 시 안전 no-op)
             HotbarUI.SetVisible(!squadMode);
 

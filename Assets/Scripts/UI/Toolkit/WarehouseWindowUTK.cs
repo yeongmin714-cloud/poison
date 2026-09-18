@@ -582,6 +582,28 @@ namespace ProjectName.UI.Toolkit
         /// ① 인벤 → 창고 입고 (1개). 원본 WarehouseUI.TryDepositFromDrag와 동일:
         ///   PlayerInventory.RemoveItem → WarehouseSystem.AddItem → 실패 시 인벤 롤백.
         /// </summary>
+        /// <summary>[U8 요구] 인벤 우클릭 입고 — 인벤 슬롯에서 창고로 이동 (우클릭 한 번).</summary>
+        public bool DepositFromInventory(int inventorySlotIndex, PlayerInventory.ItemData item)
+        {
+            var inv = PlayerInventory.Instance;
+            if (inv == null || item == null) return false;
+            if (!inv.RemoveItem(item.id, 1))
+            {
+                Debug.LogWarning($"[WarehouseUTK] 입고 실패 — 인벤에 아이템 없음: {item.displayName}");
+                return false;
+            }
+            bool ok = DepositItem(item);
+            if (!ok)
+            {
+                inv.AddItem(item, 1);   // 창고 가득 → 인벤 롤백
+                Debug.Log("[WarehouseUTK] 창고 가득 — 인벤 롤백");
+                return false;
+            }
+            RefreshGrid();
+            Debug.Log($"[WarehouseUTK] 입고(우클릭): {item.displayName}");
+            return true;
+        }
+
         private bool DepositItem(PlayerInventory.ItemData item)
         {
             if (item == null) return false;

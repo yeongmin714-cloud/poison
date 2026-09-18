@@ -53,8 +53,8 @@ namespace ProjectName.UI.Toolkit
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
         {
-            if (_instance != null) return;
-            Ensure();
+            // [U8 은퇴] 부대 렌더는 HotbarUIUTK로 흡수 — 독립 바 미표시
+
         }
 
         // ===== 설정 — 원본 GuardSquadHotbar 레이아웃 상수와 동일 =====

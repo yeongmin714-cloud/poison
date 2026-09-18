@@ -445,9 +445,18 @@ namespace ProjectName.UI.Toolkit
             Debug.Log($"[InventoryUTK] 슬롯 선택(클릭): {slotData.item.displayName} (슬롯 {slotIndex})");
         }
 
-        /// <summary>[U8 요구] 가방 우클릭(비드래그) — 소모품 사용 / 무기·방어구 장착 (원본 TryEquipItem 위임).</summary>
+        /// <summary>[U8 요구] 가방 우클릭(비드래그) — 창고 열림 중=입고 / 소모품=사용 / 무기·방어구=장착.</summary>
         private void OnSlotRightClick(int slotIndex, PlayerInventory.ItemSlot slotRef, PlayerInventory.ItemData item)
         {
+            // [U8 요구] 창고가 열려 있으면 우클릭 = 입고 (창고↔인벤 이동)
+            var wh = WarehouseWindowUTK.Instance;
+            if (wh != null && wh.IsOpen)
+            {
+                bool deposited = wh.DepositFromInventory(slotIndex, item);
+                if (deposited) RefreshGrid();
+                return;
+            }
+
             var cat = item.category;
             if (cat == PlayerInventory.ItemCategory.Weapon || cat == PlayerInventory.ItemCategory.Armor)
             {
