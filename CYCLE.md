@@ -653,3 +653,8 @@
 - Status: ✅
 - Details: Theme.uss — 다크 브라운 아크릴 rgba(38,26,16,0.84)+앤틱 골드 #B08D4A/#E8C877 라인+웜 화이트 폰트+슬롯 음각(상단 어두움/하단 골드 하이라이트)+hover 골드 글로우. HUDUTK 퀵슬롯 섹션 제거(중복 슬롯 은퇴) — 파손된 ctor/필드 복구(readonly/_levelText/_expFill/_expText/_expValueText/_pollTask). 설명창 420px 확장. 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 수정안 실행 — 드래그 좌표 단일 경로+창고 우클릭+핫바 전환+레이아웃 확정
+- Status: ✅
+- Details: ①UTKDragDrop.GetPanelPointerPos — 마우스 실측 픽셀×패널스케일(pos=2151 뿌리 차단), ToRootPos 폐기 ②창고 셀 우클릭 출고 onRightClick 위임(ContextClickEvent 섭취 수리) ③핫바 가시 전환 매 프레임(IsSquadMode) ④레이아웃: 인벤(16,560×700)/설명(596,440×700)/창고(1044). 배치컴파일 error CS=0
+- Date: 2026-09-18
