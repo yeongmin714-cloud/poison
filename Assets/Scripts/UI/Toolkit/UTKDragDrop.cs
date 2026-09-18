@@ -249,31 +249,31 @@ namespace ProjectName.UI.Toolkit
         {
             if (_drag == null) return;
 
-            bool engaged = _drag.engaged;
+            var drag = _drag;
+            _drag = null;   // [U8 수리] 먼저 세션 분리 — ReleasePointer가 동기 발화하는
+                            // PointerCaptureOut(OnDragCaptureOut)이 Complete를 먹어버리는 순서 버그 제거
+
+            bool engaged = drag.engaged;
             if (engaged)
             {
-                _ghostPos = ToRootPos(_drag.element, evt.position);   // [U8 수리] 로컬→루트 변환
+                _ghostPos = ToRootPos(drag.element, evt.position);   // 로컬→루트 변환
                 LastDropPos = _ghostPos;
                 MoveGhost(_ghostPos);
             }
 
-            if (_drag.captured)
-            {
-                _drag.element.ReleasePointer(evt.pointerId);
-                _drag.captured = false;
-            }
+            if (drag.captured)
+                drag.element.ReleasePointer(evt.pointerId);
 
             if (engaged)
             {
                 Complete();
             }
-            else if (_drag.onClick != null)
+            else if (drag.onClick != null)
             {
                 // 임계 미만 — 클릭으로 취급, onClick 핸들러로 전달
-                _drag.onClick.Invoke();
+                drag.onClick.Invoke();
             }
 
-            _drag = null;
             evt.StopPropagation();
         }
 
