@@ -142,5 +142,7 @@
 | 2026-09-18 | 3분할 레이아웃 | 예시 2 정합 — 좌(장비 2x5+가방 6x5)/중(설명창)/우(창고, 상호작용시). 1080×620 확장. ShowItemDescription/SetWarehouseMode 공개 | ✅ |
 | 2026-09-18 | 독립 창 개편 | 요구 반영 — 인벤(460×640)+설명(320×640) 독립 창 쌍(I키), 창고/전리품은 컨텍스트별 우측 독립 창. 창고→인벤 DnD 수리(Warehouse 수용)+가방 우클릭 수리(소모품 UseItem/장착 TryEquipItemPublic 위임). 원본 키 은퇴 게이트 4종(P/L/U/J) | ✅ |
 | 2026-09-18 | 폐기 1단계 | 은퇴 게이트 전면 확장 — Core.UITransitionState.UtkActive 플래그+원본 HUD류 8종 자가 은퇴(HUD 부분: 체력/EXP 은퇴·버프/가스/은신/사망 유지). git 태그 phase68-ui-toolkit | ✅ |
-| 후속 | 폐기 2단계 | Play 통과 후 구 IMGUI 파일 삭제+LEGACY 정리 | ⏳ |
+| 2026-09-18 | 드래그 뿌리 수리 | UTKDragDrop evt.position은 캡처 엘리먼트 로컬 좌표 → ToRootPos(로컬→루트) 변환 수리 — 고스트/드롭 판정 정합 | ✅ |
+| 2026-09-18 | 폐기 2단계(1/2) | 참조 0 원본 13종 아카이브(Assets 밖 LegacyUI_Archive/) — WorldMap/TerritoryDeploy/Envoy/Spy/Mercenary/LordAudience/Festival/MissionResult/NPCDaily/PlayerFlag/ChurchSystem/CombatLog/HerbRespawn. WorldMapUTK 폴백 코드 정리 | ✅ |
+| 후속 | 폐기 2단계(2/2) | 참조 잔존 원본(게이트 유지 중) — Play 통과 후 참조 제거→아카이브 | ⏳ |
 | | 후속 | 배선 확대+HUD 겹침 해소+Play 종합 검증+폐기+태그 | ⏳ |

@@ -628,3 +628,8 @@
 - Status: ✅
 - Details: Core.UITransitionState.UtkActive 플래그(순환참조 회피 양 어셈블리 공용)+부트스트랩 세팅. 원본 IMGUI 자가 은퇴 8종: HUD(부분 은퇴 — 체력/EXP, 드래고 고스트/버프/가스/은신/사망 유지)/Minimap/QuickSlot/CombatLog/HerbRespawn/Time(Systems)/WarNote(Systems). git 태그 phase68-ui-toolkit 푸시. 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 드래그 뿌리 수리 + 폐기 2단계(1/2)
+- Status: ✅
+- Details: ①드래그 불능 뿌리 — UTKDragDrop evt.position은 캡처 엘리먼트 로컬 좌표(루트 좌표 아님) → ToRootPos 변환(LocalToWorld→root.WorldToLocal)으로 고스트/드롭 판정 정합 ②참조 0 검증(씬+프리팹+코드) 후 원본 13종 Assets 밖 LegacyUI_Archive/ 아카이브 ③WorldMapWindowUTK 폴백·핫키 억제 코드 정리. 배치컴파일 error CS=0. 잔여 원본은 은퇴 게이트 유지
+- Date: 2026-09-18
