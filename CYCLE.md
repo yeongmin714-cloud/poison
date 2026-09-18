@@ -673,3 +673,8 @@
 - Status: ✅
 - Details: ①전리품 열림 시 인벤+설명 동시 표시(UTKWireUp) ②원형 게이지 링 구조(골드 보더+overflow Hidden+하단 채움 — HP/스태미너 비율) ③ConsumableSystem Herb 분기(25HP 회복) ④SoldierInteractBridge(F키 OverlapSphere 최근접 병사→GuardInfoUTK.Open) ⑤부대 모드 슬롯 청록 틴트. 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 HUD 정리 — 체력/스태미너 바 제거, 원형 게이지 통합
+- Status: ✅
+- Details: HUDUTK — BuildHealth/BuildStamina/RefreshHealth/RefreshStamina 제거, BuildRings/RefreshRings 신설(골드 링+하단 게이지 채움 HP/스태미너). 핫바 왼쪽 끝 인접 배치(화면 중앙×0.5−388px). 배치컴파일 error CS=0
+- Date: 2026-09-18
