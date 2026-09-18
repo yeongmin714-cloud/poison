@@ -648,3 +648,8 @@
 - Status: ✅
 - Details: ①RefreshGrid 드래그 중 재생성 금지(캡처 상실→Cancel 뿌리 차단) ②WarehouseWindowUTK 인벤 컬럼 은닉(창고 전용)+카테고리 탭 필터(CategoryMatches) ③HotbarUIUTK IsSquadMode 연동 표시 전환(Tab). 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 테마 재지정(다크 브라운+앤틱 골드)+HUDUTK 퀵슬롯 정리
+- Status: ✅
+- Details: Theme.uss — 다크 브라운 아크릴 rgba(38,26,16,0.84)+앤틱 골드 #B08D4A/#E8C877 라인+웜 화이트 폰트+슬롯 음각(상단 어두움/하단 골드 하이라이트)+hover 골드 글로우. HUDUTK 퀵슬롯 섹션 제거(중복 슬롯 은퇴) — 파손된 ctor/필드 복구(readonly/_levelText/_expFill/_expText/_expValueText/_pollTask). 설명창 420px 확장. 배치컴파일 error CS=0
+- Date: 2026-09-18
