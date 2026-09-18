@@ -51,6 +51,7 @@ namespace ProjectName.UI.Toolkit
             if (window == null || _openStack.Contains(window))
                 return;
             _openStack.Add(window);
+            ProjectName.Core.UITransitionState.AnyWindowOpen = true;
         }
 
         /// <summary>윈도우 해제 — UTKWindowBase.Hide/OnDestroy에서 호출.</summary>
@@ -64,6 +65,7 @@ namespace ProjectName.UI.Toolkit
                 if (_openStack[i] == window)
                 {
                     _openStack.RemoveAt(i);
+                    ProjectName.Core.UITransitionState.AnyWindowOpen = _openStack.Count > 0;
                     return;
                 }
                 i--;

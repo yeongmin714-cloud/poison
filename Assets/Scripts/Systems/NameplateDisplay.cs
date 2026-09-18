@@ -43,6 +43,7 @@ namespace ProjectName.Systems
 
         private void OnGUI()
         {
+            if (ProjectName.Core.UITransitionState.AnyWindowOpen) return; // [U8 은퇴] 창 열림 시 이름표 숨김(겹침 방지)
             if (!_playerNearby) return;
             if (_mainCamera == null) return;
 

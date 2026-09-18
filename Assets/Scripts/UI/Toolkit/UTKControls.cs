@@ -118,9 +118,8 @@ namespace ProjectName.UI.Toolkit
         /// <summary>아이콘 텍스처 설정.</summary>
         public void SetIcon(Texture2D tex)
         {
-            _iconHost.style.backgroundImage = tex != null
-                ? new StyleBackground(Background.FromTexture2D(tex))
-                : StyleKeyword.Null;
+            // [U8 수리] 소유 복사본 사용 — 외부 캐시 파괴 시 노란 경고 아이콘 방지
+            _iconHost.style.backgroundImage = UTKTextureSafe.ToBackground(tex);
         }
 
         /// <summary>카운트 표시. value &lt;= 0이면 숨김.</summary>

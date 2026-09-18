@@ -13,5 +13,8 @@ namespace ProjectName.Core
 
         /// <summary>[U8 수리] 포인터가 UTK UI 위에 있음 — 게임 월드 클릭(공격/RTS/카메라) 차단용. UTK측 Update에서 갱신.</summary>
         public static bool PointerOverUI;
+
+        /// <summary>[U8 수리] UTK 창이 하나라도 열려 있음 — 월드 이름표/헤드UI 은퇴용(창 위 렌더 겹침 방지). UTKWindowManager가 갱신.</summary>
+        public static bool AnyWindowOpen;
     }
 }

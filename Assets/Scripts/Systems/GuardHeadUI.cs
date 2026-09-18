@@ -26,6 +26,7 @@ namespace ProjectName.Systems
 
         private void OnGUI()
         {
+            if (ProjectName.Core.UITransitionState.AnyWindowOpen) return; // [U8 은퇴] 창 열림 시 헤드UI 숨김(겹침 방지)
             if (_guard == null || !_guard.IsAlive || _cam == null) return;
 
             Vector3 worldPos = transform.position + Vector3.up * 2.2f;

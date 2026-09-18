@@ -117,9 +117,7 @@ namespace ProjectName.UI.Toolkit
             if (i == null || item == null) return;
 
             var icon = ItemIconDatabase.GetOrCreateIcon(item);
-            i._iconPreview.style.backgroundImage = icon != null
-                ? new StyleBackground(Background.FromTexture2D(icon))
-                : i._iconPreview.style.backgroundImage;
+            i._iconPreview.style.backgroundImage = UTKTextureSafe.ToBackground(icon);
             i._itemName.text = item.displayName ?? item.id;
             var sb = new System.Text.StringBuilder();
             sb.AppendLine($"수량: {count}");

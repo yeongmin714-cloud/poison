@@ -250,7 +250,14 @@ namespace ProjectName.UI.Toolkit
             foreach (var kv in _equipSlotLabels)
             {
                 var data = em.GetSlotData((EquipmentManager.EquipmentSlot)System.Enum.Parse(typeof(EquipmentManager.EquipmentSlot), kv.Key));
-                kv.Value.text = (data != null && !string.IsNullOrEmpty(data.itemId)) ? data.itemId : "—";
+                string displayName = "—";
+                if (data != null && !string.IsNullOrEmpty(data.itemId))
+                {
+                    var itemData = PlayerInventory.GetItemById(data.itemId);
+                    displayName = itemData != null && !string.IsNullOrEmpty(itemData.displayName)
+                        ? itemData.displayName : data.itemId;
+                }
+                kv.Value.text = displayName;
             }
         }
 
