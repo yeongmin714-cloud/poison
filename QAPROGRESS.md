@@ -34,7 +34,10 @@
 - 배치컴파일 **error CS=0** (`Exiting batchmode successfully`).
 
 ### Play 판정 대기
-①창고에 폭탄 1개 존재 ②인벤에서 꺼내 퀵슬롯 등록(번호키) ③번호 누르면 손에 폭탄 표시(무장) ④무장 중 좌클릭 → 커서 방향으로 포물선 투척 ⑤투척 후 폭발(스파크+섬광+근처 적 데미지) ⑥인벤/퀵슬롯 개수 1 감소·0이면 슬롯 정리 ⑦공격 게이트 정상(폭탄 외 좌클릭 공격 회귀 없음)
+①창고에 폭탄 1개 존재 ②인벤에서 꺼내 퀵슬롯 등록(번호키) ③번호 누르면 손에 폭탄 표시(무장) ④무장 중 좌클릭 → 커서 방향으로 포물선 투척 ⑤투척 후 폭발(스파크+섬광+불꽃+근처 적 데미지) ⑥인벤/퀵슬롯 개수 1 감소·0이면 슬롯 정리 ⑦공격 게이트 정상(폭탄 외 좌클릭 공격 회귀 없음)
+
+### 후속 (2026-09-18 ✅) — 폭발 fire VFX 부착
+사용자 제안("asset 중 fire 있을 텐데") → 검증 후 채택. `Vefects/Free Fire VFX URP/Particles/VFX_Fire_01_Big.prefab`(URP, stopAction:0=자가소멸 없음)을 `Assets/Resources/FX/Fire/`로 복사(GUID 동일). `BombExplosionVisual.OnDisable`에서 `Resources.Load<GameObject>("FX/Fire/VFX_Fire_01_Big")` → 폭발 위치에 1.4배 스케일 Instantiate → 2.5초 후 수동 Destroy. 기존 스파크/주황 섬광 유지. error CS=0.
 
 ## 📌 세션 스냅샷 (2026-09-18 ✅ UI 업그레이드 후속 — 소프트 드롭섀도우 (떠 있는 창))
 
