@@ -144,5 +144,7 @@
 | 2026-09-18 | 폐기 1단계 | 은퇴 게이트 전면 확장 — Core.UITransitionState.UtkActive 플래그+원본 HUD류 8종 자가 은퇴(HUD 부분: 체력/EXP 은퇴·버프/가스/은신/사망 유지). git 태그 phase68-ui-toolkit | ✅ |
 | 2026-09-18 | 드래그 뿌리 수리 | UTKDragDrop evt.position은 캡처 엘리먼트 로컬 좌표 → ToRootPos(로컬→루트) 변환 수리 — 고스트/드롭 판정 정합 | ✅ |
 | 2026-09-18 | 폐기 2단계(1/2) | 참조 0 원본 13종 아카이브(Assets 밖 LegacyUI_Archive/) — WorldMap/TerritoryDeploy/Envoy/Spy/Mercenary/LordAudience/Festival/MissionResult/NPCDaily/PlayerFlag/ChurchSystem/CombatLog/HerbRespawn. WorldMapUTK 폴백 코드 정리 | ✅ |
-| 후속 | 폐기 2단계(2/2) | 참조 잔존 원본(게이트 유지 중) — Play 통과 후 참조 제거→아카이브 | ⏳ |
-| | 후속 | 배선 확대+HUD 겹침 해소+Play 종합 검증+폐기+태그 | ⏳ |
+| 2026-09-18 | 드래그 마지막 부착 수리 | OnDragPointerUp 순서 버그 — ReleasePointer 동기 발화 PointerCaptureOut이 Complete를 섭취 → 세션 선분리 수리 | ✅ |
+| 2026-09-18 | 폐기 2단계(2/2) 결론 | 잔존 원본 전수 참조 분석 결과 전부 라이브 시스템 참조(ArenaSystem/FishingSystem/GameManager 등 35종) — 무리한 삭제 시 시스템 대규모 수정 필요 → **파일 유지·런타임 은퇴(게이트/브리지)로 전환 완결**. 참조 제거 아카이브는 개별 시스템 개편 시 수행 | ✅ |
+| | 후속 | HUDUTK 미이식 기능 이식(스태미나/버프 아이콘/가스 타이머/은신 HUD) | ⏳ |
+| | 후속 | 월드맵 UTK 렌더 불능 원인 규명·재구축 | ⏳ |

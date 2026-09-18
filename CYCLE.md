@@ -633,3 +633,8 @@
 - Status: ✅
 - Details: ①드래그 불능 뿌리 — UTKDragDrop evt.position은 캡처 엘리먼트 로컬 좌표(루트 좌표 아님) → ToRootPos 변환(LocalToWorld→root.WorldToLocal)으로 고스트/드롭 판정 정합 ②참조 0 검증(씬+프리팹+코드) 후 원본 13종 Assets 밖 LegacyUI_Archive/ 아카이브 ③WorldMapWindowUTK 폴백·핫키 억제 코드 정리. 배치컴파일 error CS=0. 잔여 원본은 은퇴 게이트 유지
 - Date: 2026-09-18
+
+# Cycle: Phase 68 드래그 마지막 부착 수리 + 폐기 2단계(2/2) 결론
+- Status: ✅
+- Details: ①OnDragPointerUp 순서 버그 수리 — ReleasePointer 동기 발화 PointerCaptureOut이 Cancel+Complete 섭취(마지막 부착 불능 뿌리) → 세션 선분리 ②잔존 원본 전수 참조 분석 — 전부 라이브 시스템 참조로 파일 유지·런타임 은퇴(게이트/브리지)로 전환 완결 결정. 무리한 삭제는 시스템 대규모 수정 유발. 배치컴파일 error CS=0
+- Date: 2026-09-18
