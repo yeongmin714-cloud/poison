@@ -8,8 +8,23 @@
 
 ---
 
-## 📌 세션 스냅샷 (2026-09-18 ✅ RTS 우클릭 명령 해방 — 부대 우클릭 이동 + 우클릭 차지 제거)
+## 📌 세션 스냅샷 (2026-09-18 ✅ 경고아이콘 잔존 수리 + 창고 출고 우클릭 + 이름표 UTK 전환)
 
+**증상(사용자 Play 리포트):** ①노란 경고 아이콘 여전히 발생 ②인벤→창고 우클릭 입고는 되는데 창고→인벤 우클릭 출고가 안 됨 ③병사/몬스터 이름표·체력바 IMGUI→UTK 전환 + 입체 체력바 요구.
+
+**뿌리(Editor.log+코드 실측):**
+1. 경고 아이콘 잔존 = UTKSlot.SetIcon만 Safe 처리돼 있고 raw `Background.FromTexture2D` 5곳 잔존 (LootWindowUTK 237 / GuardSquadHotbarUTK 337 / MinimapUTK 239 / WorldMapWindowUTK 123 / UTKDragDrop 고스트 341) — 외부 캐시가 텍스처 파괴 후 매 프레임 경고.
+2. 출고 무반응 = (a) 카테고리 필터 사용 시 BuildWarehouseCell의 idx가 **필터 목록 인덱스**인데 TransferToInventory는 **전체 리스트 인덱스** 기준 (b) 우클릭이 PointerDown(button=1) 단일 경로라 셀 재생성 타이밍에 유실 가능 (c) WithdrawSlot 무로그 가드(영지ID빈값 등) — 실패해도 로그 0.
+3. 입고 취소(늑대이빨/곡괭이 "인벤 제거 실패") 반복 — RemoveItem 실패 원인 로그 부재.
+
+**수리 (commit 6e314ca1, 배치컴파일 error CS=0):**
+- [A] raw 텍스처 5곳 전부 `UTKTextureSafe.ToBackground` 경유 + UTKTextureSafe FIFO 캐시 상한 256(축출 시 Destroy, 에디터/런타임 분기).
+- [B] 창고 출고: RefreshWarehouseGrid가 **전체 인덱스(actualIdx) 병행 캡처**→클로저 전달 / 셀에 **ContextClickEvent 폴백**+슬롯별 200ms 데듀프(이중 발화 방지) / WithdrawSlot 전 가드 로그화+성공 로그+즉시 RefreshGrid / DepositItem RemoveItem 실패 원인 판별 로그(재고0=ID불일치 vs 잔여존재) / UTKDragDrop 우클릭 수신 진단 로그.
+- [C] **NameplateOverlayUTK.cs 신설(680행)** — 병사/몬스터/NPC 이름표+Lv+HP바를 UTK으로: UIRoot `Insert(0)`(모든 창 아래 깔림), 전체 pickingMode=Ignore, instanceID→풀슬롯 고정 매핑(초기40/10씩/상한80), 0.3s 스캔 스로틀+0.5s 플레이어 스로틀, AnyWindowOpen 게이트 유지. **입체 HP바**: 골드 1px 링+음각 트로프(상좌 하이라이트/하우 섀도)+세로 linear-gradient 광택 채움 — 병사 청록(HP<30% 주황 경고), 몬스터 적색, 바 우측 HP%. GuardHeadUI/MonsterHeadUI/NameplateDisplay에 `s_retired` 게이트(OnGUI 은퇴, 데이터 컴포넌트 유지), UIToolkitBootstrap 부트 시 3종 은퇴+오버레이 Ensure.
+
+**Play 재확인 필요:** ①전 창 노란 경고 소멸 ②창고 슬롯 우클릭 출고(로그 `[WarehouseUTK] 출고(우클릭)` 확인) ③UTK 이름표/입체 체력바 렌더+기존 규칙 계승(40m/뒷면/사망 스킵) ④체력바 색감.
+
+---
 > **입력**: 사용자 — "부대 선택 후 우클릭하면 병사가 이동하게" + "우클릭이 겹치면 차지를 빼버리자".
 
 ### 진단

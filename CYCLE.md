@@ -693,3 +693,8 @@
 - Status: ✅
 - Details: ①UTKTextureSafe 신설(소유 복사본 캐시 — 외부 캐시 파괴 텍스처 배경 참조 차단, "Invalid value for image texture" 뿌리) — UTKSlot.SetIcon+설명창 프리뷰 적용 ②UITransitionState.AnyWindowOpen 신설(UTKWindowManager 갱신)+GuardHeadUI/NameplateDisplay 게이트(창 위 이름표 겹침 방지) ③장비 슬롯 표시명(GetItemById). 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 경고아이콘 잔존 + 창고 출고 우클릭 + 이름표 UTK 전환
+- Status: ✅
+- Details: ①raw 텍스처 배경 5곳(Loot/GuardSquad/Minimap/WorldMap/드래그고스트) UTKTextureSafe 경유+FIFO캐시 256 ②창고→인벤 우클릭 출고 수리: 카테고리 필터 전체 인덱스(actualIdx) 매핑, ContextClickEvent 폴백+슬롯별 200ms 데듀프, WithdrawSlot 로그화+즉시 RefreshGrid, RemoveItem 실패 원인 로그 ③NameplateOverlayUTK 신설(병사/몬스터/NPC 이름표+입체 HP바 — 골드링+음각트로프+세로그라디언트, 병사 청록/경고 주황, 몬스터 적색), GuardHeadUI/MonsterHeadUI/NameplateDisplay s_retired 은퇴. 배치컴파일 error CS=0, commit 6e314ca1
+- Date: 2026-09-18
