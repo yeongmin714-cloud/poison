@@ -349,6 +349,17 @@ namespace ProjectName.UI
                 return;
             }
 
+            // [폭탄] 폭탄 아이템 — 무장/해제 (소모하지 않음) — 같은 번호 재누르면 내려놓기.
+            var invSlots = PlayerInventory.Instance.GetAllSlots();
+            var itemData = (invSlots != null && invSlotIndex >= 0 && invSlotIndex < invSlots.Length)
+                ? invSlots[invSlotIndex]?.item
+                : null;
+            if (itemData != null && itemData.isBomb)
+            {
+                BombArmController.Ensure()?.ToggleArm(itemData);
+                return;
+            }
+
             // 아이템 사용
             PlayerInventory.Instance.UseItem(invSlotIndex);
 

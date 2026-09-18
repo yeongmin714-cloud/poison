@@ -66,6 +66,17 @@ namespace ProjectName.Systems
             if (ProjectName.Core.UITransitionState.PointerOverUI)
                 return;
 
+            // [폭탄] 이번 프레임 이미 폭탄 투척 → 일반 공격 금지 (PlayerCombat과 순서 무관)
+            if (BombArmController.BombThrowIssuedThisFrame)
+                return;
+            // [폭탄] 무장 상태 — 일반 공격 대신 좌클릭으로 폭탄 투척 (게이트)
+            if (BombArmController.Instance != null && BombArmController.Instance.IsArmed)
+            {
+                if (Input.GetKeyDown(_attackKey))
+                    BombArmController.Instance.ThrowTowardCursor();
+                return;
+            }
+
             // 공격 키 확인 (설정 가능)
             if (!Input.GetKeyDown(_attackKey))
                 return;

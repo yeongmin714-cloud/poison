@@ -14,6 +14,10 @@ namespace ProjectName.Systems
 
         [SerializeField] private int _maxSlotsPerTerritory = 20;
 
+        // 영지별 폭탄 시딩 1회 마킹 (세션당 영지마다 최초 1회만 — 중복 추가/무한 생성 방지)
+        private static readonly System.Collections.Generic.HashSet<string> _seededTerritories =
+            new System.Collections.Generic.HashSet<string>();
+
         // territoryId → 슬롯 리스트
         private Dictionary<string, List<PlayerInventory.ItemSlot>> _warehouses = new Dictionary<string, List<PlayerInventory.ItemSlot>>();
 
@@ -22,6 +26,35 @@ namespace ProjectName.Systems
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+        }
+
+        private void Start()
+        {
+            SeedDefaultBombs("East_01"); // 기본 영지 창고에 폭탄 1개 시딩 (멱등)
+        }
+
+        /// <summary>
+        /// 영지 창고에 폭탄 1개를 시딩한다. 멱등 보장:
+        ///  - 이미 해당 영지가 이 세션에서 시딩된 적 있으면 건너뜀 (무한 재추가 방지)
+        ///  - 시딩 시점 창고에 Bomb이 이미 있으면 건너뜀 (저장 데이터 유지)
+        /// </summary>
+        public void SeedDefaultBombs(string territoryId)
+        {
+            if (string.IsNullOrEmpty(territoryId)) territoryId = "default";
+            if (_seededTerritories.Contains(territoryId)) return;
+
+            _seededTerritories.Add(territoryId);
+            var slots = GetOrCreateWarehouse(territoryId);
+
+            // 이미 폭탄이 있으면 건너뜀 (복원된 저장 데이터 존중)
+            foreach (var slot in slots)
+            {
+                if (slot != null && slot.item != null && slot.item.isBomb)
+                    return;
+            }
+
+            AddItem(territoryId, PlayerInventory.Bomb_Explosive, 1);
+            Debug.Log($"[WarehouseSystem] 🎁 {territoryId} 창고에 폭탄 1개 시딩 완료");
         }
 
         // ================================================================

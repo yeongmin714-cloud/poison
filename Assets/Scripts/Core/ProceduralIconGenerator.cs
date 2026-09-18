@@ -27,6 +27,7 @@ namespace ProjectName.Core
         private static readonly Color ColorTool = new Color(0.60f, 0.40f, 0.20f);      // 갈색
         private static readonly Color ColorQuest = new Color(0.80f, 0.75f, 0.15f);     // 노랑
         private static readonly Color ColorArrow = new Color(0.55f, 0.35f, 0.20f);     // 화살 (짙은 갈색)
+        private static readonly Color ColorBomb = new Color(0.10f, 0.10f, 0.12f);      // 폭탄 (검은색)
 
         // ===== 포션 세부 색상 =====
         private static readonly Color PotionRed = new Color(0.85f, 0.15f, 0.15f);
@@ -157,6 +158,7 @@ namespace ProjectName.Core
                 PlayerInventory.ItemCategory.Tool => ColorTool,
                 PlayerInventory.ItemCategory.Quest => ColorQuest,
                 PlayerInventory.ItemCategory.Arrow => ColorArrow,
+                PlayerInventory.ItemCategory.Bomb => ColorBomb,
                 _ => Color.gray,
             };
         }
@@ -191,6 +193,7 @@ namespace ProjectName.Core
                 case PlayerInventory.ItemCategory.Tool: DrawPickaxe(tex, color); break;
                 case PlayerInventory.ItemCategory.Quest: DrawDocument(tex, color); break;
                 case PlayerInventory.ItemCategory.Arrow: DrawArrow(tex, color); break;
+                case PlayerInventory.ItemCategory.Bomb: DrawBomb(tex, color); break;
                 default: DrawCircle(tex, 16, 16, 10, color); break;
             }
         }
@@ -430,6 +433,22 @@ namespace ProjectName.Core
                 tex.SetPixel(18, y, new Color(0.7f, 0.2f, 0.2f));
                 tex.SetPixel(19, y, new Color(0.7f, 0.2f, 0.2f));
             }
+        }
+
+        /// <summary>폭탄 — 검은 구체 + 노란 퓨즈/심지</summary>
+        private static void DrawBomb(Texture2D tex, Color color)
+        {
+            // 구체 본체
+            DrawCircle(tex, 16, 16, 9, color);
+            // 안쪽 하이라이트 (어두운 구분)
+            DrawCircle(tex, 14, 14, 5, new Color(color.r * 1.3f, color.g * 1.3f, color.b * 1.3f, 1f));
+            // 심지 (위 덮개)
+            for (int y = 6; y <= 9; y++)
+                tex.SetPixel(16, y, new Color(0.5f, 0.35f, 0.15f));
+            // 심지 끝 불꽃 (노랑/주황)
+            tex.SetPixel(16, 5, new Color(1f, 0.5f, 0.1f));
+            tex.SetPixel(15, 5, new Color(1f, 0.8f, 0.2f));
+            tex.SetPixel(17, 5, new Color(1f, 0.8f, 0.2f));
         }
 
         // ===================================================================

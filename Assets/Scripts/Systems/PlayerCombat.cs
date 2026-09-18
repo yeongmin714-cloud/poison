@@ -226,6 +226,15 @@ namespace ProjectName.Systems
                 // [U8 수리] UTK UI 위 좌클릭(인벤 드래그/슬롯 클릭)은 게임 공격으로 소비 금지
                 if (ProjectName.Core.UITransitionState.PointerOverUI)
                     return;
+                // [폭탄] 이번 프레임 이미 폭탄 투척 → 근접/무기 공격 금지 (AttackSystem과 순서 무관)
+                if (BombArmController.BombThrowIssuedThisFrame)
+                    return;
+                // [폭탄] 무장 상태 좌클릭 = 폭탄 투척 — 일반/무기 공격 대신 발사하고 건너뜀
+                if (BombArmController.Instance != null && BombArmController.Instance.IsArmed)
+                {
+                    BombArmController.Instance.ThrowTowardCursor();
+                    return;
+                }
                 // [TEST27-68차] 독립 클릭 프로브 — GSM이 죽어도(공유 GO 파괴) 클릭 입력 자체의 증거를 남긴다.
                 // [RTS] 좌클릭 감지 로그와 대조해 드래그 무반응의 위치(GSM vs 입력)를 판별한다.
                 if (Time.unscaledTime >= _nextClickProbe)

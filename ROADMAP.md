@@ -3024,3 +3024,6 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ### U9-2 (2026-09-18 ✅) — 소프트 드롭섀도우 (떠 있는 창)
 UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라이스) + `Theme.uss` `.utk-window-shadow`(+`slice-enabled`) + `UTKWindowBase._shadow` 형제요소(인덱스0 뒤, PickingMode.Ignore, GeometryChanged/drag 실시간 동기). CS0841 1건 수리 후 error CS=0.
+
+### U9-3 (2026-09-18 ✅) — 폭탄 투척 액션 시스템
+창고 멱등 시딩(WarehouseSystem.SeedDefaultBombs) → 퀵슬롯(QuickSlotUI) 등록 후 번호키로 무장(BombArmController.ToggleArm, isBomb 판정, 소모 없음) → 무장 중 좌클릭 시 AttackSystem/PlayerCombat 게이트로 ThrowTowardCursor(커서 포물선, Bomb.cs 폭발). BombThrowIssuedThisFrame+즉시Disarm 이중 방지로 정확 1회. 신규: BombArmController/BombExplosionVisual/Bombs 프리팹. CS0234 순환참조(Core→Systems) 수리 — 무장 분기 UI 계층 이동. error CS=0.

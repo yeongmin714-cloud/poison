@@ -8,6 +8,34 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-18 ✅ 폭탄 투척 액션 시스템)
+
+> **입력**: 사용자 요구 — "창고에 폭탄 하나 두고 → 퀵슬롯 등록 → 번호 누르면 폭탄을 들고(무장) → 좌클릭으로 던져 폭발".
+
+### 구현 흐름
+**시드** → 창고(`WarehouseSystem.SeedDefaultBombs("East_01")`)가 `Start`에서 폭탄 1개 멱등 시딩(`_seededTerritories` HashSet + 기존 폭탄 확인 → 중복/무한 추가 방지).
+
+**무장** → 퀵슬롯(QuickSlotUI `HandleQuickSlotUse`)이 `slot.item.isBomb`이면 `BombArmController.Ensure().ToggleArm(item)` — 즉시 소모 없이 손 표시(Sphere 프리미티브)로 폭탄을 듦. 같은 번호 재누르면 내려놓기(Disarm).
+
+**투척** → 무장 상태에서 좌클릭(`AttackSystem.Update`·`PlayerCombat.Update` 둘 다 게이트) → `BombArmController.ThrowTowardCursor()` — 커서(y=0) 방향 포물선 발사(Sphere+Rigidbody+Bomb+Collider 런타임 생성), 폭탄 `Bomb.cs` 퓨즈 후 폭발(`OverlapSphere` → IDamageable.TakeDamage + 폭발력 + `BombExplosionVisual` 스파크/주황 섬광). 발사 후 인벤 1개 차감(`RemoveItem`), 0이면 Disarm+퀵슬롯 클리어.
+
+**이중 투척 방지**: `BombThrowIssuedThisFrame` static 플래그 + 즉시 Disarm(`_isArmed=false`) 이중 메커니즘 → AttackSystem/PlayerCombat 순서 무관 정확 1회. 좌클릭은 GetKeyDown(누른 프레임만)이라 홀드로 연발 안 됨.
+
+### 수정/신규 파일 (code agent 위임, 부모가 컴파일 루프로 완성)
+- **신규**: `Systems/BombArmController.cs`(무장/투척), `Systems/BombExplosionVisual.cs`(폭발 비주얼), `Resources/Bombs/*.prefab`(4종)
+- **수정**: `Core/PlayerInventory.cs`(ItemCategory.Bomb 추가, ItemData.isBomb 플래그, Bomb_Explosive ItemData), `Core/ProceduralIconGenerator.cs`(Bomb 색·아이콘), `Systems/AttackSystem.cs`(폭탄 게이트), `Systems/PlayerCombat.cs`(폭탄 게이트), `Systems/WarehouseSystem.cs`(멱등 시딩), `UI/QuickSlotUI.cs`(무장 분기)
+
+### 수정 이력 (컴파일 루프)
+- **CS0234 순환참조**: 처음엔 PlayerInventory(Core)가 BombArmController(Systems)를 직접 호출 → Core는 Systems 참조 불가. → 폭탄 무장 판정을 Core `UseItem`의 무소모 가드(`if(isBomb) return;`)로 바꾸고, 실제 무장 호출을 UI 계층(QuickSlotUI, 양 어셈블리 참조 가능)으로 이동.
+- QA 지적 방어 개선: `BombArmController.OnDestroy`에서 `Disarm()` + `BombThrowIssuedThisFrame=false`(static 플래그 스턱으로 인한 공격 영구 차단 엣지 방지).
+
+### 검증
+- QA 정적 리뷰: UseItem 폭탄 분기 컷턴(소모 fall-through 없음), RemoveItem/GetItemCount 시그니처 일치, 이중 투척 방지 이중메커니즘, 씨드 멱등성 통과. 지적: 자기 피해(targetLayers=-1, 설계 판단), LoadFromSaveData 미배선(latent).
+- 배치컴파일 **error CS=0** (`Exiting batchmode successfully`).
+
+### Play 판정 대기
+①창고에 폭탄 1개 존재 ②인벤에서 꺼내 퀵슬롯 등록(번호키) ③번호 누르면 손에 폭탄 표시(무장) ④무장 중 좌클릭 → 커서 방향으로 포물선 투척 ⑤투척 후 폭발(스파크+섬광+근처 적 데미지) ⑥인벤/퀵슬롯 개수 1 감소·0이면 슬롯 정리 ⑦공격 게이트 정상(폭탄 외 좌클릭 공격 회귀 없음)
+
 ## 📌 세션 스냅샷 (2026-09-18 ✅ UI 업그레이드 후속 — 소프트 드롭섀도우 (떠 있는 창))
 
 > **입력**: 이전 입체 테마 Phase 후속 — "진짜 떠 있는" 드롭섀도우 요청. UITK는 `box-shadow`·`filter: drop-shadow`를 **미지원**(컴파일 dll 스트링 검증: blur는 지원, drop-shadow는 무). → **소프트 글로우 PNG 9슬라이스**로 구현.

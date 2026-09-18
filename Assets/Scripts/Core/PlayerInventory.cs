@@ -32,6 +32,7 @@ namespace ProjectName.Core
             public int maxDurability = 0; // 0 = 내구도 없음 (소모품)
             public ItemRarity rarity = ItemRarity.Common;
             public string effects = "";
+            public bool isBomb = false; // 폭탄 — 퀵슬롯 사용 시 무장(소모 금지), 좌클릭 투척
         }
 
         public enum ItemCategory
@@ -46,7 +47,8 @@ namespace ProjectName.Core
             Weapon,     // 무기
             Armor,      // 방어구
             Tool,       // 도구
-            Arrow       // 화살 (AB-01)
+            Arrow,      // 화살 (AB-01)
+            Bomb        // 폭탄 (퀵슬롯 무장/투척 전용)
         }
 
         [SerializeField] private int _maxSlots = 40;
@@ -194,6 +196,12 @@ namespace ProjectName.Core
                 Debug.LogWarning($"[PlayerInventory] UseItem: slot {slotIndex} is empty.");
                 return;
             }
+            // [폭탄] 폭탄 아이템 — 소모하지 않고 그대로 반환.
+            // 무장/해제는 UI 계층(QuickSlotUI)이 BombArmController를 호출해 담당한다.
+            if (slot.item.isBomb)
+            {
+                return;
+            }
             // Consume via ConsumableSystem
             ConsumableSystem.UseItem(slot.item);
             // Remove one count
@@ -331,6 +339,26 @@ namespace ProjectName.Core
             description = "사용 시 가장 가까운 길바닥에 말을 소환합니다.",
             category = ItemCategory.Tool,
             maxStack = 1
+        };
+
+        // ================================================================
+        // 폭탄 아이템 (BombArmController 투척 전용)
+        //   퀵슬롯 등록 → 번호키 무장 → 좌클릭 투척 → 퓨즈 후 폭발.
+        //   ItemData.isBomb 분기 — UseItem에서 무장/해제 처리, 소모하지 않음.
+        // ================================================================
+        public static readonly ItemData Bomb_Explosive = new ItemData
+        {
+            id = "bomb_explosive",
+            displayName = "폭탄",
+            description = "심지를 뽑아 던지면 짧은 시간 뒤 폭발하는 폭탄. 퀵슬롯에 등록 후 번호키로 들고, 좌클릭으로 투척한다.",
+            category = ItemCategory.Bomb,
+            maxStack = 5,
+            rarity = ItemRarity.Rare,
+            isBomb = true
+        };
+        public static readonly ItemData[] AllBombs = new ItemData[]
+        {
+            Bomb_Explosive,
         };
 
         // ================================================================
