@@ -668,3 +668,8 @@
 - Status: ✅
 - Details: ①QuickSlotUTK 부트 은퇴(UtkActive) ②Active 유착 자가 해제(버튼 해제 시 강제 Cancel)+HUDUTK 풀스크린 Ignore 오버레이(0×0 박스→화면 기준 클러스터 렌더 수리) ③LootWindowUTK 폴링 가드+우클릭 중복 핸들러 제거 ④우클릭=PointerDown 즉시 발화 확정(드래그는 좌클릭 전용) ⑤핫바 전환 스케일 펄스 애니(1.15→1.0 150ms) ⑥Complete try/catch 유착 방지. 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 리포트 반영 5건 — 동시 표시/원형 게이지/치유초 회복/F키/부대 틴트
+- Status: ✅
+- Details: ①전리품 열림 시 인벤+설명 동시 표시(UTKWireUp) ②원형 게이지 링 구조(골드 보더+overflow Hidden+하단 채움 — HP/스태미너 비율) ③ConsumableSystem Herb 분기(25HP 회복) ④SoldierInteractBridge(F키 OverlapSphere 최근접 병사→GuardInfoUTK.Open) ⑤부대 모드 슬롯 청록 틴트. 배치컴파일 error CS=0
+- Date: 2026-09-18

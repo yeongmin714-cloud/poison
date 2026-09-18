@@ -152,5 +152,6 @@
 | 2026-09-18 | 수정안 실행 | ①드래그 좌표 단일 경로화(GetPanelPointerPos — 마우스 실측×패널스케일, pos=2151 뿌리 차단) ②창고 우클릭 출고 ContextClickEvent→onRightClick 위임 ③핫바 가시 전환(HotbarUIUTK 매 프레임 IsSquadMode) ④레이아웃 확정(인벤 560×700/설명 440×700@596/창고@1044) | ✅ |
 | 2026-09-18 | H1~H4 | ①핫바 단일 바(Tab 직접 폴링, 부대 렌더=원본 _slots 리플렉션) ②HUD 클러스터(체력+스태미너+원형 아이콘 하단 좌측) ③인벤 우클릭 컨텍스트(창고 열림=입고) ④부대 슬롯 좌클릭→GuardInfoUTK 배선 | ✅ |
 | 2026-09-18 | Play 수리 7건 | ①QuickSlotUTK 은퇴(1~6 잔재) ②Active 유착 자가 해제(공격 불능 뿌리)+HUDUTK 풀스크린 Ignore 오버레이(클러스터 미표시 뿌리) ③전리품 폴링 가드+우클릭 중복 제거 ④우클릭 즉시 발화 확정(PointerDown) ⑤핫바 전환 펄스 애니 ⑥Complete try/catch | ✅ |
+| 2026-09-18 | 리포트 반영 5건 | ①전리품 열림 시 인벤+설명 동시 표시 ②원형 게이지 예시 정합(링+하단 채움, HP/스태미너) ③치유초 Herb 회복 25HP(ConsumableSystem Herb 분기) ④병사 F키 상호작용(SoldierInteractBridge→GuardInfoUTK) ⑤부대 슬롯 청록 틴트 | ✅ |
 | | 후속 | HUDUTK 미이식 기능 이식(스태미나/버프 아이콘/가스 타이머/은신 HUD) | ⏳ |
 | | 후속 | 월드맵 UTK 렌더 불능 원인 규명·재구축 | ⏳ |
