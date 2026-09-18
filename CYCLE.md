@@ -613,3 +613,8 @@
 - Status: ✅
 - Details: ①TerritoryWarehouse.OpenWarehouseUI UTK 우선(인벤+창고 동시 오픈) ②InventoryWindowUTK 좌우 2컬럼 확장 — 우측 장비 8슬롯(무기/방패/투구/갑옷/신발/장갑/가면/가방)+우클릭 UnequipSlot+RefreshEquipPanel(Show/이벤트). EquipmentManager 중첩 enum 한정/Boots→Shoes 수리. 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 인벤 UTK 3분할 레이아웃 (예시 2 정합)
+- Status: ✅
+- Details: 좌=장비 2줄×5칸(8슬롯+빈2, 우클릭 해제)+가방 6줄×5칸 / 중=아이템 설명창(ShowItemDescription 공개: 이름·설명·카테고리·등급·내구도) / 우=창고 패널(SetWarehouseMode 표시·숨김, 미상호작용 안내 문구). 창 1080×620. 배치컴파일 error CS=0
+- Date: 2026-09-18

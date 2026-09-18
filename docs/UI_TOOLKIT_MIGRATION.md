@@ -139,4 +139,5 @@
 | 2026-09-18 | 배선 확대 | 4경로(침대 수면/전리품 바구니/상점/인벤 I키) — 브리지 패턴 동일 적용, 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | Play 수리 2건 | ①인벤 I키 미표시(Toggle이 Ensure만 하고 Show 누락 → Open 위임) ②미니맵 우상단 이동(사용자 지정) | ✅ |
 | 2026-09-18 | Play 수리 3건 | ①창고 UTK 배선(TerritoryWarehouse→Inventory+Warehouse UTK) ②인벤창 위 장비창 임베드(8슬롯+우클릭 해제) ③EquipmentManager 단일소스 | ✅ |
+| 2026-09-18 | 3분할 레이아웃 | 예시 2 정합 — 좌(장비 2x5+가방 6x5)/중(설명창)/우(창고, 상호작용시). 1080×620 확장. ShowItemDescription/SetWarehouseMode 공개 | ✅ |
 | | 후속 | 배선 확대+HUD 겹침 해소+Play 종합 검증+폐기+태그 | ⏳ |
