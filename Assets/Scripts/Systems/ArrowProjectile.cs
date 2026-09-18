@@ -36,7 +36,22 @@ namespace ProjectName.Systems
             _trail.startWidth = 0.45f;   // [화살-가시성3] 0.22→0.45 — 탑다운 카메라에서 명확한 광대
             _trail.endWidth = 0.12f;
             _trail.minVertexDistance = 0.05f;   // [후속19/A4] 0.08→0.05 — 프레임 드랍 시에도 궤적 연속
-            _trail.material = new Material(Shader.Find("Sprites/Default"));
+            // [F1 액션감] URP 파티클 셰이더 + 헤드→테일 그라디언트 페이드 — 스프라이트 기본 머티리얼 대체
+            var urpParticle = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+            _trail.material = new Material(urpParticle != null ? urpParticle : Shader.Find("Sprites/Default"));
+            if (_trail.colorGradient.mode == GradientMode.Blend) { /* keep */ }
+            var grad = new Gradient();
+            var keys = new[] {
+                new GradientColorKey(new Color(1f, 0.97f, 0.9f), 0f),
+                new GradientColorKey(new Color(1f, 0.85f, 0.5f), 0.35f),
+                new GradientColorKey(new Color(0.6f, 0.45f, 0.2f), 1f) };
+            var akeys = new[] {
+                new GradientAlphaKey(1f, 0f),
+                new GradientAlphaKey(0.85f, 0.25f),
+                new GradientAlphaKey(0.25f, 0.7f),
+                new GradientAlphaKey(0f, 1f) };
+            grad.SetKeys(keys, akeys);
+            _trail.colorGradient = grad;
         }
 
         /// <summary>화살 발사</summary>
@@ -236,6 +251,10 @@ namespace ProjectName.Systems
                 // [70차 후속19/C2·C3] 명중 피드백 — 활 히트스톱+흔들림(파워 풀=PlayCrit 강화) + 데미지 숫자(골드)
                 if (_power >= 0.95f) CombatCameraEffects.PlayCrit();
                 else CombatCameraEffects.PlayHit(ProjectName.Core.WeaponType.Bow);
+                // [F2 액션감] 명중 스파크 + 파워풀 크리틱 버스트
+                Vector3 hitPoint = other != null ? other.ClosestPoint(transform.position) : transform.position;
+                CombatVFXController.SpawnHitSparks(hitPoint);
+                if (_power >= 0.95f) CombatVFXController.SpawnCritBurst(hitPoint);
                 CombatVFXController.ShowDamageNumber(other.transform.position + Vector3.up * 1.0f,
                     Mathf.RoundToInt(_damage), new Color(1f, 0.85f, 0.4f));
 
@@ -267,6 +286,9 @@ namespace ProjectName.Systems
                 _lifetime = Mathf.Min(_lifetime, _elapsed + 2f); // 2초 후 소멸
                 if (_rb != null) _rb.linearVelocity = Vector3.zero;
                 if (_collider != null) _collider.enabled = false; // 중복 충돌 방지
+
+                // [F3 액션감] 지면/벽 꽂힘 — 소형 스파크
+                CombatVFXController.SpawnHitSparks(transform.position);
             }
         }
     }
