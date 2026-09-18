@@ -154,6 +154,7 @@
 | 2026-09-18 | 리포트 반영 | ①AttackSystem 레거시 경로 게이트(창 위 클릭 공격 뿌리 — KeyCode.Mouse0 독립 폴링) ②창고창 420×680 전용+설명 동시 ③핫바 Tab 자체 폴링+원본 HandleTabKey 은퇴 게이트(이중 토글 방지) ④HUDUTK EXP/상태 바 은퇴 | ✅ |
 | 2026-09-18 | Play 수리 7건 | ①QuickSlotUTK 은퇴(1~6 잔재) ②Active 유착 자가 해제(공격 불능 뿌리)+HUDUTK 풀스크린 Ignore 오버레이(클러스터 미표시 뿌리) ③전리품 폴링 가드+우클릭 중복 제거 ④우클릭 즉시 발화 확정(PointerDown) ⑤핫바 전환 펄스 애니 ⑥Complete try/catch | ✅ |
 | 2026-09-18 | 리포트 반영 5건 | ①전리품 열림 시 인벤+설명 동시 표시 ②원형 게이지 예시 정합(링+하단 채움, HP/스태미너) ③치유초 Herb 회복 25HP(ConsumableSystem Herb 분기) ④병사 F키 상호작용(SoldierInteractBridge→GuardInfoUTK) ⑤부대 슬롯 청록 틴트 | ✅ |
+| 2026-09-18 | 스크린샷 67 수리 | ①노란 경고 아이콘 뿌리(외부 캐시 파괴 텍스처 배경 참조) → UTKTextureSafe 소유 복사본 캐시 ②병사 헤드UI/이름표 창 위 렌더 → AnyWindowOpen 게이트 ③장비 슬롯 raw id → 표시명 | ✅ |
 | 2026-09-18 | HUD 정리 | 체력/스태미너 바 제거 → 원형 게이지 통합(핫바 왼쪽 인접, 화면 중앙×0.5−388px) | ✅ |
 | 2026-09-18 | 화살 액션감 F1~F3 | 트레일 URP Particles/Unlit+그라디언트 페이드 / 명중 스파크+크리틱 버스트 / 지면 꽂힘 스파크 (CombatVFXController 재사용) | ✅ |
 | | 후속 | HUDUTK 미이식 기능 이식(스태미나/버프 아이콘/가스 타이머/은신 HUD) | ⏳ |

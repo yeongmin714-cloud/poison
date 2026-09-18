@@ -688,3 +688,8 @@
 - Status: ✅
 - Details: ①AttackSystem.Update PointerOverUI 게이트(KeyCode.Mouse0 레거시 독립 폴링 — 창 위 클릭 공격 뿌리) ②WarehouseWindowUTK 420×680 창고 전용+설명창 동시 표시 ③HotbarUIUTK Tab 자체 폴링(_squadMode+원본 _squadMode 리플렉션 동기)+원본 HandleTabKey 은퇴 게이트(이중 토글 방지) ④HUDUTK EXP/상태 바 은퇴(하단 녹색 바). 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 스크린샷 67 수리 — 경고 아이콘/이름표 겹침/장비 표시명
+- Status: ✅
+- Details: ①UTKTextureSafe 신설(소유 복사본 캐시 — 외부 캐시 파괴 텍스처 배경 참조 차단, "Invalid value for image texture" 뿌리) — UTKSlot.SetIcon+설명창 프리뷰 적용 ②UITransitionState.AnyWindowOpen 신설(UTKWindowManager 갱신)+GuardHeadUI/NameplateDisplay 게이트(창 위 이름표 겹침 방지) ③장비 슬롯 표시명(GetItemById). 배치컴파일 error CS=0
+- Date: 2026-09-18
