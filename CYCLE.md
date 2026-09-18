@@ -663,3 +663,8 @@
 - Status: ✅
 - Details: ①HotbarUIUTK Tab 직접 폴링(_squadMode) — 아이템↔부대 8슬롯 전환, 부대 렌더=원본 _slots 리플렉션(GuardIconRenderer 아바타) ②GuardSquadHotbarUTK 은퇴(부대 렌더 흡수) ③원본 GuardSquadHotbar 드로잉 은퇴 게이트(UtkActive — Tab/등록/선택 로직 유지) ④HUDUTK 하단 좌측 클러스터(체력 골드 프레임+스태미너 계단식 StaminaRatio+원형 자원 아이콘 2종) ⑤인벤 우클릭 컨텍스트(창고 열림=입고 DepositFromInventory) ⑥부대 슬롯 좌클릭→GuardInfoUTK 배선. 배치컴파일 error CS=0(borderRadius USS 미지원 제거)
 - Date: 2026-09-18
+
+# Cycle: Phase 68 Play 수리 7건 — 퀵슬롯 잔재/공격 불능/전리품 드래그/우클릭/클러스터/펄스 애니
+- Status: ✅
+- Details: ①QuickSlotUTK 부트 은퇴(UtkActive) ②Active 유착 자가 해제(버튼 해제 시 강제 Cancel)+HUDUTK 풀스크린 Ignore 오버레이(0×0 박스→화면 기준 클러스터 렌더 수리) ③LootWindowUTK 폴링 가드+우클릭 중복 핸들러 제거 ④우클릭=PointerDown 즉시 발화 확정(드래그는 좌클릭 전용) ⑤핫바 전환 스케일 펄스 애니(1.15→1.0 150ms) ⑥Complete try/catch 유착 방지. 배치컴파일 error CS=0
+- Date: 2026-09-18
