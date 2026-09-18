@@ -113,20 +113,23 @@ namespace ProjectName.UI.Toolkit
                 return false;
             }
 
+            // [U8 수리] 폴백 체인 — 최상위 타겟이 CanDrop 거부해도 다음 타겟으로 계속 시도
+            // (셀 타겟이 Loot/Warehouse 소스를 거부해 창 레벨 수령이 죽던 뿌리 수리)
             bool consumed = false;
-            var target = FindDropTargetAt(_ghostPos);
+            var tried = FindDropTargetsAt(_ghostPos);
+            string triedNames = tried.Count > 0 ? string.Join(",", tried.ConvertAll(t => t.GetType().Name).ToArray()) : "없음";
             var invWin = InventoryWindowUTK.Instance;
             var whWin = WarehouseWindowUTK.Instance;
-            Debug.Log($"[UTKDragDrop] Drop 판정 pos={_ghostPos} target={(target != null ? target.GetType().Name : "없음")}"
+            Debug.Log($"[UTKDragDrop] Drop 판정 pos={_ghostPos} targets=[{triedNames}]"
                 + $" | inv={(invWin != null && invWin.IsOpen ? invWin.worldBound.ToString() : "닫힘")}"
                 + $" | wh={(whWin != null && whWin.IsOpen ? whWin.worldBound.ToString() : "닫힘")}");
-            if (target != null)
+
+            foreach (var target in tried)
             {
-                LastDropPos = _ghostPos;
-                bool can = target.CanDrop(Payload);
-                Debug.Log($"[UTKDragDrop] CanDrop={can} source={Payload.Source} idx={Payload.SourceIndex}");
-                if (can)
-                    consumed = target.Drop(Payload);
+                if (!target.CanDrop(Payload)) continue;
+                consumed = target.Drop(Payload);
+                Debug.Log($"[UTKDragDrop] Drop 수행 → {target.GetType().Name} consumed={consumed}");
+                if (consumed) break;
             }
 
             Cancel();
@@ -166,6 +169,14 @@ namespace ProjectName.UI.Toolkit
         /// <summary>화면 좌표 아래 최상위(후등록 우선) 드롭 타겟 반환.</summary>
         public static IUTKDropTarget FindDropTargetAt(Vector2 screenPos)
         {
+            var hits = FindDropTargetsAt(screenPos);
+            return hits.Count > 0 ? hits[0] : null;
+        }
+
+        /// <summary>[U8 수리] 같은 지점의 모든 드롭 타겟을 우선순위(후등록 우선) 순으로 반환 — 폴백 체인용.</summary>
+        public static System.Collections.Generic.List<IUTKDropTarget> FindDropTargetsAt(Vector2 screenPos)
+        {
+            var hits = new System.Collections.Generic.List<IUTKDropTarget>();
             for (int i = _targets.Count - 1; i >= 0; i--)
             {
                 var b = _targets[i];
@@ -175,10 +186,10 @@ namespace ProjectName.UI.Toolkit
                 if (screenPos.x >= gb.x && screenPos.x <= gb.x + gb.width
                     && screenPos.y >= gb.y && screenPos.y <= gb.y + gb.height)
                 {
-                    return b.target;
+                    hits.Add(b.target);
                 }
             }
-            return null;
+            return hits;
         }
 
         // ─────────────────────────────── MakeDraggable 헬퍼 ───────────────────────────────
