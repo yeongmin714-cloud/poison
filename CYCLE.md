@@ -623,3 +623,8 @@
 - Status: ✅
 - Details: ①ItemDescriptionWindowUTK 신규(독립 설명창) ②InventoryWindowUTK 단일 패널 회귀(장비 2x5+가방 6x5) ③I키=인벤+설명 쌍 토글(UTKWireUp) ④창고→인벤 DnD(CanDrop/Drop Warehouse 수용→TransferToInventory) ⑤가방 우클릭(소모품 UseItem/장착 TryEquipItemPublic 위임 래퍼) ⑥TerritoryWarehouse 닫기 UTK 분기 ⑦원본 키 은퇴 게이트 4종(Status P/Ency L/GameStats U/Journal J — UTK 준비 시 원본 키 무시). 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 폐기 1단계 — 은퇴 게이트 전면 확장+태그
+- Status: ✅
+- Details: Core.UITransitionState.UtkActive 플래그(순환참조 회피 양 어셈블리 공용)+부트스트랩 세팅. 원본 IMGUI 자가 은퇴 8종: HUD(부분 은퇴 — 체력/EXP, 드래고 고스트/버프/가스/은신/사망 유지)/Minimap/QuickSlot/CombatLog/HerbRespawn/Time(Systems)/WarNote(Systems). git 태그 phase68-ui-toolkit 푸시. 배치컴파일 error CS=0
+- Date: 2026-09-18

@@ -94,7 +94,7 @@
 - [x] **유지 판정 확정**: DamageNumber·이름표 4종·ScreenFlashFX·GuardWorldSpaceHUD·컷신 2종·디버그/Test IMGUI — 전환 제외
 - [ ] **호출부 배선(원본 Show()→UTK 전환) — U8에서 창 단위 점진 적용**
 
-### Phase U8 — 최종 회귀 + 표준화 (진행 중 — Play 검증 선행 권장)
+### Phase U8 — 최종 회귀 + 표준화 (폐기 1단계 완료 — Play 검증 후 2단계)
 - [x] **호출부 배선 1차** — 침대 수면(SleepUTK)+전리품 바구니(LootWindowUTK): 이벤트 브리지 패턴(UTKWireUp) — UTK 미준비 시 원본 자동 폴백, 한 줄 제거로 완전 회귀
 - [x] **배선 확대** — 상점(ShopPlaceholder.ToggleShop)+인벤 I키(UIInventoryHotkey): 총 4경로 브리지
 - [x] **UI 가이드 UTK 표준 확정** — UI_DESIGN_GUIDELINES.md UTK 섹션(팔레트 매핑/폰트/레이아웃/엔진 규약 8종)
@@ -141,4 +141,6 @@
 | 2026-09-18 | Play 수리 3건 | ①창고 UTK 배선(TerritoryWarehouse→Inventory+Warehouse UTK) ②인벤창 위 장비창 임베드(8슬롯+우클릭 해제) ③EquipmentManager 단일소스 | ✅ |
 | 2026-09-18 | 3분할 레이아웃 | 예시 2 정합 — 좌(장비 2x5+가방 6x5)/중(설명창)/우(창고, 상호작용시). 1080×620 확장. ShowItemDescription/SetWarehouseMode 공개 | ✅ |
 | 2026-09-18 | 독립 창 개편 | 요구 반영 — 인벤(460×640)+설명(320×640) 독립 창 쌍(I키), 창고/전리품은 컨텍스트별 우측 독립 창. 창고→인벤 DnD 수리(Warehouse 수용)+가방 우클릭 수리(소모품 UseItem/장착 TryEquipItemPublic 위임). 원본 키 은퇴 게이트 4종(P/L/U/J) | ✅ |
+| 2026-09-18 | 폐기 1단계 | 은퇴 게이트 전면 확장 — Core.UITransitionState.UtkActive 플래그+원본 HUD류 8종 자가 은퇴(HUD 부분: 체력/EXP 은퇴·버프/가스/은신/사망 유지). git 태그 phase68-ui-toolkit | ✅ |
+| 후속 | 폐기 2단계 | Play 통과 후 구 IMGUI 파일 삭제+LEGACY 정리 | ⏳ |
 | | 후속 | 배선 확대+HUD 겹침 해소+Play 종합 검증+폐기+태그 | ⏳ |
