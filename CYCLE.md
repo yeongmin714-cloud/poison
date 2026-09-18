@@ -658,3 +658,8 @@
 - Status: ✅
 - Details: ①UTKDragDrop.GetPanelPointerPos — 마우스 실측 픽셀×패널스케일(pos=2151 뿌리 차단), ToRootPos 폐기 ②창고 셀 우클릭 출고 onRightClick 위임(ContextClickEvent 섭취 수리) ③핫바 가시 전환 매 프레임(IsSquadMode) ④레이아웃: 인벤(16,560×700)/설명(596,440×700)/창고(1044). 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 H1~H4 — 핫바 단일 바/HUD 클러스터/우클릭 컨텍스트/병사 배선
+- Status: ✅
+- Details: ①HotbarUIUTK Tab 직접 폴링(_squadMode) — 아이템↔부대 8슬롯 전환, 부대 렌더=원본 _slots 리플렉션(GuardIconRenderer 아바타) ②GuardSquadHotbarUTK 은퇴(부대 렌더 흡수) ③원본 GuardSquadHotbar 드로잉 은퇴 게이트(UtkActive — Tab/등록/선택 로직 유지) ④HUDUTK 하단 좌측 클러스터(체력 골드 프레임+스태미너 계단식 StaminaRatio+원형 자원 아이콘 2종) ⑤인벤 우클릭 컨텍스트(창고 열림=입고 DepositFromInventory) ⑥부대 슬롯 좌클릭→GuardInfoUTK 배선. 배치컴파일 error CS=0(borderRadius USS 미지원 제거)
+- Date: 2026-09-18
