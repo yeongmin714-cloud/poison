@@ -180,32 +180,11 @@ namespace ProjectName.Systems
                 _proceduralAnim?.TriggerAction("parry_end");
             }
 
-            // [Phase 1-1] 우클릭 차지 — 홀드 중 충전 누적, 해제 시 강공 발동
-            // [TEST24-FIX H1] 활 장착 중이면 우클릭 차지 스킵 — 활은 좌클릭으로 화살 발사만.
-            // 우클릭 차지(근접 강공)는 검/창/Fist에서만. 활에서 우클릭이 '화살 발사처럼' 보이던 것 방지.
+            // [RTS 연동] 우클릭 차지(강공) 제거 — 부대 우클릭 명령(병사 이동/공격)과 겹침. 우클릭은 RTSCommandSystem 전용으로 해방. 패링은 좌클릭 기반 유지.
             bool isBowEquipped = _currentWeapon != null
                 && _currentWeapon.weaponType == ProjectName.Core.WeaponType.Bow;
             if (Mouse.current != null)
             {
-                if (Mouse.current.rightButton.isPressed && !_charging && !_parryActive && !isBowEquipped)
-                {
-                    _charging = true;
-                    _chargeHeldTime = 0f;
-                    _proceduralAnim?.TriggerAction("charge");
-                }
-                if (_charging)
-                {
-                    _chargeHeldTime += Time.deltaTime;
-                    if (_chargeHeldTime >= ChargeMaxHold)
-                    {
-                        // 오버차지 — 자동 강공 발동
-                        ReleaseCharge(true);
-                    }
-                }
-                if (Mouse.current.rightButton.wasReleasedThisFrame && _charging)
-                {
-                    ReleaseCharge(_chargeHeldTime >= ChargeMinHold);
-                }
                 // [활 드로→릴리즈] 매 프레임 드로 누적 + 좌클릭 해제 = 릴리즈(파워 반영 발사)
                 // 근접 우클릭 차지와 별개 좌클릭 경로 — 검/창/Fist에는 영향 없음(_bowDrawing은 활에서만 true).
                 if (_bowDrawing)
@@ -269,19 +248,10 @@ namespace ProjectName.Systems
                     AttackSoundLayerManager.PlayBowDraw(); // [활 드로] 좌클릭 press — 당김 스트레치 사운드 발화
                     return;
                 }
-                // [Phase 1-2] 패링 — 공격 시작 짧은 순간 방어 판정 창(우클릭 차지와 동시 아님)
-                if (_charging)
-                {
-                    // 차지 중 좌클릭 = 차지 취소하고 일반 공격
-                    _charging = false;
-                    _proceduralAnim?.TriggerAction("charge_end");
-                }
-                else
-                {
-                    _parryActive = true;
-                    _parryActiveUntil = Time.time + ParryWindow;
-                    _proceduralAnim?.TriggerAction("parry");
-                }
+                // [Phase 1-2] 패링 — 공격 시작 짧은 순간 방어 판정 창 (우클릭 차지 제거로 항상 패링 경로 실행)
+                _parryActive = true;
+                _parryActiveUntil = Time.time + ParryWindow;
+                _proceduralAnim?.TriggerAction("parry");
                 TryAttack();
             }
         }

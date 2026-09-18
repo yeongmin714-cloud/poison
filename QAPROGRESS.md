@@ -8,6 +8,28 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-18 ✅ RTS 우클릭 명령 해방 — 부대 우클릭 이동 + 우클릭 차지 제거)
+
+> **입력**: 사용자 — "부대 선택 후 우클릭하면 병사가 이동하게" + "우클릭이 겹치면 차지를 빼버리자".
+
+### 진단
+- RTS 병사 이동/공격 우클릭은 **이미 배선돼 있음**: `GuardSelectionManager`(L231-239)가 우클릭 press → `RTSCommandSystem.IssueRightClickCommand(mousePos, ctrl)` → 지형=이동(`SetCommandTarget(pos,false)`)/적=공격. 병사 선택 시 동작.
+- **겹침 원인**: `PlayerCombat`의 **우클릭 차지(강공)**(rightButton.isPressed → `_charging` 누적 → `ReleaseCharge` 1.8x 강공)이 같은 우클릭을 소비/간섭 → 부대 이동이 방해받음.
+- 패링(`_parryActive`)은 **좌클릭** 기반이라 무관. 활 드로/릴리즈도 좌클릭.
+
+### 수정 (code agent 위임, 1파일)
+**`Systems/PlayerCombat.cs`** — 우클릭 차지(강공) 제거:
+- 우클릭 차지 진입/누적/릴리즈 블록(a,b,c) 제거 → **PlayerCombat이 우클릭을 전혀 소비하지 않음** → 우클릭은 RTS 명령 전용으로 해방.
+- 좌클릭 차지취소 죽은 브랜치 정리(항상 패링 실행). `isBowEquipped` 선언·활 드로·좌클릭 공격/패링 전부 유지. `ReleaseCharge`/`TryChargeAttack`은 안전하게 유지(미사용 private은 무해).
+
+### 검증
+- 배치컴파일 **error CS=0** (`Exiting batchmode successfully`).
+
+### Play 판정 대기
+①병사(부대) 선택 후 우클릭 → 지형이면 병사 이동 ②적 우클릭 → 공격 ③Ctrl+우클릭 → 일제 이동/공격 ④H키 → 명령 취소 ⑤플레이어가 더 이상 우클릭으로 차지(강공) 안 함 ⑥좌클릭 공격/패링/활/폭탄 투척 회귀 없음
+
+---
+
 ## 📌 세션 스냅샷 (2026-09-18 ✅ 폭탄 투척 액션 시스템)
 
 > **입력**: 사용자 요구 — "창고에 폭탄 하나 두고 → 퀵슬롯 등록 → 번호 누르면 폭탄을 들고(무장) → 좌클릭으로 던져 폭발".
