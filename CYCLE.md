@@ -603,3 +603,8 @@
 - Status: ✅
 - Details: ShopPlaceholder.ToggleShopRequestedUTK+InvokeLegacyToggleShop 폴백 분리, UIInventoryHotkey.InventoryToggleRequestedUTK 라우팅, UTKWireUp 브리지 2건 추가(총 4경로). UTK 미준비 시 원본 폴백 내장. 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 Play 수리 — 인벤 I키 미표시 + 미니맵 우상단
+- Status: ✅
+- Details: ①InventoryWindowUTK.Toggle이 IsOpen=false일 때 Ensure()만 호출(Show 누락) → Open() 위임 수리(레퍼런스 흐름: WireUp→Toggle→Open→Show) ②MinimapUTK 좌상단→우상단(style.right, 사용자 지정). 배치컴파일 error CS=0
+- Date: 2026-09-18

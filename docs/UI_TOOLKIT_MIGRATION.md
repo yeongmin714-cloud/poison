@@ -133,5 +133,7 @@
 | 2026-09-18 | U7 | HUD 7창 완료(2,075줄)+유지 판정 확정, 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | U8 | 1차 배선(수면/전리품 브리지)+가이드 UTK 표준 확정, 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | Play 1차 | Editor.log 실측 — Status/Quest/Squad UTK 정상 렌더·토글, UTK 예외 0. ProceduralAnimationController 파괴 가드 수리 | ✅ |
+| 2026-09-18 | Play 1차 | Editor.log 실측 — Status/Quest/Squad UTK 정상 렌더·토글, UTK 예외 0. ProceduralAnimationController 파괴 가드 수리 | ✅ |
 | 2026-09-18 | 배선 확대 | 4경로(침대 수면/전리품 바구니/상점/인벤 I키) — 브리지 패턴 동일 적용, 배치컴파일 error CS=0 | ✅ |
+| 2026-09-18 | Play 수리 2건 | ①인벤 I키 미표시(Toggle이 Ensure만 하고 Show 누락 → Open 위임) ②미니맵 우상단 이동(사용자 지정) | ✅ |
 | | 후속 | 배선 확대+HUD 겹침 해소+Play 종합 검증+폐기+태그 | ⏳ |
