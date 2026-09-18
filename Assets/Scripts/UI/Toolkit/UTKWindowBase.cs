@@ -25,8 +25,14 @@ namespace ProjectName.UI.Toolkit
         protected readonly Label _titleLabel;
         private readonly Button _closeButton;
         private readonly VisualElement _titleBar;   // 드래그 대상
+        private readonly VisualElement _shadow;     // 9슬라이스 소프트 그림자 (부모에 형제로 부착)
         private bool _isOpen;
         private bool _dragging;
+
+        /// <summary>섀도우 음각(글로우) 확장 — 창보다 커지는 폭 (px).</summary>
+        private const float ShadowPad = 12f;
+        /// <summary>떠 보이도록 아래로 살짝 처지는 오프셋 (px).</summary>
+        private const float ShadowDropY = 4f;
 
         public bool IsOpen => _isOpen;
         public string Title => _titleLabel.text;
@@ -74,11 +80,60 @@ namespace ProjectName.UI.Toolkit
             _titleBar.RegisterCallback<PointerUpEvent>(OnTitleBarPointerUp);
             _titleBar.RegisterCallback<PointerCaptureOutEvent>(_ => _dragging = false);
 
+            // ── 소프트 그림자 (9슬라이스 글로우) ──
+            // 윈도우 자체의 자식이 아닌 "형제"로 부모에 부착해야 창의 overflow:hidden에 안 잘린다.
+            _shadow = new VisualElement { name = "WindowShadow" };
+            _shadow.AddToClassList("utk-window-shadow");
+            _shadow.pickingMode = PickingMode.Ignore;   // 드래그/클릭/드롭타겟 간섭 방지
+            _shadow.style.display = DisplayStyle.None;  // 부착 전엔 숨김
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+            RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
+            // 창 크기/위치 변동 시 섀도우 미러링 (크기 조절·레이아웃 재계산 포함)
+            RegisterCallback<GeometryChangedEvent>(_ => SyncShadow());
+
             ApplyUIToolkitFont(this);
 
             // 기본 숨김
             _isOpen = false;
             style.display = DisplayStyle.None;
+        }
+
+        // ─────────────────────────── 섀도우 형제 관리 ───────────────────────────
+
+        /// <summary>패널에 부착되면 섀도우를 같은 부모의 맨 뒤(인덱스 0)로 얹는다.</summary>
+        private void OnAttachToPanel(AttachToPanelEvent evt)
+        {
+            var p = parent;
+            if (p == null || _shadow.parent == p)
+                return;
+            // 창은 Show()에서 BringToFront() 하므로 섀도우가 항상 뒤에 남는다.
+            p.Insert(0, _shadow);
+            SyncShadow();
+        }
+
+        /// <summary>패널에서 분리되면 섀도우도 함께 제거해 화면에 남지 않게 한다.</summary>
+        private void OnDetachFromPanel(DetachFromPanelEvent evt)
+        {
+            if (_shadow.parent != null)
+                _shadow.RemoveFromHierarchy();
+        }
+
+        /// <summary>섀도우 표시/위치/크기를 창 resolvedStyle 기준으로 맞춘다.</summary>
+        private void SyncShadow()
+        {
+            if (_shadow.parent == null)
+                return;
+            if (style.display == DisplayStyle.None)
+            {
+                // 닫힘/숨김 시 화면에 그림자가 남지 않도록 반드시 숨김
+                _shadow.style.display = DisplayStyle.None;
+                return;
+            }
+            _shadow.style.display = DisplayStyle.Flex;
+            _shadow.style.left   = resolvedStyle.left   - ShadowPad;
+            _shadow.style.top    = resolvedStyle.top    - ShadowPad + ShadowDropY;
+            _shadow.style.width  = resolvedStyle.width  + ShadowPad * 2;
+            _shadow.style.height = resolvedStyle.height + ShadowPad * 2 - ShadowDropY;
         }
 
         // ─────────────────────────── 공개 API ───────────────────────────
@@ -91,6 +146,7 @@ namespace ProjectName.UI.Toolkit
             style.display = DisplayStyle.Flex;
             BringToFront();
             UTKWindowManager.Register(this);
+            SyncShadow();
             OnWindowOpen();
         }
 
@@ -100,6 +156,8 @@ namespace ProjectName.UI.Toolkit
             if (!_isOpen) return;
             _isOpen = false;
             style.display = DisplayStyle.None;
+            if (_shadow != null)
+                _shadow.style.display = DisplayStyle.None;   // 닫힘 시 섀도우도 숨김
             UTKWindowManager.Unregister(this);
             OnWindowClosed();
         }
@@ -141,6 +199,7 @@ namespace ProjectName.UI.Toolkit
             // PointerMoveEvent.deltaPosition 사용 — 픽셀 단위.
             style.left = style.left.value.value + evt.deltaPosition.x;
             style.top  = style.top.value.value + evt.deltaPosition.y;
+            SyncShadow();   // 드래그 중 그림자가 창을 따라다니게
             evt.StopPropagation();
         }
 

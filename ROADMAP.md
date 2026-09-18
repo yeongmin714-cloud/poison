@@ -3021,3 +3021,6 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ### U9 (2026-09-18 ✅) — UI 입체 테마 + 그리드 좌우 대칭
 사용자 설계 요청(UI/인벤토리 예시 참조) 반영: `Theme.uss`에 세로 그라데이션+금속 베벨+라디얼 골드 글로우(입체, box-shadow 미지원 대체), `InventoryWindowUTK` leftCol 고정폭 제거·그리드 Centering(7열), `WarehouseWindowUTK` 그리드 Centering(5열). 배치컴파일 error CS=0.
+
+### U9-2 (2026-09-18 ✅) — 소프트 드롭섀도우 (떠 있는 창)
+UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라이스) + `Theme.uss` `.utk-window-shadow`(+`slice-enabled`) + `UTKWindowBase._shadow` 형제요소(인덱스0 뒤, PickingMode.Ignore, GeometryChanged/drag 실시간 동기). CS0841 1건 수리 후 error CS=0.

@@ -59,7 +59,21 @@
     color: var(--c-text-primary);
     font-size: var(--fs-sm);
     overflow: hidden;
-    /* 그림자 근사 */
+}
+
+/* 부드러운 소프트 그림자(드롭섀도우) — 9슬라이스 글로우 배경.
+   UIRoot 최상위 부모에 형제 요소로 얹혀 창 뒤에 그려짐 (overflow:hidden에 안 잘림).
+   pointer-events:none으로 드래그/클릭/드롭타겟 간섭 없음. */
+.utk-window-shadow {
+    position: absolute;
+    background-image: url("Assets/Resources/UI/shadow_glow.png");
+    -unity-slice-top: 14;
+    -unity-slice-bottom: 14;
+    -unity-slice-left: 14;
+    -unity-slice-right: 14;
+    -unity-background-scale-mode: slice-enabled;
+    background-size: 100% 100%;
+    pointer-events: none;
 }
 
 .utk-title-bar {

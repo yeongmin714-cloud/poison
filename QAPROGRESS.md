@@ -8,6 +8,34 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-18 ✅ UI 업그레이드 후속 — 소프트 드롭섀도우 (떠 있는 창))
+
+> **입력**: 이전 입체 테마 Phase 후속 — "진짜 떠 있는" 드롭섀도우 요청. UITK는 `box-shadow`·`filter: drop-shadow`를 **미지원**(컴파일 dll 스트링 검증: blur는 지원, drop-shadow는 무). → **소프트 글로우 PNG 9슬라이스**로 구현.
+
+### 변경 사항 (신규 에셋 1 + 수정 2 — code agent 위임)
+**신규 `Assets/Resources/UI/shadow_glow.png`** (30×30 RGBA, PIL 생성)
+- 중앙 2px 투명 + 외곽 14px 블러(소프트 글로우) — 9슬라이스 경계 14px.
+
+**`Theme.uss`** — `.utk-window-shadow` 클래스 추가
+- `background-image: url(.../shadow_glow.png)` + `-unity-slice-* 14px` + **`-unity-background-scale-mode: slice-enabled;`**(누락하면 slice 무시 — QA 지적으로 추가) + `pointer-events:none`.
+
+**`UTKWindowBase.cs`** (모든 UTK 창 베이스)
+- `_shadow` **형제요소**로 부모 인덱스0(맨 뒤)에 부착 — 창 `overflow:hidden`에 안 잘림. `PickingMode.Ignore`.
+- `AttachToPanelEvent`→부착, `DetachFromPanelEvent`→제거, `GeometryChangedEvent`→`SyncShadow()`(창 크기/위치 미러링), `Show`/`Hide`/타이틀바 드래그 이동 시에도 동기 → 실시간 추적.
+- `resolvedStyle` 기준 left-12 / top-8 / +24크기 (uniform 글로우 + 하단 4px 치우침 = 떠 있는 느낌).
+
+### 수정 이력 (컴파일 루프)
+- CS0841 1건 수리: `OnAttachToPanel`의 `var parent = parent;` 자기참조 → `var p = parent;`로 로컬명 변경. (QA 정적리뷰가 놓친 실제 컴파일 에러 — 배치컴파일로 발견)
+
+### 검증
+- 배치컴파일 **error CS=0** (`Exiting batchmode successfully`). shadow_glow.png.meta 자동 생성 확인.
+- QA 정적리뷰: PickingMode.Ignore+pointer-events:none으로 드래그/드롭타겟/월드드롭 간섭 없음, Detach 시 잔상 방지, 표시 전 display None 가드 확인.
+
+### Play 판정 대기
+①모든 창이 배경 위로 살짝 떠 있는 부드러운 그림자(glow 링) ②창 드래그 시 그림자 따라 움직임 ③창 닫으면 그림자 잔상 없음 ④여러 창 겹칠 때 그림자 자연스러움 ⑤입체(그라데이션+베벨+글로우)와 조화
+
+---
+
 ## 📌 세션 스냅샷 (2026-09-18 ✅ UI 업그레이드 — 입체 테마 + 그리드 좌우 대칭)
 
 > **입력**: 사용자 설계 요청 — (1)UI 예시/인벤토리 예시1·2 사진처럼 전체 UI를 더 **입체적**으로, (2)그리드 **양쪽 대칭**, (3)인벤토리 **우측 여백 과다** 제거.
