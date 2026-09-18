@@ -347,6 +347,9 @@ namespace ProjectName.UI.Toolkit
 
         private void RefreshGrid()
         {
+            // [U8 수리] 드래그 중 셀 재생성 금지 — 캡처 상실로 드래그 도중 취소되는 뿌리 차단
+            if (UTKDragDrop.Active) return;
+
             var inv = PlayerInventory.Instance;
             var slots = inv != null ? inv.GetAllSlots() : null;
             int total = slots != null ? slots.Length : 0;

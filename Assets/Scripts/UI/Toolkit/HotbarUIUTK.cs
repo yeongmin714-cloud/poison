@@ -184,6 +184,11 @@ namespace ProjectName.UI.Toolkit
 
         private void RefreshAllIcons()
         {
+            // [U8 요구] Tab 부대 모드 연동 — 부대 모드면 아이템 핫바 숨김(부대 핫바만)
+            if (ProjectName.UI.GuardSquadHotbar.IsSquadMode && style.display == DisplayStyle.Flex)
+                style.display = DisplayStyle.None;
+            else if (!ProjectName.UI.GuardSquadHotbar.IsSquadMode && style.display == DisplayStyle.None)
+                style.display = DisplayStyle.Flex;
             for (int i = 0; i < SlotCount; i++)
                 RefreshSlot(i);
         }

@@ -80,6 +80,7 @@ namespace ProjectName.UI.Toolkit
         // ===== 레퍼런스 =====
         private readonly VisualElement _invColumn;
         private readonly VisualElement _whColumn;
+        private string _categoryFilter = "전체";   // [U8 요구] 카테고리 탭 필터
         private readonly VisualElement _invGrid;
         private readonly VisualElement _whGrid;
         private readonly Label _territoryButton;
@@ -170,6 +171,9 @@ namespace ProjectName.UI.Toolkit
             _invGrid.style.marginBottom = 4f;
             _invColumn.Add(_invGrid);
 
+            // [U8 요구] 창고 전용 창 — 인벤 컬럼 은닉(독립 InventoryWindowUTK가 인벤 담당)
+            _invColumn.style.display = DisplayStyle.None;
+
             columnsRow.Add(_invColumn);
 
             // 우측 컬럼: 창고 그리드 (드래그 소스 + 입고 드롭 타겟)
@@ -186,10 +190,25 @@ namespace ProjectName.UI.Toolkit
             _whColumn.style.borderLeftColor = new StyleColor(UTKColor.IronLine);
             _whColumn.style.borderRightColor = new StyleColor(UTKColor.IronLine);
 
-            var whHeading = new Label("🏰 창고 (드래그 → 좌측 인벤 = 출고)");
+            var whHeading = new Label("🏰 창고 (드래그 → 좌측 인벤 = 출고 / 우클릭 = 출고)");
             whHeading.style.fontSize = 14f;
             whHeading.style.color = new StyleColor(UTKColor.TextSecondary);
             _whColumn.Add(whHeading);
+
+            // [U8 요구] 카테고리 탭 — 무기/방어구/재료/소모품/전체 필터
+            var tabs = new VisualElement();
+            tabs.style.flexDirection = FlexDirection.Row;
+            tabs.style.marginBottom = 4f;
+            _whColumn.Add(tabs);
+            string[] tabNames = { "전체", "무기", "방어구", "재료", "소모품" };
+            foreach (var tn in tabNames)
+            {
+                string captured = tn;
+                var tabBtn = UTKButton.Create(tn, () => { _categoryFilter = captured; RefreshGrid(); }, 
+                    captured == "전체" ? UTKButton.Variant.Primary : UTKButton.Variant.Secondary);
+                tabBtn.style.height = 26f;
+                tabs.Add(tabBtn);
+            }
 
             _whGrid = new VisualElement();
             _whGrid.name = "WarehouseGrid";
@@ -299,6 +318,7 @@ namespace ProjectName.UI.Toolkit
 
         private void RefreshGrid()
         {
+            if (UTKDragDrop.Active) return; // [U8 수리] 드래그 중 재생성 금지
             RefreshInventoryGrid();
             RefreshWarehouseGrid();
             RefreshCapacity();
@@ -330,10 +350,34 @@ namespace ProjectName.UI.Toolkit
             }
         }
 
+        /// <summary>[U8 요구] 카테고리 탭 매칭 — 무기/방어구/재료/소모품.</summary>
+        private static bool CategoryMatches(PlayerInventory.ItemCategory cat, string tab)
+        {
+            switch (tab)
+            {
+                case "무기": return cat == PlayerInventory.ItemCategory.Weapon;
+                case "방어구": return cat == PlayerInventory.ItemCategory.Armor;
+                case "재료": return cat == PlayerInventory.ItemCategory.Material || cat == PlayerInventory.ItemCategory.Herb;
+                case "소모품": return cat == PlayerInventory.ItemCategory.Potion || cat == PlayerInventory.ItemCategory.Food || cat == PlayerInventory.ItemCategory.Drug;
+                default: return true;
+            }
+        }
+
         private void RefreshWarehouseGrid()
         {
             _whGrid.Clear();
-            var items = WarehouseSystem.Instance != null ? WarehouseSystem.Instance.GetItems(_territoryId) : null;
+            var allItems = WarehouseSystem.Instance != null ? WarehouseSystem.Instance.GetItems(_territoryId) : null;
+            // [U8 요구] 카테고리 탭 필터 — 전체 외에는 해당 카테고리만 표시
+            var items = new System.Collections.Generic.List<PlayerInventory.ItemSlot>();
+            if (allItems != null)
+            {
+                foreach (var s in allItems)
+                {
+                    if (s != null && s.item != null && _categoryFilter != "전체" && !CategoryMatches(s.item.category, _categoryFilter))
+                        continue;
+                    items.Add(s);
+                }
+            }
             int total = items != null ? items.Count : 0;
 
             int rows = (MaxSlots + Columns - 1) / Columns;
