@@ -10,19 +10,19 @@
 
 :root {
     /* ---- 팔레트 (UI_DESIGN_GUIDELINES 62차) ---- */
-    /* ---- 모던 다크 네이비 + 글래스모피즘 (2026-09-18 사용자 지정) ---- */
-    --c-bg-panel:      rgba(12, 20, 38, 0.72);    /* 다크 네이비 글래스 (반투명 아크릴) */
-    --c-bg-panel-dark: rgba(6, 12, 26, 0.82);     /* 심층 글래스 */
-    --c-border-bronze: rgba(90, 180, 255, 0.40);  /* 시안 포인트 라인 (구 브론즈 자리) */
-    --c-border-gold:   rgba(130, 220, 255, 0.85); /* 브라이트 시안 (구 골드 자리) */
-    --c-iron-line:     rgba(80, 140, 220, 0.25);  /* 미세 구분선 */
-    --c-text-primary:  #EAF4FF;                    /* 아이스 화이트 */
-    --c-text-secondary:#8FA8C8;                    /* 뮤트 블루 그레이 */
-    --c-accent-magic:  #4A7BD0;                    /* 마법 블루 유지 */
-    --c-accent-rare:   #4FD8EB;                    /* 시안 강조 */
-    --c-health-red:    #E05060;                    /* HP/위험 */
-    --c-guild-green:   #50C878;                    /* 성공 */
-    --c-hover-gold:    rgba(90, 200, 255, 0.35);   /* 호버 글로우 */
+    /* ---- 다크 브라운 아크릴 + 앤틱 골드 (2026-09-18 사용자 지정 — 중세 판타지) ---- */
+    --c-bg-panel:      rgba(38, 26, 16, 0.84);    /* 딥 우드 아크릴 (반투명 — 뒤가 은은히 비침) */
+    --c-bg-panel-dark: rgba(26, 17, 10, 0.90);    /* 심층 우드 */
+    --c-border-bronze: #B08D4A;                    /* 앤틱 골드/황동 메탈 라인 */
+    --c-border-gold:   #E8C877;                    /* 브라이트 골드 강조 */
+    --c-iron-line:     rgba(140, 107, 63, 0.45);   /* 미세 우드 구분선 */
+    --c-text-primary:  #FFF4E0;                    /* 웜 화이트 */
+    --c-text-secondary:#C8B89A;                    /* 뮤트 골드 그레이 */
+    --c-accent-magic:  #7FA8E0;                    /* 마법 강조 (차분한 블루) */
+    --c-accent-rare:   #E8C877;                    /* 골드 강조 */
+    --c-health-red:    #D05050;                    /* HP/위험 */
+    --c-guild-green:   #7FB069;                    /* 성공 */
+    --c-hover-gold:    rgba(201, 162, 39, 0.40);   /* 호버 골드 글로우 */
 
     /* ---- 희귀도 등급색 (EquipmentRarityData 통일) ---- */
     --c-rank-common:    #999999;   /* 일반 */
@@ -44,9 +44,9 @@
 .utk-window {
     position: absolute;
     background-color: var(--c-bg-panel);
-    border-width: 1px;
+    border-width: 2px;
     border-color: var(--c-border-bronze);
-    border-radius: 10px;
+    border-radius: 8px;
     color: var(--c-text-primary);
     font-size: var(--fs-sm);
     overflow: hidden;
@@ -141,12 +141,19 @@
 
 /* ───────────────────────── 슬롯 ───────────────────────── */
 .utk-slot {
-    background-color: var(--c-bg-panel-dark);
-    border-width: 1px;
-    border-color: var(--c-iron-line);
-    border-radius: 3px;
-    align-items: center;
-    justify-content: center;
+    width: 64px;
+    height: 64px;
+    background-color: rgba(14, 9, 5, 0.72);          /* 음각(오목) 느낌의 어두운 내부 */
+    border-top-width: 2px;
+    border-left-width: 2px;
+    border-bottom-width: 2px;
+    border-right-width: 2px;
+    border-top-color: rgba(0, 0, 0, 0.55);           /* 상단 어둡게 — 오목 광원 역광 */
+    border-left-color: rgba(0, 0, 0, 0.55);
+    border-bottom-color: rgba(176, 141, 74, 0.55);   /* 하단 골드 — 오목 하이라이트 */
+    border-right-color: rgba(176, 141, 74, 0.55);
+    border-radius: 4px;
+    margin: 3px;
 }
 
 .utk-slot--hover {

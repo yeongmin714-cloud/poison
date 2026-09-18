@@ -58,42 +58,20 @@ namespace ProjectName.UI.Toolkit
         private readonly Color _expBorderColor = new Color(0.75f, 0.75f, 0.75f, 1f);
         private readonly Color _fillBgColor = new Color(0.08f, 0.10f, 0.16f, 0.85f);
 
-        // 체력
+        // 체력/경험치
         private VisualElement _hpFill;
         private Label         _hpText;
         private VisualElement _hpBorder;
-
-        // 퀵슬롯
-        private readonly UTKSlot[] _quickSlots;
-        private readonly Label[]   _quickKeyLabels;
-
-        // 경험치
-        private VisualElement _expFill;
-        private Label         _expText;
-        private Label         _levelText;
-        private Label         _expValueText;
-
-        // 퀵슬롯 개수 (원본 QuickSlotManager 실측 — 설정값 6)
-        private readonly int _quickCount;
-        private IVisualElementScheduledItem _pollTask;
+        private Label         _levelText;      // [U8] BuildExpBar 바인딩
+        private VisualElement _expFill;        // [U8] BuildExpBar 바인딩
+        private Label         _expText;        // [U8] BuildExpBar 바인딩
+        private Label         _expValueText;   // [U8] BuildExpBar 바인딩
+        private UnityEngine.UIElements.IVisualElementScheduledItem _pollTask; // [U8] 폴링
+        // [U8 정리] 퀵슬롯 섹션 제거 — HotbarUIUTK(아이템 핫바 1~8)가 담당 (중복 슬롯 은퇴)
 
         private HUDUTK()
         {
-            name = "HUD";
-            style.position = Position.Absolute;
-            style.left = 0f;
-            style.right = 0f;
-            style.top = 0f;
-            style.bottom = 0f;
-            pickingMode = PickingMode.Ignore;
-
-            int mgrCount = QuickSlotManager.Instance != null ? QuickSlotManager.Instance.SlotCount : 6;
-            _quickCount = mgrCount > 0 ? mgrCount : 6;
-            _quickSlots = new UTKSlot[_quickCount];
-            _quickKeyLabels = new Label[_quickCount];
-
             BuildHealth();
-            BuildQuickSlots();
             BuildExpBar();
 
             UTKWindowBase.ApplyUIToolkitFont(this);
@@ -157,52 +135,6 @@ namespace ProjectName.UI.Toolkit
             barWrap.Add(_hpText);
         }
 
-        // =====================================================================
-        // ② 하단 퀵슬롯 (QuickSlotManager 실측 6슬롯 — 아이콘 + 키 라벨)
-        // =====================================================================
-        private void BuildQuickSlots()
-        {
-            var row = new VisualElement();
-            row.name = "HUDQuickRow";
-            row.style.position = Position.Absolute;
-            row.style.left = 0f;
-            row.style.right = 0f;
-            row.style.bottom = Bottom;
-            row.style.flexDirection = FlexDirection.Row;
-            row.style.justifyContent = Justify.Center;
-            row.style.alignItems = Align.FlexEnd;
-            Add(row);
-
-            for (int i = 0; i < _quickCount; i++)
-            {
-                var cell = new VisualElement();
-                cell.name = "HUDQuickCell_" + i;
-                cell.style.flexDirection = FlexDirection.Row;
-                cell.style.alignItems = Align.Center;
-                cell.style.marginLeft = QuickGap * 0.5f;
-                cell.style.marginRight = QuickGap * 0.5f;
-                row.Add(cell);
-
-                var slot = new UTKSlot();
-                slot.name = "HUDQuickSlot_" + i;
-                slot.style.width = QuickSize;
-                slot.style.height = QuickSize;
-                cell.Add(slot);
-
-                var key = new Label((i + 1).ToString());
-                key.name = "HUDQuickKey_" + i;
-                key.style.width = 20f;
-                key.style.height = 20f;
-                key.style.fontSize = 12f;
-                key.style.unityTextAlign = TextAnchor.MiddleCenter;
-                key.style.color = new StyleColor(UTKColor.TextSecondary);
-                key.style.backgroundColor = new StyleColor(new Color(0.10f, 0.10f, 0.12f, 0.9f));
-                cell.Add(key);
-
-                _quickSlots[i] = slot;
-                _quickKeyLabels[i] = key;
-            }
-        }
 
         // =====================================================================
         // ③ 하단 우측 경험치/레벨 바 (PlayerStats 실측)
@@ -294,7 +226,6 @@ namespace ProjectName.UI.Toolkit
         {
             RefreshHealth();
             RefreshExpBar();
-            RefreshQuickSlots();
         }
 
         private void RefreshHealth()
@@ -351,52 +282,6 @@ namespace ProjectName.UI.Toolkit
                 _expText.text = isMax ? "MAX" : curExp + "/" + spanExp;
         }
 
-        private void RefreshQuickSlots()
-        {
-            var mgr = QuickSlotManager.Instance;
-            if (mgr == null)
-            {
-                foreach (var slot in _quickSlots)
-                {
-                    slot.SetIcon(null);
-                    slot.SetCount(0);
-                    slot.SetRank("common");
-                }
-                return;
-            }
-
-            for (int i = 0; i < _quickSlots.Length; i++)
-                RefreshQuickSlot(i, mgr);
-        }
-
-        private void RefreshQuickSlot(int index, QuickSlotManager mgr)
-        {
-            var slot = _quickSlots[index];
-            if (slot == null) return;
-
-            if (!mgr.HasItemInSlot(index))
-            {
-                slot.SetIcon(null);
-                slot.SetCount(0);
-                slot.SetRank("common");
-                return;
-            }
-
-            var item = mgr.GetItemInSlot(index);
-            if (item != null)
-            {
-                slot.SetIcon(ItemIconDatabase.GetOrCreateIcon(item));
-                slot.SetRank(UTKRarity.ClassForIndex((int)item.rarity));
-                int invCount = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetItemCount(item.id) : 0;
-                slot.SetCount(invCount);
-            }
-            else
-            {
-                slot.SetIcon(null);
-                slot.SetCount(0);
-                slot.SetRank("common");
-            }
-        }
 
         // =====================================================================
         //  부착용 MonoKeeper — HotbarUIUTK.Updater 관례 (UIRoot 부착)

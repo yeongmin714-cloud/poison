@@ -115,10 +115,13 @@ namespace ProjectName.UI.Toolkit
 
             bool consumed = false;
             var target = FindDropTargetAt(_ghostPos);
+            Debug.Log($"[UTKDragDrop] Drop 판정 pos={_ghostPos} target={(target != null ? target.GetType().Name : "없음")}");
             if (target != null)
             {
                 LastDropPos = _ghostPos;
-                if (target.CanDrop(Payload))
+                bool can = target.CanDrop(Payload);
+                Debug.Log($"[UTKDragDrop] CanDrop={can} source={Payload.Source} idx={Payload.SourceIndex}");
+                if (can)
                     consumed = target.Drop(Payload);
             }
 

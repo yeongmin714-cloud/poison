@@ -15,7 +15,7 @@ namespace ProjectName.UI.Toolkit
     /// </summary>
     public class ItemDescriptionWindowUTK : UTKWindowBase
     {
-        private const float WinW = 340f;
+        private const float WinW = 420f;
         private const float WinH = 680f;
         // 인벤(16+520) 오른쪽 바로 다음 — 예시 2 행 배치
         private const float PosX = 544f;
