@@ -67,6 +67,7 @@ namespace ProjectName.UI.Toolkit
         private Label         _expText;        // [U8] BuildExpBar 바인딩
         private Label         _expValueText;   // [U8] BuildExpBar 바인딩
         private VisualElement _staminaFill;    // [예시 정합] 스태미너 바
+        private VisualElement _circles;        // [예시 정합] 원형 게이지 호스트
         private VisualElement _ringHpFill;      // [예시 정합] 원형 HP 게이지
         private VisualElement _ringStaminaFill; // [예시 정합] 원형 스태미너 게이지
         private UnityEngine.UIElements.IVisualElementScheduledItem _pollTask; // [U8] 폴링
@@ -80,7 +81,7 @@ namespace ProjectName.UI.Toolkit
             style.left = 0f; style.right = 0f; style.top = 0f; style.bottom = 0f;
             pickingMode = PickingMode.Ignore;
 
-            BuildHealth();
+            BuildRings();
             BuildExpBar();
 
             UTKWindowBase.ApplyUIToolkitFont(this);
@@ -88,100 +89,47 @@ namespace ProjectName.UI.Toolkit
             StartPolling();
         }
 
-        // =====================================================================
-        // ① 상단좌 체력 바 (PlayerHealth 실측 — 하트 + 바 + 수치)
-        // =====================================================================
-        private void BuildHealth()
+
+        /// <summary>[예시 정합] 원형 게이지 갱신 — HP/스태미너 비율.</summary>
+        private void RefreshRings()
         {
-            var host = new VisualElement();
-            host.name = "HealthHost";
-            host.style.position = Position.Absolute;
-            host.style.left = 18f;
-            host.style.bottom = 92f;   // [예시 정합] 하단 좌측 클러스터 — 퀵슬롯 위 계단식
-            host.style.flexDirection = FlexDirection.Row;
-            host.style.alignItems = Align.Center;
-            Add(host);
+            // [예시 정합] 핫바 왼쪽 끝에 인접 배치 (핫바 8슬롯×72px 중앙 정렬 가정)
+            if (_circles != null && panel != null)
+            {
+                float half = panel.visualTree.worldBound.width * 0.5f;
+                _circles.style.left = half - 288f - 110f;
+            }
+            var ph = PlayerHealth.Instance;
+            float hpRatio = ph != null && ph.MaxHP > 0f ? Mathf.Clamp01(ph.CurrentHP / ph.MaxHP) : 0f;
+            var pm = Object.FindAnyObjectByType<ProjectName.Systems.PlayerMovement>();
+            float stRatio = pm != null ? pm.StaminaRatio : 0f;
+            if (_ringHpFill != null)
+                _ringHpFill.style.height = new Length(hpRatio * 100f, LengthUnit.Percent);
+            if (_ringStaminaFill != null)
+                _ringStaminaFill.style.height = new Length(stRatio * 100f, LengthUnit.Percent);
+        }
 
-            var heart = new Label("❤");
-            heart.name = "HeartIcon";
-            heart.style.fontSize = 28f;
-            heart.style.color = new StyleColor(_heartColor);
-            heart.style.marginRight = 8f;
-            heart.style.width = 34f;
-            heart.style.unityTextAlign = TextAnchor.MiddleCenter;
-            host.Add(heart);
+        /// <summary>[예시 정합] 스태미너 바 갱신 — PlayerMovement.StaminaRatio 실측.</summary>
+        private void RefreshStamina()
+        {
+            // [예시 정합] 스태미너 바 제거 — 원형 게이지(RefreshRings)로 통합 갱신
+            RefreshRings();
+        }
 
-            var barWrap = new VisualElement();
-            barWrap.style.flexDirection = FlexDirection.Column;
-            barWrap.style.width = 180f;
-            host.Add(barWrap);
 
-            _hpBorder = new VisualElement();
-            _hpBorder.name = "HPBorder";
-            _hpBorder.style.height = 16f;
-            _hpBorder.style.borderTopWidth = 1f;
-            _hpBorder.style.borderBottomWidth = 1f;
-            _hpBorder.style.borderLeftWidth = 1f;
-            _hpBorder.style.borderRightWidth = 1f;
-            _hpBorder.style.borderTopColor = new StyleColor(UTKColor.BorderGold);     // [예시 정합] 앤틱 골드 프레임
-            _hpBorder.style.borderBottomColor = new StyleColor(UTKColor.BorderGold);
-            _hpBorder.style.borderLeftColor = new StyleColor(UTKColor.BorderGold);
-            _hpBorder.style.borderRightColor = new StyleColor(UTKColor.BorderGold);
-            barWrap.Add(_hpBorder);
+        // =====================================================================
+        // ③ 하단 우측 경험치/레벨 바 (PlayerStats 실측)
+        // =====================================================================
+        /// <summary>[예시 정합] 원형 게이지 2종 — 골드 링+하단 게이지 채움(HP/스태미너), 핫바 왼쪽 인접.</summary>
+        private void BuildRings()
+        {
+            _circles = new VisualElement();
+            _circles.name = "ResourceRings";
+            _circles.style.position = Position.Absolute;
+            _circles.style.bottom = 12f;
+            _circles.style.flexDirection = FlexDirection.Row;
+            Add(_circles);
 
-            _hpFill = new VisualElement();
-            _hpFill.name = "HPFill";
-            _hpFill.style.height = new Length(100f, LengthUnit.Percent);
-            _hpFill.style.backgroundColor = new StyleColor(_heartColor);
-            _hpFill.style.width = new Length(100f, LengthUnit.Percent);
-            _hpBorder.Add(_hpFill);
-
-            _hpText = new Label("100 / 100");
-            _hpText.name = "HPText";
-            _hpText.style.fontSize = 16f;
-            _hpText.style.marginTop = 2f;
-            _hpText.style.color = new StyleColor(UTKColor.TextPrimary);
-            barWrap.Add(_hpText);
-
-            // [예시 정합] 스태미너 바 — 체력바 아래 계단식
-            var stWrap = new VisualElement();
-            stWrap.style.position = Position.Absolute;
-            stWrap.style.left = 60f;
-            stWrap.style.bottom = 58f;
-            stWrap.style.flexDirection = FlexDirection.Row;
-            stWrap.style.alignItems = Align.Center;
-            Add(stWrap);
-
-            var bolt = new Label("⚡");
-            bolt.style.fontSize = 20f;
-            bolt.style.width = 28f;
-            bolt.style.unityTextAlign = TextAnchor.MiddleCenter;
-            bolt.style.color = new StyleColor(UTKColor.AccentRare);
-            stWrap.Add(bolt);
-
-            var stBorder = new VisualElement();
-            stBorder.style.width = 180f;
-            stBorder.style.height = 10f;
-            stBorder.style.borderTopWidth = 1f; stBorder.style.borderBottomWidth = 1f;
-            stBorder.style.borderLeftWidth = 1f; stBorder.style.borderRightWidth = 1f;
-            stBorder.style.borderTopColor = new StyleColor(UTKColor.BorderGold);
-            stBorder.style.borderBottomColor = new StyleColor(UTKColor.BorderGold);
-            stBorder.style.borderLeftColor = new StyleColor(UTKColor.BorderGold);
-            stBorder.style.borderRightColor = new StyleColor(UTKColor.BorderGold);
-            stWrap.Add(stBorder);
-
-            _staminaFill = new VisualElement();
-            _staminaFill.style.height = new Length(100f, LengthUnit.Percent);
-            _staminaFill.style.backgroundColor = new StyleColor(new Color(0.95f, 0.78f, 0.30f, 0.95f));
-            stBorder.Add(_staminaFill);
-
-            // [예시 정합] 원형 자원 아이콘 2종 — 체력바 위 계단식 (HP/스태미너 링 근사)
-            var circles = new VisualElement();
-            circles.style.position = Position.Absolute;
-            circles.style.left = 18f;
-            circles.style.bottom = 96f;
-            circles.style.flexDirection = FlexDirection.Row;
-            Add(circles);
             string[] icons = { "❤", "⚡" };
             for (int ci = 0; ci < icons.Length; ci++)
             {
@@ -195,12 +143,11 @@ namespace ProjectName.UI.Toolkit
                 ring.style.borderBottomColor = new StyleColor(UTKColor.BorderGold);
                 ring.style.borderLeftColor = new StyleColor(UTKColor.BorderGold);
                 ring.style.borderRightColor = new StyleColor(UTKColor.BorderGold);
-                float tl = 23f, tr = 23f, bl = 23f, br = 23f;
-                ring.style.borderTopLeftRadius = tl; ring.style.borderTopRightRadius = tr;
-                ring.style.borderBottomLeftRadius = bl; ring.style.borderBottomRightRadius = br;
+                ring.style.borderTopLeftRadius = 23f; ring.style.borderTopRightRadius = 23f;
+                ring.style.borderBottomLeftRadius = 23f; ring.style.borderBottomRightRadius = 23f;
                 ring.style.overflow = Overflow.Hidden;
                 ring.style.marginRight = 6f;
-                circles.Add(ring);
+                _circles.Add(ring);
 
                 var fill = new VisualElement();
                 fill.style.position = Position.Absolute;
@@ -224,32 +171,6 @@ namespace ProjectName.UI.Toolkit
             }
         }
 
-        /// <summary>[예시 정합] 원형 게이지 갱신 — HP/스태미너 비율.</summary>
-        private void RefreshRings()
-        {
-            var ph = PlayerHealth.Instance;
-            float hpRatio = ph != null && ph.MaxHP > 0f ? Mathf.Clamp01(ph.CurrentHP / ph.MaxHP) : 0f;
-            var pm = Object.FindAnyObjectByType<ProjectName.Systems.PlayerMovement>();
-            float stRatio = pm != null ? pm.StaminaRatio : 0f;
-            if (_ringHpFill != null)
-                _ringHpFill.style.height = new Length(hpRatio * 100f, LengthUnit.Percent);
-            if (_ringStaminaFill != null)
-                _ringStaminaFill.style.height = new Length(stRatio * 100f, LengthUnit.Percent);
-        }
-
-        /// <summary>[예시 정합] 스태미너 바 갱신 — PlayerMovement.StaminaRatio 실측.</summary>
-        private void RefreshStamina()
-        {
-            var pm = Object.FindAnyObjectByType<ProjectName.Systems.PlayerMovement>();
-            float ratio = pm != null ? pm.StaminaRatio : 0f;
-            if (_staminaFill != null)
-                _staminaFill.style.width = new Length(ratio * 100f, LengthUnit.Percent);
-        }
-
-
-        // =====================================================================
-        // ③ 하단 우측 경험치/레벨 바 (PlayerStats 실측)
-        // =====================================================================
         private void BuildExpBar()
         {
             var host = new VisualElement();
@@ -335,31 +256,8 @@ namespace ProjectName.UI.Toolkit
         // =====================================================================
         private void RefreshAll()
         {
-            RefreshHealth();
-            RefreshStamina();   // [예시 정합] 스태미너 갱신
-            RefreshRings();     // [예시 정합] 원형 게이지 갱신
+            RefreshRings();     // [예시 정합] 원형 게이지 갱신(HP/스태미너 통합)
             RefreshExpBar();
-        }
-
-        private void RefreshHealth()
-        {
-            var ph = PlayerHealth.Instance;
-            float current = ph != null ? ph.CurrentHP : 0f;
-            float max = ph != null ? ph.MaxHP : 1f;
-            float ratio = max > 0f ? Mathf.Clamp01(current / max) : 0f;
-
-            if (_hpFill != null)
-                _hpFill.style.width = new Length(ratio * 100f, LengthUnit.Percent);
-
-            // 30% 이하 경고 (원본 DrawHPNumberText: hpRatio<=0.3 → 노랑)
-            if (_hpText != null)
-            {
-                string num = (int)current + " / " + (int)max;
-                _hpText.text = num;
-                _hpText.style.color = ratio <= 0.3f
-                    ? new StyleColor(Color.yellow)
-                    : new StyleColor(UTKColor.TextPrimary);
-            }
         }
 
         private void RefreshExpBar()
