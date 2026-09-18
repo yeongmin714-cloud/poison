@@ -18,7 +18,7 @@ namespace ProjectName.UI.Toolkit
     ///   그대로 재사용 — 추가 베이크 없이 게임 지형과 100% 일치 (원본 TryApplyMapTexture 동일 데이터 경로).
     ///   플레이어/영지/퀘스트/시간/날씨/온도/소음 마커는 원본 데이터(실측)를 폴링으로 갱신.
     ///
-    /// [배치] 좌상단 (원본은 우상단이었으나 U7 요구 — 화면 왼쪽 위 고정).
+    /// [배치] 우상단 (사용자 지정 2026-09-18 — 원본 MinimapUI와 동일 위치).
     ///
     /// 상시 노출 — 순수 VisualElement + Updater로 UIRoot 부착 (원본 Update() 관례: TryApplyMapTexture 지연 재시도).
     /// </summary>
@@ -78,7 +78,7 @@ namespace ProjectName.UI.Toolkit
             name = "Minimap";
             AddToClassList("utk-minimap");
             style.position = Position.Absolute;
-            style.left = MarginLeft;
+            style.right = MarginLeft;
             style.top = MarginTop;
             style.width = Diameter;
             style.height = Diameter;

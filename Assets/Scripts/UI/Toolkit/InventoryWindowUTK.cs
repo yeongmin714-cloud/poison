@@ -47,7 +47,7 @@ namespace ProjectName.UI.Toolkit
         public static void Toggle()
         {
             if (_instance != null && _instance.IsOpen) { _instance.Close(); return; }
-            Ensure();
+            Open();
         }
 
         // ===== 설정 =====
