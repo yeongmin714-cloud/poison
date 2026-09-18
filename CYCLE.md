@@ -698,3 +698,8 @@
 - Status: ✅
 - Details: ①raw 텍스처 배경 5곳(Loot/GuardSquad/Minimap/WorldMap/드래그고스트) UTKTextureSafe 경유+FIFO캐시 256 ②창고→인벤 우클릭 출고 수리: 카테고리 필터 전체 인덱스(actualIdx) 매핑, ContextClickEvent 폴백+슬롯별 200ms 데듀프, WithdrawSlot 로그화+즉시 RefreshGrid, RemoveItem 실패 원인 로그 ③NameplateOverlayUTK 신설(병사/몬스터/NPC 이름표+입체 HP바 — 골드링+음각트로프+세로그라디언트, 병사 청록/경고 주황, 몬스터 적색), GuardHeadUI/MonsterHeadUI/NameplateDisplay s_retired 은퇴. 배치컴파일 error CS=0, commit 6e314ca1
 - Date: 2026-09-18
+
+# Cycle: Phase 68 노란 경고 근본 차단(히일러) + 화살 GLB + 파티클 제거
+- Status: ✅
+- Details: ①UTKBackgroundHealer 신설(UIRoot 전수 순회, 파괴된 backgroundImage 자가 치유+범인 요소 진단 로그, 0.5s 스로틀+sceneLoaded 강제 스윕) — Safe 복사본도 외부 요인(UnloadUnusedAssets류)으로 파괴되는 상위 뿌리 대응 ②UTKTextureSafe 캐시 1024+600s 미만 축출 보류 ③ArrowProjectile: arrow.glb 장착(GLB 파싱 실측 촉=-X→Rz90×Ry180, 비균일 스케일 전단 방지 균일 래퍼, bounds 자동 피팅 3.6m, 3종 폴백+절차 회귀) ④피격 SpawnHitSparks/SpawnCritBurst 제거(데미지 숫자·히트스톱·사운드 유지). 배치컴파일 error CS=0, commit 2e7dc361
+- Date: 2026-09-18

@@ -133,6 +133,7 @@
 | 2026-09-18 | U7 | HUD 7창 완료(2,075줄)+유지 판정 확정, 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | U8 | 1차 배선(수면/전리품 브리지)+가이드 UTK 표준 확정, 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | U8 | 경고아이콘 잔존 raw텍스처 5곳 Safe 경유+FIFO캐시 256 / 창고 출고 실인덱스 매핑+ContextClick 폴백+데듀프 / NameplateOverlayUTK 신설(이름표·입체HP바 UTK, IMGUI 3종 s_retired 은퇴), 배치컴파일 error CS=0 | ✅ |
+| 2026-09-18 | U9 | 노란 경고 근본 차단 — UTKBackgroundHealer(데드 배경 자가 치유+범인 진단 로그, 0.5s+sceneLoaded 스윕), Safe 캐시 1024+600s 축출 보류 / 화살 GLB 장착(촉 방향 실측 정렬+전단 방지 래퍼) / 피격 노란 파티클 제거, 배치컴파일 error CS=0 | ✅ |
 | 2026-09-18 | Play 1차 | Editor.log 실측 — Status/Quest/Squad UTK 정상 렌더·토글, UTK 예외 0. ProceduralAnimationController 파괴 가드 수리 | ✅ |
 | 2026-09-18 | Play 1차 | Editor.log 실측 — Status/Quest/Squad UTK 정상 렌더·토글, UTK 예외 0. ProceduralAnimationController 파괴 가드 수리 | ✅ |
 | 2026-09-18 | 배선 확대 | 4경로(침대 수면/전리품 바구니/상점/인벤 I키) — 브리지 패턴 동일 적용, 배치컴파일 error CS=0 | ✅ |
