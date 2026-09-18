@@ -618,3 +618,8 @@
 - Status: ✅
 - Details: 좌=장비 2줄×5칸(8슬롯+빈2, 우클릭 해제)+가방 6줄×5칸 / 중=아이템 설명창(ShowItemDescription 공개: 이름·설명·카테고리·등급·내구도) / 우=창고 패널(SetWarehouseMode 표시·숨김, 미상호작용 안내 문구). 창 1080×620. 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 독립 창 개편 + DnD/우클릭 수리 + 은퇴 게이트
+- Status: ✅
+- Details: ①ItemDescriptionWindowUTK 신규(독립 설명창) ②InventoryWindowUTK 단일 패널 회귀(장비 2x5+가방 6x5) ③I키=인벤+설명 쌍 토글(UTKWireUp) ④창고→인벤 DnD(CanDrop/Drop Warehouse 수용→TransferToInventory) ⑤가방 우클릭(소모품 UseItem/장착 TryEquipItemPublic 위임 래퍼) ⑥TerritoryWarehouse 닫기 UTK 분기 ⑦원본 키 은퇴 게이트 4종(Status P/Ency L/GameStats U/Journal J — UTK 준비 시 원본 키 무시). 배치컴파일 error CS=0
+- Date: 2026-09-18

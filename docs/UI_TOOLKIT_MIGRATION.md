@@ -140,4 +140,5 @@
 | 2026-09-18 | Play 수리 2건 | ①인벤 I키 미표시(Toggle이 Ensure만 하고 Show 누락 → Open 위임) ②미니맵 우상단 이동(사용자 지정) | ✅ |
 | 2026-09-18 | Play 수리 3건 | ①창고 UTK 배선(TerritoryWarehouse→Inventory+Warehouse UTK) ②인벤창 위 장비창 임베드(8슬롯+우클릭 해제) ③EquipmentManager 단일소스 | ✅ |
 | 2026-09-18 | 3분할 레이아웃 | 예시 2 정합 — 좌(장비 2x5+가방 6x5)/중(설명창)/우(창고, 상호작용시). 1080×620 확장. ShowItemDescription/SetWarehouseMode 공개 | ✅ |
+| 2026-09-18 | 독립 창 개편 | 요구 반영 — 인벤(460×640)+설명(320×640) 독립 창 쌍(I키), 창고/전리품은 컨텍스트별 우측 독립 창. 창고→인벤 DnD 수리(Warehouse 수용)+가방 우클릭 수리(소모품 UseItem/장착 TryEquipItemPublic 위임). 원본 키 은퇴 게이트 4종(P/L/U/J) | ✅ |
 | | 후속 | 배선 확대+HUD 겹침 해소+Play 종합 검증+폐기+태그 | ⏳ |
