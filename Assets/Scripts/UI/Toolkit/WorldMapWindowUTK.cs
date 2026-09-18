@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using ProjectName.Core.Data;   // TerritoryDatabase, TerritoryDefinition, NationType, TerritoryDifficulty, TerritoryOwnership, TerritoryState
-using ProjectName.UI;           // UIFont, WorldMapWindow(원본 — 런타임 핫키 조율용), UIWorldMapHotkey
 
 namespace ProjectName.UI.Toolkit
 {
@@ -17,7 +16,6 @@ namespace ProjectName.UI.Toolkit
     ///  - 마커는 지도 캔버스 위 절대배치(Length.Percent)로 — 캔버스 크기 무관 비율 유지.
     ///  - 영지 데이터: TerritoryDatabase.GetAllDefinitions() / GetState(id).ownership
     ///  - 색/크기 헬퍼(난이도별 크기, 국가색, 소유 표기)는 원본과 동일 산식.
-    ///  - M키/ESC: 원본 UIWorldMapHotkey(IMGUI 자가등록)와 충돌 방지 위해 UTK Ensure 시 해당 핫키를
     ///    런타임에 비활성화(원본 소스 비수정 — 런타임 조율)하고 자체 schedule 폴링으로 M키를 처리.
     ///  - 양피지 텍스처: 원본 BuildParchment(절차 결정론 노이즈)를 동일 산식으로 복제(외부 에셋 bg_paper.png 없음 실측).
     ///
@@ -200,36 +198,18 @@ namespace ProjectName.UI.Toolkit
 
         protected override void OnWindowOpen()
         {
-        // 원본 IMGUI 맵이 열려 있으면 닫아 이중 표시 방지 (핫키 조율)
-            var legacy = WorldMapWindow.Instance;
-            if (legacy != null && legacy.IsOpen)
-            {
-                legacy.Hide();
-                _legacyMapPreviouslyOpen = true;
-            }
+        // [폐기 완료] 원본 WorldMapWindow는 아카이브됨 — UTK가 유일 맵 (억제 코드 제거)
         }
 
         // =====================================================================
         //  원본 핫키 런타임 조율 (소스 비수정 — static 플래그 + 자체 키 폴링)
         // =====================================================================
         /// <summary>
-        /// UTK Ensure 직후 1회: 씬에 남아 있는 원본 UIWorldMapHotkey(IMGUI M키 자가등록)를 비활성화해
         /// M키 이중 토글을 방지한다. 원본 소스는 수정하지 않고 런타임에만 끈다. (후속 라운드에서 원본 제거 시 제거 대상)
         /// </summary>
         private static void SuppressLegacyHotkey()
         {
-            if (_legacyHotkeySuppressed) return;
-            _legacyHotkeySuppressed = true;
-            var hk = UnityEngine.Object.FindAnyObjectByType<UIWorldMapHotkey>(FindObjectsInactive.Include);
-            if (hk != null)
-            {
-                var go = hk.gameObject;
-                if (go != null && go.activeSelf)
-                {
-                    go.SetActive(false);   // OnDisable → s_live 제거 → 원본 M키 폴링 정지
-                    UnityEngine.Debug.Log("[WorldMapUTK] 원본 UIWorldMapHotkey 비활성화 (M키 충돌 방지 — UTK 자체 폴링 전환)");
-                }
-            }
+            // [폐기 완료] 원본 핫키는 아카이브됨 — no-op (호출부 호환 유지)
         }
 
         // =====================================================================
@@ -256,10 +236,6 @@ namespace ProjectName.UI.Toolkit
 
         private void HandleMKey()
         {
-            // 원본 IMGUI 맵이 열려 있으면 먼저 닫아 M키로 둘 다 열리는 것 방지
-            var legacy = WorldMapWindow.Instance;
-            if (legacy != null && legacy.IsOpen)
-                legacy.Hide();
             ToggleWindow();
             UnityEngine.Debug.Log($"[WorldMapUTK] M키 토글 → {(IsOpen ? "열림" : "닫힘")}");
         }
