@@ -643,3 +643,8 @@
 - Status: ✅
 - Details: ①PointerOverUI 플래그(UTKInputGate panel.Pick, UTKWindowManager 갱신)→PlayerCombat 좌클릭 게이트+TopDownCamera 우드래그 게이트 — UI 위 클릭이 공격/카메라로 소비되는 문제 차단 ②UTKDragDrop 우클릭 드래그(버튼 0/1)+onRightClick(비드래그=사용/장착) ③행 배치: 인벤(16, 520×680, 슬롯 64)→설명(544, 340×680, 아이콘 프리뷰 140)→창고(892) ④구 uGUI HotbarUI 은퇴(UtkActive 게이트, HotbarUIUTK 유지) ⑤Theme.uss 글래스모피즘 다크네이비+시안 라인(변수명 유지). 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 Play 수리 3종 — 드래그 캡처 가드/창고 전용화+탭/핫바 Tab 전환
+- Status: ✅
+- Details: ①RefreshGrid 드래그 중 재생성 금지(캡처 상실→Cancel 뿌리 차단) ②WarehouseWindowUTK 인벤 컬럼 은닉(창고 전용)+카테고리 탭 필터(CategoryMatches) ③HotbarUIUTK IsSquadMode 연동 표시 전환(Tab). 배치컴파일 error CS=0
+- Date: 2026-09-18
