@@ -638,3 +638,8 @@
 - Status: ✅
 - Details: ①OnDragPointerUp 순서 버그 수리 — ReleasePointer 동기 발화 PointerCaptureOut이 Cancel+Complete 섭취(마지막 부착 불능 뿌리) → 세션 선분리 ②잔존 원본 전수 참조 분석 — 전부 라이브 시스템 참조로 파일 유지·런타임 은퇴(게이트/브리지)로 전환 완결 결정. 무리한 삭제는 시스템 대규모 수정 유발. 배치컴파일 error CS=0
 - Date: 2026-09-18
+
+# Cycle: Phase 68 요구 대량 반영 — 좌클릭 게이트/우클릭 드래그/행 배치/글래스 테마
+- Status: ✅
+- Details: ①PointerOverUI 플래그(UTKInputGate panel.Pick, UTKWindowManager 갱신)→PlayerCombat 좌클릭 게이트+TopDownCamera 우드래그 게이트 — UI 위 클릭이 공격/카메라로 소비되는 문제 차단 ②UTKDragDrop 우클릭 드래그(버튼 0/1)+onRightClick(비드래그=사용/장착) ③행 배치: 인벤(16, 520×680, 슬롯 64)→설명(544, 340×680, 아이콘 프리뷰 140)→창고(892) ④구 uGUI HotbarUI 은퇴(UtkActive 게이트, HotbarUIUTK 유지) ⑤Theme.uss 글래스모피즘 다크네이비+시안 라인(변수명 유지). 배치컴파일 error CS=0
+- Date: 2026-09-18
