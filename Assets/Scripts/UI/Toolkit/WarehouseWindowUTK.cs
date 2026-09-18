@@ -43,6 +43,13 @@ namespace ProjectName.UI.Toolkit
         }
 
         /// <summary>창고 열기 (territoryId 전달 — 원본 TerritoryWarehouse.OpenWarehouseUI 관례).</summary>
+        /// <summary>[U8 배선] 열려있으면 닫고 true, 아니면 false — TerritoryWarehouse 닫기 경로.</summary>
+        public static bool CloseIfOpen()
+        {
+            if (_instance != null && _instance.IsOpen) { _instance.Close(); return true; }
+            return false;
+        }
+
         public static void Open(string territoryId)
         {
             Ensure();

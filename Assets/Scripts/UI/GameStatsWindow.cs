@@ -96,6 +96,7 @@ namespace ProjectName.UI
         private void Update()
         {
             // 키 입력 처리
+            if (ProjectName.UI.Toolkit.UIToolkitBootstrap.IsReady) return; // [U8 은퇴] UTK 담당 — 키 경합 방지
             if (Input.GetKeyDown(_toggleKey))
             {
                 Toggle();

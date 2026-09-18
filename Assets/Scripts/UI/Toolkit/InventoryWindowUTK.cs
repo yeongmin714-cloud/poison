@@ -51,8 +51,8 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float WinW = 1080f;   // [3분할] 좌(장비+가방)/중(설명)/우(창고·상호작용시)
-        private const float WinH = 620f;
+        private const float WinW = 460f;    // [독립 창] 좌측 인벤창(장비 2x5+가방 6x5) — 설명/창고/전리품은 별개 창
+        private const float WinH = 640f;
         private const int BagColumns = 5;   // 가방 6줄×5칸
         private const int BagRows = 6;
         private const int EquipColumns = 5; // 장비 2줄×5칸
@@ -142,64 +142,7 @@ namespace ProjectName.UI.Toolkit
             _selectedLabel.style.marginTop = 4f;
             leftCol.Add(_selectedLabel);
 
-            // ── 중앙 패널: 아이템 설명창 ──
-            var midCol = new VisualElement();
-            midCol.style.width = 300f;
-            midCol.style.marginRight = 10f;
-            midCol.style.paddingLeft = 10f;
-            midCol.style.borderLeftWidth = 1f;
-            midCol.style.borderLeftColor = new StyleColor(UTKColor.IronLine);
-            columns.Add(midCol);
-
-            var descTitle = new Label("설명");
-            descTitle.style.fontSize = 17f;
-            descTitle.style.color = new StyleColor(UTKColor.TextPrimary);
-            descTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
-            descTitle.style.marginBottom = 6f;
-            midCol.Add(descTitle);
-
-            _descName = new Label("아이템을 선택하세요");
-            _descName.style.fontSize = 24f;
-            _descName.style.color = new StyleColor(UTKColor.AccentRare);
-            _descName.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _descName.style.whiteSpace = WhiteSpace.Normal;
-            midCol.Add(_descName);
-
-            _descText = new Label("");
-            _descText.style.fontSize = 17f;
-            _descText.style.color = new StyleColor(UTKColor.TextPrimary);
-            _descText.style.whiteSpace = WhiteSpace.Normal;
-            _descText.style.marginTop = 8f;
-            _descText.style.flexGrow = 1f;
-            midCol.Add(_descText);
-
-            // ── 우측 패널: 창고 (창고 상호작용 시에만 표시) ──
-            var rightCol = new VisualElement();
-            rightCol.style.width = 300f;
-            rightCol.style.paddingLeft = 10f;
-            rightCol.style.borderLeftWidth = 1f;
-            rightCol.style.borderLeftColor = new StyleColor(UTKColor.IronLine);
-            columns.Add(rightCol);
-
-            var whTitle = new Label("창고");
-            whTitle.style.fontSize = 17f;
-            whTitle.style.color = new StyleColor(UTKColor.AccentRare);
-            whTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
-            rightCol.Add(whTitle);
-
-            _warehousePanel = new VisualElement();
-            _warehousePanel.style.flexDirection = FlexDirection.Row;
-            _warehousePanel.style.flexWrap = Wrap.Wrap;
-            _warehousePanel.style.marginTop = 6f;
-            _warehousePanel.style.flexGrow = 1f;
-            rightCol.Add(_warehousePanel);
-
-            _warehouseEmptyHint = new Label("창고와 상호작용하면\n표시됩니다");
-            _warehouseEmptyHint.style.fontSize = 13f;
-            _warehouseEmptyHint.style.color = new StyleColor(UTKColor.TextSecondary);
-            _warehouseEmptyHint.style.whiteSpace = WhiteSpace.Normal;
-            rightCol.Add(_warehouseEmptyHint);
-            _warehousePanel.style.display = DisplayStyle.None;
+            // [독립 창] 설명창은 ItemDescriptionWindowUTK(별개 창), 창고/전리품은 각각 독립 창.
 
             ApplyUIToolkitFont(this);
 
@@ -451,7 +394,40 @@ namespace ProjectName.UI.Toolkit
                 // ③ 인벤 소스 드래그 + 클릭 설명
                 int globalIdx = idx;
                 var item = slotData.item;
+                var slotRef = slotData;
                 UTKDragDrop.MakeDraggable(cell, () => MakeSlotPayload(globalIdx, item), () => OnSlotClick(globalIdx));
+
+                // [U8 수리] 우클릭 = 소모품 사용 / 무기·방어구 장착 (원본 TryEquipItem 경로 재사용)
+                cell.RegisterCallback<PointerDownEvent>(evt =>
+                {
+                    if (evt.button != 1) return;
+                    var cat = item.category;
+                    if (cat == PlayerInventory.ItemCategory.Weapon || cat == PlayerInventory.ItemCategory.Armor)
+                    {
+                        // 장착 — 원본 InventoryWindow.TryEquipItem 공개 래퍼 위임(무기 해석+방어구 매핑 단일소스)
+                        var origin = ProjectName.UI.InventoryWindow.Instance;
+                        if (origin != null)
+                        {
+                            origin.TryEquipItemPublic(slotRef);
+                            RefreshGrid();
+                        }
+                        else Debug.LogWarning("[InventoryUTK] InventoryWindow.Instance 없음 — 장착 불가");
+                    }
+                    else if (cat == PlayerInventory.ItemCategory.Potion
+                        || cat == PlayerInventory.ItemCategory.Food
+                        || cat == PlayerInventory.ItemCategory.Herb
+                        || cat == PlayerInventory.ItemCategory.Drug)
+                    {
+                        // 소모품 사용 — PlayerInventory.UseItem(slotIndex) 단일 경로
+                        var pi = PlayerInventory.Instance;
+                        if (pi != null)
+                        {
+                            pi.UseItem(globalIdx);
+                            RefreshGrid();
+                            Debug.Log($"[InventoryUTK] 소모품 사용(우클릭): {item.displayName}");
+                        }
+                    }
+                });
 
                 // ③ 인벤 타겟 — 슬롯 위 드롭 = 교체(스왑) (슬롯이 윈도우 타겟보다 상위 우선)
                 IUTKDropTarget slotTarget = new SlotDropTarget(this, globalIdx);
@@ -487,10 +463,12 @@ namespace ProjectName.UI.Toolkit
             {
                 _selectedLabel.text = "";
                 _selectedItemData = null;
+                ItemDescriptionWindowUTK.Clear();
                 return;
             }
             _selectedLabel.text = $"{slotData.item.displayName}  x{slotData.count}  —  {slotData.item.description}";
             _selectedItemData = slotData.item;
+            ItemDescriptionWindowUTK.ShowItem(slotData.item, slotData.count);   // [독립 창] 중앙 설명창 갱신
             Debug.Log($"[InventoryUTK] 슬롯 선택(클릭): {slotData.item.displayName} (슬롯 {slotIndex})");
         }
 
@@ -501,8 +479,9 @@ namespace ProjectName.UI.Toolkit
         public bool CanDrop(UTKDragPayload payload)
         {
             if (payload == null || payload.Item == null) return false;
-            // Loot → 인벤 수령 / 인벤 → 패널 위(빈 영역)는 소비(취소 — 땅 드롭 방지)
+            // Loot → 인벤 수령 / 창고 → 인벤 출고 / 인벤 → 패널 위(빈 영역)는 소비(취소 — 땅 드롭 방지)
             return payload.Source == UTKDragSourceKind.Loot
+                || payload.Source == UTKDragSourceKind.Warehouse
                 || payload.Source == UTKDragSourceKind.Inventory;
         }
 
@@ -519,6 +498,16 @@ namespace ProjectName.UI.Toolkit
             {
                 // 인벤 그리드 위(빈 셀/패널) 드롭 = 소비(취소) — 아이템 유지. 슬롯 교체는 슬롯 타겟이 담당.
                 return true;
+            }
+            if (payload.Source == UTKDragSourceKind.Warehouse)
+            {
+                // [U8 수리] 창고 → 인벤 출고 (드래그) — WarehouseSystem.TransferToInventory 단일 경로
+                var ws = WarehouseSystem.Instance;
+                if (ws == null) return false;
+                bool ok = ws.TransferToInventory(payload.TerritoryId, payload.SourceIndex, 1);
+                if (ok) RefreshGrid();
+                Debug.Log($"[InventoryUTK] 창고→인벤 출고(드래그): {payload.Item.displayName} (성공={ok})");
+                return ok;
             }
             return false;
         }

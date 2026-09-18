@@ -94,6 +94,7 @@ namespace ProjectName.UI
         private void Update()
         {
             // L 키 입력 처리 (UIManager에도 등록 가능)
+            if (ProjectName.UI.Toolkit.UIToolkitBootstrap.IsReady) return; // [U8 은퇴] UTK 담당 — 키 경합 방지
             if (Input.GetKeyDown(_toggleKey))
             {
                 Toggle();

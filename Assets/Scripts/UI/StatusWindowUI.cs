@@ -150,6 +150,7 @@ namespace ProjectName.UI
 
         private void Update()
         {
+            if (ProjectName.UI.Toolkit.UIToolkitBootstrap.IsReady) return; // [U8 은퇴] UTK 담당 — 키 경합 방지
             if (Input.GetKeyDown(_toggleKey)) Toggle();
             if (_isOpen && Input.GetKeyDown(_closeKey)) Close();
 

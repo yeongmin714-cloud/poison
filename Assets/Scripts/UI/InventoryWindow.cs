@@ -3420,6 +3420,9 @@ namespace ProjectName.UI
                 { "spear", ("wood", WeaponType.Spear) },
             };
 
+        /// <summary>[U8 배선] UTK 인벤 우클릭 장착 위임용 공개 래퍼 — 무기 해석/방어구 매핑 로직 단일소스 유지.</summary>
+        public void TryEquipItemPublic(PlayerInventory.ItemSlot slot) => TryEquipItem(slot);
+
         private void TryEquipItem(PlayerInventory.ItemSlot slot)
         {
             if (slot?.item == null) return;

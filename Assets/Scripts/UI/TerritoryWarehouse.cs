@@ -294,6 +294,10 @@ namespace ProjectName.UI
             // 드래그 중이던 아이템 컨텍스트 정리 (고스트 잔상 방지)
             ItemDragContext.Cancel();
 
+            // [U8 배선] UTK 창고 모드였으면 UTK 창 닫기 (인벤 UTK는 유지 — I키 토글 귀속)
+            if (ProjectName.UI.Toolkit.WarehouseWindowUTK.CloseIfOpen())
+                return;
+
             // 실제로 열리는 창은 SetContextMode(Warehouse)로 열린 인벤 창 — 컨텍스트 해제 + 창 닫기
             InventoryWindow.CloseContext();
 

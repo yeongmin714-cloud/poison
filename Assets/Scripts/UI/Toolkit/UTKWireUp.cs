@@ -78,14 +78,23 @@ namespace ProjectName.UI.Toolkit
                 }
             };
 
-            // I키 → 인벤 UTK (폴백: 원본 InventoryWindow IMGUI 토글)
+            // I키 → 인벤+설명 쌍 토글 (독립 창 2종 — 폴백: 원본 InventoryWindow IMGUI 토글)
             UIInventoryHotkey.InventoryToggleRequestedUTK += () =>
             {
                 if (UIToolkitBootstrap.UIRoot != null)
                 {
-                    InventoryWindowUTK.Ensure();
-                    InventoryWindowUTK.Toggle();
-                    Debug.Log("[UTKWire] I키 → InventoryWindowUTK");
+                    bool closing = InventoryWindowUTK.Instance != null && InventoryWindowUTK.Instance.IsOpen;
+                    if (closing)
+                    {
+                        InventoryWindowUTK.Instance.Close();
+                        ItemDescriptionWindowUTK.Hide();
+                    }
+                    else
+                    {
+                        InventoryWindowUTK.Open();
+                        ItemDescriptionWindowUTK.Show();
+                    }
+                    Debug.Log($"[UTKWire] I키 → 인벤+설명 쌍 ({(closing ? "닫힘" : "열림")})");
                 }
                 else
                 {

@@ -135,6 +135,7 @@ namespace ProjectName.UI
         private void Update()
         {
             // J 키 토글
+            if (ProjectName.UI.Toolkit.UIToolkitBootstrap.IsReady) return; // [U8 은퇴] UTK 담당 — 키 경합 방지
             if (Keyboard.current != null && Keyboard.current.jKey.wasPressedThisFrame)
             {
                 _isOpen = !_isOpen;

@@ -155,7 +155,7 @@ Material:
     - _ZWrite: 0
     - __dirty: 0
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0, g: 0, b: 0, a: 0}
     - _Color01: {r: 1, g: 1, b: 1, a: 0}
     - _Color02: {r: 1, g: 1, b: 1, a: 0}
     - _ColorPanSpeed: {r: -0.733, g: 0.113, b: 0, a: 0}
@@ -179,3 +179,4 @@ Material:
     - _Mask_Scale: {r: 0.5, g: 1, b: 0, a: 0}
     - _Mask_Speed: {r: 0.5, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
