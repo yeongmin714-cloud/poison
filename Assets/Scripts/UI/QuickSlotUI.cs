@@ -75,6 +75,7 @@ namespace ProjectName.UI
 
         protected override void OnGUI()
         {
+            if (ProjectName.Core.UITransitionState.UtkActive) return; // [U8 은퇴] HUDUTK 퀵슬롯 담당
             base.OnGUI();
 
             if (QuickSlotManager.Instance == null) return;

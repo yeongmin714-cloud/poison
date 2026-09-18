@@ -232,6 +232,7 @@ namespace ProjectName.UI
 
         private void OnGUI()
         {
+            if (ProjectName.Core.UITransitionState.UtkActive) return; // [U8 은퇴] MinimapUTK 담당
             // 지연 초기화
             if (_cachedLabelStyle == null)
                 CacheStyles();

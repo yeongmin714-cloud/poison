@@ -63,6 +63,7 @@ namespace ProjectName.UI.Toolkit
             else
                 Debug.LogWarning($"[UIToolkitBootstrap] Theme.uss 로드 실패({ThemeUssRes})");
 
+            ProjectName.Core.UITransitionState.UtkActive = true;   // [U8 은퇴 게이트] 원본 HUD류 자가 은퇴 트리거
             Debug.Log("[UIToolkitBootstrap] UI Toolkit 부트스트랩 완료 (UTKRoot)");
         }
 

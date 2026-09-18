@@ -61,6 +61,7 @@ namespace ProjectName.UI
 
         private void OnGUI()
         {
+            if (ProjectName.Core.UITransitionState.UtkActive) return; // [U8 은퇴] CombatLogUTK 담당
             if (!_isVisible) return;
 
             EnsureStyles();

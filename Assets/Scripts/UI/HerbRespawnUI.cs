@@ -139,6 +139,7 @@ namespace ProjectName.UI
 
         private void OnGUI()
         {
+            if (ProjectName.Core.UITransitionState.UtkActive) return; // [U8 은퇴] HerbRespawnUTK 담당
             if (_mainCamera == null) return;
             if (_herbCache == null || _herbCache.Length == 0) return;
 

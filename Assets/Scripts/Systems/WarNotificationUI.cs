@@ -204,6 +204,7 @@ namespace ProjectName.Systems
         /// </summary>
         public static void OnNotificationGUI()
         {
+            if (ProjectName.Core.UITransitionState.UtkActive) return; // [U8 은퇴] WarNotificationUTK 담당
             if (!IsVisible) return;
 
             // 오래된 알림 제거

@@ -85,6 +85,7 @@ namespace ProjectName.Systems
 
         private void OnGUI()
         {
+            if (ProjectName.Core.UITransitionState.UtkActive) return; // [U8 은퇴] TimeDisplayUTK 담당
             if (_timeManager == null) return;
             InitializeStyles();
 

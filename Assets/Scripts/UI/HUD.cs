@@ -398,6 +398,9 @@ namespace ProjectName.UI
             // 기존엔 InventoryWindow.OnGUI(IsOpen일 때만)가 고스트를 그려, 인벤토지를 닫은 채 전리품/창고
             // 드래그를 하면 고스트가 보이지 않아 '드래그 불가'로 느껴졌다. 프레임 가드(Time.frameCount)가
             // 이중 렌더를 막으므로 다른 창의 DrawGhost와 공존해도 안전하다.
+            // [U8 은퇴 게이트] UTK 담당 요소(체력/EXP/퀵슬롯) 은퇴 — 드래고 고스트·버프·가스·은신·사망 오버레이는 유지
+            bool utkActive = ProjectName.Core.UITransitionState.UtkActive;
+
             if (ItemDragContext.Active)
             {
                 ItemDragContext.DrawGhost();
@@ -430,9 +433,12 @@ namespace ProjectName.UI
 
             UpdateStaticRectPositions();
 
-            DrawHearts();
-            DrawHPNumberText(); // 하트 아래 숫자 HP 표시 ("85 / 140")
-            DrawExpBar(); // 하단 중앙 경험치 바 (Lv + EXP, 플랫)
+            if (!utkActive)
+            {
+                DrawHearts();
+                DrawHPNumberText(); // 하트 아래 숫자 HP 표시 ("85 / 140")
+                DrawExpBar(); // 하단 중앙 경험치 바 (Lv + EXP, 플랫)
+            }
             DrawBuffIcons();
             DrawDeathOverlay();
             DrawGasSprayerTimer();
