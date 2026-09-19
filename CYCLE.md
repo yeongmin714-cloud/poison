@@ -820,3 +820,9 @@
 - Details: ConstructionWindowUTK(신규 UTK 창, U키 토글 — H 충돌 회피) — 설계도 목록 8종(골드/시간 표시+배치 버튼: 플레이어 전방 5m), 구조물 목록+해체 버튼, StructureCompleted 구독 갱신. EquipmentRepairSystem.GetRepairCost 대장간 할인 접합 — HasAnyCompletedStructure("smithy") → ×0.7. 수리: CS0176(static Toggle 인스턴스 호출).
 - Tests: SmithyDiscountTests 6개 (할인 경계/미적용/HasAny) → EditMode 252/252
 - Date: 2026-09-20
+
+# Cycle: C-O10-01~04 — Phase O10: 🎣 생활 컨텐츠 번들
+- Status: ✅ (Phase O10 완료 — Play 판정 통합 대기)
+- Details: 실측 — 낚시(FishingSystem 미니게임+물고기)/탈것(MountSystem) 기존 구현 완성 확인, 잔여 = 허기 신규. HungerSystem(싱글톤) — 허기 0~100, 인게임 1h당 -4, 페널티(<30 자연재생 정지 — HUNGER.md 벤치 "쇠약 시 회복 정지" 일치 / <50 이속 0.85 / <20 0.7), Eat/ForceSet, PlayerPrefs 저장, HungerChanged 이벤트. NaturalRegenSystem 허기 게이트 1줄. MountSystem 축사 보너스 API(StableSpeedBonus ×1.1 — O8 stable 연계, 에이전트 선구현 발견 → 부모 중복 제거). StatusWindowUTK 허기 게이지(BuildGaugeRow 패턴). 부트스트랩.
+- Tests: HungerTests 14개 (클램프/페널티 경계/라운드트립/이벤트/TimeManager 부재 안전) → EditMode 266/266
+- Date: 2026-09-20
