@@ -162,14 +162,25 @@ namespace ProjectName.Core.Data
             return null;
         }
 
+        /// <summary>[O6 C-O6-02] 소유 변경 발화 — PlayerOwned로 "변경된" 경우에만. 구독자 없으면 무해.</summary>
+        public static event System.Action<TerritoryId, TerritoryOwnership> OwnershipChanged;
+
         public void SetOwnership(NationType nation, int index, TerritoryOwnership ownership)
         {
-            GetState(nation, index).ownership = ownership;
+            var state = GetState(nation, index);
+            bool changed = state.ownership != ownership;
+            state.ownership = ownership;
+            if (changed && ownership == TerritoryOwnership.PlayerOwned)
+                OwnershipChanged?.Invoke(state.id, ownership);
         }
 
         public void SetOwnership(TerritoryId id, TerritoryOwnership ownership)
         {
-            GetState(id).ownership = ownership;
+            var state = GetState(id);
+            bool changed = state.ownership != ownership;
+            state.ownership = ownership;
+            if (changed && ownership == TerritoryOwnership.PlayerOwned)
+                OwnershipChanged?.Invoke(id, ownership);
         }
 
         // ===== 초기화 =====

@@ -202,6 +202,7 @@ namespace ProjectName.Core
             CreateSystemIfMissing("NaturalRegenSystem");
 
             // 10.7 SeparationSystem (Phase O5 C-O5-01) — 정지 병사 군집 회피(밀어내기)
+            CreateSystemIfMissing("TitleManager");
             CreateSystemIfMissing("SeparationSystem");
 
             // 11. SettingsMenuUI (UI)

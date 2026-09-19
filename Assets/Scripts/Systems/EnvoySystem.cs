@@ -146,6 +146,8 @@ namespace ProjectName.Systems
                 SetTerritoryLoyalty(targetId, Mathf.Max(0, (int)state.loyaltyToPlayer - 30));
 
                 // 영주 사망 처리 — TerritoryState에 플래그 (현재는 간단히)
+                // [O6 C-O6-02] 암살 성공 → 칭호 카운터
+                TitleManager.Instance?.RecordEvent("assassinations");
                 return Success($"☠️ {def.territoryName} 영주 암살 성공! (미발각)", -30, false);
             }
         }
