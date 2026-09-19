@@ -434,3 +434,5 @@
 | O6 칭호 시스템 | C-O6-01~04 | 🔄 |
 | └ C-O6-01/02 | TitleData 20종 + TitleManager(카운터/발급/장착/저장/이벤트) + 훅 2곳(점령/암살) + 14테스트 (208/208) | ✅ 2026-09-20 |
 | └ C-O6-03/04 | StatusWindowUTK 칭호 섹션(순환 장착+해금 구독) + HeroicTaleGenerator(결정론 3문장) + LordAudienceUTK 성취사 표시 + 10테스트 (218/218) — **Phase O6 완료** | ✅ 2026-09-20 |
+| O7 바드 악기 확장 | C-O7-01~03 | 🔄 |
+| └ C-O7-01~03 | InstrumentData 5종 + 바드 버프 프로필 연동 + InstrumentPerformanceSystem(B키 60초 연주/쿨30) + 상점 재고 3종 + Awake 폴백 패턴 + 24테스트 (232/232) | ✅ 2026-09-20 |
