@@ -802,3 +802,9 @@
 - Details: StatusWindowUTK 칭호 섹션 — 현재 장착 표시 + "칭호 변경" 버튼(해금 순환 장착), TitleManager.TitleUnlocked 구독(UnsubscribeAll 쌍, 플래그 중복 방지). HeroicTaleGenerator(Core.Data, static) — djb2(territoryId_tale) 결정론 3문장(출신6/야망4/국가성향6/약점5 풀 조립, 중세 판타지 서사시 톤), GetTaleForLord 이름 치환. LordAudienceUTK 성취사 라벨 표시(대면창 headline 아래, territoryId 부재 → 이름 키 임시). 수리: CS0234(네임스페이스 중첩 → 정규화).
 - Tests: HeroicTaleTests 10개 (결정론/3문장/성향 문장/이름 치환/길이/다양성/안전 폴백/전국가 무오류) → EditMode 218/218
 - Date: 2026-09-20
+
+# Cycle: C-O7-01/02/03 — Phase O7: 🎵 바드 악기 확장
+- Status: ✅ (Play 판정 통합 대기)
+- Details: InstrumentData(Core.Data) 5종 프로필 — 류트15/10/10(기준)·전쟁피리20/5/15·행군드럼10/15/20·환희하프10/10/10·돌격나팔25/5/5, ToItemData(basePrice 150, id "instrument_" 접두 → Instrument 슬롯 통과). BardMercenary.ApplyBuffs 장착 악기 프로필 연동(미장착=기존 기본값). InstrumentPerformanceSystem(싱글톤+B키 토글, duration 60/쿨다운 30) — 파티 전체 버프 소스 "performance" 부여/해제. 상점 재고 3종(류트 400G 무한/피리·드럼 350G×3). 수리 5건: ItemRarity 참조, using 누락 2곳, **Awake 미실행 환경 패턴 확정** → EnsureDatabase(MercenaryManager)+FindAnyObjectByType 폴백(MercenaryManager 게이트·GuardEquipmentSystem isBard·InstrumentPerformanceSystem 2곳).
+- Tests: InstrumentTests 24개 (프로필 5/ItemData/재고/연주 상태머신/쿨다운/이중시작) → EditMode 232/232
+- Date: 2026-09-20
