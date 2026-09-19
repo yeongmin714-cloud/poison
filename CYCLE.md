@@ -790,3 +790,9 @@
 - Details: FormationSpread(Systems, static, 결정론) — 목적지 링 분산(중심1 + 반경2×6 + 3.5×12 + 5×18...), unitRadius 1.6m. RTSCommandSystem.IssueMoveCommand 배선(부대 이동 명령 → 개별 링 목표). SeparationSystem(싱글톤+부트스트랩) — 정지 유닛 겹침 밀기(2.2m 스캔, push 0.02m/0.1s 스로틀, 프레임 슬라이싱 40유닛, 플레이어 60m 컬링, CharacterController.Move 우선). MONSTER_SEPARATION.md 셀 점유 설계를 포이즌 CharacterController 구조에 맞춰 링분산+밀기로 변환 이식.
 - Tests: FormationSpreadTests 13개 (분산 개수/링 반경/각도/결정론/푸시 벡터) → EditMode 194/194
 - Date: 2026-09-19
+
+# Cycle: C-O6-01/02 — Phase O6: 🏅 칭호 시스템
+- Status: ✅ (UI C-O6-03/성취사 C-O6-04 다음 사이클)
+- Details: TitleData(Core.Data, static) 20종 — 처형5(1/3/5/10/25)/암살4(1/5/10/20)/점령5(1/5/10/20/81)/세트3/제작3(50/200/500), 경제 비접촉(표시 전용). TitleManager(Systems 싱글톤) — RecordEvent 카운터+임계발급+TitleUnlocked 정적이벤트+EquipTitle/GetTitleText+PlayerPrefs 저장(v1 직렬화)+ResetAll. EvaluateUnlocks 순수 헬퍼. 훅: TerritoryDatabase.OwnershipChanged(두 오버로드, PlayerOwned로 변경 시에만 발화)→conquests, EnvoySystem 암살성공→assassinations. 부트스트랩 등록. 수리: CS0246(using Core.Data), 싱글턴 가드로 라운드트립 실패 → PlayerPrefs 직접 검증 방식으로 교체.
+- Tests: TitleTests 14개 (레지스트리20/임계경계/카운터/장착무시/라운드트립/ResetAll/발급이벤트) → EditMode 208/208
+- Date: 2026-09-20
