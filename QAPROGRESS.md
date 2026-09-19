@@ -2554,3 +2554,21 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 
 ### Play 판정 대기 (테스트 29)
 ① 검/단검: 손잡이=손 원점·칼날=하늘 ② 창: 촉=하늘·자루 1/3 지점 그립 ③ 활=왼손·수직 ④ 방패+활 동시 불가 게이트 ⑤ 안내창 소실 ⑥ [Weapon] 그립 정렬(DATA) 로그 확인 — 어긋나면 해당 무기 id+스크린샷 → 규칙 파라미터 튜닝.
+
+---
+
+## 부록: C: 드라이브 정리 (2026-09-19, 게임코드 변경 없음)
+
+### 배경
+- C: 224G 중 210G 사용(95%) → 속도 저하. 진단 결과 최대 병목 = **WSL ext4.vhdx 117G(내부 실사용 67G)**.
+
+### 정리 내역 (코드/에셋 손상 없음)
+- WSL 내부: Poker Server 로그 23G 삭제(Godot 배제, 순수 로그), wine-test*3+wineprefix_clean/godot 4.8G, blender.tar.xz·onnx_pkg·godot4 0.6G, npm/apt·cron 구로그·구세션덤프 ~1.5G → 내부 67G→36G.
+- 본 저장소: `git lfs prune --force --verify-remote`로 LFS 캐시 1.2G 회수(원격검증 후만 삭제). **잔량 1.9G는 2026-07-16 미푸시 커밋(ac1be3dc 이전 백업브랜치)이 참조 → 보존**.
+- Windows: code_test/Library·Temp·Logs 1.9G, 휴지통 1.8G, AppData/Local/Temp 0.7G, Unity Caches+라이선스구로그 0.36G, Chrome 캐시 0.4G, Asset Store tgz 0.57G, UnityHub Templates 0.33G, VS Code VSIX 캐시 0.06G, code 루트 쓰레기(C:\tmp·nul·mnt·CONST) 제거.
+- 즉시 회수: C: 14G→22G 여유. **추가 ~70G는 데스크톱 WSL_COMPACT.bat(관리자) 실행 시 회수** — vhdx 117G→~40G 압축(10~30분, WSL 종료됨).
+
+### 제약 (재발 방지)
+- code_test/Assets 절대 삭제 금지 — code/Assets에 없는 67파일(castle.glb, 지형텍스처 east_grass*·empire_marble·north_snow1 등) 존재.
+- state.db 6.9G는 진짜 세션 데이터(freelist 72p) — 보존.
+- pagefile 7.9G(자동관리), Unity 에디터 13G, poly/Meshy/Desktop 에셋은 사용자 자산 — 보존.
