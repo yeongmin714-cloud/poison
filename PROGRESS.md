@@ -410,5 +410,6 @@
 | O1 티어세트/드랍 | C-O1-01~05 | 🔄 |
 | └ C-O1-01 | EquipmentTierSet 신규(가죽=wood/사슬=steel/판금=stone+crystal, 2·4세트 보너스, 파밍 보상 원칙) + EquipmentTierSetTests 24개 | ✅ 2026-09-19 |
 | └ C-O1-02 | DropTable 시그니처(확정) 드랍 슬롯(SignatureDropEntry, 100% 지급·독립 롤 중복 제거·GetExpectedDropCount) + DropSignatureTests 17개 | ✅ 2026-09-19 |
-| └ C-O1-03~04 | 드랍 확률 튜닝(보석상자/던전 기대 ~5회) + 세트 보너스 통합(GuardEquipmentSystem) + 툴팁 | ⬜ |
-| └ C-O1-05 | Play 판정 (드랍 명확성/세트 표시/밸런스 스냅샷) | ⬜ |
+| └ C-O1-03 | 세트 파밍 튜닝 — SetChestTuning(닫힌식 H_K/p 기대 ~5회, 레벨밴드 30/33/37% 롤, 월드 희소 0.1~0.5%) + ApplySoldierDrops 배선 + 13테스트 | ✅ 2026-09-19 |
+| └ C-O1-04 | 세트 보너스 통합 — GuardEquipmentSystem.CalculateSetBonus → 공/방 4종 getter + ItemDescriptionWindowUTK 세트 표시 + 9테스트 (EditMode 56/56, CS1503 IReadOnlyList 수리) | ✅ 2026-09-19 |
+| └ C-O1-05 | Play 판정 — 병사 처치 세트 파츠 드랍/설명창 세트 표시/드랍 명확성/밸런스 스냅샷 | ⬜ |
