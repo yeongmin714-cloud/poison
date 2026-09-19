@@ -779,3 +779,14 @@
 - Details: LordStatGenerator(Core.Data, static) — 4d6 drop lowest → 5국 성향 보정(동CON+1/서DEX+1/남STR+1/북STR+1·CON+1/Empire CHA+2) → 링별 목표 합계 리밸런싱(Ring1 66/Ring2 72/Ring3 78/Ring4·Empire 84, 3~18 클램프, 무한루프 방지) → GUARD=clamp(10+(DEX-10)/2,1,20)(int 0-버림, 벤치 예시 DEX8→9/14→12/18→14). djb2(territoryId) 결정론. GenerateForTerritory(TerritoryDatabase 연동). 수리: TerritoryDefinition?(Nullable struct) .HasValue/.Value, TerritoryDefinition.key→id.ToString(). 테스트 가정 수리: 리밸런싱이 보정을 흡수 → Empire CHA 하한 보장 제거(구조 검증으로 교체).
 - Tests: LordStatGeneratorTests 13개 (4d6 결정론·범위/GUARD 표/링합계/5국×5링 스윕/DB 스모크) → EditMode 181/181
 - Date: 2026-09-19
+
+# Cycle: C-O4-03 — Phase O4: 🛡️ 방어 계수 대조 결론
+- Status: ✅ (변경 0건 — 문서화 마감)
+- Details: docs/PHASE_O4_COMBAT_STATS.md — OpenMMO GUARD(명중 목표식) vs 포이즌 감쇠식(100/(100+def)) 구조 비교. 히트 롤 도입은 전투 재조정 파급 과다 → YAGNI, 포이즌 모델 유지. 벤치 채용분은 재생(RegenRules)+영주(LordStatGenerator). RingDifficultyData 계수(0.8~1.6)는 AI 전쟁 전용으로 설계 분리 정상 확인.
+- Date: 2026-09-19
+
+# Cycle: C-O5-01/02 — Phase O5: 🧍 군집 회피
+- Status: ✅ (Play 성능 검증 C-O5-03 대기)
+- Details: FormationSpread(Systems, static, 결정론) — 목적지 링 분산(중심1 + 반경2×6 + 3.5×12 + 5×18...), unitRadius 1.6m. RTSCommandSystem.IssueMoveCommand 배선(부대 이동 명령 → 개별 링 목표). SeparationSystem(싱글톤+부트스트랩) — 정지 유닛 겹침 밀기(2.2m 스캔, push 0.02m/0.1s 스로틀, 프레임 슬라이싱 40유닛, 플레이어 60m 컬링, CharacterController.Move 우선). MONSTER_SEPARATION.md 셀 점유 설계를 포이즌 CharacterController 구조에 맞춰 링분산+밀기로 변환 이식.
+- Tests: FormationSpreadTests 13개 (분산 개수/링 반경/각도/결정론/푸시 벡터) → EditMode 194/194
+- Date: 2026-09-19

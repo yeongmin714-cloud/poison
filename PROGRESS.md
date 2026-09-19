@@ -426,5 +426,8 @@
 | O4 컴뱃 스탯 고도화 | C-O4-01~04 | 🔄 |
 | └ C-O4-01 | 자연 재생 공식화 — RegenRules(16초 주기/량=max(1,1+L/5+CON보정)/비전투 10초) + NaturalRegenSystem 부트스트랩 + PlayerHealth 캡슐 + 12테스트 | ✅ 2026-09-19 |
 | └ C-O4-02 | 영주 능력치 생성기 — 4d6 drop lowest + 5국 성향 보정 + 링 합계 리밸런싱(66/72/78/84) + GUARD 공식 + djb2 결정론 + 13테스트 (181/181) | ✅ 2026-09-19 |
-| └ C-O4-03 | Guard 방어 계산 검증 — RingDifficultyData rating→multiplier 대조 (문서) | ⬜ |
+| └ C-O4-03 | Guard 방어 계산 검증 — GUARD(명중목표식) vs 감쇠식 대조 → 현행 유지 결론, docs/PHASE_O4_COMBAT_STATS.md | ✅ 2026-09-19 |
 | └ C-O4-04 | 테스트 통합 + Play 판정 (재생 리듬/영주 스탯 로그) | ⬜ |
+| O5 군집 회피 | C-O5-01~03 | 🔄 |
+| └ C-O5-01/02 | FormationSpread(링 분산 중심1+6+12+18) + RTSCommandSystem 배선 + SeparationSystem(밀기 2.2m/0.02m/0.1s·슬라이싱·컬링) + 13테스트 (194/194) | ✅ 2026-09-19 |
+| └ C-O5-03 | Play 성능 검증 — 병사 40명 이동/정지 뭉침 해소 + 프레임 측정 | ⬜ |
