@@ -90,6 +90,11 @@ namespace ProjectName.Systems
         /// <summary>현재 이동 속도 배수 (일반 2.5, 질주 4)</summary>
         public float CurrentSpeedMultiplier => _isSprinting ? _sprintSpeedMultiplier : _walkSpeedMultiplier;
 
+        /// <summary>[O10] 축사(stable) 보너스 — 완료된 축사 존재 시 말 이속 ×1.1, 없으면 ×1.0.
+        /// ConstructionManager 전역 완료 판정(둘 다 Systems — Core→Systems 위반 아님).
+        /// 적용점: HandleMountedMovement의 이속 계산에 × StableSpeedBonus 곱셈 연결됨.</summary>
+        public float StableSpeedBonus => ConstructionManager.Instance?.HasAnyCompletedStructure("stable") == true ? 1.1f : 1f;
+
         /// <summary>속도 상태 문자열 (걷기/달리기/질주)</summary>
         public string SpeedStateText
         {
@@ -658,9 +663,9 @@ namespace ProjectName.Systems
                 // Shift 키: 질주
                 _isSprinting = _keyboard.leftShiftKey.isPressed && inputDirection.magnitude > 0.1f && _mountHP > 0f;
 
-                // 속도 계산
+                // 속도 계산 — [O10] 축사 완료 보너스(×1.1) 곱셈 연결
                 float baseSpeed = _playerMovement.WalkSpeed;
-                float speed = baseSpeed * (_isSprinting ? _sprintSpeedMultiplier : _walkSpeedMultiplier);
+                float speed = baseSpeed * (_isSprinting ? _sprintSpeedMultiplier : _walkSpeedMultiplier) * StableSpeedBonus;
 
                 // 이동 방향으로 회전
                 if (moveDirection != Vector3.zero)

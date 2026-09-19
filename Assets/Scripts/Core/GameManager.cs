@@ -210,6 +210,9 @@ namespace ProjectName.Core
             // 10.8 InstrumentPerformanceSystem (Phase O7) — B키 바드 연주 토글, 악기별 버프 소스
             CreateSystemIfMissing("InstrumentPerformanceSystem");
 
+            // 10.9 HungerSystem (Phase O10) — 허기 0~100, 자연재생 게이트/이속 페널티 소스
+            CreateSystemIfMissing("HungerSystem");
+
             // 11. SettingsMenuUI (UI)
             CreateSystemIfMissing("SettingsMenuUI");
 

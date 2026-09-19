@@ -73,6 +73,9 @@ namespace ProjectName.UI.Toolkit
         private bool _titleSubscribed;   // [O6] 칭호 이벤트 구독 플래그
         private Label _expValueLabel, _hpValueLabel;
         private VisualElement _expFill, _hpFill;
+        private Label _hungerValueLabel;  // [O10] 허기 게이지 표시
+        private VisualElement _hungerFill;
+        private bool _hungerSubscribed;  // [O10] 허기 정적 이벤트 구독 플래그
 
         private PlayerStats _subscribedStats;
         private EquipmentManager _subscribedEquip;
@@ -260,6 +263,12 @@ namespace ProjectName.UI.Toolkit
             _expFill = expGauge.fill;
             right.Add(expGauge.root);
 
+            // ── 허기 게이지 [O10] — 읽기 전용 (HungerSystem이 소스, 조작 없음) ──
+            var hungerGauge = BuildGaugeRow("허기");
+            _hungerValueLabel = hungerGauge.value;
+            _hungerFill = hungerGauge.fill;
+            right.Add(hungerGauge.root);
+
             // ── 중독 ──
             _addictionLabel = MkLabel("중독: 0%", 14, UTKColor.TextSecondary, TextAnchor.MiddleLeft);
             _addictionLabel.style.marginTop = 6f;
@@ -322,6 +331,19 @@ namespace ProjectName.UI.Toolkit
         private void OnTitleUnlocked(ProjectName.Core.Data.TitleDef def)
         {
             _titleValueLabel.text = GetTitleDisplay();
+        }
+
+        /// <summary>[O10] 허기 변경 시 게이지 갱신 (HungerSystem 정적 이벤트 — Subscribe/Unsubscribe 쌍).</summary>
+        private void OnHungerChanged(float hunger)
+        {
+            UpdateHungerGauge(hunger);
+        }
+
+        /// <summary>[O10] 허기 게이지 갱신 — 값 라벨 + fill 너비(100% 기준).</summary>
+        private void UpdateHungerGauge(float hunger)
+        {
+            if (_hungerValueLabel != null) _hungerValueLabel.text = $"{hunger:F0} / 100";
+            SetGaugeFill(_hungerFill, hunger / HungerSystem.MaxHunger);
         }
 
         /// <summary>게이지 행 컨테이너 (root: [라벨][값][게이지배경>fill]).</summary>
@@ -447,6 +469,15 @@ namespace ProjectName.UI.Toolkit
                 _titleSubscribed = true;
                 if (_titleValueLabel != null) _titleValueLabel.text = GetTitleDisplay();
             }
+
+            // [O10] 허기 변경 — 정적 이벤트 1회 구독(플래그 중복 방지, 칭호 패턴 동일)
+            if (!_hungerSubscribed)
+            {
+                HungerSystem.HungerChanged += OnHungerChanged;
+                _hungerSubscribed = true;
+                var hs = HungerSystem.Instance;
+                if (hs != null) UpdateHungerGauge(hs.Hunger);
+            }
         }
 
         private void UnsubscribeAll()
@@ -456,6 +487,14 @@ namespace ProjectName.UI.Toolkit
                 TitleManager.TitleUnlocked -= OnTitleUnlocked;
                 _titleSubscribed = false;
             }
+
+            // [O10] 허기 정적 이벤트 해제
+            if (_hungerSubscribed)
+            {
+                HungerSystem.HungerChanged -= OnHungerChanged;
+                _hungerSubscribed = false;
+            }
+
             if (_subscribedStats != null)
             {
                 _subscribedStats.OnLevelChanged -= OnStatsLevelChanged;
@@ -486,6 +525,10 @@ namespace ProjectName.UI.Toolkit
         private void RefreshDisplay()
         {
             EnsureSubscriptions();
+
+            // --- 허기 [O10] — PlayerStats와 무관하게 항상 갱신 (읽기 전용) ---
+            var hungerSys = HungerSystem.Instance;
+            UpdateHungerGauge(hungerSys != null ? hungerSys.Hunger : HungerSystem.MaxHunger);
 
             PlayerStats stats = PlayerStats.Instance;
             if (stats == null)

@@ -56,6 +56,10 @@ namespace ProjectName.Systems
             bool belowMax = ph.CurrentHP < ph.MaxHP;
             if (!RegenRules.CanRegen(alive, belowMax, ph.SecondsSinceLastDamage)) return;
 
+            // [O10] 허기 게이트 — 쇠약(Hunger<30) 시 자연 재생 정지 (HUNGER.md 벤치; RegenRules.CanRegen 미수정).
+            var hs = HungerSystem.Instance ?? FindAnyObjectByType<HungerSystem>();
+            if (hs != null && hs.BlocksNaturalRegen()) return;
+
             // VIT 점수 환산: 기본 10 + 할당 VIT (간단 환산 — 장비 보너스 등 정밀 환산은 추후 확장)
             int vitScore = 10 + stats.AllocatedVit;
             int amount = RegenRules.ComputeAmount(stats.Level, vitScore);
