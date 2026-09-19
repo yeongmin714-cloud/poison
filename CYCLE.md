@@ -761,3 +761,9 @@
 - Tests: LevelCurveRebalanceTests 12개 (2차 표 L1~L50/병사 지분/폴백) → EditMode 137/137
 - 영향: 중후반 킬 XP 대폭 상승(레벨 페이스 단축) — C-O3-04 실측 보정은 Play 리포트 후
 - Date: 2026-09-19
+
+# Cycle: C-O3-03 — Phase O3: 🗺️ 컨텐츠 의존성 게이팅
+- Status: ✅
+- Details: ContentGate(Core.Data, static) — 게이트 6종(tavern_mercenary Lv5/bomb_craft Lv8/gem_chest Lv10/warehouse_expansion_2 Lv12/warehouse_expansion_3 Lv20/dracula_territory Lv20), 미등록 id=개방(무게이트 정책), GetLockedMessage(한글 조사 헬퍼). 배선 3곳: MercenaryManager.HireMercenary/GemChest.Open(ForceOpen=게이트 무시 QA훅)/WarehouseSystem.TryExpandSlots(단계별 1→2/2→3 게이트). 문서: PHASE_O3_LEVEL_CURVE.md §6 의존성 매트릭스(무게이트 컨텐츠+황제국=EmpireAccessRule 명시). bomb_craft/dracula는 표만 등록(배선 후속). CS0111(중복 ForceOpen) 자가 수리.
+- Tests: ContentGateTests 19개 (표6/정렬/경계/Nullable/메시지) → EditMode 156/156
+- Date: 2026-09-19
