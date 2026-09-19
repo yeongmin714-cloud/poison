@@ -715,3 +715,16 @@
 - Details: DropTable에 SignatureDropEntry(확정 100% 드랍, 확률·레벨보정 무관) 신설 — ApplyToBasket에서 독립 롤 전 먼저 지급, 동일 id는 독립 롤·희귀 보너스 롤 양쪽에서 제외(중복 방지, id 비교). 신규 API HasSignatureDrops/GetSignatureSummary/GetExpectedDropCount(∑dropChance×평균개수, 시그니처 제외 — C-O1-03 튜닝용). signatureEntries 비어 있으면 기존 동작과 완전 동일(하위호환, 기존 SO 4종 에셋 무손상). DropTableManager에 시그니처 포함 테이블 식별 로그 1건.
 - Tests: DropSignatureTests 17개 (100%지급3/중복제거2/하위호환2/레벨보독립1/조회3/기대치3)
 - Date: 2026-09-19
+
+# Cycle: C-O1-03 — Phase O1: 🎲 세트 파밍 튜닝 (기대 ~5회)
+- Status: ✅
+- Details: SetChestTuning 신규(Core/DropSystem, static) — 닫힌식 H_K/p(K=1 p20%→5.0회, K=2 p30%→5.0회, K=4 p37%→5.63회), 레벨 밴드(1~10가죽/11~20사슬/21+판금)별 파츠 독립 롤(30/33/37%), 월드 희소 드랍 규약 상수(0.1~0.5%), RollSetPiecesForLevel(보유 파츠 제외, 결정론 rng 주입형). DropTableManager.ApplySetPieceDrops → ApplySoldierDrops에 배선(병사 처치 시 밴드 세트 파츠 롤, 바구니 보유 id 제외).
+- Tests: SetChestTuningTests 13개 (확률표/닫힌식/밴드매핑/희소규약/결정론롤 5종)
+- Date: 2026-09-19
+
+# Cycle: C-O1-04 — Phase O1: 🛡️ 세트 보너스 전투력 통합 + 설명창 표시
+- Status: ✅
+- Details: GuardEquipmentSystem.CalculateSetBonus 신규(정적 순수 함수 — 세트별 파츠 카운트→보너스 합산, 세트 간 중첩) → GetGuard/MercenaryEquipmentAttackBonus/DefenseBonus 4종 getter에 통합(파괴 장비 제외 — GetNonBrokenItems). ItemDescriptionWindowUTK 설명창에 세트 소속 표시("세트: 가죽세트 — 완성 시 …"). CS1503 수리: CountSetPieces 시그니처 List→IReadOnlyList 확장(호출부 호환). 테스트 asmdef에 ProjectName.Systems 참조 추가.
+- Tests: SetBonusIntegrationTests 9개 (null/2세트/완성3종/혼합합산/1개씩무효/중복1카운트/비세트무시)
+- 검증: 배치컴파일 error CS=0, EditMode 56/56 통과
+- Date: 2026-09-19
