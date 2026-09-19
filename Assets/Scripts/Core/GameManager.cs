@@ -201,6 +201,9 @@ namespace ProjectName.Core
             // 10.6 NaturalRegenSystem (Phase O4 C-O4-01) — 16초 주기 플레이어 자연 재생
             CreateSystemIfMissing("NaturalRegenSystem");
 
+            // 10.7 SeparationSystem (Phase O5 C-O5-01) — 정지 병사 군집 회피(밀어내기)
+            CreateSystemIfMissing("SeparationSystem");
+
             // 11. SettingsMenuUI (UI)
             CreateSystemIfMissing("SettingsMenuUI");
 

@@ -180,20 +180,30 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 이동 명령
+        /// 이동 명령 — Phase O5: 목적지 주위 링 분산 배치로 개별 목표 부여 (뭉침 해소).
+        /// 부대 전원에 같은 좌표를 주는 대신 FormationSpread.Distribute로 중심 1 + 링 배치.
         /// </summary>
         private void IssueMoveCommand(IReadOnlyList<GuardPlaceholder> selected, Vector3 position)
         {
+            // 분산 지점 수 = 생존 병사 수 (죽은 병사는 제외)
+            int aliveCount = 0;
+            foreach (var guard in selected)
+            {
+                if (guard != null && guard.IsAlive) aliveCount++;
+            }
+
+            Vector3[] spread = FormationSpread.Distribute(position, aliveCount);
+
             int count = 0;
             foreach (var guard in selected)
             {
                 if (guard != null && guard.IsAlive)
                 {
-                    guard.SetCommandTarget(position, false);
+                    guard.SetCommandTarget(spread[count], false);
                     count++;
                 }
             }
-            Debug.Log($"[RTSCommandSystem] {count}명 이동 명령 → {position}");
+            Debug.Log($"[RTSCommandSystem] {count}명 이동 명령 → {position} (링 분산 {spread.Length}지점)");
         }
 
         /// <summary>
