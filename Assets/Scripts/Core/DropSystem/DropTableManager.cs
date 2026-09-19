@@ -116,6 +116,10 @@ namespace ProjectName.Core
             // 레벨 기반 희귀 드랍 보정 (레벨 10당 +5%)
             float levelDropBonus = Mathf.Min(level * 0.005f, 0.5f);
 
+            // C-O1-02: 시그니처(확정) 드랍이 포함된 테이블임을 확인하는 로그 (1건)
+            if (table.HasSignatureDrops)
+                Debug.Log($"[DropTable] 🎯 {table.TableName}: 시그니처(확정) 드랍 포함 테이블 적용 (level={level})");
+
             table.ApplyToBasket(basket, levelDropBonus);
         }
 

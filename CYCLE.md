@@ -703,3 +703,15 @@
 - Status: ✅
 - Details: ①UTKBackgroundHealer 신설(UIRoot 전수 순회, 파괴된 backgroundImage 자가 치유+범인 요소 진단 로그, 0.5s 스로틀+sceneLoaded 강제 스윕) — Safe 복사본도 외부 요인(UnloadUnusedAssets류)으로 파괴되는 상위 뿌리 대응 ②UTKTextureSafe 캐시 1024+600s 미만 축출 보류 ③ArrowProjectile: arrow.glb 장착(GLB 파싱 실측 촉=-X→Rz90×Ry180, 비균일 스케일 전단 방지 균일 래퍼, bounds 자동 피팅 3.6m, 3종 폴백+절차 회귀) ④피격 SpawnHitSparks/SpawnCritBurst 제거(데미지 숫자·히트스톱·사운드 유지). 배치컴파일 error CS=0, commit 2e7dc361
 - Date: 2026-09-18
+
+# Cycle: C-O1-01 — Phase O1: 🧬 장비 티어 세트 (OpenMMO 벤치마크)
+- Status: ✅
+- Details: EquipmentTierSet 신규(Core/Data, static) — 세트 3종(가죽=wood 전용/사슬=steel 전용/판금=stone+crystal 혼합), 부위 4개(투구/갑옷/신발/장갑), 파밍 보상 원칙(같은 부위 상위 세트 ≥ 하위 세트 rarity), SetBonus 구조체(2세트 소효과/4세트 완성 효과: 가죽 공1·방1, 사슬 공2·방2, 판금 공3·방3), API GetSetParts/GetSetForItem/CountSetPieces/GetActiveSetBonus/GetSetSummary/GetAllSetKinds. PlayerInventory 4티어 레지스트리 참조(재정의 없음).
+- Tests: EquipmentTierSetTests 24개 (구성4/파밍원칙4/소속4/카운트3/보너스4/툴팁2/기타)
+- Date: 2026-09-19
+
+# Cycle: C-O1-02 — Phase O1: 🎯 DropTable 시그니처(확정) 드랍
+- Status: ✅
+- Details: DropTable에 SignatureDropEntry(확정 100% 드랍, 확률·레벨보정 무관) 신설 — ApplyToBasket에서 독립 롤 전 먼저 지급, 동일 id는 독립 롤·희귀 보너스 롤 양쪽에서 제외(중복 방지, id 비교). 신규 API HasSignatureDrops/GetSignatureSummary/GetExpectedDropCount(∑dropChance×평균개수, 시그니처 제외 — C-O1-03 튜닝용). signatureEntries 비어 있으면 기존 동작과 완전 동일(하위호환, 기존 SO 4종 에셋 무손상). DropTableManager에 시그니처 포함 테이블 식별 로그 1건.
+- Tests: DropSignatureTests 17개 (100%지급3/중복제거2/하위호환2/레벨보독립1/조회3/기대치3)
+- Date: 2026-09-19

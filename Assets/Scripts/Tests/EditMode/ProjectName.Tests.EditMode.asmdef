@@ -1,0 +1,17 @@
+{
+  "name": "ProjectName.Tests.EditMode",
+  "rootNamespace": "ProjectName.Tests",
+  "references": [
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner",
+    "ProjectName.Core"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "overrideReferences": true,
+  "noEngineReferences": false
+}
