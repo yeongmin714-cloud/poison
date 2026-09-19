@@ -1,3 +1,5 @@
+// U9-W2 (2026-09-19): 콘솔 경고 소음 정리 — Phase 46 애니메이션 마이그레이션 잔여 경고 억제(실수리는 ROADMAP_NEURAL_ANIMATION). 신규 경고는 억제되지 않는다.
+#pragma warning disable 618
 using UnityEngine;
 using UnityEditor;
 using ProjectName.Systems.Animation.Neural;
