@@ -741,3 +741,10 @@
 - Tests: EconomyPricingTests 30개 (스프레드/올림/등급표6/배율5/basePrice우선/불변식/클램프/min1)
 - 검증: error CS=0, EditMode 106/106, QA PASS(Breaking 0 — Warn 2건 수리)
 - Date: 2026-09-19
+
+# Cycle: C-O2-03 — Phase O2: 🚪 유출구 설치 (수리 원장 연결 + 창고 확장)
+- Status: ✅
+- Details: ①수리비 골드 버그성 불일치 수리 — 기존 GetItemCount("gold")/RemoveItem("gold") 아이템 경로를 PlayerStats.SpendGold(cost, "repair")로 전환 → EconomyAuditSystem 원장에 수리비 반영(이전에는 원장 미기록+인벤 gold 아이템 의존). RepairItem 순수 로직 유지. ②창고 슬롯 확장 — 영지별 3단계×+5슬롯(20→35), 비용 100/200/300G(SpendGold "warehouse_expansion"), GetSlotCapacity/CanExpand/TryExpandSlots API, SaveData 직렬화(expansionLevel, 구형 세이브 0 호환, 99+ 클램프), WarehouseWindowUTK 확장 버튼(비용 표시/최대 비활성/동적 행 수).
+- Tests: RepairLedgerTests 8 + WarehouseExpansionTests 10 (용량공식/비용표/라운드트립/클램프/경계/Clear리셋)
+- 검증: error CS=0, EditMode 124/124 (CS0103 SetStatus→_statusLabel 자가 수리)
+- Date: 2026-09-19
