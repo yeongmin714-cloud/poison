@@ -754,3 +754,10 @@
 - Details: EconomyAuditSystem.EnsureSubscribed() 신규(멱등 -=/+=) — Awake/OnEnable 이중 보험(에디터 테스트 환경 Awake 콜백 누락 대응) + public 훅. 통합테스트 신설: EditMode에서 PlayerStats+EconomyAuditSystem 실제 생성 → AddGold/SpendGold → 원장 카테고리 집계+잔액 검증(500/120/실패무기록). 진단 과정: 프로브 카운트 설계 오차 3회 수리.
 - Tests: EconomyAuditTests +1 (Integration_PlayerStatsEvents_FeedLedger) → EditMode 125/125
 - Date: 2026-09-19
+
+# Cycle: C-O3-01/02 — Phase O3: 📈 레벨 곡선 실측 + XP 재배율
+- Status: ✅
+- Details: 분석(docs/PHASE_O3_LEVEL_CURVE.md) — 활성 XP 계통 3종 실측(플레이어 킬=선형 15×(1+0.1L)/병사 킬=고정15/플레이어 커브 L11+ 선형증가), GuardLevelSystem/MonsterLevelSystem 정적 커브는 미사용 유령. 문제: 선형 킬 XP → 후반 파밍 벽(L30→31 = 333킬). 재배율: MonsterLevelSystem.CalculateXP = L²+2L−5 (OpenMMO LEVEL_CURVE 벤치마크 2차 곡선, L≤2 폴백 2/5) 단일소스 승격(Obsolete 해제) + AnimalAI 킬 XP = CalculateXP(L)×(티어기본/15)×rand + GuardPlaceholder 킬 XP = CalculateGuardKillXP(대상레벨)=max(5,XP/3)(AnimalAI/GuardPlaceholder.Level 접근자 추가, 판별불가 폴백 15) + 목표 페이스 표(단일인 기준 L1~10 3~5분 → L40~50 60~120분).
+- Tests: LevelCurveRebalanceTests 12개 (2차 표 L1~L50/병사 지분/폴백) → EditMode 137/137
+- 영향: 중후반 킬 XP 대폭 상승(레벨 페이스 단축) — C-O3-04 실측 보정은 Play 리포트 후
+- Date: 2026-09-19
