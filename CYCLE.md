@@ -796,3 +796,9 @@
 - Details: TitleData(Core.Data, static) 20종 — 처형5(1/3/5/10/25)/암살4(1/5/10/20)/점령5(1/5/10/20/81)/세트3/제작3(50/200/500), 경제 비접촉(표시 전용). TitleManager(Systems 싱글톤) — RecordEvent 카운터+임계발급+TitleUnlocked 정적이벤트+EquipTitle/GetTitleText+PlayerPrefs 저장(v1 직렬화)+ResetAll. EvaluateUnlocks 순수 헬퍼. 훅: TerritoryDatabase.OwnershipChanged(두 오버로드, PlayerOwned로 변경 시에만 발화)→conquests, EnvoySystem 암살성공→assassinations. 부트스트랩 등록. 수리: CS0246(using Core.Data), 싱글턴 가드로 라운드트립 실패 → PlayerPrefs 직접 검증 방식으로 교체.
 - Tests: TitleTests 14개 (레지스트리20/임계경계/카운터/장착무시/라운드트립/ResetAll/발급이벤트) → EditMode 208/208
 - Date: 2026-09-20
+
+# Cycle: C-O6-03/04 — Phase O6: 🏅 칭호 UI + 영주 성취사
+- Status: ✅ (Phase O6 완료 — Play 판정 통합 대기)
+- Details: StatusWindowUTK 칭호 섹션 — 현재 장착 표시 + "칭호 변경" 버튼(해금 순환 장착), TitleManager.TitleUnlocked 구독(UnsubscribeAll 쌍, 플래그 중복 방지). HeroicTaleGenerator(Core.Data, static) — djb2(territoryId_tale) 결정론 3문장(출신6/야망4/국가성향6/약점5 풀 조립, 중세 판타지 서사시 톤), GetTaleForLord 이름 치환. LordAudienceUTK 성취사 라벨 표시(대면창 headline 아래, territoryId 부재 → 이름 키 임시). 수리: CS0234(네임스페이스 중첩 → 정규화).
+- Tests: HeroicTaleTests 10개 (결정론/3문장/성향 문장/이름 치환/길이/다양성/안전 폴백/전국가 무오류) → EditMode 218/218
+- Date: 2026-09-20
