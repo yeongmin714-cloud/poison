@@ -48,7 +48,7 @@
     /* U9-W1 수리: linear-gradient는 Unity 6에서 Function으로 파싱되어
        "Invalid value for image texture Function" 경고 + 렌더 미적용의 뿌리.
        → 동일 색상/알파를 베이크한 PNG로 교체 (그림자 9슬라이스와 동일 기법) */
-    background-image: url("Assets/Resources/UI/bg_window.png");
+    background-image: url("bg_window.png");
     -unity-background-scale-mode: stretch-and-crop;
     border-width: 2px;
     border-color: var(--c-border-bronze);
@@ -68,7 +68,7 @@
    pointer-events:none으로 드래그/클릭/드롭타겟 간섭 없음. */
 .utk-window-shadow {
     position: absolute;
-    background-image: url("Assets/Resources/UI/shadow_glow.png");
+    background-image: url("shadow_glow.png");
     -unity-slice-top: 14;
     -unity-slice-bottom: 14;
     -unity-slice-left: 14;
@@ -127,7 +127,7 @@
     color: var(--c-text-primary);
     background-color: var(--c-bg-panel-dark);
     /* 입체(A): 미세한 세로 부피감 */
-    background-image: url("Assets/Resources/UI/bg_button.png");
+    background-image: url("bg_button.png");
     -unity-background-scale-mode: stretch-and-crop;
     border-width: 1px;
     border-color: var(--c-border-bronze);
@@ -145,7 +145,7 @@
 .utk-btn:hover {
     background-color: var(--c-hover-gold);
     /* 입체(D): 호버 시 배경 밝기 + 골드 글로우 강조 */
-    background-image: url("Assets/Resources/UI/bg_button_hover.png");
+    background-image: url("bg_button_hover.png");
     -unity-background-scale-mode: stretch-and-crop;
     border-top-color: var(--c-hover-gold);
     border-left-color: var(--c-hover-gold);
@@ -185,7 +185,7 @@
     height: 64px;
     background-color: rgba(14, 9, 5, 0.72);          /* 음각(오목) 느낌의 어두운 내부 */
     /* 입체(C): 내부 인셋 그라데이션 — 상단 약간 밝음 → 하단 더 캄캄해 음각 심화 */
-    background-image: url("Assets/Resources/UI/bg_slot.png");
+    background-image: url("bg_slot.png");
     -unity-background-scale-mode: stretch-and-crop;
     border-top-width: 2px;
     border-left-width: 2px;
@@ -202,7 +202,7 @@
 .utk-slot--hover {
     background-color: rgba(217, 180, 91, 0.22);      /* 입체(D): 호버 배경 밝게 */
     /* 입체(D): 부드러운 아우터 글로우 — 하단/우측으로 확산되는 빛 */
-    background-image: url("Assets/Resources/UI/glow_hover_gold.png");
+    background-image: url("glow_hover_gold.png");
     -unity-background-scale-mode: stretch-and-crop;
     border-top-color: var(--c-hover-gold);
     border-left-color: var(--c-hover-gold);
@@ -249,7 +249,7 @@
     position: absolute;
     background-color: var(--c-bg-panel-dark);
     /* 입체(A): 세로 부피감 */
-    background-image: url("Assets/Resources/UI/bg_tooltip.png");
+    background-image: url("bg_tooltip.png");
     -unity-background-scale-mode: stretch-and-crop;
     border-width: 1px;
     border-color: var(--c-border-bronze);
@@ -269,7 +269,7 @@
     position: absolute;
     background-color: var(--c-bg-panel);
     /* 입체(A): 세로 부피감 */
-    background-image: url("Assets/Resources/UI/bg_window.png");
+    background-image: url("bg_window.png");
     -unity-background-scale-mode: stretch-and-crop;
     border-width: 2px;
     border-color: var(--c-border-gold);
@@ -292,7 +292,7 @@
     position: absolute;
     background-color: var(--c-bg-panel-dark);
     /* 입체(A): 세로 부피감 + 금속 베벨 */
-    background-image: url("Assets/Resources/UI/bg_tooltip.png");
+    background-image: url("bg_tooltip.png");
     -unity-background-scale-mode: stretch-and-crop;
     border-width: 1px;
     border-color: var(--c-border-bronze);

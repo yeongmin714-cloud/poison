@@ -40,6 +40,7 @@ namespace ProjectName.Tests.EditMode
             int checkedCount = 0;
             foreach (var file in EnumerateUssFiles())
             {
+                string ussDir = Path.GetDirectoryName(file);
                 string content = File.ReadAllText(file);
                 int idx = 0;
                 while (true)
@@ -50,7 +51,11 @@ namespace ProjectName.Tests.EditMode
                     int end = content.IndexOf("\")", pathStart);
                     Assert.Greater(end, pathStart, $"url 경로 파싱 실패: {file}");
                     string relPath = content.Substring(pathStart, end - pathStart);
-                    string absPath = Path.Combine(ProjectRoot, relPath.Replace('/', Path.DirectorySeparatorChar));
+                    // U9-W3: url()은 USS 파일 기준 '상대경로'만 허용 — 절대 "Assets/..." 경로는
+                    // 런타임 패널에서 해석 실패 → 노란 경고 플레이스홀더 렌더의 뿌리.
+                    Assert.IsFalse(relPath.StartsWith("Assets/"),
+                        $"절대경로 url 금지(USS 파일 기준 상대경로 필수): {relPath} (in {file})");
+                    string absPath = Path.Combine(ussDir, relPath.Replace('/', Path.DirectorySeparatorChar));
                     Assert.IsTrue(File.Exists(absPath), $"url 대상 누락: {relPath} (in {file})");
                     checkedCount++;
                     idx = end;
