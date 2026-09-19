@@ -198,6 +198,9 @@ namespace ProjectName.Core
             // 10.5 EconomyAuditSystem (Phase O2 C-O2-01) — GoldChanged 구독, 금화 원장
             CreateSystemIfMissing("EconomyAuditSystem");
 
+            // 10.6 NaturalRegenSystem (Phase O4 C-O4-01) — 16초 주기 플레이어 자연 재생
+            CreateSystemIfMissing("NaturalRegenSystem");
+
             // 11. SettingsMenuUI (UI)
             CreateSystemIfMissing("SettingsMenuUI");
 

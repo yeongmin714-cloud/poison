@@ -47,6 +47,8 @@ namespace ProjectName.Core
         public bool IsDead => _isDead;
         /// <summary>IDamageable: 생존 여부</summary>
         public bool IsAlive => !_isDead;
+        /// <summary>마지막 피격 이후 경과 시간(초). C-O4-01 자연 재생 그레이스 판정용 (캡슐화)</summary>
+        public float SecondsSinceLastDamage => Time.time - _lastDamageTime;
         /// <summary>최대 체력 변경 (확장용)</summary>
         public void SetMaxHP(float value) { _maxHP = Mathf.Max(1f, value); }
 
