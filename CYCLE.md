@@ -728,3 +728,16 @@
 - Tests: SetBonusIntegrationTests 9개 (null/2세트/완성3종/혼합합산/1개씩무효/중복1카운트/비세트무시)
 - 검증: 배치컴파일 error CS=0, EditMode 56/56 통과
 - Date: 2026-09-19
+
+# Cycle: C-O2-01 — Phase O2: 💰 금화 원장 + EconomyAuditSystem
+- Status: ✅
+- Details: PlayerStats.GoldChanged 정적 이벤트(GoldLedgerEntry: amount/isIncome/source/balanceAfter) + AddGold/SpendGold source 파라미터(기본 unknown — 하위호환). 19호출부 태그: quest_reward×3/arena_fee×3/arena_reward/church_donation×2/drug_effect/merchant_purchase/merchant_refund×3/smuggle_sale/shop_purchase/refund/sale×2. ApplyRevengeListReward 발화 추가(+1000). EconomyAuditSystem(Systems 싱글톤+DontDestroyOnLoad)이 이벤트 구독 → EconomyAuditLedger(static) 카테고리별 집계 + GetHourlyNetRate(시간당 순유입, C-O2-04 튜닝 지표) + GetReport. GameManager 부트스트랩 등록(QA 지적 수리).
+- Tests: EconomyAuditTests 16개 (집계/분리/GetNet/시간당 순유입/Reset/리포트)
+- Date: 2026-09-19
+
+# Cycle: C-O2-02 — Phase O2: 🏪 EconomyPricing 가격 스프레드
+- Status: ✅
+- Details: EconomyPricing(Core.Data, static) — 판매 40% 스프레드(OpenMMO: 구매 정가/판매 30~50%), 최대 흥정 할인 20% 클램프, 차익 불변식(최대할인구매 80% > 판매 40%), 등급 기준가 표(Common20/Uncommon60/Rare150/Epic400/Legendary1000/Unique2500 × 카테고리 배율 W1.5/A1.2/T1.0/P0.5/M0.3), ItemData.basePrice 필드(커스텀 우선). ShopWindowUTK/ShopWindow 가격 로직 전면 위임 + 0G 판매불가 가드(RemoveItem 선행) + 상점 골드 태그. **화술 SellBonus 프리미엄 폐지**(의도된 변경 — 스프레드 고정). QA 지적 수리: ShopWindowUTK 헤더 주석 갱신.
+- Tests: EconomyPricingTests 30개 (스프레드/올림/등급표6/배율5/basePrice우선/불변식/클램프/min1)
+- 검증: error CS=0, EditMode 106/106, QA PASS(Breaking 0 — Warn 2건 수리)
+- Date: 2026-09-19
