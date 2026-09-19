@@ -184,6 +184,21 @@ namespace ProjectName.Systems
             return false;
         }
 
+        /// <summary>
+        /// [O8 C-O8-03] 영지 무관 완료 구조물 존재 여부 — 전역 효과 판정용(대장간 수리비 할인 등).
+        /// 현재 영지 추적이 미구성(후속 과제)이라 전역 스코프로 판정한다.
+        /// </summary>
+        public bool HasAnyCompletedStructure(string effectId)
+        {
+            foreach (var s in _structures)
+            {
+                if (!s.isComplete) continue;
+                if (BlueprintData.TryGet(s.blueprintId, out var def) && def.effectId == effectId)
+                    return true;
+            }
+            return false;
+        }
+
         // ── 해체 (환불 50%) ──
 
         /// <summary>구조물 해체 — 골드 환불 50%(원장 태그 construction_refund). 벤치: 철거 검증 후 소유자만.</summary>

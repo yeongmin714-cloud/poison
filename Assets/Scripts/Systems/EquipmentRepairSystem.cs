@@ -9,6 +9,7 @@ namespace ProjectName.Systems
     /// 
     /// 수리 가능: 무기(Weapon), 방어구(Armor), 강화/특수 방독면(gasmask_3, gasmask_4)
     /// 수리 비용 = (maxDurability - currentDurability) × grade multiplier
+    /// [O8 C-O8-03] 대장간(smithy) 완료 시 ×0.7(올림) 할인 — ConstructionManager.HasAnyCompletedStructure 전역 판정.
     /// 등급 계수: Common=2g, Uncommon=5g, Rare=15g, Epic=50g, Legendary=200g
     /// </summary>
     public static class EquipmentRepairSystem
@@ -57,7 +58,15 @@ namespace ProjectName.Systems
             ItemRarity rarity = ParseGrade(itemGrade);
             int multiplier = GetGradeMultiplier(rarity);
 
-            return durabilityLoss * multiplier;
+            int cost = durabilityLoss * multiplier;
+
+            // [O8 C-O8-03] 대장간(smithy) 완료 시 수리비 30% 할인.
+            // 영지 무관 전역 완료 판정(HasAnyCompletedStructure) — Core→Systems 아님(둘 다 Systems).
+            // Instance null(EditMode/부팅 전)이면 할인 없음. GetRepairCost(ItemSlot) 오버로드는 위임 경유라 자동 적용.
+            if (ConstructionManager.Instance?.HasAnyCompletedStructure("smithy") == true)
+                cost = Mathf.CeilToInt(cost * 0.7f);
+
+            return Mathf.Max(0, cost);   // 음수 방지
         }
 
         /// <summary>
