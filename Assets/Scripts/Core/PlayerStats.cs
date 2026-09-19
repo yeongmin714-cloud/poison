@@ -50,6 +50,19 @@ namespace ProjectName.Core
 
         public int Gold => _gold;
 
+        // ── 금화 원장 (C-O2-01: OpenMMO ECONOMY.md 벤치마크) ────────────────
+        /// <summary>금화 변동 원장 항목 — EconomyAuditSystem 등 감사 시스템이 구독</summary>
+        public struct GoldLedgerEntry
+        {
+            public int amount;      // 변동량 (절대값)
+            public bool isIncome;   // true=수입(AddGold), false=지출(SpendGold)
+            public string source;   // 카테고리 태그 (예: "quest_reward", "arena_fee")
+            public int balanceAfter;// 변동 후 잔액
+        }
+
+        /// <summary>금화 변동 이벤트 — 잔액 반영 후 발화. 구독자 없으면 무시됨.</summary>
+        public static event System.Action<GoldLedgerEntry> GoldChanged;
+
         // ── Base Stats ─────────────────────────────────────────────────────
 
         [Header("Base Stats")]
@@ -353,21 +366,26 @@ namespace ProjectName.Core
         /// <summary>
         /// 골드 추가
         /// </summary>
-        public void AddGold(int amount)
+        /// <param name="amount">추가할 골드량 (음수면 SpendGold로 위임)</param>
+        /// <param name="source">원장 카테고리 태그 (예: "quest_reward", "drug_effect")</param>
+        public void AddGold(int amount, string source = "unknown")
         {
             if (amount < 0)
             {
-                SpendGold(-amount); // Use SpendGold for negative amounts
+                SpendGold(-amount, source); // Use SpendGold for negative amounts
                 return;
             }
             _gold += amount;
             Debug.Log($"[PlayerStats] Gold increased by {amount}. Total: {_gold}");
+            GoldChanged?.Invoke(new GoldLedgerEntry { amount = amount, isIncome = true, source = source, balanceAfter = _gold });
         }
 
         /// <summary>
         /// 골드 사용. 충분하지 않으면 false 반환.
         /// </summary>
-        public bool SpendGold(int amount)
+        /// <param name="amount">사용할 골드량</param>
+        /// <param name="source">원장 카테고리 태그 (예: "arena_fee", "merchant_purchase")</param>
+        public bool SpendGold(int amount, string source = "unknown")
         {
             if (amount < 0)
             {
@@ -378,6 +396,7 @@ namespace ProjectName.Core
             {
                 _gold -= amount;
                 Debug.Log($"[PlayerStats] Gold spent: {amount}. Remaining: {_gold}");
+                GoldChanged?.Invoke(new GoldLedgerEntry { amount = amount, isIncome = false, source = source, balanceAfter = _gold });
                 return true;
             }
             else
@@ -406,6 +425,7 @@ namespace ProjectName.Core
             }
 
             _gold += 1000;
+            GoldChanged?.Invoke(new GoldLedgerEntry { amount = 1000, isIncome = true, source = "revenge_list_reward", balanceAfter = _gold });
 
             Debug.Log($"[PlayerStats] 🎉 복수명부 보상 적용! ATK+5, Alchemy+10%, Speech+10레벨, Gold+1000");
         }

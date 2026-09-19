@@ -108,7 +108,7 @@ namespace ProjectName.Core
             int goldGained = Mathf.RoundToInt(baseGold * (1f + _drugAddictionLevel * 0.01f)); // addiction bonus
             if (PlayerStats.Instance != null)
             {
-                PlayerStats.Instance.AddGold(goldGained);
+                PlayerStats.Instance.AddGold(goldGained, "drug_effect");
             }
 
             Debug.Log($"[DrugEffectSystem] 💊 {drug.DrugName} (Stage {stage}): +{goldGained} gold, " +

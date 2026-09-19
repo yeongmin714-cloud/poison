@@ -195,6 +195,9 @@ namespace ProjectName.Core
             // 10. MercenaryManager
             CreateSystemIfMissing("MercenaryManager");
 
+            // 10.5 EconomyAuditSystem (Phase O2 C-O2-01) — GoldChanged 구독, 금화 원장
+            CreateSystemIfMissing("EconomyAuditSystem");
+
             // 11. SettingsMenuUI (UI)
             CreateSystemIfMissing("SettingsMenuUI");
 

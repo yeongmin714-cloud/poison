@@ -13,9 +13,9 @@ namespace ProjectName.UI.Toolkit
     ///
     /// 원본 프로젝트명: ProjectName.UI.ShopWindow (IMGUI, OnGUI). 절대 수정 금지.
     /// 본 포팅은 동일 게임 데이터 소스를 직접 호출한다:
-    ///   - 구매 가격: PlayerStats.BuyDiscount (화술 할인)
-    ///   - 판매 가격: PlayerStats.SellBonus + 카테고리 기본가 (화술 프리미엄)
-    ///   - 골드: PlayerStats.Gold / SpendGold / AddGold
+    ///   - 구매 가격: PlayerStats.BuyDiscount (화술 할인, 최대 20% 클램프)
+    ///   - 판매 가격: EconomyPricing.GetSellPrice (등급표 기준가 × 40% 스프레드 — Phase O2, 화술 프리미엄 폐지)
+    ///   - 골드: PlayerStats.Gold / SpendGold / AddGold (source 태그 부착 — EconomyAuditSystem 원장)
     ///   - 인벤토리: PlayerInventory.Instance (AddItem/RemoveItem/GetAllSlots)
     ///   - 아이콘: ItemIconDatabase.GetOrCreateIcon
     ///
@@ -259,30 +259,18 @@ namespace ProjectName.UI.Toolkit
         // =====================================================================
         // 가격 계산 (복제 금지 — PlayerStats 화술 소스 직접 호출)
         // =====================================================================
-        /// <summary>화술 할인이 적용된 구매 가격.</summary>
+        /// <summary>화술 할인이 적용된 구매 가격 — EconomyPricing 위임 (할인 밴드 ±20% 클램프).</summary>
         public int GetBuyPrice(ShopItem item)
         {
             if (item == null) return 0;
             float discount = PlayerStats.Instance?.BuyDiscount ?? 0f;
-            return Mathf.Max(1, Mathf.CeilToInt(item.price * (1f - discount)));
+            return EconomyPricing.GetBuyPrice(item.price, discount);
         }
 
-        /// <summary>화술 프리미엄이 적용된 판매 가격 (카테고리 기본가 + SellBonus).</summary>
+        /// <summary>판매 가격 — EconomyPricing 위임 (스프레드 40%, 산출 불가 시 0 = 판매 불가).</summary>
         public int CalculateSellPrice(PlayerInventory.ItemData item)
         {
-            if (item == null) return 0;
-            int basePrice;
-            switch (item.category)
-            {
-                case PlayerInventory.ItemCategory.Potion:   basePrice = 15; break;
-                case PlayerInventory.ItemCategory.Weapon:   basePrice = 30; break;
-                case PlayerInventory.ItemCategory.Armor:    basePrice = 25; break;
-                case PlayerInventory.ItemCategory.Tool:     basePrice = 20; break;
-                case PlayerInventory.ItemCategory.Material: basePrice = 5;  break;
-                default:                                    basePrice = 5;  break;
-            }
-            float bonus = PlayerStats.Instance?.SellBonus ?? 0f;
-            return Mathf.Max(1, Mathf.CeilToInt(basePrice * (1f + bonus)));
+            return EconomyPricing.GetSellPrice(item);
         }
 
         // =====================================================================
@@ -464,7 +452,10 @@ namespace ProjectName.UI.Toolkit
             info.Add(nameLabel);
 
             int sellPrice = CalculateSellPrice(slot.item);
-            var priceLabel = new Label($"x{slot.count}   판매: {sellPrice}G");
+            string priceText = sellPrice > 0
+                ? $"x{slot.count}   판매: {sellPrice}G"
+                : $"x{slot.count}   판매 불가";
+            var priceLabel = new Label(priceText);
             priceLabel.style.fontSize = 14f;
             priceLabel.style.color = UTKColor.GuildGreen;
             info.Add(priceLabel);
@@ -472,6 +463,7 @@ namespace ProjectName.UI.Toolkit
             row.Add(info);
 
             var sellBtn = UTKButton.Create("판매", () => SellSlot(slot), UTKButton.Variant.Danger);
+            sellBtn.SetEnabled(sellPrice > 0); // 0G 판매 방지
             row.Add(sellBtn);
 
             UTKWindowBase.ApplyUIToolkitFont(row);
@@ -498,7 +490,7 @@ namespace ProjectName.UI.Toolkit
             }
 
             int price = GetBuyPrice(item);
-            if (!(PlayerStats.Instance?.SpendGold(price) ?? false))
+            if (!(PlayerStats.Instance?.SpendGold(price, "shop_purchase") ?? false))
             {
                 SetStatus("골드가 부족합니다!");
                 return false;
@@ -516,7 +508,7 @@ namespace ProjectName.UI.Toolkit
             }
 
             // 인벤토리 가득 참 → 골드 환불
-            PlayerStats.Instance?.AddGold(price);
+            PlayerStats.Instance?.AddGold(price, "shop_refund");
             Debug.LogWarning("[ShopWindowUTK] 인벤토리 가득 참! 구매 취소.");
             RefreshBuyListAndGold();
             SetStatus("인벤토리가 가득 찼습니다 (구매 취소)");
@@ -533,6 +525,13 @@ namespace ProjectName.UI.Toolkit
             }
 
             int sellPrice = CalculateSellPrice(slot.item);
+            if (sellPrice <= 0)
+            {
+                // 0G 판매 방지 (무가격/산출 불가 아이템)
+                SetStatus("판매 불가");
+                return false;
+            }
+
             bool removed = PlayerInventory.Instance.RemoveItem(slot.item.id, 1);
             if (!removed)
             {
@@ -540,7 +539,7 @@ namespace ProjectName.UI.Toolkit
                 return false;
             }
 
-            PlayerStats.Instance?.AddGold(sellPrice);
+            PlayerStats.Instance?.AddGold(sellPrice, "shop_sale");
             Debug.Log($"[ShopWindowUTK] 판매 성공: {slot.item.displayName} → {sellPrice}G");
             RefreshBuyListAndGold();
             SetStatus($"{slot.item.displayName} 판매 → {sellPrice}G");

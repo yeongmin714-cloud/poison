@@ -197,7 +197,7 @@ namespace ProjectName.Systems
             // 참가비 지불
             int fee = GetCurrentEntryFee();
             if (PlayerStats.Instance != null)
-                PlayerStats.Instance.SpendGold(fee);
+                PlayerStats.Instance.SpendGold(fee, "arena_fee");
 
             _isInBattle = true;
             _battleState = ArenaBattleState.InProgress;
@@ -253,7 +253,7 @@ namespace ProjectName.Systems
             // 참가비 지불
             int fee = GetCurrentEntryFee();
             if (PlayerStats.Instance != null)
-                PlayerStats.Instance.SpendGold(fee);
+                PlayerStats.Instance.SpendGold(fee, "arena_fee");
 
             _isInBattle = true;
             _battleState = ArenaBattleState.InProgress;
@@ -304,7 +304,7 @@ namespace ProjectName.Systems
 
             int fee = GetCurrentEntryFee();
             if (PlayerStats.Instance != null)
-                PlayerStats.Instance.SpendGold(fee);
+                PlayerStats.Instance.SpendGold(fee, "arena_fee");
 
             _isInBattle = true;
             _battleState = ArenaBattleState.InProgress;
@@ -448,7 +448,7 @@ namespace ProjectName.Systems
 
                 // 골드 보상 지급
                 if (PlayerStats.Instance != null)
-                    PlayerStats.Instance.AddGold(reward);
+                    PlayerStats.Instance.AddGold(reward, "arena_reward");
 
                 // 연승 보너스 배율 표시
                 _currentLog.bonusMultiplier = GetWinStreakMultiplier();

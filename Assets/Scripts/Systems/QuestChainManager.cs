@@ -373,7 +373,7 @@ namespace ProjectName.Systems
             // 1. 골드 보상
             if (result.goldReward > 0 && PlayerStats.Instance != null)
             {
-                PlayerStats.Instance.AddGold(result.goldReward);
+                PlayerStats.Instance.AddGold(result.goldReward, "quest_reward");
                 Debug.Log($"[QuestChainManager] 보상: 골드 +{result.goldReward}");
             }
 

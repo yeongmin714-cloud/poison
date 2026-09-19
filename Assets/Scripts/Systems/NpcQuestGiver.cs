@@ -102,7 +102,7 @@ namespace ProjectName.Systems
 
                 if (PlayerStats.Instance != null)
                 {
-                    PlayerStats.Instance.AddGold(_quest.rewardGold);
+                    PlayerStats.Instance.AddGold(_quest.rewardGold, "quest_reward");
                     PlayerStats.Instance.AddEXP(_quest.rewardExp);
                 }
                 else

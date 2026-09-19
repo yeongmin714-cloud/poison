@@ -476,7 +476,7 @@ namespace ProjectName.UI
             }
             
             // 골드 확인 및 차감 (화술 할인 적용)
-            if (!(PlayerStats.Instance?.SpendGold(GetBuyPrice(item)) ?? false)) return;
+            if (!(PlayerStats.Instance?.SpendGold(GetBuyPrice(item), "shop_purchase") ?? false)) return;
             
             // 재고 확인 및 감소 (-1은 무한)
             if (item.stock > 0)
@@ -493,7 +493,7 @@ namespace ProjectName.UI
             else
             {
                 // 인벤토리 가득 찼으면 골드 환불
-                PlayerStats.Instance?.AddGold(GetBuyPrice(item));
+                PlayerStats.Instance?.AddGold(GetBuyPrice(item), "shop_refund");
                 Debug.LogWarning("[ShopWindow] 인벤토리 가득 참! 구매 취소.");
             }
         }
@@ -502,7 +502,7 @@ namespace ProjectName.UI
         public bool BuyItem(ShopItem item)
         {
             if (item == null || item.item == null) return false;
-            if (!(PlayerStats.Instance?.SpendGold(GetBuyPrice(item)) ?? false)) return false;
+            if (!(PlayerStats.Instance?.SpendGold(GetBuyPrice(item), "shop_purchase") ?? false)) return false;
 
             if (item.stock > 0)
             {
@@ -517,7 +517,7 @@ namespace ProjectName.UI
             }
             else
             {
-                PlayerStats.Instance?.AddGold(GetBuyPrice(item));
+                PlayerStats.Instance?.AddGold(GetBuyPrice(item), "shop_refund");
                 Debug.LogWarning("[ShopWindow] 인벤토리 가득 참! 구매 취소.");
                 return false;
             }
@@ -545,42 +545,34 @@ namespace ProjectName.UI
                 return;
             }
 
-            // 첫 번째 아이템 판매 (가격은 아이템 등급에 따라 1~100G)
+            // 첫 번째 아이템 판매 (EconomyPricing 스프레드 40%)
             var itemData = firstSlot.item;
             int sellPrice = CalculateSellPrice(itemData);
+            if (sellPrice <= 0)
+            {
+                // 0G 판매 방지 (무가격/산출 불가 아이템)
+                Debug.Log($"[ShopWindow] 판매 불가: {itemData.displayName}");
+                return;
+            }
             PlayerInventory.Instance.RemoveItem(itemData.id, 1);
-            PlayerStats.Instance?.AddGold(sellPrice);
+            PlayerStats.Instance?.AddGold(sellPrice, "shop_sale");
             Debug.Log($"[ShopWindow] 판매 성공: {itemData.displayName} → {sellPrice}G");
             RefreshShopItems();
             UpdateGoldDisplay();
         }
 
-        // 화술(Speech) 기반 구매 할인 적용 가격 계산 (2026-09-17)
+        // 화술(Speech) 기반 구매 할인 적용 가격 계산 — EconomyPricing 위임 (O2 C-O2-02, 할인 밴드 ±20% 클램프)
         private int GetBuyPrice(ShopItem item)
         {
             if (item == null) return 0;
             float discount = PlayerStats.Instance?.BuyDiscount ?? 0f;
-            return Mathf.Max(1, Mathf.CeilToInt(item.price * (1f - discount)));
+            return EconomyPricing.GetBuyPrice(item.price, discount);
         }
 
-        // 판매 가격 계산 (아이템 카테고리/등급 기반)
+        // 판매 가격 계산 — EconomyPricing 위임 (스프레드 40%, 산출 불가 시 0 = 판매 불가)
         private int CalculateSellPrice(PlayerInventory.ItemData item)
         {
-            // 기본 가격 5G, Potion=15G, Weapon=30G, Armor=25G, Tool=20G
-            int basePrice;
-            switch (item.category)
-            {
-                case PlayerInventory.ItemCategory.Potion: basePrice = 15; break;
-                case PlayerInventory.ItemCategory.Weapon: basePrice = 30; break;
-                case PlayerInventory.ItemCategory.Armor: basePrice = 25; break;
-                case PlayerInventory.ItemCategory.Tool: basePrice = 20; break;
-                case PlayerInventory.ItemCategory.Material: basePrice = 5; break;
-                default: basePrice = 5; break;
-            }
-
-            // 화술 높을수록 비싸게 판매
-            float bonus = PlayerStats.Instance?.SellBonus ?? 0f;
-            return Mathf.Max(1, Mathf.CeilToInt(basePrice * (1f + bonus)));
+            return EconomyPricing.GetSellPrice(item);
         }
         
         // 상점 아이템 목록 새로고침

@@ -70,7 +70,7 @@ namespace ProjectName.Systems
         {
             if (PlayerStats.Instance == null) return;
 
-            if (!PlayerStats.Instance.SpendGold(_donationAmount))
+            if (!PlayerStats.Instance.SpendGold(_donationAmount, "church_donation"))
             {
                 Debug.Log($"[ChurchSystem] {_churchName}: 골드가 부족합니다.");
                 return;
@@ -129,7 +129,7 @@ namespace ProjectName.Systems
             int canSpend = Mathf.Min(amount, PlayerStats.Instance.Gold);
             if (canSpend <= 0) return 0;
 
-            if (!PlayerStats.Instance.SpendGold(canSpend))
+            if (!PlayerStats.Instance.SpendGold(canSpend, "church_donation"))
                 return 0;
 
             int favorGain = canSpend / 10;

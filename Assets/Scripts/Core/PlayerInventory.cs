@@ -33,6 +33,7 @@ namespace ProjectName.Core
             public ItemRarity rarity = ItemRarity.Common;
             public string effects = "";
             public bool isBomb = false; // 폭탄 — 퀵슬롯 사용 시 무장(소모 금지), 좌클릭 투척
+            public int basePrice = 0; // O2 C-O2-02: 기본가 (0 = 무가격 → EconomyPricing 등급표 폴백. 기존 정의 하위호환)
         }
 
         public enum ItemCategory

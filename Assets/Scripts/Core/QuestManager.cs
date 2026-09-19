@@ -245,7 +245,7 @@ namespace ProjectName.Core
         private static void GiveRewards(QuestData quest)
         {
             if (quest.reward.gold > 0 && PlayerStats.Instance != null)
-                PlayerStats.Instance.AddGold(quest.reward.gold);
+                PlayerStats.Instance.AddGold(quest.reward.gold, "quest_reward");
 
             if (quest.reward.exp > 0 && PlayerStats.Instance != null)
                 PlayerStats.Instance.AddEXP(quest.reward.exp);

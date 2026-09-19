@@ -135,7 +135,7 @@ namespace ProjectName.Systems
 
             int totalPrice = Mathf.RoundToInt(item.price * _priceMultiplier * (1f - (PlayerStats.Instance?.BuyDiscount ?? 0f)) * count);
 
-            if (!PlayerStats.Instance.SpendGold(totalPrice))
+            if (!PlayerStats.Instance.SpendGold(totalPrice, "merchant_purchase"))
             {
                 Debug.Log($"[WanderingMerchant] 골드 부족! 필요: {totalPrice}");
                 return false;
@@ -146,7 +146,7 @@ namespace ProjectName.Systems
             if (itemData == null)
             {
                 Debug.LogWarning($"[WanderingMerchant] 아이템 데이터 없음: {item.itemId}");
-                PlayerStats.Instance.AddGold(totalPrice); // 환불
+                PlayerStats.Instance.AddGold(totalPrice, "merchant_refund"); // 환불
                 return false;
             }
 
@@ -154,14 +154,14 @@ namespace ProjectName.Systems
             if (inventory == null)
             {
                 Debug.LogError("[WanderingMerchant] PlayerInventory.Instance is null! 환불 처리.");
-                PlayerStats.Instance.AddGold(totalPrice);
+                PlayerStats.Instance.AddGold(totalPrice, "merchant_refund");
                 return false;
             }
 
             bool added = inventory.AddItem(itemData, count);
             if (!added)
             {
-                PlayerStats.Instance.AddGold(totalPrice); // 환불
+                PlayerStats.Instance.AddGold(totalPrice, "merchant_refund"); // 환불
                 Debug.LogWarning("[WanderingMerchant] 인벤토리 가득 참!");
                 return false;
             }
@@ -202,7 +202,7 @@ namespace ProjectName.Systems
             int smugglePrice = Mathf.FloorToInt(SmuggleSystem.EstimateBaseValue(itemData)
                                                 * (PlayerStats.Instance?.SmuggleGainMultiplier ?? 1f) * count);
 
-            PlayerStats.Instance.AddGold(smugglePrice);
+            PlayerStats.Instance.AddGold(smugglePrice, "smuggle_sale");
             inventory.RemoveItem(itemData.id, count);
 
             Debug.Log($"[WanderingMerchant] 밀매 완료: {itemData.displayName} x{count} → {smugglePrice}G (프리미엄 x{(PlayerStats.Instance?.SmuggleGainMultiplier ?? 1f):F2})");
