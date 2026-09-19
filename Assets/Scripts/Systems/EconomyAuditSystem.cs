@@ -122,18 +122,29 @@ namespace ProjectName.Systems
             }
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            PlayerStats.GoldChanged += OnGoldChanged;
+            EnsureSubscribed();
         }
 
         private void OnEnable()
         {
             _sessionStart = Time.unscaledTime;
+            EnsureSubscribed(); // [O2] 이중 보험 — Awake 콜백 누락 환경(에디터 테스트 등)에서도 구독 보장
         }
 
         private void OnDestroy()
         {
             PlayerStats.GoldChanged -= OnGoldChanged;
             if (Instance == this) Instance = null;
+        }
+
+        /// <summary>
+        /// 이벤트 구독 (멱등 — -= 후 += 로 이중 구독 방지).
+        /// public: 테스트/수동 복구용 명시 훅.
+        /// </summary>
+        public void EnsureSubscribed()
+        {
+            PlayerStats.GoldChanged -= OnGoldChanged;
+            PlayerStats.GoldChanged += OnGoldChanged;
         }
 
         /// <summary>세션 경과 분 (OnEnable 이후 unscaledTime 기준)</summary>

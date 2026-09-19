@@ -1,5 +1,7 @@
 using NUnit.Framework;
+using ProjectName.Core;
 using ProjectName.Systems;
+using UnityEngine;
 
 namespace ProjectName.Tests.EditMode
 {
@@ -205,6 +207,51 @@ namespace ProjectName.Tests.EditMode
             EconomyAuditLedger.RecordIncome("quest_reward", 100);
 
             Assert.DoesNotThrow(() => EconomyAuditLedger.GetReport(0f));
+        }
+
+        // ── C-O2-04 통합: PlayerStats 이벤트 → 원장 라이브 연결 ──────────────
+
+        [Test]
+        public void Integration_PlayerStatsEvents_FeedLedger()
+        {
+            // EditMode에서 컴포넌트 2개 생성 — GoldChanged(정적 이벤트)→원장 실배선 검증.
+            // 싱글턴 프로퍼티(잔존 파괴 참조 이슈)가 아닌 컴포넌트 참조로 조작.
+            var psGo = new GameObject("PlayerStats_IntTest");
+            var ps = psGo.AddComponent<PlayerStats>();
+            var auditGo = new GameObject("EconomyAudit_IntTest");
+            var audit = auditGo.AddComponent<EconomyAuditSystem>();
+
+            try
+            {
+                Assert.IsNotNull(ps, "PlayerStats 컴포넌트");
+                Assert.IsNotNull(audit, "EconomyAuditSystem 컴포넌트");
+
+                // 진단 프로브 — 이벤트 발화 자체 확인
+                int fired = 0;
+                System.Action<PlayerStats.GoldLedgerEntry> probe = e => fired++;
+                PlayerStats.GoldChanged += probe;
+
+                audit.EnsureSubscribed(); // 명시 구독(멱등) — 이벤트→원장 배선 검증 대상
+
+                ps.AddGold(500, "quest_reward");        // +500 → 이벤트
+                ps.SpendGold(120, "shop_purchase");     // -120 → 이벤트
+                ps.SpendGold(999999, "shop_purchase");  // 실패 — 무기록
+
+                PlayerStats.GoldChanged -= probe;
+                Assert.GreaterOrEqual(fired, 2, "프로브 발화(2ops)");
+
+                Assert.AreEqual(500, EconomyAuditLedger.GetIncome("quest_reward"));
+                Assert.AreEqual(120, EconomyAuditLedger.GetOutflow("shop_purchase"));
+                Assert.AreEqual(380, EconomyAuditLedger.GetNet());
+                Assert.AreEqual(380, ps.Gold, "잔액 = 수입 - 지출(실패 무차감)");
+            }
+            finally
+            {
+                Object.DestroyImmediate(psGo);
+                Object.DestroyImmediate(auditGo);
+                PlayerStats.ResetInstance();
+                EconomyAuditLedger.ResetAudit();
+            }
         }
     }
 }
