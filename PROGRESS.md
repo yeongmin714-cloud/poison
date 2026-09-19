@@ -413,3 +413,9 @@
 | └ C-O1-03 | 세트 파밍 튜닝 — SetChestTuning(닫힌식 H_K/p 기대 ~5회, 레벨밴드 30/33/37% 롤, 월드 희소 0.1~0.5%) + ApplySoldierDrops 배선 + 13테스트 | ✅ 2026-09-19 |
 | └ C-O1-04 | 세트 보너스 통합 — GuardEquipmentSystem.CalculateSetBonus → 공/방 4종 getter + ItemDescriptionWindowUTK 세트 표시 + 9테스트 (EditMode 56/56, CS1503 IReadOnlyList 수리) | ✅ 2026-09-19 |
 | └ C-O1-05 | Play 판정 — 병사 처치 세트 파츠 드랍/설명창 세트 표시/드랍 명확성/밸런스 스냅샷 | ⬜ |
+| O2 경제 리밸런싱 | C-O2-01~05 | 🔄 |
+| └ C-O2-01 | 금화 원장 — PlayerStats.GoldChanged 이벤트+source 태그 19곳 + EconomyAuditSystem(카테고리 집계/시간당 순유입/리포트) + GameManager 부트스트랩 + 16테스트 | ✅ 2026-09-19 |
+| └ C-O2-02 | EconomyPricing — 판매 40% 스프레드/차익 불변식(80%>40%)/등급 기준가 표/흥정 할인 20% 클램프/화술 프리미엄 폐지 + 상점창 위임·0G판매 가드 + 30테스트 (106/106, QA PASS) | ✅ 2026-09-19 |
+| └ C-O2-03 | 유출구 설치 — 창고 슬롯 확장 비용 + 수리비 골드 성분 | ⬜ |
+| └ C-O2-04 | 감사 리포트 실측 튜닝 — 1시간 순유입 ±10% 목표 | ⬜ |
+| └ C-O2-05 | Play 판정 — 상점/판매/원장 리포트 회귀 | ⬜ |
