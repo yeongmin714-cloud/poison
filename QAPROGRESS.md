@@ -2572,3 +2572,22 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 - code_test/Assets 절대 삭제 금지 — code/Assets에 없는 67파일(castle.glb, 지형텍스처 east_grass*·empire_marble·north_snow1 등) 존재.
 - state.db 6.9G는 진짜 세션 데이터(freelist 72p) — 보존.
 - pagefile 7.9G(자동관리), Unity 에디터 13G, poly/Meshy/Desktop 에셋은 사용자 자산 — 보존.
+
+## 📌 세션 스냅샷 (2026-09-19 ✅ 노란 경고 재발 뿌리 수리 — Theme.uss 그라데이션 → 베이크 PNG (U9-W1))
+
+> **입력**: 사용자 — "UI가 노란 경고창으로 깨진다". 어제 수리(UTKBackgroundHealer/죽은 배경)와 **다른 뿌리**.
+
+### 진단 (Editor.log 실측)
+- 경고: `Invalid value for image texture Function` — 스택: `StylePropertyReader:TryGetImageSourceFromValue → ReadBackground → ProcessMatchedRules`
+- "Function" = background-image 값이 그라데이션 **함수**. 어제 것(파괴된 텍스처 참조)과 다른 별개 뿌리.
+- 뿌리: **U9 입체 테마(87612629)에서 Theme.uss에 넣은 `linear-gradient`/`radial-gradient` 8곳** — Unity 6는 background-image의 Function 값을 텍스처로 읽지 못해 매 스타일 갱신마다 경고 + 이미지 소스 미적용(입체 렌더 누락 = 깨짐).
+- [UTKBackgroundHealer] 로그 0건 — 치유 대상(죽은 텍스처) 없음 = 히일러 정상, 이번 뿌리는 USS 구문 자체.
+
+### 수리 (1파일 + 신규 에셋 6)
+- PIL로 그라데이션을 **동일 색상/알파로 베이크한 PNG 6종** 생성: bg_window(윈도우+모달)/bg_tooltip(툴팁+토스트)/bg_button/bg_button_hover/bg_slot(인셋)/glow_hover_gold(슬롯 호버 radial)
+- Theme.uss 8곳 `background-image: url(...)` + `-unity-background-scale-mode: stretch-and-crop` 교체 — 색상·알파 수치 그대로 이관(디자인 무손상)
+- 부수 효과: 임포트 에셋이라 런타임 파괴(어제의 죽은 배경 뿌리)도 이 요소들에서 원천 차단
+- 검증: 배치컴파일 error CS=0, meta 6종 자동 생성 확인
+
+### Play 판정 대기
+①노란 경고 "Invalid value for image texture Function" 소멸 ②창/버튼/슬롯에 세로 입체 그라데이션 정상 렌더 ③호버 골드 글로우 유지 ④소프트 섀도우·베벨 회귀 없음
