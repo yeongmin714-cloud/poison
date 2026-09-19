@@ -92,6 +92,7 @@ namespace ProjectName.UI.Toolkit
         private readonly VisualElement _whGrid;
         private readonly Label _territoryButton;
         private readonly Label _capacityLabel;
+        private Label _expandButton;   // [C-O2-03b] 확장 버튼
         private readonly VisualElement _territoryMenu;
         private Label _statusLabel;
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
@@ -124,6 +125,14 @@ namespace ProjectName.UI.Toolkit
             _capacityLabel.style.fontSize = 13f;
             _capacityLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             headerRow.Add(_capacityLabel);
+
+            // [C-O2-03b] 슬롯 확장 버튼 — 골드 유출구 (비용 표시, 최대 도달 시 비활성)
+            _expandButton = new Label("");
+            _expandButton.AddToClassList("utk-btn");
+            _expandButton.style.fontSize = 13f;
+            _expandButton.style.marginLeft = 8f;
+            _expandButton.RegisterCallback<PointerDownEvent>(_ => OnExpandClicked());
+            headerRow.Add(_expandButton);
 
             _content.Add(headerRow);
 
@@ -332,12 +341,48 @@ namespace ProjectName.UI.Toolkit
             RefreshCapacity();
         }
 
+        /// <summary>[C-O2-03b] 확장 클릭 — WarehouseSystem.TryExpandSlots → 결과 표시 + 갱신.</summary>
+        private void OnExpandClicked()
+        {
+            var ws = WarehouseSystem.Instance;
+            if (ws == null)
+            {
+                _statusLabel.text = "창고 시스템 없음";
+                return;
+            }
+            string result = ws.TryExpandSlots(_territoryId);
+            _statusLabel.text = result;
+            RefreshGrid();
+        }
+
         private void RefreshCapacity()
         {
             int used = 0;
             var items = WarehouseSystem.Instance != null ? WarehouseSystem.Instance.GetItems(_territoryId) : null;
             if (items != null) used = items.Count;
-            _capacityLabel.text = $"용량: {used}/{MaxSlots}";
+            // [C-O2-03b] 확장 반영 동적 용량
+            int capacity = WarehouseSystem.Instance != null
+                ? WarehouseSystem.Instance.GetSlotCapacity(_territoryId)
+                : MaxSlots;
+            _capacityLabel.text = $"용량: {used}/{capacity}";
+
+            // 확장 버튼 상태
+            if (_expandButton != null)
+            {
+                if (WarehouseSystem.Instance == null || !WarehouseSystem.Instance.CanExpand(_territoryId))
+                {
+                    _expandButton.text = "확장 최대";
+                    _expandButton.style.opacity = 0.45f;
+                    _expandButton.pickingMode = PickingMode.Ignore;
+                }
+                else
+                {
+                    int cost = WarehouseSystem.Instance.GetNextExpansionCost(_territoryId);
+                    _expandButton.text = $"+{WarehouseSystem.SlotsPerExpansion}슬롯 ({cost}G)";
+                    _expandButton.style.opacity = 1f;
+                    _expandButton.pickingMode = PickingMode.Position;
+                }
+            }
         }
 
         private void RefreshInventoryGrid()
@@ -393,7 +438,11 @@ namespace ProjectName.UI.Toolkit
             }
             int total = items != null ? items.Count : 0;
 
-            int rows = (MaxSlots + Columns - 1) / Columns;
+            // [C-O2-03b] 확장 반영 동적 행 수
+            int dynamicCapacity = WarehouseSystem.Instance != null
+                ? WarehouseSystem.Instance.GetSlotCapacity(_territoryId)
+                : MaxSlots;
+            int rows = (dynamicCapacity + Columns - 1) / Columns;
             for (int r = 0; r < rows; r++)
             {
                 for (int c = 0; c < Columns; c++)

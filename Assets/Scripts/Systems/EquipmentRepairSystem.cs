@@ -200,7 +200,8 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 인벤토리 기반 장비 수리 실행.
-        /// 인벤토리에서 해당 아이템을 찾아 내구도를 회복하고 골드를 차감합니다.
+        /// 인벤토리에서 해당 아이템을 찾아 내구도를 회복하고
+        /// PlayerStats 지갑에서 골드를 차감합니다 (원장 태그: "repair").
         /// </summary>
         /// <param name="slotIndex">인벤토리 슬롯 인덱스</param>
         /// <returns>수리 결과</returns>
@@ -235,8 +236,8 @@ namespace ProjectName.Systems
                 };
             }
 
-            // 골드 보유량 확인
-            int playerGold = PlayerInventory.Instance.GetItemCount("gold");
+            // 골드 보유량 확인 — PlayerStats 지갑 (C-O2-03a: 인벤 "gold" 아이템 경로 제거)
+            int playerGold = PlayerStats.Instance != null ? PlayerStats.Instance.Gold : 0;
 
             // 수리 실행
             int goldRef = playerGold;
@@ -256,18 +257,18 @@ namespace ProjectName.Systems
                 int originalDurability = slot.currentDurability;
                 slot.currentDurability = result.newDurability;
 
-                // 골드 차감
+                // 골드 차감 — PlayerStats 지갑 + 원장("repair" 태그, EconomyAuditSystem 연동)
                 int goldSpent = playerGold - goldRef;
                 if (goldSpent > 0)
                 {
-                    if (!PlayerInventory.Instance.RemoveItem("gold", goldSpent))
+                    if (PlayerStats.Instance == null || !PlayerStats.Instance.SpendGold(goldSpent, "repair"))
                     {
-                        // RemoveItem 실패 시 내구도 복원
+                        // 차감 실패 시 내구도 복원
                         slot.currentDurability = originalDurability;
                         return new RepairResult
                         {
                             success = false,
-                            message = $"골드 차감 실패! {goldSpent}G를 제거할 수 없습니다.",
+                            message = $"골드 차감 실패! {goldSpent}G를 차감할 수 없습니다.",
                             goldCost = goldSpent
                         };
                     }
