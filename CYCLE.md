@@ -808,3 +808,9 @@
 - Details: InstrumentData(Core.Data) 5종 프로필 — 류트15/10/10(기준)·전쟁피리20/5/15·행군드럼10/15/20·환희하프10/10/10·돌격나팔25/5/5, ToItemData(basePrice 150, id "instrument_" 접두 → Instrument 슬롯 통과). BardMercenary.ApplyBuffs 장착 악기 프로필 연동(미장착=기존 기본값). InstrumentPerformanceSystem(싱글톤+B키 토글, duration 60/쿨다운 30) — 파티 전체 버프 소스 "performance" 부여/해제. 상점 재고 3종(류트 400G 무한/피리·드럼 350G×3). 수리 5건: ItemRarity 참조, using 누락 2곳, **Awake 미실행 환경 패턴 확정** → EnsureDatabase(MercenaryManager)+FindAnyObjectByType 폴백(MercenaryManager 게이트·GuardEquipmentSystem isBard·InstrumentPerformanceSystem 2곳).
 - Tests: InstrumentTests 24개 (프로필 5/ItemData/재고/연주 상태머신/쿨다운/이중시작) → EditMode 232/232
 - Date: 2026-09-20
+
+# Cycle: C-O8-01/02/05 — Phase O8 Batch A: 🏗️ 성 영지 건설 코어
+- Status: ✅ (Batch B — UI/인테리어 접합 다음)
+- Details: BlueprintData(Core.Data) 8종 — 외벽150G/대문300/탑500/창고증축250/축사400/대장간450/정원200/망루350 + ValidatePlacement(영지 경계/기존 겹침 순수 검증)+TerrainFlatCheck(런타임 Raycast). ConstructionManager(Systems 싱글톤) — TryPlace 순서(정의→검증→지형→골드 소비 벤치 원칙 "실패 시 소비 없음"), 시공 진행(Update), warehouse_ext 완료 → WarehouseSystem.AddExpansionLevel(골드 미지출), HasStructure(대장간/축사 효과 확인용), Demolish 환불 50%("construction_refund"), 절차 프리미티브 시각물(런타임). SaveData.constructions + Collect/Apply(오프라인 간편 규칙: 미완료→로드 시 완료 승격). 부트스트랩 등록(중복 SeparationSystem 정리).
+- Tests: ConstructionTests 14개 (설계도8/검증3/배치 골드/해체 환불/창고 캡/라운드트립/오프라인 승격) → EditMode 246/246 (CS1654 foreach 구조체 수정/스코어 4회 수리)
+- Date: 2026-09-20
