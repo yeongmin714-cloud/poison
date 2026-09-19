@@ -3030,3 +3030,24 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 
 ### U9-3 (2026-09-18 ✅) — 폭탄 투척 액션 시스템
 창고 멱등 시딩(WarehouseSystem.SeedDefaultBombs) → 퀵슬롯(QuickSlotUI) 등록 후 번호키로 무장(BombArmController.ToggleArm, isBomb 판정, 소모 없음) → 무장 중 좌클릭 시 AttackSystem/PlayerCombat 게이트로 ThrowTowardCursor(커서 포물선, Bomb.cs 폭발). BombThrowIssuedThisFrame+즉시Disarm 이중 방지로 정확 1회. 신규: BombArmController/BombExplosionVisual/Bombs 프리팹. CS0234 순환참조(Core→Systems) 수리 — 무장 분기 UI 계층 이동. error CS=0.
+
+---
+
+## Phase O 시리즈: 🧪 OpenMMO 벤치마크 통합 로드맵 (계획 수립 — U8 완료 후 개시)
+
+> **계획서: `docs/OPENMMO_INTEGRATION_PLAN.md`** — 참고문서 `docs/reference/openmmo/`(38종, 인덱스 README.md).
+> 밸런스 라인(O1티어/드랍→O2경제→O3레벨곡선) → 전투(O4스탯/O5군집) → 컨텐츠(O6칭호/O7악기) → 대형(O8성건설) → 심화(O9 LLM NPC/O10 생활컨텐츠). O11(지형/강/날씨)은 좌표함정 재설계 전까지 PARKED.
+
+| Phase | 이름 | 상태 |
+|:------|:-----|:----:|
+| O1 | 아이템 티어 세트 & 드랍 (ITEM_TIERS) | ⬜ |
+| O2 | 경제 리밸런싱 (ECONOMY/PRICING) | ⬜ |
+| O3 | 레벨 곡선 페이스 (LEVEL_CURVE) | ⬜ |
+| O4 | 컴뱃 스탯 고도화 (COMBAT) | ⬜ |
+| O5 | 군집 회피 (MONSTER_SEPARATION) | ⬜ |
+| O6 | 칭호 시스템 (TITLES/HEROIC_TALES) | ⬜ |
+| O7 | 바드 악기 확장 (INSTRUMENT) | ⬜ |
+| O8 | 성 영지 건설 (HOUSE_BUILDING/HOUSING) | ⬜ |
+| O9 | LLM NPC (NPC_MONSTER_AI) | ⬜ |
+| O10 | 생활 컨텐츠 번들 (FISHING/HUNGER/MOUNTS) | ⬜ |
+| O11 | 지형/강/날씨 리워크 | 🅿️ PARKED |
