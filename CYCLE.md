@@ -748,3 +748,9 @@
 - Tests: RepairLedgerTests 8 + WarehouseExpansionTests 10 (용량공식/비용표/라운드트립/클램프/경계/Clear리셋)
 - 검증: error CS=0, EditMode 124/124 (CS0103 SetStatus→_statusLabel 자가 수리)
 - Date: 2026-09-19
+
+# Cycle: C-O2-04 (1/2) — Phase O2: 🔍 원장 배선 통합테스트 + 구독 멱등화
+- Status: ✅ (실측 튜닝 2/2는 Play 리포트 후)
+- Details: EconomyAuditSystem.EnsureSubscribed() 신규(멱등 -=/+=) — Awake/OnEnable 이중 보험(에디터 테스트 환경 Awake 콜백 누락 대응) + public 훅. 통합테스트 신설: EditMode에서 PlayerStats+EconomyAuditSystem 실제 생성 → AddGold/SpendGold → 원장 카테고리 집계+잔액 검증(500/120/실패무기록). 진단 과정: 프로브 카운트 설계 오차 3회 수리.
+- Tests: EconomyAuditTests +1 (Integration_PlayerStatsEvents_FeedLedger) → EditMode 125/125
+- Date: 2026-09-19
