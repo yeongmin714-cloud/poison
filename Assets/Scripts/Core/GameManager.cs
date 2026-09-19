@@ -205,6 +205,9 @@ namespace ProjectName.Core
             CreateSystemIfMissing("TitleManager");
             CreateSystemIfMissing("SeparationSystem");
 
+            // 10.8 InstrumentPerformanceSystem (Phase O7) — B키 바드 연주 토글, 악기별 버프 소스
+            CreateSystemIfMissing("InstrumentPerformanceSystem");
+
             // 11. SettingsMenuUI (UI)
             CreateSystemIfMissing("SettingsMenuUI");
 

@@ -304,7 +304,9 @@ namespace ProjectName.Systems
             }
 
             // 최소 등급 확인 + 슬롯 적합성 확인 (바드 직업은 악기 슬롯 가능)
-            var mercData = MercenaryManager.Instance?.GetMercenaryData(mercenaryId);
+            // [O7] 싱글턴 미연결 환경 대응 — FindAnyObjectByType 폴백
+            var mercMgr = MercenaryManager.Instance ?? FindAnyObjectByType<MercenaryManager>();
+            var mercData = mercMgr?.GetMercenaryData(mercenaryId);
             bool isBard = mercData.HasValue && mercData.Value.jobType == "Bard";
 
             var minGrade = UniqueItemConstraint.ParseMinGrade(item.effects);

@@ -35,8 +35,18 @@ namespace ProjectName.Systems
 			Instance = this;
 			DontDestroyOnLoad(gameObject);
 
-			InitializeDatabase();
+			EnsureDatabase();
 		}
+
+		/// <summary>[O7] DB 초기화 멱등 훅 — Awake 미실행 환경(에디터 테스트 등) 대응. HireMercenary 등 진입점에서 호출.</summary>
+		public void EnsureDatabase()
+		{
+			if (_databaseInitialized) return;
+			InitializeDatabase();
+			_databaseInitialized = true;
+		}
+
+		private bool _databaseInitialized;
 
 		private void InitializeDatabase()
 		{
@@ -149,8 +159,12 @@ namespace ProjectName.Systems
 		/// <summary>용병 고용</summary>
 		public bool HireMercenary(string mercenaryId)
 		{
+			EnsureDatabase(); // [O7] Awake 미실행 환경 대응
+
 			// [O3 C-O3-03] 컨텐츠 게이트 — "tavern_mercenary" (Lv5, 초반 보호). 가장 얕은 진입점에서 차단.
-			int level = PlayerStats.Instance?.Level ?? 1;
+			// [O7] 싱글턴 미연결 환경(에디터 테스트) 대응 — FindAnyObjectByType 폴백.
+			var stats = PlayerStats.Instance != null ? PlayerStats.Instance : FindAnyObjectByType<PlayerStats>();
+			int level = stats?.Level ?? 1;
 			if (!ContentGate.IsUnlocked("tavern_mercenary", level))
 			{
 				Debug.LogWarning("[MercenaryManager] " + ContentGate.GetLockedMessage("tavern_mercenary"));

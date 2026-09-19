@@ -1,4 +1,5 @@
 using UnityEngine;
+using ProjectName.Core.Data; // Phase O7: InstrumentData
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -119,11 +120,12 @@ namespace ProjectName.Systems
 
             if (BardBuffManager.Instance != null)
             {
+                ResolveBuffPercents(out float atk, out float def, out float spd);
                 BardBuffManager.Instance.RegisterBuffedGuard(guard, new BardBuffData
                 {
-                    attackBonus = _attackBuffPercent / 100f,
-                    defenseBonus = _defenseBuffPercent / 100f,
-                    speedBonus = _speedBuffPercent / 100f,
+                    attackBonus = atk / 100f,
+                    defenseBonus = def / 100f,
+                    speedBonus = spd / 100f,
                     sourceId = _mercenaryId
                 });
             }
@@ -134,14 +136,38 @@ namespace ProjectName.Systems
         {
             if (BardBuffManager.Instance != null)
             {
+                ResolveBuffPercents(out float atk, out float def, out float spd);
                 BardBuffManager.Instance.RegisterBuffedMercenary(merc, new BardBuffData
                 {
-                    attackBonus = _attackBuffPercent / 100f,
-                    defenseBonus = _defenseBuffPercent / 100f,
-                    speedBonus = _speedBuffPercent / 100f,
+                    attackBonus = atk / 100f,
+                    defenseBonus = def / 100f,
+                    speedBonus = spd / 100f,
                     sourceId = _mercenaryId
                 });
             }
+        }
+
+        /// <summary>
+        /// Phase O7: 장착 악기 프로필 조회 → 있으면 프로필 퍼센트, 없으면 SerializeField 기본값.
+        /// GuardEquipmentSystem(용병 Instrument 슬롯) → InstrumentData.GetProfile.
+        /// 이동/버프 로직 구조는 유지, 퍼센트 산출만 오버라이드.
+        /// </summary>
+        private void ResolveBuffPercents(out float attack, out float defense, out float speed)
+        {
+            attack = _attackBuffPercent;
+            defense = _defenseBuffPercent;
+            speed = _speedBuffPercent;
+
+            var equipped = GuardEquipmentSystem.Instance?.GetMercenaryEquipped(MercenaryId, GuardEquipmentSystem.EquipSlot.Instrument);
+            var itemId = equipped?.itemData.id;
+            if (string.IsNullOrEmpty(itemId)) return;
+
+            var profile = InstrumentData.GetProfile(itemId);
+            if (!profile.HasValue) return;
+
+            attack = profile.Value.attackBuffPercent;
+            defense = profile.Value.defenseBuffPercent;
+            speed = profile.Value.speedBuffPercent;
         }
 
         /// <summary>버프 중인 아군 수 계산</summary>

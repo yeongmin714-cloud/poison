@@ -188,6 +188,11 @@ namespace ProjectName.UI.Toolkit
             _shopInventory.Add(new ShopItem { item = PlayerInventory.Axe,          price = 60,  stock = 3, isRare = false });
             _shopInventory.Add(new ShopItem { item = PlayerInventory.FishingRod,   price = 40,  stock = 5, isRare = false });
 
+            // Phase O7: 바드 악기 3종 — basePrice 150 고정가 상점 판매가 (재고 -1 무한 / 양수 유한)
+            _shopInventory.Add(new ShopItem { item = InstrumentData.ToItemData(InstrumentData.GetProfile("instrument_bard_lute").Value),   price = 400, stock = -1, isRare = false });
+            _shopInventory.Add(new ShopItem { item = InstrumentData.ToItemData(InstrumentData.GetProfile("instrument_flute_war").Value),    price = 350, stock = 3,  isRare = false });
+            _shopInventory.Add(new ShopItem { item = InstrumentData.ToItemData(InstrumentData.GetProfile("instrument_drum_march").Value),   price = 350, stock = 3,  isRare = false });
+
             RandomizeSeedStock();
         }
 
