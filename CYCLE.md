@@ -814,3 +814,9 @@
 - Details: BlueprintData(Core.Data) 8종 — 외벽150G/대문300/탑500/창고증축250/축사400/대장간450/정원200/망루350 + ValidatePlacement(영지 경계/기존 겹침 순수 검증)+TerrainFlatCheck(런타임 Raycast). ConstructionManager(Systems 싱글톤) — TryPlace 순서(정의→검증→지형→골드 소비 벤치 원칙 "실패 시 소비 없음"), 시공 진행(Update), warehouse_ext 완료 → WarehouseSystem.AddExpansionLevel(골드 미지출), HasStructure(대장간/축사 효과 확인용), Demolish 환불 50%("construction_refund"), 절차 프리미티브 시각물(런타임). SaveData.constructions + Collect/Apply(오프라인 간편 규칙: 미완료→로드 시 완료 승격). 부트스트랩 등록(중복 SeparationSystem 정리).
 - Tests: ConstructionTests 14개 (설계도8/검증3/배치 골드/해체 환불/창고 캡/라운드트립/오프라인 승격) → EditMode 246/246 (CS1654 foreach 구조체 수정/스코어 4회 수리)
 - Date: 2026-09-20
+
+# Cycle: C-O8-03/04 — Phase O8 Batch B: 🏗️ 건설 UI + 인테리어 접합
+- Status: ✅ (Phase O8 완료 — C-O8-06 Play 판정 통합 대기)
+- Details: ConstructionWindowUTK(신규 UTK 창, U키 토글 — H 충돌 회피) — 설계도 목록 8종(골드/시간 표시+배치 버튼: 플레이어 전방 5m), 구조물 목록+해체 버튼, StructureCompleted 구독 갱신. EquipmentRepairSystem.GetRepairCost 대장간 할인 접합 — HasAnyCompletedStructure("smithy") → ×0.7. 수리: CS0176(static Toggle 인스턴스 호출).
+- Tests: SmithyDiscountTests 6개 (할인 경계/미적용/HasAny) → EditMode 252/252
+- Date: 2026-09-20

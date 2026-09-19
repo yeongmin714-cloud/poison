@@ -438,5 +438,5 @@
 | └ C-O7-01~03 | InstrumentData 5종 + 바드 버프 프로필 연동 + InstrumentPerformanceSystem(B키 60초 연주/쿨30) + 상점 재고 3종 + Awake 폴백 패턴 + 24테스트 (232/232) | ✅ 2026-09-20 |
 | O8 성 영지 건설 | C-O8-01~06 | 🔄 |
 | └ C-O8-01/02/05 Batch A | BlueprintData 8종 + ConstructionManager(검증/시공/오프라인완료/해체환불50%) + 창고증축 효과 + SaveData 접합 + 14테스트 (246/246) | ✅ 2026-09-20 |
-| └ C-O8-03/04 Batch B | ConstructionWindowUTK(설계도 선택/미리보기/해체) + 인테리어 접합(대장간 수리할인) | ⬜ |
+| └ C-O8-03/04 Batch B | ConstructionWindowUTK(U키 토글, 설계도 배치/해체 UI) + 대장간 수리비 30% 할인 접합 + 6테스트 (252/252) — **Phase O8 완료** | ✅ 2026-09-20 |
 | └ C-O8-06 | 성능/회귀 + Play 판정 | ⬜ |
