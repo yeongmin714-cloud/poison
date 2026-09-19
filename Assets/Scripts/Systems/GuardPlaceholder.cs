@@ -1150,12 +1150,34 @@ namespace ProjectName.Systems
             Debug.Log($"[GuardPlaceholder] {guardName} 근접 공격! 대상={targetName} dmg={damage:F1}");
 
             // [TEST28-69차] 킬 크레딧 → 병사 경험치/레벨업 — 내 타격으로 대상이 사망하면 EXP 획득(몬스터/병사 공통)
+            // [O3 C-O3-02] 킬 크레딧 XP 동적화 — 고정 15 → 대상 레벨 기반 CalculateGuardKillXP(병사 1/3 지분)
             if (target != null && !target.IsAlive)
-                AddEXP(KillExpPerTarget);
+                AddEXP(ResolveKillXP(target));
         }
 
-        // [TEST28-69차] 병사 킬 경험치 — 킬 1회당 고정 15(레벨업 필요치 = level×50, 레벨업 시 maxHP +10)
+        // [TEST28-69차] 병사 킬 경험치 — [O3 C-O3-02] 킬 시 ResolveKillXP로 대상 레벨 기반 동적 계산하며,
+        // KillExpPerTarget=15는 대상 레벨 판별 실패 시 폴백값(레벨업 필요치 = level×50, 레벨업 시 maxHP +10)
         const int KillExpPerTarget = 15;
+
+        /// <summary>
+        /// [O3 C-O3-02] 킬 크레딧 XP 동적 계산 — 대상 레벨 기반 CalculateGuardKillXP(병사 1/3 지분).
+        /// 몬스터(AnimalAI)면 그 레벨, 병사(GuardPlaceholder)면 victim.level. 레벨 판별 불가 시 KillExpPerTarget(15) 폴백.
+        /// </summary>
+        private int ResolveKillXP(IDamageable target)
+        {
+            if (target is Component comp)
+            {
+                var animal = comp.GetComponentInParent<AnimalAI>();
+                if (animal != null)
+                    return MonsterLevelSystem.CalculateGuardKillXP(animal.Level); // 몬스터 — 그 레벨의 1/3 지분
+
+                var guard = comp.GetComponentInParent<GuardPlaceholder>();
+                if (guard != null)
+                    return MonsterLevelSystem.CalculateGuardKillXP(guard.Level); // 병사 — victim.level
+            }
+            return KillExpPerTarget; // [O3] 레벨 판별 불가 → 고정 15 폴백
+        }
+
         private int _exp;
 
         /// <summary>병사 경험치 추가 — level×50 도달마다 레벨업(maxHP +10, 풀회복, 데미지는 level×1.5 수식 자동 반영).</summary>

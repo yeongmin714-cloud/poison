@@ -5,17 +5,14 @@ using ProjectName.Core.Data;
 namespace ProjectName.Systems
 {
     /// <summary>
-    /// [DEPRECATED] C9-14: 몬스터 레벨 시스템 (티어별 기본Lv + 영지 보정)
+    /// C9-14: 몬스터 레벨 시스템 (티어별 기본Lv + 영지 보정)
     /// 
     /// 몬스터 티어(초반/중반/후반)에 따라 기본 레벨이 결정되고,
     /// 영지 난이도에 따라 레벨이 보정됩니다.
     /// 
-    /// ⚠ 이 클래스는 더 이상 사용되지 않습니다.
-    /// 대신 <see cref="MonsterLevelManager"/> (MonsterLevelData ScriptableObject 기반)를 사용하세요.
-    /// 하드코딩된 상수는 MonsterLevelData의 기본값과 동기화되어 있으나,
-    /// 수동 유지보수가 필요하므로 신규 코드에서는 MonsterLevelManager를 통해 주입된 데이터를 사용해야 합니다.
+    /// [O3 C-O3-02] 유령 커브 → 단일 소스 승격: CalculateXP(L) = L²+2L−5 사냥감 2차 XP 곡선.
+    /// 티어별 기본 레벨/영지 보정은 여전히 MonsterLevelManager (MonsterLevelData ScriptableObject) 사용.
     /// </summary>
-    [System.Obsolete("MonsterLevelSystem is deprecated. Use MonsterLevelManager (Singleton + MonsterLevelData ScriptableObject) instead.")]
     public static class MonsterLevelSystem
     {
         // ===== 상수 (MonsterLevelData 기본값과 동기화 유지) =====
@@ -90,11 +87,23 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 레벨 기반 경험치 보상
+        /// [O3 C-O3-02] 레벨 기반 경험치 보상 — 벤치마크 사냥감 2차 곡선 (단일 소스)
+        /// OpenMMO LEVEL_CURVE: L²+2L−5 (L≤1: 2, L==2: 5 폴백) — 기존 5+2L 선형의 후반 벽 해소
         /// </summary>
         public static float CalculateXP(int level)
         {
-            return 5f + level * 2f;
+            // [O3] OpenMMO LEVEL_CURVE 벤치마크 사냥감 XP — 2차 곡선 (기존 5+2L 선형의 후반 벽 해소)
+            if (level <= 1) return 2f;
+            if (level == 2) return 5f;
+            return level * level + 2f * level - 5f; // L3=10, L10=115, L30=955, L50=2,595
+        }
+
+        /// <summary>
+        /// [O3 C-O3-02] 병사 킬 크레딧 XP — 대상 레벨 기반 (병사 1/3 지분, 최소 5 폴백)
+        /// </summary>
+        public static int CalculateGuardKillXP(int targetLevel)
+        {
+            return Mathf.Max(5, Mathf.RoundToInt(CalculateXP(targetLevel) / 3f)); // L10→38, L50→865
         }
 
         // ===== 레벨 표시 및 색상 =====

@@ -1031,11 +1031,12 @@ namespace ProjectName.Systems
             // ⏱️ 전투 로그: 처치 기록
             string monsterName = MonsterDatabase.Get(_monsterId)?.displayName ?? _monsterId;
             CombatLog.AddEntry($"{monsterName} 처치!", LogType.Kill);
-            // 경험치 획득 — 레벨 기반: 티어 기본 EXP × (1 + 레벨×0.1) × 난수(0.8~1.2)
+            // 경험치 획득 — [O3 C-O3-02] 레벨 2차 곡선: CalculateXP(L) × (티어 기본 EXP/15) × 난수(0.8~1.2)
+            // — GetExpBase(티어)/15는 배율로 보존(티어 데이터 무손상), 기존 (1+0.1L) 선형 배율은 CalculateXP가 대체
             MonsterLevelManager mgr = MonsterLevelManager.Instance;
             float baseExp = (mgr != null && mgr.Data != null) ? mgr.Data.GetExpBase(_tier) : 15f;
-            int exp = Mathf.Max(1, Mathf.RoundToInt(baseExp * (1f + _level * 0.1f) * Random.Range(0.8f, 1.2f)));
-            Debug.Log($"[AnimalAI] {monsterName} 경험치 계산: base={baseExp:F0}(티어={_tier}) × (1+Lv{_level}×0.1) × 난수(0.8~1.2) → +{exp} EXP");
+            int exp = Mathf.Max(1, Mathf.RoundToInt(MonsterLevelSystem.CalculateXP(_level) * (baseExp / 15f) * Random.Range(0.8f, 1.2f)));
+            Debug.Log($"[AnimalAI] {monsterName} 경험치 계산: CalculateXP(Lv{_level}) × base={baseExp:F0}/15(티어={_tier}) × 난수(0.8~1.2) → +{exp} EXP");
             PlayerStats stats = PlayerStats.Instance;
             if (stats != null)
             {
