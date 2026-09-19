@@ -37,6 +37,18 @@ namespace ProjectName.Systems
         public ChurchSaveData church;            // Phase 5.7.3: 성당 친밀도 저장 데이터
         public NationReputationSaveData nationReputations; // 국가 호감도 저장 데이터
         public bool isNewGamePlus = false;       // NG+ 모드로 저장된 데이터인지 여부
+        public List<ConstructionSaveEntry> constructions = new List<ConstructionSaveEntry>(); // Phase O8: 성 영지 건설
+    }
+
+    [System.Serializable]
+    public class ConstructionSaveEntry
+    {
+        public string structureId;
+        public string blueprintId;
+        public string territoryId;
+        public float posX, posY, posZ;
+        public float progress;
+        public bool isComplete;
     }
 
     [System.Serializable]

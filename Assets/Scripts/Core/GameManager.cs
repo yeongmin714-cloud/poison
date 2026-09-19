@@ -202,8 +202,10 @@ namespace ProjectName.Core
             CreateSystemIfMissing("NaturalRegenSystem");
 
             // 10.7 SeparationSystem (Phase O5 C-O5-01) — 정지 병사 군집 회피(밀어내기)
-            CreateSystemIfMissing("TitleManager");
             CreateSystemIfMissing("SeparationSystem");
+            // 10.8 ConstructionManager (Phase O8) — 성 영지 건설
+            CreateSystemIfMissing("ConstructionManager");
+            CreateSystemIfMissing("TitleManager");
 
             // 10.8 InstrumentPerformanceSystem (Phase O7) — B키 바드 연주 토글, 악기별 버프 소스
             CreateSystemIfMissing("InstrumentPerformanceSystem");

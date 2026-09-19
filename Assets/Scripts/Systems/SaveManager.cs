@@ -121,7 +121,8 @@ namespace ProjectName.Systems
                     quests = CollectQuestData(),
                     revengeList = CollectRevengeListData(),
                     nationReputations = CollectNationReputationData(),
-                    isNewGamePlus = NewGamePlusSystem.IsNewGamePlus
+                    isNewGamePlus = NewGamePlusSystem.IsNewGamePlus,
+                    constructions = CollectConstructionData(),
                 };
 
                 string json = JsonUtility.ToJson(data, prettyPrint: true);
@@ -186,6 +187,7 @@ namespace ProjectName.Systems
                 ApplyQuestData(data.quests);
                 ApplyRevengeListData(data.revengeList);
                 ApplyNationReputationData(data.nationReputations);
+                ApplyConstructionData(data.constructions);
 
                 // C20-01: 난이도 복원
                 GameManager.CurrentDifficulty = (int)data.difficulty;
@@ -651,7 +653,24 @@ namespace ProjectName.Systems
         // ===== 국가 호감도 저장/로드 =====
 
         /// <summary>국가 호감도 데이터 수집</summary>
-        private NationReputationSaveData CollectNationReputationData()
+                // ===== Phase O8: 건설 데이터 수집/적용 =====
+
+        private List<ConstructionSaveEntry> CollectConstructionData()
+        {
+            var entries = ConstructionManager.Instance != null
+                ? ConstructionManager.Instance.GetSaveEntries()
+                : null;
+            return entries ?? new List<ConstructionSaveEntry>();
+        }
+
+        private void ApplyConstructionData(List<ConstructionSaveEntry> entries)
+        {
+            var mgr = ConstructionManager.Instance ?? FindAnyObjectByType<ConstructionManager>();
+            if (mgr == null) return;
+            mgr.ApplySaveEntries(entries ?? new List<ConstructionSaveEntry>());
+        }
+
+private NationReputationSaveData CollectNationReputationData()
         {
             var data = new NationReputationSaveData();
             try

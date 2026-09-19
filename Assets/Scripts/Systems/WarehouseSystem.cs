@@ -242,6 +242,14 @@ namespace ProjectName.Systems
             return BaseExpansionCost * (GetExpansionLevel(territoryId) + 1);
         }
 
+        /// <summary>[O8] 확장 단계 직접 증가 — 창고 증축 설계도 완성 효과(골드 미지출). 최대 캡 준수.</summary>
+        public void AddExpansionLevel(string territoryId)
+        {
+            if (string.IsNullOrEmpty(territoryId)) return;
+            int next = Mathf.Min(GetExpansionLevel(territoryId) + 1, MaxExpansions);
+            _expansionLevels[territoryId] = next;
+        }
+
         /// <summary>더 확장 가능한가?</summary>
         public bool CanExpand(string territoryId)
         {
