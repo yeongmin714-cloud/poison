@@ -112,8 +112,8 @@ namespace ProjectName.Core
             return null;
         }
 
-        /// <summary>장착 목록 중 해당 세트 파츠의 개수 (id 비교).</summary>
-        public static int CountSetPieces(EquipmentSetKind kind, List<PlayerInventory.ItemData> equippedItems)
+        /// <summary>장착 목록 중 해당 세트 파츠의 개수 (id 비교). IReadOnlyList — List/배열 래퍼 모두 수용.</summary>
+        public static int CountSetPieces(EquipmentSetKind kind, IReadOnlyList<PlayerInventory.ItemData> equippedItems)
         {
             if (equippedItems == null || equippedItems.Count == 0) return 0;
 

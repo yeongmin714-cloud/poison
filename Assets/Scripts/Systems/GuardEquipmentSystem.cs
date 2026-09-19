@@ -421,30 +421,34 @@ namespace ProjectName.Systems
 
         // ===== 능력치 계산 =====
 
-        /// <summary>병사의 장비로 인한 추가 공격력 계산</summary>
+        /// <summary>병사의 장비로 인한 추가 공격력 계산 (세트 보너스 포함 — C-O1-04)</summary>
         public float GetGuardEquipmentAttackBonus(GuardPlaceholder guard)
         {
             if (guard == null) return 0f;
-            return CalculateEquipmentStatBonus(GetAllGuardEquipment(guard), "attack");
+            return CalculateEquipmentStatBonus(GetAllGuardEquipment(guard), "attack")
+                 + CalculateSetBonus(GetNonBrokenItems(GetAllGuardEquipment(guard))).attackBonus;
         }
 
-        /// <summary>병사의 장비로 인한 추가 방어력 계산</summary>
+        /// <summary>병사의 장비로 인한 추가 방어력 계산 (세트 보너스 포함 — C-O1-04)</summary>
         public float GetGuardEquipmentDefenseBonus(GuardPlaceholder guard)
         {
             if (guard == null) return 0f;
-            return CalculateEquipmentStatBonus(GetAllGuardEquipment(guard), "defense");
+            return CalculateEquipmentStatBonus(GetAllGuardEquipment(guard), "defense")
+                 + CalculateSetBonus(GetNonBrokenItems(GetAllGuardEquipment(guard))).defenseBonus;
         }
 
-        /// <summary>용병의 장비로 인한 추가 공격력 계산</summary>
+        /// <summary>용병의 장비로 인한 추가 공격력 계산 (세트 보너스 포함 — C-O1-04)</summary>
         public float GetMercenaryEquipmentAttackBonus(string mercenaryId)
         {
-            return CalculateEquipmentStatBonus(GetAllMercenaryEquipment(mercenaryId), "attack");
+            return CalculateEquipmentStatBonus(GetAllMercenaryEquipment(mercenaryId), "attack")
+                 + CalculateSetBonus(GetNonBrokenItems(GetAllMercenaryEquipment(mercenaryId))).attackBonus;
         }
 
-        /// <summary>용병의 장비로 인한 추가 방어력 계산</summary>
+        /// <summary>용병의 장비로 인한 추가 방어력 계산 (세트 보너스 포함 — C-O1-04)</summary>
         public float GetMercenaryEquipmentDefenseBonus(string mercenaryId)
         {
-            return CalculateEquipmentStatBonus(GetAllMercenaryEquipment(mercenaryId), "defense");
+            return CalculateEquipmentStatBonus(GetAllMercenaryEquipment(mercenaryId), "defense")
+                 + CalculateSetBonus(GetNonBrokenItems(GetAllMercenaryEquipment(mercenaryId))).defenseBonus;
         }
 
         /// <summary>용병의 장비로 인한 추가 이동속도 계산</summary>
@@ -559,6 +563,41 @@ namespace ProjectName.Systems
                 default:
                     return false;
             }
+        }
+
+        /// <summary>
+        /// C-O1-04: 장착 목록(파괴 제외)에 적용되는 세트 보너스 합계.
+        /// 각 세트 종류별로 파츠 수를 세고, 2개 이상이면 소효과/4개면 완성 효과를 모두 더한다.
+        /// 정적 순수 함수 — 테스트 가능, 인스턴스 불필요.
+        /// </summary>
+        public static SetBonus CalculateSetBonus(IReadOnlyList<PlayerInventory.ItemData> equippedItems)
+        {
+            if (equippedItems == null || equippedItems.Count == 0) return SetBonus.Zero;
+
+            int totalAttack = 0;
+            int totalDefense = 0;
+            foreach (var kind in EquipmentTierSet.GetAllSetKinds())
+            {
+                int pieces = EquipmentTierSet.CountSetPieces(kind, equippedItems);
+                var bonus = EquipmentTierSet.GetActiveSetBonus(kind, pieces);
+                totalAttack += bonus.attackBonus;
+                totalDefense += bonus.defenseBonus;
+            }
+            return new SetBonus { attackBonus = totalAttack, defenseBonus = totalDefense, description = "" };
+        }
+
+        /// <summary>슬롯 장비 사전 → 파괴되지 않은 ItemData 목록 (세트 보너스 입력용).</summary>
+        private static List<PlayerInventory.ItemData> GetNonBrokenItems(Dictionary<EquipSlot, EquippedItem> equipment)
+        {
+            var items = new List<PlayerInventory.ItemData>();
+            if (equipment == null) return items;
+            foreach (var kvp in equipment)
+            {
+                var item = kvp.Value;
+                if (item == null || item.itemData == null || item.IsBroken) continue;
+                items.Add(item.itemData);
+            }
+            return items;
         }
 
         /// <summary>장비 아이템에서 stat_bonus 문자열 파싱</summary>

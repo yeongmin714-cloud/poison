@@ -124,6 +124,13 @@ namespace ProjectName.UI.Toolkit
             sb.AppendLine($"카테고리: {item.category}");
             sb.AppendLine($"등급: {item.rarity}");
             if (item.maxDurability > 0) sb.AppendLine($"내구도: {item.maxDurability}");
+            // C-O1-04: 세트 소속 아이템 — 세트명 + 완성 보너스 표시
+            var setKind = EquipmentTierSet.GetSetForItem(item.id);
+            if (setKind.HasValue)
+            {
+                var completion = EquipmentTierSet.GetActiveSetBonus(setKind.Value, 4);
+                sb.AppendLine($"세트: {EquipmentTierSet.GetSetDisplayName(setKind.Value)} — {completion.description}");
+            }
             i._itemMeta.text = sb.ToString();
             i._itemDesc.text = string.IsNullOrEmpty(item.description) ? "(설명 없음)" : item.description;
 

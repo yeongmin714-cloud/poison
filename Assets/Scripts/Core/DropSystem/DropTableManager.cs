@@ -138,6 +138,30 @@ namespace ProjectName.Core
         public void ApplySoldierDrops(ILootBasket basket, int level = 1)
         {
             ApplyTableToBasket(_soldierTable, basket, level);
+            ApplySetPieceDrops(basket, level);
+        }
+
+        /// <summary>
+        /// C-O1-03: 병사 처치 시 레벨 밴드(가죽/사슬/판금) 세트 파츠 독립 롤.
+        /// 바구니에 이미 있는 파츠는 제외(SetChestTuning.RollSetPiecesForLevel), 드랍된 파츠는 1개씩.
+        /// </summary>
+        public void ApplySetPieceDrops(ILootBasket basket, int level = 1)
+        {
+            if (basket == null) return;
+
+            var ownedIds = new List<string>();
+            foreach (var entry in basket.Items)
+            {
+                if (entry != null && entry.Item != null && !string.IsNullOrEmpty(entry.Item.id))
+                    ownedIds.Add(entry.Item.id);
+            }
+
+            var rolled = SetChestTuning.RollSetPiecesForLevel(level, ownedIds, () => Random.value);
+            foreach (var part in rolled)
+            {
+                basket.AddItem(part, 1);
+                Debug.Log($"[DropTable] 🧩 세트 파츠 드랍! {part.displayName} (레벨 {level} 밴드)");
+            }
         }
 
         // ===== 드라큘라 전용 (ND-05) =====
