@@ -767,3 +767,15 @@
 - Details: ContentGate(Core.Data, static) — 게이트 6종(tavern_mercenary Lv5/bomb_craft Lv8/gem_chest Lv10/warehouse_expansion_2 Lv12/warehouse_expansion_3 Lv20/dracula_territory Lv20), 미등록 id=개방(무게이트 정책), GetLockedMessage(한글 조사 헬퍼). 배선 3곳: MercenaryManager.HireMercenary/GemChest.Open(ForceOpen=게이트 무시 QA훅)/WarehouseSystem.TryExpandSlots(단계별 1→2/2→3 게이트). 문서: PHASE_O3_LEVEL_CURVE.md §6 의존성 매트릭스(무게이트 컨텐츠+황제국=EmpireAccessRule 명시). bomb_craft/dracula는 표만 등록(배선 후속). CS0111(중복 ForceOpen) 자가 수리.
 - Tests: ContentGateTests 19개 (표6/정렬/경계/Nullable/메시지) → EditMode 156/156
 - Date: 2026-09-19
+
+# Cycle: C-O4-01 — Phase O4: 💚 자연 재생 공식화
+- Status: ✅
+- Details: RegenRules(Core, static) — COMBAT.md 벤치마크: 주기 16초, 량=max(1, 1+floor(Lv/5)+CON보정), 조건 생존+만전미만+마지막 피격 10초 경과. NaturalRegenSystem(Systems 싱글톤+부트스트랩) — 플레이어만 틱 재생(병사는 GuardManager 30초 체계 유지 주석), PlayerHealth.SecondsSinceLastDamage 캡슐 추가. int 나눗셈 0-버림 문서화.
+- Tests: RegenRulesTests 12개 (량 표/벤치 예시 L6CON12→3/CanRegen 4조합/상수)
+- Date: 2026-09-19
+
+# Cycle: C-O4-02 — Phase O4: 👑 영주 능력치 생성기
+- Status: ✅
+- Details: LordStatGenerator(Core.Data, static) — 4d6 drop lowest → 5국 성향 보정(동CON+1/서DEX+1/남STR+1/북STR+1·CON+1/Empire CHA+2) → 링별 목표 합계 리밸런싱(Ring1 66/Ring2 72/Ring3 78/Ring4·Empire 84, 3~18 클램프, 무한루프 방지) → GUARD=clamp(10+(DEX-10)/2,1,20)(int 0-버림, 벤치 예시 DEX8→9/14→12/18→14). djb2(territoryId) 결정론. GenerateForTerritory(TerritoryDatabase 연동). 수리: TerritoryDefinition?(Nullable struct) .HasValue/.Value, TerritoryDefinition.key→id.ToString(). 테스트 가정 수리: 리밸런싱이 보정을 흡수 → Empire CHA 하한 보장 제거(구조 검증으로 교체).
+- Tests: LordStatGeneratorTests 13개 (4d6 결정론·범위/GUARD 표/링합계/5국×5링 스윕/DB 스모크) → EditMode 181/181
+- Date: 2026-09-19
