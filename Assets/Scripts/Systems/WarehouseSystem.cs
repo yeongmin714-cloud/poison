@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ProjectName.Core;
+using ProjectName.Core.Data;
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -255,6 +256,25 @@ namespace ProjectName.Systems
         {
             if (!CanExpand(territoryId))
                 return "이미 최대 확장";
+
+            // [O3 C-O3-03] 확장 단계별 레벨 게이트 — 0→1: 게이트 없음 / 1→2: Lv12 / 2→3: Lv20.
+            int nextLevel = GetExpansionLevel(territoryId) + 1;
+            string gateId = null;
+            if (nextLevel >= 3)
+                gateId = "warehouse_expansion_3";
+            else if (nextLevel >= 2)
+                gateId = "warehouse_expansion_2";
+
+            if (gateId != null)
+            {
+                int level = PlayerStats.Instance?.Level ?? 1;
+                if (!ContentGate.IsUnlocked(gateId, level))
+                {
+                    var gate = ContentGate.GetGateInfo(gateId);
+                    int requiredLevel = gate.HasValue ? gate.Value.minLevel : 0;
+                    return $"레벨 부족 (필요 Lv.{requiredLevel})";
+                }
+            }
 
             int cost = GetNextExpansionCost(territoryId);
             if (PlayerStats.Instance == null)

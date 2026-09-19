@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
+using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
 {
@@ -148,6 +149,14 @@ namespace ProjectName.Systems
 		/// <summary>용병 고용</summary>
 		public bool HireMercenary(string mercenaryId)
 		{
+			// [O3 C-O3-03] 컨텐츠 게이트 — "tavern_mercenary" (Lv5, 초반 보호). 가장 얕은 진입점에서 차단.
+			int level = PlayerStats.Instance?.Level ?? 1;
+			if (!ContentGate.IsUnlocked("tavern_mercenary", level))
+			{
+				Debug.LogWarning("[MercenaryManager] " + ContentGate.GetLockedMessage("tavern_mercenary"));
+				return false;
+			}
+
 			if (!_mercenaryDatabase.ContainsKey(mercenaryId))
 			{
 				Debug.LogWarning($"[MercenaryManager] 알 수 없는 용병 ID: {mercenaryId}");

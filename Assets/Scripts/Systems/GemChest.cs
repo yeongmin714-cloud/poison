@@ -1,6 +1,7 @@
 using ProjectName.Core;
 using UnityEngine;
 using ProjectName.Core.Utils;
+using ProjectName.Core.Data;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -94,10 +95,27 @@ namespace ProjectName.Systems
                 "💎 [E]", new GUIStyle(GUI.skin.label) { fontSize = 13, alignment = TextAnchor.MiddleCenter });
         }
 
-        /// <summary>상자 열기 — 광석 드랍</summary>
-        public void Open()
+        /// <summary>상자 열기 — 광석 드랍 (게이트: "gem_chest" Lv10 [O3 C-O3-03])</summary>
+        public void Open() => OpenInternal(false);
+
+        /// <summary>테스트용 강제 오픈 — QA/디버그 전용, 컨텐츠 게이트 무시 [C-O3-03]</summary>
+        public void ForceOpen() => OpenInternal(true);
+
+        private void OpenInternal(bool ignoreGate)
         {
             if (_isOpen) return;
+
+            // [O3 C-O3-03] 컨텐츠 게이트 — "gem_chest" (Lv10, 링2 파밍). 가장 얕은 진입점에서 차단.
+            if (!ignoreGate)
+            {
+                int level = PlayerStats.Instance?.Level ?? 1;
+                if (!ContentGate.IsUnlocked("gem_chest", level))
+                {
+                    Debug.LogWarning("[GemChest] " + ContentGate.GetLockedMessage("gem_chest"));
+                    return;
+                }
+            }
+
             _isOpen = true;
 
             var data = GemData.GetGemData(_gemType);
@@ -131,9 +149,6 @@ namespace ProjectName.Systems
                 mat.color = new Color(c.r, c.g, c.b, 0.5f);
             }
         }
-
-        /// <summary>테스트용 강제 오픈</summary>
-        public void ForceOpen() => Open();
 
         private void OnDrawGizmosSelected()
         {
