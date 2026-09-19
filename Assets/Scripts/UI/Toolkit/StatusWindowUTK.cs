@@ -69,6 +69,8 @@ namespace ProjectName.UI.Toolkit
         private readonly Label[] _equipSlotLabels = new Label[8];   // index = EquipmentSlot enum
         private Label _bonusListLabel;
         private Label _addictionLabel;
+        private Label _titleValueLabel;   // [O6] 칭호 표시
+        private bool _titleSubscribed;   // [O6] 칭호 이벤트 구독 플래그
         private Label _expValueLabel, _hpValueLabel;
         private VisualElement _expFill, _hpFill;
 
@@ -262,6 +264,64 @@ namespace ProjectName.UI.Toolkit
             _addictionLabel = MkLabel("중독: 0%", 14, UTKColor.TextSecondary, TextAnchor.MiddleLeft);
             _addictionLabel.style.marginTop = 6f;
             right.Add(_addictionLabel);
+
+            // ── 칭호 [Phase O6 C-O6-03] — 해금 순환 장착 ──
+            AddSep(right, 10f, 6f);
+            var titleHeader = MkLabel("칭호", 16, UTKColor.AccentRare, TextAnchor.MiddleLeft);
+            titleHeader.style.marginTop = 4f;
+            right.Add(titleHeader);
+
+            _titleValueLabel = MkLabel(GetTitleDisplay(), 14, UTKColor.TextPrimary, TextAnchor.MiddleLeft);
+            _titleValueLabel.style.whiteSpace = WhiteSpace.Normal;
+            right.Add(_titleValueLabel);
+
+            var titleBtn = UTKButton.Create("칭호 변경", CycleEquipTitle, UTKButton.Variant.Secondary);
+            titleBtn.style.marginTop = 6f;
+            titleBtn.style.height = 26f;
+            right.Add(titleBtn);
+        }
+
+        /// <summary>[O6] 현재 칭호 표시 문자열 (미장착 = "—").</summary>
+        private string GetTitleDisplay()
+        {
+            var tm = TitleManager.Instance;
+            if (tm == null) return "—";
+            string text = tm.GetTitleText();
+            return string.IsNullOrEmpty(text) ? "—" : text;
+        }
+
+        /// <summary>[O6] 해금 칭호 순환 장착 — 현재 장착 id의 다음(끝이면 첫번째).</summary>
+        private void CycleEquipTitle()
+        {
+            var tm = TitleManager.Instance;
+            if (tm == null) return;
+
+            string[] unlocked = tm.GetUnlockedIds();
+            if (unlocked == null || unlocked.Length == 0)
+            {
+                _titleValueLabel.text = "해금된 칭호 없음";
+                return;
+            }
+
+            string current = tm.EquippedTitleId;
+            int next = 0;
+            for (int i = 0; i < unlocked.Length; i++)
+            {
+                if (unlocked[i] == current)
+                {
+                    next = (i + 1) % unlocked.Length;
+                    break;
+                }
+            }
+            tm.EquipTitle(unlocked[next]);
+            _titleValueLabel.text = GetTitleDisplay();
+            Debug.Log($"[StatusUTK] 칭호 변경 → {tm.GetTitleText()}");
+        }
+
+        /// <summary>[O6] 칭호 해금 시 라벨 갱신 (TitleManager 구독 — Subscribe/Unsubscribe 쌍).</summary>
+        private void OnTitleUnlocked(ProjectName.Core.Data.TitleDef def)
+        {
+            _titleValueLabel.text = GetTitleDisplay();
         }
 
         /// <summary>게이지 행 컨테이너 (root: [라벨][값][게이지배경>fill]).</summary>
@@ -379,10 +439,23 @@ namespace ProjectName.UI.Toolkit
                 _subscribedEquip = em;
                 if (_subscribedEquip != null) _subscribedEquip.OnEquipmentChanged += OnEquipmentChanged;
             }
+
+            // [O6] 칭호 해금 — 정적 이벤트 1회 구독(플래그 중복 방지)
+            if (!_titleSubscribed)
+            {
+                TitleManager.TitleUnlocked += OnTitleUnlocked;
+                _titleSubscribed = true;
+                if (_titleValueLabel != null) _titleValueLabel.text = GetTitleDisplay();
+            }
         }
 
         private void UnsubscribeAll()
         {
+            if (_titleSubscribed)
+            {
+                TitleManager.TitleUnlocked -= OnTitleUnlocked;
+                _titleSubscribed = false;
+            }
             if (_subscribedStats != null)
             {
                 _subscribedStats.OnLevelChanged -= OnStatsLevelChanged;

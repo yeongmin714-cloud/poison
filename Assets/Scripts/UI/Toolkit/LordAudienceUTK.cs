@@ -64,6 +64,8 @@ namespace ProjectName.UI.Toolkit
         // ===== 상태 =====
         private string _lordName;
         private string _lordTitle;
+        private string _heroicTale;   // [O6] 성취사 3문장
+        private Label _taleLabel;      // [O6] 성취사 표시 라벨
         private AudienceOption[] _options;
         private bool _showOptions = true;
         private string _dialogueText = "";
@@ -83,6 +85,14 @@ namespace ProjectName.UI.Toolkit
             _headlineLabel.AddToClassList("utk-title-label");
             _headlineLabel.style.fontSize = 18f;
             _content.Add(_headlineLabel);
+
+            // [O6 C-O6-04] 성취사 라벨 — 대면창에 영주 이력 3문장 표시
+            _taleLabel = new Label("");
+            _taleLabel.style.fontSize = 12f;
+            _taleLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            _taleLabel.style.whiteSpace = WhiteSpace.Normal;
+            _taleLabel.style.marginBottom = 8f;
+            _content.Add(_taleLabel);
 
             _dialogueLabel = new Label("");
             _dialogueLabel.style.fontSize = 16f;
@@ -160,6 +170,9 @@ namespace ProjectName.UI.Toolkit
             _showOptions = true;
             _dialogueText = _lordName + ": \"무슨 일로 왔느냐?\"";
 
+            // [O6 C-O6-04] 영주 성취사 — 결정론 3문장(territoryId 부재 → 이름 키 임시 사용, 추후 호출부 확장)
+            _heroicTale = ProjectName.Core.Data.HeroicTaleGenerator.GetTaleForLord(_lordName, _lordName);
+
             Debug.Log("[LordUTK] " + _lordName + " 대면 시작");
             Show();
             Refresh();
@@ -171,6 +184,7 @@ namespace ProjectName.UI.Toolkit
         {
             _headlineLabel.text = "👑 " + _lordTitle + " — " + _lordName;
             _dialogueLabel.text = _dialogueText;
+            if (_taleLabel != null) _taleLabel.text = _heroicTale;
             _list.Clear();
 
             if (!_showOptions || _options == null)
