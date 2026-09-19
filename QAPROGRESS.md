@@ -2604,3 +2604,24 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 
 ### Play 판정 대기
 ①에디터 재시작 시 콘솔 경고 ≈0 (잔여 4건은 HitImpact 데모) ②텍스처 경고 0건 유지 ③UI 입체 렌더 정상
+
+## 📌 세션 스냅샷 (2026-09-19 ✅ U9-W3 노란 경고 "뿌리" 확정 — 스크린샷 68 판정 + url 상대경로 전환)
+
+> **입력**: 사용자 — "새 에디터에서도 그대로" + Screenshots/68.PNG. vision 판정이 뿌리를 뒤집음.
+
+### 판정 (스크린샷 68 + 로그 교차)
+- 노란 삼각형 = Unity missing 플레이스홀더가 아니라 **배경 로드 실패 플레이스홀더** — 슬롯/창 배경에 깔림.
+- 결정적 증거: **아이템 아이콘 실루엣(불꽃/지붕/창/투구)이 경고 위에 정상 렌더** → 아이콘(SetIcon·Safe 복사본)은 멀쩡하고 **창/슬롯/버튼의 USS 배경만 죽음**.
+- 이전 세션(U9-W1 이후) 텍스처 경고 0건과 정합 — Function 경고는 사라졌지만 이번엔 **url 리소스 로드 실패**(별개 뿌리).
+
+### 뿌리
+- Theme.uss `url("Assets/Resources/UI/bg_window.png")` **절대경로** — Unity 6 런타임 패널은 USS 파일 기준 상대경로만 보장. 해석 실패 → 배경 미로드 → 경고 플레이스홀더 렌더.
+- shadow_glow.png도 같은 절대경로라 **소프트 섀도우가 처음부터 한 번도 렌더된 적 없음**(U9-2 때 미확인).
+
+### 수리 (U9-W3, 1파일+가드)
+- Theme.uss url 9건 전부 상대경로로 전환 (bg_window/bg_tooltip/bg_button/bg_button_hover/bg_slot/glow_hover_gold/shadow_glow).
+- ThemeUssSanityTests 가드 강화: 절대경로 "Assets/" 시작 url 금지 + USS 폴더 기준 존재 검증.
+- 검증: EditMode 60/60, error CS=0.
+
+### Play 판정 대기
+①모든 창/슬롯/버튼의 노란 경고 플레이스홀더 소멸 ②창 배경 우드 그라데이션·버튼 베벨·슬롯 인셋 정상 렌더 ③**소프트 드롭섀도우가 이번엔 실제로 보임**(역사상 첫 렌더) ④아이템 아이콘 정상 유지
