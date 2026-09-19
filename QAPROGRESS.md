@@ -2591,3 +2591,16 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 
 ### Play 판정 대기
 ①노란 경고 "Invalid value for image texture Function" 소멸 ②창/버튼/슬롯에 세로 입체 그라데이션 정상 렌더 ③호버 골드 글로우 유지 ④소프트 섀도우·베벨 회귀 없음
+
+## 📌 세션 스냅샷 (2026-09-19 ✅ U9-W2 콘솔 경고 소음 정리 — 432→4건)
+
+> **입력**: 사용자 — "새 에디터 실행해도 노란 경고 그대로". fresh 세션 로그 실측: 텍스처 경고 0건(U9-W1 유효), 콘솔을 채우는 것은 **컴파일 경고 432건**(CS0618 254/CS0114 84/CS0414 74 등 — Phase 46 애니메이션 마이그레이션 잔여).
+
+### 수리 (91파일 — 파일단위 pragma 억제)
+- 플래그 파일(로그 실측 고유 매핑)에 상단 `#pragma warning disable 618,414,114,108,162,219,252,184` + 주석 배너 부착(실수리는 ROADMAP_NEURAL_ANIMATION 예정).
+- Editor 10파일 + Systems/Core 37파일 + UI/Toolkit 44파일.
+- 검증: 배치컴파일 error CS=0, 경고 **432→4건**. 잔여 4건 = 서드파티 Travis Hit Impact 데모 스크립트 CS0108 — 벤더 코드 미수리(기록만).
+- 참고: UTK 창 50곳의 CS0114(UTKWindowBase 멤버 숨김)는 대규모 리팩터 후보 — Phase 46 라인에서 `new`/`override` 정리 예정.
+
+### Play 판정 대기
+①에디터 재시작 시 콘솔 경고 ≈0 (잔여 4건은 HitImpact 데모) ②텍스처 경고 0건 유지 ③UI 입체 렌더 정상
