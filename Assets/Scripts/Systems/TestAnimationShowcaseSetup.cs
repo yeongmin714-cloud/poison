@@ -6,6 +6,7 @@
 //    (MonsterSpawner 컴포넌트 자체는 부착하지 않음 — SpawningPaused 이슈 회피, 생성 로직만 재현)
 //  - 병사 생성: TestTerritoryCombatSetup.CreateGuard(805~991행) 패턴 — 루트+FBX 바디+SoldierShield_AC+HumanoidClipDriver
 //  - NPC 생성: TerritoryNPCSpawner.SpawnNPC/TryAttachSoldierHumanoidBody(93~250행) 패턴 — GLB + 병사 FBX 골격 교체
+//  - 몬스터 이동: AnimalAI 대신 ShowcaseWanderDriver 부착 — Player 없이 leash 배회+애니 피드(2026-09-20)
 //  - 접지: SurfaceY(수식) 대신 요청대로 Physics.Raycast로 지면 y 계산
 #pragma warning disable 0414
 using UnityEngine;
@@ -304,10 +305,13 @@ namespace ProjectName.Systems
             if (assigner == null)
                 assigner = go.AddComponent<ProjectName.Systems.Animation.ModelAnimatorAssigner>();
 
-            // ③ AnimalAI + SetMonsterId
-            var ai = go.GetComponent<AnimalAI>();
-            if (ai == null) ai = go.AddComponent<AnimalAI>();
-            ai.SetMonsterId(def.id);
+            // ③ ShowcaseWanderDriver + SetMonsterId — Player/AnimalAI 없이 자율 배회(걷기/대기 애니 독립 재생).
+            //    AnimalAI는 Player 부재 시 Update에서 Idle+속도 0으로 되돌려 22종 전부 얼어붙는다
+            //    (AnimalAI.cs 503~514행). 애니 피드는 드라이버가 ModelAnimatorAssigner가 부착한
+            //    컨트롤러(4족 QuadrupedProceduralAnimation / 2족 ProceduralAnimationController)에 수행한다.
+            var wander = go.GetComponent<ShowcaseWanderDriver>();
+            if (wander == null) wander = go.AddComponent<ShowcaseWanderDriver>();
+            wander.SetMonsterId(def.id);
 
             // ④ SpecialCreatureAnimator — non-biped/non-quadruped 전용 (Spider/Clam/Slime/Spirit)
             if (!def.isQuadruped && !IsBiped(def.id))

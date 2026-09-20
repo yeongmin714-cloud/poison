@@ -18,6 +18,7 @@
 - **병사 존(Z=0, 간격3)**: lv1-20/20-40/40-50 3모델. TestTerritoryCombatSetup.CreateGuard 패턴(FBX + SoldierShield_AC + HumanoidClipDriver(Soldier) + GLB 재질 이식). 색/라벨 구분
 - **NPC 존(Z=15, 간격2.4)**: lord/king/shop/man1/2/girl1-3/oldman1/2/dracula 11종. TerritoryNPCSpawner 패턴(GLb + 병사 Humanoid FBX 교체 + SoldierShield_AC + 드라이버)
 - 접지: SurfaceY 대신 Physics.Raycast(GroundY) + GroundModelToY(bounds 최저점 정렬)
+- **각 몬스터 독립 배회 애니(2026-09-20)**: 원래 AnimalAI 부착했으나, AnimalAI는 Player 부재 시 Update에서 Idle+속도0으로 되돌려 22종 전부 얼어붙음(AnimalAI.cs 503~514행). → AnimalAI 대신 신규 **ShowcaseWanderDriver.cs** 부착 — 스폰 leash(2.5m) 내 랜덤 배회(도착 시 1.2~2.8s idle), 마리별 속도/지연 랜덤 변주로 22종 각자 독립 걷기/대기. 애니 피드: 4족=QuadrupedProceduralAnimation.SetAiDriven+SetMovementSpeed+ApplyMonsterProfile / 2족=ProceduralAnimationController.SetVelocityProvider(this·IVelocityProvider)+ApplyMonsterProfile / 특수형=SpecialCreatureAnimator 자율 / Rig 보유 시 RigAnimationController.SetState(Walk/Idle). 지연 연결 타임아웃 3s. API 시그니처 전부 원본 리드로 대조 통과.
 
 ### 검증
 - 모두 **기존 프로젝트 심볼 전수 대조** 통과: MonsterDef(gizmoColor/id/displayName/isQuadruped), MonsterDatabase.Get, AnimalAI.SetMonsterId, GuardPlaceholder.SetGuardInfo/SetRecruited, NationType.East, HumanoidClipDriver(DriveMode.Soldier/CopyMaterialsFromGlb), GuardManager.NormalizeSoldierScaleToPlayer/GetSoldierSizeMultiplier, ModelAnimatorAssigner.ForceBiped, SpecialCreatureAnimator(ProjectName.Systems.Animation.Procedural, CreatureType{Spider,Clam,Slime,Spirit,LargeMonster})
