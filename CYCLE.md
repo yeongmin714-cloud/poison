@@ -832,3 +832,9 @@
 - Details: 무료 모델 실측 선정 — ling-3.0-flash-sante:free(주, 2.3s)/fin:free(백업, 1.2s), 한국어 페르소나 우수(reasoning형 deepseek/glm free는 content 공백 — 사용 금지 주석). LLMConfig 로더(git 제외 llm_config.json — 키 하드코딩 금지 규약). NPCDialogueAdapter — 이중 경로(설정됨+한도 잔여+정상응답 → LLM / 그 외 전부 규칙 폴백), 데일리 한도 200(PlayerPrefs 날짜키), 동시 1개(isBusy), backupModel 1회 재시도, ExtractContent/FallbackReply 순수 메서드. 영주 프롬프트 템플릿 — 국가/링/성격/지병/입맛/LordStat 6속성+guard/HeroicTale 성취사 주입 + 규칙(영주 말투/2~4문장/지병·입맛은 물어야 암시/거짓 금지). LordAudienceUTK 배선(대면창 열림→RequestDialogue, 미설정 0 변경, 구독 쌍). 부트스트랩.
 - Tests: LLMNpcTests 14개 (프롬프트 결정론/한도/파싱/폴백/설정로더 — 네트워크 실호출은 Play) → EditMode 280/280
 - Date: 2026-09-20
+
+# Cycle: P1~P6 — 갭 해소 (테스트 차단 요인 제거)
+- Status: ✅
+- Details: P1 점령 이벤트 실발화 — PoisonTakeover/ExecuteLord/SpareLord 직접 소유 변경 → SetOwnership 전환(OwnershipChanged → conquest 카운터) + 세이브 로드 복원모드(OwnershipRestoreMode — 로드 중 이벤트 억제, 오염 방지). P2 칭호 훅 3종 — executions(LordSurrenderSystem.OnLordExecuted 구독)/crafts(CraftingHelper.CraftSucceeded 신설 이벤트)/set_complete(GuardEquipmentSystem 장착 후 EvaluateSetCompletion — 종류 기반 직접 해금: 가죽→set_leather/판금→set_plate/3종→set_all3, 중복 무시). P3 바드 고용 시 기본 류트 자동 장착. P4 낚시 생선→허기 +40(ItemConsumed 이벤트 — Core→Systems 규약 준수). P5 Status창 감사 리포트 버튼(토스트 출력). P6 TerritoryDatabase.ResolveTerritoryAt(위치→최근접 영지 판정) + ConstructionWindowUTK 배선(East_01 하드코드 제거, 영지 밖 배치 거부).
+- Tests: EditMode 280/280 기존 전수 통과 (수리: LordData 중첩 타입/HungerSystem usings 2건)
+- Date: 2026-09-20
