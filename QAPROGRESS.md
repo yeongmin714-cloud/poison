@@ -1,6 +1,32 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-20 (부대 선택 링 고품질화 + 부대 컨텍스트 명령 시스템 + 배회 드라이버)
+> **최종 갱신:** 2026-09-20 (그랜드 플랜 Milestone A — 운·희귀도 기반 제작 성공률 + RecipeDB_SO 데이터화)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-20 ✅ 통합 계획 — Milestone A: 데이터·운·희귀도 성공률 기반)
+
+> **입력**: 사용자 "광물/재료/채집/희귀/레시피/진행도UI 전방위 — 만들 수 없는 최상위 무기·비밀레시피·희귀광물·운 기반 성공률·레시피 디스커버리·장신구·.GLB부재목록" 그랜드 플랜.
+
+### 계획 (구현 완료된 것만 본 스냅샷)
+**✓ Milestone A (이번 완료)** — 데이터·운·희귀도 성공률 기반:
+- `PlayerStats`: **Luck 신설**(PlayerPrefs player_luck_v1, GetLuckCraftBonus = Luck×2%p, Set/AddLuck). 
+- `Recipe.cs`: `rarity` 필드(ItemRarity.Common 기본). CalculateSuccessRate에 운 보너스+희귀도 페널티 반영, clamp 5~95.
+- `CraftingHelper`: 공용 상수 Min5/Max95, `GetRarityPenalty`(Common0/Unc-8/Rare-18/Epic-30/전설-45), `ComputeFinalCraftChance(base,rarity)`(PlayerStats null 안전), `GetRarityLabel`. **CraftWeapon 확정100%→운·희귀 기반 성공 롤**(실패 시 재료 손실모델 30%보존/50%@1/20%전손) + message에 희귀도·성공률 표기.
+- `WeaponCraftDatabase`: WeaponRecipe에 `rarity` 추가(wood=Common/steel=Uncommon), `AllIncludingRaw` 추가, **RecipeDB_SO(Resources/CraftingRecipeDB) 우선 → 정적 폴백**.
+- **신규 `RecipeDB_SO.cs`**(ProjectName.Core.Data): [CreateAssetMenu] 데이터 기반 레시피(RecipeEntry class: ResultId/Mat1Id/Count/Mat2Id/Count/RequiredLevel/rarity/category), `Instance`(Resources.Load, null 안전), `TryMatchResult`, **에디터 메뉴 Tools/Crafting/Generate RecipeDB**로 정적→SO 마이그레이션.
+- **EditMode 테스트** `CraftChanceTests.cs`: ComputeFinalCraftChance(0운 Common=base), 희귀도 단조 감소, GetRarityPenalty 정확값, clamp 5~95, RecipeDB TryMatchResult.
+
+### 남은 마일스톤 (다음 턴 진행 예정)
+- **B**: 신규 광물(silver/gold/mythril/crystal_shard)·장신구(반지/목걸이 %버프)·판금/가죽 아이템 등록 + 광물 기반 무기/방어구/장신구 레시피 확충(RecipeDB_SO에 데이터 행) + 사용자 GLB 온보딩(아이템ID/그립/레시피).
+- **C**: 레시피 디스커버리("?" 블라인드·실험조합 성공 시 획득·레시피북 확률표시) + 운 표시 / 비밀상점·비제작 최상위 무기/비밀레시피·희귀 광물 드랍.
+- **D**: 크래프트 UI(CraftBenchBaseUTK) 확률·운·"?"·레시피북 통합.
+- **E**: 채집/광물 채널링(애니+월드 진행도 바) — 이전 계획.
+- **F**: GLB 부재 목록·애니 부재 목록 런타임/에디터 산출기 + 문서화, 밸런스·검증.
+
+### 검증
+- 5파일(PlayerStats/Recipe/CraftingHelper/WeaponCraftDatabase/RecipeDB_SO) 괄호·문법 균형 OK, LoadLuck Awake 호출 확인, ComputeFinalCraftChance null 안전.
+- 서브에이전트 600s 타임아웃 → 부모 직결 완성(RecipeDB_SO·테스트 추가).
 
 ---
 

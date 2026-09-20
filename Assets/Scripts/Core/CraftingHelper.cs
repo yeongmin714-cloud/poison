@@ -15,6 +15,58 @@ namespace ProjectName.Core
 
         /// <summary>[P18-C2] 제작 성공 발화 래퍼 — 이벤트는 외부 Invoke 불가(CS0079) → 공개 메서드 경유.</summary>
         public static void NotifyCraftSucceeded(string resultItemId) => CraftSucceeded?.Invoke(resultItemId);
+
+        // ── [Milestone A] 데이터·운·희귀도 성공률 기반 ─────────────────────────
+
+        /// <summary>최종 제작 성공률 clamp 하한(%) — 극단적 롤 방지(절대 0% 제작 불가 방지).</summary>
+        public const int MinCraftChance = 5;
+        /// <summary>최종 제작 성공률 clamp 상한(%) — 100% 확정 제작 방지.</summary>
+        public const int MaxCraftChance = 95;
+
+        /// <summary>무기/장비 제작 기본 성공률(%) — 희귀도 페널티·운 보너스는 여기에 가산.</summary>
+        public const int WeaponBaseSuccessRate = 90;
+
+        /// <summary>
+        /// 희귀도별 성공률 페널티 표(%p).
+        /// Common 0 / Uncommon -8 / Rare -18 / Epic -30 / Legendary -45.
+        /// 표 밖 값(Unique 등)은 전설급 취급(마지막 값 상속).
+        /// </summary>
+        private static readonly int[] RarityPenalties = { 0, -8, -18, -30, -45 };
+
+        /// <summary>희귀도 페널티(%p) 반환 — Recipe.CalculateSuccessRate와 ComputeFinalCraftChance 공용.</summary>
+        public static int GetRarityPenalty(ItemRarity rarity)
+        {
+            int idx = (int)rarity;
+            if (idx < 0) return RarityPenalties[0];
+            if (idx >= RarityPenalties.Length) return RarityPenalties[RarityPenalties.Length - 1];
+            return RarityPenalties[idx];
+        }
+
+        /// <summary>희귀도 한글 라벨 — message/로그 표시용.</summary>
+        public static string GetRarityLabel(ItemRarity rarity)
+        {
+            switch (rarity)
+            {
+                case ItemRarity.Uncommon: return "고급";
+                case ItemRarity.Rare: return "희귀";
+                case ItemRarity.Epic: return "영웅";
+                case ItemRarity.Legendary: return "전설";
+                case ItemRarity.Unique: return "유니크";
+                default: return "일반";
+            }
+        }
+
+        /// <summary>
+        /// [Milestone A] 공용 최종 제작 성공률 산출 — Recipe(연금/요리)와 무기 제작 공용.
+        /// 성공률 = baseRate + 운 보너스(PlayerStats.GetLuckCraftBonus, Luck*2%p) + 희귀도 페널티,
+        /// clamp 5~95. PlayerStats 미생성 시 운 보너스 0 처리.
+        /// </summary>
+        public static int ComputeFinalCraftChance(int baseRate, ItemRarity rarity)
+        {
+            float luckBonus = PlayerStats.Instance != null ? PlayerStats.Instance.GetLuckCraftBonus() : 0f;
+            int rate = baseRate + Mathf.RoundToInt(luckBonus) + GetRarityPenalty(rarity);
+            return Mathf.Clamp(rate, MinCraftChance, MaxCraftChance);
+        }
         /// <summary>
         /// Attempt to craft an alchemy recipe from two herb IDs.
         /// Returns true if successful.
@@ -147,8 +199,11 @@ namespace ProjectName.Core
         }
 
         /// <summary>
-        /// [P18-C1] 무기/장비 제작 — 마인크래프트식 확정 제작(성공률 100%).
-        /// 재료 검증 → 소모 → 결과 지급 → EXP/발견 등록/CraftSucceeded 발화.
+        /// [P18-C1 → Milestone A] 무기/장비 제작 — 확정 100%에서 운·희귀도 기반 성공 롤로 전환.
+        /// 성공률 = WeaponBaseSuccessRate(90) + 운 보너스(Luck*2%p) + 희귀도 페널티, clamp 5~95.
+        /// 성공: 재료 소모 → 결과 지급 → EXP+20 / 발견 등록 / CraftSucceeded 발화.
+        /// 실패: PerformCraft 실패 모델 재사용(30% 재료 보존 / 50% 재료 1 손실 / 20% 전손).
+        /// message에는 희귀도·성공률이 반드시 표기된다.
         /// </summary>
         public static bool CraftWeapon(string resultId, out string message)
         {
@@ -175,27 +230,63 @@ namespace ProjectName.Core
                 return false;
             }
 
-            inventory.RemoveItem(recipe.Mat1Id, recipe.Mat1Count);
-            if (!string.IsNullOrEmpty(recipe.Mat2Id) && recipe.Mat2Count > 0)
-                inventory.RemoveItem(recipe.Mat2Id, recipe.Mat2Count);
+            // [Milestone A] 성공률 산출 — base + 운 보너스 + 희귀도 페널티 (clamp 5~95)
+            int chance = ComputeFinalCraftChance(WeaponBaseSuccessRate, recipe.rarity);
+            string rarityLabel = GetRarityLabel(recipe.rarity);
+            string displayName = WeaponCraftDatabase.DisplayName(resultId);
+            bool success = Random.Range(0, 100) < chance;
 
-            var resultItem = PlayerInventory.GetItemById(resultId);
-            if (resultItem == null || !inventory.AddItem(resultItem, 1))
+            if (success)
             {
-                message = "인벤토리가 가득 찼습니다!";
-                // 롤백 — 재료 반환
-                inventory.AddItem(PlayerInventory.GetItemById(recipe.Mat1Id), recipe.Mat1Count);
+                inventory.RemoveItem(recipe.Mat1Id, recipe.Mat1Count);
                 if (!string.IsNullOrEmpty(recipe.Mat2Id) && recipe.Mat2Count > 0)
-                    inventory.AddItem(PlayerInventory.GetItemById(recipe.Mat2Id), recipe.Mat2Count);
+                    inventory.RemoveItem(recipe.Mat2Id, recipe.Mat2Count);
+
+                var resultItem = PlayerInventory.GetItemById(resultId);
+                if (resultItem == null || !inventory.AddItem(resultItem, 1))
+                {
+                    message = "인벤토리가 가득 찼습니다!";
+                    // 롤백 — 재료 반환
+                    inventory.AddItem(PlayerInventory.GetItemById(recipe.Mat1Id), recipe.Mat1Count);
+                    if (!string.IsNullOrEmpty(recipe.Mat2Id) && recipe.Mat2Count > 0)
+                        inventory.AddItem(PlayerInventory.GetItemById(recipe.Mat2Id), recipe.Mat2Count);
+                    return false;
+                }
+
+                RecipeDiscoverySystem.MarkDiscovered(resultItem.displayName ?? resultId);
+                CraftSucceeded?.Invoke(resultId);
+                if (PlayerStats.Instance != null)
+                    PlayerStats.Instance.AddEXP(20);
+                message = $"✅ {displayName} 제작 완료! (희귀도: {rarityLabel}, 성공률 {chance}%)";
+                Debug.Log($"[CraftingHelper] {message}");
+                return true;
+            }
+            else
+            {
+                // 실패 — 재료 손실 모델 (PerformCraft와 동일: 30% 보존 / 50% 1개 손실 / 20% 전손)
+                string lossDesc;
+                float roll = Random.value;
+                if (roll < 0.3f)
+                {
+                    lossDesc = "재료 보존";
+                }
+                else if (roll < 0.8f)
+                {
+                    inventory.RemoveItem(recipe.Mat1Id, 1);
+                    lossDesc = "재료 일부 손실";
+                }
+                else
+                {
+                    inventory.RemoveItem(recipe.Mat1Id, recipe.Mat1Count);
+                    if (!string.IsNullOrEmpty(recipe.Mat2Id) && recipe.Mat2Count > 0)
+                        inventory.RemoveItem(recipe.Mat2Id, recipe.Mat2Count);
+                    lossDesc = "재료 전부 손실";
+                }
+
+                message = $"❌ {displayName} 제작 실패! (희귀도: {rarityLabel}, 성공률 {chance}%, {lossDesc})";
+                Debug.Log($"[CraftingHelper] {message}");
                 return false;
             }
-
-            RecipeDiscoverySystem.MarkDiscovered(resultItem.displayName ?? resultId);
-            CraftSucceeded?.Invoke(resultId);
-            if (PlayerStats.Instance != null)
-                PlayerStats.Instance.AddEXP(20);
-            message = $"✅ {WeaponCraftDatabase.DisplayName(resultId)} 제작 완료!";
-            return true;
         }
 
         private static PlayerInventory.ItemData CreateHerbItem(HerbInfo herb)

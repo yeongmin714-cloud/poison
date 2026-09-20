@@ -86,6 +86,49 @@ namespace ProjectName.Core
         /// <summary>기본 치명타 확률 (읽기/쓰기)</summary>
         public float CritChanceBase { get => _critChanceBase; set => _critChanceBase = value; }
 
+        // ── 운(Luck) — [Milestone A] 데이터·운·희귀도 성공률 기반 ─────────────
+        // 제작(연금/요리/무기) 성공률에 기여하는 운 스탯. 기본값 0.
+        // 추후 요리/물약 버프 등으로 상승 예정. 저장 키: "player_luck_v1".
+        private const string PrefKeyLuck = "player_luck_v1";
+
+        /// <summary>운 1점당 제작 성공률 보너스(%p) — 밸런스 상수 (운 20이면 +40%p).</summary>
+        public const float LuckCraftBonusPerPoint = 2f;
+
+        /// <summary>운 스탯 (기본 0, 음수 방지 — SetLuck/AddLuck 경유로만 변경)</summary>
+        public int Luck { get; private set; }
+
+        /// <summary>
+        /// 운 기반 제작 성공률 보너스(%p) — CraftingHelper.ComputeFinalCraftChance 및
+        /// Recipe.CalculateSuccessRate에서 공용 사용.
+        /// </summary>
+        public float GetLuckCraftBonus() => Luck * LuckCraftBonusPerPoint;
+
+        /// <summary>운 스탯 직접 설정 (저장 포함)</summary>
+        public void SetLuck(int value)
+        {
+            Luck = Mathf.Max(0, value);
+            SaveLuck();
+        }
+
+        /// <summary>운 스탯 가감 (버프/이벤트용 — 저장 포함)</summary>
+        public void AddLuck(int amount)
+        {
+            if (amount == 0) return;
+            Luck = Mathf.Max(0, Luck + amount);
+            SaveLuck();
+        }
+
+        private void SaveLuck()
+        {
+            PlayerPrefs.SetInt(PrefKeyLuck, Luck);
+            PlayerPrefs.Save();
+        }
+
+        private void LoadLuck()
+        {
+            Luck = Mathf.Max(0, PlayerPrefs.GetInt(PrefKeyLuck, 0));
+        }
+
         // ── 스탯 포인트 시스템 (2026-09-09: 레벨업당 5포인트 수동 분배) ──
         public const int StatPointsPerLevel = 5;
 
@@ -242,6 +285,7 @@ namespace ProjectName.Core
             }
             Instance = this;
             LoadStatAllocation(); // 저장된 스탯 분배 복원 (PlayerPrefs)
+            LoadLuck();           // [Milestone A] 저장된 운(Luck) 복원 (PlayerPrefs "player_luck_v1")
             // NOTE: Player 오브젝트는 씬에 있어야 함. DontDestroyOnLoad 제거
             // DontDestroyOnLoad(gameObject);
         }
