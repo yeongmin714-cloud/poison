@@ -1,6 +1,27 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-20 (그랜드 플랜 Milestone A — 운·희귀도 기반 제작 성공률 + RecipeDB_SO 데이터화)
+> **최종 갱신:** 2026-09-20 (그랜드 플랜 — Milestone A 성공률 + B 광물·장신구·레시피 확충)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-20 ✅ Milestone B — 광물·장신구·판금/가죽 재료 + 광물 기반 레시피 확충)
+
+> **입력**: "광물 캐면 무기 제작 재료 / 판금·가죽 / 더 많은 무기 레시피 + 데이터 저장 / 장신구(반지·목걸이 %버프) / 운 성공률 / 레시피 디스커버리".
+
+### Milestone B 구현
+- **PlayerInventory**: `ItemCategory.Accessory` 추가 + 신규 아이템 등록(Tiered 헬퍼 병행):
+  - **광물**: mat_wood(통나무)/mat_stone(석재)/iron_ore(철광)/iron_ingot(철괴)/mat_silver_ore(은)/mat_gold_ore(금)/mat_mythril_ore(미스릴)/**crystal_shard(수정석)** — 희귀도: 철광Uncommon·은Uncommon·금Rare·미스릴Epic·수정Rare.
+  - **장신구**: ring_evasion(회피+3%)/ring_vitality(체력+10%)/ring_power(공격+6%)/necklace_hp(체력+15%)/necklace_guard(방어+8%) — Uncommon~Epic.
+- **AccessoryDefinitions.cs**(신규, Core): id→스탯종류(Evasion/MaxHp/Attack/Defense)+% 값 데이터 맵(장착 연동은 후속).
+- **WeaponCraftDatabase**: 레시피 대폭 확충(+21) — **Stone 티어 4종(mat_stone+늑대이빨)**, **Crystal 티어 4종(crystal_shard+미스릴)**, **방어구 세트(helmet/armor × wood/stone/steel/crystal — 광물 재료)**, **장신구 5종(은/금/수정/미스릴)**. → **광물이 곧 무기/방어구/장신구 제작 재료**로 전방위 연결.
+- **ResourceNode**: Wood→`mat_wood`, Stone→`mat_stone` 산출 정렬(크래프트 재료 계열화). 희귀 광물(은/금/미스릴/수정) 고난도 노드는 Milestone C(희귀 드랍)에서.
+- RecipeDB_SO(에디터 메뉴 Tools/Crafting/Generate RecipeDB)로 정적→SO 데이터 마이그레이션하면 위 레시피 전부 데이터로 전환.
+
+### 검증
+- 결과 아이템 ID 전부 등록 확인(`Tiered()` 카탈로그 — GetItemById 해석되어 EnsureValid 통과), 4파일 괄호 균형 OK. 변경: PlayerInventory/AccessoryDefinitions/WeaponCraftDatabase/ResourceNode.
+
+### 남은 마일스톤
+C(비밀상점·비제작 최상위·희귀광 드랍·레시피 디스커버리 "?") / D(크래프트 UI 확률·운·레시피북) / E(채팩·광물 채널링+진행도UI) / F(목록 산출기+밸런스).
 
 ---
 

@@ -99,18 +99,18 @@ namespace ProjectName.Systems
                 case ResourceType.Wood:
                     return new PlayerInventory.ItemData
                     {
-                        id = "wood",
-                        displayName = "나무",
-                        description = "기본 건축 자재.",
+                        id = "mat_wood",   // [Milestone B] 크래프트 재료로 정렬(기존 "wood")
+                        displayName = "통나무",
+                        description = "채광/벌목으로 얻는 목재. 무기·방어구 제작 재료.",
                         category = PlayerInventory.ItemCategory.Material,
                         maxStack = 99
                     };
                 case ResourceType.Stone:
                     return new PlayerInventory.ItemData
                     {
-                        id = "stone",
-                        displayName = "돌",
-                        description = "기본 건축 자재.",
+                        id = "mat_stone",  // [Milestone B] 크래프트 재료로 정렬(기존 "stone")
+                        displayName = "석재",
+                        description = "채광으로 얻는 돌. Stone 티어 장비 제작 재료.",
                         category = PlayerInventory.ItemCategory.Material,
                         maxStack = 99
                     };

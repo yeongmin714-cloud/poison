@@ -47,6 +47,7 @@ namespace ProjectName.Core
             Quest,      // 퀘스트 아이템
             Weapon,     // 무기
             Armor,      // 방어구
+            Accessory,  // [Milestone B] 장신구 (반지/목걸이 — %버프)
             Tool,       // 도구
             Arrow,      // 화살 (AB-01)
             Bomb        // 폭탄 (퀵슬롯 무장/투척 전용)
@@ -287,6 +288,23 @@ namespace ProjectName.Core
         public static readonly ItemData Pickaxe      = new ItemData { id = "tool_pickaxe",     displayName = "곡괭이",  description = "광석 채굴용 도구.",          category = ItemCategory.Tool,   maxStack = 1, maxDurability = 30 };
         public static readonly ItemData Axe          = new ItemData { id = "tool_axe",         displayName = "도끼",     description = "벌목용 도구.",               category = ItemCategory.Tool,   maxStack = 1, maxDurability = 30 };
         public static readonly ItemData FishingRod   = new ItemData { id = "tool_fishing_rod", displayName = "낚싯대",   description = "낚시용 도구.",               category = ItemCategory.Tool,   maxStack = 1, maxDurability = 20 };
+
+        // ===== [Milestone B] 광물 재료 (채광 산출 → 무기/방어구/장신구 재료) =====
+        public static readonly ItemData Mat_Wood  = new ItemData { id = "mat_wood",     displayName = "통나무", description = "채광/벌목으로 얻는 기본 목재. Wood 티어 장비 재료.", category = ItemCategory.Material, maxStack = 99 };
+        public static readonly ItemData Mat_Stone = new ItemData { id = "mat_stone",    displayName = "석재",   description = "채광으로 얻는 돌. Stone 티어 장비 재료.",           category = ItemCategory.Material, maxStack = 99 };
+        public static readonly ItemData IronOre   = new ItemData { id = "iron_ore",     displayName = "철광석", description = "채광으로 얻는 철광. Steel/Chain 티어 재료.",        category = ItemCategory.Material, maxStack = 99, rarity = ItemRarity.Uncommon };
+        public static readonly ItemData IronIngot = new ItemData { id = "iron_ingot",   displayName = "철괴",   description = "철광석을 정련한 것. 강철 장비 재료.",             category = ItemCategory.Material, maxStack = 99, rarity = ItemRarity.Uncommon };
+        public static readonly ItemData SilverOre = new ItemData { id = "mat_silver_ore", displayName = "은광석", description = "희귀한 은 광석. 은 티어·장신구 재료.",           category = ItemCategory.Material, maxStack = 99, rarity = ItemRarity.Uncommon };
+        public static readonly ItemData GoldOre   = new ItemData { id = "mat_gold_ore",   displayName = "금광석", description = "귀한 금 광석. 희귀 장비·장신구 재료.",            category = ItemCategory.Material, maxStack = 99, rarity = ItemRarity.Rare };
+        public static readonly ItemData MythrilOre= new ItemData { id = "mat_mythril_ore",displayName = "미스릴 광석", description = "전설급 미스릴. 최상위 장비 재료.",             category = ItemCategory.Material, maxStack = 99, rarity = ItemRarity.Epic };
+        public static readonly ItemData CrystalShard = new ItemData { id = "crystal_shard", displayName = "수정석", description = "마력이 깃든 수정. 크리스탈 티어 재료.",          category = ItemCategory.Material, maxStack = 99, rarity = ItemRarity.Rare };
+
+        // ===== [Milestone B] 장신구 (반지/목걸이 — %버프, AccessoryDefinitions에 수치 맵) =====
+        public static readonly ItemData Ring_Evasion  = new ItemData { id = "ring_evasion",  displayName = "민첩 반지", description = "회피율 +3%.",        category = ItemCategory.Accessory, maxStack = 1, rarity = ItemRarity.Uncommon };
+        public static readonly ItemData Ring_Vitality = new ItemData { id = "ring_vitality", displayName = "생명 반지", description = "최대 체력 +10%.",     category = ItemCategory.Accessory, maxStack = 1, rarity = ItemRarity.Uncommon };
+        public static readonly ItemData Ring_Power    = new ItemData { id = "ring_power",    displayName = "힘의 반지", description = "공격력 +6%.",        category = ItemCategory.Accessory, maxStack = 1, rarity = ItemRarity.Rare };
+        public static readonly ItemData Necklace_HP   = new ItemData { id = "necklace_hp",   displayName = "체력 목걸이", description = "최대 체력 +15%.",  category = ItemCategory.Accessory, maxStack = 1, rarity = ItemRarity.Rare };
+        public static readonly ItemData Necklace_Guard= new ItemData { id = "necklace_guard",displayName = "수호 목걸이", description = "방어력 +8%.",      category = ItemCategory.Accessory, maxStack = 1, rarity = ItemRarity.Rare };
 
         // ===== 물고기 아이템 =====
         public static readonly ItemData Fish_Common = new ItemData
