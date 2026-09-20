@@ -16,6 +16,8 @@ namespace ProjectName.UI.Toolkit
     ///  ② 화술 판정 — PlayerStats.Instance.Level >= speechDifficulty (0 = 자동 성공, 원본 로직 대응).
     ///  ③ 결과 — 성공/실패 Result 표시(색상 구분) + onSuccess/onFail 콜백 호출, 3초 후 선택지 재표시(400ms 폴링).
     ///  각 경로에 [LordUTK] UnityEngine.Debug 로그.
+    ///  ④ [O9 C-O9-03] LLM NPC — 대면창 열림 시 NPCDialogueAdapter.RequestDialogue(게이트: LLMConfig.IsConfigured()),
+    ///     DialogueReady(Subscribe/Unsubscribe 쌍) 수신 시 기초 인사를 LLM 텍스트로 교체. 미설정 환경 0 변경.
     /// [진입점] static Open(lordName, lordTitle, options) / Ensure() / Toggle(). 순수 VisualElement 트리.
     /// </summary>
     public class LordAudienceUTK : UTKWindowBase
@@ -69,6 +71,7 @@ namespace ProjectName.UI.Toolkit
         private AudienceOption[] _options;
         private bool _showOptions = true;
         private string _dialogueText = "";
+        private bool _llmSubscribed;   // [O9] DialogueReady 구독 중 플래그 (Subscribe/Unsubscribe 쌍)
 
         // ===== 레퍼런스 =====
         private Label _headlineLabel;
@@ -132,6 +135,7 @@ namespace ProjectName.UI.Toolkit
         {
             base.Hide();
             StopRefreshLoop();
+            UnsubscribeLordDialogue(); // [O9] 창 닫힘 — DialogueReady 구독 해제 (쌍 유지)
             Debug.Log("[LordUTK] 알현 종료");
         }
 
@@ -176,6 +180,46 @@ namespace ProjectName.UI.Toolkit
             Debug.Log("[LordUTK] " + _lordName + " 대면 시작");
             Show();
             Refresh();
+
+            // [O9 C-O9-03] LLM NPC 배선 — 설정된 환경에서만 요청(미설정/어댑터 부재 시 0 변경).
+            // 초기 인사(_dialogueText 규칙 텍스트)는 그대로 표시, LLM 응답 도착 시 OnLordDialogueReady가 교체한다.
+            // NPCDialogueAdapter가 존재하지 않으면 Instance getter가 null — 완전 무영향.
+            SubscribeLordDialogue();
+            if (LLMConfig.IsConfigured() && NPCDialogueAdapter.Instance != null)
+            {
+                NPCDialogueAdapter.Instance.RequestDialogue(
+                    _lordName,                                                   // npcKey — DialogueReady 필터용
+                    NPCDialogueAdapter.BuildLordSystemPromptForLord(_lordName),  // territoryId 부재 → 영주 이름으로 재료 조회(성취사 임시 관례와 동일)
+                    "인사");
+            }
+        }
+
+        // =================== LLM NPC 구독 관리 (Subscribe/Unsubscribe 쌍 — O9) ===================
+
+        private void SubscribeLordDialogue()
+        {
+            if (_llmSubscribed) return;
+            NPCDialogueAdapter.Subscribe(OnLordDialogueReady); // 정적 이벤트 — 어댑터 미부재와 무관하게 안전
+            _llmSubscribed = true;
+        }
+
+        private void UnsubscribeLordDialogue()
+        {
+            if (!_llmSubscribed) return;
+            NPCDialogueAdapter.Unsubscribe(OnLordDialogueReady);
+            _llmSubscribed = false;
+        }
+
+        /// <summary>LLM 응답(또는 규칙 폴백) 수신 — 기초 인사를 LLM 텍스트로 교체. 다른 영주 응답은 무시.</summary>
+        private void OnLordDialogueReady(string npcKey, string llmText)
+        {
+            if (!string.Equals(npcKey, _lordName)) return;
+            if (string.IsNullOrEmpty(llmText)) return;
+            if (!IsOpen || !_showOptions) return; // 결과 표시 중에는 결과 텍스트 보존
+
+            _dialogueText = llmText;
+            if (_dialogueLabel != null) _dialogueLabel.text = _dialogueText;
+            Debug.Log("[LordUTK] LLM 대사 수신: " + npcKey);
         }
 
         // ===== 렌더링 =====

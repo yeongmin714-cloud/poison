@@ -55,3 +55,6 @@ roll_make/prev*/
 compile_check.log
 qa_compile.log
 run_batch_phase*.bat
+
+# [O9] LLM API 키 — git 제외
+llm_config.json
