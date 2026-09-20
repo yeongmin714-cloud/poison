@@ -24,6 +24,15 @@ namespace ProjectName.UI
         private const float INDOOR_FLOOR_Y = 0f;      // 실내 바닥 높이 (IndoorBuilder.CreateRoom: 바닥 XZ 평면 y=0)
         private static bool _initialized;
 
+        /// <summary>[P8 수리] 정적 생성자는 "타입 최초 접근 시"에만 실행 — 테스트 씬처럼 이 타입을
+        ///        참조하는 코드가 없으면 구독 자체가 없어 E키가 무반응이 된다(실측).
+        ///        RuntimeInitializeOnLoadMethod로 게임 시작 시 확정 구독.</summary>
+        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void RuntimeEnsureSubscription()
+        {
+            Initialize();
+        }
+
         /// <summary>정적 생성자: BuildingEvents 구독 (중복 방지)</summary>
         static IndoorSceneTransition()
         {

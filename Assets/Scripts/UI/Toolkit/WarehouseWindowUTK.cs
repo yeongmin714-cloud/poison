@@ -512,13 +512,18 @@ namespace ProjectName.UI.Toolkit
                     () => OnWarehouseSlotClick(slotIndex),
                     () => OnWarehouseSlotRightClick(slotIndex, null));
 
-                // [우클릭 출고 수리] ContextClickEvent 폴백 — PointerDown(button=1)이 미발화되는 환경 대비.
-                //   우클릭 시 PointerDownEvent와 ContextClickEvent가 둘 다 도착하지만
-                //   WithdrawSlot의 중복 요청 가드(slot별 200ms)가 1회만 실행시킨다.
+                // [P9 수리] 우클릭 3중 경로 — 실측(Play): WhSlot 우클릭이 UTKDragDrop 라우팅과
+                //   ContextClickEvent 모두 미도착(InvSlot은 도착) → PointerDown(button=1)을 셀에 직접 등록.
+                //   WithdrawSlot의 slot별 200ms 가드가 중복을 흡수하므로 3경로여도 1회만 실행.
                 cell.RegisterCallback<ContextClickEvent>(evt =>
                 {
                     OnWarehouseSlotRightClick(slotIndex, evt);
                 });
+                cell.RegisterCallback<UnityEngine.UIElements.PointerDownEvent>(evt =>
+                {
+                    if (evt.button == 1)
+                        OnWarehouseSlotRightClick(slotIndex, null);
+                }, UnityEngine.UIElements.TrickleDown.TrickleDown); // 트리클다운 — 오버레이 가로챔 우선 우회
             }
             else
             {
