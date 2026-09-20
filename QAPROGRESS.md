@@ -14,7 +14,7 @@
 
 ### 구성 (런타임 Awake 생성, 기존 시스템 재사용)
 - 지형/라이트/스카이박스: TestAllInOneSetup 패턴
-- **몬스터 존(Z=-15, 간격2.2)**: MonsterDatabase 22종 각 1. MonsterSpawner.CreateMonster 로직 재현(ModelAnimatorAssigner + AnimalAI.SetMonsterId + SpecialCreatureAnimator 분기). **22종 전부 리깅 GLB 실존**(GetMonsterModelPath 22종 맵 전부 `UserProvided/*_Rigged.glb` 존재 — rabbit/wolf/boar/deer/snake/bat/Big_Mouse/crow/slime/Golem/Fire_Lizard/Electric_Spine_Hedgehog/Swamp_Alligator/Wooden Forest Spirit/Wild_Troll/Swamp_Ogre/Banshee/Griffon/Minotaur/Manticore/Salamander/Shadow_Assassin). 프리미티브 폴백은 어떤 모델로도 안 잡힐 때만 동작. 라벨 "몬스터: 한글명/id"
+- **몬스터 존(Z=-15, 간격2.2, 군 간격1.0)**: MonsterDatabase 22종 각 1. **외형 유사 6군으로 재배치**(①작은 털4족: rabbit/deer/wolf/boar/giant_rat/electric_porcupine ②파충류: poison_snake/fire_lizard/salamander/swamp_croc ③조류·비행: crow/bat/griffin ④점액·정령·영혼: slime/forest_spirit/banshee ⑤거대 인간형괴수: stone_golem/wild_troll/ogre/minotaur ⑥신화하이브리드·은신: manticore/shadow_assassin). 군 경계마다 MonsterGroupStarts{0,6,10,13,16,20}로 1.0m씩 gap 누적(총 +5m). MonsterSpawner.CreateMonster 로직 재현(ModelAnimatorAssigner + AnimalAI.SetMonsterId + SpecialCreatureAnimator 분기). **22종 전부 리깅 GLB 실존**(GetMonsterModelPath 22종 맵 전부 `UserProvided/*_Rigged.glb` 존재). 프리미티브 폴백은 어떤 모델로도 안 잡힐 때만 동작. 라벨 "몬스터: 한글명/id"
 - **병사 존(Z=0, 간격3)**: lv1-20/20-40/40-50 3모델. TestTerritoryCombatSetup.CreateGuard 패턴(FBX + SoldierShield_AC + HumanoidClipDriver(Soldier) + GLB 재질 이식). 색/라벨 구분
 - **NPC 존(Z=15, 간격2.4)**: lord/king/shop/man1/2/girl1-3/oldman1/2/dracula 11종. TerritoryNPCSpawner 패턴(GLb + 병사 Humanoid FBX 교체 + SoldierShield_AC + 드라이버)
 - 접지: SurfaceY 대신 Physics.Raycast(GroundY) + GroundModelToY(bounds 최저점 정렬)

@@ -29,6 +29,7 @@ namespace ProjectName.Systems
 
         [Header("Layout (X spacing / Z rows)")]
         [SerializeField] private float _monsterSpacing = 2.2f;
+        [SerializeField] private float _monsterGroupGap = 1.0f; // 군 사이 추가 간격
         [SerializeField] private float _monsterRowZ = -15f;
         [SerializeField] private float _guardSpacing = 3f;
         [SerializeField] private float _guardRowZ = 0f;
@@ -38,11 +39,22 @@ namespace ProjectName.Systems
         // ---- 몬스터 22종 (MonsterSpawner.GetMonsterModelPath 641행 맵 복사) ----
         private static readonly string[] MonsterIds =
         {
-            "rabbit", "wolf", "boar", "deer", "poison_snake", "bat", "giant_rat", "crow",
-            "slime", "stone_golem", "fire_lizard", "electric_porcupine", "swamp_croc",
-            "forest_spirit", "wild_troll", "ogre", "banshee", "griffin", "minotaur",
-            "manticore", "salamander", "shadow_assassin"
+            // 1) 작은 털 4족 동물
+            "rabbit", "deer", "wolf", "boar", "giant_rat", "electric_porcupine",
+            // 2) 파충류/비늘
+            "poison_snake", "fire_lizard", "salamander", "swamp_croc",
+            // 3) 조류/비행
+            "crow", "bat", "griffin",
+            // 4) 점액·정령·영혼
+            "slime", "forest_spirit", "banshee",
+            // 5) 거대 인간형괴수
+            "stone_golem", "wild_troll", "ogre", "minotaur",
+            // 6) 신화 하이브리드·은신자
+            "manticore", "shadow_assassin"
         };
+
+        // 군 시작 인덱스 (군1=0, 군2=6, 군3=10, 군4=13, 군5=16, 군6=20 — 첫 군 0 제외 5회 간격 누적)
+        private static readonly int[] MonsterGroupStarts = { 0, 6, 10, 13, 16, 20 };
 
         // ---- NPC 11종 (RuntimeModelLoader alias 89~99행 키 + 한글 표시명) ----
         private static readonly string[] NpcKeys =
@@ -238,9 +250,14 @@ namespace ProjectName.Systems
         {
             int count = MonsterIds.Length;
             float startX = -(count - 1) * _monsterSpacing * 0.5f;
+            float gapAcc = 0f; // 군 경계에서 누적되는 추가 간격
 
             for (int i = 0; i < count; i++)
             {
+                // 군 시작 인덱스 도달 시 추가 간격 누적 (첫 군 시작 0 제외)
+                if (i > 0 && System.Array.IndexOf(MonsterGroupStarts, i) >= 0)
+                    gapAcc += _monsterGroupGap;
+
                 MonsterDef def = MonsterDatabase.Get(MonsterIds[i]);
                 if (def == null)
                 {
@@ -248,7 +265,7 @@ namespace ProjectName.Systems
                     continue;
                 }
 
-                float x = startX + i * _monsterSpacing;
+                float x = startX + i * _monsterSpacing + gapAcc;
                 Vector3 pos = new Vector3(x, 0f, _monsterRowZ);
                 pos.y = GroundY(x, _monsterRowZ);
 
