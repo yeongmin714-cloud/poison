@@ -708,6 +708,18 @@ namespace ProjectName.Systems
             if (entryTrigger != null)
                 Debug.Log("[MyTerritory] 🚪 성 입구 트리거 배치 완료 — 전면 4m 내 E키로 실내 진입 (PlayerCastle)");
 
+            // ═══ [P18] 크래프트하우스 진입 트리거 — 성 동측 E키 → CraftHouse 실내(제작/요리/연금 스테이션 3종) ═══
+            // HQ 실내 텍스처(IndoorMaterialFactory)는 OnIndoorSceneLoaded 공통 경유라 자동 적용.
+            var craftTrigger = IndoorTransitionSetup.CreateBuildingTrigger(
+                new Vector3(cx + 9f, baseY + 1.5f, cz - 4f),   // 성 동측 (14×14 성 중심 +9m)
+                IndoorTransitionSetup.TYPE_CRAFT_HOUSE,
+                IndoorTransitionSetup.DEFAULT_INTERACT_RANGE,
+                null,
+                "Eastern",
+                "East_01");
+            if (craftTrigger != null)
+                Debug.Log("[MyTerritory] 🔨 크래프트하우스 트리거 배치 완료 — 동측 3m 내 E키로 실내 진입 (무기/요리/물약 제작)");
+
             Debug.Log($"[MyTerritory] ✅ 내 소속 영지(PlayerOwned) 배치 — 성 'Territory_My_PlayerOwned' @({cx:F1}, {baseY:F1}, {cz:F1}), 내병사 3명(레벨 10, East, 파랑)");
         }
 
