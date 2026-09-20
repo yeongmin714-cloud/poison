@@ -15,6 +15,7 @@ namespace ProjectName.Systems
     /// - Gather  : 가장 가까운 약초(풀) 노드 채집 — GatheringSystem.TryGather → 약초 인벤토리 적립.
     /// - Hunt    : 가장 가까운 몬스터 공격(IDamageable.TakeDamage) + 확률 전리품(고기) + 일부 사망 확률.
     /// - Farm    : 가장 가까운 밭(FarmPlot) 파종/수확 — FarmingSystem.Plant/Harvest.
+    /// - Mine    : 가장 가까운 자원 노드(ResourceNode) 채굴 — TryAutoMine → 인벤토리 적립.
     ///
     /// 싱글턴 패턴은 FarmingSystem/GatheringSystem의 Ensure 패턴을 그대로 미러링한다.
     /// </summary>
@@ -31,7 +32,8 @@ namespace ProjectName.Systems
             Gather,   // 약초 채집
             Hunt,     // 몬스터 사냥
             Farm,     // 농사 (파종/수확)
-            Envoy     // 🕵️ 특사 — 적 영지 잠입 첩보 (민첩이 높을수록 발각 확률 낮음, 발각 시 처형)
+            Envoy,    // 🕵️ 특사 — 적 영지 잠입 첩보 (민첩이 높을수록 발각 확률 낮음, 발각 시 처형)
+            Mine      // ⛏️ 광질 — ResourceNode(Wood/Stone/IronOre) 채굴, 인벤토리 적립
         }
 
         /// <summary>싱글턴 — 비월드/파괴 대비.</summary>
@@ -49,12 +51,14 @@ namespace ProjectName.Systems
         const float ActionCooldownSec = 4f;     // 기본 역할 행동 쿨다운
         const float FarmCooldownSec = 3f;       // 농사 쿨다운
         const float EnvoyCooldownSec = 30f;     // 특사(정보원) 첩보 쿨다운 — 장시간 유지 (스팸 방지)
+        const float MineCooldownSec = 3f;       // 광질 쿨다운 — 농사(Farm)와 동일 주기
         const float AttackSetTargetSec = 1f;    // 추종 위치 갱신 주기
 
         // 범위
         const float GatherRange = 15f;
         const float HuntRange = 20f;
         const float FarmRange = 12f;
+        const float MineRange = 15f;            // 광질 노드 탐색 범위 — 채집(Gather)과 동일
 
         // 사냥 확률
         const float HuntDropChance = 0.6f;      // 60% 확률로 전리품(고기) 지급
@@ -218,6 +222,7 @@ namespace ProjectName.Systems
                 case GuardTask.Hunt:    RoutineHunt(guard);    break;
                 case GuardTask.Farm:    RoutineFarm(guard);    break;
                 case GuardTask.Envoy:   RoutineEnvoy(guard);   break;
+                case GuardTask.Mine:    RoutineMine(guard);    break;
             }
         }
 
@@ -350,6 +355,41 @@ namespace ProjectName.Systems
             // meat_rabbit (RabbitMeat) — 코드에 정의된 고기 아이템. 실존 id 사용.
             bool ok = PlayerInventory.Instance.AddItem(PlayerInventory.RabbitMeat, 1);
             Debug.Log($"{LogTag} {guard.GuardName} 🎁 사냥 전리품 토끼고기 x1 지급 {(ok ? "성공" : "실패(가득 참)")} ← {monster.name}");
+        }
+
+        /// <summary>
+        /// ⛏️ Mine — 가장 가까운 자원 노드(ResourceNode: Wood/Stone/IronOre) 채굴.
+        /// ResourceNode.TryAutoMine → PlayerInventory.AddItem로 광물 인벤토리 적립.
+        /// (RoutineGather/RoutineFarm과 동일 패턴: 이동 명령 → 근접 후 작업 → 쿨다운.)
+        /// </summary>
+        private void RoutineMine(GuardPlaceholder guard)
+        {
+            if (!CooldownReady(guard, MineCooldownSec)) return;
+
+            ResourceNode node = FindNearestResourceNode(guard.transform.position, MineRange);
+            if (node == null)
+            {
+                CooldownStamp(guard, MineCooldownSec);
+                return;
+            }
+
+            // 노드로 이동 명령 후 가까우면 채굴
+            if (Vector3.Distance(guard.transform.position, node.transform.position) > 2.5f)
+            {
+                guard.SetCommandTarget(node.transform.position, false);
+            }
+
+            // 채굴 — 고갈 전 노드만. 성공 시 광물을 플레이어 인벤토리에 적립.
+            if (node.IsAvailable && node.TryAutoMine(out PlayerInventory.ItemData item, out int yield))
+            {
+                if (item != null && PlayerInventory.Instance != null)
+                {
+                    bool ok = PlayerInventory.Instance.AddItem(item, yield);
+                    Debug.Log($"{LogTag} {guard.GuardName} ⛏️ 광질 성공 {yield}({node.name}){(ok ? "" : " — 인벤 가득 참")}");
+                }
+            }
+
+            CooldownStamp(guard, MineCooldownSec);
         }
 
         /// <summary>Farm — 가장 가까운 밭 파종/수확. FarmingSystem.Plant/Harvest 사용.</summary>
@@ -564,6 +604,25 @@ namespace ProjectName.Systems
                     && go.GetComponentInChildren<FarmingPlot>() == null) continue;
                 float d = Vector3.Distance(origin, go.transform.position);
                 if (d < bestDist) { bestDist = d; best = go; }
+            }
+            return best;
+        }
+
+        /// <summary>가장 가까운 채굴 가능한 자원 노드(ResourceNode: Wood/Stone/IronOre) 탐색.</summary>
+        private static ResourceNode FindNearestResourceNode(Vector3 origin, float range)
+        {
+            Collider[] hits = Physics.OverlapSphere(origin, range);
+            ResourceNode best = null;
+            float bestDist = float.MaxValue;
+            foreach (var hit in hits)
+            {
+                if (hit == null) continue;
+                GameObject go = hit.gameObject;
+                if (go == null) continue;
+                var node = go.GetComponentInParent<ResourceNode>();
+                if (node == null || !node.IsAvailable) continue;
+                float d = Vector3.Distance(origin, go.transform.position);
+                if (d < bestDist) { bestDist = d; best = node; }
             }
             return best;
         }

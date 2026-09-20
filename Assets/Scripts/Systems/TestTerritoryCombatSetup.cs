@@ -58,6 +58,7 @@ namespace ProjectName.Systems
             SetupTerritoriesAndGuards();   // 2026-09-10: 내 영지(PlayerOwned) + 적 영지(EnemyOwned 표기) + 병사 3+3 배치
             SetupHerbs();                  // 2026-09-10: 채집 가능 약초 3종(Red/Purple/Green) 배치 — E키 채집 흐름 점검용
             SetupFarm();                   // 2026-09-10: 농경 시스템 — 내 영지(East_01) 부지 농장 2x2 (E키 파종 → 게임 2일 성장 → HerbPickup 재사용 수확)
+            SetupMiningNodes();            // 광질 노드 — 내 영지 부지 ResourceNode 3종(Wood/Stone/IronOre) 배치 (Miner 채광/TryAutoMine 검증용)
             EnsurePlayerHUD();             // 2026-09-10: 하트 HUD 부착(하트 아이콘+숫자HP) — Test_09 선례 이식
             SetupUITestArena();            // 2026-09-10: UI 전수(미니맵/인벤/스탯/창고·크래프트 박스/전 아이템 시딩)
 
@@ -1098,6 +1099,70 @@ namespace ProjectName.Systems
                 rows: 2, cols: 2, spacing: 2.5f, HerbPickup.HerbType.Red, 2);
 
             Debug.Log($"[Farm] ✅ 농장 {plots.Count}칸 배치 (내 영지 East_01, center={center})");
+        }
+
+        // ================================================================
+        // 광질 노드 배치 (신규 — 기존 셋업 무변경, 신규 배치만 추가)
+        // ================================================================
+        /// <summary>
+        /// 내 영지(East_01) 부지 광질용 ResourceNode 3종(Wood/Stone/IronOre) 배치.
+        /// SetupFarm과 같은 농장 center(내 영지 성 전면 부지)에서 X/Z 오프셋 지그재그 —
+        /// 약초(±3, z 18~20)/성 입구 트리거(0, z 24.5)/내병사(z 26)와 이격된 여백.
+        /// ResourceNode.Awake가 GetComponent<Renderer/Collider>() 캐시 → 프리미티브 Cube로
+        /// 시각 바디+BoxCollider 동시 제공. _resourceType은 private SerializeField —
+        /// HerbPickup._herbType 선례(SetupHerb 리플렉션)대로 NonPublic 인스턴스 필드 설정.
+        /// y는 이 파일의 SurfaceY(x,z)+0.3 계약(큐브 반높이 0.3 → 바닥이 표면에 닿고 콜라이더가 지형에 안 박힘).
+        /// </summary>
+        private void SetupMiningNodes()
+        {
+            // SetupFarm과 동일한 농장 center(farmX=0, farmZ=18) 기준 오프셋 — 플레이어 접근 동선 공유
+            const float farmX = 0f, farmZ = 18f;
+            Vector3 center = new Vector3(farmX, 0f, farmZ);
+
+            SetupMiningNode("ResourceNode_Wood", center + new Vector3(-3f, 0f, 3.5f),
+                ResourceNode.ResourceType.Wood, new Color(0.45f, 0.3f, 0.15f, 1f));   // 갈색
+            SetupMiningNode("ResourceNode_Stone", center + new Vector3(0f, 0f, 2f),
+                ResourceNode.ResourceType.Stone, new Color(0.6f, 0.6f, 0.62f, 1f));   // 회색
+            SetupMiningNode("ResourceNode_IronOre", center + new Vector3(3f, 0f, 3.5f),
+                ResourceNode.ResourceType.IronOre, new Color(0.8f, 0.35f, 0.1f, 1f)); // 주황(철광 테마)
+
+            Debug.Log("[MyTerritory] ⛏️ 광질 노드 배치: Wood/Stone/IronOre (center에서 테스트용)");
+        }
+
+        private void SetupMiningNode(string goName, Vector3 xzPos,
+            ResourceNode.ResourceType nodeType, Color color)
+        {
+            // 지표면 계약(SurfaceY = 1 + GetHeightAt) 준수: 표면 + 0.3 — 큐브 반높이 0.3이라
+            // 바닥이 정확히 표면에 놓이고 콜라이더가 지형과 겹치지 않는다.
+            Vector3 pos = new Vector3(xzPos.x, SurfaceY(xzPos.x, xzPos.z) + 0.3f, xzPos.z);
+
+            // 시각 바디: 프리미티브 Cube(URP Lit 색) — Renderer+BoxCollider 동봉이라
+            // ResourceNode.Awake의 GetComponent 캐시 요건을 그대로 충족
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = goName;
+            go.transform.position = pos;
+            go.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
+            var r = go.GetComponent<Renderer>();
+            if (r != null)
+            {
+                var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                mat.color = color;
+                r.material = mat;
+            }
+
+            // ResourceNode.TryAutoMine/Respawn이 GetComponent<Collider>().enabled를 토글 —
+            // 프리미티브가 보장하지만 HerbPickup 선례(SetupHerb)와 같은 방어 가드 유지
+            if (go.GetComponent<Collider>() == null)
+                go.AddComponent<BoxCollider>();
+
+            var node = go.AddComponent<ResourceNode>();
+
+            // _resourceType은 private SerializeField — 프로젝트 관례(HerbPickup._herbType 선례)대로 리플렉션으로 설정
+            var rf = typeof(ResourceNode).GetField("_resourceType",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            rf?.SetValue(node, nodeType);
+
+            Debug.Log($"[MyTerritory] ⛏️ {goName} 배치 (type={nodeType}, pos={pos})");
         }
 
         // ================================================================

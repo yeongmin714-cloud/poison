@@ -1,6 +1,32 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-20 (신규 테스트 씬 Test_11_AnimationShowcase — 몬스터22/병사3/NPC11 애니 쇼케이스)
+> **최종 갱신:** 2026-09-20 (부대 컨텍스트 명령 시스템 — Ctrl+좌클릭 공격/농사/채집/광질, 배회 드라이버)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-20 ✅ 부대지정 컨텍스트 명령 시스템)
+
+> **입력**: 사용자 "Ctrl 누르면 커서 등장, 병사 지정 후 Ctrl+우클릭=이동, Ctrl+몬스터호버=검커서+Ctrl+좌클릭=병사공격, H=홀드, 농사/채집/광질도 동일(호미/낫/곡괭이 커서)".
+
+### 실측: 기반 대부분 이미 구현돼 있었음
+- Ctrl→OS커서 표시 `CursorVisibilityController` ✓ / 컨텍스트 커서 `ContextCursorSystem`+`HoverTargetClassifier.ClassifyAt` ✓ / Ctrl+우클릭 이동·H정지 `RTSCommandSystem` ✓ / 적 위 좌클릭 병사공격 `ContextCommandRouter`(Enemy만) ✓ / 병사 작업 `GuardTaskSystem`(Gather/Farm/Hunt 자동) ✓ / 농경지·약초·광석 노드 `FarmPlot`+`FarmingSystem`·`GatheringSystem`·`ResourceNode(TryAutoMine)` ✓
+
+### Phase 1~4 (4파일 수정 / +221)
+- **ContextCommandRouter.cs**: 좌클릭 명령을 **Ctrl 홀드+단순클릭(이동량≤10px)+UI아님+병사선택**일 때만 발화. down대기→release 이동량으로 단순클릭/드래그(선택) 구분해 GSM의 Ctrl+드래그 박스선택과 공존. 분기: Enemy=RTS공격 / Farm→GuardTask.Farm / Gather→Gather / Mine→Mine (선택병사 전원 AssignTask+좌클릭소비 consumeLeftClickAsDrag/ContextCommand).
+- **HoverTargetClassifier.cs**: `TargetKind.Mine` append. ClassifyOne 최우선 `GetComponentInParent<ResourceNode>()`→Mine(적/밭보다 먼저).
+- **ContextCursorSystem.cs**: `BuildHoe()`(호미) 신규, **Farm=호미**, **Mine=곡괭이**(이관), Gather=삽, Enemy=칼, 지형=화살표. _icons에 Mine 추가(7키).
+- **GuardTaskSystem.cs**: `GuardTask.Mine` append + `RoutineMine`(FindNearestResourceNode 15m→이동→TryAutoMine→PlayerInventory.AddItem 가능→쿨다운3s) + MineCooldownSec/MineRange 상수.
+
+### Phase 5 — 테스트 씬 광질 노드 배치 (TestTerritoryCombatSetup.cs 추가만)
+- `SetupMiningNodes()`: 내 영지(East_01) 농장 center(0,18) 기준 Wood(-3,3.5)/Stone(0,2)/IronOre(+3,3.5) 지그재그. y=SurfaceY+0.3, Cube+URP색+BoxCollider, `_resourceType` Reflection 설정(HerbPickup 선례). 기존 코드 무수정(순수 추가). Test_10엔 이미 농경지 2×2·약초 있음 → 세 작업 모두 Play 테스트 가능.
+
+### 검증
+- 사용 심볼(ResourceNode.TryAutoMine/IsAvailable, FarmPlot, HerbPickup, GuardTaskSystem.AssignTask/Ensure, GuardSelectionManager.SelectedGuards/consume플래그, UITransitionState.PointerOverUI) 전부 원본 대조 통과.
+- 4파일 괄호/문법 균형 OK (파이썬 문자열·주석 제외 카운트). diff 4파일(+221)+ProjectSettings(기존 노이즈, 미커밋).
+- 수정 금지 파일(PlayerCombat/GuardSelectionManager/GuardSquadHotbar/AnimalAI/애니컨트롤러) 무변경 확인.
+
+### Play 판정 대기
+①Ctrl 누르면 커서 등장+호버 종류별 커서(칼/호미/낫/곡괭이/화살표) ②병사선택(Ctrl+드래그)→Ctrl+우클릭 이동 ③Ctrl+몬스터좌클릭 병사공격 ④H=홀드 ⑤농경지/약초/광석에 각 Ctrl+좌클릭 → 병사가 농사/채집/광질+인벤 적립. (Test_10 씬에서 성 앞 부지 테스트)
 
 ---
 

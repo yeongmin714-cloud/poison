@@ -9,7 +9,8 @@ namespace ProjectName.Systems
 {
     /// <summary>
     /// 절차적 컨텍스트 커서 — 마우스 화면 지점을 따라다니는 월드 앵커 위에,
-    /// HoverTargetClassifier.ClassifyAt 결과에 따라 절차 생성 아이콘(칼/곡괭이/삽/화살표)을 교체.
+    /// HoverTargetClassifier.ClassifyAt 결과에 따라 절차 생성 아이콘(칼/호미/곡괭이/삽/화살표)을 교체.
+    /// Farm=호미(파종용), Mine=곡괭이(채굴용) — 농경/광질 커서 분리.
     /// OS 커서 숨김은 별도(CursorVisibilityController)가 담당. 여기는 오직 커스텀 커서 시각화.
     /// 모든 프리미티브 콜라이더를 파괴해 HoverTargetClassifier/RTS의 레이캐스트를 오염시키지 않는다.
     /// </summary>
@@ -96,7 +97,8 @@ namespace ProjectName.Systems
         private void BuildIcons()
         {
             _icons[HoverTargetClassifier.TargetKind.Enemy]   = BuildSword();
-            _icons[HoverTargetClassifier.TargetKind.Farm]    = BuildPickaxe();
+            _icons[HoverTargetClassifier.TargetKind.Farm]    = BuildHoe();
+            _icons[HoverTargetClassifier.TargetKind.Mine]    = BuildPickaxe();
             _icons[HoverTargetClassifier.TargetKind.Gather]  = BuildShovel();
             _icons[HoverTargetClassifier.TargetKind.Ally]    = BuildArrow();
             _icons[HoverTargetClassifier.TargetKind.Terrain] = BuildArrow();
@@ -112,6 +114,22 @@ namespace ProjectName.Systems
             // 손잡이 — 반대 대각선 큐브
             MakePrim(PrimitiveType.Cube, root, new Vector3(0f, -0.30f, 0f),
                 new Vector3(0.13f, 0.5f, 0.13f), new Vector3(0f, 0f, -45f), new Color(0.55f, 0.33f, 0.14f));
+            return root;
+        }
+
+        /// <summary>호미 — 짧은 손잡이 + 납작한 사각 호미날(밭 파종용). Farm 전용.</summary>
+        private Transform BuildHoe()
+        {
+            var root = NewIconRoot("IconHoe");
+            // 호미날 — 납작한 사각 (삼각 느낌으로 살짝 기울임, 손잡이 끝에 직각 부착)
+            MakePrim(PrimitiveType.Cube, root, new Vector3(0.10f, 0.24f, 0f),
+                new Vector3(0.30f, 0.11f, 0.06f), new Vector3(0f, 0f, -8f), new Color(0.58f, 0.58f, 0.62f));
+            // 날 밑단 — 밀림판 느낌의 얇은 세로판
+            MakePrim(PrimitiveType.Cube, root, new Vector3(0.21f, 0.13f, 0f),
+                new Vector3(0.08f, 0.16f, 0.06f), Vector3.zero, new Color(0.48f, 0.48f, 0.52f));
+            // 손잡이 — 세로 막대(짧게)
+            MakePrim(PrimitiveType.Cube, root, new Vector3(0f, -0.10f, 0f),
+                new Vector3(0.09f, 0.52f, 0.09f), Vector3.zero, new Color(0.62f, 0.40f, 0.18f));
             return root;
         }
 

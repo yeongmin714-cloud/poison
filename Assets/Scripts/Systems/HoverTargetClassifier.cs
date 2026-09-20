@@ -9,7 +9,7 @@ namespace ProjectName.Systems
     /// <summary>
     /// 상호작용 입력 코어 — 마우스 아래 대상 분류기 (순수 스태틱 유틸리티).
     /// 화면 좌표 → 카메라 레이 → RaycastAll → 태그/컴포넌트/이름으로 대상 종류 판정.
-    /// Enemy / Farm / Gather / Ally / Terrain 중 가장 의미 있는(가장 앞선 비-지형) 종류를 반환.
+    /// Mine / Enemy / Farm / Gather / Ally / Terrain 중 가장 의미 있는(가장 앞선 비-지형) 종류를 반환.
     /// RTSCommandSystem/PlayerCombat/TopDownCameraController 본체를 수정하지 않고,
     /// 이들이 이미 게시한 태그·컴포넌트 규칙만 읽는다.
     /// </summary>
@@ -22,14 +22,15 @@ namespace ProjectName.Systems
             Farm,       // FarmPlot 컴포넌트 또는 이름 farm/경지
             Gather,     // HerbPickup 컴포넌트 또는 이름 gather/grass/herb/풀/약초
             Ally,       // 태그 Player|RecruitedSoldier 또는 GuardPlaceholder(IsRecruited)
-            Terrain     // 나머지 지형 (첫 지형 히트)
+            Terrain,    // 나머지 지형 (첫 지형 히트)
+            Mine        // ResourceNode(Wood/Stone/IronOre) 자원 노드 — 광질 대상
         }
 
         private const float MaxDistance = 200f;
 
         /// <summary>
         /// 가장 가까운(레이 순서) 의미 있는 대상 종류를 반환.
-        /// 자연스러운 앞 대상 우선 — Enemy &gt; Ally &gt; Farm &gt; Gather, 나머지는 Terrain.
+        /// 자연스러운 앞 대상 우선 — Mine &gt; Enemy &gt; Ally &gt; Farm &gt; Gather, 나머지는 Terrain.
         /// 예외 시 안전하게 None.
         /// </summary>
         public static TargetKind ClassifyAt(Vector2 screenPos)
@@ -72,6 +73,9 @@ namespace ProjectName.Systems
         /// <summary>단일 객체 분류 — 태그 → 컴포넌트 → 이름 순.</summary>
         private static TargetKind ClassifyOne(GameObject go)
         {
+            // 0) Mine — 자원 노드(Wood/Stone/IronOre) 최우선 판정 (적/밭 태그·이름 충돌보다 먼저)
+            if (go.GetComponentInParent<ResourceNode>() != null) return TargetKind.Mine;
+
             // 1) 태그 기반 (Enemy 우선 — 적이 무조건 우선)
             string tag = go.tag;
             if (IsEnemyTag(tag)) return TargetKind.Enemy;
