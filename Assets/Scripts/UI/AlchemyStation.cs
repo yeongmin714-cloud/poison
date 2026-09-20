@@ -69,6 +69,13 @@ namespace ProjectName.UI
         private void OpenAlchemyUI()
         {
             Debug.Log($"[AlchemyStation] {_stationName} 열림");
+
+            // [P18-C3] UTK 연금술 대 우선 — UIRoot 미준비 시 구 IMGUI 폴백
+            if (ProjectName.UI.Toolkit.UIToolkitBootstrap.UIRoot != null)
+            {
+                ProjectName.UI.Toolkit.AlchemyBenchUTK.Open();
+                return;
+            }
             if (UIManager.Instance != null)
             {
                 UIManager.Instance.OpenWindow(typeof(AlchemyUI));

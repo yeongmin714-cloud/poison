@@ -69,6 +69,12 @@ namespace ProjectName.UI
 
         private void OpenCrafting()
         {
+            // [P18-C3] UTK 무기 제작대 우선 — UIRoot 미준비 시 구 IMGUI 폴백
+            if (ProjectName.UI.Toolkit.UIToolkitBootstrap.UIRoot != null)
+            {
+                ProjectName.UI.Toolkit.WeaponForgeUTK.Open();
+                return;
+            }
             Debug.Log($"[CraftingStation] {_stationName} 열림");
 
             if (UIManager.Instance != null)

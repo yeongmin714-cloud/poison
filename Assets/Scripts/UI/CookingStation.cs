@@ -71,6 +71,13 @@ namespace ProjectName.UI
         {
             Debug.Log($"[CookingStation] {_stationName} 열림");
 
+            // [P18-C3] UTK 요리 화덕 우선 — UIRoot 미준비 시 구 IMGUI 폴백
+            if (ProjectName.UI.Toolkit.UIToolkitBootstrap.UIRoot != null)
+            {
+                ProjectName.UI.Toolkit.CookingBenchUTK.Open();
+                return;
+            }
+
             if (UIManager.Instance != null)
             {
                 UIManager.Instance.OpenWindow(typeof(CookingUI));

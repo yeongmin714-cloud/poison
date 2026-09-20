@@ -12,6 +12,9 @@ namespace ProjectName.Core
     {
         /// <summary>[O10 P2b] 제작 성공 발화 (resultItemId). TitleManager(Systems) 구독 → crafts 카운터.</summary>
         public static event System.Action<string> CraftSucceeded;
+
+        /// <summary>[P18-C2] 제작 성공 발화 래퍼 — 이벤트는 외부 Invoke 불가(CS0079) → 공개 메서드 경유.</summary>
+        public static void NotifyCraftSucceeded(string resultItemId) => CraftSucceeded?.Invoke(resultItemId);
         /// <summary>
         /// Attempt to craft an alchemy recipe from two herb IDs.
         /// Returns true if successful.
@@ -141,6 +144,58 @@ namespace ProjectName.Core
                 }
                 return false;
             }
+        }
+
+        /// <summary>
+        /// [P18-C1] 무기/장비 제작 — 마인크래프트식 확정 제작(성공률 100%).
+        /// 재료 검증 → 소모 → 결과 지급 → EXP/발견 등록/CraftSucceeded 발화.
+        /// </summary>
+        public static bool CraftWeapon(string resultId, out string message)
+        {
+            message = "";
+            if (!WeaponCraftDatabase.TryGetByResult(resultId, out var recipe))
+            {
+                message = "알 수 없는 제작법입니다.";
+                return false;
+            }
+
+            var inventory = PlayerInventory.Instance;
+            if (inventory == null) { message = "인벤토리를 찾을 수 없습니다."; return false; }
+
+            if (PlayerStats.Instance != null && PlayerStats.Instance.Level < recipe.RequiredLevel)
+            {
+                message = $"레벨 부족 — 필요 Lv.{recipe.RequiredLevel}";
+                return false;
+            }
+
+            if (inventory.GetItemCount(recipe.Mat1Id) < recipe.Mat1Count ||
+                (!string.IsNullOrEmpty(recipe.Mat2Id) && inventory.GetItemCount(recipe.Mat2Id) < recipe.Mat2Count))
+            {
+                message = "재료가 부족합니다.";
+                return false;
+            }
+
+            inventory.RemoveItem(recipe.Mat1Id, recipe.Mat1Count);
+            if (!string.IsNullOrEmpty(recipe.Mat2Id) && recipe.Mat2Count > 0)
+                inventory.RemoveItem(recipe.Mat2Id, recipe.Mat2Count);
+
+            var resultItem = PlayerInventory.GetItemById(resultId);
+            if (resultItem == null || !inventory.AddItem(resultItem, 1))
+            {
+                message = "인벤토리가 가득 찼습니다!";
+                // 롤백 — 재료 반환
+                inventory.AddItem(PlayerInventory.GetItemById(recipe.Mat1Id), recipe.Mat1Count);
+                if (!string.IsNullOrEmpty(recipe.Mat2Id) && recipe.Mat2Count > 0)
+                    inventory.AddItem(PlayerInventory.GetItemById(recipe.Mat2Id), recipe.Mat2Count);
+                return false;
+            }
+
+            RecipeDiscoverySystem.MarkDiscovered(resultItem.displayName ?? resultId);
+            CraftSucceeded?.Invoke(resultId);
+            if (PlayerStats.Instance != null)
+                PlayerStats.Instance.AddEXP(20);
+            message = $"✅ {WeaponCraftDatabase.DisplayName(resultId)} 제작 완료!";
+            return true;
         }
 
         private static PlayerInventory.ItemData CreateHerbItem(HerbInfo herb)
