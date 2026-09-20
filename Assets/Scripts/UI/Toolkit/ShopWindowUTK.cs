@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.Systems;
 using ProjectName.UI;                  // ItemIconDatabase, UIFont
 using UnityEngine.UIElements;
 
@@ -310,6 +311,33 @@ namespace ProjectName.UI.Toolkit
         {
             _buyScroll.Clear();
 
+            // [Milestone F] 비밀상점 활성 시 최상단에 전용 섹션
+            if (SecretShopSystem.Active)
+            {
+                var head = new Label("🔮 비밀상점 — 은밀한 상인");
+                head.style.fontSize = 18f;
+                head.style.color = UTKColor.AccentRare;
+                head.style.marginBottom = 6f;
+                head.style.marginTop = 4f;
+                _buyScroll.Add(head);
+
+                bool anySecret = false;
+                foreach (var s in SecretShopSystem.Stock)
+                {
+                    var item = PlayerInventory.GetItemById(s.itemId);
+                    if (item == null) continue;
+                    anySecret = true;
+                    _buyScroll.Add(BuildSecretRow(item, s.price));
+                }
+                if (!anySecret)
+                {
+                    _buyScroll.Add(new Label("판매 중인 비밀 아이템이 없습니다.") { style = { fontSize = 16f, color = UTKColor.TextSecondary } });
+                }
+
+                var spacer = new VisualElement { style = { height = 12f } };
+                _buyScroll.Add(spacer);
+            }
+
             if (_shopInventory.Count == 0)
             {
                 _buyScroll.Add(new Label("판매 중인 아이템이 없습니다.") { style = { fontSize = 16f, color = UTKColor.TextSecondary } });
@@ -323,6 +351,67 @@ namespace ProjectName.UI.Toolkit
                 index++;
             }
             _selectedBuyIndex = -1;
+        }
+
+        // [Milestone F] 비밀상점 전용 행 — SecretShopSystem.TryBuy 직접 호출
+        private VisualElement BuildSecretRow(PlayerInventory.ItemData item, int price)
+        {
+            var row = new VisualElement();
+            row.style.flexDirection = FlexDirection.Row;
+            row.style.alignItems = Align.Center;
+            row.style.marginBottom = 6f;
+            row.style.paddingTop = 4f;
+            row.style.paddingBottom = 4f;
+            row.style.paddingLeft = 4f;
+            row.style.paddingRight = 4f;
+            row.style.borderTopWidth = 1f;
+            row.style.borderTopColor = new Color(0.7f, 0.5f, 0.1f);
+
+            var slot = new UTKSlot();
+            slot.style.width = 64f;
+            slot.style.height = 64f;
+            slot.style.marginRight = 8f;
+            slot.SetIcon(ItemIconDatabase.GetOrCreateIcon(item));
+            slot.SetRank("unique");
+            row.Add(slot);
+
+            var info = new VisualElement();
+            info.style.flexGrow = 1f;
+
+            var nameLabel = new Label(item.displayName);
+            nameLabel.style.fontSize = 18f;
+            nameLabel.style.color = UTKColor.AccentRare;
+            info.Add(nameLabel);
+
+            if (!string.IsNullOrEmpty(item.description))
+            {
+                var desc = new Label(item.description);
+                desc.style.fontSize = 13f;
+                desc.style.color = UTKColor.TextSecondary;
+                desc.style.whiteSpace = WhiteSpace.Normal;
+                info.Add(desc);
+            }
+
+            var priceLabel = new Label($"가격: {price}G");
+            priceLabel.style.fontSize = 14f;
+            priceLabel.style.color = UTKColor.AccentMagic;
+            info.Add(priceLabel);
+
+            row.Add(info);
+
+            bool canAfford = (PlayerStats.Instance?.Gold ?? 0) >= price;
+            var buyBtn = UTKButton.Create("구매", () =>
+            {
+                if (SecretShopSystem.TryBuy(item.id)) SetStatus($"{item.displayName} 구매 완료!");
+                else SetStatus("비밀상점 구매 실패 (골드 부족)");
+                UpdateGoldDisplay();
+                RefreshBuyList();
+            }, UTKButton.Variant.Primary);
+            buyBtn.SetEnabled(canAfford);
+            row.Add(buyBtn);
+
+            UTKWindowBase.ApplyUIToolkitFont(row);
+            return row;
         }
 
         private VisualElement BuildBuyRow(ShopItem shopItem, int index)

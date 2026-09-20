@@ -149,12 +149,12 @@ namespace ProjectName.Systems
         private void AssignWorkTask(GuardSelectionManager gsm,
             HoverTargetClassifier.TargetKind kind, Vector2 mouse)
         {
-            GuardTask task;
+            GuardTaskSystem.GuardTask task;
             switch (kind)
             {
-                case HoverTargetClassifier.TargetKind.Farm:   task = GuardTask.Farm;   break;
-                case HoverTargetClassifier.TargetKind.Gather: task = GuardTask.Gather; break;
-                case HoverTargetClassifier.TargetKind.Mine:   task = GuardTask.Mine;   break;
+                case HoverTargetClassifier.TargetKind.Farm:   task = GuardTaskSystem.GuardTask.Farm;   break;
+                case HoverTargetClassifier.TargetKind.Gather: task = GuardTaskSystem.GuardTask.Gather; break;
+                case HoverTargetClassifier.TargetKind.Mine:   task = GuardTaskSystem.GuardTask.Mine;   break;
                 default: return;
             }
 

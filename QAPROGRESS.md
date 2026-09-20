@@ -1,6 +1,25 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-20 (그랜드 플랜 — A~D + E 채집·광물 채널링+진행도 바)
+> **최종 갱신:** 2026-09-20 (그랜드 플랜 — A~D + E 채집·광물 채널링+진행도 바 + F 애니·목록·비밀상점)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-20 ✅ Milestone F — 캐스팅 애니 + GLB 부재 목록 + 비밀상점 UI + 컴파일 수정)
+
+> **입력**: "진행" (E 이후 남은 마일스톤). E의 남은 항목 + 컴파일 오류 1건 수정.
+
+### Milestone F 구현
+- **채집/광질 캐스팅 애니 연결**: `GuardTaskSystem.BeginChannel`에서 `GetComponent<RigAnimationController>().SetState(AnimationState.Gather)`, `EndChannel`에서 Idle 복귀(CurrentState==Gather일 때만). 캐스팅 내내 채집/광질 자세 유지(진행도 바와 병행).
+- **비밀상점 UI 배선**: `ShopWindowUTK.RefreshBuyList`에 `SecretShopSystem.Active` 시 최상단 전용 섹션(🔮 헤더 + Stock 순회 `BuildSecretRow`). `BuildSecretRow`는 itemId→`GetItemById` 해석, price 표시, `SecretShopSystem.TryBuy` 직접 호출·골드 갱신·목록 새로고침. using `ProjectName.Systems` 추가.
+- **GLB 부재 목록 산출 도구**: `Assets/Editor/ItemGLBAudit.cs`(신규) — 메뉴 `Tools/Item Audit/GLB 부재 목록 산출`. PlayerInventory 정적 ItemData 리플렉션 수집 → `RuntimeModelLoader.HasModel`(item.id 직접+접두 제거 관례)로 GLB 부재 판정 → `Assets/ItemGLB_MissingList.txt` 출력+로그.
+- **컴파일 오류 수정**: `ContextCommandRouter.AssignWorkTask`의 중첩 열거형 `GuardTask` → `GuardTaskSystem.GuardTask` 정규화(CS0246/CS0103×4 해소).
+
+### 검증
+- `compile_test.sh`: 성공(컴파일 오류 0).
+- `run_tests.sh editmode`: ✅ EditMode 테스트 전부 통과.
+
+### 남은 마일스톤
+G(비밀 통행증 사용 경로 → 비밀상점 활성 UX + 밸런스·전체 Play 검증). GLB 부재 목록은 에디터 메뉴 실행으로 확인 가능.
 
 ---
 

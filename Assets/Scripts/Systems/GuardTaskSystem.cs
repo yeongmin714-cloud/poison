@@ -406,6 +406,9 @@ namespace ProjectName.Systems
             _channelDur[g] = dur;
             if (_channelBar.TryGetValue(g, out var old) && old != null) old.Close();
             _channelBar[g] = WorkProgressBar.Show(g.transform, dur, color);
+            // [Milestone F] 캐스팅 동안 채집/광질 Gather 애니 재생
+            var rig = g.GetComponent<RigAnimationController>();
+            if (rig != null) rig.SetState(AnimationState.Gather);
         }
 
         /// <summary>[Milestone E] 캐스팅 종료(완료/취소) — 진행도 바 정리.</summary>
@@ -416,6 +419,9 @@ namespace ProjectName.Systems
             if (_channelDur.ContainsKey(g)) _channelDur.Remove(g);
             if (_channelBar.TryGetValue(g, out var bar) && bar != null) bar.Close();
             if (_channelBar.ContainsKey(g)) _channelBar.Remove(g);
+            // [Milestone F] 캐스팅 종료 시 Idle 복귀
+            var rig = g.GetComponent<RigAnimationController>();
+            if (rig != null && rig.CurrentState == AnimationState.Gather) rig.SetState(AnimationState.Idle);
         }
 
         /// <summary>[Milestone E] Gather — 주변 약초 노드 캐스팅(채집 애니+진행도 바) 후 1회 수확.</summary>
