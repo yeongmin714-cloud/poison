@@ -24,6 +24,14 @@ namespace ProjectName.UI
         private const float INDOOR_FLOOR_Y = 0f;      // 실내 바닥 높이 (IndoorBuilder.CreateRoom: 바닥 XZ 평면 y=0)
         private static bool _initialized;
 
+        // ── [P19] 별개 씬 분리 (월드 언로드) ──
+        //   진입: 월드 씬 이름/위치 저장 → IndoorScene 로드 → 플레이어 이동 → 월드 언로드(렉 해소)
+        //   퇴출: 월드 재로드 → 활성화 → 플레이어 복귀 위치 이동 → IndoorScene 언로드
+        //   병사/몬스터는 월드 소속 — 언로드 시 함께 정리, 재로드 시 씬 셋업이 자동 재스폰(사용자 확정).
+        private static string _worldSceneName;        // 복귀할 월드 씬 이름
+        private static bool _worldUnloaded;           // 월드 언로드 완료 플래그
+        private static GameObject _playerHolder;      // 실내→실내 전환 시 플레이어 임시 보관(DontDestroyOnLoad)
+
         /// <summary>[P14] 실내 활성 여부 — 병사/몬스터 AI가 플레이어 추적/어그로를 실내로 끌고 오는 것 차단.
         ///   Systems 측 AI 루프가 이 플래그를 게이트로 읽는다(Update 초입 정지).</summary>
         public static bool IsIndoor { get; private set; }
@@ -76,23 +84,37 @@ namespace ProjectName.UI
         /// </param>
         public static void EnterBuilding(string buildingType, string nationStyle = null, bool isPlayerOwned = false, string territoryKey = null)
         {
-            // 현재 씬 저장
-            _previousSceneName = SceneManager.GetActiveScene().name;
+            // [P19] 실내→실내 전환(성 내부 상점/크래프트하우스) — 월드 복귀 상태를 보존하고
+            //   플레이어만 임시 보관(DontDestroyOnLoad)해 IndoorScene 언로드에서 파괴되지 않게 한다.
+            bool alreadyIndoor = SceneManager.GetActiveScene().name == INDOOR_SCENE_NAME;
+
+            if (!alreadyIndoor)
+            {
+                // 월드 진입 — 씬/위치 저장(퇴출 복귀용. 씬이 언로드돼도 데이터는 남는다)
+                _previousSceneName = SceneManager.GetActiveScene().name;
+                _worldSceneName = _previousSceneName;
+                _worldUnloaded = false;
+
+                var enteringPlayer = GameObject.FindGameObjectWithTag("Player");
+                _returnPosition = enteringPlayer != null ? (Vector3?)enteringPlayer.transform.position : null;
+            }
+
             _pendingBuildingType = buildingType;
             _pendingNationStyle = nationStyle;
             _pendingIsPlayerOwned = isPlayerOwned;
             _pendingTerritoryKey = territoryKey;
 
-            // 진입 직전 플레이어 위치 저장(퇴출 시 복귀)
-            var enteringPlayer = GameObject.FindGameObjectWithTag("Player");
-            _returnPosition = enteringPlayer != null ? (Vector3?)enteringPlayer.transform.position : null;
-
-
-
-            // 이미 IndoorScene이 로드되어 있으면 언로드 후 재로드
+            // 이미 IndoorScene이 로드되어 있으면 언로드 후 재로드 (실내→실내 전환)
             Scene indoorScene = SceneManager.GetSceneByName(INDOOR_SCENE_NAME);
             if (indoorScene.isLoaded)
             {
+                if (alreadyIndoor)
+                {
+                    Scene holder = GetOrCreatePlayerHolder();
+                    var p = GameObject.FindGameObjectWithTag("Player");
+                    if (p != null) SceneManager.MoveGameObjectToScene(p, holder);
+                    Debug.Log("[IndoorSceneTransition] 실내→실내 전환 — 플레이어 임시 보관");
+                }
                 SceneManager.sceneUnloaded += OnPreviousIndoorUnloaded;
                 SceneManager.UnloadSceneAsync(INDOOR_SCENE_NAME);
                 return;
@@ -206,6 +228,8 @@ namespace ProjectName.UI
             {
                 SceneManager.MoveGameObjectToScene(indoorPlayer, scene);
                 Debug.Log($"[IndoorSceneTransition] 플레이어 이동 완료 → 소속 씬: {indoorPlayer.scene.name} / pos: {indoorPlayer.transform.position}");
+                ReleasePlayerHolder();          // [P19] 실내→실내 전환 홀더 정리
+                MaybeUnloadWorldScene();        // [P19] 플레이어 안전 이동 확인 후 월드 언로드(렉 해소)
             }
             else
             {
@@ -266,56 +290,127 @@ namespace ProjectName.UI
             Debug.Log($"[IndoorSceneTransition] 월드 정리 — 어그로 해제 {monsters.Length}체, 명령 해제 {guards.Length}명");
         }
 
+        // ═══════════════════════ [P19] 별개 씬 분리 헬퍼 ═══════════════════════
+
+        /// <summary>실내→실내 전환용 플레이어 임시 보관 오브젝트(DontDestroyOnLoad 씬).</summary>
+        private static Scene GetOrCreatePlayerHolder()
+        {
+            if (_playerHolder == null)
+            {
+                _playerHolder = new GameObject("IndoorPlayerHolder");
+                UnityEngine.Object.DontDestroyOnLoad(_playerHolder);
+            }
+            return _playerHolder.scene;
+        }
+
+        private static void ReleasePlayerHolder()
+        {
+            if (_playerHolder != null)
+            {
+                UnityEngine.Object.Destroy(_playerHolder);
+                _playerHolder = null;
+            }
+        }
+
+        /// <summary>[P19] 플레이어가 실내 씬으로 옮겨진 뒤 호출 — 월드 씬 언로드(렉 해소 핵심).</summary>
+        private static void MaybeUnloadWorldScene()
+        {
+            if (_worldUnloaded || string.IsNullOrEmpty(_worldSceneName)) return;
+            if (_worldSceneName == INDOOR_SCENE_NAME) return;
+
+            Scene world = SceneManager.GetSceneByName(_worldSceneName);
+            if (!world.isLoaded) { _worldUnloaded = true; return; }
+
+            SceneManager.sceneUnloaded += OnWorldSceneUnloaded;
+            SceneManager.UnloadSceneAsync(world);
+            Debug.Log($"[IndoorSceneTransition] 월드 언로드 시작 — '{_worldSceneName}' (실내 단독 구동, 렉 해소)");
+        }
+
+        private static void OnWorldSceneUnloaded(Scene scene)
+        {
+            if (scene.name != _worldSceneName) return;
+            SceneManager.sceneUnloaded -= OnWorldSceneUnloaded;
+            _worldUnloaded = true;
+            Debug.Log($"[IndoorSceneTransition] 월드 언로드 완료 — 실내 단독 구동 중 (병사/몬스터는 재입장 시 자동 재스폰)");
+        }
+
+        /// <summary>[P19] IndoorEnterRunner가 플레이어 이동을 마친 뒤 호출(지연 스폰 경로).</summary>
+        public static void OnPlayerSettledIndoor()
+        {
+            ReleasePlayerHolder();
+            MaybeUnloadWorldScene();
+        }
+
         /// <summary>
-        /// 건물 퇴출. "IndoorScene"을 Additive 씬에서 언로드하고 이전 씬으로 복귀합니다.
+        /// 건물 퇴출. [P19] 월드가 언로드된 경우 월드를 재로드하고 플레이어를 복귀 위치로 되돌린 뒤
+        /// IndoorScene을 언로드한다. 월드가 아직 살아있으면(폴백) 기존 Additive 복귀 경로.
         /// </summary>
         public static void ExitBuilding()
         {
-            if (string.IsNullOrEmpty(_previousSceneName))
+            if (string.IsNullOrEmpty(_previousSceneName) || string.IsNullOrEmpty(_worldSceneName))
             {
-                Debug.LogWarning("[IndoorSceneTransition] 이전 씬 이름이 없음. 기본 씬(WorldScene)으로 복귀.");
+                Debug.LogWarning("[IndoorSceneTransition] 복귀 씬 이름이 없음. 기본 씬(WorldScene)으로 복귀.");
                 _previousSceneName = DEFAULT_WORLD_SCENE;
+                _worldSceneName = DEFAULT_WORLD_SCENE;
             }
 
+            Scene worldScene = SceneManager.GetSceneByName(_worldSceneName);
 
-
-            // 이전 씬을 활성화
-            Scene prevScene = SceneManager.GetSceneByName(_previousSceneName);
-            if (prevScene.isLoaded)
+            if (_worldUnloaded || !worldScene.isLoaded)
             {
-                SceneManager.SetActiveScene(prevScene);
+                // [P19] 월드 재로드 → 로드 완료 콜백에서 플레이어 복귀 + Indoor 언로드
+                Debug.Log($"[IndoorSceneTransition] 월드 재로드 시작 — '{_worldSceneName}'");
+                SceneManager.sceneLoaded += OnWorldSceneReloaded;
+                SceneManager.LoadSceneAsync(_worldSceneName, LoadSceneMode.Additive);
+                return;
             }
 
-            // IndoorScene Additive 언로드
-            Scene indoorScene = SceneManager.GetSceneByName(INDOOR_SCENE_NAME);
-            if (indoorScene.isLoaded)
-            {
-                SceneManager.UnloadSceneAsync(INDOOR_SCENE_NAME);
-            }
-            else
-            {
-                Debug.LogWarning("[IndoorSceneTransition] 언로드할 IndoorScene이 없음.");
-            }
+            // 폴백: 월드가 아직 살아있음 — 기존 즉시 복귀 경로
+            FinishExit(worldScene);
+        }
 
-            // 진입 직전 위치로 플레이어 복귀
+        private static void OnWorldSceneReloaded(Scene scene, LoadSceneMode mode)
+        {
+            if (scene.name != _worldSceneName) return;
+            SceneManager.sceneLoaded -= OnWorldSceneReloaded;
+            Debug.Log($"[IndoorSceneTransition] 월드 재로드 완료 — '{scene.name}' (병사/몬스터 씬 셋업 자동 재스폰)");
+            FinishExit(scene);
+        }
+
+        /// <summary>퇴출 공통 마무리 — 활성화/플레이어 복귀/Indoor 언로드/플래그 정리.</summary>
+        private static void FinishExit(Scene worldScene)
+        {
+            SceneManager.SetActiveScene(worldScene);
+
+            // 플레이어 복귀 위치 복원 + 월드 씬으로 이동
             var exitingPlayer = GameObject.FindGameObjectWithTag("Player");
             if (exitingPlayer == null)
                 exitingPlayer = UnityEngine.Object.FindAnyObjectByType<ProjectName.Systems.PlayerMovement>()?.gameObject;
-            if (exitingPlayer != null && _returnPosition.HasValue)
-                exitingPlayer.transform.position = _returnPosition.Value;
+            if (exitingPlayer != null)
+            {
+                if (_returnPosition.HasValue)
+                    exitingPlayer.transform.position = _returnPosition.Value;
+                SceneManager.MoveGameObjectToScene(exitingPlayer, worldScene);
+            }
             _returnPosition = null;
 
-            // 2026-09-09(6차): 플레이어를 다시 메인 씬으로 이동(하이어라키 복귀)
-            if (exitingPlayer != null && prevScene.isLoaded)
-                SceneManager.MoveGameObjectToScene(exitingPlayer, prevScene);
+            // IndoorScene 언로드 — 플레이어가 이미 월드로 이동한 뒤라 안전
+            Scene indoorScene = SceneManager.GetSceneByName(INDOOR_SCENE_NAME);
+            if (indoorScene.isLoaded)
+                SceneManager.UnloadSceneAsync(INDOOR_SCENE_NAME);
+            else
+                Debug.LogWarning("[IndoorSceneTransition] 언로드할 IndoorScene이 없음.");
 
-            // 2026-09-09(5차): 카메라 복귀 — 메인 카메라만 재활성(IndoorCamera는 씬 언로드로 자동 제거)
+            // 카메라 복귀 — 월드 메인 카메라 재활성(IndoorCamera는 씬 언로드로 자동 제거)
             var mainCamGO = GameObject.FindGameObjectWithTag("MainCamera");
             if (mainCamGO != null) mainCamGO.SetActive(true);
 
             _previousSceneName = null;
+            _worldSceneName = null;
+            _worldUnloaded = false;
             IsIndoor = false;   // [P14] 월드 복귀 — AI 게이트 OFF
             ProjectName.Core.UITransitionState.IndoorActive = false;
+            Debug.Log("[IndoorSceneTransition] 퇴출 완료 — 월드 복귀, 위치 복원");
         }
 
         /// <summary>

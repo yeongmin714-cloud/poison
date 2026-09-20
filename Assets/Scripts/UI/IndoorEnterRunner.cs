@@ -33,6 +33,7 @@ namespace ProjectName.UI
             SceneManager.MoveGameObjectToScene(player, _scene);
             player.transform.position = new Vector3(0f, 0.5f, 0f); // 셸 바닥 위
             Debug.Log($"[IndoorEnterRunner] 플레이어 이동 완료 → 소속 씬: {player.scene.name} (지연 {_frames}프레임)");
+            ProjectName.UI.IndoorSceneTransition.OnPlayerSettledIndoor();   // [P19] 월드 언로드 트리거
             _done = true;
             Destroy(gameObject);
         }
