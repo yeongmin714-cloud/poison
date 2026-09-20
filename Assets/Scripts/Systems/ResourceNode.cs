@@ -9,7 +9,7 @@ namespace ProjectName.Systems
     /// </summary>
     public class ResourceNode : MonoBehaviour
     {
-        public enum ResourceType { Wood, Stone, IronOre, Herb }
+        public enum ResourceType { Wood, Stone, IronOre, Herb, Silver, Gold, Mythril }  // [Milestone C] Silver/Gold/Mythril = 희귀 광물 노드
 
         [SerializeField, Tooltip("자원 종류")]
         private ResourceType _resourceType = ResourceType.Wood;
@@ -23,6 +23,10 @@ namespace ProjectName.Systems
         [SerializeField, Tooltip("리스폰 시간 (초)"), Min(0.1f)]
         private float _respawnTime = 15f;
 
+        // [Milestone C] 채광 시 한 단계 위 희귀 광물을 추가로 굴릴 확률(0=없음). 가치↑→드랍↓ 밸런스.
+        [SerializeField, Tooltip("채광 보너스 희귀 광물 드랍 확률(0~1). 가치가 높은 광물일수록 낮게."), Range(0f, 1f)]
+        private float _rareBonusChance = 0f;
+
         private bool _isDepleted;
 
         // --- 캐시된 컴포넌트 참조 ---
@@ -33,6 +37,8 @@ namespace ProjectName.Systems
         public bool IsAvailable => !_isDepleted;
         /// <summary>이 노드의 자원 종류</summary>
         public ResourceType NodeType => _resourceType;
+        /// <summary>보너스 희귀 광물 드랍 확률(Inspector).</summary>
+        public float RareBonusChance => _rareBonusChance;
 
         private void Awake()
         {
@@ -83,6 +89,33 @@ namespace ProjectName.Systems
             return true;
         }
 
+        /// <summary>
+        /// [Milestone C] 채광 보너스 — 이 노드에서 한 단계 위 희귀 광물을 추가 드랍.
+        /// 가치(티어)↑→확률↓ 원칙: IronOre→Gold, Silver→Gold, Gold→Mythril, Mythril→수정석 등.
+        /// _rareBonusChance=0이면 절대 안 뜬다(보통 노드 기본값). 성공 시 item/count 반환.
+        /// </summary>
+        public bool TryRollRareBonus(out PlayerInventory.ItemData item, out int yield)
+        {
+            item = null;
+            yield = 0;
+            if (_rareBonusChance <= 0f || Random.value > _rareBonusChance) return false;
+
+            PlayerInventory.ItemData bonus = _resourceType switch
+            {
+                ResourceType.Stone  => PlayerInventory.SilverOre,
+                ResourceType.IronOre => PlayerInventory.GoldOre,
+                ResourceType.Silver => PlayerInventory.GoldOre,
+                ResourceType.Gold   => PlayerInventory.MythrilOre,
+                ResourceType.Mythril => PlayerInventory.CrystalShard,
+                _ => null,
+            };
+            if (bonus == null) return false;
+            item = bonus;
+            yield = 1;
+            Debug.Log($"[ResourceNode] 💎 보너스 희귀 광물 드랍: {bonus.displayName} ({_resourceType})");
+            return true;
+        }
+
         private void Respawn()
         {
             if (this == null) return; // 객체 파괴됐을 경우 방어
@@ -122,6 +155,27 @@ namespace ProjectName.Systems
                         description = "제련하여 철괴를 만들 수 있는 광석.",
                         category = PlayerInventory.ItemCategory.Material,
                         maxStack = 99
+                    };
+                case ResourceType.Silver:   // [Milestone C] 희귀 광물 노드
+                    return new PlayerInventory.ItemData
+                    {
+                        id = "mat_silver_ore", displayName = "은광석",
+                        description = "희귀한 은 광석. 고급 장비·장신구 재료.",
+                        category = PlayerInventory.ItemCategory.Material, maxStack = 99
+                    };
+                case ResourceType.Gold:     // [Milestone C]
+                    return new PlayerInventory.ItemData
+                    {
+                        id = "mat_gold_ore", displayName = "금광석",
+                        description = "귀한 금 광석. 희귀 장비·장신구 재료.",
+                        category = PlayerInventory.ItemCategory.Material, maxStack = 99
+                    };
+                case ResourceType.Mythril:  // [Milestone C]
+                    return new PlayerInventory.ItemData
+                    {
+                        id = "mat_mythril_ore", displayName = "미스릴 광석",
+                        description = "전설급 미스릴. 최상위 장비 재료.",
+                        category = PlayerInventory.ItemCategory.Material, maxStack = 99
                     };
                 default:
                     Debug.LogError($"[ResourceNode] 알 수 없는 ResourceType: {_resourceType}");

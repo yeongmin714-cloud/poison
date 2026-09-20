@@ -306,6 +306,12 @@ namespace ProjectName.Core
         public static readonly ItemData Necklace_HP   = new ItemData { id = "necklace_hp",   displayName = "체력 목걸이", description = "최대 체력 +15%.",  category = ItemCategory.Accessory, maxStack = 1, rarity = ItemRarity.Rare };
         public static readonly ItemData Necklace_Guard= new ItemData { id = "necklace_guard",displayName = "수호 목걸이", description = "방어력 +8%.",      category = ItemCategory.Accessory, maxStack = 1, rarity = ItemRarity.Rare };
 
+        // ===== [Milestone C] 비제작 최상위 무기/방어구 (비밀상점/희귀 드랍 전용 — NonCraftableCatalog) =====
+        public static readonly ItemData WeaponUniqueAbyss = new ItemData { id = "weapon_unique_abyss",    displayName = "심연의 마검", description = "제작 불가. 비밀상점/극희귀 드랍 전용.",    category = ItemCategory.Weapon, maxStack = 1, maxDurability = 120, rarity = ItemRarity.Unique };
+        public static readonly ItemData WeaponUniqueDawn  = new ItemData { id = "weapon_unique_dawnblade", displayName = "여명의 성검", description = "제작 불가. 극히 희귀한 드랍/비밀상점 전용.",  category = ItemCategory.Weapon, maxStack = 1, maxDurability = 120, rarity = ItemRarity.Unique };
+        public static readonly ItemData ArmorUniqueVoid   = new ItemData { id = "armor_unique_voidplate",  displayName = "공허 판금",  description = "제작 불가. 최상위 판금 방어구.",           category = ItemCategory.Armor,  maxStack = 1, maxDurability = 150, rarity = ItemRarity.Unique };
+        public static readonly ItemData SecretPass        = new ItemData { id = "item_secret_pass",        displayName = "비밀 통행증", description = "비밀시장 입장권. 사용 시 은밀한 상인이 나타난다.", category = ItemCategory.Quest, maxStack = 5, rarity = ItemRarity.Rare };
+
         // ===== 물고기 아이템 =====
         public static readonly ItemData Fish_Common = new ItemData
         {

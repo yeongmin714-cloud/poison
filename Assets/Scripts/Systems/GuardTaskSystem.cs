@@ -389,6 +389,14 @@ namespace ProjectName.Systems
                 }
             }
 
+            // [Milestone C] 보너스 희귀 광물 드랍 — 한 단계 위 광물이 더 희박하게 추가 지급.
+            if (node.TryRollRareBonus(out var bonus, out int bonusYield))
+            {
+                if (bonus != null && PlayerInventory.Instance != null
+                    && PlayerInventory.Instance.AddItem(bonus, bonusYield))
+                    Debug.Log($"{LogTag} {guard.GuardName} 💎 보너스 희귀 광물 {bonus.displayName} x{bonusYield} 획득!");
+            }
+
             CooldownStamp(guard, MineCooldownSec);
         }
 

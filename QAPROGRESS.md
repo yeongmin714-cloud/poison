@@ -1,6 +1,24 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-20 (그랜드 플랜 — Milestone A 성공률 + B 광물·장신구·레시피 확충)
+> **최종 갱신:** 2026-09-20 (그랜드 플랜 — A 성공률 / B 광물·장신구·레시피 / C 희귀·비밀상점)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-20 ✅ Milestone C — 희귀 광물 드랍 · 비제작 최상위 · 비밀상점)
+
+> **입력**: "만들 수 없는 무기/방어구·비밀레시피·희귀광물(가치↑드랍↓)·레시피 디스커버리".
+
+### Milestone C 구현 (데이터·로직 계층 — UI는 Milestone D)
+- **희귀 광물 드랍**: `ResourceNode`에 `ResourceType.Silver/Gold/Mythril` 추가 + `GetItemData`(은/금/미스릴) + `TryRollRareBonus`(보너스 희귀 광물, 가치↑=한 단계 위, `_rareBonusChance` Inspector·기본 0). `GuardTaskSystem.RoutineMine`이 채광 성공 후 보너스 굴림 → 인벤 적립.
+- **비제작 최상위**: `PlayerInventory`에 `weapon_unique_abyss`(심연의 마검)·`weapon_unique_dawnblade`(여명의 성검)·`armor_unique_voidplate`(공허 판금) — **Unique 등급**, 제작 레시피 없음(비제작). `NonCraftableCatalog`(Core): weapon_legendary 포함 비제작 ID 목록.
+- **비밀상점**: `SecretShopSystem`(Systems) — `Active`/`Reveal`/`Hide`, **`ConsumeSecretPass()`**(item_secret_pass 소모→등장), Stock(비제작 최상위 4종, 가격 5k~20kG), `TryBuy`(Active+골드 충분 → PlayerStats.SpendGold → 지급, 실패 롤백). `item_secret_pass`(비밀 통행증) 아이템 등록.
+- `RecipeDiscoverySystem`(기존, PlayerPrefs) — 디스커버리 "?" 연동 마련(Milestone D에서 CraftBench UI 표시).
+
+### 검증
+- 5파일(PlayerInventory/NonCraftableCatalog/SecretShopSystem/ResourceNode/GuardTaskSystem) 괄호 균형 OK, SpendGold/AddGold/GetItemCount 시그니처 대조, 심볼 해석 확인.
+
+### 남은 마일스톤
+D(크래프트 UI 확률·운·"?"·레시피북 + 비밀상점·통행증 UI 배선) / E(채집·광물 채널링+진행도UI) / F(목록 산출기+밸런스).
 
 ---
 
