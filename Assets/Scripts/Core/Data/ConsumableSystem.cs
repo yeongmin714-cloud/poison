@@ -9,6 +9,8 @@ namespace ProjectName.Core.Data
     /// </summary>
     public static class ConsumableSystem
     {
+        /// <summary>[P4] 아이템 섭취 발화 — 생선/음식 허기 회복 등 Systems 연계용.</summary>
+        public static event System.Action<PlayerInventory.ItemData> ItemConsumed;
         /// <summary>
         /// Use (consume) an item from inventory.
         /// </summary>
@@ -22,6 +24,8 @@ namespace ProjectName.Core.Data
             }
 
             // Food 또는 Potion 카테고리 모두 허용 (Phase 34: 은신 물약/진정제 등)
+            // [P4] 섭취 이벤트 발화 — Systems(HungerSystem)가 구독해 허기 회복(Core→Systems 참조 금지 규약)
+            ItemConsumed?.Invoke(item);
             if (item.category == PlayerInventory.ItemCategory.Food)
             {
                 ConsumeFood(item);

@@ -261,7 +261,7 @@ namespace ProjectName.UI.Toolkit
         // =================== 배치 / 해체 ===================
 
         /// <summary>
-        /// 배치 버튼 — [O8 C-O8-04] 현재 영지 추적 미구성으로 TerritoryDatabase 기본 "East_01" 사용(후속 과제).
+        /// 배치 버튼 — [P6] 현재 위치 → 가장 가까운 영지 자동 판정(ResolveTerritoryAt).
         /// 위치: Camera.main 있으면 transform.position + forward×5, 없으면 Vector3.zero.
         /// TryPlace 반환 메시지(골드 부족/영지 경계 밖·겹침 등)는 그대로 상태 라벨에 표시.
         /// </summary>
@@ -275,9 +275,21 @@ namespace ProjectName.UI.Toolkit
             }
 
             Vector3 pos = GetPlacePosition();
-            string result = mgr.TryPlace("East_01", blueprintId, pos);
+
+            // [P6] 현재 위치 → 영지 자동 판정 (어디에도 해당 없으면 배치 거부)
+            var db = ProjectName.Core.Data.TerritoryDatabase.Instance;
+            var resolved = db?.ResolveTerritoryAt(pos);
+            if (resolved == null)
+            {
+                SetStatus("영지 밖 — 영지 근처(60m)에서 배치하세요");
+                Debug.LogWarning("[ConstructionUTK] 배치 실패: 영지 밖 위치");
+                return;
+            }
+            string territoryId = resolved.Value.ToString();
+
+            string result = mgr.TryPlace(territoryId, blueprintId, pos);
             SetStatus(result);
-            Debug.Log($"[ConstructionUTK] 배치: {blueprintId} @ East_01 {pos} → {result}");
+            Debug.Log($"[ConstructionUTK] 배치: {blueprintId} @ {territoryId} {pos} → {result}");
             Refresh();
         }
 

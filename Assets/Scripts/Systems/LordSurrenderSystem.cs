@@ -277,8 +277,9 @@ namespace ProjectName.Systems
             lord.health = 0f;
             _lords[territoryId] = lord;
 
-            // 영지 상태 업데이트
-            state.ownership = TerritoryOwnership.PlayerOwned;
+            // 영지 상태 업데이트 — [P1] SetOwnership 경유(OwnershipChanged 발화)
+            db.SetOwnership(territoryId, TerritoryOwnership.PlayerOwned);
+            state = db.GetState(territoryId);
             state.lordExecuted = true;
             state.lordDefeated = true;
             state.lordSurrendered = true;
@@ -308,8 +309,9 @@ namespace ProjectName.Systems
             lord.hasSurrendered = true;
             _lords[territoryId] = lord;
 
-            // 영지 상태 업데이트 — 높은 충성도 보너스
-            state.ownership = TerritoryOwnership.PlayerOwned;
+            // 영지 상태 업데이트 — 높은 충성도 보너스 — [P1] SetOwnership 경유
+            db.SetOwnership(territoryId, TerritoryOwnership.PlayerOwned);
+            state = db.GetState(territoryId);
             state.lordSpared = true;
             state.lordSurrendered = true;
             state.loyaltyToPlayer = Mathf.Clamp(state.loyaltyToPlayer + 30f, 0f, 100f);

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ProjectName.Core;
 using ProjectName.Core.Data;
 using UnityEngine;
 #pragma warning disable 0414
@@ -38,12 +39,62 @@ namespace ProjectName.Systems
             DontDestroyOnLoad(gameObject);
             Load();
             ProjectName.Core.Data.TerritoryDatabase.OwnershipChanged += OnOwnershipChanged;
+            LordSurrenderSystem.OnLordExecuted += OnLordExecuted; // [P2a] 처형 → executions 카운터
+            CraftingHelper.CraftSucceeded += OnCraftSucceeded;    // [P2b] 제작 → crafts 카운터
         }
 
         private void OnDestroy()
         {
             ProjectName.Core.Data.TerritoryDatabase.OwnershipChanged -= OnOwnershipChanged;
+            LordSurrenderSystem.OnLordExecuted -= OnLordExecuted;
+            CraftingHelper.CraftSucceeded -= OnCraftSucceeded;
             if (Instance == this) Instance = null;
+        }
+
+        // ── [P2a/P2b] 훅 핸들러 ──
+
+        private void OnLordExecuted(ProjectName.Core.Data.TerritoryId id, LordSurrenderSystem.LordData lord)
+        {
+            RecordEvent("executions");
+        }
+
+        private void OnCraftSucceeded(string resultItemId)
+        {
+            RecordEvent("crafts");
+        }
+
+        // ── [P2c] 세트 완성 직접 해금 — 카운터가 아닌 종류 기반 (중복 무시) ──
+
+        private readonly HashSet<string> _completedSets = new HashSet<string>();
+
+        /// <summary>
+        /// [P2c] 장착 목록에서 완성된 세트를 검사해 신규 종류만 해금.
+        /// set_leather(가죽)/set_plate(판금) 직접 해금, 3종 모두 → set_all3.
+        /// </summary>
+        public void EvaluateSetCompletion(System.Collections.Generic.List<PlayerInventory.ItemData> equippedItems)
+        {
+            if (equippedItems == null || equippedItems.Count == 0) return;
+
+            foreach (var kind in EquipmentTierSet.GetAllSetKinds())
+            {
+                string kindKey = kind.ToString();
+                if (_completedSets.Contains(kindKey)) continue;
+                if (EquipmentTierSet.CountSetPieces(kind, equippedItems) >= 4)
+                {
+                    _completedSets.Add(kindKey);
+                    Debug.Log($"[TitleManager] 🧵 세트 완성 감지: {kindKey}");
+                    if (kind == EquipmentSetKind.Leather && !_unlocked.Contains("set_leather")) Unlock(FindTitleDef("set_leather"));
+                    if (kind == EquipmentSetKind.Plate && !_unlocked.Contains("set_plate")) Unlock(FindTitleDef("set_plate"));
+                    if (_completedSets.Count >= 3 && !_unlocked.Contains("set_all3")) Unlock(FindTitleDef("set_all3"));
+                    Save();
+                }
+            }
+        }
+
+        private TitleDef FindTitleDef(string id)
+        {
+            ProjectName.Core.Data.TitleData.TryGet(id, out var def);
+            return def;
         }
 
         // ── 카운터 & 발급 ──

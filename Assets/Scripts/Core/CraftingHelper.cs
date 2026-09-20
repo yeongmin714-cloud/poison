@@ -10,6 +10,8 @@ namespace ProjectName.Core
     /// </summary>
     public static class CraftingHelper
     {
+        /// <summary>[O10 P2b] 제작 성공 발화 (resultItemId). TitleManager(Systems) 구독 → crafts 카운터.</summary>
+        public static event System.Action<string> CraftSucceeded;
         /// <summary>
         /// Attempt to craft an alchemy recipe from two herb IDs.
         /// Returns true if successful.
@@ -112,6 +114,8 @@ namespace ProjectName.Core
                     PlayerStats.Instance.AddEXP(recipe.expReward);
 
                 RecipeDiscoverySystem.MarkDiscovered(recipe.resultItem?.displayName ?? "Unknown");
+                // [O10 P2b] 제작 성공 → crafts 카운터
+                CraftSucceeded?.Invoke(recipe.resultItem?.id ?? "unknown");
                 Debug.Log($"[CraftingHelper] ✅ {recipe.resultItem?.displayName ?? "Unknown"} 제작 성공!");
                 return true;
             }

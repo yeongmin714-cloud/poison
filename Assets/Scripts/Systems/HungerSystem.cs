@@ -1,4 +1,6 @@
 using UnityEngine;
+using ProjectName.Core;
+using ProjectName.Core.Data;
 
 namespace ProjectName.Systems
 {
@@ -64,11 +66,13 @@ namespace ProjectName.Systems
             }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            ConsumableSystem.ItemConsumed += OnItemConsumed; // [P4] 생선 섭취 → 허기 회복
             Load(); // 멱등 초기화 — 저장된 값 복원(키 없으면 기본 100)
         }
 
         private void OnDestroy()
         {
+            ConsumableSystem.ItemConsumed -= OnItemConsumed;
             if (Instance == this)
             {
                 Save(); // 파괴 시 미저장 변경 즉시 반영
@@ -101,6 +105,17 @@ namespace ProjectName.Systems
         // ===== Public API (컴포넌트 public 규약) =====
 
         /// <summary>섭취 — 허기 회복(+클램프 0~100). 과다 섭취도 상한에서 절단.</summary>
+        /// <summary>[P4] 섭취 훅 — 생선(fish_*)은 허기 회복 40.</summary>
+        private void OnItemConsumed(PlayerInventory.ItemData item)
+        {
+            if (item == null || string.IsNullOrEmpty(item.id)) return;
+            if (item.id.StartsWith("fish"))
+            {
+                Eat(40f);
+                Debug.Log($"[HungerSystem] 🐟 생선 섭취 — 허기 +40 (현재 {Hunger:F0})");
+            }
+        }
+
         public void Eat(float amount)
         {
             _hunger = Mathf.Clamp(_hunger + amount, 0f, MaxHunger);

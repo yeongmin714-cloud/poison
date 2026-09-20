@@ -553,6 +553,8 @@ namespace ProjectName.Systems
 
             try
             {
+                // [P1] 복원 모드 — 로드 중 소유 복원은 "새 점령"이 아니므로 OwnershipChanged 억제(칭호 카운터 오염 방지)
+                ProjectName.Core.Data.TerritoryDatabase.OwnershipRestoreMode = true;
                 if (TerritoryDatabase.Instance != null)
                 {
                     foreach (var tData in data)
@@ -575,9 +577,11 @@ namespace ProjectName.Systems
                         }
                     }
                 }
+                ProjectName.Core.Data.TerritoryDatabase.OwnershipRestoreMode = false; // [P1] 정상 종료 해제
             }
             catch (Exception ex)
             {
+                ProjectName.Core.Data.TerritoryDatabase.OwnershipRestoreMode = false; // 오류 시에도 해제
                 if (_verbose) Debug.LogWarning($"[SaveManager] 영토 데이터 복원 중 오류: {ex.Message}");
             }
         }

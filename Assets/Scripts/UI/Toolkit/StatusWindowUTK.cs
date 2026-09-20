@@ -288,6 +288,12 @@ namespace ProjectName.UI.Toolkit
             titleBtn.style.marginTop = 6f;
             titleBtn.style.height = 26f;
             right.Add(titleBtn);
+
+            // ── [P5] 경제 감사 리포트 버튼 — 골드 원장 즉석 확인 ──
+            var auditBtn = UTKButton.Create("감사 리포트", ShowAuditReport, UTKButton.Variant.Secondary);
+            auditBtn.style.marginTop = 6f;
+            auditBtn.style.height = 26f;
+            right.Add(auditBtn);
         }
 
         /// <summary>[O6] 현재 칭호 표시 문자열 (미장착 = "—").</summary>
@@ -325,6 +331,16 @@ namespace ProjectName.UI.Toolkit
             tm.EquipTitle(unlocked[next]);
             _titleValueLabel.text = GetTitleDisplay();
             Debug.Log($"[StatusUTK] 칭호 변경 → {tm.GetTitleText()}");
+        }
+
+        /// <summary>[P5] 경제 감사 리포트 표시 — EconomyAuditLedger 원장을 토스트로 출력.</summary>
+        private void ShowAuditReport()
+        {
+            var sys = EconomyAuditSystem.Instance;
+            float minutes = sys != null ? sys.SessionMinutes : 0f;
+            string report = EconomyAuditLedger.GetReport(minutes);
+            UTKToastService.Show(report, 6f);
+            Debug.Log(report);
         }
 
         /// <summary>[O6] 칭호 해금 시 라벨 갱신 (TitleManager 구독 — Subscribe/Unsubscribe 쌍).</summary>

@@ -210,6 +210,18 @@ namespace ProjectName.Systems
 				_affinity[mercenaryId] = 50f;
 
 			Debug.Log($"[MercenaryManager] ✅ 용병 고용: {instance.data.mercenaryName} ({instance.data.GradeStars})");
+
+			// [P3] 바드 고용 시 기본 류트 자동 장착 — B키 연주 즉시 가능(악기 미보유로 막히는 것 방지)
+			if (instance.data.jobType == "Bard")
+			{
+				var equipSys = GuardEquipmentSystem.Instance ?? FindAnyObjectByType<GuardEquipmentSystem>();
+				if (equipSys != null)
+				{
+					var lute = InstrumentData.ToItemData(InstrumentData.GetProfile("instrument_bard_lute").Value);
+					equipSys.EquipMercenary(mercenaryId, GuardEquipmentSystem.EquipSlot.Instrument, lute);
+					Debug.Log("[MercenaryManager] 🎵 바드 기본 류트 자동 장착 완료");
+				}
+			}
 			return true;
 		}
 

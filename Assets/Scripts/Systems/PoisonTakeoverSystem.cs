@@ -381,8 +381,9 @@ namespace ProjectName.Systems
             var state = db.GetState(territoryId);
             if (state == null) return;
 
-            // 영지 소유권 변경
-            state.ownership = TerritoryOwnership.PlayerOwned;
+            // 영지 소유권 변경 — [O9 보안/P1] SetOwnership 경유(OwnershipChanged 발화 → conquest 칭호 카운터)
+            db.SetOwnership(territoryId, TerritoryOwnership.PlayerOwned);
+            state = db.GetState(territoryId);
             state.lordExecuted = true;
             state.lordDefeated = true;
             // NOTE: lordSurrendered는 설정하지 않음 — 독살은 항복이 아닌 암살이므로

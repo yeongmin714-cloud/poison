@@ -165,12 +165,15 @@ namespace ProjectName.Core.Data
         /// <summary>[O6 C-O6-02] 소유 변경 발화 — PlayerOwned로 "변경된" 경우에만. 구독자 없으면 무해.</summary>
         public static event System.Action<TerritoryId, TerritoryOwnership> OwnershipChanged;
 
+        /// <summary>[P1] 세이브 로드 중 복원 모드 — 복원은 "새 점령"이 아니므로 이벤트 억제(칭호 카운터 오염 방지).</summary>
+        public static bool OwnershipRestoreMode { get; set; }
+
         public void SetOwnership(NationType nation, int index, TerritoryOwnership ownership)
         {
             var state = GetState(nation, index);
             bool changed = state.ownership != ownership;
             state.ownership = ownership;
-            if (changed && ownership == TerritoryOwnership.PlayerOwned)
+            if (changed && ownership == TerritoryOwnership.PlayerOwned && !OwnershipRestoreMode)
                 OwnershipChanged?.Invoke(state.id, ownership);
         }
 
@@ -179,7 +182,7 @@ namespace ProjectName.Core.Data
             var state = GetState(id);
             bool changed = state.ownership != ownership;
             state.ownership = ownership;
-            if (changed && ownership == TerritoryOwnership.PlayerOwned)
+            if (changed && ownership == TerritoryOwnership.PlayerOwned && !OwnershipRestoreMode)
                 OwnershipChanged?.Invoke(id, ownership);
         }
 
@@ -509,6 +512,26 @@ namespace ProjectName.Core.Data
                 worldPosition = worldPosition
             };
             _definitions[id.ToString()] = def;
+        }
+
+        /// <summary>
+        /// [P6] 위치 → 영지 판정 — 가장 가까운 영지 중심(반경 radius 내). 어디에도 해당 없으면 null.
+        /// 걷기 이동 시 CurrentTerritoryId가 갱신되지 않는 허점을 보완(건설 배치 등 위치 기반 판정용).
+        /// </summary>
+        public TerritoryId? ResolveTerritoryAt(Vector3 pos, float radius = 60f)
+        {
+            TerritoryId? best = null;
+            float bestDist = float.MaxValue;
+            foreach (var def in GetAllDefinitions())
+            {
+                float dist = Vector3.Distance(def.worldPosition, pos);
+                if (dist <= radius && dist < bestDist)
+                {
+                    bestDist = dist;
+                    best = def.id;
+                }
+            }
+            return best;
         }
 
         /// <summary>

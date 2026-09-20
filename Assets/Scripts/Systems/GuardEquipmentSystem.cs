@@ -247,6 +247,9 @@ namespace ProjectName.Systems
             if (PlayerInventory.Instance != null)
                 PlayerInventory.Instance.RemoveItem(item.id);
 
+            // [P2c] 세트 완성 평가 (칭호)
+            TitleManager.Instance?.EvaluateSetCompletion(GetNonBrokenItems(_guardEquipment[guardId]));
+
             Debug.Log($"[GuardEquipment] {guard.GuardName} {slot} 장착: {item.displayName}");
             return true;
         }
@@ -337,6 +340,9 @@ namespace ProjectName.Systems
             // 인벤토리에서 제거
             if (PlayerInventory.Instance != null)
                 PlayerInventory.Instance.RemoveItem(item.id);
+
+            // [P2c] 세트 완성 평가 (칭호)
+            TitleManager.Instance?.EvaluateSetCompletion(GetNonBrokenItems(_mercenaryEquipment[mercenaryId]));
 
             Debug.Log($"[GuardEquipment] 용병 {mercenaryId} {slot} 장착: {item.displayName}");
             return true;
