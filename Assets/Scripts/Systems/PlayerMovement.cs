@@ -546,7 +546,8 @@ namespace ProjectName.Systems
                 }
             }
 
-            // [U8 배선] F 키 — 병사 상호작용 (정보창, UTK)
+            // [U8 배선→P13] F 키 — 병사 상호작용 (통합 상호작용 창, UTK — 정보창은 창 내 '병사 정보보기')
+            // PlayerMovement(Systems)는 UI 어셈블리 참조 불가 → SoldierInteractBridge 이벤트 경유.
             if (kb.fKey.wasPressedThisFrame)
             {
                 Collider[] hits = Physics.OverlapSphere(transform.position, _interactionRadius, _interactableLayers);
@@ -562,7 +563,7 @@ namespace ProjectName.Systems
                     }
                 }
                 if (nearest != null)
-                    SoldierInteractBridge.Raise(nearest);
+                    SoldierInteractBridge.RaiseInteract(nearest);   // [P13] 상호작용 창 (SoldierInteractUTK)
             }
         }
 

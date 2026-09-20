@@ -56,6 +56,10 @@ namespace ProjectName.Systems
         /// </summary>
         public static void UpdateGuardBehavior(GuardPlaceholder guard, Transform playerTransform)
         {
+            // [P14] 실내 활성 시 동행 병사 추적/전투 AI 정지 — 병사가 실내 씬으로 따라 들어오는 것 차단
+            if (ProjectName.Core.UITransitionState.IndoorActive)
+                return;
+
             if (guard == null || !guard.IsAlive || !guard.IsRecruited || playerTransform == null)
                 return;
 

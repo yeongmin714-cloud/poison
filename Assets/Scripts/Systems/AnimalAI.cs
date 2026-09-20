@@ -485,6 +485,15 @@ namespace ProjectName.Systems
 
         private void Update()
         {
+            // [P14] 실내 활성 시 몬스터 AI 완전 정지 — 어그로/추격이 실내 씬으로 유입되는 것 차단
+            if (ProjectName.Core.UITransitionState.IndoorActive)
+            {
+                _currentAISpeed = 0f;
+                _currentAIVelocity = Vector3.zero;
+                if (_quadAnim != null && _quadConfigured) _quadAnim.SetMovementSpeed(0f);
+                return;
+            }
+
             // [2026-09-14(49차)] 4족 절차 애니 연결 시도(지연 부착 대응) — 최초 1회 성공 후 스킵
             UpdateQuadrupedLink();
 

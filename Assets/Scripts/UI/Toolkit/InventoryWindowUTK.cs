@@ -153,10 +153,9 @@ namespace ProjectName.UI.Toolkit
             // 윈도우 자체 = ②Loot 수령 / ③패널 위 인벤 취소 타겟 (슬롯보다 하위 우선).
             UTKDragDrop.RegisterDropTarget(this, this);
 
-            // 기본 숨김 + 좌측 배치 관례
+            // 기본 숨김 + [P12] 3분할 좌측 배치
             style.display = DisplayStyle.None;
-            style.left = 16f;
-            style.top = 96f;
+            UTKThreeColumnLayout.Place(this, 0);
         }
 
         // =====================================================================
@@ -169,8 +168,8 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && parent == null)
                 root.Add(this);
-            style.left = 16f;   // 좌측 고정
-            style.top = 96f;
+            // [P12] 3분할 — 좌 1/3 컬럼 정렬 (해상도/스케일 무관)
+            UTKThreeColumnLayout.Place(this, 0);
             EnsureEquipSubscription();
             StartRefreshLoop();
             RefreshGrid();

@@ -9,11 +9,13 @@ namespace ProjectName.Systems
 {
     /// <summary>
     /// 병사Placeholder - 사장님이 GLB를 제공하기 전까지 사용할 임시 병사 모델.
-    /// C9-08: E키 상호작용 → 병사 정보 HUD 표시 + 메뉴 (말걸기/음식주기/약주기)
+    /// C9-08: 병사 상호작용 → 정보 HUD 표시 + 메뉴 (말걸기/음식주기/약주기)
     /// C9-11: 음식/약주기 — 인벤토리 선택 → 아이템 지급 → 호감도/중독도 변화
     /// Phase 34: NPCAwarenessSystem 연동 + 시야각 120° + 암살
-    /// 2026-09-12: 상호작용 패널 확대·고급화 — 다크네이비 플랫 패널 + 아바타(실제 3D 아이콘 → 국적색 원형 폴백)
-    ///              + 체력바 확대 + [E] 가이드 (E키 동작/데이터 불변)
+    /// P13 (2026-09-20): 상호작용 UI OnGUI 철거 → UTK SoldierInteractUTK 창으로 이관.
+    ///               F키 → SoldierInteractBridge.RaiseInteract → SoldierInteractUTK (정보는 창 내 '병사 정보보기').
+    ///               OnTalk/OnRecruit/아이템 지급 로직은 public 래퍼(BeginTalk/BeginRecruit/GiveFood/GiveDrug)로
+    ///               재사용 — 데이터/규칙 불변. E키 토글 제거(실내 진입 전용).
     /// </summary>
     public class GuardPlaceholder : MonoBehaviour, IDamageable, IWorldSpaceHUD
     {
@@ -59,39 +61,12 @@ namespace ProjectName.Systems
         private SelectionMode _selectionMode = SelectionMode.None;
 
         private bool _playerNearby = false;
-        private bool _showInfo = false;
         private string _statusMessage = "";
-        private Vector2 _invScrollPos;
         // Rig animation
         private RigAnimationController _rigAnim;
 
-        // 캐시된 텍스처 (메모리 누수 방지)
-        private static Texture2D _whitePixelTex;
-        private static Texture2D _circleTex; // 국적색 원형 아바타 폴백 (지연 1회 생성)
-
-        // 실제 3D 아바타 (GuardIconRenderer 오프스크린 베이크) — 0.5초 폴링 재조회 (GuardSquadHotbar 동일 패턴)
-        private Texture2D _avatarIcon;
-        private float _avatarNextPoll;
-
         // 캐시된 플레이어 참조 (매 프레임 Find 방지)
         private GameObject _playerCache;
-
-        // ===== 정보 패널 스펙 팔레트 (다크네이비 반투명 / 회백 테두리 / 스카이블루 강조) =====
-        private static readonly Color ColorPanelBg       = new Color(0.063f, 0.086f, 0.133f, 0.88f); // 패널 배경
-        private static readonly Color ColorPanelBorder   = new Color(0.62f, 0.70f, 0.78f, 1f);       // 패널/테두리 회백
-        private static readonly Color ColorAccent        = new Color(0.35f, 0.65f, 0.90f, 1f);       // 스카이블루 강조
-        private static readonly Color ColorBarBg         = new Color(0.04f, 0.055f, 0.09f, 1f);      // 바 배경 — 플랫 다크네이비
-        private static readonly Color ColorKeyBadgeBg    = new Color(0.10f, 0.13f, 0.19f, 1f);       // [E] 배지 배경
-        private static readonly Color ColorBtnHover      = new Color(0.16f, 0.21f, 0.30f, 1f);       // 버튼 호버 틴트
-        private static readonly Color ColorLoyaltyFill   = new Color(0.30f, 0.56f, 0.95f, 1f);       // 호감도 채움 (기존 블루 계열 유지)
-        private static readonly Color ColorAddictionFill = new Color(0.95f, 0.35f, 0.85f, 1f);       // 중독도 채움 (기존 마젠타 계열 유지)
-
-        // 국적색 (GuardSquadHotbar.GetNationColor 동일 값 — 동=빨강, 서=파랑, 남=초록, 북=보라, 기타=회색)
-        private static readonly Color ColorNationEast    = new Color(0.92f, 0.28f, 0.26f, 1f);
-        private static readonly Color ColorNationWest    = new Color(0.30f, 0.56f, 0.95f, 1f);
-        private static readonly Color ColorNationSouth   = new Color(0.30f, 0.78f, 0.40f, 1f);
-        private static readonly Color ColorNationNorth   = new Color(0.64f, 0.42f, 0.90f, 1f);
-        private static readonly Color ColorNationDefault = new Color(0.62f, 0.62f, 0.66f, 1f);
 
         private void Awake()
         {
@@ -169,14 +144,10 @@ namespace ProjectName.Systems
             float dist = Vector3.Distance(transform.position, player.transform.position);
             _playerNearby = dist <= _interactRange;
 
-            if (_playerNearby && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame && _selectionMode == SelectionMode.None)
+            // [P13] E키 토글 제거 — 상호작용 창은 F키 → SoldierInteractUTK 전용.
+            // 멀어지면 아이템 선택 모드만 해제(창 자체는 UTK 쪽 200ms 폴링 — 4.5m 초과 자동 닫힘).
+            if (_selectionMode != SelectionMode.None && dist > _interactRange * 1.5f)
             {
-                _showInfo = !_showInfo;
-            }
-
-            if (_showInfo && dist > _interactRange * 1.5f)
-            {
-                _showInfo = false;
                 _selectionMode = SelectionMode.None;
             }
 
@@ -201,161 +172,11 @@ namespace ProjectName.Systems
             GuardCombatAI.UpdateGuardBehavior(this, player.transform);
         }
 
-        private void OnGUI()
-        {
-            if (!_showInfo || _isDead) return;
-
-            if (_selectionMode != SelectionMode.None)
-            {
-                DrawItemSelectionPopup();
-                return;
-            }
-
-            EnsureStyles();
-
-            EnsureAvatarIcon(); // 0.5초 폴링 — 실제 3D 아이콘 재조회 (GuardSquadHotbar 동일 패턴)
-
-            // 패널: 기존(320x250)의 1.6배 확대 (≥1.5배 규격)
-            float panelW = 520f;
-            float panelH = 380f;
-            float x = (Screen.width - panelW) / 2f;
-            float y = Screen.height - panelH - 20f;
-
-            // 플랫 패널 — 회백 2px 테두리 + ColorPanelBg 단색 배경 (절차 Rect 패턴)
-            DrawFlatRect(x, y, panelW, panelH, ColorPanelBorder);
-            DrawFlatRect(x + 2f, y + 2f, panelW - 4f, panelH - 4f, ColorPanelBg);
-            // 하단 스카이블루 2px 타이틀 라인
-            DrawFlatRect(x + 2f, y + panelH - 4f, panelW - 4f, 2f, ColorAccent);
-
-            // ===== 좌측 아바타 96px (실제 3D 아이콘 → 국적색 원형+이니셜 폴백) =====
-            Rect avatarRect = new Rect(x + 16f, y + 20f, 96f, 96f);
-            if (_avatarIcon != null)
-            {
-                GUI.DrawTexture(avatarRect, _avatarIcon, ScaleMode.ScaleToFit, true);
-            }
-            else
-            {
-                EnsureCircleTex();
-                Color prevColor = GUI.color;
-                GUI.color = GetNationColor(nation);
-                GUI.DrawTexture(avatarRect, _circleTex);
-                GUI.color = prevColor;
-                GUI.Label(avatarRect, GetInitial(guardName), _styleAvatarInitial);
-            }
-
-            // ===== 우측 정보 열 =====
-            float rx = x + 128f;             // 아바타 열(16+96+16) 우측 기준
-            float rw = panelW - 128f - 16f;  // 376
-            float barW = panelW * 0.7f;      // 체력바 너비 = 패널의 70%
-            float cy = y + 18f;
-
-            // 타이틀 [국가] 역할 Lv.N (흰색 24px)
-            string roleStr = GuardStatusSystem.GetRoleName(_role);
-            GUI.Label(new Rect(rx, cy, rw, 32f), $"[{nation}] {roleStr} Lv.{level}", _styleTitle);
-            cy += 44f;
-
-            // 체력바 (높이 14px — ColorBarBg 배경 + 스카이블루 채움, hpRatio 기존 로직)
-            float hpRatio = _currentHP / _maxHP;
-            cy = DrawStatBar(rx, cy, barW, "❤️ 체력", $"{(int)(hpRatio * 100)}%", hpRatio, ColorAccent);
-
-            // 호감도/중독도 바 (기존 표기 유지 — 팔레트 채움색 활용)
-            cy = DrawStatBar(rx, cy, barW, "🤝 호감도", $"{(int)_loyalty}%", _loyalty / 100f, ColorLoyaltyFill);
-            cy = DrawStatBar(rx, cy, barW, "💊 중독도", $"{(int)_addiction}%", _addiction / 100f, ColorAddictionFill);
-
-            // 하단 [E] 배지 (ColorKeyBadgeBg 배경 + "[E] 상호작용" 13px)
-            Rect badgeRect = new Rect(rx, cy + 6f, 160f, 30f);
-            DrawFlatRect(badgeRect.x, badgeRect.y, badgeRect.width, badgeRect.height, ColorKeyBadgeBg);
-            GUI.Label(badgeRect, "[E] 상호작용", _styleBadge);
-
-            if (!string.IsNullOrEmpty(_statusMessage))
-            {
-                GUI.Label(new Rect(x + 16f, y + panelH - 76f, panelW - 32f, 20f), _statusMessage, _styleMsg);
-            }
-
-            // 메뉴 버튼들
-            float btnW = (panelW - 32f - 24f) / 5f;
-            float btnY = y + panelH - 52f;
-
-            if (FlatButton(new Rect(x + 16f, btnY, btnW, 36f), "🗣️ 말걸기")) OnTalk();
-            if (FlatButton(new Rect(x + 16f + (btnW + 6f), btnY, btnW, 36f), "🥩 음식주기"))
-            {
-                _selectionMode = SelectionMode.SelectingFood;
-                _invScrollPos = Vector2.zero;
-            }
-            if (FlatButton(new Rect(x + 16f + (btnW + 6f) * 2f, btnY, btnW, 36f), "💊 약주기"))
-            {
-                _selectionMode = SelectionMode.SelectingDrug;
-                _invScrollPos = Vector2.zero;
-            }
-            if (FlatButton(new Rect(x + 16f + (btnW + 6f) * 3f, btnY, btnW, 36f), "🤝 포섭"))
-            {
-                OnRecruit();
-            }
-            if (FlatButton(new Rect(x + 16f + (btnW + 6f) * 4f, btnY, btnW, 36f), "🔙 닫기")) _showInfo = false;
-        }
-
-        // ===== C9-11: 아이템 선택 팝업 =====
-        private void DrawItemSelectionPopup()
-        {
-            EnsureStyles();
-
-            float popupW = 400f;
-            float popupH = 350f;
-            float x = (Screen.width - popupW) / 2f;
-            float y = (Screen.height - popupH) / 2f;
-
-            GUI.Box(new Rect(x, y, popupW, popupH), "");
-
-            string title = _selectionMode == SelectionMode.SelectingFood ? "🥩 음식 선택" : "💊 약 선택";
-            GUI.Label(new Rect(x + 10, y + 10, popupW - 20, 32), title, _styleTitle);
-
-            var items = GetInventoryItemsByMode();
-            float listY = y + 40f;
-            float listH = popupH - 90f;
-
-            GUI.BeginGroup(new Rect(x + 10, listY, popupW - 20, listH));
-
-            if (items.Count == 0)
-            {
-                GUI.Label(new Rect(0, 0, popupW - 20, 24), "보유한 아이템이 없습니다.", _styleMsg);
-            }
-            else
-            {
-                float itemH = 40f;
-                float viewH = items.Count * itemH;
-
-                _invScrollPos = GUI.BeginScrollView(
-                    new Rect(0, 0, popupW - 20, listH),
-                    _invScrollPos,
-                    new Rect(0, 0, popupW - 40, viewH)
-                );
-
-                for (int i = 0; i < items.Count; i++)
-                {
-                    var pair = items[i];
-                    float iy = i * itemH;
-                    GUI.Box(new Rect(0, iy, popupW - 40, itemH - 2), "");
-                    GUI.Label(new Rect(10, iy + 2, 180, 20), pair.Key.displayName, _styleLabel);
-                    GUI.Label(new Rect(10, iy + 20, 80, 16), $"x{pair.Value}", _styleValue);
-
-                    if (GUI.Button(new Rect(popupW - 160, iy + 5, 100, 28), "주기"))
-                    {
-                        GiveItemToGuard(pair.Key);
-                        _selectionMode = SelectionMode.None;
-                        return;
-                    }
-                }
-                GUI.EndScrollView();
-            }
-            GUI.EndGroup();
-
-            if (GUI.Button(new Rect(x + popupW / 2 - 50, y + popupH - 40, 100, 30), "취소"))
-            {
-                _selectionMode = SelectionMode.None;
-            }
-        }
-
-        private List<KeyValuePair<PlayerInventory.ItemData, int>> GetInventoryItemsByMode()
+        /// <summary>
+        /// [P13] 현재 선택 모드(음식/약)에 맞는 인벤토리 아이템 목록 반환 — SoldierInteractUTK가 호출.
+        /// 음식 = Food / 약 = Potion+Drug (기존 IMGUI 팝업과 동일 규칙).
+        /// </summary>
+        public List<KeyValuePair<PlayerInventory.ItemData, int>> GetInventoryItemsByMode()
         {
             var result = new List<KeyValuePair<PlayerInventory.ItemData, int>>();
             if (PlayerInventory.Instance == null) return result;
@@ -406,135 +227,30 @@ namespace ProjectName.Systems
             }
         }
 
-        // ===== 플랫 렌더 헬퍼 (기존 절차 Rect 패턴 — 1px 흰색 텍스처 + GUI.color 틴트) =====
-        private static void DrawFlatRect(float x, float y, float w, float h, Color color)
-        {
-            if (_whitePixelTex == null)
-            {
-                _whitePixelTex = new Texture2D(1, 1);
-                _whitePixelTex.SetPixel(0, 0, Color.white);
-                _whitePixelTex.Apply();
-            }
-            Color prevColor = GUI.color;
-            GUI.color = color;
-            GUI.DrawTexture(new Rect(x, y, w, h), _whitePixelTex);
-            GUI.color = prevColor;
-        }
+        // ===== [P13] UTK 상호작용 창용 public 래퍼 — 기존 private 로직 재사용(데이터/규칙 불변) =====
+        /// <summary>병사 상태 메시지 (SoldierInteractUTK 표시용 — 말걸기/지급/포섭 응답 등).</summary>
+        public string StatusMessage => _statusMessage;
 
-        /// <summary>캡션+수치 라인과 14px 플랫 바(배경 ColorBarBg)를 그린다 — 다음 행 y 반환.</summary>
-        private float DrawStatBar(float bx, float by, float bw, string caption, string valueText, float ratio, Color fill)
-        {
-            GUI.Label(new Rect(bx, by, bw * 0.6f, 16f), caption, _styleLabel);
-            GUI.Label(new Rect(bx + bw - 64f, by, 64f, 16f), valueText, _styleValueRight);
-            DrawFlatRect(bx, by + 18f, bw, 14f, ColorBarBg);
-            DrawFlatRect(bx, by + 18f, bw * Mathf.Clamp01(ratio), 14f, fill);
-            return by + 46f;
-        }
+        /// <summary>🗣️ 말걸기 — 기존 OnTalk 경로.</summary>
+        public void BeginTalk() { OnTalk(); }
 
-        /// <summary>국적색 원형 아바타 폴백용 96px 원형 텍스처 (지연 1회 생성 — GuardSquadHotbar 원형 스프라이트 동일 수식).</summary>
-        private static void EnsureCircleTex()
-        {
-            if (_circleTex != null) return;
-            const int size = 96;
-            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-            tex.wrapMode = TextureWrapMode.Clamp;
-            float center = size * 0.5f;
-            float radius = size * 0.5f - 1f; // 1px 여백 (클램프 블리딩 방지)
-            for (int py = 0; py < size; py++)
-            {
-                for (int px = 0; px < size; px++)
-                {
-                    float dx = px + 0.5f - center;
-                    float dy = py + 0.5f - center;
-                    float dist = Mathf.Sqrt(dx * dx + dy * dy);
-                    float alpha = Mathf.Clamp01(radius - dist + 0.5f); // 1px 안티앨리어싱
-                    tex.SetPixel(px, py, new Color(1f, 1f, 1f, alpha));
-                }
-            }
-            tex.Apply();
-            _circleTex = tex;
-        }
+        /// <summary>🤝 포섭 — 기존 OnRecruit 경로 (GuardRecruitSystem 규칙 불변).</summary>
+        public void BeginRecruit() { OnRecruit(); }
 
-        // ===== GuardIconRenderer 리플렉션 캐시 (asmdef 경계 — Systems는 UI 직접 참조 불가, Core→Systems TryGetBedSpawnPoint 선례) =====
-        private static System.Type _guardIconRendererType;
-        private static System.Reflection.MethodInfo _getOrCreateIconMethod;
+        /// <summary>🥩 음식 선택 모드 진입 — 기존 _selectionMode 세팅만 수행 (UTK 창이 호출).</summary>
+        public void BeginFoodSelection() { _selectionMode = SelectionMode.SelectingFood; }
 
-        /// <summary>
-        /// GuardIconRenderer.GetOrCreateIcon(g)를 리플렉션으로 호출한다 (asmdef 경계 — 정규화 직접 참조 대체).
-        /// Type/MethodInfo는 static 캐시로 GC 최소화. 실패 시 null (국적색 원형 폴백).
-        /// </summary>
-        private static Texture2D TryGetGuardIcon(GuardPlaceholder g)
-        {
-            try
-            {
-                if (_getOrCreateIconMethod == null)
-                {
-                    _guardIconRendererType = System.Type.GetType("ProjectName.UI.GuardIconRenderer, ProjectName.UI");
-                    if (_guardIconRendererType == null) return null;
-                    _getOrCreateIconMethod = _guardIconRendererType.GetMethod("GetOrCreateIcon",
-                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-                    if (_getOrCreateIconMethod == null) return null;
-                }
-                return _getOrCreateIconMethod.Invoke(null, new object[] { g }) as Texture2D;
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogWarning("[GuardPlaceholder] GuardIconRenderer 리플렉션 호출 실패: " + e.Message);
-                return null;
-            }
-        }
+        /// <summary>💊 약 선택 모드 진입 — 기존 _selectionMode 세팅만 수행 (UTK 창이 호출).</summary>
+        public void BeginDrugSelection() { _selectionMode = SelectionMode.SelectingDrug; }
 
-        /// <summary>
-        /// 실제 3D 아이콘을 0.5초 폴링으로 재조회 (GuardSquadHotbar 동일 패턴).
-        /// GetOrCreateIcon은 캐시 히트 시 즉시 반환, 미베이크 시 큐 등록 후 null.
-        /// </summary>
-        private void EnsureAvatarIcon()
-        {
-            float now = Time.realtimeSinceStartup;
-            if (now < _avatarNextPoll) return;
-            _avatarNextPoll = now + 0.5f;
-            try
-            {
-                _avatarIcon = TryGetGuardIcon(this);
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogWarning("[GuardPlaceholder] 실제 아이콘 조회 실패 — 국적색 원형 폴백: " + e.Message);
-                _avatarIcon = null;
-            }
-        }
+        /// <summary>아이템 선택 모드 해제 (UTK 창 취소/닫기 시 호출).</summary>
+        public void CancelItemSelection() { _selectionMode = SelectionMode.None; }
 
-        /// <summary>국적 → 아바타 색상 (동=빨강, 서=파랑, 남=초록, 북=보라, 황제국/무소속/기타=회색 — GuardSquadHotbar 동일).</summary>
-        private static Color GetNationColor(string nationName)
-        {
-            if (string.IsNullOrEmpty(nationName)) return ColorNationDefault;
-            if (nationName.Contains("동")) return ColorNationEast;
-            if (nationName.Contains("서")) return ColorNationWest;
-            if (nationName.Contains("남")) return ColorNationSouth;
-            if (nationName.Contains("북")) return ColorNationNorth;
-            return ColorNationDefault;
-        }
+        /// <summary>🥩 음식 지급 — 기존 GiveItemToGuard 경로 (호감도/회복 규칙 불변).</summary>
+        public void GiveFood(PlayerInventory.ItemData item) { GiveItemToGuard(item); }
 
-        /// <summary>이름 첫 글자(이니셜) — 서러게이트 쌍은 2 코드유닛으로 안전 절단, 빈 이름은 "?".</summary>
-        private static string GetInitial(string name)
-        {
-            if (string.IsNullOrEmpty(name)) return "?";
-            int len = (char.IsSurrogate(name[0]) && name.Length >= 2) ? 2 : 1;
-            return name.Substring(0, len);
-        }
-
-        /// <summary>플랫 버튼 — ColorKeyBadgeBg 배경 + 회백 1px 테두리 + 호버 틴트 (클릭 로직은 호출부 기존 그대로).</summary>
-        private bool FlatButton(Rect r, string text)
-        {
-            bool hovered = r.Contains(Event.current.mousePosition);
-            DrawFlatRect(r.x, r.y, r.width, r.height, hovered ? ColorBtnHover : ColorKeyBadgeBg);
-            DrawFlatRect(r.x, r.y, r.width, 1f, ColorPanelBorder);
-            DrawFlatRect(r.x, r.y + r.height - 1f, r.width, 1f, ColorPanelBorder);
-            DrawFlatRect(r.x, r.y, 1f, r.height, ColorPanelBorder);
-            DrawFlatRect(r.x + r.width - 1f, r.y, 1f, r.height, ColorPanelBorder);
-            GUI.Label(r, text, _styleBtn);
-            return GUI.Button(r, GUIContent.none, GUIStyle.none);
-        }
+        /// <summary>💊 약 지급 — 기존 GiveItemToGuard 경로 (중독/중독도 규칙 불변).</summary>
+        public void GiveDrug(PlayerInventory.ItemData item) { GiveItemToGuard(item); }
 
         private void OnTalk()
         {
@@ -560,29 +276,6 @@ namespace ProjectName.Systems
             {
                 _statusMessage = result.message;
             }
-        }
-
-        // ===== GUI 스타일 캐시 (static 1회 생성 — OnGUI 내 new 금지) =====
-        private static GUIStyle _styleTitle;         // 타이틀 (흰색 24px)
-        private static GUIStyle _styleLabel;         // 바 캡션 (14px)
-        private static GUIStyle _styleValue;         // 수치 (14px 볼드)
-        private static GUIStyle _styleValueRight;    // 수치 (우측정렬)
-        private static GUIStyle _styleMsg;           // 상태 메시지 (13px 이탤릭)
-        private static GUIStyle _styleBadge;         // [E] 배지 (13px)
-        private static GUIStyle _styleBtn;           // 메뉴 버튼 (14px)
-        private static GUIStyle _styleAvatarInitial; // 아바타 이니셜 (34px)
-
-        private static void EnsureStyles()
-        {
-            if (_styleTitle != null) return;
-            _styleTitle = new GUIStyle(GUI.skin.label) { fontSize = 24, fontStyle = FontStyle.Bold, normal = { textColor = Color.white } };
-            _styleLabel = new GUIStyle(GUI.skin.label) { fontSize = 14, normal = { textColor = Color.white } };
-            _styleValue = new GUIStyle(GUI.skin.label) { fontSize = 14, fontStyle = FontStyle.Bold, normal = { textColor = Color.yellow } };
-            _styleValueRight = new GUIStyle(GUI.skin.label) { fontSize = 14, fontStyle = FontStyle.Bold, alignment = TextAnchor.UpperRight, normal = { textColor = Color.yellow } };
-            _styleMsg = new GUIStyle(GUI.skin.label) { fontSize = 13, fontStyle = FontStyle.Italic, normal = { textColor = Color.cyan } };
-            _styleBadge = new GUIStyle(GUI.skin.label) { fontSize = 13, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter, normal = { textColor = Color.white } };
-            _styleBtn = new GUIStyle(GUI.skin.label) { fontSize = 14, alignment = TextAnchor.MiddleCenter, normal = { textColor = Color.white } };
-            _styleAvatarInitial = new GUIStyle(GUI.skin.label) { fontSize = 34, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter, normal = { textColor = Color.white } };
         }
 
         // ===== IDamageable =====
@@ -941,7 +634,6 @@ namespace ProjectName.Systems
         }
         public float Addiction { get => _addiction; set => _addiction = Mathf.Clamp(value, 0, GuardAddictionSystem.MAX_ADDICTION); }
         public bool IsPlayerNearby => _playerNearby;
-        public bool IsShowingInfo => _showInfo;
         public bool IsSelectingItem => _selectionMode != SelectionMode.None;
 
         // ===== IWorldSpaceHUD 구현 =====
@@ -1002,6 +694,8 @@ namespace ProjectName.Systems
         private void ExecuteMovement()
         {
             if (_isDead || !_hasCommand) return;
+            // [P14] 실내 활성 시 이동 명령 정지 — 병사가 실내 좌표로 걸어 들어오는 것 차단
+            if (ProjectName.Core.UITransitionState.IndoorActive) return;
 
             float delta = Time.deltaTime;
 
@@ -1315,7 +1009,6 @@ namespace ProjectName.Systems
             _isDead = false;
             _currentHP = _maxHP * Mathf.Clamp01(hpPercent);
             gameObject.SetActive(true);
-            _showInfo = false;
             _selectionMode = SelectionMode.None;
         }
 

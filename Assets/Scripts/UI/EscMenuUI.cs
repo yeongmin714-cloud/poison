@@ -56,10 +56,9 @@ namespace ProjectName.UI
 
         private void Update()
         {
-            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
-            {
-                Toggle();
-            }
+            // [P15 수리] ESC 처리 제거 — 구 IMGUI 메뉴가 ESC를 가로채 Time.timeScale=0으로 만들어
+            //   실내 크래프트/상호작용 중 화면 프리즈의 원인이었다(실측: 상호작용 창 열림 + 월드 정지).
+            //   ESC는 UTKWindowManager(스택 Close) + EscMenuUTK 단일 경로로 통합.
         }
 
         public void Toggle()

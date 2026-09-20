@@ -136,7 +136,12 @@ namespace ProjectName.UI.Toolkit
                 if (kb == null || !kb.escapeKey.wasPressedThisFrame)
                     return;
                 if (_openStack.Count == 0)
+                {
+                    // [P15 배선] 열린 창이 없으면 ESC = 일시정지 메뉴 토글 (구 EscMenuUI 입력 경로 대체 —
+                    //   구 IMGUI는 timeScale=0 프리즈 원인으로 입력 차단됨. EscMenuUTK가 동일 토글 제공).
+                    EscMenuUTK.Toggle();
                     return;
+                }
                 HandleEscape();
             }
         }

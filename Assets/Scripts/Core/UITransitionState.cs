@@ -16,5 +16,9 @@ namespace ProjectName.Core
 
         /// <summary>[U8 수리] UTK 창이 하나라도 열려 있음 — 월드 이름표/헤드UI 은퇴용(창 위 렌더 겹침 방지). UTKWindowManager가 갱신.</summary>
         public static bool AnyWindowOpen;
+
+        /// <summary>[P14] 실내 씬 활성 — 병사/몬스터 AI가 플레이어 추적/어그로를 실내로 끌고 오는 것 차단.
+        ///   IndoorSceneTransition(Enter/Exit)에서 갱신, Systems AI 루프가 게이트로 읽음(Core 양방향 공용 규약).</summary>
+        public static bool IndoorActive;
     }
 }

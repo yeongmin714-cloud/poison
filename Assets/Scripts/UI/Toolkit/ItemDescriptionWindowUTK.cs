@@ -73,8 +73,7 @@ namespace ProjectName.UI.Toolkit
             ApplyUIToolkitFont(this);
 
             style.display = DisplayStyle.None;
-            style.left = PosX;
-            style.top = PosY;
+            UTKThreeColumnLayout.Place(this, 1);   // [P12] 중앙 1/3 (기존 고정 PosX/PosY 대체)
         }
 
         /// <summary>UTK 루트 부착(멱등) — 인벤과 쌍으로 사용.</summary>
@@ -90,19 +89,28 @@ namespace ProjectName.UI.Toolkit
             return _instance;
         }
 
-        /// <summary>설명창 표시 (인벤 열림 쌍).</summary>
+        /// <summary>[P12] 3분할 — 중앙 1/3 컬럼 정렬.</summary>
+        public void PlaceCenterColumn() => UTKThreeColumnLayout.Place(this, 1);
+
+        /// <summary>
+        /// [P11 수리] 설명창 표시 — base.Show()/Hide() 경유로 전환.
+        ///   기존 style.display 직접 조작은 UTKWindowManager 스택에 등록되지 않아
+        ///   ESC(스택 최상단 Close)와 X 버튼(UTKWindowBase._isOpen 상태)이 모두 무효였다(실측).
+        ///   base.Show()가 Register+IsOpen 동기 → ESC/X/I 3경로 전부 닫힘.
+        /// </summary>
         public static void Show()
         {
             var i = Ensure();
             if (i == null) return;
-            i.style.display = DisplayStyle.Flex;
+            if (!i.IsOpen) ItemDescriptionWindowUTK.Show();
+            i.PlaceCenterColumn();   // [P12] 중앙 1/3
             i.BringToFront();
         }
 
         public static void Hide()
         {
             if (_instance == null) return;
-            _instance.style.display = DisplayStyle.None;
+            if (_instance.IsOpen) _instance.Close();   // CS0176 회피 — instance Hide 경유
         }
 
         /// <summary>인벤 열림 여부와 쌍 — 인벤 닫힘 시 함께 숨김.</summary>
@@ -136,7 +144,7 @@ namespace ProjectName.UI.Toolkit
             i._itemMeta.text = sb.ToString();
             i._itemDesc.text = string.IsNullOrEmpty(item.description) ? "(설명 없음)" : item.description;
 
-            if (i.style.display == DisplayStyle.None) Show();
+            if (!i.IsOpen) Show();   // [P11] base.Show/Hide 상태 기준
             Debug.Log($"[DescUTK] 설명 갱신 — {item.displayName ?? item.id} x{count}");
         }
 

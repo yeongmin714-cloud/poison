@@ -246,10 +246,9 @@ namespace ProjectName.UI.Toolkit
 
             ApplyUIToolkitFont(this);
 
-            // 기본 숨김 + 우측 배치 (좌:인벤/우:창고 — 인벤 16px 좌측에 대응)
+            // 기본 숨김 + [P12] 3분할 우측 배치
             style.display = DisplayStyle.None;
-            style.left = 1044f;
-            style.top = 96f;
+            UTKThreeColumnLayout.Place(this, 2);
         }
 
         // =====================================================================
@@ -278,8 +277,7 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && parent == null)
                 root.Add(this);
-            style.left = 1044f;
-            style.top = 96f;
+            UTKThreeColumnLayout.Place(this, 2);   // [P12] 우측 1/3
             StartRefreshLoop();
             RefreshGrid();
             Debug.Log($"[WarehouseUTK] 창고 창 열림 (영지: {_territoryId})");
@@ -290,6 +288,7 @@ namespace ProjectName.UI.Toolkit
             base.Hide();
             StopRefreshLoop();
             CloseTerritoryMenu();
+            _lastWithdrawMsPerSlot.Clear();   // [P10 보강] 재오피 시 가드 초기화
             Debug.Log($"[WarehouseUTK] 창고 창 닫힘 (영지: {_territoryId})");
         }
 
@@ -719,12 +718,20 @@ namespace ProjectName.UI.Toolkit
             // [우클릭 출고 수리] 이중 발화 가드 — 우클릭 시 PointerDown(button=1)과 ContextClickEvent가
             //   둘 다 도착. 같은 슬롯에 대해 200ms 내 중복 요청은 무시해 어느 경로로 와도 1회만 실행.
             //   (슬롯별 키 → 서로 다른 슬롯의 연속 우클릭은 씹지 않는다.)
+            // [P10 근본 수리] int.MinValue 초기값 비교는 Environment.TickCount가 양수일 때
+            //   now - int.MinValue 가 int 오버플로우로 큰 음수가 됨(실측: -2086493883ms) →
+            //   첫 우클릭이 항상 "중복"으로 오판되어 출고가 영구 차단됐다.
+            //   TickCount 랩어웨이 안전 delta 패턴(unchecked uint 차)으로 교체.
             int now = System.Environment.TickCount;
-            int last = _lastWithdrawMsPerSlot.TryGetValue(slotIndex, out int prev) ? prev : int.MinValue;
-            if (now - last < WithdrawDedupeMs)
+            bool hasLast = _lastWithdrawMsPerSlot.TryGetValue(slotIndex, out int last);
+            if (hasLast)
             {
-                Debug.Log($"[WarehouseUTK] 출고 중복 요청 무시 slot={slotIndex} ({now - last}ms 내)");
-                return false;
+                int delta = unchecked((int)((uint)now - (uint)last));
+                if (delta >= 0 && delta < WithdrawDedupeMs)
+                {
+                    Debug.Log($"[WarehouseUTK] 출고 중복 요청 무시 slot={slotIndex} ({delta}ms 내)");
+                    return false;
+                }
             }
             _lastWithdrawMsPerSlot[slotIndex] = now;
 

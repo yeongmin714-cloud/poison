@@ -24,6 +24,10 @@ namespace ProjectName.UI
         private const float INDOOR_FLOOR_Y = 0f;      // 실내 바닥 높이 (IndoorBuilder.CreateRoom: 바닥 XZ 평면 y=0)
         private static bool _initialized;
 
+        /// <summary>[P14] 실내 활성 여부 — 병사/몬스터 AI가 플레이어 추적/어그로를 실내로 끌고 오는 것 차단.
+        ///   Systems 측 AI 루프가 이 플래그를 게이트로 읽는다(Update 초입 정지).</summary>
+        public static bool IsIndoor { get; private set; }
+
         /// <summary>[P8 수리] 정적 생성자는 "타입 최초 접근 시"에만 실행 — 테스트 씬처럼 이 타입을
         ///        참조하는 코드가 없으면 구독 자체가 없어 E키가 무반응이 된다(실측).
         ///        RuntimeInitializeOnLoadMethod로 게임 시작 시 확정 구독.</summary>
@@ -96,6 +100,9 @@ namespace ProjectName.UI
 
             // SceneManager.sceneLoaded 콜백 등록
             SceneManager.sceneLoaded += OnIndoorSceneLoaded;
+
+            IsIndoor = true;   // [P14] 실내 진입 — 월드 AI 추적/어그로 게이트 ON
+            ProjectName.Core.UITransitionState.IndoorActive = true;
 
             // 씬 Additive 로드
             if (LoadingManager.Instance != null)
@@ -276,6 +283,8 @@ namespace ProjectName.UI
             if (mainCamGO != null) mainCamGO.SetActive(true);
 
             _previousSceneName = null;
+            IsIndoor = false;   // [P14] 월드 복귀 — AI 게이트 OFF
+            ProjectName.Core.UITransitionState.IndoorActive = false;
         }
 
         /// <summary>
