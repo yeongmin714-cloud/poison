@@ -695,6 +695,19 @@ namespace ProjectName.Systems
                     true, new Color(0.2f, 0.4f, 0.9f, 1f));
             }
 
+            // ═══ [P7] 실내 진입 트리거 — 성 입구(전면) E키 → PlayerCastle 실내(침대 세이브 포함) ═══
+            // Test_10_TerritoryCombat 씬 전용: 가벼운 씬에서 실내 전환(E키) 검증용.
+            // isPlayerOwned는 BuildingTrigger가 E키 시점에 TerritoryDatabase(East_01=PlayerOwned)에서 자동 판정.
+            var entryTrigger = IndoorTransitionSetup.CreateBuildingTrigger(
+                new Vector3(cx, baseY + 1.5f, cz - 7.5f),   // 성 전면 입구 (14×14 성, 중심 cz → 전면 -7.5)
+                IndoorTransitionSetup.TYPE_CASTLE,
+                IndoorTransitionSetup.CASTLE_INTERACT_RANGE, // 4m
+                null,                                        // 부모 없음 — 씬 루트 (Setup 오브젝트 정리와 무관)
+                "Eastern",                                   // nationStyle — 동국 실내 텍스처
+                "East_01");                                  // 영지 키 — PlayerOwned 판정용
+            if (entryTrigger != null)
+                Debug.Log("[MyTerritory] 🚪 성 입구 트리거 배치 완료 — 전면 4m 내 E키로 실내 진입 (PlayerCastle)");
+
             Debug.Log($"[MyTerritory] ✅ 내 소속 영지(PlayerOwned) 배치 — 성 'Territory_My_PlayerOwned' @({cx:F1}, {baseY:F1}, {cz:F1}), 내병사 3명(레벨 10, East, 파랑)");
         }
 
