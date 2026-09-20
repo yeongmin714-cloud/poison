@@ -1,6 +1,31 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-20 (화살 크기 축소 + 조준 방향 수정 — ArrowProjectile.cs)
+> **최종 갱신:** 2026-09-20 (신규 테스트 씬 Test_11_AnimationShowcase — 몬스터22/병사3/NPC11 애니 쇼케이스)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-20 ✅ 애니메이션 쇼케이스 테스트 씬 추가)
+
+> **입력**: 사용자 "테스트 씬 하나 더 만들고 모든 몬스터/병사/NPC 각 한 명씩 구분지어 배치, 각 애니메이션 시험용."
+
+### 신규 파일 (기존 파일 무수정)
+- `Assets/Scripts/Systems/TestAnimationShowcaseSetup.cs` (+ .meta GUID `7f3a9c2e1b4d5f6a8c0d1e2f3a4b5c6d`)
+- `Assets/Scenes/TestScenes/Test_11_AnimationShowcase.unity` (+ .meta) — 설정 GO `_TestAnimShowcase` + Main Camera(탑다운 0,45,-30 / 60°)
+
+### 구성 (런타임 Awake 생성, 기존 시스템 재사용)
+- 지형/라이트/스카이박스: TestAllInOneSetup 패턴
+- **몬스터 존(Z=-15, 간격2.2)**: MonsterDatabase 22종 각 1. MonsterSpawner.CreateMonster 로직 재현(ModelAnimatorAssigner + AnimalAI.SetMonsterId + SpecialCreatureAnimator 분기). 리깅 GLB 실존 4종(rabbit/wolf/boar/slime)만 실애니, 나머지 티어별 프리미티브. 라벨 "몬스터: 한글명/id"
+- **병사 존(Z=0, 간격3)**: lv1-20/20-40/40-50 3모델. TestTerritoryCombatSetup.CreateGuard 패턴(FBX + SoldierShield_AC + HumanoidClipDriver(Soldier) + GLB 재질 이식). 색/라벨 구분
+- **NPC 존(Z=15, 간격2.4)**: lord/king/shop/man1/2/girl1-3/oldman1/2/dracula 11종. TerritoryNPCSpawner 패턴(GLb + 병사 Humanoid FBX 교체 + SoldierShield_AC + 드라이버)
+- 접지: SurfaceY 대신 Physics.Raycast(GroundY) + GroundModelToY(bounds 최저점 정렬)
+
+### 검증
+- 모두 **기존 프로젝트 심볼 전수 대조** 통과: MonsterDef(gizmoColor/id/displayName/isQuadruped), MonsterDatabase.Get, AnimalAI.SetMonsterId, GuardPlaceholder.SetGuardInfo/SetRecruited, NationType.East, HumanoidClipDriver(DriveMode.Soldier/CopyMaterialsFromGlb), GuardManager.NormalizeSoldierScaleToPlayer/GetSoldierSizeMultiplier, ModelAnimatorAssigner.ForceBiped, SpecialCreatureAnimator(ProjectName.Systems.Animation.Procedural, CreatureType{Spider,Clam,Slime,Spirit,LargeMonster})
+- 코드 본문(주석/문자열 제외) 괄호/중괄호/대괄호 균형 OK
+- 씬 YAML: 설정 GO + MainCamera 태그 + 스크립트 GUID(7f3a...) 일치
+
+### Play 판정 대기
+①씬 열고 재생 시 3개 존이 화면에 다 보이는지 ②각 유닛 애니(병사/NPC idle, 몬스터 idle) 재생 ③라벨 표시 ④프리미티브 몬스터(모델 부재)는 어떤 것인지 식별
 
 ---
 
