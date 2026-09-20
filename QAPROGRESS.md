@@ -1,6 +1,26 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-20 (그랜드 플랜 — A~C 데이터/로직 + D 크래프트 UI 확률·"?"·레시피획득)
+> **최종 갱신:** 2026-09-20 (그랜드 플랜 — A~D + E 채집·광물 채널링+진행도 바)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-20 ✅ Milestone E — 채집/광물 캐스팅(채널링) + 월드 진행도 바)
+
+> **입력**: "채집/광물이 바로 되는 게 아니라 일정 시간 애니 유지 후 획득 + 진행도 UI".
+
+### Milestone E 구현
+- **`WorkProgressBar.cs`**(신규, Systems): 작업 유닛 위 얇은 월드 진행 바(발 위 2.5m). `Show(worker,dur,color)` → 0→1 채우며 `LateUpdate` 빌보딩(카메라 정면), 완료/`Close()` 시 자동 소멸. 프리미티브 콜라이더 제거 → 커서/RTS 레이캐스트 오염 0.
+- **`GuardTaskSystem` 채널링**: RoutineMine/Gather를 **캐스팅 방식**으로 전환
+  - 노드 근접(≤2.5m) → `BeginChannel`(광질 2.5s/채집 2.0s) + 진행도 바 표시
+  - 캐스팅 중엔 수확 없음(딕셔너리 `_channelStart/_channelNode/_channelDur/_channelBar`), 완료 시 1회 수확(`PerformMine`=TryAutoMine+보너스 희귀 광물 / `PerformGather`=GatheringSystem)
+  - **취소**: 작업 전환(AssignTask)·해제(ReleaseTask)·사망/비활성(Update) 시 `EndChannel` → 진행 바 정리, 보상 없음
+- (캐스팅 애니메이션 자세는 RigAnimationController.Gather/드라이버 연동을 후속 폴리시로; 진행 바가 시각적 캐스팅 표시 담당)
+
+### 검증
+- RoutineGather/Mine 정의 1개씩(중복 제거), 두 파일 괄호 균형 OK. 변경: WorkProgressBar(신규)+GuardTaskSystem.
+
+### 남은 마일스톤
+F(채집/광물 캐스팅 애니 자세 보강 + GL·애니 부재 목록 산출기 + 비밀상점·통행증 UI 배선 + 밸런스·검증).
 
 ---
 

@@ -46,6 +46,14 @@ namespace ProjectName.Systems
         // 병사 → 다음 행동 허용 시각 (쿨다운)
         readonly Dictionary<GuardPlaceholder, float> _nextAction = new Dictionary<GuardPlaceholder, float>();
 
+        // [Milestone E] 채널링(캐스팅) 상태 — 광물/채집 노드 근접 시 N초 진행(진행도 바) 후 1회 수확.
+        private const float MineChannelSec = 2.5f;    // 광질 캐스팅 시간
+        private const float GatherChannelSec = 2.0f;  // 채집 캐스팅 시간
+        private readonly Dictionary<GuardPlaceholder, float> _channelStart = new Dictionary<GuardPlaceholder, float>();
+        private readonly Dictionary<GuardPlaceholder, GameObject> _channelNode = new Dictionary<GuardPlaceholder, GameObject>();
+        private readonly Dictionary<GuardPlaceholder, float> _channelDur = new Dictionary<GuardPlaceholder, float>();
+        private readonly Dictionary<GuardPlaceholder, WorkProgressBar> _channelBar = new Dictionary<GuardPlaceholder, WorkProgressBar>();
+
         // 행동 쿨다운 (초)
         const float UpdateThrottleSec = 0.4f;   // 전역 업데이트 스로틀
         const float ActionCooldownSec = 4f;     // 기본 역할 행동 쿨다운
@@ -127,6 +135,7 @@ namespace ProjectName.Systems
                     _tasks.Remove(g);
                     _nextAction.Remove(g);
                     _taskTerritories.Remove(g);
+                    EndChannel(g);      // [Milestone E] 사망/비활성 시 캐스팅 취소
                 }
             }
         }
@@ -145,6 +154,7 @@ namespace ProjectName.Systems
                 return;
             }
             g.ClearCommand();
+            EndChannel(g);              // [Milestone E] 작업 전환 시 캐스팅 취소
             _tasks[g] = task;
             _nextAction[g] = 0f;
             Debug.Log($"{LogTag} {g.GuardName} → {task}");
@@ -173,6 +183,7 @@ namespace ProjectName.Systems
             _tasks.Remove(g);
             _nextAction.Remove(g);
             _taskTerritories.Remove(g);
+            EndChannel(g);              // [Milestone E] 작업 해제 시 캐스팅 취소
             g.ClearCommand();
         }
 
@@ -271,34 +282,6 @@ namespace ProjectName.Systems
             return center + gateDir * 3f;
         }
 
-        /// <summary>Gather — 주변 약초(풀) 노드 채집. GatheringSystem.TryGather가 약초를 인벤토리에 적립.</summary>
-        private void RoutineGather(GuardPlaceholder guard)
-        {
-            if (!CooldownReady(guard, ActionCooldownSec)) return;
-
-            GameObject node = FindNearestGatherNode(guard.transform.position, GatherRange);
-            if (node == null)
-            {
-                CooldownStamp(guard, ActionCooldownSec);
-                return;
-            }
-
-            // 노드로 이동 명령 후 가까우면 채집
-            if (Vector3.Distance(guard.transform.position, node.transform.position) > 2.5f)
-            {
-                guard.SetCommandTarget(node.transform.position, false);
-            }
-
-            // GatheringSystem에 노드 전달 → 성공 시 PlayerInventory에 약초 적립.
-            if (GatheringSystem.CanGather(node))
-            {
-                bool ok = GatheringSystem.TryGather(node);
-                Debug.Log($"{LogTag} {guard.GuardName} 🌿 약초 채집 {(ok ? "성공" : "실패/리스폰 중")} ({node.name})");
-            }
-
-            CooldownStamp(guard, ActionCooldownSec);
-        }
-
         /// <summary>Hunt — 주변 몬스터 공격 + 확률 전리품 + 병사 사망 확률.</summary>
         private void RoutineHunt(GuardPlaceholder guard)
         {
@@ -364,40 +347,111 @@ namespace ProjectName.Systems
         /// </summary>
         private void RoutineMine(GuardPlaceholder guard)
         {
-            if (!CooldownReady(guard, MineCooldownSec)) return;
-
-            ResourceNode node = FindNearestResourceNode(guard.transform.position, MineRange);
-            if (node == null)
+            // [Milestone E] 캐스팅 진행 중 — 완료 시 1회 채굴.
+            if (_channelStart.ContainsKey(guard))
             {
+                if (ChannelElapsed(guard) && _channelNode.TryGetValue(guard, out var cn) && cn != null)
+                {
+                    var node = cn.GetComponent<ResourceNode>();
+                    EndChannel(guard);
+                    if (node != null) PerformMine(guard, node);
+                }
                 CooldownStamp(guard, MineCooldownSec);
                 return;
             }
 
-            // 노드로 이동 명령 후 가까우면 채굴
+            if (!CooldownReady(guard, MineCooldownSec)) return;
+
+            ResourceNode node2 = FindNearestResourceNode(guard.transform.position, MineRange);
+            if (node2 == null) { CooldownStamp(guard, MineCooldownSec); return; }
+
+            // 멀면 이동, 가까우면 캐스팅 시작(진행도 바)
+            if (Vector3.Distance(guard.transform.position, node2.transform.position) > 2.5f)
+            {
+                guard.SetCommandTarget(node2.transform.position, false);
+                CooldownStamp(guard, MineCooldownSec);
+                return;
+            }
+            BeginChannel(guard, node2.gameObject, MineChannelSec, new Color(0.85f, 0.6f, 0.3f));
+        }
+
+        /// <summary>[Milestone E] 캐스팅 완료 후 1회 채굴(광물 + 보너스 희귀 광물).</summary>
+        private void PerformMine(GuardPlaceholder guard, ResourceNode node)
+        {
+            if (node == null || !node.IsAvailable) return;
+            if (!node.TryAutoMine(out var item, out int yield)) return;
+            if (item != null && PlayerInventory.Instance != null)
+                PlayerInventory.Instance.AddItem(item, yield);
+            Debug.Log($"{LogTag} {guard.GuardName} ⛏️ 광질 완료 {yield}({node.name})");
+
+            if (node.TryRollRareBonus(out var bonus, out int by))
+                if (bonus != null && PlayerInventory.Instance != null && PlayerInventory.Instance.AddItem(bonus, by))
+                    Debug.Log($"{LogTag} {guard.GuardName} 💎 희귀 광물 {bonus.displayName} x{by}!");
+        }
+
+        /// <summary>[Milestone E] 채널 경과 완료 여부.</summary>
+        private bool ChannelElapsed(GuardPlaceholder g)
+        {
+            if (!_channelStart.TryGetValue(g, out float s)) return false;
+            float dur = _channelDur.TryGetValue(g, out float d) ? d : 2f;
+            return Time.time - s >= dur;
+        }
+
+        /// <summary>[Milestone E] 캐스팅 시작 — 진행도 바 표시.</summary>
+        private void BeginChannel(GuardPlaceholder g, GameObject node, float dur, Color color)
+        {
+            if (node == null) return;
+            _channelStart[g] = Time.time;
+            _channelNode[g] = node;
+            _channelDur[g] = dur;
+            if (_channelBar.TryGetValue(g, out var old) && old != null) old.Close();
+            _channelBar[g] = WorkProgressBar.Show(g.transform, dur, color);
+        }
+
+        /// <summary>[Milestone E] 캐스팅 종료(완료/취소) — 진행도 바 정리.</summary>
+        private void EndChannel(GuardPlaceholder g)
+        {
+            if (_channelStart.ContainsKey(g)) _channelStart.Remove(g);
+            if (_channelNode.ContainsKey(g)) _channelNode.Remove(g);
+            if (_channelDur.ContainsKey(g)) _channelDur.Remove(g);
+            if (_channelBar.TryGetValue(g, out var bar) && bar != null) bar.Close();
+            if (_channelBar.ContainsKey(g)) _channelBar.Remove(g);
+        }
+
+        /// <summary>[Milestone E] Gather — 주변 약초 노드 캐스팅(채집 애니+진행도 바) 후 1회 수확.</summary>
+        private void RoutineGather(GuardPlaceholder guard)
+        {
+            if (_channelStart.ContainsKey(guard))
+            {
+                if (ChannelElapsed(guard) && _channelNode.TryGetValue(guard, out var cn) && cn != null)
+                {
+                    EndChannel(guard);
+                    PerformGather(guard, cn);
+                }
+                CooldownStamp(guard, ActionCooldownSec);
+                return;
+            }
+
+            if (!CooldownReady(guard, ActionCooldownSec)) return;
+
+            GameObject node = FindNearestGatherNode(guard.transform.position, GatherRange);
+            if (node == null) { CooldownStamp(guard, ActionCooldownSec); return; }
+
             if (Vector3.Distance(guard.transform.position, node.transform.position) > 2.5f)
             {
                 guard.SetCommandTarget(node.transform.position, false);
+                CooldownStamp(guard, ActionCooldownSec);
+                return;
             }
+            BeginChannel(guard, node, GatherChannelSec, new Color(0.4f, 0.8f, 0.4f));
+        }
 
-            // 채굴 — 고갈 전 노드만. 성공 시 광물을 플레이어 인벤토리에 적립.
-            if (node.IsAvailable && node.TryAutoMine(out PlayerInventory.ItemData item, out int yield))
-            {
-                if (item != null && PlayerInventory.Instance != null)
-                {
-                    bool ok = PlayerInventory.Instance.AddItem(item, yield);
-                    Debug.Log($"{LogTag} {guard.GuardName} ⛏️ 광질 성공 {yield}({node.name}){(ok ? "" : " — 인벤 가득 참")}");
-                }
-            }
-
-            // [Milestone C] 보너스 희귀 광물 드랍 — 한 단계 위 광물이 더 희박하게 추가 지급.
-            if (node.TryRollRareBonus(out var bonus, out int bonusYield))
-            {
-                if (bonus != null && PlayerInventory.Instance != null
-                    && PlayerInventory.Instance.AddItem(bonus, bonusYield))
-                    Debug.Log($"{LogTag} {guard.GuardName} 💎 보너스 희귀 광물 {bonus.displayName} x{bonusYield} 획득!");
-            }
-
-            CooldownStamp(guard, MineCooldownSec);
+        /// <summary>[Milestone E] 캐스팅 완료 후 1회 채집 — GatheringSystem.TryGather로 약초 적립.</summary>
+        private void PerformGather(GuardPlaceholder guard, GameObject node)
+        {
+            if (node == null || !GatheringSystem.CanGather(node)) return;
+            bool ok = GatheringSystem.TryGather(node);
+            Debug.Log($"{LogTag} {guard.GuardName} 🌿 채집 완료 {(ok ? "성공" : "실패/리스폰 중")} ({node.name})");
         }
 
         /// <summary>Farm — 가장 가까운 밭 파종/수확. FarmingSystem.Plant/Harvest 사용.</summary>
