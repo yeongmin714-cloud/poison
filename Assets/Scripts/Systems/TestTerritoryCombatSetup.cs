@@ -51,16 +51,14 @@ namespace ProjectName.Systems
             SetupGround();
             SetupLight();
             EnsureEventSystem();
-            SpawnLord();
-            SpawnGuard();
-            SpawnMonster("slime");
+            // [P21 렉 경량화] 영주/단병사/몬스터 더미 + 약초/농장/광질 배치 제거 —
+            //   실내 전환 검증이 끝났으므로 테스트는 실내씬에서 직접(사용자 확정).
+            //   필요 시 아래 주석 해제: SpawnLord(); SpawnGuard(); SpawnMonster("slime");
+            //   SetupHerbs(); SetupFarm(); SetupMiningNodes();
             AttachAttackSystem();
-            SetupTerritoriesAndGuards();   // 2026-09-10: 내 영지(PlayerOwned) + 적 영지(EnemyOwned 표기) + 병사 3+3 배치
-            SetupHerbs();                  // 2026-09-10: 채집 가능 약초 3종(Red/Purple/Green) 배치 — E키 채집 흐름 점검용
-            SetupFarm();                   // 2026-09-10: 농경 시스템 — 내 영지(East_01) 부지 농장 2x2 (E키 파종 → 게임 2일 성장 → HerbPickup 재사용 수확)
-            SetupMiningNodes();            // 광질 노드 — 내 영지 부지 ResourceNode 3종(Wood/Stone/IronOre) 배치 (Miner 채광/TryAutoMine 검증용)
+            SetupTerritoriesAndGuards();   // [P21] 경량판 — 영지 데이터 등록 + 실내 진입 트리거만 (성/병사 시각 제거)
             EnsurePlayerHUD();             // 2026-09-10: 하트 HUD 부착(하트 아이콘+숫자HP) — Test_09 선례 이식
-            SetupUITestArena();            // 2026-09-10: UI 전수(미니맵/인벤/스탯/창고·크래프트 박스/전 아이템 시딩)
+            SetupUITestArena();            // 2026-09-10: UI 전수(미니맵/인벤/스탯/창고·크래프트 박스/전 아이템 시딩) — 실내 크래프트 재료 시딩 유지
 
             // 2026-09-10: Test_10에 몬스터 없음 — Aggro 등록 없으므로 시스템 인스턴스만 정리 대상.
             // (기존: EnsureGameManager가 MonsterAggroSystem을 GM에 부착 — DontDestroyOnLoad가 아니라 씬 정리 경고는
@@ -655,10 +653,65 @@ namespace ProjectName.Systems
         // ================================================================
         // 내/적 소속 영지 배치 (2026-09-10 신규 — 기존 셋업 무변경, 신규 배치만 추가)
         // ================================================================
+        /// <summary>
+        /// [P21 경량판] 영지 데이터 등록 + 실내 진입 트리거만 배치.
+        /// 성 시각/병사 3+3/문지기/몬스터 더미는 제거(렉 해소 — 사용자 확정: "테스트는 실내씬에서 직접").
+        /// TerritoryDatabase 등록은 유지 — Castle 트리거의 PlayerOwned 판정(East_01)과
+        /// 창고/크래프트 wh_test 등 영지 키 의존 시스템이 계속 동작해야 한다.
+        /// </summary>
         private void SetupTerritoriesAndGuards()
         {
-            SetupMyTerritory();
-            SetupEnemyTerritory();
+            // ── 영지 소유권 데이터 등록 (시각 없음) ──
+            TerritoryDatabase.Instance.SetOwnership(NationType.East, 1, TerritoryOwnership.PlayerOwned);
+            TerritoryDatabase.Instance.SetOwnership(NationType.North, 1, TerritoryOwnership.LordOwned);
+
+            // ── 실내 진입 트리거 2종 (원 위치 유지 — _myTerritoryPos 부근) ──
+            float cx = _myTerritoryPos.x, cz = _myTerritoryPos.z;
+            float baseY = SurfaceY(cx, cz);
+
+            var entryTrigger = IndoorTransitionSetup.CreateBuildingTrigger(
+                new Vector3(cx, baseY + 1.5f, cz - 7.5f),
+                IndoorTransitionSetup.TYPE_CASTLE,
+                IndoorTransitionSetup.CASTLE_INTERACT_RANGE,
+                null,
+                "Eastern",
+                "East_01");
+            if (entryTrigger != null)
+                Debug.Log("[MyTerritory][P21] 🚪 성 입구 트리거 배치 — E키 → PlayerCastle 실내");
+
+            var craftTrigger = IndoorTransitionSetup.CreateBuildingTrigger(
+                new Vector3(cx + 9f, baseY + 1.5f, cz - 4f),
+                IndoorTransitionSetup.TYPE_CRAFT_HOUSE,
+                IndoorTransitionSetup.DEFAULT_INTERACT_RANGE,
+                null,
+                "Eastern",
+                "East_01");
+            if (craftTrigger != null)
+                Debug.Log("[MyTerritory][P21] 🔨 크래프트하우스 트리거 배치 — E키 → CraftHouse 실내");
+
+            // ── 트리거 표지 마커 (작은 기둥 — 트리거 위치 가시화) ──
+            CreateTriggerMarker("Marker_CastleEntry", new Vector3(cx, baseY, cz - 7.5f), new Color(0.25f, 0.4f, 0.85f, 1f));
+            CreateTriggerMarker("Marker_CraftEntry", new Vector3(cx + 9f, baseY, cz - 4f), new Color(0.75f, 0.5f, 0.2f, 1f));
+
+            Debug.Log("[MyTerritory][P21] ✅ 경량 영지 등록 완료 — 성/병사 시각 제거, 실내 진입 트리거 2종만");
+        }
+
+        /// <summary>[P21] 트리거 표지 — 1m 기둥 + 이름표 역할의 색상 큐브(콜라이더 제거, 레이캐스트 오염 없음).</summary>
+        private void CreateTriggerMarker(string goName, Vector3 basePos, Color color)
+        {
+            var marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            marker.name = goName;
+            marker.transform.position = basePos + new Vector3(0f, 1.5f, 0f);
+            marker.transform.localScale = new Vector3(0.6f, 3f, 0.6f);
+            var col = marker.GetComponent<Collider>();
+            if (col != null) DestroyImmediate(col);
+            var r = marker.GetComponent<MeshRenderer>();
+            if (r != null)
+            {
+                var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                mat.color = color;
+                r.material = mat;
+            }
         }
 
         /// <summary>
