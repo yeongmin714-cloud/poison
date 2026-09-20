@@ -14,7 +14,7 @@
 
 ### 구성 (런타임 Awake 생성, 기존 시스템 재사용)
 - 지형/라이트/스카이박스: TestAllInOneSetup 패턴
-- **몬스터 존(Z=-15, 간격2.2)**: MonsterDatabase 22종 각 1. MonsterSpawner.CreateMonster 로직 재현(ModelAnimatorAssigner + AnimalAI.SetMonsterId + SpecialCreatureAnimator 분기). 리깅 GLB 실존 4종(rabbit/wolf/boar/slime)만 실애니, 나머지 티어별 프리미티브. 라벨 "몬스터: 한글명/id"
+- **몬스터 존(Z=-15, 간격2.2)**: MonsterDatabase 22종 각 1. MonsterSpawner.CreateMonster 로직 재현(ModelAnimatorAssigner + AnimalAI.SetMonsterId + SpecialCreatureAnimator 분기). **22종 전부 리깅 GLB 실존**(GetMonsterModelPath 22종 맵 전부 `UserProvided/*_Rigged.glb` 존재 — rabbit/wolf/boar/deer/snake/bat/Big_Mouse/crow/slime/Golem/Fire_Lizard/Electric_Spine_Hedgehog/Swamp_Alligator/Wooden Forest Spirit/Wild_Troll/Swamp_Ogre/Banshee/Griffon/Minotaur/Manticore/Salamander/Shadow_Assassin). 프리미티브 폴백은 어떤 모델로도 안 잡힐 때만 동작. 라벨 "몬스터: 한글명/id"
 - **병사 존(Z=0, 간격3)**: lv1-20/20-40/40-50 3모델. TestTerritoryCombatSetup.CreateGuard 패턴(FBX + SoldierShield_AC + HumanoidClipDriver(Soldier) + GLB 재질 이식). 색/라벨 구분
 - **NPC 존(Z=15, 간격2.4)**: lord/king/shop/man1/2/girl1-3/oldman1/2/dracula 11종. TerritoryNPCSpawner 패턴(GLb + 병사 Humanoid FBX 교체 + SoldierShield_AC + 드라이버)
 - 접지: SurfaceY 대신 Physics.Raycast(GroundY) + GroundModelToY(bounds 최저점 정렬)
@@ -25,7 +25,7 @@
 - 씬 YAML: 설정 GO + MainCamera 태그 + 스크립트 GUID(7f3a...) 일치
 
 ### Play 판정 대기
-①씬 열고 재생 시 3개 존이 화면에 다 보이는지 ②각 유닛 애니(병사/NPC idle, 몬스터 idle) 재생 ③라벨 표시 ④프리미티브 몬스터(모델 부재)는 어떤 것인지 식별
+①씬 열고 재생 시 3개 존이 화면에 다 보이는지 ②각 유닛 애니(병사/NPC idle, 몬스터 22종 idle) 재생 ③라벨 표시 ④⚠️전 4종만 있다고 잘못 기록했으나 **22종 전부 리깅 GLB 실존**(narrow 파일필터 오판 → 정정)
 
 ---
 
