@@ -123,7 +123,9 @@ namespace ProjectName.UI.Toolkit
         // =====================================================================
         // 공개 진입점 — 루트에 부착 + 표시
         // =====================================================================
-        /// <summary>상점 창을 UTK 루트 우측에 생성·표시. 멱등이 아니므로 중복 부착 방지용.</summary>
+        /// <summary>상점 창을 UTK 루트 우측에 생성·표시. 열려 있으면 기존 인스턴스를 재사용(멱등).</summary>
+        public static ShopWindowUTK Instance { get; private set; }
+
         public static ShopWindowUTK Open()
         {
             var root = UIToolkitBootstrap.UIRoot;
@@ -133,7 +135,16 @@ namespace ProjectName.UI.Toolkit
                 return null;
             }
 
+            if (Instance != null)
+            {
+                Instance.Show();
+                Instance.RefreshBuyList();
+                Instance.UpdateGoldDisplay();
+                return Instance;
+            }
+
             var window = new ShopWindowUTK();
+            Instance = window;
             // 우측 3분할 영역 근사 (InventoryWindow.GetContextX 선례) — 화면 폭 대비 60% 지점
             window.style.left = Length.Percent(60f);
             window.style.top = 10f;
@@ -157,6 +168,7 @@ namespace ProjectName.UI.Toolkit
         protected override void OnWindowClosed()
         {
             Debug.Log("[ShopWindowUTK] 닫힘");
+            if (Instance == this) Instance = null;
         }
 
         // =====================================================================

@@ -501,6 +501,19 @@ namespace ProjectName.UI.Toolkit
             }
 
             var cat = item.category;
+            // [Milestone G] 비밀 통행증 사용 — 소모 + 비밀상점 활성 + 상점 창 열기
+            if (item.id == SecretShopSystem.SecretPassItemId)
+            {
+                if (SecretShopSystem.ConsumeSecretPass())
+                {
+                    RefreshGrid();
+                    ItemDescriptionWindowUTK.Clear();
+                    Debug.Log("[InventoryUTK] 비밀 통행증 사용 — 비밀상점 활성");
+                    ShopWindowUTK.Open(); // Active 상태이므로 비밀상점 섹션 표시 (멱등 Open)
+                }
+                else Debug.LogWarning("[InventoryUTK] 비밀 통행증 없음 — 사용 불가");
+                return;
+            }
             if (cat == PlayerInventory.ItemCategory.Weapon || cat == PlayerInventory.ItemCategory.Armor)
             {
                 var origin = ProjectName.UI.InventoryWindow.Instance;

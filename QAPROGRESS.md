@@ -1,6 +1,23 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-20 (그랜드 플랜 — A~D + E 채집·광물 채널링+진행도 바 + F 애니·목록·비밀상점)
+> **최종 갱신:** 2026-09-20 (그랜드 플랜 — A~G 완료: 채집/광물 캐스팅+진행도 바+애니, 비밀상점 구성·UI·사용경로)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-20 ✅ Milestone G — 비밀 통행증 사용 경로 UX + 검증)
+
+> **입력**: "진행" (F 이후 통행증 사용 경로 + Play 검증).
+
+### Milestone G 구현
+- **비밀 통행증 사용 경로 UX**: `InventoryWindowUTK.OnSlotRightClick`에 SecretPass 분기 추가 — 우클릭 시 `SecretShopSystem.ConsumeSecretPass()`(통행증 1개 소모+`Active=true`) → 그리드 새로고침 → `ShopWindowUTK.Open()`(멱등).
+- **ShopWindowUTK 멱등 Open**: `public static Instance` 트래킹 추가. `Open()`이 열려 있으면 기존 인스턴스 Show+RefreshBuyList+UpdateGoldDisplay 재사용(중복 부착 방지), `OnWindowClosed`에서 `Instance` 해제. → 통행증 사용 시 이미 열린 상점 창에 비밀상점 섹션이 즉시 반영.
+
+### 검증
+- `compile_test.sh`: 성공(컴파일 오류 0).
+- `run_tests.sh editmode`: ✅ EditMode 테스트 전부 통과.
+
+### 남은 마일스톤
+H(전체 Play 검증 — 비밀상점 구매·캐스팅 진행바·희귀광물·무기 "?" 제작 실기동 확인). 그랜드 플랜 A~G 기능 구현은 완료.
 
 ---
 
