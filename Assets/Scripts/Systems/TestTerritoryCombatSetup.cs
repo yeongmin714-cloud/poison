@@ -51,12 +51,11 @@ namespace ProjectName.Systems
             SetupGround();
             SetupLight();
             EnsureEventSystem();
-            // [P21 렉 경량화] 영주/단병사/몬스터 더미 + 약초/농장/광질 배치 제거 —
-            //   실내 전환 검증이 끝났으므로 테스트는 실내씬에서 직접(사용자 확정).
-            //   필요 시 아래 주석 해제: SpawnLord(); SpawnGuard(); SpawnMonster("slime");
-            //   SetupHerbs(); SetupFarm(); SetupMiningNodes();
+            // [P21→P21b 사용자 정정] 영지/실내 상호작용(트리거) 전면 제거 — 실내 작업은
+            //   IndoorScene을 에디터에서 직접 연다. 테스트10에는 병사 1명 + 몬스터 1마리만.
+            //   (전투/F키 상호작용/화살 명중 등 실외 검증용 최소 구성)
             AttachAttackSystem();
-            SetupTerritoriesAndGuards();   // [P21] 경량판 — 영지 데이터 등록 + 실내 진입 트리거만 (성/병사 시각 제거)
+            SetupTestDummies();   // 병사 1 + 몬스터 1
             EnsurePlayerHUD();             // 2026-09-10: 하트 HUD 부착(하트 아이콘+숫자HP) — Test_09 선례 이식
             SetupUITestArena();            // 2026-09-10: UI 전수(미니맵/인벤/스탯/창고·크래프트 박스/전 아이템 시딩) — 실내 크래프트 재료 시딩 유지
 
@@ -659,59 +658,23 @@ namespace ProjectName.Systems
         /// TerritoryDatabase 등록은 유지 — Castle 트리거의 PlayerOwned 판정(East_01)과
         /// 창고/크래프트 wh_test 등 영지 키 의존 시스템이 계속 동작해야 한다.
         /// </summary>
-        private void SetupTerritoriesAndGuards()
+        /// <summary>
+        /// [P21b 사용자 정정] 테스트10 = 병사 1명 + 몬스터 1마리만.
+        /// 영지 시각/상호작용(E키 실내 트리거) 전면 제거 — 실내 작업은 IndoorScene을
+        /// 에디터에서 직접 열어 진행. 영지 데이터 등록도 제거(상호작용 대상 없음).
+        /// </summary>
+        private void SetupTestDummies()
         {
-            // ── 영지 소유권 데이터 등록 (시각 없음) ──
-            TerritoryDatabase.Instance.SetOwnership(NationType.East, 1, TerritoryOwnership.PlayerOwned);
-            TerritoryDatabase.Instance.SetOwnership(NationType.North, 1, TerritoryOwnership.LordOwned);
+            // 병사 1명 — 플레이어 근처(기존 단병사 위치), 포섭 상태(F키 상호작용/부대 테스트용)
+            float gx = _guardPos.x, gz = _guardPos.z;
+            var guardPos = new Vector3(gx, SurfaceY(gx, gz) + 1.0f, gz);
+            CreateGuard("TestGuard_1", guardPos, "병사1", 10, NationType.East,
+                true, new Color(0.2f, 0.4f, 0.9f, 1f));
 
-            // ── 실내 진입 트리거 2종 (원 위치 유지 — _myTerritoryPos 부근) ──
-            float cx = _myTerritoryPos.x, cz = _myTerritoryPos.z;
-            float baseY = SurfaceY(cx, cz);
+            // 몬스터 1마리 — 슬라임(전투/화살 명중 테스트용)
+            SpawnMonster("slime");
 
-            var entryTrigger = IndoorTransitionSetup.CreateBuildingTrigger(
-                new Vector3(cx, baseY + 1.5f, cz - 7.5f),
-                IndoorTransitionSetup.TYPE_CASTLE,
-                IndoorTransitionSetup.CASTLE_INTERACT_RANGE,
-                null,
-                "Eastern",
-                "East_01");
-            if (entryTrigger != null)
-                Debug.Log("[MyTerritory][P21] 🚪 성 입구 트리거 배치 — E키 → PlayerCastle 실내");
-
-            var craftTrigger = IndoorTransitionSetup.CreateBuildingTrigger(
-                new Vector3(cx + 9f, baseY + 1.5f, cz - 4f),
-                IndoorTransitionSetup.TYPE_CRAFT_HOUSE,
-                IndoorTransitionSetup.DEFAULT_INTERACT_RANGE,
-                null,
-                "Eastern",
-                "East_01");
-            if (craftTrigger != null)
-                Debug.Log("[MyTerritory][P21] 🔨 크래프트하우스 트리거 배치 — E키 → CraftHouse 실내");
-
-            // ── 트리거 표지 마커 (작은 기둥 — 트리거 위치 가시화) ──
-            CreateTriggerMarker("Marker_CastleEntry", new Vector3(cx, baseY, cz - 7.5f), new Color(0.25f, 0.4f, 0.85f, 1f));
-            CreateTriggerMarker("Marker_CraftEntry", new Vector3(cx + 9f, baseY, cz - 4f), new Color(0.75f, 0.5f, 0.2f, 1f));
-
-            Debug.Log("[MyTerritory][P21] ✅ 경량 영지 등록 완료 — 성/병사 시각 제거, 실내 진입 트리거 2종만");
-        }
-
-        /// <summary>[P21] 트리거 표지 — 1m 기둥 + 이름표 역할의 색상 큐브(콜라이더 제거, 레이캐스트 오염 없음).</summary>
-        private void CreateTriggerMarker(string goName, Vector3 basePos, Color color)
-        {
-            var marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            marker.name = goName;
-            marker.transform.position = basePos + new Vector3(0f, 1.5f, 0f);
-            marker.transform.localScale = new Vector3(0.6f, 3f, 0.6f);
-            var col = marker.GetComponent<Collider>();
-            if (col != null) DestroyImmediate(col);
-            var r = marker.GetComponent<MeshRenderer>();
-            if (r != null)
-            {
-                var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                mat.color = color;
-                r.material = mat;
-            }
+            Debug.Log("[TestDummies][P21b] ✅ 병사 1명 + 몬스터 1마리 배치 완료 — 영지/실내 트리거 없음(IndoorScene 직접 작업)");
         }
 
         /// <summary>
