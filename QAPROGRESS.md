@@ -1,6 +1,32 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-20 (부대 컨텍스트 명령 시스템 — Ctrl+좌클릭 공격/농사/채집/광질, 배회 드라이버)
+> **최종 갱신:** 2026-09-20 (부대 선택 링 고품질화 + 부대 컨텍스트 명령 시스템 + 배회 드라이버)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-20 ✅ 부대 선택 링 — SC2/RTS식 고품질 원형 링)
+
+> **입력**: 사용자 "단순 파란 원/오라 대신 VFX graph+Shader graph로 원형 링(SC2처럼) 고품질로".
+
+### 결정
+- VFX/Shader **Graph 직렬화 자산(.vfx/.shadergraph)은 에이전트 자율 환경에서 렌더 검증 불가·손저작 취약** → 같은 고품질 시각을 **100% 보장하는 ShaderLab URP 셰이더**(SelectionRing.shader) + 절차 Quad로 신뢰 구현. 그래프 자산을 직접 요구하면 에디터 스캐폴드 별도 안내. (패키지는 visualeffectgraph/shadergraph 17.4.0 설치 확인됨 — 추후 에디터 전환 용이.)
+
+### 신규
+- **`Assets/Resources/FX/Selection/SelectionRing.shader`** — URP Additive(Blend One One/ZWrite Off/Cull Off). 평면 Quad 링 UV 마스크: 내/외측 GlowWidth 글로우 + RingThickness 밴드 + Time 펄스(±28%) + **회전 호 하이라이트(뒤 28% 구간, SC2 감성)** + `_TeamColor` 팀컬러 × `_Intensity`. 처리 순서 height=0 평탄.
+- **`Assets/Scripts/Systems/SelectionRingController.cs`** — Awake에서 Quad 절차 생성(콜라이더 제거→레이캐스트 오염 0, XZ평면 눕힘), 셰이더 머티리얼 생성, `SetColor(Color)` 팀컬러 주입, 파괴 시 머티리얼 정리.
+- `.meta` 생성. (.prefab은 절차 생성으로 대체 — 손저작 비신뢰.)
+
+### GuardSelectionManager 통합 (파일 수정)
+- `SyncSelectionAuras`: `Shader.Find("Custom/SelectionRing")` 우선 → 링 셰이더 있으면 `CreateSelectionIndicator`(new GO + SelectionRingController, 국가색 SetColor, 스케일=병사 localScale×1.3, 추종), **없으면 기존 EarthTrail→MagicCircle2→Buff 폴백 체인**(회귀 0).
+- `SetNationSelectionColor(동=빨강/서=파랑/남=초록/북=보라/기본=파랑)`.
+- `OnGUI`: **링 활성 시 레거시 IMGUI 파란 원 생략**(`if(!_usingRing)`), 드래그 박스/H/선택 로직 무변경.
+
+### 검증
+- `Nation:string`(GuardPlaceholder 535행), 괄호/문법 균형 OK, 기존 선택/드래그/우클릭/H키 로직 무수정(diff 확인).
+- 신규 4파일(+메타) + GSM 수정. 기타 파일 무수정.
+
+### Play 판정 대기
+Test_10 내 영지 병사 Ctrl+드래그 선택 → 발밑에 **회전 호 하이라이트+펄스+팀색 원형 링** 표시, 이동 시 추종, 해제/사망 시 사라짐. IMGUI 파란 원 대체, EarthTrail 미출력. (기존 폴백 안내)
 
 ---
 

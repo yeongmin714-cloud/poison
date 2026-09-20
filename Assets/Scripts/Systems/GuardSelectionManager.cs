@@ -39,14 +39,25 @@ namespace ProjectName.Systems
             SyncSelectionAuras();
         }
 
-        /// <summary>[69차 후속17] 선택 집합 ↔ 오라 인스턴스 동기화 — 선택 해제/사망 시 파괴, 이동 추종.</summary>
+        /// <summary>[2026-09-20] 선택 집합 ↔ 하이라이트 링/오라 동기화.
+        /// SC2식 SelectionRing 셰이더 링 우선(국가색 주입), 셰이더 없으면 기존 EarthTrail/MagicCircle2/Buff 폴백.
+        /// 선택 해제/사망 시 파괴, 이동 추종.</summary>
+        private static Shader _ringShader;
+        private static bool _ringShaderChecked;
+        private bool _usingRing;
+
         private void SyncSelectionAuras()
         {
-            if (_auraPrefab == null)
+            if (!_ringShaderChecked)
             {
-                // [70차 후속19/D] trail VFX 자산 전환 — Vefects Trails URP의 VFX_Trail_Earth(TrailRenderer
-                //   리본×2, 스크립트 0)를 선택 병사에 부모화 — 이동 시 earth trail 잔상(사용자 지정).
-                //   MagicCircle2(지면 마법진)·Buff(오라)는 폴백 후보 유지.
+                _ringShaderChecked = true;
+                _ringShader = Shader.Find("Custom/SelectionRing");
+            }
+            _usingRing = _ringShader != null;
+
+            // 링 셰이더 실패 시에만 폴백 프리팹 로드
+            if (!_usingRing && _auraPrefab == null)
+            {
                 _auraPrefab = Resources.Load<GameObject>("FX/Selection/EarthTrail")
                               ?? Resources.Load<GameObject>("FX/Selection/MagicCircle2")
                               ?? Resources.Load<GameObject>("FX/Selection/Buff");
@@ -72,19 +83,53 @@ namespace ProjectName.Systems
                     aura.transform.position = g.transform.position;   // 이동 추종
                     continue;
                 }
-                if (_auraPrefab == null) { Debug.LogWarning("[RTS] 선택 오라 프리팹 미로드 — Resources/FX/Selection/Buff 확인"); continue; }
-                var inst = Instantiate(_auraPrefab);
-                // [70차 후속19/D] EarthTrail = TrailRenderer 리본 — 병사에 부모화해 이동 시 잔상을 그린다
-                inst.transform.SetParent(g.transform, false);
-                inst.transform.localPosition = Vector3.zero;
-                inst.transform.localRotation = Quaternion.identity;
-                inst.transform.localScale = Vector3.one;
-                // 오디오 소스가 포함된 경우 음소거(선택 표시는 무음)
-                foreach (var src in inst.GetComponentsInChildren<AudioSource>())
-                    src.enabled = false;
+
+                GameObject inst = CreateSelectionIndicator(g);
+                if (inst == null) continue;
                 _selectionAuras[g] = inst;
-                Debug.Log($"[RTS] 선택 earth trail 부착: {g.GuardName} — FX/Selection/EarthTrail");
             }
+        }
+
+        /// <summary>선택 병사 표시 생성 — SelectionRing 셰이더 링 우선, 폴백 EarthTrail/프리팹.</summary>
+        private GameObject CreateSelectionIndicator(GuardPlaceholder g)
+        {
+            if (_usingRing)
+            {
+                var go = new GameObject("SelectionRing");
+                go.transform.SetParent(g.transform, false);
+                go.transform.localPosition = Vector3.zero;
+                go.transform.localRotation = Quaternion.identity;
+                var ring = go.AddComponent<ProjectName.Systems.SelectionRingController>();
+                float unit = g.transform.localScale.x;
+                go.transform.localScale = Vector3.one * Mathf.Max(1f, unit * 1.3f);
+                ring.SetColor(GetNationSelectionColor(g.Nation));
+                return go;
+            }
+
+            if (_auraPrefab == null)
+            {
+                Debug.LogWarning("[RTS] 선택 오라 프리팹 미로드 — Resources/FX/Selection/Buff 확인");
+                return null;
+            }
+            var inst = Instantiate(_auraPrefab);
+            inst.transform.SetParent(g.transform, false);
+            inst.transform.localPosition = Vector3.zero;
+            inst.transform.localRotation = Quaternion.identity;
+            inst.transform.localScale = Vector3.one;
+            foreach (var src in inst.GetComponentsInChildren<AudioSource>())
+                src.enabled = false;
+            return inst;
+        }
+
+        /// <summary>국가별 선택 링 색 — 동/서/남/북/기본(파랑).</summary>
+        private static Color GetNationSelectionColor(string nation)
+        {
+            if (string.IsNullOrEmpty(nation)) return new Color(0.2f, 0.5f, 1f);
+            if (nation.Contains("동")) return new Color(0.85f, 0.2f, 0.15f);
+            if (nation.Contains("서")) return new Color(0.25f, 0.5f, 0.95f);
+            if (nation.Contains("남")) return new Color(0.2f, 0.7f, 0.35f);
+            if (nation.Contains("북")) return new Color(0.6f, 0.35f, 0.9f);
+            return new Color(0.2f, 0.5f, 1f);
         }
 
         private void OnDestroy()
@@ -251,8 +296,9 @@ namespace ProjectName.Systems
             if (_isDragging)
                 DrawSelectionBoxGUI();
 
-            // 선택된 병사 위에 파란색 원 표시
-            DrawSelectionIndicators();
+            // SC2식 링 활성 시 레거시 IMGUI 파란 원은 생략(폴백 때는 유지)
+            if (!_usingRing)
+                DrawSelectionIndicators();
         }
 
         // ===== 선택 표시 (파란색 원) =====
