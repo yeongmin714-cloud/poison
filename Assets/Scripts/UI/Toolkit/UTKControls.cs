@@ -115,11 +115,25 @@ namespace ProjectName.UI.Toolkit
             RegisterCallback<PointerLeaveEvent>(_ => RemoveFromClassList("utk-slot--hover"));
         }
 
+        private static bool _iconRatioDiagLogged;
+
         /// <summary>아이콘 텍스처 설정.</summary>
         public void SetIcon(Texture2D tex)
         {
             // [U8 수리] 소유 복사본 사용 — 외부 캐시 파괴 시 노란 경고 아이콘 방지
             _iconHost.style.backgroundImage = UTKTextureSafe.ToBackground(tex);
+
+            // [P22-7 수리] 배경 스케일 모드 명시 — UITK 기본(scale-and-crop)은 슬롯(정사각)과
+            //   아이콘 비율이 다르면 남는 축을 잘라버려 "아이콘이 절반으로 잘려서 보였다".
+            //   scale-to-fit(contain)으로 통일 — 잘림 원천 제거, 여백은 슬롯 음각 배경이 채움.
+            _iconHost.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
+
+            // [P22-7 진단] 비정형 아이콘 비율 1회 출력 — 베이크 단계 크롭 여부 분리용
+            if (!_iconRatioDiagLogged && tex != null && (tex.width != tex.height))
+            {
+                _iconRatioDiagLogged = true;
+                Debug.Log($"[UTKSlot][P22-7] 비정형 아이콘 감지 — {tex.width}x{tex.height} (scale-to-fit 적용, 잘림 없음)");
+            }
         }
 
         /// <summary>카운트 표시. value &lt;= 0이면 숨김.</summary>

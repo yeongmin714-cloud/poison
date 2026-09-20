@@ -56,20 +56,10 @@ namespace ProjectName.Systems
 
         private void Update()
         {
-            bool ctrlHeld = Keyboard.current != null &&
-                (Keyboard.current.ctrlKey.isPressed
-                 || Keyboard.current.leftCtrlKey.isPressed
-                 || Keyboard.current.rightCtrlKey.isPressed);
-
-            bool show = ctrlHeld || !Application.isFocused;
+            // [P22-2 수리] 커서 오버레이 전용 동작 — OS 커서는 항상 숨김(UTKCursorOverlay가 대체 표시).
+            //   에디터 포커스 상실 시에만 OS 커서 복구(에디터 조작 보호). Ctrl 로직 제거(오해 소지).
+            bool show = !Application.isFocused;
             Apply(show);
-
-            // [P20-2 진단] Ctrl 첫 홀드 1회 — OS 커서 표시 상태 실측(침묵 실패 제거)
-            if (!_diagLogged && ctrlHeld)
-            {
-                _diagLogged = true;
-                Debug.Log($"[CursorVisibility][P20-2] Ctrl 홀드 — Cursor.visible={Cursor.visible}, lockState={Cursor.lockState}, icon={ContextCursorSystem.Instance != null}");
-            }
         }
 
         private void Apply(bool show)

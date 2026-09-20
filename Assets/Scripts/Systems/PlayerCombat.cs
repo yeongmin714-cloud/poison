@@ -146,9 +146,14 @@ namespace ProjectName.Systems
             }
         }
 
+        /// <summary>[P22-4] 현재 무기 사거리(링 표시용) — 자동조준 최대 거리 기준.</summary>
+        public float CurrentWeaponRange => Mathf.Max(_maxRange, _autoAimRange);
+
         private void Start()
         {
             _mainCamera = Camera.main;
+            // [P22-4] 무기 사거리 링 — 폴리곤 원 대신 SelectionRing 셰이더 고품질 링
+            PlayerRangeRing.Ensure(gameObject, () => CurrentWeaponRange);
             if (_mainCamera != null)
             {
                 // Initialize Cinemachine Impulse Source

@@ -19,6 +19,8 @@ namespace ProjectName.Systems
         private Rigidbody _rb;
         private Collider _collider;
         private bool _stuck = false;    // 명중/지면 꽂힘 시 true — 회전 정렬·충돌 재처리 방지
+        private float _wobbleTime = -1f;   // [P22-3] 박힘 직후 미세 진동 타이머
+        private Quaternion _stuckRotation;
         /// <summary>[70차 후속19/C6] 발사 파워(0~1) — ArrowManager가 세팅. 파워 풀 명중 시 크리틱 연출.</summary>
         public float _power = 1f;
         private static readonly float GravityScale = 0.22f;   // [화살-사거리2] 0.45→0.22 — 낙하 1.17s·사거리 ~80m(테스트 2: 여전히 짧음)
@@ -217,11 +219,44 @@ namespace ProjectName.Systems
                 s / Mathf.Max(0.0001f, Mathf.Abs(lossy.y)),
                 s / Mathf.Max(0.0001f, Mathf.Abs(lossy.z)));
 
-            // ⑤ 재부모화 + 정렬: 촉(-X) → 진행축(+Y). 노드 회전은 교체(장축 불변이므로 안전).
+            // ⑤ 재부모화 + 정렬: [P22-1 수리] 촉(-X) → 진행축(+Y).
+            //   기존 Rz(90): (x,y)→(-y,x) — (-1,0)=촉(-X)가 (0,-1)=**-Y 후방**으로 매핑돼
+            //   화살이 촉이 뒤로 향한 채 날아갔다(테스트38 "뒤집혀서 나감"). 부호 실수.
+            //   Rz(-90): (x,y)→(y,-x) — (-1,0)→(0,1)=+Y 전방. 롤 방향은 Ry(180) 유지(깃털 배치 무해).
             inst.transform.SetParent(wrapper.transform, false);
-            inst.transform.localRotation = Quaternion.Euler(0f, 0f, 90f) * Quaternion.Euler(0f, 180f, 0f);
+            inst.transform.localRotation = Quaternion.Euler(0f, 0f, -90f) * Quaternion.Euler(0f, 180f, 0f);
             inst.transform.localScale = Vector3.one;
             inst.transform.localPosition = -(inst.transform.localRotation * center);   // 피벗 = 모델 중심
+
+            // [P22-1 셀프플립 검증] 촉(가는 끝)이 +Y(전방)에 있는지 정밀 판별 — 아니면 자동 180° 플립.
+            //   루트/래퍼/메시 로컬 변환을 모두 반영해 Y 상단/하단 반경 평균 비교: 가는 쪽 = 촉.
+            float radiusTop = 0f, radiusBottom = 0f;
+            int samplesTop = 0, samplesBottom = 0;
+            foreach (var mf in inst.GetComponentsInChildren<MeshFilter>(true))
+            {
+                var mesh = mf.sharedMesh;
+                if (mesh == null) continue;
+                foreach (var v in mesh.vertices)
+                {
+                    var wp = mf.transform.TransformPoint(v);
+                    var local = wrapper.transform.InverseTransformPoint(wp);  // 래퍼 공간 기준(균일 스케일)
+                    float r = Mathf.Sqrt(local.x * local.x + local.z * local.z);
+                    if (local.y > 0.05f) { radiusTop += r; samplesTop++; }
+                    else if (local.y < -0.05f) { radiusBottom += r; samplesBottom++; }
+                }
+            }
+            if (samplesTop > 0 && samplesBottom > 0)
+            {
+                float avgTop = radiusTop / samplesTop, avgBottom = radiusBottom / samplesBottom;
+                bool tipAtTop = avgTop < avgBottom;   // 가는 쪽(반경 작음) = 촉
+                if (!tipAtTop)
+                {
+                    inst.transform.localRotation *= Quaternion.Euler(180f, 0f, 0f);
+                    inst.transform.localPosition = -(inst.transform.localRotation * center);
+                    Debug.Log("[Arrow][P22-1] 촉이 -Y 감지 — 자동 180° 플립 적용");
+                }
+                Debug.Log($"[Arrow][P22-1] 촉 방향 검증 — avgR top={avgTop:F3} bottom={avgBottom:F3} → 촉={(tipAtTop ? "+Y(정상)" : "-Y(플립)")}");
+            }
 
             Debug.Log($"[Arrow] GLB 장착: {used} 목표길이={ArrowModelTargetLength:0.0}m (모델 maxDim={maxDim:0.00}, scale={s:0.00})");
             return true;
@@ -281,6 +316,19 @@ namespace ProjectName.Systems
                 _rb.linearVelocity += Physics.gravity * GravityScale * Time.deltaTime;
             }
 
+            // [P22-3] 박힌 직후 미세 진동 — 0.3s 감쇠 흔들림(임팩트 체감), 이후 고정
+            if (_wobbleTime >= 0f)
+            {
+                _wobbleTime += Time.deltaTime;
+                if (_wobbleTime < 0.3f)
+                {
+                    float decay = 1f - _wobbleTime / 0.3f;
+                    float wob = Mathf.Sin(_wobbleTime * 40f) * 2.5f * decay;
+                    transform.rotation = _stuckRotation * Quaternion.Euler(wob, 0f, 0f);
+                }
+                else _wobbleTime = -1f;
+            }
+
             // 회전을 속도 방향으로 정렬 (박힌 화살은 유지).
             // [2026-09-20 방향 수정] 기존 transform.forward(+Z) 세팅은 Spawn에서 조립한
             // 축 정렬(LookRotation*Euler(90,0,0): 촉을 진행축에 맞춤)을 매 프레임 덮어써서
@@ -290,6 +338,49 @@ namespace ProjectName.Systems
             {
                 transform.rotation = Quaternion.LookRotation(_rb.linearVelocity.normalized) * Quaternion.Euler(90f, 0f, 0f);
             }
+        }
+
+        /// <summary>[P22-3] 지면 먼지 퍼프 — shadow_glow 소프트 텍스처 파티클 6개, 0.5s 감쇠(과장 없음).</summary>
+        private void SpawnGroundPuff()
+        {
+            var soft = Resources.Load<Texture2D>("UI/shadow_glow");
+            var go = new GameObject("ArrowGroundPuff");
+            go.transform.position = new Vector3(transform.position.x, 0.05f, transform.position.z);
+            var ps = go.AddComponent<ParticleSystem>();
+            var main = ps.main;
+            main.duration = 0.5f;
+            main.loop = false;
+            main.startLifetime = 0.45f;
+            main.startSpeed = 1.6f;
+            main.startSize = 0.5f;
+            main.startColor = new Color(0.55f, 0.48f, 0.38f, 0.8f);
+            main.gravityModifier = -0.05f;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Hemisphere;
+            shape.radius = 0.12f;
+            var emission = ps.emission;
+            emission.rateOverTime = 0f;
+            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 6) });
+            var tex = soft != null ? soft : Texture2D.whiteTexture;
+            var mat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
+            mat.mainTexture = tex;
+            mat.color = new Color(0.6f, 0.52f, 0.4f, 0.7f);
+            var renderer = go.GetComponent<ParticleSystemRenderer>();
+            if (renderer != null)
+            {
+                renderer.material = mat;
+                renderer.renderMode = ParticleSystemRenderMode.Billboard;
+
+            }
+            var col2 = ps.colorOverLifetime;
+            col2.enabled = true;
+            var grad = new Gradient();
+            grad.SetKeys(
+                new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new[] { new GradientAlphaKey(0.7f, 0f), new GradientAlphaKey(0f, 1f) });
+            col2.color = grad;
+            Object.Destroy(go, 1.2f);
         }
 
         private void OnTriggerEnter(Collider other)
@@ -329,6 +420,8 @@ namespace ProjectName.Systems
                 // [2026-09-17] 박힘(stick) — 즉시 제거 대신 화살을 타겟의 자식으로 부모 변경해
                 //   6초간 몸통에 박힌 채 잔존시킨다. worldPositionStays:true로 월드 위치/회전 유지.
                 _stuck = true;
+                _wobbleTime = 0f;                                // [P22-3] 타겟 박힘 진동
+                _stuckRotation = transform.rotation;
                 _lifetime = Mathf.Min(_lifetime, _elapsed + 6f); // 타겟에 6초간 박힘
                 if (_rb != null)
                 {
@@ -354,7 +447,10 @@ namespace ProjectName.Systems
                 if (_rb != null) _rb.linearVelocity = Vector3.zero;
                 if (_collider != null) _collider.enabled = false; // 중복 충돌 방지
 
-                // [요구] 노란 파티클 제거 — 지면/벽 꽂힘 스파크도 동일 사유로 제거(사운드는 기존 유지).
+                // [P22-3] 박힘 진동 시작 + 지면 먼지 퍼프 1회(베이크 소프트 텍스처 파티클 — 과장 없음)
+                _wobbleTime = 0f;
+                _stuckRotation = transform.rotation;
+                SpawnGroundPuff();
             }
         }
     }

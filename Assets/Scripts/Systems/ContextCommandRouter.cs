@@ -53,7 +53,8 @@ namespace ProjectName.Systems
             if (parent != null) go.transform.SetParent(parent.transform, false);
 
             // 의존 시스템 자동 보장 (순수 추가 — 기존 파일 본체는 건드리지 않음)
-            ContextCursorSystem.Ensure(go);
+            // [P22-2 수리] 3D 월드 앵커 커서(ContextCursorSystem) 스폰 중단 — UTKCursorOverlay(화면 커서)가 대체.
+            //   CursorVisibilityController는 OS 커서 숨김 담당으로 유지(커서 오버레이 전용 동작).
             CursorVisibilityController.Ensure(go);
 
             return go.AddComponent<ContextCommandRouter>();

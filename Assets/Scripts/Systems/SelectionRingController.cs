@@ -13,13 +13,45 @@ namespace ProjectName.Systems
         public Color color = new Color(0.2f, 0.5f, 1f);
 
         private static Shader _shader;
+        private static Shader _shaderStatic;   // [P22-4] 팩토리 캐시
         private Material _mat;
         private Renderer _rend;
+
+        /// <summary>[P22-4] 공용 링 머티리얼 팩토리 — 셰이더 우선, 실패 시 절차 링 텍스처 폴백.
+        ///   PlayerRangeRing(무기 사거리 표시)도 동일 팩토리 사용(품질 통일). fallback: 텍스처 링 반지름 0.92.</summary>
+        public static Material CreateRingMaterial(Color color)
+        {
+            var shader = Shader.Find("Custom/SelectionRing") ?? _shaderStatic;
+            if (shader == null)
+                shader = Shader.Find("Universal Render Pipeline/Unlit");
+            if (shader == null) return null;
+
+            bool isCustom = shader.name == "Custom/SelectionRing";
+            var m = new Material(shader) { name = "SelectionRing" + (isCustom ? "_Shader" : "_Fallback") };
+            if (isCustom)
+            {
+                m.SetColor("_TeamColor", color);
+            }
+            else
+            {
+                m.mainTexture = BuildRingTexture(256);
+                m.color = color;
+                m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                m.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                m.renderQueue = 3000;
+            }
+            return m;
+        }
+
+        /// <summary>폴백 텍스처 링 여부 — 링 월드 반경 계산용(텍스처 링 반지름 = 쿼드 반의 0.92).</summary>
+        public static bool IsFallback(Material m) => m != null && m.name.Contains("Fallback");
 
         private void Awake()
         {
             if (_shader == null)
                 _shader = Shader.Find("Custom/SelectionRing");
+            _shaderStatic = _shader;
 
             // 발밑 지면 링 — Quad를 XZ 평면(위쪽 노멀)으로 눕힌다.
             var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
@@ -34,19 +66,8 @@ namespace ProjectName.Systems
             if (col != null) Destroy(col);
 
             _rend = quad.GetComponent<Renderer>();
-            if (_shader != null)
-            {
-                _mat = new Material(_shader);
-                _mat.SetColor("_TeamColor", color);
-                if (_rend != null) _rend.sharedMaterial = _mat;
-            }
-            else
-            {
-                // [P20-3 수리] 셰이더 부재 폴백 — 절차 링 텍스처(완전한 원) + Unlit 투명.
-                //   기존엔 머티리얼 null → 기본 라이트 쿼드(사각) 노출 + IMGUI 원/EarthTrail 반원 폴백이 겹쳐 보였다.
-                _mat = CreateFallbackRingMaterial();
-                if (_rend != null) _rend.sharedMaterial = _mat;
-            }
+            _mat = CreateRingMaterial(color);   // [P22-4] 공용 팩토리(셰이더/절차 폴백 통일)
+            if (_rend != null && _mat != null) _rend.sharedMaterial = _mat;
         }
 
         /// <summary>[P20-3] 절차 링 머티리얼 — 흰색 완전 원 텍스처(알파) + Unlit 틴트. SetColor로 색 변경.</summary>

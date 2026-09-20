@@ -56,7 +56,7 @@ namespace ProjectName.Systems
             //   (전투/F키 상호작용/화살 명중 등 실외 검증용 최소 구성)
             AttachAttackSystem();
             SetupTestDummies();   // 병사 1 + 몬스터 1
-            EnsurePlayerHUD();             // 2026-09-10: 하트 HUD 부착(하트 아이콘+숫자HP) — Test_09 선례 이식
+            // [P22-5] EnsurePlayerHUD(IMGUI 하트 HUD) 제거 — 원형 게이지(StatusGaugesUTK) 대체
             SetupUITestArena();            // 2026-09-10: UI 전수(미니맵/인벤/스탯/창고·크래프트 박스/전 아이템 시딩) — 실내 크래프트 재료 시딩 유지
 
             // 2026-09-10: Test_10에 몬스터 없음 — Aggro 등록 없으므로 시스템 인스턴스만 정리 대상.

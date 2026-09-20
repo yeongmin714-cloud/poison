@@ -79,7 +79,7 @@ namespace ProjectName.Systems
         }
 
         // --- 스태미나 관련 ---
-        private float _stamina;
+        private float _stamina;   // [P22-5] Stamina/MaxStamina 프로퍼티는 기존 존재(1619~1620행) — 게이지가 직접 사용
         private float _staminaEmptyTime = -10f;
 
         // --- 대쉬 관련 ---
@@ -1552,41 +1552,8 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// HUD: 스태미나 바 표시 (화면 왼쪽 하단, HP 바 아래)
-        /// </summary>
-        private void OnGUI()
-        {
-            DrawStaminaBar();
-        }
-
-        private void DrawStaminaBar()
-        {
-            float barWidth = 200f;
-            float barHeight = 16f;
-            float barX = 10f;
-            float barY = Screen.height - 50f; // HP 바 아래 (HP 바가 y=30 가정, 50으로 배치)
-
-            float ratio = _maxStamina > 0f ? Mathf.Clamp01(_stamina / _maxStamina) : 0f;
-
-            // 배경
-            GUI.Box(new Rect(barX, barY, barWidth, barHeight), "");
-
-            // 채워진 부분
-            Color barColor;
-            if (ratio > 0.5f)
-                barColor = Color.Lerp(Color.yellow, Color.green, (ratio - 0.5f) * 2f); // 연두색 (100-50%)
-            else if (ratio > 0.25f)
-                barColor = Color.Lerp(Color.red, Color.yellow, (ratio - 0.25f) * 4f);  // 노랑 (50-25%)
-            else
-                barColor = Color.red; // 빨강 (25-0%)
-
-            GUI.color = barColor;
-            GUI.DrawTexture(new Rect(barX, barY, barWidth * ratio, barHeight), Texture2D.whiteTexture);
-            GUI.color = Color.white;
-
-            // 텍스트
-            GUI.Label(new Rect(barX + 5, barY, barWidth - 10, barHeight), $"⚡ 스태미나");
-        }
+        // [P22-5 수리] IMGUI 스태미나 바 삭제 — 좌하단 UTK 원형 게이지(StatusGaugesUTK)로 대체.
+        //   OnGUI/DrawingStaminaBar 전면 제거 (IMGUI HUD 은퇴 규약).
 
         /// <summary>
         /// Phase 8.3: 발소리 처리 — 땅에 닿고 이동 중일 때 0.5초 간격
