@@ -64,7 +64,7 @@ namespace ProjectName.Systems
             //   화살이 옆으로 누운 채 날아갔다(엣지온 = 안 보임, 사용자 실측 "화살이 날아가지도 않음").
             //   X축 +90° 회전을 곱해 길이축(Y)을 진행방향으로 세운다.
             go.transform.rotation = Quaternion.LookRotation(direction) * Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = new Vector3(0.25f, 1.8f, 0.25f); // [화살-가시성3] (0.13,1.15)→(0.25,1.8) — 게임 감성 대형화(탑다운 카메라에서 식별)
+            go.transform.localScale = new Vector3(0.18f, 1.3f, 0.18f); // [2026-09-20] (0.25,1.8)→(0.18,1.3) — 사용자 "화살 너무 큼" → 한 단계 축소(탑다운 가시성 유지)
 
             // Collider 설정
             var collider = go.GetComponent<CapsuleCollider>();
@@ -187,7 +187,7 @@ namespace ProjectName.Systems
         // [피팅] 스탠드얼론으로 인스턴스 후 renderer.bounds 실측 → 최장축을 기존 실린더
         //   시각 길이(단위 2 × localScale.y 1.8 = 3.6m)에 자동 스케일. 피벗 = bounds 중심.
         // ─────────────────────────────────────────────────────────────
-        private const float ArrowModelTargetLength = 3.6f;   // 기존 실린더 시각 길이 유지(가시성 결정 론산)
+        private const float ArrowModelTargetLength = 2.6f;   // [2026-09-20] 3.6→2.6 — 실린더 Y 1.3(단위높이2)와 일치(2×1.3=2.6m)
 
         private static bool MountArrowModel(GameObject root)
         {
@@ -304,10 +304,14 @@ namespace ProjectName.Systems
                 _rb.linearVelocity += Physics.gravity * GravityScale * Time.deltaTime;
             }
 
-            // 회전을 속도 방향으로 정렬 (박힌 화살은 유지)
+            // 회전을 속도 방향으로 정렬 (박힌 화살은 유지).
+            // [2026-09-20 방향 수정] 기존 transform.forward(+Z) 세팅은 Spawn에서 조립한
+            // 축 정렬(LookRotation*Euler(90,0,0): 촉을 진행축에 맞춤)을 매 프레임 덮어써서
+            // 화살 몸통이 진행 방향과 90° 어긋난 채 날아갔다(사용자 실측 "조준 방향으로 안 나감").
+            // Spawn과 동일한 복합 회전을 재적용해 비행 내내 촉이 진행 방향을 향하게 한다.
             if (!_stuck && _rb != null && _rb.linearVelocity.magnitude > 0.1f)
             {
-                transform.forward = _rb.linearVelocity.normalized;
+                transform.rotation = Quaternion.LookRotation(_rb.linearVelocity.normalized) * Quaternion.Euler(90f, 0f, 0f);
             }
         }
 

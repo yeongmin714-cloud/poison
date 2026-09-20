@@ -1,6 +1,55 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-20 (P10~P15 — 테스트36 영상 실측 수리 6건 (커밋 a765a1a0, 280/280))
+> **최종 갱신:** 2026-09-20 (화살 크기 축소 + 조준 방향 수정 — ArrowProjectile.cs)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-20 ✅ 화살 액션 수정 — 크기 축소 + 조준 방향 버그)
+
+> **입력**: 사용자 "화살이 너무 큼 조금 작게" + "화살이 조준한 방향으로 안 나감".
+
+### 화살 수정 (ArrowProjectile.cs)
+- **크기 축소**: `localScale (0.25, 1.8, 0.25) → (0.18, 1.3, 0.18)` (67행). 기존 탑다운 대형화 값을 사용자 요청대로 한 단계 축소, 가시성 유지.
+- **GLB 모델 길이 일치**: `ArrowModelTargetLength 3.6 → 2.6` (190행) — 실린더 Y 1.3(단위높이 2)과 재일치(2×1.3=2.6m). 크기 축소 시 모델/실린더 시각 불일치 방지.
+- **조준 방향 버그(근본)**: `Update()`의 `transform.forward = _rb.linearVelocity.normalized`가 Spawn에서 조립한 축 정렬(`LookRotation(dir)*Euler(90,0,0)`, 촉을 진행축에 맞춤)을 **매 프레임 덮어써** 화살 몸통이 진행 방향과 90° 어긋난 채 날아갔음. → Spawn과 동일한 복합 회전 `transform.rotation = LookRotation(vel)*Euler(90,0,0)`으로 교체(314행). 비행 내내 촉이 진행 방향 유지.
+- ⚠️ **기법**: 회전을 속도 방향으로 정렬할 땐 반드시 Spawn과 동일한 복합식을 쓸 것(`transform.forward`(+Z)는 촉이 다르게 정렬된 화살에선 90° 어긋남).
+
+### 검증
+- 정적 검증 완료: Spawn(66행)·Update(314행) 회전식 동일 확인, 문법 훼손 없음.
+- ArrowSystemTests.cs는 localScale/rotation/ArrowModelTargetLength 값을 **단언하지 않음**(발사 시 소모 개수만 검증) → 크기/회전 변경에 회귀 없음.
+- code agent 편집 → QA agent 시도(Unity 배치 테스트는 에디터 잠금/600s 타임아웃으로 실행 보류, 정적 검증으로 대체). 에디터 미점유 확인됨.
+
+### Play 판정 대기
+①화살이 조준 커서 방향으로 직진하는지(몸통 진행축 정렬) ②화살 크기가 부자연스럽게 크지 않은지. 에디터 재컴파일 후 실측 권장.
+
+---
+
+## 📌 세션 스냅샷 (2026-09-20 ✅ P16 잔여 수리 + P17 실내 고품질 — 커밋 6035048f)
+
+> **입력**: 사용자 4건(창 옆 배치/장비 아이콘/슬롯 반짝/실내 유입+멈춤) + 실내 예시 이미지 + 사용자 제공 텍스처 7종.
+
+### P16 잔여 수리
+- **P16-1 창 옆 배치**: SoldierInteractUTK.PlaceNearGuard — 병사 월드좌표→패널 좌표(카메라 WorldToScreenPoint×스케일+y플립), 병사 우측 20px, 화면 밖 폴백(좌측/클램프). 200ms 폴링으로 병사 이동 추적.
+- **P16-2 장비 아이콘**: 인벤 장비 패널 8슬롯에 UTKSlot(44px) — 장착 아이콘+등급 테두리 실시간 갱신(_equipSlotIcons 딕셔너리), 텍스트 라벨 보조 유지.
+- **P16-3 슬롯 반짝/반쪽 짤림**: ①반짝 뿌리=인벤 250ms 폴링이 셀 Clear+재생성 → hover 상태 찰나 리셋 → **PointerOverUI일 때 폴링 재생성 스킵** ②짤림 뿌리=hover 글로우 PNG가 stretch-and-crop → **slice-enabled 48px 9슬라이스**.
+- **P16-4 실내 유입 강화**: P14 게이트에 더해 **진입 순간 월드 정리** — AnimalAI.ClearAggro 전량 + 병사 ClearCommand/SetInCombat(false). 어그로 잔존/명령 잔존의 관성 이동까지 차단(이중 방어).
+- **P16-5 크래프트 "멈춤"**: 실측으로 timeScale 경로 없음 확정 → 시각적 뿌리=전화면 검은 딤드(0.5)가 월드를 가리는 것. 수리: UIStyleManager.DimColor 0.5→0.18 + UIWindow 딤드 blocksRaycasts=false(월드 클릭 차단 해제).
+
+### P17 실내 고품질 (예시 이미지 재현)
+- **제공 텍스처 7종**(Assets/Resources/Indoor/) — vision_analyze 심리스 실측 확인(바닥 상하좌우 이음 0, 벽 석재 막장쌓기 심리스). 바닥 1장≈2.4m, 벽 석재 1장≈2.2×1.1m로 커버 스케일 확정.
+- **IndoorTextureLoader(Core 신규)**: Resources.Load 7종 + 커버 미터 상수(타일링 단일 소스) + IncludePillars=false 기본.
+- **IndoorMaterialFactory(Systems 신규)**: URP Lit 재질 — 노멀맵+Smoothness(바닥 0.55/석재 0.35/회반죽 0.3)+**실측 커버 기반 타일링**(방 크기÷커버 반올림). 벽은 석재 본체+상단 회반죽 밴드 쿼드(부모 벽 회전 상속).
+- **배선**: IndoorSceneTransition.ApplyHighQualityInterior — Room 탐색(렌더러 바운드 실측)→머티리얼 교체+데칼+조명. **폴백: 파일 없으면 기존 절차 생성 유지(하위 호환)**.
+- **짚단 데칼**: Unlit 투명 쿼드 9장, 지면 0.012 위, djb2(room instanceID) 결정론 배치/회전.
+- **조명(P17-B)**: 앰비언트 0.45→0.22 웜 다크 + 웜 포인트라이트 2등(근사 2000K) + URP 소프트섀도우 ON(리플렉션 — API 버전 차이 회피).
+- **기둥 제거(P17)**: IncludePillars=false 기본 — PlayerCastle/Castle 빌더 루프 바운드 0 처리. ⚠️ PC 빌더 기둥 뒤에 7(조명)/8(장식) 섹션이 있어 **return 금지, 루프 바운드만** 수정(초기 return 실수 발견 즉시 교정).
+
+### 검증
+- 배치컴파일 **error CS=0**, EditMode **280/280**. 커밋 6035048f 푸시.
+- 중간 수리: mipmapLevel API 없음(CS1061), Systems using Core 누락(CS0103), softShadowsSupported API 미존재(CS1061→리플렉션).
+
+### Play 판정 대기
+①F키 상호작용 창이 병사 옆에 뜨는지+이동 추적 ②인벤 장비 아이콘 표시 ③슬롯 반짝/짤림 소멸 ④실내 진입 시 몬스터/병사 무유입(에디터 재컴파일 필수) ⑤크래프트 중 월드 보임+조작 가능 ⑥실내 텍스처 품질(바닥 입체/벽 투톤/짚단/웜조명/기둥 없음)
 
 ---
 
