@@ -153,7 +153,8 @@ namespace ProjectName.Systems
             float pillarHeight = roomHeight;
             float pillarX = roomWidth * pillarXFactor;
 
-            for (int i = 0; i < pillarCountPerSide; i++)
+            // [P17] 기둥 옵션 — 기본 제거(예시 이미지 스타일). IncludePillars=true 시 복원.
+            for (int i = 0; i < (IndoorTextureLoader.IncludePillars ? pillarCountPerSide : 0); i++)
             {
                 float zPos = -roomDepth * 0.5f + pillarSpacing * (i + 1);
 

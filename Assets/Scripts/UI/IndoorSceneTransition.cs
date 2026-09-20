@@ -104,6 +104,10 @@ namespace ProjectName.UI
             IsIndoor = true;   // [P14] 실내 진입 — 월드 AI 추적/어그로 게이트 ON
             ProjectName.Core.UITransitionState.IndoorActive = true;
 
+            // [P16-4 강화] 진입 순간 월드 상태 정리 — 어그로 잔존/명령 잔존이 게이트와 무관하게
+            //   남아 이동 프레임(velocity)으로 실내에 유입되는 것을 뿌리에서 제거.
+            ClearWorldAggroAndCommands();
+
             // 씬 Additive 로드
             if (LoadingManager.Instance != null)
             {
@@ -186,6 +190,10 @@ namespace ProjectName.UI
                     break;
             }
 
+            // [P17-D] 고품질 실내 표면 적용 — 제공 심리스 텍스처(Resources/Indoor/) 있으면
+            //   바닥/벽(석재+회반죽 투톤)/짚단 데칼/웜 조명으로 교체. 없으면 절차 생성 유지(폴백).
+            ApplyHighQualityInterior();
+
             // 플레이어를 내부 원점으로 이동(카메라는 플레이어 추적 유지) — builders는 원점 부근에 내부 생성
             var indoorPlayer = GameObject.FindGameObjectWithTag("Player");
             if (indoorPlayer == null)
@@ -233,6 +241,29 @@ namespace ProjectName.UI
             _pendingNationStyle = null;
             _pendingIsPlayerOwned = false;
 
+        }
+
+        /// <summary>[P16-4] 월드 몬스터 어그로 해제 + 병사 이동/전투 명령 취소 (실내 진입 순간 1회).</summary>
+        private static void ClearWorldAggroAndCommands()
+        {
+            // 몬스터 어그로 전량 해제 (추격 목표 상실 → Idle 복귀)
+            var monsters = UnityEngine.Object.FindObjectsByType<ProjectName.Systems.AnimalAI>(
+                UnityEngine.FindObjectsSortMode.None);
+            foreach (var m in monsters)
+            {
+                if (m != null) m.ClearAggro();
+            }
+
+            // 병사 이동/공격 명령 + 전투 상태 해제 (명령 잔존 이동 차단)
+            var guards = UnityEngine.Object.FindObjectsByType<ProjectName.Systems.GuardPlaceholder>(
+                UnityEngine.FindObjectsSortMode.None);
+            foreach (var g in guards)
+            {
+                if (g == null) continue;
+                g.ClearCommand();
+                g.SetInCombat(false);
+            }
+            Debug.Log($"[IndoorSceneTransition] 월드 정리 — 어그로 해제 {monsters.Length}체, 명령 해제 {guards.Length}명");
         }
 
         /// <summary>
@@ -304,6 +335,115 @@ namespace ProjectName.UI
         {
             Scene scene = SceneManager.GetSceneByName(INDOOR_SCENE_NAME);
             return scene.isLoaded;
+        }
+
+        /// <summary>[P17-D] 실내 고품질 표면 적용 — Room 탐색 → 머티리얼 교체 + 짚단 데칼 + 웜 조명.</summary>
+        private static void ApplyHighQualityInterior()
+        {
+            if (!ProjectName.Core.IndoorTextureLoader.HasFiles) return;
+
+            var room = GameObject.Find("Room");
+            if (room == null)
+            {
+                Debug.LogWarning("[IndoorSceneTransition] HQ 적용 실패 — Room 없음");
+                return;
+            }
+
+            // 방 크기 실측 — Floor/벽 렌더러 바운드
+            var floorR = room.transform.Find("Floor");
+            float w = 12f, d = 10f, h = 4f;
+            if (floorR != null)
+            {
+                var b = floorR.GetComponent<MeshRenderer>();
+                if (b != null)
+                {
+                    w = b.bounds.size.x;
+                    d = b.bounds.size.z;
+                    var wallR = room.transform.Find("Wall_Front");
+                    if (wallR != null)
+                    {
+                        var wr = wallR.GetComponent<MeshRenderer>();
+                        if (wr != null) h = wr.bounds.size.y;
+                    }
+                }
+            }
+
+            ProjectName.Systems.IndoorMaterialFactory.ApplyToRoom(room, w, h, d);
+            ScatterStrawDecals(room, w, d);
+
+            // 조명 강화 — 예시 분위기(촛불 웜톤 2000K + 어두운 앰비언트)
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+            RenderSettings.ambientLight = new Color(0.22f, 0.17f, 0.13f);   // 기존 0.45 → 어둡게, 조명이 입힌다
+            ProjectName.Systems.IndoorLighting.AddPointLight(room, new Vector3(w * 0.3f, 2.6f, d * 0.25f),
+                new Color(1.00f, 0.66f, 0.36f), Mathf.Max(w, d) * 0.9f, 1.2f);
+            ProjectName.Systems.IndoorLighting.AddPointLight(room, new Vector3(-w * 0.3f, 2.6f, -d * 0.25f),
+                new Color(1.00f, 0.62f, 0.30f), Mathf.Max(w, d) * 0.8f, 1.0f);
+            EnableUrpSoftShadows();
+            Debug.Log($"[IndoorSceneTransition] HQ 실내 적용 — 방 {w:F1}x{h:F1}x{d:F1}, 웜 조명 2등");
+        }
+
+        /// <summary>[P17-D] 짚단/약초 데칼 산포 — 결정론 시드(djb2, 재방문 동일 배치), 지면 위 0.01.</summary>
+        private static void ScatterStrawDecals(GameObject room, float width, float depth)
+        {
+            var tex = ProjectName.Core.IndoorTextureLoader.StrawDecal;
+            if (tex == null) return;
+            var shader = Shader.Find("Universal Render Pipeline/Unlit");
+            if (shader == null) return;
+
+            uint hash = 5381u;
+            foreach (char c in room.GetInstanceID().ToString())
+                hash = ((hash << 5) + hash) + (uint)(c & 0x7F);
+
+            const int Count = 9;
+            for (int i = 0; i < Count; i++)
+            {
+                hash = ((hash << 5) + hash) + (uint)i;
+                float fx = ((hash >> 8) & 0xFF) / 255f;   // 0..1 결정론
+                float fz = ((hash >> 16) & 0xFF) / 255f;
+                float rot = ((hash >> 24) & 0x03) * 90f;
+
+                var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                quad.name = "StrawDecal_" + i;
+                UnityEngine.Object.Destroy(quad.GetComponent<Collider>());
+                quad.transform.SetParent(room.transform);
+                quad.transform.localPosition = new Vector3(
+                    Mathf.Lerp(-width * 0.42f, width * 0.42f, fx),
+                    0.012f,
+                    Mathf.Lerp(-depth * 0.42f, depth * 0.42f, fz));
+                quad.transform.localRotation = Quaternion.Euler(90f, 0f, rot);
+                float s = ProjectName.Core.IndoorTextureLoader.DecalSizeMeters;
+                quad.transform.localScale = new Vector3(s, s, 1f);
+
+                var m = new Material(shader) { name = "IndoorHQ_Straw" };
+                m.mainTexture = tex;
+                var mr = quad.GetComponent<MeshRenderer>();
+                mr.sharedMaterial = m;
+                mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                // 투명 데칼 — 렌더 큐 투명, z테스트 유지
+                m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                m.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                m.renderQueue = 3000;
+            }
+            Debug.Log("[IndoorSceneTransition] 짚단 데칼 9장 산포 완료");
+        }
+
+        /// <summary>[P17-B] URP 소프트 섀도우 ON — 예시의 부드러운 그림자(런타임 1회, 실패 무해).</summary>
+        private static void EnableUrpSoftShadows()
+        {
+            try
+            {
+                var asset = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline;
+                if (asset == null) return;
+                // [P17-B] softShadowsSupported는 버전별 API 차이 — 리플렉션 세팅(실패 무해)
+                var prop = asset.GetType().GetProperty("softShadowsSupported");
+                if (prop != null && prop.CanWrite && prop.GetValue(asset) is bool on && !on)
+                    prop.SetValue(asset, true);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[IndoorSceneTransition] URP 소프트 섀도우 설정 실패(무해): " + e.Message);
+            }
         }
 
         /// <summary>

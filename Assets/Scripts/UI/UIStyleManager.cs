@@ -33,7 +33,9 @@ namespace ProjectName.UI
         /// <summary>체력/위험 — 헬스 레드(200,56,56)</summary>
         public static readonly Color HealthRedColor = new Color(0.78f, 0.22f, 0.22f, 1f);
         /// <summary>딤드 오버레이</summary>
-        public static readonly Color DimColor = new Color(0f, 0f, 0f, 0.5f);
+        // [P16-5 수리] 딤드 0.5 → 0.18 — 전화면 짙은 검은 커튼이 "게임이 멈췄다"로 보이는 뿌리.
+        //   월드가 보이며 창 밖 상황 인지 가능해짐(모달성은 창 자체가 담당).
+        public static readonly Color DimColor = new Color(0f, 0f, 0f, 0.18f);
         /// <summary>버튼 호버 — 골드(217,180,91)</summary>
         public static readonly Color HoverColor = new Color(0.85f, 0.71f, 0.36f, 1f);
         /// <summary>닫기 버튼 (빨강)</summary>

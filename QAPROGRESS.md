@@ -1,12 +1,48 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **목표:** 431개 스크립트를 하나씩 점검하며 런타임 오류를 잡아냅니다.
->
-> **진행 방식:** 테스트 씬별로 시스템 격리 → Play 테스트 → 오류 발견 → 수정 → 기록
->
-> **최종 갱신:** 2026-09-18 (Phase 68/U0 — UI Toolkit 전환 인프라 구축)
+> **최종 갱신:** 2026-09-20 (P10~P15 — 테스트36 영상 실측 수리 6건 (커밋 a765a1a0, 280/280))
 
 ---
+
+## 📌 세션 스냅샷 (2026-09-20 ✅ P10~P15 — 테스트 36 영상 실측 6건 수리, 커밋 a765a1a0)
+
+> **입력**: Screenshots/테스트 36.mp4 + 사용자 리포트 6건. 영상 프레임 실측(f03/f08/f11/f14) + Editor.log 실측으로 뿌리 확정.
+
+### P10. 창고 우클릭 출고 불가 (P9 잔여) — **dedupe 가드 int 오버플로우(근본 발견)**
+- **Editor.log 실측**: 매 우클릭마다 `출고 시도 slot=N` 직후 `출고 중복 요청 무시 (-2086493883ms)` — 가드가 첫 클릭을 중복으로 오판.
+- **뿌리**: `Environment.TickCount`(양수) − 초기값 `int.MinValue` → int 오버플로우로 큰 음수 → `diff<200` 항상 참 → **모든 우클릭 영구 차단**. (드래그 출고는 가드 없어 성공 — 로그 `출고(드래그) 성공=True`와 일치. P9의 3중 경로 수리 자체는 정상 동작하고 있었음.)
+- **수리**: unchecked uint delta(랩어웨이 안전) 교체 + 창 닫힘 시 `_lastWithdrawMsPerSlot.Clear()`(재오피 후 첫 우클릭 보장).
+- 교훈: **TickCount 기반 dedupe는 절대 `int.MinValue` 초기값 비교 금지** — 부팅 후 오래 경과하면 오버플로우. uint 차 패턴 표준.
+
+### P11. 설명창 ESC/X 무반응 — Register 우회
+- ItemDescriptionWindowUTK.Show()가 `style.display` 직접 조작 → UTKWindowManager 스택 미등록 → ESC(스택 최상단 Close)·X 버튼 모두 무효.
+- 수리: base.Show()/Hide() 경유 전환 → ESC/X/I 3경로 전부 닫힘.
+
+### P12. 화면 3분할
+- 신규 `UTKThreeColumnLayout.cs`: UIRoot 폭 기준 좌(인벤)/중(설명)/우(창고) 1/3 컬럼. 고정 px(16/596/1044) 대체, 해상도/스케일 무관.
+
+### P13. F키 병사 상호작용 + IMGUI 철거 (delegate_task 600s 타임아웃 → 부모 직접 완성)
+- 영상 f14의 파란 창 = **GuardPlaceholder.OnGUI**(IMGUI, 1335줄 파일) — 말걸기/음식/약/포섭/닫기.
+- 신규 **SoldierInteractUTK**(UTK): 말걸기/음식주기/약주기/**병사 정보보기**(→기존 GuardInfoUTK 경로)/닫기. 음식/약 선택 팝업도 UTK 스크롤 리스트로 재구현. 200ms 자체 폴링(4.5m 초과 자동 닫힘).
+- GuardPlaceholder OnGUI 341줄 철거(OnTalk/OnRecruit/지급 로직은 public 래퍼 BeginTalk/BeginRecruit/GiveFood/GiveDrug로 재사용 — 데이터 불변). E키 병사 토글 제거(실내 진입 E 전용). F키 → SoldierInteractBridge.RaiseInteract 신설 이벤트.
+
+### P14. 실내 진입 시 병사/몬스터 동반 유입 차단
+- `UITransitionState.IndoorActive` 플래그 신설(Core 양방향 규약 — Systems→UI 직접 참조 CS0234 3건 발생 후 Core 경유로 수정).
+- 게이트 3곳: GuardCombatAI.UpdateGuardBehavior(추적/전투 정지)·AnimalAI.Update(AI 완전 정지+속도 0 피드)·GuardPlaceholder.ExecuteMovement(이동 명령 정지). IndoorSceneTransition 진입 true/복귀 false.
+
+### P15. 실내 크래프트 중 화면 프리즈
+- 원인: **구 EscMenuUI(IMGUI MonoBehaviour)** Update가 ESC 가로채 → timeScale=0 (GameManager가 여전히 생성).
+- 수리: EscMenuUI.Update의 ESC 처리 제거(입력만 차단, 파일 유지) + **ESC 단일 경로 통합**: UTKWindowManager.Update에서 스택 비었을 때 EscMenuUTK.Toggle()(배선 신규 — EscMenuUTK는 존재했으나 미배선).
+
+### 검증
+- 배치컴파일 **error CS=0**, EditMode **280/280**. 커밋 a765a1a0 푸시.
+- 중간 컴파일 수리: ScrollMode→ScrollViewMode(CS0103), VisualElement using 누락(CS0246), static Show 인스턴스 호출(CS0176), 미사용 훅 잔존(CS0103).
+
+### Play 판정 대기 (재테스트 5곳)
+①창고 슬롯 우클릭 → 인벤 출고(로그: `출고(우클릭): slot=`) ②설명창 ESC/X/I 닫힘 ③인벤/설명/창고 3분할 배치 ④F키 → 병사 상호작용 UTK 창(정보보기 포함)·파란 IMGUI 소멸 ⑤실내 진입 시 병사/몬스터 미유입 + 실내 크래프트 프리즈 없음
+
+---
+
 
 ## 📌 세션 스냅샷 (2026-09-18 ✅ 노란 경고 근본 차단(히일러) + 화살 GLB + 파티클 제거)
 

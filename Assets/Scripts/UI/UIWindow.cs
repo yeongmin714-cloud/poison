@@ -177,13 +177,15 @@ namespace ProjectName.UI
 
             // 검은색 반투명
             var img = dimObj.GetComponent<Image>();
-            img.color = new Color(0f, 0f, 0f, _dimAlpha);
+            // [P16-5] 딤드 알파 완화(0.5 스펙 → 절반 이하) — 시각적 월드 정지감 제거
+            img.color = new Color(0f, 0f, 0f, Mathf.Min(_dimAlpha, 0.18f));
 
             // 자체 CanvasGroup (페이드용)
             var dimCG = dimObj.AddComponent<CanvasGroup>();
             dimCG.alpha = 0f;
             dimCG.interactable = false;
-            dimCG.blocksRaycasts = true;
+            // [P16-5 수리] 딤드가 월드 클릭을 통째로 흡수해 "멈춤"처럼 보이던 것 차단 — 차단 해제
+            dimCG.blocksRaycasts = false;
 
             dimObj.SetActive(false);
             return dimObj;

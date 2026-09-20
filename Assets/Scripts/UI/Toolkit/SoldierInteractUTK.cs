@@ -216,6 +216,7 @@ namespace ProjectName.UI.Toolkit
             RefreshHeader();
             ShowMenu();
             StartPoll();
+            PlaceNearGuard();
             Debug.Log("[SoldierInteractUTK] 병사 상호작용 창 열림: " + _guard.GuardName);
         }
 
@@ -277,6 +278,9 @@ namespace ProjectName.UI.Toolkit
 
             // 상태 메시지 갱신 (말걸기/지급/포섭 응답 + 시스템 메시지 폴링 반영)
             RefreshStatus();
+
+            // [P16-1] 병사 이동 시 창 추적 — 드래그로 사용자가 옮긴 뒤에는 유지하지 않음(단순 폴링 추적)
+            PlaceNearGuard();
         }
 
         // =====================================================================
@@ -417,6 +421,38 @@ namespace ProjectName.UI.Toolkit
             if (_guard == null) return;
             string msg = _guard.StatusMessage;
             _statusLabel.text = string.IsNullOrEmpty(msg) ? "무슨 일이냐?" : msg;
+        }
+
+        /// <summary>
+        /// [P16-1] 병사 바로 옆(오른쪽) 배치 — 병사 월드좌표 → 패널 좌표 변환(UTKDragDrop.GetPanelPointerPos
+        /// 동일 수식: 마우스 실측×스케일 + y플립). 화면 밖 보정 포함.
+        /// </summary>
+        private void PlaceNearGuard()
+        {
+            var root = UIToolkitBootstrap.UIRoot;
+            var cam = Camera.main;
+            if (root == null || cam == null || _guard == null) { CenterOnParent(); return; }
+
+            Vector3 sp = cam.WorldToScreenPoint(_guard.transform.position + Vector3.up * 1.2f);
+            if (sp.z < 0f) { CenterOnParent(); return; }   // 카메라 뒤 — 중앙 폴백
+
+            float scale = root.worldBound.width / (float)Screen.width;
+            if (scale <= 0f) scale = 1f;
+            float px = sp.x * scale;
+            float py = root.worldBound.height - sp.y * scale;
+
+            float winW = resolvedStyle.width > 0f ? resolvedStyle.width : WinW;
+            float winH = resolvedStyle.height > 0f ? resolvedStyle.height : WinH;
+
+            // 병사 오른쪽 20px 오프셋 — 화면 밖이면 왼쪽/클램프
+            float left = px + 20f;
+            if (left + winW > root.worldBound.width - 8f)
+                left = px - winW - 20f;
+            left = Mathf.Clamp(left, 8f, Mathf.Max(8f, root.worldBound.width - winW - 8f));
+            float top = Mathf.Clamp(py - winH * 0.5f, 8f, Mathf.Max(8f, root.worldBound.height - winH - 8f));
+
+            style.left = left;
+            style.top = top;
         }
 
         private void CenterOnParent()

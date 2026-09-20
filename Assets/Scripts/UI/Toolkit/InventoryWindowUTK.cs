@@ -66,6 +66,8 @@ namespace ProjectName.UI.Toolkit
         // ===== 레퍼런스 =====
         private readonly VisualElement _grid;
         private readonly VisualElement _equipPanel;        // [3분할] 좌측 상단 장비 2x5
+        private readonly System.Collections.Generic.Dictionary<string, UTKSlot> _equipSlotIcons
+            = new System.Collections.Generic.Dictionary<string, UTKSlot>();   // [P16-2] 장비 아이콘 슬롯
         private readonly Dictionary<string, Label> _equipSlotLabels = new Dictionary<string, Label>();
         private readonly VisualElement _warehousePanel;    // [3분할] 우측 창고 그리드 (상호작용시만)
         private readonly Label _warehouseEmptyHint;
@@ -223,6 +225,16 @@ namespace ProjectName.UI.Toolkit
                 name.style.color = new StyleColor(UTKColor.TextSecondary);
                 row.Add(name);
 
+                // [P16-2] 장비 슬롯 — 아이콘(UTKSlot) 표시 + 등급 테두리. 라벨은 아이콘 옆 보조.
+                var equipSlot = new UTKSlot();
+                equipSlot.name = "EquipSlot_" + label;
+                equipSlot.style.width = 44f;
+                equipSlot.style.height = 44f;
+                equipSlot.style.flexShrink = 0f;
+                equipSlot.SetRank("common");
+                row.Add(equipSlot);
+                _equipSlotIcons[slot.ToString()] = equipSlot;
+
                 var value = new Label("—");
                 value.style.fontSize = 13f;
                 value.style.color = new StyleColor(UTKColor.TextPrimary);
@@ -252,13 +264,29 @@ namespace ProjectName.UI.Toolkit
             {
                 var data = em.GetSlotData((EquipmentManager.EquipmentSlot)System.Enum.Parse(typeof(EquipmentManager.EquipmentSlot), kv.Key));
                 string displayName = "—";
+                PlayerInventory.ItemData itemData = null;
                 if (data != null && !string.IsNullOrEmpty(data.itemId))
                 {
-                    var itemData = PlayerInventory.GetItemById(data.itemId);
+                    itemData = PlayerInventory.GetItemById(data.itemId);
                     displayName = itemData != null && !string.IsNullOrEmpty(itemData.displayName)
                         ? itemData.displayName : data.itemId;
                 }
                 kv.Value.text = displayName;
+
+                // [P16-2] 아이콘+등급 테두리 갱신 — 빈 슬롯은 아이콘 제거
+                if (_equipSlotIcons.TryGetValue(kv.Key, out var iconSlot) && iconSlot != null)
+                {
+                    if (itemData != null)
+                    {
+                        iconSlot.SetIcon(ItemIconDatabase.GetOrCreateIcon(itemData));
+                        iconSlot.SetRank(UTKRarity.ClassForIndex((int)itemData.rarity));
+                    }
+                    else
+                    {
+                        iconSlot.SetIcon(null);
+                        iconSlot.SetRank("common");
+                    }
+                }
             }
         }
 
@@ -359,6 +387,11 @@ namespace ProjectName.UI.Toolkit
         {
             // [U8 수리] 드래그 중 셀 재생성 금지 — 캡처 상실로 드래그 도중 취소되는 뿌리 차단
             if (UTKDragDrop.Active) return;
+
+            // [P16-3 수리] 커서가 UI 위면 재생성 스킵 — 250ms 폴링마다 셀이 새로 만들어져
+            //   hover 중인 슬롯(특히 등급 테두리 아이템)이 찰나 리셋 = "반반 짤려 반짝" 뿌리.
+            //   포인터가 떠나면 다음 폴링에 정상 재생성. 클릭/드래그/우클릭 경로는 즉시 갱신 유지.
+            if (ProjectName.Core.UITransitionState.PointerOverUI) return;
 
             var inv = PlayerInventory.Instance;
             var slots = inv != null ? inv.GetAllSlots() : null;

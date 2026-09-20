@@ -440,9 +440,11 @@ namespace ProjectName.Systems
             //    x=±pillarX(3.5~4.5), z=-5..5에 pillarPerSide개씩 — 가구와 겹치지 않게 배치
             // ===================================================================
             float pillarX = 3f + pillarXFac;   // 3.5~4.5 (variant 0: 4f)
+            // [P17] 기둥 옵션 — 기본 제거(예시 이미지 스타일). IncludePillars=true 시 복원.
+            //   return 금지: 뒤에 7(조명)/8(장식) 섹션이 이어짐 → 루프 바운드만 0 처리.
             for (int side = -1; side <= 1; side += 2)
             {
-                for (int pi = 0; pi < pillarPerSide; pi++)
+                for (int pi = 0; pi < (IndoorTextureLoader.IncludePillars ? pillarPerSide : 0); pi++)
                 {
                     float pillarZ = -5f + pi * (10f / Mathf.Max(1, pillarPerSide - 1)); // -5..5 균등
                     GameObject pillarRoot = new GameObject($"StonePillar_{(side > 0 ? "R" : "L")}{pi}");

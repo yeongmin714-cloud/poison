@@ -201,9 +201,13 @@
 
 .utk-slot--hover {
     background-color: rgba(217, 180, 91, 0.22);      /* 입체(D): 호버 배경 밝게 */
-    /* 입체(D): 부드러운 아우터 글로우 — 하단/우측으로 확산되는 빛 */
+    /* [P16-3 수리] 글로우 9슬라이스 — stretch는 모서리가 늘어나 아이콘 반쪽 짤림처럼 보였다 */
     background-image: url("glow_hover_gold.png");
-    -unity-background-scale-mode: stretch-and-crop;
+    -unity-background-scale-mode: slice-enabled;
+    -unity-slice-left: 48px;
+    -unity-slice-top: 48px;
+    -unity-slice-right: 48px;
+    -unity-slice-bottom: 48px;
     border-top-color: var(--c-hover-gold);
     border-left-color: var(--c-hover-gold);
     border-bottom-color: var(--c-border-gold);
