@@ -46,10 +46,27 @@ namespace ProjectName.UI.Toolkit
                         ResultName = WeaponCraftDatabase.DisplayName(r.ResultId),
                         MatIds = mats,
                         Note = $"Lv.{r.RequiredLevel}+",
+                        rarity = r.rarity,   // [Milestone A/D] 성공률 희귀도 페널티
                     });
                 }
                 return list;
             }
+        }
+
+        // [Milestone D] 미발견 레시피 = "?" 블라인드 — 성공 시 CraftWeapon이 MarkDiscovered → 공개.
+        protected override bool IsDiscovered(BenchRecipe r) => RecipeDiscoverySystem.IsDiscovered(r.ResultName);
+
+        // [Milestone D] 발견된 레시피의 성공률·운 표시.
+        protected override string RateHint(BenchRecipe r)
+        {
+            int chance = CraftingHelper.ComputeFinalCraftChance(CraftingHelper.WeaponBaseSuccessRate, r.rarity);
+            string luck = "";
+            if (PlayerStats.Instance != null)
+            {
+                int luckBonus = Mathf.RoundToInt(PlayerStats.Instance.GetLuckCraftBonus());
+                if (luckBonus > 0) luck = $" (운 +{luckBonus}%)";
+            }
+            return $"성공률 {chance}%{luck}";
         }
 
         protected override bool TryCraft(BenchRecipe recipe, List<string> placedIds, out string message)

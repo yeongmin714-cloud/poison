@@ -23,7 +23,15 @@ namespace ProjectName.UI.Toolkit
             public string ResultName;
             public string[] MatIds;      // 슬롯 수와 동일 길이 (빈 칸 null)
             public string Note;          // 레벨 요구/효과 등 보조 표기
+            public ItemRarity rarity;    // [Milestone A/D] 성공률 희귀도 페널티·표시용
         }
+
+        /// <summary>[Milestone D] 레시피 발견 여부 — 미발견이면 "?" 블라인드(이름/아이콘/확률 숨김).
+        /// 무기/요리/물약 벤치가 RecipeDiscoverySystem으로 오버라이드(성공 시 MarkDiscovered → 공개).</summary>
+        protected virtual bool IsDiscovered(BenchRecipe r) => true;
+
+        /// <summary>[Milestone D] 레시피 성공률·운 표시 문자열 (발견 시에만 부가). 구체 벤치가 오버라이드.</summary>
+        protected virtual string RateHint(BenchRecipe r) => "";
 
         protected readonly int SlotCount;
         private readonly UTKSlot[] _slots;
@@ -161,8 +169,11 @@ namespace ProjectName.UI.Toolkit
                 icon.style.width = 30f;
                 icon.style.height = 30f;
                 var item = PlayerInventory.GetItemById(r.ResultId);
-                icon.style.backgroundImage = UTKTextureSafe.ToBackground(
-                    item != null ? ItemIconDatabase.GetOrCreateIcon(item) : null);
+                // [Milestone D] 미발견 레시피는 아이콘 감춤("?" 블라인드)
+                bool discovered = IsDiscovered(r);
+                icon.style.backgroundImage = discovered
+                    ? UTKTextureSafe.ToBackground(item != null ? ItemIconDatabase.GetOrCreateIcon(item) : null)
+                    : null;
                 row.Add(icon);
 
                 var have1 = inv != null && !string.IsNullOrEmpty(r.MatIds[0])
@@ -174,8 +185,11 @@ namespace ProjectName.UI.Toolkit
 
                 bool enough = have1 >= need1 && (need2 == 0 || have2 >= 1);
                 string matText = DescribeMats(r);
-                var nameL = new Label($"{r.ResultName}  [{matText}]" + (enough ? "" : "  (재료부족)") +
-                                      (string.IsNullOrEmpty(r.Note) ? "" : $"  {r.Note}"));
+                // [Milestone D] 발견: 이름+확률+재료 / 미발견: "?"+재료(실험 힌트)
+                string nameText = discovered
+                    ? $"{r.ResultName} {RateHint(r)}  [{matText}]" + (enough ? "" : "  (재료부족)") + (string.IsNullOrEmpty(r.Note) ? "" : $"  {r.Note}")
+                    : $"?  [{matText}]" + (enough ? "" : "  (재료부족)");
+                var nameL = new Label(nameText);
                 nameL.style.fontSize = 13f;
                 nameL.style.flexGrow = 1f;
                 nameL.style.color = new StyleColor(enough ? UTKColor.TextPrimary : UTKColor.TextSecondary);
@@ -322,10 +336,23 @@ namespace ProjectName.UI.Toolkit
                     _matched = r;
                     _craftable = true;
                     var item = PlayerInventory.GetItemById(r.ResultId);
-                    _resultSlot.SetIcon(item != null ? ItemIconDatabase.GetOrCreateIcon(item) : null);
-                    _resultSlot.SetRank(item != null ? UTKRarity.ClassForIndex((int)item.rarity) : "common");
-                    _resultLabel.text = r.ResultName + (string.IsNullOrEmpty(r.Note) ? "" : $"\n{r.Note}");
-                    _status.text = $"제작 가능 — 클릭하여 {r.ResultName} 제작";
+                    // [Milestone D] 발견: 아이콘/이름/확률 표시 / 미발견: "?" 블라인드(성공 시 레시피 획득)
+                    if (IsDiscovered(r))
+                    {
+                        _resultSlot.SetIcon(item != null ? ItemIconDatabase.GetOrCreateIcon(item) : null);
+                        _resultSlot.SetRank(item != null ? UTKRarity.ClassForIndex((int)item.rarity) : "common");
+                        _resultLabel.text = r.ResultName
+                            + (string.IsNullOrEmpty(r.Note) ? "" : $"\n{r.Note}")
+                            + (string.IsNullOrEmpty(RateHint(r)) ? "" : $"  {RateHint(r)}");
+                        _status.text = $"제작 가능 — 클릭하여 {r.ResultName} 제작 ({RateHint(r)})";
+                    }
+                    else
+                    {
+                        _resultSlot.SetIcon(null);
+                        _resultSlot.SetRank("common");
+                        _resultLabel.text = "?  정체불명의 조합 — 제작 성공 시 레시피를 획득합니다.";
+                        _status.text = "제작 가능 — 성공 시 레시피를 획득합니다";
+                    }
                     return;
                 }
             }

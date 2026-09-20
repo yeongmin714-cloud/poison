@@ -1,6 +1,23 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-20 (그랜드 플랜 — A 성공률 / B 광물·장신구·레시피 / C 희귀·비밀상점)
+> **최종 갱신:** 2026-09-20 (그랜드 플랜 — A~C 데이터/로직 + D 크래프트 UI 확률·"?"·레시피획득)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-20 ✅ Milestone D — 크래프트 UI 성공률·운·"?"·레시피획득 (무기 벤치))
+
+> **입력**: "크래프트 UI에 확률 표시(운↑성공↑)·희귀도/.레시피 보유시 확률·미보유시 ?·실험조합 성공 시 레시피 획득".
+
+### Milestone D (무기 벤치 슬라이스)
+- **CraftBenchBaseUTK**: `BenchRecipe.rarity` 추가(성공률 희귀도 페널티), 가상 `IsDiscovered(BenchRecipe)`(기본 true)·`RateHint(BenchRecipe)`(기본 ""). **레시피 북**: 미발견 레시피는 아이콘 감춤 + "?" 표시(재료는 실험 힌트로 유지), 발견 시 이름+`RateHint`(성공률/운). **매치/결과**: 미발견 조합이면 아이콘·이름 숨기고 "? 정체불명 — 성공 시 레시피 획득", 발견 조합이면 아이콘+이름+확률+상태라벨. 제작 성공 시 `CraftWeapon`이 `MarkDiscovered` → 공개(레시피 획득).
+- **WeaponForgeUTK**: 레시피에 rarity 세팅, `IsDiscovered`=`RecipeDiscoverySystem.IsDiscovered(ResultName)`, `RateHint`=`ComputeFinalCraftChance(WeaponBaseSuccessRate=90, rarity)` + `GetLuckCraftBonus`(운) 표시 "성공률 n% (운 +k%)".
+- (연금/요리 벤치도 같은 오버라이드 패턴 적용 가능 — 문서 안내.)
+
+### 검증
+- using/심볼(RecipeDiscoverySystem.IsDiscovered, ComputeFinalCraftChance, WeaponBaseSuccessRate, GetLuckCraftBonus, ItemRarity, Mathf) 해석 확인, 두 파일 괄호 균형 OK.
+
+### 남은 마일스톤
+E(채집·광물 채널링+진행도UI/애니) / F(GL·애니 부재 목록 산출기+밸런스) + 비밀상점·통행증 UI 배선(SecretShopSystem→상점창).
 
 ---
 
