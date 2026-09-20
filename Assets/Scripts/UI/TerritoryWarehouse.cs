@@ -248,7 +248,7 @@ namespace ProjectName.UI
             {
                 ProjectName.UI.Toolkit.InventoryWindowUTK.Open();
                 ProjectName.UI.Toolkit.WarehouseWindowUTK.Open(_territoryId);
-                ProjectName.UI.Toolkit.ItemDescriptionWindowUTK.Show();
+                ProjectName.UI.Toolkit.ItemDescriptionWindowUTK.Open();
                 Debug.Log($"[TerritoryWarehouse] 창고 열기 → UTK (territory={_territoryId})");
                 _warehouseOpen = true;
                 _guiDirty = true;

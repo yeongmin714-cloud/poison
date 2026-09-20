@@ -16,7 +16,6 @@ namespace ProjectName.Systems
         private float _damage = 10f;
         private float _lifetime = 5f;
         private float _elapsed = 0f;
-        private TrailRenderer _trail;
         private Rigidbody _rb;
         private Collider _collider;
         private bool _stuck = false;    // 명중/지면 꽂힘 시 true — 회전 정렬·충돌 재처리 방지
@@ -28,30 +27,10 @@ namespace ProjectName.Systems
         {
             _rb = GetComponent<Rigidbody>();
             _collider = GetComponent<Collider>();
-            _trail = GetComponent<TrailRenderer>();
-            if (_trail == null)
-                _trail = gameObject.AddComponent<TrailRenderer>();
-
-            _trail.time = 1.6f;          // [화살-가시성2] 0.9→1.6 — 비행 전체를 잔상이 덮음(속도70 기준 ~110m 커버)
-            _trail.startWidth = 0.45f;   // [화살-가시성3] 0.22→0.45 — 탑다운 카메라에서 명확한 광대
-            _trail.endWidth = 0.12f;
-            _trail.minVertexDistance = 0.05f;   // [후속19/A4] 0.08→0.05 — 프레임 드랍 시에도 궤적 연속
-            // [F1 액션감] URP 파티클 셰이더 + 헤드→테일 그라디언트 페이드 — 스프라이트 기본 머티리얼 대체
-            var urpParticle = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-            _trail.material = new Material(urpParticle != null ? urpParticle : Shader.Find("Sprites/Default"));
-            if (_trail.colorGradient.mode == GradientMode.Blend) { /* keep */ }
-            var grad = new Gradient();
-            var keys = new[] {
-                new GradientColorKey(new Color(1f, 0.97f, 0.9f), 0f),
-                new GradientColorKey(new Color(1f, 0.85f, 0.5f), 0.35f),
-                new GradientColorKey(new Color(0.6f, 0.45f, 0.2f), 1f) };
-            var akeys = new[] {
-                new GradientAlphaKey(1f, 0f),
-                new GradientAlphaKey(0.85f, 0.25f),
-                new GradientAlphaKey(0.25f, 0.7f),
-                new GradientAlphaKey(0f, 1f) };
-            grad.SetKeys(keys, akeys);
-            _trail.colorGradient = grad;
+            // [P20-4 수리] 트레일 완전 제거 — "긴 선만 뒤따라 화살이 날아가는 느낌이 안 든다" 요구.
+            //   TrailRenderer 부착/설정 코드 전면 삭제. 꼬리 없이 화살 본체만 비행.
+            var legacyTrail = GetComponent<TrailRenderer>();
+            if (legacyTrail != null) Destroy(legacyTrail);
         }
 
         /// <summary>화살 발사</summary>
@@ -64,7 +43,7 @@ namespace ProjectName.Systems
             //   화살이 옆으로 누운 채 날아갔다(엣지온 = 안 보임, 사용자 실측 "화살이 날아가지도 않음").
             //   X축 +90° 회전을 곱해 길이축(Y)을 진행방향으로 세운다.
             go.transform.rotation = Quaternion.LookRotation(direction) * Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = new Vector3(0.18f, 1.3f, 0.18f); // [2026-09-20] (0.25,1.8)→(0.18,1.3) — 사용자 "화살 너무 큼" → 한 단계 축소(탑다운 가시성 유지)
+            go.transform.localScale = new Vector3(0.12f, 0.9f, 0.12f); // [P20-4] (0.18,1.3)→(0.12,0.9) — 사용자 "여전히 큼" → 2차 축소
 
             // Collider 설정
             var collider = go.GetComponent<CapsuleCollider>();
@@ -83,11 +62,9 @@ namespace ProjectName.Systems
             var arrow = go.AddComponent<ArrowProjectile>();
             arrow._damage = damage;
 
-            if (arrow._trail != null)
-            {
-                arrow._trail.startColor = trailColor;
-                arrow._trail.endColor = trailColor * 0.3f;
-            }
+            // [P20-4 진단] 스폰 회전 vs 조준 방향 정합 1회 실측 — "세워서 나감/방향 다름" 즉별
+            float dot = Vector3.Dot(go.transform.up, direction.normalized);
+            Debug.Log($"[Arrow][P20-4] 스폰 정합 — up·dir={dot:F3}(±1이 정상), dir={direction}");
 
             // Renderer
             var renderer = go.GetComponent<MeshRenderer>();
@@ -138,8 +115,8 @@ namespace ProjectName.Systems
             // ---- 촉(헤드) — Cone +Y가 뾰족한 방향. 샤프트 앞쪽(+Y)에 배치 ----
             var head = new GameObject("ArrowHead");
             head.transform.SetParent(shaft.transform, false);
-            head.transform.localPosition = new Vector3(0f, 0.45f, 0f);  // 샤프트 Y 반지름(0.35) + 헤드 길이 절반쯤
-            head.transform.localScale = new Vector3(0.13f, 0.3f, 0.13f); // 뾰족한 촉 (단위 콘: 반지름1·높이1) — [후속17] 대형화
+            head.transform.localPosition = new Vector3(0f, 0.32f, 0f);  // [P20-4] 샤프트 반길이(0.45→0.45)에 맞춰 앞단 배치
+            head.transform.localScale = new Vector3(0.09f, 0.22f, 0.09f); // [P20-4] 촉 축소
             {
                 var mf = head.AddComponent<MeshFilter>();
                 mf.mesh = BuildArrowHeadCone();   // PrimitiveType.Cone 없음 → 절차 메시(양면 와인딩)
@@ -154,9 +131,9 @@ namespace ProjectName.Systems
                 var fin = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 fin.name = "ArrowFletching" + i;
                 fin.transform.SetParent(shaft.transform, false);
-                fin.transform.localScale = new Vector3(0.06f, 0.3f, 0.12f); // [후속17] 대형화
+                fin.transform.localScale = new Vector3(0.045f, 0.2f, 0.08f); // [P20-4] 깃 축소
                 // X축으로 샤프트 표면에 살짝 오프셋 → 길이축(Y) 회전으로 120° 방사 팬.
-                fin.transform.localPosition = new Vector3(0.045f, -0.5f, 0f);
+                fin.transform.localPosition = new Vector3(0.032f, -0.34f, 0f);
                 fin.transform.localRotation = Quaternion.Euler(0f, 120f * i, 0f);
                 {
                     var c = fin.GetComponent<Collider>();
@@ -187,7 +164,7 @@ namespace ProjectName.Systems
         // [피팅] 스탠드얼론으로 인스턴스 후 renderer.bounds 실측 → 최장축을 기존 실린더
         //   시각 길이(단위 2 × localScale.y 1.8 = 3.6m)에 자동 스케일. 피벗 = bounds 중심.
         // ─────────────────────────────────────────────────────────────
-        private const float ArrowModelTargetLength = 2.6f;   // [2026-09-20] 3.6→2.6 — 실린더 Y 1.3(단위높이2)와 일치(2×1.3=2.6m)
+        private const float ArrowModelTargetLength = 1.8f;   // [P20-4] 2.6→1.8 — 실린더 Y 0.9와 일치(2×0.9), 2차 축소
 
         private static bool MountArrowModel(GameObject root)
         {
@@ -353,7 +330,6 @@ namespace ProjectName.Systems
                 //   6초간 몸통에 박힌 채 잔존시킨다. worldPositionStays:true로 월드 위치/회전 유지.
                 _stuck = true;
                 _lifetime = Mathf.Min(_lifetime, _elapsed + 6f); // 타겟에 6초간 박힘
-                if (_trail != null) _trail.enabled = false;   // [후속19/B2] 박힌 후 잔상 추가 드로 정지(기존 궤적은 자연 페이드)
                 if (_rb != null)
                 {
                     _rb.isKinematic = true;

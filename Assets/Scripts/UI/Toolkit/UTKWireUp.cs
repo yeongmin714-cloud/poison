@@ -53,7 +53,7 @@ namespace ProjectName.UI.Toolkit
                     LootWindowUTK.Ensure();
                     LootWindowUTK.Open(basket);
                     InventoryWindowUTK.Open();            // [U8 요구] 전리품 열림 시 인벤 동시 표시
-                    ItemDescriptionWindowUTK.Show();
+                    ItemDescriptionWindowUTK.Open();
                     Debug.Log("[UTKWire] 바구니 → LootWindowUTK + 인벤/설명 동시 표시");
                 }
                 else
@@ -94,7 +94,7 @@ namespace ProjectName.UI.Toolkit
                     else
                     {
                         InventoryWindowUTK.Open();
-                        ItemDescriptionWindowUTK.Show();
+                        ItemDescriptionWindowUTK.Open();
                     }
                     Debug.Log($"[UTKWire] I키 → 인벤+설명 쌍 ({(closing ? "닫힘" : "열림")})");
                 }

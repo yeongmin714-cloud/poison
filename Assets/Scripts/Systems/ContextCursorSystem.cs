@@ -18,8 +18,8 @@ namespace ProjectName.Systems
     {
         public static ContextCursorSystem Instance { get; private set; }
 
-        private const float AnchorDepth = 5f;     // 카메라 전방 거리 (마우스 레이 위 앵커)
-        private const float IconScale = 0.12f;    // 아이콘 전체 크기 배율
+        private const float AnchorDepth = 2.2f;   // [P20-2] 5m→2.2m — 너무 멀어 아이콘이 작게/안 보였던 것 보정
+        private const float IconScale = 0.22f;    // [P20-2] 0.12→0.22 — 탑다운에서 아이콘 식별 가능 크기
 
         private Transform _anchor;
         private Transform _iconsRoot;

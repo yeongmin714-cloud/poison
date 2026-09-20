@@ -62,7 +62,10 @@ namespace ProjectName.Systems
         /// </summary>
         public void IssueRightClickCommand(Vector3 mousePosition, bool ctrl = false)
         {
-            if (_mainCamera == null) return;
+            // [P20-7 진단] 우클릭 수신 자체 추적 — 침묵 실패(카메라 null/미선택) 즉별
+            var sel = GetSelectedGuards();
+            Debug.Log($"[RTSCommandSystem][P20-7] 우클릭 수신 — selected={sel?.Count ?? 0}, ctrl={ctrl}, mouse={mousePosition}");
+            if (_mainCamera == null) { Debug.LogWarning("[RTSCommandSystem][P20-7] 카메라 null — 명령 불가"); return; }
 
             var selected = GetSelectedGuards();
             if (selected == null || selected.Count == 0)
@@ -77,6 +80,9 @@ namespace ProjectName.Systems
                 Debug.Log("[RTSCommandSystem] 레이캐스트 적중 실패");
                 return;
             }
+
+            // [P20-7 요구] 우클릭 지점 표시 링 — 이동/공격 겸용, 1.5초 페이드+축소
+            CommandMarker.Spawn(hit.point);
 
             // 적 대상 확인 (IDamageable)
             IDamageable target = hit.collider.GetComponent<IDamageable>();

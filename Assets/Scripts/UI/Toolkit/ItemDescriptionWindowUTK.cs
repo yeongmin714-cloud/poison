@@ -98,13 +98,31 @@ namespace ProjectName.UI.Toolkit
         ///   ESC(스택 최상단 Close)와 X 버튼(UTKWindowBase._isOpen 상태)이 모두 무효였다(실측).
         ///   base.Show()가 Register+IsOpen 동기 → ESC/X/I 3경로 전부 닫힘.
         /// </summary>
-        public static void Show()
+        /// <summary>
+        /// [P20-1 근본 수리] 진입점 개명 Show→Open + 재귀 제거.
+        ///   기존 `if (!i.IsOpen) ItemDescriptionWindowUTK.Show();`는 자기 자신 재귀 호출 —
+        ///   IsOpen은 base.Show()가 실행돼야 true가 되는데 재귀가 그 전에 반복되어
+        ///   스택 오버플로우로 설명창이 아예 안 떴다(테스트37 실측).
+        /// </summary>
+        public static void Open()
         {
             var i = Ensure();
             if (i == null) return;
-            if (!i.IsOpen) ItemDescriptionWindowUTK.Show();
-            i.PlaceCenterColumn();   // [P12] 중앙 1/3
+            if (!i.IsOpen) i.Show();   // UTKWindowBase.Show(인스턴스) — 등록+표시
+            i.CenterOnScreen();        // [P20-1] 요구: 정중앙 배치(아이콘+설명)
             i.BringToFront();
+        }
+
+        /// <summary>[P20-1] 화면 정중앙 배치 — 3분할 컬럼 대신 요구된 중앙 위치.</summary>
+        public void CenterOnScreen()
+        {
+            var root = UIToolkitBootstrap.UIRoot;
+            if (root == null) return;
+            float pw = root.resolvedStyle.width, ph = root.resolvedStyle.height;
+            if (pw <= 0f || ph <= 0f) { pw = 1920f; ph = 1080f; }
+            float w = style.width.value.value, h = style.height.value.value;
+            style.left = Mathf.Max(0f, (pw - w) * 0.5f);
+            style.top = Mathf.Max(0f, (ph - h) * 0.5f);
         }
 
         public static void Hide()
@@ -116,7 +134,7 @@ namespace ProjectName.UI.Toolkit
         /// <summary>인벤 열림 여부와 쌍 — 인벤 닫힘 시 함께 숨김.</summary>
         public static void SyncWithInventory(bool inventoryOpen)
         {
-            if (inventoryOpen) Show();
+            if (inventoryOpen) Open();
             else Hide();
         }
 
@@ -144,7 +162,7 @@ namespace ProjectName.UI.Toolkit
             i._itemMeta.text = sb.ToString();
             i._itemDesc.text = string.IsNullOrEmpty(item.description) ? "(설명 없음)" : item.description;
 
-            if (!i.IsOpen) Show();   // [P11] base.Show/Hide 상태 기준
+            if (!i.IsOpen) Open();   // [P20-1] 재귀 제거 — Open 경유
             Debug.Log($"[DescUTK] 설명 갱신 — {item.displayName ?? item.id} x{count}");
         }
 

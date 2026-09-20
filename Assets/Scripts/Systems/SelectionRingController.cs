@@ -40,13 +40,62 @@ namespace ProjectName.Systems
                 _mat.SetColor("_TeamColor", color);
                 if (_rend != null) _rend.sharedMaterial = _mat;
             }
+            else
+            {
+                // [P20-3 수리] 셰이더 부재 폴백 — 절차 링 텍스처(완전한 원) + Unlit 투명.
+                //   기존엔 머티리얼 null → 기본 라이트 쿼드(사각) 노출 + IMGUI 원/EarthTrail 반원 폴백이 겹쳐 보였다.
+                _mat = CreateFallbackRingMaterial();
+                if (_rend != null) _rend.sharedMaterial = _mat;
+            }
+        }
+
+        /// <summary>[P20-3] 절차 링 머티리얼 — 흰색 완전 원 텍스처(알파) + Unlit 틴트. SetColor로 색 변경.</summary>
+        private Material CreateFallbackRingMaterial()
+        {
+            var shader = Shader.Find("Universal Render Pipeline/Unlit");
+            if (shader == null) return null;
+            var m = new Material(shader) { name = "SelectionRing_Fallback" };
+            m.mainTexture = BuildRingTexture(256);
+            m.color = color;
+            m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            m.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m.renderQueue = 3000;
+            return m;
+        }
+
+        private static Texture2D BuildRingTexture(int size)
+        {
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { name = "SelectionRingTex" };
+            float c = size * 0.5f;
+            float rOuter = c * 0.92f, rInner = c * 0.72f;
+            var px = new Color[size * size];
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(c, c));
+                    float a = 0f;
+                    if (d <= rOuter && d >= rInner) a = 1f;
+                    else if (d > rOuter && d < rOuter + 3f) a = 1f - (d - rOuter) / 3f;      // 외측 소프트
+                    else if (d < rInner && d > rInner - 3f) a = 1f - (rInner - d) / 3f;     // 내측 소프트
+                    px[y * size + x] = new Color(1f, 1f, 1f, a);
+                }
+            }
+            tex.SetPixels(px);
+            tex.Apply();
+            return tex;
         }
 
         /// <summary>팀/국가 색 주입 (생성 직후 GuardSelectionManager가 호출).</summary>
         public void SetColor(Color c)
         {
             color = c;
-            if (_mat != null) _mat.SetColor("_TeamColor", c);
+            if (_mat != null)
+            {
+                if (_mat.HasProperty("_TeamColor")) _mat.SetColor("_TeamColor", c);
+                else _mat.color = c;   // [P20-3] 폴백(Unlit) 경로 — 틴트로 색 반영
+            }
             if (_rend != null) _rend.enabled = true;
         }
 

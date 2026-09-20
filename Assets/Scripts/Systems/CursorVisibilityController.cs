@@ -52,6 +52,8 @@ namespace ProjectName.Systems
             Cursor.lockState = CursorLockMode.None;
         }
 
+        private bool _diagLogged;
+
         private void Update()
         {
             bool ctrlHeld = Keyboard.current != null &&
@@ -61,6 +63,13 @@ namespace ProjectName.Systems
 
             bool show = ctrlHeld || !Application.isFocused;
             Apply(show);
+
+            // [P20-2 진단] Ctrl 첫 홀드 1회 — OS 커서 표시 상태 실측(침묵 실패 제거)
+            if (!_diagLogged && ctrlHeld)
+            {
+                _diagLogged = true;
+                Debug.Log($"[CursorVisibility][P20-2] Ctrl 홀드 — Cursor.visible={Cursor.visible}, lockState={Cursor.lockState}, icon={ContextCursorSystem.Instance != null}");
+            }
         }
 
         private void Apply(bool show)

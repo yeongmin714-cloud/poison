@@ -53,15 +53,12 @@ namespace ProjectName.Systems
                 _ringShaderChecked = true;
                 _ringShader = Shader.Find("Custom/SelectionRing");
             }
-            _usingRing = _ringShader != null;
-
-            // 링 셰이더 실패 시에만 폴백 프리팹 로드
-            if (!_usingRing && _auraPrefab == null)
-            {
-                _auraPrefab = Resources.Load<GameObject>("FX/Selection/EarthTrail")
-                              ?? Resources.Load<GameObject>("FX/Selection/MagicCircle2")
-                              ?? Resources.Load<GameObject>("FX/Selection/Buff");
-            }
+            // [P20-3 수리] 링 경로 강제 — SelectionRingController가 셰이더/절차 텍스처 폴백으로
+            //   완전한 원을 보장하므로 EarthTrail(TrailRenderer 반원 호) 폴백은 제거한다.
+            _usingRing = true;
+            _auraPrefab = null;
+            if (_ringShader == null)
+                Debug.Log("[GuardSelectionManager][P20-3] SelectionRing 셰이더 미발견 — 절차 텍스처 폴백 링 사용");
 
             var toRemove = new List<GuardPlaceholder>();
             foreach (var kv in _selectionAuras)
@@ -296,9 +293,8 @@ namespace ProjectName.Systems
             if (_isDragging)
                 DrawSelectionBoxGUI();
 
-            // SC2식 링 활성 시 레거시 IMGUI 파란 원은 생략(폴백 때는 유지)
-            if (!_usingRing)
-                DrawSelectionIndicators();
+            // [P20-3 수리] IMGUI 파란 원은 항상 생략 — SelectionRing(셰이더/절차 폴백)이
+            //   완전한 원을 보장하므로 이중 표시(원형 동그라미 잔존)를 원천 제거.
         }
 
         // ===== 선택 표시 (파란색 원) =====

@@ -167,54 +167,66 @@ namespace ProjectName.UI
             SceneManager.sceneLoaded -= OnIndoorSceneLoaded;
 
             string buildingType = _pendingBuildingType ?? string.Empty;
-
+            Debug.Log($"[IndoorSceneTransition][P20-6] 빌더 시작 — buildingType='{buildingType}'");   // 진단: type 누락 즉별
 
             // IndoorScene을 활성 씬으로 설정
             SceneManager.SetActiveScene(scene);
 
-            // buildingType에 따라 적절한 Builder 호출
-            switch (buildingType.ToLower())
+            // [P20-6] 빌더 반환 Room을 직접 전달 — GameObject.Find 실패 변수 제거 + 예외 격리
+            GameObject hqRoom = null;
+            try
             {
-                case "crafthouse":
-                    CraftHouseInteriorBuilder.BuildCraftHouseInterior();
-                    break;
-                case "church":
-                    ChurchInteriorBuilder.BuildChurchInterior();
-                    break;
-                case "house":
-                case "npchouse":
-                    HouseInteriorBuilder.BuildHouseInterior();
-                    break;
-                case "castle":
-                    string nation = _pendingNationStyle ?? "Empire";
-                    // INTERIOR-VAR: 영지 키(우선)/nation+소유로 결정론 해시 → 8종 레이아웃 변형.
-                    // 같은 영지 재방문 시 항상 같은 배치(결정론), 다른 영지는 다른 배치.
-                    int layoutVariant = ComputeLayoutVariant(_pendingTerritoryKey, nation, _pendingIsPlayerOwned);
-                    // 소유 상태 분기: 플레이어 소유 성 → PlayerCastleInteriorBuilder, 영주 성 → CastleInteriorBuilder
-                    GameObject interior = _pendingIsPlayerOwned
-                        ? PlayerCastleInteriorBuilder.BuildPlayerCastleInterior(nation, layoutVariant)
-                        : CastleInteriorBuilder.BuildCastleInterior(nation, layoutVariant);
-                    if (interior != null)
-                        TerritoryBuilder.SpawnInteriorFixtures(interior.transform.position, nation);
-                    break;
-                case "barn":
-                    BarnInteriorBuilder.BuildBarnInterior();
-                    break;
-                case "shop":
-                    ShopInteriorBuilder.BuildShopInterior();
-                    break;
-                case "cave":
-                    CaveInteriorBuilder.BuildCaveInterior(_pendingNationStyle ?? "default", 1);
-                    break;
-                default:
-                    Debug.LogWarning($"[IndoorSceneTransition] 알 수 없는 buildingType: '{buildingType}'. 기본 주택 생성.");
-                    HouseInteriorBuilder.BuildHouseInterior();
-                    break;
+                switch (buildingType.ToLower())
+                {
+                    case "crafthouse":
+                        hqRoom = CraftHouseInteriorBuilder.BuildCraftHouseInterior();
+                        break;
+                    case "church":
+                        hqRoom = ChurchInteriorBuilder.BuildChurchInterior();
+                        break;
+                    case "house":
+                    case "npchouse":
+                        hqRoom = HouseInteriorBuilder.BuildHouseInterior();
+                        break;
+                    case "castle":
+                        string nation = _pendingNationStyle ?? "Empire";
+                        // INTERIOR-VAR: 영지 키(우선)/nation+소유로 결정론 해시 → 8종 레이아웃 변형.
+                        int layoutVariant = ComputeLayoutVariant(_pendingTerritoryKey, nation, _pendingIsPlayerOwned);
+                        // 소유 상태 분기: 플레이어 소유 성 → PlayerCastleInteriorBuilder, 영주 성 → CastleInteriorBuilder
+                        hqRoom = _pendingIsPlayerOwned
+                            ? PlayerCastleInteriorBuilder.BuildPlayerCastleInterior(nation, layoutVariant)
+                            : CastleInteriorBuilder.BuildCastleInterior(nation, layoutVariant);
+                        if (hqRoom != null)
+                            TerritoryBuilder.SpawnInteriorFixtures(hqRoom.transform.position, nation);
+                        break;
+                    case "barn":
+                        BarnInteriorBuilder.BuildBarnInterior();          // void 반환 — Room 탐색 폴백
+                        hqRoom = GameObject.Find("Room");
+                        break;
+                    case "shop":
+                        hqRoom = ShopInteriorBuilder.BuildShopInterior();
+                        break;
+                    case "cave":
+                        hqRoom = CaveInteriorBuilder.BuildCaveInterior(_pendingNationStyle ?? "default", 1);
+                        break;
+                    default:
+                        Debug.LogWarning($"[IndoorSceneTransition] 알 수 없는 buildingType: '{buildingType}'. 기본 주택 생성.");
+                        hqRoom = HouseInteriorBuilder.BuildHouseInterior();
+                        break;
+                }
+                Debug.Log($"[IndoorSceneTransition][P20-6] 빌더 완료 — Room={(hqRoom != null ? hqRoom.name : "NULL")}");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[IndoorSceneTransition][P20-6] 빌더 예외 — buildingType='{buildingType}': {e}");
             }
 
-            // [P17-D] 고품질 실내 표면 적용 — 제공 심리스 텍스처(Resources/Indoor/) 있으면
-            //   바닥/벽(석재+회반죽 투톤)/짚단 데칼/웜 조명으로 교체. 없으면 절차 생성 유지(폴백).
-            ApplyHighQualityInterior();
+            // [P17-D] 고품질 실내 표면 적용 — Room을 빌더 반환값으로 직접 전달(파일 없으면 폴백 유지)
+            ApplyHighQualityInterior(hqRoom);
+
+            // [P20-6] Room 최종 실패 시에만 셸 폴백 — 성공 시 셸이 설계 실내를 덮지 않게 순서 보존
+            if (hqRoom == null && GameObject.Find("MedievalShell") == null)
+                ProjectName.Systems.MedievalShellBuilder.CreateShell();
 
             // 플레이어를 내부 원점으로 이동(카메라는 플레이어 추적 유지) — builders는 원점 부근에 내부 생성
             var indoorPlayer = GameObject.FindGameObjectWithTag("Player");
@@ -239,10 +251,6 @@ namespace ProjectName.UI
                 var runnerGO = new GameObject("IndoorEnterRunner");
                 runnerGO.AddComponent<IndoorEnterRunner>().Init(scene);
             }
-
-            // 2026-09-09(5차→6차 FIX): 셸은 씬에 상주하지만 구버전 씬/에디터 메모리 상태 대비 런타임 폴백 생성
-            if (GameObject.Find("MedievalShell") == null)
-                ProjectName.Systems.MedievalShellBuilder.CreateShell();
 
             // 2026-09-09(6차 FIX): IndoorCamera가 존재할 때만 메인 카메라 비활성 — 없으면 메인 카메라(플레이어 추적) 유지
             var mainCamGO = GameObject.FindGameObjectWithTag("MainCamera");
@@ -433,14 +441,14 @@ namespace ProjectName.UI
         }
 
         /// <summary>[P17-D] 실내 고품질 표면 적용 — Room 탐색 → 머티리얼 교체 + 짚단 데칼 + 웜 조명.</summary>
-        private static void ApplyHighQualityInterior()
+        private static void ApplyHighQualityInterior(GameObject room)
         {
             if (!ProjectName.Core.IndoorTextureLoader.HasFiles) return;
 
-            var room = GameObject.Find("Room");
             if (room == null)
             {
-                Debug.LogWarning("[IndoorSceneTransition] HQ 적용 실패 — Room 없음");
+                // [P20-6] 빌더 실패 확정 — 셸 폴백은 ExitBuilding 직전 단계에서만 생성(위에서 처리)
+                Debug.LogError("[IndoorSceneTransition][P20-6] HQ 미적용 — 빌더 Room NULL (buildingType/빌더 로그 확인)");
                 return;
             }
 

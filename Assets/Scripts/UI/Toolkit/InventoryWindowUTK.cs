@@ -213,19 +213,15 @@ namespace ProjectName.UI.Toolkit
                 string label = pair.Item1;
                 var slot = pair.Item2;
 
+                // [P20-5 수리] 슬롯 옆 텍스트(부위명/아이템명) 전면 제거 — "장비창엔 슬롯만".
+                //   아이템 설명은 슬롯 호버/클릭 시 중앙 설명창(P20-1 수리본)이 담당.
                 var row = new VisualElement();
                 row.style.flexDirection = FlexDirection.Row;
                 row.style.alignItems = Align.Center;
+                row.style.justifyContent = Justify.Center;
                 row.style.marginBottom = 4f;
                 _equipPanel.Add(row);
 
-                var name = new Label(label);
-                name.style.width = 40f;
-                name.style.fontSize = 13f;
-                name.style.color = new StyleColor(UTKColor.TextSecondary);
-                row.Add(name);
-
-                // [P16-2] 장비 슬롯 — 아이콘(UTKSlot) 표시 + 등급 테두리. 라벨은 아이콘 옆 보조.
                 var equipSlot = new UTKSlot();
                 equipSlot.name = "EquipSlot_" + label;
                 equipSlot.style.width = 44f;
@@ -234,14 +230,6 @@ namespace ProjectName.UI.Toolkit
                 equipSlot.SetRank("common");
                 row.Add(equipSlot);
                 _equipSlotIcons[slot.ToString()] = equipSlot;
-
-                var value = new Label("—");
-                value.style.fontSize = 13f;
-                value.style.color = new StyleColor(UTKColor.TextPrimary);
-                value.style.flexGrow = 1f;
-                value.style.whiteSpace = WhiteSpace.Normal;
-                row.Add(value);
-                _equipSlotLabels[slot.ToString()] = value;
 
                 // 우클릭 = 해제 (원본 TryRenderEmbedded 관례 — EquipmentManager.UnequipSlot)
                 row.RegisterCallback<PointerDownEvent>(evt =>
@@ -260,21 +248,18 @@ namespace ProjectName.UI.Toolkit
         {
             var em = EquipmentManager.Instance ?? EquipmentManager.Get();
             if (em == null || _equipPanel == null) return;
-            foreach (var kv in _equipSlotLabels)
+            foreach (var kv in _equipSlotIcons)
             {
                 var data = em.GetSlotData((EquipmentManager.EquipmentSlot)System.Enum.Parse(typeof(EquipmentManager.EquipmentSlot), kv.Key));
-                string displayName = "—";
                 PlayerInventory.ItemData itemData = null;
                 if (data != null && !string.IsNullOrEmpty(data.itemId))
                 {
                     itemData = PlayerInventory.GetItemById(data.itemId);
-                    displayName = itemData != null && !string.IsNullOrEmpty(itemData.displayName)
-                        ? itemData.displayName : data.itemId;
                 }
-                kv.Value.text = displayName;
 
-                // [P16-2] 아이콘+등급 테두리 갱신 — 빈 슬롯은 아이콘 제거
-                if (_equipSlotIcons.TryGetValue(kv.Key, out var iconSlot) && iconSlot != null)
+                // [P20-5] 아이콘+등급 테두리 갱신 — 빈 슬롯은 아이콘 제거(텍스트 라벨 제거됨)
+                var iconSlot = kv.Value;
+                if (iconSlot != null)
                 {
                     if (itemData != null)
                     {
