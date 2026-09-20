@@ -826,3 +826,9 @@
 - Details: 실측 — 낚시(FishingSystem 미니게임+물고기)/탈것(MountSystem) 기존 구현 완성 확인, 잔여 = 허기 신규. HungerSystem(싱글톤) — 허기 0~100, 인게임 1h당 -4, 페널티(<30 자연재생 정지 — HUNGER.md 벤치 "쇠약 시 회복 정지" 일치 / <50 이속 0.85 / <20 0.7), Eat/ForceSet, PlayerPrefs 저장, HungerChanged 이벤트. NaturalRegenSystem 허기 게이트 1줄. MountSystem 축사 보너스 API(StableSpeedBonus ×1.1 — O8 stable 연계, 에이전트 선구현 발견 → 부모 중복 제거). StatusWindowUTK 허기 게이지(BuildGaugeRow 패턴). 부트스트랩.
 - Tests: HungerTests 14개 (클램프/페널티 경계/라운드트립/이벤트/TimeManager 부재 안전) → EditMode 266/266
 - Date: 2026-09-20
+
+# Cycle: C-O9-01/02/03 — Phase O9: 🗣️ LLM NPC
+- Status: ✅ (C-O9-04 UI 폴링 개선은 Play 판정 통합 대기)
+- Details: 무료 모델 실측 선정 — ling-3.0-flash-sante:free(주, 2.3s)/fin:free(백업, 1.2s), 한국어 페르소나 우수(reasoning형 deepseek/glm free는 content 공백 — 사용 금지 주석). LLMConfig 로더(git 제외 llm_config.json — 키 하드코딩 금지 규약). NPCDialogueAdapter — 이중 경로(설정됨+한도 잔여+정상응답 → LLM / 그 외 전부 규칙 폴백), 데일리 한도 200(PlayerPrefs 날짜키), 동시 1개(isBusy), backupModel 1회 재시도, ExtractContent/FallbackReply 순수 메서드. 영주 프롬프트 템플릿 — 국가/링/성격/지병/입맛/LordStat 6속성+guard/HeroicTale 성취사 주입 + 규칙(영주 말투/2~4문장/지병·입맛은 물어야 암시/거짓 금지). LordAudienceUTK 배선(대면창 열림→RequestDialogue, 미설정 0 변경, 구독 쌍). 부트스트랩.
+- Tests: LLMNpcTests 14개 (프롬프트 결정론/한도/파싱/폴백/설정로더 — 네트워크 실호출은 Play) → EditMode 280/280
+- Date: 2026-09-20
