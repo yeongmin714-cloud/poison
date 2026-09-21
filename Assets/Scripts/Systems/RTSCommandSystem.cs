@@ -30,6 +30,9 @@ namespace ProjectName.Systems
         private static readonly ReadOnlyCollection<GuardPlaceholder> _emptySelected =
             new List<GuardPlaceholder>().AsReadOnly();
 
+        // [P26] 활성 이동 명령 지속 마커 — 소유 병사 도착/취소/사망 시 자동 소멸 추적용
+        private readonly List<CommandMarker> _activeMoveMarks = new List<CommandMarker>();
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -62,15 +65,25 @@ namespace ProjectName.Systems
         /// </summary>
         public void IssueRightClickCommand(Vector3 mousePosition, bool ctrl = false)
         {
-            // [P20-7 진단] 우클릭 수신 자체 추적 — 침묵 실패(카메라 null/미선택) 즉별
-            var sel = GetSelectedGuards();
-            Debug.Log($"[RTSCommandSystem][P20-7] 우클릭 수신 — selected={sel?.Count ?? 0}, ctrl={ctrl}, mouse={mousePosition}");
-            if (_mainCamera == null) { Debug.LogWarning("[RTSCommandSystem][P20-7] 카메라 null — 명령 불가"); return; }
-
-            var selected = GetSelectedGuards();
+            // [P26] Ctrl+우클릭 미선택 폴백: 선택 병사가 없으면 전체 소속(포섭) 병사로 일괄 이동/공격.
+            //   비Ctrl 우클릭은 선택 필수 유지(기존 확산 형성 이동) — 사용자 요구 "Ctrl+우클릭=이동" 정확 반영.
+            var originalSel = GetSelectedGuards();
+            IReadOnlyList<GuardPlaceholder> selected = originalSel;
             if (selected == null || selected.Count == 0)
             {
-                Debug.Log("[RTSCommandSystem] 선택된 병사가 없어 명령 무시");
+                if (!ctrl)
+                {
+                    Debug.Log("[RTSCommandSystem] 선택된 병사 없음 — Ctrl+우클릭은 소속 병사 일괄 이동, 일반 우클릭은 병사 선택 후");
+                    return;
+                }
+                selected = GetFallbackGuards();
+            }
+            Debug.Log($"[RTSCommandSystem][P26] 우클릭 수신 — selected={selected?.Count ?? 0}(원선택 {originalSel?.Count ?? 0}) ctrl={ctrl} mouse={mousePosition}");
+            if (_mainCamera == null) { Debug.LogWarning("[RTSCommandSystem][P20-7] 카메라 null — 명령 불가"); return; }
+
+            if (selected == null || selected.Count == 0)
+            {
+                Debug.Log("[RTSCommandSystem] 명령 내릴 병사 없음 (선택 & 소속 병사 모두 없음)");
                 return;
             }
 
@@ -81,34 +94,19 @@ namespace ProjectName.Systems
                 return;
             }
 
-            // [P20-7 요구] 우클릭 지점 표시 링 — 이동/공격 겸용, 1.5초 페이드+축소
-            CommandMarker.Spawn(hit.point);
-
             // 적 대상 확인 (IDamageable)
             IDamageable target = hit.collider.GetComponent<IDamageable>();
             if (target != null && target.IsAlive)
             {
-                // 공격 명령 — selected 목록을 전달하여 중복 호출 방지
-                if (ctrl)
-                {
-                    IssueSynchronizedAttackCommand(selected, target, hit.point);
-                }
-                else
-                {
-                    IssueAttackCommand(selected, target, hit.point);
-                }
+                // 공격 명령 — 페이드 마커(즉시), selected 전달(중복 호출 방지)
+                if (ctrl) IssueSynchronizedAttackCommand(selected, target, hit.point);
+                else IssueAttackCommand(selected, target, hit.point);
             }
             else
             {
-                // 이동 명령 — selected 목록을 전달하여 중복 호출 방지
-                if (ctrl)
-                {
-                    IssueSynchronizedMoveCommand(selected, hit.point);
-                }
-                else
-                {
-                    IssueMoveCommand(selected, hit.point);
-                }
+                // 이동 명령 — 지속 지면 원형 링(도착까지), selected 전달
+                if (ctrl) IssueSynchronizedMoveCommand(selected, hit.point);
+                else IssueMoveCommand(selected, hit.point);
             }
         }
 
@@ -118,6 +116,7 @@ namespace ProjectName.Systems
         public void StopAllSelectedGuards()
         {
             var selected = GetSelectedGuards();
+            ClearActiveMoveMarks();   // [P26] H키 중단 — 지속 이동 마커 제거
             if (selected == null || selected.Count == 0)
             {
                 Debug.Log("[RTSCommandSystem] 정지할 병사 없음");
@@ -161,6 +160,7 @@ namespace ProjectName.Systems
                     count++;
                 }
             }
+            CommandMarker.Spawn(attackPos);   // [P26] 공격 지점 페이드 마커
             Debug.Log($"[RTSCommandSystem] {count}명 공격 명령 → {attackPos}");
         }
 
@@ -182,6 +182,7 @@ namespace ProjectName.Systems
                     count++;
                 }
             }
+            CommandMarker.Spawn(attackPos);   // [P26] 공격 지점 페이드 마커
             Debug.Log($"[RTSCommandSystem] {count}명 일제 공격 명령 → {attackPos}");
         }
 
@@ -201,11 +202,13 @@ namespace ProjectName.Systems
             Vector3[] spread = FormationSpread.Distribute(position, aliveCount);
 
             int count = 0;
+            ClearActiveMoveMarks();   // [P26] 새 이동 명령 → 기존 지속 마커 정리
             foreach (var guard in selected)
             {
                 if (guard != null && guard.IsAlive)
                 {
                     guard.SetCommandTarget(spread[count], false);
+                    TrackMoveMark(guard, spread[count]);   // [P26] 병사별 도착까지 지속 링
                     count++;
                 }
             }
@@ -218,15 +221,59 @@ namespace ProjectName.Systems
         private void IssueSynchronizedMoveCommand(IReadOnlyList<GuardPlaceholder> selected, Vector3 position)
         {
             int count = 0;
+            ClearActiveMoveMarks();   // [P26] 새 이동 명령 → 기존 지속 마커 정리
             foreach (var guard in selected)
             {
                 if (guard != null && guard.IsAlive)
                 {
                     guard.SetCommandTarget(position, false);
+                    TrackMoveMark(guard, position);   // [P26] 동일 지점 — 전원 도착까지 링 잔존
                     count++;
                 }
             }
             Debug.Log($"[RTSCommandSystem] {count}명 일제 이동 명령 → {position}");
+        }
+
+        // ===== [P26] 지속 이동 마커 관리 =====
+
+        /// <summary>
+        /// 미선택 폴백 — 선택 병사가 없으면 전체 소속(포섭) 병사 목록 반환(선택 필터와 동일 기준).
+        /// </summary>
+        private IReadOnlyList<GuardPlaceholder> GetFallbackGuards()
+        {
+            var all = new List<GuardPlaceholder>();
+            foreach (var g in FindObjectsByType<GuardPlaceholder>())
+            {
+                if (g.IsAlive && (g.IsRecruited || g.gameObject.CompareTag("RecruitedSoldier")))
+                    all.Add(g);
+            }
+            return all.AsReadOnly();
+        }
+
+        /// <summary>병사별 목표 지점에 지속 원형 링 표시(도착/취소/사망 시 자동 소멸).</summary>
+        private void TrackMoveMark(GuardPlaceholder guard, Vector3 targetPos)
+        {
+            var mark = CommandMarker.Spawn(targetPos, null, guard);   // persistent
+            if (mark != null) _activeMoveMarks.Add(mark);
+        }
+
+        /// <summary>모든 활성 지속 마커 제거.</summary>
+        private void ClearActiveMoveMarks()
+        {
+            foreach (var m in _activeMoveMarks)
+                if (m != null && m.gameObject != null) Object.Destroy(m.gameObject);
+            _activeMoveMarks.Clear();
+        }
+
+        private void Update()
+        {
+            // [P26] 소유 병사 도착/취소/사망으로 자동 소멸된 마커를 추적 리스트에서 제거
+            for (int i = _activeMoveMarks.Count - 1; i >= 0; i--)
+            {
+                var m = _activeMoveMarks[i];
+                if (m == null || m.gameObject == null || !m.gameObject.activeInHierarchy)
+                    _activeMoveMarks.RemoveAt(i);
+            }
         }
 
         // ===== 유틸리티 =====

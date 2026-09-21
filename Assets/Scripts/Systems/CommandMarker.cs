@@ -3,8 +3,11 @@ using UnityEngine;
 namespace ProjectName.Systems
 {
     /// <summary>
-    /// P20-7 — 우클릭 명령 지점 표시 링. SelectionRing 셰이더 우선, 없으면 절차 링 텍스처.
-    /// 1.5초간 축소+페이드 후 소멸. 지면 0.03 위(짚단 데칼 위).
+    /// P20-7 + P26 — 우클릭 명령 지점 표시.
+    /// - 이동 명령(비공격): **지속형 고품질 지면 원형 링**(MoveTargetRing 베이크 PNG, 골드).
+    ///   소유 병사가 목적지 도착/명령 취소(H)/사망할 때까지 잔존, 미세 펄스로 활성감.
+    /// - 공격 명령: 기존 페이드형 링(SelectionRing 셰이더 우선, 절차 링 폴백) 1.5s 축소+페이드.
+    /// Quad 바닥, 지면 위 0.03 (짚단 데칼 위).
     /// </summary>
     public class CommandMarker : MonoBehaviour
     {
@@ -12,9 +15,16 @@ namespace ProjectName.Systems
         private float _elapsed;
         private Vector3 _startScale;
         private Renderer _rend;
-        private Color _baseColor = new Color(1f, 0.82f, 0.35f);
+        private Color _baseColor = new Color(1f, 0.82f, 0.35f);   // 골드 (팀색)
+        private bool _persistent;        // 이동 명령 지속형 여부
+        /// <summary>지속형 마커의 소유 병사 — 도착/취소/사망 시 마커 소멸.</summary>
+        public GuardPlaceholder owner;
 
-        public static void Spawn(Vector3 position, Color? color = null)
+        /// <summary>
+        /// 명령 지점 표시. color 미지정 시 골드. owner != null이면 **지속형**(도착/취소/사망까지 잔존),
+        /// owner == null이면 기존 1.5s 페이드형(공격 명령용).
+        /// </summary>
+        public static CommandMarker Spawn(Vector3 position, Color? color = null, GuardPlaceholder owner = null)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
             go.name = "CommandMarker";
@@ -22,14 +32,40 @@ namespace ProjectName.Systems
             if (col != null) Destroy(col);
             go.transform.position = new Vector3(position.x, position.y + 0.03f, position.z);
             go.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = Vector3.one * 1.6f;
+            go.transform.localScale = Vector3.one * (owner != null ? 1.9f : 1.6f);
             var marker = go.AddComponent<CommandMarker>();
             if (color.HasValue) marker._baseColor = color.Value;
+            marker._persistent = owner != null;
+            marker.owner = owner;
+            return marker;
         }
 
         private void Start()
         {
             _rend = GetComponent<Renderer>();
+            if (_persistent) SetupPersistent();
+            else SetupFading();
+            _startScale = transform.localScale;
+        }
+
+        /// <summary>지속형 — 베이크 고품질 지면 링 텍스처(MoveTargetRing) + 팀색. 셰이더가 없어도 렌더.</summary>
+        private void SetupPersistent()
+        {
+            var tex = Resources.Load<Texture2D>("UI/MoveTargetRing");
+            var unlit = Shader.Find("Universal Render Pipeline/Unlit");
+            var mat = new Material(unlit != null ? unlit : Shader.Find("Sprites/Default"));
+            if (tex != null) mat.mainTexture = tex;
+            mat.color = _baseColor;
+            mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            mat.renderQueue = 3000;
+            if (_rend != null) _rend.sharedMaterial = mat;
+        }
+
+        /// <summary>페이드형 — SelectionRing 셰이더 우선, 없으면 절차 링 텍스처(공격 명령).</summary>
+        private void SetupFading()
+        {
             var shader = Shader.Find("Custom/SelectionRing");
             Material mat;
             if (shader != null)
@@ -53,12 +89,26 @@ namespace ProjectName.Systems
                 mat.renderQueue = 3000;
             }
             if (_rend != null) _rend.sharedMaterial = mat;
-            _startScale = transform.localScale;
         }
 
         private void Update()
         {
             _elapsed += Time.deltaTime;
+
+            if (_persistent)
+            {
+                // 지속형 — 소유 병사가 도착(명령 해제)/취소/사망하면 소멸. 도착 전엔 미세 펄스로 활성감.
+                if (owner == null || !owner.IsAlive || !owner.HasCommand)
+                {
+                    Destroy(gameObject);
+                    return;
+                }
+                float pulse = 1f + 0.06f * Mathf.Sin(_elapsed * 2.6f);
+                transform.localScale = _startScale * pulse;
+                return;
+            }
+
+            // 페이드형 — 1.5s 축소+페이드 후 소멸 (기존 공격 명령).
             float t = Mathf.Clamp01(_elapsed / _life);
             transform.localScale = _startScale * (1f - 0.45f * t);
             if (_rend != null)

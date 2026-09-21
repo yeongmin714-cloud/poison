@@ -269,8 +269,9 @@ namespace ProjectName.Systems
                 // 단순 클릭은 무시 (좌클릭은 공격용)
             }
 
-            // 우클릭 명령 (RTSCommandSystem에 위임)
-            if (Mouse.current.rightButton.wasPressedThisFrame && _selectedGuards.Count > 0)
+            // 우클릭 명령 (RTSCommandSystem에 위임) — [P26] 선택 유무와 무관 전달. 미선택 Ctrl+우클릭은
+            // RTSCommandSystem 내부에서 전체 소속 병사로 폴백(일괄 이동). 비Ctrl 미선택은 무시됨.
+            if (Mouse.current.rightButton.wasPressedThisFrame)
             {
                 bool ctrlHeld = Keyboard.current != null &&
                     (Keyboard.current.ctrlKey.isPressed || Keyboard.current.leftCtrlKey.isPressed || Keyboard.current.rightCtrlKey.isPressed);
