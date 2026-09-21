@@ -26,6 +26,9 @@ namespace ProjectName.UI.Toolkit
     /// </summary>
     public class ShopWindowUTK : UTKWindowBase
     {
+        // [P30-D] 밀매 탭 포함 3-way 탭 상태
+        private enum ShopTab { Buy, Sell, Smuggle }
+
         // ===== 상점 아이템 데이터 (원본 ShopWindow.ShopItem 구조 대응) =====
         [System.Serializable]
         public class ShopItem
@@ -39,6 +42,16 @@ namespace ProjectName.UI.Toolkit
         // ===== C9-27: 씨앗 랜덤 재고 (원본과 동일 확률 상수) =====
         private const float SEED_STOCK_CHANCE = 0.65f;
         private const float SEED_SILVER_CHANCE = 0.35f;
+
+        // ===== P30-D: 밀매 상수 =====
+        /// <summary>밀매 희귀도 가중 — 최종가 = 기준가 × (1 + rarity × 0.25) × SmuggleGainMultiplier. 희귀도 높을수록 비싸다.</summary>
+        public const float SMUGGLE_RARITY_WEIGHT_PER_LEVEL = 0.25f;
+        /// <summary>거래소 기준가 산출 불가 시 폴백 기준가 = 20 + rarity × 40.</summary>
+        public const int SMUGGLE_BASE_FALLBACK = 20;
+        public const int SMUGGLE_BASE_FALLBACK_PER_RARITY = 40;
+
+        /// <summary>밀매 대상 영지 — Open(Vector3?) 시 상점/플레이어 위치로 ResolveTerritoryAt 판별. null = 영지 밖.</summary>
+        private TerritoryId? _smuggleTerritoryId;
 
         private static readonly (PlayerInventory.ItemData item, bool rare)[] CommonSeeds =
         {
@@ -55,10 +68,13 @@ namespace ProjectName.UI.Toolkit
         private readonly Label _goldLabel;
         private readonly Button _tabBuy;
         private readonly Button _tabSell;
+        private readonly Button _tabSmuggle;    // [P30-D] 밀매 탭 — 적 영지에서만 활성
         private readonly VisualElement _buyPanel;
         private readonly VisualElement _sellPanel;
+        private readonly VisualElement _smugglePanel;   // [P30-D]
         private readonly ScrollView _buyScroll;
         private readonly ScrollView _sellScroll;
+        private readonly ScrollView _smuggleScroll;     // [P30-D]
         private readonly Label _statusLabel;
 
         // 선택 상태
@@ -86,12 +102,15 @@ namespace ProjectName.UI.Toolkit
             tabRow.style.marginBottom = 6f;
             Content.Add(tabRow);
 
-            _tabBuy = UTKButton.Create("구매", () => SwitchTab(true), UTKButton.Variant.Primary);
-            _tabSell = UTKButton.Create("판매", () => SwitchTab(false), UTKButton.Variant.Secondary);
+            _tabBuy = UTKButton.Create("구매", () => SwitchTab(ShopTab.Buy), UTKButton.Variant.Primary);
+            _tabSell = UTKButton.Create("판매", () => SwitchTab(ShopTab.Sell), UTKButton.Variant.Secondary);
+            _tabSmuggle = UTKButton.Create("💊 밀매", () => SwitchTab(ShopTab.Smuggle), UTKButton.Variant.Danger);   // [P30-D]
             _tabBuy.style.flexGrow = 1f;
             _tabSell.style.flexGrow = 1f;
+            _tabSmuggle.style.flexGrow = 1f;
             tabRow.Add(_tabBuy);
             tabRow.Add(_tabSell);
+            tabRow.Add(_tabSmuggle);
 
             // ── 구매 패널 ──
             _buyPanel = new VisualElement();
@@ -109,6 +128,14 @@ namespace ProjectName.UI.Toolkit
             _sellPanel.Add(_sellScroll);
             Content.Add(_sellPanel);
 
+            // ── [P30-D] 밀매 패널 — 적 영지 상점 NPC에서 Drug 아이템을 비싼 값에 판매 ──
+            _smugglePanel = new VisualElement();
+            _smugglePanel.style.flexGrow = 1f;
+            _smuggleScroll = new ScrollView();
+            _smuggleScroll.style.flexGrow = 1f;
+            _smugglePanel.Add(_smuggleScroll);
+            Content.Add(_smugglePanel);
+
             // ── 상태 라벨 ──
             _statusLabel = new Label("");
             _statusLabel.style.fontSize = 14f;
@@ -117,7 +144,7 @@ namespace ProjectName.UI.Toolkit
             _statusLabel.style.minHeight = 20f;
             Content.Add(_statusLabel);
 
-            SwitchTab(true);
+            SwitchTab(ShopTab.Buy);
         }
 
         // =====================================================================
@@ -128,6 +155,12 @@ namespace ProjectName.UI.Toolkit
 
         public static ShopWindowUTK Open()
         {
+            return Open(null);
+        }
+
+        /// <summary>[P30-D] 상점 창 표시 — 상점 위치(Vector3) 기반으로 밀매 가능 영지 판별.</summary>
+        public static ShopWindowUTK Open(Vector3? shopPosition)
+        {
             var root = UIToolkitBootstrap.UIRoot;
             if (root == null)
             {
@@ -135,8 +168,17 @@ namespace ProjectName.UI.Toolkit
                 return null;
             }
 
+            // 재사용/신규 공통: 밀매 영지 컨텍스트 갱신
+            Vector3? resolvePos = shopPosition;   // null = 플레이어 위치 폴백
+            if (!resolvePos.HasValue)
+            {
+                var player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null) resolvePos = player.transform.position;
+            }
+
             if (Instance != null)
             {
+                Instance._smuggleTerritoryId = ResolveSmuggleTerritory(resolvePos);
                 Instance.Show();
                 Instance.RefreshBuyList();
                 Instance.UpdateGoldDisplay();
@@ -145,6 +187,7 @@ namespace ProjectName.UI.Toolkit
 
             var window = new ShopWindowUTK();
             Instance = window;
+            window._smuggleTerritoryId = ResolveSmuggleTerritory(resolvePos);
             // 우측 3분할 영역 근사 (InventoryWindow.GetContextX 선례) — 화면 폭 대비 60% 지점
             window.style.left = Length.Percent(60f);
             window.style.top = 10f;
@@ -294,19 +337,44 @@ namespace ProjectName.UI.Toolkit
         // =====================================================================
         // 탭/리뷰
         // =====================================================================
-        private void SwitchTab(bool buy)
+        private void SwitchTab(ShopTab tab)
         {
-            _buyPanel.style.display = buy ? DisplayStyle.Flex : DisplayStyle.None;
-            _sellPanel.style.display = buy ? DisplayStyle.None : DisplayStyle.Flex;
+            _buyPanel.style.display = tab == ShopTab.Buy ? DisplayStyle.Flex : DisplayStyle.None;
+            _sellPanel.style.display = tab == ShopTab.Sell ? DisplayStyle.Flex : DisplayStyle.None;
+            _smugglePanel.style.display = tab == ShopTab.Smuggle ? DisplayStyle.Flex : DisplayStyle.None;
+
             _tabBuy.RemoveFromClassList("utk-btn--primary");
             _tabBuy.RemoveFromClassList("utk-btn--secondary");
+            _tabBuy.RemoveFromClassList("utk-btn--danger");
             _tabSell.RemoveFromClassList("utk-btn--primary");
             _tabSell.RemoveFromClassList("utk-btn--secondary");
-            if (buy) { _tabBuy.AddToClassList("utk-btn--primary");   _tabSell.AddToClassList("utk-btn--secondary"); }
-            else     { _tabBuy.AddToClassList("utk-btn--secondary"); _tabSell.AddToClassList("utk-btn--primary"); }
+            _tabSell.RemoveFromClassList("utk-btn--danger");
+            _tabSmuggle.RemoveFromClassList("utk-btn--primary");
+            _tabSmuggle.RemoveFromClassList("utk-btn--secondary");
+            _tabSmuggle.RemoveFromClassList("utk-btn--danger");
+
+            switch (tab)
+            {
+                case ShopTab.Buy:
+                    _tabBuy.AddToClassList("utk-btn--primary");
+                    _tabSell.AddToClassList("utk-btn--secondary");
+                    _tabSmuggle.AddToClassList("utk-btn--danger");
+                    break;
+                case ShopTab.Sell:
+                    _tabBuy.AddToClassList("utk-btn--secondary");
+                    _tabSell.AddToClassList("utk-btn--primary");
+                    _tabSmuggle.AddToClassList("utk-btn--danger");
+                    break;
+                case ShopTab.Smuggle:
+                    _tabBuy.AddToClassList("utk-btn--secondary");
+                    _tabSell.AddToClassList("utk-btn--secondary");
+                    _tabSmuggle.AddToClassList("utk-btn--primary");
+                    break;
+            }
 
             RefreshBuyList();
             RefreshSellList();
+            if (tab == ShopTab.Smuggle) RefreshSmuggleList();
         }
 
         private void RenderInventoryAndRefresh()
@@ -657,6 +725,171 @@ namespace ProjectName.UI.Toolkit
             RefreshBuyList();
             RefreshSellList();
             UpdateGoldDisplay();
+        }
+
+        // =====================================================================
+        // [P30-D] 밀매 — 적 영지 상점 NPC에서 Drug(마약) 아이템을 비싼 값에 판매
+        // =====================================================================
+
+        /// <summary>[P30-D] 상점 위치 기반 밀매 가능 영지 판별 (위치 없으면 플레이어 위치 폴백).</summary>
+        private static TerritoryId? ResolveSmuggleTerritory(Vector3? pos)
+        {
+            if (!pos.HasValue) return null;
+            return TerritoryDatabase.Instance.ResolveTerritoryAt(pos.Value, 80f);
+        }
+
+        /// <summary>[P30-D] 현재 상점이 밀매 가능한 적 영지인지 + 이유 반환.</summary>
+        private bool IsSmuggleAllowed(out string reason)
+        {
+            reason = "";
+            if (!_smuggleTerritoryId.HasValue)
+            {
+                reason = "영지 밖 — 밀매 불가";
+                return false;
+            }
+            var state = TerritoryDatabase.Instance.GetState(_smuggleTerritoryId.Value);
+            if (state == null)
+            {
+                reason = "영지 상태 없음";
+                return false;
+            }
+            if (state.ownership == TerritoryOwnership.PlayerOwned)
+            {
+                reason = "아군 영지 — 밀매 불가";
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>[P30-D] 마약 밀매 가격 — 희귀도(ItemRarity 0~5)↑ → 비싼 값, 화술 스탯(SmuggleGainMultiplier) 반영.</summary>
+        private int CalculateSmugglePrice(PlayerInventory.ItemData item)
+        {
+            if (item == null) return 0;
+
+            int rarity = Mathf.Clamp((int)item.rarity, 0, 5);
+
+            int sellPrice = CalculateSellPrice(item);   // EconomyPricing 위임 (이 파일 헬퍼 — 334행 검증 경로)
+            float basePrice = sellPrice > 0 ? (float)sellPrice : (20f + rarity * 40f);
+
+            float mult = PlayerStats.Instance?.SmuggleGainMultiplier ?? 1f;
+            float weighted = basePrice * (1f + rarity * SMUGGLE_RARITY_WEIGHT_PER_LEVEL) * mult;
+            int price = Mathf.Max(1, Mathf.CeilToInt(weighted));
+            return price;
+        }
+
+        /// <summary>[P30-D] 밀매 탭 목록 — 플레이어 인벤 Drug(마약) 아이템만.</summary>
+        private void RefreshSmuggleList()
+        {
+            _smuggleScroll.Clear();
+
+            string denyReason;
+            if (!IsSmuggleAllowed(out denyReason))
+            {
+                _smuggleScroll.Add(new Label(denyReason) { style = { fontSize = 16f, color = UTKColor.TextSecondary } });
+                _tabSmuggle.SetEnabled(false);
+                return;
+            }
+
+            _tabSmuggle.SetEnabled(true);
+
+            var slots = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetAllSlots() : null;
+            if (slots == null)
+            {
+                _smuggleScroll.Add(new Label("인벤토리를 불러올 수 없습니다.") { style = { fontSize = 16f, color = UTKColor.TextSecondary } });
+                return;
+            }
+
+            bool any = false;
+            foreach (var slot in slots)
+            {
+                if (slot == null || slot.item == null || slot.count <= 0) continue;
+                if (slot.item.category != PlayerInventory.ItemCategory.Drug) continue;   // 마약성 약물만
+                any = true;
+                _smuggleScroll.Add(BuildSmuggleRow(slot));
+            }
+
+            if (!any)
+                _smuggleScroll.Add(new Label("밀매할 마약성 약물이 없습니다.") { style = { fontSize = 16f, color = UTKColor.TextSecondary } });
+        }
+
+        private VisualElement BuildSmuggleRow(PlayerInventory.ItemSlot slot)
+        {
+            var row = new VisualElement();
+            row.style.flexDirection = FlexDirection.Row;
+            row.style.alignItems = Align.Center;
+            row.style.marginBottom = 6f;
+            row.style.paddingTop = 4f;
+            row.style.paddingBottom = 4f;
+            row.style.paddingLeft = 4f;
+            row.style.paddingRight = 4f;
+            row.style.borderTopWidth = 1f;
+            row.style.borderTopColor = UTKColor.IronLine;
+
+            var slotBox = new UTKSlot();
+            slotBox.style.width = 64f;
+            slotBox.style.height = 64f;
+            slotBox.style.marginRight = 8f;
+            slotBox.SetIcon(ItemIconDatabase.GetOrCreateIcon(slot.item));
+            slotBox.SetRank(slot.item.rarity.ToString());
+            slotBox.SetCount(slot.count);
+            row.Add(slotBox);
+
+            var info = new VisualElement();
+            info.style.flexGrow = 1f;
+
+            var nameLabel = new Label(slot.item.displayName);
+            nameLabel.style.fontSize = 18f;
+            nameLabel.style.color = UTKColor.TextPrimary;
+            info.Add(nameLabel);
+
+            int price = CalculateSmugglePrice(slot.item);
+            var priceLabel = new Label($"{slot.item.rarity.ToString()} · 밀매가 {price}G");
+            priceLabel.style.fontSize = 14f;
+            priceLabel.style.color = UTKColor.AccentMagic;
+            info.Add(priceLabel);
+
+            row.Add(info);
+
+            var smuggleBtn = UTKButton.Create("밀매", () => SmuggleSlot(slot), UTKButton.Variant.Danger);
+            smuggleBtn.SetEnabled(price > 0);
+            row.Add(smuggleBtn);
+
+            UTKWindowBase.ApplyUIToolkitFont(row);
+            return row;
+        }
+
+        /// <summary>[P30-D] 밀매 실행 — Drug 제거 → 골드 획득 → 영지 마약 오염도 상승(시간 경과 따라 병사 중독 증가 트리거).</summary>
+        private bool SmuggleSlot(PlayerInventory.ItemSlot slot)
+        {
+            if (slot == null || slot.item == null || PlayerInventory.Instance == null) return false;
+            if (slot.item.category != PlayerInventory.ItemCategory.Drug)
+            {
+                SetStatus("마약성 약물만 밀매할 수 있습니다.");
+                return false;
+            }
+
+            string denyReason;
+            if (!IsSmuggleAllowed(out denyReason))
+            {
+                SetStatus(denyReason);
+                return false;
+            }
+
+            int price = CalculateSmugglePrice(slot.item);
+            bool removed = PlayerInventory.Instance.RemoveItem(slot.item.id, 1);
+            if (!removed)
+            {
+                SetStatus("밀매 실패: 아이템 제거 불가.");
+                return false;
+            }
+
+            PlayerStats.Instance?.AddGold(price, "smuggle");
+            TerritoryDrugSystem.AddDrug(_smuggleTerritoryId.Value, Mathf.Clamp((int)slot.item.rarity, 0, 5));   // 밀매 성공 → 영지 오염↑ → 병사 중독↑
+            Debug.Log($"[ShopWindowUTK] 💊 밀매 성공: {slot.item.displayName}(희귀도 {(int)slot.item.rarity}) → {price}G, 영지 오염 +");
+            SetStatus($"{slot.item.displayName} 밀매 → {price}G (영지 병사 중독 상승)");
+            RefreshBuyListAndGold();
+            RefreshSmuggleList();
+            return true;
         }
 
         // =====================================================================

@@ -162,6 +162,15 @@ namespace ProjectName.Core.Data
             return null;
         }
 
+        /// <summary>
+        /// [P30-D] 등록된 모든 영지 상태 열거 (읽기 전용 뷰 — 참조 공유, TerritoryDrugSystem 전역 오염 진행용).
+        /// foreach 규약 준수 — 순회 중 컬렉션 수정 금지(뷰는 사본 아님).
+        /// </summary>
+        public IEnumerable<TerritoryState> GetAllStates()
+        {
+            return _states.Values;
+        }
+
         /// <summary>[O6 C-O6-02] 소유 변경 발화 — PlayerOwned로 "변경된" 경우에만. 구독자 없으면 무해.</summary>
         public static event System.Action<TerritoryId, TerritoryOwnership> OwnershipChanged;
 

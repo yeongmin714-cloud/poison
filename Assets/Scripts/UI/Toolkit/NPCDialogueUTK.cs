@@ -59,7 +59,7 @@ namespace ProjectName.UI.Toolkit
         private const float WinH = 460f;
         private const long RefreshMs = 400L;
 
-        private enum Mode { Dialogue, QuestList }
+        private enum Mode { Dialogue, QuestList, Info, Gift }
 
         // ===== 상태 =====
         private NPCInstance _currentNPC;
@@ -180,8 +180,13 @@ namespace ProjectName.UI.Toolkit
         private void Refresh()
         {
             _list.Clear();
-            if (_mode == Mode.Dialogue) DrawDialogue();
-            else DrawQuestList();
+            switch (_mode)
+            {
+                case Mode.Dialogue: DrawDialogue(); break;
+                case Mode.QuestList: DrawQuestList(); break;
+                case Mode.Info: DrawInfo(); break;
+                case Mode.Gift: DrawGift(); break;
+            }
         }
 
         private void DrawDialogue()
@@ -198,8 +203,137 @@ namespace ProjectName.UI.Toolkit
             if (_currentNPC.HasQuests)
                 _list.Add(UTKButton.Create("📋 퀘스트 목록 보기", GoToQuestList, UTKButton.Variant.Primary));
 
+            _list.Add(UTKButton.Create("📋 정보보기", GoToInfo, UTKButton.Variant.Secondary));
+            _list.Add(UTKButton.Create("💝 선물주기", GoToGift, UTKButton.Variant.Secondary));
             _list.Add(UTKButton.Create("다음 ▶", Advance, UTKButton.Variant.Secondary));
             _list.Add(UTKButton.Create("닫기 ✕", Close, UTKButton.Variant.Danger));
+        }
+
+        private void GoToInfo()
+        {
+            _mode = Mode.Info;
+            _contentLabel.text = "";
+            Refresh();
+            Debug.Log("[NPCDialogUTK] NPC 정보 표시");
+        }
+
+        private void GoToGift()
+        {
+            _mode = Mode.Gift;
+            _contentLabel.text = "";
+            Refresh();
+            Debug.Log("[NPCDialogUTK] NPC 선물 표시");
+        }
+
+        // ===== P30-D: NPC 정보보기 (중독도·이름) =====
+
+        private void DrawInfo()
+        {
+            _summaryLabel.text = "📋 " + _currentNPC.NpcName + " 정보";
+
+            _list.Add(MakeLabel("이름: " + _currentNPC.NpcName, UTKColor.TextPrimary));
+            if (!string.IsNullOrEmpty(_currentNPC.TerritoryId))
+            {
+                string terrName = TerritoryDatabase.Instance.GetDefinition(_currentNPC.TerritoryId).territoryName;
+                if (string.IsNullOrEmpty(terrName)) terrName = _currentNPC.TerritoryId;
+                _list.Add(MakeLabel("소속 영지: " + terrName, UTKColor.TextSecondary));
+
+                float cont = TerritoryDrugSystem.GetTerritoryContamination(_currentNPC.TerritoryId);
+                float lord = TerritoryDrugSystem.GetLordAddiction(_currentNPC.TerritoryId);
+                _list.Add(MakeLabel(cont > 0f
+                    ? $"💊 마약 중독도: {cont:F0}/100 (영주 {lord:F0}/100)"
+                    : "💊 마약 중독도: 없음", UTKColor.AccentMagic));
+            }
+            else
+            {
+                _list.Add(MakeLabel("(소속 영지 정보 없음)", UTKColor.TextSecondary));
+            }
+
+            _list.Add(UTKButton.Create("← 대화로 돌아가기", () =>
+            {
+                _mode = Mode.Dialogue;
+                _currentLine = _dialogueLines.Count - 1;
+                Refresh();
+            }, UTKButton.Variant.Secondary));
+        }
+
+        // ===== P30-D: NPC 선물주기 (선물→호감도↑, 마약→중독도↑) =====
+
+        private void DrawGift()
+        {
+            _summaryLabel.text = "💝 " + _currentNPC.NpcName + "에게 선물";
+            _contentLabel.text = "선물(음식)은 호감도, 마약은 중독도를 올립니다.";
+
+            var slots = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetAllSlots() : null;
+            if (slots == null)
+            {
+                _list.Add(MakeLabel("(인벤토리 없음)", UTKColor.TextSecondary));
+                return;
+            }
+
+            bool any = false;
+            foreach (var slot in slots)
+            {
+                if (slot == null || slot.item == null || slot.count <= 0) continue;
+                var cat = slot.item.category;
+                if (cat != PlayerInventory.ItemCategory.Food && cat != PlayerInventory.ItemCategory.Drug) continue;
+                any = true;
+                _list.Add(BuildGiftRow(slot));
+            }
+
+            if (!any)
+                _list.Add(MakeLabel("(선물할 음식/마약이 없습니다.)", UTKColor.TextSecondary));
+
+            _list.Add(UTKButton.Create("← 대화로 돌아가기", () =>
+            {
+                _mode = Mode.Dialogue;
+                _currentLine = _dialogueLines.Count - 1;
+                Refresh();
+            }, UTKButton.Variant.Secondary));
+        }
+
+        private VisualElement BuildGiftRow(PlayerInventory.ItemSlot slot)
+        {
+            var row = new VisualElement();
+            row.style.flexDirection = FlexDirection.Row;
+            row.style.alignItems = Align.Center;
+            row.style.marginBottom = 4f;
+
+            bool isDrug = slot.item.category == PlayerInventory.ItemCategory.Drug;
+            var name = MakeLabel((isDrug ? "💊 " : "🍗 ") + slot.item.displayName + " x" + slot.count,
+                isDrug ? UTKColor.AccentMagic : UTKColor.TextPrimary);
+            name.style.flexGrow = 1f;
+            row.Add(name);
+
+            row.Add(UTKButton.Create("선물", () => GiveGift(slot), UTKButton.Variant.Primary));
+            return row;
+        }
+
+        private void GiveGift(PlayerInventory.ItemSlot slot)
+        {
+            if (slot == null || slot.item == null || PlayerInventory.Instance == null) return;
+
+            bool isDrug = slot.item.category == PlayerInventory.ItemCategory.Drug;
+
+            if (!string.IsNullOrEmpty(_currentNPC.TerritoryId))
+            {
+                var state = TerritoryDatabase.Instance.GetState(_currentNPC.TerritoryId);
+                if (isDrug)
+                {
+                    // 마약 → 영지 중독도 상승
+                    TerritoryDrugSystem.AddDrug(_currentNPC.TerritoryId, Mathf.Clamp((int)slot.item.rarity, 0, 5));
+                    Debug.Log("[NPCDialogUTK] 💊 NPC에 마약 선물 — 영지 중독도 상승");
+                }
+                else if (state != null)
+                {
+                    // 선물(음식) → 호감도(영지 충성도) 상승
+                    state.loyaltyToPlayer = Mathf.Clamp(state.loyaltyToPlayer + 5f, 0f, 100f);
+                    Debug.Log("[NPCDialogUTK] 🍗 NPC에 선물 — 호감도(영지 충성도) 상승");
+                }
+            }
+
+            PlayerInventory.Instance.RemoveItem(slot.item.id, 1);
+            Refresh();
         }
 
         private void DrawQuestList()

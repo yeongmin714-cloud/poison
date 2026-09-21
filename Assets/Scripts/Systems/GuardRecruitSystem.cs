@@ -64,6 +64,10 @@ namespace ProjectName.Systems
             if (!guard.IsAlive)
                 return Fail("죽은 병사는 포섭할 수 없습니다.");
 
+            // P30-A: 중독 임계 포섭 — 중독에 절여진 병사(임계 60 초과)는 무조건 포섭 성공
+            if (GuardAddictionSystem.CanForceRecruit(guard.Addiction))
+                return Success($"{guard.GuardName}: 중독에 취해 완전히 넋을 잃었다! 무조건 포섭한다.", "addiction");
+
             float loyalty = guard.Loyalty;
 
             // 자동 포섭 (호감도 100)

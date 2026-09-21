@@ -83,6 +83,7 @@ namespace ProjectName.UI.Toolkit
         private GuardPlaceholder _currentGuard;
         private Label _nameLabel;
         private Label _levelNationLabel;
+        private Label _addictionLabel;   // [P30-B] 중독도 라인 (적병사 중독 현황 표기, 0이면 '중독 없음')
         private readonly Label[] _gearNameLabels = new Label[GearDefs.Length];
         private readonly UTKSlot[] _gearSlotViews = new UTKSlot[GearDefs.Length];
         private Label _hpValueLabel;
@@ -91,6 +92,11 @@ namespace ProjectName.UI.Toolkit
         private readonly Label[] _statValueLabels = new Label[4];   // 공격/방어/최대체력/민첩
         private readonly Label[] _statNoteLabels = new Label[4];
         private Label _buffLabel;
+        private Button _equipBtn;                // [P30-C] 🛠️ 장비 등록 토글 버튼 (UTKButton.Create 반환 — 아군 전용, 적병사 창에서는 숨김)
+        private VisualElement _equipSection;     // [P30-C] 장비 등록 스크롤 섹션 (플레이어 인벤토리 장비 목록)
+        private ScrollView _equipList;
+        private Label _equipEmptyLabel;
+        private bool _equipOpen;
         private IVisualElementScheduledItem _refreshTask;
 
         private GuardInfoUTK() : base("병사 정보", new Vector2(WinW, WinH))
@@ -136,6 +142,11 @@ namespace ProjectName.UI.Toolkit
             _levelNationLabel.style.whiteSpace = WhiteSpace.Normal;
             left.Add(_levelNationLabel);
 
+            // [P30-B] 중독도 라인 — 레벨 라인 아래 1줄 추가(화면 넘침 방지: 라벨 1개 추가분뿐)
+            _addictionLabel = MkLabel("", 13, UTKColor.AccentMagic, TextAnchor.MiddleLeft);
+            _addictionLabel.style.whiteSpace = WhiteSpace.Normal;
+            left.Add(_addictionLabel);
+
             // ── 장착 장비 6슬롯 ──
             var gearHeader = MkLabel("📦 장착 장비", 16, UTKColor.AccentRare, TextAnchor.MiddleLeft);
             gearHeader.style.marginTop = 14f;
@@ -176,6 +187,102 @@ namespace ProjectName.UI.Toolkit
 
                 grid.Add(wrap);
             }
+
+            // [P30-C] 🛠️ 장비 등록 — 아군병사 전용(적병사 창에서는 숨김). 클릭 시 장비 등록 스크롤 섹션 토글.
+            _equipBtn = UTKButton.Create("🛠️ 장비 등록", ToggleEquipSection, UTKButton.Variant.Secondary);
+            _equipBtn.style.height = 34f;
+            _equipBtn.style.marginTop = 6f;
+            _equipBtn.style.display = DisplayStyle.None;   // RefreshDisplay에서 아군일 때만 표시
+            left.Add(_equipBtn);
+
+            _equipSection = new VisualElement();
+            _equipSection.name = "EquipRegisterSection";
+            _equipSection.style.display = DisplayStyle.None;
+            left.Add(_equipSection);
+
+            var equipTitle = MkLabel("플레이어 인벤토리 장비 선택", 12, UTKColor.TextSecondary, TextAnchor.MiddleLeft);
+            equipTitle.style.marginTop = 4f;
+            _equipSection.Add(equipTitle);
+
+            _equipList = new ScrollView(ScrollViewMode.Vertical);
+            _equipList.name = "EquipRegisterList";
+            _equipList.style.height = 132f;
+            _equipList.style.marginTop = 4f;
+            _equipList.style.marginBottom = 4f;
+            _equipSection.Add(_equipList);
+
+            _equipEmptyLabel = MkLabel("장착 가능한 장비가 없습니다.", 12, UTKColor.TextSecondary, TextAnchor.MiddleLeft);
+            _equipSection.Add(_equipEmptyLabel);
+        }
+
+        /// <summary>[P30-C] 장비 등록 섹션 토글 — 열 때마다 플레이어 인벤토리 장비 목록 재구성(멱등).</summary>
+        private void ToggleEquipSection()
+        {
+            var guard = _currentGuard;
+            if (guard == null || !guard.IsAlly) return;   // 적병사 — 등록 금지(토글 무시)
+            _equipOpen = !_equipOpen;
+            _equipSection.style.display = _equipOpen ? DisplayStyle.Flex : DisplayStyle.None;
+            if (_equipOpen) RebuildEquipmentList();
+        }
+
+        /// <summary>
+        /// [P30-C] 플레이어 인벤토리의 장비(무기/갑옷 카테고리) 목록 재구성 — 각 행 = 아이템명 x수량 + [장착] 버튼.
+        /// 투구/신발/장갑/방패는 Armor 카테고리 하위(id 접두사/표시명 분류 — EquipAllyItem 참조).
+        /// </summary>
+        private void RebuildEquipmentList()
+        {
+            _equipList.Clear();
+            bool found = false;
+            var inv = PlayerInventory.Instance;
+            if (inv != null)
+            {
+                var slots = inv.GetAllSlots();
+                foreach (var slot in slots)
+                {
+                    if (slot == null || slot.item == null || slot.count <= 0) continue;
+                    var item = slot.item;
+                    if (item.category != PlayerInventory.ItemCategory.Weapon
+                        && item.category != PlayerInventory.ItemCategory.Armor) continue;
+                    found = true;
+                    _equipList.Add(BuildEquipRow(item, slot.count));
+                }
+            }
+            _equipEmptyLabel.style.display = found ? DisplayStyle.None : DisplayStyle.Flex;
+        }
+
+        private VisualElement BuildEquipRow(PlayerInventory.ItemData item, int count)
+        {
+            var row = new VisualElement();
+            row.name = "EquipRow";
+            row.style.flexDirection = FlexDirection.Row;
+            row.style.alignItems = Align.Center;
+            row.style.height = 34f;
+            row.style.marginBottom = 2f;
+            row.style.marginRight = 6f;
+
+            var name = new Label($"{item.displayName} x{count}");
+            name.style.fontSize = 13f;
+            name.style.color = new StyleColor(UTKColor.TextPrimary);
+            name.style.whiteSpace = WhiteSpace.Normal;
+            name.style.flexGrow = 1f;
+            row.Add(name);
+
+            var equipBtn = UTKButton.Create("장착", () => OnEquipClicked(item), UTKButton.Variant.Primary);
+            equipBtn.style.width = 56f;
+            equipBtn.style.height = 26f;
+            equipBtn.style.flexShrink = 0f;
+            row.Add(equipBtn);
+            return row;
+        }
+
+        /// <summary>[P30-C] [장착] 클릭 — 아군 병사 장비 직접 등록(EquipAllyItem) 후 표시/목록 갱신.</summary>
+        private void OnEquipClicked(PlayerInventory.ItemData item)
+        {
+            var guard = _currentGuard;
+            if (guard == null || !guard.IsAlly) return;
+            guard.EquipAllyItem(item);
+            RefreshDisplay();
+            RebuildEquipmentList();   // 인벤토리 변화(제거/교체 장비 반환) 반영
         }
 
         private void BuildRightZone()
@@ -304,6 +411,9 @@ namespace ProjectName.UI.Toolkit
         {
             if (guard == null) return;
             _currentGuard = guard;
+            // [P30-C] 대상 교체 시 장비 등록 섹션 닫기(멱등 리셋)
+            _equipOpen = false;
+            if (_equipSection != null) _equipSection.style.display = DisplayStyle.None;
             Show();
         }
 
@@ -378,7 +488,23 @@ namespace ProjectName.UI.Toolkit
             string typeStr = GetGuardTypeLabel(guard);
             _nameLabel.text = $"⚔️ {guard.GuardName} {gradeStr} | {typeStr}";
             string nationDisplay = string.IsNullOrEmpty(guard.Nation) ? "" : $" ({guard.Nation})";
-            _levelNationLabel.text = $"Lv.{guard.Level} | {guard.JobTitle}{nationDisplay} | 호감도 {guard.Loyalty:F0}/100";
+            // [P30-B] 호감도 — 수치 + 4단계 등급(호감/보통/경계/위험) 함께 표기
+            _levelNationLabel.text = $"Lv.{guard.Level} | {guard.JobTitle}{nationDisplay} | ⚖️ {GuardLoyaltySystem.GetAffinityGradeName(guard.Loyalty)} {guard.Loyalty:F0}/100";
+
+            // [P30-B] 중독도 표기 — 0이면 '💊 중독 없음', 그 외 단계명(정상/가벼운 의존/중독/...) 포함
+            float addiction = guard.Addiction;
+            _addictionLabel.text = addiction > 0f
+                ? $"💊 중독 {addiction:F0}/100 · {GuardAddictionSystem.GetStageName(GuardAddictionSystem.GetAddictionStage(addiction))}"
+                : "💊 중독 없음";
+
+            // [P30-C] 🛠️ 장비 등록 버튼 — 아군 전용 표시(적병사 창에서는 숨김 + 섹션 강제 닫기)
+            bool ally = guard.IsAlly;
+            _equipBtn.style.display = ally ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!ally && _equipOpen)
+            {
+                _equipOpen = false;
+                _equipSection.style.display = DisplayStyle.None;
+            }
 
             // --- 좌측: 장비 6슬롯 ---
             for (int i = 0; i < GearDefs.Length; i++)

@@ -40,6 +40,20 @@ namespace ProjectName.Systems
         // 최대 중독도 (과다복용 감지를 위해 100 이상 허용)
         public const float MAX_ADDICTION = 999f;
 
+        // ===== P30-A: 중독 임계 포섭 (무조건 포섭 + 호감도 맥스) =====
+        /// <summary>
+        /// 강제 포섭 임계 — 중독도가 이 값을 초과하면(STAGE_2 이상) 무조건 포섭 성공.
+        /// </summary>
+        public static readonly float RECRUIT_FORCE_THRESHOLD = 60f;
+
+        /// <summary>
+        /// 중독 임계 포섭 가능 여부 — 중독도가 RECRUIT_FORCE_THRESHOLD를 초과하면 true.
+        /// </summary>
+        public static bool CanForceRecruit(float addiction)
+        {
+            return addiction > RECRUIT_FORCE_THRESHOLD;
+        }
+
         /// <summary>
         /// 중독 단계 반환 (0~5, 0=정상, 5=과다복용)
         /// </summary>

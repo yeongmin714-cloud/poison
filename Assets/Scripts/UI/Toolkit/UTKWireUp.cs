@@ -70,7 +70,7 @@ namespace ProjectName.UI.Toolkit
             {
                 if (UIToolkitBootstrap.UIRoot != null)
                 {
-                    ShopWindowUTK.Open();
+                    ShopWindowUTK.Open(shop != null ? shop.transform.position : null);
                     Debug.Log("[UTKWire] 상점 → ShopWindowUTK");
                 }
                 else

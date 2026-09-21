@@ -1,8 +1,44 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-21 (P29 완결 — 낚시 배선+크래프트+미니게임 고품질화, 커밋 7918c5cb+6e29fb95)
+> **최종 갱신:** 2026-09-21 (P30 완결 — 적/아군 병사 상호작용 구분 + 마약 밀매 + 영주 중독 포섭, 커밋 <P30>)
 
 ---
+
+## 📌 세션 스냅샷 (2026-09-21 ✅ P30 — 적/아군 병사 상호작용 + 밀매 + 영주 중독 — 커밋 <P30>)
+
+> **입력**: "적병사와 아군 병사 상호작용 구분" (적: 상태보기/대화/뇌물/포섭+중독포섭, 아군: 대화/정보+장비등록/물약·음식버프, 적상점NPC 밀매, NPC 상호작용창, 영주실 문 개폐+영주 중독 연동) + "진행".
+>
+> **핵심 설계**: 영지 단위 '마약 오염도'(drugContamination 0~100) 공유 모델 — 밀매/거래로 오염↑ → 시간 경과(TerritoryManager.Update→ProcessAllContamination)로 병사·영주 중독 상승(희귀도↑=빠름) → 중독 임계(60) 초과 시 무조건 포섭+호감도 맥스 → 영주실 문(오염 50+) 개방. 영주 중독도 = 영지 오염도(GetLordAddiction)로 병사·영주 일치.
+
+### P30-A (Phase 1) 데이터·게임플레이 기반
+- `GuardLoyaltySystem`: `AffinityGrade`(호감/보통/경계/위험 4단계) + `GetBribeCost(level)=30+level*25` + `TryBribe`(아군/골드부족 false).
+- `GuardAddictionSystem`: `RECRUIT_FORCE_THRESHOLD=60` + `CanForceRecruit`. `GuardRecruitSystem.AttemptRecruit` 선두에 중독 임계→무조건 포섭(method="addiction").
+- `GuardPlaceholder`: 중독 포섭 시 `Loyalty=100`, `IsAlly`(포섭=아군), `IsGatekeeper` 필드.
+- `TerritoryData.TerritoryState`: `drugContamination`(0~100). **신규 `TerritoryDrugSystem`**: `AddDrug(영지,희귀도0~5)`(오염+4+희귀*3), `ProcessContamination/ProcessAllContamination`(병사 중독+오염비례), `GetTerritoryContamination/GetLordAddiction`(영주 중독=오염 일치).
+
+### P30-B (Phase 2) 적병사 상호작용
+- `GuardPlaceholder.OnTalk`: 중독 60↑ 중독대사 / 호감4등급별 대사 분기(아군은 기존 유지). `AttemptBribe()` 공개 래퍼 추가.
+- `SoldierInteractUTK`: `RebuildMenuForGuard()` `IsAlly` 2분기 — 적: 말걸기/뇌물(비용표시)/약/포섭/상태보기/닫기. `OnBribeClicked`.
+- `GuardInfoUTK`: 상태보기 — 호감 4단계(`⚖️ 호감 N/100`) + 중독도 라인(`💊 중독 N/100 · 단계`).
+
+### P30-C (Phase 3) 아군병사 상호작용
+- `GuardPlaceholder`: `AllyAttackBuff/Defense/Agility/BuffRemaining`, `ApplyAllyPotion`(PotionBuffData 기반 버프+즉효 회복), `GiveAllyFood`, `EquipAllyItem`(장비 슬롯 setter 경유), `UpdateAllyBuff`(Update 말미), 스탯 통합(ActiveAllyBuff).
+- `SoldierInteractUTK`: 아군 지급 분기(약→버프) + 버프 잔여 표시. `GuardInfoUTK`: 🛠️ 장비 직접 등록 UI(아군만 — 인벤 장비 스크롤+[장착]).
+
+### P30-D (Phase 4) 밀매 + NPC 상호작용
+- `TerritoryDrugSystem`: string 오버로드(AddDrug/GetTerritoryContamination/GetLordAddiction), `ProcessAllContamination`(TerritoryManager.Update 배선).
+- `ShopWindowUTK`: 💊 밀매 탭(적 영지 상점만 활성 — `ResolveTerritoryAt`). Drug만, 가격=`기준가×(1+희귀*0.25)×SmuggleGainMultiplier`, 성공 시 `AddDrug`→병사 중독 상승. `Open(Vector3?)` 추가, UTKWireUp 상점 위치 전달.
+- `NPCDialogueUTK`: 📋 정보보기(이름+소속영지+💊 중독도 = 영지 오염도)+💝 선물주기(선물→영지 loyaltyToPlayer+5, 마약→AddDrug).
+- ⚠️ 교훈: **C# 예약어 `base`를 변수명으로 쓰면 CS1001** — `basePrice`로 명명.
+
+### P30-E (Phase 5) 영주실 문 + 영주 중독 연동
+- **신규 `TerritoryLordDoorSystem`**: `DOOR_OPEN_ADDICTION_THRESHOLD=50`, `UpdateDoors()`(0.5s) — `LockedDoor.IsLocked` 세터로 개폐(Nameplate "🚪 영주 방 (열림/잠김)"), LocationId "lord" 판정. TerritoryManager.Update 배선.
+- **신규 `LordFeedTarget`(영주 Placeholder 훅)+`LordFeedWindowUTK`(영주 음식주기 창)**: E키(문 열림 영지 게이트)→인벤 Food→지급(→영지 충성도+5). Systems→UI 이벤트 브리지 패턴(LockedDoor.OnLockpickRequested 동일). 영주 중독도(영지 오염도) 창에 표시.
+- `LordSurrenderSystem.SpawnLordPlaceholder`에 `LordFeedTarget`+Nameplate 부착.
+
+### P30 검증
+- 전 Phase 배치컴파일 **error CS 0** (Phase별 통과 후 최종 통합 확인). Warnings 4070(프로젝트 기존 베이스라인).
+- 문서: ROADMAP P30 Phase 1~5 ✅ / QAPROGRESS / 영구메모리 / git commit+push.
 
 ## 📌 세션 스냅샷 (2026-09-21 ✅ P29-B — 낚시대 크래프트 + 미니게임 고품질화 — 커밋 6e29fb95)
 

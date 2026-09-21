@@ -159,6 +159,15 @@ namespace ProjectName.Systems
             GameObject lordGo = new GameObject($"[Lord] {lord.lordName}");
             lordGo.transform.position = castlePosition;
 
+            // [P30-E] 영주 음식주기 훅 — 문 개방 영지(중독 임계 이상)에서 E키로 음식주기 창 오픈
+            var lordFeed = lordGo.AddComponent<LordFeedTarget>();
+            lordFeed.TerritoryKey = territoryId.ToString();
+            lordFeed.LordName = lord.lordName;
+
+            // [P30-E] 영주 이름표 — 큐브가 무형/멀어도 식별 가능
+            var lordPlate = lordGo.AddComponent<NameplateDisplay>();
+            lordPlate.DisplayName = $"👑 {lord.lordName}";
+
             // 간단한 시각적 표시를 위한 큐브
             var cubeMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
             if (cubeMesh == null)

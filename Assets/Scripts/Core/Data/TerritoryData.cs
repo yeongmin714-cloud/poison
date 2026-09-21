@@ -179,6 +179,9 @@ namespace ProjectName.Core.Data
         // ===== 야간 전용 영지 (ND-01) =====
         [SerializeField] private bool _isActive = true;               // 낮에 비활성화되는 영지용 (ND-01)
 
+        // ===== P30-A: 마약 오염도 (TerritoryDrugSystem 연동) =====
+        [SerializeField] private float _drugContamination = 0f;       // 0~100, 영지 단위 마약 오염도
+
         public TerritoryId id => _id;
         public TerritoryOwnership ownership { get => _ownership; set => _ownership = value; }
 
@@ -217,6 +220,16 @@ namespace ProjectName.Core.Data
         public int deadGuardCount { get => _deadGuardCount; set => _deadGuardCount = value; }
         public int totalGuardCount { get => _totalGuardCount; set => _totalGuardCount = value; }
         public bool isActive { get => _isActive; set => _isActive = value; }
+
+        /// <summary>
+        /// 영지 단위 마약 오염도 (0~100). setter가 자동으로 0~100 범위로 클램핑합니다.
+        /// TerritoryDrugSystem이 가산하며, 병사/영주 중독 연동의 기준값입니다.
+        /// </summary>
+        public float drugContamination
+        {
+            get => _drugContamination;
+            set => _drugContamination = Mathf.Clamp(value, 0f, 100f);
+        }
 
         // ===== 병사 배치 프로퍼티 (TerritoryDeploymentSystem 연동) =====
         /// <summary>현재 배치 역할 (None/Attack/Defense)</summary>

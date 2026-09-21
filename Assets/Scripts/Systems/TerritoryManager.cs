@@ -95,6 +95,19 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
+        /// [P30-D] 영지 마약 오염 → 병사 중독 지속 진행.
+        /// TerritoryDrugSystem.ProcessAllContamination가 drugContamination > 0 영지의 병사 중독도를
+        /// 오염도 비례로 매 프레임 증가시킨다 (밀매/선물로 오염된 영지는 "성공 순간부터 시간에 따라" 중독 진행).
+        /// </summary>
+        private void Update()
+        {
+            TerritoryDrugSystem.ProcessAllContamination(Time.deltaTime);
+
+            // [P30-E] 영주실 문 개폐 갱신 — 영주 중독도(=영지 오염도) 임계 기반 간격 스캔.
+            TerritoryLordDoorSystem.UpdateDoors();
+        }
+
+        /// <summary>
         /// 영지 초기화 시 NPC를 스폰합니다.
         /// TerritoryNPCSpawner(UI 어셈블리)를 리플렉션으로 호출 (Systems→UI 직접 참조 불가, 순환 참조 방지).
         /// </summary>

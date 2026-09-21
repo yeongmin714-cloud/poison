@@ -38,6 +38,13 @@ namespace ProjectName.Systems
         private float _currentHP;
         private bool _isDead = false;
 
+        // [P30-C] 아군 임시 버프 상태 — 아군병사 물약 지급 시 PotionBuffData 기반으로 적립(가산 중첩),
+        //         UpdateAllyBuff(Time.deltaTime)가 잔여 시간을 경과 감소시키고 0 도달 시 소멸. 적병사는 항상 0.
+        private float _allyAttackBuff;
+        private float _allyDefenseBuff;
+        private float _allyAgilityBuff;
+        private float _allyBuffRemaining;   // 초 단위 잔여. 0이면 버프 없음.
+
         [Header("호감도/중독")]
         [SerializeField] private float _loyalty = 50f;
         [SerializeField] private float _addiction = 0f;
@@ -47,6 +54,10 @@ namespace ProjectName.Systems
 
         [Header("역할 (C9-16)")]
         [SerializeField] private GuardRole _role = GuardRole.Soldier; // 플레이어에게 포섭되었는가
+
+        // ===== P30-A: 문지기 (영지 출입 조건 판정은 Phase5가 수행 — 여기선 필드만) =====
+        [Header("문지기 (P30 — Phase5 판정용)")]
+        [SerializeField] private bool _isGatekeeper = false;
 
         // ===== Phase 34: NPCAwarenessSystem =====
         [Header("Phase 34 — 경계 AI")]
@@ -87,6 +98,9 @@ namespace ProjectName.Systems
             {
                 _awareness = gameObject.AddComponent<NPCAwarenessSystem>();
             }
+
+            // P30-A: 인스펙터 문지기 플래그 → 런타임 프로퍼티 동기화 (출입 판정은 Phase5가 수행)
+            IsGatekeeper = _isGatekeeper;
         }
 
         public void SetGuardInfo(string name, int lvl, NationType nationType)
@@ -170,6 +184,9 @@ namespace ProjectName.Systems
 
             // C9-21: 동행 병사 전투 AI (매 Update 말미 — playerTransform은 캐시된 _playerCache.transform)
             GuardCombatAI.UpdateGuardBehavior(this, player.transform);
+
+            // [P30-C] 아군 임시 버프 경과 감소 — Update 말미 호출(잔여 0 도달 시 버프 소멸)
+            UpdateAllyBuff(Time.deltaTime);
         }
 
         /// <summary>
@@ -252,9 +269,196 @@ namespace ProjectName.Systems
         /// <summary>💊 약 지급 — 기존 GiveItemToGuard 경로 (중독/중독도 규칙 불변).</summary>
         public void GiveDrug(PlayerInventory.ItemData item) { GiveItemToGuard(item); }
 
+        // ===== [P30-C] 아군병사 전용 — 물약/음식 버프 실행 + 장비 직접 등록 (적병사 GiveDrug 중독 경로 불변) =====
+
+        /// <summary>아군 현재 공격 임시 버프 (PotionBuffData 기반 — 물약 지급으로 가산 적립, UpdateAllyBuff로 경과 소멸).</summary>
+        public float AllyAttackBuff => _allyAttackBuff;
+
+        /// <summary>아군 현재 방어 임시 버프.</summary>
+        public float AllyDefenseBuff => _allyDefenseBuff;
+
+        /// <summary>아군 현재 민첩 임시 버프.</summary>
+        public float AllyAgilityBuff => _allyAgilityBuff;
+
+        /// <summary>아군 임시 버프 잔여 시간(초). 0이면 버프 없음.</summary>
+        public float AllyBuffRemaining => _allyBuffRemaining;
+
+        /// <summary>아군 임시 버프 경과 감소 — Update 말미에서 호출. 잔여 0 도달 시 버프 수치도 함께 소멸.</summary>
+        public void UpdateAllyBuff(float deltaTime)
+        {
+            if (_allyBuffRemaining <= 0f) return;
+            _allyBuffRemaining = Mathf.Max(0f, _allyBuffRemaining - deltaTime);
+            if (_allyBuffRemaining <= 0f)
+            {
+                _allyAttackBuff = 0f;
+                _allyDefenseBuff = 0f;
+                _allyAgilityBuff = 0f;
+                _statusMessage = $"{guardName}: 버프 효과가 사라졌다.";
+            }
+        }
+
+        /// <summary>
+        /// [P30-C] 🥩 음식 지급(아군 전용 래퍼) — 기존 GiveItemToGuard(Food=체력회복+호감도) 경로 그대로 유지.
+        /// 음식 버프 = 체력 회복 자체(현행 유지, 과도한 신규 시스템 금지). 리턴 타입만 bool 통일(성공 시 true).
+        /// 적병사면 false 반환 — 적병사 음식은 기존 GiveFood 경로를 그대로 사용(호출부 분기).
+        /// </summary>
+        public bool GiveAllyFood(PlayerInventory.ItemData item)
+        {
+            if (!IsAlly || item == null) return false;
+            var inv = PlayerInventory.Instance;
+            if (inv == null || inv.GetItemCount(item.id) <= 0) return false;
+            int before = inv.GetItemCount(item.id);
+            GiveFood(item);   // 기존 경로(회복+호감도) — 데이터/규칙 불변
+            return inv.GetItemCount(item.id) < before;
+        }
+
+        /// <summary>
+        /// [P30-C] 💊 약 지급(아군 전용 래퍼) — PotionBuffData 버프를 아군에게 실행(가산 중첩, 잔여 시간 가산).
+        /// 아군은 중독 경로(GiveDrug → Drug 케이스)를 타지 않는다 — 적병사 전용 규칙 불변.
+        /// 즉효 물약(buffSeconds=0)은 healFlat/healPercent 즉시 회복. 미등록 id는 기존 소량 회복 폴백.
+        /// 아이템 제거는 본 메서드 내부에서 수행(GiveItemToGuard와 동일 소유 규칙).
+        /// </summary>
+        public void ApplyAllyPotion(PlayerInventory.ItemData item)
+        {
+            if (!IsAlly) { _statusMessage = "아군병사에게만 물약 버프를 줄 수 있습니다."; return; }
+            if (item == null) return;
+            var inv = PlayerInventory.Instance;
+            if (inv == null || !inv.HasItem(item.id)) { _statusMessage = "아이템이 부족합니다."; return; }
+            inv.RemoveItem(item.id);
+
+            if (item.category == PlayerInventory.ItemCategory.Drug)
+            {
+                // 아군에게 마약 — 중독 금지(적병사 전용 규칙). 소량 회복만.
+                _currentHP = Mathf.Min(_maxHP, _currentHP + 10f);
+                GuardLoyaltySystem.GiveGift(this, 30);
+                _statusMessage = $"{guardName}: \"이런 건 좀... 그래도 고맙군.\"";
+                return;
+            }
+
+            if (PotionBuffData.GetBuff(item.id, out PotionBuffEffect eff))
+            {
+                if (eff.buffSeconds > 0f)
+                {
+                    // 버프 가산 중첩(잔여 시간 가산) — UpdateAllyBuff가 경과 소멸 담당
+                    _allyAttackBuff += eff.attackBuff;
+                    _allyDefenseBuff += eff.defenseBuff;
+                    _allyAgilityBuff += eff.agilityBuff;
+                    _allyBuffRemaining += eff.buffSeconds;
+                    if (eff.healFlat > 0f || eff.healPercent > 0f)
+                        _currentHP = Mathf.Min(_maxHP, _currentHP + eff.healFlat + _maxHP * eff.healPercent);
+                    _statusMessage = $"{guardName}: \"몸에 힘이 넘치는군!\" ⚡ 버프 ON ({eff.buffSeconds:0}초)";
+                }
+                else
+                {
+                    // 즉효 물약 — 즉시 회복만 (potion_hp_small/big)
+                    _currentHP = Mathf.Min(_maxHP, _currentHP + eff.healFlat + _maxHP * eff.healPercent);
+                    GuardLoyaltySystem.GiveGift(this, 50);
+                    _statusMessage = $"{guardName}: \"약을 주다니 고맙군!\" ❤️ 호감도 UP";
+                }
+                return;
+            }
+
+            // 미등록 물약 — 기존 GiveItemToGuard.Potion 케이스와 동일 소량 회복 폴백
+            _currentHP = Mathf.Min(_maxHP, _currentHP + 10f);
+            GuardLoyaltySystem.GiveGift(this, 50);
+            _statusMessage = $"{guardName}: \"약을 주다니 고맙군!\" ❤️ 호감도 UP";
+        }
+
+        /// <summary>
+        /// [P30-C] 🛠️ 장비 직접 등록(아군 전용) — 플레이어 인벤토리 장비를 병사 6슬롯(무기/투구/갑옷/신발/장갑/방패)에 장착.
+        /// GuardEquipmentSystem.EquipGuard는 EquipSlot{Weapon,Armor,Accessory,Instrument}만 지원하여
+        /// 6슬롯(WeaponItem 등 자동 프로퍼티 — GuardInfoUTK.GearDefs/GetAttack/GetDefense가 읽는 원천)과 불일치하므로
+        /// 규격 폴백: public 슬롯 setter로 직접 셋팅 + 플레이어 인벤토리에서 제거 + 교체된 이전 장비는 인벤토리 반환.
+        /// 성공 시 true.
+        /// </summary>
+        public bool EquipAllyItem(PlayerInventory.ItemData item)
+        {
+            if (!IsAlly) { _statusMessage = "적병사에게는 장비를 직접 등록할 수 없습니다."; return false; }
+            if (item == null) return false;
+
+            var inv = PlayerInventory.Instance;
+            if (inv == null || !inv.HasItem(item.id)) { _statusMessage = "아이템이 부족합니다."; return false; }
+
+            PlayerInventory.ItemData prev;
+            switch (item.category)
+            {
+                case PlayerInventory.ItemCategory.Weapon:
+                    prev = WeaponItem; WeaponItem = item;
+                    break;
+
+                case PlayerInventory.ItemCategory.Armor:
+                    prev = EquipAllyArmorBySubType(item);
+                    break;
+
+                default:
+                    _statusMessage = $"{item.displayName}: 병사가 착용할 수 있는 장비가 아닙니다.";
+                    return false;
+            }
+
+            inv.RemoveItem(item.id);
+            if (prev != null) inv.AddItem(prev);   // 교체된 이전 장비 반환(GuardEquipmentSystem.ReturnToInventory 동일 규칙)
+            _statusMessage = $"{guardName}: {item.displayName} 장착 완료!";
+            UpdateVisual();   // 장비 외형 갱신 훅(현행 no-op — 호출 규약 유지)
+            return true;
+        }
+
+        /// <summary>Armor 카테고리 6슬롯 서브 분류(id 접두사/표시명 키워드 → 투구/신발/장갑/방패, 기본 갑옷). 교체된 이전 장비 반환.</summary>
+        private PlayerInventory.ItemData EquipAllyArmorBySubType(PlayerInventory.ItemData item)
+        {
+            string id = item.id ?? string.Empty;
+            string name = item.displayName ?? string.Empty;
+            if (id.StartsWith("helmet_") || name.Contains("투구")) { var old = HelmetItem; HelmetItem = item; return old; }
+            if (id.StartsWith("boots_") || name.Contains("신발") || name.Contains("부츠")) { var old = BootsItem; BootsItem = item; return old; }
+            if (id.StartsWith("gloves_") || name.Contains("장갑")) { var old = GlovesItem; GlovesItem = item; return old; }
+            if (id.StartsWith("shield_") || name.Contains("방패")) { var old = ShieldItem; ShieldItem = item; return old; }
+            var prev = ArmorItem; ArmorItem = item; return prev;
+        }
+
         private void OnTalk()
         {
+            // ===== [P30-B] 대화 분기 — 적병사(!IsAlly): 중독 임계 + 호감 4단계. 아군은 아래 기존 대사 유지(Phase 3). =====
+            if (!IsAlly)
+            {
+                // 중독 임계(60) 이상 — 중독 대화 1종 (강제 포섭 임계 RECRUIT_FORCE_THRESHOLD와 동일 경계값)
+                if (Addiction >= GuardAddictionSystem.RECRUIT_FORCE_THRESHOLD)
+                {
+                    _statusMessage = $"{guardName}: '낯... 머리가 아득하다... 네가 뭐래도 따르겠다...'";
+                    return;
+                }
+
+                // 호감도 4단계 (GuardLoyaltySystem.GetAffinityGrade — 호감>=60 / 보통 30~60 / 경계 0~30 / 위험<0)
+                switch (GuardLoyaltySystem.GetAffinityGrade(_loyalty))
+                {
+                    case AffinityGrade.Friendly:
+                        _statusMessage = $"{guardName}: 호의적인 미소로 '어서 오게, 잘 지내고 있소.'";
+                        return;
+                    case AffinityGrade.Normal:
+                        _statusMessage = $"{guardName}: '무슨 일이냐? 말해 보게.'";
+                        return;
+                    case AffinityGrade.Cautious:
+                        _statusMessage = $"{guardName}: 경계하며 '...멀리서 말하게.'";
+                        return;
+                    case AffinityGrade.Danger:
+                        _statusMessage = $"{guardName}: 노려보며 '가까이 오지 마라!'";
+                        return;
+                }
+            }
+
             _statusMessage = guardName + ": \\\"무슨 일이냐?\\\"";
+        }
+
+        // ===== P30-B: 뇌물 (적병사 전용 — 아군 금지) =====
+        /// <summary>
+        /// 💰 뇌물주기 — 레벨 스케일 단가(GuardLoyaltySystem.GetBribeCost = 30 + level×25)로 시도.
+        /// 아군(포섭 완료)이면 false(뇌물 금지). 성공 시 TryBribe 내부에서 골드 차감 + 호감도 상승(금액 비례).
+        /// </summary>
+        public bool AttemptBribe()
+        {
+            if (IsAlly) return false;   // 아군 뇌물 금지 — TryBribe의 IsRecruited 게이트와 이중 방어
+            int cost = GuardLoyaltySystem.GetBribeCost(Level);
+            if (!GuardLoyaltySystem.TryBribe(this, cost)) return false;   // 골드 부족/시스템 부재
+            _statusMessage = $"{guardName}: '똑똑하군...' 💰 뇌물 {cost}골드 → 호감도 {Loyalty:F0}";
+            return true;
         }
 
         // ===== C9-15: 포섭 =====
@@ -262,7 +466,7 @@ namespace ProjectName.Systems
         {
             if (_isRecruited)
             {
-                _statusMessage = $"{guardName}: \\\"이미 영지에 소속되어 있네.\\\"";
+                _statusMessage = $"{guardName}: \\\"이미 영지에 소속되어 있네.\"";
                 return;
             }
 
@@ -270,6 +474,11 @@ namespace ProjectName.Systems
             if (result.success)
             {
                 _isRecruited = true;
+
+                // P30-A: 중독 임계 포섭(method="addiction") → 호감도 MAX — 중독으로 절대복종
+                if (result.method == "addiction")
+                    Loyalty = GuardLoyaltySystem.MAX_LOYALTY;
+
                 _statusMessage = result.message;
             }
             else
@@ -590,28 +799,31 @@ namespace ProjectName.Systems
         /// <summary>장비 보정 전 순수 민첩 스탯 (롤된 값).</summary>
         public int GetStatAgility() { EnsureStatsRolled(); return _statAgility; }
 
-        /// <summary>총 공격력 = 순수 공격 + 장착 무기 보너스 (GearStatIndex).</summary>
+        /// <summary>아군 임시 버프의 활성치 — 잔여 시간 > 0일 때만 반영(적병사/만료 시 항상 0, 기존 경로 수치 불변).</summary>
+        private int ActiveAllyBuff(float buffValue) => _allyBuffRemaining > 0f ? Mathf.RoundToInt(buffValue) : 0;
+
+        /// <summary>총 공격력 = 순수 공격 + 장착 무기 보너스 (GearStatIndex) + [P30-C] 아군 물약 버프.</summary>
         public int GetAttack()
         {
             GetStatAttack();
             int gear = WeaponItem != null
                 ? Mathf.RoundToInt(GearStatIndex.GetWeaponAttackBoost(WeaponItem.id))
                 : 0;
-            return _statAttack + gear;
+            return _statAttack + gear + ActiveAllyBuff(_allyAttackBuff);
         }
 
-        /// <summary>총 방어력 = 순수 방어 + 장착 방어구/부속 보너스 합 (GearStatIndex).</summary>
+        /// <summary>총 방어력 = 순수 방어 + 장착 방어구/부속 보너스 합 (GearStatIndex) + [P30-C] 아군 물약 버프.</summary>
         public int GetDefense()
         {
             GetStatDefense();
-            return _statDefense + GetGearDefenseBonus();
+            return _statDefense + GetGearDefenseBonus() + ActiveAllyBuff(_allyDefenseBuff);
         }
 
-        /// <summary>총 민첩 = 순수 민첩 (민첩 장비 보너스는 현재 없음 — 평탄 유지).</summary>
+        /// <summary>총 민첩 = 순수 민첩 + [P30-C] 아군 물약 버프 (민첩 장비 보너스는 현재 없음 — 평탄 유지).</summary>
         public int GetAgility()
         {
             GetStatAgility();
-            return _statAgility;
+            return _statAgility + ActiveAllyBuff(_allyAgilityBuff);
         }
 
         /// <summary>총 최대체력 = 기본 MaxHP + 체력 스탯 보너스 × 2.</summary>
@@ -996,6 +1208,13 @@ namespace ProjectName.Systems
         public bool IsRecruited => _isRecruited;
         public GuardRole Role { get => _role; set => _role = value; }
         public string StatusSummary => GuardStatusSystem.GetStatusSummary(this);
+
+        // ===== P30-A: 적/아군 구분 + 문지기 =====
+        /// <summary>적/아군 구분 — 포섭된 병사=아군(true), 그 외=적(false).</summary>
+        public bool IsAlly => _isRecruited;
+
+        /// <summary>문지기 여부 — 영지 출입 조건 판정은 후속 단계(Phase5)가 수행.</summary>
+        public bool IsGatekeeper { get; set; }
 
         /// <summary>포섭 상태 설정 (GuardManager 등에서 호출)</summary>
         public void SetRecruited(bool recruited) { _isRecruited = recruited; }

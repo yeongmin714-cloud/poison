@@ -15,7 +15,8 @@ namespace ProjectName.UI.Toolkit
     ///       → 본 창 Open (Systems→UI 순환참조 회피 이벤트 경유 — SoldierInteractBridge 동일 패턴).
     ///  "📋 병사 정보보기" 버튼 → SoldierInteractBridge.Raise(guard) → GuardInfoUTK 정보창 (기존 경로 유지).
     ///
-    /// [메뉴] 🗣️ 말걸기 / 🥩 음식주기 / 💊 약주기 / 🤝 포섭 / 📋 병사 정보보기 / 🔙 닫기
+    /// [메뉴] [P30-B] 2분기(RebuildMenuForGuard) — 적병사(!IsAlly): 🗣️ 말걸기 / 💰 뇌물주기 / 💊 약주기 / 🤝 포섭 / 📋 병사 정보보기 / 🔙 닫기
+    ///        아군병사(IsAlly): 기존 메뉴 그대로 유지(🥩 음식주기 등) — 아군 전용 신규 기능은 Phase 3.
     ///  - 말걸기/포섭: GuardPlaceholder public 래퍼(BeginTalk/BeginRecruit) → 기존 OnTalk/OnRecruit 로직 재사용.
     ///  - 음식/약: 아이템 선택 팝업을 UTK 스크롤 리스트로 재구현 (IMGUI DrawItemSelectionPopup 대체).
     ///    GuardPlaceholder.BeginFoodSelection/BeginDrugSelection → GetInventoryItemsByMode() 필터 재사용
@@ -122,10 +123,38 @@ namespace ProjectName.UI.Toolkit
             _menuSection.style.marginTop = 8f;
             _content.Add(_menuSection);
 
+            // [P30-B] 버튼은 여기서 채우지 않는다 — 생성 시점엔 _guard가 null(OpenForGuard에서 세팅).
+            // RebuildMenuForGuard()가 OpenForGuard/Show 시점에 _guard.IsAlly에 따라 재구성한다.
+        }
+
+        /// <summary>
+        /// [P30-B] 메뉴 2분기 재구성 — _guard.IsAlly에 따라 _menuSection을 다시 채운다 (멱등, OpenForGuard/Show에서 호출).
+        ///  적병사(!IsAlly): 🗣️ 말걸기 / 💰 뇌물주기(신규) / 💊 약주기 / 🤝 포섭 / 📋 병사 정보보기 / 🔙 닫기
+        ///  아군병사(IsAlly): 기존 메뉴 그대로 유지 — 아군 전용 신규 기능은 Phase 3.
+        /// </summary>
+        private void RebuildMenuForGuard()
+        {
+            if (_menuSection == null) return;
+            _menuSection.Clear();
+
             AddMenuButton("🗣️ 말걸기", OnTalkClicked, UTKButton.Variant.Secondary);
-            AddMenuButton("🥩 음식주기", () => ShowItemSection(ItemMode.Food), UTKButton.Variant.Secondary);
-            AddMenuButton("💊 약주기", () => ShowItemSection(ItemMode.Drug), UTKButton.Variant.Secondary);
-            AddMenuButton("🤝 포섭", OnRecruitClicked, UTKButton.Variant.Secondary);
+
+            if (_guard != null && _guard.IsAlly)
+            {
+                // 아군 — 기존 메뉴 그대로 (음식/약/포섭/정보). 신규 기능 추가 없음(Phase 3 담당).
+                AddMenuButton("🥩 음식주기", () => ShowItemSection(ItemMode.Food), UTKButton.Variant.Secondary);
+                AddMenuButton("💊 약주기", () => ShowItemSection(ItemMode.Drug), UTKButton.Variant.Secondary);
+                AddMenuButton("🤝 포섭", OnRecruitClicked, UTKButton.Variant.Secondary);
+            }
+            else
+            {
+                // 적병사 — 💰 뇌물주기 신규(레벨 스케일 단가 표시). 클릭 핸들러에서도 아군이면 무시.
+                int bribeCost = _guard != null ? GuardLoyaltySystem.GetBribeCost(_guard.Level) : GuardLoyaltySystem.GetBribeCost(1);
+                AddMenuButton($"💰 뇌물주기 ({bribeCost}골드)", OnBribeClicked, UTKButton.Variant.Secondary);
+                AddMenuButton("💊 약주기", () => ShowItemSection(ItemMode.Drug), UTKButton.Variant.Secondary);
+                AddMenuButton("🤝 포섭", OnRecruitClicked, UTKButton.Variant.Secondary);
+            }
+
             AddMenuButton("📋 병사 정보보기", OnInfoClicked, UTKButton.Variant.Primary);
             AddMenuButton("🔙 닫기", Close, UTKButton.Variant.Danger);
         }
@@ -192,6 +221,7 @@ namespace ProjectName.UI.Toolkit
         {
             if (guard == null) return;
             _guard = guard;
+            RebuildMenuForGuard();   // [P30-B] 대상 확정 후 메뉴 2분기 (적=뇌물 / 아군=기존)
             if (IsOpen)
             {
                 // 다른 병사로 대상 교체 — UI 즉시 갱신 (base.Show는 IsOpen 시 no-op)
@@ -214,6 +244,7 @@ namespace ProjectName.UI.Toolkit
 
             _playerCache = null;
             RefreshHeader();
+            RebuildMenuForGuard();   // [P30-B] _guard.IsAlly 기준 메뉴 2분기 (멱등)
             ShowMenu();
             StartPoll();
             PlaceNearGuard();
@@ -298,6 +329,14 @@ namespace ProjectName.UI.Toolkit
         {
             if (_guard == null) return;
             _guard.BeginRecruit();  // 기존 OnRecruit 로직 재사용
+            RefreshStatus();
+        }
+
+        /// <summary>[P30-B] 💰 뇌물주기 — 적병사 전용(아군이면 무시). GuardPlaceholder.AttemptBribe(골드 차감+호감도) 경유.</summary>
+        private void OnBribeClicked()
+        {
+            if (_guard == null || _guard.IsAlly) return;   // 아군 뇌물 금지 — 클릭 무시
+            _guard.AttemptBribe();
             RefreshStatus();
         }
 
@@ -396,12 +435,24 @@ namespace ProjectName.UI.Toolkit
             return row;
         }
 
-        /// <summary>아이템 지급 — GuardPlaceholder.GiveFood/GiveDrug(기존 GiveItemToGuard 경로) 후 메뉴 복귀.</summary>
+        /// <summary>
+        /// 아이템 지급 — [P30-C] 아군 분기: 음식=GiveAllyFood(회복+호감 유지) / 약=ApplyAllyPotion(PotionBuffData 버프 실행 —
+        /// 중독 아님, 아이템 제거는 래퍼 내부). 적병사: 기존 GiveFood/GiveDrug(중독) 경로 그대로.
+        /// </summary>
         private void GiveItem(PlayerInventory.ItemData item)
         {
             if (_guard == null || item == null) return;
-            if (_itemMode == ItemMode.Food) _guard.GiveFood(item);
-            else _guard.GiveDrug(item);
+            if (_guard.IsAlly)
+            {
+                // [P30-C] 아군 — 약은 버프 실행(적병사와 달리 중독 경로 미사용)
+                if (_itemMode == ItemMode.Food) _guard.GiveAllyFood(item);
+                else _guard.ApplyAllyPotion(item);
+            }
+            else
+            {
+                if (_itemMode == ItemMode.Food) _guard.GiveFood(item);
+                else _guard.GiveDrug(item);
+            }
             ShowMenu();   // 지급 로직이 _selectionMode를 해제하지 않으므로 복귀 시 해제
         }
 
@@ -415,12 +466,20 @@ namespace ProjectName.UI.Toolkit
             _headerLabel.text = $"⚔️ {_guard.GuardName} Lv.{_guard.Level} ({_guard.Nation}) — 호감도 {_guard.Loyalty:F0}";
         }
 
-        /// <summary>병사 상태메시지 표시 (GuardPlaceholder.StatusMessage public 프로퍼티).</summary>
+        /// <summary>
+        /// 병사 상태메시지 표시 (GuardPlaceholder.StatusMessage public 프로퍼티).
+        /// [P30-C] 아군이고 임시 버프 활성 중이면 상태메시지 위에 버프 잔여 한 줄 추가.
+        /// </summary>
         private void RefreshStatus()
         {
             if (_guard == null) return;
             string msg = _guard.StatusMessage;
-            _statusLabel.text = string.IsNullOrEmpty(msg) ? "무슨 일이냐?" : msg;
+            msg = string.IsNullOrEmpty(msg) ? "무슨 일이냐?" : msg;
+
+            if (_guard.IsAlly && _guard.AllyBuffRemaining > 0f)
+                msg = $"⚡공격+{_guard.AllyAttackBuff:0} 🛡방어+{_guard.AllyDefenseBuff:0} 💨민첩+{_guard.AllyAgilityBuff:0} ({_guard.AllyBuffRemaining:0}초)\n{msg}";
+
+            _statusLabel.text = msg;
         }
 
         /// <summary>
