@@ -31,11 +31,14 @@ namespace ProjectName.UI.Toolkit
         private string _lastDayText;
         private float _lastProgress = -1f;
 
+        /// <summary>[P27] 패널형 시간표시 퇴역 — TimeClockGlassUTK(좌상단 글래스 숫자)가 대체.
+        ///   Bootstrap 자동부착을 중지해 우상단 중복 패널을 제거한다.</summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
         {
-            Ensure();
-            EnsureUpdater();
+            // [P27] 비활성 — 글래스 시계(TimeClockGlassUTK)로 대체. 남은 코드는 보존(롤백용).
+            // Ensure();
+            // EnsureUpdater();
         }
 
         /// <summary>싱글턴 보장 — UIRoot에 부재 시 생성·부착. 멱등.</summary>

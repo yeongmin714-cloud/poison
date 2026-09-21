@@ -59,7 +59,6 @@ namespace ProjectName.UI.Toolkit
         private VisualElement _mapFrame;       // 원형 마스킹용 오버레이 프레임
         private VisualElement _markerHost;     // 영지/퀘스트 마커 (절대배치)
         private VisualElement _playerMarker;   // 플레이어 삼각/사각 마커
-        private Label _timeText;               // "HH:00"
         private Label _tempText;               // 온도 수치
         private Label _soundText;              // 소음 수치
         private Label _weatherText;            // 날씨 아이콘
@@ -67,7 +66,6 @@ namespace ProjectName.UI.Toolkit
         // 상태 (원본 시스템 데이터에서 실측)
         private float _temperature = -0.2f;
         private float _soundLevel = 0f;
-        private float _timeOfDay = 0.5f;
         private WeatherType _weather = WeatherType.Clear;
 
         private Transform _playerTransform;
@@ -101,6 +99,12 @@ namespace ProjectName.UI.Toolkit
             _mapFrame.style.borderLeftColor = new StyleColor(new Color(1f, 1f, 1f, 0.3f));
             _mapFrame.style.overflow = Overflow.Hidden;
             _mapFrame.style.backgroundColor = new StyleColor(new Color(0.05f, 0.05f, 0.05f, 0.85f));
+            // [P27] 원형 미니맵 — 프레임 모서리를 완전 라운드로 마스킹(스타크래프트식 원형 지도)
+            float radius = Diameter * 0.5f;
+            _mapFrame.style.borderTopLeftRadius = radius;
+            _mapFrame.style.borderTopRightRadius = radius;
+            _mapFrame.style.borderBottomLeftRadius = radius;
+            _mapFrame.style.borderBottomRightRadius = radius;
             Add(_mapFrame);
 
             _mapCanvas = new VisualElement();
@@ -160,13 +164,7 @@ namespace ProjectName.UI.Toolkit
             _weatherText.name = "WeatherIcon";
             _weatherText.style.fontSize = 20f;
             topRow.Add(_weatherText);
-
-            _timeText = new Label("12:00");
-            _timeText.name = "TimeText";
-            _timeText.style.fontSize = 13f;
-            _timeText.style.color = new StyleColor(Color.white);
-            _timeText.style.unityFontStyleAndWeight = FontStyle.Bold;
-            topRow.Add(_timeText);
+            // [P27] 시간은 좌상단 글래스 시계(TimeClockGlassUTK)로 이관 — 미니맵의 중복 HH:MM 제거.
 
             // 온도 게이지 (좌측) — 상단 값 라벨
             var tempGauge = new VisualElement();
@@ -260,16 +258,13 @@ namespace ProjectName.UI.Toolkit
             var twSys = TimeWeatherSystem.Instance;
             if (twSys != null)
             {
-                _timeOfDay = twSys.TimeOfDay;
                 _weather = twSys.CurrentWeather;
             }
 
             if (_playerTransform == null)
                 _playerTransform = FindPlayer();
 
-            // 시간/날씨
-            int hour = Mathf.FloorToInt(_timeOfDay * 24f);
-            _timeText.text = string.Format("{0:D2}:00", hour);
+            // 시간/날씨 — [P27] 시간은 글래스 시계로 이관, 미니맵은 날씨 아이콘만
             switch (_weather)
             {
                 case WeatherType.Rain:
