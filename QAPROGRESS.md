@@ -40,6 +40,15 @@
 - 전 Phase 배치컴파일 **error CS 0** (Phase별 통과 후 최종 통합 확인). Warnings 4070(프로젝트 기존 베이스라인).
 - 문서: ROADMAP P30 Phase 1~5 ✅ / QAPROGRESS / 영구메모리 / git commit+push.
 
+### P30 후속① 문지기 전원 포섭 → 영지 출입 소프트 게이트
+- 오픈월드(물리 진입 차단 없음)라 **적대 게이트**로 구현. **신규 `TerritoryGateSystem`**: `AreAllGatekeepersRecruited(TerritoryId)`(GetGuardsInTerritory 순회 — gatekeeper 중 미포섭 있으면 false)+`CanPassTerritory`.
+- `GuardHostilitySystem`: `IsGateOpenForGuard`(ResolveTerritoryAt→CanPassTerritory) — Hostile/Aggressive/Alarm 분기에서 게이트 열린 영지 병사는 ConvertToHostile·선공·경보 **스킵**(안전 통행). `NotifyPlayerAttack`은 게이트 미적용(플레이어 직접 공격은 무조건 적대).
+- 씬 문지기 배치는 아직 없음(판정 로직만 — 인스펙터 IsGatekeeper=true 병사 배치 시 활성).
+
+### P30 후속② 아군 장비등록 씬(rig) 시각 연동
+- 진단: 5개 방어구 슬롯은 `GuardVisualAttachSystem` 0.35s 폴링이 프로퍼티 직접 읽어 **이미 자동 반영**. **무기(WeaponItem)은 미보장** → `VisualSlot.Weapon`+뼈 매핑(hand.R/forearm.R) + `ResolveWeaponVisualId`(id→{tier}_{kind}.glb, 폴백 steel→stone→wood→crystal) 신규. `RequestRefreshFor(GuardPlaceholder)` 즉시 재부착 훅.
+- `GuardPlaceholder.EquipAllyItem` 성공 지점에 `RequestRefreshFor(this)`+log → 장비 등록 시 월드 병사 rig 즉시 갱신. 데이터/인벤 로직 불변.
+
 ## 📌 세션 스냅샷 (2026-09-21 ✅ P29-B — 낚시대 크래프트 + 미니게임 고품질화 — 커밋 6e29fb95)
 
 > **입력**: "낚시대를 크래프트에서도 얻을 수 있게 추가하고 고품질화 진행".

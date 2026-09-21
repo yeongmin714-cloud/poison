@@ -3090,6 +3090,8 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 **Phase 완료**: 1(데이터 기반)·2(적병사)·3(아군병사)·4(밀매+NPC)·5(영주 문) 전부 ✅ — 배치컴파일 error CS 0.
 
+**후속완료**: ① 문지기 전원 포섭→영지 출입 소프트 게이트(TerritoryGateSystem+GuardHostility 적대게이트, NotifyPlayerAttack은 미적용) ② 아군 장비등록 씬(rig) 시각 연동(무기 VisualSlot.Weapon+ResolveWeaponVisualId+RequestRefreshFor). error CS 0.
+
 ---
 
 ## ⚔️ 2026-09-21: P29 — 낚시 시스템 메인 씬 배선 (Phase 1·2) (P29-45)

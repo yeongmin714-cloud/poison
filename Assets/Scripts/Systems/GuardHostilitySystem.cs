@@ -96,7 +96,8 @@ namespace ProjectName.Systems
 
                     case HostilityState.Hostile:
                         // 적대 전환 (전투 상태 활성화)
-                        if (previousState != HostilityState.Hostile)
+                        // [P30 후속①] 게이트 열린 영지(문지기 전원 포섭)는 안전 통행 — 적대 전환 스킵
+                        if (previousState != HostilityState.Hostile && !IsGateOpenForGuard(guard))
                         {
                             ConvertToHostile(guard);
                         }
@@ -104,12 +105,13 @@ namespace ProjectName.Systems
 
                     case HostilityState.Aggressive:
                         // 적대 전환 + 선공
-                        if (previousState != HostilityState.Aggressive)
+                        // [P30 후속①] 게이트 열린 영지는 적대 전환·선공 스킵(안전 통행)
+                        if (previousState != HostilityState.Aggressive && !IsGateOpenForGuard(guard))
                         {
                             ConvertToHostile(guard);
                         }
-                        // 플레이어 근접 시 즉시 공격
-                        if (player != null && IsPlayerNearby(guard, player.transform))
+                        // 플레이어 근접 시 즉시 공격 — 게이트 열린 영지는 선공 안 함
+                        if (player != null && IsPlayerNearby(guard, player.transform) && !IsGateOpenForGuard(guard))
                         {
                             InitiateAttack(guard, player);
                         }
@@ -117,13 +119,14 @@ namespace ProjectName.Systems
 
                     case HostilityState.Alarm:
                         // 적대 전환 + 선공 + 경보 발령
-                        if (previousState != HostilityState.Alarm)
+                        // [P30 후속①] 게이트 열린 영지는 적대 전환·경보·선공 모두 스킵(안전 통행)
+                        if (previousState != HostilityState.Alarm && !IsGateOpenForGuard(guard))
                         {
                             ConvertToHostile(guard);
                             TriggerAlert(guard);
                         }
-                        // 플레이어 근접 시 즉시 공격
-                        if (player != null && IsPlayerNearby(guard, player.transform))
+                        // 플레이어 근접 시 즉시 공격 — 게이트 열린 영지는 선공 안 함
+                        if (player != null && IsPlayerNearby(guard, player.transform) && !IsGateOpenForGuard(guard))
                         {
                             InitiateAttack(guard, player);
                         }
@@ -228,6 +231,23 @@ namespace ProjectName.Systems
             if (guard == null || playerTransform == null) return false;
             float dist = Vector3.Distance(guard.transform.position, playerTransform.position);
             return dist <= _attackRange;
+        }
+
+        /// <summary>
+        /// [P30 후속①] 병사가 속한 영지의 소프트 게이트가 열려있는지 (문지기 전원 포섭 = 안전 통행).
+        /// 병사 위치를 TerritoryDatabase.ResolveTerritoryAt으로 판정하고 TerritoryGateSystem.CanPassTerritory 조회.
+        /// 영지 판정 실패 시 true(게이트 적용 안 함 — 오픈월드 기본 개방).
+        /// </summary>
+        private bool IsGateOpenForGuard(GuardPlaceholder guard)
+        {
+            if (guard == null) return false;
+            var db = TerritoryDatabase.Instance;
+            if (db == null) return true;
+
+            TerritoryId? territory = db.ResolveTerritoryAt(guard.transform.position);
+            if (!territory.HasValue) return true;   // 영지 밖/판정 불가 → 게이트 적용 안 함
+
+            return TerritoryGateSystem.CanPassTerritory(territory.Value);
         }
 
         private HostilityState CalculateHostilityState(float loyalty)

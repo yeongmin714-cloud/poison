@@ -380,14 +380,15 @@ namespace ProjectName.Systems
             if (inv == null || !inv.HasItem(item.id)) { _statusMessage = "아이템이 부족합니다."; return false; }
 
             PlayerInventory.ItemData prev;
+            string slotLabel;
             switch (item.category)
             {
                 case PlayerInventory.ItemCategory.Weapon:
-                    prev = WeaponItem; WeaponItem = item;
+                    prev = WeaponItem; WeaponItem = item; slotLabel = "무기";
                     break;
 
                 case PlayerInventory.ItemCategory.Armor:
-                    prev = EquipAllyArmorBySubType(item);
+                    prev = EquipAllyArmorBySubType(item, out slotLabel);
                     break;
 
                 default:
@@ -399,19 +400,22 @@ namespace ProjectName.Systems
             if (prev != null) inv.AddItem(prev);   // 교체된 이전 장비 반환(GuardEquipmentSystem.ReturnToInventory 동일 규칙)
             _statusMessage = $"{guardName}: {item.displayName} 장착 완료!";
             UpdateVisual();   // 장비 외형 갱신 훅(현행 no-op — 호출 규약 유지)
+            // [P30 후속②] 씬(월드 rig) 시각 연동 — 즉시 재부착 트리거 + 확인 로그(멱등)
+            Debug.Log($"[GuardEquip] {guardName} {slotLabel} 장착 → {item.displayName} (시각 갱신 요청)");
+            GuardVisualAttachSystem.RequestRefreshFor(this);
             return true;
         }
 
         /// <summary>Armor 카테고리 6슬롯 서브 분류(id 접두사/표시명 키워드 → 투구/신발/장갑/방패, 기본 갑옷). 교체된 이전 장비 반환.</summary>
-        private PlayerInventory.ItemData EquipAllyArmorBySubType(PlayerInventory.ItemData item)
+        private PlayerInventory.ItemData EquipAllyArmorBySubType(PlayerInventory.ItemData item, out string slotLabel)
         {
             string id = item.id ?? string.Empty;
             string name = item.displayName ?? string.Empty;
-            if (id.StartsWith("helmet_") || name.Contains("투구")) { var old = HelmetItem; HelmetItem = item; return old; }
-            if (id.StartsWith("boots_") || name.Contains("신발") || name.Contains("부츠")) { var old = BootsItem; BootsItem = item; return old; }
-            if (id.StartsWith("gloves_") || name.Contains("장갑")) { var old = GlovesItem; GlovesItem = item; return old; }
-            if (id.StartsWith("shield_") || name.Contains("방패")) { var old = ShieldItem; ShieldItem = item; return old; }
-            var prev = ArmorItem; ArmorItem = item; return prev;
+            if (id.StartsWith("helmet_") || name.Contains("투구")) { var old = HelmetItem; HelmetItem = item; slotLabel = "투구"; return old; }
+            if (id.StartsWith("boots_") || name.Contains("신발") || name.Contains("부츠")) { var old = BootsItem; BootsItem = item; slotLabel = "신발"; return old; }
+            if (id.StartsWith("gloves_") || name.Contains("장갑")) { var old = GlovesItem; GlovesItem = item; slotLabel = "장갑"; return old; }
+            if (id.StartsWith("shield_") || name.Contains("방패")) { var old = ShieldItem; ShieldItem = item; slotLabel = "방패"; return old; }
+            var prev = ArmorItem; ArmorItem = item; slotLabel = "갑옷"; return prev;
         }
 
         private void OnTalk()
