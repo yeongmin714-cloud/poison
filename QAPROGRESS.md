@@ -1,6 +1,37 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-21 (P24 — 테스트40 사용자 지시 3건: 링 제거/커서 분류/게이지 고품질, 커밋 5b643071)
+> **최종 갱신:** 2026-09-21 (P25 — 테스트41 대비: 게이지 P23 복원 + 활 조준 리티클 + 화살 액션 + 커서 기본숨김, 커밋 c2157a9b·f9448fbe)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-21 ✅ P25 — 활 조준 리티클(BotW) + 화살 액션 재구성 + 커서 기본숨김 — 커밋 c2157a9b·f9448fbe)
+
+> **입력**: P25 계획서 승인("진행"). 계획 A(게이지 P23 복원)·B(커서 표시 규칙)·C(화살 액션 BotW식). C 명중 정책은 안1(적=소멸+섬광, 지면=박힘 유지) 확정.
+
+### P25-A 게이지 P23 복원 (커밋 c2157a9b)
+- StatusGaugesUTK.cs·UTKCircularGauge.cs를 **P23(a821bec3)로 git 복원** — P24가 만든 HP바+스태미너 도넛 대신 기존 이중 원형 링+하트/번개 복귀.
+- HPBarUTK.cs·meta(P24 신규) 삭제. 참조 전수 0건(유일 참조였던 StatusGaugesUTK가 원복되어 소실).
+- 베이크 PNG 4종(GaugeHPFrame/Fill/TipGlow/StaminaIcon)은 파일 보존·참조만 제거(추후 UI 재사용).
+- CS=0, EditMode 288/288.
+
+### P25-B 커서 표시 규칙 (기본 숨김)
+- UTKCursorOverlay **기본 숨김** — 16ms UpdatePosition 내 UpdateVisibility 게이트. 표시 조건: ①Ctrl 홀드(컨텍스트 아이콘) or ②UI 호버(화살표 반투명) or 그 외 **숨김**. 활 드로 중엔 리티클이 대체(숨김).
+- 평상 시 OS 커서(이미 숨김)+오버레이 모두 없음 = 깨끗한 화면. UpdateKind는 숨김 상태에서 분류 생략.
+
+### P25-C 화살 액션 재구성 (BotW zmn, 커밋 f9448fbe)
+- **C-1 BowAimReticleUTK 신설**(UTK 화면스페이스): 좌클릭 드로 시 마우스 위치에 중앙 점+꺾쇠 브래킷 4개+파워 링+잔여 화살 개수. 파워 0→1 브래킷 55% 중앙 수렴(파워 링=UTKCircularGauge fill). 릴리즈 후 0.4s 페이드아웃(유지감), 탭(파워<BowMinFire)=즉시 숨김.
+- **계층 역전**: Systems(PlayerCombat)는 UI 참조 불가 → **BowAimState(Systems 정적 브리지)**에 드로/릴리즈 기록, UI(BowAimReticleUTK·UTKCursorOverlay)가 16ms 폴링. UI→Systems 단방향 유지(P24 명중 시 유사 패턴). ⚠ 정적 클래스 내 인스턴스 중첩 클래스 금지(CS0708) → 릴리즈를 1회성 플래그+값(ReleasePending/Fired/Power) 쌍으로.
+- **C-2 발사 연출**: 발사 성공 시 활 위치 머즐 퍼프(BowMuzzlePuff, PUP Unlit 소프트 파티클 6입자 0.25s) + 릴리즈 스냅(기존 attack_swing_bow=PlayWeaponSwingSound 유지). 카메라 킥 PlayFireKick 기존 유지.
+- **C-3 트레일 복원**(P20-4 "긴 선" 정정): 소형 밝은 트레일 — time 0.4s, 폭 0.10→0.02 테이퍼, URP Particles/Unlit, 화이트→하늘색 그라디언트. 박힘(지면/적) 시 `_trail.enabled=false`. P20-4 과장 원인(1.6s/0.45) 제거가 핵심.
+- **C-4 명중 별 섬광 + 정책 안1**: StarFlare.png Quad 빌보드(탑다운 수평/0.15s 스케일업 0.35→1.0+0.2s 페이드→소멸)를 명중점+데미지 숫자 위에 겹침. **적 명중=소멸+섬광**(기존 6초 박힘 대체), **지면=박힘+진동+먼지 유지**(안1 절충).
+- **C-5 개수 연동**: 리티클 "×N"=ArrowManager.GetTotalArrowCount 폴링(발사 시 TryShootArrow 내부 소모와 자동 동기).
+- 신규 베이크 PNG 6종: ReticleDot(32), ReticleBracketTL/TR/BL/BR(64, 꺾쇠 코너), StarFlare(96) — meta isReadable:1(UTK 배경 규약). **⚠ PIL 생성 시 dot=bubble fill이 외곽 큰 투명 원에 덮여 opaque 0% → 외곽→중앙순 채움으로 수리.**
+
+### 검증
+- 배치컴파일 **error CS=0** + EditMode **288/288**. 커밋 c2157a9b(P25-A) + f9448fbe(P25-B+C) 푸시.
+
+### Play 판정 대기 (테스트 41)
+①좌하단 원형 이중 링(하트/번개) 복귀 ②평상 시 커서 없음, Ctrl 홀드 시 컨텍스트 아이콘/UI 호버 시 반투명 화살표 ③활 드로 시 리티클(점+꺾쇠+파워 링+×N) 표시·브래킷 수렴 ④릴리즈 반동+머즐 퍼프 ⑤밝은 소형 트레일 비행(과장 없음) ⑥적 명중=별 섬광+화살 소멸, 지면=박힘+먼지 ⑦UI 클릭 회귀 없음
 
 ---
 
