@@ -27,7 +27,7 @@ namespace ProjectName.Systems
         const int   BUDGET_PER_FRAME = 100;     // 프레임당 잔디 생성 예산 (근접 밀집 강화 — 정적 병합 잔디와 역할 분리)
         const int   BASE_PER_CELL = 90;          // 셀(10×10m=100㎡)당 개수 ≈ ~6300/45m 원
         const int   DENSE_MULT = 3;              // 꽃밭/숲 마스크 내부 밀도 배수
-        const float NORTH_DENSITY_FACTOR = 0.35f; // 설원(North): 잔디 밀도 35%로 감소 — 눈밭은 잔디가 듬성듬성
+        const float NORTH_DENSITY_FACTOR = 0.15f; // SNOWFIELD: 설원(North) 잔디 밀도 15% — 눈밭은 잔디가 거의 없다 (0.35→0.15)
         const float MASK_HI = 0.5f;
         const float GROUND_BASE = 1f;
         const float GRASS_TILT_DEG = 8f;
@@ -43,7 +43,7 @@ namespace ProjectName.Systems
         static readonly Color GrassTintEast    = new Color(1.00f, 1.00f, 1.00f); // 동 — 초원, 기본
         static readonly Color GrassTintWest    = new Color(1.00f, 0.94f, 0.86f); // 서 — 황사막, 살짝 황토빛
         static readonly Color GrassTintSouth   = new Color(1.00f, 0.90f, 0.85f); // 남 — 붉은 화산, 살짝 따뜻
-        static readonly Color GrassTintNorth   = new Color(0.88f, 0.95f, 1.00f); // 북 — 설원, 서리빛 차가움
+        static readonly Color GrassTintNorth   = new Color(0.94f, 0.97f, 1.00f); // SNOWFIELD: 북 — 설원, 더 차가운 회백 틴트 (0.88→0.94)
         static readonly Color GrassTintEmpire  = new Color(1.00f, 0.97f, 0.90f); // 황제국 — 황금 초원, 살짝 금빛
         static readonly Color GrassTintDracula = new Color(0.90f, 0.85f, 0.92f); // 드라큘라 — 흐리고 창백
         static readonly int   TintPropertyId   = Shader.PropertyToID("_BaseColor");

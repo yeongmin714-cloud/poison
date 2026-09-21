@@ -534,6 +534,29 @@ namespace ProjectName.Systems
         /// <summary>흙길 색 (머드 로드 — 예시 이미지 컨셉). B4: 명도/채도를 낮춰 잔디 대비 강화.</summary>
         private static readonly Color DirtPathColor = new Color(0.44f, 0.33f, 0.22f);
 
+        /// <summary>
+        /// [P31-B] 국가별 흙길 색 — 지형 틴트(동=녹/서=황/남=적/북=회백/황제국=금)에 맞춰
+        /// 기본 머드색(0.44,0.33,0.22)에서 "조금씩"만 변형(±0.05~0.10 오프셋)한다.
+        /// 픽셀의 국가(GetNationFromPosition)로 선택 — 영토 경계에서 자연 전환.
+        /// </summary>
+        private static readonly Color DirtColorEast    = new Color(0.42f, 0.34f, 0.22f); // 동 — 녹갈 토
+        private static readonly Color DirtColorWest    = new Color(0.50f, 0.38f, 0.22f); // 서 — 황토
+        private static readonly Color DirtColorSouth   = new Color(0.48f, 0.31f, 0.20f); // 남 — 적갈
+        private static readonly Color DirtColorNorth   = new Color(0.40f, 0.40f, 0.38f); // 북 — 회백 설토
+        private static readonly Color DirtColorEmpire  = new Color(0.50f, 0.41f, 0.20f); // 황제국 — 금모래
+        private static readonly Color DirtColorDracula = new Color(0.36f, 0.30f, 0.28f); // 드라큘라 — 어둡고 차가움
+
+        private static Color GetDirtColorForNation(NationType nation) => nation switch
+        {
+            NationType.East    => DirtColorEast,
+            NationType.West    => DirtColorWest,
+            NationType.South   => DirtColorSouth,
+            NationType.North   => DirtColorNorth,
+            NationType.Empire  => DirtColorEmpire,
+            NationType.Dracula => DirtColorDracula,
+            _                  => DirtPathColor
+        };
+
         /// <summary>도로 반폭 (m) — 중심선에서 이 거리까지 페인트(전체 폭 7m).</summary>
         private const float DirtPathHalfWidth = 3.5f;
 
@@ -625,7 +648,54 @@ namespace ProjectName.Systems
                 list.Add(new PathSegment(spawn.x, spawn.z, bestFoot.x, bestFoot.y));
             }
 
+            // 4) [P31-A] 마을 연결 — 24개 마을(VillagePlacementSystem) 각각을
+            //    현재 네트워크(스포크/링)의 최근접 세그먼트의 수선 발 지점에 수직 접속.
+            //    마을 중심에서 도로까지 1개 세그먼트씩 추가 → 마을이 도로망과 이어진다.
+            AppendVillageConnections(list, spokes);
+
             return list.ToArray();
+        }
+
+        /// <summary>
+        /// [P31-A] 24개 마을(VillagePlacementSystem) 각각을 도로 네트워크에 접속한다.
+        /// 마을 중심에서 모든 기존 세그먼트(스포크 + 링) 중 최근접 수선 발 지점까지 1개 세그먼트 추가.
+        /// </summary>
+        private static void AppendVillageConnections(List<PathSegment> list, PathSegment[] spokes)
+        {
+            try
+            {
+                var all = VillagePlacementSystem.GetAllVillages();
+                foreach (var v in all)
+                {
+                    // 후보: 스포크 4개 + 이미 추가된 링/연결 세그먼트 — 이 중 최근접 수선 발을 찾는다.
+                    var candidates = new List<PathSegment>(list);
+                    foreach (var s in spokes)
+                        if (!candidates.Contains(s))
+                            candidates.Add(s);
+
+                    Vector3 c = v.center;
+                    float bestDist = float.MaxValue;
+                    Vector2 bestFoot = Vector2.zero;
+                    bool found = false;
+                    for (int i = 0; i < candidates.Count; i++)
+                    {
+                        Vector2 foot = ClosestPointOnSegment(c.x, c.z, candidates[i]);
+                        float dx = foot.x - c.x;
+                        float dz = foot.y - c.z;
+                        float d = Mathf.Sqrt(dx * dx + dz * dz);
+                        if (d < bestDist) { bestDist = d; bestFoot = foot; found = true; }
+                    }
+                    // 마을이 이미 도로망 위(2m 이내)면 별도 접속 불필요
+                    if (found && bestDist > 2f)
+                    {
+                        list.Add(new PathSegment(c.x, c.z, bestFoot.x, bestFoot.y));
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[NationTerrainController] AppendVillageConnections 예외 — 마을 도로 생략: {e.Message}");
+            }
         }
 
         /// <summary>원호를 반경 radius, stepDeg 간격 폴리라인으로 근사해 세그먼트를 추가한다.</summary>
@@ -676,7 +746,6 @@ namespace ProjectName.Systems
         {
             float worldSize = worldHalf * 2f;
             float softWidth = DirtPathHalfWidth * DirtPathEdgeSkirt;   // B4: 4.55m 스커트
-            Color dirt = DirtPathColor;
             PathSegment[] segments = DirtPathSegments;
 
             for (int y = 0; y < size; y++)
@@ -698,6 +767,10 @@ namespace ProjectName.Systems
                         if (d < best) best = d;
                     }
                     if (best >= softWidth) continue;
+
+                    // [P31-B] 국가별 흙길 색 — 픽셀의 국가로 선택 ("조금씩" 변형)
+                    NationType dirtNation = GetNationFromPosition(new Vector3(wx, 0f, wz));
+                    Color dirt = GetDirtColorForNation(dirtNation);
 
                     // B4: 중심부 62%는 최대 알파 유지(대비 강화) → 바깥 SmoothStep 페이드.
                     // ±5% 미세 노이즈로 기계적 균일함을 깨고 가장자리 전환을 자연스럽게.
@@ -888,8 +961,9 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// T2-①: 노출 암반 바위색(방위별) — 동·북=회청(0.45,0.47,0.50)+이끼 얼룩 /
+        /// T2-①: 노출 암반 바위색(방위별) — 동=회청(0.45,0.47,0.50)+이끼 얼룩 /
         /// 서·남=적갈 사암(0.62,0.42,0.28) / 황제국=밝은 석회암(0.72,0.70,0.64).
+        /// SNOWFIELD: 북(설원)=이끼 없는 깨끗한 회청 설암 — 녹색 이끼 얼룩이 눈밭을 연두로 보이게 한다.
         /// 방위 tint는 호출부(ComputePixelColor)에서 30%만 혼입 — 방위색 규약 유지.
         /// </summary>
         private static Color ComputeOutcropRockColor(NationType nation, float wx, float wz)
@@ -902,7 +976,11 @@ namespace ProjectName.Systems
             {
                 return new Color(0.62f, 0.42f, 0.28f);            // 적갈 사암
             }
-            // 동·북(및 None/Dracula 기본): 회청 화강암 + 녹색 이끼 얼룩
+            if (nation == NationType.North)
+            {
+                return new Color(0.45f, 0.47f, 0.50f);            // SNOWFIELD: 회청 설암 — 이끼 얼룩 없음
+            }
+            // 동(및 None/Dracula 기본): 회청 화강암 + 녹색 이끼 얼룩
             Color rock = new Color(0.45f, 0.47f, 0.50f);
             float moss = Mathf.PerlinNoise(wx * 0.22f + 131.7f, wz * 0.22f + 57.3f);
             float mossW = TerrainShape.Smoothstep(0.52f, 0.78f, moss) * 0.45f;

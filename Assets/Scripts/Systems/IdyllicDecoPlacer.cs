@@ -93,6 +93,7 @@ namespace ProjectName.Systems
         const float GRASS_MIN_DIST = 1.5f;    // 잔디는 완화된 최소간격
         const float GRASS_TILT_DEG = 8f;      // 기울기 ±8°
         const int   GRASS_NATION_CAP = 2000;  // CC1: 8000→2000 (먼 곳 개활지 포인트, 동적 커버와 분담)
+        const int   GRASS_NATION_CAP_NORTH = 600; // SNOWFIELD: 북(설원) 정적 잔디 상한 — 눈밭 개활지 포인트만 (동적 0.15×와 분담)
         const float GRASS_MASK_HI = 0.50f;    // 꽃밭/숲 마스크 고밀도 임계
         const float GRASS_DENSE_SUB = 4f;     // 마스크 내부 4×4 서브그리드 (GRASS_SPACING 6.5m 셀 어디서든 최대 포장 — 4/㎡ 근사)
 
@@ -159,6 +160,7 @@ namespace ProjectName.Systems
             public List<WPrefab> meadows = new List<WPrefab>();
             public float treeSpacing = TREE_SPACING;
             public int treeCap, rockCap, bushCap, flowerCap, meadowCap;
+            public int grassCap;   // SNOWFIELD: 정적 잔디 상한 (DefaultCaps에서 GRASS_NATION_CAP 기본, 북=600 별도)
         }
 
         internal class CategoriesR4
@@ -307,9 +309,9 @@ namespace ProjectName.Systems
                 Sum(treeCnt), Sum(rockCnt), Sum(bushCnt), Sum(flowerCnt), Sum(meadowCnt),
                 empirePlaced, reedsPlaced, lilyPlaced, lakeTreePlaced, layoutHash));
             Debug.Log(string.Format(
-                "[IdyllicDecoPlacer][AA5] GrassTusks={0}||FlowerMeadowPatches={1}||GrassCap={2}/nation||" +
+                "[IdyllicDecoPlacer][AA5] GrassTusks={0}||FlowerMeadowPatches={1}||GrassCap={2}/nation||GrassCapNorth={4}||" +
                 "EstDrawCalls={3} (GPU instancing on: 1 mesh per 1 draw-call batch)",
-                grassCnt, fmPatchCnt, GRASS_NATION_CAP, grassCnt + fmPatchCnt));
+                grassCnt, fmPatchCnt, GRASS_NATION_CAP, grassCnt + fmPatchCnt, GRASS_NATION_CAP_NORTH));
             // B4: 흙길 가장자리 데코 배치 합계 (AA5 로그와 동일한 || 구분 형식)
             Debug.Log(string.Format(
                 "[IdyllicDecoPlacer][B4] PathEdgeDeco={0}||Cap={1}/nation||Keep={2}m||Band={3}~{4}m||Mix=rock40/grass30/flower30",
@@ -521,6 +523,7 @@ namespace ProjectName.Systems
                 if (!treeHash.IsFree(p, TREE_MIN_DIST)) continue;
                 if (!propHash.IsFree(p, ROCK_MIN_DIST)) continue;
                 var nat = NationTerrainController.GetNationFromPosition(new Vector3(x, 0f, z));
+                if (nat == NationType.North) continue;   // SNOWFIELD: 북 수변 초록 수양버들 금지 — 눈밭 복원
                 var pool = (nat == NationType.Empire && cat.willowPink.Count > 0 && rng.NextDouble() < WILLOW_PINK_RATIO)
                     ? cat.willowPink : cat.willowGreen;
                 if (pool.Count == 0) pool = cat.willow;   // Green 필터 실패 시 기존 willow 풀 폴백
@@ -691,9 +694,10 @@ namespace ProjectName.Systems
             }
             int placed = 0;
             float lim = BOUND_MAX - GRASS_JITTER;
-            for (float gx = -lim; gx <= lim && placed < GRASS_NATION_CAP; gx += GRASS_SPACING)
+            int grassCap = p.grassCap;   // SNOWFIELD: 북=600 별도 상한 (DefaultCaps가 GRASS_NATION_CAP 기본)
+            for (float gx = -lim; gx <= lim && placed < grassCap; gx += GRASS_SPACING)
             {
-                for (float gz = -lim; gz <= lim && placed < GRASS_NATION_CAP; gz += GRASS_SPACING)
+                for (float gz = -lim; gz <= lim && placed < grassCap; gz += GRASS_SPACING)
                 {
                     if (!InBounds(gx, gz, origin)) continue;
                     if (IsInSpawnExclusion(gx, gz)) continue;
@@ -703,7 +707,7 @@ namespace ProjectName.Systems
                     bool dense = TerrainShape.GetFlowerPatchMask(fx, fz) > GRASS_MASK_HI
                         || TerrainShape.GetForestPatchMask(fx, fz, p.nation, T_R4_BASE) > GRASS_MASK_HI;
                     int subs = dense ? (int)GRASS_DENSE_SUB : 1;
-                    for (int si = 0; si < subs * subs && placed < GRASS_NATION_CAP; si++)
+                    for (int si = 0; si < subs * subs && placed < grassCap; si++)
                     {
                         int sx = si % subs, sz = si / subs;
                         float off = GRASS_SPACING / (subs + 1f);
@@ -907,6 +911,18 @@ namespace ProjectName.Systems
             return _shorePool;
         }
 
+        /// <summary>SNOWFIELD: 북 전용 순수 침엽 풀(100%) — 능선 폴백에서 초록 활엽 혼입 방지.</summary>
+        static List<WPrefab> _northFirPool;
+        static List<WPrefab> NorthFirPool(CategoriesR4 cat)
+        {
+            if (_northFirPool == null)
+            {
+                _northFirPool = new List<WPrefab>();
+                if (cat.fir != null) AddPool(_northFirPool, cat.fir, 1f, 0.8f, 1.1f, true);
+            }
+            return _northFirPool;
+        }
+
         /// <summary>나무 단일 배치 (국가/상한/호수/최소간격/경사 검사 후). true = 배치됨.</summary>
         static bool TryPlaceTree(NationDecoProfile p, CategoriesR4 cat, Vector3 origin,
             Transform parent, SpatialHash treeHash, int[] treeCnt, System.Random rng, float x, float z)
@@ -933,8 +949,9 @@ namespace ProjectName.Systems
             if (pickPool == p.trees)
             {
                 if (TerrainShape.GetRidgeBoostMask(x, z, p.nation, T_R4_BASE) > 0.4f && cat.fir != null && cat.fir.Count > 0)
-                    pickPool = FirPool(cat);
-                else if (NearestLakeShoreDist(x, z) <= 18f && cat.willow != null && cat.willow.Count > 0)
+                    pickPool = p.nation == NationType.North ? NorthFirPool(cat) : FirPool(cat);   // SNOWFIELD: 북 능선=순수 침엽
+                else if (NearestLakeShoreDist(x, z) <= 18f && cat.willow != null && cat.willow.Count > 0
+                    && p.nation != NationType.North)   // SNOWFIELD: 북 수변 초록 버드나무/활엽 금지
                     pickPool = ShorePool(cat);
             }
             WPrefab entry = PickWeighted(pickPool, rng);
@@ -1534,6 +1551,24 @@ namespace ProjectName.Systems
             return list;
         }
 
+        /// <summary>SNOWFIELD: 흰색 계열(White/Snow/Pale) 프리팹 필터 — FilterPrefabs의 contains 변형. 부재 시 빈 리스트(호출부가 기존 풀 유지).</summary>
+        static List<GameObject> FilterWhiteTrees(List<GameObject> src)
+        {
+            var list = new List<GameObject>();
+            if (src == null) return list;
+            for (int i = 0; i < src.Count; i++)
+            {
+                var g = src[i];
+                if (g == null) continue;
+                string n = g.name;
+                if (n.IndexOf("White", System.StringComparison.OrdinalIgnoreCase) >= 0
+                    || n.IndexOf("Snow", System.StringComparison.OrdinalIgnoreCase) >= 0
+                    || n.IndexOf("Pale", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    list.Add(g);
+            }
+            return list;
+        }
+
         static float RandomRange(System.Random rng, float min, float max)
         {
             return (float)(rng.NextDouble() * (max - min) + min);
@@ -1824,6 +1859,7 @@ namespace ProjectName.Systems
             p.bushCap = 650;
             p.flowerCap = 6800;
             p.meadowCap = 280;
+            p.grassCap = GRASS_NATION_CAP;
         }
 
         /// <summary>T-R4 국가별 NationDecoProfile (체크리스트 1).</summary>
@@ -1894,23 +1930,36 @@ namespace ProjectName.Systems
                     break;
 
                 case NationType.North:
-                    // 침엽70/활엽20, 바위↑, 보라꽃
-                    AddPool(p.trees, cat.fir, 70f, 0.85f, 1.2f, true);
-                    AddPool(p.trees, cat.broadGreen, 20f, 0.9f, 1.15f, true);
-                    AddPool(p.trees, cat.willow, 10f, 0.85f, 1.15f, true);
-                    AddPool(p.fantasyTrees, cat.broadPurple, 1f, 0.85f, 1.2f, true);
-                    AddPool(p.fantasyTrees, cat.blossom, 1f, 0.7f, 0.95f, true);
+                {
+                    // SNOWFIELD: 침엽 단일 우세(90) — 초록 활엽(broadGreen)/버드나무(willow) 제거 (눈밭이 연두로 보이는 원인 차단)
+                    AddPool(p.trees, cat.fir, 90f, 0.85f, 1.2f, true);
+                    // 판타지나무(이국 소군집)는 흰색 계열(White/Snow/Pale)만 선택 시도 — 프리팹 부재 시 기존 broadPurple/blossom 유지
+                    var fantasyAll = new List<GameObject>();
+                    fantasyAll.AddRange(cat.broadPurple);
+                    fantasyAll.AddRange(cat.blossom);
+                    var fantasyWhite = FilterWhiteTrees(fantasyAll);
+                    if (fantasyWhite.Count > 0)
+                    {
+                        AddPool(p.fantasyTrees, fantasyWhite, 1f, 0.85f, 1.2f, true);
+                    }
+                    else
+                    {
+                        AddPool(p.fantasyTrees, cat.broadPurple, 1f, 0.85f, 1.2f, true);
+                        AddPool(p.fantasyTrees, cat.blossom, 1f, 0.7f, 0.95f, true);
+                    }
                     AddPool(p.bushes, cat.bushes, 1f, 0.7f, 1.0f, false);
                     AddPool(p.rocks, cat.rockBig, 4f, 0.9f, 1.25f, true);     // 바위↑
                     AddPool(p.rocks, cat.rockMed, 3f, 0.8f, 1.15f, false);
                     AddPool(p.rocks, cat.rockSmall, 3f, 0.6f, 0.9f, false);
                     p.rockCap = 520;
+                    p.grassCap = GRASS_NATION_CAP_NORTH;   // SNOWFIELD: 정적 잔디 상한 2000→600
                     AddPool(p.flowers, cat.flowerPurple, 2f, 0.8f, 1.2f, false);
                     AddPool(p.flowers, cat.flowerBlue, 1f, 0.8f, 1.2f, false);
-                    AddPool(p.flowers, cat.flowerWhite, 1f, 0.8f, 1.2f, false);
+                    AddPool(p.flowers, cat.flowerWhite, 2f, 0.8f, 1.2f, false);   // SNOWFIELD: 흰꽃 1→2 상향
                     AddPool(p.meadows, cat.meadowPurple, 1f, 0.9f, 1.3f, false);
                     AddPool(p.meadows, cat.meadowBlue, 1f, 0.9f, 1.3f, false);
                     break;
+                }
 
                 default:
                     // Empire 등 — 일반 안전 기본값

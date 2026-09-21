@@ -1,6 +1,44 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-21 (P30 완결 — 적/아군 병사 상호작용 구분 + 마약 밀매 + 영주 중독 포섭, 커밋 eb225f35)
+> **최종 갱신:** 2026-09-21 (P31 — 국가별 마을 6개 배치 + 흙길 + 상점 실외 + 북쪽 눈밭 복원)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-21 ✅ P31 — 국가별 마을 6개 + 흙길 + 상점 실외 + 북쪽 눈밭 — 컴파일 CS 0)
+
+> **입력**: "국가마다 마을 6개(흙길만 먼저 배치)" + "상점을 실내 아닌 마을에 배치" + "국가 특성에 맞게 흙길 색 조금씩 변형" + "북쪽 지형 회백색으로(연두 해결, 잔디 줄이되 흰색, 눈 어울리는 나무)" + "진행".
+>
+> **핵심 설계**: 마을 좌표는 영지(TerritoryDatabase) 세계좌표 기반 결정론(`VillagePlacementSystem`, 4국가×6=24). 흙길은 지형 텍스처 픽셀 오버레이(`DirtPathSegments`)에 마을 연결 세그먼트 추가 + 픽셀별 `GetNationFromPosition`으로 국가 색 미세 변형. 상점은 실내(IndoorScene)에서 **마을 대표 실외 1곳**(국가당 1, 총 4)으로 이전, `ShopPlaceholder` 부착(실외 E키→ShopWindowUTK, BuildingTrigger 미부착). 북쪽 눈밭은 초록 나무·잔디·이끼 바위 제거→침엽+흰꽃+차가운 잔디+회청 설암.
+
+### P31-A (Phase 1) 마을 좌표 — 신규 VillagePlacementSystem.cs
+- `public static class VillagePlacementSystem`: `GetVillages(nation)` 6개 / `GetAllVillages()` 24개 / `ResolveVillageIndexAt(nation,pos)` / `VillagesPerNation=6`·`VillageRadius=40f`.
+- `VillageInfo{nation,index(0~5),center,radius(40),castleCenter,isRepresentative(index==0)}`.
+- 좌표 = 국가 영지 worldPosition(링1~3 인덱스 1,4,6,9,11,14)에서 성 38~46m 오프셋, 각도 슬라이스(±30°) 유지, 결정론 `System.Random` 고정 시드. `ComputeVillage`는 `NationTerrainController` 미호출 → **static 초기화 순환 없음**.
+
+### P31-B (Phase 2) 마을 흙길 + 국가별 색 — NationTerrainController.cs
+- `BuildDirtPathSegments`에 `AppendVillageConnections(list,spokes)` 추가 — 24마을 각각을 네트워크(스포크+링) 최근접 세그먼트 수선 발에 수직 접속. → `DirtPaths`(IReadOnlyList) 자동 반영 → 데코 `IsNearDirtPath`로 마을 길에도 나무/바위 안 깔림. try/catch 가드.
+- **국가별 흙길 색**: `GetDirtColorForNation`(동=녹갈/서=황토/남=적갈/북=회백/황제국=금/드라큘라=어두움) 신설(기본 머드색 ±0.05~0.10 변형). `PaintDirtPaths`가 픽셀별 `GetNationFromPosition`으로 선택 — 영토 경계 자연 전환. 성능: softWidth 내 픽셀만 호출.
+
+### P31-C (Phase 3) 북쪽 눈밭 복원 — 3파일
+- `IdyllicGrassCover.cs`: `NORTH_DENSITY_FACTOR` 0.35→**0.15**, `GrassTintNorth`→(0.94,0.97,1.00) 차가움.
+- `NationTerrainController.cs`: `ComputeOutcropRockColor` north 이끼 제거 → 회청 설암(0.45,0.47,0.50), 동은 이끼 유지.
+- `IdyllicDecoPlacer.cs`: `BuildProfile(North)` 초록 활엽 20→0·버드나무 10→0 제거, 침엽(fir) 70→**90**, `flowerWhite` 1→2, 정적 잔디 `grassCap=600`(일반 2000). 북 능선 순수 침엽 풀, 호수 수변 버드나무 북쪽 skip(호수별 독립 rng — 타국 불변). White/Snow/Pale 나무 프리팹 부재 → `FilterWhiteTrees` 폴백(추후 추가 시 자동).
+
+### P31-D (Phase 4) 마을 건물 — 신규 VillageBuilder.cs
+- `BuildAllVillages()`(진입점: CoreSystemsBootstrap.BuildAllTerritories 마지막 1줄, `Application.isPlaying` 가드 + `Villages_Root` 중복 방지).
+- 24마을: 광장(원판)+우물+집4~6(반경8~28m 링, 안팎 교대, 최소 6m `EnforceSpacing`)+창고1. `hut` GLB 우선(RuntimeModelLoader) → 프리미티브 큐브 조합 폴백. 지형 y=GetHeightAt+1. 국가 틴트(동녹갈/서황토/남적갈/북회백). BuildingPlaceholder(NPCHouse/Other). 결정론 `layoutHash`.
+
+### P31-E (Phase 5) 상점 실외 이전 — VillageBuilder.CreateOutdoorShop
+- 대표 마을(4국가×index0)만: center 반경 10~15m 실외 상점 건물(노란빛)+`BuildingPlaceholder(Shop/"상점")`+**`ShopPlaceholder` 부착**(E키 3m→ShopWindowUTK). **BuildingTrigger/IndoorTransitionSetup 미부착**(실내 진입 방지). 기존 성 내부 상점(SpawnInteriorFixtures)은 유지(롤백 안전).
+- ⚠️ `ShopPlaceholder`는 `ProjectName.UI` asmdef라 Systems에서 직접 참조 불가 → **리플렉션** `Type.GetType("ProjectName.UI.ShopPlaceholder, ProjectName.UI")+AddComponent`(ArenaSystem/GameEndingManager 패턴). 실패 시 경고 로그+건물만 배치.
+
+### P31 검증
+- 배치컴파일 **error CS 0** (VillagePlacement/VillageBuilder 포함 재컴파일 확인). global using `ProjectName.Core.Utils`(MaterialHelper) 정합.
+- 문서: ROADMAP P31 Phase 1~5 ✅ / QAPROGRESS / 영구메모리 / git commit+push(예정).
+- 다음 부트 확인: `[VillageBuilder] 전체 마을 빌드 완료: villages=24 outdoorShops=4 layoutHash=...`, `[IdyllicDecoPlacer][AA5] GrassCapNorth=600`, 대표마을 4곳 실외 E키→상점 창.
+
+### P31 이슈
+① ShopPlaceholder asmdef 리플렉션(위). ② White/Snow/Pale 나무 프리팹 부재 — 추후 추가 시 자동 반영. ③ 흙길 팅 도로는 1000m까지라 먼 곳 마을(1450m 근처)은 스포크/연결선으로만 도달(링 도로 미연결).
 
 ---
 

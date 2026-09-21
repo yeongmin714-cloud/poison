@@ -3094,6 +3094,28 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ---
 
+## 🏘️ 2026-09-21: P31 — 국가별 마을 6개 배치 + 흙길 + 상점 실외 + 북쪽 눈밭 복원
+
+> **입력**: "국가마다 마을 6개(흙길만 먼저 배치)", "상점을 실내 아닌 마을에 배치", "국가 특성에 맞게 흙길 색 조금씩 변형", "북쪽 지형 회백색으로(연두 해결, 잔디 줄이되 흰색, 눈 어울리는 나무)".
+
+> **핵심 설계**: 마을 좌표는 영지(ТerritoryDatabase) 세계좌표 기반 결정론(`VillagePlacementSystem`, 4국가×6=24). 흙길은 지형 텍스처 픽셀 오버레이(`DirtPathSegments`)에 마을 연결 세그먼트 추가 + 픽셀별 `GetNationFromPosition`으로 국가 색 미세 변형. 상점은 실내(IndoorScene)에서 **마을 대표 실외 1곳**(국가당 1, 총 4)으로 이전, `ShopPlaceholder` 부착(실외 E키→ShopWindowUTK, BuildingTrigger 미부착). 북쪽 눈밭은 초록 나무·잔디·이끼 바위 제거→침엽+흰꽃+차가운 잔디+회청 설암.
+
+| Phase | 범위 | 상태 |
+|:---|:---|:---:|
+| Phase 1 (P31-A) | `VillagePlacementSystem` — 4국가×6=24 마을 결정론 좌표(영지 worldPosition 기반, 성 38~46m 오프셋, 각도 슬라이스 유지) | ✅ |
+| Phase 2 (P31-B) | 마을 ← 도로망 수직 접속(`AppendVillageConnections`) + 국가별 흙길 색 미세 변형(`GetDirtColorForNation`, 픽셀별 판정) | ✅ |
+| Phase 3 (P31-C) | 북쪽 눈밭 복원 — 초록 활엽/버드나무 제거·침엽 90·흰꽃↑, 잔디 밀도 15%+차가운 틴트, 이끼 바위→회청 설암 | ✅ |
+| Phase 4 (P31-D) | `VillageBuilder` — 24마을 광장/집4~6/창고/우물, 국가 틴트, 최소 간격 6m, 결정론 | ✅ |
+| Phase 5 (P31-E) | 상점 실외 이전 — 대표 마을 4곳 실외 상점 + `ShopPlaceholder`(E키), 기존 실내 상점 유지(롤백 안전) | ✅ |
+
+**Phase 완료**: 1(좌표)·2(도로+색)·3(눈밭)·4(건물)·5(상점실외) 전부 ✅ — 배치컴파일 error CS 0.
+
+**주요 변경 파일**: 신규 `VillagePlacementSystem.cs`·`VillageBuilder.cs`, 수정 `NationTerrainController.cs`(흙길색+마을도로+설암)·`IdyllicDecoPlacer.cs`(북쪽 침엽/잔디)·`IdyllicGrassCover.cs`(북쪽 밀도·틴트)·`CoreSystemsBootstrap.cs`(BuildAllVillages 호출).
+
+**이슈**: ① `ShopPlaceholder`는 `ProjectName.UI` asmdef라 Systems에서 직접 참조 불가 → 기존 규약대로 리플렉션 `Type.GetType(...)+AddComponent`(ArenaSystem/GameEndingManager 패턴). ② Idyllic 에셋에 White/Snow/Pale 나무 프리팹 부재 확인 → 추후 추가 시 fantasyTrees 필터(`FilterWhiteTrees`)로 자동 반영. ③ `WorldMap 확장 1450m vs 스플랫 1000m` — 마을은 영지 좌표(최대 1450m)에 있으나 흙길 링 도로는 1000m까지라 먼 곳 마을은 스포크/연결선으로만 도달.
+
+---
+
 ## ⚔️ 2026-09-21: P29 — 낚시 시스템 메인 씬 배선 (Phase 1·2) (P29-45)
 
 > **입력**: "낚시 구현하자" + "계획 짜봐" + "호수는 메인씬에 배치되어 있을텐데 거기서 낚시 가능하게" + "낚시대 GLB 목록 추가 + Phase 1부터 진행". 커밋 7918c5cb.

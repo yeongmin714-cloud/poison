@@ -262,5 +262,8 @@ public class CoreSystemsBootstrap : MonoBehaviour
         {
             Debug.LogWarning("[CoreSystemsBootstrap] TerritoryBuilder가 없어 빌드 불가");
         }
+
+        // [P31-C] 24개 마을 절차 건물 배치 + 대표 마을 실외 상점 (VillagePlacementSystem 좌표 기반)
+        VillageBuilder.BuildAllVillages();
     }
 }
