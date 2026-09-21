@@ -1,6 +1,37 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-21 (P27 — 글래스모피즘 시계 좌상단 + 미니맵 원형화 우상단 분리, 커밋 b74aca72)
+> **최종 갱신:** 2026-09-21 (P28 — Ctrl+좌클릭 대상 관찰: 병사 상호작용 + 몬스터 정보창, 커밋 95339851)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-21 ✅ P28 — Ctrl+좌클릭 대상 관찰 — 커밋 95339851)
+
+> **입력**: "기능 추가 — Ctrl 누른 채 병사 좌클릭 시 F키와 동일하게 병사 상호작용 창, 몬스터 클릭 시 몬스터 정보가 나오게" + "몬스터 정보에는 이름/체력/스탯/레벨 나오는 UI 만들어서 계획에 포함해 진행" + "진행".
+
+### 요구·설계 결정
+- **역할 재분배**: 기존 Ctrl+좌클릭 몬스터=**공격 명령**(Enemy 분류) → 이제 **몬스터=정보**, **공격 명령은 우클릭 경로 유지**(RTSCommandSystem 우클릭 공격/이동 유지 — 명령 손실 없음).
+- **병사 Ctrl+좌클릭 = F키와 동일한 통합 상호작용창**(SoldierInteractUTK, RaiseInteract 재사용).
+- **몬스터 정보창은 기존에 없음** → 신설(MonsterInfoUTK).
+
+### P28-1 ContextCommandRouter.TryRouteDirectTarget (신규 분기)
+- Ctrl+좌클릭(단순 클릭) release 시 **레이캐스트**(Camera.main.ScreenPointToRay + Physics.RaycastAll 200f)로 커서 아래 실제 GameObject 획득, **거리 오름차 정렬**(전경 우선).
+- (a) `GetComponentInParent<GuardPlaceholder>`(IsAlive) → **SoldierInteractBridge.RaiseInteract(guard)** + 좌클릭 소비 (F키와 동일 통합창).
+- (b) `GetComponentInParent<AnimalAI>`(IsAlive, 태그 Monster) → **SoldierInteractBridge.RaiseMonsterInfo(ai)** + 좌클릭 소비.
+- (c) 미적중 → 기존 `switch(kind)` 공격(Farm/Gather/Mine 작업) 로직 그대로 유지(회귀 방지). 사망체는 기존 분류에 위임.
+- **GetComponentInParent 필수** — 몬스터는 부모 루트 AnimalAI + 자식 콜라이더 히트 구조.
+
+### P28-2 SoldierInteractBridge에 몬스터 이벤트 추가
+- `OnMonsterInfoRequested`(Action\<AnimalAI\>) + `RaiseMonsterInfo(monster)`.
+- Systems→UI 순환참조 회피 — 기존 상호작용 브리지(Tell/RaiseInteract)와 동일 패턴.
+
+### P28-3 MonsterInfoUTK 신설 (고품질 정보창)
+- UTKWindowBase(┈GuardInfoUTK 패턴): 싱글턴 + Ensure() + static Open(AnimalAI) + BootstrapBridge(AfterSceneLoad 구독).
+- **표시**: 🐾 이름 + 티어등급(MonsterDatabase.GetTierLabel)/Lv + **HP바(현재/최대, 실시간·비율색 ≥0.6초록/≥0.3노랑/빨강)** + 공격력(MonsterDef.baseDamage)/속도(CurrentSpeed)/등급 + 설명 + 드랍 아이템(MonsterDataReader.GetMonsterInfoByName → DropItems, 없으면 "정보 없음").
+- **250ms 폴링**(schedule.Execute().Every) — HP 실시간 + **사망/대상 해제 시 자동 닫기**(OnWindowOpen 시작/OnWindowClosed 정지·해제).
+- 순수 UTK 스타일(컬러/레이아웃) — 신규 PNG 베이크 없음(순수 위젯으로 고품질).
+
+### 검증
+- 배치컴파일 **error CS=0** + EditMode **288/288**(run_tests.sh editmode passed). 커밋 95339851 4파일(+454).
 
 ---
 
