@@ -213,9 +213,7 @@ namespace ProjectName.Systems
             // 캡슐 중심 = 표면 + 1 + 여유 → ClampToGroundByHeight 텔레포트 트리거 없음.
             player.transform.position = new Vector3(0f, SurfaceY(0f, 0f) + 1.02f, 0f);
 
-            // 2026-09-11: 공격 범위 표시기 부착 — 무기 타입별 사거리 링(지면). 맨손 때는 자동 숨김.
-            // [P23] PlayerRangeRing(PlayerCombat.Start)로 이관 — 중복 링 제거
-            // WeaponRangeIndicator.EnsureOn(player.transform);
+            // 사거리 링은 P24에서 완전 제거 (PlayerRangeRing/WeaponRangeIndicator 폐기)
 
             // [TEST25-66차] 데모 자동장착 — 시작 즉시 방어구 풀셋(wood) + 창이 보이도록.
             // 뿌리(실측): Awake 중 즉시 장착하면 ArmorVisualAttachSystem.AttachRoutine 코루틴이 부팅 프레임에서

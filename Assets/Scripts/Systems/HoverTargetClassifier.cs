@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using ProjectName.Core;
 using UnityEngine;
 
@@ -8,7 +7,8 @@ namespace ProjectName.Systems
 {
     /// <summary>
     /// 상호작용 입력 코어 — 마우스 아래 대상 분류기 (순수 스태틱 유틸리티).
-    /// 화면 좌표 → 카메라 레이 → RaycastAll → 태그/컴포넌트/이름으로 대상 종류 판정.
+    /// 화면 좌표 → 카메라 레이 → RaycastAll → 태그/컴포넌트로 대상 종류 판정.
+    /// 이름 매칭 없음 — 비인터랙티브 환경 오브젝트(풀 장식 등)까지 표식으로 오분류되는 것 방지(테스트 40).
     /// Mine / Enemy / Farm / Gather / Ally / Terrain 중 가장 의미 있는(가장 앞선 비-지형) 종류를 반환.
     /// RTSCommandSystem/PlayerCombat/TopDownCameraController 본체를 수정하지 않고,
     /// 이들이 이미 게시한 태그·컴포넌트 규칙만 읽는다.
@@ -19,8 +19,8 @@ namespace ProjectName.Systems
         {
             None,       // 레이캐스트 무적중 / 카메라 없음
             Enemy,      // 태그 Enemy|Monster|Guard|DraculaLord|Boss|Lord|DraculaGuard
-            Farm,       // FarmPlot 컴포넌트 또는 이름 farm/경지
-            Gather,     // HerbPickup 컴포넌트 또는 이름 gather/grass/herb/풀/약초
+            Farm,       // FarmPlot 컴포넌트 보유 시
+            Gather,     // HerbPickup 컴포넌트(부모 체인 포함) 보유 시
             Ally,       // 태그 Player|RecruitedSoldier 또는 GuardPlaceholder(IsRecruited)
             Terrain,    // 나머지 지형 (첫 지형 히트)
             Mine        // ResourceNode(Wood/Stone/IronOre) 자원 노드 — 광질 대상
@@ -70,10 +70,10 @@ namespace ProjectName.Systems
             }
         }
 
-        /// <summary>단일 객체 분류 — 태그 → 컴포넌트 → 이름 순.</summary>
+        /// <summary>단일 객체 분류 — 태그 → 컴포넌트 순. 이름 매칭 없음(테스트 40).</summary>
         private static TargetKind ClassifyOne(GameObject go)
         {
-            // 0) Mine — 자원 노드(Wood/Stone/IronOre) 최우선 판정 (적/밭 태그·이름 충돌보다 먼저)
+            // 0) Mine — 자원 노드(Wood/Stone/IronOre) 최우선 판정 (적/밭 태그 충돌보다 먼저)
             if (go.GetComponentInParent<ResourceNode>() != null) return TargetKind.Mine;
 
             // 1) 태그 기반 (Enemy 우선 — 적이 무조건 우선)
@@ -85,13 +85,15 @@ namespace ProjectName.Systems
             var guard = go.GetComponent<GuardPlaceholder>();
             if (guard != null && guard.IsRecruited) return TargetKind.Ally;
 
-            // 3) Farm — 경작지(밀�) 프리셋 컴포넌트 또는 이름 매칭
+            // 3) Farm — FarmPlot 컴포넌트 보유 시만. 이름 매칭 제거 — 비인터랙티브 환경
+            //    오브젝트까지 밭으로 오분류되는 것 방지(테스트 40).
             if (go.GetComponent<FarmPlot>() != null) return TargetKind.Farm;
-            if (ContainsAny(go.name, "farm", "field", "경지", "밭")) return TargetKind.Farm;
 
-            // 4) Gather — 약초(HerbPickup) 또는 이름 매칭
-            if (go.GetComponent<HerbPickup>() != null) return TargetKind.Gather;
-            if (ContainsAny(go.name, "gather", "grass", "herb", "풀", "약초", "나물")) return TargetKind.Gather;
+            // 4) Gather — HerbPickup 컴포넌트 보유 시만(부모 체인 포함 — 약초 프리팹 하위
+            //    콜라이더 히트도 커버). 이름 매칭 제거 — 풀 장식(Grass 등)이 삽 커서로
+            //    오분류되는 것 방지(테스트 40). Farm이 먼저 판정되므로 Ready 밭(FarmPlot에
+            //    AddComponent된 HerbPickup)은 Farm으로 유지된다.
+            if (go.GetComponentInParent<HerbPickup>() != null) return TargetKind.Gather;
 
             // 5) 지형
             return TargetKind.Terrain;
@@ -103,18 +105,6 @@ namespace ProjectName.Systems
             return tag == "Enemy" || tag == "Monster" || tag == "Guard"
                 || tag == "DraculaLord" || tag == "Boss" || tag == "Lord"
                 || tag == "DraculaGuard";
-        }
-
-        private static bool ContainsAny(string s, params string[] keys)
-        {
-            if (string.IsNullOrEmpty(s)) return false;
-            string lower = s.ToLowerInvariant();
-            for (int i = 0; i < keys.Length; i++)
-            {
-                if (keys[i] != null && lower.IndexOf(keys[i].ToLowerInvariant(), System.StringComparison.Ordinal) >= 0)
-                    return true;
-            }
-            return false;
         }
     }
 }
