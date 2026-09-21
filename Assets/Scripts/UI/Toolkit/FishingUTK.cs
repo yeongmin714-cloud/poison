@@ -34,6 +34,7 @@ namespace ProjectName.UI.Toolkit
         private readonly VisualElement _bar;
         private readonly VisualElement _sweet;
         private readonly VisualElement _pin;
+        private readonly VisualElement _bite;   // 입질 대기 물결 찌
         private readonly Label _hintLabel;
         private readonly Label _popupLabel;
         private readonly VisualElement _popupHost;
@@ -69,27 +70,48 @@ namespace ProjectName.UI.Toolkit
             barRow.style.width = 300f;
             barRow.style.height = 34f;
             barRow.style.position = Position.Relative;
+            barRow.AddToClassList("utk-slot");
             _content.Add(barRow);
 
+            // 바 트랙 — 베이크 물결 프레임 (P29 고품질화, 프리미티브 회색 교체)
             _bar = new VisualElement();
             _bar.style.position = Position.Absolute;
             _bar.style.left = 0; _bar.style.top = 0; _bar.style.right = 0; _bar.style.bottom = 0;
-            _bar.style.backgroundColor = new StyleColor(Color.gray);
+            _bar.AddToClassList("utk-slot");
+            _bar.style.backgroundImage = UTKTextureSafe.ToBackground(Resources.Load<Texture2D>("UI/FishingBarFrame"));
+            _bar.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
             barRow.Add(_bar);
 
-            _sweet = new VisualElement();   // 스위트스팟 (초록)
+            // 스위트스팟 — 베이크 황금 존 (초록 사각 교체)
+            _sweet = new VisualElement();
             _sweet.style.position = Position.Absolute;
-            _sweet.style.top = 0; _sweet.style.bottom = 0;
-            _sweet.style.width = 30f;
-            _sweet.style.backgroundColor = new StyleColor(new Color(0f, 0.8f, 0f, 0.6f));
+            _sweet.style.top = -2f; _sweet.style.bottom = -2f;
+            _sweet.style.width = 34f;
+            _sweet.AddToClassList("utk-slot");
+            _sweet.style.backgroundImage = UTKTextureSafe.ToBackground(Resources.Load<Texture2D>("UI/FishingSweetspot"));
+            _sweet.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
             barRow.Add(_sweet);
 
-            _pin = new VisualElement();      // 이동 핀 (빨강)
+            // 핀 — 베이크 화살표 (빨강 4px 교체)
+            _pin = new VisualElement();
             _pin.style.position = Position.Absolute;
             _pin.style.top = -2f; _pin.style.bottom = -2f;
-            _pin.style.width = 4f;
-            _pin.style.backgroundColor = new StyleColor(Color.red);
+            _pin.style.width = 24f;
+            _pin.AddToClassList("utk-slot");
+            _pin.style.backgroundImage = UTKTextureSafe.ToBackground(Resources.Load<Texture2D>("UI/FishingPin"));
+            _pin.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
             barRow.Add(_pin);
+
+            // 대기 중 물결 찌 — 입질 대기 시 표시 (P29 고품질화 신규)
+            _bite = new VisualElement();
+            _bite.style.position = Position.Absolute;
+            _bite.style.alignSelf = Align.Center;
+            _bite.style.left = 126f; _bite.style.top = 4f;
+            _bite.style.width = 48f; _bite.style.height = 36f;
+            _bite.AddToClassList("utk-slot");
+            _bite.style.backgroundImage = UTKTextureSafe.ToBackground(Resources.Load<Texture2D>("UI/FishingBite"));
+            _bite.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
+            _content.Add(_bite);
 
             _hintLabel = new Label("␣ 스페이스바: 잡기 | ESC: 취소");
             _hintLabel.style.fontSize = 13f;
@@ -184,12 +206,16 @@ namespace ProjectName.UI.Toolkit
             _popupHost.style.display = showPopup ? DisplayStyle.Flex : DisplayStyle.None;
             if (showPopup) _popupLabel.text = fs.PopupMessage;
 
-            // 미니게임 활성 시에만 바 표시
+            // 미니게임 활성 시에만 바/스위트/핀, 대기 중에는 물결 찌 표시
+            bool waiting = fs.IsWaitingForBite;
             bool active = fs.IsMinigameActive;
             _bar.visible = active;
             _sweet.visible = active;
             _pin.visible = active;
-            _hintLabel.style.display = active ? DisplayStyle.Flex : DisplayStyle.None;
+            _bite.visible = waiting;   // 입질 대기 중 찌 (P29 고품질화)
+            _hintLabel.style.display = (active || waiting) ? DisplayStyle.Flex : DisplayStyle.None;
+            if (waiting) _hintLabel.text = "🎣 입질을 기다리는 중... (ESC: 취소)";
+            else _hintLabel.text = "␣ 스페이스바: 잡기 | ESC: 취소";
 
             if (!active) return;
 

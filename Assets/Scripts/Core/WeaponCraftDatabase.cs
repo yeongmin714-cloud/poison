@@ -29,6 +29,8 @@ namespace ProjectName.Core
             new WeaponRecipe { ResultId="weapon_sword_wood",  Mat1Id="mat_boar_tusk", Mat1Count=2, Mat2Count=0, RequiredLevel=1, rarity=ItemRarity.Common },
             new WeaponRecipe { ResultId="weapon_spear_wood",  Mat1Id="mat_boar_tusk", Mat1Count=2, Mat2Id="mat_rabbit_fur", Mat2Count=1, RequiredLevel=2, rarity=ItemRarity.Common },
             new WeaponRecipe { ResultId="weapon_bow_wood",    Mat1Id="mat_boar_tusk", Mat1Count=1, Mat2Id="mat_rabbit_fur", Mat2Count=2, RequiredLevel=2, rarity=ItemRarity.Common },
+            // [P29] 낚시대 — 도구 (통나무 2 + 토끼털 1, Lv2). 시스템 기준 아이디(fishing_rod=FishingRodItem)와 일치.
+            new WeaponRecipe { ResultId="fishing_rod",        Mat1Id="mat_wood",      Mat1Count=2, Mat2Id="mat_rabbit_fur", Mat2Count=1, RequiredLevel=2, rarity=ItemRarity.Common },
 
             // ── Steel 티어 (늑대 이빨 = 날, 가죽/모피 = 손잡이/시위) — Uncommon ──
             new WeaponRecipe { ResultId="weapon_dagger_steel", Mat1Id="mat_wolf_tooth", Mat1Count=2, Mat2Count=0, RequiredLevel=5, rarity=ItemRarity.Uncommon },
